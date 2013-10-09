@@ -1,0 +1,58 @@
+#                                               -*- Autoconf -*-
+# Process this file with autoconf to produce a configure script.
+
+AC_PREREQ([2.69])
+AC_INIT([FULL-PACKAGE-NAME], [VERSION], [BUG-REPORT-ADDRESS])
+AC_CONFIG_SRCDIR([include.h])
+AC_CONFIG_HEADERS([config.h])
+
+# Checks for programs.
+AC_PROG_CXX
+AC_PROG_CC
+AC_PROG_MAKE_SET
+
+# Checks for libraries.
+# FIXME: Replace `main' with a function in `-latlas':
+AC_CHECK_LIB([atlas], [main])
+# FIXME: Replace `main' with a function in `-lcblas':
+AC_CHECK_LIB([cblas], [main])
+# FIXME: Replace `main' with a function in `-lcublas':
+AC_CHECK_LIB([cublas], [main])
+# FIXME: Replace `main' with a function in `-lcuda':
+AC_CHECK_LIB([cuda], [main])
+# FIXME: Replace `main' with a function in `-lcudart':
+AC_CHECK_LIB([cudart], [main])
+# FIXME: Replace `main' with a function in `-lcudpp_x86_64':
+AC_CHECK_LIB([cudpp_x86_64], [main])
+# FIXME: Replace `main' with a function in `-lcufft':
+AC_CHECK_LIB([cufft], [main])
+# FIXME: Replace `main' with a function in `-lcula_core':
+AC_CHECK_LIB([cula_core], [main])
+# FIXME: Replace `main' with a function in `-lcula_lapack':
+AC_CHECK_LIB([cula_lapack], [main])
+# FIXME: Replace `main' with a function in `-lcurand':
+AC_CHECK_LIB([curand], [main])
+# FIXME: Replace `main' with a function in `-llapack':
+AC_CHECK_LIB([lapack], [main])
+# FIXME: Replace `main' with a function in `-lmagma':
+AC_CHECK_LIB([magma], [main])
+# FIXME: Replace `main' with a function in `-lmagmablas':
+AC_CHECK_LIB([magmablas], [main])
+# FIXME: Replace `main' with a function in `-lpthread':
+AC_CHECK_LIB([pthread], [main])
+
+# Checks for header files.
+AC_CHECK_HEADERS([stdlib.h string.h sys/time.h])
+
+# Checks for typedefs, structures, and compiler characteristics.
+AC_CHECK_HEADER_STDBOOL
+AC_C_INLINE
+AC_TYPE_SIZE_T
+
+# Checks for library functions.
+AC_FUNC_MALLOC
+AC_FUNC_MMAP
+AC_CHECK_FUNCS([floor gettimeofday memset munmap sqrt])
+
+AC_CONFIG_FILES([Makefile])
+AC_OUTPUT

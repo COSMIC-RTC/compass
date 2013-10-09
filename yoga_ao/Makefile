@@ -1,0 +1,93 @@
+# these values filled in by    yorick -batch make.i
+Y_MAKEDIR=/home/training/yorick.git/relocate
+Y_EXE=/home/training/yorick.git/relocate/bin/yorick
+Y_EXE_PKGS=
+
+Y_EXE_HOME=/home/training/yorick.git/relocate
+Y_EXE_SITE=/home/training/yorick.git/relocate
+Y_HOME_PKG=
+
+# ----------------------------------------------------- optimization flags
+
+# options for make command line, e.g.-   make COPT=-g TGT=exe
+COPT=$(COPT_DEFAULT)
+TGT=$(DEFAULT_TGT)
+# ------------------------------------------------ macros for this package
+
+#DEBUG=1
+
+I_DIR=yorick
+
+PKG_NAME=yoga_ao
+PKG_I= $(I_DIR)/yoga_aolib.i
+
+OBJS= yoga_ao.o
+
+# change to give the executable a name other than yorick
+#PKG_EXENAME=yorick
+
+# PKG_DEPLIBS=-Lsomedir -lsomelib   for dependencies of this package
+PKG_DEPLIBS= $(YOGA_AO_DIR)/libyoga_ao/libyoga_ao.so #-lcula -L/usr/local/cula/lib 
+#PKG_DEPLIBS += ../cudpp/lib/libcudpp_x86_64.a
+PKG_DEPLIBS += $(YOGA_DIR)/libyoga/libyoga.so
+
+# set compiler (or rarely loader) flags specific to this package
+
+PKG_CPPFLAGS = -Wall -fno-common -I$(YOGA_AO_DIR)/libyoga_ao/include.h -I$(YOGA_DIR)/libyoga/include.h -I$(CUDA_PATH)/include #-I/usr/local/cula/include
+#PKG_CPPFLAGS = -I.. -I../cudpp/
+#-DDEBUG
+
+ifneq ($(DEBUG),)
+PKG_CPPFLAGS+= -g -DDEBUG
+endif
+
+PKG_LDFLAGS= 
+
+# list of additional package names you want in PKG_EXENAME
+# (typically Y_EXE_PKGS should be first here)
+EXTRA_PKGS=$(Y_EXE_PKGS)
+
+# list of additional files for clean
+PKG_CLEAN=
+
+# autoload file for this package, if any
+PKG_I_START=
+# non-pkg.i include files for this package, if any
+I_EXTRA = yoga_ao.i yoga_ao_utils.i yoga_turbu.i yoga_ao_ystruct.i
+PKG_I_EXTRA := $(addprefix $(I_DIR)/,$(I_EXTRA))
+
+# -------------------------------- standard targets and rules (in Makepkg)
+
+#--compiler-options -fpermissive 
+
+# set macros Makepkg uses in target and dependency names
+# DLL_TARGETS, LIB_TARGETS, EXE_TARGETS
+# are any additional targets (defined below) prerequisite to
+# the plugin library, archive library, and executable, respectively
+PKG_I_DEPS=$(PKG_I)
+Y_DISTMAKE=distmake
+
+include $(Y_MAKEDIR)/Make.cfg
+include $(Y_MAKEDIR)/Makepkg
+include $(Y_MAKEDIR)/Make$(TGT)
+
+# override macros Makepkg sets for rules and other macros
+# Y_HOME and Y_SITE in Make.cfg may not be correct (e.g.- relocatable)
+Y_HOME=$(Y_EXE_HOME)
+Y_SITE=$(Y_EXE_SITE)
+
+# reduce chance of yorick-1.5 corrupting this Makefile
+MAKE_TEMPLATE = protect-against-1.5
+
+yoga_ao.o: yoga_ao.cpp
+	@printf '\033[36m%s\033[31m%s\033[m\n' "Compiling     " $@
+	@$(CC) $(CFLAGS) $(PKG_CPPFLAGS) $< -c -o $@
+
+$(PKG_NAME): $(OBJS)
+	@printf '\033[36m%s\033[31m%s\033[m\n' "Linking       " $(PKG_NAME)
+	@$(CC) $(PKG_DEPLIBS) -o $@ $^ 
+
+#configure:
+#	yorick -batch make.i
+
+# -------------------------------------------------------- end of Makefile
