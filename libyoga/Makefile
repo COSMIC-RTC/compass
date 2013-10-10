@@ -25,7 +25,7 @@ endif
 OBJS := $(addprefix $(OBJ_DIR)/,$(LIB_OBJS))
 
 
-LIB_DEPLIBS= -fPIC -Wall -O0 -lstdc++ -L/usr/local/cuda/lib64 -L$(CULA_LIB_PATH_64) -lcuda -lcudart -lcublas -lcufft -lcurand -lcula_lapack_basic #-lcula_lapack_link -lcula_core 
+LIB_DEPLIBS= -fPIC -Wall -O0 -lstdc++ -L$(CUDA_LIB_DIR) -L$(CULA_LIB_PATH_64) -lcuda -lcudart -lcublas -lcufft -lcurand -lcula_lapack_basic #-lcula_lapack_link -lcula_core 
 ifneq ($(CUDPP_PATH),)
  LIB_DEPLIBS +=-L$(CUDPP_PATH)/lib -lcudpp_x86_64 
 endif
@@ -59,7 +59,7 @@ endif
 
 GCC ?= $(CC)
 NVCC = /usr/local/cuda/bin/nvcc
-NVCCFLAGS = -m64 -Xcompiler -fPIC -c --compiler-options -I$(CUH_DIR)  -I$(H_DIR) -I$(Y_MAKEDIR)/include -I/usr/local/cula/include -gencode arch=compute_12,code=sm_12
+NVCCFLAGS = -m64 -Xcompiler -fPIC -c --compiler-options -I$(CUH_DIR)  -I$(H_DIR) -I$(Y_MAKEDIR)/include -I$(CULA_INC_PATH) -gencode arch=compute_20,code=sm_20
 
 #-gencode arch=compute_11,code=sm_11 -gencode arch=compute_13,code=sm_13 -gencode arch=compute_20,code=sm_20 -gencode arch=compute_30,code=sm_30 -gencode arch=compute_35,code=sm_35 
 

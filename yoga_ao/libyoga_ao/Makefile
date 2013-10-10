@@ -30,7 +30,7 @@ MPICXX = $(GCC)
 endif
 
 NVCC = /usr/local/cuda/bin/nvcc
-NVCCFLAGS = -m64 -Xcompiler -fPIC -use_fast_math -c -I$(CUH_DIR)  -I$(H_DIR) -I../../libyoga/$(CUH_DIR)  -I../../libyoga/$(H_DIR) -gencode arch=compute_12,code=sm_12
+NVCCFLAGS = -m64 -Xcompiler -fPIC -use_fast_math -c -I$(CUH_DIR)  -I$(H_DIR) -I$(YOGA_DIR)/libyoga/$(CUH_DIR)  -I$(YOGA_DIR)/libyoga/$(H_DIR) -gencode arch=compute_20,code=sm_20
 #-gencode arch=compute_11,code=sm_11 -gencode arch=compute_13,code=sm_13 -gencode arch=compute_20,code=sm_20 -gencode arch=compute_30,code=sm_30 -gencode arch=compute_35,code=sm_35 #-I/usr/local/cula/include #-I../cudpp/include # --ptxas-options=-v #-arch sm_13 --compiler-options -fpermissive 
 
 all: $(LIB_NAME)
