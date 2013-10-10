@@ -381,16 +381,6 @@ extern sensors_compimg_tele;
    SEE ALSO:
  */
 
-extern sensors_publish_tele;
-/* DOCUMENT sensors_publish_tele
-   sensors_publish_tele,yoga_sensors_obj,nsensor
-
-   yoga_sensors_obj : the ySensors object
-   nsensor          : index of given wfs
-
-   SEE ALSO:
- */
-
 extern slopes_geom;
 /* DOCUMENT slopes_geom
    slopes_geom,yoga_sensors_obj,nsensor,lambOverD
