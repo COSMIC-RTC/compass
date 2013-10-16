@@ -25,7 +25,9 @@ endif
 OBJS := $(addprefix $(OBJ_DIR)/,$(LIB_OBJS))
 
 
-LIB_DEPLIBS= -fPIC -Wall -O0 -lstdc++ -L$(CUDA_LIB_DIR) -L$(CULA_LIB_PATH_64) -lcuda -lcudart -lcublas -lcufft -lcurand -lcula_lapack_basic #-lcula_lapack_link -lcula_core 
+include ../Makefile.inc
+
+LIB_DEPLIBS= -fPIC -Wall -O0 -lstdc++ -L$(CUDA_LIB_PATH_64) -L$(CULA_LIB_PATH_64) -lcuda -lcudart -lcublas -lcufft -lcurand -lcula_lapack_basic #-lcula_lapack_link -lcula_core 
 ifneq ($(CUDPP_PATH),)
  LIB_DEPLIBS +=-L$(CUDPP_PATH)/lib -lcudpp_x86_64 
 endif
@@ -41,7 +43,7 @@ endif
 
 # set compiler (or rarely loader) flags specific to this package
 #LIB_CPPFLAGS= -Wall -g -O3 -DUNIX -DADD_ -DGPUSHMEM=130 -fPIC -Xlinker -zmuldefs -fno-common -I$(H_DIR) -I/usr/local/cuda/include 
-LIB_CPPFLAGS= -c -fPIC -Wall -O0 -fno-common -I$(H_DIR) -I$(CUDA_PATH)/include -I$(CULA_INC_PATH) -DUNIX
+LIB_CPPFLAGS= -c -fPIC -Wall -O0 -fno-common -I$(H_DIR) -I$(CUDA_INC_PATH) -I$(CULA_INC_PATH) -DUNIX
 ifneq ($(DEBUG),)
 LIB_CPPFLAGS+= -g -DDEBUG
 endif
@@ -57,8 +59,14 @@ endif
 # color for printf
 #31=red, 32=green, 33=yellow,34=blue, 35=pink, 36=cyan, 37=white
 
-GCC ?= $(CC)
-NVCC = /usr/local/cuda/bin/nvcc
+MPICXX           = $(shell which mpicxx)
+ifeq ($(MPICXX),)
+  GCC ?= $(CC)
+else
+  GCC = $(MPICXX)
+endif
+
+NVCC = $(CUDA_ROOT)/bin/nvcc
 NVCCFLAGS = -m64 -Xcompiler -fPIC -c --compiler-options -I$(CUH_DIR)  -I$(H_DIR) -I$(Y_MAKEDIR)/include -I$(CULA_INC_PATH) -gencode arch=compute_20,code=sm_20
 
 #-gencode arch=compute_11,code=sm_11 -gencode arch=compute_13,code=sm_13 -gencode arch=compute_20,code=sm_20 -gencode arch=compute_30,code=sm_30 -gencode arch=compute_35,code=sm_35 
@@ -73,12 +81,6 @@ endif
 ifneq ($(MAGMA_PATH),)
  NVCCFLAGS +=-I$(MAGMA_PATH)/include 
  NVCCFLAGS +=-DGPUSHMEM=130
-endif
-
-MPICXX           = $(shell which mpicxx)
-ifeq ($(MPICXX),)
-  MPICXX = GCC
-  MPI=1
 endif
 
 all: $(LIB_NAME)
@@ -141,9 +143,9 @@ $(OBJ_DIR)/%.cuo: $(CU_DIR)/%.cu
 
 $(OBJ_DIR)/%.o: $(CPP_DIR)/%.cpp
 	@printf '\033[36m%s\033[31m%s\033[m\n' "Compiling     " $@
-	@$(MPICXX) $(CFLAGS) $(LIB_CPPFLAGS) -c -o $@ $<
+	@$(GCC) $(CFLAGS) $(LIB_CPPFLAGS) -c -o $@ $<
 
 $(LIB_NAME): $(OBJS)
 	@printf '\033[36m%s\033[31m%s\033[m\n' "Linking       " $(LIB_NAME)
-	@$(MPICXX) -shared $(LIB_DEPLIBS) $(OBJS) -o $@ 
+	@$(GCC) -shared $(LIB_DEPLIBS) $(OBJS) -o $@ 
 

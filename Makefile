@@ -1,10 +1,10 @@
 # these values filled in by    yorick -batch make.i
-Y_MAKEDIR=/home/training/yorick.git/relocate
-Y_EXE=/home/training/yorick.git/relocate/bin/yorick
+Y_MAKEDIR=/obs/sevin/yorick.git/relocate
+Y_EXE=/obs/sevin/yorick.git/relocate/bin/yorick
 Y_EXE_PKGS=
 
-Y_EXE_HOME=/home/training/yorick.git/relocate
-Y_EXE_SITE=/home/training/yorick.git/relocate
+Y_EXE_HOME=/obs/sevin/yorick.git/relocate
+Y_EXE_SITE=/obs/sevin/yorick.git/relocate
 Y_HOME_PKG=
 
 # ----------------------------------------------------- optimization flags
@@ -23,6 +23,8 @@ PKG_I=$(I_DIR)/yoga.i
 
 OBJS=yoga.o 
 
+include Makefile.inc
+
 # change to give the executable a name other than yorick
 #PKG_EXENAME=yorick
 
@@ -31,7 +33,7 @@ PKG_DEPLIBS=  -L$(YOGA_DIR) -L$(YOGA_DIR)/libyoga -lyoga -lstdc++ #
 
 # set compiler (or rarely loader) flags specific to this package
 #PKG_CPPFLAGS= -Wall -g -O3 -DUNIX -DADD_ -DGPUSHMEM=130 -fPIC -Xlinker -zmuldefs -fno-common -I$(H_DIR) -I/usr/local/cuda/include 
-PKG_CPPFLAGS= -Wall -fno-common -I$(YOGA_DIR)/libyoga/include.h -Iinclude.h -I$(CUDA_PATH)/include -I$(CULA_INC_PATH) 
+PKG_CPPFLAGS= -Wall -fno-common -I$(YOGA_DIR)/libyoga/include.h -Iinclude.h -I$(CUDA_INC_PATH) -I$(CULA_INC_PATH) 
 
 ifneq ($(DEBUG),)
 PKG_CPPFLAGS+= -g -DDEBUG

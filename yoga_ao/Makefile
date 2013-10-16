@@ -1,10 +1,10 @@
 # these values filled in by    yorick -batch make.i
-Y_MAKEDIR=/home/training/yorick.git/relocate
-Y_EXE=/home/training/yorick.git/relocate/bin/yorick
+Y_MAKEDIR=/obs/sevin/yorick.git/relocate
+Y_EXE=/obs/sevin/yorick.git/relocate/bin/yorick
 Y_EXE_PKGS=
 
-Y_EXE_HOME=/home/training/yorick.git/relocate
-Y_EXE_SITE=/home/training/yorick.git/relocate
+Y_EXE_HOME=/obs/sevin/yorick.git/relocate
+Y_EXE_SITE=/obs/sevin/yorick.git/relocate
 Y_HOME_PKG=
 
 # ----------------------------------------------------- optimization flags
@@ -23,6 +23,8 @@ PKG_I= $(I_DIR)/yoga_aolib.i
 
 OBJS= yoga_ao.o
 
+include ../Makefile.inc
+
 # change to give the executable a name other than yorick
 #PKG_EXENAME=yorick
 
@@ -33,7 +35,7 @@ PKG_DEPLIBS += $(YOGA_DIR)/libyoga/libyoga.so
 
 # set compiler (or rarely loader) flags specific to this package
 
-PKG_CPPFLAGS = -Wall -fno-common -I$(YOGA_AO_DIR)/libyoga_ao/include.h -I$(YOGA_DIR)/libyoga/include.h -I$(CUDA_PATH)/include #-I/usr/local/cula/include
+PKG_CPPFLAGS = -Wall -fno-common -I$(YOGA_AO_DIR)/libyoga_ao/include.h -I$(YOGA_DIR)/libyoga/include.h -I$(CUDA_INC_PATH) #-I/usr/local/cula/include
 #PKG_CPPFLAGS = -I.. -I../cudpp/
 #-DDEBUG
 
@@ -81,7 +83,7 @@ MAKE_TEMPLATE = protect-against-1.5
 
 yoga_ao.o: yoga_ao.cpp
 	@printf '\033[36m%s\033[31m%s\033[m\n' "Compiling     " $@
-	@$(CC) $(CFLAGS) $(PKG_CPPFLAGS) $< -c -o $@
+	$(CC) $(CFLAGS) $(PKG_CPPFLAGS) $< -c -o $@
 
 $(PKG_NAME): $(OBJS)
 	@printf '\033[36m%s\033[31m%s\033[m\n' "Linking       " $(PKG_NAME)
