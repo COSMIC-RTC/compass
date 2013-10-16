@@ -69,11 +69,13 @@ template <class T> int yoga_cula_svd(yoga_obj<T> *imat, yoga_obj<T> *eigenvals, 
 
   int m = imat->getDims(1);
   int n = imat->getDims(2);
-
+/*
   yoga_obj<T> *tmp = new yoga_obj<T>(imat);
   yoga_culaDevice_sgesvd(m, n, tmp->getData(), eigenvals->getData(), mod2act->getData(), mes2mod->getData());
   delete tmp;
-
+*/
+  yoga_obj<T> tmp(imat);
+  yoga_culaDevice_sgesvd(m, n, tmp.getData(), eigenvals->getData(), mod2act->getData(), mes2mod->getData());
   /* Fonctionne pas...
   yoga_obj<T> tmp(imat);
   yoga_culaDevice_sgesvd(m, n, tmp.getData(), eigenvals->getData(), mod2act->getData(), mes2mod->getData());
@@ -89,10 +91,13 @@ template <class T> int yoga_cula_svd(yoga_host_obj<T> *imat, yoga_host_obj<T> *e
 {
   int m = imat->getDims(1);
   int n = imat->getDims(2);
-
+/*
   yoga_host_obj<T> *tmp = new yoga_host_obj<T>(imat, MA_PAGELOCK);
   yoga_cula_sgesvd(m, n, tmp->getData(), eigenvals->getData(), mes2mod->getData(), mod2act->getData());
   delete tmp;
+*/
+  yoga_host_obj<T> tmp(imat, MA_PAGELOCK);
+  yoga_cula_sgesvd(m, n, tmp.getData(), eigenvals->getData(), mes2mod->getData(), mod2act->getData());
 
   /* Fonctionne pas...
   yoga_host_obj<T> tmp(imat, MA_PAGELOCK);

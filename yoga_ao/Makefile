@@ -83,7 +83,7 @@ MAKE_TEMPLATE = protect-against-1.5
 
 yoga_ao.o: yoga_ao.cpp
 	@printf '\033[36m%s\033[31m%s\033[m\n' "Compiling     " $@
-	$(CC) $(CFLAGS) $(PKG_CPPFLAGS) $< -c -o $@
+	@$(CC) $(CFLAGS) $(PKG_CPPFLAGS) $< -c -o $@
 
 $(PKG_NAME): $(OBJS)
 	@printf '\033[36m%s\033[31m%s\033[m\n' "Linking       " $(PKG_NAME)

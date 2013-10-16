@@ -14,14 +14,14 @@ yoga_dm::yoga_dm(yoga_context *context, const char* type, long dim, long ninflu,
   this->d_zr = NULL;
   this->d_ztheta = NULL;
 
-  this->current_context=context;
-  this->ninflu     = ninflu;
-  this->dim        = dim;
-  this->influsize  = influsize;
-  this->d_shape    = new yoga_phase(context, dim);
-  this->type       = type;
-  this->push4imat  = push4imat;
-  this->device     = device;
+  this->current_context = context;
+  this->ninflu          = ninflu;
+  this->dim             = dim;
+  this->influsize       = influsize;
+  this->d_shape         = new yoga_phase(context, dim);
+  this->type            = type;
+  this->push4imat       = push4imat;
+  this->device          = device;
   
   long *dims_data1 = new long[2];
   dims_data1[0] = 1; dims_data1[1] = ninflu;     
@@ -80,9 +80,9 @@ int yoga_dm::pzt_loadarrays(float *influ, int *influpos,int *npoints, int *istar
   this->d_influ->host2device(influ);
   this->d_xoff->host2device(xoff);
   this->d_yoff->host2device(yoff);
-  this->d_istart->host2device(istart);
-  this->d_influpos->host2device(influpos);
-  this->d_npoints->host2device(npoints);
+  this->d_istart->host2device(istart);     // size = dim x dim
+  this->d_influpos->host2device(influpos); // size ???
+  this->d_npoints->host2device(npoints);   // size : dim x dim
 
   return EXIT_SUCCESS;
 }
