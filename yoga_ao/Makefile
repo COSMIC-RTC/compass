@@ -1,10 +1,10 @@
 # these values filled in by    yorick -batch make.i
-Y_MAKEDIR=/obs/sevin/yorick.git/relocate
-Y_EXE=/obs/sevin/yorick.git/relocate/bin/yorick
+Y_MAKEDIR=/home/sevin/yorick.git/relocate
+Y_EXE=/home/sevin/yorick.git/relocate/bin/yorick
 Y_EXE_PKGS=
 
-Y_EXE_HOME=/obs/sevin/yorick.git/relocate
-Y_EXE_SITE=/obs/sevin/yorick.git/relocate
+Y_EXE_HOME=/home/sevin/yorick.git/relocate
+Y_EXE_SITE=/home/sevin/yorick.git/relocate
 Y_HOME_PKG=
 
 # ----------------------------------------------------- optimization flags
