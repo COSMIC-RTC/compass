@@ -13,8 +13,8 @@ then
 fi
 
 echo "using $YORICK_PATH to update Makefile"
-$YORICK_PATH -batch make.i
-(cd yoga_ao && $YORICK_PATH -batch make.i)
+$YORICK_PATH -batch make.i || exit
+(cd yoga_ao && $YORICK_PATH -batch make.i) || exit
 
 (cd libyoga && make clean && make -j) || exit
 (make clean install) || exit

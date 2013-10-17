@@ -1,32 +1,28 @@
+#!/bin/bash
 
 function check_var() {
-    if [[ "$2"!="a" ]]
+    if [[ $2 != "" ]]
     then
 	echo $1 defined to $2
     else
-	echo $1 not defined, set to $3
-	export $1=$3
+	echo $1 not defined !!!
     fi
 }
 
 # CUDA default definitions
-check_var CUDA_ROOT a$CUDA_ROOT /usr/local/cuda
-export CUDA_ROOT=/usr/local/cuda
-
-
-#export CUDA_ROOT?=/usr/local/cuda
-#export CUDA_INC_PATH?=$(CUDA_ROOT)/include
-#export CUDA_LIB_PATH?=$(CUDA_ROOT)/lib
-#export CUDA_LIB_PATH_64?=$(CUDA_ROOT)/lib64
+check_var CUDA_ROOT $CUDA_ROOT
+check_var CUDA_INC_PATH $CUDA_INC_PATH
+check_var CUDA_LIB_PATH $CUDA_LIB_PATH
+check_var CUDA_LIB_PATH_64 $CUDA_LIB_PATH_64
 
 # CULA default definitions
-#export CULA_ROOT?=/usr/local/cula
-#export CULA_INC_PATH?=$(CULA_ROOT)/include
-#export CULA_LIB_PATH?=$(CULA_ROOT)/lib
-#export CULA_LIB_PATH_64?=$(CULA_ROOT)/lib64
+check_var CULA_ROOT $CULA_ROOT
+check_var CULA_INC_PATH $CULA_INC_PATH
+check_var CULA_LIB_PATH $CULA_LIB_PATH
+check_var CULA_LIB_PATH_64 $CULA_LIB_PATH_64
 
 # YOGA default definitions
-#export YOGA_DIR?=/obs/sevin/compass
-#export YOGA_AO_DIR?=$(YOGA_DIR)/yoga_ao
-#export YOGA_AO_TOP?=$(YOGA_AO_DIR)
+check_var YOGA_DIR $YOGA_DIR
+check_var YOGA_AO_DIR $YOGA_AO_DIR
+check_var YOGA_AO_TOP $YOGA_AO_TOP
 
