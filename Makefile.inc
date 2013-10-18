@@ -24,4 +24,4 @@ export YOGA_DIR?=/obs/sevin/compass
 export YOGA_AO_DIR?=$(YOGA_DIR)/yoga_ao
 export YOGA_AO_TOP?=$(YOGA_AO_DIR)
 
-export GENCODE="arch=compute_20,code=sm_20"
+export GENCODE="arch=compute_30,code=sm_30"
