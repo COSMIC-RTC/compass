@@ -1117,16 +1117,8 @@ void Y_yoga_mv(int argc)
 				sizeof(yoga_struct));
 		handle_vecty->device = handle_mat->device;
 		if (handle_mat->type == Y_FLOAT) {
-			float alpha;
-			if (argc > 2) {
-				alpha = ygets_f(argc-3);
-			} else
-				alpha = 1.0f;
-			float beta;
-			if (argc > 3) {
-				beta = ygets_f(argc-4);
-			} else
-				beta = 0.0f;
+		  //float alpha=(argc > 2?ygets_f(argc-3):1.0f);
+		  //float beta =(argc > 3?ygets_f(argc-4):0.0f);
 			handle_vecty->type = handle_vectx->type;
 			yObjS *yoga_obj_handler_mat = (yObjS *) (handle_mat->yoga_object);
 			yObjS *yoga_obj_handler_vectx =
@@ -1146,16 +1138,8 @@ void Y_yoga_mv(int argc)
 			yObjD *yoga_obj_handler_mat = (yObjD *) (handle_mat->yoga_object);
 			yObjD *yoga_obj_handler_vectx =
 					(yObjD *) (handle_vectx->yoga_object);
-			double alpha;
-			if (argc > 2) {
-				alpha = ygets_d(argc - 3);
-			} else
-				alpha = 1.0;
-			double beta;
-			if (argc > 3) {
-				beta = ygets_d(argc - 4);
-			} else
-				beta = 0.0;
+			//double alpha=(argc > 2?ygets_d(argc - 3):1.0);
+			//double beta=(argc > 3?ygets_d(argc - 4):0.0);
 			long dims_data_y[2];
 			dims_data_y[0] = 1;
 			dims_data_y[1] = yoga_obj_handler_mat->getDims(1);
@@ -3290,10 +3274,10 @@ void Y_yoga_fillarray(int argc)
 			y_error("range out of bounds");
 		Ncol = mrange[2] - mrange[1] + 1;
 		Nlig = mrange[6] - mrange[5] + 1;
-		long dims[3];
-		dims[0] = 2;
-		dims[1] = Ncol;
-		dims[2] = Nlig;
+		//long dims[3];
+		//dims[0] = 2;
+		//dims[1] = Ncol;
+		//dims[2] = Nlig;
 
 		int x0 = yoga_out_handler->getDims(1) * (mrange[5] - 1)
 				+ (mrange[1] - 1);

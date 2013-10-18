@@ -65,10 +65,8 @@ yoga_wfs::yoga_wfs(yoga_context *context, const char* type, long nxsub, long nva
 
   //this->ndevices = 1;
 
-  int nslaves = 0;
   this->nhosts = context->get_nhosts();
-  if (nhosts > 1)
-    nslaves = nhosts -1;
+  //int nslaves=(nhosts > 1?nhosts -1:0);
 
   cout << "yoga_wfs will use " <<  this->ndevices << 
     " devices on " << this->nhosts << " hosts"<<endl;
@@ -812,17 +810,17 @@ void* comp_image_thread(void *thread_data) {
   
   wfs->current_context->set_activeDevice(wfs->device);
 
-  int result;
+  //int result;
   if (wfs->type == "sh")
-    result = wfs->comp_sh_generic();
+    wfs->comp_sh_generic();
   
 
   if (wfs->type == "pyr") 
-    result = wfs->comp_pyr_generic();
+    wfs->comp_pyr_generic();
 
   yoga_increment_barrier(&thread_barrier);
 
-  return EXIT_SUCCESS;
+  return (void*)0L;
 }
 
 int yoga_wfs::comp_image_tele()
