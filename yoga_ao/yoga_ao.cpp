@@ -1115,14 +1115,15 @@ extern "C" {
       float *offsets    = ygeta_f(argc-6, &ntot,dims);
       float *pupil      = ygeta_f(argc-7, &ntot,dims);
       float *fluxPerSub = ygeta_f(argc-8, &ntot,dims);
-      int *validsubsx   = ygeta_i(argc-9, &ntot,dims);
-      int *validsubsy   = ygeta_i(argc-10, &ntot,dims);
-      int *istart       = ygeta_i(argc-11, &ntot,dims);
-      int *jstart       = ygeta_i(argc-12, &ntot,dims);
-      float *kernel     = ygeta_f(argc-13, &ntot,dims);
+      int *isvalid      = ygeta_i(argc-9, &ntot,dims);
+      int *validsubsx   = ygeta_i(argc-10, &ntot,dims);
+      int *validsubsy   = ygeta_i(argc-11, &ntot,dims);
+      int *istart       = ygeta_i(argc-12, &ntot,dims);
+      int *jstart       = ygeta_i(argc-13, &ntot,dims);
+      float *kernel     = ygeta_f(argc-14, &ntot,dims);
 
       sensors_handler->d_wfs.at(nsensor)->wfs_initarrays(phasemap,hrmap,binmap,offsets,pupil,
-							 fluxPerSub,validsubsx,validsubsy,
+							 fluxPerSub,isvalid,validsubsx,validsubsy,
 							 istart,jstart,(cuFloatComplex*)kernel);
     }
     if (sensors_handler->d_wfs.at(nsensor)->type == "pyr") {
@@ -1130,13 +1131,14 @@ extern "C" {
       float *offsets = ygeta_f(argc-4, &ntot,dims);
       float *focmask = ygeta_f(argc-5, &ntot,dims);
       float *pupil   = ygeta_f(argc-6, &ntot,dims);
-      int *cx        = ygeta_i(argc-7, &ntot,dims);
-      int *cy        = ygeta_i(argc-8, &ntot,dims);
-      float *sincar  = ygeta_f(argc-9, &ntot,dims);
-      int *phasemap  = ygeta_i(argc-10, &ntot,dims);
-      int *validx    = ygeta_i(argc-11, &ntot,dims);
-      int *validy    = ygeta_i(argc-12, &ntot,dims);
-      sensors_handler->d_wfs.at(nsensor)->wfs_initarrays((cuFloatComplex*)halfxy,(cuFloatComplex*)offsets,focmask,pupil,cx,cy,sincar,phasemap,validx,validy);
+      int *isvalid   = ygeta_i(argc-7, &ntot,dims);
+      int *cx        = ygeta_i(argc-8, &ntot,dims);
+      int *cy        = ygeta_i(argc-9, &ntot,dims);
+      float *sincar  = ygeta_f(argc-10, &ntot,dims);
+      int *phasemap  = ygeta_i(argc-11, &ntot,dims);
+      int *validx    = ygeta_i(argc-12, &ntot,dims);
+      int *validy    = ygeta_i(argc-13, &ntot,dims);
+      sensors_handler->d_wfs.at(nsensor)->wfs_initarrays((cuFloatComplex*)halfxy,(cuFloatComplex*)offsets,focmask,pupil,isvalid,cx,cy,sincar,phasemap,validx,validy);
     }
   }
 

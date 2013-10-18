@@ -224,8 +224,8 @@ int yoga_centroider::get_cog(float *cube,float *subsum, float *centroids, int nv
 
 int yoga_centroider::get_cog(yoga_wfs *wfs, yoga_obj<float> *slopes)
 {
-  return this->get_cog(this->d_bincube->getData(),this->d_subsum->getData(),slopes->getData(),
-		       wfs->nvalid,wfs->npix,this->d_bincube->getNbElem());
+  return this->get_cog(wfs->d_bincube->getData(),wfs->d_subsum->getData(),slopes->getData(),
+		       wfs->nvalid,wfs->npix,wfs->d_bincube->getNbElem());
 }
 
 int yoga_centroider::get_cog(yoga_wfs *wfs)
@@ -243,7 +243,7 @@ int yoga_centroider::get_cog_async(yoga_streams *streams, float *cube,float *sub
 
 int yoga_centroider::get_cog_async(yoga_wfs *wfs, yoga_obj<float> *slopes)
 {
-  return this->get_cog_async(wfs->streams,this->d_bincube->getData(),this->d_subsum->getData(),slopes->getData(),
+  return this->get_cog_async(wfs->streams,wfs->d_bincube->getData(),wfs->d_subsum->getData(),slopes->getData(),
 		       wfs->nvalid,wfs->npix);
 }
 
@@ -283,8 +283,8 @@ int yoga_centroider::get_wcog(float *weights,float *cube,float *subsum,float *ce
 
 int yoga_centroider::get_tcog(float threshold,yoga_wfs *wfs, float *slopes)
 {
-  return this->get_tcog(threshold,this->d_bincube->getData(),this->d_subsum->getData(),
-			slopes,wfs->nvalid,wfs->npix,this->d_bincube->getNbElem());
+  return this->get_tcog(threshold,wfs->d_bincube->getData(),wfs->d_subsum->getData(),
+			slopes,wfs->nvalid,wfs->npix,wfs->d_bincube->getNbElem());
 }
 
 int yoga_centroider::get_tcog(float threshold,yoga_wfs *wfs)
@@ -294,7 +294,7 @@ int yoga_centroider::get_tcog(float threshold,yoga_wfs *wfs)
 
 int yoga_centroider::get_bpcog(int nmax,yoga_wfs *wfs, float *slopes)
 {
-  return this->get_bpcog(nmax,wfs->npix,wfs->nvalid,this->d_bincube->getData(),slopes);
+  return this->get_bpcog(nmax,wfs->npix,wfs->nvalid,wfs->d_bincube->getData(),slopes);
 }
 
 int yoga_centroider::get_bpcog(int nmax,yoga_wfs *wfs)
@@ -304,8 +304,8 @@ int yoga_centroider::get_bpcog(int nmax,yoga_wfs *wfs)
 
 int yoga_centroider::get_wcog(yoga_wfs *wfs, float *slopes)
 {
-  return this->get_wcog(this->d_weights->getData(),this->d_bincube->getData(),this->d_subsum->getData(),
-		 slopes,wfs->nvalid,wfs->npix,this->d_bincube->getNbElem());
+  return this->get_wcog(this->d_weights->getData(),wfs->d_bincube->getData(),wfs->d_subsum->getData(),
+		 slopes,wfs->nvalid,wfs->npix,wfs->d_bincube->getNbElem());
 }
 
 int yoga_centroider::get_wcog(yoga_wfs *wfs)
@@ -318,7 +318,7 @@ int yoga_centroider::get_corr(yoga_wfs *wfs, float *slopes)
   //set corrspot to 0
   cutilSafeCall(cudaMemset(this->d_corrspot->getData(), 0,sizeof(cuFloatComplex)*this->d_corrspot->getNbElem()));
   // correlation algorithm
-  fillcorr(this->d_corrspot->getData(),this->d_bincube->getData(),this->npix,2*this->npix,this->npix*this->npix*this->nvalid,1,this->device);
+  fillcorr(this->d_corrspot->getData(),wfs->d_bincube->getData(),this->npix,2*this->npix,this->npix*this->npix*this->nvalid,1,this->device);
 
   yoga_fft(this->d_corrspot->getData(),this->d_corrspot->getData(),1,*this->d_corrfnct->getPlan());
 

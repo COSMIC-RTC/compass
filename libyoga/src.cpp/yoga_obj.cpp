@@ -138,7 +138,7 @@ template<class T_data> yoga_obj<T_data>::~yoga_obj( ){
   /** \brief yoga_obj destructor.
    */
 
-  //cutilSafeThreadSync();
+  //cutilSafeCall( cudaThreadSynchronize() );
   int old_device = current_context->get_activeDevice();
   current_context->set_activeDevice(this->device);
 

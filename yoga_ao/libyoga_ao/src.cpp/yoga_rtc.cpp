@@ -62,24 +62,12 @@ int yoga_rtc::do_imat(int ncntrl, yoga_sensors *sensors, yoga_dms *ydm)
       for (size_t idx_cntr = 0; idx_cntr < (this->d_centro).size(); idx_cntr++) {
 	int nwfs = this->d_centro[idx_cntr]->nwfs;
 	float tmp_noise = sensors->d_wfs[nwfs]->noise;
-
 	sensors->d_wfs[nwfs]->noise = -1;
 	sensors->d_wfs[nwfs]->kernconv = true;
 	sensors->d_wfs[nwfs]->sensor_trace(ydm, 1);
-
-	for (size_t idx = 0; idx < (sensors->d_wfs[nwfs]->child_wfs).size(); idx++) {
-	  sensors->d_wfs[nwfs]->child_wfs[idx]->noise = -1;
-	  sensors->d_wfs[nwfs]->child_wfs[idx]->kernconv = true;
-	}
 	sensors->d_wfs[nwfs]->comp_image();
-
 	sensors->d_wfs[nwfs]->noise = tmp_noise;
 	sensors->d_wfs[nwfs]->kernconv = false;
-
-	for (size_t idx = 0; idx < (sensors->d_wfs[nwfs]->child_wfs).size(); idx++) {
-	  sensors->d_wfs[nwfs]->child_wfs[idx]->noise = tmp_noise;
-	  sensors->d_wfs[nwfs]->child_wfs[idx]->kernconv = false;
-	}
       }
 
       //cout << "actu # " << j << endl;
@@ -138,11 +126,6 @@ int yoga_rtc::do_centroids(yoga_sensors *sensors)
 {
   for (size_t idx_cntr = 0; idx_cntr < (this->d_centro).size(); idx_cntr++) {
     int nwfs = this->d_centro[idx_cntr]->nwfs;
-
-    cutilSafeCall(cudaMemcpy(this->d_centro[idx_cntr]->d_bincube->getData(), 
-			     sensors->d_wfs[nwfs]->d_bincube->getData(), 
-			     sizeof(float)*sensors->d_wfs[nwfs]->d_bincube->getNbElem(),
-			     cudaMemcpyDeviceToDevice));
 
     if (this->d_centro[idx_cntr]->typec.compare("cog")==0)
       this->d_centro[idx_cntr]->get_cog(sensors->d_wfs[nwfs]);
@@ -240,20 +223,6 @@ int yoga_rtc::do_centroids(int ncntrl,yoga_sensors *sensors, bool imat)
       */
       inds2 += 2*sensors->d_wfs[nwfs]->nvalid;
     } else {
-      // copying data from master wfs
-      cutilSafeCall(cudaMemcpy(this->d_centro[idx_cntr]->d_bincube->getData(), 
-			       sensors->d_wfs[nwfs]->d_bincube->getData(), 
-			       sizeof(float)*sensors->d_wfs[nwfs]->d_bincube->getNbElem(),
-			       cudaMemcpyDeviceToDevice));
-      // copying data from children wfs if any
-      for (size_t idx = 0; idx < (sensors->d_wfs[nwfs]->child_wfs).size(); idx++) {
-	int idx_cube = (idx + 1) * sensors->d_wfs[nwfs]->child_wfs[idx]->d_bincube->getNbElem();
-	cutilSafeCall(cudaMemcpy(&((this->d_centro[idx_cntr]->d_bincube->getData())[idx_cube]), 
-				 sensors->d_wfs[nwfs]->child_wfs[idx]->d_bincube->getData(), 
-				 sizeof(float)*sensors->d_wfs[nwfs]->child_wfs[idx]->d_bincube->getNbElem(),
-				 cudaMemcpyDeviceToDevice));
-      }
-
       if (this->d_centro[idx_cntr]->typec.compare("cog")==0)
 	this->d_centro[idx_cntr]->get_cog(sensors->d_wfs[nwfs]);
       
@@ -307,8 +276,7 @@ int yoga_rtc::do_control(int ncntrl, yoga_dms *ydm)
 	cutilSafeCall(cudaMemcpyAsync(&((p->second->d_comm->getData())[istart]),
 				      &((this->d_control[ncntrl]->d_com->getData())[idx + istart]),
 				      sizeof(float)*p->second->ninflu / nstreams,
-				      cudaMemcpyDeviceToDevice,
-				      this->d_control[ncntrl]->streams->get_stream(i)));
+				      cudaMemcpyDeviceToDevice,this->d_control[ncntrl]->streams->get_stream(i)));
 	p->second->comp_shape();
       }
     } else {

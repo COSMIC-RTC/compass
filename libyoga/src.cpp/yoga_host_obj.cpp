@@ -251,7 +251,6 @@ void yoga_host_obj<T_data>::init(long *dims_data, T_data *data, MemAlloc mallocT
  	  }
   } else
 	  this->fill_from(data);
-
 }
 
 template<class T_data>
@@ -277,8 +276,7 @@ yoga_host_obj<T_data>& yoga_host_obj<T_data>::operator= (const yoga_host_obj<T_d
 template<class T_data> yoga_host_obj<T_data>::~yoga_host_obj(){
   /** \brief yoga_host_obj destructor.
    */
-
-  //cutilSafeThreadSync();
+  //cutilSafeCall( cudaThreadSynchronize() );
 
   if(this->h_data!=0L) {
     if(mallocType==MA_MALLOC)
@@ -495,4 +493,5 @@ template int yoga_host_obj<int>::cpy_obj(yoga_obj<int> *data, cudaMemcpyKind fla
 template int yoga_host_obj<unsigned int>::cpy_obj(yoga_obj<unsigned int> *data, cudaMemcpyKind flag, unsigned int stream);
 template int yoga_host_obj<cuFloatComplex>::cpy_obj(yoga_obj<cuFloatComplex> *data, cudaMemcpyKind flag, unsigned int stream);
 template int yoga_host_obj<cuDoubleComplex>::cpy_obj(yoga_obj<cuDoubleComplex> *data, cudaMemcpyKind flag, unsigned int stream);
+
 

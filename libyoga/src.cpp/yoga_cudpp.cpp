@@ -38,7 +38,6 @@ template<class T> int yoga_obj<T>::sort_init(bool keysOnly)
 
   // initialize parameters based on present CUDA device
   CUDPPConfiguration config;
-	CUDPPHandle theCudpp;
   config.algorithm = CUDPP_SORT_RADIX;
   config.datatype = get_datatype<T>();
   config.options = CUDPP_OPTION_KEY_VALUE_PAIRS;
@@ -46,7 +45,7 @@ template<class T> int yoga_obj<T>::sort_init(bool keysOnly)
 
   CUDPPResult result = CUDPP_SUCCESS;  
 
-  result = cudppPlan(theCudpp, &(this->mScanPlan), config, this->nb_elem, 1, 0);	
+  result = cudppPlan(&(this->mScanPlan), config, this->nb_elem, 1, 0);	
 
   if(result != CUDPP_SUCCESS) {
       printf("Error in sort plan creation\n");
@@ -84,7 +83,7 @@ template int yObjS::device2deviceInd(unsigned int *src);
 
 template<class T> int yoga_obj<T>::sort()
 {
-  cudppSort(theCudpp,  this->d_data, (void*)this->values, this->nb_elem);
+  cudppSort(this->mScanPlan, this->d_data, (void*)this->values, 32, this->nb_elem);
   return EXIT_SUCCESS;
 }
 
@@ -111,7 +110,7 @@ template<class T> int yoga_obj<T>::config_scan(char *type, int dir, int incl)
 
   CUDPPResult result = CUDPP_SUCCESS;  
 
-  result = cudppPlan(theCudpp, &(this->mScanPlan), config, this->nb_elem, 1, 0);	
+  result = cudppPlan(&(this->mScanPlan), config, this->nb_elem, 1, 0);	
 
   if(result != CUDPP_SUCCESS) {
     printf("Error in scan plan creation\n");
@@ -129,7 +128,7 @@ template int yObjI::config_scan(char *type, int dir, int incl);
 
 template<class T> T yoga_obj<T>::scan()
 {
-  cudppScan( theCudpp , this->o_data, this->d_data, this->nb_elem);
+  cudppScan(this->mScanPlan, this->o_data, this->d_data, this->nb_elem);
 
   T res;
   cutilSafeCallNoSync(cudaMemcpy((void **)&res,this->o_data,sizeof(T),cudaMemcpyDeviceToHost));
@@ -154,7 +153,7 @@ template<class T> int yoga_obj<T>::compact_init()
 
   CUDPPResult result = CUDPP_SUCCESS;  
 
-  result = cudppPlan(theCudpp, &(this->mScanPlan), config, this->nb_elem, 1, 0);	
+  result = cudppPlan(&(this->mScanPlan), config, this->nb_elem, 1, 0);	
 
   if(result != CUDPP_SUCCESS)
     {
@@ -169,7 +168,7 @@ template int yObjI::compact_init();
 
 template<class T> int yoga_obj<T>::compact(yoga_obj<T> *dest)
 {
-  cudppCompact(theCudpp , dest->d_data, dest->d_numValid, this->d_data, this->values, this->nb_elem);
+  cudppCompact(this->mScanPlan, dest->d_data, dest->d_numValid, this->d_data, this->values, this->nb_elem);
 
   return EXIT_SUCCESS;
 }
@@ -179,7 +178,7 @@ template int yObjI::compact(yObjI *dest);
 
 template<class T> int yoga_obj<T>::compact(yoga_obj<T> *dest,unsigned int *values)
 {
-  cudppCompact(theCudpp,  dest->d_data, dest->d_numValid, this->d_data, values, this->nb_elem);
+  cudppCompact(this->mScanPlan, dest->d_data, dest->d_numValid, this->d_data, values, this->nb_elem);
 
   return EXIT_SUCCESS;
 }

@@ -15,7 +15,7 @@ DEBUG=0
 
 LIB_NAME=libyoga.so
 
-LIB_OBJS=yoga_host_obj.o yoga_obj.o yoga_obj.cuo yoga_utils.o yoga_fft.o shrUtils.o yoga_rng.o yoga_rng.cuo yoga_transpose.cuo yoga_sum.cuo yoga_cublas.o convolutionFFT2D.cuo yoga_fft_conv.o yoga_fft_conv.cuo yoga_context.o yoga_streams.o yoga_cula.o yoga_multithread.o
+LIB_OBJS=yoga_host_obj.o yoga_obj.o yoga_obj.cuo yoga_utils.o yoga_fft.o shrUtils.o yoga_rng.o yoga_rng.cuo yoga_transpose.cuo yoga_sum.cuo yoga_cublas.o convolutionFFT2D.cuo yoga_fft_conv.o yoga_fft_conv.cuo yoga_context.o yoga_streams.o yoga_cula.o 
 ifneq ($(CUDPP_PATH),)
  LIB_OBJS += yoga_cudpp.o
 endif

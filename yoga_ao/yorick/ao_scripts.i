@@ -638,5 +638,5 @@ if (numberof(tmp) > 1) {
   }
  }
 
-//script_system, "/home/brujo/Yorick/yoga/trunk/yoga_ao/yorick/1wfs16x16_1layer_rtc_dm.par",strehl=1;
-//quit
+script_system,strehl=1;
+quit

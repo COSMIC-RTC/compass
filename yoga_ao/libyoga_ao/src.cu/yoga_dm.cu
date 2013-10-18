@@ -37,14 +37,6 @@ template<> struct SharedMemory<double>
 
 template <class T> __global__ void dmshape_krnl(T *g_idata, T *g_odata, int *pos, int *istart, int *npts, T *comm, unsigned int n, int N)
 {
-  /*
-    for each point of the pupil, we will need several influence function
-    the influence function are stored in a cube seen a rasterized here g_idata
-    pos provides the index in the cube that should be used to compute the mirror 
-    shape for a given point in the pupil
-    istart provides the first element in pos that should be used for a given point in the pupil
-    npts provides the number of coordinates that should be used for a given point
-   */
     T *sdata = SharedMemory<T>();
 
     // load shared mem

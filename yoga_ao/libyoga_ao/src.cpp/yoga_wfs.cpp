@@ -2,8 +2,6 @@
 #include <yoga_ao_utils.h>
 #include <yoga_utils.h>
 
-yoga_thread_barrier thread_barrier;
-
 yoga_wfs::yoga_wfs(yoga_context *context, const char* type, long nxsub, long nvalid, long npix, long nphase, 
 		   long nrebin, long nfft,long ntot, long npup,float pdiam,float nphotons, int lgs, int device)
 {
@@ -21,6 +19,7 @@ yoga_wfs::yoga_wfs(yoga_context *context, const char* type, long nxsub, long nva
   this->d_sincar        = 0L;
   this->d_submask       = 0L;
   this->d_hrmap         = 0L;
+  this->d_isvalid       = 0L;
   this->d_slopes        = 0L;
   this->image_telemetry = 0L;
   this->d_phasemap      = 0L;
@@ -35,7 +34,10 @@ yoga_wfs::yoga_wfs(yoga_context *context, const char* type, long nxsub, long nva
   this->pyr_cx          = 0L;
   this->pyr_cy          = 0L;
   
-  this->type    = type;
+  this->current_context = context;
+
+  this->type       = type;
+
   this->nxsub   = nxsub;
   this->nvalid  = nvalid;
   this->npix    = npix;
@@ -47,231 +49,171 @@ yoga_wfs::yoga_wfs(yoga_context *context, const char* type, long nxsub, long nva
   this->subapd  = pdiam;
   this->nphot   = nphotons;
   this->lgs     = (lgs == 1 ? true : false);
-  this->device  = device; 
+  this->device  = device; context->set_activeDevice(device);
   this->nmaxhr  = nvalid;
   this->nffthr  = 1;
 
   this->kernconv       = false;
 
-  // according to context determine number of hosts
-  // and device per host
-  // //////////////////////////////////////////////////////////////////
-  // !!!!! just working for single or pair of devices per hosts !!!!!!!
-  // //////////////////////////////////////////////////////////////////
-
-  if ((context->get_ndevices() > 1) && (context->is_p2pactive(0,0)) && (context->is_p2pactive(0,1))) {
-    this->ndevices = context->get_ndevices();
-  } else this->ndevices = 1;
-
-  //this->ndevices = 1;
-
-  this->nhosts = context->get_nhosts();
-  //int nslaves=(nhosts > 1?nhosts -1:0);
-
-  cout << "yoga_wfs will use " <<  this->ndevices << 
-    " devices on " << this->nhosts << " hosts"<<endl;
-
-  // who am i ?
-  if (device == 0) {
-    this->is_master = true;
-    this->child_id = 0;
-  } else {
-    this->is_master = false;
-    this->child_id = device-1;
-  }
-
-  this->current_context = context;
-  context->set_activeDevice(device);
-
-  if (this->type == "sh") this->init_sh();
-  if (this->type == "pyr") this->init_pyr();
-
   long *dims_data1 = new long[2]; dims_data1[0] = 1;
   long *dims_data2 = new long[3]; dims_data2[0] = 2; 
+  long *dims_data3 = new long[4]; dims_data3[0] = 3;
+
+  dims_data2[1] = npix*nxsub; dims_data2[2] =npix*nxsub ; 
+  if ((this->type == "pyr") || (this->type == "pyr3")){
+    dims_data2[1] += 3;
+    dims_data2[2] += 3;
+  }
+
+  this->d_binimg = new yoga_obj<float>(context,dims_data2);
+  // using 1 stream for telemetry
+  this->image_telemetry = new yoga_host_obj<float>(dims_data2,MA_PAGELOCK,1);
+
+  dims_data3[1] = nfft; dims_data3[2] =nfft;  
+  if (this->type == "pyr") dims_data3[3] = 4;
+  if (this->type == "pyr3") dims_data3[3] = 3;
+
+  int nslaves = 0;
+
+  if (this->type == "sh") {
+    if (nslaves > 0) dims_data3[3] = nvalid/(nslaves + 1);
+    else dims_data3[3] = nvalid; 
+  }
+  this->d_hrimg = new yoga_obj<float>(context,dims_data3);
+
+  int mdims[2]; 
+  if (this->type == "sh") {
+    this->d_submask = new yoga_obj<float>(context,dims_data3);
+    this->d_camplipup = new yoga_obj<cuFloatComplex>(context,dims_data3);
+    this->d_camplifoc = new yoga_obj<cuFloatComplex>(context,dims_data3);
+    mdims[0] = (int)dims_data3[1]; mdims[1] = (int)dims_data3[2];
+    cufftHandle *plan=this->d_camplipup->getPlan();///< FFT plan
+    cufftSafeCall( cufftPlanMany(plan, 2 ,mdims,NULL,1,0,NULL,1,0,
+				 CUFFT_C2C ,(int)dims_data3[3]));
+    dims_data3[1] = npix; dims_data3[2] = npix;
+  }
+
+  if ((this->type == "pyr") || (this->type == "pyr3")){
+    dims_data2[1] = ntot; dims_data2[2] = ntot; 
+    this->d_submask = new yoga_obj<float>(context,dims_data2);
+    this->d_camplipup = new yoga_obj<cuFloatComplex>(context,dims_data2);
+    this->d_camplifoc = new yoga_obj<cuFloatComplex>(context,dims_data2);
+    cufftHandle *plan=this->d_camplipup->getPlan();///< FFT plan
+    cufftSafeCall( cufftPlan2d(plan,dims_data2[1],dims_data2[2],CUFFT_C2C ));
+
+    dims_data3[1] = nfft/nrebin; dims_data3[2] = nfft/nrebin;
+  }
+
+  this->d_bincube = new yoga_obj<float>(context,dims_data3);
 
   this->nstreams = 1;//nvalid/10;
   while(nvalid % this->nstreams!=0) nstreams--;
   cerr << "wfs uses " << nstreams << " streams" << endl;
   streams = new yoga_streams(nstreams);
 
-  if (this->is_master) {
-    dims_data1[1] = 2 * nvalid;
-    this->d_slopes = new yoga_obj<float>(context,dims_data1);
+  dims_data1[1] = 2*nvalid;
+  this->d_slopes = new yoga_obj<float>(context,dims_data1);
 
-    dims_data2[1] = nphase*nphase; dims_data2[2] = nvalid; 
-    this->d_phasemap = new yoga_obj<int>(context,dims_data2);
-
-    if (this->ndevices > 1) {
-      for (int i=1;i<this->ndevices;i++) {
-	child_wfs.push_back(new yoga_wfs(context,type,nxsub,nvalid,npix,nphase,nrebin,nfft,ntot,npup,
-					 pdiam,nphot,lgs,i));
-      }
-    }
-  }
-}
-
-int yoga_wfs::init_sh()
-{
-  long *dims_data1 = new long[2]; dims_data1[0] = 1;
-  long *dims_data2 = new long[3]; dims_data2[0] = 2; 
-  long *dims_data3 = new long[4]; dims_data3[0] = 3;
-
-  if (this->is_master) {
-    dims_data2[1] = npix*nxsub; dims_data2[2] =npix*nxsub ; 
-    
-    this->d_binimg = new yoga_obj<float>(current_context,dims_data2);
-    // using 1 stream for telemetry
-    this->image_telemetry = new yoga_host_obj<float>(dims_data2,MA_PAGELOCK,1);
-  }
-
-  dims_data3[1] = npix; dims_data3[2] = npix;
-  dims_data3[3] = nvalid/(this->ndevices*this->nhosts);
-
-  this->d_bincube = new yoga_obj<float>(current_context,dims_data3);
-
-  dims_data3[1] = nfft; dims_data3[2] = nfft;  
-  dims_data3[3] = nvalid/(this->ndevices*this->nhosts);
-
-  this->d_hrimg     = new yoga_obj<float>(current_context,dims_data3);
-  this->d_submask   = new yoga_obj<float>(current_context,dims_data3);
-  this->d_camplipup = new yoga_obj<cuFloatComplex>(current_context,dims_data3);
-  this->d_camplifoc = new yoga_obj<cuFloatComplex>(current_context,dims_data3);
-
-  int mdims[2]; 
-  mdims[0] = (int)dims_data3[1]; mdims[1] = (int)dims_data3[2];
-  cufftSafeCall(cufftPlanMany(&(this->pup_plan), 2 ,mdims,NULL,1,0,NULL,1,0,
-			       CUFFT_C2C ,(int)dims_data3[3]));
-
-  if (this->ntot != this->nfft) {
-    // this is the big array => we use nmaxhr and treat it sequentially
-    int mnmax = 500;
-    if (nvalid > 2*mnmax) {
-      this->nmaxhr = mnmax;
-      int tmp0 = nvalid % mnmax;
-      int tmp = 0;
-      for (int cc = 1;cc<mnmax/5;cc++) {
-	tmp = nvalid % (mnmax + cc);
-	if ((tmp > tmp0) || (tmp == 0)) {
-	  if (tmp == 0) tmp0 = 2*mnmax;
-	  else tmp = tmp0;
-	  this->nmaxhr  = mnmax + cc;
+  if (this->type == "sh") {
+    if (this->ntot != this->nfft) {
+      // this is the big array => we use nmaxhr and treat it sequentially
+      int mnmax = 500;
+      if (nvalid > 2*mnmax) {
+	this->nmaxhr = mnmax;
+	int tmp0 = nvalid % mnmax;
+	int tmp = 0;
+	for (int cc = 1;cc<mnmax/5;cc++) {
+	  tmp = nvalid % (mnmax + cc);
+	  if ((tmp > tmp0) || (tmp == 0)) {
+	    if (tmp == 0) tmp0 = 2*mnmax;
+	    else tmp = tmp0;
+	    this->nmaxhr  = mnmax + cc;
+	  }
 	}
-      }
-      this->nffthr  = (nvalid % this->nmaxhr == 0 ? 
-		       nvalid/this->nmaxhr : nvalid/this->nmaxhr+1);
-    } 
+	this->nffthr  = (nvalid % this->nmaxhr == 0 ? 
+			 nvalid/this->nmaxhr : nvalid/this->nmaxhr+1);
+      } 
       
-    dims_data3[1] = ntot; dims_data3[2] =ntot; dims_data3[3] = nmaxhr;  
-    this->d_fttotim   = new yoga_obj<cuFloatComplex>(current_context,dims_data3);
-    mdims[0] = (int)dims_data3[1];
-    mdims[1] = (int)dims_data3[2];
-    cufftSafeCall( cufftPlanMany(&(this->im_plan), 2 ,mdims,NULL,1,0,NULL,1,0,CUFFT_C2C ,
-				 (int)dims_data3[3]));
-    
-    dims_data1[1] = nfft * nfft;  
-    this->d_hrmap = new yoga_obj<int>(current_context,dims_data1);
-    
-  } else {
-    if (this->lgs) {
-      dims_data3[1] = ntot; dims_data3[2] =ntot; dims_data3[3] = nvalid/(ndevices*nhosts);  
-      this->d_fttotim   = new yoga_obj<cuFloatComplex>(current_context,dims_data3);
+      dims_data3[1] = ntot; dims_data3[2] =ntot; dims_data3[3] = nmaxhr;  
+      this->d_fttotim   = new yoga_obj<cuFloatComplex>(context,dims_data3);
       mdims[0] = (int)dims_data3[1];
       mdims[1] = (int)dims_data3[2];
-      cufftSafeCall( cufftPlanMany(&(this->im_plan), 2 ,mdims,NULL,1,0,NULL,1,0,CUFFT_C2C ,
+      cufftHandle *plan=this->d_fttotim->getPlan();///< FFT plan
+      cufftSafeCall( cufftPlanMany(plan, 2 ,mdims,NULL,1,0,NULL,1,0,CUFFT_C2C ,
 				   (int)dims_data3[3]));
+      
+      dims_data1[1] = nfft * nfft;  
+      this->d_hrmap = new yoga_obj<int>(context,dims_data1);
+
+    } else {
+      if (this->lgs) {
+	dims_data3[1] = ntot; dims_data3[2] =ntot; dims_data3[3] = nvalid;  
+	this->d_fttotim   = new yoga_obj<cuFloatComplex>(context,dims_data3);
+	mdims[0] = (int)dims_data3[1];
+	mdims[1] = (int)dims_data3[2];
+	cufftHandle *plan=this->d_fttotim->getPlan();///< FFT plan
+	cufftSafeCall( cufftPlanMany(plan, 2 ,mdims,NULL,1,0,NULL,1,0,CUFFT_C2C ,
+				     (int)dims_data3[3]));
+      }
     }
-  }
-  
-  dims_data2[1] = ntot; dims_data2[2] = ntot; 
-  this->d_ftkernel = new yoga_obj<cuFloatComplex>(current_context,dims_data2);
-  
-  dims_data2[1] = npup; dims_data2[2] = npup; 
-  this->d_pupil = new yoga_obj<float>(current_context,dims_data2);
-  
-  dims_data2[1] = nphase; dims_data2[2] = nphase; 
-  this->d_offsets = new yoga_obj<float>(current_context,dims_data2);
-  
-  dims_data1[1] = nxsub;
-  this->d_istart = new yoga_obj<int>(current_context,dims_data1);
-  this->d_jstart = new yoga_obj<int>(current_context,dims_data1);
-  
-  dims_data2[1] = nrebin*nrebin; dims_data2[2] = npix * npix; 
-  this->d_binmap = new yoga_obj<int>(current_context,dims_data2);
 
-  dims_data1[1] = nvalid/(this->ndevices*this->nhosts);
-  this->d_validsubsx = new yoga_obj<int>(current_context,dims_data1);
-  this->d_validsubsy = new yoga_obj<int>(current_context,dims_data1);
-  this->d_subsum = new yoga_obj<float>(current_context,dims_data1);
-  this->d_fluxPerSub = new yoga_obj<float>(current_context,dims_data1);
+    dims_data2[1] = ntot; dims_data2[2] = ntot; 
+    this->d_ftkernel = new yoga_obj<cuFloatComplex>(context,dims_data2);
 
+    dims_data2[1] = npup; dims_data2[2] = npup; 
+    this->d_pupil = new yoga_obj<float>(context,dims_data2);
 
-  return EXIT_SUCCESS;
-}
+    dims_data2[1] = nphase; dims_data2[2] = nphase; 
+    this->d_offsets = new yoga_obj<float>(context,dims_data2);
 
-int yoga_wfs::init_pyr()
-{
-  long *dims_data1 = new long[2]; dims_data1[0] = 1;
-  long *dims_data2 = new long[3]; dims_data2[0] = 2; 
-  long *dims_data3 = new long[4]; dims_data3[0] = 3;
+    dims_data1[1] = nxsub;
+    this->d_istart = new yoga_obj<int>(context,dims_data1);
+    this->d_jstart = new yoga_obj<int>(context,dims_data1);
 
-  if (this->is_master) {
-    dims_data2[1] = npix*nxsub + 3; // padding
-    dims_data2[2] = npix*nxsub + 3; 
-    this->d_binimg = new yoga_obj<float>(current_context,dims_data2);
-    // using 1 stream for telemetry
-    this->image_telemetry = new yoga_host_obj<float>(dims_data2,MA_PAGELOCK,1);
+    dims_data2[1] = nrebin*nrebin; dims_data2[2] = npix * npix; 
+    this->d_binmap = new yoga_obj<int>(context,dims_data2);
   }
 
-  dims_data3[1] = nfft; dims_data3[2] = nfft;  
-  dims_data3[3] = 4;
-  this->d_hrimg = new yoga_obj<float>(current_context,dims_data3);
+  if (this->type == "pyr") {
+    dims_data3[1] = nfft; dims_data3[2] =nfft; dims_data3[3] = 4; 
+    this->d_fttotim   = new yoga_obj<cuFloatComplex>(context,dims_data3);
+    mdims[0] = (int)dims_data3[1];
+    mdims[1] = (int)dims_data3[2];
+    cufftHandle *plan=this->d_fttotim->getPlan();///< FFT plan
+    cufftSafeCall( cufftPlanMany(plan, 2 ,mdims,NULL,1,0,NULL,1,0,CUFFT_C2C ,
+				   (int)dims_data3[3]));
 
-  dims_data2[1] = ntot; dims_data2[2] = ntot; 
-  this->d_submask = new yoga_obj<float>(current_context,dims_data2);
-  this->d_camplipup = new yoga_obj<cuFloatComplex>(current_context,dims_data2);
-  this->d_camplifoc = new yoga_obj<cuFloatComplex>(current_context,dims_data2);
+    dims_data2[1] = ntot; dims_data2[2] = ntot; 
+    this->d_pupil = new yoga_obj<float>(context,dims_data2);
 
-  cufftSafeCall( cufftPlan2d(&(this->pup_plan),dims_data2[1],dims_data2[2],CUFFT_C2C ));
+    dims_data1[1] = npup;
+    this->pyr_cx = new yoga_host_obj<int>(dims_data1,MA_WRICOMB);
+    this->pyr_cy = new yoga_host_obj<int>(dims_data1,MA_WRICOMB);
 
-  dims_data3[1] = nfft/nrebin; dims_data3[2] = nfft/nrebin;
-
-  this->d_bincube = new yoga_obj<float>(current_context,dims_data3);
-
-  dims_data3[1] = nfft; dims_data3[2] =nfft; dims_data3[3] = 4; 
-  this->d_fttotim   = new yoga_obj<cuFloatComplex>(current_context,dims_data3);
-  int mdims[2]; 
-  mdims[0] = (int)dims_data3[1];
-  mdims[1] = (int)dims_data3[2];
-  //cufftHandle *plan=this->d_fttotim->getPlan();///< FFT plan
-  cufftSafeCall( cufftPlanMany(&(this->im_plan), 2 ,mdims,NULL,1,0,NULL,1,0,CUFFT_C2C ,
-			       (int)dims_data3[3]));
-  
-  dims_data2[1] = ntot; dims_data2[2] = ntot; 
-  this->d_pupil = new yoga_obj<float>(current_context,dims_data2);
-  
-  dims_data1[1] = npup;
-  this->pyr_cx = new yoga_host_obj<int>(dims_data1,MA_WRICOMB);
-  this->pyr_cy = new yoga_host_obj<int>(dims_data1,MA_WRICOMB);
-  
-  dims_data2[1] = nfft; dims_data2[2] = nfft; 
-  this->d_poffsets = new yoga_obj<cuFloatComplex>(current_context,dims_data2);
-  dims_data2[1] = ntot; dims_data2[2] = ntot; 
-  this->d_phalfxy = new yoga_obj<cuFloatComplex>(current_context,dims_data2);
-  dims_data2[1] = nfft; dims_data2[2] = nfft; 
-  this->d_sincar = new yoga_obj<float>(current_context,dims_data2);
+    dims_data2[1] = nfft; dims_data2[2] = nfft; 
+    this->d_poffsets = new yoga_obj<cuFloatComplex>(context,dims_data2);
+    dims_data2[1] = ntot; dims_data2[2] = ntot; 
+    this->d_phalfxy = new yoga_obj<cuFloatComplex>(context,dims_data2);
+    dims_data2[1] = nfft; dims_data2[2] = nfft; 
+    this->d_sincar = new yoga_obj<float>(context,dims_data2);
+  }
 
   dims_data1[1] = nvalid;
-  this->d_psum = new yoga_obj<float>(current_context,dims_data1);
+  this->d_subsum = new yoga_obj<float>(context,dims_data1);
 
-  dims_data1[1] = nvalid;
-  this->d_validsubsx = new yoga_obj<int>(current_context,dims_data1);
-  this->d_validsubsy = new yoga_obj<int>(current_context,dims_data1);
-  this->d_subsum = new yoga_obj<float>(current_context,dims_data1);
-  this->d_fluxPerSub = new yoga_obj<float>(current_context,dims_data1);
+  if (this->type == "pyr") 
+    this->d_psum = new yoga_obj<float>(context,dims_data1);
 
-  return EXIT_SUCCESS;
+  this->d_fluxPerSub = new yoga_obj<float>(context,dims_data1);
+  this->d_validsubsx = new yoga_obj<int>(context,dims_data1);
+  this->d_validsubsy = new yoga_obj<int>(context,dims_data1);
+
+  dims_data2[1] = nxsub; dims_data2[2] = nxsub; 
+  this->d_isvalid = new yoga_obj<int>(context,dims_data2);
+
+  dims_data2[1] = nphase*nphase; dims_data2[2] = nvalid; 
+  this->d_phasemap = new yoga_obj<int>(context,dims_data2);
 }
-
 
 yoga_wfs::~yoga_wfs()
 {
@@ -294,9 +236,7 @@ yoga_wfs::~yoga_wfs()
   if (this->d_submask != 0L) delete this->d_submask;
   if (this->d_hrmap != 0L) delete this->d_hrmap;
 
-  cufftSafeCall( cufftDestroy(this->im_plan) );
-  cufftSafeCall( cufftDestroy(this->pup_plan) );
-
+  if (this->d_isvalid != 0L) delete this->d_isvalid;
   if (this->d_slopes != 0L) delete this->d_slopes;
 
   if (this->image_telemetry != 0L) delete this->image_telemetry;
@@ -320,10 +260,6 @@ yoga_wfs::~yoga_wfs()
 
   delete this->streams;
 
-  for (size_t idx = 0; idx < (this->child_wfs).size(); idx++) {
-    delete this->child_wfs[(this->child_wfs).size()-1];
-    child_wfs.pop_back();
-  } 
   //delete this->current_context;
 }
 
@@ -335,64 +271,42 @@ int yoga_wfs::wfs_initgs(float xpos,float ypos,float lambda, float mag, long siz
     this->d_bincube->init_prng(this->device);
     this->d_bincube->prng('N',noise,0.0f);
   }
+  if (noise > 0) {
+    this->d_binimg->init_prng(this->device);
+    this->d_binimg->prng('N',noise,0.0f);
+  }
 
   if (this->lgs) {
     this->d_gs->d_lgs  = new yoga_lgs(current_context,this->nvalid,this->ntot,this->nmaxhr);
     this->d_gs->lgs = this->lgs;
   }
 
-  for (size_t idx = 0; idx < (this->child_wfs).size(); idx++) {
-    this->child_wfs[idx]->d_gs = new yoga_source(current_context,xpos,ypos,lambda,mag,size,"wfs",this->device);
-    this->child_wfs[idx]->noise = noise;
-    if (noise > -1) {
-      this->child_wfs[idx]->d_bincube->init_prng(this->child_wfs[idx]->device);
-      this->child_wfs[idx]->d_bincube->prng('N',noise,0.0f);
-    }
-  }
-
   return EXIT_SUCCESS;
 }
 
 int yoga_wfs::wfs_initarrays(int *phasemap,int *hrmap, int *binmap,float *offsets, 
-			     float *pupil, float *fluxPerSub, int *validsubsx, int *validsubsy, 
+			     float *pupil, float *fluxPerSub, int *isvalid, int *validsubsx, int *validsubsy, 
 			     int *istart, int *jstart, cuFloatComplex *kernel)
 {
-  // copy only to master
   this->d_phasemap->host2device(phasemap);
-
-  // need to copy to child
-  this->d_fluxPerSub->host2device(fluxPerSub);
   this->d_offsets->host2device(offsets);
   this->d_pupil->host2device(pupil);
   this->d_binmap->host2device(binmap);
-  this->d_validsubsx->host2device(validsubsx);
-  this->d_validsubsy->host2device(validsubsy);
-  this->d_istart->host2device(istart);
-  this->d_jstart->host2device(jstart);
+  this->d_fluxPerSub->host2device(fluxPerSub);
   if (this->ntot != this->nfft) 
     this->d_hrmap->host2device(hrmap);
+  this->d_validsubsx->host2device(validsubsx);
+  this->d_validsubsy->host2device(validsubsy);
+  this->d_isvalid->host2device(isvalid);
+  this->d_istart->host2device(istart);
+  this->d_jstart->host2device(jstart);
   this->d_ftkernel->host2device(kernel);
-
-  for (size_t idx = 0; idx < (this->child_wfs).size(); idx++) {
-    int idx_valid = (idx + 1) * this->nvalid/(this->ndevices*this->nhosts);
-    this->child_wfs[idx]->d_fluxPerSub->host2device(&(fluxPerSub[idx_valid]));
-    this->child_wfs[idx]->d_offsets->host2device(offsets);
-    this->child_wfs[idx]->d_pupil->host2device(pupil);
-    this->child_wfs[idx]->d_binmap->host2device(binmap);
-    this->child_wfs[idx]->d_validsubsx->host2device(&(validsubsx[idx_valid]));
-    this->child_wfs[idx]->d_validsubsy->host2device(&(validsubsy[idx_valid]));
-    this->child_wfs[idx]->d_istart->host2device(istart);
-    this->child_wfs[idx]->d_jstart->host2device(jstart);
-    if (this->ntot != this->nfft) 
-      this->child_wfs[idx]->d_hrmap->host2device(hrmap);
-    this->child_wfs[idx]->d_ftkernel->host2device(kernel);
-  }
 
   return EXIT_SUCCESS;
 }
 
 int yoga_wfs::wfs_initarrays(cuFloatComplex *halfxy,cuFloatComplex *offsets, float *focmask, 
-			     float *pupil, int *cx, int *cy, float *sincar, int *phasemap, 
+			     float *pupil, int *isvalid, int *cx, int *cy, float *sincar, int *phasemap, 
 			     int *validsubsx, int *validsubsy)
 {
   this->d_phalfxy->host2device(halfxy);
@@ -401,6 +315,7 @@ int yoga_wfs::wfs_initarrays(cuFloatComplex *halfxy,cuFloatComplex *offsets, flo
   this->d_pupil->host2device(pupil);
   this->pyr_cx->fill_from(cx);
   this->pyr_cy->fill_from(cy);
+  this->d_isvalid->host2device(isvalid);
   this->d_sincar->host2device(sincar);
   this->d_phasemap->host2device(phasemap);
   this->d_validsubsx->host2device(validsubsx);
@@ -420,12 +335,6 @@ int yoga_wfs::sensor_trace(yoga_atmos *yatmos)
 {
   //do raytracing to get the phase
   this->d_gs->raytrace(yatmos);
-  for (size_t idx = 0; idx < (this->child_wfs).size(); idx++) {
-    cutilSafeCall(cudaMemcpy(this->child_wfs[idx]->d_gs->d_phase->d_screen->getData(), 
-			     this->d_gs->d_phase->d_screen->getData(), 
-			     sizeof(float)*this->d_gs->d_phase->d_screen->getNbElem(),
-			     cudaMemcpyDeviceToDevice));
-  }
 
   // same with textures
   // apparently not working for large sizes...
@@ -438,107 +347,43 @@ int yoga_wfs::sensor_trace(yoga_dms *ydm, int rst)
 {
   //do raytracing to get the phase
   this->d_gs->raytrace(ydm,rst);
-  for (size_t idx = 0; idx < (this->child_wfs).size(); idx++) {
-    cutilSafeCall(cudaMemcpy(this->child_wfs[idx]->d_gs->d_phase->d_screen->getData(), 
-			     this->d_gs->d_phase->d_screen->getData(), 
-			     sizeof(float)*this->d_gs->d_phase->d_screen->getNbElem(),
-			     cudaMemcpyDeviceToDevice));
-  }
-
-  return EXIT_SUCCESS;
-}
-
-int yoga_wfs::comp_sh_psf(cuFloatComplex *data_out,cuFloatComplex *data_inter,float *phase,
-			  float *offsets,float *pupil, float scale,
-			  int *istart,int *jstart,int *validx,int *validy,
-			  int nphase, int screen_size, int nshim, int nssp,
-			  cufftHandle plan, int device) 
-{
-  // segment phase and fill cube of complex ampli with exp(i*phase_seg)
-  fillcamplipup(data_inter, 
-		phase, 
-		offsets, 
-		pupil, 
-		scale, 
-		istart, 
-		jstart, 
-		validx, 
-		validy, 
-		nphase, 
-		screen_size, 
-		nshim, 
-		nphase * nphase * nssp, 
-		device);
-
-  // do fft of the cube  
-  yoga_fft(data_inter,data_out, 1,plan);
-
-  // get the hrimage by taking the | |^2
-  // keep it in amplifoc to save mem space
-  abs2c(data_out,data_out, nshim * nshim * nssp, device);
-
-  return EXIT_SUCCESS;
-}
-
-int yoga_wfs::kernelconv_sh_psf(cuFloatComplex *data_out, cuFloatComplex *kernel, int nout, cufftHandle plan, 
-				int device) 
-{
-  yoga_fft(data_out, data_out, 1, plan);
-  
-  convolve(data_out,kernel,nout,device);
-  
-  yoga_fft(data_out, data_out, -1, plan);
-
-  return EXIT_SUCCESS;
-}
- 
-int yoga_wfs::kernelconv_sh_psf(cuFloatComplex *data_out, cuFloatComplex *kernel, int nout, int nkernel, cufftHandle plan, 
-				int device) 
-{
-  yoga_fft(data_out, data_out, 1, plan);
-  
-  convolve_cube(data_out, kernel, nout, nkernel, device);
-  
-  yoga_fft(data_out, data_out, -1,plan);
 
   return EXIT_SUCCESS;
 }
 
 int yoga_wfs::comp_sh_generic() 
 {
-  //current_context->set_activeDevice(device);
-  int nssp;
-  if (this->ndevices > 1)
-    nssp  = this->nvalid / (this->ndevices * this->nhosts);
-  else
-    nssp  = this->nvalid;
+  current_context->set_activeDevice(device);
+  
+  // segment phase and fill cube of complex ampli with exp(i*phase_seg)
+  fillcamplipup(this->d_camplipup->getData(),
+		this->d_gs->d_phase->d_screen->getData(), this->d_offsets->getData(),
+		this->d_pupil->getData(), 
+		this->d_gs->scale,
+		this->d_istart->getData(),
+		this->d_jstart->getData(), this->d_validsubsx->getData(),
+		this->d_validsubsy->getData(), this->nphase,
+		this->d_gs->d_phase->d_screen->getDims(1), this->nfft,
+		this->nphase * this->nphase * this->nvalid, this->device);
 
-  comp_sh_psf(this->d_camplifoc->getData(),
-	      this->d_camplipup->getData(),
-	      this->d_gs->d_phase->d_screen->getData(),
-	      this->d_offsets->getData(),
-	      this->d_pupil->getData(), 
-	      this->d_gs->scale,
-	      this->d_istart->getData(),
-	      this->d_jstart->getData(),
-	      this->d_validsubsx->getData(),
-	      this->d_validsubsy->getData(),
-	      this->nphase, 
-	      this->d_gs->d_phase->d_screen->getDims(1),
-	      this->nfft, 
-	      nssp,
-	      this->pup_plan,
-	      this->device); 
+  // do fft of the cube  
+  yoga_fft(this->d_camplipup->getData(), this->d_camplifoc->getData(), 1,
+	   *this->d_camplipup->getPlan());
+  // get the hrimage by taking the | |^2
+  // keep it in amplifoc to save mem space
+  abs2c(this->d_camplifoc->getData(), this->d_camplifoc->getData(),
+	this->d_hrimg->getDims(1) * this->d_hrimg->getDims(2)
+	* this->d_hrimg->getDims(3), this->device);
 
   //set bincube to 0 or noise
   cutilSafeCall(cudaMemset(this->d_bincube->getData(), 0,
 			   sizeof(float) * this->d_bincube->getNbElem()));
-
   // increase fov if required
   // and fill bincube with data from hrimg
   // we need to do this sequentially if nvalid > nmaxhr to
   // keep raesonable mem occupancy
   if (this->ntot != this->nfft) {
+ 
     for (int cc = 0; cc < this->nffthr; cc++) {
       cutilSafeCall(cudaMemset(this->d_fttotim->getData(), 0,
 			       sizeof(cuFloatComplex) * this->d_fttotim->getNbElem()));
@@ -571,13 +416,30 @@ int yoga_wfs::comp_sh_generic()
 	// compute lgs spot on the fly from binned profile image
 	this->d_gs->d_lgs->lgs_makespot(this->device, indxstart2);
 	// convolve with psf
-	kernelconv_sh_psf(this->d_fttotim->getData(), this->d_gs->d_lgs->d_ftlgskern->getData(), 
-			  this->d_fttotim->getNbElem(),this->im_plan, this->device); 
+	yoga_fft(this->d_fttotim->getData(), this->d_fttotim->getData(), 1,
+		 *this->d_fttotim->getPlan());
+	
+	convolve(this->d_fttotim->getData(),
+		 this->d_gs->d_lgs->d_ftlgskern->getData(),
+		 this->d_fttotim->getNbElem(), this->device);
+	
+	yoga_fft(this->d_fttotim->getData(), this->d_fttotim->getData(), -1,
+		 *this->d_fttotim->getPlan());
+	
       }
       
       if (this->kernconv) {
-	kernelconv_sh_psf(this->d_fttotim->getData(), this->d_ftkernel->getData(), this->d_fttotim->getNbElem(),
-			  this->d_ftkernel->getNbElem(),this->im_plan, this->device); 
+	yoga_fft(this->d_fttotim->getData(), this->d_fttotim->getData(), 1,
+		 *this->d_fttotim->getPlan());
+	
+	convolve_cube(this->d_fttotim->getData(),
+		      this->d_ftkernel->getData(),
+		      this->d_fttotim->getNbElem(), 
+		      this->d_ftkernel->getNbElem(),this->device);
+	
+	yoga_fft(this->d_fttotim->getData(), this->d_fttotim->getData(), -1,
+		 *this->d_fttotim->getPlan());
+	
       }
       
       float *data2=this->d_bincube->getData();
@@ -594,103 +456,73 @@ int yoga_wfs::comp_sh_generic()
   } else {
     if (this->lgs) {
       this->d_gs->d_lgs->lgs_makespot(this->device, 0);
-
-      kernelconv_sh_psf(this->d_camplifoc->getData(), 
-			this->d_gs->d_lgs->d_ftlgskern->getData(), 
-			this->d_fttotim->getNbElem(),
-			this->im_plan, 
-			this->device); 
-
+      
+      yoga_fft(this->d_camplifoc->getData(), this->d_fttotim->getData(), 1,
+	       *this->d_fttotim->getPlan());
+      
+      convolve(this->d_fttotim->getData(),
+	       this->d_gs->d_lgs->d_ftlgskern->getData(),
+	       this->d_fttotim->getNbElem(), this->device);
+      
+      yoga_fft(this->d_fttotim->getData(), this->d_fttotim->getData(), -1,
+	       *this->d_fttotim->getPlan());
+      
       if (this->nstreams > 1) 
-	fillbincube_async(this->streams, 
-			  this->d_bincube->getData(), 
-			  this->d_camplifoc->getData(),
-			  this->d_binmap->getData(), 
-			  this->nfft * this->nfft,
-			  this->npix * this->npix, 
-			  this->nrebin * this->nrebin,
-			  this->nvalid, 
-			  this->device);
+	fillbincube_async(this->streams, this->d_bincube->getData(), this->d_fttotim->getData(),
+			  this->d_binmap->getData(), this->nfft * this->nfft,
+			  this->npix * this->npix, this->nrebin * this->nrebin,
+			  this->nvalid, this->device);
       else
-	fillbincube(this->d_bincube->getData(), 
-		    this->d_camplifoc->getData(),
-		    this->d_binmap->getData(), 
-		    this->nfft * this->nfft,
-		    this->npix * this->npix, 
-		    this->nrebin * this->nrebin,
-		    this->nvalid, 
-		    this->device);
+	fillbincube(this->d_bincube->getData(), this->d_fttotim->getData(),
+		    this->d_binmap->getData(), this->nfft * this->nfft,
+		    this->npix * this->npix, this->nrebin * this->nrebin,
+		    this->nvalid, this->device);
     } else {
       if (this->kernconv) {
-
-	kernelconv_sh_psf(this->d_camplifoc->getData(), 
-			  this->d_ftkernel->getData(), 
-			  this->d_camplifoc->getNbElem(),
-			  this->d_ftkernel->getNbElem(),
-			  this->pup_plan, 
-			  this->device); 
-
+	yoga_fft(this->d_camplifoc->getData(), this->d_camplifoc->getData(), 1,
+		 *this->d_camplipup->getPlan());
+      
+	convolve_cube(this->d_camplifoc->getData(),
+		 this->d_ftkernel->getData(),
+		 this->d_camplifoc->getNbElem(), 
+		 this->d_ftkernel->getNbElem(),this->device);
+      
+	yoga_fft(this->d_camplifoc->getData(), this->d_camplifoc->getData(), -1,
+		 *this->d_camplipup->getPlan());
       }
 
       if (this->nstreams > 1) 
-    	fillbincube_async(this->streams, 
-			  this->d_bincube->getData(), 
-			  this->d_camplifoc->getData(),
-			  this->d_binmap->getData(), 
-			  this->nfft * this->nfft,
-			  this->npix * this->npix, 
-			  this->nrebin * this->nrebin,
-			  nssp, 
-			  this->device);
+    	fillbincube_async(this->streams, this->d_bincube->getData(), this->d_camplifoc->getData(),
+			  this->d_binmap->getData(), this->nfft * this->nfft,
+			  this->npix * this->npix, this->nrebin * this->nrebin,
+			  this->nvalid, this->device);
       else
-    	fillbincube(this->d_bincube->getData(), 
-		    this->d_camplifoc->getData(),
-		    this->d_binmap->getData(), 
-		    this->nfft * this->nfft,
-		    this->npix * this->npix, 
-		    this->nrebin * this->nrebin,
-		    nssp, 
-		    this->device);
+    	fillbincube(this->d_bincube->getData(), this->d_camplifoc->getData(),
+		    this->d_binmap->getData(), this->nfft * this->nfft,
+		    this->npix * this->npix, this->nrebin * this->nrebin,
+		    this->nvalid, this->device);
     }
     
   }
   // normalize images :
   // get the sum value per subap
-
   if (this->nstreams > 1) 
-    subap_reduce_async(this->npix * this->npix, 
-		       nssp, 
-		       this->streams,
-		       this->d_bincube->getData(), 
-		       this->d_subsum->getData());
+    subap_reduce_async(this->npix * this->npix, this->nvalid, this->streams,
+		       this->d_bincube->getData(), this->d_subsum->getData());
   else {
-    subap_reduce(this->d_bincube->getNbElem(), 
-		 this->npix * this->npix,
-		 nssp, 
-		 this->d_bincube->getData(), 
-		 this->d_subsum->getData());
+    subap_reduce(this->d_bincube->getNbElem(), this->npix * this->npix,
+		 this->nvalid, this->d_bincube->getData(), this->d_subsum->getData());
   }
 
   if (this->nstreams > 1) 
-    subap_norm_async(this->d_bincube->getData(), 
-		     this->d_bincube->getData(),
-		     this->d_fluxPerSub->getData(), 
-		     this->d_subsum->getData(), 
-		     this->nphot,
-		     this->npix * this->npix, 
-		     this->npix * this->npix * nssp,
-		     this->streams,
-		     this->device);
+    subap_norm_async(this->d_bincube->getData(), this->d_bincube->getData(),
+		     this->d_fluxPerSub->getData(), this->d_subsum->getData(), this->nphot,
+		     this->npix * this->npix, this->d_bincube->getNbElem(),this->streams,this->device);
   else {
     // multiply each subap by nphot*fluxPersub/sumPerSub
-    subap_norm(this->d_bincube->getData(), 
-	       this->d_bincube->getData(),
-	       this->d_fluxPerSub->getData(), 
-	       this->d_subsum->getData(), 
-	       this->nphot,
-	       this->npix * this->npix, 
-	       this->npix * this->npix * nssp, 
-	       this->device);
+    subap_norm(this->d_bincube->getData(), this->d_bincube->getData(),
+	       this->d_fluxPerSub->getData(), this->d_subsum->getData(), this->nphot,
+	       this->npix * this->npix, this->d_bincube->getNbElem(), this->device);
   }
 
   // add noise
@@ -711,7 +543,7 @@ int yoga_wfs::comp_pyr_generic()
 	     this->d_pupil->getData(),this->ntot , this->device);
   
   yoga_fft(this->d_camplipup->getData(), this->d_camplifoc->getData(), -1,
-	   this->pup_plan);
+	   *this->d_camplipup->getPlan());
   
   pyr_submask(this->d_camplifoc->getData(), this->d_submask->getData(),this->ntot, this->device);
 
@@ -734,7 +566,7 @@ int yoga_wfs::comp_pyr_generic()
     */
     
     yoga_fft(this->d_fttotim->getData(), this->d_fttotim->getData(), 1,
-	     this->im_plan);
+	     *this->d_fttotim->getPlan());
 
     float fact = 1.0f/this->nfft/this->nfft/this->nfft/2.0;
     //if (cpt == this->npup-1) fact = fact / this->npup;
@@ -783,68 +615,27 @@ int yoga_wfs::comp_pyr_generic()
 
 int yoga_wfs::comp_image()
 {
-  
-  int nthreads = this->ndevices;
 
-  thread_barrier = yoga_create_barrier(nthreads);
-  yoga_thread thread[nthreads];
-
-  thread[0] = yoga_start_thread(comp_image_thread,(void *)(this));
-  for (size_t idx = 0; idx < (this->child_wfs).size(); idx++) {
-    thread[idx+1] = yoga_start_thread(comp_image_thread,(void *)(this->child_wfs[idx]));
-  }
-
-  yoga_wait4barrier(&thread_barrier);
-
-  for (size_t idx = 0; idx < (this->child_wfs).size()+1; idx++) {
-    yoga_destroy_thread(thread[idx]);
-  }
-
-  yoga_destroy_barrier(&thread_barrier);
-
-  return EXIT_SUCCESS;
-}
-
-void* comp_image_thread(void *thread_data) {
-  yoga_wfs *wfs =(yoga_wfs *)thread_data;
-  
-  wfs->current_context->set_activeDevice(wfs->device);
-
-  //int result;
-  if (wfs->type == "sh")
-    wfs->comp_sh_generic();
-  
-
-  if (wfs->type == "pyr") 
-    wfs->comp_pyr_generic();
-
-  yoga_increment_barrier(&thread_barrier);
-
-  return (void*)0L;
+  int result;
+  if (this->type == "sh") result = comp_sh_generic();
+  if (this->type == "pyr") result = comp_pyr_generic();
+ 
+  /*
+  if(result==EXIT_SUCCESS)
+    fillbinimg(this->d_binimg->getData(),this->d_bincube->getData(),this->npix,this->nvalid,this->npix*this->nxsub,
+	       this->d_validsubsx->getData(),this->d_validsubsy->getData(),(this->noise > 0),this->device);
+  */
+  return result;
 }
 
 int yoga_wfs::comp_image_tele()
 {
-  int nssp;
-  if (this->ndevices > 1)
-    nssp  = this->nvalid / (this->ndevices * this->nhosts);
-  else
-    nssp  = this->nvalid;
-  
   fillbinimg_async(this->image_telemetry,
-		   this->d_binimg->getData(),this->d_bincube->getData(),this->npix,nssp,
+		   this->d_binimg->getData(),this->d_bincube->getData(),this->npix,this->nvalid,
 		   this->npix*this->nxsub,this->d_validsubsx->getData(),this->d_validsubsy->getData(),
 		   this->d_binimg->getNbElem(),false,this->device);
-  
-  for (size_t idx = 0; idx < (this->child_wfs).size(); idx++) {
-    fillbinimg_async(this->image_telemetry,
-		     this->d_binimg->getData(),this->child_wfs[idx]->d_bincube->getData(),this->npix,nssp,
-		     this->npix*this->nxsub,this->child_wfs[idx]->d_validsubsx->getData(),
-		     this->child_wfs[idx]->d_validsubsy->getData(),
-		     this->d_binimg->getNbElem(),false,this->device);
-  } 
 
-  int result = comp_image();
+  int result = comp_sh_generic();
   
   return result;
 }

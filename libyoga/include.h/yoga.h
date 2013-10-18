@@ -12,7 +12,6 @@
 
 #include <yoga_utils.h>
 #include <yoga_context.h>
-#include <yoga_multithread.h>
 
 //#define DEBUG 1
 #define Y_SCOMPLEX 99

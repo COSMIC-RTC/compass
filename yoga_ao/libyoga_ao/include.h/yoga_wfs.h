@@ -15,36 +15,9 @@ extern "C" {
 
 using namespace std;
 
-class yoga_wfs_child {
- public:
-  int                      device;
-  string                   type;
-  long                     nvalid;
-  long                     nfft;
-  long                     ntot;
-  long                     npup;
-
-  yoga_obj<cuFloatComplex> *d_camplipup;
-  yoga_obj<cuFloatComplex> *d_camplifoc;
-  yoga_obj<cuFloatComplex> *d_fttotim;
-  yoga_obj<float>          *d_hrimg;
-  yoga_obj<float>          *d_bincube;
-  yoga_obj<float>          *d_submask;
-
- public:
-  yoga_wfs_child(const char* type, long nvalid, long nfft, long ntot, long npup, int device);
-  yoga_wfs_child(const yoga_wfs_child& wfs_child);
-  ~yoga_wfs_child();
-};
-
-
 class yoga_wfs {
  public:
   int                      device;
-  int                      ndevices;
-  int                      nhosts;
-  int                      child_id;
-  int                      slave_id;
   string                   type;
   long                     nxsub;
   long                     nvalid;
@@ -61,7 +34,6 @@ class yoga_wfs {
   float                    noise;
   bool                     lgs;
   bool                     kernconv;
-  bool                     is_master;
 
   yoga_obj<cuFloatComplex> *d_camplipup;
   yoga_obj<cuFloatComplex> *d_camplifoc;
@@ -79,12 +51,10 @@ class yoga_wfs {
   yoga_obj<float>          *d_submask;
   yoga_obj<int>            *d_hrmap;
 
+  yoga_obj<int>            *d_isvalid;    // nxsub x nxsub
   yoga_obj<float>          *d_slopes;
 
   yoga_host_obj<float>     *image_telemetry;
-
-  cufftHandle              pup_plan;
-  cufftHandle              im_plan;
 
   // sh only
   yoga_obj<int>            *d_phasemap;
@@ -109,41 +79,30 @@ class yoga_wfs {
 
   yoga_context *current_context;
 
-  vector<yoga_wfs *>       child_wfs;
-
  public:
   yoga_wfs(yoga_context *context, const char* type, long nxsub, long nvalid, long npix, long nphase, 
 	   long nrebin, long nfft, long ntot, long npup,float pdiam,float nphotons, int lgs, int device);
   yoga_wfs(const yoga_wfs& wfs);
   ~yoga_wfs();
 
-  int init_sh();
-  int init_pyr();
   int wfs_initarrays(int *phasemap,int *hrmap, int *binmap,float *offsets, 
-			     float *pupil, float *fluxPerSub, int *validsubsx, int *validsubsy, 
+			     float *pupil, float *fluxPerSub, int *isvalid, int *validsubsx, int *validsubsy, 
 			     int *istart, int *jstart, cuFloatComplex *kernel);
   int wfs_initarrays(cuFloatComplex *halfxy,cuFloatComplex *offsets, float *focmask, 
-		     float *pupil, int *cx, int *cy, float *sincar,int *phasemap,
+		     float *pupil, int *isvalid, int *cx, int *cy, float *sincar,int *phasemap,
 		     int *validsubsx, int *validsubsy);
   int wfs_initgs(float xpos,float ypos,float lambda, float mag, long size,float noise, long seed);
   int load_kernels(float *lgskern);
   int sensor_trace(yoga_atmos *yatmos);
   int sensor_trace(yoga_dms *ydm, int rst);
-  int comp_sh_generic();
-  int comp_pyr_generic();
-  int comp_sh_psf(cuFloatComplex *data_out, cuFloatComplex *data_inter, float *phase,
-		  float *offsets, float *pupil, float scale,
-		  int *istart,int *jstart,int *validx,int *validy,
-		  int nphase, int screen_size, int nshim, int nssp,
-		  cufftHandle plan, int device);
-  int kernelconv_sh_psf(cuFloatComplex *data_out, cuFloatComplex *kernel, int nout, 
-			cufftHandle plan, int device);
-  int kernelconv_sh_psf(cuFloatComplex *data_out, cuFloatComplex *kernel, int nout, int nkernel,
-			cufftHandle plan, int device);
   int comp_image_tele();
   int comp_image();
   int slopes_geom(int type, float *slopes);
   int slopes_geom(int type);
+
+private:
+  int comp_sh_generic();
+  int comp_pyr_generic();
 };
 
 class yoga_sensors {
@@ -203,7 +162,4 @@ template <class T> void pyr_subsum(T *d_odata, T *d_idata, int *subindx, int *su
 template <class T> void pyr_fact(T *d_data, T fact, int n, int nim, int device);
 void pyr_fact(cuFloatComplex *d_data, float fact, int n, int nim, int device);
 void pyr_fact(float *d_data, float fact1, float *fact2, int n, int nim, int device);
-
-void* comp_image_thread(void *thread_data);
-
 #endif // _YOGA_WFS_H_

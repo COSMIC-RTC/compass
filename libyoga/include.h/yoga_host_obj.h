@@ -86,7 +86,6 @@ class yoga_host_obj {
   	default: return "MA_UNKNOWN";
   	}
   }
-
 };
 #ifdef _USE_MAGMA
   // MAGMA functions
