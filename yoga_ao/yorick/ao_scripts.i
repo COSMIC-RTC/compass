@@ -638,5 +638,6 @@ if (numberof(tmp) > 1) {
   }
  }
 
-script_system,strehl=1;
+activeDevice, 0;
+script_system, YOGA_AO_PARPATH+"1wfs40x40_1layer_rtc_dm.par",strehl=1;
 quit

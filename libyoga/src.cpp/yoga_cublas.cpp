@@ -3,19 +3,22 @@
 
 cublasHandle_t cublas_handle;
 
-cublasStatus_t yoga_checkCublasStatus(cublasStatus_t status)
+#define yoga_checkCublasStatus(status) yoga_checkCublasStatus_v2(status, __LINE__, __FILE__)
+
+cublasStatus_t yoga_checkCublasStatus_v2(cublasStatus_t status, int line, string file)
 /**< Generic CUBLAS check status routine */
 {
-	switch(status){
-	case CUBLAS_STATUS_SUCCESS:return status;
-	case CUBLAS_STATUS_NOT_INITIALIZED:cerr<<"!!!!! Cublas error : CUBLAS_STATUS_NOT_INITIALIZED !!!!!\n"; break;
-	case CUBLAS_STATUS_ALLOC_FAILED:cerr<<"!!!!! Cublas error : CUBLAS_STATUS_ALLOC_FAILED !!!!!\n"; break;
-	case CUBLAS_STATUS_INVALID_VALUE:cerr<<"!!!!! Cublas error : CUBLAS_STATUS_ALLOC_FAILED !!!!!\n"; break;
-	case CUBLAS_STATUS_ARCH_MISMATCH:cerr<<"!!!!! Cublas error : CUBLAS_STATUS_ARCH_MISMATCH !!!!!\n"; break;
-	case CUBLAS_STATUS_MAPPING_ERROR:cerr<<"!!!!! Cublas error : CUBLAS_STATUS_MAPPING_ERROR !!!!!\n"; break;
-	case CUBLAS_STATUS_EXECUTION_FAILED:cerr<<"!!!!! Cublas error : CUBLAS_STATUS_EXECUTION_FAILED !!!!!\n"; break;
-	case CUBLAS_STATUS_INTERNAL_ERROR:cerr<<"!!!!! Cublas error : CUBLAS_STATUS_INTERNAL_ERROR !!!!!\n"; break;
-	}
+  switch(status){
+  case CUBLAS_STATUS_SUCCESS:return status;
+  case CUBLAS_STATUS_NOT_INITIALIZED:cerr<<"!!!!! Cublas error : CUBLAS_STATUS_NOT_INITIALIZED !!!!!\n"; break;
+  case CUBLAS_STATUS_ALLOC_FAILED:cerr<<"!!!!! Cublas error : CUBLAS_STATUS_ALLOC_FAILED !!!!!\n"; break;
+  case CUBLAS_STATUS_INVALID_VALUE:cerr<<"!!!!! Cublas error : CUBLAS_STATUS_ALLOC_FAILED !!!!!\n"; break;
+  case CUBLAS_STATUS_ARCH_MISMATCH:cerr<<"!!!!! Cublas error : CUBLAS_STATUS_ARCH_MISMATCH !!!!!\n"; break;
+  case CUBLAS_STATUS_MAPPING_ERROR:cerr<<"!!!!! Cublas error : CUBLAS_STATUS_MAPPING_ERROR !!!!!\n"; break;
+  case CUBLAS_STATUS_EXECUTION_FAILED:cerr<<"!!!!! Cublas error : CUBLAS_STATUS_EXECUTION_FAILED !!!!!\n"; break;
+  case CUBLAS_STATUS_INTERNAL_ERROR:cerr<<"!!!!! Cublas error : CUBLAS_STATUS_INTERNAL_ERROR !!!!!\n"; break;
+  }
+  cerr <<"!!!!! Cublas error in " << file << "@" << line << " !!!!!\n";
   return status;
 }
 

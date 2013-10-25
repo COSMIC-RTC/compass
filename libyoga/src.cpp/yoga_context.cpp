@@ -110,11 +110,16 @@ int yoga_context::set_activeDevice(int newDevice, int silent){
 		  cout << "Using device " << newDevice <<": \"" << deviceProp.name
 				<< "\" with Compute " << deviceProp.major << "."
 				<< deviceProp.minor << " capability" << endl;
+#ifdef DEBUG
+		  cout << "DEBUG: Using device " << newDevice <<": \"" << deviceProp.name
+				<< "\" with Compute " << deviceProp.major << "."
+				<< deviceProp.minor << " capability" << endl;
+#endif
 		activeDevice=newDevice;
 	} else {
-		cout << "Invalid Device Id : " << newDevice << " Your system has only "
+		cerr << "Invalid Device Id : " << newDevice << " Your system has only "
 				<< ndevice << " CUDA capable device(s) available " << endl ;
-		cout << "Leaving activeDevice to its current value : " << activeDevice << endl;
+		cerr << "Leaving activeDevice to its current value : " << activeDevice << endl;
 	}
 	return activeDevice;
 }

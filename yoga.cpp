@@ -818,6 +818,7 @@ void Y_yoga_imax(int argc)
 	yoga_struct *handle = (yoga_struct *) yget_obj(argc - 1, &yoga_yObj);
 	yoga_context *context_handle = _getCurrentContext();
 	context_handle->set_activeDevice(handle->device);
+
 	if (handle->type == Y_FLOAT) {
 		yObjS *yoga_obj_handler = (yObjS *) (handle->yoga_object);
 		ypush_int(yoga_obj_handler->imax(1)); // here 1 is the increment

@@ -20,3 +20,4 @@ export LD_LIBRARY_PATH=$YOGA_DIR/libyoga:$YOGA_AO_DIR/libyoga_ao:$CUDA_LIB_PATH_
 export CPLUS_INCLUDE_PATH=/usr/local/cuda/include
 
 alias yorick=~/yorick.git/relocate/bin/yorick
+
