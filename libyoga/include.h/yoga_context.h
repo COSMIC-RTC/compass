@@ -25,6 +25,7 @@
 #include <cuda_runtime_api.h>
 
 #include <yoga_utils.h>
+#include <yoga_cublas.h>
 
 using namespace std;
 
@@ -63,6 +64,7 @@ class yoga_context {
   vector<yoga_device *>  devices;
   int 			 activeDevice;
   int**			 can_access_peer;
+  cublasHandle_t         cublasHandle;
 
  public:
   yoga_context();
@@ -75,9 +77,8 @@ class yoga_context {
   string       get_activeDeviceStr();
   int          set_activeDevice(int newDevice, int silent=1);
   int          set_activeDeviceForCpy(int newDevice, int silent=1);
-
   int          get_maxGflopsDeviceId();
-
+  cublasHandle_t get_cublasHandle() {return cublasHandle;}
 };
 
 /// from /usr/local/cuda/samples/common/inc/helper_cuda.h

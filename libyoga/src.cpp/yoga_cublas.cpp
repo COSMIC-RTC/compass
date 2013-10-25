@@ -1,8 +1,6 @@
 #include <yoga_cublas.h>
 #include <yoga_obj.h>
 
-cublasHandle_t cublas_handle;
-
 #define yoga_checkCublasStatus(status) yoga_checkCublasStatus_v2(status, __LINE__, __FILE__)
 
 cublasStatus_t yoga_checkCublasStatus_v2(cublasStatus_t status, int line, string file)
@@ -22,13 +20,13 @@ cublasStatus_t yoga_checkCublasStatus_v2(cublasStatus_t status, int line, string
   return status;
 }
 
-void yoga_initCublas()
+void yoga_initCublas(cublasHandle_t *cublas_handle)
 /**< Generic CUBLAS init routine */
 {
-    yoga_checkCublasStatus(cublasCreate(&cublas_handle));
+    yoga_checkCublasStatus(cublasCreate(cublas_handle));
 }
 
-void yoga_shutdownCublas()
+void yoga_shutdownCublas(cublasHandle_t cublas_handle)
 /**< Generic CUBLAS shutdown routine */
 {
 	yoga_checkCublasStatus(cublasDestroy(cublas_handle));
@@ -52,17 +50,17 @@ cublasOperation_t yoga_char2cublasOperation(char operation){
  */
 
 /** These templates are used to select the proper Iamax executable from T_data*/
-template<class T_data> int yoga_wheremax(int n, T_data *vect, int incx);
+template<class T_data> int yoga_wheremax(cublasHandle_t cublas_handle, int n, T_data *vect, int incx);
 /**< Generic template for Iamax executable selection */
 template<> int 
-yoga_wheremax<float>(int n, float *vect, int incx)
+yoga_wheremax<float>(cublasHandle_t cublas_handle, int n, float *vect, int incx)
 {
 	int result=0;
 	yoga_checkCublasStatus(cublasIsamax(cublas_handle,n, vect, incx,&result));
 	return result;
 }
 template<> int 
-yoga_wheremax<double>(int n, double *vect, int incx)
+yoga_wheremax<double>(cublasHandle_t cublas_handle, int n, double *vect, int incx)
 {
 	int result=0;
 	yoga_checkCublasStatus(cublasIdamax(cublas_handle,n, vect, incx,&result));
@@ -70,17 +68,17 @@ yoga_wheremax<double>(int n, double *vect, int incx)
 }
 
 /** These templates are used to select the proper Iamin executable from T_data*/
-template<class T_data> int yoga_wheremin(int n, T_data *vect, int incx);
+template<class T_data> int yoga_wheremin(cublasHandle_t cublas_handle, int n, T_data *vect, int incx);
 /**< Generic template for Iamin executable selection */
 template<> int 
-yoga_wheremin<float>(int n, float *vect, int incx)
+yoga_wheremin<float>(cublasHandle_t cublas_handle, int n, float *vect, int incx)
 {
 	int result=0;
 	yoga_checkCublasStatus(cublasIsamin(cublas_handle,n, vect, incx,&result));
 	return result;
 }
 template<> int 
-yoga_wheremin<double>(int n, double *vect, int incx)
+yoga_wheremin<double>(cublasHandle_t cublas_handle, int n, double *vect, int incx)
 {
 	int result=0;
 	yoga_checkCublasStatus(cublasIdamin(cublas_handle,n, vect, incx,&result));
@@ -88,17 +86,17 @@ yoga_wheremin<double>(int n, double *vect, int incx)
 }
 
 /** These templates are used to select the proper asum executable from T_data*/
-template<class T_data> T_data yoga_getasum(int n, T_data *vect, int incx);
+template<class T_data> T_data yoga_getasum(cublasHandle_t cublas_handle, int n, T_data *vect, int incx);
 /**< Generic template for asum executable selection */
 template<> float 
-yoga_getasum<float>(int n, float *vect, int incx)
+yoga_getasum<float>(cublasHandle_t cublas_handle, int n, float *vect, int incx)
 {
 	float result=0;
 	yoga_checkCublasStatus(cublasSasum(cublas_handle,n, vect, incx,&result));
 	return result;
 }
 template<> double 
-yoga_getasum<double>(int n, double *vect, int incx)
+yoga_getasum<double>(cublasHandle_t cublas_handle, int n, double *vect, int incx)
 {
 	double result=0;
 	yoga_checkCublasStatus(cublasDasum(cublas_handle,n, vect, incx,&result));
@@ -107,32 +105,32 @@ yoga_getasum<double>(int n, double *vect, int incx)
 
 
 /** These templates are used to select the proper axpy executable from T_data*/
-template<class T_data> void yoga_axpy(int n, T_data alpha, T_data *vectx, int incx, T_data *vecty, int incy);
+template<class T_data> void yoga_axpy(cublasHandle_t cublas_handle, int n, T_data alpha, T_data *vectx, int incx, T_data *vecty, int incy);
 /**< Generic template for axpy executable selection */
 template<> void 
-yoga_axpy<float>(int n, float alpha,float *vectx, int incx, float *vecty, int incy)
+yoga_axpy<float>(cublasHandle_t cublas_handle, int n, float alpha,float *vectx, int incx, float *vecty, int incy)
 {
 	yoga_checkCublasStatus(cublasSaxpy(cublas_handle,n, &alpha, vectx,incx,vecty,incy));
 }
 template<> void 
-yoga_axpy<double>(int n, double alpha,double *vectx, int incx, double *vecty, int incy)
+yoga_axpy<double>(cublasHandle_t cublas_handle, int n, double alpha,double *vectx, int incx, double *vecty, int incy)
 {
 	yoga_checkCublasStatus(cublasDaxpy(cublas_handle,n, &alpha, vectx,incx,vecty,incy));
 }
 
 
 /** These templates are used to select the proper dot executable from T_data*/
-template<class T_data> T_data yoga_dot(int n, T_data *vectx, int incx, T_data *vecty, int incy);
+template<class T_data> T_data yoga_dot(cublasHandle_t cublas_handle, int n, T_data *vectx, int incx, T_data *vecty, int incy);
 /**< Generic template for dot executable selection */
 template<> float 
-yoga_dot<float>(int n, float *vectx, int incx, float *vecty, int incy)
+yoga_dot<float>(cublasHandle_t cublas_handle, int n, float *vectx, int incx, float *vecty, int incy)
 {
 	float result=0;
 	yoga_checkCublasStatus(cublasSdot(cublas_handle,n, vectx,incx,vecty,incy,&result));
 	return result;
 }
 template<> double 
-yoga_dot<double>(int n, double *vectx, int incx, double *vecty, int incy)
+yoga_dot<double>(cublasHandle_t cublas_handle, int n, double *vectx, int incx, double *vecty, int incy)
 {
 	double result=0;
 	yoga_checkCublasStatus(cublasDdot(cublas_handle,n, vectx,incx,vecty,incy,&result));
@@ -141,17 +139,17 @@ yoga_dot<double>(int n, double *vectx, int incx, double *vecty, int incy)
 
 
 /** These templates are used to select the proper nrm2 executable from T_data*/
-template<class T_data> T_data yoga_nrm2(int n, T_data *vect, int incx);
+template<class T_data> T_data yoga_nrm2(cublasHandle_t cublas_handle, int n, T_data *vect, int incx);
 /**< Generic template for nrm2 executable selection */
 template<> float 
-yoga_nrm2<float>(int n, float *vect, int incx)
+yoga_nrm2<float>(cublasHandle_t cublas_handle, int n, float *vect, int incx)
 {
 	float result=0;
 	yoga_checkCublasStatus(cublasSnrm2(cublas_handle,n, vect,incx,&result));
 	return result;
 }
 template<> double 
-yoga_nrm2<double>(int n, double *vect, int incx)
+yoga_nrm2<double>(cublasHandle_t cublas_handle, int n, double *vect, int incx)
 {
 	double result=0;
 	yoga_checkCublasStatus(cublasDnrm2(cublas_handle,n, vect,incx,&result));
@@ -160,93 +158,93 @@ yoga_nrm2<double>(int n, double *vect, int incx)
 
 
 /** These templates are used to select the proper rot executable from T_data*/
-template<class T_data> void yoga_rot(int n, T_data *vectx, int incx, T_data *vecty, int incy, T_data sc, T_data ss);
+template<class T_data> void yoga_rot(cublasHandle_t cublas_handle, int n, T_data *vectx, int incx, T_data *vecty, int incy, T_data sc, T_data ss);
 /**< Generic template for rot executable selection */
 template<> void 
-yoga_rot<float>(int n, float *vectx, int incx, float *vecty, int incy, float sc, float ss)
+yoga_rot<float>(cublasHandle_t cublas_handle, int n, float *vectx, int incx, float *vecty, int incy, float sc, float ss)
 {
 	yoga_checkCublasStatus(cublasSrot(cublas_handle,n,vectx,incx,vecty,incy,&sc,&ss));
 }
 template<> void 
-yoga_rot<double>(int n, double *vectx, int incx, double *vecty, int incy, double sc, double ss)
+yoga_rot<double>(cublasHandle_t cublas_handle, int n, double *vectx, int incx, double *vecty, int incy, double sc, double ss)
 {
 	yoga_checkCublasStatus(cublasDrot(cublas_handle,n,vectx,incx,vecty,incy,&sc,&ss));
 }
 
 
 /** These templates are used to select the proper scal executable from T_data*/
-template<class T_data> void yoga_scal(int n, T_data alpha, T_data *vectx, int incx);
+template<class T_data> void yoga_scal(cublasHandle_t cublas_handle, int n, T_data alpha, T_data *vectx, int incx);
 /**< Generic template for scal executable selection */
 template<> void 
-yoga_scal<float>(int n, float alpha, float *vectx, int incx)
+yoga_scal<float>(cublasHandle_t cublas_handle, int n, float alpha, float *vectx, int incx)
 {
 	yoga_checkCublasStatus(cublasSscal(cublas_handle,n,&alpha,vectx,incx));
 }
 template<> void 
-yoga_scal<double>(int n, double alpha, double *vectx, int incx)
+yoga_scal<double>(cublasHandle_t cublas_handle, int n, double alpha, double *vectx, int incx)
 {
 	yoga_checkCublasStatus(cublasDscal(cublas_handle,n,&alpha,vectx,incx));
 }
 
 
 /** These templates are used to select the proper swap executable from T_data*/
-template<class T_data> void yoga_swap(int n, T_data *vectx, int incx, T_data *vecty, int incy);
+template<class T_data> void yoga_swap(cublasHandle_t cublas_handle, int n, T_data *vectx, int incx, T_data *vecty, int incy);
 /**< Generic template for swap executable selection */
 template<> void 
-yoga_swap<float>(int n, float *vectx, int incx, float *vecty, int incy)
+yoga_swap<float>(cublasHandle_t cublas_handle, int n, float *vectx, int incx, float *vecty, int incy)
 {
 	yoga_checkCublasStatus(cublasSswap(cublas_handle,n,vectx,incx,vecty,incy));
 }
 template<> void 
-yoga_swap<double>(int n, double *vectx, int incx, double *vecty, int incy)
+yoga_swap<double>(cublasHandle_t cublas_handle, int n, double *vectx, int incx, double *vecty, int incy)
 {
 	yoga_checkCublasStatus(cublasDswap(cublas_handle,n,vectx,incx,vecty,incy));
 }
 
 
 /** These templates are used to select the proper gemv executable from T_data*/
-template<class T_data> void yoga_gemv(char trans, int m, int n, T_data alpha, T_data *matA, int lda, T_data *vectx, int incx, T_data beta, T_data *vecty, int incy);
+template<class T_data> void yoga_gemv(cublasHandle_t cublas_handle, char trans, int m, int n, T_data alpha, T_data *matA, int lda, T_data *vectx, int incx, T_data beta, T_data *vecty, int incy);
 /**< Generic template for gemv executable selection */
 template<> void 
-yoga_gemv<float>(char trans, int m, int n, float alpha, float *matA, int lda, float *vectx, int incx, float beta, float *vecty, int incy)
+yoga_gemv<float>(cublasHandle_t cublas_handle, char trans, int m, int n, float alpha, float *matA, int lda, float *vectx, int incx, float beta, float *vecty, int incy)
 {
     cublasOperation_t trans2 = yoga_char2cublasOperation(trans);
 	yoga_checkCublasStatus(cublasSgemv(cublas_handle,trans2,m,n,&alpha,matA,lda,vectx,incx,&beta,vecty,incy));
 }
 template<> void 
-yoga_gemv<double>(char trans, int m, int n, double alpha, double *matA, int lda, double *vectx, int incx, double beta, double *vecty, int incy)
+yoga_gemv<double>(cublasHandle_t cublas_handle, char trans, int m, int n, double alpha, double *matA, int lda, double *vectx, int incx, double beta, double *vecty, int incy)
 {
     cublasOperation_t trans2 = yoga_char2cublasOperation(trans);
 	yoga_checkCublasStatus(cublasDgemv(cublas_handle,trans2,m,n,&alpha,matA,lda,vectx,incx,&beta,vecty,incy));
 }
 
 /** These templates are used to select the proper ger executable from T_data*/
-template<class T_data> void yoga_ger(int m, int n, T_data alpha, T_data *vectx, int incx, T_data *vecty, int incy, T_data *matA, int lda);
+template<class T_data> void yoga_ger(cublasHandle_t cublas_handle, int m, int n, T_data alpha, T_data *vectx, int incx, T_data *vecty, int incy, T_data *matA, int lda);
 /**< Generic template for ger executable selection */
 template<> void 
-yoga_ger<float>(int m, int n, float alpha, float *vectx, int incx, float *vecty, int incy, float *matA, int lda)
+yoga_ger<float>(cublasHandle_t cublas_handle, int m, int n, float alpha, float *vectx, int incx, float *vecty, int incy, float *matA, int lda)
 {
 	yoga_checkCublasStatus(cublasSger(cublas_handle,m,n,&alpha,vectx,incx,vecty,incy,matA,lda));
 }
 template<> void 
-yoga_ger<double>(int m, int n, double alpha, double *vectx, int incx, double *vecty, int incy, double *matA, int lda)
+yoga_ger<double>(cublasHandle_t cublas_handle, int m, int n, double alpha, double *vectx, int incx, double *vecty, int incy, double *matA, int lda)
 {
 	yoga_checkCublasStatus(cublasDger(cublas_handle,m,n,&alpha,vectx,incx,vecty,incy,matA,lda));
 }
 
 
 /** These templates are used to select the proper gemm executable from T_data*/
-template<class T_data> void yoga_gemm(char transa, char transb, int m, int n, int k, T_data alpha, T_data *matA, int lda, T_data *matB, int ldb, T_data beta, T_data *matC, int ldc);
+template<class T_data> void yoga_gemm(cublasHandle_t cublas_handle, char transa, char transb, int m, int n, int k, T_data alpha, T_data *matA, int lda, T_data *matB, int ldb, T_data beta, T_data *matC, int ldc);
 /**< Generic template for gemm executable selection */
 template<> void 
-yoga_gemm<float>(char transa, char transb, int m, int n, int k, float alpha, float *matA, int lda, float *matB, int ldb, float beta, float *matC, int ldc)
+yoga_gemm<float>(cublasHandle_t cublas_handle, char transa, char transb, int m, int n, int k, float alpha, float *matA, int lda, float *matB, int ldb, float beta, float *matC, int ldc)
 {
     cublasOperation_t transa2 = yoga_char2cublasOperation(transa);
     cublasOperation_t transb2 = yoga_char2cublasOperation(transb);
 	yoga_checkCublasStatus(cublasSgemm(cublas_handle,transa2,transb2,m,n,k,&alpha,matA,lda,matB,ldb,&beta,matC,ldc));
 }
 template<> void 
-yoga_gemm<double>(char transa, char transb, int m, int n, int k, double alpha, double *matA, int lda, double *matB, int ldb, double beta, double *matC, int ldc)
+yoga_gemm<double>(cublasHandle_t cublas_handle, char transa, char transb, int m, int n, int k, double alpha, double *matA, int lda, double *matB, int ldb, double beta, double *matC, int ldc)
 {
     cublasOperation_t transa2 = yoga_char2cublasOperation(transa);
     cublasOperation_t transb2 = yoga_char2cublasOperation(transb);
@@ -334,7 +332,7 @@ template<class T_data> int yoga_obj<T_data>::imax(int incx){
    *
    * this method finds the smallest index of the maximum magnitude element in vect
    */
-  return yoga_wheremax(this->nb_elem,this->d_data,incx);;
+  return yoga_wheremax(current_context->get_cublasHandle(), this->nb_elem,this->d_data,incx);;
 }
 template int yoga_obj<float>::imax(int incx);
 template int yoga_obj<double>::imax(int incx);
@@ -345,7 +343,7 @@ template<class T_data> int yoga_obj<T_data>::imin(int incx){
    *
    * this method finds the smallest index of the minimum magnitude element in vect
    */
-  return yoga_wheremin(this->nb_elem,this->d_data, incx);;
+  return yoga_wheremin(current_context->get_cublasHandle(), this->nb_elem,this->d_data, incx);;
 }
 template int yoga_obj<float>::imin(int incx);
 template int yoga_obj<double>::imin(int incx);
@@ -356,7 +354,7 @@ template<class T_data> T_data yoga_obj<T_data>::asum(int incx){
    *
    * this method computes the sum of the absolute values of the elements
    */
-  return yoga_getasum(this->nb_elem,this->d_data, incx);;
+  return yoga_getasum(current_context->get_cublasHandle(), this->nb_elem,this->d_data, incx);;
 }
 template float yoga_obj<float>::asum(int incx);
 template double yoga_obj<double>::asum(int incx);
@@ -369,7 +367,7 @@ template<class T_data> T_data yoga_obj<T_data>::nrm2(int incx){
    *
    * this method computes the Euclidean norm of vect
    */
-  return yoga_nrm2(this->nb_elem,this->d_data, incx);;
+  return yoga_nrm2(current_context->get_cublasHandle(), this->nb_elem,this->d_data, incx);;
 }
 template float yoga_obj<float>::nrm2(int incx);
 template double yoga_obj<double>::nrm2(int incx);
@@ -384,7 +382,7 @@ template<class T_data> void yoga_obj<T_data>::scale(T_data alpha, int incx){
    * this method replaces vector x with alpha * x
 
    */
-  yoga_scal(this->nb_elem,alpha,this->d_data,incx);
+  yoga_scal(current_context->get_cublasHandle(), this->nb_elem,alpha,this->d_data,incx);
 }
 template void yoga_obj<float>::scale(float alpha, int incx);
 template void yoga_obj<double>::scale(double alpha, int incx);
@@ -401,7 +399,7 @@ void yoga_obj<T_data>::swap(yoga_obj<T_data> *source, int incx, int incy){
    * this method interchanges vector x with vector y
    */
   
-  yoga_swap(this->nb_elem,source->d_data,incx,this->d_data,incy);
+  yoga_swap(current_context->get_cublasHandle(), this->nb_elem,source->d_data,incx,this->d_data,incy);
 }
 template void yoga_obj<float>::swap(yObjS *, int incx, int incy);
 template void yoga_obj<double>::swap(yObjD *, int incx, int incy);
@@ -416,7 +414,7 @@ template<class T_data> void yoga_obj<T_data>::axpy(T_data alpha,yoga_obj<T_data>
    *
    * this method multiplies vector x by scalar alpha and adds the result to vector y
    */
-  yoga_axpy(this->nb_elem,alpha,source->d_data,incx,this->d_data,incy);
+  yoga_axpy(current_context->get_cublasHandle(), this->nb_elem,alpha,source->d_data,incx,this->d_data,incy);
 }
 template void yoga_obj<float>::axpy(float alpha, yObjS *source, int incx, int incy);
 template void yoga_obj<double>::axpy(double alpha, yObjD *source, int incx, int incy);
@@ -431,7 +429,7 @@ template<class T_data> T_data yoga_obj<T_data>::dot(yoga_obj<T_data> *source, in
    *
    * this method computes the dot product of two vectors
    */
-  return yoga_dot(this->nb_elem,source->d_data,incx,this->d_data,incy);
+  return yoga_dot(current_context->get_cublasHandle(), this->nb_elem,source->d_data,incx,this->d_data,incy);
 }
 template float yoga_obj<float>::dot(yObjS *source, int incx, int incy);
 template double yoga_obj<double>::dot(yObjD *source, int incx, int incy);
@@ -448,7 +446,7 @@ template<class T_data> void yoga_obj<T_data>::rot(yoga_obj<T_data> *source, int 
    *
    * this method computes the dot product of two vectors
    */
-  yoga_rot(this->nb_elem,source->d_data,incx,this->d_data,incy,sc,ss);
+  yoga_rot(current_context->get_cublasHandle(), this->nb_elem,source->d_data,incx,this->d_data,incy,sc,ss);
 }
 template void yoga_obj<float>::rot(yObjS *source, int incx, int incy, float, float);
 template void yoga_obj<double>::rot(yObjD *source, int incx, int incy, double sc, double ss);
@@ -474,7 +472,7 @@ template<class T_data> void yoga_obj<T_data>::gemv(char trans, T_data alpha, yog
    *
    * this method performs one of the matrix‐vector operations y = alpha * op(A) * x + beta * y
    */
-  yoga_gemv(trans,matA->dims_data[1],matA->dims_data[2],alpha,matA->d_data,lda,vectx->d_data,incx,beta,this->d_data,incy);
+  yoga_gemv(current_context->get_cublasHandle(), trans,matA->dims_data[1],matA->dims_data[2],alpha,matA->d_data,lda,vectx->d_data,incx,beta,this->d_data,incy);
 }
 template void yoga_obj<float>::gemv(char, float, yObjS *, int, yObjS*, int , float, int);
 template void yoga_obj<double>::gemv(char, double, yObjD *, int , yObjD *, int , double , int);
@@ -491,7 +489,7 @@ template<class T_data> void yoga_obj<T_data>::ger(T_data alpha, yoga_obj<T_data>
    *
    * this method performs the symmetric rank 1 operation A = alpha * x * y T + A 
    */
-  yoga_ger(this->dims_data[1],this->dims_data[2],alpha,vectx->d_data,incx,vecty->d_data,incy,this->d_data,lda);
+  yoga_ger(current_context->get_cublasHandle(), this->dims_data[1],this->dims_data[2],alpha,vectx->d_data,incx,vecty->d_data,incy,this->d_data,lda);
 }
 template void yoga_obj<float>::ger(float, yObjS *, int, yObjS*, int , int);
 template void yoga_obj<double>::ger(double, yObjD *, int , yObjD *, int , int);
@@ -523,37 +521,7 @@ template<class T_data> void yoga_obj<T_data>::gemm(char transa, char transb, T_d
    * where  op(X) = X  or  op(X) = X^T 
    */
   int k = ( ((transa == 'N') || (transa == 'n')) ? matA->dims_data[2] : matA->dims_data[1]);
-  yoga_gemm(transa,transb,this->dims_data[1],this->dims_data[2],k,alpha,matA->d_data,lda,matB->d_data,ldb,beta,this->d_data,ldc);
+  yoga_gemm(current_context->get_cublasHandle(), transa,transb,this->dims_data[1],this->dims_data[2],k,alpha,matA->d_data,lda,matB->d_data,ldb,beta,this->d_data,ldc);
 }
 template void yoga_obj<float>::gemm(char, char, float, yObjS *, int, yObjS*, int , float, int);
 template void yoga_obj<double>::gemm(char, char, double, yObjD *, int , yObjD *, int , double , int);
-
-
-/*
-__        ______      _    ____  ____  _____ ____  ____  
-\ \      / /  _ \    / \  |  _ \|  _ \| ____|  _ \/ ___| 
- \ \ /\ / /| |_) |  / _ \ | |_) | |_) |  _| | |_) \___ \ 
-  \ V  V / |  _ <  / ___ \|  __/|  __/| |___|  _ < ___) |
-   \_/\_/  |_| \_\/_/   \_\_|   |_|   |_____|_| \_\____/ 
-                                                         
- */
-
-/** The following are wrappers to be called from Yorick */
-
-/*
- BLAS 1
-*/
-
-int _yogaInitCublas(){
-  /*! \brief Init cublas wrapper for Yorick.
-   */
-  yoga_initCublas();
-  return EXIT_SUCCESS;
-}
-
-int _yogaShutdownCublas(){
-  /*! \brief Shutdown cublas wrapper for Yorick.
-   */
-  yoga_shutdownCublas();
-  return EXIT_SUCCESS;
-}

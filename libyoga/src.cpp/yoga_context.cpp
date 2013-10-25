@@ -43,6 +43,7 @@ yoga_context::yoga_context()
   while ( current_device < this->ndevice ) {
     current_yd = new yoga_device(current_device);
     devices.push_back(current_yd);
+
     if(current_yd->isGPUCapableP2P()) gpuid[gpu_count++] = current_device;
     current_device++;
   }
@@ -68,8 +69,11 @@ yoga_context::yoga_context()
       printf("*** All GPUs listed can support UVA... ***\n");
     }
   }
+
   this->activeDevice = set_activeDevice(get_maxGflopsDeviceId(), 1);
-  
+
+  yoga_initCublas(&cublasHandle);
+
 #ifdef DEBUG
   printf("YOGA Context created @ %8.8lX\n", (unsigned long)this);
 #endif
@@ -77,6 +81,8 @@ yoga_context::yoga_context()
 
 yoga_context::~yoga_context()
 {
+  yoga_shutdownCublas(cublasHandle);
+
   for (size_t idx = 0; idx < (this->devices).size(); idx++) {
     devices.pop_back();
     delete[] can_access_peer[idx];

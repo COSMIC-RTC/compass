@@ -103,10 +103,6 @@ void yoga_obj<T_data>::init(yoga_context *context, long *dims_data, T_data *data
   cutilSafeCall(cudaMalloc((void**)&(this->d_data), sizeof(T_data)*this->nb_elem));
   this->device = current_context->get_activeDevice();
 
-#ifdef DEBUG
-  printf("YOGA Object created @ %8.8lX on GPU%d\n", (unsigned long)this, current_context->get_activeDevice());
-#endif
-
   if(data==NULL) cutilSafeCall(cudaMemset(this->d_data, 0, sizeof(T_data)*this->nb_elem));
 
   else if(fromHost) this->host2device(data);
@@ -121,6 +117,10 @@ void yoga_obj<T_data>::init(yoga_context *context, long *dims_data, T_data *data
 
   this->streams = new yoga_streams();
   this->add_stream(nb_streams);
+
+#ifdef DEBUG
+  printf("YOGA Object created @ %8.8lX on GPU%d\n", (unsigned long)this, current_context->get_activeDevice());
+#endif
 
 }
 

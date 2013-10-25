@@ -53,7 +53,7 @@ extern "C" {
     void *yoga_context; /**< pointer to a yoga_context object */
   } context_struct;
 
-  typedef struct yoga_struct {
+  typedef struct yObj_struct {
     /** 
      * @typedef Yorick API yoga_object structure
      */
@@ -61,15 +61,15 @@ extern "C" {
     int type;            /**< type of data in the yoga_object (Yorick API types) */
     int device;          /**< device number on which it resides */
     unsigned char isRef; /**< reference counting */
-  } yoga_struct;
+  } yObj_struct;
 
-  typedef struct yoga_host_struct {
+  typedef struct yHostObj_struct {
     /** 
      * @typedef Yorick API yoga_host_object structure
      */
     void *yoga_host_object; /**< pointer to a yoga_host_object */
     int type;               /**< type of data in the yoga_host_object (Yorick API types) */
-  } yoga_host_struct;
+  } yHostObj_struct;
 
 
 /* 
@@ -115,16 +115,16 @@ extern "C" {
              |___/       |___/     |_____|       |__/               
   */
 
-  void yoga_print(void *obj);
-  void yoga_eval(void *obj, int n); 
-  void yoga_free(void *obj);
+  void yObj_print(void *obj);
+  void yObj_eval(void *obj, int n); 
+  void yObj_free(void *obj);
 
-  static y_userobj_t yoga_yObj =
+  static y_userobj_t yObj =
     {
       /** 
-       * @typedef Yorick API yoga_yObj userobj
+       * @typedef Yorick API object_yObj userobj
        */
-    	const_cast<char*>("Yoga Object"), &yoga_free, &yoga_print, &yoga_eval, 0, 0
+    	const_cast<char*>("Yoga Object"), &yObj_free, &yObj_print, &yObj_eval, 0, 0
     };
 
   void Y_yoga_obj(int argc);
@@ -167,16 +167,16 @@ extern "C" {
                 |___/       |___/     |_____|                   
   */
 
-  void yoga_host_free(void *obj); 
-  void yoga_host_print(void *obj); 
-  void yoga_host_eval(void *obj, int n); 
+  void yHostObj_free(void *obj); 
+  void yHostObj_print(void *obj); 
+  void yHostObj_eval(void *obj, int n); 
 
-  static y_userobj_t yoga_host_yObj =
+  static y_userobj_t yHostObj =
     {
       /** 
        * @typedef Yorick API host_obj userobj
        */
-      const_cast<char*>("Yoga Host Object"), &yoga_host_free, &yoga_host_print, &yoga_host_eval, 0, 0
+      const_cast<char*>("Yoga Host Object"), &yHostObj_free, &yHostObj_print, &yHostObj_eval, 0, 0
     };
 
   void Y_yoga_host_obj(int argc);
@@ -225,7 +225,7 @@ extern "C" {
 
 
 
-  yoga_struct* yoga_getobj(int argc, int pos);
+  yObj_struct* yoga_getobj(int argc, int pos);
 
 }
 

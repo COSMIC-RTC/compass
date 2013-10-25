@@ -110,17 +110,6 @@ func yoga_getnDevice(void) {
   return _yoga_getnDevice();
 }
 
-//==================================================================
-extern _yogaInitCublas
-/* PROTOTYPE
-  int _yogaInitCublas(void);
- */
-//==================================================================
-extern _yogaShutdownCublas
-/* PROTOTYPE
-  int _yogaShutdownCublas(void);
- */
-
 extern activeDevice;
 /* DOCUMENT activeDevice
    mydevice = activeDevice();
@@ -702,6 +691,6 @@ extern context_get_maxGflopsDeviceId;
 
 write,"Now loading YoGA version "+yoga_version;
 //write, format="yoga_init, %d;\n",useDevice
-yoga_init;
 current_context = yoga_context();
 current_context;
+yoga_init;

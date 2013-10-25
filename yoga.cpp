@@ -210,7 +210,6 @@ void _yogaThreadExit()
 {
 	//cerr << "Shutting down : " ;
 	culaShutdown();
-	yoga_shutdownCublas();
 	cutilSafeCall( cudaThreadExit());
 	//cerr << "OK " << __LINE__ << endl;
 }
@@ -232,7 +231,6 @@ void _yoga_init()
 		culaGetErrorInfoString(status, culaGetErrorInfo(), buf, sizeof(buf));
 		printf("%s\n", buf);
 	}
-	yoga_initCublas();
 	ycall_on_quit(_yogaThreadExit);
 }
 
@@ -252,13 +250,13 @@ void _yoga_stop_profiler() {
  *  |___/       |___/     |_____|       |__/
  */
 
-void yoga_print(void *obj)
-/** @brief yoga_struct printer.
- *  @param[in] obj : yoga_struct to print
+void yObj_print(void *obj)
+/** @brief yObj_struct printer.
+ *  @param[in] obj : yObj_struct to print
  */
 {
 	ostringstream mystr;
-	yoga_struct *handler = (yoga_struct *) obj;
+	yObj_struct *handler = (yObj_struct *) obj;
 	try {
 		if (handler->type == Y_FLOAT) {
 			yoga_obj<float> *yoga_obj_handler =
@@ -324,12 +322,12 @@ void yoga_print(void *obj)
 	y_print(mystr.str().c_str(), 1);
 }
 
-void yoga_eval(void *obj, int n)
-/** @brief yoga_struct evaluator.
- *  @param[in] obj : yoga_struct to evaluate
+void yObj_eval(void *obj, int n)
+/** @brief yObj_struct evaluator.
+ *  @param[in] obj : yObj_struct to evaluate
  */
 {
-	yoga_struct *handler = (yoga_struct *) obj;
+	yObj_struct *handler = (yObj_struct *) obj;
 
 	yoga_context *context_handle = _getCurrentContext();
 	context_handle->set_activeDeviceForCpy(handler->device);
@@ -377,12 +375,12 @@ void yoga_eval(void *obj, int n)
 	}
 }
 
-void yoga_free(void *obj)
-/** @brief yoga_struct destructor.
- *  @param[in] obj : yoga_struct to free
+void yObj_free(void *obj)
+/** @brief yObj_struct destructor.
+ *  @param[in] obj : yObj_struct to free
  */
 {
-	yoga_struct *handler = (yoga_struct *) obj;
+	yObj_struct *handler = (yObj_struct *) obj;
 	if (handler->isRef)
 		return;
 	yoga_context *context_handle = _getCurrentContext();
@@ -417,7 +415,7 @@ void yoga_free(void *obj)
 }
 
 void Y_yoga_obj(int argc)
-/** @brief yoga_struct constructor.
+/** @brief yObj_struct constructor.
  *  @param[in] argc : command line argument(s)
  *  several cases are handled :
  *   - a pointer to a yoga_obj is passed as an argument : copy the pointee in a new yoga_obj
@@ -436,18 +434,18 @@ void Y_yoga_obj(int argc)
 		int oType;
 		int yType = yarg_typeid(argc - 1);
 		if (yType == Y_POINTER) {
-			yoga_struct *handle_obj = (yoga_struct *) ygets_p(argc - 1);
-			yoga_struct *handle = (yoga_struct *) ypush_obj(&yoga_yObj,
-					sizeof(yoga_struct));
+			yObj_struct *handle_obj = (yObj_struct *) ygets_p(argc - 1);
+			yObj_struct *handle = (yObj_struct *) ypush_obj(&yObj,
+					sizeof(yObj_struct));
 			handle->type = handle_obj->type;
 			handle->device = handle_obj->device;
 			handle->isRef = 1;
 			handle->yoga_object = handle_obj->yoga_object;
 		} else if (yType == Y_OPAQUE) { // Copy constructor
-			yoga_struct *handle_obj = (yoga_struct *) yget_obj(argc - 1,
-					&yoga_yObj);
-			yoga_struct *handle = (yoga_struct *) ypush_obj(&yoga_yObj,
-					sizeof(yoga_struct));
+			yObj_struct *handle_obj = (yObj_struct *) yget_obj(argc - 1,
+					&yObj);
+			yObj_struct *handle = (yObj_struct *) ypush_obj(&yObj,
+					sizeof(yObj_struct));
 			handle->type = handle_obj->type;
 			handle->device = handle_obj->device;
 			handle->isRef = 0;
@@ -504,8 +502,8 @@ void Y_yoga_obj(int argc)
 
 			activeDevice = context_handle->set_activeDevice(odevice);
 
-			yoga_struct *handle = (yoga_struct *) ypush_obj(&yoga_yObj,
-					sizeof(yoga_struct));
+			yObj_struct *handle = (yObj_struct *) ypush_obj(&yObj,
+					sizeof(yObj_struct));
 			handle->device = odevice;
 			handle->type = oType;
 			handle->isRef = 0;
@@ -594,7 +592,7 @@ void Y_yoga_getp(int argc)
  *  the corresponding address is pushed on the stack
  */
 {
-	yoga_struct *handle = (yoga_struct *) yget_obj(argc - 1, &yoga_yObj);
+	yObj_struct *handle = (yObj_struct *) yget_obj(argc - 1, &yObj);
 	long a = 0;
 	ypointer_t *ptr_handle = ypush_p(&a);
 	*ptr_handle = handle;
@@ -606,7 +604,7 @@ void Y_yoga_getpl(int argc)
  *  the corresponding address is pushed on the stack
  */
 {
-	yoga_struct *handle = (yoga_struct *) yget_obj(argc - 1, &yoga_yObj);
+	yObj_struct *handle = (yObj_struct *) yget_obj(argc - 1, &yObj);
 	//long a = 0;
 	ypush_long((long)handle);
 }
@@ -617,7 +615,7 @@ void Y_yoga_setv(int argc)
 /** @brief simple routine to fill a vector yoga_obj with data
  *  @param[in] argc : command line arguments
  *    - first  : a yoga_obj
- *    - second : the data (see yoga_struct constructor for supported types)
+ *    - second : the data (see yObj_struct constructor for supported types)
  */
 {
 	long ntot;
@@ -628,8 +626,8 @@ void Y_yoga_setv(int argc)
 
 	data_input = ygeta_any(0, &ntot, dims, &yType);
 
-	yoga_struct *handle = (yoga_struct *) ypush_obj(&yoga_yObj,
-			sizeof(yoga_struct));
+	yObj_struct *handle = (yObj_struct *) ypush_obj(&yObj,
+			sizeof(yObj_struct));
 	yoga_context *context_handle = _getCurrentContext();
 
 	context_handle->set_activeDevice(handle->device);
@@ -659,7 +657,7 @@ void Y_yoga_setm(int argc)
 /** @brief simple routine to fill a matrix yoga_obj with data
  *  @param[in] argc : command line arguments
  *    - first  : a yoga_obj
- *    - second : the data (see yoga_struct constructor for supported types)
+ *    - second : the data (see yObj_struct constructor for supported types)
  */
 {
 	long ntot;
@@ -669,8 +667,8 @@ void Y_yoga_setm(int argc)
 	int yType = yarg_typeid(argc - 1);
 	data_input = ygeta_any(0, &ntot, dims, &yType);
 
-	yoga_struct *handle = (yoga_struct *) ypush_obj(&yoga_yObj,
-			sizeof(yoga_struct));
+	yObj_struct *handle = (yObj_struct *) ypush_obj(&yObj,
+			sizeof(yObj_struct));
 
 	yoga_context *context_handle = _getCurrentContext();
 	context_handle->set_activeDevice(handle->device);
@@ -694,13 +692,13 @@ void Y_yoga_host2device(int argc)
 /** @brief simple routine to fill a yoga_obj with data
  *  @param[in] argc : command line arguments
  *    - first  : a yoga_obj
- *    - second : the data (see yoga_struct constructor for supported types)
+ *    - second : the data (see yObj_struct constructor for supported types)
  */
 {
 	if (yarg_subroutine()) {
 		try {
-			yoga_struct *handle = (yoga_struct *) yget_obj(argc - 1,
-					&yoga_yObj);
+			yObj_struct *handle = (yObj_struct *) yget_obj(argc - 1,
+					&yObj);
 			yoga_context *context_handle = _getCurrentContext();
 			context_handle->set_activeDeviceForCpy(handle->device);
 			long ntot;
@@ -750,10 +748,10 @@ void Y_yoga_device2host(int argc)
 /** @brief simple routine to retrieve data from a yoga_obj
  *  @param[in] argc : command line arguments
  *    - first  : a yoga_obj
- *    - second : the data (see yoga_struct constructor for supported types)
+ *    - second : the data (see yObj_struct constructor for supported types)
  */
 {
-	yoga_struct *handle = (yoga_struct *) yget_obj(argc - 1, &yoga_yObj);
+	yObj_struct *handle = (yObj_struct *) yget_obj(argc - 1, &yObj);
 	yoga_context *context_handle = _getCurrentContext();
 	context_handle->set_activeDeviceForCpy(handle->device);
 	int opt;
@@ -796,7 +794,7 @@ void Y_yoga_imin(int argc)
  *  only floating point types supported (single or double precision)
  */
 {
-	yoga_struct *handle = (yoga_struct *) yget_obj(argc - 1, &yoga_yObj);
+	yObj_struct *handle = (yObj_struct *) yget_obj(argc - 1, &yObj);
 	yoga_context *context_handle = _getCurrentContext();
 	context_handle->set_activeDevice(handle->device);
 	if (handle->type == Y_FLOAT) {
@@ -815,7 +813,7 @@ void Y_yoga_imax(int argc)
  *  only floating point types supported (single or double precision)
  */
 {
-	yoga_struct *handle = (yoga_struct *) yget_obj(argc - 1, &yoga_yObj);
+	yObj_struct *handle = (yObj_struct *) yget_obj(argc - 1, &yObj);
 	yoga_context *context_handle = _getCurrentContext();
 	context_handle->set_activeDevice(handle->device);
 
@@ -836,7 +834,7 @@ void Y_yoga_asum(int argc)
  *  only floating point types supported (single or double precision)
  */
 {
-	yoga_struct *handle = (yoga_struct *) yget_obj(argc - 1, &yoga_yObj);
+	yObj_struct *handle = (yObj_struct *) yget_obj(argc - 1, &yObj);
 	yoga_context *context_handle = _getCurrentContext();
 	context_handle->set_activeDeviceForCpy(handle->device);
 	if (handle->type == Y_FLOAT) {
@@ -856,7 +854,7 @@ void Y_yoga_sum(int argc)
  *  only floating point types supported (single or double precision)
  */
 {
-	yoga_struct *handle = (yoga_struct *) yget_obj(argc - 1, &yoga_yObj);
+	yObj_struct *handle = (yObj_struct *) yget_obj(argc - 1, &yObj);
 	yoga_context *context_handle = _getCurrentContext();
 	context_handle->set_activeDeviceForCpy(handle->device);
 	if (handle->type == Y_FLOAT) {
@@ -876,7 +874,7 @@ void Y_yoga_nrm2(int argc)
  *  only floating point types supported (single or double precision)
  */
 {
-	yoga_struct *handle = (yoga_struct *) yget_obj(argc - 1, &yoga_yObj);
+	yObj_struct *handle = (yObj_struct *) yget_obj(argc - 1, &yObj);
 	yoga_context *context_handle = _getCurrentContext();
 	context_handle->set_activeDevice(handle->device);
 	if (handle->type == Y_FLOAT) {
@@ -899,7 +897,7 @@ void Y_yoga_scale(int argc)
  */
 {
 	if (yarg_subroutine()) {
-		yoga_struct *handle = (yoga_struct *) yget_obj(argc - 1, &yoga_yObj);
+		yObj_struct *handle = (yObj_struct *) yget_obj(argc - 1, &yObj);
 		yoga_context *context_handle = _getCurrentContext();
 		context_handle->set_activeDeviceForCpy(handle->device);
 		if (handle->type == Y_FLOAT) {
@@ -925,8 +923,8 @@ void Y_yoga_swap(int argc)
  *  only floating point types supported (single or double precision)
  */
 {
-	yoga_struct *handle_dest = (yoga_struct *) yget_obj(argc - 1, &yoga_yObj);
-	yoga_struct *handle_src = (yoga_struct *) yget_obj(argc - 2, &yoga_yObj);
+	yObj_struct *handle_dest = (yObj_struct *) yget_obj(argc - 1, &yObj);
+	yObj_struct *handle_src = (yObj_struct *) yget_obj(argc - 2, &yObj);
 	if (handle_dest->device != handle_src->device)
 		y_error("swap only on the same device");
 	yoga_context *context_handle = _getCurrentContext();
@@ -955,10 +953,10 @@ void Y_yoga_axpy(int argc)
 {
 	if (yarg_subroutine()) {
 		// called as a subroutine : destination already exists
-		yoga_struct *handle_dest = (yoga_struct *) yget_obj(argc - 1,
-				&yoga_yObj);
-		yoga_struct *handle_src = (yoga_struct *) yget_obj(argc - 3,
-				&yoga_yObj);
+		yObj_struct *handle_dest = (yObj_struct *) yget_obj(argc - 1,
+				&yObj);
+		yObj_struct *handle_src = (yObj_struct *) yget_obj(argc - 3,
+				&yObj);
 		if (handle_dest->device != handle_src->device)
 			y_error("axpy only on the same device");
 		yoga_context *context_handle = _getCurrentContext();
@@ -976,12 +974,12 @@ void Y_yoga_axpy(int argc)
 		}
 	} else {
 		// called as a function : we need to create a destination object
-		yoga_struct *handle_src = (yoga_struct *) yget_obj(argc - 1,
-				&yoga_yObj);
+		yObj_struct *handle_src = (yObj_struct *) yget_obj(argc - 1,
+				&yObj);
 		yoga_context *context_handle = _getCurrentContext();
 		context_handle->set_activeDeviceForCpy(handle_src->device);
-		yoga_struct *handle_dest = (yoga_struct *) ypush_obj(&yoga_yObj,
-				sizeof(yoga_struct));
+		yObj_struct *handle_dest = (yObj_struct *) ypush_obj(&yObj,
+				sizeof(yObj_struct));
 		handle_dest->device = handle_src->device;
 		if (handle_src->type == Y_FLOAT) {
 			float alpha = ygets_f(argc-2);
@@ -1012,8 +1010,8 @@ void Y_yoga_dot(int argc)
  *  only floating point types supported (single or double precision)
  */
 {
-	yoga_struct *handle1 = (yoga_struct *) yget_obj(argc - 1, &yoga_yObj);
-	yoga_struct *handle2 = (yoga_struct *) yget_obj(argc - 2, &yoga_yObj);
+	yObj_struct *handle1 = (yObj_struct *) yget_obj(argc - 1, &yObj);
+	yObj_struct *handle2 = (yObj_struct *) yget_obj(argc - 2, &yObj);
 	if (handle1->device != handle2->device)
 		y_error("dot only on the same device");
 	yoga_context *context_handle = _getCurrentContext();
@@ -1046,12 +1044,12 @@ void Y_yoga_mv(int argc)
  */
 {
 	if (yarg_subroutine()) {
-		yoga_struct *handle_vecty = (yoga_struct *) yget_obj(argc - 1,
-				&yoga_yObj);
-		yoga_struct *handle_mat = (yoga_struct *) yget_obj(argc - 2,
-				&yoga_yObj);
-		yoga_struct *handle_vectx = (yoga_struct *) yget_obj(argc - 3,
-				&yoga_yObj);
+		yObj_struct *handle_vecty = (yObj_struct *) yget_obj(argc - 1,
+				&yObj);
+		yObj_struct *handle_mat = (yObj_struct *) yget_obj(argc - 2,
+				&yObj);
+		yObj_struct *handle_vectx = (yObj_struct *) yget_obj(argc - 3,
+				&yObj);
 		if ((handle_vecty->device != handle_mat->device)
 				|| (handle_vecty->device != handle_vectx->device)
 				|| (handle_mat->device != handle_vectx->device))
@@ -1103,16 +1101,16 @@ void Y_yoga_mv(int argc)
 		}
 	} else {
 		// called as a function : need to allocate space
-		yoga_struct *handle_mat = (yoga_struct *) yget_obj(argc - 1,
-				&yoga_yObj);
-		yoga_struct *handle_vectx = (yoga_struct *) yget_obj(argc - 2,
-				&yoga_yObj);
+		yObj_struct *handle_mat = (yObj_struct *) yget_obj(argc - 1,
+				&yObj);
+		yObj_struct *handle_vectx = (yObj_struct *) yget_obj(argc - 2,
+				&yObj);
 		if (handle_vectx->device != handle_mat->device)
 			y_error("mv only on the same device");
 		yoga_context *context_handle = _getCurrentContext();
 		context_handle->set_activeDevice(handle_mat->device);
-		yoga_struct *handle_vecty = (yoga_struct *) ypush_obj(&yoga_yObj,
-				sizeof(yoga_struct));
+		yObj_struct *handle_vecty = (yObj_struct *) ypush_obj(&yObj,
+				sizeof(yObj_struct));
 		handle_vecty->device = handle_mat->device;
 		if (handle_mat->type == Y_FLOAT) {
 			float alpha;
@@ -1180,12 +1178,12 @@ void Y_yoga_rank1(int argc)
  */
 {
 	if (yarg_subroutine()) {
-		yoga_struct *handle_mat = (yoga_struct *) yget_obj(argc - 1,
-				&yoga_yObj);
-		yoga_struct *handle_vectx = (yoga_struct *) yget_obj(argc - 2,
-				&yoga_yObj);
-		yoga_struct *handle_vecty = (yoga_struct *) yget_obj(argc - 3,
-				&yoga_yObj);
+		yObj_struct *handle_mat = (yObj_struct *) yget_obj(argc - 1,
+				&yObj);
+		yObj_struct *handle_vectx = (yObj_struct *) yget_obj(argc - 2,
+				&yObj);
+		yObj_struct *handle_vecty = (yObj_struct *) yget_obj(argc - 3,
+				&yObj);
 		if ((handle_vecty->device != handle_mat->device)
 				|| (handle_vecty->device != handle_vectx->device)
 				|| (handle_mat->device != handle_vectx->device))
@@ -1216,16 +1214,16 @@ void Y_yoga_rank1(int argc)
 		}
 	} else {
 		// called as a function : need to allocate space
-		yoga_struct *handle_vectx = (yoga_struct *) yget_obj(argc - 1,
-				&yoga_yObj);
-		yoga_struct *handle_vecty = (yoga_struct *) yget_obj(argc - 2,
-				&yoga_yObj);
+		yObj_struct *handle_vectx = (yObj_struct *) yget_obj(argc - 1,
+				&yObj);
+		yObj_struct *handle_vecty = (yObj_struct *) yget_obj(argc - 2,
+				&yObj);
 		if (handle_vectx->device != handle_vecty->device)
 			y_error("rank1 only on the same device");
 		yoga_context *context_handle = _getCurrentContext();
 		context_handle->set_activeDevice(handle_vectx->device);
-		yoga_struct *handle_matA = (yoga_struct *) ypush_obj(&yoga_yObj,
-				sizeof(yoga_struct));
+		yObj_struct *handle_matA = (yObj_struct *) ypush_obj(&yObj,
+				sizeof(yObj_struct));
 		handle_matA->device = handle_vecty->device;
 		if (handle_vectx->type == Y_FLOAT) {
 			handle_matA->type = handle_vectx->type;
@@ -1280,12 +1278,12 @@ void Y_yoga_mm(int argc)
  */
 {
 	if (yarg_subroutine()) {
-		yoga_struct *handle_matC = (yoga_struct *) yget_obj(argc - 1,
-				&yoga_yObj);
-		yoga_struct *handle_matA = (yoga_struct *) yget_obj(argc - 2,
-				&yoga_yObj);
-		yoga_struct *handle_matB = (yoga_struct *) yget_obj(argc - 3,
-				&yoga_yObj);
+		yObj_struct *handle_matC = (yObj_struct *) yget_obj(argc - 1,
+				&yObj);
+		yObj_struct *handle_matA = (yObj_struct *) yget_obj(argc - 2,
+				&yObj);
+		yObj_struct *handle_matB = (yObj_struct *) yget_obj(argc - 3,
+				&yObj);
 		if ((handle_matA->device != handle_matB->device)
 				|| (handle_matA->device != handle_matC->device)
 				|| (handle_matB->device != handle_matC->device))
@@ -1336,10 +1334,10 @@ void Y_yoga_mm(int argc)
 		}
 	} else {
 		// called as a function : need to allocate space
-		yoga_struct *handle_matA = (yoga_struct *) yget_obj(argc - 1,
-				&yoga_yObj);
-		yoga_struct *handle_matB = (yoga_struct *) yget_obj(argc - 2,
-				&yoga_yObj);
+		yObj_struct *handle_matA = (yObj_struct *) yget_obj(argc - 1,
+				&yObj);
+		yObj_struct *handle_matB = (yObj_struct *) yget_obj(argc - 2,
+				&yObj);
 		if (handle_matA->device != handle_matB->device)
 			y_error("mm only on the same device");
 		yoga_context *context_handle = _getCurrentContext();
@@ -1360,8 +1358,8 @@ void Y_yoga_mm(int argc)
 			if (argc > 5)
 				beta = ygets_f(argc-6);
 
-			yoga_struct *handle_matC = (yoga_struct *) ypush_obj(&yoga_yObj,
-					sizeof(yoga_struct));
+			yObj_struct *handle_matC = (yObj_struct *) ypush_obj(&yObj,
+					sizeof(yObj_struct));
 			handle_matC->device = handle_matA->device;
 
 			handle_matC->type = handle_matA->type;
@@ -1394,8 +1392,8 @@ void Y_yoga_mm(int argc)
 			if (argc > 5)
 				beta = ygets_d(argc - 6);
 
-			yoga_struct *handle_matC = (yoga_struct *) ypush_obj(&yoga_yObj,
-					sizeof(yoga_struct));
+			yObj_struct *handle_matC = (yObj_struct *) ypush_obj(&yObj,
+					sizeof(yObj_struct));
 			handle_matC->device = handle_matA->device;
 
 			handle_matC->type = handle_matA->type;
@@ -1443,10 +1441,10 @@ void Y_yoga_transpose(int argc)
  */
 {
 	if (yarg_subroutine()) {
-		yoga_struct *handle_dest = (yoga_struct *) yget_obj(argc - 1,
-				&yoga_yObj);
-		yoga_struct *handle_src = (yoga_struct *) yget_obj(argc - 2,
-				&yoga_yObj);
+		yObj_struct *handle_dest = (yObj_struct *) yget_obj(argc - 1,
+				&yObj);
+		yObj_struct *handle_src = (yObj_struct *) yget_obj(argc - 2,
+				&yObj);
 		if (handle_dest->device != handle_src->device)
 			y_error("transpose only on the same device");
 		yoga_context *context_handle = _getCurrentContext();
@@ -1462,10 +1460,10 @@ void Y_yoga_transpose(int argc)
 		}
 	} else {
 		// called as a function : we need to create an object
-		yoga_struct *handle_src = (yoga_struct *) yget_obj(argc - 1,
-				&yoga_yObj);
-		yoga_struct *handle_dest = (yoga_struct *) ypush_obj(&yoga_yObj,
-				sizeof(yoga_struct));
+		yObj_struct *handle_src = (yObj_struct *) yget_obj(argc - 1,
+				&yObj);
+		yObj_struct *handle_dest = (yObj_struct *) ypush_obj(&yObj,
+				sizeof(yObj_struct));
 		handle_dest->device = handle_src->device;
 		yoga_context *context_handle = _getCurrentContext();
 		context_handle->set_activeDeviceForCpy(handle_dest->device);
@@ -1515,7 +1513,7 @@ void Y_yoga_random(int argc) {
 	 */
 	int seed = 1234;
 	if (yarg_subroutine()) {
-		yoga_struct *handle = (yoga_struct *) yget_obj(argc - 1, &yoga_yObj);
+		yObj_struct *handle = (yObj_struct *) yget_obj(argc - 1, &yObj);
 		if (argc > 1)
 			seed = ygets_i(argc-2);
 		yoga_context *context_handle = _getCurrentContext();
@@ -1579,8 +1577,8 @@ void Y_yoga_random(int argc) {
 
 		activeDevice = context_handle->set_activeDevice(mdevice);
 
-		yoga_struct *handle = (yoga_struct *) ypush_obj(&yoga_yObj,
-				sizeof(yoga_struct));
+		yObj_struct *handle = (yObj_struct *) ypush_obj(&yObj,
+				sizeof(yObj_struct));
 
 		handle->device = mdevice;
 		handle->type = yType;
@@ -1632,7 +1630,7 @@ void Y_yoga_random_n(int argc) {
 	 */
 	int seed = 1234;
 	if (yarg_subroutine()) {
-		yoga_struct *handle = (yoga_struct *) yget_obj(argc - 1, &yoga_yObj);
+		yObj_struct *handle = (yObj_struct *) yget_obj(argc - 1, &yObj);
 		if (argc > 1)
 			seed = ygets_i(argc-2);
 		yoga_context *context_handle = _getCurrentContext();
@@ -1696,8 +1694,8 @@ void Y_yoga_random_n(int argc) {
 		}
 		activeDevice = context_handle->set_activeDevice(mdevice);
 
-		yoga_struct *handle = (yoga_struct *) ypush_obj(&yoga_yObj,
-				sizeof(yoga_struct));
+		yObj_struct *handle = (yObj_struct *) ypush_obj(&yObj,
+				sizeof(yObj_struct));
 		handle->device = mdevice;
 		handle->type = yType;
 		if (yType == Y_FLOAT) {
@@ -1754,12 +1752,12 @@ void Y_yoga_fft(int argc) {
 	 *  in case (2) the transform is out of place and result is pushed on the stack as a yoga_obj
 	 */
 	if (yarg_subroutine()) {
-		yoga_struct *handle_src = (yoga_struct *) yget_obj(argc - 1,
-				&yoga_yObj);
+		yObj_struct *handle_src = (yObj_struct *) yget_obj(argc - 1,
+				&yObj);
 		if (argc > 1) {
 			// out of place
-			yoga_struct *handle_dest = (yoga_struct *) yget_obj(argc - 2,
-					&yoga_yObj);
+			yObj_struct *handle_dest = (yObj_struct *) yget_obj(argc - 2,
+					&yObj);
 			if (handle_dest->device != handle_src->device)
 				y_error("transpose only on the same device");
 			yoga_context *context_handle = _getCurrentContext();
@@ -1909,15 +1907,15 @@ void Y_yoga_fft(int argc) {
 				throw "wrong type for fft";
 		}
 	} else {
-		yoga_struct *handle_src = (yoga_struct *) yget_obj(argc - 1,
-				&yoga_yObj);
+		yObj_struct *handle_src = (yObj_struct *) yget_obj(argc - 1,
+				&yObj);
 		yoga_context *context_handle = _getCurrentContext();
 		context_handle->set_activeDevice(handle_src->device);
 		// called as a function : we need to create an object to push on the stack
 		// check if src plan exists
 		// create if not and execute
-		yoga_struct *handle = (yoga_struct *) ypush_obj(&yoga_yObj,
-				sizeof(yoga_struct));
+		yObj_struct *handle = (yObj_struct *) ypush_obj(&yObj,
+				sizeof(yObj_struct));
 		handle->device = handle_src->device;
 		int dir;
 		if (argc > 2)
@@ -2014,7 +2012,7 @@ void Y_yoga_max(int argc)
  *  only single precision int and float are supported
  */
 {
-	yoga_struct *handle = (yoga_struct *) yget_obj(argc - 1, &yoga_yObj);
+	yObj_struct *handle = (yObj_struct *) yget_obj(argc - 1, &yObj);
 	yoga_context *context_handle = _getCurrentContext();
 	context_handle->set_activeDevice(handle->device);
 	if (handle->type == Y_FLOAT) {
@@ -2039,7 +2037,7 @@ void Y_yoga_min(int argc)
  *  only single precision int and float are supported
  */
 {
-	yoga_struct *handle = (yoga_struct *) yget_obj(argc - 1, &yoga_yObj);
+	yObj_struct *handle = (yObj_struct *) yget_obj(argc - 1, &yObj);
 	yoga_context *context_handle = _getCurrentContext();
 	context_handle->set_activeDevice(handle->device);
 	if (handle->type == Y_FLOAT) {
@@ -2064,7 +2062,7 @@ void Y_yoga_mult(int argc)
  *  only single precision int and float are supported
  */
 {
-	yoga_struct *handle = (yoga_struct *) yget_obj(argc - 1, &yoga_yObj);
+	yObj_struct *handle = (yObj_struct *) yget_obj(argc - 1, &yObj);
 	yoga_context *context_handle = _getCurrentContext();
 	context_handle->set_activeDevice(handle->device);
 	if (handle->type == Y_FLOAT) {
@@ -2089,7 +2087,7 @@ void Y_yoga_add(int argc)
  *  only single precision int and float are supported
  */
 {
-	yoga_struct *handle = (yoga_struct *) yget_obj(argc - 1, &yoga_yObj);
+	yObj_struct *handle = (yObj_struct *) yget_obj(argc - 1, &yObj);
 	yoga_context *context_handle = _getCurrentContext();
 	context_handle->set_activeDevice(handle->device);
 	if (handle->type == Y_FLOAT) {
@@ -2128,13 +2126,13 @@ void Y_yoga_sort(int argc)
 		bool keysOnly;
 		void *val_handle = NULL;
 		void *yoga_val_handler = NULL;
-		yoga_struct *handle = (yoga_struct *) yget_obj(argc - 1, &yoga_yObj);
+		yObj_struct *handle = (yObj_struct *) yget_obj(argc - 1, &yObj);
 		yoga_context *context_handle = _getCurrentContext();
 		context_handle->set_activeDeviceForCpy(handle->device);
 		if (handle->type == Y_FLOAT) {
 			if (argc > 1) {
-				val_handle = (yoga_struct *) yget_obj(argc - 2, &yoga_yObj);
-				if (handle->device != ((yoga_struct *) val_handle)->device)
+				val_handle = (yObj_struct *) yget_obj(argc - 2, &yObj);
+				if (handle->device != ((yObj_struct *) val_handle)->device)
 					y_error("keys & val for sort should be on same device");
 				keysOnly = false;
 			} else
@@ -2142,7 +2140,7 @@ void Y_yoga_sort(int argc)
 			yObjS *yoga_obj_handler = (yObjS *) (handle->yoga_object);
 			if (!keysOnly) {
 				yoga_val_handler =
-						(yObjUI *) (((yoga_struct *) val_handle)->yoga_object);
+						(yObjUI *) (((yObj_struct *) val_handle)->yoga_object);
 				yoga_obj_handler->device2deviceInd(
 						((yObjUI *) yoga_val_handler)->getData());
 			}
@@ -2160,12 +2158,12 @@ void Y_yoga_sort(int argc)
 		}
 	} else {
 		// called as a function : we need to create an object
-		yoga_struct *handle = (yoga_struct *) yget_obj(argc - 1, &yoga_yObj);
+		yObj_struct *handle = (yObj_struct *) yget_obj(argc - 1, &yObj);
 		yoga_context *context_handle = _getCurrentContext();
 		context_handle->set_activeDevice(handle->device);
-		yoga_struct *val_handle = (yoga_struct *) ypush_obj(&yoga_yObj,
-				sizeof(yoga_struct));
-		((yoga_struct *) val_handle)->device = handle->device;
+		yObj_struct *val_handle = (yObj_struct *) ypush_obj(&yObj,
+				sizeof(yObj_struct));
+		((yObj_struct *) val_handle)->device = handle->device;
 		void *yoga_val_handler;
 		val_handle->type = Y_SHORT;
 		if (handle->type == Y_FLOAT) {
@@ -2173,7 +2171,7 @@ void Y_yoga_sort(int argc)
 			val_handle->yoga_object = new yObjUI(context_handle,
 					yoga_obj_handler->getDims());
 			yoga_val_handler =
-					(yObjUI *) (((yoga_struct *) val_handle)->yoga_object);
+					(yObjUI *) (((yObj_struct *) val_handle)->yoga_object);
 			yoga_obj_handler->sort_init(false);
 			yoga_obj_handler->sort();
 			cudaMemcpy(((yObjUI *) yoga_val_handler)->getData(),
@@ -2212,10 +2210,10 @@ void Y_yoga_compact(int argc)
  */
 {
 	if (yarg_subroutine()) {
-		yoga_struct *handle_src = (yoga_struct *) yget_obj(argc - 1,
-				&yoga_yObj);
-		yoga_struct *handle_dest = (yoga_struct *) yget_obj(argc - 2,
-				&yoga_yObj);
+		yObj_struct *handle_src = (yObj_struct *) yget_obj(argc - 1,
+				&yObj);
+		yObj_struct *handle_dest = (yObj_struct *) yget_obj(argc - 2,
+				&yObj);
 
 		if (handle_src->device != handle_dest->device)
 			y_error("src & dest for compact should be on same device");
@@ -2245,8 +2243,8 @@ void Y_yoga_compact(int argc)
 
 				if (yType == Y_OPAQUE) {
 					// the user gave a yoga_obj as an array of valids
-					yoga_struct *handle_valids = (yoga_struct *) yget_obj(
-							argc - 3, &yoga_yObj);
+					yObj_struct *handle_valids = (yObj_struct *) yget_obj(
+							argc - 3, &yObj);
 					if (handle_valids->device != handle_dest->device)
 						y_error(
 								"valids & dest for compact should be on same device");
@@ -2300,8 +2298,8 @@ void Y_yoga_compact(int argc)
 		}
 	} else {
 		// called as a function : we need to create an object
-		yoga_struct *handle_src = (yoga_struct *) yget_obj(argc - 1,
-				&yoga_yObj);
+		yObj_struct *handle_src = (yObj_struct *) yget_obj(argc - 1,
+				&yObj);
 		yoga_context *context_handle = _getCurrentContext();
 		context_handle->set_activeDevice(handle_src->device);
 		int yType = yarg_typeid(argc - 2);
@@ -2321,8 +2319,8 @@ void Y_yoga_compact(int argc)
 
 			if (yType == Y_OPAQUE) {
 				// the user gave a yoga_obj as an array of valids
-				yoga_struct *handle_valids = (yoga_struct *) yget_obj(argc - 2,
-						&yoga_yObj);
+				yObj_struct *handle_valids = (yObj_struct *) yget_obj(argc - 2,
+						&yObj);
 				yObjUI *yoga_valids_handler =
 						(yObjUI *) (handle_valids->yoga_object);
 				if (handle_valids->device != handle_src->device)
@@ -2357,8 +2355,8 @@ void Y_yoga_compact(int argc)
 			long dims_data[2];
 			dims_data[0] = 1;
 			dims_data[1] = (long) nb_valids;
-			yoga_struct *handle_dest = (yoga_struct *) ypush_obj(&yoga_yObj,
-					sizeof(yoga_struct));
+			yObj_struct *handle_dest = (yObj_struct *) ypush_obj(&yObj,
+					sizeof(yObj_struct));
 			handle_dest->device = handle_src->device;
 			handle_dest->type = Y_FLOAT;
 			handle_dest->yoga_object = new yObjS(context_handle, dims_data);
@@ -2393,15 +2391,15 @@ void Y_yoga_fftconv(int argc)
  */
 {
 	if (yarg_subroutine()) {
-		yoga_struct *handle_res = (yoga_struct *) yget_obj(argc - 1,
-				&yoga_yObj);
-		yoga_struct *handle_im = (yoga_struct *) yget_obj(argc - 2, &yoga_yObj);
-		yoga_struct *handle_ker = (yoga_struct *) yget_obj(argc - 3,
-				&yoga_yObj);
-		yoga_struct *handle_pdata = (yoga_struct *) yget_obj(argc - 4,
-				&yoga_yObj);
-		yoga_struct *handle_pspec = (yoga_struct *) yget_obj(argc - 5,
-				&yoga_yObj);
+		yObj_struct *handle_res = (yObj_struct *) yget_obj(argc - 1,
+				&yObj);
+		yObj_struct *handle_im = (yObj_struct *) yget_obj(argc - 2, &yObj);
+		yObj_struct *handle_ker = (yObj_struct *) yget_obj(argc - 3,
+				&yObj);
+		yObj_struct *handle_pdata = (yObj_struct *) yget_obj(argc - 4,
+				&yObj);
+		yObj_struct *handle_pspec = (yObj_struct *) yget_obj(argc - 5,
+				&yObj);
 		if ((handle_res->device != handle_im->device)
 				|| (handle_res->device != handle_ker->device)
 				|| (handle_res->device != handle_pdata->device)
@@ -2444,9 +2442,9 @@ void Y_yoga_fftconv_init(int argc)
 	if (yarg_subroutine())
 		throw "can only be called as a function";
 	else {
-		yoga_struct *handle_im = (yoga_struct *) yget_obj(argc - 1, &yoga_yObj);
-		yoga_struct *handle_ker = (yoga_struct *) yget_obj(argc - 2,
-				&yoga_yObj);
+		yObj_struct *handle_im = (yObj_struct *) yget_obj(argc - 1, &yObj);
+		yObj_struct *handle_ker = (yObj_struct *) yget_obj(argc - 2,
+				&yObj);
 		if (handle_im->device != handle_ker->device)
 			y_error("fftconv only on the same device");
 		yoga_context *context_handle = _getCurrentContext();
@@ -2454,8 +2452,8 @@ void Y_yoga_fftconv_init(int argc)
 		char *type_data = ygets_q(argc - 3);
 		yObjS *yoga_im_handler = (yObjS *) (handle_im->yoga_object);
 		yObjS *yoga_ker_handler = (yObjS *) (handle_ker->yoga_object);
-		yoga_struct *handle_dest = (yoga_struct *) ypush_obj(&yoga_yObj,
-				sizeof(yoga_struct));
+		yObj_struct *handle_dest = (yObj_struct *) ypush_obj(&yObj,
+				sizeof(yObj_struct));
 		handle_dest->device = handle_im->device;
 
 		const int dataH = yoga_im_handler->getDims(1);
@@ -2499,12 +2497,12 @@ void Y_yoga_fftconv_init(int argc)
  *  |___/       |___/     |_____|
  */
 
-void yoga_host_free(void *obj)
-/** @brief yoga_host_struct destructor.
- *  @param obj : yoga_host_struct to free
+void yHostObj_free(void *obj)
+/** @brief yHostObj_struct destructor.
+ *  @param obj : yHostObj_struct to free
  */
 {
-	yoga_host_struct *handler = (yoga_host_struct *) obj;
+	yHostObj_struct *handler = (yHostObj_struct *) obj;
 	try {
 		if (handler->type == Y_FLOAT) {
 			yoga_host_obj<float> *yoga_host_obj_handler =
@@ -2540,13 +2538,13 @@ void yoga_host_free(void *obj)
 	}
 }
 
-void yoga_host_print(void *obj)
-/** @brief yoga_host_struct printer.
- *  @param[in] obj : yoga_host_struct to print
+void yHostObj_print(void *obj)
+/** @brief yHostObj_struct printer.
+ *  @param[in] obj : yHostObj_struct to print
  */
 {
 	ostringstream mystr;
-	yoga_host_struct *handler = (yoga_host_struct *) obj;
+	yHostObj_struct *handler = (yHostObj_struct *) obj;
 	try {
 		if (handler->type == Y_FLOAT) {
 			yoga_host_obj<float> *yoga_host_obj_handler =
@@ -2654,12 +2652,12 @@ void yoga_host_print(void *obj)
 	y_print(mystr.str().c_str(), 1);
 }
 
-void yoga_host_eval(void *obj, int n)
-/** @brief yoga_host_struct evaluator.
- *  @param[in] obj : yoga_host_struct to evaluate
+void yHostObj_eval(void *obj, int n)
+/** @brief yHostObj_struct evaluator.
+ *  @param[in] obj : yHostObj_struct to evaluate
  */
 {
-	yoga_host_struct *handler = (yoga_host_struct *) obj;
+	yHostObj_struct *handler = (yHostObj_struct *) obj;
 	try {
 		if (handler->type == Y_FLOAT) {
 			yoga_host_obj<float> *yoga_host_obj_handler =
@@ -2709,7 +2707,7 @@ void yoga_host_eval(void *obj, int n)
 }
 
 void Y_yoga_host_obj(int argc)
-/** @brief yoga_host_struct constructor.
+/** @brief yHostObj_struct constructor.
  *  @param[in] argc : command line argument(s)
  *  as for a yoga_obj several cases are handled :
  *   - a pointer to a yoga_obj is passed as an argument : copy the pointee in a new yoga_obj
@@ -2786,10 +2784,10 @@ void Y_yoga_host_obj(int argc)
 		int oType;
 		int yType = yarg_typeid(piargs[0]);
 		if (yType == Y_OPAQUE) { // Copy constructor
-			yoga_host_struct *handle_obj = (yoga_host_struct *) yget_obj(
-					piargs[0], &yoga_host_yObj);
-			yoga_host_struct *handle = (yoga_host_struct *) ypush_obj(
-					&yoga_host_yObj, sizeof(yoga_host_struct));
+			yHostObj_struct *handle_obj = (yHostObj_struct *) yget_obj(
+					piargs[0], &yHostObj);
+			yHostObj_struct *handle = (yHostObj_struct *) ypush_obj(
+					&yHostObj, sizeof(yHostObj_struct));
 			handle->type = handle_obj->type;
 			if (handle->type == Y_FLOAT) {
 				yoga_host_obj<float> *yoga_host_obj_handler = (yoga_host_obj<
@@ -2840,8 +2838,8 @@ void Y_yoga_host_obj(int argc)
 				data_input = ygeta_any(piargs[0], &ntot, dims, &oType);
 			}
 
-			yoga_host_struct *handle = (yoga_host_struct *) ypush_obj(
-					&yoga_host_yObj, sizeof(yoga_host_struct));
+			yHostObj_struct *handle = (yHostObj_struct *) ypush_obj(
+					&yHostObj, sizeof(yHostObj_struct));
 			handle->type = oType;
 
 			if (oType == Y_FLOAT) {
@@ -2922,8 +2920,8 @@ void Y_yoga_host_getp(int argc)
  *  the corresponding address is pushed on the stack
  */
 {
-	yoga_host_struct *handle = (yoga_host_struct *) yget_obj(argc - 1,
-			&yoga_host_yObj);
+	yHostObj_struct *handle = (yHostObj_struct *) yget_obj(argc - 1,
+			&yHostObj);
 	long a = 0;
 	ypointer_t *ptr_handle = ypush_p(&a);
 	int type = handle->type;
@@ -2954,12 +2952,12 @@ void Y_yoga_svd(int argc)
  */
 {
 	if (yarg_subroutine()) {
-		yoga_struct *handle_mat = (yoga_struct *) yget_obj(argc - 1,
-				&yoga_yObj);
-		yoga_struct *handle_eigenvals = (yoga_struct *) yget_obj(argc - 2,
-				&yoga_yObj);
-		yoga_struct *handle_U = (yoga_struct *) yget_obj(argc - 3, &yoga_yObj);
-		yoga_struct *handle_VT = (yoga_struct *) yget_obj(argc - 4, &yoga_yObj);
+		yObj_struct *handle_mat = (yObj_struct *) yget_obj(argc - 1,
+				&yObj);
+		yObj_struct *handle_eigenvals = (yObj_struct *) yget_obj(argc - 2,
+				&yObj);
+		yObj_struct *handle_U = (yObj_struct *) yget_obj(argc - 3, &yObj);
+		yObj_struct *handle_VT = (yObj_struct *) yget_obj(argc - 4, &yObj);
 
 		if (handle_mat->type == Y_FLOAT) {
 			yObjS *yoga_obj_handler_mat = (yObjS *) (handle_mat->yoga_object);
@@ -2994,14 +2992,14 @@ void Y_yoga_svd_host(int argc)
  */
 {
 	if (yarg_subroutine()) {
-		yoga_host_struct *handle_mat = (yoga_host_struct *) yget_obj(argc - 1,
-				&yoga_host_yObj);
-		yoga_host_struct *handle_eigenvals = (yoga_host_struct *) yget_obj(
-				argc - 2, &yoga_host_yObj);
-		yoga_host_struct *handle_U = (yoga_host_struct *) yget_obj(argc - 3,
-				&yoga_host_yObj);
-		yoga_host_struct *handle_VT = (yoga_host_struct *) yget_obj(argc - 4,
-				&yoga_host_yObj);
+		yHostObj_struct *handle_mat = (yHostObj_struct *) yget_obj(argc - 1,
+				&yHostObj);
+		yHostObj_struct *handle_eigenvals = (yHostObj_struct *) yget_obj(
+				argc - 2, &yHostObj);
+		yHostObj_struct *handle_U = (yHostObj_struct *) yget_obj(argc - 3,
+				&yHostObj);
+		yHostObj_struct *handle_VT = (yHostObj_struct *) yget_obj(argc - 4,
+				&yHostObj);
 
 		if (handle_mat->type == Y_FLOAT) {
 			yoga_host_obj<float> *yoga_obj_handler_mat =
@@ -3059,12 +3057,12 @@ void Y_yoga_cula_svd(int argc)
  */
 {
 	if (yarg_subroutine()) {
-		yoga_struct *handle_mat = (yoga_struct *) yget_obj(argc - 1,
-				&yoga_yObj);
-		yoga_struct *handle_eigenvals = (yoga_struct *) yget_obj(argc - 2,
-				&yoga_yObj);
-		yoga_struct *handle_U = (yoga_struct *) yget_obj(argc - 3, &yoga_yObj);
-		yoga_struct *handle_VT = (yoga_struct *) yget_obj(argc - 4, &yoga_yObj);
+		yObj_struct *handle_mat = (yObj_struct *) yget_obj(argc - 1,
+				&yObj);
+		yObj_struct *handle_eigenvals = (yObj_struct *) yget_obj(argc - 2,
+				&yObj);
+		yObj_struct *handle_U = (yObj_struct *) yget_obj(argc - 3, &yObj);
+		yObj_struct *handle_VT = (yObj_struct *) yget_obj(argc - 4, &yObj);
 
 		if (handle_mat->type == Y_FLOAT) {
 			yObjS *yoga_obj_handler_mat = (yObjS *) (handle_mat->yoga_object);
@@ -3099,14 +3097,14 @@ void Y_yoga_cula_svd_host(int argc)
  */
 {
 	if (yarg_subroutine()) {
-		yoga_host_struct *handle_mat = (yoga_host_struct *) yget_obj(argc - 1,
-				&yoga_host_yObj);
-		yoga_host_struct *handle_eigenvals = (yoga_host_struct *) yget_obj(
-				argc - 2, &yoga_host_yObj);
-		yoga_host_struct *handle_U = (yoga_host_struct *) yget_obj(argc - 3,
-				&yoga_host_yObj);
-		yoga_host_struct *handle_VT = (yoga_host_struct *) yget_obj(argc - 4,
-				&yoga_host_yObj);
+		yHostObj_struct *handle_mat = (yHostObj_struct *) yget_obj(argc - 1,
+				&yHostObj);
+		yHostObj_struct *handle_eigenvals = (yHostObj_struct *) yget_obj(
+				argc - 2, &yHostObj);
+		yHostObj_struct *handle_U = (yHostObj_struct *) yget_obj(argc - 3,
+				&yHostObj);
+		yHostObj_struct *handle_VT = (yHostObj_struct *) yget_obj(argc - 4,
+				&yHostObj);
 
 		if (handle_mat->type == Y_FLOAT) {
 			yoga_host_obj<float> *yoga_obj_handler_mat =
@@ -3159,17 +3157,17 @@ void Y_yoga_getarray(int argc)
  interprets void as the full range of the corresponding dimension
  */
 {
-	yoga_struct *handle_out = NULL;
-	yoga_struct *handle_in = NULL;
+	yObj_struct *handle_out = NULL;
+	yObj_struct *handle_in = NULL;
 
 	if (yarg_subroutine()) {
-		handle_out = (yoga_struct *) yget_obj(argc - 1, &yoga_yObj);
-		handle_in = (yoga_struct *) yget_obj(argc - 2, &yoga_yObj);
+		handle_out = (yObj_struct *) yget_obj(argc - 1, &yObj);
+		handle_in = (yObj_struct *) yget_obj(argc - 2, &yObj);
 		if (handle_in->device != handle_out->device)
 			y_error("getarray only on the same device");
 		argc--;
 	} else {
-		handle_in = (yoga_struct *) yget_obj(argc - 1, &yoga_yObj);
+		handle_in = (yObj_struct *) yget_obj(argc - 1, &yObj);
 	}
 	yoga_context *context_handle = _getCurrentContext();
 	context_handle->set_activeDeviceForCpy(handle_in->device);
@@ -3217,7 +3215,7 @@ void Y_yoga_getarray(int argc)
 	dims[2] = Nlig;
 
 	if (!yarg_subroutine()) {
-		handle_out = (yoga_struct *) ypush_obj(&yoga_yObj, sizeof(yoga_struct));
+		handle_out = (yObj_struct *) ypush_obj(&yObj, sizeof(yObj_struct));
 		handle_out->device = handle_in->device;
 		if (handle_in->type == Y_FLOAT) {
 			handle_out->type = Y_FLOAT;
@@ -3243,9 +3241,9 @@ void Y_yoga_fillarray(int argc)
  */
 {
 	if (yarg_subroutine()) {
-		yoga_struct *handle_out = (yoga_struct *) yget_obj(argc - 1,
-				&yoga_yObj);
-		yoga_struct *handle_in = (yoga_struct *) yget_obj(argc - 2, &yoga_yObj);
+		yObj_struct *handle_out = (yObj_struct *) yget_obj(argc - 1,
+				&yObj);
+		yObj_struct *handle_in = (yObj_struct *) yget_obj(argc - 2, &yObj);
 		if (handle_in->device != handle_out->device)
 			y_error("getarray only on the same device");
 		yoga_context *context_handle = _getCurrentContext();
@@ -3322,7 +3320,7 @@ void Y_yoga_getvalue(int argc)
 	if (yarg_subroutine())
 		y_error("can only be called as a function");
 	else {
-		yoga_struct *handle_in = (yoga_struct *) yget_obj(argc - 1, &yoga_yObj);
+		yObj_struct *handle_in = (yObj_struct *) yget_obj(argc - 1, &yObj);
 		yoga_context *context_handle = _getCurrentContext();
 		context_handle->set_activeDeviceForCpy(handle_in->device);
 		int pos = ygets_i(argc-2);
@@ -3339,7 +3337,7 @@ void Y_yoga_getvalue(int argc)
 
 void Y_yoga_plus(int argc) {
 	if (yarg_subroutine()) {
-		yoga_struct *handle_in = (yoga_struct *) yget_obj(argc - 1, &yoga_yObj);
+		yObj_struct *handle_in = (yObj_struct *) yget_obj(argc - 1, &yObj);
 		yoga_context *context_handle = _getCurrentContext();
 		context_handle->set_activeDevice(handle_in->device);
 		if (handle_in->type == Y_FLOAT) {
@@ -3355,9 +3353,9 @@ void Y_yoga_plus(int argc) {
 
 void Y_yoga_plusai(int argc) {
 	if (yarg_subroutine()) {
-		yoga_struct *handle_out = (yoga_struct *) yget_obj(argc - 1,
-				&yoga_yObj);
-		yoga_struct *handle_in = (yoga_struct *) yget_obj(argc - 2, &yoga_yObj);
+		yObj_struct *handle_out = (yObj_struct *) yget_obj(argc - 1,
+				&yObj);
+		yObj_struct *handle_in = (yObj_struct *) yget_obj(argc - 2, &yObj);
 		if (handle_in->device != handle_out->device)
 			y_error("getarray only on the same device");
 		yoga_context *context_handle = _getCurrentContext();
@@ -3388,7 +3386,7 @@ void Y_yoga_test(int argc) {
 	}
 }
 
-yoga_struct* yoga_getobj(int argc, int pos) {
-	return (yoga_struct *) yget_obj(argc - pos, &yoga_yObj);
+yObj_struct* yoga_getobj(int argc, int pos) {
+	return (yObj_struct *) yget_obj(argc - pos, &yObj);
 }
 }
