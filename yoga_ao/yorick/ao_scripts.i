@@ -99,7 +99,7 @@ func script_system(filename,verbose=,strehl=,r0=,clean=)
                                         |_|    
 
    */
-  yoga_start_profiler;
+  //yoga_start_profiler;
   
   time_move = 0;
   mytime = tic();
@@ -182,7 +182,7 @@ func script_system(filename,verbose=,strehl=,r0=,clean=)
     } 
   }
 
-  yoga_stop_profiler;
+  //yoga_stop_profiler;
   
   write,"\n done with simulation \n";
   write,format="simulation time : %f sec. per iteration\n",tac(mytime)/y_loop.niter;
@@ -638,6 +638,5 @@ if (numberof(tmp) > 1) {
   }
  }
 
-activeDevice, 0;
 script_system, YOGA_AO_PARPATH+"1wfs40x40_1layer_rtc_dm.par",strehl=1;
 quit

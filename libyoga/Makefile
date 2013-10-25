@@ -27,7 +27,8 @@ OBJS := $(addprefix $(OBJ_DIR)/,$(LIB_OBJS))
 
 include ../Makefile.inc
 
-LIB_DEPLIBS= -fPIC -Wall -O0 -lstdc++ -L$(CUDA_LIB_PATH_64) -L$(CULA_LIB_PATH_64) -lcudart -lcublas -lcufft -lcurand -lcula_lapack #-lcula_lapack_link -lcula_core 
+LIB_DEPLIBS= -fPIC -Wall -O0 -lstdc++ -L$(CUDA_LIB_PATH_64) -L$(CULA_LIB_PATH_64) -lcudart -lcublas -lcufft -lcurand -lcula_lapack_basic #-lcula_lapack_link -lcula_core 
+
 ifneq ($(CUDPP_PATH),)
  LIB_DEPLIBS +=-L$(CUDPP_PATH)/lib -lcudpp_x86_64 
 endif
