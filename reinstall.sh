@@ -16,7 +16,7 @@ echo "using $YORICK_PATH to update Makefile"
 $YORICK_PATH -batch make.i || exit
 (cd yoga_ao && $YORICK_PATH -batch make.i) || exit
 
-(cd libyoga && make clean && make -j) || exit
+(cd libcarma && make clean && make -j) || exit
 (make clean install) || exit
-(cd yoga_ao/libyoga_ao && make clean && make -j) || exit
+(cd libsutra && make clean && make -j) || exit
 (cd yoga_ao && make clean install) || exit
