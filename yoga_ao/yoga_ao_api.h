@@ -42,57 +42,57 @@
 
 */
 typedef struct tscreen_struct {
-  void *yoga_tscreen;
+  void *sutra_tscreen;
   int device;
 } tscreen_struct;
 
 typedef struct atmos_struct {
-  void *yoga_atmos;
+  void *sutra_atmos;
   int device;
 } atmos_struct;
 
 typedef struct source_struct {
-  void *yoga_source;
+  void *sutra_source;
   int device;
 } source_struct;
 
 typedef struct target_struct {
-  void *yoga_target;
+  void *sutra_target;
   int device;
 } target_struct;
 
 typedef struct phase_struct {
-  void *yoga_phase;
+  void *sutra_phase;
   int device;
 } phase_struct;
 
 typedef struct wfs_struct {
-  void *yoga_wfs;
+  void *sutra_wfs;
   int device;
 } wfs_struct;
 
 typedef struct sensors_struct {
-  void *yoga_sensors;
+  void *sutra_sensors;
   int device;
 } sensors_struct;
 
 typedef struct rtc_struct {
-  void *yoga_rtc;
+  void *sutra_rtc;
   int device;
 } rtc_struct;
 
 typedef struct dms_struct {
-  void *yoga_dms;
+  void *sutra_dms;
   int device;
 } dms_struct;
 
 typedef struct telemetry_struct {
-  void *yoga_telemetry;
+  void *sutra_telemetry;
   int device;
 } telemetry_struct;
 
 typedef struct aotemplate_struct {
-  void *yoga_aotemplate;
+  void *sutra_aotemplate;
   int device;
 } aotemplate_struct;
 

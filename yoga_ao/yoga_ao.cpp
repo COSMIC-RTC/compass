@@ -22,17 +22,17 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <yoga_turbu.h>
-#include <yoga_target.h>
-#include <yoga_phase.h>
-#include <yoga_wfs.h>
-#include <yoga_rtc.h>
-#include <yoga_dm.h>
-#include <yoga_telemetry.h>
-#include <yoga.h>
+#include <sutra_turbu.h>
+#include <sutra_target.h>
+#include <sutra_phase.h>
+#include <sutra_wfs.h>
+#include <sutra_rtc.h>
+#include <sutra_dm.h>
+#include <sutra_telemetry.h>
+#include <carma.h>
 #include <sstream>
 #include <iomanip>
-#include <yoga_aotemplate.h>
+#include <sutra_aotemplate.h>
 #include <yoga_ao_api.h>
 
 /*
@@ -45,12 +45,12 @@
  */
 
 
-int move_atmos(yoga_atmos *atmos,yoga_target *target) {
+int move_atmos(sutra_atmos *atmos,sutra_target *target) {
 
-  map<float, yoga_tscreen *>::iterator p;
+  map<float, sutra_tscreen *>::iterator p;
   map<type_screen,float>::iterator pp;
   p = atmos->d_screens.begin();
-  yoga_tscreen *tmp;
+  sutra_tscreen *tmp;
   int cpt=1;
   while (p != atmos->d_screens.end()) {
     tmp = p->second;
@@ -93,11 +93,11 @@ int move_atmos(yoga_atmos *atmos,yoga_target *target) {
   return 0;
 }
 
-int move_atmos(yoga_atmos *atmos) {
+int move_atmos(sutra_atmos *atmos) {
 
-  map<float, yoga_tscreen *>::iterator p;
+  map<float, sutra_tscreen *>::iterator p;
   p = atmos->d_screens.begin();
-  //yoga_tscreen *tmp;
+  //sutra_tscreen *tmp;
   while (p != atmos->d_screens.end()) {
     p->second->accumx += p->second->deltax;
     p->second->accumy += p->second->deltay;
@@ -126,10 +126,10 @@ extern "C" {
 
   void atmos_free(void *obj) {
     atmos_struct *handler = (atmos_struct *)obj;
-    yoga_context *context_handle = _getCurrentContext();
+    carma_context *context_handle = _getCurrentContext();
     context_handle->set_activeDevice(handler->device);
     try{
-      yoga_atmos *atmos_obj_handler = (yoga_atmos *)(handler->yoga_atmos);
+      sutra_atmos *atmos_obj_handler = (sutra_atmos *)(handler->sutra_atmos);
       delete atmos_obj_handler;
     } catch ( string &msg ) {
       y_error(msg.c_str());
@@ -141,13 +141,13 @@ extern "C" {
   void atmos_print(void *obj)
   {
     atmos_struct *handler = (atmos_struct *)obj;
-    yoga_atmos *atmos_obj_handler = (yoga_atmos *)(handler->yoga_atmos);
-    map<float, yoga_tscreen *>::iterator p;
+    sutra_atmos *atmos_obj_handler = (sutra_atmos *)(handler->sutra_atmos);
+    map<float, sutra_tscreen *>::iterator p;
     p = atmos_obj_handler->d_screens.begin();
-    cout << "Yoga Atmos Object : " << endl;
+    cout << "YoGA Atmos Object : " << endl;
     cout << "Contains " << atmos_obj_handler->nscreens << " turbulent screen(s) : " << endl;
     int i =0;
-    yoga_tscreen *tmp;
+    sutra_tscreen *tmp;
     cout << "Screen # " << " | " << "alt.(m)" << " | " << "speed (m/s)" << " | "
 	 << "dir.(deg)" << " | " << "r0 (pix)" << " | " << "deltax" << " | "
 	 << "deltay" << endl;
@@ -172,7 +172,7 @@ extern "C" {
     long ntot;
     long dims[Y_DIMSIZE];
     try {
-      yoga_context *context_handle = _getCurrentContext();
+      carma_context *context_handle = _getCurrentContext();
       int activeDevice = context_handle->get_activeDevice();
       int odevice = activeDevice;
       int nscreens = ygets_i(argc-1);
@@ -217,7 +217,7 @@ extern "C" {
       atmos_struct *handle=(atmos_struct *)ypush_obj(&yAtmos, sizeof(atmos_struct));
       handle->device = odevice;
 
-      handle->yoga_atmos = new yoga_atmos(context_handle, nscreens,(float *)r0,(long *)size,(long *)size2,(float *)alt,(float *)wspeed,(float *)wdir,(float *)deltax,(float *)deltay,(float *)pupil,odevice);
+      handle->sutra_atmos = new sutra_atmos(context_handle, nscreens,(float *)r0,(long *)size,(long *)size2,(float *)alt,(float *)wspeed,(float *)wdir,(float *)deltax,(float *)deltay,(float *)pupil,odevice);
 
     } catch ( string &msg ) {
       y_error(msg.c_str());
@@ -225,7 +225,7 @@ extern "C" {
       y_error(msg);
     } catch( ... ) {
       stringstream buf;
-      buf << "unknown error with yoga_atmos construction in "<<__FILE__ << "@" << __LINE__ << endl;
+      buf << "unknown error with sutra_atmos construction in "<<__FILE__ << "@" << __LINE__ << endl;
       y_error(buf.str().c_str());
     }
   }
@@ -237,13 +237,13 @@ extern "C" {
     if (yarg_subroutine()) y_error("can only be called as a function");
     else {
       atmos_struct *handle = (atmos_struct *)yget_obj(argc-1,&yAtmos);
-      yoga_context *context_handle = _getCurrentContext();
+      carma_context *context_handle = _getCurrentContext();
       context_handle->set_activeDeviceForCpy(handle->device);
-      yoga_atmos *atmos_handler = (yoga_atmos *)handle->yoga_atmos;
+      sutra_atmos *atmos_handler = (sutra_atmos *)handle->sutra_atmos;
       if (atmos_handler->d_screens.find(0.0f) != atmos_handler->d_screens.end()) {
-	yObjS *yoga_obj_handler = (yObjS *)(atmos_handler->d_pupil);
-	float *data = ypush_f(yoga_obj_handler->getDims());
-	yoga_obj_handler->device2host(data);
+	caObjS *carma_obj_handler = (caObjS *)(atmos_handler->d_pupil);
+	float *data = ypush_f(carma_obj_handler->getDims());
+	carma_obj_handler->device2host(data);
       }
     }
   }
@@ -260,10 +260,10 @@ extern "C" {
 
   void tscreen_free(void *obj) {
     tscreen_struct *handler = (tscreen_struct *)obj;
-    yoga_context *context_handle = _getCurrentContext();
+    carma_context *context_handle = _getCurrentContext();
     context_handle->set_activeDevice(handler->device);
     try{
-      yoga_tscreen *tscreen_obj_handler = (yoga_tscreen *)(handler->yoga_tscreen);
+      sutra_tscreen *tscreen_obj_handler = (sutra_tscreen *)(handler->sutra_tscreen);
       delete tscreen_obj_handler;
     } catch ( string &msg ) {
       y_error(msg.c_str());
@@ -275,7 +275,7 @@ extern "C" {
   void tscreen_print(void *obj)
   {
     tscreen_struct *handler = (tscreen_struct *)obj;
-    yoga_tscreen *tscreen_obj_handler = (yoga_tscreen *)(handler->yoga_tscreen);
+    sutra_tscreen *tscreen_obj_handler = (sutra_tscreen *)(handler->sutra_tscreen);
     cout << "Yoga tScreen Object : " << endl;
     cout << "Screen @ alt. " << tscreen_obj_handler->altitude
 	 << " m |" << " wind speed : " << tscreen_obj_handler->windspeed << " m/s |"
@@ -286,14 +286,14 @@ extern "C" {
   void
   Y_init_tscreen(int argc)
   // here we init the atmos structure
-  // args are : the yoga_atmos, nscreen A, B, istencilx,istencily and seed
+  // args are : the sutra_atmos, nscreen A, B, istencilx,istencily and seed
   {
     long ntot;
     long dims[Y_DIMSIZE];
     atmos_struct *handler = (atmos_struct *)yget_obj(argc-1,&yAtmos);
-    yoga_atmos *atmos_obj_handler = (yoga_atmos *)(handler->yoga_atmos);
+    sutra_atmos *atmos_obj_handler = (sutra_atmos *)(handler->sutra_atmos);
 
-    yoga_context *context_handle = _getCurrentContext();
+    carma_context *context_handle = _getCurrentContext();
     context_handle->set_activeDevice(handler->device);
 
     float altitude = ygets_f(argc-2);
@@ -323,13 +323,13 @@ extern "C" {
     if (yarg_subroutine()) y_error("can only be called as a function");
     else {
       atmos_struct *handle = (atmos_struct *)yget_obj(argc-1,&yAtmos);
-      yoga_context *context_handle = _getCurrentContext();
+      carma_context *context_handle = _getCurrentContext();
       context_handle->set_activeDeviceForCpy(handle->device);
       float alt = ygets_f(argc-2);
-      yoga_atmos *atmos_handler = (yoga_atmos *)handle->yoga_atmos;
-      yObjS *yoga_obj_handler = (yObjS *)(atmos_handler->d_screens[alt]->d_tscreen->d_screen);
-      float *data = ypush_f(yoga_obj_handler->getDims());
-      yoga_obj_handler->device2host(data);
+      sutra_atmos *atmos_handler = (sutra_atmos *)handle->sutra_atmos;
+      caObjS *carma_obj_handler = (caObjS *)(atmos_handler->d_screens[alt]->d_tscreen->d_screen);
+      float *data = ypush_f(carma_obj_handler->getDims());
+      carma_obj_handler->device2host(data);
     }
   }
 
@@ -339,11 +339,11 @@ extern "C" {
 
     if (yarg_subroutine())  {
       atmos_struct *handle = (atmos_struct *)yget_obj(argc-1,&yAtmos);
-      yoga_context *context_handle = _getCurrentContext();
+      carma_context *context_handle = _getCurrentContext();
       context_handle->set_activeDeviceForCpy(handle->device);
       float alt = ygets_f(argc-2);
-      yoga_atmos *atmos_handler = (yoga_atmos *)handle->yoga_atmos;
-      yoga_tscreen *tscreen_handler = (yoga_tscreen *)(atmos_handler->d_screens.find(alt)->second);
+      sutra_atmos *atmos_handler = (sutra_atmos *)handle->sutra_atmos;
+      sutra_tscreen *tscreen_handler = (sutra_tscreen *)(atmos_handler->d_screens.find(alt)->second);
       int dir;
       if (argc>2) dir = ygets_i(argc-3);
       else dir = 1;
@@ -358,11 +358,11 @@ extern "C" {
     if (yarg_subroutine())y_error("can only be called as a function");
     else {
       atmos_struct *handle = (atmos_struct *)yget_obj(argc-1,&yAtmos);
-      yoga_context *context_handle = _getCurrentContext();
+      carma_context *context_handle = _getCurrentContext();
       context_handle->set_activeDeviceForCpy(handle->device);
       float alt = ygets_f(argc-2);
-      yoga_atmos *atmos_handler = (yoga_atmos *)handle->yoga_atmos;
-      yoga_tscreen *tscreen_handler = (yoga_tscreen *)(atmos_handler->d_screens[alt]);
+      sutra_atmos *atmos_handler = (sutra_atmos *)handle->sutra_atmos;
+      sutra_tscreen *tscreen_handler = (sutra_tscreen *)(atmos_handler->d_screens[alt]);
       char *type_data = ygets_q(argc-3);
       if (strcmp(type_data, "A")==0) {
 	float *data = ypush_f(tscreen_handler->d_A->getDims());
@@ -393,11 +393,11 @@ extern "C" {
     if (yarg_subroutine())y_error("can only be called as a function");
     else {
       atmos_struct *handle = (atmos_struct *)yget_obj(argc-1,&yAtmos);
-      yoga_context *context_handle = _getCurrentContext();
+      carma_context *context_handle = _getCurrentContext();
       context_handle->set_activeDeviceForCpy(handle->device);
       float alt = ygets_f(argc-2);
-      yoga_atmos *atmos_handler = (yoga_atmos *)handle->yoga_atmos;
-      yoga_tscreen *tscreen_handler = (yoga_tscreen *)(atmos_handler->d_screens[alt]);
+      sutra_atmos *atmos_handler = (sutra_atmos *)handle->sutra_atmos;
+      sutra_tscreen *tscreen_handler = (sutra_tscreen *)(atmos_handler->d_screens[alt]);
       float *data = ypush_f(tscreen_handler->d_ytmp->getDims());
       tscreen_handler->d_ytmp->device2host(data);
     }
@@ -408,14 +408,14 @@ extern "C" {
   {
 
     atmos_struct *handle = (atmos_struct *)yget_obj(argc-1,&yAtmos);
-    yoga_context *context_handle = _getCurrentContext();
+    carma_context *context_handle = _getCurrentContext();
     context_handle->set_activeDevice(handle->device);
     float alt = ygets_f(argc-2);
     int pupd  = ygets_l(argc-3);
     long seed = 1234;
     if (argc >3) seed = ygets_l(argc-4);
-    yoga_atmos *atmos_handler = (yoga_atmos *)handle->yoga_atmos;
-    yoga_tscreen *tscreen_handler = (yoga_tscreen *)(atmos_handler->d_screens[alt]);
+    sutra_atmos *atmos_handler = (sutra_atmos *)handle->sutra_atmos;
+    sutra_tscreen *tscreen_handler = (sutra_tscreen *)(atmos_handler->d_screens[alt]);
     tscreen_handler->init_vk(seed,pupd);
   }
 
@@ -424,15 +424,15 @@ extern "C" {
   {
 
     atmos_struct *handle = (atmos_struct *)yget_obj(argc-1,&yAtmos);
-    yoga_context *context_handle = _getCurrentContext();
+    carma_context *context_handle = _getCurrentContext();
     context_handle->set_activeDevice(handle->device);
     float alt = ygets_f(argc-2);
     float l0 = 0.0f;
     if (argc >2) l0 = ygets_f(argc-3);
     long nalias = 0;
     if (argc >3) l0 = ygets_l(argc-4);
-    yoga_atmos *atmos_handler = (yoga_atmos *)handle->yoga_atmos;
-    yoga_tscreen *tscreen_handler = (yoga_tscreen *)(atmos_handler->d_screens[alt]);
+    sutra_atmos *atmos_handler = (sutra_atmos *)handle->sutra_atmos;
+    sutra_tscreen *tscreen_handler = (sutra_tscreen *)(atmos_handler->d_screens[alt]);
     tscreen_handler->generate_vk(l0,nalias);
   }
 
@@ -448,10 +448,10 @@ extern "C" {
 
   void source_free(void *obj) {
     source_struct *handler = (source_struct *)obj;
-    yoga_context *context_handle = _getCurrentContext();
+    carma_context *context_handle = _getCurrentContext();
     context_handle->set_activeDevice(handler->device);
     try{
-      yoga_source *source_obj_handler = (yoga_source *)(handler->yoga_source);
+      sutra_source *source_obj_handler = (sutra_source *)(handler->sutra_source);
       delete source_obj_handler;
     } catch ( string &msg ) {
       y_error(msg.c_str());
@@ -463,7 +463,7 @@ extern "C" {
   void source_print(void *obj)
   {
     source_struct *handler = (source_struct *)obj;
-    yoga_source *source_obj_handler = (yoga_source *)(handler->yoga_source);
+    sutra_source *source_obj_handler = (sutra_source *)(handler->sutra_source);
     cout << "Yoga Source Object : " << endl;
     cout << "Source @ pos. " << source_obj_handler->tposx << "\" : " <<  source_obj_handler->tposy
 	 << " \"  |" << " mag : " << source_obj_handler->mag << " |"
@@ -482,10 +482,10 @@ extern "C" {
 
   void target_free(void *obj) {
     target_struct *handler = (target_struct *)obj;
-    yoga_context *context_handle = _getCurrentContext();
+    carma_context *context_handle = _getCurrentContext();
     context_handle->set_activeDevice(handler->device);
     try{
-      yoga_target *target_obj_handler = (yoga_target *)(handler->yoga_target);
+      sutra_target *target_obj_handler = (sutra_target *)(handler->sutra_target);
       delete target_obj_handler;
     } catch ( string &msg ) {
       y_error(msg.c_str());
@@ -497,7 +497,7 @@ extern "C" {
   void target_print(void *obj)
   {
     target_struct *handler = (target_struct *)obj;
-    yoga_target *target_obj_handler = (yoga_target *)(handler->yoga_target);
+    sutra_target *target_obj_handler = (sutra_target *)(handler->sutra_target);
     cout << "Yoga Target Object : " << endl;
     cout << "Contains " << target_obj_handler->ntargets << " target(s) : " << endl;
     cout << "Source #" << " | " << "position(\")" << " | " << " Mag " << " | " << "Lambda (mic.)" << endl;
@@ -517,7 +517,7 @@ extern "C" {
     long dims[Y_DIMSIZE];
 
     try {
-      yoga_context *context_handle = _getCurrentContext();
+      carma_context *context_handle = _getCurrentContext();
       int activeDevice = context_handle->get_activeDevice();
       int odevice = activeDevice;
       int ntargets = ygets_i(argc-1);
@@ -550,7 +550,7 @@ extern "C" {
       target_struct *handle=(target_struct *)ypush_obj(&yTarget, sizeof(target_struct));
       handle->device = odevice;
 
-      handle->yoga_target = new yoga_target(context_handle, ntargets,xpos,ypos,lambda,mag,sizes,pup,odevice);
+      handle->sutra_target = new sutra_target(context_handle, ntargets,xpos,ypos,lambda,mag,sizes,pup,odevice);
 
     } catch ( string &msg ) {
       y_error(msg.c_str());
@@ -558,7 +558,7 @@ extern "C" {
       y_error(msg);
     } catch( ... ) {
       stringstream buf;
-      buf << "unknown error with yoga_target construction in "<<__FILE__ << "@" << __LINE__ << endl;
+      buf << "unknown error with sutra_target construction in "<<__FILE__ << "@" << __LINE__ << endl;
       y_error(buf.str().c_str());
     }
   }
@@ -567,9 +567,9 @@ extern "C" {
   Y_target_addlayer(int argc)
   {
     target_struct *handler = (target_struct *)yget_obj(argc-1,&yTarget);
-    yoga_target *target_handler = (yoga_target *)(handler->yoga_target);
+    sutra_target *target_handler = (sutra_target *)(handler->sutra_target);
 
-    yoga_context *context_handle = _getCurrentContext();
+    carma_context *context_handle = _getCurrentContext();
     context_handle->set_activeDevice(handler->device);
 
     int ntarget = ygets_i(argc-2);
@@ -585,7 +585,7 @@ extern "C" {
   Y_target_init_strehlmeter(int argc)
   {
     target_struct *handler = (target_struct *)yget_obj(argc-1,&yTarget);
-    yoga_target *target_handler = (yoga_target *)(handler->yoga_target);
+    sutra_target *target_handler = (sutra_target *)(handler->sutra_target);
 
     int ntarget = ygets_i(argc-2);
 
@@ -596,15 +596,15 @@ extern "C" {
   Y_target_atmostrace(int argc)
   {
     target_struct *handler = (target_struct *)yget_obj(argc-1,&yTarget);
-    yoga_target *target_handler = (yoga_target *)(handler->yoga_target);
+    sutra_target *target_handler = (sutra_target *)(handler->sutra_target);
 
-    yoga_context *context_handle = _getCurrentContext();
+    carma_context *context_handle = _getCurrentContext();
     context_handle->set_activeDevice(handler->device);
 
     int ntarget = ygets_i(argc-2);
 
     atmos_struct *handler_a = (atmos_struct *)yget_obj(argc-3,&yAtmos);
-    yoga_atmos *atmos_handler = (yoga_atmos *)(handler_a->yoga_atmos);
+    sutra_atmos *atmos_handler = (sutra_atmos *)(handler_a->sutra_atmos);
 
     target_handler->d_targets.at(ntarget)->raytrace(atmos_handler);
   }
@@ -613,9 +613,9 @@ extern "C" {
   Y_target_getimage(int argc)
   {
     target_struct *handler = (target_struct *)yget_obj(argc-1,&yTarget);
-    yoga_target *target_handler = (yoga_target *)(handler->yoga_target);
+    sutra_target *target_handler = (sutra_target *)(handler->sutra_target);
 
-    yoga_context *context_handle = _getCurrentContext();
+    carma_context *context_handle = _getCurrentContext();
     context_handle->set_activeDeviceForCpy(handler->device);
 
     int ntarget = ygets_i(argc-2);
@@ -638,9 +638,9 @@ extern "C" {
   Y_target_getphase(int argc)
   {
     target_struct *handler = (target_struct *)yget_obj(argc-1,&yTarget);
-    yoga_target *target_handler = (yoga_target *)(handler->yoga_target);
+    sutra_target *target_handler = (sutra_target *)(handler->sutra_target);
 
-    yoga_context *context_handle = _getCurrentContext();
+    carma_context *context_handle = _getCurrentContext();
     context_handle->set_activeDeviceForCpy(handler->device);
 
     int ntarget = ygets_i(argc-2);
@@ -653,9 +653,9 @@ extern "C" {
   Y_target_getphasetele(int argc)
   {
     target_struct *handler = (target_struct *)yget_obj(argc-1,&yTarget);
-    yoga_target *target_handler = (yoga_target *)(handler->yoga_target);
+    sutra_target *target_handler = (sutra_target *)(handler->sutra_target);
 
-    yoga_context *context_handle = _getCurrentContext();
+    carma_context *context_handle = _getCurrentContext();
     context_handle->set_activeDeviceForCpy(handler->device);
 
     int ntarget = ygets_i(argc-2);
@@ -670,9 +670,9 @@ extern "C" {
   Y_target_getamplipup(int argc)
   {
     target_struct *handler = (target_struct *)yget_obj(argc-1,&yTarget);
-    yoga_target *target_handler = (yoga_target *)(handler->yoga_target);
+    sutra_target *target_handler = (sutra_target *)(handler->sutra_target);
 
-    yoga_context *context_handle = _getCurrentContext();
+    carma_context *context_handle = _getCurrentContext();
     context_handle->set_activeDeviceForCpy(handler->device);
 
     int ntarget = ygets_i(argc-2);
@@ -690,9 +690,9 @@ extern "C" {
   Y_target_getstrehl(int argc)
   {
     target_struct *handler = (target_struct *)yget_obj(argc-1,&yTarget);
-    yoga_target *target_handler = (yoga_target *)(handler->yoga_target);
+    sutra_target *target_handler = (sutra_target *)(handler->sutra_target);
 
-    yoga_context *context_handle = _getCurrentContext();
+    carma_context *context_handle = _getCurrentContext();
     context_handle->set_activeDeviceForCpy(handler->device);
 
     int ntarget = ygets_i(argc-2);
@@ -722,10 +722,10 @@ extern "C" {
 
   void phase_free(void *obj) {
     phase_struct *handler = (phase_struct *)obj;
-    yoga_context *context_handle = _getCurrentContext();
+    carma_context *context_handle = _getCurrentContext();
     context_handle->set_activeDevice(handler->device);
     try{
-      yoga_phase *phase_obj_handler = (yoga_phase *)(handler->yoga_phase);
+      sutra_phase *phase_obj_handler = (sutra_phase *)(handler->sutra_phase);
       delete phase_obj_handler;
     } catch ( string &msg ) {
       y_error(msg.c_str());
@@ -737,7 +737,7 @@ extern "C" {
   void phase_print(void *obj)
   {
     phase_struct *handler = (phase_struct *)obj;
-    yoga_phase *phase_obj_handler = (yoga_phase *)(handler->yoga_phase);
+    sutra_phase *phase_obj_handler = (sutra_phase *)(handler->sutra_phase);
     cout << "Yoga phase Object : " << phase_obj_handler->screen_size << "x"<<
       phase_obj_handler->screen_size << endl;
   }
@@ -745,9 +745,9 @@ extern "C" {
 
   void phase_eval(void *obj, int n) {
     phase_struct *handler = (phase_struct *)obj;
-    yoga_context *context_handle = _getCurrentContext();
+    carma_context *context_handle = _getCurrentContext();
     context_handle->set_activeDeviceForCpy(handler->device);
-    yoga_phase *phase_handler = (yoga_phase *)(handler->yoga_phase);
+    sutra_phase *phase_handler = (sutra_phase *)(handler->sutra_phase);
     float *data = ypush_f(phase_handler->d_screen->getDims());
     phase_handler->d_screen->device2host(data);
   }
@@ -756,7 +756,7 @@ extern "C" {
   Y_yoga_phase(int argc)
   {
     try {
-      yoga_context *context_handle = _getCurrentContext();
+      carma_context *context_handle = _getCurrentContext();
       int activeDevice = context_handle->get_activeDevice();
       int odevice = activeDevice;
       long size = ygets_l(argc-1);
@@ -767,7 +767,7 @@ extern "C" {
       phase_struct *handle=(phase_struct *)ypush_obj(&yPhase, sizeof(phase_struct));
       handle->device = odevice;
 
-      handle->yoga_phase = new yoga_phase(context_handle, size);
+      handle->sutra_phase = new sutra_phase(context_handle, size);
 
     } catch ( string &msg ) {
       y_error(msg.c_str());
@@ -775,7 +775,7 @@ extern "C" {
       y_error(msg);
     } catch( ... ) {
       stringstream buf;
-      buf << "unknown error with yoga_phase construction in "<<__FILE__ << "@" << __LINE__ << endl;
+      buf << "unknown error with sutra_phase construction in "<<__FILE__ << "@" << __LINE__ << endl;
       y_error(buf.str().c_str());
     }
   }
@@ -786,7 +786,7 @@ extern "C" {
     long ntot;
     long dims[Y_DIMSIZE];
     phase_struct *handle = (phase_struct *)yget_obj(argc-1,&yPhase);
-    yoga_phase *phase_handler = (yoga_phase *)handle->yoga_phase;
+    sutra_phase *phase_handler = (sutra_phase *)handle->sutra_phase;
     float *a = ygeta_f(argc-2, &ntot,dims);
     if (ntot != phase_handler->d_screen->getNbElem())
       y_error("wrong size for array");
@@ -807,10 +807,10 @@ extern "C" {
 
   void wfs_free(void *obj) {
     wfs_struct *handler = (wfs_struct *)obj;
-    yoga_context *context_handle = _getCurrentContext();
+    carma_context *context_handle = _getCurrentContext();
     context_handle->set_activeDevice(handler->device);
     try{
-      yoga_wfs *wfs_obj_handler = (yoga_wfs *)(handler->yoga_wfs);
+      sutra_wfs *wfs_obj_handler = (sutra_wfs *)(handler->sutra_wfs);
       delete wfs_obj_handler;
     } catch ( string &msg ) {
       y_error(msg.c_str());
@@ -822,7 +822,7 @@ extern "C" {
   void wfs_print(void *obj)
   {
     //wfs_struct *handler = (wfs_struct *)obj;
-    //yoga_wfs *wfs_obj_handler = (yoga_wfs *)(handler->yoga_wfs);
+    //sutra_wfs *wfs_obj_handler = (sutra_wfs *)(handler->sutra_wfs);
     cout << "Yoga wfs Object : " << endl;
   }
 
@@ -831,7 +831,7 @@ extern "C" {
   //long nxsub, long nvalid, long npix, long nrebin, long nfft
   {
     try {
-      yoga_context *context_handle = _getCurrentContext();
+      carma_context *context_handle = _getCurrentContext();
       int activeDevice = context_handle->get_activeDevice();
       int odevice = activeDevice;
       long nxsub  = ygets_l(argc-1);
@@ -852,7 +852,7 @@ extern "C" {
       wfs_struct *handle=(wfs_struct *)ypush_obj(&yWfs, sizeof(wfs_struct));
       handle->device = odevice;
 
-      handle->yoga_wfs = new yoga_wfs(context_handle, "sh", nxsub,nvalid,npix,nphase,nrebin,nfft,ntot,npup,pdiam,nphot,lgs,odevice);
+      handle->sutra_wfs = new sutra_wfs(context_handle, "sh", nxsub,nvalid,npix,nphase,nrebin,nfft,ntot,npup,pdiam,nphot,lgs,odevice);
 
     } catch ( string &msg ) {
       y_error(msg.c_str());
@@ -860,7 +860,7 @@ extern "C" {
       y_error(msg);
     } catch( ... ) {
       stringstream buf;
-      buf << "unknown error with yoga_wfs construction in "<<__FILE__ << "@" << __LINE__ << endl;
+      buf << "unknown error with sutra_wfs construction in "<<__FILE__ << "@" << __LINE__ << endl;
       y_error(buf.str().c_str());
     }
   }
@@ -881,10 +881,10 @@ extern "C" {
     if (argc>7)
       seed = ygets_l(argc-8);
 
-    yoga_context *context_handle = _getCurrentContext();
+    carma_context *context_handle = _getCurrentContext();
     context_handle->set_activeDevice(handle->device);
 
-    yoga_wfs *wfs_handler = (yoga_wfs *)handle->yoga_wfs;
+    sutra_wfs *wfs_handler = (sutra_wfs *)handle->sutra_wfs;
     wfs_handler->wfs_initgs(xpos,ypos,lambda,mag,size,noise,seed);
   }
 
@@ -900,10 +900,10 @@ extern "C" {
 
   void telemetry_free(void *obj) {
     telemetry_struct *handler = (telemetry_struct *)obj;
-    yoga_context *context_handle = _getCurrentContext();
+    carma_context *context_handle = _getCurrentContext();
     context_handle->set_activeDevice(handler->device);
     try{
-      yoga_telemetry *telemetry_obj_handler = (yoga_telemetry *)(handler->yoga_telemetry);
+      sutra_telemetry *telemetry_obj_handler = (sutra_telemetry *)(handler->sutra_telemetry);
       delete telemetry_obj_handler;
     } catch ( string &msg ) {
       y_error(msg.c_str());
@@ -915,7 +915,7 @@ extern "C" {
   void telemetry_print(void *obj)
   {
     telemetry_struct *handler = (telemetry_struct *)obj;
-    yoga_telemetry *telemetry_obj_handler = (yoga_telemetry *)(handler->yoga_telemetry);
+    sutra_telemetry *telemetry_obj_handler = (sutra_telemetry *)(handler->sutra_telemetry);
     cout << "Yoga Telemetry Object : " << endl;
     cout << "nb objs : " << telemetry_obj_handler->get_nbObjs()<<endl;
     cout << "nb streams : " << telemetry_obj_handler->get_nbStreams()<<endl;
@@ -926,17 +926,17 @@ extern "C" {
   Y_yoga_telemetry(int argc)
   {
     try {
-      yoga_context *context_handle = _getCurrentContext();
+      carma_context *context_handle = _getCurrentContext();
       int activeDevice = context_handle->get_activeDevice();
       int odevice = activeDevice;
 
       //      long *size_obj   = ygeta_l(argc-1, &ntot,dims);
-      //      yoga_host_obj<float> *yho_tmp = new yoga_host_obj<float>(size_obj);
+      //      carma_host_obj<float> *yho_tmp = new carma_host_obj<float>(size_obj);
       //      int nbStreams = ygets_i(argc-2);
       //
       telemetry_struct *handle=(telemetry_struct *)ypush_obj(&yTelemetry, sizeof(telemetry_struct));
       handle->device = odevice;
-      handle->yoga_telemetry = new yoga_telemetry();
+      handle->sutra_telemetry = new sutra_telemetry();
 
     } catch ( string &msg ) {
       y_error(msg.c_str());
@@ -944,7 +944,7 @@ extern "C" {
       y_error(msg);
     } catch( ... ) {
       stringstream buf;
-      buf << "unknown error with yoga_telemetry construction in "<<__FILE__ << "@" << __LINE__ << endl;
+      buf << "unknown error with sutra_telemetry construction in "<<__FILE__ << "@" << __LINE__ << endl;
       y_error(buf.str().c_str());
     }
   }
@@ -960,10 +960,10 @@ extern "C" {
  */
   void sensors_free(void *obj) {
     sensors_struct *handler = (sensors_struct *)obj;
-    yoga_context *context_handle = _getCurrentContext();
+    carma_context *context_handle = _getCurrentContext();
     context_handle->set_activeDevice(handler->device);
     try{
-      yoga_sensors *sensors_obj_handler = (yoga_sensors *)(handler->yoga_sensors);
+      sutra_sensors *sensors_obj_handler = (sutra_sensors *)(handler->sutra_sensors);
       delete sensors_obj_handler;
     } catch ( string &msg ) {
       y_error(msg.c_str());
@@ -975,7 +975,7 @@ extern "C" {
   void sensors_print(void *obj)
   {
     sensors_struct *handler = (sensors_struct *)obj;
-    yoga_sensors *sensors_obj_handler = (yoga_sensors *)(handler->yoga_sensors);
+    sutra_sensors *sensors_obj_handler = (sutra_sensors *)(handler->sutra_sensors);
     cout << "Yoga sensors Object" << endl;
 
     cout << "Contains " << sensors_obj_handler->nsensors << " WFS(s) : " << endl;
@@ -1018,17 +1018,17 @@ extern "C" {
       float *nphot  = ygeta_f(argc-12, &ntot,dims);
       int *lgs      = ygeta_i(argc-13, &ntot,dims);
 
-      yoga_context *context_handle = _getCurrentContext();
+      carma_context *context_handle = _getCurrentContext();
       int odevice = context_handle->get_activeDevice();
       if (argc > 13) odevice = ygets_i(argc-14);
 
       sensors_struct *handle=(sensors_struct *)ypush_obj(&ySensors, sizeof(sensors_struct));
       handle->device = odevice;
 
-      //done inside yoga_wfs constructor
+      //done inside sutra_wfs constructor
       //odevice = context_handle->set_activeDevice(odevice);
 
-      handle->yoga_sensors = new yoga_sensors(context_handle, type_data,nsensors,nxsub,nvalid,npix,nphase,nrebin,nfft,
+      handle->sutra_sensors = new sutra_sensors(context_handle, type_data,nsensors,nxsub,nvalid,npix,nphase,nrebin,nfft,
 					      ntota,npup,pdiam,nphot,lgs,odevice);
 
     } catch ( string &msg ) {
@@ -1037,7 +1037,7 @@ extern "C" {
       y_error(msg);
     } catch( ... ) {
       stringstream buf;
-      buf << "unknown error with yoga_sensors construction in "<<__FILE__ << "@" << __LINE__ << endl;
+      buf << "unknown error with sutra_sensors construction in "<<__FILE__ << "@" << __LINE__ << endl;
       y_error(buf.str().c_str());
     }
   }
@@ -1049,7 +1049,7 @@ extern "C" {
     long dims[Y_DIMSIZE];
 
     sensors_struct *handle = (sensors_struct *)yget_obj(argc-1,&ySensors);
-    yoga_sensors *sensors_handler = (yoga_sensors *)handle->yoga_sensors;
+    sutra_sensors *sensors_handler = (sutra_sensors *)handle->sutra_sensors;
     float *xpos   = ygeta_f(argc-2, &ntot,dims);
     if (ntot != sensors_handler->nsensors) y_error("wrong dimension for xpos");
     float *ypos   = ygeta_f(argc-3, &ntot,dims);
@@ -1061,7 +1061,7 @@ extern "C" {
     long  *size   = ygeta_l(argc-6, &ntot,dims);
     if (ntot != sensors_handler->nsensors) y_error("wrong dimension for size");
 
-    yoga_context *context_handle = _getCurrentContext();
+    carma_context *context_handle = _getCurrentContext();
     context_handle->set_activeDevice(handle->device);
 
     if (argc > 7) {
@@ -1081,9 +1081,9 @@ extern "C" {
   Y_sensors_addlayer(int argc)
   {
     sensors_struct *handler = (sensors_struct *)yget_obj(argc-1,&ySensors);
-    yoga_sensors *sensors_handler = (yoga_sensors *)(handler->yoga_sensors);
+    sutra_sensors *sensors_handler = (sutra_sensors *)(handler->sutra_sensors);
 
-    yoga_context *context_handle = _getCurrentContext();
+    carma_context *context_handle = _getCurrentContext();
     context_handle->set_activeDevice(handler->device);
 
     int nsensor = ygets_i(argc-2);
@@ -1101,9 +1101,9 @@ extern "C" {
     long ntot;
     long dims[Y_DIMSIZE];
     sensors_struct *handler = (sensors_struct *)yget_obj(argc-1,&ySensors);
-    yoga_sensors *sensors_handler = (yoga_sensors *)(handler->yoga_sensors);
+    sutra_sensors *sensors_handler = (sutra_sensors *)(handler->sutra_sensors);
 
-    yoga_context *context_handle = _getCurrentContext();
+    carma_context *context_handle = _getCurrentContext();
     context_handle->set_activeDevice(handler->device);
 
     int nsensor = ygets_i(argc-2);
@@ -1148,9 +1148,9 @@ extern "C" {
     long ntot;
     long dims[Y_DIMSIZE];
     sensors_struct *handler = (sensors_struct *)yget_obj(argc-1,&ySensors);
-    yoga_sensors *sensors_handler = (yoga_sensors *)(handler->yoga_sensors);
+    sutra_sensors *sensors_handler = (sutra_sensors *)(handler->sutra_sensors);
 
-    yoga_context *context_handle = _getCurrentContext();
+    carma_context *context_handle = _getCurrentContext();
     context_handle->set_activeDevice(handler->device);
 
     int nsensor = ygets_i(argc-2);
@@ -1166,9 +1166,9 @@ extern "C" {
     long ntot;
     long dims[Y_DIMSIZE];
     sensors_struct *handler = (sensors_struct *)yget_obj(argc-1,&ySensors);
-    yoga_sensors *sensors_handler = (yoga_sensors *)(handler->yoga_sensors);
+    sutra_sensors *sensors_handler = (sutra_sensors *)(handler->sutra_sensors);
 
-    yoga_context *context_handle = _getCurrentContext();
+    carma_context *context_handle = _getCurrentContext();
     context_handle->set_activeDevice(handler->device);
 
     int nsensor = ygets_i(argc-2);
@@ -1197,9 +1197,9 @@ extern "C" {
     long ntot;
     long dims[Y_DIMSIZE];
     sensors_struct *handler = (sensors_struct *)yget_obj(argc-1,&ySensors);
-    yoga_sensors *sensors_handler = (yoga_sensors *)(handler->yoga_sensors);
+    sutra_sensors *sensors_handler = (sutra_sensors *)(handler->sutra_sensors);
 
-    yoga_context *context_handle = _getCurrentContext();
+    carma_context *context_handle = _getCurrentContext();
     context_handle->set_activeDevice(handler->device);
 
     int nsensor = ygets_i(argc-2);
@@ -1219,9 +1219,9 @@ extern "C" {
   Y_sensors_updatelgs(int argc)
   {
     sensors_struct *handler = (sensors_struct *)yget_obj(argc-1,&ySensors);
-    yoga_sensors *sensors_handler = (yoga_sensors *)(handler->yoga_sensors);
+    sutra_sensors *sensors_handler = (sutra_sensors *)(handler->sutra_sensors);
 
-    yoga_context *context_handle = _getCurrentContext();
+    carma_context *context_handle = _getCurrentContext();
     context_handle->set_activeDevice(handler->device);
 
     int nsensor = ygets_i(argc-2);
@@ -1234,14 +1234,14 @@ extern "C" {
   Y_sensors_compimg(int argc)
   {
     sensors_struct *handler = (sensors_struct *)yget_obj(argc-1,&ySensors);
-    yoga_sensors *sensors_handler = (yoga_sensors *)(handler->yoga_sensors);
+    sutra_sensors *sensors_handler = (sutra_sensors *)(handler->sutra_sensors);
 
     int nsensor = ygets_i(argc-2);
 
     /*
       if(argc>2) { // With a telemetry object
-      yoga_host_struct *handle_obj = (yoga_host_struct *)yget_obj(piargs[0],&yoga_host_yObj);telemetry_struct *handler2 = (telemetry_struct *)yget_obj(argc-3,&yTelemetry);
-      yoga_telemetry *telemetry_handler = (yoga_telemetry *)(handler2->yoga_telemetry);
+      carma_host_struct *handle_obj = (carma_host_struct *)yget_obj(piargs[0],&carma_host_caObj);telemetry_struct *handler2 = (telemetry_struct *)yget_obj(argc-3,&yTelemetry);
+      sutra_telemetry *telemetry_handler = (sutra_telemetry *)(handler2->sutra_telemetry);
 
       string type_obj = string(ygets_q(argc-4));
 
@@ -1258,11 +1258,11 @@ extern "C" {
   Y_sensors_compimg_tele(int argc)
   {
     sensors_struct *handler = (sensors_struct *)yget_obj(argc-1,&ySensors);
-    yoga_sensors *sensors_handler = (yoga_sensors *)(handler->yoga_sensors);
+    sutra_sensors *sensors_handler = (sutra_sensors *)(handler->sutra_sensors);
 
     int nsensor = ygets_i(argc-2);
 
-    yoga_context *context_handle = _getCurrentContext();
+    carma_context *context_handle = _getCurrentContext();
     context_handle->set_activeDeviceForCpy(handler->device);
 
     sensors_handler->d_wfs.at(nsensor)->comp_image_tele();
@@ -1272,9 +1272,9 @@ extern "C" {
   Y_sensors_getimg(int argc)
   {
     sensors_struct *handler = (sensors_struct *)yget_obj(argc-1,&ySensors);
-    yoga_sensors *sensors_handler = (yoga_sensors *)(handler->yoga_sensors);
+    sutra_sensors *sensors_handler = (sutra_sensors *)(handler->sutra_sensors);
 
-    yoga_context *context_handle = _getCurrentContext();
+    carma_context *context_handle = _getCurrentContext();
     context_handle->set_activeDeviceForCpy(handler->device);
 
     int nsensor = ygets_i(argc-2);
@@ -1283,7 +1283,7 @@ extern "C" {
     /*
       if(argc>2) { // With a telemetry object
       telemetry_struct *handler2 = (telemetry_struct *)yget_obj(argc-3,&yTelemetry);
-      yoga_telemetry *telemetry_handler = (yoga_telemetry *)(handler2->yoga_telemetry);
+      sutra_telemetry *telemetry_handler = (sutra_telemetry *)(handler2->sutra_telemetry);
 
       string type_obj = string(ygets_q(argc-4));
 
@@ -1298,9 +1298,9 @@ extern "C" {
   Y_sensors_getdata(int argc)
   {
     sensors_struct *handler = (sensors_struct *)yget_obj(argc-1,&ySensors);
-    yoga_sensors *sensors_handler = (yoga_sensors *)(handler->yoga_sensors);
+    sutra_sensors *sensors_handler = (sutra_sensors *)(handler->sutra_sensors);
 
-    yoga_context *context_handle = _getCurrentContext();
+    carma_context *context_handle = _getCurrentContext();
     context_handle->set_activeDeviceForCpy(handler->device);
 
     int nsensor = ygets_i(argc-2);
@@ -1455,9 +1455,9 @@ extern "C" {
     long dims[Y_DIMSIZE];
 
     sensors_struct *handler = (sensors_struct *)yget_obj(argc-1,&ySensors);
-    yoga_sensors *sensors_handler = (yoga_sensors *)(handler->yoga_sensors);
+    sutra_sensors *sensors_handler = (sutra_sensors *)(handler->sutra_sensors);
 
-    yoga_context *context_handle = _getCurrentContext();
+    carma_context *context_handle = _getCurrentContext();
     context_handle->set_activeDevice(handler->device);
 
     int nsensor = ygets_i(argc-2);
@@ -1483,10 +1483,10 @@ extern "C" {
 
   void dms_free(void *obj) {
     dms_struct *handler = (dms_struct *)obj;
-    yoga_context *context_handle = _getCurrentContext();
+    carma_context *context_handle = _getCurrentContext();
     context_handle->set_activeDevice(handler->device);
     try{
-      yoga_dms *dms_obj_handler = (yoga_dms *)(handler->yoga_dms);
+      sutra_dms *dms_obj_handler = (sutra_dms *)(handler->sutra_dms);
       delete dms_obj_handler;
     } catch ( string& msg ) {
       y_error(msg.c_str());
@@ -1498,12 +1498,12 @@ extern "C" {
   void dms_print(void *obj)
   {
     dms_struct *handler = (dms_struct *)obj;
-    yoga_dms *dms_handler = (yoga_dms *)(handler->yoga_dms);
+    sutra_dms *dms_handler = (sutra_dms *)(handler->sutra_dms);
     cout << "Yoga DMs Object" << endl;
 
     cout << "Contains " << dms_handler->d_dms.size() << " DMs : " << endl;
     cout << "DM #" << " | " << "Type " << " | " << "  Alt  " << " | " << "Nact" << " | " << "Dim" << endl;
-    map<type_screen,yoga_dm *>::iterator p;
+    map<type_screen,sutra_dm *>::iterator p;
     p = dms_handler->d_dms.begin();
     int cpt =0;
     while (p != dms_handler->d_dms.end()) {
@@ -1522,13 +1522,13 @@ extern "C" {
   Y_yoga_dms(int argc)
   {
     try {
-      yoga_context *context_handle = _getCurrentContext();
+      carma_context *context_handle = _getCurrentContext();
       int activeDevice = context_handle->get_activeDevice();
 
       long ndm         = ygets_l(argc-1);
       dms_struct *handle=(dms_struct *)ypush_obj(&yDMs, sizeof(dms_struct));
       handle->device = activeDevice;
-      handle->yoga_dms = new yoga_dms(ndm);
+      handle->sutra_dms = new sutra_dms(ndm);
 
     } catch ( string &msg ) {
       y_error(msg.c_str());
@@ -1536,7 +1536,7 @@ extern "C" {
       y_error(msg);
     } catch( ... ) {
       stringstream buf;
-      buf << "unknown error with yoga_dms construction in "<<__FILE__ << "@" << __LINE__ << endl;
+      buf << "unknown error with sutra_dms construction in "<<__FILE__ << "@" << __LINE__ << endl;
       y_error(buf.str().c_str());
     }
   }
@@ -1544,11 +1544,11 @@ extern "C" {
   void
   Y_yoga_addpzt(int argc)
   {
-    yoga_context *context_handle = _getCurrentContext();
+    carma_context *context_handle = _getCurrentContext();
     int activeDevice = context_handle->get_activeDevice();
     int odevice = activeDevice;
     dms_struct *handler   = (dms_struct *)yget_obj(argc-1,&yDMs);
-    yoga_dms *dms_handler = (yoga_dms *)(handler->yoga_dms);
+    sutra_dms *dms_handler = (sutra_dms *)(handler->sutra_dms);
     //char *type            = ygets_q(argc-2);
     float alt             = ygets_f(argc-2);
     long dim              = ygets_l(argc-3);
@@ -1569,7 +1569,7 @@ extern "C" {
   Y_yoga_rmpzt(int argc)
   {
     dms_struct *handler   = (dms_struct *)yget_obj(argc-1,&yDMs);
-    yoga_dms *dms_handler = (yoga_dms *)(handler->yoga_dms);
+    sutra_dms *dms_handler = (sutra_dms *)(handler->sutra_dms);
     //char *type            = ygets_q(argc-2);
     float alt             = ygets_f(argc-2);
 
@@ -1584,7 +1584,7 @@ extern "C" {
     long dims[Y_DIMSIZE];
 
     dms_struct *handler   = (dms_struct *)yget_obj(argc-1,&yDMs);
-    yoga_dms *dms_handler = (yoga_dms *)(handler->yoga_dms);
+    sutra_dms *dms_handler = (sutra_dms *)(handler->sutra_dms);
     //char *type            = ygets_q(argc-2);
     float alt             = ygets_f(argc-2);
     float *influ          = ygeta_f(argc-3,&ntot,dims);
@@ -1600,11 +1600,11 @@ extern "C" {
   void
   Y_yoga_addkl(int argc)
   {
-    yoga_context *context_handle = _getCurrentContext();
+    carma_context *context_handle = _getCurrentContext();
     int activeDevice = context_handle->get_activeDevice();
     int odevice = activeDevice;
     dms_struct *handler   = (dms_struct *)yget_obj(argc-1,&yDMs);
-    yoga_dms *dms_handler = (yoga_dms *)(handler->yoga_dms);
+    sutra_dms *dms_handler = (sutra_dms *)(handler->sutra_dms);
     //char *type            = ygets_q(argc-2);
     float alt             = ygets_f(argc-2);
     long dim              = ygets_l(argc-3);
@@ -1627,7 +1627,7 @@ extern "C" {
     long dims[Y_DIMSIZE];
 
     dms_struct *handler   = (dms_struct *)yget_obj(argc-1,&yDMs);
-    yoga_dms *dms_handler = (yoga_dms *)(handler->yoga_dms);
+    sutra_dms *dms_handler = (sutra_dms *)(handler->sutra_dms);
     //char *type            = ygets_q(argc-2);
     float alt        = ygets_f(argc-2);
     float *rabas     = ygeta_f(argc-3,&ntot,dims);
@@ -1643,7 +1643,7 @@ extern "C" {
   Y_yoga_rmkl(int argc)
   {
     dms_struct *handler   = (dms_struct *)yget_obj(argc-1,&yDMs);
-    yoga_dms *dms_handler = (yoga_dms *)(handler->yoga_dms);
+    sutra_dms *dms_handler = (sutra_dms *)(handler->sutra_dms);
     //char *type            = ygets_q(argc-2);
     float alt             = ygets_f(argc-2);
 
@@ -1655,7 +1655,7 @@ extern "C" {
   Y_yoga_getkl(int argc)
   {
     dms_struct *handler   = (dms_struct *)yget_obj(argc-1,&yDMs);
-    yoga_dms *dms_handler = (yoga_dms *)(handler->yoga_dms);
+    sutra_dms *dms_handler = (sutra_dms *)(handler->sutra_dms);
     //char *type            = ygets_q(argc-2);
     float alt             = ygets_f(argc-2);
     long  nkl             = ygets_l(argc-3);
@@ -1676,12 +1676,12 @@ extern "C" {
   void
   Y_yoga_addtt(int argc)
   {
-    yoga_context *context_handle = _getCurrentContext();
+    carma_context *context_handle = _getCurrentContext();
     int activeDevice = context_handle->get_activeDevice();
 
     int odevice = activeDevice;
     dms_struct *handler   = (dms_struct *)yget_obj(argc-1,&yDMs);
-    yoga_dms *dms_handler = (yoga_dms *)(handler->yoga_dms);
+    sutra_dms *dms_handler = (sutra_dms *)(handler->sutra_dms);
     float alt             = ygets_f(argc-2);
     long dim              = ygets_l(argc-3);
     float push4imat       = ygets_f(argc-4);
@@ -1700,7 +1700,7 @@ extern "C" {
     long dims[Y_DIMSIZE];
 
     dms_struct *handler   = (dms_struct *)yget_obj(argc-1,&yDMs);
-    yoga_dms *dms_handler = (yoga_dms *)(handler->yoga_dms);
+    sutra_dms *dms_handler = (sutra_dms *)(handler->sutra_dms);
     //char *type            = ygets_q(argc-2);
     float alt             = ygets_f(argc-2);
     float *influ          = ygeta_f(argc-3,&ntot,dims);
@@ -1715,7 +1715,7 @@ extern "C" {
     long dims[Y_DIMSIZE];
 
     dms_struct *handler   = (dms_struct *)yget_obj(argc-1,&yDMs);
-    yoga_dms *dms_handler = (yoga_dms *)(handler->yoga_dms);
+    sutra_dms *dms_handler = (sutra_dms *)(handler->sutra_dms);
     char *type            = ygets_q(argc-2);
     float alt             = ygets_f(argc-3);
     float *comm           = ygeta_f(argc-4,&ntot,dims);
@@ -1727,7 +1727,7 @@ extern "C" {
   Y_yoga_shapedm(int argc)
   {
     dms_struct *handler   = (dms_struct *)yget_obj(argc-1,&yDMs);
-    yoga_dms *dms_handler = (yoga_dms *)(handler->yoga_dms);
+    sutra_dms *dms_handler = (sutra_dms *)(handler->sutra_dms);
     char *type            = ygets_q(argc-2);
     float alt             = ygets_f(argc-3);
 
@@ -1738,7 +1738,7 @@ extern "C" {
   Y_yoga_resetdm(int argc)
   {
     dms_struct *handler   = (dms_struct *)yget_obj(argc-1,&yDMs);
-    yoga_dms *dms_handler = (yoga_dms *)(handler->yoga_dms);
+    sutra_dms *dms_handler = (sutra_dms *)(handler->sutra_dms);
     char *type            = ygets_q(argc-2);
     float alt             = ygets_f(argc-3);
 
@@ -1749,7 +1749,7 @@ extern "C" {
   Y_yoga_oneactu(int argc)
   {
     dms_struct *handler   = (dms_struct *)yget_obj(argc-1,&yDMs);
-    yoga_dms *dms_handler = (yoga_dms *)(handler->yoga_dms);
+    sutra_dms *dms_handler = (sutra_dms *)(handler->sutra_dms);
     char *type            = ygets_q(argc-2);
     float alt             = ygets_f(argc-3);
     long nactu            = ygets_l(argc-4);
@@ -1762,7 +1762,7 @@ extern "C" {
   Y_yoga_getdm(int argc)
   {
     dms_struct *handler   = (dms_struct *)yget_obj(argc-1,&yDMs);
-    yoga_dms *dms_handler = (yoga_dms *)(handler->yoga_dms);
+    sutra_dms *dms_handler = (sutra_dms *)(handler->sutra_dms);
     char *type            = ygets_q(argc-2);
     float alt             = ygets_f(argc-3);
     float *data = ypush_f(dms_handler->d_dms.at(make_pair(type,alt))->d_shape->d_screen->getDims());
@@ -1776,7 +1776,7 @@ extern "C" {
     long dims[Y_DIMSIZE];
 
     dms_struct *handler   = (dms_struct *)yget_obj(argc-1,&yDMs);
-    yoga_dms *dms_handler = (yoga_dms *)(handler->yoga_dms);
+    sutra_dms *dms_handler = (sutra_dms *)(handler->sutra_dms);
     char *type            = ygets_q(argc-2);
     float alt             = ygets_f(argc-3);
     float *data           = ygeta_f(argc-4,&ntot,dims);
@@ -1787,15 +1787,15 @@ extern "C" {
   Y_target_dmtrace(int argc)
   {
     target_struct *handler = (target_struct *)yget_obj(argc-1,&yTarget);
-    yoga_target *target_handler = (yoga_target *)(handler->yoga_target);
+    sutra_target *target_handler = (sutra_target *)(handler->sutra_target);
 
-    yoga_context *context_handle = _getCurrentContext();
+    carma_context *context_handle = _getCurrentContext();
     context_handle->set_activeDevice(handler->device);
 
     int ntarget = ygets_i(argc-2);
 
     dms_struct *handlera = (dms_struct *)yget_obj(argc-3,&yDMs);
-    yoga_dms *dms_handler = (yoga_dms *)(handlera->yoga_dms);
+    sutra_dms *dms_handler = (sutra_dms *)(handlera->sutra_dms);
 
     target_handler->d_targets.at(ntarget)->raytrace(dms_handler,0);
   }
@@ -1804,9 +1804,9 @@ extern "C" {
   Y_dms_getdata(int argc)
   {
     dms_struct *dhandler          = (dms_struct *)yget_obj(argc-1,&yDMs);
-    yoga_dms *dms_handler         = (yoga_dms *)(dhandler->yoga_dms);
+    sutra_dms *dms_handler         = (sutra_dms *)(dhandler->sutra_dms);
 
-    yoga_context *context_handle = _getCurrentContext();
+    carma_context *context_handle = _getCurrentContext();
     context_handle->set_activeDeviceForCpy(dhandler->device);
 
     char *type            = ygets_q(argc-2);
@@ -1847,10 +1847,10 @@ extern "C" {
 
   void rtc_free(void *obj) {
     rtc_struct *handler = (rtc_struct *)obj;
-    yoga_context *context_handle = _getCurrentContext();
+    carma_context *context_handle = _getCurrentContext();
     context_handle->set_activeDevice(handler->device);
     try{
-      yoga_rtc *rtc_obj_handler = (yoga_rtc *)(handler->yoga_rtc);
+      sutra_rtc *rtc_obj_handler = (sutra_rtc *)(handler->sutra_rtc);
       delete rtc_obj_handler;
     } catch ( string &msg ) {
       y_error(msg.c_str());
@@ -1862,7 +1862,7 @@ extern "C" {
   void rtc_print(void *obj)
   {
     rtc_struct *handler = (rtc_struct *)obj;
-    yoga_rtc *rtc_handler = (yoga_rtc *)(handler->yoga_rtc);
+    sutra_rtc *rtc_handler = (sutra_rtc *)(handler->sutra_rtc);
     cout << "Yoga RTC Object" << endl;
 
     cout << "Contains " << rtc_handler->d_centro.size() << " Centroider(s) : " << endl;
@@ -1888,12 +1888,12 @@ extern "C" {
   Y_yoga_rtc(int argc)
   {    
     try {
-      yoga_context *context_handle = _getCurrentContext();
+      carma_context *context_handle = _getCurrentContext();
       int activeDevice = context_handle->get_activeDevice();
 
       rtc_struct *handle=(rtc_struct *)ypush_obj(&yRTC, sizeof(rtc_struct));
       handle->device = activeDevice;
-      handle->yoga_rtc = new yoga_rtc(context_handle);
+      handle->sutra_rtc = new sutra_rtc(context_handle);
 
     } catch ( string &msg ) {
       y_error(msg.c_str());
@@ -1901,7 +1901,7 @@ extern "C" {
       y_error(msg);
     } catch( ... ) {
       stringstream buf;
-      buf << "unknown error with yoga_rtc construction in "<<__FILE__ << "@" << __LINE__ << endl;
+      buf << "unknown error with sutra_rtc construction in "<<__FILE__ << "@" << __LINE__ << endl;
       y_error(buf.str().c_str());
     }
   }
@@ -1910,7 +1910,7 @@ extern "C" {
   Y_rtc_addcentro(int argc)
   {    
     rtc_struct *rhandler  = (rtc_struct *)yget_obj(argc-1,&yRTC);
-    yoga_rtc *rtc_handler = (yoga_rtc *)(rhandler->yoga_rtc);
+    sutra_rtc *rtc_handler = (sutra_rtc *)(rhandler->sutra_rtc);
     long nwfs             = ygets_l(argc-2);
     long nvalid           = ygets_l(argc-3);
     char *type_centro     = ygets_q(argc-4);
@@ -1919,7 +1919,7 @@ extern "C" {
 
     //rtc_struct *handle    =(rtc_struct *)ypush_obj(&yRTC, sizeof(rtc_struct));
 
-    yoga_context *context_handle = _getCurrentContext();
+    carma_context *context_handle = _getCurrentContext();
     int activeDevice = context_handle->set_activeDeviceForCpy(rhandler->device);
 
     rtc_handler->add_centroider(nwfs,nvalid,offset,scale,activeDevice,type_centro);
@@ -1929,14 +1929,14 @@ extern "C" {
   Y_rtc_addcontrol(int argc)
   {    
     rtc_struct *rhandler  = (rtc_struct *)yget_obj(argc-1,&yRTC);
-    yoga_rtc *rtc_handler = (yoga_rtc *)(rhandler->yoga_rtc);
+    sutra_rtc *rtc_handler = (sutra_rtc *)(rhandler->sutra_rtc);
     long nactu            = ygets_l(argc-2);
     long delay            = ygets_l(argc-3);
     char *type_control    = ygets_q(argc-4);
 
     //rtc_struct *handle    =(rtc_struct *)ypush_obj(&yRTC, sizeof(rtc_struct));
 
-    yoga_context *context_handle = _getCurrentContext();
+    carma_context *context_handle = _getCurrentContext();
     int activeDevice = context_handle->set_activeDeviceForCpy(rhandler->device);
 
     rtc_handler->add_controler(nactu,delay,activeDevice,type_control);
@@ -1946,9 +1946,9 @@ extern "C" {
   Y_rtc_rmcontrol(int argc)
   {    
     rtc_struct *rhandler  = (rtc_struct *)yget_obj(argc-1,&yRTC);
-    yoga_rtc *rtc_handler = (yoga_rtc *)(rhandler->yoga_rtc);
+    sutra_rtc *rtc_handler = (sutra_rtc *)(rhandler->sutra_rtc);
 
-    yoga_context *context_handle = _getCurrentContext();
+    carma_context *context_handle = _getCurrentContext();
     context_handle->set_activeDevice(rhandler->device);
 
     rtc_handler->rm_controler();
@@ -1958,11 +1958,11 @@ extern "C" {
   Y_rtc_setthresh(int argc)
   {
     rtc_struct *rhandler          = (rtc_struct *)yget_obj(argc-1,&yRTC);
-    yoga_rtc *rtc_handler         = (yoga_rtc *)(rhandler->yoga_rtc);
+    sutra_rtc *rtc_handler         = (sutra_rtc *)(rhandler->sutra_rtc);
     int ncentro                   = ygets_i(argc-2);
     float thresh                  = ygets_f(argc-3);
 
-    yoga_context *context_handle = _getCurrentContext();
+    carma_context *context_handle = _getCurrentContext();
     context_handle->set_activeDeviceForCpy(rhandler->device);
     rtc_handler->d_centro.at(ncentro)->threshold = thresh;
   }
@@ -1971,11 +1971,11 @@ extern "C" {
   Y_rtc_setnmax(int argc)
   {
     rtc_struct *rhandler          = (rtc_struct *)yget_obj(argc-1,&yRTC);
-    yoga_rtc *rtc_handler         = (yoga_rtc *)(rhandler->yoga_rtc);
+    sutra_rtc *rtc_handler         = (sutra_rtc *)(rhandler->sutra_rtc);
     int ncentro                   = ygets_i(argc-2);
     int nmax                      = ygets_f(argc-3);
 
-    yoga_context *context_handle = _getCurrentContext();
+    carma_context *context_handle = _getCurrentContext();
     context_handle->set_activeDevice(rhandler->device);
     rtc_handler->d_centro.at(ncentro)->nmax = nmax;
   }
@@ -1984,17 +1984,17 @@ extern "C" {
   Y_rtc_docentroids(int argc)
   {    
     rtc_struct *rhandler  = (rtc_struct *)yget_obj(argc-1,&yRTC);
-    yoga_rtc *rtc_handler = (yoga_rtc *)(rhandler->yoga_rtc);
+    sutra_rtc *rtc_handler = (sutra_rtc *)(rhandler->sutra_rtc);
     sensors_struct *handler = (sensors_struct *)yget_obj(argc-2,&ySensors);
-    yoga_sensors *sensors_handler = (yoga_sensors *)(handler->yoga_sensors);
+    sutra_sensors *sensors_handler = (sutra_sensors *)(handler->sutra_sensors);
    
     if (argc>2) {
       long ncontrol         = ygets_l(argc-3);
       rtc_handler->do_centroids(ncontrol,sensors_handler);
     } else rtc_handler->do_centroids(sensors_handler);
 
-    /* now done inside yoga_rtc::do_centroids
-       yoga_context *context_handle = _getCurrentContext();
+    /* now done inside sutra_rtc::do_centroids
+       sutra_context *context_handle = _getCurrentContext();
        int activeDevice = context_handle->set_activeDeviceForCpy(rhandler->device);
     */
   }
@@ -2003,18 +2003,18 @@ extern "C" {
   Y_rtc_doimat(int argc)
   {    
     rtc_struct *rhandler  = (rtc_struct *)yget_obj(argc-1,&yRTC);
-    yoga_rtc *rtc_handler = (yoga_rtc *)(rhandler->yoga_rtc);
+    sutra_rtc *rtc_handler = (sutra_rtc *)(rhandler->sutra_rtc);
     long ncontrol         = ygets_l(argc-2);
     sensors_struct *handler = (sensors_struct *)yget_obj(argc-3,&ySensors);
-    yoga_sensors *sensors_handler = (yoga_sensors *)(handler->yoga_sensors);
+    sutra_sensors *sensors_handler = (sutra_sensors *)(handler->sutra_sensors);
     dms_struct *handlera = (dms_struct *)yget_obj(argc-4,&yDMs);
-    yoga_dms *dms_handler = (yoga_dms *)(handlera->yoga_dms);
+    sutra_dms *dms_handler = (sutra_dms *)(handlera->sutra_dms);
 
     int geom = -1;
     if (argc > 4) geom = ygets_i(argc-5);
     //rtc_struct *handle    =(rtc_struct *)ypush_obj(&yRTC, sizeof(rtc_struct));
 
-    yoga_context *context_handle = _getCurrentContext();
+    carma_context *context_handle = _getCurrentContext();
     context_handle->set_activeDeviceForCpy(rhandler->device);
 
     if (geom > -1)
@@ -2027,11 +2027,11 @@ extern "C" {
   Y_rtc_setgain(int argc)
   {    
     rtc_struct *rhandler  = (rtc_struct *)yget_obj(argc-1,&yRTC);
-    yoga_rtc *rtc_handler = (yoga_rtc *)(rhandler->yoga_rtc);
+    sutra_rtc *rtc_handler = (sutra_rtc *)(rhandler->sutra_rtc);
     long ncontrol         = ygets_l(argc-2);
     float gain            = ygets_f(argc-3);
 
-    yoga_context *context_handle = _getCurrentContext();
+    carma_context *context_handle = _getCurrentContext();
     context_handle->set_activeDeviceForCpy(rhandler->device);
     rtc_handler->d_control.at(ncontrol)->set_gain(gain);;
 
@@ -2044,11 +2044,11 @@ extern "C" {
     long dims[Y_DIMSIZE];
 
     rtc_struct *rhandler  = (rtc_struct *)yget_obj(argc-1,&yRTC);
-    yoga_rtc *rtc_handler = (yoga_rtc *)(rhandler->yoga_rtc);
+    sutra_rtc *rtc_handler = (sutra_rtc *)(rhandler->sutra_rtc);
     long ncontrol         = ygets_l(argc-2);
     float *mgain          = ygeta_f(argc-3,&ntot,dims);
 
-    yoga_context *context_handle = _getCurrentContext();
+    carma_context *context_handle = _getCurrentContext();
     context_handle->set_activeDeviceForCpy(rhandler->device);
     rtc_handler->d_control.at(ncontrol)->load_mgain(mgain);;
 
@@ -2058,11 +2058,11 @@ extern "C" {
   Y_rtc_setdelay(int argc)
   {    
     rtc_struct *rhandler  = (rtc_struct *)yget_obj(argc-1,&yRTC);
-    yoga_rtc *rtc_handler = (yoga_rtc *)(rhandler->yoga_rtc);
+    sutra_rtc *rtc_handler = (sutra_rtc *)(rhandler->sutra_rtc);
     long ncontrol         = ygets_l(argc-2);
     long delay            = ygets_l(argc-3);
 
-    yoga_context *context_handle = _getCurrentContext();
+    carma_context *context_handle = _getCurrentContext();
     context_handle->set_activeDeviceForCpy(rhandler->device);
     rtc_handler->d_control.at(ncontrol)->set_delay(delay);;
   }
@@ -2071,10 +2071,10 @@ extern "C" {
   Y_rtc_getimat(int argc)
   {    
     rtc_struct *rhandler  = (rtc_struct *)yget_obj(argc-1,&yRTC);
-    yoga_rtc *rtc_handler = (yoga_rtc *)(rhandler->yoga_rtc);
+    sutra_rtc *rtc_handler = (sutra_rtc *)(rhandler->sutra_rtc);
     long ncontrol         = ygets_l(argc-2);
 
-    yoga_context *context_handle = _getCurrentContext();
+    carma_context *context_handle = _getCurrentContext();
     context_handle->set_activeDeviceForCpy(rhandler->device);
 
     float *data = ypush_f(rtc_handler->d_control.at(ncontrol)->d_imat->getDims());
@@ -2085,10 +2085,10 @@ extern "C" {
   Y_rtc_setimat(int argc)
   {    
     rtc_struct *rhandler  = (rtc_struct *)yget_obj(argc-1,&yRTC);
-    yoga_rtc *rtc_handler = (yoga_rtc *)(rhandler->yoga_rtc);
+    sutra_rtc *rtc_handler = (sutra_rtc *)(rhandler->sutra_rtc);
     long ncontrol         = ygets_l(argc-2);
 
-    yoga_context *context_handle = _getCurrentContext();
+    carma_context *context_handle = _getCurrentContext();
     context_handle->set_activeDeviceForCpy(rhandler->device);
 
     long ntot;
@@ -2101,10 +2101,10 @@ extern "C" {
   Y_rtc_getcentroids(int argc)
   {    
     rtc_struct *rhandler  = (rtc_struct *)yget_obj(argc-1,&yRTC);
-    yoga_rtc *rtc_handler = (yoga_rtc *)(rhandler->yoga_rtc);
+    sutra_rtc *rtc_handler = (sutra_rtc *)(rhandler->sutra_rtc);
     long ncontrol         = ygets_l(argc-2);
 
-    yoga_context *context_handle = _getCurrentContext();
+    carma_context *context_handle = _getCurrentContext();
     context_handle->set_activeDeviceForCpy(rhandler->device);
 
     float *data = ypush_f(rtc_handler->d_control.at(ncontrol)->d_centroids->getDims());
@@ -2115,10 +2115,10 @@ extern "C" {
   Y_rtc_getcmat(int argc)
   {    
     rtc_struct *rhandler  = (rtc_struct *)yget_obj(argc-1,&yRTC);
-    yoga_rtc *rtc_handler = (yoga_rtc *)(rhandler->yoga_rtc);
+    sutra_rtc *rtc_handler = (sutra_rtc *)(rhandler->sutra_rtc);
     long ncontrol         = ygets_l(argc-2);
 
-    yoga_context *context_handle = _getCurrentContext();
+    carma_context *context_handle = _getCurrentContext();
     context_handle->set_activeDeviceForCpy(rhandler->device);
 
     float *data = ypush_f(rtc_handler->d_control.at(ncontrol)->d_cmat->getDims());
@@ -2128,10 +2128,10 @@ extern "C" {
   Y_rtc_setcmat(int argc)
   {    
     rtc_struct *rhandler  = (rtc_struct *)yget_obj(argc-1,&yRTC);
-    yoga_rtc *rtc_handler = (yoga_rtc *)(rhandler->yoga_rtc);
+    sutra_rtc *rtc_handler = (sutra_rtc *)(rhandler->sutra_rtc);
     long ncontrol         = ygets_l(argc-2);
 
-    yoga_context *context_handle = _getCurrentContext();
+    carma_context *context_handle = _getCurrentContext();
     context_handle->set_activeDeviceForCpy(rhandler->device);
 
     long ntot;
@@ -2144,7 +2144,7 @@ extern "C" {
   Y_rtc_buildcmat(int argc)
   {    
     rtc_struct *rhandler  = (rtc_struct *)yget_obj(argc-1,&yRTC);
-    yoga_rtc *rtc_handler = (yoga_rtc *)(rhandler->yoga_rtc);
+    sutra_rtc *rtc_handler = (sutra_rtc *)(rhandler->sutra_rtc);
     long ncontrol         = ygets_l(argc-2);
     long nfilt            = ygets_l(argc-3);
 
@@ -2152,7 +2152,7 @@ extern "C" {
     if (argc>3) filt_tt   = ygets_l(argc-4);
     //rtc_struct *handle    =(rtc_struct *)ypush_obj(&yRTC, sizeof(rtc_struct));
 
-    yoga_context *context_handle = _getCurrentContext();
+    carma_context *context_handle = _getCurrentContext();
     context_handle->set_activeDeviceForCpy(rhandler->device);
 
     if (filt_tt > 0) rtc_handler->d_control[ncontrol]->build_cmat(nfilt,true);
@@ -2163,12 +2163,12 @@ extern "C" {
   Y_rtc_imatsvd(int argc)
   {    
     rtc_struct *rhandler  = (rtc_struct *)yget_obj(argc-1,&yRTC);
-    yoga_rtc *rtc_handler = (yoga_rtc *)(rhandler->yoga_rtc);
+    sutra_rtc *rtc_handler = (sutra_rtc *)(rhandler->sutra_rtc);
     long ncontrol         = ygets_l(argc-2);
 
     //rtc_struct *handle    =(rtc_struct *)ypush_obj(&yRTC, sizeof(rtc_struct));
 
-    yoga_context *context_handle = _getCurrentContext();
+    carma_context *context_handle = _getCurrentContext();
     context_handle->set_activeDeviceForCpy(rhandler->device);
 
     rtc_handler->d_control[ncontrol]->svdec_imat();
@@ -2178,9 +2178,9 @@ extern "C" {
   Y_rtc_framedelay(int argc)
   {
     rtc_struct *rhandler          = (rtc_struct *)yget_obj(argc-1,&yRTC);
-    yoga_rtc *rtc_handler         = (yoga_rtc *)(rhandler->yoga_rtc);
+    sutra_rtc *rtc_handler         = (sutra_rtc *)(rhandler->sutra_rtc);
 
-    yoga_context *context_handle = _getCurrentContext();
+    carma_context *context_handle = _getCurrentContext();
     context_handle->set_activeDeviceForCpy(rhandler->device);
 
     int ncontrol                   = ygets_i(argc-2);
@@ -2192,12 +2192,12 @@ extern "C" {
   Y_rtc_docontrol(int argc)
   {    
     rtc_struct *rhandler  = (rtc_struct *)yget_obj(argc-1,&yRTC);
-    yoga_rtc *rtc_handler = (yoga_rtc *)(rhandler->yoga_rtc);
+    sutra_rtc *rtc_handler = (sutra_rtc *)(rhandler->sutra_rtc);
     long ncontrol         = ygets_l(argc-2);
     dms_struct *handlera = (dms_struct *)yget_obj(argc-3,&yDMs);
-    yoga_dms *dms_handler = (yoga_dms *)(handlera->yoga_dms);
+    sutra_dms *dms_handler = (sutra_dms *)(handlera->sutra_dms);
 
-    yoga_context *context_handle = _getCurrentContext();
+    carma_context *context_handle = _getCurrentContext();
     context_handle->set_activeDevice(rhandler->device);
 
     rtc_handler->do_control(ncontrol,dms_handler);
@@ -2208,9 +2208,9 @@ extern "C" {
   Y_controler_setdata(int argc)
   {
     rtc_struct *rhandler          = (rtc_struct *)yget_obj(argc-1,&yRTC);
-    yoga_rtc *rtc_handler         = (yoga_rtc *)(rhandler->yoga_rtc);
+    sutra_rtc *rtc_handler         = (sutra_rtc *)(rhandler->sutra_rtc);
 
-    yoga_context *context_handle = _getCurrentContext();
+    carma_context *context_handle = _getCurrentContext();
     context_handle->set_activeDeviceForCpy(rhandler->device);
 
     int ncontrol                   = ygets_i(argc-2);
@@ -2242,9 +2242,9 @@ extern "C" {
   Y_controler_getdata(int argc)
   {
     rtc_struct *rhandler          = (rtc_struct *)yget_obj(argc-1,&yRTC);
-    yoga_rtc *rtc_handler         = (yoga_rtc *)(rhandler->yoga_rtc);
+    sutra_rtc *rtc_handler         = (sutra_rtc *)(rhandler->sutra_rtc);
 
-    yoga_context *context_handle = _getCurrentContext();
+    carma_context *context_handle = _getCurrentContext();
     context_handle->set_activeDeviceForCpy(rhandler->device);
 
     int ncontrol                   = ygets_i(argc-2);
@@ -2312,13 +2312,13 @@ extern "C" {
   Y_slopes_geom(int argc)
   {
     sensors_struct *handler = (sensors_struct *)yget_obj(argc-1,&ySensors);
-    yoga_sensors *sensors_handler = (yoga_sensors *)(handler->yoga_sensors);
+    sutra_sensors *sensors_handler = (sutra_sensors *)(handler->sutra_sensors);
 
     int nsensor = ygets_i(argc-2);
 
     int type = ygets_i(argc-3);
 
-    yoga_context *context_handle = _getCurrentContext();
+    carma_context *context_handle = _getCurrentContext();
     context_handle->set_activeDevice(handler->device);
 
     sensors_handler->d_wfs.at(nsensor)->slopes_geom(type);
@@ -2328,9 +2328,9 @@ extern "C" {
   Y_sensors_getslopes(int argc)
   {
     sensors_struct *handler = (sensors_struct *)yget_obj(argc-1,&ySensors);
-    yoga_sensors *sensors_handler = (yoga_sensors *)(handler->yoga_sensors);
+    sutra_sensors *sensors_handler = (sutra_sensors *)(handler->sutra_sensors);
 
-    yoga_context *context_handle = _getCurrentContext();
+    carma_context *context_handle = _getCurrentContext();
     context_handle->set_activeDeviceForCpy(handler->device);
 
     int nsensor = ygets_i(argc-2);
@@ -2344,9 +2344,9 @@ extern "C" {
   {
     /*
     sensors_struct *handler = (sensors_struct *)yget_obj(argc-1,&ySensors);
-    yoga_sensors *sensors_handler = (yoga_sensors *)(handler->yoga_sensors);
+    sutra_sensors *sensors_handler = (sutra_sensors *)(handler->sutra_sensors);
 
-    yoga_context *context_handle = _getCurrentContext();
+    carma_context *context_handle = _getCurrentContext();
     int activeDevice = context_handle->set_activeDevice(handler->device);
 
     int nsensor = ygets_i(argc-2);
@@ -2364,15 +2364,15 @@ extern "C" {
     long dims[Y_DIMSIZE];
 
     sensors_struct *handler = (sensors_struct *)yget_obj(argc-1,&ySensors);
-    yoga_sensors *sensors_handler = (yoga_sensors *)(handler->yoga_sensors);
+    sutra_sensors *sensors_handler = (sutra_sensors *)(handler->sutra_sensors);
 
-    yoga_context *context_handle = _getCurrentContext();
+    carma_context *context_handle = _getCurrentContext();
     context_handle->set_activeDevice(handler->device);
 
     int nsensor = ygets_i(argc-2);
 
     rtc_struct *rhandler          = (rtc_struct *)yget_obj(argc-3,&yRTC);
-    yoga_rtc *rtc_handler         = (yoga_rtc *)(rhandler->yoga_rtc);
+    sutra_rtc *rtc_handler         = (sutra_rtc *)(rhandler->sutra_rtc);
     int ncentro                   = ygets_i(argc-4);
 
     float *weights   = ygeta_f(argc-5, &ntot,dims);
@@ -2386,15 +2386,15 @@ extern "C" {
   {
 
     sensors_struct *handler = (sensors_struct *)yget_obj(argc-1,&ySensors);
-    yoga_sensors *sensors_handler = (yoga_sensors *)(handler->yoga_sensors);
+    sutra_sensors *sensors_handler = (sutra_sensors *)(handler->sutra_sensors);
 
-    yoga_context *context_handle = _getCurrentContext();
+    carma_context *context_handle = _getCurrentContext();
     context_handle->set_activeDevice(handler->device);
 
     int nsensor = ygets_i(argc-2);
 
     rtc_struct *rhandler          = (rtc_struct *)yget_obj(argc-3,&yRTC);
-    yoga_rtc *rtc_handler         = (yoga_rtc *)(rhandler->yoga_rtc);
+    sutra_rtc *rtc_handler         = (sutra_rtc *)(rhandler->sutra_rtc);
     int ncentro                   = ygets_i(argc-4);
 
     rtc_handler->d_centro.at(ncentro)->init_bincube(sensors_handler->d_wfs.at(nsensor));
@@ -2407,15 +2407,15 @@ extern "C" {
     long dims[Y_DIMSIZE];
 
     sensors_struct *handler = (sensors_struct *)yget_obj(argc-1,&ySensors);
-    yoga_sensors *sensors_handler = (yoga_sensors *)(handler->yoga_sensors);
+    sutra_sensors *sensors_handler = (sutra_sensors *)(handler->sutra_sensors);
 
-    yoga_context *context_handle = _getCurrentContext();
+    carma_context *context_handle = _getCurrentContext();
     context_handle->set_activeDevice(handler->device);
 
     int nsensor = ygets_i(argc-2);
 
     rtc_struct *rhandler  = (rtc_struct *)yget_obj(argc-3,&yRTC);
-    yoga_rtc *rtc_handler = (yoga_rtc *)(rhandler->yoga_rtc);
+    sutra_rtc *rtc_handler = (sutra_rtc *)(rhandler->sutra_rtc);
     int ncentro           = ygets_i(argc-4);
 
     float *weights        = ygeta_f(argc-5, &ntot,dims);
@@ -2437,11 +2437,11 @@ extern "C" {
 
     sensors_struct *handler = (sensors_struct *)yget_obj(argc-1,&ySensors);
 
-    yoga_context *context_handle = _getCurrentContext();
+    carma_context *context_handle = _getCurrentContext();
     context_handle->set_activeDevice(handler->device);
 
     rtc_struct *rhandler          = (rtc_struct *)yget_obj(argc-2,&yRTC);
-    yoga_rtc *rtc_handler         = (yoga_rtc *)(rhandler->yoga_rtc);
+    sutra_rtc *rtc_handler         = (sutra_rtc *)(rhandler->sutra_rtc);
     int ncentro                   = ygets_i(argc-3);
 
     float *weights   = ygeta_f(argc-4, &ntot,dims);
@@ -2459,11 +2459,11 @@ extern "C" {
 
     sensors_struct *handler = (sensors_struct *)yget_obj(argc-1,&ySensors);
 
-    yoga_context *context_handle = _getCurrentContext();
+    carma_context *context_handle = _getCurrentContext();
     context_handle->set_activeDevice(handler->device);
 
     rtc_struct *rhandler          = (rtc_struct *)yget_obj(argc-2,&yRTC);
-    yoga_rtc *rtc_handler         = (yoga_rtc *)(rhandler->yoga_rtc);
+    sutra_rtc *rtc_handler         = (sutra_rtc *)(rhandler->sutra_rtc);
     int ncentro                   = ygets_i(argc-3);
 
     float *weights   = ygeta_f(argc-4, &ntot,dims);
@@ -2475,13 +2475,13 @@ extern "C" {
   Y_sensors_compslopes(int argc)
   {
     sensors_struct *handler       = (sensors_struct *)yget_obj(argc-1,&ySensors);
-    yoga_sensors *sensors_handler = (yoga_sensors *)(handler->yoga_sensors);
+    sutra_sensors *sensors_handler = (sutra_sensors *)(handler->sutra_sensors);
     int nsensor                   = ygets_i(argc-2);
     rtc_struct *rhandler          = (rtc_struct *)yget_obj(argc-3,&yRTC);
-    yoga_rtc *rtc_handler         = (yoga_rtc *)(rhandler->yoga_rtc);
+    sutra_rtc *rtc_handler         = (sutra_rtc *)(rhandler->sutra_rtc);
     int ncentro                   = ygets_i(argc-4);
    
-    yoga_context *context_handle = _getCurrentContext();
+    carma_context *context_handle = _getCurrentContext();
     context_handle->set_activeDevice(handler->device);
    
     //cout << ncentro << " " << (rtc_handler->d_centro.at(ncentro)->typec) << endl;
@@ -2514,9 +2514,9 @@ extern "C" {
   {
     /*
     sensors_struct *handler = (sensors_struct *)yget_obj(argc-1,&ySensors);
-    yoga_sensors *sensors_handler = (yoga_sensors *)(handler->yoga_sensors);
+    sutra_sensors *sensors_handler = (sutra_sensors *)(handler->sutra_sensors);
 
-    yoga_context *context_handle = _getCurrentContext();
+    carma_context *context_handle = _getCurrentContext();
     int activeDevice = context_handle->set_activeDeviceForCpy(handler->device);
 
     int nsensor = ygets_i(argc-2);
@@ -2529,9 +2529,9 @@ extern "C" {
   Y_centroider_getdata(int argc)
   {
     rtc_struct *rhandler          = (rtc_struct *)yget_obj(argc-1,&yRTC);
-    yoga_rtc *rtc_handler         = (yoga_rtc *)(rhandler->yoga_rtc);
+    sutra_rtc *rtc_handler         = (sutra_rtc *)(rhandler->sutra_rtc);
 
-    yoga_context *context_handle = _getCurrentContext();
+    carma_context *context_handle = _getCurrentContext();
     context_handle->set_activeDeviceForCpy(rhandler->device);
 
     int ncentro                   = ygets_i(argc-2);
@@ -2589,9 +2589,9 @@ extern "C" {
   Y_move_atmos(int argc)
   {
     atmos_struct *handler_a = (atmos_struct *)yget_obj(argc-1,&yAtmos);
-    yoga_atmos *atmos_handler = (yoga_atmos *)(handler_a->yoga_atmos);
+    sutra_atmos *atmos_handler = (sutra_atmos *)(handler_a->sutra_atmos);
 
-    yoga_context *context_handle = _getCurrentContext();
+    carma_context *context_handle = _getCurrentContext();
     context_handle->set_activeDeviceForCpy(handler_a->device);
 
     move_atmos(atmos_handler);
@@ -2601,12 +2601,12 @@ extern "C" {
   Y_move_sky(int argc)
   {
     atmos_struct *handler_a = (atmos_struct *)yget_obj(argc-1,&yAtmos);
-    yoga_atmos *atmos_handler = (yoga_atmos *)(handler_a->yoga_atmos);
+    sutra_atmos *atmos_handler = (sutra_atmos *)(handler_a->sutra_atmos);
 
     target_struct *handler = (target_struct *)yget_obj(argc-2,&yTarget);
-    yoga_target *target_handler = (yoga_target *)(handler->yoga_target);
+    sutra_target *target_handler = (sutra_target *)(handler->sutra_target);
 
-    yoga_context *context_handle = _getCurrentContext();
+    carma_context *context_handle = _getCurrentContext();
     context_handle->set_activeDeviceForCpy(handler->device);
 
     move_atmos(atmos_handler,target_handler);
@@ -2616,8 +2616,8 @@ extern "C" {
   Y_sensors_trace(int argc)
   {
     sensors_struct *handler = (sensors_struct *)yget_obj(argc-1,&ySensors);
-    yoga_sensors *sensors_handler = (yoga_sensors *)(handler->yoga_sensors);
-    yoga_context *context_handle = _getCurrentContext();
+    sutra_sensors *sensors_handler = (sutra_sensors *)(handler->sutra_sensors);
+    carma_context *context_handle = _getCurrentContext();
     context_handle->set_activeDevice(handler->device);
 
     int nsensor = ygets_i(argc-2);
@@ -2625,11 +2625,11 @@ extern "C" {
     char *type_trace = ygets_q(argc-3);
     if (strcmp(type_trace, "atmos")==0) {
       atmos_struct *handlera = (atmos_struct *)yget_obj(argc-4,&yAtmos);
-      yoga_atmos *atmos_handler = (yoga_atmos *)(handlera->yoga_atmos);
+      sutra_atmos *atmos_handler = (sutra_atmos *)(handlera->sutra_atmos);
       sensors_handler->d_wfs.at(nsensor)->sensor_trace(atmos_handler);
     } else if (strcmp(type_trace, "dm")==0) {
       dms_struct *handlera = (dms_struct *)yget_obj(argc-4,&yDMs);
-      yoga_dms *dms_handler = (yoga_dms *)(handlera->yoga_dms);
+      sutra_dms *dms_handler = (sutra_dms *)(handlera->sutra_dms);
       int rst;
       if (argc > 4) rst = ygets_i(argc-5);
       else rst = 0;
@@ -2642,16 +2642,16 @@ extern "C" {
   Y_yoga_add_telemetry_obj(int argc)
   {
     telemetry_struct *handler   = (telemetry_struct *)yget_obj(argc-1,&yTelemetry);
-    yoga_telemetry *telemetry_handler = (yoga_telemetry *)(handler->yoga_telemetry);
+    sutra_telemetry *telemetry_handler = (sutra_telemetry *)(handler->sutra_telemetry);
 
     string type_obj = string(ygets_q(argc-2));
 
     if(type_obj.compare("binimg")==0) {
       sensors_struct *handler2   = (sensors_struct *)yget_obj(argc-3,&ySensors);
-      yoga_sensors *sensors_handler = (yoga_sensors *)(handler2->yoga_sensors);
+      sutra_sensors *sensors_handler = (sutra_sensors *)(handler2->sutra_sensors);
 
       for(int i=0; i<sensors_handler->nsensors; i++){
-	yoga_host_obj<float> *yho = new yoga_host_obj<float>(sensors_handler->d_wfs[i]->d_binimg->getDims(), MA_PAGELOCK, 1);
+	carma_host_obj<float> *yho = new carma_host_obj<float>(sensors_handler->d_wfs[i]->d_binimg->getDims(), MA_PAGELOCK, 1);
 	telemetry_handler->add_obj(type_obj, i, yho);
       }
     }
@@ -2662,7 +2662,7 @@ extern "C" {
   {
 
     telemetry_struct *handler   = (telemetry_struct *)yget_obj(argc-1,&yTelemetry);
-    yoga_telemetry *telemetry_handler = (yoga_telemetry *)(handler->yoga_telemetry);
+    sutra_telemetry *telemetry_handler = (sutra_telemetry *)(handler->sutra_telemetry);
 
     int nb_stream=1;
     if(argc>1)
@@ -2683,10 +2683,10 @@ extern "C" {
 
   void aotemplate_free(void *obj) {
     aotemplate_struct *handler = (aotemplate_struct *)obj;
-    yoga_context *context_handle = _getCurrentContext();
+    carma_context *context_handle = _getCurrentContext();
     context_handle->set_activeDevice(handler->device);
     try{
-      yoga_aotemplate *aotemplate_obj_handler = (yoga_aotemplate *)(handler->yoga_aotemplate);
+      sutra_aotemplate *aotemplate_obj_handler = (sutra_aotemplate *)(handler->sutra_aotemplate);
       delete aotemplate_obj_handler;
     } catch ( string& msg ) {
       y_error(msg.c_str());
@@ -2698,7 +2698,7 @@ extern "C" {
   void aotemplate_print(void *obj)
   {
     aotemplate_struct *handler = (aotemplate_struct *)obj;
-    yoga_aotemplate *aotemplate_handler = (yoga_aotemplate *)(handler->yoga_aotemplate);
+    sutra_aotemplate *aotemplate_handler = (sutra_aotemplate *)(handler->sutra_aotemplate);
     cout << "Yoga Aotemplate Object" << endl;
 
     cout << "Contains " << aotemplate_handler->d_data->getNbElem() << " elements " << endl;
@@ -2708,7 +2708,7 @@ extern "C" {
   Y_yoga_aotemplate(int argc)
   {
     try {
-      yoga_context *context_handle = _getCurrentContext();
+      carma_context *context_handle = _getCurrentContext();
       int activeDevice = context_handle->get_activeDevice();
       int odevice = activeDevice;
       //char *type            = ygets_q(argc-2);
@@ -2719,7 +2719,7 @@ extern "C" {
  
       aotemplate_struct *handle=(aotemplate_struct *)ypush_obj(&yAotemplate, sizeof(aotemplate_struct));
       handle->device = activeDevice;
-      handle->yoga_aotemplate = new yoga_aotemplate(context_handle,"test",dim,odevice);
+      handle->sutra_aotemplate = new sutra_aotemplate(context_handle,"test",dim,odevice);
 
     } catch ( string &msg ) {
       y_error(msg.c_str());
@@ -2727,7 +2727,7 @@ extern "C" {
       y_error(msg);
     } catch( ... ) {
       stringstream buf;
-      buf << "unknown error with yoga_aotemplate construction in "<<__FILE__ << "@" << __LINE__ << endl;
+      buf << "unknown error with sutra_aotemplate construction in "<<__FILE__ << "@" << __LINE__ << endl;
       y_error(buf.str().c_str());
     }
   }
@@ -2739,7 +2739,7 @@ extern "C" {
     long dims[Y_DIMSIZE];
 
     aotemplate_struct *handler   = (aotemplate_struct *)yget_obj(argc-1,&yAotemplate);
-    yoga_aotemplate *aotemplate_handler = (yoga_aotemplate *)(handler->yoga_aotemplate);
+    sutra_aotemplate *aotemplate_handler = (sutra_aotemplate *)(handler->sutra_aotemplate);
     float *data;
     if (argc > 1)  {
       data = ygeta_f(argc-2, &ntot,dims);
@@ -2751,7 +2751,7 @@ extern "C" {
   Y_yoga_templatecomp(int argc)
   {
     aotemplate_struct *handler   = (aotemplate_struct *)yget_obj(argc-1,&yAotemplate);
-    yoga_aotemplate *aotemplate_handler = (yoga_aotemplate *)(handler->yoga_aotemplate);
+    sutra_aotemplate *aotemplate_handler = (sutra_aotemplate *)(handler->sutra_aotemplate);
     aotemplate_handler->do_compute();
   }
 
@@ -2759,7 +2759,7 @@ extern "C" {
   Y_yoga_gettemplate(int argc)
   {
     aotemplate_struct *handler   = (aotemplate_struct *)yget_obj(argc-1,&yAotemplate);
-    yoga_aotemplate *aotemplate_handler = (yoga_aotemplate *)(handler->yoga_aotemplate);
+    sutra_aotemplate *aotemplate_handler = (sutra_aotemplate *)(handler->sutra_aotemplate);
 
     if (argc > 1)  {
       char *type_data = ygets_q(argc-2);

@@ -50,14 +50,14 @@ extern "C" {
     /** 
      * @typedef Yorick API context structure
      */
-    void *yoga_context; /**< pointer to a yoga_context object */
+    void *carma_context; /**< pointer to a carma_context object */
   } context_struct;
 
   typedef struct yObj_struct {
     /** 
      * @typedef Yorick API yoga_object structure
      */
-    void *yoga_object;   /**< pointer to a yoga_object */
+    void *carma_object;   /**< pointer to a yoga_object */
     int type;            /**< type of data in the yoga_object (Yorick API types) */
     int device;          /**< device number on which it resides */
     unsigned char isRef; /**< reference counting */
@@ -67,7 +67,7 @@ extern "C" {
     /** 
      * @typedef Yorick API yoga_host_object structure
      */
-    void *yoga_host_object; /**< pointer to a yoga_host_object */
+    void *carma_host_object; /**< pointer to a yoga_host_object */
     int type;               /**< type of data in the yoga_host_object (Yorick API types) */
   } yHostObj_struct;
 
@@ -92,7 +92,7 @@ extern "C" {
     	const_cast<char*>("yContext Object"), &context_free, &context_print, 0, 0, 0
     };
 
-  yoga_context* _getCurrentContext();
+  carma_context* _getCurrentContext();
 
   void Y_yoga_context(int argc);
   void Y_context_getactivedevice(int argc);
@@ -124,7 +124,7 @@ extern "C" {
       /** 
        * @typedef Yorick API object_yObj userobj
        */
-    	const_cast<char*>("Yoga Object"), &yObj_free, &yObj_print, &yObj_eval, 0, 0
+    	const_cast<char*>("Carma Object"), &yObj_free, &yObj_print, &yObj_eval, 0, 0
     };
 
   void Y_yoga_obj(int argc);
@@ -176,7 +176,7 @@ extern "C" {
       /** 
        * @typedef Yorick API host_obj userobj
        */
-      const_cast<char*>("Yoga Host Object"), &yHostObj_free, &yHostObj_print, &yHostObj_eval, 0, 0
+      const_cast<char*>("Carma Host Object"), &yHostObj_free, &yHostObj_print, &yHostObj_eval, 0, 0
     };
 
   void Y_yoga_host_obj(int argc);

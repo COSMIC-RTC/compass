@@ -1,0 +1,415 @@
+#include <sutra_target.h>
+
+// declare texture reference for 2D float texture
+texture<float, 2, cudaReadModeElementType> tex2d;
+
+// declare shared memory arrays
+extern __shared__ cuFloatComplex cachec[];
+extern __shared__ float cache[];
+
+
+__global__ void texraytrace_krnl( float* g_odata, int nx,  int ny, float xoff, float yoff) 
+{
+  // calculate normalized texture coordinates
+  unsigned int x = blockIdx.x*blockDim.x + threadIdx.x;
+  unsigned int y = blockIdx.y*blockDim.y + threadIdx.y;
+  
+  if ((x < nx) && (y < ny)) {
+    float xref = x + xoff;
+    float yref = y + yoff;
+    // read from texture and write to global memory
+    g_odata[y*nx + x] += tex2D(tex2d,xref+0.5,yref+0.5);
+  }
+}
+
+int target_texraytrace(float *d_odata,float *d_idata,int nx, int ny,int Nx, int Ny, float xoff, 
+		       float yoff, int Ntot, cudaChannelFormatDesc channelDesc, int device)
+{
+  tex2d.addressMode[0] = cudaAddressModeClamp;
+  tex2d.addressMode[1] = cudaAddressModeClamp;
+  tex2d.filterMode = cudaFilterModeLinear;
+  tex2d.normalized = false;  
+
+  //size_t offset = 0;
+  cutilSafeCall(cudaBindTexture2D(0,tex2d,d_idata,channelDesc,Nx,Ny,sizeof(float)*Nx));
+  /*
+   FIX ME !
+   code sometimes code crashes here after several launches... 
+   this is a known alignment issue !
+   see below ...
+   to solve this d_idata should be allocated via cudaMallocPitch
+   need to add this option in carma_obj
+   
+   "The problem here is that the memory bound to the 2D texture does not have the proper 
+   alignment restrictions. Both the base offset of the texture memory, and the pitch, have 
+   certain HW dependant alignment restrictions. However, currently in the CUDA API, we only 
+   expose the base offset restriction as a device property, and not the pitch restriction.
+
+   The pitch restriction will be addressed in a future CUDA release. Meanwhile, it's 
+   recommended that apps use cudaMallocPitch() when allocating pitched memory, so that the 
+   driver takes care of satisfying all restrictions."
+  */
+
+
+  struct cudaDeviceProp deviceProperties;
+  cudaGetDeviceProperties(&deviceProperties, device);
+  
+  int nBlocks = deviceProperties.multiProcessorCount*2;
+
+  dim3 dimBlock(nBlocks,nBlocks , 1);
+  dim3 dimGrid(nx / dimBlock.x+1, ny / dimBlock.y+1, 1);
+
+  texraytrace_krnl<<< dimGrid, dimBlock, 0 >>>( d_odata, nx,ny ,xoff,yoff);
+
+  cutilCheckMsg("texraytrace_krnl <<<>>> execution failed\n");
+
+  return EXIT_SUCCESS;
+}
+
+__device__ void generic_raytrace(float *odata, float *idata, int nx, int ny,float xoff, float yoff, 
+				 int Nx,int blockSize,int istart)
+{
+  int x = threadIdx.x + blockIdx.x * blockDim.x;
+  int y = threadIdx.y + blockIdx.y * blockDim.y;
+  y += istart;
+
+  int tido;
+
+  int iref,jref,tidi;
+  float xref = x + xoff;
+  float yref = y + yoff;
+
+  float xshift,yshift,wx1,wx2,wy1,wy2;
+
+  iref = (int)xref;
+  jref = (int)yref;
+  tidi = iref + jref * Nx;
+
+  //if ((x < nx) && (y < ny)) {
+  if (tidi < Nx * Nx) {
+    cache[threadIdx.x + threadIdx.y * blockSize] =  idata[tidi];
+  } 
+
+  __syncthreads();
+
+  if ((x < nx) && (y < ny)) {
+    tido = x + y * nx;
+
+    xshift = xref - iref;
+    yshift = yref - jref;
+
+    wx1 = (1.0f - xshift);
+    wx2 = xshift;
+    wy1 = (1.0f - yshift);
+    wy2 = yshift;
+    
+    odata[tido] += (wx1 * wy1 * cache[threadIdx.x + threadIdx.y * blockSize] +
+		    wx2 * wy1 * cache[threadIdx.x + 1 + threadIdx.y * blockSize] +
+		    wx1 * wy2 * cache[threadIdx.x + (threadIdx.y+1) * blockSize] +
+		    wx2 * wy2 * cache[threadIdx.x + 1 + (threadIdx.y+1) * blockSize]);
+  } 
+}
+
+__global__ void raytrace_krnl(float *odata, float *idata, int nx, int ny,float xoff, float yoff, 
+			      int Nx,int blockSize)
+{
+  generic_raytrace(odata,idata,nx,ny,xoff,yoff, Nx, blockSize,0);
+}
+
+
+__global__ void raytrace_krnl(float *odata, float *idata, int nx, int ny,float xoff, float yoff, 
+			      int Nx,int blockSize, int istart)
+{
+  generic_raytrace(odata,idata,nx,ny,xoff,yoff, Nx, blockSize,istart);
+}
+
+
+int target_raytrace(float *d_odata,float *d_idata,int nx, int ny,int Nx, float xoff, float yoff, int block_size)
+{
+  int nnx = nx + block_size - nx%block_size; // find next multiple of BLOCK_SZ
+  int nny = ny + block_size - ny%block_size;
+  dim3 blocks(nnx/block_size,nny/block_size), threads(block_size,block_size);
+
+  int smemSize = (block_size +1) * (block_size +1) * sizeof(float);
+
+  raytrace_krnl<<<blocks, threads, smemSize>>>(d_odata, d_idata, nx,ny,xoff,yoff,Nx,block_size);
+
+  cutilCheckMsg("raytrace_kernel<<<>>> execution failed\n");
+  return EXIT_SUCCESS;
+}
+
+int target_raytrace_async(carma_streams *streams, float *d_odata,float *d_idata,int nx, int ny,int Nx, float xoff, float yoff, int block_size)
+{
+	int nstreams = streams->get_nbStreams();
+
+  int nnx = nx + block_size - nx%block_size; // find next multiple of BLOCK_SZ
+  dim3 blocks(nnx/block_size,1), threads(block_size,block_size);
+  int smemSize = (block_size +1) * (block_size +1) * sizeof(float);
+
+  for(int i = 0; i < nstreams; i++)
+    raytrace_krnl<<<blocks, threads, smemSize,streams->get_stream(i)>>>(d_odata, d_idata, nx,ny,xoff,yoff,Nx,block_size,i*block_size);
+
+  cutilCheckMsg("raytrace_kernel<<<>>> execution failed\n");
+  return EXIT_SUCCESS;
+}
+
+
+int target_raytrace_async(carma_host_obj<float> *phase_telemetry, float *d_odata,float *d_idata,int nx, int ny,int Nx, float xoff, float yoff, int block_size)
+{
+	float *hdata = phase_telemetry->getData();
+	int nstreams = phase_telemetry->get_nbStreams();
+
+  int nnx = nx + block_size - nx%block_size; // find next multiple of BLOCK_SZ
+  dim3 blocks(nnx/block_size,1), threads(block_size,block_size);
+  int smemSize = (block_size +1) * (block_size +1) * sizeof(float);
+
+  for(int i = 0; i < nstreams; i++)
+    raytrace_krnl<<<blocks, threads, smemSize,phase_telemetry->get_cudaStream_t(i)>>>(d_odata, d_idata, nx,ny,xoff,yoff,Nx,block_size,i*block_size);
+
+  // asynchronously launch nstreams memcopies.  Note that memcopy in stream x will only
+  //   commence executing when all previous CUDA calls in stream x have completed
+  int delta = block_size * nx;
+  for(int i = 0; i < nstreams; i++)  {
+    int nbcopy = nx * ny - (i+1) * block_size * nx;
+    if (nbcopy > 0) {
+      nbcopy = delta;
+    }  else nbcopy = delta+nbcopy;
+    cudaMemcpyAsync(&(hdata[i*block_size*nx]), &(d_odata[i*block_size*nx]),sizeof(float) * nbcopy, 
+		    cudaMemcpyDeviceToHost, phase_telemetry->get_cudaStream_t(i));
+  }
+  
+  cutilCheckMsg("raytrace_kernel<<<>>> execution failed\n");
+  return EXIT_SUCCESS;
+}
+
+
+__global__ void fillamplikrnl(cuFloatComplex *amplipup, float *phase,float *mask, float scale,int puponly, int nx, int Np, int Nx)
+{
+  int tid   = threadIdx.x + blockIdx.x * blockDim.x;
+
+  while (tid < Np) {
+    int nlinep   = tid / nx;
+    int ncol     = tid - nlinep * nx;
+    int nim      = ncol + nlinep * Nx;
+
+    if (puponly == 1) {
+      amplipup[nim].x = mask[tid];
+      amplipup[nim].y = 0.0f;
+    } else {
+      amplipup[nim].x = cosf(scale*phase[tid])*mask[tid];
+      amplipup[nim].y = sinf(scale*phase[tid])*mask[tid];
+    }
+    tid  += blockDim.x * gridDim.x;
+  }
+}
+
+int fill_amplipup(cuFloatComplex *amplipup, float *phase, float *mask, float scale, int puponly, int nx, int ny, int Nx, int device)
+{
+
+  struct cudaDeviceProp deviceProperties;
+  cudaGetDeviceProperties(&deviceProperties, device);
+  
+  int maxThreads = deviceProperties.maxThreadsPerBlock;
+  int nBlocks = deviceProperties.multiProcessorCount*8;
+  int nThreads = (nx*ny + nBlocks -1)/nBlocks;
+
+  if (nThreads > maxThreads) {
+    nThreads = maxThreads;
+    nBlocks = (nx*ny + nThreads  -1)/nThreads;
+  }
+
+  dim3 grid(nBlocks), threads(nThreads);
+
+  fillamplikrnl<<<grid, threads>>>(amplipup,phase,mask,scale,puponly,nx,nx*ny,Nx);
+  cutilCheckMsg("fillcamplipup_kernel<<<>>> execution failed\n");
+
+  return EXIT_SUCCESS;
+}
+
+
+/*
+__global__ void fillampli_krnl(cuFloatComplex *odata, float *idata, float *mask, int nx, int ny, 
+			       int Nx, int blockSize)
+{
+  int x = threadIdx.x + blockIdx.x * blockDim.x;
+  int y = threadIdx.y + blockIdx.y * blockDim.y;
+  //int tid = x + y *blockDim.x * gridDim.x;
+  int tid = x + y * nx;
+
+  if ((x < nx) && (y < ny)) {
+    (cachec[threadIdx.x + threadIdx.y * blockSize]).x =  0.0f;//cosf(idata[tid]);//*mask[tid];
+    (cachec[threadIdx.x + threadIdx.y * blockSize]).y =  0.0f;//sinf(idata[tid]);//*mask[tid];
+  } else {
+    (cachec[threadIdx.x + threadIdx.y * blockSize]).x =  0.0f;
+    (cachec[threadIdx.x + threadIdx.y * blockSize]).y =  0.0f;
+  }
+
+  __syncthreads();
+
+  tid = x + y * Nx;
+
+  if ((x < nx) && (y < ny)) {
+    odata[tid] = cachec[threadIdx.x + threadIdx.y * blockSize];
+  } 
+}
+
+
+
+int fillampli(cuFloatComplex *d_odata,float *d_idata, float *mask,int nx, int ny, int Nx, int device)
+{
+
+  struct cudaDeviceProp deviceProperties;
+  cudaGetDeviceProperties(&deviceProperties, device);
+  // FIX ME !!!!!!!!
+  int blockSize = 16;
+
+  int nnx = nx + blockSize - nx%blockSize; // find next multiple of BLOCK_SZ
+  int nny = ny + blockSize - ny%blockSize;
+  dim3 blocks(nnx/blockSize,nny/blockSize), threads(blockSize,blockSize);
+
+  int smemSize = (blockSize + 1) * (blockSize + 1) * sizeof(float);
+
+  cutilCheckMsg("fillampli_kernel<<<>>> execution failed\n");
+  fillampli_krnl<<<blocks, threads, smemSize>>>(d_odata, d_idata, mask, nx,ny,Nx, blockSize);
+
+  return EXIT_SUCCESS;
+}
+
+__global__ void fillpupil_krnl(cuFloatComplex *odata, float *mask, int nx, int ny, int Nx, int blockSize)
+{
+  int x = threadIdx.x + blockIdx.x * blockDim.x;
+  int y = threadIdx.y + blockIdx.y * blockDim.y;
+  //int tid = x + y *blockDim.x * gridDim.x;
+  int tid = x + y * nx;
+
+  if ((x < nx) && (y < ny)) {
+    (cachec[threadIdx.x + threadIdx.y * blockSize]).x =  mask[tid];
+    (cachec[threadIdx.x + threadIdx.y * blockSize]).y =  0.0f;
+  } else {
+    (cachec[threadIdx.x + threadIdx.y * blockSize]).x =  0.0f;
+    (cachec[threadIdx.x + threadIdx.y * blockSize]).y =  0.0f;
+  }
+
+  __syncthreads();
+
+  tid = x + y * Nx;
+
+  if ((x < nx) && (y < ny)) {
+    odata[tid] = cachec[threadIdx.x + threadIdx.y * blockSize];
+  } 
+}
+
+
+int fillpupil(cuFloatComplex *d_odata,float *mask,int nx, int ny, int Nx, int device)
+{
+  struct cudaDeviceProp deviceProperties;
+  cudaGetDeviceProperties(&deviceProperties, device);
+  // FIX ME !!!!!!!!
+  int blockSize = 16;
+
+  int nnx = nx + blockSize - nx%blockSize; // find next multiple of BLOCK_SZ
+  int nny = ny + blockSize - ny%blockSize;
+  dim3 blocks(nnx/blockSize,nny/blockSize), threads(blockSize,blockSize);
+
+  int smemSize = blockSize * blockSize * sizeof(float);
+
+  fillpupil_krnl<<<blocks, threads,smemSize>>>(d_odata, mask, nx,ny,Nx,blockSize);
+
+  cutilCheckMsg("fillpupil_kernel<<<>>> execution failed\n");
+  return EXIT_SUCCESS;
+}
+
+
+__global__ void texraytrace_krnl2( float* g_odata, int nx,  int ny, float *xref, float *yref) 
+{
+  // calculate normalized texture coordinates
+  unsigned int x = blockIdx.x*blockDim.x + threadIdx.x;
+  unsigned int y = blockIdx.y*blockDim.y + threadIdx.y;
+  
+  if ((x < nx) && (y < ny))
+    // read from texture and write to global memory
+    g_odata[y*nx + x] += tex2D(tex,xref[x]+0.5,yref[y]+0.5);
+}
+
+
+__global__ void raytrace_krnl(float *odata, float *idata, int nx, int ny,float xoff, float yoff, 
+			      int Nx,int blockSize)
+{
+  extern __shared__ float cache[];
+
+  int x = threadIdx.x + blockIdx.x * blockDim.x;
+  int y = threadIdx.y + blockIdx.y * blockDim.y;
+  int tido;
+
+  int iref,jref,tidi;
+  int xref = x + xoff;
+  int yref = y + xoff;
+
+  float xshift,yshift,wx1,wx2,wy1,wy2;
+
+  if ((x < nx) && (y < ny)) {
+    iref = (int)xref;
+    jref = (int)yref;
+    tidi = iref + jref * Nx;
+    cache[threadIdx.x + threadIdx.y * blockSize] =  idata[tidi];
+  } 
+
+  if ((x == nx-1) && (y < ny-1)) {
+    cache[threadIdx.x + 1 + threadIdx.y * blockSize] = idata[tidi+1];
+    if (threadIdx.y == blockSize-1) {
+      cache[threadIdx.x + (threadIdx.y+1) * blockSize] = idata[tidi+Nx];
+      cache[threadIdx.x + 1 + (threadIdx.y+1) * blockSize] = idata[tidi+Nx+1];
+    }
+  }
+
+  if ((x < nx-1) && (y == ny-1)) {
+    cache[threadIdx.x + (threadIdx.y+1) * blockSize] = idata[tidi+Nx];
+    if (threadIdx.x == blockSize-1) {
+      cache[threadIdx.x + 1 + threadIdx.y * blockSize]   = idata[tidi+1];
+      cache[threadIdx.x + 1 + (threadIdx.y+1) * blockSize] = idata[tidi+Nx+1];
+    }
+  }
+
+  if ((x == nx-1) && (y == ny-1)) {
+    cache[threadIdx.x + (threadIdx.y+1) * blockSize] = idata[tidi+Nx];
+    cache[threadIdx.x + 1 + threadIdx.y * blockSize] = idata[tidi+1];
+    cache[threadIdx.x + 1 + (threadIdx.y+1) * blockSize] = idata[tidi+Nx+1];
+  }
+
+  __syncthreads();
+  
+  if ((x < nx) && (y < ny)) {
+    if ((threadIdx.x == blockSize-1) && (threadIdx.y == blockSize-1)) {
+      cache[threadIdx.x + 1 + (threadIdx.y+1) * blockSize] = idata[tidi+Nx+1];
+      cache[threadIdx.x + (threadIdx.y+1) * blockSize] = idata[tidi+Nx];
+      cache[threadIdx.x + 1 + threadIdx.y * blockSize] = idata[tidi+1];
+    } else {  
+      if (threadIdx.x == blockSize-1)
+	cache[threadIdx.x + 1 + threadIdx.y * blockSize] = idata[tidi+1];
+      if (threadIdx.y == blockSize-1)
+	cache[threadIdx.x + (threadIdx.y+1) * blockSize] = idata[tidi+Nx];
+    }     
+  }
+  __syncthreads();
+
+  if ((x < nx) && (y < ny)) {
+    tido = x + y * nx;
+
+    xshift = xref - iref;
+    yshift = yref - jref;
+
+    wx1 = (1.0f - xshift);
+    wx2 = xshift;
+    wy1 = (1.0f - yshift);
+    wy2 = yshift;
+
+    odata[tido] += (wx1 * wy1 * cache[threadIdx.x + threadIdx.y * blockSize] +
+		    wx2 * wy1 * cache[threadIdx.x + 1 + threadIdx.y * blockSize] +
+		    wx1 * wy2 * cache[threadIdx.x + (threadIdx.y+1) * blockSize] +
+		    wx2 * wy2 * cache[threadIdx.x + 1 + (threadIdx.y+1) * blockSize]);
+  } 
+}
+
+
+
+ */

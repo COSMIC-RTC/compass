@@ -22,10 +22,10 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <yoga_host_obj.h>
-#include <yoga_obj.h>
-#include <yoga_cublas.h>
-#include <yoga.h>
+#include <carma_host_obj.h>
+#include <carma_obj.h>
+#include <carma_cublas.h>
+#include <carma.h>
 #include <sstream>
 #include <iomanip>
 #include <cula.hpp>
@@ -48,8 +48,8 @@ void context_free(void *obj) {
 	 */
 	context_struct *handler = (context_struct *) obj;
 	try {
-		yoga_context *context_obj_handler =
-				(yoga_context *) (handler->yoga_context);
+		carma_context *context_obj_handler =
+				(carma_context *) (handler->carma_context);
 		delete context_obj_handler;
 	} catch (string &msg) {
 		y_error(msg.c_str());
@@ -64,11 +64,11 @@ void context_print(void *obj)
  */
 {
 	context_struct *handler = (context_struct *) obj;
-	yoga_context *context_handler = (yoga_context *) (handler->yoga_context);
+	carma_context *context_handler = (carma_context *) (handler->carma_context);
 	unsigned int activeDevice = context_handler->get_activeDevice();
 	unsigned int nDevice = context_handler->get_ndevice();
 
-	cout << "YoGA Context : " << endl;
+	cout << "CArMA Context : " << endl;
 	cout << nDevice << " CUDA device(s)" << endl;
 	cout << "Dev Id" << " | " << "multiproc" << " | " << "cores" << " | "
 			<< "compute" << " | " << "Perf (GFlops)" << endl;
@@ -97,29 +97,29 @@ void Y_yoga_context(int argc)
 	try {
 		context_struct *handle = (context_struct *) ypush_obj(&yContext,
 				sizeof(context_struct));
-		handle->yoga_context = new yoga_context();
+		handle->carma_context = new carma_context();
 	} catch (string &msg) {
 		y_error(msg.c_str());
 	} catch (char const * msg) {
 		y_error(msg);
 	} catch (...) {
 		stringstream buf;
-		buf << "unknown error with yoga_context construction in " << __FILE__
+		buf << "unknown error with carma_context construction in " << __FILE__
 				<< "@" << __LINE__ << endl;
 		y_error(buf.str().c_str());
 	}
 }
 
-yoga_context*
+carma_context*
 _getCurrentContext()
 /** @brief simple routine to retrieve current context
- *  @return the current yoga_context
+ *  @return the current carma_context
  */
 {
 	ypush_global(yfind_global("current_context\0", 0));
 	context_struct *handle = (context_struct *) yget_obj(0, &yContext);
 	yarg_drop(1);
-	return (yoga_context *) handle->yoga_context;
+	return (carma_context *) handle->carma_context;
 }
 
 void Y_context_getactivedevice(int argc)
@@ -131,12 +131,12 @@ void Y_context_getactivedevice(int argc)
 	try {
 		context_struct *handle = (context_struct *) yget_obj(argc - 1,
 				&yContext);
-		yoga_context *context_handle = (yoga_context *) handle->yoga_context;
+		carma_context *context_handle = (carma_context *) handle->carma_context;
 		int activeDevice = context_handle->get_activeDevice();
 		ypush_int(activeDevice);
 	} catch (...) {
 		stringstream buf;
-		buf << "unknown error with yoga_context in " << __FILE__ << "@"
+		buf << "unknown error with carma_context in " << __FILE__ << "@"
 				<< __LINE__ << endl;
 		y_error(buf.str().c_str());
 	}
@@ -151,12 +151,12 @@ void Y_context_get_maxGflopsDeviceId(int argc)
 	try {
 		context_struct *handle = (context_struct *) yget_obj(argc - 1,
 				&yContext);
-		yoga_context *context_handle = (yoga_context *) handle->yoga_context;
+		carma_context *context_handle = (carma_context *) handle->carma_context;
 		int device = context_handle->get_maxGflopsDeviceId();
 		ypush_int(device);
 	} catch (...) {
 		stringstream buf;
-		buf << "unknown error with yoga_context in " << __FILE__ << "@"
+		buf << "unknown error with carma_context in " << __FILE__ << "@"
 				<< __LINE__ << endl;
 		y_error(buf.str().c_str());
 	}
@@ -170,7 +170,7 @@ void Y_activeDevice(int argc)
  *  @param[in] mydevice : the device id
  */
 {
-	yoga_context *context_handle = _getCurrentContext();
+	carma_context *context_handle = _getCurrentContext();
 	if (yarg_subroutine()) {
 		int odevice = ygets_i(argc-1);
 		context_handle->set_activeDevice(odevice, 0);
@@ -184,7 +184,7 @@ void _yoga_setDevice(int mydevice)
  *  @param[in] mydevice : the device id
  */
 {
-	yoga_context *context_handle = _getCurrentContext();
+	carma_context *context_handle = _getCurrentContext();
 	context_handle->set_activeDevice(mydevice);
 }
 
@@ -192,7 +192,7 @@ int _yoga_getDevice()
 /** @brief simple wrapper to get the active device
  */
 {
-	yoga_context *context_handle = _getCurrentContext();
+	carma_context *context_handle = _getCurrentContext();
 	return context_handle->get_activeDevice();
 }
 
@@ -200,7 +200,7 @@ int _yoga_getnDevice()
 /** @brief simple wrapper to get the number of usable devices
  */
 {
-	yoga_context *context_handle = _getCurrentContext();
+	carma_context *context_handle = _getCurrentContext();
 	return context_handle->get_ndevice();
 }
 
@@ -259,56 +259,56 @@ void yObj_print(void *obj)
 	yObj_struct *handler = (yObj_struct *) obj;
 	try {
 		if (handler->type == Y_FLOAT) {
-			yoga_obj<float> *yoga_obj_handler =
-					(yoga_obj<float> *) (handler->yoga_object);
-			mystr << "Yoga Object : " << endl;
+			carma_obj<float> *carma_obj_handler =
+					(carma_obj<float> *) (handler->carma_object);
+			mystr << "Carma Object : " << endl;
 			mystr << "type : float" << endl;
-			long *dims = yoga_obj_handler->getDims();
+			long *dims = carma_obj_handler->getDims();
 			mystr << "Dimensions : " << dims[1];
 			for (int i = 2; i <= dims[0]; i++)
 				mystr << "x" << dims[i];
 		} else if (handler->type == Y_DOUBLE) {
-			yoga_obj<double> *yoga_obj_handler =
-					(yoga_obj<double> *) (handler->yoga_object);
-			mystr << "Yoga Object : " << endl;
+			carma_obj<double> *carma_obj_handler =
+					(carma_obj<double> *) (handler->carma_object);
+			mystr << "Carma Object : " << endl;
 			mystr << "type : double" << endl;
-			long *dims = yoga_obj_handler->getDims();
+			long *dims = carma_obj_handler->getDims();
 			mystr << "Dimensions : " << dims[1];
 			for (int i = 2; i <= dims[0]; i++)
 				mystr << "x" << dims[i];
 		} else if (handler->type == Y_INT) {
-			yoga_obj<int> *yoga_obj_handler =
-					(yoga_obj<int> *) (handler->yoga_object);
-			mystr << "Yoga Object : " << endl;
+			carma_obj<int> *carma_obj_handler =
+					(carma_obj<int> *) (handler->carma_object);
+			mystr << "Carma Object : " << endl;
 			mystr << "type : int" << endl;
-			long *dims = yoga_obj_handler->getDims();
+			long *dims = carma_obj_handler->getDims();
 			mystr << "Dimensions : " << dims[1];
 			for (int i = 2; i <= dims[0]; i++)
 				mystr << "x" << dims[i];
 		} else if (handler->type == Y_SHORT) {
-			yoga_obj<unsigned int> *yoga_obj_handler =
-					(yoga_obj<unsigned int> *) (handler->yoga_object);
-			mystr << "Yoga Object : " << endl;
+			carma_obj<unsigned int> *carma_obj_handler =
+					(carma_obj<unsigned int> *) (handler->carma_object);
+			mystr << "Carma Object : " << endl;
 			mystr << "type : unsigned int" << endl;
-			long *dims = yoga_obj_handler->getDims();
+			long *dims = carma_obj_handler->getDims();
 			mystr << "Dimensions : " << dims[1];
 			for (int i = 2; i <= dims[0]; i++)
 				mystr << "x" << dims[i];
 		} else if (handler->type == Y_COMPLEX) {
-			yoga_obj<cuDoubleComplex> *yoga_obj_handler = (yoga_obj<
-					cuDoubleComplex> *) (handler->yoga_object);
-			mystr << "Yoga Object : " << endl;
+			carma_obj<cuDoubleComplex> *carma_obj_handler = (carma_obj<
+					cuDoubleComplex> *) (handler->carma_object);
+			mystr << "Carma Object : " << endl;
 			mystr << "type : double complex" << endl;
-			long *dims = yoga_obj_handler->getDims();
+			long *dims = carma_obj_handler->getDims();
 			mystr << "Dimensions : " << dims[1];
 			for (int i = 2; i <= dims[0]; i++)
 				mystr << "x" << dims[i];
 		} else if (handler->type == Y_SCOMPLEX) {
-			yoga_obj<cuDoubleComplex> *yoga_obj_handler = (yoga_obj<
-					cuDoubleComplex> *) (handler->yoga_object);
-			mystr << "Yoga Object : " << endl;
+			carma_obj<cuDoubleComplex> *carma_obj_handler = (carma_obj<
+					cuDoubleComplex> *) (handler->carma_object);
+			mystr << "Carma Object : " << endl;
 			mystr << "type : simple complex" << endl;
-			long *dims = yoga_obj_handler->getDims();
+			long *dims = carma_obj_handler->getDims();
 			mystr << "Dimensions : " << dims[1];
 			for (int i = 2; i <= dims[0]; i++)
 				mystr << "x" << dims[i];
@@ -329,42 +329,42 @@ void yObj_eval(void *obj, int n)
 {
 	yObj_struct *handler = (yObj_struct *) obj;
 
-	yoga_context *context_handle = _getCurrentContext();
+	carma_context *context_handle = _getCurrentContext();
 	context_handle->set_activeDeviceForCpy(handler->device);
 
 	try {
 		if (handler->type == Y_FLOAT) {
-			yObjS *yoga_obj_handler = (yObjS *) (handler->yoga_object);
-			float *data = ypush_f(yoga_obj_handler->getDims());
-			yoga_obj_handler->device2host(data);
+			caObjS *carma_obj_handler = (caObjS *) (handler->carma_object);
+			float *data = ypush_f(carma_obj_handler->getDims());
+			carma_obj_handler->device2host(data);
 		} else if (handler->type == Y_DOUBLE) {
-			yObjD *yoga_obj_handler = (yObjD *) (handler->yoga_object);
-			double *data = ypush_d(yoga_obj_handler->getDims());
-			yoga_obj_handler->device2host(data);
+			caObjD *carma_obj_handler = (caObjD *) (handler->carma_object);
+			double *data = ypush_d(carma_obj_handler->getDims());
+			carma_obj_handler->device2host(data);
 		} else if (handler->type == Y_INT) {
-			yObjI *yoga_obj_handler = (yObjI *) (handler->yoga_object);
-			int *data = ypush_i(yoga_obj_handler->getDims());
-			yoga_obj_handler->device2host(data);
+			caObjI *carma_obj_handler = (caObjI *) (handler->carma_object);
+			int *data = ypush_i(carma_obj_handler->getDims());
+			carma_obj_handler->device2host(data);
 		} else if (handler->type == Y_SHORT) {
-			yObjUI *yoga_obj_handler = (yObjUI *) (handler->yoga_object);
+			caObjUI *carma_obj_handler = (caObjUI *) (handler->carma_object);
 			unsigned int *data = (unsigned int *) ypush_i(
-					yoga_obj_handler->getDims());
-			yoga_obj_handler->device2host(data);
+					carma_obj_handler->getDims());
+			carma_obj_handler->device2host(data);
 		} else if (handler->type == Y_COMPLEX) {
-			yObjZ *yoga_obj_handler = (yObjZ *) (handler->yoga_object);
+			caObjZ *carma_obj_handler = (caObjZ *) (handler->carma_object);
 			cuDoubleComplex *data = (cuDoubleComplex *) ypush_z(
-					yoga_obj_handler->getDims());
-			yoga_obj_handler->device2host(data);
+					carma_obj_handler->getDims());
+			carma_obj_handler->device2host(data);
 		} else if (handler->type == Y_SCOMPLEX) {
-			yObjC *yoga_obj_handler = (yObjC *) (handler->yoga_object);
+			caObjC *carma_obj_handler = (caObjC *) (handler->carma_object);
 			/* scomplex -> float2 */
-			long int *ndims_obj = yoga_obj_handler->getDims();
+			long int *ndims_obj = carma_obj_handler->getDims();
 			long int *ndims_data = new long[ndims_obj[0] + 2];
 			ndims_data[0] = ndims_obj[0] + 1;
 			ndims_data[1] = 2;
 			memcpy(&ndims_data[2], &ndims_obj[1], sizeof(long) * ndims_obj[0]);
 			float *h_data = (float *) ypush_f(ndims_data);
-			yoga_obj_handler->device2host((cuFloatComplex *) h_data);
+			carma_obj_handler->device2host((cuFloatComplex *) h_data);
 			delete ndims_data;
 		} else
 			throw "Type unknown";
@@ -383,27 +383,27 @@ void yObj_free(void *obj)
 	yObj_struct *handler = (yObj_struct *) obj;
 	if (handler->isRef)
 		return;
-	yoga_context *context_handle = _getCurrentContext();
+	carma_context *context_handle = _getCurrentContext();
 	context_handle->set_activeDevice(handler->device);
 	try {
 		if (handler->type == Y_FLOAT) {
-			yObjS *yoga_obj_handler = (yObjS *) (handler->yoga_object);
-			delete yoga_obj_handler;
+			caObjS *carma_obj_handler = (caObjS *) (handler->carma_object);
+			delete carma_obj_handler;
 		} else if (handler->type == Y_DOUBLE) {
-			yObjD *yoga_obj_handler = (yObjD *) (handler->yoga_object);
-			delete yoga_obj_handler;
+			caObjD *carma_obj_handler = (caObjD *) (handler->carma_object);
+			delete carma_obj_handler;
 		} else if (handler->type == Y_INT) {
-			yObjI *yoga_obj_handler = (yObjI *) (handler->yoga_object);
-			delete yoga_obj_handler;
+			caObjI *carma_obj_handler = (caObjI *) (handler->carma_object);
+			delete carma_obj_handler;
 		} else if (handler->type == Y_SHORT) {
-			yObjUI *yoga_obj_handler = (yObjUI *) (handler->yoga_object);
-			delete yoga_obj_handler;
+			caObjUI *carma_obj_handler = (caObjUI *) (handler->carma_object);
+			delete carma_obj_handler;
 		} else if (handler->type == Y_COMPLEX) {
-			yObjZ *yoga_obj_handler = (yObjZ *) (handler->yoga_object);
-			delete yoga_obj_handler;
+			caObjZ *carma_obj_handler = (caObjZ *) (handler->carma_object);
+			delete carma_obj_handler;
 		} else if (handler->type == Y_SCOMPLEX) {
-			yObjC *yoga_obj_handler = (yObjC *) (handler->yoga_object);
-			delete yoga_obj_handler;
+			caObjC *carma_obj_handler = (caObjC *) (handler->carma_object);
+			delete carma_obj_handler;
 		} else
 			throw "Type unknown";
 		handler->type = Y_VOID;
@@ -440,7 +440,7 @@ void Y_yoga_obj(int argc)
 			handle->type = handle_obj->type;
 			handle->device = handle_obj->device;
 			handle->isRef = 1;
-			handle->yoga_object = handle_obj->yoga_object;
+			handle->carma_object = handle_obj->carma_object;
 		} else if (yType == Y_OPAQUE) { // Copy constructor
 			yObj_struct *handle_obj = (yObj_struct *) yget_obj(argc - 1,
 					&yObj);
@@ -449,31 +449,31 @@ void Y_yoga_obj(int argc)
 			handle->type = handle_obj->type;
 			handle->device = handle_obj->device;
 			handle->isRef = 0;
-			yoga_context *context_handle = _getCurrentContext();
+			carma_context *context_handle = _getCurrentContext();
 			context_handle->set_activeDevice(handle->device);
 			if (handle->type == Y_FLOAT) {
-				yObjS *yoga_obj_handler = (yObjS *) (handle_obj->yoga_object);
-				handle->yoga_object = new yObjS(context_handle,
-						yoga_obj_handler);
+				caObjS *carma_obj_handler = (caObjS *) (handle_obj->carma_object);
+				handle->carma_object = new caObjS(context_handle,
+						carma_obj_handler);
 			} else if (handle->type == Y_DOUBLE) {
-				yObjD *yoga_obj_handler = (yObjD *) (handle_obj->yoga_object);
-				handle->yoga_object = new yObjD(context_handle,
-						yoga_obj_handler);
+				caObjD *carma_obj_handler = (caObjD *) (handle_obj->carma_object);
+				handle->carma_object = new caObjD(context_handle,
+						carma_obj_handler);
 			} else if (handle->type == Y_INT) {
-				yObjI *yoga_obj_handler = (yObjI *) (handle_obj->yoga_object);
-				handle->yoga_object = new yObjI(context_handle,
-						yoga_obj_handler);
+				caObjI *carma_obj_handler = (caObjI *) (handle_obj->carma_object);
+				handle->carma_object = new caObjI(context_handle,
+						carma_obj_handler);
 			} else if (handle->type == Y_COMPLEX) {
-				yObjZ *yoga_obj_handler = (yObjZ *) (handle_obj->yoga_object);
-				handle->yoga_object = new yObjZ(context_handle,
-						yoga_obj_handler);
+				caObjZ *carma_obj_handler = (caObjZ *) (handle_obj->carma_object);
+				handle->carma_object = new caObjZ(context_handle,
+						carma_obj_handler);
 			} else if (handle->type == Y_SCOMPLEX) {
-				yObjC *yoga_obj_handler = (yObjC *) (handle_obj->yoga_object);
-				handle->yoga_object = new yObjC(context_handle,
-						yoga_obj_handler);
+				caObjC *carma_obj_handler = (caObjC *) (handle_obj->carma_object);
+				handle->carma_object = new caObjC(context_handle,
+						carma_obj_handler);
 			}
 		} else { // Standard constructor
-			yoga_context *context_handle = _getCurrentContext();
+			carma_context *context_handle = _getCurrentContext();
 			int activeDevice = context_handle->get_activeDevice();
 			int odevice = activeDevice;
 			if (yType == Y_STRING) { // based on the input type and dimensions array
@@ -510,54 +510,54 @@ void Y_yoga_obj(int argc)
 
 			if (oType == Y_FLOAT) {
 				if (yType == Y_STRING) { // based on the input type and dimensions array
-					handle->yoga_object = new yObjS(context_handle,
+					handle->carma_object = new caObjS(context_handle,
 							(long*) data_input);
 				} else { // based on the input array
-					handle->yoga_object = new yObjS(context_handle, dims,
+					handle->carma_object = new caObjS(context_handle, dims,
 							(float*) data_input);
 				}
 			} else if (oType == Y_DOUBLE) {
 				if (yType == Y_STRING) {
-					handle->yoga_object = new yObjD(context_handle,
+					handle->carma_object = new caObjD(context_handle,
 							(long*) data_input);
 				} else {
-					handle->yoga_object = new yObjD(context_handle, dims,
+					handle->carma_object = new caObjD(context_handle, dims,
 							(double*) data_input);
 				}
 			} else if (oType == Y_INT) {
 				if (yType == Y_STRING) {
-					handle->yoga_object = new yObjI(context_handle,
+					handle->carma_object = new caObjI(context_handle,
 							(long*) data_input);
 				} else {
-					handle->yoga_object = new yObjI(context_handle, dims,
+					handle->carma_object = new caObjI(context_handle, dims,
 							(int*) data_input);
 				}
 			} else if (oType == Y_SHORT) {
 				if (yType == Y_STRING) {
-					handle->yoga_object = new yObjUI(context_handle,
+					handle->carma_object = new caObjUI(context_handle,
 							(long*) data_input);
 				} else {
-					handle->yoga_object = new yObjUI(context_handle, dims,
+					handle->carma_object = new caObjUI(context_handle, dims,
 							(uint*) data_input);
 				}
 			} else if (oType == Y_COMPLEX) {
 				if (yType == Y_STRING) {
-					handle->yoga_object = new yObjZ(context_handle,
+					handle->carma_object = new caObjZ(context_handle,
 							(long*) data_input);
 				} else {
-					handle->yoga_object = new yObjZ(context_handle, dims,
+					handle->carma_object = new caObjZ(context_handle, dims,
 							(cuDoubleComplex*) data_input);
 				}
 			} else if (oType == Y_SCOMPLEX) {
 				if (yType == Y_STRING) {
-					handle->yoga_object = new yObjC(context_handle,
+					handle->carma_object = new caObjC(context_handle,
 							(long*) data_input);
 				} else {
 					stringstream buf;
 					buf << "Type not supported in yorick in " << __FILE__ << "@"
 							<< __LINE__ << endl;
 					throw buf.str();
-					//handle->yoga_object = new yObjC( dims, (cuFloatComplex*)data_input);
+					//handle->carma_object = new caObjC( dims, (cuFloatComplex*)data_input);
 				}
 			} else {
 				stringstream buf;
@@ -628,7 +628,7 @@ void Y_yoga_setv(int argc)
 
 	yObj_struct *handle = (yObj_struct *) ypush_obj(&yObj,
 			sizeof(yObj_struct));
-	yoga_context *context_handle = _getCurrentContext();
+	carma_context *context_handle = _getCurrentContext();
 
 	context_handle->set_activeDevice(handle->device);
 	handle->type = yType;
@@ -641,13 +641,13 @@ void Y_yoga_setv(int argc)
 		dims_data[1] = ntot;
 
 	if (yType == Y_FLOAT) {
-		handle->yoga_object = new yObjS(context_handle, (long*) dims_data);
-		yObjS *yoga_obj_handler = (yObjS *) (handle->yoga_object);
-		yoga_obj_handler->host2deviceVect((float *) data_input, 1, 1);
+		handle->carma_object = new caObjS(context_handle, (long*) dims_data);
+		caObjS *carma_obj_handler = (caObjS *) (handle->carma_object);
+		carma_obj_handler->host2deviceVect((float *) data_input, 1, 1);
 	} else if (yType == Y_DOUBLE) {
-		handle->yoga_object = new yObjD(context_handle, (long*) dims_data);
-		yObjD *yoga_obj_handler = (yObjD *) (handle->yoga_object);
-		yoga_obj_handler->host2deviceVect((double *) data_input, 1, 1);
+		handle->carma_object = new caObjD(context_handle, (long*) dims_data);
+		caObjD *carma_obj_handler = (caObjD *) (handle->carma_object);
+		carma_obj_handler->host2deviceVect((double *) data_input, 1, 1);
 	} else {
 		y_error("Type not supported\n");
 	}
@@ -670,18 +670,18 @@ void Y_yoga_setm(int argc)
 	yObj_struct *handle = (yObj_struct *) ypush_obj(&yObj,
 			sizeof(yObj_struct));
 
-	yoga_context *context_handle = _getCurrentContext();
+	carma_context *context_handle = _getCurrentContext();
 	context_handle->set_activeDevice(handle->device);
 	handle->type = yType;
 	if (yType == Y_FLOAT) {
-		handle->yoga_object = new yObjS(context_handle, (long*) dims);
-		yObjS *yoga_obj_handler = (yObjS *) (handle->yoga_object);
-		yoga_obj_handler->host2deviceMat((float *) data_input, dims[1],
+		handle->carma_object = new caObjS(context_handle, (long*) dims);
+		caObjS *carma_obj_handler = (caObjS *) (handle->carma_object);
+		carma_obj_handler->host2deviceMat((float *) data_input, dims[1],
 				dims[1]);
 	} else if (yType == Y_DOUBLE) {
-		handle->yoga_object = new yObjD(context_handle, (long*) dims);
-		yObjD *yoga_obj_handler = (yObjD *) (handle->yoga_object);
-		yoga_obj_handler->host2deviceMat((double *) data_input, dims[1],
+		handle->carma_object = new caObjD(context_handle, (long*) dims);
+		caObjD *carma_obj_handler = (caObjD *) (handle->carma_object);
+		carma_obj_handler->host2deviceMat((double *) data_input, dims[1],
 				dims[1]);
 	} else {
 		y_error("Type not supported\n");
@@ -699,35 +699,35 @@ void Y_yoga_host2device(int argc)
 		try {
 			yObj_struct *handle = (yObj_struct *) yget_obj(argc - 1,
 					&yObj);
-			yoga_context *context_handle = _getCurrentContext();
+			carma_context *context_handle = _getCurrentContext();
 			context_handle->set_activeDeviceForCpy(handle->device);
 			long ntot;
 			long dims;
 			if (handle->type == Y_FLOAT) {
-				yObjS *yoga_obj_handler = (yObjS *) (handle->yoga_object);
+				caObjS *carma_obj_handler = (caObjS *) (handle->carma_object);
 				float *data = ygeta_f(argc - 2, &ntot, &dims);
-				yoga_obj_handler->host2device(data);
+				carma_obj_handler->host2device(data);
 			} else if (handle->type == Y_DOUBLE) {
-				yObjD *yoga_obj_handler = (yObjD *) (handle->yoga_object);
+				caObjD *carma_obj_handler = (caObjD *) (handle->carma_object);
 				double *data = ygeta_d(argc - 2, &ntot, &dims);
-				yoga_obj_handler->host2device(data);
+				carma_obj_handler->host2device(data);
 			} else if (handle->type == Y_INT) {
-				yObjI *yoga_obj_handler = (yObjI *) (handle->yoga_object);
+				caObjI *carma_obj_handler = (caObjI *) (handle->carma_object);
 				int *data = ygeta_i(argc - 2, &ntot, &dims);
-				yoga_obj_handler->host2device(data);
+				carma_obj_handler->host2device(data);
 			} else if (handle->type == Y_SHORT) {
-				yObjUI *yoga_obj_handler = (yObjUI *) (handle->yoga_object);
+				caObjUI *carma_obj_handler = (caObjUI *) (handle->carma_object);
 				unsigned int *data = (unsigned int *) ygeta_i(argc - 2, &ntot,
 						&dims);
-				yoga_obj_handler->host2device(data);
+				carma_obj_handler->host2device(data);
 			} else if (handle->type == Y_SCOMPLEX) {
-				yObjC *yoga_obj_handler = (yObjC *) (handle->yoga_object);
+				caObjC *carma_obj_handler = (caObjC *) (handle->carma_object);
 				float *data = ygeta_f(argc - 2, &ntot, &dims);
-				yoga_obj_handler->host2device((cuFloatComplex*) data);
+				carma_obj_handler->host2device((cuFloatComplex*) data);
 			} else if (handle->type == Y_COMPLEX) {
-				yObjZ *yoga_obj_handler = (yObjZ *) (handle->yoga_object);
+				caObjZ *carma_obj_handler = (caObjZ *) (handle->carma_object);
 				double *data = ygeta_d(argc - 2, &ntot, &dims);
-				yoga_obj_handler->host2device((cuDoubleComplex*) data);
+				carma_obj_handler->host2device((cuDoubleComplex*) data);
 			} else
 				throw "Type not found";
 		} catch (string &msg) {
@@ -752,7 +752,7 @@ void Y_yoga_device2host(int argc)
  */
 {
 	yObj_struct *handle = (yObj_struct *) yget_obj(argc - 1, &yObj);
-	yoga_context *context_handle = _getCurrentContext();
+	carma_context *context_handle = _getCurrentContext();
 	context_handle->set_activeDeviceForCpy(handle->device);
 	int opt;
 	if (argc > 1)
@@ -763,19 +763,19 @@ void Y_yoga_device2host(int argc)
 		y_error("expecting optioal flag 1/0");
 
 	if (handle->type == Y_FLOAT) {
-		yObjS *yoga_obj_handler = (yObjS *) (handle->yoga_object);
-		float *data = ypush_f(yoga_obj_handler->getDims());
+		caObjS *carma_obj_handler = (caObjS *) (handle->carma_object);
+		float *data = ypush_f(carma_obj_handler->getDims());
 		if (opt == 0)
-			yoga_obj_handler->device2host(data);
+			carma_obj_handler->device2host(data);
 		else
-			yoga_obj_handler->device2hostOpt(data);
+			carma_obj_handler->device2hostOpt(data);
 	} else if (handle->type == Y_DOUBLE) {
-		yObjD *yoga_obj_handler = (yObjD *) (handle->yoga_object);
-		double *data = ypush_d((long *) yoga_obj_handler->getDims());
+		caObjD *carma_obj_handler = (caObjD *) (handle->carma_object);
+		double *data = ypush_d((long *) carma_obj_handler->getDims());
 		if (opt == 0)
-			yoga_obj_handler->device2host(data);
+			carma_obj_handler->device2host(data);
 		else
-			yoga_obj_handler->device2hostOpt(data);
+			carma_obj_handler->device2hostOpt(data);
 	}
 }
 
@@ -795,14 +795,14 @@ void Y_yoga_imin(int argc)
  */
 {
 	yObj_struct *handle = (yObj_struct *) yget_obj(argc - 1, &yObj);
-	yoga_context *context_handle = _getCurrentContext();
+	carma_context *context_handle = _getCurrentContext();
 	context_handle->set_activeDevice(handle->device);
 	if (handle->type == Y_FLOAT) {
-		yObjS *yoga_obj_handler = (yObjS *) (handle->yoga_object);
-		ypush_int(yoga_obj_handler->imin(1)); // here 1 is the increment
+		caObjS *carma_obj_handler = (caObjS *) (handle->carma_object);
+		ypush_int(carma_obj_handler->imin(1)); // here 1 is the increment
 	} else if (handle->type == Y_DOUBLE) {
-		yObjD *yoga_obj_handler = (yObjD *) (handle->yoga_object);
-		ypush_int(yoga_obj_handler->imin(1)); // here 1 is the increment
+		caObjD *carma_obj_handler = (caObjD *) (handle->carma_object);
+		ypush_int(carma_obj_handler->imin(1)); // here 1 is the increment
 	}
 }
 
@@ -814,16 +814,16 @@ void Y_yoga_imax(int argc)
  */
 {
 	yObj_struct *handle = (yObj_struct *) yget_obj(argc - 1, &yObj);
-	yoga_context *context_handle = _getCurrentContext();
+	carma_context *context_handle = _getCurrentContext();
 	context_handle->set_activeDevice(handle->device);
 
 	if (handle->type == Y_FLOAT) {
-		yObjS *yoga_obj_handler = (yObjS *) (handle->yoga_object);
-		ypush_int(yoga_obj_handler->imax(1)); // here 1 is the increment
+		caObjS *carma_obj_handler = (caObjS *) (handle->carma_object);
+		ypush_int(carma_obj_handler->imax(1)); // here 1 is the increment
 	}
 	if (handle->type == Y_DOUBLE) {
-		yObjD *yoga_obj_handler = (yObjD *) (handle->yoga_object);
-		ypush_int(yoga_obj_handler->imax(1)); // here 1 is the increment
+		caObjD *carma_obj_handler = (caObjD *) (handle->carma_object);
+		ypush_int(carma_obj_handler->imax(1)); // here 1 is the increment
 	}
 }
 
@@ -835,15 +835,15 @@ void Y_yoga_asum(int argc)
  */
 {
 	yObj_struct *handle = (yObj_struct *) yget_obj(argc - 1, &yObj);
-	yoga_context *context_handle = _getCurrentContext();
+	carma_context *context_handle = _getCurrentContext();
 	context_handle->set_activeDeviceForCpy(handle->device);
 	if (handle->type == Y_FLOAT) {
-		yObjS *yoga_obj_handler = (yObjS *) (handle->yoga_object);
-		ypush_double((double) yoga_obj_handler->asum(1)); // here 1 is the increment
+		caObjS *carma_obj_handler = (caObjS *) (handle->carma_object);
+		ypush_double((double) carma_obj_handler->asum(1)); // here 1 is the increment
 	}
 	if (handle->type == Y_DOUBLE) {
-		yObjD *yoga_obj_handler = (yObjD *) (handle->yoga_object);
-		ypush_double(yoga_obj_handler->asum(1)); // here 1 is the increment
+		caObjD *carma_obj_handler = (caObjD *) (handle->carma_object);
+		ypush_double(carma_obj_handler->asum(1)); // here 1 is the increment
 	}
 }
 
@@ -855,15 +855,15 @@ void Y_yoga_sum(int argc)
  */
 {
 	yObj_struct *handle = (yObj_struct *) yget_obj(argc - 1, &yObj);
-	yoga_context *context_handle = _getCurrentContext();
+	carma_context *context_handle = _getCurrentContext();
 	context_handle->set_activeDeviceForCpy(handle->device);
 	if (handle->type == Y_FLOAT) {
-		yObjS *yoga_obj_handler = (yObjS *) (handle->yoga_object);
-		ypush_double((double) yoga_obj_handler->sum()); 
+		caObjS *carma_obj_handler = (caObjS *) (handle->carma_object);
+		ypush_double((double) carma_obj_handler->sum()); 
 	}
 	if (handle->type == Y_DOUBLE) {
-		yObjD *yoga_obj_handler = (yObjD *) (handle->yoga_object);
-		ypush_double(yoga_obj_handler->sum()); 
+		caObjD *carma_obj_handler = (caObjD *) (handle->carma_object);
+		ypush_double(carma_obj_handler->sum()); 
 	}
 }
 
@@ -875,15 +875,15 @@ void Y_yoga_nrm2(int argc)
  */
 {
 	yObj_struct *handle = (yObj_struct *) yget_obj(argc - 1, &yObj);
-	yoga_context *context_handle = _getCurrentContext();
+	carma_context *context_handle = _getCurrentContext();
 	context_handle->set_activeDevice(handle->device);
 	if (handle->type == Y_FLOAT) {
-		yObjS *yoga_obj_handler = (yObjS *) (handle->yoga_object);
-		ypush_double((double) yoga_obj_handler->nrm2(1)); // here 1 is the increment
+		caObjS *carma_obj_handler = (caObjS *) (handle->carma_object);
+		ypush_double((double) carma_obj_handler->nrm2(1)); // here 1 is the increment
 	}
 	if (handle->type == Y_DOUBLE) {
-		yObjD *yoga_obj_handler = (yObjD *) (handle->yoga_object);
-		ypush_double(yoga_obj_handler->nrm2(1)); // here 1 is the increment
+		caObjD *carma_obj_handler = (caObjD *) (handle->carma_object);
+		ypush_double(carma_obj_handler->nrm2(1)); // here 1 is the increment
 	}
 }
 
@@ -898,17 +898,17 @@ void Y_yoga_scale(int argc)
 {
 	if (yarg_subroutine()) {
 		yObj_struct *handle = (yObj_struct *) yget_obj(argc - 1, &yObj);
-		yoga_context *context_handle = _getCurrentContext();
+		carma_context *context_handle = _getCurrentContext();
 		context_handle->set_activeDeviceForCpy(handle->device);
 		if (handle->type == Y_FLOAT) {
 			float alpha = ygets_f(argc-2);
-			yObjS *yoga_obj_handler = (yObjS *) (handle->yoga_object);
-			yoga_obj_handler->scale(alpha, 1);
+			caObjS *carma_obj_handler = (caObjS *) (handle->carma_object);
+			carma_obj_handler->scale(alpha, 1);
 		}
 		if (handle->type == Y_DOUBLE) {
 			double alpha = ygets_d(argc - 2);
-			yObjD *yoga_obj_handler = (yObjD *) (handle->yoga_object);
-			yoga_obj_handler->scale(alpha, 1);
+			caObjD *carma_obj_handler = (caObjD *) (handle->carma_object);
+			carma_obj_handler->scale(alpha, 1);
 		}
 	} else {
 		y_error("yoga_scale only inplace (subroutine) \n");
@@ -927,17 +927,17 @@ void Y_yoga_swap(int argc)
 	yObj_struct *handle_src = (yObj_struct *) yget_obj(argc - 2, &yObj);
 	if (handle_dest->device != handle_src->device)
 		y_error("swap only on the same device");
-	yoga_context *context_handle = _getCurrentContext();
+	carma_context *context_handle = _getCurrentContext();
 	context_handle->set_activeDeviceForCpy(handle_dest->device);
 	if (handle_dest->type == Y_FLOAT) {
-		yObjS *yoga_obj_handler_dest = (yObjS *) (handle_dest->yoga_object);
-		yObjS *yoga_obj_handler_src = (yObjS *) (handle_src->yoga_object);
-		yoga_obj_handler_dest->swap(yoga_obj_handler_src, 1, 1);
+		caObjS *carma_obj_handler_dest = (caObjS *) (handle_dest->carma_object);
+		caObjS *carma_obj_handler_src = (caObjS *) (handle_src->carma_object);
+		carma_obj_handler_dest->swap(carma_obj_handler_src, 1, 1);
 	}
 	if (handle_dest->type == Y_DOUBLE) {
-		yObjD *yoga_obj_handler_dest = (yObjD *) (handle_dest->yoga_object);
-		yObjD *yoga_obj_handler_src = (yObjD *) (handle_src->yoga_object);
-		yoga_obj_handler_dest->swap(yoga_obj_handler_src, 1, 1);
+		caObjD *carma_obj_handler_dest = (caObjD *) (handle_dest->carma_object);
+		caObjD *carma_obj_handler_src = (caObjD *) (handle_src->carma_object);
+		carma_obj_handler_dest->swap(carma_obj_handler_src, 1, 1);
 	}
 }
 
@@ -959,24 +959,24 @@ void Y_yoga_axpy(int argc)
 				&yObj);
 		if (handle_dest->device != handle_src->device)
 			y_error("axpy only on the same device");
-		yoga_context *context_handle = _getCurrentContext();
+		carma_context *context_handle = _getCurrentContext();
 		context_handle->set_activeDeviceForCpy(handle_dest->device);
 		if (handle_src->type == Y_FLOAT) {
 			float alpha = ygets_f(argc-2);
-			yObjS *yoga_obj_handler_dest = (yObjS *) (handle_dest->yoga_object);
-			yObjS *yoga_obj_handler_src = (yObjS *) (handle_src->yoga_object);
-			yoga_obj_handler_dest->axpy(alpha, yoga_obj_handler_src, 1, 1);
+			caObjS *carma_obj_handler_dest = (caObjS *) (handle_dest->carma_object);
+			caObjS *carma_obj_handler_src = (caObjS *) (handle_src->carma_object);
+			carma_obj_handler_dest->axpy(alpha, carma_obj_handler_src, 1, 1);
 		} else if (handle_src->type == Y_DOUBLE) {
 			double alpha = ygets_d(argc - 2);
-			yObjD *yoga_obj_handler_dest = (yObjD *) (handle_dest->yoga_object);
-			yObjD *yoga_obj_handler_src = (yObjD *) (handle_src->yoga_object);
-			yoga_obj_handler_dest->axpy(alpha, yoga_obj_handler_src, 1, 1);
+			caObjD *carma_obj_handler_dest = (caObjD *) (handle_dest->carma_object);
+			caObjD *carma_obj_handler_src = (caObjD *) (handle_src->carma_object);
+			carma_obj_handler_dest->axpy(alpha, carma_obj_handler_src, 1, 1);
 		}
 	} else {
 		// called as a function : we need to create a destination object
 		yObj_struct *handle_src = (yObj_struct *) yget_obj(argc - 1,
 				&yObj);
-		yoga_context *context_handle = _getCurrentContext();
+		carma_context *context_handle = _getCurrentContext();
 		context_handle->set_activeDeviceForCpy(handle_src->device);
 		yObj_struct *handle_dest = (yObj_struct *) ypush_obj(&yObj,
 				sizeof(yObj_struct));
@@ -984,19 +984,19 @@ void Y_yoga_axpy(int argc)
 		if (handle_src->type == Y_FLOAT) {
 			float alpha = ygets_f(argc-2);
 			handle_dest->type = handle_src->type;
-			yObjS *yoga_obj_handler_src = (yObjS *) (handle_src->yoga_object);
-			handle_dest->yoga_object = new yObjS(context_handle,
-					yoga_obj_handler_src->getDims());
-			yObjS *yoga_obj_handler_dest = (yObjS *) (handle_dest->yoga_object);
-			yoga_obj_handler_dest->axpy(alpha, yoga_obj_handler_src, 1, 1);
+			caObjS *carma_obj_handler_src = (caObjS *) (handle_src->carma_object);
+			handle_dest->carma_object = new caObjS(context_handle,
+					carma_obj_handler_src->getDims());
+			caObjS *carma_obj_handler_dest = (caObjS *) (handle_dest->carma_object);
+			carma_obj_handler_dest->axpy(alpha, carma_obj_handler_src, 1, 1);
 		} else if (handle_src->type == Y_DOUBLE) {
 			double alpha = ygets_d(argc - 2);
 			handle_dest->type = handle_src->type;
-			yObjD *yoga_obj_handler_src = (yObjD *) (handle_src->yoga_object);
-			handle_dest->yoga_object = new yObjD(context_handle,
-					yoga_obj_handler_src->getDims());
-			yObjD *yoga_obj_handler_dest = (yObjD *) (handle_dest->yoga_object);
-			yoga_obj_handler_dest->axpy(alpha, yoga_obj_handler_src, 1, 1);
+			caObjD *carma_obj_handler_src = (caObjD *) (handle_src->carma_object);
+			handle_dest->carma_object = new caObjD(context_handle,
+					carma_obj_handler_src->getDims());
+			caObjD *carma_obj_handler_dest = (caObjD *) (handle_dest->carma_object);
+			carma_obj_handler_dest->axpy(alpha, carma_obj_handler_src, 1, 1);
 		}
 	}
 }
@@ -1014,18 +1014,18 @@ void Y_yoga_dot(int argc)
 	yObj_struct *handle2 = (yObj_struct *) yget_obj(argc - 2, &yObj);
 	if (handle1->device != handle2->device)
 		y_error("dot only on the same device");
-	yoga_context *context_handle = _getCurrentContext();
+	carma_context *context_handle = _getCurrentContext();
 	context_handle->set_activeDeviceForCpy(handle2->device);
 	if (handle1->type == Y_FLOAT) {
-		yObjS *yoga_obj_handler1 = (yObjS *) (handle1->yoga_object);
-		yObjS *yoga_obj_handler2 = (yObjS *) (handle2->yoga_object);
-		ypush_double(yoga_obj_handler1->dot(yoga_obj_handler2, 1, 1));
+		caObjS *carma_obj_handler1 = (caObjS *) (handle1->carma_object);
+		caObjS *carma_obj_handler2 = (caObjS *) (handle2->carma_object);
+		ypush_double(carma_obj_handler1->dot(carma_obj_handler2, 1, 1));
 		// here 1 is the increment
 	}
 	if (handle1->type == Y_DOUBLE) {
-		yObjD *yoga_obj_handler1 = (yObjD *) (handle1->yoga_object);
-		yObjD *yoga_obj_handler2 = (yObjD *) (handle2->yoga_object);
-		ypush_double(yoga_obj_handler1->dot(yoga_obj_handler2, 1, 1));
+		caObjD *carma_obj_handler1 = (caObjD *) (handle1->carma_object);
+		caObjD *carma_obj_handler2 = (caObjD *) (handle2->carma_object);
+		ypush_double(carma_obj_handler1->dot(carma_obj_handler2, 1, 1));
 		// here 1 is the increment
 	}
 }
@@ -1054,15 +1054,15 @@ void Y_yoga_mv(int argc)
 				|| (handle_vecty->device != handle_vectx->device)
 				|| (handle_mat->device != handle_vectx->device))
 			y_error("mv only on the same device");
-		yoga_context *context_handle = _getCurrentContext();
+		carma_context *context_handle = _getCurrentContext();
 		context_handle->set_activeDevice(handle_mat->device);
 
 		if (handle_mat->type == Y_FLOAT) {
-			yObjS *yoga_obj_handler_mat = (yObjS *) (handle_mat->yoga_object);
-			yObjS *yoga_obj_handler_vectx =
-					(yObjS *) (handle_vectx->yoga_object);
-			yObjS *yoga_obj_handler_vecty =
-					(yObjS *) (handle_vecty->yoga_object);
+			caObjS *carma_obj_handler_mat = (caObjS *) (handle_mat->carma_object);
+			caObjS *carma_obj_handler_vectx =
+					(caObjS *) (handle_vectx->carma_object);
+			caObjS *carma_obj_handler_vecty =
+					(caObjS *) (handle_vecty->carma_object);
 			float alpha;
 			if (argc > 3) {
 				alpha = ygets_f(argc-4);
@@ -1073,17 +1073,17 @@ void Y_yoga_mv(int argc)
 				beta = ygets_f(argc-5);
 			} else
 				beta = 0.0f;
-			yoga_obj_handler_vecty->gemv('n', alpha, yoga_obj_handler_mat,
-					yoga_obj_handler_mat->getDims(1), yoga_obj_handler_vectx, 1,
+			carma_obj_handler_vecty->gemv('n', alpha, carma_obj_handler_mat,
+					carma_obj_handler_mat->getDims(1), carma_obj_handler_vectx, 1,
 					beta, 1);
 			// here 1 is the increment
 		}
 		if (handle_mat->type == Y_DOUBLE) {
-			yObjD *yoga_obj_handler_mat = (yObjD *) (handle_mat->yoga_object);
-			yObjD *yoga_obj_handler_vectx =
-					(yObjD *) (handle_vectx->yoga_object);
-			yObjD *yoga_obj_handler_vecty =
-					(yObjD *) (handle_vecty->yoga_object);
+			caObjD *carma_obj_handler_mat = (caObjD *) (handle_mat->carma_object);
+			caObjD *carma_obj_handler_vectx =
+					(caObjD *) (handle_vectx->carma_object);
+			caObjD *carma_obj_handler_vecty =
+					(caObjD *) (handle_vecty->carma_object);
 			double alpha;
 			if (argc > 3) {
 				alpha = ygets_d(argc - 4);
@@ -1094,8 +1094,8 @@ void Y_yoga_mv(int argc)
 				beta = ygets_d(argc - 5);
 			} else
 				beta = 0.0;
-			yoga_obj_handler_vecty->gemv('n', alpha, yoga_obj_handler_mat,
-					yoga_obj_handler_mat->getDims(1), yoga_obj_handler_vectx, 1,
+			carma_obj_handler_vecty->gemv('n', alpha, carma_obj_handler_mat,
+					carma_obj_handler_mat->getDims(1), carma_obj_handler_vectx, 1,
 					beta, 1);
 			// here 1 is the increment
 		}
@@ -1107,7 +1107,7 @@ void Y_yoga_mv(int argc)
 				&yObj);
 		if (handle_vectx->device != handle_mat->device)
 			y_error("mv only on the same device");
-		yoga_context *context_handle = _getCurrentContext();
+		carma_context *context_handle = _getCurrentContext();
 		context_handle->set_activeDevice(handle_mat->device);
 		yObj_struct *handle_vecty = (yObj_struct *) ypush_obj(&yObj,
 				sizeof(yObj_struct));
@@ -1124,24 +1124,24 @@ void Y_yoga_mv(int argc)
 			} else
 				beta = 0.0f;
 			handle_vecty->type = handle_vectx->type;
-			yObjS *yoga_obj_handler_mat = (yObjS *) (handle_mat->yoga_object);
-			yObjS *yoga_obj_handler_vectx =
-					(yObjS *) (handle_vectx->yoga_object);
+			caObjS *carma_obj_handler_mat = (caObjS *) (handle_mat->carma_object);
+			caObjS *carma_obj_handler_vectx =
+					(caObjS *) (handle_vectx->carma_object);
 			long dims_data_y[2];
 			dims_data_y[0] = 1;
-			dims_data_y[1] = yoga_obj_handler_mat->getDims(1);
-			handle_vecty->yoga_object = new yObjS(context_handle, dims_data_y);
-			yObjS *yoga_obj_handler_vecty =
-					(yObjS *) (handle_vecty->yoga_object);
-			yoga_obj_handler_vecty->gemv('n', 1.0f, yoga_obj_handler_mat,
-					yoga_obj_handler_mat->getDims(1), yoga_obj_handler_vectx, 1,
+			dims_data_y[1] = carma_obj_handler_mat->getDims(1);
+			handle_vecty->carma_object = new caObjS(context_handle, dims_data_y);
+			caObjS *carma_obj_handler_vecty =
+					(caObjS *) (handle_vecty->carma_object);
+			carma_obj_handler_vecty->gemv('n', 1.0f, carma_obj_handler_mat,
+					carma_obj_handler_mat->getDims(1), carma_obj_handler_vectx, 1,
 					0.0f, 1);
 			// here 1 is the increment
 		} else if (handle_mat->type == Y_DOUBLE) {
 			handle_vecty->type = handle_vectx->type;
-			yObjD *yoga_obj_handler_mat = (yObjD *) (handle_mat->yoga_object);
-			yObjD *yoga_obj_handler_vectx =
-					(yObjD *) (handle_vectx->yoga_object);
+			caObjD *carma_obj_handler_mat = (caObjD *) (handle_mat->carma_object);
+			caObjD *carma_obj_handler_vectx =
+					(caObjD *) (handle_vectx->carma_object);
 			double alpha;
 			if (argc > 2) {
 				alpha = ygets_d(argc - 3);
@@ -1154,12 +1154,12 @@ void Y_yoga_mv(int argc)
 				beta = 0.0;
 			long dims_data_y[2];
 			dims_data_y[0] = 1;
-			dims_data_y[1] = yoga_obj_handler_mat->getDims(1);
-			handle_vecty->yoga_object = new yObjD(context_handle, dims_data_y);
-			yObjD *yoga_obj_handler_vecty =
-					(yObjD *) (handle_vecty->yoga_object);
-			yoga_obj_handler_vecty->gemv('n', 1.0, yoga_obj_handler_mat,
-					yoga_obj_handler_mat->getDims(1), yoga_obj_handler_vectx, 1,
+			dims_data_y[1] = carma_obj_handler_mat->getDims(1);
+			handle_vecty->carma_object = new caObjD(context_handle, dims_data_y);
+			caObjD *carma_obj_handler_vecty =
+					(caObjD *) (handle_vecty->carma_object);
+			carma_obj_handler_vecty->gemv('n', 1.0, carma_obj_handler_mat,
+					carma_obj_handler_mat->getDims(1), carma_obj_handler_vectx, 1,
 					0.0, 1);
 			// here 1 is the increment
 		}
@@ -1188,28 +1188,28 @@ void Y_yoga_rank1(int argc)
 				|| (handle_vecty->device != handle_vectx->device)
 				|| (handle_mat->device != handle_vectx->device))
 			y_error("rank1 only on the same device");
-		yoga_context *context_handle = _getCurrentContext();
+		carma_context *context_handle = _getCurrentContext();
 		context_handle->set_activeDevice(handle_mat->device);
 		if (handle_mat->type == Y_FLOAT) {
-			yObjS *yoga_obj_handler_mat = (yObjS *) (handle_mat->yoga_object);
-			yObjS *yoga_obj_handler_vectx =
-					(yObjS *) (handle_vectx->yoga_object);
-			yObjS *yoga_obj_handler_vecty =
-					(yObjS *) (handle_vecty->yoga_object);
-			yoga_obj_handler_mat->ger(1.0f, yoga_obj_handler_vectx, 1,
-					yoga_obj_handler_vecty, 1,
-					yoga_obj_handler_mat->getDims(1));
+			caObjS *carma_obj_handler_mat = (caObjS *) (handle_mat->carma_object);
+			caObjS *carma_obj_handler_vectx =
+					(caObjS *) (handle_vectx->carma_object);
+			caObjS *carma_obj_handler_vecty =
+					(caObjS *) (handle_vecty->carma_object);
+			carma_obj_handler_mat->ger(1.0f, carma_obj_handler_vectx, 1,
+					carma_obj_handler_vecty, 1,
+					carma_obj_handler_mat->getDims(1));
 			// here 1 is the increment
 		}
 		if (handle_mat->type == Y_DOUBLE) {
-			yObjD *yoga_obj_handler_mat = (yObjD *) (handle_mat->yoga_object);
-			yObjD *yoga_obj_handler_vectx =
-					(yObjD *) (handle_vectx->yoga_object);
-			yObjD *yoga_obj_handler_vecty =
-					(yObjD *) (handle_vecty->yoga_object);
-			yoga_obj_handler_mat->ger(1.0, yoga_obj_handler_vectx, 1,
-					yoga_obj_handler_vecty, 1,
-					yoga_obj_handler_mat->getDims(1));
+			caObjD *carma_obj_handler_mat = (caObjD *) (handle_mat->carma_object);
+			caObjD *carma_obj_handler_vectx =
+					(caObjD *) (handle_vectx->carma_object);
+			caObjD *carma_obj_handler_vecty =
+					(caObjD *) (handle_vecty->carma_object);
+			carma_obj_handler_mat->ger(1.0, carma_obj_handler_vectx, 1,
+					carma_obj_handler_vecty, 1,
+					carma_obj_handler_mat->getDims(1));
 			// here 1 is the increment
 		}
 	} else {
@@ -1220,42 +1220,42 @@ void Y_yoga_rank1(int argc)
 				&yObj);
 		if (handle_vectx->device != handle_vecty->device)
 			y_error("rank1 only on the same device");
-		yoga_context *context_handle = _getCurrentContext();
+		carma_context *context_handle = _getCurrentContext();
 		context_handle->set_activeDevice(handle_vectx->device);
 		yObj_struct *handle_matA = (yObj_struct *) ypush_obj(&yObj,
 				sizeof(yObj_struct));
 		handle_matA->device = handle_vecty->device;
 		if (handle_vectx->type == Y_FLOAT) {
 			handle_matA->type = handle_vectx->type;
-			yObjS *yoga_obj_handler_vecty =
-					(yObjS *) (handle_vecty->yoga_object);
-			yObjS *yoga_obj_handler_vectx =
-					(yObjS *) (handle_vectx->yoga_object);
+			caObjS *carma_obj_handler_vecty =
+					(caObjS *) (handle_vecty->carma_object);
+			caObjS *carma_obj_handler_vectx =
+					(caObjS *) (handle_vectx->carma_object);
 			long dims_data_mat[3];
 			dims_data_mat[0] = 1;
-			dims_data_mat[1] = yoga_obj_handler_vecty->getDims(1);
-			dims_data_mat[2] = yoga_obj_handler_vectx->getDims(1);
-			handle_matA->yoga_object = new yObjS(context_handle, dims_data_mat);
-			yObjS *yoga_obj_handler_matA = (yObjS *) (handle_matA->yoga_object);
-			yoga_obj_handler_matA->ger(1.0f, yoga_obj_handler_vectx, 1,
-					yoga_obj_handler_vecty, 1,
-					yoga_obj_handler_matA->getDims(1));
+			dims_data_mat[1] = carma_obj_handler_vecty->getDims(1);
+			dims_data_mat[2] = carma_obj_handler_vectx->getDims(1);
+			handle_matA->carma_object = new caObjS(context_handle, dims_data_mat);
+			caObjS *carma_obj_handler_matA = (caObjS *) (handle_matA->carma_object);
+			carma_obj_handler_matA->ger(1.0f, carma_obj_handler_vectx, 1,
+					carma_obj_handler_vecty, 1,
+					carma_obj_handler_matA->getDims(1));
 			// here 1 is the increment
 		} else if (handle_vectx->type == Y_DOUBLE) {
 			handle_matA->type = handle_vectx->type;
-			yObjD *yoga_obj_handler_vecty =
-					(yObjD *) (handle_vecty->yoga_object);
-			yObjD *yoga_obj_handler_vectx =
-					(yObjD *) (handle_vectx->yoga_object);
+			caObjD *carma_obj_handler_vecty =
+					(caObjD *) (handle_vecty->carma_object);
+			caObjD *carma_obj_handler_vectx =
+					(caObjD *) (handle_vectx->carma_object);
 			long dims_data_mat[3];
 			dims_data_mat[0] = 1;
-			dims_data_mat[1] = yoga_obj_handler_vecty->getDims(1);
-			dims_data_mat[2] = yoga_obj_handler_vectx->getDims(1);
-			handle_matA->yoga_object = new yObjD(context_handle, dims_data_mat);
-			yObjD *yoga_obj_handler_matA = (yObjD *) (handle_matA->yoga_object);
-			yoga_obj_handler_matA->ger(1.0, yoga_obj_handler_vectx, 1,
-					yoga_obj_handler_vecty, 1,
-					yoga_obj_handler_matA->getDims(1));
+			dims_data_mat[1] = carma_obj_handler_vecty->getDims(1);
+			dims_data_mat[2] = carma_obj_handler_vectx->getDims(1);
+			handle_matA->carma_object = new caObjD(context_handle, dims_data_mat);
+			caObjD *carma_obj_handler_matA = (caObjD *) (handle_matA->carma_object);
+			carma_obj_handler_matA->ger(1.0, carma_obj_handler_vectx, 1,
+					carma_obj_handler_vecty, 1,
+					carma_obj_handler_matA->getDims(1));
 			// here 1 is the increment
 		}
 	}
@@ -1288,7 +1288,7 @@ void Y_yoga_mm(int argc)
 				|| (handle_matA->device != handle_matC->device)
 				|| (handle_matB->device != handle_matC->device))
 			y_error("mm only on the same device");
-		yoga_context *context_handle = _getCurrentContext();
+		carma_context *context_handle = _getCurrentContext();
 		context_handle->set_activeDevice(handle_matA->device);
 
 		char opA = 'n';
@@ -1306,14 +1306,14 @@ void Y_yoga_mm(int argc)
 			if (argc > 6)
 				beta = ygets_f(argc-7);
 
-			yObjS *yoga_obj_handler_matA = (yObjS *) (handle_matA->yoga_object);
-			yObjS *yoga_obj_handler_matB = (yObjS *) (handle_matB->yoga_object);
-			yObjS *yoga_obj_handler_matC = (yObjS *) (handle_matC->yoga_object);
+			caObjS *carma_obj_handler_matA = (caObjS *) (handle_matA->carma_object);
+			caObjS *carma_obj_handler_matB = (caObjS *) (handle_matB->carma_object);
+			caObjS *carma_obj_handler_matC = (caObjS *) (handle_matC->carma_object);
 
-			yoga_obj_handler_matC->gemm(opA, opB, alpha, yoga_obj_handler_matA,
-					yoga_obj_handler_matA->getDims(1), yoga_obj_handler_matB,
-					yoga_obj_handler_matB->getDims(1), beta,
-					yoga_obj_handler_matC->getDims(1));
+			carma_obj_handler_matC->gemm(opA, opB, alpha, carma_obj_handler_matA,
+					carma_obj_handler_matA->getDims(1), carma_obj_handler_matB,
+					carma_obj_handler_matB->getDims(1), beta,
+					carma_obj_handler_matC->getDims(1));
 		}
 		if (handle_matC->type == Y_DOUBLE) {
 			double alpha = 1.0;
@@ -1323,14 +1323,14 @@ void Y_yoga_mm(int argc)
 			if (argc > 6)
 				beta = ygets_d(argc - 7);
 
-			yObjD *yoga_obj_handler_matA = (yObjD *) (handle_matA->yoga_object);
-			yObjD *yoga_obj_handler_matB = (yObjD *) (handle_matB->yoga_object);
-			yObjD *yoga_obj_handler_matC = (yObjD *) (handle_matC->yoga_object);
+			caObjD *carma_obj_handler_matA = (caObjD *) (handle_matA->carma_object);
+			caObjD *carma_obj_handler_matB = (caObjD *) (handle_matB->carma_object);
+			caObjD *carma_obj_handler_matC = (caObjD *) (handle_matC->carma_object);
 
-			yoga_obj_handler_matC->gemm(opA, opB, alpha, yoga_obj_handler_matA,
-					yoga_obj_handler_matA->getDims(1), yoga_obj_handler_matB,
-					yoga_obj_handler_matB->getDims(1), beta,
-					yoga_obj_handler_matC->getDims(1));
+			carma_obj_handler_matC->gemm(opA, opB, alpha, carma_obj_handler_matA,
+					carma_obj_handler_matA->getDims(1), carma_obj_handler_matB,
+					carma_obj_handler_matB->getDims(1), beta,
+					carma_obj_handler_matC->getDims(1));
 		}
 	} else {
 		// called as a function : need to allocate space
@@ -1340,7 +1340,7 @@ void Y_yoga_mm(int argc)
 				&yObj);
 		if (handle_matA->device != handle_matB->device)
 			y_error("mm only on the same device");
-		yoga_context *context_handle = _getCurrentContext();
+		carma_context *context_handle = _getCurrentContext();
 		context_handle->set_activeDevice(handle_matA->device);
 
 		char opA = 'n';
@@ -1363,27 +1363,27 @@ void Y_yoga_mm(int argc)
 			handle_matC->device = handle_matA->device;
 
 			handle_matC->type = handle_matA->type;
-			yObjS *yoga_obj_handler_matA = (yObjS *) (handle_matA->yoga_object);
-			yObjS *yoga_obj_handler_matB = (yObjS *) (handle_matB->yoga_object);
+			caObjS *carma_obj_handler_matA = (caObjS *) (handle_matA->carma_object);
+			caObjS *carma_obj_handler_matB = (caObjS *) (handle_matB->carma_object);
 
 			long dims_data_mat[3];
 			dims_data_mat[0] = 2;
 			if (opA == 'n')
-				dims_data_mat[1] = yoga_obj_handler_matA->getDims(1);
+				dims_data_mat[1] = carma_obj_handler_matA->getDims(1);
 			else
-				dims_data_mat[1] = yoga_obj_handler_matA->getDims(2);
+				dims_data_mat[1] = carma_obj_handler_matA->getDims(2);
 			if (opB == 'n')
-				dims_data_mat[2] = yoga_obj_handler_matB->getDims(2);
+				dims_data_mat[2] = carma_obj_handler_matB->getDims(2);
 			else
-				dims_data_mat[2] = yoga_obj_handler_matB->getDims(1);
+				dims_data_mat[2] = carma_obj_handler_matB->getDims(1);
 
-			handle_matC->yoga_object = new yObjS(context_handle, dims_data_mat);
-			yObjS *yoga_obj_handler_matC = (yObjS *) (handle_matC->yoga_object);
+			handle_matC->carma_object = new caObjS(context_handle, dims_data_mat);
+			caObjS *carma_obj_handler_matC = (caObjS *) (handle_matC->carma_object);
 
-			yoga_obj_handler_matC->gemm(opA, opB, alpha, yoga_obj_handler_matA,
-					yoga_obj_handler_matA->getDims(1), yoga_obj_handler_matB,
-					yoga_obj_handler_matB->getDims(1), beta,
-					yoga_obj_handler_matC->getDims(1));
+			carma_obj_handler_matC->gemm(opA, opB, alpha, carma_obj_handler_matA,
+					carma_obj_handler_matA->getDims(1), carma_obj_handler_matB,
+					carma_obj_handler_matB->getDims(1), beta,
+					carma_obj_handler_matC->getDims(1));
 		} else if (handle_matA->type == Y_DOUBLE) {
 			double alpha = 1.0;
 			if (argc > 4)
@@ -1397,26 +1397,26 @@ void Y_yoga_mm(int argc)
 			handle_matC->device = handle_matA->device;
 
 			handle_matC->type = handle_matA->type;
-			yObjD *yoga_obj_handler_matA = (yObjD *) (handle_matA->yoga_object);
-			yObjD *yoga_obj_handler_matB = (yObjD *) (handle_matB->yoga_object);
+			caObjD *carma_obj_handler_matA = (caObjD *) (handle_matA->carma_object);
+			caObjD *carma_obj_handler_matB = (caObjD *) (handle_matB->carma_object);
 
 			long dims_data_mat[3];
 			dims_data_mat[0] = 2;
 			if (opA == 'n')
-				dims_data_mat[1] = yoga_obj_handler_matA->getDims(1);
+				dims_data_mat[1] = carma_obj_handler_matA->getDims(1);
 			else
-				dims_data_mat[1] = yoga_obj_handler_matA->getDims(2);
+				dims_data_mat[1] = carma_obj_handler_matA->getDims(2);
 			if (opB == 'n')
-				dims_data_mat[2] = yoga_obj_handler_matB->getDims(2);
+				dims_data_mat[2] = carma_obj_handler_matB->getDims(2);
 			else
-				dims_data_mat[2] = yoga_obj_handler_matB->getDims(1);
+				dims_data_mat[2] = carma_obj_handler_matB->getDims(1);
 
-			handle_matC->yoga_object = new yObjD(context_handle, dims_data_mat);
-			yObjD *yoga_obj_handler_matC = (yObjD *) (handle_matC->yoga_object);
-			yoga_obj_handler_matC->gemm(opA, opB, alpha, yoga_obj_handler_matA,
-					yoga_obj_handler_matA->getDims(1), yoga_obj_handler_matB,
-					yoga_obj_handler_matB->getDims(1), beta,
-					yoga_obj_handler_matC->getDims(1));
+			handle_matC->carma_object = new caObjD(context_handle, dims_data_mat);
+			caObjD *carma_obj_handler_matC = (caObjD *) (handle_matC->carma_object);
+			carma_obj_handler_matC->gemm(opA, opB, alpha, carma_obj_handler_matA,
+					carma_obj_handler_matA->getDims(1), carma_obj_handler_matB,
+					carma_obj_handler_matB->getDims(1), beta,
+					carma_obj_handler_matC->getDims(1));
 		}
 	}
 }
@@ -1447,16 +1447,16 @@ void Y_yoga_transpose(int argc)
 				&yObj);
 		if (handle_dest->device != handle_src->device)
 			y_error("transpose only on the same device");
-		yoga_context *context_handle = _getCurrentContext();
+		carma_context *context_handle = _getCurrentContext();
 		context_handle->set_activeDeviceForCpy(handle_dest->device);
 		if (handle_src->type == Y_FLOAT) {
-			yObjS *yoga_obj_handler_dest = (yObjS *) (handle_dest->yoga_object);
-			yObjS *yoga_obj_handler_src = (yObjS *) (handle_src->yoga_object);
-			yoga_obj_handler_dest->transpose(yoga_obj_handler_src);
+			caObjS *carma_obj_handler_dest = (caObjS *) (handle_dest->carma_object);
+			caObjS *carma_obj_handler_src = (caObjS *) (handle_src->carma_object);
+			carma_obj_handler_dest->transpose(carma_obj_handler_src);
 		} else if (handle_src->type == Y_DOUBLE) {
-			yObjD *yoga_obj_handler_dest = (yObjD *) (handle_dest->yoga_object);
-			yObjD *yoga_obj_handler_src = (yObjD *) (handle_src->yoga_object);
-			yoga_obj_handler_dest->transpose(yoga_obj_handler_src);
+			caObjD *carma_obj_handler_dest = (caObjD *) (handle_dest->carma_object);
+			caObjD *carma_obj_handler_src = (caObjD *) (handle_src->carma_object);
+			carma_obj_handler_dest->transpose(carma_obj_handler_src);
 		}
 	} else {
 		// called as a function : we need to create an object
@@ -1465,30 +1465,30 @@ void Y_yoga_transpose(int argc)
 		yObj_struct *handle_dest = (yObj_struct *) ypush_obj(&yObj,
 				sizeof(yObj_struct));
 		handle_dest->device = handle_src->device;
-		yoga_context *context_handle = _getCurrentContext();
+		carma_context *context_handle = _getCurrentContext();
 		context_handle->set_activeDeviceForCpy(handle_dest->device);
 		if (handle_src->type == Y_FLOAT) {
 			handle_dest->type = handle_src->type;
-			yObjS *yoga_obj_handler_src = (yObjS *) (handle_src->yoga_object);
+			caObjS *carma_obj_handler_src = (caObjS *) (handle_src->carma_object);
 			long dims_data_dest[3];
-			dims_data_dest[0] = yoga_obj_handler_src->getDims(0);
-			dims_data_dest[1] = yoga_obj_handler_src->getDims(2);
-			dims_data_dest[2] = yoga_obj_handler_src->getDims(1);
-			handle_dest->yoga_object = new yObjS(context_handle,
+			dims_data_dest[0] = carma_obj_handler_src->getDims(0);
+			dims_data_dest[1] = carma_obj_handler_src->getDims(2);
+			dims_data_dest[2] = carma_obj_handler_src->getDims(1);
+			handle_dest->carma_object = new caObjS(context_handle,
 					dims_data_dest);
-			yObjS *yoga_obj_handler_dest = (yObjS *) (handle_dest->yoga_object);
-			yoga_obj_handler_dest->transpose(yoga_obj_handler_src);
+			caObjS *carma_obj_handler_dest = (caObjS *) (handle_dest->carma_object);
+			carma_obj_handler_dest->transpose(carma_obj_handler_src);
 		} else if (handle_src->type == Y_DOUBLE) {
 			handle_dest->type = handle_src->type;
-			yObjD *yoga_obj_handler_src = (yObjD *) (handle_src->yoga_object);
+			caObjD *carma_obj_handler_src = (caObjD *) (handle_src->carma_object);
 			long dims_data_dest[3];
-			dims_data_dest[0] = yoga_obj_handler_src->getDims(0);
-			dims_data_dest[1] = yoga_obj_handler_src->getDims(2);
-			dims_data_dest[2] = yoga_obj_handler_src->getDims(1);
-			handle_dest->yoga_object = new yObjD(context_handle,
+			dims_data_dest[0] = carma_obj_handler_src->getDims(0);
+			dims_data_dest[1] = carma_obj_handler_src->getDims(2);
+			dims_data_dest[2] = carma_obj_handler_src->getDims(1);
+			handle_dest->carma_object = new caObjD(context_handle,
 					dims_data_dest);
-			yObjD *yoga_obj_handler_dest = (yObjD *) (handle_dest->yoga_object);
-			yoga_obj_handler_dest->transpose(yoga_obj_handler_src);
+			caObjD *carma_obj_handler_dest = (caObjD *) (handle_dest->carma_object);
+			carma_obj_handler_dest->transpose(carma_obj_handler_src);
 		}
 	}
 }
@@ -1516,36 +1516,36 @@ void Y_yoga_random(int argc) {
 		yObj_struct *handle = (yObj_struct *) yget_obj(argc - 1, &yObj);
 		if (argc > 1)
 			seed = ygets_i(argc-2);
-		yoga_context *context_handle = _getCurrentContext();
+		carma_context *context_handle = _getCurrentContext();
 		context_handle->set_activeDevice(handle->device);
 		if (handle->type == Y_FLOAT) {
-			yObjS *yoga_obj_handler = (yObjS *) (handle->yoga_object);
-			if (yoga_obj_handler->is_rng_init() == false) {
-				//yoga_obj_handler->init_prng(handle->device);
-				yoga_obj_handler->init_prng_host(seed);
+			caObjS *carma_obj_handler = (caObjS *) (handle->carma_object);
+			if (carma_obj_handler->is_rng_init() == false) {
+				//carma_obj_handler->init_prng(handle->device);
+				carma_obj_handler->init_prng_host(seed);
 			}
-			//yoga_obj_handler->prng('U');
-			yoga_obj_handler->prng_host('U');
+			//carma_obj_handler->prng('U');
+			carma_obj_handler->prng_host('U');
 		} else if (handle->type == Y_DOUBLE) {
-			yObjD *yoga_obj_handler = (yObjD *) (handle->yoga_object);
-			if (yoga_obj_handler->is_rng_init() == false) {
-				//yoga_obj_handler->init_prng(handle->device);
-				yoga_obj_handler->init_prng_host(seed);
+			caObjD *carma_obj_handler = (caObjD *) (handle->carma_object);
+			if (carma_obj_handler->is_rng_init() == false) {
+				//carma_obj_handler->init_prng(handle->device);
+				carma_obj_handler->init_prng_host(seed);
 			}
-			//yoga_obj_handler->prng('U');
-			yoga_obj_handler->prng_host('U');
+			//carma_obj_handler->prng('U');
+			carma_obj_handler->prng_host('U');
 		} else if (handle->type == Y_SCOMPLEX) {
-			yObjC *yoga_obj_handler = (yObjC *) (handle->yoga_object);
-			if (yoga_obj_handler->is_rng_init() == false) {
-				yoga_obj_handler->init_prng(handle->device);
+			caObjC *carma_obj_handler = (caObjC *) (handle->carma_object);
+			if (carma_obj_handler->is_rng_init() == false) {
+				carma_obj_handler->init_prng(handle->device);
 			}
-			yoga_obj_handler->prng('U');
+			carma_obj_handler->prng('U');
 		} else if (handle->type == Y_COMPLEX) {
-			yObjZ *yoga_obj_handler = (yObjZ *) (handle->yoga_object);
-			if (yoga_obj_handler->is_rng_init() == false) {
-				yoga_obj_handler->init_prng(handle->device);
+			caObjZ *carma_obj_handler = (caObjZ *) (handle->carma_object);
+			if (carma_obj_handler->is_rng_init() == false) {
+				carma_obj_handler->init_prng(handle->device);
 			}
-			yoga_obj_handler->prng('U');
+			carma_obj_handler->prng('U');
 		}
 	} else {
 		// called as a function : we need to create an object
@@ -1568,7 +1568,7 @@ void Y_yoga_random(int argc) {
 		} else
 			y_error("expecting a string for the type and a list of dimensions");
 		long *dims_data = ygeta_l(argc - 2, &ntot, &dims);
-		yoga_context *context_handle = _getCurrentContext();
+		carma_context *context_handle = _getCurrentContext();
 		int activeDevice = context_handle->get_activeDevice();
 		int mdevice = activeDevice;
 		if (argc > 2) {
@@ -1584,35 +1584,35 @@ void Y_yoga_random(int argc) {
 		handle->type = yType;
 
 		if (yType == Y_FLOAT) {
-			handle->yoga_object = new yObjS(context_handle, dims_data);
+			handle->carma_object = new caObjS(context_handle, dims_data);
 		} else if (yType == Y_DOUBLE) {
-			handle->yoga_object = new yObjD(context_handle, dims_data);
+			handle->carma_object = new caObjD(context_handle, dims_data);
 		} else if (yType == Y_SCOMPLEX) {
-			handle->yoga_object = new yObjC(context_handle, dims_data);
+			handle->carma_object = new caObjC(context_handle, dims_data);
 		} else if (yType == Y_COMPLEX) {
-			handle->yoga_object = new yObjZ(context_handle, dims_data);
+			handle->carma_object = new caObjZ(context_handle, dims_data);
 		}
 
 		if (handle->type == Y_FLOAT) {
-			yObjS *yoga_obj_handler = (yObjS *) (handle->yoga_object);
-			//yoga_obj_handler->init_prng(handle->device);
-			yoga_obj_handler->init_prng_host(seed);
-			//yoga_obj_handler->prng('U');
-			yoga_obj_handler->prng_host('U');
+			caObjS *carma_obj_handler = (caObjS *) (handle->carma_object);
+			//carma_obj_handler->init_prng(handle->device);
+			carma_obj_handler->init_prng_host(seed);
+			//carma_obj_handler->prng('U');
+			carma_obj_handler->prng_host('U');
 		} else if (handle->type == Y_DOUBLE) {
-			yObjD *yoga_obj_handler = (yObjD *) (handle->yoga_object);
-			//yoga_obj_handler->init_prng(handle->device);
-			yoga_obj_handler->init_prng_host(seed);
-			//yoga_obj_handler->prng('U');
-			yoga_obj_handler->prng_host('U');
+			caObjD *carma_obj_handler = (caObjD *) (handle->carma_object);
+			//carma_obj_handler->init_prng(handle->device);
+			carma_obj_handler->init_prng_host(seed);
+			//carma_obj_handler->prng('U');
+			carma_obj_handler->prng_host('U');
 		} else if (handle->type == Y_SCOMPLEX) {
-			yObjC *yoga_obj_handler = (yObjC *) (handle->yoga_object);
-			yoga_obj_handler->init_prng(handle->device);
-			yoga_obj_handler->prng('U');
+			caObjC *carma_obj_handler = (caObjC *) (handle->carma_object);
+			carma_obj_handler->init_prng(handle->device);
+			carma_obj_handler->prng('U');
 		} else if (handle->type == Y_COMPLEX) {
-			yObjZ *yoga_obj_handler = (yObjZ *) (handle->yoga_object);
-			yoga_obj_handler->init_prng(handle->device);
-			yoga_obj_handler->prng('U');
+			caObjZ *carma_obj_handler = (caObjZ *) (handle->carma_object);
+			carma_obj_handler->init_prng(handle->device);
+			carma_obj_handler->prng('U');
 		}
 	}
 	cutilSafeThreadSync();
@@ -1633,36 +1633,36 @@ void Y_yoga_random_n(int argc) {
 		yObj_struct *handle = (yObj_struct *) yget_obj(argc - 1, &yObj);
 		if (argc > 1)
 			seed = ygets_i(argc-2);
-		yoga_context *context_handle = _getCurrentContext();
+		carma_context *context_handle = _getCurrentContext();
 		context_handle->set_activeDevice(handle->device);
 		if (handle->type == Y_FLOAT) {
-			yObjS *yoga_obj_handler = (yObjS *) (handle->yoga_object);
-			if (yoga_obj_handler->is_rng_init() == false) {
-				//yoga_obj_handler->init_prng(handle->device);
-				yoga_obj_handler->init_prng_host(seed);
+			caObjS *carma_obj_handler = (caObjS *) (handle->carma_object);
+			if (carma_obj_handler->is_rng_init() == false) {
+				//carma_obj_handler->init_prng(handle->device);
+				carma_obj_handler->init_prng_host(seed);
 			}
-			//yoga_obj_handler->prng('N');
-			yoga_obj_handler->prng_host('N');
+			//carma_obj_handler->prng('N');
+			carma_obj_handler->prng_host('N');
 		} else if (handle->type == Y_DOUBLE) {
-			yObjD *yoga_obj_handler = (yObjD *) (handle->yoga_object);
-			if (yoga_obj_handler->is_rng_init() == false) {
-				//yoga_obj_handler->init_prng(handle->device);
-				yoga_obj_handler->init_prng_host(seed);
+			caObjD *carma_obj_handler = (caObjD *) (handle->carma_object);
+			if (carma_obj_handler->is_rng_init() == false) {
+				//carma_obj_handler->init_prng(handle->device);
+				carma_obj_handler->init_prng_host(seed);
 			}
-			//yoga_obj_handler->prng('N');
-			yoga_obj_handler->prng_host('N');
+			//carma_obj_handler->prng('N');
+			carma_obj_handler->prng_host('N');
 		} else if (handle->type == Y_SCOMPLEX) {
-			yObjC *yoga_obj_handler = (yObjC *) (handle->yoga_object);
-			if (yoga_obj_handler->is_rng_init() == false) {
-				yoga_obj_handler->init_prng(handle->device);
+			caObjC *carma_obj_handler = (caObjC *) (handle->carma_object);
+			if (carma_obj_handler->is_rng_init() == false) {
+				carma_obj_handler->init_prng(handle->device);
 			}
-			yoga_obj_handler->prng('N');
+			carma_obj_handler->prng('N');
 		} else if (handle->type == Y_COMPLEX) {
-			yObjZ *yoga_obj_handler = (yObjZ *) (handle->yoga_object);
-			if (yoga_obj_handler->is_rng_init() == false) {
-				yoga_obj_handler->init_prng(handle->device);
+			caObjZ *carma_obj_handler = (caObjZ *) (handle->carma_object);
+			if (carma_obj_handler->is_rng_init() == false) {
+				carma_obj_handler->init_prng(handle->device);
 			}
-			yoga_obj_handler->prng('N');
+			carma_obj_handler->prng('N');
 		}
 	} else {
 		// called as a function : we need to create an object
@@ -1685,7 +1685,7 @@ void Y_yoga_random_n(int argc) {
 
 		long *dims_data = ygeta_l(argc - 2, &ntot, &dims);
 
-		yoga_context *context_handle = _getCurrentContext();
+		carma_context *context_handle = _getCurrentContext();
 		int activeDevice = context_handle->get_activeDevice();
 
 		int mdevice = activeDevice;
@@ -1699,35 +1699,35 @@ void Y_yoga_random_n(int argc) {
 		handle->device = mdevice;
 		handle->type = yType;
 		if (yType == Y_FLOAT) {
-			handle->yoga_object = new yObjS(context_handle, dims_data);
+			handle->carma_object = new caObjS(context_handle, dims_data);
 		} else if (yType == Y_DOUBLE) {
-			handle->yoga_object = new yObjD(context_handle, dims_data);
+			handle->carma_object = new caObjD(context_handle, dims_data);
 		} else if (yType == Y_SCOMPLEX) {
-			handle->yoga_object = new yObjC(context_handle, dims_data);
+			handle->carma_object = new caObjC(context_handle, dims_data);
 		} else if (yType == Y_COMPLEX) {
-			handle->yoga_object = new yObjZ(context_handle, dims_data);
+			handle->carma_object = new caObjZ(context_handle, dims_data);
 		}
 
 		if (handle->type == Y_FLOAT) {
-			yObjS *yoga_obj_handler = (yObjS *) (handle->yoga_object);
-			//yoga_obj_handler->init_prng(handle->device);
-			yoga_obj_handler->init_prng_host(seed);
-			//yoga_obj_handler->prng('N');
-			yoga_obj_handler->prng_host('N');
+			caObjS *carma_obj_handler = (caObjS *) (handle->carma_object);
+			//carma_obj_handler->init_prng(handle->device);
+			carma_obj_handler->init_prng_host(seed);
+			//carma_obj_handler->prng('N');
+			carma_obj_handler->prng_host('N');
 		} else if (handle->type == Y_DOUBLE) {
-			yObjD *yoga_obj_handler = (yObjD *) (handle->yoga_object);
-			//yoga_obj_handler->init_prng(handle->device);
-			yoga_obj_handler->init_prng_host(seed);
-			//yoga_obj_handler->prng('N');
-			yoga_obj_handler->prng_host('N');
+			caObjD *carma_obj_handler = (caObjD *) (handle->carma_object);
+			//carma_obj_handler->init_prng(handle->device);
+			carma_obj_handler->init_prng_host(seed);
+			//carma_obj_handler->prng('N');
+			carma_obj_handler->prng_host('N');
 		} else if (handle->type == Y_SCOMPLEX) {
-			yObjC *yoga_obj_handler = (yObjC *) (handle->yoga_object);
-			yoga_obj_handler->init_prng(handle->device);
-			yoga_obj_handler->prng('N');
+			caObjC *carma_obj_handler = (caObjC *) (handle->carma_object);
+			carma_obj_handler->init_prng(handle->device);
+			carma_obj_handler->prng('N');
 		} else if (handle->type == Y_COMPLEX) {
-			yObjZ *yoga_obj_handler = (yObjZ *) (handle->yoga_object);
-			yoga_obj_handler->init_prng(handle->device);
-			yoga_obj_handler->prng('N');
+			caObjZ *carma_obj_handler = (caObjZ *) (handle->carma_object);
+			carma_obj_handler->init_prng(handle->device);
+			carma_obj_handler->prng('N');
 		}
 	}
 	cutilSafeThreadSync();
@@ -1760,7 +1760,7 @@ void Y_yoga_fft(int argc) {
 					&yObj);
 			if (handle_dest->device != handle_src->device)
 				y_error("transpose only on the same device");
-			yoga_context *context_handle = _getCurrentContext();
+			carma_context *context_handle = _getCurrentContext();
 			context_handle->set_activeDevice(handle_dest->device);
 			int dir;
 			if (argc > 3)
@@ -1772,107 +1772,107 @@ void Y_yoga_fft(int argc) {
 				if (handle_dest->type != Y_SCOMPLEX)
 					throw "destination has wrong type";
 				else {
-					yObjS *yoga_obj_handler_src =
-							(yObjS *) (handle_src->yoga_object);
-					yObjC *yoga_obj_handler_dest =
-							(yObjC *) (handle_dest->yoga_object);
+					caObjS *carma_obj_handler_src =
+							(caObjS *) (handle_src->carma_object);
+					caObjC *carma_obj_handler_dest =
+							(caObjC *) (handle_dest->carma_object);
 
-					if (*yoga_obj_handler_src->getPlan() == 0L) {
-						yoga_initfft<float, cuFloatComplex>(
-								yoga_obj_handler_src->getDims(),
-								*yoga_obj_handler_src->getPlan(),
-								yoga_select_plan<float, cuFloatComplex>());
+					if (*carma_obj_handler_src->getPlan() == 0L) {
+						carma_initfft<float, cuFloatComplex>(
+								carma_obj_handler_src->getDims(),
+								*carma_obj_handler_src->getPlan(),
+								carma_select_plan<float, cuFloatComplex>());
 					}
-					yoga_fft(yoga_obj_handler_src->getData(),
-							yoga_obj_handler_dest->getData(), dir,
-							*yoga_obj_handler_src->getPlan());
+					carma_fft(carma_obj_handler_src->getData(),
+							carma_obj_handler_dest->getData(), dir,
+							*carma_obj_handler_src->getPlan());
 				}
 			}
 			if (handle_src->type == Y_SCOMPLEX) {
 				if (handle_dest->type == Y_SCOMPLEX) {
-					yObjC *yoga_obj_handler_src =
-							(yObjC *) (handle_src->yoga_object);
-					yObjC *yoga_obj_handler_dest =
-							(yObjC *) (handle_dest->yoga_object);
-					if (*yoga_obj_handler_src->getPlan() == 0L) {
-						yoga_initfft<cuFloatComplex, cuFloatComplex>(
-								yoga_obj_handler_src->getDims(),
-								*yoga_obj_handler_src->getPlan(),
-								yoga_select_plan<cuFloatComplex, cuFloatComplex>());
+					caObjC *carma_obj_handler_src =
+							(caObjC *) (handle_src->carma_object);
+					caObjC *carma_obj_handler_dest =
+							(caObjC *) (handle_dest->carma_object);
+					if (*carma_obj_handler_src->getPlan() == 0L) {
+						carma_initfft<cuFloatComplex, cuFloatComplex>(
+								carma_obj_handler_src->getDims(),
+								*carma_obj_handler_src->getPlan(),
+								carma_select_plan<cuFloatComplex, cuFloatComplex>());
 					}
-					yoga_fft(yoga_obj_handler_src->getData(),
-							yoga_obj_handler_dest->getData(), dir,
-							*yoga_obj_handler_src->getPlan());
+					carma_fft(carma_obj_handler_src->getData(),
+							carma_obj_handler_dest->getData(), dir,
+							*carma_obj_handler_src->getPlan());
 				} else if (handle_dest->type == Y_FLOAT) {
-					yObjC *yoga_obj_handler_src =
-							(yObjC *) (handle_src->yoga_object);
-					yObjS *yoga_obj_handler_dest =
-							(yObjS *) (handle_dest->yoga_object);
-					if (*yoga_obj_handler_src->getPlan() == 0L) {
-						yoga_initfft<cuFloatComplex, float>(
-								yoga_obj_handler_src->getDims(),
-								*yoga_obj_handler_src->getPlan(),
-								yoga_select_plan<cuFloatComplex, float>());
+					caObjC *carma_obj_handler_src =
+							(caObjC *) (handle_src->carma_object);
+					caObjS *carma_obj_handler_dest =
+							(caObjS *) (handle_dest->carma_object);
+					if (*carma_obj_handler_src->getPlan() == 0L) {
+						carma_initfft<cuFloatComplex, float>(
+								carma_obj_handler_src->getDims(),
+								*carma_obj_handler_src->getPlan(),
+								carma_select_plan<cuFloatComplex, float>());
 					}
-					yoga_fft(yoga_obj_handler_src->getData(),
-							yoga_obj_handler_dest->getData(), dir,
-							*yoga_obj_handler_src->getPlan());
+					carma_fft(carma_obj_handler_src->getData(),
+							carma_obj_handler_dest->getData(), dir,
+							*carma_obj_handler_src->getPlan());
 				} else
 					throw "destination has wrong type";
 			} else if (handle_src->type == Y_DOUBLE) {
 				if (handle_dest->type == Y_COMPLEX) {
-					yObjD *yoga_obj_handler_src =
-							(yObjD *) (handle_src->yoga_object);
-					yObjZ *yoga_obj_handler_dest =
-							(yObjZ *) (handle_dest->yoga_object);
-					if (*yoga_obj_handler_src->getPlan() == 0L) {
-						yoga_initfft<double, cuDoubleComplex>(
-								yoga_obj_handler_src->getDims(),
-								*yoga_obj_handler_src->getPlan(),
-								yoga_select_plan<double, cuDoubleComplex>());
+					caObjD *carma_obj_handler_src =
+							(caObjD *) (handle_src->carma_object);
+					caObjZ *carma_obj_handler_dest =
+							(caObjZ *) (handle_dest->carma_object);
+					if (*carma_obj_handler_src->getPlan() == 0L) {
+						carma_initfft<double, cuDoubleComplex>(
+								carma_obj_handler_src->getDims(),
+								*carma_obj_handler_src->getPlan(),
+								carma_select_plan<double, cuDoubleComplex>());
 					}
-					yoga_fft(yoga_obj_handler_src->getData(),
-							yoga_obj_handler_dest->getData(), dir,
-							*yoga_obj_handler_src->getPlan());
+					carma_fft(carma_obj_handler_src->getData(),
+							carma_obj_handler_dest->getData(), dir,
+							*carma_obj_handler_src->getPlan());
 				} else
 					throw "destination has wrong type";
 			} else if (handle_src->type == Y_COMPLEX) {
 				if (handle_dest->type == Y_COMPLEX) {
-					yObjZ *yoga_obj_handler_src =
-							(yObjZ *) (handle_src->yoga_object);
-					yObjZ *yoga_obj_handler_dest =
-							(yObjZ *) (handle_dest->yoga_object);
-					if (*yoga_obj_handler_src->getPlan() == 0L) {
-						yoga_initfft<cuDoubleComplex, cuDoubleComplex>(
-								yoga_obj_handler_src->getDims(),
-								*yoga_obj_handler_src->getPlan(),
-								yoga_select_plan<cuDoubleComplex,
+					caObjZ *carma_obj_handler_src =
+							(caObjZ *) (handle_src->carma_object);
+					caObjZ *carma_obj_handler_dest =
+							(caObjZ *) (handle_dest->carma_object);
+					if (*carma_obj_handler_src->getPlan() == 0L) {
+						carma_initfft<cuDoubleComplex, cuDoubleComplex>(
+								carma_obj_handler_src->getDims(),
+								*carma_obj_handler_src->getPlan(),
+								carma_select_plan<cuDoubleComplex,
 										cuDoubleComplex>());
 					}
-					yoga_fft(yoga_obj_handler_src->getData(),
-							yoga_obj_handler_dest->getData(), dir,
-							*yoga_obj_handler_src->getPlan());
+					carma_fft(carma_obj_handler_src->getData(),
+							carma_obj_handler_dest->getData(), dir,
+							*carma_obj_handler_src->getPlan());
 				} else if (handle_dest->type == Y_DOUBLE) {
-					yObjZ *yoga_obj_handler_src =
-							(yObjZ *) (handle_src->yoga_object);
-					yObjD *yoga_obj_handler_dest =
-							(yObjD *) (handle_dest->yoga_object);
-					if (*yoga_obj_handler_src->getPlan() == 0L) {
-						yoga_initfft<cuDoubleComplex, double>(
-								yoga_obj_handler_src->getDims(),
-								*yoga_obj_handler_src->getPlan(),
-								yoga_select_plan<cuDoubleComplex, double>());
+					caObjZ *carma_obj_handler_src =
+							(caObjZ *) (handle_src->carma_object);
+					caObjD *carma_obj_handler_dest =
+							(caObjD *) (handle_dest->carma_object);
+					if (*carma_obj_handler_src->getPlan() == 0L) {
+						carma_initfft<cuDoubleComplex, double>(
+								carma_obj_handler_src->getDims(),
+								*carma_obj_handler_src->getPlan(),
+								carma_select_plan<cuDoubleComplex, double>());
 					}
-					yoga_fft(yoga_obj_handler_src->getData(),
-							yoga_obj_handler_dest->getData(), dir,
-							*yoga_obj_handler_src->getPlan());
+					carma_fft(carma_obj_handler_src->getData(),
+							carma_obj_handler_dest->getData(), dir,
+							*carma_obj_handler_src->getPlan());
 				} else
 					throw "destination has wrong type";
 			} else
 				throw "wrong type for fft";
 		} else {
 			int dir;
-			yoga_context *context_handle = _getCurrentContext();
+			carma_context *context_handle = _getCurrentContext();
 			context_handle->set_activeDevice(handle_src->device);
 			if (argc > 1)
 				dir = ygets_i(argc-2);
@@ -1880,36 +1880,36 @@ void Y_yoga_fft(int argc) {
 				dir = 1;
 
 			if (handle_src->type == Y_SCOMPLEX) {
-				yObjC *yoga_obj_handler_src =
-						(yObjC *) (handle_src->yoga_object);
-				if (*yoga_obj_handler_src->getPlan() == 0L) {
-					yoga_initfft<cuFloatComplex, cuFloatComplex>(
-							yoga_obj_handler_src->getDims(),
-							*yoga_obj_handler_src->getPlan(),
-							yoga_select_plan<cuFloatComplex, cuFloatComplex>());
+				caObjC *carma_obj_handler_src =
+						(caObjC *) (handle_src->carma_object);
+				if (*carma_obj_handler_src->getPlan() == 0L) {
+					carma_initfft<cuFloatComplex, cuFloatComplex>(
+							carma_obj_handler_src->getDims(),
+							*carma_obj_handler_src->getPlan(),
+							carma_select_plan<cuFloatComplex, cuFloatComplex>());
 				}
-				yoga_fft(yoga_obj_handler_src->getData(),
-						yoga_obj_handler_src->getData(), dir,
-						*yoga_obj_handler_src->getPlan());
+				carma_fft(carma_obj_handler_src->getData(),
+						carma_obj_handler_src->getData(), dir,
+						*carma_obj_handler_src->getPlan());
 			} else if (handle_src->type == Y_COMPLEX) {
-				yObjD *yoga_obj_handler_src =
-						(yObjD *) (handle_src->yoga_object);
-				if (*yoga_obj_handler_src->getPlan() == 0L) {
-					yoga_initfft<cuDoubleComplex, cuDoubleComplex>(
-							yoga_obj_handler_src->getDims(),
-							*yoga_obj_handler_src->getPlan(),
-							yoga_select_plan<cuDoubleComplex, cuDoubleComplex>());
+				caObjD *carma_obj_handler_src =
+						(caObjD *) (handle_src->carma_object);
+				if (*carma_obj_handler_src->getPlan() == 0L) {
+					carma_initfft<cuDoubleComplex, cuDoubleComplex>(
+							carma_obj_handler_src->getDims(),
+							*carma_obj_handler_src->getPlan(),
+							carma_select_plan<cuDoubleComplex, cuDoubleComplex>());
 				}
-				yoga_fft(yoga_obj_handler_src->getData(),
-						yoga_obj_handler_src->getData(), dir,
-						*yoga_obj_handler_src->getPlan());
+				carma_fft(carma_obj_handler_src->getData(),
+						carma_obj_handler_src->getData(), dir,
+						*carma_obj_handler_src->getPlan());
 			} else
 				throw "wrong type for fft";
 		}
 	} else {
 		yObj_struct *handle_src = (yObj_struct *) yget_obj(argc - 1,
 				&yObj);
-		yoga_context *context_handle = _getCurrentContext();
+		carma_context *context_handle = _getCurrentContext();
 		context_handle->set_activeDevice(handle_src->device);
 		// called as a function : we need to create an object to push on the stack
 		// check if src plan exists
@@ -1925,72 +1925,72 @@ void Y_yoga_fft(int argc) {
 
 		if ((handle_src->type == Y_FLOAT) || (handle_src->type == Y_SCOMPLEX)) {
 			if (handle_src->type == Y_FLOAT) {
-				yObjS *yoga_obj_handler_src =
-						(yObjS *) (handle_src->yoga_object);
-				if (*yoga_obj_handler_src->getPlan() == 0L) {
-					yoga_initfft<float, cuFloatComplex>(
-							yoga_obj_handler_src->getDims(),
-							*yoga_obj_handler_src->getPlan(),
-							yoga_select_plan<float, cuFloatComplex>());
+				caObjS *carma_obj_handler_src =
+						(caObjS *) (handle_src->carma_object);
+				if (*carma_obj_handler_src->getPlan() == 0L) {
+					carma_initfft<float, cuFloatComplex>(
+							carma_obj_handler_src->getDims(),
+							*carma_obj_handler_src->getPlan(),
+							carma_select_plan<float, cuFloatComplex>());
 				}
-				handle->yoga_object = new yObjC(context_handle,
-						yoga_obj_handler_src->getDims());
+				handle->carma_object = new caObjC(context_handle,
+						carma_obj_handler_src->getDims());
 				handle->type = Y_SCOMPLEX;
-				yObjC *yoga_obj_handler = (yObjC *) (handle->yoga_object);
-				yoga_fft(yoga_obj_handler_src->getData(),
-						yoga_obj_handler->getData(), dir,
-						*yoga_obj_handler_src->getPlan());
+				caObjC *carma_obj_handler = (caObjC *) (handle->carma_object);
+				carma_fft(carma_obj_handler_src->getData(),
+						carma_obj_handler->getData(), dir,
+						*carma_obj_handler_src->getPlan());
 			} else {
-				yObjC *yoga_obj_handler_src =
-						(yObjC *) (handle_src->yoga_object);
-				if (*yoga_obj_handler_src->getPlan() == 0L) {
-					yoga_initfft<cuFloatComplex, cuFloatComplex>(
-							yoga_obj_handler_src->getDims(),
-							*yoga_obj_handler_src->getPlan(),
-							yoga_select_plan<cuFloatComplex, cuFloatComplex>());
+				caObjC *carma_obj_handler_src =
+						(caObjC *) (handle_src->carma_object);
+				if (*carma_obj_handler_src->getPlan() == 0L) {
+					carma_initfft<cuFloatComplex, cuFloatComplex>(
+							carma_obj_handler_src->getDims(),
+							*carma_obj_handler_src->getPlan(),
+							carma_select_plan<cuFloatComplex, cuFloatComplex>());
 				}
-				handle->yoga_object = new yObjC(context_handle,
-						yoga_obj_handler_src->getDims());
+				handle->carma_object = new caObjC(context_handle,
+						carma_obj_handler_src->getDims());
 				handle->type = Y_SCOMPLEX;
-				yObjC *yoga_obj_handler = (yObjC *) (handle->yoga_object);
-				yoga_fft(yoga_obj_handler_src->getData(),
-						yoga_obj_handler->getData(), dir,
-						*yoga_obj_handler_src->getPlan());
+				caObjC *carma_obj_handler = (caObjC *) (handle->carma_object);
+				carma_fft(carma_obj_handler_src->getData(),
+						carma_obj_handler->getData(), dir,
+						*carma_obj_handler_src->getPlan());
 			}
 		} else if ((handle_src->type == Y_DOUBLE)
 				|| (handle_src->type == Y_COMPLEX)) {
 			if (handle_src->type == Y_DOUBLE) {
-				yObjD *yoga_obj_handler_src =
-						(yObjD *) (handle_src->yoga_object);
-				if (*yoga_obj_handler_src->getPlan() == 0L) {
-					yoga_initfft<double, cuDoubleComplex>(
-							yoga_obj_handler_src->getDims(),
-							*yoga_obj_handler_src->getPlan(),
-							yoga_select_plan<double, cuDoubleComplex>());
+				caObjD *carma_obj_handler_src =
+						(caObjD *) (handle_src->carma_object);
+				if (*carma_obj_handler_src->getPlan() == 0L) {
+					carma_initfft<double, cuDoubleComplex>(
+							carma_obj_handler_src->getDims(),
+							*carma_obj_handler_src->getPlan(),
+							carma_select_plan<double, cuDoubleComplex>());
 				}
-				handle->yoga_object = new yObjZ(context_handle,
-						yoga_obj_handler_src->getDims());
+				handle->carma_object = new caObjZ(context_handle,
+						carma_obj_handler_src->getDims());
 				handle->type = Y_COMPLEX;
-				yObjZ *yoga_obj_handler = (yObjZ *) (handle->yoga_object);
-				yoga_fft(yoga_obj_handler_src->getData(),
-						yoga_obj_handler->getData(), dir,
-						*yoga_obj_handler_src->getPlan());
+				caObjZ *carma_obj_handler = (caObjZ *) (handle->carma_object);
+				carma_fft(carma_obj_handler_src->getData(),
+						carma_obj_handler->getData(), dir,
+						*carma_obj_handler_src->getPlan());
 			} else {
-				yObjZ *yoga_obj_handler_src =
-						(yObjZ *) (handle_src->yoga_object);
-				if (*yoga_obj_handler_src->getPlan() == 0L) {
-					yoga_initfft<cuDoubleComplex, cuDoubleComplex>(
-							yoga_obj_handler_src->getDims(),
-							*yoga_obj_handler_src->getPlan(),
-							yoga_select_plan<cuDoubleComplex, cuDoubleComplex>());
+				caObjZ *carma_obj_handler_src =
+						(caObjZ *) (handle_src->carma_object);
+				if (*carma_obj_handler_src->getPlan() == 0L) {
+					carma_initfft<cuDoubleComplex, cuDoubleComplex>(
+							carma_obj_handler_src->getDims(),
+							*carma_obj_handler_src->getPlan(),
+							carma_select_plan<cuDoubleComplex, cuDoubleComplex>());
 				}
-				handle->yoga_object = new yObjZ(context_handle,
-						yoga_obj_handler_src->getDims());
+				handle->carma_object = new caObjZ(context_handle,
+						carma_obj_handler_src->getDims());
 				handle->type = Y_COMPLEX;
-				yObjZ *yoga_obj_handler = (yObjZ *) (handle->yoga_object);
-				yoga_fft(yoga_obj_handler_src->getData(),
-						yoga_obj_handler->getData(), dir,
-						*yoga_obj_handler_src->getPlan());
+				caObjZ *carma_obj_handler = (caObjZ *) (handle->carma_object);
+				carma_fft(carma_obj_handler_src->getData(),
+						carma_obj_handler->getData(), dir,
+						*carma_obj_handler_src->getPlan());
 			}
 		}
 	}
@@ -2013,17 +2013,17 @@ void Y_yoga_max(int argc)
  */
 {
 	yObj_struct *handle = (yObj_struct *) yget_obj(argc - 1, &yObj);
-	yoga_context *context_handle = _getCurrentContext();
+	carma_context *context_handle = _getCurrentContext();
 	context_handle->set_activeDevice(handle->device);
 	if (handle->type == Y_FLOAT) {
-		yObjS *yoga_obj_handler = (yObjS *) (handle->yoga_object);
-		yoga_obj_handler->config_scan((char *) ("max"), 1, 1);
-		ypush_double((double) yoga_obj_handler->scan());
+		caObjS *carma_obj_handler = (caObjS *) (handle->carma_object);
+		carma_obj_handler->config_scan((char *) ("max"), 1, 1);
+		ypush_double((double) carma_obj_handler->scan());
 	}
 	if (handle->type == Y_INT) {
-		yObjI *yoga_obj_handler = (yObjI *) (handle->yoga_object);
-		yoga_obj_handler->config_scan((char *) ("max"), 1, 1);
-		ypush_int(yoga_obj_handler->scan());
+		caObjI *carma_obj_handler = (caObjI *) (handle->carma_object);
+		carma_obj_handler->config_scan((char *) ("max"), 1, 1);
+		ypush_int(carma_obj_handler->scan());
 	}
 	if (handle->type == Y_DOUBLE) {
 		throw "Double not supported";
@@ -2038,17 +2038,17 @@ void Y_yoga_min(int argc)
  */
 {
 	yObj_struct *handle = (yObj_struct *) yget_obj(argc - 1, &yObj);
-	yoga_context *context_handle = _getCurrentContext();
+	carma_context *context_handle = _getCurrentContext();
 	context_handle->set_activeDevice(handle->device);
 	if (handle->type == Y_FLOAT) {
-		yObjS *yoga_obj_handler = (yObjS *) (handle->yoga_object);
-		yoga_obj_handler->config_scan((char *) ("min"), 1, 1);
-		ypush_double((double) yoga_obj_handler->scan());
+		caObjS *carma_obj_handler = (caObjS *) (handle->carma_object);
+		carma_obj_handler->config_scan((char *) ("min"), 1, 1);
+		ypush_double((double) carma_obj_handler->scan());
 	}
 	if (handle->type == Y_INT) {
-		yObjI *yoga_obj_handler = (yObjI *) (handle->yoga_object);
-		yoga_obj_handler->config_scan((char *) ("min"), 1, 1);
-		ypush_int(yoga_obj_handler->scan());
+		caObjI *carma_obj_handler = (caObjI *) (handle->carma_object);
+		carma_obj_handler->config_scan((char *) ("min"), 1, 1);
+		ypush_int(carma_obj_handler->scan());
 	}
 	if (handle->type == Y_DOUBLE) {
 		throw "Double not supported";
@@ -2063,17 +2063,17 @@ void Y_yoga_mult(int argc)
  */
 {
 	yObj_struct *handle = (yObj_struct *) yget_obj(argc - 1, &yObj);
-	yoga_context *context_handle = _getCurrentContext();
+	carma_context *context_handle = _getCurrentContext();
 	context_handle->set_activeDevice(handle->device);
 	if (handle->type == Y_FLOAT) {
-		yObjS *yoga_obj_handler = (yObjS *) (handle->yoga_object);
-		yoga_obj_handler->config_scan((char *) ("mult"), 1, 1);
-		ypush_double((double) yoga_obj_handler->scan());
+		caObjS *carma_obj_handler = (caObjS *) (handle->carma_object);
+		carma_obj_handler->config_scan((char *) ("mult"), 1, 1);
+		ypush_double((double) carma_obj_handler->scan());
 	}
 	if (handle->type == Y_INT) {
-		yObjI *yoga_obj_handler = (yObjI *) (handle->yoga_object);
-		yoga_obj_handler->config_scan((char *) ("mult"), 1, 1);
-		ypush_int(yoga_obj_handler->scan());
+		caObjI *carma_obj_handler = (caObjI *) (handle->carma_object);
+		carma_obj_handler->config_scan((char *) ("mult"), 1, 1);
+		ypush_int(carma_obj_handler->scan());
 	}
 	if (handle->type == Y_DOUBLE) {
 		throw "Double not supported";
@@ -2088,17 +2088,17 @@ void Y_yoga_add(int argc)
  */
 {
 	yObj_struct *handle = (yObj_struct *) yget_obj(argc - 1, &yObj);
-	yoga_context *context_handle = _getCurrentContext();
+	carma_context *context_handle = _getCurrentContext();
 	context_handle->set_activeDevice(handle->device);
 	if (handle->type == Y_FLOAT) {
-		yObjS *yoga_obj_handler = (yObjS *) (handle->yoga_object);
-		yoga_obj_handler->config_scan((char *) ("add"), 1, 1);
-		ypush_double((double) yoga_obj_handler->scan());
+		caObjS *carma_obj_handler = (caObjS *) (handle->carma_object);
+		carma_obj_handler->config_scan((char *) ("add"), 1, 1);
+		ypush_double((double) carma_obj_handler->scan());
 	}
 	if (handle->type == Y_INT) {
-		yObjI *yoga_obj_handler = (yObjI *) (handle->yoga_object);
-		yoga_obj_handler->config_scan((char *) ("add"), 1, 1);
-		ypush_int(yoga_obj_handler->scan());
+		caObjI *carma_obj_handler = (caObjI *) (handle->carma_object);
+		carma_obj_handler->config_scan((char *) ("add"), 1, 1);
+		ypush_int(carma_obj_handler->scan());
 	}
 	if (handle->type == Y_DOUBLE) {
 		throw "Double not supported";
@@ -2125,9 +2125,9 @@ void Y_yoga_sort(int argc)
 	if (yarg_subroutine()) {
 		bool keysOnly;
 		void *val_handle = NULL;
-		void *yoga_val_handler = NULL;
+		void *carma_val_handler = NULL;
 		yObj_struct *handle = (yObj_struct *) yget_obj(argc - 1, &yObj);
-		yoga_context *context_handle = _getCurrentContext();
+		carma_context *context_handle = _getCurrentContext();
 		context_handle->set_activeDeviceForCpy(handle->device);
 		if (handle->type == Y_FLOAT) {
 			if (argc > 1) {
@@ -2137,19 +2137,19 @@ void Y_yoga_sort(int argc)
 				keysOnly = false;
 			} else
 				keysOnly = true;
-			yObjS *yoga_obj_handler = (yObjS *) (handle->yoga_object);
+			caObjS *carma_obj_handler = (caObjS *) (handle->carma_object);
 			if (!keysOnly) {
-				yoga_val_handler =
-						(yObjUI *) (((yObj_struct *) val_handle)->yoga_object);
-				yoga_obj_handler->device2deviceInd(
-						((yObjUI *) yoga_val_handler)->getData());
+				carma_val_handler =
+						(caObjUI *) (((yObj_struct *) val_handle)->carma_object);
+				carma_obj_handler->device2deviceInd(
+						((caObjUI *) carma_val_handler)->getData());
 			}
-			yoga_obj_handler->sort_init(keysOnly);
-			yoga_obj_handler->sort();
+			carma_obj_handler->sort_init(keysOnly);
+			carma_obj_handler->sort();
 			if (!keysOnly) {
-				cudaMemcpy(((yObjUI *) yoga_val_handler)->getData(),
-						((yObjS *) yoga_obj_handler)->getValues(),
-						((yObjS *) yoga_obj_handler)->getNbElem()
+				cudaMemcpy(((caObjUI *) carma_val_handler)->getData(),
+						((caObjS *) carma_obj_handler)->getValues(),
+						((caObjS *) carma_obj_handler)->getNbElem()
 								* sizeof(unsigned int),
 						cudaMemcpyDeviceToDevice);
 			}
@@ -2159,24 +2159,24 @@ void Y_yoga_sort(int argc)
 	} else {
 		// called as a function : we need to create an object
 		yObj_struct *handle = (yObj_struct *) yget_obj(argc - 1, &yObj);
-		yoga_context *context_handle = _getCurrentContext();
+		carma_context *context_handle = _getCurrentContext();
 		context_handle->set_activeDevice(handle->device);
 		yObj_struct *val_handle = (yObj_struct *) ypush_obj(&yObj,
 				sizeof(yObj_struct));
 		((yObj_struct *) val_handle)->device = handle->device;
-		void *yoga_val_handler;
+		void *carma_val_handler;
 		val_handle->type = Y_SHORT;
 		if (handle->type == Y_FLOAT) {
-			yObjS *yoga_obj_handler = (yObjS *) (handle->yoga_object);
-			val_handle->yoga_object = new yObjUI(context_handle,
-					yoga_obj_handler->getDims());
-			yoga_val_handler =
-					(yObjUI *) (((yObj_struct *) val_handle)->yoga_object);
-			yoga_obj_handler->sort_init(false);
-			yoga_obj_handler->sort();
-			cudaMemcpy(((yObjUI *) yoga_val_handler)->getData(),
-					((yObjS *) yoga_obj_handler)->getValues(),
-					((yObjS *) yoga_obj_handler)->getNbElem()
+			caObjS *carma_obj_handler = (caObjS *) (handle->carma_object);
+			val_handle->carma_object = new caObjUI(context_handle,
+					carma_obj_handler->getDims());
+			carma_val_handler =
+					(caObjUI *) (((yObj_struct *) val_handle)->carma_object);
+			carma_obj_handler->sort_init(false);
+			carma_obj_handler->sort();
+			cudaMemcpy(((caObjUI *) carma_val_handler)->getData(),
+					((caObjS *) carma_obj_handler)->getValues(),
+					((caObjS *) carma_obj_handler)->getNbElem()
 							* sizeof(unsigned int), cudaMemcpyDeviceToDevice);
 		} else if (handle->type == Y_DOUBLE) {
 			throw "Double not supported";
@@ -2218,7 +2218,7 @@ void Y_yoga_compact(int argc)
 		if (handle_src->device != handle_dest->device)
 			y_error("src & dest for compact should be on same device");
 
-		yoga_context *context_handle = _getCurrentContext();
+		carma_context *context_handle = _getCurrentContext();
 		context_handle->set_activeDeviceForCpy(handle_src->device);
 
 		int yType;
@@ -2228,70 +2228,70 @@ void Y_yoga_compact(int argc)
 		if (argc > 2) {
 			yType = yarg_typeid(argc - 3);
 			if (handle_dest->type == Y_FLOAT) {
-				yObjS *yoga_src_handler = (yObjS *) (handle_src->yoga_object);
-				yObjS *yoga_dest_handler = (yObjS *) (handle_dest->yoga_object);
+				caObjS *carma_src_handler = (caObjS *) (handle_src->carma_object);
+				caObjS *carma_dest_handler = (caObjS *) (handle_dest->carma_object);
 
 				// check if sort_on on src. if not initialize values (needed)
-				unsigned int *values = yoga_src_handler->getValues();
+				unsigned int *values = carma_src_handler->getValues();
 				// check if sort_on on src. if not initialize values (needed)
 				if (values == NULL) {
 					cutilSafeCall(
-							cudaMalloc((void **)&values,yoga_src_handler->getNbElem() * sizeof(unsigned int)));
+							cudaMalloc((void **)&values,carma_src_handler->getNbElem() * sizeof(unsigned int)));
 				}
 				cutilSafeCall(
-						cudaMemset(values, 0, sizeof(unsigned int)*yoga_src_handler->getNbElem()));
+						cudaMemset(values, 0, sizeof(unsigned int)*carma_src_handler->getNbElem()));
 
 				if (yType == Y_OPAQUE) {
-					// the user gave a yoga_obj as an array of valids
+					// the user gave a carma_obj as an array of valids
 					yObj_struct *handle_valids = (yObj_struct *) yget_obj(
 							argc - 3, &yObj);
 					if (handle_valids->device != handle_dest->device)
 						y_error(
 								"valids & dest for compact should be on same device");
-					yObjUI *yoga_valids_handler =
-							(yObjUI *) (handle_valids->yoga_object);
-					nb_valids = (long) yoga_valids_handler->getNbElem();
-					if (nb_valids != yoga_src_handler->getNbElem()) {
-						fillvalues(yoga_src_handler->getValues(),
-								yoga_valids_handler->getData(),
-								yoga_valids_handler->getNbElem());
+					caObjUI *carma_valids_handler =
+							(caObjUI *) (handle_valids->carma_object);
+					nb_valids = (long) carma_valids_handler->getNbElem();
+					if (nb_valids != carma_src_handler->getNbElem()) {
+						fillvalues(carma_src_handler->getValues(),
+								carma_valids_handler->getData(),
+								carma_valids_handler->getNbElem());
 					} else {
 						cutilSafeCall(
-								cudaMemcpy(yoga_src_handler->getValues(), yoga_valids_handler->getData(), yoga_src_handler->getNbElem() * sizeof(unsigned int), cudaMemcpyDeviceToDevice));
+								cudaMemcpy(carma_src_handler->getValues(), carma_valids_handler->getData(), carma_src_handler->getNbElem() * sizeof(unsigned int), cudaMemcpyDeviceToDevice));
 					}
 				} else {
 					// the user gave a yorick array as an array of valids
 					long dims[Y_DIMSIZE];
 					isValid = (unsigned int *) ygeta_i(argc - 3, &nb_valids,
 							dims);
-					if (nb_valids != yoga_src_handler->getNbElem()) {
+					if (nb_valids != carma_src_handler->getNbElem()) {
 						unsigned int *d_valids;
 						cutilSafeCall(
 								cudaMalloc((void **)&d_valids,nb_valids * sizeof(unsigned int)));
 						cudaMemcpy(d_valids, isValid,
 								nb_valids * sizeof(unsigned int),
 								cudaMemcpyHostToDevice);
-						fillvalues(yoga_src_handler->getValues(), d_valids,
+						fillvalues(carma_src_handler->getValues(), d_valids,
 								nb_valids);
 						cudaFree(d_valids);
 					} else {
-						cudaMemcpy(yoga_src_handler->getValues(), isValid,
-								yoga_src_handler->getNbElem()
+						cudaMemcpy(carma_src_handler->getValues(), isValid,
+								carma_src_handler->getNbElem()
 										* sizeof(unsigned int),
 								cudaMemcpyDeviceToDevice);
 					}
 				}
-				yoga_src_handler->compact_init();
-				yoga_src_handler->compact(yoga_dest_handler);
+				carma_src_handler->compact_init();
+				carma_src_handler->compact(carma_dest_handler);
 			} else if (handle_src->type == Y_DOUBLE) {
 				throw "Double not supported";
 			}
 		} else {
 			//we assume everything is already set we just compact
 			if (handle_dest->type == Y_FLOAT) {
-				yObjS *yoga_src_handler = (yObjS *) (handle_src->yoga_object);
-				yObjS *yoga_dest_handler = (yObjS *) (handle_dest->yoga_object);
-				yoga_src_handler->compact(yoga_dest_handler);
+				caObjS *carma_src_handler = (caObjS *) (handle_src->carma_object);
+				caObjS *carma_dest_handler = (caObjS *) (handle_dest->carma_object);
+				carma_src_handler->compact(carma_dest_handler);
 			} else if (handle_src->type == Y_DOUBLE) {
 				throw "Double not supported";
 			}
@@ -2300,37 +2300,37 @@ void Y_yoga_compact(int argc)
 		// called as a function : we need to create an object
 		yObj_struct *handle_src = (yObj_struct *) yget_obj(argc - 1,
 				&yObj);
-		yoga_context *context_handle = _getCurrentContext();
+		carma_context *context_handle = _getCurrentContext();
 		context_handle->set_activeDevice(handle_src->device);
 		int yType = yarg_typeid(argc - 2);
 		unsigned int *isValid;
 		long int nb_valids;
 		if (handle_src->type == Y_FLOAT) {
-			yObjS *yoga_src_handler = (yObjS *) (handle_src->yoga_object);
+			caObjS *carma_src_handler = (caObjS *) (handle_src->carma_object);
 
-			unsigned int *values = yoga_src_handler->getValues();
+			unsigned int *values = carma_src_handler->getValues();
 			// check if sort_on on src. if not initialize values (needed)
 			if (values == NULL) {
 				cutilSafeCall(
-						cudaMalloc((void **)&values,yoga_src_handler->getNbElem() * sizeof(unsigned int)));
+						cudaMalloc((void **)&values,carma_src_handler->getNbElem() * sizeof(unsigned int)));
 			}
 			cutilSafeCall(
-					cudaMemset(values, 0, sizeof(unsigned int)*yoga_src_handler->getNbElem()));
+					cudaMemset(values, 0, sizeof(unsigned int)*carma_src_handler->getNbElem()));
 
 			if (yType == Y_OPAQUE) {
-				// the user gave a yoga_obj as an array of valids
+				// the user gave a carma_obj as an array of valids
 				yObj_struct *handle_valids = (yObj_struct *) yget_obj(argc - 2,
 						&yObj);
-				yObjUI *yoga_valids_handler =
-						(yObjUI *) (handle_valids->yoga_object);
+				caObjUI *carma_valids_handler =
+						(caObjUI *) (handle_valids->carma_object);
 				if (handle_valids->device != handle_src->device)
 					y_error(
 							"valids & src for compact should be on same device");
-				nb_valids = yoga_valids_handler->getNbElem();
-				if (nb_valids != yoga_src_handler->getNbElem()) {
-					fillvalues(yoga_src_handler->getValues(),
-							yoga_valids_handler->getData(),
-							yoga_valids_handler->getNbElem());
+				nb_valids = carma_valids_handler->getNbElem();
+				if (nb_valids != carma_src_handler->getNbElem()) {
+					fillvalues(carma_src_handler->getValues(),
+							carma_valids_handler->getData(),
+							carma_valids_handler->getNbElem());
 				} else {
 					throw "operation not supported";
 				}
@@ -2338,14 +2338,14 @@ void Y_yoga_compact(int argc)
 				// the user gave a yorick array as an array of valids
 				long dims[Y_DIMSIZE];
 				isValid = (unsigned int *) ygeta_i(argc - 2, &nb_valids, dims);
-				if (nb_valids != yoga_src_handler->getNbElem()) {
+				if (nb_valids != carma_src_handler->getNbElem()) {
 					unsigned int *d_valids;
 					cutilSafeCall(
 							cudaMalloc((void **)&d_valids,nb_valids * sizeof(unsigned int)));
 					cudaMemcpy(d_valids, isValid,
 							nb_valids * sizeof(unsigned int),
 							cudaMemcpyHostToDevice);
-					fillvalues(yoga_src_handler->getValues(), d_valids,
+					fillvalues(carma_src_handler->getValues(), d_valids,
 							nb_valids);
 					cudaFree(d_valids);
 				} else {
@@ -2359,10 +2359,10 @@ void Y_yoga_compact(int argc)
 					sizeof(yObj_struct));
 			handle_dest->device = handle_src->device;
 			handle_dest->type = Y_FLOAT;
-			handle_dest->yoga_object = new yObjS(context_handle, dims_data);
-			yObjS * yoga_dest_handler = (yObjS *) (handle_dest->yoga_object);
-			yoga_src_handler->compact_init();
-			yoga_src_handler->compact(yoga_dest_handler);
+			handle_dest->carma_object = new caObjS(context_handle, dims_data);
+			caObjS * carma_dest_handler = (caObjS *) (handle_dest->carma_object);
+			carma_src_handler->compact_init();
+			carma_src_handler->compact(carma_dest_handler);
 		} else if (handle_src->type == Y_DOUBLE) {
 			throw "Double not supported";
 		}
@@ -2405,7 +2405,7 @@ void Y_yoga_fftconv(int argc)
 				|| (handle_res->device != handle_pdata->device)
 				|| (handle_res->device != handle_pspec->device))
 			y_error("fftconv only on the same device");
-		yoga_context *context_handle = _getCurrentContext();
+		carma_context *context_handle = _getCurrentContext();
 		context_handle->set_activeDevice(handle_res->device);
 		int kernelY = ygets_i(argc-6);
 		int kernelX = ygets_i(argc-7);
@@ -2414,16 +2414,16 @@ void Y_yoga_fftconv(int argc)
 				&& (handle_ker->type == Y_FLOAT)
 				&& (handle_pdata->type == Y_FLOAT)
 				&& (handle_pspec->type == Y_SCOMPLEX)) {
-			yObjS *yoga_res_handler = (yObjS *) (handle_res->yoga_object);
-			yObjS *yoga_im_handler = (yObjS *) (handle_im->yoga_object);
-			yObjS *yoga_ker_handler = (yObjS *) (handle_ker->yoga_object);
-			yObjS *yoga_pdata_handler = (yObjS *) (handle_pdata->yoga_object);
-			yObjC *yoga_pspec_handler = (yObjC *) (handle_pspec->yoga_object);
-			yoga_initfftconv(yoga_im_handler, yoga_ker_handler,
-					yoga_pdata_handler, yoga_pspec_handler, kernelY, kernelX);
+			caObjS *carma_res_handler = (caObjS *) (handle_res->carma_object);
+			caObjS *carma_im_handler = (caObjS *) (handle_im->carma_object);
+			caObjS *carma_ker_handler = (caObjS *) (handle_ker->carma_object);
+			caObjS *carma_pdata_handler = (caObjS *) (handle_pdata->carma_object);
+			caObjC *carma_pspec_handler = (caObjC *) (handle_pspec->carma_object);
+			carma_initfftconv(carma_im_handler, carma_ker_handler,
+					carma_pdata_handler, carma_pspec_handler, kernelY, kernelX);
 
-			yoga_fftconv(yoga_res_handler, yoga_pdata_handler,
-					yoga_pspec_handler, kernelY, kernelX);
+			carma_fftconv(carma_res_handler, carma_pdata_handler,
+					carma_pspec_handler, kernelY, kernelX);
 		} else
 			throw "args must be float float float float scomplex";
 	}
@@ -2447,42 +2447,42 @@ void Y_yoga_fftconv_init(int argc)
 				&yObj);
 		if (handle_im->device != handle_ker->device)
 			y_error("fftconv only on the same device");
-		yoga_context *context_handle = _getCurrentContext();
+		carma_context *context_handle = _getCurrentContext();
 		context_handle->set_activeDevice(handle_im->device);
 		char *type_data = ygets_q(argc - 3);
-		yObjS *yoga_im_handler = (yObjS *) (handle_im->yoga_object);
-		yObjS *yoga_ker_handler = (yObjS *) (handle_ker->yoga_object);
+		caObjS *carma_im_handler = (caObjS *) (handle_im->carma_object);
+		caObjS *carma_ker_handler = (caObjS *) (handle_ker->carma_object);
 		yObj_struct *handle_dest = (yObj_struct *) ypush_obj(&yObj,
 				sizeof(yObj_struct));
 		handle_dest->device = handle_im->device;
 
-		const int dataH = yoga_im_handler->getDims(1);
-		const int dataW = yoga_im_handler->getDims(2);
-		const int kernelH = yoga_ker_handler->getDims(1);
-		const int kernelW = yoga_ker_handler->getDims(2);
+		const int dataH = carma_im_handler->getDims(1);
+		const int dataW = carma_im_handler->getDims(2);
+		const int kernelH = carma_ker_handler->getDims(1);
+		const int kernelW = carma_ker_handler->getDims(2);
 
 		const int fftH = snapTransformSize(dataH + kernelH - 1);
 		const int fftW = snapTransformSize(dataW + kernelW - 1);
 
-		long dims_data[yoga_im_handler->getDims(0) + 1];
-		dims_data[0] = yoga_im_handler->getDims(0);
+		long dims_data[carma_im_handler->getDims(0) + 1];
+		dims_data[0] = carma_im_handler->getDims(0);
 
 		if (strcmp(type_data, "real") == 0) {
 			dims_data[1] = fftH;
 			dims_data[2] = fftW;
-			if (yoga_im_handler->getDims(0) > 2)
-				dims_data[3] = yoga_im_handler->getDims(3);
+			if (carma_im_handler->getDims(0) > 2)
+				dims_data[3] = carma_im_handler->getDims(3);
 			handle_dest->type = Y_FLOAT;
 			handle_dest->device = handle_im->device;
-			handle_dest->yoga_object = new yObjS(context_handle, dims_data);
+			handle_dest->carma_object = new caObjS(context_handle, dims_data);
 		} else if (strcmp(type_data, "complex") == 0) {
 			dims_data[1] = fftH;
 			dims_data[2] = fftW / 2 + 1;
-			if (yoga_im_handler->getDims(0) > 2)
-				dims_data[3] = yoga_im_handler->getDims(3);
+			if (carma_im_handler->getDims(0) > 2)
+				dims_data[3] = carma_im_handler->getDims(3);
 			handle_dest->type = Y_SCOMPLEX;
 			handle_dest->device = handle_im->device;
-			handle_dest->yoga_object = new yObjC(context_handle, dims_data);
+			handle_dest->carma_object = new caObjC(context_handle, dims_data);
 		} else
 			throw "fftconv ws type not supported";
 	}
@@ -2505,29 +2505,29 @@ void yHostObj_free(void *obj)
 	yHostObj_struct *handler = (yHostObj_struct *) obj;
 	try {
 		if (handler->type == Y_FLOAT) {
-			yoga_host_obj<float> *yoga_host_obj_handler =
-					(yoga_host_obj<float> *) (handler->yoga_host_object);
-			delete yoga_host_obj_handler;
+			carma_host_obj<float> *carma_host_obj_handler =
+					(carma_host_obj<float> *) (handler->carma_host_object);
+			delete carma_host_obj_handler;
 		} else if (handler->type == Y_DOUBLE) {
-			yoga_host_obj<double> *yoga_host_obj_handler =
-					(yoga_host_obj<double> *) (handler->yoga_host_object);
-			delete yoga_host_obj_handler;
+			carma_host_obj<double> *carma_host_obj_handler =
+					(carma_host_obj<double> *) (handler->carma_host_object);
+			delete carma_host_obj_handler;
 		} else if (handler->type == Y_INT) {
-			yoga_host_obj<int> *yoga_host_obj_handler =
-					(yoga_host_obj<int> *) (handler->yoga_host_object);
-			delete yoga_host_obj_handler;
+			carma_host_obj<int> *carma_host_obj_handler =
+					(carma_host_obj<int> *) (handler->carma_host_object);
+			delete carma_host_obj_handler;
 		} else if (handler->type == Y_SHORT) {
-			yoga_host_obj<unsigned int> *yoga_host_obj_handler = (yoga_host_obj<
-					unsigned int> *) (handler->yoga_host_object);
-			delete yoga_host_obj_handler;
+			carma_host_obj<unsigned int> *carma_host_obj_handler = (carma_host_obj<
+					unsigned int> *) (handler->carma_host_object);
+			delete carma_host_obj_handler;
 		} else if (handler->type == Y_COMPLEX) {
-			yoga_host_obj<cuFloatComplex> *yoga_host_obj_handler =
-					(yoga_host_obj<cuFloatComplex> *) (handler->yoga_host_object);
-			delete yoga_host_obj_handler;
+			carma_host_obj<cuFloatComplex> *carma_host_obj_handler =
+					(carma_host_obj<cuFloatComplex> *) (handler->carma_host_object);
+			delete carma_host_obj_handler;
 		} else if (handler->type == Y_SCOMPLEX) {
-			yoga_host_obj<cuDoubleComplex> *yoga_host_obj_handler =
-					(yoga_host_obj<cuDoubleComplex> *) (handler->yoga_host_object);
-			delete yoga_host_obj_handler;
+			carma_host_obj<cuDoubleComplex> *carma_host_obj_handler =
+					(carma_host_obj<cuDoubleComplex> *) (handler->carma_host_object);
+			delete carma_host_obj_handler;
 		} else
 			throw "Type unknown";
 		handler->type = Y_VOID;
@@ -2547,98 +2547,98 @@ void yHostObj_print(void *obj)
 	yHostObj_struct *handler = (yHostObj_struct *) obj;
 	try {
 		if (handler->type == Y_FLOAT) {
-			yoga_host_obj<float> *yoga_host_obj_handler =
-					(yoga_host_obj<float> *) (handler->yoga_host_object);
-			mystr << "Yoga Host Object: " << endl;
+			carma_host_obj<float> *carma_host_obj_handler =
+					(carma_host_obj<float> *) (handler->carma_host_object);
+			mystr << "Carma Host Object: " << endl;
 			mystr << "  type: float";
 			y_print(mystr.str().c_str(), 1);
 			mystr.str("");
-			mystr << "  Allocation: " << yoga_host_obj_handler->getMetAlloc()
+			mystr << "  Allocation: " << carma_host_obj_handler->getMetAlloc()
 					<< endl;
-			mystr << "  nb streams: " << yoga_host_obj_handler->get_nbStreams();
+			mystr << "  nb streams: " << carma_host_obj_handler->get_nbStreams();
 			y_print(mystr.str().c_str(), 1);
 			mystr.str("");
-			long *dims = yoga_host_obj_handler->getDims();
+			long *dims = carma_host_obj_handler->getDims();
 			mystr << "  Dims: " << dims[1];
 			for (int i = 2; i <= dims[0]; i++)
 				mystr << "x" << dims[i];
 		} else if (handler->type == Y_DOUBLE) {
-			yoga_host_obj<double> *yoga_host_obj_handler =
-					(yoga_host_obj<double> *) (handler->yoga_host_object);
-			mystr << "Yoga Host Object : " << endl;
+			carma_host_obj<double> *carma_host_obj_handler =
+					(carma_host_obj<double> *) (handler->carma_host_object);
+			mystr << "Carma Host Object : " << endl;
 			mystr << "Type : double";
 			y_print(mystr.str().c_str(), 1);
 			mystr.str("");
-			mystr << "Allocation : " << yoga_host_obj_handler->getMetAlloc()
+			mystr << "Allocation : " << carma_host_obj_handler->getMetAlloc()
 					<< endl;
-			mystr << "Nb streams : " << yoga_host_obj_handler->get_nbStreams();
+			mystr << "Nb streams : " << carma_host_obj_handler->get_nbStreams();
 			y_print(mystr.str().c_str(), 1);
 			mystr.str("");
-			long *dims = yoga_host_obj_handler->getDims();
+			long *dims = carma_host_obj_handler->getDims();
 			mystr << "Dims : " << dims[1];
 			for (int i = 2; i <= dims[0]; i++)
 				mystr << "x" << dims[i];
 		} else if (handler->type == Y_INT) {
-			yoga_host_obj<int> *yoga_host_obj_handler =
-					(yoga_host_obj<int> *) (handler->yoga_host_object);
-			mystr << "Yoga Host Object : " << endl;
+			carma_host_obj<int> *carma_host_obj_handler =
+					(carma_host_obj<int> *) (handler->carma_host_object);
+			mystr << "Carma Host Object : " << endl;
 			mystr << "Type : int";
 			y_print(mystr.str().c_str(), 1);
 			mystr.str("");
-			mystr << "Allocation : " << yoga_host_obj_handler->getMetAlloc()
+			mystr << "Allocation : " << carma_host_obj_handler->getMetAlloc()
 					<< endl;
-			mystr << "Nb streams : " << yoga_host_obj_handler->get_nbStreams();
+			mystr << "Nb streams : " << carma_host_obj_handler->get_nbStreams();
 			y_print(mystr.str().c_str(), 1);
 			mystr.str("");
-			long *dims = yoga_host_obj_handler->getDims();
+			long *dims = carma_host_obj_handler->getDims();
 			mystr << "Dims : " << dims[1];
 			for (int i = 2; i <= dims[0]; i++)
 				mystr << "x" << dims[i];
 		} else if (handler->type == Y_SHORT) {
-			yoga_host_obj<unsigned int> *yoga_host_obj_handler = (yoga_host_obj<
-					unsigned int> *) (handler->yoga_host_object);
-			mystr << "Yoga Host Object : " << endl;
+			carma_host_obj<unsigned int> *carma_host_obj_handler = (carma_host_obj<
+					unsigned int> *) (handler->carma_host_object);
+			mystr << "Carma Host Object : " << endl;
 			mystr << "Type : unsigned int";
 			y_print(mystr.str().c_str(), 1);
 			mystr.str("");
-			mystr << "Allocation : " << yoga_host_obj_handler->getMetAlloc()
+			mystr << "Allocation : " << carma_host_obj_handler->getMetAlloc()
 					<< endl;
-			mystr << "Nb streams : " << yoga_host_obj_handler->get_nbStreams();
+			mystr << "Nb streams : " << carma_host_obj_handler->get_nbStreams();
 			y_print(mystr.str().c_str(), 1);
 			mystr.str("");
-			long *dims = yoga_host_obj_handler->getDims();
+			long *dims = carma_host_obj_handler->getDims();
 			mystr << "Dims : " << dims[1];
 			for (int i = 2; i <= dims[0]; i++)
 				mystr << "x" << dims[i];
 		} else if (handler->type == Y_COMPLEX) {
-			yoga_host_obj<cuDoubleComplex> *yoga_host_obj_handler =
-					(yoga_host_obj<cuDoubleComplex> *) (handler->yoga_host_object);
-			mystr << "Yoga Host Object : " << endl;
+			carma_host_obj<cuDoubleComplex> *carma_host_obj_handler =
+					(carma_host_obj<cuDoubleComplex> *) (handler->carma_host_object);
+			mystr << "Carma Host Object : " << endl;
 			mystr << "Type : double complex";
 			y_print(mystr.str().c_str(), 1);
 			mystr.str("");
-			mystr << "Allocation : " << yoga_host_obj_handler->getMetAlloc()
+			mystr << "Allocation : " << carma_host_obj_handler->getMetAlloc()
 					<< endl;
-			mystr << "Nb streams : " << yoga_host_obj_handler->get_nbStreams();
+			mystr << "Nb streams : " << carma_host_obj_handler->get_nbStreams();
 			y_print(mystr.str().c_str(), 1);
 			mystr.str("");
-			long *dims = yoga_host_obj_handler->getDims();
+			long *dims = carma_host_obj_handler->getDims();
 			mystr << "Dims : " << dims[1];
 			for (int i = 2; i <= dims[0]; i++)
 				mystr << "x" << dims[i];
 		} else if (handler->type == Y_SCOMPLEX) {
-			yoga_host_obj<cuDoubleComplex> *yoga_host_obj_handler =
-					(yoga_host_obj<cuDoubleComplex> *) (handler->yoga_host_object);
-			mystr << "Yoga Host Object : " << endl;
+			carma_host_obj<cuDoubleComplex> *carma_host_obj_handler =
+					(carma_host_obj<cuDoubleComplex> *) (handler->carma_host_object);
+			mystr << "Carma Host Object : " << endl;
 			mystr << "Type : simple complex";
 			y_print(mystr.str().c_str(), 1);
 			mystr.str("");
-			mystr << "Allocation : " << yoga_host_obj_handler->getMetAlloc()
+			mystr << "Allocation : " << carma_host_obj_handler->getMetAlloc()
 					<< endl;
-			mystr << "Nb streams : " << yoga_host_obj_handler->get_nbStreams();
+			mystr << "Nb streams : " << carma_host_obj_handler->get_nbStreams();
 			y_print(mystr.str().c_str(), 1);
 			mystr.str("");
-			long *dims = yoga_host_obj_handler->getDims();
+			long *dims = carma_host_obj_handler->getDims();
 			mystr << "Dims : " << dims[1];
 			for (int i = 2; i <= dims[0]; i++)
 				mystr << "x" << dims[i];
@@ -2660,42 +2660,42 @@ void yHostObj_eval(void *obj, int n)
 	yHostObj_struct *handler = (yHostObj_struct *) obj;
 	try {
 		if (handler->type == Y_FLOAT) {
-			yoga_host_obj<float> *yoga_host_obj_handler =
-					(yoga_host_obj<float> *) (handler->yoga_host_object);
-			float *data = ypush_f(yoga_host_obj_handler->getDims());
-			yoga_host_obj_handler->fill_into(data);
+			carma_host_obj<float> *carma_host_obj_handler =
+					(carma_host_obj<float> *) (handler->carma_host_object);
+			float *data = ypush_f(carma_host_obj_handler->getDims());
+			carma_host_obj_handler->fill_into(data);
 		} else if (handler->type == Y_DOUBLE) {
-			yoga_host_obj<double> *yoga_host_obj_handler =
-					(yoga_host_obj<double> *) (handler->yoga_host_object);
-			double *data = ypush_d(yoga_host_obj_handler->getDims());
-			yoga_host_obj_handler->fill_into(data);
+			carma_host_obj<double> *carma_host_obj_handler =
+					(carma_host_obj<double> *) (handler->carma_host_object);
+			double *data = ypush_d(carma_host_obj_handler->getDims());
+			carma_host_obj_handler->fill_into(data);
 		} else if (handler->type == Y_INT) {
-			yoga_host_obj<int> *yoga_host_obj_handler =
-					(yoga_host_obj<int> *) (handler->yoga_host_object);
-			int *data = ypush_i(yoga_host_obj_handler->getDims());
-			yoga_host_obj_handler->fill_into(data);
+			carma_host_obj<int> *carma_host_obj_handler =
+					(carma_host_obj<int> *) (handler->carma_host_object);
+			int *data = ypush_i(carma_host_obj_handler->getDims());
+			carma_host_obj_handler->fill_into(data);
 		} else if (handler->type == Y_SHORT) {
-			yoga_host_obj<unsigned int> *yoga_host_obj_handler = (yoga_host_obj<
-					unsigned int> *) (handler->yoga_host_object);
+			carma_host_obj<unsigned int> *carma_host_obj_handler = (carma_host_obj<
+					unsigned int> *) (handler->carma_host_object);
 			unsigned int *data = (unsigned int *) ypush_i(
-					yoga_host_obj_handler->getDims());
-			yoga_host_obj_handler->fill_into(data);
+					carma_host_obj_handler->getDims());
+			carma_host_obj_handler->fill_into(data);
 		} else if (handler->type == Y_COMPLEX) {
-			yoga_host_obj<cuDoubleComplex> *yoga_host_obj_handler =
-					(yoga_host_obj<cuDoubleComplex> *) (handler->yoga_host_object);
+			carma_host_obj<cuDoubleComplex> *carma_host_obj_handler =
+					(carma_host_obj<cuDoubleComplex> *) (handler->carma_host_object);
 			cuDoubleComplex *data = (cuDoubleComplex *) ypush_z(
-					yoga_host_obj_handler->getDims());
-			yoga_host_obj_handler->fill_into(data);
+					carma_host_obj_handler->getDims());
+			carma_host_obj_handler->fill_into(data);
 		} else if (handler->type == Y_SCOMPLEX) {
-			yoga_host_obj<cuComplex> *yoga_host_obj_handler = (yoga_host_obj<
-					cuComplex> *) (handler->yoga_host_object);
-			long * ndims_obj = yoga_host_obj_handler->getDims();
+			carma_host_obj<cuComplex> *carma_host_obj_handler = (carma_host_obj<
+					cuComplex> *) (handler->carma_host_object);
+			long * ndims_obj = carma_host_obj_handler->getDims();
 			long * ndims_data = new long[ndims_obj[0] + 2];
 			ndims_data[0] = ndims_obj[0] + 1;
 			ndims_data[1] = 2;
 			memcpy(&ndims_data[2], &ndims_obj[1], sizeof(long) * ndims_obj[0]);
 			float *data = (float *) ypush_f(ndims_data);
-			yoga_host_obj_handler->fill_into((float2*) data);
+			carma_host_obj_handler->fill_into((float2*) data);
 			delete ndims_data;
 		} else
 			throw "Type unknown";
@@ -2745,7 +2745,7 @@ void Y_yoga_host_obj(int argc)
 			if (parg < 4)
 				piargs[parg++] = iarg--;
 			else
-				y_error("yoga_host_obj takes at most 4 positional arguments");
+				y_error("carma_host_obj takes at most 4 positional arguments");
 		}
 	};
 	MemAlloc mallocType = MA_MALLOC;
@@ -2790,30 +2790,30 @@ void Y_yoga_host_obj(int argc)
 					&yHostObj, sizeof(yHostObj_struct));
 			handle->type = handle_obj->type;
 			if (handle->type == Y_FLOAT) {
-				yoga_host_obj<float> *yoga_host_obj_handler = (yoga_host_obj<
-						float> *) (handle_obj->yoga_host_object);
-				handle->yoga_host_object = new yoga_host_obj<float>(
-						yoga_host_obj_handler, mallocType);
+				carma_host_obj<float> *carma_host_obj_handler = (carma_host_obj<
+						float> *) (handle_obj->carma_host_object);
+				handle->carma_host_object = new carma_host_obj<float>(
+						carma_host_obj_handler, mallocType);
 			} else if (handle->type == Y_DOUBLE) {
-				yoga_host_obj<double> *yoga_host_obj_handler = (yoga_host_obj<
-						double> *) (handle_obj->yoga_host_object);
-				handle->yoga_host_object = new yoga_host_obj<double>(
-						yoga_host_obj_handler, mallocType);
+				carma_host_obj<double> *carma_host_obj_handler = (carma_host_obj<
+						double> *) (handle_obj->carma_host_object);
+				handle->carma_host_object = new carma_host_obj<double>(
+						carma_host_obj_handler, mallocType);
 			} else if (handle->type == Y_INT) {
-				yoga_host_obj<int> *yoga_host_obj_handler =
-						(yoga_host_obj<int> *) (handle_obj->yoga_host_object);
-				handle->yoga_host_object = new yoga_host_obj<int>(
-						yoga_host_obj_handler, mallocType);
+				carma_host_obj<int> *carma_host_obj_handler =
+						(carma_host_obj<int> *) (handle_obj->carma_host_object);
+				handle->carma_host_object = new carma_host_obj<int>(
+						carma_host_obj_handler, mallocType);
 			} else if (handle->type == Y_COMPLEX) {
-				yoga_host_obj<cuDoubleComplex> *yoga_host_obj_handler =
-						(yoga_host_obj<cuDoubleComplex> *) (handle_obj->yoga_host_object);
-				handle->yoga_host_object = new yoga_host_obj<cuDoubleComplex>(
-						yoga_host_obj_handler, mallocType);
+				carma_host_obj<cuDoubleComplex> *carma_host_obj_handler =
+						(carma_host_obj<cuDoubleComplex> *) (handle_obj->carma_host_object);
+				handle->carma_host_object = new carma_host_obj<cuDoubleComplex>(
+						carma_host_obj_handler, mallocType);
 			} else if (handle->type == Y_SCOMPLEX) {
-				yoga_host_obj<cuFloatComplex> *yoga_host_obj_handler =
-						(yoga_host_obj<cuFloatComplex> *) (handle_obj->yoga_host_object);
-				handle->yoga_host_object = new yoga_host_obj<cuFloatComplex>(
-						yoga_host_obj_handler, mallocType);
+				carma_host_obj<cuFloatComplex> *carma_host_obj_handler =
+						(carma_host_obj<cuFloatComplex> *) (handle_obj->carma_host_object);
+				handle->carma_host_object = new carma_host_obj<cuFloatComplex>(
+						carma_host_obj_handler, mallocType);
 			}
 		} else { // Standard constructor
 
@@ -2844,50 +2844,50 @@ void Y_yoga_host_obj(int argc)
 
 			if (oType == Y_FLOAT) {
 				if (yType == Y_STRING) { // based on the input type and dimensions array
-					handle->yoga_host_object = new yoga_host_obj<float>(
+					handle->carma_host_object = new carma_host_obj<float>(
 							(long*) data_input, mallocType);
 				} else { // based on the input array
-					handle->yoga_host_object = new yoga_host_obj<float>(dims,
+					handle->carma_host_object = new carma_host_obj<float>(dims,
 							(float*) data_input, mallocType);
 				}
 			} else if (oType == Y_DOUBLE) {
 				if (yType == Y_STRING) {
-					handle->yoga_host_object = new yoga_host_obj<double>(
+					handle->carma_host_object = new carma_host_obj<double>(
 							(long*) data_input, mallocType);
 				} else {
-					handle->yoga_host_object = new yoga_host_obj<double>(dims,
+					handle->carma_host_object = new carma_host_obj<double>(dims,
 							(double*) data_input, mallocType);
 				}
 			} else if (oType == Y_INT) {
 				if (yType == Y_STRING) {
-					handle->yoga_host_object = new yoga_host_obj<int>(
+					handle->carma_host_object = new carma_host_obj<int>(
 							(long*) data_input, mallocType);
 				} else {
-					handle->yoga_host_object = new yoga_host_obj<int>(dims,
+					handle->carma_host_object = new carma_host_obj<int>(dims,
 							(int*) data_input, mallocType);
 				}
 			} else if (oType == Y_SHORT) {
 				if (yType == Y_STRING) {
-					handle->yoga_host_object = new yoga_host_obj<unsigned int>(
+					handle->carma_host_object = new carma_host_obj<unsigned int>(
 							(long*) data_input, mallocType);
 				} else {
-					handle->yoga_host_object = new yoga_host_obj<unsigned int>(
+					handle->carma_host_object = new carma_host_obj<unsigned int>(
 							dims, (uint*) data_input, mallocType);
 				}
 			} else if (oType == Y_COMPLEX) {
 				if (yType == Y_STRING) {
-					handle->yoga_host_object =
-							new yoga_host_obj<cuDoubleComplex>(
+					handle->carma_host_object =
+							new carma_host_obj<cuDoubleComplex>(
 									(long*) data_input, mallocType);
 				} else {
-					handle->yoga_host_object =
-							new yoga_host_obj<cuDoubleComplex>(dims,
+					handle->carma_host_object =
+							new carma_host_obj<cuDoubleComplex>(dims,
 									(cuDoubleComplex*) data_input, mallocType);
 				}
 			} else if (oType == Y_SCOMPLEX) {
 				if (yType == Y_STRING) {
-					handle->yoga_host_object =
-							new yoga_host_obj<cuFloatComplex>(
+					handle->carma_host_object =
+							new carma_host_obj<cuFloatComplex>(
 									(long*) data_input, mallocType);
 				} else {
 					stringstream buf;
@@ -2926,8 +2926,8 @@ void Y_yoga_host_getp(int argc)
 	ypointer_t *ptr_handle = ypush_p(&a);
 	int type = handle->type;
 	if (type == Y_DOUBLE) {
-		yoga_host_obj<double>* test =
-				(yoga_host_obj<double>*) handle->yoga_host_object;
+		carma_host_obj<double>* test =
+				(carma_host_obj<double>*) handle->carma_host_object;
 		*ptr_handle = test->getData();
 	}
 }
@@ -2960,22 +2960,22 @@ void Y_yoga_svd(int argc)
 		yObj_struct *handle_VT = (yObj_struct *) yget_obj(argc - 4, &yObj);
 
 		if (handle_mat->type == Y_FLOAT) {
-			yObjS *yoga_obj_handler_mat = (yObjS *) (handle_mat->yoga_object);
-			yObjS *yoga_obj_handler_eigenvals =
-					(yObjS *) (handle_eigenvals->yoga_object);
-			yObjS *yoga_obj_handler_U = (yObjS *) (handle_U->yoga_object);
-			yObjS *yoga_obj_handler_VT = (yObjS *) (handle_VT->yoga_object);
-			yoga_svd(yoga_obj_handler_mat, yoga_obj_handler_eigenvals,
-					yoga_obj_handler_VT, yoga_obj_handler_U);
+			caObjS *carma_obj_handler_mat = (caObjS *) (handle_mat->carma_object);
+			caObjS *carma_obj_handler_eigenvals =
+					(caObjS *) (handle_eigenvals->carma_object);
+			caObjS *carma_obj_handler_U = (caObjS *) (handle_U->carma_object);
+			caObjS *carma_obj_handler_VT = (caObjS *) (handle_VT->carma_object);
+			carma_svd(carma_obj_handler_mat, carma_obj_handler_eigenvals,
+					carma_obj_handler_VT, carma_obj_handler_U);
 		}
 		if (handle_mat->type == Y_DOUBLE) {
-			yObjD *yoga_obj_handler_mat = (yObjD *) (handle_mat->yoga_object);
-			yObjD *yoga_obj_handler_eigenvals =
-					(yObjD *) (handle_eigenvals->yoga_object);
-			yObjD *yoga_obj_handler_U = (yObjD *) (handle_U->yoga_object);
-			yObjD *yoga_obj_handler_VT = (yObjD *) (handle_VT->yoga_object);
-			yoga_svd(yoga_obj_handler_mat, yoga_obj_handler_eigenvals,
-					yoga_obj_handler_VT, yoga_obj_handler_U);
+			caObjD *carma_obj_handler_mat = (caObjD *) (handle_mat->carma_object);
+			caObjD *carma_obj_handler_eigenvals =
+					(caObjD *) (handle_eigenvals->carma_object);
+			caObjD *carma_obj_handler_U = (caObjD *) (handle_U->carma_object);
+			caObjD *carma_obj_handler_VT = (caObjD *) (handle_VT->carma_object);
+			carma_svd(carma_obj_handler_mat, carma_obj_handler_eigenvals,
+					carma_obj_handler_VT, carma_obj_handler_U);
 		}
 	} else {
 	}
@@ -3002,36 +3002,36 @@ void Y_yoga_svd_host(int argc)
 				&yHostObj);
 
 		if (handle_mat->type == Y_FLOAT) {
-			yoga_host_obj<float> *yoga_obj_handler_mat =
-					(yoga_host_obj<float> *) (handle_mat->yoga_host_object);
+			carma_host_obj<float> *carma_obj_handler_mat =
+					(carma_host_obj<float> *) (handle_mat->carma_host_object);
 
-			yoga_host_obj<float> *yoga_obj_handler_eigenvals = (yoga_host_obj<
-					float> *) (handle_eigenvals->yoga_host_object);
+			carma_host_obj<float> *carma_obj_handler_eigenvals = (carma_host_obj<
+					float> *) (handle_eigenvals->carma_host_object);
 
-			yoga_host_obj<float> *yoga_obj_handler_U =
-					(yoga_host_obj<float> *) (handle_U->yoga_host_object);
+			carma_host_obj<float> *carma_obj_handler_U =
+					(carma_host_obj<float> *) (handle_U->carma_host_object);
 
-			yoga_host_obj<float> *yoga_obj_handler_VT =
-					(yoga_host_obj<float> *) (handle_VT->yoga_host_object);
+			carma_host_obj<float> *carma_obj_handler_VT =
+					(carma_host_obj<float> *) (handle_VT->carma_host_object);
 
-			yoga_svd(yoga_obj_handler_mat, yoga_obj_handler_eigenvals,
-					yoga_obj_handler_VT, yoga_obj_handler_U);
+			carma_svd(carma_obj_handler_mat, carma_obj_handler_eigenvals,
+					carma_obj_handler_VT, carma_obj_handler_U);
 		}
 		if (handle_mat->type == Y_DOUBLE) {
-			yoga_host_obj<double> *yoga_obj_handler_mat =
-					(yoga_host_obj<double> *) (handle_mat->yoga_host_object);
+			carma_host_obj<double> *carma_obj_handler_mat =
+					(carma_host_obj<double> *) (handle_mat->carma_host_object);
 
-			yoga_host_obj<double> *yoga_obj_handler_eigenvals = (yoga_host_obj<
-					double> *) (handle_eigenvals->yoga_host_object);
+			carma_host_obj<double> *carma_obj_handler_eigenvals = (carma_host_obj<
+					double> *) (handle_eigenvals->carma_host_object);
 
-			yoga_host_obj<double> *yoga_obj_handler_U =
-					(yoga_host_obj<double> *) (handle_U->yoga_host_object);
+			carma_host_obj<double> *carma_obj_handler_U =
+					(carma_host_obj<double> *) (handle_U->carma_host_object);
 
-			yoga_host_obj<double> *yoga_obj_handler_VT =
-					(yoga_host_obj<double> *) (handle_VT->yoga_host_object);
+			carma_host_obj<double> *carma_obj_handler_VT =
+					(carma_host_obj<double> *) (handle_VT->carma_host_object);
 
-			yoga_svd(yoga_obj_handler_mat, yoga_obj_handler_eigenvals,
-					yoga_obj_handler_VT, yoga_obj_handler_U);
+			carma_svd(carma_obj_handler_mat, carma_obj_handler_eigenvals,
+					carma_obj_handler_VT, carma_obj_handler_U);
 		}
 	} else {
 	}
@@ -3065,22 +3065,22 @@ void Y_yoga_cula_svd(int argc)
 		yObj_struct *handle_VT = (yObj_struct *) yget_obj(argc - 4, &yObj);
 
 		if (handle_mat->type == Y_FLOAT) {
-			yObjS *yoga_obj_handler_mat = (yObjS *) (handle_mat->yoga_object);
-			yObjS *yoga_obj_handler_eigenvals =
-					(yObjS *) (handle_eigenvals->yoga_object);
-			yObjS *yoga_obj_handler_U = (yObjS *) (handle_U->yoga_object);
-			yObjS *yoga_obj_handler_VT = (yObjS *) (handle_VT->yoga_object);
-			yoga_cula_svd(yoga_obj_handler_mat, yoga_obj_handler_eigenvals,
-					yoga_obj_handler_VT, yoga_obj_handler_U);
+			caObjS *carma_obj_handler_mat = (caObjS *) (handle_mat->carma_object);
+			caObjS *carma_obj_handler_eigenvals =
+					(caObjS *) (handle_eigenvals->carma_object);
+			caObjS *carma_obj_handler_U = (caObjS *) (handle_U->carma_object);
+			caObjS *carma_obj_handler_VT = (caObjS *) (handle_VT->carma_object);
+			carma_cula_svd(carma_obj_handler_mat, carma_obj_handler_eigenvals,
+					carma_obj_handler_VT, carma_obj_handler_U);
 		}
 		if (handle_mat->type == Y_DOUBLE) {
-			yObjD *yoga_obj_handler_mat = (yObjD *) (handle_mat->yoga_object);
-			yObjD *yoga_obj_handler_eigenvals =
-					(yObjD *) (handle_eigenvals->yoga_object);
-			yObjD *yoga_obj_handler_U = (yObjD *) (handle_U->yoga_object);
-			yObjD *yoga_obj_handler_VT = (yObjD *) (handle_VT->yoga_object);
-			yoga_cula_svd(yoga_obj_handler_mat, yoga_obj_handler_eigenvals,
-					yoga_obj_handler_VT, yoga_obj_handler_U);
+			caObjD *carma_obj_handler_mat = (caObjD *) (handle_mat->carma_object);
+			caObjD *carma_obj_handler_eigenvals =
+					(caObjD *) (handle_eigenvals->carma_object);
+			caObjD *carma_obj_handler_U = (caObjD *) (handle_U->carma_object);
+			caObjD *carma_obj_handler_VT = (caObjD *) (handle_VT->carma_object);
+			carma_cula_svd(carma_obj_handler_mat, carma_obj_handler_eigenvals,
+					carma_obj_handler_VT, carma_obj_handler_U);
 		}
 	} else {
 	}
@@ -3107,36 +3107,36 @@ void Y_yoga_cula_svd_host(int argc)
 				&yHostObj);
 
 		if (handle_mat->type == Y_FLOAT) {
-			yoga_host_obj<float> *yoga_obj_handler_mat =
-					(yoga_host_obj<float> *) (handle_mat->yoga_host_object);
+			carma_host_obj<float> *carma_obj_handler_mat =
+					(carma_host_obj<float> *) (handle_mat->carma_host_object);
 
-			yoga_host_obj<float> *yoga_obj_handler_eigenvals = (yoga_host_obj<
-					float> *) (handle_eigenvals->yoga_host_object);
+			carma_host_obj<float> *carma_obj_handler_eigenvals = (carma_host_obj<
+					float> *) (handle_eigenvals->carma_host_object);
 
-			yoga_host_obj<float> *yoga_obj_handler_U =
-					(yoga_host_obj<float> *) (handle_U->yoga_host_object);
+			carma_host_obj<float> *carma_obj_handler_U =
+					(carma_host_obj<float> *) (handle_U->carma_host_object);
 
-			yoga_host_obj<float> *yoga_obj_handler_VT =
-					(yoga_host_obj<float> *) (handle_VT->yoga_host_object);
+			carma_host_obj<float> *carma_obj_handler_VT =
+					(carma_host_obj<float> *) (handle_VT->carma_host_object);
 
-			yoga_cula_svd(yoga_obj_handler_mat, yoga_obj_handler_eigenvals,
-					yoga_obj_handler_VT, yoga_obj_handler_U);
+			carma_cula_svd(carma_obj_handler_mat, carma_obj_handler_eigenvals,
+					carma_obj_handler_VT, carma_obj_handler_U);
 		}
 		if (handle_mat->type == Y_DOUBLE) {
-			yoga_host_obj<double> *yoga_obj_handler_mat =
-					(yoga_host_obj<double> *) (handle_mat->yoga_host_object);
+			carma_host_obj<double> *carma_obj_handler_mat =
+					(carma_host_obj<double> *) (handle_mat->carma_host_object);
 
-			yoga_host_obj<double> *yoga_obj_handler_eigenvals = (yoga_host_obj<
-					double> *) (handle_eigenvals->yoga_host_object);
+			carma_host_obj<double> *carma_obj_handler_eigenvals = (carma_host_obj<
+					double> *) (handle_eigenvals->carma_host_object);
 
-			yoga_host_obj<double> *yoga_obj_handler_U =
-					(yoga_host_obj<double> *) (handle_U->yoga_host_object);
+			carma_host_obj<double> *carma_obj_handler_U =
+					(carma_host_obj<double> *) (handle_U->carma_host_object);
 
-			yoga_host_obj<double> *yoga_obj_handler_VT =
-					(yoga_host_obj<double> *) (handle_VT->yoga_host_object);
+			carma_host_obj<double> *carma_obj_handler_VT =
+					(carma_host_obj<double> *) (handle_VT->carma_host_object);
 
-			yoga_cula_svd(yoga_obj_handler_mat, yoga_obj_handler_eigenvals,
-					yoga_obj_handler_VT, yoga_obj_handler_U);
+			carma_cula_svd(carma_obj_handler_mat, carma_obj_handler_eigenvals,
+					carma_obj_handler_VT, carma_obj_handler_U);
 		}
 	} else {
 	}
@@ -3169,7 +3169,7 @@ void Y_yoga_getarray(int argc)
 	} else {
 		handle_in = (yObj_struct *) yget_obj(argc - 1, &yObj);
 	}
-	yoga_context *context_handle = _getCurrentContext();
+	carma_context *context_handle = _getCurrentContext();
 	context_handle->set_activeDeviceForCpy(handle_in->device);
 
 	if ((yarg_typeid(argc - 2) != Y_RANGE) && (yarg_typeid(argc - 2) != Y_VOID))
@@ -3192,20 +3192,20 @@ void Y_yoga_getarray(int argc)
 	} else
 		mrange[4] = mrange[5] = mrange[6] = mrange[7] = 0;
 
-	yObjS *yoga_in_handler = (yObjS *) (handle_in->yoga_object);
-	yObjS *yoga_out_handler = NULL;
+	caObjS *carma_in_handler = (caObjS *) (handle_in->carma_object);
+	caObjS *carma_out_handler = NULL;
 
 	if (mrange[1] == 0) {
 		mrange[1] = 1;
-		mrange[2] = yoga_in_handler->getDims(1);
-	} else if ((mrange[2] - mrange[1] + 1 > yoga_in_handler->getDims(1))
-			|| mrange[2] > yoga_in_handler->getDims(1))
+		mrange[2] = carma_in_handler->getDims(1);
+	} else if ((mrange[2] - mrange[1] + 1 > carma_in_handler->getDims(1))
+			|| mrange[2] > carma_in_handler->getDims(1))
 		y_error("range out of bounds");
 	if (mrange[4] == 0) {
 		mrange[5] = 1;
-		mrange[6] = yoga_in_handler->getDims(2);
-	} else if ((mrange[6] - mrange[5] + 1 > yoga_in_handler->getDims(2))
-			|| mrange[6] > yoga_in_handler->getDims(2))
+		mrange[6] = carma_in_handler->getDims(2);
+	} else if ((mrange[6] - mrange[5] + 1 > carma_in_handler->getDims(2))
+			|| mrange[6] > carma_in_handler->getDims(2))
 		y_error("range out of bounds");
 	Ncol = mrange[2] - mrange[1] + 1;
 	Nlig = mrange[6] - mrange[5] + 1;
@@ -3219,17 +3219,17 @@ void Y_yoga_getarray(int argc)
 		handle_out->device = handle_in->device;
 		if (handle_in->type == Y_FLOAT) {
 			handle_out->type = Y_FLOAT;
-			handle_out->yoga_object = new yObjS(context_handle, dims);
-			yoga_out_handler = (yObjS *) (handle_out->yoga_object);
+			handle_out->carma_object = new caObjS(context_handle, dims);
+			carma_out_handler = (caObjS *) (handle_out->carma_object);
 		}
 	} else {
-		yoga_out_handler = (yObjS *) (handle_out->yoga_object);
+		carma_out_handler = (caObjS *) (handle_out->carma_object);
 	}
 
-	int x0 = yoga_in_handler->getDims(1) * (mrange[5] - 1) + (mrange[2] - 1);
+	int x0 = carma_in_handler->getDims(1) * (mrange[5] - 1) + (mrange[2] - 1);
 	//if (Ncol == 1) x0 = (mrange[1]-1);
-	getarray2d(yoga_out_handler->getData(), yoga_in_handler->getData(), x0,
-			Ncol, yoga_in_handler->getDims(1), Nlig * Ncol);
+	getarray2d(carma_out_handler->getData(), carma_in_handler->getData(), x0,
+			Ncol, carma_in_handler->getDims(1), Nlig * Ncol);
 }
 
 void Y_yoga_fillarray(int argc)
@@ -3246,10 +3246,10 @@ void Y_yoga_fillarray(int argc)
 		yObj_struct *handle_in = (yObj_struct *) yget_obj(argc - 2, &yObj);
 		if (handle_in->device != handle_out->device)
 			y_error("getarray only on the same device");
-		yoga_context *context_handle = _getCurrentContext();
+		carma_context *context_handle = _getCurrentContext();
 		context_handle->set_activeDeviceForCpy(handle_in->device);
-		yObjS *yoga_out_handler = (yObjS *) (handle_out->yoga_object);
-		yObjS *yoga_in_handler = (yObjS *) (handle_in->yoga_object);
+		caObjS *carma_out_handler = (caObjS *) (handle_out->carma_object);
+		caObjS *carma_in_handler = (caObjS *) (handle_in->carma_object);
 		argc--;
 		if ((yarg_typeid(argc - 2) != Y_RANGE)
 				&& (yarg_typeid(argc - 2) != Y_VOID))
@@ -3274,15 +3274,15 @@ void Y_yoga_fillarray(int argc)
 
 		if (mrange[1] == 0) {
 			mrange[1] = 1;
-			mrange[2] = yoga_out_handler->getDims(1);
-		} else if ((mrange[2] - mrange[1] + 1 > yoga_out_handler->getDims(1))
-				|| mrange[2] > yoga_out_handler->getDims(1))
+			mrange[2] = carma_out_handler->getDims(1);
+		} else if ((mrange[2] - mrange[1] + 1 > carma_out_handler->getDims(1))
+				|| mrange[2] > carma_out_handler->getDims(1))
 			y_error("range out of bounds");
 		if (mrange[4] == 0) {
 			mrange[5] = 1;
-			mrange[6] = yoga_out_handler->getDims(2);
-		} else if ((mrange[6] - mrange[5] + 1 > yoga_out_handler->getDims(2))
-				|| mrange[6] > yoga_out_handler->getDims(2))
+			mrange[6] = carma_out_handler->getDims(2);
+		} else if ((mrange[6] - mrange[5] + 1 > carma_out_handler->getDims(2))
+				|| mrange[6] > carma_out_handler->getDims(2))
 			y_error("range out of bounds");
 		Ncol = mrange[2] - mrange[1] + 1;
 		Nlig = mrange[6] - mrange[5] + 1;
@@ -3291,11 +3291,11 @@ void Y_yoga_fillarray(int argc)
 		dims[1] = Ncol;
 		dims[2] = Nlig;
 
-		int x0 = yoga_out_handler->getDims(1) * (mrange[5] - 1)
+		int x0 = carma_out_handler->getDims(1) * (mrange[5] - 1)
 				+ (mrange[1] - 1);
 		//if (Ncol == 1) x0 = (mrange[1]-1);
-		fillarray2d(yoga_out_handler->getData(), yoga_in_handler->getData(), x0,
-				Ncol, yoga_out_handler->getDims(1), Nlig * Ncol);
+		fillarray2d(carma_out_handler->getData(), carma_in_handler->getData(), x0,
+				Ncol, carma_out_handler->getDims(1), Nlig * Ncol);
 	} else
 		y_error("can only be called as a subroutine");
 }
@@ -3321,14 +3321,14 @@ void Y_yoga_getvalue(int argc)
 		y_error("can only be called as a function");
 	else {
 		yObj_struct *handle_in = (yObj_struct *) yget_obj(argc - 1, &yObj);
-		yoga_context *context_handle = _getCurrentContext();
+		carma_context *context_handle = _getCurrentContext();
 		context_handle->set_activeDeviceForCpy(handle_in->device);
 		int pos = ygets_i(argc-2);
 		long dims[2];
 		dims[0] = dims[1] = 1;
-		yObjS *yoga_in_handler = (yObjS *) (handle_in->yoga_object);
+		caObjS *carma_in_handler = (caObjS *) (handle_in->carma_object);
 		float res;
-		cudaMemcpy(&res, &((yoga_in_handler->getData())[pos - 1]),
+		cudaMemcpy(&res, &((carma_in_handler->getData())[pos - 1]),
 				sizeof(float), cudaMemcpyDeviceToHost);
 		float* yres = ypush_f(dims);
 		yres[0] = res;
@@ -3338,13 +3338,13 @@ void Y_yoga_getvalue(int argc)
 void Y_yoga_plus(int argc) {
 	if (yarg_subroutine()) {
 		yObj_struct *handle_in = (yObj_struct *) yget_obj(argc - 1, &yObj);
-		yoga_context *context_handle = _getCurrentContext();
+		carma_context *context_handle = _getCurrentContext();
 		context_handle->set_activeDevice(handle_in->device);
 		if (handle_in->type == Y_FLOAT) {
 			float alpha = ygets_f(argc-2);
-			yObjS *yoga_in_handler = (yObjS *) (handle_in->yoga_object);
-			yoga_plus(yoga_in_handler->getData(), alpha,
-					yoga_in_handler->getNbElem());
+			caObjS *carma_in_handler = (caObjS *) (handle_in->carma_object);
+			carma_plus(carma_in_handler->getData(), alpha,
+					carma_in_handler->getNbElem());
 		} else
 			y_error("double not implemented yet");
 	} else
@@ -3358,7 +3358,7 @@ void Y_yoga_plusai(int argc) {
 		yObj_struct *handle_in = (yObj_struct *) yget_obj(argc - 2, &yObj);
 		if (handle_in->device != handle_out->device)
 			y_error("getarray only on the same device");
-		yoga_context *context_handle = _getCurrentContext();
+		carma_context *context_handle = _getCurrentContext();
 		context_handle->set_activeDevice(handle_in->device);
 		int idx = ygets_i(argc-3);
 		int sgn;
@@ -3369,10 +3369,10 @@ void Y_yoga_plusai(int argc) {
 		if ((sgn != -1) && (sgn != 1))
 			y_error("arg 4 must be +1 or -1");
 		if (handle_out->type == Y_FLOAT) {
-			yObjS *yoga_in_handler = (yObjS *) (handle_in->yoga_object);
-			yObjS *yoga_out_handler = (yObjS *) (handle_out->yoga_object);
-			yoga_plusai(yoga_out_handler->getData(), yoga_in_handler->getData(),
-					idx, sgn, yoga_out_handler->getNbElem());
+			caObjS *carma_in_handler = (caObjS *) (handle_in->carma_object);
+			caObjS *carma_out_handler = (caObjS *) (handle_out->carma_object);
+			carma_plusai(carma_out_handler->getData(), carma_in_handler->getData(),
+					idx, sgn, carma_out_handler->getNbElem());
 		} else
 			y_error("double not implemented yet");
 	} else

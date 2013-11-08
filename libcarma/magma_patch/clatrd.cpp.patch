@@ -1,0 +1,30 @@
+--- clatrd.cpp.orig	2012-03-23 10:50:08.000000000 +0100
++++ clatrd.cpp	2012-03-23 11:07:53.000000000 +0100
+@@ -254,7 +254,9 @@
+           blasf77_cscal(&i, &tau[i - 1], W(0, iw), &ione);
+ 
+ #if defined(PRECISION_z) || defined(PRECISION_c)
+-          blasf77_cdotc(&value, &i, W(0, iw), &ione, A(0, i), &ione);
++          cblas_cdotc_sub(i, W(0, iw), ione,
++			  A(0, i), ione, &value);
++          /* blasf77_cdotc(&value, &i, W(0, iw), &ione, A(0, i), &ione); */
+           alpha = tau[i - 1] * -.5f * value;
+ #else
+           alpha = tau[i - 1] * -.5f * blasf77_cdotc(&i, W(0, iw), &ione, A(0, i), &ione);
+@@ -334,11 +336,11 @@
+                         out version works with MKL but is not a standard interface
+                         for other BLAS zdoc implementations                        
+                      */
+-                     /*
+-                        cblas_cdotc_sub(i_n, W(i +1, i), ione,
+-                                        A(i +1, i), ione, &value);
+-                     */
+-                  blasf77_cdotc(&value, &i_n, W(i+1,i), &ione, A(i+1, i), &ione);
++                     
++	          cblas_cdotc_sub(i_n, W(i +1, i), ione,
++				  A(i +1, i), ione, &value);
++                   
++                  //blasf77_cdotc(&value, &i_n, W(i+1,i), &ione, A(i+1, i), &ione);
+                   alpha = tau[i]* -.5f * value;
+               #else
+                   alpha = tau[i]* -.5f* blasf77_cdotc(&i_n, W(i+1,i), &ione, A(i+1, i), &ione);
