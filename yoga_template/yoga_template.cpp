@@ -7,15 +7,15 @@ extern "C" {
   Y_yoga_immult(int argc)
   {
     if (yarg_subroutine()) {
-      yoga_struct *handle_out = yoga_getobj(argc,1);
-      yoga_struct *handle_in  = yoga_getobj(argc,2);
+      yObj_struct *handle_out = (yObj_struct *) yget_obj(argc - 1, &yObj);
+      yObj_struct *handle_in = (yObj_struct *) yget_obj(argc - 2, &yObj);
       
-      yoga_context *context_handle = _getCurrentContext();
+      carma_context *context_handle = _getCurrentContext();
       context_handle->set_activeDevice(handle_in->device);
       if (handle_in->type == Y_FLOAT) {
-	yObjS *yoga_out_handler = (yObjS *)(handle_out->yoga_object);
-	yObjS *yoga_in_handler = (yObjS *)(handle_in->yoga_object);
-	multim((float *)yoga_out_handler->getData(),(float *)yoga_in_handler->getData(),yoga_in_handler->getNbElem());
+	caObjS *carma_out_handler = (caObjS *)(handle_out->carma_object);
+	caObjS *carma_in_handler = (caObjS *)(handle_in->carma_object);
+	multim((float *)carma_out_handler->getData(),(float *)carma_in_handler->getData(),carma_in_handler->getNbElem());
       } else y_error("double not implemented yet");
     } else y_error("can only be called as a subroutine");
   }

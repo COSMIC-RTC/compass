@@ -1,8 +1,8 @@
 #ifndef _YOGA_TEMPLATE_H_
 #define _YOGA_TEMPLATE_H_
 
-#include <yoga.h>
-#include <yoga_obj.h>
+#include <carma.h>
+#include <carma_obj.h>
 
 template<class T> int multim(T *d_odata,T *i_data, int N);
 

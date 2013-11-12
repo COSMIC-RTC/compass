@@ -1,10 +1,10 @@
 # these values filled in by    yorick -batch make.i
-Y_MAKEDIR=/home/sevin/yorick.git/relocate
-Y_EXE=/home/sevin/yorick.git/relocate/bin/yorick
+Y_MAKEDIR=/home/brujo/yorick-2.2/relocate
+Y_EXE=/home/brujo/yorick-2.2/relocate/bin/yorick
 Y_EXE_PKGS=
 
-Y_EXE_HOME=/home/sevin/yorick.git/relocate
-Y_EXE_SITE=/home/sevin/yorick.git/relocate
+Y_EXE_HOME=/home/brujo/yorick-2.2/relocate
+Y_EXE_SITE=/home/brujo/yorick-2.2/relocate
 Y_HOME_PKG=
 
 # ----------------------------------------------------- optimization flags
@@ -23,14 +23,14 @@ OBJS= yoga_template.o yoga_template.cuo
 #PKG_EXENAME=yorick
 
 NVCC = /usr/local/cuda/bin/nvcc 
-NVCCFLAGS = -g -DDEBUG -m64 -Xcompiler -fPIC -c --compiler-options -I. -I$(YOGA_DIR)/libyoga/include.h -I$(YOGA_DIR) -I/usr/local/cuda/include -I/usr/local/cula/include -gencode arch=compute_11,code=sm_11 -gencode arch=compute_13,code=sm_13 -gencode arch=compute_20,code=sm_20 -gencode arch=compute_30,code=sm_30 -gencode arch=compute_35,code=sm_35
+NVCCFLAGS = -g -DDEBUG -m64 -Xcompiler -fPIC -c --compiler-options -I. -I$(YOGA_DIR)/libcarma/include.h -I$(YOGA_DIR) -I/usr/local/cuda/include -I/usr/local/cula/include -gencode arch=compute_12,code=sm_12 
 
 # PKG_DEPLIBS=-Lsomedir -lsomelib   for dependencies of this package
 PKG_DEPLIBS += $(YOGA_DIR)/yoga.so
 
 # set compiler (or rarely loader) flags specific to this package
 
-PKG_CPPFLAGS = -g -DDEBUG -Wall -fno-common -I$(YOGA_DIR)/libyoga/include.h -I$(YOGA_DIR) -I/usr/local/cuda/include -I/usr/local/cula/include -fPIC
+PKG_CPPFLAGS = -g -DDEBUG -Wall -fno-common -I$(YOGA_DIR)/libcarma/include.h -I$(YOGA_DIR) -I/usr/local/cuda/include -I/usr/local/cula/include -fPIC
 
 PKG_LDFLAGS=  -lstdc++
 
