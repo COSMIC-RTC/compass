@@ -92,7 +92,6 @@ func script_system(filename,verbose=,strehl=,r0=,clean=)
   write,"--------------------------------------------------------";
   g_rtc;
   
-y_loop.niter = 100;
   /*
                  _         _                   
  _ __ ___   __ _(_)_ __   | | ___   ___  _ __  
