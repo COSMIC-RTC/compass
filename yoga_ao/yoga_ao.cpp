@@ -26,6 +26,7 @@
 #include <sutra_target.h>
 #include <sutra_phase.h>
 #include <sutra_wfs.h>
+#include <sutra_acquisim.h>
 #include <sutra_rtc.h>
 #include <sutra_dm.h>
 #include <sutra_telemetry.h>
@@ -887,6 +888,86 @@ extern "C" {
     sutra_wfs *wfs_handler = (sutra_wfs *)handle->sutra_wfs;
     wfs_handler->wfs_initgs(xpos,ypos,lambda,mag,size,noise,seed);
   }
+
+  /*
+   *                        _     _
+   *   __ _  ___ __ _ _   _(_)___(_)_ __ ___
+   *  / _` |/ __/ _` | | | | / __| | '_ ` _ \
+   * | (_| | (_| (_| | |_| | \__ \ | | | | | |
+   *  \__,_|\___\__, |\__,_|_|___/_|_| |_| |_|
+   *               |_|
+   */
+
+  void acquisim_free(void *obj) {
+    acquisim_struct *handler = (acquisim_struct *)obj;
+    carma_context *context_handle = _getCurrentContext();
+    context_handle->set_activeDevice(handler->device);
+    try{
+      sutra_acquisim *acquisim_obj_handler = (sutra_acquisim *)(handler->sutra_acquisim);
+      delete acquisim_obj_handler;
+    } catch ( string &msg ) {
+      y_error(msg.c_str());
+    } catch ( char const * msg ) {
+      y_error(msg);
+    }
+  }
+
+  void acquisim_print(void *obj)
+  {
+    //wfs_struct *handler = (wfs_struct *)obj;
+    //sutra_wfs *wfs_obj_handler = (sutra_wfs *)(handler->sutra_wfs);
+    cout << "Yoga acquisim Object : " << endl;
+  }
+
+  void
+  Y_yoga_acquisim(int argc)
+  //long nxsub, long nvalid, long npix, long nrebin, long nfft
+  {
+    try {
+      sensors_struct *sensors_handle = (sensors_struct *)yget_obj(argc-1,&ySensors);
+      sutra_sensors *sensors_handler = (sutra_sensors *)sensors_handle->sutra_sensors;
+      int wfs_num = ygets_i(argc-2);
+
+      acquisim_struct *handle=(acquisim_struct *)ypush_obj(&yAcquisim, sizeof(acquisim_struct));
+      handle->device = sensors_handle->device;
+
+      handle->sutra_acquisim = new sutra_acquisim(sensors_handler, wfs_num);
+
+    } catch ( string &msg ) {
+      y_error(msg.c_str());
+    } catch ( char const * msg ) {
+      y_error(msg);
+    } catch( ... ) {
+      stringstream buf;
+      buf << "unknown error with sutra_acquisim construction in "<<__FILE__ << "@" << __LINE__ << endl;
+      y_error(buf.str().c_str());
+    }
+  }
+
+  void
+  Y_acquisim_fillbcube(int argc)
+  //long nxsub, long nvalid, long npix, long nrebin, long nfft
+  {
+    try {
+      acquisim_struct *handle = (acquisim_struct *)yget_obj(argc-1,&yAcquisim);
+      sutra_acquisim *acquisim_handler = (sutra_acquisim *)handle->sutra_acquisim;
+      long ntot;
+      long dims[Y_DIMSIZE];
+      float *a = ygeta_f(argc-2, &ntot,dims);
+      acquisim_handler->comp_image(dims,a);
+      //acquisim_handler->comp_image_tele(dims,a);
+
+    } catch ( string &msg ) {
+      y_error(msg.c_str());
+    } catch ( char const * msg ) {
+      y_error(msg);
+    } catch( ... ) {
+      stringstream buf;
+      buf << "unknown error with sutra_wfs construction in "<<__FILE__ << "@" << __LINE__ << endl;
+      y_error(buf.str().c_str());
+    }
+  }
+
 
 /*
  *     _       _                     _

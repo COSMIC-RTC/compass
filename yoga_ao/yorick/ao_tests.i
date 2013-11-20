@@ -583,7 +583,7 @@ func scatter_slopes(slopes,slopesgeom,nwfs,nsub,ref=)
 
 func check_centroiding(filename,thresh=,nmax=)
 {
-  if (filename == []) filename = YOGA_AO_PARPATH+"1wfs8x8_1layer_rtc_elong.par";
+  if (filename == []) filename = YOGA_AO_PARPATH+"1wfs8x8_1layer_rtc.par";
 
   if ((!(fileExist(filename))) && (!(fileExist(YOGA_AO_PARPATH+filename))))
     error,"could not find"+filename;
@@ -637,15 +637,18 @@ func check_centroiding(filename,thresh=,nmax=)
   // in arcsec :
   lam_over_D = RASC * y_wfs(1).lambda *1.e-6/ (y_tel.diam/y_wfs(1).nxsub);
   geom *= float(lam_over_D/2/pi);
-  "geom slopes";
-  geom/slp;
-  
+  "abs(geom - slopes): [min, max, avg]";
+  tmp_array=abs(geom-slp);
+  [min(tmp_array),max(tmp_array),avg(tmp_array)];
+
   slopes_geom,g_wfs,0,0;
   slp=sensors_getslopes(g_wfs,0);
   slopes_geom,g_wfs,0,1;
   slp1=sensors_getslopes(g_wfs,0);
-  "geom slopes 0 vs 1";
-  slp/slp1;
+  "geom slopes 0 vs 1: slp-slp1";
+  //slp/slp1;
+  tmp_array=abs(slp-slp1);
+  [min(tmp_array),max(tmp_array),avg(tmp_array)];
 
   // first put back slopes to geom to be sure d_slopes are modified in yoga_wfs
   slopes_geom,g_wfs,0,0;
@@ -658,8 +661,10 @@ func check_centroiding(filename,thresh=,nmax=)
   slpy=(res2*tmp(,,2)(,,-:1:y_wfs(1)._nvalid))(*,)(sum,)/res2(*,)(sum,);
   //centro=_(slpx,slpy);
   centro=_((slpx-(y_wfs(1).npix/2.+0.5))*y_wfs(1).pixsize,(slpy-(y_wfs(1).npix/2.+0.5))*y_wfs(1).pixsize);
-  "cog";
-  centro/slp2;
+  "cog: centro-slp2";
+  //centro/slp2;
+  tmp_array=abs(centro-slp2);
+  [min(tmp_array),max(tmp_array),avg(tmp_array)];
   // to convert in arcsec : (slpx-(y_wfs(nwfs).npix/2.+0.5))*y_wfs(nwfs).pixsize
 
   slopes_geom,g_wfs,0,0;
@@ -676,8 +681,10 @@ func check_centroiding(filename,thresh=,nmax=)
   slpx=(res2*tmp(,,1)(,,-:1:y_wfs(1)._nvalid))(*,)(sum,)/res2(*,)(sum,);
   slpy=(res2*tmp(,,2)(,,-:1:y_wfs(1)._nvalid))(*,)(sum,)/res2(*,)(sum,);
   centro=_((slpx-(y_wfs(1).npix/2.+0.5))*y_wfs(1).pixsize,(slpy-(y_wfs(1).npix/2.+0.5))*y_wfs(1).pixsize);
-  "tcog";
-  centro/slp2;
+  "tcog: centro-slp2";
+  //centro/slp2;
+  tmp_array=abs(centro-slp2);
+  [min(tmp_array),max(tmp_array),avg(tmp_array)];
   // to convert in arcsec : (slp2-(y_wfs(nwfs).npix/2.+0.5))*y_wfs(nwfs).pixsize
   
   slopes_geom,g_wfs,0,0;
@@ -691,8 +698,10 @@ func check_centroiding(filename,thresh=,nmax=)
   slpx=(res2*tmp(,,1)(,,-:1:y_wfs(1)._nvalid))(*,)(sum,)/res2(*,)(sum,);
   slpy=(res2*tmp(,,2)(,,-:1:y_wfs(1)._nvalid))(*,)(sum,)/res2(*,)(sum,);
   centro=_((slpx-(y_wfs(1).npix/2.+0.5))*y_wfs(1).pixsize,(slpy-(y_wfs(1).npix/2.+0.5))*y_wfs(1).pixsize);
-  "bpcog";
-  centro/slp2;
+  "bpcog: centro-slp2";
+  //centro/slp2;
+  tmp_array=abs(centro-slp2);
+  [min(tmp_array),max(tmp_array),avg(tmp_array)];
   // to convert in arcsec : (slp2-(y_wfs(nwfs).npix/2.+0.5))*y_wfs(nwfs).pixsize
 
   // check slopes wcog
@@ -705,7 +714,9 @@ func check_centroiding(filename,thresh=,nmax=)
   slpy=((res2*www)*tmp(,,2)(,,-:1:y_wfs(1)._nvalid))(*,)(sum,)/(res2*www)(*,)(sum,);
   centro=_((slpx-(y_wfs(1).npix/2.+0.5))*y_wfs(1).pixsize,(slpy-(y_wfs(1).npix/2.+0.5))*y_wfs(1).pixsize);
   "wcog";
-  centro/slp2;
+  //centro/slp2;
+  tmp_array=abs(centro-slp2);
+  [min(tmp_array),max(tmp_array),avg(tmp_array)];
   // to convert in arcsec : (slp2-(y_wfs(1).npix/2.+0.5))*y_wfs(1).pixsize
 
   sensors_compslopes,g_wfs,0,g_rtc,4;
@@ -716,9 +727,11 @@ func check_centroiding(filename,thresh=,nmax=)
   mcorr = array(0.0f,dimsof(res2)(4));
   for (i=1;i<=dimsof(res2)(4);i++) mcorr(i) = wheremax(rcorr(,,i));
   //for (i=1;i<=dimsof(res2)(4);i++) mcorr(i) = wheremax(res2(8:8+14,8:8+14,i));
-  "corr max location";
+  "corr max location: abs(res-mcorr)";
   res=centroider_getdata(g_rtc,4,"corrmax");
-  res-mcorr;
+  //res-mcorr;
+  tmp_array=abs(res-mcorr);
+  [min(tmp_array),max(tmp_array),avg(tmp_array)];
   
   slp = array(0.0f,2*dimsof(res3)(4));
   imat = create_interp_mat(3,3);
@@ -730,10 +743,11 @@ func check_centroiding(filename,thresh=,nmax=)
   
   slp2=sensors_getslopes(g_wfs,0);
   // to convert in arcsec : (slp2-(y_wfs(1).npix/2.+1))*y_wfs(1).pixsize
-  "corr";
-  ((slp-(y_wfs(1).npix/2.+0.5))*y_wfs(1).pixsize)/slp2;
-  //slp/slp2;
-  error;
+  "corr: ((slp-(y_wfs(1).npix/2.+0.5))*y_wfs(1).pixsize)-slp2;";
+  //((slp-(y_wfs(1).npix/2.+0.5))*y_wfs(1).pixsize)/slp2;
+  tmp_array=abs(((slp-(y_wfs(1).npix/2.+0.5))*y_wfs(1).pixsize)-slp2);
+  [min(tmp_array),max(tmp_array),avg(tmp_array)];
+  //error;
 }
 
 /*

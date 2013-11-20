@@ -284,6 +284,28 @@ extern wfs_initgs;
    SEE ALSO:
  */
 
+// acquisim
+extern yoga_acquisim;
+/* DOCUMENT yoga_acquisim
+   obj = yoga_acquisim(yoga_sensors_obj)
+     
+   creates an yAcquisim object on the gpu
+   yoga_sensors_obj : the ySensors object
+      
+   SEE ALSO:
+ */
+extern acquisim_fillbcube;
+/* DOCUMENT acquisim_fillbcube
+   acquisim_fillbcube,yoga_sensor_obj, sensor_number,image
+     
+   inits the guide star for an yWfs object
+   yoga_sensors_obj : the ySensors object
+   sensor_number: which sensor fill
+   image        : image used to fill WFS bincube
+   
+   SEE ALSO:
+ */
+
 extern yoga_sensors;
 /* DOCUMENT yoga_sensors
    obj = yoga_sensors(nsensors,nxsub,nvalid,npix,nphase,nrebin,nfft,ntot,npup,pdiam,nphot,lgs[,ndevice])

@@ -19,7 +19,7 @@ export YOGA_AO_TOP=$YOGA_AO_DIR
 export LD_LIBRARY_PATH=$YOGA_DIR/libcarma:$YOGA_AO_DIR/libyoga_ao:$CUDA_LIB_PATH_64:$CUDA_LIB_PATH:$CULA_LIB_PATH_64:$CULA_LIB_PATH #:$LD_LIBRARY_PATH
 export CPLUS_INCLUDE_PATH=/usr/local/cuda/include
 
-export YORICK_PATH=~/yorick-2.2/relocate/bin
+export YORICK_PATH=~/yorick.git/relocate/bin
 export PATH=$YORICK_PATH:$PATH
 #alias yorick="rlwrap yorick"
 

@@ -71,6 +71,11 @@ typedef struct wfs_struct {
   int device;
 } wfs_struct;
 
+typedef struct acquisim_struct {
+  void *sutra_acquisim;
+  int device;
+} acquisim_struct;
+
 typedef struct sensors_struct {
   void *sutra_sensors;
   int device;
@@ -226,6 +231,25 @@ extern "C" {
 
   void Y_yoga_wfs(int argc);
   void Y_wfs_initgs(int argc);
+
+  /*
+   *                        _     _
+   *   __ _  ___ __ _ _   _(_)___(_)_ __ ___
+   *  / _` |/ __/ _` | | | | / __| | '_ ` _ \
+   * | (_| | (_| (_| | |_| | \__ \ | | | | | |
+   *  \__,_|\___\__, |\__,_|_|___/_|_| |_| |_|
+   *               |_|
+   */
+
+  void acquisim_free(void *obj);
+  void acquisim_print(void *obj);
+
+  static y_userobj_t yAcquisim =
+    {const_cast<char*>("yAcquisim Object"),
+     &acquisim_free, &acquisim_print, 0, 0, 0};
+
+  void Y_yoga_acquisim(int argc);
+  void Y_acquisim_fillbcube(int argc);
 
   /*
      _       _                     _
