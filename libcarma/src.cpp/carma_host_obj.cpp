@@ -239,7 +239,7 @@ void carma_host_obj<T_data>::init(long *dims_data, T_data *data, MemAlloc malloc
 	  this->add_stream(nb_streams);
   }
 
-#ifdef DEBUG  
+#if DEBUG  
   printf("CARMA Host Object created @ %8.8lX with %s memory\n", (unsigned long)this, getMetAlloc().c_str());
 #endif
   if(data==0L) {
@@ -291,7 +291,7 @@ template<class T_data> carma_host_obj<T_data>::~carma_host_obj(){
 
   delete this->streams;
 
-#ifdef DEBUG
+#if DEBUG
   printf("CARMA Host Object deleted @ %8.8lX\n", (unsigned long)this);
 #endif
 }

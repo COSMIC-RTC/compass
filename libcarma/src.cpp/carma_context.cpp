@@ -74,7 +74,7 @@ carma_context::carma_context()
 
   carma_initCublas(&cublasHandle);
 
-#ifdef DEBUG
+#if DEBUG
   printf("CARMA Context created @ %8.8lX\n", (unsigned long)this);
 #endif
 }
@@ -88,7 +88,7 @@ carma_context::~carma_context()
     delete[] can_access_peer[idx];
   }
   delete[] can_access_peer;
-#ifdef DEBUG
+#if DEBUG
 	printf("CARMA Context deleted @ %8.8lX\n", (unsigned long)this);
 #endif
 }
@@ -116,7 +116,7 @@ int carma_context::set_activeDevice(int newDevice, int silent){
 		  cout << "Using device " << newDevice <<": \"" << deviceProp.name
 				<< "\" with Compute " << deviceProp.major << "."
 				<< deviceProp.minor << " capability" << endl;
-#ifdef DEBUG
+#if DEBUG
 		  cout << "DEBUG: Using device " << newDevice <<": \"" << deviceProp.name
 				<< "\" with Compute " << deviceProp.major << "."
 				<< deviceProp.minor << " capability" << endl;

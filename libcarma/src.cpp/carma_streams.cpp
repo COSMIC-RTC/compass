@@ -50,7 +50,7 @@ int carma_streams::add_stream()
 	  cutilSafeCall( cudaEventCreate(&event_tmp) );
 	  this->events.push_back(event_tmp);
 
-#ifdef DEBUG
+#if DEBUG
 	  printf("CARMA Stream created @ %8.8lX\n", (unsigned long)stream_tmp);
 #endif
 
@@ -76,7 +76,7 @@ int carma_streams::del_stream()
 	cutilSafeCall( cudaEventDestroy(event_tmp) );
 	this->events.pop_back();
 
-#ifdef DEBUG
+#if DEBUG
 	printf("CARMA Stream deleted @ %8.8lX\n", (unsigned long)stream_tmp);
 #endif
 	return get_nbStreams();

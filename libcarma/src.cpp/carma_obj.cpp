@@ -118,7 +118,7 @@ void carma_obj<T_data>::init(carma_context *context, long *dims_data, T_data *da
   this->streams = new carma_streams();
   this->add_stream(nb_streams);
 
-#ifdef DEBUG
+#if DEBUG
   printf("CARMA Object created @ %8.8lX on GPU%d\n", (unsigned long)this, current_context->get_activeDevice());
 #endif
 
@@ -171,7 +171,7 @@ template<class T_data> carma_obj<T_data>::~carma_obj( ){
   if(this->d_states!=0) cutilSafeCall( cudaFree(this->d_states) );
   this->d_states=0;
 
-#ifdef DEBUG
+#if DEBUG
   printf("CARMA Object deleted @ %8.8lX on GPU%d\n", (unsigned long)this, this->device);
 #endif
   current_context->set_activeDevice(old_device);

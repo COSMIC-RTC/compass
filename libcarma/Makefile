@@ -10,8 +10,7 @@ CUDPP_LIB= $(CUDPP_PATH)/lib/libcudpp_x86_64.a
 MAGMA_PATH= #magma
 MAGMA_LIB= $(MAGMA_PATH)/lib/libmagma.a $(MAGMA_PATH)/lib/libmagmablas.a
 
-DEBUG=1
-DEBUG=0
+#DEBUG=1
 
 LIB_NAME=libcarma.so
 
