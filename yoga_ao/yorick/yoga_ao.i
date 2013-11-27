@@ -153,8 +153,21 @@ func atmos_init(void)
   y_atmos.deltax = &float(deltax);
   y_atmos.deltay = &float(deltay);
 
+  if (*y_atmos.L0 == []) y_atmos.L0 = &((1.e5)(-:1:y_atmos.nscreens)); // infinite L0
+  else {
+    if (numberof(*y_atmos.L0) == 1)
+      y_atmos.L0 = &((*y_atmos.L0)(-:1:y_atmos.nscreens));
+    for (cc=1;cc <= y_atmos.nscreens;cc++) {
+      // L0 should be gien in meters by the user
+      // computing the fraction of the telescope diameter
+      // translate that into pixels in the pupil for extrude
+      frac_l0 = y_tel.diam / ((*y_atmos.L0)(cc));
+      (*y_atmos.L0)(cc) = y_geom.pupdiam / frac_l0;
+    }
+  }
+  
   // create atmos object on the gpu
-  g_atmos = yoga_atmos_create(y_atmos.nscreens,y_atmos.r0,y_atmos.pupixsize,*y_atmos.dim_screens,
+  g_atmos = yoga_atmos_create(y_atmos.nscreens,y_atmos.r0,*y_atmos.L0,y_atmos.pupixsize,*y_atmos.dim_screens,
                               *y_atmos.frac,*y_atmos.alt,*y_atmos.windspeed,*y_atmos.winddir,
                               *y_atmos.deltax,*y_atmos.deltay,*y_geom._spupil);
 

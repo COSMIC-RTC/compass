@@ -27,6 +27,7 @@ struct atmos_struct
   long    nscreens;    // number of turbulent layers
   float   r0;          // global r0 @ 0.5µm
   float   pupixsize;   // pupil piwel size (in meters)
+  pointer   L0;        // L0 per layers in meters
   pointer dim_screens; // linear size of phase screens
   pointer alt;         // altitudes of each layer
   pointer winddir;     // wind directions of each layer
