@@ -125,14 +125,14 @@ modified by d. gratadour for compatibility with large screen sizes
 
 func phase_struct(r2,L0)
 {
-  if (L0 == []) L0 = 1.e5;
-  
+  if (L0 == []) return 6.88*r2^(5./6.);
+  //return 6.88*r2^(5./6.);
   return rodconan(sqrt(r2),L0);
+
   /*
   L0 = 1.e5;
   
   //return (r2^(-a)+(K*L0)^(-2*a))^(-5./6./a);
-  //return 0.5*6.88*r2^(5./6.);
   //return r2^(5./6.)*(1+(K*L0)^(-2*a)*r2^a)^(-5./6./a);
   //return 0.5*(0.1717*(1./L0)^(-5/3.))*(1.0056-((2*pi*sqrt(r2)/L0)^(5/6.))*besskv(5/6.,2*pi*sqrt(r2)/L0));
   return (0.1717*(1./L0)^(-5/3.))*(1.0056-((2*pi*sqrt(r2)/L0)^(5/6.))*besskv(5/6.,2*pi*sqrt(r2)/L0));
@@ -335,6 +335,7 @@ func Cxz(n, Z_x, Z_y, X_x, X_y, istencil, L0)
   xz = -phase_struct((X_x(,-)-Z_x(istencil)(-,))^2 + (X_y(,-)-Z_y(istencil)(-,))^2,L0) +
     (phase_struct((Z_x(n)-X_x)^2 + (Z_y(n)-X_y)^2,L0))(,-) +
     (phase_struct((Z_x(n)-Z_x(istencil))^2 + (Z_y(n)-Z_y(istencil))^2,L0))(-,);
+  xz *= 0.5;
   return xz;
 }
 
@@ -355,6 +356,7 @@ func Cxx(n, X_x, X_y, L0)
   xx = -phase_struct((X_x(,-)-X_x(-,))^2 + (X_y(,-)-X_y(-,))^2,L0) +
     (phase_struct((Z_x(n)-X_x)^2 + (Z_y(n)-X_y)^2,L0))(,-) +
     (phase_struct((Z_x(n)-X_x)^2 + (Z_y(n)-X_y)^2,L0))(-,);
+  xx *= 0.5;
   return xx;
 }
 
@@ -375,6 +377,7 @@ func Czz(n, Z_x, Z_y, istencil, L0)
   zz = -phase_struct((Z_x(istencil)(,-)-Z_x(istencil)(-,))^2 + (Z_y(istencil)(,-)-Z_y(istencil)(-,))^2,L0) +
     (phase_struct((Z_x(n)-Z_x(istencil))^2 + (Z_y(n)-Z_y(istencil))^2,L0))(,-) +
     (phase_struct((Z_x(n)-Z_x(istencil))^2 + (Z_y(n)-Z_y(istencil))^2,L0))(-,);
+  zz *= 0.5;
   return zz;
 }
 
