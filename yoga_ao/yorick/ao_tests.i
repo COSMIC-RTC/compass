@@ -149,7 +149,7 @@ func script_atmos(filename)
   
   cpu_r0 = y_atmos.r0;
 
-  screen_cpu = create_screen(cpu_r0,pupixsize,y_geom.pupdiam,A,B,ist);
+  screen_cpu = create_screen(cpu_r0,pupixsize,y_geom.pupdiam,A,B,ist,100.);
 
   mytime = tic();
   for (cc=1;cc<=y_loop.niter;cc++) {
@@ -282,7 +282,7 @@ func script_atmoscpu(void)
   
   dphi_cpu0 = dphi_cpu1 = dphi_cpu2 = dphi_cpu3 = 0.0f;
 
-  screen_cpu = create_screen(0.16,0.0313725,pupdiam,A,B,ist);
+  screen_cpu = create_screen(0.16,0.0313725,pupdiam,A,B,ist,100.);
   mytime = tic();
   for (cc=1;cc<=niter;cc++) {
     screen_cpu = extrude(screen_cpu,float(0.16 /0.0313725), A, B, ist);
@@ -293,7 +293,7 @@ func script_atmoscpu(void)
   
   A = B = ist = 0.;
   
-  screen_cpu = create_screen(0.16,0.0313725,pupdiam+16,A,B,ist);
+  screen_cpu = create_screen(0.16,0.0313725,pupdiam+16,A,B,ist,100.);
   mytime = tic();
   for (cc=1;cc<=niter;cc++) {
     screen_cpu = extrude(screen_cpu,float(0.16 /0.0313725), A, B, ist);
@@ -304,7 +304,7 @@ func script_atmoscpu(void)
   
   A = B = ist = 0.;
   
-  screen_cpu = create_screen(0.16,0.0313725,pupdiam*2,A,B,ist);
+  screen_cpu = create_screen(0.16,0.0313725,pupdiam*2,A,B,ist,100.);
   mytime = tic();
   for (cc=1;cc<=niter;cc++) {
     screen_cpu = extrude(screen_cpu,float(0.16 /0.0313725), A, B, ist);
@@ -316,7 +316,7 @@ func script_atmoscpu(void)
   
   A = B = ist = 0.;
   
-  screen_cpu = create_screen(0.16,0.0313725,pupdiam*4,A,B,ist);
+  screen_cpu = create_screen(0.16,0.0313725,pupdiam*4,A,B,ist,100.);
   mytime = tic();
   for (cc=1;cc<=niter;cc++) {
     screen_cpu = extrude(screen_cpu,float(0.16 /0.0313725), A, B, ist);

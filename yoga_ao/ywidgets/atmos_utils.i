@@ -20,9 +20,9 @@ func update_layer_prop(nlayer)
     else {
       if (numberof((*y_atmos.dim_screens)) == 0) dims = 0;
       else dims = (*y_atmos.dim_screens)(nlayer+1);
-      pyk,swrite(format=atmos_disp._cmd+"y_update_layer_gui(%d, %f, %f, %f, '%s')",
+      pyk,swrite(format=atmos_disp._cmd+"y_update_layer_gui(%d, %f, %f, %f, %f, '%s')",
                  long((*y_atmos.alt)(nlayer+1)),float((*y_atmos.frac)(nlayer+1)),
-                 float((*y_atmos.windspeed)(nlayer+1)),float((*y_atmos.winddir)(nlayer+1)),
+                 float((*y_atmos.L0)(nlayer+1)),float((*y_atmos.windspeed)(nlayer+1)),float((*y_atmos.winddir)(nlayer+1)),
                  swrite(format="%d",long(dims)));
       pyk,swrite(format=atmos_disp._cmd+"y_layers_plot_update(%d)",1);
     }
@@ -40,6 +40,7 @@ func create_atmos(teldiam,pupdiam,zenith,nlayers,r0)
   y_atmos.r0           = r0;
   y_atmos.nscreens     = nlayers;
   y_atmos.frac         = &(array(1./nlayers,nlayers));
+  y_atmos.L0           = &(array(100.0f,nlayers));
   y_atmos.alt          = &((indgen(nlayers)-1)*1000.);
   y_atmos.windspeed    = &(indgen(nlayers)*10.);
   y_atmos.winddir      = &(indgen(nlayers)*0.);
@@ -72,6 +73,7 @@ func update_nlayers(pupdiam,nlayers)
       y_atmos.nscreens     += 1;
       y_atmos.frac         = &(_((*y_atmos.frac),0.1));
       *y_atmos.frac       /= sum(*y_atmos.frac);
+      y_atmos.L0           = &(_((*y_atmos.L0),100));
       y_atmos.alt          = &(_((*y_atmos.alt),10000));
       y_atmos.windspeed    = &(_((*y_atmos.windspeed),10));
       y_atmos.winddir      = &(_((*y_atmos.winddir),0));
@@ -90,6 +92,7 @@ func update_nlayers(pupdiam,nlayers)
       y_atmos.nscreens     -= 1;
       y_atmos.frac         = &((*y_atmos.frac)(1:-1));
       *y_atmos.frac       /= sum(*y_atmos.frac);
+      y_atmos.L0           = &((*y_atmos.L0)(1:-1));
       y_atmos.alt          = &((*y_atmos.alt)(1:-1));
       y_atmos.windspeed    = &((*y_atmos.windspeed)(1:-1));
       y_atmos.winddir      = &((*y_atmos.winddir)(1:-1));
@@ -108,7 +111,7 @@ func update_nlayers(pupdiam,nlayers)
   }
 }
 
-func init_layer_prop(nscreen,alt,frac,windspeed,winddir,pupdiam)
+func init_layer_prop(nscreen,alt,frac,l0,windspeed,winddir,pupdiam)
 {
   extern y_atmos;
 
@@ -119,6 +122,7 @@ func init_layer_prop(nscreen,alt,frac,windspeed,winddir,pupdiam)
     (*y_atmos.alt)(nscreen) = alt;
     (*y_atmos.frac)(nscreen) = frac;
     *y_atmos.frac       /= sum(*y_atmos.frac);
+    (*y_atmos.L0)(nscreen) = l0;
     (*y_atmos.windspeed)(nscreen) = windspeed;
     (*y_atmos.winddir)(nscreen) = winddir;
     if (y_target == []) (*y_atmos.dim_screens)(nscreen) = pupdiam+4;
@@ -144,6 +148,7 @@ func remove_layer(nscreen)
         if (nscreen == 1) {
           *y_atmos.alt = roll(*y_atmos.alt,-1);
           *y_atmos.frac = roll(*y_atmos.frac,-1);
+          *y_atmos.L0 = roll(*y_atmos.L0,-1);
           *y_atmos.windspeed = roll(*y_atmos.windspeed,-1);
           *y_atmos.winddir = roll(*y_atmos.winddir,-1);
         } else {
@@ -151,6 +156,8 @@ func remove_layer(nscreen)
           y_atmos.alt = &(_(alt(1:nscreen-1),alt(nscreen+1:),alt(nscreen)));
           frac = *y_atmos.frac;
           y_atmos.frac = &(_(frac(1:nscreen-1),frac(nscreen+1:),frac(nscreen)));
+          l0 = *y_atmos.L0;
+          y_atmos.L0 = &(_(l0(1:nscreen-1),l0(nscreen+1:),l0(nscreen)));
           windspeed = *y_atmos.windspeed;
           y_atmos.windspeed = &(_(windspeed(1:nscreen-1),windspeed(nscreen+1:),windspeed(nscreen)));
           winddir = *y_atmos.winddir;
@@ -181,6 +188,7 @@ func load_default_atmos(tconf,pupdiam,teldiam)
     y_atmos.nscreens     = 1;
     y_atmos.frac         = &([1.0]);
     y_atmos.alt          = &([0.0]);
+    y_atmos.L0           = &([100.0]);
     y_atmos.windspeed    = &([10.]);
     y_atmos.winddir      = &([0.]);
     y_atmos.dim_screens  = &([pupdiam+4]);
@@ -190,6 +198,7 @@ func load_default_atmos(tconf,pupdiam,teldiam)
     y_atmos.nscreens     = 2;
     y_atmos.frac         = &([.8,0.2]);
     y_atmos.alt          = &([0.,10000.]);
+    y_atmos.L0           = &([100.,100.]);
     y_atmos.windspeed    = &([10.,35.]);
     y_atmos.winddir      = &([0.,15.]);
     y_atmos.pupixsize    = teldiam / pupdiam;
@@ -205,6 +214,7 @@ func load_default_atmos(tconf,pupdiam,teldiam)
     y_atmos.nscreens     = 3;
     y_atmos.frac         = &([.6,0.25,0.15]);
     y_atmos.alt          = &([0.,5000.,10000.]);
+    y_atmos.L0           = &([100.,100.,100.]);
     y_atmos.windspeed    = &([10.,20.,35.]);
     y_atmos.winddir      = &([0.,25.,15.]);
     y_atmos.pupixsize    = teldiam / pupdiam;
@@ -220,6 +230,7 @@ func load_default_atmos(tconf,pupdiam,teldiam)
     y_atmos.nscreens     = 4;
     y_atmos.frac         = &([.4,0.2,0.25,0.15]);
     y_atmos.alt          = &([0.,1000.,5000.,10000.]);
+    y_atmos.L0           = &([100.,100.,100.,100.]);
     y_atmos.windspeed    = &([10.,15.,20.,35.]);
     y_atmos.winddir      = &([0.,10.,25.,15.]);
     y_atmos.pupixsize    = teldiam / pupdiam;
@@ -235,6 +246,7 @@ func load_default_atmos(tconf,pupdiam,teldiam)
     y_atmos.nscreens     = 5;
     y_atmos.frac         = &([.4,0.2,0.10,0.15,0.15]);
     y_atmos.alt          = &([0.,1000.,5000.,10000.,15000.]);
+    y_atmos.L0           = &([100.,100.,100.,100.,100.]);
     y_atmos.windspeed    = &([10.,15.,20.,35.,50.]);
     y_atmos.winddir      = &([0.,10.,25.,15.,35.]);
     y_atmos.pupixsize    = teldiam / pupdiam;

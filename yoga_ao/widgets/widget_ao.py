@@ -120,14 +120,16 @@ class wao:
    def y_init_layer(self,nlayer):
       alt       = self.glade.get_widget('alt').get_value()
       r0frac    = self.glade.get_widget('r0frac').get_value()
+      l0        = self.glade.get_widget('l0').get_value()
       windspeed = self.glade.get_widget('windspeed').get_value()
       winddir   = self.glade.get_widget('winddir').get_value()
       pupdiam   = 128
-      self.py2yo('init_layer_prop %d %f %f %f %f %d' % (nlayer,alt,r0frac,windspeed,winddir,pupdiam))
+      self.py2yo('init_layer_prop %d %f %f %f %f %f %d' % (nlayer,alt,r0frac,l0,windspeed,winddir,pupdiam))
 
-   def y_update_layer_gui(self,alt,r0frac,windspeed,winddir,dim_screen):
+   def y_update_layer_gui(self,alt,r0frac,l0,windspeed,winddir,dim_screen):
       self.glade.get_widget('alt').set_value(alt)
       self.glade.get_widget('r0frac').set_value(r0frac)
+      self.glade.get_widget('l0').set_value(l0)
       self.glade.get_widget('windspeed').set_value(windspeed)
       self.glade.get_widget('winddir').set_value(winddir)
       self.glade.get_widget('screen_size').set_text(dim_screen)

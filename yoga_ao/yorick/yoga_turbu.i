@@ -42,13 +42,12 @@ func yoga_atmos_create(nscreen,r0,L0,pupixsize,screen_size,frac,alt,windspeed,wi
   if (numberof(L0) == 1) L0 = L0(-:1:nscreen);
   
   size2 = [];
-  
   for (i=1;i<=nscreen;i++) {
     if ((!fileExist(swrite(format=dirsave+"A_%d_L0_%d.fits",screen_size(i),long(L0(i))))) ||
         (!fileExist(swrite(format=dirsave+"B_%d_L0_%d.fits",screen_size(i),long(L0(i))))) ||
         (!fileExist(swrite(format=dirsave+"istx_%d_L0_%d.fits",screen_size(i),long(L0(i))))) ||
         (!fileExist(swrite(format=dirsave+"isty_%d_L0_%d.fits",screen_size(i),long(L0(i)))))) {
-      AB, screen_size(i), A, B, ist;
+      AB, screen_size(i), A, B, ist,long(L0(i));
       istx = ist;
       test = array(0,screen_size(i),screen_size(i));
       test(istx) = indgen(dimsof(A)(3));
@@ -66,7 +65,6 @@ func yoga_atmos_create(nscreen,r0,L0,pupixsize,screen_size,frac,alt,windspeed,wi
     }
     grow,size2,dimsof(A)(3);
   }
-
   // convert r0 in pix/m
   r0 /= float(pupixsize);
   // get fraction of r0 for corresponding layer
@@ -76,10 +74,10 @@ func yoga_atmos_create(nscreen,r0,L0,pupixsize,screen_size,frac,alt,windspeed,wi
   
   // fill gpu screen object with data
   for (i=1;i<=nscreen;i++) {
-    A = fits_read(swrite(format=dirsave+"A_%d.fits",screen_size(i)));
-    B = fits_read(swrite(format=dirsave+"B_%d.fits",screen_size(i)));
-    istx = fits_read(swrite(format=dirsave+"istx_%d.fits",screen_size(i)));
-    isty = fits_read(swrite(format=dirsave+"isty_%d.fits",screen_size(i)));
+    A = fits_read(swrite(format=dirsave+"A_%d_L0_%d.fits",screen_size(i),long(L0(i))));
+    B = fits_read(swrite(format=dirsave+"B_%d_L0_%d.fits",screen_size(i),long(L0(i))));
+    istx = fits_read(swrite(format=dirsave+"istx_%d_L0_%d.fits",screen_size(i),long(L0(i))));
+    isty = fits_read(swrite(format=dirsave+"isty_%d_L0_%d.fits",screen_size(i),long(L0(i))));
     init_tscreen,atmos_obj,alt(i),float(A),float(B),int(istx-1),int(isty-1),int(1234*i);
     tic;
     for (cc=1;cc<=2*screen_size(i);cc++) extrude_tscreen,atmos_obj,alt(i);
@@ -90,7 +88,7 @@ func yoga_atmos_create(nscreen,r0,L0,pupixsize,screen_size,frac,alt,windspeed,wi
 }
 
 
-func create_screen(r0,pupixsize,screen_size,&A,&B,&ist)
+func create_screen(r0,pupixsize,screen_size,L0,&A,&B,&ist)
 /* DOCUMENT create_screen
    screen = create_screen(r0,pupixsize,screen_size,&A,&B,&ist)
 
@@ -105,7 +103,7 @@ func create_screen(r0,pupixsize,screen_size,&A,&B,&ist)
    SEE ALSO:
  */
 {
-  AB, screen_size, A, B, ist;   // initialisation for A and B matrices for phase extrusion
+  AB, screen_size, A, B, ist,L0;   // initialisation for A and B matrices for phase extrusion
   screen = array(0.0,screen_size,screen_size);   // init of first phase screen
   for(i=1;i<=2*screen_size;i++) screen=extrude(screen, r0/pupixsize, A, B, ist);
   return screen;

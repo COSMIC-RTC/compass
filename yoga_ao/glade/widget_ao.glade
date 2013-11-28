@@ -806,8 +806,8 @@ Canary
                                                             <property name="use_markup">True</property>
                                                             </widget>
                                                             <packing>
-                                                            <property name="top_attach">2</property>
-                                                            <property name="bottom_attach">3</property>
+                                                            <property name="top_attach">3</property>
+                                                            <property name="bottom_attach">4</property>
                                                             </packing>
                                                             </child>
                                                             <child>
@@ -817,8 +817,8 @@ Canary
                                                             <property name="use_markup">True</property>
                                                             </widget>
                                                             <packing>
-                                                            <property name="top_attach">3</property>
-                                                            <property name="bottom_attach">4</property>
+                                                            <property name="top_attach">4</property>
+                                                            <property name="bottom_attach">5</property>
                                                             </packing>
                                                             </child>
                                                             <child>
@@ -859,8 +859,8 @@ Canary
                                                             <packing>
                                                             <property name="left_attach">1</property>
                                                             <property name="right_attach">2</property>
-                                                            <property name="top_attach">2</property>
-                                                            <property name="bottom_attach">3</property>
+                                                            <property name="top_attach">3</property>
+                                                            <property name="bottom_attach">4</property>
                                                             </packing>
                                                             </child>
                                                             <child>
@@ -873,15 +873,34 @@ Canary
                                                             <packing>
                                                             <property name="left_attach">1</property>
                                                             <property name="right_attach">2</property>
-                                                            <property name="top_attach">3</property>
-                                                            <property name="bottom_attach">4</property>
+                                                            <property name="top_attach">4</property>
+                                                            <property name="bottom_attach">5</property>
                                                             </packing>
                                                             </child>
                                                             <child>
-                                                            <placeholder/>
+                                                            <widget class="GtkLabel" id="label66">
+                                                            <property name="visible">True</property>
+                                                            <property name="label" translatable="yes">L0 (m)</property>
+                                                            </widget>
+                                                            <packing>
+                                                            <property name="top_attach">2</property>
+                                                            <property name="bottom_attach">3</property>
+                                                            </packing>
                                                             </child>
                                                             <child>
-                                                            <placeholder/>
+                                                            <widget class="GtkSpinButton" id="l0">
+                                                            <property name="visible">True</property>
+                                                            <property name="can_focus">True</property>
+                                                            <property name="invisible_char">&#x25CF;</property>
+                                                            <property name="adjustment">100 0 1000 0.10000000000000001 0 0</property>
+                                                            <property name="digits">2</property>
+                                                            </widget>
+                                                            <packing>
+                                                            <property name="left_attach">1</property>
+                                                            <property name="right_attach">2</property>
+                                                            <property name="top_attach">2</property>
+                                                            <property name="bottom_attach">3</property>
+                                                            </packing>
                                                             </child>
                                                             </widget>
                                                             <packing>
