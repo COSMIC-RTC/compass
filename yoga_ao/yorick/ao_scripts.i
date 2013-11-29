@@ -188,7 +188,7 @@ func script_system(filename,verbose=,strehl=,r0=,clean=)
   
   write,"\n done with simulation \n";
   write,format="simulation time : %f sec. per iteration\n",tac(mytime)/y_loop.niter;
-
+  error;
     if (strehl) 
       return strehllp(0);
   //mimg /= y_loop.niter;
@@ -779,7 +779,8 @@ func script_valid_rtc(filename,verbose=,strehl=,r0=,clean=, output=)
   
   write,"\n done with simulation \n";
   write,format="simulation time : %f sec. per iteration\n",tac(mytime)/y_loop.niter;
-  mc = controler_getdata(g_rtc, 0, "hcmat");
+  mc = rtc_getcmat(g_rtc, 0);
+  //error;
   if(output!=[]){
     mkdirp,output;
     writefits, output+"/img_cube.fits", img_cube;
@@ -813,24 +814,28 @@ func autocorr(tmp)
   return tmp1;
 }
 
-
 if(batch()) {
   testname=get_argv();
-  nb_tests=dimsof(testname)(2);
+  nb_tests=numberof(testname);
   for(i=2; i<=nb_tests; i++){
-    write, "test de "+testname(i);
-    script_valid_rtc,YOGA_AO_PARPATH+testname(i), output=testname(i);
+    pos = strfind("/", testname(i), back=1)(2)+1;
+    output_dir=testname(i);
+    if(pos){ // "/" find
+      output_dir=strpart(testname(i), pos:);
+    }
+    write, "test de "+testname(i)+", output="+output_dir;
+    script_valid_rtc,testname(i), output=output_dir;
   }
 } else {
   tmp = get_argv();
   if (numberof(tmp) > 1) {
     if (numberof(tmp) < 3) {
       filename = tmp(2);
-      script_system,filename;
+      script_valid_rtc,filename,strehl=1;
     }
     if (numberof(tmp) > 3) {
       filename = tmp(4);
-      script_system,filename;
+      script_valid_rtc,filename,strehl=1;
     }
   }
 }
