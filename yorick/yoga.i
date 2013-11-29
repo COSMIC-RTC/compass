@@ -335,14 +335,22 @@ extern yoga_rank1;
  */
 extern yoga_mm;
 /* DOCUMENT yoga_mm
-   matC = yoga_mm(matA,matB)
+   matC = yoga_mm(matA,matB [,opA] [,opB] [,alpha])
    or
-   yoga_mm,matC,matA,matB
+   yoga_mm,matC,matA,matB [,opA] [,opB] [,alpha] [,beta] 
 
    This function performs the matrix-matrix multiplication (BLAS gemm)
-   C = A * B + C
-   If called as a function, it creates a new yoga object
-     
+   C = alpha * opA( A ) * opB ( B ) + beta * C
+
+   opA : operation on matrix A : 't' for transpose, 'n' for nothing
+   opB : operation on matrix B : 't' for transpose, 'n' for nothing
+
+   if you need to perform an operation on B you need to provide the operation on A as well
+   if you need to provide alpha, you need to provide operations on A and B (even if default 'n')
+   if you need to provide beta, you need to provide all the previous arguments (opA, opB, alpha)
+   
+   If called as a function, it creates a new yoga object so the beta argument is not applicable
+   
    SEE ALSO:
  */
 
