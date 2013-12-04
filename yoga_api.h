@@ -225,7 +225,7 @@ extern "C" {
 
 
 
-  yObj_struct* yoga_getobj(int argc, int pos);
+  yObj_struct* yoga_getyObj(int argc, int pos);
 
 }
 

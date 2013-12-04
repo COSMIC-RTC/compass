@@ -34,19 +34,21 @@ extern "C" {
     int yType;
     long ntot;
     long dims[Y_DIMSIZE];
-    if (yarg_subroutine()) {
+    if (!yarg_subroutine()) {
       // retreive matrix and parameters from yorick session
       char jobz = ygets_c(argc-1);
       char uplo = ygets_c(argc-2);
-      void *h_A = ygeta_any(argc - 3, &ntot, dims,&yType);
+      void *h_A = ygeta_any(argc - 3, &ntot, dims, &yType);
       if (yType != Y_DOUBLE) y_error("Please provide a double precision array\n");
 
       // d_R becomes a carma object retreived from Yorick 
       // !!!!!!!!! FIX ME !!!!!!!!!!!!!!!!!!!!!
       // need to test size and type of provided carma object
       //magma_malloc( (void**) &d_R, (N*lda)*sizeof(double) );
-      yObj_struct *d_R_handler = (yObj_struct *) yget_obj(argc - 4, &yObj);
+      ///yObj_struct *d_R_handler = (yObj_struct *) yget_obj(argc - 1, &yObj);
+      yObj_struct *d_R_handler = yoga_getyObj(argc, 4);
       caObjD *d_R = (caObjD *)(d_R_handler->carma_object);
+      fprintf(stderr, "%s: %s@%d\n", __FILE__, __FUNCTION__, __LINE__);
 
       // create magma workspace
       double *h_R, *h_work;
@@ -66,33 +68,42 @@ extern "C" {
       //magma_malloc_cpu( (void**) &w1, (N)*sizeof(double) );
       long dims_eigen[2];
       dims_eigen[0] = 1; dims_eigen[1] = N; 
-      double *w1 = ypush_d(dims_eigen);
+      double *w1; // = (double*)malloc( N*sizeof(double) );//ypush_d(dims_eigen);
 
+      double *d_R2;
+      //d_R->getData()
+      fprintf(stderr, "%s: %s@%d %c %c\n", __FILE__, __FUNCTION__, __LINE__, jobz, uplo);
        /* Query for workspace sizes */
       magma_dsyevd_gpu_t( jobz, uplo,
-			  N, d_R->getData(), ldda, w1,
+			  N, d_R2, ldda, w1,
 			  h_R, lda,
 			  aux_work,  -1,
 			  aux_iwork, -1,
 			  &info );
+      fprintf(stderr, "%s: %s@%d\n", __FILE__, __FUNCTION__, __LINE__);
       lwork  = (magma_int_t) aux_work[0];
       liwork = aux_iwork[0];
 
+      w1 = (double*)malloc( N*sizeof(double) );//ypush_d(dims_eigen);
       cudaMallocHost( (void**) &h_R, (N*lda)*sizeof(double) );
       cudaMallocHost( (void**) &h_work, (lwork)*sizeof(double) );
       posix_memalign( (void**) &iwork, 32, (liwork)*sizeof(int) );
       //magma_malloc_cpu( (void**) &iwork, (liwork)*sizeof(magma_int_t) );
 
+      fprintf(stderr, "%s: %s@%d\n", __FILE__, __FUNCTION__, __LINE__);
       /* Initialize the matrix */
       lapackf77_dlarnv( &ione, ISEED, &n2, (double *)h_A );
       magma_dsetmatrix( N, N, (double *)h_A, lda, d_R->getData(), ldda );
 
+      fprintf(stderr, "%s: %s@%d\n", __FILE__, __FUNCTION__, __LINE__);
       magma_dsyevd_gpu_t( jobz, uplo,
 			  N, d_R->getData(), ldda, w1,
 			  h_R, lda,
 			  h_work, lwork,
 			  iwork, liwork,
 			  &info );
+
+      fprintf(stderr, "%s: %s@%d\n", __FILE__, __FUNCTION__, __LINE__);
 
       cudaFreeHost(h_R);
       cudaFreeHost(h_work);

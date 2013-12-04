@@ -3386,7 +3386,7 @@ void Y_yoga_test(int argc) {
 	}
 }
 
-yObj_struct* yoga_getobj(int argc, int pos) {
+yObj_struct* yoga_getyObj(int argc, int pos) {
 	return (yObj_struct *) yget_obj(argc - pos, &yObj);
 }
 }

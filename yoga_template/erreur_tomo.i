@@ -50,11 +50,17 @@ func erreur_tomo(lib=,nmf=,filename=)
   cpp = fits_read("data/cpp"+filename+".fits");
   
   n = dimsof(cmm)(2);
-  write,format="starting SVD %dx%d \n",n,n;
+  write,format="starting SVD %dx%d with %s librairy\n",n,n, lib;
 
-  if (lib == "yorick")
-    l = SVdec(cmm, U, VT);
-  
+  if (lib == "yorick"){
+    //l = SVdec(cmm, U, VT);
+    d_R= yoga_obj(cmm*0.);
+    l2 = yoga_magma_evd('V', 'U', cmm, d_R);
+    error;
+  }  
+  if (lib == "magma") {
+     l = SVdec(cmm, U, VT); 
+  } 
   if (lib == "cula") {
     // transfering cov matrix to GPU
     g_cmm = yoga_obj(float(cmm));
