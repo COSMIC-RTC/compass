@@ -23,14 +23,15 @@ OBJS= yoga_template.o yoga_template.cuo
 #PKG_EXENAME=yorick
 
 NVCC = /usr/local/cuda/bin/nvcc 
-NVCCFLAGS = -g -DDEBUG -m64 -Xcompiler -fPIC -c --compiler-options -I. -I$(YOGA_DIR)/libcarma/include.h -I$(YOGA_DIR) -I/usr/local/cuda/include -I/usr/local/cula/include -gencode arch=compute_12,code=sm_12 
+NVCCFLAGS = -g -DDEBUG -m64 -Xcompiler -fPIC -c --compiler-options -I. -I$(YOGA_DIR)/libcarma/include.h -I$(YOGA_DIR) -I/usr/local/cuda/include -I/usr/local/cula/include -gencode arch=compute_12,code=sm_12  #-I/usr/local/magma-1.4.1/include
 
 # PKG_DEPLIBS=-Lsomedir -lsomelib   for dependencies of this package
-PKG_DEPLIBS += $(YOGA_DIR)/yoga.so
+PKG_DEPLIBS += $(YOGA_DIR)/yoga.so 
+PKG_DEPLIBS += /usr/local/magma-1.4.1/lib/libmagma.a
 
 # set compiler (or rarely loader) flags specific to this package
 
-PKG_CPPFLAGS = -g -DDEBUG -Wall -fno-common -I$(YOGA_DIR)/libcarma/include.h -I$(YOGA_DIR) -I/usr/local/cuda/include -I/usr/local/cula/include -fPIC
+PKG_CPPFLAGS = -DHAVE_CUBLAS -DADD_ -g -DDEBUG -Wall -fno-common -I$(YOGA_DIR)/libcarma/include.h -I$(YOGA_DIR) -I/usr/local/cuda/include -I/usr/local/cula/include -fPIC -I/usr/local/magma-1.4.1/include
 
 PKG_LDFLAGS=  -lstdc++
 
