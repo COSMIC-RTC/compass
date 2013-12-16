@@ -67,8 +67,8 @@ template<> culaStatus carma_cula_sgesvd<double>(int m, int n, double *mat, doubl
 template <class T> int carma_cula_svd(carma_obj<T> *imat, carma_obj<T> *eigenvals, carma_obj<T> *mod2act, carma_obj<T> *mes2mod)
 {
 
-  int m = imat->getDims(1);
-  int n = imat->getDims(2);
+  int n = imat->getDims(1);
+  int m = imat->getDims(2);
 /*
   carma_obj<T> *tmp = new carma_obj<T>(imat);
   carma_culaDevice_sgesvd(m, n, tmp->getData(), eigenvals->getData(), mod2act->getData(), mes2mod->getData());
@@ -89,8 +89,8 @@ template int carma_cula_svd<double>(caObjD *imat, caObjD *eigenvals, caObjD *mod
 
 template <class T> int carma_cula_svd(carma_host_obj<T> *imat, carma_host_obj<T> *eigenvals, carma_host_obj<T> *mod2act, carma_host_obj<T> *mes2mod)
 {
-  int m = imat->getDims(1);
-  int n = imat->getDims(2);
+  int n = imat->getDims(1);
+  int m = imat->getDims(2);
 /*
   carma_host_obj<T> *tmp = new carma_host_obj<T>(imat, MA_PAGELOCK);
   carma_cula_sgesvd(m, n, tmp->getData(), eigenvals->getData(), mes2mod->getData(), mod2act->getData());

@@ -25,6 +25,7 @@ require,"util_fr.i"
     tic; yoga_cula_svd,mat,S,U,Vt; tps1 = tac();
     write,"done ...";
   }
+  if (0) {
   //tmp=float(random(m,n));
   mat=yoga_host_obj(tmp,pagelock=1);
   if (!verif) tmp=[];
@@ -34,7 +35,7 @@ require,"util_fr.i"
   write,"computing svd on GPU: yoga_svd,mat,S1,U, Vt";
   tic; yoga_cula_svd_host,mat,S1,U,Vt; tps2 = tac();
   write,"done ...";
-
+  }
 //write, "S";
 //info, S();
 //info, S1();
@@ -49,12 +50,6 @@ require,"util_fr.i"
 //max(abs(U()-U2));
 //write, "max(abs(Vt()-V2t))";
 //max(abs(Vt()-V2t));
-  if (!hostonly) {
-    write, "max(abs(S()-S2))";
-    max(abs(S()-S2));
-    write, "max(abs(S1()-S2))";
-    max(abs(S1()-S2));
-  }
   if (verif) {
     write,"computing svd on CPU: S2 = SVdec(mat(), U2, V2t)";
     tic; S2 = SVdec(tmp, U2, V2t); tps3 = tac();
@@ -68,6 +63,12 @@ require,"util_fr.i"
     write,format = "GPU culaDevice time : %f\n",tps1;
     write,format = "GPU culaHost time  : %f\n",tps2;
     write,format = "CPU svd time  : %f\n",tps3;
+  }
+  if (!hostonly) {
+    write, "max(abs(S()-S2))";
+    max(abs(S()-S2));
+    write, "max(abs(S1()-S2))";
+    //max(abs(S1()-S2));
   }
 }
 
