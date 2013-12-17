@@ -84,6 +84,7 @@ int shift_buf(float *d_data,int offset, int N,int device)
 
   shift_krnl<<<grid, threads>>>(d_data, offset, N);
 
+  cutilCheckMsg("shift_kernel<<<>>> execution failed\n");
    return EXIT_SUCCESS;
 }
 
@@ -106,6 +107,7 @@ int mult_vect(float *d_data,float *scale, int N,int device)
 
   mult_krnl<<<grid, threads>>>(d_data, scale, N);
 
+  cutilCheckMsg("mult_kernel<<<>>> execution failed\n");
    return EXIT_SUCCESS;
 }
 
@@ -121,6 +123,7 @@ int mult_int(float *o_data,float *i_data,float *scale, float gain, int N,int dev
 
   for(int i = 0; i < nstreams; i++) {
     mult_int_krnl<<<grid, threads, 0, streams->get_stream(i)>>>(o_data,i_data, scale, gain, N, i*nblocks*nthreads);
+  cutilCheckMsg("multint_kernel<<<>>> execution failed\n");
   }
 
    return EXIT_SUCCESS;
@@ -136,6 +139,7 @@ int mult_int(float *o_data,float *i_data,float *scale, float gain, int N,int dev
   dim3 grid(nblocks), threads(nthreads);
 
   mult_int_krnl<<<grid, threads>>>(o_data,i_data, scale, gain, N);
+  cutilCheckMsg("multint_kernel<<<>>> execution failed\n");
 
   return EXIT_SUCCESS;
 }

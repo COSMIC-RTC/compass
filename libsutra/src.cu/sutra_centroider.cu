@@ -865,6 +865,7 @@ int correl(cuFloatComplex *d_odata,cuFloatComplex *d_idata,int N,int device)
 
   corr_krnl<<<grid, threads>>>(d_odata, d_idata, N);
 
+  cutilCheckMsg("corr_kernel<<<>>> execution failed\n");
    return EXIT_SUCCESS;
 }
 
@@ -887,6 +888,7 @@ int roll2real(float *d_odata,cuFloatComplex *d_idata, int n, int Npix,  int N, i
 
   roll2real_krnl<<<grid, threads>>>(d_odata, d_idata, n, Npix, N);
 
+  cutilCheckMsg("roll2real_kernel<<<>>> execution failed\n");
    return EXIT_SUCCESS;
 }
 
@@ -909,6 +911,7 @@ int corr_norm(float *d_odata,float *d_idata,int Npix, int N,int device)
 
   corrnorm_krnl<<<grid, threads>>>(d_odata, d_idata, Npix, N);
 
+  cutilCheckMsg("corrnorm_kernel<<<>>> execution failed\n");
    return EXIT_SUCCESS;
 }
 
@@ -1013,6 +1016,7 @@ int convert_centro(float *d_odata,float *d_idata,float offset, float scale, int 
 
   convert_krnl<<<grid, threads>>>(d_odata, d_idata, offset, scale, N);
 
+    cutilCheckMsg("convert_kernel<<<>>> execution failed\n");
    return EXIT_SUCCESS;
 }
 

@@ -13,14 +13,27 @@ unsigned int nextPow2( unsigned int x ) {
 void getNumBlocksAndThreads(int device, int n, int &blocks, int &threads)
 {
   
-    struct cudaDeviceProp deviceProperties;
+  struct cudaDeviceProp deviceProperties;
+  cudaGetDeviceProperties(&deviceProperties, device);
+  
+  int maxThreads = deviceProperties.maxThreadsPerBlock;
+  blocks = deviceProperties.multiProcessorCount*8;
+  threads = (n + blocks  -1)/blocks;
+
+  if (threads > maxThreads) {
+    threads = maxThreads;
+    blocks = (n + threads  -1)/threads;
+  }
+
+   /*
+   struct cudaDeviceProp deviceProperties;
     cudaGetDeviceProperties(&deviceProperties, device);
     
-    int maxThreads = deviceProperties.maxThreadsPerBlock;
+    int maxThreads = deviceProperties.maxThreadsPerBlock/2;
     
     threads = (n < maxThreads) ? nextPow2(n/deviceProperties.multiProcessorCount) : maxThreads;
     blocks = (n + (threads - 1)) / (threads);
-    
+   */
     //blocks = deviceProperties.multiProcessorCount*8;
     //threads = (n + blocks -1)/blocks;
     /*
@@ -65,6 +78,7 @@ int cfillrealp(cuFloatComplex *d_odata,float *d_idata,int N,int device)
 
   cfillrealp_krnl<<<grid, threads>>>(d_odata, d_idata, N);
 
+  cutilCheckMsg("cfillrealp_kernel<<<>>> execution failed\n");
    return EXIT_SUCCESS;
 }
 
@@ -90,6 +104,7 @@ int cgetrealp(float *d_odata,cuFloatComplex *d_idata,int N,int device)
 
   cgetrealp_krnl<<<grid, threads>>>(d_odata, d_idata, N);
 
+  cutilCheckMsg("cgetrealp_kernel<<<>>> execution failed\n");
    return EXIT_SUCCESS;
 }
 
@@ -167,6 +182,7 @@ int subap_norm(float *d_odata,float *d_idata,float *fact,float *norm,float nphot
   dim3 grid(nblocks), threads(nthreads);
 
   subapnorm_krnl<<<grid, threads>>>(d_odata, d_idata, fact, norm, nphot, n, N);
+    cutilCheckMsg("subapnorm_kernel<<<>>> execution failed\n");
 
    return EXIT_SUCCESS;
 }
@@ -192,6 +208,7 @@ int subap_norm_async(float *d_odata,float *d_idata,float *fact,float *norm,float
 
   for(int i = 0; i < nstreams; i++) {
     subapnormasync_krnl<<<grid, threads, 0, streams->get_stream(i) >>>(d_odata, d_idata, fact, norm, nphot, n, N, i*nblocks*nthreads);
+    cutilCheckMsg("subapnormasync_kernel<<<>>> execution failed\n");
   }
 
   return EXIT_SUCCESS;
@@ -217,6 +234,8 @@ int fillindx(float *d_odata,float *d_idata,int *indx, float alpha, float beta, i
   dim3 grid(nblocks), threads(nthreads);
 
   krnl_fillindx<<<grid, threads>>>(d_odata, d_idata,indx, alpha, beta, N);
+
+  cutilCheckMsg("fillindx_kernel<<<>>> execution failed\n");
 
   return EXIT_SUCCESS;
 }
@@ -310,7 +329,7 @@ int addai(float *d_odata,float *i_data, int i,int sgn, int N, int device)
 
   cutilCheckMsg("plusai_kernel<<<>>> execution failed\n");
 
-   return EXIT_SUCCESS;
+  return EXIT_SUCCESS;
 }
 
 
@@ -361,6 +380,7 @@ template<class T> int roll(T *idata,int N,int M,int nim)
 
   roll_krnl<<<grid, threads>>>(idata,N,M,Ntot/2);
 
+  cutilCheckMsg("roll_kernel<<<>>> execution failed\n");
   return EXIT_SUCCESS;
 
 }
@@ -414,6 +434,7 @@ template<class T> int roll(T *idata,int N,int M)
 
   roll_krnl<<<grid, threads>>>(idata,N,M);
 
+  cutilCheckMsg("roll_kernel<<<>>> execution failed\n");
   return EXIT_SUCCESS;
 
 }

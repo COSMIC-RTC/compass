@@ -72,13 +72,13 @@ func script_system(filename,verbose=,strehl=,r0=,clean=)
   wfs_init;
 
   atmos_init;
-  
+
   dm_init;
 
   target_init;
 
   rtc_init,clean=clean;
-
+  
   if (verbose) write,"... Done with inits !";
   write,"The following objects have been initialized on the GPU :";
   write,"--------------------------------------------------------";
@@ -163,7 +163,7 @@ func script_system(filename,verbose=,strehl=,r0=,clean=)
       }
       //saving average image from target #1
     }
-
+    
     if (verbose) {
       subsample=100.;
       if (cc % subsample == 0) {

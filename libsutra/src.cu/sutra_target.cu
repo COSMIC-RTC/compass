@@ -166,6 +166,7 @@ int target_raytrace_async(carma_host_obj<float> *phase_telemetry, float *d_odata
   for(int i = 0; i < nstreams; i++)
     raytrace_krnl<<<blocks, threads, smemSize,phase_telemetry->get_cudaStream_t(i)>>>(d_odata, d_idata, nx,ny,xoff,yoff,Nx,block_size,i*block_size);
 
+  cutilCheckMsg("raytrace_kernel<<<>>> execution failed\n");
   // asynchronously launch nstreams memcopies.  Note that memcopy in stream x will only
   //   commence executing when all previous CUDA calls in stream x have completed
   int delta = block_size * nx;
@@ -178,7 +179,6 @@ int target_raytrace_async(carma_host_obj<float> *phase_telemetry, float *d_odata
 		    cudaMemcpyDeviceToHost, phase_telemetry->get_cudaStream_t(i));
   }
   
-  cutilCheckMsg("raytrace_kernel<<<>>> execution failed\n");
   return EXIT_SUCCESS;
 }
 

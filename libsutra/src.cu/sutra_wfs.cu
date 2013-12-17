@@ -297,7 +297,7 @@ int fillbincube_async(carma_streams *streams, float *bcube, cuFloatComplex *hrim
   // asynchronously launch nstreams kernels, each operating on its own portion of data
   for(int i = 0; i < nstreams; i++){
 	  fillbincube_krnl_async<<<grid, threads, 0, streams->get_stream(i)>>>(bcube,hrimage,indxpix,Nfft,Npix,Nrebin,N,i*N/nstreams);
-	  cutilCheckMsg("fillbincube_kernel<<<>>> execution failed\n");
+	  cutilCheckMsg("fillbincubeasync_kernel<<<>>> execution failed\n");
   }
   return EXIT_SUCCESS;
 }
@@ -328,6 +328,7 @@ int indexfill(cuFloatComplex *d_odata,cuFloatComplex *d_idata,int *indx,int nx, 
 
   indexfill_krnl<<<grid, threads>>>(d_odata, d_idata,indx, ntot, Ntot, N);
 
+	  cutilCheckMsg("indexfill_kernel<<<>>> execution failed\n");
   return EXIT_SUCCESS;
 }
 
@@ -356,7 +357,8 @@ int convolve(cuFloatComplex *d_odata,cuFloatComplex *d_idata,int N,int device)
 
   conv_krnl<<<grid, threads>>>(d_odata, d_idata, N);
 
-   return EXIT_SUCCESS;
+ 	  cutilCheckMsg("conv_kernel<<<>>> execution failed\n");
+  return EXIT_SUCCESS;
 }
 
 __global__ void conv_krnl(cuFloatComplex *odata,cuFloatComplex *idata, int N, int n)
@@ -385,6 +387,7 @@ int convolve_cube(cuFloatComplex *d_odata,cuFloatComplex *d_idata,int N,int n, i
 
   conv_krnl<<<grid, threads>>>(d_odata, d_idata, N, n);
 
+ 	  cutilCheckMsg("conv_kernel<<<>>> execution failed\n");
    return EXIT_SUCCESS;
 }
 
@@ -1081,7 +1084,7 @@ template <class Tout, class Tin> void pyr_submask3d(Tout *d_odata, Tin *d_mask, 
 
   submask3d_krnl<Tout,Tin><<<grid , threads >>>(d_odata, d_mask, n,nim);
 
-  cutilCheckMsg("submask_kernel<<<>>> execution failed\n");
+  cutilCheckMsg("submask3d_kernel<<<>>> execution failed\n");
 }
 template void pyr_submask3d<cuFloatComplex,float>(cuFloatComplex *d_odata,  float*d_mask, int n, int nim, int device);
 template void pyr_submask3d<cuDoubleComplex,double>(cuDoubleComplex *d_odata, double *d_idata, int n, int nim, int device);
@@ -1119,7 +1122,7 @@ template <class T> void pyr_subsum(T *d_odata, T *d_idata, int *subindx, int *su
 
   subsum_krnl<T><<< grid, threads >>>(d_odata, d_idata,subindx,subindy,ns,nvalid,nim);
 
-  cutilCheckMsg("abspyr_kernel<<<>>> execution failed\n");
+  cutilCheckMsg("subsum_kernel<<<>>> execution failed\n");
 }
 
 template void pyr_subsum<float>(float *d_odata, float *d_idata, int *subindx, int *subindy, int ns, int nvalid, int nim, int device);
