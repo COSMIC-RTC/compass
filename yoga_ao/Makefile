@@ -29,13 +29,13 @@ include ../Makefile.inc
 #PKG_EXENAME=yorick
 
 # PKG_DEPLIBS=-Lsomedir -lsomelib   for dependencies of this package
-PKG_DEPLIBS = $(YOGA_DIR)/libcarma/libcarma.so
-PKG_DEPLIBS += $(YOGA_DIR)/libsutra/libsutra.so #-lcula -L/usr/local/cula/lib 
+PKG_DEPLIBS = $(COMPASS_ROOT_DIR)/libcarma/libcarma.so
+PKG_DEPLIBS += $(COMPASS_ROOT_DIR)/libsutra/libsutra.so #-lcula -L/usr/local/cula/lib 
 #PKG_DEPLIBS += ../cudpp/lib/libcudpp_x86_64.a
 
 # set compiler (or rarely loader) flags specific to this package
 
-PKG_CPPFLAGS = -Wall -fno-common -I$(YOGA_DIR)/libcarma/include.h -I$(YOGA_DIR)/libsutra/include.h -I$(CUDA_INC_PATH) #-I/usr/local/cula/include
+PKG_CPPFLAGS = -Wall -fno-common -I$(COMPASS_ROOT_DIR)/libcarma/include.h -I$(COMPASS_ROOT_DIR)/libsutra/include.h -I$(CUDA_INC_PATH) #-I/usr/local/cula/include
 #PKG_CPPFLAGS = -I.. -I../cudpp/
 #-DDEBUG
 

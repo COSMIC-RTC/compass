@@ -11,7 +11,8 @@ export CULA_LIB_PATH?=$(CULA_ROOT)/lib
 export CULA_LIB_PATH_64?=$(CULA_ROOT)/lib64
 
 # YOGA default definitions
-export YOGA_DIR?=/home/sevin/compass
+export COMPASS_ROOT_DIR?=/home/brujo/compass
+export YOGA_DIR?=$COMPASS_ROOT_DIR/yoga_ao
 export YOGA_AO_DIR?=$(YOGA_DIR)/yoga_ao
 export YOGA_AO_TOP?=$(YOGA_AO_DIR)
 
