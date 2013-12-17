@@ -84,7 +84,7 @@ extern "C" {
       lwork  = (magma_int_t) aux_work[0];
       liwork = aux_iwork[0];
 
-      w1 = (double*)malloc( N*sizeof(double) );//ypush_d(dims_eigen);
+      w1 = ypush_d(dims_eigen);//(double*)malloc( N*sizeof(double) );//ypush_d(dims_eigen);
       cudaMallocHost( (void**) &h_R, (N*lda)*sizeof(double) );
       cudaMallocHost( (void**) &h_work, (lwork)*sizeof(double) );
       posix_memalign( (void**) &iwork, 32, (liwork)*sizeof(int) );

@@ -17,9 +17,9 @@ func checkAll(size)
 
   checkall_yoga_prng,size;
 
-  check_yoga_sort,size;
+  //check_yoga_sort,size;
 
-  check_yoga_scan,size;
+  //check_yoga_scan,size;
 }
 
 

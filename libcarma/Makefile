@@ -67,7 +67,7 @@ else
 endif
 
 NVCC = $(CUDA_ROOT)/bin/nvcc
-NVCCFLAGS = -m64 -Xcompiler -fPIC -c --compiler-options -I$(CUH_DIR)  -I$(H_DIR) -I$(Y_MAKEDIR)/include -I$(CULA_INC_PATH) #-gencode $(GENCODE)
+NVCCFLAGS = -m64 -Xcompiler -fPIC -c --compiler-options -I$(CUH_DIR)  -I$(H_DIR) -I$(Y_MAKEDIR)/include -I$(CULA_INC_PATH) -gencode $(GENCODE)
 
 #-gencode arch=compute_11,code=sm_11 -gencode arch=compute_13,code=sm_13 -gencode arch=compute_20,code=sm_20 -gencode arch=compute_30,code=sm_30 -gencode arch=compute_35,code=sm_35 
 

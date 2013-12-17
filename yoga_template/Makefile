@@ -1,10 +1,10 @@
 # these values filled in by    yorick -batch make.i
-Y_MAKEDIR=/home/sevin/yorick.git/relocate
-Y_EXE=/home/sevin/yorick.git/relocate/bin/yorick
+Y_MAKEDIR=/home/brujo/yorick-2.2/relocate
+Y_EXE=/home/brujo/yorick-2.2/relocate/bin/yorick
 Y_EXE_PKGS=
 
-Y_EXE_HOME=/home/sevin/yorick.git/relocate
-Y_EXE_SITE=/home/sevin/yorick.git/relocate
+Y_EXE_HOME=/home/brujo/yorick-2.2/relocate
+Y_EXE_SITE=/home/brujo/yorick-2.2/relocate
 Y_HOME_PKG=
 
 # ----------------------------------------------------- optimization flags
@@ -23,15 +23,15 @@ OBJS= yoga_template.o yoga_template.cuo
 #PKG_EXENAME=yorick
 
 NVCC = /usr/local/cuda/bin/nvcc 
-NVCCFLAGS = -g -DDEBUG -m64 -Xcompiler -fPIC -c --compiler-options -I. -I$(YOGA_DIR)/libcarma/include.h -I$(YOGA_DIR) -I/usr/local/cuda/include -I/usr/local/cula/include -gencode arch=compute_12,code=sm_12  #-I/usr/local/magma-1.4.1/include
+NVCCFLAGS = -g -DDEBUG -m64 -Xcompiler -fPIC -c --compiler-options -I. -I$(COMPASS_ROOT_DIR)/libcarma/include.h -I$(YOGA_DIR)  -I$(CUDA_INC_PATH) -I$(CULA_INC_PATH) -I$(MAGMA_DIR)/include #-gencode arch=compute_12,code=sm_12  #-I/usr/local/magma-1.4.1/include
 
 # PKG_DEPLIBS=-Lsomedir -lsomelib   for dependencies of this package
 PKG_DEPLIBS += $(YOGA_DIR)/yoga.so 
-PKG_DEPLIBS += /usr/local/magma-1.4.1/lib/libmagma.a
+PKG_DEPLIBS += $(MAGMA_DIR)/lib/libmagma.a
 
 # set compiler (or rarely loader) flags specific to this package
 
-PKG_CPPFLAGS = -DHAVE_CUBLAS -DADD_ -g -DDEBUG -Wall -fno-common -I$(YOGA_DIR)/libcarma/include.h -I$(YOGA_DIR) -I/usr/local/cuda/include -I/usr/local/cula/include -fPIC -I/usr/local/magma-1.4.1/include
+PKG_CPPFLAGS = -DHAVE_CUBLAS -DADD_ -g -DDEBUG -Wall -fno-common -I$(COMPASS_ROOT_DIR)/libcarma/include.h -I$(YOGA_DIR) -I$(CUDA_INC_PATH) -I$(CULA_INC_PATH) -fPIC -I$(MAGMA_DIR)/include
 
 PKG_LDFLAGS=  -lstdc++
 

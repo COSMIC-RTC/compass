@@ -1,4 +1,6 @@
-#include "yoga_template.i"
+require,"yoga.i";
+
+require,"yoga_template.i";
 
 func check_eigen(l,&nmf)
 // checking eigen values
@@ -54,7 +56,7 @@ func erreur_tomo(lib=,nmf=,filename=)
 
   if (lib == "yorick"){
     //l = SVdec(cmm, U, VT);
-    d_R= yoga_obj(cmm*0.);
+    d_R= yoga_obj(float(cmm*0.0f));
     l2 = yoga_magma_evd('V', 'U', cmm, d_R);
     error;
   }  

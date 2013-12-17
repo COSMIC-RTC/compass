@@ -27,11 +27,12 @@ func check_yoga_fft(size)
   "checkFFTMulti";
   "";
   checkFFTMulti,1000,64,64;
-  
+  /*
   "";
   "checkConvFFT";
   "";
   checkConvFFT,size;
+  */
 }
 
 /*

@@ -1,7 +1,5 @@
 plug_in,"yoga_template";
 
-require, "yoga.i";
-
 extern yoga_immult;
 /* DOCUMENT yoga_immult
    yoga_immult,dest,src
