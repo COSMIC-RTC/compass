@@ -22,6 +22,10 @@ OBJS= yoga_template.o yoga_template.cuo
 # change to give the executable a name other than yorick
 #PKG_EXENAME=yorick
 
+MAGMAROOT=/usr/local/magma
+MAGMATEST=/home/brujo/Packages/magma-1.4.0
+MKLROOT=/opt/intel/composer_xe_2013_sp1/mkl
+
 NVCC = /usr/local/cuda/bin/nvcc 
 NVCCFLAGS = -g -DDEBUG -m64 -Xcompiler -fPIC -c --compiler-options -I. -I$(COMPASS_ROOT_DIR)/libcarma/include.h -I$(YOGA_DIR)  -I$(CUDA_INC_PATH) -I$(CULA_INC_PATH) -I$(MAGMA_DIR)/include #-gencode arch=compute_12,code=sm_12  #-I/usr/local/magma-1.4.1/include
 
@@ -31,9 +35,9 @@ PKG_DEPLIBS += $(MAGMA_DIR)/lib/libmagma.a
 
 # set compiler (or rarely loader) flags specific to this package
 
-PKG_CPPFLAGS = -DHAVE_CUBLAS -DADD_ -g -DDEBUG -Wall -fno-common -I$(COMPASS_ROOT_DIR)/libcarma/include.h -I$(YOGA_DIR) -I$(CUDA_INC_PATH) -I$(CULA_INC_PATH) -fPIC -I$(MAGMA_DIR)/include
+PKG_CPPFLAGS = -O3 -DMAGMA_WITH_MKL -DMAGMA_SETAFFINITY -DHAVE_CUBLAS -DADD_ -g -DDEBUG -Wall -fno-common -I$(COMPASS_ROOT_DIR)/libcarma/include.h -I$(YOGA_DIR) -I$(CUDA_INC_PATH) -I$(CULA_INC_PATH) -fPIC -I$(MKLROOT)/include -I$(MAGMAROOT)/include -I$(MAGMATEST)/control -I$(MAGMATEST)/testing
 
-PKG_LDFLAGS=  -lstdc++
+PKG_LDFLAGS= -L$(MAGMAROOT)/lib -L$(MKLROOT)/lib/intel64 -L$(CUDA_ROOT)/lib64 -lmagma -lmkl_intel_lp64 -lmkl_intel_thread -lmkl_core -lpthread -lcublas -lcudart -lm -lstdc++
 
 # list of additional package names you want in PKG_EXENAME
 # (typically Y_EXE_PKGS should be first here)

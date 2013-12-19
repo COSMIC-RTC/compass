@@ -32,6 +32,30 @@
 #include "yoga_api.h"
 #include <cudaProfiler.h>
 
+static y_userobj_t yContext =
+  {
+    /** 
+     * @typedef Yorick API context userobj
+     */
+    const_cast<char*>("yContext Object"), &context_free, &context_print, 0, 0, 0
+  };
+
+static y_userobj_t yObj =
+  {
+    /** 
+     * @typedef Yorick API object_yObj userobj
+     */
+    const_cast<char*>("Carma Object"), &yObj_free, &yObj_print, &yObj_eval, 0, 0
+  };
+
+static y_userobj_t yHostObj =
+  {
+    /** 
+     * @typedef Yorick API host_obj userobj
+     */
+    const_cast<char*>("Carma Host Object"), &yHostObj_free, &yHostObj_print, &yHostObj_eval, 0, 0
+  };
+
 extern "C" {
 
 /*

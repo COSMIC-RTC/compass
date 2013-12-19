@@ -23,9 +23,9 @@
 #include "testings.h"
 
 // Please select only one out of the three
-//#define magma_dsyevd_gpu_t	magma_dsyevd_gpu		// slow dsymv from cublas legacy api
+#define magma_dsyevd_gpu_t	magma_dsyevd_gpu		// slow dsymv from cublas legacy api
 //#define magma_dsyevd_gpu_t	magma_dsyevd_gpu_magmablas	// fast dsymv from magma
-#define magma_dsyevd_gpu_t	magma_dsyevd_gpu_kblas		// fast dsymv from kblas
+//#define magma_dsyevd_gpu_t	magma_dsyevd_gpu_kblas		// fast dsymv from kblas
 
 
 #define absv(v1) ((v1)>0? (v1): -(v1))

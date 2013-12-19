@@ -84,14 +84,6 @@ extern "C" {
   void context_print(void *obj);
   void context_free(void *obj);
 
-  static y_userobj_t yContext =
-    {
-      /** 
-       * @typedef Yorick API context userobj
-       */
-    	const_cast<char*>("yContext Object"), &context_free, &context_print, 0, 0, 0
-    };
-
   carma_context* _getCurrentContext();
 
   void Y_yoga_context(int argc);
@@ -119,13 +111,6 @@ extern "C" {
   void yObj_eval(void *obj, int n); 
   void yObj_free(void *obj);
 
-  static y_userobj_t yObj =
-    {
-      /** 
-       * @typedef Yorick API object_yObj userobj
-       */
-    	const_cast<char*>("Carma Object"), &yObj_free, &yObj_print, &yObj_eval, 0, 0
-    };
 
   void Y_yoga_obj(int argc);
   void Y_yoga_getp(int argc);
@@ -170,14 +155,6 @@ extern "C" {
   void yHostObj_free(void *obj); 
   void yHostObj_print(void *obj); 
   void yHostObj_eval(void *obj, int n); 
-
-  static y_userobj_t yHostObj =
-    {
-      /** 
-       * @typedef Yorick API host_obj userobj
-       */
-      const_cast<char*>("Carma Host Object"), &yHostObj_free, &yHostObj_print, &yHostObj_eval, 0, 0
-    };
 
   void Y_yoga_host_obj(int argc);
   void Y_yoga_host_getp(int argc);

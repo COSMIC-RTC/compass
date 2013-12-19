@@ -185,7 +185,7 @@ func cmat_init(ncontrol,clean=)
     controler_setdata,g_rtc,ncontrol-1,"mod2act",mod2act;
     // load corresponding d_ and h_ on the gpu
   }
-  
+
   imat = rtc_getimat(g_rtc,ncontrol-1);
 
   maxcond = (*y_rtc.controlers)(ncontrol).maxcond;

@@ -1,5 +1,3 @@
-require,"yoga.i";
-
 require,"yoga_template.i";
 
 func check_eigen(l,&nmf)
