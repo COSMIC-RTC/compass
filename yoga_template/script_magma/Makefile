@@ -1,7 +1,7 @@
 CUDAROOT=/usr/local/cuda
 #MAGMAROOT=/opt/magma-1.4.0-ao
 MAGMAROOT=/usr/local/magma
-MAGMATEST=/home/brujo/Packages/magma-1.4.0
+MAGMATEST=/home/sevin/magma-1.4.1
 MKLROOT=/opt/intel/composer_xe_2013_sp1/mkl
 
 
@@ -18,13 +18,13 @@ LIBPATH= -L$(MAGMAROOT)/lib \
 
 TESTLIB= $(MAGMATEST)/testing/libtest.a $(MAGMATEST)/testing/lin/liblapacktest.a
 LIB= -lmagma -lmkl_intel_lp64 -lmkl_intel_thread -lmkl_core -lpthread -lcublas -lcudart -lstdc++ -lm
-	
-	
+
+
 all: 
 	$(CC) $(COPTS) $(INC) -c testing_dsyevd_gpu.cpp -o testing_dsyevd_gpu.o
 	$(CC) $(LOPTS) testing_dsyevd_gpu.o -o testing_dsyevd_gpu $(TESTLIB) $(LIBPATH) $(LIB) 
-	
+
 
 clean:
 	rm -fv testing_dsyevd_gpu testing_dsyevd_gpu.o
- 
+

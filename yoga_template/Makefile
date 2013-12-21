@@ -1,10 +1,10 @@
 # these values filled in by    yorick -batch make.i
-Y_MAKEDIR=/home/brujo/yorick-2.2/relocate
-Y_EXE=/home/brujo/yorick-2.2/relocate/bin/yorick
+Y_MAKEDIR=/home/sevin/yorick.git/relocate
+Y_EXE=/home/sevin/yorick.git/relocate/bin/yorick
 Y_EXE_PKGS=
 
-Y_EXE_HOME=/home/brujo/yorick-2.2/relocate
-Y_EXE_SITE=/home/brujo/yorick-2.2/relocate
+Y_EXE_HOME=/home/sevin/yorick.git/relocate
+Y_EXE_SITE=/home/sevin/yorick.git/relocate
 Y_HOME_PKG=
 
 # ----------------------------------------------------- optimization flags
@@ -22,8 +22,8 @@ OBJS= yoga_template.o yoga_template.cuo
 # change to give the executable a name other than yorick
 #PKG_EXENAME=yorick
 
-MAGMAROOT=/usr/local/magma
-MAGMATEST=/home/brujo/Packages/magma-1.4.0
+MAGMA_DIR=/usr/local/magma
+MAGMATEST=/home/sevin/magma-1.4.1
 MKLROOT=/opt/intel/composer_xe_2013_sp1/mkl
 
 NVCC = /usr/local/cuda/bin/nvcc 
@@ -35,9 +35,9 @@ PKG_DEPLIBS += $(MAGMA_DIR)/lib/libmagma.a
 
 # set compiler (or rarely loader) flags specific to this package
 
-PKG_CPPFLAGS = -O3 -DMAGMA_WITH_MKL -DMAGMA_SETAFFINITY -DHAVE_CUBLAS -DADD_ -g -DDEBUG -Wall -fno-common -I$(COMPASS_ROOT_DIR)/libcarma/include.h -I$(YOGA_DIR) -I$(CUDA_INC_PATH) -I$(CULA_INC_PATH) -fPIC -I$(MKLROOT)/include -I$(MAGMAROOT)/include -I$(MAGMATEST)/control -I$(MAGMATEST)/testing
+PKG_CPPFLAGS = -O3 -DMAGMA_WITH_MKL -DMAGMA_SETAFFINITY -DHAVE_CUBLAS -DADD_ -g -DDEBUG -Wall -fno-common -I$(COMPASS_ROOT_DIR)/libcarma/include.h -I$(YOGA_DIR) -I$(CUDA_INC_PATH) -I$(CULA_INC_PATH) -fPIC -I$(MKLROOT)/include -I$(MAGMA_DIR)/include -I$(MAGMATEST)/control -I$(MAGMATEST)/testing
 
-PKG_LDFLAGS= -L$(MAGMAROOT)/lib -L$(MKLROOT)/lib/intel64 -L$(CUDA_ROOT)/lib64 -lmagma -lmkl_intel_lp64 -lmkl_intel_thread -lmkl_core -lpthread -lcublas -lcudart -lm -lstdc++
+PKG_LDFLAGS= -L$(MAGMA_DIR)/lib -L$(MKLROOT)/lib/intel64 -L$(CUDA_ROOT)/lib64 -lmagma -lmkl_intel_lp64 -lmkl_intel_thread -lmkl_core -lpthread -lcublas -lcudart -lm -lstdc++
 
 # list of additional package names you want in PKG_EXENAME
 # (typically Y_EXE_PKGS should be first here)
@@ -49,7 +49,7 @@ PKG_CLEAN=
 # autoload file for this package, if any
 PKG_I_START=
 # non-pkg.i include files for this package, if any
-I_EXTRA = rico.i
+I_EXTRA =
 PKG_I_EXTRA := $(I_EXTRA)
 
 # -------------------------------- standard targets and rules (in Makepkg)

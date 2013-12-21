@@ -62,6 +62,7 @@ extern "C" {
       // create magma workspace
       double *h_R, *h_work;
       magma_int_t *iwork;
+      double *h_A2;
 
       magma_int_t N, n2, info, lwork, liwork, lda, ldda, aux_iwork[1];
       magma_int_t ione     = 1;
@@ -94,16 +95,18 @@ extern "C" {
       liwork = aux_iwork[0];
 
       w1 = ypush_d(dims_eigen); //(double*)malloc( N*sizeof(double) );//ypush_d(dims_eigen);
+      posix_memalign( (void**) &h_A2, 32, (N*lda)*sizeof(int) );
       cudaMallocHost( (void**) &h_R, (N*lda)*sizeof(double) );
       cudaMallocHost( (void**) &h_work, (lwork)*sizeof(double) );
-      cudaMalloc( (void**) d_R, (N*lda)*sizeof(double) );
+      cudaMalloc( (void**) d_R, (N*ldda)*sizeof(double) );
       posix_memalign( (void**) &iwork, 32, (liwork)*sizeof(int) );
       //magma_malloc_cpu( (void**) &iwork, (liwork)*sizeof(magma_int_t) );
 
       fprintf(stderr, "%s: %s@%d\n", __FILE__, __FUNCTION__, __LINE__);
       /* Initialize the matrix */
-      lapackf77_dlarnv( &ione, ISEED, &n2, (double *)h_A );
-      magma_dsetmatrix( N, N, (double *)h_A, lda, d_R/*->getData()*/, ldda );
+      //lapackf77_dlarnv( &ione, ISEED, &n2, h_A2 );
+      fprintf(stderr, "%s: %s@%d\n", __FILE__, __FUNCTION__, __LINE__);
+      magma_dsetmatrix( N, N, h_A2, lda, d_R/*->getData()*/, ldda );
 
       fprintf(stderr, "%s: %s@%d\n", __FILE__, __FUNCTION__, __LINE__);
       magma_dsyevd_gpu_t( jobz, uplo,
@@ -118,6 +121,7 @@ extern "C" {
       cudaFreeHost(h_R);
       cudaFreeHost(h_work);
       free(iwork);
+      free(h_A2);
       magma_finalize();                                                      
       cublasDestroy(handle);
 
