@@ -1,7 +1,7 @@
 CUDAROOT=/usr/local/cuda
 #MAGMAROOT=/opt/magma-1.4.0-ao
 MAGMAROOT=/usr/local/magma
-MAGMATEST=/home/sevin/magma-1.4.1
+MAGMATEST=/home/brujo/magma-1.4.1
 MKLROOT=/opt/intel/composer_xe_2013_sp1/mkl
 
 

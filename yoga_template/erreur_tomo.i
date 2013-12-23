@@ -43,7 +43,7 @@ func erreur_tomo(lib=,nmf=,filename=)
   if (nmf == []) nmf = -1;
   // choice of default file name
   if ((filename == "") || (filename == [])) filename = "-np20-d42";
-
+/*
   // reading covariance matrices
   cmm = fits_read("data/cmm"+filename+".fits");
   cpm = fits_read("data/cpm"+filename+".fits");
@@ -51,11 +51,12 @@ func erreur_tomo(lib=,nmf=,filename=)
   
   n = dimsof(cmm)(2);
   write,format="starting SVD %dx%d with %s librairy\n",n,n, lib;
-
+*/
   if (lib == "yorick"){
     //l = SVdec(cmm, U, VT);
-    d_R= yoga_obj(float(cmm*0.0f));
-    l2 = yoga_magma_evd('V', 'U', cmm, d_R);
+    cmm = double(random(200,200));
+    d_R= yoga_obj(cmm*0.0);
+    l2 = yoga_magma_evd('V', 'U', double(cmm), d_R);
     error;
   }  
   if (lib == "magma") {

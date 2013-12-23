@@ -52,7 +52,7 @@ extern "C" {
       char jobz = ygets_c(argc-1);
       char uplo = ygets_c(argc-2);
       void *h_A = ygeta_any(argc - 3, &ntot, dims, &yType);
-      if (yType != Y_DOUBLE) y_error("Please provide a double precision array\n");
+      //if (yType != Y_DOUBLE) y_error("Please provide a double precision array\n");
 
       double *d_R;
       // d_R becomes a carma object retreived from Yorick 
