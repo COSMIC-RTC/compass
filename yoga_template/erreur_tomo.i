@@ -43,7 +43,7 @@ func erreur_tomo(lib=,nmf=,filename=)
   if (nmf == []) nmf = -1;
   // choice of default file name
   if ((filename == "") || (filename == [])) filename = "-np20-d42";
-/*
+
   // reading covariance matrices
   cmm = fits_read("data/cmm"+filename+".fits");
   cpm = fits_read("data/cpm"+filename+".fits");
@@ -51,24 +51,25 @@ func erreur_tomo(lib=,nmf=,filename=)
   
   n = dimsof(cmm)(2);
   write,format="starting SVD %dx%d with %s librairy\n",n,n, lib;
-*/
+
   if (lib == "yorick"){
-    //l = SVdec(cmm, U, VT);
-    cmm = double(random(200,200));
-    d_R= yoga_obj(cmm*0.0);
-    l2 = yoga_magma_evd('V', 'U', double(cmm), d_R);
-    error;
+    l = SVdec(cmm, U, VT);
   }  
   if (lib == "magma") {
-     l = SVdec(cmm, U, VT); 
+    N = dimsof(cmm)(2);
+    ldda = ((N + 31)/32)*32;
+    d_U= yoga_obj(array(0.0,N,ldda));
+    l2 = yoga_magma_evd('V', 'U', cmm, d_U);
+    l = SVdec(cmm, U, VT); 
+    error;
   } 
   if (lib == "cula") {
     // transfering cov matrix to GPU
-    g_cmm = yoga_obj(float(cmm));
+    g_cmm = yoga_obj(double(cmm));
     // allocating space on GPU for the result
-    g_U   = yoga_obj(float(cmm*0));
-    g_VT  = yoga_obj(float(cmm*0));
-    g_L   = yoga_obj(float(0*cmm(1,)));
+    g_U   = yoga_obj(double(cmm*0));
+    g_VT  = yoga_obj(double(cmm*0));
+    g_L   = yoga_obj(double(0*cmm(1,)));
 
     // compute svd using CULA
     yoga_cula_svd, g_cmm, g_L, g_VT, g_U;

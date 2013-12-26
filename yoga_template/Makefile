@@ -35,9 +35,9 @@ PKG_DEPLIBS += $(MAGMA_DIR)/lib/libmagma.a
 
 # set compiler (or rarely loader) flags specific to this package
 
-PKG_CPPFLAGS = -O3 -DMAGMA_WITH_MKL -DMAGMA_SETAFFINITY -DHAVE_CUBLAS -DADD_ -g -DDEBUG -Wall -fno-common -I$(COMPASS_ROOT_DIR)/libcarma/include.h -I$(YOGA_DIR) -I$(CUDA_INC_PATH) -I$(CULA_INC_PATH) -fPIC -I$(MKLROOT)/include -I$(MAGMA_DIR)/include -I$(MAGMATEST)/control -I$(MAGMATEST)/testing
+PKG_CPPFLAGS = -O3 -DMAGMA_WITH_MKL -DMAGMA_SETAFFINITY -DGPUSHMEM=300 -DHAVE_CUBLAS -DADD_ -g -DDEBUG -Wall -fno-common -I$(COMPASS_ROOT_DIR)/libcarma/include.h -I$(YOGA_DIR) -I$(CUDA_INC_PATH) -I$(CULA_INC_PATH) -fPIC -I$(MKLROOT)/include -I$(MAGMA_DIR)/include -I$(MAGMATEST)/control -I$(MAGMATEST)/testing
 
-PKG_LDFLAGS= -L$(MAGMA_DIR)/lib -L$(MKLROOT)/lib/intel64 -L$(CUDA_ROOT)/lib64 -lmagma -lmkl_intel_lp64 -lmkl_intel_thread -lmkl_core -lpthread -lcublas -lcudart -lm -lstdc++
+PKG_LDFLAGS= -L$(MAGMA_DIR)/lib -L$(MKLROOT)/lib/intel64 -L$(CUDA_ROOT)/lib64 -lmagma -lmkl_intel_lp64 -lmkl_intel_thread -lmkl_core -lpthread -lcublas -lcudart -lstdc++
 
 # list of additional package names you want in PKG_EXENAME
 # (typically Y_EXE_PKGS should be first here)
