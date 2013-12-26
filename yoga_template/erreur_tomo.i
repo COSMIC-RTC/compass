@@ -50,7 +50,7 @@ func erreur_tomo(lib=,nmf=,filename=)
   cpp = fits_read("data/cpp"+filename+".fits");
   
   n = dimsof(cmm)(2);
-  write,format="starting SVD %dx%d with %s librairy\n",n,n, lib;
+  write,format="starting EVD %dx%d with %s librairy\n",n,n, lib;
 
   if (lib == "yorick"){
     l = SVdec(cmm, U, VT);
@@ -59,7 +59,7 @@ func erreur_tomo(lib=,nmf=,filename=)
     N = dimsof(cmm)(2);
     ldda = ((N + 31)/32)*32;
     d_U= yoga_obj(array(0.0,N,ldda));
-    l2 = yoga_magma_evd('V', 'U', cmm, d_U);
+    l2 = yoga_magma_syevd('V', 'U', cmm, d_U);
     l = SVdec(cmm, U, VT); 
     error;
   } 

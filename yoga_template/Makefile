@@ -1,10 +1,10 @@
 # these values filled in by    yorick -batch make.i
-Y_MAKEDIR=/home/brujo/yorick-2.2/relocate
-Y_EXE=/home/brujo/yorick-2.2/relocate/bin/yorick
+Y_MAKEDIR=/home/sevin/yorick.git/relocate
+Y_EXE=/home/sevin/yorick.git/relocate/bin/yorick
 Y_EXE_PKGS=
 
-Y_EXE_HOME=/home/brujo/yorick-2.2/relocate
-Y_EXE_SITE=/home/brujo/yorick-2.2/relocate
+Y_EXE_HOME=/home/sevin/yorick.git/relocate
+Y_EXE_SITE=/home/sevin/yorick.git/relocate
 Y_HOME_PKG=
 
 # ----------------------------------------------------- optimization flags
@@ -17,14 +17,10 @@ TGT=$(DEFAULT_TGT)
 PKG_NAME=yoga_template
 PKG_I= yoga_template.i
 
-OBJS= yoga_template.o yoga_template.cuo 
+OBJS= yoga_template.o
 
 # change to give the executable a name other than yorick
 #PKG_EXENAME=yorick
-
-MAGMA_DIR=/usr/local/magma
-MAGMATEST=/home/brujo/magma-1.4.1
-MKLROOT=/opt/intel/composerxe/mkl
 
 NVCC = /usr/local/cuda/bin/nvcc 
 NVCCFLAGS = -g -DDEBUG -m64 -Xcompiler -fPIC -c --compiler-options -I. -I$(COMPASS_ROOT_DIR)/libcarma/include.h -I$(YOGA_DIR)  -I$(CUDA_INC_PATH) -I$(CULA_INC_PATH) -I$(MAGMA_DIR)/include -gencode arch=compute_20,code=sm_20  #-I/usr/local/magma-1.4.1/include
