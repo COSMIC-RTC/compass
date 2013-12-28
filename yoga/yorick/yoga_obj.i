@@ -92,7 +92,13 @@ func check_cublas1(size)
   test=b();
   write,format="error for swap: %f\n",max(abs(test(*)-test1));
 
-//check axpyCU
+// check copy
+  c = yoga_obj("float",[2,size,size]);
+  yoga_copy,c,b;
+  test=c();
+  write,format="error for copy: %f\n",max(abs(test(*)-test1));
+
+//check axpy
   a = yoga_random("float",[1,size*size]);
   b = yoga_obj(a);
   yoga_scale,b,1.4f;
@@ -105,7 +111,7 @@ func check_cublas1(size)
   test=b();
   write,format="error for axpy : %f\n",max(abs(test-res))/max(res);
   
-//check dotCU
+//check dot
   res1 = yoga_dot(b,b);
   res2 = float(test(*)(+)*test(*)(+));
   write,format="error for dot : %f\n",(res1-res2)/res2;
@@ -157,6 +163,27 @@ func check_cublas2(sizem,sizen)
   
 // delete objects
   matA_gpu =vectx_gpu = vecty_gpu = [];
+
+// create symmetric matrix
+  matA = float(dist(sizem));
+  vectx = float(random(sizem));
+  vecty = array(0.0f,sizem);
+
+// create objects
+  matA_gpu = yoga_obj(matA);
+  vectx_gpu = yoga_obj(vectx);
+  vecty_gpu = yoga_obj(vecty);
+
+  yoga_symv,vecty_gpu,matA_gpu,vectx_gpu;
+  
+// transfer back for checks
+
+  res2 = matA(,+)*vectx(+);
+  res2 += vecty;
+
+  write,format="error for symv : %f\n",max(abs(vecty_gpu()-res2))/max(abs(res2));
+  
+  
 }
 
 func check_cublas3(sizem,sizen,sizek)
@@ -170,7 +197,7 @@ func check_cublas3(sizem,sizen,sizek)
   if (sizen==[]) sizen = 512;
   if (sizek==[]) sizek = 1024;
 
-  //check gemvCU
+  //check gemm
   matA = float(random(sizem,sizek));
   matB = float(random(sizek,sizen));
   matC = float(random(sizem,sizen));
@@ -185,11 +212,9 @@ func check_cublas3(sizem,sizen,sizek)
   matB_gpu = yoga_setm(matB);
   matC_gpu = yoga_setm(matC);
   
-// compute gemv
+// compute gemm
   yoga_mm,matC_gpu,matA_gpu,matB_gpu;
   
-  // this is standard matrix-vector as in yorick : alpha * A(,+)*B(+,) + C
-  // result stored in y
   res2 = matA(,+)*matB(+,);
   res2 += matC;
   
@@ -197,6 +222,49 @@ func check_cublas3(sizem,sizen,sizek)
   
 // delete objects
   matA_gpu = matB_gpu = matC_gpu = [];
+  
+//check symm
+  matA = float(dist(sizek));
+  matB = float(random(sizek,sizen));
+  matC = array(0.0f,sizek,sizen);
+  
+  matA_gpu = yoga_setm(matA);
+  matB_gpu = yoga_setm(matB);
+  matC_gpu = yoga_setm(matC);
+  
+// compute symm
+  yoga_symm,matC_gpu,matA_gpu,matB_gpu;
+  
+  res2 = matA(,+)*matB(+,);
+  res2 += matC;
+  
+  write,format="symm diff : %f\n",max(abs(matC_gpu()(*)-res2(*)))/max(res2);
+  
+// delete objects
+  matA_gpu = matB_gpu = matC_gpu = [];
+
+//check syrk
+  matA = float(random(sizem,sizen));
+  matC = array(0.0f,sizem,sizem);
+  
+  matA_gpu = yoga_setm(matA);
+  matC_gpu = yoga_setm(matC);
+  
+// compute syrk
+  yoga_syrk,matC_gpu,matA_gpu;
+
+  msk = where(matC_gpu() != 0);
+  
+  res2 = matA(,+)*matA(,+);
+  //res2 = matA(+,)*matA(+,); // op == 't'
+  res2 += matC;
+  
+  write,format="syrk diff : %f\n",max(abs(matC_gpu()(msk)-res2(msk)))/max(res2(msk));
+  error;
+  
+// delete objects
+  matA_gpu = matC_gpu = [];
+
 }
 
 

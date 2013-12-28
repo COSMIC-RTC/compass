@@ -173,14 +173,20 @@ template<class T_data> class carma_obj {
   T_data dot(carma_obj<T_data> *source, int incx, int incy);
   void scale(T_data alpha, int incx);
   void swap(carma_obj<T_data> *source, int incx, int incy);
+  void copy(carma_obj<T_data> *source, int incx, int incy);
   void axpy(T_data alpha,carma_obj<T_data> *source, int incx, int incy);
   void rot(carma_obj<T_data> *source, int incx, int incy, T_data sc, T_data ss);
 
   void gemv(char trans, T_data alpha, carma_obj<T_data> *matA, int lda, carma_obj<T_data> *vectx, int incx, T_data beta, int incy);
-
   void ger(T_data alpha, carma_obj<T_data> *vectx, int incx, carma_obj<T_data> *vecty, int incy, int lda);
-
+  void symv(cublasFillMode_t uplo, T_data alpha, carma_obj<T_data> *matA, int lda, carma_obj<T_data> *vectx, int incx, T_data beta, int incy);
+  
   void gemm(char transa, char transb, T_data alpha, carma_obj<T_data> *matA, int lda, carma_obj<T_data> *matB, int ldb, T_data beta, int ldc);
+  void symm(cublasSideMode_t side, cublasFillMode_t uplo, T_data alpha, carma_obj<T_data> *matA, int lda, carma_obj<T_data> *matB, int ldb, T_data beta, int ldc);
+  void syrk(cublasFillMode_t uplo, char transa, T_data alpha, carma_obj<T_data> *matA, int lda, T_data beta, int ldc);
+  void syrkx(cublasFillMode_t uplo, char transa, T_data alpha, carma_obj<T_data> *matA, int lda, carma_obj<T_data> *matB, int ldb, T_data beta, int ldc);
+  void geam(char transa, char transb, T_data alpha, carma_obj<T_data> *matA, int lda, T_data beta, carma_obj<T_data> *matB, int ldb, int ldc);
+  void dgmm(cublasSideMode_t side, carma_obj<T_data> *matA, int lda, carma_obj<T_data> *vectx, int incx, int ldc);
 
   /**< Curand */
   int init_prng(int device);

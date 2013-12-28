@@ -23,21 +23,21 @@ cublasStatus_t carma_checkCublasStatus_v2(cublasStatus_t status, int line, strin
 void carma_initCublas(cublasHandle_t *cublas_handle)
 /**< Generic CUBLAS init routine */
 {
-    carma_checkCublasStatus(cublasCreate(cublas_handle));
+  carma_checkCublasStatus(cublasCreate(cublas_handle));
 }
 
 void carma_shutdownCublas(cublasHandle_t cublas_handle)
 /**< Generic CUBLAS shutdown routine */
 {
-	carma_checkCublasStatus(cublasDestroy(cublas_handle));
+  carma_checkCublasStatus(cublasDestroy(cublas_handle));
 }
 
 cublasOperation_t carma_char2cublasOperation(char operation){
-	switch(operation){
-	case 't': return CUBLAS_OP_T;
-	case 'c': return CUBLAS_OP_C;
-	default : return CUBLAS_OP_N;
-	}
+  switch(operation){
+  case 't': return CUBLAS_OP_T;
+  case 'c': return CUBLAS_OP_C;
+  default : return CUBLAS_OP_N;
+  }
 }
 
 /*
@@ -116,6 +116,20 @@ template<> void
 carma_axpy<double>(cublasHandle_t cublas_handle, int n, double alpha,double *vectx, int incx, double *vecty, int incy)
 {
 	carma_checkCublasStatus(cublasDaxpy(cublas_handle,n, &alpha, vectx,incx,vecty,incy));
+}
+
+/** These templates are used to select the proper copy executable from T_data*/
+template<class T_data> void carma_copy(cublasHandle_t cublas_handle, int n, T_data *vectx, int incx, T_data *vecty, int incy);
+/**< Generic template for copy executable selection */
+template<> void 
+carma_copy<float>(cublasHandle_t cublas_handle, int n, float *vectx, int incx, float *vecty, int incy)
+{
+	carma_checkCublasStatus(cublasScopy(cublas_handle,n, vectx,incx,vecty,incy));
+}
+template<> void 
+carma_copy<double>(cublasHandle_t cublas_handle, int n, double *vectx, int incx, double *vecty, int incy)
+{
+	carma_checkCublasStatus(cublasDcopy(cublas_handle,n,vectx,incx,vecty,incy));
 }
 
 
@@ -232,6 +246,20 @@ carma_ger<double>(cublasHandle_t cublas_handle, int m, int n, double alpha, doub
 	carma_checkCublasStatus(cublasDger(cublas_handle,m,n,&alpha,vectx,incx,vecty,incy,matA,lda));
 }
 
+/** These templates are used to select the proper symv executable from T_data*/
+template<class T_data> void carma_symv(cublasHandle_t cublas_handle, cublasFillMode_t uplo, int n, T_data alpha, T_data *matA, int lda, T_data *vectx, int incx, T_data beta, T_data *vecty, int incy);
+/**< Generic template for symv executable selection */
+template<> void 
+carma_symv<float>(cublasHandle_t cublas_handle, cublasFillMode_t uplo, int n, float alpha, float *matA, int lda, float *vectx, int incx, float beta, float *vecty, int incy)
+{
+  carma_checkCublasStatus(cublasSsymv(cublas_handle,uplo,n,&alpha,matA,lda,vectx,incx,&beta,vecty,incy));
+}
+template<> void 
+carma_symv<double>(cublasHandle_t cublas_handle, cublasFillMode_t uplo, int n, double alpha, double *matA, int lda, double *vectx, int incx, double beta, double *vecty, int incy)
+{
+  carma_checkCublasStatus(cublasDsymv(cublas_handle,uplo,n,&alpha,matA,lda,vectx,incx,&beta,vecty,incy));
+}
+
 
 /** These templates are used to select the proper gemm executable from T_data*/
 template<class T_data> void carma_gemm(cublasHandle_t cublas_handle, char transa, char transb, int m, int n, int k, T_data alpha, T_data *matA, int lda, T_data *matB, int ldb, T_data beta, T_data *matC, int ldc);
@@ -250,6 +278,85 @@ carma_gemm<double>(cublasHandle_t cublas_handle, char transa, char transb, int m
     cublasOperation_t transb2 = carma_char2cublasOperation(transb);
 	carma_checkCublasStatus(cublasDgemm(cublas_handle,transa2,transb2,m,n,k,&alpha,matA,lda,matB,ldb,&beta,matC,ldc));
 }
+
+/** These templates are used to select the proper symm executable from T_data*/
+template<class T_data> void carma_symm(cublasHandle_t cublas_handle, cublasSideMode_t side, cublasFillMode_t uplo, int m, int n, T_data alpha, T_data *matA, int lda, T_data *matB, int ldb, T_data beta, T_data *matC, int ldc);
+/**< Generic template for symm executable selection */
+template<> void 
+carma_symm<float>(cublasHandle_t cublas_handle, cublasSideMode_t side, cublasFillMode_t uplo, int m, int n, float alpha, float *matA, int lda, float *matB, int ldb, float beta, float *matC, int ldc)
+{
+    carma_checkCublasStatus(cublasSsymm(cublas_handle,side,uplo,m,n,&alpha,matA,lda,matB,ldb,&beta,matC,ldc));
+}
+template<> void 
+carma_symm<double>(cublasHandle_t cublas_handle, cublasSideMode_t side, cublasFillMode_t uplo, int m, int n, double alpha, double *matA, int lda, double *matB, int ldb, double beta, double *matC, int ldc)
+{
+    carma_checkCublasStatus(cublasDsymm(cublas_handle,side,uplo,m,n,&alpha,matA,lda,matB,ldb,&beta,matC,ldc));
+}
+
+/** These templates are used to select the proper syrk executable from T_data*/
+template<class T_data> void carma_syrk(cublasHandle_t cublas_handle, cublasFillMode_t uplo, char transa, int n, int k, T_data alpha, T_data *matA, int lda, T_data beta, T_data *matC, int ldc);
+/**< Generic template for syrk executable selection */
+template<> void 
+carma_syrk<float>(cublasHandle_t cublas_handle, cublasFillMode_t uplo, char transa, int n, int k, float alpha, float *matA, int lda, float beta, float *matC, int ldc)
+{
+    cublasOperation_t transa2 = carma_char2cublasOperation(transa);
+    carma_checkCublasStatus(cublasSsyrk(cublas_handle,uplo,transa2,n,k,&alpha,matA,lda,&beta,matC,ldc));
+}
+template<> void 
+carma_syrk<double>(cublasHandle_t cublas_handle, cublasFillMode_t uplo, char transa, int n, int k, double alpha, double *matA, int lda, double beta, double *matC, int ldc)
+{
+    cublasOperation_t transa2 = carma_char2cublasOperation(transa);
+    carma_checkCublasStatus(cublasDsyrk(cublas_handle,uplo,transa2,n,k,&alpha,matA,lda,&beta,matC,ldc));
+}
+
+/** These templates are used to select the proper syrkx executable from T_data*/
+template<class T_data> void carma_syrkx(cublasHandle_t cublas_handle, cublasFillMode_t uplo, char transa, int n, int k, T_data alpha, T_data *matA, int lda, T_data *matB, int ldb, T_data beta, T_data *matC, int ldc);
+/**< Generic template for syrkx executable selection */
+template<> void 
+carma_syrkx<float>(cublasHandle_t cublas_handle, cublasFillMode_t uplo, char transa, int n, int k, float alpha, float *matA, int lda, float *matB, int ldb, float beta, float *matC, int ldc)
+{
+    cublasOperation_t transa2 = carma_char2cublasOperation(transa);
+    carma_checkCublasStatus(cublasSsyrkx(cublas_handle,uplo,transa2,n,k,&alpha,matA,lda,matB,ldb,&beta,matC,ldc));
+}
+template<> void 
+carma_syrkx<double>(cublasHandle_t cublas_handle, cublasFillMode_t uplo, char transa, int n, int k, double alpha, double *matA, int lda, double *matB, int ldb, double beta, double *matC, int ldc)
+{
+    cublasOperation_t transa2 = carma_char2cublasOperation(transa);
+    carma_checkCublasStatus(cublasDsyrkx(cublas_handle,uplo,transa2,n,k,&alpha,matA,lda,matB,ldb,&beta,matC,ldc));
+}
+
+/** These templates are used to select the proper geam executable from T_data*/
+template<class T_data> void carma_geam(cublasHandle_t cublas_handle, char transa, char transb, int m, int n, T_data alpha, T_data *matA, int lda, T_data beta, T_data *matB, int ldb, T_data *matC, int ldc);
+/**< Generic template for geam executable selection */
+template<> void 
+carma_geam<float>(cublasHandle_t cublas_handle, char transa, char transb, int m, int n, float alpha, float *matA, int lda, float beta, float *matB, int ldb, float *matC, int ldc)
+{
+    cublasOperation_t transa2 = carma_char2cublasOperation(transa);
+    cublasOperation_t transb2 = carma_char2cublasOperation(transb);
+    carma_checkCublasStatus(cublasSgeam(cublas_handle,transa2,transb2,m,n,&alpha,matA,lda,&beta,matB,ldb,matC,ldc));
+}
+template<> void 
+carma_geam<double>(cublasHandle_t cublas_handle, char transa, char transb, int m, int n, double alpha, double *matA, int lda, double beta, double *matB, int ldb, double *matC, int ldc)
+{
+    cublasOperation_t transa2 = carma_char2cublasOperation(transa);
+    cublasOperation_t transb2 = carma_char2cublasOperation(transb);
+    carma_checkCublasStatus(cublasDgeam(cublas_handle,transa2,transb2,m,n,&alpha,matA,lda,&beta,matB,ldb,matC,ldc));
+}
+
+/** These templates are used to select the proper dgmm executable from T_data*/
+template<class T_data> void carma_dgmm(cublasHandle_t cublas_handle, cublasSideMode_t side, int m, int n, T_data *matA, int lda, T_data *vectx, int incx, T_data *matC, int ldc);
+/**< Generic template for geam executable selection */
+template<> void 
+carma_dgmm<float>(cublasHandle_t cublas_handle, cublasSideMode_t side, int m, int n, float *matA, int lda, float *vectx, int incx, float *matC, int ldc)
+{
+    carma_checkCublasStatus(cublasSdgmm(cublas_handle,side,m,n,matA,lda,vectx,incx,matC,ldc));
+}
+template<> void 
+carma_dgmm<double>(cublasHandle_t cublas_handle, cublasSideMode_t side, int m, int n, double *matA, int lda, double *vectx, int incx, double *matC, int ldc)
+{
+    carma_checkCublasStatus(cublasDdgmm(cublas_handle,side,m,n,matA,lda,vectx,incx,matC,ldc));
+}
+
 
 /*
   ____ _        _    ____ ____        _       __ _       _ _   _             
@@ -388,6 +495,23 @@ template void carma_obj<float>::scale(float alpha, int incx);
 template void carma_obj<double>::scale(double alpha, int incx);
 
 template<class T_data> 
+void carma_obj<T_data>::copy(carma_obj<T_data> *source, int incx, int incy){
+  /** \brief vectCopy method
+   * \param n    : vect size
+   * \param vectx : vector to copy (x)
+   * \param incx : increment in x
+   * \param vecty : vector to fill (y)
+   * \param incy : increment in y
+   *
+   * this method interchanges vector x with vector y
+   */
+  
+  carma_copy(current_context->get_cublasHandle(),this->nb_elem,source->d_data,incx,this->d_data,incy);
+}
+template void carma_obj<float>::copy(caObjS *, int incx, int incy);
+template void carma_obj<double>::copy(caObjD *, int incx, int incy);
+
+template<class T_data> 
 void carma_obj<T_data>::swap(carma_obj<T_data> *source, int incx, int incy){
   /** \brief vectSwap method
    * \param n    : vect size
@@ -461,7 +585,7 @@ template void carma_obj<double>::rot(caObjD *source, int incx, int incy, double 
  */
 
 template<class T_data> void carma_obj<T_data>::gemv(char trans, T_data alpha, carma_obj<T_data> *matA, int lda, carma_obj<T_data> *vectx, int incx, T_data beta, int incy){
-  /** \brief device2host generic data transfer.
+  /** \brief gemv method.
    * \param trans : type of op 'n' : nothing  / 't' or 'c' : transpose
    * \param alpha : alpha
    * \param matA : matrix A
@@ -478,8 +602,7 @@ template void carma_obj<float>::gemv(char, float, caObjS *, int, caObjS*, int , 
 template void carma_obj<double>::gemv(char, double, caObjD *, int , caObjD *, int , double , int);
 
 template<class T_data> void carma_obj<T_data>::ger(T_data alpha, carma_obj<T_data> *vectx, int incx, carma_obj<T_data> *vecty, int incy, int lda){
-  /** \brief device2host generic data transfer.
-   * \param trans : type of op 'n' : nothing  / 't' or 'c' : transpose
+  /** \brief ger method.
    * \param alpha : alpha
    * \param vectx : m-element vector
    * \param incx : increment for x
@@ -494,6 +617,23 @@ template<class T_data> void carma_obj<T_data>::ger(T_data alpha, carma_obj<T_dat
 template void carma_obj<float>::ger(float, caObjS *, int, caObjS*, int , int);
 template void carma_obj<double>::ger(double, caObjD *, int , caObjD *, int , int);
 
+
+template<class T_data> void carma_obj<T_data>::symv(cublasFillMode_t uplo, T_data alpha, carma_obj<T_data> *matA, int lda, carma_obj<T_data> *vectx, int incx, T_data beta, int incy){
+  /** \brief symv method.
+   * \param uplo : upper or lower fill mode
+   * \param alpha : alpha
+   * \param matA : matrix A
+   * \param lda : leading dim of A (# of rows)
+   * \param vectx : vector x
+   * \param incx : increment for x
+   * \param incy : increment for y
+   *
+   * this method performs one of the matrix‐vector operations y = alpha * op(A) * x + beta * y
+   */
+  carma_symv(current_context->get_cublasHandle(), uplo, matA->dims_data[1], alpha, matA->d_data,lda,vectx->d_data,incx,beta,this->d_data,incy);
+}
+template void carma_obj<float>::symv(cublasFillMode_t, float, caObjS *, int, caObjS*, int , float, int);
+template void carma_obj<double>::symv(cublasFillMode_t, double, caObjD *, int , caObjD *, int , double , int);
 
 /*
  ____  _        _    ____ _____ 
@@ -525,3 +665,110 @@ template<class T_data> void carma_obj<T_data>::gemm(char transa, char transb, T_
 }
 template void carma_obj<float>::gemm(char, char, float, caObjS *, int, caObjS*, int , float, int);
 template void carma_obj<double>::gemm(char, char, double, caObjD *, int , caObjD *, int , double , int);
+
+
+template<class T_data> void carma_obj<T_data>::symm(cublasSideMode_t side, cublasFillMode_t uplo, T_data alpha, carma_obj<T_data> *matA, int lda, carma_obj<T_data> *matB, int ldb, T_data beta, int ldc){
+  /** \brief generic symm method.
+   * \param side : which side of the equation is symmetric matrix A
+   * \param uplo : fill mode of matrix A
+   * \param alpha : alpha
+   * \param matA : matrix A
+   * \param lda : leading dim of A (# of rows)
+   * \param matB : matrix B
+   * \param ldb : leading dim of B (# of rows)
+   * \param beta : beta
+   * \param ldc : leading dim of C (# of rows)
+   *
+   * this method performs one of the symmetric matrix‐matrix operations: 
+   * C = alpha * A * B + beta * C , 
+   * or
+   * C = alpha * B * A + beta * C , 
+   * where A is a symmetric matrix
+   */
+  carma_symm(current_context->get_cublasHandle(), side,uplo,this->dims_data[1],this->dims_data[2],alpha,matA->d_data,lda,matB->d_data,ldb,beta,this->d_data,ldc);
+}
+template void carma_obj<float>::symm(cublasSideMode_t, cublasFillMode_t, float, caObjS *, int, caObjS*, int , float, int);
+template void carma_obj<double>::symm(cublasSideMode_t, cublasFillMode_t, double, caObjD *, int , caObjD *, int , double , int);
+
+template<class T_data> void carma_syrk(cublasHandle_t cublas_handle, cublasFillMode_t uplo, char transa, int n, int k, T_data alpha, T_data *matA, int lda, T_data beta, T_data *matC, int ldc);
+
+template<class T_data> void carma_obj<T_data>::syrk(cublasFillMode_t uplo, char transa, T_data alpha, carma_obj<T_data> *matA, int lda, T_data beta, int ldc){
+  /** \brief generic syrk method.
+   * \param uplo : fill mode of matrix A
+   * \param alpha : alpha
+   * \param matA : matrix A
+   * \param lda : leading dim of A (# of rows)
+   * \param beta : beta
+   * \param ldc : leading dim of C (# of rows)
+   *
+   * this method performs one of the symmetric matrix‐matrix operations: 
+   * C = alpha * op(A) * transpose(op(A)) + beta * C , 
+   * where  op(X) = X  or  op(X) = X^T 
+   */
+  carma_syrk(current_context->get_cublasHandle(),uplo,transa,this->dims_data[1],this->dims_data[2],alpha,matA->d_data,lda,beta,this->d_data,ldc);
+}
+template void carma_obj<float>::syrk(cublasFillMode_t, char, float, caObjS *, int, float, int);
+template void carma_obj<double>::syrk(cublasFillMode_t, char, double, caObjD *, int , double , int);
+
+
+template<class T_data> void carma_obj<T_data>::syrkx(cublasFillMode_t uplo, char transa, T_data alpha, carma_obj<T_data> *matA, int lda, carma_obj<T_data> *matB, int ldb, T_data beta, int ldc){
+  /** \brief generic syrkx method.
+   * \param uplo : fill mode of matrix A
+   * \param transa : type of op 'n' : nothing  / 't' or 'c' : transpose
+   * \param alpha : alpha
+   * \param matA : matrix A
+   * \param lda : leading dim of A (# of rows)
+   * \param matB : matrix B
+   * \param ldb : leading dim of B (# of rows)
+   * \param beta : beta
+   * \param ldc : leading dim of C (# of rows)
+   *
+   * this method performs one of the symmetric matrix‐matrix operations: 
+   * C = alpha * op(A) * transpose(op(B)) + beta * C , 
+   * where  op(X) = X  or  op(X) = X^T 
+   */
+  carma_syrkx(current_context->get_cublasHandle(), uplo, transa, this->dims_data[1],this->dims_data[2],alpha,matA->d_data,lda,matB->d_data,ldb,beta,this->d_data,ldc);
+}
+template void carma_obj<float>::syrkx(cublasFillMode_t, char, float, caObjS *, int, caObjS*, int , float, int);
+template void carma_obj<double>::syrkx(cublasFillMode_t, char, double, caObjD *, int , caObjD *, int , double , int);
+
+
+template<class T_data> void carma_obj<T_data>::geam(char transa, char transb, T_data alpha, carma_obj<T_data> *matA, int lda, T_data beta, carma_obj<T_data> *matB, int ldb, int ldc){
+  /** \brief generic geam method.
+   * \param transa : type of op 'n' : nothing  / 't' or 'c' : transpose
+   * \param transb : type of op 'n' : nothing  / 't' or 'c' : transpose
+   * \param alpha : alpha
+   * \param matA : matrix A
+   * \param lda : leading dim of A (# of rows)
+   * \param beta : beta
+   * \param matB : matrix B
+   * \param ldb : leading dim of B (# of rows)
+   * \param ldc : leading dim of C (# of rows)
+   *
+   * C = alpha * op(A) + beta * op(B), 
+   * where  op(X) = X  or  op(X) = X^T 
+   */
+
+  carma_geam(current_context->get_cublasHandle(), transa,transb,this->dims_data[1],this->dims_data[2],alpha,matA->d_data,lda,beta,matB->d_data,ldb,this->d_data,ldc);
+}
+template void carma_obj<float>::geam(char, char, float, caObjS *, int, float, caObjS*, int , int);
+template void carma_obj<double>::geam(char, char, double, caObjD *, int , double , caObjD *, int , int);
+
+template<class T_data> void carma_obj<T_data>::dgmm(cublasSideMode_t side, carma_obj<T_data> *matA, int lda, carma_obj<T_data> *vectx, int incx, int ldc){
+  /** \brief generic dgmm method.
+   * \param side : side of equation for matrix A
+   * \param matA : matrix A
+   * \param lda : leading dim of A (# of rows)
+   * \param vectx : vector x
+   * \param incx : increment on x
+   * \param ldc : leading dim of C (# of rows)
+   *
+   * C = A * diag(X) or C = diag(X) * A
+   */
+
+  carma_dgmm(current_context->get_cublasHandle(), side, this->dims_data[1],this->dims_data[2],matA->d_data,lda,vectx->d_data,incx,this->d_data,ldc);
+}
+template void carma_obj<float>::dgmm(cublasSideMode_t, caObjS *, int, caObjS*, int , int);
+template void carma_obj<double>::dgmm(cublasSideMode_t, caObjD *, int , caObjD *, int , int);
+
+

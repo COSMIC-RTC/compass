@@ -288,6 +288,15 @@ extern yoga_swap;
      
    SEE ALSO:
  */
+extern yoga_copy;
+/* DOCUMENT yoga_copy
+   yoga_copy,obj1,obj2
+
+   This routine copy the content of Yoga objects obj2 in obj1.
+   Can only be called as a subroutine.
+     
+   SEE ALSO:
+ */
 extern yoga_axpy;
 /* DOCUMENT yoga_axpy
    dest = yoga_axpy(src,alpha)
@@ -316,6 +325,19 @@ extern yoga_mv;
    yoga_mv,vecty,matA,vectx[,alpha,beta]
 
    This function performs the matrix-vector multiplication product (BLAS gemv)
+   y = alpha * A * x + beta * y
+   If called as a function, it creates a new yoga object
+     
+   SEE ALSO:
+ */
+extern yoga_symv;
+/* DOCUMENT yoga_symv
+   vecty = yoga_symv(matA,vectx[,alpha])
+   or
+   yoga_symv,vecty,matA,vectx[,alpha,beta]
+
+   This function performs the matrix-vector multiplication product (BLAS symv)
+   the matrix A is considered symmetric
    y = alpha * A * x + beta * y
    If called as a function, it creates a new yoga object
      
@@ -350,6 +372,106 @@ extern yoga_mm;
    if you need to provide beta, you need to provide all the previous arguments (opA, opB, alpha)
    
    If called as a function, it creates a new yoga object so the beta argument is not applicable
+   
+   SEE ALSO:
+ */
+
+extern yoga_symm;
+/* DOCUMENT yoga_symm
+   matC = yoga_symm(matA,matB [,side] [,alpha])
+   or
+   yoga_symm,matC,matA,matB [,side] [,alpha] [,beta] 
+
+   This function performs the symmetric matrix-matrix multiplication (BLAS symm)
+   C = alpha * A * B  + beta * C if side == [] or 'l'
+   C = alpha * B * A  + beta * C if side == 'r'
+   with A a symmetric matrix
+
+   if you need to provide alpha, you need to provide side (even if default 'l')
+   if you need to provide beta, you need to provide all the previous arguments (side, alpha)
+   
+   If called as a function, it creates a new yoga object so the beta argument is not applicable
+   
+   SEE ALSO:
+ */
+
+extern yoga_syrk;
+/* DOCUMENT yoga_syrk
+   matC = yoga_syrk(matA,[,opA] [,alpha])
+   or
+   yoga_syrk,matC,matA,[,opA] [,alpha] [,beta] 
+
+   This function performs the symmetric matrix rank1 operation (BLAS syrk)
+   C = alpha * opA( A ) * transpose( opA ( A )) + beta * C
+
+   opA : operation on matrix A : 't' for transpose, 'n' for nothing
+
+   if you need to provide alpha, you need to provide operation on A (even if default 'n')
+   if you need to provide beta, you need to provide all the previous arguments (opA, alpha)
+   
+   If called as a function, it creates a new yoga object so the beta argument is not applicable
+   
+   SEE ALSO:
+ */
+
+extern yoga_syrkx;
+/* DOCUMENT yoga_syrkx
+   matC = yoga_syrkx(matA,matB [,op] [,alpha])
+   or
+   yoga_syrkx,matC,matA,matB [,opA] [,alpha] [,beta] 
+
+   This function performs the matrix-matrix multiplication (BLAS syrkx)
+   the resulting matrix C needs to be symmetric which impose conditions on B
+   
+   C = alpha * op( A ) * transpose( op ( B ) )+ beta * C
+
+   op : operation on matrix : 't' for transpose, 'n' for nothing
+
+   if you need to perform an operation on B you need to provide the operation on A as well
+   if you need to provide alpha, you need to provide operation on A and B (even if default 'n')
+   if you need to provide beta, you need to provide all the previous arguments (op, alpha)
+   
+   If called as a function, it creates a new yoga object so the beta argument is not applicable
+   
+   SEE ALSO:
+ */
+
+extern yoga_am;
+/* DOCUMENT yoga_am
+   matC = yoga_am(matA,matB [,opA] [,opB] [,alpha] [,beta])
+   or
+   yoga_am,matC,matA,matB [,opA] [,opB] [,alpha] [,beta] 
+
+   This function performs the matrix-matrix addition 
+   
+   C = alpha * opA( A ) * beta * opB( B )
+
+   op : operation on matrix : 't' for transpose, 'n' for nothing
+
+   if you need to perform an operation on B you need to provide the operation on A as well
+   if you need to provide alpha, you need to provide operation on A and B (even if default 'n')
+   if you need to provide beta, you need to provide all the previous arguments (op, alpha)
+   
+   If called as a function, it creates a new yoga object
+   
+   SEE ALSO:
+ */
+
+extern yoga_dmm;
+/* DOCUMENT yoga_dmm
+   matC = yoga_am(matA,vectx [,side])
+   or
+   yoga_am,matC,matA,vectx [,side] 
+
+   This function performs the matrix-diagonal matrix multiply
+   diagonal matrix is provided through the diagonal vector X
+   
+   C =  A * diag(X) if side == 'l'
+   C =  diag(X) * A if side == 'r'
+
+   default is side = 'l'
+
+   If called as a function, it creates a new yoga object
    
    SEE ALSO:
  */
