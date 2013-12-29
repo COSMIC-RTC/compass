@@ -1793,10 +1793,11 @@ void Y_yoga_syrk(int argc)
 		context_handle->set_activeDevice(handle_matA->device);
 
 		char opA = 'n';
-		cublasFillMode_t uplo = CUBLAS_FILL_MODE_UPPER;
+		cublasFillMode_t uplo = CUBLAS_FILL_MODE_LOWER;
+		
 		if (argc > 2) {
 			opA = ygets_c(argc-3);
-			uplo = CUBLAS_FILL_MODE_UPPER;
+			//uplo = CUBLAS_FILL_MODE_LOWER;
 		}
 
 		if (handle_matC->type == Y_FLOAT) {
@@ -1811,7 +1812,7 @@ void Y_yoga_syrk(int argc)
 			caObjS *carma_obj_handler_matC = (caObjS *) (handle_matC->carma_object);
 
 			carma_obj_handler_matC->syrk(uplo, opA, alpha, carma_obj_handler_matA,
-						     carma_obj_handler_matA->getDims(1), beta, carma_obj_handler_matC->getDims(1));
+						     carma_obj_handler_matA->getDims(2), beta, carma_obj_handler_matC->getDims(1));
 		}
 		if (handle_matC->type == Y_DOUBLE) {
 			double alpha = 1.0f;

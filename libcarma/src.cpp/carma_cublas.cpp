@@ -690,8 +690,6 @@ template<class T_data> void carma_obj<T_data>::symm(cublasSideMode_t side, cubla
 template void carma_obj<float>::symm(cublasSideMode_t, cublasFillMode_t, float, caObjS *, int, caObjS*, int , float, int);
 template void carma_obj<double>::symm(cublasSideMode_t, cublasFillMode_t, double, caObjD *, int , caObjD *, int , double , int);
 
-template<class T_data> void carma_syrk(cublasHandle_t cublas_handle, cublasFillMode_t uplo, char transa, int n, int k, T_data alpha, T_data *matA, int lda, T_data beta, T_data *matC, int ldc);
-
 template<class T_data> void carma_obj<T_data>::syrk(cublasFillMode_t uplo, char transa, T_data alpha, carma_obj<T_data> *matA, int lda, T_data beta, int ldc){
   /** \brief generic syrk method.
    * \param uplo : fill mode of matrix A
