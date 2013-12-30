@@ -39,7 +39,7 @@ extern "C" {
       N = dims[1];
       n2   = N*N;
       lda  = N;
-      ldda = ((N + 31)/32)*32;
+      ldda = N;//((N + 31)/32)*32;
       long dims_eigen[2];
       dims_eigen[0] = 1; dims_eigen[1] = N; 
 
