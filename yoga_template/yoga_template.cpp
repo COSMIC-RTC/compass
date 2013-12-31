@@ -37,25 +37,27 @@ extern "C" {
       // retreive matrix and parameters from yorick session
       char jobz = ygets_c(argc-1);
       char uplo = ygets_c(argc-2);
-      void *A_handler = ygeta_any(argc - 3, &ntot, dims, &yType);
+      int yType = yarg_typeid(argc - 3);
+      //
       yObj_struct *d_R_handler = yoga_getyObj(argc, 4);
 
       if (yType == Y_OPAQUE) {
-	if (A_handler->type != d_R_handler->type) 
+	h_A = (yObj_struct *)yoga_getyObj(argc,3);
+	if (((yObj_struct *)h_A)->type != d_R_handler->type) 
 	  y_error("Please provide an array and a yoga_obj with same precision\n");
       } else {
-	h_A = (void *)A_handler;
+	h_A = (void *)ygeta_any(argc - 3, &ntot, dims, &yType);
 	if (yType != d_R_handler->type) 
 	  y_error("Please provide an array and a yoga_obj with same precision\n");
       }
 
       void *h_R, *h_work, *w1;
-      void *d_A;
 
       if (d_R_handler->type == Y_DOUBLE) {
+	caObjD *d_A;
 	if (yType == Y_OPAQUE) {
-	  (caObjD *)d_A = (caObjD *)(A_handler->carma_object);
-	  N    = (caObjD *)d_A->getDims()[1];
+	  d_A = (caObjD *)((yObj_struct *)h_A)->carma_object;
+	  N    = d_A->getDims()[1];
 	} else N = dims[1];
 
 	n2   = N*N;
@@ -104,9 +106,10 @@ extern "C" {
 			    &info );
       }
       if (d_R_handler->type == Y_FLOAT) {
+	caObjS *d_A;
 	if (yType == Y_OPAQUE) {
-	  (caObjS *)d_A = (caObjS *)(A_handler->carma_object);
-	  N    = (caObjS *)d_A->getDims()[1];
+	  d_A = (caObjS *)((yObj_struct *)h_A)->carma_object;
+	  N    = d_A->getDims()[1];
 	} else N = dims[1];
 
 	n2   = N*N;
