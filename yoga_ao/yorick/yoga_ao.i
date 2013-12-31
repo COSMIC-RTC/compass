@@ -299,6 +299,34 @@ func target_init(void)
   
   type = "atmos";
 
+  if (y_wfs != []) {
+    if ((y_wfs != []) && (g_wfs != [])) {
+      for (cc=1;cc<=numberof(y_wfs);cc++) {
+        if (y_atmos != []) {
+          for (dd=1;dd<=y_atmos.nscreens;dd++) {
+            xoff = (y_wfs.xpos)(cc)*4.848e-6*(*y_atmos.alt)(dd)/y_atmos.pupixsize;
+            yoff = (y_wfs.ypos)(cc)*4.848e-6*(*y_atmos.alt)(dd)/y_atmos.pupixsize;
+            xoff = float(xoff+((*y_atmos.dim_screens)(dd)-y_geom._n)/2);
+            yoff = float(yoff+((*y_atmos.dim_screens)(dd)-y_geom._n)/2);
+            sensors_addlayer,g_wfs,cc-1,type,(*y_atmos.alt)(dd),xoff,yoff;
+          }
+        }
+        if (y_dm != []) {
+          for (dd=1;dd<=numberof(y_dm);dd++) {
+            dims = y_dm(dd)._n2 - y_dm(dd)._n1 + 1;
+            dim  = dimsof(*y_geom._mpupil)(2);
+            dim_dm = max([dim,dims]);
+            xoff = (y_wfs.xpos)(cc)*4.848e-6*(y_dm.alt)(dd)/(y_tel.diam / y_geom.pupdiam);
+            yoff = (y_wfs.ypos)(cc)*4.848e-6*(y_dm.alt)(dd)/(y_tel.diam / y_geom.pupdiam);
+            xoff = float(xoff+(dim_dm-y_geom._n)/2);
+            yoff = float(yoff+(dim_dm-y_geom._n)/2);
+            sensors_addlayer,g_wfs,cc-1,y_dm(dd).type,(y_dm.alt)(dd),xoff,yoff;
+          }
+        }
+      }
+    }
+  }
+  
   if (y_target != []) {
     sizes = y_geom.pupdiam;
     sizes = sizes(-::y_target.ntargets-1);
@@ -306,26 +334,28 @@ func target_init(void)
     g_target = yoga_target(y_target.ntargets,*y_target.xpos,*y_target.ypos,*y_target.lambda,*y_target.mag,sizes,*y_geom._spupil);
 
     for (cc=1;cc<=y_target.ntargets;cc++) {
-      for (dd=1;dd<=y_atmos.nscreens;dd++) {
-        xoff = (*y_target.xpos)(cc)*4.848e-6*(*y_atmos.alt)(dd)/y_atmos.pupixsize;
-        yoff = (*y_target.ypos)(cc)*4.848e-6*(*y_atmos.alt)(dd)/y_atmos.pupixsize;
-        xoff = float(xoff+((*y_atmos.dim_screens)(dd)-y_geom._n)/2);
-        yoff = float(yoff+((*y_atmos.dim_screens)(dd)-y_geom._n)/2);
-        // to take into account the difference in screen size
-        // for target screen is of the same size as spupil
-        // for wfs screen is of same size as mpupil
-        pupdiff = (y_geom._n - y_geom.pupdiam)/2
-        xoff += pupdiff;
-        yoff += pupdiff;
-        target_addlayer,g_target,cc-1,type,(*y_atmos.alt)(dd),xoff,yoff;
+      if (y_atmos != []) {
+        for (dd=1;dd<=y_atmos.nscreens;dd++) {
+          xoff = (*y_target.xpos)(cc)*4.848e-6*(*y_atmos.alt)(dd)/y_atmos.pupixsize;
+          yoff = (*y_target.ypos)(cc)*4.848e-6*(*y_atmos.alt)(dd)/y_atmos.pupixsize;
+          xoff = float(xoff+((*y_atmos.dim_screens)(dd)-y_geom._n)/2);
+          yoff = float(yoff+((*y_atmos.dim_screens)(dd)-y_geom._n)/2);
+          // to take into account the difference in screen size
+          // for target screen is of the same size as spupil
+          // for wfs screen is of same size as mpupil
+          pupdiff = (y_geom._n - y_geom.pupdiam)/2
+            xoff += pupdiff;
+          yoff += pupdiff;
+          target_addlayer,g_target,cc-1,type,(*y_atmos.alt)(dd),xoff,yoff;
+        }
       }
       if (y_dm != []) {
         for (dd=1;dd<=numberof(y_dm);dd++) {
           dims = y_dm(dd)._n2 - y_dm(dd)._n1 + 1;
           dim  = dimsof(*y_geom._mpupil)(2);
           dim_dm = max([dim,dims]);
-          xoff = (*y_target.xpos)(cc)*4.848e-6*(y_dm.alt)(dd)/y_atmos.pupixsize;
-          yoff = (*y_target.ypos)(cc)*4.848e-6*(y_dm.alt)(dd)/y_atmos.pupixsize;
+          xoff = (*y_target.xpos)(cc)*4.848e-6*(y_dm.alt)(dd)/(y_tel.diam / y_geom.pupdiam);
+          yoff = (*y_target.ypos)(cc)*4.848e-6*(y_dm.alt)(dd)/(y_tel.diam / y_geom.pupdiam);
           xoff = float(xoff+(dim_dm-y_geom._n)/2);
           yoff = float(yoff+(dim_dm-y_geom._n)/2);
           pupdiff = (y_geom._n - y_geom.pupdiam)/2;
@@ -339,32 +369,6 @@ func target_init(void)
         }
       }
       target_init_strehlmeter,g_target,cc-1;
-    }
-  }
-  
-  if (y_wfs != []) {
-    if ((y_wfs != []) && (g_wfs != [])) {
-      for (cc=1;cc<=numberof(y_wfs);cc++) {
-        for (dd=1;dd<=y_atmos.nscreens;dd++) {
-          xoff = (y_wfs.xpos)(cc)*4.848e-6*(*y_atmos.alt)(dd)/y_atmos.pupixsize;
-          yoff = (y_wfs.ypos)(cc)*4.848e-6*(*y_atmos.alt)(dd)/y_atmos.pupixsize;
-          xoff = float(xoff+((*y_atmos.dim_screens)(dd)-y_geom._n)/2);
-          yoff = float(yoff+((*y_atmos.dim_screens)(dd)-y_geom._n)/2);
-          sensors_addlayer,g_wfs,cc-1,type,(*y_atmos.alt)(dd),xoff,yoff;
-        }
-        if (y_dm != []) {
-          for (dd=1;dd<=numberof(y_dm);dd++) {
-            dims = y_dm(dd)._n2 - y_dm(dd)._n1 + 1;
-            dim  = dimsof(*y_geom._mpupil)(2);
-            dim_dm = max([dim,dims]);
-            xoff = (y_wfs.xpos)(cc)*4.848e-6*(y_dm.alt)(dd)/y_atmos.pupixsize;
-            yoff = (y_wfs.ypos)(cc)*4.848e-6*(y_dm.alt)(dd)/y_atmos.pupixsize;
-            xoff = float(xoff+(dim_dm-y_geom._n)/2);
-            yoff = float(yoff+(dim_dm-y_geom._n)/2);
-            sensors_addlayer,g_wfs,cc-1,y_dm(dd).type,(y_dm.alt)(dd),xoff,yoff;
-          }
-        }
-      }
     }
   }
 }
