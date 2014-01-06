@@ -12,8 +12,6 @@ LIB_NAME=libsutra.so
 LIB_OBJS= sutra_ao_utils.cuo sutra_phase.o sutra_turbu.o sutra_turbu.cuo sutra_lgs.cuo sutra_lgs.o sutra_target.cuo sutra_target.o sutra_wfs.cuo sutra_wfs.o sutra_centroider.cuo sutra_centroider.o sutra_controler.cuo sutra_controler.o sutra_rtc.o sutra_dm.o sutra_dm.cuo sutra_telemetry.o sutra_aotemplate.o sutra_kl.o sutra_kl.cuo sutra_aotemplate.cuo sutra_acquisim.o sutra_acquisim.cuo 
 OBJS := $(addprefix $(OBJ_DIR)/,$(LIB_OBJS))
 
-include ../Makefile.inc
-
 LIB_DEPLIBS= -L$(CUDA_LIB_PATH_64) -lcudart -lcublas -lcufft -lstdc++ -lcurand #-lcula -L/usr/local/cula/lib 
 #PKG_DEPLIBS += ../cudpp/lib/libcudpp_x86_64.a
 LIB_DEPLIBS += -L$(COMPASS_ROOT_DIR)/libcarma -lcarma

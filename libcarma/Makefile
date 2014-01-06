@@ -7,8 +7,6 @@ OBJ_DIR=obj
 
 CUDPP_PATH= #cudpp
 CUDPP_LIB= $(CUDPP_PATH)/lib/libcudpp_x86_64.a
-MAGMA_PATH= #magma
-MAGMA_LIB= $(MAGMA_PATH)/lib/libmagma.a $(MAGMA_PATH)/lib/libmagmablas.a
 
 #DEBUG=1
 
@@ -23,9 +21,6 @@ ifneq ($(MAGMA_PATH),)
 endif
 OBJS := $(addprefix $(OBJ_DIR)/,$(LIB_OBJS))
 
-
-include ../Makefile.inc
-
 LIB_DEPLIBS= -fPIC -Wall -O0 -lstdc++ -L$(CUDA_LIB_PATH_64) -L$(CULA_LIB_PATH_64) -lcudart -lcublas -lcufft -lcurand -lcula_lapack_basic #-lcula_lapack_link -lcula_core 
 
 ifneq ($(CUDPP_PATH),)
@@ -34,11 +29,7 @@ endif
 #-lcurand -lcula -L/usr/local/cula/lib 
 ifneq ($(MAGMA_PATH),)
  LIB_DEPLIBS += -L$(MAGMA_PATH)/lib -lmagma 
- LIB_DEPLIBS += -latlas -lcblas -lpthread -llapack 
- LIB_DEPLIBS +=  -lmagmablas #-llapacktest
- LIB_DEPLIBS +=  $(MAGMA_PATH)/lib/common.o
- #LIB_DEPLIBS +=  $(MAGMA_PATH)/lib/libmagmablas.a $(MAGMA_PATH)/lib/liblapacktest.a
- LIB_DEPLIBS += -DADD_ -DGPUSHMEM=130 -Xlinker -zmuldefs
+ #LIB_DEPLIBS += -DADD_ -DGPUSHMEM=130 -Xlinker -zmuldefs
 endif
 
 # set compiler (or rarely loader) flags specific to this package
@@ -51,8 +42,7 @@ ifneq ($(CUDPP_PATH),)
  LIB_CPPFLAGS +=-I$(CUDPP_PATH)/include -DUSE_CUDPP
 endif
 ifneq ($(MAGMA_PATH),)
- LIB_CPPFLAGS +=-I$(MAGMA_PATH)/include -DUSE_MAGMA
- LIB_CPPFLAGS +=-DADD_ -DGPUSHMEM=130
+ LIB_CPPFLAGS +=-I$(MAGMA_PATH)/include -DUSE_MAGMA -DHAVE_CUBLAS -DADD_ -DMAGMA_SETAFFINITY
 endif
 
 # ------------------------------------- targets and rules for this package
@@ -79,8 +69,8 @@ ifneq ($(CUDPP_PATH),)
  NVCCFLAGS +=-I$(CUDPP_PATH)/include 
 endif
 ifneq ($(MAGMA_PATH),)
- NVCCFLAGS +=-I$(MAGMA_PATH)/include 
- NVCCFLAGS +=-DGPUSHMEM=130
+ NVCCFLAGS += -DADD_ -I$(MAGMA_PATH)/include -Xcompiler -fno-strict-aliasing
+ NVCCFLAGS +=-DGPUSHMEM=200
 endif
 
 all: $(LIB_NAME)
@@ -111,9 +101,9 @@ cleanmagma:
 	@printf '\033[36m%s\033[31m%s\033[m\n' "cleaning magma install"
 	@rm -rf $(MAGMA_PATH)
 
-magma: $(MAGMA_LIB)
+magma: $(MAGMA_PATH)
 
-$(MAGMA_LIB): magma_1.1.0
+$(MAGMA_PATH): magma_1.1.0
 	@printf '\033[36m%s\033[31m%s\033[m\n' "Patching     " $<
 	@cp magma_patch/make.inc $<
 #	@cd $</src && patch -ts <../../magma_patch/clatrd.cpp.patch

@@ -712,6 +712,18 @@ extern yoga_fftconv;
 
 extern yoga_test;
 
+extern yoga_syevd;
+/* DOCUMENT yoga_syevd
+   yoga_syevd,mat,eigenvals,u
+
+   This function computes the svd of matrix mat
+   mat   : n x n (CArMA obj)
+   eigen : 1 x n (yArray)
+   U     : n x n (CArMA obj)
+   
+   SEE ALSO:
+ */
+
 extern yoga_svd;
 /* DOCUMENT yoga_svd
    yoga_svd,mat,eigenvals,vt,u

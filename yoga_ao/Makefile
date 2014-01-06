@@ -1,10 +1,10 @@
 # these values filled in by    yorick -batch make.i
-Y_MAKEDIR=/home/brujo/yorick-2.2/relocate
-Y_EXE=/home/brujo/yorick-2.2/relocate/bin/yorick
+Y_MAKEDIR=/home/sevin/yorick.git/relocate
+Y_EXE=/home/sevin/yorick.git/relocate/bin/yorick
 Y_EXE_PKGS=
 
-Y_EXE_HOME=/home/brujo/yorick-2.2/relocate
-Y_EXE_SITE=/home/brujo/yorick-2.2/relocate
+Y_EXE_HOME=/home/sevin/yorick.git/relocate
+Y_EXE_SITE=/home/sevin/yorick.git/relocate
 Y_HOME_PKG=
 
 # ----------------------------------------------------- optimization flags
@@ -22,8 +22,6 @@ PKG_NAME=yoga_ao
 PKG_I= $(I_DIR)/yoga_aolib.i
 
 OBJS= yoga_ao.o
-
-include ../Makefile.inc
 
 # change to give the executable a name other than yorick
 #PKG_EXENAME=yorick

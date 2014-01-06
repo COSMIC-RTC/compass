@@ -1,7 +1,11 @@
 
 # CUDA default definitions
-export GENCODE="arch=compute_12,code=sm_12"
-#${STATE?"Need to set STATE"}
+#export GENCODE='"arch=compute_12,code=sm_12" -DGPUSHMEM=120' #for old tesla
+export GENCODE='"arch=compute_20,code=sm_20" -DGPUSHMEM=200' #for Fermi
+#export GENCODE='"arch=compute_30,code=sm_30" -DGPUSHMEM=300' #for Kepler 
+#export GENCODE='"arch=compute_35,code=sm_35" -DGPUSHMEM=300' #for K40
+#${GENCODE?"Need to set GENCODE"}
+
 export CUDA_ROOT=/usr/local/cuda
 export CUDA_INC_PATH=$CUDA_ROOT/include
 export CUDA_LIB_PATH=$CUDA_ROOT/lib
@@ -14,6 +18,10 @@ export CULA_ROOT=/usr/local/cula
 export CULA_INC_PATH=$CULA_ROOT/include
 export CULA_LIB_PATH=$CULA_ROOT/lib
 export CULA_LIB_PATH_64=$CULA_ROOT/lib64
+
+# MAGMA definitions (uncomment this line if MAGMA is installed)
+#export MAGMA_PATH=/usr/local/magma
+#export MAGMA_USE=ATLAS #or MKL
 
 # YOGA default definitions
 export COMPASS_ROOT_DIR=$(pwd)
