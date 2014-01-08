@@ -1,6 +1,25 @@
 require,"yoga.i";
 
-require,"util_fr.i"
+require,"util_fr.i";
+
+func check_evd(n)
+{
+  tmp = random(n, 128);
+  tmp2= tmp(,+)*tmp(,+);
+  d_mat = yoga_obj(tmp2);
+  d_U = yoga_obj(tmp2*0.);
+  h_EV = array(0., n);
+  write, format="%s", "doing yoga_syevd, d_mat, h_EV, d_U... ";
+  tic; yoga_syevd, d_mat, h_EV, d_U; tps1=tac();
+  write, format="in %0.3fs\n", tps1;
+
+  write, format="%s", "doing y_EV = SVdec(tmp2)... ";
+  tic; y_EV = SVdec(tmp2); tps2=tac();
+  write, format="in %0.3fs (x%0.3f)\n", tps2, tps2/tps1;
+
+  write, "max(abs(h_EV(::-1) - y_EV))";
+  max(abs(h_EV(::-1) - y_EV));
+}
 
 func check_svd(n,m)
 {
