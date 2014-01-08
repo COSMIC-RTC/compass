@@ -22,6 +22,7 @@ export CULA_LIB_PATH_64=$CULA_ROOT/lib64
 # MAGMA definitions (uncomment this line if MAGMA is installed)
 #export MAGMA_PATH=/usr/local/magma
 #export MAGMA_USE=ATLAS #or MKL
+#export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$MAGMA_PATH/lib
 
 # YOGA default definitions
 export COMPASS_ROOT_DIR=$(pwd)
