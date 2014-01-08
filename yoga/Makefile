@@ -33,11 +33,11 @@ PKG_DEPLIBS=  -L$(YOGA_DIR) -L$(COMPASS_ROOT_DIR)/libcarma -lcarma -lstdc++ #
 
 # set compiler (or rarely loader) flags specific to this package
 #PKG_CPPFLAGS= -Wall -g -O3 -DUNIX -DADD_ -DGPUSHMEM=130 -fPIC -Xlinker -zmuldefs -fno-common -I$(H_DIR) -I/usr/local/cuda/include 
-PKG_CPPFLAGS= -Wall -fno-common -I$(COMPASS_ROOT_DIR)/libcarma/include.h -Iinclude.h -I$(CUDA_INC_PATH) -I$(CULA_INC_PATH) -DUSE_MAGMA
+PKG_CPPFLAGS= -Wall -fno-common -I$(COMPASS_ROOT_DIR)/libcarma/include.h -Iinclude.h -I$(CUDA_INC_PATH) -I$(CULA_INC_PATH)
+
 ifneq ($(MAGMA_PATH),)
- ifeq ($(MAGMA_USE),ATLAS)
-  PKG_CPPFLAGS +=-I$(MAGMA_PATH)/include -DUSE_MAGMA -DHAVE_CUBLAS -DADD_ -DMAGMA_SETAFFINITY
- endif
+  #PKG_CPPFLAGS +=-I$(MAGMA_PATH)/include -DUSE_MAGMA -DHAVE_CUBLAS -DADD_ -DMAGMA_SETAFFINITY
+  PKG_CPPFLAGS += -DUSE_MAGMA 
 endif
 
 ifneq ($(DEBUG),)
