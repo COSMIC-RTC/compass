@@ -26,42 +26,43 @@ template<> int carma_gesvd<double>(int m, int n, double *mat, double *eigenvals,
   return info;
 }
 
-template<class T> int carma_syevd(carma_obj<T> *mat, T *eigenvals, carma_obj<T> *U) {
+template<class T> int carma_syevd(carma_obj<T> *mat, T *eigenvals, carma_obj<T> *U,
+                                  magma_int_t (*ptr_syevd_gpu)(char, char, magma_int_t, T*, magma_int_t, T*, T*, magma_int_t, T*, magma_int_t, magma_int_t*, magma_int_t, magma_int_t*)) {
   magma_init();
   magma_int_t *iwork;
   magma_int_t N = mat->getDims(1);
   magma_int_t info, lwork, liwork, lda = N, aux_iwork[1];
-  double aux_work[1];
-  double *h_R, *h_work;
+  T aux_work[1];
+  T *h_R, *h_work;
 
   //fprintf(stderr, "%s@%d : N=%d\n", __FILE__, __LINE__, N);
   magma_int_t ldda = N; //((N + 31) / 32) * 32;
 
   //fprintf(stderr, "%s@%d : ldda=%d\n", __FILE__, __LINE__, ldda);
   /* Query for workspace sizes */
-  magma_dsyevd_gpu( 'V', 'U',
+  ptr_syevd_gpu( 'V', 'U',
           N, NULL, ldda, NULL,
           NULL, lda,
           aux_work,  -1,
           aux_iwork, -1,
           &info );
   if (info != 0)
-    printf("%s@%d magma_dsgesv returned error %d: %s.\n", __FILE__, __LINE__, (int) info, magma_strerror(info));
+    printf("%s@%d magma returned error %d: %s.\n", __FILE__, __LINE__, (int) info, magma_strerror(info));
 
   //fprintf(stderr, "%s@%d : I'm here\n", __FILE__, __LINE__);
   lwork  = (magma_int_t)aux_work[0];
   liwork = aux_iwork[0];
   posix_memalign( (void**) &iwork, 32, (liwork)*sizeof(int) );
 
-  cudaMallocHost( (void**) &h_R, (N*lda)*sizeof(double) );
-  cudaMallocHost( (void**) &h_work, (lwork)*sizeof(double) );
+  cudaMallocHost( (void**) &h_R, (N*lda)*sizeof(T) );
+  cudaMallocHost( (void**) &h_work, (lwork)*sizeof(T) );
 
   //fprintf(stderr, "%s@%d : I'm here\n", __FILE__, __LINE__);
   /* Initialize the matrix */
   U->copy(mat, 1, 1);
 
   //fprintf(stderr, "%s@%d : I'm here\n", __FILE__, __LINE__);
-  magma_dsyevd_gpu('V', 'U',
+  ptr_syevd_gpu('V', 'U',
       N, U->getData(), ldda, eigenvals,
       h_R, lda,
       h_work, lwork,
@@ -69,7 +70,7 @@ template<class T> int carma_syevd(carma_obj<T> *mat, T *eigenvals, carma_obj<T> 
       &info);
 
   if (info != 0)
-    printf("magma_dsgesv returned error %d: %s.\n", (int) info, magma_strerror(info));
+    printf("%s@%d magma returned error %d: %s.\n", __FILE__, __LINE__, (int) info, magma_strerror(info));
   //fprintf(stderr, "%s@%d : I'm here\n", __FILE__, __LINE__);
 
   cudaFreeHost(h_R);
@@ -79,9 +80,36 @@ template<class T> int carma_syevd(carma_obj<T> *mat, T *eigenvals, carma_obj<T> 
 
   return EXIT_SUCCESS;
 }
-//template int carma_syevd<float>(caObjS *mat, float *eigenvals, caObjS *U);
-template int carma_syevd<double>(caObjD *mat, double *eigenvals, caObjD *U);
 
+template<class T> int carma_syevd(carma_obj<T> *mat, T *eigenvals, carma_obj<T> *U);
+template<> int carma_syevd<float>(caObjS *mat, float *eigenvals, caObjS *U){
+  return carma_syevd<float>(mat, eigenvals, U, magma_ssyevd_gpu);
+}
+template<> int carma_syevd<double>(caObjD *mat, double *eigenvals, caObjD *U){
+  return carma_syevd<double>(mat, eigenvals, U, magma_dsyevd_gpu);
+}
+
+template<class T, int method> int carma_syevd(carma_obj<T> *mat, T *eigenvals, carma_obj<T> *U);
+template<> int carma_syevd<float,1>(caObjS *mat, float *eigenvals, caObjS *U){
+  return carma_syevd<float>(mat, eigenvals, U, magma_ssyevd_gpu);
+}
+template<> int carma_syevd<double,1>(caObjD *mat, double *eigenvals, caObjD *U){
+  return carma_syevd<double>(mat, eigenvals, U, magma_dsyevd_gpu);
+}
+/*
+template<> int carma_syevd<float,2>(caObjS *mat, float *eigenvals, caObjS *U){
+  return carma_syevd<float>(mat, eigenvals, U, magma_ssyevd_gpu_magmablas);
+}
+template<> int carma_syevd<double,2>(caObjD *mat, double *eigenvals, caObjD *U){
+  return carma_syevd<double>(mat, eigenvals, U, magma_dsyevd_gpu_magmablas);
+}
+template<> int carma_syevd<float,3>(caObjS *mat, float *eigenvals, caObjS *U){
+  return carma_syevd<float>(mat, eigenvals, U, magma_ssyevd_gpu_kblas);
+}
+template<> int carma_syevd<double,3>(caObjD *mat, double *eigenvals, caObjD *U){
+  return carma_syevd<double>(mat, eigenvals, U, magma_dsyevd_gpu_kblas);
+}
+*/
 
 template<class T> int carma_svd(carma_obj<T> *imat, carma_obj<T> *eigenvals, carma_obj<T> *mod2act, carma_obj<T> *mes2mod){
   //TODO: carma_svd

@@ -3658,20 +3658,21 @@ void Y_yoga_syevd(int argc)
   if (yarg_subroutine()) {
     yObj_struct *handle_mat = (yObj_struct *) yget_obj(argc - 1, &yObj);
     long ntot;
-    long dims;
-    double *eigenvals = ygeta_d(argc - 2, &ntot, &dims);
+    long dims[Y_DIMSIZE];
+    int yType = yarg_typeid(argc - 1);
+
+    void *eigenvals = ygeta_any(argc - 2, &ntot, dims, &yType);
     yObj_struct *handle_U = (yObj_struct *) yget_obj(argc - 3, &yObj);
 
     if (handle_mat->type == Y_FLOAT) {
-      //caObjS *carma_obj_handler_mat = (caObjS *) (handle_mat->carma_object);
-      //caObjS *carma_obj_handler_U = (caObjS *) (handle_U->carma_object);
-      // TODO: carma_syevd(carma_obj_handler_mat, eigenvals, carma_obj_handler_U);
-      cerr << "carma_syevd in single precision, not implemented\n";
+      caObjS *carma_obj_handler_mat = (caObjS *) (handle_mat->carma_object);
+      caObjS *carma_obj_handler_U = (caObjS *) (handle_U->carma_object);
+      carma_syevd(carma_obj_handler_mat, (float*)eigenvals, carma_obj_handler_U);
     }
     if (handle_mat->type == Y_DOUBLE) {
       caObjD *carma_obj_handler_mat = (caObjD *) (handle_mat->carma_object);
       caObjD *carma_obj_handler_U = (caObjD *) (handle_U->carma_object);
-      carma_syevd(carma_obj_handler_mat, eigenvals, carma_obj_handler_U);
+      carma_syevd(carma_obj_handler_mat, (double*)eigenvals, carma_obj_handler_U);
     }
   } else {
   }
