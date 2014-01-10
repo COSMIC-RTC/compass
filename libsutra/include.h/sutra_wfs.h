@@ -82,12 +82,15 @@ class sutra_wfs {
  public:
   sutra_wfs(carma_context *context, const char* type, long nxsub, long nvalid, long npix, long nphase, 
 	   long nrebin, long nfft, long ntot, long npup,float pdiam,float nphotons, int lgs, int device);
+  sutra_wfs(carma_context *context, long nxsub, long nvalid, long nphase, long npup, float pdiam,int device);
   sutra_wfs(const sutra_wfs& wfs);
   ~sutra_wfs();
 
   int wfs_initarrays(int *phasemap,int *hrmap, int *binmap,float *offsets, 
 			     float *pupil, float *fluxPerSub, int *isvalid, int *validsubsx, int *validsubsy, 
 			     int *istart, int *jstart, cuFloatComplex *kernel);
+  int wfs_initarrays(int *phasemap,float *offsets,float *pupil, float *fluxPerSub, int *isvalid, 
+		     int *validsubsx, int *validsubsy,int *istart, int *jstart);
   int wfs_initarrays(cuFloatComplex *halfxy,cuFloatComplex *offsets, float *focmask, 
 		     float *pupil, int *isvalid, int *cx, int *cy, float *sincar,int *phasemap,
 		     int *validsubsx, int *validsubsy);
@@ -114,6 +117,8 @@ class sutra_sensors {
   sutra_sensors(carma_context *context, const char* type, int nwfs,long *nxsub,long *nvalid,long *npix,
 	       long *nphase, long *nrebin,long *nfft, long *ntot, long npup, float *pdiam, float *nphot,
 	       int *lgs, int device);
+  sutra_sensors(carma_context *context, int nwfs,long *nxsub,long *nvalid,long *nphase, long npup, 
+		float *pdiam, int device);
   ~sutra_sensors();
 
   int sensors_initgs(float *xpos,float *ypos,float *lambda, float *mag, long *size, float *noise, long *seed);

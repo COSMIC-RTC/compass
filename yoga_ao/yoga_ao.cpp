@@ -1086,32 +1086,51 @@ extern "C" {
     try {
       int nsensors = ygets_i(argc-1);
       char *type_data = ygets_q(argc-2);
-
-      long *nxsub   = ygeta_l(argc-3, &ntot,dims);
-      long *nvalid  = ygeta_l(argc-4, &ntot,dims);
-      long *npix    = ygeta_l(argc-5, &ntot,dims);
-      long *nphase  = ygeta_l(argc-6, &ntot,dims);
-      long *nrebin  = ygeta_l(argc-7, &ntot,dims);
-      long *nfft    = ygeta_l(argc-8, &ntot,dims);
-      long *ntota   = ygeta_l(argc-9, &ntot,dims);
-      long npup     = ygets_l(argc-10);
-      float *pdiam  = ygeta_f(argc-11, &ntot,dims);
-      float *nphot  = ygeta_f(argc-12, &ntot,dims);
-      int *lgs      = ygeta_i(argc-13, &ntot,dims);
-
-      carma_context *context_handle = _getCurrentContext();
-      int odevice = context_handle->get_activeDevice();
-      if (argc > 13) odevice = ygets_i(argc-14);
-
-      sensors_struct *handle=(sensors_struct *)ypush_obj(&ySensors, sizeof(sensors_struct));
-      handle->device = odevice;
-
-      //done inside sutra_wfs constructor
-      //odevice = context_handle->set_activeDevice(odevice);
-
-      handle->sutra_sensors = new sutra_sensors(context_handle, type_data,nsensors,nxsub,nvalid,npix,nphase,nrebin,nfft,
-					      ntota,npup,pdiam,nphot,lgs,odevice);
-
+      if (strcmp(type_data, "geo")==0) {
+	long *nxsub   = ygeta_l(argc-3, &ntot,dims);
+	long *nvalid  = ygeta_l(argc-4, &ntot,dims);
+	long *nphase  = ygeta_l(argc-5, &ntot,dims);
+	long npup     = ygets_l(argc-6);
+	float *pdiam  = ygeta_f(argc-7, &ntot,dims);
+	
+	carma_context *context_handle = _getCurrentContext();
+	int odevice = context_handle->get_activeDevice();
+	if (argc > 7) odevice = ygets_i(argc-8);
+	
+	sensors_struct *handle=(sensors_struct *)ypush_obj(&ySensors, sizeof(sensors_struct));
+	handle->device = odevice;
+	
+	//done inside sutra_wfs constructor
+	//odevice = context_handle->set_activeDevice(odevice);
+	
+	handle->sutra_sensors = new sutra_sensors(context_handle,nsensors,nxsub,nvalid,nphase,npup,pdiam,odevice);
+      
+      } else {
+	long *nxsub   = ygeta_l(argc-3, &ntot,dims);
+	long *nvalid  = ygeta_l(argc-4, &ntot,dims);
+	long *npix    = ygeta_l(argc-5, &ntot,dims);
+	long *nphase  = ygeta_l(argc-6, &ntot,dims);
+	long *nrebin  = ygeta_l(argc-7, &ntot,dims);
+	long *nfft    = ygeta_l(argc-8, &ntot,dims);
+	long *ntota   = ygeta_l(argc-9, &ntot,dims);
+	long npup     = ygets_l(argc-10);
+	float *pdiam  = ygeta_f(argc-11, &ntot,dims);
+	float *nphot  = ygeta_f(argc-12, &ntot,dims);
+	int *lgs      = ygeta_i(argc-13, &ntot,dims);
+	
+	carma_context *context_handle = _getCurrentContext();
+	int odevice = context_handle->get_activeDevice();
+	if (argc > 13) odevice = ygets_i(argc-14);
+	
+	sensors_struct *handle=(sensors_struct *)ypush_obj(&ySensors, sizeof(sensors_struct));
+	handle->device = odevice;
+	
+	//done inside sutra_wfs constructor
+	//odevice = context_handle->set_activeDevice(odevice);
+	
+	handle->sutra_sensors = new sutra_sensors(context_handle, type_data,nsensors,nxsub,nvalid,npix,nphase,nrebin,nfft,
+						  ntota,npup,pdiam,nphot,lgs,odevice);
+      }
     } catch ( string &msg ) {
       y_error(msg.c_str());
     } catch ( char const * msg ) {
@@ -1122,6 +1141,7 @@ extern "C" {
       y_error(buf.str().c_str());
     }
   }
+  
 
   void
   Y_sensors_initgs(int argc)
@@ -1220,6 +1240,20 @@ extern "C" {
       int *validx    = ygeta_i(argc-12, &ntot,dims);
       int *validy    = ygeta_i(argc-13, &ntot,dims);
       sensors_handler->d_wfs.at(nsensor)->wfs_initarrays((cuFloatComplex*)halfxy,(cuFloatComplex*)offsets,focmask,pupil,isvalid,cx,cy,sincar,phasemap,validx,validy);
+    }
+    if (sensors_handler->d_wfs.at(nsensor)->type == "geo") {
+      int *phasemap     = ygeta_i(argc-3, &ntot,dims);
+      float *offsets    = ygeta_f(argc-4, &ntot,dims);
+      float *pupil      = ygeta_f(argc-5, &ntot,dims);
+      float *fluxPerSub = ygeta_f(argc-6, &ntot,dims);
+      int *isvalid      = ygeta_i(argc-7, &ntot,dims);
+      int *validsubsx   = ygeta_i(argc-8, &ntot,dims);
+      int *validsubsy   = ygeta_i(argc-9, &ntot,dims);
+      int *istart       = ygeta_i(argc-10, &ntot,dims);
+      int *jstart       = ygeta_i(argc-11, &ntot,dims);
+
+      sensors_handler->d_wfs.at(nsensor)->wfs_initarrays(phasemap,offsets,pupil,fluxPerSub,isvalid,validsubsx,
+							 validsubsy,istart,jstart);
     }
   }
 
@@ -1878,7 +1912,10 @@ extern "C" {
     dms_struct *handlera = (dms_struct *)yget_obj(argc-3,&yDMs);
     sutra_dms *dms_handler = (sutra_dms *)(handlera->sutra_dms);
 
-    target_handler->d_targets.at(ntarget)->raytrace(dms_handler,0);
+    int rst = 0;
+    if (argc > 3) rst = ygets_i(argc-4);
+
+    target_handler->d_targets.at(ntarget)->raytrace(dms_handler,rst);
   }
 
  void

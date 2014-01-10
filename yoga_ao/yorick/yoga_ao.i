@@ -202,7 +202,10 @@ func wfs_init(void)
   }
   
   // init geometry
-  init_wfs_geom,indmax,init=1;
+  if (noneof(y_wfs.type == "geo"))
+    init_wfs_geom,indmax,init=1;
+  else
+    init_wfs_geom,indmax,init=0;
   
   // do the same for other wfs
   for (i=1;i<=numberof(y_wfs);i++) {
@@ -220,11 +223,18 @@ func wfs_init(void)
      g_wfs = yoga_sensors(numberof(y_wfs),y_wfs(1).type,y_wfs.nxsub,y_wfs._nvalid,y_wfs.npix,y_wfs._pdiam,
                           y_wfs._nrebin,y_wfs._Nfft,y_wfs._Ntot,y_wfs(1).pyr_npts,y_wfs._subapd,
                           y_wfs._nphotons,y_wfs.gsalt > 0);
+   if (y_wfs(1).type == "geo")
+     g_wfs = yoga_sensors(numberof(y_wfs),y_wfs(1).type,y_wfs.nxsub,y_wfs._nvalid,y_wfs._pdiam,
+                          y_geom._n,y_wfs._subapd);
   
   // init sensor gs object on gpu
-  sensors_initgs,g_wfs,y_wfs.xpos,y_wfs.ypos,y_wfs.lambda,y_wfs.gsmag,
-    (y_geom._n)(-::numberof(y_wfs)-1),y_wfs.noise;
-
+   if (y_wfs(1).type == "geo") {
+     sensors_initgs,g_wfs,y_wfs.xpos,y_wfs.ypos,y_wfs.lambda,[0](-::numberof(y_wfs)-1),
+       (y_geom._n)(-::numberof(y_wfs)-1),[-1](-::numberof(y_wfs)-1);
+   } else {
+     sensors_initgs,g_wfs,y_wfs.xpos,y_wfs.ypos,y_wfs.lambda,y_wfs.gsmag,
+       (y_geom._n)(-::numberof(y_wfs)-1),y_wfs.noise;
+   }
   // fill sensor object with data
   for (i=1;i<=numberof(y_wfs);i++) {
     
@@ -248,6 +258,12 @@ func wfs_init(void)
         int(*y_wfs(i)._isvalid),int(*y_wfs(i)._pyr_cx),int(*y_wfs(i)._pyr_cy),float(*y_wfs(i)._hrmap),
         int(*y_wfs(i)._phasemap),int((*y_wfs(i)._validsubs)(1,)-1),int((*y_wfs(i)._validsubs)(2,)-1);
     }
+    
+    if (y_wfs(i).type == "geo")
+      sensors_initarr,g_wfs,i-1,int(*y_wfs(i)._phasemap),float(*y_wfs(i)._halfxy),float(*y_geom._mpupil),
+        (*y_wfs(i)._fluxPerSub)(where(*y_wfs(i)._isvalid)),int(*y_wfs(i)._isvalid),
+        int((*y_wfs(i)._validsubs)(1,)-1),int((*y_wfs(i)._validsubs)(2,)-1),int(*y_wfs(i)._istart+1),
+        int(*y_wfs(i)._jstart+1);
   }
 
   // lgs case
@@ -441,7 +457,8 @@ func dm_init(void)
           int(*y_dm(n)._i1),int(*y_dm(n)._j1); 
        }
       if (y_dm(n).type == "tt") {
-        dim       = dimsof(*y_geom._mpupil)(2);//long(y_dm(n)._n2-y_dm(n)._n1+1);
+        //dim       = dimsof(*y_geom._mpupil)(2);
+        dim       = long(y_dm(n)._n2-y_dm(n)._n1+1);
         make_tiptilt_dm, n;
         
         yoga_addtt,g_dm,float(y_dm(n).alt),dim,float(y_dm(n).push4imat);

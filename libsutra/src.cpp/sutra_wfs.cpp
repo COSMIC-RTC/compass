@@ -109,7 +109,7 @@ sutra_wfs::sutra_wfs(carma_context *context, const char* type, long nxsub, long 
   this->nstreams = 1;//nvalid/10;
   while(nvalid % this->nstreams!=0) nstreams--;
   cerr << "wfs uses " << nstreams << " streams" << endl;
-  streams = new carma_streams(nstreams);
+  this->streams = new carma_streams(nstreams);
 
   dims_data1[1] = 2*nvalid;
   this->d_slopes = new carma_obj<float>(context,dims_data1);
@@ -215,6 +215,82 @@ sutra_wfs::sutra_wfs(carma_context *context, const char* type, long nxsub, long 
   this->d_phasemap = new carma_obj<int>(context,dims_data2);
 }
 
+sutra_wfs::sutra_wfs(carma_context *context, long nxsub, long nvalid, long nphase, long npup,float pdiam,int device)
+{
+  this->d_camplipup     = 0L;
+  this->d_camplifoc     = 0L;
+  this->d_fttotim       = 0L;
+  this->d_ftkernel      = 0L;
+  this->d_pupil         = 0L;
+  this->d_hrimg         = 0L;
+  this->d_bincube       = 0L;
+  this->d_binimg        = 0L;
+  this->d_subsum        = 0L;
+  this->d_offsets       = 0L;
+  this->d_fluxPerSub    = 0L;
+  this->d_sincar        = 0L;
+  this->d_submask       = 0L;
+  this->d_hrmap         = 0L;
+  this->d_isvalid       = 0L;
+  this->d_slopes        = 0L;
+  this->image_telemetry = 0L;
+  this->d_phasemap      = 0L;
+  this->d_binmap        = 0L;
+  this->d_validsubsx    = 0L;
+  this->d_validsubsy    = 0L;
+  this->d_istart        = 0L;
+  this->d_jstart        = 0L;
+  this->d_psum          = 0L;
+  this->d_phalfxy       = 0L;
+  this->d_poffsets      = 0L;
+  this->pyr_cx          = 0L;
+  this->pyr_cy          = 0L;
+  
+  this->current_context = context;
+
+  this->type       = "geo";
+
+  this->nxsub   = nxsub;
+  this->nvalid  = nvalid;
+  this->nphase  = nphase;
+  this->npup    = npup;
+  this->subapd  = pdiam;
+  this->device  = device; context->set_activeDevice(device);
+
+  this->nstreams = 1;//nvalid/10;
+  this->streams = new carma_streams(nstreams);
+
+  long *dims_data1 = new long[2]; dims_data1[0] = 1;
+  long *dims_data2 = new long[3]; dims_data2[0] = 2; 
+  long *dims_data3 = new long[4]; dims_data3[0] = 3;
+
+  dims_data1[1] = 2*nvalid;
+  this->d_slopes = new carma_obj<float>(context,dims_data1);
+
+  dims_data2[1] = npup; dims_data2[2] = npup; 
+  this->d_pupil = new carma_obj<float>(context,dims_data2);
+  
+  dims_data2[1] = nphase; dims_data2[2] = nphase; 
+  this->d_offsets = new carma_obj<float>(context,dims_data2);
+  
+  dims_data1[1] = nxsub;
+  this->d_istart = new carma_obj<int>(context,dims_data1);
+  this->d_jstart = new carma_obj<int>(context,dims_data1);
+  
+  dims_data1[1] = nvalid;
+  this->d_subsum = new carma_obj<float>(context,dims_data1);
+
+  this->d_fluxPerSub = new carma_obj<float>(context,dims_data1);
+  this->d_validsubsx = new carma_obj<int>(context,dims_data1);
+  this->d_validsubsy = new carma_obj<int>(context,dims_data1);
+
+  dims_data2[1] = nxsub; dims_data2[2] = nxsub; 
+  this->d_isvalid = new carma_obj<int>(context,dims_data2);
+
+  dims_data2[1] = nphase*nphase; dims_data2[2] = nvalid; 
+  this->d_phasemap = new carma_obj<int>(context,dims_data2);
+}
+
 sutra_wfs::~sutra_wfs()
 {
   current_context->set_activeDevice(device);
@@ -301,6 +377,22 @@ int sutra_wfs::wfs_initarrays(int *phasemap,int *hrmap, int *binmap,float *offse
   this->d_istart->host2device(istart);
   this->d_jstart->host2device(jstart);
   this->d_ftkernel->host2device(kernel);
+
+  return EXIT_SUCCESS;
+}
+
+int sutra_wfs::wfs_initarrays(int *phasemap,float *offsets,float *pupil, float *fluxPerSub, int *isvalid, 
+			      int *validsubsx, int *validsubsy,int *istart, int *jstart)
+{
+  this->d_phasemap->host2device(phasemap);
+  this->d_offsets->host2device(offsets);
+  this->d_pupil->host2device(pupil);
+  this->d_fluxPerSub->host2device(fluxPerSub);
+  this->d_validsubsx->host2device(validsubsx);
+  this->d_validsubsy->host2device(validsubsy);
+  this->d_isvalid->host2device(isvalid);
+  this->d_istart->host2device(istart);
+  this->d_jstart->host2device(jstart);
 
   return EXIT_SUCCESS;
 }
@@ -662,11 +754,13 @@ normalization notes :
   }
 
   if (type == 1) {
+    
     float alpha = 0.0328281 * this->d_gs->lambda / this->subapd;
     phase_derive(this->nphase * this->nphase * this->nvalid,this->nphase * this->nphase,
 		 this->nvalid,this->nphase,this->d_gs->d_phase->d_screen->getData(),
 		 slopes,this->d_phasemap->getData(),this->d_pupil->getData(),
 		 alpha,this->d_fluxPerSub->getData());
+    
   }
 
   return EXIT_SUCCESS;
@@ -689,6 +783,15 @@ sutra_sensors::sutra_sensors(carma_context *context, const char* type, int nwfs,
   for (int i=0;i<nwfs;i++) {
     d_wfs.push_back(new sutra_wfs(context,type,nxsub[i],nvalid[i],npix[i],nphase[i],nrebin[i],nfft[i],ntot[i],npup,
 				 pdiam[i],nphot[i],lgs[i],device));
+  }
+}
+
+sutra_sensors::sutra_sensors(carma_context *context, int nwfs,long *nxsub,long *nvalid,long *nphase, long npup, float *pdiam, int device)
+{
+  this->nsensors = nwfs;
+
+  for (int i=0;i<nwfs;i++) {
+    d_wfs.push_back(new sutra_wfs(context,nxsub[i],nvalid[i],nphase[i],npup,pdiam[i],device));
   }
 }
 

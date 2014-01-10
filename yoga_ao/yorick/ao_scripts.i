@@ -321,8 +321,8 @@ func script_imat(filename,verbose=,strehl=,r0=,clean=)
 {
   //activeDevice,1;
   
-  extern y_geom,y_tel,y_loop,y_wfs,y_dm,y_rtc;
-  extern g_atmos,g_target,g_wfs,g_dm,g_rtc;
+  extern y_geom,y_tel,y_loop,y_wfs,y_dm,y_rtc,y_target;
+  extern g_atmos,g_target,g_wfs,g_dm,g_rtc,g_target;
   extern ipupil;
 
   if (verbose == []) verbose = 1;
@@ -334,7 +334,7 @@ func script_imat(filename,verbose=,strehl=,r0=,clean=)
     extern strehlsp,strehllp,mimg;
   }
   
-  if (filename == []) filename = YOGA_AO_PARPATH+"1wfs8x8_rtc_dm.par";
+  if (filename == []) filename = YOGA_AO_PARPATH+"1wfs8x8_geo_dm.par";
   //if (filename == []) filename = YOGA_AO_PARPATH+"1pyr32x32_1layer_rtc_dm.par";
 
   if ((!(fileExist(filename))) && (!(fileExist(YOGA_AO_PARPATH+filename))))
@@ -345,12 +345,6 @@ func script_imat(filename,verbose=,strehl=,r0=,clean=)
 
   // reading parfile
   read_parfile,filename;
-  y_atmos.r0           = 0.16;
-  y_target             = [];
-
-  if (y_loop.niter == []) y_loop.niter = 100000;
-
-  if (r0 > 0) y_atmos.r0 = r0;
 
   // init system
   wfs_init;
@@ -359,16 +353,27 @@ func script_imat(filename,verbose=,strehl=,r0=,clean=)
 
   target_init;
 
-  rtc_init,clean=clean;
-
   if (verbose) write,"... Done with inits !";
   write,"The following objects have been initialized on the GPU :";
   write,"--------------------------------------------------------";
   g_wfs;
   write,"--------------------------------------------------------";
-  g_dm;
+  g_target;
   write,"--------------------------------------------------------";
-  g_rtc;
+  g_dm;
+
+  imat = imat_geom();
+  
+  com = random_n(y_dm(1)._ntotact)*y_dm(1).push4imat;
+  yoga_setcomm,g_dm,y_dm(1).type,y_dm(1).alt,com;
+  yoga_shapedm,g_dm,y_dm(1).type,y_dm(1).alt;
+              
+  dm_shape = yoga_getdm(g_dm,y_dm(1).type,y_dm(1).alt);
+
+  target_dmtrace,g_target,0,g_dm,1;
+
+  pli,eclat(target_getimage(g_target,0,"se"));
+  error;
 }
 
 func script_pyr(filename,verbose=)

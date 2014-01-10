@@ -274,7 +274,7 @@ func manual_imat(void)
       dm_shape = yoga_getdm(g_dm,y_dm(nm).type,y_dm(nm).alt);
       
       sensors_trace,g_wfs,0,"dm",g_dm,1;
-      mscreen = sensors_getdata(g_wfs,0,"phase");
+      //mscreen = sensors_getdata(g_wfs,0,"phase");
       
       sensors_compimg,g_wfs,0;
       mimg = sensors_getimg(g_wfs,0);
@@ -307,6 +307,47 @@ func manual_cmat(ncontrol,nfilt)
   cmat = (modToAct(,+)*mev(+,))(,+) * mesToMod(+,);
 
   return cmat;
+}
+
+func imat_geom(void)
+{
+  slps = sensors_getslopes(g_wfs,0);
+  nslp = numberof(slps);
+  imat_cpu = slps(,-);
+  
+  for (nm=1;nm<=numberof(y_dm);nm++)
+    yoga_resetdm,g_dm,y_dm(nm).type,y_dm(nm).alt;
+  
+  for (nm=1;nm<=numberof(y_dm);nm++) {
+    for (i=1;i<=y_dm(nm)._ntotact;i++) {
+      /*
+      com = array(0.,y_dm(nm)._ntotact);
+      com(i)= float(y_dm(nm).push4imat);
+      yoga_setcomm,g_dm,y_dm(nm).type,y_dm(nm).alt,com;
+      yoga_shapedm,g_dm,y_dm(nm).type,y_dm(nm).alt;
+      */
+      yoga_oneactu,g_dm,y_dm(nm).type,y_dm(nm).alt,i-1,float(y_dm(nm).push4imat);
+      //dm_shape = yoga_getdm(g_dm,y_dm(nm).type,y_dm(nm).alt);
+      //window,0;pli,dm_shape;
+      
+      sensors_trace,g_wfs,0,"dm",g_dm,1;
+      
+      //mscreen = sensors_getdata(g_wfs,0,"phase");
+      //window,1;pli,mscreen;
+
+      slopes_geom,g_wfs,0,1;
+      
+      slps = sensors_getslopes(g_wfs,0);
+      
+      grow,imat_cpu,slps/float(y_dm(nm).push4imat);
+      
+      //fma;limits;
+      //display_slopes,slps,1,"Phase Difference";
+      yoga_resetdm,g_dm,y_dm(nm).type,y_dm(nm).alt;
+      //pause,500;
+    } 
+  }
+  return imat_cpu(,2:);
 }
 
 func create_interp_mat(dimx,dimy)

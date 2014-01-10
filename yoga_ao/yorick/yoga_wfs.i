@@ -40,10 +40,12 @@ func init_wfs_size(wfs,&pdiam,&Nfft,&Ntot,&nrebin,&pixsize,&qpixsize)
   extern y_atmos,y_tel;
 
   r0 = y_atmos.r0 * ((wfs.lambda/0.5)^(6./5));
-  write,format="r0 for WFS : %.2f m\n",r0;
-  seeing = RASC * (wfs.lambda * 1.e-6) / r0;   
-  write,format="seeing for WFS : %.2f \"\n",seeing;
-
+  if (r0 != 0) {
+    write,format="r0 for WFS : %.2f m\n",r0;
+    seeing = RASC * (wfs.lambda * 1.e-6) / r0;   
+    write,format="seeing for WFS : %.2f \"\n",seeing;
+  }
+  
   if (pdiam == []) {
     // this case is usualy for the wfs with max # of subaps
     // we look for the best compromise between pixsize and fov
@@ -103,11 +105,13 @@ func init_wfs_size(wfs,&pdiam,&Nfft,&Ntot,&nrebin,&pixsize,&qpixsize)
     // this case is for a wfs with fixed # of phase points
     subapdiam = y_tel.diam / double(wfs.nxsub); // diam of subap
 
-    Nfft = fft_goodsize(2*pdiam);
-    // size of the support in fourier domain
-
-    qpixsize = pdiam * (wfs.lambda*1.e-6) / subapdiam * RASC / Nfft;
-    // quantum pixel size
+    if (wfs.type != "geo") {
+      Nfft = fft_goodsize(2*pdiam);
+      // size of the support in fourier domain
+      
+      qpixsize = pdiam * (wfs.lambda*1.e-6) / subapdiam * RASC / Nfft;
+      // quantum pixel size
+    }
   }
 
   if (wfs.type == "sh") {
@@ -125,16 +129,16 @@ func init_wfs_size(wfs,&pdiam,&Nfft,&Ntot,&nrebin,&pixsize,&qpixsize)
     if (Ntot%2 != Nfft%2) Ntot+=1;
   }
   
-  
-  write,format="quantum pixsize : %.4f \"\n",qpixsize;
-  write,format="simulated FoV : %.2f\" x %.2f\"\n",Ntot * qpixsize,Ntot * qpixsize;
-  write,format="actual pixsize : %.2f\"\n",pixsize;
-  write,format="actual FoV : %.2f\" x %.2f\"\n",pixsize * wfs.npix,
-    pixsize * wfs.npix;
-  write,format="number of phase points : %d\n",pdiam;
-  write,format="size of fft support : %d\n",Nfft;
-  if (Ntot > Nfft) write,format="size of HR spot support : %d\n",Ntot;
-  
+  if (wfs.type != "geo") {
+    write,format="quantum pixsize : %.4f \"\n",qpixsize;
+    write,format="simulated FoV : %.2f\" x %.2f\"\n",Ntot * qpixsize,Ntot * qpixsize;
+    write,format="actual pixsize : %.2f\"\n",pixsize;
+    write,format="actual FoV : %.2f\" x %.2f\"\n",pixsize * wfs.npix,
+      pixsize * wfs.npix;
+    write,format="number of phase points : %d\n",pdiam;
+    write,format="size of fft support : %d\n",Nfft;
+    if (Ntot > Nfft) write,format="size of HR spot support : %d\n",Ntot;
+  }
 }
 
 func init_wfs_geom(n,init=)
@@ -155,25 +159,34 @@ func init_wfs_geom(n,init=)
 
   write,format="\n*-----------------------\nDoing inits on WFS # %d\n",n;
 
-  if ((init == []) || (init == 0))
+  if ((init == []) || (init == 0)) {
     if (y_wfs(n).type == "sh")
       pdiam = (y_geom.pupdiam % y_wfs(n).nxsub == 0 ? long(y_geom.pupdiam / y_wfs(n).nxsub) :
                long(y_geom.pupdiam / y_wfs(n).nxsub) + 1);
-  else pdiam = [];
+    if (y_wfs(n).type == "geo") {
+      if (y_geom.pupdiam == 0)
+        pdiam = 20;
+      else 
+        pdiam = (y_geom.pupdiam % y_wfs(n).nxsub == 0 ? long(y_geom.pupdiam / y_wfs(n).nxsub) :
+                 long(y_geom.pupdiam / y_wfs(n).nxsub) + 1);
+    }
+  } else pdiam = [];
   
   init_wfs_size,y_wfs(n),pdiam,Nfft,Ntot,nrebin,pixsize,qpixsize;
 
-  y_wfs(n).pixsize   = pixsize;
-  y_wfs(n)._pdiam    = pdiam;
-  y_wfs(n)._Nfft     = Nfft;
-  y_wfs(n)._Ntot     = Ntot;
-  y_wfs(n)._nrebin   = nrebin;
-  y_wfs(n)._qpixsize = qpixsize;
+  if (y_wfs(n).type != "geo") {
+    y_wfs(n).pixsize   = pixsize;
+    y_wfs(n)._Nfft     = Nfft;
+    y_wfs(n)._Ntot     = Ntot;
+    y_wfs(n)._nrebin   = nrebin;
+    y_wfs(n)._qpixsize = qpixsize;
+  }
   y_wfs(n)._subapd   = y_tel.diam/y_wfs(n).nxsub;
+  y_wfs(n)._pdiam    = pdiam;
   
   if (y_wfs(n).type == "pyr") y_wfs(n).npix = pdiam;
   
-  if (init == 1) {
+  if ((init == 1) || ((y_wfs(n).type == "geo") && (n==1))) {
     //this is the wfs with largest # of subaps
     //the overall geometry is deduced from it
     geom_init,pdiam * y_wfs(n).nxsub;
@@ -287,7 +300,7 @@ func init_wfs_geom(n,init=)
     y_wfs(n)._phasemap = &int(phasemap(*,));
   }
 
-  if (y_wfs(n).type == "sh") {
+  if ((y_wfs(n).type == "sh") || (y_wfs(n).type == "geo")) {
     // this is the i,j index of lower left pixel of subap
     istart = jstart = long(span(0.5,y_geom.pupdiam + 0.5,y_wfs(n).nxsub+1)+1)(:-1);
     y_wfs(n)._istart   = &istart;
@@ -325,9 +338,41 @@ func init_wfs_geom(n,init=)
     y_wfs(n)._phasemap = &int(phasemap(*,));
     
     //this is a phase shift of 1/2 pix in x and y
-    halfxy = (span(0,2*pi,y_wfs(n)._Nfft+1)(1:y_wfs(n)._pdiam) / 2.)(,-:1:y_wfs(n)._pdiam);
-    halfxy += transpose(halfxy);
-    
+    if (y_wfs(n).type == "sh") {
+      halfxy = (span(0,2*pi,y_wfs(n)._Nfft+1)(1:y_wfs(n)._pdiam) / 2.)(,-:1:y_wfs(n)._pdiam);
+      halfxy += transpose(halfxy);
+      
+      y_wfs(n)._halfxy = &float(halfxy*0.);
+
+  
+      //  if (y_wfs(n).gsalt == 0.) {
+      /*
+        if ((y_wfs(n).npix % 2 < y_wfs(n)._Nfft % 2) ||
+        (y_wfs(n).npix % 2 != y_wfs(n)._pdiam % 2)) 
+        y_wfs(n)._halfxy = &float(halfxy);
+        else y_wfs(n)._halfxy = &float(halfxy*0.);
+        
+        if (y_wfs(n).gsalt != 0.) {
+        if ((y_wfs(n).npix*y_wfs(n)._nrebin) % 2 != y_wfs(n)._Nfft % 2)
+        y_wfs(n)._halfxy = &float(*y_wfs(n)._halfxy-2.*halfxy);
+        if (y_wfs(n)._Nfft % 2 == 0)
+        y_wfs(n)._halfxy = &float(*y_wfs(n)._halfxy+halfxy);
+        }
+      */
+      if ((y_wfs(n).npix % 2 == 1) && (y_wfs(n)._nrebin %2 == 1))
+        y_wfs(n)._halfxy = &float(halfxy*0.0f);
+      else y_wfs(n)._halfxy = &float(halfxy);
+    //  } else {
+    //if (y_wfs(n).npix % 2 < y_wfs(n)._pdiam % 2) y_wfs(n)._halfxy = &float(halfxy);
+    //else y_wfs(n)._halfxy = &float(halfxy*0.);
+    //}
+    } else {
+      halfxy = (span(0,2*pi,y_wfs(n)._pdiam+1)(1:y_wfs(n)._pdiam) / 2.)(,-:1:y_wfs(n)._pdiam);
+      y_wfs(n)._halfxy = &float(halfxy*0.0f);
+    }
+  }
+  
+  if (y_wfs(n).type == "sh") {
     //this defines how we create a larger fov if required
     if (y_wfs(n)._Ntot != y_wfs(n)._Nfft) {
       x1=long((y_wfs(n)._Ntot-y_wfs(n)._Nfft)/2.)+1;
@@ -345,31 +390,6 @@ func init_wfs_geom(n,init=)
       x1=long((y_wfs(n)._Ntot-y_wfs(n)._nrebin*y_wfs(n).npix)/2.)+2;
     else x1=long((y_wfs(n)._Ntot-y_wfs(n)._nrebin*y_wfs(n).npix)/2.)+1;
     x2=long(x1+y_wfs(n)._nrebin*y_wfs(n).npix-1);
-    
-    y_wfs(n)._halfxy = &float(halfxy*0.);
-
-  
-    //  if (y_wfs(n).gsalt == 0.) {
-    /*
-      if ((y_wfs(n).npix % 2 < y_wfs(n)._Nfft % 2) ||
-      (y_wfs(n).npix % 2 != y_wfs(n)._pdiam % 2)) 
-      y_wfs(n)._halfxy = &float(halfxy);
-      else y_wfs(n)._halfxy = &float(halfxy*0.);
-      
-      if (y_wfs(n).gsalt != 0.) {
-      if ((y_wfs(n).npix*y_wfs(n)._nrebin) % 2 != y_wfs(n)._Nfft % 2)
-      y_wfs(n)._halfxy = &float(*y_wfs(n)._halfxy-2.*halfxy);
-      if (y_wfs(n)._Nfft % 2 == 0)
-      y_wfs(n)._halfxy = &float(*y_wfs(n)._halfxy+halfxy);
-      }
-    */
-    if ((y_wfs(n).npix % 2 == 1) && (y_wfs(n)._nrebin %2 == 1))
-      y_wfs(n)._halfxy = &float(halfxy*0.0f);
-    else y_wfs(n)._halfxy = &float(halfxy);
-    //  } else {
-    //if (y_wfs(n).npix % 2 < y_wfs(n)._pdiam % 2) y_wfs(n)._halfxy = &float(halfxy);
-    //else y_wfs(n)._halfxy = &float(halfxy*0.);
-    //}
     
     binindices = array(0,y_wfs(n)._Ntot,y_wfs(n)._Ntot);
     tmp = long((indices(y_wfs(n)._nrebin*y_wfs(n).npix) -1) / y_wfs(n)._nrebin);
