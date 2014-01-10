@@ -30,12 +30,14 @@ func imat_init(ncontrol,clean=)
     rtc_doimat,g_rtc,ncontrol-1,g_wfs,g_dm;
     imat = rtc_getimat(g_rtc,ncontrol-1);
 
-    resp = sqrt((imat^2.)(sum,));
   } else {
     if (simul_name != [])
       imat = fits_read(swrite(format=dirsave+"imat-%d-%s.fits",ncontrol,simul_name));
   }
+
+  correct_dm,imat;
   
+  /*
   g_dm = 0;
   g_dm = yoga_dms(numberof(y_dm));
     
@@ -69,15 +71,6 @@ func imat_init(ncontrol,clean=)
       y_dm(nm)._ntotact = (dimsof(*(y_dm(nm)._influ)))(4);
         
       comp_dmgeom,nm;
-      
-      /*
-        dm(nm)._ex = &(dmx(nok));
-        dm(nm)._ey = &(dmy(nok));
-        dm(nm)._ei1 = &(int(dmi1(nok)));
-        dm(nm)._ej1 = &(int(dmj1(nok)));
-        dm(nm)._edef = &((*(dm(nm)._def))(,,nok));
-        dm(nm)._enact = (dimsof(*(dm(nm)._edef)))(4);
-      */
       
       dims      = long(y_dm(nm)._n2-y_dm(nm)._n1+1);
       dim       = dimsof(*y_geom._mpupil)(2);
@@ -116,7 +109,7 @@ func imat_init(ncontrol,clean=)
     
     inds += y_dm(nm)._ntotact;
   }
-  
+  */
   ndms = *controlers(ncontrol).ndm;
   controlers(ncontrol).nactu  = &(y_dm(ndms)._ntotact);
   
@@ -457,3 +450,83 @@ func findMaxParaboloid(corrMap,sizex,sizey,&imat)
   return res;
 }
 
+func correct_dm(imat)
+{
+  extern g_dm,y_dm;
+  
+  g_dm = 0;
+  g_dm = yoga_dms(numberof(y_dm));
+    
+  resp = sqrt((imat^2.)(sum,));
+
+  for (nm=1;nm<=numberof(y_dm);nm++) {
+    // filter actuators only in stackarray mirrors:
+    inds = 1;
+    if (y_dm(nm).type == "pzt") {
+      dmx = *y_dm(nm)._xpos;
+      dmy = *y_dm(nm)._ypos;
+      dmi1 = *y_dm(nm)._i1;
+      dmj1 = *y_dm(nm)._j1;
+        
+      if (imat_clean) {
+        tmp = resp(inds:inds+y_dm(nm)._ntotact-1);
+        ok = where(tmp >  y_dm(nm).thresh*max(tmp));
+        nok= where(tmp <= y_dm(nm).thresh*max(tmp));
+        if (simul_name != []) {
+          fits_write,swrite(format=dirsave+"pztok-%d-%s.fits",nm,simul_name),ok,overwrite=1;
+          fits_write,swrite(format=dirsave+"pztnok-%d-%s.fits",nm,simul_name),nok,overwrite=1;
+        }
+      } else {
+        ok = fits_read(swrite(format=dirsave+"pztok-%d-%s.fits",nm,simul_name));
+        nok= fits_read(swrite(format=dirsave+"pztnok-%d-%s.fits",nm,simul_name));
+      }
+      
+      y_dm(nm)._xpos    = &(dmx(ok));
+      y_dm(nm)._ypos    = &(dmy(ok));
+      y_dm(nm)._i1      = &(int(dmi1(ok)));
+      y_dm(nm)._j1      = &(int(dmj1(ok)));
+      y_dm(nm)._influ   = &((*(y_dm(nm)._influ))(,,ok));
+      y_dm(nm)._ntotact = (dimsof(*(y_dm(nm)._influ)))(4);
+        
+      comp_dmgeom,nm;
+      
+      dims      = long(y_dm(nm)._n2-y_dm(nm)._n1+1);
+      dim       = dimsof(*y_geom._mpupil)(2);
+      if (dims > dim) dim = dims;
+      
+      ninflu    = long(y_dm(nm)._ntotact);
+      influsize = long(y_dm(nm)._influsize);
+      ninflupos = long(numberof(*y_dm(nm)._influpos));
+      n_npts    = long(numberof(*y_dm(nm)._ninflu));
+      yoga_addpzt,g_dm,float(y_dm(nm).alt),dim,ninflu,influsize,ninflupos,n_npts,float(y_dm(nm).push4imat);
+      
+      yoga_loadpzt,g_dm,float(y_dm(nm).alt),float(*y_dm(nm)._influ),
+        int(*y_dm(nm)._influpos),int(*y_dm(nm)._ninflu),int(*y_dm(nm)._influstart),
+        int(*y_dm(nm)._i1),int(*y_dm(nm)._j1);
+      
+    } else if (y_dm(nm).type == "tt") {
+        
+      dim       = long(y_dm(nm)._n2-y_dm(nm)._n1+1);
+      yoga_addtt,g_dm,float(y_dm(nm).alt),dim,float(y_dm(nm).push4imat);
+      
+      yoga_loadtt,g_dm,float(y_dm(nm).alt),float(*y_dm(nm)._influ);
+    } else if (y_dm(nm).type == "kl") {
+      
+      dim       = long(y_dm(nm)._n2-y_dm(nm)._n1+1);
+      ninflu    = long(y_dm(nm).nkl);
+      influsize = long((*y_dm(nm)._klbas).ncp);
+      nr        = long((*y_dm(nm)._klbas).nr);
+      np        = long((*y_dm(nm)._klbas).np);
+      
+      yoga_addkl,g_dm,float(y_dm(nm).alt),dim,ninflu,influsize,nr,np,float(y_dm(nm).push4imat);
+      
+      yoga_loadkl,g_dm,float(y_dm(nm).alt),float(*(*y_dm(nm)._klbas).rabas)(*),
+        float(*(*y_dm(nm)._klbas).azbas)(*),int(*(*y_dm(nm)._klbas).ord),float(*(*y_dm(nm)._klbas).cr)(*),
+        float(*(*y_dm(nm)._klbas).cp)(*);
+    }
+    
+    inds += y_dm(nm)._ntotact;
+  }
+
+
+}
