@@ -1,9 +1,4 @@
 /*
-geometry inits
-*/
-y_geom.zenithangle = 0.;
-
-/*
 telescope inits
 */
 y_tel.diam = 4.f;
@@ -49,8 +44,3 @@ y_dm(2).alt           = 0.;
 y_dm(2).unitpervolt   = 0.0005;
 y_dm(2).push4imat     = 100.0f;
 
-/*
-loop inits
-*/
-y_loop.niter  = 20000;
-y_loop.ittime = 1/500.0f;
