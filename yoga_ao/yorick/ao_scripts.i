@@ -353,6 +353,12 @@ func script_imat(filename,verbose=,strehl=,r0=,clean=)
 
   target_init;
 
+  imat = imat_geom();
+
+  correct_dm,imat;
+
+  imat = imat_geom();
+ 
   if (verbose) write,"... Done with inits !";
   write,"The following objects have been initialized on the GPU :";
   write,"--------------------------------------------------------";
@@ -362,12 +368,6 @@ func script_imat(filename,verbose=,strehl=,r0=,clean=)
   write,"--------------------------------------------------------";
   g_dm;
 
-  imat = imat_geom();
-
-  correct_dm,imat;
-
-  imat = imat_geom();
- 
   com = random_n(y_dm(1)._ntotact)*y_dm(1).push4imat;
   yoga_setcomm,g_dm,y_dm(1).type,y_dm(1).alt,com;
   yoga_shapedm,g_dm,y_dm(1).type,y_dm(1).alt;

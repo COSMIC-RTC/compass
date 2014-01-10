@@ -453,6 +453,8 @@ func findMaxParaboloid(corrMap,sizex,sizey,&imat)
 func correct_dm(imat)
 {
   extern g_dm,y_dm;
+
+  if (simul_name == []) imat_clean = 1;
   
   g_dm = 0;
   g_dm = yoga_dms(numberof(y_dm));
