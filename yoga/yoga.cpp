@@ -2451,23 +2451,24 @@ void Y_yoga_fft(int argc) {
           caObjC *carma_obj_handler_dest = (caObjC *) (handle_dest->carma_object);
 
           if (*carma_obj_handler_src->getPlan() == 0L) {
+            /*
             cufftHandle *plan = carma_obj_handler_src->getPlan(); ///< FFT plan
             if (carma_obj_handler_src->getDims()[0] == 2)
-              /* Create a 2D FFT plan. */
+              // Create a 2D FFT plan.
               cufftSafeCall(cufftPlan2d(plan, carma_obj_handler_src->getDims()[1], carma_obj_handler_src->getDims()[2], carma_select_plan<float, cuFloatComplex>()));
-            else
-            /* Create a 3D FFT plan. */{
+            else{
+              // Create a 3D FFT plan.
               int mdims[2];
               mdims[0] = (int) (carma_obj_handler_src->getDims()[1]);
               mdims[1] = (int) (carma_obj_handler_src->getDims()[2]);
               cufftSafeCall(cufftPlanMany(plan, 2 ,mdims,NULL,1,0,NULL,1,0, carma_select_plan<float, cuFloatComplex>(), (int)(carma_obj_handler_src->getDims()[3])));
             }
-            /*
+*/
              carma_initfft<float, cuFloatComplex>(
              carma_obj_handler_src->getDims(),
-             *carma_obj_handler_src->getPlan(),
+             carma_obj_handler_src->getPlan(),
              carma_select_plan<float, cuFloatComplex>());
-             */
+
           }
           carma_fft(carma_obj_handler_src->getData(), carma_obj_handler_dest->getData(), dir, *carma_obj_handler_src->getPlan());
         }
@@ -2477,46 +2478,47 @@ void Y_yoga_fft(int argc) {
           caObjC *carma_obj_handler_src = (caObjC *) (handle_src->carma_object);
           caObjC *carma_obj_handler_dest = (caObjC *) (handle_dest->carma_object);
           if (*carma_obj_handler_src->getPlan() == 0L) {
+            /*
             cufftHandle *plan = carma_obj_handler_src->getPlan(); ///< FFT plan
             if (carma_obj_handler_src->getDims()[0] == 2)
-              /* Create a 2D FFT plan. */
+              // Create a 2D FFT plan.
               cufftSafeCall(cufftPlan2d(plan, carma_obj_handler_src->getDims()[1], carma_obj_handler_src->getDims()[2], carma_select_plan<cuFloatComplex, cuFloatComplex>()));
-            else
-            /* Create a 3D FFT plan. */{
+            else {
+            // Create a 3D FFT plan.
               int mdims[2];
               mdims[0] = (int) (carma_obj_handler_src->getDims()[1]);
               mdims[1] = (int) (carma_obj_handler_src->getDims()[2]);
               cufftSafeCall(cufftPlanMany(plan, 2 ,mdims,NULL,1,0,NULL,1,0, carma_select_plan<cuFloatComplex, cuFloatComplex>(), (int)(carma_obj_handler_src->getDims()[3])));
             }
-            /*
+             */
              carma_initfft<cuFloatComplex, cuFloatComplex>(
              carma_obj_handler_src->getDims(),
-             *carma_obj_handler_src->getPlan(),
+             carma_obj_handler_src->getPlan(),
              carma_select_plan<cuFloatComplex, cuFloatComplex>());
-             */
           }
           carma_fft(carma_obj_handler_src->getData(), carma_obj_handler_dest->getData(), dir, *carma_obj_handler_src->getPlan());
         } else if (handle_dest->type == Y_FLOAT) {
           caObjC *carma_obj_handler_src = (caObjC *) (handle_src->carma_object);
           caObjS *carma_obj_handler_dest = (caObjS *) (handle_dest->carma_object);
           if (*carma_obj_handler_src->getPlan() == 0L) {
+            /*
             cufftHandle *plan = carma_obj_handler_src->getPlan(); ///< FFT plan
             if (carma_obj_handler_src->getDims()[0] == 2)
-              /* Create a 2D FFT plan. */
+              // Create a 2D FFT plan.
               cufftSafeCall(cufftPlan2d(plan, carma_obj_handler_src->getDims()[1], carma_obj_handler_src->getDims()[2], carma_select_plan<cuFloatComplex, float>()));
-            else
-            /* Create a 3D FFT plan. */{
+            else {
+            // Create a 3D FFT plan.
               int mdims[2];
               mdims[0] = (int) (carma_obj_handler_src->getDims()[1]);
               mdims[1] = (int) (carma_obj_handler_src->getDims()[2]);
               cufftSafeCall(cufftPlanMany(plan, 2 ,mdims,NULL,1,0,NULL,1,0, carma_select_plan<cuFloatComplex, float>(), (int)(carma_obj_handler_src->getDims()[3])));
             }
-            /*
+            */
              carma_initfft<cuFloatComplex, float>(
              carma_obj_handler_src->getDims(),
-             *carma_obj_handler_src->getPlan(),
+             carma_obj_handler_src->getPlan(),
              carma_select_plan<cuFloatComplex, float>());
-             */
+
           }
           carma_fft(carma_obj_handler_src->getData(), carma_obj_handler_dest->getData(), dir, *carma_obj_handler_src->getPlan());
         } else
@@ -2526,23 +2528,23 @@ void Y_yoga_fft(int argc) {
           caObjD *carma_obj_handler_src = (caObjD *) (handle_src->carma_object);
           caObjZ *carma_obj_handler_dest = (caObjZ *) (handle_dest->carma_object);
           if (*carma_obj_handler_src->getPlan() == 0L) {
+            /*
             cufftHandle *plan = carma_obj_handler_src->getPlan(); ///< FFT plan
             if (carma_obj_handler_src->getDims()[0] == 2)
-              /* Create a 2D FFT plan. */
+              // Create a 2D FFT plan.
               cufftSafeCall(cufftPlan2d(plan, carma_obj_handler_src->getDims()[1], carma_obj_handler_src->getDims()[2], carma_select_plan<double, cuDoubleComplex>()));
-            else
-            /* Create a 3D FFT plan. */{
+            else{
+              // Create a 3D FFT plan.
               int mdims[2];
               mdims[0] = (int) (carma_obj_handler_src->getDims()[1]);
               mdims[1] = (int) (carma_obj_handler_src->getDims()[2]);
               cufftSafeCall(cufftPlanMany(plan, 2 ,mdims,NULL,1,0,NULL,1,0, carma_select_plan<double, cuDoubleComplex>(), (int)(carma_obj_handler_src->getDims()[3])));
             }
-            /*
+            */
              carma_initfft<double, cuDoubleComplex>(
              carma_obj_handler_src->getDims(),
-             *carma_obj_handler_src->getPlan(),
+             carma_obj_handler_src->getPlan(),
              carma_select_plan<double, cuDoubleComplex>());
-             */
           }
           carma_fft(carma_obj_handler_src->getData(), carma_obj_handler_dest->getData(), dir, *carma_obj_handler_src->getPlan());
         } else
@@ -2552,47 +2554,48 @@ void Y_yoga_fft(int argc) {
           caObjZ *carma_obj_handler_src = (caObjZ *) (handle_src->carma_object);
           caObjZ *carma_obj_handler_dest = (caObjZ *) (handle_dest->carma_object);
           if (*carma_obj_handler_src->getPlan() == 0L) {
+            /*
             cufftHandle *plan = carma_obj_handler_src->getPlan(); ///< FFT plan
             if (carma_obj_handler_src->getDims()[0] == 2)
-              /* Create a 2D FFT plan. */
+              // Create a 2D FFT plan.
               cufftSafeCall(cufftPlan2d(plan, carma_obj_handler_src->getDims()[1], carma_obj_handler_src->getDims()[2], carma_select_plan<cuDoubleComplex, cuDoubleComplex>()));
-            else
-            /* Create a 3D FFT plan. */{
+            else {
+              // Create a 3D FFT plan.
               int mdims[2];
               mdims[0] = (int) (carma_obj_handler_src->getDims()[1]);
               mdims[1] = (int) (carma_obj_handler_src->getDims()[2]);
               cufftSafeCall(cufftPlanMany(plan, 2 ,mdims,NULL,1,0,NULL,1,0, carma_select_plan<cuDoubleComplex, cuDoubleComplex>(), (int)(carma_obj_handler_src->getDims()[3])));
             }
-            /*
+            */
              carma_initfft<cuDoubleComplex, cuDoubleComplex>(
              carma_obj_handler_src->getDims(),
-             *carma_obj_handler_src->getPlan(),
+             carma_obj_handler_src->getPlan(),
              carma_select_plan<cuDoubleComplex,
              cuDoubleComplex>());
-             */
+
           }
           carma_fft(carma_obj_handler_src->getData(), carma_obj_handler_dest->getData(), dir, *carma_obj_handler_src->getPlan());
         } else if (handle_dest->type == Y_DOUBLE) {
           caObjZ *carma_obj_handler_src = (caObjZ *) (handle_src->carma_object);
           caObjD *carma_obj_handler_dest = (caObjD *) (handle_dest->carma_object);
           if (*carma_obj_handler_src->getPlan() == 0L) {
+            /*
             cufftHandle *plan = carma_obj_handler_src->getPlan(); ///< FFT plan
             if (carma_obj_handler_src->getDims()[0] == 2)
-              /* Create a 2D FFT plan. */
+              // Create a 2D FFT plan.
               cufftSafeCall(cufftPlan2d(plan, carma_obj_handler_src->getDims()[1], carma_obj_handler_src->getDims()[2], carma_select_plan<cuDoubleComplex, double>()));
-            else
-            /* Create a 3D FFT plan. */{
+            else {
+            // Create a 3D FFT plan.
               int mdims[2];
               mdims[0] = (int) (carma_obj_handler_src->getDims()[1]);
               mdims[1] = (int) (carma_obj_handler_src->getDims()[2]);
               cufftSafeCall(cufftPlanMany(plan, 2 ,mdims,NULL,1,0,NULL,1,0, carma_select_plan<cuDoubleComplex, double>(), (int)(carma_obj_handler_src->getDims()[3])));
             }
-            /*
+            */
              carma_initfft<cuDoubleComplex, double>(
              carma_obj_handler_src->getDims(),
-             *carma_obj_handler_src->getPlan(),
+             carma_obj_handler_src->getPlan(),
              carma_select_plan<cuDoubleComplex, double>());
-             */
           }
           carma_fft(carma_obj_handler_src->getData(), carma_obj_handler_dest->getData(), dir, *carma_obj_handler_src->getPlan());
         } else
@@ -2611,45 +2614,47 @@ void Y_yoga_fft(int argc) {
       if (handle_src->type == Y_SCOMPLEX) {
         caObjC *carma_obj_handler_src = (caObjC *) (handle_src->carma_object);
         if (*carma_obj_handler_src->getPlan() == 0L) {
+          /*
           cufftHandle *plan = carma_obj_handler_src->getPlan(); ///< FFT plan
           if (carma_obj_handler_src->getDims()[0] == 2)
-            /* Create a 2D FFT plan. */
+            // Create a 2D FFT plan.
             cufftSafeCall(cufftPlan2d(plan, carma_obj_handler_src->getDims()[1], carma_obj_handler_src->getDims()[2], carma_select_plan<cuFloatComplex, cuFloatComplex>()));
-          else
-          /* Create a 3D FFT plan. */{
+          else{
+          // Create a 3D FFT plan.
             int mdims[2];
             mdims[0] = (int) (carma_obj_handler_src->getDims()[1]);
             mdims[1] = (int) (carma_obj_handler_src->getDims()[2]);
             cufftSafeCall(cufftPlanMany(plan, 2 ,mdims,NULL,1,0,NULL,1,0, carma_select_plan<cuFloatComplex, cuFloatComplex>(), (int)(carma_obj_handler_src->getDims()[3])));
           }
-          /*
+          */
            carma_initfft<cuFloatComplex, cuFloatComplex>(
            carma_obj_handler_src->getDims(),
-           *plan,
+           carma_obj_handler_src->getPlan(),
            carma_select_plan<cuFloatComplex, cuFloatComplex>());
-           */
+
         }
         carma_fft(carma_obj_handler_src->getData(), carma_obj_handler_src->getData(), dir, *carma_obj_handler_src->getPlan());
       } else if (handle_src->type == Y_COMPLEX) {
         caObjD *carma_obj_handler_src = (caObjD *) (handle_src->carma_object);
         if (*carma_obj_handler_src->getPlan() == 0L) {
+          /*
           cufftHandle *plan = carma_obj_handler_src->getPlan(); ///< FFT plan
           if (carma_obj_handler_src->getDims()[0] == 2)
-            /* Create a 2D FFT plan. */
+            // Create a 2D FFT plan.
             cufftSafeCall(cufftPlan2d(plan, carma_obj_handler_src->getDims()[1], carma_obj_handler_src->getDims()[2], carma_select_plan<cuDoubleComplex, cuDoubleComplex>()));
-          else
-          /* Create a 3D FFT plan. */{
+          else{
+            // Create a 3D FFT plan.
             int mdims[2];
             mdims[0] = (int) (carma_obj_handler_src->getDims()[1]);
             mdims[1] = (int) (carma_obj_handler_src->getDims()[2]);
             cufftSafeCall(cufftPlanMany(plan, 2 ,mdims,NULL,1,0,NULL,1,0, carma_select_plan<cuDoubleComplex, cuDoubleComplex>(), (int)(carma_obj_handler_src->getDims()[3])));
           }
-          /*
+          */
            carma_initfft<cuDoubleComplex, cuDoubleComplex>(
            carma_obj_handler_src->getDims(),
-           *carma_obj_handler_src->getPlan(),
+           carma_obj_handler_src->getPlan(),
            carma_select_plan<cuDoubleComplex, cuDoubleComplex>());
-           */
+
         }
         carma_fft(carma_obj_handler_src->getData(), carma_obj_handler_src->getData(), dir, *carma_obj_handler_src->getPlan());
       } else
@@ -2674,23 +2679,23 @@ void Y_yoga_fft(int argc) {
       if (handle_src->type == Y_FLOAT) {
         caObjS *carma_obj_handler_src = (caObjS *) (handle_src->carma_object);
         if (*carma_obj_handler_src->getPlan() == 0L) {
+          /*
           cufftHandle *plan = carma_obj_handler_src->getPlan(); ///< FFT plan
           if (carma_obj_handler_src->getDims()[0] == 2)
-            /* Create a 2D FFT plan. */
+            // Create a 2D FFT plan.
             cufftSafeCall(cufftPlan2d(plan, carma_obj_handler_src->getDims()[1], carma_obj_handler_src->getDims()[2], carma_select_plan<float, cuFloatComplex>()));
-          else
-          /* Create a 3D FFT plan. */{
+          else {
+            // Create a 3D FFT plan.
             int mdims[2];
             mdims[0] = (int) (carma_obj_handler_src->getDims()[1]);
             mdims[1] = (int) (carma_obj_handler_src->getDims()[2]);
             cufftSafeCall(cufftPlanMany(plan, 2 ,mdims,NULL,1,0,NULL,1,0, carma_select_plan<float, cuFloatComplex>(), (int)(carma_obj_handler_src->getDims()[3])));
           }
-          /*
+          */
            carma_initfft<float, cuFloatComplex>(
            carma_obj_handler_src->getDims(),
-           *carma_obj_handler_src->getPlan(),
+           carma_obj_handler_src->getPlan(),
            carma_select_plan<float, cuFloatComplex>());
-           */
         }
         handle->carma_object = new caObjC(context_handle, carma_obj_handler_src->getDims());
         handle->type = Y_SCOMPLEX;
@@ -2699,23 +2704,23 @@ void Y_yoga_fft(int argc) {
       } else {
         caObjC *carma_obj_handler_src = (caObjC *) (handle_src->carma_object);
         if (*carma_obj_handler_src->getPlan() == 0L) {
+          /*
           cufftHandle *plan = carma_obj_handler_src->getPlan(); ///< FFT plan
           if (carma_obj_handler_src->getDims()[0] == 2)
-            /* Create a 2D FFT plan. */
+            // Create a 2D FFT plan.
             cufftSafeCall(cufftPlan2d(plan, carma_obj_handler_src->getDims()[1], carma_obj_handler_src->getDims()[2], carma_select_plan<cuFloatComplex, cuFloatComplex>()));
-          else
-          /* Create a 3D FFT plan. */{
+          else {
+            // Create a 3D FFT plan.
             int mdims[2];
             mdims[0] = (int) (carma_obj_handler_src->getDims()[1]);
             mdims[1] = (int) (carma_obj_handler_src->getDims()[2]);
             cufftSafeCall(cufftPlanMany(plan, 2 ,mdims,NULL,1,0,NULL,1,0, carma_select_plan<cuFloatComplex, cuFloatComplex>(), (int)(carma_obj_handler_src->getDims()[3])));
           }
-          /*
+          */
            carma_initfft<cuFloatComplex, cuFloatComplex>(
            carma_obj_handler_src->getDims(),
-           *carma_obj_handler_src->getPlan(),
+           carma_obj_handler_src->getPlan(),
            carma_select_plan<cuFloatComplex, cuFloatComplex>());
-           */
         }
         handle->carma_object = new caObjC(context_handle, carma_obj_handler_src->getDims());
         handle->type = Y_SCOMPLEX;
@@ -2726,23 +2731,23 @@ void Y_yoga_fft(int argc) {
       if (handle_src->type == Y_DOUBLE) {
         caObjD *carma_obj_handler_src = (caObjD *) (handle_src->carma_object);
         if (*carma_obj_handler_src->getPlan() == 0L) {
+          /*
           cufftHandle *plan = carma_obj_handler_src->getPlan(); ///< FFT plan
           if (carma_obj_handler_src->getDims()[0] == 2)
-            /* Create a 2D FFT plan. */
+            // Create a 2D FFT plan.
             cufftSafeCall(cufftPlan2d(plan, carma_obj_handler_src->getDims()[1], carma_obj_handler_src->getDims()[2], carma_select_plan<double, cuDoubleComplex>()));
-          else
-          /* Create a 3D FFT plan. */{
+          else {
+            // Create a 3D FFT plan.
             int mdims[2];
             mdims[0] = (int) (carma_obj_handler_src->getDims()[1]);
             mdims[1] = (int) (carma_obj_handler_src->getDims()[2]);
             cufftSafeCall(cufftPlanMany(plan, 2 ,mdims,NULL,1,0,NULL,1,0, carma_select_plan<double, cuDoubleComplex>(), (int)(carma_obj_handler_src->getDims()[3])));
           }
-          /*
+          */
            carma_initfft<double, cuDoubleComplex>(
            carma_obj_handler_src->getDims(),
-           *carma_obj_handler_src->getPlan(),
+           carma_obj_handler_src->getPlan(),
            carma_select_plan<double, cuDoubleComplex>());
-           */
         }
         handle->carma_object = new caObjZ(context_handle, carma_obj_handler_src->getDims());
         handle->type = Y_COMPLEX;
@@ -2751,23 +2756,23 @@ void Y_yoga_fft(int argc) {
       } else {
         caObjZ *carma_obj_handler_src = (caObjZ *) (handle_src->carma_object);
         if (*carma_obj_handler_src->getPlan() == 0L) {
+          /*
           cufftHandle *plan = carma_obj_handler_src->getPlan(); ///< FFT plan
           if (carma_obj_handler_src->getDims()[0] == 2)
-            /* Create a 2D FFT plan. */
+            // Create a 2D FFT plan.
             cufftSafeCall(cufftPlan2d(plan, carma_obj_handler_src->getDims()[1], carma_obj_handler_src->getDims()[2], carma_select_plan<cuDoubleComplex, cuDoubleComplex>()));
-          else
-          /* Create a 3D FFT plan. */{
+          else{
+          // Create a 3D FFT plan.
             int mdims[2];
             mdims[0] = (int) (carma_obj_handler_src->getDims()[1]);
             mdims[1] = (int) (carma_obj_handler_src->getDims()[2]);
             cufftSafeCall(cufftPlanMany(plan, 2 ,mdims,NULL,1,0,NULL,1,0, carma_select_plan<cuDoubleComplex, cuDoubleComplex>(), (int)(carma_obj_handler_src->getDims()[3])));
           }
-          /*
+          */
            carma_initfft<cuDoubleComplex, cuDoubleComplex>(
            carma_obj_handler_src->getDims(),
-           *carma_obj_handler_src->getPlan(),
+           carma_obj_handler_src->getPlan(),
            carma_select_plan<cuDoubleComplex, cuDoubleComplex>());
-           */
         }
         handle->carma_object = new caObjZ(context_handle, carma_obj_handler_src->getDims());
         handle->type = Y_COMPLEX;

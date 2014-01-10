@@ -87,7 +87,7 @@ fft_compute<cuDoubleComplex, cufftDoubleReal>(cufftHandle plan, cuDoubleComplex 
 
 /** This is the carma_fft definition. */
 
-template<class T_in, class T_out> void carma_initfft(long *dims_data,cufftHandle plan,cufftType tPlan){
+template<class T_in, class T_out> void carma_initfft(long *dims_data,cufftHandle *plan,cufftType tPlan){
   /** \brief carma_fft creator.
    * \param dims_data : the array size
    * \param size_data : =1 : 2D array, >1 : 3D array
@@ -102,22 +102,22 @@ template<class T_in, class T_out> void carma_initfft(long *dims_data,cufftHandle
   
   if(dims_data[0]==2)
     /* Create a 2D FFT plan. */ 
-    cufftSafeCall( cufftPlan2d(&plan, dims_data[1], dims_data[2], tPlan));
+    cufftSafeCall( cufftPlan2d(plan, dims_data[1], dims_data[2], tPlan));
   else
     /* Create a 3D FFT plan. */ {
     int mdims[2];
     mdims[0] = (int)dims_data[1];
     mdims[1] = (int)dims_data[2];
-    cufftSafeCall( cufftPlanMany(&plan, 2 ,mdims,NULL,1,0,NULL,1,0,CUFFT_C2C ,(int)dims_data[3]));
+    cufftSafeCall( cufftPlanMany(plan, 2 ,mdims,NULL,1,0,NULL,1,0,CUFFT_C2C ,(int)dims_data[3]));
   }
   
 }
-template void carma_initfft<float2, float>(long *dims_data,cufftHandle plan,cufftType tPlan);
-template void carma_initfft<float, float2>(long *dims_data,cufftHandle plan,cufftType tPlan);
-template void carma_initfft<float2, float2>(long *dims_data,cufftHandle plan,cufftType tPlan);
-template void carma_initfft<double2, double>(long *dims_data,cufftHandle plan,cufftType tPlan);
-template void carma_initfft<double, double2>(long *dims_data,cufftHandle plan,cufftType tPlan);
-template void carma_initfft<double2, double2>(long *dims_data,cufftHandle plan,cufftType tPlan);
+template void carma_initfft<float2, float>(long *dims_data,cufftHandle *plan,cufftType tPlan);
+template void carma_initfft<float, float2>(long *dims_data,cufftHandle *plan,cufftType tPlan);
+template void carma_initfft<float2, float2>(long *dims_data,cufftHandle *plan,cufftType tPlan);
+template void carma_initfft<double2, double>(long *dims_data,cufftHandle *plan,cufftType tPlan);
+template void carma_initfft<double, double2>(long *dims_data,cufftHandle *plan,cufftType tPlan);
+template void carma_initfft<double2, double2>(long *dims_data,cufftHandle *plan,cufftType tPlan);
 
 
 template<class T_in, class T_out> int carma_fft(T_in *input, T_out *output, int dir,cufftHandle plan){

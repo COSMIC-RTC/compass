@@ -329,7 +329,7 @@ template<class T> int carma_prng_cu(T *results, const int nThreads, const int nB
 
 // CU functions fft
 template<class T_in, class T_out> cufftType carma_select_plan();
-template<class T_in, class T_out> void carma_initfft(long *dims_data, cufftHandle plan, cufftType tPlan);
+template<class T_in, class T_out> void carma_initfft(long *dims_data, cufftHandle *plan, cufftType tPlan);
 template<class T_in, class T_out> int carma_fft(T_in *input, T_out *output, int dir, cufftHandle plan);
 
 // CU functions generic
@@ -353,6 +353,10 @@ template <class T> int carma_svd(carma_obj<T> *imat, carma_obj<T> *eigenvals, ca
 template<class T> int carma_syevd(carma_obj<T> *mat, T *eigenvals, carma_obj<T> *U);
 #else
 template<class T> int carma_svd(carma_obj<T> *imat, carma_obj<T> *eigenvals, carma_obj<T> *mod2act, carma_obj<T> *mes2mod) {
+  cerr << "!!!!!! MAGMA not compiled !!!!!!" << endl;
+  return EXIT_SUCCESS;
+}
+template<class T> int carma_syevd(carma_obj<T> *mat, T *eigenvals, carma_obj<T> *U){
   cerr << "!!!!!! MAGMA not compiled !!!!!!" << endl;
   return EXIT_SUCCESS;
 }
