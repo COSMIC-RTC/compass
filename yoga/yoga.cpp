@@ -2054,8 +2054,8 @@ void Y_yoga_dmm(int argc)
     context_handle->set_activeDevice(handle_matA->device);
 
     char sidec = 'l';
-    if (argc > 3)
-      sidec = ygets_c(argc - 4);
+    if (argc > 2)
+      sidec = ygets_c(argc - 3);
     cublasSideMode_t side;
     if (sidec == 'l')
       side = CUBLAS_SIDE_LEFT;
