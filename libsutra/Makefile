@@ -13,7 +13,6 @@ LIB_OBJS= sutra_ao_utils.cuo sutra_phase.o sutra_turbu.o sutra_turbu.cuo sutra_l
 OBJS := $(addprefix $(OBJ_DIR)/,$(LIB_OBJS))
 
 LIB_DEPLIBS= -L$(CUDA_LIB_PATH_64) -lcudart -lcublas -lcufft -lstdc++ -lcurand #-lcula -L/usr/local/cula/lib 
-#PKG_DEPLIBS += ../cudpp/lib/libcudpp_x86_64.a
 LIB_DEPLIBS += -L$(COMPASS_ROOT_DIR)/libcarma -lcarma
 
 # set compiler (or rarely loader) flags specific to this package
@@ -33,7 +32,7 @@ endif
 NVCC = $(CUDA_ROOT)/bin/nvcc
 NVCCFLAGS = -m64 -Xcompiler -fPIC -use_fast_math -c -I$(CUH_DIR)  -I$(H_DIR) -I$(COMPASS_ROOT_DIR)/libcarma/$(CUH_DIR)  -I$(COMPASS_ROOT_DIR)/libcarma/$(H_DIR) #-gencode $(GENCODE)
 
-#-gencode arch=compute_11,code=sm_11 -gencode arch=compute_13,code=sm_13 -gencode arch=compute_20,code=sm_20 -gencode arch=compute_30,code=sm_30 -gencode arch=compute_35,code=sm_35 #-I/usr/local/cula/include #-I../cudpp/include # --ptxas-options=-v #-arch sm_13 --compiler-options -fpermissive 
+#-gencode arch=compute_11,code=sm_11 -gencode arch=compute_13,code=sm_13 -gencode arch=compute_20,code=sm_20 -gencode arch=compute_30,code=sm_30 -gencode arch=compute_35,code=sm_35 #-I/usr/local/cula/include # --ptxas-options=-v #-arch sm_13 --compiler-options -fpermissive 
 
 all: $(LIB_NAME)
 

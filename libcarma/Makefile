@@ -5,17 +5,11 @@ CUH_DIR=include.cuh
 H_DIR=include.h
 OBJ_DIR=obj
 
-CUDPP_PATH= #cudpp
-CUDPP_LIB= $(CUDPP_PATH)/lib/libcudpp_x86_64.a
-
 #DEBUG=1
 
 LIB_NAME=libcarma.so
 
 LIB_OBJS=carma_host_obj.o carma_obj.o carma_obj.cuo carma_utils.o carma_fft.o shrUtils.o carma_rng.o carma_rng.cuo carma_transpose.cuo carma_sum.cuo carma_cublas.o convolutionFFT2D.cuo carma_fft_conv.o carma_fft_conv.cuo carma_context.o carma_streams.o carma_cula.o 
-ifneq ($(CUDPP_PATH),)
- LIB_OBJS += carma_cudpp.o
-endif
 ifneq ($(MAGMA_PATH),)
  LIB_OBJS += carma_magma.o
 endif
@@ -23,10 +17,6 @@ OBJS := $(addprefix $(OBJ_DIR)/,$(LIB_OBJS))
 
 LIB_DEPLIBS= -fPIC -Wall -O0 -lstdc++ -L$(CUDA_LIB_PATH_64) -L$(CULA_LIB_PATH_64) -lcudart -lcublas -lcufft -lcurand -lcula_lapack_basic #-lcula_lapack_link -lcula_core 
 
-ifneq ($(CUDPP_PATH),)
- LIB_DEPLIBS +=-L$(CUDPP_PATH)/lib -lcudpp_x86_64 
-endif
-#-lcurand -lcula -L/usr/local/cula/lib 
 ifneq ($(MAGMA_PATH),)
  LIB_DEPLIBS += -L$(MAGMA_PATH)/lib -lmagma 
  #LIB_DEPLIBS += -DADD_ -DGPUSHMEM=130 -Xlinker -zmuldefs
@@ -37,9 +27,6 @@ endif
 LIB_CPPFLAGS= -c -fPIC -Wall -O0 -fno-common -I$(H_DIR) -I$(CUDA_INC_PATH) -I$(CULA_INC_PATH) -DUNIX
 ifneq ($(DEBUG),)
 LIB_CPPFLAGS+= -g -DDEBUG
-endif
-ifneq ($(CUDPP_PATH),)
- LIB_CPPFLAGS +=-I$(CUDPP_PATH)/include -DUSE_CUDPP
 endif
 ifneq ($(MAGMA_PATH),)
  LIB_CPPFLAGS +=-I$(MAGMA_PATH)/include -DUSE_MAGMA -DHAVE_CUBLAS -DADD_ -DMAGMA_SETAFFINITY
@@ -65,9 +52,6 @@ NVCCFLAGS = -m64 -Xcompiler -fPIC -c --compiler-options -I$(CUH_DIR)  -I$(H_DIR)
 ifneq ($(DEBUG),)
 NVCCFLAGS+= -g -DDEBUG
 endif
-ifneq ($(CUDPP_PATH),)
- NVCCFLAGS +=-I$(CUDPP_PATH)/include 
-endif
 ifneq ($(MAGMA_PATH),)
  NVCCFLAGS += -DADD_ -I$(MAGMA_PATH)/include -Xcompiler -fno-strict-aliasing
  NVCCFLAGS +=-DGPUSHMEM=200
@@ -77,25 +61,6 @@ all: $(LIB_NAME)
 
 clean:
 	@rm -f $(OBJS)
-
-cudpp:$(CUDPP_LIB) 
-
-$(CUDPP_LIB): cudpp_src_1.1.1 #cudpp_src_2.0 
-	@printf '\033[36m%s\033[31m%s\033[m\n' "Compiling     " "cupdd"
-	@cd $</cudpp && CXX_ARCH_FLAGS="-fPIC" NVCCFLAGS="--compiler-options -Xcompiler -fPIC" make
-#	@cd $< && cmake . && CXX_ARCH_FLAGS="-fPIC" NVCCFLAGS="--compiler-options -Xcompiler -fPIC" make
-	@mkdir -p $(CUDPP_PATH)/include $(CUDPP_PATH)/lib
-	@cp $</cudpp/include/* $(CUDPP_PATH)/include
-#	@cp $</include/* $(CUDPP_PATH)/include
-	@cp $</lib/* $(CUDPP_PATH)/lib
-	@rm -rf $<
-	@rm -f $<.zip
-
-cudpp_src_%: 
-	@printf '\033[36m%s\033[31m%s\033[m\n' "Retreiving     " $@
-	@wget http://cudpp.googlecode.com/files/$@.zip
-	@printf '\033[36m%s\033[31m%s\033[m\n' "Unziping       " $@
-	@unzip $@.zip
 
 cleanmagma: 
 	@printf '\033[36m%s\033[31m%s\033[m\n' "cleaning magma install"

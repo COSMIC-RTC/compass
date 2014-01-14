@@ -15,10 +15,6 @@
 #ifndef _CARMA_OBJ_H_
 #define _CARMA_OBJ_H_
 
-#ifdef _USE_CUDPP
-#include <cudpp.h>
-#endif
-
 #include <iostream>
 #include <curand_kernel.h>
 #include <curand.h>
@@ -114,9 +110,6 @@ protected:
   int nThreads;
   int nBlocks;
 
-#ifdef _USE_CUDPP
-  CUDPPHandle mScanPlan; // CUDPP plan handle for prefix sum
-#endif
   bool keysOnly; //< optional flag (used for sort)
   unsigned int *values; ///< optional data (used for sort)
   size_t *d_numValid; ///< used for compact
@@ -239,68 +232,6 @@ public:
   int prng_host(char gtype);
   int prng_host(char gtype, T_data alpha);
   int destroy_prng_host();
-
-#ifdef _USE_CUDPP
-  /**< cudpp */
-  int sort_init(bool keysOnly);
-  int sort();
-  int config_scan(char *type, int dir, int incl);
-  int destroy_scan();
-  T_data scan();
-  int host2deviceInd(unsigned int *ind);
-  int device2hostInd(unsigned int *ind);
-  int device2deviceInd(unsigned int *src);
-  int compact_init();
-  int compact(carma_obj<T_data> *dest);
-  int compact(carma_obj<T_data> *dest,unsigned int *values);
-#else
-  /**< fake cudpp */
-  int sort_init(bool keysOnly) {
-    cerr << "!!!!!! CUDPP not compiled !!!!!!" << endl;
-    return EXIT_SUCCESS;
-  }
-  int sort() {
-    cerr << "!!!!!! CUDPP not compiled !!!!!!" << endl;
-    return EXIT_SUCCESS;
-  }
-  int config_scan(char *type, int dir, int incl) {
-    cerr << "!!!!!! CUDPP not compiled !!!!!!" << endl;
-    return EXIT_SUCCESS;
-  }
-  int destroy_scan() {
-    cerr << "!!!!!! CUDPP not compiled !!!!!!" << endl;
-    return EXIT_SUCCESS;
-  }
-  T_data scan() {
-    cerr << "!!!!!! CUDPP not compiled !!!!!!" << endl;
-    return EXIT_SUCCESS;
-  }
-  int host2deviceInd(unsigned int *ind) {
-    cerr << "!!!!!! CUDPP not compiled !!!!!!" << endl;
-    return EXIT_SUCCESS;
-  }
-  int device2hostInd(unsigned int *ind) {
-    cerr << "!!!!!! CUDPP not compiled !!!!!!" << endl;
-    return EXIT_SUCCESS;
-  }
-  int device2deviceInd(unsigned int *src) {
-    cerr << "!!!!!! CUDPP not compiled !!!!!!" << endl;
-    return EXIT_SUCCESS;
-  }
-  int compact_init() {
-    cerr << "!!!!!! CUDPP not compiled !!!!!!" << endl;
-    return EXIT_SUCCESS;
-  }
-  int compact(carma_obj<T_data> *dest) {
-    cerr << "!!!!!! CUDPP not compiled !!!!!!" << endl;
-    return EXIT_SUCCESS;
-  }
-  int compact(carma_obj<T_data> *dest, unsigned int *values) {
-    cerr << "!!!!!! CUDPP not compiled !!!!!!" << endl;
-    return EXIT_SUCCESS;
-  }
-#endif
-
 };
 
 typedef carma_obj<int> caObjI;

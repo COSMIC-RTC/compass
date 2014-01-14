@@ -153,12 +153,6 @@ template<class T_data> carma_obj<T_data>::~carma_obj( ){
 
   delete this->streams;
 
-#ifdef _USE_CUDPP
-  if(this->mScanPlan!=0) {
-    cudppDestroyPlan(this->mScanPlan);
-  }
-#endif
-
   if (this->values!=0) cutilSafeCall( cudaFree(this->values) );
 
   //if (this->o_data!=0) cutilSafeCall( cudaFree(this->o_data) );
