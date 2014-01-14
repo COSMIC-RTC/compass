@@ -12,7 +12,6 @@
 
 template<class T> int carma_syevd(carma_obj<T> *mat, T *eigenvals, carma_obj<T> *U,
     magma_int_t (*ptr_syevd_gpu)(char, char, magma_int_t, T*, magma_int_t, T*, T*, magma_int_t, T*, magma_int_t, magma_int_t*, magma_int_t, magma_int_t*)) {
-  magma_init();
   magma_int_t *iwork;
   magma_int_t N = mat->getDims(1);
   magma_int_t info, lwork, liwork, lda = N, aux_iwork[1];
@@ -60,7 +59,6 @@ template<class T> int carma_syevd(carma_obj<T> *mat, T *eigenvals, carma_obj<T> 
   cudaFreeHost(h_R);
   cudaFreeHost(h_work);
   free(iwork);
-  magma_finalize();
 
   return EXIT_SUCCESS;
 }

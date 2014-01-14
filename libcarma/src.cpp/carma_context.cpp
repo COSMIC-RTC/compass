@@ -4,6 +4,11 @@
 #include <sys/time.h>
 #include <cula.hpp>
 
+#ifdef USE_MAGMA
+#include "magma.h"
+#include "magma_lapack.h"
+#endif
+
 carma_device::carma_device(int devid)
 {
 	this->id     = devid;
@@ -74,6 +79,10 @@ carma_context::carma_context()
 
   carma_initCublas(&cublasHandle);
 
+#ifdef USE_MAGMA
+  magma_init();
+#endif
+
 #if DEBUG
   printf("CARMA Context created @ %8.8lX\n", (unsigned long)this);
 #endif
@@ -81,6 +90,10 @@ carma_context::carma_context()
 
 carma_context::~carma_context()
 {
+#ifdef USE_MAGMA
+  magma_finalize();
+#endif
+
   carma_shutdownCublas(cublasHandle);
 
   for (size_t idx = 0; idx < (this->devices).size(); idx++) {

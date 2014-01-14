@@ -44,25 +44,25 @@ func check_svd(n,m)
   //n=4096; m=128;
   min_mn = min([m,n]);
 
-  tmp=float(random(m,n));
-  mat=yoga_obj(tmp);
-  U=yoga_obj(array(0.0f,m,m));
-  Vt=yoga_obj(array(0.0f,n,n));
-  S=yoga_obj(array(0.0f,min_mn));
-  write,"computing svd on GPU: yoga_svd,mat,S,U, Vt";
-  tic; yoga_svd,mat,S,U,Vt; tps1 = tac();
-  write,"done ...";
-  //tmp=float(random(m,n));
+  tmp=random(m,n);
+  //mat=yoga_obj(tmp);
+  //U=yoga_obj(array(0.0,m,m));
+  //Vt=yoga_obj(array(0.0,n,n));
+  //S=yoga_obj(array(0.0,min_mn));
+  //write,"computing svd on GPU: yoga_svd,mat,S,U, Vt";
+  //tic; yoga_svd,mat,S,U,Vt; tps1 = tac();
+  //write,"done ...";
+  //tmp=random(m,n);
   mat=yoga_host_obj(tmp,pagelock=1);
-  U=yoga_host_obj(array(0.0f,m,m),pagelock=1);
-  Vt=yoga_host_obj(array(0.0f,n,n),pagelock=1);
-  S1=yoga_host_obj(array(0.0f,min_mn),pagelock=1);
+  U=yoga_host_obj(array(0.0,m,m),pagelock=1);
+  Vt=yoga_host_obj(array(0.0,n,n),pagelock=1);
+  S1=yoga_host_obj(array(0.0,min_mn),pagelock=1);
   write,"computing svd on GPU: yoga_svd,mat,S1,U, Vt";
   tic; yoga_svd_host,mat,S1,U,Vt; tps2 = tac();
-  write,"done ...";
+  write,format= "done in %0.3fs...\n", tps2;
   write,"computing svd on CPU: S2 = SVdec(mat(), U2, V2t)";
   tic; S2 = SVdec(tmp, U2, V2t); tps3 = tac();
-  write,"done ...";
+  write,format= "done in %0.3fs...(x%0.3f)\n", tps3, tps3/tps2;
 
 //write, "S";
 //info, S();
@@ -75,8 +75,8 @@ func check_svd(n,m)
 //info, Vt();
 //info, V2t;
 
-  write, "max(abs(S()-S2))";
-  max(abs(S()-S2));
+//  write, "max(abs(S()-S2))";
+//  max(abs(S()-S2));
   write, "max(abs(S1()-S2))";
   max(abs(S1()-S2));
 //write, "max(abs(U()-U2))";
@@ -84,7 +84,7 @@ func check_svd(n,m)
 //write, "max(abs(Vt()-V2t))";
 //max(abs(Vt()-V2t));
   fma;
-  plg,S(),marks=0,width=4;
+  //plg,S(),marks=0,width=4;
   plg,S1(),color="red",marks=0,width=4;
   plg,S2,color="green",marks=0,width=4;
   pltitle,"eigenvalues";
