@@ -5,9 +5,11 @@
 #include <cula.hpp>
 
 #ifdef USE_MAGMA
-#include "magma.h"
-#include "magma_lapack.h"
+  // MAGMA headers
+  #include "magma.h"
+  #include "magma_lapack.h"
 #endif
+
 
 carma_device::carma_device(int devid)
 {
@@ -80,6 +82,7 @@ carma_context::carma_context()
   carma_initCublas(&cublasHandle);
 
 #ifdef USE_MAGMA
+// MAGMA init 
   magma_init();
 #endif
 
@@ -91,6 +94,7 @@ carma_context::carma_context()
 carma_context::~carma_context()
 {
 #ifdef USE_MAGMA
+// MAGMA finalize
   magma_finalize();
 #endif
 

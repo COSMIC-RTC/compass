@@ -2,6 +2,27 @@ require,"yoga.i";
 
 require,"util_fr.i";
 
+func bench_evd(n, niter)
+{
+  tmp = random(n, 128);
+  tmp2= tmp(,+)*tmp(,+);
+  d_mat = yoga_obj(tmp2);
+  d_U = yoga_obj(tmp2*0.);
+  h_EV = array(0., n);
+  write, "doing yoga_syevd, d_mat, h_EV, d_U... ";
+  tps = array(0., niter);
+  for(i=1; i<=niter; i++) {
+    tic; yoga_syevd, d_mat, h_EV, d_U; tps(i)=tac();
+    write, format="%d/%d\r", i, niter;
+  }
+  write, "done";
+
+  write, "[min, avg, max]";
+  [min(tps),avg(tps),max(tps)];
+  fits_write, swrite(format="bench_evd_gcc_%d.fits", n), tps;
+  return tps;
+}
+
 func check_evd(n)
 {
   write, "\ntest with float";

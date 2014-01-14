@@ -3345,7 +3345,8 @@ void Y_yoga_syevd(int argc)
       carma_syevd(carma_obj_handler_mat, (double*)eigenvals, carma_obj_handler_U);
     }
   } else {
-  }
+      cerr << "carma_syevd not implemented for this type\n";
+   }
 }
 
 void Y_yoga_svd_host(int argc)
