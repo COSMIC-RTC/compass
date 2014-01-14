@@ -53,7 +53,7 @@ PKG_CLEAN=
 # autoload file for this package, if any
 PKG_I_START=
 # non-pkg.i include files for this package, if any
-I_EXTRA = yoga_ao.i yoga_ao_utils.i yoga_turbu.i yoga_ao_ystruct.i
+I_EXTRA = 
 PKG_I_EXTRA := $(addprefix $(I_DIR)/,$(I_EXTRA))
 
 # -------------------------------- standard targets and rules (in Makepkg)

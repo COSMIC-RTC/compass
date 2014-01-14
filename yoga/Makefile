@@ -57,7 +57,7 @@ PKG_CLEAN=
 # autoload file for this package, if any
 PKG_I_START=
 # non-pkg.i include files for this package, if any
-PKG_I_EXTRA= $(I_DIR)/check_yoga.i $(I_DIR)/fits-utils.i $(I_DIR)/util_fr.i
+PKG_I_EXTRA= $(I_DIR)/fits-utils.i $(I_DIR)/util_fr.i
 # yoga_fft.i yoga_matmult.i yoga_utils.i
 
 # -------------------------------- standard targets and rules (in Makepkg)

@@ -10,24 +10,8 @@
 #define min(a,b)  (((a)>(b))?(b):(a))
 #endif
 
-/** These templates are used to select the proper Iamax executable from T_data*/
-template<class T> int carma_gesvd(int m, int n, T *mat, T *eigenvals, T *U, T*VT, T*h_work, int lwork);
-/**< Generic template for Iamax executable selection */
-template<> int carma_gesvd<float>(int m, int n, float *mat, float *eigenvals, float *U, float *VT, float *h_work, int lwork) {
-  magma_int_t info;
-  magma_sgesvd('A', 'A', m, n, mat, m, eigenvals, U, m, VT, n, h_work, lwork, &info);
-  //lapackf77_sgesvd("A", "A", &m, &n, mat, &m, eigenvals, U, &m, VT, &n, h_work, &lwork, &info);
-
-  return info;
-}
-template<> int carma_gesvd<double>(int m, int n, double *mat, double *eigenvals, double *U, double *VT, double *h_work, int lwork) {
-  magma_int_t info;
-  magma_dgesvd('A', 'A', m, n, mat, m, eigenvals, U, m, VT, n, h_work, lwork, &info);
-  return info;
-}
-
 template<class T> int carma_syevd(carma_obj<T> *mat, T *eigenvals, carma_obj<T> *U,
-                                  magma_int_t (*ptr_syevd_gpu)(char, char, magma_int_t, T*, magma_int_t, T*, T*, magma_int_t, T*, magma_int_t, magma_int_t*, magma_int_t, magma_int_t*)) {
+    magma_int_t (*ptr_syevd_gpu)(char, char, magma_int_t, T*, magma_int_t, T*, T*, magma_int_t, T*, magma_int_t, magma_int_t*, magma_int_t, magma_int_t*)) {
   magma_init();
   magma_int_t *iwork;
   magma_int_t N = mat->getDims(1);
@@ -89,7 +73,10 @@ template<> int carma_syevd<double>(caObjD *mat, double *eigenvals, caObjD *U){
   return carma_syevd<double>(mat, eigenvals, U, magma_dsyevd_gpu);
 }
 
-template<class T, int method> int carma_syevd(carma_obj<T> *mat, T *eigenvals, carma_obj<T> *U);
+template<class T, int method> int carma_syevd(carma_obj<T> *mat, T *eigenvals, carma_obj<T> *U){
+  cerr << "carma_syevd: this method not implemented !\n";
+  return EXIT_FAILURE;
+}
 template<> int carma_syevd<float,1>(caObjS *mat, float *eigenvals, caObjS *U){
   return carma_syevd<float>(mat, eigenvals, U, magma_ssyevd_gpu);
 }
@@ -116,10 +103,16 @@ template<class T> int carma_svd(carma_obj<T> *imat, carma_obj<T> *eigenvals, car
   cerr << "carma_svd not implemented ! \n";
  return 0;
 }
-template int carma_svd<float>(caObjS *imat, caObjS *eigenvals, caObjS *mod2act, caObjS *mes2mod);
-template int carma_svd<double>(caObjD *imat, caObjD *eigenvals, caObjD *mod2act, caObjD *mes2mod);
-
-template<class T> int carma_svd(carma_host_obj<T> *imat, carma_host_obj<T> *eigenvals, carma_host_obj<T> *mod2act, carma_host_obj<T> *mes2mod) {
+/*
+template<> int carma_svd<float>(caObjS *imat, caObjS *eigenvals, caObjS *mod2act, caObjS *mes2mod){
+  return carma_gesvd<float>(mat, eigenvals, U, magma_sgesvd);
+}
+template<> int carma_svd<double>(caObjD *imat, caObjD *eigenvals, caObjD *mod2act, caObjD *mes2mod){
+  return carma_gesvd<double>(mat, eigenvals, U, magma_dgesvd);
+}
+*/
+template<class T> int carma_svd(carma_host_obj<T> *imat, carma_host_obj<T> *eigenvals, carma_host_obj<T> *mod2act, carma_host_obj<T> *mes2mod,
+    magma_int_t (*ptr_gesvd) (char, char, magma_int_t, magma_int_t, T *, magma_int_t, T *, T *, magma_int_t, T *, magma_int_t, T *, magma_int_t, magma_int_t *)) {
   long int *dims = imat->getDims();
   int m = dims[1];
   int n = dims[2];
@@ -134,7 +127,9 @@ template<class T> int carma_svd(carma_host_obj<T> *imat, carma_host_obj<T> *eige
   carma_host_obj<T> *h_work = new carma_host_obj<T>(dims_data, MA_PAGELOCK); //PAGELOCK
 
   carma_host_obj<T> *tmp = new carma_host_obj<T>(imat, MA_PAGELOCK);
-  carma_gesvd(m, n, tmp->getData(), eigenvals->getData(), mes2mod->getData(), mod2act->getData(), h_work->getData(), lwork);
+  //carma_gesvd(m, n, tmp->getData(), eigenvals->getData(), mes2mod->getData(), mod2act->getData(), h_work->getData(), lwork);
+  magma_int_t info;
+  ptr_gesvd('A', 'A', m, n, tmp->getData(), m, eigenvals->getData(), mes2mod->getData(), m, mod2act->getData(), n, h_work->getData(), lwork, &info);
 
   delete h_work;
   delete tmp;
@@ -142,6 +137,15 @@ template<class T> int carma_svd(carma_host_obj<T> *imat, carma_host_obj<T> *eige
   return EXIT_SUCCESS;
 }
 
-template int carma_svd<float>(carma_host_obj<float> *imat, carma_host_obj<float> *eigenvals, carma_host_obj<float> *mod2act, carma_host_obj<float> *mes2mod);
-template int carma_svd<double>(carma_host_obj<double> *imat, carma_host_obj<double> *eigenvals, carma_host_obj<double> *mod2act, carma_host_obj<double> *mes2mod);
+template<class T> int carma_svd(carma_host_obj<T> *imat, carma_host_obj<T> *eigenvals, carma_host_obj<T> *mod2act, carma_host_obj<T> *mes2mod){
+  //TODO: carma_svd
+  cerr << "carma_svd not implemented with this type! \n";
+ return 0;
+}
+template<> int carma_svd<float>(carma_host_obj<float> *imat, carma_host_obj<float> *eigenvals, carma_host_obj<float> *mod2act, carma_host_obj<float> *mes2mod){
+  return carma_svd(imat, eigenvals, mod2act, mes2mod, magma_sgesvd);
+}
+template<> int carma_svd<double>(carma_host_obj<double> *imat, carma_host_obj<double> *eigenvals, carma_host_obj<double> *mod2act, carma_host_obj<double> *mes2mod){
+  return carma_svd(imat, eigenvals, mod2act, mes2mod, magma_dgesvd);
+}
 
