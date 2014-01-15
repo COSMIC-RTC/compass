@@ -257,6 +257,15 @@ sutra_wfs::sutra_wfs(carma_context *context, long nxsub, long nvalid, long nphas
   this->subapd  = pdiam;
   this->device  = device; context->set_activeDevice(device);
 
+  this->npix    = 0;
+  this->nrebin  = 0;
+  this->nfft    = 0;
+  this->ntot    = 0;
+  this->nphot   = 0;
+  this->lgs     = false;
+  this->nmaxhr  = 0;
+  this->nffthr  = 0;
+
   this->nstreams = 1;//nvalid/10;
   this->streams = new carma_streams(nstreams);
 
