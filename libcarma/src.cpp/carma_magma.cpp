@@ -98,17 +98,21 @@ template<> int carma_syevd<double,3>(caObjD *mat, double *eigenvals, caObjD *U){
 
 template<class T> int carma_svd(carma_obj<T> *mat, carma_obj<T> *eigenvals, carma_obj<T> *mod2act, carma_obj<T> *mes2mod){
   //TODO: carma_svd
-  cerr << "carma_svd not implemented ! \n";
- return 0;
+  cerr << "carma_svd not implemented this this type! \n";
+  return EXIT_FAILURE;
 }
-/*
+
 template<> int carma_svd<float>(caObjS *imat, caObjS *eigenvals, caObjS *mod2act, caObjS *mes2mod){
-  return carma_gesvd<float>(mat, eigenvals, U, magma_sgesvd);
+  cerr << "carma_svd not implemented on device object! \n";
+  return EXIT_FAILURE;
+  //return carma_gesvd<float>(mat, eigenvals, U, magma_sgesvd);
 }
 template<> int carma_svd<double>(caObjD *imat, caObjD *eigenvals, caObjD *mod2act, caObjD *mes2mod){
-  return carma_gesvd<double>(mat, eigenvals, U, magma_dgesvd);
+  cerr << "carma_svd not implemented on device object! \n";
+  return EXIT_FAILURE;
+  //return carma_gesvd<double>(mat, eigenvals, U, magma_dgesvd);
 }
-*/
+
 template<class T> int carma_svd(carma_host_obj<T> *mat, carma_host_obj<T> *eigenvals, carma_host_obj<T> *mod2act, carma_host_obj<T> *mes2mod,
     magma_int_t (*ptr_gesvd) (char jobu, char jobvt, magma_int_t m, magma_int_t n, T *A, magma_int_t lda, T *s, T *U, magma_int_t ldu, T *VT, magma_int_t ldvt, T *work, magma_int_t lwork, magma_int_t *info)) {
   long int *dims = mat->getDims();
@@ -138,7 +142,7 @@ template<class T> int carma_svd(carma_host_obj<T> *mat, carma_host_obj<T> *eigen
 template<class T> int carma_svd(carma_host_obj<T> *mat, carma_host_obj<T> *eigenvals, carma_host_obj<T> *mod2act, carma_host_obj<T> *mes2mod){
   //TODO: carma_svd
   cerr << "carma_svd not implemented with this type! \n";
- return 0;
+ return EXIT_FAILURE;
 }
 template<> int carma_svd<float>(carma_host_obj<float> *mat, carma_host_obj<float> *eigenvals, carma_host_obj<float> *mod2act, carma_host_obj<float> *mes2mod){
   return carma_svd(mat, eigenvals, mod2act, mes2mod, magma_sgesvd);
@@ -161,14 +165,15 @@ template<class T> int carma_potri(carma_obj<T> *d_iA,
   magma_int_t info;
   ptr_potrf('U', n, d_iA->getData(), n, &info);
   ptr_potri('U', n, d_iA->getData(), n, &info);
+  //ptr_potrf('L', n, d_iA->getData(), n, &info);
+  //ptr_potri('L', n, d_iA->getData(), n, &info);
 
   return EXIT_SUCCESS;
 }
 
 template<class T> int carma_potri(carma_obj<T> *d_iA){
-  //TODO: carma_svd
   cerr << "carma_potrfsi not implemented with this type! \n";
- return 0;
+  return EXIT_FAILURE;
 }
 template<> int carma_potri<float>(carma_obj<float> *d_iA){
   return carma_potri(d_iA, magma_spotrf_gpu, magma_spotri_gpu);
@@ -212,9 +217,8 @@ template<class T> int carma_getri(carma_obj<T> *d_iA,
 }
 
 template<class T> int carma_getri(carma_obj<T> *d_iA){
-  //TODO: carma_svd
   cerr << "carma_getri not implemented with this type! \n";
- return 0;
+  return EXIT_FAILURE;
 }
 template<> int carma_getri<float>(carma_obj<float> *d_iA){
   return carma_getri(d_iA, magma_sgetrf_gpu, magma_sgetri_gpu, magma_get_sgetri_nb);
@@ -224,13 +228,11 @@ template<> int carma_getri<double>(carma_obj<double> *d_iA){
 }
 
 template<class T> int carma_getri(T* h_A, carma_obj<T> *d_iA){
-  //TODO: carma_svd
   cerr << "carma_potrfsi not implemented with this type! \n";
- return 0;
+  return EXIT_FAILURE;
 }
 template<> int carma_getri<float>(float* h_A, carma_obj<float> *d_iA){
   long int *dims = d_iA->getDims();
-  int m = dims[1];
   int N = dims[2];
   magma_int_t lda  = N;
   magma_int_t ldda = ((N + 31)/32)*32;
@@ -240,7 +242,6 @@ template<> int carma_getri<float>(float* h_A, carma_obj<float> *d_iA){
 }
 template<> int carma_getri<double>(double* h_A, carma_obj<double> *d_iA){
   long int *dims = d_iA->getDims();
-  int m = dims[1];
   int N = dims[2];
   magma_int_t lda  = N;
   magma_int_t ldda = ((N + 31)/32)*32;

@@ -3304,15 +3304,17 @@ void Y_yoga_svd(int argc)
       caObjS *carma_obj_handler_U = (caObjS *) (handle_U->carma_object);
       caObjS *carma_obj_handler_VT = (caObjS *) (handle_VT->carma_object);
       carma_svd(carma_obj_handler_mat, carma_obj_handler_eigenvals, carma_obj_handler_VT, carma_obj_handler_U);
-    }
-    if (handle_mat->type == Y_DOUBLE) {
+    } else if (handle_mat->type == Y_DOUBLE) {
       caObjD *carma_obj_handler_mat = (caObjD *) (handle_mat->carma_object);
       caObjD *carma_obj_handler_eigenvals = (caObjD *) (handle_eigenvals->carma_object);
       caObjD *carma_obj_handler_U = (caObjD *) (handle_U->carma_object);
       caObjD *carma_obj_handler_VT = (caObjD *) (handle_VT->carma_object);
       carma_svd(carma_obj_handler_mat, carma_obj_handler_eigenvals, carma_obj_handler_VT, carma_obj_handler_U);
+    } else {
+      y_error("carma_svd not implemented for this type");
     }
   } else {
+    y_error("yoga_svd must be call as a subroutine");
   }
 }
 
@@ -3338,15 +3340,16 @@ void Y_yoga_syevd(int argc)
       caObjS *carma_obj_handler_mat = (caObjS *) (handle_mat->carma_object);
       caObjS *carma_obj_handler_U = (caObjS *) (handle_U->carma_object);
       carma_syevd(carma_obj_handler_mat, (float*)eigenvals, carma_obj_handler_U);
-    }
-    if (handle_mat->type == Y_DOUBLE) {
+    } else if (handle_mat->type == Y_DOUBLE) {
       caObjD *carma_obj_handler_mat = (caObjD *) (handle_mat->carma_object);
       caObjD *carma_obj_handler_U = (caObjD *) (handle_U->carma_object);
       carma_syevd(carma_obj_handler_mat, (double*)eigenvals, carma_obj_handler_U);
+    } else {
+      y_error("carma_syevd not implemented for this type");
     }
   } else {
-      cerr << "carma_syevd not implemented for this type\n";
-   }
+    y_error("yoga_syevd must be call as a subroutine");
+  }
 }
 
 void Y_yoga_getri(int argc)
@@ -3360,16 +3363,14 @@ void Y_yoga_getri(int argc)
     int yType = yarg_typeid(argc - 1);
     if (yType == Y_OPAQUE) {
       yObj_struct *handle_mat = (yObj_struct *) yget_obj(argc - 1, &yObj);
-
       if (handle_mat->type == Y_FLOAT) {
         caObjS *carma_obj_handler_mat = (caObjS *) (handle_mat->carma_object);
         carma_getri(carma_obj_handler_mat);
-      }
-      if (handle_mat->type == Y_DOUBLE) {
+      } else if (handle_mat->type == Y_DOUBLE) {
         caObjD *carma_obj_handler_mat = (caObjD *) (handle_mat->carma_object);
         carma_getri(carma_obj_handler_mat);
       } else {
-        cerr << "carma_syevd not implemented for this type\n";
+        y_error("carma_getri not implemented for this type");
       }
     } else if (yType == Y_FLOAT) {
       long ntot;
@@ -3386,8 +3387,10 @@ void Y_yoga_getri(int argc)
       caObjD *carma_obj_handler_mat = (caObjD *) (handle_mat->carma_object);
       carma_getri(h_mat, carma_obj_handler_mat);
     } else {
-      cerr << "carma_syevd not implemented for this type\n";
+      y_error("carma_getri not implemented for this type");
     }
+  } else {
+    y_error("yoga_getri must be call as a subroutine");
   }
 }
 
@@ -3404,14 +3407,15 @@ void Y_yoga_potri(int argc)
     if (handle_mat->type == Y_FLOAT) {
       caObjS *carma_obj_handler_mat = (caObjS *) (handle_mat->carma_object);
       carma_potri(carma_obj_handler_mat);
-    }
-    if (handle_mat->type == Y_DOUBLE) {
+    } else if (handle_mat->type == Y_DOUBLE) {
       caObjD *carma_obj_handler_mat = (caObjD *) (handle_mat->carma_object);
       carma_potri(carma_obj_handler_mat);
-    }
-  } else {
-      cerr << "carma_syevd not implemented for this type\n";
+    } else {
+      y_error("carma_potri not implemented for this type");
    }
+  } else {
+    y_error("yoga_potri must be call as a subroutine");
+  }
 }
 
 void Y_yoga_svd_host(int argc)
@@ -3440,8 +3444,7 @@ void Y_yoga_svd_host(int argc)
       carma_host_obj<float> *carma_obj_handler_VT = (carma_host_obj<float> *) (handle_VT->carma_host_object);
 
       carma_svd(carma_obj_handler_mat, carma_obj_handler_eigenvals, carma_obj_handler_VT, carma_obj_handler_U);
-    }
-    if (handle_mat->type == Y_DOUBLE) {
+    } else if (handle_mat->type == Y_DOUBLE) {
       carma_host_obj<double> *carma_obj_handler_mat = (carma_host_obj<double> *) (handle_mat->carma_host_object);
 
       carma_host_obj<double> *carma_obj_handler_eigenvals = (carma_host_obj<double> *) (handle_eigenvals->carma_host_object);
@@ -3451,8 +3454,11 @@ void Y_yoga_svd_host(int argc)
       carma_host_obj<double> *carma_obj_handler_VT = (carma_host_obj<double> *) (handle_VT->carma_host_object);
 
       carma_svd(carma_obj_handler_mat, carma_obj_handler_eigenvals, carma_obj_handler_VT, carma_obj_handler_U);
-    }
+    } else {
+      y_error("carma_svd not implemented for this type");
+   }
   } else {
+    y_error("yoga_svd must be call as a subroutine");
   }
 }
 
