@@ -21,6 +21,7 @@ OBJS= yoga_template.o
 
 # change to give the executable a name other than yorick
 #PKG_EXENAME=yorick
+MAGMA_DIR?=$(MAGMA_PATH)
 
 NVCC = /usr/local/cuda/bin/nvcc 
 NVCCFLAGS = -g -DDEBUG -m64 -Xcompiler -fPIC -c --compiler-options -I. -I$(COMPASS_ROOT_DIR)/libcarma/include.h -I$(YOGA_DIR)  -I$(CUDA_INC_PATH) -I$(CULA_INC_PATH) -I$(MAGMA_DIR)/include -gencode arch=compute_20,code=sm_20  #-I/usr/local/magma-1.4.1/include

@@ -3317,9 +3317,9 @@ void Y_yoga_svd(int argc)
 }
 
 void Y_yoga_syevd(int argc)
-/** @brief wrapper routine for yoga svd method using magma
+/** @brief wrapper routine for yoga evd method using magma
  *  @param[in] argc : command line arguments
- *    - first  : the yoga_obj to be decomposed
+ *    - first  : the yoga_obj to be decomposed (must be symmetric)
  *    - second : an array for eignevalues
  *    - third  : a yoga_obj for thr U matrix
  *  only floating point matrices can be decomposed (single or double precision)
@@ -3343,6 +3343,71 @@ void Y_yoga_syevd(int argc)
       caObjD *carma_obj_handler_mat = (caObjD *) (handle_mat->carma_object);
       caObjD *carma_obj_handler_U = (caObjD *) (handle_U->carma_object);
       carma_syevd(carma_obj_handler_mat, (double*)eigenvals, carma_obj_handler_U);
+    }
+  } else {
+      cerr << "carma_syevd not implemented for this type\n";
+   }
+}
+
+void Y_yoga_getri(int argc)
+/** @brief computes the inverse of a matrix using the LU factorization
+ *  @param[in] argc : command line arguments
+ *    - first  : the yoga_obj to be inversed (warning this object will be replaced by its inverse)
+ *  only floating point matrices can be decomposed (single or double precision)
+ */
+{
+  if (yarg_subroutine()) {
+    int yType = yarg_typeid(argc - 1);
+    if (yType == Y_OPAQUE) {
+      yObj_struct *handle_mat = (yObj_struct *) yget_obj(argc - 1, &yObj);
+
+      if (handle_mat->type == Y_FLOAT) {
+        caObjS *carma_obj_handler_mat = (caObjS *) (handle_mat->carma_object);
+        carma_getri(carma_obj_handler_mat);
+      }
+      if (handle_mat->type == Y_DOUBLE) {
+        caObjD *carma_obj_handler_mat = (caObjD *) (handle_mat->carma_object);
+        carma_getri(carma_obj_handler_mat);
+      } else {
+        cerr << "carma_syevd not implemented for this type\n";
+      }
+    } else if (yType == Y_FLOAT) {
+      long ntot;
+      long dims[Y_DIMSIZE];
+      float *h_mat=ygeta_f(argc-1, &ntot, dims);
+      yObj_struct *handle_mat = (yObj_struct *) yget_obj(argc - 2, &yObj);
+      caObjS *carma_obj_handler_mat = (caObjS *) (handle_mat->carma_object);
+      carma_getri(h_mat, carma_obj_handler_mat);
+    } else if (yType == Y_DOUBLE) {
+      long ntot;
+      long dims[Y_DIMSIZE];
+      double *h_mat=ygeta_d(argc-1, &ntot, dims);
+      yObj_struct *handle_mat = (yObj_struct *) yget_obj(argc - 2, &yObj);
+      caObjD *carma_obj_handler_mat = (caObjD *) (handle_mat->carma_object);
+      carma_getri(h_mat, carma_obj_handler_mat);
+    } else {
+      cerr << "carma_syevd not implemented for this type\n";
+    }
+  }
+}
+
+void Y_yoga_potri(int argc)
+/** @brief computes the inverse of a real symmetric positive definite matrix using the Cholesky factorization
+ *  @param[in] argc : command line arguments
+ *    - first  : the yoga_obj to be inversed (warning this object will be replaced by its inverse)
+ *  only floating point matrices can be decomposed (single or double precision)
+ */
+{
+  if (yarg_subroutine()) {
+    yObj_struct *handle_mat = (yObj_struct *) yget_obj(argc - 1, &yObj);
+
+    if (handle_mat->type == Y_FLOAT) {
+      caObjS *carma_obj_handler_mat = (caObjS *) (handle_mat->carma_object);
+      carma_potri(carma_obj_handler_mat);
+    }
+    if (handle_mat->type == Y_DOUBLE) {
+      caObjD *carma_obj_handler_mat = (caObjD *) (handle_mat->carma_object);
+      carma_potri(carma_obj_handler_mat);
     }
   } else {
       cerr << "carma_syevd not implemented for this type\n";

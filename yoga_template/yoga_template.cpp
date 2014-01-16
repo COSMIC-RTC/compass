@@ -208,11 +208,6 @@ extern "C" {
 	y_error("Please provide an array and a yoga_obj with same precision\n");
 
       if (yType == Y_DOUBLE) {
-	// query for workspace size
-	lwork = -1;
-	double tmp;
-	lapackf77_dgetri( &N, NULL, &lda, NULL, &tmp, &lwork, &info );
-	lwork = int(tmp);
 
 	// create magma workspace
 	caObjD *d_A = (caObjD *)(d_A_handler->carma_object);
@@ -231,10 +226,6 @@ extern "C" {
       }
       if (yType == Y_FLOAT) {
 	// query for workspace size
-	lwork = -1;
-	float tmp;
-	lapackf77_sgetri( &N, NULL, &lda, NULL, &tmp, &lwork, &info );
-	lwork = int(tmp);
 
 	// create magma workspace
 	caObjS *d_A = (caObjS *)(d_A_handler->carma_object);

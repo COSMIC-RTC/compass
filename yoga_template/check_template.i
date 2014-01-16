@@ -9,7 +9,8 @@ func check_inv(n)
 
   b = LUsolve(a);
   ldda = ((n + 31)/32)*32;
-  d_b= yoga_obj(array(0.0,n,ldda));
+  //d_b= yoga_obj(array(0.0,n,ldda));
+  d_b= yoga_obj(a);
   yoga_magma_getri,a,d_b;
 
   write,format="error : %f\n",max(abs(b-d_b()));

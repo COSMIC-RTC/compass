@@ -5,9 +5,9 @@ require,"util_fr.i";
 func bench_evd(n, niter)
 {
   tmp = random(n, 128);
-  tmp2= tmp(,+)*tmp(,+);
-  d_mat = yoga_obj(tmp2);
-  d_U = yoga_obj(tmp2*0.);
+  mat= tmp(,+)*tmp(,+);
+  d_mat = yoga_obj(mat);
+  d_U = yoga_obj(mat*0.);
   h_EV = array(0., n);
   write, "doing yoga_syevd, d_mat, h_EV, d_U... ";
   tps = array(0., niter);
@@ -23,20 +23,50 @@ func bench_evd(n, niter)
   return tps;
 }
 
+func check_getri(n)
+{
+  write, "\ntest with float";
+  mat = random_n(n, n);
+  d_mat = yoga_obj(float(mat));
+  write, format="%s", "doing yoga_getri, d_mat... ";
+  tic; yoga_getri, d_mat; tps1=tac();
+  write, format="in %0.3fs\n", tps1;
+
+  write, format="%s", "doing i_mat= LUsolve(mat)... ";
+  tic; i_mat= LUsolve(mat); tps2=tac();
+  write, format="in %0.3fs (x%0.3f)\n", tps2, tps2/tps1;
+
+  write, "max(abs(d_mat() - i_mat))";
+  max(abs(d_mat() - i_mat));
+  
+  write, "\ntest with double";
+  d_mat = yoga_obj(mat);
+  write, format="%s", "doing yoga_getri, d_mat... ";
+  tic; yoga_getri, d_mat; tps1=tac();
+  write, format="in %0.3fs\n", tps1;
+
+  write, format="%s", "doing i_mat= LUsolve(mat)... ";
+  tic; i_mat= LUsolve(mat); tps2=tac();
+  write, format="in %0.3fs (x%0.3f)\n", tps2, tps2/tps1;
+
+  write, "max(abs(d_mat() - i_mat))";
+  max(abs(d_mat() - i_mat));
+}
+
 func check_evd(n)
 {
   write, "\ntest with float";
   tmp = random(n, 128);
-  tmp2= tmp(,+)*tmp(,+);
-  d_mat = yoga_obj(float(tmp2));
-  d_U = yoga_obj(tmp2*0.f);
+  mat= tmp(,+)*tmp(,+);
+  d_mat = yoga_obj(float(mat));
+  d_U = yoga_obj(mat*0.f);
   h_EV = array(0.f, n);
   write, format="%s", "doing yoga_syevd, d_mat, h_EV, d_U... ";
   tic; yoga_syevd, d_mat, h_EV, d_U; tps1=tac();
   write, format="in %0.3fs\n", tps1;
 
-  write, format="%s", "doing y_EV = SVdec(tmp2)... ";
-  tic; y_EV = SVdec(tmp2); tps2=tac();
+  write, format="%s", "doing y_EV = SVdec(mat)... ";
+  tic; y_EV = SVdec(mat); tps2=tac();
   write, format="in %0.3fs (x%0.3f)\n", tps2, tps2/tps1;
 
   write, "max(abs(h_EV(::-1) - y_EV))";
@@ -44,16 +74,16 @@ func check_evd(n)
   
   write, "\ntest with double";
   tmp = random(n, 128);
-  tmp2= tmp(,+)*tmp(,+);
-  d_mat = yoga_obj(tmp2);
-  d_U = yoga_obj(tmp2*0.);
+  mat= tmp(,+)*tmp(,+);
+  d_mat = yoga_obj(mat);
+  d_U = yoga_obj(mat*0.);
   h_EV = array(0., n);
   write, format="%s", "doing yoga_syevd, d_mat, h_EV, d_U... ";
   tic; yoga_syevd, d_mat, h_EV, d_U; tps1=tac();
   write, format="in %0.3fs\n", tps1;
 
-  write, format="%s", "doing y_EV = SVdec(tmp2)... ";
-  tic; y_EV = SVdec(tmp2); tps2=tac();
+  write, format="%s", "doing y_EV = SVdec(mat)... ";
+  tic; y_EV = SVdec(mat); tps2=tac();
   write, format="in %0.3fs (x%0.3f)\n", tps2, tps2/tps1;
 
   write, "max(abs(h_EV(::-1) - y_EV))";

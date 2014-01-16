@@ -11,7 +11,7 @@
 #endif
 
 template<class T> int carma_syevd(carma_obj<T> *mat, T *eigenvals, carma_obj<T> *U,
-    magma_int_t (*ptr_syevd_gpu)(char, char, magma_int_t, T*, magma_int_t, T*, T*, magma_int_t, T*, magma_int_t, magma_int_t*, magma_int_t, magma_int_t*)) {
+    magma_int_t (*ptr_syevd_gpu)(char jobz, char uplo, magma_int_t n, T *da, magma_int_t ldda, T *w, T *wa, magma_int_t ldwa, T *work, magma_int_t lwork, magma_int_t *iwork, magma_int_t liwork, magma_int_t *info)) {
   magma_int_t *iwork;
   magma_int_t N = mat->getDims(1);
   magma_int_t info, lwork, liwork, lda = N, aux_iwork[1];
@@ -96,7 +96,7 @@ template<> int carma_syevd<double,3>(caObjD *mat, double *eigenvals, caObjD *U){
 }
 */
 
-template<class T> int carma_svd(carma_obj<T> *imat, carma_obj<T> *eigenvals, carma_obj<T> *mod2act, carma_obj<T> *mes2mod){
+template<class T> int carma_svd(carma_obj<T> *mat, carma_obj<T> *eigenvals, carma_obj<T> *mod2act, carma_obj<T> *mes2mod){
   //TODO: carma_svd
   cerr << "carma_svd not implemented ! \n";
  return 0;
@@ -109,9 +109,9 @@ template<> int carma_svd<double>(caObjD *imat, caObjD *eigenvals, caObjD *mod2ac
   return carma_gesvd<double>(mat, eigenvals, U, magma_dgesvd);
 }
 */
-template<class T> int carma_svd(carma_host_obj<T> *imat, carma_host_obj<T> *eigenvals, carma_host_obj<T> *mod2act, carma_host_obj<T> *mes2mod,
-    magma_int_t (*ptr_gesvd) (char, char, magma_int_t, magma_int_t, T *, magma_int_t, T *, T *, magma_int_t, T *, magma_int_t, T *, magma_int_t, magma_int_t *)) {
-  long int *dims = imat->getDims();
+template<class T> int carma_svd(carma_host_obj<T> *mat, carma_host_obj<T> *eigenvals, carma_host_obj<T> *mod2act, carma_host_obj<T> *mes2mod,
+    magma_int_t (*ptr_gesvd) (char jobu, char jobvt, magma_int_t m, magma_int_t n, T *A, magma_int_t lda, T *s, T *U, magma_int_t ldu, T *VT, magma_int_t ldvt, T *work, magma_int_t lwork, magma_int_t *info)) {
+  long int *dims = mat->getDims();
   int m = dims[1];
   int n = dims[2];
   int min_mn = m < n ? m : n;
@@ -124,7 +124,7 @@ template<class T> int carma_svd(carma_host_obj<T> *imat, carma_host_obj<T> *eige
   dims_data[1] = lwork;
   carma_host_obj<T> *h_work = new carma_host_obj<T>(dims_data, MA_PAGELOCK); //PAGELOCK
 
-  carma_host_obj<T> *tmp = new carma_host_obj<T>(imat, MA_PAGELOCK);
+  carma_host_obj<T> *tmp = new carma_host_obj<T>(mat, MA_PAGELOCK);
   //carma_gesvd(m, n, tmp->getData(), eigenvals->getData(), mes2mod->getData(), mod2act->getData(), h_work->getData(), lwork);
   magma_int_t info;
   ptr_gesvd('A', 'A', m, n, tmp->getData(), m, eigenvals->getData(), mes2mod->getData(), m, mod2act->getData(), n, h_work->getData(), lwork, &info);
@@ -135,15 +135,117 @@ template<class T> int carma_svd(carma_host_obj<T> *imat, carma_host_obj<T> *eige
   return EXIT_SUCCESS;
 }
 
-template<class T> int carma_svd(carma_host_obj<T> *imat, carma_host_obj<T> *eigenvals, carma_host_obj<T> *mod2act, carma_host_obj<T> *mes2mod){
+template<class T> int carma_svd(carma_host_obj<T> *mat, carma_host_obj<T> *eigenvals, carma_host_obj<T> *mod2act, carma_host_obj<T> *mes2mod){
   //TODO: carma_svd
   cerr << "carma_svd not implemented with this type! \n";
  return 0;
 }
-template<> int carma_svd<float>(carma_host_obj<float> *imat, carma_host_obj<float> *eigenvals, carma_host_obj<float> *mod2act, carma_host_obj<float> *mes2mod){
-  return carma_svd(imat, eigenvals, mod2act, mes2mod, magma_sgesvd);
+template<> int carma_svd<float>(carma_host_obj<float> *mat, carma_host_obj<float> *eigenvals, carma_host_obj<float> *mod2act, carma_host_obj<float> *mes2mod){
+  return carma_svd(mat, eigenvals, mod2act, mes2mod, magma_sgesvd);
 }
-template<> int carma_svd<double>(carma_host_obj<double> *imat, carma_host_obj<double> *eigenvals, carma_host_obj<double> *mod2act, carma_host_obj<double> *mes2mod){
-  return carma_svd(imat, eigenvals, mod2act, mes2mod, magma_dgesvd);
+template<> int carma_svd<double>(carma_host_obj<double> *mat, carma_host_obj<double> *eigenvals, carma_host_obj<double> *mod2act, carma_host_obj<double> *mes2mod){
+  return carma_svd(mat, eigenvals, mod2act, mes2mod, magma_dgesvd);
+}
+
+template<class T> int carma_potri(carma_obj<T> *d_iA,
+    magma_int_t (*ptr_potrf) (char uplo, magma_int_t n, T *d_A, magma_int_t ldda, magma_int_t *info),
+    magma_int_t (*ptr_potri) (char uplo, magma_int_t n, T *d_A, magma_int_t ldda, magma_int_t *info)) {
+  long int *dims = d_iA->getDims();
+  int m = dims[1];
+  int n = dims[2];
+  if (m!=n) {
+    cerr << "carma_potrfsi : non symmetric matrix\n";
+    return EXIT_FAILURE;
+  }
+
+  magma_int_t info;
+  ptr_potrf('U', n, d_iA->getData(), n, &info);
+  ptr_potri('U', n, d_iA->getData(), n, &info);
+
+  return EXIT_SUCCESS;
+}
+
+template<class T> int carma_potri(carma_obj<T> *d_iA){
+  //TODO: carma_svd
+  cerr << "carma_potrfsi not implemented with this type! \n";
+ return 0;
+}
+template<> int carma_potri<float>(carma_obj<float> *d_iA){
+  return carma_potri(d_iA, magma_spotrf_gpu, magma_spotri_gpu);
+}
+template<> int carma_potri<double>(carma_obj<double> *d_iA){
+  return carma_potri(d_iA, magma_dpotrf_gpu, magma_dpotri_gpu);
+}
+
+
+template<class T> int carma_getri(carma_obj<T> *d_iA,
+    magma_int_t (*ptr_getrf) (magma_int_t m, magma_int_t n, T *dA, magma_int_t ldda, magma_int_t *ipiv, magma_int_t *info),
+    magma_int_t (*ptr_getri) (magma_int_t n, T *dA, magma_int_t ldda, magma_int_t *ipiv, T *dwork, magma_int_t lwork, magma_int_t *info),
+    magma_int_t (*ptr_get_getri_nb) (magma_int_t n)) {
+  long int *dims = d_iA->getDims();
+  int m = dims[1];
+  int n = dims[2];
+
+  if (m!=n) {
+    cerr << "carma_getri : non symmetric matrix\n";
+    return EXIT_FAILURE;
+  }
+  magma_int_t *ipiv;
+  posix_memalign( (void**) &ipiv, 32, n*sizeof(int) );
+
+  T *dwork;
+  magma_int_t lda  = n;
+  magma_int_t ldda = ((n + 31)/32)*32;
+  magma_int_t ldwork = n * ptr_get_getri_nb(n);
+  if (lda * ldda != d_iA->getNbElem())
+    cerr << "Please provide arrays of proper size\n";
+
+  magma_int_t info;
+  cudaMalloc( (void**) &dwork, ldwork*sizeof(T) );
+  ptr_getrf( n, n, d_iA->getData(), ldda, ipiv, &info );
+  ptr_getri( n,    d_iA->getData(), ldda, ipiv, dwork, ldwork, &info );
+
+  cudaFree(dwork);
+  free(ipiv);
+
+  return EXIT_SUCCESS;
+}
+
+template<class T> int carma_getri(carma_obj<T> *d_iA){
+  //TODO: carma_svd
+  cerr << "carma_getri not implemented with this type! \n";
+ return 0;
+}
+template<> int carma_getri<float>(carma_obj<float> *d_iA){
+  return carma_getri(d_iA, magma_sgetrf_gpu, magma_sgetri_gpu, magma_get_sgetri_nb);
+}
+template<> int carma_getri<double>(carma_obj<double> *d_iA){
+  return carma_getri(d_iA, magma_dgetrf_gpu, magma_dgetri_gpu, magma_get_dgetri_nb);
+}
+
+template<class T> int carma_getri(T* h_A, carma_obj<T> *d_iA){
+  //TODO: carma_svd
+  cerr << "carma_potrfsi not implemented with this type! \n";
+ return 0;
+}
+template<> int carma_getri<float>(float* h_A, carma_obj<float> *d_iA){
+  long int *dims = d_iA->getDims();
+  int m = dims[1];
+  int N = dims[2];
+  magma_int_t lda  = N;
+  magma_int_t ldda = ((N + 31)/32)*32;
+  magma_ssetmatrix( N, N, h_A, lda, d_iA->getData(), ldda );
+
+  return carma_getri(d_iA, magma_sgetrf_gpu, magma_sgetri_gpu, magma_get_sgetri_nb);
+}
+template<> int carma_getri<double>(double* h_A, carma_obj<double> *d_iA){
+  long int *dims = d_iA->getDims();
+  int m = dims[1];
+  int N = dims[2];
+  magma_int_t lda  = N;
+  magma_int_t ldda = ((N + 31)/32)*32;
+  magma_dsetmatrix( N, N, h_A, lda, d_iA->getData(), ldda );
+
+  return carma_getri(d_iA, magma_dgetrf_gpu, magma_dgetri_gpu, magma_get_dgetri_nb);
 }
 

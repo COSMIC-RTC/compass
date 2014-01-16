@@ -630,6 +630,19 @@ extern yoga_fftconv;
 
 extern yoga_test;
 
+extern yoga_svd;
+/* DOCUMENT yoga_svd
+   yoga_svd,mat,eigenvals,vt,u
+
+   This function computes the svd of matrix mat
+   mat   : m x n
+   VT    : n x n
+   U     : m x m
+   eigen : min(m,n)
+   
+   SEE ALSO:
+ */
+
 extern yoga_syevd;
 /* DOCUMENT yoga_syevd
    yoga_syevd,mat,eigenvals,u
@@ -642,15 +655,28 @@ extern yoga_syevd;
    SEE ALSO:
  */
 
-extern yoga_svd;
-/* DOCUMENT yoga_svd
-   yoga_svd,mat,eigenvals,vt,u
+extern yoga_getri;
+/* DOCUMENT yoga_getri
+   yoga_getri,d_mat or
+   yoga_getri,h_mat, d_mat
 
-   This function computes the svd of matrix mat
-   mat   : m x n
-   VT    : n x n
-   U     : m x m
-   eigen : min(m,n)
+   This function computes the inverse of a matrix d_mat (or h_mat) using the LU factorization
+   d_mat   : yoga_obj n x n
+   h_mat   : array n x n
+   
+   WARNING : d_mat will be replaced by its inverse
+   
+   SEE ALSO:
+ */
+
+extern yoga_potri;
+/* DOCUMENT yoga_potri
+   yoga_potri,mat
+
+   This function computes the inverse of a real symmetric positive definite matrix mat using the LU factorization
+   mat   : n x n
+   
+   WARNING : mat will be replaced by its inverse
    
    SEE ALSO:
  */
