@@ -756,19 +756,30 @@ normalization notes :
   if (type == 0) {
     // this is to convert in arcsec
     //> 206265* 0.000001/ 2 / 3.14159265 = 0.0328281
+    // it would have been the case if the phase was given in radiants
+    // but it is given in microns so normalization factor is
+    // just 206265* 0.000001 = 0.206265
 
-    float alpha = 0.0328281 * this->d_gs->lambda / this->subapd;
+    //float alpha = 0.0328281 * this->d_gs->lambda / this->subapd;
+    float alpha = 0.206265 / this->subapd;
     phase_reduce(this->nphase,this->nvalid,this->d_gs->d_phase->d_screen->getData(),
 		 slopes,this->d_phasemap->getData(),alpha);
   }
 
   if (type == 1) {
     
-    float alpha = 0.0328281 * this->d_gs->lambda / this->subapd;
-    phase_derive(this->nphase * this->nphase * this->nvalid,this->nphase * this->nphase,
-		 this->nvalid,this->nphase,this->d_gs->d_phase->d_screen->getData(),
-		 slopes,this->d_phasemap->getData(),this->d_pupil->getData(),
-		 alpha,this->d_fluxPerSub->getData());
+    //float alpha = 0.0328281 * this->d_gs->lambda / this->subapd;
+    float alpha = 0.206265 / this->subapd;
+    phase_derive(this->nphase * this->nphase * this->nvalid,
+		 this->nphase * this->nphase,
+		 this->nvalid,
+		 this->nphase,
+		 this->d_gs->d_phase->d_screen->getData(),
+		 slopes,
+		 this->d_phasemap->getData(),
+		 this->d_pupil->getData(),
+		 alpha,
+		 this->d_fluxPerSub->getData());
     
   }
 
