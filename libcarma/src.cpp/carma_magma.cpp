@@ -168,6 +168,7 @@ template<class T> int carma_potri(carma_obj<T> *d_iA,
   //ptr_potrf('L', n, d_iA->getData(), n, &info);
   //ptr_potri('L', n, d_iA->getData(), n, &info);
 
+  fill_sym_matrix('L', d_iA->getData(), n, n*m);
   return EXIT_SUCCESS;
 }
 

@@ -422,3 +422,53 @@ template int fillarray2d2<float>(float *d_odata,float *d_idata,int x0, int Ncol,
 
 template int fillarray2d2<double>(double *d_odata,double *d_idata,int x0, int Ncol,int NC, int N);
 
+template<class T> __global__ void kern_fill_sym_matrix(char uplo, T *data, int Ncol, int N)
+{
+  int tid = threadIdx.x + blockIdx.x * blockDim.x;
+  int tidB;
+
+  while (tid < N) {
+    int row = tid / Ncol;
+    int col = tid - row*Ncol;
+
+    if(col>row) {
+      tidB = row + col*Ncol;
+      if(uplo=='L')
+        data[tid] = data[tidB];
+      else if(uplo=='U')
+        data[tidB] = data[tid];
+    }
+    tid += blockDim.x * gridDim.x;
+  }
+}
+
+template<class T> int fill_sym_matrix(char uplo, T *d_data, int Ncol, int N)
+{
+
+  struct cudaDeviceProp deviceProperties;
+  cudaGetDeviceProperties(&deviceProperties, 0);
+
+  int maxThreads = deviceProperties.maxThreadsPerBlock;
+  int nBlocks = deviceProperties.multiProcessorCount*8;
+  int nThreads = (N + nBlocks -1)/nBlocks;
+
+  if (nThreads > maxThreads) {
+    nThreads = maxThreads;
+    nBlocks = (N + nThreads  -1)/nThreads;
+  }
+
+  dim3 grid(nBlocks), threads(nThreads);
+  //  dim3 grid(128), threads(128);
+
+  kern_fill_sym_matrix<<<grid, threads>>>(uplo, d_data, Ncol,N);
+
+  cutilCheckMsg("kern_fill_lower_matrix<<<>>> execution failed\n");
+
+   return EXIT_SUCCESS;
+}
+
+
+template int fill_sym_matrix<float>(char uplo, float *d_data, int Ncol, int N);
+
+template int fill_sym_matrix<double>(char uplo, double *d_data, int Ncol, int N);
+

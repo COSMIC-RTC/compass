@@ -74,10 +74,10 @@ func check_potri(n)
 
   write, "max(abs(d_mat() - i_mat))";
   max(abs(d_mat() - i_mat));
-  window, 0;
-  pli, d_mat();
-  window, 1;
-  pli, i_mat;
+  //window, 0;
+  //pli, d_mat();
+  //window, 1;
+  //pli, i_mat;
 }
 
 func check_syevd(n)

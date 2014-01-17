@@ -269,6 +269,7 @@ template<class T_data> int fillvalues(T_data *d_odata, unsigned int *indx, int N
 template<class T> int getarray2d(T *d_odata, T *d_idata, int x0, int Ncol, int NC, int N);
 template<class T> int fillarray2d(T *d_odata, T *d_idata, int x0, int Ncol, int NC, int N);
 template<class T> int fillarray2d2(T *d_odata, T *d_idata, int x0, int Ncol, int NC, int N);
+template<class T> int fill_sym_matrix(char uplo, T *d_data, int Ncol, int N);
 template<class T> int carma_plus(T *d_odata, T elpha, int N);
 template<class T> int carma_plusai(T *d_odata, T *i_data, int i, int sgn, int N);
 
