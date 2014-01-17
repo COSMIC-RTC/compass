@@ -47,6 +47,9 @@ func check_getri(n)
 
   write, "max(abs(d_mat() - i_mat))";
   max(abs(d_mat() - i_mat));
+
+  "max(abs( mat(,+)*d_mat()(+,) - unit(n) ));"
+  max(abs(mat(,+)*d_mat()(+,)-unit(n)));
 }
 
 func check_potri(n)
@@ -78,6 +81,9 @@ func check_potri(n)
   //pli, d_mat();
   //window, 1;
   //pli, i_mat;
+
+  "max(abs( mat(,+)*d_mat()(+,) - unit(n) ));"
+  max(abs(mat(,+)*d_mat()(+,)-unit(n)));
 }
 
 func check_syevd(n)
