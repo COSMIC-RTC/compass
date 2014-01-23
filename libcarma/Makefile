@@ -36,7 +36,7 @@ endif
 # color for printf
 #31=red, 32=green, 33=yellow,34=blue, 35=pink, 36=cyan, 37=white
 
-MPICXX           = $(shell which mpicxx)
+MPICXX           = $(shell which mpicxx 2>/dev/null)
 ifeq ($(MPICXX),)
   GCC ?= $(CC)
 else

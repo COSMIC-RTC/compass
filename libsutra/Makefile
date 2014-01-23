@@ -22,7 +22,7 @@ ifneq ($(DEBUG),)
 LIB_CPPFLAGS+= -g -DDEBUG
 endif
 
-MPICXX           = $(shell which mpicxx)
+MPICXX           = $(shell which mpicxx 2>/dev/null)
 ifeq ($(MPICXX),)
   GCC ?= $(CC)
 else
