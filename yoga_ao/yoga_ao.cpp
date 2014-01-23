@@ -1535,8 +1535,7 @@ extern "C" {
       long *ndims_data = new long[4];
       ndims_data[0]=3;ndims_data[1]=2;
       long *ndims_obj = sensors_handler->d_wfs.at(nsensor)->d_gs->d_lgs->d_prof2d->getDims();
-      memcpy(&ndims_data[2],&(ndims_obj[1])
-	     ,sizeof(long)*3);
+      memcpy(&ndims_data[2],&(ndims_obj[1]),sizeof(long)*2);
       float *data = ypush_f(ndims_data);
       sensors_handler->d_wfs.at(nsensor)->d_gs->d_lgs->d_prof2d->device2host((cuFloatComplex *)data);
     }
