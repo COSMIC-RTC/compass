@@ -12,8 +12,8 @@ if [ -z "$YORICK_PATH" ]; then
 else
     if [ -x $YORICK_PATH ]; then
 	echo "using $YORICK_PATH to update Makefile"
-	(cd yoga && $YORICK_PATH -batch make.i) || exit
-	(cd yoga_ao && $YORICK_PATH -batch make.i) || exit
+	(cd yoga && cp Makefile.in Makefile && $YORICK_PATH -batch make.i) || exit
+	(cd yoga_ao && cp Makefile.in Makefile && $YORICK_PATH -batch make.i) || exit
 	
 	(cd libcarma && make clean && make -j) || exit
 	(cd yoga && make clean install) || exit
