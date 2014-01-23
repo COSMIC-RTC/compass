@@ -1,11 +1,14 @@
 # these values filled in by    yorick -batch make.i
-Y_MAKEDIR=/home/sevin/yorick.git/relocate
-Y_EXE=/home/sevin/yorick.git/relocate/bin/yorick
-Y_EXE_PKGS=
+# these variables should be set outside
+# Do not override them if they already have a value 
+# as they should have from environment
+Y_MAKEDIR ?= /home/sevin/yorick.git/relocate
+Y_EXE ?= /home/sevin/yorick.git/relocate/bin/yorick
+Y_EXE_PKGS ?=
 
-Y_EXE_HOME=/home/sevin/yorick.git/relocate
-Y_EXE_SITE=/home/sevin/yorick.git/relocate
-Y_HOME_PKG=
+Y_EXE_HOME ?= /home/sevin/yorick.git/relocate
+Y_EXE_SITE ?= /home/sevin/yorick.git/relocate
+Y_HOME_PKG ?=
 
 # ----------------------------------------------------- optimization flags
 
