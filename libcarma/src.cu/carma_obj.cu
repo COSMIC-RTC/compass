@@ -79,7 +79,7 @@ template<class T> int launch_generic1d(T *d_odata,T *d_idata,int N)
 
   if (nThreads > maxThreads) {
     nThreads = maxThreads;
-    nBlocks = (N + nThreads  -1)/nThreads;
+    nBlocks = min( deviceProperties.maxGridSize[0],(N + nThreads  -1)/nThreads);
   }
 
   dim3 grid(nBlocks), threads(nThreads);
@@ -149,7 +149,7 @@ template<class T> int fillindex(T *d_odata,T *d_idata,int *indx,int N)
 
   if (nThreads > maxThreads) {
     nThreads = maxThreads;
-    nBlocks = (N + nThreads  -1)/nThreads;
+    nBlocks = min( deviceProperties.maxGridSize[0],(N + nThreads  -1)/nThreads);
   }
 
   dim3 grid(nBlocks), threads(nThreads);
@@ -188,7 +188,7 @@ template<class T> int fillvalues(T *d_odata,unsigned int *indx,int N)
 
   if (nThreads > maxThreads) {
     nThreads = maxThreads;
-    nBlocks = (N + nThreads  -1)/nThreads;
+    nBlocks = min( deviceProperties.maxGridSize[0],(N + nThreads  -1)/nThreads);
   }
 
   dim3 grid(nBlocks), threads(nThreads);
@@ -233,7 +233,7 @@ template<class T> int getarray2d(T *d_odata,T *d_idata,int x0, int Ncol,int NC, 
 
   if (nThreads > maxThreads) {
     nThreads = maxThreads;
-    nBlocks = (N + nThreads  -1)/nThreads;
+    nBlocks = min( deviceProperties.maxGridSize[0],(N + nThreads  -1)/nThreads);
   }
 
   dim3 grid(nBlocks), threads(nThreads);
@@ -278,7 +278,7 @@ template<class T> int fillarray2d(T *d_odata,T *d_idata,int x0, int Ncol,int NC,
 
   if (nThreads > maxThreads) {
     nThreads = maxThreads;
-    nBlocks = (N + nThreads  -1)/nThreads;
+    nBlocks = min( deviceProperties.maxGridSize[0],(N + nThreads  -1)/nThreads);
   }
 
   dim3 grid(nBlocks), threads(nThreads);
@@ -319,7 +319,7 @@ template<class T> int carma_plus(T *d_odata,T alpha,int N)
 
   if (nThreads > maxThreads) {
     nThreads = maxThreads;
-    nBlocks = (N + nThreads  -1)/nThreads;
+    nBlocks = min( deviceProperties.maxGridSize[0],(N + nThreads  -1)/nThreads);
   }
 
   dim3 grid(nBlocks), threads(nThreads);
@@ -361,7 +361,7 @@ template<class T> int carma_plusai(T *d_odata,T *i_data, int i,int sgn, int N)
 
   if (nThreads > maxThreads) {
     nThreads = maxThreads;
-    nBlocks = (N + nThreads  -1)/nThreads;
+    nBlocks = min( deviceProperties.maxGridSize[0],(N + nThreads  -1)/nThreads);
   }
 
   dim3 grid(nBlocks), threads(nThreads);
@@ -404,7 +404,7 @@ template<class T> int fillarray2d2(T *d_odata,T *d_idata,int x0, int Ncol,int NC
 
   if (nThreads > maxThreads) {
     nThreads = maxThreads;
-    nBlocks = (N + nThreads  -1)/nThreads;
+    nBlocks = min( deviceProperties.maxGridSize[0],(N + nThreads  -1)/nThreads);
   }
 
   dim3 grid(nBlocks), threads(nThreads);
@@ -454,7 +454,7 @@ template<class T> int fill_sym_matrix(char uplo, T *d_data, int Ncol, int N)
 
   if (nThreads > maxThreads) {
     nThreads = maxThreads;
-    nBlocks = min(65535,(N + nThreads  -1)/nThreads);
+    nBlocks = min( deviceProperties.maxGridSize[0],(N + nThreads  -1)/nThreads);
   }
 
   dim3 grid(nBlocks), threads(nThreads);
