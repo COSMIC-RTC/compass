@@ -4,9 +4,10 @@ require,"util_fr.i";
 
 func bench_evd(n, niter)
 {
-  tmp = random_n(n, n);
-  mat= tmp(,+)*tmp(,+);
-  d_mat = yoga_obj(mat);
+  tmp = yoga_obj(random(n, n)-0.5);
+  d_mat = yoga_mm(tmp, tmp, 'n', 't')
+  mat = d_mat(); //tmp(,+)*tmp(,+);
+
   d_U = yoga_obj(mat*0.);
   h_EV = array(0., n);
   write, "doing yoga_syevd, d_mat, h_EV, d_U... ";
@@ -25,22 +26,15 @@ func bench_evd(n, niter)
 
 func check_getri(n)
 {
-  mat = random_n(n, n);
+  tmp = yoga_obj(random(n, n)-0.5);
+  d_mat = yoga_mm(tmp, tmp, 'n', 't')
+  mat = d_mat(); //tmp(,+)*tmp(,+);
+
   write, format="%s", "doing i_mat= LUsolve(mat)... ";
   tic; i_mat= LUsolve(mat); tps1=tac();
   write, format="in %0.3fs\n", tps1;
 
-  write, "\ntest with float";
-  d_mat = yoga_obj(float(mat));
-  write, format="%s", "doing yoga_getri, d_mat... ";
-  tic; yoga_getri, d_mat; tps2=tac();
-  write, format="in %0.3fs (x%0.3f)\n", tps2, tps1/tps2;
-
-  write, "max(abs(d_mat() - i_mat))";
-  max(abs(d_mat() - i_mat));
-  
   write, "\ntest with double";
-  d_mat = yoga_obj(mat);
   write, format="%s", "doing yoga_getri, d_mat... ";
   tic; yoga_getri, d_mat; tps2=tac();
   write, format="in %0.3fs (x%0.3f)\n", tps2, tps1/tps2;
@@ -52,62 +46,53 @@ func check_getri(n)
   max(abs(mat(,+)*d_mat()(+,)-unit(n)));
 }
 
-func check_potri(n)
+func check_potri(n, compare_yorick)
 {
-  tmp = random_n(n, n);
-  mat = tmp(,+)*tmp(,+);
-  write, format="%s", "doing i_mat= LUsolve(mat)... ";
-  tic; i_mat= LUsolve(mat); tps1=tac();
-  write, format="in %0.3fs\n", tps1;
+  if(is_void(compare_yorick)) compare_yorick=0
 
-  write, "\ntest with float";
-  d_mat = yoga_obj(float(mat));
+  tmp = yoga_obj(random(n, n)-0.5);
+  d_mat = yoga_mm(tmp, tmp, 'n', 't')
+  mat = d_mat(); //tmp(,+)*tmp(,+);
+
+  if(compare_yorick){
+    write, format="%s", "doing i_mat= LUsolve(mat)... ";
+    tic; i_mat= LUsolve(mat); tps1=tac();
+    write, format="in %0.3fs\n", tps1;
+  }
+
+  write, "\ntest yoga_potri with double";
   write, format="%s", "doing yoga_potri, d_mat... ";
   tic; yoga_potri, d_mat; tps2=tac();
-  write, format="in %0.3fs (x%0.3f)\n", tps2, tps1/tps2;
 
-  write, "max(abs(d_mat() - i_mat))";
-  max(abs(d_mat() - i_mat));
-  
-  write, "\ntest with double";
-  d_mat = yoga_obj(mat);
-  write, format="%s", "doing yoga_potri, d_mat... ";
-  tic; yoga_potri, d_mat; tps2=tac();
-  write, format="in %0.3fs (x%0.3f)\n", tps2, tps1/tps2;
+  if(compare_yorick){
+    write, format="in %0.3fs (x%0.3f)\n", tps2, tps1/tps2;
+    write, "max(abs(d_mat() - i_mat))";
+    max(abs(d_mat() - i_mat));
+    window, 0;
+    pli, d_mat();
+    window, 1;
+    pli, i_mat;
+  } else {
+    write, format="in %0.3fs\n", tps2;
+  }
 
-  write, "max(abs(d_mat() - i_mat))";
-  max(abs(d_mat() - i_mat));
-  //window, 0;
-  //pli, d_mat();
-  //window, 1;
-  //pli, i_mat;
-
-  "max(abs( mat(,+)*d_mat()(+,) - unit(n) ));"
-  max(abs(mat(,+)*d_mat()(+,)-unit(n)));
+  tmp2=  yoga_mm(tmp, tmp, 'n', 't');
+  tmp3=  yoga_mm(tmp2, d_mat, 'n', 't');
+  "max(abs( mat(,+)*d_mat()(+,) - unit(n) ));";
+  max(abs(tmp3()-unit(n)));
 }
 
 func check_syevd(n)
 {
-  tmp = random_n(n, n);
-  mat= tmp(,+)*tmp(,+);
+  tmp = yoga_obj(random(n, n)-0.5);
+  d_mat = yoga_mm(tmp, tmp, 'n', 't')
+  mat = d_mat(); //tmp(,+)*tmp(,+);
 
   write, format="%s", "doing y_EV = SVdec(mat)... ";
   tic; y_EV = SVdec(mat); tps1=tac();
   write, format="in %0.3fs\n", tps2;
 
-  write, "\ntest with float";
-  d_mat = yoga_obj(float(mat));
-  d_U = yoga_obj(mat*0.f);
-  h_EV = array(0.f, n);
-  write, format="%s", "doing yoga_syevd, d_mat, h_EV, d_U... ";
-  tic; yoga_syevd, d_mat, h_EV, d_U; tps2=tac();
-  write, format="in %0.3fs (x%0.3f)\n", tps2, tps1/tps2;
-
-  write, "max(abs(h_EV(::-1) - y_EV))";
-  max(abs(h_EV(::-1) - y_EV));
-  
   write, "\ntest with double";
-  d_mat = yoga_obj(mat);
   d_U = yoga_obj(mat*0.);
   h_EV = array(0., n);
   write, format="%s", "doing yoga_syevd, d_mat, h_EV, d_U... ";

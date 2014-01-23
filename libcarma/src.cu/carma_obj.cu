@@ -454,7 +454,7 @@ template<class T> int fill_sym_matrix(char uplo, T *d_data, int Ncol, int N)
 
   if (nThreads > maxThreads) {
     nThreads = maxThreads;
-    nBlocks = (N + nThreads  -1)/nThreads;
+    nBlocks = min(65535,(N + nThreads  -1)/nThreads);
   }
 
   dim3 grid(nBlocks), threads(nThreads);
@@ -462,7 +462,7 @@ template<class T> int fill_sym_matrix(char uplo, T *d_data, int Ncol, int N)
 
   kern_fill_sym_matrix<<<grid, threads>>>(uplo, d_data, Ncol,N);
 
-  cutilCheckMsg("kern_fill_lower_matrix<<<>>> execution failed\n");
+  cutilCheckMsg("kern_fill_sym_matrix<<<>>> execution failed");
 
    return EXIT_SUCCESS;
 }
