@@ -617,6 +617,14 @@ extern rtc_getcmat;
    SEE ALSO:
  */
 
+extern rtc_setcmat;
+/* DOCUMENT rtc_setcmat
+   rtc_setcmat,yoga_rtc_obj,ncontroler,cmat
+   set cmat for a controler in a yoga_rtc_obj object
+      
+   SEE ALSO:
+ */
+
 extern rtc_buildcmat;
 /* DOCUMENT rtc_buildcmat
    rtc_buildcmat,yoga_rtc_obj,ncontroler,nfilt,filt_tt
