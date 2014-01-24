@@ -80,6 +80,29 @@ func check_potri(n, compare_yorick)
   tmp3=  yoga_mm(tmp2, d_mat, 'n', 't');
   "max(abs( mat(,+)*d_mat()(+,) - unit(n) ));";
   max(abs(tmp3()-unit(n)));
+/*
+  h_tmp=mat;
+  write, "\ntest yoga_potri with double (multiGPU)";
+  write, format="%s", "doing yoga_potri_mgpu, 2, mat, d_mat... ";
+  tic; yoga_potri_mgpu, 2, h_tmp, d_mat; tps3=tac();
+
+  if(compare_yorick){
+    write, format="in %0.3fs (x%0.3f)\n", tps3, tps1/tps3;
+    write, "max(abs(d_mat() - i_mat))";
+    max(abs(d_mat() - i_mat));
+    window, 0;
+    pli, d_mat();
+    window, 1;
+    pli, i_mat;
+  } else {
+    write, format="in %0.3fs\n", tps3;
+  }
+
+  tmp2=  yoga_mm(tmp, tmp, 'n', 't');
+  tmp3=  yoga_mm(tmp2, d_mat, 'n', 't');
+  "max(abs( mat(,+)*d_mat()(+,) - unit(n) ));";
+  max(abs(tmp3()-unit(n)));
+*/
 }
 
 func check_syevd(n)

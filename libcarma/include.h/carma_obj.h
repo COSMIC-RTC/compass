@@ -286,6 +286,7 @@ template<class T> int carma_syevd(carma_obj<T> *mat, T *eigenvals, carma_obj<T> 
 template<class T> int carma_getri(T *h_A, carma_obj<T> *d_iA);
 template<class T> int carma_getri(carma_obj<T> *d_iA);
 template<class T> int carma_potri(carma_obj<T> *d_iA);
+template<class T> int carma_potri(int num_gpus, T *h_A, carma_obj<T> *d_iA);
 #else
 template<class T> int carma_svd(carma_obj<T> *imat, carma_obj<T> *eigenvals, carma_obj<T> *mod2act, carma_obj<T> *mes2mod) {
   cerr << "!!!!!! MAGMA not compiled !!!!!!" << endl;
@@ -304,6 +305,10 @@ template<class T> int carma_getri(T *h_A, carma_obj<T> *d_iA) {
   return EXIT_SUCCESS;
 }
 template<class T> int carma_potri(carma_obj<T> *d_iA) {
+  cerr << "!!!!!! MAGMA not compiled !!!!!!" << endl;
+  return EXIT_SUCCESS;
+}
+template<class T> int carma_potri(int num_gpus, carma_obj<T> *d_iA) {
   cerr << "!!!!!! MAGMA not compiled !!!!!!" << endl;
   return EXIT_SUCCESS;
 }

@@ -322,6 +322,7 @@ int carma_obj<T_data>::copyToDevice(T_data *data, int nb_elem){
   return EXIT_SUCCESS;
 }
 template int caObjS::copyToDevice(float *data, int nb_elem);
+template int caObjD::copyToDevice(double *data, int nb_elem);
 
 template<class T_data>
 int carma_obj<T_data>::copyFromDevice(T_data *data, int nb_elem){

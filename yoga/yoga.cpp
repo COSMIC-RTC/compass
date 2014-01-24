@@ -3418,6 +3418,38 @@ void Y_yoga_potri(int argc)
   }
 }
 
+void Y_yoga_potri_mgpu(int argc)
+/** @brief computes the inverse of a real symmetric positive definite matrix using the Cholesky factorization
+ *  @param[in] argc : command line arguments
+ *    - first   : the number of GPU
+ *    - second  : the CPU array to be inversed (warning this object will be used during the inversion)
+ *    - third   : the yoga_obj result
+ *  only floating point matrices can be decomposed (single or double precision)
+ */
+{
+  if (yarg_subroutine()) {
+	  int yType;
+      long ntot;
+      long dims[Y_DIMSIZE];
+
+      int ngpus = ygets_i(argc-1);
+	void *mat=ygeta_any(argc-2, &ntot, dims, &yType);
+    yObj_struct *handle_mat = (yObj_struct *) yget_obj(argc - 3, &yObj);
+
+    if (handle_mat->type == Y_FLOAT) {
+      caObjS *carma_obj_handler_mat = (caObjS *) (handle_mat->carma_object);
+      carma_potri(ngpus, (float*)mat, carma_obj_handler_mat);
+    } else if (handle_mat->type == Y_DOUBLE) {
+      caObjD *carma_obj_handler_mat = (caObjD *) (handle_mat->carma_object);
+      carma_potri(ngpus, (double*)mat, carma_obj_handler_mat);
+    } else {
+      y_error("carma_potri not implemented for this type");
+   }
+  } else {
+    y_error("yoga_potri must be call as a subroutine");
+  }
+}
+
 void Y_yoga_svd_host(int argc)
 /** @brief wrapper routine for yoga svd method using magma on a yoga_host_obj
  *  @param[in] argc : command line arguments

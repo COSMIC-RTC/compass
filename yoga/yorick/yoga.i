@@ -661,8 +661,8 @@ extern yoga_getri;
    yoga_getri,h_mat, d_mat
 
    This function computes the inverse of a matrix d_mat (or h_mat) using the LU factorization
-   d_mat   : yoga_obj n x n
-   h_mat   : array n x n
+   d_mat   : n x n (CArMA obj)
+   h_mat   : n x n (yArray)
    
    WARNING : d_mat will be replaced by its inverse
    
@@ -671,10 +671,24 @@ extern yoga_getri;
 
 extern yoga_potri;
 /* DOCUMENT yoga_potri
-   yoga_potri,mat
+   yoga_potri,d_mat
 
    This function computes the inverse of a real symmetric positive definite matrix mat using the LU factorization
-   mat   : n x n
+   d_mat   : n x n (CArMA obj)
+   
+   WARNING : mat will be replaced by its inverse
+   
+   SEE ALSO:
+ */
+
+extern yoga_potri_mgpu;
+/* DOCUMENT yoga_potri_mgpu
+   yoga_potri_mgpu, ngpus, h_mat, d_mat
+
+   This function computes the inverse of a real symmetric positive definite matrix mat using the LU factorization
+   ngpus : number of GPUs
+   h_mat   : n x n (yArray)
+   d_mat   : n x n (CArMA obj)
    
    WARNING : mat will be replaced by its inverse
    
