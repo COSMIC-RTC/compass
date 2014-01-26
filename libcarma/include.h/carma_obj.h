@@ -283,16 +283,21 @@ int carma_fftconv(caObjS *data_out, caObjS *padded_data, caObjC *padded_spectrum
 // MAGMA functions
 template<class T> int carma_svd(carma_obj<T> *imat, carma_obj<T> *eigenvals, carma_obj<T> *mod2act, carma_obj<T> *mes2mod);
 template<class T> int carma_syevd(carma_obj<T> *mat, T *eigenvals, carma_obj<T> *U);
+template<class T> int carma_syevd_m(long ngpu, T *mat, T *eigenvals, T *U, long N);
 template<class T> int carma_getri(T *h_A, carma_obj<T> *d_iA);
 template<class T> int carma_getri(carma_obj<T> *d_iA);
 template<class T> int carma_potri(carma_obj<T> *d_iA);
-template<class T> int carma_potri(int num_gpus, T *h_A, carma_obj<T> *d_iA);
+template<class T> int carma_potri(long num_gpus, T *h_A, carma_obj<T> *d_iA);
 #else
 template<class T> int carma_svd(carma_obj<T> *imat, carma_obj<T> *eigenvals, carma_obj<T> *mod2act, carma_obj<T> *mes2mod) {
   cerr << "!!!!!! MAGMA not compiled !!!!!!" << endl;
   return EXIT_SUCCESS;
 }
 template<class T> int carma_syevd(carma_obj<T> *mat, T *eigenvals, carma_obj<T> *U){
+  cerr << "!!!!!! MAGMA not compiled !!!!!!" << endl;
+  return EXIT_SUCCESS;
+}
+template<class T> int carma_syevd_m(int ngpu, T *mat, T *eigenvals, T *U, int N){
   cerr << "!!!!!! MAGMA not compiled !!!!!!" << endl;
   return EXIT_SUCCESS;
 }

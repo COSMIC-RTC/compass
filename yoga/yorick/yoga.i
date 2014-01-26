@@ -655,6 +655,19 @@ extern yoga_syevd;
    SEE ALSO:
  */
 
+extern yoga_syevd_m;
+/* DOCUMENT yoga_syevd_m
+   yoga_syevd_m, ngpu,mat,eigenvals,u
+
+   This function computes the svd of matrix mat
+   ngpu  : number of gpu
+   mat   : n x n (yArray)
+   eigen : 1 x n (yArray)
+   U     : n x n (yArray)
+   
+   SEE ALSO:
+ */
+
 extern yoga_getri;
 /* DOCUMENT yoga_getri
    yoga_getri,d_mat or

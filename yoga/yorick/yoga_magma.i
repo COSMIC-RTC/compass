@@ -132,6 +132,62 @@ func check_syevd(n)
   logxy,0,1;
 }
 
+func check_syevd_m(n, ngpu)
+{
+  if(is_void(ngpu)) ngpu=1;
+  
+  tmp = yoga_obj(random(n, n)-0.5);
+  d_mat = yoga_mm(tmp, tmp, 'n', 't')
+  mat = d_mat(); //tmp(,+)*tmp(,+);
+
+  write, format="%s", "doing y_EV = SVdec(mat)... ";
+  tic; y_EV = SVdec(mat); tps1=tac();
+  write, format="in %0.3fs\n", tps2;
+
+  write, "\ntest with double";
+  h_U  = mat*0.;
+  h_EV = array(0., n);
+  write, format="%s", "doing yoga_syevd_m, ngpu, mat, h_EV, h_U... ";
+  tic; yoga_syevd_m, ngpu, mat, h_EV, h_U; tps2=tac();
+  write, format="in %0.3fs (x%0.3f)\n", tps2, tps1/tps2;
+
+  write, "max(abs(h_EV(::-1) - y_EV))";
+  max(abs(h_EV(::-1) - y_EV));
+
+  fma;
+  plg,h_EV(::-1),color="red",  marks=0,width=4;
+  plg,y_EV      ,color="green",marks=0,width=4;
+  pltitle,"eigenvalues";
+  logxy,0,1;
+}
+
+func compare_syevd(n, ngpu)
+{
+  if(is_void(ngpu)) ngpu=1;
+  
+  tmp = yoga_obj(random(n, n)-0.5);
+  d_mat = yoga_mm(tmp, tmp, 'n', 't')
+  mat = d_mat(); //tmp(,+)*tmp(,+);
+
+  write, "\ntest with double";
+  d_U = yoga_obj(mat*0.);
+  h_EV = array(0., n);
+  write, format="%s", "doing yoga_syevd, d_mat, h_EV, d_U... ";
+  tic; yoga_syevd, d_mat, h_EV, d_U; tps1=tac();
+  write, format="in %0.3fs\n", tps1;
+
+  write, "\ntest with double";
+  h_U  = mat*0.;
+  h_EV2 = array(0., n);
+  write, format="%s", "doing yoga_syevd_m, ngpu, mat, h_EV, h_U... ";
+  tic; yoga_syevd_m, ngpu, mat, h_EV2, h_U; tps2=tac();
+  write, format="in %0.3fs (x%0.3f)\n", tps2, tps1/tps2;
+
+  write, "max(abs(h_EV - h_EV2))";
+  max(abs(h_EV - h_EV2));
+
+}
+
 func check_svd(n,m)
 {
   //n=4096; m=128;

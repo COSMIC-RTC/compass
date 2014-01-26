@@ -3323,7 +3323,7 @@ void Y_yoga_syevd(int argc)
  *  @param[in] argc : command line arguments
  *    - first  : the yoga_obj to be decomposed (must be symmetric)
  *    - second : an array for eignevalues
- *    - third  : a yoga_obj for thr U matrix
+ *    - third  : a yoga_obj for the U matrix
  *  only floating point matrices can be decomposed (single or double precision)
  */
 {
@@ -3349,6 +3349,39 @@ void Y_yoga_syevd(int argc)
     }
   } else {
     y_error("yoga_syevd must be call as a subroutine");
+  }
+}
+
+void Y_yoga_syevd_m(int argc)
+/** @brief wrapper routine for yoga evd method using magma
+ *  @param[in] argc : command line arguments
+ *    - first  : the number of GPUs
+ *    - second : the yArray to be decomposed (must be symmetric)
+ *    - third  : an yArray for eignevalues
+ *    - fourth : an yArray for the U matrix
+ *    - fifth  : size of the matrix
+ *  only floating point matrices can be decomposed (single or double precision)
+ */
+{
+  if (yarg_subroutine()) {
+    long ngpu = ygets_l(argc - 1);
+    long ntot;
+    int yType;
+    long dims[Y_DIMSIZE];
+    void *mat = ygeta_any(argc - 2, &ntot, dims, &yType);
+    void *eigenvals = ygeta_any(argc - 3, &ntot, dims, &yType);
+    void *U = ygeta_any(argc - 4, &ntot, dims, &yType);
+    long N = dims[1];
+
+    if (yType == Y_FLOAT) {
+      carma_syevd_m(ngpu, (float*)mat, (float*)eigenvals, (float*)U, N);
+    } else if (yType == Y_DOUBLE) {
+      carma_syevd_m(ngpu, (double*)mat, (double*)eigenvals, (double*)U, N);
+    } else {
+      y_error("carma_syevd_m not implemented for this type");
+    }
+  } else {
+    y_error("yoga_syevd_m must be call as a subroutine");
   }
 }
 
