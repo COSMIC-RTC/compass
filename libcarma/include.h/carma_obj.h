@@ -282,8 +282,9 @@ int carma_fftconv(caObjS *data_out, caObjS *padded_data, caObjC *padded_spectrum
 #ifdef USE_MAGMA
 // MAGMA functions
 template<class T> int carma_svd(carma_obj<T> *imat, carma_obj<T> *eigenvals, carma_obj<T> *mod2act, carma_obj<T> *mes2mod);
-template<class T> int carma_syevd(carma_obj<T> *mat, T *eigenvals, carma_obj<T> *U);
-template<class T> int carma_syevd_m(long ngpu, T *mat, T *eigenvals, T *U, long N);
+template<class T> int carma_syevd(char jobz, carma_obj<T> *mat, T *eigenvals, carma_obj<T> *U);
+template<class T> int carma_syevd(char jobz, carma_obj<T> *mat, T *eigenvals);
+template<class T> int carma_syevd_m(long ngpu, char jobz, T *mat, T *eigenvals, T *U, long N);
 template<class T> int carma_getri(T *h_A, carma_obj<T> *d_iA);
 template<class T> int carma_getri(carma_obj<T> *d_iA);
 template<class T> int carma_potri(carma_obj<T> *d_iA);

@@ -645,12 +645,13 @@ extern yoga_svd;
 
 extern yoga_syevd;
 /* DOCUMENT yoga_syevd
-   yoga_syevd,mat,eigenvals,u
-
+      yoga_syevd,mat,eigenvals,u
+   OR yoga_syevd,mat,eigenvals
+   
    This function computes the svd of matrix mat
-   mat   : n x n (CArMA obj)
+   mat   : n x n (CArMA obj) (change into U if U not given)
    eigen : 1 x n (yArray)
-   U     : n x n (CArMA obj)
+   U     : n x n (CArMA obj) (optional)
    
    SEE ALSO:
  */

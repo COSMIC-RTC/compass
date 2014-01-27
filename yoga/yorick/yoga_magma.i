@@ -125,11 +125,22 @@ func check_syevd(n)
   write, "max(abs(h_EV(::-1) - y_EV))";
   max(abs(h_EV(::-1) - y_EV));
 
+  write, "\ntest with double inplace";
+  //d_U = yoga_obj(mat*0.);
+  h_EV = array(0., n);
+  write, format="%s", "doing yoga_syevd, d_mat, h_EV... ";
+  tic; yoga_syevd, d_mat, h_EV; tps2=tac();
+  write, format="in %0.3fs (x%0.3f)\n", tps2, tps1/tps2;
+
+  write, "max(abs(h_EV(::-1) - y_EV))";
+  max(abs(h_EV(::-1) - y_EV));
+/*
   fma;
   plg,h_EV(::-1),color="red",  marks=0,width=4;
   plg,y_EV      ,color="green",marks=0,width=4;
   pltitle,"eigenvalues";
   logxy,0,1;
+*/
 }
 
 func check_syevd_m(n, ngpu)
@@ -175,6 +186,26 @@ func compare_syevd(n, ngpu)
   write, format="%s", "doing yoga_syevd, d_mat, h_EV, d_U... ";
   tic; yoga_syevd, d_mat, h_EV, d_U; tps1=tac();
   write, format="in %0.3fs\n", tps1;
+
+  write, "\ntest with double inplace";
+  h_EV = array(0., n);
+  write, format="%s", "doing yoga_syevd, d_mat, h_EV... ";
+  tic; yoga_syevd, d_mat, h_EV; tps2=tac();
+  write, format="in %0.3fs (x%0.3f)\n", tps2, tps1/tps2;
+
+  d_mat = yoga_mm(tmp, tmp, 'n', 't')
+  write, "\ntest with double (without U computation)";
+  d_U = yoga_obj(mat*0.);
+  h_EV = array(0., n);
+  write, format="%s", "doing yoga_syevd, d_mat, h_EV, d_U, noComputeU=1... ";
+  tic; yoga_syevd, d_mat, h_EV, d_U, noComputeU=1; tps2=tac();
+  write, format="in %0.3fs (x%0.3f)\n", tps2, tps1/tps2;
+
+  write, "\ntest with double inplace (without U computation)";
+  h_EV = array(0., n);
+  write, format="%s", "doing yoga_syevd, d_mat, h_EV, noComputeU=1... ";
+  tic; yoga_syevd, d_mat, h_EV, noComputeU=1; tps2=tac();
+  write, format="in %0.3fs (x%0.3f)\n", tps2, tps1/tps2;
 
   write, "\ntest with double";
   h_U  = mat*0.;
