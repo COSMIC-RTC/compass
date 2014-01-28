@@ -290,15 +290,20 @@ template<class T> int carma_getri(carma_obj<T> *d_iA);
 template<class T> int carma_potri(carma_obj<T> *d_iA);
 template<class T> int carma_potri(long num_gpus, T *h_A, carma_obj<T> *d_iA);
 #else
+// #warning "MAGMA not used"
 template<class T> int carma_svd(carma_obj<T> *imat, carma_obj<T> *eigenvals, carma_obj<T> *mod2act, carma_obj<T> *mes2mod) {
   cerr << "!!!!!! MAGMA not compiled !!!!!!" << endl;
   return EXIT_SUCCESS;
 }
-template<class T> int carma_syevd(carma_obj<T> *mat, T *eigenvals, carma_obj<T> *U){
+template<class T> int carma_syevd(char jobz, carma_obj<T> *mat, T *eigenvals, carma_obj<T> *U){
   cerr << "!!!!!! MAGMA not compiled !!!!!!" << endl;
   return EXIT_SUCCESS;
 }
-template<class T> int carma_syevd_m(int ngpu, T *mat, T *eigenvals, T *U, int N){
+template<class T> int carma_syevd(char jobz, carma_obj<T> *mat, T *eigenvals){
+  cerr << "!!!!!! MAGMA not compiled !!!!!!" << endl;
+  return EXIT_SUCCESS;
+}
+template<class T> int carma_syevd_m(int ngpu, char jobz, T *mat, T *eigenvals, T *U, int N){
   cerr << "!!!!!! MAGMA not compiled !!!!!!" << endl;
   return EXIT_SUCCESS;
 }
@@ -314,15 +319,23 @@ template<class T> int carma_potri(carma_obj<T> *d_iA) {
   cerr << "!!!!!! MAGMA not compiled !!!!!!" << endl;
   return EXIT_SUCCESS;
 }
-template<class T> int carma_potri(int num_gpus, carma_obj<T> *d_iA) {
+template<class T> int carma_potri(long num_gpus, T *h_A, carma_obj<T> *d_iA){
   cerr << "!!!!!! MAGMA not compiled !!!!!!" << endl;
   return EXIT_SUCCESS;
 }
 #endif
 
+#ifdef USE_CULA
 // CULA functions
 template<class T> int carma_cula_svd(carma_obj<T> *imat, carma_obj<T> *eigenvals, carma_obj<T> *mod2act, carma_obj<T> *mes2mod);
-//
+template <class T> int carma_cula_svd(carma_host_obj<T> *imat, carma_host_obj<T> *eigenvals, carma_host_obj<T> *mod2act, carma_host_obj<T> *mes2mod);
+#else
+// #warning "CULA not used"
+template<class T> int carma_cula_svd(carma_obj<T> *imat, carma_obj<T> *eigenvals, carma_obj<T> *mod2act, carma_obj<T> *mes2mod){
+cerr << "!!!!!! CULA not used !!!!!!" << endl;
+return EXIT_SUCCESS;
+}
+#endif
 
 extern "C" {
 void sumGetNumBlocksAndThreads(int n, int device, int &blocks, int &threads);

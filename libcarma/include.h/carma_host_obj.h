@@ -109,13 +109,22 @@ public:
 template <class T_data> int carma_svd(carma_host_obj<T_data> *imat, carma_host_obj<T_data> *eigenvals,
     carma_host_obj<T_data> *mod2act, carma_host_obj<T_data> *mes2mod);
 #else
+// #warning "MAGMA not used"
 template<class T_data> int carma_svd(carma_host_obj<T_data> *imat, carma_host_obj<T_data> *eigenvals, carma_host_obj<T_data> *mod2act, carma_host_obj<T_data> *mes2mod) {
   cerr << "!!!!!! MAGMA not compiled !!!!!!" << endl;
   return EXIT_SUCCESS;
 }
 #endif
 
+#ifdef USE_CULA
 template<class T_data> int carma_cula_svd(carma_host_obj<T_data> *imat, carma_host_obj<T_data> *eigenvals, carma_host_obj<T_data> *mod2act, carma_host_obj<T_data> *mes2mod);
+#else
+// #warning "CULA not used"
+template<class T_data> int carma_cula_svd(carma_host_obj<T_data> *imat, carma_host_obj<T_data> *eigenvals, carma_host_obj<T_data> *mod2act, carma_host_obj<T_data> *mes2mod){
+cerr << "!!!!!! CULA not used !!!!!!" << endl;
+return EXIT_SUCCESS;
+}
+#endif
 /* 
  extern "C" {
 

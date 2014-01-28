@@ -37,6 +37,14 @@ PKG_CPPFLAGS = -Wall -fno-common -I$(COMPASS_ROOT_DIR)/libcarma/include.h -I$(CO
 #PKG_CPPFLAGS = -I.. -I../cudpp/
 #-DDEBUG
 
+ifneq ($(CULA_ROOT),)
+  PKG_CPPFLAGS += -DUSE_CULA
+endif
+
+ifneq ($(MAGMA_ROOT),)
+  PKG_CPPFLAGS += -DUSE_MAGMA 
+endif
+
 ifneq ($(DEBUG),)
 PKG_CPPFLAGS+= -g -DDEBUG
 endif

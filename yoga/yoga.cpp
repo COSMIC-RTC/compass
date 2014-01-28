@@ -28,7 +28,6 @@
 #include <carma.h>
 #include <sstream>
 #include <iomanip>
-#include <cula.hpp>
 #include "yoga_api.h"
 #include <cudaProfiler.h>
 
@@ -228,7 +227,6 @@ void _yogaThreadExit()
  */
 {
 	//cerr << "Shutting down : " ;
-	culaShutdown();
 	cutilSafeCall(cudaThreadExit());
 	//cerr << "OK " << __LINE__ << endl;
 }
@@ -244,12 +242,6 @@ void _yoga_init()
 /*! \brief simple routine for general init at YoGA launch
  */
 {
-	culaStatus status = culaInitialize();
-	if (status) {
-		char buf[256];
-		culaGetErrorInfoString(status, culaGetErrorInfo(), buf, sizeof(buf));
-		printf("%s\n", buf);
-	}
 	ycall_on_quit(_yogaThreadExit);
 }
 

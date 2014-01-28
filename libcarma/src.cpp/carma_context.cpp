@@ -2,12 +2,15 @@
 #include <iostream>
 #include <sstream>
 #include <sys/time.h>
+
+#ifdef USE_CULA
 #include <cula.hpp>
+#endif
 
 #ifdef USE_MAGMA
-  // MAGMA headers
-  #include "magma.h"
-  #include "magma_lapack.h"
+// MAGMA headers
+#include "magma.h"
+#include "magma_lapack.h"
 #endif
 
 
@@ -81,8 +84,18 @@ carma_context::carma_context()
 
   carma_initCublas(&cublasHandle);
 
+#ifdef USE_CULA
+  // CULA init 
+  culaStatus status = culaInitialize();
+  if (status) {
+    char buf[256];
+    culaGetErrorInfoString(status, culaGetErrorInfo(), buf, sizeof(buf));
+    printf("%s\n", buf);
+  }
+#endif
+
 #ifdef USE_MAGMA
-// MAGMA init 
+  // MAGMA init 
   magma_init();
 #endif
 
@@ -93,6 +106,11 @@ carma_context::carma_context()
 
 carma_context::~carma_context()
 {
+#ifdef USE_CULA
+  // CULA finalize
+  culaShutdown();
+#endif
+
 #ifdef USE_MAGMA
 // MAGMA finalize
   magma_finalize();
@@ -123,12 +141,14 @@ int carma_context::set_activeDevice(int newDevice, int silent){
 		cudaDeviceProp deviceProp;
 		cutilSafeCall( cudaGetDeviceProperties(&deviceProp, newDevice) );
 		cutilSafeCall( cudaSetDevice(newDevice) );
+#ifdef USE_CULA
 		culaStatus status = culaSelectDevice(newDevice);
 		if(status){
 			char buf[256];
 			culaGetErrorInfoString(status, culaGetErrorInfo(), buf, sizeof(buf));
 			printf("%s\n", buf);
 		}
+#endif
 		if(!silent)
 		  cout << "Using device " << newDevice <<": \"" << deviceProp.name
 				<< "\" with Compute " << deviceProp.major << "."

@@ -17,7 +17,16 @@ LIB_DEPLIBS += -L$(COMPASS_ROOT_DIR)/libcarma -lcarma
 
 # set compiler (or rarely loader) flags specific to this package
 
-LIB_CPPFLAGS = -c -fPIC -Wall -DUNIX -I$(H_DIR) -I$(COMPASS_ROOT_DIR)/libcarma/$(H_DIR) -I$(CUDA_INC_PATH) #-I/usr/local/cula/include
+LIB_CPPFLAGS = -c -fPIC -Wall -DUNIX -I$(H_DIR) -I$(COMPASS_ROOT_DIR)/libcarma/$(H_DIR) -I$(CUDA_INC_PATH) 
+
+ifneq ($(CULA_ROOT),)
+  LIB_CPPFLAGS += -DUSE_CULA
+endif
+
+ifneq ($(MAGMA_ROOT),)
+  LIB_CPPFLAGS += -DUSE_MAGMA 
+endif
+
 ifneq ($(DEBUG),)
 LIB_CPPFLAGS+= -g -DDEBUG
 endif
@@ -32,7 +41,16 @@ endif
 NVCC = $(CUDA_ROOT)/bin/nvcc
 NVCCFLAGS = -m64 -Xcompiler -fPIC -use_fast_math -c -I$(CUH_DIR)  -I$(H_DIR) -I$(COMPASS_ROOT_DIR)/libcarma/$(CUH_DIR)  -I$(COMPASS_ROOT_DIR)/libcarma/$(H_DIR) #-gencode $(GENCODE)
 
-#-gencode arch=compute_11,code=sm_11 -gencode arch=compute_13,code=sm_13 -gencode arch=compute_20,code=sm_20 -gencode arch=compute_30,code=sm_30 -gencode arch=compute_35,code=sm_35 #-I/usr/local/cula/include # --ptxas-options=-v #-arch sm_13 --compiler-options -fpermissive 
+ifneq ($(DEBUG),)
+NVCCFLAGS+= -g -DDEBUG
+endif
+ifneq ($(CULA_ROOT),)
+ NVCCFLAGS += -DUSE_CULA
+endif
+ifneq ($(MAGMA_ROOT),)
+ NVCCFLAGS += -DUSE_MAGMA 
+endif
+
 
 all: $(LIB_NAME)
 
@@ -45,9 +63,10 @@ $(OBJ_DIR)/%.cuo: $(CU_DIR)/%.cu
 
 $(OBJ_DIR)/%.o: $(CPP_DIR)/%.cpp
 	@printf '\033[36m%s\033[31m%s\033[m\n' "Compiling     " $@
-	@$(GCC) $(CFLAGS) -DADD_ $(LIB_CPPFLAGS) -c -o $@ $< #@$(GCC) $(CFLAGS) -DADD_ $(LIB_CPPFLAGS) -c -o $@ $<
+	@$(GCC) $(CFLAGS) -DADD_ $(LIB_CPPFLAGS) -c -o $@ $< 
 
 $(LIB_NAME): $(OBJS)
 	@printf '\033[36m%s\033[31m%s\033[m\n' "Linking       " $(LIB_NAME)
-	@$(GCC) -shared $(LIB_DEPLIBS) -o $@ $^ #@$(GCC) -shared $(LIB_DEPLIBS) -o $@ $^ 
+	@$(GCC) -shared $(LIB_DEPLIBS) -o $@ $^ 
+
 
