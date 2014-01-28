@@ -328,7 +328,6 @@ template<class T> int carma_potri(long num_gpus, T *h_A, carma_obj<T> *d_iA){
 #ifdef USE_CULA
 // CULA functions
 template<class T> int carma_cula_svd(carma_obj<T> *imat, carma_obj<T> *eigenvals, carma_obj<T> *mod2act, carma_obj<T> *mes2mod);
-template <class T> int carma_cula_svd(carma_host_obj<T> *imat, carma_host_obj<T> *eigenvals, carma_host_obj<T> *mod2act, carma_host_obj<T> *mes2mod);
 #else
 // #warning "CULA not used"
 template<class T> int carma_cula_svd(carma_obj<T> *imat, carma_obj<T> *eigenvals, carma_obj<T> *mod2act, carma_obj<T> *mes2mod){
