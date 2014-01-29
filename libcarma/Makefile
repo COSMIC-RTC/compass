@@ -9,13 +9,10 @@ OBJ_DIR=obj
 
 LIB_NAME=libcarma.so
 
-LIB_OBJS=carma_host_obj.o carma_obj.o carma_obj.cuo carma_utils.o carma_fft.o carma_rng.o carma_rng.cuo carma_transpose.cuo carma_sum.cuo carma_cublas.o convolutionFFT2D.cuo carma_fft_conv.o carma_fft_conv.cuo carma_context.o carma_streams.o
-ifneq ($(CULA_ROOT),)
- LIB_OBJS += carma_cula.o
-endif
-ifneq ($(MAGMA_ROOT),)
- LIB_OBJS += carma_magma.o
-endif
+LIB_OBJS=carma_host_obj.o carma_obj.o carma_obj.cuo carma_utils.o carma_fft.o carma_rng.o carma_rng.cuo carma_transpose.cuo \
+	carma_sum.cuo carma_cublas.o convolutionFFT2D.cuo carma_fft_conv.o carma_fft_conv.cuo carma_context.o carma_streams.o   \
+	carma_cula.o carma_magma.o
+
 OBJS := $(addprefix $(OBJ_DIR)/,$(LIB_OBJS))
 
 LIB_DEPLIBS= -fPIC -Wall -O0 -lstdc++ -L$(CUDA_LIB_PATH_64) -lcudart -lcublas -lcufft -lcurand 

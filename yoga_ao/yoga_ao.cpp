@@ -2288,7 +2288,8 @@ extern "C" {
     carma_context *context_handle = _getCurrentContext();
     context_handle->set_activeDeviceForCpy(rhandler->device);
 
-    rtc_handler->d_control[ncontrol]->svdec_imat();
+    if(rtc_handler->d_control[ncontrol]->svdec_imat()==EXIT_FAILURE)
+    	y_error("***** ERROR : sutra controler has no SVD implementation *****\n");
   }
 
   void

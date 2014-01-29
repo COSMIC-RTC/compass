@@ -104,16 +104,11 @@ int sutra_controler::svdec_imat()
   this->h_imat->cpy_obj(this->d_imat, cudaMemcpyDeviceToHost);
 
   // doing svd
-#ifdef USE_MAGMA
-  carma_svd(this->h_imat,this->h_eigenvals, this->h_mod2act,this->h_mes2mod);
-#else
-#ifdef USE_CULA
-  carma_cula_svd(this->h_imat,this->h_eigenvals, this->h_mod2act,this->h_mes2mod);
-#else
-  #warning "sutra controler can't use SVD"
-  cerr << "***** ERROR : sutra controler has no SVD implementation *****\n";
-#endif
-#endif
+  if (carma_svd(this->h_imat,this->h_eigenvals, this->h_mod2act,this->h_mes2mod) == EXIT_FAILURE){
+	  if (carma_cula_svd(this->h_imat,this->h_eigenvals, this->h_mod2act,this->h_mes2mod) == EXIT_FAILURE){
+		  return EXIT_FAILURE;
+	  }
+  }
 
   this->h_mod2act->cpy_obj(this->d_mod2act, cudaMemcpyHostToDevice);
   this->h_mes2mod->cpy_obj(this->d_mes2mod, cudaMemcpyHostToDevice);

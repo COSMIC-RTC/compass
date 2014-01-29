@@ -895,11 +895,11 @@ if(batch()) {
   if (numberof(tmp) > 1) {
     if (numberof(tmp) < 3) {
       filename = tmp(2);
-      script_valid_rtc,filename,strehl=1;
+      script_system,filename,strehl=1;
     }
     if (numberof(tmp) > 3) {
       filename = tmp(4);
-      script_valid_rtc,filename,strehl=1;
+      script_system,filename,strehl=1;
     }
   }
 }

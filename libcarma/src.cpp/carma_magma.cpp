@@ -1,5 +1,13 @@
 #include <carma_obj.h>
 #include <carma_host_obj.h>
+
+#ifdef DEBUG
+#define MAGMA_TRACE(fmt, args...) fprintf(stderr, fmt, ## args)
+#else
+#define MAGMA_TRACE(fmt, args...) /* */
+#endif
+
+#ifdef USE_MAGMA
 #include "magma.h"
 #include "magma_lapack.h"
 
@@ -35,7 +43,7 @@ template<class T> int carma_syevd(char jobz, carma_obj<T> *mat, T *eigenvals,
 	//fprintf(stderr, "%s@%d : I'm here\n", __FILE__, __LINE__);
 	lwork = (magma_int_t) aux_work[0];
 	liwork = aux_iwork[0];
-	posix_memalign((void**) &iwork, 32, (liwork) * sizeof(int));
+	magma_malloc_cpu((void**) &iwork, (liwork) * sizeof(int));
 
 	cudaMallocHost((void**) &h_R, (N * lda) * sizeof(T));
 	cudaMallocHost((void**) &h_work, (lwork) * sizeof(T));
@@ -134,7 +142,7 @@ template<class T> int carma_syevd_m(magma_int_t ngpu, char jobz, T *mat, T *eige
 	lwork = (magma_int_t) aux_work[0];
 	liwork = aux_iwork[0];
 
-	posix_memalign((void**) &iwork, 32, (liwork) * sizeof(int));
+	magma_malloc_cpu((void**) &iwork, (liwork) * sizeof(int));
 	cudaMallocHost((void**) &h_R, (N * lda) * sizeof(T));
 	cudaMallocHost((void**) &h_work, (lwork) * sizeof(T));
 
@@ -366,7 +374,7 @@ template<class T> int carma_getri(carma_obj<T> *d_iA,
 		return EXIT_FAILURE;
 	}
 	magma_int_t *ipiv;
-	posix_memalign((void**) &ipiv, 32, n * sizeof(int));
+	magma_malloc_cpu((void**) &ipiv, n * sizeof(int));
 
 	T *dwork;
 	magma_int_t lda = n;
@@ -424,3 +432,45 @@ template<> int carma_getri<double>(double* h_A, carma_obj<double> *d_iA) {
 			magma_get_dgetri_nb);
 }
 
+#else
+#warning "MAGMA will not be used"
+template<class T> int carma_svd(carma_obj<T> *imat, carma_obj<T> *eigenvals, carma_obj<T> *mod2act, carma_obj<T> *mes2mod) {
+  MAGMA_TRACE("!!!!!! MAGMA not compiled !!!!!!\n");
+  return EXIT_FAILURE;
+}
+template<class T> int carma_syevd(char jobz, carma_obj<T> *mat, T *eigenvals, carma_obj<T> *U){
+  MAGMA_TRACE("!!!!!! MAGMA not compiled !!!!!!\n");
+  return EXIT_FAILURE;
+}
+template<class T> int carma_syevd(char jobz, carma_obj<T> *mat, T *eigenvals){
+  MAGMA_TRACE("!!!!!! MAGMA not compiled !!!!!!\n");
+  return EXIT_FAILURE;
+}
+template<class T> int carma_syevd_m(int ngpu, char jobz, T *mat, T *eigenvals, T *U, int N){
+  MAGMA_TRACE("!!!!!! MAGMA not compiled !!!!!!\n");
+  return EXIT_FAILURE;
+}
+template<class T> int carma_getri(carma_obj<T> *d_iA) {
+  MAGMA_TRACE("!!!!!! MAGMA not compiled !!!!!!\n");
+  return EXIT_FAILURE;
+}
+template<class T> int carma_getri(T *h_A, carma_obj<T> *d_iA) {
+  MAGMA_TRACE("!!!!!! MAGMA not compiled !!!!!!\n");
+  return EXIT_FAILURE;
+}
+template<class T> int carma_potri(carma_obj<T> *d_iA) {
+  MAGMA_TRACE("!!!!!! MAGMA not compiled !!!!!!\n");
+  return EXIT_FAILURE;
+}
+template<class T> int carma_potri(long num_gpus, T *h_A, carma_obj<T> *d_iA){
+  MAGMA_TRACE("!!!!!! MAGMA not compiled !!!!!!\n");
+  return EXIT_FAILURE;
+}
+
+template<class T_data> int carma_svd(carma_host_obj<T_data> *imat, carma_host_obj<T_data> *eigenvals, carma_host_obj<T_data> *mod2act, carma_host_obj<T_data> *mes2mod) {
+  MAGMA_TRACE("!!!!!! MAGMA not compiled !!!!!!\n");
+  return EXIT_FAILURE;
+}
+template int carma_svd<float>(carma_host_obj<float> *imat, carma_host_obj<float> *eigenvals, carma_host_obj<float> *mod2act, carma_host_obj<float> *mes2mod);
+template int carma_svd<double>(carma_host_obj<double> *imat, carma_host_obj<double> *eigenvals, carma_host_obj<double> *mod2act, carma_host_obj<double> *mes2mod);
+#endif

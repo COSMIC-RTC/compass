@@ -5,8 +5,20 @@
  *      Author: sevin
  */
 
-#include<cula.hpp>
+#include<carma_obj.h>
 #include<carma_host_obj.h>
+
+#ifdef DEBUG
+#define CULA_TRACE(fmt, args...) fprintf(stderr, fmt, ## args)
+#else
+#define CULA_TRACE(fmt, args...) /* */
+#endif
+
+
+#ifdef USE_CULA
+
+
+#include<cula.hpp>
 
 #ifndef max
 #define max(a,b)  (((a)<(b))?(b):(a))
@@ -111,3 +123,17 @@ template <class T> int carma_cula_svd(carma_host_obj<T> *imat, carma_host_obj<T>
 
 template int carma_cula_svd<float>(carma_host_obj<float> *imat, carma_host_obj<float> *eigenvals, carma_host_obj<float> *mod2act, carma_host_obj<float> *mes2mod);
 template int carma_cula_svd<double>(carma_host_obj<double> *imat, carma_host_obj<double> *eigenvals, carma_host_obj<double> *mod2act, carma_host_obj<double> *mes2mod);
+#else
+#warning "CULA will not be used"
+template<class T> int carma_cula_svd(carma_obj<T> *imat, carma_obj<T> *eigenvals, carma_obj<T> *mod2act, carma_obj<T> *mes2mod){
+	CULA_TRACE("!!!!!! CULA not used !!!!!!\n");
+	return EXIT_FAILURE;
+}
+template<class T_data> int carma_cula_svd(carma_host_obj<T_data> *imat, carma_host_obj<T_data> *eigenvals, carma_host_obj<T_data> *mod2act, carma_host_obj<T_data> *mes2mod){
+	CULA_TRACE("!!!!!! CULA not used !!!!!!\n");
+	return EXIT_FAILURE;
+}
+template int carma_cula_svd<float>(carma_host_obj<float> *imat, carma_host_obj<float> *eigenvals, carma_host_obj<float> *mod2act, carma_host_obj<float> *mes2mod);
+template int carma_cula_svd<double>(carma_host_obj<double> *imat, carma_host_obj<double> *eigenvals, carma_host_obj<double> *mod2act, carma_host_obj<double> *mes2mod);
+
+#endif

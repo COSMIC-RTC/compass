@@ -19,14 +19,6 @@ LIB_DEPLIBS += -L$(COMPASS_ROOT_DIR)/libcarma -lcarma
 
 LIB_CPPFLAGS = -c -fPIC -Wall -DUNIX -I$(H_DIR) -I$(COMPASS_ROOT_DIR)/libcarma/$(H_DIR) -I$(CUDA_INC_PATH) 
 
-ifneq ($(CULA_ROOT),)
-  LIB_CPPFLAGS += -DUSE_CULA
-endif
-
-ifneq ($(MAGMA_ROOT),)
-  LIB_CPPFLAGS += -DUSE_MAGMA 
-endif
-
 ifneq ($(DEBUG),)
 LIB_CPPFLAGS+= -g -DDEBUG
 endif

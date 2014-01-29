@@ -46,23 +46,32 @@ func check_getri(n)
   max(abs(mat(,+)*d_mat()(+,)-unit(n)));
 }
 
-func check_potri(n, compare_yorick)
+func check_potri(n, compare_yorick=, niter=)
 {
   if(is_void(compare_yorick)) compare_yorick=0
+  if(is_void(niter)) niter=1
 
   tmp = yoga_obj(random(n, n)-0.5);
   d_mat = yoga_mm(tmp, tmp, 'n', 't')
   mat = d_mat(); //tmp(,+)*tmp(,+);
 
   if(compare_yorick){
+    tps1=0.;
     write, format="%s", "doing i_mat= LUsolve(mat)... ";
-    tic; i_mat= LUsolve(mat); tps1=tac();
+    for(iter=0; iter<niter; iter++){
+      tic; i_mat= LUsolve(mat); tps1+=tac()/niter;
+    }
     write, format="in %0.3fs\n", tps1;
   }
 
   write, "\ntest yoga_potri with double";
   write, format="%s", "doing yoga_potri, d_mat... ";
-  tic; yoga_potri, d_mat; tps2=tac();
+  tps2=0.;
+  for(iter=0; iter<niter; iter++){
+    d_mat = yoga_obj(mat);
+    tic; yoga_potri, d_mat; tps2+=tac()/niter;
+  }
+  
 
   if(compare_yorick){
     write, format="in %0.3fs (x%0.3f)\n", tps2, tps1/tps2;

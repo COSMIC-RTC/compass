@@ -1,5 +1,9 @@
 #include <sutra_centroider.h>
 
+#ifdef USE_CUB
+#include <cub/cub.cuh>
+#endif
+
 // Utility class used to avoid linker errors with extern
 // unsized shared memory arrays with templated type
 template<class T> struct SharedMemory
