@@ -129,6 +129,9 @@ template<class T> int carma_cula_svd(carma_obj<T> *imat, carma_obj<T> *eigenvals
 	CULA_TRACE("!!!!!! CULA not used !!!!!!\n");
 	return EXIT_FAILURE;
 }
+template int carma_cula_svd<float>(carma_obj<float> *imat, carma_obj<float> *eigenvals, carma_obj<float> *mod2act, carma_obj<float> *mes2mod);
+template int carma_cula_svd<double>(carma_obj<double> *imat, carma_obj<double> *eigenvals, carma_obj<double> *mod2act, carma_obj<double> *mes2mod);
+
 template<class T_data> int carma_cula_svd(carma_host_obj<T_data> *imat, carma_host_obj<T_data> *eigenvals, carma_host_obj<T_data> *mod2act, carma_host_obj<T_data> *mes2mod){
 	CULA_TRACE("!!!!!! CULA not used !!!!!!\n");
 	return EXIT_FAILURE;
