@@ -86,5 +86,5 @@ yoga.o: yoga.cpp
 
 $(PKG_NAME): $(OBJS)
 	@printf '\033[36m%s\033[31m%s\033[m\n' "Linking       " $(PKG_NAME)
-	$(CC) $(PKG_DEPLIBS) -o $@ $^ 
+	$(CC) -o $@ $^ $(PKG_DEPLIBS)
 

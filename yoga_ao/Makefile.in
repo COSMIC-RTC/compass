@@ -27,8 +27,10 @@ OBJS= yoga_ao.o
 #PKG_EXENAME=yorick
 
 # PKG_DEPLIBS=-Lsomedir -lsomelib   for dependencies of this package
-PKG_DEPLIBS = $(COMPASS_ROOT_DIR)/libcarma/libcarma.so
-PKG_DEPLIBS += $(COMPASS_ROOT_DIR)/libsutra/libsutra.so #-lcula -L/usr/local/cula/lib 
+#PKG_DEPLIBS = $(COMPASS_ROOT_DIR)/libcarma/libcarma.so
+#PKG_DEPLIBS += $(COMPASS_ROOT_DIR)/libsutra/libsutra.so #-lcula -L/usr/local/cula/lib 
+PKG_DEPLIBS = -L$(YOGA_DIR) -L$(COMPASS_ROOT_DIR)/libcarma -lcarma 
+PKG_DEPLIBS +=  -L$(COMPASS_ROOT_DIR)/libsutra -lsutra
 #PKG_DEPLIBS += ../cudpp/lib/libcudpp_x86_64.a
 
 # set compiler (or rarely loader) flags specific to this package
@@ -85,7 +87,7 @@ yoga_ao.o: yoga_ao.cpp
 
 $(PKG_NAME): $(OBJS)
 	@printf '\033[36m%s\033[31m%s\033[m\n' "Linking       " $(PKG_NAME)
-	@$(CC) $(PKG_DEPLIBS) -o $@ $^ 
+	@$(CC) -o $@ $^ $(PKG_DEPLIBS)
 
 #configure:
 #	yorick -batch make.i

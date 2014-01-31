@@ -59,6 +59,7 @@ $(OBJ_DIR)/%.o: $(CPP_DIR)/%.cpp
 
 $(LIB_NAME): $(OBJS)
 	@printf '\033[36m%s\033[31m%s\033[m\n' "Linking       " $(LIB_NAME)
-	@$(GCC) -shared $(LIB_DEPLIBS) -o $@ $^ 
+	@echo $(GCC) -shared -o $@ $^ $(LIB_DEPLIBS)
+	@$(GCC) -shared -o $@ $^ $(LIB_DEPLIBS)
 
 
