@@ -50,7 +50,14 @@
 
 using namespace std;
 enum MemType {
-  MT_DEVICE, MT_DARRAY, MT_HOST, MT_PAGELOCK, MT_ZEROCPY, MT_PORTABLE, MT_WRICOMB, MT_GENEPIN
+  MT_DEVICE,
+  MT_DARRAY,
+  MT_HOST,
+  MT_PAGELOCK,
+  MT_ZEROCPY,
+  MT_PORTABLE,
+  MT_WRICOMB,
+  MT_GENEPIN
 };
 //should add texture ?
 
@@ -119,7 +126,8 @@ protected:
 
   carma_streams *streams;
 
-  void init(carma_context *current_context, long *dims_data, T_data *data, bool fromHost, int nb_streams);
+  void init(carma_context *current_context, long *dims_data, T_data *data,
+      bool fromHost, int nb_streams);
 
 public:
   carma_obj(carma_obj<T_data> *obj);
@@ -127,8 +135,10 @@ public:
   carma_obj(carma_context *current_context, carma_obj<T_data> *obj);
   carma_obj(carma_context *current_context, long *dims_data, T_data *data);
   carma_obj(carma_context *current_context, long *dims_data, int nb_streams);
-  carma_obj(carma_context *current_context, carma_obj<T_data> *obj, int nb_streams);
-  carma_obj(carma_context *current_context, long *dims_data, T_data *data, int nb_streams);
+  carma_obj(carma_context *current_context, carma_obj<T_data> *obj,
+      int nb_streams);
+  carma_obj(carma_context *current_context, long *dims_data, T_data *data,
+      int nb_streams);
   ~carma_obj();
 
   int get_nbStreams();
@@ -141,6 +151,9 @@ public:
   int wait_all_streams();
 
   /**< General Utilities */
+  operator T_data*() {
+    return d_data;
+  }
   T_data* getData() {
     return d_data;
   }
@@ -209,16 +222,27 @@ public:
   void axpy(T_data alpha, carma_obj<T_data> *source, int incx, int incy);
   void rot(carma_obj<T_data> *source, int incx, int incy, T_data sc, T_data ss);
 
-  void gemv(char trans, T_data alpha, carma_obj<T_data> *matA, int lda, carma_obj<T_data> *vectx, int incx, T_data beta, int incy);
-  void ger(T_data alpha, carma_obj<T_data> *vectx, int incx, carma_obj<T_data> *vecty, int incy, int lda);
-  void symv(cublasFillMode_t uplo, T_data alpha, carma_obj<T_data> *matA, int lda, carma_obj<T_data> *vectx, int incx, T_data beta, int incy);
+  void gemv(char trans, T_data alpha, carma_obj<T_data> *matA, int lda,
+      carma_obj<T_data> *vectx, int incx, T_data beta, int incy);
+  void ger(T_data alpha, carma_obj<T_data> *vectx, int incx,
+      carma_obj<T_data> *vecty, int incy, int lda);
+  void symv(cublasFillMode_t uplo, T_data alpha, carma_obj<T_data> *matA,
+      int lda, carma_obj<T_data> *vectx, int incx, T_data beta, int incy);
 
-  void gemm(char transa, char transb, T_data alpha, carma_obj<T_data> *matA, int lda, carma_obj<T_data> *matB, int ldb, T_data beta, int ldc);
-  void symm(cublasSideMode_t side, cublasFillMode_t uplo, T_data alpha, carma_obj<T_data> *matA, int lda, carma_obj<T_data> *matB, int ldb, T_data beta, int ldc);
-  void syrk(cublasFillMode_t uplo, char transa, T_data alpha, carma_obj<T_data> *matA, int lda, T_data beta, int ldc);
-  void syrkx(cublasFillMode_t uplo, char transa, T_data alpha, carma_obj<T_data> *matA, int lda, carma_obj<T_data> *matB, int ldb, T_data beta, int ldc);
-  void geam(char transa, char transb, T_data alpha, carma_obj<T_data> *matA, int lda, T_data beta, carma_obj<T_data> *matB, int ldb, int ldc);
-  void dgmm(cublasSideMode_t side, carma_obj<T_data> *matA, int lda, carma_obj<T_data> *vectx, int incx, int ldc);
+  void gemm(char transa, char transb, T_data alpha, carma_obj<T_data> *matA,
+      int lda, carma_obj<T_data> *matB, int ldb, T_data beta, int ldc);
+  void symm(cublasSideMode_t side, cublasFillMode_t uplo, T_data alpha,
+      carma_obj<T_data> *matA, int lda, carma_obj<T_data> *matB, int ldb,
+      T_data beta, int ldc);
+  void syrk(cublasFillMode_t uplo, char transa, T_data alpha,
+      carma_obj<T_data> *matA, int lda, T_data beta, int ldc);
+  void syrkx(cublasFillMode_t uplo, char transa, T_data alpha,
+      carma_obj<T_data> *matA, int lda, carma_obj<T_data> *matB, int ldb,
+      T_data beta, int ldc);
+  void geam(char transa, char transb, T_data alpha, carma_obj<T_data> *matA,
+      int lda, T_data beta, carma_obj<T_data> *matB, int ldb, int ldc);
+  void dgmm(cublasSideMode_t side, carma_obj<T_data> *matA, int lda,
+      carma_obj<T_data> *vectx, int incx, int ldc);
 
   /**< Curand */
   int init_prng(int device);
@@ -245,52 +269,74 @@ typedef carma_obj<cuDoubleComplex> caObjZ;
 
 // CU functions sum
 template<class T_data>
-void reduce(int size, int threads, int blocks, T_data *d_idata, T_data *d_odata);
+void reduce(int size, int threads, int blocks, T_data *d_idata,
+    T_data *d_odata);
 
 // CU functions transpose
-template<class T_data> int transposeCU(T_data *d_idata, T_data *d_odata, long N1, long N2);
+template<class T_data> int transposeCU(T_data *d_idata, T_data *d_odata,
+    long N1, long N2);
 
 // CU functions generic
-template<class T_data> int launch_generic1d(T_data *d_idata, T_data *d_odata, int N);
-template<class T_data> int launch_generic2d(T_data *d_odata, T_data *d_idata, int N1, int N2);
+template<class T_data> int launch_generic1d(T_data *d_idata, T_data *d_odata,
+    int N);
+template<class T_data> int launch_generic2d(T_data *d_odata, T_data *d_idata,
+    int N1, int N2);
 
 // CU functions curand
-int carma_prng_init(int *seed, const int nThreads, const int nBlocks, curandState *state);
-template<class T> int carma_prng_cu(T *results, const int nThreads, const int nBlocks, curandState *state, char gtype, int n, float alpha, float beta);
+int carma_prng_init(int *seed, const int nThreads, const int nBlocks,
+    curandState *state);
+template<class T> int carma_prng_cu(T *results, const int nThreads,
+    const int nBlocks, curandState *state, char gtype, int n, float alpha,
+    float beta);
 
 // CU functions fft
 template<class T_in, class T_out> cufftType carma_select_plan();
-template<class T_in, class T_out> void carma_initfft(long *dims_data, cufftHandle *plan, cufftType tPlan);
-template<class T_in, class T_out> int carma_fft(T_in *input, T_out *output, int dir, cufftHandle plan);
+template<class T_in, class T_out> void carma_initfft(long *dims_data,
+    cufftHandle *plan, cufftType tPlan);
+template<class T_in, class T_out> int carma_fft(T_in *input, T_out *output,
+    int dir, cufftHandle plan);
 
 // CU functions generic
-template<class T_data> int fillindex(T_data *d_odata, T_data *d_idata, int *indx, int N);
-template<class T_data> int fillvalues(T_data *d_odata, unsigned int *indx, int N);
-template<class T> int getarray2d(T *d_odata, T *d_idata, int x0, int Ncol, int NC, int N);
-template<class T> int fillarray2d(T *d_odata, T *d_idata, int x0, int Ncol, int NC, int N);
-template<class T> int fillarray2d2(T *d_odata, T *d_idata, int x0, int Ncol, int NC, int N);
+template<class T_data> int fillindex(T_data *d_odata, T_data *d_idata,
+    int *indx, int N);
+template<class T_data> int fillvalues(T_data *d_odata, unsigned int *indx,
+    int N);
+template<class T> int getarray2d(T *d_odata, T *d_idata, int x0, int Ncol,
+    int NC, int N);
+template<class T> int fillarray2d(T *d_odata, T *d_idata, int x0, int Ncol,
+    int NC, int N);
+template<class T> int fillarray2d2(T *d_odata, T *d_idata, int x0, int Ncol,
+    int NC, int N);
 template<class T> int fill_sym_matrix(char uplo, T *d_data, int Ncol, int N);
 template<class T> int carma_plus(T *d_odata, T elpha, int N);
-template<class T> int carma_plusai(T *d_odata, T *i_data, int i, int sgn, int N);
+template<class T> int carma_plusai(T *d_odata, T *i_data, int i, int sgn,
+    int N);
 
 // CU functions fftconv
-int fftconv_unpad(float *d_odata, float *d_idata, int fftW, int dataH, int dataW, int N, int n, int nim);
-int carma_initfftconv(caObjS *data_in, caObjS *kernel_in, caObjS *padded_data, caObjC *padded_spectrum, int kernelY, int kernelX);
+int fftconv_unpad(float *d_odata, float *d_idata, int fftW, int dataH,
+    int dataW, int N, int n, int nim);
+int carma_initfftconv(caObjS *data_in, caObjS *kernel_in, caObjS *padded_data,
+    caObjC *padded_spectrum, int kernelY, int kernelX);
 // CPP functions fftconv
-int carma_fftconv(caObjS *data_out, caObjS *padded_data, caObjC *padded_spectrum, int kernelY, int kernelX);
+int carma_fftconv(caObjS *data_out, caObjS *padded_data,
+    caObjC *padded_spectrum, int kernelY, int kernelX);
 
 // MAGMA functions
-template<class T> int carma_svd(carma_obj<T> *imat, carma_obj<T> *eigenvals, carma_obj<T> *mod2act, carma_obj<T> *mes2mod);
-template<class T> int carma_syevd(char jobz, carma_obj<T> *mat, T *eigenvals, carma_obj<T> *U);
+template<class T> int carma_svd(carma_obj<T> *imat, carma_obj<T> *eigenvals,
+    carma_obj<T> *mod2act, carma_obj<T> *mes2mod);
+template<class T> int carma_syevd(char jobz, carma_obj<T> *mat, T *eigenvals,
+    carma_obj<T> *U);
 template<class T> int carma_syevd(char jobz, carma_obj<T> *mat, T *eigenvals);
-template<class T> int carma_syevd_m(long ngpu, char jobz, T *mat, T *eigenvals, T *U, long N);
+template<class T> int carma_syevd_m(long ngpu, char jobz, T *mat, T *eigenvals,
+    T *U, long N);
 template<class T> int carma_getri(T *h_A, carma_obj<T> *d_iA);
 template<class T> int carma_getri(carma_obj<T> *d_iA);
 template<class T> int carma_potri(carma_obj<T> *d_iA);
 template<class T> int carma_potri(long num_gpus, T *h_A, carma_obj<T> *d_iA);
 
 // CULA functions
-template<class T> int carma_cula_svd(carma_obj<T> *imat, carma_obj<T> *eigenvals, carma_obj<T> *mod2act, carma_obj<T> *mes2mod);
+template<class T> int carma_cula_svd(carma_obj<T> *imat,
+    carma_obj<T> *eigenvals, carma_obj<T> *mod2act, carma_obj<T> *mes2mod);
 
 extern "C" {
 void sumGetNumBlocksAndThreads(int n, int device, int &blocks, int &threads);

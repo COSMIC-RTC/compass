@@ -35,7 +35,7 @@ ifneq ($(CULA_ROOT),)
  LIB_CPPFLAGS += -I$(CULA_INC_PATH) -DUSE_CULA
 endif
 ifneq ($(MAGMA_ROOT),)
- LIB_CPPFLAGS +=-I$(MAGMA_ROOT)/include -DUSE_MAGMA -DHAVE_CUBLAS -DADD_ -DMAGMA_SETAFFINITY
+ LIB_CPPFLAGS +=-I$(MAGMA_ROOT)/include -DUSE_MAGMA -DHAVE_CUBLAS -DADD_ -DMAGMA_SETAFFINITY #-DMAGMA_ILP64
 endif
 
 # ------------------------------------- targets and rules for this package

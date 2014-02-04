@@ -203,14 +203,9 @@ func check_cublas3(sizem,sizen,sizek)
   matC = float(random(sizem,sizen));
 
 // create objects
-/*
   matA_gpu = yoga_obj(matA);
   matB_gpu = yoga_obj(matB);
   matC_gpu = yoga_obj(matC);
-*/
-  matA_gpu = yoga_setm(matA);
-  matB_gpu = yoga_setm(matB);
-  matC_gpu = yoga_setm(matC);
   
 // compute gemm
   yoga_mm,matC_gpu,matA_gpu,matB_gpu;
@@ -218,19 +213,21 @@ func check_cublas3(sizem,sizen,sizek)
   res2 = matA(,+)*matB(+,);
   res2 += matC*0.0f;
   
-  write,format="gemm diff : %f\n",max(abs(matC_gpu()(*)-res2(*)))/max(res2);
+  write,format="gemm diff : %f\n",max(abs(matC_gpu()(*)-res2(*)));
   
 // delete objects
   matA_gpu = matB_gpu = matC_gpu = [];
   
 //check symm
-  matA = float(dist(sizek));
-  matB = float(random(sizek,sizen));
-  matC = array(0.0f,sizek,sizen);
+  //matA = float(dist(sizek));
+  matA = random(sizek,sizek);
+  matA = matA(+,)*matA(+,);
+  matB = random(sizek,sizen);
+  matC = array(0.0,sizek,sizen);
   
-  matA_gpu = yoga_setm(matA);
-  matB_gpu = yoga_setm(matB);
-  matC_gpu = yoga_setm(matC);
+  matA_gpu = yoga_obj(matA);
+  matB_gpu = yoga_obj(matB);
+  matC_gpu = yoga_obj(matC);
   
 // compute symm
   yoga_symm,matC_gpu,matA_gpu,matB_gpu;
@@ -238,8 +235,8 @@ func check_cublas3(sizem,sizen,sizek)
   res2 = matA(,+)*matB(+,);
   res2 += matC;
   
-  write,format="symm diff : %f\n",max(abs(matC_gpu()(*)-res2(*)))/max(res2);
-  
+  write,format="symm diff : %f\n",max(abs(matC_gpu()(*)-res2(*)));
+
 // delete objects
   matA_gpu = matB_gpu = matC_gpu = [];
 
@@ -248,10 +245,10 @@ func check_cublas3(sizem,sizen,sizek)
   vectx = float(random(sizek))
   matC = array(0.0f,sizek,sizen);
   
-  //matA_gpu = yoga_setm(float(transpose(matA)));
-  matA_gpu = yoga_setm(matA);
-  vectx_gpu = yoga_setv(vectx);
-  matC_gpu = yoga_setm(matC);
+  //matA_gpu = yoga_obj(float(transpose(matA)));
+  matA_gpu = yoga_obj(matA);
+  vectx_gpu = yoga_obj(vectx);
+  matC_gpu = yoga_obj(matC);
   
 // compute dmm
   yoga_dmm,matC_gpu,matA_gpu,vectx_gpu;
@@ -261,13 +258,13 @@ func check_cublas3(sizem,sizen,sizek)
   //res2 = matA(+,)*matA(+,); // op == 't'
   res2 += matC;
   
-  write,format="left dmm diff : %f\n",max(abs(matC_gpu()(*)-res2(*)))/max(res2(*));
+  write,format="left dmm diff : %f\n",max(abs(matC_gpu()(*)-res2(*)));
   
   vecty = float(random(sizen))
   matC = array(0.0f,sizek,sizen);
   
-  vecty_gpu = yoga_setv(vecty);
-  matC_gpu = yoga_setm(matC);
+  vecty_gpu = yoga_obj(vecty);
+  matC_gpu = yoga_obj(matC);
   
   yoga_dmm,matC_gpu,matA_gpu,vecty_gpu,'r';
 
@@ -277,20 +274,22 @@ func check_cublas3(sizem,sizen,sizek)
   //res2 = matA(+,)*matA(+,); // op == 't'
   res2 += matC;
 
-  write,format="right dmm diff : %f\n",max(abs(matC_gpu()(*)-res2(*)))/max(res2(*));
+  write,format="right dmm diff : %f\n",max(abs(matC_gpu()(*)-res2(*)));
 // delete objects
   matA_gpu = matC_gpu = vectx_gpu = ecty_gpu = [];
 
 //check syrk
   //matA = fits_read("imat.fits");
-  //sizek = dimsof(matA)(2);
-  //sizen = dimsof(matA)(3);
   matA = float(random(sizen,sizen));
+  matA = matA(+,)*matA(+,);
+  sizek = dimsof(matA)(2);
+  sizen = dimsof(matA)(3);
+  //matA = float(random(sizen,sizen));
   matC = array(0.0f,sizen,sizen);
   
-  //matA_gpu = yoga_setm(float(transpose(matA)));
-  matA_gpu = yoga_setm(matA);
-  matC_gpu = yoga_setm(matC);
+  //matA_gpu = yoga_obj(float(transpose(matA)));
+  matA_gpu = yoga_obj(matA);
+  matC_gpu = yoga_obj(matC);
   
 // compute syrk
   yoga_syrk,matC_gpu,matA_gpu;
@@ -307,13 +306,14 @@ func check_cublas3(sizem,sizen,sizek)
   matA_gpu = matC_gpu = [];
 
 //check syrk
-  matA = fits_read("imat.fits");
+  //matA = fits_read("imat.fits");
+  matA = float(random(sizen,sizen));
+  matA = matA(+,)*matA(+,);
   sizek = dimsof(matA)(2);
   sizen = dimsof(matA)(3);
-  //matA = float(random(sizen,sizen));
   matC = array(0.0f,sizek,sizek); 
   
-  //matA_gpu = yoga_setm(float(transpose(matA)));
+  //matA_gpu = yoga_obj(float(transpose(matA)));
   matA_gpu = yoga_obj(float(matA));
   matC_gpu = yoga_obj(matC);
   

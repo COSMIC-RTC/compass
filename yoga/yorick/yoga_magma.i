@@ -120,13 +120,18 @@ func check_syevd(n)
   d_mat = yoga_mm(tmp, tmp, 'n', 't')
   mat = d_mat(); //tmp(,+)*tmp(,+);
 
+  imat=fits_read("imat.fits");
+  mat=imat(,+)*imat(,+);
+  d_mat=yoga_obj(mat);
+  n=dimsof(mat)(2);
+  
   write, format="%s", "doing y_EV = SVdec(mat)... ";
   tic; y_EV = SVdec(mat); tps1=tac();
-  write, format="in %0.3fs\n", tps2;
+  write, format="in %0.3fs\n", tps1;
 
   write, "\ntest with double";
-  d_U = yoga_obj(mat*0.);
-  h_EV = array(0., n);
+  d_U = yoga_obj(mat*0.f);
+  h_EV = array(0.f, n);
   write, format="%s", "doing yoga_syevd, d_mat, h_EV, d_U... ";
   tic; yoga_syevd, d_mat, h_EV, d_U; tps2=tac();
   write, format="in %0.3fs (x%0.3f)\n", tps2, tps1/tps2;
@@ -221,6 +226,13 @@ func compare_syevd(n, ngpu)
   h_EV2 = array(0., n);
   write, format="%s", "doing yoga_syevd_m, ngpu, mat, h_EV, h_U... ";
   tic; yoga_syevd_m, ngpu, mat, h_EV2, h_U; tps2=tac();
+  write, format="in %0.3fs (x%0.3f)\n", tps2, tps1/tps2;
+
+  write, "\ntest with double (without U computation)";
+  h_U  = mat*0.;
+  h_EV2 = array(0., n);
+  write, format="%s", "doing yoga_syevd_m, ngpu, mat, h_EV, h_U, noComputeU=1... ";
+  tic; yoga_syevd_m, ngpu, mat, h_EV2, h_U, noComputeU=1; tps2=tac();
   write, format="in %0.3fs (x%0.3f)\n", tps2, tps1/tps2;
 
   write, "max(abs(h_EV - h_EV2))";

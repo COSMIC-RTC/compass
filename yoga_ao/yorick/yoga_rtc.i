@@ -163,29 +163,25 @@ func cmat_init(ncontrol,clean=)
     write,format="svd time %f\n",tac();
     eigenv = controler_getdata(g_rtc,ncontrol-1,"eigenvals");
     if (simul_name != []) {
-      mod2act = controler_getdata(g_rtc,ncontrol-1,"mod2act");
-      mes2mod     = controler_getdata(g_rtc,ncontrol-1,"mes2mod");
+      U = controler_getdata(g_rtc,ncontrol-1,"U");
       fits_write,swrite(format=dirsave+"eigenv-%d-%s.fits",ncontrol,simul_name),eigenv,overwrite=1;
-      fits_write,swrite(format=dirsave+"mes2mod-%d-%s.fits",ncontrol,simul_name),mes2mod,overwrite=1;
-      fits_write,swrite(format=dirsave+"mod2act-%d-%s.fits",ncontrol,simul_name),mod2act,overwrite=1;
+      fits_write,swrite(format=dirsave+"U-%d-%s.fits",ncontrol,simul_name),U,overwrite=1;
     }
   } else {
     eigenv  = fits_read(swrite(format=dirsave+"eigenv-%d-%s.fits",ncontrol,simul_name));
-    mes2mod = fits_read(swrite(format=dirsave+"mes2mod-%d-%s.fits",ncontrol,simul_name));
-    mod2act = fits_read(swrite(format=dirsave+"mod2act-%d-%s.fits",ncontrol,simul_name));
+    U = fits_read(swrite(format=dirsave+"U-%d-%s.fits",ncontrol,simul_name));
     controler_setdata,g_rtc,ncontrol-1,"eigenvals",eigenv;
-    controler_setdata,g_rtc,ncontrol-1,"mes2mod",mes2mod;
-    controler_setdata,g_rtc,ncontrol-1,"mod2act",mod2act;
-    // load corresponding d_ and h_ on the gpu
+    controler_setdata,g_rtc,ncontrol-1,"U",U;
   }
 
   imat = rtc_getimat(g_rtc,ncontrol-1);
 
   maxcond = (*y_rtc.controlers)(ncontrol).maxcond;
-  mfilt = where((eigenv/eigenv(3)) < 1./maxcond);
+  mfilt = where((eigenv/eigenv(-2)) < 1./maxcond);
   //mfilt = where(1./(eigenv/eigenv(3)) > maxcond);
   //nfilt = numberof(mfilt)+2;
   nfilt = numberof(mfilt);
+  
   if ( (wfs_disp!=[]) && (numberof(*wfs_disp._winits) > 0)) {
     if ((*wfs_disp._winits)(5)) {
     window,(*wfs_disp._wins)(5);fma;logxy,0,1;
@@ -203,7 +199,7 @@ func cmat_init(ncontrol,clean=)
   write,format="cmat time %f\n",tac();
 
   cmat = rtc_getcmat(g_rtc,ncontrol-1);
-  
+
   controlers = *y_rtc.controlers;
   controlers(ncontrol).cmat = &float(cmat);
   y_rtc.controlers = &controlers;

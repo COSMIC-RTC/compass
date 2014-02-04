@@ -48,9 +48,11 @@ public:
   carma_host_obj(long *dims_data, int nb_streams);
   carma_host_obj(long *dims_data, MemAlloc mallocType, int nb_streams);
   carma_host_obj(carma_host_obj<T_data> *obj, int nb_streams);
-  carma_host_obj(carma_host_obj<T_data> *obj, MemAlloc mallocType, int nb_streams);
+  carma_host_obj(carma_host_obj<T_data> *obj, MemAlloc mallocType,
+      int nb_streams);
   carma_host_obj(long *dims_data, T_data *data, int nb_streams);
-  carma_host_obj(long *dims_data, T_data *data, MemAlloc mallocType, int nb_streams);
+  carma_host_obj(long *dims_data, T_data *data, MemAlloc mallocType,
+      int nb_streams);
   ~carma_host_obj();
 
   void get_devpntr(void **pntr_dev);
@@ -65,9 +67,13 @@ public:
   int wait_all_streams();
 
   int cpy_obj(carma_obj<T_data>* caObj, cudaMemcpyKind flag);
-  int cpy_obj(carma_obj<T_data>* caObj, cudaMemcpyKind flag, unsigned int stream);
+  int cpy_obj(carma_obj<T_data>* caObj, cudaMemcpyKind flag,
+      unsigned int stream);
 
   /**< General Utilities */
+  operator T_data*() {
+    return h_data;
+  }
   T_data* getData() {
     return h_data;
   }
@@ -106,10 +112,14 @@ public:
 };
 
 // MAGMA functions
-template<class T_data> int carma_svd(carma_host_obj<T_data> *imat, carma_host_obj<T_data> *eigenvals, carma_host_obj<T_data> *mod2act, carma_host_obj<T_data> *mes2mod);
+template<class T_data> int carma_svd(carma_host_obj<T_data> *imat,
+    carma_host_obj<T_data> *eigenvals, carma_host_obj<T_data> *mod2act,
+    carma_host_obj<T_data> *mes2mod);
 
 // CULA functions
-template<class T_data> int carma_cula_svd(carma_host_obj<T_data> *imat, carma_host_obj<T_data> *eigenvals, carma_host_obj<T_data> *mod2act, carma_host_obj<T_data> *mes2mod);
+template<class T_data> int carma_cula_svd(carma_host_obj<T_data> *imat,
+    carma_host_obj<T_data> *eigenvals, carma_host_obj<T_data> *mod2act,
+    carma_host_obj<T_data> *mes2mod);
 /* 
  extern "C" {
 

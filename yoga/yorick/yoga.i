@@ -645,20 +645,22 @@ extern yoga_svd;
 
 extern yoga_syevd;
 /* DOCUMENT yoga_syevd
-      yoga_syevd,mat,eigenvals,u
-   OR yoga_syevd,mat,eigenvals
+      yoga_syevd,mat,eigenvals, U, noComputeU= 
+   OR yoga_syevd,mat,eigenvals, noComputeU=
    
    This function computes the svd of matrix mat
-   mat   : n x n (CArMA obj) (change into U if U not given)
+   mat   : n x n (CArMA obj) (WARNING:change into U if U not given)
    eigen : 1 x n (yArray)
    U     : n x n (CArMA obj) (optional)
-   
+
+   Even if noComputeU flag is set to 1, the matrix mat will be changed if U is not specified.
+
    SEE ALSO:
  */
 
 extern yoga_syevd_m;
 /* DOCUMENT yoga_syevd_m
-   yoga_syevd_m, ngpu,mat,eigenvals,u
+   yoga_syevd_m, ngpu,mat,eigenvals,u, noComputeU= 
 
    This function computes the svd of matrix mat
    ngpu  : number of gpu
