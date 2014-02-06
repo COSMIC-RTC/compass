@@ -298,38 +298,38 @@ class wao:
 
    def on_type_centro_changed(self,wdg):
       typec = wdg.get_active()
-      self.glade.get_widget('choose_centro').set_visible(0)
-      self.glade.get_widget('fct_width').set_visible(0)
-      self.glade.get_widget('label_width').set_visible(0)
-      self.glade.get_widget('type_func').set_visible(0)
-      self.glade.get_widget('label_fct').set_visible(0)
-      self.glade.get_widget('nmax').set_visible(0)
-      self.glade.get_widget('label_nmax').set_visible(0)
-      self.glade.get_widget('thresh').set_visible(0)
-      self.glade.get_widget('label_thresh').set_visible(0)
+      self.glade.get_widget('choose_centro').set_sensitive(0)
+      self.glade.get_widget('fct_width').set_sensitive(0)
+      self.glade.get_widget('label_width').set_sensitive(0)
+      self.glade.get_widget('type_func').set_sensitive(0)
+      self.glade.get_widget('label_fct').set_sensitive(0)
+      self.glade.get_widget('nmax').set_sensitive(0)
+      self.glade.get_widget('label_nmax').set_sensitive(0)
+      self.glade.get_widget('thresh').set_sensitive(0)
+      self.glade.get_widget('label_thresh').set_sensitive(0)
       if (typec == 1):
-         self.glade.get_widget('thresh').set_visible(1)
-         self.glade.get_widget('label_thresh').set_visible(1)
+         self.glade.get_widget('thresh').set_sensitive(1)
+         self.glade.get_widget('label_thresh').set_sensitive(1)
       if (typec == 2):
-         self.glade.get_widget('nmax').set_visible(1)
-         self.glade.get_widget('label_nmax').set_visible(1)
+         self.glade.get_widget('nmax').set_sensitive(1)
+         self.glade.get_widget('label_nmax').set_sensitive(1)
       if (typec == 3):
-         self.glade.get_widget('type_func').set_visible(1)
-         self.glade.get_widget('label_fct').set_visible(1)
+         self.glade.get_widget('type_func').set_sensitive(1)
+         self.glade.get_widget('label_fct').set_sensitive(1)
       if (typec == 4):
-         self.glade.get_widget('type_func').set_visible(1)
-         self.glade.get_widget('label_fct').set_visible(1)
+         self.glade.get_widget('type_func').set_sensitive(1)
+         self.glade.get_widget('label_fct').set_sensitive(1)
   
    def on_type_func_changed(self,wdg):   
-      self.glade.get_widget('choose_centro').set_visible(0)
-      self.glade.get_widget('fct_width').set_visible(0)
-      self.glade.get_widget('label_width').set_visible(0)
+      self.glade.get_widget('choose_centro').set_sensitive(0)
+      self.glade.get_widget('fct_width').set_sensitive(0)
+      self.glade.get_widget('label_width').set_sensitive(0)
       typef = wdg.get_active()
       if (typef == 0):
-         self.glade.get_widget('fct_width').set_visible(1)
-         self.glade.get_widget('label_width').set_visible(1)
+         self.glade.get_widget('fct_width').set_sensitive(1)
+         self.glade.get_widget('label_width').set_sensitive(1)
       if (typef == 2):
-         self.glade.get_widget('choose_centro').set_visible(1)
+         self.glade.get_widget('choose_centro').set_sensitive(1)
 
    def y_update_centro(self,ncentro):
       self.py2yo('update_centro_prop %d' % (ncentro))

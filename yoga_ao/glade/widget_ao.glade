@@ -2870,6 +2870,8 @@ pyr
                                                             </child>
                                                             <child>
                                                             <widget class="GtkLabel" id="label_thresh">
+                                                            <property name="visible">True</property>
+                                                            <property name="sensitive">False</property>
                                                             <property name="label" translatable="yes">Thresh</property>
                                                             </widget>
                                                             <packing>
@@ -2882,6 +2884,8 @@ pyr
                                                             <child>
                                                             <widget class="GtkSpinButton" id="thresh">
                                                             <property name="width_request">70</property>
+                                                            <property name="visible">True</property>
+                                                            <property name="sensitive">False</property>
                                                             <property name="can_focus">True</property>
                                                             <property name="invisible_char">&#x25CF;</property>
                                                             <property name="adjustment">500 0 10000 0.10000000000000001 10 0</property>
@@ -2898,6 +2902,8 @@ pyr
                                                             </child>
                                                             <child>
                                                             <widget class="GtkLabel" id="label_nmax">
+                                                            <property name="visible">True</property>
+                                                            <property name="sensitive">False</property>
                                                             <property name="label" translatable="yes"> nmax </property>
                                                             </widget>
                                                             <packing>
@@ -2910,6 +2916,8 @@ pyr
                                                             <child>
                                                             <widget class="GtkSpinButton" id="nmax">
                                                             <property name="width_request">70</property>
+                                                            <property name="visible">True</property>
+                                                            <property name="sensitive">False</property>
                                                             <property name="can_focus">True</property>
                                                             <property name="invisible_char">&#x25CF;</property>
                                                             <property name="adjustment">7 0 200 1 0 0</property>
@@ -2925,6 +2933,8 @@ pyr
                                                             </child>
                                                             <child>
                                                             <widget class="GtkLabel" id="label_fct">
+                                                            <property name="visible">True</property>
+                                                            <property name="sensitive">False</property>
                                                             <property name="label" translatable="yes"> Fct  </property>
                                                             </widget>
                                                             <packing>
@@ -2937,6 +2947,8 @@ pyr
                                                             <child>
                                                             <widget class="GtkComboBox" id="type_func">
                                                             <property name="width_request">70</property>
+                                                            <property name="visible">True</property>
+                                                            <property name="sensitive">False</property>
                                                             <property name="items" translatable="yes">gauss
 file
 model</property>
@@ -2953,6 +2965,8 @@ model</property>
                                                             </child>
                                                             <child>
                                                             <widget class="GtkLabel" id="label_width">
+                                                            <property name="visible">True</property>
+                                                            <property name="sensitive">False</property>
                                                             <property name="label" translatable="yes">Width </property>
                                                             </widget>
                                                             <packing>
@@ -2965,6 +2979,8 @@ model</property>
                                                             <child>
                                                             <widget class="GtkSpinButton" id="fct_width">
                                                             <property name="width_request">70</property>
+                                                            <property name="visible">True</property>
+                                                            <property name="sensitive">False</property>
                                                             <property name="can_focus">True</property>
                                                             <property name="invisible_char">&#x25CF;</property>
                                                             <property name="adjustment">0.10000000000000001 0 100 0.10000000000000001 10 0</property>
@@ -3005,7 +3021,10 @@ model</property>
                                                             </packing>
                                                             </child>
                                                             <child>
-                                                            <widget class="GtkFileChooserButton" id="choose_centro"/>
+                                                            <widget class="GtkFileChooserButton" id="choose_centro">
+                                                            <property name="visible">True</property>
+                                                            <property name="sensitive">False</property>
+                                                            </widget>
                                                             <packing>
                                                             <property name="position">1</property>
                                                             </packing>
