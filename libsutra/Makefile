@@ -29,18 +29,13 @@ ifeq ($(MPICXX),)
 else
   GCC = $(MPICXX)
 endif
+GCC ?= $(CC)
 
 NVCC = $(CUDA_ROOT)/bin/nvcc
 NVCCFLAGS = -m64 -Xcompiler -fPIC -use_fast_math -c -I$(CUH_DIR)  -I$(H_DIR) -I$(COMPASS_ROOT_DIR)/libcarma/$(CUH_DIR)  -I$(COMPASS_ROOT_DIR)/libcarma/$(H_DIR) #-gencode $(GENCODE)
 
 ifneq ($(DEBUG),)
 NVCCFLAGS+= -g -DDEBUG
-endif
-ifneq ($(CULA_ROOT),)
- NVCCFLAGS += -DUSE_CULA
-endif
-ifneq ($(MAGMA_ROOT),)
- NVCCFLAGS += -DUSE_MAGMA 
 endif
 
 

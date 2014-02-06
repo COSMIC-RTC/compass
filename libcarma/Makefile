@@ -48,6 +48,7 @@ ifeq ($(MPICXX),)
 else
   GCC = $(MPICXX)
 endif
+GCC = $(MPICXX)
 
 NVCC = $(CUDA_ROOT)/bin/nvcc
 NVCCFLAGS = -m64 -Xcompiler -fPIC -c --compiler-options -I$(CUH_DIR)  -I$(H_DIR) -I$(Y_MAKEDIR)/include -gencode $(GENCODE)
