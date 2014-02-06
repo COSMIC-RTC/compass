@@ -9,11 +9,11 @@ OBJ_DIR=obj
 
 LIB_NAME=libcarma.so
 
-LIB_OBJS=carma_host_obj.o carma_obj.o carma_obj.cuo carma_utils.o carma_fft.o carma_rng.o carma_rng.cuo carma_transpose.cuo \
-	carma_sum.cuo carma_cublas.o convolutionFFT2D.cuo carma_fft_conv.o carma_fft_conv.cuo carma_context.o carma_streams.o   \
-	carma_cula.o carma_magma.o
+#listing sources and futur objects
+SRC_CPP = $(wildcard $(CPP_DIR)/*.cpp) 
+SRC_CU  = $(wildcard $(CU_DIR)/*.cu) 
 
-OBJS := $(addprefix $(OBJ_DIR)/,$(LIB_OBJS))
+OBJS := $(patsubst $(CPP_DIR)/%.cpp,$(OBJ_DIR)/%.o,$(SRC_CPP)) $(patsubst $(CU_DIR)/%.cu,$(OBJ_DIR)/%.cuo,$(SRC_CU)) 
 
 LIB_DEPLIBS= -fPIC -Wall -O0 -lstdc++ -L$(CUDA_LIB_PATH_64) -lcudart -lcublas -lcufft -lcurand 
 ifneq ($(CULA_ROOT),)
@@ -48,7 +48,7 @@ ifeq ($(MPICXX),)
 else
   GCC = $(MPICXX)
 endif
-GCC = $(MPICXX)
+GCC = gcc
 
 NVCC = $(CUDA_ROOT)/bin/nvcc
 NVCCFLAGS = -m64 -Xcompiler -fPIC -c --compiler-options -I$(CUH_DIR)  -I$(H_DIR) -I$(Y_MAKEDIR)/include -gencode $(GENCODE)
@@ -81,6 +81,5 @@ $(OBJ_DIR)/%.o: $(CPP_DIR)/%.cpp
 
 $(LIB_NAME): $(OBJS)
 	@printf '\033[36m%s\033[31m%s\033[m\n' "Linking       " $(LIB_NAME)
-	@echo $(GCC) -shared $(OBJS) -o $@ $(LIB_DEPLIBS)
 	@$(GCC) -shared $(OBJS) -o $@ $(LIB_DEPLIBS)
 

@@ -1,8 +1,14 @@
 #ifndef _SUTRA_RTC_H_
 #define _SUTRA_RTC_H_
 
-#include <sutra_centroider.h>
 #include <sutra_controler.h>
+#include <sutra_centroider.h>
+#include <sutra_centroider_bpcog.h>
+#include <sutra_centroider_cog.h>
+#include <sutra_centroider_corr.h>
+#include <sutra_centroider_pyr.h>
+#include <sutra_centroider_tcog.h>
+#include <sutra_centroider_wcog.h>
 
 using namespace std;
 

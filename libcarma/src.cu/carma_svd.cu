@@ -1,3 +1,4 @@
+#if 0
 #include <carma_svd.h>
 
 __global__ void kernel_setidd(double *d,int N)
@@ -35,4 +36,4 @@ int carma_setidf(float *d,int n)
    
   return EXIT_SUCCESS;
 }
-
+#endif

@@ -30,6 +30,12 @@
 #include <sutra_rtc.h>
 #include <sutra_dm.h>
 #include <sutra_telemetry.h>
+#include <sutra_centroider_bpcog.h>
+#include <sutra_centroider_cog.h>
+#include <sutra_centroider_corr.h>
+#include <sutra_centroider_pyr.h>
+#include <sutra_centroider_tcog.h>
+#include <sutra_centroider_wcog.h>
 #include <carma.h>
 #include <sstream>
 #include <iomanip>
@@ -2011,7 +2017,7 @@ void rtc_print(void *obj) {
 
   for (size_t idx = 0; idx < rtc_handler->d_centro.size(); idx++) {
     cout << setw(8) << idx + 1 << " | " << setw(5)
-        << rtc_handler->d_centro.at(idx)->typec << " | " << setw(4)
+        << rtc_handler->d_centro.at(idx)->get_type() << " | " << setw(4)
         << rtc_handler->d_centro.at(idx)->nwfs + 1 << " | "
         << rtc_handler->d_centro.at(idx)->nvalid << endl;
   }
@@ -2101,7 +2107,10 @@ void Y_rtc_setthresh(int argc) {
 
   carma_context *context_handle = _getCurrentContext();
   context_handle->set_activeDeviceForCpy(rhandler->device);
-  rtc_handler->d_centro.at(ncentro)->threshold = thresh;
+  if(rtc_handler->d_centro.at(ncentro)->is_type("tcog")){
+    sutra_centroider_tcog *centroider_tcog=static_cast<sutra_centroider_tcog*>(rtc_handler->d_centro.at(ncentro));
+    centroider_tcog->set_threshold(thresh);
+  }
 }
 
 void Y_rtc_setnmax(int argc) {
@@ -2112,7 +2121,10 @@ void Y_rtc_setnmax(int argc) {
 
   carma_context *context_handle = _getCurrentContext();
   context_handle->set_activeDevice(rhandler->device);
-  rtc_handler->d_centro.at(ncentro)->nmax = nmax;
+  if(rtc_handler->d_centro.at(ncentro)->is_type("bpcog")){
+    sutra_centroider_bpcog *centroider_bpcog=static_cast<sutra_centroider_bpcog*>(rtc_handler->d_centro.at(ncentro));
+    centroider_bpcog->set_nmax(nmax);
+  }
 }
 
 void Y_rtc_docentroids(int argc) {
@@ -2471,9 +2483,9 @@ void Y_sensors_initweights(int argc) {
 
   float *weights = ygeta_f(argc - 5, &ntot, dims);
 
-  rtc_handler->d_centro.at(ncentro)->init_weights(
-      sensors_handler->d_wfs.at(nsensor));
-  rtc_handler->d_centro.at(ncentro)->load_weights(weights, dims[0]);
+  sutra_centroider_wcog *centroider_wcog=static_cast<sutra_centroider_wcog*>(rtc_handler->d_centro.at(ncentro));
+  centroider_wcog->init_weights(sensors_handler->d_wfs.at(nsensor));
+  centroider_wcog->load_weights(weights, dims[0]);
 }
 
 void Y_sensors_initbcube(int argc) {
@@ -2517,9 +2529,9 @@ void Y_sensors_initcorr(int argc) {
   int sizey = ygets_i(argc-8);
   float *interpmat = ygeta_f(argc - 9, &ntot, dims);
 
-  rtc_handler->d_centro.at(ncentro)->init_corr(
-      sensors_handler->d_wfs.at(nsensor), sizex, sizey, interpmat);
-  rtc_handler->d_centro.at(ncentro)->load_corr(weights, corr_norm, mydim);
+  sutra_centroider_corr *centroider_corr=static_cast<sutra_centroider_corr*>(rtc_handler->d_centro.at(ncentro));
+  centroider_corr->init_corr(sensors_handler->d_wfs.at(nsensor), sizex, sizey, interpmat);
+  centroider_corr->load_corr(weights, corr_norm, mydim);
 }
 
 void Y_sensors_loadcorrfnct(int argc) {
@@ -2539,7 +2551,8 @@ void Y_sensors_loadcorrfnct(int argc) {
   int mydim = dims[0];
   float *corr_norm = ygeta_f(argc - 5, &ntot, dims);
 
-  rtc_handler->d_centro.at(ncentro)->load_corr(weights, corr_norm, mydim);
+  sutra_centroider_corr *centroider_corr=static_cast<sutra_centroider_corr*>(rtc_handler->d_centro.at(ncentro));
+  centroider_corr->load_corr(weights, corr_norm, mydim);
 }
 
 void Y_sensors_loadweights(int argc) {
@@ -2557,7 +2570,8 @@ void Y_sensors_loadweights(int argc) {
 
   float *weights = ygeta_f(argc - 4, &ntot, dims);
 
-  rtc_handler->d_centro.at(ncentro)->load_weights(weights, dims[0]);
+  sutra_centroider_wcog *centroider_wcog=static_cast<sutra_centroider_wcog*>(rtc_handler->d_centro.at(ncentro));
+  centroider_wcog->load_weights(weights, dims[0]);
 }
 
 void Y_sensors_compslopes(int argc) {
@@ -2572,37 +2586,20 @@ void Y_sensors_compslopes(int argc) {
   context_handle->set_activeDevice(handler->device);
 
   //cout << ncentro << " " << (rtc_handler->d_centro.at(ncentro)->typec) << endl;
+  if (argc > 4){
+    if(rtc_handler->d_centro.at(ncentro)->is_type("bpcog")){
+      sutra_centroider_bpcog *centroider_bpcog=static_cast<sutra_centroider_bpcog*>(rtc_handler->d_centro.at(ncentro));
+      centroider_bpcog->set_nmax(ygets_i(argc-5));
+    }else if(rtc_handler->d_centro.at(ncentro)->is_type("tcog")){
+      sutra_centroider_tcog *centroider_tcog=static_cast<sutra_centroider_tcog*>(rtc_handler->d_centro.at(ncentro));
+      centroider_tcog->set_threshold(ygets_f(argc-5));
+    }
 
-  if ((rtc_handler->d_centro.at(ncentro)->typec).compare("cog") == 0) {
-    rtc_handler->d_centro.at(ncentro)->get_cog(
-        sensors_handler->d_wfs.at(nsensor));
   }
-  if ((rtc_handler->d_centro.at(ncentro)->typec).compare("tcog") == 0) {
-    float thresh = 0.;
-    if (argc > 4)
-      thresh = ygets_f(argc-5);
-    else
-      thresh = rtc_handler->d_centro.at(ncentro)->threshold;
-    rtc_handler->d_centro.at(ncentro)->get_tcog(thresh,
-        sensors_handler->d_wfs.at(nsensor));
-  }
-  if ((rtc_handler->d_centro.at(ncentro)->typec).compare("bpcog") == 0) {
-    int nmax = 10;
-    if (argc > 4)
-      nmax = ygets_i(argc-5);
-    else
-      nmax = rtc_handler->d_centro.at(ncentro)->nmax;
-    rtc_handler->d_centro.at(ncentro)->get_bpcog(nmax,
-        sensors_handler->d_wfs.at(nsensor));
-  }
-  if ((rtc_handler->d_centro.at(ncentro)->typec).compare("wcog") == 0) {
-    rtc_handler->d_centro.at(ncentro)->get_wcog(
-        sensors_handler->d_wfs.at(nsensor));
-  }
-  if ((rtc_handler->d_centro.at(ncentro)->typec).compare("corr") == 0) {
-    rtc_handler->d_centro.at(ncentro)->get_corr(
-        sensors_handler->d_wfs.at(nsensor));
-  }
+
+  rtc_handler->d_centro.at(ncentro)->get_cog(
+      sensors_handler->d_wfs.at(nsensor));
+
 }
 
 void Y_sensors_getnmax(int argc) {
@@ -2629,49 +2626,59 @@ void Y_centroider_getdata(int argc) {
   int ncentro = ygets_i(argc-2);
 
   char *type_data = ygets_q(argc - 3);
-  if (strcmp(type_data, "weights") == 0) {
-    float *data = ypush_f(
-        rtc_handler->d_centro.at(ncentro)->d_weights->getDims());
-    rtc_handler->d_centro.at(ncentro)->d_weights->device2host(data);
+  if ( (strcmp(type_data, "weights") == 0) && rtc_handler->d_centro.at(ncentro)->is_type("wcog") ) {
+    sutra_centroider_wcog *centroider_wcog=static_cast<sutra_centroider_wcog*>(rtc_handler->d_centro.at(ncentro));
+
+    float *data = ypush_f(centroider_wcog->d_weights->getDims());
+    centroider_wcog->d_weights->device2host(data);
   }
-  if (strcmp(type_data, "corrnorm") == 0) {
-    float *data = ypush_f(
-        rtc_handler->d_centro.at(ncentro)->d_corrnorm->getDims());
-    rtc_handler->d_centro.at(ncentro)->d_corrnorm->device2host(data);
+  if ( (strcmp(type_data, "corrnorm") == 0) && rtc_handler->d_centro.at(ncentro)->is_type("corr") ) {
+    sutra_centroider_corr *centroider_corr=static_cast<sutra_centroider_corr*>(rtc_handler->d_centro.at(ncentro));
+
+    float *data = ypush_f(centroider_corr->d_corrnorm->getDims());
+    centroider_corr->d_corrnorm->device2host(data);
   }
-  if (strcmp(type_data, "corrfnct") == 0) {
+  if ( (strcmp(type_data, "corrfnct") == 0) && rtc_handler->d_centro.at(ncentro)->is_type("corr") ) {
+    sutra_centroider_corr *centroider_corr=static_cast<sutra_centroider_corr*>(rtc_handler->d_centro.at(ncentro));
+
     long *ndims_data = new long[5];
     ndims_data[0] = 4;
     ndims_data[1] = 2;
-    long *ndims_obj = rtc_handler->d_centro.at(ncentro)->d_corrfnct->getDims();
+    long *ndims_obj = centroider_corr->d_corrfnct->getDims();
     memcpy(&ndims_data[2], &(ndims_obj[1]), sizeof(long) * 3);
     float *data = ypush_f(ndims_data);
-    rtc_handler->d_centro.at(ncentro)->d_corrfnct->device2host(
+    centroider_corr->d_corrfnct->device2host(
         (cuFloatComplex *) data);
   }
-  if (strcmp(type_data, "corrspot") == 0) {
+  if ( (strcmp(type_data, "corrspot") == 0) && rtc_handler->d_centro.at(ncentro)->is_type("corr") ) {
+    sutra_centroider_corr *centroider_corr=static_cast<sutra_centroider_corr*>(rtc_handler->d_centro.at(ncentro));
+
     long *ndims_data = new long[5];
     ndims_data[0] = 4;
     ndims_data[1] = 2;
-    long *ndims_obj = rtc_handler->d_centro.at(ncentro)->d_corrspot->getDims();
+    long *ndims_obj = centroider_corr->d_corrspot->getDims();
     memcpy(&ndims_data[2], &(ndims_obj[1]), sizeof(long) * 3);
     float *data = ypush_f(ndims_data);
-    rtc_handler->d_centro.at(ncentro)->d_corrspot->device2host(
+    centroider_corr->d_corrspot->device2host(
         (cuFloatComplex *) data);
   }
-  if (strcmp(type_data, "corr") == 0) {
-    float *data = ypush_f(rtc_handler->d_centro.at(ncentro)->d_corr->getDims());
-    rtc_handler->d_centro.at(ncentro)->d_corr->device2host(data);
+  if ( (strcmp(type_data, "corr") == 0) && rtc_handler->d_centro.at(ncentro)->is_type("corr") ) {
+    sutra_centroider_corr *centroider_corr=static_cast<sutra_centroider_corr*>(rtc_handler->d_centro.at(ncentro));
+
+    float *data = ypush_f(centroider_corr->d_corr->getDims());
+    centroider_corr->d_corr->device2host(data);
   }
-  if (strcmp(type_data, "corrmax") == 0) {
-    int *data = ypush_i(
-        rtc_handler->d_centro.at(ncentro)->d_corrmax->getDims());
-    rtc_handler->d_centro.at(ncentro)->d_corrmax->device2host(data);
+  if ( (strcmp(type_data, "corrmax") == 0) && rtc_handler->d_centro.at(ncentro)->is_type("corr") ) {
+    sutra_centroider_corr *centroider_corr=static_cast<sutra_centroider_corr*>(rtc_handler->d_centro.at(ncentro));
+
+    int *data = ypush_i(centroider_corr->d_corrmax->getDims());
+    centroider_corr->d_corrmax->device2host(data);
   }
-  if (strcmp(type_data, "matinterp") == 0) {
-    float *data = ypush_f(
-        rtc_handler->d_centro.at(ncentro)->d_interpmat->getDims());
-    rtc_handler->d_centro.at(ncentro)->d_interpmat->device2host(data);
+  if ( (strcmp(type_data, "matinterp") == 0) && rtc_handler->d_centro.at(ncentro)->is_type("corr") ) {
+    sutra_centroider_corr *centroider_corr=static_cast<sutra_centroider_corr*>(rtc_handler->d_centro.at(ncentro));
+
+    float *data = ypush_f(centroider_corr->d_interpmat->getDims());
+    centroider_corr->d_interpmat->device2host(data);
   }
 }
 

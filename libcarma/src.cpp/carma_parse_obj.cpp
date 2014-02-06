@@ -4,7 +4,7 @@
  *  Created on: Apr 23, 2012
  *      Author: sevin
  */
-
+#if 0
 #include "carma_parse_obj.h"
 
 carma_parse_obj::carma_parse_obj() {
@@ -18,3 +18,4 @@ carma_parse_obj::~carma_parse_obj() {
 	cerr << "ERROR (" << __FILE__ << "@" << __LINE__ << "): TODO implement it...";
 }
 
+#endif

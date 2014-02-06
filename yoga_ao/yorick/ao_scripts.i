@@ -141,7 +141,12 @@ func script_system(filename,verbose=,strehl=,r0=,clean=)
         if ((!y_wfs(i).openloop) && (g_dm != [])) {
           sensors_trace,g_wfs,i-1,"dm",g_dm,0;
         }
-        sensors_compimg_tele,g_wfs,i-1;
+
+	if(y_wfs(i).type=="cog") {
+	  sensors_compimg_tele,g_wfs,i-1;
+	} else {
+	  sensors_compimg,g_wfs,i-1;
+	}
       }
       
       // do centroiding

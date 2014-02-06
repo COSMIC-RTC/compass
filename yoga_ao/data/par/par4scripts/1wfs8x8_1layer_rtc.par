@@ -45,6 +45,7 @@ nwfs = 1;
 y_wfs                  = array(wfs_struct(),nwfs); // clean start
 y_wfs(1).type          = "sh";
 y_wfs(1).nxsub         = 8;
+y_wfs(1).type          = "sh";
 y_wfs(1).npix          = 15;
 y_wfs(1).pixsize       = 0.3;
 y_wfs(1).fracsub       = 0.8;

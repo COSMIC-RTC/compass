@@ -2,7 +2,7 @@ yoga_ao_top = get_env("YOGA_AO_TOP");
 if (!yoga_ao_top) error,"YOGA_AO_TOP is not defined!";
 
 require,yoga_ao_top+"/yorick/yoga_ao.i";
-require,yoga_ao_top+"/ywidgets/widget_wfs.i";
+//require,yoga_ao_top+"/ywidgets/widget_wfs.i";
 
 mypath = anyof(split_path(get_path())==(yoga_ao_top+"/")) ? [] : get_path()+":"+yoga_ao_top+"/";
 if (mypath != []) set_path,mypath;
