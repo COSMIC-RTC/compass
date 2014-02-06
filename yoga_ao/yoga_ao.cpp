@@ -2379,6 +2379,26 @@ void Y_controler_getdata(int argc) {
   }
 }
 
+ void
+  Y_controler_initcured(int argc)
+  {    
+   long ntot;
+    long dims[Y_DIMSIZE];
+
+    rtc_struct *rhandler   = (rtc_struct *)yget_obj(argc-1,&yRTC);
+    sutra_rtc *rtc_handler = (sutra_rtc *)(rhandler->sutra_rtc);
+    long ncontrol          = ygets_l(argc-2);
+    int nxsubs             = ygets_l(argc-3);
+    int *isvalid           = ygeta_i(argc-4,&ntot,dims);
+
+    //rtc_struct *handle    =(rtc_struct *)ypush_obj(&yRTC, sizeof(rtc_struct));
+
+    carma_context *context_handle = _getCurrentContext();
+    context_handle->set_activeDeviceForCpy(rhandler->device);
+
+    rtc_handler->d_control.at(ncontrol)->init_cured(nxsubs,isvalid);
+  }
+
 /*
  *     ____  _
  *    / ___|| | ___  _ __   ___  ___

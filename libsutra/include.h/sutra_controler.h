@@ -7,6 +7,7 @@
 #include <sutra_dm.h>
 #include <sutra_centroider.h>
 #include <sutra_ao_utils.h>
+#include <cured.h>
 
 using namespace std;
 
@@ -43,6 +44,15 @@ public:
   int nstreams;
   cublasHandle_t cublas_handle;
 
+  // data for CuReD */
+  carma_host_obj<float>     *h_centroids;
+  carma_host_obj<float>     *h_err;
+
+  // structures needed to run CuReD */
+  sysCure*                  h_syscure;
+  parCure*                  h_parcure;
+
+
 public:
   sutra_controler(carma_context *context, long nvalid, long nactu, long delay,
       int device, const char* typec);
@@ -58,6 +68,7 @@ public:
   int load_mgain(float *mgain);
   int set_delay(int delay);
 
+  int init_cured(int nxsubs, int *isvalid);
 };
 
 int shift_buf(float *d_data, int offset, int N, int device);

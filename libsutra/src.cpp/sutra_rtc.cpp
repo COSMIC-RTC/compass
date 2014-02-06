@@ -288,6 +288,7 @@ int sutra_rtc::do_control(int ncntrl, sutra_dms *ydm)
     p++;
   }
 
+
   return EXIT_SUCCESS;
 }
 

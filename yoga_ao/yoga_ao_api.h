@@ -369,6 +369,7 @@ extern "C" {
   void Y_rtc_framedelay(int argc);
   void Y_rtc_docontrol(int argc);
   void Y_controler_getdata(int argc);
+  void Y_controler_initcured(int argc);
 
   /*
      ____  _                       

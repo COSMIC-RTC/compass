@@ -1046,6 +1046,20 @@ extern controler_setdata;
    SEE ALSO:
  */
 
+extern controler_initcured;
+/* DOCUMENT controler_initcured
+   controler_initcured,yoga_rtc_obj,ncontrol,nxsubs,isvalid
+     
+   init a cured controler with data
+   
+   yoga_rtc_obj : the yRTC object
+   ncontrol     : index of given controler
+   nxsubs       : number of subaps across pupil (int)
+   isvalid      : array of valid subaps in a nxsubs x nxsubs configuration (int)
+
+   SEE ALSO:
+ */
+
 // global
 extern move_atmos;
 /* DOCUMENT move_atmos

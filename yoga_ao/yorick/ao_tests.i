@@ -628,19 +628,23 @@ func check_centroiding(filename,thresh=,nmax=)
   }
 
   // check geom slopes
+  // gpu version
   slopes_geom,g_wfs,0,0;
   slp=sensors_getslopes(g_wfs,0);
+  // yorick version
   res=reform(sensors_getdata(g_wfs,0,"phase")(*y_wfs(1)._phasemap+1),y_wfs(1)._pdiam,y_wfs(1)._pdiam,y_wfs(1)._nvalid);
   slpx = float(res(0,avg,)-res(1,avg,));
   slpy = float(res(avg,0,)-res(avg,1,));
   geom=_(slpx,slpy);
   // in arcsec :
-  lam_over_D = RASC * y_wfs(1).lambda *1.e-6/ (y_tel.diam/y_wfs(1).nxsub);
-  geom *= float(lam_over_D/2/pi);
+  alpha = 0.206265 / (y_tel.diam/y_wfs(1).nxsub);
+  geom *= float(alpha);
   "abs(geom - slopes): [min, max, avg]";
   tmp_array=abs(geom-slp);
   [min(tmp_array),max(tmp_array),avg(tmp_array)];
-
+  plmk,geom,slp;
+  
+  // check geom slopes (including pupil model : real derivative)
   slopes_geom,g_wfs,0,0;
   slp=sensors_getslopes(g_wfs,0);
   slopes_geom,g_wfs,0,1;
@@ -649,6 +653,7 @@ func check_centroiding(filename,thresh=,nmax=)
   //slp/slp1;
   tmp_array=abs(slp-slp1);
   [min(tmp_array),max(tmp_array),avg(tmp_array)];
+  plmk,slp1,slp,color="red";
 
   // first put back slopes to geom to be sure d_slopes are modified in yoga_wfs
   slopes_geom,g_wfs,0,0;

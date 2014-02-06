@@ -1,59 +1,88 @@
 #include <sutra_controler.h>
 #include <string>
 
-sutra_controler::sutra_controler(carma_context *context, long nvalid,
-    long nactu, long delay, int device, const char *typec) {
-  this->current_context = context;
+sutra_controler::sutra_controler(carma_context *context, long nvalid, long nactu, long delay, int device,const char *typec)
+{
+  this->d_imat      = 0L;
+  this->h_imat      = 0L;
+  this->d_cmat      = 0L;
+  this->h_cmat      = 0L;
+  this->h_mes2mod   = 0L;
+  this->d_mes2mod   = 0L;
+  this->h_mod2act   = 0L;
+  this->d_mod2act   = 0L;
+  this->d_eigenvals = 0L;
+  this->h_eigenvals = 0L;
+  this->h_mateigens = 0L;
+  this->d_mateigens = 0L;
+  this->d_cenbuff   = 0L;
+  this->h_centroids = 0L;
+  this->h_err       = 0L;
+
+  this->current_context=context;
+
   //long *dims_data2 = new long[3]; dims_data2[0] = 2; 
   //long *dims_data3 = new long[4]; dims_data3[0] = 3;
 
-  this->nvalid = nvalid;
-  this->nslope = 2 * nvalid;
-  this->nactu = nactu;
-  this->delay = delay;
-  this->device = device;
-  this->typec = string(typec);
-  this->gain = 0.0f;
 
-  this->nstreams = 1; //nvalid/10;
-  while (nactu % this->nstreams != 0)
-    nstreams--;
+  this->typec       = string(typec);
+  this->nvalid      = nvalid;
+  this->nactu       = nactu;
+  this->delay       = delay;
+  this->device      = device;
+  this->gain        = 0.0f;
+
+  long *dims_data1  = new long[2]; dims_data1[0] = 1;
+  long *dims_data2 = new long[3]; dims_data2[0] = 2;
+  
+  this->nstreams = 1;//nvalid/10;
+  while(nactu % this->nstreams!=0) nstreams--;
+
   cerr << "controler uses " << nstreams << " streams" << endl;
   streams = new carma_streams(nstreams);
+  
+  if (this->typec == "ls") {
+    dims_data2[1]    = 2*nvalid; dims_data2[2] = nactu;
+    this->d_imat     = new carma_obj<float>(context, dims_data2);
+    this->h_imat     = new carma_host_obj<float>(dims_data2,MA_PAGELOCK);
 
-  long *dims_data2 = new long[3];
-  dims_data2[0] = 2;
-  dims_data2[1] = nslope;
-  dims_data2[2] = nactu;
-  this->d_imat = new carma_obj<float>(context, dims_data2);
 
-  dims_data2[1] = nactu;
-  dims_data2[2] = nslope;
-  this->d_cmat = new carma_obj<float>(context, dims_data2);
+    dims_data2[1] = nactu; dims_data2[2] = 2*nvalid;
+    this->d_cmat  = new carma_obj<float>(context, dims_data2);
+    this->h_cmat  = new carma_host_obj<float>(dims_data2,MA_PAGELOCK);
+    
+    dims_data2[1]   = 2*nvalid; dims_data2[2] = 2*nvalid;
+    this->h_mes2mod = new carma_host_obj<float>(dims_data2,MA_PAGELOCK);
+    this->d_mes2mod = new carma_obj<float>(context, dims_data2);
+    
+    dims_data2[1]   = nactu; dims_data2[2] = nactu;
+    this->h_mod2act = new carma_host_obj<float>(dims_data2,MA_PAGELOCK);
+    this->d_mod2act = new carma_obj<float>(context, dims_data2);
+    
+    dims_data1[1]     = 2*nvalid < nactu ? 2*nvalid : nactu;
+    this->d_eigenvals = new carma_obj<float>(context, dims_data1);
+    this->h_eigenvals = new carma_host_obj<float>(dims_data1,MA_PAGELOCK);
+    
+    dims_data2[1]     = dims_data1[1]; dims_data2[2] = dims_data1[1];
+    this->h_mateigens = new carma_host_obj<float>(dims_data2,MA_PAGELOCK);
+    this->d_mateigens = new carma_obj<float>(context, dims_data2);
+  }
 
-  dims_data2[1] = dims_data2[2] = nactu;
-  d_U = new carma_obj<float>(current_context, dims_data2);
 
-  this->d_cenbuff = 0L;
+  if (this->typec == "cured") {
+    dims_data1[1]     = 2*nvalid;
+    this->h_centroids = new carma_host_obj<float>(dims_data1,MA_PAGELOCK);
+    dims_data1[1]     = nactu;
+    this->h_err       = new carma_host_obj<float>(dims_data1,MA_PAGELOCK);
+  }
+
+  dims_data2[1]   = 2*nvalid;
 
   if (delay > 0) {
     dims_data2[1] = 2 * nvalid;
     dims_data2[2] = delay + 1;
     this->d_cenbuff = new carma_obj<float>(context, dims_data2);
   }
-
-  long *dims_data1 = new long[2];
-  dims_data1[0] = 1;
-  dims_data1[1] = nslope < nactu ? nslope : nactu;
-  this->d_eigenvals = new carma_obj<float>(context, dims_data1);
-  this->h_eigenvals = new carma_host_obj<float>(dims_data1, MA_PAGELOCK);
-
-  dims_data1[1] = nslope;
-  this->d_centroids = new carma_obj<float>(context, dims_data1);
-  dims_data1[1] = nactu;
-  this->d_com = new carma_obj<float>(context, dims_data1);
-  this->d_err = new carma_obj<float>(context, dims_data1);
-  this->d_gain = new carma_obj<float>(context, dims_data1);
 
   delete[] dims_data1;
   delete[] dims_data2;
@@ -67,12 +96,23 @@ sutra_controler::~sutra_controler() {
   delete this->d_U;
 
   delete this->streams;
-  delete this->d_imat;
-  delete this->d_cmat;
+  if (this->d_imat != 0L) delete this->d_imat;
+  if (this->d_cmat != 0L) delete this->d_cmat;
+  if (this->h_imat != 0L) delete this->h_imat;
+  if (this->h_cmat != 0L) delete this->h_cmat;
+  if (this->d_eigenvals != 0L) delete this->d_eigenvals;
+  if (this->h_eigenvals != 0L) delete this->h_eigenvals;
+  if (this->h_mateigens != 0L) delete this->h_mateigens;
+  if (this->d_mateigens != 0L) delete this->d_mateigens;
+  if (this->h_mes2mod != 0L) delete this->h_mes2mod;
+  if (this->d_mes2mod != 0L) delete this->d_mes2mod;
+  if (this->h_mod2act != 0L) delete this->h_mod2act;
+  if (this->d_mod2act != 0L) delete this->d_mod2act;
   delete this->d_gain;
 
-  delete this->d_eigenvals;
-  delete this->h_eigenvals;
+  if (this->h_centroids != 0L) delete this->h_centroids;
+  if (this->h_err != 0L) delete this->h_err;
+
 
   delete this->d_centroids;
   if (this->delay > 0)
@@ -210,48 +250,69 @@ int sutra_controler::frame_delay() {
 }
 
 int sutra_controler::comp_com() {
-  if (this->nstreams > 1) {
-    int nstreams = this->nstreams;
-    float alpha = -1.0f;
-    float beta = 0.0f;
-    //cout << this->d_cmat->getDims(1) << " x " << this->d_cmat->getDims(2) << endl;
-    //cout << this->d_centroids->getNbElem()<< endl;
-    //cout << this->d_err->getNbElem()<< endl;
-    for (int i = 0; i < nstreams; i++) {
-      int istart1 = i * this->d_cmat->getDims(2) * this->d_cmat->getDims(1)
-          / nstreams;
-      int istart2 = i * this->d_cmat->getDims(1) / nstreams;
-
-      //cout << istart1 << " " << istart2 << endl;
-
-      cublasSetStream(cublas_handle, this->streams->get_stream(i));
-
-      cublasOperation_t trans = carma_char2cublasOperation('n');
-
-      carma_checkCublasStatus(
-          cublasSgemv(cublas_handle, trans, this->d_cmat->getDims(1) / nstreams,
-              this->d_cmat->getDims(2), &alpha,
-              &((this->d_cmat->getData())[istart1]),
-              this->d_cmat->getDims(1) / nstreams, this->d_centroids->getData(),
-              1, &beta, &((this->d_err->getData())[istart2]), 1));
+  if (typec == "ls") {
+    if (this->nstreams > 1) {
+      int nstreams = this->nstreams;
+      float alpha = -1.0f;
+      float beta  = 0.0f;
+      //cout << this->d_cmat->getDims(1) << " x " << this->d_cmat->getDims(2) << endl;
+      //cout << this->d_centroids->getNbElem()<< endl;
+      //cout << this->d_err->getNbElem()<< endl;
+      for (int i=0;i<nstreams;i++) {
+	int istart1 = i * this->d_cmat->getDims(2) * this->d_cmat->getDims(1) / nstreams;
+	int istart2 = i * this->d_cmat->getDims(1) / nstreams;
+	
+	//cout << istart1 << " " << istart2 << endl;
+	
+	cublasSetStream(cublas_handle, this->streams->get_stream(i));
+	
+	cublasOperation_t trans = carma_char2cublasOperation('n');
+	
+	carma_checkCublasStatus(cublasSgemv(cublas_handle,
+					    trans,
+					    this->d_cmat->getDims(1)/nstreams,
+					    this->d_cmat->getDims(2),
+					    &alpha,
+					    &((this->d_cmat->getData())[istart1]),
+					    this->d_cmat->getDims(1)/nstreams,
+					    this->d_centroids->getData(),
+					    1,
+					    &beta,
+					    &((this->d_err->getData())[istart2]),
+					    1));
+      }
+      
+      
+      mult_int(this->d_com->getData(),this->d_err->getData(),this->d_gain->getData(),this->gain,this->nactu,this->device,this->streams);
+      
+      this->streams->wait_all_streams();
+      
+    } else {
+      // compute error
+      this->d_err->gemv('n',-1.0f,this->d_cmat,this->d_cmat->getDims(1),this->d_centroids,1,0.0f,1);
+      
+      // apply modal gain & loop gain
+      mult_int(this->d_com->getData(),this->d_err->getData(),this->d_gain->getData(),this->gain,this->nactu,this->device);
     }
-
-    mult_int(this->d_com->getData(), this->d_err->getData(),
-        this->d_gain->getData(), this->gain, this->nactu, this->device,
-        this->streams);
-
-    this->streams->wait_all_streams();
-
-  } else {
-    // compute error
-    this->d_err->gemv('n', -1.0f, this->d_cmat, this->d_cmat->getDims(1),
-        this->d_centroids, 1, 0.0f, 1);
-
-    // apply modal gain & loop gain
-    mult_int(this->d_com->getData(), this->d_err->getData(),
-        this->d_gain->getData(), this->gain, this->nactu, this->device);
   }
 
+  if (this->typec =="cured") {
+    h_centroids->cpy_obj(this->d_centroids,cudaMemcpyDeviceToHost);
+
+    cured(this->h_syscure, this->h_parcure, this->h_centroids->getData(), this->h_err->getData(), this->gain);
+ 
+    h_err->cpy_obj(this->d_com,cudaMemcpyHostToDevice);
+
+    //mult_int(this->d_com->getData(),this->d_err->getData(),this->d_gain->getData(),this->gain,this->nactu,this->device);
+  }
+
+  return EXIT_SUCCESS;
+}
+
+int sutra_controler::init_cured(int nxsubs, int *isvalid)
+{
+  this->h_syscure = cureSystem(nxsubs, this->nvalid, this->nactu, isvalid, 1);
+  this->h_parcure = cureInit( this->h_syscure);
   return EXIT_SUCCESS;
 }
 
