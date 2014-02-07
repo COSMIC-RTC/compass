@@ -92,22 +92,22 @@ y_centroiders(1).type     = "wcog";
 y_centroiders(1).type_fct = "model";
 
 /*
-controlers inits
+controllers inits
 */
-ncontrolers = 1;
-y_controlers          = array(controler_struct(),ncontrolers);
+ncontrollers = 1;
+y_controllers          = array(controller_struct(),ncontrollers);
 
-y_controlers(1).type    = "ls";
-y_controlers(1).nwfs    = &[1];
-y_controlers(1).ndm     = &[1,2];
-y_controlers(1).maxcond = 60.;
-y_controlers(1).delay   = 1;
-y_controlers(1).gain    = 1.0;
+y_controllers(1).type    = "ls";
+y_controllers(1).nwfs    = &[1];
+y_controllers(1).ndm     = &[1,2];
+y_controllers(1).maxcond = 60.;
+y_controllers(1).delay   = 1;
+y_controllers(1).gain    = 1.0;
 
 /*
 rtc inits
 */
 y_rtc.nwfs =1;
 y_rtc.centroiders = &(y_centroiders);
-y_rtc.controlers  = &(y_controlers);
+y_rtc.controllers  = &(y_controllers);
 

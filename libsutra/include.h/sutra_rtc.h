@@ -1,7 +1,7 @@
 #ifndef _SUTRA_RTC_H_
 #define _SUTRA_RTC_H_
 
-#include <sutra_controler.h>
+#include <sutra_controller.h>
 #include <sutra_centroider.h>
 #include <sutra_centroider_bpcog.h>
 #include <sutra_centroider_cog.h>
@@ -18,7 +18,7 @@ class sutra_rtc {
   int                        delay;
 
   vector<sutra_centroider *>  d_centro;
-  vector<sutra_controler *>   d_control;
+  vector<sutra_controller *>   d_control;
 
   carma_context *current_context;
 
@@ -30,8 +30,8 @@ class sutra_rtc {
   int add_centroider(long nwfs, long nvalid,float offset, float scale, long device, char *typec);
   int rm_centroider();
 
-  int add_controler(long nactu, long delay, long device,const char *typec);
-  int rm_controler();
+  int add_controller(long nactu, long delay, long device,const char *typec);
+  int rm_controller();
 
   int do_imat(int ncntrl, sutra_sensors *sensors, sutra_dms *ydm);
   int do_imat_geom(int ncntrl, sutra_sensors *sensors, sutra_dms *ydm,int type);

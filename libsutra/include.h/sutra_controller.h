@@ -1,5 +1,5 @@
-#ifndef _SUTRA_CONTROLER_H_
-#define _SUTRA_CONTROLER_H_
+#ifndef _sutra_controller_H_
+#define _sutra_controller_H_
 
 #include <carma_cublas.h>
 #include <carma_host_obj.h>
@@ -11,7 +11,7 @@
 
 using namespace std;
 
-class sutra_controler {
+class sutra_controller {
 public:
   string typec;
   int device;
@@ -54,10 +54,10 @@ public:
 
 
 public:
-  sutra_controler(carma_context *context, long nvalid, long nactu, long delay,
+  sutra_controller(carma_context *context, long nvalid, long nactu, long delay,
       int device, const char* typec);
-  sutra_controler(const sutra_controler& controler);
-  ~sutra_controler();
+  sutra_controller(const sutra_controller& controller);
+  ~sutra_controller();
 
   int svdec_imat();
   int build_cmat(int nfilt, bool filt_tt);
@@ -78,4 +78,4 @@ int mult_int(float *o_data, float *i_data, float *scale, float gain, int N,
 int mult_int(float *o_data, float *i_data, float *scale, float gain, int N,
     int device, carma_streams *streams);
 
-#endif // _SUTRA_CONTROLER_H_
+#endif // _sutra_controller_H_

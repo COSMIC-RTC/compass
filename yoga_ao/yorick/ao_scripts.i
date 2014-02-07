@@ -677,7 +677,7 @@ func script_relax(filename,verbose=)
 
   g_atmos = g_wfs = g_target = g_dm = g_rtc = [];
   y_geom = y_tel = y_atmos = y_target = y_loop = y_wfs =
-    y_dm = y_controlers = y_centroiders = y_rtc = [];
+    y_dm = y_controllers = y_centroiders = y_rtc = [];
 
 }
 
@@ -778,7 +778,7 @@ func script_valid_rtc(filename,verbose=,strehl=,r0=,clean=, output=)
   centro_cube=array(0.f, numberof(rtc_getcentroids(g_rtc, 0)), y_loop.niter);
   slopes_cube=centro_cube;
 
-  com_cube=array(0.f, numberof(controler_getdata(g_rtc, 0, "com")), y_loop.niter);
+  com_cube=array(0.f, numberof(controller_getdata(g_rtc, 0, "com")), y_loop.niter);
   for (cc=1;cc<=y_loop.niter;cc++) {
     
     if (g_target != []) move_sky,g_atmos,g_target;
@@ -810,7 +810,7 @@ func script_valid_rtc(filename,verbose=,strehl=,r0=,clean=, output=)
       centro_cube(,cc) = rtc_getcentroids(g_rtc, 0);
       slopes_cube(,cc) = sensors_getdata(g_wfs, 0, "slopes");
       if (g_dm != []) rtc_docontrol,g_rtc,0,g_dm;
-      com_cube(,cc) = controler_getdata(g_rtc, 0, "com");
+      com_cube(,cc) = controller_getdata(g_rtc, 0, "com");
     }
     
     if ((y_target != []) && (g_target != [])) {

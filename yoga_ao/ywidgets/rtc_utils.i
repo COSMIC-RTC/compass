@@ -87,8 +87,8 @@ func update_control_prop(void)
     pyk,swrite(format=wfs_disp._cmd+"y_init_control(%d)",1);
   } else {
     pyk,swrite(format=wfs_disp._cmd+"y_update_control_gui('%s', %f, %d, %f)",
-               (*y_rtc.controlers)(1).type,(*y_rtc.controlers)(1).maxcond,
-               (*y_rtc.controlers)(1).delay,(*y_rtc.controlers)(1).gain);
+               (*y_rtc.controllers)(1).type,(*y_rtc.controllers)(1).maxcond,
+               (*y_rtc.controllers)(1).delay,(*y_rtc.controllers)(1).gain);
   }
 }
 
@@ -111,10 +111,10 @@ func init_control_prop(type,maxcond,delay,gain)
       if (type == 3) type = "la";
       if (type == 4) type = "lqg";
     }
-    (*y_rtc.controlers)(1).type    = type;
-    (*y_rtc.controlers)(1).maxcond = maxcond;
-    (*y_rtc.controlers)(1).delay   = delay;
-    (*y_rtc.controlers)(1).gain    = gain;
+    (*y_rtc.controllers)(1).type    = type;
+    (*y_rtc.controllers)(1).maxcond = maxcond;
+    (*y_rtc.controllers)(1).delay   = delay;
+    (*y_rtc.controllers)(1).gain    = gain;
     if (g_rtc != []) rtc_setgain,g_rtc,0,gain;
   }
 }
@@ -125,12 +125,12 @@ func load_default_control(type)
   extern y_rtc;
 
   if (y_wfs == []) {
-    write,"warning : no wfs defined, controler was not initizalized";
+    write,"warning : no wfs defined, controller was not initizalized";
     return;
   }
   
   if (y_dm == []) {
-    write,"warning : no dm defined, controler was not initizalized";
+    write,"warning : no dm defined, controller was not initizalized";
     return;
   }
   
@@ -139,16 +139,16 @@ func load_default_control(type)
   if (type == "L&A") type = "la";
   if (type == "LQG") type = "lqg";
   
-  y_controlers = array(controler_struct(),1);
-  y_controlers(1).type    = type;
-  y_controlers(1).nwfs    = &(indgen(numberof(y_wfs)));
-  y_controlers(1).ndm     = &(indgen(numberof(y_dm)));
-  y_controlers(1).maxcond = 20.;
-  y_controlers(1).delay   = 1;
-  y_controlers(1).gain    = 0.4;
+  y_controllers = array(controller_struct(),1);
+  y_controllers(1).type    = type;
+  y_controllers(1).nwfs    = &(indgen(numberof(y_wfs)));
+  y_controllers(1).ndm     = &(indgen(numberof(y_dm)));
+  y_controllers(1).maxcond = 20.;
+  y_controllers(1).delay   = 1;
+  y_controllers(1).gain    = 0.4;
 
   if (y_rtc == []) y_rtc    = rtc_struct();
-  y_rtc.controlers = &(y_controlers);
+  y_rtc.controllers = &(y_controllers);
 
   update_control_prop;
 }
@@ -171,10 +171,10 @@ func update_control(type,maxcond,delay,gain)
       if (type == 3) type = "la";
       if (type == 4) type = "lqg";
     }
-    (*y_rtc.controlers)(1).type    = type;
-    (*y_rtc.controlers)(1).maxcond = maxcond;
-    (*y_rtc.controlers)(1).delay   = delay;
-    (*y_rtc.controlers)(1).gain    = gain;
+    (*y_rtc.controllers)(1).type    = type;
+    (*y_rtc.controllers)(1).maxcond = maxcond;
+    (*y_rtc.controllers)(1).delay   = delay;
+    (*y_rtc.controllers)(1).gain    = gain;
     if (g_rtc != []) {
       cmat_update,0,maxcond;
       rtc_setdelay,g_rtc,0,delay;

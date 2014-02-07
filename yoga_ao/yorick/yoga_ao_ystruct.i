@@ -169,7 +169,7 @@ struct rtc_struct
 {
   long    nwfs;      // number of wfs
   pointer centroiders; // an array of centroiders
-  pointer controlers; // an array of controlers
+  pointer controllers; // an array of controllers
 };
 
 struct centroider_struct
@@ -186,12 +186,12 @@ struct centroider_struct
   pointer interpmat; // optional reference function(s) used for centroiding
 };
 
-struct controler_struct
+struct controller_struct
 {
-  string  type;     // type of controler
-  pointer nwfs;     // index of wfss in controler
+  string  type;     // type of controller
+  pointer nwfs;     // index of wfss in controller
   pointer nvalid;   // number of valid subaps per wfs
-  pointer ndm;      // index of dms in controler
+  pointer ndm;      // index of dms in controller
   pointer nactu;    // number of controled actuator per dm
   pointer imat;     // full interaction matrix
   pointer cmat;     // full control matrix

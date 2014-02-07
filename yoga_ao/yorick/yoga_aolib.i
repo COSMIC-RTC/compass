@@ -539,7 +539,7 @@ extern rtc_addcentro;
 extern rtc_addcontrol;
 /* DOCUMENT rtc_addcontrol
    rtc_addcontrol,yoga_rtc_obj,nactu,delay,type
-   add controler to yoga_rtc_obj object
+   add controller to yoga_rtc_obj object
       
    SEE ALSO:
  */
@@ -547,7 +547,7 @@ extern rtc_addcontrol;
 extern rtc_rmcontrol;
 /* DOCUMENT rtc_rmcontrol
    rtc_rmcontrol,yoga_rtc_obj
-   rm last controler of yoga_rtc_obj object
+   rm last controller of yoga_rtc_obj object
       
    SEE ALSO:
  */
@@ -570,16 +570,16 @@ extern rtc_setnmax;
 
 extern rtc_docentroids;
 /* DOCUMENT rtc_docentroids
-   rtc_docentroids,yoga_rtc_obj,ncontroler,yoga_wfs_obj
-   do centroiding for a controler in a yoga_rtc_obj object
+   rtc_docentroids,yoga_rtc_obj,ncontroller,yoga_wfs_obj
+   do centroiding for a controller in a yoga_rtc_obj object
       
    SEE ALSO:
  */
 
 extern rtc_doimat;
 /* DOCUMENT rtc_doimat
-   rtc_doimat,yoga_rtc_obj,ncontroler,yoga_wfs_obj,yoga_dm_obj[,geomtype]
-   do imat for a controler in a yoga_rtc_obj object
+   rtc_doimat,yoga_rtc_obj,ncontroller,yoga_wfs_obj,yoga_dm_obj[,geomtype]
+   do imat for a controller in a yoga_rtc_obj object
    geomtype : optional, type of geometric slopes computation
       
    SEE ALSO:
@@ -587,48 +587,48 @@ extern rtc_doimat;
 
 extern rtc_getimat;
 /* DOCUMENT rtc_getimat
-   res = rtc_getimat(yoga_rtc_obj,ncontroler)
-   get imat for a controler in a yoga_rtc_obj object
+   res = rtc_getimat(yoga_rtc_obj,ncontroller)
+   get imat for a controller in a yoga_rtc_obj object
       
    SEE ALSO:
  */
 
 extern rtc_setimat;
 /* DOCUMENT rtc_setimat
-   rtc_setimat,yoga_rtc_obj,ncontroler,imat
-   set imat for a controler in a yoga_rtc_obj object
+   rtc_setimat,yoga_rtc_obj,ncontroller,imat
+   set imat for a controller in a yoga_rtc_obj object
       
    SEE ALSO:
  */
 
 extern rtc_getcentroids;
 /* DOCUMENT rtc_getcentroids
-   res = rtc_getcentroids(yoga_rtc_obj,ncontroler)
-   get centroids for a controler in a yoga_rtc_obj object
+   res = rtc_getcentroids(yoga_rtc_obj,ncontroller)
+   get centroids for a controller in a yoga_rtc_obj object
       
    SEE ALSO:
  */
 
 extern rtc_getcmat;
 /* DOCUMENT rtc_getcmat
-   res = rtc_getcmat(yoga_rtc_obj,ncontroler)
-   get cmat for a controler in a yoga_rtc_obj object
+   res = rtc_getcmat(yoga_rtc_obj,ncontroller)
+   get cmat for a controller in a yoga_rtc_obj object
       
    SEE ALSO:
  */
 
 extern rtc_setcmat;
 /* DOCUMENT rtc_setcmat
-   rtc_setcmat,yoga_rtc_obj,ncontroler,cmat
-   set cmat for a controler in a yoga_rtc_obj object
+   rtc_setcmat,yoga_rtc_obj,ncontroller,cmat
+   set cmat for a controller in a yoga_rtc_obj object
       
    SEE ALSO:
  */
 
 extern rtc_buildcmat;
 /* DOCUMENT rtc_buildcmat
-   rtc_buildcmat,yoga_rtc_obj,ncontroler,nfilt,filt_tt
-   do generalized inverse of imat for a controler in a yoga_rtc_obj object
+   rtc_buildcmat,yoga_rtc_obj,ncontroller,nfilt,filt_tt
+   do generalized inverse of imat for a controller in a yoga_rtc_obj object
    nfilt   : number of modes filtered (lowest eigenvalues)
    filt_tt : 0 (default) / 1 : flag to keep or not tt in the inversion
    SEE ALSO:
@@ -636,48 +636,48 @@ extern rtc_buildcmat;
 
 extern rtc_setgain;
 /* DOCUMENT rtc_setgain
-   rtc_setgain,yoga_rtc_obj,ncontroler,gain
-   set loop gain for a controler in a yoga_rtc_obj object
+   rtc_setgain,yoga_rtc_obj,ncontroller,gain
+   set loop gain for a controller in a yoga_rtc_obj object
       
    SEE ALSO:
  */
 
 extern rtc_loadmgain;
 /* DOCUMENT rtc_loadmgain
-   rtc_loadmgain,yoga_rtc_obj,ncontroler,mgain
-   set modal gain for a controler in a yoga_rtc_obj object
+   rtc_loadmgain,yoga_rtc_obj,ncontroller,mgain
+   set modal gain for a controller in a yoga_rtc_obj object
       
    SEE ALSO:
  */
 
 extern rtc_setdelay;
 /* DOCUMENT rtc_setdelay
-   rtc_setdelay,yoga_rtc_obj,ncontroler,delay
-   set loop delay for a controler in a yoga_rtc_obj object
+   rtc_setdelay,yoga_rtc_obj,ncontroller,delay
+   set loop delay for a controller in a yoga_rtc_obj object
       
    SEE ALSO:
  */
 
 extern rtc_imatsvd;
 /* DOCUMENT rtc_imatsvd
-   rtc_imatsvd,yoga_rtc_obj,ncontroler
-   compute svdec of imat for a controler in a yoga_rtc_obj object
+   rtc_imatsvd,yoga_rtc_obj,ncontroller
+   compute svdec of imat for a controller in a yoga_rtc_obj object
       
    SEE ALSO:
  */
 
 extern rtc_framedelay;
 /* DOCUMENT rtc_framedelay
-   rtc_framedelay,yoga_rtc_obj,ncontroler
-   introduce frame delay a controler in a yoga_rtc_obj object
+   rtc_framedelay,yoga_rtc_obj,ncontroller
+   introduce frame delay a controller in a yoga_rtc_obj object
       
    SEE ALSO:
  */
 
 extern rtc_docontrol;
 /* DOCUMENT rtc_docontrol
-   rtc_docontrol,yoga_rtc_obj,ncontroleryoga_dm_obj
-   compute and apply command (including delay) for a controler in a yoga_rtc_obj object
+   rtc_docontrol,yoga_rtc_obj,ncontrolleryoga_dm_obj
+   compute and apply command (including delay) for a controller in a yoga_rtc_obj object
       
    SEE ALSO:
  */
@@ -1020,40 +1020,40 @@ extern centroider_getdata;
    SEE ALSO:
  */
 
-extern controler_getdata;
-/* DOCUMENT controler_getdata
-   arr = controler_getdata(yoga_rtc_obj,ncontrol,type)
+extern controller_getdata;
+/* DOCUMENT controller_getdata
+   arr = controller_getdata(yoga_rtc_obj,ncontrol,type)
      
-   returns the configuration data for a given controler in a yRTC object
+   returns the configuration data for a given controller in a yRTC object
    
    yoga_rtc_obj : the yRTC object
-   ncontrol     : index of given controler
+   ncontrol     : index of given controller
    type         : type of data "eigenvals" 
 
    SEE ALSO:
  */
 
-extern controler_setdata;
-/* DOCUMENT controler_setdata
+extern controller_setdata;
+/* DOCUMENT controller_setdata
    ontroler_setdata,yoga_rtc_obj,ncontrol,type,data
      
-   returns the configuration data for a given controler in a yRTC object
+   returns the configuration data for a given controller in a yRTC object
    
    yoga_rtc_obj : the yRTC object
-   ncontrol     : index of given controler
+   ncontrol     : index of given controller
    type         : type of data "eigenvals", "mes2mod", "mod2act" 
 
    SEE ALSO:
  */
 
-extern controler_initcured;
-/* DOCUMENT controler_initcured
-   controler_initcured,yoga_rtc_obj,ncontrol,nxsubs,isvalid
+extern controller_initcured;
+/* DOCUMENT controller_initcured
+   controller_initcured,yoga_rtc_obj,ncontrol,nxsubs,isvalid
      
-   init a cured controler with data
+   init a cured controller with data
    
    yoga_rtc_obj : the yRTC object
-   ncontrol     : index of given controler
+   ncontrol     : index of given controller
    nxsubs       : number of subaps across pupil (int)
    isvalid      : array of valid subaps in a nxsubs x nxsubs configuration (int)
 

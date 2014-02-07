@@ -2086,7 +2086,7 @@ void Y_rtc_addcontrol(int argc) {
   carma_context *context_handle = _getCurrentContext();
   int activeDevice = context_handle->set_activeDeviceForCpy(rhandler->device);
 
-  rtc_handler->add_controler(nactu, delay, activeDevice, type_control);
+  rtc_handler->add_controller(nactu, delay, activeDevice, type_control);
 }
 
 void Y_rtc_rmcontrol(int argc) {
@@ -2096,7 +2096,7 @@ void Y_rtc_rmcontrol(int argc) {
   carma_context *context_handle = _getCurrentContext();
   context_handle->set_activeDevice(rhandler->device);
 
-  rtc_handler->rm_controler();
+  rtc_handler->rm_controller();
 }
 
 void Y_rtc_setthresh(int argc) {
@@ -2304,7 +2304,7 @@ void Y_rtc_imatsvd(int argc) {
   context_handle->set_activeDeviceForCpy(rhandler->device);
 
   if (rtc_handler->d_control[ncontrol]->svdec_imat() == EXIT_FAILURE)
-    y_error("***** ERROR : sutra controler has no SVD implementation *****\n");
+    y_error("***** ERROR : sutra controller has no SVD implementation *****\n");
 }
 
 void Y_rtc_framedelay(int argc) {
@@ -2333,7 +2333,7 @@ void Y_rtc_docontrol(int argc) {
 
 }
 
-void Y_controler_setdata(int argc) {
+void Y_controller_setdata(int argc) {
   rtc_struct *rhandler = (rtc_struct *) yget_obj(argc - 1, &yRTC);
   sutra_rtc *rtc_handler = (sutra_rtc *) (rhandler->sutra_rtc);
 
@@ -2355,7 +2355,7 @@ void Y_controler_setdata(int argc) {
     rtc_handler->d_control.at(ncontrol)->d_eigenvals->host2device(data);
   }
 }
-void Y_controler_getdata(int argc) {
+void Y_controller_getdata(int argc) {
   rtc_struct *rhandler = (rtc_struct *) yget_obj(argc - 1, &yRTC);
   sutra_rtc *rtc_handler = (sutra_rtc *) (rhandler->sutra_rtc);
 
@@ -2392,7 +2392,7 @@ void Y_controler_getdata(int argc) {
 }
 
  void
-  Y_controler_initcured(int argc)
+  Y_controller_initcured(int argc)
   {    
    long ntot;
     long dims[Y_DIMSIZE];

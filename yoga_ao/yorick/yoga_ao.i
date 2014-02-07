@@ -618,34 +618,34 @@ func rtc_init(clean=)
       
       y_rtc.centroiders = &centroiders;
       
-      controlers = *y_rtc.controlers;
+      controllers = *y_rtc.controllers;
       
       if ((y_wfs != []) && (y_dm != [])) {
-        for (i=1;i<=numberof(controlers);i++) {
-          if (controlers(i).type  == "cured") {
+        for (i=1;i<=numberof(controllers);i++) {
+          if (controllers(i).type  == "cured") {
             imat = imat_geom();
             correct_dm,imat;
           }
-          nwfs = *controlers(i).nwfs;
+          nwfs = *controllers(i).nwfs;
           if (numberof(y_wfs) == 1) nwfs = nwfs(1); // fixing a bug ... still not understood
-          ndms = *controlers(i).ndm;
-          controlers(i).nvalid = &(y_wfs(nwfs)._nvalid);
-          controlers(i).nactu  = &(y_dm(ndms)._ntotact);
-          rtc_addcontrol,g_rtc,sum(y_dm(ndms)._ntotact),controlers(i).delay,controlers(i).type;
-          if (controlers(i).type  == "ls") {
+          ndms = *controllers(i).ndm;
+          controllers(i).nvalid = &(y_wfs(nwfs)._nvalid);
+          controllers(i).nactu  = &(y_dm(ndms)._ntotact);
+          rtc_addcontrol,g_rtc,sum(y_dm(ndms)._ntotact),controllers(i).delay,controllers(i).type;
+          if (controllers(i).type  == "ls") {
             write,"doing imat and filtering unseen actuators";
             imat_init,i,clean=clean;
             write,"done";
             cmat_init,i,clean=clean;
-            rtc_setgain,g_rtc,0,controlers(i).gain;
+            rtc_setgain,g_rtc,0,controllers(i).gain;
             mgain = array(1.0f,(y_dm._ntotact)(sum));
             // filtering tilt ...
             //mgain(-1:0) = 0.0f;
             rtc_loadmgain,g_rtc,0,mgain;
           }
-          if (controlers(i).type  == "cured") {
-            write,"initializing cured controler";
-            controler_initcured,g_rtc,0,int(y_wfs(1).nxsub),int(*y_wfs(1)._isvalid);
+          if (controllers(i).type  == "cured") {
+            write,"initializing cured controller";
+            controller_initcured,g_rtc,0,int(y_wfs(1).nxsub),int(*y_wfs(1)._isvalid);
           }          
         }
       }

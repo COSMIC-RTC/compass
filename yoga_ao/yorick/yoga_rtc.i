@@ -110,12 +110,12 @@ func imat_init(ncontrol,clean=)
     inds += y_dm(nm)._ntotact;
   }
   */
-  ndms = *controlers(ncontrol).ndm;
-  controlers(ncontrol).nactu  = &(y_dm(ndms)._ntotact);
+  ndms = *controllers(ncontrol).ndm;
+  controllers(ncontrol).nactu  = &(y_dm(ndms)._ntotact);
   
   rtc_rmcontrol,g_rtc;
   
-  rtc_addcontrol,g_rtc,sum(y_dm(ndms)._ntotact),controlers(i).delay,controlers(i).type;
+  rtc_addcontrol,g_rtc,sum(y_dm(ndms)._ntotact),controllers(i).delay,controllers(i).type;
   
   if (imat_clean) {
     tic;
@@ -128,9 +128,9 @@ func imat_init(ncontrol,clean=)
   } else
     rtc_setimat,g_rtc,ncontrol-1,imat;
   
-  controlers = *y_rtc.controlers;
-  controlers(ncontrol).imat = &imat;
-  y_rtc.controlers = &controlers;
+  controllers = *y_rtc.controllers;
+  controllers(ncontrol).imat = &imat;
+  y_rtc.controllers = &controllers;
   
   // now restore original profile in lgs spots
   for (cc=1;cc<=numberof(y_wfs);cc++) {
@@ -161,22 +161,22 @@ func cmat_init(ncontrol,clean=)
     tic;
     rtc_imatsvd,g_rtc,ncontrol-1;
     write,format="svd time %f\n",tac();
-    eigenv = controler_getdata(g_rtc,ncontrol-1,"eigenvals");
+    eigenv = controller_getdata(g_rtc,ncontrol-1,"eigenvals");
     if (simul_name != []) {
-      U = controler_getdata(g_rtc,ncontrol-1,"U");
+      U = controller_getdata(g_rtc,ncontrol-1,"U");
       fits_write,swrite(format=dirsave+"eigenv-%d-%s.fits",ncontrol,simul_name),eigenv,overwrite=1;
       fits_write,swrite(format=dirsave+"U-%d-%s.fits",ncontrol,simul_name),U,overwrite=1;
     }
   } else {
     eigenv  = fits_read(swrite(format=dirsave+"eigenv-%d-%s.fits",ncontrol,simul_name));
     U = fits_read(swrite(format=dirsave+"U-%d-%s.fits",ncontrol,simul_name));
-    controler_setdata,g_rtc,ncontrol-1,"eigenvals",eigenv;
-    controler_setdata,g_rtc,ncontrol-1,"U",U;
+    controller_setdata,g_rtc,ncontrol-1,"eigenvals",eigenv;
+    controller_setdata,g_rtc,ncontrol-1,"U",U;
   }
 
   imat = rtc_getimat(g_rtc,ncontrol-1);
 
-  maxcond = (*y_rtc.controlers)(ncontrol).maxcond;
+  maxcond = (*y_rtc.controllers)(ncontrol).maxcond;
   mfilt = where((eigenv/eigenv(-2)) < 1./maxcond);
   //mfilt = where(1./(eigenv/eigenv(3)) > maxcond);
   //nfilt = numberof(mfilt)+2;
@@ -200,9 +200,9 @@ func cmat_init(ncontrol,clean=)
 
   cmat = rtc_getcmat(g_rtc,ncontrol-1);
 
-  controlers = *y_rtc.controlers;
-  controlers(ncontrol).cmat = &float(cmat);
-  y_rtc.controlers = &controlers;
+  controllers = *y_rtc.controllers;
+  controllers(ncontrol).cmat = &float(cmat);
+  y_rtc.controllers = &controllers;
 }
 
 
@@ -212,9 +212,9 @@ func cmat_update(ncontrol,maxcond)
 //error;
   imat = rtc_getimat(g_rtc,ncontrol);
 
-  eigenv = controler_getdata(g_rtc,ncontrol,"eigenvals");
+  eigenv = controller_getdata(g_rtc,ncontrol,"eigenvals");
   
-  (*y_rtc.controlers)(ncontrol).maxcond = maxcond;
+  (*y_rtc.controllers)(ncontrol).maxcond = maxcond;
   mfilt = where((eigenv/eigenv(-2)) < 1./maxcond);
   //mfilt = where(1./(eigenv/eigenv(1)) > maxcond);
   nfilt = numberof(mfilt);
@@ -235,9 +235,9 @@ func cmat_update(ncontrol,maxcond)
 
   cmat = rtc_getcmat(g_rtc,ncontrol);
   
-  controlers = *y_rtc.controlers;
-  controlers(ncontrol).cmat = &float(cmat);
-  y_rtc.controlers = &controlers;
+  controllers = *y_rtc.controllers;
+  controllers(ncontrol).cmat = &float(cmat);
+  y_rtc.controllers = &controllers;
 }
 
 

@@ -53,7 +53,7 @@ int sutra_rtc::add_centroider(long nwfs, long nvalid, float offset, float scale,
   return EXIT_SUCCESS;
 }
 
-int sutra_rtc::add_controler(long nactu, long delay, long device,
+int sutra_rtc::add_controller(long nactu, long delay, long device,
     const char *typec) {
   int ncentroids = 0;
 
@@ -61,13 +61,13 @@ int sutra_rtc::add_controler(long nactu, long delay, long device,
     ncentroids += this->d_centro[idx]->nvalid;
 
   d_control.push_back(
-      new sutra_controler(current_context, ncentroids, nactu, delay, device,
+      new sutra_controller(current_context, ncentroids, nactu, delay, device,
           typec));
 
   return EXIT_SUCCESS;
 }
 
-int sutra_rtc::rm_controler() {
+int sutra_rtc::rm_controller() {
   delete this->d_control[(this->d_control).size() - 1];
   d_control.pop_back();
 

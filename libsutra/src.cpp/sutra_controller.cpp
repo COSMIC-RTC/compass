@@ -1,7 +1,7 @@
-#include <sutra_controler.h>
+#include <sutra_controller.h>
 #include <string>
 
-sutra_controler::sutra_controler(carma_context *context, long nvalid,
+sutra_controller::sutra_controller(carma_context *context, long nvalid,
     long nactu, long delay, int device, const char *typec) {
   this->d_imat = 0L;
   this->d_cmat = 0L;
@@ -35,7 +35,7 @@ sutra_controler::sutra_controler(carma_context *context, long nvalid,
   while (nactu % this->nstreams != 0)
     nstreams--;
 
-  cerr << "controler uses " << nstreams << " streams" << endl;
+  cerr << "controller uses " << nstreams << " streams" << endl;
   streams = new carma_streams(nstreams);
 
   if (this->typec == "ls") {
@@ -86,7 +86,7 @@ sutra_controler::sutra_controler(carma_context *context, long nvalid,
   //carma_checkCublasStatus(cublasCreate(&(this->cublas_handle)));
 }
 
-sutra_controler::~sutra_controler() {
+sutra_controller::~sutra_controller() {
   current_context->set_activeDevice(device);
   delete this->d_U;
 
@@ -117,7 +117,7 @@ sutra_controler::~sutra_controler() {
   //delete this->current_context;
 }
 
-int sutra_controler::svdec_imat() {
+int sutra_controller::svdec_imat() {
   // doing U = Dt.D where D is i_mat
   float one = 1., zero = 0.;
 
@@ -150,22 +150,22 @@ int sutra_controler::svdec_imat() {
   return EXIT_SUCCESS;
 }
 
-int sutra_controler::set_gain(float gain) {
+int sutra_controller::set_gain(float gain) {
   this->gain = gain;
   return EXIT_SUCCESS;
 }
 
-int sutra_controler::load_mgain(float *mgain) {
+int sutra_controller::load_mgain(float *mgain) {
   this->d_gain->host2device(mgain);
   return EXIT_SUCCESS;
 }
 
-int sutra_controler::set_delay(int delay) {
+int sutra_controller::set_delay(int delay) {
   this->delay = delay;
   return EXIT_SUCCESS;
 }
 
-int sutra_controler::build_cmat(int nfilt, bool filt_tt) {
+int sutra_controller::build_cmat(int nfilt, bool filt_tt) {
   carma_obj<float> *d_eigenvals_inv;
   carma_host_obj<float> *h_eigenvals_inv;
   carma_obj<float> *d_tmp, *d_tmp2;
@@ -215,11 +215,11 @@ int sutra_controler::build_cmat(int nfilt, bool filt_tt) {
   return EXIT_SUCCESS;
 }
 
-int sutra_controler::build_cmat(int nfilt) {
+int sutra_controller::build_cmat(int nfilt) {
   return this->build_cmat(nfilt, false);
 }
 
-int sutra_controler::frame_delay() {
+int sutra_controller::frame_delay() {
   // here we place the content of d_centroids into cenbuf and get
   // the actual centroid frame for error computation depending on delay value
 
@@ -241,7 +241,7 @@ int sutra_controler::frame_delay() {
   return EXIT_SUCCESS;
 }
 
-int sutra_controler::comp_com() {
+int sutra_controller::comp_com() {
   if (typec == "ls") {
     if (this->nstreams > 1) {
       int nstreams = this->nstreams;
@@ -301,7 +301,7 @@ int sutra_controler::comp_com() {
   return EXIT_SUCCESS;
 }
 
-int sutra_controler::init_cured(int nxsubs, int *isvalid) {
+int sutra_controller::init_cured(int nxsubs, int *isvalid) {
   this->h_syscure = cureSystem(nxsubs, this->nvalid, this->nactu, isvalid, 1);
   this->h_parcure = cureInit(this->h_syscure);
   return EXIT_SUCCESS;
