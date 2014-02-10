@@ -98,15 +98,15 @@ int sutra_rtc::do_imat(int ncntrl, sutra_sensors *sensors, sutra_dms *ydm) {
       //cout << "actu # " << j << endl;
       do_centroids(ncntrl, sensors, true);
 
-      convert_centro(this->d_control[ncntrl]->d_centroids->getData(),
-          this->d_control[ncntrl]->d_centroids->getData(), 0,
+      convert_centro(*this->d_control[ncntrl]->d_centroids,
+          *this->d_control[ncntrl]->d_centroids, 0,
           1.0f / p->second->push4imat,
           this->d_control[ncntrl]->d_centroids->getNbElem(),
           this->d_control[ncntrl]->device);
 
       cutilSafeCall(
-          cudaMemcpy(&((this->d_control[ncntrl]->d_imat->getData())[inds1]),
-              this->d_control[ncntrl]->d_centroids->getData(),
+          cudaMemcpy((*this->d_control[ncntrl]->d_imat)[inds1],
+              *this->d_control[ncntrl]->d_centroids,
               sizeof(float) * 2 * this->d_control[ncntrl]->nvalid,
               cudaMemcpyDeviceToDevice));
 
@@ -136,8 +136,7 @@ int sutra_rtc::do_imat_geom(int ncntrl, sutra_sensors *sensors, sutra_dms *ydm,
         sensors->d_wfs[nwfs]->sensor_trace(ydm, 1);
         //sensors->d_wfs[nwfs]->comp_image();
 
-        float *data = this->d_control[ncntrl]->d_imat->getData();
-        sensors->d_wfs[nwfs]->slopes_geom(type, &(data[inds1 + inds2]));
+        sensors->d_wfs[nwfs]->slopes_geom(type, (*this->d_control[ncntrl]->d_imat)[inds1 + inds2]);
         inds2 += 2 * sensors->d_wfs[nwfs]->nvalid;
       }
       p->second->reset_shape();
@@ -167,77 +166,14 @@ int sutra_rtc::do_centroids(int ncntrl, sutra_sensors *sensors) {
 int sutra_rtc::do_centroids(int ncntrl, sutra_sensors *sensors, bool imat) {
   int inds2 = 0;
 
+
   for (size_t idx_cntr = 0; idx_cntr < (this->d_centro).size(); idx_cntr++) {
+
     int nwfs = this->d_centro[idx_cntr]->nwfs;
 
-    float *odata = this->d_control[ncntrl]->d_centroids->getData();
+    this->d_centro[idx_cntr]->get_cog(sensors->d_wfs[nwfs],(*this->d_control[ncntrl]->d_centroids)[inds2]);
 
-    if (sensors->d_wfs[nwfs]->nstreams > 1) {
-      //if (0) {
-      /*
-       cutilSafeCall(cudaMemcpy(this->d_centro[idx_cntr]->d_bincube->getData(), sensors->d_wfs[nwfs]->d_bincube->getData(),
-       sizeof(float)*sensors->d_wfs[nwfs]->nvalid*sensors->d_wfs[nwfs]->npix * sensors->d_wfs[nwfs]->npix,
-       cudaMemcpyDeviceToDevice));
-       */
-      int nstreams = sensors->d_wfs[nwfs]->nstreams;
-      for (int i = 0; i < nstreams; i++) {
-        int istart = i * sensors->d_wfs[nwfs]->npix * sensors->d_wfs[nwfs]->npix
-            * sensors->d_wfs[nwfs]->nvalid / nstreams;
-/*
-        cutilSafeCall(
-            cudaMemcpyAsync(
-                &((this->d_centro[idx_cntr]->d_bincube->getData())[istart]),
-                &((sensors->d_wfs[nwfs]->d_bincube->getData())[istart]),
-                sizeof(float) * sensors->d_wfs[nwfs]->npix
-                    * sensors->d_wfs[nwfs]->npix * sensors->d_wfs[nwfs]->nvalid
-                    / nstreams, cudaMemcpyDeviceToDevice,
-                sensors->d_wfs[nwfs]->streams->get_stream(i)));
-
-        if (this->d_centro[idx_cntr]->is_type("cog"))
-          this->d_centro[idx_cntr]->get_cog_async(sensors->d_wfs[nwfs]->streams,
-              sensors->d_wfs[nwfs]->d_bincube->getData(),
-              sensors->d_wfs[nwfs]->d_subsum->getData(),
-              this->d_centro[idx_cntr]->d_centroids->getData(),
-              sensors->d_wfs[nwfs]->nvalid, sensors->d_wfs[nwfs]->npix);
-        else
-*/
-        this->d_centro[idx_cntr]->get_cog(sensors->d_wfs[nwfs]);
-
-/*
-        istart = i * sensors->d_wfs[nwfs]->nvalid / nstreams;
-        cutilSafeCall(
-            cudaMemcpyAsync(&(odata[inds2 + istart]),
-                &((this->d_centro[idx_cntr]->d_centroids->getData())[istart]),
-                sizeof(float) * sensors->d_wfs[nwfs]->nvalid / nstreams,
-                cudaMemcpyDeviceToDevice,
-                sensors->d_wfs[nwfs]->streams->get_stream(i)));
-
-        cutilSafeCall(
-            cudaMemcpyAsync(
-                &(odata[inds2 + istart + sensors->d_wfs[nwfs]->nvalid]),
-                &((this->d_centro[idx_cntr]->d_centroids->getData())[istart
-                    + sensors->d_wfs[nwfs]->nvalid]),
-                sizeof(float) * sensors->d_wfs[nwfs]->nvalid / nstreams,
-                cudaMemcpyDeviceToDevice,
-                sensors->d_wfs[nwfs]->streams->get_stream(i)));
-*/
-      }
-      sensors->d_wfs[nwfs]->streams->wait_all_streams();
-      /*
-       cutilSafeCall(cudaMemcpy(&(odata[inds2]), this->d_centro[idx_cntr]->d_centroids->getData(),
-       sizeof(float)*2*sensors->d_wfs[nwfs]->nvalid,
-       cudaMemcpyDeviceToDevice));
-       */
-      inds2 += 2 * sensors->d_wfs[nwfs]->nvalid;
-    } else {
-      this->d_centro[idx_cntr]->get_cog(sensors->d_wfs[nwfs]);
-
-      cutilSafeCall(
-          cudaMemcpy(&(odata[inds2]), sensors->d_wfs[nwfs]->d_slopes->getData(),
-              sizeof(float) * 2 * sensors->d_wfs[nwfs]->nvalid,
-              cudaMemcpyDeviceToDevice));
-      inds2 += 2 * sensors->d_wfs[nwfs]->nvalid;
-    }
+    inds2 += 2 * sensors->d_wfs[nwfs]->nvalid;
   }
 
   return EXIT_SUCCESS;
@@ -258,17 +194,15 @@ int sutra_rtc::do_control(int ncntrl, sutra_dms *ydm) {
       for (int i = 0; i < nstreams; i++) {
         int istart = i * p->second->ninflu / nstreams;
         cutilSafeCall(
-            cudaMemcpyAsync(&((p->second->d_comm->getData())[istart]),
-                &((this->d_control[ncntrl]->d_com->getData())[idx + istart]),
+            cudaMemcpyAsync((*p->second->d_comm)[istart],
+                (*this->d_control[ncntrl]->d_com)[idx + istart],
                 sizeof(float) * p->second->ninflu / nstreams,
                 cudaMemcpyDeviceToDevice,
-                this->d_control[ncntrl]->streams->get_stream(i)));
+                (*this->d_control[ncntrl]->streams)[i]));
         p->second->comp_shape();
       }
     } else {
-      float *data;
-      data = this->d_control[ncntrl]->d_com->getData();
-      p->second->comp_shape(&(data[idx]));
+      p->second->comp_shape((*this->d_control[ncntrl]->d_com)[idx]);
     }
     idx += p->second->ninflu;
     p++;

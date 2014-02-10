@@ -154,8 +154,14 @@ public:
   operator T_data*() {
     return d_data;
   }
+  T_data* operator[](int index) {
+    return &d_data[index];
+  }
   T_data* getData() {
     return d_data;
+  }
+  T_data* getData(int index) {
+    return &d_data[index];
   }
   T_data* getOData() {
     return o_data;

@@ -146,15 +146,15 @@ int sutra_centroider_corr::load_corr(float *corr, float *corr_norm, int ndim) {
   return EXIT_SUCCESS;
 }
 
-int sutra_centroider_corr::get_cog(float *cube, float *subsum, float *centroids,
-    int nvalid, int npix, int ntot) {
+int sutra_centroider_corr::get_cog(carma_streams *streams, float *cube, float *subsum, float *centroids, int nvalid,
+    int npix, int ntot) {
   //TODO: Implement sutra_centroider_corr::get_cog
   cerr << "get_cog not implemented\n";
 
   return EXIT_SUCCESS;
 }
 
-int sutra_centroider_corr::get_cog(sutra_wfs *wfs, carma_obj<float> *slopes) {
+int sutra_centroider_corr::get_cog(sutra_wfs *wfs, float *slopes) {
   //set corrspot to 0
   cutilSafeCall(
       cudaMemset(this->d_corrspot->getData(), 0,
@@ -196,29 +196,12 @@ int sutra_centroider_corr::get_cog(sutra_wfs *wfs, carma_obj<float> *slopes) {
 
   // do parabolic interpolation
   subap_pinterp<float>(this->interp_sizex * this->interp_sizey, this->nvalid,
-      this->d_corr->getData(), this->d_corrmax->getData(), *slopes,
+      this->d_corr->getData(), this->d_corrmax->getData(), slopes,
       this->d_interpmat->getData(), this->interp_sizex, this->interp_sizey,
       this->nvalid, 2 * this->npix - 1, this->scale, this->offset);
   return EXIT_SUCCESS;
 }
 
 int sutra_centroider_corr::get_cog(sutra_wfs *wfs) {
-  return this->get_cog(wfs, wfs->d_slopes);
-}
-
-int sutra_centroider_corr::get_cog_async(carma_streams *streams, float *cube,
-    float *subsum, float *centroids, int nvalid, int npix) {
-  //TODO: Implement sutra_centroider_corr::get_cog_async
-  cerr << "get_cog_async not implemented\n";
-  return EXIT_SUCCESS;
-}
-
-int sutra_centroider_corr::get_cog_async(sutra_wfs *wfs,
-    carma_obj<float> *slopes) {
-  return this->get_cog_async(wfs->streams, wfs->d_bincube->getData(),
-      wfs->d_subsum->getData(), slopes->getData(), wfs->nvalid, wfs->npix);
-}
-
-int sutra_centroider_corr::get_cog_async(sutra_wfs *wfs) {
-  return this->get_cog_async(wfs, wfs->d_slopes);
+  return this->get_cog(wfs, wfs->d_slopes->getData());
 }

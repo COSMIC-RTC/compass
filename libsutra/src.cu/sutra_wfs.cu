@@ -515,7 +515,7 @@ template <class T> void subap_reduce_async(int threads, int blocks, carma_stream
   // worth of shared memory so that we don't index shared memory out of bounds
   int smemSize = (threads <= 32) ? 2 * threads * sizeof(T) : threads * sizeof(T);
   for(int i=0; i<nstreams; i++) {
-    reduce2_async<T><<< dimGrid, dimBlock, smemSize, streams->get_stream(i) >>>(d_idata, d_odata, nbelem,i*blocks/nstreams);
+    reduce2_async<T><<< dimGrid, dimBlock, smemSize, (*streams)[i] >>>(d_idata, d_odata, nbelem,i*blocks/nstreams);
   }
   
   cutilCheckMsg("reduce_kernel<<<>>> execution failed\n");

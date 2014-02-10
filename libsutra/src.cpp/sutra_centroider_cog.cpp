@@ -24,43 +24,35 @@ int sutra_centroider_cog::init_bincube(sutra_wfs *wfs) {
   return EXIT_SUCCESS;
 }
 
-int sutra_centroider_cog::get_cog(float *cube, float *subsum, float *centroids,
-    int nvalid, int npix, int ntot) {
+int sutra_centroider_cog::get_cog(carma_streams *streams, float *cube,
+    float *subsum, float *centroids, int nvalid, int npix, int ntot) {
   // simple cog
+  int nstreams = streams->get_nbStreams();
+  //fprintf(stderr, "\n[%s@%d]: nstreams=%d\n", __FILE__, __LINE__, nstreams);
+  if (nstreams > 1) {
+    //fprintf(stderr, "\n[%s@%d]: i=%d istart=%d npix=%d nvalid=%d\n", __FILE__, __LINE__, i, istart, npix, nvalid);
+    subap_reduce_async(npix * npix, nvalid, streams, cube, subsum);
+    //fprintf(stderr, "\n[%s@%d] I'm here\n", __FILE__, __LINE__);
+    get_centroids_async(npix * npix, nvalid, npix, streams, cube, centroids,
+        subsum, this->scale, this->offset);
+    //fprintf(stderr, "\n[%s@%d] I'm here\n", __FILE__, __LINE__);
+    //streams->wait_all_streams();
+  } else {
+    subap_reduce(ntot, npix * npix, nvalid, cube, subsum);
 
-  subap_reduce(ntot, npix * npix, nvalid, cube, subsum);
-
-  get_centroids(ntot, npix * npix, nvalid, npix, cube, centroids, subsum,
-      this->scale, this->offset);
-
+    get_centroids(ntot, npix * npix, nvalid, npix, cube, centroids, subsum,
+        this->scale, this->offset);
+  }
   return EXIT_SUCCESS;
 }
 
-int sutra_centroider_cog::get_cog(sutra_wfs *wfs, carma_obj<float> *slopes) {
-  return this->get_cog(wfs->d_bincube->getData(), wfs->d_subsum->getData(),
-      slopes->getData(), wfs->nvalid, wfs->npix, wfs->d_bincube->getNbElem());
+int sutra_centroider_cog::get_cog(sutra_wfs *wfs, float *slopes) {
+  return this->get_cog(wfs->streams, wfs->d_bincube->getData(),
+      wfs->d_subsum->getData(), slopes, wfs->nvalid, wfs->npix,
+      wfs->d_bincube->getNbElem());
 }
 
 int sutra_centroider_cog::get_cog(sutra_wfs *wfs) {
-  return this->get_cog(wfs, wfs->d_slopes);
-}
-
-int sutra_centroider_cog::get_cog_async(carma_streams *streams, float *cube,
-    float *subsum, float *centroids, int nvalid, int npix) {
-  // simple cog
-  subap_reduce_async(npix * npix, nvalid, streams, cube, subsum);
-  get_centroids_async(npix * npix, nvalid, npix, streams, cube, centroids,
-      subsum, this->scale, this->offset);
-  return EXIT_SUCCESS;
-}
-
-int sutra_centroider_cog::get_cog_async(sutra_wfs *wfs,
-    carma_obj<float> *slopes) {
-  return this->get_cog_async(wfs->streams, wfs->d_bincube->getData(),
-      wfs->d_subsum->getData(), slopes->getData(), wfs->nvalid, wfs->npix);
-}
-
-int sutra_centroider_cog::get_cog_async(sutra_wfs *wfs) {
-  return this->get_cog_async(wfs, wfs->d_slopes);
+  return this->get_cog(wfs, wfs->d_slopes->getData());
 }
 

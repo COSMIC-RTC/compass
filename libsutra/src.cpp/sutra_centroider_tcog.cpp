@@ -32,8 +32,9 @@ int sutra_centroider_tcog::set_threshold(float threshold) {
   return EXIT_SUCCESS;
 }
 
-int sutra_centroider_tcog::get_cog(float *cube, float *subsum, float *centroids,
-    int nvalid, int npix, int ntot) {
+int sutra_centroider_tcog::get_cog(carma_streams *streams, float *cube, float *subsum, float *centroids, int nvalid,
+    int npix, int ntot) {
+  //TODO: Implement sutra_centroider_tcog::get_cog_async
   subap_reduce(ntot, npix * npix, nvalid, cube, subsum, this->threshold);
 
   get_centroids(ntot, npix * npix, nvalid, npix, cube, centroids, subsum,
@@ -42,29 +43,12 @@ int sutra_centroider_tcog::get_cog(float *cube, float *subsum, float *centroids,
   return EXIT_SUCCESS;
 }
 
-int sutra_centroider_tcog::get_cog(sutra_wfs *wfs, carma_obj<float> *slopes) {
-  return this->get_cog(wfs->d_bincube->getData(), wfs->d_subsum->getData(),
-      slopes->getData(), wfs->nvalid, wfs->npix, wfs->d_bincube->getNbElem());
+int sutra_centroider_tcog::get_cog(sutra_wfs *wfs, float *slopes) {
+  return this->get_cog(wfs->streams, wfs->d_bincube->getData(), wfs->d_subsum->getData(),
+      slopes, wfs->nvalid, wfs->npix, wfs->d_bincube->getNbElem());
 }
 
 int sutra_centroider_tcog::get_cog(sutra_wfs *wfs) {
-  return this->get_cog(wfs, wfs->d_slopes);
+  return this->get_cog(wfs, wfs->d_slopes->getData());
 }
 
-int sutra_centroider_tcog::get_cog_async(carma_streams *streams, float *cube,
-    float *subsum, float *centroids, int nvalid, int npix) {
-  //TODO: Implement sutra_centroider_tcog::get_cog_async
-  cerr << "get_cog_async not implemented\n";
-
-  return EXIT_SUCCESS;
-}
-
-int sutra_centroider_tcog::get_cog_async(sutra_wfs *wfs,
-    carma_obj<float> *slopes) {
-  return this->get_cog_async(wfs->streams, wfs->d_bincube->getData(),
-      wfs->d_subsum->getData(), slopes->getData(), wfs->nvalid, wfs->npix);
-}
-
-int sutra_centroider_tcog::get_cog_async(sutra_wfs *wfs) {
-  return this->get_cog_async(wfs, wfs->d_slopes);
-}

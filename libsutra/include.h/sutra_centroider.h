@@ -30,15 +30,10 @@ public:
 
   virtual int init_bincube(sutra_wfs *wfs)=0;
 
-  virtual int get_cog(float *cube, float *subsum, float *centroids, int nvalid,
+  virtual int get_cog(carma_streams *streams, float *cube, float *subsum, float *centroids, int nvalid,
       int npix, int ntot)=0;
-  virtual int get_cog(sutra_wfs *wfs, carma_obj<float> *slopes)=0;
+  virtual int get_cog(sutra_wfs *wfs, float *slopes)=0;
   virtual int get_cog(sutra_wfs *wfs)=0;
-
-  virtual int get_cog_async(carma_streams *streams, float *cube, float *subsum,
-      float *centroids, int nvalid, int npix)=0;
-  virtual int get_cog_async(sutra_wfs *wfs, carma_obj<float> *slopes)=0;
-  virtual int get_cog_async(sutra_wfs *wfs)=0;
 };
 
 int fillweights(float *d_out, float *d_in, int npix, int N, int device);

@@ -22,19 +22,15 @@ class sutra_centroider_corr : public sutra_centroider {
   sutra_centroider_corr(const sutra_centroider_corr& centroider);
   ~sutra_centroider_corr();
 
-  int init_bincube(sutra_wfs *wfs);
-
   int init_corr(sutra_wfs *wfs, int isizex, int isizey, float *interpmat);
   int load_corr(float *corr, float *corr_norm, int ndim);
- 
-  int get_cog(float *cube,float *subsum,float *centroids, int nvalid, int npix, int ntot);
-  int get_cog(sutra_wfs *wfs, carma_obj<float> *slopes);
-  int get_cog(sutra_wfs *wfs);  
 
-  int get_cog_async(carma_streams *streams, float *cube,float *subsum, float *centroids, int nvalid, int npix);
-  int get_cog_async(sutra_wfs *wfs, carma_obj<float> *slopes);
-  int get_cog_async(sutra_wfs *wfs);
+  int init_bincube(sutra_wfs *wfs);
 
+  int get_cog(carma_streams *streams, float *cube, float *subsum, float *centroids, int nvalid,
+      int npix, int ntot);
+  int get_cog(sutra_wfs *wfs, float *slopes);
+  int get_cog(sutra_wfs *wfs);
 };
 
 #endif // _SUTRA_CENTROIDER_CORR_H_

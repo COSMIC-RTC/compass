@@ -26,8 +26,8 @@ int sutra_centroider_pyr::init_bincube(sutra_wfs *wfs) {
 }
 
 
-int sutra_centroider_pyr::get_cog(float *cube, float *subsum, float *centroids,
-    int nvalid, int npix, int ntot) {
+int sutra_centroider_pyr::get_cog(carma_streams *streams, float *cube, float *subsum, float *centroids, int nvalid,
+    int npix, int ntot) {
   //TODO: Implement sutra_centroider_pyr::get_cog
   cerr << "get_cog not implemented\n";
 
@@ -43,30 +43,13 @@ int sutra_centroider_pyr::get_pyr(float *cube, float *subsum, float *centroids,
   return EXIT_SUCCESS;
 }
 
-int sutra_centroider_pyr::get_cog(sutra_wfs *wfs, carma_obj<float> *slopes) {
+int sutra_centroider_pyr::get_cog(sutra_wfs *wfs, float *slopes) {
   return this->get_pyr(wfs->d_bincube->getData(), wfs->d_subsum->getData(),
-      slopes->getData(), wfs->d_validsubsx->getData(),
+      slopes, wfs->d_validsubsx->getData(),
       wfs->d_validsubsy->getData(), wfs->nvalid, wfs->nfft / wfs->nrebin, 4);
 }
 
 int sutra_centroider_pyr::get_cog(sutra_wfs *wfs) {
-  return this->get_cog(wfs, wfs->d_slopes);
+  return this->get_cog(wfs, wfs->d_slopes->getData());
 }
 
-int sutra_centroider_pyr::get_cog_async(carma_streams *streams, float *cube,
-    float *subsum, float *centroids, int nvalid, int npix) {
-  //TODO: Implement sutra_centroider_pyr::get_cog_async
-  cerr << "get_cog_async not implemented\n";
-
-  return EXIT_SUCCESS;
-}
-
-int sutra_centroider_pyr::get_cog_async(sutra_wfs *wfs,
-    carma_obj<float> *slopes) {
-  return this->get_cog_async(wfs->streams, wfs->d_bincube->getData(),
-      wfs->d_subsum->getData(), slopes->getData(), wfs->nvalid, wfs->npix);
-}
-
-int sutra_centroider_pyr::get_cog_async(sutra_wfs *wfs) {
-  return this->get_cog_async(wfs, wfs->d_slopes);
-}

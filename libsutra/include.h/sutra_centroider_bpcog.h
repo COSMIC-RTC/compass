@@ -19,13 +19,10 @@ class sutra_centroider_bpcog : public sutra_centroider {
 
   int init_bincube(sutra_wfs *wfs);
 
-  int get_cog(float *cube,float *subsum,float *centroids, int nvalid, int npix, int ntot);
-  int get_cog(sutra_wfs *wfs, carma_obj<float> *slopes);
-  int get_cog(sutra_wfs *wfs);  
-
-  int get_cog_async(carma_streams *streams, float *cube,float *subsum, float *centroids, int nvalid, int npix);
-  int get_cog_async(sutra_wfs *wfs, carma_obj<float> *slopes);
-  int get_cog_async(sutra_wfs *wfs);
+  int get_cog(carma_streams *streams, float *cube, float *subsum, float *centroids, int nvalid,
+      int npix, int ntot);
+  int get_cog(sutra_wfs *wfs, float *slopes);
+  int get_cog(sutra_wfs *wfs);
 };
 
 #endif // _SUTRA_CENTROIDER_H_

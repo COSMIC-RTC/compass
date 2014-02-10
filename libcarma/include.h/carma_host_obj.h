@@ -74,8 +74,14 @@ public:
   operator T_data*() {
     return h_data;
   }
+  T_data* operator[](int index) {
+      return &h_data[index];
+  }
   T_data* getData() {
     return h_data;
+  }
+  T_data* getData(int index) {
+    return &h_data[index];
   }
   long * getDims() {
     return dims_data;
