@@ -21,8 +21,8 @@ sutra_centroider_corr::sutra_centroider_corr(carma_context *context, long nwfs,
   this->offset = offset;
   this->scale = scale;
   this->npix = 0;
-  this->interp_sizex=0;
-  this->interp_sizey=0;
+  this->interp_sizex = 0;
+  this->interp_sizey = 0;
 
 }
 
@@ -135,19 +135,19 @@ int sutra_centroider_corr::load_corr(float *corr, float *corr_norm, int ndim) {
             cudaMemcpyHostToDevice));
   }
 
-  fillcorr(this->d_corrfnct->getData(), tmp, this->npix, 2 * this->npix,
+  fillcorr(*(this->d_corrfnct), tmp, this->npix, 2 * this->npix,
       this->npix * this->npix * this->nvalid, nval, this->device);
 
   cutilSafeCall(cudaFree(tmp));
 
-  carma_fft(this->d_corrfnct->getData(), this->d_corrfnct->getData(), 1,
+  carma_fft<cuFloatComplex, cuFloatComplex>(*(this->d_corrfnct), *(this->d_corrfnct), 1,
       *this->d_corrfnct->getPlan());
 
   return EXIT_SUCCESS;
 }
 
-int sutra_centroider_corr::get_cog(carma_streams *streams, float *cube, float *subsum, float *centroids, int nvalid,
-    int npix, int ntot) {
+int sutra_centroider_corr::get_cog(carma_streams *streams, float *cube,
+    float *subsum, float *centroids, int nvalid, int npix, int ntot) {
   //TODO: Implement sutra_centroider_corr::get_cog
   cerr << "get_cog not implemented\n";
 
@@ -157,29 +157,29 @@ int sutra_centroider_corr::get_cog(carma_streams *streams, float *cube, float *s
 int sutra_centroider_corr::get_cog(sutra_wfs *wfs, float *slopes) {
   //set corrspot to 0
   cutilSafeCall(
-      cudaMemset(this->d_corrspot->getData(), 0,
+      cudaMemset(*(this->d_corrspot), 0,
           sizeof(cuFloatComplex) * this->d_corrspot->getNbElem()));
   // correlation algorithm
-  fillcorr(this->d_corrspot->getData(), wfs->d_bincube->getData(), this->npix,
-      2 * this->npix, this->npix * this->npix * this->nvalid, 1, this->device);
+  fillcorr(*(this->d_corrspot), *(wfs->d_bincube), this->npix, 2 * this->npix,
+      this->npix * this->npix * this->nvalid, 1, this->device);
 
-  carma_fft(this->d_corrspot->getData(), this->d_corrspot->getData(), 1,
+  carma_fft<cuFloatComplex, cuFloatComplex>(*(this->d_corrspot), *(this->d_corrspot), 1,
       *this->d_corrfnct->getPlan());
 
-  correl(this->d_corrspot->getData(), this->d_corrfnct->getData(),
+  correl(*(this->d_corrspot), *(this->d_corrfnct),
       this->d_corrfnct->getNbElem(), this->device);
   // after this d_corrspot contains the fft of the correl function
 
-  carma_fft(this->d_corrspot->getData(), this->d_corrspot->getData(), -1,
+  carma_fft<cuFloatComplex, cuFloatComplex>(*(this->d_corrspot), *(this->d_corrspot), -1,
       *this->d_corrfnct->getPlan());
 
   // size is 2 x npix so it is even ...
-  roll2real(this->d_corr->getData(), this->d_corrspot->getData(),
-      2 * this->npix, (2 * this->npix) * (2 * this->npix),
-      this->d_corrspot->getNbElem(), this->device);
+  roll2real(*(this->d_corr), *(this->d_corrspot), 2 * this->npix,
+      (2 * this->npix) * (2 * this->npix), this->d_corrspot->getNbElem(),
+      this->device);
   //here need to normalize
-  corr_norm(this->d_corr->getData(), this->d_corrnorm->getData(),
-      this->d_corrnorm->getNbElem(), this->d_corr->getNbElem(), this->device);
+  corr_norm(*(this->d_corr), *(this->d_corrnorm), this->d_corrnorm->getNbElem(),
+      this->d_corr->getNbElem(), this->device);
 
   // need to find max for each subap
   // if the corr array for one subap is greater than 20x20
@@ -190,18 +190,17 @@ int sutra_centroider_corr::get_cog(sutra_wfs *wfs, float *slopes) {
   int xoff = this->d_corr->getDims(1) / 2 - nbmax / 2;
   int yoff = this->d_corr->getDims(2) / 2 - nbmax / 2;
 
-  subap_sortmaxi(nbmax * nbmax, this->nvalid, this->d_corr->getData(),
-      this->d_corrmax->getData(), 1, xoff, yoff, nbmax,
-      this->d_corr->getDims(1));
+  subap_sortmaxi<float>(nbmax * nbmax, this->nvalid, *(this->d_corr),
+      *(this->d_corrmax), 1, xoff, yoff, nbmax, this->d_corr->getDims(1));
 
   // do parabolic interpolation
   subap_pinterp<float>(this->interp_sizex * this->interp_sizey, this->nvalid,
-      this->d_corr->getData(), this->d_corrmax->getData(), slopes,
-      this->d_interpmat->getData(), this->interp_sizex, this->interp_sizey,
-      this->nvalid, 2 * this->npix - 1, this->scale, this->offset);
+      *(this->d_corr), *(this->d_corrmax), slopes, *(this->d_interpmat),
+      this->interp_sizex, this->interp_sizey, this->nvalid, 2 * this->npix - 1,
+      this->scale, this->offset);
   return EXIT_SUCCESS;
 }
 
 int sutra_centroider_corr::get_cog(sutra_wfs *wfs) {
-  return this->get_cog(wfs, wfs->d_slopes->getData());
+  return this->get_cog(wfs, *(wfs->d_slopes));
 }

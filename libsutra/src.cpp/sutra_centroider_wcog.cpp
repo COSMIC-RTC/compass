@@ -14,7 +14,7 @@ sutra_centroider_wcog::sutra_centroider_wcog(carma_context *context, long nwfs,
   this->offset = offset;
   this->scale = scale;
 
-  this->npix=0;
+  this->npix = 0;
   this->d_weights = 0L;
 }
 
@@ -57,7 +57,7 @@ int sutra_centroider_wcog::load_weights(float *weights, int ndim) {
     cutilSafeCall(
         cudaMemcpy(tmp, weights, sizeof(float) * this->npix * this->npix,
             cudaMemcpyHostToDevice));
-    fillweights(this->d_weights->getData(), tmp, this->npix,
+    fillweights(*(this->d_weights), tmp, this->npix,
         this->d_weights->getNbElem(), this->device);
     cutilSafeCall(cudaFree(tmp));
   }
@@ -65,25 +65,24 @@ int sutra_centroider_wcog::load_weights(float *weights, int ndim) {
   return EXIT_SUCCESS;
 }
 
-int sutra_centroider_wcog::get_cog(carma_streams *streams, float *cube, float *subsum, float *centroids, int nvalid,
-    int npix, int ntot) {
+int sutra_centroider_wcog::get_cog(carma_streams *streams, float *cube,
+    float *subsum, float *centroids, int nvalid, int npix, int ntot) {
   // wcog
   //TODO: Implement sutra_centroider_wcog::get_cog_async
-  subap_reduce(ntot, npix * npix, nvalid, cube, subsum,
-      this->d_weights->getData());
+  subap_reduce<float>(ntot, npix * npix, nvalid, cube, subsum, *(this->d_weights));
 
-  get_centroids(ntot, npix * npix, nvalid, npix, cube, centroids, subsum,
-      this->d_weights->getData(), this->scale, this->offset);
+  get_centroids<float>(ntot, npix * npix, nvalid, npix, cube, centroids, subsum,
+      *(this->d_weights), this->scale, this->offset);
 
   return EXIT_SUCCESS;
 }
 
 int sutra_centroider_wcog::get_cog(sutra_wfs *wfs, float *slopes) {
-  return this->get_cog(wfs->streams, wfs->d_bincube->getData(), wfs->d_subsum->getData(),
+  return this->get_cog(wfs->streams, *(wfs->d_bincube), *(wfs->d_subsum),
       slopes, wfs->nvalid, wfs->npix, wfs->d_bincube->getNbElem());
 }
 
 int sutra_centroider_wcog::get_cog(sutra_wfs *wfs) {
-  return this->get_cog(wfs, wfs->d_slopes->getData());
+  return this->get_cog(wfs, *(wfs->d_slopes));
 }
 
