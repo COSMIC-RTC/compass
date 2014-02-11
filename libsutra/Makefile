@@ -5,8 +5,6 @@ H_DIR=include.h
 I_DIR=yorick
 OBJ_DIR=obj
 
-DEBUG=1
-
 LIB_NAME=libsutra.so
 
 SRC_CPP = $(wildcard $(CPP_DIR)/*.cpp) 
@@ -14,7 +12,7 @@ SRC_CU  = $(wildcard $(CU_DIR)/*.cu)
 
 OBJS := $(patsubst $(CPP_DIR)/%.cpp,$(OBJ_DIR)/%.o,$(SRC_CPP)) $(patsubst $(CU_DIR)/%.cu,$(OBJ_DIR)/%.cuo,$(SRC_CU)) 
 
-LIB_DEPLIBS= -L$(CUDA_LIB_PATH_64) -lcudart -lcublas -lcufft -lstdc++ -lcurand #-lcula -L/usr/local/cula/lib 
+LIB_DEPLIBS= -L$(CUDA_LIB_PATH_64) -lcudart -lcublas -lcufft -lstdc++ -lcurand 
 LIB_DEPLIBS += -L$(COMPASS_ROOT_DIR)/libcarma -lcarma
 
 # set compiler (or rarely loader) flags specific to this package
@@ -34,10 +32,11 @@ endif
 GCC = $(CC)
 
 NVCC = $(CUDA_ROOT)/bin/nvcc
-NVCCFLAGS = -m64 -Xcompiler -fPIC -use_fast_math -c -I$(CUH_DIR)  -I$(H_DIR) -I$(COMPASS_ROOT_DIR)/libcarma/$(CUH_DIR)  -I$(COMPASS_ROOT_DIR)/libcarma/$(H_DIR) #-gencode $(GENCODE)
+NVCCFLAGS = -m64 -Xcompiler -fPIC -use_fast_math -c -I$(CUH_DIR)  -I$(H_DIR) \
+	-I$(COMPASS_ROOT_DIR)/libcarma/$(CUH_DIR)  -I$(COMPASS_ROOT_DIR)/libcarma/$(H_DIR) #-gencode $(GENCODE)
 
 ifneq ($(DEBUG),)
-NVCCFLAGS+= -g -DDEBUG
+NVCCFLAGS+= -O0 -g -G -lineinfo -DDEBUG
 endif
 
 all: $(LIB_NAME)

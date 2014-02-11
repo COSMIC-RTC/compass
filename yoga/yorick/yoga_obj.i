@@ -466,7 +466,6 @@ func check_transpose(size)
   // check sumCU
   test =float(random(size,size));
   obj1 = yoga_obj(test);
-  yoga_host2device,obj1,test;
   obj2 = yoga_obj("float",[2,size,size]);
   timeTic = tic();
   for (i=1;i<=100;i++)

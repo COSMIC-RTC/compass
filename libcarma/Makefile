@@ -5,8 +5,6 @@ CUH_DIR=include.cuh
 H_DIR=include.h
 OBJ_DIR=obj
 
-#DEBUG=1
-
 LIB_NAME=libcarma.so
 
 #listing sources and futur objects
@@ -15,7 +13,7 @@ SRC_CU  = $(wildcard $(CU_DIR)/*.cu)
 
 OBJS := $(patsubst $(CPP_DIR)/%.cpp,$(OBJ_DIR)/%.o,$(SRC_CPP)) $(patsubst $(CU_DIR)/%.cu,$(OBJ_DIR)/%.cuo,$(SRC_CU)) 
 
-LIB_DEPLIBS= -fPIC -Wall -O0 -lstdc++ -L$(CUDA_LIB_PATH_64) -lcudart -lcublas -lcufft -lcurand 
+LIB_DEPLIBS= -fPIC -Wall -lstdc++ -L$(CUDA_LIB_PATH_64) -lcudart -lcublas -lcufft -lcurand 
 ifneq ($(CULA_ROOT),)
  LIB_DEPLIBS += -L$(CULA_LIB_PATH_64) -lcula_lapack_basic 
  #-lcula_lapack_link -lcula_core 
@@ -27,9 +25,9 @@ endif
 
 # set compiler (or rarely loader) flags specific to this package
 #LIB_CPPFLAGS= -Wall -g -O3 -DUNIX -DADD_ -DGPUSHMEM=130 -fPIC -Xlinker -zmuldefs -fno-common -I$(H_DIR) -I/usr/local/cuda/include 
-LIB_CPPFLAGS= -c -fPIC -Wall -O0 -fno-common -I$(H_DIR) -I$(CUDA_INC_PATH) -DUNIX
+LIB_CPPFLAGS= -c -fPIC -Wall -fno-common -I$(H_DIR) -I$(CUDA_INC_PATH) -DUNIX
 ifneq ($(DEBUG),)
-LIB_CPPFLAGS+= -g -DDEBUG
+LIB_CPPFLAGS+= -O0 -g -DDEBUG
 endif
 ifneq ($(CULA_ROOT),)
  LIB_CPPFLAGS += -I$(CULA_INC_PATH) -DUSE_CULA
@@ -53,11 +51,13 @@ GCC = gcc
 NVCC = $(CUDA_ROOT)/bin/nvcc
 NVCCFLAGS = -m64 -Xcompiler -fPIC -c --compiler-options -I$(CUH_DIR)  -I$(H_DIR) -I$(Y_MAKEDIR)/include -gencode $(GENCODE)
 
-#-gencode arch=compute_11,code=sm_11 -gencode arch=compute_13,code=sm_13 -gencode arch=compute_20,code=sm_20 -gencode arch=compute_30,code=sm_30 -gencode arch=compute_35,code=sm_35 
+#-gencode arch=compute_11,code=sm_11 -gencode arch=compute_13,code=sm_13 
+#-gencode arch=compute_20,code=sm_20 -gencode arch=compute_30,code=sm_30 
+#-gencode arch=compute_35,code=sm_35 
 
 # --ptxas-options=-v # #-arch sm_13 -fpermissive 
 ifneq ($(DEBUG),)
-NVCCFLAGS+= -g -DDEBUG
+NVCCFLAGS+= -g -G -lineinfo -DDEBUG
 endif
 ifneq ($(CULA_ROOT),)
  NVCCFLAGS += -I$(CULA_INC_PATH) -DUSE_CULA

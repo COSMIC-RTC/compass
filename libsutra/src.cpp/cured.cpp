@@ -63,7 +63,7 @@ sysCure* cureSystem() {
 sysCure* cureSystem(int linenum, int numofelems, int numofresults, int *I_sub, int ndivs) {
 
 	int i, j;
-	float readme;
+	//float readme;
 	sysCure *sys;
 
 	sys = (sysCure*)malloc(sizeof(sysCure));
@@ -105,7 +105,7 @@ int i,j,k,l, start, help, help2, row, sum;
 int ndivs = sys->ndivs; /* handover of system parameters */
 int numofelems = sys->numofelems;
 int numofresults = sys->numofresults;
-int numofacts = numofresults;
+//int numofacts = numofresults;
 int linenum = sys->linenum;
 int *I_sub = sys->I_sub;
 int parts = 1 << ndivs;
@@ -118,7 +118,7 @@ float *startweight;
 float **Sx_p = (float**)malloc(parts*parts*sizeof(float*));
 float **Sy_p = (float**)malloc(parts*parts*sizeof(float*));
 float **S_p_iter = (float**)malloc(parts*parts*sizeof(float*));
-float **S_p_iter2 = (float**)malloc(parts*parts*sizeof(float*));
+//float **S_p_iter2 = (float**)malloc(parts*parts*sizeof(float*));
 float **result_p = (float**)malloc(parts*parts*sizeof(float*));
 float **result_p_iter = (float**)malloc(parts*parts*sizeof(float*));
 float **connect = (float**)malloc(parts*parts*sizeof(float*));
@@ -556,9 +556,9 @@ int cure(p_par part_par, p_arrays part_arrays, float *dataX, float *dataY, float
 int i, j, row, sum;
 int linenumX = part_par.linenumX;
 int linenumY = part_par.linenumY;
-int numofelems = part_par.numofelems;
+//int numofelems = part_par.numofelems;
 int numofresults = part_par.numofresults;
-int *I_sub = part_par.I_sub;
+//int *I_sub = part_par.I_sub;
 int *par_lineX_start = part_par.lineX_start;
 int *par_lineX_length = part_par.lineX_length;
 int *par_lineX_starta = part_par.lineX_starta;
@@ -884,7 +884,7 @@ int numofelems = sys->numofelems;
 int numofresults = sys->numofresults;
 int *S_connect = par->S_connect;
 float error, v1, v2, diff1, diff2, diff3, diff4, shift1, shift2, shift3;
-float tiptiltX, tiptiltY;
+//float tiptiltX, tiptiltY;
 float *dataX;
 float *dataY;
 float *shift = par->shift;

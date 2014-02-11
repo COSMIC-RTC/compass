@@ -63,7 +63,7 @@ template <class T> __device__ void reduce_krnl(T *sdata, int size, int n)
 {
   if (!((size&(size-1))==0)) {
     unsigned int s;
-    if (size %2 != 0) s = size/2+1;
+    if ( (size&1) != 0) s = size/2+1; //(size&1)==size%2
     else s = size/2;
     unsigned int s_old = size;
     while (s>0) {
@@ -86,12 +86,41 @@ template <class T> __device__ void reduce_krnl(T *sdata, int size, int n)
   }
 }
 
+#ifdef USE_CUB
+
+/*
+    This version uses CUB.
+*/
+template <class T> __device__ void reduce_krnl_cub(T *sdata, int size, int n)
+{
+  const int zSize=32;
+  // Specialize WarpReduce for 'size' warps on type int
+  typedef cub::WarpReduce<T, zSize> WarpReduce;
+  // Allocate shared memory for WarpReduce
+  __shared__ typename WarpReduce::TempStorage temp_storage;
+
+  // Obtain one input item per thread
+  int thread_data = 0;
+  for(int index=0; index<size; index++){
+    thread_data+=sdata[index];
+  }
+
+  // Return the warp-wide sums to each lane0 (threads 0, 32, 64, and 96)
+  int aggregate = WarpReduce(temp_storage).Sum(thread_data);
+
+  if(threadIdx.x%cub::PtxArchProps::WARP_THREADS==0){
+    sdata[0]=aggregate;
+  }
+}
+#endif
+
+
 
 template <class T> __device__ void scanmax_krnl(T *sdata, int *values,int size, int n)
 {
   if (!((size&(size-1))==0)) {
     unsigned int s;
-    if (size %2 != 0) s = size/2+1;
+    if ((size&1) != 0) s = size/2+1; //(size&1)==size%2
     else s = size/2;
     unsigned int s_old = size;
     while (s>0) {
@@ -126,7 +155,7 @@ template <class T> __device__ inline void sortmax_krnl(T *sdata, unsigned int *v
 
   if (!((size&(size-1))==0)) {
     unsigned int s;
-    if (size %2 != 0) s = size/2+1;
+    if ((size&1) != 0) s = size/2+1; //(size&1)==size%2
     else s = size/2;
     unsigned int s_old = size;
     while (s>0) {
@@ -190,7 +219,7 @@ template <class T> __device__ inline void sortmaxi_krnl(T *sdata, unsigned int *
 
   if (!((size&(size-1))==0)) {
     unsigned int s;
-    if (size %2 != 0) s = size/2+1;
+    if ((size&1) != 0) s = size/2+1; //(size&1)==size%2
     else s = size/2;
     unsigned int s_old = size;
     while (s>0) {
@@ -325,8 +354,9 @@ template <class T> __global__ void centroidx(T *g_idata, T *g_odata, T *alpha, u
     // load shared mem
     unsigned int tid = threadIdx.x;
     unsigned int i = blockIdx.x*blockDim.x + threadIdx.x;
+    unsigned int x = (tid % n) + 1;
     
-    sdata[tid] = (i < N) ? g_idata[i] * ((tid % n) +1) : 0;
+    sdata[tid] = (i < N) ? g_idata[i] * x : 0;
 
     __syncthreads();
 
@@ -343,8 +373,9 @@ template <class T> __global__ void centroidy(T *g_idata, T *g_odata, T *alpha, u
     // load shared mem
     unsigned int tid = threadIdx.x;
     unsigned int i = blockIdx.x*blockDim.x + threadIdx.x;
-    
-    sdata[tid] = (i < N) ? g_idata[i] * ((tid / n) +1) : 0;
+    unsigned int y = (tid / n) + 1;
+
+    sdata[tid] = (i < N) ? g_idata[i] * y : 0;
 
     __syncthreads();
 
@@ -361,9 +392,10 @@ template <class T> __global__ void centroidx_async(T *g_idata, T *g_odata, T *al
     // load shared mem
     unsigned int tid = threadIdx.x;
     unsigned int i = blockIdx.x*blockDim.x + threadIdx.x;
+    unsigned int x = (tid % n) + 1;
     i+=stream_offset*blockDim.x;
 
-    sdata[tid] = (i < N) ? g_idata[i] * ((tid % n) +1) : 0;
+    sdata[tid] = (i < N) ? g_idata[i] * x : 0;
 
     __syncthreads();
 
@@ -380,9 +412,10 @@ template <class T> __global__ void centroidy_async(T *g_idata, T *g_odata, T *al
     // load shared mem
     unsigned int tid = threadIdx.x;
     unsigned int i = blockIdx.x*blockDim.x + threadIdx.x;
+    unsigned int y = (tid / n) + 1;
     i+=stream_offset*blockDim.x;
 
-    sdata[tid] = (i < N) ? g_idata[i] * ((tid / n) +1) : 0;
+    sdata[tid] = (i < N) ? g_idata[i] * y : 0;
 
     __syncthreads();
 
@@ -423,8 +456,9 @@ template <class T> __global__ void centroidx(T *g_idata, T *g_odata, T *alpha, T
     // load shared mem
     unsigned int tid = threadIdx.x;
     unsigned int i = blockIdx.x*blockDim.x + threadIdx.x;
-    
-    if (i < N) sdata[tid] = (g_idata[i] > thresh) ? g_idata[i] * ((tid % n) +1) : 0;
+    unsigned int x = (tid % n) + 1;
+
+    if (i < N) sdata[tid] = (g_idata[i] > thresh) ? g_idata[i] * x : 0;
 
     __syncthreads();
 
@@ -441,8 +475,9 @@ template <class T> __global__ void centroidy(T *g_idata, T *g_odata, T *alpha, T
     // load shared mem
     unsigned int tid = threadIdx.x;
     unsigned int i = blockIdx.x*blockDim.x + threadIdx.x;
-    
-    if (i < N) sdata[tid] = (g_idata[i] > thresh) ? g_idata[i] * ((tid / n) +1) : 0;
+    unsigned int y = (tid / n) + 1;
+
+    if (i < N) sdata[tid] = (g_idata[i] > thresh) ? g_idata[i] * y : 0;
 
     __syncthreads();
 
@@ -459,8 +494,9 @@ template <class T> __global__ void centroidx(T *g_idata, T *g_odata, T *alpha, T
     // load shared mem
     unsigned int tid = threadIdx.x;
     unsigned int i = blockIdx.x*blockDim.x + threadIdx.x;
-    
-    sdata[tid] = (i < N) ? g_idata[i] * ((tid % n) +1) * weights[i] : 0;
+    unsigned int x = (tid % n) + 1;
+
+    sdata[tid] = (i < N) ? g_idata[i] * x * weights[i] : 0;
 
     __syncthreads();
 
@@ -477,8 +513,9 @@ template <class T> __global__ void centroidy(T *g_idata, T *g_odata, T *alpha, T
     // load shared mem
     unsigned int tid = threadIdx.x;
     unsigned int i = blockIdx.x*blockDim.x + threadIdx.x;
-    
-    sdata[tid] = (i < N) ? g_idata[i] * ((tid / n) +1) * weights[i] : 0;
+    unsigned int y = (tid / n) + 1;
+
+    sdata[tid] = (i < N) ? g_idata[i] * y * weights[i] : 0;
 
     __syncthreads();
 
@@ -534,14 +571,14 @@ template <class T> __global__ void interp_parab(T *g_idata,T *g_centroids, int *
       if (threadIdx.x == 0) {
 	g_centroids[blockIdx.x] = (2.0f * scoeff[1] * scoeff[3] - scoeff[4] * scoeff[2]) / denom;
 	int xm = (2*offx + sizex);
-	xm = (xm % 2 == 0) ? xm/2 : xm/2 +1;
+	xm = ((xm&1) == 0) ? xm/2 : xm/2 +1; //(xm&1)==xm%2
 	g_centroids[blockIdx.x] += (xm + 0.5 - (Npix+1)/4);
 	g_centroids[blockIdx.x] = (g_centroids[blockIdx.x] - offset) * scale;
       } 
       if (threadIdx.x == 1) {
 	g_centroids[blockIdx.x+nvalid] = (2.0f * scoeff[0] * scoeff[4] - scoeff[3] * scoeff[2]) / denom;
 	int ym = (2*offy + sizey);
-	ym = (ym % 2 == 0) ? ym/2 : ym/2 +1;
+	ym = ((ym&1) == 0) ? ym/2 : ym/2 +1; //(ym&1)==ym%2
 	g_centroids[blockIdx.x+nvalid] += (ym + 0.5 - (Npix+1)/4);
 	g_centroids[blockIdx.x+nvalid] = (g_centroids[blockIdx.x+nvalid] - offset) * scale;
      }

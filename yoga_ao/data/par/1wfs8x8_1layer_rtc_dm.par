@@ -31,7 +31,7 @@ y_target.mag      = &([10.]);
 /*
 loop inits
 */
-y_loop.niter  = 2000;
+y_loop.niter  = 20000;
 y_loop.ittime = 1/500.0f;
 
 /*
