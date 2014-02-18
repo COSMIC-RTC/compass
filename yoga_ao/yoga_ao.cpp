@@ -181,7 +181,7 @@ void Y_yoga_atmos(int argc) {
     carma_context *context_handle = _getCurrentContext();
     int activeDevice = context_handle->get_activeDevice();
     int odevice = activeDevice;
-    int nscreens = ygets_i(argc-1);
+    int nscreens = ygets_i(argc - 1);
     float *r0 = ygeta_f(argc - 2, &ntot, dims);
     if (ntot != nscreens)
       y_error("wrong dimension for screens r0");
@@ -226,7 +226,7 @@ void Y_yoga_atmos(int argc) {
     //if (ntot != nscreens) y_error("wrong dimension for screens speed");
 
     if (argc > 10)
-      odevice = ygets_i(argc-11);
+      odevice = ygets_i(argc - 11);
     activeDevice = context_handle->set_activeDevice(odevice);
 
     atmos_struct *handle = (atmos_struct *) ypush_obj(&yAtmos,
@@ -261,7 +261,7 @@ void Y_get_spupil(int argc) {
     sutra_atmos *atmos_handler = (sutra_atmos *) handle->sutra_atmos;
     if (atmos_handler->d_screens.find(0.0f) != atmos_handler->d_screens.end()) {
       caObjS *carma_obj_handler = (caObjS *) (atmos_handler->d_pupil);
-      float *data = ypush_f(carma_obj_handler->getDims());
+      float *data = ypush_f((long*) carma_obj_handler->getDims());
       carma_obj_handler->device2host(data);
     }
   }
@@ -314,7 +314,7 @@ void Y_init_tscreen(int argc)
   carma_context *context_handle = _getCurrentContext();
   context_handle->set_activeDevice(handler->device);
 
-  float altitude = ygets_f(argc-2);
+  float altitude = ygets_f(argc - 2);
 
   float *a = ygeta_f(argc - 3, &ntot, dims);
   if (ntot != atmos_obj_handler->d_screens[altitude]->d_A->getNbElem())
@@ -329,7 +329,7 @@ void Y_init_tscreen(int argc)
   if (ntot != atmos_obj_handler->d_screens[altitude]->d_istencily->getNbElem())
     y_error("wrong size for istencily");
 
-  int seed = ygets_i(argc-7);
+  int seed = ygets_i(argc - 7);
 
   atmos_obj_handler->init_screen(altitude, a, b, istencilx, istencily, seed);
 }
@@ -342,11 +342,11 @@ void Y_get_tscreen(int argc) {
     atmos_struct *handle = (atmos_struct *) yget_obj(argc - 1, &yAtmos);
     carma_context *context_handle = _getCurrentContext();
     context_handle->set_activeDeviceForCpy(handle->device);
-    float alt = ygets_f(argc-2);
+    float alt = ygets_f(argc - 2);
     sutra_atmos *atmos_handler = (sutra_atmos *) handle->sutra_atmos;
     caObjS *carma_obj_handler =
         (caObjS *) (atmos_handler->d_screens[alt]->d_tscreen->d_screen);
-    float *data = ypush_f(carma_obj_handler->getDims());
+    float *data = ypush_f((long*) carma_obj_handler->getDims());
     carma_obj_handler->device2host(data);
   }
 }
@@ -357,13 +357,13 @@ void Y_extrude_tscreen(int argc) {
     atmos_struct *handle = (atmos_struct *) yget_obj(argc - 1, &yAtmos);
     carma_context *context_handle = _getCurrentContext();
     context_handle->set_activeDeviceForCpy(handle->device);
-    float alt = ygets_f(argc-2);
+    float alt = ygets_f(argc - 2);
     sutra_atmos *atmos_handler = (sutra_atmos *) handle->sutra_atmos;
     sutra_tscreen *tscreen_handler =
         (sutra_tscreen *) (atmos_handler->d_screens.find(alt)->second);
     int dir;
     if (argc > 2)
-      dir = ygets_i(argc-3);
+      dir = ygets_i(argc - 3);
     else
       dir = 1;
     tscreen_handler->extrude(dir);
@@ -379,25 +379,26 @@ void Y_get_tscreen_config(int argc) {
     atmos_struct *handle = (atmos_struct *) yget_obj(argc - 1, &yAtmos);
     carma_context *context_handle = _getCurrentContext();
     context_handle->set_activeDeviceForCpy(handle->device);
-    float alt = ygets_f(argc-2);
+    float alt = ygets_f(argc - 2);
     sutra_atmos *atmos_handler = (sutra_atmos *) handle->sutra_atmos;
     sutra_tscreen *tscreen_handler =
         (sutra_tscreen *) (atmos_handler->d_screens[alt]);
     char *type_data = ygets_q(argc - 3);
     if (strcmp(type_data, "A") == 0) {
-      float *data = ypush_f(tscreen_handler->d_A->getDims());
+      float *data = ypush_f((long*) tscreen_handler->d_A->getDims());
       tscreen_handler->d_A->device2host(data);
     } else if (strcmp(type_data, "B") == 0) {
-      float *data = ypush_f(tscreen_handler->d_B->getDims());
+      float *data = ypush_f((long*) tscreen_handler->d_B->getDims());
       tscreen_handler->d_B->device2host(data);
     } else if (strcmp(type_data, "istx") == 0) {
-      int *data = ypush_i(tscreen_handler->d_istencilx->getDims());
+      int *data = ypush_i((long*) tscreen_handler->d_istencilx->getDims());
       tscreen_handler->d_istencilx->device2host((unsigned int *) data);
     } else if (strcmp(type_data, "isty") == 0) {
-      int *data = ypush_i(tscreen_handler->d_istencily->getDims());
+      int *data = ypush_i((long*) tscreen_handler->d_istencily->getDims());
       tscreen_handler->d_istencily->device2host((unsigned int *) data);
     } else if (strcmp(type_data, "values") == 0) {
-      int *data = ypush_i(tscreen_handler->d_tscreen->d_screen->getDims());
+      int *data = ypush_i(
+          (long*) tscreen_handler->d_tscreen->d_screen->getDims());
       cutilSafeCall(
           cudaMemcpy((void ** )&data,
               tscreen_handler->d_tscreen->d_screen->getValues(),
@@ -416,11 +417,11 @@ void Y_get_tscreen_update(int argc) {
     atmos_struct *handle = (atmos_struct *) yget_obj(argc - 1, &yAtmos);
     carma_context *context_handle = _getCurrentContext();
     context_handle->set_activeDeviceForCpy(handle->device);
-    float alt = ygets_f(argc-2);
+    float alt = ygets_f(argc - 2);
     sutra_atmos *atmos_handler = (sutra_atmos *) handle->sutra_atmos;
     sutra_tscreen *tscreen_handler =
         (sutra_tscreen *) (atmos_handler->d_screens[alt]);
-    float *data = ypush_f(tscreen_handler->d_ytmp->getDims());
+    float *data = ypush_f((long*) tscreen_handler->d_ytmp->getDims());
     tscreen_handler->d_ytmp->device2host(data);
   }
 }
@@ -430,7 +431,7 @@ void Y_tscreen_initvk(int argc) {
   atmos_struct *handle = (atmos_struct *) yget_obj(argc - 1, &yAtmos);
   carma_context *context_handle = _getCurrentContext();
   context_handle->set_activeDevice(handle->device);
-  float alt = ygets_f(argc-2);
+  float alt = ygets_f(argc - 2);
   int pupd = ygets_l(argc - 3);
   long seed = 1234;
   if (argc > 3)
@@ -446,10 +447,10 @@ void Y_tscreen_genevk(int argc) {
   atmos_struct *handle = (atmos_struct *) yget_obj(argc - 1, &yAtmos);
   carma_context *context_handle = _getCurrentContext();
   context_handle->set_activeDevice(handle->device);
-  float alt = ygets_f(argc-2);
+  float alt = ygets_f(argc - 2);
   float l0 = 0.0f;
   if (argc > 2)
-    l0 = ygets_f(argc-3);
+    l0 = ygets_f(argc - 3);
   long nalias = 0;
   if (argc > 3)
     l0 = ygets_l(argc - 4);
@@ -540,7 +541,7 @@ void Y_yoga_target(int argc) {
     carma_context *context_handle = _getCurrentContext();
     int activeDevice = context_handle->get_activeDevice();
     int odevice = activeDevice;
-    int ntargets = ygets_i(argc-1);
+    int ntargets = ygets_i(argc - 1);
 
     float *xpos;
     xpos = ygeta_f(argc - 2, &ntot, dims);
@@ -569,7 +570,7 @@ void Y_yoga_target(int argc) {
     pup = ygeta_f(argc - 7, &ntot, dims);
 
     if (argc > 7)
-      odevice = ygets_i(argc-8);
+      odevice = ygets_i(argc - 8);
     activeDevice = context_handle->set_activeDevice(odevice);
 
     target_struct *handle = (target_struct *) ypush_obj(&yTarget,
@@ -598,11 +599,11 @@ void Y_target_addlayer(int argc) {
   carma_context *context_handle = _getCurrentContext();
   context_handle->set_activeDevice(handler->device);
 
-  int ntarget = ygets_i(argc-2);
+  int ntarget = ygets_i(argc - 2);
   char *type = ygets_q(argc - 3);
-  float alt = ygets_f(argc-4);
-  float xoff = ygets_f(argc-5);
-  float yoff = ygets_f(argc-6);
+  float alt = ygets_f(argc - 4);
+  float xoff = ygets_f(argc - 5);
+  float yoff = ygets_f(argc - 6);
 
   target_handler->d_targets.at(ntarget)->add_layer(type, alt, xoff, yoff);
 }
@@ -611,7 +612,7 @@ void Y_target_init_strehlmeter(int argc) {
   target_struct *handler = (target_struct *) yget_obj(argc - 1, &yTarget);
   sutra_target *target_handler = (sutra_target *) (handler->sutra_target);
 
-  int ntarget = ygets_i(argc-2);
+  int ntarget = ygets_i(argc - 2);
 
   target_handler->d_targets.at(ntarget)->init_strehlmeter();
 }
@@ -623,7 +624,7 @@ void Y_target_atmostrace(int argc) {
   carma_context *context_handle = _getCurrentContext();
   context_handle->set_activeDevice(handler->device);
 
-  int ntarget = ygets_i(argc-2);
+  int ntarget = ygets_i(argc - 2);
 
   atmos_struct *handler_a = (atmos_struct *) yget_obj(argc - 3, &yAtmos);
   sutra_atmos *atmos_handler = (sutra_atmos *) (handler_a->sutra_atmos);
@@ -638,7 +639,7 @@ void Y_target_getimage(int argc) {
   carma_context *context_handle = _getCurrentContext();
   context_handle->set_activeDeviceForCpy(handler->device);
 
-  int ntarget = ygets_i(argc-2);
+  int ntarget = ygets_i(argc - 2);
 
   char *type_im = ygets_q(argc - 3);
 
@@ -647,7 +648,7 @@ void Y_target_getimage(int argc) {
     puponly = (int) ygets_l(argc - 4);
 
   float *data = ypush_f(
-      target_handler->d_targets.at(ntarget)->d_image->getDims());
+      (long*) target_handler->d_targets.at(ntarget)->d_image->getDims());
 
   target_handler->d_targets.at(ntarget)->comp_image(puponly);
   if (strcmp(type_im, "se") == 0)
@@ -663,10 +664,11 @@ void Y_target_getphase(int argc) {
   carma_context *context_handle = _getCurrentContext();
   context_handle->set_activeDeviceForCpy(handler->device);
 
-  int ntarget = ygets_i(argc-2);
+  int ntarget = ygets_i(argc - 2);
 
-  float *data = ypush_f(
-      target_handler->d_targets.at(ntarget)->d_phase->d_screen->getDims());
+  float *data =
+      ypush_f(
+          (long*) target_handler->d_targets.at(ntarget)->d_phase->d_screen->getDims());
   target_handler->d_targets.at(ntarget)->d_phase->d_screen->device2host(data);
 }
 
@@ -677,10 +679,11 @@ void Y_target_getphasetele(int argc) {
   carma_context *context_handle = _getCurrentContext();
   context_handle->set_activeDeviceForCpy(handler->device);
 
-  int ntarget = ygets_i(argc-2);
+  int ntarget = ygets_i(argc - 2);
 
-  float *data = ypush_f(
-      target_handler->d_targets.at(ntarget)->phase_telemetry->getDims());
+  float *data =
+      ypush_f(
+          (long*) target_handler->d_targets.at(ntarget)->phase_telemetry->getDims());
   target_handler->d_targets.at(ntarget)->phase_telemetry->fill_into(data);
 }
 
@@ -691,12 +694,12 @@ void Y_target_getamplipup(int argc) {
   carma_context *context_handle = _getCurrentContext();
   context_handle->set_activeDeviceForCpy(handler->device);
 
-  int ntarget = ygets_i(argc-2);
+  int ntarget = ygets_i(argc - 2);
 
   long * ndims_data = new long[4];
   ndims_data[0] = 3;
   ndims_data[1] = 2;
-  long * ndims_obj =
+  const long * ndims_obj =
       target_handler->d_targets.at(ntarget)->d_amplipup->getDims();
   memcpy(&ndims_data[2], &(ndims_obj[1]), sizeof(long) * 2);
   float *data = ypush_f(ndims_data);
@@ -712,7 +715,7 @@ void Y_target_getstrehl(int argc) {
   carma_context *context_handle = _getCurrentContext();
   context_handle->set_activeDeviceForCpy(handler->device);
 
-  int ntarget = ygets_i(argc-2);
+  int ntarget = ygets_i(argc - 2);
 
   long * ndims_data = new long[2];
   ndims_data[0] = 1;
@@ -763,7 +766,7 @@ void phase_eval(void *obj, int n) {
   carma_context *context_handle = _getCurrentContext();
   context_handle->set_activeDeviceForCpy(handler->device);
   sutra_phase *phase_handler = (sutra_phase *) (handler->sutra_phase);
-  float *data = ypush_f(phase_handler->d_screen->getDims());
+  float *data = ypush_f((long*) phase_handler->d_screen->getDims());
   phase_handler->d_screen->device2host(data);
 }
 
@@ -775,7 +778,7 @@ void Y_yoga_phase(int argc) {
     long size = ygets_l(argc - 1);
 
     if (argc > 1)
-      odevice = ygets_i(argc-2);
+      odevice = ygets_i(argc - 2);
     activeDevice = context_handle->set_activeDevice(odevice);
 
     phase_struct *handle = (phase_struct *) ypush_obj(&yPhase,
@@ -853,12 +856,12 @@ void Y_yoga_wfs(int argc)
     long nfft = ygets_l(argc - 6);
     long ntot = ygets_l(argc - 7);
     long npup = ygets_l(argc - 8);
-    float pdiam = ygets_f(argc-9);
-    float nphot = ygets_f(argc-10);
+    float pdiam = ygets_f(argc - 9);
+    float nphot = ygets_f(argc - 10);
     int lgs = ygets_l(argc - 11);
 
     if (argc > 11)
-      odevice = ygets_i(argc-12);
+      odevice = ygets_i(argc - 12);
     activeDevice = context_handle->set_activeDevice(odevice);
 
     wfs_struct *handle = (wfs_struct *) ypush_obj(&yWfs, sizeof(wfs_struct));
@@ -881,15 +884,15 @@ void Y_yoga_wfs(int argc)
 
 void Y_wfs_initgs(int argc) {
   wfs_struct *handle = (wfs_struct *) yget_obj(argc - 1, &yWfs);
-  float xpos = ygets_f(argc-2);
-  float ypos = ygets_f(argc-3);
-  float lambda = ygets_f(argc-4);
-  float mag = ygets_f(argc-5);
+  float xpos = ygets_f(argc - 2);
+  float ypos = ygets_f(argc - 3);
+  float lambda = ygets_f(argc - 4);
+  float mag = ygets_f(argc - 5);
   long size = ygets_l(argc - 6);
   float noise = -1;
   long seed = 1234;
   if (argc > 6)
-    noise = ygets_f(argc-7);
+    noise = ygets_f(argc - 7);
   if (argc > 7)
     seed = ygets_l(argc - 8);
 
@@ -938,7 +941,7 @@ void Y_yoga_acquisim(int argc)
         &ySensors);
     sutra_sensors *sensors_handler =
         (sutra_sensors *) sensors_handle->sutra_sensors;
-    int wfs_num = ygets_i(argc-2);
+    int wfs_num = ygets_i(argc - 2);
 
     acquisim_struct *handle = (acquisim_struct *) ypush_obj(&yAcquisim,
         sizeof(acquisim_struct));
@@ -1098,7 +1101,7 @@ void Y_yoga_sensors(int argc)
   long dims[Y_DIMSIZE];
 
   try {
-    int nsensors = ygets_i(argc-1);
+    int nsensors = ygets_i(argc - 1);
     char *type_data = ygets_q(argc - 2);
     if (strcmp(type_data, "geo") == 0) {
       long *nxsub = ygeta_l(argc - 3, &ntot, dims);
@@ -1110,7 +1113,7 @@ void Y_yoga_sensors(int argc)
       carma_context *context_handle = _getCurrentContext();
       int odevice = context_handle->get_activeDevice();
       if (argc > 7)
-        odevice = ygets_i(argc-8);
+        odevice = ygets_i(argc - 8);
 
       sensors_struct *handle = (sensors_struct *) ypush_obj(&ySensors,
           sizeof(sensors_struct));
@@ -1138,7 +1141,7 @@ void Y_yoga_sensors(int argc)
       carma_context *context_handle = _getCurrentContext();
       int odevice = context_handle->get_activeDevice();
       if (argc > 13)
-        odevice = ygets_i(argc-14);
+        odevice = ygets_i(argc - 14);
 
       sensors_struct *handle = (sensors_struct *) ypush_obj(&ySensors,
           sizeof(sensors_struct));
@@ -1208,11 +1211,11 @@ void Y_sensors_addlayer(int argc) {
   carma_context *context_handle = _getCurrentContext();
   context_handle->set_activeDevice(handler->device);
 
-  int nsensor = ygets_i(argc-2);
+  int nsensor = ygets_i(argc - 2);
   char *type = ygets_q(argc - 3);
-  float alt = ygets_f(argc-4);
-  float xoff = ygets_f(argc-5);
-  float yoff = ygets_f(argc-6);
+  float alt = ygets_f(argc - 4);
+  float xoff = ygets_f(argc - 5);
+  float yoff = ygets_f(argc - 6);
 
   sensors_handler->d_wfs.at(nsensor)->d_gs->add_layer(type, alt, xoff, yoff);
 }
@@ -1226,7 +1229,7 @@ void Y_sensors_initarr(int argc) {
   carma_context *context_handle = _getCurrentContext();
   context_handle->set_activeDevice(handler->device);
 
-  int nsensor = ygets_i(argc-2);
+  int nsensor = ygets_i(argc - 2);
 
   if (sensors_handler->d_wfs.at(nsensor)->type == "sh") {
     int *phasemap = ygeta_i(argc - 3, &ntot, dims);
@@ -1287,7 +1290,7 @@ void Y_sensors_loadkernels(int argc) {
   carma_context *context_handle = _getCurrentContext();
   context_handle->set_activeDevice(handler->device);
 
-  int nsensor = ygets_i(argc-2);
+  int nsensor = ygets_i(argc - 2);
 
   float *kernels = ygeta_f(argc - 3, &ntot, dims);
 
@@ -1303,13 +1306,13 @@ void Y_sensors_initlgs(int argc) {
   carma_context *context_handle = _getCurrentContext();
   context_handle->set_activeDevice(handler->device);
 
-  int nsensor = ygets_i(argc-2);
+  int nsensor = ygets_i(argc - 2);
 
-  int nprof = ygets_i(argc-3);
-  float hg = ygets_f(argc-4);
-  float h0 = ygets_f(argc-5);
-  float deltah = ygets_f(argc-6);
-  float pixsize = ygets_f(argc-7);
+  int nprof = ygets_i(argc - 3);
+  float hg = ygets_f(argc - 4);
+  float h0 = ygets_f(argc - 5);
+  float deltah = ygets_f(argc - 6);
+  float pixsize = ygets_f(argc - 7);
   float *doffaxis = ygeta_f(argc - 8, &ntot, dims);
   float *prof1d = ygeta_f(argc - 9, &ntot, dims);
   float *profcum = ygeta_f(argc - 10, &ntot, dims);
@@ -1334,13 +1337,13 @@ void Y_sensors_updatelgsprof(int argc) {
   carma_context *context_handle = _getCurrentContext();
   context_handle->set_activeDevice(handler->device);
 
-  int nsensor = ygets_i(argc-2);
+  int nsensor = ygets_i(argc - 2);
 
   float *prof1d = ygeta_f(argc - 3, &ntot, dims);
   float *profcum = ygeta_f(argc - 4, &ntot, dims);
-  float hg = ygets_f(argc-5);
-  float h0 = ygets_f(argc-6);
-  float deltah = ygets_f(argc-7);
+  float hg = ygets_f(argc - 5);
+  float h0 = ygets_f(argc - 6);
+  float deltah = ygets_f(argc - 7);
 
   sensors_handler->d_wfs.at(nsensor)->d_gs->d_lgs->load_prof(prof1d, profcum,
       hg, h0, deltah);
@@ -1356,7 +1359,7 @@ void Y_sensors_updatelgs(int argc) {
   carma_context *context_handle = _getCurrentContext();
   context_handle->set_activeDevice(handler->device);
 
-  int nsensor = ygets_i(argc-2);
+  int nsensor = ygets_i(argc - 2);
 
   sensors_handler->d_wfs.at(nsensor)->d_gs->d_lgs->lgs_update(handler->device);
   sensors_handler->d_wfs.at(nsensor)->d_gs->d_lgs->lgs_makespot(handler->device,
@@ -1367,7 +1370,7 @@ void Y_sensors_compimg(int argc) {
   sensors_struct *handler = (sensors_struct *) yget_obj(argc - 1, &ySensors);
   sutra_sensors *sensors_handler = (sutra_sensors *) (handler->sutra_sensors);
 
-  int nsensor = ygets_i(argc-2);
+  int nsensor = ygets_i(argc - 2);
 
   /*
    if(argc>2) { // With a telemetry object
@@ -1389,7 +1392,7 @@ void Y_sensors_compimg_tele(int argc) {
   sensors_struct *handler = (sensors_struct *) yget_obj(argc - 1, &ySensors);
   sutra_sensors *sensors_handler = (sutra_sensors *) (handler->sutra_sensors);
 
-  int nsensor = ygets_i(argc-2);
+  int nsensor = ygets_i(argc - 2);
 
   carma_context *context_handle = _getCurrentContext();
   context_handle->set_activeDeviceForCpy(handler->device);
@@ -1404,10 +1407,10 @@ void Y_sensors_getimg(int argc) {
   carma_context *context_handle = _getCurrentContext();
   context_handle->set_activeDeviceForCpy(handler->device);
 
-  int nsensor = ygets_i(argc-2);
+  int nsensor = ygets_i(argc - 2);
 
   float *data = ypush_f(
-      sensors_handler->d_wfs.at(nsensor)->d_binimg->getDims());
+      (long*) sensors_handler->d_wfs.at(nsensor)->d_binimg->getDims());
   /*
    if(argc>2) { // With a telemetry object
    telemetry_struct *handler2 = (telemetry_struct *)yget_obj(argc-3,&yTelemetry);
@@ -1429,7 +1432,7 @@ void Y_sensors_getdata(int argc) {
   carma_context *context_handle = _getCurrentContext();
   context_handle->set_activeDeviceForCpy(handler->device);
 
-  int nsensor = ygets_i(argc-2);
+  int nsensor = ygets_i(argc - 2);
 
   char *type_data = ygets_q(argc - 3);
   if (strcmp(type_data, "amplipup") == 0) {
@@ -1437,7 +1440,7 @@ void Y_sensors_getdata(int argc) {
       long *ndims_data = new long[5];
       ndims_data[0] = 4;
       ndims_data[1] = 2;
-      long *ndims_obj =
+      const long *ndims_obj =
           sensors_handler->d_wfs.at(nsensor)->d_camplipup->getDims();
       memcpy(&ndims_data[2], &(ndims_obj[1]), sizeof(long) * 3);
       float *data = ypush_f(ndims_data);
@@ -1448,7 +1451,7 @@ void Y_sensors_getdata(int argc) {
       long *ndims_data = new long[4];
       ndims_data[0] = 3;
       ndims_data[1] = 2;
-      long *ndims_obj =
+      const long *ndims_obj =
           sensors_handler->d_wfs.at(nsensor)->d_camplipup->getDims();
       memcpy(&(ndims_data[2]), &(ndims_obj[1]), sizeof(long) * 2);
       float *data = ypush_f(ndims_data);
@@ -1461,7 +1464,7 @@ void Y_sensors_getdata(int argc) {
       long *ndims_data = new long[5];
       ndims_data[0] = 4;
       ndims_data[1] = 2;
-      long *ndims_obj =
+      const long *ndims_obj =
           sensors_handler->d_wfs.at(nsensor)->d_camplifoc->getDims();
       memcpy(&ndims_data[2], &(ndims_obj[1]), sizeof(long) * 3);
       float *data = ypush_f(ndims_data);
@@ -1472,7 +1475,7 @@ void Y_sensors_getdata(int argc) {
       long *ndims_data = new long[4];
       ndims_data[0] = 3;
       ndims_data[1] = 2;
-      long *ndims_obj =
+      const long *ndims_obj =
           sensors_handler->d_wfs.at(nsensor)->d_camplifoc->getDims();
       memcpy(&ndims_data[2], &(ndims_obj[1]), sizeof(long) * 2);
       float *data = ypush_f(ndims_data);
@@ -1482,14 +1485,15 @@ void Y_sensors_getdata(int argc) {
   }
   if (strcmp(type_data, "hrimg") == 0) {
     float *data = ypush_f(
-        sensors_handler->d_wfs.at(nsensor)->d_hrimg->getDims());
+        (long*) sensors_handler->d_wfs.at(nsensor)->d_hrimg->getDims());
     sensors_handler->d_wfs.at(nsensor)->d_hrimg->device2host(data);
   }
   if (strcmp(type_data, "fttotim") == 0) {
     long *ndims_data = new long[5];
     ndims_data[0] = 4;
     ndims_data[1] = 2;
-    long *ndims_obj = sensors_handler->d_wfs.at(nsensor)->d_fttotim->getDims();
+    const long *ndims_obj =
+        sensors_handler->d_wfs.at(nsensor)->d_fttotim->getDims();
     memcpy(&ndims_data[2], &(ndims_obj[1]), sizeof(long) * 3);
     float *data = ypush_f(ndims_data);
     sensors_handler->d_wfs.at(nsensor)->d_fttotim->device2host(
@@ -1497,33 +1501,36 @@ void Y_sensors_getdata(int argc) {
   }
   if (strcmp(type_data, "bincube") == 0) {
     float *data = ypush_f(
-        sensors_handler->d_wfs.at(nsensor)->d_bincube->getDims());
+        (long*) sensors_handler->d_wfs.at(nsensor)->d_bincube->getDims());
     sensors_handler->d_wfs.at(nsensor)->d_bincube->device2host(data);
   }
   if (strcmp(type_data, "phase") == 0) {
-    float *data = ypush_f(
-        sensors_handler->d_wfs.at(nsensor)->d_gs->d_phase->d_screen->getDims());
+    float *data =
+        ypush_f(
+            (long*) sensors_handler->d_wfs.at(nsensor)->d_gs->d_phase->d_screen->getDims());
     sensors_handler->d_wfs.at(nsensor)->d_gs->d_phase->d_screen->device2host(
         data);
   }
   if (strcmp(type_data, "pupil") == 0) {
     float *data = ypush_f(
-        sensors_handler->d_wfs.at(nsensor)->d_pupil->getDims());
+        (long*) sensors_handler->d_wfs.at(nsensor)->d_pupil->getDims());
     sensors_handler->d_wfs.at(nsensor)->d_pupil->device2host(data);
   }
   if (strcmp(type_data, "imgtele") == 0) {
     float *data = ypush_f(
-        sensors_handler->d_wfs.at(nsensor)->image_telemetry->getDims());
+        (long*) sensors_handler->d_wfs.at(nsensor)->image_telemetry->getDims());
     sensors_handler->d_wfs.at(nsensor)->image_telemetry->fill_into(data);
   }
   if (strcmp(type_data, "phasetele") == 0) {
-    float *data = ypush_f(
-        sensors_handler->d_wfs.at(nsensor)->d_gs->phase_telemetry->getDims());
+    float *data =
+        ypush_f(
+            (long*) sensors_handler->d_wfs.at(nsensor)->d_gs->phase_telemetry->getDims());
     sensors_handler->d_wfs.at(nsensor)->d_gs->phase_telemetry->fill_into(data);
   }
   if (strcmp(type_data, "lgskern") == 0) {
-    float *data = ypush_f(
-        sensors_handler->d_wfs.at(nsensor)->d_gs->d_lgs->d_lgskern->getDims());
+    float *data =
+        ypush_f(
+            (long*) sensors_handler->d_wfs.at(nsensor)->d_gs->d_lgs->d_lgskern->getDims());
     sensors_handler->d_wfs.at(nsensor)->d_gs->d_lgs->d_lgskern->device2host(
         data);
   }
@@ -1531,7 +1538,7 @@ void Y_sensors_getdata(int argc) {
     long *ndims_data = new long[5];
     ndims_data[0] = 4;
     ndims_data[1] = 2;
-    long *ndims_obj =
+    const long *ndims_obj =
         sensors_handler->d_wfs.at(nsensor)->d_gs->d_lgs->d_ftlgskern->getDims();
     memcpy(&ndims_data[2], &(ndims_obj[1]), sizeof(long) * 3);
     float *data = ypush_f(ndims_data);
@@ -1540,33 +1547,35 @@ void Y_sensors_getdata(int argc) {
   }
   if (strcmp(type_data, "subsum") == 0) {
     float *data = ypush_f(
-        sensors_handler->d_wfs.at(nsensor)->d_subsum->getDims());
+        (long*) sensors_handler->d_wfs.at(nsensor)->d_subsum->getDims());
     sensors_handler->d_wfs.at(nsensor)->d_subsum->device2host(data);
   }
   if (strcmp(type_data, "psum") == 0) {
     float *data = ypush_f(
-        sensors_handler->d_wfs.at(nsensor)->d_psum->getDims());
+        (long*) sensors_handler->d_wfs.at(nsensor)->d_psum->getDims());
     sensors_handler->d_wfs.at(nsensor)->d_psum->device2host(data);
   }
   if (strcmp(type_data, "slopes") == 0) {
     float *data = ypush_f(
-        sensors_handler->d_wfs.at(nsensor)->d_slopes->getDims());
+        (long*) sensors_handler->d_wfs.at(nsensor)->d_slopes->getDims());
     sensors_handler->d_wfs.at(nsensor)->d_slopes->device2host(data);
   }
   if (strcmp(type_data, "offsets") == 0) {
     float *data = ypush_f(
-        sensors_handler->d_wfs.at(nsensor)->d_offsets->getDims());
+        (long*) sensors_handler->d_wfs.at(nsensor)->d_offsets->getDims());
     sensors_handler->d_wfs.at(nsensor)->d_offsets->device2host(data);
   }
   if (strcmp(type_data, "prof1d") == 0) {
-    float *data = ypush_f(
-        sensors_handler->d_wfs.at(nsensor)->d_gs->d_lgs->d_prof1d->getDims());
+    float *data =
+        ypush_f(
+            (long*) sensors_handler->d_wfs.at(nsensor)->d_gs->d_lgs->d_prof1d->getDims());
     sensors_handler->d_wfs.at(nsensor)->d_gs->d_lgs->d_prof1d->device2host(
         data);
   }
   if (strcmp(type_data, "profcum") == 0) {
-    float *data = ypush_f(
-        sensors_handler->d_wfs.at(nsensor)->d_gs->d_lgs->d_profcum->getDims());
+    float *data =
+        ypush_f(
+            (long*) sensors_handler->d_wfs.at(nsensor)->d_gs->d_lgs->d_profcum->getDims());
     sensors_handler->d_wfs.at(nsensor)->d_gs->d_lgs->d_profcum->device2host(
         data);
   }
@@ -1574,7 +1583,7 @@ void Y_sensors_getdata(int argc) {
     long *ndims_data = new long[4];
     ndims_data[0] = 3;
     ndims_data[1] = 2;
-    long *ndims_obj =
+    const long *ndims_obj =
         sensors_handler->d_wfs.at(nsensor)->d_gs->d_lgs->d_prof2d->getDims();
     memcpy(&ndims_data[2], &(ndims_obj[1]), sizeof(long) * 2);
     float *data = ypush_f(ndims_data);
@@ -1586,7 +1595,7 @@ void Y_sensors_getdata(int argc) {
       long *ndims_data = new long[4];
       ndims_data[0] = 3;
       ndims_data[1] = 2;
-      long *ndims_obj =
+      const long *ndims_obj =
           sensors_handler->d_wfs.at(nsensor)->d_poffsets->getDims();
       memcpy(&ndims_data[2], &(ndims_obj[1]), sizeof(long) * 2);
       float *data = ypush_f(ndims_data);
@@ -1599,7 +1608,7 @@ void Y_sensors_getdata(int argc) {
       long *ndims_data = new long[4];
       ndims_data[0] = 3;
       ndims_data[1] = 2;
-      long *ndims_obj =
+      const long *ndims_obj =
           sensors_handler->d_wfs.at(nsensor)->d_phalfxy->getDims();
       memcpy(&ndims_data[2], &(ndims_obj[1]), sizeof(long) * 2);
       float *data = ypush_f(ndims_data);
@@ -1620,7 +1629,7 @@ void Y_sensors_setphase(int argc) {
   carma_context *context_handle = _getCurrentContext();
   context_handle->set_activeDevice(handler->device);
 
-  int nsensor = ygets_i(argc-2);
+  int nsensor = ygets_i(argc - 2);
 
   float *data = ygeta_f(argc - 3, &ntot, dims);
   if (ntot
@@ -1709,16 +1718,16 @@ void Y_yoga_addpzt(int argc) {
   dms_struct *handler = (dms_struct *) yget_obj(argc - 1, &yDMs);
   sutra_dms *dms_handler = (sutra_dms *) (handler->sutra_dms);
   //char *type            = ygets_q(argc-2);
-  float alt = ygets_f(argc-2);
+  float alt = ygets_f(argc - 2);
   long dim = ygets_l(argc - 3);
   long ninflu = ygets_l(argc - 4);
   long influsize = ygets_l(argc - 5);
   long ninflupos = ygets_l(argc - 6);
   long n_npts = ygets_l(argc - 7);
-  float push4imat = ygets_f(argc-8);
+  float push4imat = ygets_f(argc - 8);
 
   if (argc > 8)
-    odevice = ygets_i(argc-9);
+    odevice = ygets_i(argc - 9);
 
   activeDevice = context_handle->set_activeDevice(odevice);
 
@@ -1730,7 +1739,7 @@ void Y_yoga_rmpzt(int argc) {
   dms_struct *handler = (dms_struct *) yget_obj(argc - 1, &yDMs);
   sutra_dms *dms_handler = (sutra_dms *) (handler->sutra_dms);
   //char *type            = ygets_q(argc-2);
-  float alt = ygets_f(argc-2);
+  float alt = ygets_f(argc - 2);
 
   dms_handler->remove_dm("pzt", alt);
 }
@@ -1742,7 +1751,7 @@ void Y_yoga_loadpzt(int argc) {
   dms_struct *handler = (dms_struct *) yget_obj(argc - 1, &yDMs);
   sutra_dms *dms_handler = (sutra_dms *) (handler->sutra_dms);
   //char *type            = ygets_q(argc-2);
-  float alt = ygets_f(argc-2);
+  float alt = ygets_f(argc - 2);
   float *influ = ygeta_f(argc - 3, &ntot, dims);
   int *influpos = ygeta_i(argc - 4, &ntot, dims);
   int *npoints = ygeta_i(argc - 5, &ntot, dims);
@@ -1761,16 +1770,16 @@ void Y_yoga_addkl(int argc) {
   dms_struct *handler = (dms_struct *) yget_obj(argc - 1, &yDMs);
   sutra_dms *dms_handler = (sutra_dms *) (handler->sutra_dms);
   //char *type            = ygets_q(argc-2);
-  float alt = ygets_f(argc-2);
+  float alt = ygets_f(argc - 2);
   long dim = ygets_l(argc - 3);
   long ninflu = ygets_l(argc - 4);
   long influsize = ygets_l(argc - 5);
   long nr = ygets_l(argc - 6);
   long np = ygets_l(argc - 7);
-  float push4imat = ygets_f(argc-8);
+  float push4imat = ygets_f(argc - 8);
 
   if (argc > 8)
-    odevice = ygets_i(argc-9);
+    odevice = ygets_i(argc - 9);
 
   activeDevice = context_handle->set_activeDevice(odevice);
 
@@ -1784,7 +1793,7 @@ void Y_yoga_loadkl(int argc) {
   dms_struct *handler = (dms_struct *) yget_obj(argc - 1, &yDMs);
   sutra_dms *dms_handler = (sutra_dms *) (handler->sutra_dms);
   //char *type            = ygets_q(argc-2);
-  float alt = ygets_f(argc-2);
+  float alt = ygets_f(argc - 2);
   float *rabas = ygeta_f(argc - 3, &ntot, dims);
   float *azbas = ygeta_f(argc - 4, &ntot, dims);
   int *ord = ygeta_i(argc - 5, &ntot, dims);
@@ -1799,7 +1808,7 @@ void Y_yoga_rmkl(int argc) {
   dms_struct *handler = (dms_struct *) yget_obj(argc - 1, &yDMs);
   sutra_dms *dms_handler = (sutra_dms *) (handler->sutra_dms);
   //char *type            = ygets_q(argc-2);
-  float alt = ygets_f(argc-2);
+  float alt = ygets_f(argc - 2);
 
   dms_handler->remove_dm("kl", alt);
 }
@@ -1808,7 +1817,7 @@ void Y_yoga_getkl(int argc) {
   dms_struct *handler = (dms_struct *) yget_obj(argc - 1, &yDMs);
   sutra_dms *dms_handler = (sutra_dms *) (handler->sutra_dms);
   //char *type            = ygets_q(argc-2);
-  float alt = ygets_f(argc-2);
+  float alt = ygets_f(argc - 2);
   long nkl = ygets_l(argc - 3);
 
   int xoff =
@@ -1824,7 +1833,7 @@ void Y_yoga_getkl(int argc) {
 
   float *data =
       ypush_f(
-          dms_handler->d_dms.at(make_pair("kl", alt))->d_shape->d_screen->getDims());
+          (long*) dms_handler->d_dms.at(make_pair("kl", alt))->d_shape->d_screen->getDims());
   dms_handler->d_dms.at(make_pair("kl", alt))->d_shape->d_screen->device2host(
       data);
 }
@@ -1836,11 +1845,11 @@ void Y_yoga_addtt(int argc) {
   int odevice = activeDevice;
   dms_struct *handler = (dms_struct *) yget_obj(argc - 1, &yDMs);
   sutra_dms *dms_handler = (sutra_dms *) (handler->sutra_dms);
-  float alt = ygets_f(argc-2);
+  float alt = ygets_f(argc - 2);
   long dim = ygets_l(argc - 3);
-  float push4imat = ygets_f(argc-4);
+  float push4imat = ygets_f(argc - 4);
   if (argc > 4)
-    odevice = ygets_i(argc-5);
+    odevice = ygets_i(argc - 5);
 
   activeDevice = context_handle->set_activeDevice(odevice);
 
@@ -1855,7 +1864,7 @@ void Y_yoga_loadtt(int argc) {
   dms_struct *handler = (dms_struct *) yget_obj(argc - 1, &yDMs);
   sutra_dms *dms_handler = (sutra_dms *) (handler->sutra_dms);
   //char *type            = ygets_q(argc-2);
-  float alt = ygets_f(argc-2);
+  float alt = ygets_f(argc - 2);
   float *influ = ygeta_f(argc - 3, &ntot, dims);
 
   dms_handler->d_dms.at(make_pair("tt", alt))->d_influ->host2device(influ);
@@ -1868,7 +1877,7 @@ void Y_yoga_setcomm(int argc) {
   dms_struct *handler = (dms_struct *) yget_obj(argc - 1, &yDMs);
   sutra_dms *dms_handler = (sutra_dms *) (handler->sutra_dms);
   char *type = ygets_q(argc - 2);
-  float alt = ygets_f(argc-3);
+  float alt = ygets_f(argc - 3);
   float *comm = ygeta_f(argc - 4, &ntot, dims);
 
   dms_handler->d_dms.at(make_pair(type, alt))->d_comm->host2device(comm);
@@ -1878,7 +1887,7 @@ void Y_yoga_shapedm(int argc) {
   dms_struct *handler = (dms_struct *) yget_obj(argc - 1, &yDMs);
   sutra_dms *dms_handler = (sutra_dms *) (handler->sutra_dms);
   char *type = ygets_q(argc - 2);
-  float alt = ygets_f(argc-3);
+  float alt = ygets_f(argc - 3);
 
   dms_handler->d_dms.at(make_pair(type, alt))->comp_shape();
 }
@@ -1887,7 +1896,7 @@ void Y_yoga_resetdm(int argc) {
   dms_struct *handler = (dms_struct *) yget_obj(argc - 1, &yDMs);
   sutra_dms *dms_handler = (sutra_dms *) (handler->sutra_dms);
   char *type = ygets_q(argc - 2);
-  float alt = ygets_f(argc-3);
+  float alt = ygets_f(argc - 3);
 
   dms_handler->d_dms.at(make_pair(type, alt))->reset_shape();
 }
@@ -1896,9 +1905,9 @@ void Y_yoga_oneactu(int argc) {
   dms_struct *handler = (dms_struct *) yget_obj(argc - 1, &yDMs);
   sutra_dms *dms_handler = (sutra_dms *) (handler->sutra_dms);
   char *type = ygets_q(argc - 2);
-  float alt = ygets_f(argc-3);
+  float alt = ygets_f(argc - 3);
   long nactu = ygets_l(argc - 4);
-  float ampli = ygets_f(argc-5);
+  float ampli = ygets_f(argc - 5);
 
   dms_handler->d_dms.at(make_pair(type, alt))->comp_oneactu(nactu, ampli);
 }
@@ -1907,10 +1916,10 @@ void Y_yoga_getdm(int argc) {
   dms_struct *handler = (dms_struct *) yget_obj(argc - 1, &yDMs);
   sutra_dms *dms_handler = (sutra_dms *) (handler->sutra_dms);
   char *type = ygets_q(argc - 2);
-  float alt = ygets_f(argc-3);
+  float alt = ygets_f(argc - 3);
   float *data =
       ypush_f(
-          dms_handler->d_dms.at(make_pair(type, alt))->d_shape->d_screen->getDims());
+          (long*) dms_handler->d_dms.at(make_pair(type, alt))->d_shape->d_screen->getDims());
   dms_handler->d_dms.at(make_pair(type, alt))->d_shape->d_screen->device2host(
       data);
 }
@@ -1922,7 +1931,7 @@ void Y_yoga_setdm(int argc) {
   dms_struct *handler = (dms_struct *) yget_obj(argc - 1, &yDMs);
   sutra_dms *dms_handler = (sutra_dms *) (handler->sutra_dms);
   char *type = ygets_q(argc - 2);
-  float alt = ygets_f(argc-3);
+  float alt = ygets_f(argc - 3);
   float *data = ygeta_f(argc - 4, &ntot, dims);
   dms_handler->d_dms.at(make_pair(type, alt))->d_shape->d_screen->device2host(
       data);
@@ -1935,14 +1944,14 @@ void Y_target_dmtrace(int argc) {
   carma_context *context_handle = _getCurrentContext();
   context_handle->set_activeDevice(handler->device);
 
-  int ntarget = ygets_i(argc-2);
+  int ntarget = ygets_i(argc - 2);
 
   dms_struct *handlera = (dms_struct *) yget_obj(argc - 3, &yDMs);
   sutra_dms *dms_handler = (sutra_dms *) (handlera->sutra_dms);
 
   int rst = 0;
   if (argc > 3)
-    rst = ygets_i(argc-4);
+    rst = ygets_i(argc - 4);
 
   target_handler->d_targets.at(ntarget)->raytrace(dms_handler, rst);
 }
@@ -1955,28 +1964,30 @@ void Y_dms_getdata(int argc) {
   context_handle->set_activeDeviceForCpy(dhandler->device);
 
   char *type = ygets_q(argc - 2);
-  float alt = ygets_f(argc-3);
+  float alt = ygets_f(argc - 3);
 
   char *type_data = ygets_q(argc - 4);
   if (strcmp(type_data, "xoff") == 0) {
     int *data = ypush_i(
-        dms_handler->d_dms.at(make_pair(type, alt))->d_xoff->getDims());
+        (long*) dms_handler->d_dms.at(make_pair(type, alt))->d_xoff->getDims());
     dms_handler->d_dms.at(make_pair(type, alt))->d_xoff->device2host(data);
   }
   if (strcmp(type_data, "yoff") == 0) {
     int *data = ypush_i(
-        dms_handler->d_dms.at(make_pair(type, alt))->d_yoff->getDims());
+        (long*) dms_handler->d_dms.at(make_pair(type, alt))->d_yoff->getDims());
     dms_handler->d_dms.at(make_pair(type, alt))->d_yoff->host2device(data);
   }
   if (strcmp(type_data, "rabas") == 0) {
-    float *data = ypush_f(
-        dms_handler->d_dms.at(make_pair(type, alt))->d_kl->d_rabas->getDims());
+    float *data =
+        ypush_f(
+            (long*) dms_handler->d_dms.at(make_pair(type, alt))->d_kl->d_rabas->getDims());
     dms_handler->d_dms.at(make_pair(type, alt))->d_kl->d_rabas->host2device(
         data);
   }
   if (strcmp(type_data, "azbas") == 0) {
-    float *data = ypush_f(
-        dms_handler->d_dms.at(make_pair(type, alt))->d_kl->d_azbas->getDims());
+    float *data =
+        ypush_f(
+            (long*) dms_handler->d_dms.at(make_pair(type, alt))->d_kl->d_azbas->getDims());
     dms_handler->d_dms.at(make_pair(type, alt))->d_kl->d_azbas->host2device(
         data);
   }
@@ -2062,8 +2073,8 @@ void Y_rtc_addcentro(int argc) {
   long nwfs = ygets_l(argc - 2);
   long nvalid = ygets_l(argc - 3);
   char *type_centro = ygets_q(argc - 4);
-  float offset = ygets_f(argc-5);
-  float scale = ygets_f(argc-6);
+  float offset = ygets_f(argc - 5);
+  float scale = ygets_f(argc - 6);
 
   //rtc_struct *handle    =(rtc_struct *)ypush_obj(&yRTC, sizeof(rtc_struct));
 
@@ -2102,13 +2113,14 @@ void Y_rtc_rmcontrol(int argc) {
 void Y_rtc_setthresh(int argc) {
   rtc_struct *rhandler = (rtc_struct *) yget_obj(argc - 1, &yRTC);
   sutra_rtc *rtc_handler = (sutra_rtc *) (rhandler->sutra_rtc);
-  int ncentro = ygets_i(argc-2);
-  float thresh = ygets_f(argc-3);
+  int ncentro = ygets_i(argc - 2);
+  float thresh = ygets_f(argc - 3);
 
   carma_context *context_handle = _getCurrentContext();
   context_handle->set_activeDeviceForCpy(rhandler->device);
-  if(rtc_handler->d_centro.at(ncentro)->is_type("tcog")){
-    sutra_centroider_tcog *centroider_tcog=static_cast<sutra_centroider_tcog*>(rtc_handler->d_centro.at(ncentro));
+  if (rtc_handler->d_centro.at(ncentro)->is_type("tcog")) {
+    sutra_centroider_tcog *centroider_tcog =
+        static_cast<sutra_centroider_tcog*>(rtc_handler->d_centro.at(ncentro));
     centroider_tcog->set_threshold(thresh);
   }
 }
@@ -2116,13 +2128,14 @@ void Y_rtc_setthresh(int argc) {
 void Y_rtc_setnmax(int argc) {
   rtc_struct *rhandler = (rtc_struct *) yget_obj(argc - 1, &yRTC);
   sutra_rtc *rtc_handler = (sutra_rtc *) (rhandler->sutra_rtc);
-  int ncentro = ygets_i(argc-2);
-  int nmax = ygets_f(argc-3);
+  int ncentro = ygets_i(argc - 2);
+  int nmax = ygets_f(argc - 3);
 
   carma_context *context_handle = _getCurrentContext();
   context_handle->set_activeDevice(rhandler->device);
-  if(rtc_handler->d_centro.at(ncentro)->is_type("bpcog")){
-    sutra_centroider_bpcog *centroider_bpcog=static_cast<sutra_centroider_bpcog*>(rtc_handler->d_centro.at(ncentro));
+  if (rtc_handler->d_centro.at(ncentro)->is_type("bpcog")) {
+    sutra_centroider_bpcog *centroider_bpcog =
+        static_cast<sutra_centroider_bpcog*>(rtc_handler->d_centro.at(ncentro));
     centroider_bpcog->set_nmax(nmax);
   }
 }
@@ -2156,7 +2169,7 @@ void Y_rtc_doimat(int argc) {
 
   int geom = -1;
   if (argc > 4)
-    geom = ygets_i(argc-5);
+    geom = ygets_i(argc - 5);
   //rtc_struct *handle    =(rtc_struct *)ypush_obj(&yRTC, sizeof(rtc_struct));
 
   carma_context *context_handle = _getCurrentContext();
@@ -2172,7 +2185,7 @@ void Y_rtc_setgain(int argc) {
   rtc_struct *rhandler = (rtc_struct *) yget_obj(argc - 1, &yRTC);
   sutra_rtc *rtc_handler = (sutra_rtc *) (rhandler->sutra_rtc);
   long ncontrol = ygets_l(argc - 2);
-  float gain = ygets_f(argc-3);
+  float gain = ygets_f(argc - 3);
 
   carma_context *context_handle = _getCurrentContext();
   context_handle->set_activeDeviceForCpy(rhandler->device);
@@ -2217,7 +2230,8 @@ void Y_rtc_getimat(int argc) {
   carma_context *context_handle = _getCurrentContext();
   context_handle->set_activeDeviceForCpy(rhandler->device);
 
-  float *data = ypush_f(rtc_handler->d_control.at(ncontrol)->d_imat->getDims());
+  float *data = ypush_f(
+      (long*) rtc_handler->d_control.at(ncontrol)->d_imat->getDims());
   rtc_handler->d_control.at(ncontrol)->d_imat->device2host(data);
 }
 
@@ -2244,7 +2258,7 @@ void Y_rtc_getcentroids(int argc) {
   context_handle->set_activeDeviceForCpy(rhandler->device);
 
   float *data = ypush_f(
-      rtc_handler->d_control.at(ncontrol)->d_centroids->getDims());
+      (long*) rtc_handler->d_control.at(ncontrol)->d_centroids->getDims());
   rtc_handler->d_control.at(ncontrol)->d_centroids->device2host(data);
 }
 
@@ -2256,7 +2270,8 @@ void Y_rtc_getcmat(int argc) {
   carma_context *context_handle = _getCurrentContext();
   context_handle->set_activeDeviceForCpy(rhandler->device);
 
-  float *data = ypush_f(rtc_handler->d_control.at(ncontrol)->d_cmat->getDims());
+  float *data = ypush_f(
+      (long*) rtc_handler->d_control.at(ncontrol)->d_cmat->getDims());
   rtc_handler->d_control.at(ncontrol)->d_cmat->device2host(data);
 }
 void Y_rtc_setcmat(int argc) {
@@ -2314,7 +2329,7 @@ void Y_rtc_framedelay(int argc) {
   carma_context *context_handle = _getCurrentContext();
   context_handle->set_activeDeviceForCpy(rhandler->device);
 
-  int ncontrol = ygets_i(argc-2);
+  int ncontrol = ygets_i(argc - 2);
 
   rtc_handler->d_control.at(ncontrol)->frame_delay();
 }
@@ -2340,7 +2355,7 @@ void Y_controller_setdata(int argc) {
   carma_context *context_handle = _getCurrentContext();
   context_handle->set_activeDeviceForCpy(rhandler->device);
 
-  int ncontrol = ygets_i(argc-2);
+  int ncontrol = ygets_i(argc - 2);
 
   char *type_data = ygets_q(argc - 3);
   long ntot;
@@ -2362,54 +2377,53 @@ void Y_controller_getdata(int argc) {
   carma_context *context_handle = _getCurrentContext();
   context_handle->set_activeDeviceForCpy(rhandler->device);
 
-  int ncontrol = ygets_i(argc-2);
+  int ncontrol = ygets_i(argc - 2);
 
   char *type_data = ygets_q(argc - 3);
   if (strcmp(type_data, "mes2mod") == 0) {
-    float *data = ypush_f(rtc_handler->d_control.at(ncontrol)->d_U->getDims());
+    float *data = ypush_f(
+        (long*) rtc_handler->d_control.at(ncontrol)->d_U->getDims());
     rtc_handler->d_control.at(ncontrol)->d_U->device2host(data);
   }
   if (strcmp(type_data, "eigenvals") == 0) {
     float *data = ypush_f(
-        rtc_handler->d_control.at(ncontrol)->h_eigenvals->getDims());
+        (long*) rtc_handler->d_control.at(ncontrol)->h_eigenvals->getDims());
     rtc_handler->d_control.at(ncontrol)->h_eigenvals->fill_into(data);
   }
   if (strcmp(type_data, "cenbuff") == 0) {
     float *data = ypush_f(
-        rtc_handler->d_control.at(ncontrol)->d_cenbuff->getDims());
+        (long*) rtc_handler->d_control.at(ncontrol)->d_cenbuff->getDims());
     rtc_handler->d_control.at(ncontrol)->d_cenbuff->device2host(data);
   }
   if (strcmp(type_data, "err") == 0) {
     float *data = ypush_f(
-        rtc_handler->d_control.at(ncontrol)->d_err->getDims());
+        (long*) rtc_handler->d_control.at(ncontrol)->d_err->getDims());
     rtc_handler->d_control.at(ncontrol)->d_err->device2host(data);
   }
   if (strcmp(type_data, "com") == 0) {
     float *data = ypush_f(
-        rtc_handler->d_control.at(ncontrol)->d_com->getDims());
+        (long*) rtc_handler->d_control.at(ncontrol)->d_com->getDims());
     rtc_handler->d_control.at(ncontrol)->d_com->device2host(data);
   }
 }
 
- void
-  Y_controller_initcured(int argc)
-  {    
-   long ntot;
-    long dims[Y_DIMSIZE];
+void Y_controller_initcured(int argc) {
+  long ntot;
+  long dims[Y_DIMSIZE];
 
-    rtc_struct *rhandler   = (rtc_struct *)yget_obj(argc-1,&yRTC);
-    sutra_rtc *rtc_handler = (sutra_rtc *)(rhandler->sutra_rtc);
-    long ncontrol          = ygets_l(argc-2);
-    int nxsubs             = ygets_l(argc-3);
-    int *isvalid           = ygeta_i(argc-4,&ntot,dims);
+  rtc_struct *rhandler = (rtc_struct *) yget_obj(argc - 1, &yRTC);
+  sutra_rtc *rtc_handler = (sutra_rtc *) (rhandler->sutra_rtc);
+  long ncontrol = ygets_l(argc - 2);
+  int nxsubs = ygets_l(argc - 3);
+  int *isvalid = ygeta_i(argc - 4, &ntot, dims);
 
-    //rtc_struct *handle    =(rtc_struct *)ypush_obj(&yRTC, sizeof(rtc_struct));
+  //rtc_struct *handle    =(rtc_struct *)ypush_obj(&yRTC, sizeof(rtc_struct));
 
-    carma_context *context_handle = _getCurrentContext();
-    context_handle->set_activeDeviceForCpy(rhandler->device);
+  carma_context *context_handle = _getCurrentContext();
+  context_handle->set_activeDeviceForCpy(rhandler->device);
 
-    rtc_handler->d_control.at(ncontrol)->init_cured(nxsubs,isvalid);
-  }
+  rtc_handler->d_control.at(ncontrol)->init_cured(nxsubs, isvalid);
+}
 
 /*
  *     ____  _
@@ -2425,9 +2439,9 @@ void Y_slopes_geom(int argc) {
   sensors_struct *handler = (sensors_struct *) yget_obj(argc - 1, &ySensors);
   sutra_sensors *sensors_handler = (sutra_sensors *) (handler->sutra_sensors);
 
-  int nsensor = ygets_i(argc-2);
+  int nsensor = ygets_i(argc - 2);
 
-  int type = ygets_i(argc-3);
+  int type = ygets_i(argc - 3);
 
   carma_context *context_handle = _getCurrentContext();
   context_handle->set_activeDevice(handler->device);
@@ -2442,10 +2456,10 @@ void Y_sensors_getslopes(int argc) {
   carma_context *context_handle = _getCurrentContext();
   context_handle->set_activeDeviceForCpy(handler->device);
 
-  int nsensor = ygets_i(argc-2);
+  int nsensor = ygets_i(argc - 2);
 
   float *data = ypush_f(
-      sensors_handler->d_wfs.at(nsensor)->d_slopes->getDims());
+      (long*) sensors_handler->d_wfs.at(nsensor)->d_slopes->getDims());
   sensors_handler->d_wfs.at(nsensor)->d_slopes->device2host(data);
 }
 
@@ -2475,15 +2489,16 @@ void Y_sensors_initweights(int argc) {
   carma_context *context_handle = _getCurrentContext();
   context_handle->set_activeDevice(handler->device);
 
-  int nsensor = ygets_i(argc-2);
+  int nsensor = ygets_i(argc - 2);
 
   rtc_struct *rhandler = (rtc_struct *) yget_obj(argc - 3, &yRTC);
   sutra_rtc *rtc_handler = (sutra_rtc *) (rhandler->sutra_rtc);
-  int ncentro = ygets_i(argc-4);
+  int ncentro = ygets_i(argc - 4);
 
   float *weights = ygeta_f(argc - 5, &ntot, dims);
 
-  sutra_centroider_wcog *centroider_wcog=static_cast<sutra_centroider_wcog*>(rtc_handler->d_centro.at(ncentro));
+  sutra_centroider_wcog *centroider_wcog =
+      static_cast<sutra_centroider_wcog*>(rtc_handler->d_centro.at(ncentro));
   centroider_wcog->init_weights(sensors_handler->d_wfs.at(nsensor));
   centroider_wcog->load_weights(weights, dims[0]);
 }
@@ -2496,11 +2511,11 @@ void Y_sensors_initbcube(int argc) {
   carma_context *context_handle = _getCurrentContext();
   context_handle->set_activeDevice(handler->device);
 
-  int nsensor = ygets_i(argc-2);
+  int nsensor = ygets_i(argc - 2);
 
   rtc_struct *rhandler = (rtc_struct *) yget_obj(argc - 3, &yRTC);
   sutra_rtc *rtc_handler = (sutra_rtc *) (rhandler->sutra_rtc);
-  int ncentro = ygets_i(argc-4);
+  int ncentro = ygets_i(argc - 4);
 
   rtc_handler->d_centro.at(ncentro)->init_bincube(
       sensors_handler->d_wfs.at(nsensor));
@@ -2516,21 +2531,23 @@ void Y_sensors_initcorr(int argc) {
   carma_context *context_handle = _getCurrentContext();
   context_handle->set_activeDevice(handler->device);
 
-  int nsensor = ygets_i(argc-2);
+  int nsensor = ygets_i(argc - 2);
 
   rtc_struct *rhandler = (rtc_struct *) yget_obj(argc - 3, &yRTC);
   sutra_rtc *rtc_handler = (sutra_rtc *) (rhandler->sutra_rtc);
-  int ncentro = ygets_i(argc-4);
+  int ncentro = ygets_i(argc - 4);
 
   float *weights = ygeta_f(argc - 5, &ntot, dims);
   int mydim = dims[0];
   float *corr_norm = ygeta_f(argc - 6, &ntot, dims);
-  int sizex = ygets_i(argc-7);
-  int sizey = ygets_i(argc-8);
+  int sizex = ygets_i(argc - 7);
+  int sizey = ygets_i(argc - 8);
   float *interpmat = ygeta_f(argc - 9, &ntot, dims);
 
-  sutra_centroider_corr *centroider_corr=static_cast<sutra_centroider_corr*>(rtc_handler->d_centro.at(ncentro));
-  centroider_corr->init_corr(sensors_handler->d_wfs.at(nsensor), sizex, sizey, interpmat);
+  sutra_centroider_corr *centroider_corr =
+      static_cast<sutra_centroider_corr*>(rtc_handler->d_centro.at(ncentro));
+  centroider_corr->init_corr(sensors_handler->d_wfs.at(nsensor), sizex, sizey,
+      interpmat);
   centroider_corr->load_corr(weights, corr_norm, mydim);
 }
 
@@ -2545,13 +2562,14 @@ void Y_sensors_loadcorrfnct(int argc) {
 
   rtc_struct *rhandler = (rtc_struct *) yget_obj(argc - 2, &yRTC);
   sutra_rtc *rtc_handler = (sutra_rtc *) (rhandler->sutra_rtc);
-  int ncentro = ygets_i(argc-3);
+  int ncentro = ygets_i(argc - 3);
 
   float *weights = ygeta_f(argc - 4, &ntot, dims);
   int mydim = dims[0];
   float *corr_norm = ygeta_f(argc - 5, &ntot, dims);
 
-  sutra_centroider_corr *centroider_corr=static_cast<sutra_centroider_corr*>(rtc_handler->d_centro.at(ncentro));
+  sutra_centroider_corr *centroider_corr =
+      static_cast<sutra_centroider_corr*>(rtc_handler->d_centro.at(ncentro));
   centroider_corr->load_corr(weights, corr_norm, mydim);
 }
 
@@ -2566,33 +2584,36 @@ void Y_sensors_loadweights(int argc) {
 
   rtc_struct *rhandler = (rtc_struct *) yget_obj(argc - 2, &yRTC);
   sutra_rtc *rtc_handler = (sutra_rtc *) (rhandler->sutra_rtc);
-  int ncentro = ygets_i(argc-3);
+  int ncentro = ygets_i(argc - 3);
 
   float *weights = ygeta_f(argc - 4, &ntot, dims);
 
-  sutra_centroider_wcog *centroider_wcog=static_cast<sutra_centroider_wcog*>(rtc_handler->d_centro.at(ncentro));
+  sutra_centroider_wcog *centroider_wcog =
+      static_cast<sutra_centroider_wcog*>(rtc_handler->d_centro.at(ncentro));
   centroider_wcog->load_weights(weights, dims[0]);
 }
 
 void Y_sensors_compslopes(int argc) {
   sensors_struct *handler = (sensors_struct *) yget_obj(argc - 1, &ySensors);
   sutra_sensors *sensors_handler = (sutra_sensors *) (handler->sutra_sensors);
-  int nsensor = ygets_i(argc-2);
+  int nsensor = ygets_i(argc - 2);
   rtc_struct *rhandler = (rtc_struct *) yget_obj(argc - 3, &yRTC);
   sutra_rtc *rtc_handler = (sutra_rtc *) (rhandler->sutra_rtc);
-  int ncentro = ygets_i(argc-4);
+  int ncentro = ygets_i(argc - 4);
 
   carma_context *context_handle = _getCurrentContext();
   context_handle->set_activeDevice(handler->device);
 
   //cout << ncentro << " " << (rtc_handler->d_centro.at(ncentro)->typec) << endl;
-  if (argc > 4){
-    if(rtc_handler->d_centro.at(ncentro)->is_type("bpcog")){
-      sutra_centroider_bpcog *centroider_bpcog=static_cast<sutra_centroider_bpcog*>(rtc_handler->d_centro.at(ncentro));
-      centroider_bpcog->set_nmax(ygets_i(argc-5));
-    }else if(rtc_handler->d_centro.at(ncentro)->is_type("tcog")){
-      sutra_centroider_tcog *centroider_tcog=static_cast<sutra_centroider_tcog*>(rtc_handler->d_centro.at(ncentro));
-      centroider_tcog->set_threshold(ygets_f(argc-5));
+  if (argc > 4) {
+    if (rtc_handler->d_centro.at(ncentro)->is_type("bpcog")) {
+      sutra_centroider_bpcog *centroider_bpcog =
+          static_cast<sutra_centroider_bpcog*>(rtc_handler->d_centro.at(ncentro));
+      centroider_bpcog->set_nmax(ygets_i(argc - 5));
+    } else if (rtc_handler->d_centro.at(ncentro)->is_type("tcog")) {
+      sutra_centroider_tcog *centroider_tcog =
+          static_cast<sutra_centroider_tcog*>(rtc_handler->d_centro.at(ncentro));
+      centroider_tcog->set_threshold(ygets_f(argc - 5));
     }
 
   }
@@ -2623,61 +2644,73 @@ void Y_centroider_getdata(int argc) {
   carma_context *context_handle = _getCurrentContext();
   context_handle->set_activeDeviceForCpy(rhandler->device);
 
-  int ncentro = ygets_i(argc-2);
+  int ncentro = ygets_i(argc - 2);
 
   char *type_data = ygets_q(argc - 3);
-  if ( (strcmp(type_data, "weights") == 0) && rtc_handler->d_centro.at(ncentro)->is_type("wcog") ) {
-    sutra_centroider_wcog *centroider_wcog=static_cast<sutra_centroider_wcog*>(rtc_handler->d_centro.at(ncentro));
+  if ((strcmp(type_data, "weights") == 0)
+      && rtc_handler->d_centro.at(ncentro)->is_type("wcog")) {
+    sutra_centroider_wcog *centroider_wcog =
+        static_cast<sutra_centroider_wcog*>(rtc_handler->d_centro.at(ncentro));
 
-    float *data = ypush_f(centroider_wcog->d_weights->getDims());
+    float *data = ypush_f((long*) centroider_wcog->d_weights->getDims());
     centroider_wcog->d_weights->device2host(data);
   }
-  if ( (strcmp(type_data, "corrnorm") == 0) && rtc_handler->d_centro.at(ncentro)->is_type("corr") ) {
-    sutra_centroider_corr *centroider_corr=static_cast<sutra_centroider_corr*>(rtc_handler->d_centro.at(ncentro));
+  if ((strcmp(type_data, "corrnorm") == 0)
+      && rtc_handler->d_centro.at(ncentro)->is_type("corr")) {
+    sutra_centroider_corr *centroider_corr =
+        static_cast<sutra_centroider_corr*>(rtc_handler->d_centro.at(ncentro));
 
-    float *data = ypush_f(centroider_corr->d_corrnorm->getDims());
+    float *data = ypush_f((long*) centroider_corr->d_corrnorm->getDims());
     centroider_corr->d_corrnorm->device2host(data);
   }
-  if ( (strcmp(type_data, "corrfnct") == 0) && rtc_handler->d_centro.at(ncentro)->is_type("corr") ) {
-    sutra_centroider_corr *centroider_corr=static_cast<sutra_centroider_corr*>(rtc_handler->d_centro.at(ncentro));
+  if ((strcmp(type_data, "corrfnct") == 0)
+      && rtc_handler->d_centro.at(ncentro)->is_type("corr")) {
+    sutra_centroider_corr *centroider_corr =
+        static_cast<sutra_centroider_corr*>(rtc_handler->d_centro.at(ncentro));
 
     long *ndims_data = new long[5];
     ndims_data[0] = 4;
     ndims_data[1] = 2;
-    long *ndims_obj = centroider_corr->d_corrfnct->getDims();
+    const long *ndims_obj = centroider_corr->d_corrfnct->getDims();
     memcpy(&ndims_data[2], &(ndims_obj[1]), sizeof(long) * 3);
     float *data = ypush_f(ndims_data);
-    centroider_corr->d_corrfnct->device2host(
-        (cuFloatComplex *) data);
+    centroider_corr->d_corrfnct->device2host((cuFloatComplex *) data);
   }
-  if ( (strcmp(type_data, "corrspot") == 0) && rtc_handler->d_centro.at(ncentro)->is_type("corr") ) {
-    sutra_centroider_corr *centroider_corr=static_cast<sutra_centroider_corr*>(rtc_handler->d_centro.at(ncentro));
+  if ((strcmp(type_data, "corrspot") == 0)
+      && rtc_handler->d_centro.at(ncentro)->is_type("corr")) {
+    sutra_centroider_corr *centroider_corr =
+        static_cast<sutra_centroider_corr*>(rtc_handler->d_centro.at(ncentro));
 
     long *ndims_data = new long[5];
     ndims_data[0] = 4;
     ndims_data[1] = 2;
-    long *ndims_obj = centroider_corr->d_corrspot->getDims();
+    const long *ndims_obj = centroider_corr->d_corrspot->getDims();
     memcpy(&ndims_data[2], &(ndims_obj[1]), sizeof(long) * 3);
     float *data = ypush_f(ndims_data);
-    centroider_corr->d_corrspot->device2host(
-        (cuFloatComplex *) data);
+    centroider_corr->d_corrspot->device2host((cuFloatComplex *) data);
   }
-  if ( (strcmp(type_data, "corr") == 0) && rtc_handler->d_centro.at(ncentro)->is_type("corr") ) {
-    sutra_centroider_corr *centroider_corr=static_cast<sutra_centroider_corr*>(rtc_handler->d_centro.at(ncentro));
+  if ((strcmp(type_data, "corr") == 0)
+      && rtc_handler->d_centro.at(ncentro)->is_type("corr")) {
+    sutra_centroider_corr *centroider_corr =
+        static_cast<sutra_centroider_corr*>(rtc_handler->d_centro.at(ncentro));
 
-    float *data = ypush_f(centroider_corr->d_corr->getDims());
+    float *data = ypush_f((long*) centroider_corr->d_corr->getDims());
     centroider_corr->d_corr->device2host(data);
   }
-  if ( (strcmp(type_data, "corrmax") == 0) && rtc_handler->d_centro.at(ncentro)->is_type("corr") ) {
-    sutra_centroider_corr *centroider_corr=static_cast<sutra_centroider_corr*>(rtc_handler->d_centro.at(ncentro));
+  if ((strcmp(type_data, "corrmax") == 0)
+      && rtc_handler->d_centro.at(ncentro)->is_type("corr")) {
+    sutra_centroider_corr *centroider_corr =
+        static_cast<sutra_centroider_corr*>(rtc_handler->d_centro.at(ncentro));
 
-    int *data = ypush_i(centroider_corr->d_corrmax->getDims());
+    int *data = ypush_i((long*) centroider_corr->d_corrmax->getDims());
     centroider_corr->d_corrmax->device2host(data);
   }
-  if ( (strcmp(type_data, "matinterp") == 0) && rtc_handler->d_centro.at(ncentro)->is_type("corr") ) {
-    sutra_centroider_corr *centroider_corr=static_cast<sutra_centroider_corr*>(rtc_handler->d_centro.at(ncentro));
+  if ((strcmp(type_data, "matinterp") == 0)
+      && rtc_handler->d_centro.at(ncentro)->is_type("corr")) {
+    sutra_centroider_corr *centroider_corr =
+        static_cast<sutra_centroider_corr*>(rtc_handler->d_centro.at(ncentro));
 
-    float *data = ypush_f(centroider_corr->d_interpmat->getDims());
+    float *data = ypush_f((long*) centroider_corr->d_interpmat->getDims());
     centroider_corr->d_interpmat->device2host(data);
   }
 }
@@ -2720,7 +2753,7 @@ void Y_sensors_trace(int argc) {
   carma_context *context_handle = _getCurrentContext();
   context_handle->set_activeDevice(handler->device);
 
-  int nsensor = ygets_i(argc-2);
+  int nsensor = ygets_i(argc - 2);
 
   char *type_trace = ygets_q(argc - 3);
   if (strcmp(type_trace, "atmos") == 0) {
@@ -2732,7 +2765,7 @@ void Y_sensors_trace(int argc) {
     sutra_dms *dms_handler = (sutra_dms *) (handlera->sutra_dms);
     int rst;
     if (argc > 4)
-      rst = ygets_i(argc-5);
+      rst = ygets_i(argc - 5);
     else
       rst = 0;
     sensors_handler->d_wfs.at(nsensor)->sensor_trace(dms_handler, rst);
@@ -2769,7 +2802,7 @@ void Y_yoga_add_telemetry_stream(int argc) {
 
   int nb_stream = 1;
   if (argc > 1)
-    nb_stream = ygets_i(argc-2);
+    nb_stream = ygets_i(argc - 2);
 
   telemetry_handler->add_stream(nb_stream);
 }
@@ -2817,7 +2850,7 @@ void Y_yoga_aotemplate(int argc) {
     //char *type            = ygets_q(argc-2);
     long dim = ygets_l(argc - 1);
     if (argc > 1)
-      odevice = ygets_i(argc-2);
+      odevice = ygets_i(argc - 2);
 
     activeDevice = context_handle->set_activeDevice(odevice);
 
@@ -2872,15 +2905,15 @@ void Y_yoga_gettemplate(int argc) {
   if (argc > 1) {
     char *type_data = ygets_q(argc - 2);
     if (strcmp(type_data, "data") == 0) {
-      float *data = ypush_f(aotemplate_handler->d_data->getDims());
+      float *data = ypush_f((long*) aotemplate_handler->d_data->getDims());
       aotemplate_handler->d_data->device2host(data);
     }
     if (strcmp(type_data, "res") == 0) {
-      float *data = ypush_f(aotemplate_handler->d_res->getDims());
+      float *data = ypush_f((long*) aotemplate_handler->d_res->getDims());
       aotemplate_handler->d_res->device2host(data);
     }
   } else {
-    float *data = ypush_f(aotemplate_handler->d_data->getDims());
+    float *data = ypush_f((long*) aotemplate_handler->d_data->getDims());
     aotemplate_handler->d_data->device2host(data);
   }
 }

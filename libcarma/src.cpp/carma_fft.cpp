@@ -1,5 +1,4 @@
 #include <carma_obj.h>
-#include <carma_utils.h>
 
 /** These templates are used to select the proper cufft type
 from the T_in and T_out types. */
@@ -87,7 +86,7 @@ fft_compute<cuDoubleComplex, cufftDoubleReal>(cufftHandle plan, cuDoubleComplex 
 
 /** This is the carma_fft definition. */
 
-template<class T_in, class T_out> void carma_initfft(long *dims_data,cufftHandle *plan,cufftType tPlan){
+template<class T_in, class T_out> void carma_initfft(const long *dims_data,cufftHandle *plan,cufftType tPlan){
   /** \brief carma_fft creator.
    * \param dims_data : the array size
    * \param size_data : =1 : 2D array, >1 : 3D array
@@ -112,12 +111,12 @@ template<class T_in, class T_out> void carma_initfft(long *dims_data,cufftHandle
   }
   
 }
-template void carma_initfft<float2, float>(long *dims_data,cufftHandle *plan,cufftType tPlan);
-template void carma_initfft<float, float2>(long *dims_data,cufftHandle *plan,cufftType tPlan);
-template void carma_initfft<float2, float2>(long *dims_data,cufftHandle *plan,cufftType tPlan);
-template void carma_initfft<double2, double>(long *dims_data,cufftHandle *plan,cufftType tPlan);
-template void carma_initfft<double, double2>(long *dims_data,cufftHandle *plan,cufftType tPlan);
-template void carma_initfft<double2, double2>(long *dims_data,cufftHandle *plan,cufftType tPlan);
+template void carma_initfft<cuFloatComplex, cufftReal>(const long *dims_data,cufftHandle *plan,cufftType tPlan);
+template void carma_initfft<cufftReal, cuFloatComplex>(const long *dims_data,cufftHandle *plan,cufftType tPlan);
+template void carma_initfft<cuFloatComplex, cuFloatComplex>(const long *dims_data,cufftHandle *plan,cufftType tPlan);
+template void carma_initfft<cuDoubleComplex, cufftDoubleReal>(const long *dims_data,cufftHandle *plan,cufftType tPlan);
+template void carma_initfft<cufftDoubleReal, cuDoubleComplex>(const long *dims_data,cufftHandle *plan,cufftType tPlan);
+template void carma_initfft<cuDoubleComplex, cuDoubleComplex>(const long *dims_data,cufftHandle *plan,cufftType tPlan);
 
 
 template<class T_in, class T_out> int carma_fft(T_in *input, T_out *output, int dir,cufftHandle plan){
@@ -135,20 +134,11 @@ template<class T_in, class T_out> int carma_fft(T_in *input, T_out *output, int 
   cufftSafeCall(fft_compute(plan, (T_in*)input, (T_out*)output, dir * CUFFT_FORWARD));
   return EXIT_SUCCESS;
 }
-template int carma_fft<float2, float>(float2 *input, float *output, int dir,cufftHandle plan);
-template int carma_fft<float, float2>(float *input, float2 *output, int dir,cufftHandle plan);
-template int carma_fft<float2, float2>(float2 *input, float2 *output, int dir,cufftHandle plan);
-template int carma_fft<double, double>(double *input, double *output, int dir,cufftHandle plan);
-template int carma_fft<double, double2>(double *input, double2 *output, int dir,cufftHandle plan);
-template int carma_fft<double2, double>(double2 *input, double *output, int dir,cufftHandle plan);
-template int carma_fft<double2, double2>(double2 *input, double2 *output, int dir,cufftHandle plan);
+template int carma_fft<cuFloatComplex, cufftReal>(cuFloatComplex *input, cufftReal *output, int dir,cufftHandle plan);
+template int carma_fft<cufftReal, cuFloatComplex>(cufftReal *input, cuFloatComplex *output, int dir,cufftHandle plan);
+template int carma_fft<cuFloatComplex, cuFloatComplex>(cuFloatComplex *input, cuFloatComplex *output, int dir,cufftHandle plan);
+template int carma_fft<cufftDoubleReal, cufftDoubleReal>(cufftDoubleReal *input, cufftDoubleReal *output, int dir,cufftHandle plan);
+template int carma_fft<cufftDoubleReal, cuDoubleComplex>(cufftDoubleReal *input, cuDoubleComplex *output, int dir,cufftHandle plan);
+template int carma_fft<cuDoubleComplex, cufftDoubleReal>(cuDoubleComplex *input, cufftDoubleReal *output, int dir,cufftHandle plan);
+template int carma_fft<cuDoubleComplex, cuDoubleComplex>(cuDoubleComplex *input, cuDoubleComplex *output, int dir,cufftHandle plan);
 
-/*
-template int carma_fft<cuDoubleComplex, double>(cuDoubleComplex *input, double *output, int dir,cufftHandle plan);
-template int carma_fft<cuDoubleComplex,cuDoubleComplex >(cuDoubleComplex *input, cuDoubleComplex *output, int dir,cufftHandle plan);
-template int carma_fft<double,cuDoubleComplex >(double *input, cuDoubleComplex *output, int dir,cufftHandle plan);
-template int carma_fft<cuFloatComplex, float>(cuFloatComplex *input, float *output, int dir,cufftHandle plan);
-template int carma_fft<cuFloatComplex,cuFloatComplex >(cuFloatComplex *input, cuFloatComplex *output, int dir,cufftHandle plan);
-template int carma_fft<float,cuFloatComplex >(float *input, cuFloatComplex *output, int dir,cufftHandle plan);
-
- */

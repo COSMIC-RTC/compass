@@ -235,7 +235,7 @@ int carma_svd(carma_host_obj<T> *mat, carma_host_obj<T> *eigenvals,
         magma_int_t n, T *A, magma_int_t lda, T *s, T *U, magma_int_t ldu,
         T *VT, magma_int_t ldvt, T *work, magma_int_t lwork,
         magma_int_t *info)) {
-  long int *dims = mat->getDims();
+  const long int *dims = mat->getDims();
   int m = dims[1];
   int n = dims[2];
   int min_mn = m < n ? m : n;
@@ -286,7 +286,7 @@ int carma_potri(carma_obj<T> *d_iA,
         magma_int_t *info),
     magma_int_t (*ptr_potri)(char uplo, magma_int_t n, T *d_A, magma_int_t ldda,
         magma_int_t *info)) {
-  long int *dims = d_iA->getDims();
+  const long int *dims = d_iA->getDims();
   int m = dims[1];
   int n = dims[2];
   if (m != n) {
@@ -379,7 +379,7 @@ int carma_getri(carma_obj<T> *d_iA,
     magma_int_t (*ptr_getri)(magma_int_t n, T *dA, magma_int_t ldda,
         magma_int_t *ipiv, T *dwork, magma_int_t lwork, magma_int_t *info),
     magma_int_t (*ptr_get_getri_nb)(magma_int_t n)) {
-  long int *dims = d_iA->getDims();
+  const long int *dims = d_iA->getDims();
   int m = dims[1];
   int n = dims[2];
 
@@ -431,7 +431,7 @@ int carma_getri(T* h_A, carma_obj<T> *d_iA) {
 }
 template<>
 int carma_getri<float>(float* h_A, carma_obj<float> *d_iA) {
-  long int *dims = d_iA->getDims();
+  const long int *dims = d_iA->getDims();
   int N = dims[2];
   magma_int_t lda = N;
   magma_int_t ldda = ((N + 31) / 32) * 32;
@@ -442,7 +442,7 @@ int carma_getri<float>(float* h_A, carma_obj<float> *d_iA) {
 }
 template<>
 int carma_getri<double>(double* h_A, carma_obj<double> *d_iA) {
-  long int *dims = d_iA->getDims();
+  const long int *dims = d_iA->getDims();
   int N = dims[2];
   magma_int_t lda = N;
   magma_int_t ldda = ((N + 31) / 32) * 32;

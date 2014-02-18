@@ -82,7 +82,7 @@ public:
   int get_nb_elem() {
     return nb_elem;
   }
-  long *get_dims_data() {
+  const long *get_dims_data() {
     return dims_data;
   }
   long get_dims_data(int i) {
@@ -126,18 +126,18 @@ protected:
 
   carma_streams *streams;
 
-  void init(carma_context *current_context, long *dims_data, T_data *data,
+  void init(carma_context *current_context, const long *dims_data, T_data *data,
       bool fromHost, int nb_streams);
 
 public:
   carma_obj(carma_obj<T_data> *obj);
-  carma_obj(carma_context *current_context, long *dims_data);
+  carma_obj(carma_context *current_context, const long *dims_data);
   carma_obj(carma_context *current_context, carma_obj<T_data> *obj);
-  carma_obj(carma_context *current_context, long *dims_data, T_data *data);
-  carma_obj(carma_context *current_context, long *dims_data, int nb_streams);
+  carma_obj(carma_context *current_context, const long *dims_data, T_data *data);
+  carma_obj(carma_context *current_context, const long *dims_data, int nb_streams);
   carma_obj(carma_context *current_context, carma_obj<T_data> *obj,
       int nb_streams);
-  carma_obj(carma_context *current_context, long *dims_data, T_data *data,
+  carma_obj(carma_context *current_context, const long *dims_data, T_data *data,
       int nb_streams);
   ~carma_obj();
 
@@ -166,7 +166,7 @@ public:
   T_data* getOData() {
     return o_data;
   }
-  long * getDims() {
+  const long * getDims() {
     return dims_data;
   }
   long getDims(int i) {
@@ -297,7 +297,7 @@ template<class T> int carma_prng_cu(T *results, const int nThreads,
 
 // CU functions fft
 template<class T_in, class T_out> cufftType carma_select_plan();
-template<class T_in, class T_out> void carma_initfft(long *dims_data,
+template<class T_in, class T_out> void carma_initfft(const long *dims_data,
     cufftHandle *plan, cufftType tPlan);
 template<class T_in, class T_out> int carma_fft(T_in *input, T_out *output,
     int dir, cufftHandle plan);

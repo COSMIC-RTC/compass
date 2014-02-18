@@ -269,7 +269,7 @@ void yObj_print(void *obj)
           (carma_obj<float> *) (handler->carma_object);
       mystr << "Carma Object : " << endl;
       mystr << "type : float" << endl;
-      long *dims = carma_obj_handler->getDims();
+      const long *dims = carma_obj_handler->getDims();
       mystr << "Dimensions : " << dims[1];
       for (int i = 2; i <= dims[0]; i++)
         mystr << "x" << dims[i];
@@ -278,7 +278,7 @@ void yObj_print(void *obj)
           (carma_obj<double> *) (handler->carma_object);
       mystr << "Carma Object : " << endl;
       mystr << "type : double" << endl;
-      long *dims = carma_obj_handler->getDims();
+      const long *dims = carma_obj_handler->getDims();
       mystr << "Dimensions : " << dims[1];
       for (int i = 2; i <= dims[0]; i++)
         mystr << "x" << dims[i];
@@ -287,7 +287,7 @@ void yObj_print(void *obj)
           (carma_obj<int> *) (handler->carma_object);
       mystr << "Carma Object : " << endl;
       mystr << "type : int" << endl;
-      long *dims = carma_obj_handler->getDims();
+      const long *dims = carma_obj_handler->getDims();
       mystr << "Dimensions : " << dims[1];
       for (int i = 2; i <= dims[0]; i++)
         mystr << "x" << dims[i];
@@ -296,7 +296,7 @@ void yObj_print(void *obj)
           (carma_obj<unsigned int> *) (handler->carma_object);
       mystr << "Carma Object : " << endl;
       mystr << "type : unsigned int" << endl;
-      long *dims = carma_obj_handler->getDims();
+      const long *dims = carma_obj_handler->getDims();
       mystr << "Dimensions : " << dims[1];
       for (int i = 2; i <= dims[0]; i++)
         mystr << "x" << dims[i];
@@ -305,7 +305,7 @@ void yObj_print(void *obj)
           (carma_obj<cuDoubleComplex> *) (handler->carma_object);
       mystr << "Carma Object : " << endl;
       mystr << "type : double complex" << endl;
-      long *dims = carma_obj_handler->getDims();
+      const long *dims = carma_obj_handler->getDims();
       mystr << "Dimensions : " << dims[1];
       for (int i = 2; i <= dims[0]; i++)
         mystr << "x" << dims[i];
@@ -314,7 +314,7 @@ void yObj_print(void *obj)
           (carma_obj<cuDoubleComplex> *) (handler->carma_object);
       mystr << "Carma Object : " << endl;
       mystr << "type : simple complex" << endl;
-      long *dims = carma_obj_handler->getDims();
+      const long *dims = carma_obj_handler->getDims();
       mystr << "Dimensions : " << dims[1];
       for (int i = 2; i <= dims[0]; i++)
         mystr << "x" << dims[i];
@@ -341,30 +341,30 @@ void yObj_eval(void *obj, int n)
   try {
     if (handler->type == Y_FLOAT) {
       caObjS *carma_obj_handler = (caObjS *) (handler->carma_object);
-      float *data = ypush_f(carma_obj_handler->getDims());
+      float *data = ypush_f((long*) carma_obj_handler->getDims());
       carma_obj_handler->device2host(data);
     } else if (handler->type == Y_DOUBLE) {
       caObjD *carma_obj_handler = (caObjD *) (handler->carma_object);
-      double *data = ypush_d(carma_obj_handler->getDims());
+      double *data = ypush_d((long*) carma_obj_handler->getDims());
       carma_obj_handler->device2host(data);
     } else if (handler->type == Y_INT) {
       caObjI *carma_obj_handler = (caObjI *) (handler->carma_object);
-      int *data = ypush_i(carma_obj_handler->getDims());
+      int *data = ypush_i((long*) carma_obj_handler->getDims());
       carma_obj_handler->device2host(data);
     } else if (handler->type == Y_SHORT) {
       caObjUI *carma_obj_handler = (caObjUI *) (handler->carma_object);
       unsigned int *data = (unsigned int *) ypush_i(
-          carma_obj_handler->getDims());
+          (long*) carma_obj_handler->getDims());
       carma_obj_handler->device2host(data);
     } else if (handler->type == Y_COMPLEX) {
       caObjZ *carma_obj_handler = (caObjZ *) (handler->carma_object);
       cuDoubleComplex *data = (cuDoubleComplex *) ypush_z(
-          carma_obj_handler->getDims());
+          (long*) carma_obj_handler->getDims());
       carma_obj_handler->device2host(data);
     } else if (handler->type == Y_SCOMPLEX) {
       caObjC *carma_obj_handler = (caObjC *) (handler->carma_object);
       /* scomplex -> float2 */
-      long int *ndims_obj = carma_obj_handler->getDims();
+      long int *ndims_obj = (long*) carma_obj_handler->getDims();
       long int *ndims_data = new long[ndims_obj[0] + 2];
       ndims_data[0] = ndims_obj[0] + 1;
       ndims_data[1] = 2;
@@ -750,7 +750,7 @@ void Y_yoga_device2host(int argc)
 
   if (handle->type == Y_FLOAT) {
     caObjS *carma_obj_handler = (caObjS *) (handle->carma_object);
-    float *data = ypush_f(carma_obj_handler->getDims());
+    float *data = ypush_f((long*) carma_obj_handler->getDims());
     if (opt == 0)
       carma_obj_handler->device2host(data);
     else
@@ -2568,10 +2568,10 @@ void Y_yoga_fft(int argc) {
               (caObjC *) (handle_dest->carma_object);
 
           if (*carma_obj_handler_src->getPlan() == 0L) {
-            carma_initfft<float, cuFloatComplex>(
+            carma_initfft<cuFloatComplex, cuFloatComplex>(
                 carma_obj_handler_src->getDims(),
                 carma_obj_handler_src->getPlan(),
-                carma_select_plan<float, cuFloatComplex>());
+                carma_select_plan<cufftReal, cuFloatComplex>());
 
           }
           carma_fft<float, cuFloatComplex>(*carma_obj_handler_src,
@@ -2596,10 +2596,10 @@ void Y_yoga_fft(int argc) {
           caObjS *carma_obj_handler_dest =
               (caObjS *) (handle_dest->carma_object);
           if (*carma_obj_handler_src->getPlan() == 0L) {
-            carma_initfft<cuFloatComplex, float>(
+            carma_initfft<cuFloatComplex, cuFloatComplex>(
                 carma_obj_handler_src->getDims(),
                 carma_obj_handler_src->getPlan(),
-                carma_select_plan<cuFloatComplex, float>());
+                carma_select_plan<cuFloatComplex, cufftReal>());
 
           }
           carma_fft<cuFloatComplex, float>(*carma_obj_handler_src,
@@ -2625,10 +2625,10 @@ void Y_yoga_fft(int argc) {
              cufftSafeCall(cufftPlanMany(plan, 2 ,mdims,NULL,1,0,NULL,1,0, carma_select_plan<double, cuDoubleComplex>(), (int)(carma_obj_handler_src->getDims()[3])));
              }
              */
-            carma_initfft<double, cuDoubleComplex>(
+            carma_initfft<cufftDoubleReal, cuDoubleComplex>(
                 carma_obj_handler_src->getDims(),
                 carma_obj_handler_src->getPlan(),
-                carma_select_plan<double, cuDoubleComplex>());
+                carma_select_plan<cufftDoubleReal, cuDoubleComplex>());
           }
           carma_fft<double, cuDoubleComplex>(*carma_obj_handler_src,
               *carma_obj_handler_dest, dir, *carma_obj_handler_src->getPlan());
@@ -2656,7 +2656,7 @@ void Y_yoga_fft(int argc) {
             carma_initfft<cuDoubleComplex, double>(
                 carma_obj_handler_src->getDims(),
                 carma_obj_handler_src->getPlan(),
-                carma_select_plan<cuDoubleComplex, double>());
+                carma_select_plan<cuDoubleComplex, cufftDoubleReal>());
           }
           carma_fft<cuDoubleComplex, double>(*carma_obj_handler_src,
               *carma_obj_handler_dest, dir, *carma_obj_handler_src->getPlan());
@@ -2717,9 +2717,10 @@ void Y_yoga_fft(int argc) {
       if (handle_src->type == Y_FLOAT) {
         caObjS *carma_obj_handler_src = (caObjS *) (handle_src->carma_object);
         if (*carma_obj_handler_src->getPlan() == 0L) {
-          carma_initfft<float, cuFloatComplex>(carma_obj_handler_src->getDims(),
+          carma_initfft<cufftReal, cuFloatComplex>(
+              carma_obj_handler_src->getDims(),
               carma_obj_handler_src->getPlan(),
-              carma_select_plan<float, cuFloatComplex>());
+              carma_select_plan<cufftReal, cuFloatComplex>());
         }
         handle->carma_object = new caObjC(context_handle,
             carma_obj_handler_src->getDims());
@@ -2747,10 +2748,10 @@ void Y_yoga_fft(int argc) {
       if (handle_src->type == Y_DOUBLE) {
         caObjD *carma_obj_handler_src = (caObjD *) (handle_src->carma_object);
         if (*carma_obj_handler_src->getPlan() == 0L) {
-          carma_initfft<double, cuDoubleComplex>(
+          carma_initfft<cufftDoubleReal, cuDoubleComplex>(
               carma_obj_handler_src->getDims(),
               carma_obj_handler_src->getPlan(),
-              carma_select_plan<double, cuDoubleComplex>());
+              carma_select_plan<cufftDoubleReal, cuDoubleComplex>());
         }
         handle->carma_object = new caObjZ(context_handle,
             carma_obj_handler_src->getDims());
@@ -2961,7 +2962,7 @@ void yHostObj_print(void *obj)
       mystr << "  nb streams: " << carma_host_obj_handler->get_nbStreams();
       y_print(mystr.str().c_str(), 1);
       mystr.str("");
-      long *dims = carma_host_obj_handler->getDims();
+      const long *dims = carma_host_obj_handler->getDims();
       mystr << "  Dims: " << dims[1];
       for (int i = 2; i <= dims[0]; i++)
         mystr << "x" << dims[i];
@@ -2976,7 +2977,7 @@ void yHostObj_print(void *obj)
       mystr << "Nb streams : " << carma_host_obj_handler->get_nbStreams();
       y_print(mystr.str().c_str(), 1);
       mystr.str("");
-      long *dims = carma_host_obj_handler->getDims();
+      const long *dims = carma_host_obj_handler->getDims();
       mystr << "Dims : " << dims[1];
       for (int i = 2; i <= dims[0]; i++)
         mystr << "x" << dims[i];
@@ -2991,7 +2992,7 @@ void yHostObj_print(void *obj)
       mystr << "Nb streams : " << carma_host_obj_handler->get_nbStreams();
       y_print(mystr.str().c_str(), 1);
       mystr.str("");
-      long *dims = carma_host_obj_handler->getDims();
+      const long *dims = carma_host_obj_handler->getDims();
       mystr << "Dims : " << dims[1];
       for (int i = 2; i <= dims[0]; i++)
         mystr << "x" << dims[i];
@@ -3006,7 +3007,7 @@ void yHostObj_print(void *obj)
       mystr << "Nb streams : " << carma_host_obj_handler->get_nbStreams();
       y_print(mystr.str().c_str(), 1);
       mystr.str("");
-      long *dims = carma_host_obj_handler->getDims();
+      const long *dims = carma_host_obj_handler->getDims();
       mystr << "Dims : " << dims[1];
       for (int i = 2; i <= dims[0]; i++)
         mystr << "x" << dims[i];
@@ -3021,7 +3022,7 @@ void yHostObj_print(void *obj)
       mystr << "Nb streams : " << carma_host_obj_handler->get_nbStreams();
       y_print(mystr.str().c_str(), 1);
       mystr.str("");
-      long *dims = carma_host_obj_handler->getDims();
+      const long *dims = carma_host_obj_handler->getDims();
       mystr << "Dims : " << dims[1];
       for (int i = 2; i <= dims[0]; i++)
         mystr << "x" << dims[i];
@@ -3036,7 +3037,7 @@ void yHostObj_print(void *obj)
       mystr << "Nb streams : " << carma_host_obj_handler->get_nbStreams();
       y_print(mystr.str().c_str(), 1);
       mystr.str("");
-      long *dims = carma_host_obj_handler->getDims();
+      const long *dims = carma_host_obj_handler->getDims();
       mystr << "Dims : " << dims[1];
       for (int i = 2; i <= dims[0]; i++)
         mystr << "x" << dims[i];
@@ -3060,34 +3061,34 @@ void yHostObj_eval(void *obj, int n)
     if (handler->type == Y_FLOAT) {
       carma_host_obj<float> *carma_host_obj_handler =
           (carma_host_obj<float> *) (handler->carma_host_object);
-      float *data = ypush_f(carma_host_obj_handler->getDims());
+      float *data = ypush_f((long*) carma_host_obj_handler->getDims());
       carma_host_obj_handler->fill_into(data);
     } else if (handler->type == Y_DOUBLE) {
       carma_host_obj<double> *carma_host_obj_handler =
           (carma_host_obj<double> *) (handler->carma_host_object);
-      double *data = ypush_d(carma_host_obj_handler->getDims());
+      double *data = ypush_d((long*) carma_host_obj_handler->getDims());
       carma_host_obj_handler->fill_into(data);
     } else if (handler->type == Y_INT) {
       carma_host_obj<int> *carma_host_obj_handler =
           (carma_host_obj<int> *) (handler->carma_host_object);
-      int *data = ypush_i(carma_host_obj_handler->getDims());
+      int *data = ypush_i((long*) carma_host_obj_handler->getDims());
       carma_host_obj_handler->fill_into(data);
     } else if (handler->type == Y_SHORT) {
       carma_host_obj<unsigned int> *carma_host_obj_handler = (carma_host_obj<
           unsigned int> *) (handler->carma_host_object);
       unsigned int *data = (unsigned int *) ypush_i(
-          carma_host_obj_handler->getDims());
+          (long*) carma_host_obj_handler->getDims());
       carma_host_obj_handler->fill_into(data);
     } else if (handler->type == Y_COMPLEX) {
       carma_host_obj<cuDoubleComplex> *carma_host_obj_handler = (carma_host_obj<
           cuDoubleComplex> *) (handler->carma_host_object);
       cuDoubleComplex *data = (cuDoubleComplex *) ypush_z(
-          carma_host_obj_handler->getDims());
+          (long*) carma_host_obj_handler->getDims());
       carma_host_obj_handler->fill_into(data);
     } else if (handler->type == Y_SCOMPLEX) {
       carma_host_obj<cuComplex> *carma_host_obj_handler = (carma_host_obj<
           cuComplex> *) (handler->carma_host_object);
-      long * ndims_obj = carma_host_obj_handler->getDims();
+      const long * ndims_obj = carma_host_obj_handler->getDims();
       long * ndims_data = new long[ndims_obj[0] + 2];
       ndims_data[0] = ndims_obj[0] + 1;
       ndims_data[1] = 2;
@@ -3575,7 +3576,7 @@ void Y_yoga_potri_mgpu(int argc)
     long ntot;
     long dims[Y_DIMSIZE];
 
-    int ngpus = ygets_i(argc-1);
+    int ngpus = ygets_i(argc - 1);
     void *mat = ygeta_any(argc - 2, &ntot, dims, &yType);
     yObj_struct *handle_mat = (yObj_struct *) yget_obj(argc - 3, &yObj);
 

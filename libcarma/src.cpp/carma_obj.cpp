@@ -1,7 +1,7 @@
 #include <carma_obj.h>
 
 template<class T_data>
-carma_obj<T_data>::carma_obj(carma_context *current_context, long *dims_data) {
+carma_obj<T_data>::carma_obj(carma_context *current_context, const long *dims_data) {
   /** \brief carma_obj creator.
    * \param current_context : the context in which the carma_obj is created
    * \param dims_data : the array size Yorick format : [ndims,dims1,dims2,...]
@@ -9,12 +9,12 @@ carma_obj<T_data>::carma_obj(carma_context *current_context, long *dims_data) {
   init(current_context, dims_data, NULL, true, 0);
 }
 
-template caObjS::carma_obj(carma_context *current_context, long *dims_data);
-template caObjD::carma_obj(carma_context *current_context, long *dims_data);
-template caObjI::carma_obj(carma_context *current_context, long *dims_data);
-template caObjUI::carma_obj(carma_context *current_context, long *dims_data);
-template caObjS2::carma_obj(carma_context *current_context, long *dims_data);
-template caObjD2::carma_obj(carma_context *current_context, long *dims_data);
+template caObjS::carma_obj(carma_context *current_context, const long *dims_data);
+template caObjD::carma_obj(carma_context *current_context, const long *dims_data);
+template caObjI::carma_obj(carma_context *current_context, const long *dims_data);
+template caObjUI::carma_obj(carma_context *current_context, const long *dims_data);
+template caObjS2::carma_obj(carma_context *current_context, const long *dims_data);
+template caObjD2::carma_obj(carma_context *current_context, const long *dims_data);
 
 template<class T_data>
 carma_obj<T_data>::carma_obj(carma_obj<T_data> *src) {
@@ -45,7 +45,7 @@ template caObjS2::carma_obj(carma_context *current_context, caObjS2 *src);
 template caObjD2::carma_obj(carma_context *current_context, caObjD2 *src);
 
 template<class T_data>
-carma_obj<T_data>::carma_obj(carma_context *current_context, long *dims_data,
+carma_obj<T_data>::carma_obj(carma_context *current_context, const long *dims_data,
     T_data *data) {
   /** \brief carma_obj creator.
    * \param dims_data : the array size Yorick format : [ndims,dims1,dims2,...]
@@ -54,21 +54,21 @@ carma_obj<T_data>::carma_obj(carma_context *current_context, long *dims_data,
   init(current_context, dims_data, data, true, 0);
 }
 
-template caObjS::carma_obj(carma_context *current_context, long *dims_data,
+template caObjS::carma_obj(carma_context *current_context, const long *dims_data,
     float *data);
-template caObjD::carma_obj(carma_context *current_context, long *dims_data,
+template caObjD::carma_obj(carma_context *current_context, const long *dims_data,
     double *data);
-template caObjI::carma_obj(carma_context *current_context, long *dims_data,
+template caObjI::carma_obj(carma_context *current_context, const long *dims_data,
     int *data);
-template caObjUI::carma_obj(carma_context *current_context, long *dims_data,
+template caObjUI::carma_obj(carma_context *current_context, const long *dims_data,
     unsigned int *data);
-template caObjS2::carma_obj(carma_context *current_context, long *dims_data,
+template caObjS2::carma_obj(carma_context *current_context, const long *dims_data,
     float2 *data);
-template caObjD2::carma_obj(carma_context *current_context, long *dims_data,
+template caObjD2::carma_obj(carma_context *current_context, const long *dims_data,
     double2 *data);
 
 template<class T_data>
-carma_obj<T_data>::carma_obj(carma_context *current_context, long *dims_data,
+carma_obj<T_data>::carma_obj(carma_context *current_context, const long *dims_data,
     int nb_streams) {
   /** \brief carma_obj creator.
    * \param dims_data : the array size Yorick format : [ndims,dims1,dims2,...]
@@ -76,21 +76,21 @@ carma_obj<T_data>::carma_obj(carma_context *current_context, long *dims_data,
   init(current_context, dims_data, NULL, true, nb_streams);
 }
 
-template caObjS::carma_obj(carma_context *current_context, long *dims_data,
+template caObjS::carma_obj(carma_context *current_context, const long *dims_data,
     int nb_streams);
-template caObjD::carma_obj(carma_context *current_context, long *dims_data,
+template caObjD::carma_obj(carma_context *current_context, const long *dims_data,
     int nb_streams);
-template caObjI::carma_obj(carma_context *current_context, long *dims_data,
+template caObjI::carma_obj(carma_context *current_context, const long *dims_data,
     int nb_streams);
-template caObjUI::carma_obj(carma_context *current_context, long *dims_data,
+template caObjUI::carma_obj(carma_context *current_context, const long *dims_data,
     int nb_streams);
-template caObjS2::carma_obj(carma_context *current_context, long *dims_data,
+template caObjS2::carma_obj(carma_context *current_context, const long *dims_data,
     int nb_streams);
-template caObjD2::carma_obj(carma_context *current_context, long *dims_data,
+template caObjD2::carma_obj(carma_context *current_context, const long *dims_data,
     int nb_streams);
 
 template<class T_data>
-carma_obj<T_data>::carma_obj(carma_context *current_context, long *dims_data,
+carma_obj<T_data>::carma_obj(carma_context *current_context, const long *dims_data,
     T_data *data, int nb_streams) {
   /** \brief carma_obj creator.
    * \param dims_data : the array size Yorick format : [ndims,dims1,dims2,...]
@@ -99,21 +99,21 @@ carma_obj<T_data>::carma_obj(carma_context *current_context, long *dims_data,
   init(current_context, dims_data, data, true, nb_streams);
 }
 
-template caObjS::carma_obj(carma_context *current_context, long *dims_data,
+template caObjS::carma_obj(carma_context *current_context, const long *dims_data,
     float *data, int nb_streams);
-template caObjD::carma_obj(carma_context *current_context, long *dims_data,
+template caObjD::carma_obj(carma_context *current_context, const long *dims_data,
     double *data, int nb_streams);
-template caObjI::carma_obj(carma_context *current_context, long *dims_data,
+template caObjI::carma_obj(carma_context *current_context, const long *dims_data,
     int *data, int nb_streams);
-template caObjUI::carma_obj(carma_context *current_context, long *dims_data,
+template caObjUI::carma_obj(carma_context *current_context, const long *dims_data,
     unsigned int *data, int nb_streams);
-template caObjS2::carma_obj(carma_context *current_context, long *dims_data,
+template caObjS2::carma_obj(carma_context *current_context, const long *dims_data,
     float2 *data, int nb_streams);
-template caObjD2::carma_obj(carma_context *current_context, long *dims_data,
+template caObjD2::carma_obj(carma_context *current_context, const long *dims_data,
     double2 *data, int nb_streams);
 
 template<class T_data>
-void carma_obj<T_data>::init(carma_context *context, long *dims_data,
+void carma_obj<T_data>::init(carma_context *context, const long *dims_data,
     T_data *data, bool fromHost, int nb_streams) {
   this->current_context = context;
   const long size_data = dims_data[0] + 1;

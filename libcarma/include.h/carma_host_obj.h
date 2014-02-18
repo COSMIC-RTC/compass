@@ -36,22 +36,22 @@ protected:
   MemAlloc mallocType; ///< type of host alloc
   carma_streams *streams;
 
-  void init(long *dims_data, T_data *data, MemAlloc mallocType, int nb_streams);
+  void init(const long *dims_data, T_data *data, MemAlloc mallocType, int nb_streams);
 
 public:
-  carma_host_obj(long *dims_data);
-  carma_host_obj(long *dims_data, MemAlloc mallocType);
+  carma_host_obj(const long *dims_data);
+  carma_host_obj(const long *dims_data, MemAlloc mallocType);
   carma_host_obj(carma_host_obj<T_data> *obj);
   carma_host_obj(carma_host_obj<T_data> *obj, MemAlloc mallocType);
-  carma_host_obj(long *dims_data, T_data *data);
-  carma_host_obj(long *dims_data, T_data *data, MemAlloc mallocType);
-  carma_host_obj(long *dims_data, int nb_streams);
-  carma_host_obj(long *dims_data, MemAlloc mallocType, int nb_streams);
+  carma_host_obj(const long *dims_data, T_data *data);
+  carma_host_obj(const long *dims_data, T_data *data, MemAlloc mallocType);
+  carma_host_obj(const long *dims_data, int nb_streams);
+  carma_host_obj(const long *dims_data, MemAlloc mallocType, int nb_streams);
   carma_host_obj(carma_host_obj<T_data> *obj, int nb_streams);
   carma_host_obj(carma_host_obj<T_data> *obj, MemAlloc mallocType,
       int nb_streams);
-  carma_host_obj(long *dims_data, T_data *data, int nb_streams);
-  carma_host_obj(long *dims_data, T_data *data, MemAlloc mallocType,
+  carma_host_obj(const long *dims_data, T_data *data, int nb_streams);
+  carma_host_obj(const long *dims_data, T_data *data, MemAlloc mallocType,
       int nb_streams);
   ~carma_host_obj();
 
@@ -83,7 +83,7 @@ public:
   T_data* getData(int index) {
     return &h_data[index];
   }
-  long * getDims() {
+  const long * getDims() {
     return dims_data;
   }
   long getDims(int i) {

@@ -21,6 +21,8 @@ carma_device::carma_device(int devid)
 	this->sm_per_multiproc = ConvertSMVer2Cores(this->properties.major,this->properties.minor);
 	this->compute_perf  = this->properties.multiProcessorCount * this->sm_per_multiproc *
 			this->properties.clockRate;
+
+	this->p2p_activate=false;
 }
 
 carma_device::~carma_device()
