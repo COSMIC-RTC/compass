@@ -3,8 +3,6 @@
 
 sutra_centroider_corr::sutra_centroider_corr(carma_context *context, long nwfs,
     long nvalid, float offset, float scale, int device) {
-  this->type = "corr";
-
   this->d_corrfnct = 0L;
   this->d_corrspot = 0L;
   this->d_corrnorm = 0L;
@@ -40,6 +38,10 @@ sutra_centroider_corr::~sutra_centroider_corr() {
     delete this->d_corr;
   if (this->d_interpmat != 0L)
     delete this->d_interpmat;
+}
+
+string sutra_centroider_corr::get_type(){
+  return "corr";
 }
 
 int sutra_centroider_corr::init_bincube(sutra_wfs *wfs) {

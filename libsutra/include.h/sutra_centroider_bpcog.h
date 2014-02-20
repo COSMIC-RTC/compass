@@ -14,6 +14,8 @@ class sutra_centroider_bpcog : public sutra_centroider {
   sutra_centroider_bpcog(const sutra_centroider_bpcog& centroider);
   ~sutra_centroider_bpcog();
 
+  string get_type();
+
   int init_nmax(int nmax); 
   int set_nmax(int nmax); 
 

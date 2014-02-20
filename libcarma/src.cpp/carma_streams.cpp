@@ -3,7 +3,8 @@
 
 carma_streams::carma_streams()
 {
-	carma_streams(0);
+  this->eventflags=0;
+  carma_streams(0);
 }
 
 carma_streams::carma_streams(unsigned int nbStreams)

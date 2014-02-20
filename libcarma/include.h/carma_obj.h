@@ -179,6 +179,10 @@ public:
     return current_context;
   }
 
+  int getDevice() {
+    return device;
+  }
+
   bool is_rng_init() {
     return (gen != NULL);
   }
@@ -192,8 +196,8 @@ public:
   int host2deviceMat(T_data *data, int lda, int ldb);
   int device2hostMat(T_data *data, int lda, int ldb);
 
-  int copyToDevice(T_data *data, int nb_elem);
-  int copyFromDevice(T_data *data, int nb_elem);
+  int copyInto(T_data *data, int nb_elem);
+  int copyFrom(T_data *data, int nb_elem);
 
   cufftHandle* getPlan() {
     return &plan;

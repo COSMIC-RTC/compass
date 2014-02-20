@@ -1,9 +1,7 @@
 #include <sutra_centroider_bpcog.h>
-#include <string>
 
 sutra_centroider_bpcog::sutra_centroider_bpcog(carma_context *context,
     long nwfs, long nvalid, float offset, float scale, int device, int nmax) {
-  this->type = "bpcog";
 
   this->current_context = context;
 
@@ -19,6 +17,10 @@ sutra_centroider_bpcog::sutra_centroider_bpcog(carma_context *context,
 }
 
 sutra_centroider_bpcog::~sutra_centroider_bpcog() {
+}
+
+string sutra_centroider_bpcog::get_type(){
+  return "bpcog";
 }
 
 int sutra_centroider_bpcog::init_bincube(sutra_wfs *wfs) {

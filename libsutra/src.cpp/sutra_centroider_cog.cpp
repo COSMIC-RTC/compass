@@ -3,8 +3,6 @@
 
 sutra_centroider_cog::sutra_centroider_cog(carma_context *context, long nwfs,
     long nvalid, float offset, float scale, int device) {
-  this->type = "cog";
-
   this->current_context = context;
 
   this->device = device;
@@ -17,6 +15,10 @@ sutra_centroider_cog::sutra_centroider_cog(carma_context *context, long nwfs,
 }
 
 sutra_centroider_cog::~sutra_centroider_cog() {
+}
+
+string sutra_centroider_cog::get_type(){
+  return "cog";
 }
 
 int sutra_centroider_cog::init_bincube(sutra_wfs *wfs) {

@@ -31,6 +31,9 @@ sutra_tscreen::sutra_tscreen(carma_context *context, long size, long size2, floa
   this->deltay      = deltay;
   this->device      = device;
 
+  this->norm_vk=0;
+  this->d_tscreen_c=0;
+
   cout << "r0^-5/6 :" << this->amplitude << endl;
  
   this->d_tscreen = new sutra_phase(current_context, this->screen_size);
@@ -128,7 +131,7 @@ int sutra_tscreen::generate_vk(float l0,int nalias)
 
   norm_pscreen(data_o,this->d_tscreen->d_screen->getData(), this->screen_size, this->screen_size,this->norm_vk,this->device);
 
-  this->d_tscreen->d_screen->copyFromDevice(data_o,this->d_tscreen->d_screen->getNbElem());
+  this->d_tscreen->d_screen->copyFrom(data_o,this->d_tscreen->d_screen->getNbElem());
 
   return EXIT_SUCCESS;
 }
@@ -208,6 +211,7 @@ sutra_atmos::sutra_atmos(carma_context *context, int nscreens,float *r0,long *si
   this->nscreens = nscreens;
   //this->r0       = r0;
   this->current_context=context;
+  this->r0=0;
 
   for (int i=0;i<nscreens;i++) {
     d_screens.insert(pair<float,sutra_tscreen *>(altitude[i],new sutra_tscreen(context, size[i],size2[i],r0[i],altitude[i],windspeed[i],winddir[i],deltax[i],deltay[i],device)));

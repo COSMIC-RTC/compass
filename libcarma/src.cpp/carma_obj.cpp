@@ -134,7 +134,7 @@ void carma_obj<T_data>::init(carma_context *context, const long *dims_data,
   else if (fromHost)
     this->host2device(data);
   else
-    this->copyFromDevice(data, this->nb_elem);
+    this->copyFrom(data, this->nb_elem);
 
   this->plan = 0;
   this->gen = 0;
@@ -341,7 +341,7 @@ template int caObjS2::device2hostOpt(float2 *data);
 template int caObjD2::device2hostOpt(double2 *data);
 
 template<class T_data>
-int carma_obj<T_data>::copyToDevice(T_data *data, int nb_elem) {
+int carma_obj<T_data>::copyInto(T_data *data, int nb_elem) {
   /** \brief device2host data transfer.
    * \param data : output data
    *
@@ -356,11 +356,11 @@ int carma_obj<T_data>::copyToDevice(T_data *data, int nb_elem) {
 
   return EXIT_SUCCESS;
 }
-template int caObjS::copyToDevice(float *data, int nb_elem);
-template int caObjD::copyToDevice(double *data, int nb_elem);
+template int caObjS::copyInto(float *data, int nb_elem);
+template int caObjD::copyInto(double *data, int nb_elem);
 
 template<class T_data>
-int carma_obj<T_data>::copyFromDevice(T_data *data, int nb_elem) {
+int carma_obj<T_data>::copyFrom(T_data *data, int nb_elem) {
   /** \brief device2host data transfer.
    * \param data : output data
    *
@@ -375,6 +375,8 @@ int carma_obj<T_data>::copyFromDevice(T_data *data, int nb_elem) {
 
   return EXIT_SUCCESS;
 }
+template int caObjS::copyFrom(float *data, int nb_elem);
+template int caObjD::copyFrom(double *data, int nb_elem);
 
 template<class T_data>
 T_data carma_obj<T_data>::sum() {

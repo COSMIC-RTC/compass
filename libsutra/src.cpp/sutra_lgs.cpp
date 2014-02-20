@@ -9,6 +9,8 @@ sutra_lgs::sutra_lgs(carma_context *context, long nvalid, long npix, long nmaxhr
   this->npix    = npix;
   this->nprof   = nprof;
   this->nmaxhr  = nmaxhr;
+  this->d_doffaxis=this->d_prof1d=this->d_profcum=0;
+  this->hg=this->pixsize=this->h0=this->deltah=0;
 
   long *dims_data1 = new long[2];
   dims_data1[0] = 1;

@@ -3,8 +3,6 @@
 
 sutra_centroider_tcog::sutra_centroider_tcog(carma_context *context, long nwfs,
     long nvalid, float offset, float scale, int device) {
-  this->type = "tcog";
-
   this->current_context = context;
 
   this->nwfs = nwfs;
@@ -20,6 +18,10 @@ sutra_centroider_tcog::sutra_centroider_tcog(carma_context *context, long nwfs,
 
 sutra_centroider_tcog::~sutra_centroider_tcog() {
 
+}
+
+string sutra_centroider_tcog::get_type(){
+  return "tcog";
 }
 
 int sutra_centroider_tcog::init_bincube(sutra_wfs *wfs) {

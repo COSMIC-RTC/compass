@@ -13,6 +13,8 @@ class sutra_centroider_pyr : public sutra_centroider {
   sutra_centroider_pyr(const sutra_centroider_pyr& centroider);
   ~sutra_centroider_pyr();
 
+  string get_type();
+
   int get_pyr(float *cube,float *subsum, float *centroids, int *subindx, int *subindy, int nvalid, int ns, int nim);
 
   int init_bincube(sutra_wfs *wfs);

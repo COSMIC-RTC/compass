@@ -2,12 +2,12 @@
 #define _SUTRA_CENTROIDER_H_
 
 #include <sutra_wfs.h>
+#include <string>
 
 using namespace std;
 
 class sutra_centroider {
 public:
-  string type;
   int device;
   int nwfs;
   int nvalid;
@@ -21,12 +21,10 @@ public:
   virtual ~sutra_centroider()=0;
 
   bool is_type(string typec){
-    return (typec.compare(type)==0);
+    return (typec.compare(get_type())==0);
   }
 
-  string get_type(){
-    return this->type;
-  }
+  virtual string get_type()=0;
 
   virtual int init_bincube(sutra_wfs *wfs)=0;
 

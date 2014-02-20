@@ -4,6 +4,7 @@
 #include <sys/time.h>
 
 #ifdef USE_CULA
+// CULA headers
 #include <cula.hpp>
 #endif
 

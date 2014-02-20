@@ -3,8 +3,6 @@
 
 sutra_centroider_pyr::sutra_centroider_pyr(carma_context *context, long nwfs,
     long nvalid, float offset, float scale, int device) {
-  this->type = "pyr";
-
   this->current_context = context;
 
   this->device = device;
@@ -18,6 +16,10 @@ sutra_centroider_pyr::sutra_centroider_pyr(carma_context *context, long nwfs,
 
 sutra_centroider_pyr::~sutra_centroider_pyr() {
 
+}
+
+string sutra_centroider_pyr::get_type(){
+  return "pyr";
 }
 
 int sutra_centroider_pyr::init_bincube(sutra_wfs *wfs) {

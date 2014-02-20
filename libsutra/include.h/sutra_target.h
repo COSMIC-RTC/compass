@@ -55,7 +55,7 @@ class sutra_source {
   sutra_source(carma_context *context, float xpos,float ypos,float lambda,float mag,long size,string type, int device);
   sutra_source(const sutra_source& source);
   ~sutra_source();
-  int init_source(carma_context *context, float xpos,float ypos,float lambda,float mag,long size,string type, int device);
+  inline int init_source(carma_context *context, float xpos,float ypos,float lambda,float mag,long size,string type, int device);
   int add_layer(string type,float alt,float xoff, float yoff);
   int remove_layer(string type,float alt);
   int get_phase(float *dest);

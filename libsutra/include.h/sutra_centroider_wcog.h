@@ -15,6 +15,8 @@ class sutra_centroider_wcog : public sutra_centroider {
   sutra_centroider_wcog(const sutra_centroider& centroider);
   ~sutra_centroider_wcog();
 
+  string get_type();
+
   int init_weights(sutra_wfs *wfs);
   int load_weights(float *weights, int ndim);
 

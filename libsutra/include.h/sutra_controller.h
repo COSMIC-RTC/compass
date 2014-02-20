@@ -13,62 +13,42 @@ using namespace std;
 
 class sutra_controller {
 public:
-  string typec;
-  int device;
-  int nvalid;
-  int nslope;
-  int nactu;
-  int delay;
-  float gain;
 
-  carma_obj<float> *d_imat;
-  carma_obj<float> *d_cmat;
-  carma_obj<float> *d_gain;
+  //allocation of d_centroids and d_com
+  sutra_controller(carma_context* context, int nslope, int nactu);
+  virtual ~sutra_controller();
 
-  // svd computations
-  carma_obj<float> *d_eigenvals;
-  carma_host_obj<float> *h_eigenvals;
-  carma_obj<float> *d_U;
+  virtual string get_type()=0;
 
-  // loop components
-  carma_obj<float> *d_centroids; // current centroids
-  carma_obj<float> *d_cenbuff; // centroids circular buffer
-  carma_obj<float> *d_com; // current command
-  //carma_obj<float>          *d_combuff;   // command circular buffer 
-  carma_obj<float> *d_err; // current error
-  //carma_obj<float>          *d_err;       // error circular buffer  
+  //!!!! YOU MUST set d_centroids before call it!!!!
+  virtual int comp_com()=0;
 
-  carma_context *current_context;
+  //It is better to have something like this (+protected d_centroids):
+  //virtual int comp_com (carma_obj<float> *new_centroids)=0;
+  //it would imply copy, but would be much safer
 
-  carma_streams *streams;
-  int nstreams;
-  cublasHandle_t cublas_handle;
+  int nactu() {
+    return d_com->getDims(1);
+  }
+  int nslope() {
+    return d_centroids->getDims(1);
+  }
 
-  // data for CuReD */
-  carma_host_obj<float>     *h_centroids;
-  carma_host_obj<float>     *h_err;
-
-  // structures needed to run CuReD */
-  sysCure*                  h_syscure;
-  parCure*                  h_parcure;
-
+  cublasHandle_t cublas_handle() {
+    return current_context->get_cublasHandle();
+  }
 
 public:
-  sutra_controller(carma_context *context, long nvalid, long nactu, long delay,
-      int device, const char* typec);
-  sutra_controller(const sutra_controller& controller);
-  ~sutra_controller();
+//I would propose to make them protected (+ proper
+//set of fuctions). It could make life easier!
+//But we should discuss it
+  carma_obj<float> *d_centroids; // current centroids
+  carma_obj<float> *d_com; // current command
 
-  int svdec_imat();
-  int build_cmat(int nfilt, bool filt_tt);
-  int build_cmat(int nfilt);
-  int frame_delay();
-  int comp_com();
-  int set_gain(float gain);
-  int load_mgain(float *mgain);
-  int set_delay(int delay);
+protected:
+  int device;
+  carma_context *current_context;
 
-  int init_cured(int nxsubs, int *isvalid);
 };
 
 int shift_buf(float *d_data, int offset, int N, int device);

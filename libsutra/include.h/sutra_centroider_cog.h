@@ -13,6 +13,8 @@ class sutra_centroider_cog : public sutra_centroider {
   sutra_centroider_cog(const sutra_centroider_cog& centroider);
   ~sutra_centroider_cog();
 
+  string get_type();
+
   int init_bincube(sutra_wfs *wfs);
 
   int get_cog(carma_streams *streams, float *cube, float *subsum, float *centroids, int nvalid,

@@ -22,6 +22,8 @@ class sutra_centroider_corr : public sutra_centroider {
   sutra_centroider_corr(const sutra_centroider_corr& centroider);
   ~sutra_centroider_corr();
 
+  string get_type();
+
   int init_corr(sutra_wfs *wfs, int isizex, int isizey, float *interpmat);
   int load_corr(float *corr, float *corr_norm, int ndim);
 

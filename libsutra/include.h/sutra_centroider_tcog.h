@@ -14,6 +14,8 @@ class sutra_centroider_tcog : public sutra_centroider {
   sutra_centroider_tcog(const sutra_centroider& centroider);
   ~sutra_centroider_tcog();
 
+  string get_type();
+
   int set_threshold(float threshold); 
 
   int init_bincube(sutra_wfs *wfs);
