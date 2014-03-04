@@ -113,8 +113,7 @@ int carma_syevd<float>(char jobz, caObjS *mat, carma_host_obj<float> *eigenvals,
 	 return err;
 	 }
 	 */
-	return carma_syevd_gen<float>(jobz, N, N, *mat, *eigenvals,
-			ptr_syevd_gpu);
+	return carma_syevd_gen<float>(jobz, N, N, *mat, *eigenvals, ptr_syevd_gpu);
 }
 template<>
 int carma_syevd<double>(char jobz, caObjD *mat,
@@ -151,7 +150,8 @@ int carma_syevd<float>(char jobz, magma_int_t N, float *mat, float *eigenvals) {
 	return carma_syevd_gen<float>(jobz, N, N, mat, eigenvals, magma_ssyevd_gpu);
 }
 template<>
-int carma_syevd<double>(char jobz, magma_int_t N, double *mat, double *eigenvals) {
+int carma_syevd<double>(char jobz, magma_int_t N, double *mat,
+		double *eigenvals) {
 	return carma_syevd_gen<double>(jobz, N, N, mat, eigenvals, magma_dsyevd_gpu);
 }
 
@@ -737,6 +737,43 @@ template<> int carma_syevd_cpu<double>(char jobz, magma_int_t N, double *h_A,
 			lapackf77_dsyevd);
 }
 
+template<class T> int carma_axpy_cpu(long N, T alpha, T *h_X, long incX, T *h_Y,
+		long incY) {
+	MAGMA_TRACE("carma_axpy_cpu not implemented with this type! \n");
+	return EXIT_FAILURE;
+}
+template<> int carma_axpy_cpu<float>(long N, float alpha, float *h_X, long incX,
+		float *h_Y, long incY) {
+	blasf77_saxpy(&N, &alpha, h_X, &incX, h_Y, &incY);
+	return EXIT_SUCCESS;
+}
+template<> int carma_axpy_cpu<double>(long N, double alpha, double *h_X,
+		long incX, double *h_Y, long incY) {
+	blasf77_daxpy(&N, &alpha, h_X, &incX, h_Y, &incY);
+	return EXIT_SUCCESS;
+}
+
+template<class T> int carma_gemm_cpu(char transa, char transb, long m, long n,
+		long k, T alpha, T *A, long lda, T *B, long ldb, T beta, T *C,
+		long ldc) {
+	MAGMA_TRACE("carma_gemm_cpu not implemented with this type! \n");
+	return EXIT_FAILURE;
+}
+template<> int carma_gemm_cpu<float>(char transa, char transb, long m, long n,
+		long k, float alpha, float *A, long lda, float *B, long ldb, float beta,
+		float *C, long ldc) {
+	blasf77_sgemm(&transa, &transb, &m, &n, &k, &alpha, A, &lda, B, &ldb, &beta,
+			C, &ldc);
+	return EXIT_SUCCESS;
+}
+template<> int carma_gemm_cpu<double>(char transa, char transb, long m, long n,
+		long k, double alpha, double *A, long lda, double *B, long ldb,
+		double beta, double *C, long ldc) {
+	blasf77_dgemm(&transa, &transb, &m, &n, &k, &alpha, A, &lda, B, &ldb, &beta,
+			C, &ldc);
+	return EXIT_SUCCESS;
+}
+
 #else
 #warning "MAGMA will not be used"
 template<class T> int carma_svd(carma_obj<T> *imat, carma_obj<T> *eigenvals, carma_obj<T> *mod2act, carma_obj<T> *mes2mod)
@@ -810,7 +847,7 @@ template<class T> int carma_potri(carma_host_obj<T> *h_A) {
 template int carma_potri<float>(carma_host_obj<float> *h_A);
 template int carma_potri<double>(carma_host_obj<double> *h_A);
 
-template<class T> int carma_syevd(carma_host_obj<T> *h_A, carma_host_obj<T> *eigenvals){
+template<class T> int carma_syevd(carma_host_obj<T> *h_A, carma_host_obj<T> *eigenvals) {
 	MAGMA_TRACE("!!!!!! MAGMA not compiled !!!!!!\n");
 	return EXIT_FAILURE;
 }

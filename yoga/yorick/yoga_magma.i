@@ -385,6 +385,35 @@ func check_svd(n,m)
     
 }
 
+func check_mm_cpu(n,m,k){
+	write, format="generation of A %dx%d\n", n, m;
+	A=random_n(n, m);
+	write, format="generation of B %dx%d\n", m, k;
+	B=random_n(m, k);
+	write, format="%s", "doing C=A(, +)*B(+,)...";
+	tic; C=A(, +)*B(+,); tps1=tac();
+	write, format=" in %0.3fs\n", tps1;
+	write, format="%s", "doing C=yoga_mm_cpu(A,B)...";
+	tic; C1=yoga_mm_cpu(A,B); tps2=tac();
+	write, format=" in %0.3fs (x%0.3f)\n", tps2, tps1/tps2;
+	write, "Verif : max(abs(C-C1))";
+	max(abs(C-C1));
+}
+
+func check_axpy_cpu(n,m){
+	write, format="generation of X %dx%d\n", n, m;
+	X=random_n(n, m);
+	write, format="generation of Y %dx%d\n", n, m;
+	Y=random_n(n, m);
+	write, format="%s", "doing C=X+Y...";
+	tic; C=X+Y; tps1=tac();
+	write, format=" in %0.3fs\n", tps1;
+	write, format="%s", "doing C=yoga_axpy_cpu(1,X,Y)...";
+	tic; C1=yoga_axpy_cpu(1,X,Y); tps2=tac();
+	write, format=" in %0.3fs (x%0.3f)\n", tps2, tps1/tps2;
+	write, "Verif : max(abs(C-C1))";
+	max(abs(C-C1));
+}
 /*
 mat = fits_read("cmaa24240.fits");
 n=24240

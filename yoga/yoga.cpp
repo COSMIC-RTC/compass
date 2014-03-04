@@ -1014,6 +1014,54 @@ void Y_yoga_axpy(int argc)
   }
 }
 
+void Y_yoga_axpy_cpu(int argc)
+/** @brief wrapper routine for yoga_blas axpy method
+ *  @param[in] argc : command line arguments
+ *  can work as a (1) subroutine (return discarded) or (2) as a function
+ *    - first  : (1) the destination  / (2) the source
+ *    - second : (1) / (2) scaling factor
+ *    - third  : (1) the source
+ *  only floating point types supported (single or double precision)
+ */
+{
+  if (yarg_subroutine()) {
+    // called as a subroutine : destination already exists
+	  int yType;
+	long ntot;
+	long dims[Y_DIMSIZE];
+
+	void *dest = ygeta_any(argc - 1, &ntot, dims, &yType);
+	void *src = ygeta_any(argc - 3, &ntot, dims, &yType);
+    if (yType == Y_FLOAT) {
+      float alpha = ygets_f(argc - 2);
+      carma_axpy_cpu<float>(ntot, alpha, (float*)src,1, (float*)dest, 1);
+    } else if (yType == Y_DOUBLE) {
+      double alpha = ygets_d(argc - 2);
+      carma_axpy_cpu<double>(ntot, alpha, (double*)src,1, (double*)dest, 1);
+    }
+  } else {
+    // called as a function : we need to create a destination object
+	  int yType;
+	long ntot;
+	long dims[Y_DIMSIZE];
+
+	void *src1 = ygeta_any(argc - 2, &ntot, dims, &yType);
+	void *src2 = ygeta_any(argc - 3, &ntot, dims, &yType);
+
+    if (yType == Y_FLOAT) {
+    	float alpha = ygets_f(argc - 1);
+    	float *dest = ypush_f(dims);
+    	memcpy(dest, src1, ntot*sizeof(float));
+    	carma_axpy_cpu<float>(ntot, alpha, (float*)src2, 1, dest,1);
+    } else if (yType == Y_DOUBLE) {
+    	double alpha = ygets_d(argc - 1);
+    	double *dest = ypush_d(dims);
+    	memcpy(dest, src1, ntot*sizeof(double));
+    	carma_axpy_cpu<double>(ntot, alpha, (double*)src2, 1, dest,1);
+   }
+  }
+}
+
 void Y_yoga_dot(int argc)
 /** @brief wrapper routine for yoga_blas dot method
  *  @param[in] argc : command line arguments
@@ -1517,6 +1565,136 @@ void Y_yoga_mm(int argc)
           carma_obj_handler_matA->getDims(1), carma_obj_handler_matB,
           carma_obj_handler_matB->getDims(1), beta,
           carma_obj_handler_matC->getDims(1));
+    }
+  }
+}
+
+void Y_yoga_mm_cpu(int argc)
+/** @brief wrapper routine for yoga_blas mm method
+ *  @param[in] argc : command line arguments
+ *  can work as a (1) subroutine (return discarded) or (2) as a function
+ *    - first   : (1) the C matrix  / (2) the A matrix
+ *    - second  : (1) the A matrix  / (2) the B matrix
+ *    - third   : (1) the B matrix
+ *    - fourth  : (1) the alpha coeff
+ *    - fifth   : (1) the beta coeff
+ *    - sixth   : (1) the opA
+ *    - seventh : (1) the opB
+ *  in case (2) the destination is pushed on the stack as a yoga_obj
+ *  only floating point types supported (single or double precision)
+ */
+{
+  int yType=yarg_typeid(argc - 1);
+  if (yarg_subroutine()) {
+    char opA = 'n';
+    if (argc > 3)
+      opA = ygets_c(argc - 4);
+    char opB = 'n';
+    if (argc > 4)
+      opB = ygets_c(argc - 5);
+
+    if (yType == Y_FLOAT) {
+      float alpha = 1.0f;
+      if (argc > 5)
+        alpha = ygets_f(argc - 6);
+      float beta = 0.0f;
+      if (argc > 6)
+        beta = ygets_f(argc - 7);
+
+      long ntot;
+      long dimA[Y_DIMSIZE],dimB[Y_DIMSIZE],dimC[Y_DIMSIZE];
+      float *matA = ygeta_f(argc - 1, &ntot, dimA);
+      float *matB = ygeta_f(argc - 2, &ntot, dimB);
+      float *matC = ygeta_f(argc - 3, &ntot, dimC);
+
+      int k = ( ((opA == 'N') || (opA == 'n')) ? dimA[2] : dimA[1]);
+      carma_gemm_cpu<float>(opA, opB, dimC[1], dimC[2], k, alpha, matA,
+    		  dimA[1], matB,dimB[1], beta, matC, dimC[1]);
+    }
+    if (yType == Y_DOUBLE) {
+      double alpha = 1.0;
+      if (argc > 5)
+        alpha = ygets_d(argc - 6);
+      double beta = 0.0;
+      if (argc > 6)
+        beta = ygets_d(argc - 7);
+
+      long ntot;
+      long dimA[Y_DIMSIZE],dimB[Y_DIMSIZE],dimC[Y_DIMSIZE];
+      double *matA = ygeta_d(argc - 1, &ntot, dimA);
+      double *matB = ygeta_d(argc - 2, &ntot, dimB);
+      double *matC = ygeta_d(argc - 3, &ntot, dimC);
+
+      int k = ( ((opA == 'N') || (opA == 'n')) ? dimA[2] : dimA[1]);
+      carma_gemm_cpu<double>(opA, opB, dimC[1], dimC[2], k, alpha, matA,
+    		  dimA[1], matB,dimB[1], beta, matC, dimC[1]);
+    }
+  } else {
+    // called as a function : need to allocate space
+    char opA = 'n';
+    if (argc > 2)
+      opA = ygets_c(argc - 3);
+    char opB = 'n';
+    if (argc > 3)
+      opB = ygets_c(argc - 4);
+
+    if (yType == Y_FLOAT) {
+      float alpha = 1.0f;
+      if (argc > 4)
+        alpha = ygets_f(argc - 5);
+      float beta = 0.0f;
+      if (argc > 5)
+        beta = ygets_f(argc - 6);
+
+      long ntot;
+      long dimA[Y_DIMSIZE],dimB[Y_DIMSIZE],dimC[Y_DIMSIZE];
+      float *matA = ygeta_f(argc - 1, &ntot, dimA);
+      float *matB = ygeta_f(argc - 2, &ntot, dimB);
+
+      dimC[0] = 2;
+      if (opA == 'n')
+    	  dimC[1] = dimA[1];
+      else
+    	  dimC[1] = dimA[2];
+      if (opB == 'n')
+    	  dimC[2] = dimB[2];
+      else
+    	  dimC[2] = dimB[1];
+
+      float *matC = ypush_f(dimC);
+      int k = ( ((opA == 'N') || (opA == 'n')) ? dimA[2] : dimA[1]);
+
+      carma_gemm_cpu<float>(opA, opB, dimC[1], dimC[2], k, alpha, matA,
+    		  dimA[1], matB,dimB[1], beta, matC, dimC[1]);
+
+    } else if (yType == Y_DOUBLE) {
+      double alpha = 1.0;
+      if (argc > 4)
+        alpha = ygets_d(argc - 5);
+      double beta = 0.0;
+      if (argc > 5)
+        beta = ygets_d(argc - 6);
+
+      long ntot;
+      long dimA[Y_DIMSIZE],dimB[Y_DIMSIZE],dimC[Y_DIMSIZE];
+      double *matA = ygeta_d(argc - 1, &ntot, dimA);
+      double *matB = ygeta_d(argc - 2, &ntot, dimB);
+
+      dimC[0] = 2;
+      if (opA == 'n')
+    	  dimC[1] = dimA[1];
+      else
+    	  dimC[1] = dimA[2];
+      if (opB == 'n')
+    	  dimC[2] = dimB[2];
+      else
+    	  dimC[2] = dimB[1];
+
+      double *matC = ypush_d(dimC);
+      int k = ( ((opA == 'N') || (opA == 'n')) ? dimA[2] : dimA[1]);
+      carma_gemm_cpu<double>(opA, opB, dimC[1], dimC[2], k, alpha, matA,
+    		  dimA[1], matB,dimB[1], beta, matC, dimC[1]);
+
     }
   }
 }

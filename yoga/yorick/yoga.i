@@ -309,6 +309,18 @@ extern yoga_axpy;
      
    SEE ALSO:
  */
+extern yoga_axpy_cpu;
+/* DOCUMENT yoga_axpyyoga_axpy_cpu
+   dest = yoga_axpy(alpha, src1, src2)
+   or
+   yoga_axpy,dest,alpha,src
+
+   This routine multiplies vector src by alpha and adds it to vector dest
+   (BLAS axpy). If it is called as a function, a new yoga object is created,
+   if it is called as a subroutine, it works on pre-existing objects.
+     
+   SEE ALSO:
+ */
 extern yoga_dot;
 /* DOCUMENT yoga_dot
    res = yoga_dot(obj1,obj2)
@@ -360,6 +372,27 @@ extern yoga_mm;
    matC = yoga_mm(matA,matB [,opA] [,opB] [,alpha])
    or
    yoga_mm,matC,matA,matB [,opA] [,opB] [,alpha] [,beta] 
+
+   This function performs the matrix-matrix multiplication (BLAS gemm)
+   C = alpha * opA( A ) * opB ( B ) + beta * C
+
+   opA : operation on matrix A : 't' for transpose, 'n' for nothing
+   opB : operation on matrix B : 't' for transpose, 'n' for nothing
+
+   if you need to perform an operation on B you need to provide the operation on A as well
+   if you need to provide alpha, you need to provide operations on A and B (even if default 'n')
+   if you need to provide beta, you need to provide all the previous arguments (opA, opB, alpha)
+   
+   If called as a function, it creates a new yoga object so the beta argument is not applicable
+   
+   SEE ALSO:
+ */
+
+extern yoga_mm_cpu;
+/* DOCUMENT yoga_mm_cpu
+   matC = yoga_mm_cpu(matA,matB [,opA] [,opB] [,alpha])
+   or
+   yoga_mm_cpu,matC,matA,matB [,opA] [,opB] [,alpha] [,beta] 
 
    This function performs the matrix-matrix multiplication (BLAS gemm)
    C = alpha * opA( A ) * opB ( B ) + beta * C

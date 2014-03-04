@@ -136,6 +136,11 @@ template<class T> int carma_svd_cpu(long N, long M, T *imat, T *eigenvals,
 template<class T> int carma_getri_cpu(long N, T *h_A);
 template<class T> int carma_potri_cpu(long N, T *h_A);
 template<class T> int carma_syevd_cpu(char jobz, long N, T *h_A, T *eigenvals);
+template<class T> int carma_axpy_cpu(long N, T alpha, T *h_X, long incX, T *h_Y,
+		long incY);
+template<class T> int carma_gemm_cpu(char transa, char transb, long m, long n,
+		long k, T alpha, T *A, long lda, T *B, long ldb, T beta, T *C,
+		long ldc);
 
 // CULA functions
 template<class T_data> int carma_cula_svd(carma_host_obj<T_data> *imat,
