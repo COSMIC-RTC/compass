@@ -643,30 +643,15 @@ extern yoga_svd;
    SEE ALSO:
  */
 
-extern yoga_syevd_cpu;
-/* DOCUMENT yoga_syevd_cpu
-      yoga_syevd_cpu, h_mat, h_eigenvals, h_U, noComputeU= 
-   OR yoga_syevd_cpu, h_mat, h_eigenvals, noComputeU=
-   
-   This function computes the svd of matrix mat
-   h_mat   : n x n (CArMA host obj) (WARNING:change into U if U not given)
-   h_eigen : 1 x n (CArMA host obj)
-   h_U     : n x n (CArMA host obj) (optional)
-
-   Even if noComputeU flag is set to 1, the matrix mat will be changed if U is not specified.
-
-   SEE ALSO:
- */
-
 extern yoga_syevd;
 /* DOCUMENT yoga_syevd
-      yoga_syevd, d_mat, h_eigenvals, d_U, noComputeU= 
-   OR yoga_syevd, d_mat, h_eigenvals, noComputeU=
+      yoga_syevd,mat,eigenvals, U, noComputeU= 
+   OR yoga_syevd,mat,eigenvals, noComputeU=
    
    This function computes the svd of matrix mat
-   d_mat   : n x n (CArMA obj) (WARNING:change into U if U not given)
-   h_eigen : 1 x n (CArMA host obj)
-   d_U     : n x n (CArMA obj) (optional)
+   mat   : n x n (CArMA obj) (WARNING:change into U if U not given)
+   eigen : 1 x n (yArray)
+   U     : n x n (CArMA obj) (optional)
 
    Even if noComputeU flag is set to 1, the matrix mat will be changed if U is not specified.
 
@@ -675,13 +660,13 @@ extern yoga_syevd;
 
 extern yoga_syevd_m;
 /* DOCUMENT yoga_syevd_m
-   yoga_syevd_m, ngpu, h_mat, h_eigenvals, h_u, noComputeU= 
+   yoga_syevd_m, ngpu,mat,eigenvals,u, noComputeU= 
 
    This function computes the svd of matrix mat
    ngpu  : number of gpu
-   h_mat   : n x n (CArMA host obj)
-   h_eigen : 1 x n (CArMA host obj)
-   h_U     : n x n (CArMA host obj)
+   mat   : n x n (yArray)
+   eigen : 1 x n (yArray)
+   U     : n x n (yArray)
    
    SEE ALSO:
  */
@@ -693,21 +678,9 @@ extern yoga_getri;
 
    This function computes the inverse of a matrix d_mat (or h_mat) using the LU factorization
    d_mat   : n x n (CArMA obj)
-   h_mat   : n x n (CArMA host obj)
+   h_mat   : n x n (yArray)
    
    WARNING : d_mat will be replaced by its inverse
-   
-   SEE ALSO:
- */
-
-extern yoga_potri_cpu;
-/* DOCUMENT yoga_potri_cpu
-   yoga_potri_cpu,h_mat
-
-   This function computes the inverse of a real symmetric positive definite matrix mat using the LU factorization
-   h_mat   : n x n (CArMA host obj)
-   
-   WARNING : mat will be replaced by its inverse
    
    SEE ALSO:
  */
@@ -730,7 +703,7 @@ extern yoga_potri_mgpu;
 
    This function computes the inverse of a real symmetric positive definite matrix mat using the LU factorization
    ngpus : number of GPUs
-   h_mat   : n x n (CArMA host obj)
+   h_mat   : n x n (yArray)
    d_mat   : n x n (CArMA obj)
    
    WARNING : mat will be replaced by its inverse

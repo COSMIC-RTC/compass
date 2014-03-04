@@ -124,20 +124,20 @@ func check_potri(n, compare_yorick=, niter=)
 */
   
 
-  write, format="%s", "doing yoga_potri_cpu, d_mat... ";
+  write, format="%s", "doing yoga_potri, h_mat... with MKL ";
   tps2=0.;
   for(iter=0; iter<niter; iter++){
-    h_mat = yoga_host_obj(mat);
-    tic; yoga_potri_cpu, h_mat; tps2+=tac()/niter;
+    h_mat = mat;
+    tic; yoga_potri, h_mat; tps2+=tac()/niter;
   }
   
 
   if(compare_yorick){
     write, format="in %0.3fs (x%0.3f)\n", tps2, tps1/tps2;
-    write, "max(abs(h_mat() - i_mat))";
-    max(abs(h_mat() - i_mat));
+    write, "max(abs(h_mat - i_mat))";
+    max(abs(h_mat - i_mat));
     window, 0;
-    pli, h_mat();
+    pli, h_mat;
     window, 1;
     pli, i_mat;
   } else {
@@ -145,8 +145,7 @@ func check_potri(n, compare_yorick=, niter=)
   }
 
   "max(abs( mat(,+)*inv_mat(+,) - unit(n) ));";
-  max(abs( yoga_mm(yoga_obj(mat), yoga_obj(h_mat()), 'n', 'n')() - unit(n) ));
-error;
+  max(abs( yoga_mm(yoga_obj(mat), yoga_obj(h_mat), 'n', 'n')() - unit(n) ));
 }
 
 func check_syevd(n, compare_yorick=)
@@ -170,50 +169,50 @@ func check_syevd(n, compare_yorick=)
 
   write, "\ntest with double";
   d_U = yoga_obj(mat*0.);
-  h_EV = yoga_host_obj(array(0., n));
+  h_EV = array(0., n);
   write, format="%s", "doing yoga_syevd, d_mat, h_EV, d_U... ";
   tic; yoga_syevd, d_mat, h_EV, d_U; tps2=tac();
   if(compare_yorick){
     write, format="in %0.3fs (x%0.3f)\n", tps2, tps1/tps2;
     write, "max(abs(h_EV(::-1) - y_EV))";
-    max(abs(h_EV()(::-1) - y_EV));
+    max(abs(h_EV(::-1) - y_EV));
   } else {
     write, format="in %0.3fs\n", tps2;
   }
   write, "Verif: max(abs( d_mat - d_U*diag(h_EV)*d_Ut";
-  max(abs( mat - yoga_mm(yoga_mm(d_U, yoga_obj(diag(h_EV())), 'n', 'n'), d_U, 'n', 't')() ));
+  max(abs( mat - yoga_mm(yoga_mm(d_U, yoga_obj(diag(h_EV)), 'n', 'n'), d_U, 'n', 't')() ));
   
   write, "\ntest with double (inplace)";
-  h_EV2 = yoga_host_obj(array(0., n));
+  h_EV2 = array(0., n);
   write, format="%s", "doing yoga_syevd, d_mat, h_EV2... ";
   tic; yoga_syevd, d_mat, h_EV2; tps2=tac();
 
   if(compare_yorick){
     write, format="in %0.3fs (x%0.3f)\n", tps2, tps1/tps2;
     write, "max(abs(h_EV2(::-1) - y_EV))";
-    max(abs(h_EV2()(::-1) - y_EV));
+    max(abs(h_EV2(::-1) - y_EV));
   } else {
     write, format="in %0.3fs\n", tps2;
   }
   write, "Verif: max(abs( d_mat - d_U*diag(h_EV)*d_Ut";
-  max(abs( mat - yoga_mm(yoga_mm(d_mat, yoga_obj(diag(h_EV())), 'n', 'n'), d_U, 'n', 't')() ));
+  max(abs( mat - yoga_mm(yoga_mm(d_mat, yoga_obj(diag(h_EV)), 'n', 'n'), d_U, 'n', 't')() ));
 
 
   write, "\ntest with double (inplace, noComputeU)";
   d_mat = yoga_obj(mat);
-  h_EV3 = yoga_host_obj(array(0., n));
+  h_EV3 = array(0., n);
   write, format="%s", "doing yoga_syevd, d_mat, h_EV2... ";
   tic; yoga_syevd, d_mat, h_EV3, noComputeU=1; tps2=tac();
 
   if(compare_yorick){
     write, format="in %0.3fs (x%0.3f)\n", tps2, tps1/tps2;
     write, "max(abs(h_EV3(::-1) - y_EV))";
-    max(abs(h_EV3()(::-1) - y_EV));
+    max(abs(h_EV3(::-1) - y_EV));
   } else {
     write, format="in %0.3fs\n", tps2;
   }
   write, "Verif: max(abs(h_EV - h_EV3))";
-  max(abs(h_EV() - h_EV3()));
+  max(abs(h_EV - h_EV3));
 
 }
 
@@ -238,17 +237,17 @@ func check_syevd_m(n, ngpu, compare_yorick=)
   }
 
   write, "\ntest with double";
-  h_mat  = yoga_host_obj(mat);
-  h_U  = yoga_host_obj(mat*0.);
-  h_EV = yoga_host_obj(array(0., n));
+  h_mat  = mat;
+  h_U  = mat*0.;
+  h_EV = array(0., n);
   write, format="doing yoga_syevd_m, ngpu=%d, mat, h_EV, h_U... ", ngpu;
   tic; yoga_syevd_m, ngpu, h_mat, h_EV, h_U; tps2=tac();
   if(compare_yorick){
     write, format="in %0.3fs (x%0.3f)\n", tps2, tps1/tps2;
     write, "max(abs(h_EV(::-1) - y_EV))";
-    max(abs(h_EV()(::-1) - y_EV));
+    max(abs(h_EV(::-1) - y_EV));
     fma;
-    plg,h_EV()(::-1),color="red",  marks=0,width=4;
+    plg,h_EV(::-1),color="red",  marks=0,width=4;
     plg,y_EV      ,color="green",marks=0,width=4;
     pltitle,"eigenvalues";
     logxy,0,1;
@@ -258,7 +257,7 @@ func check_syevd_m(n, ngpu, compare_yorick=)
 
   write, "max(abs( mat - h_U*diag(h_EV)*h_Ut";
   d_U=yoga_obj(h_U);
-  max(abs( mat - yoga_mm(yoga_mm(d_U, yoga_obj(diag(h_EV())), 'n', 'n'), d_U, 'n', 't')() ));
+  max(abs( mat - yoga_mm(yoga_mm(d_U, yoga_obj(diag(h_EV)), 'n', 'n'), d_U, 'n', 't')() ));
 }
 
 func compare_syevd(n, ngpu)
@@ -276,13 +275,13 @@ func compare_syevd(n, ngpu)
 
   write, "\ntest singleGPU with double";
   d_U = yoga_obj(mat*0.);
-  h_EV = yoga_host_obj(array(0., n));
+  h_EV = array(0., n);
   write, format="%s", "doing yoga_syevd, d_mat, h_EV, d_U... ";
   tic; yoga_syevd, d_mat, h_EV, d_U; tps1=tac();
   write, format="in %0.3fs\n", tps1;
 
   write, "\ntest singleGPU with double inplace";
-  h_EV = yoga_host_obj(array(0., n));
+  h_EV = array(0., n);
   write, format="%s", "doing yoga_syevd, d_mat, h_EV... ";
   tic; yoga_syevd, d_mat, h_EV; tps2=tac();
   write, format="in %0.3fs (x%0.3f)\n", tps2, tps1/tps2;
@@ -290,54 +289,54 @@ func compare_syevd(n, ngpu)
   d_mat = yoga_obj(mat);
   write, "\ntest singleGPU with double (without U computation)";
   d_U = yoga_obj(mat*0.);
-  h_EV = yoga_host_obj(array(0., n));
+  h_EV = array(0., n);
   write, format="%s", "doing yoga_syevd, d_mat, h_EV, d_U, noComputeU=1... ";
   tic; yoga_syevd, d_mat, h_EV, d_U, noComputeU=1; tps2=tac();
   write, format="in %0.3fs (x%0.3f)\n", tps2, tps1/tps2;
 
   write, "\ntest singleGPU with double inplace (without U computation)";
-  h_EV = yoga_host_obj(array(0., n));
+  h_EV = array(0., n);
   write, format="%s", "doing yoga_syevd, d_mat, h_EV, noComputeU=1... ";
   tic; yoga_syevd, d_mat, h_EV, noComputeU=1; tps2=tac();
   write, format="in %0.3fs (x%0.3f)\n", tps2, tps1/tps2;
 
   write, "\ntest multiGPU with double";
-  h_mat  = yoga_host_obj(mat);
-  h_U  = yoga_host_obj(mat*0.);
-  h_EV2 = yoga_host_obj(array(0., n));
+  h_mat  = mat;
+  h_U  = mat*0.;
+  h_EV2 = array(0., n);
   write, format="doing yoga_syevd_m, ngpu=%d, mat, h_EV, h_U... ", ngpu;
   tic; yoga_syevd_m, ngpu, h_mat, h_EV2, h_U; tps2=tac();
   write, format="in %0.3fs (x%0.3f)\n", tps2, tps1/tps2;
 
   write, "\ntest multiGPU with double (without U computation)";
-  h_mat  = yoga_host_obj(mat);
-  h_U  = yoga_host_obj(mat*0.);
-  h_EV2 = yoga_host_obj(array(0., n));
+  h_mat  = mat;
+  h_U  = mat*0.;
+  h_EV2 = array(0., n);
   write, format="doing yoga_syevd_m, ngpu=%d, mat, h_EV, h_U, noComputeU=1... ", ngpu;
   tic; yoga_syevd_m, ngpu, h_mat, h_EV2, h_U, noComputeU=1; tps2=tac();
   write, format="in %0.3fs (x%0.3f)\n", tps2, tps1/tps2;
 
   write, "max(abs(h_EV - h_EV2))";
-  max(abs(h_EV() - h_EV2()));
+  max(abs(h_EV - h_EV2));
 
   write, "\ntest MKL with double";
-  h_mat  = yoga_host_obj(mat);
-  h_U  = yoga_host_obj(mat*0.);
-  h_EV2 = yoga_host_obj(array(0., n));
-  write, format="%s", "doing yoga_syevd_cpu, mat, h_EV, h_U... ";
-  tic; yoga_syevd_cpu, h_mat, h_EV2, h_U; tps2=tac();
+  h_mat  = mat;
+  h_U  = mat*0.;
+  h_EV2 = array(0., n);
+  write, format="%s", "doing yoga_syevd, mat, h_EV, h_U... ";
+  tic; yoga_syevd, h_mat, h_EV2, h_U; tps2=tac();
   write, format="in %0.3fs (x%0.3f)\n", tps2, tps1/tps2;
 
   write, "\ntest MKL with double (without U computation)";
-  h_mat  = yoga_host_obj(mat);
-  h_U  = yoga_host_obj(mat*0.);
-  h_EV2 = yoga_host_obj(array(0., n));
-  write, format="%s", "doing yoga_syevd_cpu, mat, h_EV, h_U, noComputeU=1... ";
-  tic; yoga_syevd_cpu, h_mat, h_EV2, h_U, noComputeU=1; tps2=tac();
+  h_mat  = mat;
+  h_U  = mat*0.;
+  h_EV2 = array(0., n);
+  write, format="%s", "doing yoga_syevd, mat, h_EV, h_U, noComputeU=1... ";
+  tic; yoga_syevd, h_mat, h_EV2, h_U, noComputeU=1; tps2=tac();
   write, format="in %0.3fs (x%0.3f)\n", tps2, tps1/tps2;
 
   write, "max(abs(h_EV - h_EV2))";
-  max(abs(h_EV() - h_EV2()));
+  max(abs(h_EV - h_EV2));
 
 }
 

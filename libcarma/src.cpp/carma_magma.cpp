@@ -104,19 +104,21 @@ int carma_syevd<float>(char jobz, caObjS *mat, carma_host_obj<float> *eigenvals,
 		return EXIT_FAILURE;
 	}
 	/*
-	if (N & 31) { //if dimension of mat is not a multiple of 32
-		magma_int_t ldda = 0;
-		float *d_padded_data = create_padded_data<float>(N, 32, ldda, *mat);
-		int err = carma_syevd_gen<float>(jobz, N, ldda, d_padded_data,
-				eigenvals, ptr_syevd_gpu);
-		destroy_padded_data<float>(N, ldda, d_padded_data, *mat);
-		return err;
-	}
-    */
-	return carma_syevd_gen<float>(jobz, N, N, *mat, *eigenvals, magma_ssyevd_gpu);
+	 if (N & 31) { //if dimension of mat is not a multiple of 32
+	 magma_int_t ldda = 0;
+	 float *d_padded_data = create_padded_data<float>(N, 32, ldda, *mat);
+	 int err = carma_syevd_gen<float>(jobz, N, ldda, d_padded_data,
+	 eigenvals, ptr_syevd_gpu);
+	 destroy_padded_data<float>(N, ldda, d_padded_data, *mat);
+	 return err;
+	 }
+	 */
+	return carma_syevd_gen<float>(jobz, N, N, *mat, *eigenvals,
+			ptr_syevd_gpu);
 }
 template<>
-int carma_syevd<double>(char jobz, caObjD *mat, carma_host_obj<double> *eigenvals,
+int carma_syevd<double>(char jobz, caObjD *mat,
+		carma_host_obj<double> *eigenvals,
 		magma_int_t (*ptr_syevd_gpu)(magma_vec_t jobz, magma_uplo_t uplo,
 				magma_int_t n, double *da, magma_int_t ldda, double *w,
 				double *wa, magma_int_t ldwa, double *work, magma_int_t lwork,
@@ -127,16 +129,30 @@ int carma_syevd<double>(char jobz, caObjD *mat, carma_host_obj<double> *eigenval
 		return EXIT_FAILURE;
 	}
 	/*
-	if (N & 31) { //if dimension of mat is not a multiple of 32
-		magma_int_t ldda = 0;
-		double *d_padded_data = create_padded_data<double>(N, 32, ldda, *mat);
-		int err = carma_syevd_gen<double>(jobz, N, ldda, d_padded_data,
-				eigenvals, ptr_syevd_gpu);
-		destroy_padded_data<double>(N, ldda, d_padded_data, *mat);
-		return err;
-	}
-	*/
+	 if (N & 31) { //if dimension of mat is not a multiple of 32
+	 magma_int_t ldda = 0;
+	 double *d_padded_data = create_padded_data<double>(N, 32, ldda, *mat);
+	 int err = carma_syevd_gen<double>(jobz, N, ldda, d_padded_data,
+	 eigenvals, ptr_syevd_gpu);
+	 destroy_padded_data<double>(N, ldda, d_padded_data, *mat);
+	 return err;
+	 }
+	 */
 	return carma_syevd_gen<double>(jobz, N, N, *mat, *eigenvals, ptr_syevd_gpu);
+}
+
+template<class T>
+int carma_syevd(char jobz, magma_int_t N, T *mat, T *eigenvals) {
+	cerr << "carma_syevd: this method not implemented !\n";
+	return EXIT_FAILURE;
+}
+template<>
+int carma_syevd<float>(char jobz, magma_int_t N, float *mat, float *eigenvals) {
+	return carma_syevd_gen<float>(jobz, N, N, mat, eigenvals, magma_ssyevd_gpu);
+}
+template<>
+int carma_syevd<double>(char jobz, magma_int_t N, double *mat, double *eigenvals) {
+	return carma_syevd_gen<double>(jobz, N, N, mat, eigenvals, magma_dsyevd_gpu);
 }
 
 template<class T, int method>
@@ -145,15 +161,18 @@ int carma_syevd(char jobz, carma_obj<T> *mat, carma_host_obj<T> *eigenvals) {
 	return EXIT_FAILURE;
 }
 template<>
-int carma_syevd<float, 1>(char jobz, caObjS *mat, carma_host_obj<float> *eigenvals) {
+int carma_syevd<float, 1>(char jobz, caObjS *mat,
+		carma_host_obj<float> *eigenvals) {
 	return carma_syevd<float>(jobz, mat, eigenvals, magma_ssyevd_gpu);
 }
 template<>
-int carma_syevd<double, 1>(char jobz, caObjD *mat, carma_host_obj<double> *eigenvals) {
+int carma_syevd<double, 1>(char jobz, caObjD *mat,
+		carma_host_obj<double> *eigenvals) {
 	return carma_syevd<double>(jobz, mat, eigenvals, magma_dsyevd_gpu);
 }
 
-template<> int carma_syevd<float, 2>(char jobz, caObjS *mat, carma_host_obj<float> *eigenvals) {
+template<> int carma_syevd<float, 2>(char jobz, caObjS *mat,
+		carma_host_obj<float> *eigenvals) {
 	MAGMA_TRACE("carma_syevd: this method not implemented !\n");
 	return EXIT_FAILURE;
 }
@@ -161,7 +180,8 @@ template<> int carma_syevd<double, 2>(char jobz, caObjD *mat,
 		carma_host_obj<double> *eigenvals) {
 	return carma_syevd<double>(jobz, mat, eigenvals, magma_dsyevd_gpu_magmablas);
 }
-template<> int carma_syevd<float, 3>(char jobz, caObjS *mat, carma_host_obj<float> *eigenvals) {
+template<> int carma_syevd<float, 3>(char jobz, caObjS *mat,
+		carma_host_obj<float> *eigenvals) {
 	MAGMA_TRACE("carma_syevd: this method not implemented !\n");
 	return EXIT_FAILURE;
 }
@@ -207,37 +227,43 @@ int carma_syevd_m_gen(magma_int_t ngpu, magma_uplo_t jobz, magma_int_t N,
 }
 
 template<class T>
-int carma_syevd_m(long ngpu, char jobz, carma_host_obj<T> *mat, carma_host_obj<T> *eigenvals) {
+int carma_syevd_m(long ngpu, char jobz, carma_host_obj<T> *mat,
+		carma_host_obj<T> *eigenvals) {
 	MAGMA_TRACE("carma_syevd_m not implemented this this type! \n");
 	return EXIT_FAILURE;
 }
 template<>
-int carma_syevd_m<float>(long ngpu, char jobz, carma_host_obj<float> *mat, carma_host_obj<float> *eigenvals) {
+int carma_syevd_m<float>(long ngpu, char jobz, carma_host_obj<float> *mat,
+		carma_host_obj<float> *eigenvals) {
 	magma_int_t N = mat->getDims(1);
 	if (N != mat->getDims(2)) {
 		cerr << "Matrix must be symmetric\n";
 		return EXIT_FAILURE;
 	}
-	return carma_syevd_m_gen<float>(ngpu, jobz, N, *mat, *eigenvals, magma_ssyevd_m);
+	return carma_syevd_m_gen<float>(ngpu, jobz, N, *mat, *eigenvals,
+			magma_ssyevd_m);
 }
 template<>
-int carma_syevd_m<double>(long ngpu, char jobz, carma_host_obj<double> *mat, carma_host_obj<double> *eigenvals) {
+int carma_syevd_m<double>(long ngpu, char jobz, carma_host_obj<double> *mat,
+		carma_host_obj<double> *eigenvals) {
 	magma_int_t N = mat->getDims(1);
 	if (N != mat->getDims(2)) {
 		cerr << "Matrix must be symmetric\n";
 		return EXIT_FAILURE;
 	}
-	return carma_syevd_m_gen<double>(ngpu, jobz, N, *mat, *eigenvals, magma_dsyevd_m);
+	return carma_syevd_m_gen<double>(ngpu, jobz, N, *mat, *eigenvals,
+			magma_dsyevd_m);
 }
 
 template<class T>
-int carma_syevd_m(long ngpu, char jobz, carma_host_obj<T> *mat, carma_host_obj<T> *eigenvals, carma_host_obj<T> *U) {
+int carma_syevd_m(long ngpu, char jobz, carma_host_obj<T> *mat,
+		carma_host_obj<T> *eigenvals, carma_host_obj<T> *U) {
 	MAGMA_TRACE("carma_syevd_m not implemented this this type! \n");
 	return EXIT_FAILURE;
 }
 template<>
-int carma_syevd_m<float>(long ngpu, char jobz, carma_host_obj<float> *mat, carma_host_obj<float> *eigenvals,
-		 carma_host_obj<float> *U) {
+int carma_syevd_m<float>(long ngpu, char jobz, carma_host_obj<float> *mat,
+		carma_host_obj<float> *eigenvals, carma_host_obj<float> *U) {
 	/* Initialize the matrix */
 	magma_int_t N = mat->getDims(1);
 	if (N != mat->getDims(2)) {
@@ -248,11 +274,12 @@ int carma_syevd_m<float>(long ngpu, char jobz, carma_host_obj<float> *mat, carma
 	magma_int_t lda = N;
 	lapackf77_slacpy(MagmaUpperLowerStr, &N, &N, *mat, &lda, *U, &lda);
 
-	return carma_syevd_m_gen<float>(ngpu, jobz, N, *U, *eigenvals, magma_ssyevd_m);
+	return carma_syevd_m_gen<float>(ngpu, jobz, N, *U, *eigenvals,
+			magma_ssyevd_m);
 }
 template<>
-int carma_syevd_m<double>(long ngpu, char jobz, carma_host_obj<double> *mat, carma_host_obj<double> *eigenvals,
-		carma_host_obj<double> *U) {
+int carma_syevd_m<double>(long ngpu, char jobz, carma_host_obj<double> *mat,
+		carma_host_obj<double> *eigenvals, carma_host_obj<double> *U) {
 	/* Initialize the matrix */
 	magma_int_t N = mat->getDims(1);
 	if (N != mat->getDims(2)) {
@@ -262,7 +289,8 @@ int carma_syevd_m<double>(long ngpu, char jobz, carma_host_obj<double> *mat, car
 	magma_int_t lda = N;
 	lapackf77_dlacpy(MagmaUpperLowerStr, &N, &N, *mat, &lda, *U, &lda);
 
-	return carma_syevd_m_gen<double>(ngpu, jobz, N, *U, *eigenvals, magma_dsyevd_m);
+	return carma_syevd_m_gen<double>(ngpu, jobz, N, *U, *eigenvals,
+			magma_dsyevd_m);
 }
 
 template<class T>
@@ -416,7 +444,7 @@ int carma_potri_m_gen(long num_gpus, T *h_A, T *d_iA, long N,
 			ptr_getmatrix_1D_col_bcyclic(N, N, d_lA, ldda, h_A, lda, num_gpus,
 					nb), info);
 
-	cudaMemcpy(h_A, d_iA, N*N*sizeof(T), cudaMemcpyHostToDevice);
+	cudaMemcpy(h_A, d_iA, N * N * sizeof(T), cudaMemcpyHostToDevice);
 	//d_iA->host2device(h_A);
 	CHECK_MAGMA(ptr_potri('L', N, d_iA, N, &info), info);
 
@@ -430,7 +458,7 @@ int carma_potri_m(long num_gpus, carma_host_obj<T> *h_A, carma_obj<T> *d_iA) {
 	return EXIT_FAILURE;
 }
 
-template<> int carma_potri_m<float>(long num_gpus,  carma_host_obj<float> *h_A,
+template<> int carma_potri_m<float>(long num_gpus, carma_host_obj<float> *h_A,
 		carma_obj<float> *d_iA) {
 	magma_int_t N = h_A->getDims(1);
 	if (N != h_A->getDims(2)) {
@@ -449,11 +477,10 @@ template<> int carma_potri_m<double>(long num_gpus, carma_host_obj<double> *h_A,
 		return EXIT_FAILURE;
 	}
 
-	return carma_potri_m_gen<double>(num_gpus, *h_A, *d_iA, N, magma_dpotrf_mgpu,
-			magma_dpotri_gpu, magma_get_dpotrf_nb,
+	return carma_potri_m_gen<double>(num_gpus, *h_A, *d_iA, N,
+			magma_dpotrf_mgpu, magma_dpotri_gpu, magma_get_dpotrf_nb,
 			magma_dsetmatrix_1D_col_bcyclic, magma_dgetmatrix_1D_col_bcyclic);
 }
-
 
 template<class T>
 int carma_getri_gen(long N, T *d_iA,
@@ -470,7 +497,7 @@ int carma_getri_gen(long N, T *d_iA,
 	magma_int_t lda = N;
 	magma_int_t ldda = ((N + 31) / 32) * 32;
 	magma_int_t ldwork = N * ptr_get_getri_nb(N);
-	if (lda * ldda != N*N)
+	if (lda * ldda != N * N)
 		cerr << "Please provide arrays of proper size\n";
 
 	magma_int_t info;
@@ -512,65 +539,143 @@ int carma_getri<double>(carma_obj<double> *d_iA) {
 			magma_get_dgetri_nb);
 }
 
-template<class T> int carma_potri(carma_host_obj<T> *h_A) {
+template<class T> int carma_potri_cpu_gen(magma_int_t N, T *h_A,
+		void (*ptr_potrf)(const char *uplo, const magma_int_t *n, T *A,
+				const magma_int_t *lda, magma_int_t *info),
+		void (*ptr_potri)(const char *uplo, const magma_int_t *n, T *A,
+				const magma_int_t *lda, magma_int_t *info),
+		void (*ptr_copy)(const magma_int_t *n, const T *x,
+				const magma_int_t *incx, T *y, const magma_int_t *incy)) {
+	magma_int_t info;
+	char uplo = 'L';
+	magma_int_t one = 1;
+	CHECK_MAGMA(ptr_potrf(&uplo, &N, h_A, &N, &info), info)
+	CHECK_MAGMA(ptr_potri(&uplo, &N, h_A, &N, &info), info)
+	// Copy lower part to the upper
+	for (magma_int_t row = 1; row < N; row++) {
+		ptr_copy(&row, h_A + row, &N, h_A + row * N, &one);
+	}
+	return EXIT_SUCCESS;
+}
+
+template<class T> int carma_potri_cpu(carma_host_obj<T> *h_A) {
 	MAGMA_TRACE("carma_potri not implemented with this type! \n");
 	return EXIT_FAILURE;
 }
 
-template<> int carma_potri<float>(carma_host_obj<float> *h_A){
+template<> int carma_potri_cpu<float>(carma_host_obj<float> *h_A) {
 	magma_int_t N = h_A->getDims(1);
 	if (N != h_A->getDims(2)) {
 		cerr << "Matrix must be symmetric\n";
 		return EXIT_FAILURE;
 	}
-	magma_int_t info;
-	char uplo='L';
-	magma_int_t one=1;
-	CHECK_MAGMA(lapackf77_spotrf( &uplo, &N, *h_A, &N, &info ), info)
-	CHECK_MAGMA(lapackf77_spotri( &uplo, &N, *h_A, &N, &info ), info)
-	// Copy lower part to the upper
-	for(magma_int_t row=1; row<N; row++){
-		blasf77_scopy( &row, h_A->getData(row), &N, h_A->getData(row*N), &one );
+
+	return carma_potri_cpu_gen<float>(N, *h_A, lapackf77_spotrf,
+			lapackf77_spotri, blasf77_scopy);
+}
+template<> int carma_potri_cpu<double>(carma_host_obj<double> *h_A) {
+	magma_int_t N = h_A->getDims(1);
+	if (N != h_A->getDims(2)) {
+		cerr << "Matrix must be symmetric\n";
+		return EXIT_FAILURE;
 	}
+	return carma_potri_cpu_gen<double>(N, *h_A, lapackf77_dpotrf,
+			lapackf77_dpotri, blasf77_dcopy);
+}
+
+template<class T> int carma_potri_cpu(long N, T *h_A) {
+	MAGMA_TRACE("carma_potri not implemented with this type! \n");
+	return EXIT_FAILURE;
+}
+
+template<> int carma_potri_cpu<float>(long N, float *h_A) {
+	return carma_potri_cpu_gen<float>(N, h_A, lapackf77_spotrf,
+			lapackf77_spotri, blasf77_scopy);
+}
+
+template<> int carma_potri_cpu<double>(long N, double *h_A) {
+	return carma_potri_cpu_gen<double>(N, h_A, lapackf77_dpotrf,
+			lapackf77_dpotri, blasf77_dcopy);
+}
+
+template<class T> int carma_getri_cpu_gen(magma_int_t N, T *h_A,
+		void (*ptr_getrf)(const magma_int_t *m, const magma_int_t *n, T *h_A,
+				const magma_int_t *lda, magma_int_t *ipiv, magma_int_t *info),
+		void (*ptr_getri)(const magma_int_t *n, T *A, const magma_int_t *lda,
+				const magma_int_t *ipiv, T *work, const magma_int_t *lwork,
+				magma_int_t *info),
+		magma_int_t (*ptr_get_getri_nb)(magma_int_t N)) {
+	magma_int_t *ipiv;
+	magma_malloc_cpu((void**) &ipiv, N * sizeof(magma_int_t));
+
+	T *work;
+	magma_int_t lda = N;
+	magma_int_t lwork = N * ptr_get_getri_nb(N);
+	magma_malloc_cpu((void**) &work, lwork * sizeof(T));
+
+	magma_int_t info;
+	CHECK_MAGMA(ptr_getrf(&N, &N, h_A, &lda, ipiv, &info), info);
+	CHECK_MAGMA(ptr_getri(&N, h_A, &lda, ipiv, work, &lwork, &info), info);
+
+	free(work);
+	free(ipiv);
 	return EXIT_SUCCESS;
 }
-template<> int carma_potri<double>(carma_host_obj<double> *h_A){
+
+template<class T> int carma_getri_cpu(carma_host_obj<T> *h_A) {
+	MAGMA_TRACE("carma_potri not implemented with this type! \n");
+	return EXIT_FAILURE;
+}
+
+template<> int carma_getri_cpu<float>(carma_host_obj<float> *h_A) {
 	magma_int_t N = h_A->getDims(1);
 	if (N != h_A->getDims(2)) {
 		cerr << "Matrix must be symmetric\n";
 		return EXIT_FAILURE;
 	}
-	magma_int_t info;
-	char uplo='L';
-	magma_int_t one=1;
-	CHECK_MAGMA(lapackf77_dpotrf( &uplo, &N, *h_A, &N, &info ), info)
-	CHECK_MAGMA(lapackf77_dpotri( &uplo, &N, *h_A, &N, &info ), info)
-	// Copy lower part to the upper
-	for(magma_int_t row=1; row<N; row++){
-		blasf77_dcopy( &row, h_A->getData(row), &N, h_A->getData(row*N), &one );
+
+	return carma_getri_cpu_gen<float>(N, *h_A, lapackf77_sgetrf,
+			lapackf77_sgetri, magma_get_dgetri_nb);
+}
+template<> int carma_getri_cpu<double>(carma_host_obj<double> *h_A) {
+	magma_int_t N = h_A->getDims(1);
+	if (N != h_A->getDims(2)) {
+		cerr << "Matrix must be symmetric\n";
+		return EXIT_FAILURE;
 	}
-	return EXIT_SUCCESS;
+	return carma_getri_cpu_gen<double>(N, *h_A, lapackf77_dgetrf,
+			lapackf77_dgetri, magma_get_sgetri_nb);
+}
+
+template<class T> int carma_getri_cpu(long N, T *h_A) {
+	MAGMA_TRACE("carma_potri not implemented with this type! \n");
+	return EXIT_FAILURE;
+}
+
+template<> int carma_getri_cpu<float>(long N, float *h_A) {
+	return carma_getri_cpu_gen<float>(N, h_A, lapackf77_sgetrf,
+			lapackf77_sgetri, magma_get_dgetri_nb);
+}
+
+template<> int carma_getri_cpu<double>(long N, double *h_A) {
+	return carma_getri_cpu_gen<double>(N, h_A, lapackf77_dgetrf,
+			lapackf77_dgetri, magma_get_sgetri_nb);
 }
 
 template<class T>
-int carma_syevd_cpu_gen(magma_vec_t jobz, magma_int_t N, magma_int_t ldda, T *d_mat,
-		T *h_eigenvals,
+int carma_syevd_cpu_gen(magma_vec_t jobz, magma_int_t N, magma_int_t ldda,
+		T *d_mat, T *h_eigenvals,
 		void (*ptr_syevd_cpu)(const char *jobz, const char *uplo,
-				const magma_int_t *n, T *da, const magma_int_t *ldda, T *w, T *wa,
-				const magma_int_t *ldwa,
-				magma_int_t *iwork, const magma_int_t *liwork, magma_int_t *info)) {
-	DEBUG_TRACE("Here\n");
+				const magma_int_t *n, T *da, const magma_int_t *ldda, T *w,
+				T *wa, const magma_int_t *ldwa, magma_int_t *iwork,
+				const magma_int_t *liwork, magma_int_t *info)) {
 	magma_int_t *iwork;
-//	if (ldda & 31) {
-//		cerr << "Leading dimension of the matrix must be a multiple of 32\n";
-//		return EXIT_FAILURE;
-//	}
 
-	magma_int_t info = 0, liwork=-1, lda = N, aux_iwork[1];
+	magma_int_t info = 0, liwork = -1, lda = N, aux_iwork[1];
 	T *h_R;
 
 	/* Query for workspace sizes */
-	char uplo='L';
+	char uplo = 'L';
 	CHECK_MAGMA(
 			ptr_syevd_cpu(&jobz, &uplo, &N, NULL, &ldda, NULL, NULL, &lda, aux_iwork, &liwork, &info),
 			info);
@@ -581,8 +686,8 @@ int carma_syevd_cpu_gen(magma_vec_t jobz, magma_int_t N, magma_int_t ldda, T *d_
 	cudaMallocHost((void**) &h_R, (N * lda) * sizeof(T));
 
 	CHECK_MAGMA(
-			ptr_syevd_cpu(&jobz, &uplo, &N, d_mat, &ldda, h_eigenvals, h_R, &lda,
-					iwork, &liwork, &info), info);
+			ptr_syevd_cpu(&jobz, &uplo, &N, d_mat, &ldda, h_eigenvals, h_R,
+					&lda, iwork, &liwork, &info), info);
 
 	cudaFreeHost(h_R);
 	free(iwork);
@@ -590,26 +695,46 @@ int carma_syevd_cpu_gen(magma_vec_t jobz, magma_int_t N, magma_int_t ldda, T *d_
 	return EXIT_SUCCESS;
 }
 
-template<class T> int carma_syevd(char jobz, carma_host_obj<T> *h_A,
+template<class T> int carma_syevd_cpu(char jobz, carma_host_obj<T> *h_A,
 		carma_host_obj<T> *eigenvals) {
 	MAGMA_TRACE("carma_getri not implemented with this type! \n");
 	return EXIT_FAILURE;
 }
-template<> int carma_syevd<float>(char jobz, carma_host_obj<float> *h_A, carma_host_obj<float> *eigenvals){
+template<> int carma_syevd_cpu<float>(char jobz, carma_host_obj<float> *h_A,
+		carma_host_obj<float> *eigenvals) {
 	magma_int_t N = h_A->getDims(1);
 	if (N != h_A->getDims(2)) {
 		cerr << "Matrix must be symmetric\n";
 		return EXIT_FAILURE;
 	}
-	return carma_syevd_cpu_gen<float>(jobz, N, N, *h_A, *eigenvals, lapackf77_ssyevd);
+	return carma_syevd_cpu_gen<float>(jobz, N, N, *h_A, *eigenvals,
+			lapackf77_ssyevd);
 }
-template<> int carma_syevd<double>(char jobz, carma_host_obj<double> *h_A, carma_host_obj<double> *eigenvals){
+template<> int carma_syevd_cpu<double>(char jobz, carma_host_obj<double> *h_A,
+		carma_host_obj<double> *eigenvals) {
 	magma_int_t N = h_A->getDims(1);
 	if (N != h_A->getDims(2)) {
 		cerr << "Matrix must be symmetric\n";
 		return EXIT_FAILURE;
 	}
-	return carma_syevd_cpu_gen<double>(jobz, N, N, *h_A, *eigenvals, lapackf77_dsyevd);
+	return carma_syevd_cpu_gen<double>(jobz, N, N, *h_A, *eigenvals,
+			lapackf77_dsyevd);
+}
+
+template<class T> int carma_syevd_cpu(char jobz, magma_int_t N, T *h_A,
+		T *eigenvals) {
+	MAGMA_TRACE("carma_getri not implemented with this type! \n");
+	return EXIT_FAILURE;
+}
+template<> int carma_syevd_cpu<float>(char jobz, magma_int_t N, float *h_A,
+		float *eigenvals) {
+	return carma_syevd_cpu_gen<float>(jobz, N, N, h_A, eigenvals,
+			lapackf77_ssyevd);
+}
+template<> int carma_syevd_cpu<double>(char jobz, magma_int_t N, double *h_A,
+		double *eigenvals) {
+	return carma_syevd_cpu_gen<double>(jobz, N, N, h_A, eigenvals,
+			lapackf77_dsyevd);
 }
 
 #else
@@ -678,7 +803,7 @@ template<class T_data> int carma_svd(carma_host_obj<T_data> *imat, carma_host_ob
 template int carma_svd<float>(carma_host_obj<float> *imat, carma_host_obj<float> *eigenvals, carma_host_obj<float> *mod2act, carma_host_obj<float> *mes2mod);
 template int carma_svd<double>(carma_host_obj<double> *imat, carma_host_obj<double> *eigenvals, carma_host_obj<double> *mod2act, carma_host_obj<double> *mes2mod);
 
-template<class T> int carma_potri(carma_host_obj<T> *h_A){
+template<class T> int carma_potri(carma_host_obj<T> *h_A) {
 	MAGMA_TRACE("!!!!!! MAGMA not compiled !!!!!!\n");
 	return EXIT_FAILURE;
 }
