@@ -15,7 +15,7 @@ else
 	(cd yoga && cp Makefile.in Makefile && $YORICK_PATH -batch make.i) || exit
 	(cd yoga_ao && cp Makefile.in Makefile && $YORICK_PATH -batch make.i) || exit
 	
-	(cd libcarma && make clean && make -j) || exit
+	(cd libcarma && make clean && make -j12) || exit
 	(cd yoga && make clean install) || exit
 	(cd libsutra && make clean && make -j) || exit
 	(cd yoga_ao && make clean install) || exit

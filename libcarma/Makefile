@@ -11,30 +11,14 @@ LIB_NAME=libcarma.so
 SRC_CPP = $(wildcard $(CPP_DIR)/*.cpp) 
 SRC_CU  = $(wildcard $(CU_DIR)/*.cu) 
 
-OBJS := $(patsubst $(CPP_DIR)/%.cpp,$(OBJ_DIR)/%.o,$(SRC_CPP)) $(patsubst $(CU_DIR)/%.cu,$(OBJ_DIR)/%.cuo,$(SRC_CU)) 
+OBJS := $(patsubst $(CPP_DIR)/%.cpp,$(OBJ_DIR)/%.o,$(SRC_CPP)) 
+OBJS += $(patsubst $(CU_DIR)/%.cu,$(OBJ_DIR)/%.cuo,$(SRC_CU)) 
 
-LIB_DEPLIBS= -fPIC -Wall -lstdc++ -L$(CUDA_LIB_PATH_64) -lcudart -lcublas -lcufft -lcurand 
-ifneq ($(CULA_ROOT),)
- LIB_DEPLIBS += -L$(CULA_LIB_PATH_64) -lcula_lapack_basic 
- #-lcula_lapack_link -lcula_core 
-endif
-ifneq ($(MAGMA_ROOT),)
- LIB_DEPLIBS += -L$(MAGMA_ROOT)/lib -lmagma 
- #LIB_DEPLIBS += -DADD_ -DGPUSHMEM=130 -Xlinker -zmuldefs
-endif
+LIB_DEPLIBS  = -fPIC -Wall -lstdc++ 
+LIB_DEPLIBS += -L$(CUDA_LIB_PATH_64) -lcudart -lcublas -lcufft -lcurand 
 
 # set compiler (or rarely loader) flags specific to this package
-#LIB_CPPFLAGS= -Wall -g -O3 -DUNIX -DADD_ -DGPUSHMEM=130 -fPIC -Xlinker -zmuldefs -fno-common -I$(H_DIR) -I/usr/local/cuda/include 
-LIB_CPPFLAGS= -c -fPIC -Wall -fno-common -I$(H_DIR) -I$(CUDA_INC_PATH) -DUNIX
-ifneq ($(DEBUG),)
-LIB_CPPFLAGS+= -O0 -g -DDEBUG
-endif
-ifneq ($(CULA_ROOT),)
- LIB_CPPFLAGS += -I$(CULA_INC_PATH) -DUSE_CULA
-endif
-ifneq ($(MAGMA_ROOT),)
- LIB_CPPFLAGS +=-I$(MAGMA_ROOT)/include -DUSE_MAGMA -DHAVE_CUBLAS -DADD_ -DMAGMA_SETAFFINITY #-DMAGMA_ILP64
-endif
+LIB_CPPFLAGS = -c -fPIC -Wall -fno-common -I$(H_DIR) -I$(CUDA_INC_PATH)
 
 # ------------------------------------- targets and rules for this package
 # color for printf
@@ -49,7 +33,9 @@ endif
 GCC = gcc
 
 NVCC = $(CUDA_ROOT)/bin/nvcc
-NVCCFLAGS = -m64 -Xcompiler -fPIC -c --compiler-options -I$(CUH_DIR)  -I$(H_DIR) -I$(Y_MAKEDIR)/include -gencode $(GENCODE)
+LIB_NVCCFLAGS  = -m64 -Xcompiler -fPIC -c --compiler-options 
+LIB_NVCCFLAGS += -I$(CUH_DIR)  -I$(H_DIR) -I$(Y_MAKEDIR)/include
+LIB_NVCCFLAGS += -gencode $(GENCODE)
 
 #-gencode arch=compute_11,code=sm_11 -gencode arch=compute_13,code=sm_13 
 #-gencode arch=compute_20,code=sm_20 -gencode arch=compute_30,code=sm_30 
@@ -57,13 +43,23 @@ NVCCFLAGS = -m64 -Xcompiler -fPIC -c --compiler-options -I$(CUH_DIR)  -I$(H_DIR)
 
 # --ptxas-options=-v # #-arch sm_13 -fpermissive 
 ifneq ($(DEBUG),)
-NVCCFLAGS+= -g -G -lineinfo -DDEBUG
+ LIB_CPPFLAGS  += -O0 -g -DDEBUG
+ LIB_NVCCFLAGS += -g -G -lineinfo -DDEBUG
 endif
 ifneq ($(CULA_ROOT),)
- NVCCFLAGS += -I$(CULA_INC_PATH) -DUSE_CULA
+ LIB_CPPFLAGS  += -I$(CULA_INC_PATH) -DUSE_CULA
+ LIB_NVCCFLAGS += -I$(CULA_INC_PATH) -DUSE_CULA
+ LIB_DEPLIBS   += -L$(CULA_LIB_PATH_64) -lcula_lapack_basic 
 endif
 ifneq ($(MAGMA_ROOT),)
- NVCCFLAGS += -DADD_ -DUSE_MAGMA -I$(MAGMA_ROOT)/include -Xcompiler -fno-strict-aliasing
+ #use the same keyword as in make.inc
+ LIB_CPPFLAGS  += -I$(MAGMA_ROOT)/include -DUSE_MAGMA -DUSE_MAGMA_WITH_MKL
+ LIB_CPPFLAGS  += -DADD_ -DHAVE_CUBLAS -DMAGMA_SETAFFINITY -DMAGMA_ILP64 -DMKL_ILP64
+ LIB_NVCCFLAGS += -I$(MAGMA_ROOT)/include -DUSE_MAGMA -DADD_
+ LIB_NVCCFLAGS += -Xcompiler -fno-strict-aliasing
+ LIB_DEPLIBS   += -L$(MAGMA_ROOT)/lib -lmagma 
+# LIB_DEPLIBS   += -openmp -lmkl_intel_ilp64 -lmkl_core -lmkl_intel_thread 
+# LIB_DEPLIBS   += -lpthread 
 endif
 
 all: $(LIB_NAME)
@@ -73,7 +69,7 @@ clean:
 
 $(OBJ_DIR)/%.cuo: $(CU_DIR)/%.cu
 	@printf '\033[36m%s\033[31m%s\033[m\n' "Compiling     " $@
-	@$(NVCC) $(NVCCFLAGS) -o $@ $< 
+	@$(NVCC) $(LIB_NVCCFLAGS) -o $@ $< 
 
 $(OBJ_DIR)/%.o: $(CPP_DIR)/%.cpp
 	@printf '\033[36m%s\033[31m%s\033[m\n' "Compiling     " $@

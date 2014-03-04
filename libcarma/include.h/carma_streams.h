@@ -37,7 +37,8 @@ public:
 	cudaEvent_t get_event(int stream);
 	cudaStream_t operator[](int idx) {
 		return get_stream(idx);
-	};
+	}
+	;
 
 	int get_nbStreams();
 	int add_stream();

@@ -1,448 +1,384 @@
 #include <sutra_ao_utils.h>
 
-unsigned int nextPow2( unsigned int x ) {
-    --x;
-    x |= x >> 1;
-    x |= x >> 2;
-    x |= x >> 4;
-    x |= x >> 8;
-    x |= x >> 16;
-    return ++x;
+unsigned int nextPow2(unsigned int x) {
+	--x;
+	x |= x >> 1;
+	x |= x >> 2;
+	x |= x >> 4;
+	x |= x >> 8;
+	x |= x >> 16;
+	return ++x;
 }
 
-void getNumBlocksAndThreads(int device, int n, int &blocks, int &threads)
-{
-  
-  struct cudaDeviceProp deviceProperties;
-  cudaGetDeviceProperties(&deviceProperties, device);
-  
-  int maxThreads = deviceProperties.maxThreadsPerBlock;
-  blocks = deviceProperties.multiProcessorCount*8;
-  threads = (n + blocks  -1)/blocks;
+__global__ void cfillrealp_krnl(cuFloatComplex *odata, float *idata, int N) {
 
-  if (threads > maxThreads) {
-    threads = maxThreads;
-    blocks = (n + threads  -1)/threads;
-  }
+	int tid = threadIdx.x + blockIdx.x * blockDim.x;
 
-   /*
-   struct cudaDeviceProp deviceProperties;
-    cudaGetDeviceProperties(&deviceProperties, device);
-    
-    int maxThreads = deviceProperties.maxThreadsPerBlock/2;
-    
-    threads = (n < maxThreads) ? nextPow2(n/deviceProperties.multiProcessorCount) : maxThreads;
-    blocks = (n + (threads - 1)) / (threads);
-   */
-    //blocks = deviceProperties.multiProcessorCount*8;
-    //threads = (n + blocks -1)/blocks;
-    /*
-    if (threads > maxThreads) {
-    threads = maxThreads;
-    blocks = (n + threads  -1)/threads;
-    }
-    */
-    /*
-
-  struct cudaDeviceProp deviceProperties;
-
-  cudaGetDeviceProperties(&deviceProperties, device);
-    
-  int maxThreads = deviceProperties.maxThreadsPerBlock;
-  int maxBlocks = deviceProperties.multiProcessorCount;
-
-  threads = (n < maxThreads) ? nextPow2((n + 1)/ 2) : maxThreads;
-  blocks = (n + (threads - 1)) / (threads);
-  blocks = MIN(maxBlocks, blocks);
-    */
+	while (tid < N) {
+		odata[tid].x = idata[tid];
+		tid += blockDim.x * gridDim.x;
+	}
 }
 
-__global__ void cfillrealp_krnl(cuFloatComplex *odata, float *idata, int N)
-{
+int cfillrealp(cuFloatComplex *d_odata, float *d_idata, int N, int device) {
 
-  int tid = threadIdx.x + blockIdx.x * blockDim.x;
+	int nthreads = 0, nblocks = 0;
+	getNumBlocksAndThreads(device, N, nblocks, nthreads);
 
-  while (tid < N) {
-    odata[tid].x = idata[tid];
-    tid += blockDim.x * gridDim.x;
-  }
+	dim3 grid(nblocks), threads(nthreads);
+
+	cfillrealp_krnl<<<grid, threads>>>(d_odata, d_idata, N);
+
+	cutilCheckMsg("cfillrealp_kernel<<<>>> execution failed\n");
+	return EXIT_SUCCESS;
 }
 
-int cfillrealp(cuFloatComplex *d_odata,float *d_idata,int N,int device)
-{
+__global__ void cgetrealp_krnl(float *odata, cuFloatComplex *idata, int N) {
 
-  int nthreads = 0,nblocks = 0;
-  getNumBlocksAndThreads(device, N, nblocks, nthreads);
+	int tid = threadIdx.x + blockIdx.x * blockDim.x;
 
-  dim3 grid(nblocks), threads(nthreads);
-
-  cfillrealp_krnl<<<grid, threads>>>(d_odata, d_idata, N);
-
-  cutilCheckMsg("cfillrealp_kernel<<<>>> execution failed\n");
-   return EXIT_SUCCESS;
+	while (tid < N) {
+		odata[tid] = idata[tid].x;
+		tid += blockDim.x * gridDim.x;
+	}
 }
 
+int cgetrealp(float *d_odata, cuFloatComplex *d_idata, int N, int device) {
 
-__global__ void cgetrealp_krnl(float *odata, cuFloatComplex *idata, int N)
-{
+	int nthreads = 0, nblocks = 0;
+	getNumBlocksAndThreads(device, N, nblocks, nthreads);
 
-  int tid = threadIdx.x + blockIdx.x * blockDim.x;
+	dim3 grid(nblocks), threads(nthreads);
 
-  while (tid < N) {
-    odata[tid] = idata[tid].x;
-    tid += blockDim.x * gridDim.x;
-  }
+	cgetrealp_krnl<<<grid, threads>>>(d_odata, d_idata, N);
+
+	cutilCheckMsg("cgetrealp_kernel<<<>>> execution failed\n");
+	return EXIT_SUCCESS;
 }
 
-int cgetrealp(float *d_odata,cuFloatComplex *d_idata,int N,int device)
-{
+__global__ void abs2_krnl(float *odata, cuFloatComplex *idata, int N) {
+	__shared__ cuFloatComplex cache;
 
-  int nthreads = 0,nblocks = 0;
-  getNumBlocksAndThreads(device, N, nblocks, nthreads);
+	int tid = threadIdx.x + blockIdx.x * blockDim.x;
 
-  dim3 grid(nblocks), threads(nthreads);
-
-  cgetrealp_krnl<<<grid, threads>>>(d_odata, d_idata, N);
-
-  cutilCheckMsg("cgetrealp_kernel<<<>>> execution failed\n");
-   return EXIT_SUCCESS;
+	if (tid < N) {
+		cache = idata[tid];
+		odata[tid] = cache.x * cache.x + cache.y * cache.y;
+	}
 }
 
+int abs2(float *d_odata, cuFloatComplex *d_idata, int N, int device) {
+	int nthreads = 0, nblocks = 0;
+	getNumBlocksAndThreads(device, N, nblocks, nthreads);
 
-__global__ void abs2_krnl(float *odata, cuFloatComplex *idata, int N)
-{
-  __shared__ cuFloatComplex cache;
+	dim3 grid(nblocks), threads(nthreads);
 
-  int tid   = threadIdx.x + blockIdx.x * blockDim.x;
+	abs2_krnl<<<grid, threads>>>(d_odata, d_idata, N);
+	cutilCheckMsg("abs2_kernel<<<>>> execution failed\n");
 
-  if (tid < N) {
-    cache = idata[tid];
-    odata[tid] = cache.x *cache.x +cache.y *cache.y;
-  } 
+	return EXIT_SUCCESS;
 }
 
+__global__ void abs2c_krnl(cuFloatComplex *odata, cuFloatComplex *idata,
+		int N) {
+	__shared__ cuFloatComplex cache;
+	int tid = threadIdx.x + blockIdx.x * blockDim.x;
 
-int abs2(float *d_odata, cuFloatComplex *d_idata, int N, int device)
-{
-  int nthreads = 0,nblocks = 0;
-  getNumBlocksAndThreads(device, N, nblocks, nthreads);
-
-  dim3 grid(nblocks), threads(nthreads);
-
-  abs2_krnl<<<grid, threads>>>(d_odata,d_idata,N);
-  cutilCheckMsg("abs2_kernel<<<>>> execution failed\n");
-
-  return EXIT_SUCCESS;
+	if (tid < N) {
+		cache = idata[tid];
+		odata[tid].x = cache.x * cache.x + cache.y * cache.y;
+		odata[tid].y = 0.0;
+	}
 }
 
-__global__ void abs2c_krnl(cuFloatComplex *odata, cuFloatComplex *idata, int N)
-{
-  __shared__ cuFloatComplex cache;
-  int tid   = threadIdx.x + blockIdx.x * blockDim.x;
+int abs2c(cuFloatComplex *d_odata, cuFloatComplex *d_idata, int N, int device) {
+	int nthreads = 0, nblocks = 0;
+	getNumBlocksAndThreads(device, N, nblocks, nthreads);
 
+	dim3 grid(nblocks), threads(nthreads);
 
-  if (tid < N) {
-    cache = idata[tid];
-    odata[tid].x = cache.x *cache.x +cache.y *cache.y;
-    odata[tid].y = 0.0;
-  } 
+	abs2c_krnl<<<grid, threads>>>(d_odata, d_idata, N);
+	cutilCheckMsg("abs2c_kernel<<<>>> execution failed\n");
+
+	return EXIT_SUCCESS;
 }
 
+__global__ void subapnorm_krnl(float *odata, float *idata, float *fact,
+		float *norm, float nphot, int n, int N) {
 
-int abs2c(cuFloatComplex *d_odata, cuFloatComplex *d_idata, int N, int device)
-{
-  int nthreads = 0,nblocks = 0;
-  getNumBlocksAndThreads(device, N, nblocks, nthreads);
+	int tid = threadIdx.x + blockIdx.x * blockDim.x;
 
-  dim3 grid(nblocks), threads(nthreads);
-
-  abs2c_krnl<<<grid, threads>>>(d_odata,d_idata,N);
-  cutilCheckMsg("abs2c_kernel<<<>>> execution failed\n");
-
-  return EXIT_SUCCESS;
+	while (tid < N) {
+		odata[tid] = idata[tid] * fact[tid / n] / norm[tid / n] * nphot;
+		tid += blockDim.x * gridDim.x;
+	}
 }
 
+int subap_norm(float *d_odata, float *d_idata, float *fact, float *norm,
+		float nphot, int n, int N, int device) {
+	int nthreads = 0, nblocks = 0;
+	getNumBlocksAndThreads(device, N, nblocks, nthreads);
 
-__global__ void subapnorm_krnl(float *odata, float *idata, float *fact, float *norm, float nphot,int n, int N)
-{
+	dim3 grid(nblocks), threads(nthreads);
 
-  int tid = threadIdx.x + blockIdx.x * blockDim.x;
+	subapnorm_krnl<<<grid, threads>>>(d_odata, d_idata, fact, norm, nphot, n,
+			N);
+	cutilCheckMsg("subapnorm_kernel<<<>>> execution failed\n");
 
-  while (tid < N) {
-    odata[tid] = idata[tid] * fact[tid/n] / norm[tid/n] * nphot;
-    tid += blockDim.x * gridDim.x;
-  }
+	return EXIT_SUCCESS;
 }
 
-int subap_norm(float *d_odata,float *d_idata,float *fact,float *norm,float nphot,int n, int N,int device)
-{
-  int nthreads = 0,nblocks = 0;
-  getNumBlocksAndThreads(device, N, nblocks, nthreads);
+__global__ void subapnormasync_krnl(float *odata, float *idata, float *fact,
+		float *norm, float nphot, int n, int N, int istart) {
 
-  dim3 grid(nblocks), threads(nthreads);
-
-  subapnorm_krnl<<<grid, threads>>>(d_odata, d_idata, fact, norm, nphot, n, N);
-    cutilCheckMsg("subapnorm_kernel<<<>>> execution failed\n");
-
-   return EXIT_SUCCESS;
+	int tid = threadIdx.x + blockIdx.x * blockDim.x;
+	tid += istart;
+	if (tid < N) {
+		odata[tid] = idata[tid] * fact[tid / n] / norm[tid / n] * nphot;
+	}
 }
 
+int subap_norm_async(float *d_odata, float *d_idata, float *fact, float *norm,
+		float nphot, int n, int N, carma_streams *streams, int device) {
+	int nthreads = 0, nblocks = 0;
+	int nstreams = streams->get_nbStreams();
+	getNumBlocksAndThreads(device, N / nstreams, nblocks, nthreads);
 
-__global__ void subapnormasync_krnl(float *odata, float *idata, float *fact, float *norm, float nphot,int n, int N, int istart)
-{
+	dim3 grid(nblocks), threads(nthreads);
 
-  int tid = threadIdx.x + blockIdx.x * blockDim.x;
-  tid += istart;
-  if (tid < N) {
-    odata[tid] = idata[tid] * fact[tid/n] / norm[tid/n] * nphot;
-  }
+	for (int i = 0; i < nstreams; i++) {
+		subapnormasync_krnl<<<grid, threads, 0, streams->get_stream(i)>>>(
+				d_odata, d_idata, fact, norm, nphot, n, N,
+				i * nblocks * nthreads);
+		cutilCheckMsg("subapnormasync_kernel<<<>>> execution failed\n");
+	}
+
+	return EXIT_SUCCESS;
 }
 
-int subap_norm_async(float *d_odata,float *d_idata,float *fact,float *norm,float nphot,int n, int N,carma_streams *streams, int device)
-{
-  int nthreads = 0,nblocks = 0;
-  int nstreams = streams->get_nbStreams();
-  getNumBlocksAndThreads(device, N/nstreams, nblocks, nthreads);
+__global__ void krnl_fillindx(float *odata, float *idata, int *indx,
+		float alpha, float beta, int N) {
 
-  dim3 grid(nblocks), threads(nthreads);
+	int tid = threadIdx.x + blockIdx.x * blockDim.x;
 
-  for(int i = 0; i < nstreams; i++) {
-    subapnormasync_krnl<<<grid, threads, 0, streams->get_stream(i) >>>(d_odata, d_idata, fact, norm, nphot, n, N, i*nblocks*nthreads);
-    cutilCheckMsg("subapnormasync_kernel<<<>>> execution failed\n");
-  }
-
-  return EXIT_SUCCESS;
+	while (tid < N) {
+		odata[tid] = (alpha * idata[indx[tid]]) + beta;
+		tid += blockDim.x * gridDim.x;
+	}
 }
 
+int fillindx(float *d_odata, float *d_idata, int *indx, float alpha, float beta,
+		int N, int device) {
+	int nthreads = 0, nblocks = 0;
+	getNumBlocksAndThreads(device, N, nblocks, nthreads);
 
-__global__ void krnl_fillindx(float *odata, float *idata, int *indx, float alpha, float beta, int N)
-{
+	dim3 grid(nblocks), threads(nthreads);
 
-  int tid = threadIdx.x + blockIdx.x * blockDim.x;
+	krnl_fillindx<<<grid, threads>>>(d_odata, d_idata, indx, alpha, beta, N);
 
-  while (tid < N) {
-    odata[tid] = (alpha * idata[indx[tid]]) + beta;
-    tid += blockDim.x * gridDim.x;
-  }
+	cutilCheckMsg("fillindx_kernel<<<>>> execution failed\n");
+
+	return EXIT_SUCCESS;
 }
 
-int fillindx(float *d_odata,float *d_idata,int *indx, float alpha, float beta, int N, int device)
-{
-  int nthreads = 0,nblocks = 0;
-  getNumBlocksAndThreads(device, N, nblocks, nthreads);
-
-  dim3 grid(nblocks), threads(nthreads);
-
-  krnl_fillindx<<<grid, threads>>>(d_odata, d_idata,indx, alpha, beta, N);
-
-  cutilCheckMsg("fillindx_kernel<<<>>> execution failed\n");
-
-  return EXIT_SUCCESS;
-}
-
-int fillindx(float *d_odata,float *d_idata,int *indx, int N, int device)
-{
-  return fillindx(d_odata,d_idata,indx,1.0f,0.0f,N,device);
+int fillindx(float *d_odata, float *d_idata, int *indx, int N, int device) {
+	return fillindx(d_odata, d_idata, indx, 1.0f, 0.0f, N, device);
 
 }
-int fillindx(float *d_odata,float *d_idata,int *indx, float alpha, int N, int device)
-{
-  return fillindx(d_odata,d_idata,indx,alpha,0.0f,N,device);
+int fillindx(float *d_odata, float *d_idata, int *indx, float alpha, int N,
+		int device) {
+	return fillindx(d_odata, d_idata, indx, alpha, 0.0f, N, device);
 
 }
-__global__ void fillarr2d_krnl(float *odata, float *idata, int tidx0, int Ncol,int NC, int N)
-{
+__global__ void fillarr2d_krnl(float *odata, float *idata, int tidx0, int Ncol,
+		int NC, int N) {
 
-  int tid = threadIdx.x + blockIdx.x * blockDim.x;
-  int tidB;
+	int tid = threadIdx.x + blockIdx.x * blockDim.x;
+	int tidB;
 
-  while (tid < N) {
-    if (Ncol > 1) tidB = tidx0 + (tid/Ncol)*NC + (tid%Ncol);
-    else tidB = tidx0 + tid*NC;
-    odata[tidB] = idata[tid];
-    tid += blockDim.x * gridDim.x;
-  }
+	while (tid < N) {
+		if (Ncol > 1)
+			tidB = tidx0 + (tid / Ncol) * NC + (tid % Ncol);
+		else
+			tidB = tidx0 + tid * NC;
+		odata[tidB] = idata[tid];
+		tid += blockDim.x * gridDim.x;
+	}
 }
 
-int fillarr2d(float *d_odata,float *d_idata,int x0, int Ncol,int NC, int N,int device)
-{
-  int nthreads = 0,nblocks = 0;
-  getNumBlocksAndThreads(device, N, nblocks, nthreads);
+int fillarr2d(float *d_odata, float *d_idata, int x0, int Ncol, int NC, int N,
+		int device) {
+	int nthreads = 0, nblocks = 0;
+	getNumBlocksAndThreads(device, N, nblocks, nthreads);
 
-  dim3 grid(nblocks), threads(nthreads);
+	dim3 grid(nblocks), threads(nthreads);
 
-  fillarr2d_krnl<<<grid, threads>>>(d_odata, d_idata, x0, Ncol,NC,N);
+	fillarr2d_krnl<<<grid, threads>>>(d_odata, d_idata, x0, Ncol, NC, N);
 
-  cutilCheckMsg("fillarr2d_kernel<<<>>> execution failed\n");
+	cutilCheckMsg("fillarr2d_kernel<<<>>> execution failed\n");
 
-   return EXIT_SUCCESS;
+	return EXIT_SUCCESS;
 }
 
-__global__ void getarr2d_krnl(float *odata, float *idata, int tidx0, int Ncol,int NC, int N)
-{
+__global__ void getarr2d_krnl(float *odata, float *idata, int tidx0, int Ncol,
+		int NC, int N) {
 
-  int tid = threadIdx.x + blockIdx.x * blockDim.x;
-  int tidB;
+	int tid = threadIdx.x + blockIdx.x * blockDim.x;
+	int tidB;
 
-  while (tid < N) {
-    if (Ncol > 1) tidB = tidx0 + (tid/Ncol)*NC + (tid%Ncol);
-    else tidB = tidx0 + tid*NC;
-    odata[tid] = idata[tidB];
-    tid += blockDim.x * gridDim.x;
-  }
+	while (tid < N) {
+		if (Ncol > 1)
+			tidB = tidx0 + (tid / Ncol) * NC + (tid % Ncol);
+		else
+			tidB = tidx0 + tid * NC;
+		odata[tid] = idata[tidB];
+		tid += blockDim.x * gridDim.x;
+	}
 }
 
-int getarr2d(float *d_odata,float *d_idata,int x0, int Ncol,int NC, int N, int device)
-{
-  int nthreads = 0,nblocks = 0;
-  getNumBlocksAndThreads(device, N, nblocks, nthreads);
+int getarr2d(float *d_odata, float *d_idata, int x0, int Ncol, int NC, int N,
+		int device) {
+	int nthreads = 0, nblocks = 0;
+	getNumBlocksAndThreads(device, N, nblocks, nthreads);
 
-  dim3 grid(nblocks), threads(nthreads);
+	dim3 grid(nblocks), threads(nthreads);
 
-  getarr2d_krnl<<<grid, threads>>>(d_odata, d_idata, x0, Ncol,NC,N);
+	getarr2d_krnl<<<grid, threads>>>(d_odata, d_idata, x0, Ncol, NC, N);
 
-  cutilCheckMsg("getarr2d_kernel<<<>>> execution failed\n");
+	cutilCheckMsg("getarr2d_kernel<<<>>> execution failed\n");
 
-   return EXIT_SUCCESS;
+	return EXIT_SUCCESS;
 }
 
-__global__ void addai_krnl(float *odata, float* idata, int i, int sgn, int N)
-{
+__global__ void addai_krnl(float *odata, float* idata, int i, int sgn, int N) {
 
-  int tid = threadIdx.x + blockIdx.x * blockDim.x;
+	int tid = threadIdx.x + blockIdx.x * blockDim.x;
 
-  while (tid < N) {
-    if (sgn == 1) odata[tid] += idata[i];
-    else odata[tid] -= idata[i];
-    tid += blockDim.x * gridDim.x;
-  }
+	while (tid < N) {
+		if (sgn == 1)
+			odata[tid] += idata[i];
+		else
+			odata[tid] -= idata[i];
+		tid += blockDim.x * gridDim.x;
+	}
 }
 
-int addai(float *d_odata,float *i_data, int i,int sgn, int N, int device)
-{
-  int nthreads = 0,nblocks = 0;
-  getNumBlocksAndThreads(device, N, nblocks, nthreads);
+int addai(float *d_odata, float *i_data, int i, int sgn, int N, int device) {
+	int nthreads = 0, nblocks = 0;
+	getNumBlocksAndThreads(device, N, nblocks, nthreads);
 
-  dim3 grid(nblocks), threads(nthreads);
+	dim3 grid(nblocks), threads(nthreads);
 
-  addai_krnl<<<grid, threads>>>(d_odata, i_data, i, sgn, N);
+	addai_krnl<<<grid, threads>>>(d_odata, i_data, i, sgn, N);
 
-  cutilCheckMsg("plusai_kernel<<<>>> execution failed\n");
+	cutilCheckMsg("plusai_kernel<<<>>> execution failed\n");
 
-  return EXIT_SUCCESS;
+	return EXIT_SUCCESS;
 }
 
+template<class T> __global__ void roll_krnl(T *idata, int N, int M, int Ntot) {
 
-template<class T> __global__ void roll_krnl(T *idata,int N,int  M,int Ntot)
-{
+	int tidt = threadIdx.x + blockIdx.x * blockDim.x;
+	int nim = tidt / Ntot;
 
-  int tidt = threadIdx.x + blockIdx.x * blockDim.x;
-  int nim  = tidt / Ntot;
+	int tid = tidt - nim * Ntot;
 
-  int tid = tidt - nim * Ntot;
+	while (tid < Ntot) {
 
-  while (tid < Ntot) {
-   
-    
-   int x=tid%N;
-   int y=tid/N;
+		int x = tid % N;
+		int y = tid / N;
 
-   int  xx=(x+N/2)%N;
-   int  yy=(y+M/2)%M;
-   int  tid2=xx+yy*N;
+		int xx = (x + N / 2) % N;
+		int yy = (y + M / 2) % M;
+		int tid2 = xx + yy * N;
 
-   __shared__ T tmp;
-   tmp=idata[tid + nim * (N*M)];
-   idata[tid + nim * (N*M)]=idata[tid2 + nim * (N*M)];
-   idata[tid2 + nim * (N*M)]=tmp;
+		__shared__ T tmp;
+		tmp = idata[tid + nim * (N * M)];
+		idata[tid + nim * (N * M)] = idata[tid2 + nim * (N * M)];
+		idata[tid2 + nim * (N * M)] = tmp;
 
-    tid += blockDim.x * gridDim.x;
-  }
+		tid += blockDim.x * gridDim.x;
+	}
 }
 
-template<class T> int roll(T *idata,int N,int M,int nim)
-{
+template<class T> int roll(T *idata, int N, int M, int nim) {
 
-  struct cudaDeviceProp deviceProperties;
-  cudaGetDeviceProperties(&deviceProperties, 0);
-    
-  long Ntot = N * M * nim;
-  int maxThreads = deviceProperties.maxThreadsPerBlock;
-  int nBlocks = deviceProperties.multiProcessorCount*8;
-  int nThreads = (Ntot/2 + nBlocks -1)/nBlocks;
+	struct cudaDeviceProp deviceProperties;
+	cudaGetDeviceProperties(&deviceProperties, 0);
 
-  if (nThreads > maxThreads) {
-    nThreads = maxThreads;
-    nBlocks = (Ntot/2 + nThreads -1)/nThreads;
-  }
+	long Ntot = N * M * nim;
+	int maxThreads = deviceProperties.maxThreadsPerBlock;
+	int nBlocks = deviceProperties.multiProcessorCount * 8;
+	int nThreads = (Ntot / 2 + nBlocks - 1) / nBlocks;
 
-  dim3 grid(nBlocks), threads(nThreads);
+	if (nThreads > maxThreads) {
+		nThreads = maxThreads;
+		nBlocks = (Ntot / 2 + nThreads - 1) / nThreads;
+	}
 
-  roll_krnl<<<grid, threads>>>(idata,N,M,Ntot/2);
+	dim3 grid(nBlocks), threads(nThreads);
 
-  cutilCheckMsg("roll_kernel<<<>>> execution failed\n");
-  return EXIT_SUCCESS;
+	roll_krnl<<<grid, threads>>>(idata, N, M, Ntot / 2);
+
+	cutilCheckMsg("roll_kernel<<<>>> execution failed\n");
+	return EXIT_SUCCESS;
 
 }
 
-template int roll<float>(float *idata,int N,int M,int nim);
+template int roll<float>(float *idata, int N, int M, int nim);
 
-template int roll<double>(double *idata,int N,int M,int nim);
+template int roll<double>(double *idata, int N, int M, int nim);
 
-template int roll<cuFloatComplex>(cuFloatComplex *idata,int N,int M,int nim);
+template int roll<cuFloatComplex>(cuFloatComplex *idata, int N, int M, int nim);
 
+template<class T> __global__ void roll_krnl(T *idata, int N, int M) {
 
-template<class T> __global__ void roll_krnl(T *idata,int N,int  M)
-{
+	int tid = threadIdx.x + blockIdx.x * blockDim.x;
 
-  int tid = threadIdx.x + blockIdx.x * blockDim.x;
+	while (tid < (N * M / 2)) {
+		int x = tid % N;
+		int y = tid / N;
 
-  while (tid < (N*M/2)) {
-    int x=tid%N;
-    int y=tid/N;
-    
-    int  xx=(x+N/2)%N;
-    int  yy=(y+M/2)%M;
-    int  tid2=xx+yy*N;
-    
-    __shared__ T tmp;
-    tmp         = idata[tid];
-    idata[tid]  = idata[tid2];
-    idata[tid2] = tmp;
-    
-    tid += blockDim.x * gridDim.x;
-  }
+		int xx = (x + N / 2) % N;
+		int yy = (y + M / 2) % M;
+		int tid2 = xx + yy * N;
+
+		__shared__ T tmp;
+		tmp = idata[tid];
+		idata[tid] = idata[tid2];
+		idata[tid2] = tmp;
+
+		tid += blockDim.x * gridDim.x;
+	}
 }
 
-template<class T> int roll(T *idata,int N,int M)
-{
+template<class T> int roll(T *idata, int N, int M) {
 
-  struct cudaDeviceProp deviceProperties;
-  cudaGetDeviceProperties(&deviceProperties, 0);
-    
-  long Ntot = N * M;
-  int maxThreads = deviceProperties.maxThreadsPerBlock;
-  int nBlocks = deviceProperties.multiProcessorCount*8;
-  int nThreads = (Ntot/2 + nBlocks -1)/nBlocks;
+	struct cudaDeviceProp deviceProperties;
+	cudaGetDeviceProperties(&deviceProperties, 0);
 
-  if (nThreads > maxThreads) {
-    nThreads = maxThreads;
-    nBlocks = (Ntot/2 + nThreads -1)/nThreads;
-  }
+	long Ntot = N * M;
+	int maxThreads = deviceProperties.maxThreadsPerBlock;
+	int nBlocks = deviceProperties.multiProcessorCount * 8;
+	int nThreads = (Ntot / 2 + nBlocks - 1) / nBlocks;
 
-  dim3 grid(nBlocks), threads(nThreads);
+	if (nThreads > maxThreads) {
+		nThreads = maxThreads;
+		nBlocks = (Ntot / 2 + nThreads - 1) / nThreads;
+	}
 
-  roll_krnl<<<grid, threads>>>(idata,N,M);
+	dim3 grid(nBlocks), threads(nThreads);
 
-  cutilCheckMsg("roll_kernel<<<>>> execution failed\n");
-  return EXIT_SUCCESS;
+	roll_krnl<<<grid, threads>>>(idata, N, M);
+
+	cutilCheckMsg("roll_kernel<<<>>> execution failed\n");
+	return EXIT_SUCCESS;
 
 }
 
-template int roll<float>(float *idata,int N,int M);
+template int roll<float>(float *idata, int N, int M);
 
-template int roll<double>(double *idata,int N,int M);
+template int roll<double>(double *idata, int N, int M);
 
-template int roll<cuFloatComplex>(cuFloatComplex *idata,int N,int M);
-
+template int roll<cuFloatComplex>(cuFloatComplex *idata, int N, int M);
 

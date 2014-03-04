@@ -15,18 +15,18 @@
 using namespace std;
 
 class sutra_phase {
- public:
+public:
 
-  carma_obj<float>  *d_screen;     
-  long              screen_size;
-  float             *zerCoeff;
-  carma_obj<float>  *zernikes;     
-  carma_obj<float>  *mat;     
+	carma_obj<float> *d_screen;
+	long screen_size;
+	float *zerCoeff;
+	carma_obj<float> *zernikes;
+	carma_obj<float> *mat;
 
- public:
-  sutra_phase(carma_context *current_context, long size);
-  sutra_phase(const sutra_phase& phase);
-  ~sutra_phase();
+public:
+	sutra_phase(carma_context *current_context, long size);
+	sutra_phase(const sutra_phase& phase);
+	~sutra_phase();
 
 };
 

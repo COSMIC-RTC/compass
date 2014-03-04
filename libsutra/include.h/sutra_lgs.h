@@ -8,56 +8,61 @@
 using namespace std;
 
 class sutra_lgs {
- public:
-  long                     nvalid;
-  long                     npix;
-  long                     nmaxhr;
-  float                    hg;
-  float                    h0;
-  float                    deltah;
-  float                    pixsize;
-  long                     nprof;
+public:
+	long nvalid;
+	long npix;
+	long nmaxhr;
+	float hg;
+	float h0;
+	float deltah;
+	float pixsize;
+	long nprof;
 
-  carma_obj<float>          *d_doffaxis;
-  carma_obj<float>          *d_azimuth;
-  carma_obj<float>          *d_prof1d;
-  carma_obj<float>          *d_profcum;
-  carma_obj<cuFloatComplex> *d_prof2d;
-  carma_obj<float>          *d_beam;
-  carma_obj<cuFloatComplex> *d_ftbeam;
-  carma_obj<float>          *d_lgskern;
-  carma_obj<cuFloatComplex> *d_ftlgskern;
- 
-  carma_context *current_context;
-  /*
-  cudaArray                *d_spotarray;
-  cudaChannelFormatDesc    channelDesc;
-  cudaMemcpy3DParms        copyParams;
-  */
+	carma_obj<float> *d_doffaxis;
+	carma_obj<float> *d_azimuth;
+	carma_obj<float> *d_prof1d;
+	carma_obj<float> *d_profcum;
+	carma_obj<cuFloatComplex> *d_prof2d;
+	carma_obj<float> *d_beam;
+	carma_obj<cuFloatComplex> *d_ftbeam;
+	carma_obj<float> *d_lgskern;
+	carma_obj<cuFloatComplex> *d_ftlgskern;
 
- public:
-  sutra_lgs(carma_context *context, long nvalid, long npix, long nmaxhr);
-  sutra_lgs(const sutra_lgs& lgs);
-  ~sutra_lgs();
+	carma_context *current_context;
+	/*
+	 cudaArray                *d_spotarray;
+	 cudaChannelFormatDesc    channelDesc;
+	 cudaMemcpy3DParms        copyParams;
+	 */
 
-  int lgs_init(int nprof, float hg, float h0, float deltah, float pixsie, float *doffaxis, float *prof1d,
-	       float *profcum, float *beam, cuFloatComplex *ftbeam,float* azimuth);
-  int load_prof(float *prof1d,float *profcum,float hg, float h0, float deltah);
-  int lgs_update(int device);
-  int lgs_makespot(int device, int nin);
-  int load_kernels(float *lgskern, int device);
+public:
+	sutra_lgs(carma_context *context, long nvalid, long npix, long nmaxhr);
+	sutra_lgs(const sutra_lgs& lgs);
+	~sutra_lgs();
+
+	int lgs_init(int nprof, float hg, float h0, float deltah, float pixsie,
+			float *doffaxis, float *prof1d, float *profcum, float *beam,
+			cuFloatComplex *ftbeam, float* azimuth);
+	int load_prof(float *prof1d, float *profcum, float hg, float h0,
+			float deltah);
+	int lgs_update(int device);
+	int lgs_makespot(int device, int nin);
+	int load_kernels(float *lgskern, int device);
 
 };
 
-
 // General utilities
-int interp_prof(cuFloatComplex *profout,float *prof1d,float *profcum, int npix, float *doffaxis, float hg, float pixsize, 
-		 float h0, float deltah, int hmax, int Ntot, int device);
-int times_ftbeam(cuFloatComplex *profout,cuFloatComplex *fbeam,int N, int Ntot, int device);
-int rollbeamexp(float *imout, cuFloatComplex *iprof, float *beam,int N, int  Ntot,int device);
-int lgs_rotate(cuFloatComplex *odata,float *idata, int width, int height, float *theta,float center,int Ntot,int device);
-int rotate3d(cuFloatComplex *d_odata,cudaMemcpy3DParms copyParams, cudaArray *d_array, 
-	     cudaChannelFormatDesc channelDesc, int width, int height, float *theta,float center, int Ntot,int device);
+int interp_prof(cuFloatComplex *profout, float *prof1d, float *profcum,
+		int npix, float *doffaxis, float hg, float pixsize, float h0,
+		float deltah, int hmax, int Ntot, int device);
+int times_ftbeam(cuFloatComplex *profout, cuFloatComplex *fbeam, int N,
+		int Ntot, int device);
+int rollbeamexp(float *imout, cuFloatComplex *iprof, float *beam, int N,
+		int Ntot, int device);
+int lgs_rotate(cuFloatComplex *odata, float *idata, int width, int height,
+		float *theta, float center, int Ntot, int device);
+int rotate3d(cuFloatComplex *d_odata, cudaMemcpy3DParms copyParams,
+		cudaArray *d_array, cudaChannelFormatDesc channelDesc, int width,
+		int height, float *theta, float center, int Ntot, int device);
 
 #endif // _SUTRA_LGS_H_
-
