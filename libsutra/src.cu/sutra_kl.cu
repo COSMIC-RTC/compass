@@ -183,3 +183,23 @@ int combikl(float *com, int nkl, float *d_odata, float *rabas, int *d_ord,
 	return EXIT_SUCCESS;
 }
 
+//Florian features
+__global__ void flokrnl (long dim, float *bas)
+{
+  int tid = blockIdx.x;
+  if (tid<dim)
+    bas[tid*dim+tid] = tid;
+}
+
+int cget_flokl(long nkl,long dim,float *covmat,float *filter, float *bas)
+{
+  //int i;
+  printf("flag CUDA \n");
+  //for (i=0;i<dim;i++) bas[i] = i;
+  flokrnl<<<dim,1>>>(dim,bas);
+  printf("flag CUDA done \n");
+  cutilCheckMsg("get_kernel<<<>>> execution failed\n");
+  return EXIT_SUCCESS;
+} 
+
+

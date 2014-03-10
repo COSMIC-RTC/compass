@@ -170,7 +170,7 @@ int carma_syevd<double, 1>(char jobz, caObjD *mat,
 		carma_host_obj<double> *eigenvals) {
 	return carma_syevd<double>(jobz, mat, eigenvals, magma_dsyevd_gpu);
 }
-
+/*
 template<> int carma_syevd<float, 2>(char jobz, caObjS *mat,
 		carma_host_obj<float> *eigenvals) {
 	MAGMA_TRACE("carma_syevd: this method not implemented !\n");
@@ -189,7 +189,7 @@ template<> int carma_syevd<double, 3>(char jobz, caObjD *mat,
 		carma_host_obj<double> *eigenvals) {
 	return carma_syevd<double>(jobz, mat, eigenvals, magma_dsyevd_gpu_kblas);
 }
-
+*/
 template<class T>
 int carma_syevd_m_gen(magma_int_t ngpu, magma_uplo_t jobz, magma_int_t N,
 		T *mat, T *eigenvals,
@@ -338,7 +338,7 @@ int carma_svd_gen(carma_host_obj<T> *mat, carma_host_obj<T> *eigenvals,
 
 	carma_host_obj<T> *tmp = new carma_host_obj<T>(mat, MA_PAGELOCK);
 
-	magma_int_t info;
+	magma_int_t info=0;
 	CHECK_MAGMA(
 			ptr_gesvd('A', 'A', m, n, *tmp, m, *eigenvals, *mes2mod, m,
 					*mod2act, n, *h_work, lwork, &info), info);
@@ -376,7 +376,7 @@ int carma_potri_gen(magma_int_t N, magma_int_t ldda, T *d_iA,
 		magma_int_t (*ptr_potri)(magma_uplo_t uplo, magma_int_t n, T *d_A,
 				magma_int_t ldda, magma_int_t *info)) {
 
-	magma_int_t info;
+	magma_int_t info=0;
 	CHECK_MAGMA(ptr_potrf('L', N, d_iA, ldda, &info), info);
 	CHECK_MAGMA(ptr_potri('L', N, d_iA, ldda, &info), info);
 
@@ -438,7 +438,7 @@ int carma_potri_m_gen(long num_gpus, T *h_A, T *d_iA, long N,
 	}
 	ptr_setmatrix_1D_col_bcyclic(N, N, h_A, lda, d_lA, ldda, num_gpus, nb);
 
-	magma_int_t info;
+	magma_int_t info=0;
 	CHECK_MAGMA(ptr_potrf(num_gpus, 'L', N, d_lA, N, &info), info);
 	CHECK_MAGMA(
 			ptr_getmatrix_1D_col_bcyclic(N, N, d_lA, ldda, h_A, lda, num_gpus,
@@ -500,7 +500,7 @@ int carma_getri_gen(long N, T *d_iA,
 	if (lda * ldda != N * N)
 		cerr << "Please provide arrays of proper size\n";
 
-	magma_int_t info;
+	magma_int_t info=0;
 	cudaMalloc((void**) &dwork, ldwork * sizeof(T));
 	CHECK_MAGMA(ptr_getrf(N, N, d_iA, ldda, ipiv, &info), info);
 	CHECK_MAGMA(ptr_getri(N, d_iA, ldda, ipiv, dwork, ldwork, &info), info);
@@ -546,7 +546,7 @@ template<class T> int carma_potri_cpu_gen(magma_int_t N, T *h_A,
 				const magma_int_t *lda, magma_int_t *info),
 		void (*ptr_copy)(const magma_int_t *n, const T *x,
 				const magma_int_t *incx, T *y, const magma_int_t *incy)) {
-	magma_int_t info;
+	magma_int_t info=0;
 	char uplo = 'L';
 	magma_int_t one = 1;
 	CHECK_MAGMA(ptr_potrf(&uplo, &N, h_A, &N, &info), info)
@@ -613,7 +613,7 @@ template<class T> int carma_getri_cpu_gen(magma_int_t N, T *h_A,
 	magma_int_t lwork = N * ptr_get_getri_nb(N);
 	magma_malloc_cpu((void**) &work, lwork * sizeof(T));
 
-	magma_int_t info;
+	magma_int_t info=0;
 	CHECK_MAGMA(ptr_getrf(&N, &N, h_A, &lda, ipiv, &info), info);
 	CHECK_MAGMA(ptr_getri(&N, h_A, &lda, ipiv, work, &lwork, &info), info);
 

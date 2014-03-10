@@ -22,8 +22,13 @@ public:
 	carma_obj<float> *d_cr;    //
 	carma_obj<float> *d_cp;    //
 
-	carma_context *current_context; // the context in which it has been created 
+  // Florian features
+  carma_obj<float>          *d_covmat;
+  carma_obj<float>          *d_filter;
+  carma_obj<float>          *d_bas;
+  carma_obj<float>          *d_evals;
 
+  carma_context *current_context;   // the context in which it has been created 
 public:
 	sutra_kl(carma_context *context, long dim, long nr, long np, long nkl,
 			int device);
@@ -36,6 +41,9 @@ public:
 			int yoff);
 	int do_compute(float *odata, int nkl, int size, int xoff, int yoff);
 	int do_combi(float *com, float *odata, int size, int xoff, int yoff);
+
+// Florian features
+  int get_flokl();
 };
 int getkl(float alpha, float ampli, float *d_odata, float *rabas, float *azbas,
 		float *cr, float *cp, int nr, int np, int nx, int Nx, int xoff,
@@ -47,6 +55,7 @@ int getkl(float *d_odata, float *rabas, float *azbas, float *cr, float *cp,
 int combikl(float *com, int nkl, float *d_odata, float *rabas, int *h_ord,
 		float *azbas, float *cr, float *cp, int nr, int np, int nx, int Nx,
 		int xoff, int yoff);
+int cget_flokl(long nkl, long dim, float *covmat, float *filter, float *bas);
 //template <class T> void comp_kl(int threads, int blocks, T *d_idata, T *d_odata, int N);
 
 #endif // _SUTRA_KL_H_
