@@ -679,67 +679,22 @@ func rtc_init(clean=)
 	  }
 	  
 	  //error;
-         // cmat_init,i,clean=clean;
+          cmat_init,i,clean=clean;
 	  //error;
           rtc_setgain,g_rtc,0,controllers(i).gain;
           mgain = array(1.0f,(y_dm._ntotact)(sum));
           // filtering tilt ...
           //mgain(-1:0) = 0.0f;
           rtc_loadmgain,g_rtc,0,mgain;
-
+	  /*
 	  imat = rtc_getimat(g_rtc,0);
 	  cov = rtc_getcovmat(g_rtc,0);
 	  tmp = imat(+,)*imat(+,) + cov;
 	  tmp = LUsolve(tmp);
 	  cmat = tmp(,+)*imat(,+);
-	  rtc_setcmat,g_rtc,0,cmat;
+	  rtc_setcmat,g_rtc,0,cmat;*/
         }
       }
-    }
-  }
-  
-  if (y_target != []) {
-    sizes = y_geom.pupdiam;
-    sizes = sizes(-::y_target.ntargets-1);
-    
-    g_target = yoga_target(y_target.ntargets,*y_target.xpos,*y_target.ypos,*y_target.lambda,*y_target.mag,sizes,*y_geom._spupil);
-
-    for (cc=1;cc<=y_target.ntargets;cc++) {
-      if (y_atmos != []) {
-        for (dd=1;dd<=y_atmos.nscreens;dd++) {
-          xoff = (*y_target.xpos)(cc)*4.848e-6*(*y_atmos.alt)(dd)/y_atmos.pupixsize;
-          yoff = (*y_target.ypos)(cc)*4.848e-6*(*y_atmos.alt)(dd)/y_atmos.pupixsize;
-          xoff = float(xoff+((*y_atmos.dim_screens)(dd)-y_geom._n)/2);
-          yoff = float(yoff+((*y_atmos.dim_screens)(dd)-y_geom._n)/2);
-          // to take into account the difference in screen size
-          // for target screen is of the same size as spupil
-          // for wfs screen is of same size as mpupil
-          pupdiff = (y_geom._n - y_geom.pupdiam)/2
-            xoff += pupdiff;
-          yoff += pupdiff;
-          target_addlayer,g_target,cc-1,type,(*y_atmos.alt)(dd),xoff,yoff;
-        }
-      }
-      if (y_dm != []) {
-        for (dd=1;dd<=numberof(y_dm);dd++) {
-          dims = y_dm(dd)._n2 - y_dm(dd)._n1 + 1;
-          dim  = dimsof(*y_geom._mpupil)(2);
-          dim_dm = max([dim,dims]);
-          xoff = (*y_target.xpos)(cc)*4.848e-6*(y_dm.alt)(dd)/(y_tel.diam / y_geom.pupdiam);
-          yoff = (*y_target.ypos)(cc)*4.848e-6*(y_dm.alt)(dd)/(y_tel.diam / y_geom.pupdiam);
-          xoff = float(xoff+(dim_dm-y_geom._n)/2);
-          yoff = float(yoff+(dim_dm-y_geom._n)/2);
-          pupdiff = (y_geom._n - y_geom.pupdiam)/2;
-          xoff += pupdiff;
-          yoff += pupdiff;
-          if (y_dm(dd).type=="kl") {
-            xoff += 2;
-            yoff += 2;
-          }
-          target_addlayer,g_target,cc-1,y_dm(dd).type,(y_dm.alt)(dd),xoff,yoff;
-        }
-      }
-      target_init_strehlmeter,g_target,cc-1;
     }
   }
 }

@@ -590,7 +590,7 @@ func docovmat(g_rtc,g_atmos,g_dm,Nactu,nkl,N,ndms,sig=)
     K = doklbasis(g_dm,nkl,N(1));
   else
     K = dopztbasis(g_dm,ndms,Nactu);
-  //error;
+  error;
   // Projecteur
   tmp = array(float,nkl,nkl);
   tmp2 = array(float,dimsof(K)(3),dimsof(K)(2));

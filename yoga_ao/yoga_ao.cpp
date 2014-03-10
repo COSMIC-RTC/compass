@@ -2226,6 +2226,13 @@ void Y_rtc_setgain(int argc) {
 		SCAST(sutra_controller_ls *, control,
 				rtc_handler->d_control.at(ncontrol));
 		control->set_gain(gain);
+	} else if (rtc_handler->d_control.at(ncontrol)->get_type().compare("mv") == 0) {
+		float gain = ygets_f(argc - 3);
+		SCAST(sutra_controller_mv *, control,
+				rtc_handler->d_control.at(ncontrol));
+		control->set_gain(gain);
+	} else 	{
+		y_error("Controller needs to be ls or mv\n");
 	}
 }
 
@@ -2244,6 +2251,13 @@ void Y_rtc_loadmgain(int argc) {
 		SCAST(sutra_controller_ls *, control,
 				rtc_handler->d_control.at(ncontrol));
 		control->load_mgain(mgain);
+	} else if (rtc_handler->d_control.at(ncontrol)->get_type().compare("mv") == 0) {
+		float *mgain = ygeta_f(argc - 3, &ntot, dims);
+		SCAST(sutra_controller_mv *, control,
+				rtc_handler->d_control.at(ncontrol));
+		control->load_mgain(mgain);
+	} else {
+		y_error("Controller needs to be ls or mv\n");
 	}
 }
 
