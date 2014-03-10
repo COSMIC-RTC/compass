@@ -487,6 +487,29 @@ res1 = pol2car(*y_dm(n)._klbas,gkl_sfi(*y_dm(n)._klbas, 1));
 res2 = yoga_getkl(g_dm,0.,1);
         */
       }
+
+      // Florian features
+      if (y_dm(n).type == "flo_kl") {
+        dim       = long(y_dm(n)._n2-y_dm(n)._n1+1);
+        make_flo_kl_dm, n;
+	//error;
+        
+        dim       = long(y_dm(n)._n2-y_dm(n)._n1+1);
+        ninflu    = long(y_dm(n).nkl);
+        influsize = 0;
+        nr        = 0;
+        np        = 0;
+
+        yoga_addkl,g_dm,float(y_dm(n).alt),dim,ninflu,influsize,nr,np,float(y_dm(n).push4imat);
+
+        yoga_floloadkl,g_dm,*(*y_dm(n)._klbas).covmat,*(*y_dm(n)._klbas).filter,*(*y_dm(n)._klbas).evals,*(*y_dm(n)._klbas).bas,float(y_dm(n).alt) ;
+        //error;
+        /*
+        // verif :
+res1 = pol2car(*y_dm(n)._klbas,gkl_sfi(*y_dm(n)._klbas, 1));
+res2 = yoga_getkl(g_dm,0.,1);
+        */
+      }
     }
   }
 }
@@ -507,7 +530,7 @@ func rtc_init(clean=)
   SEE ALSO:
  */
 {
-  extern g_rtc;
+  extern g_rtc,g_atmos,g_dm;
   g_rtc = yoga_rtc(activeDevice());
   if (y_rtc != []) {
     centroiders = *y_rtc.centroiders;
@@ -631,25 +654,92 @@ func rtc_init(clean=)
           ndms = *controllers(i).ndm;
           controllers(i).nvalid = &(y_wfs(nwfs)._nvalid);
           controllers(i).nactu  = &(y_dm(ndms)._ntotact);
-          rtc_addcontrol,g_rtc,sum(y_dm(ndms)._ntotact),controllers(i).delay,controllers(i).type;
-          if (controllers(i).type  == "ls") {
-            write,"doing imat and filtering unseen actuators";
-            imat_init,i,clean=clean;
-            write,"done";
-            cmat_init,i,clean=clean;
-            rtc_setgain,g_rtc,0,controllers(i).gain;
-            mgain = array(1.0f,(y_dm._ntotact)(sum));
-            // filtering tilt ...
-            //mgain(-1:0) = 0.0f;
-            rtc_loadmgain,g_rtc,0,mgain;
-          }
-          if (controllers(i).type  == "cured") {
-            write,"initializing cured controller";
-            controller_initcured,g_rtc,0,int(y_wfs(1).nxsub),int(*y_wfs(1)._isvalid);
-          }          
+	  tmp = (dimsof(*y_geom._ipupil)(2)-y_geom._n)/2;
+	  pup = (*y_geom._ipupil)(tmp+1:-tmp,tmp+1:-tmp);
+	  indx_valid = where(pup);
+          rtc_addcontrol,g_rtc,sum(y_dm(ndms)._ntotact),controllers(i).delay,controllers(i).type,max(y_dm(ndms)._ntotact),numberof(indx_valid);
+          write,"doing imat and filtering unseen actuators";
+          imat_init,i,clean=clean;
+          write,"done";
+	  // Florian features
+	  if (controllers(i).type == "mv"){
+	    //klbasis_init,numberof(ndms),i,numberof(controllers);
+	    //K = doklbasis(g_dm,max(y_dm(ndms)._ntotact),where(y_dm(ndms)._ntotact==max(y_dm(ndms)._ntotact)));
+	    covmat = docovmat(g_rtc,g_atmos,g_dm,sum(y_dm(ndms)._ntotact),max(y_dm(ndms)._ntotact),where(y_dm(ndms)._ntotact == max(y_dm(ndms)._ntotact)),numberof(ndms));
+	    //error;
+	    // for(jj=1;jj<=dimsof(covmat)(2);jj++) 
+	    //  covmat(jj,jj) = 1/covmat(jj,jj);
+	    // sig = max(covmat)/30.;
+	    // covmat = covmat/sig;
+	    //error;
+	    rtc_loadcovmat,g_rtc,long(i-1),covmat;
+	    write,"Done";
+	    //D = rtc_getcovmat(g_rtc,i-1);
+	    //E = rtc_getklbasis(g_rtc,i-1);
+	  }
+	  
+	  //error;
+         // cmat_init,i,clean=clean;
+	  //error;
+          rtc_setgain,g_rtc,0,controllers(i).gain;
+          mgain = array(1.0f,(y_dm._ntotact)(sum));
+          // filtering tilt ...
+          //mgain(-1:0) = 0.0f;
+          rtc_loadmgain,g_rtc,0,mgain;
+
+	  imat = rtc_getimat(g_rtc,0);
+	  cov = rtc_getcovmat(g_rtc,0);
+	  tmp = imat(+,)*imat(+,) + cov;
+	  tmp = LUsolve(tmp);
+	  cmat = tmp(,+)*imat(,+);
+	  rtc_setcmat,g_rtc,0,cmat;
         }
       }
     }
   }
-}
+  
+  if (y_target != []) {
+    sizes = y_geom.pupdiam;
+    sizes = sizes(-::y_target.ntargets-1);
+    
+    g_target = yoga_target(y_target.ntargets,*y_target.xpos,*y_target.ypos,*y_target.lambda,*y_target.mag,sizes,*y_geom._spupil);
 
+    for (cc=1;cc<=y_target.ntargets;cc++) {
+      if (y_atmos != []) {
+        for (dd=1;dd<=y_atmos.nscreens;dd++) {
+          xoff = (*y_target.xpos)(cc)*4.848e-6*(*y_atmos.alt)(dd)/y_atmos.pupixsize;
+          yoff = (*y_target.ypos)(cc)*4.848e-6*(*y_atmos.alt)(dd)/y_atmos.pupixsize;
+          xoff = float(xoff+((*y_atmos.dim_screens)(dd)-y_geom._n)/2);
+          yoff = float(yoff+((*y_atmos.dim_screens)(dd)-y_geom._n)/2);
+          // to take into account the difference in screen size
+          // for target screen is of the same size as spupil
+          // for wfs screen is of same size as mpupil
+          pupdiff = (y_geom._n - y_geom.pupdiam)/2
+            xoff += pupdiff;
+          yoff += pupdiff;
+          target_addlayer,g_target,cc-1,type,(*y_atmos.alt)(dd),xoff,yoff;
+        }
+      }
+      if (y_dm != []) {
+        for (dd=1;dd<=numberof(y_dm);dd++) {
+          dims = y_dm(dd)._n2 - y_dm(dd)._n1 + 1;
+          dim  = dimsof(*y_geom._mpupil)(2);
+          dim_dm = max([dim,dims]);
+          xoff = (*y_target.xpos)(cc)*4.848e-6*(y_dm.alt)(dd)/(y_tel.diam / y_geom.pupdiam);
+          yoff = (*y_target.ypos)(cc)*4.848e-6*(y_dm.alt)(dd)/(y_tel.diam / y_geom.pupdiam);
+          xoff = float(xoff+(dim_dm-y_geom._n)/2);
+          yoff = float(yoff+(dim_dm-y_geom._n)/2);
+          pupdiff = (y_geom._n - y_geom.pupdiam)/2;
+          xoff += pupdiff;
+          yoff += pupdiff;
+          if (y_dm(dd).type=="kl") {
+            xoff += 2;
+            yoff += 2;
+          }
+          target_addlayer,g_target,cc-1,y_dm(dd).type,(y_dm.alt)(dd),xoff,yoff;
+        }
+      }
+      target_init_strehlmeter,g_target,cc-1;
+    }
+  }
+}

@@ -480,3 +480,117 @@ func pol2car(cpgeom,pol,mask=)
   return cd;
 } 
 
+// Florian features ---------------------------------------------
+
+struct kl_flo_basis_struct
+{       
+  long    nfunc;
+  long    Nmodes;
+  long    Nsize;
+  float   cobs;      
+  pointer evals;     
+  pointer bas;   
+  pointer covmat; 
+  pointer filter;
+  pointer subpupil;
+  pointer indx_sub;
+  pointer indx_valid;
+};
+
+func make_flo_klbas(nfunc,cobs)
+  /*DOCUMENT make_flo_klbas(nfunc,cobs)
+    Compute the KL basis
+    
+    nfunc : number of KL
+    cobs : central obstruction of the pupil
+
+    
+  SEE ALSO : 
+   */
+{extern g_dm;
+  if (cobs == []) cobs = 0;
+  if (nfunc == []) nfunc = 500L;
+  
+  // Determination of number of calculated modes
+  Nsize = (int) (ceil(sqrt(nfunc)));
+  if (Nsize%2 !=0)
+    Nsize++;
+  subpup = make_pupil(Nsize,Nsize-1,cobs=cobs);
+  ind_sub = where(subpup);
+  while (dimsof(ind_sub)(2) < nfunc){
+    Nsize+=2;
+    subpup = make_pupil(Nsize,Nsize-1,cobs=cobs);
+    ind_sub = where(subpup);
+  }
+  // Minimum size for correct interpolation
+  if (Nsize<16){
+    Nsize = 16;
+    subpup = make_pupil(Nsize,Nsize-1,cobs=cobs);
+    ind_sub = where(subpup);
+  }
+  Nmodes = dimsof(ind_sub)(2);
+  // Compute the covariance matrix
+  x = span(-1,1,Nsize)(,-:1:Nsize);
+  y = transpose(x)(*)(ind_sub);
+  x = x(*)(ind_sub);
+
+  covmatrix =  6.88 * abs(x(*)(,-)-x(*)(-,),y(*)(,-)-y(*)(-,))^(5./3) ;
+  // Piston mode filter
+  F = unit(dimsof(covmatrix)(3)) - array(1./(dimsof(covmatrix)(3)),dimsof(covmatrix)(3),dimsof(covmatrix)(3));
+  evals = array(double,Nmodes);
+  //bas = array(100.0f,Nmodes,nfunc);
+  
+  // yoga_addkl,g_dm,0.,Nmodes,nfunc,Nmodes,0,0,0.;
+  // yoga_floloadkl,g_dm,nfunc,Nmodes,covmatrix,F,evals,bas ;
+  // bas = yoga_getflokl(g_dm,nfunc,Nmodes,covmatrix,F,evals,bas,0.) ;
+  tmp = tmp2 = covmatrix*0.;
+  d_covmat = yoga_obj(covmatrix);
+  d_filter = yoga_obj(F);
+  d_tmp = yoga_obj(tmp);
+  d_tmp2 = yoga_obj(tmp2);
+  yoga_mm,d_tmp,d_filter,d_covmat;
+  yoga_mm,d_tmp2,d_tmp,d_filter;
+  covmatrix = (d_tmp2());
+  d_covmat = d_filter = d_tmp = d_tmp2 = [];
+  //error;
+  d_covmat = yoga_obj(covmatrix);
+  d_U = yoga_obj(covmatrix*0.);
+  yoga_syevd,d_covmat,evals,d_U;
+  U = (d_U());
+  d_covmat = d_U = [];
+
+  // Recovery and interpolation of nfunc KL modes
+  tmp = (dimsof(*y_geom._ipupil)(2)-y_geom._n)/2;
+  pup = (*y_geom._ipupil)(tmp+1:-tmp,tmp+1:-tmp);
+  indx_valid = where(pup);
+  K = array(float,Nsize,Nsize);
+  K(*)(ind_sub) = U(,1);
+  K = spline2(K,y_geom._n,y_geom._n,mask=subpup)(*)(indx_valid);
+  K = K(,-);
+  for (i=2 ; i<=nfunc ; i++){
+    tmp = array(float,Nsize,Nsize);
+    tmp(*)(ind_sub) = U(,i);
+    tmp = spline2(tmp,y_geom._n,y_geom._n,mask=subpup)(*)(indx_valid);
+    grow,K,tmp;
+  }
+  bas = K;
+//bas = (float)(U(,:nfunc));
+  evals = (float)(evals);
+  
+  klbasis = kl_flo_basis_struct();
+  klbasis.nfunc = nfunc; 
+  klbasis.Nmodes = Nmodes;
+  klbasis.Nsize = Nsize;
+  klbasis.cobs=cobs;
+  klbasis.evals=&evals;
+  klbasis.bas=&bas;
+  klbasis.covmat = &covmatrix;
+  klbasis.filter = &F;
+  klbasis.subpupil = &subpup;
+  klbasis.indx_sub = &ind_sub;
+  klbasis.indx_valid = &indx_valid;
+  
+  //error ;
+  return klbasis;
+}
+

@@ -3,6 +3,7 @@ yoga_ao_top = get_env("YOGA_AO_TOP");
 if (!yoga_ao_top) error,"YOGA_AO_TOP is not defined!";
 
 require,yoga_ao_top+"/yorick/yoga_ao.i";
+//require,yoga_ao_top+"/yorick/yaokl.i";
 //require,yoga_ao_top+"/ywidgets/widget_wfs.i";
 
 #include"fits-utils.i"
@@ -16,6 +17,293 @@ mkdirp,YOGA_AO_SAVEPATH;
 
 YOGA_AO_PARPATH = YOGA_AO_SAVEPATH+"par/";
 mkdirp,YOGA_AO_PARPATH;
+
+func flo_getkl(pup,nkl,lim){
+  /* DOCUMENT flo_getkl
+
+     K = flo_getkl(pup,nkl,lim)
+
+     Create Karhunen-Loeve basis K in the pupil pup
+
+     pup : telescope pupil
+     nkl : must be a divisor of the size of pup, nkl^2 KL mode will be computed
+     lim : number of modes returned
+   */
+  N = dimsof(pup)(3);
+  indx_valid = where(pup);
+  if(N%nkl != 0){
+    //error,"Size of pup must be divisible by nkl";
+  }
+  fact = N/nkl;
+  //subpup = pup(1::fact,1::fact);
+  subpup = make_pupil(nkl,nkl-1,cobs=0.3);
+  ind_sub = where(subpup);
+
+  x = span(-1,1,nkl)(,-:1:nkl);
+  y = transpose(x)(*)(ind_sub);
+  x = x(*)(ind_sub);
+
+  m = 6.88 * abs(x(*)(,-)-x(*)(-,),y(*)(,-)-y(*)(-,))^(5./3) ;
+  F = unit(dimsof(m)(3)) - array(1./(dimsof(m)(3)),dimsof(m)(3),dimsof(m)(3));
+  m = (F(+,)*m(+,))(,+)*F(,+);
+
+  I = SVdec(m,U);
+  K = array(float,nkl,nkl);
+  K(*)(ind_sub) = U(,1);
+  K = spline2(K,N,N,mask=subpup)(*)(indx_valid);
+  K = K(,-);
+  for (i=2 ; i<=lim ; i++){
+    tmp = array(float,nkl,nkl);
+    tmp(*)(ind_sub) = U(,i);
+    tmp = spline2(tmp,N,N,mask=subpup)(*)(indx_valid);
+    grow,K,tmp;
+  }
+  A=1;
+  // error ;
+  window,2;
+  fma;
+  plg,I(:dimsof(I)(2)-1);
+return K
+}
+
+
+func script_kl(filename,verbose=,r0=,clean=,strehl=)
+{
+  //activeDevice,1;
+
+  extern y_geom,y_tel,y_loop,y_wfs,y_dm,y_target;
+  extern g_atmos,g_target,g_wfs,g_dm,g_target;
+  extern ipupil;
+
+  if (verbose == []) verbose = 1;
+  if (strehl == []) strehl = 0;
+  if (r0 == []) r0 = 0;
+  if (clean == []) clean = 1;
+
+  if (filename == []) filename = YOGA_AO_PARPATH+"1wfs8x8_geo_kl.par";
+  //if (filename == []) filena/me = YOGA_AO_PARPATH+"1pyr32x32_1layer_rtc_dm.par";
+  // if (filename == []) filename = YOGA_AO_PARPATH+"1wfs40x40_1layer_rtc_dm.par";
+  //if (filename == []) filename = YOGA_AO_PARPATH+"1wfs16x16_1layer_rtc_dm.par";
+  if ((!(fileExist(filename))) && (!(fileExist(YOGA_AO_PARPATH+filename))))
+    error,"could not find"+filename;
+  
+  if (!(fileExist(filename)))
+    filename = YOGA_AO_PARPATH+filename;
+
+  // reading parfile
+  read_parfile,filename;
+
+  // init system
+  wfs_init;
+  
+  atmos_init;
+  
+  dm_init;
+
+  target_init;
+
+  rtc_init,clean=clean;
+  
+
+  if (verbose) write,"... Done with inits !";
+  write,"The following objects have been initialized on the GPU :";
+  write,"--------------------------------------------------------";
+  g_atmos;
+  write,"--------------------------------------------------------";
+  g_wfs;
+  write,"--------------------------------------------------------";
+  g_target;
+  write,"--------------------------------------------------------";
+  g_dm;
+  write,"--------------------------------------------------------";
+  g_rtc;
+  //error;
+  //y_loop.niter = 1000;
+  //error;
+  
+  /* y_loop.niter = 1000; */
+  /* Nactu = y_dm(1).nkl; */
+  /* // Nactu = 50; */
+  
+  /* tmp = (dimsof(*y_geom._ipupil)(2)-y_geom._n)/2; */
+  /* pup = (*y_geom._ipupil)(tmp+1:-tmp,tmp+1:-tmp); */
+  /* // pup = (*y_geom._ipupil)(y_dm(1)._n1+31:y_dm(1)._n2-31,y_dm(1)._n1+31:y_dm(1)._n2-31); */
+  /* indx_valid = where(pup); */
+
+  /* // Calcul des KL */
+  /* //  K = yoga_getkl(g_dm,0.,0)(tmp+1:-tmp,tmp+1:-tmp)(*)(indx_valid); */
+  /* // K = K(,-); */
+  /* // for (i=1;i<=Nactu-1;i++) grow,K,yoga_getkl(g_dm,0.,i)(tmp+1:-tmp,tmp+1:-tmp)(*)(indx_valid); */
+  /* K = yoga_getkl(g_dm,0.,0); */
+  /* tmp = (dimsof(K)(2)-y_geom._n)/2; */
+  /* K = K(tmp+1:-tmp,tmp+1:-tmp)(*)(indx_valid); */
+  /* K = K(,-); */
+  /* for (i=1;i<=Nactu-1;i++) grow,K,yoga_getkl(g_dm,0.,i)(tmp+1:-tmp,tmp+1:-tmp)(*)(indx_valid) */
+  
+  /* //K = flo_getkl(pup,16,Nactu); */
+  
+  /* // K = *(*y_dm(1)._klbas).bas; */
+
+  /* //error; */
+  /* /\* // Autre calcul des KL *\/ */
+  /* /\* pup_se = pup(1::4,1::4); *\/ */
+  /* /\* ind_se = where(pup_se) ; *\/ */
+  /* N = 148 ; */
+
+  /* alpha_mat = array(float,Nactu); */
+  /* alpha_mat = alpha_mat(,-); */
+
+  /* // calcul du projecteur P */
+  /* tmp = K(+,)*K(+,); */
+  /* tmp = LUsolve(tmp); */
+  /* P = tmp(,+)*K(,+); */
+  
+  /* // Ecrans VK init */
+  /* // tscreen_initvk,g_atmos,0.,y_geom.pupdiam; */
+
+  /* for (cc=1;cc<=y_loop.niter;cc++) { */
+  /*   // Ecrans VK */
+  /*   // tscreen_genevk,g_atmos,0.; */
+
+  /*   for (ii=1;ii<=100;ii++) { */
+  /*     move_atmos,g_atmos; */
+  /*   } */
+  /*   sensors_trace,g_wfs,0,"atmos",g_atmos; */
+  /*   res=sensors_getdata(g_wfs,0,"phase")(*)(indx_valid); */
+  /*   //res=sensors_getdata(g_wfs,0,"phase")(19:-18,19:-18)(*)(indx_valid); */
+  /*   // res -= res(avg); */
+  /*   res -= avg(res); */
+  /*   // calcul du vecteur alpha courant */
+  /*   alpha = P(,+)*res(+); */
+  /*   grow, alpha_mat,alpha; */
+    
+  /* } */
+  
+  /* // Calcul de la matrice de covariance */
+  /* alpha_mat = alpha_mat(,2:); */
+  /* cov_matrix = (alpha_mat(,+) * alpha_mat(,+)) / dimsof(alpha_mat)(3); */
+
+  /* // Test */
+  /* res_rec = K(,+)*alpha(+); */
+  /* ph_rec = array(float,N,N); */
+  /* ph = ph_rec; */
+  /* ph_rec(*)(indx_valid) = res_rec; */
+  /* ph(*)(indx_valid) = res; */
+  /* window,0; */
+  /* fma; */
+  /* pli,ph; */
+  /* window,1; */
+  /* fma; */
+  /* pli,ph_rec; */
+  /* window,2; */
+  /* // fma; */
+  /* plg,color="red",diag(cov_matrix)*5; */
+  /* // plg,I */
+  /* logxy,1,1; */
+  /* error; */
+
+ /*
+                 _         _                   
+ _ __ ___   __ _(_)_ __   | | ___   ___  _ __  
+| '_ ` _ \ / _` | | '_ \  | |/ _ \ / _ \| '_ \ 
+| | | | | | (_| | | | | | | | (_) | (_) | |_) |
+|_| |_| |_|\__,_|_|_| |_| |_|\___/ \___/| .__/ 
+                                        |_|    
+
+   */
+  //yoga_start_profiler;
+  
+  time_move = 0;
+  mytime = tic();
+
+  if (strehl) {
+    mimg = 0.; // initializing average image
+    strehllp = strehlsp = [];
+    airy = roll(abs(fft(*y_geom._ipupil*exp(*y_geom._ipupil*1i*0.)))^2)/numberof(*y_geom._ipupil);
+    sairy = max(airy);
+    write,"\n";
+    write,"----------------------------------------------------";
+    write,"iter# | S.E. SR | L.E. SR | Est. Rem. | framerate";
+    write,"----------------------------------------------------";
+  }
+
+  for (cc=1;cc<=y_loop.niter;cc++) {
+    
+    if (g_target != []) move_sky,g_atmos,g_target;
+    else move_atmos,g_atmos;
+    /*
+    mscreen = get_tscreen(g_atmos,(*y_atmos.alt)(1));
+    tst(,,cc)=mscreen;
+    mspec += circavg(abs(fft(mscreen)/nxscreen/nxscreen)^2);
+    */
+    
+    if ((y_wfs != []) && (g_wfs != [])) {
+      // loop on wfs
+      for (i=1;i<=numberof(y_wfs);i++) {
+        sensors_trace,g_wfs,i-1,"atmos",g_atmos;
+        if ((!y_wfs(i).openloop) && (g_dm != [])) {
+          sensors_trace,g_wfs,i-1,"dm",g_dm,0;
+        }
+        sensors_compimg_tele,g_wfs,i-1;
+      }
+      
+      // do centroiding
+    }
+    
+    if ((y_rtc != []) && (g_rtc != [])
+        && (y_wfs != []) && (g_wfs != [])) {
+      rtc_docentroids,g_rtc,g_wfs,0;
+      // compute command and apply
+      if (g_dm != []) rtc_docontrol,g_rtc,0,g_dm;
+      // error;
+    }
+    if ((y_target != []) && (g_target != [])) {
+      // loop on targets
+      for (i=1;i<=y_target.ntargets;i++) {
+        target_atmostrace,g_target,i-1,g_atmos;
+        if (g_dm != []) {
+          target_dmtrace,g_target,i-1,g_dm;
+        }
+	window, i-1;
+	img =  roll(target_getimage(g_target,i-1,"se"));
+	pli, img(207:-206,207:-206);
+      }
+      //saving average image from target #1
+
+    }
+    //if (cc=31679) error;
+    if (verbose) {
+      subsample=10.;
+      if (cc % subsample == 0 || cc==1) {
+        timetmp = time_move*(cc-subsample);
+        time_move = tac(mytime)/cc;
+        timetmp -= time_move*cc;
+        if (strehl) {
+          strehltmp = target_getstrehl(g_target,0);
+          grow,strehlsp,strehltmp(1);
+          grow,strehllp,strehltmp(2);
+          write,format=" %5i    %5.2f     %5.2f     %5.2f s   %5.2f it./s\n",
+            cc,strehlsp(0),strehllp(0),(y_loop.niter - cc)*time_move, -1/timetmp*subsample; 
+        } else {
+          write,format="\v",;
+          write,format="\r Estimated remaining time : %.2f s (%.2f it./s)",(y_loop.niter - cc)*time_move, -1/timetmp*subsample;
+        }
+      }
+    } 
+  }
+
+  //yoga_stop_profiler;
+  
+  write,"\n done with simulation \n";
+  write,format="simulation time : %f sec. per iteration\n",tac(mytime)/y_loop.niter;
+  error;
+    if (strehl) 
+      return strehllp(0);
+  //mimg /= y_loop.niter;
+  //window,1;fma;pli,mimg; 
+  //error;
+
+}
 
 func compare_yao(filename)
 {
@@ -166,8 +454,10 @@ func script_system(filename,verbose=,strehl=,r0=,clean=)
         if (g_dm != []) {
           target_dmtrace,g_target,i-1,g_dm;
         }
+	//plot image from target #i
+	window, i-1;
+	pli, roll(target_getimage(g_target,i-1,"se"));
       }
-      //saving average image from target #1
     }
     
     if (verbose) {

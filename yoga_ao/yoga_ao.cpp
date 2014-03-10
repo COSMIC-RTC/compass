@@ -2065,7 +2065,7 @@ void rtc_print(void *obj) {
 				<< rtc_handler->d_centro.at(idx)->nvalid << endl;
 	}
 
-	cout << "Contains " << rtc_handler->d_control.size() << " Controler(s) : "
+	cout << "Contains " << rtc_handler->d_control.size() << " Controller(s) : "
 			<< endl;
 	cout << "Control #" << " | " << "Type " << " | " << "Nslope" << " | "
 			<< "Nactu" << endl;
@@ -2275,6 +2275,12 @@ void Y_rtc_getimat(int argc) {
 				rtc_handler->d_control.at(ncontrol));
 		float *data = ypush_f((long*) control->d_imat->getDims());
 		control->d_imat->device2host(data);
+	} else 	if (rtc_handler->d_control.at(ncontrol)->get_type().compare("mv") == 0) {
+		SCAST(sutra_controller_mv *, control, rtc_handler->d_control.at(ncontrol));
+		float *data = ypush_f((long*) control->d_imat->getDims());
+		control->d_imat->device2host(data);
+	} else 	{
+		y_error("Controller needs to be ls or mv\n");
 	}
 }
 
@@ -2323,6 +2329,12 @@ void Y_rtc_getcmat(int argc) {
 				rtc_handler->d_control.at(ncontrol));
 		float *data = ypush_f((long*) control->d_cmat->getDims());
 		control->d_cmat->device2host(data);
+	}else 	if (rtc_handler->d_control.at(ncontrol)->get_type().compare("mv") == 0) {
+		SCAST(sutra_controller_mv *, control, rtc_handler->d_control.at(ncontrol));
+		float *data = ypush_f((long*) control->d_cmat->getDims());
+		control->d_cmat->device2host(data);
+	} else 	{
+		y_error("Controller needs to be ls or mv\n");
 	}
 }
 void Y_rtc_setcmat(int argc) {
@@ -2340,6 +2352,12 @@ void Y_rtc_setcmat(int argc) {
 		SCAST(sutra_controller_ls *, control,
 				rtc_handler->d_control.at(ncontrol));
 		control->d_cmat->host2device(data);
+	} else if (rtc_handler->d_control.at(ncontrol)->get_type().compare("mv") == 0) {
+		SCAST(sutra_controller_mv *, control,
+				rtc_handler->d_control.at(ncontrol));
+		control->d_cmat->host2device(data);
+	}else 	{
+		y_error("Controller needs to be ls or mv\n");
 	}
 }
 
@@ -3017,6 +3035,177 @@ void Y_yoga_gettemplate(int argc) {
 		aotemplate_handler->d_data->device2host(data);
 	}
 }
+// Florian features
+void Y_rtc_buildcmatmv(int argc) {
+  rtc_struct *rhandler = (rtc_struct *) yget_obj(argc - 1, &yRTC);
+  sutra_rtc *rtc_handler = (sutra_rtc *) (rhandler->sutra_rtc);
+  long ncontrol = ygets_l(argc - 2);
+  char *dmtype = ygets_q(argc - 3);
+  carma_context *context_handle = _getCurrentContext();
+  context_handle->set_activeDeviceForCpy(rhandler->device);
+
+  SCAST(sutra_controller_mv *, controller, rtc_handler->d_control[ncontrol]);
+  controller->build_cmat(dmtype);
+}
+void Y_rtc_doimatkl(int argc) {
+  rtc_struct *rhandler = (rtc_struct *) yget_obj(argc - 1, &yRTC);
+  sutra_rtc *rtc_handler = (sutra_rtc *) (rhandler->sutra_rtc);
+  long ncontrol = ygets_l(argc - 2);
+  sensors_struct *handler = (sensors_struct *) yget_obj(argc - 3, &ySensors);
+  sutra_sensors *sensors_handler = (sutra_sensors *) (handler->sutra_sensors);
+  dms_struct *handlera = (dms_struct *) yget_obj(argc - 4, &yDMs);
+  sutra_dms *dms_handler = (sutra_dms *) (handlera->sutra_dms);
+
+  carma_context *context_handle = _getCurrentContext();
+  context_handle->set_activeDeviceForCpy(rhandler->device);
+
+    rtc_handler->do_imatkl(ncontrol, sensors_handler, dms_handler);
+}
+void Y_rtc_doimatkl4pzt(int argc) {
+  rtc_struct *rhandler = (rtc_struct *) yget_obj(argc - 1, &yRTC);
+  sutra_rtc *rtc_handler = (sutra_rtc *) (rhandler->sutra_rtc);
+  long ncontrol = ygets_l(argc - 2);
+  sensors_struct *handler = (sensors_struct *) yget_obj(argc - 3, &ySensors);
+  sutra_sensors *sensors_handler = (sutra_sensors *) (handler->sutra_sensors);
+  dms_struct *handlera = (dms_struct *) yget_obj(argc - 4, &yDMs);
+  sutra_dms *dms_handler = (sutra_dms *) (handlera->sutra_dms);
+
+  carma_context *context_handle = _getCurrentContext();
+  context_handle->set_activeDeviceForCpy(rhandler->device);
+
+    rtc_handler->do_imatkl4pzt(ncontrol, sensors_handler, dms_handler);
+}
+
+// Florian features
+void Y_rtc_loadcovmat(int argc) {
+  long ntot;
+  long dims[Y_DIMSIZE];
+
+  rtc_struct *rhandler = (rtc_struct *) yget_obj(argc - 1, &yRTC);
+  sutra_rtc *rtc_handler = (sutra_rtc *) (rhandler->sutra_rtc);
+  long ncontrol = ygets_l(argc - 2);
+  float *covmat = ygeta_f(argc - 3, &ntot, dims);
+
+  carma_context *context_handle = _getCurrentContext();
+  context_handle->set_activeDeviceForCpy(rhandler->device);
+
+  SCAST(sutra_controller_mv *, controller, rtc_handler->d_control[ncontrol]);
+  controller->load_covmat(covmat);
+
+}
+void Y_rtc_loadklbasis(int argc) {
+  long ntot;
+  long dims[Y_DIMSIZE];
+
+  rtc_struct *rhandler = (rtc_struct *) yget_obj(argc - 1, &yRTC);
+  sutra_rtc *rtc_handler = (sutra_rtc *) (rhandler->sutra_rtc);
+  long ncontrol = ygets_l(argc - 2);
+  float *klbasis = ygeta_f(argc - 3, &ntot, dims);
+
+  carma_context *context_handle = _getCurrentContext();
+  context_handle->set_activeDeviceForCpy(rhandler->device);
+
+  SCAST(sutra_controller_mv *, controller, rtc_handler->d_control[ncontrol]);
+  controller->load_klbasis(klbasis);
+
+}
+void Y_rtc_getcovmat(int argc) {
+  rtc_struct *rhandler = (rtc_struct *) yget_obj(argc - 1, &yRTC);
+  sutra_rtc *rtc_handler = (sutra_rtc *) (rhandler->sutra_rtc);
+  long ncontrol = ygets_l(argc - 2);
+
+  carma_context *context_handle = _getCurrentContext();
+  context_handle->set_activeDeviceForCpy(rhandler->device);
+
+  SCAST(sutra_controller_mv *, controller, rtc_handler->d_control[ncontrol]);
+  float *data = ypush_f((long*)controller->d_covmat->getDims());
+  controller->d_covmat->device2host(data);
+}
+void Y_rtc_getklbasis(int argc) {
+  rtc_struct *rhandler = (rtc_struct *) yget_obj(argc - 1, &yRTC);
+  sutra_rtc *rtc_handler = (sutra_rtc *) (rhandler->sutra_rtc);
+  long ncontrol = ygets_l(argc - 2);
+
+  carma_context *context_handle = _getCurrentContext();
+  context_handle->set_activeDeviceForCpy(rhandler->device);
+
+  SCAST(sutra_controller_mv *, controller, rtc_handler->d_control[ncontrol]);
+  float *data = ypush_f((long*)controller->d_KLbasis->getDims());
+  controller->d_KLbasis->device2host(data);
+}
+
+void Y_sensors_rmlayer(int argc) {
+  sensors_struct *handler = (sensors_struct *) yget_obj(argc - 1, &ySensors);
+  sutra_sensors *sensors_handler = (sutra_sensors *) (handler->sutra_sensors);
+
+  carma_context *context_handle = _getCurrentContext();
+  context_handle->set_activeDevice(handler->device);
+
+  int nsensor = ygets_i(argc-2);
+  char *type = ygets_q(argc - 3);
+  float alt = ygets_f(argc-4);
+
+  sensors_handler->d_wfs.at(nsensor)->d_gs->remove_layer(type, alt);
+}
+
+  // Florian features
+void
+  Y_yoga_getflokl(int argc)
+  {
+    long ntot;
+    long dims[Y_DIMSIZE];
+    dms_struct *handler   = (dms_struct *)yget_obj(argc-1,&yDMs);
+    sutra_dms *dms_handler = (sutra_dms *)(handler->sutra_dms);
+    //char *type            = ygets_q(argc-2);
+    long  nkl             = ygets_l(argc-2);
+    long dim              = ygets_l(argc-3);
+    float *covmat         = ygeta_f(argc-4,&ntot,dims);
+    float *filter         = ygeta_f(argc-5,&ntot,dims);
+    float *evals          = ygeta_f(argc-6,&ntot,dims);
+    float *bas            = ygeta_f(argc-7,&ntot,dims);
+    float alt             = ygets_f(argc-8);
+    cout << "flag 1"<< endl;
+    dms_handler->d_dms.at(make_pair("kl",alt))->d_kl->get_flokl() ;
+    cout << "flag 2"<< endl;
+    float *data = ypush_f((long*)dms_handler->d_dms.at(make_pair("kl",alt))->d_kl->d_bas->getDims());
+    cout << "flag 3"<< endl;
+    dms_handler->d_dms.at(make_pair("kl",alt))->d_kl->d_bas->device2host(data);
+    cout << "flag 4" << endl;
+  }
+
+void
+ Y_yoga_floloadkl(int argc)
+{cout << "flag0"<< endl;
+    long ntot;
+    long dims[Y_DIMSIZE];
+    cout << "flag1"<< endl;
+
+    dms_struct *handler   = (dms_struct *)yget_obj(argc-1,&yDMs);
+    cout << "flag2"<< endl;
+    sutra_dms *dms_handler = (sutra_dms *)(handler->sutra_dms);
+    cout << "flag3"<< endl;
+    //char *type            = ygets_q(argc-2);
+    //long  nkl             = ygets_l(argc-2);
+    //cout << "flag4"<< endl;
+    //long dim              = ygets_l(argc-3);
+    //cout << "flag5"<< endl;
+    float *covmat         = ygeta_f(argc-4,&ntot,dims);
+    cout << "flag6"<< endl;
+    float *filter         = ygeta_f(argc-5,&ntot,dims);
+    cout << "flag7"<< endl;
+    float *evals          = ygeta_f(argc-6,&ntot,dims);
+    cout << "flag8"<< endl;
+    float *bas            = ygeta_f(argc-7,&ntot,dims);
+    cout << "flag9"<< endl;
+    float alt             = ygets_f(argc-8);
+    cout << "flag10"<< endl;
+
+    dms_handler->d_dms.at(make_pair("kl",alt))->kl_floloadarrays(covmat,filter,evals,bas);
+    cout << "flag11"<< endl;
+  }
+
+  //-----------------------------------------------------------------------------------------
+
 
 }
 

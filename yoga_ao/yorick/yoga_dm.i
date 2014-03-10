@@ -260,3 +260,29 @@ func make_kl_dm(nm,disp=)
   y_dm(nm)._ntotact = y_dm(nm).nkl;
 }
 
+
+
+// Florian features -------------------------------------
+func make_flo_kl_dm(nm,disp=)
+
+  /* DOCUMENT function make_kl_dm,ndm,disp=
+   */
+{
+  extern y_dm;
+  
+  dim   = y_dm(nm)._n2-y_dm(nm)._n1+1;
+  dim       = dimsof(*y_geom._mpupil)(2);
+  cobs  = y_tel.cobs;
+  cent  = y_geom.cent;
+  psize = y_geom.pupdiam;
+  patchDiam = long(y_geom.pupdiam+2*max(abs([y_wfs.xpos,y_wfs.ypos]))*
+                   4.848e-6*abs(y_dm(nm).alt)/psize);
+
+  klbas = make_flo_klbas(y_dm(nm).nkl,cobs);
+
+  y_dm(nm)._klbas = &klbas;
+  y_dm(nm)._i1      = &(array(int((dim-patchDiam)/2.0f),y_dm(nm).nkl));
+  y_dm(nm)._j1      = &(array(int((dim-patchDiam)/2.0f),y_dm(nm).nkl));
+  y_dm(nm)._ntotact = y_dm(nm).nkl;
+}
+

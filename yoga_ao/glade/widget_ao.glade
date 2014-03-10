@@ -3505,7 +3505,7 @@ LQG
                                     <child>
                                       <widget class="GtkLabel" id="label42">
                                         <property name="visible">True</property>
-                                        <property name="label" translatable="yes">&lt;b&gt;Controler&lt;/b&gt;</property>
+                                        <property name="label" translatable="yes">&lt;b&gt;controller&lt;/b&gt;</property>
                                         <property name="use_markup">True</property>
                                       </widget>
                                       <packing>

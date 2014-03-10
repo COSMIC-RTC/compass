@@ -340,7 +340,7 @@ extern sensors_initgs;
    
    SEE ALSO:
  */
-
+extern sensors_rmlayer;
 extern sensors_addlayer;
 /* DOCUMENT sensors_addlayer
    sensors_addlayer,yoga_sensors_obj,nsensor,type,alt,xoff,yoff
@@ -575,7 +575,7 @@ extern rtc_docentroids;
       
    SEE ALSO:
  */
-
+extern rtc_doimatkl;
 extern rtc_doimat;
 /* DOCUMENT rtc_doimat
    rtc_doimat,yoga_rtc_obj,ncontroller,yoga_wfs_obj,yoga_dm_obj[,geomtype]
@@ -624,7 +624,7 @@ extern rtc_setcmat;
       
    SEE ALSO:
  */
-
+extern rtc_buildcmatmv;
 extern rtc_buildcmat;
 /* DOCUMENT rtc_buildcmat
    rtc_buildcmat,yoga_rtc_obj,ncontroller,nfilt,filt_tt
@@ -641,7 +641,34 @@ extern rtc_setgain;
       
    SEE ALSO:
  */
+extern rtc_loadcovmat;
+/* DOCUMENT rtc_loadcovmat
+   rtc_loadcovmat,yoga_rtc_obj,ncontroller,covmat
+   set the inverse of the covariance matrix on a yoga_rtc_obj with MV controller
 
+   SEE ALSO:
+*/
+extern rtc_loadklbasis;
+/* DOCUMENT rtc_loadklbasis
+   rtc_loadklbasis,yoga_rtc_obj,ncontroller,klbasis
+   set the KL basis on a yoga_rtc_obj with MV controller
+
+   SEE ALSO:
+*/
+extern rtc_getklbasis;
+/* DOCUMENT rtc_getklbasis
+   rtc_getklbasis,yoga_rtc_obj,ncontroller
+   retrieve the KL basis from a yoga_rtc_obj with MV controller
+
+   SEE ALSO:
+*/
+extern rtc_getcovmat;
+/* DOCUMENT rtc_getcovmat
+   rtc_getcovmat,yoga_rtc_obj,ncontroller
+   retrieve the inverse of the covariance matrix  from a yoga_rtc_obj with MV controller
+
+   SEE ALSO:
+*/
 extern rtc_loadmgain;
 /* DOCUMENT rtc_loadmgain
    rtc_loadmgain,yoga_rtc_obj,ncontroller,mgain
@@ -756,7 +783,7 @@ extern yoga_rmkl;
    alt         : conjugated altitude
    SEE ALSO:
  */
-
+extern yoga_getflokl;
 extern yoga_getkl;
 /* DOCUMENT yoga_getkl
    yoga_getkl,yoga_dms_obj,alt,nkl
@@ -768,7 +795,7 @@ extern yoga_getkl;
    SEE ALSO:
  */
 
-
+extern yoga_floloadkl;
 extern yoga_loadkl;
 /* DOCUMENT yoga_loadkl
    yoga_loadkl,yoga_dms_obj,alt,rasbas,azbas,ord,cr,cp,xoff,yoff
@@ -1149,4 +1176,4 @@ extern yoga_telemetry;
 
    SEE ALSO:
  */
-
+extern rtc_doimatkl4pzt;

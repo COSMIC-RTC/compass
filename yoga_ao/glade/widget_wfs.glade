@@ -3990,7 +3990,7 @@ LQG
                                                     <child>
                                                       <widget class="GtkLabel" id="SensorsOptions2">
                                                         <property name="visible">True</property>
-                                                        <property name="label" translatable="yes">Controler properties</property>
+                                                        <property name="label" translatable="yes">controller properties</property>
                                                       </widget>
                                                       <packing>
                                                         <property name="type">label_item</property>
@@ -4013,7 +4013,7 @@ LQG
                                         <child>
                                           <widget class="GtkLabel" id="label42">
                                             <property name="visible">True</property>
-                                            <property name="label" translatable="yes">&lt;b&gt;Controler&lt;/b&gt;</property>
+                                            <property name="label" translatable="yes">&lt;b&gt;controller&lt;/b&gt;</property>
                                             <property name="use_markup">True</property>
                                           </widget>
                                           <packing>
