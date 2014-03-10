@@ -51,7 +51,9 @@ sutra_dm::sutra_dm(carma_context *context, const char* type, long dim,
 		this->d_npoints = new carma_obj<int>(context, dims_data1);
 		this->d_istart = new carma_obj<int>(context, dims_data1);
 	}
-
+	if (strcmp(type, "kl")==0) {
+	    this->d_kl    = new sutra_kl(context, influsize, ninflupos, n_npoints, ninflu, device);
+	  }
   // Florian features
   if (strcmp(type, "flo_kl")==0) {
     this->d_kl    = new sutra_kl(context, influsize, ninflupos, n_npoints, ninflu, device);
@@ -107,6 +109,7 @@ int sutra_dm::kl_loadarrays(float *rabas, float *azbas, int *ord, float *cr,
 	this->d_kl->d_ord->host2device(ord);
 	this->d_kl->d_cr->host2device(cr);
 	this->d_kl->d_cp->host2device(cp);
+
 
 	return EXIT_SUCCESS;
 }

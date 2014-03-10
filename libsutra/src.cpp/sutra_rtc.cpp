@@ -257,11 +257,13 @@ int sutra_rtc::do_control(int ncntrl, sutra_dms *ydm) {
 					p->second->comp_shape();
 				}
 			} else {
+				/*
 				float values[control->d_com->getNbElem()];
 				control->d_com->device2host(values);
 				for (int i=0 ; i<control->d_com->getNbElem() ; i++)
 					cout << values[i] << " ";
 				cout << endl;
+				*/
 				p->second->comp_shape((*control->d_com)[idx]);
 			}
 			idx += p->second->ninflu;
