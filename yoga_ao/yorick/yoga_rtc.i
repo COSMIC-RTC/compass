@@ -590,19 +590,32 @@ func docovmat(g_rtc,g_atmos,g_dm,Nactu,nkl,N,ndms,sig=)
     K = doklbasis(g_dm,nkl,N(1));
   else
     K = dopztbasis(g_dm,ndms,Nactu);
-  error;
+  //error;
   // Projecteur
   tmp = array(float,nkl,nkl);
   tmp2 = array(float,dimsof(K)(3),dimsof(K)(2));
   d_K = yoga_obj(K);
   d_tmp = yoga_obj(tmp);
   d_tmp2 = yoga_obj(tmp2);
-
+  //error;
   yoga_mm,d_tmp,d_K,d_K,'t','n'; // Kt*K
+  /*
+  eig = eig_inv = array(0.0f,Nactu);
+  yoga_syevd,d_tmp,eig;
+  for (j=1 ; j<=Nactu ; j++)
+    eig_inv(j) = eig(j)>1e-3 ? 1/eig(j) :  0;
+  E = unit(Nactu) * eig_inv;
+  d_E = yoga_obj(float(E));
+  d_tmp3 = yoga_obj(tmp);
+  yoga_mm,d_tmp3,d_tmp,d_E;
+  //error;
+  yoga_mm,d_E,d_tmp3,d_tmp,'n','t';
+  yoga_mm,d_tmp2,d_E,d_K, 'n', 't';
+  */
   yoga_potri,d_tmp;       // (Kt*K)⁻¹
   yoga_mm,d_tmp2,d_tmp,d_K, 'n', 't'; // (Kt*K)⁻¹K
   P = d_tmp2();
-  d_K = d_tmp = d_tmp2 = [];
+  d_K = d_tmp = d_tmp2 = d_tmp3 = d_E = [];
   write,"done";
   alpha = array(float,nkl);
   alpha = alpha(,-);
@@ -633,16 +646,17 @@ func docovmat(g_rtc,g_atmos,g_dm,Nactu,nkl,N,ndms,sig=)
   // Calcul de la matrice de covariance
   alpha = alpha(,2:);
   cov_matrix = (alpha(,+) * alpha(,+)) / dimsof(alpha)(3);
-  //error;
+  error;
   // Inversion
   //if(y_dm(N(1)).type != "kl"){
    cov_matrix = LUsolve(cov_matrix);
+  //error;
    /*
     d_cov = yoga_obj(cov_matrix);
     yoga_potri,d_cov;
     cov_matrix = d_cov();
     d_cov = [];
-  */
+   */
     //}
     //else{
   //error;

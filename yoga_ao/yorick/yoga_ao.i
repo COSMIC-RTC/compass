@@ -679,20 +679,20 @@ func rtc_init(clean=)
 	  }
 	  
 	  //error;
-          cmat_init,i,clean=clean;
+          //cmat_init,i,clean=clean;
 	  //error;
           rtc_setgain,g_rtc,0,controllers(i).gain;
           mgain = array(1.0f,(y_dm._ntotact)(sum));
           // filtering tilt ...
           //mgain(-1:0) = 0.0f;
           rtc_loadmgain,g_rtc,0,mgain;
-	  /*
+	  
 	  imat = rtc_getimat(g_rtc,0);
 	  cov = rtc_getcovmat(g_rtc,0);
 	  tmp = imat(+,)*imat(+,) + cov;
 	  tmp = LUsolve(tmp);
 	  cmat = tmp(,+)*imat(,+);
-	  rtc_setcmat,g_rtc,0,cmat;*/
+	  rtc_setcmat,g_rtc,0,cmat;
         }
       }
     }
