@@ -40,7 +40,6 @@ public:
 	int load_mgain(float *mgain);
 	int set_delay(int delay);
 
-	int init_cured(int nxsubs, int *isvalid);
 };
 
 #endif // _sutra_controller_ls_H_

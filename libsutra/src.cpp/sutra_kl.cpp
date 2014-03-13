@@ -31,8 +31,35 @@ sutra_kl::sutra_kl(carma_context *context, long dim, long nr, long np, long nkl,
 	dims_data2[2] = nkl;
 	this->d_azbas = new carma_obj<float>(context, dims_data2);
 
-	delete[] dims_data1;
-	delete[] dims_data2;
+  // delete[] dims_data1;
+  // delete[] dims_data2;
+
+  // Florian features
+  // long *dims_data1 = new long[2];
+  dims_data1[0] = 1; 
+  dims_data1[1] = nkl;    
+  this->d_evals   = new carma_obj<float>(context,dims_data1);
+  this->d_ord   = new carma_obj<int>(context,dims_data1);
+
+  // long *dims_data2 = new long[3];
+  dims_data2[0]  = 2; 
+  dims_data2[1]  = dim; dims_data2[2] = dim;
+  this->d_covmat = new carma_obj<float>(context,dims_data2);
+  this->d_filter = new carma_obj<float>(context,dims_data2);
+  dims_data2[1]  = dim; dims_data2[2] = nkl;
+  this->d_bas = new carma_obj<float>(context,dims_data2);
+
+  delete[] dims_data1;
+  delete[] dims_data2;
+
+  if (nr==0 && np==0){
+  delete this->h_ord;
+  delete this->d_ord;
+  delete this->d_cp;
+  delete this->d_cr;
+  delete this->d_rabas;
+  delete this->d_azbas;
+  }
 }
 
 sutra_kl::~sutra_kl() {
@@ -44,6 +71,11 @@ sutra_kl::~sutra_kl() {
 	delete this->d_cr;
 	delete this->d_rabas;
 	delete this->d_azbas;
+
+  // Florian features
+  delete this->d_covmat;
+  delete this->d_filter;
+  delete this->d_bas;
 }
 
 int sutra_kl::do_compute(float alpha, float ampli, float *odata, int nkl,
@@ -78,3 +110,9 @@ int sutra_kl::do_combi(float *com, float *odata, int size, int xoff, int yoff) {
 	return EXIT_SUCCESS;
 }
 
+// Florian features
+int sutra_kl::get_flokl()
+{cout << "flag in function"<< endl;
+  cget_flokl(this->nkl,this->dim,this->d_covmat->getData(),this->d_filter->getData(),this->d_bas->getData());
+  return EXIT_SUCCESS;
+}

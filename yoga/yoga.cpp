@@ -3581,10 +3581,11 @@ void Y_yoga_syevd(int argc)
   }
 
   if (yarg_subroutine()) {
+    int yType = yarg_typeid(argc - 1);
+    if(yType==Y_OPAQUE) {
     yObj_struct *handle_mat = (yObj_struct *) yget_obj(argc - 1, &yObj);
     long ntot;
     long dims[Y_DIMSIZE];
-    int yType = yarg_typeid(argc - 1);
 
     void *eigenvals = ygeta_any(argc - 2, &ntot, dims, &yType);
 
@@ -3616,6 +3617,35 @@ void Y_yoga_syevd(int argc)
       }
     } else {
       y_error("wrong number of arguments");
+    }
+    } else {
+    long ntot;
+    long dims[Y_DIMSIZE];
+
+    void *h_mat = ygeta_any(argc - 1, &ntot, dims, &yType);
+    void *eigenvals = ygeta_any(argc - 2, &ntot, dims, &yType);
+
+    if (nbarg == 2) {
+      if(yType==Y_FLOAT){
+	carma_syevd_cpu<float>(jobz, ntot, (float*)h_mat, (float*)eigenvals);
+      } else if (yType==Y_DOUBLE) {
+	carma_syevd_cpu<double>(jobz, ntot, (double*)h_mat, (double*)eigenvals);
+      } else {
+	y_error("carma_syevd not implemented for this type");
+      }
+    } else if (nbarg == 3) {
+      int N=ntot;
+      void *h_U = ygeta_any(argc - 3, &ntot, dims, &yType);
+      if(yType==Y_FLOAT){
+	memcpy(h_U, h_mat, ntot*sizeof(float));
+	carma_syevd_cpu<float>(jobz, ntot, (float*)h_U, (float*)eigenvals);
+      } else if (yType==Y_DOUBLE) {
+	memcpy(h_U, h_mat, ntot*sizeof(double));
+	carma_syevd_cpu<double>(jobz, N, (double*)h_U, (double*)eigenvals);
+      } else {
+	y_error("carma_syevd not implemented for this type");
+      }      
+    }
     }
   } else {
     y_error("yoga_syevd must be call as a subroutine");
@@ -3661,9 +3691,11 @@ void Y_yoga_syevd_m(int argc)
     void *eigenvals = ygeta_any(argc - 3, &N, dims, &yType);
     void *U = ygeta_any(argc - 4, &ntot, dims, &yType);
     if (yType == Y_FLOAT) {
-      carma_syevd_m<float>(ngpu, jobz, N, (float*) mat, (float*) eigenvals, (float*) U);
+    	memcpy(U, mat, ntot*sizeof(float));
+      carma_syevd_m<float>(ngpu, jobz, N, (float*) U, (float*) eigenvals);
     } else if (yType == Y_DOUBLE) {
-      carma_syevd_m<double>(ngpu, jobz, N, (double*) mat, (double*) eigenvals, (double*) U);
+    	memcpy(U, mat, ntot*sizeof(double));
+      carma_syevd_m<double>(ngpu, jobz, N, (double*) U, (double*) eigenvals);
     } else {
       y_error("carma_syevd_m not implemented for this type");
     }

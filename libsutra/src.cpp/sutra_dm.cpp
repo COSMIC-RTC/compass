@@ -24,7 +24,7 @@ sutra_dm::sutra_dm(carma_context *context, const char* type, long dim,
 	this->push4imat = push4imat;
 	this->device = device;
 
-	long *dims_data1 = new long[2];
+	long dims_data1[2];
 	dims_data1[0] = 1;
 	dims_data1[1] = ninflu;
 	this->d_comm = new carma_obj<float>(context, dims_data1);
@@ -51,13 +51,13 @@ sutra_dm::sutra_dm(carma_context *context, const char* type, long dim,
 		this->d_npoints = new carma_obj<int>(context, dims_data1);
 		this->d_istart = new carma_obj<int>(context, dims_data1);
 	}
-
-	if (strcmp(type, "kl") == 0) {
-		this->d_kl = new sutra_kl(context, influsize, ninflupos, n_npoints,
-				ninflu, device);
-	}
-
-	delete[] dims_data1;
+	if (strcmp(type, "kl")==0) {
+	    this->d_kl    = new sutra_kl(context, influsize, ninflupos, n_npoints, ninflu, device);
+	  }
+  // Florian features
+  if (strcmp(type, "flo_kl")==0) {
+    this->d_kl    = new sutra_kl(context, influsize, ninflupos, n_npoints, ninflu, device);
+  }
 
 }
 
@@ -109,6 +109,7 @@ int sutra_dm::kl_loadarrays(float *rabas, float *azbas, int *ord, float *cr,
 	this->d_kl->d_ord->host2device(ord);
 	this->d_kl->d_cr->host2device(cr);
 	this->d_kl->d_cp->host2device(cp);
+
 
 	return EXIT_SUCCESS;
 }
@@ -212,3 +213,13 @@ int sutra_dms::remove_dm(const char* type, float alt) {
 	return EXIT_SUCCESS;
 }
 
+// Florian features
+int sutra_dm::kl_floloadarrays(float *covmat, float *filter,float *evals, float *bas)
+{
+  this->d_kl->d_covmat->host2device(covmat);
+  this->d_kl->d_filter->host2device(filter);
+  this->d_kl->d_bas->host2device(bas);
+  this->d_kl->d_evals->host2device(evals);
+
+  return EXIT_SUCCESS;
+}

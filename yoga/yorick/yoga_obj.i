@@ -207,7 +207,7 @@ func check_cublas3(sizem,sizen,sizek)
   matB_gpu = yoga_obj(matB);
   matC_gpu = yoga_obj(matC);
   
-// compute gemm
+// compute gemm matC=matA*matB
   yoga_mm,matC_gpu,matA_gpu,matB_gpu;
   
   res2 = matA(,+)*matB(+,);

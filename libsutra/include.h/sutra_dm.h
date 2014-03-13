@@ -57,6 +57,8 @@ public:
 	int comp_shape();
 	int comp_shape(float *comm);
 	int comp_oneactu(int nactu, float ampli);
+  // Florian features
+  int kl_floloadarrays(float *covmat,float *filter, float *evals, float *bas);
 };
 
 class sutra_dms {

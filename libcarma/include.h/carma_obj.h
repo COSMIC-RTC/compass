@@ -358,7 +358,7 @@ template<class T> int carma_syevd(char jobz, long N, T *mat, T *eigenvals);
 template<class T, int method> int carma_syevd(char jobz, long N, T *mat,
 		T *eigenvals);
 template<class T> int carma_syevd_m(long ngpu, char jobz, long N, T *mat,
-		T *eigenvals, T *U);
+		T *eigenvals);
 template<class T> int carma_potri_m(long num_gpus, long N, T *h_A, T *d_iA);
 
 // CULA functions

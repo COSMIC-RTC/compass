@@ -51,6 +51,14 @@ __global__ void mult_int_krnl(float *o_data, float *i_data, float *scale,
 	}
 }
 
+__global__ void add_md_krnl(float *o_matrix, float *i_matrix, float *i_vector, int N)
+{
+	int tid = threadIdx.x + blockIdx.x * blockDim.x;
+
+	if (tid<N) {
+		o_matrix[tid*(N+1)] = i_matrix[tid*(N+1)] + i_vector[tid];
+	}
+}
 /*
  _                           _                   
  | |    __ _ _   _ _ __   ___| |__   ___ _ __ ___ 
@@ -134,6 +142,17 @@ int mult_int(float *o_data, float *i_data, float *scale, float gain, int N,
 
 	mult_int_krnl<<<grid, threads>>>(o_data, i_data, scale, gain, N);
 	cutilCheckMsg("multint_kernel<<<>>> execution failed\n");
+
+	return EXIT_SUCCESS;
+}
+
+int add_md(float *o_matrix, float *i_matrix, float *i_vector, int N, int device){
+	int nthreads = 0, nblocks =0;
+	getNumBlocksAndThreads(device, N, nblocks, nthreads);
+	dim3 grid(nblocks), threads(nthreads);
+
+	add_md_krnl<<<grid, threads>>>(o_matrix, i_matrix, i_vector,N);
+	cutilCheckMsg("add_md_kernel<<<>>> execution failed\n");
 
 	return EXIT_SUCCESS;
 }

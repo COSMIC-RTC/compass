@@ -2,6 +2,7 @@
 #define _SUTRA_RTC_H_
 
 #include <sutra_controller_ls.h>
+#include <sutra_controller_mv.h>
 #include <sutra_controller_cured.h>
 #include <sutra_centroider_bpcog.h>
 #include <sutra_centroider_cog.h>
@@ -34,9 +35,10 @@ public:
 	int add_controller(long nactu, long delay, long device, const char *typec);
 	int rm_controller();
 
-	int do_imat(int ncntrl, sutra_sensors *sensors, sutra_dms *ydm);
-	int do_imat_geom(int ncntrl, sutra_sensors *sensors, sutra_dms *ydm,
-			int type);
+  int do_imat(int ncntrl, sutra_sensors *sensors, sutra_dms *ydm);
+  int do_imatkl(int ncntrl, sutra_sensors *sensors, sutra_dms *ydms);
+  int do_imatkl4pzt(int ncntrl, sutra_sensors *sensors, sutra_dms *ydms);
+  int do_imat_geom(int ncntrl, sutra_sensors *sensors, sutra_dms *ydm,int type);
 
 	int do_centroids(sutra_sensors *sensors);
 	int do_centroids(int ncntrl, sutra_sensors *sensors);
