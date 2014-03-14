@@ -45,23 +45,35 @@ public:
   cublasHandle_t cublas_handle;
 
 public:
-  sutra_controller_mv(carma_context *context, long nvalid, long nactu, long delay);
+  sutra_controller_mv(carma_context *context, long nvalid, long nactu,
+      long delay);
   sutra_controller_mv(const sutra_controller_mv& controller);
   ~sutra_controller_mv();
 
-  string get_type();
+  string
+  get_type();
 
-  int svdec_imat();
-  int build_cmat(const char *dmtype);
-  int frame_delay();
-  int comp_com();
-  int set_gain(float gain);
-  int load_mgain(float *mgain);
-  int set_delay(int delay);
+  int
+  svdec_imat();
+  int
+  build_cmat(const char *dmtype);
+  int
+  frame_delay();
+  int
+  comp_com();
+  int
+  set_gain(float gain);
+  int
+  load_mgain(float *mgain);
+  int
+  set_delay(int delay);
   // Florian features
-  int load_covmat(float *covmat);
-  int load_klbasis(float *klbasis);
-  int comp_mvcom();
+  int
+  load_covmat(float *covmat);
+  int
+  load_klbasis(float *klbasis);
+  int
+  comp_mvcom();
 
 };
 

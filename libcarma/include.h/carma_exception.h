@@ -25,61 +25,63 @@ using namespace std;
 
 class CarmaException {
 private:
-	string aReason; //!< a detailed description of the error
-	string aFile; //!< in which file this exception has been created
-	unsigned int aLine; //!< on which line this exception has been created
+  string aReason; //!< a detailed description of the error
+  string aFile; //!< in which file this exception has been created
+  unsigned int aLine; //!< on which line this exception has been created
 public:
 
-	/*!
-	 *  \brief Constructor
-	 *
-	 *  CarmaException Constructor
-	 *
-	 *  \param reason : a detailed description of the error
-	 *  \param file : which file this exception has been created
-	 *  \param line : which line this exception has been created
-	 */
+  /*!
+   *  \brief Constructor
+   *
+   *  CarmaException Constructor
+   *
+   *  \param reason : a detailed description of the error
+   *  \param file : which file this exception has been created
+   *  \param line : which line this exception has been created
+   */
 
-	CarmaException(string reason, string file, unsigned int line) :
-			aReason(reason), aFile(file), aLine(line) {
-	}
+  CarmaException(string reason, string file, unsigned int line) :
+      aReason(reason), aFile(file), aLine(line) {
+  }
 
-	/*!
-	 *  \brief Destructor
-	 *
-	 *  CarmaException Destructor
-	 */
+  /*!
+   *  \brief Destructor
+   *
+   *  CarmaException Destructor
+   */
 
-	~CarmaException() {
-	}
+  ~CarmaException() {
+  }
 
-	/*!
-	 *  \brief Format into a const char *
-	 *
-	 *  Format the Carma exception into a const char *
-	 *
-	 *  \return Formated exception
-	 */
+  /*!
+   *  \brief Format into a const char *
+   *
+   *  Format the Carma exception into a const char *
+   *
+   *  \return Formated exception
+   */
 
-	const char *showReason() const {
-		stringstream buf;
-		buf << aReason << " in " << aFile << "@" << aLine << endl;
-		return buf.str().c_str();
-	}
+  const char *
+  showReason() const {
+    stringstream buf;
+    buf << aReason << " in " << aFile << "@" << aLine << endl;
+    return buf.str().c_str();
+  }
 
-	/*!
-	 *  \brief Format into a string
-	 *
-	 *  Format the Carma exception into a string
-	 *
-	 *  \return Formated exception
-	 */
+  /*!
+   *  \brief Format into a string
+   *
+   *  Format the Carma exception into a string
+   *
+   *  \return Formated exception
+   */
 
-	string showReasonStr() const {
-		stringstream buf;
-		buf << aReason << " in " << aFile << "@" << aLine << endl;
-		return buf.str();
-	}
+  string
+  showReasonStr() const {
+    stringstream buf;
+    buf << aReason << " in " << aFile << "@" << aLine << endl;
+    return buf.str();
+  }
 };
 
 #endif /* CARMA_EXCEPTION_H_ */

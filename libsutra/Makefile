@@ -12,7 +12,7 @@ SRC_CU  = $(wildcard $(CU_DIR)/*.cu)
 
 OBJS := $(patsubst $(CPP_DIR)/%.cpp,$(OBJ_DIR)/%.o,$(SRC_CPP)) $(patsubst $(CU_DIR)/%.cu,$(OBJ_DIR)/%.cuo,$(SRC_CU)) 
 
-LIB_DEPLIBS= -L$(CUDA_LIB_PATH_64) -lcudart -lcublas -lcufft -lstdc++ -lcurand 
+LIB_DEPLIBS= -L$(CUDA_LIB_PATH_64) -lcudart -lcublas -lcufft -lstdc++ -lcurand
 LIB_DEPLIBS += -L$(COMPASS_ROOT_DIR)/libcarma -lcarma
 
 # set compiler (or rarely loader) flags specific to this package

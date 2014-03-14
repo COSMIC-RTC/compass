@@ -10,8 +10,8 @@
 
 class carma_parse_obj {
 public:
-	carma_parse_obj();
-	~carma_parse_obj();
+  carma_parse_obj();
+  ~carma_parse_obj();
 };
 
 #endif /* CARMA_PARSE_OBJ_H_ */

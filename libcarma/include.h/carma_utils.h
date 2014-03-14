@@ -31,7 +31,7 @@
 //! CUT bool type
 ////////////////////////////////////////////////////////////////////////////
 enum CUTBoolean {
-	CUTFalse = 0, CUTTrue = 1
+  CUTFalse = 0, CUTTrue = 1
 };
 
 // We define these calls here, so the user doesn't need to include __FILE__ and __LINE__
@@ -47,78 +47,86 @@ enum CUTBoolean {
 #define MIN(a,b) ((a < b) ? a : b)
 #define MAX(a,b) ((a > b) ? a : b)
 
-void getNumBlocksAndThreads(int device, int n, int &blocks, int &threads);
+void
+getNumBlocksAndThreads(int device, int n, int &blocks, int &threads);
+
+void
+carma_start_profile();
+void
+carma_stop_profile();
 
 // NOTE: "(%s:%i) : " allows Eclipse to directly jump to the file at the right line
 // when the user double clicks on the error line in the Output pane. Like any compile error.
 
-inline void __cudaSafeCallNoSync(cudaError err, const char *file,
-		const int line) {
-	if (cudaSuccess != err) {
-		fprintf(stderr,
-				"(%s:%i) : cudaSafeCallNoSync() Runtime API error : %s.\n",
-				file, line, cudaGetErrorString(err));
-		exit(-1);
-	}
+inline void
+__cudaSafeCallNoSync(cudaError err, const char *file, const int line) {
+  if (cudaSuccess != err) {
+    fprintf(stderr, "(%s:%i) : cudaSafeCallNoSync() Runtime API error : %s.\n",
+        file, line, cudaGetErrorString(err));
+    exit(-1);
+  }
 }
 
-inline void __cudaSafeCall(cudaError err, const char *file, const int line) {
-	if (cudaSuccess != err) {
-		fprintf(stderr, "(%s:%i) : cudaSafeCall() Runtime API error : %s.\n",
-				file, line, cudaGetErrorString(err));
-		exit(-1);
-	}
+inline void
+__cudaSafeCall(cudaError err, const char *file, const int line) {
+  if (cudaSuccess != err) {
+    fprintf(stderr, "(%s:%i) : cudaSafeCall() Runtime API error : %s.\n", file,
+        line, cudaGetErrorString(err));
+    exit(-1);
+  }
 }
 
-inline void __cudaSafeThreadSync(const char *file, const int line) {
-	cudaError err = cudaThreadSynchronize();
-	if (cudaSuccess != err) {
-		fprintf(stderr,
-				"(%s:%i) : cudaThreadSynchronize() Driver API error : %s.\n",
-				file, line, cudaGetErrorString(err));
-		exit(-1);
-	}
+inline void
+__cudaSafeThreadSync(const char *file, const int line) {
+  cudaError err = cudaThreadSynchronize();
+  if (cudaSuccess != err) {
+    fprintf(stderr,
+        "(%s:%i) : cudaThreadSynchronize() Driver API error : %s.\n", file,
+        line, cudaGetErrorString(err));
+    exit(-1);
+  }
 }
 
-inline void __cufftSafeCall(cufftResult err, const char *file, const int line) {
-	if (CUFFT_SUCCESS != err) {
-		fprintf(stderr, "(%s:%i) : cufftSafeCall() CUFFT error.\n", file, line);
-		exit(-1);
-	}
+inline void
+__cufftSafeCall(cufftResult err, const char *file, const int line) {
+  if (CUFFT_SUCCESS != err) {
+    fprintf(stderr, "(%s:%i) : cufftSafeCall() CUFFT error.\n", file, line);
+    exit(-1);
+  }
 }
 
-inline void __cutilCheckError(CUTBoolean err, const char *file,
-		const int line) {
-	if (CUTTrue != err) {
-		fprintf(stderr, "(%s:%i) : CUTIL CUDA error.\n", file, line);
-		exit(-1);
-	}
+inline void
+__cutilCheckError(CUTBoolean err, const char *file, const int line) {
+  if (CUTTrue != err) {
+    fprintf(stderr, "(%s:%i) : CUTIL CUDA error.\n", file, line);
+    exit(-1);
+  }
 }
 
-inline void __cutilCheckMsg(const char *errorMessage, const char *file,
-		const int line) {
-	cudaError_t err = cudaGetLastError();
-	if (cudaSuccess != err) {
-		fprintf(stderr,
-				"(%s:%i) : cutilCheckMsg() CUTIL CUDA error : %s : %s.\n", file,
-				line, errorMessage, cudaGetErrorString(err));
-		exit(-1);
-	}
+inline void
+__cutilCheckMsg(const char *errorMessage, const char *file, const int line) {
+  cudaError_t err = cudaGetLastError();
+  if (cudaSuccess != err) {
+    fprintf(stderr, "(%s:%i) : cutilCheckMsg() CUTIL CUDA error : %s : %s.\n",
+        file, line, errorMessage, cudaGetErrorString(err));
+    exit(-1);
+  }
 #ifdef DEBUG
-	err = cudaThreadSynchronize();
-	if( cudaSuccess != err) {
-		fprintf(stderr, "(%s:%i) : cutilCheckMsg cudaThreadSynchronize error: %s : %s.\n",
-				file, line, errorMessage, cudaGetErrorString( err) );
-		exit(-1);
-	}
+  err = cudaThreadSynchronize();
+  if( cudaSuccess != err) {
+    fprintf(stderr, "(%s:%i) : cutilCheckMsg cudaThreadSynchronize error: %s : %s.\n",
+        file, line, errorMessage, cudaGetErrorString( err) );
+    exit(-1);
+  }
 #endif
 }
-inline void __cutilSafeMalloc(void *pointer, const char *file, const int line) {
-	if (!(pointer)) {
-		fprintf(stderr, "(%s:%i) : cutilSafeMalloc host malloc failure\n", file,
-				line);
-		exit(-1);
-	}
+inline void
+__cutilSafeMalloc(void *pointer, const char *file, const int line) {
+  if (!(pointer)) {
+    fprintf(stderr, "(%s:%i) : cutilSafeMalloc host malloc failure\n", file,
+        line);
+    exit(-1);
+  }
 }
 
 #endif // _CARMA_UTILS_H_

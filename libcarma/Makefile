@@ -15,7 +15,7 @@ OBJS := $(patsubst $(CPP_DIR)/%.cpp,$(OBJ_DIR)/%.o,$(SRC_CPP))
 OBJS += $(patsubst $(CU_DIR)/%.cu,$(OBJ_DIR)/%.cuo,$(SRC_CU)) 
 
 LIB_DEPLIBS  = -fPIC -Wall -lstdc++ 
-LIB_DEPLIBS += -L$(CUDA_LIB_PATH_64) -lcudart -lcublas -lcufft -lcurand 
+LIB_DEPLIBS += -L$(CUDA_LIB_PATH_64) -lcudart -lcublas -lcufft -lcurand -lnvToolsExt
 
 # set compiler (or rarely loader) flags specific to this package
 LIB_CPPFLAGS = -c -fPIC -Wall -fno-common -I$(H_DIR) -I$(CUDA_INC_PATH)

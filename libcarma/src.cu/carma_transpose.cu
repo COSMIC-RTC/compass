@@ -24,45 +24,46 @@
 
 #define FLOOR(a,b) (a-(a%b))
 
-template<class T> __global__ void transposeDiagonal(T *odata, T *idata,
-		long width, long height, int nreps) {
-	__shared__ T tile[TILE_DIM][TILE_DIM + 1];
+template<class T>
+  __global__ void
+  transposeDiagonal(T *odata, T *idata, long width, long height, int nreps) {
+    __shared__ T tile[TILE_DIM][TILE_DIM + 1];
 
-	int blockIdx_x, blockIdx_y;
+    int blockIdx_x, blockIdx_y;
 
-	// do diagonal reordering
-	if (width == height) {
-		blockIdx_y = blockIdx.x;
-		blockIdx_x = (blockIdx.x + blockIdx.y) % gridDim.x;
-	} else {
-		int bid = blockIdx.x + gridDim.x * blockIdx.y;
-		blockIdx_y = bid % gridDim.y;
-		blockIdx_x = ((bid / gridDim.y) + blockIdx_y) % gridDim.x;
-	}
+    // do diagonal reordering
+    if (width == height) {
+      blockIdx_y = blockIdx.x;
+      blockIdx_x = (blockIdx.x + blockIdx.y) % gridDim.x;
+    } else {
+      int bid = blockIdx.x + gridDim.x * blockIdx.y;
+      blockIdx_y = bid % gridDim.y;
+      blockIdx_x = ((bid / gridDim.y) + blockIdx_y) % gridDim.x;
+    }
 
-	// from here on the code is same as previous kernel except blockIdx_x replaces blockIdx.x
-	// and similarly for y
+    // from here on the code is same as previous kernel except blockIdx_x replaces blockIdx.x
+    // and similarly for y
 
-	int xIndex = blockIdx_x * TILE_DIM + threadIdx.x;
-	int yIndex = blockIdx_y * TILE_DIM + threadIdx.y;
-	int index_in = xIndex + (yIndex) * width;
+    int xIndex = blockIdx_x * TILE_DIM + threadIdx.x;
+    int yIndex = blockIdx_y * TILE_DIM + threadIdx.y;
+    int index_in = xIndex + (yIndex) * width;
 
-	xIndex = blockIdx_y * TILE_DIM + threadIdx.x;
-	yIndex = blockIdx_x * TILE_DIM + threadIdx.y;
-	int index_out = xIndex + (yIndex) * height;
+    xIndex = blockIdx_y * TILE_DIM + threadIdx.x;
+    yIndex = blockIdx_x * TILE_DIM + threadIdx.y;
+    int index_out = xIndex + (yIndex) * height;
 
-	for (int r = 0; r < nreps; r++) {
-		for (int i = 0; i < TILE_DIM; i += BLOCK_ROWS) {
-			tile[threadIdx.y + i][threadIdx.x] = idata[index_in + i * width];
-		}
+    for (int r = 0; r < nreps; r++) {
+      for (int i = 0; i < TILE_DIM; i += BLOCK_ROWS) {
+        tile[threadIdx.y + i][threadIdx.x] = idata[index_in + i * width];
+      }
 
-		__syncthreads();
+      __syncthreads();
 
-		for (int i = 0; i < TILE_DIM; i += BLOCK_ROWS) {
-			odata[index_out + i * height] = tile[threadIdx.x][threadIdx.y + i];
-		}
-	}
-}
+      for (int i = 0; i < TILE_DIM; i += BLOCK_ROWS) {
+        odata[index_out + i * height] = tile[threadIdx.x][threadIdx.y + i];
+      }
+    }
+  }
 
 /*
  template<class T> int get_tdim()
@@ -85,34 +86,36 @@ template<class T> __global__ void transposeDiagonal(T *odata, T *idata,
  }
  */
 
-template<class T> int transposeCU(T *d_idata, T *d_odata, long N1, long N2) {
-	/*
-	 int totTile = get_tdim<T>();
-	 fprintf(stderr,"tot Tiles : %d\n",totTile);
-	 fprintf(stderr,"Tile dim : %f\n",sqrt(totTile));
-	 //TILE_DIM = totTile / N1 / N2;
+template<class T>
+  int
+  transposeCU(T *d_idata, T *d_odata, long N1, long N2) {
+    /*
+     int totTile = get_tdim<T>();
+     fprintf(stderr,"tot Tiles : %d\n",totTile);
+     fprintf(stderr,"Tile dim : %f\n",sqrt(totTile));
+     //TILE_DIM = totTile / N1 / N2;
 
-	 struct cudaDeviceProp deviceProperties;
-	 cudaGetDeviceProperties(&deviceProperties, 0);
+     struct cudaDeviceProp deviceProperties;
+     cudaGetDeviceProperties(&deviceProperties, 0);
 
-	 int brows = deviceProperties.maxThreadsPerBlock;
+     int brows = deviceProperties.maxThreadsPerBlock;
 
-	 fprintf(stderr,"block rows : %f\n", brows/sqrt(totTile) );
+     fprintf(stderr,"block rows : %f\n", brows/sqrt(totTile) );
 
-	 //BLOCK_ROWS = TILE_DIM / deviceProperties.maxThreadsPerBlock;
-	 */
+     //BLOCK_ROWS = TILE_DIM / deviceProperties.maxThreadsPerBlock;
+     */
 
-	dim3 grid(N1 / TILE_DIM, N2 / TILE_DIM);
-	dim3 threads(TILE_DIM, BLOCK_ROWS);
+    dim3 grid(N1 / TILE_DIM, N2 / TILE_DIM);
+    dim3 threads(TILE_DIM, BLOCK_ROWS);
 
-	transposeDiagonal<<<grid, threads>>>(d_odata, d_idata, N1, N2, 1);
+    transposeDiagonal<<<grid, threads>>>(d_odata, d_idata, N1, N2, 1);
 
-	return EXIT_SUCCESS;
-}
+    return EXIT_SUCCESS;
+  }
 
-template int transposeCU<float>(float *d_idata, float *d_odata, long N1,
-		long N2);
+template int
+transposeCU<float>(float *d_idata, float *d_odata, long N1, long N2);
 
-template int transposeCU<double>(double *d_idata, double *d_odata, long N1,
-		long N2);
+template int
+transposeCU<double>(double *d_idata, double *d_odata, long N1, long N2);
 

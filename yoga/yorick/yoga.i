@@ -70,20 +70,20 @@ func yoga_init(void) {
   _yoga_init;
 }
 
-extern _yoga_start_profiler;
+extern _yoga_start_profile;
 /* PROTOTYPE
-   int _yoga_start_profiler(void)
+   int _yoga_start_profile(void)
 */
-func yoga_start_profiler(void) {
-	_yoga_start_profiler;
+func yoga_start_profile(void) {
+	_yoga_start_profile;
 }
 
-extern _yoga_stop_profiler;
+extern _yoga_stop_profile;
 /* PROTOTYPE
-   int _yoga_stop_profiler(void)
+   int _yoga_stop_profile(void)
 */
-func yoga_stop_profiler(void) {
-	_yoga_stop_profiler;
+func yoga_stop_profile(void) {
+	_yoga_stop_profile;
 }
 
 extern _yoga_setDevice;
