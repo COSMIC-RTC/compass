@@ -2500,6 +2500,7 @@ extern "C" {
     if (rtc_handler->d_control.at(ncontrol)->get_type().compare("ls") == 0) {
       SCAST(sutra_controller_ls *, control,
           rtc_handler->d_control.at(ncontrol));
+
       if (control->svdec_imat() == EXIT_FAILURE)
         y_error(
             "***** ERROR : sutra controller has no SVD implementation *****\n");

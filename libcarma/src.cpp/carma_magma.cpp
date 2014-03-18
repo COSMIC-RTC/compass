@@ -1,11 +1,11 @@
 #include <carma_obj.h>
 #include <carma_host_obj.h>
 
+#define MAGMA_TRACE(fmt, args...) fprintf(stderr, "%s:%d Warning: " fmt, __FILE__, __LINE__, ## args)
+
 #ifdef USE_MAGMA
 #include "magma.h"
 #include "magma_lapack.h"
-
-#define MAGMA_TRACE(fmt, args...) fprintf(stderr, "%s:%d Warning: " fmt, __FILE__, __LINE__, ## args)
 
 #define CHECK_MAGMA(fct, info) fct; \
 							   if (info != 0){ \
@@ -176,13 +176,13 @@ template<>
   int
   carma_syevd<float, 1>(char jobz, caObjS *mat,
       carma_host_obj<float> *eigenvals) {
-    return carma_syevd<float>(jobz, mat, eigenvals, magma_ssyevd_gpu);
+    return carma_syevd_gen<float>(jobz, N, N, mat, eigenvals, magma_ssyevd_gpu);
   }
 template<>
   int
   carma_syevd<double, 1>(char jobz, caObjD *mat,
       carma_host_obj<double> *eigenvals) {
-    return carma_syevd<double>(jobz, mat, eigenvals, magma_dsyevd_gpu);
+    return carma_syevd_gen<double>(jobz, N, N, mat, eigenvals, magma_dsyevd_gpu);
   }
 /*
  template<> int carma_syevd<float, 2>(char jobz, caObjS *mat,
@@ -916,29 +916,29 @@ template<class T> int carma_svd(carma_obj<T> *imat, carma_obj<T> *eigenvals, car
 template int carma_svd<float>(carma_obj<float> *imat, carma_obj<float> *eigenvals, carma_obj<float> *mod2act, carma_obj<float> *mes2mod);
 template int carma_svd<double>(carma_obj<double> *imat, carma_obj<double> *eigenvals, carma_obj<double> *mod2act, carma_obj<double> *mes2mod);
 
-template<class T> int carma_syevd(char jobz, carma_obj<T> *mat, T *eigenvals, carma_obj<T> *U)
+template<class T> int carma_syevd(char jobz, carma_obj<T> *mat, carma_host_obj<T> *eigenvals, carma_obj<T> *U)
 {
   MAGMA_TRACE("!!!!!! MAGMA not compiled !!!!!!\n");
   return EXIT_FAILURE;
 }
-template int carma_syevd<float>(char jobz, carma_obj<float> *mat, float *eigenvals, carma_obj<float> *U);
-template int carma_syevd<double>(char jobz, carma_obj<double> *mat, double *eigenvals, carma_obj<double> *U);
+template int carma_syevd<float>(char jobz, carma_obj<float> *mat, carma_host_obj<float> *eigenvals, carma_obj<float> *U);
+template int carma_syevd<double>(char jobz, carma_obj<double> *mat, carma_host_obj<double> *eigenvals, carma_obj<double> *U);
 
-template<class T> int carma_syevd(char jobz, carma_obj<T> *mat, T *eigenvals)
+template<class T> int carma_syevd(char jobz, carma_obj<T> *mat,  carma_host_obj<T> *eigenvals)
 {
   MAGMA_TRACE("!!!!!! MAGMA not compiled !!!!!!\n");
   return EXIT_FAILURE;
 }
-template int carma_syevd<float>(char jobz, carma_obj<float> *mat, float *eigenvals);
-template int carma_syevd<double>(char jobz, carma_obj<double> *mat, double *eigenvals);
+template int carma_syevd<float>(char jobz, carma_obj<float> *mat, carma_host_obj<float> *eigenvals);
+template int carma_syevd<double>(char jobz, carma_obj<double> *mat, carma_host_obj<double> *eigenvals);
 
-template<class T> int carma_syevd_m(long ngpu, char jobz, T *mat, T *eigenvals, T *U, magma_int_t N)
+template<class T> int carma_syevd_m(long ngpu, char jobz, long N, T *mat, T *eigenvals)
 {
   MAGMA_TRACE("!!!!!! MAGMA not compiled !!!!!!\n");
   return EXIT_FAILURE;
 }
-template int carma_syevd_m<float>(long ngpu, char jobz, float *mat, float *eigenvals, float *U, magma_int_t N);
-template int carma_syevd_m<double>(long ngpu, char jobz, double *mat, double *eigenvals, double *U, magma_int_t N);
+template int carma_syevd_m<float>(long ngpu, char jobz, long N, float *mat, float *eigenvals);
+template int carma_syevd_m<double>(long ngpu, char jobz, long N, double *mat, double *eigenvals);
 
 template<class T> int carma_getri(carma_obj<T> *d_iA)
 {
@@ -979,11 +979,11 @@ template<class T> int carma_potri(carma_host_obj<T> *h_A) {
 template int carma_potri<float>(carma_host_obj<float> *h_A);
 template int carma_potri<double>(carma_host_obj<double> *h_A);
 
-template<class T> int carma_syevd(carma_host_obj<T> *h_A, carma_host_obj<T> *eigenvals) {
+template<class T> int carma_syevd(char jobz, carma_host_obj<T> *h_A, carma_host_obj<T> *eigenvals) {
   MAGMA_TRACE("!!!!!! MAGMA not compiled !!!!!!\n");
   return EXIT_FAILURE;
 }
-template int carma_syevd<float>(carma_host_obj<float> *h_A, carma_host_obj<T> *eigenvals);
-template int carma_syevd<double>(carma_host_obj<double> *h_A, carma_host_obj<T> *eigenvals);
+template int carma_syevd<float>(char jobz, carma_host_obj<float> *h_A, carma_host_obj<float> *eigenvals);
+template int carma_syevd<double>(char jobz, carma_host_obj<double> *h_A, carma_host_obj<double> *eigenvals);
 
 #endif
