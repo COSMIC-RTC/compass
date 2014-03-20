@@ -176,13 +176,25 @@ template<>
   int
   carma_syevd<float, 1>(char jobz, caObjS *mat,
       carma_host_obj<float> *eigenvals) {
-    return carma_syevd_gen<float>(jobz, N, N, mat, eigenvals, magma_ssyevd_gpu);
+    magma_int_t N = mat->getDims(1);
+    if (N != mat->getDims(2)) {
+      cerr << "Matrix must be symmetric\n";
+      return EXIT_FAILURE;
+    }
+    return carma_syevd_gen<float>(jobz, N, N, *mat, *eigenvals,
+        magma_ssyevd_gpu);
   }
 template<>
   int
   carma_syevd<double, 1>(char jobz, caObjD *mat,
       carma_host_obj<double> *eigenvals) {
-    return carma_syevd_gen<double>(jobz, N, N, mat, eigenvals, magma_dsyevd_gpu);
+    magma_int_t N = mat->getDims(1);
+    if (N != mat->getDims(2)) {
+      cerr << "Matrix must be symmetric\n";
+      return EXIT_FAILURE;
+    }
+    return carma_syevd_gen<double>(jobz, N, N, *mat, *eigenvals,
+        magma_dsyevd_gpu);
   }
 /*
  template<> int carma_syevd<float, 2>(char jobz, caObjS *mat,
@@ -924,7 +936,7 @@ template<class T> int carma_syevd(char jobz, carma_obj<T> *mat, carma_host_obj<T
 template int carma_syevd<float>(char jobz, carma_obj<float> *mat, carma_host_obj<float> *eigenvals, carma_obj<float> *U);
 template int carma_syevd<double>(char jobz, carma_obj<double> *mat, carma_host_obj<double> *eigenvals, carma_obj<double> *U);
 
-template<class T> int carma_syevd(char jobz, carma_obj<T> *mat,  carma_host_obj<T> *eigenvals)
+template<class T> int carma_syevd(char jobz, carma_obj<T> *mat, carma_host_obj<T> *eigenvals)
 {
   MAGMA_TRACE("!!!!!! MAGMA not compiled !!!!!!\n");
   return EXIT_FAILURE;
