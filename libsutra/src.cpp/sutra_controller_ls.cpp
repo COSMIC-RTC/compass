@@ -78,6 +78,7 @@ sutra_controller_ls::svdec_imat() {
   // doing U = Dt.D where D is i_mat
   float one = 1., zero = 0.;
   //carma_start_profile();
+  DEBUG_TRACE("here\n");
 
   if (carma_syrk(cublas_handle(), CUBLAS_FILL_MODE_LOWER, 't', nactu(),
       nslope(), one, d_imat->getData(), nslope(), zero, d_U->getData(),
@@ -87,10 +88,11 @@ sutra_controller_ls::svdec_imat() {
 
   // we can skip this step syevd use only the lower part
   //fill_sym_matrix('U', d_U->getData(), nactu, nactu * nactu);
-
+DEBUG_TRACE("here\n");
   // doing evd of U inplace
-  if (carma_syevd<float>('V', d_U, h_eigenvals) == EXIT_FAILURE) {
+  if (carma_syevd<float,1>('V', d_U, h_eigenvals) == EXIT_FAILURE) {
     //Case where MAGMA is not compiled
+    DEBUG_TRACE("here\n");
 
     //We fill the upper matrix part of the matrix
     fill_sym_matrix<float>('U', *d_U, nactu(), nactu() * nactu());
