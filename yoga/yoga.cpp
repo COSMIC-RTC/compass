@@ -3693,46 +3693,45 @@ extern "C" {
         jobz = 'N';
       nbarg -= 2;
     }
+    long N;
 
     if (yarg_subroutine()) {
       int yType = yarg_typeid(argc - 1);
       if (yType == Y_OPAQUE) {
         yObj_struct *handle_mat = (yObj_struct *) yget_obj(argc - 1, &yObj);
-        long ntot;
         long dims[Y_DIMSIZE];
 
-        void *eigenvals = ygeta_any(argc - 2, &ntot, dims, &yType);
+        void *eigenvals = ygeta_any(argc - 2, &N, dims, &yType);
 
         if (nbarg == 2) {
           if (handle_mat->type == Y_FLOAT) {
             caObjS *carma_obj_handler_mat =
                 (caObjS *) (handle_mat->carma_object);
-            carma_syevd<float>(jobz, ntot, *carma_obj_handler_mat,
+            carma_syevd<float>(jobz, N, *carma_obj_handler_mat,
                 (float*) eigenvals);
           } else if (handle_mat->type == Y_DOUBLE) {
             caObjD *carma_obj_handler_mat =
                 (caObjD *) (handle_mat->carma_object);
-            carma_syevd<double>(jobz, ntot, *carma_obj_handler_mat,
+            carma_syevd<double>(jobz, N, *carma_obj_handler_mat,
                 (double*) eigenvals);
           } else {
             y_error("carma_syevd not implemented for this type");
           }
         } else if (nbarg == 3) {
           yObj_struct *handle_U = (yObj_struct *) yget_obj(argc - 3, &yObj);
-
           if (handle_mat->type == Y_FLOAT) {
             caObjS *carma_obj_handler_mat =
                 (caObjS *) (handle_mat->carma_object);
             caObjS *carma_obj_handler_U = (caObjS *) (handle_U->carma_object);
             carma_obj_handler_U->copy(carma_obj_handler_mat, 1, 1);
-            carma_syevd<float>(jobz, ntot, *carma_obj_handler_U,
+            carma_syevd<float>(jobz, N, *carma_obj_handler_U,
                 (float*) eigenvals);
           } else if (handle_mat->type == Y_DOUBLE) {
             caObjD *carma_obj_handler_mat =
                 (caObjD *) (handle_mat->carma_object);
             caObjD *carma_obj_handler_U = (caObjD *) (handle_U->carma_object);
             carma_obj_handler_U->copy(carma_obj_handler_mat, 1, 1);
-            carma_syevd<double>(jobz, ntot, *carma_obj_handler_U,
+            carma_syevd<double>(jobz, N, *carma_obj_handler_U,
                 (double*) eigenvals);
           } else {
             y_error("carma_syevd not implemented for this type");
@@ -3745,24 +3744,23 @@ extern "C" {
         long dims[Y_DIMSIZE];
 
         void *h_mat = ygeta_any(argc - 1, &ntot, dims, &yType);
-        void *eigenvals = ygeta_any(argc - 2, &ntot, dims, &yType);
+        void *eigenvals = ygeta_any(argc - 2, &N, dims, &yType);
 
         if (nbarg == 2) {
           if (yType == Y_FLOAT) {
-            carma_syevd_cpu<float>(jobz, ntot, (float*) h_mat,
+            carma_syevd_cpu<float>(jobz, N, (float*) h_mat,
                 (float*) eigenvals);
           } else if (yType == Y_DOUBLE) {
-            carma_syevd_cpu<double>(jobz, ntot, (double*) h_mat,
+            carma_syevd_cpu<double>(jobz, N, (double*) h_mat,
                 (double*) eigenvals);
           } else {
             y_error("carma_syevd not implemented for this type");
           }
         } else if (nbarg == 3) {
-          int N = ntot;
           void *h_U = ygeta_any(argc - 3, &ntot, dims, &yType);
           if (yType == Y_FLOAT) {
             memcpy(h_U, h_mat, ntot * sizeof(float));
-            carma_syevd_cpu<float>(jobz, ntot, (float*) h_U,
+            carma_syevd_cpu<float>(jobz, N, (float*) h_U,
                 (float*) eigenvals);
           } else if (yType == Y_DOUBLE) {
             memcpy(h_U, h_mat, ntot * sizeof(double));
