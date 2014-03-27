@@ -1,0 +1,2 @@
+icc -mkl kp_carma_tools.cpp -I../../../compass/libcarma/include.h/ ../../../compass/libcarma/libcarma.so -I../ ../kp_kalman.a test_carma_tools.cpp
+icc -mkl sutra_controller_kalman.cpp -I../../../compass/libcarma/include.h/ -I../ -I$MAGMA_ROOT/include -DHAVE_CUBLAS -c
