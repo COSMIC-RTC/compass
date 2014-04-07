@@ -1228,19 +1228,19 @@ extern "C" {
     sensors_struct *handle = (sensors_struct *) yget_obj(argc - 1, &ySensors);
     sutra_sensors *sensors_handler = (sutra_sensors *) handle->sutra_sensors;
     float *xpos = ygeta_f(argc - 2, &ntot, dims);
-    if (ntot != sensors_handler->nsensors())
+    if (ntot != abs(sensors_handler->nsensors()))
       y_error("wrong dimension for xpos");
     float *ypos = ygeta_f(argc - 3, &ntot, dims);
-    if (ntot != sensors_handler->nsensors())
+    if (ntot != abs(sensors_handler->nsensors()))
       y_error("wrong dimension for ypos");
     float *lambda = ygeta_f(argc - 4, &ntot, dims);
-    if (ntot != sensors_handler->nsensors())
+    if (ntot != abs(sensors_handler->nsensors()))
       y_error("wrong dimension for lambda");
     float *mag = ygeta_f(argc - 5, &ntot, dims);
-    if (ntot != sensors_handler->nsensors())
+    if (ntot != abs(sensors_handler->nsensors()))
       y_error("wrong dimension for mag");
     long *size = ygeta_l(argc - 6, &ntot, dims);
-    if (ntot != sensors_handler->nsensors())
+    if (ntot != abs(sensors_handler->nsensors()))
       y_error("wrong dimension for size");
 
     carma_context *context_handle = _getCurrentContext();

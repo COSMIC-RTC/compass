@@ -4,6 +4,7 @@
 #include <sutra_controller_ls.h>
 #include <sutra_controller_mv.h>
 #include <sutra_controller_cured.h>
+#include <sutra_controller_kalman.h>
 #include <sutra_centroider_bpcog.h>
 #include <sutra_centroider_cog.h>
 #include <sutra_centroider_corr.h>
