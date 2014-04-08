@@ -5,7 +5,7 @@
 
 using namespace std;
 
-class sutra_centroider_wcog : public sutra_centroider {
+class sutra_centroider_wcog: public sutra_centroider {
 public:
   int npix;
   carma_obj<float> *d_weights;

@@ -11,23 +11,23 @@ using namespace std;
 class sutra_tscreen {
 public:
 
-  int device;       // The device # 
-  sutra_phase *d_tscreen;   // The phase screen   
+  int device; // The device # 
+  sutra_phase *d_tscreen; // The phase screen   
   carma_obj<float> *d_tscreen_o; // Additional space of the same size as the phase screen
-  carma_obj<float> *d_A;         // A matrix for extrusion
-  carma_obj<float> *d_B;         // B matrix for extrusion
+  carma_obj<float> *d_A; // A matrix for extrusion
+  carma_obj<float> *d_B; // B matrix for extrusion
   carma_obj<unsigned int> *d_istencilx; // stencil for column extrusion
   carma_obj<unsigned int> *d_istencily; // stencil for row extrusion
-  carma_obj<float> *d_z;         // tmp array for extrusion process
-  carma_obj<float> *d_noise;     // tmp array containing random numbers
-  carma_obj<float> *d_ytmp;     // contains the extrude update (row or column)
-  long screen_size;  // size of phase screens
-  float amplitude;    // amplitude for extrusion (r0^-5/6)
+  carma_obj<float> *d_z; // tmp array for extrusion process
+  carma_obj<float> *d_noise; // tmp array containing random numbers
+  carma_obj<float> *d_ytmp; // contains the extrude update (row or column)
+  long screen_size; // size of phase screens
+  float amplitude; // amplitude for extrusion (r0^-5/6)
   float altitude;
   float windspeed;
   float winddir;
-  float deltax;       // number of rows to extrude per iteration
-  float deltay;       // number of lines to extrude per iteration
+  float deltax; // number of rows to extrude per iteration
+  float deltay; // number of lines to extrude per iteration
   //internal
   float accumx;
   float accumy;

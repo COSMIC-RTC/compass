@@ -40,21 +40,18 @@ sutra_centroider_corr::~sutra_centroider_corr() {
     delete this->d_interpmat;
 }
 
-string
-sutra_centroider_corr::get_type() {
+string sutra_centroider_corr::get_type() {
   return "corr";
 }
 
-int
-sutra_centroider_corr::init_bincube(sutra_wfs *wfs) {
+int sutra_centroider_corr::init_bincube(sutra_wfs *wfs) {
 
   this->npix = wfs->npix;
 
   return EXIT_SUCCESS;
 }
 
-int
-sutra_centroider_corr::init_corr(sutra_wfs *wfs, int isizex, int isizey,
+int sutra_centroider_corr::init_corr(sutra_wfs *wfs, int isizex, int isizey,
     float *interpmat) {
   current_context->set_activeDevice(device);
   if (this->d_corrfnct != 0L)
@@ -117,8 +114,7 @@ sutra_centroider_corr::init_corr(sutra_wfs *wfs, int isizex, int isizey,
   return EXIT_SUCCESS;
 }
 
-int
-sutra_centroider_corr::load_corr(float *corr, float *corr_norm, int ndim) {
+int sutra_centroider_corr::load_corr(float *corr, float *corr_norm, int ndim) {
   int nval = (ndim == 3) ? 1 : this->nvalid;
 
   this->d_corrnorm->host2device(corr_norm);
@@ -152,8 +148,7 @@ sutra_centroider_corr::load_corr(float *corr, float *corr_norm, int ndim) {
   return EXIT_SUCCESS;
 }
 
-int
-sutra_centroider_corr::get_cog(carma_streams *streams, float *cube,
+int sutra_centroider_corr::get_cog(carma_streams *streams, float *cube,
     float *subsum, float *centroids, int nvalid, int npix, int ntot) {
   //TODO: Implement sutra_centroider_corr::get_cog
   cerr << "get_cog not implemented\n";
@@ -161,8 +156,7 @@ sutra_centroider_corr::get_cog(carma_streams *streams, float *cube,
   return EXIT_SUCCESS;
 }
 
-int
-sutra_centroider_corr::get_cog(sutra_wfs *wfs, float *slopes) {
+int sutra_centroider_corr::get_cog(sutra_wfs *wfs, float *slopes) {
   //set corrspot to 0
   cutilSafeCall(
       cudaMemset(*(this->d_corrspot), 0,
@@ -209,7 +203,6 @@ sutra_centroider_corr::get_cog(sutra_wfs *wfs, float *slopes) {
   return EXIT_SUCCESS;
 }
 
-int
-sutra_centroider_corr::get_cog(sutra_wfs *wfs) {
+int sutra_centroider_corr::get_cog(sutra_wfs *wfs) {
   return this->get_cog(wfs, *(wfs->d_slopes));
 }

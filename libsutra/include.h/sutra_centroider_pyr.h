@@ -5,7 +5,7 @@
 
 using namespace std;
 
-class sutra_centroider_pyr : public sutra_centroider {
+class sutra_centroider_pyr: public sutra_centroider {
 public:
 
 public:

@@ -3,7 +3,7 @@
 
 #include <sutra_controller.h>
 
-class sutra_controller_cured : public sutra_controller {
+class sutra_controller_cured: public sutra_controller {
 public:
   float gain;
 

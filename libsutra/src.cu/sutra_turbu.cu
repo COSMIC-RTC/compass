@@ -3,9 +3,8 @@
 
 extern __shared__ float cache_shm[];
 
-__global__ void
-vonkarman_krnl(cuFloatComplex *odata, float *idata, float k0, int nalias,
-    int nx, int ny, int blockSize) {
+__global__ void vonkarman_krnl(cuFloatComplex *odata, float *idata, float k0,
+    int nalias, int nx, int ny, int blockSize) {
   int x = threadIdx.x + blockIdx.x * blockDim.x;
   int y = threadIdx.y + blockIdx.y * blockDim.y;
 
@@ -48,9 +47,8 @@ vonkarman_krnl(cuFloatComplex *odata, float *idata, float k0, int nalias,
   }
 }
 
-int
-gene_vonkarman(cuFloatComplex *d_odata, float *d_idata, float k0, int nalias,
-    int nx, int ny, int block_size) {
+int gene_vonkarman(cuFloatComplex *d_odata, float *d_idata, float k0,
+    int nalias, int nx, int ny, int block_size) {
   int nnx = nx + block_size - nx % block_size; // find next multiple of BLOCK_SZ
   int nny = ny + block_size - ny % block_size;
   dim3 blocks(nnx / block_size, nny / block_size), threads(block_size,
@@ -65,8 +63,8 @@ gene_vonkarman(cuFloatComplex *d_odata, float *d_idata, float k0, int nalias,
   return EXIT_SUCCESS;
 }
 
-__global__ void
-dphix_krnl(float *odata, float *idata, int N, int iter, int nx) {
+__global__ void dphix_krnl(float *odata, float *idata, int N, int iter,
+    int nx) {
 
   int tid = threadIdx.x + blockIdx.x * blockDim.x;
 
@@ -78,8 +76,8 @@ dphix_krnl(float *odata, float *idata, int N, int iter, int nx) {
   }
 }
 
-__global__ void
-dphiy_krnl(float *odata, float *idata, int N, int iter, int nx) {
+__global__ void dphiy_krnl(float *odata, float *idata, int N, int iter,
+    int nx) {
 
   int tid = threadIdx.x + blockIdx.x * blockDim.x;
 
@@ -90,9 +88,8 @@ dphiy_krnl(float *odata, float *idata, int N, int iter, int nx) {
   }
 }
 
-int
-norm_pscreen(float *d_odata, float *d_idata, int nx, int ny, float norm_fact,
-    int device) {
+int norm_pscreen(float *d_odata, float *d_idata, int nx, int ny,
+    float norm_fact, int device) {
   float sfx, sfy, norm = 0;
   int nthreads = 0, nblocks = 0;
   getNumBlocksAndThreads(device, nx * ny, nblocks, nthreads);

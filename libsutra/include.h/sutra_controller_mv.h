@@ -11,7 +11,7 @@
 
 using namespace std;
 
-class sutra_controller_mv : public sutra_controller {
+class sutra_controller_mv: public sutra_controller {
 public:
   int nvalid;
   int nslope;

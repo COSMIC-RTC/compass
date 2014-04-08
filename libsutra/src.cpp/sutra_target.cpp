@@ -2,8 +2,7 @@
 #include <sutra_target.h>
 #include <sutra_phase.h>
 
-int
-fft_goodsize(long size) {
+int fft_goodsize(long size) {
   int mradix = 2;
   float tmpf = 0.;
   long tmpl = 0;
@@ -65,9 +64,8 @@ sutra_source::sutra_source(carma_context *context, float xpos, float ypos,
   this->init_source(context, xpos, ypos, lambda, mag, size, type, device);
 }
 
-inline int
-sutra_source::init_source(carma_context *context, float xpos, float ypos,
-    float lambda, float mag, long size, string type, int device) {
+inline int sutra_source::init_source(carma_context *context, float xpos,
+    float ypos, float lambda, float mag, long size, string type, int device) {
   this->current_context = context;
   this->strehl_counter = 0;
 
@@ -162,8 +160,7 @@ sutra_source::~sutra_source() {
   this->yoff.clear();
 }
 
-int
-sutra_source::init_strehlmeter() {
+int sutra_source::init_strehlmeter() {
   this->strehl_counter = 0;
   this->comp_image(1);
 
@@ -182,24 +179,21 @@ sutra_source::init_strehlmeter() {
   return EXIT_SUCCESS;
 }
 
-int
-sutra_source::add_layer(string type, float alt, float mxoff, float myoff) {
+int sutra_source::add_layer(string type, float alt, float mxoff, float myoff) {
   xoff[make_pair(type, alt)] = mxoff;
   yoff[make_pair(type, alt)] = myoff;
 
   return EXIT_SUCCESS;
 }
 
-int
-sutra_source::remove_layer(string type, float alt) {
+int sutra_source::remove_layer(string type, float alt) {
   xoff.erase(make_pair(type, alt));
   yoff.erase(make_pair(type, alt));
 
   return EXIT_SUCCESS;
 }
 
-int
-sutra_source::raytrace_shm(sutra_atmos *yatmos) {
+int sutra_source::raytrace_shm(sutra_atmos *yatmos) {
   cutilSafeCall(
       cudaMemset(this->d_phase->d_screen->getData(), 0,
           sizeof(float) * this->d_phase->d_screen->getNbElem()));
@@ -230,8 +224,7 @@ sutra_source::raytrace_shm(sutra_atmos *yatmos) {
   return EXIT_SUCCESS;
 }
 
-int
-sutra_source::raytrace(sutra_atmos *yatmos, bool async) {
+int sutra_source::raytrace(sutra_atmos *yatmos, bool async) {
   cutilSafeCall(
       cudaMemset(this->d_phase->d_screen->getData(), 0,
           sizeof(float) * this->d_phase->d_screen->getNbElem()));
@@ -274,15 +267,13 @@ sutra_source::raytrace(sutra_atmos *yatmos, bool async) {
   return EXIT_SUCCESS;
 }
 
-int
-sutra_source::raytrace(sutra_atmos *yatmos) {
+int sutra_source::raytrace(sutra_atmos *yatmos) {
   raytrace(yatmos, false);
 
   return EXIT_SUCCESS;
 }
 
-int
-sutra_source::raytrace(sutra_dms *ydms, int rst, bool async) {
+int sutra_source::raytrace(sutra_dms *ydms, int rst, bool async) {
   if (rst == 1)
     cutilSafeCall(
         cudaMemset(this->d_phase->d_screen->getData(), 0,
@@ -346,15 +337,13 @@ sutra_source::raytrace(sutra_dms *ydms, int rst, bool async) {
   return EXIT_SUCCESS;
 }
 
-int
-sutra_source::raytrace(sutra_dms *ydms, int rst) {
+int sutra_source::raytrace(sutra_dms *ydms, int rst) {
   raytrace(ydms, rst, false);
 
   return EXIT_SUCCESS;
 }
 
-int
-sutra_source::comp_image(int puponly) {
+int sutra_source::comp_image(int puponly) {
   if (this->d_amplipup == 0)
     return -1;
 
@@ -396,8 +385,7 @@ sutra_source::comp_image(int puponly) {
   return EXIT_SUCCESS;
 }
 
-int
-sutra_source::comp_strehl() {
+int sutra_source::comp_strehl() {
   //this->strehl_se = expf(-this->phase_var);
   //this->strehl_le = expf(-(this->phase_var_avg / this->strehl_counter));
   cudaMemcpy(&(this->strehl_se),

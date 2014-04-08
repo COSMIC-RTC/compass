@@ -17,19 +17,16 @@ sutra_centroider_cog::sutra_centroider_cog(carma_context *context, long nwfs,
 sutra_centroider_cog::~sutra_centroider_cog() {
 }
 
-string
-sutra_centroider_cog::get_type() {
+string sutra_centroider_cog::get_type() {
   return "cog";
 }
 
-int
-sutra_centroider_cog::init_bincube(sutra_wfs *wfs) {
+int sutra_centroider_cog::init_bincube(sutra_wfs *wfs) {
 
   return EXIT_SUCCESS;
 }
 
-int
-sutra_centroider_cog::get_cog(carma_streams *streams, float *cube,
+int sutra_centroider_cog::get_cog(carma_streams *streams, float *cube,
     float *subsum, float *centroids, int nvalid, int npix, int ntot) {
   // simple cog
   int nstreams = streams->get_nbStreams();
@@ -51,14 +48,12 @@ sutra_centroider_cog::get_cog(carma_streams *streams, float *cube,
   return EXIT_SUCCESS;
 }
 
-int
-sutra_centroider_cog::get_cog(sutra_wfs *wfs, float *slopes) {
+int sutra_centroider_cog::get_cog(sutra_wfs *wfs, float *slopes) {
   return this->get_cog(wfs->streams, *(wfs->d_bincube), *(wfs->d_subsum),
       slopes, wfs->nvalid, wfs->npix, wfs->d_bincube->getNbElem());
 }
 
-int
-sutra_centroider_cog::get_cog(sutra_wfs *wfs) {
+int sutra_centroider_cog::get_cog(sutra_wfs *wfs) {
   return this->get_cog(wfs, *(wfs->d_slopes));
 }
 

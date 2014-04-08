@@ -21,9 +21,8 @@
 ////////////////////////////////////////////////////////////////////////////////
 /// Position convolution kernel center at (0, 0) in the image
 ////////////////////////////////////////////////////////////////////////////////
-extern "C" void
-padKernel(float *d_Dst, float *d_Src, int fftH, int fftW, int kernelH,
-    int kernelW, int kernelY, int kernelX) {
+extern "C" void padKernel(float *d_Dst, float *d_Src, int fftH, int fftW,
+    int kernelH, int kernelW, int kernelY, int kernelX) {
   assert(d_Src != d_Dst);
   dim3 threads(32, 8);
   dim3 grid(iDivUp(kernelW, threads.x), iDivUp(kernelH, threads.y));
@@ -34,9 +33,8 @@ padKernel(float *d_Dst, float *d_Src, int fftH, int fftW, int kernelH,
   cutilCheckMsg("padKernel_kernel<<<>>> execution failed\n");
 }
 
-extern "C" void
-padKernel3d(float *d_Dst, float *d_Src, int fftH, int fftW, int kernelH,
-    int kernelW, int kernelY, int kernelX, int nim) {
+extern "C" void padKernel3d(float *d_Dst, float *d_Src, int fftH, int fftW,
+    int kernelH, int kernelW, int kernelY, int kernelX, int nim) {
   assert(d_Src != d_Dst);
   dim3 threads(16, 8, 8);
   dim3 grid(iDivUp(kernelW, threads.x), iDivUp(kernelH, threads.y),
@@ -53,9 +51,9 @@ padKernel3d(float *d_Dst, float *d_Src, int fftH, int fftW, int kernelH,
 ////////////////////////////////////////////////////////////////////////////////
 // Prepare data for "pad to border" addressing mode
 ////////////////////////////////////////////////////////////////////////////////
-extern "C" void
-padDataClampToBorder(float *d_Dst, float *d_Src, int fftH, int fftW, int dataH,
-    int dataW, int kernelW, int kernelH, int kernelY, int kernelX) {
+extern "C" void padDataClampToBorder(float *d_Dst, float *d_Src, int fftH,
+    int fftW, int dataH, int dataW, int kernelW, int kernelH, int kernelY,
+    int kernelX) {
   assert(d_Src != d_Dst);
   dim3 threads(32, 8);
   dim3 grid(iDivUp(fftW, threads.x), iDivUp(fftH, threads.y));
@@ -66,10 +64,9 @@ padDataClampToBorder(float *d_Dst, float *d_Src, int fftH, int fftW, int dataH,
   cutilCheckMsg("padDataClampToBorder_kernel<<<>>> execution failed\n");
 }
 
-extern "C" void
-padDataClampToBorder3d(float *d_Dst, float *d_Src, int fftH, int fftW,
-    int dataH, int dataW, int kernelW, int kernelH, int kernelY, int kernelX,
-    int nim) {
+extern "C" void padDataClampToBorder3d(float *d_Dst, float *d_Src, int fftH,
+    int fftW, int dataH, int dataW, int kernelW, int kernelH, int kernelY,
+    int kernelX, int nim) {
   assert(d_Src != d_Dst);
   dim3 threads(16, 8, 8);
   dim3 grid(iDivUp(fftW, threads.x), iDivUp(fftH, threads.y),
@@ -85,9 +82,8 @@ padDataClampToBorder3d(float *d_Dst, float *d_Src, int fftH, int fftW,
 // Modulate Fourier image of padded data by Fourier image of padded kernel
 // and normalize by FFT size
 ////////////////////////////////////////////////////////////////////////////////
-extern "C" void
-modulateAndNormalize(fComplex *d_Dst, fComplex *d_Src, int fftH, int fftW,
-    int padding, int nim) {
+extern "C" void modulateAndNormalize(fComplex *d_Dst, fComplex *d_Src, int fftH,
+    int fftW, int padding, int nim) {
   assert(fftW % 2 == 0);
   const int dataSize = fftH * (fftW / 2 + padding) * nim;
 
@@ -102,9 +98,8 @@ modulateAndNormalize(fComplex *d_Dst, fComplex *d_Src, int fftH, int fftW,
 static const double PI = 3.1415926535897932384626433832795;
 static const uint BLOCKDIM = 256;
 
-extern "C" void
-spPostprocess2D(void *d_Dst, void *d_Src, uint DY, uint DX, uint padding,
-    int dir) {
+extern "C" void spPostprocess2D(void *d_Dst, void *d_Src, uint DY, uint DX,
+    uint padding, int dir) {
   assert(d_Src != d_Dst);
   assert(DX % 2 == 0);
 
@@ -125,9 +120,8 @@ spPostprocess2D(void *d_Dst, void *d_Src, uint DY, uint DX, uint padding,
   cutilCheckMsg("spPostprocess2D_kernel<<<>>> execution failed\n");
 }
 
-extern "C" void
-spPreprocess2D(void *d_Dst, void *d_Src, uint DY, uint DX, uint padding,
-    int dir) {
+extern "C" void spPreprocess2D(void *d_Dst, void *d_Src, uint DY, uint DX,
+    uint padding, int dir) {
   assert(d_Src != d_Dst);
   assert(DX % 2 == 0);
 
@@ -151,9 +145,8 @@ spPreprocess2D(void *d_Dst, void *d_Src, uint DY, uint DX, uint padding,
 ////////////////////////////////////////////////////////////////////////////////
 // Combined spPostprocess2D + modulateAndNormalize + spPreprocess2D
 ////////////////////////////////////////////////////////////////////////////////
-extern "C" void
-spProcess2D(void *d_Dst, void *d_SrcA, void *d_SrcB, uint DY, uint DX,
-    int dir) {
+extern "C" void spProcess2D(void *d_Dst, void *d_SrcA, void *d_SrcB, uint DY,
+    uint DX, int dir) {
   assert(DY % 2 == 0);
 
 #if(POWER_OF_TWO)

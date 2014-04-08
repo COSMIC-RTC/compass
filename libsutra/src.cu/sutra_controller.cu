@@ -9,8 +9,7 @@
  
  */
 
-__global__ void
-shift_krnl(float *data, int offset, int N) {
+__global__ void shift_krnl(float *data, int offset, int N) {
 
   int tid = threadIdx.x + blockIdx.x * blockDim.x;
 
@@ -20,8 +19,7 @@ shift_krnl(float *data, int offset, int N) {
   }
 }
 
-__global__ void
-mult_krnl(float *i_data, float *scale, int N) {
+__global__ void mult_krnl(float *i_data, float *scale, int N) {
 
   int tid = threadIdx.x + blockIdx.x * blockDim.x;
 
@@ -31,8 +29,8 @@ mult_krnl(float *i_data, float *scale, int N) {
   }
 }
 
-__global__ void
-mult_int_krnl(float *o_data, float *i_data, float *scale, float gain, int N) {
+__global__ void mult_int_krnl(float *o_data, float *i_data, float *scale,
+    float gain, int N) {
 
   int tid = threadIdx.x + blockIdx.x * blockDim.x;
 
@@ -42,9 +40,8 @@ mult_int_krnl(float *o_data, float *i_data, float *scale, float gain, int N) {
   }
 }
 
-__global__ void
-mult_int_krnl(float *o_data, float *i_data, float *scale, float gain, int N,
-    int istart) {
+__global__ void mult_int_krnl(float *o_data, float *i_data, float *scale,
+    float gain, int N, int istart) {
 
   int tid = threadIdx.x + blockIdx.x * blockDim.x;
   tid += istart;
@@ -54,8 +51,8 @@ mult_int_krnl(float *o_data, float *i_data, float *scale, float gain, int N,
   }
 }
 
-__global__ void
-add_md_krnl(float *o_matrix, float *i_matrix, float *i_vector, int N) {
+__global__ void add_md_krnl(float *o_matrix, float *i_matrix, float *i_vector,
+    int N) {
   int tid = threadIdx.x + blockIdx.x * blockDim.x;
 
   if (tid < N) {
@@ -71,8 +68,7 @@ add_md_krnl(float *o_matrix, float *i_matrix, float *i_vector, int N) {
  
  */
 
-int
-shift_buf(float *d_data, int offset, int N, int device) {
+int shift_buf(float *d_data, int offset, int N, int device) {
 
   struct cudaDeviceProp deviceProperties;
   cudaGetDeviceProperties(&deviceProperties, device);
@@ -94,8 +90,7 @@ shift_buf(float *d_data, int offset, int N, int device) {
   return EXIT_SUCCESS;
 }
 
-int
-mult_vect(float *d_data, float *scale, int N, int device) {
+int mult_vect(float *d_data, float *scale, int N, int device) {
 
   struct cudaDeviceProp deviceProperties;
   cudaGetDeviceProperties(&deviceProperties, device);
@@ -117,8 +112,7 @@ mult_vect(float *d_data, float *scale, int N, int device) {
   return EXIT_SUCCESS;
 }
 
-int
-mult_int(float *o_data, float *i_data, float *scale, float gain, int N,
+int mult_int(float *o_data, float *i_data, float *scale, float gain, int N,
     int device, carma_streams *streams) {
 
   int nthreads = 0, nblocks = 0;
@@ -137,8 +131,7 @@ mult_int(float *o_data, float *i_data, float *scale, float gain, int N,
   return EXIT_SUCCESS;
 }
 
-int
-mult_int(float *o_data, float *i_data, float *scale, float gain, int N,
+int mult_int(float *o_data, float *i_data, float *scale, float gain, int N,
     int device) {
 
   int nthreads = 0, nblocks = 0;
@@ -153,8 +146,8 @@ mult_int(float *o_data, float *i_data, float *scale, float gain, int N,
   return EXIT_SUCCESS;
 }
 
-int
-add_md(float *o_matrix, float *i_matrix, float *i_vector, int N, int device) {
+int add_md(float *o_matrix, float *i_matrix, float *i_vector, int N,
+    int device) {
   int nthreads = 0, nblocks = 0;
   getNumBlocksAndThreads(device, N, nblocks, nthreads);
   dim3 grid(nblocks), threads(nthreads);

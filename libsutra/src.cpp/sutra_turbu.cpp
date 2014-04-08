@@ -80,9 +80,8 @@ sutra_tscreen::~sutra_tscreen() {
   //delete current_context;
 }
 
-int
-sutra_tscreen::init_screen(float *h_A, float *h_B, unsigned int *h_istencilx,
-    unsigned int *h_istencily, int seed) {
+int sutra_tscreen::init_screen(float *h_A, float *h_B,
+    unsigned int *h_istencilx, unsigned int *h_istencily, int seed) {
   // initial memcopies
   this->d_A->host2device(h_A);
   this->d_B->host2device(h_B);
@@ -97,8 +96,7 @@ sutra_tscreen::init_screen(float *h_A, float *h_B, unsigned int *h_istencilx,
   return EXIT_SUCCESS;
 }
 
-int
-sutra_tscreen::init_vk(int seed, int pupd) {
+int sutra_tscreen::init_vk(int seed, int pupd) {
   long *dims_data2 = new long[3];
   dims_data2[0] = 2;
   dims_data2[1] = this->screen_size;
@@ -120,8 +118,7 @@ sutra_tscreen::init_vk(int seed, int pupd) {
   return EXIT_SUCCESS;
 }
 
-int
-sutra_tscreen::generate_vk(float l0, int nalias) {
+int sutra_tscreen::generate_vk(float l0, int nalias) {
   this->d_tscreen_o->prng_host('N');
 
   cuFloatComplex *data = this->d_tscreen_c->getData();
@@ -152,18 +149,17 @@ sutra_tscreen::generate_vk(float l0, int nalias) {
   return EXIT_SUCCESS;
 }
 
-int
-sutra_tscreen::extrude(int dir)
+int sutra_tscreen::extrude(int dir)
 // dir =1 moving in x
     {
   int x0, Ncol, NC, N;
   NC = screen_size;
 
-  if (dir == 1) {  // adding a column to the left
+  if (dir == 1) { // adding a column to the left
     fillindx(this->d_z->getData(), this->d_tscreen->d_screen->getData(),
         (int *) this->d_istencilx->getData(), this->d_z->getNbElem(),
         this->device);
-    x0 = this->screen_size - 1;  //not in stencil
+    x0 = this->screen_size - 1; //not in stencil
   } else {
     fillindx(this->d_z->getData(), this->d_tscreen->d_screen->getData(),
         (int *) this->d_istencily->getData(), this->d_z->getNbElem(),
@@ -269,8 +265,7 @@ sutra_atmos::~sutra_atmos() {
   //d_screens.erase(d_screens.begin(),d_screens.end());
 }
 
-int
-sutra_atmos::init_screen(float altitude, float *h_A, float *h_B,
+int sutra_atmos::init_screen(float altitude, float *h_A, float *h_B,
     unsigned int *h_istencilx, unsigned int *h_istencily, int seed) {
   d_screens[altitude]->init_screen(h_A, h_B, h_istencilx, h_istencily, seed);
 

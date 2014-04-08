@@ -35,14 +35,14 @@ subap_norm_async(float *d_odata, float *d_idata, float *fact, float *norm,
     float nphot, int n, int N, carma_streams *streams, int device);
 // templates
 template<class T>
-  int
-  roll(T *idata, int N, int M, int nim);
+int
+roll(T *idata, int N, int M, int nim);
 template<class T>
-  int
-  roll(T *idata, int N, int M);
+int
+roll(T *idata, int N, int M);
 template<class T>
-  int
-  sutra_invgene(carma_obj<T> *imat, carma_obj<T> *cmat, carma_obj<T> *eigenvals,
-      carma_obj<T> *mod2act, carma_obj<T> *mes2mod, int nfilt);
+int
+sutra_invgene(carma_obj<T> *imat, carma_obj<T> *cmat, carma_obj<T> *eigenvals,
+    carma_obj<T> *mod2act, carma_obj<T> *mes2mod, int nfilt);
 
 #endif // _SUTRA_AO_UTILS_H_

@@ -1,14 +1,14 @@
 #include <carma_obj.h>
 
 template<class T_data>
-  carma_obj<T_data>::carma_obj(carma_context *current_context,
-      const long *dims_data) {
-    /** \brief carma_obj creator.
-     * \param current_context : the context in which the carma_obj is created
-     * \param dims_data : the array size Yorick format : [ndims,dims1,dims2,...]
-     */
-    init(current_context, dims_data, NULL, true, 0);
-  }
+carma_obj<T_data>::carma_obj(carma_context *current_context,
+    const long *dims_data) {
+  /** \brief carma_obj creator.
+   * \param current_context : the context in which the carma_obj is created
+   * \param dims_data : the array size Yorick format : [ndims,dims1,dims2,...]
+   */
+  init(current_context, dims_data, NULL, true, 0);
+}
 
 template
 caObjS::carma_obj(carma_context *current_context, const long *dims_data);
@@ -24,13 +24,13 @@ template
 caObjD2::carma_obj(carma_context *current_context, const long *dims_data);
 
 template<class T_data>
-  carma_obj<T_data>::carma_obj(carma_obj<T_data> *src) {
-    /** \brief carma_obj creator.
-     * \param src : carma_obj to copy
-     */
-    init(src->current_context, src->dims_data, src->d_data, false,
-        src->get_nbStreams());
-  }
+carma_obj<T_data>::carma_obj(carma_obj<T_data> *src) {
+  /** \brief carma_obj creator.
+   * \param src : carma_obj to copy
+   */
+  init(src->current_context, src->dims_data, src->d_data, false,
+      src->get_nbStreams());
+}
 
 template
 caObjS::carma_obj(caObjS *src);
@@ -42,13 +42,13 @@ template
 caObjD2::carma_obj(caObjD2 *src);
 
 template<class T_data>
-  carma_obj<T_data>::carma_obj(carma_context *current_context,
-      carma_obj<T_data> *src) {
-    /** \brief carma_obj creator.
-     * \param src : carma_obj to copy
-     */
-    init(current_context, src->dims_data, src->d_data, false, 0);
-  }
+carma_obj<T_data>::carma_obj(carma_context *current_context,
+    carma_obj<T_data> *src) {
+  /** \brief carma_obj creator.
+   * \param src : carma_obj to copy
+   */
+  init(current_context, src->dims_data, src->d_data, false, 0);
+}
 
 template
 caObjS::carma_obj(carma_context *current_context, caObjS *src);
@@ -60,14 +60,14 @@ template
 caObjD2::carma_obj(carma_context *current_context, caObjD2 *src);
 
 template<class T_data>
-  carma_obj<T_data>::carma_obj(carma_context *current_context,
-      const long *dims_data, T_data *data) {
-    /** \brief carma_obj creator.
-     * \param dims_data : the array size Yorick format : [ndims,dims1,dims2,...]
-     * \param data : the array
-     */
-    init(current_context, dims_data, data, true, 0);
-  }
+carma_obj<T_data>::carma_obj(carma_context *current_context,
+    const long *dims_data, T_data *data) {
+  /** \brief carma_obj creator.
+   * \param dims_data : the array size Yorick format : [ndims,dims1,dims2,...]
+   * \param data : the array
+   */
+  init(current_context, dims_data, data, true, 0);
+}
 
 template
 caObjS::carma_obj(carma_context *current_context, const long *dims_data,
@@ -89,13 +89,13 @@ caObjD2::carma_obj(carma_context *current_context, const long *dims_data,
     double2 *data);
 
 template<class T_data>
-  carma_obj<T_data>::carma_obj(carma_context *current_context,
-      const long *dims_data, int nb_streams) {
-    /** \brief carma_obj creator.
-     * \param dims_data : the array size Yorick format : [ndims,dims1,dims2,...]
-     */
-    init(current_context, dims_data, NULL, true, nb_streams);
-  }
+carma_obj<T_data>::carma_obj(carma_context *current_context,
+    const long *dims_data, int nb_streams) {
+  /** \brief carma_obj creator.
+   * \param dims_data : the array size Yorick format : [ndims,dims1,dims2,...]
+   */
+  init(current_context, dims_data, NULL, true, nb_streams);
+}
 
 template
 caObjS::carma_obj(carma_context *current_context, const long *dims_data,
@@ -117,14 +117,14 @@ caObjD2::carma_obj(carma_context *current_context, const long *dims_data,
     int nb_streams);
 
 template<class T_data>
-  carma_obj<T_data>::carma_obj(carma_context *current_context,
-      const long *dims_data, T_data *data, int nb_streams) {
-    /** \brief carma_obj creator.
-     * \param dims_data : the array size Yorick format : [ndims,dims1,dims2,...]
-     * \param data : the array
-     */
-    init(current_context, dims_data, data, true, nb_streams);
-  }
+carma_obj<T_data>::carma_obj(carma_context *current_context,
+    const long *dims_data, T_data *data, int nb_streams) {
+  /** \brief carma_obj creator.
+   * \param dims_data : the array size Yorick format : [ndims,dims1,dims2,...]
+   * \param data : the array
+   */
+  init(current_context, dims_data, data, true, nb_streams);
+}
 
 template
 caObjS::carma_obj(carma_context *current_context, const long *dims_data,
@@ -146,46 +146,44 @@ caObjD2::carma_obj(carma_context *current_context, const long *dims_data,
     double2 *data, int nb_streams);
 
 template<class T_data>
-  void
-  carma_obj<T_data>::init(carma_context *context, const long *dims_data,
-      T_data *data, bool fromHost, int nb_streams) {
-    this->current_context = context;
-    const long size_data = dims_data[0] + 1;
-    this->dims_data = new long[size_data];
-    memcpy(this->dims_data, dims_data, size_data * sizeof(long));
+void carma_obj<T_data>::init(carma_context *context, const long *dims_data,
+    T_data *data, bool fromHost, int nb_streams) {
+  this->current_context = context;
+  const long size_data = dims_data[0] + 1;
+  this->dims_data = new long[size_data];
+  memcpy(this->dims_data, dims_data, size_data * sizeof(long));
 
-    this->nb_elem = dims_data[1];
-    for (int i = 2; i < size_data; i++)
-      this->nb_elem *= dims_data[i];
+  this->nb_elem = dims_data[1];
+  for (int i = 2; i < size_data; i++)
+    this->nb_elem *= dims_data[i];
 
-    cutilSafeCall(
-        cudaMalloc((void** )&(this->d_data), sizeof(T_data) * this->nb_elem));
-    this->device = current_context->get_activeDevice();
+  cutilSafeCall(
+      cudaMalloc((void** )&(this->d_data), sizeof(T_data) * this->nb_elem));
+  this->device = current_context->get_activeDevice();
 
-    if (data == NULL)
-      cutilSafeCall(
-          cudaMemset(this->d_data, 0, sizeof(T_data) * this->nb_elem));
+  if (data == NULL)
+    cutilSafeCall(cudaMemset(this->d_data, 0, sizeof(T_data) * this->nb_elem));
 
-    else if (fromHost)
-      this->host2device(data);
-    else
-      this->copyFrom(data, this->nb_elem);
+  else if (fromHost)
+    this->host2device(data);
+  else
+    this->copyFrom(data, this->nb_elem);
 
-    this->plan = 0;
-    this->gen = 0;
-    this->d_states = 0;
-    this->values = 0;
-    this->o_data = 0;
-    cutilSafeCall(cudaMalloc((void** )&(this->d_numValid), sizeof(size_t)));
+  this->plan = 0;
+  this->gen = 0;
+  this->d_states = 0;
+  this->values = 0;
+  this->o_data = 0;
+  cutilSafeCall(cudaMalloc((void** )&(this->d_numValid), sizeof(size_t)));
 
-    this->streams = new carma_streams();
-    this->add_stream(nb_streams);
+  this->streams = new carma_streams();
+  this->add_stream(nb_streams);
 
 #if DEBUG
-    printf("CARMA Object created @ %8.8lX on GPU%d\n", (unsigned long)this, current_context->get_activeDevice());
+  printf("CARMA Object created @ %8.8lX on GPU%d\n", (unsigned long)this, current_context->get_activeDevice());
 #endif
 
-  }
+}
 
 /*
  template<class T_data>
@@ -198,46 +196,46 @@ template<class T_data>
  */
 
 template<class T_data>
-  carma_obj<T_data>::~carma_obj() {
-    /** \brief carma_obj destructor.
-     */
+carma_obj<T_data>::~carma_obj() {
+  /** \brief carma_obj destructor.
+   */
 
-    //cutilSafeCall( cudaThreadSynchronize() );
-    int old_device = current_context->get_activeDevice();
-    current_context->set_activeDevice(this->device);
+  //cutilSafeCall( cudaThreadSynchronize() );
+  int old_device = current_context->get_activeDevice();
+  current_context->set_activeDevice(this->device);
 
-    cutilSafeCall(cudaFree(this->d_data));
-    this->d_data = 0;
+  cutilSafeCall(cudaFree(this->d_data));
+  this->d_data = 0;
 
-    delete[] (this->dims_data);
-    this->dims_data = 0;
+  delete[] (this->dims_data);
+  this->dims_data = 0;
 
-    cudaFree(this->d_numValid);
-    this->d_numValid = 0;
+  cudaFree(this->d_numValid);
+  this->d_numValid = 0;
 
-    delete this->streams;
+  delete this->streams;
 
-    if (this->values != 0)
-      cutilSafeCall(cudaFree(this->values));
+  if (this->values != 0)
+    cutilSafeCall(cudaFree(this->values));
 
-    //if (this->o_data!=0) cutilSafeCall( cudaFree(this->o_data) );
+  //if (this->o_data!=0) cutilSafeCall( cudaFree(this->o_data) );
 
-    /* Destroy the CUFFT plan. */
-    if (this->plan != 0)
-      cufftSafeCall(cufftDestroy(this->plan));
+  /* Destroy the CUFFT plan. */
+  if (this->plan != 0)
+    cufftSafeCall(cufftDestroy(this->plan));
 
-    if (this->gen != 0)
-      this->destroy_prng_host();
+  if (this->gen != 0)
+    this->destroy_prng_host();
 
-    if (this->d_states != 0)
-      cutilSafeCall(cudaFree(this->d_states));
-    this->d_states = 0;
+  if (this->d_states != 0)
+    cutilSafeCall(cudaFree(this->d_states));
+  this->d_states = 0;
 
 #if DEBUG
-    printf("CARMA Object deleted @ %8.8lX on GPU%d\n", (unsigned long)this, this->device);
+  printf("CARMA Object deleted @ %8.8lX on GPU%d\n", (unsigned long)this, this->device);
 #endif
-    current_context->set_activeDevice(old_device);
-  }
+  current_context->set_activeDevice(old_device);
+}
 
 template
 caObjS::~carma_obj();
@@ -253,79 +251,70 @@ template
 caObjS2::~carma_obj();
 
 template<class T_data>
-  int
-  carma_obj<T_data>::get_nbStreams() {
-    /** \brief get the number of streams attached to the host object
-     */
-    return streams->get_nbStreams();
-  }
+int carma_obj<T_data>::get_nbStreams() {
+  /** \brief get the number of streams attached to the host object
+   */
+  return streams->get_nbStreams();
+}
 
 template<class T_data>
-  int
-  carma_obj<T_data>::add_stream() {
-    this->streams->add_stream();
-    return this->streams->get_nbStreams();
-  }
+int carma_obj<T_data>::add_stream() {
+  this->streams->add_stream();
+  return this->streams->get_nbStreams();
+}
 
 template<class T_data>
-  int
-  carma_obj<T_data>::add_stream(int nb) {
-    this->streams->add_stream(nb);
-    return this->streams->get_nbStreams();
-  }
+int carma_obj<T_data>::add_stream(int nb) {
+  this->streams->add_stream(nb);
+  return this->streams->get_nbStreams();
+}
 
 template<class T_data>
-  cudaStream_t
-  carma_obj<T_data>::get_cudaStream_t(int stream) {
-    return this->streams->get_stream(stream);
-  }
+cudaStream_t carma_obj<T_data>::get_cudaStream_t(int stream) {
+  return this->streams->get_stream(stream);
+}
 template cudaStream_t
 caObjS::get_cudaStream_t(int stream);
 
 template<class T_data>
-  int
-  carma_obj<T_data>::del_stream() {
-    this->streams->del_stream();
-    return this->streams->get_nbStreams();
-  }
+int carma_obj<T_data>::del_stream() {
+  this->streams->del_stream();
+  return this->streams->get_nbStreams();
+}
 
 template<class T_data>
-  int
-  carma_obj<T_data>::del_stream(int nb) {
-    this->streams->del_stream(nb);
-    return this->streams->get_nbStreams();
-  }
+int carma_obj<T_data>::del_stream(int nb) {
+  this->streams->del_stream(nb);
+  return this->streams->get_nbStreams();
+}
 
 template<class T_data>
-  int
-  carma_obj<T_data>::wait_stream(int stream) {
-    this->streams->wait_stream(stream);
-    return EXIT_SUCCESS;
-  }
+int carma_obj<T_data>::wait_stream(int stream) {
+  this->streams->wait_stream(stream);
+  return EXIT_SUCCESS;
+}
 
 template<class T_data>
-  int
-  carma_obj<T_data>::wait_all_streams() {
-    this->streams->wait_all_streams();
-    return EXIT_SUCCESS;
-  }
+int carma_obj<T_data>::wait_all_streams() {
+  this->streams->wait_all_streams();
+  return EXIT_SUCCESS;
+}
 template int
 caObjS::wait_all_streams();
 
 template<class T_data>
-  int
-  carma_obj<T_data>::host2device(T_data *data) {
-    /** \brief host2device data transfer.
-     * \param data : input data
-     *
-     * this method fills d_input with the imput data
-     */
-    cutilSafeCall(
-        cudaMemcpy(this->d_data, data, sizeof(T_data) * this->nb_elem,
-            cudaMemcpyHostToDevice));
+int carma_obj<T_data>::host2device(T_data *data) {
+  /** \brief host2device data transfer.
+   * \param data : input data
+   *
+   * this method fills d_input with the imput data
+   */
+  cutilSafeCall(
+      cudaMemcpy(this->d_data, data, sizeof(T_data) * this->nb_elem,
+          cudaMemcpyHostToDevice));
 
-    return EXIT_SUCCESS;
-  }
+  return EXIT_SUCCESS;
+}
 
 template int
 caObjUI::host2device(unsigned int *data);
@@ -352,19 +341,18 @@ caObjD2::host2device(double2 *data);
  */
 
 template<class T_data>
-  int
-  carma_obj<T_data>::device2host(T_data *data) {
-    /** \brief device2host data transfer.
-     * \param data : output data
-     *
-     * this method copies the values in d_output to the output array
-     */
-    cutilSafeCall(
-        cudaMemcpy(data, this->d_data, sizeof(T_data) * this->nb_elem,
-            cudaMemcpyDeviceToHost));
+int carma_obj<T_data>::device2host(T_data *data) {
+  /** \brief device2host data transfer.
+   * \param data : output data
+   *
+   * this method copies the values in d_output to the output array
+   */
+  cutilSafeCall(
+      cudaMemcpy(data, this->d_data, sizeof(T_data) * this->nb_elem,
+          cudaMemcpyDeviceToHost));
 
-    return EXIT_SUCCESS;
-  }
+  return EXIT_SUCCESS;
+}
 
 template int
 caObjS::device2host(float *data);
@@ -380,22 +368,21 @@ template int
 caObjD2::device2host(double2 *data);
 
 template<class T_data>
-  int
-  carma_obj<T_data>::device2hostOpt(T_data *data) {
-    /** \brief device2host data transfer.
-     * \param data : output data
-     *
-     * this method copies the values in d_output to the output array
-     */
-    if (this->o_data == 0)
-      return EXIT_FAILURE;
+int carma_obj<T_data>::device2hostOpt(T_data *data) {
+  /** \brief device2host data transfer.
+   * \param data : output data
+   *
+   * this method copies the values in d_output to the output array
+   */
+  if (this->o_data == 0)
+    return EXIT_FAILURE;
 
-    cutilSafeCall(
-        cudaMemcpy(data, this->o_data, sizeof(T_data) * this->nb_elem,
-            cudaMemcpyDeviceToHost));
+  cutilSafeCall(
+      cudaMemcpy(data, this->o_data, sizeof(T_data) * this->nb_elem,
+          cudaMemcpyDeviceToHost));
 
-    return EXIT_SUCCESS;
-  }
+  return EXIT_SUCCESS;
+}
 
 template int
 caObjS::device2hostOpt(float *data);
@@ -411,94 +398,89 @@ template int
 caObjD2::device2hostOpt(double2 *data);
 
 template<class T_data>
-  int
-  carma_obj<T_data>::copyInto(T_data *data, int nb_elem) {
-    /** \brief device2host data transfer.
-     * \param data : output data
-     *
-     * this method copies the values in d_output to the output array
-     */
-    if (nb_elem > this->nb_elem)
-      nb_elem = this->nb_elem;
+int carma_obj<T_data>::copyInto(T_data *data, int nb_elem) {
+  /** \brief device2host data transfer.
+   * \param data : output data
+   *
+   * this method copies the values in d_output to the output array
+   */
+  if (nb_elem > this->nb_elem)
+    nb_elem = this->nb_elem;
 
-    cutilSafeCall(
-        cudaMemcpy(data, this->d_data, sizeof(T_data) * nb_elem,
-            cudaMemcpyDeviceToDevice));
+  cutilSafeCall(
+      cudaMemcpy(data, this->d_data, sizeof(T_data) * nb_elem,
+          cudaMemcpyDeviceToDevice));
 
-    return EXIT_SUCCESS;
-  }
+  return EXIT_SUCCESS;
+}
 template int
 caObjS::copyInto(float *data, int nb_elem);
 template int
 caObjD::copyInto(double *data, int nb_elem);
 
 template<class T_data>
-  int
-  carma_obj<T_data>::copyFrom(T_data *data, int nb_elem) {
-    /** \brief device2host data transfer.
-     * \param data : output data
-     *
-     * this method copies the values in d_output to the output array
-     */
-    if (nb_elem > this->nb_elem)
-      nb_elem = this->nb_elem;
+int carma_obj<T_data>::copyFrom(T_data *data, int nb_elem) {
+  /** \brief device2host data transfer.
+   * \param data : output data
+   *
+   * this method copies the values in d_output to the output array
+   */
+  if (nb_elem > this->nb_elem)
+    nb_elem = this->nb_elem;
 
-    cutilSafeCall(
-        cudaMemcpy(this->d_data, data, sizeof(T_data) * nb_elem,
-            cudaMemcpyDeviceToDevice));
+  cutilSafeCall(
+      cudaMemcpy(this->d_data, data, sizeof(T_data) * nb_elem,
+          cudaMemcpyDeviceToDevice));
 
-    return EXIT_SUCCESS;
-  }
+  return EXIT_SUCCESS;
+}
 template int
 caObjS::copyFrom(float *data, int nb_elem);
 template int
 caObjD::copyFrom(double *data, int nb_elem);
 
 template<class T_data>
-  T_data
-  carma_obj<T_data>::sum() {
-    int nBlocks;
-    int nThreads;
+T_data carma_obj<T_data>::sum() {
+  int nBlocks;
+  int nThreads;
 
-    sumGetNumBlocksAndThreads(this->nb_elem, 0, nBlocks, nThreads);
+  sumGetNumBlocksAndThreads(this->nb_elem, 0, nBlocks, nThreads);
 
-    reduce<T_data>(this->nb_elem, nThreads, nBlocks, this->d_data,
-        this->d_data);
+  reduce<T_data>(this->nb_elem, nThreads, nBlocks, this->d_data, this->d_data);
 
-    cutilCheckMsg("Kernel execution failed");
+  cutilCheckMsg("Kernel execution failed");
 
-    // sum partial block sums on GPU
-    int s = nBlocks;
-    while (s > 1) {
-      int threads = 0, blocks = 0;
-      sumGetNumBlocksAndThreads(s, 0, blocks, threads);
+  // sum partial block sums on GPU
+  int s = nBlocks;
+  while (s > 1) {
+    int threads = 0, blocks = 0;
+    sumGetNumBlocksAndThreads(s, 0, blocks, threads);
 
-      reduce<T_data>(s, threads, blocks, this->d_data, this->d_data);
+    reduce<T_data>(s, threads, blocks, this->d_data, this->d_data);
 
-      s = (s + (threads * 2 - 1)) / (threads * 2);
+    s = (s + (threads * 2 - 1)) / (threads * 2);
 
-    }
-    T_data* h_odata = new T_data[nBlocks];
-    cudaMemcpy(h_odata, this->d_data, sizeof(T_data), cudaMemcpyDeviceToHost);
-    return h_odata[0];
   }
+  T_data* h_odata = new T_data[nBlocks];
+  cudaMemcpy(h_odata, this->d_data, sizeof(T_data), cudaMemcpyDeviceToHost);
+  return h_odata[0];
+}
 template float
 caObjS::sum();
 template double
 caObjD::sum();
 
 template<class T_data>
-  int
-  carma_obj<T_data>::transpose(carma_obj<T_data> *source) {
+int carma_obj<T_data>::transpose(carma_obj<T_data> *source) {
 
-    cutilSafeThreadSync();
+  cutilSafeThreadSync();
 
-    transposeCU(source->d_data, this->d_data, this->dims_data[1],
-        this->dims_data[2]);
+  transposeCU(source->d_data, this->d_data, this->dims_data[1],
+      this->dims_data[2]);
 
-    cutilSafeThreadSync();
-    return EXIT_SUCCESS;
-  }
+  cutilSafeThreadSync();
+  return EXIT_SUCCESS;
+}
 template int
 caObjS::transpose(caObjS *data);
 template int
@@ -513,8 +495,7 @@ caObjD::transpose(caObjD *data);
  |_|   |_|
  */
 
-int
-_genericCUS(caObjS *dest, caObjS *source) {
+int _genericCUS(caObjS *dest, caObjS *source) {
   /*! \brief sum wrapper for Yorick (single).
    * \param handle : a pointer to the carma_obj object we want to sum
    *
@@ -522,8 +503,7 @@ _genericCUS(caObjS *dest, caObjS *source) {
    */
   return launch_generic1d((float*) *source, (float*) *dest, source->getNbElem());
 }
-int
-_genericCUD(caObjD *dest, caObjD *source) {
+int _genericCUD(caObjD *dest, caObjD *source) {
   /*! \brief sum wrapper for Yorick (double).
    * \param handle : a pointer to the carma_obj object we want to sum
    *
@@ -533,8 +513,7 @@ _genericCUD(caObjD *dest, caObjD *source) {
       source->getNbElem());
 }
 
-int
-_generic2CUS(caObjS *dest, caObjS *source) {
+int _generic2CUS(caObjS *dest, caObjS *source) {
   /*! \brief sum wrapper for Yorick (single).
    * \param handle : a pointer to the carma_obj object we want to sum
    *
@@ -543,8 +522,7 @@ _generic2CUS(caObjS *dest, caObjS *source) {
   return launch_generic2d((float*) *source, (float*) *dest, source->getDims(1),
       source->getDims(2));
 }
-int
-_generic2CUD(caObjD *dest, caObjD *source) {
+int _generic2CUD(caObjD *dest, caObjD *source) {
   /*! \brief sum wrapper for Yorick (double).
    * \param handle : a pointer to the carma_obj object we want to sum
    *

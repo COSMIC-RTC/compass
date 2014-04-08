@@ -14,16 +14,12 @@
 
 using namespace std;
 
-cublasStatus_t
-carma_checkCublasStatus(cublasStatus_t status);
+cublasStatus_t carma_checkCublasStatus(cublasStatus_t status);
 
-cublasStatus_t
-carma_initCublas(cublasHandle_t *cublas_handle);
-cublasStatus_t
-carma_shutdownCublas(cublasHandle_t cublas_handle);
+cublasStatus_t carma_initCublas(cublasHandle_t *cublas_handle);
+cublasStatus_t carma_shutdownCublas(cublasHandle_t cublas_handle);
 
-cublasOperation_t
-carma_char2cublasOperation(char operation);
+cublasOperation_t carma_char2cublasOperation(char operation);
 
 /*
  * _____ _____ __  __ ____  _        _  _____ _____ ____
@@ -35,101 +31,85 @@ carma_char2cublasOperation(char operation);
  */
 
 template<class T_data>
-  int
-  carma_wheremax(cublasHandle_t cublas_handle, int n, T_data *vect, int incx);
+int carma_wheremax(cublasHandle_t cublas_handle, int n, T_data *vect, int incx);
 
 template<class T_data>
-  int
-  carma_wheremin(cublasHandle_t cublas_handle, int n, T_data *vect, int incx);
+int carma_wheremin(cublasHandle_t cublas_handle, int n, T_data *vect, int incx);
 
 template<class T_data>
-  T_data
-  carma_getasum(cublasHandle_t cublas_handle, int n, T_data *vect, int incx);
+T_data carma_getasum(cublasHandle_t cublas_handle, int n, T_data *vect,
+    int incx);
 
 template<class T_data>
-  cublasStatus_t
-  carma_axpy(cublasHandle_t cublas_handle, int n, T_data alpha, T_data *vectx,
-      int incx, T_data *vecty, int incy);
+cublasStatus_t carma_axpy(cublasHandle_t cublas_handle, int n, T_data alpha,
+    T_data *vectx, int incx, T_data *vecty, int incy);
 
 template<class T_data>
-  T_data
-  carma_dot(cublasHandle_t cublas_handle, int n, T_data *vectx, int incx,
-      T_data *vecty, int incy);
+T_data carma_dot(cublasHandle_t cublas_handle, int n, T_data *vectx, int incx,
+    T_data *vecty, int incy);
 
 template<class T_data>
-  T_data
-  carma_nrm2(cublasHandle_t cublas_handle, int n, T_data *vect, int incx);
+T_data carma_nrm2(cublasHandle_t cublas_handle, int n, T_data *vect, int incx);
 
 template<class T_data>
-  cublasStatus_t
-  carma_rot(cublasHandle_t cublas_handle, int n, T_data *vectx, int incx,
-      T_data *vecty, int incy, T_data sc, T_data ss);
+cublasStatus_t carma_rot(cublasHandle_t cublas_handle, int n, T_data *vectx,
+    int incx, T_data *vecty, int incy, T_data sc, T_data ss);
 
 template<class T_data>
-  cublasStatus_t
-  carma_scal(cublasHandle_t cublas_handle, int n, T_data alpha, T_data *vectx,
-      int incx);
+cublasStatus_t carma_scal(cublasHandle_t cublas_handle, int n, T_data alpha,
+    T_data *vectx, int incx);
 
 template<class T_data>
-  cublasStatus_t
-  carma_swap(cublasHandle_t cublas_handle, int n, T_data *vectx, int incx,
-      T_data *vecty, int incy);
+cublasStatus_t carma_swap(cublasHandle_t cublas_handle, int n, T_data *vectx,
+    int incx, T_data *vecty, int incy);
 
 template<class T_data>
-  cublasStatus_t
-  carma_copy(cublasHandle_t cublas_handle, int n, T_data *vectx, int incx,
-      T_data *vecty, int incy);
+cublasStatus_t carma_copy(cublasHandle_t cublas_handle, int n, T_data *vectx,
+    int incx, T_data *vecty, int incy);
 
 template<class T_data>
-  cublasStatus_t
-  carma_gemv(cublasHandle_t cublas_handle, char trans, int m, int n,
-      T_data alpha, T_data *matA, int lda, T_data *vectx, int incx, T_data beta,
-      T_data *vecty, int incy);
+cublasStatus_t carma_gemv(cublasHandle_t cublas_handle, char trans, int m,
+    int n, T_data alpha, T_data *matA, int lda, T_data *vectx, int incx,
+    T_data beta, T_data *vecty, int incy);
 
 template<class T_data>
-  cublasStatus_t
-  carma_symv(cublasHandle_t cublas_handle, cublasFillMode_t uplo, int n,
-      T_data alpha, T_data *matA, int lda, T_data *vectx, int incx, T_data beta,
-      T_data *vecty, int incy);
+cublasStatus_t carma_symv(cublasHandle_t cublas_handle, cublasFillMode_t uplo,
+    int n, T_data alpha, T_data *matA, int lda, T_data *vectx, int incx,
+    T_data beta, T_data *vecty, int incy);
 
 template<class T_data>
-  cublasStatus_t
-  carma_ger(cublasHandle_t cublas_handle, int m, int n, T_data alpha,
-      T_data *vectx, int incx, T_data *vecty, int incy, T_data *matA, int lda);
+cublasStatus_t carma_ger(cublasHandle_t cublas_handle, int m, int n,
+    T_data alpha, T_data *vectx, int incx, T_data *vecty, int incy,
+    T_data *matA, int lda);
 
 template<class T_data>
-  cublasStatus_t
-  carma_gemm(cublasHandle_t cublas_handle, char transa, char transb, int m,
-      int n, int k, T_data alpha, T_data *matA, int lda, T_data *matB, int ldb,
-      T_data beta, T_data *matC, int ldc);
+cublasStatus_t carma_gemm(cublasHandle_t cublas_handle, char transa,
+    char transb, int m, int n, int k, T_data alpha, T_data *matA, int lda,
+    T_data *matB, int ldb, T_data beta, T_data *matC, int ldc);
 
 template<class T_data>
-  cublasStatus_t
-  carma_symm(cublasHandle_t cublas_handle, cublasSideMode_t side,
-      cublasFillMode_t uplo, int m, int n, T_data alpha, T_data *matA, int lda,
-      T_data *matB, int ldb, T_data beta, T_data *matC, int ldc);
+cublasStatus_t carma_symm(cublasHandle_t cublas_handle, cublasSideMode_t side,
+    cublasFillMode_t uplo, int m, int n, T_data alpha, T_data *matA, int lda,
+    T_data *matB, int ldb, T_data beta, T_data *matC, int ldc);
 
 template<class T_data>
-  cublasStatus_t
-  carma_syrk(cublasHandle_t cublas_handle, cublasFillMode_t uplo, char transa,
-      int n, int k, T_data alpha, T_data *matA, int lda, T_data beta,
-      T_data *matC, int ldc);
+cublasStatus_t carma_syrk(cublasHandle_t cublas_handle, cublasFillMode_t uplo,
+    char transa, int n, int k, T_data alpha, T_data *matA, int lda, T_data beta,
+    T_data *matC, int ldc);
 
 template<class T_data>
-  cublasStatus_t
-  carma_syrkx(cublasHandle_t cublas_handle, cublasFillMode_t uplo, char transa,
-      int n, int k, T_data alpha, T_data *matA, int lda, T_data *matB, int ldb,
-      T_data beta, T_data *matC, int ldc);
+cublasStatus_t carma_syrkx(cublasHandle_t cublas_handle, cublasFillMode_t uplo,
+    char transa, int n, int k, T_data alpha, T_data *matA, int lda,
+    T_data *matB, int ldb, T_data beta, T_data *matC, int ldc);
 
 template<class T_data>
-  cublasStatus_t
-  carma_geam(cublasHandle_t cublas_handle, char transa, char transb, int m,
-      int n, T_data alpha, T_data *matA, int lda, T_data beta, T_data *matB,
-      int ldb, T_data *matC, int ldc);
+cublasStatus_t carma_geam(cublasHandle_t cublas_handle, char transa,
+    char transb, int m, int n, T_data alpha, T_data *matA, int lda, T_data beta,
+    T_data *matB, int ldb, T_data *matC, int ldc);
 
 template<class T_data>
-  cublasStatus_t
-  carma_dgmm(cublasHandle_t cublas_handle, cublasSideMode_t side, int m, int n,
-      T_data *matA, int lda, T_data *vectx, int incx, T_data *matC, int ldc);
+cublasStatus_t carma_dgmm(cublasHandle_t cublas_handle, cublasSideMode_t side,
+    int m, int n, T_data *matA, int lda, T_data *vectx, int incx, T_data *matC,
+    int ldc);
 
 #endif /* CARMA_CUBLAS_H_ */

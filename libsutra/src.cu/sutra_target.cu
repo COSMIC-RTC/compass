@@ -7,8 +7,8 @@ texture<float, 2, cudaReadModeElementType> tex2d;
 extern __shared__ cuFloatComplex cachec[];
 extern __shared__ float cache[];
 
-__global__ void
-texraytrace_krnl(float* g_odata, int nx, int ny, float xoff, float yoff) {
+__global__ void texraytrace_krnl(float* g_odata, int nx, int ny, float xoff,
+    float yoff) {
   // calculate normalized texture coordinates
   unsigned int x = blockIdx.x * blockDim.x + threadIdx.x;
   unsigned int y = blockIdx.y * blockDim.y + threadIdx.y;
@@ -21,8 +21,7 @@ texraytrace_krnl(float* g_odata, int nx, int ny, float xoff, float yoff) {
   }
 }
 
-int
-target_texraytrace(float *d_odata, float *d_idata, int nx, int ny, int Nx,
+int target_texraytrace(float *d_odata, float *d_idata, int nx, int ny, int Nx,
     int Ny, float xoff, float yoff, int Ntot, cudaChannelFormatDesc channelDesc,
     int device) {
   tex2d.addressMode[0] = cudaAddressModeClamp;
@@ -67,9 +66,8 @@ target_texraytrace(float *d_odata, float *d_idata, int nx, int ny, int Nx,
   return EXIT_SUCCESS;
 }
 
-__device__ void
-generic_raytrace(float *odata, float *idata, int nx, int ny, float xoff,
-    float yoff, int Nx, int blockSize, int istart) {
+__device__ void generic_raytrace(float *odata, float *idata, int nx, int ny,
+    float xoff, float yoff, int Nx, int blockSize, int istart) {
   int x = threadIdx.x + blockIdx.x * blockDim.x;
   int y = threadIdx.y + blockIdx.y * blockDim.y;
   y += istart;
@@ -111,20 +109,17 @@ generic_raytrace(float *odata, float *idata, int nx, int ny, float xoff,
   }
 }
 
-__global__ void
-raytrace_krnl(float *odata, float *idata, int nx, int ny, float xoff,
-    float yoff, int Nx, int blockSize) {
+__global__ void raytrace_krnl(float *odata, float *idata, int nx, int ny,
+    float xoff, float yoff, int Nx, int blockSize) {
   generic_raytrace(odata, idata, nx, ny, xoff, yoff, Nx, blockSize, 0);
 }
 
-__global__ void
-raytrace_krnl(float *odata, float *idata, int nx, int ny, float xoff,
-    float yoff, int Nx, int blockSize, int istart) {
+__global__ void raytrace_krnl(float *odata, float *idata, int nx, int ny,
+    float xoff, float yoff, int Nx, int blockSize, int istart) {
   generic_raytrace(odata, idata, nx, ny, xoff, yoff, Nx, blockSize, istart);
 }
 
-int
-target_raytrace(float *d_odata, float *d_idata, int nx, int ny, int Nx,
+int target_raytrace(float *d_odata, float *d_idata, int nx, int ny, int Nx,
     float xoff, float yoff, int block_size) {
   int nnx = nx + block_size - nx % block_size; // find next multiple of BLOCK_SZ
   int nny = ny + block_size - ny % block_size;
@@ -140,9 +135,9 @@ target_raytrace(float *d_odata, float *d_idata, int nx, int ny, int Nx,
   return EXIT_SUCCESS;
 }
 
-int
-target_raytrace_async(carma_streams *streams, float *d_odata, float *d_idata,
-    int nx, int ny, int Nx, float xoff, float yoff, int block_size) {
+int target_raytrace_async(carma_streams *streams, float *d_odata,
+    float *d_idata, int nx, int ny, int Nx, float xoff, float yoff,
+    int block_size) {
   int nstreams = streams->get_nbStreams();
 
   int nnx = nx + block_size - nx % block_size; // find next multiple of BLOCK_SZ
@@ -157,10 +152,9 @@ target_raytrace_async(carma_streams *streams, float *d_odata, float *d_idata,
   return EXIT_SUCCESS;
 }
 
-int
-target_raytrace_async(carma_host_obj<float> *phase_telemetry, float *d_odata,
-    float *d_idata, int nx, int ny, int Nx, float xoff, float yoff,
-    int block_size) {
+int target_raytrace_async(carma_host_obj<float> *phase_telemetry,
+    float *d_odata, float *d_idata, int nx, int ny, int Nx, float xoff,
+    float yoff, int block_size) {
   float *hdata = phase_telemetry->getData();
   int nstreams = phase_telemetry->get_nbStreams();
 
@@ -170,7 +164,7 @@ target_raytrace_async(carma_host_obj<float> *phase_telemetry, float *d_odata,
 
   for (int i = 0; i < nstreams; i++)
     raytrace_krnl<<<blocks, threads, smemSize,
-        phase_telemetry->get_cudaStream_t(i)>>>(d_odata, d_idata, nx, ny, xoff,
+    phase_telemetry->get_cudaStream_t(i)>>>(d_odata, d_idata, nx, ny, xoff,
         yoff, Nx, block_size, i * block_size);
 
   cutilCheckMsg("raytrace_kernel<<<>>> execution failed\n");
@@ -191,9 +185,8 @@ target_raytrace_async(carma_host_obj<float> *phase_telemetry, float *d_odata,
   return EXIT_SUCCESS;
 }
 
-__global__ void
-fillamplikrnl(cuFloatComplex *amplipup, float *phase, float *mask, float scale,
-    int puponly, int nx, int Np, int Nx) {
+__global__ void fillamplikrnl(cuFloatComplex *amplipup, float *phase,
+    float *mask, float scale, int puponly, int nx, int Np, int Nx) {
   int tid = threadIdx.x + blockIdx.x * blockDim.x;
 
   while (tid < Np) {
@@ -212,9 +205,8 @@ fillamplikrnl(cuFloatComplex *amplipup, float *phase, float *mask, float scale,
   }
 }
 
-int
-fill_amplipup(cuFloatComplex *amplipup, float *phase, float *mask, float scale,
-    int puponly, int nx, int ny, int Nx, int device) {
+int fill_amplipup(cuFloatComplex *amplipup, float *phase, float *mask,
+    float scale, int puponly, int nx, int ny, int Nx, int device) {
 
   struct cudaDeviceProp deviceProperties;
   cudaGetDeviceProperties(&deviceProperties, device);

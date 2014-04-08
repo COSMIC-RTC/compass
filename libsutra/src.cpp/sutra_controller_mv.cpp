@@ -88,43 +88,36 @@ sutra_controller_mv::~sutra_controller_mv() {
   //delete this->current_context;
 }
 
-string
-sutra_controller_mv::get_type() {
+string sutra_controller_mv::get_type() {
   return "mv";
 }
 
-int
-sutra_controller_mv::set_gain(float gain) {
+int sutra_controller_mv::set_gain(float gain) {
   this->gain = gain;
   return EXIT_SUCCESS;
 }
 
-int
-sutra_controller_mv::load_mgain(float *mgain) {
+int sutra_controller_mv::load_mgain(float *mgain) {
   this->d_gain->host2device(mgain);
   return EXIT_SUCCESS;
 }
 
 // Florian features
-int
-sutra_controller_mv::load_covmat(float *covmat) {
+int sutra_controller_mv::load_covmat(float *covmat) {
   this->d_covmat->host2device(covmat);
   return EXIT_SUCCESS;
 }
-int
-sutra_controller_mv::load_klbasis(float *klbasis) {
+int sutra_controller_mv::load_klbasis(float *klbasis) {
   this->d_KLbasis->host2device(klbasis);
   return EXIT_SUCCESS;
 }
-int
-sutra_controller_mv::set_delay(int delay) {
+int sutra_controller_mv::set_delay(int delay) {
   this->delay = delay;
   return EXIT_SUCCESS;
 }
 
 // Florian features
-int
-sutra_controller_mv::build_cmat(const char *dmtype) {
+int sutra_controller_mv::build_cmat(const char *dmtype) {
   float one = 1.;
   float zero = 0.;
 
@@ -202,8 +195,7 @@ sutra_controller_mv::build_cmat(const char *dmtype) {
   return EXIT_SUCCESS;
 }
 
-int
-sutra_controller_mv::frame_delay() {
+int sutra_controller_mv::frame_delay() {
   // here we place the content of d_centroids into cenbuf and get
   // the actual centroid frame for error computation depending on delay value
 
@@ -225,8 +217,7 @@ sutra_controller_mv::frame_delay() {
   return EXIT_SUCCESS;
 }
 
-int
-sutra_controller_mv::comp_com() {
+int sutra_controller_mv::comp_com() {
 
   long dims_data2[2];
   dims_data2[0] = 1;

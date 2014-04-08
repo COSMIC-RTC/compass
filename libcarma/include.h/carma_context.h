@@ -42,29 +42,23 @@ public:
   carma_device(const carma_device& device);
   ~carma_device();
 
-  int
-  get_id() {
+  int get_id() {
     return id;
   }
-  cudaDeviceProp
-  get_properties() {
+  cudaDeviceProp get_properties() {
     return properties;
   }
-  float
-  get_compute_perf() {
+  float get_compute_perf() {
     return compute_perf;
   }
-  float
-  get_sm_per_multiproc() {
+  float get_sm_per_multiproc() {
     return sm_per_multiproc;
   }
-  bool
-  isGPUCapableP2P() {
+  bool isGPUCapableP2P() {
     return (bool) (properties.major >= 2);
   }
 
-  bool
-  isP2P_active() {
+  bool isP2P_active() {
     return p2p_activate;
   }
 
@@ -83,35 +77,26 @@ public:
   carma_context(const carma_context& cntxt);
   ~carma_context();
 
-  int
-  get_ndevice() {
+  int get_ndevice() {
     return ndevice;
   }
-  carma_device *
-  get_device(int dev) {
+  carma_device* get_device(int dev) {
     return devices[dev];
   }
-  int
-  get_activeDevice() {
+  int get_activeDevice() {
     return activeDevice;
   }
-  string
-  get_activeDeviceStr();
-  int
-  set_activeDevice(int newDevice, int silent = 1);
-  int
-  set_activeDeviceForCpy(int newDevice, int silent = 1);
-  int
-  get_maxGflopsDeviceId();
-  cublasHandle_t
-  get_cublasHandle() {
+  string get_activeDeviceStr();
+  int set_activeDevice(int newDevice, int silent = 1);
+  int set_activeDeviceForCpy(int newDevice, int silent = 1);
+  int get_maxGflopsDeviceId();
+  cublasHandle_t get_cublasHandle() {
     return cublasHandle;
   }
 };
 
 /// from /usr/local/cuda/samples/common/inc/helper_cuda.h
-inline int
-ConvertSMVer2Cores(int major, int minor) {
+inline int ConvertSMVer2Cores(int major, int minor) {
   // Defines for GPU Architecture types (using the SM version to determine the # of cores per SM
   typedef struct {
     int SM; // 0xMm (hexidecimal notation), M = SM Major version, and m = SM minor version

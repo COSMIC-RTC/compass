@@ -20,8 +20,7 @@ sutra_rtc::~sutra_rtc() {
   //delete this->current_context;
 }
 
-int
-sutra_rtc::add_centroider(long nwfs, long nvalid, float offset, float scale,
+int sutra_rtc::add_centroider(long nwfs, long nvalid, float offset, float scale,
     long device, char *typec) {
   if (strcmp(typec, "bpcog") == 0)
     d_centro.push_back(
@@ -54,8 +53,7 @@ sutra_rtc::add_centroider(long nwfs, long nvalid, float offset, float scale,
   return EXIT_SUCCESS;
 }
 
-int
-sutra_rtc::add_controller(long nactu, long delay, long device,
+int sutra_rtc::add_controller(long nactu, long delay, long device,
     const char *typec) {
   int ncentroids = 0;
   for (size_t idx = 0; idx < (this->d_centro).size(); idx++)
@@ -73,14 +71,18 @@ sutra_rtc::add_controller(long nactu, long delay, long device,
     d_control.push_back(
         new sutra_controller_mv(current_context, ncentroids, nactu, delay));
   } else if (type_ctr.compare("kalman") == 0) {
-    carma_obj<float>* cD_Mo = calculate_D_Mo(current_context, ncentroids*2 );
+    carma_obj<float>* cD_Mo = calculate_D_Mo(current_context, ncentroids * 2);
     carma_obj<float>* cN_Act = calculate_N_Act(current_context, nactu);
     carma_obj<float>* cPROJ = calculate_btur();
     d_control.push_back(
-        new sutra_controller_kalman(current_context, cD_Mo, cN_Act, cPROJ, false));
-    if(cD_Mo) delete cD_Mo;
-    if(cN_Act) delete cN_Act;
-    if(cPROJ) delete cPROJ;
+        new sutra_controller_kalman(current_context, cD_Mo, cN_Act, cPROJ,
+            false));
+    if (cD_Mo)
+      delete cD_Mo;
+    if (cN_Act)
+      delete cN_Act;
+    if (cPROJ)
+      delete cPROJ;
 
   } else {
     DEBUG_TRACE("Controller '%s' unknown\n", typec);
@@ -89,8 +91,7 @@ sutra_rtc::add_controller(long nactu, long delay, long device,
   return EXIT_SUCCESS;
 }
 
-int
-sutra_rtc::rm_controller() {
+int sutra_rtc::rm_controller() {
 
   delete this->d_control[(this->d_control).size() - 1];
   d_control.pop_back();
@@ -98,8 +99,7 @@ sutra_rtc::rm_controller() {
   return EXIT_SUCCESS;
 }
 
-int
-sutra_rtc::do_imat(int ncntrl, sutra_sensors *sensors, sutra_dms *ydm) {
+int sutra_rtc::do_imat(int ncntrl, sutra_sensors *sensors, sutra_dms *ydm) {
   carma_obj<float> *d_imat;
   if (this->d_control[ncntrl]->get_type().compare("ls") == 0) {
     SCAST(sutra_controller_ls *, control, this->d_control[ncntrl]);
@@ -149,8 +149,7 @@ sutra_rtc::do_imat(int ncntrl, sutra_sensors *sensors, sutra_dms *ydm) {
   return EXIT_SUCCESS;
 }
 
-int
-sutra_rtc::do_imat_geom(int ncntrl, sutra_sensors *sensors, sutra_dms *ydm,
+int sutra_rtc::do_imat_geom(int ncntrl, sutra_sensors *sensors, sutra_dms *ydm,
     int type) {
   if (this->d_control[ncntrl]->get_type().compare("ls") == 0) {
     SCAST(sutra_controller_ls *, control, this->d_control[ncntrl]);
@@ -182,8 +181,7 @@ sutra_rtc::do_imat_geom(int ncntrl, sutra_sensors *sensors, sutra_dms *ydm,
   return EXIT_SUCCESS;
 }
 
-int
-sutra_rtc::do_centroids(sutra_sensors *sensors) {
+int sutra_rtc::do_centroids(sutra_sensors *sensors) {
   for (size_t idx_cntr = 0; idx_cntr < (this->d_centro).size(); idx_cntr++) {
     int nwfs = this->d_centro[idx_cntr]->nwfs;
 
@@ -194,13 +192,11 @@ sutra_rtc::do_centroids(sutra_sensors *sensors) {
   return EXIT_SUCCESS;
 }
 
-int
-sutra_rtc::do_centroids(int ncntrl, sutra_sensors *sensors) {
+int sutra_rtc::do_centroids(int ncntrl, sutra_sensors *sensors) {
   return do_centroids(ncntrl, sensors, false);
 }
 
-int
-sutra_rtc::do_centroids(int ncntrl, sutra_sensors *sensors, bool imat) {
+int sutra_rtc::do_centroids(int ncntrl, sutra_sensors *sensors, bool imat) {
   int inds2 = 0;
 
   for (size_t idx_cntr = 0; idx_cntr < (this->d_centro).size(); idx_cntr++) {
@@ -216,8 +212,7 @@ sutra_rtc::do_centroids(int ncntrl, sutra_sensors *sensors, bool imat) {
   return EXIT_SUCCESS;
 }
 
-int
-sutra_rtc::do_control(int ncntrl, sutra_dms *ydm) {
+int sutra_rtc::do_control(int ncntrl, sutra_dms *ydm) {
   if (this->d_control[ncntrl]->get_type().compare("ls") == 0) {
     SCAST(sutra_controller_ls *, control, this->d_control[ncntrl]);
     //   fprintf(stderr, "[%s@%d] here!\n", __FILE__, __LINE__);

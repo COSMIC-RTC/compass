@@ -10,8 +10,8 @@
 //#include <sutra_slopes.h>
 
 extern "C" {
-  void
-  my_abort(int err);
+void
+my_abort(int err);
 }
 
 using namespace std;
@@ -52,7 +52,7 @@ public:
   carma_obj<float> *d_submask;
   carma_obj<int> *d_hrmap;
 
-  carma_obj<int> *d_isvalid;    // nxsub x nxsub
+  carma_obj<int> *d_isvalid; // nxsub x nxsub
   carma_obj<float> *d_slopes;
 
   carma_host_obj<float> *image_telemetry;
@@ -60,10 +60,10 @@ public:
   // sh only
   carma_obj<int> *d_phasemap;
   carma_obj<int> *d_binmap;
-  carma_obj<int> *d_validsubsx;  // nvalid
-  carma_obj<int> *d_validsubsy;  // nvalid
-  carma_obj<int> *d_istart;     // nxsub 
-  carma_obj<int> *d_jstart;     // nxsub
+  carma_obj<int> *d_validsubsx; // nvalid
+  carma_obj<int> *d_validsubsy; // nvalid
+  carma_obj<int> *d_istart; // nxsub 
+  carma_obj<int> *d_jstart; // nxsub
 
   // pyramid only
   carma_obj<float> *d_psum;
@@ -127,8 +127,7 @@ private:
 
 class sutra_sensors {
 public:
-  size_t
-  nsensors() {
+  size_t nsensors() {
     return d_wfs.size();
   }
   vector<sutra_wfs *> d_wfs;
@@ -186,61 +185,61 @@ convolve_cube(cuFloatComplex *d_odata, cuFloatComplex *d_idata, int N, int n,
 // CUDA templates
 // this is for cog
 template<class T>
-  void
-  subap_reduce(int size, int threads, int blocks, T *d_idata, T *d_odata);
+void
+subap_reduce(int size, int threads, int blocks, T *d_idata, T *d_odata);
 template<class T>
-  void
-  subap_reduce_async(int threads, int blocks, carma_streams *streams,
-      T *d_idata, T *d_odata);
+void
+subap_reduce_async(int threads, int blocks, carma_streams *streams, T *d_idata,
+    T *d_odata);
 // this is for tcog
 template<class T>
-  void
-  subap_reduce(int size, int threads, int blocks, T *d_idata, T *d_odata,
-      T thresh);
+void
+subap_reduce(int size, int threads, int blocks, T *d_idata, T *d_odata,
+    T thresh);
 // this is for wcog
 template<class T>
-  void
-  subap_reduce(int size, int threads, int blocks, T *d_idata, T *d_odata,
-      T *weights);
+void
+subap_reduce(int size, int threads, int blocks, T *d_idata, T *d_odata,
+    T *weights);
 template<class T>
-  void
-  phase_reduce(int threads, int blocks, T *d_idata, T *d_odata, int *indx,
-      T alpha);
+void
+phase_reduce(int threads, int blocks, T *d_idata, T *d_odata, int *indx,
+    T alpha);
 template<class T>
-  void
-  phase_derive(int size, int threads, int blocks, int n, T *d_idata, T *d_odata,
-      int *indx, T *mask, T alpha, float *fluxPerSub);
+void
+phase_derive(int size, int threads, int blocks, int n, T *d_idata, T *d_odata,
+    int *indx, T *mask, T alpha, float *fluxPerSub);
 template<class Tout, class Tin>
-  void
-  pyr_getpup(Tout *d_odata, Tin *d_idata, Tout *d_offsets, Tin *d_pup, int np,
-      int device);
+void
+pyr_getpup(Tout *d_odata, Tin *d_idata, Tout *d_offsets, Tin *d_pup, int np,
+    int device);
 template<class T>
-  void
-  pyr_rollmod(T *d_odata, T *d_idata, T *d_mask, float cx, float cy, int np,
-      int ns, int device);
+void
+pyr_rollmod(T *d_odata, T *d_idata, T *d_mask, float cx, float cy, int np,
+    int ns, int device);
 template<class T>
-  void
-  pyr_fillbin(T *d_odata, T *d_idata, int nrebin, int np, int ns, int nim,
-      int device);
+void
+pyr_fillbin(T *d_odata, T *d_idata, int nrebin, int np, int ns, int nim,
+    int device);
 template<class Tin, class Tout>
-  void
-  pyr_abs2(Tout *d_odata, Tin *d_idata, Tout fact, int ns, int nim, int device);
+void
+pyr_abs2(Tout *d_odata, Tin *d_idata, Tout fact, int ns, int nim, int device);
 template<class Tout, class Tin>
-  void
-  pyr_submask(Tout *d_odata, Tin *d_mask, int n, int device);
+void
+pyr_submask(Tout *d_odata, Tin *d_mask, int n, int device);
 template<class Tout, class Tin>
-  void
-  pyr_abs(Tout *d_odata, Tin *d_idata, int ns, int nim, int device);
+void
+pyr_abs(Tout *d_odata, Tin *d_idata, int ns, int nim, int device);
 template<class Tout, class Tin>
-  void
-  pyr_submask3d(Tout *d_odata, Tin *d_mask, int n, int nim, int device);
+void
+pyr_submask3d(Tout *d_odata, Tin *d_mask, int n, int nim, int device);
 template<class T>
-  void
-  pyr_subsum(T *d_odata, T *d_idata, int *subindx, int *subindy, int ns,
-      int nvalid, int nim, int device);
+void
+pyr_subsum(T *d_odata, T *d_idata, int *subindx, int *subindy, int ns,
+    int nvalid, int nim, int device);
 template<class T>
-  void
-  pyr_fact(T *d_data, T fact, int n, int nim, int device);
+void
+pyr_fact(T *d_data, T fact, int n, int nim, int device);
 void
 pyr_fact(cuFloatComplex *d_data, float fact, int n, int nim, int device);
 void

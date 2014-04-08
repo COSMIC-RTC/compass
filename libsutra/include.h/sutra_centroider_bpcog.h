@@ -5,7 +5,7 @@
 
 using namespace std;
 
-class sutra_centroider_bpcog : public sutra_centroider {
+class sutra_centroider_bpcog: public sutra_centroider {
 public:
   int nmax;
 

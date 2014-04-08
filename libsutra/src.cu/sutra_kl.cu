@@ -1,13 +1,11 @@
 #include <sutra_kl.h>
 
-__device__ float
-kl_sfi(float *rabas, float *azbas, int npix, int nrow) {
+__device__ float kl_sfi(float *rabas, float *azbas, int npix, int nrow) {
   return rabas[npix] * azbas[nrow];
 }
 
-__device__ void
-kl_interp(float alpha, float ampli, float *odata, float *rabas, float *azbas,
-    float xbi, float ybi, int nr, int np, int tido) {
+__device__ void kl_interp(float alpha, float ampli, float *odata, float *rabas,
+    float *azbas, float xbi, float ybi, int nr, int np, int tido) {
   if ((xbi >= 0) && (xbi <= nr - 1) && (ybi >= 0) && (ybi <= np - 1)) {
     int i0, i1, j0, j1;
     long ibi = (long) xbi;
@@ -45,9 +43,9 @@ kl_interp(float alpha, float ampli, float *odata, float *rabas, float *azbas,
     odata[tido] = 0.0f;
 }
 
-__device__ void
-kl_interp(float alpha, float *ampli, int nkl, float *odata, float *rabas,
-    float *azbas, float xbi, float ybi, int nr, int np, int tido) {
+__device__ void kl_interp(float alpha, float *ampli, int nkl, float *odata,
+    float *rabas, float *azbas, float xbi, float ybi, int nr, int np,
+    int tido) {
   if ((xbi >= 0) && (xbi <= nr - 1) && (ybi >= 0) && (ybi <= np - 1)) {
     int i0, i1, j0, j1;
     long ibi = (long) xbi;
@@ -85,9 +83,9 @@ kl_interp(float alpha, float *ampli, int nkl, float *odata, float *rabas,
     odata[tido] = 0.0f;
 }
 
-__global__ void
-getkl_krnl(float alpha, float ampli, float *odata, float *rabas, float *azbas,
-    float *cr, float *cp, int nr, int np, int nx, int Nx, int xoff, int yoff) {
+__global__ void getkl_krnl(float alpha, float ampli, float *odata, float *rabas,
+    float *azbas, float *cr, float *cp, int nr, int np, int nx, int Nx,
+    int xoff, int yoff) {
   int xid = threadIdx.x + blockIdx.x * blockDim.x;
   int yid = threadIdx.y + blockIdx.y * blockDim.y;
 
@@ -104,10 +102,9 @@ getkl_krnl(float alpha, float ampli, float *odata, float *rabas, float *azbas,
   }
 }
 
-__global__ void
-combikl_krnl(float *com, int nkl, float *odata, float *rabas, int *d_ord,
-    float *azbas, float *cr, float *cp, int nr, int np, int nx, int Nx,
-    int xoff, int yoff) {
+__global__ void combikl_krnl(float *com, int nkl, float *odata, float *rabas,
+    int *d_ord, float *azbas, float *cr, float *cp, int nr, int np, int nx,
+    int Nx, int xoff, int yoff) {
   int xid = threadIdx.x + blockIdx.x * blockDim.x;
   int yid = threadIdx.y + blockIdx.y * blockDim.y;
 
@@ -136,8 +133,7 @@ combikl_krnl(float *com, int nkl, float *odata, float *rabas, int *d_ord,
   }
 }
 
-int
-getkl(float alpha, float ampli, float *d_odata, float *rabas, float *azbas,
+int getkl(float alpha, float ampli, float *d_odata, float *rabas, float *azbas,
     float *cr, float *cp, int nr, int np, int nx, int Nx, int xoff, int yoff) {
   int block_size = 8;
   int nnx = nx + block_size - nx % block_size; // find next multiple of BLOCK_SZ
@@ -154,23 +150,20 @@ getkl(float alpha, float ampli, float *d_odata, float *rabas, float *azbas,
   return EXIT_SUCCESS;
 }
 
-int
-getkl(float ampli, float *d_odata, float *rabas, float *azbas, float *cr,
+int getkl(float ampli, float *d_odata, float *rabas, float *azbas, float *cr,
     float *cp, int nr, int np, int nx, int Nx, int xoff, int yoff) {
   return getkl(0.0f, ampli, d_odata, rabas, azbas, cr, cp, nr, np, nx, Nx, xoff,
       yoff);
 }
 
-int
-getkl(float *d_odata, float *rabas, float *azbas, float *cr, float *cp, int nr,
-    int np, int nx, int Nx, int xoff, int yoff) {
+int getkl(float *d_odata, float *rabas, float *azbas, float *cr, float *cp,
+    int nr, int np, int nx, int Nx, int xoff, int yoff) {
 
   return getkl(0.0f, 1.0f, d_odata, rabas, azbas, cr, cp, nr, np, nx, Nx, xoff,
       yoff);
 }
 
-int
-combikl(float *com, int nkl, float *d_odata, float *rabas, int *d_ord,
+int combikl(float *com, int nkl, float *d_odata, float *rabas, int *d_ord,
     float *azbas, float *cr, float *cp, int nr, int np, int nx, int Nx,
     int xoff, int yoff) {
   int block_size = 8;
@@ -190,15 +183,13 @@ combikl(float *com, int nkl, float *d_odata, float *rabas, int *d_ord,
 }
 
 //Florian features
-__global__ void
-flokrnl(long dim, float *bas) {
+__global__ void flokrnl(long dim, float *bas) {
   int tid = blockIdx.x;
   if (tid < dim)
     bas[tid * dim + tid] = tid;
 }
 
-int
-cget_flokl(long nkl, long dim, float *covmat, float *filter, float *bas) {
+int cget_flokl(long nkl, long dim, float *covmat, float *filter, float *bas) {
   //int i;
   printf("flag CUDA \n");
   //for (i=0;i<dim;i++) bas[i] = i;

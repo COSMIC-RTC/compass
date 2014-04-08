@@ -61,8 +61,7 @@ public:
    *  \return Formated exception
    */
 
-  const char *
-  showReason() const {
+  const char* showReason() const {
     stringstream buf;
     buf << aReason << " in " << aFile << "@" << aLine << endl;
     return buf.str().c_str();
@@ -76,8 +75,7 @@ public:
    *  \return Formated exception
    */
 
-  string
-  showReasonStr() const {
+  string showReasonStr() const {
     stringstream buf;
     buf << aReason << " in " << aFile << "@" << aLine << endl;
     return buf.str();

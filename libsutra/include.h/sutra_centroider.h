@@ -21,8 +21,7 @@ public:
   virtual
   ~sutra_centroider()=0;
 
-  bool
-  is_type(string typec) {
+  bool is_type(string typec) {
     return (typec.compare(get_type()) == 0);
   }
 
@@ -60,40 +59,40 @@ convert_centro(float *d_odata, float *d_idata, float offset, float scale, int N,
 
 // CUDA templates
 template<class T>
-  void
-  get_centroids(int size, int threads, int blocks, int n, T *d_idata,
-      T *d_odata, T *alpha, T scale, T offset);
+void
+get_centroids(int size, int threads, int blocks, int n, T *d_idata, T *d_odata,
+    T *alpha, T scale, T offset);
 template<class T>
-  void
-  get_centroids_async(int threads, int blocks, int n, carma_streams *streams,
-      T *d_idata, T *d_odata, T *alpha, T scale, T offset);
+void
+get_centroids_async(int threads, int blocks, int n, carma_streams *streams,
+    T *d_idata, T *d_odata, T *alpha, T scale, T offset);
 template<class T>
-  void
-  get_centroids(int size, int threads, int blocks, int n, T *d_idata,
-      T *d_odata, T *alpha, T thresh, T scale, T offset);
+void
+get_centroids(int size, int threads, int blocks, int n, T *d_idata, T *d_odata,
+    T *alpha, T thresh, T scale, T offset);
 template<class T>
-  void
-  get_centroids(int size, int threads, int blocks, int n, T *d_idata,
-      T *d_odata, T *alpha, T *weights, T scale, T offset);
+void
+get_centroids(int size, int threads, int blocks, int n, T *d_idata, T *d_odata,
+    T *alpha, T *weights, T scale, T offset);
 template<class T>
-  void
-  subap_centromax(int threads, int blocks, T *d_idata, T *d_odata, int npix,
-      int nmax, T scale, T offset);
+void
+subap_centromax(int threads, int blocks, T *d_idata, T *d_odata, int npix,
+    int nmax, T scale, T offset);
 template<class T>
-  void
-  subap_sortmax(int size, int threads, int blocks, T *d_idata, T *d_odata,
-      int *values, int nmax);
+void
+subap_sortmax(int size, int threads, int blocks, T *d_idata, T *d_odata,
+    int *values, int nmax);
 template<class T>
-  void
-  subap_sortmaxi(int threads, int blocks, T *d_idata, int *values, int nmax,
-      int offx, int offy, int npix, int Npix);
+void
+subap_sortmaxi(int threads, int blocks, T *d_idata, int *values, int nmax,
+    int offx, int offy, int npix, int Npix);
 template<class T>
-  void
-  subap_pinterp(int threads, int blocks, T *d_idata, int *values,
-      T *d_centroids, T *d_matinterp, int sizex, int sizey, int nvalid,
-      int Npix, T scale, T offset);
+void
+subap_pinterp(int threads, int blocks, T *d_idata, int *values, T *d_centroids,
+    T *d_matinterp, int sizex, int sizey, int nvalid, int Npix, T scale,
+    T offset);
 template<class T>
-  void
-  pyr_slopes(T *d_odata, T *d_idata, int *subindx, int *subindy, T *subsum,
-      int ns, int nvalid, int nim, int device);
+void
+pyr_slopes(T *d_odata, T *d_idata, int *subindx, int *subindy, T *subsum,
+    int ns, int nvalid, int nim, int device);
 #endif // _SUTRA_CENTROIDER_H_

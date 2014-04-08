@@ -91,9 +91,8 @@ sutra_dm::~sutra_dm() {
     delete this->d_ztheta;
 }
 
-int
-sutra_dm::pzt_loadarrays(float *influ, int *influpos, int *npoints, int *istart,
-    int *xoff, int *yoff) {
+int sutra_dm::pzt_loadarrays(float *influ, int *influpos, int *npoints,
+    int *istart, int *xoff, int *yoff) {
   this->d_influ->host2device(influ);
   this->d_xoff->host2device(xoff);
   this->d_yoff->host2device(yoff);
@@ -104,8 +103,7 @@ sutra_dm::pzt_loadarrays(float *influ, int *influpos, int *npoints, int *istart,
   return EXIT_SUCCESS;
 }
 
-int
-sutra_dm::kl_loadarrays(float *rabas, float *azbas, int *ord, float *cr,
+int sutra_dm::kl_loadarrays(float *rabas, float *azbas, int *ord, float *cr,
     float *cp) {
   this->d_kl->d_rabas->host2device(rabas);
   this->d_kl->d_azbas->host2device(azbas);
@@ -117,8 +115,7 @@ sutra_dm::kl_loadarrays(float *rabas, float *azbas, int *ord, float *cr,
   return EXIT_SUCCESS;
 }
 
-int
-sutra_dm::reset_shape() {
+int sutra_dm::reset_shape() {
   current_context->set_activeDevice(device);
 
   cutilSafeCall(
@@ -128,8 +125,7 @@ sutra_dm::reset_shape() {
   return EXIT_SUCCESS;
 }
 
-int
-sutra_dm::comp_shape(float *comvec) {
+int sutra_dm::comp_shape(float *comvec) {
   current_context->set_activeDevice(device);
   this->reset_shape();
 
@@ -160,13 +156,11 @@ sutra_dm::comp_shape(float *comvec) {
   return EXIT_SUCCESS;
 }
 
-int
-sutra_dm::comp_shape() {
+int sutra_dm::comp_shape() {
   return this->comp_shape(this->d_comm->getData());
 }
 
-int
-sutra_dm::comp_oneactu(int nactu, float ampli) {
+int sutra_dm::comp_oneactu(int nactu, float ampli) {
   this->reset_shape();
   int nthreads = 0, nblocks = 0;
   //getNumBlocksAndThreads(this->device,this->dim * this->dim, nblocks, nthreads);
@@ -204,9 +198,8 @@ sutra_dms::~sutra_dms() {
   this->d_dms.clear();
 }
 
-int
-sutra_dms::add_dm(carma_context *context, const char* type, float alt, long dim,
-    long ninflu, long influsize, long ninflupos, long n_npoints,
+int sutra_dms::add_dm(carma_context *context, const char* type, float alt,
+    long dim, long ninflu, long influsize, long ninflupos, long n_npoints,
     float push4imat, int device) {
   this->d_dms[make_pair(type, alt)] = new sutra_dm(context, type, dim, ninflu,
       influsize, ninflupos, n_npoints, push4imat, device);
@@ -214,8 +207,7 @@ sutra_dms::add_dm(carma_context *context, const char* type, float alt, long dim,
   return EXIT_SUCCESS;
 }
 
-int
-sutra_dms::remove_dm(const char* type, float alt) {
+int sutra_dms::remove_dm(const char* type, float alt) {
   delete this->d_dms[make_pair(type, alt)];
   this->d_dms.erase(make_pair(type, alt));
 
@@ -223,8 +215,7 @@ sutra_dms::remove_dm(const char* type, float alt) {
 }
 
 // Florian features
-int
-sutra_dm::kl_floloadarrays(float *covmat, float *filter, float *evals,
+int sutra_dm::kl_floloadarrays(float *covmat, float *filter, float *evals,
     float *bas) {
   this->d_kl->d_covmat->host2device(covmat);
   this->d_kl->d_filter->host2device(filter);

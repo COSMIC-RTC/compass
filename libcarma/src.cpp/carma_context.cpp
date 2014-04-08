@@ -49,7 +49,7 @@ carma_context::carma_context() {
 
   int current_device = 0;
   int gpuid[64]; // we want to find the first two GPU's that can support P2P
-  int gpu_count = 0;   // GPUs that meet the criteria
+  int gpu_count = 0; // GPUs that meet the criteria
   carma_device *current_yd = NULL;
   while (current_device < this->ndevice) {
     current_yd = new carma_device(current_device);
@@ -136,8 +136,7 @@ carma_context::~carma_context() {
 #endif
 }
 
-int
-carma_context::set_activeDeviceForCpy(int newDevice, int silent) {
+int carma_context::set_activeDeviceForCpy(int newDevice, int silent) {
   if (activeDevice == newDevice)
     return activeDevice;
   if (can_access_peer[activeDevice][newDevice] == 1)
@@ -145,8 +144,7 @@ carma_context::set_activeDeviceForCpy(int newDevice, int silent) {
   return set_activeDevice(newDevice, silent);
 }
 
-int
-carma_context::set_activeDevice(int newDevice, int silent) {
+int carma_context::set_activeDevice(int newDevice, int silent) {
   if (this->activeDevice == newDevice)
     return this->activeDevice;
 
@@ -181,8 +179,7 @@ carma_context::set_activeDevice(int newDevice, int silent) {
   return activeDevice;
 }
 
-string
-carma_context::get_activeDeviceStr() {
+string carma_context::get_activeDeviceStr() {
   cudaDeviceProp deviceProp;
   cutilSafeCall(cudaGetDeviceProperties(&deviceProp, activeDevice));
   stringstream buf;
@@ -192,8 +189,7 @@ carma_context::get_activeDeviceStr() {
   return buf.str();
 }
 
-int
-carma_context::get_maxGflopsDeviceId()
+int carma_context::get_maxGflopsDeviceId()
 /*! \brief Get the fastest device on the machine (with maximum GFLOPS).
  *
  * This function returns the identifier of the best available GPU (with maximum GFLOPS)

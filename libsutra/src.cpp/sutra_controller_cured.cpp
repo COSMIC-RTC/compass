@@ -31,19 +31,16 @@ sutra_controller_cured::~sutra_controller_cured() {
 
 }
 
-string
-sutra_controller_cured::get_type() {
+string sutra_controller_cured::get_type() {
   return "cured";
 }
 
-int
-sutra_controller_cured::set_gain(float gain) {
+int sutra_controller_cured::set_gain(float gain) {
   this->gain = gain;
   return EXIT_SUCCESS;
 }
 
-int
-sutra_controller_cured::comp_com() {
+int sutra_controller_cured::comp_com() {
 
   h_centroids->cpy_obj(this->d_centroids, cudaMemcpyDeviceToHost);
 
@@ -57,8 +54,7 @@ sutra_controller_cured::comp_com() {
   return EXIT_SUCCESS;
 }
 
-int
-sutra_controller_cured::init_cured(int nxsubs, int *isvalid) {
+int sutra_controller_cured::init_cured(int nxsubs, int *isvalid) {
   this->h_syscure = cureSystem(nxsubs, this->nslope() / 2., this->nactu(),
       isvalid, 1);
   this->h_parcure = cureInit(this->h_syscure);

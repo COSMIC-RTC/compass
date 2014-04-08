@@ -30,17 +30,14 @@ public:
   //virtual int comp_com (carma_obj<float> *new_centroids)=0;
   //it would imply copy, but would be much safer
 
-  int
-  nactu() {
+  int nactu() {
     return d_com->getDims(1);
   }
-  int
-  nslope() {
+  int nslope() {
     return d_centroids->getDims(1);
   }
 
-  cublasHandle_t
-  cublas_handle() {
+  cublasHandle_t cublas_handle() {
     return current_context->get_cublasHandle();
   }
 

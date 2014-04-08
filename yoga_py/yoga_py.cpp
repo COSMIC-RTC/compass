@@ -14,8 +14,7 @@ typedef struct {
   int device;
 } YogaObj;
 
-static void
-YogaObj_dealloc(YogaObj* self) {
+static void YogaObj_dealloc(YogaObj* self) {
   delete (yObjD*) self->yoga_object;
   //Py_XDECREF(self->yoga_object);
   self->ob_type->tp_free((PyObject*) self);
@@ -38,8 +37,7 @@ YogaObj_new(PyTypeObject *type, PyObject *args, PyObject *kwds) {
   return (PyObject *) self;
 }
 
-static int
-YogaObj_init(YogaObj *self, PyObject *args, PyObject *kwds) {
+static int YogaObj_init(YogaObj *self, PyObject *args, PyObject *kwds) {
   PyObject *yoga_object = NULL;
 
   //    static char *kwlist[] = {"first", "last", "number", NULL};
@@ -160,8 +158,7 @@ static PyMethodDef module_methods[] = { { NULL } /* Sentinel */
 #ifndef PyMODINIT_FUNC	/* declarations for DLL import/export */
 #define PyMODINIT_FUNC void
 #endif
-PyMODINIT_FUNC
-initYoga(void) {
+PyMODINIT_FUNC initYoga(void) {
   PyObject* m;
 
   if (PyType_Ready(&YogaObjType) < 0)

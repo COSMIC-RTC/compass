@@ -15,8 +15,7 @@
  *
  */
 ////////////////////////////////////////////////////////////////////////////////
-int
-snapTransformSize(unsigned int dataSize) {
+int snapTransformSize(unsigned int dataSize) {
   int hiBit;
   unsigned int lowPOT, hiPOT;
 
@@ -45,8 +44,7 @@ snapTransformSize(unsigned int dataSize) {
  
  */
 
-int
-carma_initfftconv(caObjS *data_in, caObjS *kernel_in, caObjS *padded_data,
+int carma_initfftconv(caObjS *data_in, caObjS *kernel_in, caObjS *padded_data,
     caObjC *padded_spectrum, int kernelY, int kernelX) {
 
   float *odata = padded_data->getOData();
@@ -118,9 +116,8 @@ carma_initfftconv(caObjS *data_in, caObjS *kernel_in, caObjS *padded_data,
   return EXIT_SUCCESS;
 }
 
-int
-carma_fftconv(caObjS *data_out, caObjS *padded_data, caObjC *padded_spectrum,
-    int kernelY, int kernelX) {
+int carma_fftconv(caObjS *data_out, caObjS *padded_data,
+    caObjC *padded_spectrum, int kernelY, int kernelX) {
 
   carma_fft(padded_data->getOData(), padded_spectrum->getOData(), 1,
       *padded_data->getPlan());

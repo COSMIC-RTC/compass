@@ -85,19 +85,19 @@ public:
 };
 
 template<class T>
-  void
-  comp_dmshape(int threads, int blocks, T *d_idata, T *d_odata, int *pos,
-      int *istart, int *npts, T *comm, unsigned int n, int N);
+void
+comp_dmshape(int threads, int blocks, T *d_idata, T *d_odata, int *pos,
+    int *istart, int *npts, T *comm, unsigned int n, int N);
 template<class T>
-  void
-  oneactu(int threads, int blocks, T *d_idata, T *d_odata, int nactu, T ampli,
-      int *xoff, int *yoff, int dim_im, int dim_influ, int N);
+void
+oneactu(int threads, int blocks, T *d_idata, T *d_odata, int nactu, T ampli,
+    int *xoff, int *yoff, int dim_im, int dim_influ, int N);
 template<class T>
-  void
-  oneactu(int threads, int blocks, T *d_idata, T *d_odata, int nactu, T ampli,
-      int dim_im, int dim_influ, int N);
+void
+oneactu(int threads, int blocks, T *d_idata, T *d_odata, int nactu, T ampli,
+    int dim_im, int dim_influ, int N);
 template<class T>
-  void
-  comp_fulldmshape(int threads, int blocks, T *d_idata, T *d_odata, int ninflu,
-      int diminflu, T *comm, int N);
+void
+comp_fulldmshape(int threads, int blocks, T *d_idata, T *d_odata, int ninflu,
+    int diminflu, T *comm, int N);
 #endif // _SUTRA_DM_H_

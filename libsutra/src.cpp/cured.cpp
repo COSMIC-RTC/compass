@@ -654,8 +654,7 @@ cureInit(sysCure *sys) {
 }
 
 /* CuRe implementation for computing the parts */
-int
-cure(p_par part_par, p_arrays part_arrays, float *dataX, float *dataY,
+int cure(p_par part_par, p_arrays part_arrays, float *dataX, float *dataY,
     float *result, float *connect) {
 
   int i, j, row, sum;
@@ -992,8 +991,8 @@ cure(p_par part_par, p_arrays part_arrays, float *dataX, float *dataY,
   return 0;
 }
 
-int
-cured(sysCure* sys, parCure *par, float *data, float *result_vec, float gain) {
+int cured(sysCure* sys, parCure *par, float *data, float *result_vec,
+    float gain) {
 
   /* variable definitions */
   int i, j, k, l, m, start, help, len1, len2, len3, len4;

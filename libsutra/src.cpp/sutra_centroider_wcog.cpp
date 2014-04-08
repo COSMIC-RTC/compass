@@ -19,18 +19,15 @@ sutra_centroider_wcog::sutra_centroider_wcog(carma_context *context, long nwfs,
 sutra_centroider_wcog::~sutra_centroider_wcog() {
 }
 
-string
-sutra_centroider_wcog::get_type() {
+string sutra_centroider_wcog::get_type() {
   return "wcog";
 }
 
-int
-sutra_centroider_wcog::init_bincube(sutra_wfs *wfs) {
+int sutra_centroider_wcog::init_bincube(sutra_wfs *wfs) {
   return EXIT_SUCCESS;
 }
 
-int
-sutra_centroider_wcog::init_weights(sutra_wfs *wfs) {
+int sutra_centroider_wcog::init_weights(sutra_wfs *wfs) {
   if (this->d_weights != 0L)
     delete this->d_weights;
 
@@ -50,8 +47,7 @@ sutra_centroider_wcog::init_weights(sutra_wfs *wfs) {
   return EXIT_SUCCESS;
 }
 
-int
-sutra_centroider_wcog::load_weights(float *weights, int ndim) {
+int sutra_centroider_wcog::load_weights(float *weights, int ndim) {
   if (ndim == 3)
     this->d_weights->host2device(weights);
   else {
@@ -71,8 +67,7 @@ sutra_centroider_wcog::load_weights(float *weights, int ndim) {
   return EXIT_SUCCESS;
 }
 
-int
-sutra_centroider_wcog::get_cog(carma_streams *streams, float *cube,
+int sutra_centroider_wcog::get_cog(carma_streams *streams, float *cube,
     float *subsum, float *centroids, int nvalid, int npix, int ntot) {
   // wcog
   //TODO: Implement sutra_centroider_wcog::get_cog_async
@@ -85,14 +80,12 @@ sutra_centroider_wcog::get_cog(carma_streams *streams, float *cube,
   return EXIT_SUCCESS;
 }
 
-int
-sutra_centroider_wcog::get_cog(sutra_wfs *wfs, float *slopes) {
+int sutra_centroider_wcog::get_cog(sutra_wfs *wfs, float *slopes) {
   return this->get_cog(wfs->streams, *(wfs->d_bincube), *(wfs->d_subsum),
       slopes, wfs->nvalid, wfs->npix, wfs->d_bincube->getNbElem());
 }
 
-int
-sutra_centroider_wcog::get_cog(sutra_wfs *wfs) {
+int sutra_centroider_wcog::get_cog(sutra_wfs *wfs) {
   return this->get_cog(wfs, *(wfs->d_slopes));
 }
 

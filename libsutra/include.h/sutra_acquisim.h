@@ -29,18 +29,18 @@ private:
 
 // General utilities
 template<class T>
-  int
-  fillbincube(T *bimage, T *bcube, int npix, int nsub, int Nsub, int *ivalid,
-      int *jvalid, int device);
+int
+fillbincube(T *bimage, T *bcube, int npix, int nsub, int Nsub, int *ivalid,
+    int *jvalid, int device);
 template<class T>
-  int
-  fillbincube_async(carma_streams *streams, carma_obj<T> *bimage,
-      carma_obj<T> *bcube, int npix, int nsub, int Nsub, int *ivalid,
-      int *jvalid, int device);
+int
+fillbincube_async(carma_streams *streams, carma_obj<T> *bimage,
+    carma_obj<T> *bcube, int npix, int nsub, int Nsub, int *ivalid, int *jvalid,
+    int device);
 template<class T>
-  int
-  fillbincube_async(carma_host_obj<T> *image_telemetry, T *bimage, T *bcube,
-      int npix, int nsub, int Nsub, int *ivalid, int *jvalid, int nim,
-      int device);
+int
+fillbincube_async(carma_host_obj<T> *image_telemetry, T *bimage, T *bcube,
+    int npix, int nsub, int Nsub, int *ivalid, int *jvalid, int nim,
+    int device);
 
 #endif /* SUTRA_ACQUISIM_H_ */

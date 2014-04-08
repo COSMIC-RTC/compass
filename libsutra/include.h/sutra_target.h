@@ -16,38 +16,38 @@ using std::string;
 class sutra_source {
 public:
 
-  int device;      // device # 
-  float tposx;       // x position of target on the sky  
-  float tposy;       // y position of target on the sky
-  long npos;        // number of points in the pupil
-  float mag;         // brightness of target
-  float lambda;      // imaging lambda
-  float zp;          // imaging zero point
-  float scale;       // phase scale
-  bool lgs;         // flag for lgs
-  string type;        // type of source : target / wfs
-  int block_size;  // optimum block size of device
+  int device; // device # 
+  float tposx; // x position of target on the sky  
+  float tposy; // y position of target on the sky
+  long npos; // number of points in the pupil
+  float mag; // brightness of target
+  float lambda; // imaging lambda
+  float zp; // imaging zero point
+  float scale; // phase scale
+  bool lgs; // flag for lgs
+  string type; // type of source : target / wfs
+  int block_size; // optimum block size of device
 
-  float strehl_se;       // short exposure strehl
-  float strehl_le;       // long exposure strehl
-  float ref_strehl;      // reference for strehl computation
-  int strehl_counter;  // counter for le strehl computation
-  float phase_var;       // current phase variance in the pupil
-  float phase_var_avg;   // average phase variance in the pupil
+  float strehl_se; // short exposure strehl
+  float strehl_le; // long exposure strehl
+  float ref_strehl; // reference for strehl computation
+  int strehl_counter; // counter for le strehl computation
+  float phase_var; // current phase variance in the pupil
+  float phase_var_avg; // average phase variance in the pupil
   int phase_var_count; // counter for average phase variance in the pupil
 
-  sutra_phase *d_phase;    // phase for this target
-  carma_host_obj<float> *phase_telemetry;  // 
-  sutra_lgs *d_lgs;      // the lgs object
-  carma_obj<float> *object;     // the object intensity map
-  carma_obj<float> *d_pupil;    // the pupil mask
-  carma_obj<float> *d_image;    // the resulting image for this target
-  carma_obj<float> *d_leimage;  // the long exposure image for this target
+  sutra_phase *d_phase; // phase for this target
+  carma_host_obj<float> *phase_telemetry; // 
+  sutra_lgs *d_lgs; // the lgs object
+  carma_obj<float> *object; // the object intensity map
+  carma_obj<float> *d_pupil; // the pupil mask
+  carma_obj<float> *d_image; // the resulting image for this target
+  carma_obj<float> *d_leimage; // the long exposure image for this target
   carma_obj<cuFloatComplex> *d_amplipup; // the complex amplitude in the pupil plane
   carma_obj<float> *d_phasepts; // the valid phase points in the pupil (target only)
   carma_obj<int> *d_wherephase; // positions of valid phase points in the pupil (target only)
-  map<type_screen, float> xoff;        // x reference for raytracing
-  map<type_screen, float> yoff;        // y reference for raytracing
+  map<type_screen, float> xoff; // x reference for raytracing
+  map<type_screen, float> yoff; // y reference for raytracing
   carma_context *current_context;
 
 public:

@@ -80,9 +80,8 @@ sutra_kl::~sutra_kl() {
   delete this->d_bas;
 }
 
-int
-sutra_kl::do_compute(float alpha, float ampli, float *odata, int nkl, int size,
-    int xoff, int yoff) {
+int sutra_kl::do_compute(float alpha, float ampli, float *odata, int nkl,
+    int size, int xoff, int yoff) {
   // do computation on data and store in result
   int nord = this->h_ord->getData()[nkl] - 1;
 
@@ -93,19 +92,16 @@ sutra_kl::do_compute(float alpha, float ampli, float *odata, int nkl, int size,
   return EXIT_SUCCESS;
 }
 
-int
-sutra_kl::do_compute(float ampli, float *odata, int nkl, int size, int xoff,
+int sutra_kl::do_compute(float ampli, float *odata, int nkl, int size, int xoff,
     int yoff) {
   return do_compute(0.0f, ampli, odata, nkl, size, xoff, yoff);
 }
 
-int
-sutra_kl::do_compute(float *odata, int nkl, int size, int xoff, int yoff) {
+int sutra_kl::do_compute(float *odata, int nkl, int size, int xoff, int yoff) {
   return do_compute(0.0f, 1.0f, odata, nkl, size, xoff, yoff);
 }
 
-int
-sutra_kl::do_combi(float *com, float *odata, int size, int xoff, int yoff) {
+int sutra_kl::do_combi(float *com, float *odata, int size, int xoff, int yoff) {
   // do computation on data and store in result
   combikl(com, this->nkl, odata, this->d_rabas->getData(),
       this->d_ord->getData(), this->d_azbas->getData(), this->d_cr->getData(),
@@ -115,8 +111,7 @@ sutra_kl::do_combi(float *com, float *odata, int size, int xoff, int yoff) {
 }
 
 // Florian features
-int
-sutra_kl::get_flokl() {
+int sutra_kl::get_flokl() {
   cout << "flag in function" << endl;
   cget_flokl(this->nkl, this->dim, this->d_covmat->getData(),
       this->d_filter->getData(), this->d_bas->getData());

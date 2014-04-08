@@ -24,16 +24,14 @@ sutra_aotemplate::~sutra_aotemplate() {
   delete this->d_res;
 }
 
-int
-sutra_aotemplate::fill_data(float *idata) {
+int sutra_aotemplate::fill_data(float *idata) {
   // fill data with an external array
   this->d_data->host2device(idata);
 
   return EXIT_SUCCESS;
 }
 
-int
-sutra_aotemplate::fill_data() {
+int sutra_aotemplate::fill_data() {
   // fill data with random numbers
   this->d_data->init_prng(this->device);
   this->d_data->prng('N');
@@ -41,8 +39,7 @@ sutra_aotemplate::fill_data() {
   return EXIT_SUCCESS;
 }
 
-int
-sutra_aotemplate::do_compute() {
+int sutra_aotemplate::do_compute() {
   // do computation on data and store in result
   int nthreads = 0, nblocks = 0;
   getNumBlocksAndThreads(this->device, this->dim, nblocks, nthreads);

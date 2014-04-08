@@ -19,25 +19,21 @@ sutra_centroider_bpcog::sutra_centroider_bpcog(carma_context *context,
 sutra_centroider_bpcog::~sutra_centroider_bpcog() {
 }
 
-string
-sutra_centroider_bpcog::get_type() {
+string sutra_centroider_bpcog::get_type() {
   return "bpcog";
 }
 
-int
-sutra_centroider_bpcog::init_bincube(sutra_wfs *wfs) {
+int sutra_centroider_bpcog::init_bincube(sutra_wfs *wfs) {
   return EXIT_SUCCESS;
 }
 
-int
-sutra_centroider_bpcog::set_nmax(int nmax) {
+int sutra_centroider_bpcog::set_nmax(int nmax) {
   this->nmax = nmax;
 
   return EXIT_SUCCESS;
 }
 
-int
-sutra_centroider_bpcog::get_cog(carma_streams *streams, float *cube,
+int sutra_centroider_bpcog::get_cog(carma_streams *streams, float *cube,
     float *subsum, float *centroids, int nvalid, int npix, int ntot) {
   // brightest pixels cog
   // TODO: implemente sutra_centroider_bpcog::get_cog_async
@@ -47,13 +43,11 @@ sutra_centroider_bpcog::get_cog(carma_streams *streams, float *cube,
   return EXIT_SUCCESS;
 }
 
-int
-sutra_centroider_bpcog::get_cog(sutra_wfs *wfs, float *slopes) {
+int sutra_centroider_bpcog::get_cog(sutra_wfs *wfs, float *slopes) {
   return this->get_cog(wfs->streams, *wfs->d_bincube, *wfs->d_subsum, slopes,
       wfs->nvalid, wfs->npix, wfs->d_bincube->getNbElem());
 }
 
-int
-sutra_centroider_bpcog::get_cog(sutra_wfs *wfs) {
+int sutra_centroider_bpcog::get_cog(sutra_wfs *wfs) {
   return this->get_cog(wfs, *wfs->d_slopes);
 }

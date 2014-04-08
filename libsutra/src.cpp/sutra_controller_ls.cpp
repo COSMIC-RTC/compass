@@ -68,13 +68,11 @@ sutra_controller_ls::~sutra_controller_ls() {
   delete this->d_gain;
 }
 
-string
-sutra_controller_ls::get_type() {
+string sutra_controller_ls::get_type() {
   return "ls";
 }
 
-int
-sutra_controller_ls::svdec_imat() {
+int sutra_controller_ls::svdec_imat() {
   // doing U = Dt.D where D is i_mat
   float one = 1., zero = 0.;
   //carma_start_profile();
@@ -88,9 +86,9 @@ sutra_controller_ls::svdec_imat() {
 
   // we can skip this step syevd use only the lower part
   //fill_sym_matrix('U', d_U->getData(), nactu, nactu * nactu);
-DEBUG_TRACE("here\n");
+  DEBUG_TRACE("here\n");
   // doing evd of U inplace
-  if (carma_syevd<float,1>('V', d_U, h_eigenvals) == EXIT_FAILURE) {
+  if (carma_syevd<float, 1>('V', d_U, h_eigenvals) == EXIT_FAILURE) {
     //Case where MAGMA is not compiled
     DEBUG_TRACE("here\n");
 
@@ -112,26 +110,22 @@ DEBUG_TRACE("here\n");
   return EXIT_SUCCESS;
 }
 
-int
-sutra_controller_ls::set_gain(float gain) {
+int sutra_controller_ls::set_gain(float gain) {
   this->gain = gain;
   return EXIT_SUCCESS;
 }
 
-int
-sutra_controller_ls::load_mgain(float *mgain) {
+int sutra_controller_ls::load_mgain(float *mgain) {
   this->d_gain->host2device(mgain);
   return EXIT_SUCCESS;
 }
 
-int
-sutra_controller_ls::set_delay(int delay) {
+int sutra_controller_ls::set_delay(int delay) {
   this->delay = delay;
   return EXIT_SUCCESS;
 }
 
-int
-sutra_controller_ls::build_cmat(int nfilt, bool filt_tt) {
+int sutra_controller_ls::build_cmat(int nfilt, bool filt_tt) {
   carma_obj<float> *d_eigenvals_inv;
   carma_host_obj<float> *h_eigenvals_inv;
   carma_obj<float> *d_tmp, *d_tmp2;
@@ -182,13 +176,11 @@ sutra_controller_ls::build_cmat(int nfilt, bool filt_tt) {
   return EXIT_SUCCESS;
 }
 
-int
-sutra_controller_ls::build_cmat(int nfilt) {
+int sutra_controller_ls::build_cmat(int nfilt) {
   return this->build_cmat(nfilt, false);
 }
 
-int
-sutra_controller_ls::frame_delay() {
+int sutra_controller_ls::frame_delay() {
   // here we place the content of d_centroids into cenbuf and get
   // the actual centroid frame for error computation depending on delay value
 
@@ -210,8 +202,7 @@ sutra_controller_ls::frame_delay() {
   return EXIT_SUCCESS;
 }
 
-int
-sutra_controller_ls::comp_com() {
+int sutra_controller_ls::comp_com() {
   int nstreams = streams->get_nbStreams();
   if (nstreams > 1) {
     float alpha = -1.0f;

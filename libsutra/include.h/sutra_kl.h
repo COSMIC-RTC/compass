@@ -10,17 +10,17 @@ using namespace std;
 class sutra_kl {
 public:
   int device; // # device
-  long dim;    // dim of final array
-  long nr;     // # radial points
-  long np;     // # of elements
-  long nkl;    // # of functions in the basis
+  long dim; // dim of final array
+  long nr; // # radial points
+  long np; // # of elements
+  long nkl; // # of functions in the basis
 
   carma_obj<float> *d_rabas; // the radial array of the basis
   carma_obj<float> *d_azbas; // the azimuthal array of the basis
-  carma_host_obj<int> *h_ord;   // the radial orders of the basis
-  carma_obj<int> *d_ord;   // the radial orders of the basis
-  carma_obj<float> *d_cr;    //
-  carma_obj<float> *d_cp;    //
+  carma_host_obj<int> *h_ord; // the radial orders of the basis
+  carma_obj<int> *d_ord; // the radial orders of the basis
+  carma_obj<float> *d_cr; //
+  carma_obj<float> *d_cp; //
 
   // Florian features
   carma_obj<float> *d_covmat;
@@ -28,7 +28,7 @@ public:
   carma_obj<float> *d_bas;
   carma_obj<float> *d_evals;
 
-  carma_context *current_context;   // the context in which it has been created 
+  carma_context *current_context; // the context in which it has been created 
 public:
   sutra_kl(carma_context *context, long dim, long nr, long np, long nkl,
       int device);

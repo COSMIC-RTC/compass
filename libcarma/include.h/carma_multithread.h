@@ -25,29 +25,21 @@ extern "C" {
 #endif
 
 //Create thread
-  carma_thread
-  carma_start_thread(CARMAT_routine func, void *data);
+carma_thread carma_start_thread(CARMAT_routine func, void *data);
 //Wait for thread to finish
-  void
-  carma_end_thread(carma_thread thread);
+void carma_end_thread(carma_thread thread);
 //Destroy thread
-  void
-  carma_destroy_thread(carma_thread thread);
+void carma_destroy_thread(carma_thread thread);
 //Wait for multiple threads
-  void
-  carma_wait4thread(const carma_thread *threads, int num);
+void carma_wait4thread(const carma_thread *threads, int num);
 //Create barrier.
-  carma_thread_barrier
-  carma_create_barrier(int releaseCount);
+carma_thread_barrier carma_create_barrier(int releaseCount);
 //Increment barrier. (excution continues)
-  void
-  carma_increment_barrier(carma_thread_barrier *barrier);
+void carma_increment_barrier(carma_thread_barrier *barrier);
 //Wait for barrier release.
-  void
-  carma_wait4barrier(carma_thread_barrier *barrier);
+void carma_wait4barrier(carma_thread_barrier *barrier);
 //Destory barrier
-  void
-  carma_destroy_barrier(carma_thread_barrier *barrier);
+void carma_destroy_barrier(carma_thread_barrier *barrier);
 
 #ifdef __cplusplus
 } //extern "C"

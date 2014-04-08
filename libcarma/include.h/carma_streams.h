@@ -37,30 +37,19 @@ public:
   get_stream(int stream);
   cudaEvent_t
   get_event(int stream);
-  cudaStream_t
-  operator[](int idx) {
+  cudaStream_t operator[](int idx) {
     return get_stream(idx);
   }
-  ;
 
-  int
-  get_nbStreams();
-  int
-  add_stream();
-  int
-  add_stream(int nb);
-  int
-  del_stream();
-  int
-  del_stream(int nb);
-  int
-  del_all_streams();
-  int
-  wait_event(int stream);
-  int
-  wait_stream(int stream);
-  int
-  wait_all_streams();
+  int get_nbStreams();
+  int add_stream();
+  int add_stream(int nb);
+  int del_stream();
+  int del_stream(int nb);
+  int del_all_streams();
+  int wait_event(int stream);
+  int wait_stream(int stream);
+  int wait_all_streams();
 
 };
 

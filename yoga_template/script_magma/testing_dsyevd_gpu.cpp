@@ -32,10 +32,8 @@
 /* ////////////////////////////////////////////////////////////////////////////
  -- Testing dsyevd
  */
-int
-main(int argc, char** argv) {
-  TESTING_INIT()
-  ;
+int main(int argc, char** argv) {
+  TESTING_INIT();
 
   real_Double_t gpu_time, cpu_time;
   double *h_A, *h_R, *d_R, *h_work;
@@ -46,7 +44,7 @@ main(int argc, char** argv) {
   magma_int_t ione = 1;
   magma_int_t ISEED[4] = { 0, 0, 0, 1 };
   double result[3], eps, aux_work[1];
-  eps = lapackf77_dlamch( "E");
+  eps = lapackf77_dlamch("E");
 
   magma_opts opts;
   parse_opts(argc, argv, &opts);
@@ -85,7 +83,7 @@ main(int argc, char** argv) {
       TESTING_HOSTALLOC(h_work, double, lwork);
       TESTING_MALLOC(iwork, magma_int_t, liwork);
 
-      /* Initialize the matrix */lapackf77_dlarnv( &ione, ISEED, &n2, h_A);
+      /* Initialize the matrix */lapackf77_dlarnv(&ione, ISEED, &n2, h_A);
       magma_dsetmatrix(N, N, h_A, lda, d_R, ldda);
 
       /* warm up run */
@@ -121,12 +119,8 @@ main(int argc, char** argv) {
 
         // tau=NULL is unused since itype=1
         magma_dgetmatrix(N, N, d_R, ldda, h_R, lda);
-        lapackf77_dsyt21( &ione, &opts.uplo, &N, &izero,
-        h_A, &lda,
-        w1, h_work,
-        h_R, &lda,
-        h_R, &lda,
-        NULL, h_work, &result[0]);
+        lapackf77_dsyt21(&ione, &opts.uplo, &N, &izero, h_A, &lda, w1, h_work,
+            h_R, &lda, h_R, &lda, NULL, h_work, &result[0]);
 
         magma_dsetmatrix(N, N, h_A, lda, d_R, ldda);
         magma_dsyevd_gpu_t(MagmaNoVec, opts.uplo, N, d_R, ldda, w2, h_R, lda,
@@ -149,11 +143,8 @@ main(int argc, char** argv) {
        =================================================================== */
       if (opts.lapack) {
         cpu_time = magma_wtime();
-        lapackf77_dsyevd( &opts.jobz, &opts.uplo,
-        &N, h_A, &lda, w2,
-        h_work, &lwork,
-        iwork, &liwork,
-        &info);
+        lapackf77_dsyevd(&opts.jobz, &opts.uplo, &N, h_A, &lda, w2, h_work,
+            &lwork, iwork, &liwork, &info);
         cpu_time = magma_wtime() - cpu_time;
         if (info != 0)
           printf("lapackf77_dsyevd returned error %d: %s.\n", (int) info,
@@ -190,7 +181,6 @@ main(int argc, char** argv) {
     }
   }
 
-  TESTING_FINALIZE()
-  ;
+  TESTING_FINALIZE();
   return 0;
 }

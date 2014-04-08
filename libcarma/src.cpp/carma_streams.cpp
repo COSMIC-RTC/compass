@@ -33,13 +33,11 @@ carma_streams::~carma_streams() {
   //cudaEventDestroy(this->stop_event);
 }
 
-int
-carma_streams::get_nbStreams() {
+int carma_streams::get_nbStreams() {
   return this->streams.size();
 }
 
-int
-carma_streams::add_stream() {
+int carma_streams::add_stream() {
   cudaStream_t stream_tmp;
   cutilSafeCall(cudaStreamCreate(&stream_tmp));
   this->streams.push_back(stream_tmp);
@@ -55,15 +53,13 @@ carma_streams::add_stream() {
   return get_nbStreams();
 }
 
-int
-carma_streams::add_stream(int nb) {
+int carma_streams::add_stream(int nb) {
   for (int stream = 0; stream < nb; stream++)
     add_stream();
   return get_nbStreams();
 }
 
-int
-carma_streams::del_stream() {
+int carma_streams::del_stream() {
   if (streams.empty())
     return 0;
 
@@ -81,44 +77,37 @@ carma_streams::del_stream() {
   return get_nbStreams();
 }
 
-int
-carma_streams::del_stream(int nb) {
+int carma_streams::del_stream(int nb) {
   for (int stream = 0; stream < nb && !streams.empty(); stream++)
     del_stream();
   return get_nbStreams();
 }
 
-int
-carma_streams::del_all_streams() {
+int carma_streams::del_all_streams() {
   while (!streams.empty())
     del_stream();
   return get_nbStreams();
 }
 
-cudaStream_t
-carma_streams::get_stream(int stream) {
+cudaStream_t carma_streams::get_stream(int stream) {
   return this->streams[stream];
 }
 
-cudaEvent_t
-carma_streams::get_event(int stream) {
+cudaEvent_t carma_streams::get_event(int stream) {
   return this->events[stream];
 }
 
-int
-carma_streams::wait_event(int stream) {
+int carma_streams::wait_event(int stream) {
   cutilSafeCall(cudaEventSynchronize(this->events[stream]));
   return EXIT_SUCCESS;
 }
 
-int
-carma_streams::wait_stream(int stream) {
+int carma_streams::wait_stream(int stream) {
   cutilSafeCall(cudaStreamSynchronize(this->streams[stream]));
   return EXIT_SUCCESS;
 }
 
-int
-carma_streams::wait_all_streams() {
+int carma_streams::wait_all_streams() {
   for (unsigned int stream = 0; stream < streams.size(); stream++)
     cutilSafeCall(cudaStreamSynchronize(this->streams[stream]));
   return EXIT_SUCCESS;

@@ -83,9 +83,8 @@ sutra_lgs::~sutra_lgs() {
   //cutilSafeCall(cudaFreeArray(this->d_spotarray));
 }
 
-int
-sutra_lgs::lgs_init(int nprof, float hg, float h0, float deltah, float pixsize,
-    float *doffaxis, float *prof1d, float *profcum, float *beam,
+int sutra_lgs::lgs_init(int nprof, float hg, float h0, float deltah,
+    float pixsize, float *doffaxis, float *prof1d, float *profcum, float *beam,
     cuFloatComplex *ftbeam, float *azimuth) {
   this->nprof = nprof;
   this->hg = hg;
@@ -114,8 +113,7 @@ sutra_lgs::lgs_init(int nprof, float hg, float h0, float deltah, float pixsize,
   return EXIT_SUCCESS;
 }
 
-int
-sutra_lgs::load_prof(float *prof1d, float *profcum, float hg, float h0,
+int sutra_lgs::load_prof(float *prof1d, float *profcum, float hg, float h0,
     float deltah) {
   this->d_prof1d->host2device(prof1d);
   this->d_profcum->host2device(profcum);
@@ -126,8 +124,7 @@ sutra_lgs::load_prof(float *prof1d, float *profcum, float hg, float h0,
   return EXIT_SUCCESS;
 }
 
-int
-sutra_lgs::lgs_update(int device) {
+int sutra_lgs::lgs_update(int device) {
   interp_prof(this->d_prof2d->getData(), this->d_prof1d->getData(),
       this->d_profcum->getData(), this->npix, this->d_doffaxis->getData(),
       this->hg, this->pixsize, this->h0, this->deltah, this->nprof,
@@ -149,8 +146,7 @@ sutra_lgs::lgs_update(int device) {
   return EXIT_SUCCESS;
 }
 
-int
-sutra_lgs::lgs_makespot(int device, int nin) {
+int sutra_lgs::lgs_makespot(int device, int nin) {
   cutilSafeCall(
       cudaMemset(this->d_lgskern->getData(), 0,
           sizeof(float) * this->d_lgskern->getNbElem()));
@@ -179,8 +175,7 @@ sutra_lgs::lgs_makespot(int device, int nin) {
   return EXIT_SUCCESS;
 }
 
-int
-sutra_lgs::load_kernels(float *lgskern, int device) {
+int sutra_lgs::load_kernels(float *lgskern, int device) {
   this->d_lgskern->host2device(lgskern);
   cfillrealp(this->d_ftlgskern->getData(), this->d_lgskern->getData(),
       this->d_ftlgskern->getNbElem(), device);
