@@ -1,3 +1,4 @@
+
 func imat_init(ncontrol,clean=)
 {
   extern y_rtc,g_dm;
@@ -577,109 +578,154 @@ func doklbasis(g_dm,nkl,n)
   return K;
 }
 
-func docovmat(g_rtc,g_atmos,g_dm,Nactu,nkl,N,ndms,sig=)
-{ extern y_dm, y_geom;
+func docovmat(g_rtc,g_atmos,g_dm,Nactu,nkl,N,ndms,sig=,mode=)
+{ extern y_dm, y_geom,y_atmos;
   nkl = Nactu;
   tmp = (dimsof(*y_geom._ipupil)(2)-y_geom._n)/2;
   pup = (*y_geom._ipupil)(tmp+1:-tmp,tmp+1:-tmp);
   indx_valid = where(pup);
   //if(y_dm(N(1)).type != "kl")
   //  nkl +=2;
-  write,"Computing projection for covariance matrix computation...";
-  if(y_dm(N(1)).type == "kl")
+  write,"Covariance matrix computation : ";
+  if(y_dm(N(1)).type == "kl"){
+    statc = stat_cov(N(1),y_atmos.r0);
+    s = SVdec(statc);
+    cov_matrix = unit(Nactu) * (1/s);
+    cov_matrix(Nactu,Nactu) = 0;
+    /*
     K = doklbasis(g_dm,nkl,N(1));
-  else
-    K = dopztbasis(g_dm,ndms,Nactu);
-  //error;
-  // Projecteur
-  tmp = array(float,nkl,nkl);
-  tmp2 = array(float,dimsof(K)(3),dimsof(K)(2));
-  d_K = yoga_obj(K);
-  d_tmp = yoga_obj(tmp);
-  d_tmp2 = yoga_obj(tmp2);
-  //error;
-  yoga_mm,d_tmp,d_K,d_K,'t','n'; // Kt*K
-  /*
-  eig = eig_inv = array(0.0f,Nactu);
-  yoga_syevd,d_tmp,eig;
-  for (j=1 ; j<=Nactu ; j++)
-    eig_inv(j) = eig(j)>1e-3 ? 1/eig(j) :  0;
-  E = unit(Nactu) * eig_inv;
-  d_E = yoga_obj(float(E));
-  d_tmp3 = yoga_obj(tmp);
-  yoga_mm,d_tmp3,d_tmp,d_E;
-  //error;
-  yoga_mm,d_E,d_tmp3,d_tmp,'n','t';
-  yoga_mm,d_tmp2,d_E,d_K, 'n', 't';
-  */
-  yoga_potri,d_tmp;       // (Kt*K)⁻¹
-  yoga_mm,d_tmp2,d_tmp,d_K, 'n', 't'; // (Kt*K)⁻¹K
-  P = d_tmp2();
-  d_K = d_tmp = d_tmp2 = d_tmp3 = d_E = [];
-  write,"done";
-  alpha = array(float,nkl);
-  alpha = alpha(,-);
-  niter = 1000;
-  //looptime = array(float,niter);
-  //movetime = array(float,niter);
-  //alphatime = array(float,niter);
-  //timeloop = timemove = timealpha = 0.;
-  for (cc=1;cc<=niter;cc++) {
-    // tic(1);
-    //tic(2);
-    for (ii=1;ii<=100;ii++) {
-      move_atmos,g_atmos;
-    }
-    //movetime(cc) = tac(2);
-    sensors_trace,g_wfs,0,"atmos",g_atmos;
-    res=sensors_getdata(g_wfs,0,"phase")(*)(indx_valid);
-    res -= avg(res);
-    // calcul du vecteur alpha courant
-    //tic(3);
-    alphav = P(,+)*res(+);
-    grow, alpha,alphav;
-    //alphatime(cc) = tac(3);
-    write,format="\r Computing covariance matrix ... %1.0f",floor((cc/float(niter))*100);
-    //looptime(cc) = tac(1);
+    // Projecteur
+    tmp = array(float,nkl,nkl);
+    tmp2 = array(float,dimsof(K)(3),dimsof(K)(2));
+    d_K = yoga_obj(K);
+    d_tmp = yoga_obj(tmp);
+    d_tmp2 = yoga_obj(tmp2);
+     yoga_mm,d_tmp,d_K,d_K,'t','n'; // Kt*K
+     yoga_potri,d_tmp;       // (Kt*K)⁻¹
+     yoga_mm,d_tmp2,d_tmp,d_K, 'n', 't'; // (Kt*K)⁻¹K
+     P = d_tmp2();
+     d_K = d_tmp = d_tmp2 = [];
+    */
   }
-  //error;
-  // Calcul de la matrice de covariance
-  alpha = alpha(,2:);
-  cov_matrix = (alpha(,+) * alpha(,+)) / dimsof(alpha)(3);
-  error;
-  // Inversion
-  //if(y_dm(N(1)).type != "kl"){
-   cov_matrix = LUsolve(cov_matrix);
-  //error;
-   /*
-    d_cov = yoga_obj(cov_matrix);
-    yoga_potri,d_cov;
-    cov_matrix = d_cov();
-    d_cov = [];
-   */
-    //}
-    //else{
-  //error;
-  //cov_matrix = 1/diag(cov_matrix);
-  //  covmat = array(float,Nactu,Nactu);
-  // for(jj=1;jj<=dimsof(cov_matrix)(2);jj++) 
-  //     covmat(jj,jj) = 1/cov_matrix(jj,jj);
-  // cov_matrix = covmat;
+  else{
+    if (mode == "estimate" || mode == []){
+      tmp = (dimsof(*y_geom._ipupil)(2)-(y_dm(1)._n2 - y_dm(1)._n1 +1))/2;
+      pup = (*y_geom._ipupil)(tmp+1:-tmp,tmp+1:-tmp);
+      indx_valid = where(pup);
+      
+      x = *y_dm(1)._xpos;
+      y = *y_dm(1)._ypos; 
+      //error;
+      interactp = x(2) - x(1);
+      interactm = y_tel.diam/(y_dm(1).nact-1);
+      p2m = interactm/interactp;
+      norm = (p2m/y_atmos.r0)^(5./3);
+      rtc_docovmat,g_rtc,0,g_dm,"pzt",0.,indx_valid,numberof(indx_valid),x,y,norm;
+      /*
+      write,"Actuators basis...";
+      K = dopztbasis(g_dm,ndms,Nactu);
+      // Double diagonalisation
+      write,"Geometric covariance matrix...";
+      geo = geo_cov(K);
+      write,"Statistic covariance matrix...";
+      statc = stat_cov(N(1),y_atmos.r0);
+      //error;
+      write,"Double diagonalisation...";
+      KL_actu = DDiago(statc,geo,s);
+      write,"Inversion...";
+      s = SVdec(statc);
+      Ck1 = unit(Nactu) * (1/s);
+      //Ck1 = unit(Nactu) * s;
+      Ck1(Nactu,Nactu) = 0;
+      write,"Projection...";
+      KL1 = LUsolve(KL_actu);
+      cov_matrix = KL1(+,) * (Ck1(,+) * KL1(+,))(+,);
+      //cov_matrix = KL_actu(,+) * (Ck1(,+) * KL_actu(,+))(+,);
+      //error; 
+      write,"Done";
+      */
+    }
+    if (mode == "real"){
+     write,"Actuators basis...";
+     K = dopztbasis(g_dm,ndms,Nactu);
+     M = K;
+     // Projecteur
+     /*
+     tmp = array(float,nkl,nkl);
+     tmp2 = array(float,dimsof(M)(3),dimsof(M)(2));
+     d_M = yoga_obj(float(M));
+     d_tmp = yoga_obj(tmp);
+     d_tmp2 = yoga_obj(tmp2);
+     yoga_mm,d_tmp,d_M,d_M,'t','n'; // Mt*M
+     yoga_potri,d_tmp;
+     error;
+     yoga_mm,d_tmp2,d_tmp,d_M, 'n', 't';
+     P = d_tmp2();
+     d_M = d_tmp = d_tmp2 = d_tmp3 = d_E = [];
+     */
+     write,"Projector...";
+     mtm = array(float,nkl,nkl);
+     d_M = yoga_obj(float(M));
+     d_mtm = yoga_obj(mtm);
+     yoga_mm,d_mtm,d_M,d_M,'t','n';
+     mtm = d_mtm();   
+     mtm = LUsolve(mtm);
+     d_mtm = yoga_obj(float(mtm));
+     P = array(float,dimsof(M)(3),dimsof(M)(2));
+     d_P = yoga_obj(P);
+     yoga_mm,d_P,d_mtm,d_M, 'n', 't';
+     P = d_P();
+     //error;
+     d_P = d_mtm = d_M = [];
+     alpha = array(float,nkl);
+     alpha = alpha(,-);
+     niter = 1000;
+
+     for (cc=1;cc<=niter;cc++) {
+       for (ii=1;ii<=100;ii++) {
+	 move_atmos,g_atmos;
+       }
+       sensors_trace,g_wfs,0,"atmos",g_atmos;
+       res=sensors_getdata(g_wfs,0,"phase")(*)(indx_valid);
+       res -= avg(res);
+       // calcul du vecteur alpha courant
+       alphav = P(,+)*res(+);
+       grow, alpha,alphav;
+       write,format="\r Computing covariance matrix ... %1.0f",floor((cc/float(niter))*100);
+     }
+     // Calcul de la matrice de covariance
+     alpha = alpha(,2:);
+     cov_matrix = (alpha(,+) * alpha(,+)) / dimsof(alpha)(3);
+     // Inversion 
+     error;
+     s = SVdec(cov_matrix,U);
+     E = unit(numberof(s)) * (1/s);
+     E(numberof(s),numberof(s)) = 0;
+     cov_matrix = U(,+) * (E(,+) * U(,+))(+,);
+     
+    }
+  }
+  //M = K(,+)*KL_actu(+,1);
+  //M = M(,-);
+  //for (i=2 ; i<=Nactu ; i++) {
+  //  grow,M,K(,+)*KL_actu(+,i);
   //}
-  if(sig==[]) sig = 1e-3;
-  //sig=0;
-  cov_matrix = cov_matrix*sig;
-  // covmat = cov_matrix;
-  // covmat = array(float,Nactu);
-  // tmp = 0;
-  // for (j = 1 ; j<=ndms ; j++){
-  //   if(y_dm(j).type == "pzt")
-  //     covmat(tmp+1:tmp+y_dm(j)._ntotact) = cov_matrix(3:y_dm(j)._ntotact+2);
-  //   else
-  //     covmat(tmp+1:tmp+y_dm(j)._ntotact) = cov_matrix(:y_dm(j)._ntotact);
-  //  tmp += y_dm(j)._ntotact;
-  //}
-  return cov_matrix;
+    //restore,openb("IF");
+    //K = K(,:1292);
+    //error;
+    /*
+    TT = K(,-1:);
+    PTT = TT(+,)*TT(+,);
+    PTT = LUsolve(PTT);
+    PTT = PTT(,+)*TT(,+); // Tip-tilt projector
+    M = K*0.;
+    for (k=1 ; k<+ Nactu ; k++)
+      M(,k) = (K(,k)-K(avg,k))-((K(,k)-K(avg,k))(+) * PTT(,+))(+)*TT(,+); // filtering piston and tip-tilt from basis
+    M(,-1:) = TT;
+    */
+    //M = doklbasis(g_dm,nkl,N(1));
+    
+  return float(cov_matrix);
 }
 
 func klbasis_init(ndms,nctrl,nctrltot){
@@ -770,6 +816,7 @@ func klbasis_init(ndms,nctrl,nctrltot){
 func dopztbasis(g_dm,ndm,Nactu)
 { extern y_dm, y_geom;
   tmp = (dimsof(*y_geom._ipupil)(2)-y_geom._n)/2;
+  //tmp = (dimsof(*y_geom._ipupil)(2)-(y_dm(1)._n2 - y_dm(1)._n1 +1))/2;
   pup = (*y_geom._ipupil)(tmp+1:-tmp,tmp+1:-tmp);
   indx_valid = where(pup);
   IFtot = array(float,numberof(indx_valid),Nactu);
@@ -787,3 +834,64 @@ func dopztbasis(g_dm,ndm,Nactu)
   }
   return IFtot;
 }
+func DDiago(mat,del,&s)
+/*
+Double diagonalisation. En general, mat est la matrice de cov statistique,
+et del la matrice de covariance geometrique.
+
+En sortie, on a une base de modes telle que
+
+b(+,)*(del(,+)*b(+,))(+,) = identite (modes orthonormes)
+
+et
+
+b1(,+) * (mat(,+)*b1(,+))(+,) = matrice diagonale (modes non correles)
+*/
+{
+  s = SVdec(del,mp);
+  m = mp / sqrt(s)(-,);
+// m1 = LUsolve(m);
+  m1 = transpose(mp * sqrt(s)(-,));
+  cp = m1(,+) * (mat(,+) * m1(,+))(+,);
+  s = SVdec(cp,a);
+  b = m(,+) * a(+,);
+return b
+}
+
+func geo_cov(mat)
+// Performs (transpose(mat) * mat) where mat is the matrix containing the influence functions in colums
+// Matrice creuse --> code à optimiser
+{
+  d_mat = yoga_obj(mat);
+  geocov = array(0.0f,dimsof(mat)(3),dimsof(mat)(3));
+  d_geo = yoga_obj(geocov);
+  yoga_mm,d_geo,d_mat,d_mat,'t','n';
+  geocov = d_geo();
+  d_mat = d_geo = [];  
+ 
+  return geocov;
+}
+
+func stat_cov(n,r0)
+// Compute the statistic covariance matrix on the actuators
+{
+  extern y_dm, y_geom;
+  // Actuators positions
+  x = *y_dm(n)._xpos;
+  y = *y_dm(n)._ypos;
+  
+  interactp = x(2) - x(1);
+  interactm = y_tel.diam/(y_dm(n).nact-1);
+  p2m = interactm/interactp;
+  norm = (p2m/r0)^(5./3);
+
+  // Kolmogorov statistic
+  m = 6.88 * abs(x(*)(,-)-x(*)(-,),y(*)(,-)-y(*)(-,))^(5./3) ;
+  // Filtering piston
+  F = unit(dimsof(m)(3)) - array(1./(dimsof(m)(3)),dimsof(m)(3),dimsof(m)(3));
+  m = (F(,+)*m(+,))(,+)*F(,+);
+
+  return norm*m;
+}
+
+  

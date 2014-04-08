@@ -659,3 +659,11 @@ func get_pyrimg(mimg)
   tmp(ii2,ii2) = mimg(,,4);
   return tmp;
 }
+
+func get_r0(r0_at_lambda1, lambda1, lambda2)
+/* DOCUMENT get_r0(r0_at_lambda1, lambda1, lambda2)
+ * Give the value of r0 at lambda2 from its value at lambda1
+*/
+{
+  return (lambda2/lambda1)^(6./5) * r0_at_lambda1;
+}

@@ -641,6 +641,11 @@ extern rtc_setgain;
       
    SEE ALSO:
  */
+extern rtc_docovmat;
+/* DOCUMENT rtc_docovmat
+   rtc_docovmat,yoga_rtc_obj,ncontroller,yoga_dm_obj,type,alt,indx_pup,dim,xpos,ypos,norm
+   compute the covariance matrix on a yoga_rtc_obj with MV controller
+*/
 extern rtc_loadcovmat;
 /* DOCUMENT rtc_loadcovmat
    rtc_loadcovmat,yoga_rtc_obj,ncontroller,covmat

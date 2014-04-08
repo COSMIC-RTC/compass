@@ -186,6 +186,18 @@ int sutra_dm::comp_oneactu(int nactu, float ampli) {
   return EXIT_SUCCESS;
 }
 
+int
+sutra_dm::get_IF(float *IF, int *indx_pup, long nb_pts){
+	cout << "nb pts : " << nb_pts << endl;
+	for (int i=0 ; i<this->ninflu ; i++){
+		this->comp_oneactu(i,this->push4imat);
+		getIF(IF,this->d_shape->d_screen->getData(),indx_pup,nb_pts,i,this->ninflu,device);
+	}
+	this->reset_shape();
+
+	return EXIT_SUCCESS;
+}
+
 sutra_dms::sutra_dms(int ndm) {
   this->ndm = ndm;
 }
@@ -224,3 +236,4 @@ int sutra_dm::kl_floloadarrays(float *covmat, float *filter, float *evals,
 
   return EXIT_SUCCESS;
 }
+

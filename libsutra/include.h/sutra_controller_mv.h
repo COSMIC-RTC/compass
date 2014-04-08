@@ -69,6 +69,16 @@ public:
   set_delay(int delay);
   // Florian features
   int
+  do_covmat(sutra_dm *ydm, int *indx_pup, long dim, float *xpos, float *ypos, float norm);
+  int
+  do_geomat(carma_obj<float> *d_geocov, carma_obj<float> *d_IF, long n_pts);
+  int
+  piston_filt(carma_obj<float> *d_statcov);
+  int
+  do_statmat(float *statcov,long dim, float *xpos, float *ypos, float norm, int device);
+  int
+  DDiago(carma_obj<float> *d_statcov, carma_obj<float> *d_geocov);
+  int
   load_covmat(float *covmat);
   int
   load_klbasis(float *klbasis);

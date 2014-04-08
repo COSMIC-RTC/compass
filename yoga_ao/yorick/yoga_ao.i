@@ -673,41 +673,42 @@ func rtc_init(clean=)
           }          
 		  // Florian features
 		  if (controllers(i).type == "mv"){      
-		    tmp = (dimsof(*y_geom._ipupil)(2)-y_geom._n)/2;
-		    pup = (*y_geom._ipupil)(tmp+1:-tmp,tmp+1:-tmp);
-		    indx_valid = where(pup);
-		    rtc_addcontrol,g_rtc,sum(y_dm(ndms)._ntotact),controllers(i).delay,controllers(i).type,max(y_dm(ndms)._ntotact),numberof(indx_valid);
 		    write,"doing imat and filtering unseen actuators";
 		    imat_init,i,clean=clean;
 		    write,"done";
-		    //klbasis_init,numberof(ndms),i,numberof(controllers);
-		    //K = doklbasis(g_dm,max(y_dm(ndms)._ntotact),where(y_dm(ndms)._ntotact==max(y_dm(ndms)._ntotact)));
-		    covmat = docovmat(g_rtc,g_atmos,g_dm,sum(y_dm(ndms)._ntotact),max(y_dm(ndms)._ntotact),where(y_dm(ndms)._ntotact == max(y_dm(ndms)._ntotact)),numberof(ndms));
-		    //error;
-		    // for(jj=1;jj<=dimsof(covmat)(2);jj++) 
-		    //  covmat(jj,jj) = 1/covmat(jj,jj);
-		    // sig = max(covmat)/30.;
-		    // covmat = covmat/sig;
-		    //error;
+		    covmat = docovmat(g_rtc,g_atmos,g_dm,sum(y_dm(ndms)._ntotact),max(y_dm(ndms)._ntotact),where(y_dm(ndms)._ntotact == max(y_dm(ndms)._ntotact)),numberof(ndms),mode="estimate");
+		    error;
+		    noisemat = noise_cov(1,1);
 		    rtc_loadcovmat,g_rtc,long(i-1),covmat;
-		    write,"Done";
-		    //D = rtc_getcovmat(g_rtc,i-1);
-		    //E = rtc_getklbasis(g_rtc,i-1);
-		    //error;
 		    //cmat_init,i,clean=clean;
 		    //error;
 		    rtc_setgain,g_rtc,0,controllers(i).gain;
 		    mgain = array(1.0f,(y_dm._ntotact)(sum));
-		    // filtering tilt ...
-		    //mgain(-1:0) = 0.0f;
 		    rtc_loadmgain,g_rtc,0,mgain;
           
 		    imat = rtc_getimat(g_rtc,0);
 		    cov = rtc_getcovmat(g_rtc,0);
-	     	tmp = imat(+,)*imat(+,) + cov;
-	    	tmp = LUsolve(tmp);
-	    	cmat = tmp(,+)*imat(,+);
-	    	rtc_setcmat,g_rtc,0,cmat;
+		    // Reconstructeur 1
+		    
+		    Cn = unit(numberof(noisemat)) * (1/noisemat);
+		    tmp = (imat(+,) * Cn(+,))(,+) * imat(+,) + cov;
+		    //s = SVdec(tmp,U);
+		    //E = unit(numberof(s)) * (1/s);
+		    // tmp = U(,+) * (E(,+) * U(,+))(+,);
+		    tmp = LUsolve(tmp);
+		    //error;
+		    cmat = (tmp(,+)*imat(,+))(,+)*Cn(+,);
+		    
+		    // Reconstructeur 2
+		    /*
+		    Cn = unit(numberof(noisemat)) * noisemat;
+		    tmp = (imat(,+)*cov(+,))(,+)*imat(,+) + Cn;
+		    tmp = LUsolve(tmp);
+		    cmat = (cov(,+)*imat(,+))(,+)*tmp(+,);
+		    */
+		    //error;
+		    
+		    rtc_setcmat,g_rtc,0,cmat;
  	      }
         }
       }

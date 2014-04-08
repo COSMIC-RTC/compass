@@ -65,6 +65,8 @@ public:
   // Florian features
   int
   kl_floloadarrays(float *covmat, float *filter, float *evals, float *bas);
+  int
+  get_IF(float *IF, int *indx_pup, long nb_pts);
 };
 
 class sutra_dms {
@@ -100,4 +102,7 @@ template<class T>
 void
 comp_fulldmshape(int threads, int blocks, T *d_idata, T *d_odata, int ninflu,
     int diminflu, T *comm, int N);
+int
+getIF(float *IF, float *dmshape, int *indx_pup, long nb_pts, int column, long nb_col, int device);
+
 #endif // _SUTRA_DM_H_
