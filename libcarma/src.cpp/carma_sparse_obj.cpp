@@ -5,7 +5,10 @@
  *      Author: ???
  */
 
+#ifdef FINISH
+
 #include "carma_sparse_obj.h"
+
 template<class T_data>
 carma_sparse_obj<T_data>::carma_sparse_obj<T_data>() {
   _create(0, 0, 0);
@@ -658,3 +661,4 @@ void kp_cu_check_op_set_dim(int op, const carma_obj<T_data>* M, int& dim1,
   }
 }
 
+#endif
