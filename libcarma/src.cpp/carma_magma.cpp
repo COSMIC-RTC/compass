@@ -343,7 +343,7 @@ int carma_svd<double>(caObjD *imat, caObjD *eigenvals, caObjD *mod2act,
 }
 
 template<class T>
-int carma_svd_gen(carma_host_obj<T> *mat, carma_host_obj<T> *eigenvals,
+int carma_svd_cpu_gen(carma_host_obj<T> *mat, carma_host_obj<T> *eigenvals,
     carma_host_obj<T> *mod2act, carma_host_obj<T> *mes2mod,
     magma_int_t (*ptr_gesvd)(magma_vec_t jobu, magma_vec_t jobvt, magma_int_t m,
         magma_int_t n, T *A, magma_int_t lda, T *s, T *U, magma_int_t ldu,
@@ -376,23 +376,23 @@ int carma_svd_gen(carma_host_obj<T> *mat, carma_host_obj<T> *eigenvals,
 }
 
 template<class T>
-int carma_svd(carma_host_obj<T> *mat, carma_host_obj<T> *eigenvals,
+int carma_svd_cpu(carma_host_obj<T> *mat, carma_host_obj<T> *eigenvals,
     carma_host_obj<T> *mod2act, carma_host_obj<T> *mes2mod) {
   //TODO: carma_svd
   MAGMA_TRACE("carma_svd not implemented with this type! \n");
   return EXIT_FAILURE;
 }
 template<>
-int carma_svd<float>(carma_host_obj<float> *mat,
+int carma_svd_cpu<float>(carma_host_obj<float> *mat,
     carma_host_obj<float> *eigenvals, carma_host_obj<float> *mod2act,
     carma_host_obj<float> *mes2mod) {
-  return carma_svd_gen<float>(mat, eigenvals, mod2act, mes2mod, magma_sgesvd);
+  return carma_svd_cpu_gen<float>(mat, eigenvals, mod2act, mes2mod, magma_sgesvd);
 }
 template<>
-int carma_svd<double>(carma_host_obj<double> *mat,
+int carma_svd_cpu<double>(carma_host_obj<double> *mat,
     carma_host_obj<double> *eigenvals, carma_host_obj<double> *mod2act,
     carma_host_obj<double> *mes2mod) {
-  return carma_svd_gen<double>(mat, eigenvals, mod2act, mes2mod, magma_dgesvd);
+  return carma_svd_cpu_gen<double>(mat, eigenvals, mod2act, mes2mod, magma_dgesvd);
 }
 
 template<class T>
@@ -886,13 +886,13 @@ template<class T> int carma_potri(long num_gpus, T *h_A, carma_obj<T> *d_iA)
 template int carma_potri<float>(long num_gpus, float *h_A, carma_obj<float> *d_iA);
 template int carma_potri<double>(long num_gpus, double *h_A, carma_obj<double> *d_iA);
 
-template<class T_data> int carma_svd(carma_host_obj<T_data> *imat, carma_host_obj<T_data> *eigenvals, carma_host_obj<T_data> *mod2act, carma_host_obj<T_data> *mes2mod)
+template<class T_data> int carma_svd_cpu(carma_host_obj<T_data> *imat, carma_host_obj<T_data> *eigenvals, carma_host_obj<T_data> *mod2act, carma_host_obj<T_data> *mes2mod)
 {
   MAGMA_TRACE("!!!!!! MAGMA not compiled !!!!!!\n");
   return EXIT_FAILURE;
 }
-template int carma_svd<float>(carma_host_obj<float> *imat, carma_host_obj<float> *eigenvals, carma_host_obj<float> *mod2act, carma_host_obj<float> *mes2mod);
-template int carma_svd<double>(carma_host_obj<double> *imat, carma_host_obj<double> *eigenvals, carma_host_obj<double> *mod2act, carma_host_obj<double> *mes2mod);
+template int carma_svd_cpu<float>(carma_host_obj<float> *imat, carma_host_obj<float> *eigenvals, carma_host_obj<float> *mod2act, carma_host_obj<float> *mes2mod);
+template int carma_svd_cpu<double>(carma_host_obj<double> *imat, carma_host_obj<double> *eigenvals, carma_host_obj<double> *mod2act, carma_host_obj<double> *mes2mod);
 
 template<class T> int carma_potri(carma_host_obj<T> *h_A) {
   MAGMA_TRACE("!!!!!! MAGMA not compiled !!!!!!\n");
