@@ -601,6 +601,14 @@ extern rtc_setimat;
    SEE ALSO:
  */
 
+extern rtc_setcentroids;
+/* DOCUMENT rtc_setcentroids
+   rtc_setcentroids,yoga_rtc_obj,ncontroller,imat
+   set centroids for a controller in a yoga_rtc_obj object
+      
+   SEE ALSO:
+ */
+
 extern rtc_getcentroids;
 /* DOCUMENT rtc_getcentroids
    res = rtc_getcentroids(yoga_rtc_obj,ncontroller)
