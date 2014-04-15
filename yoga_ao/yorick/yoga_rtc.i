@@ -144,7 +144,7 @@ func imat_init(ncontrol,clean=)
   }
 }
 
-func cmat_init(ncontrol,clean=)
+func cmat_init(ncontrol,clean=,method=)
 {
   extern y_rtc;
 
@@ -200,7 +200,7 @@ func cmat_init(ncontrol,clean=)
     write,format="cmat time %f\n",tac();
   }
   if (((*y_rtc.controllers(ncontrol)).type)(1) == "mv"){
-    rtc_buildcmatmv,g_rtc,ncontrol-1,y_dm(1).type;
+    rtc_buildcmatmv,g_rtc,ncontrol-1,y_dm(1).type,method;
   }
 
   cmat = rtc_getcmat(g_rtc,ncontrol-1);
@@ -578,10 +578,10 @@ func doklbasis(g_dm,nkl,n)
   return K;
 }
 
-func docovmat(g_rtc,g_atmos,g_dm,Nactu,nkl,N,ndms,sig=,mode=)
+func docovmat(g_rtc,g_atmos,g_dm,Nactu,nkl,N,ndms,meth,mode=)
 { extern y_dm, y_geom,y_atmos;
   nkl = Nactu;
-  tmp = (dimsof(*y_geom._ipupil)(2)-y_geom._n)/2;
+  tmp = (dimsof(*y_geom._ipupil)(2)-(y_dm(1)._n2 - y_dm(1)._n1 +1))/2;
   pup = (*y_geom._ipupil)(tmp+1:-tmp,tmp+1:-tmp);
   indx_valid = where(pup);
   //if(y_dm(N(1)).type != "kl")
@@ -608,20 +608,7 @@ func docovmat(g_rtc,g_atmos,g_dm,Nactu,nkl,N,ndms,sig=,mode=)
     */
   }
   else{
-    if (mode == "estimate" || mode == []){
-      tmp = (dimsof(*y_geom._ipupil)(2)-(y_dm(1)._n2 - y_dm(1)._n1 +1))/2;
-      pup = (*y_geom._ipupil)(tmp+1:-tmp,tmp+1:-tmp);
-      indx_valid = where(pup);
-      
-      x = *y_dm(1)._xpos;
-      y = *y_dm(1)._ypos; 
-      //error;
-      interactp = x(2) - x(1);
-      interactm = y_tel.diam/(y_dm(1).nact-1);
-      p2m = interactm/interactp;
-      norm = (p2m/y_atmos.r0)^(5./3);
-      rtc_docovmat,g_rtc,0,g_dm,"pzt",0.,indx_valid,numberof(indx_valid),x,y,norm;
-      /*
+    if (mode == "estimate"){     
       write,"Actuators basis...";
       K = dopztbasis(g_dm,ndms,Nactu);
       // Double diagonalisation
@@ -634,16 +621,19 @@ func docovmat(g_rtc,g_atmos,g_dm,Nactu,nkl,N,ndms,sig=,mode=)
       KL_actu = DDiago(statc,geo,s);
       write,"Inversion...";
       s = SVdec(statc);
-      Ck1 = unit(Nactu) * (1/s);
-      //Ck1 = unit(Nactu) * s;
-      Ck1(Nactu,Nactu) = 0;
-      write,"Projection...";
-      KL1 = LUsolve(KL_actu);
-      cov_matrix = KL1(+,) * (Ck1(,+) * KL1(+,))(+,);
-      //cov_matrix = KL_actu(,+) * (Ck1(,+) * KL_actu(,+))(+,);
-      //error; 
-      write,"Done";
-      */
+      if (meth == "inv"){
+	Ck1 = unit(Nactu) * (1/s);
+	Ck1(Nactu,Nactu) = 0;
+	write,"Projection...";
+	KL1 = LUsolve(KL_actu);
+	cov_matrix = KL1(+,) * (Ck1(,+) * KL1(+,))(+,);
+      }
+      if (meth == "n"){
+	Ck = unit(Nactu) * s;
+	cov_matrix = KL_actu(,+) * (Ck(,+) * KL_actu(,+))(+,);
+	//error; 
+      }
+      write,"Done";   
     }
     if (mode == "real"){
      write,"Actuators basis...";
@@ -822,7 +812,7 @@ func dopztbasis(g_dm,ndm,Nactu)
   IFtot = array(float,numberof(indx_valid),Nactu);
   ind = 0;
   for(j=1;j<=ndm;j++){
-    C = unit(y_dm(j)._ntotact);
+    C =float( unit(y_dm(j)._ntotact));
     IF = build_dm_gpu(j,C(,1));
     tmp = (dimsof(IF)(2)-y_geom._n)/2;
     IF = IF(tmp+1:-tmp,tmp+1:-tmp)(*)(indx_valid);

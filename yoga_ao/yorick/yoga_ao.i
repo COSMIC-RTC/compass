@@ -676,40 +676,74 @@ func rtc_init(clean=)
 		    write,"doing imat and filtering unseen actuators";
 		    imat_init,i,clean=clean;
 		    write,"done";
-		    covmat = docovmat(g_rtc,g_atmos,g_dm,sum(y_dm(ndms)._ntotact),max(y_dm(ndms)._ntotact),where(y_dm(ndms)._ntotact == max(y_dm(ndms)._ntotact)),numberof(ndms),mode="estimate");
-		    error;
-		    noisemat = noise_cov(1,1);
-		    rtc_loadcovmat,g_rtc,long(i-1),covmat;
-		    //cmat_init,i,clean=clean;
-		    //error;
-		    rtc_setgain,g_rtc,0,controllers(i).gain;
-		    mgain = array(1.0f,(y_dm._ntotact)(sum));
-		    rtc_loadmgain,g_rtc,0,mgain;
-          
-		    imat = rtc_getimat(g_rtc,0);
-		    cov = rtc_getcovmat(g_rtc,0);
-		    // Reconstructeur 1
+
+		    comp_mode = "GPU";
+		    method = "n";
+		    ndms = ndms(1);
+
+		    if(comp_mode == "GPU"){
+		      tmp = (dimsof(*y_geom._ipupil)(2)-(y_dm(ndms)._n2 - y_dm(ndms)._n1 +1))/2;
+		      pup = (*y_geom._ipupil)(tmp+1:-tmp,tmp+1:-tmp);
+		      indx_valid = where(pup);
+		      x = *y_dm(ndms)._xpos;
+		      y = *y_dm(ndms)._ypos; 
+		      interactp = x(2) - x(1);
+		      interactm = y_tel.diam/(y_dm(ndms).nact-1);
+		      p2m = interactm/interactp;
+		      norm = (p2m/y_atmos.r0)^(5./3);
+		      write,"Computing covariance matrix...";
+		      rtc_docovmat,g_rtc,i-1,g_dm,"pzt",y_dm(ndms).alt,indx_valid,numberof(indx_valid),x,y,norm,method;
+		      write, "done";
+		      noisemat = noise_cov(1,1);
+		      if (method == "inv"){
+			noisemat = float(1./noisemat);
+		      }
+		      rtc_loadnoisemat,g_rtc,long(i-1),noisemat;
+		      write,"Initializing command matrix...";
+		      cmat_init,i,clean=clean,method=method;
+		      write,"done";
+		      rtc_setgain,g_rtc,i-1,controllers(i).gain;
+		      mgain = array(1.0f,(y_dm._ntotact)(sum));
+		      rtc_loadmgain,g_rtc,i-1,mgain;
+		    }
 		    
-		    Cn = unit(numberof(noisemat)) * (1/noisemat);
-		    tmp = (imat(+,) * Cn(+,))(,+) * imat(+,) + cov;
-		    //s = SVdec(tmp,U);
-		    //E = unit(numberof(s)) * (1/s);
-		    // tmp = U(,+) * (E(,+) * U(,+))(+,);
-		    tmp = LUsolve(tmp);
-		    //error;
-		    cmat = (tmp(,+)*imat(,+))(,+)*Cn(+,);
-		    
-		    // Reconstructeur 2
-		    /*
-		    Cn = unit(numberof(noisemat)) * noisemat;
-		    tmp = (imat(,+)*cov(+,))(,+)*imat(,+) + Cn;
-		    tmp = LUsolve(tmp);
-		    cmat = (cov(,+)*imat(,+))(,+)*tmp(+,);
-		    */
-		    //error;
-		    
-		    rtc_setcmat,g_rtc,0,cmat;
- 	      }
+		    if(comp_mode == "CPU"){
+		      covmat = docovmat(g_rtc,g_atmos,g_dm,sum(y_dm(ndms)._ntotact),max(y_dm(ndms)._ntotact),where(y_dm(ndms)._ntotact == max(y_dm(ndms)._ntotact)),numberof(ndms),method,mode="estimate");
+		      //error;
+		      noisemat = noise_cov(1,1);
+		      rtc_setgain,g_rtc,i-1,controllers(i).gain;
+		      mgain = array(1.0f,(y_dm._ntotact)(sum));
+		      rtc_loadmgain,g_rtc,i-1,mgain;
+		      
+		      imat = rtc_getimat(g_rtc,0);
+
+		      if (method == "inv"){
+			// Reconstructeur 1
+			//error;
+			noisemat = float(1./noisemat);
+			Cn = unit(numberof(noisemat)) * (noisemat);
+			tmp = (imat(+,) * Cn(+,))(,+) * imat(+,) + covmat;
+			s = SVdec(tmp,U);
+			//E = unit(numberof(s)) * (1/s);
+			//tmp = U(,+) * (E(,+) * U(,+))(+,);
+			tmp = LUsolve(tmp);
+			cmat = (tmp(,+)*imat(,+))(,+)*Cn(+,);
+		      }
+		      if (method == "n"){
+		      // Reconstructeur 2
+		      
+			Cn = unit(numberof(noisemat)) * noisemat;
+			tmp = (imat(,+)*covmat(+,))(,+)*imat(,+) + Cn;
+			tmp = LUsolve(tmp);
+			cmat = (covmat(,+)*imat(,+))(,+)*tmp(+,);
+		      
+		      //error;	
+		      }	    
+		      
+		      rtc_setcmat,g_rtc,i-1,cmat;
+		      
+		    }
+		  }
         }
       }
     }

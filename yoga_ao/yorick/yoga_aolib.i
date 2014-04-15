@@ -584,7 +584,7 @@ extern rtc_doimat;
       
    SEE ALSO:
  */
-
+extern rtc_getnoisemat;
 extern rtc_getimat;
 /* DOCUMENT rtc_getimat
    res = rtc_getimat(yoga_rtc_obj,ncontroller)
@@ -681,7 +681,13 @@ extern rtc_loadmgain;
       
    SEE ALSO:
  */
-
+extern rtc_loadnoisemat;
+/* DOCUMENT rtc_loadnoisemat
+   rtc_loadnoisemat,yoga_rtc_obj,ncontroller,noise
+   set noise matrix for a controller in a yoga_rtc_obj object
+      
+   SEE ALSO:
+ */
 extern rtc_setdelay;
 /* DOCUMENT rtc_setdelay
    rtc_setdelay,yoga_rtc_obj,ncontroller,delay

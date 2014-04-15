@@ -19,6 +19,52 @@ YOGA_AO_PARPATH = YOGA_AO_SAVEPATH+"par/";
 mkdirp,YOGA_AO_PARPATH;
 
 
+func flo_getkl(pup,nkl,lim){
+
+  /* K = flo_getkl(pup,nkl,lim
+ Create Karhunen-Loeve basis K in the pupil pup
+
+     pup : telescope pupil
+     nkl : must be a divisor of the size of pup, nkl^2 KL mode will be computed
+     lim : number of modes returned
+   */
+  N = dimsof(pup)(3);
+  indx_valid = where(pup);
+  if(N%nkl != 0){
+    //error,"Size of pup must be divisible by nkl";
+  }
+  fact = N/nkl;
+  //subpup = pup(1::fact,1::fact);
+  subpup = make_pupil(nkl,nkl-1,cobs=0.3);
+  ind_sub = where(subpup);
+
+  x = span(-1,1,nkl)(,-:1:nkl);
+  y = transpose(x)(*)(ind_sub);
+  x = x(*)(ind_sub);
+
+  m = 6.88 * abs(x(*)(,-)-x(*)(-,),y(*)(,-)-y(*)(-,))^(5./3) ;
+  F = unit(dimsof(m)(3)) - array(1./(dimsof(m)(3)),dimsof(m)(3),dimsof(m)(3));
+  m = (F(+,)*m(+,))(,+)*F(,+);
+
+  I = SVdec(m,U);
+  K = array(float,nkl,nkl);
+  K(*)(ind_sub) = U(,1);
+  K = spline2(K,N,N,mask=subpup)(*)(indx_valid);
+  K = K(,-);
+  for (i=2 ; i<=lim ; i++){
+    tmp = array(float,nkl,nkl);
+    tmp(*)(ind_sub) = U(,i);
+    tmp = spline2(tmp,N,N,mask=subpup)(*)(indx_valid);
+    grow,K,tmp;
+  }
+  // error ;
+  window,2;
+  fma;
+  plg,I(:dimsof(I)(2)-1);
+return K
+}
+
+
 func script_kl(filename,verbose=,r0=,clean=,strehl=)
 {
   //activeDevice,1;
@@ -94,7 +140,7 @@ func script_kl(filename,verbose=,r0=,clean=,strehl=)
     write,"iter# | S.E. SR | L.E. SR | Est. Rem. | framerate";
     write,"----------------------------------------------------";
   }
-
+  extern cb_slopes;
   for (cc=1;cc<=y_loop.niter;cc++) {
     
     if (g_target != []) move_sky,g_atmos,g_target;
@@ -113,6 +159,9 @@ func script_kl(filename,verbose=,r0=,clean=,strehl=)
           sensors_trace,g_wfs,i-1,"dm",g_dm,0;
         }
         sensors_compimg_tele,g_wfs,i-1;
+	sensors_compslopes,g_wfs,0,g_rtc,0;
+	if (cc==1) cb_slopes=sensors_getdata(g_wfs, 0, "slopes")(,-);
+	else grow,cb_slopes,sensors_getdata(g_wfs, 0, "slopes");
       }
       
       // do centroiding
@@ -132,16 +181,18 @@ func script_kl(filename,verbose=,r0=,clean=,strehl=)
         if (g_dm != []) {
           target_dmtrace,g_target,i-1,g_dm;
         }
+	if (cc==1 || cc==y_loop.niter/2 || cc == y_loop.niter){
 	window, i-1;
-	img =  roll(target_getimage(g_target,i-1,"se"));
+	img =  roll(target_getimage(g_target,i-1,"le"));
 	pli, img(207:-206,207:-206);
+	}
       }
       //saving average image from target #1
 
     }
     //if (cc=31679) error;
     if (verbose) {
-      subsample=10.;
+      subsample=100.;
       if (cc % subsample == 0 || cc==1) {
         timetmp = time_move*(cc-subsample);
         time_move = tac(mytime)/cc;

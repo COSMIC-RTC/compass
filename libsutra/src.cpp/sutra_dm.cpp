@@ -188,9 +188,8 @@ int sutra_dm::comp_oneactu(int nactu, float ampli) {
 
 int
 sutra_dm::get_IF(float *IF, int *indx_pup, long nb_pts){
-	cout << "nb pts : " << nb_pts << endl;
 	for (int i=0 ; i<this->ninflu ; i++){
-		this->comp_oneactu(i,this->push4imat);
+		this->comp_oneactu(i,1.);
 		getIF(IF,this->d_shape->d_screen->getData(),indx_pup,nb_pts,i,this->ninflu,device);
 	}
 	this->reset_shape();

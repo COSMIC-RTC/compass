@@ -63,16 +63,22 @@ __global__ void add_md_krnl(float *o_matrix, float *i_matrix, float *i_vector,
 __global__ void
 fill_filtmat_krnl(float *filter, int nactu, int N){
 	int tid = threadIdx.x + blockIdx.x * blockDim.x;
-	if (tid < N){
-		tid % (nactu+1) ? filter[tid] = -1/N : filter[tid] = 1.-1./N;
+	while (tid < N){
+		tid % (nactu+1) ? filter[tid] = -1./nactu : filter[tid] = 1.-1./nactu;
+		tid += blockDim.x * gridDim.x;
 	}
 }
 
 __global__ void
-do_statcov_krnl(float *statcov, float *xpos, float *ypos, float norm, long N){
+do_statcov_krnl(float *statcov, float *xpos, float *ypos, float norm, long dim, long N){
 	int tid = threadIdx.x + blockIdx.x * blockDim.x;
-	if (tid < N)
-		statcov[tid] = (float)(6.88 * pow(sqrt(pow((double)(xpos[blockIdx.x]-xpos[threadIdx.x]),2) + pow((double)(ypos[blockIdx.x]-ypos[threadIdx.x]),2)),5./3.) * norm);
+	int i,j;
+	while (tid < N) {
+		i = tid/dim;
+		j = tid - i*dim;
+		statcov[tid] = 6.88 * pow(sqrt(pow((double)(xpos[i]-xpos[j]),2) + pow((double)(ypos[i]-ypos[j]),2)),5./3.) * norm;
+		tid += blockDim.x * gridDim.x;
+	}
 }
 /*
  _                           _                   
@@ -188,10 +194,10 @@ fill_filtmat(float *filter, int nactu, int N, int device){
 int
 do_statmat(float *statcov, long dim, float *xpos, float *ypos, float norm, int device){
 	int nthreads = 0, nblocks = 0;
-	getNumBlocksAndThreads(device, dim, nblocks, nthreads);
-
+	int N = dim * dim;
+	getNumBlocksAndThreads(device, N, nblocks, nthreads);
 	dim3 grid(nblocks), threads(nthreads);
-	do_statcov_krnl<<<grid , threads>>>(statcov,xpos,ypos,norm,dim);
+	do_statcov_krnl<<<grid , threads>>>(statcov,xpos,ypos,norm,dim,N);
 	cutilCheckMsg("do_statcov_krnl<<<>>> execution failed\n");
 
 	return EXIT_SUCCESS;

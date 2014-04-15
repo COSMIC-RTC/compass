@@ -66,5 +66,8 @@ mult_int(float *o_data, float *i_data, float *scale, float gain, int N,
     int device, carma_streams *streams);
 int
 fill_filtmat(float *filter, int nactu, int N, int device);
-
+int
+do_statmat(float *statcov,long dim, float *xpos, float *ypos, float norm, int device);
+int
+add_md(float *o_matrix, float *i_matrix, float *i_vector, int N,int device);
 #endif // _sutra_controller_H_

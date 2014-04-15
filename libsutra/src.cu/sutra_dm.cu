@@ -251,7 +251,7 @@ __global__ void
 getIF_krnl(float *IF, float *dmshape, int *indx_pup, long nb_pts, long column, long nb_col){
 	int tid = blockIdx.x * blockDim.x + threadIdx.x;
 	if (tid < nb_pts)
-		IF[tid * nb_col + column] = dmshape[indx_pup[tid]];
+		IF[column * nb_pts + tid] = dmshape[indx_pup[tid]];
 }
 int
 getIF(float *IF, float *dmshape, int *indx_pup, long nb_pts, int column, long nb_col, int device){

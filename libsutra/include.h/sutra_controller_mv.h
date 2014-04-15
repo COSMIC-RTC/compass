@@ -26,7 +26,7 @@ public:
   // Florian features
   carma_obj<float> *d_covmat;
   carma_obj<float> *d_KLbasis;
-
+  carma_obj<float> *d_noisemat;
   // svd computations
   carma_obj<float> *d_eigenvals;
   carma_host_obj<float> *h_eigenvals;
@@ -56,7 +56,7 @@ public:
   int
   svdec_imat();
   int
-  build_cmat(const char *dmtype);
+  build_cmat(const char *dmtype, char *method);
   int
   frame_delay();
   int
@@ -69,13 +69,15 @@ public:
   set_delay(int delay);
   // Florian features
   int
-  do_covmat(sutra_dm *ydm, int *indx_pup, long dim, float *xpos, float *ypos, float norm);
+  load_noisemat(float *noise);
+  int
+  do_covmat(sutra_dm *ydm,char *method, int *indx_pup, long dim, float *xpos, float *ypos, float norm);
   int
   do_geomat(carma_obj<float> *d_geocov, carma_obj<float> *d_IF, long n_pts);
   int
   piston_filt(carma_obj<float> *d_statcov);
-  int
-  do_statmat(float *statcov,long dim, float *xpos, float *ypos, float norm, int device);
+ // int
+ // do_statmat(float *statcov,long dim, float *xpos, float *ypos, float norm, int device);
   int
   DDiago(carma_obj<float> *d_statcov, carma_obj<float> *d_geocov);
   int

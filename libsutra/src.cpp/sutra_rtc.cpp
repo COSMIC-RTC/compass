@@ -146,6 +146,7 @@ int sutra_rtc::do_imat(int ncntrl, sutra_sensors *sensors, sutra_dms *ydm) {
     }
     p++;
   }
+
   return EXIT_SUCCESS;
 }
 

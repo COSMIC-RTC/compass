@@ -1173,19 +1173,19 @@ void Y_sensors_initgs(int argc) {
   sensors_struct *handle = (sensors_struct *) yget_obj(argc - 1, &ySensors);
   sutra_sensors *sensors_handler = (sutra_sensors *) handle->sutra_sensors;
   float *xpos = ygeta_f(argc - 2, &ntot, dims);
-  if (ntot != abs(sensors_handler->nsensors()))
+  if (ntot != sensors_handler->nsensors())
     y_error("wrong dimension for xpos");
   float *ypos = ygeta_f(argc - 3, &ntot, dims);
-  if (ntot != abs(sensors_handler->nsensors()))
+  if (ntot != sensors_handler->nsensors())
     y_error("wrong dimension for ypos");
   float *lambda = ygeta_f(argc - 4, &ntot, dims);
-  if (ntot != abs(sensors_handler->nsensors()))
+  if (ntot != sensors_handler->nsensors())
     y_error("wrong dimension for lambda");
   float *mag = ygeta_f(argc - 5, &ntot, dims);
-  if (ntot != abs(sensors_handler->nsensors()))
+  if (ntot != sensors_handler->nsensors())
     y_error("wrong dimension for mag");
   long *size = ygeta_l(argc - 6, &ntot, dims);
-  if (ntot != abs(sensors_handler->nsensors()))
+  if (ntot != sensors_handler->nsensors())
     y_error("wrong dimension for size");
 
   carma_context *context_handle = _getCurrentContext();
@@ -2226,6 +2226,42 @@ void Y_rtc_loadmgain(int argc) {
   }
 }
 
+void Y_rtc_loadnoisemat(int argc) {
+  long ntot;
+  long dims[Y_DIMSIZE];
+
+  rtc_struct *rhandler = (rtc_struct *) yget_obj(argc - 1, &yRTC);
+  sutra_rtc *rtc_handler = (sutra_rtc *) (rhandler->sutra_rtc);
+  long ncontrol = ygets_l(argc - 2);
+
+  carma_context *context_handle = _getCurrentContext();
+  context_handle->set_activeDeviceForCpy(rhandler->device);
+  if (rtc_handler->d_control.at(ncontrol)->get_type().compare("mv") == 0) {
+    float *noise = ygeta_f(argc - 3, &ntot, dims);
+    SCAST(sutra_controller_mv *, control, rtc_handler->d_control.at(ncontrol));
+    control->load_noisemat(noise);
+  } else {
+    y_error("Controller needs to be mv\n");
+  }
+}
+
+void Y_rtc_getnoisemat(int argc) {
+  rtc_struct *rhandler = (rtc_struct *) yget_obj(argc - 1, &yRTC);
+  sutra_rtc *rtc_handler = (sutra_rtc *) (rhandler->sutra_rtc);
+  long ncontrol = ygets_l(argc - 2);
+
+  carma_context *context_handle = _getCurrentContext();
+  context_handle->set_activeDeviceForCpy(rhandler->device);
+
+  if (rtc_handler->d_control.at(ncontrol)->get_type().compare("mv") == 0) {
+    SCAST(sutra_controller_mv *, control, rtc_handler->d_control.at(ncontrol));
+    float *data = ypush_f((long*) control->d_noisemat->getDims());
+    control->d_noisemat->device2host(data);
+  } else {
+    y_error("Controller needs to be mv\n");
+  }
+}
+
 void Y_rtc_setdelay(int argc) {
   rtc_struct *rhandler = (rtc_struct *) yget_obj(argc - 1, &yRTC);
   sutra_rtc *rtc_handler = (sutra_rtc *) (rhandler->sutra_rtc);
@@ -3003,11 +3039,12 @@ void Y_rtc_buildcmatmv(int argc) {
   sutra_rtc *rtc_handler = (sutra_rtc *) (rhandler->sutra_rtc);
   long ncontrol = ygets_l(argc - 2);
   char *dmtype = ygets_q(argc - 3);
+  char *method = ygets_q(argc - 4);
   carma_context *context_handle = _getCurrentContext();
   context_handle->set_activeDeviceForCpy(rhandler->device);
 
   SCAST(sutra_controller_mv *, controller, rtc_handler->d_control[ncontrol]);
-  controller->build_cmat(dmtype);
+  controller->build_cmat(dmtype,method);
 }
 void Y_rtc_doimatkl(int argc) {
   rtc_struct *rhandler = (rtc_struct *) yget_obj(argc - 1, &yRTC);
@@ -3054,12 +3091,13 @@ void Y_rtc_doimatkl4pzt(int argc) {
     float *xpos = ygeta_f(argc - 8 , &ntot, dims);
     float *ypos = ygeta_f(argc - 9 , &ntot, dims);
     float norm = ygets_f(argc - 10);
+    char *method = ygets_q(argc - 11);
 
     carma_context *context_handle = _getCurrentContext();
     context_handle->set_activeDeviceForCpy(rhandler->device);
     SCAST(sutra_controller_mv *, controller, rtc_handler->d_control[ncontrol]);
 
-    controller->do_covmat(dms_handler->d_dms.at(make_pair(type, alt)),indx_pup,dim,xpos,ypos,norm);
+    controller->do_covmat(dms_handler->d_dms.at(make_pair(type, alt)),method,indx_pup,dim,xpos,ypos,norm);
 
   }
   void Y_rtc_loadcovmat(int argc) {
