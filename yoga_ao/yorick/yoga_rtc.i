@@ -271,16 +271,17 @@ func manual_imat(void)
       //mscreen = sensors_getdata(g_wfs,0,"phase");
       
       sensors_compimg,g_wfs,0;
-      mimg = sensors_getimg(g_wfs,0);
+      //mimg = sensors_getimg(g_wfs,0);
       
       //slopes_geom,g_wfs,0,0;
       rtc_docentroids,g_rtc,g_wfs,0;
       slps = sensors_getslopes(g_wfs,0);
       grow,imat_cpu,slps/float(y_dm(1).push4imat);
       fma;limits;
-      display_slopes,slps,1,"Phase Difference";
+      plg,slps;	
+      //display_slopes,slps*100.,1,"Phase Difference";
       yoga_resetdm,g_dm,y_dm(nm).type,y_dm(nm).alt;
-      //pause,500;
+      pause,500;
     } 
   }
   return imat_cpu(,2:);

@@ -609,6 +609,14 @@ extern rtc_getcentroids;
    SEE ALSO:
  */
 
+extern rtc_getcom;
+/* DOCUMENT rtc_getcom
+   res = rtc_getcom(yoga_rtc_obj,ncontroller)
+   get commands for a controller in a yoga_rtc_obj object
+      
+   SEE ALSO:
+ */
+
 extern rtc_getcmat;
 /* DOCUMENT rtc_getcmat
    res = rtc_getcmat(yoga_rtc_obj,ncontroller)

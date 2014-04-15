@@ -19,6 +19,7 @@ y_atmos.frac         = &([1.0]);
 y_atmos.alt          = &([0.0]);
 y_atmos.windspeed    = &([20.]);
 y_atmos.winddir      = &([45]);
+y_atmos.L0           = &([1.e5]);
 
 /*
 target inits
@@ -49,7 +50,7 @@ y_wfs(1).noise         = 5;
 /*
 dm inits
 */
-ndm = 1;
+ndm = 2;
 y_dm                  = array(dm_struct(),ndm); // clean start
 
 y_dm(1).type          = "pzt";
@@ -60,12 +61,12 @@ y_dm(1).coupling      = 0.2;
 y_dm(1).unitpervolt   = 0.01;
 y_dm(1).push4imat     = 100.0f;
 
-/*
+
 y_dm(2).type          = "tt";
 y_dm(2).alt           = 0.;
 y_dm(2).unitpervolt   = 0.0005;
 y_dm(2).push4imat     = 10.0f;
-*/
+
 
 /*
 loop inits
@@ -83,24 +84,24 @@ y_centroiders.nwfs      = 1;
 y_centroiders(1).type   = "cog";
 
 /*
-controlers inits
+controllers inits
 */
-ncontrolers = 1;
-y_controlers          = array(controler_struct(),ncontrolers);
+ncontrollers = 1;
+y_controllers          = array(controller_struct(),ncontrollers);
 
-y_controlers(1).type    = "cured";
-y_controlers(1).nwfs    = &[1];
-y_controlers(1).ndm     = &[1];
-y_controlers(1).delay   = 1;
-y_controlers(1).gain    = 0.6;
+y_controllers(1).type    = "cured";
+y_controllers(1).nwfs    = &[1];
+y_controllers(1).ndm     = &[1];
+y_controllers(1).delay   = 1;
+y_controllers(1).gain    = 0.6;
 
 /*
-y_controlers(1).type    = "ls";
-y_controlers(1).nwfs    = &[1];
-y_controlers(1).ndm     = &[1,2];
-y_controlers(1).maxcond = 15.;
-y_controlers(1).delay   = 1;
-y_controlers(1).gain    = 0.6;
+y_controllers(1).type    = "ls";
+y_controllers(1).nwfs    = &[1];
+y_controllers(1).ndm     = &[1,2];
+y_controllers(1).maxcond = 15.;
+y_controllers(1).delay   = 1;
+y_controllers(1).gain    = 1.0;
 */
 
 /*
@@ -108,5 +109,5 @@ rtc inits
 */
 y_rtc.nwfs =1;
 y_rtc.centroiders = &(y_centroiders);
-y_rtc.controlers  = &(y_controlers);
+y_rtc.controllers  = &(y_controllers);
 

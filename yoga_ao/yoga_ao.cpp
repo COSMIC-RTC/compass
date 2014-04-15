@@ -1933,7 +1933,7 @@ void Y_yoga_setdm(int argc) {
   char *type = ygets_q(argc - 2);
   float alt = ygets_f(argc - 3);
   float *data = ygeta_f(argc - 4, &ntot, dims);
-  dms_handler->d_dms.at(make_pair(type, alt))->d_shape->d_screen->device2host(
+  dms_handler->d_dms.at(make_pair(type, alt))->d_shape->d_screen->host2device(
       data);
 }
 
@@ -2293,8 +2293,11 @@ void Y_rtc_getimat(int argc) {
     SCAST(sutra_controller_mv *, control, rtc_handler->d_control.at(ncontrol));
     float *data = ypush_f((long*) control->d_imat->getDims());
     control->d_imat->device2host(data);
-  } else {
-    y_error("Controller needs to be ls or mv\n");
+  } else if (rtc_handler->d_control.at(ncontrol)->get_type().compare("cured")
+      == 0) {
+    SCAST(sutra_controller_cured *, control, rtc_handler->d_control.at(ncontrol));
+    float *data = ypush_f((long*) control->d_imat->getDims());
+    control->d_imat->device2host(data);
   }
 }
 
@@ -2326,6 +2329,19 @@ void Y_rtc_getcentroids(int argc) {
   float *data = ypush_f(
       (long*) rtc_handler->d_control.at(ncontrol)->d_centroids->getDims());
   rtc_handler->d_control.at(ncontrol)->d_centroids->device2host(data);
+}
+
+void Y_rtc_getcom(int argc) {
+  rtc_struct *rhandler = (rtc_struct *) yget_obj(argc - 1, &yRTC);
+  sutra_rtc *rtc_handler = (sutra_rtc *) (rhandler->sutra_rtc);
+  long ncontrol = ygets_l(argc - 2);
+
+  carma_context *context_handle = _getCurrentContext();
+  context_handle->set_activeDeviceForCpy(rhandler->device);
+
+  float *data = ypush_f(
+      (long*) rtc_handler->d_control.at(ncontrol)->d_com->getDims());
+  rtc_handler->d_control.at(ncontrol)->d_com->device2host(data);
 }
 
 void Y_rtc_getcmat(int argc) {
