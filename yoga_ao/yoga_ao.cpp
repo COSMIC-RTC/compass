@@ -2192,13 +2192,18 @@ void Y_rtc_setgain(int argc) {
     float gain = ygets_f(argc - 3);
     SCAST(sutra_controller_ls *, control, rtc_handler->d_control.at(ncontrol));
     control->set_gain(gain);
-  } else if (rtc_handler->d_control.at(ncontrol)->get_type().compare("mv")
+  } 
+  if (rtc_handler->d_control.at(ncontrol)->get_type().compare("mv")
       == 0) {
     float gain = ygets_f(argc - 3);
     SCAST(sutra_controller_mv *, control, rtc_handler->d_control.at(ncontrol));
     control->set_gain(gain);
-  } else {
-    y_error("Controller needs to be ls or mv\n");
+  } 
+  if (rtc_handler->d_control.at(ncontrol)->get_type().compare("cured")
+      == 0){
+    float gain = ygets_f(argc - 3);
+    SCAST(sutra_controller_cured *, control, rtc_handler->d_control.at(ncontrol));
+    control->set_gain(gain);
   }
 }
 
@@ -2576,6 +2581,7 @@ void Y_controller_initcured(int argc) {
   long ncontrol = ygets_l(argc - 2);
   int nxsubs = ygets_l(argc - 3);
   int *isvalid = ygeta_i(argc - 4, &ntot, dims);
+  int ndivs = ygets_l(argc - 5);
 
   //rtc_struct *handle    =(rtc_struct *)ypush_obj(&yRTC, sizeof(rtc_struct));
 
@@ -2585,7 +2591,7 @@ void Y_controller_initcured(int argc) {
   if (rtc_handler->d_control.at(ncontrol)->get_type().compare("cured") == 0) {
     SCAST(sutra_controller_cured *, control,
         rtc_handler->d_control.at(ncontrol));
-    control->init_cured(nxsubs, isvalid);
+    control->init_cured(nxsubs, isvalid, ndivs);
   }
 }
 

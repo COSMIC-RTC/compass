@@ -2,10 +2,11 @@
 #include <string>
 
 sutra_controller_cured::sutra_controller_cured(carma_context *context,
-    long nvalid, long nactu, long delay) :
+					       long nvalid, long nactu, long delay) :
     sutra_controller(context, nvalid * 2, nactu) {
 
   this->gain = 0;
+
   this->h_centroids = 0L;
   this->h_err = 0L;
   this->h_parcure = 0L;
@@ -56,43 +57,21 @@ int sutra_controller_cured::set_gain(float gain) {
 
 int sutra_controller_cured::comp_com() {
   h_centroids->cpy_obj(this->d_centroids, cudaMemcpyDeviceToHost);
-  /*
-  long size = this->h_centroids->getNbElem();
-  float *tmp2 = (float *)malloc(size * sizeof(float));
-  for (int cc =0; cc < size/2;cc++) {
-    tmp2[cc] = 1.0f * *(this->h_centroids->getData(cc+size/2));
-  }
-  for (int cc =size/2; cc < size;cc++) {
-    tmp2[cc] = 1.0f * *(this->h_centroids->getData(cc-size/2));
-  }
-  memcpy(this->h_centroids->getData(),tmp2,size*sizeof(float));
-  free(tmp2);
-  */
 
   cured(this->h_syscure, this->h_parcure, this->h_centroids->getData(),
       this->h_err->getData(),1.0f);
-  /*
-  size = this->h_err->getNbElem();
-  float *tmp = (float *)malloc(size * sizeof(float));
-  for (int cc =0; cc < size/2;cc++) {
-    tmp[cc] = 1.0f * *(this->h_err->getData(cc+size/2));
-  }
-  for (int cc =size/2; cc < size;cc++) {
-    tmp[cc] = 1.0f * *(this->h_err->getData(cc-size/2));
-  }
-  memcpy(this->h_err->getData(),tmp,size*sizeof(float));
-  free(tmp);
-  */
+
   h_err->cpy_obj(this->d_err, cudaMemcpyHostToDevice);
 
-  mult_int(this->d_com->getData(),this->d_err->getData(),-1.0f,this->nactu(),this->device);
+  mult_int(this->d_com->getData(),this->d_err->getData(),-1.0f * this->gain, this->nactu(),this->device);
 
   return EXIT_SUCCESS;
 }
 
-int sutra_controller_cured::init_cured(int nxsubs, int *isvalid) {
+int sutra_controller_cured::init_cured(int nxsubs, int *isvalid, int ndivs) {
+  this->ndivs = (ndivs > 0) ? ndivs : 1;
   this->h_syscure = cureSystem(nxsubs, this->nslope() / 2., this->nactu(),
-      isvalid, 1);
+      isvalid, this->ndivs);
   this->h_parcure = cureInit(this->h_syscure);
   return EXIT_SUCCESS;
 }

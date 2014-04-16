@@ -198,7 +198,8 @@ struct controller_struct
   float   maxcond;  // max condition number
   long    delay;    // 
   float   gain;     //
-  long nkl;         // Florain features : number of KL modes used for computation of covmat in case of minimum variance controller
+  long    nkl;      // Florain features : number of KL modes used for computation of covmat in case of minimum variance controller
+  long    cured_ndivs; // subdivision levels in cured
 };
 
 struct loop_struct

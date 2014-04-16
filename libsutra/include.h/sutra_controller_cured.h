@@ -6,6 +6,7 @@
 class sutra_controller_cured: public sutra_controller {
 public:
   float gain;
+  int   ndivs; //number of subdivision levels for cured
 
   // data for CuReD */
   carma_host_obj<float> *h_centroids;
@@ -21,7 +22,7 @@ public:
 
 public:
   sutra_controller_cured(carma_context *context, long nvalid, long nactu,
-      long delay);
+			 long delay);
   sutra_controller_cured(const sutra_controller_cured& controller);
   ~sutra_controller_cured();
 
@@ -34,7 +35,7 @@ public:
   comp_com();
 
   int
-  init_cured(int nxsubs, int *isvalid);
+    init_cured(int nxsubs, int *isvalid, int ndivs);
 };
 
 #endif // _sutra_controller_cured_H_

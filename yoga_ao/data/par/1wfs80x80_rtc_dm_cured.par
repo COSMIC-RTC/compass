@@ -80,13 +80,14 @@ y_centroiders(1).type   = "cog";
 controllers inits
 */
 ncontrollers = 1;
-y_controllers          = array(controller_struct(),ncontrollers);
+y_controllers                = array(controller_struct(),ncontrollers);
 
-y_controllers(1).type    = "cured";
-y_controllers(1).nwfs    = &[1];
-y_controllers(1).ndm     = &[1];
-y_controllers(1).delay   = 1;
-y_controllers(1).gain    = 0.6;
+y_controllers(1).type        = "cured";
+y_controllers(1).nwfs        = &[1];
+y_controllers(1).ndm         = &[1];
+y_controllers(1).delay       = 1;
+y_controllers(1).gain        = 0.6;
+y_controllers(1).cured_ndivs = 3;
 
 /*
 y_controllers(1).type    = "ls";

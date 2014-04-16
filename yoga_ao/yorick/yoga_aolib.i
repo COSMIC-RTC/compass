@@ -1110,6 +1110,7 @@ extern controller_initcured;
    ncontrol     : index of given controller
    nxsubs       : number of subaps across pupil (int)
    isvalid      : array of valid subaps in a nxsubs x nxsubs configuration (int)
+   ndivs        : number of subdivision levels for cured
 
    SEE ALSO:
  */
