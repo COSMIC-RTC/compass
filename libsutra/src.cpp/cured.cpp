@@ -1175,7 +1175,7 @@ int cured(sysCure* sys, parCure *par, float *data, float *result_vec,
 
   /* integral control */
   for (i = 0; i < numofresults; i++)
-    result_vec[i] += gain * result[i];
+    result_vec[i] = result[i];//+= gain * result[i];
 
   return 0;
 }

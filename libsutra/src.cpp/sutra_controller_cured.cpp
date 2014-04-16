@@ -22,6 +22,7 @@ sutra_controller_cured::sutra_controller_cured(carma_context *context,
 
   dims_data1[1] = nactu;
   this->h_err = new carma_host_obj<float>(dims_data1, MA_PAGELOCK);
+  this->d_err = new carma_obj<float>(context,dims_data1);
 
   dims_data2[1] = nvalid * 2;
   dims_data2[2] = nactu;
@@ -39,6 +40,8 @@ sutra_controller_cured::~sutra_controller_cured() {
     delete this->d_centroids;
  if (this->d_imat != 0L)
     delete this->d_imat;
+ if (this->d_err != 0L)
+    delete this->d_err;
 
 }
 
@@ -62,11 +65,11 @@ int sutra_controller_cured::comp_com() {
   for (int cc =size/2; cc < size;cc++) {
     tmp2[cc] = 1.0f * *(this->h_centroids->getData(cc-size/2));
   }
-  memcpy(this->h_err->getData(),tmp2,size*sizeof(float));
+  memcpy(this->h_err->errgetData(),tmp2,size*sizeof(float));
   free(tmp2);
   */
   cured(this->h_syscure, this->h_parcure, this->h_centroids->getData(),
-      this->h_err->getData(), 0.4f);
+      this->h_err->getData(),1.0f);
   
   /*
   size = this->h_err->getNbElem();
@@ -80,8 +83,9 @@ int sutra_controller_cured::comp_com() {
   memcpy(this->h_err->getData(),tmp,size*sizeof(float));
   free(tmp);
   */
-  h_err->cpy_obj(this->d_com, cudaMemcpyHostToDevice);
-  //mult_int(this->d_com->getData(),this->d_err->getData(),this->d_gain->getData(),this->gain,this->nactu,this->device);
+  h_err->cpy_obj(this->d_err, cudaMemcpyHostToDevice);
+
+  mult_int(this->d_com->getData(),this->d_err->getData(),0.4f,this->nactu(),this->device);
 
   return EXIT_SUCCESS;
 }

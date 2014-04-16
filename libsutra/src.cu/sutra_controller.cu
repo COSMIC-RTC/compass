@@ -29,6 +29,16 @@ __global__ void mult_krnl(float *i_data, float *scale, int N) {
   }
 }
 
+__global__ void mult_int_krnl(float *o_data, float *i_data, float gain, int N) {
+
+  int tid = threadIdx.x + blockIdx.x * blockDim.x;
+
+  while (tid < N) {
+    o_data[tid] = gain * i_data[tid] + o_data[tid];
+    tid += blockDim.x * gridDim.x;
+  }
+}
+
 __global__ void mult_int_krnl(float *o_data, float *i_data, float *scale,
     float gain, int N) {
 
@@ -162,6 +172,20 @@ int mult_int(float *o_data, float *i_data, float *scale, float gain, int N,
   dim3 grid(nblocks), threads(nthreads);
 
   mult_int_krnl<<<grid, threads>>>(o_data, i_data, scale, gain, N);
+  cutilCheckMsg("multint_kernel<<<>>> execution failed\n");
+
+  return EXIT_SUCCESS;
+}
+
+int mult_int(float *o_data, float *i_data, float gain, int N,int device) {
+
+  int nthreads = 0, nblocks = 0;
+
+  getNumBlocksAndThreads(device, N, nblocks, nthreads);
+
+  dim3 grid(nblocks), threads(nthreads);
+
+  mult_int_krnl<<<grid, threads>>>(o_data, i_data, gain, N);
   cutilCheckMsg("multint_kernel<<<>>> execution failed\n");
 
   return EXIT_SUCCESS;

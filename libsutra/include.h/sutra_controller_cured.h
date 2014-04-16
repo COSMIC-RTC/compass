@@ -10,6 +10,7 @@ public:
   // data for CuReD */
   carma_host_obj<float> *h_centroids;
   carma_host_obj<float> *h_err;
+  carma_obj<float> *d_err; // current error
 
   // data for CuReD */
   carma_obj<float> *d_imat;

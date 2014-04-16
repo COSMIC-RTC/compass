@@ -65,6 +65,8 @@ int
 mult_int(float *o_data, float *i_data, float *scale, float gain, int N,
     int device, carma_streams *streams);
 int
+mult_int(float *o_data, float *i_data, float gain, int N,int device);
+int
 fill_filtmat(float *filter, int nactu, int N, int device);
 int
 do_statmat(float *statcov,long dim, float *xpos, float *ypos, float norm, int device);
