@@ -65,12 +65,12 @@ int sutra_controller_cured::comp_com() {
   for (int cc =size/2; cc < size;cc++) {
     tmp2[cc] = 1.0f * *(this->h_centroids->getData(cc-size/2));
   }
-  memcpy(this->h_err->errgetData(),tmp2,size*sizeof(float));
+  memcpy(this->h_centroids->getData(),tmp2,size*sizeof(float));
   free(tmp2);
   */
+
   cured(this->h_syscure, this->h_parcure, this->h_centroids->getData(),
       this->h_err->getData(),1.0f);
-  
   /*
   size = this->h_err->getNbElem();
   float *tmp = (float *)malloc(size * sizeof(float));
@@ -85,7 +85,7 @@ int sutra_controller_cured::comp_com() {
   */
   h_err->cpy_obj(this->d_err, cudaMemcpyHostToDevice);
 
-  mult_int(this->d_com->getData(),this->d_err->getData(),0.4f,this->nactu(),this->device);
+  mult_int(this->d_com->getData(),this->d_err->getData(),-1.0f,this->nactu(),this->device);
 
   return EXIT_SUCCESS;
 }
