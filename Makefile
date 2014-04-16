@@ -1,7 +1,10 @@
+
+N_CPU:=$(cat /proc/cpuinfo | grep processor | wc -l)
+
 all: configure
-	(cd libcarma && make -j12)
+	(cd libcarma && make -j$(N_CPU))
 	(cd yoga && make install)
-	(cd libsutra && make -j12)
+	(cd libsutra && make -j$(N_CPU))
 	(cd yoga_ao && make install)
 
 clean: configure

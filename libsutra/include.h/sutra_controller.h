@@ -7,7 +7,6 @@
 #include <sutra_dm.h>
 #include <sutra_centroider.h>
 #include <sutra_ao_utils.h>
-#include <cured.h>
 
 using namespace std;
 

@@ -17,8 +17,10 @@ public:
   carma_obj<float> *d_imat;
 
   // structures needed to run CuReD */
-  sysCure* h_syscure;
-  parCure* h_parcure;
+  //sysCure* h_syscure;
+  void* h_syscure;
+  //parCure* h_parcure;
+  void* h_parcure;
 
 public:
   sutra_controller_cured(carma_context *context, long nvalid, long nactu,

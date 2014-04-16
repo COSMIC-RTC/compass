@@ -1,5 +1,6 @@
 #include <sutra_controller_cured.h>
 #include <string>
+#include <cured.h>
 
 sutra_controller_cured::sutra_controller_cured(carma_context *context,
 					       long nvalid, long nactu, long delay) :
@@ -58,8 +59,7 @@ int sutra_controller_cured::set_gain(float gain) {
 int sutra_controller_cured::comp_com() {
   h_centroids->cpy_obj(this->d_centroids, cudaMemcpyDeviceToHost);
 
-  cured(this->h_syscure, this->h_parcure, this->h_centroids->getData(),
-      this->h_err->getData(),1.0f);
+  cured((sysCure*)this->h_syscure, (parCure*)this->h_parcure, this->h_centroids->getData(), this->h_err->getData(),1.0f);
 
   h_err->cpy_obj(this->d_err, cudaMemcpyHostToDevice);
 
@@ -70,9 +70,8 @@ int sutra_controller_cured::comp_com() {
 
 int sutra_controller_cured::init_cured(int nxsubs, int *isvalid, int ndivs) {
   this->ndivs = (ndivs > 0) ? ndivs : 1;
-  this->h_syscure = cureSystem(nxsubs, this->nslope() / 2., this->nactu(),
-      isvalid, this->ndivs);
-  this->h_parcure = cureInit(this->h_syscure);
+  this->h_syscure = (void*)cureSystem(nxsubs, this->nslope() / 2., this->nactu(), isvalid, this->ndivs);
+  this->h_parcure = (void*)cureInit((sysCure*)this->h_syscure);
   return EXIT_SUCCESS;
 }
 
