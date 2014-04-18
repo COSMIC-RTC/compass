@@ -738,9 +738,16 @@ int sutra_wfs::comp_pyr_generic() {
         cudaMemset(this->d_fttotim->getData(), 0,
             sizeof(cuFloatComplex) * this->d_fttotim->getNbElem()));
 
+    // here we split the image in 4 quadrant and roll them
     pyr_rollmod(this->d_fttotim->getData(), this->d_camplifoc->getData(),
         this->d_poffsets->getData(), (this->pyr_cx->getData())[cpt],
         (this->pyr_cy->getData())[cpt], this->ntot, this->nfft, this->device);
+
+    // case of diffractive pyramid
+    // multiply d_camplifoc->getData() by pyramid + modulation phase
+    // fft
+    // reorder the 4 quadrants
+
     /*
      pyr_rollmod(this->d_fttotim->getData(),this->d_camplifoc->getData(), this->d_poffsets->getData(),0,
      0,this->ntot , this->nfft, this->device);
@@ -795,7 +802,10 @@ int sutra_wfs::comp_pyr_generic() {
   pyr_subsum(this->d_subsum->getData(), this->d_bincube->getData(),
       this->d_validsubsx->getData(), this->d_validsubsy->getData(),
       this->nfft / this->nrebin, this->nvalid, 4, this->device);
-
+  /*
+  reduce(this->nvalid, threads, blocks, this->d_subsum->getData(),
+      this->d_subsum->getData());
+  */
   return EXIT_SUCCESS;
 }
 

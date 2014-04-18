@@ -1172,11 +1172,19 @@ __global__ void pyrslopes_krnl(T *g_odata, T *g_idata, int *subindx,
 
   if (i < nvalid) {
     int i2 = subindx[i] + subindy[i] * ns;
+    /*
+    g_odata[i] = ((g_idata[i2 + ns * ns] + g_idata[i2 + 3 * ns * ns])
+        - (g_idata[i2] + g_idata[i2 + 2 * ns * ns])) / subsum[0];
+    g_odata[i + nvalid] = ((g_idata[i2 + 2 * ns * ns]
+        + g_idata[i2 + 3 * ns * ns]) - (g_idata[i2] + g_idata[i2 + ns * ns]))
+        / subsum[0];
+    */
     g_odata[i] = ((g_idata[i2 + ns * ns] + g_idata[i2 + 3 * ns * ns])
         - (g_idata[i2] + g_idata[i2 + 2 * ns * ns])) / subsum[i];
     g_odata[i + nvalid] = ((g_idata[i2 + 2 * ns * ns]
         + g_idata[i2 + 3 * ns * ns]) - (g_idata[i2] + g_idata[i2 + ns * ns]))
         / subsum[i];
+    
   }
 }
 

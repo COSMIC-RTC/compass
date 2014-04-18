@@ -1252,7 +1252,7 @@ func script_system(filename,verbose=,strehl=,r0=,clean=)
   
   write,"\n done with simulation \n";
   write,format="simulation time : %f sec. per iteration\n",tac(mytime)/y_loop.niter;
-  error;
+  //error;
     if (strehl) 
       return strehllp(0);
   //mimg /= y_loop.niter;
@@ -1290,4 +1290,144 @@ if(batch()) {
   }
 }
 
+func script_pyr_diff(filename,verbose=)
+{
+  //activeDevice,1;
+  
+  extern y_geom,y_tel,y_loop,y_atmos,y_wfs;
+  extern g_atmos,g_target,g_wfs, g_dm, g_rtc;
+  extern ipupil;
+
+  if (verbose == []) verbose = 1;
+  
+  if (filename == []) filename = YOGA_AO_PARPATH+"1pyr16x16_1layer_rtc_dm.par";
+  //if (filename == []) filename = YOGA_AO_PARPATH+"3wfs8x8_4layers_rtc_2dm.par";
+
+  if ((!(fileExist(filename))) && (!(fileExist(YOGA_AO_PARPATH+filename))))
+    error,"could not find"+filename;
+  
+  if (!(fileExist(filename)))
+    filename = YOGA_AO_PARPATH+filename;
+
+  // reading parfile
+  read_parfile,filename;
+
+  if (y_loop.niter == []) y_loop.niter = 100000;
+
+  // init system
+  wfs_init;
+             
+  atmos_init;
+  
+  dm_init;
+
+  target_init;
+ 
+  if (verbose) write,"... Done with inits !";
+  write,"The following objects have been initialized on the GPU :";
+  write,"--------------------------------------------------------";
+  g_atmos;
+  write,"--------------------------------------------------------";
+  g_wfs;
+  write,"--------------------------------------------------------";
+  g_dm;
+  write,"--------------------------------------------------------";
+  g_target;
+  
+  error;
+move_sky,g_atmos,g_target;
+sensors_trace,g_wfs,0,"atmos",g_atmos;
+sensors_compimg,g_wfs,0;
+ res=sensors_getdata(g_wfs,0,"amplifoc");
+ pli,roll(res(1,,)^2+res(2,,)^2)^0.2;
+
+    xy = indices(Nfft)-(Nfft+1)/2.;
+ npup = y_wfs(1)._Ntot/2;
+
+ xy = indices(npup)/(npup)-0.5;
+ pshift = roll(exp(1i*2*pi*xy(,,sum)));
+
+ phasemap_diff = array(complex,2*npup,2*npup);
+ phasemap_diff(1:npup,1:npup)   = pshift;
+ phasemap_diff(npup+1:,1:npup)  = transpose(pshift)(::-1,);
+ phasemap_diff(npup+1:,npup+1:)  = pshift(::-1,::-1);
+ phasemap_diff(1:npup,npup+1:) = transpose(pshift)(,::-1);
+
+
+  sensors_compimg,g_wfs,0;
+ pup=*y_geom._mpupil
+phase = pup *0.
+phase_rad = pup *0.
+  npup = dimsof(phase_rad)(2);
+wfs_pupil = roll( pup * exp(1i*phase_rad) );
+xy = indices(npup)-(npup+1)/2.;
+phase_shift = roll( exp(1i*2*pi*(0.5*xy(,,sum))/npup) );
+complex_amplitude = wfs_pupil*phase_shift;
+res=sensors_getdata(g_wfs,0,"amplipup");
+ complex_amplitude = fft(wfs_pupil*phase_shift,-1);
+  complex_amplitude *= *y_wfs(1)._submask;
+res=sensors_getdata(g_wfs,0,"amplifoc");
+ pyr_npix = y_wfs(1)._Nfft;
+ cx = *y_wfs(1)._pyr_cx;
+ cy = *y_wfs(1)._pyr_cy;
+  xoffset = [1,0,1,0]*pyr_npix;
+  yoffset = [1,1,0,0]*pyr_npix;
+  reimaged_pupil = array(0.,[3,pyr_npix,pyr_npix,4]);
+  pshift = *y_wfs(1)._pyr_offsets;
+  for (k=1;k<=numberof(cx);k++) {
+    for (i=1;i<=4;i++) {
+      ca = roll(complex_amplitude,[xoffset(i)+cx(k),yoffset(i)+cy(k)]);
+ small_comp_amp = roll(ca(1:pyr_npix,1:pyr_npix));
+ reimaged_pupil(,,i) += abs(fft(small_comp_amp*roll(pshift),1))^2;
+    }
+  }
+res=sensors_getdata(g_wfs,0,"hrimg");
+
+/*
+ yoga_oneactu,g_dm,"pzt",0,225,100;
+sensors_trace,g_wfs,0,"dm",g_dm;
+sensors_compimg,g_wfs,0;
+*/
+ 
+ tmp = array(0.,[3,pyr_npix/y_wfs(1)._nrebin,pyr_npix/y_wfs(1)._nrebin,4]);
+ for (i=1;i<=4;i++) tmp(,,i) = bin2d(reimaged_pupil(,,i),y_wfs(1)._nrebin);
+ reimaged_pupil = tmp;
+
+     pup = *y_geom._mpupil;
+    pupreb = bin2d(pup*1.,y_wfs(1).npix)/y_wfs(1).npix^2.;
+    wsubok = where(pupreb>=y_wfs(1).fracsub);
+    
+  pixels = reimaged_pupil(*,)(wsubok,);
+
+  sigx = (pixels(,[2,4])(,sum)-pixels(,[1,3])(,sum))/(pixels(,sum)+1e-6);
+  sigy = (pixels(,[3,4])(,sum)-pixels(,[1,2])(,sum))/(pixels(,sum)+1e-6);
+
+res=sensors_getdata(g_wfs,0,"bincube");
+
+  pixels = res(*,)(wsubok,);
+
+  sigx2 = (pixels(,[2,4])(,sum)-pixels(,[1,3])(,sum))/(pixels(,sum)+1e-6);
+  sigy2 = (pixels(,[3,4])(,sum)-pixels(,[1,2])(,sum))/(pixels(,sum)+1e-6);
+
+
+ error;
+
+  mytime = tic();
+  for (cc=1;cc<=y_loop.niter;cc++) {
+    
+    move_atmos,g_atmos;
+    if ((y_wfs != []) && (g_wfs != [])) {
+      // loop on wfs
+      for (i=1;i<=numberof(y_wfs);i++) {
+        sensors_trace,g_wfs,i-1,"atmos",g_atmos;
+        sensors_compimg_tele,g_wfs,i-1;
+      }
+    }
+    error;
+    window,1;fma;pli,sensors_getdata(g_wfs,0,"phase");
+    window,2;fma;pli,sensors_getdata(g_wfs,0,"bincube")(,,1);
+
+    hitReturn;
+  }
+}
 //script_system, YOGA_AO_PARPATH+"1wfs40x40_1layer_rtc_dm.par",strehl=1;

@@ -442,7 +442,7 @@ func dm_init(void)
 	  y_dm(n)._n2 = long(clip(ceil(y_geom.cent+extent/2.),,y_geom.ssize));
 	}
       }
-      y_dm(n)._n1;y_dm(n)._n2;
+      //y_dm(n)._n1;y_dm(n)._n2;
       if (y_dm(n).type == "pzt") {
         make_pzt_dm, n;
         

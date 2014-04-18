@@ -6,8 +6,8 @@ y_geom.zenithangle = 0.;
 /*
 telescope inits
 */
-y_tel.diam = 37.f;
-y_tel.cobs = 0.3f;
+y_tel.diam = 8.f;
+y_tel.cobs = 0.12f;
 
 /*
 atmosphere inits
@@ -54,7 +54,7 @@ y_wfs(1).noise         = -1;
 
 y_wfs(1).fstop         = "round";
 y_wfs(1).pyr_npts      = 16;
-y_wfs(1).pyr_ampl      = 0.45;
+y_wfs(1).pyr_ampl      = 0.15;
 
 /*
 dm inits
@@ -94,9 +94,9 @@ y_controllers          = array(controller_struct(),ncontrollers);
 y_controllers(1).type    = "ls";
 y_controllers(1).nwfs    = &[1];
 y_controllers(1).ndm     = &[1,2];
-y_controllers(1).maxcond = 15.;
+y_controllers(1).maxcond = 750.;
 y_controllers(1).delay   = 1;
-y_controllers(1).gain    = 0.1;
+y_controllers(1).gain    = 0.7;
 
 /*
 rtc inits
