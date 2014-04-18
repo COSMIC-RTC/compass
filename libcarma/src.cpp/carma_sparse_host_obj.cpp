@@ -277,21 +277,11 @@ void kp_gemm(char op_A, T_data alpha, carma_sparse_host_obj<T_data>* A,
     //exit(EXIT_FAILURE);
   }
 //   A.check();
-#ifdef KP_SINGLE
-  mkl_scoomm(&op_A, &A.dim1, &C.dim2, &A.dim2,&alpha,"GFFFFFFF",
-      A.values, A.rowind, A.colind, &A.nnz,
-      B.d, &B.dim1, &betta, C.d, & C.dim1);
-#else
   mkl_dcoomm(&op_A, &A.dim1, &C.dim2, &A.dim2, &alpha, "GFFFFFFF", A.values,
       A.rowind, A.colind, &A.nnz, B.d, &B.dim1, &betta, C.d, &C.dim1);
 //   mkl_dcscmm("N", &A.dim1, &C.dim2,  &A.dim2, &alpha, "GCCCCCCC",
 //        A.values, A.rows, A.pointerB, A.pointerB+1,
 //        B.d, &B.tda,  &betta, C.d, & C.tda);
-#endif
-
-#ifdef __WITH_FLOPS_CALCULATOR__
-  kp_fpc_global.add_sparce(2 * (long)A.nnz * (long)B.dim2);
-#endif
 }
 //
 template<class T_data>

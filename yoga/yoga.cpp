@@ -1151,7 +1151,7 @@ void Y_yoga_mv(int argc)
       } else
         beta = 0.0;
 
-#ifdef CARMA_SPARSE_DEBUG
+#ifndef CARMA_SPARSE_DEBUG
       // here 1 is the increment
       carma_obj_handler_vecty->gemv('n', alpha, carma_obj_handler_mat,
           carma_obj_handler_mat->getDims(1), carma_obj_handler_vectx, 1, beta,
