@@ -71,6 +71,7 @@ protected:
   int activeDevice;
   int** can_access_peer;
   cublasHandle_t cublasHandle;
+  cusparseHandle_t cusparseHandle;
 
 public:
   carma_context();
@@ -92,6 +93,9 @@ public:
   int get_maxGflopsDeviceId();
   cublasHandle_t get_cublasHandle() {
     return cublasHandle;
+  }
+  cusparseHandle_t get_cusparseHandle() {
+    return cusparseHandle;
   }
 };
 

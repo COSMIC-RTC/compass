@@ -7,40 +7,44 @@
 
 #ifndef CARMA_SPARSE_OBJ_H_
 #define CARMA_SPARSE_OBJ_H_
+#include <cusparse_v2.h>
+#include "carma_sparse_host_obj.h"
+#include "carma_obj.h"
 
 template<class T_data>
 class carma_sparse_obj {
 public:
+  long dims_data[3]; ///< dimensions of the array
+  int nz_elem; ///< number of elements in the array
+  int device; ///< device where the carma_obj is allocate
+  carma_context *current_context;
+
   int* csrRowPtr;
   int* csrRowPtrT;
 
   // ONE-BASED INDEXING
-  T_data* values_cu;
-  int* rowind;
-  int* colind;
+  T_data* d_data;
+  int* d_rowind;
+  int* d_colind;
   cusparseMatDescr_t descr;
-
-  int nnz;
-  int dim1; //nombre de lignes
-  int dim2; //nombre de colones
-
-private:
 
   char majorDim;
   bool isCSRconverted;
   bool isCSRconvertedT;
 
+private:
+
 public:
   carma_sparse_obj();
-  carma_sparse_obj(const carma_sparse_obj<T_data>* M);
-  carma_sparse_obj(const carma_obj<T_data>* M);
+  carma_sparse_obj(carma_sparse_obj<T_data>* M);
+  carma_sparse_obj(carma_sparse_host_obj<T_data>* M);
   virtual ~carma_sparse_obj();
 
-  void operator=(const carma_sparse_obj<T_data> M);
-  void operator=(const carma_obj<T_data> M);
+  void operator=(const carma_sparse_obj<T_data>& M);
+  void operator=(const carma_sparse_host_obj<T_data>& M);
 
   void resize(int nnz_, int dim1_, int dim2_);
-  void init_from_transpose(const carma_sparse_obj<T_data>* M);
+  void init_from_transpose(carma_sparse_obj<T_data>* M);
   bool isColumnMajor();
   char get_majorDim() const {
     return majorDim;
@@ -49,13 +53,35 @@ public:
     majorDim = c;
   }
 
-  friend void carma_gemm(cusparseHandle_t handle, char op_A, real alpha,
-      carma_sparse_obj<T_data>* A, carma_obj<T_data>* B, real beta, carma_obj<T_data>* C);
-  //friend void kp_cu_gemm(cusparseHandle_t handle,cublasHandle_t cublasHandle, char op_A, char op_B, real alpha, kp_cu_smatrix& A, kp_cu_matrix& B, real beta, kp_cu_matrix& C);
+  /**< General Utilities */
+  operator T_data*() {
+    return d_data;
+  }
+  T_data* operator[](int index) {
+    return &d_data[index];
+  }
+  T_data* getData() {
+    return d_data;
+  }
+  T_data* getData(int index) {
+    return &d_data[index];
+  }
+  const long *getDims() {
+    return dims_data;
+  }
+  long getDims(int i) {
+    return dims_data[i];
+  }
+  int getNzElem() {
+    return nz_elem;
+  }
+  carma_context* getContext() {
+    return current_context;
+  }
 
-  friend void carma_gemv(cusparseHandle_t handle, char op_A, real alpha,
-      carma_sparse_obj<T_data>* A, const carma_obj<T_data>* x, real beta,
-      carma_obj<T_data>* y);
+  int getDevice() {
+    return device;
+  }
 
 private:
   void _create(int nnz_, int dim1_, int dim2_);
@@ -63,19 +89,15 @@ private:
 
 };
 
-// C = alpha * op_A(A) * B + beta * C
-void carma_gemm(cusparseHandle_t handle, char op_A, real alpha,
-    carma_sparse_obj<T_data>* A, const carma_obj<T_data>* B, real beta, carma_obj<T_data>* C);
+template<class T_data>
+void carma_gemv(cusparseHandle_t handle, char op_A,
+    T_data alpha, carma_sparse_obj<T_data>* A, carma_obj<T_data>* x,
+    T_data beta, carma_obj<T_data>* y);
 
-// C = alpha * A * B + beta * C
-inline void carma_gemm(cusparseHandle_t handle, cublasHandle_t cublashandle,
-    real alpha, carma_sparse_obj<T_data>* A, const carma_obj<T_data>* B, real beta,
-    carma_obj<T_data>* C) {
-  carma_gemm(handle, 'N', alpha, A, B, beta, C);
-}
+template<class T_data>
+void carma_gemm(cusparseHandle_t handle, char op_A, T_data alpha,
+    carma_sparse_obj<T_data>* A, carma_obj<T_data>* B, T_data beta,
+    carma_obj<T_data>* C);
 
-// y = alpha * op_A(A) * x + beta * y
-void carma_gemv(cusparseHandle_t handle, char op_A, real alpha,
-    carma_sparse_obj<T_data>* A, const carma_obj<T_data>* x, real beta, carma_obj<T_data>* y);
 
 #endif /* CARMA_SPARSE_OBJ_H_ */

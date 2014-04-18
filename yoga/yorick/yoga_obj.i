@@ -130,9 +130,13 @@ func check_cublas2(sizem,sizen)
   if (sizen==[]) sizen = 1024;
 
 // input data
-  matA = float(random(sizem,sizen));
-  vectx = float(random(sizen));
-  vecty = float(random(sizem));
+//  matA = float(random(sizem,sizen));
+//  vectx = float(random(sizen));
+//  vecty = float(random(sizem));
+
+  matA = random(sizem,sizen);
+  vectx = random(sizen);
+  vecty = random(sizem);
 
 // create objects
   matA_gpu = yoga_obj(matA);

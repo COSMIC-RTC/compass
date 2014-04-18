@@ -24,6 +24,8 @@
 
 #include <carma_host_obj.h>
 #include <carma_obj.h>
+#include <carma_sparse_host_obj.h>
+#include <carma_sparse_obj.h>
 #include <carma_cublas.h>
 #include <carma_utils.h>
 #include <carma.h>
@@ -1148,11 +1150,26 @@ void Y_yoga_mv(int argc)
         beta = ygets_d(argc - 5);
       } else
         beta = 0.0;
+
+#ifdef CARMA_SPARSE_DEBUG
+      // here 1 is the increment
       carma_obj_handler_vecty->gemv('n', alpha, carma_obj_handler_mat,
           carma_obj_handler_mat->getDims(1), carma_obj_handler_vectx, 1, beta,
           1);
-      // here 1 is the increment
-    }
+#else
+      carma_host_obj<double> *h_mat = new carma_host_obj<double>(carma_obj_handler_vectx->getDims());
+      carma_obj_handler_mat->device2host(h_mat->getData());
+      carma_sparse_host_obj<double> *sh_mat = new carma_sparse_host_obj<double>();
+      sh_mat->init_from_matrix(h_mat);
+      carma_sparse_obj<double> sd_mat = new carma_sparse_obj<double>(sh_mat);
+
+      carma_gemv(context_handle->get_cusparseHandle(), 'n', alpha, &sd_mat, carma_obj_handler_vectx, beta, carma_obj_handler_vecty);
+
+      delete h_mat;
+      delete sh_mat;
+      delete sd_mat;
+#endif
+   }
   } else {
     // called as a function : need to allocate space
     yObj_struct *handle_mat = (yObj_struct *) yget_obj(argc - 1, &yObj);

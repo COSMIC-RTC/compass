@@ -92,6 +92,7 @@ carma_context::carma_context() {
   this->activeDevice = set_activeDevice(get_maxGflopsDeviceId(), 1);
 
   carma_initCublas(&cublasHandle);
+  carma_initCusparse(&cusparseHandle);
 
 #ifdef USE_CULA
   // CULA init 

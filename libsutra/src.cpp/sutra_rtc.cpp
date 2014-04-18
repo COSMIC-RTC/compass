@@ -71,9 +71,9 @@ int sutra_rtc::add_controller(long nactu, long delay, long device,
     d_control.push_back(
         new sutra_controller_mv(current_context, ncentroids, nactu, delay));
   } else if (type_ctr.compare("kalman") == 0) {
-    carma_obj<float>* cD_Mo = calculate_D_Mo(current_context, ncentroids * 2);
-    carma_obj<float>* cN_Act = calculate_N_Act(current_context, nactu);
-    carma_obj<float>* cPROJ = calculate_btur();
+    carma_obj<double>* cD_Mo = calculate_D_Mo(current_context, ncentroids * 2);
+    carma_obj<double>* cN_Act = calculate_N_Act(current_context, nactu);
+    carma_obj<double>* cPROJ = calculate_btur();
     d_control.push_back(
         new sutra_controller_kalman(current_context, cD_Mo, cN_Act, cPROJ,
             false));
