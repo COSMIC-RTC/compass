@@ -6,7 +6,7 @@ y_geom.zenithangle = 0.;
 /*
 telescope inits
 */
-y_tel.diam = 4.f;
+y_tel.diam = 8.f;
 y_tel.cobs = 0.f;
 
 /*
@@ -18,6 +18,7 @@ y_atmos.frac         = &([1.0]);
 y_atmos.alt          = &([0.0]);
 y_atmos.windspeed    = &([20.]);
 y_atmos.winddir      = &([45]);
+y_atmos.L0           = &([1.e5]);
 
 /*
 target inits
@@ -39,7 +40,7 @@ wfs inits
 */
 y_wfs                  = array(wfs_struct(),1); // clean start
 y_wfs(1).type          = "pyr";
-y_wfs(1).nxsub         = 8;
+y_wfs(1).nxsub         = 16;
 y_wfs(1).npix          = 12;
 y_wfs(1).fssize        = 1.6;
 y_wfs(1).fracsub       = 1.0;
@@ -58,22 +59,22 @@ y_wfs(1).pyr_ampl      = 0.45;
 /*
 dm inits
 */
-ndm = 2;
+ndm = 1;
 y_dm                  = array(dm_struct(),ndm); // clean start
 
 y_dm(1).type          = "pzt";
-y_dm(1).nact          = 9;
+y_dm(1).nact          = y_wfs(1).nxsub+1;
 y_dm(1).alt           = 0.;
 y_dm(1).thresh        = 0.3;
 y_dm(1).coupling      = 0.2;
 y_dm(1).unitpervolt   = 0.01;
 y_dm(1).push4imat     = 100.0f;
-
+/*
 y_dm(2).type          = "tt";
 y_dm(2).alt           = 0.;
 y_dm(2).unitpervolt   = 0.0005;
 y_dm(2).push4imat     = 10.0f;
-
+*/
 
 /*
 centroiders inits
@@ -92,7 +93,7 @@ y_controllers          = array(controller_struct(),ncontrollers);
 
 y_controllers(1).type    = "ls";
 y_controllers(1).nwfs    = &[1];
-y_controllers(1).ndm     = &[1,2];
+y_controllers(1).ndm     = &[1];
 y_controllers(1).maxcond = 15.;
 y_controllers(1).delay   = 1;
 y_controllers(1).gain    = 0.1;

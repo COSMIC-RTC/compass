@@ -85,7 +85,7 @@ int sutra_controller_ls::svdec_imat() {
   // we can skip this step syevd use only the lower part
   //fill_sym_matrix('U', d_U->getData(), nactu, nactu * nactu);
   // doing evd of U inplace
-  if (carma_syevd<float, 1>('V', d_U, h_eigenvals) == EXIT_FAILURE) {
+  if (carma_syevd<float,1>('V', d_U, h_eigenvals) == EXIT_FAILURE) {
     //Case where MAGMA is not compiled
 
     //We fill the upper matrix part of the matrix

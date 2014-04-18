@@ -17,7 +17,7 @@ y_atmos.nscreens     = 3;
 y_atmos.frac         = &([0.5,0.17,0.33]);
 y_atmos.alt          = &([0.0,2500.,4000.]);
 y_atmos.windspeed    = &([7.5,12.5,15]);
-y_atmos.winddir      = &([0,270,180]);
+y_atmos.winddir      = &([0,90,0]);
 y_atmos.L0           = &([25,25,25]);
 
 /*
