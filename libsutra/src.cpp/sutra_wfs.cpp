@@ -907,8 +907,9 @@ sutra_sensors::sutra_sensors(carma_context *context, int nwfs, long *nxsub,
 }
 
 sutra_sensors::~sutra_sensors() {
-  for (size_t idx = 0; idx < (this->d_wfs).size(); idx++) {
-    delete this->d_wfs[(this->d_wfs).size() - 1];
+//  for (size_t idx = 0; idx < (this->d_wfs).size(); idx++) {
+  while((this->d_wfs).size()>0) {
+    delete this->d_wfs.back();
     d_wfs.pop_back();
   }
 }

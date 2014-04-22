@@ -63,12 +63,10 @@ int carma_streams::del_stream() {
   if (streams.empty())
     return 0;
 
-  cudaStream_t stream_tmp = this->streams[this->streams.size() - 1];
-  cutilSafeCall(cudaStreamDestroy(stream_tmp));
+  cutilSafeCall(cudaStreamDestroy(this->streams.back()));
   this->streams.pop_back();
 
-  cudaEvent_t event_tmp = this->events[this->events.size() - 1];
-  cutilSafeCall(cudaEventDestroy(event_tmp));
+  cutilSafeCall(cudaEventDestroy(this->events.back()));
   this->events.pop_back();
 
 #if DEBUG

@@ -127,9 +127,11 @@ carma_context::~carma_context() {
 
   carma_shutdownCublas(cublasHandle);
 
-  for (size_t idx = 0; idx < (this->devices).size(); idx++) {
-    devices.pop_back();
-    delete[] can_access_peer[idx];
+  size_t idx = 0;
+  while(this->devices.size()>0){
+    delete this->devices.back();
+    this->devices.pop_back();
+    delete[] can_access_peer[idx++];
   }
   delete[] can_access_peer;
 #if DEBUG

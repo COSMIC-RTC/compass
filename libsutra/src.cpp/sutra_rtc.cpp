@@ -7,14 +7,17 @@ sutra_rtc::sutra_rtc(carma_context *context) {
 }
 
 sutra_rtc::~sutra_rtc() {
-  for (size_t idx = 0; idx < (this->d_centro).size(); idx++) {
-    delete this->d_centro[(this->d_centro).size() - 1];
-    d_centro.pop_back();
-    ;
+
+  //  for (size_t idx = 0; idx < (this->d_centro).size(); idx++) {
+  while( (this->d_centro).size()>0){
+    delete this->d_centro.back();
+    (this->d_centro).pop_back();
   }
-  for (size_t idx = 0; idx < (this->d_control).size(); idx++) {
-    delete this->d_control[(this->d_control).size() - 1];
-    d_control.pop_back();
+
+//  for (size_t idx = 0; idx < (this->d_control).size(); idx++) {
+  while( (this->d_control).size()>0){
+    delete this->d_control.back();
+    (this->d_control).pop_back();
   }
 
   //delete this->current_context;
@@ -93,8 +96,11 @@ int sutra_rtc::add_controller(long nactu, long delay, long device,
 
 int sutra_rtc::rm_controller() {
 
-  delete this->d_control[(this->d_control).size() - 1];
-  d_control.pop_back();
+  //for (size_t idx = 0; idx < (this->d_control).size(); idx++) {
+  while((this->d_control).size()>0){
+    delete this->d_control.back();
+    d_control.pop_back();
+  }
 
   return EXIT_SUCCESS;
 }

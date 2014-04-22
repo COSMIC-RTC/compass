@@ -414,8 +414,9 @@ sutra_target::sutra_target(carma_context *context, int ntargets, float *xpos,
 }
 
 sutra_target::~sutra_target() {
-  for (size_t idx = 0; idx < (this->d_targets).size(); idx++) {
-    delete this->d_targets[(this->d_targets).size() - 1];
+//  for (size_t idx = 0; idx < (this->d_targets).size(); idx++) {
+  while((this->d_targets).size()>0) {
+    delete this->d_targets.back();
     d_targets.pop_back();
   }
 }

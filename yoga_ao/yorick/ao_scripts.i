@@ -18,54 +18,8 @@ mkdirp,YOGA_AO_SAVEPATH;
 YOGA_AO_PARPATH = YOGA_AO_SAVEPATH+"par/";
 mkdirp,YOGA_AO_PARPATH;
 
-
-func flo_getkl(pup,nkl,lim){
-
-  /* K = flo_getkl(pup,nkl,lim
- Create Karhunen-Loeve basis K in the pupil pup
-
-     pup : telescope pupil
-     nkl : must be a divisor of the size of pup, nkl^2 KL mode will be computed
-     lim : number of modes returned
-   */
-  N = dimsof(pup)(3);
-  indx_valid = where(pup);
-  if(N%nkl != 0){
-    //error,"Size of pup must be divisible by nkl";
-  }
-  fact = N/nkl;
-  //subpup = pup(1::fact,1::fact);
-  subpup = make_pupil(nkl,nkl-1,cobs=0.3);
-  ind_sub = where(subpup);
-
-  x = span(-1,1,nkl)(,-:1:nkl);
-  y = transpose(x)(*)(ind_sub);
-  x = x(*)(ind_sub);
-
-  m = 6.88 * abs(x(*)(,-)-x(*)(-,),y(*)(,-)-y(*)(-,))^(5./3) ;
-  F = unit(dimsof(m)(3)) - array(1./(dimsof(m)(3)),dimsof(m)(3),dimsof(m)(3));
-  m = (F(+,)*m(+,))(,+)*F(,+);
-
-  I = SVdec(m,U);
-  K = array(float,nkl,nkl);
-  K(*)(ind_sub) = U(,1);
-  K = spline2(K,N,N,mask=subpup)(*)(indx_valid);
-  K = K(,-);
-  for (i=2 ; i<=lim ; i++){
-    tmp = array(float,nkl,nkl);
-    tmp(*)(ind_sub) = U(,i);
-    tmp = spline2(tmp,N,N,mask=subpup)(*)(indx_valid);
-    grow,K,tmp;
-  }
-  // error ;
-  window,2;
-  fma;
-  plg,I(:dimsof(I)(2)-1);
-return K
-}
-
-
-func script_kl(filename,verbose=,r0=,clean=,strehl=)
+//activeDevice,1;
+func script_system(filename,verbose=,strehl=,r0=,clean=)
 {
   //activeDevice,1;
   
@@ -102,8 +56,7 @@ func script_kl(filename,verbose=,r0=,clean=,strehl=)
   wfs_init;
 
   atmos_init;
-  //y_atmos = [];
-  
+
   dm_init;
 
   target_init;
@@ -122,7 +75,6 @@ func script_kl(filename,verbose=,r0=,clean=,strehl=)
   g_dm;
   write,"--------------------------------------------------------";
   g_rtc;
-
   
   /*
                  _         _                   
@@ -133,6 +85,7 @@ func script_kl(filename,verbose=,r0=,clean=,strehl=)
                                         |_|    
 
    */
+  //yoga_start_profiler;
   
   time_move = 0;
   mytime = tic();
@@ -146,15 +99,12 @@ func script_kl(filename,verbose=,r0=,clean=,strehl=)
   if (strehl) {
     mimg = 0.; // initializing average image
     strehllp = strehlsp = [];
-    airy = roll(abs(fft(*y_geom._ipupil*exp(*y_geom._ipupil*1i*0.)))^2)/numberof(*y_geom._ipupil);
-    sairy = max(airy);
     write,"\n";
     write,"----------------------------------------------------";
     write,"iter# | S.E. SR | L.E. SR | Est. Rem. | framerate";
     write,"----------------------------------------------------";
   }
-  extern cb_slopes;
-  //yoga_start_profile;
+
   for (cc=1;cc<=y_loop.niter;cc++) {
     
     if (g_target != []) move_sky,g_atmos,g_target;
@@ -178,9 +128,6 @@ func script_kl(filename,verbose=,r0=,clean=,strehl=)
 	} else {
 	  sensors_compimg,g_wfs,i-1;
 	}
-	sensors_compslopes,g_wfs,0,g_rtc,0;
-	if (cc==1) cb_slopes=sensors_getdata(g_wfs, 0, "slopes")(,-);
-	else grow,cb_slopes,sensors_getdata(g_wfs, 0, "slopes");
       }
       
       // do centroiding
@@ -200,21 +147,18 @@ func script_kl(filename,verbose=,r0=,clean=,strehl=)
         if (g_dm != []) {
           target_dmtrace,g_target,i-1,g_dm;
         }
-	if (cc==1 || cc==y_loop.niter/2 || cc == y_loop.niter){
-	window, i-1;
-	img =  roll(target_getimage(g_target,i-1,"le"));
-	pli, img(207:-206,207:-206);
-	}
       }
+      //saving average image from target #1
     }
     
     if (verbose) {
       subsample=100.;
-      if (cc % subsample == 0 || cc==1) {
+      if (cc % subsample == 0) {
         timetmp = time_move*(cc-subsample);
         time_move = tac(mytime)/cc;
         timetmp -= time_move*cc;
         if (strehl) {
+          //error;
           strehltmp = target_getstrehl(g_target,0);
           grow,strehlsp,strehltmp(1);
           grow,strehllp,strehltmp(2);
@@ -228,11 +172,11 @@ func script_kl(filename,verbose=,r0=,clean=,strehl=)
     } 
   }
 
-  //yoga_stop_profile;
+  //yoga_stop_profiler;
   
   write,"\n done with simulation \n";
   write,format="simulation time : %f sec. per iteration\n",tac(mytime)/y_loop.niter;
-
+  //error;
     if (strehl) 
       return strehllp(0);
   //mimg /= y_loop.niter;
@@ -240,158 +184,34 @@ func script_kl(filename,verbose=,r0=,clean=,strehl=)
   //error;
 }
 
-func script_kl(filename,verbose=,r0=,clean=,strehl=)
-{
-  //activeDevice,1;
-
-  extern y_geom,y_tel,y_loop,y_wfs,y_dm,y_target;
-  extern g_atmos,g_target,g_wfs,g_dm,g_target;
-  extern ipupil;
-
-  if (verbose == []) verbose = 1;
-  if (strehl == []) strehl = 0;
-  if (r0 == []) r0 = 0;
-  if (clean == []) clean = 1;
-
-  if (filename == []) filename = YOGA_AO_PARPATH+"1wfs8x8_geo_kl.par";
-  //if (filename == []) filena/me = YOGA_AO_PARPATH+"1pyr32x32_1layer_rtc_dm.par";
-  // if (filename == []) filename = YOGA_AO_PARPATH+"1wfs40x40_1layer_rtc_dm.par";
-  //if (filename == []) filename = YOGA_AO_PARPATH+"1wfs16x16_1layer_rtc_dm.par";
-  if ((!(fileExist(filename))) && (!(fileExist(YOGA_AO_PARPATH+filename))))
-    error,"could not find"+filename;
-  
-  if (!(fileExist(filename)))
-    filename = YOGA_AO_PARPATH+filename;
-
-  // reading parfile
-  read_parfile,filename;
-
-  // init system
-  wfs_init;
-  
-  atmos_init;
-  
-  dm_init;
-
-  target_init;
-
-  rtc_init,clean=clean;
-  
-
-  if (verbose) write,"... Done with inits !";
-  write,"The following objects have been initialized on the GPU :";
-  write,"--------------------------------------------------------";
-  g_atmos;
-  write,"--------------------------------------------------------";
-  g_wfs;
-  write,"--------------------------------------------------------";
-  g_target;
-  write,"--------------------------------------------------------";
-  g_dm;
-  write,"--------------------------------------------------------";
-  g_rtc;
-
- /*
-                 _         _                   
- _ __ ___   __ _(_)_ __   | | ___   ___  _ __  
-| '_ ` _ \ / _` | | '_ \  | |/ _ \ / _ \| '_ \ 
-| | | | | | (_| | | | | | | | (_) | (_) | |_) |
-|_| |_| |_|\__,_|_|_| |_| |_|\___/ \___/| .__/ 
-                                        |_|    
-
-   */
-  //yoga_start_profile;
-  
-  time_move = 0;
-  mytime = tic();
-
-  if (strehl) {
-    mimg = 0.; // initializing average image
-    strehllp = strehlsp = [];
-    airy = roll(abs(fft(*y_geom._ipupil*exp(*y_geom._ipupil*1i*0.)))^2)/numberof(*y_geom._ipupil);
-    sairy = max(airy);
-    write,"\n";
-    write,"----------------------------------------------------";
-    write,"iter# | S.E. SR | L.E. SR | Est. Rem. | framerate";
-    write,"----------------------------------------------------";
+if(batch()) {
+  testname=get_argv();
+  nb_tests=numberof(testname);
+  for(i=2; i<=nb_tests; i++){
+    /* valid_rtc stuf
+     *
+     * pos = strfind("/", testname(i), back=1)(2)+1;
+     * output_dir=testname(i);
+     * if(pos){ // "/" find
+     *   output_dir=strpart(testname(i), pos:);
+     * }
+     * write, "test de "+testname(i)+", output="+output_dir;
+     * script_valid_rtc,testname(i), output=output_dir;
+     */
+    script_system,testname(i),strehl=1;
   }
-
-  for (cc=1;cc<=y_loop.niter;cc++) {
-    
-    if (g_target != []) move_sky,g_atmos,g_target;
-    else move_atmos,g_atmos;
-    /*
-    mscreen = get_tscreen(g_atmos,(*y_atmos.alt)(1));
-    tst(,,cc)=mscreen;
-    mspec += circavg(abs(fft(mscreen)/nxscreen/nxscreen)^2);
-    */
-    
-    if ((y_wfs != []) && (g_wfs != [])) {
-      // loop on wfs
-      for (i=1;i<=numberof(y_wfs);i++) {
-        sensors_trace,g_wfs,i-1,"atmos",g_atmos;
-        if ((!y_wfs(i).openloop) && (g_dm != [])) {
-          sensors_trace,g_wfs,i-1,"dm",g_dm,0;
-        }
-        sensors_compimg_tele,g_wfs,i-1;
-      }
-      
-      // do centroiding
+} else {
+  tmp = get_argv();
+  if (numberof(tmp) > 1) {
+    if (numberof(tmp) < 3) {
+      filename = tmp(2);
+      script_system,filename,strehl=1;
     }
-    
-    if ((y_rtc != []) && (g_rtc != [])
-        && (y_wfs != []) && (g_wfs != [])) {
-      rtc_docentroids,g_rtc,g_wfs,0;
-      // compute command and apply
-      if (g_dm != []) rtc_docontrol,g_rtc,0,g_dm;
-      // error;
+    if (numberof(tmp) > 3) {
+      filename = tmp(4);
+      script_system,filename,strehl=1;
     }
-    if ((y_target != []) && (g_target != [])) {
-      // loop on targets
-      for (i=1;i<=y_target.ntargets;i++) {
-        target_atmostrace,g_target,i-1,g_atmos;
-        if (g_dm != []) {
-          target_dmtrace,g_target,i-1,g_dm;
-        }
-	window, i-1;
-	img =  roll(target_getimage(g_target,i-1,"se"));
-	pli, img(207:-206,207:-206);
-      }
-      //saving average image from target #1
-
-    }
-    //if (cc=31679) error;
-    if (verbose) {
-      subsample=10.;
-      if (cc % subsample == 0 || cc==1) {
-        timetmp = time_move*(cc-subsample);
-        time_move = tac(mytime)/cc;
-        timetmp -= time_move*cc;
-        if (strehl) {
-          strehltmp = target_getstrehl(g_target,0);
-          grow,strehlsp,strehltmp(1);
-          grow,strehllp,strehltmp(2);
-          write,format=" %5i    %5.2f     %5.2f     %5.2f s   %5.2f it./s\n",
-            cc,strehlsp(0),strehllp(0),(y_loop.niter - cc)*time_move, -1/timetmp*subsample; 
-        } else {
-          write,format="\v",;
-          write,format="\r Estimated remaining time : %.2f s (%.2f it./s)",(y_loop.niter - cc)*time_move, -1/timetmp*subsample;
-        }
-      }
-    } 
   }
-
-  //yoga_stop_profile;
-  
-  write,"\n done with simulation \n";
-  write,format="simulation time : %f sec. per iteration\n",tac(mytime)/y_loop.niter;
-  error;
-    if (strehl) 
-      return strehllp(0);
-  //mimg /= y_loop.niter;
-  //window,1;fma;pli,mimg; 
-  //error;
-
 }
 
 func compare_yao(filename)
@@ -1007,8 +827,8 @@ func script_valid_rtc(filename,verbose=,strehl=,r0=,clean=, output=)
           sensors_trace,g_wfs,i-1,"dm",g_dm,0;
         }
         sensors_compimg_tele,g_wfs,i-1;
-	img_cube(,,cc) = sensors_getdata(g_wfs,i-1,"imgtele");
-	binimg_cube(,,,cc) = sensors_getdata(g_wfs,i-1,"bincube");
+    img_cube(,,cc) = sensors_getdata(g_wfs,i-1,"imgtele");
+    binimg_cube(,,,cc) = sensors_getdata(g_wfs,i-1,"bincube");
       }
       // do centroiding
     }
@@ -1091,203 +911,6 @@ func autocorr(tmp)
   }
   
   return tmp1;
-}
-
-  //activeDevice,1;
-func script_system(filename,verbose=,strehl=,r0=,clean=)
-{
-  //activeDevice,1;
-  
-  extern y_geom,y_tel,y_loop,y_atmos,y_wfs;
-  extern g_atmos,g_target,g_wfs;
-  extern ipupil;
-
-  if (verbose == []) verbose = 1;
-  if (strehl == []) strehl = 0;
-  if (r0 == []) r0 = 0;
-  if (clean == []) clean = 1;
-
-  if (strehl) {
-    extern strehlsp,strehllp,mimg;
-  }
-  
-  if (filename == []) filename = YOGA_AO_PARPATH+"1wfs8x8_1layer_rtc_dm.par";
-  //if (filename == []) filename = YOGA_AO_PARPATH+"1pyr32x32_1layer_rtc_dm.par";
-
-  if ((!(fileExist(filename))) && (!(fileExist(YOGA_AO_PARPATH+filename))))
-    error,"could not find"+filename;
-  
-  if (!(fileExist(filename)))
-    filename = YOGA_AO_PARPATH+filename;
-
-  // reading parfile
-  read_parfile,filename;
-
-  if (y_loop.niter == []) y_loop.niter = 100000;
-
-  if (r0 > 0) y_atmos.r0 = r0;
-
-  // init system
-  wfs_init;
-
-  atmos_init;
-  //y_atmos = [];
-  
-  dm_init;
-
-  target_init;
-
-  rtc_init,clean=clean;
-
-  if (verbose) write,"... Done with inits !";
-  write,"The following objects have been initialized on the GPU :";
-  write,"--------------------------------------------------------";
-  g_atmos;
-  write,"--------------------------------------------------------";
-  g_wfs;
-  write,"--------------------------------------------------------";
-  g_target;
-  write,"--------------------------------------------------------";
-  g_dm;
-  write,"--------------------------------------------------------";
-  g_rtc;
-  
-  /*
-                 _         _                   
- _ __ ___   __ _(_)_ __   | | ___   ___  _ __  
-| '_ ` _ \ / _` | | '_ \  | |/ _ \ / _ \| '_ \ 
-| | | | | | (_| | | | | | | | (_) | (_) | |_) |
-|_| |_| |_|\__,_|_|_| |_| |_|\___/ \___/| .__/ 
-                                        |_|    
-
-   */
-  //yoga_start_profiler;
-  
-  time_move = 0;
-  mytime = tic();
-  /*
-  mspec=0;
-  mscreen = get_tscreen(g_atmos,(*y_atmos.alt)(1));
-  nxscreen = dimsof(mscreen)(2);
-  tst=(mscreen*0.)(,,-:1:y_loop.niter);
-  */
-
-  if (strehl) {
-    mimg = 0.; // initializing average image
-    strehllp = strehlsp = [];
-    write,"\n";
-    write,"----------------------------------------------------";
-    write,"iter# | S.E. SR | L.E. SR | Est. Rem. | framerate";
-    write,"----------------------------------------------------";
-  }
-
-  for (cc=1;cc<=y_loop.niter;cc++) {
-    
-    if (g_target != []) move_sky,g_atmos,g_target;
-    else move_atmos,g_atmos;
-    /*
-    mscreen = get_tscreen(g_atmos,(*y_atmos.alt)(1));
-    tst(,,cc)=mscreen;
-    mspec += circavg(abs(fft(mscreen)/nxscreen/nxscreen)^2);
-    */
-    
-    if ((y_wfs != []) && (g_wfs != [])) {
-      // loop on wfs
-      for (i=1;i<=numberof(y_wfs);i++) {
-        sensors_trace,g_wfs,i-1,"atmos",g_atmos;
-        if ((!y_wfs(i).openloop) && (g_dm != [])) {
-          sensors_trace,g_wfs,i-1,"dm",g_dm,0;
-        }
-
-	if(y_wfs(i).type=="cog") {
-	  sensors_compimg_tele,g_wfs,i-1;
-	} else {
-	  sensors_compimg,g_wfs,i-1;
-	}
-      }
-      
-      // do centroiding
-    }
-    
-    if ((y_rtc != []) && (g_rtc != [])
-        && (y_wfs != []) && (g_wfs != [])) {
-      rtc_docentroids,g_rtc,g_wfs,0;
-      // compute command and apply
-      if (g_dm != []) rtc_docontrol,g_rtc,0,g_dm;
-    }
-    
-    if ((y_target != []) && (g_target != [])) {
-      // loop on targets
-      for (i=1;i<=y_target.ntargets;i++) {
-        target_atmostrace,g_target,i-1,g_atmos;
-        if (g_dm != []) {
-          target_dmtrace,g_target,i-1,g_dm;
-        }
-      }
-      //saving average image from target #1
-    }
-    
-    if (verbose) {
-      subsample=100.;
-      if (cc % subsample == 0) {
-        timetmp = time_move*(cc-subsample);
-        time_move = tac(mytime)/cc;
-        timetmp -= time_move*cc;
-        if (strehl) {
-          //error;
-          strehltmp = target_getstrehl(g_target,0);
-          grow,strehlsp,strehltmp(1);
-          grow,strehllp,strehltmp(2);
-          write,format=" %5i    %5.2f     %5.2f     %5.2f s   %5.2f it./s\n",
-            cc,strehlsp(0),strehllp(0),(y_loop.niter - cc)*time_move, -1/timetmp*subsample; 
-        } else {
-          write,format="\v",;
-          write,format="\r Estimated remaining time : %.2f s (%.2f it./s)",(y_loop.niter - cc)*time_move, -1/timetmp*subsample;
-        }
-      }
-    } 
-  }
-
-  //yoga_stop_profiler;
-  
-  write,"\n done with simulation \n";
-  write,format="simulation time : %f sec. per iteration\n",tac(mytime)/y_loop.niter;
-  //error;
-    if (strehl) 
-      return strehllp(0);
-  //mimg /= y_loop.niter;
-  //window,1;fma;pli,mimg; 
-  //error;
-}
-
-if(batch()) {
-  testname=get_argv();
-  nb_tests=numberof(testname);
-  for(i=2; i<=nb_tests; i++){
-    /* valid_rtc stuf
-     *
-     * pos = strfind("/", testname(i), back=1)(2)+1;
-     * output_dir=testname(i);
-     * if(pos){ // "/" find
-     *   output_dir=strpart(testname(i), pos:);
-     * }
-     * write, "test de "+testname(i)+", output="+output_dir;
-     * script_valid_rtc,testname(i), output=output_dir;
-     */
-    script_system,testname(i),strehl=1;
-  }
-} else {
-  tmp = get_argv();
-  if (numberof(tmp) > 1) {
-    if (numberof(tmp) < 3) {
-      filename = tmp(2);
-      script_system,filename,strehl=1;
-    }
-    if (numberof(tmp) > 3) {
-      filename = tmp(4);
-      script_system,filename,strehl=1;
-    }
-  }
 }
 
 func script_pyr_diff(filename,verbose=)

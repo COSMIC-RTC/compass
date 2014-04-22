@@ -2050,7 +2050,10 @@ void Y_yoga_rtc(int argc) {
   try {
     carma_context *context_handle = _getCurrentContext();
     int activeDevice = context_handle->get_activeDevice();
-
+    if(argc==1){
+      activeDevice=ygets_i(argc - 1);
+      context_handle->set_activeDevice(activeDevice,1);
+    }
     rtc_struct *handle = (rtc_struct *) ypush_obj(&yRTC, sizeof(rtc_struct));
     handle->device = activeDevice;
     handle->sutra_rtc = new sutra_rtc(context_handle);
