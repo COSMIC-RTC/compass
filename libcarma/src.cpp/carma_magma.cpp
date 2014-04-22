@@ -8,11 +8,11 @@
 #include "magma_lapack.h"
 
 #define CHECK_MAGMA(fct, info) fct; \
-							   if (info != 0){ \
-								   printf("%s@%d magma returned error %d: %s.\n", __FILE__, __LINE__, \
-										   (int) info, magma_strerror(info)); \
-								   return EXIT_FAILURE; \
-							   }
+  if (info != 0){							\
+    printf("%s@%d magma returned error %d: %s.\n", __FILE__, __LINE__,	\
+	   (int) info, magma_strerror(info));				\
+    return EXIT_FAILURE;						\
+  }
 
 #ifndef max
 #define max(a,b)  (((a)<(b))?(b):(a))
@@ -712,29 +712,24 @@ int carma_syevd_cpu_gen(magma_vec_t jobz, magma_int_t N, magma_int_t lda,
 
   magma_int_t info = 0, liwork = -1, aux_iwork[1];
   T *h_R;
-  DEBUG_TRACE("ICI\n");
 
   /* Query for workspace sizes */
   char uplo = 'L';
   CHECK_MAGMA(
       ptr_syevd_cpu(&jobz, &uplo, &N, NULL, &lda, NULL, NULL, &lda, aux_iwork, &liwork, &info),
       info);
-  DEBUG_TRACE("ICI\n");
 
   liwork = aux_iwork[0];
   magma_malloc_cpu((void**) &iwork, (liwork) * sizeof(magma_int_t));
 
   cudaMallocHost((void**) &h_R, (N * lda) * sizeof(T));
-  DEBUG_TRACE("ICI\n");
 
   CHECK_MAGMA(
       ptr_syevd_cpu(&jobz, &uplo, &N, d_mat, &lda, h_eigenvals, h_R, &lda,
           iwork, &liwork, &info), info);
 
-  DEBUG_TRACE("ICI\n");
   cudaFreeHost(h_R);
   free(iwork);
-  DEBUG_TRACE("ICI\n");
 
   return EXIT_SUCCESS;
 }
@@ -782,7 +777,6 @@ int carma_syevd_cpu<float>(char jobz, magma_int_t N, float *h_A,
 template<>
 int carma_syevd_cpu<double>(char jobz, magma_int_t N, double *h_A,
     double *eigenvals) {
-  DEBUG_TRACE("ICI\n");
   return carma_syevd_cpu_gen<double>(jobz, N, N, h_A, eigenvals,
       lapackf77_dsyevd);
 }
@@ -853,6 +847,63 @@ template<class T> int carma_syevd(char jobz, carma_obj<T> *mat, carma_host_obj<T
 }
 template int carma_syevd<float>(char jobz, carma_obj<float> *mat, carma_host_obj<float> *eigenvals);
 template int carma_syevd<double>(char jobz, carma_obj<double> *mat, carma_host_obj<double> *eigenvals);
+
+template<class T>
+int carma_syevd(char jobz, int N, T *mat, T *eigenvals) {
+  cerr << "carma_syevd: this method not implemented !\n";
+  return EXIT_FAILURE;
+}
+template<>
+int carma_syevd<float>(char jobz, int N, float *mat, float *eigenvals) {
+  MAGMA_TRACE("carma_syevd: this method not implemented !\n");
+  return EXIT_FAILURE;
+}
+template<>
+int carma_syevd<double>(char jobz, int N, double *mat,
+    double *eigenvals) {
+  MAGMA_TRACE("carma_syevd: this method not implemented !\n");
+  return EXIT_FAILURE;
+}
+
+template<class T, int method>
+int carma_syevd(char jobz, carma_obj<T> *mat, carma_host_obj<T> *eigenvals) {
+  MAGMA_TRACE("carma_syevd: this method not implemented !\n");
+  return EXIT_FAILURE;
+}
+template<>
+int carma_syevd<float, 1>(char jobz, caObjS *mat,
+    carma_host_obj<float> *eigenvals) {
+  MAGMA_TRACE("carma_syevd: this method not implemented !\n");
+  return EXIT_FAILURE;
+}
+template<>
+int carma_syevd<double, 1>(char jobz, caObjD *mat,
+    carma_host_obj<double> *eigenvals) {
+  MAGMA_TRACE("carma_syevd: this method not implemented !\n");
+  return EXIT_FAILURE;
+}
+
+template<> int carma_syevd<float, 2>(char jobz, caObjS *mat,
+				     carma_host_obj<float> *eigenvals) {
+  MAGMA_TRACE("carma_syevd: this method not implemented !\n");
+  return EXIT_FAILURE;
+}
+template<> int carma_syevd<double, 2>(char jobz, caObjD *mat,
+				      carma_host_obj<double> *eigenvals) {
+  MAGMA_TRACE("carma_syevd: this method not implemented !\n");
+  return EXIT_FAILURE;
+}
+template<> int carma_syevd<float, 3>(char jobz, caObjS *mat,
+				     carma_host_obj<float> *eigenvals) {
+  MAGMA_TRACE("carma_syevd: this method not implemented !\n");
+  return EXIT_FAILURE;
+ }
+template<> int carma_syevd<double, 3>(char jobz, caObjD *mat,
+				      carma_host_obj<double> *eigenvals) {
+  MAGMA_TRACE("carma_syevd: this method not implemented !\n");
+  return EXIT_FAILURE;
+}
+
 
 template<class T> int carma_syevd_m(long ngpu, char jobz, long N, T *mat, T *eigenvals)
 {
