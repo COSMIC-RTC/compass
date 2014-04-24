@@ -1288,7 +1288,7 @@ int cured(sysCure* sys, parCure *par, float *data, float *result_vec,
 
 
 
-int cured(sysCure* sys, parCure *par, float *data, float *result_vec, float gain, float *ttX, float *ttY) {
+int cured(sysCure* sys, parCure *par, float *data, float *result_vec, float *ttX, float *ttY) {
 
   /* variable definitions */
   int i, j, k, l, m, start, help, len1, len2, len3, len4;
