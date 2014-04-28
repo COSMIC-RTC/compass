@@ -63,15 +63,15 @@ int carma_streams::del_stream() {
   if (streams.empty())
     return 0;
 
+#if DEBUG
+  printf("CARMA Stream deleting @ %8.8lX\n", (unsigned long)this->streams.back());
+#endif
   cutilSafeCall(cudaStreamDestroy(this->streams.back()));
   this->streams.pop_back();
 
   cutilSafeCall(cudaEventDestroy(this->events.back()));
   this->events.pop_back();
 
-#if DEBUG
-  printf("CARMA Stream deleted @ %8.8lX\n", (unsigned long)stream_tmp);
-#endif
   return get_nbStreams();
 }
 

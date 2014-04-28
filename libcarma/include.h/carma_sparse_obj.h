@@ -20,7 +20,6 @@ public:
   carma_context *current_context;
 
   int* csrRowPtr;
-  int* csrRowPtrT;
 
   // ONE-BASED INDEXING
   T_data* d_data;
@@ -29,19 +28,18 @@ public:
   cusparseMatDescr_t descr;
 
   char majorDim;
-  bool isCSRconverted;
-  bool isCSRconvertedT;
 
 private:
 
 public:
   carma_sparse_obj();
+  carma_sparse_obj(carma_obj<T_data>* M);
   carma_sparse_obj(carma_sparse_obj<T_data>* M);
-  carma_sparse_obj(carma_sparse_host_obj<T_data>* M);
+  carma_sparse_obj(carma_context *current_context, carma_sparse_host_obj<T_data>* M);
   virtual ~carma_sparse_obj();
 
-  void operator=(const carma_sparse_obj<T_data>& M);
-  void operator=(const carma_sparse_host_obj<T_data>& M);
+  void operator=( carma_sparse_obj<T_data>& M);
+  void operator=( carma_sparse_host_obj<T_data>& M);
 
   void resize(int nnz_, int dim1_, int dim2_);
   void init_from_transpose(carma_sparse_obj<T_data>* M);
@@ -90,7 +88,7 @@ private:
 };
 
 template<class T_data>
-void carma_gemv(cusparseHandle_t handle, char op_A,
+cusparseStatus_t carma_gemv(cusparseHandle_t handle, char op_A,
     T_data alpha, carma_sparse_obj<T_data>* A, carma_obj<T_data>* x,
     T_data beta, carma_obj<T_data>* y);
 

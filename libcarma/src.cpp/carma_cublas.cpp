@@ -52,8 +52,10 @@ cublasStatus_t carma_shutdownCublas(cublasHandle_t cublas_handle)
 cublasOperation_t carma_char2cublasOperation(char operation) {
   switch (operation) {
   case 't':
+  case 'T':
     return CUBLAS_OP_T;
   case 'c':
+  case 'C':
     return CUBLAS_OP_C;
   default:
     return CUBLAS_OP_N;
@@ -113,9 +115,11 @@ cusparseStatus_t carma_shutdownCusparse(cusparseHandle_t cusparse_handle)
 cusparseOperation_t carma_char2cusparseOperation(char operation) {
   switch (operation) {
   case 't':
+  case 'T':
     return CUSPARSE_OPERATION_TRANSPOSE;
   case 'c':
-    return CUSPARSE_OPERATION_CONJUGATE_TRANSPOSE;
+  case 'C':
+   return CUSPARSE_OPERATION_CONJUGATE_TRANSPOSE;
   default:
     return CUSPARSE_OPERATION_NON_TRANSPOSE;
   }
@@ -131,23 +135,24 @@ cusparseOperation_t carma_char2cusparseOperation(char operation) {
  */
 
 /** These templates are used to select the proper Iamax executable from T_data*/
-template<class T_data>
-int
-carma_wheremax_gen(cublasHandle_t cublas_handle, int n, T_data *vect,
-    int incx,
-    cublasStatus_t (*amax)(cublasHandle_t handle, int n, const T_data *x,
-        int incx, int *result)) {
+template<class T_data, cublasStatus_t (*amax)(cublasHandle_t handle, int n,
+    const T_data *x, int incx, int *result)>
+int carma_wheremax_gen(cublasHandle_t cublas_handle, int n, T_data *vect,
+    int incx) {
   int result = 0;
-  carma_checkCublasStatus(amax(cublas_handle,n, vect, incx,&result));
+  carma_checkCublasStatus(amax(cublas_handle, n, vect, incx, &result));
   return result;
 
 }
-#define WHEREMAX_EXPLICITE(func,type) template<>                                            \
-    int carma_wheremax< type >(cublasHandle_t cublas_handle, int n, type *vect, int incx) { \
-      return  carma_wheremax_gen< type >(cublas_handle,n, vect, incx, func);                \
-    };
-WHEREMAX_EXPLICITE(cublasIsamax, float)
-WHEREMAX_EXPLICITE(cublasIdamax, double)
+
+int carma_wheremax(cublasHandle_t cublas_handle, int n, float *vect, int incx) {
+  return carma_wheremax_gen<float, cublasIsamax>(cublas_handle, n, vect, incx);
+}
+int carma_wheremax(cublasHandle_t cublas_handle, int n, double *vect,
+    int incx) {
+  return carma_wheremax_gen<double, cublasIdamax>(cublas_handle, n, vect, incx);
+}
+
 
 /**< Generic template for Iamax executable selection
 template<>
@@ -353,130 +358,18 @@ cublasStatus_t carma_gemv<double>(cublasHandle_t cublas_handle, char trans,
 }
 
 template<class T_data>
-void carma_gemv(cusparseHandle_t handle, char op_A,
+cusparseStatus_t carma_gemv(cusparseHandle_t handle, char op_A,
     T_data alpha, carma_sparse_obj<T_data>* A, carma_obj<T_data>* x,
     T_data beta, carma_obj<T_data>* y);
 
 template<>
-void carma_gemv<double>(cusparseHandle_t handle, char op_A, double alpha,
+cusparseStatus_t carma_gemv<double>(cusparseHandle_t handle, char op_A, double alpha,
     carma_sparse_obj<double>* A, carma_obj<double>* x, double beta,
     carma_obj<double>* y){
   cusparseOperation_t trans=carma_char2cusparseOperation(op_A);
-  cusparseStatus_t status;
 
-  if ( (A->getDims(1) != y->getDims(1)) || (A->getDims(2) != x->getDims(1)) ) {
-    cerr << "Error | kp_cu_gemv (sparse) | dimension problem" << endl;
-    throw  "Error | kp_cu_gemv (sparse) | dimension problem";
-    //exit (EXIT_FAILURE);
-  }
-
-  if (A->majorDim == 'R') //si row-major
-      {
-
-    if (!A->isCSRconverted) {
-
-      status = cusparseXcoo2csr(handle, A->d_rowind, A->nz_elem, A->getDims(1), A->csrRowPtr,
-          CUSPARSE_INDEX_BASE_ONE);
-      if (status != CUSPARSE_STATUS_SUCCESS) {
-        cerr
-            << "Error | kp_cu_gemv (sparse) | Conversion from COO to CSR format failed"
-            << endl;
-        throw "Error | kp_cu_gemv (sparse) | Conversion from COO to CSR format failed";
-        //exit(EXIT_FAILURE);
-      }
-      //cout << "conversion CSR"<<endl;
-      A->isCSRconverted = true;
-    }
-
-    status = cusparseDcsrmv(handle, trans, A->getDims(1), A->getDims(2), A->nz_elem, &alpha,
-        A->descr, A->d_data, A->csrRowPtr, A->d_colind, *x, &beta, y->getData());
-
-    //t5.pause();
-    //cout << "temps de multiplication R = " << t5.rez()<<endl;
-
-  }
-
-  else if (A->majorDim == 'C') //si column-major
-      {
-    //t1.start();
-
-    //t2.start();
-    if (!A->isCSRconvertedT) {
-      status = cusparseXcoo2csr(handle, A->d_colind, A->nz_elem, A->getDims(2),
-          A->csrRowPtrT, CUSPARSE_INDEX_BASE_ONE);
-      if (status != CUSPARSE_STATUS_SUCCESS) {
-        cerr
-            << "Error | kp_cu_gemv (sparse) | Conversion from COO to CSR format failed"
-            << endl;
-        throw "Error | kp_cu_gemv (sparse) | Conversion from COO to CSR format failed";
-        //exit(EXIT_FAILURE);
-      }
-      //cout << "conversion CSR T"<<endl;
-      A->isCSRconvertedT = true;
-
-    }
-    //t2.pause();
-    //cout << "temps de conversion = " << t2.rez()<<endl;
-
-    if (op_A == 'N') {
-      // La matrice creuse en entree de cusparseDcsrmm doit etre row-major
-      // Pour cela on met en entree de cusparseDcsrmm ce qui equivaut a (A)T
-      // Comme A est col-major, en inversant colind_cu et row_ind_cu on obtient
-      // une matrice row-major, qui est la transposee de A
-      // En mettant transA=CUSPARSE_OPERATION_TRANSPOSE en parametre de cusparseDcsrmm,
-      // on effectue en fait, C = alpha * ((A)T)T * B  + beta * C
-
-      //t3.start();
-      // les parametres en entree correspondent a (A)T avec transA=CUSPARSE_OPERATION_NON_TRANSPOSE
-      status = cusparseDcsrmv(handle, CUSPARSE_OPERATION_TRANSPOSE, A->getDims(2),
-          A->getDims(1), A->nz_elem, &alpha, A->descr, A->d_data, A->csrRowPtrT,
-          A->d_rowind, *x, &beta, *y);
-      //t3.pause();
-      //cout << "temps multiplication CN = "<<t3.rez()<<endl;
-    }
-
-    else if (op_A == 'T') {
-      // La matrice creuse en entree de cusparseDcsrmm doit etre row-major
-      // Pour cela on met en entree de cusparseDcsrmm ce qui equivaut a (A)T
-      // Comme A est col-major, en inversant colind_cu et row_ind_cu on obtient
-      // une matrice row-major, qui est la transposee de A
-
-      //t4.start();
-      // les parametres en entree correspondent a (A)T avec transA=CUSPARSE_OPERATION_NON_TRANSPOSE
-      status = cusparseDcsrmv(handle, CUSPARSE_OPERATION_NON_TRANSPOSE, A->getDims(2),
-          A->getDims(1), A->nz_elem, &alpha, A->descr, A->d_data, A->csrRowPtrT,
-          A->d_rowind, *x, &beta, *y);
-
-      //t4.pause();
-      //cout << "temps multiplication CT = "<<t4.rez()<<endl;
-
-    } else {
-      cerr
-          << "Error | kp_cu_gemv (sparse) | op_A transpose character is unknown."
-          << endl;
-      throw "Error | kp_cu_gemv (sparse) | op_A transpose character is unknown.";
-      //exit (EXIT_FAILURE);
-
-    }
-    //t1.pause();
-    //cout << "temps total = "<< t1.rez()<<endl;
-  }
-
-  else //si indeterminate
-  {
-    cerr
-        << "Error | kp_cu_gemv (sparse) | Sparse matrix has been defined neither as a row-major nor as a column-major"
-        << endl;
-    throw "Error | kp_cu_gemv (sparse) | Sparse matrix has been defined neither as a row-major nor as a column-major";
-    //exit (EXIT_FAILURE);
-  }
-
-  if (status != CUSPARSE_STATUS_SUCCESS) {
-    cerr << "Error | kp_cu_gemv (sparse) | Matrix-vector multiplication failed"
-        << endl;
-    throw "Error | kp_cu_gemv (sparse) | Matrix-vector multiplication failed";
-    //exit(EXIT_FAILURE);
-  }
+  return carma_checkCusparseStatus(cusparseDcsrmv(handle, trans, A->getDims(1), A->getDims(2), A->nz_elem, &alpha,
+      A->descr, A->d_data, A->csrRowPtr, A->d_colind, *x, &beta, *y));
 
 }
 
@@ -559,66 +452,15 @@ void carma_gemm<double>(cusparseHandle_t handle, char op_A, double alpha,
   //cusparseOperation_t transb = carma_char2cusparseOperation(op_B);
   cusparseStatus_t status;
 
-  if (A->majorDim == 'R') { //si row-major
-    if (!A->isCSRconverted) {
-      status = cusparseXcoo2csr(handle, A->d_rowind, A->nz_elem, A->getDims(1), A->csrRowPtr,
-          CUSPARSE_INDEX_BASE_ONE);
-      if (status != CUSPARSE_STATUS_SUCCESS) {
-        cerr
-            << "Error | kp_cu_gemm (sparse) | Conversion from COO to CSR format failed"
-            << endl;
-        throw "Error | kp_cu_gemm (sparse) | Conversion from COO to CSR format failed";
-        //exit(EXIT_FAILURE);
-      }
-      //cout << "conversion CSR"<<endl;
-      A->isCSRconverted = true;
-    }
+  status = cusparseDcsrmm(handle, transa, A->getDims(1), B->getDims(2), A->getDims(2), A->nz_elem,
+      &alpha, A->descr, A->d_data, A->csrRowPtr, A->d_colind, *B, B->getDims(1),
+      &beta, *C, C->getDims(1));
 
-    status = cusparseDcsrmm(handle, transa, A->getDims(1), B->getDims(2), A->getDims(2), A->nz_elem,
-        &alpha, A->descr, A->d_data, A->csrRowPtr, A->d_colind, *B, B->getDims(1),
-        &beta, *C, C->getDims(1));
-
-  } else if (A->majorDim == 'C') //si column-major
-      {
-
-    if (!A->isCSRconvertedT) {
-      status = cusparseXcoo2csr(handle, A->d_colind, A->nz_elem, A->getDims(2),
-          A->csrRowPtrT, CUSPARSE_INDEX_BASE_ONE);
-      if (status != CUSPARSE_STATUS_SUCCESS) {
-        cerr
-            << "Error | kp_cu_gemm (sparse) | Conversion from COO to CSR format failed"
-            << endl;
-        throw "Error | kp_cu_gemm (sparse) | Conversion from COO to CSR format failed";
-        //exit(EXIT_FAILURE);
-      }
-      //cout << "conversion CSR T"<<endl;
-      A->isCSRconvertedT = true;
-
-    }
-
-    // La matrice creuse en entree de cusparseDcsrmm doit etre row-major
-    // Pour cela on met en entree de cusparseDcsrmm ce qui equivaut a (A)T
-    // Comme A est col-major, en inversant colind_cu et row_ind_cu on obtient
-    // une matrice row-major, qui est la transposee de A
-    // En mettant transA=CUSPARSE_OPERATION_TRANSPOSE en parametre de cusparseDcsrmm,
-    // on effectue en fait, C = alpha * ((A)T)T * B  + beta * C
-    // les parametres en entree correspondent a (A)T avec transA=CUSPARSE_OPERATION_NON_TRANSPOSE
-    status = cusparseDcsrmm(handle, transa, A->getDims(2), B->getDims(2), A->getDims(1), A->nz_elem,
-        &alpha, A->descr, A->d_data, A->csrRowPtrT, A->d_rowind, *B, B->getDims(1),
-        &beta, *C, C->getDims(1));
-
-  } else { //si indeterminate
-    cerr
-        << "Error | kp_cu_gemm (sparse) | Sparse matrix has been defined neither as a row-major nor as a column-major"
-        << endl;
-    throw "Error | kp_cu_gemm (sparse) | Sparse matrix has been defined neither as a row-major nor as a column-major";
-    //exit (EXIT_FAILURE);
-  }
 
   if (status != CUSPARSE_STATUS_SUCCESS) {
-    cerr << "Error | kp_cu_gemm (sparse) | Matrix-matrix multiplication failed"
+    cerr << "Error | carma_gemm (sparse) | Matrix-matrix multiplication failed"
         << endl;
-    throw "Error | kp_cu_gemm (sparse) | Matrix-matrix multiplication failed";
+    throw "Error | carma_gemm (sparse) | Matrix-matrix multiplication failed";
     //exit(EXIT_FAILURE);
   }
 

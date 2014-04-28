@@ -126,6 +126,7 @@ carma_context::~carma_context() {
 #endif
 
   carma_shutdownCublas(cublasHandle);
+  carma_shutdownCusparse(cusparseHandle);
 
   size_t idx = 0;
   while(this->devices.size()>0){

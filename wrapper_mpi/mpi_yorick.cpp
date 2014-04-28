@@ -11,8 +11,6 @@
 #include  <unistd.h>
 #include <mpi.h>
 
-//#include "svipc.h"
-
 int main (int argc, char *argv[])
 {
   MPI_Init(&argc, &argv);

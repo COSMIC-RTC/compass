@@ -342,6 +342,18 @@ extern yoga_mv;
      
    SEE ALSO:
  */
+extern yoga_mv_sparse;
+/* DOCUMENT yoga_mv_sparse
+   vecty = yoga_mv_sparse(matA,vectx[,alpha])
+   or
+   yoga_mv_sparse,vecty,matA,vectx[,alpha,beta]
+
+   This function performs the matrix-vector multiplication product (BLAS gemv)
+   y = alpha * A * x + beta * y
+   If called as a function, it creates a new yoga object
+     
+   SEE ALSO:
+ */
 extern yoga_symv;
 /* DOCUMENT yoga_symv
    vecty = yoga_symv(matA,vectx[,alpha])

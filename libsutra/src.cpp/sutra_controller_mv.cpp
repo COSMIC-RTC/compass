@@ -333,7 +333,6 @@ int sutra_controller_mv::DDiago(carma_obj<float> *d_statcov, carma_obj<float> *d
 			      d_tmp->getData(), nactu, d_M1->getData(), nactu, 0.0f,
 			      d_tmp2->getData(), nactu);
 
-	DEBUG_TRACE("here\n");
 	// 4. SVdec(C',A)
 	carma_syevd<float,1>('V', d_tmp2, h_eigenvals);
 

@@ -349,8 +349,8 @@ func checkMV(sizem, sizen,ctype=)
   if(is_void(sizem)) sizem=512;
   if(is_void(sizen)) sizen=sizem;
   
-  matA=float(random(sizem, sizen));  vectx=float(random(sizen));
-  vecty=array(0.f, sizem);
+  matA=random(sizem, sizen);  vectx=random(sizen);
+  vecty=array(0., sizem);
 
   if ((ctype == "all") || (ctype == "gpu")) {
     timeTic = tic();
@@ -396,6 +396,71 @@ func checkMV(sizem, sizen,ctype=)
       write,format="Acceleration factor w/ memcopy : %.1f\n",timecpu/tmp(dif)(3);
     }
   }
+  return timeProfile;
+}
+
+func checkMV_sparse(sizem, sizen,ctype=)
+/* DOCUMENT checkMV(sizem, sizen,ctype=)
+     this templates does the profiling of matrix-vector multiply
+   SEE ALSO:
+ */
+{
+  if (is_void(ctype)) ctype = "all";
+  if(is_void(sizem)) sizem=512;
+  if(is_void(sizen)) sizen=sizem;
+  
+  matA=random(sizem, sizen);  vectx=random(sizen);
+  vecty=array(0., sizem);
+
+  mask=int(random(sizem,sizen)+0.2); nz=numberof(where(mask==0));
+  write, format="putting %d zeros %0.2f %% of the matrix\n", nz, float(nz)/(sizem*sizen)*100;
+  matA*=mask;
+  
+  if ((ctype == "all") || (ctype == "gpu")) {
+    timeTic = tic();
+    timeProfile=[];
+    
+    matA_gpu = yoga_obj(matA);
+    grow, timeProfile, tac(timeTic);
+    vectx_gpu = yoga_obj(vectx);
+    grow, timeProfile, tac(timeTic);
+    vecty_gpu = yoga_obj(vecty);
+    grow, timeProfile, tac(timeTic);
+    
+    yoga_mv_sparse,vecty_gpu,matA_gpu,vectx_gpu;
+    grow, timeProfile, tac(timeTic);
+  
+    vectyb=vecty_gpu();
+    grow, timeProfile, tac(timeTic);
+
+    matA_gpu = vectx_gpu = vecty_gpu = [];
+    grow, timeProfile, tac(timeTic);
+    "";
+    "MV mult gpu time profile: ";
+    "h2dm     h2dv1    h2dv2    comp    d2hv    free"  
+    timeProfile; 
+    "";
+    "MV mult gpu time individual: ";
+    "h2dv1       h2dv2       comp        d2hv       free"  
+    timeProfile(dif); 
+    "";
+  }
+  
+  if ((ctype == "all") || (ctype == "cpu")) {
+    timeTic=tic();
+    vecty=matA(,+)*vectx(+);
+    write,format="MV mult cpu time : %f\n",tac(timeTic);
+    if (ctype != "all") timeProfile = tac(timeTic);
+    else {
+      timecpu=tac(timeTic);
+      write,format="error for mv : %f\n",max(abs(vecty-vectyb))/max(abs(vecty));
+      tmp = timeProfile;
+      "";
+      write,format="Acceleration factor w memcopy : %.1f\n",timecpu/tmp(1:4)(sum);
+      write,format="Acceleration factor w/ memcopy : %.1f\n",timecpu/tmp(dif)(3);
+    }
+  }
+  error;
   return timeProfile;
 }
 

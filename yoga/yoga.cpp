@@ -1151,25 +1151,11 @@ void Y_yoga_mv(int argc)
       } else
         beta = 0.0;
 
-#ifndef CARMA_SPARSE_DEBUG
       // here 1 is the increment
       carma_obj_handler_vecty->gemv('n', alpha, carma_obj_handler_mat,
           carma_obj_handler_mat->getDims(1), carma_obj_handler_vectx, 1, beta,
           1);
-#else
-      carma_host_obj<double> *h_mat = new carma_host_obj<double>(carma_obj_handler_vectx->getDims());
-      carma_obj_handler_mat->device2host(h_mat->getData());
-      carma_sparse_host_obj<double> *sh_mat = new carma_sparse_host_obj<double>();
-      sh_mat->init_from_matrix(h_mat);
-      carma_sparse_obj<double> sd_mat = new carma_sparse_obj<double>(sh_mat);
-
-      carma_gemv(context_handle->get_cusparseHandle(), 'n', alpha, &sd_mat, carma_obj_handler_vectx, beta, carma_obj_handler_vecty);
-
-      delete h_mat;
-      delete sh_mat;
-      delete sd_mat;
-#endif
-   }
+    }
   } else {
     // called as a function : need to allocate space
     yObj_struct *handle_mat = (yObj_struct *) yget_obj(argc - 1, &yObj);
@@ -1192,6 +1178,141 @@ void Y_yoga_mv(int argc)
         beta = ygets_f(argc - 4);
       } else
         beta = 0.0f;
+      handle_vecty->type = handle_vectx->type;
+      caObjS *carma_obj_handler_mat = (caObjS *) (handle_mat->carma_object);
+      caObjS *carma_obj_handler_vectx = (caObjS *) (handle_vectx->carma_object);
+      long dims_data_y[2];
+      dims_data_y[0] = 1;
+      dims_data_y[1] = carma_obj_handler_mat->getDims(1);
+      handle_vecty->carma_object = new caObjS(context_handle, dims_data_y);
+      caObjS *carma_obj_handler_vecty = (caObjS *) (handle_vecty->carma_object);
+      carma_obj_handler_vecty->gemv('n', 1.0f, carma_obj_handler_mat,
+          carma_obj_handler_mat->getDims(1), carma_obj_handler_vectx, 1, 0.0f,
+          1);
+      // here 1 is the increment
+    } else if (handle_mat->type == Y_DOUBLE) {
+      handle_vecty->type = handle_vectx->type;
+      caObjD *carma_obj_handler_mat = (caObjD *) (handle_mat->carma_object);
+      caObjD *carma_obj_handler_vectx = (caObjD *) (handle_vectx->carma_object);
+      double alpha;
+      if (argc > 2) {
+        alpha = ygets_d(argc - 3);
+      } else
+        alpha = 1.0;
+      double beta;
+      if (argc > 3) {
+        beta = ygets_d(argc - 4);
+      } else
+        beta = 0.0;
+      long dims_data_y[2];
+      dims_data_y[0] = 1;
+      dims_data_y[1] = carma_obj_handler_mat->getDims(1);
+      handle_vecty->carma_object = new caObjD(context_handle, dims_data_y);
+      caObjD *carma_obj_handler_vecty = (caObjD *) (handle_vecty->carma_object);
+      carma_obj_handler_vecty->gemv('n', 1.0, carma_obj_handler_mat,
+          carma_obj_handler_mat->getDims(1), carma_obj_handler_vectx, 1, 0.0,
+          1);
+      // here 1 is the increment
+    }
+  }
+}
+
+void Y_yoga_mv_sparse(int argc)
+/** @brief wrapper routine for yoga_blas mv method
+ *  @param[in] argc : command line arguments
+ *  can work as a (1) subroutine (return discarded) or (2) as a function
+ *    - first  : (1) the destnation vector yoga_obj / (2) the matrix yoga_obj
+ *    - second : (1) the matrix yoga_obj / (2) the source vector yoga_obj
+ *    - third  : (1) the source vector yoga_obj / (2) optional scaling factor for dest
+ *    - fourth : (1) optional scaling factor for dest / (2) optional scaling factor for src
+ *    - fifth  : (1) optional scaling factor for src
+ *  in case (2) the destination is pushed on the stack as a yoga_obj
+ *  only floating point types supported (single or double precision)
+ */
+{
+  if (yarg_subroutine()) {
+    yObj_struct *handle_vecty = (yObj_struct *) yget_obj(argc - 1, &yObj);
+    yObj_struct *handle_mat = (yObj_struct *) yget_obj(argc - 2, &yObj);
+    yObj_struct *handle_vectx = (yObj_struct *) yget_obj(argc - 3, &yObj);
+    if ((handle_vecty->device != handle_mat->device)
+        || (handle_vecty->device != handle_vectx->device)
+        || (handle_mat->device != handle_vectx->device))
+      y_error("mv only on the same device");
+    carma_context *context_handle = _getCurrentContext();
+    context_handle->set_activeDevice(handle_mat->device);
+
+    if (handle_mat->type == Y_FLOAT) {
+      caObjS *carma_obj_handler_mat = (caObjS *) (handle_mat->carma_object);
+      caObjS *carma_obj_handler_vectx = (caObjS *) (handle_vectx->carma_object);
+      caObjS *carma_obj_handler_vecty = (caObjS *) (handle_vecty->carma_object);
+      float alpha;
+      if (argc > 3) {
+        alpha = ygets_f(argc - 4);
+      } else
+        alpha = 1.0f;
+      float beta;
+      if (argc > 4) {
+        beta = ygets_f(argc - 5);
+      } else
+        beta = 0.0f;
+      carma_obj_handler_vecty->gemv('T', alpha, carma_obj_handler_mat,
+          carma_obj_handler_mat->getDims(1), carma_obj_handler_vectx, 1, beta,
+          1);
+      // here 1 is the increment
+    }
+    if (handle_mat->type == Y_DOUBLE) {
+      caObjD *carma_obj_handler_mat = (caObjD *) (handle_mat->carma_object);
+      caObjD *carma_obj_handler_vectx = (caObjD *) (handle_vectx->carma_object);
+      caObjD *carma_obj_handler_vecty = (caObjD *) (handle_vecty->carma_object);
+      double alpha;
+      if (argc > 3) {
+        alpha = ygets_d(argc - 4);
+      } else
+        alpha = 1.0;
+      double beta;
+      if (argc > 4) {
+        beta = ygets_d(argc - 5);
+      } else
+        beta = 0.0;
+
+#if 1
+      carma_host_obj<double> h_mat(carma_obj_handler_mat->getDims());
+      carma_obj_handler_mat->device2host(h_mat.getData());
+      carma_sparse_host_obj<double> sh_mat;
+      sh_mat.init_from_matrix(&h_mat, 'C');
+      carma_sparse_obj<double> sd_mat(context_handle, &sh_mat);
+#else
+      carma_sparse_obj<double> sd_mat(carma_obj_handler_mat);
+#endif
+
+      cusparseHandle_t cusparseHandle=context_handle->get_cusparseHandle();
+      carma_gemv<double>(cusparseHandle, 'N', alpha, &sd_mat, carma_obj_handler_vectx, beta, carma_obj_handler_vecty);
+    }
+  } else {
+    // called as a function : need to allocate space
+    yObj_struct *handle_mat = (yObj_struct *) yget_obj(argc - 1, &yObj);
+    yObj_struct *handle_vectx = (yObj_struct *) yget_obj(argc - 2, &yObj);
+    if (handle_vectx->device != handle_mat->device){
+      y_error("mv only on the same device");
+    }
+    carma_context *context_handle = _getCurrentContext();
+    context_handle->set_activeDevice(handle_mat->device);
+    yObj_struct *handle_vecty = (yObj_struct *) ypush_obj(&yObj,
+        sizeof(yObj_struct));
+    handle_vecty->device = handle_mat->device;
+    if (handle_mat->type == Y_FLOAT) {
+      float alpha;
+      if (argc > 2) {
+        alpha = ygets_f(argc - 3);
+      } else {
+        alpha = 1.0f;
+      }
+      float beta;
+      if (argc > 3) {
+        beta = ygets_f(argc - 4);
+      } else {
+        beta = 0.0f;
+      }
       handle_vecty->type = handle_vectx->type;
       caObjS *carma_obj_handler_mat = (caObjS *) (handle_mat->carma_object);
       caObjS *carma_obj_handler_vectx = (caObjS *) (handle_vectx->carma_object);

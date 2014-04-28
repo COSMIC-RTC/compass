@@ -13,13 +13,13 @@ template<class T_data>
 class carma_sparse_host_obj {
 public:
   carma_sparse_host_obj();
-  carma_sparse_host_obj(const carma_sparse_host_obj<T_data>& sm);
+  carma_sparse_host_obj(carma_sparse_host_obj<T_data>& sm);
   virtual ~carma_sparse_host_obj();
 
   //delete all arrays and create new for nnz=new_nnz
   void resize(int new_nnz, int dim1_, int dim2_);
 
-  void operator=(const carma_sparse_host_obj<T_data>& M);
+  void operator=(carma_sparse_host_obj<T_data>& M);
 
   //we take from M only rows which in rowidx
   //analogue of MATLAB's this = M(idx,:)
@@ -31,7 +31,7 @@ public:
   //init from transpose sparce matrix
   void init_from_transpose(carma_sparse_host_obj<T_data>* M);
   void check();
-  void init_from_matrix(carma_host_obj<T_data>* B);
+  void init_from_matrix(carma_host_obj<T_data>* B, char majorDim);
   void resize2rowMajor();
   void resize2colMajor();
   char get_majorDim() const {
@@ -88,8 +88,8 @@ template<class T_data>
 void carma_gemv(T_data alpha, carma_sparse_host_obj<T_data>* A,
     carma_host_obj<T_data>* x, T_data betta, carma_host_obj<T_data>* y,
     void (*ptr_coomv)(char *transa, long *m, long *k, T_data *alpha,
-        char *matdescra, T_data *val, long *rowind, long *colind,
-        long *nnz, T_data *x, T_data *beta, T_data *y));
+        char *matdescra, T_data *val, int *rowind, int *colind,
+        int *nnz, T_data *x, T_data *beta, T_data *y));
 
 //Multiply sparce matrix by dense matrix
 //C := alpha*op(A)*B + betta * y
@@ -105,9 +105,5 @@ inline void carma_gemm(T_data alpha, carma_sparse_host_obj<T_data>* A,
     carma_host_obj<T_data>* B, T_data betta, carma_host_obj<T_data>* C) {
   kp_gemm('N', alpha, A, B, betta, C);
 }
-
-template<class T_data>
-void carma_check_op_set_dim(int op, const carma_sparse_host_obj<T_data>*M,
-    int* dim1, int* dim2);
 
 #endif /* CARMASPARSEHOSTOBJ_H_ */
