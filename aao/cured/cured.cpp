@@ -653,6 +653,112 @@ cureInit(sysCure *sys) {
   return par;
 }
 
+int safefree(void *ptr){
+  if(ptr!=NULL)
+    free(ptr);
+  return 0;
+}
+
+void curefree(sysCure* sys, parCure *par){
+  int ndivs = sys->ndivs; /* handover of system parameters */
+  //int numofelems = sys->numofelems;
+  //int numofresults = sys->numofresults;
+  //int numofacts = numofresults;
+  //int linenum = sys->linenum;
+  //int *I_sub = sys->I_sub;
+  int parts = 1 << ndivs;
+  p_par *part_par=par->parts;
+  p_arrays *part_arrays=par->arrays;
+  int i,k;
+  if(par!=NULL){
+    safefree(par->result);
+    for(i = 0; i < parts*parts; i++) {
+      if(par->Sx_p!=NULL)
+	safefree(par->Sx_p[i]);
+      if(par->Sy_p!=NULL)
+	safefree(par->Sy_p[i]);
+      if(par->result_p!=NULL)
+	safefree(par->result_p[i]);
+      if(par->connect!=NULL)
+	safefree(par->connect[i]);
+    }
+    safefree(par->Sx_p);
+    safefree(par->Sy_p);
+    safefree(par->connect);
+    safefree(par->result_p);
+    if(part_par!=NULL){
+      for(k = 0; k < parts*parts; k++) {
+	safefree(part_par[k].lineX_start);
+	safefree(part_par[k].lineX_length);
+	safefree(part_par[k].lineX_starta);
+	safefree(part_par[k].lineX_startb);
+	safefree(part_par[k].lineX_enda);
+	safefree(part_par[k].lineX_endb);
+	safefree(part_par[k].actX_start);
+	safefree(part_par[k].actX_length);
+	safefree(part_par[k].lineY_start);
+	safefree(part_par[k].lineY_length);
+	safefree(part_par[k].lineY_starta);
+	safefree(part_par[k].lineY_startb);
+	safefree(part_par[k].lineY_enda);
+	safefree(part_par[k].lineY_endb);
+	safefree(part_par[k].connect_length);
+	safefree(part_par[k].empty);
+	safefree(part_par[k].connect_pos);
+	safefree(part_par[k].act_weight);
+	safefree(part_par[k].actconnect);
+	safefree(part_par[k].I_sub);
+      }
+    }
+    if(part_arrays!=NULL){
+      for(k = 0; k < parts*parts; k++) {
+	safefree(part_arrays[k].linestart);
+	safefree(part_arrays[k].extrastart);
+	safefree(part_arrays[k].linesX);
+	safefree(part_arrays[k].linesY);
+	safefree(part_arrays[k].extraX);
+	safefree(part_arrays[k].extraY);
+	safefree(part_arrays[k].meantX);
+	safefree(part_arrays[k].meantY);
+	safefree(part_arrays[k].meanaX);
+	safefree(part_arrays[k].meanaY);
+	safefree(part_arrays[k].meanbX);
+	safefree(part_arrays[k].meanbY);
+	safefree(part_arrays[k].avgaX);
+	safefree(part_arrays[k].avgaY);
+	safefree(part_arrays[k].avgbX);
+	safefree(part_arrays[k].avgbY);
+	safefree(part_arrays[k].trendX);
+	safefree(part_arrays[k].trendY);
+      }
+    }
+    safefree(part_par);
+    safefree(part_arrays);
+ 
+    // safefree(par->partsize);
+    safefree(par->S_connect);
+    // safefree(par->I_sub_p_iter);
+    safefree(par->S_p_iter);
+    //    safefree(par->S_p_iter2);
+    //  safefree(par->result_p_iter);
+    safefree(par->shift);
+    safefree(par->actweight);
+    
+    
+    
+    
+    safefree(par);
+  }
+  if(sys!=NULL){
+    safefree(sys->I_sub);
+    safefree(sys->I_fried);
+    safefree(sys);
+  }
+}
+
+
+
+
 /* CuRe implementation for computing the parts */
 int cure(p_par part_par, p_arrays part_arrays, float *dataX, float *dataY,
     float *result, float *connect) {
@@ -991,8 +1097,9 @@ int cure(p_par part_par, p_arrays part_arrays, float *dataX, float *dataY,
   return 0;
 }
 
-int cured(sysCure* sys, parCure *par, float *data, float *result_vec,
-    float gain) {
+
+
+int cured(sysCure* sys, parCure *par, float *data, float *result_vec, float *ttX, float *ttY) {
 
   /* variable definitions */
   int i, j, k, l, m, start, help, len1, len2, len3, len4;
@@ -1002,7 +1109,7 @@ int cured(sysCure* sys, parCure *par, float *data, float *result_vec,
   int numofresults = sys->numofresults;
   int *S_connect = par->S_connect;
   float error, v1, v2, diff1, diff2, diff3, diff4, shift1, shift2, shift3;
-//float tiptiltX, tiptiltY;
+  float tiptiltX=0.0, tiptiltY=0.0;
   float *dataX;
   float *dataY;
   float *shift = par->shift;
@@ -1020,24 +1127,36 @@ int cured(sysCure* sys, parCure *par, float *data, float *result_vec,
   /* connection from data array to Sx, Sy */
   dataX = &(data[0]);
   dataY = &(data[numofelems]);
+/* tiptilt separation */
 
+ if(ttX!=NULL &&  ttY!=NULL){
+   for(i = 0; i < numofelems; i++)
+     tiptiltX += dataX[i];
+   tiptiltX /= numofelems;
+   *ttX=-tiptiltX;
+   
+   for(i = 0; i < numofelems; i++)
+     tiptiltY += dataY[i];
+   tiptiltY /= numofelems;
+   *ttY=-tiptiltY;
+ }
+ 
   /* distribute Sx, Sy */
   for (i = 0; i < parts * parts; i++)
     S_p_iter[i] = Sx_p[i];
   for (i = 0; i < numofelems; i++) {
-    *(S_p_iter[S_connect[i]]++) = dataX[i];
+    *(S_p_iter[S_connect[i]]++) = dataX[i]-tiptiltX;
   }
   for (i = 0; i < parts * parts; i++)
     S_p_iter[i] = Sy_p[i];
   for (i = 0; i < numofelems; i++) {
-    *(S_p_iter[S_connect[i]]++) = dataY[i];
+    *(S_p_iter[S_connect[i]]++) = dataY[i]-tiptiltY;
   }
 
   /* compute results on parts */
   for (i = 0; i < parts * parts; i++)
     if (part_par[i].numofelems)
-      cure(part_par[i], part_arrays[i], Sx_p[i], Sy_p[i], result_p[i],
-          connect[i]);
+      cure(part_par[i], part_arrays[i], Sx_p[i], Sy_p[i], result_p[i], connect[i]);
 
   /* connect parts */
   for (i = 0; i < parts * parts; i++)
@@ -1052,15 +1171,11 @@ int cured(sysCure* sys, parCure *par, float *data, float *result_vec,
         len1 = 0;
         for (l = 0; l < (1 << i); l++) {
           help = start + ((1 << i) - 1) * parts;
-          v1 += shift[help + l] * (part_par[help + l].connect_length[1] - 1)
-              + connect[help + l][1];
-          v2 += shift[help + l + parts]
-              * (part_par[help + l + parts].connect_length[0] - 1)
-              + connect[help + l + parts][0];
+          v1 += shift[help + l] * (part_par[help + l].connect_length[1] - 1) + connect[help + l][1];
+          v2 += shift[help + l + parts] * (part_par[help + l + parts].connect_length[0] - 1) + connect[help + l + parts][0];
           len1 += (part_par[help + l].connect_length[1] - 1);
         }
-        if (len1 < 1)
-          len1 = -1;
+        if (len1 < 1) len1 = -1;
         diff1 = (v1 - v2) / len1;
         /*			diff[0] = connect[0][1]/(part_par[0].connect_length[1]-1) - connect[2][0]/(part_par[2].connect_length[0]-1); */
         v1 = 0;
@@ -1068,15 +1183,11 @@ int cured(sysCure* sys, parCure *par, float *data, float *result_vec,
         len2 = 0;
         for (l = 0; l < (1 << i); l++) {
           help = start + ((1 << i) - 1) * parts + (1 << i);
-          v1 += shift[help + l] * (part_par[help + l].connect_length[1] - 1)
-              + connect[help + l][1];
-          v2 += shift[help + l + parts]
-              * (part_par[help + l + parts].connect_length[0] - 1)
-              + connect[help + l + parts][0];
+          v1 += shift[help + l] * (part_par[help + l].connect_length[1] - 1) + connect[help + l][1];
+          v2 += shift[help + l + parts] * (part_par[help + l + parts].connect_length[0] - 1) + connect[help + l + parts][0];
           len2 += (part_par[help + l].connect_length[1] - 1);
         }
-        if (len2 < 1)
-          len2 = -1;
+        if (len2 < 1) len2 = -1;
         diff2 = (v1 - v2) / len2;
         /*			diff[1] = connect[1][1]/(part_par[1].connect_length[1]-1) - connect[3][0]/(part_par[3].connect_length[0]-1); */
         v1 = 0;
@@ -1084,16 +1195,11 @@ int cured(sysCure* sys, parCure *par, float *data, float *result_vec,
         len3 = 0;
         for (l = 0; l < (1 << i); l++) {
           help = start + ((1 << i) - 1);
-          v1 += shift[help + l * parts]
-              * (part_par[help + l * parts].connect_length[3] - 1)
-              + connect[help + l * parts][3];
-          v2 += shift[help + 1 + l * parts]
-              * (part_par[help + 1 + l * parts].connect_length[2] - 1)
-              + connect[help + 1 + l * parts][2];
+          v1 += shift[help + l * parts] * (part_par[help + l * parts].connect_length[3] - 1) + connect[help + l * parts][3];
+          v2 += shift[help + 1 + l * parts] * (part_par[help + 1 + l * parts].connect_length[2] - 1) + connect[help + 1 + l * parts][2];
           len3 += (part_par[help + l * parts].connect_length[3] - 1);
         }
-        if (len3 < 1)
-          len3 = -1;
+        if (len3 < 1) len3 = -1;
         diff3 = (v1 - v2) / len3;
         /*			diff[2] = connect[0][3]/(part_par[0].connect_length[3]-1) - connect[1][2]/(part_par[1].connect_length[2]-1); */
         v1 = 0;
@@ -1101,16 +1207,11 @@ int cured(sysCure* sys, parCure *par, float *data, float *result_vec,
         len4 = 0;
         for (l = 0; l < (1 << i); l++) {
           help = start + (1 << i) * (parts + 1) - 1;
-          v1 += shift[help + l * parts]
-              * (part_par[help + l * parts].connect_length[3] - 1)
-              + connect[help + l * parts][3];
-          v2 += shift[help + 1 + l * parts]
-              * (part_par[help + 1 + l * parts].connect_length[2] - 1)
-              + connect[help + 1 + l * parts][2];
+          v1 += shift[help + l * parts] * (part_par[help + l * parts].connect_length[3] - 1) + connect[help + l * parts][3];
+          v2 += shift[help + 1 + l * parts] * (part_par[help + 1 + l * parts].connect_length[2] - 1) + connect[help + 1 + l * parts][2];
           len4 += (part_par[help + l * parts].connect_length[3] - 1);
         }
-        if (len4 < 1)
-          len4 = -1;
+        if (len4 < 1) len4 = -1;
         diff4 = (v1 - v2) / len4;
         /*			diff[3] = connect[2][3]/(part_par[2].connect_length[3]-1) - connect[3][2]/(part_par[3].connect_length[2]-1); */
 
@@ -1118,19 +1219,23 @@ int cured(sysCure* sys, parCure *par, float *data, float *result_vec,
           shift2 = diff3;
           shift3 = shift2 + diff2;
           shift1 = shift3 - diff4;
-        } else if (len2 == -1) {
+        } 
+        else if (len2 == -1) {
           shift2 = diff3;
           shift1 = diff1;
           shift3 = shift1 + diff4;
-        } else if (len3 == -1) {
+        } 
+        else if (len3 == -1) {
           shift1 = diff1;
           shift3 = shift1 + diff4;
           shift2 = shift3 - diff2;
-        } else if (len4 == -1) {
+        } 
+        else if (len4 == -1) {
           shift1 = diff1;
           shift2 = diff3;
           shift3 = shift2 + diff2;
-        } else {
+        } 
+        else {
           error = (diff1 + diff4) - (diff3 + diff2);
           diff1 = diff1 - error / 4;
           diff2 = diff2 + error / 4;

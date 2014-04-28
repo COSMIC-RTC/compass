@@ -75,16 +75,14 @@ typedef struct {
 
 /* system setup - needs yao_params.txt for the system description */
 /* creates the system struct sysCure */
-sysCure*
-cureSystem();
-sysCure*
-cureSystem(int linenum, int numofelems, int numofresults, int *I_sub,
-    int ndivs);
+sysCure* cureSystem();
+sysCure* cureSystem(int linenum, int numofelems, int numofresults, int *I_sub, int ndivs);
 
 /* creating structs needed too run CuReD */
-parCure*
-cureInit(sysCure *sys);
+parCure* cureInit(sysCure *sys);
 
 /* call of CuReD */
-int
-cured(sysCure* sys, parCure *par, float *data, float *result_vec, float gain);
+int cured(sysCure* sys, parCure *par, float *data, float *result_vec, float *ttX=NULL, float* ttY=NULL);
+
+
+void curefree(sysCure* sys, parCure *par);

@@ -59,7 +59,8 @@ int sutra_controller_cured::set_gain(float gain) {
 int sutra_controller_cured::comp_com() {
   h_centroids->cpy_obj(this->d_centroids, cudaMemcpyDeviceToHost);
 
-  cured((sysCure*)this->h_syscure, (parCure*)this->h_parcure, this->h_centroids->getData(), this->h_err->getData(),1.0f);
+  //cured((sysCure*)this->h_syscure, (parCure*)this->h_parcure, this->h_centroids->getData(), this->h_err->getData(),1.0f);
+  cured((sysCure*)this->h_syscure, (parCure*)this->h_parcure, this->h_centroids->getData(), this->h_err->getData());
 
   h_err->cpy_obj(this->d_err, cudaMemcpyHostToDevice);
 
