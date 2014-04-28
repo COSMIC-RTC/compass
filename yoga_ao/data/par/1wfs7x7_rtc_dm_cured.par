@@ -87,6 +87,7 @@ y_controllers(1).nwfs    = &[1];
 y_controllers(1).ndm     = &[1];
 y_controllers(1).delay   = 1;
 y_controllers(1).gain    = 0.6;
+y_controllers(1).cured_ndivs = 1;
 
 /*
 y_controllers(1).type    = "ls";
