@@ -44,7 +44,7 @@ sutra_controller_cured::~sutra_controller_cured() {
     delete this->d_imat;
  if (this->d_err != 0L)
     delete this->d_err;
-
+ //curefree((sysCure*)this->h_syscure, (parCure *)this->h_parcure);
 }
 
 string sutra_controller_cured::get_type() {
@@ -58,9 +58,12 @@ int sutra_controller_cured::set_gain(float gain) {
 
 int sutra_controller_cured::comp_com() {
   h_centroids->cpy_obj(this->d_centroids, cudaMemcpyDeviceToHost);
+  float X,Y;
 
-  //cured((sysCure*)this->h_syscure, (parCure*)this->h_parcure, this->h_centroids->getData(), this->h_err->getData(),1.0f);
-  cured((sysCure*)this->h_syscure, (parCure*)this->h_parcure, this->h_centroids->getData(), this->h_err->getData());
+  //cured((sysCure*)this->h_syscure, (parCure*)this->h_parcure, this->h_centroids->getData(), this->h_err->getData(), &X, &Y);
+  cured((sysCure*)this->h_syscure, (parCure*)this->h_parcure, this->h_centroids->getData(), this->h_err->getData());//, &X, &Y);
+  //	this->h_err->getData(this->h_err->getNbElem()-2),this->h_err->getData(this->h_err->getNbElem()-1));
+  //cout << X << " " << Y << endl;
 
   h_err->cpy_obj(this->d_err, cudaMemcpyHostToDevice);
 

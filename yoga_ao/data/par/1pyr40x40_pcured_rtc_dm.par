@@ -6,7 +6,7 @@ y_geom.zenithangle = 0.;
 /*
 telescope inits
 */
-y_tel.diam = 4.f;
+y_tel.diam = 8.f;
 y_tel.cobs = 0.12f;
 
 /*
@@ -32,25 +32,29 @@ y_target.mag      = &([10.]);
 /*
 loop inits
 */
-y_loop.niter  = 2000;
+y_loop.niter  = 1000;
 y_loop.ittime = 1/500.0f;
 
 /*
 wfs inits
 */
 y_wfs                  = array(wfs_struct(),1); // clean start
-y_wfs(1:).type          = "sh";
-y_wfs(1:).nxsub         = 8;
-y_wfs(1:).npix          = 8;
-y_wfs(1:).pixsize       = 0.3;
-y_wfs(1:).fracsub       = 0.8;
-y_wfs(1:).xpos          = 0.0;
-y_wfs(1:).ypos          = 0.0;
-y_wfs(1:).lambda        = 0.5;
-y_wfs(1:).gsmag         = 5.;
-y_wfs(1:).optthroughput = 0.5;
-y_wfs(1:).zerop         = 1.e11;
-y_wfs(1:).noise         = 5;
+y_wfs(1).type          = "pyr";
+y_wfs(1).nxsub         = 40;
+y_wfs(1).npix          = 12;
+y_wfs(1).fssize        = 1.6;
+y_wfs(1).fracsub       = 0.8;
+y_wfs(1).xpos          = 0.0;
+y_wfs(1).ypos          = 0.0;
+y_wfs(1).lambda        = 0.5;
+y_wfs(1).gsmag         = 5.;
+y_wfs(1).optthroughput = 0.5;
+y_wfs(1).zerop         = 1.e11;
+y_wfs(1).noise         = -1;
+
+y_wfs(1).fstop         = "round";
+y_wfs(1).pyr_npts      = 16;
+y_wfs(1).pyr_ampl      = 0.15;
 
 /*
 dm inits
@@ -79,7 +83,7 @@ ncentroiders = 1;
 y_centroiders           = array(centroider_struct(),ncentroiders);
 
 y_centroiders.nwfs      = 1;
-y_centroiders(1).type   = "cog";
+y_centroiders(1).type   = "pyr";
 
 /*
 controllers inits
@@ -87,12 +91,12 @@ controllers inits
 ncontrollers = 1;
 y_controllers          = array(controller_struct(),ncontrollers);
 
-y_controllers(1).type    = "ls";
+y_controllers(1).type    = "pcured";
 y_controllers(1).nwfs    = &[1];
 y_controllers(1).ndm     = &[1,2];
-y_controllers(1).maxcond = 150.;
+y_controllers(1).maxcond = 750.;
 y_controllers(1).delay   = 1;
-y_controllers(1).gain    = 0.5;
+y_controllers(1).gain    = 0.7;
 
 /*
 rtc inits

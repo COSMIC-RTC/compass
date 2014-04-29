@@ -221,7 +221,6 @@ sutra_wfs::sutra_wfs(carma_context *context, const char* type, long nxsub,
     dims_data1[1] = npup;
     this->pyr_cx = new carma_host_obj<int>(dims_data1, MA_WRICOMB);
     this->pyr_cy = new carma_host_obj<int>(dims_data1, MA_WRICOMB);
-
     dims_data2[1] = nfft;
     dims_data2[2] = nfft;
     this->d_poffsets = new carma_obj<cuFloatComplex>(context, dims_data2);
