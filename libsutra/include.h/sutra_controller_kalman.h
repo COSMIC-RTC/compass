@@ -17,7 +17,7 @@ public:
 
   ~sutra_controller_kalman();
 
- virtual void calculate_gain(double bruit, double k_W, carma_obj<float>& SigmaV,
+ void calculate_gain(double bruit, double k_W, carma_obj<float>& SigmaV,
       carma_obj<float>& atur, carma_obj<float>& btur);
 
   virtual string get_type() {

@@ -64,9 +64,11 @@ sutra_controller_kalman::~sutra_controller_kalman() {
 void sutra_controller_kalman::calculate_gain(double bruit, double k_W,
     carma_obj<float>& cSigmaV, carma_obj<float>& catur,
     carma_obj<float>& cbtur) {
+	cout << "***************Calcul du gain************"<<endl;
 }
 //                                                                                     
 int sutra_controller_kalman::comp_com() {
+   cout<<"T";
   return -378;
 }
 //                                                                                     
