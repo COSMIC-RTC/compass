@@ -73,19 +73,26 @@ int sutra_rtc::add_controller(long nactu, long delay, long device,
   } else if (type_ctr.compare("mv") == 0) {
     d_control.push_back(
         new sutra_controller_mv(current_context, ncentroids, nactu, delay));
-  } else if (type_ctr.compare("kalman") == 0) {
-    carma_obj<double>* cD_Mo = calculate_D_Mo(current_context, ncentroids * 2);
-    carma_obj<double>* cN_Act = calculate_N_Act(current_context, nactu);
-    carma_obj<double>* cPROJ = calculate_btur();
-    d_control.push_back(
-        new sutra_controller_kalman(current_context, cD_Mo, cN_Act, cPROJ,
-            false));
-    if (cD_Mo)
-      delete cD_Mo;
-    if (cN_Act)
-      delete cN_Act;
-    if (cPROJ)
-      delete cPROJ;
+  } else if (type_ctr.compare("kalman") == 0) 
+       {
+	  carma_obj<float>* cD_Mo   = calculate_D_Mo(current_context, ncentroids * 2);
+	  carma_obj<float>* cN_Act  = calculate_N_Act(current_context, nactu);
+	  carma_obj<float>* cPROJ   = calculate_PROJ(current_context, ncentroids * 2);
+	  carma_obj<float>* catur   = calculate_atur(current_context, ncentroids * 2);
+	  carma_obj<float>* cbtur   = calculate_btur(current_context, ncentroids * 2);
+	  carma_obj<float>* cSigmaV = calculate_SigmaV(current_context, ncentroids * 2);
+	  
+	  sutra_controller_kalman* k = 	
+	    new sutra_controller_kalman(current_context, *cD_Mo, *cN_Act, *cPROJ, false);
+	  k->calculate_gain(0.04/(M_PI*M_PI), 5, *cSigmaV, *catur, *cbtur);
+	  d_control.push_back(k);
+	  
+	  delete cD_Mo;
+	  delete cN_Act;
+	  delete cPROJ;
+	  delete cSigmaV;
+	  delete catur;
+	  delete cbtur;	  	  
 
   } else {
     DEBUG_TRACE("Controller '%s' unknown\n", typec);
@@ -248,8 +255,9 @@ int sutra_rtc::do_control(int ncntrl, sutra_dms *ydm) {
       idx += p->second->ninflu;
       p++;
     }
-  } 
-  if (this->d_control[ncntrl]->get_type().compare("mv") == 0) {
+  }
+   
+   else if (this->d_control[ncntrl]->get_type().compare("mv") == 0) {
     SCAST(sutra_controller_mv *, control, this->d_control[ncntrl]);
 
     control->frame_delay();
@@ -276,8 +284,8 @@ int sutra_rtc::do_control(int ncntrl, sutra_dms *ydm) {
       idx += p->second->ninflu;
       p++;
     }
-  } 
-  if (this->d_control[ncntrl]->get_type().compare("cured") == 0) {
+   }   
+   else if (this->d_control[ncntrl]->get_type().compare("cured") == 0) {
     this->d_control[ncntrl]->comp_com();
     map<type_screen, sutra_dm *>::iterator p;
     p = ydm->d_dms.begin();
@@ -287,7 +295,11 @@ int sutra_rtc::do_control(int ncntrl, sutra_dms *ydm) {
      p++;
     }
   }
-
+   else // Case for unknown 
+     {
+	this->d_control[ncntrl]->comp_com();
+     }
+   
   return EXIT_SUCCESS;
 }
 
