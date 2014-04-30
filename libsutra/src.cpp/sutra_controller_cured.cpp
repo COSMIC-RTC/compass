@@ -38,13 +38,11 @@ sutra_controller_cured::~sutra_controller_cured() {
     delete this->h_centroids;
   if (this->h_err != 0L)
     delete this->h_err;
- if (this->d_centroids != 0L)
-    delete this->d_centroids;
  if (this->d_imat != 0L)
     delete this->d_imat;
  if (this->d_err != 0L)
     delete this->d_err;
- //curefree((sysCure*)this->h_syscure, (parCure *)this->h_parcure);
+ curefree((sysCure*)this->h_syscure, (parCure *)this->h_parcure);
 }
 
 string sutra_controller_cured::get_type() {
