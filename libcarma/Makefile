@@ -45,7 +45,10 @@ LIB_NVCCFLAGS += -gencode $(GENCODE)
 ifneq ($(DEBUG),)
  LIB_CPPFLAGS  += -O0 -g -DDEBUG
  LIB_NVCCFLAGS += -g -G -lineinfo -DDEBUG
+else
+ LIB_CPPFLAGS  += -O0 
 endif
+
 ifneq ($(CULA_ROOT),)
  LIB_CPPFLAGS  += -I$(CULA_INC_PATH) -DUSE_CULA
  LIB_NVCCFLAGS += -I$(CULA_INC_PATH) -DUSE_CULA
@@ -60,6 +63,12 @@ ifneq ($(MAGMA_ROOT),)
  LIB_DEPLIBS   += -L$(MAGMA_ROOT)/lib -lmagma 
 # LIB_DEPLIBS   += -openmp -lmkl_intel_ilp64 -lmkl_core -lmkl_intel_thread 
 # LIB_DEPLIBS   += -lpthread 
+endif
+
+ifneq ($(DEBUG),)
+  NVCCFLAGS+= -O0 -g -G -lineinfo -DDEBUG
+else
+  NVCCFLAGS+= -O2
 endif
 
 all: $(LIB_NAME)

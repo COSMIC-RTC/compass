@@ -661,6 +661,7 @@ func rtc_init(clean=)
           controllers(i).nactu  = &(y_dm(ndms)._ntotact);
           
           rtc_addcontrol,g_rtc,sum(y_dm(ndms)._ntotact),controllers(i).delay,controllers(i).type;
+
           if (controllers(i).type  == "ls") {
             write,"doing imat and filtering unseen actuators";
             imat_init,i,clean=clean;
@@ -683,22 +684,39 @@ func rtc_init(clean=)
 		    imat_init,i,clean=clean;
 		    write,"done";
 
-		    comp_mode = "GPU";
-		    method = "n";
-		    ndms = ndms(1);
-
+		    comp_mode = "CPU";
+		    method = "inv";
+		    //ndms = ndms(1);
+		    //error;
 		    if(comp_mode == "GPU"){
-		      tmp = (dimsof(*y_geom._ipupil)(2)-(y_dm(ndms)._n2 - y_dm(ndms)._n1 +1))/2;
-		      pup = (*y_geom._ipupil)(tmp+1:-tmp,tmp+1:-tmp);
-		      indx_valid = where(pup);
-		      x = *y_dm(ndms)._xpos;
-		      y = *y_dm(ndms)._ypos; 
-		      interactp = x(2) - x(1);
-		      interactm = y_tel.diam/(y_dm(ndms).nact-1);
-		      p2m = interactm/interactp;
-		      norm = (p2m/y_atmos.r0)^(5./3);
+		      ndms = ndms(1);
+		      if(y_dm(ndms).type == "pzt"){
+			tmp = (dimsof(*y_geom._ipupil)(2)-(y_dm(ndms)._n2 - y_dm(ndms)._n1 +1))/2;
+			pup = (*y_geom._ipupil)(tmp+1:-tmp,tmp+1:-tmp);
+			indx_valid = where(pup);
+			x = *y_dm(ndms)._xpos;
+			y = *y_dm(ndms)._ypos; 
+			interactp = x(2) - x(1);
+			interactm = y_tel.diam/(y_dm(ndms).nact-1);
+			p2m = abs(interactm/interactp);
+			norm = (p2m/y_atmos.r0)^(5./3);
+		      }
+		      if(y_dm(ndms).type == "kl"){
+			N = int(ceil(sqrt(y_dm(ndms).nkl)));
+			pup = make_pupil(N,N-1,cobs=y_tel.cobs);
+			indx_valid = where(pup);
+			while (numberof(indx_valid) < y_dm(ndms).nkl){
+			  N+=1;
+			  pup = make_pupil(N,N-1,cobs=y_tel.cobs);
+			  indx_valid = where(pup);
+			}
+			x = span(-1,1,N)(,-:1:N);
+			y = transpose(x)(*)(ind_sub);
+			x = x(*)(ind_sub);
+			norm = (y_tel.diam/(2*y_atmos.r0))^(5./3);
+		      }
 		      write,"Computing covariance matrix...";
-		      rtc_docovmat,g_rtc,i-1,g_dm,"pzt",y_dm(ndms).alt,indx_valid,numberof(indx_valid),x,y,norm,method;
+		      rtc_docovmat,g_rtc,i-1,g_dm,y_dm(ndms).type,y_dm(ndms).alt,indx_valid,numberof(indx_valid),x,y,numberof(x),norm,method;
 		      write, "done";
 		      noisemat = noise_cov(1,1);
 		      if (method == "inv"){
@@ -714,9 +732,18 @@ func rtc_init(clean=)
 		    }
 		    
 		    if(comp_mode == "CPU"){
-		      covmat = docovmat(g_rtc,g_atmos,g_dm,sum(y_dm(ndms)._ntotact),max(y_dm(ndms)._ntotact),where(y_dm(ndms)._ntotact == max(y_dm(ndms)._ntotact)),numberof(ndms),method,mode="estimate");
-		      //error;
+		      covmat = array(0.0f,sum(y_dm(ndms)._ntotact),sum(y_dm(ndms)._ntotact));
+		      istart = 0;
+		      for (ndm = 1 ; ndm <= numberof(ndms) ; ndm++){
+			cov_matrix = docovmat(g_rtc,g_atmos,g_dm,y_dm(ndm)._ntotact,ndm,method,mode="estimate");
+			covmat(istart+1:istart+y_dm(ndm)._ntotact,istart+1:istart+y_dm(ndm)._ntotact) = cov_matrix;
+			istart += y_dm(ndm)._ntotact;
+		      }
 		      noisemat = noise_cov(1,1);
+		      for (ns = 2 ; ns<= numberof(nwfs) ; ns++){
+			grow,noisemat,noise_cov(ns,ns);
+		      }
+		      //error;
 		      rtc_setgain,g_rtc,i-1,controllers(i).gain;
 		      mgain = array(1.0f,(y_dm._ntotact)(sum));
 		      rtc_loadmgain,g_rtc,i-1,mgain;
@@ -725,15 +752,13 @@ func rtc_init(clean=)
 
 		      if (method == "inv"){
 			// Reconstructeur 1
-			//error;
+		        //error;
 			noisemat = float(1./noisemat);
 			Cn = unit(numberof(noisemat)) * (noisemat);
 			tmp = (imat(+,) * Cn(+,))(,+) * imat(+,) + covmat;
-			s = SVdec(tmp,U);
-			//E = unit(numberof(s)) * (1/s);
-			//tmp = U(,+) * (E(,+) * U(,+))(+,);
 			tmp = LUsolve(tmp);
 			cmat = (tmp(,+)*imat(,+))(,+)*Cn(+,);
+			//error;
 		      }
 		      if (method == "n"){
 		      // Reconstructeur 2
@@ -742,12 +767,9 @@ func rtc_init(clean=)
 			tmp = (imat(,+)*covmat(+,))(,+)*imat(,+) + Cn;
 			tmp = LUsolve(tmp);
 			cmat = (covmat(,+)*imat(,+))(,+)*tmp(+,);
-		      
-		      //error;	
-		      }	    
-		      
+		      }	 
+		      //error;
 		      rtc_setcmat,g_rtc,i-1,cmat;
-		      
 		    }
 		  }
         }

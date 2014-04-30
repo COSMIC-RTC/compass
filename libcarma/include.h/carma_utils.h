@@ -105,14 +105,14 @@ inline void __cutilCheckMsg(const char *errorMessage, const char *file,
         file, line, errorMessage, cudaGetErrorString(err));
     exit(-1);
   }
-#ifdef DEBUG
-  err = cudaThreadSynchronize();
-  if( cudaSuccess != err) {
-    fprintf(stderr, "(%s:%i) : cutilCheckMsg cudaThreadSynchronize error: %s : %s.\n",
-        file, line, errorMessage, cudaGetErrorString( err) );
-    exit(-1);
-  }
-#endif
+//#ifdef DEBUG
+//  err = cudaThreadSynchronize();
+//  if( cudaSuccess != err) {
+//    fprintf(stderr, "(%s:%i) : cutilCheckMsg cudaThreadSynchronize error: %s : %s.\n",
+//        file, line, errorMessage, cudaGetErrorString( err) );
+//    exit(-1);
+//  }
+//#endif
 }
 inline void __cutilSafeMalloc(void *pointer, const char *file, const int line) {
   if (!(pointer)) {

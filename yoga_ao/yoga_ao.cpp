@@ -2324,6 +2324,10 @@ void Y_rtc_setimat(int argc) {
     SCAST(sutra_controller_ls *, control, rtc_handler->d_control.at(ncontrol));
     control->d_imat->host2device(data);
   }
+  if (rtc_handler->d_control.at(ncontrol)->get_type().compare("mv") == 0) {
+      SCAST(sutra_controller_mv *, control, rtc_handler->d_control.at(ncontrol));
+      control->d_imat->host2device(data);
+    }
 }
 
 void Y_rtc_setcentroids(int argc) {
@@ -3140,14 +3144,15 @@ void Y_rtc_doimatkl4pzt(int argc) {
     long dim = ygets_l(argc - 7);
     float *xpos = ygeta_f(argc - 8 , &ntot, dims);
     float *ypos = ygeta_f(argc - 9 , &ntot, dims);
-    float norm = ygets_f(argc - 10);
-    char *method = ygets_q(argc - 11);
+    long Nkl = ygets_l(argc - 10);
+    float norm = ygets_f(argc - 11);
+    char *method = ygets_q(argc - 12);
 
     carma_context *context_handle = _getCurrentContext();
     context_handle->set_activeDeviceForCpy(rhandler->device);
     SCAST(sutra_controller_mv *, controller, rtc_handler->d_control[ncontrol]);
 
-    controller->do_covmat(dms_handler->d_dms.at(make_pair(type, alt)),method,indx_pup,dim,xpos,ypos,norm);
+    controller->do_covmat(dms_handler->d_dms.at(make_pair(type, alt)),method,indx_pup,dim,xpos,ypos,Nkl,norm);
 
   }
   void Y_rtc_loadcovmat(int argc) {

@@ -30,7 +30,6 @@ func imat_init(ncontrol,clean=)
     
     rtc_doimat,g_rtc,ncontrol-1,g_wfs,g_dm;
     imat = rtc_getimat(g_rtc,ncontrol-1);
-
   } else {
     if (simul_name != [])
       imat = fits_read(swrite(format=dirsave+"imat-%d-%s.fits",ncontrol,simul_name));
@@ -117,7 +116,7 @@ func imat_init(ncontrol,clean=)
   rtc_rmcontrol,g_rtc;
   
   rtc_addcontrol,g_rtc,sum(y_dm(ndms)._ntotact),controllers(ncontrol).delay,controllers(ncontrol).type;
-  
+
   if (imat_clean) {
     tic;
     rtc_doimat,g_rtc,ncontrol-1,g_wfs,g_dm;
@@ -579,20 +578,32 @@ func doklbasis(g_dm,nkl,n)
   return K;
 }
 
-func docovmat(g_rtc,g_atmos,g_dm,Nactu,nkl,N,ndms,meth,mode=)
+func docovmat(g_rtc,g_atmos,g_dm,Nactu,ndm,meth,mode=)
 { extern y_dm, y_geom,y_atmos;
   nkl = Nactu;
-  tmp = (dimsof(*y_geom._ipupil)(2)-(y_dm(1)._n2 - y_dm(1)._n1 +1))/2;
+  tmp = (dimsof(*y_geom._ipupil)(2)-(y_dm(ndm)._n2 - y_dm(ndm)._n1 +1))/2;
   pup = (*y_geom._ipupil)(tmp+1:-tmp,tmp+1:-tmp);
   indx_valid = where(pup);
   //if(y_dm(N(1)).type != "kl")
   //  nkl +=2;
+
+  //if (ndm == 2) error;
+
   write,"Covariance matrix computation : ";
-  if(y_dm(N(1)).type == "kl"){
-    statc = stat_cov(N(1),y_atmos.r0);
+  if(y_dm(ndm).type == "kl"){
+    statc = stat_cov(ndm,y_atmos.r0);
     s = SVdec(statc);
-    cov_matrix = unit(Nactu) * (1/s);
-    cov_matrix(Nactu,Nactu) = 0;
+    s_size = numberof(s);
+    s = s(:nkl);
+    if( meth == "inv"){
+      cov_matrix = unit(Nactu) * (1/s);
+      if (s_size == nkl){
+	cov_matrix(Nactu,Nactu) = 0;
+      }
+    }
+    if (meth=="n"){
+      cov_matrix = unit(Nactu) * s;
+    }
     /*
     K = doklbasis(g_dm,nkl,N(1));
     // Projecteur
@@ -611,17 +622,19 @@ func docovmat(g_rtc,g_atmos,g_dm,Nactu,nkl,N,ndms,meth,mode=)
   else{
     if (mode == "estimate"){     
       write,"Actuators basis...";
-      K = dopztbasis(g_dm,ndms,Nactu);
+      K = dopztbasis(g_dm,ndm,Nactu);
+      //if(ndm==3) error;
       // Double diagonalisation
       write,"Geometric covariance matrix...";
       geo = geo_cov(K);
       write,"Statistic covariance matrix...";
-      statc = stat_cov(N(1),y_atmos.r0);
+      statc = stat_cov(ndm,y_atmos.r0);
       //error;
       write,"Double diagonalisation...";
       KL_actu = DDiago(statc,geo,s);
       write,"Inversion...";
       s = SVdec(statc);
+      //error;
       if (meth == "inv"){
 	Ck1 = unit(Nactu) * (1/s);
 	Ck1(Nactu,Nactu) = 0;
@@ -710,7 +723,7 @@ func docovmat(g_rtc,g_atmos,g_dm,Nactu,nkl,N,ndms,meth,mode=)
     PTT = LUsolve(PTT);
     PTT = PTT(,+)*TT(,+); // Tip-tilt projector
     M = K*0.;
-    for (k=1 ; k<+ Nactu ; k++)
+    for (k=1 ; k<= Nactu ; k++)
       M(,k) = (K(,k)-K(avg,k))-((K(,k)-K(avg,k))(+) * PTT(,+))(+)*TT(,+); // filtering piston and tip-tilt from basis
     M(,-1:) = TT;
     */
@@ -805,24 +818,32 @@ func klbasis_init(ndms,nctrl,nctrltot){
 }
 
 func dopztbasis(g_dm,ndm,Nactu)
-{ extern y_dm, y_geom;
-  tmp = (dimsof(*y_geom._ipupil)(2)-y_geom._n)/2;
-  //tmp = (dimsof(*y_geom._ipupil)(2)-(y_dm(1)._n2 - y_dm(1)._n1 +1))/2;
-  pup = (*y_geom._ipupil)(tmp+1:-tmp,tmp+1:-tmp);
+{ extern y_dm, y_geom, y_wfs;
+  //tmp = (dimsof(*y_geom._ipupil)(2)-y_geom._n)/2;
+  tmp = (dimsof(*y_geom._ipupil)(2)-(y_dm(ndm)._n2 - y_dm(ndm)._n1 +1))/2;
+  if (y_dm(ndm).alt == 0.){
+    pup = (*y_geom._ipupil)(tmp+1:-tmp,tmp+1:-tmp);
+  }
+  else {
+    psize=y_tel.diam/y_geom.pupdiam;
+    patchDiam = long(y_geom.pupdiam+2*max(abs([y_wfs(ndm).xpos,y_wfs(ndm).ypos]))*4.848e-6*abs(y_dm(ndm).alt)/psize);
+    pup = float(make_pupil(y_geom.ssize,patchDiam,xc=y_geom.cent,yc=y_geom.cent,cobs=y_tel.cobs))(tmp+1:-tmp,tmp+1:-tmp);
+      }
   indx_valid = where(pup);
   IFtot = array(float,numberof(indx_valid),Nactu);
   ind = 0;
-  for(j=1;j<=ndm;j++){
+  //for(j=1;j<=ndm;j++){
+  j = ndm;
     C =float( unit(y_dm(j)._ntotact));
     IF = build_dm_gpu(j,C(,1));
     tmp = (dimsof(IF)(2)-y_geom._n)/2;
-    IF = IF(tmp+1:-tmp,tmp+1:-tmp)(*)(indx_valid);
+    IF = IF(*)(indx_valid);
     IF = IF(,-);
-    for (i=2;i<=y_dm(j)._ntotact;i++) grow,IF,build_dm_gpu(j,C(,i))(tmp+1:-tmp,tmp+1:-tmp)(*)(indx_valid);
+    for (i=2;i<=y_dm(j)._ntotact;i++) grow,IF,build_dm_gpu(j,C(,i))(*)(indx_valid);
     IFtot(,ind+1:ind+y_dm(j)._ntotact) = IF;
     ind += y_dm(j)._ntotact;
     if(i == y_dm(j)._ntotact) raz = build_dm_gpu(j,array(0.0f,y_dm(j)._ntotact));
-  }
+    //}
   return IFtot;
 }
 func DDiago(mat,del,&s)
@@ -867,15 +888,33 @@ func stat_cov(n,r0)
 // Compute the statistic covariance matrix on the actuators
 {
   extern y_dm, y_geom;
-  // Actuators positions
-  x = *y_dm(n)._xpos;
-  y = *y_dm(n)._ypos;
-  
-  interactp = x(2) - x(1);
-  interactm = y_tel.diam/(y_dm(n).nact-1);
-  p2m = interactm/interactp;
-  norm = (p2m/r0)^(5./3);
 
+  if (y_dm(n).type == "pzt"){
+    // Actuators positions
+    x = *y_dm(n)._xpos;
+    y = *y_dm(n)._ypos;
+    
+    patchDiam = y_tel.diam+2*max(abs([y_wfs(n).xpos,y_wfs(n).ypos]))*4.848e-6*abs(y_dm(n).alt);
+    interactp = x(2) - x(1);
+    interactm = patchDiam/(y_dm(n).nact-1);
+    p2m = interactm/interactp;
+    norm = (p2m/r0)^(5./3);
+  }
+  else if (y_dm(n).type == "kl"){
+    N = int(ceil(sqrt(y_dm(n).nkl)));
+    pup = make_pupil(N,N-1,cobs=y_tel.cobs);
+    ind_sub = where(pup);
+    while (numberof(ind_sub) < y_dm(n).nkl){
+      N+=1;
+       pup = make_pupil(N,N-1,cobs=y_tel.cobs);
+       ind_sub = where(pup);
+    }
+    x = span(-1,1,N)(,-:1:N);
+    y = transpose(x)(*)(ind_sub);
+    x = x(*)(ind_sub);
+    patchDiam = y_tel.diam+2*max(abs([y_wfs(n).xpos,y_wfs(n).ypos]))*4.848e-6*abs(y_dm(n).alt);
+    norm = (patchDiam/(2*r0))^(5./3);
+  }
   // Kolmogorov statistic
   m = 6.88 * abs(x(*)(,-)-x(*)(-,),y(*)(,-)-y(*)(-,))^(5./3) ;
   // Filtering piston

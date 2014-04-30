@@ -46,10 +46,10 @@ y_wfs(1).fracsub       = 0.8;
 y_wfs(1).xpos          = 0.0;
 y_wfs(1).ypos          = 0.0;
 y_wfs(1).lambda        = 0.5;
-y_wfs(1).gsmag         = 5.;
+y_wfs(1).gsmag         = 8.;
 y_wfs(1).optthroughput = 0.5;
 y_wfs(1).zerop         = 1.e11;
-y_wfs(1).noise         = -1;
+y_wfs(1).noise         = 3;
 
 /*
 dm inits
@@ -91,7 +91,7 @@ y_controllers(1).nwfs    = &[1];
 y_controllers(1).ndm     = &[1,2];
 y_controllers(1).maxcond = 15.;
 y_controllers(1).delay   = 1;
-y_controllers(1).gain    = 0.1;
+y_controllers(1).gain    = 0.4;
 
 /*
 rtc inits

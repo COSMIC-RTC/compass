@@ -26,7 +26,9 @@ LIB_DEPLIBS += -L$(COMPASS_ROOT_DIR)/libcarma -lcarma
 LIB_CPPFLAGS = -c -fPIC -Wall -DUNIX -I$(H_DIR) -I$(COMPASS_ROOT_DIR)/libcarma/$(H_DIR) -I$(CUDA_INC_PATH) -I$(CURED_INC_PATH)
 
 ifneq ($(DEBUG),)
-LIB_CPPFLAGS+= -g -DDEBUG
+  LIB_CPPFLAGS+= -O0 -g -DDEBUG
+else
+  LIB_CPPFLAGS+= -O2
 endif
 
 MPICXX           = $(shell which mpicxx 2>/dev/null)
@@ -42,7 +44,9 @@ NVCCFLAGS = -m64 -Xcompiler -fPIC -use_fast_math -c -I$(CUH_DIR)  -I$(H_DIR) \
 	-I$(COMPASS_ROOT_DIR)/libcarma/$(CUH_DIR)  -I$(COMPASS_ROOT_DIR)/libcarma/$(H_DIR) -I$(CURED_INC_PATH) #-gencode $(GENCODE)
 
 ifneq ($(DEBUG),)
-NVCCFLAGS+= -O0 -g -G -lineinfo -DDEBUG
+  NVCCFLAGS+= -O0 -g -DDEBUG # -G -lineinfo
+else
+  NVCCFLAGS+= -O2
 endif
 
 all: $(LIB_NAME)

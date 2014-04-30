@@ -49,12 +49,12 @@ y_wfs(1).lambda        = 0.5;
 y_wfs(1).gsmag         = 5.;
 y_wfs(1).optthroughput = 0.5;
 y_wfs(1).zerop         = 1.e11;
-y_wfs(1).noise         = -1;
+y_wfs(1).noise         = 3;
 
 /*
 dm inits
 */
-ndm = 2;
+ndm = 1;
 y_dm                  = array(dm_struct(),ndm); // clean start
 
 y_dm(1).type          = "pzt";
@@ -64,12 +64,12 @@ y_dm(1).thresh        = 0.3;
 y_dm(1).coupling      = 0.2;
 y_dm(1).unitpervolt   = 0.01;
 y_dm(1).push4imat     = 100.0f;
-
+/*
 y_dm(2).type          = "tt";
 y_dm(2).alt           = 0.;
 y_dm(2).unitpervolt   = 0.0005;
 y_dm(2).push4imat     = 10.0f;
-
+*/
 
 /*
 centroiders inits
@@ -88,8 +88,8 @@ y_controllers          = array(controller_struct(),ncontrollers);
 
 y_controllers(1).type    = "ls";
 y_controllers(1).nwfs    = &[1];
-y_controllers(1).ndm     = &[1,2];
-y_controllers(1).maxcond = 15.;
+y_controllers(1).ndm     = &[1];
+y_controllers(1).maxcond = 150.;
 y_controllers(1).delay   = 1;
 y_controllers(1).gain    = 0.4;
 

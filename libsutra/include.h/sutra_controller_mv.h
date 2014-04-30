@@ -36,9 +36,10 @@ public:
   carma_obj<float> *d_cenbuff; // centroids circular buffer
   carma_obj<float> *d_com1; // commands k-1 (for POLC)
   carma_obj<float> *d_com2; // commands k-2 (for POLC)
-  //carma_obj<float>          *d_combuff;   // command circular buffer 
+  carma_obj<float> *d_compbuff; // Buffer for computations
+  carma_obj<float> *d_compbuff2;
+  carma_obj<float> *d_olmeas; // Open-loop measurements for POLC
   carma_obj<float> *d_err; // current error
-  //carma_obj<float>          *d_err;       // error circular buffer  
 
   carma_streams *streams;
   int nstreams;
@@ -71,7 +72,7 @@ public:
   int
   load_noisemat(float *noise);
   int
-  do_covmat(sutra_dm *ydm,char *method, int *indx_pup, long dim, float *xpos, float *ypos, float norm);
+  do_covmat(sutra_dm *ydm,char *method, int *indx_pup, long dim, float *xpos, float *ypos, long Nkl, float norm);
   int
   do_geomat(carma_obj<float> *d_geocov, carma_obj<float> *d_IF, long n_pts);
   int
@@ -84,8 +85,6 @@ public:
   load_covmat(float *covmat);
   int
   load_klbasis(float *klbasis);
-  int
-  comp_mvcom();
 
 };
 
