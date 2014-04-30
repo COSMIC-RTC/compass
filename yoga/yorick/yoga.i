@@ -342,18 +342,6 @@ extern yoga_mv;
      
    SEE ALSO:
  */
-extern yoga_mv_sparse;
-/* DOCUMENT yoga_mv_sparse
-   vecty = yoga_mv_sparse(matA,vectx[,alpha])
-   or
-   yoga_mv_sparse,vecty,matA,vectx[,alpha,beta]
-
-   This function performs the matrix-vector multiplication product (BLAS gemv)
-   y = alpha * A * x + beta * y
-   If called as a function, it creates a new yoga object
-     
-   SEE ALSO:
- */
 extern yoga_symv;
 /* DOCUMENT yoga_symv
    vecty = yoga_symv(matA,vectx[,alpha])
@@ -834,6 +822,80 @@ extern yoga_host_getp;
    ptr = yoga_host_getp(yoga_host_obj)
 
    This function creates a pointer of the yoga_host_obj
+   
+   SEE ALSO:
+ */
+
+/*
+ *                                                                     _     _
+ *  _   _  ___   __ _  __ _     ___ _ __   __ _ _ __ ___  ___     ___ | |__ (_)
+ * | | | |/ _ \ / _` |/ _` |   / __| '_ \ / _` | '__/ __|/ _ \   / _ \| '_ \| |
+ * | |_| | (_) | (_| | (_| |   \__ \ |_) | (_| | |  \__ \  __/  | (_) | |_) | |
+ *  \__, |\___/ \__, |\__,_|___|___/ .__/ \__,_|_|  |___/\___|___\___/|_.__// |
+ *  |___/       |___/     |_____|  |_|                      |_____|       |__/
+ */
+
+extern yoga_sparse_obj
+/* DOCUMENT yoga_sparse_obj
+   obj = yoga_sparse_obj(my_array)
+   or
+   obj = yoga_sparse_obj(other_obj) 
+
+   This function creates a new Yoga Sparse object either from a type and
+   dimensions list, from a standard Yorick object or from another Yoga Host object
+    - my array is a standard Yorick array
+    - other_obj is another yoga object
+   
+   SEE ALSO:
+ */
+
+extern yoga_mv_sparse;
+/* DOCUMENT yoga_mv_sparse
+   vecty = yoga_mv_sparse(matA,vectx[,alpha])
+   or
+   yoga_mv_sparse,vecty,matA,vectx[,alpha,beta]
+
+   This function performs the matrix-vector multiplication product (BLAS gemv)
+   y = alpha * A * x + beta * y
+   If called as a function, it creates a new yoga object
+     
+   SEE ALSO:
+ */
+
+extern yoga_mm_sparse;
+/* DOCUMENT yoga_mm_sparse
+   matC = yoga_mm_sparse(matA,matB[,opA, alpha])
+   or
+   yoga_mm_sparse,matC,matA,matB[,opA, alpha, beta]
+
+   This function performs the matrix-matrix multiplication (BLAS gemm)
+   C = alpha * opA( A ) * opB ( B ) + beta * C
+
+   opA : operation on matrix A : 't' for transpose, 'n' for nothing
+
+   If called as a function, it creates a new yoga object
+     
+   SEE ALSO:
+ */
+/*
+ *                                                                _               _            _     _
+ *  _   _  ___   __ _  __ _     ___ _ __   __ _ _ __ ___  ___    | |__   ___  ___| |_     ___ | |__ (_)
+ * | | | |/ _ \ / _` |/ _` |   / __| '_ \ / _` | '__/ __|/ _ \   | '_ \ / _ \/ __| __|   / _ \| '_ \| |
+ * | |_| | (_) | (_| | (_| |   \__ \ |_) | (_| | |  \__ \  __/   | | | | (_) \__ \ |_   | (_) | |_) | |
+ *  \__, |\___/ \__, |\__,_|___|___/ .__/ \__,_|_|  |___/\___|___|_| |_|\___/|___/\__|___\___/|_.__// |
+ *  |___/       |___/     |_____|  |_|                      |_____|                 |_____|       |__/
+ */
+
+extern yoga_sparse_host_obj
+/* DOCUMENT yoga_sparse_host_obj
+   obj = yoga_sparse_host_obj(my_array)
+   or
+   obj = yoga_sparse_host_obj(other_obj) 
+
+   This function creates a new Yoga Sparse Host object either from a type and
+   dimensions list, from a standard Yorick object or from another Yoga Host object
+    - my array is a standard Yorick array
+    - other_obj is another yoga object
    
    SEE ALSO:
  */

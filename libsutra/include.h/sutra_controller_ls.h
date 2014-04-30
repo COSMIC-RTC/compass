@@ -21,8 +21,6 @@ public:
   carma_obj<float> *d_cenbuff; // centroids circular buffer
   carma_obj<float> *d_err; // current error
 
-  carma_streams *streams;
-
 public:
   sutra_controller_ls(carma_context *context, long nvalid, long nactu,
       long delay);

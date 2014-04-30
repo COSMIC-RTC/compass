@@ -12,27 +12,72 @@ carma_sparse_obj<T_data>::carma_sparse_obj() {
   _create(0, 0, 0);
 }
 
+
 template<class T_data>
-carma_sparse_obj<T_data>::carma_sparse_obj(carma_obj<T_data>* M) {
-  this->current_context = M->getContext();
-  int *nnzPerRow;
-  cudaMalloc((void**)&nnzPerRow, M->getDims(1)*sizeof(int));
-  int nnzTotalDevHostPtr;
+template<
+    cusparseStatus_t CUSPARSEAPI (*ptr_nnz)(
+        cusparseHandle_t handle, cusparseDirection_t dirA, int m, int n,
+        const cusparseMatDescr_t descrA, const T_data *A, int lda,
+        int *nnzPerRowCol, int *nnzTotalDevHostPtr),
+    cusparseStatus_t CUSPARSEAPI (*ptr_dense2csr)(cusparseHandle_t handle,
+        int m, int n, const cusparseMatDescr_t descrA, const T_data *A, int lda,
+        const int *nnzPerRow, T_data *csrValA, int *csrRowPtrA, int *csrColIndA)>
+void carma_sparse_obj<T_data>::init_carma_sparse_obj(carma_context *current_context,
+    const long *dims, T_data * M, bool loadFromHost = true) {
+  _create(0, 0, 0);
+  device = current_context->get_activeDevice();
+  this->current_context = current_context;
+  int *nnzPerRow=NULL, nnzTotalDevHostPtr=0;
+  cudaMalloc((void**) &nnzPerRow, dims[1] * sizeof(int));
+  T_data *d_M;
+  if (loadFromHost) {
+    cudaMalloc((void**) &d_M, dims[1] * dims[2] * sizeof(T_data));
+    cudaMemcpy(d_M, M, dims[1] * dims[2] * sizeof(T_data),
+        cudaMemcpyHostToDevice);
+  } else {
+    d_M = M;
+  }
 
-  cusparseMatDescr_t my_desc;
-  cusparseCreateMatDescr(&my_desc);
   cusparseHandle_t handle = current_context->get_cusparseHandle();
-  cusparseDnnz(handle, CUSPARSE_DIRECTION_ROW, M->getDims(1), M->getDims(2),
-      my_desc, M->getData(), M->getDims(1), nnzPerRow, &nnzTotalDevHostPtr);
+  ptr_nnz(handle, CUSPARSE_DIRECTION_ROW, dims[1], dims[2], descr, M, dims[1],
+      nnzPerRow, &nnzTotalDevHostPtr);
+  DEBUG_TRACE("nnzTotalDevHostPtr %d\n",nnzTotalDevHostPtr);
+  resize(nnzTotalDevHostPtr, dims[1], dims[2]);
 
-  _create(nnzTotalDevHostPtr, M->getDims(1), M->getDims(2));
+  ptr_dense2csr(handle, dims[1], dims[2], descr, M, dims[1], nnzPerRow,
+      this->d_data, this->csrRowPtr, this->d_colind);
 
-  cusparseDdense2csr(handle, M->getDims(1), M->getDims(2), my_desc, M->getData(),
-      M->getDims(1), nnzPerRow, this->d_data, this->csrRowPtr, this->d_colind);
-
+  if (loadFromHost) {
+    cudaFree(d_M);
+  }
   cudaFree(nnzPerRow);
 }
 
+template<class T_data>
+carma_sparse_obj<T_data>::carma_sparse_obj(carma_context *current_context, const long *dims, T_data * M, bool loadFromHost){
+  _create(0, 0, 0);
+}
+template<>
+carma_sparse_obj<float>::carma_sparse_obj(carma_context *current_context, const long *dims, float * M, bool loadFromHost) {
+  init_carma_sparse_obj<cusparseSnnz, cusparseSdense2csr>(current_context, dims, M, loadFromHost);
+}
+template<>
+carma_sparse_obj<double>::carma_sparse_obj(carma_context *current_context, const long *dims, double * M, bool loadFromHost) {
+  init_carma_sparse_obj<cusparseDnnz, cusparseDdense2csr>(current_context, dims, M, loadFromHost);
+}
+
+template<class T_data>
+carma_sparse_obj<T_data>::carma_sparse_obj(carma_obj<T_data>* M){
+  _create(0, 0, 0);
+}
+template<>
+carma_sparse_obj<float>::carma_sparse_obj(carma_obj<float>* M) {
+  init_carma_sparse_obj<cusparseSnnz, cusparseSdense2csr>(M->getContext(), M->getDims(), M->getData(), false);
+}
+template<>
+carma_sparse_obj<double>::carma_sparse_obj(carma_obj<double>* M) {
+  init_carma_sparse_obj<cusparseDnnz, cusparseDdense2csr>(M->getContext(), M->getDims(), M->getData(), false);
+}
 
 template<class T_data>
 carma_sparse_obj<T_data>::carma_sparse_obj(
@@ -134,6 +179,9 @@ void carma_sparse_obj<T_data>::_create(int nz_elem_, int dim1_, int dim2_) {
     cudaMalloc((void**) &d_rowind, nz_elem * sizeof(int));
     cudaMalloc((void**) &d_colind, nz_elem * sizeof(int));
     cudaMalloc((void**) &csrRowPtr, (dim1_ + 1) * sizeof(int));
+  } else {
+    d_data=NULL;
+    d_rowind=d_colind=csrRowPtr=NULL;
   }
 
   majorDim = 'U';
@@ -239,8 +287,6 @@ carma_sparse_obj<T_data>::~carma_sparse_obj<T_data>() {
 #define EXPLICITE_TEMPLATE(T_data) template carma_sparse_obj<T_data>::carma_sparse_obj(); \
     template carma_sparse_obj<T_data>::carma_sparse_obj( \
         carma_sparse_obj<T_data>* M); \
-    template carma_sparse_obj<T_data>::carma_sparse_obj( \
-        carma_obj<T_data>* M); \
     template carma_sparse_obj<T_data>::carma_sparse_obj(carma_context *current_context, \
         carma_sparse_host_obj<T_data>* M); \
     template carma_sparse_obj<T_data>::~carma_sparse_obj<T_data>(); \
@@ -254,5 +300,6 @@ carma_sparse_obj<T_data>::~carma_sparse_obj<T_data>() {
     template bool carma_sparse_obj<T_data>::isColumnMajor();
 
 EXPLICITE_TEMPLATE(double);
+EXPLICITE_TEMPLATE(float);
 
 #undef EXPLICITE_TEMPLATE

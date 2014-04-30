@@ -6,6 +6,13 @@ sutra_controller::sutra_controller(carma_context* context, int nslope,
   this->current_context = context;
   this->device = context->get_activeDevice();
 
+  int nstreams = 1; //nvalid/10;
+  while (nactu % nstreams != 0)
+    nstreams--;
+
+  cerr << "controller uses " << nstreams << " streams" << endl;
+  streams = new carma_streams(nstreams);
+
   long dims_data1[2] = { 1, 0 };
 
   dims_data1[1] = nslope;
@@ -16,6 +23,8 @@ sutra_controller::sutra_controller(carma_context* context, int nslope,
 }
 
 sutra_controller::~sutra_controller() {
+  delete this->streams;
+
   delete this->d_centroids;
   delete this->d_com;
 }

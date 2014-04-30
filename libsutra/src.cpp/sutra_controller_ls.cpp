@@ -16,13 +16,6 @@ sutra_controller_ls::sutra_controller_ls(carma_context *context, long nvalid,
   long dims_data1[2] = { 1, 0 };
   long dims_data2[3] = { 2, 0, 0 };
 
-  int nstreams = 1; //nvalid/10;
-  while (nactu % nstreams != 0)
-    nstreams--;
-
-  cerr << "controller uses " << nstreams << " streams" << endl;
-  streams = new carma_streams(nstreams);
-
   dims_data2[1] = nvalid * 2;
   dims_data2[2] = nactu;
   this->d_imat = new carma_obj<float>(context, dims_data2);
@@ -55,7 +48,6 @@ sutra_controller_ls::sutra_controller_ls(carma_context *context, long nvalid,
 sutra_controller_ls::~sutra_controller_ls() {
   current_context->set_activeDevice(device);
 
-  delete this->streams;
   delete this->d_imat;
   delete this->d_cmat;
   delete this->d_U;
@@ -198,6 +190,8 @@ int sutra_controller_ls::frame_delay() {
 }
 
 int sutra_controller_ls::comp_com() {
+
+  this->frame_delay();
   int nstreams = streams->get_nbStreams();
   if (nstreams > 1) {
     float alpha = -1.0f;

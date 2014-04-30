@@ -227,79 +227,42 @@ int sutra_rtc::do_centroids(int ncntrl, sutra_sensors *sensors, bool imat) {
 }
 
 int sutra_rtc::do_control(int ncntrl, sutra_dms *ydm) {
-  if (this->d_control[ncntrl]->get_type().compare("ls") == 0) {
-    SCAST(sutra_controller_ls *, control, this->d_control[ncntrl]);
-    //   fprintf(stderr, "[%s@%d] here!\n", __FILE__, __LINE__);
 
-    control->frame_delay();
-    control->comp_com();
+  this->d_control[ncntrl]->comp_com();
 
-    map<type_screen, sutra_dm *>::iterator p;
-    p = ydm->d_dms.begin();
-    int idx = 0;
+  map<type_screen, sutra_dm *>::iterator p;
+  p = ydm->d_dms.begin();
+  int idx = 0;
+  if ( (this->d_control[ncntrl]->get_type().compare("ls") == 0) ||
+       (this->d_control[ncntrl]->get_type().compare("mv") == 0) ) {
+    // "streamed" controllers case
+
     while (p != ydm->d_dms.end()) {
-      int nstreams = control->streams->get_nbStreams();
+      int nstreams = this->d_control[ncntrl]->streams->get_nbStreams();
       if (nstreams > p->second->ninflu) {
         for (int i = 0; i < nstreams; i++) {
           int istart = i * p->second->ninflu / nstreams;
           cutilSafeCall(
               cudaMemcpyAsync((*p->second->d_comm)[istart],
-                  (*control->d_com)[idx + istart],
+                  (*this->d_control[ncntrl]->d_com)[idx + istart],
                   sizeof(float) * p->second->ninflu / nstreams,
-                  cudaMemcpyDeviceToDevice, (*control->streams)[i]));
+                  cudaMemcpyDeviceToDevice, (*this->d_control[ncntrl]->streams)[i]));
           p->second->comp_shape();
         }
       } else {
-        p->second->comp_shape((*control->d_com)[idx]);
+        p->second->comp_shape((*this->d_control[ncntrl]->d_com)[idx]);
       }
       idx += p->second->ninflu;
       p++;
     }
-  }
-   
-   else if (this->d_control[ncntrl]->get_type().compare("mv") == 0) {
-    SCAST(sutra_controller_mv *, control, this->d_control[ncntrl]);
-
-    control->frame_delay();
-    control->comp_com();
-
-    map<type_screen, sutra_dm *>::iterator p;
-    p = ydm->d_dms.begin();
-    int idx = 0;
-    while (p != ydm->d_dms.end()) {
-      int nstreams = control->streams->get_nbStreams();
-      if (nstreams > p->second->ninflu) {
-        for (int i = 0; i < nstreams; i++) {
-          int istart = i * p->second->ninflu / nstreams;
-          cutilSafeCall(
-              cudaMemcpyAsync((*p->second->d_comm)[istart],
-                  (*control->d_com)[idx + istart],
-                  sizeof(float) * p->second->ninflu / nstreams,
-                  cudaMemcpyDeviceToDevice, (*control->streams)[i]));
-          p->second->comp_shape();
-        }
-      } else {
-        p->second->comp_shape((*control->d_com)[idx]);
-      }
-      idx += p->second->ninflu;
-      p++;
-    }
-   }   
-   else if (this->d_control[ncntrl]->get_type().compare("cured") == 0) {
-    this->d_control[ncntrl]->comp_com();
-    map<type_screen, sutra_dm *>::iterator p;
-    p = ydm->d_dms.begin();
-    int idx = 0;
+  } else { // "non-streamed" controllers
     while (p != ydm->d_dms.end()) {
       p->second->comp_shape((*this->d_control[ncntrl]->d_com)[idx]);
-     p++;
-    }
+      idx += p->second->ninflu;
+      p++;
+   }
   }
-   else // Case for unknown 
-     {
-	this->d_control[ncntrl]->comp_com();
-     }
-   
+
   return EXIT_SUCCESS;
 }
 

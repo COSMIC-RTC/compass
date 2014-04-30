@@ -70,6 +70,24 @@ typedef struct yHostObj_struct {
   int type; /**< type of data in the yoga_host_object (Yorick API types) */
 } yHostObj_struct;
 
+typedef struct ySparseObj_struct {
+  /**
+   * @typedef Yorick API yoga_object structure
+   */
+  void *carma_sparse_object; /**< pointer to a yoga_sparse_object */
+  int type; /**< type of data in the yoga_sparse_object (Yorick API types) */
+  int device; /**< device number on which it resides */
+  unsigned char isRef; /**< reference counting */
+} ySparseObj_struct;
+
+typedef struct ySparseHostObj_struct {
+  /**
+   * @typedef Yorick API yoga_host_object structure
+   */
+  void *carma_sparse_host_object; /**< pointer to a yoga_sparse_host_object */
+  int type; /**< type of data in the yoga_sparse_host_object (Yorick API types) */
+} ySparseHostObj_struct;
+
 /* 
  *                  _            _
  *   ___ ___  _ __ | |_ _____  _| |_
@@ -204,6 +222,44 @@ void
 Y_yoga_host_getp(int argc);
 
 /*
+ *                                                                     _     _
+ *  _   _  ___   __ _  __ _     ___ _ __   __ _ _ __ ___  ___     ___ | |__ (_)
+ * | | | |/ _ \ / _` |/ _` |   / __| '_ \ / _` | '__/ __|/ _ \   / _ \| '_ \| |
+ * | |_| | (_) | (_| | (_| |   \__ \ |_) | (_| | |  \__ \  __/  | (_) | |_) | |
+ *  \__, |\___/ \__, |\__,_|___|___/ .__/ \__,_|_|  |___/\___|___\___/|_.__// |
+ *  |___/       |___/     |_____|  |_|                      |_____|       |__/
+ */
+
+void
+ySparseObj_print(void *obj);
+void
+ySparseObj_eval(void *obj, int n);
+void
+ySparseObj_free(void *obj);
+
+void
+Y_yoga_sparse_obj(int argc);
+
+/*
+ *                                                                _               _            _     _
+ *  _   _  ___   __ _  __ _     ___ _ __   __ _ _ __ ___  ___    | |__   ___  ___| |_     ___ | |__ (_)
+ * | | | |/ _ \ / _` |/ _` |   / __| '_ \ / _` | '__/ __|/ _ \   | '_ \ / _ \/ __| __|   / _ \| '_ \| |
+ * | |_| | (_) | (_| | (_| |   \__ \ |_) | (_| | |  \__ \  __/   | | | | (_) \__ \ |_   | (_) | |_) | |
+ *  \__, |\___/ \__, |\__,_|___|___/ .__/ \__,_|_|  |___/\___|___|_| |_|\___/|___/\__|___\___/|_.__// |
+ *  |___/       |___/     |_____|  |_|                      |_____|                 |_____|       |__/
+ */
+
+void
+ySparseHostObj_print(void *obj);
+void
+ySparseHostObj_eval(void *obj, int n);
+void
+ySparseHostObj_free(void *obj);
+
+void
+Y_yoga_sparse_host_obj(int argc);
+
+/*
  *    _ __ ___   __ _  __ _ _ __ ___   __ _
  *   | '_ ` _ \ / _` |/ _` | '_ ` _ \ / _` |
  *   | | | | | | (_| | (_| | | | | | | (_| |
@@ -233,7 +289,7 @@ Y_yoga_cula_svd_host(int argc);
  *    __ _ _ __ _ __ __ _ _   _ ___
  *   / _` | '__| '__/ _` | | | / __|
  *  | (_| | |  | | | (_| | |_| \__ \
-   *   \__,_|_|  |_|  \__,_|\__, |___/
+ *   \__,_|_|  |_|  \__,_|\__, |___/
  *                        |___/
  */
 

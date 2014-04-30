@@ -47,6 +47,8 @@ public:
   carma_obj<float> *d_centroids; // current centroids
   carma_obj<float> *d_com; // current command
 
+  carma_streams *streams;
+
 protected:
   int device;
   carma_context *current_context;

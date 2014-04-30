@@ -41,8 +41,6 @@ public:
   carma_obj<float> *d_olmeas; // Open-loop measurements for POLC
   carma_obj<float> *d_err; // current error
 
-  carma_streams *streams;
-  int nstreams;
   cublasHandle_t cublas_handle;
 
 public:

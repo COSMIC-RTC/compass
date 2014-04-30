@@ -25,6 +25,12 @@ carma_sparse_host_obj<T_data>::carma_sparse_host_obj(
 }
 
 template<class T_data>
+carma_sparse_host_obj<T_data>::carma_sparse_host_obj(const long *dims, T_data * M, char order){
+  _create(0, 0, 0);
+  init_from_matrix(dims, M, order);
+}
+
+template<class T_data>
 void carma_sparse_host_obj<T_data>::resize(int nnz_, int dim1_, int dim2_) {
   if (nz_elem != nnz_) {
     _clear();
@@ -142,10 +148,10 @@ void carma_sparse_host_obj<T_data>::init_from_transpose(
 
 template<class T_data>
 void carma_sparse_host_obj<T_data>::init_from_matrix(
-    carma_host_obj<T_data>* B, char majorDim='R') {
+    const long *dims, T_data * M, char majorDim='R') {
 
-  long nb_el = B->getDims(1) * B->getDims(2);
-  T_data* valB = B->getData();
+  long nb_el = dims[1] * dims[2];
+  T_data* valB = M;
   long cmpt = 0;
   for (long i = 0; i < nb_el; i++) {
     if (*valB != 0) {
@@ -154,7 +160,7 @@ void carma_sparse_host_obj<T_data>::init_from_matrix(
     valB++;
   }
 
-  resize(cmpt, B->getDims(1), B->getDims(2));
+  resize(cmpt, dims[1], dims[2]);
   int *dim1, *dim2, ld;
   if(majorDim=='R'){
     dim1=this->rowind;
@@ -165,7 +171,7 @@ void carma_sparse_host_obj<T_data>::init_from_matrix(
     dim2=this->rowind;
     ld=dims_data[2];
   }
-  valB = B->getData();
+  valB = M;
   long index=0;
   for(long i = 0;(index<cmpt)||(i < nb_el); i++) {
     if (*valB != 0) {
@@ -195,7 +201,58 @@ void carma_sparse_host_obj<T_data>::init_from_matrix(
     }
   }
 
+  //coo2csr
+  int *csr_row_ind=(int*)malloc((ld+1)*sizeof(int));
+  csr_row_ind[0]=0;
+  long csr_index=0;
+  index=0;
+  while(csr_index<ld+1){
+    while(rowind[index]==csr_index){
+      index++;
+    }
+    csr_row_ind[++csr_index]=index;
+  }
+  free(rowind);
+  rowind=csr_row_ind;
+//  DEBUG_TRACE("h_data:\n");
+//  for(index=0; index<nz_elem; index++){
+//    fprintf(stderr, "%f ", h_data[index]);
+//  } fprintf(stderr, "\n");
+//  DEBUG_TRACE("rowind:\n");
+//  for(index=0; index<ld+1; index++){
+//    fprintf(stderr, "%d ", rowind[index]);
+//  } fprintf(stderr, "\n");
+//  DEBUG_TRACE("colind:\n");
+//  for(index=0; index<nz_elem; index++){
+//    fprintf(stderr, "%d ", colind[index]);
+//  } fprintf(stderr, "\n");
+
   this->majorDim = majorDim;
+}
+
+template<class T_data>
+void carma_sparse_host_obj<T_data>::copy_into_matrix(
+    T_data * M, char majorDim='R') {
+  int ld;
+  if(majorDim=='R'){
+    ld=dims_data[1];
+  } else {
+    ld=dims_data[2];
+  }
+  T_data* val = this->h_data;
+  int index=0;
+  for(int i=0; i<ld; i++){
+    while(index<rowind[i+1]){
+      if(majorDim=='R'){
+        M[i*rowind[i]+colind[index]]=*val;
+      } else {
+        M[i+ld*colind[index]]=*val;
+      }
+
+      //DEBUG_TRACE("%d %d %d %d\n",i,index, rowind[i+1], rowind[i]+ld*colind[index]);
+      index++;val++;
+    }
+  }
 }
 
 template<class T_data>
@@ -394,13 +451,16 @@ void carma_sparse_host_obj<T_data>::resize2colMajor() {
     template carma_sparse_host_obj<T_data>::~carma_sparse_host_obj(); \
     template carma_sparse_host_obj<T_data>::carma_sparse_host_obj( \
         carma_sparse_host_obj<T_data>& M); \
+    template carma_sparse_host_obj<T_data>::carma_sparse_host_obj( \
+        const long *dims, T_data * M, char order); \
     template void carma_sparse_host_obj<T_data>::resize(int nnz_, int dim1_, int dim2_); \
     template void carma_sparse_host_obj<T_data>::operator=( carma_sparse_host_obj<T_data>& M); \
     template void carma_sparse_host_obj<T_data>::init_from_rowidx( \
         carma_sparse_host_obj<T_data>* M, vector<int>* idx); \
     template void carma_sparse_host_obj<T_data>::init_from_transpose( \
         carma_sparse_host_obj<T_data>*M); \
-    template void carma_sparse_host_obj<T_data>::init_from_matrix(carma_host_obj<T_data>* B, char majorDim='R'); \
+    template void carma_sparse_host_obj<T_data>::init_from_matrix(const long *dims, T_data * M, char majorDim='R'); \
+    template void carma_sparse_host_obj<T_data>::copy_into_matrix(T_data * M, char majorDim='R'); \
     template void carma_sparse_host_obj<T_data>::check(); \
     template void carma_sparse_host_obj<T_data>::_create(int nnz_, int dim1_, int dim2_); \
     template void carma_sparse_host_obj<T_data>::_clear(); \
@@ -415,6 +475,7 @@ void carma_sparse_host_obj<T_data>::resize2colMajor() {
     template void carma_sparse_host_obj<T_data>::resize2colMajor();
 
 EXPLICITE_TEMPLATE(double)
+EXPLICITE_TEMPLATE(float)
 
 
 #undef EXPLICITE_TEMPLATE

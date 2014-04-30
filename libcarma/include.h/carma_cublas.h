@@ -11,7 +11,6 @@
 #include <cuda_runtime_api.h>
 /* Using updated (v2) interfaces to cublas */
 #include <cublas_v2.h>
-#include <cusparse_v2.h>
 
 using namespace std;
 
@@ -22,12 +21,6 @@ cublasStatus_t carma_shutdownCublas(cublasHandle_t cublas_handle);
 
 cublasOperation_t carma_char2cublasOperation(char operation);
 
-cusparseStatus_t carma_checkCusparseStatus(cusparseStatus_t status);
-
-cusparseStatus_t carma_initCusparse(cusparseHandle_t *cusparse_handle);
-cusparseStatus_t carma_shutdownCusparse(cusparseHandle_t cusparse_handle);
-
-cusparseOperation_t carma_char2cusparseOperation(char operation);
 
 /*
  * _____ _____ __  __ ____  _        _  _____ _____ ____

@@ -26,6 +26,7 @@
 
 #include <carma_utils.h>
 #include <carma_cublas.h>
+#include <carma_cusparse.h>
 
 using namespace std;
 

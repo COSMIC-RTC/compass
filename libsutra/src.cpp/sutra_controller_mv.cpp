@@ -12,11 +12,6 @@ sutra_controller_mv::sutra_controller_mv(carma_context *context, long nvalid,
   this->device = device;
   this->gain = 0.0f;
 
-  this->nstreams = 1; //nvalid/10;
-  while (nactu % this->nstreams != 0)
-    nstreams--;
-  cerr << "controller uses " << nstreams << " streams" << endl;
-  streams = new carma_streams(nstreams);
   long dims_data2[3];
   dims_data2[0] = 2;
   dims_data2[1] = nslope;
@@ -69,7 +64,6 @@ sutra_controller_mv::~sutra_controller_mv() {
   current_context->set_activeDevice(device);
   delete this->d_U;
 
-  delete this->streams;
   delete this->d_imat;
   delete this->d_cmat;
   delete this->d_gain;
@@ -517,6 +511,7 @@ int sutra_controller_mv::frame_delay() {
 
 int sutra_controller_mv::comp_com() {
 
+  this->frame_delay();
   this->d_com2->copy(this->d_com1, 1, 1);
   this->d_com1->copy(this->d_com, 1, 1);
   // POLC equations
@@ -527,8 +522,8 @@ int sutra_controller_mv::comp_com() {
   carma_geam<float>(cublas_handle, 'n', 'n', nslope, 1, 1.0f, *d_centroids,
       nslope, -1.0f, *d_compbuff2, nslope, *d_olmeas, nslope);
 
-  if (this->nstreams > 1) {
-    int nstreams = this->nstreams;
+  int nstreams = this->streams->get_nbStreams();
+  if (nstreams > 1) {
     float alpha = -1.0f;
     float beta = 0.0f;
 

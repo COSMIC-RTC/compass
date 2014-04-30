@@ -36,6 +36,7 @@ public:
   carma_sparse_obj(carma_obj<T_data>* M);
   carma_sparse_obj(carma_sparse_obj<T_data>* M);
   carma_sparse_obj(carma_context *current_context, carma_sparse_host_obj<T_data>* M);
+  carma_sparse_obj(carma_context *current_context, const long *dims, T_data * M, bool loadFromHost);
   virtual ~carma_sparse_obj();
 
   void operator=( carma_sparse_obj<T_data>& M);
@@ -85,15 +86,25 @@ private:
   void _create(int nnz_, int dim1_, int dim2_);
   void _clear();
 
+  template<
+      cusparseStatus_t CUSPARSEAPI (*ptr_nnz)(cusparseHandle_t handle,
+          cusparseDirection_t dirA, int m, int n, const cusparseMatDescr_t descrA,
+          const T_data *A, int lda, int *nnzPerRowCol, int *nnzTotalDevHostPtr),
+      cusparseStatus_t CUSPARSEAPI (*ptr_dense2csr)(cusparseHandle_t handle,
+          int m, int n, const cusparseMatDescr_t descrA, const T_data *A,
+          int lda, const int *nnzPerRow, T_data *csrValA, int *csrRowPtrA,
+          int *csrColIndA)>
+  void init_carma_sparse_obj(carma_context *current_context, const long *dims,
+      T_data * M, bool loadFromHost);
 };
 
 template<class T_data>
-cusparseStatus_t carma_gemv(cusparseHandle_t handle, char op_A,
-    T_data alpha, carma_sparse_obj<T_data>* A, carma_obj<T_data>* x,
-    T_data beta, carma_obj<T_data>* y);
+cusparseStatus_t carma_gemv(cusparseHandle_t handle, char op_A, T_data alpha,
+    carma_sparse_obj<T_data>* A, carma_obj<T_data>* x, T_data beta,
+    carma_obj<T_data>* y);
 
 template<class T_data>
-void carma_gemm(cusparseHandle_t handle, char op_A, T_data alpha,
+cusparseStatus_t carma_gemm(cusparseHandle_t handle, char op_A, T_data alpha,
     carma_sparse_obj<T_data>* A, carma_obj<T_data>* B, T_data beta,
     carma_obj<T_data>* C);
 

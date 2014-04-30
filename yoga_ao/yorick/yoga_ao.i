@@ -684,7 +684,7 @@ func rtc_init(clean=)
 		    imat_init,i,clean=clean;
 		    write,"done";
 
-		    comp_mode = "CPU";
+		    comp_mode = "GPU";
 		    method = "inv";
 		    //ndms = ndms(1);
 		    //error;

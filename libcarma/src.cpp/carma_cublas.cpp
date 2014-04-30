@@ -62,69 +62,6 @@ cublasOperation_t carma_char2cublasOperation(char operation) {
   }
 }
 
-#define carma_checkCusparseStatus(status) carma_checkCusparseStatus_v2(status, __LINE__, __FILE__)
-
-cusparseStatus_t carma_checkCusparseStatus_v2(cusparseStatus_t status, int line,
-    string file)
-    /**< Generic CUSPARSE check status routine */
-    {
-  switch (status) {
-  case CUSPARSE_STATUS_SUCCESS:
-    return status;
-  case CUSPARSE_STATUS_NOT_INITIALIZED:
-    cerr << "!!!!! Cusparse error : CUBLAS_STATUS_NOT_INITIALIZED !!!!!\n";
-    break;
-  case CUSPARSE_STATUS_ALLOC_FAILED:
-    cerr << "!!!!! Cusparse error : CUBLAS_STATUS_ALLOC_FAILED !!!!!\n";
-    break;
-  case CUSPARSE_STATUS_INVALID_VALUE:
-    cerr << "!!!!! Cusparse error : CUBLAS_STATUS_ALLOC_FAILED !!!!!\n";
-    break;
-  case CUSPARSE_STATUS_ARCH_MISMATCH:
-    cerr << "!!!!! Cusparse error : CUBLAS_STATUS_ARCH_MISMATCH !!!!!\n";
-    break;
-  case CUSPARSE_STATUS_MAPPING_ERROR:
-    cerr << "!!!!! Cusparse error : CUBLAS_STATUS_MAPPING_ERROR !!!!!\n";
-    break;
-  case CUSPARSE_STATUS_EXECUTION_FAILED:
-    cerr << "!!!!! Cusparse error : CUBLAS_STATUS_EXECUTION_FAILED !!!!!\n";
-    break;
-  case CUSPARSE_STATUS_INTERNAL_ERROR:
-    cerr << "!!!!! Cusparse error : CUBLAS_STATUS_INTERNAL_ERROR !!!!!\n";
-    break;
-  case CUSPARSE_STATUS_MATRIX_TYPE_NOT_SUPPORTED:
-    cerr << "!!!!! Cusparse error : CUSPARSE_STATUS_MATRIX_TYPE_NOT_SUPPORTED !!!!!\n";
-    break;
-  }
-  cerr << "!!!!! Cusparse error in " << file << "@" << line << " !!!!!\n";
-  return status;
-}
-
-cusparseStatus_t carma_initCusparse(cusparseHandle_t *cusparse_handle)
-/**< Generic CUSPARSE init routine */
-{
-  return carma_checkCusparseStatus(cusparseCreate(cusparse_handle));
-}
-
-cusparseStatus_t carma_shutdownCusparse(cusparseHandle_t cusparse_handle)
-/**< Generic CUSPARSE shutdown routine */
-{
-  return carma_checkCusparseStatus(cusparseDestroy(cusparse_handle));
-}
-
-cusparseOperation_t carma_char2cusparseOperation(char operation) {
-  switch (operation) {
-  case 't':
-  case 'T':
-    return CUSPARSE_OPERATION_TRANSPOSE;
-  case 'c':
-  case 'C':
-   return CUSPARSE_OPERATION_CONJUGATE_TRANSPOSE;
-  default:
-    return CUSPARSE_OPERATION_NON_TRANSPOSE;
-  }
-}
-
 /*
  * _____ _____ __  __ ____  _        _  _____ _____ ____  
  *|_   _| ____|  \/  |  _ \| |      / \|_   _| ____/ ___|
@@ -357,22 +294,6 @@ cublasStatus_t carma_gemv<double>(cublasHandle_t cublas_handle, char trans,
   return carma_checkCublasStatus(cublasDgemv(cublas_handle,trans2,m,n,&alpha,matA,lda,vectx,incx,&beta,vecty,incy));
 }
 
-template<class T_data>
-cusparseStatus_t carma_gemv(cusparseHandle_t handle, char op_A,
-    T_data alpha, carma_sparse_obj<T_data>* A, carma_obj<T_data>* x,
-    T_data beta, carma_obj<T_data>* y);
-
-template<>
-cusparseStatus_t carma_gemv<double>(cusparseHandle_t handle, char op_A, double alpha,
-    carma_sparse_obj<double>* A, carma_obj<double>* x, double beta,
-    carma_obj<double>* y){
-  cusparseOperation_t trans=carma_char2cusparseOperation(op_A);
-
-  return carma_checkCusparseStatus(cusparseDcsrmv(handle, trans, A->getDims(1), A->getDims(2), A->nz_elem, &alpha,
-      A->descr, A->d_data, A->csrRowPtr, A->d_colind, *x, &beta, *y));
-
-}
-
 /** These templates are used to select the proper ger executable from T_data*/
 template<class T_data>
 cublasStatus_t
@@ -435,35 +356,6 @@ cublasStatus_t carma_gemm<double>(cublasHandle_t cublas_handle, char transa,
   cublasOperation_t transa2 = carma_char2cublasOperation(transa);
   cublasOperation_t transb2 = carma_char2cublasOperation(transb);
   return carma_checkCublasStatus(cublasDgemm(cublas_handle,transa2,transb2,m,n,k,&alpha,matA,lda,matB,ldb,&beta,matC,ldc));
-}
-// y = alpha * op_A(A) * x + beta * y
-// alpha * op_A(A) * B + beta * C
-template<class T_data>
-void carma_gemm(cusparseHandle_t handle, char op_A, T_data alpha,
-    carma_sparse_obj<T_data>* A, carma_obj<T_data>* B, T_data beta,
-    carma_obj<T_data>* C);
-template<>
-void carma_gemm<double>(cusparseHandle_t handle, char op_A, double alpha,
-    carma_sparse_obj<double>* A, carma_obj<double>* B, double beta,
-    carma_obj<double>* C){
-  //ofstream fichier;
-
-  cusparseOperation_t transa = carma_char2cusparseOperation(op_A);
-  //cusparseOperation_t transb = carma_char2cusparseOperation(op_B);
-  cusparseStatus_t status;
-
-  status = cusparseDcsrmm(handle, transa, A->getDims(1), B->getDims(2), A->getDims(2), A->nz_elem,
-      &alpha, A->descr, A->d_data, A->csrRowPtr, A->d_colind, *B, B->getDims(1),
-      &beta, *C, C->getDims(1));
-
-
-  if (status != CUSPARSE_STATUS_SUCCESS) {
-    cerr << "Error | carma_gemm (sparse) | Matrix-matrix multiplication failed"
-        << endl;
-    throw "Error | carma_gemm (sparse) | Matrix-matrix multiplication failed";
-    //exit(EXIT_FAILURE);
-  }
-
 }
 
 /** These templates are used to select the proper symm executable from T_data*/

@@ -14,6 +14,7 @@ class carma_sparse_host_obj {
 public:
   carma_sparse_host_obj();
   carma_sparse_host_obj(carma_sparse_host_obj<T_data>& sm);
+  carma_sparse_host_obj(const long *dims, T_data * M, char order);
   virtual ~carma_sparse_host_obj();
 
   //delete all arrays and create new for nnz=new_nnz
@@ -31,7 +32,8 @@ public:
   //init from transpose sparce matrix
   void init_from_transpose(carma_sparse_host_obj<T_data>* M);
   void check();
-  void init_from_matrix(carma_host_obj<T_data>* B, char majorDim);
+  void init_from_matrix(const long *dims, T_data * M, char majorDim);
+  void copy_into_matrix(T_data * M, char majorDim);
   void resize2rowMajor();
   void resize2colMajor();
   char get_majorDim() const {
