@@ -562,7 +562,7 @@ int sutra_wfs::comp_sh_generic() {
           cudaMemset(this->d_fttotim->getData(), 0,
               sizeof(cuFloatComplex) * this->d_fttotim->getNbElem()));
 
-      int indxstart1, indxstart2, indxstart3;
+      int indxstart1, indxstart2=0, indxstart3;
 
       if ((cc == this->nffthr - 1) && (this->nvalid % this->nmaxhr != 0)) {
         indxstart1 = this->d_camplifoc->getNbElem()
@@ -811,11 +811,16 @@ int sutra_wfs::comp_pyr_generic() {
 int sutra_wfs::comp_image() {
 
   int result;
-  if (this->type == "sh")
+  if (this->type == "sh"){
     result = comp_sh_generic();
-  if (this->type == "pyr")
+  }
+  if (this->type == "pyr"){
     result = comp_pyr_generic();
-
+  }
+  else {
+    DEBUG_TRACE("unknown wfs type : %s\n", this->type.c_str());
+    result = EXIT_FAILURE;
+  }
   /*
    if(result==EXIT_SUCCESS)
    fillbinimg(this->d_binimg->getData(),this->d_bincube->getData(),this->npix,this->nvalid,this->npix*this->nxsub,

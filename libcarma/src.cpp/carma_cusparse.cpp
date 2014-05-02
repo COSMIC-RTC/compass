@@ -94,7 +94,7 @@ cusparseStatus_t carma_gemv(cusparseHandle_t handle, char op_A,
   cusparseOperation_t trans=carma_char2cusparseOperation(op_A);
 
   return carma_checkCusparseStatus(csrmv(handle, trans, A->getDims(1), A->getDims(2), A->nz_elem, &alpha,
-      A->descr, A->d_data, A->csrRowPtr, A->d_colind, *x, &beta, *y));
+      A->descr, A->d_data, A->d_rowind, A->d_colind, *x, &beta, *y));
 
 };
 
@@ -137,7 +137,7 @@ cusparseStatus_t carma_gemm(cusparseHandle_t handle, char op_A, T_data alpha,
   cusparseStatus_t status;
 
   status = csrmm(handle, transa, A->getDims(1), B->getDims(2), A->getDims(2), A->nz_elem,
-      &alpha, A->descr, A->d_data, A->csrRowPtr, A->d_colind, *B, B->getDims(1),
+      &alpha, A->descr, A->d_data, A->d_rowind, A->d_colind, *B, B->getDims(1),
       &beta, *C, C->getDims(1));
 
   if (status != CUSPARSE_STATUS_SUCCESS) {

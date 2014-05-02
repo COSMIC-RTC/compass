@@ -10,9 +10,13 @@
 #include "carma_host_obj.h"
 
 template<class T_data>
+class carma_sparse_obj;
+
+template<class T_data>
 class carma_sparse_host_obj {
 public:
   carma_sparse_host_obj();
+  carma_sparse_host_obj(carma_sparse_obj<T_data>& sm);
   carma_sparse_host_obj(carma_sparse_host_obj<T_data>& sm);
   carma_sparse_host_obj(const long *dims, T_data * M, char order);
   virtual ~carma_sparse_host_obj();
@@ -20,18 +24,9 @@ public:
   //delete all arrays and create new for nnz=new_nnz
   void resize(int new_nnz, int dim1_, int dim2_);
 
+  void operator=(carma_sparse_obj<T_data>& M);
   void operator=(carma_sparse_host_obj<T_data>& M);
 
-  //we take from M only rows which in rowidx
-  //analogue of MATLAB's this = M(idx,:)
-  //idx is in normal zero based indexing
-  //but we keep sparse matrix in one-based indexing
-  void init_from_rowidx(carma_sparse_host_obj<T_data>* M,
-      vector<int>* idx);
-
-  //init from transpose sparce matrix
-  void init_from_transpose(carma_sparse_host_obj<T_data>* M);
-  void check();
   void init_from_matrix(const long *dims, T_data * M, char majorDim);
   void copy_into_matrix(T_data * M, char majorDim);
   void resize2rowMajor();

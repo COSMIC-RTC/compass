@@ -3626,12 +3626,14 @@ void ySparseObj_eval(void *obj, int n)
       carma_sparse_obj<float> *carma_sparse_obj_handler =
           (carma_sparse_obj<float> *) (handler->carma_sparse_object);
       float *data = ypush_f((long*) carma_sparse_obj_handler->getDims());
-      //carma_sparse_obj_handler->fill_into(data);
+      carma_sparse_host_obj<float> tmp(*carma_sparse_obj_handler);
+      tmp.copy_into_matrix(data,'C');
     } else if (handler->type == Y_DOUBLE) {
       carma_sparse_obj<double> *carma_sparse_obj_handler =
           (carma_sparse_obj<double> *) (handler->carma_sparse_object);
       double *data = ypush_d((long*) carma_sparse_obj_handler->getDims());
-      //carma_sparse_obj_handler->fill_into(data);
+      carma_sparse_host_obj<double> tmp(*carma_sparse_obj_handler);
+      tmp.copy_into_matrix(data,'C');
     } else
       throw "Type unknown";
   } catch (string &msg) {
@@ -3687,11 +3689,11 @@ void Y_yoga_sparse_obj(int argc)
       handle->type = oType;
 
       if (oType == Y_FLOAT) {
-        carma_sparse_host_obj<float> tmp(dims,(float*) data_input, 'C');
-        handle->carma_sparse_object = new carma_sparse_obj<float>(context_handle, &tmp);
+        //carma_sparse_host_obj<float> tmp(dims,(float*) data_input, 'C');
+        handle->carma_sparse_object = new carma_sparse_obj<float>(context_handle, dims, (float*)data_input, true);
       } else if (oType == Y_DOUBLE) {
-        carma_sparse_host_obj<double> tmp(dims,(double*) data_input, 'C');
-        handle->carma_sparse_object = new carma_sparse_obj<double>(context_handle, &tmp);
+        //carma_sparse_host_obj<double> tmp(dims,(double*) data_input, 'C');
+        handle->carma_sparse_object = new carma_sparse_obj<double>(context_handle, dims, (double*)data_input, true);
       } else {
         stringstream buf;
         buf << "Type not found in " << __FILE__ << "@" << __LINE__ << endl;

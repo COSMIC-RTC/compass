@@ -6,6 +6,7 @@
  */
 
 #include "carma_sparse_obj.h"
+#include "carma_sparse_host_obj.h"
 
 template<class T_data>
 carma_sparse_obj<T_data>::carma_sparse_obj() {
@@ -28,24 +29,24 @@ void carma_sparse_obj<T_data>::init_carma_sparse_obj(carma_context *current_cont
   device = current_context->get_activeDevice();
   this->current_context = current_context;
   int *nnzPerRow=NULL, nnzTotalDevHostPtr=0;
-  cudaMalloc((void**) &nnzPerRow, dims[1] * sizeof(int));
+  cudaMalloc((void**) &nnzPerRow, dims[2] * sizeof(*nnzPerRow));
   T_data *d_M;
   if (loadFromHost) {
-    cudaMalloc((void**) &d_M, dims[1] * dims[2] * sizeof(T_data));
-    cudaMemcpy(d_M, M, dims[1] * dims[2] * sizeof(T_data),
+    cudaMalloc((void**) &d_M, dims[1] * dims[2] * sizeof(*d_M));
+    cudaMemcpy(d_M, M, dims[1] * dims[2] * sizeof(*d_M),
         cudaMemcpyHostToDevice);
   } else {
     d_M = M;
   }
 
   cusparseHandle_t handle = current_context->get_cusparseHandle();
-  ptr_nnz(handle, CUSPARSE_DIRECTION_ROW, dims[1], dims[2], descr, M, dims[1],
+  ptr_nnz(handle, CUSPARSE_DIRECTION_ROW, dims[1], dims[2], descr, d_M, dims[1],
       nnzPerRow, &nnzTotalDevHostPtr);
-  DEBUG_TRACE("nnzTotalDevHostPtr %d\n",nnzTotalDevHostPtr);
+  //DEBUG_TRACE("nnzTotalDevHostPtr %d\n",nnzTotalDevHostPtr);
   resize(nnzTotalDevHostPtr, dims[1], dims[2]);
 
-  ptr_dense2csr(handle, dims[1], dims[2], descr, M, dims[1], nnzPerRow,
-      this->d_data, this->csrRowPtr, this->d_colind);
+  ptr_dense2csr(handle, dims[1], dims[2], descr, d_M, dims[1], nnzPerRow,
+      this->d_data, this->d_rowind, this->d_colind);
 
   if (loadFromHost) {
     cudaFree(d_M);
@@ -87,7 +88,7 @@ carma_sparse_obj<T_data>::carma_sparse_obj(
   _create(M->nz_elem, M->getDims(1), M->getDims(2));
 
   cudaMemcpy(d_data, M->d_data, nz_elem*sizeof(T_data), cudaMemcpyDeviceToDevice);
-  cudaMemcpy(d_rowind, M->d_rowind, nz_elem*sizeof(int), cudaMemcpyDeviceToDevice);
+  cudaMemcpy(d_rowind, M->d_rowind, (M->getDims(1)+1)*sizeof(int), cudaMemcpyDeviceToDevice);
   cudaMemcpy(d_colind, M->d_colind, nz_elem*sizeof(int), cudaMemcpyDeviceToDevice);
 
   majorDim = M->majorDim;
@@ -110,24 +111,19 @@ carma_sparse_obj<T_data>::carma_sparse_obj(carma_context *current_context,
 
   cudaMemcpy(d_data, M->h_data, nz_elem * sizeof(T_data),
       cudaMemcpyHostToDevice);
-  cudaMemcpy(d_rowind, M->rowind, nz_elem * sizeof(int),
+  cudaMemcpy(d_rowind, M->rowind, (M->getDims(1)+1) * sizeof(int),
       cudaMemcpyHostToDevice);
   cudaMemcpy(d_colind, M->colind, nz_elem * sizeof(int),
       cudaMemcpyHostToDevice);
 
   majorDim = M->get_majorDim();
-
-  cusparseHandle_t cusparseHandle=current_context->get_cusparseHandle();
-  cusparseXcoo2csr(cusparseHandle, d_rowind,
-      nz_elem, getDims(1), csrRowPtr, CUSPARSE_INDEX_BASE_ZERO);
-
 }
 
 template<class T_data>
 void carma_sparse_obj<T_data>::operator=( carma_sparse_obj<T_data> &M) {
   resize(M.nz_elem, M.getDims(1), M.getDims(2));
   cudaMemcpy(d_data, M.d_data, nz_elem*sizeof(T_data), cudaMemcpyDeviceToDevice);
-  cudaMemcpy(d_rowind, M.d_rowind, nz_elem*sizeof(int), cudaMemcpyDeviceToDevice);
+  cudaMemcpy(d_rowind, M.d_rowind, (M.getDims(1)+1)*sizeof(int), cudaMemcpyDeviceToDevice);
   cudaMemcpy(d_colind, M.d_colind, nz_elem*sizeof(int), cudaMemcpyDeviceToDevice);
 
   majorDim = M.majorDim;
@@ -144,7 +140,7 @@ void carma_sparse_obj<T_data>::operator=(
   resize(M.nz_elem, M.getDims(1), M.getDims(2));
   cudaMemcpy(d_data, M.h_data, nz_elem * sizeof(T_data),
       cudaMemcpyHostToDevice);
-  cudaMemcpy(d_rowind, M.rowind, nz_elem * sizeof(int),
+  cudaMemcpy(d_rowind, M.rowind, (M.getDims(1)+1) * sizeof(int),
       cudaMemcpyHostToDevice);
   cudaMemcpy(d_colind, M.colind, nz_elem * sizeof(int),
       cudaMemcpyHostToDevice);
@@ -176,12 +172,11 @@ void carma_sparse_obj<T_data>::_create(int nz_elem_, int dim1_, int dim2_) {
 
   if (nz_elem > 0) {
     cudaMalloc((void**) &d_data, nz_elem * sizeof(T_data));
-    cudaMalloc((void**) &d_rowind, nz_elem * sizeof(int));
+    cudaMalloc((void**) &d_rowind, (dim1_+1) * sizeof(int));
     cudaMalloc((void**) &d_colind, nz_elem * sizeof(int));
-    cudaMalloc((void**) &csrRowPtr, (dim1_ + 1) * sizeof(int));
   } else {
     d_data=NULL;
-    d_rowind=d_colind=csrRowPtr=NULL;
+    d_rowind=d_colind=NULL;
   }
 
   majorDim = 'U';
@@ -196,6 +191,10 @@ void carma_sparse_obj<T_data>::_create(int nz_elem_, int dim1_, int dim2_) {
 
   }
 
+  cusparseSetMatType(descr, CUSPARSE_MATRIX_TYPE_GENERAL);
+  //cusparseSetMatDiagType(descr, CUSPARSE_DIAG_TYPE_NON_UNIT);
+  //cusparseSetMatFillMode(descr, CUSPARSE_FILL_MODE_LOWER);
+  cusparseSetMatIndexBase(descr, CUSPARSE_INDEX_BASE_ZERO);
 }
 
 template<class T_data>
@@ -203,7 +202,7 @@ void carma_sparse_obj<T_data>::_clear() {
   cusparseStatus_t status;
 
   if (nz_elem > 0) {
-    if (csrRowPtr == NULL || d_data == NULL
+    if ( d_data == NULL
         || d_rowind == NULL || d_colind == NULL) {
       cerr << "Error | carma_sparse_obj<T_data>::_clear | double clear" << endl;
       throw "Error | carma_sparse_obj<T_data>::_clear | double clear";
@@ -211,12 +210,10 @@ void carma_sparse_obj<T_data>::_clear() {
     cudaFree(d_data);
     cudaFree (d_rowind);
     cudaFree (d_colind);
-    cudaFree(csrRowPtr);
   }
   d_data = NULL;
   d_rowind = NULL;
   d_colind = NULL;
-  csrRowPtr = NULL;
   nz_elem = 0;
   dims_data[0] = 2;
   dims_data[1] = 0;
@@ -242,7 +239,7 @@ void carma_sparse_obj<T_data>::init_from_transpose(
   resize(M->nz_elem, M->getDims(1), M->getDims(2));
 
   cudaMemcpy(d_data, M->d_data, nz_elem*sizeof(T_data), cudaMemcpyDeviceToDevice);
-  cudaMemcpy(d_rowind, M->d_rowind, nz_elem*sizeof(int), cudaMemcpyDeviceToDevice);
+  cudaMemcpy(d_rowind, M->d_rowind, (M->getDims(1)+1)*sizeof(int), cudaMemcpyDeviceToDevice);
   cudaMemcpy(d_colind, M->d_colind, nz_elem*sizeof(int), cudaMemcpyDeviceToDevice);
 
   if (M->majorDim == 'C')

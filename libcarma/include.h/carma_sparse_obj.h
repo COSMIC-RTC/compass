@@ -8,8 +8,10 @@
 #ifndef CARMA_SPARSE_OBJ_H_
 #define CARMA_SPARSE_OBJ_H_
 #include <cusparse_v2.h>
-#include "carma_sparse_host_obj.h"
 #include "carma_obj.h"
+
+template<class T_data>
+class carma_sparse_host_obj;
 
 template<class T_data>
 class carma_sparse_obj {
@@ -19,12 +21,10 @@ public:
   int device; ///< device where the carma_obj is allocate
   carma_context *current_context;
 
-  int* csrRowPtr;
-
-  // ONE-BASED INDEXING
-  T_data* d_data;
-  int* d_rowind;
-  int* d_colind;
+  // ZERO-BASED INDEXING CSR-FORMAT
+  T_data* d_data; //nz_elem elements
+  int* d_rowind;  //dim1+1  elements
+  int* d_colind;  //nz_elem elements
   cusparseMatDescr_t descr;
 
   char majorDim;

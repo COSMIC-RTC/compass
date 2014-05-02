@@ -94,6 +94,10 @@ carma_context::carma_context() {
   carma_initCublas(&cublasHandle);
   carma_initCusparse(&cusparseHandle);
 
+//  cusparsePointerMode_t mode;
+//  cusparseGetPointerMode(cusparseHandle, &mode);
+//  DEBUG_TRACE("%d\n", mode);
+
 #ifdef USE_CULA
   // CULA init 
   culaStatus status = culaInitialize();
