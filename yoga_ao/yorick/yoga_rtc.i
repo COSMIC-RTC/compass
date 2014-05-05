@@ -30,6 +30,9 @@ func imat_init(ncontrol,clean=)
     
     rtc_doimat,g_rtc,ncontrol-1,g_wfs,g_dm;
     imat = rtc_getimat(g_rtc,ncontrol-1);
+    /*
+    imat = imat_geom();
+    */
   } else {
     if (simul_name != [])
       imat = fits_read(swrite(format=dirsave+"imat-%d-%s.fits",ncontrol,simul_name));
@@ -328,6 +331,7 @@ func imat_geom(void)
       
       //mscreen = sensors_getdata(g_wfs,0,"phase");
       //window,1;pli,mscreen;
+      //hitReturn;
 
       slopes_geom,g_wfs,0,1;
       

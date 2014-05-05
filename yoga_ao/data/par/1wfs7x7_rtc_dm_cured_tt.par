@@ -63,8 +63,8 @@ y_dm(1).push4imat     = 1.0f;
 
 y_dm(2).type          = "tt";
 y_dm(2).alt           = 0.;
-y_dm(2).unitpervolt   = 0.0005;
-y_dm(2).push4imat     = 10.0f;
+y_dm(2).unitpervolt   = 1.0f;
+y_dm(2).push4imat     = 0.005f;
 
 /*
 loop inits

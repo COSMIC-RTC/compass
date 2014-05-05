@@ -462,8 +462,8 @@ func dm_init(void)
           int(*y_dm(n)._i1),int(*y_dm(n)._j1); 
        }
       if (y_dm(n).type == "tt") {
-        dim       = dimsof(*y_geom._mpupil)(2);
-        //dim       = long(y_dm(n)._n2-y_dm(n)._n1+1);
+        //dim       = dimsof(*y_geom._mpupil)(2);
+        dim       = long(y_dm(n)._n2-y_dm(n)._n1+1);
         make_tiptilt_dm, n;
         
         yoga_addtt,g_dm,float(y_dm(n).alt),dim,float(y_dm(n).push4imat);
