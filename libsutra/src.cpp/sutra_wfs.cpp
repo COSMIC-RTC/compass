@@ -813,11 +813,9 @@ int sutra_wfs::comp_image() {
   int result;
   if (this->type == "sh"){
     result = comp_sh_generic();
-  }
-  if (this->type == "pyr"){
+  } else if (this->type == "pyr"){
     result = comp_pyr_generic();
-  }
-  else {
+  } else {
     DEBUG_TRACE("unknown wfs type : %s\n", this->type.c_str());
     result = EXIT_FAILURE;
   }
