@@ -124,7 +124,7 @@ func script_system(filename,verbose=,strehl=,r0=,clean=)
   
   for (cc=1;cc<=y_loop.niter;cc++) {
 
-    write, format="loop%d\n", cc;
+    //write, format="loop%d\n", cc;
     if (g_target != []) move_sky,g_atmos,g_target;
     else move_atmos,g_atmos;
     /*
