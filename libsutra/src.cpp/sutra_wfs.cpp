@@ -814,7 +814,7 @@ int sutra_wfs::comp_image() {
   if (this->type == "sh"){
     result = comp_sh_generic();
     if(result==EXIT_SUCCESS) {
-      this->d_binimg->prng('N',this->noise);
+      if (noise > 0) this->d_binimg->prng('N',this->noise);
       fillbinimg(this->d_binimg->getData(),this->d_bincube->getData(),this->npix,this->nvalid,this->npix*this->nxsub,
           this->d_validsubsx->getData(),this->d_validsubsy->getData(), 0 /*(this->noise > 0)*/ ,this->device);
     }
