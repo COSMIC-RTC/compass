@@ -875,6 +875,17 @@ extern yoga_setcomm;
    SEE ALSO:
  */
 
+extern yoga_getcomm;
+/* DOCUMENT yoga_getcomm
+   comm = yoga_getcomm(yoga_dms_obj,type,alt)
+   get the command vector of a dm in a yoga_dms_obj object
+      
+   type        : type of dm : pzt, tt
+   alt         : conjugated altitude
+   comm        : command vector
+   SEE ALSO:
+ */
+
 extern yoga_getdm;
 /* DOCUMENT yoga_getdm
    ima = yoga_getdm(yoga_dms_obj,type,alt)

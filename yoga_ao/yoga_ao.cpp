@@ -1883,6 +1883,17 @@ void Y_yoga_setcomm(int argc) {
   dms_handler->d_dms.at(make_pair(type, alt))->d_comm->host2device(comm);
 }
 
+void Y_yoga_getcomm(int argc) {
+
+  dms_struct *handler = (dms_struct *) yget_obj(argc - 1, &yDMs);
+  sutra_dms *dms_handler = (sutra_dms *) (handler->sutra_dms);
+  char *type = ygets_q(argc - 2);
+  float alt = ygets_f(argc - 3);
+  float *comm = ypush_f(const_cast<long*>(dms_handler->d_dms.at(make_pair(type, alt))->d_comm->getDims()));
+
+  dms_handler->d_dms.at(make_pair(type, alt))->d_comm->device2host(comm);
+}
+
 void Y_yoga_shapedm(int argc) {
   dms_struct *handler = (dms_struct *) yget_obj(argc - 1, &yDMs);
   sutra_dms *dms_handler = (sutra_dms *) (handler->sutra_dms);

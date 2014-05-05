@@ -813,28 +813,35 @@ int sutra_wfs::comp_image() {
   int result;
   if (this->type == "sh"){
     result = comp_sh_generic();
+    if(result==EXIT_SUCCESS)
+      this->d_binimg->prng('N',this->noise);
+      fillbinimg(this->d_binimg->getData(),this->d_bincube->getData(),this->npix,this->nvalid,this->npix*this->nxsub,
+          this->d_validsubsx->getData(),this->d_validsubsy->getData(), 0 /*(this->noise > 0)*/ ,this->device);
   } else if (this->type == "pyr"){
     result = comp_pyr_generic();
   } else {
     DEBUG_TRACE("unknown wfs type : %s\n", this->type.c_str());
     result = EXIT_FAILURE;
   }
-  /*
-   if(result==EXIT_SUCCESS)
-   fillbinimg(this->d_binimg->getData(),this->d_bincube->getData(),this->npix,this->nvalid,this->npix*this->nxsub,
-   this->d_validsubsx->getData(),this->d_validsubsy->getData(),(this->noise > 0),this->device);
-   */
+
   return result;
 }
 
 int sutra_wfs::comp_image_tele() {
-  fillbinimg_async(this->image_telemetry, this->d_binimg->getData(),
-      this->d_bincube->getData(), this->npix, this->nvalid,
-      this->npix * this->nxsub, this->d_validsubsx->getData(),
-      this->d_validsubsy->getData(), this->d_binimg->getNbElem(), false,
-      this->device);
+  int result;
+  if (this->type == "sh"){
+    result = comp_sh_generic();
+  }else {
+    DEBUG_TRACE("unknown wfs type : %s\n", this->type.c_str());
+    result = EXIT_FAILURE;
+  }
 
-  int result = comp_sh_generic();
+  if(result==EXIT_SUCCESS)
+       fillbinimg_async(this->image_telemetry, this->d_binimg->getData(),
+           this->d_bincube->getData(), this->npix, this->nvalid,
+           this->npix * this->nxsub, this->d_validsubsx->getData(),
+           this->d_validsubsy->getData(), this->d_binimg->getNbElem(), false,
+           this->device);
 
   return result;
 }
