@@ -941,6 +941,14 @@ extern dms_getdata;
    SEE ALSO:
  */
 
+extern dms_comp_shape;
+/* DOCUMENT dms_getdata
+   dms_getdata,yoga_dms_obj,com
+   
+   com : command vector computed with sutra_controller
+   SEE ALSO:
+ */
+
 extern sensors_compslopes;
 /* DOCUMENT sensors_compslopes
    sensors_compslopes,yoga_sensors_obj,nsensor,yoga_rtc_obj,ncentro[,nmax/threshold]

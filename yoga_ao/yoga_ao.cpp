@@ -1993,6 +1993,30 @@ void Y_dms_getdata(int argc) {
   }
 }
 
+void Y_dms_comp_shape(int argc) {
+  dms_struct *dhandler = (dms_struct *) yget_obj(argc - 1, &yDMs);
+  sutra_dms *dms_handler = (sutra_dms *) (dhandler->sutra_dms);
+
+  carma_context *context_handle = _getCurrentContext();
+  context_handle->set_activeDeviceForCpy(dhandler->device);
+
+  long ntot;
+  long dims[Y_DIMSIZE];
+  float *com = ygeta_f(argc - 2, &ntot, dims);
+
+  carma_obj<float> d_com(context_handle, const_cast<const long*>(dims), com);
+
+  map<type_screen, sutra_dm *>::iterator p;
+  p = dms_handler->d_dms.begin();
+  int idx = 0;
+  while (p != dms_handler->d_dms.end()) {
+    p->second->comp_shape(d_com[idx]);
+    idx += p->second->ninflu;
+    p++;
+ }
+
+}
+
 /*
  *     ____ _____ ____
  *    |  _ \_   _/ ___|

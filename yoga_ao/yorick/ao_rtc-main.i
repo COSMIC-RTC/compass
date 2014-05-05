@@ -19,7 +19,7 @@ mkdirp,YOGA_AO_SAVEPATH;
 YOGA_AO_PARPATH = YOGA_AO_SAVEPATH+"par/";
 mkdirp,YOGA_AO_PARPATH;
 
-//activeDevice,1;
+activeDevice,0;
 func script_system(filename,verbose=,strehl=,r0=,clean=)
 {
   //activeDevice,1;
@@ -32,7 +32,7 @@ func script_system(filename,verbose=,strehl=,r0=,clean=)
   extern ipupil;
 
   if (verbose == []) verbose = 1;
-  if (strehl == []) strehl = 0;
+  if (strehl == []) strehl = 1;
   if (r0 == []) r0 = 0;
   if (clean == []) clean = 1;
 
@@ -155,12 +155,15 @@ func script_system(filename,verbose=,strehl=,r0=,clean=)
     shm_write,1234,"image",&image;
     sem_give,2345,0;
     sem_take,2345,1;
+
+    com = shm_read(1234, "com");
+    shm_free, 1234, "com";
     
     if ((y_rtc != []) && (g_rtc != [])
         && (y_wfs != []) && (g_wfs != [])) {
       //rtc_docentroids,g_rtc,g_wfs,0;
       // compute command and apply
-      if (g_dm != []) rtc_docontrol,g_rtc,0,g_dm;
+      if (g_dm != []) dms_comp_shape,g_dm, com;
     }
     
     if ((y_target != []) && (g_target != [])) {
