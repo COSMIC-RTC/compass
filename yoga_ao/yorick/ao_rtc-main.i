@@ -80,19 +80,20 @@ func script_system(filename,verbose=,strehl=,r0=,clean=)
   write,"--------------------------------------------------------";
   g_rtc;
 
+  y_loop.niter=5;
   
   config=[y_wfs.nxsub*y_wfs.npix,y_wfs.nxsub*y_wfs.npix,y_wfs._nvalid*2,y_dm._ntotact(sum),y_wfs.nxsub,y_wfs.nxsub,y_loop.niter,0,0,0](*);
   shm_write,1234,"config",&config;
   
-  mc = rtc_getcmat(g_rtc, 0);
+  mc = transpose(rtc_getcmat(g_rtc, 0));
   shm_write,1234,"mc",&mc;
-  validsubs = *y_wfs(1)._validsubs;
+  validsubs = transpose(short(*y_wfs(1)._validsubs));
   shm_write,1234,"validsubs",&validsubs;
   
   write,"wait for rtc-main-4yorick";
   sem_give,2345,0;
   sem_take,2345,1;
-  
+
   /*
     _         _                   
  _ __ ___   __ _(_)_ __   | | ___   ___  _ __  
@@ -140,9 +141,8 @@ func script_system(filename,verbose=,strehl=,r0=,clean=)
         if ((!y_wfs(i).openloop) && (g_dm != [])) {
           sensors_trace,g_wfs,i-1,"dm",g_dm,0;
         }
-
-	if(y_wfs(i).type=="cog") {
-	  sensors_compimg_tele,g_wfs,i-1;
+        if(y_wfs(i).type=="sh") {
+	  sensors_compimg,g_wfs,i-1;
 	} else {
 	  sensors_compimg,g_wfs,i-1;
 	}
@@ -151,7 +151,14 @@ func script_system(filename,verbose=,strehl=,r0=,clean=)
     }
     // do centroiding
 
-    image = sensors_getdata(g_wfs,0,"imgtele");
+    image = transpose(sensors_getimg(g_wfs,0));
+    //image = sensors_getdata(g_wfs,0,"imgtele");
+
+    // write, "row1";
+    // image(,1);
+    // write, "col1";
+    // image(1,);
+    //pli, image; pause, 100;
     shm_write,1234,"image",&image;
     sem_give,2345,0;
     sem_take,2345,1;
@@ -161,10 +168,19 @@ func script_system(filename,verbose=,strehl=,r0=,clean=)
     
     if ((y_rtc != []) && (g_rtc != [])
         && (y_wfs != []) && (g_wfs != [])) {
-      //rtc_docentroids,g_rtc,g_wfs,0;
+      
+      rtc_docentroids,g_rtc,g_wfs,0;
       // compute command and apply
-      if (g_dm != []) dms_comp_shape,g_dm, com;
+      if (g_dm != []) rtc_docontrol,g_rtc,0,g_dm;
+      
+      //if (g_dm != []) dms_comp_shape,g_dm, com;
     }
+    
+
+    //compare commands computed with yorick and rtc-main
+    write, "**** new loop ****"
+    com;
+    rtc_getcom(g_rtc,0);
     
     if ((y_target != []) && (g_target != [])) {
       // loop on targets
@@ -203,15 +219,13 @@ func script_system(filename,verbose=,strehl=,r0=,clean=)
   write,"\n done with simulation \n";
   write,format="simulation time : %f sec. per iteration\n",tac(mytime)/y_loop.niter;
   //error;
-    if (strehl) 
-      return strehllp(0);
   //mimg /= y_loop.niter;
   //window,1;fma;pli,mimg; 
   //error;
 
-    shm_cleanup,1234;
-    sem_cleanup,2345;
-
+  shm_cleanup,1234;
+  sem_cleanup,2345;
+  
 }
 
 if(batch()) {
@@ -243,3 +257,4 @@ if(batch()) {
     }
   }
 }
+write,"script_system";
