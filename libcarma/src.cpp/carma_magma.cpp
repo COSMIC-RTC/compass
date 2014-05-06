@@ -21,6 +21,10 @@
 #define min(a,b)  (((a)>(b))?(b):(a))
 #endif
 
+int carma_use_magma() {
+  return 1;
+}
+
 template<class T>
 T*
 create_padded_data(magma_int_t N, const magma_int_t size, magma_int_t &ldda,
@@ -791,6 +795,10 @@ int carma_gemm_cpu<double>(char transa, char transb, long m, long n, long k,
 
 #else
 #warning "MAGMA will not be used"
+int carma_use_magma() {
+  return 0;
+}
+
 template<class T> int carma_svd(carma_obj<T> *imat, carma_obj<T> *eigenvals, carma_obj<T> *mod2act, carma_obj<T> *mes2mod)
 {
   MAGMA_TRACE("!!!!!! MAGMA not compiled !!!!!!\n");

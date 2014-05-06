@@ -80,7 +80,7 @@ int sutra_controller_ls::svdec_imat() {
     //Case where MAGMA is not compiled
 
     //We fill the upper matrix part of the matrix
-    fill_sym_matrix<float>('U', *d_U, nactu(), nactu() * nactu());
+    fill_sym_matrix<float>('L', *d_U, nactu(), nactu() * nactu());
 
     carma_obj<float> d_tmp(d_U);
     carma_obj<float> d_tmp2(d_U);
@@ -136,12 +136,22 @@ int sutra_controller_ls::build_cmat(int nfilt, bool filt_tt) {
   memset(h_eigenvals_inv->getData(), 0, sizeof(float) * nb_elem);
 
   // filtering modes
+  /*
   if (filt_tt)
     nb_elem -= 2;
-  for (int cc = nfilt; cc < nb_elem; cc++) {
-    float eigenval = h_eigenvals->getData()[cc];
-    h_eigenvals_inv->getData()[cc] =
+  */
+  if (carma_use_magma()) {
+    for (int cc = nfilt; cc < nb_elem; cc++) {
+      float eigenval = h_eigenvals->getData()[cc];
+      h_eigenvals_inv->getData()[cc] =
         (fabs(eigenval) > 1.e-6) ? 1.0f / eigenval : 0.f;
+    }
+  } else {
+     for (int cc =  0; cc < nb_elem-nfilt ; cc++) {
+      float eigenval = h_eigenvals->getData()[cc];
+      h_eigenvals_inv->getData()[cc] =
+        (fabs(eigenval) > 1.e-6) ? 1.0f / eigenval : 0.f;
+    }
   }
   d_eigenvals_inv->host2device(h_eigenvals_inv->getData());
 

@@ -181,16 +181,21 @@ func cmat_init(ncontrol,clean=,method=)
   imat = rtc_getimat(g_rtc,ncontrol-1);
 
   maxcond = (*y_rtc.controllers)(ncontrol).maxcond;
-  mfilt = where((eigenv/eigenv(-2)) < 1./maxcond);
-  //mfilt = where(1./(eigenv/eigenv(3)) > maxcond);
+  if (eigenv(1) < eigenv(0)) mfilt = where((eigenv/eigenv(-2)) < 1./maxcond);
+  else mfilt = where(1./(eigenv/eigenv(3)) > maxcond);
   //nfilt = numberof(mfilt)+2;
   nfilt = numberof(mfilt);
-  
+  //error;
   if ( (wfs_disp!=[]) && (numberof(*wfs_disp._winits) > 0)) {
     if ((*wfs_disp._winits)(5)) {
     window,(*wfs_disp._wins)(5);fma;logxy,0,1;
-    plg, eigenv(::-1), marks=0;
-    plmk, eigenv(::-1), msize = 0.3, marker=4;
+    if (eigenv(1) < eigenv(0)) {
+      plg, eigenv(::-1), marks=0;
+      plmk, eigenv(::-1), msize = 0.3, marker=4;
+    } else {
+      plg, eigenv, marks=0;
+      plmk, eigenv, msize = 0.3, marker=4;
+    }
     x0 = dimsof(imat)(3) - nfilt + 0.5;
     pldj, x0 ,min(eigenv), x0, max(eigenv), color="red";
     }

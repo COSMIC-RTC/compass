@@ -342,6 +342,7 @@ int carma_fftconv(caObjS *data_out, caObjS *padded_data,
     caObjC *padded_spectrum, int kernelY, int kernelX);
 
 // MAGMA functions
+int carma_use_magma();
 template<class T>
 int carma_svd(carma_obj<T> *imat, carma_obj<T> *eigenvals,
     carma_obj<T> *mod2act, carma_obj<T> *mes2mod);
