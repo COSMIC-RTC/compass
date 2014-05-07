@@ -80,14 +80,14 @@ func script_system(filename,verbose=,strehl=,r0=,clean=)
   write,"--------------------------------------------------------";
   g_rtc;
 
-  y_loop.niter=5;
+  //y_loop.niter=5;
   
   config=[y_wfs.nxsub*y_wfs.npix,y_wfs.nxsub*y_wfs.npix,y_wfs._nvalid*2,y_dm._ntotact(sum),y_wfs.nxsub,y_wfs.nxsub,y_loop.niter,0,0,0](*);
   shm_write,1234,"config",&config;
   
-  mc = transpose(rtc_getcmat(g_rtc, 0));
+  mc = rtc_getcmat(g_rtc, 0);
   shm_write,1234,"mc",&mc;
-  validsubs = transpose(short(*y_wfs(1)._validsubs));
+  validsubs = transpose(short(*y_wfs(1)._validsubs-1));
   shm_write,1234,"validsubs",&validsubs;
   
   write,"wait for rtc-main-4yorick";
@@ -151,9 +151,9 @@ func script_system(filename,verbose=,strehl=,r0=,clean=)
     }
     // do centroiding
 
-    image = transpose(sensors_getimg(g_wfs,0));
+    image = sensors_getimg(g_wfs,0);
     //image = sensors_getdata(g_wfs,0,"imgtele");
-
+ 
     // write, "row1";
     // image(,1);
     // write, "col1";
@@ -169,18 +169,21 @@ func script_system(filename,verbose=,strehl=,r0=,clean=)
     if ((y_rtc != []) && (g_rtc != [])
         && (y_wfs != []) && (g_wfs != [])) {
       
-      rtc_docentroids,g_rtc,g_wfs,0;
+      //rtc_docentroids,g_rtc,g_wfs,0;
       // compute command and apply
-      if (g_dm != []) rtc_docontrol,g_rtc,0,g_dm;
+      //if (g_dm != []) rtc_docontrol,g_rtc,0,g_dm;
       
-      //if (g_dm != []) dms_comp_shape,g_dm, com;
+      if (g_dm != []) dms_comp_shape,g_dm, com;
     }
     
-
+    //write, "**** new loop ****";
+    //image(*)(:64);
+      
+    //controller_getdata(g_rtc, 0, "centroids");
+    
     //compare commands computed with yorick and rtc-main
-    write, "**** new loop ****"
-    com;
-    rtc_getcom(g_rtc,0);
+    //com;
+    //rtc_getcom(g_rtc,0);
     
     if ((y_target != []) && (g_target != [])) {
       // loop on targets
@@ -225,7 +228,7 @@ func script_system(filename,verbose=,strehl=,r0=,clean=)
 
   shm_cleanup,1234;
   sem_cleanup,2345;
-  
+  error;
 }
 
 if(batch()) {
@@ -258,3 +261,4 @@ if(batch()) {
   }
 }
 write,"script_system";
+

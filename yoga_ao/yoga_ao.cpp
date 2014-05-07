@@ -2579,38 +2579,33 @@ void Y_controller_getdata(int argc) {
       float *data = ypush_f((long*) control->d_U->getDims());
       control->d_U->device2host(data);
     }
-  }
-  if (strcmp(type_data, "eigenvals") == 0) {
+  } else if (strcmp(type_data, "eigenvals") == 0) {
     if (rtc_handler->d_control.at(ncontrol)->get_type().compare("ls") == 0) {
       SCAST(sutra_controller_ls *, control,
           rtc_handler->d_control.at(ncontrol));
       float *data = ypush_f((long*) control->h_eigenvals->getDims());
       control->h_eigenvals->fill_into(data);
     }
-  }
-  if (strcmp(type_data, "cenbuff") == 0) {
+  } else if (strcmp(type_data, "cenbuff") == 0) {
     if (rtc_handler->d_control.at(ncontrol)->get_type().compare("ls") == 0) {
       SCAST(sutra_controller_ls *, control,
           rtc_handler->d_control.at(ncontrol));
       float *data = ypush_f((long*) control->d_cenbuff->getDims());
       control->d_cenbuff->device2host(data);
     }
-  }
-  if (strcmp(type_data, "err") == 0) {
+  } else if (strcmp(type_data, "err") == 0) {
     if (rtc_handler->d_control.at(ncontrol)->get_type().compare("ls") == 0) {
       SCAST(sutra_controller_ls *, control,
           rtc_handler->d_control.at(ncontrol));
       float *data = ypush_f((long*) control->d_err->getDims());
       control->d_err->device2host(data);
     }
-  }
-  if (strcmp(type_data, "com") == 0) {
-    if (rtc_handler->d_control.at(ncontrol)->get_type().compare("ls") == 0) {
-      SCAST(sutra_controller_ls *, control,
-          rtc_handler->d_control.at(ncontrol));
-      float *data = ypush_f((long*) control->d_com->getDims());
-      control->d_com->device2host(data);
-    }
+  } else if (strcmp(type_data, "com") == 0) {
+    float *data = ypush_f((long*) rtc_handler->d_control.at(ncontrol)->d_com->getDims());
+    rtc_handler->d_control.at(ncontrol)->d_com->device2host(data);
+  } else if (strcmp(type_data, "centroids") == 0) {
+    float *data = ypush_f((long*) rtc_handler->d_control.at(ncontrol)->d_centroids->getDims());
+    rtc_handler->d_control.at(ncontrol)->d_centroids->device2host(data);
   }
 }
 
