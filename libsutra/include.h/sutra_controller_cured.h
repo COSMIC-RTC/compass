@@ -7,6 +7,7 @@ class sutra_controller_cured: public sutra_controller {
 public:
   float gain;
   int   ndivs; //number of subdivision levels for cured
+  bool  tt_flag; //flag for separate tt
 
   // data for CuReD */
   carma_host_obj<float> *h_centroids;
@@ -37,7 +38,7 @@ public:
   comp_com();
 
   int
-    init_cured(int nxsubs, int *isvalid, int ndivs);
+    init_cured(int nxsubs, int *isvalid, int ndivs, int tt);
 };
 
 #endif // _sutra_controller_cured_H_

@@ -57,12 +57,17 @@ int sutra_controller_cured::set_gain(float gain) {
 int sutra_controller_cured::comp_com() {
   h_centroids->cpy_obj(this->d_centroids, cudaMemcpyDeviceToHost);
 
-  //cured((sysCure*)this->h_syscure, (parCure*)this->h_parcure, this->h_centroids->getData(), this->h_err->getData(), &X, &Y);
-  cured((sysCure*)this->h_syscure, (parCure*)this->h_parcure, this->h_centroids->getData(), this->h_err->getData(), 
-	this->h_err->getData(this->h_err->getNbElem()-2),this->h_err->getData(this->h_err->getNbElem()-1));
+  if (this->tt_flag) {
+    cured((sysCure*)this->h_syscure, (parCure*)this->h_parcure, this->h_centroids->getData(), 
+	  this->h_err->getData(), this->h_err->getData(this->h_err->getNbElem()-2),
+	  this->h_err->getData(this->h_err->getNbElem()-1));
 
-  *this->h_err->getData(this->h_err->getNbElem()-2) *= -1.0f;
-  *this->h_err->getData(this->h_err->getNbElem()-1) *= -1.0f;
+    *this->h_err->getData(this->h_err->getNbElem()-2) *= -1.0f;
+    *this->h_err->getData(this->h_err->getNbElem()-1) *= -1.0f;
+  } else {
+    cured((sysCure*)this->h_syscure, (parCure*)this->h_parcure, this->h_centroids->getData(), 
+	  this->h_err->getData());
+  }
 
   h_err->cpy_obj(this->d_err, cudaMemcpyHostToDevice);
 
@@ -71,9 +76,12 @@ int sutra_controller_cured::comp_com() {
   return EXIT_SUCCESS;
 }
 
-int sutra_controller_cured::init_cured(int nxsubs, int *isvalid, int ndivs) {
+int sutra_controller_cured::init_cured(int nxsubs, int *isvalid, int ndivs, int tt) {
+  if (tt > 0) this->tt_flag = true;
+  else this->tt_flag = false;
   this->ndivs = (ndivs > 0) ? ndivs : 1;
-  this->h_syscure = (void*)cureSystem(nxsubs, this->nslope() / 2., this->nactu()-2, isvalid, this->ndivs);
+  this->h_syscure = (void*)cureSystem(nxsubs, this->nslope() / 2., 
+				      this->tt_flag ? this->nactu()-2 : this->nactu(), isvalid, this->ndivs);
   this->h_parcure = (void*)cureInit((sysCure*)this->h_syscure);
   return EXIT_SUCCESS;
 }

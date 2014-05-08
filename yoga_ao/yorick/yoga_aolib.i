@@ -1121,7 +1121,7 @@ extern controller_setdata;
 
 extern controller_initcured;
 /* DOCUMENT controller_initcured
-   controller_initcured,yoga_rtc_obj,ncontrol,nxsubs,isvalid
+   controller_initcured,yoga_rtc_obj,ncontrol,nxsubs,isvalid,ndivs,tt
      
    init a cured controller with data
    
@@ -1130,6 +1130,7 @@ extern controller_initcured;
    nxsubs       : number of subaps across pupil (int)
    isvalid      : array of valid subaps in a nxsubs x nxsubs configuration (int)
    ndivs        : number of subdivision levels for cured
+   tt           : 1 if separate tt, O is no tt mirror
 
    SEE ALSO:
  */

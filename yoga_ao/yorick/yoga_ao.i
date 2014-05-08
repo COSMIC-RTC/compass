@@ -678,7 +678,10 @@ func rtc_init(clean=)
           }
           if (controllers(i).type  == "cured") {
             write,"initializing cured controller";
-            controller_initcured,g_rtc,0,int(y_wfs(1).nxsub),int(*y_wfs(1)._isvalid),int(controllers(i).cured_ndivs);
+            if (anyof(y_dm.type == "tt")) tt_flag = 1;
+            else tt_flag = 0;
+            controller_initcured,g_rtc,0,int(y_wfs(1).nxsub),int(*y_wfs(1)._isvalid),
+              int(controllers(i).cured_ndivs),int(tt_flag);
 	    rtc_setgain,g_rtc,0,controllers(i).gain;
           }          
 		  // Florian features

@@ -2619,6 +2619,7 @@ void Y_controller_initcured(int argc) {
   int nxsubs = ygets_l(argc - 3);
   int *isvalid = ygeta_i(argc - 4, &ntot, dims);
   int ndivs = ygets_l(argc - 5);
+  int tt = ygets_l(argc - 6);
 
   //rtc_struct *handle    =(rtc_struct *)ypush_obj(&yRTC, sizeof(rtc_struct));
 
@@ -2628,7 +2629,7 @@ void Y_controller_initcured(int argc) {
   if (rtc_handler->d_control.at(ncontrol)->get_type().compare("cured") == 0) {
     SCAST(sutra_controller_cured *, control,
         rtc_handler->d_control.at(ncontrol));
-    control->init_cured(nxsubs, isvalid, ndivs);
+    control->init_cured(nxsubs, isvalid, ndivs, tt);
   }
 }
 
