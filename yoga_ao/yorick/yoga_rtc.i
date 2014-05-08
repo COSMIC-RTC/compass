@@ -934,3 +934,90 @@ func stat_cov(n,r0)
 }
 
   
+func create_dm0(nm,nw) {
+  nb_p   = (y_wfs(nw)._nvalid) * 2;
+  nb_act = y_dm(nm)._ntotact;
+  DMo = array(0.0f,nb_p,nb_act);
+
+  offs = 0;
+  incx = (*y_dm(nm)._i1)(2) - (*y_dm(nm)._i1)(1);
+  tmpx = (*y_dm(nm)._i1-offs)/incx+1;
+  tmpy = (*y_dm(nm)._j1-offs)/incx;
+  mask = array(0.0f,y_dm(nm).nact,y_dm(nm).nact);
+  mask(tmpx + tmpy * y_dm(nm).nact) = 1;
+  masq_act = where(mask);
+  
+  nLenslet = y_wfs(nw).nxsub;
+  iD = 1;
+  for (j=1;j<=nLenslet;j++) {
+    for (i=1;i<=nLenslet;i++) {
+      if ((*y_wfs(1)._isvalid)(i,j) == 1) {
+        MD_ssp = array(0.0f,nLenslet+1,nLenslet+1);
+        // à GAUCHE
+        MD_ssp(i,j) = -1;
+        MD_ssp(i+1,j) = -1;
+        // à DROITE 
+        MD_ssp(i,j+1) = 1;
+        MD_ssp(i+1,j+1) = 1;
+        MD_ssp = MD_ssp/2/pi;
+        // repositionnement en colonne ( pupille CARRÉE  nActuator*nActuator  )
+        V_ssp = MD_ssp(*);
+        // repositionnement en colonne ( pupille DISQUE nb_act )
+        VP_ssp = V_ssp(masq_act);
+        // Ligne de DMo --> pente en X
+        DMo(iD,) = VP_ssp;
+        iD ++;
+      }
+    }
+  }
+  for (j=1;j<=nLenslet;j++) {
+    for (i=1;i<=nLenslet;i++) {
+      if ((*y_wfs(1)._isvalid)(i,j) == 1) {
+        MD_ssp = array(0.0f,nLenslet+1,nLenslet+1);
+        // à GAUCHE
+        MD_ssp(i,j) = -1;
+        MD_ssp(i,j+1) = -1;
+        // à DROITE 
+        MD_ssp(i+1,j) = 1;
+        MD_ssp(i+1,j+1) = 1;
+        MD_ssp = MD_ssp/2/pi;
+        // repositionnement en colonne ( pupille CARRÉE  nActuator*nActuator  )
+        V_ssp = MD_ssp(*);
+        // repositionnement en colonne ( pupille DISQUE nb_act )
+        VP_ssp = V_ssp(masq_act);
+        // Ligne de DMo --> pente en X
+        DMo(iD,) = VP_ssp;
+        iD ++;
+      }
+    }
+  }
+  return DMo;
+}
+
+func create_nact(nm) {
+  nb_act = y_dm(nm)._ntotact;
+  nact = array(0.0f,nb_act,nb_act);
+
+  tmpx = *y_dm(nm)._i1;
+  tmpy = *y_dm(nm)._j1;
+  offs = ((y_dm(1)._n2-y_dm(1)._n1+1) - (max(tmpx) - min(tmpx)))/2 - min(tmpx);
+  tmpx += offs;
+  tmpy += offs;
+  mask = yoga_getdm(g_dm,y_dm(nm).type,y_dm(nm).alt) * 0;
+  mask(tmpx + tmpy * dimsof(mask)(2)) = 1;
+  masq_act = where(mask);
+  
+  for (i=1;i<=y_dm(nm)._ntotact;i++) {
+    com = array(0.,y_dm(nm)._ntotact);
+    com(i)= float(y_dm(nm).push4imat);
+    yoga_setcomm,g_dm,y_dm(nm).type,y_dm(nm).alt,com;
+    yoga_shapedm,g_dm,y_dm(nm).type,y_dm(nm).alt;
+    shape = yoga_getdm(g_dm,y_dm(nm).type,y_dm(nm).alt);
+    nact(i,) = shape(*)(masq_act);
+  }
+
+  return nact;
+}
+
+
+
