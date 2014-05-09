@@ -67,18 +67,22 @@ string sutra_controller_ls::get_type() {
 int sutra_controller_ls::svdec_imat() {
   // doing U = Dt.D where D is i_mat
   float one = 1., zero = 0.;
-  //carma_start_profile();
 
   if (carma_syrk<float>(cublas_handle(), CUBLAS_FILL_MODE_LOWER, 't', nactu(),
       nslope(), one, *d_imat, nslope(), zero, *d_U, nactu())) {
     return EXIT_FAILURE;
   }
-  // we can skip this step syevd use only the lower part
-  //fill_sym_matrix('U', d_U->getData(), nactu, nactu * nactu);
-  // doing evd of U inplace
-  if (carma_syevd<float,1>('V', d_U, h_eigenvals) == EXIT_FAILURE) {
-    //Case where MAGMA is not compiled
+  if (carma_use_magma()) {
+    // we can skip this step syevd use only the lower part
+    //fill_sym_matrix('U', d_U->getData(), nactu, nactu * nactu);
 
+    // doing evd of U inplace
+    if (carma_syevd<float,1>('V', d_U, h_eigenvals) == EXIT_FAILURE) {
+      //Case where MAGMA is not feeling good :-/
+      return EXIT_FAILURE;
+    }
+    d_eigenvals->host2device(*h_eigenvals);
+  } else { // CULA case
     //We fill the upper matrix part of the matrix
     fill_sym_matrix<float>('L', *d_U, nactu(), nactu() * nactu());
 
@@ -89,11 +93,7 @@ int sutra_controller_ls::svdec_imat() {
       return EXIT_FAILURE;
     }
     d_eigenvals->device2host(*h_eigenvals);
-    return EXIT_SUCCESS;
   }
-  d_eigenvals->host2device(*h_eigenvals);
-  carma_stop_profile();
-
   return EXIT_SUCCESS;
 }
 
