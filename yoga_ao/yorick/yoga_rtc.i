@@ -227,9 +227,11 @@ func cmat_update(ncontrol,maxcond)
   eigenv = controller_getdata(g_rtc,ncontrol,"eigenvals");
   
   (*y_rtc.controllers)(ncontrol).maxcond = maxcond;
-  mfilt = where((eigenv/eigenv(-2)) < 1./maxcond);
-  //mfilt = where(1./(eigenv/eigenv(1)) > maxcond);
+  if (eigenv(1) < eigenv(0)) mfilt = where((eigenv/eigenv(-2)) < 1./maxcond);
+  else mfilt = where(1./(eigenv/eigenv(3)) > maxcond);
+  //nfilt = numberof(mfilt)+2;
   nfilt = numberof(mfilt);
+
   write,format="nb modes filtered : %d",nfilt;
   if ( (wfs_disp!=[]) && (numberof(*wfs_disp._winits) > 0)) {
     if ((*wfs_disp._winits)(5)) {
