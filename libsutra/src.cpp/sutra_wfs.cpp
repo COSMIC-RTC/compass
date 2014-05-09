@@ -837,6 +837,8 @@ int sutra_wfs::comp_image_tele() {
     result = EXIT_FAILURE;
   }
 
+  if (noise > 0) this->d_binimg->prng('N',this->noise);
+
   if(result==EXIT_SUCCESS)
        fillbinimg_async(this->image_telemetry, this->d_binimg->getData(),
            this->d_bincube->getData(), this->npix, this->nvalid,
