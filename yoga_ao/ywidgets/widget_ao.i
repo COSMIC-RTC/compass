@@ -611,7 +611,7 @@ func update_main(type,nlayer)
   }
   if (type == "Centroids - WFS") {
     //slps = sensors_getslopes(g_wfs,nlayer);
-    slps = rtc_getcentroids(g_rtc,0)
+    slps = rtc_getcentroids(g_rtc,0);
     window,(*ao_disp._wins)(1);fma;
     display_slopes,slps,nlayer+1,"Centroids";
   }
