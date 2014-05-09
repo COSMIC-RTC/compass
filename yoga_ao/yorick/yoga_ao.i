@@ -153,6 +153,10 @@ func atmos_init(void)
   y_atmos.deltax = &float(deltax);
   y_atmos.deltay = &float(deltay);
 
+  frac = *y_atmos.frac;
+  frac /= sum(frac);
+  y_atmos.frac = &float(frac);
+  
   if (*y_atmos.L0 == []) y_atmos.L0 = &((1.e5)(-:1:y_atmos.nscreens)); // infinite L0
   else {
     if (numberof(*y_atmos.L0) == 1)

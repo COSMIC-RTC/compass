@@ -610,7 +610,8 @@ func update_main(type,nlayer)
     display_slopes,slps,nlayer+1,"Phase Difference";
   }
   if (type == "Centroids - WFS") {
-    slps = sensors_getslopes(g_wfs,nlayer);
+    //slps = sensors_getslopes(g_wfs,nlayer);
+    slps = rtc_getcentroids(g_rtc,0)
     window,(*ao_disp._wins)(1);fma;
     display_slopes,slps,nlayer+1,"Centroids";
   }
