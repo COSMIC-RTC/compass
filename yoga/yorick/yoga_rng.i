@@ -65,12 +65,13 @@ func checkRNG(size,type,ctype=)
       xx = indgen(size*size) - size*size/2.;
       tmp2 = float(100.*exp(-(xx^2/(size*sqrt(size/2))^2)));
       //plg,tmp2,marks=0;
-      yoga_host2device, obj1, tmp2;            // if poisson copy image
+      a = yoga_obj(tmp2);            // if poisson copy image
       grow, timeProfile, tac(timeTic);
       tmp = tmp2*0.0f;
     }  
     if (type == 'U') yoga_random,a;             // if uniform randomCU
     if (type == 'N') yoga_random_n,a;            // if gauss random_nCU
+    if (type == 'P') yoga_poisson,a;            // if gauss random_nCU
 
     grow, timeProfile, tac(timeTic);
     

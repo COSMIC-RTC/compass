@@ -553,6 +553,15 @@ extern yoga_random_n;
    SEE ALSO:
  */
 
+extern yoga_poisson;
+/* DOCUMENT yoga_poisson
+   yoga_poisson,obj
+
+   This function adds poisson noise to a yoga object obj 
+     
+   SEE ALSO:
+ */
+
 /*fourier transform*/
 extern yoga_fft;
 /* DOCUMENT yoga_fft

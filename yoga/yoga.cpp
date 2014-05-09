@@ -2721,6 +2721,45 @@ void Y_yoga_random_n(int argc) {
   cutilSafeThreadSync();
 }
 
+void Y_yoga_poisson(int argc) {
+  /** @brief wrapper routine for yoga random method (normal distribution)
+   *  @param[in] argc : command line arguments
+   *  can only work as a subroutine 
+   *    - first  : the yoga_obj to be filled with random numbers
+   *    - second : (1) optional seed 
+   */
+  int seed = 1234;
+  if (yarg_subroutine()) {
+    yObj_struct *handle = (yObj_struct *) yget_obj(argc - 1, &yObj);
+    if (argc > 1)
+      seed = ygets_i(argc - 2);
+    carma_context *context_handle = _getCurrentContext();
+    context_handle->set_activeDevice(handle->device);
+    if (handle->type == Y_FLOAT) {
+      caObjS *carma_obj_handler = (caObjS *) (handle->carma_object);
+      if (carma_obj_handler->is_rng_init() == false) {
+        carma_obj_handler->init_prng(handle->device);
+        //carma_obj_handler->init_prng_host(seed);
+      }
+      carma_obj_handler->prng('P');
+      //carma_obj_handler->prng_host('P');
+    } else if (handle->type == Y_DOUBLE) {
+      caObjD *carma_obj_handler = (caObjD *) (handle->carma_object);
+      if (carma_obj_handler->is_rng_init() == false) {
+        carma_obj_handler->init_prng(handle->device);
+        //carma_obj_handler->init_prng_host(seed);
+      }
+      carma_obj_handler->prng('P');
+      //carma_obj_handler->prng_host('P');
+    } else {
+      y_error("yoga_poisson not implemented for this type");
+    }
+  } else {
+    y_error("yoga_poisson can only be called as a subroutine");
+  }
+  cutilSafeThreadSync();
+}
+
 /*
  *    __  __ _
  *   / _|/ _| |_
