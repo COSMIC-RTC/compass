@@ -79,8 +79,7 @@ template <class T> int carma_cula_svd(carma_obj<T> *imat, carma_obj<T> *eigenval
   int n = imat->getDims(2); // number of rows
   int m = imat->getDims(1);// number of cols
 
-  cerr << "cols : " << n << " rows : " << m << endl;
-  carma_obj<T> tmp(imat);
+    carma_obj<T> tmp(imat);
   carma_culaDevice_sgesvd<T>(m, n, tmp, *eigenvals, *mod2act, *mes2mod);
   return EXIT_SUCCESS;
 }
