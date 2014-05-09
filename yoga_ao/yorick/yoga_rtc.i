@@ -231,11 +231,16 @@ func cmat_update(ncontrol,maxcond)
   //mfilt = where(1./(eigenv/eigenv(1)) > maxcond);
   nfilt = numberof(mfilt);
   write,format="nb modes filtered : %d",nfilt;
-  if (numberof(*wfs_disp._winits) > 0) {
+  if ( (wfs_disp!=[]) && (numberof(*wfs_disp._winits) > 0)) {
     if ((*wfs_disp._winits)(5)) {
     window,(*wfs_disp._wins)(5);fma;logxy,0,1;
-    plg, eigenv(::-1), marks=0;
-    plmk, eigenv(::-1), msize = 0.3, marker=4;
+    if (eigenv(1) < eigenv(0)) {
+      plg, eigenv(::-1), marks=0;
+      plmk, eigenv(::-1), msize = 0.3, marker=4;
+    } else {
+      plg, eigenv, marks=0;
+      plmk, eigenv, msize = 0.3, marker=4;
+    }
     x0 = dimsof(imat)(3) - nfilt + 0.5;
     pldj, x0 ,min(eigenv), x0, max(eigenv), color="red";
     }
