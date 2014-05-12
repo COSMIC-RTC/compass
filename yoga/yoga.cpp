@@ -30,16 +30,9 @@
 #include <carma_cusparse.h>
 #include <carma_utils.h>
 #include <carma.h>
-#include <prana_rtc.h>
 #include <sstream>
 #include <iomanip>
 #include "yoga_api.h"
-
-static y_userobj_t yPranaRTC = {
-/**
- * @typedef Yorick API prana_rtc userobjcontext_struct
- */
-const_cast<char*>("yPrana RTC Object"), &prana_rtc_free, &prana_rtc_print, 0, 0, 0 };
 
 static y_userobj_t yContext = {
 /**
@@ -74,117 +67,6 @@ const_cast<char*>("Carma Sparse Host Object"), &ySparseHostObj_free, &ySparseHos
     &ySparseHostObj_eval, 0, 0 };
 
 extern "C" {
-
-/*  ____  ____      _    _   _    _
- * |  _ \|  _ \    / \  | \ | |  / \
- * | |_) | |_) |  / _ \ |  \| | / _ \
- * |  __/|  _ <  / ___ \| |\  |/ ___ \
- * |_|   |_| \_\/_/   \_\_| \_/_/   \_\
- */
-
-void prana_rtc_free(void *obj) {
-  /** @brief yPRANA_RTC_struct destructor.
-   *  @param obj : yPRANA_RTC_struct to fcarma_contextreed
-   */
-  yPRANA_RTC_struct *handler = (yPRANA_RTC_struct *) obj;
-  SCAST(prana_rtc*, prana_rtc_handler, handler->prana_rtc);
-  try {
-    delete prana_rtc_handler;
-  } catch (string &msg) {
-    y_error(msg.c_str());
-  } catch (char const * msg) {
-    y_error(msg);
-  }
-}
-
-void prana_rtc_print(void *obj)
-/** @brief yPRANA_RTC_struct printer.
- *  @param[in] obj : yPRANA_RTC_struct to print
- */
-{
-  yPRANA_RTC_struct *handler = (yPRANA_RTC_struct *) obj;
-  SCAST(prana_rtc*, prana_rtc_handler, handler->prana_rtc);
-
-  cout << "PRANA RTC : " << endl;
-}
-
-void Y_prana_rtc(int argc)
-/** @brief yPRANA_RTC_struct creator.
- *  @param[in] argc : command line argument
- */
-{
-  long ntot=0;
-  long dims[Y_DIMSIZE];
-
-  carma_context *context_handle = _getCurrentContext();
-  int *iGPUs=ygeta_i(argc-1, &ntot, dims);
-  int nGPUs=ntot;
-  int nPixImgX=ygets_i(argc-2);
-  int nPixImgY=ygets_i(argc-3);
-  int nSlp=ygets_i(argc-4);
-  int nCmd=ygets_i(argc-5);
-  int nSppX=ygets_i(argc-6);
-  int nSppY=ygets_i(argc-7);
-  short *h_iSppValid=ygeta_s(argc-8, &ntot, dims);
-  float *h_matcom=ygeta_f(argc-9, &ntot, dims);
-  try {
-    yPRANA_RTC_struct *handle = (yPRANA_RTC_struct *) ypush_obj(&yPranaRTC,
-        sizeof(yPRANA_RTC_struct));
-    CUcontext *ctx=(CUcontext*)malloc(nGPUs*sizeof(CUcontext));
-    context_handle->releaseCtx(nGPUs, iGPUs, ctx);
-    handle->prana_rtc = new prana_rtc(nGPUs, ctx,
-      context_handle->get_cublasHandle(), nPixImgX, nPixImgY, nSlp,
-      nCmd, nSppX, nSppY, h_iSppValid, h_matcom);
-  } catch (string &msg) {
-    y_error(msg.c_str());
-  } catch (char const * msg) {
-    y_error(msg);
-  } catch (...) {
-    stringstream buf;
-    buf << "unknown error with carma_context construction in " << __FILE__
-        << "@" << __LINE__ << endl;
-    y_error(buf.str().c_str());
-  }
-}
-
-void Y_prana_start(int argc){
-  yPRANA_RTC_struct *handle_obj = (yPRANA_RTC_struct *) yget_obj(argc - 1, &yPranaRTC);
-  SCAST(prana_rtc*, p_rtc, handle_obj->prana_rtc);
-  p_rtc->start_rtc();
-}
-void Y_prana_stop(int argc){
-  yPRANA_RTC_struct *handle_obj = (yPRANA_RTC_struct *) yget_obj(argc - 1, &yPranaRTC);
-  SCAST(prana_rtc*, p_rtc, handle_obj->prana_rtc);
-  p_rtc->stop_rtc();
-}
-void Y_prana_set_image(int argc){
-  yPRANA_RTC_struct *prana_obj = (yPRANA_RTC_struct *) yget_obj(argc - 1, &yPranaRTC);
-  SCAST(prana_rtc*, p_rtc, prana_obj->prana_rtc);
-
-  yObj_struct *handle_obj = (yObj_struct *) yget_obj(argc - 2, &yObj);
-  SCAST(carma_obj<float>*, d_image, handle_obj->carma_object);
-
-  carma_context *context_handle = _getCurrentContext();
-  int active_device=context_handle->get_activeDevice();
-  CUcontext ctx=context_handle->get_device(active_device)->getCUcontext();
-
-  p_rtc->set_image((CUdeviceptr)d_image->getData(), ctx);
-}
-void Y_prana_get_commands(int argc){
-  yPRANA_RTC_struct *prana_obj = (yPRANA_RTC_struct *) yget_obj(argc - 1, &yPranaRTC);
-  SCAST(prana_rtc*, p_rtc, prana_obj->prana_rtc);
-
-  yObj_struct *handle_obj = (yObj_struct *) yget_obj(argc - 2, &yObj);
-  SCAST(carma_obj<float>*, d_commands, handle_obj->carma_object);
-
-  carma_context *context_handle = _getCurrentContext();
-  int active_device=context_handle->get_activeDevice();
-  CUcontext ctx=context_handle->get_device(active_device)->getCUcontext();
-
-  p_rtc->get_commands((CUdeviceptr)d_commands->getData(), ctx);
-
-}
-
 
 /*                  _            _
  *   ___ ___  _ __ | |_ _____  _| |_
