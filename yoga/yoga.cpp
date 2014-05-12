@@ -113,12 +113,12 @@ void context_print(void *obj)
     const char *name=context_handler->get_device(idx)->getName();
     char mem[9];
     sprintf(mem, "%8zu", context_handler->get_device(idx)->getMem()/1024/1024);
+
     cout << ((idx == activeDevice) ? "<U>" : "   ") << setw(3) << idx
         << " | " << setw(4+len-strlen(name)) << name << " | " << mem << " | " << setw(5)
         << context_handler->get_device(idx)->get_sm_per_multiproc()
-            * context_handler->get_device(idx)->get_properties().multiProcessorCount
-        << " (" << context_handler->get_device(idx)->get_properties().multiProcessorCount << ")"
-        << " | " << setw(5)
+      * context_handler->get_device(idx)->get_properties().multiProcessorCount << (context_handler->get_device(idx)->get_properties().multiProcessorCount<10?"  (":" (") << context_handler->get_device(idx)->get_properties().multiProcessorCount << ")"
+	 << " | " << setw(5)
         << context_handler->get_device(idx)->get_properties().major << "."
         << context_handler->get_device(idx)->get_properties().minor << " | "
         << context_handler->get_device(idx)->get_compute_perf() / 1.e6 << endl;
