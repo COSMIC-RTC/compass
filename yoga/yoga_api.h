@@ -37,8 +37,7 @@
 
 extern "C" {
 
-/*
- *    _                        _       __
+/*    _                        _       __
  *   | |_ _   _ _ __   ___  __| | ___ / _|
  *   | __| | | | '_ \ / _ \/ _` |/ _ \ |_
  *   | |_| |_| | |_) |  __/ (_| |  __/  _|
@@ -88,8 +87,27 @@ typedef struct ySparseHostObj_struct {
   int type; /**< type of data in the yoga_sparse_host_object (Yorick API types) */
 } ySparseHostObj_struct;
 
-/* 
- *                  _            _
+typedef struct yPRANA_RTC_struct {
+  /**
+   * @typedef Yorick API PRANA_object structure
+   */
+  void *prana_rtc; /**< pointer to a prana_rtc */
+  int type; /**< type of data in the prana_object (Yorick API types) */
+} yPRANA_RTC_struct;
+
+/*  ____  ____      _    _   _    _
+ * |  _ \|  _ \    / \  | \ | |  / \
+ * | |_) | |_) |  / _ \ |  \| | / _ \
+ * |  __/|  _ <  / ___ \| |\  |/ ___ \
+ * |_|   |_| \_\/_/   \_\_| \_/_/   \_\
+ */
+
+void
+prana_rtc_print(void *obj);
+void
+prana_rtc_free(void *obj);
+
+/*                  _            _
  *   ___ ___  _ __ | |_ _____  _| |_
  *  / __/ _ \| '_ \| __/ _ \ \/ / __|
  * | (_| (_) | | | | ||  __/>  <| |_
@@ -125,8 +143,7 @@ _yogaThreadSync();
 void
 _yoga_init();
 
-/*
- *                                    _     _           _
+/*                                    _     _           _
  *   _   _  ___   __ _  __ _     ___ | |__ (_) ___  ___| |_
  *  | | | |/ _ \ / _` |/ _` |   / _ \| '_ \| |/ _ \/ __| __|
  *  | |_| | (_) | (_| | (_| |  | (_) | |_) | |  __/ (__| |_
@@ -200,8 +217,7 @@ Y_yoga_fftconv(int argc);
 void
 Y_yoga_fftconv_init(int argc);
 
-/*
- *                               _               _
+/*                               _               _
  *   _   _  ___   __ _  __ _    | |__   ___  ___| |_
  *  | | | |/ _ \ / _` |/ _` |   | '_ \ / _ \/ __| __|
  *  | |_| | (_) | (_| | (_| |   | | | | (_) \__ \ |_
@@ -221,8 +237,7 @@ Y_yoga_host_obj(int argc);
 void
 Y_yoga_host_getp(int argc);
 
-/*
- *                                                                     _     _
+/*                                                                     _     _
  *  _   _  ___   __ _  __ _     ___ _ __   __ _ _ __ ___  ___     ___ | |__ (_)
  * | | | |/ _ \ / _` |/ _` |   / __| '_ \ / _` | '__/ __|/ _ \   / _ \| '_ \| |
  * | |_| | (_) | (_| | (_| |   \__ \ |_) | (_| | |  \__ \  __/  | (_) | |_) | |
@@ -240,8 +255,7 @@ ySparseObj_free(void *obj);
 void
 Y_yoga_sparse_obj(int argc);
 
-/*
- *                                                                _               _            _     _
+/*                                                                _               _            _     _
  *  _   _  ___   __ _  __ _     ___ _ __   __ _ _ __ ___  ___    | |__   ___  ___| |_     ___ | |__ (_)
  * | | | |/ _ \ / _` |/ _` |   / __| '_ \ / _` | '__/ __|/ _ \   | '_ \ / _ \/ __| __|   / _ \| '_ \| |
  * | |_| | (_) | (_| | (_| |   \__ \ |_) | (_| | |  \__ \  __/   | | | | (_) \__ \ |_   | (_) | |_) | |
@@ -259,8 +273,7 @@ ySparseHostObj_free(void *obj);
 void
 Y_yoga_sparse_host_obj(int argc);
 
-/*
- *    _ __ ___   __ _  __ _ _ __ ___   __ _
+/*    _ __ ___   __ _  __ _ _ __ ___   __ _
  *   | '_ ` _ \ / _` |/ _` | '_ ` _ \ / _` |
  *   | | | | | | (_| | (_| | | | | | | (_| |
  *   |_| |_| |_|\__,_|\__, |_| |_| |_|\__,_|
@@ -272,8 +285,7 @@ Y_yoga_svd(int argc);
 void
 Y_yoga_svd_host(int argc);
 
-/*
- *             _
+/*             _
  *   ___ _   _| | __ _
  *  / __| | | | |/ _` |
  * | (__| |_| | | (_| |
@@ -285,8 +297,7 @@ Y_yoga_cula_svd(int argc);
 void
 Y_yoga_cula_svd_host(int argc);
 
-/*
- *    __ _ _ __ _ __ __ _ _   _ ___
+/*    __ _ _ __ _ __ __ _ _   _ ___
  *   / _` | '__| '__/ _` | | | / __|
  *  | (_| | |  | | | (_| | |_| \__ \
  *   \__,_|_|  |_|  \__,_|\__, |___/

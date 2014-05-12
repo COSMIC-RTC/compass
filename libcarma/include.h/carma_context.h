@@ -23,6 +23,7 @@
 #include <driver_types.h>
 #include <vector_types.h>
 #include <cuda_runtime_api.h>
+#include <cuda.h>
 
 #include <carma_utils.h>
 #include <carma_cublas.h>
@@ -37,7 +38,11 @@ protected:
   float compute_perf;
   float sm_per_multiproc;
   bool p2p_activate;
+  char name[16];
+  size_t totalMem;
 
+  CUdevice dev;
+  CUcontext ctx;
 public:
   carma_device(int devid);
   carma_device(const carma_device& device);
@@ -63,6 +68,11 @@ public:
     return p2p_activate;
   }
 
+  CUcontext getCUcontext() {return ctx;}
+
+  const char *getName() {return name;}
+
+  size_t getMem() {return totalMem;}
 };
 
 class carma_context {
@@ -98,6 +108,8 @@ public:
   cusparseHandle_t get_cusparseHandle() {
     return cusparseHandle;
   }
+
+  void releaseCtx(int nGPUs, int *iGPUs, CUcontext *ctx);
 };
 
 /// from /usr/local/cuda/samples/common/inc/helper_cuda.h

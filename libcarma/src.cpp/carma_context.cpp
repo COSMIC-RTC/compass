@@ -23,6 +23,13 @@ carma_device::carma_device(int devid) {
       * this->sm_per_multiproc * this->properties.clockRate;
 
   this->p2p_activate = false;
+  //DEBUG_TRACE("cuDeviceGet\n");
+  cuDeviceGet(&dev, devid);
+  cuDeviceGetName(name, 16, dev);
+  cuDeviceTotalMem(&totalMem, dev);
+  //DEBUG_TRACE("cuCtxCreate\n");
+  cuCtxCreate(&ctx, CU_CTX_SCHED_AUTO | CU_CTX_MAP_HOST, dev);
+  //DEBUG_TRACE("done\n");
 }
 
 carma_device::~carma_device() {
@@ -30,6 +37,10 @@ carma_device::~carma_device() {
 }
 
 carma_context::carma_context() {
+  //DEBUG_TRACE("context init\n");
+  //cuInit(0);
+  //DEBUG_TRACE("context done\n");
+
   cutilSafeCall(cudaGetDeviceCount(&(this->ndevice)));
   if (this->ndevice == 0) {
     fprintf(stderr,
@@ -249,4 +260,16 @@ int carma_context::get_maxGflopsDeviceId()
     --current_device;
   }
   return max_perf_device;
+}
+
+void carma_context::releaseCtx(int nGPUs, int *iGPUs, CUcontext *ctx){
+  //DEBUG_TRACE("entering into releaseCtx\n");
+  for(int id_gpu=0; id_gpu<nGPUs; id_gpu++){
+    //DEBUG_TRACE("Get context of the device %d\n",iGPUs[id_gpu]);
+    CUcontext context=devices[iGPUs[id_gpu]]->getCUcontext();
+    //DEBUG_TRACE("Release context of the device %d\n",iGPUs[id_gpu]);
+    cuCtxPopCurrent(&context);
+    //DEBUG_TRACE("Copy context of the device %d\n",iGPUs[id_gpu]);
+    ctx[id_gpu]=context;
+  }
 }

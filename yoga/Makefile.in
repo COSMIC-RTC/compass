@@ -25,10 +25,12 @@ OBJS=yoga.o
 #PKG_EXENAME=yorick
 
 # PKG_DEPLIBS=-Lsomedir -lsomelib   for dependencies of this package
-PKG_DEPLIBS= -L$(COMPASS_ROOT_DIR)/libcarma -lcarma
+PKG_DEPLIBS = -L$(COMPASS_ROOT_DIR)/libcarma -lcarma
+PKG_DEPLIBS+= -L$(COMPASS_ROOT_DIR)/libprana -lprana
  
 # set compiler (or rarely loader) flags specific to this package
-PKG_CPPFLAGS= -Wall -fno-common -I$(COMPASS_ROOT_DIR)/libcarma/include.h -Iinclude.h -I$(CUDA_INC_PATH)
+PKG_CPPFLAGS= -Wall -fno-common -I$(CUDA_INC_PATH)
+PKG_CPPFLAGS= -I$(COMPASS_ROOT_DIR)/libcarma/include.h -I$(COMPASS_ROOT_DIR)/libprana/include.h
 
 ifneq ($(DEBUG),)
 PKG_CPPFLAGS+= -O0 -g -DDEBUG

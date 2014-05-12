@@ -7,8 +7,7 @@
 #include <pthread.h>
 
 typedef pthread_t carma_thread;
-typedef void *
-(*CARMAT_routine)(void *);
+typedef void * (*CARMAT_routine)(void *);
 
 #define CARMAT_THREADPROC void*
 #define CARMAT_THREADEND return 0

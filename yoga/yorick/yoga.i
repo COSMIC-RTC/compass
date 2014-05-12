@@ -122,6 +122,42 @@ extern activeDevice;
    SEE ALSO:
  */
 
+/*  ____  ____      _    _   _    _
+ * |  _ \|  _ \    / \  | \ | |  / \
+ * | |_) | |_) |  / _ \ |  \| | / _ \
+ * |  __/|  _ <  / ___ \| |\  |/ ___ \
+ * |_|   |_| \_\/_/   \_\_| \_/_/   \_\
+ */
+
+extern prana_rtc;
+/* DOCUMENT prana_rtc
+   p_rtc = prana_rtc(iGPUs, nPixImgX, nPixImgY, nSlp, nCmd, nSppX, nSppY, h_iSppValid, d_matcom);
+   
+   where :
+     - iGPUs: array containing devices to use
+     - nPixImgX, nPixImgY: size of the image
+     - nSlp: number of slopes
+     - nCmd: number of commands
+     - nSppX, nSppY: number of subpupils in diameter
+     - h_iSppValid: array of the subpupils valid
+     - d_matcom: yoga_obj of the command matrix
+   
+   SEE ALSO:
+ */
+
+extern prana_start;
+extern prana_stop;
+extern prana_set_image;
+extern prana_get_commands;
+
+
+/*                  _            _
+ *   ___ ___  _ __ | |_ _____  _| |_
+ *  / __/ _ \| '_ \| __/ _ \ \/ / __|
+ * | (_| (_) | | | | ||  __/>  <| |_
+ *  \___\___/|_| |_|\__\___/_/\_\\__|
+ */
+
 extern yoga_context;
 /* DOCUMENT yoga_context
    context = yoga_context();

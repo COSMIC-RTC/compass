@@ -58,7 +58,7 @@ void carma_wait4barrier(carma_thread_barrier *barrier) {
   while (barrier->count < barrier->releaseCount) {
     pthread_cond_wait(&barrier->conditionVariable, &barrier->mutex);
   }
-
+  barrier->count=0;
   pthread_mutex_unlock(&barrier->mutex);
 }
 

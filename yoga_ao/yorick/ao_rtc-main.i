@@ -7,7 +7,6 @@ require,yoga_ao_top+"/yorick/yoga_ao.i";
 //require,yoga_ao_top+"/ywidgets/widget_wfs.i";
 
 #include "fits-utils.i"
-#include "svipc.i"
 
 mypath = anyof(split_path(get_path())==(yoga_ao_top+"/")) ? [] : get_path()+":"+yoga_ao_top+"/";
 if (mypath != []) set_path,mypath;
@@ -24,8 +23,6 @@ func script_system(filename,verbose=,strehl=,r0=,clean=)
 {
   //activeDevice,1;
 
-  shm_init,1234,slots=10;
-  sem_init,2345,nums=2;
   
   extern y_geom,y_tel,y_loop,y_atmos,y_wfs;
   extern g_atmos,g_target,g_wfs;
@@ -81,19 +78,11 @@ func script_system(filename,verbose=,strehl=,r0=,clean=)
   g_rtc;
 
   //y_loop.niter=5;
-  
-  config=[y_wfs.nxsub*y_wfs.npix,y_wfs.nxsub*y_wfs.npix,y_wfs._nvalid*2,y_dm._ntotact(sum),y_wfs.nxsub,y_wfs.nxsub,y_loop.niter,0,0,0](*);
-  shm_write,1234,"config",&config;
-  
-  mc = rtc_getcmat(g_rtc, 0);
-  shm_write,1234,"mc",&mc;
-  validsubs = transpose(short(*y_wfs(1)._validsubs-1));
-  shm_write,1234,"validsubs",&validsubs;
-  
-  write,"wait for rtc-main-4yorick";
-  sem_give,2345,0;
-  sem_take,2345,1;
 
+  use_gpu=int([1]);
+  p_rtc = prana_rtc(use_gpu, y_wfs(1).nxsub*y_wfs(1).npix,y_wfs(1).nxsub*y_wfs(1).npix, y_wfs(1)._nvalid*2, y_dm._ntotact(sum),y_wfs(1).nxsub,y_wfs(1).nxsub, transpose(short(*y_wfs(1)._validsubs-1)),rtc_getcmat(g_rtc, 0));
+  prana_start, p_rtc;
+  //prana_set_image, p_rtc, yoga_obj(float(random(64, 64)));
   /*
     _         _                   
  _ __ ___   __ _(_)_ __   | | ___   ___  _ __  
@@ -159,13 +148,11 @@ func script_system(filename,verbose=,strehl=,r0=,clean=)
     // write, "col1";
     // image(1,);
     //pli, image; pause, 100;
-    shm_write,1234,"image",&image;
-    sem_give,2345,0;
-    sem_take,2345,1;
+    prana_set_image, p_rtc, yoga_obj(image);
 
-    com = shm_read(1234, "com");
-    shm_free, 1234, "com";
-    
+    d_com = yoga_obj(array(0.f, y_dm._ntotact(sum)));
+    prana_get_commands, p_rtc, d_com;
+
     if ((y_rtc != []) && (g_rtc != [])
         && (y_wfs != []) && (g_wfs != [])) {
       
@@ -173,7 +160,7 @@ func script_system(filename,verbose=,strehl=,r0=,clean=)
       // compute command and apply
       //if (g_dm != []) rtc_docontrol,g_rtc,0,g_dm;
       
-      if (g_dm != []) dms_comp_shape,g_dm, com;
+      if (g_dm != []) dms_comp_shape,g_dm, d_com();
     }
     
     //write, "**** new loop ****";
@@ -225,9 +212,8 @@ func script_system(filename,verbose=,strehl=,r0=,clean=)
   //mimg /= y_loop.niter;
   //window,1;fma;pli,mimg; 
   //error;
+  prana_stop, p_rtc;
 
-  shm_cleanup,1234;
-  sem_cleanup,2345;
   error;
 }
 
