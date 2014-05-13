@@ -87,26 +87,6 @@ typedef struct ySparseHostObj_struct {
   int type; /**< type of data in the yoga_sparse_host_object (Yorick API types) */
 } ySparseHostObj_struct;
 
-typedef struct yPRANA_RTC_struct {
-  /**
-   * @typedef Yorick API PRANA_object structure
-   */
-  void *prana_rtc; /**< pointer to a prana_rtc */
-  int type; /**< type of data in the prana_object (Yorick API types) */
-} yPRANA_RTC_struct;
-
-/*  ____  ____      _    _   _    _
- * |  _ \|  _ \    / \  | \ | |  / \
- * | |_) | |_) |  / _ \ |  \| | / _ \
- * |  __/|  _ <  / ___ \| |\  |/ ___ \
- * |_|   |_| \_\/_/   \_\_| \_/_/   \_\
- */
-
-void
-prana_rtc_print(void *obj);
-void
-prana_rtc_free(void *obj);
-
 /*                  _            _
  *   ___ ___  _ __ | |_ _____  _| |_
  *  / __/ _ \| '_ \| __/ _ \ \/ / __|
