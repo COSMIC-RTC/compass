@@ -654,6 +654,7 @@ func rtc_init(clean=)
       
       if ((y_wfs != []) && (y_dm != [])) {
         for (i=1;i<=numberof(controllers);i++) {
+            write,"doing imat and filtering unseen actuators";
           //if (controllers(i).type  == "cured") {
             if (y_wfs(1).type == "sh")
 	      imat = imat_geom();
@@ -670,8 +671,7 @@ func rtc_init(clean=)
           rtc_addcontrol,g_rtc,sum(y_dm(ndms)._ntotact),controllers(i).delay,controllers(i).type;
 
           if (controllers(i).type  == "ls") {
-            write,"doing imat and filtering unseen actuators";
-            imat_init,i,clean=clean;
+            //imat_init,i,clean=clean;
             write,"done";
             cmat_init,i,clean=clean;
             rtc_setgain,g_rtc,0,controllers(i).gain;
