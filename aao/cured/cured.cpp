@@ -1133,12 +1133,12 @@ int cured(sysCure* sys, parCure *par, float *data, float *result_vec, float *ttX
    for(i = 0; i < numofelems; i++)
      tiptiltX += dataX[i];
    tiptiltX /= numofelems;
-   *ttX=-tiptiltX;
+   *ttX = tiptiltX;
    
    for(i = 0; i < numofelems; i++)
      tiptiltY += dataY[i];
    tiptiltY /= numofelems;
-   *ttY=-tiptiltY;
+   *ttY = tiptiltY;
  }
  
   /* distribute Sx, Sy */

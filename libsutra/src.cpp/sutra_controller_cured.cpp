@@ -62,8 +62,8 @@ int sutra_controller_cured::comp_com() {
 	  this->h_err->getData(), this->h_err->getData(this->h_err->getNbElem()-2),
 	  this->h_err->getData(this->h_err->getNbElem()-1));
 
-    *this->h_err->getData(this->h_err->getNbElem()-2) *= -1.0f;
-    *this->h_err->getData(this->h_err->getNbElem()-1) *= -1.0f;
+    //*this->h_err->getData(this->h_err->getNbElem()-2) *= -1.0f;
+    //*this->h_err->getData(this->h_err->getNbElem()-1) *= -1.0f;
   } else {
     cured((sysCure*)this->h_syscure, (parCure*)this->h_parcure, this->h_centroids->getData(), 
 	  this->h_err->getData());
