@@ -654,13 +654,13 @@ func rtc_init(clean=)
       
       if ((y_wfs != []) && (y_dm != [])) {
         for (i=1;i<=numberof(controllers);i++) {
-          if (controllers(i).type  == "cured") {
+          //if (controllers(i).type  == "cured") {
             if (y_wfs(1).type == "sh")
 	      imat = imat_geom();
 	    else
 	      imat = manual_imat();
             correct_dm,imat;
-          }
+            //} 
           nwfs = *controllers(i).nwfs;
           if (numberof(y_wfs) == 1) nwfs = nwfs(1); // fixing a bug ... still not understood
           ndms = *controllers(i).ndm;
