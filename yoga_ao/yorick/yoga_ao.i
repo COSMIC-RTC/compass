@@ -671,7 +671,7 @@ func rtc_init(clean=)
           rtc_addcontrol,g_rtc,sum(y_dm(ndms)._ntotact),controllers(i).delay,controllers(i).type;
 
           if (controllers(i).type  == "ls") {
-            //imat_init,i,clean=clean;
+            imat_init,i,clean=clean;
             write,"done";
             cmat_init,i,clean=clean;
             rtc_setgain,g_rtc,0,controllers(i).gain;
