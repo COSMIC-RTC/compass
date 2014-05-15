@@ -2013,18 +2013,20 @@ void Y_dms_comp_shape(int argc) {
 
   long ntot;
   long dims[Y_DIMSIZE];
-  float *com = ygeta_f(argc - 2, &ntot, dims);
+  if(yarg_typeid(argc - 2)==Y_FLOAT) {
+    float *com = ygeta_f(argc - 2, &ntot, dims);
 
-  carma_obj<float> d_com(context_handle, const_cast<const long*>(dims), com);
+    carma_obj<float> d_com(context_handle, const_cast<const long*>(dims), com);
 
-  map<type_screen, sutra_dm *>::iterator p;
-  p = dms_handler->d_dms.begin();
-  int idx = 0;
-  while (p != dms_handler->d_dms.end()) {
-    p->second->comp_shape(d_com[idx]);
-    idx += p->second->ninflu;
-    p++;
- }
+    map<type_screen, sutra_dm *>::iterator p;
+    p = dms_handler->d_dms.begin();
+    int idx = 0;
+    while (p != dms_handler->d_dms.end()) {
+      p->second->comp_shape(d_com[idx]);
+      idx += p->second->ninflu;
+      p++;
+    }
+  }
 
 }
 
@@ -3314,6 +3316,18 @@ void Y_yoga_floloadkl(int argc) {
 }
 
 //-----------------------------------------------------------------------------------------
+
+sensors_struct*
+yoga_ao_getySensors(int argc, int pos) {
+  return (sensors_struct *) yget_obj(argc - pos, &ySensors);
+}
+
+
+dms_struct*
+yoga_ao_getyDMs(int argc, int pos) {
+  return (dms_struct *) yget_obj(argc - pos, &yDMs);
+}
+
 
 }
 

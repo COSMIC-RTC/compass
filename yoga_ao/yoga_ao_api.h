@@ -509,5 +509,12 @@ Y_yoga_templatecomp(int argc);
 void
 Y_yoga_gettemplate(int argc);
 
+
+sensors_struct *
+yoga_ao_getySensors(int argc, int pos);
+
+dms_struct*
+yoga_ao_getyDMs(int argc, int pos);
+
 }
 #endif // _YOGA_AO_API_H_
