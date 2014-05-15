@@ -21,6 +21,7 @@
 #include <vector_types.h>
 
 #include <cuda_runtime_api.h>
+#include <cuda.h>
 
 #include <cufft.h>
 
@@ -36,6 +37,7 @@ enum CUTBoolean {
 
 // We define these calls here, so the user doesn't need to include __FILE__ and __LINE__
 // The advantage is the developers gets to use the inline function so they can debug
+#define CUSafeCall(err)              __CUSafeCall        (err, __FILE__, __LINE__)
 #define cutilSafeCallNoSync(err)     __cudaSafeCallNoSync(err, __FILE__, __LINE__)
 #define cutilSafeCall(err)           __cudaSafeCall      (err, __FILE__, __LINE__)
 #define cutilSafeThreadSync()        __cudaSafeThreadSync(__FILE__, __LINE__)
@@ -68,6 +70,14 @@ inline void __cudaSafeCall(cudaError err, const char *file, const int line) {
   if (cudaSuccess != err) {
     fprintf(stderr, "(%s:%i) : cudaSafeCall() Runtime API error : %s.\n", file,
         line, cudaGetErrorString(err));
+    exit(-1);
+  }
+}
+
+inline void __CUSafeCall(CUresult err, const char *file, const int line) {
+  if (CUDA_SUCCESS != err) {
+    fprintf(stderr, "(%s:%i) : CUSafeCall() Driver API error : %d.\n", file,
+        line, err);
     exit(-1);
   }
 }
