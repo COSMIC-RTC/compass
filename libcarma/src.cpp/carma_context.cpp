@@ -28,7 +28,7 @@ carma_device::carma_device(int devid) {
   cuDeviceGetName(name, 16, dev);
   cuDeviceTotalMem(&totalMem, dev);
   //DEBUG_TRACE("cuCtxCreate\n");
-  cuCtxCreate(&ctx, CU_CTX_SCHED_AUTO | CU_CTX_MAP_HOST, dev);
+  cuCtxCreate(&ctx, CU_CTX_MAP_HOST | CU_CTX_SCHED_YIELD, dev);
   //DEBUG_TRACE("done\n");
 }
 
@@ -100,7 +100,7 @@ carma_context::carma_context() {
     }
   }
 
-  this->activeDevice = set_activeDevice(get_maxGflopsDeviceId(), 1);
+  this->activeDevice = set_activeDevice(0);//get_maxGflopsDeviceId(), 1);
 
   carma_initCublas(&cublasHandle);
   carma_initCusparse(&cusparseHandle);
