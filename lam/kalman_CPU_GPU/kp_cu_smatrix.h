@@ -51,6 +51,7 @@ void set_majorDim(char c){majorDim=c;}
 	friend void kp_cu_gemm(cusparseHandle_t handle, char op_A, real alpha, kp_cu_smatrix& A, const kp_cu_matrix& B, real beta, kp_cu_matrix& C);
 	//friend void kp_cu_gemm(cusparseHandle_t handle,cublasHandle_t cublasHandle, char op_A, char op_B, real alpha, kp_cu_smatrix& A, kp_cu_matrix& B, real beta, kp_cu_matrix& C);
 
+	friend void kp_cu_sgemm(cusparseHandle_t cusparseHandle, char op_A, char op_B, kp_cu_smatrix& A, kp_cu_smatrix& B, kp_cu_smatrix& C);
 	friend void kp_cu_gemv(cusparseHandle_t handle, char op_A, real alpha, kp_cu_smatrix& A, const kp_cu_vector& x, real beta, kp_cu_vector& y);
 	friend void kp_cu_cudaFree(int*);
 	friend void kp_cu_cudaMalloc(int*);
@@ -64,6 +65,7 @@ void set_majorDim(char c){majorDim=c;}
 
 void kp_cu_check_op_set_dim(int op, const kp_cu_smatrix&M, int& dim1, int& dim2, cusparseOperation_t* trans);
 void kp_cu_check_op_set_dim(int op, const kp_cu_matrix&M, int& dim1, int& dim2, cusparseOperation_t* trans);
+void kp_cu_check_op_set_dim(int op, const kp_cu_smatrix&M, int& dim1, int& dim2, cusparseOperation_t* trans, cusparseOperation_t* transinv);
 
 // C = alpha * op_A(A) * B + beta * C 
 void kp_cu_gemm(cusparseHandle_t handle, char op_A, real alpha, kp_cu_smatrix& A, const kp_cu_matrix& B, real beta, kp_cu_matrix& C);
@@ -75,4 +77,6 @@ inline void kp_cu_gemm(cusparseHandle_t handle,cublasHandle_t cublashandle, real
 // y = alpha * op_A(A) * x + beta * y
 void kp_cu_gemv(cusparseHandle_t handle, char op_A, real alpha, kp_cu_smatrix& A, const kp_cu_vector& x, real beta, kp_cu_vector& y);
 
+// C = op_A(A) * op_B(B) 
+void kp_cu_sgemm(cusparseHandle_t cusparseHandle, char op_A, char op_B, kp_cu_smatrix& A, kp_cu_smatrix& B, kp_cu_smatrix& C);
 #endif

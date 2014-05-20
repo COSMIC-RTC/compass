@@ -55,8 +55,8 @@ int main(int argc, char* argv[])
 	int nb_z  = -1;
 	int nb_az = -1;
 
-	if (isZonal) mat = Mat_Open("../../../../data/KALM_08P16_AR1Za980.mat",MAT_ACC_RDONLY);
-	else mat = Mat_Open("../../../../data/KALM_08P16_AR1Mo30.mat",MAT_ACC_RDONLY);
+	if (isZonal) mat = Mat_Open("/home/tgautrais/Documents/v2_kalman_kp/data/KALM_08P16_AR1Za980.mat",MAT_ACC_RDONLY);
+	else mat = Mat_Open("/home/tgautrais/Documents/v2_kalman_kp/data/KALM_08P16_AR1Mo30.mat",MAT_ACC_RDONLY);
 	//LECTURE DE D_Sys
 	kp_init4matio_smatrix(D_Sys, mat, "D_Sys");
 	//LECTURE DE A1
@@ -117,9 +117,9 @@ int main(int argc, char* argv[])
 
 	if (sparse_matrix)
 	{
-		D_Mo_s ->resize2colMajor();
-		N_Act_s->resize2colMajor();
-		PROJ_s ->resize2colMajor();
+		D_Mo_s ->resize2rowMajor();
+		N_Act_s->resize2rowMajor();
+		PROJ_s ->resize2rowMajor();
 	}
 
 
@@ -188,7 +188,7 @@ int main(int argc, char* argv[])
 	}
 
 	/*kp_matrix H_inf_tmp;
-	mat2 = Mat_Open("../../../../data/H_inf_CPU_D.mat",MAT_ACC_RDONLY);
+	mat2 = Mat_Open("/home/tgautrais/Documents/v2_kalman_kp/data/H_inf_CPU_D.mat",MAT_ACC_RDONLY);
 	kp_init4matio_matrix(H_inf_tmp, mat2, "H_inf_40mD");
 	kalman_CPU.H_inf = H_inf_tmp;
 	Mat_Close(mat2);
@@ -198,12 +198,12 @@ int main(int argc, char* argv[])
 	kp_multif_phasetur mf_phasetur;
 	vector<string> fichiers_phase;
 
-	fichiers_phase.push_back("../../../../data/PHASTUR_08_160_VKv14Pix.mat");
-	/*fichiers_phase.push_back("../../../../data/PHASTUR_40_800_VKv14Pix_part1.mat");
-	fichiers_phase.push_back("../../../../data/PHASTUR_40_800_VKv14Pix_part2.mat");
-	fichiers_phase.push_back("../../../../data/PHASTUR_40_800_VKv14Pix_part3.mat");
-	fichiers_phase.push_back("../../../../data/PHASTUR_40_800_VKv14Pix_part4.mat");
-	fichiers_phase.push_back("../../../../data/PHASTUR_40_800_VKv14Pix_part5.mat");*/
+	fichiers_phase.push_back("/home/tgautrais/Documents/v2_kalman_kp/data/PHASTUR_08_160_VKv14Pix.mat");
+	/*fichiers_phase.push_back("/home/tgautrais/Documents/v2_kalman_kp/data/PHASTUR_40_800_VKv14Pix_part1.mat");
+	fichiers_phase.push_back("/home/tgautrais/Documents/v2_kalman_kp/data/PHASTUR_40_800_VKv14Pix_part2.mat");
+	fichiers_phase.push_back("/home/tgautrais/Documents/v2_kalman_kp/data/PHASTUR_40_800_VKv14Pix_part3.mat");
+	fichiers_phase.push_back("/home/tgautrais/Documents/v2_kalman_kp/data/PHASTUR_40_800_VKv14Pix_part4.mat");
+	fichiers_phase.push_back("/home/tgautrais/Documents/v2_kalman_kp/data/PHASTUR_40_800_VKv14Pix_part5.mat");*/
 
 	mf_phasetur.init(fichiers_phase);
 	
@@ -227,7 +227,7 @@ int main(int argc, char* argv[])
 
 	if (afficher_temps) temps_boucle.start();
 	
-	if (comparaison_matlab) mat = Mat_Open("../../../../data/rand_40m.mat",MAT_ACC_RDONLY);
+	if (comparaison_matlab) mat = Mat_Open("/home/tgautrais/Documents/v2_kalman_kp/data/rand0.04.mat",MAT_ACC_RDONLY);
 
 	//for (boucle=0 ; boucle<NB_BOUCLE ; boucle++)
 	while (mf_phasetur.set_next_phase(CPT_km1) && ( boucle < NB_BOUCLE || NB_BOUCLE <= 0) )

@@ -15,7 +15,7 @@ export CPLUS_INCLUDE_PATH=$CUDA_INC_PATH
 export PATH=$CUDA_ROOT/bin:$PATH
 
 # CULA default definitions
-export CULA_ROOT=/usr/local/cula
+export CULA_ROOT=/usr/tgautrais/soft/cula
 export CULA_INC_PATH=$CULA_ROOT/include
 export CULA_LIB_PATH=$CULA_ROOT/lib
 export CULA_LIB_PATH_64=$CULA_ROOT/lib64

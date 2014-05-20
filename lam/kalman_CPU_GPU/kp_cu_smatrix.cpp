@@ -426,9 +426,12 @@ void kp_cu_gemm(cusparseHandle_t handle, char op_A, real alpha, kp_cu_smatrix& A
 
 	if (A.majorDim == 'R') //si row-major
 	{				
+
 		if (!A.isCSRconverted)
 		{
+
 			status= cusparseXcoo2csr(handle, A.rowind_cu, A.nnz, A.dim1, A.csrRowPtr, CUSPARSE_INDEX_BASE_ONE); 
+
 			if (status != CUSPARSE_STATUS_SUCCESS) 
 			{
 				cerr<<"Error | kp_cu_gemm (sparse) | Conversion from COO to CSR format failed"<<endl;
@@ -496,6 +499,7 @@ void kp_cu_gemm(cusparseHandle_t handle, char op_A, real alpha, kp_cu_smatrix& A
 
 
 		
+
 		status= cusparseScsrmm(handle, trans, A.dim1, B.dim2, A.dim2, A.nnz, &alpha, A.descr, A.values_cu,\
 			       	A.csrRowPtr, A.colind_cu, B.d_cu, B.dim1, &beta, C.d_cu, C.dim1);		
 		#else
@@ -512,6 +516,7 @@ void kp_cu_gemm(cusparseHandle_t handle, char op_A, real alpha, kp_cu_smatrix& A
 		
 		if (!A.isCSRconvertedT)
 		{
+
 			status= cusparseXcoo2csr(handle, A.colind_cu, A.nnz, A.dim2, A.csrRowPtrT, CUSPARSE_INDEX_BASE_ONE); 
 			if (status != CUSPARSE_STATUS_SUCCESS) 
 			{
@@ -748,6 +753,308 @@ void kp_cu_gemm(cusparseHandle_t handle, char op_A, real alpha, kp_cu_smatrix& A
 }*/
 
 
+// C = op_A(A) * op_B(B) 
+void kp_cu_sgemm(cusparseHandle_t cusparseHandle, char op_A, char op_B, kp_cu_smatrix& A, kp_cu_smatrix& B, kp_cu_smatrix& C)
+{
+	int opA_dim1, opA_dim2;
+	int opB_dim1, opB_dim2;
+
+	int nnzC=-1, baseC=-1;
+	int *nnzTotalDevHostPtr = &nnzC;
+
+	cusparseOperation_t transA, transB;
+	cusparseOperation_t transAinv, transBinv;
+
+	
+	cusparseStatus_t status;
+
+	kp_cu_check_op_set_dim(op_A, A, opA_dim1, opA_dim2, &transA, &transAinv);
+	kp_cu_check_op_set_dim(op_B, B, opB_dim1, opB_dim2, &transB, &transBinv);
+	
+	if (C.dim1 != opA_dim1 || opA_dim2 != opB_dim1 || C.dim2 != opB_dim2)
+	{
+		cerr<<"Error | kp_cu_sgemm (sparse) | dimension problem"<<endl;
+		exit(EXIT_FAILURE);
+	}
+
+	C.resize(1, C.dim1,C.dim2);
+	C.isCSRconverted = false;
+	if (A.get_majorDim() == 'R') //si row-major
+	{				
+		if (!A.isCSRconverted)
+		{
+			status= cusparseXcoo2csr(cusparseHandle, A.rowind_cu, A.nnz, A.dim1, A.csrRowPtr, CUSPARSE_INDEX_BASE_ONE); 
+			if (status != CUSPARSE_STATUS_SUCCESS) 
+			{
+				cerr<<"Error | kp_cu_sgemm (sparse) | Conversion from COO to CSR format failed"<<endl;
+				//throw KP_CUSPARSE_COO2CSR;
+				//exit(EXIT_FAILURE);
+			}
+			//cout << "conversion CSR"<<endl;
+			A.isCSRconverted = true;
+		}
+
+
+		if(B.get_majorDim() == 'R')	
+		{
+
+			if (!B.isCSRconverted)
+			{
+				status= cusparseXcoo2csr(cusparseHandle, B.rowind_cu, B.nnz, B.dim1, B.csrRowPtr, CUSPARSE_INDEX_BASE_ONE); 
+ 
+				if (status != CUSPARSE_STATUS_SUCCESS) 
+				{
+					cerr<<"Error | kp_cu_sgemm (sparse) | Conversion from COO to CSR format failed"<<endl;
+					//throw KP_CUSPARSE_COO2CSR;
+					//exit(EXIT_FAILURE);
+				}
+				//cout << "conversion CSR"<<endl;
+				B.isCSRconverted = true;
+
+			}
+
+			status = cusparseXcsrgemmNnz(cusparseHandle, transA, transB, C.dim1, C.dim2, opA_dim2, 
+        A.descr, A.nnz, A.csrRowPtr, A.colind_cu,
+        B.descr, B.nnz, B.csrRowPtr, B.colind_cu,
+        C.descr, C.csrRowPtr, nnzTotalDevHostPtr);
+
+			if (status != CUSPARSE_STATUS_SUCCESS) 
+			{
+				cerr<<"Error | kp_cu_sgemm (sparse) | Conversion from COO to CSR format failed"<<endl;
+				//throw KP_CUSPARSE_COO2CSR;
+				//exit(EXIT_FAILURE);
+			}
+			
+
+	
+			if (nnzTotalDevHostPtr != NULL)
+				nnzC = *nnzTotalDevHostPtr;
+			else
+			{
+				kp_cu_cudaMemcpy(&nnzC , C.csrRowPtr+C.dim1, sizeof(int), cudaMemcpyDeviceToHost);
+				kp_cu_cudaMemcpy(&baseC, C.csrRowPtr  , sizeof(int), cudaMemcpyDeviceToHost);
+				nnzC -= baseC;
+			}
+			C.resize(nnzC, C.dim1,C.dim2);
+			
+			#ifdef KP_SINGLE
+			status= cusparseScsrgemm(cusparseHandle, transA, transB, C.dim1, C.dim2, opA_dim2, A.descr, A.nnz, A.values_cu, A.csrRowPtr, A.colind_cu, B.descr, B.nnz, B.values_cu, B.csrRowPtr, B.colind_cu, C.descr, C.values_cu, C.csrRowPtr, C.colind_cu);		
+			#else
+			status= cusparseDcsrgemm(cusparseHandle, transA, transB, C.dim1, C.dim2, opA_dim2, A.descr, A.nnz, A.values_cu, A.csrRowPtr, A.colind_cu, B.descr, B.nnz, B.values_cu, B.csrRowPtr, B.colind_cu, C.descr, C.values_cu, C.csrRowPtr, C.colind_cu);		
+			#endif
+		}
+
+		else if(B.get_majorDim() == 'C')
+		{
+	
+			if (!B.isCSRconvertedT)
+			{
+				status= cusparseXcoo2csr(cusparseHandle, B.colind_cu, B.nnz, B.dim2, B.csrRowPtrT, CUSPARSE_INDEX_BASE_ONE); 
+
+ 				if (status != CUSPARSE_STATUS_SUCCESS) 
+				{
+					cerr<<"Error | kp_cu_sgemm (sparse) | Conversion from COO to CSR format failed"<<endl;
+					//throw KP_CUSPARSE_COO2CSR;
+					//exit(EXIT_FAILURE);
+				}
+				//cout << "conversion CSR"<<endl;
+				B.isCSRconvertedT = true;
+			}
+
+			status = cusparseXcsrgemmNnz(cusparseHandle, transA, transBinv, C.dim1, C.dim2, opA_dim2, 
+        A.descr, A.nnz, A.csrRowPtr, A.colind_cu,
+        B.descr, B.nnz, B.csrRowPtrT, B.rowind_cu,
+        C.descr, C.csrRowPtr, nnzTotalDevHostPtr);
+			if (status != CUSPARSE_STATUS_SUCCESS) 
+			{
+				cerr<<"Error | kp_cu_sgemm (sparse) | Conversion from COO to CSR format failed"<<endl;
+				//throw KP_CUSPARSE_COO2CSR;
+				//exit(EXIT_FAILURE);
+			}
+			
+
+				
+			if (nnzTotalDevHostPtr != NULL)
+				nnzC = *nnzTotalDevHostPtr;
+			else
+			{
+				kp_cu_cudaMemcpy(&nnzC , C.csrRowPtr+C.dim1, sizeof(int), cudaMemcpyDeviceToHost);
+				kp_cu_cudaMemcpy(&baseC, C.csrRowPtr  , sizeof(int), cudaMemcpyDeviceToHost);
+				nnzC -= baseC;
+			}
+			C.resize(nnzC, C.dim1,C.dim2);
+			
+			#ifdef KP_SINGLE
+			status= cusparseScsrgemm(cusparseHandle, transA, transBinv, C.dim1, C.dim2, opA_dim2, A.descr, A.nnz, A.values_cu, A.csrRowPtr, A.colind_cu, B.descr, B.nnz, B.values_cu, B.csrRowPtrT, B.rowind_cu, C.descr, C.values_cu, C.csrRowPtr, C.colind_cu);		
+			#else
+			status= cusparseDcsrgemm(cusparseHandle, transA, transBinv, C.dim1, C.dim2, opA_dim2, A.descr, A.nnz, A.values_cu, A.csrRowPtr, A.colind_cu, B.descr, B.nnz, B.values_cu, B.csrRowPtrT, B.rowind_cu, C.descr, C.values_cu, C.csrRowPtr, C.colind_cu);		
+			#endif
+
+
+
+		}
+		else
+		{
+			cerr<<"Error | kp_cu_sgemm (sparse) | Sparse matrix B has been defined neither as a row-major nor as a column-major"<<endl;
+			exit(EXIT_FAILURE);
+		}
+
+
+	}
+
+	else if (A.get_majorDim() == 'C') //si column-major
+	{
+		
+		if (!A.isCSRconvertedT)
+		{
+			status= cusparseXcoo2csr(cusparseHandle, A.colind_cu, A.nnz, A.dim2, A.csrRowPtrT, CUSPARSE_INDEX_BASE_ONE); 
+			if (status != CUSPARSE_STATUS_SUCCESS) 
+			{
+				cerr<<"Error | kp_cu_sgemm (sparse) | Conversion from COO to CSR format failed"<<endl;
+				//throw KP_CUSPARSE_COO2CSR;
+				//exit(EXIT_FAILURE);
+			}
+			//cout << "conversion CSR T"<<endl;
+			A.isCSRconvertedT = true;
+
+		}
+
+
+		if(B.get_majorDim() == 'R')	
+		{
+
+			if (!B.isCSRconverted)
+			{
+				status= cusparseXcoo2csr(cusparseHandle, B.rowind_cu, B.nnz, B.dim1, B.csrRowPtr, CUSPARSE_INDEX_BASE_ONE);  
+
+				if (status != CUSPARSE_STATUS_SUCCESS) 
+				{
+					cerr<<"Error | kp_cu_sgemm (sparse) | Conversion from COO to CSR format failed"<<endl;
+					//throw KP_CUSPARSE_COO2CSR;
+					//exit(EXIT_FAILURE);
+				}
+				//cout << "conversion CSR T"<<endl;
+				B.isCSRconverted = true;
+
+			}
+
+			status = cusparseXcsrgemmNnz(cusparseHandle, transAinv, transB, C.dim1, C.dim2, opA_dim2, 
+        A.descr, A.nnz, A.csrRowPtrT, A.rowind_cu,
+        B.descr, B.nnz, B.csrRowPtr, B.colind_cu,
+        C.descr, C.csrRowPtr, nnzTotalDevHostPtr);
+			if (status != CUSPARSE_STATUS_SUCCESS) 
+			{
+				cerr<<"Error | kp_cu_sgemm (sparse) | Conversion from COO to CSR format failed"<<endl;
+				//throw KP_CUSPARSE_COO2CSR;
+				//exit(EXIT_FAILURE);
+			}
+			
+				
+			if (nnzTotalDevHostPtr != NULL)
+				nnzC = *nnzTotalDevHostPtr;
+			else
+			{
+				kp_cu_cudaMemcpy(&nnzC , C.csrRowPtr+C.dim1, sizeof(int), cudaMemcpyDeviceToHost);
+				kp_cu_cudaMemcpy(&baseC, C.csrRowPtr  , sizeof(int), cudaMemcpyDeviceToHost);
+				nnzC -= baseC;
+			}
+			C.resize(nnzC, C.dim1,C.dim2);
+
+
+			#ifdef KP_SINGLE
+			status= cusparseScsrgemm(cusparseHandle, transAinv, transB, C.dim1, C.dim2, opA_dim2, A.descr, A.nnz, A.values_cu, A.csrRowPtrT, A.rowind_cu, B.descr, B.nnz, B.values_cu, B.csrRowPtr, B.colind_cu, C.descr, C.values_cu, C.csrRowPtr, C.colind_cu);		
+			#else
+			status= cusparseDcsrgemm(cusparseHandle, transAinv, transB, C.dim1, C.dim2, opA_dim2, A.descr, A.nnz, A.values_cu, A.csrRowPtrT, A.rowind_cu, B.descr, B.nnz, B.values_cu, B.csrRowPtr, B.colind_cu, C.descr, C.values_cu, C.csrRowPtr, C.colind_cu);		
+			#endif
+		}
+
+
+		else if(B.get_majorDim() == 'C')
+		{
+	
+			if (!B.isCSRconvertedT)
+			{
+				status= cusparseXcoo2csr(cusparseHandle, B.colind_cu, B.nnz, B.dim2, B.csrRowPtrT, CUSPARSE_INDEX_BASE_ONE);  
+ 
+
+				if (status != CUSPARSE_STATUS_SUCCESS) 
+				{
+					cerr<<"Error | kp_cu_sgemm (sparse) | Conversion from COO to CSR format failed"<<endl;
+					//throw KP_CUSPARSE_COO2CSR;
+					//exit(EXIT_FAILURE);
+				}
+				//cout << "conversion CSR T"<<endl;
+				B.isCSRconvertedT = true;
+			}
+			status = cusparseXcsrgemmNnz(cusparseHandle, transAinv, transBinv, C.dim1, C.dim2, opA_dim2, 
+        A.descr, A.nnz, A.csrRowPtrT, A.rowind_cu,
+        B.descr, B.nnz, B.csrRowPtrT, B.rowind_cu,
+        C.descr, C.csrRowPtr, nnzTotalDevHostPtr);
+			if (status != CUSPARSE_STATUS_SUCCESS) 
+			{
+				cerr<<"Error | kp_cu_sgemm (sparse) | Conversion from COO to CSR format failed"<<endl;
+				//throw KP_CUSPARSE_COO2CSR;
+				//exit(EXIT_FAILURE);
+			}
+			
+
+				
+			if (nnzTotalDevHostPtr != NULL)
+				nnzC = *nnzTotalDevHostPtr;
+			else
+			{
+				kp_cu_cudaMemcpy(&nnzC , C.csrRowPtr+C.dim1, sizeof(int), cudaMemcpyDeviceToHost);
+				kp_cu_cudaMemcpy(&baseC, C.csrRowPtr  , sizeof(int), cudaMemcpyDeviceToHost);
+				nnzC -= baseC;
+			}
+			C.resize(nnzC, C.dim1,C.dim2);
+			
+			#ifdef KP_SINGLE
+			status= cusparseScsrgemm(cusparseHandle, transAinv, transBinv, C.dim1, C.dim2, opA_dim2, A.descr, A.nnz, A.values_cu, A.csrRowPtrT, A.rowind_cu, B.descr, B.nnz, B.values_cu, B.csrRowPtrT, B.rowind_cu, C.descr, C.values_cu, C.csrRowPtr, C.colind_cu);		
+			#else
+			status= cusparseDcsrgemm(cusparseHandle, transAinv, transBinv, C.dim1, C.dim2, opA_dim2, A.descr, A.nnz, A.values_cu, A.csrRowPtrT, A.rowind_cu, B.descr, B.nnz, B.values_cu, B.csrRowPtrT, B.rowind_cu, C.descr, C.values_cu, C.csrRowPtr, C.colind_cu);		
+			#endif
+
+
+
+		}
+		else
+		{
+			cerr<<"Error | kp_cu_sgemm (sparse) | Sparse matrix B has been defined neither as a row-major nor as a column-major"<<endl;
+			exit(EXIT_FAILURE);
+		}
+
+
+	}
+	else //si indeterminate
+	{
+		cerr<<"Error | kp_cu_sgemm (sparse) | Sparse matrix A has been defined neither as a row-major nor as a column-major"<<endl;
+		exit(EXIT_FAILURE);
+	}
+
+	
+	if (status != CUSPARSE_STATUS_SUCCESS) 
+	{
+        	cerr<<"Error | kp_cu_sgemm (sparse) | Matrix-matrix multiplication failed"<<endl;
+		//throw KP_CUSPARSE_GEMM;
+		//exit(EXIT_FAILURE);
+	}
+
+
+
+	status=cusparseXcsr2coo(cusparseHandle, C.csrRowPtr, C.nnz, C.dim1, C.rowind_cu, cusparseGetMatIndexBase(C.descr));
+
+	if (status != CUSPARSE_STATUS_SUCCESS) 
+	{
+        	cerr<<"Error | kp_cu_sgemm (sparse) | Conversion from CSR to COO failed"<<endl;
+		//throw KP_CUSPARSE_GEMM;
+		//exit(EXIT_FAILURE);
+	}
+	C.isCSRconverted = true;
+
+}
+
+
 void kp_cu_check_op_set_dim(int op, const kp_cu_smatrix&M, int& dim1, int& dim2, cusparseOperation_t* trans)
 {
    if (op == 'N')
@@ -768,6 +1075,7 @@ void kp_cu_check_op_set_dim(int op, const kp_cu_smatrix&M, int& dim1, int& dim2,
 	exit(EXIT_FAILURE);
      }
 }
+
 void kp_cu_check_op_set_dim(int op, const kp_cu_matrix&M, int& dim1, int& dim2, cusparseOperation_t* trans)
 {
    if (op == 'N')
@@ -789,10 +1097,28 @@ void kp_cu_check_op_set_dim(int op, const kp_cu_matrix&M, int& dim1, int& dim2, 
      }
 }
 
+void kp_cu_check_op_set_dim(int op, const kp_cu_smatrix&M, int& dim1, int& dim2, cusparseOperation_t* trans, cusparseOperation_t* transinv)
+{
+   if (op == 'N')
+     {
+	dim1 = M.dim1;
+	dim2 = M.dim2;
+	*trans = CUSPARSE_OPERATION_NON_TRANSPOSE ;
+	*transinv = CUSPARSE_OPERATION_TRANSPOSE ;
 
+     }
+   else if (op == 'T')
+     {
+	dim1 = M.dim2;
+	dim2 = M.dim1;
+	*trans = CUSPARSE_OPERATION_TRANSPOSE ;
+	*transinv = CUSPARSE_OPERATION_NON_TRANSPOSE ;
 
-
-
-
-
+     }
+   else
+     {
+	cerr<<"Error | kp_cu_check_op_set_dim (sparse) | op should be either N or T"<<endl;
+	exit(EXIT_FAILURE);
+     }
+}
 

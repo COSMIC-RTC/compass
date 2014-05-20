@@ -13,7 +13,6 @@ void kp_carma_obj_to_kp_matrix(carma_obj<float>& c, kp_matrix& k)
      }
    carma_host_obj<float> ch(c.getDims());
    ch.cpy_obj(&c, cudaMemcpyDeviceToHost);
-   
    k.resize(ch.getDims()[1], ch.getDims()[2]);
    
    size_t s = c.getDims()[1] * c.getDims()[2];
@@ -31,7 +30,6 @@ void kp_carma_obj_to_kp_vector(carma_obj<float>& c, kp_vector& k)
      }
    carma_host_obj<float> ch(c.getDims());
    ch.cpy_obj(&c, cudaMemcpyDeviceToHost);
-   
    k.resize(ch.getDims()[1]);  
    for (size_t i = 0 ; i < k.size() ; i++)
      k.d[i] = ch.getData()[i];
@@ -45,6 +43,16 @@ size_t kp_carma_obj_get_dim1(carma_obj<float>& cM)
 	exit(EXIT_FAILURE);
      }
    return cM.getDims()[1];
+}
+//                                                                                     
+size_t kp_carma_obj_get_dim2(carma_obj<float>& cM)
+{
+   if (cM.getDims()[0] != 2)
+     {
+	cerr<<"Error | kp_carma_obj_get_dim2 | carma_obj is not a matrix (2D)"<<endl;
+	exit(EXIT_FAILURE);
+     }
+   return cM.getDims()[2];
 }
 //                                                                                     
 void kp_kp_vector_to_carma_obj(const kp_vector& k, carma_obj<float>& c)

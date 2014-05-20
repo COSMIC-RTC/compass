@@ -138,8 +138,6 @@ void kp_kalman_core_sparse_GPU::calculate_gain(real bruit_pix,
 
 	cu_C1_dense.init_from_smatrix(cu_C1);
 
-
-
 	// beta_kp1 = (C1)T * C1
 	kp_cu_gemm (cusparseHandle,'T', 1, cu_C1, cu_C1_dense, 0, cu_beta_kp1);
 	//kp_cu_gemm (cusparseHandle,cublasHandle,'T','N', 1, cu_C1, cu_C1_dense, 0, cu_beta_kp1);

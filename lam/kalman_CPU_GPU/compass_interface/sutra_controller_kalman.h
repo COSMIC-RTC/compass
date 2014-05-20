@@ -29,7 +29,7 @@ class sutra_controller_kalman:public sutra_controller
    
  private:
    cusparseHandle_t cusparseHandle;
-   kp_kalman_core_sparse_GPU* core_sparce;   
+   kp_kalman_core_sparse_GPU* core_sparse;   
 };
 
 

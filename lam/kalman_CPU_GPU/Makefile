@@ -1,35 +1,45 @@
+CC = g++
+NVCC = nvcc
 
-MLIB    = icc -O2 -Wall -mkl -c -I$(MAGMA_ROOT)/include -DHAVE_CUBLAS 
+LIB_NAME = libkp_kalman.a
+
+LAM_KP_DIR = $(COMPASS_ROOT_DIR)/lam/kalman_CPU_GPU
+LAM_KP_INTERFACE_DIR = $(LAM_KP_DIR)/compass_interface
+
+#MLIB    = icc -O2 -Wall -mkl -c -I$(MAGMA_ROOT)/include -DHAVE_CUBLAS 
+CFLAGS = -O2 -Wall  -m64 -I$(MAGMA_ROOT)/include -DHAVE_CUBLAS  -I$(LAM_KP_DIR) -I$(LAM_KP_INTERFACE_DIR) -I$(COMPASS_ROOT_DIR)/libcarma/include.h -I$(COMPASS_ROOT_DIR)/libsutra/include.h -fPIC
 
 # We have some temporal problems with cuda thrust
-MLIB_CU = nvcc -m64  -arch=sm_35 -c -I/home/usr.off/include
+CUFLAGS = -m64 -Xcompiler -fPIC -use_fast_math -arch=sm_35 -I/home/usr.off/include
 
-GENLIB = kp_kalman.a
+SRC_CPP := $(wildcard $(LAM_KP_DIR)/*.cpp)
+SRC_CPP += $(LAM_KP_INTERFACE_DIR)/kp_carma_tools.cpp
 
-OBJS = A1_2vec.o kp_cu2kp.o kp_cu_cuda.o kp_cu_matrix.o kp_cu_smatrix.o kp_cu_timer.o kp_cu_vector.o \
-kp_flopscalc.o kp_kalman_core_full.o kp_kalman_core_full_CPU.o \
-kp_kalman_core_full_GPU.o kp_kalman_core_sparse.o kp_kalman_core_sparse_CPU.o \
-kp_kalman_core_sparse_GPU.o kp_matrix.o \
-kp_randn.o kp_smatrix.o kp_timer.o kp_tlib.o kp_vector.o
-
-OBJS_CU = kernels.o  kp_cu_reduce.o
-
-all:$(OBJS) $(OBJS_CU)
+SRC_CU := $(wildcard $(LAM_KP_DIR)/*.cu)
 
 
-.cpp.o:
-	$(MLIB) $*.cpp -o $*.o
-	ar rc $(GENLIB) $*.o
+OBJ_CPP := $(patsubst %.cpp,%.o,$(SRC_CPP))
+OBJ_CU := $(patsubst %.cu,%.cuo,$(SRC_CU))
 
-kernels.o: kernels.cu
-	$(MLIB_CU) kernels.cu -o kernels.o
-	ar rc $(GENLIB) kernels.o
 
-kp_cu_reduce.o: kp_cu_reduce.cu
-	$(MLIB_CU) kp_cu_reduce.cu -o kp_cu_reduce.o
-	ar rc $(GENLIB) kp_cu_reduce.o
+LDFLAGS =  -lmkl_intel_lp64 -lmkl_intel_thread -lmkl_core -liomp5 -lpthread -lm
 
+all: $(LIB_NAME)
+
+
+$(LAM_KP_DIR)/%.cuo: $(LAM_KP_DIR)/%.cu  
+	@printf '\033[36m%s\033[31m%s\033[m\n' "Compiling     " $@
+	@$(NVCC) $(CUFLAGS) $(LDFLAGS) -c -o $@ $^
 	
-	
+$(LAM_KP_DIR)/%.o: $(LAM_KP_DIR)/%.cpp  
+	@printf '\033[36m%s\033[31m%s\033[m\n' "Compiling     " $@
+	@$(CC) $(CFLAGS) $(LDFLAGS) -c -o $@ $^
+
+$(LIB_NAME): $(OBJ_CU) $(OBJ_CPP)
+	@printf '\033[36m%s\033[31m%s\033[m\n' "Linking     " $@
+	#@$(CC) -shared -o $@ $^
+	@ar -rv $@ $^
 clean:
-	rm -f *.o *.a
+	@rm -f $(OBJ_CPP) $(OBJ_CU) $(LIB_NAME)
+
+

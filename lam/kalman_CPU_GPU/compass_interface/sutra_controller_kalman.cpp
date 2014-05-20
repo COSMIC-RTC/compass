@@ -11,7 +11,7 @@ sutra_controller_kalman::sutra_controller_kalman(carma_context* context,
 						 carma_obj<float>& cN_Act,
 						 carma_obj<float>& cPROJ,
 						 bool is_zonal)
-:sutra_controller(context, kp_carma_obj_get_dim1(cD_Mo), kp_carma_obj_get_dim1(cN_Act))
+:sutra_controller(context, kp_carma_obj_get_dim1(cD_Mo), kp_carma_obj_get_dim2(cN_Act))
 {
    //convert from carma_obj to kp_matrix
    kp_matrix kD_Mo, kN_Act, kPROJ;
@@ -19,7 +19,7 @@ sutra_controller_kalman::sutra_controller_kalman(carma_context* context,
    kp_carma_obj_to_kp_matrix(cN_Act, kN_Act);
    kp_carma_obj_to_kp_matrix(cPROJ,  kPROJ);
 
-   //convert from kp_matrix to kp_smatrix (full -> sparce)
+   //convert from kp_matrix to kp_smatrix (full -> sparse)
    kp_smatrix sD_Mo, sN_Act, sPROJ;
    sD_Mo.init_from_matrix(kD_Mo);
    sN_Act.init_from_matrix(kN_Act);
@@ -33,7 +33,7 @@ sutra_controller_kalman::sutra_controller_kalman(carma_context* context,
 	exit(EXIT_FAILURE);
      }
    
-   core_sparce = new kp_kalman_core_sparse_GPU(sD_Mo, 
+   core_sparse = new kp_kalman_core_sparse_GPU(sD_Mo, 
 					       sN_Act, 
 					       sPROJ,
 					       is_zonal, 
@@ -56,7 +56,7 @@ void sutra_controller_kalman::calculate_gain(double bruit,
    kp_carma_obj_to_kp_vector(catur, katur);
    kp_carma_obj_to_kp_vector(cbtur, kbtur);
    
-   core_sparce->calculate_gain(bruit, k_W, kSigmaV, katur, kbtur);
+   core_sparse->calculate_gain(bruit, k_W, kSigmaV, katur, kbtur);
 }
 //                                                                                     
 int sutra_controller_kalman::comp_com()
@@ -64,7 +64,7 @@ int sutra_controller_kalman::comp_com()
    kp_vector Y_k, U_k;
    kp_carma_obj_to_kp_vector(*d_centroids, Y_k);
    
-   core_sparce->next_step(Y_k, U_k);
+   core_sparse->next_step(Y_k, U_k);
    
    kp_kp_vector_to_carma_obj(U_k, *d_com);
    //we don't know meaning of this int

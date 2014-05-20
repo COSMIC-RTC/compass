@@ -1,4 +1,3 @@
-
 yoga_ao_top = get_env("YOGA_AO_TOP");
 if (!yoga_ao_top) error,"YOGA_AO_TOP is not defined!";
 

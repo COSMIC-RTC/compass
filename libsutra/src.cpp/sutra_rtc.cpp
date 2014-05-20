@@ -74,27 +74,51 @@ int sutra_rtc::add_controller(long nactu, long delay, long device,
     d_control.push_back(
         new sutra_controller_mv(current_context, ncentroids, nactu, delay));
   } else if (type_ctr.compare("kalman") == 0) 
-       {
-	  carma_obj<float>* cD_Mo   = calculate_D_Mo(current_context, ncentroids * 2);
-	  carma_obj<float>* cN_Act  = calculate_N_Act(current_context, nactu);
-	  carma_obj<float>* cPROJ   = calculate_PROJ(current_context, ncentroids * 2);
-	  carma_obj<float>* catur   = calculate_atur(current_context, ncentroids * 2);
-	  carma_obj<float>* cbtur   = calculate_btur(current_context, ncentroids * 2);
-	  carma_obj<float>* cSigmaV = calculate_SigmaV(current_context, ncentroids * 2);
-	  
-	  sutra_controller_kalman* k = 	
-	    new sutra_controller_kalman(current_context, *cD_Mo, *cN_Act, *cPROJ, false);
-	  k->calculate_gain(0.04/(M_PI*M_PI), 5, *cSigmaV, *catur, *cbtur);
-	  d_control.push_back(k);
-	  
-	  delete cD_Mo;
-	  delete cN_Act;
-	  delete cPROJ;
-	  delete cSigmaV;
-	  delete catur;
-	  delete cbtur;	  	  
+  {
 
-  } else {
+// We choose parameters by hand now....
+    bool is_zonal = true;
+    bool is_sparse = true;
+
+       carma_obj<float> *cD_Mo, *cN_Act, *cPROJ, *catur, *cbtur, *cSigmaV;
+    if (is_zonal)
+    {
+       cD_Mo   = calculate_D_Mo(current_context, ncentroids*2, nactu, is_zonal);
+       cN_Act  = calculate_N_Act(current_context, nactu, nactu, is_zonal);
+       cPROJ   = calculate_PROJ(current_context, nactu, nactu, is_zonal);
+       catur   = calculate_atur(current_context, nactu, is_zonal);
+       cbtur   = calculate_btur(current_context, nactu, is_zonal);
+       cSigmaV = calculate_SigmaV(current_context, nactu, is_zonal);
+    }
+    else
+    {
+       int nzernike = 495;
+       cD_Mo   = calculate_D_Mo(current_context, ncentroids*2, nzernike, is_zonal);
+       cN_Act  = calculate_N_Act(current_context, nzernike, nactu, is_zonal);
+       cPROJ   = calculate_PROJ(current_context, nactu, nzernike, is_zonal);
+       catur   = calculate_atur(current_context, nzernike, is_zonal);
+       cbtur   = calculate_btur(current_context, nzernike, is_zonal);
+       cSigmaV = calculate_SigmaV(current_context, nzernike, is_zonal);
+    }
+    double Bruit = 0.04;
+    double K_W = 5;
+//  end of choosing parameters by hand....
+    sutra_controller_kalman* k;	
+
+    k = new sutra_controller_kalman(current_context, *cD_Mo, *cN_Act, *cPROJ, is_zonal, is_sparse);
+
+    k->calculate_gain(Bruit, K_W, *cSigmaV, *catur, *cbtur);
+    d_control.push_back(k);
+	  
+    delete cD_Mo;
+    delete cN_Act;
+    delete cPROJ;
+    delete cSigmaV;
+    delete catur;
+    delete cbtur;	  	  
+  }
+  else
+  {
     DEBUG_TRACE("Controller '%s' unknown\n", typec);
     return EXIT_FAILURE;
   }
