@@ -7,7 +7,7 @@ OBJ_DIR=obj
 
 LIB_NAME=libsutra.so
 
-SRC_CPP = $(wildcard $(CPP_DIR)/*.cpp) 
+SRC_CPP = $(filter-out $(CPP_DIR)/sutra_controller_kalman.cpp, $(wildcard $(CPP_DIR)/*.cpp)) 
 SRC_CU  = $(wildcard $(CU_DIR)/*.cu) 
 
 CURED_DIR = $(COMPASS_ROOT_DIR)/aao/cured
