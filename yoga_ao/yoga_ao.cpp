@@ -2222,12 +2222,20 @@ void Y_rtc_doimat(int argc) {
 }
 
 void Y_rtc_setgain(int argc) {
+  // retreive pointer to persistent object pointing on c++ class 
+  // inside the yorick interpreter
+  // this is the first expected element on the stack => argc-1
   rtc_struct *rhandler = (rtc_struct *) yget_obj(argc - 1, &yRTC);
+  // retreive the pointer to sutra_rtc from the previous
   sutra_rtc *rtc_handler = (sutra_rtc *) (rhandler->sutra_rtc);
+  // retreive the index of the desired controller in the vector of controllers
   long ncontrol = ygets_l(argc - 2);
 
+  // get context and check if proper device is selected
   carma_context *context_handle = _getCurrentContext();
   context_handle->set_activeDeviceForCpy(rhandler->device);
+
+  // retreive gain and set it in the corresponding sutra_controller
   if (rtc_handler->d_control.at(ncontrol)->get_type().compare("ls") == 0) {
     float gain = ygets_f(argc - 3);
     SCAST(sutra_controller_ls *, control, rtc_handler->d_control.at(ncontrol));
