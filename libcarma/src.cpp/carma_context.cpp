@@ -266,7 +266,8 @@ void carma_context::releaseCtx(int nGPUs, int *iGPUs, CUcontext *ctx){
   //DEBUG_TRACE("entering into releaseCtx\n");
   for(int id_gpu=0; id_gpu<nGPUs; id_gpu++){
     //DEBUG_TRACE("Get context of the device %d\n",iGPUs[id_gpu]);
-    CUcontext context=devices[iGPUs[id_gpu]]->getCUcontext();
+    CUcontext context;
+    cuCtxSetCurrent(devices[iGPUs[id_gpu]]->getCUcontext());
     //DEBUG_TRACE("Release context of the device %d\n",iGPUs[id_gpu]);
     cuCtxPopCurrent(&context);
     //DEBUG_TRACE("Copy context of the device %d\n",iGPUs[id_gpu]);

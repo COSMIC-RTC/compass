@@ -41,7 +41,7 @@ int main(int argc, char *argv[]) {
     arr.number = (int *) malloc(arr.countdims * sizeof(*arr.number));
     arr.number[0] = 100;
     arr.number[1] = 100;
-    arr.type_id = SVIPC_LONG;
+    arr.typeID = SVIPC_LONG;
 
     arr.data = malloc(100 * 100 * sizeof(long));
     long *d = (long*) arr.data;

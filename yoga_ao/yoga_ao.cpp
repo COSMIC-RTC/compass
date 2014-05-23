@@ -42,6 +42,49 @@
 #include <sutra_aotemplate.h>
 #include <yoga_ao_api.h>
 
+/**
+ * @typedef Yorick API atmos userobj
+ */
+static y_userobj_t yAtmos = { const_cast<char*>("yAtmos Object"),
+&atmos_free, &atmos_print, 0, 0, 0 };
+
+/**
+ * @typedef Yorick API tscreen userobj
+ */
+static y_userobj_t yTscreen = { const_cast<char*>("yTscreen Object"),
+&tscreen_free, 0, 0, 0, 0 };
+
+static y_userobj_t ySource = { const_cast<char*>("ySource Object"),
+    &source_free, 0, 0, 0, 0 };
+
+static y_userobj_t yTarget = { const_cast<char*>("yTarget Object"),
+    &target_free, &target_print, 0, 0, 0 };
+
+static y_userobj_t yPhase = { const_cast<char*>("yPhase Object"), &phase_free,
+    &phase_print, &phase_eval, 0, 0 };
+
+static y_userobj_t yWfs = { const_cast<char*>("yWfs Object"), &wfs_free,
+    &wfs_print, 0, 0, 0 };
+
+static y_userobj_t yTelemetry = { const_cast<char*>("yTelemetry Object"),
+    &telemetry_free, &telemetry_print, 0, 0, 0 };
+
+static y_userobj_t ySensors = { const_cast<char*>("ySensors Object"),
+    &sensors_free, &sensors_print, 0, 0, 0 };
+
+static y_userobj_t yAcquisim = { const_cast<char*>("yAcquisim Object"),
+    &acquisim_free, &acquisim_print, 0, 0, 0 };
+
+static y_userobj_t yDMs = { const_cast<char*>("yDMs Object"), &dms_free,
+    &dms_print, 0, 0, 0 };
+
+static y_userobj_t yRTC = { const_cast<char*>("yRTC Object"), &rtc_free,
+    &rtc_print, 0, 0, 0 };
+
+static y_userobj_t yAotemplate = { const_cast<char*>("yAotemplate Object"),
+    &aotemplate_free, &aotemplate_print, 0, 0, 0 };
+
+
 /*
  *         _   _ _ _ _   _
  *   _   _| |_(_) (_) |_(_) ___  ___
@@ -134,6 +177,11 @@ extern "C" {
  *  /_/   \_\__|_| |_| |_|\___/|___/
  *
  */
+
+atmos_struct*
+yoga_ao_getyAtmos(int argc, int pos) {
+  return (atmos_struct *) yget_obj(argc - pos, &yAtmos);
+}
 
 void atmos_free(void *obj) {
   atmos_struct *handler = (atmos_struct *) obj;
@@ -275,6 +323,11 @@ void Y_get_spupil(int argc) {
  *     \__|____/ \___|_|  \___|\___|_| |_|
  *
  */
+
+tscreen_struct*
+yoga_ao_getyTscreen(int argc, int pos) {
+  return (tscreen_struct *) yget_obj(argc - pos, &yTscreen);
+}
 
 void tscreen_free(void *obj) {
   tscreen_struct *handler = (tscreen_struct *) obj;
@@ -469,6 +522,11 @@ void Y_tscreen_genevk(int argc) {
  *
  */
 
+source_struct*
+yoga_ao_getySource(int argc, int pos) {
+  return (source_struct *) yget_obj(argc - pos, &ySource);
+}
+
 void source_free(void *obj) {
   source_struct *handler = (source_struct *) obj;
   carma_context *context_handle = _getCurrentContext();
@@ -501,6 +559,11 @@ void source_print(void *obj) {
  *      |_|\__,_|_|  \__, |\___|\__|
  *                   |___/
  */
+
+target_struct*
+yoga_ao_getyTarget(int argc, int pos) {
+  return (target_struct *) yget_obj(argc - pos, &yTarget);
+}
 
 void target_free(void *obj) {
   target_struct *handler = (target_struct *) obj;
@@ -739,6 +802,11 @@ void Y_target_getstrehl(int argc) {
  *
  */
 
+phase_struct*
+yoga_ao_getyPhase(int argc, int pos) {
+  return (phase_struct *) yget_obj(argc - pos, &yPhase);
+}
+
 void phase_free(void *obj) {
   phase_struct *handler = (phase_struct *) obj;
   carma_context *context_handle = _getCurrentContext();
@@ -819,6 +887,11 @@ void Y_phase_set(int argc) {
  *       \_/\_/  |_|   |____/
  *
  */
+
+wfs_struct*
+yoga_ao_getyWfs(int argc, int pos) {
+  return (wfs_struct *) yget_obj(argc - pos, &yWfs);
+}
 
 void wfs_free(void *obj) {
   wfs_struct *handler = (wfs_struct *) obj;
@@ -903,89 +976,6 @@ void Y_wfs_initgs(int argc) {
 }
 
 /*
- *                        _     _
- *   __ _  ___ __ _ _   _(_)___(_)_ __ ___
- *  / _` |/ __/ _` | | | | / __| | '_ ` _ \
-   * | (_| | (_| (_| | |_| | \__ \ | | | | | |
- *  \__,_|\___\__, |\__,_|_|___/_|_| |_| |_|
- *               |_|
- */
-
-void acquisim_free(void *obj) {
-  acquisim_struct *handler = (acquisim_struct *) obj;
-  carma_context *context_handle = _getCurrentContext();
-  context_handle->set_activeDevice(handler->device);
-  try {
-    sutra_acquisim *acquisim_obj_handler =
-        (sutra_acquisim *) (handler->sutra_acquisim);
-    delete acquisim_obj_handler;
-  } catch (string &msg) {
-    y_error(msg.c_str());
-  } catch (char const * msg) {
-    y_error(msg);
-  }
-}
-
-void acquisim_print(void *obj) {
-  //wfs_struct *handler = (wfs_struct *)obj;
-  //sutra_wfs *wfs_obj_handler = (sutra_wfs *)(handler->sutra_wfs);
-  cout << "Yoga acquisim Object : " << endl;
-}
-
-void Y_yoga_acquisim(int argc)
-//long nxsub, long nvalid, long npix, long nrebin, long nfft
-    {
-  try {
-    sensors_struct *sensors_handle = (sensors_struct *) yget_obj(argc - 1,
-        &ySensors);
-    sutra_sensors *sensors_handler =
-        (sutra_sensors *) sensors_handle->sutra_sensors;
-    int wfs_num = ygets_i(argc - 2);
-
-    acquisim_struct *handle = (acquisim_struct *) ypush_obj(&yAcquisim,
-        sizeof(acquisim_struct));
-    handle->device = sensors_handle->device;
-
-    handle->sutra_acquisim = new sutra_acquisim(sensors_handler, wfs_num);
-
-  } catch (string &msg) {
-    y_error(msg.c_str());
-  } catch (char const * msg) {
-    y_error(msg);
-  } catch (...) {
-    stringstream buf;
-    buf << "unknown error with sutra_acquisim construction in " << __FILE__
-        << "@" << __LINE__ << endl;
-    y_error(buf.str().c_str());
-  }
-}
-
-void Y_acquisim_fillbcube(int argc)
-//long nxsub, long nvalid, long npix, long nrebin, long nfft
-    {
-  try {
-    acquisim_struct *handle = (acquisim_struct *) yget_obj(argc - 1,
-        &yAcquisim);
-    sutra_acquisim *acquisim_handler = (sutra_acquisim *) handle->sutra_acquisim;
-    long ntot;
-    long dims[Y_DIMSIZE];
-    float *a = ygeta_f(argc - 2, &ntot, dims);
-    acquisim_handler->comp_image(dims, a);
-    //acquisim_handler->comp_image_tele(dims,a);
-
-  } catch (string &msg) {
-    y_error(msg.c_str());
-  } catch (char const * msg) {
-    y_error(msg);
-  } catch (...) {
-    stringstream buf;
-    buf << "unknown error with sutra_wfs construction in " << __FILE__ << "@"
-        << __LINE__ << endl;
-    y_error(buf.str().c_str());
-  }
-}
-
-/*
  *     _       _                     _
  *    | |_ ___| | ___ _ __ ___   ___| |_ _ __ _   _
  *    | __/ _ \ |/ _ \ '_ ` _ \ / _ \ __| '__| | | |
@@ -993,6 +983,11 @@ void Y_acquisim_fillbcube(int argc)
  *     \__\___|_|\___|_| |_| |_|\___|\__|_|   \__, |
  *                                            |___/
  */
+
+telemetry_struct*
+yoga_ao_getyTelemetry(int argc, int pos) {
+  return (telemetry_struct *) yget_obj(argc - pos, &yTelemetry);
+}
 
 void telemetry_free(void *obj) {
   telemetry_struct *handler = (telemetry_struct *) obj;
@@ -1053,6 +1048,12 @@ void Y_yoga_telemetry(int argc) {
  *    |____/ \___|_| |_|___/\___/|_|  |___/
  *
  */
+
+sensors_struct*
+yoga_ao_getySensors(int argc, int pos) {
+  return (sensors_struct *) yget_obj(argc - pos, &ySensors);
+}
+
 void sensors_free(void *obj) {
   sensors_struct *handler = (sensors_struct *) obj;
   carma_context *context_handle = _getCurrentContext();
@@ -1644,6 +1645,94 @@ void Y_sensors_setphase(int argc) {
 }
 
 /*
+ *                        _     _
+ *   __ _  ___ __ _ _   _(_)___(_)_ __ ___
+ *  / _` |/ __/ _` | | | | / __| | '_ ` _ \
+ * | (_| | (_| (_| | |_| | \__ \ | | | | | |
+ *  \__,_|\___\__, |\__,_|_|___/_|_| |_| |_|
+ *               |_|
+ */
+
+acquisim_struct*
+yoga_ao_getyAcquisim(int argc, int pos) {
+  return (acquisim_struct *) yget_obj(argc - pos, &yAcquisim);
+}
+
+void acquisim_free(void *obj) {
+  acquisim_struct *handler = (acquisim_struct *) obj;
+  carma_context *context_handle = _getCurrentContext();
+  context_handle->set_activeDevice(handler->device);
+  try {
+    sutra_acquisim *acquisim_obj_handler =
+        (sutra_acquisim *) (handler->sutra_acquisim);
+    delete acquisim_obj_handler;
+  } catch (string &msg) {
+    y_error(msg.c_str());
+  } catch (char const * msg) {
+    y_error(msg);
+  }
+}
+
+void acquisim_print(void *obj) {
+  //wfs_struct *handler = (wfs_struct *)obj;
+  //sutra_wfs *wfs_obj_handler = (sutra_wfs *)(handler->sutra_wfs);
+  cout << "Yoga acquisim Object : " << endl;
+}
+
+void Y_yoga_acquisim(int argc)
+//long nxsub, long nvalid, long npix, long nrebin, long nfft
+    {
+  try {
+    sensors_struct *sensors_handle = (sensors_struct *) yget_obj(argc - 1,
+        &ySensors);
+    sutra_sensors *sensors_handler =
+        (sutra_sensors *) sensors_handle->sutra_sensors;
+    int wfs_num = ygets_i(argc - 2);
+
+    acquisim_struct *handle = (acquisim_struct *) ypush_obj(&yAcquisim,
+        sizeof(acquisim_struct));
+    handle->device = sensors_handle->device;
+
+    handle->sutra_acquisim = new sutra_acquisim(sensors_handler, wfs_num);
+
+  } catch (string &msg) {
+    y_error(msg.c_str());
+  } catch (char const * msg) {
+    y_error(msg);
+  } catch (...) {
+    stringstream buf;
+    buf << "unknown error with sutra_acquisim construction in " << __FILE__
+        << "@" << __LINE__ << endl;
+    y_error(buf.str().c_str());
+  }
+}
+
+void Y_acquisim_fillbcube(int argc)
+//long nxsub, long nvalid, long npix, long nrebin, long nfft
+    {
+  try {
+    acquisim_struct *handle = (acquisim_struct *) yget_obj(argc - 1,
+        &yAcquisim);
+    sutra_acquisim *acquisim_handler = (sutra_acquisim *) handle->sutra_acquisim;
+    long ntot;
+    long dims[Y_DIMSIZE];
+    float *a = ygeta_f(argc - 2, &ntot, dims);
+    acquisim_handler->comp_image(dims, a);
+    //acquisim_handler->comp_image_tele(dims,a);
+
+  } catch (string &msg) {
+    y_error(msg.c_str());
+  } catch (char const * msg) {
+    y_error(msg);
+  } catch (...) {
+    stringstream buf;
+    buf << "unknown error with sutra_wfs construction in " << __FILE__ << "@"
+        << __LINE__ << endl;
+    y_error(buf.str().c_str());
+  }
+}
+
+/*
  *     ____  __  __
  *    |  _ \|  \/  |___
  *    | | | | |\/| / __|
@@ -1651,6 +1740,11 @@ void Y_sensors_setphase(int argc) {
  *    |____/|_|  |_|___/
  *
  */
+
+dms_struct*
+yoga_ao_getyDMs(int argc, int pos) {
+  return (dms_struct *) yget_obj(argc - pos, &yDMs);
+}
 
 void dms_free(void *obj) {
   dms_struct *handler = (dms_struct *) obj;
@@ -2038,6 +2132,11 @@ void Y_dms_comp_shape(int argc) {
  *    |_| \_\|_| \____|
  *
  */
+
+rtc_struct*
+yoga_ao_getyRTC(int argc, int pos) {
+  return (rtc_struct *) yget_obj(argc - pos, &yRTC);
+}
 
 void rtc_free(void *obj) {
   rtc_struct *handler = (rtc_struct *) obj;
@@ -3028,6 +3127,11 @@ void Y_yoga_add_telemetry_stream(int argc) {
  *
  */
 
+aotemplate_struct*
+yoga_ao_getyAotemplate(int argc, int pos) {
+  return (aotemplate_struct *) yget_obj(argc - pos, &yAotemplate);
+}
+
 void aotemplate_free(void *obj) {
   aotemplate_struct *handler = (aotemplate_struct *) obj;
   carma_context *context_handle = _getCurrentContext();
@@ -3324,17 +3428,6 @@ void Y_yoga_floloadkl(int argc) {
 }
 
 //-----------------------------------------------------------------------------------------
-
-sensors_struct*
-yoga_ao_getySensors(int argc, int pos) {
-  return (sensors_struct *) yget_obj(argc - pos, &ySensors);
-}
-
-
-dms_struct*
-yoga_ao_getyDMs(int argc, int pos) {
-  return (dms_struct *) yget_obj(argc - pos, &yDMs);
-}
 
 
 }

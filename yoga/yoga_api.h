@@ -131,6 +131,9 @@ _yoga_init();
  *   |___/       |___/     |_____|       |__/
  */
 
+yObj_struct*
+yoga_getyObj(int argc, int pos);
+
 void
 yObj_print(void *obj);
 void
@@ -296,9 +299,6 @@ void
 Y_yoga_plusai(int argc);
 void
 Y_yoga_test(int argc);
-
-yObj_struct*
-yoga_getyObj(int argc, int pos);
 
 }
 

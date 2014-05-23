@@ -108,16 +108,13 @@ extern "C" {
  * /_/   \_\__|_| |_| |_|\___/|___/
  */
 
+atmos_struct*
+yoga_ao_getyAtmos(int argc, int pos);
+
 void
 atmos_free(void *obj);
 void
 atmos_print(void *obj);
-
-static y_userobj_t yAtmos = { const_cast<char*>("yAtmos Object"),
-/** 
- * @typedef Yorick API atmos userobj
- */
-&atmos_free, &atmos_print, 0, 0, 0 };
 
 void
 Y_yoga_atmos(int argc);
@@ -131,16 +128,13 @@ Y_get_spupil(int argc);
  * \__|____/ \___|_|  \___|\___|_| |_|
  */
 
+tscreen_struct*
+yoga_ao_getyTscreen(int argc, int pos);
+
 void
 tscreen_free(void *obj);
 void
 tscreen_print(void *obj);
-
-static y_userobj_t yTscreen = { const_cast<char*>("yTscreen Object"),
-/** 
- * @typedef Yorick API tscreen userobj
- */
-&tscreen_free, 0, 0, 0, 0 };
 
 void
 Y_init_tscreen(int argc);
@@ -163,13 +157,14 @@ Y_tscreen_genevk(int argc);
  *  ___) | (_) | |_| | | | (_|  __/
  * |____/ \___/ \__,_|_|  \___\___|
  */
+
+source_struct*
+yoga_ao_getySource(int argc, int pos);
 void
 source_free(void *obj);
 void
 source_print(void *obj);
 
-static y_userobj_t ySource = { const_cast<char*>("ySource Object"),
-    &source_free, 0, 0, 0, 0 };
 
 /* _____                    _
  *|_   _|_ _ _ __ __ _  ___| |_
@@ -179,13 +174,12 @@ static y_userobj_t ySource = { const_cast<char*>("ySource Object"),
  *               |___/
  */
 
+target_struct*
+yoga_ao_getyTarget(int argc, int pos);
 void
 target_free(void *obj);
 void
 target_print(void *obj);
-
-static y_userobj_t yTarget = { const_cast<char*>("yTarget Object"),
-    &target_free, &target_print, 0, 0, 0 };
 
 void
 Y_yoga_target(int argc);
@@ -209,15 +203,14 @@ Y_target_getamplipup(int argc);
  *|_|   |_| |_|\__,_|___/\___|
  */
 
+phase_struct*
+yoga_ao_getyPhase(int argc, int pos);
 void
 phase_free(void *obj);
 void
 phase_print(void *obj);
 void
 phase_eval(void *obj, int n);
-
-static y_userobj_t yPhase = { const_cast<char*>("yPhase Object"), &phase_free,
-    &phase_print, &phase_eval, 0, 0 };
 
 void
 Y_yoga_phase(int argc);
@@ -231,39 +224,17 @@ Y_phase_set(int argc);
  *    \_/\_/  |_|   |____/
  */
 
+wfs_struct*
+yoga_ao_getyWfs(int argc, int pos);
 void
 wfs_free(void *obj);
 void
 wfs_print(void *obj);
 
-static y_userobj_t yWfs = { const_cast<char*>("yWfs Object"), &wfs_free,
-    &wfs_print, 0, 0, 0 };
-
 void
 Y_yoga_wfs(int argc);
 void
 Y_wfs_initgs(int argc);
-
-/*                        _     _
- *   __ _  ___ __ _ _   _(_)___(_)_ __ ___
- *  / _` |/ __/ _` | | | | / __| | '_ ` _ \
- * | (_| | (_| (_| | |_| | \__ \ | | | | | |
- *  \__,_|\___\__, |\__,_|_|___/_|_| |_| |_|
- *               |_|
- */
-
-void
-acquisim_free(void *obj);
-void
-acquisim_print(void *obj);
-
-static y_userobj_t yAcquisim = { const_cast<char*>("yAcquisim Object"),
-    &acquisim_free, &acquisim_print, 0, 0, 0 };
-
-void
-Y_yoga_acquisim(int argc);
-void
-Y_acquisim_fillbcube(int argc);
 
 /* _       _                     _
  *| |_ ___| | ___ _ __ ___   ___| |_ _ __ _   _
@@ -273,13 +244,12 @@ Y_acquisim_fillbcube(int argc);
  *                                        |___/
  */
 
+telemetry_struct*
+yoga_ao_getyTelemetry(int argc, int pos);
 void
 telemetry_free(void *obj);
 void
 telemetry_print(void *obj);
-
-static y_userobj_t yTelemetry = { const_cast<char*>("yTelemetry Object"),
-    &telemetry_free, &telemetry_print, 0, 0, 0 };
 
 void
 Y_yoga_telemetry(int argc);
@@ -291,13 +261,12 @@ Y_yoga_telemetry(int argc);
  * |____/ \___|_| |_|___/\___/|_|  |___/
  */
 
+sensors_struct*
+yoga_ao_getySensors(int argc, int pos);
 void
 sensors_free(void *obj);
 void
 sensors_print(void *obj);
-
-static y_userobj_t ySensors = { const_cast<char*>("ySensors Object"),
-    &sensors_free, &sensors_print, 0, 0, 0 };
 
 void
 Y_yoga_sensors(int argc);
@@ -326,6 +295,26 @@ Y_sensors_getdata(int argc);
 void
 Y_sensors_setphase(int argc);
 
+/*                        _     _
+ *   __ _  ___ __ _ _   _(_)___(_)_ __ ___
+ *  / _` |/ __/ _` | | | | / __| | '_ ` _ \
+ * | (_| | (_| (_| | |_| | \__ \ | | | | | |
+ *  \__,_|\___\__, |\__,_|_|___/_|_| |_| |_|
+ *               |_|
+ */
+
+acquisim_struct*
+yoga_ao_getyAcquisim(int argc, int pos);
+void
+acquisim_free(void *obj);
+void
+acquisim_print(void *obj);
+
+void
+Y_yoga_acquisim(int argc);
+void
+Y_acquisim_fillbcube(int argc);
+
 /*  ____  __  __
  * |  _ \|  \/  |___
  * | | | | |\/| / __|
@@ -333,13 +322,12 @@ Y_sensors_setphase(int argc);
  * |____/|_|  |_|___/
  */
 
+dms_struct*
+yoga_ao_getyDMs(int argc, int pos);
 void
 dms_free(void *obj);
 void
 dms_print(void *obj);
-
-static y_userobj_t yDMs = { const_cast<char*>("yDMs Object"), &dms_free,
-    &dms_print, 0, 0, 0 };
 
 void
 Y_yoga_dms(int argc);
@@ -385,13 +373,12 @@ Y_dms_getdata(int argc);
  * |_| \_\|_| \____|
  */
 
+rtc_struct*
+yoga_ao_getyRTC(int argc, int pos);
 void
 rtc_free(void *obj);
 void
 rtc_print(void *obj);
-
-static y_userobj_t yRTC = { const_cast<char*>("yRTC Object"), &rtc_free,
-    &rtc_print, 0, 0, 0 };
 
 void
 Y_yoga_rtc(int argc);
@@ -492,13 +479,12 @@ Y_yoga_add_telemetry_stream(int argc);
  *                                |_|
  */
 
+aotemplate_struct*
+yoga_ao_getyAotemplate(int argc, int pos);
 void
 aotemplate_free(void *obj);
 void
 aotemplate_print(void *obj);
-
-static y_userobj_t yAotemplate = { const_cast<char*>("yAotemplate Object"),
-    &aotemplate_free, &aotemplate_print, 0, 0, 0 };
 
 void
 Y_yoga_aotemplate(int argc);
@@ -508,13 +494,6 @@ void
 Y_yoga_templatecomp(int argc);
 void
 Y_yoga_gettemplate(int argc);
-
-
-sensors_struct *
-yoga_ao_getySensors(int argc, int pos);
-
-dms_struct*
-yoga_ao_getyDMs(int argc, int pos);
 
 }
 #endif // _YOGA_AO_API_H_
