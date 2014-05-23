@@ -554,7 +554,7 @@ void kp_kalman_core_full_CPU::next_step(const kp_vector& Y_k, kp_vector& U_k)
 	
 
 
-
+U_k.resize(nb_act);
 //temps_op3.start();
 	//TENSION de CORRECTION
 	if (isZonal)

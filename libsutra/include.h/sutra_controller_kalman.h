@@ -9,8 +9,13 @@
 //a partir des fichiers .dat
 #include <iterator>
 #include <fstream>
-class kp_kalman_core_sparse_GPU;
+/*class kp_kalman_core_sparse_GPU;
 class kp_kalman_core_full_GPU;
+class kp_kalman_core_sparse_CPU;
+class kp_kalman_core_full_CPU;*/
+class kp_kalman_core_sparse;
+class kp_kalman_core_full;
+
 
 class sutra_controller_kalman: public sutra_controller {
 public:
@@ -19,20 +24,22 @@ public:
 			  carma_obj<float>& N_Act,
 			  carma_obj<float>& PROJ,
 			  bool is_zonal,
-			  bool is_sparse);
+			  bool is_sparse,
+			  bool is_GPU);
 
   ~sutra_controller_kalman();
    
    void calculate_gain(double bruit, double k_W, carma_obj<float>& SigmaV,
 		     carma_obj<float>& atur, carma_obj<float>& btur);
    
-   virtual string get_type() {return "kalman";};
+   virtual string get_type() {if(isGPU) return "kalman_GPU";else return "kalman_CPU";};
    
    virtual int comp_com();
  private:
    cusparseHandle_t cusparseHandle;
-   kp_kalman_core_sparse_GPU* core_sparse;
-   kp_kalman_core_full_GPU* core_full;
+   kp_kalman_core_sparse* core_sparse;
+   kp_kalman_core_full* core_full;
+   bool isGPU;
 };
 
 carma_obj<float>* calculate_D_Mo(carma_context* context, int nslopes, int n_actu_zern, bool is_zonal);

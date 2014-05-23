@@ -570,7 +570,7 @@ void kp_kalman_core_sparse_CPU::next_step(const kp_vector& Y_k, kp_vector& U_k)
 
 //temps_op1.start();
 	// VECTEUR d'ESTIMATION de MESURE ( A l' INSTANT K )
-	// Nact_Ukm2 = N_Act * U_km2 
+	// Nact_Ukm2 = N_Act * U_km2
 	kp_gemv (1, N_Act, U_km2, 0, Nact_Ukm2);
 
 	// tmp_vec1 = X_kskm1 - Nact_Ukm2 (= X_kskm1 - N_Act * U_km2)
@@ -636,8 +636,7 @@ void kp_kalman_core_sparse_CPU::next_step(const kp_vector& Y_k, kp_vector& U_k)
 
 
 
-
-
+U_k.resize(nb_act);
 //temps_op3.start();
 	//TENSION de CORRECTION 
 	if (isZonal)

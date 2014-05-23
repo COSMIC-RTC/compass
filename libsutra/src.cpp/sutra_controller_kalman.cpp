@@ -3,6 +3,8 @@
 #include "sutra_controller_kalman.h"
 #include "kp_kalman_core_sparse_GPU.h"
 #include "kp_kalman_core_full_GPU.h"
+#include "kp_kalman_core_sparse_CPU.h"
+#include "kp_kalman_core_full_CPU.h"
 #include "kp_smatrix.h"
 #include "kp_carma_tools.h"
 
@@ -85,8 +87,8 @@ carma_obj<float>* calculate_atur(carma_context* context, int n_actu_zern, bool i
 
 sutra_controller_kalman::sutra_controller_kalman(carma_context* context,
     carma_obj<float>& cD_Mo, carma_obj<float>& cN_Act, carma_obj<float>& cPROJ,
-    bool is_zonal, bool is_sparse) :
-    sutra_controller(context, cD_Mo.getDims(1), cN_Act.getDims(2)) {
+    bool is_zonal, bool is_sparse, bool is_GPU) :
+    sutra_controller(context, cD_Mo.getDims(1), cN_Act.getDims(2)), isGPU(is_GPU) {
 
    core_sparse = NULL;
    core_full = NULL;
@@ -107,19 +109,28 @@ sutra_controller_kalman::sutra_controller_kalman(carma_context* context,
       sN_Act.init_from_matrix(kN_Act);sN_Act.resize2rowMajor();
       sPROJ.init_from_matrix(kPROJ);sPROJ.resize2rowMajor();
       
-      cusparseStatus_t cusparseStat = cusparseCreate(&cusparseHandle);
-      if (cusparseStat != CUSPARSE_STATUS_SUCCESS)
-      { 
-         cerr<<"Error | sutra_controller_kalman::sutra_controller_kalman  | cusparseCreate failed "<<endl;
-         exit(EXIT_FAILURE);
-      }
-      core_sparse = new kp_kalman_core_sparse_GPU(sD_Mo, sN_Act, sPROJ,
+      if (is_GPU)
+      {
+         cusparseStatus_t cusparseStat = cusparseCreate(&cusparseHandle);
+         if (cusparseStat != CUSPARSE_STATUS_SUCCESS)
+         { 
+            cerr<<"Error | sutra_controller_kalman::sutra_controller_kalman  | cusparseCreate failed "<<endl;
+            exit(EXIT_FAILURE);
+         }
+         core_sparse = new kp_kalman_core_sparse_GPU(sD_Mo, sN_Act, sPROJ,
 					       is_zonal, 
 					       context->get_cublasHandle(), 
 					       cusparseHandle);
+      }
+      else
+         core_sparse = new kp_kalman_core_sparse_CPU(sD_Mo, sN_Act, sPROJ,
+					       is_zonal);
+
    }  
-   else
+   else if (is_GPU)
       core_full = new kp_kalman_core_full_GPU(kD_Mo, kN_Act, kPROJ, is_zonal, context->get_cublasHandle());
+   else
+      core_full = new kp_kalman_core_full_CPU(kD_Mo, kN_Act, kPROJ, is_zonal);
 }
 
 sutra_controller_kalman::~sutra_controller_kalman() {

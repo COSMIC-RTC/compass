@@ -73,7 +73,7 @@ int sutra_rtc::add_controller(long nactu, long delay, long device,
   } else if (type_ctr.compare("mv") == 0) {
     d_control.push_back(
         new sutra_controller_mv(current_context, ncentroids, nactu, delay));
-  } else if (type_ctr.compare("kalman") == 0) 
+  } else if ( (type_ctr.compare("kalman_GPU") == 0) ||(type_ctr.compare("kalman_CPU") == 0)) 
   {
 
 // We choose parameters by hand now....
@@ -103,9 +103,13 @@ int sutra_rtc::add_controller(long nactu, long delay, long device,
     double Bruit = 0.04;
     double K_W = 5;
 //  end of choosing parameters by hand....
-    sutra_controller_kalman* k;	
 
-    k = new sutra_controller_kalman(current_context, *cD_Mo, *cN_Act, *cPROJ, is_zonal, is_sparse);
+    sutra_controller_kalman* k;	
+    if (type_ctr.compare("kalman_GPU") == 0)
+       k = new sutra_controller_kalman(current_context, *cD_Mo, *cN_Act, *cPROJ, is_zonal, is_sparse, true);
+    else
+       k = new sutra_controller_kalman(current_context, *cD_Mo, *cN_Act, *cPROJ, is_zonal, is_sparse, false);
+
 
     k->calculate_gain(Bruit, K_W, *cSigmaV, *catur, *cbtur);
     d_control.push_back(k);

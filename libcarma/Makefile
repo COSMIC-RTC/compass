@@ -1,4 +1,5 @@
 
+
 CU_DIR=src.cu
 CPP_DIR=src.cpp
 CUH_DIR=include.cuh
@@ -65,6 +66,10 @@ ifneq ($(MAGMA_ROOT),)
 # LIB_DEPLIBS   += -lpthread 
 endif
 
+ifneq ($(COMPILATION_LAM),)
+  LIB_DEPLIBS += -L$(NVIDIA_CURRENT_LIB_PATH_64) 
+endif
+
 ifneq ($(DEBUG),)
   NVCCFLAGS+= -O0 -g -G -lineinfo -DDEBUG
 else
@@ -86,5 +91,5 @@ $(OBJ_DIR)/%.o: $(CPP_DIR)/%.cpp
 
 $(LIB_NAME): $(OBJS)
 	@printf '\033[36m%s\033[31m%s\033[m\n' "Linking       " $(LIB_NAME)
-	@$(GCC) -shared $(OBJS) -o $@ $(LIB_DEPLIBS)
+	$(GCC) -shared $(OBJS) -o $@ $(LIB_DEPLIBS)
 

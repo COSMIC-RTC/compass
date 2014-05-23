@@ -1,3 +1,4 @@
+
 CU_DIR=src.cu
 CPP_DIR=src.cpp
 CUH_DIR=include.cuh
@@ -7,8 +8,17 @@ OBJ_DIR=obj
 
 LIB_NAME=libsutra.so
 
-SRC_CPP = $(filter-out $(CPP_DIR)/sutra_controller_kalman.cpp, $(wildcard $(CPP_DIR)/*.cpp)) 
+
 SRC_CU  = $(wildcard $(CU_DIR)/*.cu) 
+
+ifneq ($(COMPILATION_LAM),) 
+  LAM_KP_DIR = $(COMPASS_ROOT_DIR)/lam/kalman_CPU_GPU
+  LAM_KP_INTERFACE_DIR =  $(LAM_KP_DIR)/compass_interface
+  SRC_CPP = $(wildcard $(CPP_DIR)/*.cpp) 
+else
+  SRC_CPP = $(filter-out $(CPP_DIR)/sutra_controller_kalman.cpp, $(wildcard $(CPP_DIR)/*.cpp)) 
+endif
+
 
 CURED_DIR = $(COMPASS_ROOT_DIR)/aao/cured
 CURED_INC_PATH = $(CURED_DIR)
@@ -18,10 +28,13 @@ OBJS := $(patsubst $(CPP_DIR)/%.cpp,$(OBJ_DIR)/%.o,$(SRC_CPP))
 OBJS += $(patsubst $(CU_DIR)/%.cu,$(OBJ_DIR)/%.cuo,$(SRC_CU)) 
 OBJS += $(patsubst %.cpp,%.o,$(CURED_CPP))
 
+
 LIB_DEPLIBS= -L$(CUDA_LIB_PATH_64) -lcudart -lcublas -lcufft -lstdc++ -lcurand
 LIB_DEPLIBS += -L$(COMPASS_ROOT_DIR)/libcarma -lcarma
 
+
 # set compiler (or rarely loader) flags specific to this package
+
 
 LIB_CPPFLAGS = -c -fPIC -Wall -DUNIX -I$(H_DIR) -I$(COMPASS_ROOT_DIR)/libcarma/$(H_DIR) -I$(CUDA_INC_PATH) -I$(CURED_INC_PATH)
 
@@ -31,7 +44,7 @@ else
   LIB_CPPFLAGS+= -O2
 endif
 
-MPICXX           = $(shell which mpicxx 2>/dev/null)
+MPICXX           = $(shell hich mpicxx 2>/dev/null)
 ifeq ($(MPICXX),)
   GCC ?= $(CC)
 else
@@ -48,6 +61,17 @@ ifneq ($(DEBUG),)
 else
   NVCCFLAGS+= -O2
 endif
+
+
+
+ifneq ($(COMPILATION_LAM),)
+  LIB_DEPLIBS += -L$(NVIDIA_CURRENT_LIB_PATH_64) -lcuda
+  LIB_DEPLIBS += -L$(MAGMA_ROOT)/lib -lmagma
+  LIB_DEPLIBS += $(LAM_KP_DIR)/libkp_kalman.a
+  LIB_CPPFLAGS += -m64 -lmkl_intel -lmkl_intel_thread -lmkl_core -liomp5 -lpthread -lm -I$(MAGMA_ROOT)/include -DHAVE_CUBLAS -I$(LAM_KP_DIR) -I$(LAM_KP_INTERFACE_DIR) 
+endif
+
+
 
 all: $(LIB_NAME)
 
@@ -68,6 +92,6 @@ $(CURED_DIR)/%.o: $(CURED_DIR)/%.cpp
 
 $(LIB_NAME): $(OBJS)
 	@printf '\033[36m%s\033[31m%s\033[m\n' "Linking       " $(LIB_NAME)
-	@$(GCC) -shared -o $@ $^ $(LIB_DEPLIBS)
+	$(GCC) -shared -o $@ $^ $(LIB_DEPLIBS)
 
 
