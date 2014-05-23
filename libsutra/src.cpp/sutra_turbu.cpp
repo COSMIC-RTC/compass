@@ -3,13 +3,11 @@
 
 //#include <culapackdevice.h>
 
-/*
- ____                             ____        __ _       _ _   _             
- / ___|  ___ _ __ ___  ___ _ __   |  _ \  ___ / _(_)_ __ (_) |_(_) ___  _ __  
- \___ \ / __| '__/ _ \/ _ \ '_ \  | | | |/ _ \ |_| | '_ \| | __| |/ _ \| '_ \ 
- ___) | (__| | |  __/  __/ | | | | |_| |  __/  _| | | | | | |_| | (_) | | | |
- |____/ \___|_|  \___|\___|_| |_| |____/ \___|_| |_|_| |_|_|\__|_|\___/|_| |_|
- 
+/*  ____                             ____        __ _       _ _   _
+ * / ___|  ___ _ __ ___  ___ _ __   |  _ \  ___ / _(_)_ __ (_) |_(_) ___  _ __
+ * \___ \ / __| '__/ _ \/ _ \ '_ \  | | | |/ _ \ |_| | '_ \| | __| |/ _ \| '_ \
+ *  ___) | (__| | |  __/  __/ | | | | |_| |  __/  _| | | | | | |_| | (_) | | | |
+ * |____/ \___|_|  \___|\___|_| |_| |____/ \___|_| |_|_| |_|_|\__|_|\___/|_| |_|
  */
 
 sutra_tscreen::sutra_tscreen(carma_context *context, long size, long size2,
@@ -133,7 +131,7 @@ int sutra_tscreen::generate_vk(float l0, int nalias) {
   gene_vonkarman(data, data_o, k0, nalias, this->screen_size, this->screen_size,
       block_size);
 
-  roll(data, this->screen_size, this->screen_size);
+  roll<cuFloatComplex>(data, this->screen_size, this->screen_size);
 
   carma_fft(data, data, 1, *this->d_tscreen_c->getPlan());
 
@@ -167,7 +165,7 @@ int sutra_tscreen::extrude(int dir)
     x0 = this->screen_size * (this->screen_size - 1);
   }
 
-  addai(this->d_z->getData(), this->d_tscreen->d_screen->getData(), x0, -1.0f,
+  addai<float>(this->d_z->getData(), this->d_tscreen->d_screen->getData(), x0, -1.0f,
       this->d_z->getNbElem(), this->device);
 
   this->d_ytmp->gemv('n', 1.0f, this->d_A, this->d_A->getDims(1), this->d_z, 1,
@@ -178,7 +176,7 @@ int sutra_tscreen::extrude(int dir)
   this->d_ytmp->gemv('n', this->amplitude, this->d_B, this->d_B->getDims(1),
       this->d_noise, 1, 1.0f, 1);
 
-  addai(this->d_ytmp->getData(), this->d_tscreen->d_screen->getData(), x0, 1.0f,
+  addai<float>(this->d_ytmp->getData(), this->d_tscreen->d_screen->getData(), x0, 1.0f,
       this->d_ytmp->getNbElem(), this->device);
 
   if (dir == 1) {
@@ -218,13 +216,11 @@ int sutra_tscreen::extrude(int dir)
   return EXIT_SUCCESS;
 }
 
-/*
- _   _                         ____        __ _       _ _   _             
- / \ | |_ _ __ ___   ___  ___  |  _ \  ___ / _(_)_ __ (_) |_(_) ___  _ __  
- / _ \| __| '_ ` _ \ / _ \/ __| | | | |/ _ \ |_| | '_ \| | __| |/ _ \| '_ \ 
- / ___ \ |_| | | | | | (_) \__ \ | |_| |  __/  _| | | | | | |_| | (_) | | | |
- /_/   \_\__|_| |_| |_|\___/|___/ |____/ \___|_| |_|_| |_|_|\__|_|\___/|_| |_|
- 
+/*     _   _                         ____        __ _       _ _   _
+ *    / \ | |_ _ __ ___   ___  ___  |  _ \  ___ / _(_)_ __ (_) |_(_) ___  _ __
+ *   / _ \| __| '_ ` _ \ / _ \/ __| | | | |/ _ \ |_| | '_ \| | __| |/ _ \| '_ \
+ *  / ___ \ |_| | | | | | (_) \__ \ | |_| |  __/  _| | | | | | |_| | (_) | | | |
+ * /_/   \_\__|_| |_| |_|\___/|___/ |____/ \___|_| |_|_| |_|_|\__|_|\___/|_| |_|
  */
 
 sutra_atmos::sutra_atmos(carma_context *context, int nscreens, float *r0,

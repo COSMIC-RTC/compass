@@ -28,8 +28,9 @@ fillarr2d(float *d_odata, float *d_idata, int x0, int Ncol, int NC, int N,
 int
 getarr2d(float *d_odata, float *d_idata, int x0, int Ncol, int NC, int N,
     int device);
+template<class T>
 int
-addai(float *d_odata, float *i_data, int i, int sgn, int N, int device);
+addai(T *d_odata, T *i_data, int i, int sgn, int N, int device);
 int
 subap_norm_async(float *d_odata, float *d_idata, float *fact, float *norm,
     float nphot, int n, int N, carma_streams *streams, int device);

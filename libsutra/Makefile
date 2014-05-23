@@ -57,12 +57,10 @@ NVCCFLAGS = -m64 -Xcompiler -fPIC -use_fast_math -c -I$(CUH_DIR)  -I$(H_DIR) \
 	-I$(COMPASS_ROOT_DIR)/libcarma/$(CUH_DIR)  -I$(COMPASS_ROOT_DIR)/libcarma/$(H_DIR) -I$(CURED_INC_PATH) #-gencode $(GENCODE)
 
 ifneq ($(DEBUG),)
-  NVCCFLAGS+= -O0 -g -DDEBUG # -G -lineinfo
+  NVCCFLAGS+= -O0 -g -DDEBUG -G -lineinfo
 else
   NVCCFLAGS+= -O2
 endif
-
-
 
 ifneq ($(COMPILATION_LAM),)
   LIB_DEPLIBS += -L$(NVIDIA_CURRENT_LIB_PATH_64) -lcuda
@@ -80,7 +78,7 @@ clean:
 
 $(OBJ_DIR)/%.cuo: $(CU_DIR)/%.cu
 	@printf '\033[36m%s\033[31m%s\033[m\n' "Compiling     " $@
-	@$(NVCC) $(NVCCFLAGS) -o $@ $< 
+	$(NVCC) $(NVCCFLAGS) -o $@ $< 
 
 $(OBJ_DIR)/%.o: $(CPP_DIR)/%.cpp
 	@printf '\033[36m%s\033[31m%s\033[m\n' "Compiling     " $@

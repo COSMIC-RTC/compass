@@ -248,7 +248,8 @@ int getarr2d(float *d_odata, float *d_idata, int x0, int Ncol, int NC, int N,
   return EXIT_SUCCESS;
 }
 
-__global__ void addai_krnl(float *odata, float* idata, int i, int sgn, int N) {
+template<class T>
+__global__ void addai_krnl(T *odata, T* idata, int i, int sgn, int N) {
 
   int tid = threadIdx.x + blockIdx.x * blockDim.x;
 
@@ -261,21 +262,27 @@ __global__ void addai_krnl(float *odata, float* idata, int i, int sgn, int N) {
   }
 }
 
-int addai(float *d_odata, float *i_data, int i, int sgn, int N, int device) {
+template<class T>
+int addai(T *d_odata, T *i_data, int i, int sgn, int N, int device) {
   int nthreads = 0, nblocks = 0;
   getNumBlocksAndThreads(device, N, nblocks, nthreads);
 
   dim3 grid(nblocks), threads(nthreads);
 
-  addai_krnl<<<grid, threads>>>(d_odata, i_data, i, sgn, N);
+  addai_krnl<T><<<grid, threads>>>(d_odata, i_data, i, sgn, N);
 
   cutilCheckMsg("plusai_kernel<<<>>> execution failed\n");
 
   return EXIT_SUCCESS;
 }
+template
+int addai<float>(float *d_odata, float *i_data, int i, int sgn, int N, int device);
+template
+int addai<double>(double *d_odata, double *i_data, int i, int sgn, int N, int device);
 
 template<class T>
 __global__ void roll_krnl(T *idata, int N, int M, int Ntot) {
+  __shared__ T tmp;
 
   int tidt = threadIdx.x + blockIdx.x * blockDim.x;
   int nim = tidt / Ntot;
@@ -291,7 +298,6 @@ __global__ void roll_krnl(T *idata, int N, int M, int Ntot) {
     int yy = (y + M / 2) % M;
     int tid2 = xx + yy * N;
 
-    __shared__ T tmp;
     tmp = idata[tid + nim * (N * M)];
     idata[tid + nim * (N * M)] = idata[tid2 + nim * (N * M)];
     idata[tid2 + nim * (N * M)] = tmp;
@@ -303,22 +309,13 @@ __global__ void roll_krnl(T *idata, int N, int M, int Ntot) {
 template<class T>
 int roll(T *idata, int N, int M, int nim) {
 
-  struct cudaDeviceProp deviceProperties;
-  cudaGetDeviceProperties(&deviceProperties, 0);
-
   long Ntot = N * M * nim;
-  int maxThreads = deviceProperties.maxThreadsPerBlock;
-  int nBlocks = deviceProperties.multiProcessorCount * 8;
-  int nThreads = (Ntot / 2 + nBlocks - 1) / nBlocks;
-
-  if (nThreads > maxThreads) {
-    nThreads = maxThreads;
-    nBlocks = (Ntot / 2 + nThreads - 1) / nThreads;
-  }
+  int nBlocks, nThreads;
+  getNumBlocksAndThreads(0, Ntot / 2, nBlocks, nThreads);
 
   dim3 grid(nBlocks), threads(nThreads);
 
-  roll_krnl<<<grid, threads>>>(idata, N, M, Ntot / 2);
+  roll_krnl<T><<<grid, threads>>>(idata, N, M, Ntot / 2);
 
   cutilCheckMsg("roll_kernel<<<>>> execution failed\n");
   return EXIT_SUCCESS;
@@ -336,6 +333,7 @@ roll<cuFloatComplex>(cuFloatComplex *idata, int N, int M, int nim);
 
 template<class T>
 __global__ void roll_krnl(T *idata, int N, int M) {
+  __shared__ T tmp;
 
   int tid = threadIdx.x + blockIdx.x * blockDim.x;
 
@@ -347,7 +345,6 @@ __global__ void roll_krnl(T *idata, int N, int M) {
     int yy = (y + M / 2) % M;
     int tid2 = xx + yy * N;
 
-    __shared__ T tmp;
     tmp = idata[tid];
     idata[tid] = idata[tid2];
     idata[tid2] = tmp;
@@ -358,23 +355,16 @@ __global__ void roll_krnl(T *idata, int N, int M) {
 
 template<class T>
 int roll(T *idata, int N, int M) {
-
   struct cudaDeviceProp deviceProperties;
   cudaGetDeviceProperties(&deviceProperties, 0);
 
   long Ntot = N * M;
-  int maxThreads = deviceProperties.maxThreadsPerBlock;
-  int nBlocks = deviceProperties.multiProcessorCount * 8;
-  int nThreads = (Ntot / 2 + nBlocks - 1) / nBlocks;
-
-  if (nThreads > maxThreads) {
-    nThreads = maxThreads;
-    nBlocks = (Ntot / 2 + nThreads - 1) / nThreads;
-  }
+  int nBlocks, nThreads;
+  getNumBlocksAndThreads(0, Ntot / 2, nBlocks, nThreads);
 
   dim3 grid(nBlocks), threads(nThreads);
 
-  roll_krnl<<<grid, threads>>>(idata, N, M);
+  roll_krnl<T><<<grid, threads>>>(idata, N, M);
 
   cutilCheckMsg("roll_kernel<<<>>> execution failed\n");
   return EXIT_SUCCESS;
