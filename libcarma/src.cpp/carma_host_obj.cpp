@@ -49,29 +49,29 @@ carma_host_obj<cuDoubleComplex>::carma_host_obj(const long *dims_data,
     MemAlloc mallocType);
 
 template<class T_data>
-carma_host_obj<T_data>::carma_host_obj(carma_host_obj<T_data> *src) {
+carma_host_obj<T_data>::carma_host_obj(const carma_host_obj<T_data> *src) {
   /** \brief carma_host_obj creator.
    * \param src : carma_host_obj to copy
    */
   init(src->dims_data, src->h_data, src->mallocType, 0);
 }
 template
-carma_host_obj<float>::carma_host_obj(carma_host_obj<float> *src);
+carma_host_obj<float>::carma_host_obj(const carma_host_obj<float> *src);
 template
-carma_host_obj<double>::carma_host_obj(carma_host_obj<double> *src);
+carma_host_obj<double>::carma_host_obj(const carma_host_obj<double> *src);
 template
-carma_host_obj<int>::carma_host_obj(carma_host_obj<int> *src);
+carma_host_obj<int>::carma_host_obj(const carma_host_obj<int> *src);
 template
-carma_host_obj<unsigned int>::carma_host_obj(carma_host_obj<unsigned int> *src);
+carma_host_obj<unsigned int>::carma_host_obj(const carma_host_obj<unsigned int> *src);
 template
 carma_host_obj<cuFloatComplex>::carma_host_obj(
-    carma_host_obj<cuFloatComplex> *src);
+    const carma_host_obj<cuFloatComplex> *src);
 template
 carma_host_obj<cuDoubleComplex>::carma_host_obj(
-    carma_host_obj<cuDoubleComplex> *src);
+    const carma_host_obj<cuDoubleComplex> *src);
 
 template<class T_data>
-carma_host_obj<T_data>::carma_host_obj(carma_host_obj<T_data> *src,
+carma_host_obj<T_data>::carma_host_obj(const carma_host_obj<T_data> *src,
     MemAlloc mallocType) {
   /** \brief carma_host_obj creator.
    * \param src : carma_host_obj to copy
@@ -80,23 +80,23 @@ carma_host_obj<T_data>::carma_host_obj(carma_host_obj<T_data> *src,
   init(src->dims_data, src->h_data, mallocType, 0);
 }
 template
-carma_host_obj<float>::carma_host_obj(carma_host_obj<float> *src,
+carma_host_obj<float>::carma_host_obj(const carma_host_obj<float> *src,
     MemAlloc mallocType);
 template
-carma_host_obj<double>::carma_host_obj(carma_host_obj<double> *src,
+carma_host_obj<double>::carma_host_obj(const carma_host_obj<double> *src,
     MemAlloc mallocType);
 template
-carma_host_obj<int>::carma_host_obj(carma_host_obj<int> *src,
+carma_host_obj<int>::carma_host_obj(const carma_host_obj<int> *src,
     MemAlloc mallocType);
 template
-carma_host_obj<unsigned int>::carma_host_obj(carma_host_obj<unsigned int> *src,
+carma_host_obj<unsigned int>::carma_host_obj(const carma_host_obj<unsigned int> *src,
     MemAlloc mallocType);
 template
 carma_host_obj<cuFloatComplex>::carma_host_obj(
-    carma_host_obj<cuFloatComplex> *src, MemAlloc mallocType);
+    const carma_host_obj<cuFloatComplex> *src, MemAlloc mallocType);
 template
 carma_host_obj<cuDoubleComplex>::carma_host_obj(
-    carma_host_obj<cuDoubleComplex> *src, MemAlloc mallocType);
+    const carma_host_obj<cuDoubleComplex> *src, MemAlloc mallocType);
 
 template<class T_data>
 carma_host_obj<T_data>::carma_host_obj(const long *dims_data, T_data *data) {
@@ -203,7 +203,7 @@ carma_host_obj<cuDoubleComplex>::carma_host_obj(const long *dims_data,
     MemAlloc mallocType, int nb_streams);
 
 template<class T_data>
-carma_host_obj<T_data>::carma_host_obj(carma_host_obj<T_data> *src,
+carma_host_obj<T_data>::carma_host_obj(const carma_host_obj<T_data> *src,
     int nb_streams) {
   /** \brief carma_host_obj creator.
    * \param src : carma_host_obj to copy
@@ -211,25 +211,25 @@ carma_host_obj<T_data>::carma_host_obj(carma_host_obj<T_data> *src,
   init(src->dims_data, src->h_data, src->mallocType, nb_streams);
 }
 template
-carma_host_obj<float>::carma_host_obj(carma_host_obj<float> *src,
+carma_host_obj<float>::carma_host_obj(const carma_host_obj<float> *src,
     int nb_streams);
 template
-carma_host_obj<double>::carma_host_obj(carma_host_obj<double> *src,
+carma_host_obj<double>::carma_host_obj(const carma_host_obj<double> *src,
     int nb_streams);
 template
-carma_host_obj<int>::carma_host_obj(carma_host_obj<int> *src, int nb_streams);
+carma_host_obj<int>::carma_host_obj(const carma_host_obj<int> *src, int nb_streams);
 template
-carma_host_obj<unsigned int>::carma_host_obj(carma_host_obj<unsigned int> *src,
+carma_host_obj<unsigned int>::carma_host_obj(const carma_host_obj<unsigned int> *src,
     int nb_streams);
 template
 carma_host_obj<cuFloatComplex>::carma_host_obj(
-    carma_host_obj<cuFloatComplex> *src, int nb_streams);
+    const carma_host_obj<cuFloatComplex> *src, int nb_streams);
 template
 carma_host_obj<cuDoubleComplex>::carma_host_obj(
-    carma_host_obj<cuDoubleComplex> *src, int nb_streams);
+    const carma_host_obj<cuDoubleComplex> *src, int nb_streams);
 
 template<class T_data>
-carma_host_obj<T_data>::carma_host_obj(carma_host_obj<T_data> *src,
+carma_host_obj<T_data>::carma_host_obj(const carma_host_obj<T_data> *src,
     MemAlloc mallocType, int nb_streams) {
   /** \brief carma_host_obj creator.
    * \param src : carma_host_obj to copy
@@ -238,23 +238,23 @@ carma_host_obj<T_data>::carma_host_obj(carma_host_obj<T_data> *src,
   init(src->dims_data, src->h_data, mallocType, nb_streams);
 }
 template
-carma_host_obj<float>::carma_host_obj(carma_host_obj<float> *src,
+carma_host_obj<float>::carma_host_obj(const carma_host_obj<float> *src,
     MemAlloc mallocType, int nb_streams);
 template
-carma_host_obj<double>::carma_host_obj(carma_host_obj<double> *src,
+carma_host_obj<double>::carma_host_obj(const carma_host_obj<double> *src,
     MemAlloc mallocType, int nb_streams);
 template
-carma_host_obj<int>::carma_host_obj(carma_host_obj<int> *src,
+carma_host_obj<int>::carma_host_obj(const carma_host_obj<int> *src,
     MemAlloc mallocType, int nb_streams);
 template
-carma_host_obj<unsigned int>::carma_host_obj(carma_host_obj<unsigned int> *src,
+carma_host_obj<unsigned int>::carma_host_obj(const carma_host_obj<unsigned int> *src,
     MemAlloc mallocType, int nb_streams);
 template
 carma_host_obj<cuFloatComplex>::carma_host_obj(
-    carma_host_obj<cuFloatComplex> *src, MemAlloc mallocType, int nb_streams);
+    const carma_host_obj<cuFloatComplex> *src, MemAlloc mallocType, int nb_streams);
 template
 carma_host_obj<cuDoubleComplex>::carma_host_obj(
-    carma_host_obj<cuDoubleComplex> *src, MemAlloc mallocType, int nb_streams);
+    const carma_host_obj<cuDoubleComplex> *src, MemAlloc mallocType, int nb_streams);
 
 template<class T_data>
 carma_host_obj<T_data>::carma_host_obj(const long *dims_data, T_data *data,
@@ -314,7 +314,7 @@ carma_host_obj<cuDoubleComplex>::carma_host_obj(const long *dims_data,
     cuDoubleComplex *data, MemAlloc mallocType, int nb_streams);
 
 template<class T_data>
-void carma_host_obj<T_data>::init(const long *dims_data, T_data *data,
+void carma_host_obj<T_data>::init(const long *dims_data,const T_data *data,
     MemAlloc mallocType, int nb_streams) {
   const long size_data = dims_data[0] + 1;
   this->dims_data = new long[size_data];
@@ -495,7 +495,7 @@ int carma_host_obj<T_data>::wait_all_streams() {
  */
 
 template<class T_data>
-int carma_host_obj<T_data>::fill_from(T_data *data) {
+int carma_host_obj<T_data>::fill_from(const T_data *data) {
   if (get_nbStreams() > 1) {
     int nstreams = get_nbStreams();
     for (int i = 0; i < nstreams; i++) {
@@ -521,17 +521,17 @@ int carma_host_obj<T_data>::fill_from(T_data *data) {
   return EXIT_SUCCESS;
 }
 template int
-carma_host_obj<float>::fill_from(float *data);
+carma_host_obj<float>::fill_from(const float *data);
 template int
-carma_host_obj<double>::fill_from(double *data);
+carma_host_obj<double>::fill_from(const double *data);
 template int
-carma_host_obj<int>::fill_from(int *data);
+carma_host_obj<int>::fill_from(const int *data);
 template int
-carma_host_obj<unsigned int>::fill_from(unsigned int *data);
+carma_host_obj<unsigned int>::fill_from(const unsigned int *data);
 template int
-carma_host_obj<cuFloatComplex>::fill_from(cuFloatComplex *data);
+carma_host_obj<cuFloatComplex>::fill_from(const cuFloatComplex *data);
 template int
-carma_host_obj<cuDoubleComplex>::fill_from(cuDoubleComplex *data);
+carma_host_obj<cuDoubleComplex>::fill_from(const cuDoubleComplex *data);
 
 template<class T_data>
 int carma_host_obj<T_data>::fill_into(T_data *data) {
