@@ -4,7 +4,6 @@ N_CPU:="$(shell cat /proc/cpuinfo | grep processor | wc -l)"
 all: configure
 	@echo "using $(N_CPU) jobs"
 	@(if [ -z ${COMPILATION_LAM+x} ]; then echo "lam/kalman_CPU_GPU won't be compiled." ; else cd lam/kalman_CPU_GPU && make; fi)
-	@(cd lam/kalman_CPU_GPU && make)
 	@(cd libcarma && make -j$(N_CPU))
 	@(cd yoga && make)
 	@(cd libsutra && make -j$(N_CPU))

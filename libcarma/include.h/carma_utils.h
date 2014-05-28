@@ -37,6 +37,7 @@ enum CUTBoolean {
 
 // We define these calls here, so the user doesn't need to include __FILE__ and __LINE__
 // The advantage is the developers gets to use the inline function so they can debug
+//#ifdef DEBUG
 #define CUSafeCall(err)              __CUSafeCall        (err, __FILE__, __LINE__)
 #define cutilSafeCallNoSync(err)     __cudaSafeCallNoSync(err, __FILE__, __LINE__)
 #define cutilSafeCall(err)           __cudaSafeCall      (err, __FILE__, __LINE__)
@@ -45,6 +46,16 @@ enum CUTBoolean {
 #define cutilCheckError(err)         __cutilCheckError   (err, __FILE__, __LINE__)
 #define cutilCheckMsg(msg)           __cutilCheckMsg     (msg, __FILE__, __LINE__)
 #define cutilSafeMalloc(mallocCall)  __cutilSafeMalloc   ((mallocCall), __FILE__, __LINE__)
+//#else
+//#define CUSafeCall(err)              err
+//#define cutilSafeCallNoSync(err)     err
+//#define cutilSafeCall(err)           err
+//#define cutilSafeThreadSync()        cudaThreadSynchronize()
+//#define cufftSafeCall(err)           err
+//#define cutilCheckError(err)         err
+//#define cutilCheckMsg(msg)
+//#define cutilSafeMalloc(mallocCall)  (mallocCall)
+//#endif
 
 #define MIN(a,b) ((a < b) ? a : b)
 #define MAX(a,b) ((a > b) ? a : b)
@@ -115,14 +126,14 @@ inline void __cutilCheckMsg(const char *errorMessage, const char *file,
         file, line, errorMessage, cudaGetErrorString(err));
     exit(-1);
   }
-//#ifdef DEBUG
-//  err = cudaThreadSynchronize();
-//  if( cudaSuccess != err) {
-//    fprintf(stderr, "(%s:%i) : cutilCheckMsg cudaThreadSynchronize error: %s : %s.\n",
-//        file, line, errorMessage, cudaGetErrorString( err) );
-//    exit(-1);
-//  }
-//#endif
+#ifdef DEBUG
+  err = cudaThreadSynchronize();
+  if( cudaSuccess != err) {
+    fprintf(stderr, "(%s:%i) : cutilCheckMsg cudaThreadSynchronize error: %s : %s.\n",
+        file, line, errorMessage, cudaGetErrorString( err) );
+    exit(-1);
+  }
+#endif
 }
 inline void __cutilSafeMalloc(void *pointer, const char *file, const int line) {
   if (!(pointer)) {

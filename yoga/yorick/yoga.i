@@ -3,14 +3,13 @@ plug_in,"yoga";
 yoga_version = "1.0";
 
 /*
-  ___        _          ____ 
- / _ \ _ __ | |_   _   / ___|
-| | | | '_ \| | | | | | |    
-| |_| | | | | | |_| | | |___ 
- \___/|_| |_|_|\__, |  \____|
-               |___/         
-
-*/
+ *  ___        _          ____ 
+ * / _ \ _ __ | |_   _   / ___|
+ *| | | | '_ \| | | | | | |    
+ *| |_| | | | | | |_| | | |___ 
+ * \___/|_| |_|_|\__, |  \____|
+ *                |___/         
+ */
 
 //==================================================================
 
@@ -24,42 +23,40 @@ extern _poidev
    void _poidev(float array xm, long n)
 */
 /*
-extern idx_test
-/ * PROTOTYPE
-   int idx_test(pointer a)
+  extern idx_test
+  / * PROTOTYPE
+  int idx_test(pointer a)
 */
 
 extern snapTransformSize
 /* PROTOTYPE
    int snapTransformSize(int dataSize)
- */
+*/
 
-/*
-  ____                           _   _   _ _   _ _ _ _   _           
- / ___| ___ _ __   ___ _ __ __ _| | | | | | |_(_) (_) |_(_) ___  ___ 
-| |  _ / _ \ '_ \ / _ \ '__/ _` | | | | | | __| | | | __| |/ _ \/ __|
-| |_| |  __/ | | |  __/ | | (_| | | | |_| | |_| | | | |_| |  __/\__ \
- \____|\___|_| |_|\___|_|  \__,_|_|  \___/ \__|_|_|_|\__|_|\___||___/
-                                                                     
+/*  ____                           _   _   _ _   _ _ _ _   _           
+ * / ___| ___ _ __   ___ _ __ __ _| | | | | | |_(_) (_) |_(_) ___  ___ 
+ *| |  _ / _ \ '_ \ / _ \ '__/ _` | | | | | | __| | | | __| |/ _ \/ __|
+ *| |_| |  __/ | | |  __/ | | (_| | | | |_| | |_| | | | |_| |  __/\__  \
+ * \____|\___|_| |_|\___|_|  \__,_|_|  \___/ \__|_|_|_|\__|_|\___||___/
  */
 
 //==================================================================
 extern _yogaThreadExit
 /* PROTOTYPE
-  void _yogaThreadExit(void);
- */
+   void _yogaThreadExit(void);
+*/
 
 extern _yogaThreadSync
 /* PROTOTYPE
-  void _yogaThreadSync(void);
- */
+   void _yogaThreadSync(void);
+*/
 
 /*
-quit_yorick = quit;
-func quit(void) {
+  quit_yorick = quit;
+  func quit(void) {
   _yogaThreadExit;
   quit_yorick;
-}
+  }
 */
 
 extern _yoga_init;
@@ -75,7 +72,8 @@ extern _yoga_start_profile;
    int _yoga_start_profile(void)
 */
 func yoga_start_profile(void) {
-	_yoga_start_profile;
+  _yogaThreadSync;
+  _yoga_start_profile;
 }
 
 extern _yoga_stop_profile;
@@ -83,7 +81,8 @@ extern _yoga_stop_profile;
    int _yoga_stop_profile(void)
 */
 func yoga_stop_profile(void) {
-	_yoga_stop_profile;
+  _yogaThreadSync;
+  _yoga_stop_profile;
 }
 
 extern _yoga_setDevice;
@@ -120,7 +119,19 @@ extern activeDevice;
    given by the argument
      
    SEE ALSO:
- */
+*/
+
+extern activeDeviceForce;
+/* DOCUMENT activeDeviceForce
+   mydevice = activeDeviceForce();
+   activeDeviceForce,mydevice;
+
+   if called as a function returns the active cuda device
+   if called as a subroutine, forces the active cuda device to the id
+   given by the argument
+     
+   SEE ALSO:
+*/
 
 /*                  _            _
  *   ___ ___  _ __ | |_ _____  _| |_
@@ -136,15 +147,14 @@ extern yoga_context;
    init and stores the context
    
    SEE ALSO:
- */
+*/
 
-/*
-__   _____   ____    _       ___  _     _           _   
-\ \ / / _ \ / ___|  / \     / _ \| |__ (_) ___  ___| |_ 
- \ V / | | | |  _  / _ \   | | | | '_ \| |/ _ \/ __| __|
-  | || |_| | |_| |/ ___ \  | |_| | |_) | |  __/ (__| |_ 
-  |_| \___/ \____/_/   \_\  \___/|_.__// |\___|\___|\__|
-                                     |__/               
+/* __   _____   ____    _       ___  _     _           _   
+ * \ \ / / _ \ / ___|  / \     / _ \| |__ (_) ___  ___| |_ 
+ *  \ V / | | | |  _  / _ \   | | | | '_ \| |/ _ \/ __| __|
+ *   | || |_| | |_| |/ ___ \  | |_| | |_) | |  __/ (__| |_ 
+ *   |_| \___/ \____/_/   \_\  \___/|_.__// |\___|\___|\__|
+ *                                      |__/               
  */
 
 extern yoga_obj;
@@ -166,7 +176,7 @@ extern yoga_obj;
    4rth form: other_obj is another yoga object
    
    SEE ALSO:
- */
+*/
 
 extern yoga_host2device;
 /* DOCUMENT yoga_host2device
@@ -176,7 +186,7 @@ extern yoga_host2device;
    Yoga object device_obj
    
    SEE ALSO:
- */
+*/
 extern yoga_device2host; 
 /* DOCUMENT yoga_device2host
    host_data = yoga_device2host(device_obj [,opt_flag]);
@@ -188,7 +198,7 @@ extern yoga_device2host;
    transfered
         
    SEE ALSO:
- */
+*/
 
 extern yoga_getp;
 /* DOCUMENT yoga_getp
@@ -197,7 +207,7 @@ extern yoga_getp;
    This function creates a pointer of the device_obj
    
    SEE ALSO:
- */
+*/
 
 extern yoga_getpl;
 /* DOCUMENT yoga_getpl
@@ -206,7 +216,7 @@ extern yoga_getpl;
    This function creates a pointer of the device_obj returned as a long int
    
    SEE ALSO:
- */
+*/
 
 extern yoga_setv;
 /* DOCUMENT yoga_setv
@@ -216,7 +226,7 @@ extern yoga_setv;
    and stores it in new Yoga Object obj
    
    SEE ALSO:
- */
+*/
 extern yoga_setm;
 /* DOCUMENT yoga_setm
    obj = yoga_setm(host_data)
@@ -225,7 +235,7 @@ extern yoga_setm;
    and stores it in new Yoga Object obj
      
    SEE ALSO:
- */
+*/
 
 /*
   extern yoga_getv;
@@ -242,7 +252,7 @@ extern yoga_imin;
    magnitude (BLAS imin) of Yoga object obj
      
    SEE ALSO:
- */
+*/
 extern yoga_imax;
 /* DOCUMENT yoga_imax
    result = yoga_imax(obj)
@@ -251,7 +261,7 @@ extern yoga_imax;
    magnitude (BLAS amax) of Yoga object obj
      
    SEE ALSO:
- */
+*/
 extern yoga_asum;
 /* DOCUMENT yoga_asum
    result = yoga_asum(obj)
@@ -260,7 +270,7 @@ extern yoga_asum;
    Yoga object obj
      
    SEE ALSO:
- */
+*/
 extern yoga_sum;
 /* DOCUMENT yoga_sum
    result = yoga_sum(obj)
@@ -268,7 +278,7 @@ extern yoga_sum;
    This function returns the sum of the Yoga object obj
      
    SEE ALSO:
- */
+*/
 extern yoga_nrm2;
 /* DOCUMENT yoga_nrm2
    result = yoga_nrm2(obj)
@@ -276,7 +286,7 @@ extern yoga_nrm2;
    This function returns the Euclidean norm (BLAS nrm2) of Yoga object obj
      
    SEE ALSO:
- */
+*/
 extern yoga_scale;
 /* DOCUMENT yoga_scale
    yoga_scale,obj,alpha
@@ -285,7 +295,7 @@ extern yoga_scale;
    scalar alpha. Can only be called as a subroutine.
      
    SEE ALSO:
- */
+*/
 extern yoga_swap;
 /* DOCUMENT yoga_swap
    yoga_swap,obj1,obj2
@@ -294,7 +304,7 @@ extern yoga_swap;
    Can only be called as a subroutine.
      
    SEE ALSO:
- */
+*/
 extern yoga_copy;
 /* DOCUMENT yoga_copy
    yoga_copy,obj1,obj2
@@ -303,7 +313,7 @@ extern yoga_copy;
    Can only be called as a subroutine.
      
    SEE ALSO:
- */
+*/
 extern yoga_axpy;
 /* DOCUMENT yoga_axpy
    dest = yoga_axpy(src,alpha)
@@ -315,7 +325,7 @@ extern yoga_axpy;
    if it is called as a subroutine, it works on pre-existing objects.
      
    SEE ALSO:
- */
+*/
 extern yoga_axpy_cpu;
 /* DOCUMENT yoga_axpyyoga_axpy_cpu
    dest = yoga_axpy(alpha, src1, src2)
@@ -327,7 +337,7 @@ extern yoga_axpy_cpu;
    if it is called as a subroutine, it works on pre-existing objects.
      
    SEE ALSO:
- */
+*/
 extern yoga_dot;
 /* DOCUMENT yoga_dot
    res = yoga_dot(obj1,obj2)
@@ -336,7 +346,7 @@ extern yoga_dot;
    and obj2.
      
    SEE ALSO:
- */
+*/
 extern yoga_mv;
 /* DOCUMENT yoga_mv
    vecty = yoga_mv(matA,vectx[,alpha])
@@ -348,7 +358,7 @@ extern yoga_mv;
    If called as a function, it creates a new yoga object
      
    SEE ALSO:
- */
+*/
 extern yoga_symv;
 /* DOCUMENT yoga_symv
    vecty = yoga_symv(matA,vectx[,alpha])
@@ -361,7 +371,7 @@ extern yoga_symv;
    If called as a function, it creates a new yoga object
      
    SEE ALSO:
- */
+*/
 extern yoga_rank1;
 /* DOCUMENT yoga_rank1
    matA = yoga_rank1(vectx,vecty)
@@ -373,7 +383,7 @@ extern yoga_rank1;
    If called as a function, it creates a new yoga object
      
    SEE ALSO:
- */
+*/
 extern yoga_mm;
 /* DOCUMENT yoga_mm
    matC = yoga_mm(matA,matB [,opA] [,opB] [,alpha])
@@ -393,7 +403,7 @@ extern yoga_mm;
    If called as a function, it creates a new yoga object so the beta argument is not applicable
    
    SEE ALSO:
- */
+*/
 
 extern yoga_mm_cpu;
 /* DOCUMENT yoga_mm_cpu
@@ -414,7 +424,7 @@ extern yoga_mm_cpu;
    If called as a function, it creates a new yoga object so the beta argument is not applicable
    
    SEE ALSO:
- */
+*/
 
 extern yoga_symm;
 /* DOCUMENT yoga_symm
@@ -433,7 +443,7 @@ extern yoga_symm;
    If called as a function, it creates a new yoga object so the beta argument is not applicable
    
    SEE ALSO:
- */
+*/
 
 extern yoga_syrk;
 /* DOCUMENT yoga_syrk
@@ -452,7 +462,7 @@ extern yoga_syrk;
    If called as a function, it creates a new yoga object so the beta argument is not applicable
    
    SEE ALSO:
- */
+*/
 
 extern yoga_syrkx;
 /* DOCUMENT yoga_syrkx
@@ -474,7 +484,7 @@ extern yoga_syrkx;
    If called as a function, it creates a new yoga object so the beta argument is not applicable
    
    SEE ALSO:
- */
+*/
 
 extern yoga_am;
 /* DOCUMENT yoga_am
@@ -495,7 +505,7 @@ extern yoga_am;
    If called as a function, it creates a new yoga object
    
    SEE ALSO:
- */
+*/
 
 extern yoga_dmm;
 /* DOCUMENT yoga_dmm
@@ -514,7 +524,7 @@ extern yoga_dmm;
    If called as a function, it creates a new yoga object
    
    SEE ALSO:
- */
+*/
 
 /*custom transpose*/
 extern yoga_transpose;
@@ -528,7 +538,7 @@ extern yoga_transpose;
    If called as a function, it creates a new yoga object
      
    SEE ALSO:
- */
+*/
 
 /*random numbers*/
 extern yoga_random;
@@ -544,7 +554,7 @@ extern yoga_random;
    If called as a function, it creates a new yoga object
      
    SEE ALSO:
- */
+*/
 extern yoga_random_n;
 /* DOCUMENT yoga_random_n
    obj = yoga_random_n("type",[ndims,dims1,dims2,...])
@@ -558,7 +568,7 @@ extern yoga_random_n;
    If called as a function, it creates a new yoga object
      
    SEE ALSO:
- */
+*/
 
 extern yoga_poisson;
 /* DOCUMENT yoga_poisson
@@ -567,7 +577,7 @@ extern yoga_poisson;
    This function adds poisson noise to a yoga object obj 
      
    SEE ALSO:
- */
+*/
 
 /*fourier transform*/
 extern yoga_fft;
@@ -587,7 +597,7 @@ extern yoga_fft;
    a batched fft of multiple 2d arrays, the number being specified by the 3rd dim
    
    SEE ALSO: yoga_fft.i
- */
+*/
 
 
 /*general utilities on arrays*/
@@ -604,7 +614,7 @@ extern yoga_getarray;
    if called as a subroutine it uses pre-existing arrays
 
    SEE ALSO: 
- */
+*/
 extern yoga_fillarray;
 /* DOCUMENT yoga_fillarray
    yoga_fillarray,dest,src[,xmin:xmax,ymin:ymax]
@@ -616,7 +626,7 @@ extern yoga_fillarray;
    
 
    SEE ALSO: 
- */
+*/
 extern yoga_getvalue;
 /* DOCUMENT yoga_getvalue
    res = yoga_getvalue(obj,position)
@@ -626,7 +636,7 @@ extern yoga_getvalue;
    can only be called as a function. useful for debugs
 
    SEE ALSO: 
- */
+*/
 extern yoga_plus;
 /* DOCUMENT yoga_plus
    yoga_plus,obj,alpha
@@ -636,7 +646,7 @@ extern yoga_plus;
    can only be called as a subroutine
 
    SEE ALSO: 
- */
+*/
 extern yoga_plusai;
 /* DOCUMENT yoga_plusai
    yoga_plusai,dest,src,ind
@@ -646,7 +656,7 @@ extern yoga_plusai;
    can only be called as a subroutine
 
    SEE ALSO: 
- */
+*/
 
 /*fft convolution*/
 extern yoga_fftconv_init;
@@ -662,7 +672,7 @@ extern yoga_fftconv_init;
    can only be called as a function
 
    SEE ALSO: yoga_fft.i
- */
+*/
 extern yoga_fftconv;
 /* DOCUMENT yoga_fftconv
    yoga_fftconv,res_obj,im_obj,im_ker,pdata_obj,pspec_obj,kerX,kerY
@@ -675,7 +685,7 @@ extern yoga_fftconv;
    can only be called as a subroutine
 
    SEE ALSO: yoga_fft.i
- */
+*/
 
 extern yoga_test;
 
@@ -690,11 +700,11 @@ extern yoga_svd;
    eigen : min(m,n)
    
    SEE ALSO:
- */
+*/
 
 extern yoga_syevd;
 /* DOCUMENT yoga_syevd
-      yoga_syevd,mat,eigenvals, U, noComputeU= 
+   yoga_syevd,mat,eigenvals, U, noComputeU= 
    OR yoga_syevd,mat,eigenvals, noComputeU=
    
    This function computes the svd of matrix mat
@@ -705,7 +715,7 @@ extern yoga_syevd;
    Even if noComputeU flag is set to 1, the matrix mat will be changed if U is not specified.
 
    SEE ALSO:
- */
+*/
 
 extern yoga_syevd_m;
 /* DOCUMENT yoga_syevd_m
@@ -718,7 +728,7 @@ extern yoga_syevd_m;
    U     : n x n (yArray)
    
    SEE ALSO:
- */
+*/
 
 extern yoga_getri;
 /* DOCUMENT yoga_getri
@@ -732,7 +742,7 @@ extern yoga_getri;
    WARNING : d_mat will be replaced by its inverse
    
    SEE ALSO:
- */
+*/
 
 extern yoga_potri;
 /* DOCUMENT yoga_potri
@@ -744,7 +754,7 @@ extern yoga_potri;
    WARNING : mat will be replaced by its inverse
    
    SEE ALSO:
- */
+*/
 
 extern yoga_potri_mgpu;
 /* DOCUMENT yoga_potri_mgpu
@@ -758,7 +768,7 @@ extern yoga_potri_mgpu;
    WARNING : mat will be replaced by its inverse
    
    SEE ALSO:
- */
+*/
 
 extern yoga_svd_host;
 /* DOCUMENT yoga_svd_host
@@ -771,7 +781,7 @@ extern yoga_svd_host;
    eigen : min(m,n)
    
    SEE ALSO:
- */
+*/
 
 extern yoga_cula_svd;
 /* DOCUMENT yoga_cula_svd
@@ -784,7 +794,7 @@ extern yoga_cula_svd;
    eigen : min(m,n)
    
    SEE ALSO:
- */
+*/
 
 extern yoga_cula_svd_host;
 /* DOCUMENT yoga_cula_svd_host
@@ -797,16 +807,16 @@ extern yoga_cula_svd_host;
    eigen : min(m,n)
    
    SEE ALSO:
- */
+*/
 
 /*
-__   _____   ____    _      _   _           _      ___  _     _ 
-\ \ / / _ \ / ___|  / \    | | | | ___  ___| |_   / _ \| |__ (_)
- \ V / | | | |  _  / _ \   | |_| |/ _ \/ __| __| | | | | '_ \| |
-  | || |_| | |_| |/ ___ \  |  _  | (_) \__ \ |_  | |_| | |_) | |
-  |_| \___/ \____/_/   \_\ |_| |_|\___/|___/\__|  \___/|_.__// |
-                                                           |__/ 
-*/
+ * __   _____   ____    _      _   _           _      ___  _     _ 
+ * \ \ / / _ \ / ___|  / \    | | | | ___  ___| |_   / _ \| |__ (_)
+ *  \ V / | | | |  _  / _ \   | |_| |/ _ \/ __| __| | | | | '_ \| |
+ *   | || |_| | |_| |/ ___ \  |  _  | (_) \__ \ |_  | |_| | |_) | |
+ *   |_| \___/ \____/_/   \_\ |_| |_|\___/|___/\__|  \___/|_.__// |
+ *                                                            |__/ 
+ */
 
 extern yoga_host_obj
 /* DOCUMENT yoga_host_obj
@@ -831,7 +841,7 @@ extern yoga_host_obj
    (more details in Jason Sanders, Edward Kandrot - CUDA by Example  An Introduction to General-Purpose GPU Programming - 2010) 
    
    SEE ALSO:
- */
+*/
 
 extern yoga_host_getp;
 /* DOCUMENT yoga_host_getp
@@ -840,10 +850,9 @@ extern yoga_host_getp;
    This function creates a pointer of the yoga_host_obj
    
    SEE ALSO:
- */
+*/
 
-/*
- *                                                                     _     _
+/*                                                                     _     _
  *  _   _  ___   __ _  __ _     ___ _ __   __ _ _ __ ___  ___     ___ | |__ (_)
  * | | | |/ _ \ / _` |/ _` |   / __| '_ \ / _` | '__/ __|/ _ \   / _ \| '_ \| |
  * | |_| | (_) | (_| | (_| |   \__ \ |_) | (_| | |  \__ \  __/  | (_) | |_) | |
@@ -859,11 +868,11 @@ extern yoga_sparse_obj
 
    This function creates a new Yoga Sparse object either from a type and
    dimensions list, from a standard Yorick object or from another Yoga Host object
-    - my array is a standard Yorick array
-    - other_obj is another yoga object
+   - my array is a standard Yorick array
+   - other_obj is another yoga object
    
    SEE ALSO:
- */
+*/
 
 extern yoga_mv_sparse;
 /* DOCUMENT yoga_mv_sparse
@@ -876,7 +885,7 @@ extern yoga_mv_sparse;
    If called as a function, it creates a new yoga object
      
    SEE ALSO:
- */
+*/
 
 extern yoga_mm_sparse;
 /* DOCUMENT yoga_mm_sparse
@@ -892,9 +901,8 @@ extern yoga_mm_sparse;
    If called as a function, it creates a new yoga object
      
    SEE ALSO:
- */
-/*
- *                                                                _               _            _     _
+*/
+/*                                                                _               _            _     _
  *  _   _  ___   __ _  __ _     ___ _ __   __ _ _ __ ___  ___    | |__   ___  ___| |_     ___ | |__ (_)
  * | | | |/ _ \ / _` |/ _` |   / __| '_ \ / _` | '__/ __|/ _ \   | '_ \ / _ \/ __| __|   / _ \| '_ \| |
  * | |_| | (_) | (_| | (_| |   \__ \ |_) | (_| | |  \__ \  __/   | | | | (_) \__ \ |_   | (_) | |_) | |
@@ -910,22 +918,20 @@ extern yoga_sparse_host_obj
 
    This function creates a new Yoga Sparse Host object either from a type and
    dimensions list, from a standard Yorick object or from another Yoga Host object
-    - my array is a standard Yorick array
-    - other_obj is another yoga object
+   - my array is a standard Yorick array
+   - other_obj is another yoga object
    
    SEE ALSO:
- */
+*/
 
 extern context_getactivedevice;
 extern context_get_maxGflopsDeviceId;
 
-/*
- __  __       _       
-|  \/  | __ _(_)_ __  
-| |\/| |/ _` | | '_ \ 
-| |  | | (_| | | | | |
-|_|  |_|\__,_|_|_| |_|
-                      
+/*  __  __       _       
+ * |  \/  | __ _(_)_ __  
+ * | |\/| |/ _` | | '_ \ 
+ * | |  | | (_| | | | | |
+ * |_|  |_|\__,_|_|_| |_|
  */
 
 write,"Now loading YoGA version "+yoga_version;

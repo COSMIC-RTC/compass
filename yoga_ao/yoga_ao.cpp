@@ -149,7 +149,7 @@ int move_atmos(sutra_atmos *atmos) {
 
   map<float, sutra_tscreen *>::iterator p;
   p = atmos->d_screens.begin();
-  //sutra_tscreen *tmp;
+
   while (p != atmos->d_screens.end()) {
     p->second->accumx += p->second->deltax;
     p->second->accumy += p->second->deltay;
@@ -3061,11 +3061,12 @@ void Y_sensors_trace(int argc) {
   sensors_struct *handler = (sensors_struct *) yget_obj(argc - 1, &ySensors);
   sutra_sensors *sensors_handler = (sutra_sensors *) (handler->sutra_sensors);
   carma_context *context_handle = _getCurrentContext();
-  context_handle->set_activeDevice(handler->device);
+  context_handle->set_activeDeviceForce(handler->device);
 
   int nsensor = ygets_i(argc - 2);
 
   char *type_trace = ygets_q(argc - 3);
+  //DEBUG_TRACE("%d %s\n", nsensor, type_trace);
   if (strcmp(type_trace, "atmos") == 0) {
     atmos_struct *handlera = (atmos_struct *) yget_obj(argc - 4, &yAtmos);
     sutra_atmos *atmos_handler = (sutra_atmos *) (handlera->sutra_atmos);

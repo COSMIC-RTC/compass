@@ -225,6 +225,7 @@ int sutra_source::raytrace_shm(sutra_atmos *yatmos) {
 }
 
 int sutra_source::raytrace(sutra_atmos *yatmos, bool async) {
+//  cutilSafeCall(cudaDeviceSynchronize());
   cutilSafeCall(
       cudaMemset(this->d_phase->d_screen->getData(), 0,
           sizeof(float) * this->d_phase->d_screen->getNbElem()));

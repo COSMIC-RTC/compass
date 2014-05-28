@@ -34,6 +34,7 @@ carma_device::carma_device(int devid) {
 
 carma_device::~carma_device() {
   this->id = -1;
+  cuCtxDestroy(ctx);
 }
 
 carma_context::carma_context() {
@@ -164,12 +165,15 @@ int carma_context::set_activeDeviceForCpy(int newDevice, int silent) {
 }
 
 int carma_context::set_activeDevice(int newDevice, int silent) {
-  if (this->activeDevice == newDevice)
+    if (this->activeDevice == newDevice)
     return this->activeDevice;
 
+    return set_activeDeviceForce(newDevice, silent);
+}
+
+int carma_context::set_activeDeviceForce(int newDevice, int silent) {
   if (newDevice < ndevice) {
-    cudaDeviceProp deviceProp;
-    cutilSafeCall(cudaGetDeviceProperties(&deviceProp, newDevice));
+    CUSafeCall(cuCtxSetCurrent(devices[newDevice]->getCUcontext()));
     cutilSafeCall(cudaSetDevice(newDevice));
 #ifdef USE_CULA
     culaStatus status = culaSelectDevice(newDevice);
@@ -179,15 +183,16 @@ int carma_context::set_activeDevice(int newDevice, int silent) {
       printf("%s\n", buf);
     }
 #endif
-    if (!silent)
+#if DEBUG
+    silent=0;
+#endif
+    if (!silent) {
+      cudaDeviceProp deviceProp;
+      cutilSafeCall(cudaGetDeviceProperties(&deviceProp, newDevice));
       cout << "Using device " << newDevice << ": \"" << deviceProp.name
           << "\" with Compute " << deviceProp.major << "." << deviceProp.minor
           << " capability" << endl;
-#if DEBUG
-    cout << "DEBUG: Using device " << newDevice <<": \"" << deviceProp.name
-    << "\" with Compute " << deviceProp.major << "."
-    << deviceProp.minor << " capability" << endl;
-#endif
+    }
     activeDevice = newDevice;
   } else {
     cerr << "Invalid Device Id : " << newDevice << " Your system has only "
@@ -264,13 +269,26 @@ int carma_context::get_maxGflopsDeviceId()
 
 void carma_context::releaseCtx(int nGPUs, int *iGPUs, CUcontext *ctx){
   //DEBUG_TRACE("entering into releaseCtx\n");
+  CUcontext context;
+  CUSafeCall(cuCtxGetCurrent(&context));
   for(int id_gpu=0; id_gpu<nGPUs; id_gpu++){
-    //DEBUG_TRACE("Get context of the device %d\n",iGPUs[id_gpu]);
-    CUcontext context;
-    cuCtxSetCurrent(devices[iGPUs[id_gpu]]->getCUcontext());
-    //DEBUG_TRACE("Release context of the device %d\n",iGPUs[id_gpu]);
-    cuCtxPopCurrent(&context);
-    //DEBUG_TRACE("Copy context of the device %d\n",iGPUs[id_gpu]);
-    ctx[id_gpu]=context;
+    DEBUG_TRACE("Get context of device %d\n",iGPUs[id_gpu]);
+    CUSafeCall(cuCtxSetCurrent(devices[iGPUs[id_gpu]]->getCUcontext()));
+    DEBUG_TRACE("Release context of device %d\n",iGPUs[id_gpu]);
+    CUSafeCall(cuCtxPopCurrent(&(ctx[id_gpu])));
   }
+  CUSafeCall(cuCtxSetCurrent(context));
+
+}
+
+void carma_context::reattachCtx(int nGPUs, int *iGPUs){
+  //DEBUG_TRACE("entering into attachCtx\n");
+  CUcontext context;
+  CUSafeCall(cuCtxGetCurrent(&context));
+  for(int id_gpu=0; id_gpu<nGPUs; id_gpu++){
+    DEBUG_TRACE("reattach context of device %d\n",iGPUs[id_gpu]);
+    CUSafeCall(cuCtxPushCurrent(devices[iGPUs[id_gpu]]->getCUcontext()));
+  }
+  CUSafeCall(cuCtxSetCurrent(context));
+
 }

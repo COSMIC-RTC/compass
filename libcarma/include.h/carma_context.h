@@ -100,6 +100,7 @@ public:
   }
   string get_activeDeviceStr();
   int set_activeDevice(int newDevice, int silent = 1);
+  int set_activeDeviceForce(int newDevice, int silent = 1);
   int set_activeDeviceForCpy(int newDevice, int silent = 1);
   int get_maxGflopsDeviceId();
   cublasHandle_t get_cublasHandle() {
@@ -110,6 +111,8 @@ public:
   }
 
   void releaseCtx(int nGPUs, int *iGPUs, CUcontext *ctx);
+  void reattachCtx(int nGPUs, int *iGPUs);
+
 };
 
 /// from /usr/local/cuda/samples/common/inc/helper_cuda.h

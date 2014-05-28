@@ -116,7 +116,7 @@ int sutra_dm::kl_loadarrays(float *rabas, float *azbas, int *ord, float *cr,
 }
 
 int sutra_dm::reset_shape() {
-  current_context->set_activeDevice(device);
+  current_context->set_activeDeviceForce(device);
 
   cutilSafeCall(
       cudaMemset(this->d_shape->d_screen->getData(), 0,
@@ -126,7 +126,7 @@ int sutra_dm::reset_shape() {
 }
 
 int sutra_dm::comp_shape(float *comvec) {
-  current_context->set_activeDevice(device);
+  current_context->set_activeDeviceForce(device);
   this->reset_shape();
 
   int nthreads = 0, nblocks = 0;

@@ -213,6 +213,23 @@ void Y_activeDevice(int argc)
   }
 }
 
+void Y_activeDeviceForce(int argc)
+/** @brief simple routine to get / set a device as active
+ *  callable as a subroutine or as a function
+ *  if called as a subroutine, parameter gives the device id
+ *  if called as a function, push the active device id on the stack
+ *  @param[in] mydevice : the device id
+ */
+{
+  carma_context *context_handle = _getCurrentContext();
+  if (yarg_subroutine()) {
+    int odevice = ygets_i(argc - 1);
+    context_handle->set_activeDeviceForce(odevice, 1);
+  } else {
+    ypush_int(context_handle->get_activeDevice());
+  }
+}
+
 void _yoga_setDevice(int mydevice)
 /** @brief simple routine to set a device as active
  *  @param[in] mydevice : the device id
