@@ -29,6 +29,7 @@
 #include <carma_cublas.h>
 #include <carma_cusparse.h>
 #include <carma_utils.h>
+#include <carma_ipcs.h>
 #include <carma.h>
 #include <sstream>
 #include <iomanip>
@@ -39,6 +40,14 @@ static y_userobj_t yContext = {
  * @typedef Yorick API context userobj_RTC
  */
 const_cast<char*>("yContext Object"), &context_free, &context_print, 0, 0, 0 };
+
+
+static y_userobj_t yIPCs = {
+/**
+ * @typedef Yorick API ipcs userobj_RTC
+ */
+const_cast<char*>("yIPCs Object"), &ipcs_free, &ipcs_print, 0, 0, 0 };
+
 
 static y_userobj_t yObj = {
 /**_RTC
@@ -67,6 +76,60 @@ const_cast<char*>("Carma Sparse Host Object"), &ySparseHostObj_free, &ySparseHos
     &ySparseHostObj_eval, 0, 0 };
 
 extern "C" {
+
+/*
+ *  ___ ____   ____ ____
+ * |_ _|  _ \ / ___/ ___|
+ *  | || |_) | |   \___ \
+ *  | ||  __/| |___ ___) |
+ * |___|_|    \____|____/
+*/
+
+void
+ipcs_print(void *obj){
+  cout << "CArMA IPCs object\n";
+}
+
+void
+ipcs_free(void *obj) {
+  /** @brief ipcs_struct destructor.
+   *  @param obj : ipcs_struct to freed
+   */
+  ipcs_struct *handler = (ipcs_struct *) obj;
+  try {
+    carma_ipcs *ipcs_obj_handler =
+        (carma_ipcs *) (handler->carma_ipcs);
+    delete ipcs_obj_handler;
+  } catch (string &msg) {
+    y_error(msg.c_str());
+  } catch (char const * msg) {
+    y_error(msg);
+  }
+}
+
+
+void
+Y_yoga_ipcs(int argc)
+/** @brief ipcs_struct creator.
+ *  @param[in] argc : command line argument (current ipcs expected)
+ */
+{
+  try {
+    ipcs_struct *handle = (ipcs_struct *) ypush_obj(&yIPCs,
+        sizeof(ipcs_struct));
+    handle->carma_ipcs = new carma_ipcs();
+  } catch (string &msg) {
+    y_error(msg.c_str());
+  } catch (char const * msg) {
+    y_error(msg);
+  } catch (...) {
+    stringstream buf;
+    buf << "unknown error with carma_ipcs construction in " << __FILE__
+        << "@" << __LINE__ << endl;
+    y_error(buf.str().c_str());
+  }
+}
+
 
 /*                  _            _
  *   ___ ___  _ __ | |_ _____  _| |_

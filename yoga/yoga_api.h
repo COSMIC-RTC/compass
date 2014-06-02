@@ -51,6 +51,17 @@ typedef struct context_struct {
   void *carma_context; /**< pointer to a carma_context object */
 } context_struct;
 
+
+
+typedef struct ipcs_struct {
+  /**
+   * @typedef Yorick API ipcs structure
+   */
+  void *carma_ipcs; /**< pointer to a carma_ipcs object */
+} ipcs_struct;
+
+
+
 typedef struct yObj_struct {
   /** 
    * @typedef Yorick API yoga_object structure
@@ -86,6 +97,24 @@ typedef struct ySparseHostObj_struct {
   void *carma_sparse_host_object; /**< pointer to a yoga_sparse_host_object */
   int type; /**< type of data in the yoga_sparse_host_object (Yorick API types) */
 } ySparseHostObj_struct;
+
+/*
+ *  ___ ____   ____ ____
+ * |_ _|  _ \ / ___/ ___|
+ *  | || |_) | |   \___ \
+ *  | ||  __/| |___ ___) |
+ * |___|_|    \____|____/
+*/
+
+void
+ipcs_print(void *obj);
+void
+ipcs_free(void *obj);
+
+void
+Y_yoga_ipcs(int argc);
+
+
 
 /*                  _            _
  *   ___ ___  _ __ | |_ _____  _| |_
