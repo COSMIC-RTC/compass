@@ -28,7 +28,7 @@ carma_device::carma_device(int devid) {
   cuDeviceGetName(name, 16, dev);
   cuDeviceTotalMem(&totalMem, dev);
   //DEBUG_TRACE("cuCtxCreate\n");
-  cuCtxCreate(&ctx, CU_CTX_MAP_HOST | CU_CTX_SCHED_YIELD, dev);
+  cuCtxCreate(&ctx, CU_CTX_MAP_HOST | CU_CTX_SCHED_AUTO, dev);
   //DEBUG_TRACE("done\n");
 }
 
