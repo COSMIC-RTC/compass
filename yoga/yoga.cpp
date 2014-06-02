@@ -108,6 +108,11 @@ ipcs_free(void *obj) {
 }
 
 
+ipcs_struct*
+yoga_getIPCs(int argc, int pos){
+  return (ipcs_struct *) yget_obj(argc - pos, &yIPCs);
+}
+
 void
 Y_yoga_ipcs(int argc)
 /** @brief ipcs_struct creator.
@@ -130,6 +135,104 @@ Y_yoga_ipcs(int argc)
   }
 }
 
+void Y_yoga_register_cudptr(int argc){
+  /** @brief
+   *  @param[in] argc : command line arguments
+   *    - first  : a yoga_ipcs
+   *    - second : the ID
+   *    - third  : the yoga_obj
+   */
+  ipcs_struct *ipcs_handle=yoga_getIPCs(argc, 0);
+  SCAST(carma_ipcs*, ipcs, ipcs_handle->carma_ipcs);
+  long id=ygets_l(argc-1);
+  yObj_struct *obj_handle=yoga_getyObj(argc, 2);
+
+  if(obj_handle->type==Y_FLOAT){
+    SCAST(carma_obj<float>*, obj, obj_handle->carma_object);
+    CUdeviceptr d_data=(CUdeviceptr)obj->getData();
+    ipcs->register_cudptr(id, d_data);
+  }
+}
+
+//register an event, id must be a non nul argument
+//int Y_yoga_register_cuevent(unsigned int id, CUevent event);
+
+//get a memory handle
+//int Y_yoga_get_memHandle(unsigned int id, CUipcMemHandle *phandle);
+//get a event handle
+//int Y_yoga_get_eventHandle(unsigned int id, CUipcEventHandle *phandle);
+
+//free a memory handle shared mem space
+void Y_yoga_free_memHandle(int argc){
+  /** @brief
+   *  @param[in] argc : command line arguments
+   *    - first  : a yoga_ipcs
+   *    - second : the ID
+   */
+  ipcs_struct *ipcs_handle=yoga_getIPCs(argc, 0);
+  SCAST(carma_ipcs*, ipcs, ipcs_handle->carma_ipcs);
+  long id=ygets_l(argc-1);
+
+  ipcs->free_memHandle(id);
+}
+
+//free a event handle shared event space
+//void Y_yoga_free_eventHandle(unsigned int id);
+
+/*
+  Transfer via CPU memory methods
+*/
+//allocation of the shm for memory tranfers
+//int Y_yoga_alloc_memtransfer_shm(unsigned int id, void *shm, size_t bsize);
+//get tranfer shm
+//int Y_yoga_get_memtransfer_shm(unsigned int id, void *shm);
+//free transfer shm ref by id
+//void Y_yoga_free_memtransfer_shms(unsigned int id);
+
+
+/*
+  Barrier methods
+*/
+void Y_yoga_init_barrier(int argc){
+  /** @brief
+   *  @param[in] argc : command line arguments
+   *    - first  : a yoga_ipcs
+   *    - second : the ID
+   *    - third  : the number of ...
+   */
+  ipcs_struct *ipcs_handle=yoga_getIPCs(argc, 0);
+  SCAST(carma_ipcs*, ipcs, ipcs_handle->carma_ipcs);
+  long id=ygets_l(argc-1);
+  long value=ygets_l(argc-2);
+
+  ipcs->init_barrier(id, value);
+}
+
+void Y_yoga_wait_barrier(int argc){
+  /** @brief
+   *  @param[in] argc : command line arguments
+   *    - first  : a yoga_ipcs
+   *    - second : the ID
+   */
+  ipcs_struct *ipcs_handle=yoga_getIPCs(argc, 0);
+  SCAST(carma_ipcs*, ipcs, ipcs_handle->carma_ipcs);
+  long id=ygets_l(argc-1);
+
+  ipcs->wait_barrier(id);
+}
+
+void Y_yoga_free_barrier(int argc){
+  /** @brief
+   *  @param[in] argc : command line arguments
+   *    - first  : a yoga_ipcs
+   *    - second : the ID
+   */
+  ipcs_struct *ipcs_handle=yoga_getIPCs(argc, 0);
+  SCAST(carma_ipcs*, ipcs, ipcs_handle->carma_ipcs);
+  long id=ygets_l(argc-1);
+
+  ipcs->free_barrier(id);
+}
 
 /*                  _            _
  *   ___ ___  _ __ | |_ _____  _| |_
@@ -519,6 +622,16 @@ void yObj_free(void *obj)
   } catch (char const * msg) {
     y_error(msg);
   }
+}
+
+yObj_struct*
+yoga_getyObj(int argc, int pos) {
+  return (yObj_struct *) yget_obj(argc - pos, &yObj);
+}
+
+yObj_struct*
+yoga_pushyObj(void) {
+  return (yObj_struct *) ypush_obj(&yObj, sizeof(yObj_struct));
 }
 
 void Y_yoga_obj(int argc)
@@ -4983,16 +5096,6 @@ void Y_yoga_test(int argc) {
     int test = ygets_i(argc - 1);
     fprintf(stderr, "%d\n", test);
   }
-}
-
-yObj_struct*
-yoga_getyObj(int argc, int pos) {
-  return (yObj_struct *) yget_obj(argc - pos, &yObj);
-}
-
-yObj_struct*
-yoga_pushyObj(void) {
-  return (yObj_struct *) ypush_obj(&yObj, sizeof(yObj_struct));
 }
 
 }

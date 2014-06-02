@@ -133,6 +133,73 @@ extern activeDeviceForce;
    SEE ALSO:
 */
 
+/*
+ *  ___ ____   ____ ____
+ * |_ _|  _ \ / ___/ ___|
+ *  | || |_) | |   \___ \
+ *  | ||  __/| |___ ___) |
+ * |___|_|    \____|____/
+*/
+extern yoga_ipcs;
+/* DOCUMENT yoga_ipcs
+   ipcs = yoga_ipcs();
+
+   init a IPCS space
+   
+   SEE ALSO:
+*/
+
+extern yoga_register_cudptr;
+/* DOCUMENT yoga_register_cudptr
+   yoga_register_cudptr, yoga_ipcs_obj, id, yoga_obj;
+   
+   SEE ALSO:
+*/
+
+//free a memory handle shared mem space
+extern yoga_free_memHandle(unsigned int id);
+/* DOCUMENT yoga_free_memHandle
+   yoga_free_memHandle, yoga_ipcs_obj, id;
+   
+   SEE ALSO:
+*/
+
+/*
+  Transfer via CPU memory methods
+*/
+//allocation of the shm for memory tranfers
+//int Y_yoga_alloc_memtransfer_shm(unsigned int id, void *shm, size_t bsize);
+//get tranfer shm
+//int Y_yoga_get_memtransfer_shm(unsigned int id, void *shm);
+//free transfer shm ref by id
+//void Y_yoga_free_memtransfer_shms(unsigned int id);
+
+
+/*
+  Barrier methods
+*/
+extern yoga_init_barrier;
+/* DOCUMENT yoga_init_barrier
+   yoga_init_barrier, yoga_ipcs_obj, id, value;
+   
+   SEE ALSO:
+*/
+
+extern yoga_wait_barrier;
+/* DOCUMENT yoga_wait_barrier
+   yoga_wait_barrier, yoga_ipcs_obj, id;
+   
+   SEE ALSO:
+*/
+
+extern yoga_free_barrier;
+/* DOCUMENT yoga_free_barrier
+   yoga_free_barrier, yoga_ipcs_obj, id;
+   
+   SEE ALSO:
+*/
+
+
 /*                  _            _
  *   ___ ___  _ __ | |_ _____  _| |_
  *  / __/ _ \| '_ \| __/ _ \ \/ / __|

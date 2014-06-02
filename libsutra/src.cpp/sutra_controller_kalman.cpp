@@ -1,6 +1,8 @@
 //sutra_controller_kalman.cpp
 
 #include "sutra_controller_kalman.h"
+
+#ifdef COMPILATION_LAM
 #include "kp_kalman_core_sparse_GPU.h"
 #include "kp_kalman_core_full_GPU.h"
 #include "kp_kalman_core_sparse_CPU.h"
@@ -171,7 +173,46 @@ int sutra_controller_kalman::comp_com() {
   return -378;
 }
 
+#else
 
+carma_obj<float>* calculate_D_Mo(carma_context* context, int n_slopes, int n_actu_zern, bool is_zonal) {
+  return NULL;
+}
+carma_obj<float>* calculate_N_Act(carma_context* context, int n_actu_zern, int n_actus, bool is_zonal) {
+  return NULL;
+}
+carma_obj<float>* calculate_PROJ(carma_context* context, int n_actus, int n_actu_zern, bool is_zonal) {
+  return NULL;
+}
+carma_obj<float>* calculate_btur(carma_context* context, int n_actu_zern, bool is_zonal) {
+  return NULL;
+}
+carma_obj<float>* calculate_SigmaV(carma_context* context, int n_actu_zern, bool is_zonal) {
+  return NULL;
+}
+carma_obj<float>* calculate_atur(carma_context* context, int n_actu_zern, bool is_zonal) {
+  return NULL;
+}
+
+sutra_controller_kalman::sutra_controller_kalman(carma_context* context,
+    carma_obj<float>& cD_Mo, carma_obj<float>& cN_Act, carma_obj<float>& cPROJ,
+    bool is_zonal, bool is_sparse, bool is_GPU) :
+    sutra_controller(context, cD_Mo.getDims(1), cN_Act.getDims(2)), isGPU(is_GPU) {
+}
+
+sutra_controller_kalman::~sutra_controller_kalman() {
+}
+
+void sutra_controller_kalman::calculate_gain(double bruit, double k_W,
+    carma_obj<float>& cSigmaV, carma_obj<float>& catur,
+    carma_obj<float>& cbtur) {
+}
+//
+int sutra_controller_kalman::comp_com() {
+  return -378;
+}
+
+#endif
 
 
 //                                                                                     

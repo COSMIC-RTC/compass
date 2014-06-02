@@ -92,9 +92,9 @@ public:
     Cuda handles methods
   */
   //register a device pointer, id must be a non nul argument
-  int register_cudptr(CUdeviceptr dptr, unsigned int id);
+  int register_cudptr(unsigned int id, CUdeviceptr dptr);
   //register an event, id must be a non nul argument
-  int register_cuevent(CUevent event, unsigned int id);
+  int register_cuevent(unsigned int id, CUevent event);
 
   //get a memory handle
   int get_memHandle(unsigned int id, CUipcMemHandle *phandle);
@@ -111,7 +111,7 @@ public:
     Transfer via CPU memory methods
   */
   //allocation of the shm for memory tranfers
-  int alloc_memtransfer_shm(size_t bsize, unsigned int id, void *shm);
+  int alloc_memtransfer_shm(unsigned int id, void *shm, size_t bsize);
   //get tranfer shm
   int get_memtransfer_shm(unsigned int id, void *shm);
   //free transfer shm ref by id

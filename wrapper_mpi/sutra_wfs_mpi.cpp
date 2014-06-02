@@ -348,6 +348,9 @@ int sutra_wfs_mpi::allocate_worker_sh() {
   dims_data2[1] = nphase * nphase;
   dims_data2[2] = nvalid;
   this->d_phasemap = new carma_obj<int>(this->current_context, dims_data2);
+
+  return EXIT_SUCCESS;
+
 }
 
 int sutra_wfs_mpi::allocate_worker_pyr() {
@@ -610,15 +613,15 @@ int sutra_wfs_mpi::wfs_initarrays(int *phasemap, int *hrmap, int *binmap,
   MPI_Bcast(fluxPerSub, d_fluxPerSub->getNbElem(), MPI_FLOAT, 0, MPI_COMM_WORLD);
   MPI_Bcast(offsets, d_offsets->getNbElem(), MPI_FLOAT, 0, MPI_COMM_WORLD);
   MPI_Bcast(pupil, d_pupil->getNbElem(), MPI_FLOAT, 0, MPI_COMM_WORLD);
-  MPI_Bcast(binmap, d_binmap->getNbElem(), MPI_FLOAT, 0, MPI_COMM_WORLD);
-  MPI_Bcast(validsubsx, d_validsubsx->getNbElem(), MPI_FLOAT, 0, MPI_COMM_WORLD);
-  MPI_Bcast(validsubsy, d_validsubsy->getNbElem(), MPI_FLOAT, 0, MPI_COMM_WORLD);
-  MPI_Bcast(istart, d_istart->getNbElem(), MPI_FLOAT, 0, MPI_COMM_WORLD);
-  MPI_Bcast(jstart, d_jstart->getNbElem(), MPI_FLOAT, 0, MPI_COMM_WORLD);
+  MPI_Bcast(binmap, d_binmap->getNbElem(), MPI_INT, 0, MPI_COMM_WORLD);
+  MPI_Bcast(validsubsx, d_validsubsx->getNbElem(), MPI_INT, 0, MPI_COMM_WORLD);
+  MPI_Bcast(validsubsy, d_validsubsy->getNbElem(), MPI_INT, 0, MPI_COMM_WORLD);
+  MPI_Bcast(istart, d_istart->getNbElem(), MPI_INT, 0, MPI_COMM_WORLD);
+  MPI_Bcast(jstart, d_jstart->getNbElem(), MPI_INT, 0, MPI_COMM_WORLD);
   if (this->ntot != this->nfft) {
-    MPI_Bcast(hrmap, d_hrmap->getNbElem(), MPI_FLOAT, 0, MPI_COMM_WORLD);
+    MPI_Bcast(hrmap, d_hrmap->getNbElem(), MPI_INT, 0, MPI_COMM_WORLD);
   }
-  MPI_Bcast(kernel, d_ftkernel->getNbElem(), MPI_FLOAT, 0, MPI_COMM_WORLD);
+  MPI_Bcast(kernel, 2*d_ftkernel->getNbElem(), MPI_FLOAT, 0, MPI_COMM_WORLD);
 
   if(rank==0){
     this->d_phasemap->host2device(phasemap);
@@ -723,6 +726,8 @@ int sutra_wfs_mpi::comp_sh_generic() {
   MPI_Comm_size(MPI_COMM_WORLD, &nWorkers);
 
   int offset=rank*nvalid/nWorkers;
+
+  fprintf(stderr,"rank %d, nWorkers %d offset %d\n", rank,nWorkers,  offset);
 
   // segment phase and fill cube of complex ampli with exp(i*phase_seg)
   fillcamplipup(this->d_camplipup->getData(),
@@ -1008,7 +1013,7 @@ int sutra_wfs_mpi::comp_pyr_generic() {
 
 int sutra_wfs_mpi::comp_image() {
 
-  int result;
+  int result= EXIT_SUCCESS;
   if (this->type == "sh") {
     result = comp_sh_generic();
     if (result == EXIT_SUCCESS) {
@@ -1107,6 +1112,7 @@ sutra_sensors_mpi::sutra_sensors_mpi(carma_context *context, const char* type, i
         new sutra_wfs_mpi(context, type, nxsub[i], nvalid[i], npix[i], nphase[i],
             nrebin[i], nfft[i], ntot[i], npup, pdiam[i], nphot[i], lgs[i],
             device));
+    d_wfs[i]->allocate_worker_sh();
   }
 }
 
@@ -1117,6 +1123,7 @@ sutra_sensors_mpi::sutra_sensors_mpi(carma_context *context, int nwfs, long *nxs
     d_wfs.push_back(
         new sutra_wfs_mpi(context, nxsub[i], nvalid[i], nphase[i], npup, pdiam[i],
             device));
+    d_wfs[i]->allocate_worker_sh();
   }
 }
 
@@ -1148,7 +1155,7 @@ int sutra_sensors_mpi::sensors_initgs(float *xpos, float *ypos, float *lambda,
     float *mag, long *size) {
   for (size_t idx = 0; idx < (this->d_wfs).size(); idx++) {
     (this->d_wfs)[idx]->wfs_initgs(xpos[idx], ypos[idx], lambda[idx], mag[idx],
-        size[idx], -1, 1234);
+        size[idx], -1, 1234 * idx);
   }
   return EXIT_SUCCESS;
 }

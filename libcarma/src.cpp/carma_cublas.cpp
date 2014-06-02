@@ -2,9 +2,7 @@
 #include <carma_obj.h>
 #include <carma_sparse_obj.h>
 
-#define carma_checkCublasStatus(status) carma_checkCublasStatus_v2(status, __LINE__, __FILE__)
-
-cublasStatus_t carma_checkCublasStatus_v2(cublasStatus_t status, int line,
+cublasStatus_t __carma_checkCublasStatus(cublasStatus_t status, int line,
     string file)
     /**< Generic CUBLAS check status routine */
     {

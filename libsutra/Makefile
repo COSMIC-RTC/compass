@@ -10,13 +10,13 @@ LIB_NAME=libsutra.so
 
 
 SRC_CU  = $(wildcard $(CU_DIR)/*.cu) 
+SRC_CPP = $(wildcard $(CPP_DIR)/*.cpp) 
 
 ifneq ($(COMPILATION_LAM),) 
   LAM_KP_DIR = $(COMPASS_ROOT_DIR)/lam/kalman_CPU_GPU
   LAM_KP_INTERFACE_DIR =  $(LAM_KP_DIR)/compass_interface
-  SRC_CPP = $(wildcard $(CPP_DIR)/*.cpp) 
-else
-  SRC_CPP = $(filter-out $(CPP_DIR)/sutra_controller_kalman.cpp, $(wildcard $(CPP_DIR)/*.cpp)) 
+#else
+#  SRC_CPP = $(filter-out $(CPP_DIR)/sutra_controller_kalman.cpp, $(wildcard $(CPP_DIR)/*.cpp)) 
 endif
 
 
@@ -78,7 +78,7 @@ clean:
 
 $(OBJ_DIR)/%.cuo: $(CU_DIR)/%.cu
 	@printf '\033[36m%s\033[31m%s\033[m\n' "Compiling     " $@
-	$(NVCC) $(NVCCFLAGS) -o $@ $< 
+	@$(NVCC) $(NVCCFLAGS) -o $@ $< 
 
 $(OBJ_DIR)/%.o: $(CPP_DIR)/%.cpp
 	@printf '\033[36m%s\033[31m%s\033[m\n' "Compiling     " $@
@@ -90,6 +90,6 @@ $(CURED_DIR)/%.o: $(CURED_DIR)/%.cpp
 
 $(LIB_NAME): $(OBJS)
 	@printf '\033[36m%s\033[31m%s\033[m\n' "Linking       " $(LIB_NAME)
-	$(GCC) -shared -o $@ $^ $(LIB_DEPLIBS)
+	@$(GCC) -shared -o $@ $^ $(LIB_DEPLIBS)
 
 

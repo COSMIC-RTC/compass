@@ -482,6 +482,9 @@ int carma_host_obj<T_data>::wait_all_streams() {
   this->streams->wait_all_streams();
   return EXIT_SUCCESS;
 }
+template
+int carma_host_obj<float>::wait_all_streams();
+
 
 /*
  template<class T_data>

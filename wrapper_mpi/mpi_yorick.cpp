@@ -14,9 +14,9 @@
 int main (int argc, char *argv[])
 {
   MPI_Init(&argc, &argv);
-  if(argc==4){
+  if(argc==5){
     char cmd[128];
-    sprintf(cmd, "%s %s %s", argv[1], argv[2], argv[3]);
+    sprintf(cmd, "%s %s %s %s", argv[1], argv[2], argv[3], argv[4]);
     system(cmd);//, &argv[1]);
     printf("j'ai quitté Yorick\n");
   } else {

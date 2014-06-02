@@ -111,9 +111,44 @@ ipcs_print(void *obj);
 void
 ipcs_free(void *obj);
 
+ipcs_struct*
+yoga_getIPCs(int argc, int pos);
+
 void
 Y_yoga_ipcs(int argc);
 
+//register an event, id must be a non nul argument
+//int Y_yoga_register_cuevent(unsigned int id, CUevent event);
+
+//get a memory handle
+//int Y_yoga_get_memHandle(unsigned int id, CUipcMemHandle *phandle);
+//get a event handle
+//int Y_yoga_get_eventHandle(unsigned int id, CUipcEventHandle *phandle);
+
+//free a memory handle shared mem space
+void Y_yoga_free_memHandle(int argc);
+//free a event handle shared event space
+//void Y_yoga_free_eventHandle(unsigned int id);
+
+/*
+  Transfer via CPU memory methods
+*/
+//allocation of the shm for memory tranfers
+//int Y_yoga_alloc_memtransfer_shm(unsigned int id, void *shm, size_t bsize);
+//get tranfer shm
+//int Y_yoga_get_memtransfer_shm(unsigned int id, void *shm);
+//free transfer shm ref by id
+//void Y_yoga_free_memtransfer_shms(unsigned int id);
+
+
+/*
+  Barrier methods
+*/
+void Y_yoga_init_barrier(int argc);
+
+void Y_yoga_wait_barrier(int argc);
+
+void Y_yoga_free_barrier(int argc);
 
 
 /*                  _            _
@@ -160,15 +195,15 @@ _yoga_init();
  *   |___/       |___/     |_____|       |__/
  */
 
-yObj_struct*
-yoga_getyObj(int argc, int pos);
-
 void
 yObj_print(void *obj);
 void
 yObj_eval(void *obj, int n);
 void
 yObj_free(void *obj);
+
+yObj_struct*
+yoga_getyObj(int argc, int pos);
 
 void
 Y_yoga_obj(int argc);

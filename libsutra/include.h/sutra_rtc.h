@@ -36,7 +36,7 @@ public:
   rm_centroider();
 
   int
-  add_controller(long nactu, long delay, long device, const char *typec);
+  add_controller(int nactu, long delay, long device, const char *typec);
   int
   rm_controller();
 

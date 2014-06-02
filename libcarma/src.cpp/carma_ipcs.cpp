@@ -73,7 +73,7 @@ carma_ipcs::~carma_ipcs(){
 /*
   Cuda handles methods
 */
-int carma_ipcs::register_cudptr(CUdeviceptr _dptr, unsigned int id){
+int carma_ipcs::register_cudptr(unsigned int id ,CUdeviceptr _dptr){
   int res = EXIT_FAILURE;
   CUresult err;
 
@@ -117,7 +117,7 @@ int carma_ipcs::register_cudptr(CUdeviceptr _dptr, unsigned int id){
 }
 
 
-int carma_ipcs::register_cuevent(CUevent _event, unsigned int id){
+int carma_ipcs::register_cuevent(unsigned int id, CUevent _event){
   int res = EXIT_FAILURE;
   CUresult err;
 
@@ -284,7 +284,7 @@ void carma_ipcs::free_eventHandle(unsigned int id){
 /*
   Transfer via CPU memory methods
 */
-int carma_ipcs::alloc_memtransfer_shm(size_t bsize, unsigned int id, void *shm){
+int carma_ipcs::alloc_memtransfer_shm(unsigned int id, void *shm, size_t bsize){
   int res = EXIT_FAILURE;
   return res;
   //todo

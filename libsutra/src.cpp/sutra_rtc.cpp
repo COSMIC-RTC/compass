@@ -56,7 +56,7 @@ int sutra_rtc::add_centroider(long nwfs, long nvalid, float offset, float scale,
   return EXIT_SUCCESS;
 }
 
-int sutra_rtc::add_controller(long nactu, long delay, long device,
+int sutra_rtc::add_controller(int nactu, long delay, long device,
     const char *typec) {
   int ncentroids = 0;
   for (size_t idx = 0; idx < (this->d_centro).size(); idx++)

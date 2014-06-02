@@ -43,14 +43,17 @@ __global__ void camplipup_krnl(cuFloatComplex *amplipup, float *phase,
     float *offset, float *mask, float scale, int *istart, int *jstart,
     int *ivalid, int *jvalid, int nphase, int nphase2, int npup, int Nfft,
     int N, int offset_phase) {
-  int tid = threadIdx.x + blockIdx.x * blockDim.x + offset_phase;
+  int tid = threadIdx.x + blockIdx.x * blockDim.x;// + offset_phase;
 
-  while (tid < N) {
+//  while (tid < N) {
+  if (tid<N) {
     int nim = tid / nphase2;
     int idim = tid - nim * nphase2;
 
     int idimx = idim % nphase; // nphase : size of the phase support in subaps
     int idimy = idim / nphase;
+
+    printf("%d %d %d %d %d %d\n", nim, idim, idimx, idimy, ivalid[nim], jvalid[nim]);
 
     int idphase = idimx + idimy * npup + istart[ivalid[nim]]
         + jstart[jvalid[nim]] * npup;
@@ -75,25 +78,24 @@ int fillcamplipup(cuFloatComplex *amplipup, float *phase, float *offset,
 // mask is an array of size pupdiam x pupdiam
 // number of thread required : pdiam x pdiam x nsubap
     {
-  struct cudaDeviceProp deviceProperties;
-  cudaGetDeviceProperties(&deviceProperties, device);
-
-  int maxThreads = deviceProperties.maxThreadsPerBlock;
-  int nBlocks = deviceProperties.multiProcessorCount * 8;
-  int nThreads = (Ntot + nBlocks - 1) / nBlocks;
-
-  if (nThreads > maxThreads) {
-    nThreads = maxThreads;
-    nBlocks = (Ntot + nThreads - 1) / nThreads;
-  }
-
-  dim3 grid(nBlocks), threads(nThreads);
-  /*
+//  struct cudaDeviceProp deviceProperties;
+//  cudaGetDeviceProperties(&deviceProperties, device);
+//
+//  int maxThreads = deviceProperties.maxThreadsPerBlock;
+//  int nBlocks = deviceProperties.multiProcessorCount * 8;
+//  int nThreads = (Ntot + nBlocks - 1) / nBlocks;
+//
+//  if (nThreads > maxThreads) {
+//    nThreads = maxThreads;
+//    nBlocks = (Ntot + nThreads - 1) / nThreads;
+//  }
+//
+//  dim3 grid(nBlocks), threads(nThreads);
+//
    int nthreads = 0,nblocks = 0;
    getNumBlocksAndThreads(device, Ntot, nblocks, nthreads);
 
    dim3 grid(nblocks), threads(nthreads);
-   */
 
   int nphase2 = nphase * nphase;
 
