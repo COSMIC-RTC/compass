@@ -50,7 +50,30 @@ void carma_ipcs::close_shm(void *p_shm, size_t size){
 
 
 void carma_ipcs::complete_clean(){
-//todo
+  if(!dptrs.empty()){
+    std::map<unsigned int, sh_dptr *>::iterator it;
+    for(it = dptrs.begin(); it!=dptrs.end(); ++it)
+      free_memHandle(it->first);
+    dptrs.clear();
+  }
+  if(!events.empty()){
+    std::map<unsigned int, sh_event *>::iterator it;
+    for(it = events.begin(); it!=events.end(); ++it)
+      free_eventHandle(it->first);
+    events.clear();
+  }
+  if(!buffers.empty()){
+    std::map<unsigned int, sh_buffer *>::iterator it;
+    for(it = buffers.begin(); it!=buffers.end(); ++it)
+      free_transfer_shm(it->first);
+    buffers.clear();
+  }
+  if(!barriers.empty()){
+    std::map<unsigned int, sh_barrier *>::iterator it;
+    for(it = barriers.begin(); it!=barriers.end(); ++it)
+      free_barrier(it->first);
+    barriers.clear();
+  }
 }
 
 
@@ -65,7 +88,7 @@ dptrs(), events(), barriers(), buffers()
 }
 
 carma_ipcs::~carma_ipcs(){
-  complete_clean(); //todo
+  complete_clean();
 }
 
 
@@ -73,6 +96,7 @@ carma_ipcs::~carma_ipcs(){
 /*
   Cuda handles methods
 */
+
 int carma_ipcs::register_cudptr(unsigned int id ,CUdeviceptr _dptr){
   int res = EXIT_FAILURE;
   CUresult err;
@@ -105,7 +129,6 @@ int carma_ipcs::register_cudptr(unsigned int id ,CUdeviceptr _dptr){
   }
 
   dptr->owner = getpid();
-  dptr->nb_proc = 1;
   strcpy(dptr->name, name);
 
   sem_post(&dptr->var_mutex); //mutex = 1;
@@ -149,7 +172,6 @@ int carma_ipcs::register_cuevent(unsigned int id, CUevent _event){
   }
 
   event->owner = getpid();
-  event->nb_proc = 1;
   strcpy(event->name, name);
 
   sem_post(&event->var_mutex); //mutex = 1;
@@ -186,7 +208,6 @@ int carma_ipcs::get_memHandle(unsigned int id, CUipcMemHandle *phandle){
         return res;
       }
       //else, add it to the local map
-      dptr->nb_proc++;
       sem_post(&dptr->var_mutex);
       dptrs[id] = dptr;
     }
@@ -223,7 +244,6 @@ int carma_ipcs::get_eventHandle(unsigned int id, CUipcEventHandle *phandle){
         return res;
       }
       //else, add it to the local map
-      event->nb_proc++;
       sem_post(&event->var_mutex);
       events[id] = event;
     }
@@ -246,8 +266,7 @@ void carma_ipcs::free_memHandle(unsigned int id){
   sh_dptr *dptr = dptrs[id];
   dptrs.erase(it);
   sem_wait(&dptr->var_mutex);
-  dptr->nb_proc--;
-  if(!dptr->nb_proc){
+  if(dptr->owner == getpid()){
     sem_destroy(&dptr->var_mutex);
     free_shm(dptr->name, dptr, sizeof(sh_dptr));
   }
@@ -267,8 +286,7 @@ void carma_ipcs::free_eventHandle(unsigned int id){
   sh_event *event = events[id];
   events.erase(it);
   sem_wait(&event->var_mutex);
-  event->nb_proc--;
-  if(!event->nb_proc){
+  if(event->owner == getpid()){
     sem_destroy(&event->var_mutex);
     free_shm(event->name, event, sizeof(sh_event));
   }
@@ -284,22 +302,143 @@ void carma_ipcs::free_eventHandle(unsigned int id){
 /*
   Transfer via CPU memory methods
 */
-int carma_ipcs::alloc_memtransfer_shm(unsigned int id, void *shm, size_t bsize){
+int carma_ipcs::alloc_transfer_shm(unsigned int id, size_t bsize, bool isBoard){
+  int res = EXIT_FAILURE;
+  std::map<unsigned int, sh_buffer *>::iterator it;
+  it = buffers.find(id);
+  if(it != buffers.end()){ //id found in map
+    errno = EEXIST;
+    return res;
+  }
+
+  //create a new slot
+  sh_buffer *buffer;
+  char name[NAME_MAX+1];
+  char in_name[NAME_MAX+1];
+
+  sprintf(name, "/cipcs_cubuffer_%d", id);
+  sprintf(name, "/cipcs_cubuffer_%d_in", id);
+  if((buffer = (sh_buffer *) create_shm(name, sizeof(sh_buffer))) == (void *) -1)
+    return res;
+  //shm ok, struct initialization
+  if((buffer->p_shm = create_shm(in_name, bsize)) == (void *) -1){
+    free_shm(name, buffer, sizeof(sh_buffer));
+    return res;
+  }
+  if(sem_init(&buffer->mutex, 1, 0) == -1){
+    free_shm(in_name, buffer->p_shm, bsize);
+    free_shm(name, buffer, sizeof(sh_buffer));
+    return res;
+  }
+  if(isBoard)
+    if(sem_init(&buffer->wait_pub, 1, 0) == -1){
+      sem_destroy(&buffer->mutex);
+      free_shm(in_name, buffer->p_shm, bsize);
+      free_shm(name, buffer, sizeof(sh_buffer));
+      return res;
+    }
+
+  buffer->size = bsize;
+  buffer->nb_proc = 1;
+  strcpy(buffer->name, name);
+  buffer->isBoard = isBoard;
+
+  sem_post(&buffer->mutex); //mutex = 1;
+
+  buffers[id] = buffer;
+
+  errno = 0;
+  res = EXIT_SUCCESS;
+  return res;
+}
+
+
+int carma_ipcs::map_transfer_shm(unsigned int id){
+  int res = EXIT_FAILURE;
+  std::map<unsigned int, sh_buffer *>::iterator it;
+    it = buffers.find(id);
+    if(it == buffers.end()){ //not found in map
+      sh_buffer *buffer;
+      char name[NAME_MAX+1];
+      sprintf(name, "/cipcs_cubuffer_%d", id);
+      if((buffer = (sh_buffer *)get_shm(name)) == (void *) -1){ //not found in shm
+        errno = EINVAL;
+        return res;
+      }
+      else{ //found in shm
+        if(sem_wait(&buffer->var_mutex))//probably destroyed while waiting on it, i.e. no more sharing
+          return res;
+        if(buffer->owner == getpid()){ //owner try to get handler, illegal operation
+          sem_post(&buffer->var_mutex);
+          errno = EPERM;
+          return res;
+        }
+        //else, add it to the local map
+        buffer->nb_proc++;
+        sem_post(&buffer->var_mutex);
+        buffers[id] = buffer;
+      }
+    }
+}
+
+
+int carma_ipcs::write_gpu(CUdeviceptr src, void *dst, size_t bsize){
+  int res = EXIT_FAILURE;
+  return res;
+}
+
+
+int carma_ipcs::read_gpu(void *src, CUdeviceptr dst, size_t bsize){
   int res = EXIT_FAILURE;
   return res;
   //todo
 }
 
 
-int carma_ipcs::get_memtransfer_shm(unsigned int id, void *shm){
+int carma_ipcs::write_transfer_shm(unsigned int id, void *src, size_t bsize, bool gpuBuffer){
   int res = EXIT_FAILURE;
   return res;
   //todo
 }
 
 
-void carma_ipcs::free_memtransfer_shms(unsigned int id){
+int carma_ipcs::read_transfer_shm(unsigned int id, void *dst, size_t bsize, bool gpuBuffer){
+  int res = EXIT_FAILURE;
+  return res;
   //todo
+}
+
+int unmap_tranfer_shm(unsigned int id){
+
+}
+
+
+void carma_ipcs::free_transfer_shm(unsigned int id){
+  std::map<unsigned int, sh_buffer *>::iterator it;
+
+  it = buffers.find(id);
+  if(it == buffers.end()){ //not found in map
+    return;
+  }
+  sh_buffer *buffer = buffers[id];
+  buffers.erase(it);
+  sem_wait(&buffer->mutex);
+  buffer->nb_proc--;
+  if(!buffer->nb_proc){
+    if(buffer->isBoard)
+      sem_destroy(&buffer->wait_pub);
+    sem_destroy(&buffer->mutex);
+    char in_name[NAME_MAX+1];
+    sprintf(in_name, "%s_in", buffer->name);
+
+    free_shm(in_name, buffer->p_shm, buffer->size);
+    free_shm(buffer->name, buffer, sizeof(sh_buffer));
+  }
+  else{
+    sem_post(&buffer->var_mutex);
+    close_shm(buffer->p_shm, buffer->size);
+    close_shm(buffer, sizeof(sh_buffer));
+  }
 }
 
 

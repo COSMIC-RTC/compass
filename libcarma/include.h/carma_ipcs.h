@@ -19,6 +19,7 @@
 #include <limits.h>
 
 #include <map>
+#include <iterator>
 
 #define STAMP(fmt, args...) fprintf(stderr, "[%s@%d]:" fmt, __FUNCTION__, __LINE__, ## args)
 
@@ -35,7 +36,6 @@
 
 typedef struct sh_cu_dptr_st{
   char              name[NAME_MAX+1];
-  unsigned int      nb_proc;
   pid_t             owner;
   CUipcMemHandle    handle;
   sem_t             var_mutex;
@@ -43,7 +43,6 @@ typedef struct sh_cu_dptr_st{
 
 typedef struct sh_cu_event_st{
   char              name[NAME_MAX+1];
-  unsigned int      nb_proc;
   pid_t             owner;
   CUipcEventHandle  handle;
   sem_t             var_mutex;
@@ -51,10 +50,12 @@ typedef struct sh_cu_event_st{
 
 typedef struct sh_buffer_st{
   char              name[NAME_MAX+1];
+  bool              isBoard;
   size_t            size;
   unsigned int      nb_proc;
   void              *p_shm;
   sem_t             mutex;
+  sem_t             wait_pub;
 }sh_buffer;
 
 typedef struct sh_barrier_st{
@@ -69,16 +70,28 @@ typedef struct sh_barrier_st{
 
 class carma_ipcs{
 private:
+  /*
+     maps used to control the shms
+   */
   std::map<unsigned int, sh_dptr *> dptrs;
   std::map<unsigned int, sh_event *> events;
   std::map<unsigned int, sh_barrier *> barriers;
-  std::map<unsigned int, sh_buffer> buffers;
+  std::map<unsigned int, sh_buffer *> buffers;
 
-  void * create_shm(const char *name, size_t size);
-  void * get_shm(const char *name);
+  /*
+     General purpose methods
+   */
+  void *create_shm(const char *name, size_t size);
+  void *get_shm(const char *name);
   void free_shm(const char *name, void *p_shm, size_t size);
   void close_shm(void *p_shm, size_t size);
   void complete_clean();
+
+  /*
+    Transfer via CPU memory private methods
+  */
+  int write_gpu(CUdeviceptr src, void *dst, size_t bsize);
+  int read_gpu(void *src, CUdeviceptr dst, size_t bsize);
 
 public:
   /*
@@ -111,20 +124,27 @@ public:
     Transfer via CPU memory methods
   */
   //allocation of the shm for memory tranfers
-  int alloc_memtransfer_shm(unsigned int id, void *shm, size_t bsize);
-  //get tranfer shm
-  int get_memtransfer_shm(unsigned int id, void *shm);
+  int alloc_transfer_shm(unsigned int id, size_t bsize, bool isBoard=false);
+  //map the shm buffer to the cuda device
+  int map_transfer_shm(unsigned int id);
+  //write to a transfer shm referenced by id
+  int write_transfer_shm(unsigned int id, void *src, size_t bsize, bool gpuBuffer=false);
+  //reads from a transfer shm referenced by id
+  int read_transfer_shm(unsigned int id, void *dst, size_t bsize, bool gpuBuffer=false);
+  //map the shm buffer to the cuda device
+  int unmap_tranfer_shm(unsigned int id);
   //free transfer shm ref by id
-  void free_memtransfer_shms(unsigned int id);
+  void free_transfer_shm(unsigned int id);
 
 
   /*
     Barrier methods
   */
+  //initialize a barrier with value the number of process who will call wait_barrier
   int init_barrier(unsigned int id, unsigned int value);
-
+  //wait for the other process subscribed to the barrier
   int wait_barrier(unsigned int id);
-
+  //free the barrier structure, all blocked process will be unlocked<
   void free_barrier(unsigned int id);
 
 };
