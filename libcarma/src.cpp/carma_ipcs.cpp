@@ -356,29 +356,27 @@ int carma_ipcs::alloc_transfer_shm(unsigned int id, size_t bsize, bool isBoard){
 int carma_ipcs::map_transfer_shm(unsigned int id){
   int res = EXIT_FAILURE;
   std::map<unsigned int, sh_buffer *>::iterator it;
-    it = buffers.find(id);
-    if(it == buffers.end()){ //not found in map
-      sh_buffer *buffer;
-      char name[NAME_MAX+1];
-      sprintf(name, "/cipcs_cubuffer_%d", id);
-      if((buffer = (sh_buffer *)get_shm(name)) == (void *) -1){ //not found in shm
-        errno = EINVAL;
-        return res;
-      }
-      else{ //found in shm
-        if(sem_wait(&buffer->var_mutex))//probably destroyed while waiting on it, i.e. no more sharing
-          return res;
-        if(buffer->owner == getpid()){ //owner try to get handler, illegal operation
-          sem_post(&buffer->var_mutex);
-          errno = EPERM;
-          return res;
-        }
-        //else, add it to the local map
-        buffer->nb_proc++;
-        sem_post(&buffer->var_mutex);
-        buffers[id] = buffer;
-      }
+  it = buffers.find(id);
+  if(it == buffers.end()){ //not found in map
+    sh_buffer *buffer;
+    char name[NAME_MAX+1];
+    sprintf(name, "/cipcs_cubuffer_%d", id);
+    if((buffer = (sh_buffer *)get_shm(name)) == (void *) -1){ //not found in shm
+      errno = EINVAL;
+      return res;
     }
+    else{ //found in shm
+      if(sem_wait(&buffer->mutex))//probably destroyed while waiting on it, i.e. no more sharing
+        return res;
+      //else, add it to the local map
+      buffer->nb_proc++;
+      sem_post(&buffer->mutex);
+      buffers[id] = buffer;
+    }
+  }
+  errno = 0;
+  res = EXIT_SUCCESS;
+  return res;
 }
 
 
@@ -424,7 +422,7 @@ void carma_ipcs::free_transfer_shm(unsigned int id){
   buffers.erase(it);
   sem_wait(&buffer->mutex);
   buffer->nb_proc--;
-  if(!buffer->nb_proc){
+  if(buffer->nb_proc == 0){
     if(buffer->isBoard)
       sem_destroy(&buffer->wait_pub);
     sem_destroy(&buffer->mutex);
@@ -435,7 +433,7 @@ void carma_ipcs::free_transfer_shm(unsigned int id){
     free_shm(buffer->name, buffer, sizeof(sh_buffer));
   }
   else{
-    sem_post(&buffer->var_mutex);
+    sem_post(&buffer->mutex);
     close_shm(buffer->p_shm, buffer->size);
     close_shm(buffer, sizeof(sh_buffer));
   }
@@ -475,7 +473,8 @@ int carma_ipcs::init_barrier(unsigned int id, unsigned int value){
   }
 
   barrier->valid = true;
-  barrier->proc_cnt = 0;
+  barrier->waiters_cnt = 0;
+  barrier->nb_proc = 1;
   barrier->val = value;
   strcpy(barrier->name, name);
 
@@ -507,7 +506,10 @@ int carma_ipcs::wait_barrier(unsigned int id){
       return res;
     }
     //else, found in shm, add to map
+    sem_wait(&barrier->var_mutex);
+    barrier->nb_proc++;
     barriers[id] = barrier;
+    sem_post(&barrier->var_mutex);
     //STAMP("barrier added to map\n");
 
   }
@@ -515,20 +517,19 @@ int carma_ipcs::wait_barrier(unsigned int id){
   //access barrier
   sh_barrier *barrier = barriers[id];
   //STAMP("wait for var_mutex\n");
-  if(!barrier->valid && sem_wait(&barrier->var_mutex) == -1) //probably invalided, then destroyed, probability low...
+  if(sem_wait(&barrier->var_mutex) == -1)
     return res;
   if(!barrier->valid){
+    sem_post(&barrier->var_mutex);
     //STAMP("barrier invalid\n");
-    free_barrier(id);
-    errno = EAGAIN;
+    errno = EBADF;
     return res;
   }
-  barrier->proc_cnt++;
-  if(barrier->proc_cnt == barrier->val){
+  barrier->waiters_cnt++;
+  if(barrier->waiters_cnt == barrier->val){
+    sem_post(&barrier->var_mutex);
     for(unsigned int i = 1; i < barrier->val; ++i)
       sem_post(&barrier->b_sem); //(val - 1) post
-    barrier->proc_cnt = 0; //reinit barrier
-    sem_post(&barrier->var_mutex);
   }
   else{//release var mutex and wait on barrier semaphore
     sem_post(&barrier->var_mutex);
@@ -537,6 +538,9 @@ int carma_ipcs::wait_barrier(unsigned int id){
       errno = ECANCELED;
       return res;
     }
+    sem_wait(&barrier->var_mutex);
+    barrier->waiters_cnt--;
+    sem_post(&barrier->var_mutex);
   }
 
   errno = 0;
@@ -555,16 +559,18 @@ void carma_ipcs::free_barrier(unsigned int id){
   barriers.erase(it);
 //  STAMP("wait for var_mutex\n");
   sem_wait(&barrier->var_mutex);
+  barrier->nb_proc--;
   barrier->valid = false;
-  if(!barrier->proc_cnt){
+  if(barrier->waiters_cnt){
+    for(unsigned int i = 0; i < barrier->waiters_cnt; ++i)
+      sem_post(&barrier->b_sem);
+  }
+  if(barrier->nb_proc == 0){
     sem_destroy(&barrier->var_mutex);
     sem_destroy(&barrier->b_sem);
     free_shm(barrier->name, barrier, sizeof(sh_barrier));
   }
   else{
-    for(unsigned int i = 0; i < barrier->proc_cnt; ++i)
-      sem_post(&barrier->b_sem);
-    barrier->proc_cnt = 0;
     sem_post(&barrier->var_mutex);
     close_shm(barrier, sizeof(sh_barrier));
   }

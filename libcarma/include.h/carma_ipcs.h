@@ -61,7 +61,8 @@ typedef struct sh_buffer_st{
 typedef struct sh_barrier_st{
   char              name[NAME_MAX+1];
   bool              valid;
-  unsigned int      proc_cnt;
+  unsigned int      nb_proc;
+  unsigned int      waiters_cnt;
   unsigned int      val;
   sem_t             b_sem;
   sem_t             var_mutex;
