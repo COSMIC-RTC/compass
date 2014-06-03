@@ -323,6 +323,17 @@ func ao_loop(one)
     if (g_target != []) move_sky,g_atmos,g_target;
     else move_atmos,g_atmos;
     
+    if ((y_target != []) && (g_target != [])) {
+      // loop on targets
+      for (i=1;i<=y_target.ntargets;i++) {
+        target_atmostrace,g_target,i-1,g_atmos;
+        if (g_dm != []) {
+          target_dmtrace,g_target,i-1,g_dm;
+        }
+      }
+      //saving average image from target #1
+    }
+
     if ((y_wfs != []) && (g_wfs != [])) {
       // loop on wfs
       for (i=1;i<=numberof(y_wfs);i++) {
@@ -349,14 +360,6 @@ func ao_loop(one)
       }
     }
       
-    if ((y_target != []) && (g_target != [])) {
-      for (i=1;i<=numberof(y_wfs);i++) {
-        target_atmostrace,g_target,i-1,g_atmos;
-        if (g_dm != []) 
-          target_dmtrace,g_target,i-1,g_dm;
-      }
-    }
-    
     if (enable_display == 1)
       update_main,aodisp_type,aodisp_num;    
 /*  
@@ -374,7 +377,8 @@ func ao_loop(one)
 
     pyk,swrite(format=ao_disp._cmd+"glade.get_widget('progressbar_wfs').set_fraction(%f)",float((aoiter%1000)/1000.));
     //mtext = swrite(format="Framerate : %.2f",1./time_move);
-    mtext = swrite(format="Framerate : %.2f",1./aotimer(avg));
+    strehltmp = target_getstrehl(g_target,0);
+    mtext = swrite(format="Framerate : %.2f L.E. Strehl : %.2f, S.E. Strehl %.2f",1./aotimer(avg),strehltmp(2),strehltmp(1));
     pyk,swrite(format=ao_disp._cmd+"glade.get_widget('progressbar_wfs').set_text('%s')",mtext);
     
     if (!one) after,0.001,ao_loop;
