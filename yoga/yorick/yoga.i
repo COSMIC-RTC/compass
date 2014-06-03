@@ -157,7 +157,7 @@ extern yoga_register_cudptr;
 */
 
 //free a memory handle shared mem space
-extern yoga_free_memHandle(unsigned int id);
+extern yoga_free_memHandle;
 /* DOCUMENT yoga_free_memHandle
    yoga_free_memHandle, yoga_ipcs_obj, id;
    
