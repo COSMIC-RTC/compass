@@ -166,6 +166,9 @@ context_free(void *obj);
 carma_context*
 _getCurrentContext();
 
+context_struct*
+yoga_getContext(int argc, int pos);
+
 void
 Y_yoga_context(int argc);
 void

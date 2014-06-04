@@ -407,7 +407,9 @@ int carma_ipcs::read_transfer_shm(unsigned int id, void *dst, size_t bsize, bool
 }
 
 int unmap_tranfer_shm(unsigned int id){
-
+  int res = EXIT_FAILURE;
+  return res;
+  //todo
 }
 
 
@@ -526,6 +528,7 @@ int carma_ipcs::wait_barrier(unsigned int id){
     return res;
   }
   barrier->waiters_cnt++;
+  //STAMP("waiters_cnt %d, val %d\n", barrier->waiters_cnt, barrier->val);
   if(barrier->waiters_cnt == barrier->val){
     sem_post(&barrier->var_mutex);
     for(unsigned int i = 1; i < barrier->val; ++i)
@@ -538,10 +541,10 @@ int carma_ipcs::wait_barrier(unsigned int id){
       errno = ECANCELED;
       return res;
     }
-    sem_wait(&barrier->var_mutex);
-    barrier->waiters_cnt--;
-    sem_post(&barrier->var_mutex);
   }
+  sem_wait(&barrier->var_mutex);
+  barrier->waiters_cnt--;
+  sem_post(&barrier->var_mutex);
 
   errno = 0;
   res = EXIT_SUCCESS;

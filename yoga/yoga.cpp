@@ -97,9 +97,8 @@ ipcs_free(void *obj) {
    */
   ipcs_struct *handler = (ipcs_struct *) obj;
   try {
-    carma_ipcs *ipcs_obj_handler =
-        (carma_ipcs *) (handler->carma_ipcs);
-    delete ipcs_obj_handler;
+    SCAST(carma_ipcs*, handler_ipcs, handler->carma_ipcs);
+    delete handler_ipcs;
   } catch (string &msg) {
     y_error(msg.c_str());
   } catch (char const * msg) {
@@ -142,10 +141,10 @@ void Y_yoga_register_cudptr(int argc){
    *    - second : the ID
    *    - third  : the yoga_obj
    */
-  ipcs_struct *ipcs_handle=yoga_getIPCs(argc, 0);
+  ipcs_struct *ipcs_handle=yoga_getIPCs(argc, 1);
+  long id=ygets_l(argc-2);
+  yObj_struct *obj_handle=yoga_getyObj(argc, 3);
   SCAST(carma_ipcs*, ipcs, ipcs_handle->carma_ipcs);
-  long id=ygets_l(argc-1);
-  yObj_struct *obj_handle=yoga_getyObj(argc, 2);
 
   if(obj_handle->type==Y_FLOAT){
     SCAST(carma_obj<float>*, obj, obj_handle->carma_object);
@@ -169,9 +168,9 @@ void Y_yoga_free_memHandle(int argc){
    *    - first  : a yoga_ipcs
    *    - second : the ID
    */
-  ipcs_struct *ipcs_handle=yoga_getIPCs(argc, 0);
+  ipcs_struct *ipcs_handle=yoga_getIPCs(argc, 1);
+  long id=ygets_l(argc-2);
   SCAST(carma_ipcs*, ipcs, ipcs_handle->carma_ipcs);
-  long id=ygets_l(argc-1);
 
   ipcs->free_memHandle(id);
 }
@@ -200,11 +199,11 @@ void Y_yoga_init_barrier(int argc){
    *    - second : the ID
    *    - third  : the number of ...
    */
-  ipcs_struct *ipcs_handle=yoga_getIPCs(argc, 0);
-  SCAST(carma_ipcs*, ipcs, ipcs_handle->carma_ipcs);
-  long id=ygets_l(argc-1);
-  long value=ygets_l(argc-2);
+  ipcs_struct *ipcs_handle=yoga_getIPCs(argc, 1);
+  long id=ygets_l(argc-2);
+  long value=ygets_l(argc-3);
 
+  SCAST(carma_ipcs*, ipcs, ipcs_handle->carma_ipcs);
   ipcs->init_barrier(id, value);
 }
 
@@ -214,10 +213,10 @@ void Y_yoga_wait_barrier(int argc){
    *    - first  : a yoga_ipcs
    *    - second : the ID
    */
-  ipcs_struct *ipcs_handle=yoga_getIPCs(argc, 0);
-  SCAST(carma_ipcs*, ipcs, ipcs_handle->carma_ipcs);
-  long id=ygets_l(argc-1);
+  ipcs_struct *ipcs_handle=yoga_getIPCs(argc, 1);
+  long id=ygets_l(argc-2);
 
+  SCAST(carma_ipcs*, ipcs, ipcs_handle->carma_ipcs);
   ipcs->wait_barrier(id);
 }
 
@@ -227,10 +226,10 @@ void Y_yoga_free_barrier(int argc){
    *    - first  : a yoga_ipcs
    *    - second : the ID
    */
-  ipcs_struct *ipcs_handle=yoga_getIPCs(argc, 0);
-  SCAST(carma_ipcs*, ipcs, ipcs_handle->carma_ipcs);
-  long id=ygets_l(argc-1);
+  ipcs_struct *ipcs_handle=yoga_getIPCs(argc, 1);
+  long id=ygets_l(argc-2);
 
+  SCAST(carma_ipcs*, ipcs, ipcs_handle->carma_ipcs);
   ipcs->free_barrier(id);
 }
 
@@ -247,9 +246,8 @@ void context_free(void *obj) {
    */
   context_struct *handler = (context_struct *) obj;
   try {
-    carma_context *context_obj_handler =
-        (carma_context *) (handler->carma_context);
-    delete context_obj_handler;
+    SCAST(carma_context*, context, handler->carma_context);
+    delete context;
   } catch (string &msg) {
     y_error(msg.c_str());
   } catch (char const * msg) {
@@ -263,12 +261,12 @@ void context_print(void *obj)
  */
 {
   context_struct *handler = (context_struct *) obj;
-  carma_context *context_handler = (carma_context *) (handler->carma_context);
-  unsigned int activeDevice = context_handler->get_activeDevice();
-  unsigned int nDevice = context_handler->get_ndevice();
-  size_t len=strlen(context_handler->get_device(0)->getName());
+  SCAST(carma_context*, context, handler->carma_context);
+  unsigned int activeDevice = context->get_activeDevice();
+  unsigned int nDevice = context->get_ndevice();
+  size_t len=strlen(context->get_device(0)->getName());
   for (size_t idx = 1; idx < nDevice; idx++) {
-    size_t tmp = strlen(context_handler->get_device(idx)->getName());
+    size_t tmp = strlen(context->get_device(idx)->getName());
     if(len<tmp) len=tmp;
   }
   cout << "CArMA Context : " << endl;
@@ -276,18 +274,19 @@ void context_print(void *obj)
   cout << "Dev Id" << " | " << setw(4+len-4) << "name" << " | " << "mem (MB)" << " | " << "cores (MP)" << " | "
       << "compute" << " | " << "GFlops" << endl;
   for (size_t idx = 0; idx < nDevice; idx++) {
-    const char *name=context_handler->get_device(idx)->getName();
+    const char *name=context->get_device(idx)->getName();
     char mem[9];
-    sprintf(mem, "%8zu", context_handler->get_device(idx)->getMem()/1024/1024);
+    sprintf(mem, "%8zu", context->get_device(idx)->getMem()/1024/1024);
 
     cout << ((idx == activeDevice) ? "<U>" : "   ") << setw(3) << idx
         << " | " << setw(4+len-strlen(name)) << name << " | " << mem << " | " << setw(5)
-        << context_handler->get_device(idx)->get_sm_per_multiproc()
-      * context_handler->get_device(idx)->get_properties().multiProcessorCount << (context_handler->get_device(idx)->get_properties().multiProcessorCount<10?"  (":" (") << context_handler->get_device(idx)->get_properties().multiProcessorCount << ")"
-	 << " | " << setw(5)
-        << context_handler->get_device(idx)->get_properties().major << "."
-        << context_handler->get_device(idx)->get_properties().minor << " | "
-        << context_handler->get_device(idx)->get_compute_perf() / 1.e6 << endl;
+        << context->get_device(idx)->get_sm_per_multiproc() * context->get_device(idx)->get_properties().multiProcessorCount <<
+      (context->get_device(idx)->get_properties().multiProcessorCount<10?"  (":" (") <<
+      context->get_device(idx)->get_properties().multiProcessorCount << ")"
+      << " | " << setw(5)
+        << context->get_device(idx)->get_properties().major << "."
+        << context->get_device(idx)->get_properties().minor << " | "
+        << context->get_device(idx)->get_compute_perf() / 1.e6 << endl;
   }
 }
 
@@ -312,6 +311,11 @@ void Y_yoga_context(int argc)
   }
 }
 
+context_struct*
+yoga_getContext(int argc, int pos){
+  return (context_struct *) yget_obj(argc-pos, &yContext);
+}
+
 carma_context*
 _getCurrentContext()
 /** @brief simple routine to retrieve current context
@@ -321,7 +325,10 @@ _getCurrentContext()
   ypush_global(yfind_global("current_context\0", 0));
   context_struct *handle = (context_struct *) yget_obj(0, &yContext);
   yarg_drop(1);
-  return (carma_context *) handle->carma_context;
+
+  SCAST(carma_context*, context, handle->carma_context);
+
+  return context;
 }
 
 void Y_context_getactivedevice(int argc)
