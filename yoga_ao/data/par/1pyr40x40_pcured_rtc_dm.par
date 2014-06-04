@@ -67,8 +67,8 @@ y_dm(1).nact          = y_wfs(1).nxsub+1;
 y_dm(1).alt           = 0.;
 y_dm(1).thresh        = 0.3;
 y_dm(1).coupling      = 0.2;
-y_dm(1).unitpervolt   = 0.01;
-y_dm(1).push4imat     = 100.0f;
+y_dm(1).unitpervolt   = 1;
+y_dm(1).push4imat     = 1.0f;
 
 y_dm(2).type          = "tt";
 y_dm(2).alt           = 0.;
