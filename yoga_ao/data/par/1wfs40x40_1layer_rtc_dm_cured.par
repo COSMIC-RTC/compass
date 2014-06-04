@@ -93,7 +93,7 @@ y_controllers(1).ndm     = &[1];
 //y_controllers(1).maxcond = 500.;
 y_controllers(1).delay   = 1;
 y_controllers(1).gain    = 0.5;
-y_controllers(1).cured_ndivs = 4;
+y_controllers(1).cured_ndivs = 2;
 
 /*
 rtc inits
