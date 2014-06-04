@@ -13,7 +13,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#include <cstring>
+#include <string.h>
 #include <stdio.h>
 #include <errno.h>
 #include <limits.h>
@@ -52,6 +52,7 @@ typedef struct sh_buffer_st{
   char              name[NAME_MAX+1];
   bool              isBoard;
   size_t            size;
+  size_t            data_size;
   unsigned int      nb_proc;
   void              *p_shm;
   sem_t             mutex;
@@ -91,8 +92,11 @@ private:
   /*
     Transfer via CPU memory private methods
   */
-  int write_gpu(CUdeviceptr src, void *dst, size_t bsize);
-  int read_gpu(void *src, CUdeviceptr dst, size_t bsize);
+  int get_elem_tshm(unsigned int id, sh_buffer *buffer);
+  int write_gpu(void *dst, CUdeviceptr src, size_t bsize);
+  int read_gpu(CUdeviceptr dst, void *src, size_t bsize);
+
+
 
 public:
   /*
@@ -126,14 +130,18 @@ public:
   */
   //allocation of the shm for memory tranfers
   int alloc_transfer_shm(unsigned int id, size_t bsize, bool isBoard=false);
+  //return size in bytes of the transfer shm in bsize
+  int get_size_transfer_shm(unsigned int id, size_t *bsize);
+  //return actual data size used in bytes of the transfer shm in bsize
+  int get_datasize_transfer_shm(unsigned int id, size_t *bsize);
   //map the shm buffer to the cuda device
   int map_transfer_shm(unsigned int id);
   //write to a transfer shm referenced by id
-  int write_transfer_shm(unsigned int id, void *src, size_t bsize, bool gpuBuffer=false);
+  int write_transfer_shm(unsigned int id, const void *src, size_t bsize, bool gpuBuffer=false);
   //reads from a transfer shm referenced by id
   int read_transfer_shm(unsigned int id, void *dst, size_t bsize, bool gpuBuffer=false);
   //map the shm buffer to the cuda device
-  int unmap_tranfer_shm(unsigned int id);
+  int unmap_transfer_shm(unsigned int id);
   //free transfer shm ref by id
   void free_transfer_shm(unsigned int id);
 
