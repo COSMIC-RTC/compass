@@ -434,7 +434,7 @@ int carma_ipcs::map_transfer_shm(unsigned int id){
   if(get_elem_tshm(id, buffer) == EXIT_FAILURE)
     return res; //errno previously set
 
-  //TODO MAPPING CUDA
+  cuMemHostRegister(buffer->p_shm, buffer->data_size, CU_MEMHOSTREGISTER_DEVICEMAP);
 
   errno = 0;
   res = EXIT_SUCCESS;
@@ -445,18 +445,26 @@ int carma_ipcs::map_transfer_shm(unsigned int id){
 
 int carma_ipcs::write_gpu(void *dst, CUdeviceptr src, size_t bsize){
   int res = EXIT_FAILURE;
-  //todo
-  errno = 0;
-  res = EXIT_SUCCESS;
+
+  if((errno = cuMemcpyDtoH(dst, src, bsize)) != CUDA_SUCCESS)
+    res = -2;
+  else{
+    errno = 0;
+    res = EXIT_SUCCESS;
+  }
   return res;
 }
 
 
 int carma_ipcs::read_gpu(CUdeviceptr dst, void *src, size_t bsize){
   int res = EXIT_FAILURE;
-  //todo
-  errno = 0;
-  res = EXIT_SUCCESS;
+
+  if((errno = cuMemcpyHtoD(dst, src, bsize)) != CUDA_SUCCESS)
+    res = -2;
+  else{
+    errno = 0;
+    res = EXIT_SUCCESS;
+  }
   return res;
 }
 
@@ -471,8 +479,12 @@ int carma_ipcs::write_transfer_shm(unsigned int id, const void *src, size_t bsiz
   if(sem_wait(&buffer->mutex) == -1)
     return res;
 
+  //todo : error code, maybe?
+  if(bsize > buffer->size)
+    bsize = buffer->size;
+
   if(isGpuBuffer){
-    if((res = write_gpu(buffer->p_shm, (CUdeviceptr) src, bsize)) == -1){
+    if((res = write_gpu(buffer->p_shm, (CUdeviceptr) src, bsize)) < 0 -1){
       sem_post(&buffer->mutex);
       return res;
     }
@@ -504,13 +516,17 @@ int carma_ipcs::read_transfer_shm(unsigned int id, void *dst, size_t bsize, bool
   if(sem_wait(&buffer->mutex) == -1)
     return res;
 
+  //todo : error code, maybe?
+  if(bsize > buffer->size)
+    bsize = buffer->size;
+
   if(buffer->isBoard){
     sem_post(&buffer->mutex);
     sem_wait(&buffer->wait_pub);
   }
 
   if(isGpuBuffer){
-    if((res = read_gpu((CUdeviceptr) dst, buffer->p_shm, bsize)) == -1){
+    if((res = read_gpu((CUdeviceptr) dst, buffer->p_shm, bsize)) < 0){
       sem_post(&buffer->mutex);
       return res;
     }
@@ -532,7 +548,7 @@ int carma_ipcs::unmap_transfer_shm(unsigned int id){
   if(get_elem_tshm(id, buffer) == EXIT_FAILURE)
     return res; //errno previously set
 
-  //TODO MAPPING CUDA
+  cuMemHostUnregister(buffer->p_shm);
 
   errno = 0;
   res = EXIT_SUCCESS;
@@ -576,7 +592,6 @@ void carma_ipcs::free_transfer_shm(unsigned int id){
 */
 int carma_ipcs::init_barrier(unsigned int id, unsigned int value){
   int res = EXIT_FAILURE;
-  int sem_val;
   std::map<unsigned int, sh_barrier *>::iterator it;
   it = barriers.find(id);
   if(it != barriers.end()){ //id found in map
@@ -623,7 +638,6 @@ int carma_ipcs::wait_barrier(unsigned int id){
   int res = EXIT_FAILURE;
   std::map<unsigned int, sh_barrier *>::iterator it;
   sh_barrier *barrier;
-  int sem_val;
 
   it = barriers.find(id);
   if(it == barriers.end()){ //not found in map
