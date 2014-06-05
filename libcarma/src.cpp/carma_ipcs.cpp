@@ -524,7 +524,8 @@ int carma_ipcs::read_transfer_shm(unsigned int id, void *dst, size_t bsize, bool
     sem_post(&buffer->mutex);
     sem_wait(&buffer->wait_pub);
   }
-
+  //todo: to improve, this could be buggy.
+  sem_wait(&buffer->mutex);
   if(isGpuBuffer){
     if((res = read_gpu((CUdeviceptr) dst, buffer->p_shm, bsize)) < 0){
       sem_post(&buffer->mutex);
