@@ -657,7 +657,7 @@ func rtc_init(clean=)
             write,"doing imat and filtering unseen actuators";
           //if (controllers(i).type  == "cured") {
             if (y_wfs(1).type == "sh")
-	      imat = imat_geom();
+	      imat = imat_geom(meth=0);
 	    else
 	      imat = manual_imat();
             correct_dm,imat;
