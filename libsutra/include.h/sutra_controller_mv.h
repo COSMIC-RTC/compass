@@ -13,9 +13,6 @@ using namespace std;
 
 class sutra_controller_mv: public sutra_controller {
 public:
-  int nvalid;
-  int nslope;
-  int nactu;
   int delay;
   float gain;
 
@@ -27,6 +24,7 @@ public:
   carma_obj<float> *d_covmat;
   carma_obj<float> *d_KLbasis;
   carma_obj<float> *d_noisemat;
+  carma_obj<float> *d_Cmm;
   // svd computations
   carma_obj<float> *d_eigenvals;
   carma_host_obj<float> *h_eigenvals;
@@ -70,9 +68,9 @@ public:
   int
   load_noisemat(float *noise);
   int
-  do_covmat(sutra_dm *ydm,char *method, int *indx_pup, long dim, float *xpos, float *ypos, long Nkl, float norm);
+  do_covmat(sutra_dm *ydm,char *method, int *indx_pup, long dim, float *xpos, float *ypos, long Nkl, float norm, float ampli);
   int
-  do_geomat(carma_obj<float> *d_geocov, carma_obj<float> *d_IF, long n_pts);
+  do_geomat(carma_obj<float> *d_geocov, carma_obj<float> *d_IF, long n_pts, float ampli);
   int
   piston_filt(carma_obj<float> *d_statcov);
  // int
@@ -83,6 +81,8 @@ public:
   load_covmat(float *covmat);
   int
   load_klbasis(float *klbasis);
+  int
+  compute_Cmm(sutra_atmos *atmos, sutra_sensors *sensors, float *L0, float *cn2, float *alphaX, float *alphaY, float diamTel, float cobs);
 
 };
 

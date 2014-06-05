@@ -29,6 +29,16 @@ __global__ void mult_krnl(float *i_data, float *scale, int N) {
   }
 }
 
+__global__ void mult_krnl(float *i_data, float gain, int N) {
+
+  int tid = threadIdx.x + blockIdx.x * blockDim.x;
+
+  while (tid < N) {
+    i_data[tid] = i_data[tid] * gain;
+    tid += blockDim.x * gridDim.x;
+  }
+}
+
 __global__ void mult_int_krnl(float *o_data, float *i_data, float gain, int N) {
 
   int tid = threadIdx.x + blockIdx.x * blockDim.x;
@@ -74,7 +84,7 @@ __global__ void
 fill_filtmat_krnl(float *filter, int nactu, int N){
 	int tid = threadIdx.x + blockIdx.x * blockDim.x;
 	while (tid < N){
-		tid % (nactu+1) ? filter[tid] = -1./nactu : filter[tid] = 1.-1./nactu;
+		tid % (nactu+1) ? filter[tid] = (float)-1./nactu : filter[tid] = (float)(1.-1./nactu);
 		tid += blockDim.x * gridDim.x;
 	}
 }
@@ -86,7 +96,7 @@ do_statcov_krnl(float *statcov, float *xpos, float *ypos, float norm, long dim, 
 	while (tid < N) {
 		i = tid/dim;
 		j = tid - i*dim;
-		statcov[tid] = 6.88 * pow(sqrt(pow((double)(xpos[i]-xpos[j]),2) + pow((double)(ypos[i]-ypos[j]),2)),5./3.) * norm;
+		statcov[i*dim + j] = (float)(6.88 * pow(sqrt(pow((double)(xpos[i]-xpos[j]),2) + pow((double)(ypos[i]-ypos[j]),2)),5./3.) * norm);
 		tid += blockDim.x * gridDim.x;
 	}
 }
@@ -138,6 +148,28 @@ int mult_vect(float *d_data, float *scale, int N, int device) {
   dim3 grid(nBlocks), threads(nThreads);
 
   mult_krnl<<<grid, threads>>>(d_data, scale, N);
+
+  cutilCheckMsg("mult_kernel<<<>>> execution failed\n");
+  return EXIT_SUCCESS;
+}
+
+int mult_vect(float *d_data, float gain, int N, int device) {
+
+  struct cudaDeviceProp deviceProperties;
+  cudaGetDeviceProperties(&deviceProperties, device);
+
+  int maxThreads = deviceProperties.maxThreadsPerBlock;
+  int nBlocks = deviceProperties.multiProcessorCount * 8;
+  int nThreads = (N + nBlocks - 1) / nBlocks;
+
+  if (nThreads > maxThreads) {
+    nThreads = maxThreads;
+    nBlocks = (N + nThreads - 1) / nThreads;
+  }
+
+  dim3 grid(nBlocks), threads(nThreads);
+
+  mult_krnl<<<grid, threads>>>(d_data, gain, N);
 
   cutilCheckMsg("mult_kernel<<<>>> execution failed\n");
   return EXIT_SUCCESS;
@@ -218,7 +250,7 @@ fill_filtmat(float *filter, int nactu, int N, int device){
 int
 do_statmat(float *statcov, long dim, float *xpos, float *ypos, float norm, int device){
 	int nthreads = 0, nblocks = 0;
-	int N = dim * dim;
+	int N = (dim * dim);
 	getNumBlocksAndThreads(device, N, nblocks, nthreads);
 	dim3 grid(nblocks), threads(nthreads);
 	do_statcov_krnl<<<grid , threads>>>(statcov,xpos,ypos,norm,dim,N);

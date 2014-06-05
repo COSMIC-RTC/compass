@@ -175,7 +175,7 @@ func script_system(filename,verbose=,strehl=,r0=,clean=)
   
   write,"\n done with simulation \n";
   write,format="simulation time : %f sec. per iteration\n",tac(mytime)/y_loop.niter;
-  //error;
+  error;
     if (strehl) 
       return strehllp(0);
   //mimg /= y_loop.niter;

@@ -29,10 +29,10 @@ public:
   //virtual int comp_com (carma_obj<float> *new_centroids)=0;
   //it would imply copy, but would be much safer
 
-  int nactu() {
+  inline int nactu() {
     return d_com->getDims(1);
   }
-  int nslope() {
+  inline int nslope() {
     return d_centroids->getDims(1);
   }
 
@@ -59,6 +59,8 @@ int
 shift_buf(float *d_data, int offset, int N, int device);
 int
 mult_vect(float *d_data, float *scale, int N, int device);
+int
+mult_vect(float *d_data, float gain, int N, int device);
 int
 mult_int(float *o_data, float *i_data, float *scale, float gain, int N,
     int device);

@@ -262,7 +262,7 @@ func cmat_update(ncontrol,maxcond)
 
 func manual_imat(void)
 {
-  slps = sensors_getslopes(g_wfs,0);
+  slps = rtc_getcentroids(g_rtc,0);
   nslp = numberof(slps);
   imat_cpu = slps(,-);
   
@@ -289,7 +289,7 @@ func manual_imat(void)
       
       //slopes_geom,g_wfs,0,0;
       rtc_docentroids,g_rtc,g_wfs;
-      slps = sensors_getslopes(g_wfs,0);
+      slps = rtc_getcentroids(g_rtc,0);
       grow,imat_cpu,slps/float(y_dm(1).push4imat);
       //fma;limits;
       //plg,slps;	
@@ -318,8 +318,9 @@ func manual_cmat(ncontrol,nfilt)
   return cmat;
 }
 
-func imat_geom(void)
+func imat_geom(meth=)
 {
+  if (meth == []) meth = 0;
   slps = sensors_getslopes(g_wfs,0);
   nslp = numberof(slps);
   imat_cpu = slps(,-);
@@ -345,7 +346,7 @@ func imat_geom(void)
       //window,1;pli,mscreen;
       //hitReturn;
 
-      slopes_geom,g_wfs,0,1;
+      slopes_geom,g_wfs,0,meth;
       
       slps = sensors_getslopes(g_wfs,0);
       
@@ -606,12 +607,13 @@ func docovmat(g_rtc,g_atmos,g_dm,Nactu,ndm,meth,mode=)
   //if (ndm == 2) error;
 
   write,"Covariance matrix computation : ";
-  if(y_dm(ndm).type == "kl"){
+  if(mode == "estimate" && y_dm(ndm).type == "kl"){
     statc = stat_cov(ndm,y_atmos.r0);
     s = SVdec(statc);
+    //error;
     s_size = numberof(s);
     s = s(:nkl);
-    if( meth == "inv"){
+    if (meth == "inv"){
       cov_matrix = unit(Nactu) * (1/s);
       if (s_size == nkl){
 	cov_matrix(Nactu,Nactu) = 0;
@@ -619,6 +621,7 @@ func docovmat(g_rtc,g_atmos,g_dm,Nactu,ndm,meth,mode=)
     }
     if (meth=="n"){
       cov_matrix = unit(Nactu) * s;
+      cov_matrix(Nactu,Nactu) = 0;
     }
     /*
     K = doklbasis(g_dm,nkl,N(1));
@@ -636,18 +639,21 @@ func docovmat(g_rtc,g_atmos,g_dm,Nactu,ndm,meth,mode=)
     */
   }
   else{
-    if (mode == "estimate"){     
+    if (mode == "estimate" && y_dm(ndm).type == "pzt"){     
       write,"Actuators basis...";
-      K = dopztbasis(g_dm,ndm,Nactu);
+      K = double(dopztbasis(g_dm,ndm,Nactu));
       //if(ndm==3) error;
       // Double diagonalisation
       write,"Geometric covariance matrix...";
       geo = geo_cov(K);
+      //error;
+      //geo *= 1/(y_dm(ndm).unitpervolt);
       write,"Statistic covariance matrix...";
       statc = stat_cov(ndm,y_atmos.r0);
       //error;
       write,"Double diagonalisation...";
       KL_actu = DDiago(statc,geo,s);
+      //error;
       write,"Inversion...";
       s = SVdec(statc);
       //error;
@@ -660,14 +666,21 @@ func docovmat(g_rtc,g_atmos,g_dm,Nactu,ndm,meth,mode=)
       }
       if (meth == "n"){
 	Ck = unit(Nactu) * s;
+	Ck(Nactu,Nactu) = 0;
 	cov_matrix = KL_actu(,+) * (Ck(,+) * KL_actu(,+))(+,);
 	//error; 
       }
-      write,"Done";   
+      write,"Done"; 
     }
     if (mode == "real"){
+      tmp = 366;
+     pup = (*y_geom._ipupil)(tmp+1:-tmp,tmp+1:-tmp);
+     indx_valid = where(pup);
      write,"Actuators basis...";
-     K = dopztbasis(g_dm,ndms,Nactu);
+     if(y_dm(ndm).type == "pzt")
+       K = dopztbasis(g_dm,ndm,Nactu);
+     if(y_dm(ndm).type == "kl")
+       K = doklbasis(g_dm,Nactu,ndm)
      M = K;
      // Projecteur
      /*
@@ -842,7 +855,7 @@ func dopztbasis(g_dm,ndm,Nactu)
   }
   else {
     psize=y_tel.diam/y_geom.pupdiam;
-    patchDiam = long(y_geom.pupdiam+2*max(abs([y_wfs(ndm).xpos,y_wfs(ndm).ypos]))*4.848e-6*abs(y_dm(ndm).alt)/psize);
+    patchDiam = long(y_geom.pupdiam+2*max(abs([y_wfs.xpos,y_wfs.ypos]))*4.848e-6*abs(y_dm(ndm).alt)/psize);
     pup = float(make_pupil(y_geom.ssize,patchDiam,xc=y_geom.cent,yc=y_geom.cent,cobs=y_tel.cobs))(tmp+1:-tmp,tmp+1:-tmp);
       }
   indx_valid = where(pup);
@@ -852,10 +865,17 @@ func dopztbasis(g_dm,ndm,Nactu)
   j = ndm;
     C =float( unit(y_dm(j)._ntotact));
     IF = build_dm_gpu(j,C(,1));
-    tmp = (dimsof(IF)(2)-y_geom._n)/2;
+    //tmp = (dimsof(IF)(2)-y_geom._n)/2;
+    //window,0; fma; pli,IF*pup;
+      //hitReturn;
     IF = IF(*)(indx_valid);
     IF = IF(,-);
-    for (i=2;i<=y_dm(j)._ntotact;i++) grow,IF,build_dm_gpu(j,C(,i))(*)(indx_valid);
+    for (i=2;i<=y_dm(j)._ntotact;i++){ 
+      tmp = build_dm_gpu(j,C(,i));
+      grow,IF,tmp(*)(indx_valid);
+      //window,0; fma; pli,tmp*pup;
+      //hitReturn;
+    }
     IFtot(,ind+1:ind+y_dm(j)._ntotact) = IF;
     ind += y_dm(j)._ntotact;
     if(i == y_dm(j)._ntotact) raz = build_dm_gpu(j,array(0.0f,y_dm(j)._ntotact));
@@ -891,7 +911,7 @@ func geo_cov(mat)
 // Matrice creuse --> code à optimiser
 {
   d_mat = yoga_obj(mat);
-  geocov = array(0.0f,dimsof(mat)(3),dimsof(mat)(3));
+  geocov = array(0.0,dimsof(mat)(3),dimsof(mat)(3));
   d_geo = yoga_obj(geocov);
   yoga_mm,d_geo,d_mat,d_mat,'t','n';
   geocov = d_geo();
@@ -903,7 +923,7 @@ func geo_cov(mat)
 func stat_cov(n,r0)
 // Compute the statistic covariance matrix on the actuators
 {
-  extern y_dm, y_geom;
+  extern y_dm, y_geom,y_atmos;
 
   if (y_dm(n).type == "pzt"){
     // Actuators positions
@@ -911,10 +931,15 @@ func stat_cov(n,r0)
     y = *y_dm(n)._ypos;
     
     patchDiam = y_tel.diam+2*max(abs([y_wfs(n).xpos,y_wfs(n).ypos]))*4.848e-6*abs(y_dm(n).alt);
-    interactp = x(2) - x(1);
+    interactp = double(x(2) - x(1));
     interactm = patchDiam/(y_dm(n).nact-1);
     p2m = interactm/interactp;
-    norm = (p2m/r0)^(5./3);
+    //norm = -(p2m/r0)^(5./3)/2.;
+    //norm = -(0.0269484/r0)^(5./3);
+    norm = -(p2m*patchDiam/(2*r0))^(5./3);
+    //norm = 1.;
+    //error;
+    //norm *= 1/75000.;
   }
   else if (y_dm(n).type == "kl"){
     N = int(ceil(sqrt(y_dm(n).nkl)));
@@ -929,13 +954,17 @@ func stat_cov(n,r0)
     y = transpose(x)(*)(ind_sub);
     x = x(*)(ind_sub);
     patchDiam = y_tel.diam+2*max(abs([y_wfs(n).xpos,y_wfs(n).ypos]))*4.848e-6*abs(y_dm(n).alt);
-    norm = (patchDiam/(2*r0))^(5./3);
+    norm = (patchDiam/(2*r0))^(-5./3) / y_atmos.nscreens;
   }
   // Kolmogorov statistic
   m = 6.88 * abs(x(*)(,-)-x(*)(-,),y(*)(,-)-y(*)(-,))^(5./3) ;
+  
   // Filtering piston
-  F = unit(dimsof(m)(3)) - array(1./(dimsof(m)(3)),dimsof(m)(3),dimsof(m)(3));
+  F = double(unit(dimsof(m)(3)) - array(1./(dimsof(m)(3)),dimsof(m)(3),dimsof(m)(3)));
   m = (F(,+)*m(+,))(,+)*F(,+);
+
+  if (y_dm(n).type == "kl")
+    m = m(:y_dm(n).nkl,:y_dm(n).nkl);
 
   return norm*m;
 }

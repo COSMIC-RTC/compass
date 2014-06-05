@@ -1,26 +1,30 @@
 #include <sutra_controller_mv.h>
+#include <sutra_controller_utils.h>
 #include <string>
 
 sutra_controller_mv::sutra_controller_mv(carma_context *context, long nvalid,
-    long nactu, long delay) :
-    sutra_controller(context, nvalid * 2, nactu) {
+    long nactu_, long delay) :
+    sutra_controller(context, nvalid * 2, nactu_) {
 
-  this->nvalid = nvalid;
-  this->nslope = 2 * nvalid;
-  this->nactu = nactu;
+
   this->delay = delay;
   this->device = device;
   this->gain = 0.0f;
 
+  this->nstreams = 1; //nvalid/10;
+  while (nactu() % this->nstreams != 0)
+    nstreams--;
+  cerr << "controller uses " << nstreams << " streams" << endl;
+  streams = new carma_streams(nstreams);
   long dims_data2[3];
   dims_data2[0] = 2;
-  dims_data2[1] = nslope;
-  dims_data2[2] = nactu;
+  dims_data2[1] = nslope();
+  dims_data2[2] = nactu();
   this->d_imat = new carma_obj<float>(this->current_context, dims_data2);
-  dims_data2[1] = nactu;
-  dims_data2[2] = nslope;
+  dims_data2[1] = nactu();
+  dims_data2[2] = nslope();
   this->d_cmat = new carma_obj<float>(this->current_context, dims_data2);
-  dims_data2[1] = dims_data2[2] = nactu;
+  dims_data2[1] = dims_data2[2] = nactu();
   d_U = new carma_obj<float>(this->current_context, dims_data2);
   this->d_cenbuff = 0L;
   if (delay > 0) {
@@ -28,32 +32,33 @@ sutra_controller_mv::sutra_controller_mv(carma_context *context, long nvalid,
     dims_data2[2] = delay + 1;
     this->d_cenbuff = new carma_obj<float>(this->current_context, dims_data2);
   }
+  dims_data2[1] = nslope();
+  dims_data2[2] = nslope();
+  this->d_Cmm = new carma_obj<float>(this->current_context, dims_data2);
 
   long dims_data1[2];
   dims_data1[0] = 1;
-  dims_data1[1] = nslope < nactu ? nslope : nactu;
+  dims_data1[1] = nslope() < nactu() ? nslope() : nactu();
   this->d_eigenvals = new carma_obj<float>(this->current_context, dims_data1);
   this->h_eigenvals = new carma_host_obj<float>(dims_data1, MA_PAGELOCK);
 
-  dims_data1[1] = nslope;
-  this->d_centroids = new carma_obj<float>(this->current_context, dims_data1);
+  dims_data1[1] = nslope();
   this->d_noisemat = new carma_obj<float>(this->current_context, dims_data1);
   this->d_olmeas = new carma_obj<float>(this->current_context, dims_data1);
   this->d_compbuff = new carma_obj<float>(this->current_context, dims_data1);
   this->d_compbuff2 = new carma_obj<float>(this->current_context, dims_data1);
-  dims_data1[1] = nactu;
-  this->d_com = new carma_obj<float>(this->current_context, dims_data1);
+  dims_data1[1] = nactu();
   this->d_com1 = new carma_obj<float>(this->current_context, dims_data1);
   this->d_com2 = new carma_obj<float>(this->current_context, dims_data1);
   this->d_err = new carma_obj<float>(this->current_context, dims_data1);
   this->d_gain = new carma_obj<float>(this->current_context, dims_data1);
 
   // Florian features
-  dims_data2[1] = nactu;//64564;
-  dims_data2[2] = nactu;
+  dims_data2[1] = nactu();//64564;
+  dims_data2[2] = nactu();
   this->d_covmat = new carma_obj<float>(this->current_context, dims_data2);
-  dims_data2[1] = nactu;
-  dims_data2[2] = nactu;
+  dims_data2[1] = nactu();
+  dims_data2[2] = nactu();
   this->d_KLbasis = new carma_obj<float>(this->current_context, dims_data2);
 
   cublas_handle = current_context->get_cublasHandle();
@@ -105,7 +110,25 @@ int sutra_controller_mv::load_noisemat(float *noise) {
 }
 // Florian features
 int
-sutra_controller_mv::do_covmat(sutra_dm *ydm, char *method, int *indx_pup,long dim, float *xpos, float *ypos, long Nkl, float norm){
+sutra_controller_mv::compute_Cmm(sutra_atmos *atmos, sutra_sensors *sensors, float *L0, float *cn2, float *alphaX, float *alphaY, float diamTel, float cobs){
+
+	struct gtomo_struct g_tomo;
+	DEBUG_TRACE("Here !\n");
+	init_tomo_gpu_gb(&g_tomo, atmos, sensors, diamTel, cobs);
+	DEBUG_TRACE("Here !\n");
+	update_tomo_sys_gpu_gb(&g_tomo, sensors, alphaX, alphaY);
+	DEBUG_TRACE("Here !\n");
+	update_tomo_atm_gpu_gb(&g_tomo, sensors, atmos, L0, cn2, alphaX, alphaY);
+	DEBUG_TRACE("Here !\n");
+	matcov_gpu_4(this->d_Cmm->getData(), this->nslope(), this->nslope(), 0, 0, this->nslope(), &g_tomo, atmos, sensors, alphaX, alphaY);
+	DEBUG_TRACE("Here !\n");
+	free_tomo_gpu_gb(&g_tomo);
+	DEBUG_TRACE("Here !\n");
+
+	return EXIT_SUCCESS;
+}
+int
+sutra_controller_mv::do_covmat(sutra_dm *ydm, char *method, int *indx_pup,long dim, float *xpos, float *ypos, long Nkl, float norm, float ampli){
 		long dims_data[3];
 		dims_data[0] = 2;
 		dims_data[1] = Nkl;
@@ -113,7 +136,7 @@ sutra_controller_mv::do_covmat(sutra_dm *ydm, char *method, int *indx_pup,long d
 		carma_obj<float> *d_statcov = new carma_obj<float>(current_context, dims_data);
 		long dims_data2[2];
 		dims_data2[0] = 1;
-		dims_data2[1] = this->nactu;
+		dims_data2[1] = this->nactu();
 		carma_obj<float> *d_KLcov = new carma_obj<float>(current_context, dims_data2);
 
 		dims_data2[1] = dim;
@@ -129,11 +152,20 @@ sutra_controller_mv::do_covmat(sutra_dm *ydm, char *method, int *indx_pup,long d
 		this->piston_filt(d_statcov);
 
 		if (ydm->type == "pzt"){
+			this->d_covmat->copy(d_statcov,1,1);
+			delete d_statcov;
+			delete d_KLcov;
+			delete d_indx;
+			delete d_xpos;
+			delete d_ypos;
+
+			return EXIT_SUCCESS;
+			/*
 			dims_data[1] = dim;
-			dims_data[2] = this->nactu;
+			dims_data[2] = this->nactu();
 			carma_obj<float> *d_IF = new carma_obj<float>(this->current_context, dims_data);
-			dims_data[1] = this->nactu;
-			dims_data[2] = this->nactu;
+			dims_data[1] = this->nactu();
+			dims_data[2] = this->nactu();
 			carma_obj<float> *d_geocov = new carma_obj<float>(current_context, dims_data);
 
 			// Get influence functions of the DM (to be CUsparsed)
@@ -141,7 +173,7 @@ sutra_controller_mv::do_covmat(sutra_dm *ydm, char *method, int *indx_pup,long d
 			ydm->get_IF(d_IF->getData(),d_indx->getData(),dim);
 
 			// Compute geometric matrix (to be CUsparsed)
-			this->do_geomat(d_geocov,d_IF,dim);
+			this->do_geomat(d_geocov,d_IF,dim,ampli);
 
 			delete d_IF;
 
@@ -149,6 +181,7 @@ sutra_controller_mv::do_covmat(sutra_dm *ydm, char *method, int *indx_pup,long d
 			this->DDiago(d_statcov,d_geocov);
 
 			delete d_geocov;
+			*/
 		}
 		// Computation of covariance matrix
 		// 1. Computation of covariance matrix in KL basis
@@ -157,24 +190,24 @@ sutra_controller_mv::do_covmat(sutra_dm *ydm, char *method, int *indx_pup,long d
 		carma_syevd<float,1>('N', d_statcov, h_eigenvals);
 
 		if (ydm->type == "kl"){
-			dims_data2[1] = this->nactu;
+			dims_data2[1] = this->nactu();
 			carma_host_obj<float> *h_KLcov = new carma_host_obj<float>(dims_data2, MA_PAGELOCK);
 			if(strcmp(method, "inv") == 0){
-				for (int i=0 ; i < this->nactu ; i++){
+				for (int i=0 ; i < this->nactu() ; i++){
 					h_KLcov->getData()[i] = -1./h_eigenvals->getData()[i];
 				}
-				if (Nkl == this->nactu){
-					h_KLcov->getData()[this->nactu - 1] = 0.;
+				if (Nkl == this->nactu()){
+					h_KLcov->getData()[this->nactu() - 1] = 0.;
 				}
 				d_KLcov->host2device(*h_KLcov);
-				add_md(this->d_covmat->getData(),this->d_covmat->getData(),d_KLcov->getData(),this->nactu,this->device);
+				add_md(this->d_covmat->getData(),this->d_covmat->getData(),d_KLcov->getData(),this->nactu(),this->device);
 			}
 			if(strcmp(method, "n") == 0){
-				for (int i=0 ; i < this->nactu ; i++){
+				for (int i=0 ; i < this->nactu() ; i++){
 					h_KLcov->getData()[i] = -h_eigenvals->getData()[i];
 				}
 				d_KLcov->host2device(*h_KLcov);
-				add_md(this->d_covmat->getData(),this->d_covmat->getData(),d_KLcov->getData(),this->nactu,this->device);
+				add_md(this->d_covmat->getData(),this->d_covmat->getData(),d_KLcov->getData(),this->nactu(),this->device);
 			}
 			delete h_KLcov;
 		}
@@ -182,20 +215,20 @@ sutra_controller_mv::do_covmat(sutra_dm *ydm, char *method, int *indx_pup,long d
 			if(strcmp(method, "inv") == 0){
 				// Inversion of the KL covariance matrix
 				carma_host_obj<float> *h_eigenvals_inv = new carma_host_obj<float>(dims_data2, MA_PAGELOCK);
-				for (int i=0 ; i<this->nactu ; i++){
+				for (int i=0 ; i<this->nactu() ; i++){
 						// Valeurs propores négatives.... A voir et inverser ordre si valeurs propres positives
 						h_eigenvals_inv->getData()[i] = -1./h_eigenvals->getData()[i];
 					}
 
-				h_eigenvals_inv->getData()[this->nactu - 1] = 0.;
+				h_eigenvals_inv->getData()[this->nactu() - 1] = 0.;
 				d_KLcov->host2device(*h_eigenvals_inv);
 
 				// 2. Inversion of the KL basis
 				dims_data2[0] = 1;
-				dims_data2[1] = this->nactu;
+				dims_data2[1] = this->nactu();
 				carma_obj<float> *d_eigen = new carma_obj<float>(current_context, dims_data2);
-				dims_data[1] = this->nactu;
-				dims_data[2] = this->nactu;
+				dims_data[1] = this->nactu();
+				dims_data[2] = this->nactu();
 				carma_obj<float> *d_tmp = new carma_obj<float>(current_context, dims_data);
 				carma_obj<float> *d_Ukl = new carma_obj<float>(current_context, dims_data);
 				carma_obj<float> *d_Vkl = new carma_obj<float>(current_context, dims_data);
@@ -210,23 +243,23 @@ sutra_controller_mv::do_covmat(sutra_dm *ydm, char *method, int *indx_pup,long d
 				d_Ukl->host2device(*h_Vt);
 				d_Vkl->host2device(*h_U);
 
-				for (int i=0 ; i<this->nactu ; i++){
+				for (int i=0 ; i<this->nactu() ; i++){
 						h_eigenvals_inv->getData()[i] = 1./h_eigenvals->getData()[i];
 					}
 
 				d_eigen->host2device(*h_eigenvals_inv);
 
-				carma_dgmm(cublas_handle, CUBLAS_SIDE_LEFT, nactu,nactu,d_Vkl->getData(),nactu,d_eigen->getData(),1,d_tmp->getData(),nactu);
-				carma_gemm(cublas_handle, 't', 't', nactu, nactu, nactu, 1.0f,
-										  d_tmp->getData(), nactu, d_Ukl->getData(), nactu, 0.0f,
-										  this->d_KLbasis->getData(), nactu);
+				carma_dgmm(cublas_handle, CUBLAS_SIDE_LEFT, nactu(),nactu(),d_Vkl->getData(),nactu(),d_eigen->getData(),1,d_tmp->getData(),nactu());
+				carma_gemm(cublas_handle, 't', 't', nactu(), nactu(), nactu(), 1.0f,
+										  d_tmp->getData(), nactu(), d_Ukl->getData(), nactu(), 0.0f,
+										  this->d_KLbasis->getData(), nactu());
 
 				// 3. Projection of KL covariance matrix in the DM basis
 
-				carma_dgmm(cublas_handle, CUBLAS_SIDE_LEFT, nactu,nactu,d_KLbasis->getData(),nactu,d_KLcov->getData(),1,d_tmp->getData(),nactu);
-				carma_gemm(cublas_handle, 't', 'n', nactu, nactu, nactu, 1.0f,
-							  d_tmp->getData(), nactu, this->d_KLbasis->getData(), nactu, 0.0f,
-							  this->d_covmat->getData(), nactu);
+				carma_dgmm(cublas_handle, CUBLAS_SIDE_LEFT, nactu(),nactu(),d_KLbasis->getData(),nactu(),d_KLcov->getData(),1,d_tmp->getData(),nactu());
+				carma_gemm(cublas_handle, 't', 'n', nactu(), nactu(), nactu(), 1.0f,
+							  d_tmp->getData(), nactu(), this->d_KLbasis->getData(), nactu(), 0.0f,
+							  this->d_covmat->getData(), nactu());
 
 				delete d_eigen;
 				delete d_tmp;
@@ -239,19 +272,21 @@ sutra_controller_mv::do_covmat(sutra_dm *ydm, char *method, int *indx_pup,long d
 			}
 
 			else if(strcmp(method, "n") == 0){
-				dims_data[1] = this->nactu;
-				dims_data[2] = this->nactu;
+				dims_data[1] = this->nactu();
+				dims_data[2] = this->nactu();
 				carma_obj<float> *d_tmp = new carma_obj<float>(current_context, dims_data);
-				for (int i=0 ; i<this->nactu ; i++){
+				for (int i=0 ; i<this->nactu() ; i++){
 								// Valeurs propres négatives.... A voir et inverser ordre si valeurs propres positives
 								h_eigenvals->getData()[i] = -h_eigenvals->getData()[i];
+								cout << h_eigenvals->getData()[i] << endl;
 							}
+				h_eigenvals->getData()[this->nactu() - 1] = 0.;
 				d_KLcov->host2device(*h_eigenvals);
 
-				carma_dgmm(cublas_handle, CUBLAS_SIDE_RIGHT, nactu,nactu,d_KLbasis->getData(),nactu,d_KLcov->getData(),1,d_tmp->getData(),nactu);
-				carma_gemm(cublas_handle, 'n', 't', nactu, nactu, nactu, 1.0f,
-									  d_tmp->getData(), nactu, this->d_KLbasis->getData(), nactu, 0.0f,
-									  this->d_covmat->getData(), nactu);
+				carma_dgmm(cublas_handle, CUBLAS_SIDE_RIGHT, nactu(),nactu(),d_KLbasis->getData(),nactu(),d_KLcov->getData(),1,d_tmp->getData(),nactu());
+				carma_gemm(cublas_handle, 'n', 't', nactu(), nactu(), nactu(), 1.0f,
+									  d_tmp->getData(), nactu(), this->d_KLbasis->getData(), nactu(), 0.0f,
+									  this->d_covmat->getData(), nactu());
 
 				delete d_tmp;
 			}
@@ -268,32 +303,34 @@ sutra_controller_mv::do_covmat(sutra_dm *ydm, char *method, int *indx_pup,long d
 }
 
 int
-sutra_controller_mv::do_geomat(carma_obj<float> *d_geocov, carma_obj<float> *d_IF, long n_pts){
-	carma_gemm(cublas_handle, 't', 'n', nactu, nactu, n_pts, 1.0f,
+sutra_controller_mv::do_geomat(carma_obj<float> *d_geocov, carma_obj<float> *d_IF, long n_pts, float ampli){
+	carma_gemm(cublas_handle, 't', 'n', nactu(), nactu(), n_pts, 1.0f,
 	      d_IF->getData(), n_pts, d_IF->getData(), n_pts, 0.0f,
-	      d_geocov->getData(), nactu);
+	      d_geocov->getData(), nactu());
+	mult_vect(d_geocov->getData(),ampli,this->nactu()*this->nactu(),this->device);
 
 	return EXIT_SUCCESS;
 }
 
 int
 sutra_controller_mv::piston_filt(carma_obj<float> *d_statcov){
+	long Nmod = d_statcov->getDims()[1];
 	long dims_data[3];
 	dims_data[0] = 2;
-	dims_data[1] = d_statcov->getDims()[1];
-	dims_data[2] = d_statcov->getDims()[1];
+	dims_data[1] = Nmod;
+	dims_data[2] = Nmod;
 	carma_obj<float> *d_F = new carma_obj<float>(current_context, dims_data);
 	carma_obj<float> *d_tmp = new carma_obj<float>(current_context, dims_data);
 
 	int N = d_statcov->getDims()[1] * d_statcov->getDims()[1];
-	fill_filtmat(d_F->getData(),this->nactu, N, device);
+	fill_filtmat(d_F->getData(),Nmod, N, device);
 
-	carma_gemm(cublas_handle, 'n', 'n', nactu, nactu, nactu, 1.0f,
-		      d_F->getData(), nactu, d_statcov->getData(), nactu, 0.0f,
-		      d_tmp->getData(), nactu);
-	carma_gemm(cublas_handle, 'n', 't', nactu, nactu, nactu, 1.0f,
-			      d_tmp->getData(), nactu, d_F->getData(), nactu, 0.0f,
-			      d_statcov->getData(), nactu);
+	carma_gemm(cublas_handle, 'n', 'n', Nmod, Nmod, Nmod, 1.0f,
+		      d_F->getData(), Nmod, d_statcov->getData(), Nmod, 0.0f,
+		      d_tmp->getData(), Nmod);
+	carma_gemm(cublas_handle, 'n', 'n', Nmod, Nmod, Nmod, 1.0f,
+			      d_tmp->getData(), Nmod, d_F->getData(), Nmod, 0.0f,
+			      d_statcov->getData(), Nmod);
 
 	delete d_tmp;
 	delete d_F;
@@ -315,12 +352,12 @@ int sutra_controller_mv::do_statmat(float *statcov, float *xpos, float *ypos){
 }
 */
 int sutra_controller_mv::DDiago(carma_obj<float> *d_statcov, carma_obj<float> *d_geocov){
-	const long dims_data[3] = {2, this->nactu, this->nactu};
+	const long dims_data[3] = {2, this->nactu(), this->nactu()};
 	carma_obj<float> *d_M1 = new carma_obj<float>(current_context,dims_data);
 	carma_obj<float> *d_tmp = new carma_obj<float>(current_context,dims_data);
 	carma_obj<float> *d_tmp2 = new carma_obj<float>(current_context,dims_data);
 
-	const long dims_data2[2]={1,this->nactu};
+	const long dims_data2[2]={1,this->nactu()};
 	carma_obj<float> *d_eigenvals = new carma_obj<float>(current_context,dims_data2);
 	carma_obj<float> *d_eigenvals_sqrt = new carma_obj<float>(current_context,dims_data2);
 	carma_obj<float> *d_eigenvals_inv = new carma_obj<float>(current_context,dims_data2);
@@ -332,7 +369,7 @@ int sutra_controller_mv::DDiago(carma_obj<float> *d_statcov, carma_obj<float> *d
 	carma_syevd<float,1>('V', d_geocov, h_eigenvals);
 
 	d_eigenvals->host2device(*h_eigenvals);
-	for (int i=0 ; i<this->nactu ; i++){
+	for (int i=0 ; i<this->nactu() ; i++){
 		h_eigenvals_sqrt->getData()[i] = sqrt(h_eigenvals->getData()[i]); // D = sqrt(D²)
 		h_eigenvals_inv->getData()[i] = 1./sqrt(h_eigenvals->getData()[i]);// D⁻¹ = 1/sqrt(D²)
 	}
@@ -341,31 +378,31 @@ int sutra_controller_mv::DDiago(carma_obj<float> *d_statcov, carma_obj<float> *d
 
 	// 2. M⁻¹ = sqrt(eigenvals) * Ut : here, we have transpose(M⁻¹)
 
-	carma_dgmm<float>(cublas_handle,CUBLAS_SIDE_RIGHT,this->nactu,this->nactu,
-					d_geocov->getData(), this->nactu, d_eigenvals_sqrt->getData(),1,
-					d_M1->getData(), this->nactu);
+	carma_dgmm<float>(cublas_handle,CUBLAS_SIDE_RIGHT,this->nactu(),this->nactu(),
+					d_geocov->getData(), this->nactu(), d_eigenvals_sqrt->getData(),1,
+					d_M1->getData(), this->nactu());
 
 	// 3. C' = M⁻¹ * statcov * M⁻¹t
-	carma_gemm<float>(cublas_handle, 't', 'n', nactu, nactu, nactu, 1.0f,
-		      d_M1->getData(), nactu, d_statcov->getData(), nactu, 0.0f,
-		      d_tmp->getData(), nactu);
+	carma_gemm<float>(cublas_handle, 't', 'n', nactu(), nactu(), nactu(), 1.0f,
+		      d_M1->getData(), nactu(), d_statcov->getData(), nactu(), 0.0f,
+		      d_tmp->getData(), nactu());
 
-	carma_gemm<float>(cublas_handle, 'n', 'n', nactu, nactu, nactu, 1.0f,
-			      d_tmp->getData(), nactu, d_M1->getData(), nactu, 0.0f,
-			      d_tmp2->getData(), nactu);
+	carma_gemm<float>(cublas_handle, 'n', 'n', nactu(), nactu(), nactu(), 1.0f,
+			      d_tmp->getData(), nactu(), d_M1->getData(), nactu(), 0.0f,
+			      d_tmp2->getData(), nactu());
 
 	// 4. SVdec(C',A)
 	carma_syevd<float,1>('V', d_tmp2, h_eigenvals);
 
 	// 5. M = U * D⁻¹
-	carma_dgmm<float>(cublas_handle,CUBLAS_SIDE_RIGHT,this->nactu,this->nactu,
-				d_geocov->getData(), this->nactu, d_eigenvals_inv->getData(),1,
-				d_tmp->getData(), this->nactu);
+	carma_dgmm<float>(cublas_handle,CUBLAS_SIDE_RIGHT,this->nactu(),this->nactu(),
+				d_geocov->getData(), this->nactu(), d_eigenvals_inv->getData(),1,
+				d_tmp->getData(), this->nactu());
 
 	// 6. B = M * A;
-	carma_gemm<float>(cublas_handle, 'n', 'n', nactu, nactu, nactu, 1.0f,
-			      d_tmp->getData(), nactu, d_tmp2->getData(), nactu, 0.0f,
-			      d_KLbasis->getData(), nactu);
+	carma_gemm<float>(cublas_handle, 'n', 'n', nactu(), nactu(), nactu(), 1.0f,
+			      d_tmp->getData(), nactu(), d_tmp2->getData(), nactu(), 0.0f,
+			      d_KLbasis->getData(), nactu());
 
 	delete d_M1;
 	delete d_tmp;
@@ -406,32 +443,32 @@ int sutra_controller_mv::build_cmat(const char *dmtype, char *method) {
 	  carma_obj<float> *d_tmp3;
 	  long *dims_data2 = new long[3];
 	  dims_data2[0] = 2;
-	  dims_data2[1] = nactu;
-	  dims_data2[2] = nactu;
+	  dims_data2[1] = nactu();
+	  dims_data2[2] = nactu();
 	  d_tmp = new carma_obj<float>(current_context, dims_data2);
 	  d_tmp2 = new carma_obj<float>(current_context, dims_data2);
-	  dims_data2[1] = nslope;
-	  dims_data2[2] = nactu;
+	  dims_data2[1] = nslope();
+	  dims_data2[2] = nactu();
 	  d_tmp3 = new carma_obj<float>(current_context,dims_data2);
 
-	  carma_dgmm(cublas_handle, CUBLAS_SIDE_LEFT, nslope,nactu,d_imat->getData(),nslope,d_noisemat->getData(),1,d_tmp3->getData(),nslope);
-	  carma_gemm(cublas_handle, 't', 'n', nactu, nactu, nslope, one,
-			d_tmp3->getData(), nslope, d_imat->getData(), nslope, zero,
-			d_tmp2->getData(), nactu);
-	  carma_geam(cublas_handle, 'n', 'n', nactu, nactu, one, d_tmp2->getData(),
-		  nactu, one, d_covmat->getData(), nactu, d_tmp->getData(), nactu);
+	  carma_dgmm(cublas_handle, CUBLAS_SIDE_LEFT, nslope(),nactu(),d_imat->getData(),nslope(),d_noisemat->getData(),1,d_tmp3->getData(),nslope());
+	  carma_gemm(cublas_handle, 't', 'n', nactu(), nactu(), nslope(), one,
+			d_tmp3->getData(), nslope(), d_imat->getData(), nslope(), zero,
+			d_tmp2->getData(), nactu());
+	  carma_geam(cublas_handle, 'n', 'n', nactu(), nactu(), one, d_tmp2->getData(),
+		  nactu(), one, d_covmat->getData(), nactu(), d_tmp->getData(), nactu());
 
 	  carma_potri<float>(d_tmp);
 
-	  dims_data2[1] = nactu;
-	  dims_data2[2] = nslope;
+	  dims_data2[1] = nactu();
+	  dims_data2[2] = nslope();
 	  d_tmp2 = new carma_obj<float>(current_context, dims_data2);
-	  carma_gemm(cublas_handle, 'n', 't', nactu, nslope, nactu, one,
-		  d_tmp->getData(), nactu, d_imat->getData(), nslope, zero,
-		  d_tmp2->getData(), nactu);
+	  carma_gemm(cublas_handle, 'n', 't', nactu(), nslope(), nactu(), one,
+		  d_tmp->getData(), nactu(), d_imat->getData(), nslope(), zero,
+		  d_tmp2->getData(), nactu());
 
 
-	  carma_dgmm(cublas_handle, CUBLAS_SIDE_RIGHT, nactu,nslope,d_tmp2->getData(),nactu,d_noisemat->getData(),1,d_cmat->getData(),nactu);
+	  carma_dgmm(cublas_handle, CUBLAS_SIDE_RIGHT, nactu(),nslope(),d_tmp2->getData(),nactu(),d_noisemat->getData(),1,d_cmat->getData(),nactu());
 
 	  delete d_tmp;
 	  delete d_tmp2;
@@ -447,36 +484,42 @@ int sutra_controller_mv::build_cmat(const char *dmtype, char *method) {
   	  carma_obj<float> *d_tmp4;
   	  long *dims_data2 = new long[3];
   	  dims_data2[0] = 2;
-  	  dims_data2[1] = nslope;
-  	  dims_data2[2] = nslope;
+  	  dims_data2[1] = nslope();
+  	  dims_data2[2] = nslope();
   	  d_tmp = new carma_obj<float>(current_context, dims_data2);
   	  d_tmp2 = new carma_obj<float>(current_context, dims_data2);
   	  d_tmp4 = new carma_obj<float>(current_context, dims_data2);
-  	  dims_data2[1] = nslope;
-  	  dims_data2[2] = nactu;
+  	  d_U = new carma_obj<float>(current_context, dims_data2);
+  	  dims_data2[1] = nslope();
+  	  dims_data2[2] = nactu();
   	  d_tmp3 = new carma_obj<float>(current_context,dims_data2);
+	  long *dims_data = new long[2];
+	  dims_data[0] = 1;
+	  dims_data[1] = this->nactu();
+	  carma_host_obj<float> *h_eigenvals = new carma_host_obj<float>(dims_data, MA_PAGELOCK);
+	  carma_obj<float> *d_eigenvals = new carma_obj<float>(current_context, dims_data);
 
-  	  carma_gemm(cublas_handle, 'n', 'n', nslope, nactu, nactu, one,
-  			d_imat->getData(), nslope, d_covmat->getData(), nactu, zero,
-  			d_tmp3->getData(), nslope);
- 	  carma_gemm(cublas_handle, 'n', 't', nslope, nslope, nactu, one,
-  			d_tmp3->getData(), nslope, d_imat->getData(), nslope, zero,
-  			d_tmp2->getData(), nslope);
- 	  add_md(d_tmp4->getData(),d_tmp4->getData(),d_noisemat->getData(), nslope, this->device);
-  	  carma_geam(cublas_handle, 'n', 'n', nslope, nslope, one, d_tmp2->getData(),
-  		  nslope, one, d_tmp4->getData(), nslope, d_tmp->getData(), nslope);
+  	  carma_gemm(cublas_handle, 'n', 'n', nslope(), nactu(), nactu(), one,
+  			d_imat->getData(), nslope(), d_covmat->getData(), nactu(), zero,
+  			d_tmp3->getData(), nslope());
+ 	  carma_gemm(cublas_handle, 'n', 't', nslope(), nslope(), nactu(), one,
+  			d_tmp3->getData(), nslope(), d_imat->getData(), nslope(), zero,
+  			d_tmp2->getData(), nslope());
+ 	  add_md(d_tmp4->getData(),d_tmp4->getData(),d_noisemat->getData(), nslope(), this->device);
+  	  carma_geam(cublas_handle, 'n', 'n', nslope(), nslope(), one, d_tmp2->getData(),
+  		  nslope(), one, d_tmp4->getData(), nslope(), d_tmp->getData(), nslope());
 
   	  carma_potri<float>(d_tmp);
 
-  	  dims_data2[1] = nactu;
-  	  dims_data2[2] = nslope;
+  	  dims_data2[1] = nactu();
+  	  dims_data2[2] = nslope();
   	  d_tmp2 = new carma_obj<float>(current_context, dims_data2);
-  	  carma_gemm(cublas_handle, 't', 'n', nactu, nslope, nslope, one,
-  		  d_imat->getData(), nslope, d_tmp->getData(), nslope, zero,
-  		  d_tmp2->getData(), nactu);
-  	  carma_gemm(cublas_handle, 'n', 'n', nactu, nslope, nactu, one,
-  		  d_covmat->getData(), nactu, d_tmp2->getData(), nactu, zero,
-  		  d_cmat->getData(), nactu);
+  	  carma_gemm(cublas_handle, 't', 'n', nactu(), nslope(), nslope(), one,
+  		  d_imat->getData(), nslope(), d_tmp->getData(), nslope(), zero,
+  		  d_tmp2->getData(), nactu());
+  	  carma_gemm(cublas_handle, 'n', 'n', nactu(), nslope(), nactu(), one,
+  		  d_covmat->getData(), nactu(), d_tmp2->getData(), nactu(), zero,
+  		  d_cmat->getData(), nactu());
 
   	  delete d_tmp;
   	  delete d_tmp2;
@@ -493,17 +536,17 @@ int sutra_controller_mv::frame_delay() {
 
   if (delay > 0) {
     for (int cc = 0; cc < delay; cc++)
-      shift_buf(&((this->d_cenbuff->getData())[cc * this->nslope]), 1,
-          this->nslope, this->device);
+      shift_buf(&((this->d_cenbuff->getData())[cc * this->nslope()]), 1,
+          this->nslope(), this->device);
 
     cutilSafeCall(
-        cudaMemcpy(&(this->d_cenbuff->getData()[delay * this->nslope]),
-            this->d_centroids->getData(), sizeof(float) * this->nslope,
+        cudaMemcpy(&(this->d_cenbuff->getData()[delay * this->nslope()]),
+            this->d_centroids->getData(), sizeof(float) * this->nslope(),
             cudaMemcpyDeviceToDevice));
 
     cutilSafeCall(
         cudaMemcpy(this->d_centroids->getData(), this->d_cenbuff->getData(),
-            sizeof(float) * this->nslope, cudaMemcpyDeviceToDevice));
+            sizeof(float) * this->nslope(), cudaMemcpyDeviceToDevice));
   }
 
   return EXIT_SUCCESS;
@@ -515,12 +558,12 @@ int sutra_controller_mv::comp_com() {
   this->d_com2->copy(this->d_com1, 1, 1);
   this->d_com1->copy(this->d_com, 1, 1);
   // POLC equations
-  carma_geam<float>(cublas_handle, 'n', 'n', nactu, 1, (float) delay, *d_com2,
-      nactu, 1.0f - delay, *d_com1, nactu, *d_compbuff, nactu);
-  carma_gemv<float>(cublas_handle, 'n', nslope, nactu, 1.0f, *d_imat, nslope,
+  carma_geam<float>(cublas_handle, 'n', 'n', nactu(), 1, (float)(delay), *d_com2,
+      nactu(), 1.0f - delay, *d_com1, nactu(), *d_compbuff, nactu());
+  carma_gemv<float>(cublas_handle, 'n', nslope(), nactu(), 1.0f, *d_imat, nslope(),
       *d_compbuff, 1, 0.0f, *d_compbuff2, 1);
-  carma_geam<float>(cublas_handle, 'n', 'n', nslope, 1, 1.0f, *d_centroids,
-      nslope, -1.0f, *d_compbuff2, nslope, *d_olmeas, nslope);
+  carma_geam<float>(cublas_handle, 'n', 'n', nslope(), 1, 1.0f, *d_centroids,
+      nslope(), -1.0f, *d_compbuff2, nslope(), *d_olmeas, nslope());
 
   int nstreams = this->streams->get_nbStreams();
   if (nstreams > 1) {
@@ -552,8 +595,8 @@ int sutra_controller_mv::comp_com() {
         d_olmeas, 1, 0.0f, 1);
   }
 
-  carma_geam<float>(cublas_handle, 'n', 'n', nactu, 1, this->gain, *d_err, nactu,
-        1.0f - this->gain, *d_com1, nactu, *d_com, nactu);
+  carma_geam<float>(cublas_handle, 'n', 'n', nactu(), 1, this->gain, *d_err, nactu(),
+        1.0f - this->gain, *d_com1, nactu(), *d_com, nactu());
 
   return EXIT_SUCCESS;
 }

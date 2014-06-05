@@ -9,14 +9,14 @@ YOGA_AO_SAVEPATH = yoga_ao_top+"/data/";
 mkdirp,YOGA_AO_SAVEPATH;
 // creates data dir if does not exists (else mkdirp does nothing)
 
-require,yoga_ao_top+"/yorick/yoga_aolib.i"
-require,yoga_ao_top+"/yorick/yoga_ao_ystruct.i"
-require,yoga_ao_top+"/yorick/yoga_ao_utils.i"
-require,yoga_ao_top+"/yorick/yoga_turbu.i"
-require,yoga_ao_top+"/yorick/yoga_wfs.i"
-require,yoga_ao_top+"/yorick/yoga_rtc.i"
-require,yoga_ao_top+"/yorick/yoga_dm.i"
-require,yoga_ao_top+"/yorick/yoga_kl.i"
+require,yoga_ao_top+"/yorick/yoga_aolib.i";
+require,yoga_ao_top+"/yorick/yoga_ao_ystruct.i";
+require,yoga_ao_top+"/yorick/yoga_ao_utils.i";
+require,yoga_ao_top+"/yorick/yoga_turbu.i";
+require,yoga_ao_top+"/yorick/yoga_wfs.i";
+require,yoga_ao_top+"/yorick/yoga_rtc.i";
+require,yoga_ao_top+"/yorick/yoga_dm.i";
+require,yoga_ao_top+"/yorick/yoga_kl.i";
 
 func read_parfile(filename)
 /* DOCUMENT read_parfile
@@ -25,7 +25,7 @@ func read_parfile(filename)
    reads yoga parameter file filename
 
    SEE ALSO:
- */
+*/
 {
   extern y_geom,y_atmos,y_tel,y_target,y_loop,y_wfs,y_rtc,y_dm;
 
@@ -55,8 +55,8 @@ func geom_init(pupdiam)
    y_geom  : a y_struct for the geometry of the simulation
    g_atmos : a yAtmos object on the gpu
 
-  SEE ALSO:
- */
+   SEE ALSO:
+*/
 {
   extern y_atmos,y_geom,g_atmos;
 
@@ -118,8 +118,8 @@ func atmos_init(void)
    creates 1 external :
    g_atmos : a yAtmos object on the gpu
 
-  SEE ALSO:
- */
+   SEE ALSO:
+*/
 {
   extern g_atmos;
   
@@ -190,8 +190,8 @@ func wfs_init(void)
    creates 1 external :
    g_wfs    : a ySensors object on the gpu
 
-  SEE ALSO:
- */
+   SEE ALSO:
+*/
 {
   extern y_geom;
   extern g_wfs;
@@ -219,26 +219,26 @@ func wfs_init(void)
   }
   
   // create sensor object on gpu
-   if (y_wfs(1).type == "sh")
-     g_wfs = yoga_sensors(numberof(y_wfs),y_wfs(1).type,y_wfs.nxsub,y_wfs._nvalid,y_wfs.npix,y_wfs._pdiam,
-                          y_wfs._nrebin,y_wfs._Nfft,y_wfs._Ntot,y_geom._n,y_wfs._subapd,
-                          y_wfs._nphotons,y_wfs.gsalt > 0);
-   if (y_wfs(1).type == "pyr")
-     g_wfs = yoga_sensors(numberof(y_wfs),y_wfs(1).type,y_wfs.nxsub,y_wfs._nvalid,y_wfs.npix,y_wfs._pdiam,
-                          y_wfs._nrebin,y_wfs._Nfft,y_wfs._Ntot,y_wfs(1).pyr_npts,y_wfs._subapd,
-                          y_wfs._nphotons,y_wfs.gsalt > 0);
-   if (y_wfs(1).type == "geo")
-     g_wfs = yoga_sensors(numberof(y_wfs),y_wfs(1).type,y_wfs.nxsub,y_wfs._nvalid,y_wfs._pdiam,
-                          y_geom._n,y_wfs._subapd);
+  if (y_wfs(1).type == "sh")
+    g_wfs = yoga_sensors(numberof(y_wfs),y_wfs(1).type,y_wfs.nxsub,y_wfs._nvalid,y_wfs.npix,y_wfs._pdiam,
+			 y_wfs._nrebin,y_wfs._Nfft,y_wfs._Ntot,y_geom._n,y_wfs._subapd,
+			 y_wfs._nphotons,y_wfs.gsalt > 0);
+  if (y_wfs(1).type == "pyr")
+    g_wfs = yoga_sensors(numberof(y_wfs),y_wfs(1).type,y_wfs.nxsub,y_wfs._nvalid,y_wfs.npix,y_wfs._pdiam,
+			 y_wfs._nrebin,y_wfs._Nfft,y_wfs._Ntot,y_wfs(1).pyr_npts,y_wfs._subapd,
+			 y_wfs._nphotons,y_wfs.gsalt > 0);
+  if (y_wfs(1).type == "geo")
+    g_wfs = yoga_sensors(numberof(y_wfs),y_wfs(1).type,y_wfs.nxsub,y_wfs._nvalid,y_wfs._pdiam,
+			 y_geom._n,y_wfs._subapd);
   
   // init sensor gs object on gpu
-   if (y_wfs(1).type == "geo") {
-     sensors_initgs,g_wfs,y_wfs.xpos,y_wfs.ypos,y_wfs.lambda,[0](-::numberof(y_wfs)-1),
-       (y_geom._n)(-::numberof(y_wfs)-1),[-1](-::numberof(y_wfs)-1);
-   } else {
-     sensors_initgs,g_wfs,y_wfs.xpos,y_wfs.ypos,y_wfs.lambda,y_wfs.gsmag,
-       (y_geom._n)(-::numberof(y_wfs)-1),y_wfs.noise;
-   }
+  if (y_wfs(1).type == "geo") {
+    sensors_initgs,g_wfs,y_wfs.xpos,y_wfs.ypos,y_wfs.lambda,[0](-::numberof(y_wfs)-1),
+      (y_geom._n)(-::numberof(y_wfs)-1),[-1](-::numberof(y_wfs)-1);
+  } else {
+    sensors_initgs,g_wfs,y_wfs.xpos,y_wfs.ypos,y_wfs.lambda,y_wfs.gsmag,
+      (y_geom._n)(-::numberof(y_wfs)-1),y_wfs.noise;
+  }
   // fill sensor object with data
   for (i=1;i<=numberof(y_wfs);i++) {
     
@@ -312,8 +312,8 @@ func target_init(void)
    creates 1 external :
    g_target    : a yTarget object on the gpu
 
-  SEE ALSO:
- */
+   SEE ALSO:
+*/
 {
   extern g_target;
   
@@ -364,7 +364,7 @@ func target_init(void)
       target_init_strehlmeter,g_target,cc-1;
     }
   }
- if (y_wfs != []) {
+  if (y_wfs != []) {
     if ((y_wfs != []) && (g_wfs != [])) {
       for (cc=1;cc<=numberof(y_wfs);cc++) {
         if (y_atmos != []) {
@@ -408,8 +408,8 @@ func dm_init(void)
    creates 1 external :
    g_dm    : a yDMs object on the gpu
 
-  SEE ALSO:
- */
+   SEE ALSO:
+*/
 {
   extern y_dm,g_dm;
   
@@ -420,7 +420,7 @@ func dm_init(void)
         y_dm(n)._puppixoffset = long(y_dm(n).pupoffset/y_tel.diam*y_geom.pupdiam);
       
       if (y_dm(n).type == "pzt") {
-      // find out the support dimension for the given mirror.
+	// find out the support dimension for the given mirror.
         patchDiam = long(y_geom.pupdiam+2*max(abs([y_wfs.xpos,y_wfs.ypos]))*
                          4.848e-6*abs(y_dm(n).alt)/(y_tel.diam/y_geom.pupdiam));
         //patchDiam;
@@ -464,7 +464,7 @@ func dm_init(void)
         yoga_loadpzt,g_dm,float(y_dm(n).alt),float(*y_dm(n)._influ),
           int(*y_dm(n)._influpos),int(*y_dm(n)._ninflu),int(*y_dm(n)._influstart),
           int(*y_dm(n)._i1),int(*y_dm(n)._j1); 
-       }
+      }
       if (y_dm(n).type == "tt") {
         //dim       = dimsof(*y_geom._mpupil)(2);
         dim       = long(y_dm(n)._n2-y_dm(n)._n1+1);
@@ -492,8 +492,8 @@ func dm_init(void)
         //error;
         /*
         // verif :
-res1 = pol2car(*y_dm(n)._klbas,gkl_sfi(*y_dm(n)._klbas, 1));
-res2 = yoga_getkl(g_dm,0.,1);
+	res1 = pol2car(*y_dm(n)._klbas,gkl_sfi(*y_dm(n)._klbas, 1));
+	res2 = yoga_getkl(g_dm,0.,1);
         */
       }
 
@@ -515,8 +515,8 @@ res2 = yoga_getkl(g_dm,0.,1);
         //error;
         /*
         // verif :
-res1 = pol2car(*y_dm(n)._klbas,gkl_sfi(*y_dm(n)._klbas, 1));
-res2 = yoga_getkl(g_dm,0.,1);
+	res1 = pol2car(*y_dm(n)._klbas,gkl_sfi(*y_dm(n)._klbas, 1));
+	res2 = yoga_getkl(g_dm,0.,1);
         */
       }
     }
@@ -536,8 +536,8 @@ func rtc_init(clean=)
    creates 1 external :
    g_rtc    : a yRTC object on the gpu
 
-  SEE ALSO:
- */
+   SEE ALSO:
+*/
 {
   extern g_rtc,g_atmos,g_dm;
   g_rtc = yoga_rtc(activeDevice());
@@ -568,7 +568,7 @@ func rtc_init(clean=)
 
         if (y_wfs(nwfs).type == "pyr") {
           s_offset = s_scale = 0.0f
-        }
+	    }
 
         rtc_addcentro,g_rtc,nwfs-1,y_wfs(nwfs)._nvalid,centroiders(i).type,s_offset,s_scale;
         
@@ -672,6 +672,12 @@ func rtc_init(clean=)
 
           if (controllers(i).type  == "ls") {
             imat_init,i,clean=clean;
+	    /*
+	    imat = rtc_getimat(g_rtc,0);
+	    ii=where(abs(imat)<max(abs(imat)));
+	    imat(ii) = 0.;
+	    rtc_setimat,g_rtc,i-1,imat;
+	    */
             write,"done";
             cmat_init,i,clean=clean;
             rtc_setgain,g_rtc,0,controllers(i).gain;
@@ -688,102 +694,180 @@ func rtc_init(clean=)
               int(controllers(i).cured_ndivs),int(tt_flag);
 	    rtc_setgain,g_rtc,0,controllers(i).gain;
           }          
-		  // Florian features
-		  if (controllers(i).type == "mv"){      
-		    write,"doing imat and filtering unseen actuators";
-		    imat_init,i,clean=clean;
-		    write,"done";
-
-		    comp_mode = "GPU";
-		    method = "inv";
-		    //ndms = ndms(1);
-		    //error;
-		    if(comp_mode == "GPU"){
-		      ndms = ndms(1);
-		      if(y_dm(ndms).type == "pzt"){
-			tmp = (dimsof(*y_geom._ipupil)(2)-(y_dm(ndms)._n2 - y_dm(ndms)._n1 +1))/2;
-			pup = (*y_geom._ipupil)(tmp+1:-tmp,tmp+1:-tmp);
-			indx_valid = where(pup);
-			x = *y_dm(ndms)._xpos;
-			y = *y_dm(ndms)._ypos; 
-			interactp = x(2) - x(1);
-			interactm = y_tel.diam/(y_dm(ndms).nact-1);
-			p2m = abs(interactm/interactp);
-			norm = (p2m/y_atmos.r0)^(5./3);
-		      }
-		      if(y_dm(ndms).type == "kl"){
-			N = int(ceil(sqrt(y_dm(ndms).nkl)));
-			pup = make_pupil(N,N-1,cobs=y_tel.cobs);
-			indx_valid = where(pup);
-			while (numberof(indx_valid) < y_dm(ndms).nkl){
-			  N+=1;
-			  pup = make_pupil(N,N-1,cobs=y_tel.cobs);
-			  indx_valid = where(pup);
-			}
-			x = span(-1,1,N)(,-:1:N);
-			y = transpose(x)(*)(ind_sub);
-			x = x(*)(ind_sub);
-			norm = (y_tel.diam/(2*y_atmos.r0))^(5./3);
-		      }
-		      write,"Computing covariance matrix...";
-		      rtc_docovmat,g_rtc,i-1,g_dm,y_dm(ndms).type,y_dm(ndms).alt,indx_valid,numberof(indx_valid),x,y,numberof(x),norm,method;
-		      write, "done";
-		      noisemat = noise_cov(1,1);
-		      if (method == "inv"){
-			noisemat = float(1./noisemat);
-		      }
-		      rtc_loadnoisemat,g_rtc,long(i-1),noisemat;
-		      write,"Initializing command matrix...";
-		      cmat_init,i,clean=clean,method=method;
-		      write,"done";
-		      rtc_setgain,g_rtc,i-1,controllers(i).gain;
-		      mgain = array(1.0f,(y_dm._ntotact)(sum));
-		      rtc_loadmgain,g_rtc,i-1,mgain;
-		    }
+	  // Florian features
+	  if (controllers(i).type == "mv"){      
+	    write,"doing imat and filtering unseen actuators";
+	    imat_init,i,clean=clean;
+	    write,"done";
+	    //error;
+	    
+	    L0_d = &array(1e5f,y_atmos.nscreens);
+	    alphaX = alphaY = array(0.0f,numberof(y_wfs.xpos)+1);
+	    alphaX(:numberof(y_wfs.xpos)) = y_wfs.xpos/RASC;
+	    alphaX(numberof(y_wfs.xpos) + 1) = (y_wfs.xpos(0)+10.)/RASC;
+	    alphaY(:numberof(y_wfs.xpos)) = y_wfs.ypos/RASC;
+	    alphaY(numberof(y_wfs.xpos) + 1) = (y_wfs.ypos(0))/RASC;
+	    
+	    //error;
+	    rtc_doCmm,g_rtc,i-1,g_wfs,g_atmos,y_tel.diam,y_tel.cobs,*y_atmos.L0, float(*y_atmos.frac * (y_atmos.r0)^(-5./3)),alphaX,alphaY;
+	    //error;
+	    
+	    comp_mode = "GPU";
+	    method = "n";
+	    //ndms = ndms(1);
+	    //error;
+	    if(comp_mode == "GPU"){
+	      ndms = ndms(1);
+	      if(y_dm(ndms).type == "pzt"){
+		tmp = (dimsof(*y_geom._ipupil)(2)-(y_dm(ndms)._n2 - y_dm(ndms)._n1 +1))/2;
+		pup = (*y_geom._ipupil)(tmp+1:-tmp,tmp+1:-tmp);
+		indx_valid = where(pup);
+		x = *y_dm(ndms)._xpos;
+		y = *y_dm(ndms)._ypos; 
+		interactp = x(2) - x(1);
+		interactm = y_tel.diam/(y_dm(ndms).nact-1);
+		p2m = interactm/interactp;
+		norm = -(p2m*y_tel.diam/(2*y_atmos.r0))^(5./3);
+	      }
+	      if(y_dm(ndms).type == "kl"){
+		N = int(ceil(sqrt(y_dm(ndms).nkl)));
+		pup = make_pupil(N,N-1,cobs=y_tel.cobs);
+		indx_valid = where(pup);
+		while (numberof(indx_valid) < y_dm(ndms).nkl){
+		  N+=1;
+		  pup = make_pupil(N,N-1,cobs=y_tel.cobs);
+		  indx_valid = where(pup);
+		}
+		x = span(-1,1,N)(,-:1:N);
+		y = transpose(x)(*)(ind_sub);
+		x = x(*)(ind_sub);
+		norm = (y_tel.diam/(2*y_atmos.r0))^(-5./3);
+	      }
+	      write,"Computing covariance matrix...";
+	      rtc_docovmat,g_rtc,i-1,g_dm,y_dm(ndms).type,y_dm(ndms).alt,indx_valid,numberof(indx_valid),x,y,numberof(x),norm,1.,method;
+	      write, "done";
+	      noisemat = noise_cov(1);
+	      if (method == "inv"){
+		noisemat = float(1./noisemat);
+	      }
+	      rtc_loadnoisemat,g_rtc,long(i-1),noisemat;
+	      write,"Initializing command matrix...";
+	      cmat_init,i,clean=clean,method=method;
+	      write,"done";
+	      rtc_setgain,g_rtc,i-1,controllers(i).gain;
+	      mgain = array(1.0f,(y_dm._ntotact)(sum));
+	      rtc_loadmgain,g_rtc,i-1,mgain;
+	    }
 		    
-		    if(comp_mode == "CPU"){
-		      covmat = array(0.0f,sum(y_dm(ndms)._ntotact),sum(y_dm(ndms)._ntotact));
-		      istart = 0;
-		      for (ndm = 1 ; ndm <= numberof(ndms) ; ndm++){
-			cov_matrix = docovmat(g_rtc,g_atmos,g_dm,y_dm(ndm)._ntotact,ndm,method,mode="estimate");
-			covmat(istart+1:istart+y_dm(ndm)._ntotact,istart+1:istart+y_dm(ndm)._ntotact) = cov_matrix;
-			istart += y_dm(ndm)._ntotact;
-		      }
-		      noisemat = noise_cov(1,1);
-		      for (ns = 2 ; ns<= numberof(nwfs) ; ns++){
-			grow,noisemat,noise_cov(ns,ns);
-		      }
-		      //error;
-		      rtc_setgain,g_rtc,i-1,controllers(i).gain;
-		      mgain = array(1.0f,(y_dm._ntotact)(sum));
-		      rtc_loadmgain,g_rtc,i-1,mgain;
-		      
-		      imat = rtc_getimat(g_rtc,0);
+	    if(comp_mode == "CPU"){
+	      covmat = array(0.0,sum(y_dm(ndms)._ntotact),sum(y_dm(ndms)._ntotact));
+	      istart = 0;
+	      for (ndm = 1 ; ndm <= numberof(ndms) ; ndm++){
+		//cov_matrix = docovmat(g_rtc,g_atmos,g_dm,y_dm(ndm)._ntotact,ndm,method,mode="real");
+		//covmat(istart+1:istart+y_dm(ndm)._ntotact,istart+1:istart+y_dm(ndm)._ntotact) = cov_matrix;
+		cov_matrix = stat_cov(ndm,y_atmos.r0);
+		if (y_dm(ndm).type == "pzt")
+		  covmat(istart+1:istart+y_dm(ndm)._ntotact,istart+1:istart+y_dm(ndm)._ntotact) = cov_matrix;
+		else{
+		  Ckl = SVdec(cov_matrix);
+		  covmat(istart+1:istart+y_dm(ndm)._ntotact,istart+1:istart+y_dm(ndm)._ntotact) = unit(y_dm(ndm)._ntotact) * Ckl;
+		}
+		istart += y_dm(ndm)._ntotact;
+	      }
+	      noisemat = noise_cov(1);
+	      //error;
+	      for (ns = 2 ; ns<= numberof(nwfs) ; ns++){
+		grow,noisemat,noise_cov(ns);
+	      }
+	      //error;
+	      rtc_setgain,g_rtc,i-1,controllers(i).gain;
+	      mgain = array(1.0f,(y_dm._ntotact)(sum));
+	      rtc_loadmgain,g_rtc,i-1,mgain;
+	      
+	      imat = rtc_getimat(g_rtc,0);
+	      //imat = imat_geom(meth=0);
+	      //ii = where(abs(imat)<max(abs(imat)));
+	      //imat(ii) = 0.;
+	      //rtc_setimat,g_rtc,0,float(imat);
 
-		      if (method == "inv"){
-			// Reconstructeur 1
-		        //error;
-			noisemat = float(1./noisemat);
-			Cn = unit(numberof(noisemat)) * (noisemat);
-			tmp = (imat(+,) * Cn(+,))(,+) * imat(+,) + covmat;
-			tmp = LUsolve(tmp);
-			cmat = (tmp(,+)*imat(,+))(,+)*Cn(+,);
-			//error;
-		      }
-		      if (method == "n"){
-		      // Reconstructeur 2
+	      if (method == "inv"){
+		// Reconstructeur 1
+		//error;
+		noisemat = float(1./noisemat);
+		Cn = unit(numberof(noisemat)) * (noisemat);
+			
+		s = SVdec(covmat,U);
+		E = unit(numberof(s)) * (1/s);
+		E(numberof(s),numberof(s))=0.;
+		covmat = (U(,+)*E(+,))(,+)*U(,+);
+			
+		tmp = (imat(+,) * Cn(+,))(,+) * imat(+,) + covmat;
+		//error;
+		//tmp = LUsolve(tmp);
+		s = SVdec(tmp,U);
+		E = unit(numberof(s)) * (1/s);
+		E(numberof(s),numberof(s))=0.;
+		tmp = (U(,+)*E(+,))(,+)*U(,+);
+		cmat = (tmp(,+)*imat(,+))(,+)*Cn(+,);
+		//error;
+	      }
+	      if (method == "n"){
+		// Reconstructeur 2
 		      
-			Cn = unit(numberof(noisemat)) * noisemat;
-			tmp = (imat(,+)*covmat(+,))(,+)*imat(,+) + Cn;
-			tmp = LUsolve(tmp);
-			cmat = (covmat(,+)*imat(,+))(,+)*tmp(+,);
-		      }	 
-		      //error;
-		      rtc_setcmat,g_rtc,i-1,cmat;
-		    }
-		  }
+		Cn = double(unit(numberof(noisemat)) * noisemat);
+		//Cn = double(unit(numberof(noisemat)) * 0.);
+		//restore,openb("covpzt");
+		//covmat = stat_cov(1,y_atmos.r0);// * -(y_tel.diam/2.)^(5./3);
+		D = (imat(,+)*covmat(+,))(,+)*imat(,+) + Cn;
+		//error;
+		Cmm = rtc_getCmm(g_rtc,0);
+		//Cmm = fits_read("../../../../matcov_gpu/res.fits");
+		
+		Cmm /=RASC^(5./3)/(2.*pi / (y_wfs(1).lambda * 1e-6))*0.594279;
+		Cmm += Cn;
+		//Cmm(1:204,1:204) -= 0.02;
+		//Cmm(205:,205:) -= 0.02;
+		tmp = invgen(Cmm,50);
+		D1 = LUsolve(D);
+		//tmp = LUsolve(Cmm);
+		/*
+		  s = SVdec(tmp,U,Vt);
+		  E = unit(numberof(s)) * (1/s);
+		  for(ii=1 ; ii<=numberof(s) ; ii++){
+		  if (s(ii) < s(1)/1500.) E(ii,ii)=0.;}
+		  //E(y_dm(1)._ntotact,y_dm(1)._ntotact) = 0.;
+		  tmp = (U(,+)*E(+,))(,+)*U(,+);
+		*/
+		//error;
+		C = (covmat(,+)*imat(,+))(,+)*tmp(+,);
+		cmat = (covmat(,+)*imat(,+))(,+)*D1(+,);
+		//cmat = C;
+		//error;
+	      }	 
+	      //error;
+	      rtc_setcmat,g_rtc,i-1,cmat;
+	    }
+	  }
         }
       }
     }
   }
+}
+func invgen(mat , nfilt)
+/* DOCUMENT invgen( mat, nfilt)
+   mat   : matrice a inverser
+   nfilt : nombre de modes a filtrer
+*/
+{
+   s = SVdec(mat,u,vt);
+   if( nfilt>0 ) {
+       s1 = s;
+       s1(1-nfilt:0) = 1.0;
+       s1 = 1./s1;
+       s1(1-nfilt:0) = 0.0;
+   } else {
+       s1 = 1.0 / s;
+   }
+   m1 =  (u*s1(-,))(,+) * vt(+,);
+   return m1;
 }

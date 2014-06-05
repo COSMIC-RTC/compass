@@ -575,6 +575,13 @@ extern rtc_docentroids;
       
    SEE ALSO:
  */
+extern rtc_doCmm;
+/* DOCUMENT rtc_doCmm
+   rtc_doimat,yoga_rtc_obj,ncontroller,yoga_wfs_obj,yoga_atmos_obj,diamTel,cobs
+   do Cmm matrix for a controller in a yoga_rtc_obj object
+      
+   SEE ALSO:
+ */
 extern rtc_doimatkl;
 extern rtc_doimat;
 /* DOCUMENT rtc_doimat
@@ -597,6 +604,14 @@ extern rtc_setimat;
 /* DOCUMENT rtc_setimat
    rtc_setimat,yoga_rtc_obj,ncontroller,imat
    set imat for a controller in a yoga_rtc_obj object
+      
+   SEE ALSO:
+ */
+
+extern rtc_setcovmat;
+/* DOCUMENT rtc_covmat
+   rtc_setcovmat,yoga_rtc_obj,ncontroller,covmat
+   set covmat (Cphi) for a MV controller in a yoga_rtc_obj object
       
    SEE ALSO:
  */
@@ -659,7 +674,7 @@ extern rtc_setgain;
  */
 extern rtc_docovmat;
 /* DOCUMENT rtc_docovmat
-   rtc_docovmat,yoga_rtc_obj,ncontroller,yoga_dm_obj,type,alt,indx_pup,dim,xpos,ypos,norm
+   rtc_docovmat,yoga_rtc_obj,ncontroller,yoga_dm_obj,type,alt,indx_pup,dim,xpos,ypos,norm,ampli,method
    compute the covariance matrix on a yoga_rtc_obj with MV controller
 */
 extern rtc_loadcovmat;
@@ -680,6 +695,13 @@ extern rtc_getklbasis;
 /* DOCUMENT rtc_getklbasis
    rtc_getklbasis,yoga_rtc_obj,ncontroller
    retrieve the KL basis from a yoga_rtc_obj with MV controller
+
+   SEE ALSO:
+*/
+extern rtc_getCmm;
+/* DOCUMENT rtc_getcovmat
+   rtc_getCmm,yoga_rtc_obj,ncontroller
+   retrieve the inverse of the covariance matrix  from a yoga_rtc_obj with MV controller
 
    SEE ALSO:
 */

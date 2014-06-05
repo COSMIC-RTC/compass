@@ -868,7 +868,7 @@ pli,sensors_getdata(g_wfs,0,"fttotim")(1,,,1)
 
  */
 
-func noise_cov(ns,ndm)
+func noise_cov(ns)
 // Compute the noise covariance matrix of the WFS
 {
   extern y_wfs,y_tel,y_dm,y_atmos;
@@ -881,22 +881,22 @@ func noise_cov(ns,ndm)
     flux = (*y_wfs(ns)._fluxPerSub)(*)(ind); // Flux for each subaperture
     Nph = flux * y_wfs(ns)._nphotons;  // Nphotons on each subaperture
   
-    patchDiam = y_tel.diam+2*max(abs([y_wfs(ns).xpos,y_wfs(ns).ypos]))*4.848e-6*abs(y_dm(ndm).alt);
-    d = patchDiam / (y_dm(ndm).nact-1); // Interactuator distance
-  
+    //patchDiam = y_tel.diam+2*max(abs([y_wfs(ns).xpos,y_wfs(ns).ypos]))*4.848e-6*abs(y_dm(ndm).alt);
+    //d = patchDiam / (y_dm(ndm).nact-1); // Interactuator distance
+    //d = 1.;
     r0 = get_r0(y_atmos.r0,0.5,y_wfs(ns).lambda);
   
-    sig = (pi^2/2) * (1 / Nph) * (d/r0)^2; // Photon noise in rad²
-    sig = sig / (2*pi*d / (y_wfs(ns).lambda * 1e-6))^2;
+    sig = (pi^2/2) * (1 / Nph) * (1./r0)^2; // Photon noise in rad²
+    sig = sig / (2*pi / (y_wfs(ns).lambda * 1e-6))^2;
     sig *= RASC^2;
     //error;
     
     //Electronic noise
     Ns = y_wfs(ns).npix ; // Number of pixel
     //Nd = Ns/3. ; // FWHM of the image in pixels (Nyquist condition ?)
-    Nd = (y_wfs(ns).lambda*1e-6 / d) * RASC / y_wfs(ns).pixsize;
+    Nd = (y_wfs(ns).lambda*1e-6) * RASC / y_wfs(ns).pixsize;
     sigphi = (pi^2/3) * (1 / Nph^2) * (y_wfs(ns).noise)^2 * Ns^2 * (Ns/Nd)^2; // Phase variance in rad²
-    sigsh = sigphi / (2*pi*d / (y_wfs(ns).lambda * 1e-6))^2; // Noise variance in rad²
+    sigsh = sigphi / (2*pi / (y_wfs(ns).lambda * 1e-6))^2; // Noise variance in rad²
     sigsh *= RASC^2; // Electronic noise variance in arcsec²
     sig *= 0; // No photon noise for debug
     cov_n = array(0.0f,2*numberof(sig));
