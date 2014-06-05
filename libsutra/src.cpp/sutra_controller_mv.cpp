@@ -11,8 +11,8 @@ sutra_controller_mv::sutra_controller_mv(carma_context *context, long nvalid,
   this->device = device;
   this->gain = 0.0f;
 
-  this->nstreams = 1; //nvalid/10;
-  while (nactu() % this->nstreams != 0)
+  int nstreams = 1; //nvalid/10;
+  while (nactu() % nstreams != 0)
     nstreams--;
   cerr << "controller uses " << nstreams << " streams" << endl;
   streams = new carma_streams(nstreams);
