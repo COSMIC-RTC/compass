@@ -576,7 +576,7 @@ void carma_ipcs::free_transfer_shm(unsigned int id){
 */
 int carma_ipcs::init_barrier(unsigned int id, unsigned int value){
   int res = EXIT_FAILURE;
-
+  int sem_val;
   std::map<unsigned int, sh_barrier *>::iterator it;
   it = barriers.find(id);
   if(it != barriers.end()){ //id found in map
@@ -623,12 +623,11 @@ int carma_ipcs::wait_barrier(unsigned int id){
   int res = EXIT_FAILURE;
   std::map<unsigned int, sh_barrier *>::iterator it;
   sh_barrier *barrier;
-
+  int sem_val;
 
   it = barriers.find(id);
   if(it == barriers.end()){ //not found in map
     //STAMP("%d, barrier not found in map\n", getpid());
-    sh_barrier * barrier;
     char name[NAME_MAX+1];
 
     sprintf(name, "/cipcs_cubarrier_%d", id);
@@ -649,21 +648,18 @@ int carma_ipcs::wait_barrier(unsigned int id){
     barrier = barriers[id];
 
   //access barrier
-  //STAMP("%d, wait for var_mutex 2 (access)\n", getpid());
   if(sem_wait(&barrier->var_mutex) == -1)
     return res;
   if(!barrier->valid){
     //STAMP("%d, post var_mutex invalid\n", getpid());
     sem_post(&barrier->var_mutex);
-    //STAMP("%d, barrier invalid\n");
     errno = EBADF;
     return res;
   }
   barrier->waiters_cnt++;
-  ////STAMP("waiters_cnt %d, val %d\n", barrier->waiters_cnt, barrier->val);
+ //STAMP("waiters_cnt %d, val %d\n", barrier->waiters_cnt, barrier->val);
   if(barrier->waiters_cnt == barrier->val){
-    //STAMP("%d, post var_mutex unlock\n", getpid());
-    barrier->waiters_cnt--;
+    //STAMP("%d, post var_mutex, unlock\n", getpid());
     sem_post(&barrier->var_mutex);
     for(unsigned int i = 1; i < barrier->val; ++i){
       sem_post(&barrier->b_sem); //(val - 1) post
@@ -684,7 +680,6 @@ int carma_ipcs::wait_barrier(unsigned int id){
   barrier->waiters_cnt--;
   sem_post(&barrier->var_mutex);
 
-  //STAMP("%d, return res\n", getpid());
   return res;
 }
 
