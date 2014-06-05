@@ -236,3 +236,13 @@ int sutra_dm::kl_floloadarrays(float *covmat, float *filter, float *evals,
   return EXIT_SUCCESS;
 }
 
+int sutra_dms::nact_total() {
+  map<type_screen, sutra_dm *>::iterator p;
+  p = d_dms.begin();
+  int idx = 0;
+  while (p != d_dms.end()) {
+    idx += p->second->ninflu;
+    p++;
+  }
+  return idx;
+}

@@ -393,7 +393,7 @@ int carma_ipcs::alloc_transfer_shm(unsigned int id, size_t bsize, bool isBoard){
 }
 
 
-int get_size_transfer_shm(unsigned int id, size_t *bsize){
+int carma_ipcs::get_size_transfer_shm(unsigned int id, size_t *bsize){
   int res = EXIT_FAILURE;
   sh_buffer *buffer = NULL;
 
@@ -408,7 +408,7 @@ int get_size_transfer_shm(unsigned int id, size_t *bsize){
 }
 
 
-int get_datasize_transfer_shm(unsigned int id, size_t *bsize){
+int carma_ipcs::get_datasize_transfer_shm(unsigned int id, size_t *bsize){
   int res = EXIT_FAILURE;
   sh_buffer *buffer = NULL;
 
@@ -471,7 +471,7 @@ int carma_ipcs::write_transfer_shm(unsigned int id, const void *src, size_t bsiz
   if(sem_wait(&buffer->mutex) == -1)
     return res;
 
-  if(gpuBuffer){
+  if(isGpuBuffer){
     if((res = write_gpu(buffer->p_shm, (CUdeviceptr) src, bsize)) == -1){
       sem_post(&buffer->mutex);
       return res;
@@ -509,14 +509,14 @@ int carma_ipcs::read_transfer_shm(unsigned int id, void *dst, size_t bsize, bool
     sem_wait(&buffer->wait_pub);
   }
 
-  if(gpuBuffer){
+  if(isGpuBuffer){
     if((res = read_gpu((CUdeviceptr) dst, buffer->p_shm, bsize)) == -1){
       sem_post(&buffer->mutex);
       return res;
     }
   }
   else{
-    memcpy(src, buffer->p_shm, bsize);
+    memcpy(dst, buffer->p_shm, bsize);
   }
 
   sem_post(&buffer->mutex);
@@ -525,7 +525,7 @@ int carma_ipcs::read_transfer_shm(unsigned int id, void *dst, size_t bsize, bool
   return res;
 }
 
-int unmap_transfer_shm(unsigned int id){
+int carma_ipcs::unmap_transfer_shm(unsigned int id){
   int res = EXIT_FAILURE;
   sh_buffer *buffer = NULL;
 

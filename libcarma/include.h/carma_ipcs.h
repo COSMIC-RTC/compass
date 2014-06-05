@@ -97,7 +97,6 @@ private:
   int read_gpu(CUdeviceptr dst, void *src, size_t bsize);
 
 
-
 public:
   /*
    general purpose methods
@@ -123,7 +122,6 @@ public:
   void free_memHandle(unsigned int id);
   //free a event handle shared event space
   void free_eventHandle(unsigned int id);
-
 
   /*
     Transfer via CPU memory methods

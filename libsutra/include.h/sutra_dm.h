@@ -84,6 +84,8 @@ public:
       float push4imat, int device);
   int
   remove_dm(const char* type, float alt);
+
+  int nact_total();
 };
 
 template<class T>
