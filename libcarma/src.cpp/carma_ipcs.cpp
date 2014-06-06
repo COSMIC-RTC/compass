@@ -308,6 +308,7 @@ int carma_ipcs::get_elem_tshm(unsigned int id, sh_buffer *buffer){
 
     it = buffers.find(id);
     if(it == buffers.end()){ //not found in map
+      STAMP("tranfer not found in map\n");
       char name[NAME_MAX+1];
       sprintf(name, "/cipcs_cubuffer_%d", id);
       if((buffer = (sh_buffer *)get_shm(name)) == (void *) -1){ //not found in shm
@@ -316,6 +317,7 @@ int carma_ipcs::get_elem_tshm(unsigned int id, sh_buffer *buffer){
       }
       else{ //found in shm
         //get included shm
+        STAMP("tranfer found in shm\n");
         char name[NAME_MAX+1];
         sprintf(name, "/cipcs_cubuffer_%d_in", id);
         if((buffer->p_shm = get_shm(name)) == (void *) -1){
@@ -331,8 +333,8 @@ int carma_ipcs::get_elem_tshm(unsigned int id, sh_buffer *buffer){
         buffers[id] = buffer;
       }
     }
-    else
-      buffer = buffers[id];
+
+    buffer = buffers[id];
 
     errno = 0;
     res = EXIT_SUCCESS;
@@ -395,12 +397,12 @@ int carma_ipcs::alloc_transfer_shm(unsigned int id, size_t bsize, bool isBoard){
 
 int carma_ipcs::get_size_transfer_shm(unsigned int id, size_t *bsize){
   int res = EXIT_FAILURE;
-  sh_buffer *buffer = NULL;
+  sh_buffer buffer;
 
-  if(get_elem_tshm(id, buffer) == EXIT_FAILURE)
+  if(get_elem_tshm(id, &buffer) == EXIT_FAILURE)
     return res; //errno previously set
 
-  *bsize = buffer->size;
+  *bsize = buffer.size;
 
   errno = 0;
   res = EXIT_SUCCESS;
@@ -410,15 +412,15 @@ int carma_ipcs::get_size_transfer_shm(unsigned int id, size_t *bsize){
 
 int carma_ipcs::get_datasize_transfer_shm(unsigned int id, size_t *bsize){
   int res = EXIT_FAILURE;
-  sh_buffer *buffer = NULL;
+  sh_buffer buffer;
 
-  if(get_elem_tshm(id, buffer) == EXIT_FAILURE)
+  if(get_elem_tshm(id, &buffer) == EXIT_FAILURE)
     return res; //errno previously set
 
-  if(sem_wait(&buffer->mutex) == -1)
+  if(sem_wait(&buffer.mutex) == -1)
     return res;
-  *bsize = buffer->data_size;
-  sem_post(&buffer->mutex);
+  *bsize = buffer.data_size;
+  sem_post(&buffer.mutex);
 
   errno = 0;
   res = EXIT_SUCCESS;
@@ -429,12 +431,12 @@ int carma_ipcs::get_datasize_transfer_shm(unsigned int id, size_t *bsize){
 
 int carma_ipcs::map_transfer_shm(unsigned int id){
   int res = EXIT_FAILURE;
-  sh_buffer *buffer = NULL;
+  sh_buffer buffer;
 
-  if(get_elem_tshm(id, buffer) == EXIT_FAILURE)
+  if(get_elem_tshm(id, &buffer) == EXIT_FAILURE)
     return res; //errno previously set
 
-  cuMemHostRegister(buffer->p_shm, buffer->data_size, CU_MEMHOSTREGISTER_DEVICEMAP);
+  cuMemHostRegister(buffer.p_shm, buffer.data_size, CU_MEMHOSTREGISTER_DEVICEMAP);
 
   errno = 0;
   res = EXIT_SUCCESS;
@@ -471,34 +473,38 @@ int carma_ipcs::read_gpu(CUdeviceptr dst, void *src, size_t bsize){
 
 int carma_ipcs::write_transfer_shm(unsigned int id, const void *src, size_t bsize, bool isGpuBuffer){
   int res = EXIT_FAILURE;
-  sh_buffer *buffer = NULL;
+  sh_buffer buffer;
 
-  if(get_elem_tshm(id, buffer) == EXIT_FAILURE)
+  STAMP("in write\n");
+  if(get_elem_tshm(id, &buffer) == EXIT_FAILURE)
     return res; //errno previously set
 
-  if(sem_wait(&buffer->mutex) == -1)
+  STAMP("sem_wait, mutex\n");
+  if(sem_wait(&buffer.mutex) == -1)
     return res;
 
   //todo : error code, maybe?
-  if(bsize > buffer->size)
-    bsize = buffer->size;
+  if(bsize > buffer.size)
+    bsize = buffer.size;
 
   if(isGpuBuffer){
-    if((res = write_gpu(buffer->p_shm, (CUdeviceptr) src, bsize)) < 0 -1){
-      sem_post(&buffer->mutex);
+    STAMP("device buffer\n");
+    if((res = write_gpu(buffer.p_shm, (CUdeviceptr) src, bsize)) < 0 -1){
+      sem_post(&buffer.mutex);
       return res;
     }
   }
   else{
-    memcpy(buffer->p_shm, src, bsize);
+    STAMP("host buffer\n");
+    memcpy(buffer.p_shm, src, bsize);
   }
 
-  buffer->data_size = bsize;
+  buffer.data_size = bsize;
 
-  if(buffer->isBoard)
-    sem_post(&buffer->wait_pub);
+  if(buffer.isBoard)
+    sem_post(&buffer.wait_pub);
 
-  sem_post(&buffer->mutex);
+  sem_post(&buffer.mutex);
   errno = 0;
   res = EXIT_SUCCESS;
   return res;
@@ -507,36 +513,36 @@ int carma_ipcs::write_transfer_shm(unsigned int id, const void *src, size_t bsiz
 
 int carma_ipcs::read_transfer_shm(unsigned int id, void *dst, size_t bsize, bool isGpuBuffer){
   int res = EXIT_FAILURE;
-  sh_buffer *buffer = NULL;
+  sh_buffer buffer;
 
 
-  if(get_elem_tshm(id, buffer) == EXIT_FAILURE)
+  if(get_elem_tshm(id, &buffer) == EXIT_FAILURE)
     return res; //errno previously set
 
-  if(sem_wait(&buffer->mutex) == -1)
+  if(sem_wait(&buffer.mutex) == -1)
     return res;
 
   //todo : error code, maybe?
-  if(bsize > buffer->size)
-    bsize = buffer->size;
+  if(bsize > buffer.size)
+    bsize = buffer.size;
 
-  if(buffer->isBoard){
-    sem_post(&buffer->mutex);
-    sem_wait(&buffer->wait_pub);
+  if(buffer.isBoard){
+    sem_post(&buffer.mutex);
+    sem_wait(&buffer.wait_pub);
     //todo: to improve, this could be buggy.
-    sem_wait(&buffer->mutex);
+    sem_wait(&buffer.mutex);
   }
   if(isGpuBuffer){
-    if((res = read_gpu((CUdeviceptr) dst, buffer->p_shm, bsize)) < 0){
-      sem_post(&buffer->mutex);
+    if((res = read_gpu((CUdeviceptr) dst, buffer.p_shm, bsize)) < 0){
+      sem_post(&buffer.mutex);
       return res;
     }
   }
   else{
-    memcpy(dst, buffer->p_shm, bsize);
+    memcpy(dst, buffer.p_shm, bsize);
   }
 
-  sem_post(&buffer->mutex);
+  sem_post(&buffer.mutex);
   errno = 0;
   res = EXIT_SUCCESS;
   return res;
@@ -544,12 +550,12 @@ int carma_ipcs::read_transfer_shm(unsigned int id, void *dst, size_t bsize, bool
 
 int carma_ipcs::unmap_transfer_shm(unsigned int id){
   int res = EXIT_FAILURE;
-  sh_buffer *buffer = NULL;
+  sh_buffer buffer;
 
-  if(get_elem_tshm(id, buffer) == EXIT_FAILURE)
+  if(get_elem_tshm(id, &buffer) == EXIT_FAILURE)
     return res; //errno previously set
 
-  cuMemHostUnregister(buffer->p_shm);
+  cuMemHostUnregister(buffer.p_shm);
 
   errno = 0;
   res = EXIT_SUCCESS;
