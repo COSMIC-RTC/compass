@@ -59,7 +59,6 @@ func script_system(filename,verbose=,strehl=,r0=,clean=)
   dm_init;
 
   target_init;
-
   rtc_init,clean=clean;
 
   if (verbose) write,"... Done with inits !";
@@ -113,7 +112,8 @@ func script_system(filename,verbose=,strehl=,r0=,clean=)
     tst(,,cc)=mscreen;
     mspec += circavg(abs(fft(mscreen)/nxscreen/nxscreen)^2);
     */
-    
+   
+ 
     if ((y_target != []) && (g_target != [])) {
       // loop on targets
       for (i=1;i<=y_target.ntargets;i++) {
@@ -175,7 +175,6 @@ func script_system(filename,verbose=,strehl=,r0=,clean=)
   
   write,"\n done with simulation \n";
   write,format="simulation time : %f sec. per iteration\n",tac(mytime)/y_loop.niter;
-  error;
     if (strehl) 
       return strehllp(0);
   //mimg /= y_loop.niter;
@@ -391,6 +390,7 @@ func script_imat(filename,verbose=,strehl=,r0=,clean=)
   correct_dm,imat;
 
   imat = imat_geom();
+
  
   if (verbose) write,"... Done with inits !";
   write,"The following objects have been initialized on the GPU :";
@@ -409,7 +409,8 @@ func script_imat(filename,verbose=,strehl=,r0=,clean=)
 
   target_dmtrace,g_target,0,g_dm,1;
 
-  pli,eclat(target_getimage(g_target,0,"se"));
+  //pli,eclat(target_getimage(g_target,0,"se"));
+  pli, yoga_getdm
   error;
 }
 
@@ -1052,4 +1053,5 @@ res=sensors_getdata(g_wfs,0,"bincube");
     hitReturn;
   }
 }
+
 //script_system, YOGA_AO_PARPATH+"1wfs40x40_1layer_rtc_dm.par",strehl=1;

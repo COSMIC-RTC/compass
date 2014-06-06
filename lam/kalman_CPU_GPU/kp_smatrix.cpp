@@ -332,7 +332,7 @@ void kp_check_op_set_dim(int op, const kp_smatrix&M, int& dim1, int& dim2)
 //                                                                                      
 void kp_smatrix::resize2rowMajor()
 {
-    int i,j;
+    int i;
     int indice;
     vector<vector<pair<int,int> > > position(dim1, vector<pair<int,int> >());
     int* rowind2 = new int[nnz];
@@ -355,7 +355,7 @@ void kp_smatrix::resize2rowMajor()
         if(position[i].size() > 0)
         {
             std::sort(position[i].begin(), position[i].end());
-            for (int j = 0 ; j < position[i].size() ; j++)
+            for (unsigned int j = 0 ; j < position[i].size() ; j++)
             {
                 rowind2[indice] = rowind[(position[i][j]).second] ;
                 colind2[indice] = colind[(position[i][j]).second];
@@ -379,7 +379,7 @@ void kp_smatrix::resize2rowMajor()
 }
 void kp_smatrix::resize2colMajor()
 {
-    int i,j;
+    int i;
     int indice;
     vector<vector<pair<int,int> > > position(dim2, vector<pair<int,int> >());
     int* rowind2 = new int[nnz];
@@ -397,7 +397,7 @@ void kp_smatrix::resize2colMajor()
         if(position[i].size() > 0)
         {
             std::sort(position[i].begin(), position[i].end());
-            for (int j = 0 ; j < position[i].size() ; j++)
+            for (unsigned int j = 0 ; j < position[i].size() ; j++)
             {
                 colind2[indice] = colind[(position[i][j]).second] ;
                 rowind2[indice] = rowind[(position[i][j]).second];

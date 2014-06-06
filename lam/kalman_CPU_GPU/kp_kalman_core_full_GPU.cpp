@@ -69,7 +69,7 @@ void kp_kalman_core_full_GPU::calculate_gain(real bruit_pix,
 		cerr<<"Error | kp_kalman_core_full_GPU::kp_kalman_core_full_GPU | size problem btur"<<endl;
 		exit(EXIT_FAILURE);
 	}
-	int i,j;
+	int i;
 
 	bool AR1 = true;
 	for(i = 0 ; i < btur_.size() ; i++) AR1 &= (btur_.d[i]==0);
@@ -81,7 +81,7 @@ int expression = 2;
 	real ecart = 1.0;
 	const int boucle_max = 50;
 	const real SigmaW = k_W*bruit_pix;
-	real Trac_T[boucle_max];
+	//real Trac_T[boucle_max];
 	real trac1_tmp, trac2_tmp;
 
 //kp_cu_timer temps_alphak, temps_betak, temps_Tk, temps_inversion ;
@@ -192,9 +192,8 @@ int expression = 2;
 	kp_cu_vector cu_diag_cu_Tk(cu_T_k.dim1);
 
 
-	//ofstream fichier;
+	ofstream fichier;
 
-int BOUCLEID=0;
 
 
 	while( (ecart>seuil) && (boucle < boucle_max) )
@@ -207,6 +206,43 @@ int BOUCLEID=0;
 
 		// Calcul de IBG_1
 		// betak_Tk = beta_k * T_k
+/*cout<<"cu_beta_k="<<cu_beta_k.dim1<<"x"<<cu_beta_k.dim2<<endl;
+cout<<"cu_T_k="<<cu_T_k.dim1<<"x"<<cu_T_k.dim2<<endl;
+cout<<"cu_betak_Tk="<<cu_betak_Tk.dim1<<"x"<<cu_betak_Tk.dim2<<endl;
+kp_matrix betak_test, Tk_test, betak_Tk_test;
+kp_cu2kp_matrix(betak_test, cu_beta_k);
+kp_cu2kp_matrix(Tk_test, cu_T_k);
+kp_cu2kp_matrix(betak_Tk_test, cu_betak_Tk);
+fichier.open("betak_test.dat",ios::out);
+   for (int i=0 ; i<betak_test.dim1 ; i++)
+   {
+       for (int j=0 ; j<betak_test.dim2 ; j++)
+       {
+          fichier << betak_test(i,j)<< " ";
+       }
+      fichier <<endl;
+   }
+fichier.close();
+fichier.open("Tk_test.dat",ios::out);
+   for (int i=0 ; i<Tk_test.dim1 ; i++)
+   {
+      for (int j=0 ; j<Tk_test.dim2 ; j++)
+      {
+         fichier << Tk_test(i,j)<< " ";
+      }
+      fichier <<endl;
+   }
+fichier.close();
+fichier.open("betak_Tk_test.dat",ios::out);
+   for (int i=0 ; i<betak_Tk_test.dim1 ; i++)
+   {
+      for (int j=0 ; j<betak_Tk_test.dim2 ; j++)
+      {
+         fichier << betak_Tk_test(i,j)<< " ";
+      }
+      fichier <<endl;
+   }
+fichier.close();*/
 		kp_cu_gemm (cublasHandle, 'N', 'N', 1 , cu_beta_k, cu_T_k, 0, cu_betak_Tk);
 
 		/*if (ordreAR ==1)
@@ -281,7 +317,7 @@ int BOUCLEID=0;
 		trac1_tmp = kp_cu_reduce(cu_diag_cu_Tkp1sk);
 		trac2_tmp = kp_cu_reduce(cu_diag_cu_Tk);
 		
-		Trac_T[boucle]=trac1_tmp;
+		//Trac_T[boucle]=trac1_tmp;
 		ecart =fabs(trac1_tmp/trac2_tmp-1.0);
 		boucle ++;
 

@@ -128,6 +128,7 @@ func comp_dmgeom(nm)
   tmpx = offs + tmpx(,,-:1:nact) + (*y_dm(nm)._i1)(-:1:smallsize,-:1:smallsize,);
   tmpy = offs + tmpy(,,-:1:nact) + (*y_dm(nm)._j1)(-:1:smallsize,-:1:smallsize,);
   tmp = tmpx + dim * tmpy;
+  //tmp = tmpy + dim * tmpx;
   
   if (numberof(where(tmpx < 0)) > 0) tmp(where(tmpx < 0)) = -10;
   if (numberof(where(tmpy < 0)) > 0) tmp(where(tmpy < 0)) = -10;

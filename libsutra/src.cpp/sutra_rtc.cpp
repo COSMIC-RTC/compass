@@ -77,10 +77,10 @@ int sutra_rtc::add_controller(int nactu, long delay, long device,
   {
 
 // We choose parameters by hand now....
-    bool is_zonal = true;
-    bool is_sparse = true;
+    //bool is_zonal = false;
+    //bool is_sparse = false;
 
-       carma_obj<float> *cD_Mo, *cN_Act, *cPROJ, *catur, *cbtur, *cSigmaV;
+       /*carma_obj<float> *cD_Mo, *cN_Act, *cPROJ, *catur, *cbtur, *cSigmaV;
     if (is_zonal)
     {
        cD_Mo   = calculate_D_Mo(current_context, ncentroids*2, nactu, is_zonal);
@@ -100,26 +100,27 @@ int sutra_rtc::add_controller(int nactu, long delay, long device,
        cbtur   = calculate_btur(current_context, nzernike, is_zonal);
        cSigmaV = calculate_SigmaV(current_context, nzernike, is_zonal);
     }
-    double Bruit = 0.04;
+    double Bruit = 0.004;
     double K_W = 5;
-//  end of choosing parameters by hand....
+//  end of choosing parameters by hand....*/
 
-    sutra_controller_kalman* k;	
+    /*sutra_controller_kalman* k;	
     if (type_ctr.compare("kalman_GPU") == 0)
        k = new sutra_controller_kalman(current_context, *cD_Mo, *cN_Act, *cPROJ, is_zonal, is_sparse, true);
     else
-       k = new sutra_controller_kalman(current_context, *cD_Mo, *cN_Act, *cPROJ, is_zonal, is_sparse, false);
+       k = new sutra_controller_kalman(current_context, *cD_Mo, *cN_Act, *cPROJ, is_zonal, is_sparse, false);*/
 
+    d_control.push_back(new sutra_controller_kalman(current_context, ncentroids*2, nactu));
 
-    k->calculate_gain(Bruit, K_W, *cSigmaV, *catur, *cbtur);
-    d_control.push_back(k);
+    //k->calculate_gain(Bruit, K_W, *cSigmaV, *catur, *cbtur);
+    //d_control.push_back(k);
 	  
-    delete cD_Mo;
-    delete cN_Act;
-    delete cPROJ;
-    delete cSigmaV;
-    delete catur;
-    delete cbtur;	  	  
+    //delete cD_Mo;
+    //delete cN_Act;
+    //delete cPROJ;
+    //delete cSigmaV;
+    //delete catur;
+    //delete cbtur;	  	  
   }
   else
   {

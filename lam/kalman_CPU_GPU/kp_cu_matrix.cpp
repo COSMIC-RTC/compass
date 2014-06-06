@@ -805,7 +805,7 @@ void kp_cu_gemm(cublasHandle_t handle, char op_A, char op_B, real alpha, const k
 
 	if (stat1 != CUBLAS_STATUS_SUCCESS)
 	{
-		cerr << "error | kp_cu_matrix | kp_cu_gemm failed !" << endl;
+		cerr << "error | kp_cu_matrix | kp_cu_gemm failed : "<< stat1 << endl;
 		throw KP_CUBLAS_GEMM;
 	}
 	

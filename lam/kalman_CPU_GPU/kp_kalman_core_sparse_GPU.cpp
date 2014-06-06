@@ -77,7 +77,7 @@ void kp_kalman_core_sparse_GPU::calculate_gain(real bruit_pix,
 
 
 
-	int i,j;
+	int i;
 
 	//ofstream fichier;
 	bool AR1 = true;
@@ -89,7 +89,7 @@ void kp_kalman_core_sparse_GPU::calculate_gain(real bruit_pix,
 	real ecart = 1.0;
 	const int boucle_max = 50;
 	const real SigmaW = k_W*bruit_pix;
-	real Trac_T[boucle_max];
+	//real Trac_T[boucle_max];
 	real trac1_tmp, trac2_tmp;
 
 
@@ -196,7 +196,6 @@ void kp_kalman_core_sparse_GPU::calculate_gain(real bruit_pix,
 	kp_cu_vector cu_diag_cu_Tk(cu_T_k.dim1);
 
 
-int BOUCLEID=0;
 
 
 
@@ -340,7 +339,7 @@ fichier.open("T_kp1",ios::out);
 		trac1_tmp = kp_cu_reduce(cu_diag_cu_Tkp1sk);
 		trac2_tmp = kp_cu_reduce(cu_diag_cu_Tk);
 		
-		Trac_T[boucle]=trac1_tmp;
+		//Trac_T[boucle]=trac1_tmp;
 		ecart =fabs(trac1_tmp/trac2_tmp-1.0);
 		//cout << "ecart = "<< __SP ecart << endl;
 		boucle ++;

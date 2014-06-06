@@ -1055,5 +1055,35 @@ func create_nact(nm) {
   return nact;
 }
 
+func create_sigmav(SigmaTur, isZonal, ordreAR, atur, btur)
+{ //atur et btur sont des vecteurs (sous-diagonales de A1)
+  dims = dimsof(SigmaTur);
+  if ( (dims(1)!=2) || (dims(2)!=dims(3))){
+     write, "Incorrect dimensions of matrix SigmaTur in function create_sigmav"
+  }
+
+  nb_az = dims(2);
+  if (ordreAR == 1)
+  {
+     (A1_Tur = array(structof(atur), nb_az, nb_az))(1:nb_az*nb_az:nb_az+1) = atur;
+     SigmaV = SigmaTur - A1_Tur*SigmaTur*transpose(A1_Tur);
+  }
+  else if (ordreAR == 2)
+  {
+     if (isZonal == 0)
+     {
+       (A2_Tur = array(structof(atur), nb_az, nb_az))(1:nb_az*nb_az:nb_az+1) = atur;
+       (B2_Tur = array(structof(btur), nb_az, nb_az))(1:nb_az*nb_az:nb_az+1) = btur;
+       Sig1 = LUsolve(unit(width_of(SigmaTur)) - B2_Tur , A2_Tur*SigmaTur);
+       Sig2 = A2_Tur*SigmaTur*transpose(A2_Tur) + B2_Tur*SigmaTur*transpose(B2_Tur) + A2_Tur*Sig1*transpose(B2_Tur) + B2_Tur*Sig1*transpose(A2_Tur);
+       if (isZonal == 0) Sig2 = (Sig2 + transpose(Sig2))/2;
+       SigmaV = SigmaTur - Sig2;
+     }
+  }
+  //pli, SigmaTur;error;
+  //pli, SigmaV;error;
+  return SigmaV;
+}
+
 
 

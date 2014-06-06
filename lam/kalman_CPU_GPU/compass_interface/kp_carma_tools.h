@@ -8,7 +8,9 @@
 #include <carma_obj.h>
 #include <kp_matrix.h>
 
+void kp_carma_host_obj_to_kp_matrix(carma_host_obj<float>& ch, kp_matrix& k);
 void kp_carma_obj_to_kp_matrix(carma_obj<float>& c, kp_matrix& k);
+void kp_carma_host_obj_to_kp_vector(carma_host_obj<float>& ch, kp_vector& k);
 void kp_carma_obj_to_kp_vector(carma_obj<float>& c, kp_vector& k);
 size_t kp_carma_obj_get_dim1(carma_obj<float>& M);
 size_t kp_carma_obj_get_dim2(carma_obj<float>& M);

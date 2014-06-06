@@ -80,7 +80,7 @@ void kp_kalman_core_full_CPU::calculate_gain(real bruit_pix,
 	real ecart = 1.0;
 	const int boucle_max = 50;
 	const real SigmaW = k_W*bruit_pix;
-	real Trac_T[boucle_max];
+	//real Trac_T[boucle_max];
 	real trac1_tmp, trac2_tmp;
 
 	H_inf.resize(0,0);
@@ -190,7 +190,6 @@ void kp_kalman_core_full_CPU::calculate_gain(real bruit_pix,
 	kp_matrix Tk_IBG1_alphak(T_k.dim1, alpha_k.dim2);
 
 
-int BOUCLEID=0;
 
 
 	while( (ecart>seuil) && (boucle < boucle_max) )
@@ -282,7 +281,7 @@ int BOUCLEID=0;
 			trac1_tmp += (T_kp1sk.d[i * T_kp1sk.dim1 + i]);
 			trac2_tmp += (T_k.d[i * T_k.dim1 + i]);
 		}
-		Trac_T[boucle]=trac1_tmp;
+		//Trac_T[boucle]=trac1_tmp;
 		ecart =fabs(trac1_tmp/trac2_tmp-1.0);
 		boucle ++;
 

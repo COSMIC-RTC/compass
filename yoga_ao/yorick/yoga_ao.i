@@ -693,6 +693,23 @@ func rtc_init(clean=)
             controller_initcured,g_rtc,0,int(y_wfs(1).nxsub),int(*y_wfs(1)._isvalid),
               int(controllers(i).cured_ndivs),int(tt_flag);
 	    rtc_setgain,g_rtc,0,controllers(i).gain;
+          }           
+          if ((controllers(i).type  == "kalman_CPU") || (controllers(i).type  == "kalman_GPU")) {
+            if (controllers(i).type  == "kalman_CPU")
+              write,"initializing kalman_CPU controller";
+            else
+              write,"initializing kalman_GPU controller";
+
+
+            D_Mo   = create_dm0(1,1);
+            N_Act  = create_nact(1); 
+            PROJ   = LUsolve(N_Act);
+            SigmaTur = stat_cov(1, y_atmos.r0);
+            atur = array(0.98, 241);
+            btur = array(0.0f, 241);
+            SigmaV = create_sigmav(SigmaTur, 1, 1, atur, btur);
+            rtc_initkalman, g_rtc, 0 , D_Mo, N_Act, PROJ, SigmaV, atur, btur, 1, 1, 0;
+
           }          
 	  // Florian features
 	  if (controllers(i).type == "mv"){      

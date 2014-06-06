@@ -3484,6 +3484,107 @@ void Y_yoga_floloadkl(int argc) {
 
 //-----------------------------------------------------------------------------------------
 
+void Y_rtc_initkalman(int argc) {
+ 
+  rtc_struct *rhandler = (rtc_struct *) yget_obj(argc - 1, &yRTC);
+  sutra_rtc *rtc_handler = (sutra_rtc *) (rhandler->sutra_rtc);
+  long ncontrol = ygets_l(argc - 2);
+  long ntot, dims[Y_DIMSIZE];
+
+  float* hD_Mo = ygeta_f(argc-3, &ntot, dims);
+  carma_host_obj<float> D_Mo(dims, hD_Mo);
+
+  float* hN_Act = ygeta_f(argc-4, &ntot, dims);
+  carma_host_obj<float> N_Act(dims, hN_Act);
+
+float* hPROJ = ygeta_f(argc-5, &ntot, dims);
+  carma_host_obj<float> PROJ(dims, hPROJ);
+
+  float* hSigmaV = ygeta_f(argc-6, &ntot, dims);
+  carma_host_obj<float> SigmaV(dims, hSigmaV);
+
+  float* hatur = ygeta_f(argc-7, &ntot, dims);
+  carma_host_obj<float> atur(dims, hatur);
+
+  float* hbtur = ygeta_f(argc-8, &ntot, dims);
+  carma_host_obj<float> btur(dims, hbtur);
+
+  bool is_zonal = ygets_s(argc - 9);
+  bool is_sparse = ygets_s(argc - 10);
+  bool is_GPU = ygets_s(argc - 11);
+
+
+  if ( (rtc_handler->d_control.at(ncontrol)->get_type().compare("kalman_CPU") == 0)
+     ||(rtc_handler->d_control.at(ncontrol)->get_type().compare("kalman_GPU") == 0)) {
+
+    SCAST(sutra_controller_kalman *, control, rtc_handler->d_control.at(ncontrol));
+    control->init_kalman(D_Mo, N_Act, PROJ, is_zonal, is_sparse, is_GPU );
+  
+// debut TMP
+    int nactu = rtc_handler->d_control.at(ncontrol)->nactu();
+    carma_context* current_context = rtc_handler->current_context;
+       
+    if (is_zonal)
+    {
+       //cD_Mo   = calculate_D_Mo(current_context, ncentroids*2, nactu, is_zonal);
+       //cN_Act  = calculate_N_Act(current_context, nactu, nactu, is_zonal);
+       //cPROJ   = calculate_PROJ(current_context, nactu, nactu, is_zonal);
+       //catur   = calculate_atur(current_context, nactu, is_zonal);
+       //cbtur   = calculate_btur(current_context, nactu, is_zonal);
+       //cSigmaV = calculate_SigmaV(current_context, nactu, is_zonal);
+    }
+    else
+    {
+       int nzernike = 495;
+       //cD_Mo   = calculate_D_Mo(current_context, ncentroids*2, nzernike, is_zonal);
+       //cN_Act  = calculate_N_Act(current_context, nzernike, nactu, is_zonal);
+       //cPROJ   = calculate_PROJ(current_context, nactu, nzernike, is_zonal);
+       //catur   = calculate_atur(current_context, nzernike, is_zonal);
+       //cbtur   = calculate_btur(current_context, nzernike, is_zonal);
+       //cSigmaV = calculate_SigmaV(current_context, nzernike, is_zonal);
+    }
+   control->calculate_gain(0.001, 5.0, SigmaV, atur, btur);
+    //delete catur;
+    //delete cbtur;	
+//fin TMP    
+//
+  }
+  else
+    y_error("Controller needs to be either kalman_CPU or kalman_GPU\n");
+}
+
+void Y_rtc_kalmancalculategain(int argc) {
+ 
+  long ntot, dims[Y_DIMSIZE];
+
+  rtc_struct *rhandler = (rtc_struct *) yget_obj(argc - 1, &yRTC);
+  sutra_rtc *rtc_handler = (sutra_rtc *) (rhandler->sutra_rtc);
+  long ncontrol = ygets_l(argc - 2);
+
+    double bruit = ygets_d(argc - 3);
+    double k_W = ygets_d(argc - 4);
+	    
+
+  float* hSigmaV = ygeta_f(argc-5, &ntot, dims);
+  carma_host_obj<float> SigmaV(dims, hSigmaV);
+
+  float* hatur = ygeta_f(argc-6, &ntot, dims);
+  carma_host_obj<float> atur(dims, hatur);
+  
+  float* hbtur = ygeta_f(argc-7, &ntot, dims);
+  carma_host_obj<float> btur(dims, hbtur);
+	    
+	    
+  if ( (rtc_handler->d_control.at(ncontrol)->get_type().compare("kalman_CPU") == 0)
+     ||(rtc_handler->d_control.at(ncontrol)->get_type().compare("kalman_GPU") == 0)) {
+    
+          SCAST(sutra_controller_kalman *, control, rtc_handler->d_control.at(ncontrol));
+    control->calculate_gain(bruit, k_W, SigmaV, atur, btur);
+  }
+  else
+    y_error("Controller needs to be either kalman_CPU or kalman_GPU\n");
+}
+
 
 }
 

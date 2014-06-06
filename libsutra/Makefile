@@ -63,6 +63,7 @@ else
 endif
 
 ifneq ($(COMPILATION_LAM),)
+  CFLAGS = -DCOMPILATION_LAM
   LIB_DEPLIBS += -L$(NVIDIA_CURRENT_LIB_PATH_64) -lcuda
   LIB_DEPLIBS += -L$(MAGMA_ROOT)/lib -lmagma
   LIB_DEPLIBS += $(LAM_KP_DIR)/libkp_kalman.a

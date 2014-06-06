@@ -209,7 +209,7 @@ void kp_vector::set_from_subvector(const kp_vector& subv, const vector<int>& idx
 	cerr<<"Error | kp_vector::set_from_subvector | the same vector"<<endl;
 	exit(EXIT_FAILURE);
      }
-   if (subv.size() != idx.size())
+   if ((unsigned int)subv.size() != idx.size())
      {
 	cerr<<"Error | kp_vector::set_from_subvector | subv.size() != idx.size()"<<endl;
 	exit(EXIT_FAILURE);
@@ -238,7 +238,7 @@ void kp_vector::set_from_subvector(const kp_vector& subv, int start)
 	cerr<<"size()="<<size()<<" start="<<start<<endl;
 	exit(EXIT_FAILURE);
      }
-   for (size_t i = 0 ; i < subv.size() ; i++)
+   for (size_t i = 0 ; i < (unsigned int)subv.size() ; i++)
      d[i + start] = subv[i];
    
    #ifdef __WITH_FLOPS_CALCULATOR__
@@ -284,7 +284,7 @@ real kp_vector::mean()
 real kp_vector::sum_sqr()
 {
    real rez = 0;
-   for (size_t i = 0 ; i < size() ; i++)
+   for (size_t i = 0 ; i < (unsigned int)size() ; i++)
      {
 	rez += el(i) * el(i);
      }

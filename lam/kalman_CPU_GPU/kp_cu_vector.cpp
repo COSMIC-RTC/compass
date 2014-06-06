@@ -245,7 +245,7 @@ void kp_cu_vector::init_from_idx(const kp_cu_vector& v, const vector<int>& idx)
 
 void kp_cu_vector::set_from_subvector(const kp_vector& subv, const vector<int>& idx)
 {
-   if (subv.size() != idx.size())
+   if ((unsigned int)subv.size() != idx.size())
      {
 	cerr<<"Error | kp_cu_vector::set_from_subvector | subv.size() != idx.size()"<<endl;
 	exit(EXIT_FAILURE);
@@ -272,7 +272,7 @@ void kp_cu_vector::set_from_subvector(const kp_cu_vector& subv, const vector<int
 	cerr<<"Error | kp_cu_vector::set_from_subvector | the same vector"<<endl;
 	exit(EXIT_FAILURE);
      }
-   if (subv.size() != idx.size())
+   if ((unsigned int)subv.size() != idx.size())
      {
 	cerr<<"Error | kp_cu_vector::set_from_subvector | subv.size() != idx.size()"<<endl;
 	exit(EXIT_FAILURE);

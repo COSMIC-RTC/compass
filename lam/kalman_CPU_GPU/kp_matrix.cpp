@@ -168,8 +168,8 @@ void kp_matrix::cols_mean(kp_vector& rez)
    rez.zeros();
    if (dim1 == 0 || dim2 == 0)
      return;
-   for (size_t j = 0 ; j < dim2 ; j++) 
-     for (size_t i = 0 ; i < dim1 ; i++)
+   for (size_t j = 0 ; j < (unsigned int)dim2 ; j++) 
+     for (size_t i = 0 ; i < (unsigned int)dim1 ; i++)
        {
 	  rez[j] += el(i, j);
        }
@@ -186,8 +186,8 @@ void kp_matrix::rows_mean(kp_vector& rez)
    rez.zeros();
    if (dim1 == 0 || dim2 == 0)
      return;
-   for (size_t j = 0 ; j < dim2 ; j++) 
-     for (size_t i = 0 ; i < dim1 ; i++)
+   for (size_t j = 0 ; j < (unsigned int)dim2 ; j++) 
+     for (size_t i = 0 ; i < (unsigned int)dim1 ; i++)
        {
 	  rez[i] += el(i, j);
        }
@@ -206,7 +206,7 @@ double kp_matrix::trace()
 	exit(EXIT_FAILURE);
      }
    double sum = 0;
-   for (size_t i = 0 ; i < dim1 ; i++)
+   for (size_t i = 0 ; i < (unsigned int)dim1 ; i++)
      sum += el(i,i);
    
    #ifdef __WITH_FLOPS_CALCULATOR__   
@@ -244,7 +244,7 @@ void kp_matrix::init_from_rowidx(const kp_matrix& M, const vector<int>& rowidx)
 	exit(EXIT_FAILURE);
      }
    resize(rowidx.size(), M.dim2);
-   for (int i = 0 ; i < rowidx.size(); i++)
+   for (unsigned int i = 0 ; i < rowidx.size(); i++)
      {
 	if (rowidx[i] < 0 || rowidx[i] >= M.dim1)
 	  {
@@ -252,7 +252,7 @@ void kp_matrix::init_from_rowidx(const kp_matrix& M, const vector<int>& rowidx)
 	  }
      }
    for (int j = 0 ; j < M.dim2 ; j++)
-     for (int i = 0 ; i < rowidx.size(); i++)
+     for (unsigned int i = 0 ; i < rowidx.size(); i++)
        {
 	  el(i,j) = M(rowidx[i], j);
        }
@@ -268,12 +268,12 @@ void kp_matrix::set_from_rowsubmatrix(const kp_matrix& subM, const vector<int>& 
 	cerr<<"Error | kp_matrix::kp_matrix::set_from_rowsubmatrix | the same matrix"<<endl;
 	exit(EXIT_FAILURE);
      }
-   if (subM.dim1 != rowidx.size() || subM.dim2 != dim2)
+   if ((unsigned int)subM.dim1 != rowidx.size() || subM.dim2 != dim2)
      {
 	cerr<<"Error | kp_matrix::set_from_rowsubmatrix | dimension probles"<<endl;
 	exit(EXIT_FAILURE);
      }
-   for (int i = 0 ; i < rowidx.size(); i++)
+   for (unsigned int i = 0 ; i < rowidx.size(); i++)
      {
 	if (rowidx[i] < 0 || rowidx[i] >= dim1)
 	  {
@@ -281,7 +281,7 @@ void kp_matrix::set_from_rowsubmatrix(const kp_matrix& subM, const vector<int>& 
 	  }
      }
    for (int j = 0 ; j < dim2 ; j++)
-     for (int i = 0 ; i < rowidx.size() ; i++)
+     for (unsigned int i = 0 ; i < rowidx.size() ; i++)
        {
 	  el(rowidx[i], j) = subM(i,j);	  
        }
