@@ -229,10 +229,14 @@ carma_obj<float>* calculate_atur(carma_context* context, int n_actu_zern, bool i
   return NULL;
 }
 
-sutra_controller_kalman::sutra_controller_kalman(carma_context* context,
-    carma_host_obj<float>& chD_Mo, carma_host_obj<float>& chN_Act, carma_host_obj<float>& chPROJ,
-    bool is_zonal, bool is_sparse, bool is_GPU) :
-    sutra_controller(context, cD_Mo.getDims(1), cN_Act.getDims(2)), isGPU(is_GPU) {
+sutra_controller_kalman::sutra_controller_kalman(carma_context* context_, int nslope_, int nactu_) : sutra_controller(context_, nslope_, nactu_) {
+   core_sparse = NULL;
+   core_full = NULL;
+   cusparseHandle = NULL;
+   isGPU = true;
+   isZonal = true;
+   isSparse = true;
+   isInit = false;
 }
 
 sutra_controller_kalman::~sutra_controller_kalman() {
