@@ -730,11 +730,11 @@ func docovmat(g_rtc,g_atmos,g_dm,Nactu,ndm,meth,mode=)
      alpha = alpha(,2:);
      cov_matrix = (alpha(,+) * alpha(,+)) / dimsof(alpha)(3);
      // Inversion 
-     error;
-     s = SVdec(cov_matrix,U);
-     E = unit(numberof(s)) * (1/s);
-     E(numberof(s),numberof(s)) = 0;
-     cov_matrix = U(,+) * (E(,+) * U(,+))(+,);
+     //error;
+     //s = SVdec(cov_matrix,U);
+     //E = unit(numberof(s)) * (1/s);
+     //E(numberof(s),numberof(s)) = 0;
+     //cov_matrix = U(,+) * (E(,+) * U(,+))(+,);
      
     }
   }
@@ -934,9 +934,9 @@ func stat_cov(n,r0)
     interactp = double(x(2) - x(1));
     interactm = patchDiam/(y_dm(n).nact-1);
     p2m = interactm/interactp;
-    //norm = -(p2m/r0)^(5./3)/2.;
+    norm = (p2m/r0)^(5./3)/2.;
     //norm = -(0.0269484/r0)^(5./3);
-    norm = -(p2m*patchDiam/(2*r0))^(5./3);
+    //norm = -(p2m*patchDiam/(2*r0))^(5./3);
     //norm = 1.;
     //error;
     //norm *= 1/75000.;
@@ -969,6 +969,24 @@ func stat_cov(n,r0)
   return norm*m;
 }
 
+func create_sigmaTur(n){
+  //Some constants
+  k1 = 0.1716613621245709486;
+  k2 = 1.0056349179985892838;
+  // Actuators positions
+  x = *y_dm(n)._xpos;
+  y = *y_dm(n)._ypos;
+    
+  patchDiam = y_tel.diam+2*max(abs([y_wfs(n).xpos,y_wfs(n).ypos]))*4.848e-6*abs(y_dm(n).alt);
+  interactp = double(x(2) - x(1));
+  interactm = patchDiam/(y_dm(n).nact-1);
+  p2m = interactm/interactp;
+
+  r = abs(x(*)(,-)-x(*)(-,),y(*)(,-)-y(*)(-,)) * p2m;
+  return (k1 * k2 * L0^(5./3)  -  0.5 * rodconan(r, L0) ) * r0^(-5./3);
+  
+    
+}
   
 func create_dm0(nm,nw) {
   nb_p   = (y_wfs(nw)._nvalid) * 2;
