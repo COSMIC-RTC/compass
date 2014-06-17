@@ -1067,7 +1067,7 @@ func create_nact(nm) {
     yoga_setcomm,g_dm,y_dm(nm).type,y_dm(nm).alt,com;
     yoga_shapedm,g_dm,y_dm(nm).type,y_dm(nm).alt;
     shape = yoga_getdm(g_dm,y_dm(nm).type,y_dm(nm).alt);
-    nact(i,) = shape(*)(masq_act);
+    nact(i,) = shape(*)(masq_act) / float(y_dm(nm).push4imat);
   }
 
   return nact;
