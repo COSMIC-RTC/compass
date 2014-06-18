@@ -230,10 +230,11 @@ int sutra_source::raytrace(sutra_atmos *yatmos, bool async) {
       cudaMemset(this->d_phase->d_screen->getData(), 0,
           sizeof(float) * this->d_phase->d_screen->getNbElem()));
 
+  float delta;
   map<type_screen, float>::iterator p;
   p = xoff.begin();
-  while (p != xoff.end()) {
 
+  while (p != xoff.end()) {
     string types = p->first.first;
 
     if (types.find("atmos") == 0) {
@@ -252,14 +253,25 @@ int sutra_source::raytrace(sutra_atmos *yatmos, bool async) {
             xoff[make_pair("atmos", alt)], yoff[make_pair("atmos", alt)],
             this->block_size);
       } else {
+    	  if (this->lgs){
+    		  delta = 1.0f - alt/this->d_lgs->hg;
+    		  target_lgs_raytrace(this->d_phase->d_screen->getData(),
+    		              ps->d_tscreen->d_screen->getData(),
+    		              (int) d_phase->d_screen->getDims(1),
+    		              (int) d_phase->d_screen->getDims(2),
+    		              (int) ps->d_tscreen->d_screen->getDims(1),
+    		              xoff[make_pair(types, alt)], yoff[make_pair(types, alt)],delta,
+    		              this->block_size);
+    	  }
+    	  else
 
-        target_raytrace(this->d_phase->d_screen->getData(),
-            ps->d_tscreen->d_screen->getData(),
-            (int) d_phase->d_screen->getDims(1),
-            (int) d_phase->d_screen->getDims(2),
-            (int) ps->d_tscreen->d_screen->getDims(1),
-            xoff[make_pair("atmos", alt)], yoff[make_pair("atmos", alt)],
-            this->block_size);
+    		  target_raytrace(this->d_phase->d_screen->getData(),
+    				  ps->d_tscreen->d_screen->getData(),
+    				  (int) d_phase->d_screen->getDims(1),
+    				  (int) d_phase->d_screen->getDims(2),
+    				  (int) ps->d_tscreen->d_screen->getDims(1),
+    				  xoff[make_pair("atmos", alt)], yoff[make_pair("atmos", alt)],
+    				  this->block_size);
       }
     } else
       p++;
@@ -297,15 +309,15 @@ int sutra_source::raytrace(sutra_dms *ydms, int rst, bool async) {
             (int) ps->d_shape->d_screen->getDims(1),
             xoff[make_pair(types, alt)], yoff[make_pair(types, alt)],
             this->block_size);
-      } else
-        target_raytrace(this->d_phase->d_screen->getData(),
-            ps->d_shape->d_screen->getData(),
-            (int) d_phase->d_screen->getDims(1),
-            (int) d_phase->d_screen->getDims(2),
-            (int) ps->d_shape->d_screen->getDims(1),
-            xoff[make_pair(types, alt)], yoff[make_pair(types, alt)],
-            this->block_size);
-
+      } else{
+    		  target_raytrace(this->d_phase->d_screen->getData(),
+    				  ps->d_shape->d_screen->getData(),
+    				  (int) d_phase->d_screen->getDims(1),
+    				  (int) d_phase->d_screen->getDims(2),
+    				  (int) ps->d_shape->d_screen->getDims(1),
+    				  xoff[make_pair(types, alt)], yoff[make_pair(types, alt)],
+    				  this->block_size);
+      }
     } else
       p++;
   }

@@ -683,12 +683,12 @@ void Y_target_init_strehlmeter(int argc) {
 void Y_target_atmostrace(int argc) {
   target_struct *handler = (target_struct *) yget_obj(argc - 1, &yTarget);
   sutra_target *target_handler = (sutra_target *) (handler->sutra_target);
-
+  
   carma_context *context_handle = _getCurrentContext();
   context_handle->set_activeDevice(handler->device);
-
+  
   int ntarget = ygets_i(argc - 2);
-
+  
   atmos_struct *handler_a = (atmos_struct *) yget_obj(argc - 3, &yAtmos);
   sutra_atmos *atmos_handler = (sutra_atmos *) (handler_a->sutra_atmos);
   target_handler->d_targets.at(ntarget)->raytrace(atmos_handler);

@@ -336,8 +336,8 @@ func target_init(void)
           // to take into account the difference in screen size
           // for target screen is of the same size as spupil
           // for wfs screen is of same size as mpupil
-          pupdiff = (y_geom._n - y_geom.pupdiam)/2
-            xoff += pupdiff;
+          pupdiff = (y_geom._n - y_geom.pupdiam)/2;
+          xoff += pupdiff;
           yoff += pupdiff;
           target_addlayer,g_target,cc-1,type,(*y_atmos.alt)(dd),xoff,yoff;
         }
@@ -367,10 +367,13 @@ func target_init(void)
   if (y_wfs != []) {
     if ((y_wfs != []) && (g_wfs != [])) {
       for (cc=1;cc<=numberof(y_wfs);cc++) {
+	if (y_wfs(cc).gsalt != 0.)
+	  gsalt = 1./y_wfs(cc).gsalt;
+	else gsalt = 0.;
         if (y_atmos != []) {
           for (dd=1;dd<=y_atmos.nscreens;dd++) {
-            xoff = (y_wfs.xpos)(cc)*4.848e-6*(*y_atmos.alt)(dd)/y_atmos.pupixsize;
-            yoff = (y_wfs.ypos)(cc)*4.848e-6*(*y_atmos.alt)(dd)/y_atmos.pupixsize;
+            xoff = (gsalt * (*y_atmos.alt)(dd) * (y_tel.diam/2.) + (y_wfs.xpos)(cc)*4.848e-6*(*y_atmos.alt)(dd))/y_atmos.pupixsize;
+            yoff = (gsalt * (*y_atmos.alt)(dd) * (y_tel.diam/2.) + (y_wfs.ypos)(cc)*4.848e-6*(*y_atmos.alt)(dd))/y_atmos.pupixsize;
             xoff = float(xoff+((*y_atmos.dim_screens)(dd)-y_geom._n)/2);
             yoff = float(yoff+((*y_atmos.dim_screens)(dd)-y_geom._n)/2);
             sensors_addlayer,g_wfs,cc-1,type,(*y_atmos.alt)(dd),xoff,yoff;
@@ -382,7 +385,7 @@ func target_init(void)
             dim  = dimsof(*y_geom._mpupil)(2);
             dim_dm = max([dim,dims]);
             xoff = (y_wfs.xpos)(cc)*4.848e-6*(y_dm.alt)(dd)/(y_tel.diam / y_geom.pupdiam);
-            yoff = (y_wfs.ypos)(cc)*4.848e-6*(y_dm.alt)(dd)/(y_tel.diam / y_geom.pupdiam);
+	    yoff = (y_wfs.ypos)(cc)*4.848e-6*(y_dm.alt)(dd)/(y_tel.diam / y_geom.pupdiam);
             xoff = float(xoff+(dim_dm-y_geom._n)/2);
             yoff = float(yoff+(dim_dm-y_geom._n)/2);
             sensors_addlayer,g_wfs,cc-1,y_dm(dd).type,(y_dm.alt)(dd),xoff,yoff;

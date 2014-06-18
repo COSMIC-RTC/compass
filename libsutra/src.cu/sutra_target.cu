@@ -109,9 +109,101 @@ __device__ void generic_raytrace(float *odata, float *idata, int nx, int ny,
   }
 }
 
+__device__ void lgs_raytrace(float *odata, float *idata, int nx, int ny,
+    float xoff, float yoff, int Nx, int blockSize, int istart, float delta) {
+  int x = threadIdx.x + blockIdx.x * blockDim.x;
+  int y = threadIdx.y + blockIdx.y * blockDim.y;
+  y += istart;
+
+  int tido;
+
+  int iref, jref, tidi;
+  float xref = x * delta + xoff;
+  float yref = y * delta + yoff;
+
+  float xshift, yshift, wx1, wx2, wy1, wy2;
+
+  iref = (int) xref;
+  jref = (int) yref;
+  tidi = iref + jref * Nx;
+
+  //if ((x < nx) && (y < ny)) {
+
+  if (tidi < Nx * Nx)
+    cache[threadIdx.x + threadIdx.y * (blockSize+1)] = idata[tidi];
+  //}
+  // Remplissage des bords du cache :
+  if ((threadIdx.x == blockSize-1) || (threadIdx.y == blockSize-1)){
+	  if ((threadIdx.x == blockSize-1)){
+		  int bx = threadIdx.x + 1;
+		  int xx = bx + blockIdx.x * (blockDim.x);
+		  float bxref = xx * delta + xoff;
+		  int biref = (int) bxref;
+		  int tidib = biref + jref * Nx;
+		  if (tidib < Nx * Nx)
+			  cache[bx + threadIdx.y * (blockSize+1)] = idata[tidib];
+		  else cache[bx + threadIdx.y * (blockSize+1)] = 0.0f;
+	  }
+	  if ((threadIdx.y == blockSize-1)){
+		  int by = threadIdx.y + 1;
+		  int yy = by + blockIdx.y * (blockDim.y);
+		  float byref = yy * delta + yoff;
+		  int bjref = (int) byref;
+		  int tidib = iref + bjref * Nx;
+		  if (tidib < Nx * Nx)
+			  cache[threadIdx.x + by * (blockSize+1)] = idata[tidib];
+		  else cache[threadIdx.x + by * (blockSize+1)] = 0.0f;
+	  }
+	  if ((threadIdx.x == blockSize-1) && (threadIdx.y == blockSize-1)){
+		  int bx = threadIdx.x + 1;
+		  int by = threadIdx.y + 1;
+		  int xx = bx + blockIdx.x * (blockDim.x);
+		  int yy = by + blockIdx.y * (blockDim.y);
+		  float bxref = xx * delta + xoff;
+		  float byref = yy * delta + yoff;
+		  int biref = (int) bxref;
+		  int bjref = (int) byref;
+		  int tidib = biref + bjref * Nx;
+		  if (tidib < Nx * Nx)
+			  cache[bx + by * (blockSize+1)] = idata[tidib];
+		  else cache[bx + by * (blockSize+1)] = 0.0f;
+	  }
+  }
+
+  __syncthreads();
+
+  if ((x < nx) && (y < ny)) {
+    tido = x + y * nx;
+
+    xshift = xref - iref;
+    yshift = yref - jref;
+
+    wx1 = (1.0f - xshift);
+    wx2 = xshift;
+    wy1 = (1.0f - yshift);
+    wy2 = yshift;
+/*
+    odata[tido] += (wx1 * wy1 * idata[iref + jref * Nx]
+        + wx2 * wy1 * idata[iref + 1 + jref * Nx]
+        + wx1 * wy2 * idata[iref + (jref + 1) * Nx]
+        + wx2 * wy2 * idata[iref + 1 + (jref + 1) * Nx]);*/
+
+    odata[tido] += (wx1 * wy1 * cache[threadIdx.x + threadIdx.y * (blockSize+1)]
+            + wx2 * wy1 * cache[threadIdx.x + 1 + threadIdx.y * (blockSize+1)]
+            + wx1 * wy2 * cache[threadIdx.x + (threadIdx.y + 1) * (blockSize+1)]
+            + wx2 * wy2 * cache[threadIdx.x + 1 + (threadIdx.y + 1) * (blockSize+1)]);
+
+  }
+}
+
 __global__ void raytrace_krnl(float *odata, float *idata, int nx, int ny,
     float xoff, float yoff, int Nx, int blockSize) {
   generic_raytrace(odata, idata, nx, ny, xoff, yoff, Nx, blockSize, 0);
+}
+
+__global__ void raytrace_lgs_krnl(float *odata, float *idata, int nx, int ny,
+    float xoff, float yoff, int Nx, int blocksize, float delta) {
+  lgs_raytrace(odata, idata, nx, ny, xoff, yoff, Nx, blocksize, 0,delta);
 }
 
 __global__ void raytrace_krnl(float *odata, float *idata, int nx, int ny,
@@ -130,6 +222,21 @@ int target_raytrace(float *d_odata, float *d_idata, int nx, int ny, int Nx,
 
   raytrace_krnl<<<blocks, threads, smemSize>>>(d_odata, d_idata, nx, ny, xoff,
       yoff, Nx, block_size);
+
+  cutilCheckMsg("raytrace_kernel<<<>>> execution failed\n");
+  return EXIT_SUCCESS;
+}
+
+int target_lgs_raytrace(float *d_odata, float *d_idata, int nx, int ny, int Nx,
+    float xoff, float yoff, float delta, int block_size) {
+  int nnx = nx + block_size - nx % block_size; // find next multiple of BLOCK_SZ
+  int nny = ny + block_size - ny % block_size;
+  dim3 blocks(nnx / block_size, nny / block_size), threads(block_size,
+      block_size);
+
+  int smemSize = (block_size + 1) * (block_size + 1) * sizeof(float);
+  raytrace_lgs_krnl<<<blocks, threads, smemSize>>>(d_odata, d_idata, nx, ny, xoff,
+      yoff, Nx, block_size,delta);
 
   cutilCheckMsg("raytrace_kernel<<<>>> execution failed\n");
   return EXIT_SUCCESS;

@@ -977,7 +977,7 @@ func create_sigmaTur(n){
   x = *y_dm(n)._xpos;
   y = *y_dm(n)._ypos;
     
-  patchDiam = y_tel.diam+2*max(abs([y_wfs(n).xpos,y_wfs(n).ypos]))*4.848e-6*abs(y_dm(n).alt);
+  patchDiam = y_tel.diam+2*max(abs([y_wfs.xpos,y_wfs.ypos]))*4.848e-6*abs(y_dm(n).alt);
   interactp = double(x(2) - x(1));
   interactm = patchDiam/(y_dm(n).nact-1);
   p2m = interactm/interactp;

@@ -107,6 +107,9 @@ int
 target_raytrace(float *d_odata, float *d_idata, int nx, int ny, int Nx,
     float xoff, float yoff, int block_size);
 int
+target_lgs_raytrace(float *d_odata, float *d_idata, int nx, int ny, int Nx,
+    float xoff, float yoff, float delta, int block_size);
+int
 target_raytrace_async(carma_streams streams, float *d_odata, float *d_idata,
     int nx, int ny, int Nx, float xoff, float yoff, int block_size);
 int
