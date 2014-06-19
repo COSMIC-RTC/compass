@@ -439,14 +439,23 @@ __device__ void red_krnl(T *sdata, int size, int n) {
 }
 
 template<class T>
-__global__ void reduce2(T *g_idata, T *g_odata, unsigned int n) {
+__global__ void reduce2(T *g_idata, T *g_odata, unsigned int n, unsigned int nelem_thread =1) {
   T *sdata = SharedMemory<T>();
 
   // load shared mem
   unsigned int tid = threadIdx.x;
-  unsigned int i = blockIdx.x * blockDim.x + threadIdx.x;
+  //unsigned int i = blockIdx.x * blockDim.x + threadIdx.x;
 
-  sdata[tid] = (i < n) ? g_idata[i] : 0;
+  sdata[tid] = 0;
+  for (int cc=0;cc < nelem_thread; cc++) {
+    int idim = tid * nelem_thread + cc + (blockDim.x * nelem_thread) * blockIdx.x;
+    if (idim < n) 
+      sdata[tid] +=g_idata[idim];
+    else
+      sdata[tid] += 0;
+  }
+
+  //sdata[tid] = (i < n) ? g_idata[i] : 0;
 
   __syncthreads();
 
@@ -457,16 +466,26 @@ __global__ void reduce2(T *g_idata, T *g_odata, unsigned int n) {
 }
 
 template<class T>
-__global__ void reduce2(T *g_idata, T *g_odata, T thresh, unsigned int n) {
+__global__ void reduce2(T *g_idata, T *g_odata, T thresh, unsigned int n, unsigned int nelem_thread =1) {
   T *sdata = SharedMemory<T>();
 
   // load shared mem
   unsigned int tid = threadIdx.x;
-  unsigned int i = blockIdx.x * blockDim.x + threadIdx.x;
+  //unsigned int i = blockIdx.x * blockDim.x + threadIdx.x;
 
+  sdata[tid] = 0;
+  for (int cc=0;cc < nelem_thread; cc++) {
+    int idim = tid * nelem_thread + cc + (blockDim.x * nelem_thread) * blockIdx.x;
+    if (idim < n) { 
+      if (g_idata[idim] > thresh)  sdata[tid] += g_idata[idim];
+      else sdata[tid] += 0;
+    } else
+      sdata[tid] += 0;
+  }
+  /*
   if (i < n)
     sdata[tid] = (g_idata[i] > thresh) ? g_idata[i] : 0;
-
+  */
   __syncthreads();
 
   red_krnl(sdata, blockDim.x, tid);
@@ -476,14 +495,23 @@ __global__ void reduce2(T *g_idata, T *g_odata, T thresh, unsigned int n) {
 }
 
 template<class T>
-__global__ void reduce2(T *g_idata, T *g_odata, T *weights, unsigned int n) {
+__global__ void reduce2(T *g_idata, T *g_odata, T *weights, unsigned int n, unsigned int nelem_thread=1) {
   T *sdata = SharedMemory<T>();
 
   // load shared mem
   unsigned int tid = threadIdx.x;
-  unsigned int i = blockIdx.x * blockDim.x + threadIdx.x;
+  //unsigned int i = blockIdx.x * blockDim.x + threadIdx.x;
 
-  sdata[tid] = (i < n) ? g_idata[i] * weights[i] : 0;
+  sdata[tid] = 0;
+  for (int cc=0;cc < nelem_thread; cc++) {
+    int idim = tid * nelem_thread + cc + (blockDim.x * nelem_thread) * blockIdx.x;
+    if (idim < n) 
+      sdata[tid] +=g_idata[idim] * weights[idim];
+    else
+      sdata[tid] += 0;
+  }
+
+  // sdata[tid] = (i < n) ? g_idata[i] * weights[i] : 0;
 
   __syncthreads();
 
@@ -495,7 +523,10 @@ __global__ void reduce2(T *g_idata, T *g_odata, T *weights, unsigned int n) {
 
 template<class T>
 void subap_reduce(int size, int threads, int blocks, T *d_idata, T *d_odata) {
-  dim3 dimBlock(threads, 1, 1);
+
+  unsigned int nelem_thread = 2;
+
+  dim3 dimBlock(threads / nelem_thread, 1, 1);
   dim3 dimGrid(blocks, 1, 1);
 
   // when there is only one warp per block, we need to allocate two warps 
@@ -503,7 +534,7 @@ void subap_reduce(int size, int threads, int blocks, T *d_idata, T *d_odata) {
   int smemSize =
       (threads <= 32) ? 2 * threads * sizeof(T) : threads * sizeof(T);
 
-  reduce2<T> <<<dimGrid, dimBlock, smemSize>>>(d_idata, d_odata, size);
+  reduce2<T> <<<dimGrid, dimBlock, smemSize>>>(d_idata, d_odata, (unsigned int)size,nelem_thread);
 
   cutilCheckMsg("reduce2_kernel<<<>>> execution failed\n");
 }

@@ -560,10 +560,10 @@ func rtc_init(clean=)
                 s_offset = (y_wfs(centroiders(i).nwfs).npix/2.+0.5);
               }
               else {
-                s_offset = (y_wfs(centroiders(i).nwfs).npix/2.+1.);
+                s_offset = (y_wfs(centroiders(i).nwfs).npix/2.+0.5);
               }
             } else {
-              s_offset = (y_wfs(centroiders(i).nwfs).npix/2.+1);
+              s_offset = (y_wfs(centroiders(i).nwfs).npix/2.+0.5);
             }
           }
           s_scale = y_wfs(centroiders(i).nwfs).pixsize;

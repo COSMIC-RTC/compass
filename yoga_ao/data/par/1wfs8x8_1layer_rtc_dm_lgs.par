@@ -18,6 +18,7 @@ y_atmos.frac         = &([1.0]);
 y_atmos.alt          = &([0.0]);
 y_atmos.windspeed    = &([20.]);
 y_atmos.winddir      = &([0]);
+y_atmos.L0           = &([1.e5]);
 
 /*
 target inits
@@ -40,8 +41,8 @@ wfs inits
 y_wfs                  = array(wfs_struct(),1); // clean start
 y_wfs(1).type          = "sh";
 y_wfs(1).nxsub         = 7;
-y_wfs(1).npix          = 12;
-y_wfs(1).pixsize       = 1.0;
+y_wfs(1).npix          = 22;
+y_wfs(1).pixsize       = 0.6;
 y_wfs(1).fracsub       = 0.8;
 y_wfs(1).xpos          = 0.0;
 y_wfs(1).ypos          = 0.0;
@@ -57,7 +58,7 @@ y_wfs(1).lltx             = 20.;
 y_wfs(1).llty             = 0.;
 y_wfs(1).laserpower       = 10;
 y_wfs(1).lgsreturnperwatt = 1.e3;
-y_wfs(1).proftype         = "Gauss1";
+y_wfs(1).proftype         = "Exp";
 y_wfs(1).beamsize         = 0.8;
 
 
@@ -88,7 +89,7 @@ ncentroiders = 1;
 y_centroiders           = array(centroider_struct(),ncentroiders);
 
 y_centroiders.nwfs        = 1;
-y_centroiders(1).type     = "wcog";
+y_centroiders(1).type     = "corr";
 y_centroiders(1).type_fct = "model";
 
 /*
@@ -102,7 +103,7 @@ y_controllers(1).nwfs    = &[1];
 y_controllers(1).ndm     = &[1,2];
 y_controllers(1).maxcond = 60.;
 y_controllers(1).delay   = 1;
-y_controllers(1).gain    = 1.0;
+y_controllers(1).gain    = 0.6;
 
 /*
 rtc inits
