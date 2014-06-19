@@ -121,6 +121,8 @@ inline int sutra_source::init_source(carma_context *context, float xpos,
             this->d_amplipup->getDims(2), CUFFT_C2C));
   }
 
+  this->lgs = false;
+
   delete[] dims_data2;
 
   return EXIT_SUCCESS;
