@@ -441,7 +441,7 @@ int sutra_wfs::wfs_initgs(float xpos, float ypos, float lambda, float mag,
     this->d_gs->d_lgs = new sutra_lgs(current_context, this->nvalid, this->ntot,
         this->nmaxhr);
     this->d_gs->lgs = this->lgs;
-  }
+  } else this->d_gs->lgs = false;
 
   return EXIT_SUCCESS;
 }
