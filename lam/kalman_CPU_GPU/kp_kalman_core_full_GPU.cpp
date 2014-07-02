@@ -69,10 +69,9 @@ void kp_kalman_core_full_GPU::calculate_gain(real bruit_pix,
 		cerr<<"Error | kp_kalman_core_full_GPU::kp_kalman_core_full_GPU | size problem btur"<<endl;
 		exit(EXIT_FAILURE);
 	}
-	int i;
 
 	bool AR1 = true;
-	for(i = 0 ; i < btur_.size() ; i++) AR1 &= (btur_.d[i]==0);
+	for(int i = 0 ; i < btur_.size() ; i++) AR1 &= (btur_.d[i]==0);
 	if (AR1) ordreAR = 1 ; else ordreAR = 2;
 
 int expression = 2;
@@ -192,7 +191,8 @@ int expression = 2;
 	kp_cu_vector cu_diag_cu_Tk(cu_T_k.dim1);
 
 
-	ofstream fichier;
+	//ofstream fichier;
+
 
 
 
@@ -206,51 +206,21 @@ int expression = 2;
 
 		// Calcul de IBG_1
 		// betak_Tk = beta_k * T_k
-/*cout<<"cu_beta_k="<<cu_beta_k.dim1<<"x"<<cu_beta_k.dim2<<endl;
-cout<<"cu_T_k="<<cu_T_k.dim1<<"x"<<cu_T_k.dim2<<endl;
-cout<<"cu_betak_Tk="<<cu_betak_Tk.dim1<<"x"<<cu_betak_Tk.dim2<<endl;
-kp_matrix betak_test, Tk_test, betak_Tk_test;
-kp_cu2kp_matrix(betak_test, cu_beta_k);
-kp_cu2kp_matrix(Tk_test, cu_T_k);
-kp_cu2kp_matrix(betak_Tk_test, cu_betak_Tk);
-fichier.open("betak_test.dat",ios::out);
-   for (int i=0 ; i<betak_test.dim1 ; i++)
-   {
-       for (int j=0 ; j<betak_test.dim2 ; j++)
-       {
-          fichier << betak_test(i,j)<< " ";
-       }
-      fichier <<endl;
-   }
-fichier.close();
-fichier.open("Tk_test.dat",ios::out);
-   for (int i=0 ; i<Tk_test.dim1 ; i++)
-   {
-      for (int j=0 ; j<Tk_test.dim2 ; j++)
-      {
-         fichier << Tk_test(i,j)<< " ";
-      }
-      fichier <<endl;
-   }
-fichier.close();
-fichier.open("betak_Tk_test.dat",ios::out);
-   for (int i=0 ; i<betak_Tk_test.dim1 ; i++)
-   {
-      for (int j=0 ; j<betak_Tk_test.dim2 ; j++)
-      {
-         fichier << betak_Tk_test(i,j)<< " ";
-      }
-      fichier <<endl;
-   }
-fichier.close();*/
-		kp_cu_gemm (cublasHandle, 'N', 'N', 1 , cu_beta_k, cu_T_k, 0, cu_betak_Tk);
+//cout<<"cu_beta_k="<<cu_beta_k.dim1<<"x"<<cu_beta_k.dim2<<endl;
+//cout<<"cu_T_k="<<cu_T_k.dim1<<"x"<<cu_T_k.dim2<<endl;
+//cout<<"cu_betak_Tk="<<cu_betak_Tk.dim1<<"x"<<cu_betak_Tk.dim2<<endl;
+		
+                
+                
+                
+                kp_cu_gemm (cublasHandle, 'N', 'N', 1 , cu_beta_k, cu_T_k, 0, cu_betak_Tk);
 
 		/*if (ordreAR ==1)
 			
-			for (i=0 ; i<nb_az ; i++) (cu_betak_Tk.d_cu[i * cu_betak_Tk.dim1 + i]) += 1;
+			for (int i=0 ; i<nb_az ; i++) (cu_betak_Tk.d_cu[i * cu_betak_Tk.dim1 + i]) += 1;
 		else
 		{
-			for (i=0 ; i<nb_n ; i++) (cu_betak_Tk.d_cu[i * cu_betak_Tk.dim1 + i]) += 1;
+			for (int i=0 ; i<nb_n ; i++) (cu_betak_Tk.d_cu[i * cu_betak_Tk.dim1 + i]) += 1;
 		}*/
 		kernel_add_diag_const(cu_betak_Tk.d_cu, 1, cu_betak_Tk.dim1);
 
@@ -323,6 +293,11 @@ fichier.close();*/
 
 
 	}
+        if (boucle >= boucle_max)
+        {
+                cerr << "Le gain de Kalman ne converge pas.";
+                exit(EXIT_FAILURE);
+        }
 
 
 /*cout<<"nb_boucle = "<<boucle<<endl;
@@ -332,6 +307,21 @@ cout<< "temps beta_k = "<<temps_betak.rez()<<endl;
 cout<< "temps T_k = "<<temps_Tk.rez()<<endl;*/
 
 
+	/*kp_matrix T_kp1sk_test;
+	kp_cu2kp_matrix(T_kp1sk_test, cu_T_kp1sk);
+	fichier.open("Tkp1sk_full_GPU.dat",ios::out);
+	for(int i=0;i<T_kp1sk_test.dim1;i++)
+	{
+		for (int j=0;j<T_kp1sk_test.dim2;j++)
+		{
+			fichier<< __SP T_kp1sk_test(i,j)<<" ";
+		}
+		fichier << endl;
+	}	
+	fichier.close();*/
+
+
+	
 
 	cu_T_k.resize(0,0);
 	cu_alpha_kp1.resize(0,0) ;
@@ -409,7 +399,7 @@ cout<< "temps T_k = "<<temps_Tk.rez()<<endl;*/
 	/*kp_matrix Sinf_zerosDmot;
 	kp_cu2kp_matrix(Sinf_zerosDmot, cu_Sinf_zerosDmot);
 	fichier.open("Sinf_zerosDmot.dat",ios::out);
-	for(i=0;i<Sinf_zerosDmot.dim1;i++)
+	for(int i=0;i<Sinf_zerosDmot.dim1;i++)
 	{
 		for (j=0;j<Sinf_zerosDmot.dim2;j++)
 		{
@@ -430,7 +420,7 @@ cout<< "temps T_k = "<<temps_Tk.rez()<<endl;*/
 		kp_cu_gemm (cublasHandle, 'N', 'N', 1 , cu_zeros_Dmo, cu_Sinf_zerosDmot , 0, cu_inv_Sigmatot);
 
 		// Sigma_tot = Sigma_tot + SigmaW*Id (avec SigmaW reel)  (= [0 D_Mo] * Sinf * [0 ; (D_Mo)T] + SigmaW*Id)
-		//for(i = 0 ; i < cu_inv_Sigmatot.dim1 ; i++) cu_inv_Sigmatot.d_cu[i * cu_inv_Sigmatot.dim1 + i] += SigmaW;
+		//for(int i = 0 ; i < cu_inv_Sigmatot.dim1 ; i++) cu_inv_Sigmatot.d_cu[i * cu_inv_Sigmatot.dim1 + i] += SigmaW;
 		
 		
 		kernel_add_diag_const(cu_inv_Sigmatot.d_cu, SigmaW, cu_inv_Sigmatot.dim1);
@@ -464,7 +454,7 @@ cout<< "temps T_k = "<<temps_Tk.rez()<<endl;*/
         	kp_cu_matrix cu_inv_Sigmatot(cu_C1.dim1, cu_Tkp1sk_C1t.dim2);
 		// Sigma_tot = SigmaW * Id (avec SigmaW reel)
 		cu_inv_Sigmatot.zeros();
-		//for(i = 0 ; i < cu_inv_Sigmatot.dim1 ; i++) cu_inv_Sigmatot.d_cu[i * cu_inv_Sigmatot.dim1 + i] += SigmaW;
+		//for(int i = 0 ; i < cu_inv_Sigmatot.dim1 ; i++) cu_inv_Sigmatot.d_cu[i * cu_inv_Sigmatot.dim1 + i] += SigmaW;
 		kernel_add_diag_const(cu_inv_Sigmatot.d_cu, SigmaW, cu_inv_Sigmatot.dim1);
 
 	
@@ -489,7 +479,7 @@ cout<< "temps T_k = "<<temps_Tk.rez()<<endl;*/
 			
 			kp_cu_matrix cu_Atur_Hopt(nb_az, nb_p);
 			// Atur_Hopt = Atur * H_opt
-			/*for(i = 0 ; i < cu_atur.size() ; i++)
+			/*for(int i = 0 ; i < cu_atur.size() ; i++)
 				for (j = 0 ; j < cu_Atur_Hopt.dim2 ; j++)
 					cu_Atur_Hopt.d_cu[j * cu_Atur_Hopt.dim1 + i] = cu_atur.d_cu[i] * cu_H_opt.d_cu[j * cu_H_opt.dim1 + i];*/
 			kernel_diag_mult(cu_Atur_Hopt.d_cu, cu_H_opt.d_cu, cu_atur.d_cu, cu_atur.size(), cu_H_opt.dim1*cu_H_opt.dim2);
@@ -519,10 +509,10 @@ cout<< "temps T_k = "<<temps_Tk.rez()<<endl;*/
 
 	/*kp_matrix H_inf;
 	kp_cu2kp_matrix(H_inf, cu_H_inf);
-	fichier.open("H_inf.dat",ios::out);
-	for(i=0;i<H_inf.dim1;i++)
+	fichier.open("H_inf_full_GPU.dat",ios::out);
+	for(int i=0;i<H_inf.dim1;i++)
 	{
-		for (j=0;j<H_inf.dim2;j++)
+		for (int j=0;j<H_inf.dim2;j++)
 		{
 			fichier<< __SP H_inf(i,j)<<" ";
 		}

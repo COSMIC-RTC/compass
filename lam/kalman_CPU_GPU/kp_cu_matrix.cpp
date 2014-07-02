@@ -715,6 +715,7 @@ void kp_cu_geam(cublasHandle_t handle, char opA, char opB, real alpha, real beta
 
 void kp_cu_gemm(cublasHandle_t handle, char op_A, char op_B, real alpha, const kp_cu_matrix& A, const kp_cu_matrix& B, real beta, kp_cu_matrix& C)
 {
+
 	int opA_dim1, opA_dim2;	
 	int opB_dim1, opB_dim2;
 
@@ -740,6 +741,7 @@ void kp_cu_gemm(cublasHandle_t handle, char op_A, char op_B, real alpha, const k
 
 	#ifdef KP_SINGLE
 	
+cout<<"single precision"<<endl;
 	/*if (A.precision == 'D')
 	{
 	double *dAd, *dBd, *dCd;
@@ -799,6 +801,7 @@ void kp_cu_gemm(cublasHandle_t handle, char op_A, char op_B, real alpha, const k
 
 
 	#else
+cout<<"double precision"<<endl;
 		stat1= cublasDgemm(handle, transa, transb,\
 			opA_dim1, opB_dim2, opA_dim2, &alpha, A.d_cu, A.dim1, B.d_cu, B.dim1, &beta, C.d_cu, C.dim1);
 	#endif

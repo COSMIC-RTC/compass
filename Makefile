@@ -3,7 +3,7 @@ N_CPU:="$(shell cat /proc/cpuinfo | grep processor | wc -l)"
 
 all: configure
 	@echo "using $(N_CPU) jobs"
-	@(if [ -z ${COMPILATION_LAM+x} ]; then echo "lam/kalman_CPU_GPU won't be compiled." ; else cd lam/kalman_CPU_GPU && make; fi)
+	#@(cd lam/kalman_CPU_GPU && make)
 	@(cd libcarma && make -j$(N_CPU))
 	@(cd yoga && make)
 	@(cd libsutra && make -j$(N_CPU))
@@ -18,7 +18,7 @@ clean: configure
 	@(cd yoga && make clean)
 	@(cd libsutra && make clean)
 	@(cd yoga_ao && make clean)
-	@(if [ -z ${COMPILATION_LAM+x} ]; then echo "lam/kalman_CPU_GPU has been ignored." ; else cd lam/kalman_CPU_GPU && make clean; fi)
+	#@(cd lam/kalman_CPU_GPU && make clean)
 
 
 

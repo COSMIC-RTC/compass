@@ -292,7 +292,7 @@ func manual_imat(void)
       slps = rtc_getcentroids(g_rtc,0);
       grow,imat_cpu,slps/float(y_dm(1).push4imat);
       //fma;limits;
-      //plg,slps;	
+      plg,slps;	
       //display_slopes,slps*100.,1,"Phase Difference";
       yoga_resetdm,g_dm,y_dm(nm).type,y_dm(nm).alt;
       //pause,500;
@@ -960,8 +960,8 @@ func stat_cov(n,r0)
   m = 6.88 * abs(x(*)(,-)-x(*)(-,),y(*)(,-)-y(*)(-,))^(5./3) ;
   
   // Filtering piston
-  F = double(unit(dimsof(m)(3)) - array(1./(dimsof(m)(3)),dimsof(m)(3),dimsof(m)(3)));
-  m = (F(,+)*m(+,))(,+)*F(,+);
+  //F = double(unit(dimsof(m)(3)) - array(1./(dimsof(m)(3)),dimsof(m)(3),dimsof(m)(3)));
+  //m = (F(,+)*m(+,))(,+)*F(,+);
 
   if (y_dm(n).type == "kl")
     m = m(:y_dm(n).nkl,:y_dm(n).nkl);
@@ -976,6 +976,9 @@ func create_sigmaTur(n){
   // Actuators positions
   x = *y_dm(n)._xpos;
   y = *y_dm(n)._ypos;
+  
+  r0 = y_atmos.r0 * (y_wfs(nm).lambda/0.5)^(6/5);
+  L0 = (*y_atmos.L0)(1)*y_tel.diam/y_geom.pupdiam; //conversion du L0 de pixels en metres
     
   patchDiam = y_tel.diam+2*max(abs([y_wfs.xpos,y_wfs.ypos]))*4.848e-6*abs(y_dm(n).alt);
   interactp = double(x(2) - x(1));
@@ -984,11 +987,15 @@ func create_sigmaTur(n){
 
   r = abs(x(*)(,-)-x(*)(-,),y(*)(,-)-y(*)(-,)) * p2m;
   return (k1 * k2 * L0^(5./3)  -  0.5 * rodconan(r, L0) ) * r0^(-5./3);
+  //return ( -  0.5 * rodconan(r, L0) ) * r0^(-5./3);
   
     
 }
   
 func create_dm0(nm,nw) {
+  // coefficient permettant d''obtenir les meme pentes entre l''ASO COMPASS et celle obtenues par D_MO apres injection du meme ecran de phase.
+  coeff=3.5385;
+
   nb_p   = (y_wfs(nw)._nvalid) * 2;
   nb_act = y_dm(nm)._ntotact;
   DMo = array(0.0f,nb_p,nb_act);
@@ -1009,13 +1016,13 @@ func create_dm0(nm,nw) {
         MD_ssp = array(0.0f,nLenslet+1,nLenslet+1);
         // à GAUCHE
         MD_ssp(i,j) = -1;
-        MD_ssp(i+1,j) = -1;
+        MD_ssp(i+1,j) = 1;
         // à DROITE 
-        MD_ssp(i,j+1) = 1;
+        MD_ssp(i,j+1) = -1;
         MD_ssp(i+1,j+1) = 1;
-        MD_ssp = MD_ssp/2/pi;
+        MD_ssp = MD_ssp;
         // repositionnement en colonne ( pupille CARRÉE  nActuator*nActuator  )
-        V_ssp = MD_ssp(*);
+        V_ssp = MD_ssp(*)/coeff;
         // repositionnement en colonne ( pupille DISQUE nb_act )
         VP_ssp = V_ssp(masq_act);
         // Ligne de DMo --> pente en X
@@ -1030,13 +1037,13 @@ func create_dm0(nm,nw) {
         MD_ssp = array(0.0f,nLenslet+1,nLenslet+1);
         // à GAUCHE
         MD_ssp(i,j) = -1;
-        MD_ssp(i,j+1) = -1;
+        MD_ssp(i,j+1) = 1;
         // à DROITE 
-        MD_ssp(i+1,j) = 1;
+        MD_ssp(i+1,j) = -1;
         MD_ssp(i+1,j+1) = 1;
-        MD_ssp = MD_ssp/2/pi;
+        MD_ssp = MD_ssp;
         // repositionnement en colonne ( pupille CARRÉE  nActuator*nActuator  )
-        V_ssp = MD_ssp(*);
+        V_ssp = MD_ssp(*)/coeff;
         // repositionnement en colonne ( pupille DISQUE nb_act )
         VP_ssp = V_ssp(masq_act);
         // Ligne de DMo --> pente en X
@@ -1045,6 +1052,10 @@ func create_dm0(nm,nw) {
       }
     }
   }
+  /*DMo2 =  array(0.0f,nb_p,nb_act);
+  DMo2(1:nb_p/2,) = DMo(nb_p/2+1:nb_p,);
+  DMo2(nb_p/2+1:nb_p,) = DMo(1:nb_p/2,);
+  return DMo2;*/
   return DMo;
 }
 
@@ -1084,7 +1095,9 @@ func create_sigmav(SigmaTur, isZonal, ordreAR, atur, btur)
   if (ordreAR == 1)
   {
      (A1_Tur = array(structof(atur), nb_az, nb_az))(1:nb_az*nb_az:nb_az+1) = atur;
-     SigmaV = SigmaTur - A1_Tur*SigmaTur*transpose(A1_Tur);
+     A1_TurT=transpose(A1_Tur);
+     SigmaV1 = A1_Tur(,+)*SigmaTur(+,);
+     SigmaV = SigmaTur - (SigmaV1(,+)*A1_TurT(+,));
   }
   else if (ordreAR == 2)
   {
@@ -1092,14 +1105,21 @@ func create_sigmav(SigmaTur, isZonal, ordreAR, atur, btur)
      {
        (A2_Tur = array(structof(atur), nb_az, nb_az))(1:nb_az*nb_az:nb_az+1) = atur;
        (B2_Tur = array(structof(btur), nb_az, nb_az))(1:nb_az*nb_az:nb_az+1) = btur;
-       Sig1 = LUsolve(unit(width_of(SigmaTur)) - B2_Tur , A2_Tur*SigmaTur);
-       Sig2 = A2_Tur*SigmaTur*transpose(A2_Tur) + B2_Tur*SigmaTur*transpose(B2_Tur) + A2_Tur*Sig1*transpose(B2_Tur) + B2_Tur*Sig1*transpose(A2_Tur);
+       A2Tur_SigmaTur = A2_Tur(,+)*SigmaTur(+,);
+       Sig1 = LUsolve(unit(width_of(SigmaTur)) - B2_Tur , A2Tur_SigmaTur);
+     
+       B2Tur_SigmaTur = B2_Tur(,+)*SigmaTur(+,);
+       A2Tur_Sig1 = A2_Tur(,+)*Sig1(+,);
+       B2Tur_Sig1 = B2_Tur(,+)*Sig1(+,);
+
+
+       Sig2 = A2Tur_SigmaTur(,+)*A2_Tur(+,) + B2Tur_SigmaTur(,+)*B2_Tur(+,) + A2Tur_Sig1(,+)*B2_Tur(+,) + B2Tur_Sig1(,+)*A2_Tur(+,);
        if (isZonal == 0) Sig2 = (Sig2 + transpose(Sig2))/2;
        SigmaV = SigmaTur - Sig2;
      }
   }
-  //pli, SigmaTur;error;
-  //pli, SigmaV;error;
+  //window,1;pli, SigmaTur
+  //window,2;pli, SigmaV;error;
   return SigmaV;
 }
 

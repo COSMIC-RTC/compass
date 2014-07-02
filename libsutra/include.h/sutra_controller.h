@@ -21,7 +21,7 @@ public:
   virtual string
   get_type()=0;
 
-  //!!!! YOU MUST set d_centroids before call it!!!!
+  //!!!! YOU MUST set d_centroids before calling it!!!!
   virtual int
   comp_com()=0;
 

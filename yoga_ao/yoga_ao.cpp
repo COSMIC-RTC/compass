@@ -2352,6 +2352,13 @@ void Y_rtc_setgain(int argc) {
     SCAST(sutra_controller_cured *, control, rtc_handler->d_control.at(ncontrol));
     control->set_gain(gain);
   }
+  if   ( (rtc_handler->d_control.at(ncontrol)->get_type().compare("kalman_CPU")== 0)
+       ||(rtc_handler->d_control.at(ncontrol)->get_type().compare("kalman_GPU")== 0)){
+  //Pour kalman gain correspond a k_W
+    float gain = ygets_f(argc - 3);
+    SCAST(sutra_controller_kalman *, control, rtc_handler->d_control.at(ncontrol));
+    control->set_gain(gain);
+  }
 }
 
 void Y_rtc_loadmgain(int argc) {
@@ -3543,7 +3550,7 @@ float* hPROJ = ygeta_f(argc-5, &ntot, dims);
        //cbtur   = calculate_btur(current_context, nzernike, is_zonal);
        //cSigmaV = calculate_SigmaV(current_context, nzernike, is_zonal);
     }
-   control->calculate_gain(0.001, 5.0, SigmaV, atur, btur);
+   control->calculate_gain(0.04/3.14159/3.14159, SigmaV, atur, btur);
     //delete catur;
     //delete cbtur;	
 //fin TMP    
@@ -3579,7 +3586,7 @@ void Y_rtc_kalmancalculategain(int argc) {
      ||(rtc_handler->d_control.at(ncontrol)->get_type().compare("kalman_GPU") == 0)) {
     
           SCAST(sutra_controller_kalman *, control, rtc_handler->d_control.at(ncontrol));
-    control->calculate_gain(bruit, k_W, SigmaV, atur, btur);
+    control->calculate_gain(bruit, SigmaV, atur, btur);
   }
   else
     y_error("Controller needs to be either kalman_CPU or kalman_GPU\n");

@@ -77,11 +77,10 @@ void kp_kalman_core_sparse_GPU::calculate_gain(real bruit_pix,
 
 
 
-	int i;
 
 	//ofstream fichier;
 	bool AR1 = true;
-	for(i = 0 ; i < btur_.size() ; i++) AR1 &= (btur_.d[i]==0);
+	for(int i = 0 ; i < btur_.size() ; i++) AR1 &= (btur_.d[i]==0);
 	if (AR1) ordreAR = 1 ; else ordreAR = 2;
 	int expression = 2;
 	real seuil = 1/pow(10,14);
@@ -199,7 +198,7 @@ void kp_kalman_core_sparse_GPU::calculate_gain(real bruit_pix,
 
 
 
-	kp_matrix alpha_kp1_test(nb_az,nb_az);
+	/*kp_matrix alpha_kp1_test(nb_az,nb_az);
 	kp_matrix beta_kp1_test(nb_az,nb_az);
 	kp_matrix T_kp1sk_test(nb_az,nb_az);
 
@@ -207,7 +206,7 @@ void kp_kalman_core_sparse_GPU::calculate_gain(real bruit_pix,
 	kp_cu2kp_matrix(beta_kp1_test, cu_beta_kp1);
 	kp_cu2kp_matrix(T_kp1sk_test, cu_T_kp1sk);
 
-/*fichier.open("alpha_kp1",ios::out);
+fichier.open("alpha_kp1",ios::out);
 	for (int i=0 ; i< nb_az ; i++)
 	{
 		for (int j=0 ; j<nb_az ; j++)
@@ -257,10 +256,10 @@ fichier.open("T_kp1",ios::out);
 
 		/*if (ordreAR ==1)
 			
-			for (i=0 ; i<nb_az ; i++) (cu_betak_Tk.d_cu[i * cu_betak_Tk.dim1 + i]) += 1;
+			for (int i=0 ; i<nb_az ; i++) (cu_betak_Tk.d_cu[i * cu_betak_Tk.dim1 + i]) += 1;
 		else
 		{
-			for (i=0 ; i<nb_n ; i++) (cu_betak_Tk.d_cu[i * cu_betak_Tk.dim1 + i]) += 1;
+			for (int i=0 ; i<nb_n ; i++) (cu_betak_Tk.d_cu[i * cu_betak_Tk.dim1 + i]) += 1;
 		}*/
 
 
@@ -347,12 +346,31 @@ fichier.open("T_kp1",ios::out);
 
 	}
 
+        if (boucle >= boucle_max)
+        {
+                cerr << "Le gain de Kalman ne converge pas.";
+                exit(EXIT_FAILURE);
+        }
+
 /*cout<<"nb boucle = "<<boucle<<endl;
 cout<<"temps inversion " << temps_inversion.rez()<<endl;
 cout<< "temps alpha_k = "<<temps_alphak.rez()<<endl;
 cout<< "temps beta_k = "<<temps_betak.rez()<<endl;
 cout<< "temps T_k = "<<temps_Tk.rez()<<endl;*/
 
+
+	/*kp_matrix T_kp1sk_test;
+	kp_cu2kp_matrix(T_kp1sk_test, cu_T_kp1sk);
+	fichier.open("Tkp1sk_sparse_GPU.dat",ios::out);
+	for(int i=0;i<T_kp1sk_test.dim1;i++)
+	{
+		for (int j=0;j<T_kp1sk_test.dim2;j++)
+		{
+			fichier<< __SP T_kp1sk_test(i,j)<<" ";
+		}
+		fichier << endl;
+	}	
+	fichier.close();*/
 
 
 	cu_T_k.resize(0,0);
@@ -381,8 +399,8 @@ cout<< "temps T_k = "<<temps_Tk.rez()<<endl;*/
 		//calcul de Sinf_0_0 (matrice superieure gauche de S_inf)
         	kp_cu_matrix cu_Atur_Tkp1sk(nb_az,nb_az);
 		// Atur_Tkp1sk = Atur * T_kp1sk
-		/*for(i = 0 ; i < cu_atur.size() ; i++)
-			for (j = 0 ; j < cu_Atur_Tkp1sk.dim2 ; j++)
+		/*for(int i = 0 ; i < cu_atur.size() ; i++)
+			for (int j = 0 ; j < cu_Atur_Tkp1sk.dim2 ; j++)
 			cu_Atur_Tkp1sk.d_cu[j * cu_Atur_Tkp1sk.dim1 + i] = cu_atur.d_cu[i] * cu_T_kp1sk.d_cu[j * cu_T_kp1sk.dim1 + i];*/
 
 		kernel_diag_mult(cu_Atur_Tkp1sk.d_cu, cu_T_kp1sk.d_cu, cu_atur.d_cu, cu_atur.size(), cu_T_kp1sk.dim1*cu_T_kp1sk.dim2);
@@ -396,8 +414,8 @@ cout<< "temps T_k = "<<temps_Tk.rez()<<endl;*/
 		cu_Atur_Tkp1sk_t.init_from_transpose(cublasHandle, cu_Atur_Tkp1sk);
 		
 		// Sinf_0_0_t = Atur * Atur_Tkp1sk_t  ( = Atur * (Atur * T_kp1sk)T )
-		/*for(i = 0 ; i < cu_atur.size() ; i++)
-			for (j = 0 ; j < cu_Sinf_0_0_t.dim2 ; j++)
+		/*for(int i = 0 ; i < cu_atur.size() ; i++)
+			for (int j = 0 ; j < cu_Sinf_0_0_t.dim2 ; j++)
 				cu_Sinf_0_0_t.d_cu[j * cu_Sinf_0_0_t.dim1 + i] = cu_atur.d_cu[i] * cu_Atur_Tkp1sk_t.d_cu[j * cu_Atur_Tkp1sk_t.dim1 + i];*/
 		kernel_diag_mult(cu_Sinf_0_0_t.d_cu, cu_Atur_Tkp1sk_t.d_cu, cu_atur.d_cu, cu_atur.size(), cu_Atur_Tkp1sk_t.dim1*cu_Atur_Tkp1sk_t.dim2);
 
@@ -429,8 +447,8 @@ cout<< "temps T_k = "<<temps_Tk.rez()<<endl;*/
 		// T_kp1sk_t = (T_kp1sk)T
 		cu_T_kp1sk_t.init_from_transpose(cublasHandle, cu_T_kp1sk);
 		// Sinf_1_0_t = Atur * T_kp1sk_t  ( = Atur * (T_kp1sk)T )
-		/*for(i = 0 ; i < cu_atur.size() ; i++)
-			for (j = 0 ; j < cu_Sinf_1_0_t.dim2 ; j++)
+		/*for(int i = 0 ; i < cu_atur.size() ; i++)
+			for (int j = 0 ; j < cu_Sinf_1_0_t.dim2 ; j++)
 				cu_Sinf_1_0_t.d_cu[j * cu_Sinf_1_0_t.dim1 + i] = cu_atur.d_cu[i] * cu_T_kp1sk_t.d_cu[j * cu_T_kp1sk_t.dim1 + i];*/
 		kernel_diag_mult(cu_Sinf_1_0_t.d_cu, cu_T_kp1sk_t.d_cu, cu_atur.d_cu, cu_atur.size(), cu_T_kp1sk_t.dim1*cu_T_kp1sk_t.dim2);
 
@@ -516,7 +534,7 @@ cout<< "temps T_k = "<<temps_Tk.rez()<<endl;*/
 		//kp_cu_gemm (cusparseHandle,cublasHandle, 'N', 'N', 1 , cu_zeros_Dmo, cu_Sinf_zerosDmot , 0, cu_inv_Sigmatot);
 
 		// Sigma_tot = Sigma_tot + SigmaW*Id (avec SigmaW reel)  (= [0 D_Mo] * Sinf * [0 ; (D_Mo)T] + SigmaW*Id)
-		//for(i = 0 ; i < cu_inv_Sigmatot.dim1 ; i++) cu_inv_Sigmatot.d_cu[i * cu_inv_Sigmatot.dim1 + i] += SigmaW;
+		//for(int i = 0 ; i < cu_inv_Sigmatot.dim1 ; i++) cu_inv_Sigmatot.d_cu[i * cu_inv_Sigmatot.dim1 + i] += SigmaW;
 		
 //----------------------------------------------------------------		
 		
@@ -564,7 +582,7 @@ cout<< "temps T_k = "<<temps_Tk.rez()<<endl;*/
         	kp_cu_matrix cu_inv_Sigmatot(cu_C1.dim1, cu_Tkp1sk_C1t.dim2);
 		// Sigma_tot = SigmaW * Id (avec SigmaW reel)
 		cu_inv_Sigmatot.zeros();
-		//for(i = 0 ; i < cu_inv_Sigmatot.dim1 ; i++) cu_inv_Sigmatot.d_cu[i * cu_inv_Sigmatot.dim1 + i] += SigmaW;
+		//for(int i = 0 ; i < cu_inv_Sigmatot.dim1 ; i++) cu_inv_Sigmatot.d_cu[i * cu_inv_Sigmatot.dim1 + i] += SigmaW;
 		kernel_add_diag_const(cu_inv_Sigmatot.d_cu, SigmaW, cu_inv_Sigmatot.dim1);
 
 	
@@ -592,8 +610,8 @@ cout<< "temps T_k = "<<temps_Tk.rez()<<endl;*/
 			
 			kp_cu_matrix cu_Atur_Hopt(nb_az, nb_p);
 			// Atur_Hopt = Atur * H_opt
-			/*for(i = 0 ; i < cu_atur.size() ; i++)
-				for (j = 0 ; j < cu_Atur_Hopt.dim2 ; j++)
+			/*for(int i = 0 ; i < cu_atur.size() ; i++)
+				for (int j = 0 ; j < cu_Atur_Hopt.dim2 ; j++)
 					cu_Atur_Hopt.d_cu[j * cu_Atur_Hopt.dim1 + i] = cu_atur.d_cu[i] * cu_H_opt.d_cu[j * cu_H_opt.dim1 + i];*/
 			kernel_diag_mult(cu_Atur_Hopt.d_cu, cu_H_opt.d_cu, cu_atur.d_cu, cu_atur.size(), cu_H_opt.dim1*cu_H_opt.dim2);
 
@@ -621,12 +639,12 @@ cout<< "temps T_k = "<<temps_Tk.rez()<<endl;*/
 //temps_apres_boucle.pause();
 //cout<< "temps apres boucle = "<<temps_apres_boucle.rez()<<endl;
 
-/*	kp_matrix H_inf;
+	/*kp_matrix H_inf;
 	kp_cu2kp_matrix(H_inf, cu_H_inf);
-	fichier.open("H_inf_40mS.dat",ios::out);
-	for(i=0;i<H_inf.dim1;i++)
+	fichier.open("H_inf_sparse_GPU.dat",ios::out);
+	for(int i=0;i<H_inf.dim1;i++)
 	{
-		for (j=0;j<H_inf.dim2;j++)
+		for (int j=0;j<H_inf.dim2;j++)
 		{
 			fichier<< __SP H_inf(i,j)<<" ";
 		}

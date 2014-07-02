@@ -66,10 +66,9 @@ void kp_kalman_core_sparse_CPU::calculate_gain(real bruit_pix,
 	//ofstream fichier;
 
 
-	int i,j;
 
 	bool AR1 = true;
-	for(i = 0 ; i < btur.size() ; i++) AR1 &= (btur.d[i]==0);
+	for(int i = 0 ; i < btur.size() ; i++) AR1 &= (btur.d[i]==0);
 	if (AR1) ordreAR = 1 ; else ordreAR = 2;
 
 	int expression = 2;
@@ -95,14 +94,14 @@ void kp_kalman_core_sparse_CPU::calculate_gain(real bruit_pix,
 	alpha_kp1.zeros();
 	
 	// pour ordreAR 1 et 2
-	for (i = 0 ; i < nb_az ; i++)
+	for (int i = 0 ; i < nb_az ; i++)
 	{
 		alpha_kp1.d[i * alpha_kp1.dim1 + i] = atur.d[i];
 	}
 	//pour ordreAR 2 uniquement
 	if (ordreAR == 2)
 	{
-		for (i = 0 ; i < nb_az ; i++)
+		for (int i = 0 ; i < nb_az ; i++)
 		{
 			alpha_kp1.d[(i+nb_az) * alpha_kp1.dim1 + i] = 1.0;
 			alpha_kp1.d[i * alpha_kp1.dim1 + (i+nb_az)] = btur.d[i];
@@ -123,7 +122,7 @@ void kp_kalman_core_sparse_CPU::calculate_gain(real bruit_pix,
 	else 
 	{
 		C1.resize(D_Mo.nnz, nb_p, nb_n);
-		for(i = 0 ; i < C1.nnz ; i++)
+		for(int i = 0 ; i < C1.nnz ; i++)
 		{
 			C1.colind[i] = D_Mo.colind[i]+nb_az;	
 			C1.rowind[i] = D_Mo.rowind[i];		
@@ -135,7 +134,7 @@ void kp_kalman_core_sparse_CPU::calculate_gain(real bruit_pix,
 	// VRAI SEULEMENT SI SigmaW = k*Id (k reel)	
 	kp_matrix* C1_dense = new kp_matrix(C1.dim1, C1.dim2);
 	C1_dense->zeros();
-	for (i=0 ; i<C1.nnz ; i++) 
+	for (int i=0 ; i<C1.nnz ; i++) 
 	{
 
 		C1_dense->d[(C1.colind[i]-1) * C1.dim1 + (C1.rowind[i]-1)]= C1.values[i];
@@ -229,10 +228,10 @@ void kp_kalman_core_sparse_CPU::calculate_gain(real bruit_pix,
 
 
 		if (ordreAR ==1)
-			for (i=0 ; i<nb_az ; i++) (betak_Tk.d[i * betak_Tk.dim1 + i]) += 1;
+			for (int i=0 ; i<nb_az ; i++) (betak_Tk.d[i * betak_Tk.dim1 + i]) += 1;
 		else
 		{
-			for (i=0 ; i<nb_n ; i++) (betak_Tk.d[i * betak_Tk.dim1 + i]) += 1;
+			for (int i=0 ; i<nb_n ; i++) (betak_Tk.d[i * betak_Tk.dim1 + i]) += 1;
 		}
 
 		IBG_1 = betak_Tk;
@@ -303,7 +302,7 @@ void kp_kalman_core_sparse_CPU::calculate_gain(real bruit_pix,
 
 
 		trac1_tmp=0;trac2_tmp=0;
-		for (i=0 ; i< T_kp1sk.dim1 ; i++)
+		for (int i=0 ; i< T_kp1sk.dim1 ; i++)
 		{
 			trac1_tmp += (T_kp1sk.d[i * T_kp1sk.dim1 + i]);
 			trac2_tmp += (T_k.d[i * T_k.dim1 + i]);
@@ -314,6 +313,12 @@ void kp_kalman_core_sparse_CPU::calculate_gain(real bruit_pix,
 
 	}
 
+        if (boucle >= boucle_max)
+        {
+                cerr << "Le gain de Kalman ne converge pas.";
+                exit(EXIT_FAILURE);
+        }
+
 
 /*cout<<"nb boucle = "<<boucle<<endl;
 cout<<"temps inversion " << temps_inversion.rez()<<endl;
@@ -322,6 +327,17 @@ cout<< "temps beta_k = "<<temps_betak.rez()<<endl;
 cout<< "temps T_k = "<<temps_Tk.rez()<<endl;*/
 
 
+/*fichier.open("Tkp1sk_sparse_CPU.dat",ios::out);
+for(int i=0 ; i<T_kp1sk.dim1 ; i++)
+{
+	for (int j=0 ; j<T_kp1sk.dim2 ; j++)
+	{
+		fichier << __SP T_kp1sk(i,j) << " ";
+	}
+	fichier << endl;
+}
+fichier.close();*/
+
 
 
 	if ( (expression == 1) && (ordreAR == 1))
@@ -329,8 +345,8 @@ cout<< "temps T_k = "<<temps_Tk.rez()<<endl;*/
 		//calcul de Sinf_0_0 (matrice superieure gauche de S_inf)
         	kp_matrix* Atur_Tkp1sk = new kp_matrix(nb_az,nb_az);
 		// Atur_Tkp1sk = Atur * T_kp1sk
-		for(i = 0 ; i < atur.size() ; i++)
-			for (j = 0 ; j < Atur_Tkp1sk->dim2 ; j++)
+		for(int i = 0 ; i < atur.size() ; i++)
+			for (int j = 0 ; j < Atur_Tkp1sk->dim2 ; j++)
 			Atur_Tkp1sk->d[j * Atur_Tkp1sk->dim1 + i] = atur.d[i] * T_kp1sk.d[j * T_kp1sk.dim1 + i];
 
 		
@@ -342,8 +358,8 @@ cout<< "temps T_k = "<<temps_Tk.rez()<<endl;*/
 		Atur_Tkp1sk_t-> init_from_transpose(*Atur_Tkp1sk);
 		
 		// Sinf_0_0_t = Atur * Atur_Tkp1sk_t  ( = Atur * (Atur * T_kp1sk)T )
-		for(i = 0 ; i < atur.size() ; i++)
-			for (j = 0 ; j < Sinf_0_0_t->dim2 ; j++)
+		for(int i = 0 ; i < atur.size() ; i++)
+			for (int j = 0 ; j < Sinf_0_0_t->dim2 ; j++)
 				Sinf_0_0_t->d[j * Sinf_0_0_t->dim1 + i] = atur.d[i] * Atur_Tkp1sk_t->d[j * Atur_Tkp1sk_t->dim1 + i];
 
 		delete Atur_Tkp1sk_t ; Atur_Tkp1sk_t = NULL;
@@ -372,8 +388,8 @@ cout<< "temps T_k = "<<temps_Tk.rez()<<endl;*/
 		// T_kp1sk_t = (T_kp1sk)T
 		T_kp1sk_t-> init_from_transpose(T_kp1sk);
 		// Sinf_1_0_t = Atur * T_kp1sk_t  ( = Atur * (T_kp1sk)T )
-		for(i = 0 ; i < atur.size() ; i++)
-			for (j = 0 ; j < Sinf_1_0_t->dim2 ; j++)
+		for(int i = 0 ; i < atur.size() ; i++)
+			for (int j = 0 ; j < Sinf_1_0_t->dim2 ; j++)
 				Sinf_1_0_t->d[j * Sinf_1_0_t->dim1 + i] = atur.d[i] * T_kp1sk_t->d[j * T_kp1sk_t->dim1 + i];
 
 		delete T_kp1sk_t ; T_kp1sk_t = NULL;
@@ -403,7 +419,7 @@ cout<< "temps T_k = "<<temps_Tk.rez()<<endl;*/
 		kp_smatrix* zeros_Dmo = new kp_smatrix(D_Mo);
 		// zeros_Dmo = [0 D_Mo]
 		zeros_Dmo->dim2 = nb_n;
-		for (i=0; i<zeros_Dmo->nnz ; i++)
+		for (int i=0; i<zeros_Dmo->nnz ; i++)
 		{
 			zeros_Dmo->colind[i] += nb_az;
 
@@ -433,7 +449,7 @@ cout<< "temps T_k = "<<temps_Tk.rez()<<endl;*/
 
 
 		// Sigma_tot = Sigma_tot + SigmaW*Id (avec SigmaW reel)  (= [0 D_Mo] * Sinf * [0 ; (D_Mo)T] + SigmaW*Id)
-		for(i = 0 ; i < Sigma_tot->dim1 ; i++) Sigma_tot->d[i * Sigma_tot->dim1 + i] += SigmaW;
+		for(int i = 0 ; i < Sigma_tot->dim1 ; i++) Sigma_tot->d[i * Sigma_tot->dim1 + i] += SigmaW;
 		delete zeros_Dmo ; zeros_Dmo = NULL;
 		
 		//inversion de Sigma_tot
@@ -477,7 +493,7 @@ cout<< "temps T_k = "<<temps_Tk.rez()<<endl;*/
         	kp_matrix* Sigma_tot = new kp_matrix(C1.dim1, Tkp1sk_C1t->dim2);
 		// Sigma_tot = SigmaW * Id (avec SigmaW reel)
 		Sigma_tot->zeros();
-		for(i = 0 ; i < Sigma_tot->dim1 ; i++) Sigma_tot->d[i * Sigma_tot->dim1 + i] += SigmaW;
+		for(int i = 0 ; i < Sigma_tot->dim1 ; i++) Sigma_tot->d[i * Sigma_tot->dim1 + i] += SigmaW;
 
 
 		// Sigma_tot = Sigma_tot + C1 * Tkp1sk_C1t  ( = (C1 * T_kp1sk * (C1)T) + SigmaW*Id )
@@ -506,8 +522,8 @@ cout<< "temps T_k = "<<temps_Tk.rez()<<endl;*/
 			
 			kp_matrix* Atur_Hopt = new kp_matrix(nb_az, nb_p);
 			// Atur_Hopt = Atur * H_opt
-			for(i = 0 ; i < atur.size() ; i++)
-				for (j = 0 ; j < Atur_Hopt->dim2 ; j++)
+			for(int i = 0 ; i < atur.size() ; i++)
+				for (int j = 0 ; j < Atur_Hopt->dim2 ; j++)
 					Atur_Hopt->d[j * Atur_Hopt->dim1 + i] = atur.d[i] * H_opt->d[j * H_opt->dim1 + i];
 
 			H_inf.resize(nb_n,nb_p);
@@ -528,10 +544,10 @@ cout<< "temps T_k = "<<temps_Tk.rez()<<endl;*/
 	
 	}
 
-/*fichier.open("Hinf_8mS.dat",ios::out);
+/*fichier.open("H_inf_sparse_CPU.dat",ios::out);
 for(int i=0 ; i<H_inf.dim1 ; i++)
 {
-	for (j=0 ; j<H_inf.dim2 ; j++)
+	for (int j=0 ; j<H_inf.dim2 ; j++)
 	{
 		fichier << __SP H_inf.d[j*H_inf.dim1+i] << " ";
 	}

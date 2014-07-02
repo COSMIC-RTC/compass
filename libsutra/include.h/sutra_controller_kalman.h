@@ -9,6 +9,17 @@
 //a partir des fichiers .dat
 #include <iterator>
 #include <fstream>
+
+
+#include "/home/tgautrais/compass_debug/lam/kalman_CPU_GPU/kp_real.h"
+#include <sstream>
+#include <fstream>
+#include <string>
+#include <iomanip>
+#define __SP setprecision(20)<<
+
+
+
 class kp_kalman_core_sparse;
 class kp_kalman_core_full;
 
@@ -21,12 +32,15 @@ public:
    
    void init_kalman(carma_host_obj<float>& D_Mo, carma_host_obj<float>& N_Act, carma_host_obj<float>& PROJ, bool is_zonal, bool is_sparse, bool is_GPU);
 
-   void calculate_gain(double bruit, double k_W, carma_host_obj<float>& SigmaV,
+   void calculate_gain(double bruit, carma_host_obj<float>& SigmaV,
 		     carma_host_obj<float>& atur, carma_host_obj<float>& btur);
    
    virtual string get_type() {if(isGPU) return "kalman_GPU";else return "kalman_CPU";};
    
    virtual int comp_com();
+
+   int set_gain(float k_W);
+
  private:
    cusparseHandle_t cusparseHandle;
    kp_kalman_core_sparse* core_sparse;
@@ -35,6 +49,16 @@ public:
    bool isSparse;
    bool isZonal;
    bool isInit;
+   bool isGainSet;
+   float gain;
+
+ public:
+   real** Yk;
+   int ind_Yk;
+   bool matrices_matlab;
+   bool pentes_matlab;
+   bool sigmaVmatlab;
+
 };
 
 carma_obj<float>* calculate_D_Mo(carma_context* context, int nslopes, int n_actu_zern, bool is_zonal);

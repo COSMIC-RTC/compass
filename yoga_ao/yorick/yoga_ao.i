@@ -174,7 +174,6 @@ func atmos_init(void)
   g_atmos = yoga_atmos_create(y_atmos.nscreens,y_atmos.r0,*y_atmos.L0,y_atmos.pupixsize,*y_atmos.dim_screens,
                               *y_atmos.frac,*y_atmos.alt,*y_atmos.windspeed,*y_atmos.winddir,
                               *y_atmos.deltax,*y_atmos.deltay,*y_geom._spupil);
-
 }
 
 func wfs_init(void)
@@ -703,15 +702,29 @@ func rtc_init(clean=)
             else
               write,"initializing kalman_GPU controller";
 
+            rtc_setgain,g_rtc,0,controllers(i).gain;
 
-            D_Mo   = create_dm0(1,1);
-            N_Act  = create_nact(1); 
+            D_Mo = create_dm0(1,1);
+            // creation de N_Act en ((unitpervolt microns)/(push4imat V)) puis conversion en normalise
+            N_Act  = create_nact(1); N_Act = N_Act-min(N_Act); N_Act = N_Act/max(N_Act);
             PROJ   = LUsolve(N_Act);
-            SigmaTur = stat_cov(1, y_atmos.r0);
-            atur = array(0.98, 241);
-            btur = array(0.0f, 241);
+     
+
+            SigmaTur = create_sigmaTur(1);
+            atur = array(0.98, sum(y_dm(ndms)._ntotact));
+            btur = array(0.0f, sum(y_dm(ndms)._ntotact));
             SigmaV = create_sigmav(SigmaTur, 1, 1, atur, btur);
-            rtc_initkalman, g_rtc, 0 , D_Mo, N_Act, PROJ, SigmaV, atur, btur, 1, 1, 0;
+
+            //window,1; pli,D_Mo; colorbar,min(D_Mo),max(D_Mo);
+            // window,2; pli,N_Act; colorbar,min(N_Act),max(N_Act);
+            //window,3; pli,PROJ; colorbar,min(PROJ),max(PROJ);
+            //window,4; pli,SigmaV;colorbar,min(SigmaV),max(SigmaV);
+            //error;
+
+            if (controllers(i).type  == "kalman_CPU")
+              rtc_initkalman, g_rtc, 0 , D_Mo, N_Act, PROJ, SigmaV, atur, btur, 1, 0, 0;
+            else
+              rtc_initkalman, g_rtc, 0 , D_Mo, N_Act, PROJ, SigmaV, atur, btur, 1, 0, 1;
 
           }          
 	  // Florian features

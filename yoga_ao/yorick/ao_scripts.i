@@ -102,7 +102,6 @@ func script_system(filename,verbose=,strehl=,r0=,clean=)
     write,"iter# | S.E. SR | L.E. SR | Est. Rem. | framerate";
     write,"----------------------------------------------------";
   }
-
   for (cc=1;cc<=y_loop.niter;cc++) {
     
     if (g_target != []) move_sky,g_atmos,g_target;
