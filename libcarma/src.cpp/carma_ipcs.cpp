@@ -4,15 +4,14 @@
  private methods
 */
 void * carma_ipcs::create_shm(const char *name, size_t size){
-  int * res = (int *)EXIT_FAILURE;
   int tmp_fd;
   void * ret_ptr;
 
   if((tmp_fd = shm_open(name, O_CREAT | O_EXCL | O_RDWR, 0600)) == -1) //shm_open error, errno already set
-    return res;
+    return NULL;
   if(ftruncate(tmp_fd, size) == -1){ //ftruncate error, same
     close(tmp_fd);
-    return res;
+    return NULL;
   }
   ret_ptr = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED, tmp_fd, 0);
   //if error, return value is consistent and errno is set
@@ -22,16 +21,15 @@ void * carma_ipcs::create_shm(const char *name, size_t size){
 
 
 void * carma_ipcs::get_shm(const char *name){
-  int * res = (int *) EXIT_FAILURE;
   int tmp_fd;
   void * ret_ptr;
   struct stat buf;
 
   if((tmp_fd = shm_open(name, O_RDWR, 0)) == -1) //shm_open error, errno already set
-    return res;
+    return NULL;
   if(fstat(tmp_fd, &buf) == -1){
     close(tmp_fd);
-    return res;
+    return NULL;
   }
   ret_ptr = mmap(NULL, buf.st_size, PROT_READ | PROT_WRITE, MAP_SHARED, tmp_fd, 0);
   //if error, return value is consistent and errno is set
@@ -113,7 +111,7 @@ int carma_ipcs::register_cudptr(unsigned int id ,CUdeviceptr _dptr){
   char name[NAME_MAX+1];
 
   sprintf(name, "/cipcs_cudptr_%d", id);
-  if((dptr = (sh_dptr *) create_shm(name, sizeof(sh_dptr))) == (void *) -1)
+  if((dptr = (sh_dptr *) create_shm(name, sizeof(sh_dptr))) == NULL)
     return res;
   //shm ok, structure initialization
   err = cuIpcGetMemHandle(&dptr->handle, _dptr);
@@ -156,7 +154,7 @@ int carma_ipcs::register_cuevent(unsigned int id, CUevent _event){
   char name[NAME_MAX+1];
 
   sprintf(name, "/cipcs_cuevent_%d", id);
-  if((event = (sh_event *) create_shm(name, sizeof(sh_event))) == (void *) -1)
+  if((event = (sh_event *) create_shm(name, sizeof(sh_event))) == NULL)
     return res;
   //shm ok, structure initialization
   err = cuIpcGetEventHandle(&event->handle, _event);
@@ -195,7 +193,7 @@ int carma_ipcs::get_memHandle(unsigned int id, CUipcMemHandle *phandle){
     sh_dptr *dptr;
     char name[NAME_MAX+1];
     sprintf(name, "/cipcs_cudptr_%d", id);
-    if((dptr = (sh_dptr *)get_shm(name)) == (void *) -1){ //not found in shm, id invalid
+    if((dptr = (sh_dptr *)get_shm(name)) == NULL){ //not found in shm, id invalid
       errno = EINVAL;
       return res;
     }
@@ -231,7 +229,7 @@ int carma_ipcs::get_eventHandle(unsigned int id, CUipcEventHandle *phandle){
     sh_event *event;
     char name[NAME_MAX+1];
     sprintf(name, "/cipcs_cuevent_%d", id);
-    if((event = (sh_event *)get_shm(name)) == (void *) -1){ //not found in shm
+    if((event = (sh_event *)get_shm(name)) == NULL){ //not found in shm
       errno = EINVAL;
       return res;
     }
@@ -302,43 +300,38 @@ void carma_ipcs::free_eventHandle(unsigned int id){
 /*
   Transfer via CPU memory methods
 */
-int carma_ipcs::get_elem_tshm(unsigned int id, sh_buffer *buffer){
-  int res = EXIT_FAILURE;
+sh_buffer *carma_ipcs::get_elem_tshm(unsigned int id){
     std::map<unsigned int, sh_buffer *>::iterator it;
 
     it = buffers.find(id);
     if(it == buffers.end()){ //not found in map
-      STAMP("tranfer not found in map\n");
+      //STAMP("tranfer not found in map\n");
       char name[NAME_MAX+1];
+      sh_buffer *buffer;
       sprintf(name, "/cipcs_cubuffer_%d", id);
-      if((buffer = (sh_buffer *)get_shm(name)) == (void *) -1){ //not found in shm
+      if((buffer = (sh_buffer *)get_shm(name)) == NULL){ //not found in shm
         errno = EINVAL;
-        return res;
-      }
-      else{ //found in shm
+	return NULL;
+      } else{ //found in shm
         //get included shm
-        STAMP("tranfer found in shm\n");
-        char name[NAME_MAX+1];
-        sprintf(name, "/cipcs_cubuffer_%d_in", id);
-        if((buffer->p_shm = get_shm(name)) == (void *) -1){
+        //STAMP("tranfer found in shm\n");
+        char in_name[NAME_MAX+1];
+        sprintf(in_name, "/cipcs_cubuffer_%d_in", id);
+        if((buffer->p_shm = get_shm(in_name)) == NULL){
           close_shm(buffer, sizeof(sh_buffer));
-          return res; //errno set by get_shm
+          return NULL; //errno set by get_shm
         }
 
-        if(sem_wait(&buffer->mutex) == -1)//probably destroyed while waiting on it, i.e. no more sharing
-          return res;
+        if(sem_wait(&(buffer->mutex)) == -1)//probably destroyed while waiting on it, i.e. no more sharing
+          return NULL;
         //else, add it to the local map
         buffer->nb_proc++;
-        sem_post(&buffer->mutex);
+        sem_post(&(buffer->mutex));
         buffers[id] = buffer;
       }
     }
 
-    buffer = buffers[id];
-
-    errno = 0;
-    res = EXIT_SUCCESS;
-    return res;
+    return buffers[id];
 }
 
 
@@ -353,27 +346,27 @@ int carma_ipcs::alloc_transfer_shm(unsigned int id, size_t bsize, bool isBoard){
   }
 
   //create a new slot
-  sh_buffer *buffer;
+  sh_buffer *buffer=NULL;
   char name[NAME_MAX+1];
   char in_name[NAME_MAX+1];
 
   sprintf(name, "/cipcs_cubuffer_%d", id);
   sprintf(in_name, "/cipcs_cubuffer_%d_in", id);
-  if((buffer = (sh_buffer *) create_shm(name, sizeof(sh_buffer))) == (void *) -1)
+  if((buffer = (sh_buffer *) create_shm(name, sizeof(sh_buffer))) == NULL)
     return res;
   //shm ok, struct initialization
-  if((buffer->p_shm = create_shm(in_name, bsize)) == (void *) -1){
+  if((buffer->p_shm = create_shm(in_name, bsize)) == NULL){
     free_shm(name, buffer, sizeof(sh_buffer));
     return res;
   }
-  if(sem_init(&buffer->mutex, 1, 0) == -1){
+  if(sem_init(&(buffer->mutex), 1, 0) == -1){
     free_shm(in_name, buffer->p_shm, bsize);
     free_shm(name, buffer, sizeof(sh_buffer));
     return res;
   }
   if(isBoard)
-    if(sem_init(&buffer->wait_pub, 1, 0) == -1){
-      sem_destroy(&buffer->mutex);
+    if(sem_init(&(buffer->wait_pub), 1, 0) == -1){
+      sem_destroy(&(buffer->mutex));
       free_shm(in_name, buffer->p_shm, bsize);
       free_shm(name, buffer, sizeof(sh_buffer));
       return res;
@@ -385,7 +378,7 @@ int carma_ipcs::alloc_transfer_shm(unsigned int id, size_t bsize, bool isBoard){
   strcpy(buffer->name, name);
   buffer->isBoard = isBoard;
 
-  sem_post(&buffer->mutex); //mutex = 1;
+  sem_post(&(buffer->mutex)); //mutex = 1;
 
   buffers[id] = buffer;
 
@@ -397,12 +390,12 @@ int carma_ipcs::alloc_transfer_shm(unsigned int id, size_t bsize, bool isBoard){
 
 int carma_ipcs::get_size_transfer_shm(unsigned int id, size_t *bsize){
   int res = EXIT_FAILURE;
-  sh_buffer buffer;
+  sh_buffer *buffer=NULL;
 
-  if(get_elem_tshm(id, &buffer) == EXIT_FAILURE)
+  if( (buffer = get_elem_tshm(id)) == NULL)
     return res; //errno previously set
 
-  *bsize = buffer.size;
+  *bsize = buffer->size;
 
   errno = 0;
   res = EXIT_SUCCESS;
@@ -412,18 +405,22 @@ int carma_ipcs::get_size_transfer_shm(unsigned int id, size_t *bsize){
 
 int carma_ipcs::get_datasize_transfer_shm(unsigned int id, size_t *bsize){
   int res = EXIT_FAILURE;
-  sh_buffer buffer;
-
-  if(get_elem_tshm(id, &buffer) == EXIT_FAILURE)
+  sh_buffer *buffer=NULL;
+  //STAMP("in get_datasize\n");
+  if( (buffer = get_elem_tshm(id)) == NULL)
     return res; //errno previously set
 
-  if(sem_wait(&buffer.mutex) == -1)
+  //STAMP("\tsem_wait, mutex\n");
+  if(sem_wait(&(buffer->mutex)) == -1)
     return res;
-  *bsize = buffer.data_size;
-  sem_post(&buffer.mutex);
+  *bsize = buffer->data_size;
+
+  //STAMP("\t sem_post, mutex\n");
+  sem_post(&(buffer->mutex));
 
   errno = 0;
   res = EXIT_SUCCESS;
+  //STAMP("out get_datasize\n");
   return res;
 }
 
@@ -431,12 +428,12 @@ int carma_ipcs::get_datasize_transfer_shm(unsigned int id, size_t *bsize){
 
 int carma_ipcs::map_transfer_shm(unsigned int id){
   int res = EXIT_FAILURE;
-  sh_buffer buffer;
+  sh_buffer *buffer=NULL;
 
-  if(get_elem_tshm(id, &buffer) == EXIT_FAILURE)
+  if( (buffer = get_elem_tshm(id)) == NULL)
     return res; //errno previously set
 
-  cuMemHostRegister(buffer.p_shm, buffer.data_size, CU_MEMHOSTREGISTER_DEVICEMAP);
+  cuMemHostRegister(buffer->p_shm, buffer->data_size, CU_MEMHOSTREGISTER_DEVICEMAP);
 
   errno = 0;
   res = EXIT_SUCCESS;
@@ -473,89 +470,102 @@ int carma_ipcs::read_gpu(CUdeviceptr dst, void *src, size_t bsize){
 
 int carma_ipcs::write_transfer_shm(unsigned int id, const void *src, size_t bsize, bool isGpuBuffer){
   int res = EXIT_FAILURE;
-  sh_buffer buffer;
+  sh_buffer *buffer=NULL;
 
-  STAMP("in write\n");
-  if(get_elem_tshm(id, &buffer) == EXIT_FAILURE)
+  //STAMP("in write\n");
+  if( (buffer = get_elem_tshm(id)) == NULL)
     return res; //errno previously set
 
-  STAMP("sem_wait, mutex\n");
-  if(sem_wait(&buffer.mutex) == -1)
+  //STAMP("\tsem_wait, mutex\n");
+  if(sem_wait(&(buffer->mutex)) == -1)
     return res;
 
   //todo : error code, maybe?
-  if(bsize > buffer.size)
-    bsize = buffer.size;
+  if(bsize > buffer->size)
+    bsize = buffer->size;
 
   if(isGpuBuffer){
-    STAMP("device buffer\n");
-    if((res = write_gpu(buffer.p_shm, (CUdeviceptr) src, bsize)) < 0 -1){
-      sem_post(&buffer.mutex);
+    //STAMP("\t\tdevice buffer\n");
+    if((res = write_gpu(buffer->p_shm, (CUdeviceptr) src, bsize)) < 0){
+      sem_post(&(buffer->mutex));
       return res;
     }
+    //STAMP("\t\tCopy ok\n");
   }
   else{
-    STAMP("host buffer\n");
-    memcpy(buffer.p_shm, src, bsize);
+    //STAMP("\t\thost buffer\n");
+    memcpy(buffer->p_shm, src, bsize);
+    //STAMP("\t\tCopy ok\n");
   }
 
-  buffer.data_size = bsize;
+  buffer->data_size = bsize;
 
-  if(buffer.isBoard)
-    sem_post(&buffer.wait_pub);
+  if(buffer->isBoard)
+    sem_post(&(buffer->wait_pub));
 
-  sem_post(&buffer.mutex);
+  //STAMP("\tsem_post mutex\n");
+  sem_post(&(buffer->mutex));
   errno = 0;
   res = EXIT_SUCCESS;
+  //STAMP("out write\n");
   return res;
 }
 
 
 int carma_ipcs::read_transfer_shm(unsigned int id, void *dst, size_t bsize, bool isGpuBuffer){
   int res = EXIT_FAILURE;
-  sh_buffer buffer;
+  sh_buffer *buffer=NULL;
 
+  //STAMP("in read\n");
 
-  if(get_elem_tshm(id, &buffer) == EXIT_FAILURE)
+  if( (buffer = get_elem_tshm(id)) == NULL)
     return res; //errno previously set
 
-  if(sem_wait(&buffer.mutex) == -1)
+  //STAMP("\tsem_wait, mutex\n");
+  if(sem_wait(&(buffer->mutex)) == -1)
     return res;
 
   //todo : error code, maybe?
-  if(bsize > buffer.size)
-    bsize = buffer.size;
+  if(bsize > buffer->size)
+    bsize = buffer->size;
 
-  if(buffer.isBoard){
-    sem_post(&buffer.mutex);
-    sem_wait(&buffer.wait_pub);
+  if(buffer->isBoard){
+    sem_post(&(buffer->mutex));
+    sem_wait(&(buffer->wait_pub));
     //todo: to improve, this could be buggy.
-    sem_wait(&buffer.mutex);
+    sem_wait(&(buffer->mutex));
   }
   if(isGpuBuffer){
-    if((res = read_gpu((CUdeviceptr) dst, buffer.p_shm, bsize)) < 0){
-      sem_post(&buffer.mutex);
+
+    //STAMP("\t\t device\n");
+    if((res = read_gpu((CUdeviceptr) dst, buffer->p_shm, bsize)) < 0){
+      sem_post(&(buffer->mutex));
       return res;
     }
   }
   else{
-    memcpy(dst, buffer.p_shm, bsize);
+    //STAMP("\t\t host\n");
+    memcpy(dst, buffer->p_shm, bsize);
   }
 
-  sem_post(&buffer.mutex);
+
+  //STAMP("\tsem_post, mutex\n");
+  sem_post(&(buffer->mutex));
   errno = 0;
   res = EXIT_SUCCESS;
+
+  //STAMP("out read\n");
   return res;
 }
 
 int carma_ipcs::unmap_transfer_shm(unsigned int id){
   int res = EXIT_FAILURE;
-  sh_buffer buffer;
+  sh_buffer *buffer=NULL;
 
-  if(get_elem_tshm(id, &buffer) == EXIT_FAILURE)
+  if( (buffer = get_elem_tshm(id)) == NULL)
     return res; //errno previously set
 
-  cuMemHostUnregister(buffer.p_shm);
+  cuMemHostUnregister(buffer->p_shm);
 
   errno = 0;
   res = EXIT_SUCCESS;
@@ -572,12 +582,12 @@ void carma_ipcs::free_transfer_shm(unsigned int id){
   }
   sh_buffer *buffer = buffers[id];
   buffers.erase(it);
-  sem_wait(&buffer->mutex);
+  sem_wait(&(buffer->mutex));
   buffer->nb_proc--;
   if(buffer->nb_proc == 0){
     if(buffer->isBoard)
-      sem_destroy(&buffer->wait_pub);
-    sem_destroy(&buffer->mutex);
+      sem_destroy(&(buffer->wait_pub));
+    sem_destroy(&(buffer->mutex));
     char in_name[NAME_MAX+1];
     sprintf(in_name, "%s_in", buffer->name);
 
@@ -585,7 +595,7 @@ void carma_ipcs::free_transfer_shm(unsigned int id){
     free_shm(buffer->name, buffer, sizeof(sh_buffer));
   }
   else{
-    sem_post(&buffer->mutex);
+    sem_post(&(buffer->mutex));
     close_shm(buffer->p_shm, buffer->size);
     close_shm(buffer, sizeof(sh_buffer));
   }
@@ -611,7 +621,7 @@ int carma_ipcs::init_barrier(unsigned int id, unsigned int value){
   char name[NAME_MAX+1];
 
   sprintf(name, "/cipcs_cubarrier_%d", id);
-  if((barrier = (sh_barrier *) create_shm(name, sizeof(sh_barrier))) == (void *) -1)
+  if((barrier = (sh_barrier *) create_shm(name, sizeof(sh_barrier))) == NULL)
     return res;
   //shm ok, struct initialization
   if(sem_init(&barrier->var_mutex, 1, 0) == -1){
@@ -652,7 +662,7 @@ int carma_ipcs::wait_barrier(unsigned int id){
     char name[NAME_MAX+1];
 
     sprintf(name, "/cipcs_cubarrier_%d", id);
-    if((barrier = (sh_barrier *)get_shm(name)) == (void *) -1){ //not found in shm
+    if((barrier = (sh_barrier *)get_shm(name)) == NULL){ //not found in shm
       //STAMP("%d, barrier not found in shm\n", getpid());
       errno = EINVAL;
       return res;

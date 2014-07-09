@@ -87,8 +87,13 @@ inline void __cudaSafeCall(cudaError err, const char *file, const int line) {
 
 inline void __CUSafeCall(CUresult err, const char *file, const int line) {
   if (CUDA_SUCCESS != err) {
-    fprintf(stderr, "(%s:%i) : CUSafeCall() Driver API error : %d.\n", file,
-        line, err);
+    /* char *text; */
+    /* if(cuGetErrorName(err, &text) == CUDA_ERROR_INVALID_VALUE )  */
+      fprintf(stderr, "(%s:%i) : CUSafeCall() Driver API not recognized error : %d.\n", file,
+	      line, err);
+    /* else */
+    /*   fprintf(stderr, "(%s:%i) : CUSafeCall() Driver API error : %s (%d).\n", file, */
+    /* 	      line, text, err); */
     exit(-1);
   }
 }

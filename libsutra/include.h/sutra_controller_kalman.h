@@ -11,14 +11,15 @@
 #include <fstream>
 
 
-#include "/home/tgautrais/compass_debug/lam/kalman_CPU_GPU/kp_real.h"
 #include <sstream>
 #include <fstream>
 #include <string>
 #include <iomanip>
 #define __SP setprecision(20)<<
 
-
+#ifdef COMPILATION_LAM
+#include "/home/tgautrais/compass_debug/lam/kalman_CPU_GPU/kp_real.h"
+#endif
 
 class kp_kalman_core_sparse;
 class kp_kalman_core_full;
@@ -53,7 +54,9 @@ public:
    float gain;
 
  public:
+#ifdef COMPILATION_LAM
    real** Yk;
+#endif
    int ind_Yk;
    bool matrices_matlab;
    bool pentes_matlab;

@@ -92,7 +92,7 @@ private:
   /*
     Transfer via CPU memory private methods
   */
-  int get_elem_tshm(unsigned int id, sh_buffer *buffer);
+  sh_buffer *get_elem_tshm(unsigned int id);
   int write_gpu(void *dst, CUdeviceptr src, size_t bsize);
   int read_gpu(CUdeviceptr dst, void *src, size_t bsize);
 

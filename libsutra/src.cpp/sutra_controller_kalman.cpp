@@ -3,6 +3,7 @@
 #include "sutra_controller_kalman.h"
 
 #ifdef COMPILATION_LAM
+
 #include "kp_kalman_core_sparse_GPU.h"
 #include "kp_kalman_core_full_GPU.h"
 #include "kp_kalman_core_sparse_CPU.h"

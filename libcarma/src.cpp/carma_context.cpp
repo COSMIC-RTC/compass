@@ -274,7 +274,8 @@ void carma_context::releaseCtx(int nGPUs, int *iGPUs, CUcontext *ctx){
   for(int id_gpu=0; id_gpu<nGPUs; id_gpu++){
     DEBUG_TRACE("Get context of device %d\n",iGPUs[id_gpu]);
     CUSafeCall(cuCtxSetCurrent(devices[iGPUs[id_gpu]]->getCUcontext()));
-    DEBUG_TRACE("Release context of device %d\n",iGPUs[id_gpu]);
+    DEBUG_TRACE("Release context (0x%x) of device %d\n",
+        devices[iGPUs[id_gpu]]->getCUcontext(),iGPUs[id_gpu]);
     CUSafeCall(cuCtxPopCurrent(&(ctx[id_gpu])));
   }
   CUSafeCall(cuCtxSetCurrent(context));
@@ -286,7 +287,8 @@ void carma_context::reattachCtx(int nGPUs, int *iGPUs){
   CUcontext context;
   CUSafeCall(cuCtxGetCurrent(&context));
   for(int id_gpu=0; id_gpu<nGPUs; id_gpu++){
-    DEBUG_TRACE("reattach context of device %d\n",iGPUs[id_gpu]);
+    DEBUG_TRACE("reattach context (0x%x) of device %d\n",
+        devices[iGPUs[id_gpu]]->getCUcontext(),iGPUs[id_gpu]);
     CUSafeCall(cuCtxPushCurrent(devices[iGPUs[id_gpu]]->getCUcontext()));
   }
   CUSafeCall(cuCtxSetCurrent(context));
