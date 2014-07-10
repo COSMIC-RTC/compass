@@ -262,7 +262,7 @@ func cmat_update(ncontrol,maxcond)
 
 func manual_imat(void)
 {
-  slps = rtc_getcentroids(g_rtc,0);
+  slps = rtc_getcentroids(g_rtc,0, g_wfs, 0);
   nslp = numberof(slps);
   imat_cpu = slps(,-);
   
@@ -289,10 +289,10 @@ func manual_imat(void)
       
       //slopes_geom,g_wfs,0,0;
       rtc_docentroids,g_rtc,g_wfs;
-      slps = rtc_getcentroids(g_rtc,0);
+      slps = rtc_getcentroids(g_rtc,0, g_wfs, 0);
       grow,imat_cpu,slps/float(y_dm(1).push4imat);
       //fma;limits;
-      plg,slps;	
+      //plg,slps;	
       //display_slopes,slps*100.,1,"Phase Difference";
       yoga_resetdm,g_dm,y_dm(nm).type,y_dm(nm).alt;
       //pause,500;

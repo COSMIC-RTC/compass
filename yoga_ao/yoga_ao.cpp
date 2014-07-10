@@ -2510,13 +2510,32 @@ void Y_rtc_getcentroids(int argc) {
   rtc_struct *rhandler = (rtc_struct *) yget_obj(argc - 1, &yRTC);
   sutra_rtc *rtc_handler = (sutra_rtc *) (rhandler->sutra_rtc);
   long ncontrol = ygets_l(argc - 2);
+  sutra_wfs *wfs_handler;
 
+  if(ncontrol>=rtc_handler->d_control.size()){
+    if(argc<4) {
+      fprintf(stderr, "Controller not initialized on the GPU, you have to specify the WFS\n");
+      return;
+    }
+    sensors_struct *shandler = (sensors_struct *) yget_obj(argc - 3, &ySensors);
+    sutra_sensors *sensor_handler=(sutra_sensors *)shandler->sutra_sensors;
+    long nwfs = ygets_l(argc - 4);
+    wfs_handler = sensor_handler->d_wfs.at(nwfs);
+  }
   carma_context *context_handle = _getCurrentContext();
   context_handle->set_activeDeviceForCpy(rhandler->device);
 
-  float *data = ypush_f(
-      (long*) rtc_handler->d_control.at(ncontrol)->d_centroids->getDims());
-  rtc_handler->d_control.at(ncontrol)->d_centroids->device2host(data);
+  if(ncontrol>=rtc_handler->d_control.size()){
+
+    float *data = ypush_f((long*)wfs_handler->d_slopes->getDims());
+    carma_obj<float> d_data(context_handle, wfs_handler->d_slopes->getDims());
+    rtc_handler->d_centro.at(ncontrol)->get_cog(wfs_handler, d_data);
+    d_data.device2host(data);
+  } else {
+    float *data = ypush_f(
+        (long*) rtc_handler->d_control.at(ncontrol)->d_centroids->getDims());
+    rtc_handler->d_control.at(ncontrol)->d_centroids->device2host(data);
+  }
 }
 
 void Y_rtc_getcom(int argc) {

@@ -669,7 +669,7 @@ func rtc_init(clean=)
           ndms = *controllers(i).ndm;
           controllers(i).nvalid = &(y_wfs(nwfs)._nvalid);
           controllers(i).nactu  = &(y_dm(ndms)._ntotact);
-          
+
           rtc_addcontrol,g_rtc,sum(y_dm(ndms)._ntotact),controllers(i).delay,controllers(i).type;
 
           if (controllers(i).type  == "ls") {
