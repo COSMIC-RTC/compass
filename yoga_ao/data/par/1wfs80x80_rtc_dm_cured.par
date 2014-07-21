@@ -27,7 +27,7 @@ target inits
 y_target.ntargets = 1;
 y_target.xpos     = &([0.0f]);
 y_target.ypos     = &([0.0f]);
-y_target.lambda   = &([1.65]);
+y_target.lambda   = &([2.2]);
 y_target.mag      = &([10.]);
 
 /*
@@ -51,7 +51,7 @@ y_wfs(1).lambda        = 0.5;
 y_wfs(1).gsmag         = 5.;
 y_wfs(1).optthroughput = 0.5;
 y_wfs(1).zerop         = 1.e11;
-y_wfs(1).noise         = 5;
+y_wfs(1).noise         = -1;
 
 /*
 dm inits
