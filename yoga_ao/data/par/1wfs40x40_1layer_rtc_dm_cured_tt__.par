@@ -69,7 +69,7 @@ y_dm(1).push4imat     = 1.0f;
 y_dm(2).type          = "tt";
 y_dm(2).alt           = 0.;
 y_dm(2).unitpervolt   = 1.0f;
-y_dm(2).push4imat     = 10.0f;
+y_dm(2).push4imat     = 1.0f;
 
 
 /*
@@ -93,7 +93,7 @@ y_controllers(1).ndm     = &[1,2];
 //y_controllers(1).maxcond = 500.;
 y_controllers(1).delay   = 1;
 y_controllers(1).gain    = 0.5;
-y_controllers(1).cured_ndivs = 4;
+y_controllers(1).cured_ndivs = 2;
 
 /*
 rtc inits
