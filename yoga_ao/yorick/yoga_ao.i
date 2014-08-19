@@ -704,27 +704,51 @@ func rtc_init(clean=)
 
             rtc_setgain,g_rtc,0,controllers(i).gain;
 
-            D_Mo = create_dm0(1,1);
-            // creation de N_Act en ((unitpervolt microns)/(push4imat V)) puis conversion en normalise
-            N_Act  = create_nact(1); N_Act = N_Act-min(N_Act); N_Act = N_Act/max(N_Act);
+            D_Mo = create_dmo(1,1);
+
+            // creation de N_Act (en um/V)
+            N_Act  = create_nact(1); //N_Act = N_Act-min(N_Act); N_Act = N_Act/max(N_Act);
             PROJ   = LUsolve(N_Act);
-     
+            //Mint = imat_geom(meth=0);
+            //D_Mo = Mint(,+)*PROJ(+,);
 
-            SigmaTur = create_sigmaTur(1);
-            atur = array(0.98, sum(y_dm(ndms)._ntotact));
+/*
+f2= open("NAct_manuel.dat", "w");
+write,f2,format="%e \n",N_Act;
+close,f2;
+f3= open("PROJ_manuel.dat", "w");
+write,f3,format="%e \n",PROJ;
+close,f3;
+f4= open("D_Mo_manuel.dat", "w");
+write,f4,format="%e \n",D_Mo;
+close,f4;  
+f5= open("Mint_manuel.dat", "w");
+write,f5,format="%e \n",Mint;
+close,f5;  
+*/
+            //Creation de SigmaTur puis conversion de rad^2 en um^2
+            //SigmaTur = (create_sigmaTur(1)*0.806-53.4) * (y_wfs(1).lambda/2/pi)^2;
+            SigmaTur = create_sigmaTur(1) * (y_wfs(1).lambda/2/pi)^2;
+
+            //SigmaTur = create_sigmaTur(1);//pli,SigmaTur;
+            atur = array(0.985, sum(y_dm(ndms)._ntotact));
             btur = array(0.0f, sum(y_dm(ndms)._ntotact));
-            SigmaV = create_sigmav(SigmaTur, 1, 1, atur, btur);
-
-            //window,1; pli,D_Mo; colorbar,min(D_Mo),max(D_Mo);
-            // window,2; pli,N_Act; colorbar,min(N_Act),max(N_Act);
+            ordreAR = anyof(btur)+1;
+            isZonal=1 ; isSparse=1;
+            SigmaV = create_sigmav(SigmaTur, isZonal, ordreAR, atur, btur) ;
+            //window,1; pli,D_Mo; colorbar,min(D_Mo),max(D_Mo); error;
+            //window,2; pli,N_Act; colorbar,min(N_Act),max(N_Act);
             //window,3; pli,PROJ; colorbar,min(PROJ),max(PROJ);
             //window,4; pli,SigmaV;colorbar,min(SigmaV),max(SigmaV);
+            //SigmaV=SigmaV-min(SigmaV);SigmaV=SigmaV/max(SigmaV);
+            //SigmaV=SigmaV*(2.1384-0.4320)+0.4320;
+            //SigmaV=SigmaV*(y_wfs(1).lambda/2/pi)^2;
             //error;
 
             if (controllers(i).type  == "kalman_CPU")
-              rtc_initkalman, g_rtc, 0 , D_Mo, N_Act, PROJ, SigmaV, atur, btur, 1, 0, 0;
+              rtc_initkalman, g_rtc, 0, y_wfs(1).noise, D_Mo, N_Act, PROJ, SigmaV, atur, btur, isZonal, isSparse, 0;
             else
-              rtc_initkalman, g_rtc, 0 , D_Mo, N_Act, PROJ, SigmaV, atur, btur, 1, 0, 1;
+              rtc_initkalman, g_rtc, 0, y_wfs(1).noise, D_Mo, N_Act, PROJ, SigmaV, atur, btur, isZonal, isSparse, 1;
 
           }          
 	  // Florian features

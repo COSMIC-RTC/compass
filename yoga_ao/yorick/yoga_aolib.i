@@ -767,7 +767,7 @@ extern rtc_kalmancalculategain;
 
 extern rtc_initkalman;
 /* DOCUMENT rtc_initkalman
-   rtc_initkalman,yoga_rtc_obj,ncontroller,D_Mo, N_Act, PROJ, SigmaV, atur, btur, is_zonal, is_sparse, is_GPU
+   rtc_initkalman,yoga_rtc_obj,ncontroller,bruit, D_Mo, N_Act, PROJ, SigmaV, atur, btur, is_zonal, is_sparse, is_GPU
       
    SEE ALSO:
  */

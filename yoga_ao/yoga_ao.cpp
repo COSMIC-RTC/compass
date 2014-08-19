@@ -3515,29 +3515,30 @@ void Y_rtc_initkalman(int argc) {
   rtc_struct *rhandler = (rtc_struct *) yget_obj(argc - 1, &yRTC);
   sutra_rtc *rtc_handler = (sutra_rtc *) (rhandler->sutra_rtc);
   long ncontrol = ygets_l(argc - 2);
+  float bruit = ygets_f(argc-3);
   long ntot, dims[Y_DIMSIZE];
 
-  float* hD_Mo = ygeta_f(argc-3, &ntot, dims);
+  float* hD_Mo = ygeta_f(argc-4, &ntot, dims);
   carma_host_obj<float> D_Mo(dims, hD_Mo);
 
-  float* hN_Act = ygeta_f(argc-4, &ntot, dims);
+  float* hN_Act = ygeta_f(argc-5, &ntot, dims);
   carma_host_obj<float> N_Act(dims, hN_Act);
 
-float* hPROJ = ygeta_f(argc-5, &ntot, dims);
+float* hPROJ = ygeta_f(argc-6, &ntot, dims);
   carma_host_obj<float> PROJ(dims, hPROJ);
 
-  float* hSigmaV = ygeta_f(argc-6, &ntot, dims);
+  float* hSigmaV = ygeta_f(argc-7, &ntot, dims);
   carma_host_obj<float> SigmaV(dims, hSigmaV);
 
-  float* hatur = ygeta_f(argc-7, &ntot, dims);
+  float* hatur = ygeta_f(argc-8, &ntot, dims);
   carma_host_obj<float> atur(dims, hatur);
 
-  float* hbtur = ygeta_f(argc-8, &ntot, dims);
+  float* hbtur = ygeta_f(argc-9, &ntot, dims);
   carma_host_obj<float> btur(dims, hbtur);
 
-  bool is_zonal = ygets_s(argc - 9);
-  bool is_sparse = ygets_s(argc - 10);
-  bool is_GPU = ygets_s(argc - 11);
+  bool is_zonal = ygets_s(argc - 10);
+  bool is_sparse = ygets_s(argc - 11);
+  bool is_GPU = ygets_s(argc - 12);
 
 
   if ( (rtc_handler->d_control.at(ncontrol)->get_type().compare("kalman_CPU") == 0)
@@ -3569,7 +3570,8 @@ float* hPROJ = ygeta_f(argc-5, &ntot, dims);
        //cbtur   = calculate_btur(current_context, nzernike, is_zonal);
        //cSigmaV = calculate_SigmaV(current_context, nzernike, is_zonal);
     }
-   control->calculate_gain(0.04/3.14159/3.14159, SigmaV, atur, btur);
+    //bruit en arcsec^2
+   control->calculate_gain(bruit, SigmaV, atur, btur);
     //delete catur;
     //delete cbtur;	
 //fin TMP    

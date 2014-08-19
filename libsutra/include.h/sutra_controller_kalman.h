@@ -39,6 +39,7 @@ public:
    virtual string get_type() {if(isGPU) return "kalman_GPU";else return "kalman_CPU";};
    
    virtual int comp_com();
+   //int frame_delay();
 
    int set_gain(float k_W);
 
@@ -52,6 +53,8 @@ public:
    bool isInit;
    bool isGainSet;
    float gain;
+   //int delay;
+   //carma_obj<float> *d_cenbuff; // centroids circular buffer
 
  public:
 #ifdef COMPILATION_LAM

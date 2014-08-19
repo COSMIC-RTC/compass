@@ -1,4 +1,4 @@
-CC = g++
+CC = gcc
 NVCC = nvcc
 
 LIB_NAME = libkp_kalman.a

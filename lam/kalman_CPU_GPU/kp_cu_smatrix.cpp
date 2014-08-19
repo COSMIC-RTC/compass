@@ -206,7 +206,7 @@ void kp_cu_smatrix::_clear()
 
 void kp_cu_smatrix::init_from_transpose(const kp_cu_smatrix& M)
 {
-   resize(M.nnz, M.dim1, M.dim2);
+   resize(M.nnz, M.dim2, M.dim1);
 
    kernel_memcpy_real(values_cu, M.values_cu, sizeof(real) * nnz);
    kernel_memcpy_int(colind_cu, M.rowind_cu, sizeof(int) * nnz);

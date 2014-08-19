@@ -556,6 +556,7 @@ void kp_cu_matrix::inverse()
 
 	delete[] ipiv;
 	kp_cu_cudaFree(dwork);
+        dwork=NULL;
 
 }
 
@@ -597,6 +598,7 @@ void kp_cu_matrix::_clear()
 		exit(EXIT_FAILURE);
 	}
 	     kp_cu_cudaFree(d_cu);
+             d_cu=NULL;
      }
 }
 
@@ -700,10 +702,12 @@ void kp_cu_geam(cublasHandle_t handle, char opA, char opB, real alpha, real beta
 	if (&C == &A)
 	{
 		kp_cu_cudaFree(A_data);
+                A_data = NULL;
 	}
 	if (&C == &B)
 	{
 		kp_cu_cudaFree(B_data);
+                B_data = NULL;
 	}
 
 
@@ -801,7 +805,6 @@ cout<<"single precision"<<endl;
 
 
 	#else
-cout<<"double precision"<<endl;
 		stat1= cublasDgemm(handle, transa, transb,\
 			opA_dim1, opB_dim2, opA_dim2, &alpha, A.d_cu, A.dim1, B.d_cu, B.dim1, &beta, C.d_cu, C.dim1);
 	#endif

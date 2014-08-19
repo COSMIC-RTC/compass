@@ -102,6 +102,7 @@ func script_system(filename,verbose=,strehl=,r0=,clean=)
     write,"iter# | S.E. SR | L.E. SR | Est. Rem. | framerate";
     write,"----------------------------------------------------";
   }
+
   for (cc=1;cc<=y_loop.niter;cc++) {
     
     if (g_target != []) move_sky,g_atmos,g_target;
@@ -141,12 +142,15 @@ func script_system(filename,verbose=,strehl=,r0=,clean=)
       
       // do centroiding
     }
-    
+
+
     if ((y_rtc != []) && (g_rtc != [])
         && (y_wfs != []) && (g_wfs != [])) {
       rtc_docentroids,g_rtc,g_wfs,0;
       // compute command and apply
       if (g_dm != []) rtc_docontrol,g_rtc,0,g_dm;
+
+
     }
     
     if (verbose) {

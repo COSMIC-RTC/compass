@@ -130,7 +130,7 @@ void kp_smatrix::init_from_rowidx(const kp_smatrix& M, const vector<int>& idx)
 //                                                                                            
 void kp_smatrix::init_from_transpose(const kp_smatrix&M)
 {
-   resize(M.nnz, M.dim1, M.dim2);
+   resize(M.nnz, M.dim2, M.dim1);
    memcpy(values, M.values, sizeof(real) * nnz);
    memcpy(colind, M.rowind, sizeof(int) * nnz);
    memcpy(rowind, M.colind, sizeof(int) * nnz);

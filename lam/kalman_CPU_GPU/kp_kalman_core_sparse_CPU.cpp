@@ -63,7 +63,7 @@ void kp_kalman_core_sparse_CPU::calculate_gain(real bruit_pix,
 		exit(EXIT_FAILURE);
 	}
 
-	//ofstream fichier;
+	ofstream fichier;
 
 
 
@@ -544,7 +544,7 @@ fichier.close();*/
 	
 	}
 
-/*fichier.open("H_inf_sparse_CPU.dat",ios::out);
+fichier.open("H_inf_sparse_CPU.dat",ios::out);
 for(int i=0 ; i<H_inf.dim1 ; i++)
 {
 	for (int j=0 ; j<H_inf.dim2 ; j++)
@@ -553,7 +553,7 @@ for(int i=0 ; i<H_inf.dim1 ; i++)
 	}
 	fichier << endl;
 }
-fichier.close();*/
+fichier.close();
 
 	gainComputed = true;
 
@@ -579,6 +579,8 @@ void kp_kalman_core_sparse_CPU::next_step(const kp_vector& Y_k, kp_vector& U_k)
 	A1_00_Xkdebut.zeros();
 	A1_01_Xkfin.zeros();
 
+
+	ofstream fichier2;
 
 
 
@@ -616,6 +618,17 @@ void kp_kalman_core_sparse_CPU::next_step(const kp_vector& Y_k, kp_vector& U_k)
 	// X_kskm1_tmp = H_inf *  (Y_k - Y_kskm1)
 	kp_gemv ('N', 1, H_inf, innovation, 1, X_kskm1_tmp); 
 
+fichier2.open("Hinf_inov_auto.dat",ios::out);
+for(int i=0 ; i<X_kskm1_tmp.size() ; i++)
+{
+	fichier2 << __SP X_kskm1_tmp.d[i] << " ";
+}
+fichier2<<endl;
+fichier2.close();
+
+
+
+
 	// X_kskm1_tmp = X_kskm1_tmp + H_inf * innovation (= X_kskm1 + H_inf * (Y_k - Y_kskm1))
 		
 	X_kp1sk.zeros();
@@ -649,6 +662,13 @@ void kp_kalman_core_sparse_CPU::next_step(const kp_vector& Y_k, kp_vector& U_k)
 
 
 
+fichier2.open("X_kp1sk_auto.dat",ios::app);
+for(int i=0 ; i<X_kskm1.size() ; i++)
+{
+	fichier2 << __SP X_kskm1.d[i] << " ";
+}
+fichier2<<endl;
+fichier2.close();
 
 
 U_k.resize(nb_act);
@@ -660,8 +680,6 @@ U_k.resize(nb_act);
 		kp_gemv (1, PROJ, X_kp1sk_debut, 0, U_k);
 
 //temps_op3.pause();
-
-
 
 
 	//MISE A JOUR
