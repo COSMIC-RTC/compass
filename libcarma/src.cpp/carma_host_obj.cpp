@@ -436,6 +436,21 @@ int carma_host_obj<T_data>::get_nbStreams() {
   return streams->get_nbStreams();
 }
 
+template int
+carma_host_obj<float>::get_nbStreams();
+template int
+carma_host_obj<double>::get_nbStreams();
+template int
+carma_host_obj<int>::get_nbStreams();
+template int
+carma_host_obj<unsigned int>::get_nbStreams();
+template int
+carma_host_obj<cuFloatComplex>::get_nbStreams();
+template int
+carma_host_obj<cuDoubleComplex>::get_nbStreams();
+
+
+
 template<class T_data>
 int carma_host_obj<T_data>::add_stream() {
   if (this->mallocType != MA_MALLOC)
@@ -458,6 +473,22 @@ template<class T_data>
 cudaStream_t carma_host_obj<T_data>::get_cudaStream_t(int stream) {
   return this->streams->get_stream(stream);
 }
+
+
+template cudaStream_t
+carma_host_obj<float>::get_cudaStream_t(int stream);
+template cudaStream_t
+carma_host_obj<double>::get_cudaStream_t(int stream);
+template cudaStream_t
+carma_host_obj<int>::get_cudaStream_t(int stream);
+template cudaStream_t
+carma_host_obj<unsigned int>::get_cudaStream_t(int stream);
+template cudaStream_t
+carma_host_obj<cuFloatComplex>::get_cudaStream_t(int stream);
+template cudaStream_t
+carma_host_obj<cuDoubleComplex>::get_cudaStream_t(int stream);
+
+
 
 template<class T_data>
 int carma_host_obj<T_data>::del_stream() {

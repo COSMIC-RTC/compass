@@ -317,7 +317,13 @@ int carma_obj<T_data>::host2device(T_data *data) {
 }
 
 template int
+caObjI::host2device(int *data);
+template int
 caObjUI::host2device(unsigned int *data);
+template int
+caObjS::host2device(float *data);
+template int
+caObjD::host2device(double *data);
 template int
 caObjS2::host2device(float2 *data);
 template int

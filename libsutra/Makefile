@@ -76,6 +76,7 @@ all: $(LIB_NAME)
 
 clean:
 	@rm -rf $(OBJS)
+	@rm -f	*.so
 
 $(OBJ_DIR)/%.cuo: $(CU_DIR)/%.cu
 	@printf '\033[36m%s\033[31m%s\033[m\n' "Compiling     " $@

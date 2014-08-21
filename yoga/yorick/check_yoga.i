@@ -22,7 +22,7 @@ func checkAll(size)
   //check_yoga_scan,size;
 }
 
-
+checkAll,512
 
 /*
 */

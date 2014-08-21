@@ -46,7 +46,7 @@ ifneq ($(DEBUG),)
  LIB_CPPFLAGS  += -O0 -g -DDEBUG
  LIB_NVCCFLAGS += -g -G -lineinfo -DDEBUG
 else
- LIB_CPPFLAGS  += -O0 
+ LIB_CPPFLAGS  += -O2 
 endif
 
 ifneq ($(CULA_ROOT),)
@@ -79,6 +79,7 @@ all: $(LIB_NAME)
 
 clean:
 	@rm -f $(OBJS)
+	@rm -f *.so
 
 $(OBJ_DIR)/%.cuo: $(CU_DIR)/%.cu
 	@printf '\033[36m%s\033[31m%s\033[m\n' "Compiling     " $@
