@@ -15,10 +15,10 @@ export CPLUS_INCLUDE_PATH=$CUDA_INC_PATH
 export PATH=$CUDA_ROOT/bin:$PATH
 
 # CULA default definitions
-#export CULA_ROOT=/usr/local/cula
-#export CULA_INC_PATH=$CULA_ROOT/include
-#export CULA_LIB_PATH=$CULA_ROOT/lib
-#export CULA_LIB_PATH_64=$CULA_ROOT/lib64
+export CULA_ROOT=/usr/local/cula
+export CULA_INC_PATH=$CULA_ROOT/include
+export CULA_LIB_PATH=$CULA_ROOT/lib
+export CULA_LIB_PATH_64=$CULA_ROOT/lib64
 
 # MAGMA definitions (uncomment this line if MAGMA is installed)
 export MAGMA_ROOT=/usr/local/magma
