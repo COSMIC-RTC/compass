@@ -244,4 +244,21 @@ void
 pyr_fact(cuFloatComplex *d_data, float fact, int n, int nim, int device);
 void
 pyr_fact(float *d_data, float fact1, float *fact2, int n, int nim, int device);
+
+template<class Tin, class Tout>
+void 
+roof_abs2(Tout *d_odata, Tin *d_idata, Tout fact, int ns, int nim, int device); 
+
+template<class T>
+void
+roof_subsum(T *d_odata, T *d_idata, int *subindx, int *subindy, int ns, int nvalid, int nim, int device);
+
+template<class T>
+void 
+roof_rollmod(T *d_odata, T *d_idata, T *d_mask, float cx, float cy, int np, int ns, int device);
+
+template<class T>
+void
+roof_fillbin(T *d_odata, T *d_idata, int nrebin, int np, int ns, int nim, int device);
+
 #endif // _SUTRA_WFS_H_

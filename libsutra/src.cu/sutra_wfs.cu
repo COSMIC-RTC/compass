@@ -976,6 +976,113 @@ template void
 pyr_rollmod<cuDoubleComplex>(cuDoubleComplex *d_odata, cuDoubleComplex *d_idata,
     cuDoubleComplex *d_mask, float cx, float cy, int np, int ns, int device);
 
+//////////////////////////////////////////////////////////////
+// ADDING PYR_ROLLMOD MODIFIED FOR ROOF-PRISM: ROOF_ROOLMOD //
+//////////////////////////////////////////////////////////////
+
+template<class T>
+__global__ void roof_rollmod_krnl(T *g_odata, T *g_idata, T *g_mask, int cx, int cy,
+    unsigned int n, unsigned int ns, unsigned int nim) {
+  // roll( pup * exp(i*phase) ) * offsets
+
+  // load shared mem
+  unsigned int i = blockIdx.x * blockDim.x + threadIdx.x;
+
+  int xx, yy, i2;
+
+  if (i < ns * ns * nim) {
+    int n_im = i / (ns * ns);
+    int tidim = i - n_im * ns * ns;
+
+    xx = tidim % ns;
+    yy = tidim / ns;
+
+    int xx2 = 0;
+    int yy2 = 0;
+
+    //cx *= 0;
+    //cy *= 0;
+
+    // here we re-order the half-planes to simulate a roll :
+    // top is 1 and bottom is 2 ; left is 3 and right is 4.
+    if (n_im == 0) {
+      // first image : top
+      xx2 = (xx + (n - ns/2));
+      yy2 = (yy + (n - ns) - cy);
+    }
+    if (n_im == 1) {
+      // second image : bottom
+      xx2 = (xx + (n - ns/2));
+      yy2 = (yy - cy);
+    }
+    if (n_im == 2) {
+      // third image : left
+      xx2 = (xx + (n - ns) - cx);
+      yy2 = (yy + (n - ns/2)); 
+    }
+    if (n_im == 3) {
+      // fourth image : right
+      xx2 = (xx - cx);
+      yy2 = (yy + (n - ns/2));
+    }
+
+    if (xx2 < 0)
+      xx2 = xx2 + n;
+    else
+      xx2 = xx2 % n;
+
+    if (yy2 < 0)
+      yy2 = yy2 + n;
+    else
+      yy2 = yy2 % n;
+
+    i2 = xx2 + yy2 * n;
+
+    if (i2 < n * n) {
+      T tmp1, tmp2;
+      tmp1 = g_idata[i2];
+      tmp2 = g_mask[tidim];
+      g_odata[i].x = tmp1.x * tmp2.x - tmp1.y * tmp2.y;
+      g_odata[i].y = tmp1.x * tmp2.y + tmp1.y * tmp2.x;
+    }
+  }
+}
+
+template<class T>
+void roof_rollmod(T *d_odata, T *d_idata, T *d_mask, float cx, float cy, int np,
+    int ns, int device) {
+  struct cudaDeviceProp deviceProperties;
+  cudaGetDeviceProperties(&deviceProperties, device);
+
+  int N = ns * ns * 4;
+
+  int maxThreads = deviceProperties.maxThreadsPerBlock;
+  int nBlocks = deviceProperties.multiProcessorCount * 8;
+  int nThreads = (N + nBlocks - 1) / nBlocks;
+
+  if (nThreads > maxThreads) {
+    nThreads = maxThreads;
+    nBlocks = (N + nThreads - 1) / nThreads;
+  }
+
+  dim3 grid(nBlocks), threads(nThreads);
+
+  roof_rollmod_krnl<T> <<<grid, threads>>>(d_odata, d_idata, d_mask, cx, cy, np,
+      ns, 4);
+
+  cutilCheckMsg("roof_rollmod_kernel<<<>>> execution failed\n");
+}
+template void
+roof_rollmod<cuFloatComplex>(cuFloatComplex *d_odata, cuFloatComplex*d_idata,
+    cuFloatComplex*d_mask, float cx, float cy, int np, int ns, int device);
+template void
+roof_rollmod<cuDoubleComplex>(cuDoubleComplex *d_odata, cuDoubleComplex *d_idata,
+    cuDoubleComplex *d_mask, float cx, float cy, int np, int ns, int device);
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 template<class T>
 __global__ void fillbinpyr_krnl(T *g_odata, T *g_idata, unsigned int nrebin,
     unsigned int n, unsigned int ns, unsigned int nim) {
@@ -1045,6 +1152,87 @@ pyr_fillbin<float>(float *d_odata, float *d_idata, int nrebin, int np, int ns,
 template void
 pyr_fillbin<double>(double *d_odata, double *d_idata, int nrebin, int np,
     int ns, int nim, int device);
+
+//////////////////////////////////////////////////////////////
+// ADDING PYR_FILLBIN MODIFIED FOR ROOF-PRISM: ROOF_FILLBIN //
+//////////////////////////////////////////////////////////////
+
+template<class T>
+__global__ void fillbinroof_krnl(T *g_odata, T *g_idata, unsigned int nrebin,
+    unsigned int n, unsigned int ns, unsigned int nim) {
+  // bin2d(hrimg)
+
+  T *sdata = SharedMemory<T>();
+
+  // load shared mem
+  unsigned int tid = threadIdx.x;
+  unsigned int i = blockIdx.x * blockDim.x + threadIdx.x;
+
+  int x, y;
+
+  if (i < ns * ns * nim) {
+    int n_im = i / (ns * ns);
+    int tidim = i - n_im * ns * ns;
+
+    /// Reprendre ici...
+
+    x = tidim % ns;
+    y = tidim / ns;
+    int xim = x * nrebin;
+    int yim = y * nrebin;
+
+    sdata[tid] = 0;
+
+    for (int cpty = 0; cpty < nrebin; cpty++) {
+      for (int cptx = 0; cptx < nrebin; cptx++) {
+        int tidim2 = (xim + cptx) + (yim + cpty) * n + n_im * n * n;
+        sdata[tid] += g_idata[tidim2];
+      }
+    }
+    sdata[tid] /= (nrebin * nrebin);
+  }
+  __syncthreads();
+
+  if (i < ns * ns * nim) {
+    g_odata[i] = sdata[tid];
+  }
+}
+
+template<class T>
+void roof_fillbin(T *d_odata, T *d_idata, int nrebin, int np, int ns, int nim,
+    int device) {
+  struct cudaDeviceProp deviceProperties;
+  cudaGetDeviceProperties(&deviceProperties, device);
+
+  int N = ns * ns * nim;
+
+  int maxThreads = deviceProperties.maxThreadsPerBlock;
+  int nBlocks = deviceProperties.multiProcessorCount * 8;
+  int nThreads = (N + nBlocks - 1) / nBlocks;
+
+  if (nThreads > maxThreads) {
+    nThreads = maxThreads;
+    nBlocks = (N + nThreads - 1) / nThreads;
+  }
+
+  dim3 grid(nBlocks), threads(nThreads);
+
+  int smemSize = nThreads * sizeof(T);
+  fillbinroof_krnl<T> <<<grid, threads, smemSize>>>(d_odata, d_idata, nrebin,
+      np, ns, nim);
+
+  cutilCheckMsg("pyrgetpup_kernel<<<>>> execution failed\n");
+}
+template void
+roof_fillbin<float>(float *d_odata, float *d_idata, int nrebin, int np, int ns,
+    int nim, int device);
+template void
+roof_fillbin<double>(double *d_odata, double *d_idata, int nrebin, int np,
+    int ns, int nim, int device);
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
 
 template<class Tout, class Tin>
 __global__ void abspyr_krnl(Tout *g_odata, Tin *g_idata, unsigned int ns,
@@ -1158,6 +1346,76 @@ pyr_abs2<cuFloatComplex, float>(float *d_odata, cuFloatComplex *d_idata,
 template void
 pyr_abs2<cuDoubleComplex, double>(double *d_odata, cuDoubleComplex *d_idata,
     double fact, int ns, int nim, int device);
+
+////////////////////////////////////////////////////////
+// ADDING PYR_ABS2 MODIFIED FOR ROOF-PRISM: ROOF_ABS2 //
+////////////////////////////////////////////////////////
+
+template<class Tin, class Tout>
+__global__ void abs2roof_krnl(Tout *g_odata, Tin *g_idata, Tout fact,
+    unsigned int ns, unsigned int nim) {
+  unsigned int i = blockIdx.x * blockDim.x + threadIdx.x;
+  int x, y;
+
+  // The following four lines shifts the index to induce a roll
+  // along both axes.
+
+  x = i % ns;
+  y = i / ns;
+  x = (x + ns / 2) % ns;
+  y = (y + ns / 2) % ns;
+
+  unsigned int i2 = x + y * ns;
+  //if (i2 < ns/2) i2 = i2 + ns/2 + ns/2*ns;
+
+  Tin tmp1, tmp2;
+  if (i < ns * ns / 2) {
+    for (int cpt = 0; cpt < nim; cpt++) {
+      tmp1 = g_idata[i + cpt * ns * ns];
+      tmp2 = g_idata[i2 + cpt * ns * ns];
+
+      g_odata[i + cpt * ns * ns] += (tmp2.x * tmp2.x + tmp2.y * tmp2.y) * fact;
+      g_odata[i2 + cpt * ns * ns] += (tmp1.x * tmp1.x + tmp1.y * tmp1.y) * fact;
+      
+    }
+  }
+}
+
+template<class Tin, class Tout>
+void roof_abs2(Tout *d_odata, Tin *d_idata, Tout fact, int ns, int nim,
+    int device) {
+  struct cudaDeviceProp deviceProperties;
+  cudaGetDeviceProperties(&deviceProperties, device);
+
+  int N = ns * ns / 2;
+
+  int maxThreads = deviceProperties.maxThreadsPerBlock;
+  int nBlocks = deviceProperties.multiProcessorCount * 8;
+  int nThreads = (N + nBlocks - 1) / nBlocks;
+
+  if (nThreads > maxThreads) {
+    nThreads = maxThreads;
+    nBlocks = (N + nThreads - 1) / nThreads;
+  }
+
+  dim3 grid(nBlocks), threads(nThreads);
+
+  abs2roof_krnl<Tin, Tout> <<<grid, threads>>>(d_odata, d_idata, fact, ns,
+      nim);
+
+  cutilCheckMsg("abs2pyr_kernel<<<>>> execution failed\n");
+}
+
+template void
+roof_abs2<cuFloatComplex, float>(float *d_odata, cuFloatComplex *d_idata,
+    float fact, int ns, int nim, int device);
+template void
+roof_abs2<cuDoubleComplex, double>(double *d_odata, cuDoubleComplex *d_idata,
+    double fact, int ns, int nim, int device);
+
+////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////
 
 template<class Tout, class Tin>
 __global__ void submask_krnl(Tout *g_odata, Tin *g_mask, unsigned int n) {
@@ -1285,6 +1543,60 @@ pyr_subsum<float>(float *d_odata, float *d_idata, int *subindx, int *subindy,
 template void
 pyr_subsum<double>(double *d_odata, double *d_idata, int *subindx, int *subindy,
     int ns, int nvalid, int nim, int device);
+
+////////////////////////////////////////////////////////////
+// ADDING PYR_SUBSUM MODIFIED FOR ROOF-PRISM: ROOF_SUBSUM //
+////////////////////////////////////////////////////////////
+
+template<class T>
+__global__ void roof_subsum_krnl(T *g_odata, T *g_idata, int *subindx, int *subindy,
+    unsigned int ns, unsigned int nvalid, unsigned int nim) {
+  unsigned int i = blockIdx.x * blockDim.x + threadIdx.x;
+
+  if (i < nvalid) {
+    int i2 = subindx[i] + subindy[i] * ns;
+    g_odata[i] = 0;
+    for (int cpt = 0; cpt < nim; cpt++) {
+      g_odata[i] += g_idata[i2 + cpt * ns * ns];
+    }
+  }
+}
+
+template<class T>
+void roof_subsum(T *d_odata, T *d_idata, int *subindx, int *subindy, int ns,
+    int nvalid, int nim, int device) {
+  struct cudaDeviceProp deviceProperties;
+  cudaGetDeviceProperties(&deviceProperties, device);
+
+  int N = nvalid;
+
+  int maxThreads = deviceProperties.maxThreadsPerBlock;
+  int nBlocks = deviceProperties.multiProcessorCount * 8;
+  int nThreads = (N + nBlocks - 1) / nBlocks;
+
+  if (nThreads > maxThreads) {
+    nThreads = maxThreads;
+    nBlocks = (N + nThreads - 1) / nThreads;
+  }
+
+  dim3 grid(nBlocks), threads(nThreads);
+
+  roof_subsum_krnl<T> <<<grid, threads>>>(d_odata, d_idata, subindx, subindy, ns,
+      nvalid, nim);
+
+  cutilCheckMsg("subsum_kernel<<<>>> execution failed\n");
+}
+
+template void
+roof_subsum<float>(float *d_odata, float *d_idata, int *subindx, int *subindy,
+    int ns, int nvalid, int nim, int device);
+template void
+roof_subsum<double>(double *d_odata, double *d_idata, int *subindx, int *subindy,
+    int ns, int nvalid, int nim, int device);
+
+////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////
 
 template<class T>
 __global__ void pyrfact_krnl(T *g_data, T fact, unsigned int n,

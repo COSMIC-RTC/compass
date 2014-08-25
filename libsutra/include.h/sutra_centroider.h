@@ -19,7 +19,7 @@ public:
 
 public:
   virtual
-  ~sutra_centroider(){};
+  ~sutra_centroider()=0;
 
   bool is_type(string typec) {
     return (typec.compare(get_type()) == 0);
@@ -95,4 +95,9 @@ template<class T>
 void
 pyr_slopes(T *d_odata, T *d_idata, int *subindx, int *subindy, T *subsum,
     int ns, int nvalid, int nim, int device);
+
+template<class T>
+void 
+roof_slopes(T *d_odata, T *d_idata, int *subindx, int *subindy, T *subsum, int ns, int nvalid, int nim, int device);
+
 #endif // _SUTRA_CENTROIDER_H_

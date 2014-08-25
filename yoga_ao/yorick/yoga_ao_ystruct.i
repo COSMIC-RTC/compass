@@ -20,6 +20,8 @@ struct tel_struct
 {
   float diam;        // telescope diameter (in meters)
   float cobs;        // central obstruction ratio
+  float t_spiders;   // secondary supports ratio
+  string spiders_type; // secondary supports type: "four" or "six"
 };
 
 struct atmos_struct
@@ -120,6 +122,7 @@ struct wfs_struct
   pointer pyr_pos;    // positions for modulation, overwrites ampl and npts [arcsec]
   string  pyr_loc;    // Location of modulation, before/after the field stop.
                           // valid value are "before" or "after" (default "after")
+  string  pyrtype;    // Type of pyramid, either 0 for "Pyramid" or 1 for "RoofPrism".
 
   // pyramid internal kwrds
   pointer _pyr_offsets;   //

@@ -1221,3 +1221,58 @@ template void
 pyr_slopes<double>(double *d_odata, double *d_idata, int *subindx, int *subindy,
     double *subsum, int ns, int nvalid, int nim, int device);
 
+
+
+////////////////////////////////////////////////////////////
+// ADDING PYR_SLOPES MODIFIED FOR ROOF-PRISM: ROOF_SLOPES //
+////////////////////////////////////////////////////////////
+
+template<class T>
+__global__ void roofslopes_krnl(T *g_odata, T *g_idata, int *subindx,
+    int *subindy, T *subsum, unsigned int ns, unsigned int nvalid,
+    unsigned int nim) {
+  unsigned int i = blockIdx.x * blockDim.x + threadIdx.x;
+
+  if (i < nvalid) {
+    int i2 = subindx[i] + subindy[i] * ns;
+    g_odata[i] = (g_idata[i2 + ns * ns] - g_idata[i2]) / subsum[i];
+    g_odata[i + nvalid] = (g_idata[i2 + 3 * ns * ns] - g_idata[i2 + 2 * ns * ns]) / subsum[i];
+  }
+}
+
+template<class T>
+void roof_slopes(T *d_odata, T *d_idata, int *subindx, int *subindy, T *subsum,
+    int ns, int nvalid, int nim, int device) {
+  //cout << "hello cu" << endl;
+  struct cudaDeviceProp deviceProperties;
+  cudaGetDeviceProperties(&deviceProperties, device);
+
+  int N = nvalid;
+
+  int maxThreads = deviceProperties.maxThreadsPerBlock;
+  int nBlocks = deviceProperties.multiProcessorCount * 8;
+  int nThreads = (N + nBlocks - 1) / nBlocks;
+
+  if (nThreads > maxThreads) {
+    nThreads = maxThreads;
+    nBlocks = (N + nThreads - 1) / nThreads;
+  }
+
+  dim3 grid(nBlocks), threads(nThreads);
+
+  roofslopes_krnl<T> <<<grid, threads>>>(d_odata, d_idata, subindx, subindy,
+      subsum, ns, nvalid, nim);
+
+  cutilCheckMsg("roofslopes_kernel<<<>>> execution failed\n");
+}
+
+template void
+roof_slopes<float>(float *d_odata, float *d_idata, int *subindx, int *subindy,
+    float *subsum, int ns, int nvalid, int nim, int device);
+template void
+roof_slopes<double>(double *d_odata, double *d_idata, int *subindx, int *subindy,
+    double *subsum, int ns, int nvalid, int nim, int device);
+
+////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////

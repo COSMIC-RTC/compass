@@ -88,15 +88,15 @@ func geom_init(pupdiam)
 
   // large pupil (used for image formation)
   ipupil = float(make_pupil(y_geom.ssize,y_geom.pupdiam,xc=y_geom.cent,yc=y_geom.cent,\
-                            cobs=y_tel.cobs));
+                            cobs=y_tel.cobs,t_spiders=y_tel.t_spiders,spiders_type=y_tel.spiders_type));
 
   // useful pupil 
   spupil = float(make_pupil(y_geom.pupdiam,y_geom.pupdiam,xc=y_geom.pupdiam/2+0.5,\
-                            yc=y_geom.pupdiam/2+0.5,  cobs=y_tel.cobs));
+                            yc=y_geom.pupdiam/2+0.5,  cobs=y_tel.cobs,t_spiders=y_tel.t_spiders,spiders_type=y_tel.spiders_type));
 
   // useful pupil + 4 pixels
   mpupil = float(make_pupil(y_geom._n,y_geom.pupdiam,xc=y_geom._n/2+0.5,yc=y_geom._n/2+0.5,\
-                            cobs=y_tel.cobs));
+                            cobs=y_tel.cobs,t_spiders=y_tel.t_spiders,spiders_type=y_tel.spiders_type));
 
   y_geom._ipupil = &ipupil;
   y_geom._spupil = &spupil;
@@ -174,6 +174,7 @@ func atmos_init(void)
   g_atmos = yoga_atmos_create(y_atmos.nscreens,y_atmos.r0,*y_atmos.L0,y_atmos.pupixsize,*y_atmos.dim_screens,
                               *y_atmos.frac,*y_atmos.alt,*y_atmos.windspeed,*y_atmos.winddir,
                               *y_atmos.deltax,*y_atmos.deltay,*y_geom._spupil);
+
 }
 
 func wfs_init(void)

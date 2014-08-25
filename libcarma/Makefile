@@ -49,11 +49,11 @@ else
  LIB_CPPFLAGS  += -O2 
 endif
 
-ifneq ($(CULA_ROOT),)
- LIB_CPPFLAGS  += -I$(CULA_INC_PATH) -DUSE_CULA
- LIB_NVCCFLAGS += -I$(CULA_INC_PATH) -DUSE_CULA
- LIB_DEPLIBS   += -L$(CULA_LIB_PATH_64) -lcula_lapack_basic 
-endif
+#ifneq ($(CULA_ROOT),)
+# LIB_CPPFLAGS  += -I$(CULA_INC_PATH) -DUSE_CULA
+# LIB_NVCCFLAGS += -I$(CULA_INC_PATH) -DUSE_CULA
+# LIB_DEPLIBS   += -L$(CULA_LIB_PATH_64) -lcula_lapack_basic 
+#endif
 ifneq ($(MAGMA_ROOT),)
  #use the same keyword as in make.inc
  LIB_CPPFLAGS  += -I$(MAGMA_ROOT)/include -DUSE_MAGMA -DUSE_MAGMA_WITH_MKL

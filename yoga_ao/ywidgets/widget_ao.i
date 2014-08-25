@@ -578,10 +578,16 @@ func update_main(type,nlayer)
   if (type == "Phase - WFS") {
     if (nlayer > numberof(y_wfs)) return;
     mscreen = sensors_getdata(g_wfs,nlayer,"phase");
+
+    //Pupil on top of phase screen
+    pupcustom = *y_geom._mpupil; // modif: lecture pupille
+    mscreen = mscreen*pupcustom; // modif: multiplication mscreen par pupille
+
     //mscreen = sensors_getdata(g_wfs,nlayer,"phasetele");
     window,(*ao_disp._wins)(1);fma;
     pli,mscreen;
     myxtitle = swrite(format="phase seen from WFS # %d",nlayer+1);
+
     port= viewport();
     plt, myxtitle, port(zcen:1:2)(1), port(4)+0.005,
       font="helvetica", justify="CB", height=long(pltitle_height*ao_disp._defaultdpi/200.);
@@ -632,11 +638,13 @@ func update_main(type,nlayer)
     plg,y_geom.pupdiam/2*cos(rho)+nx/2.,y_geom.pupdiam/2*sin(rho)+nx/2.,color="red",marks=0,width=3;
   }
   if (type == "Phase - Target") {
+    pupcustom = *y_geom._spupil; // modif: lecture pupille
     //target_atmostrace,g_target,nlayer,g_atmos;
     if (g_dm != []) {
       //target_dmtrace,g_target,nlayer,g_dm;
       //mscreen = target_getphasetele(g_target,nlayer);
       mscreen = target_getphase(g_target,nlayer);
+      mscreen = mscreen*pupcustom; // modif: multiplication mscreen par pupille
     } else mscreen = target_getphase(g_target,nlayer);
     window,(*ao_disp._wins)(1);fma;
     pli,mscreen;
@@ -651,12 +659,13 @@ func update_main(type,nlayer)
   if (type == "Image - Target") {
     mimg = target_getimage(g_target,nlayer,"se");
     window,(*ao_disp._wins)(1);fma;
-    pli,roll(mimg);
-    strehtmp = target_getstrehl(g_target,nlayer);
-    grow,strehlsp,strehtmp(1);
-    grow,strehllp,strehtmp(2);
-    myxtitle = swrite(format="image for target # %d            Inst. Strehl: %.2f / Long. Exp. Strehl: %.2f",
-                      nlayer+1,strehlsp(0),strehllp(0));
+    Di=dimsof(mimg);
+    mimg=roll(mimg);
+    OWA=2*y_dm.nact(1);
+    mimg=mimg(Di(2)/2-1-OWA:Di(2)/2+OWA,Di(2)/2-1-OWA:Di(2)/2+OWA);
+    mimg=mimg*(mimg > max(mimg)/10000)+max(mimg)/10000*(mimg < max(mimg)/10000);
+    pli,log10(mimg);
+    myxtitle = swrite(format="image (log scale) for target # %d", nlayer+1);
     port= viewport();
     plt, myxtitle, port(zcen:1:2)(1), port(4)+0.005,
       font="helvetica", justify="CB", height=long(pltitle_height*ao_disp._defaultdpi/200.);

@@ -11,6 +11,7 @@ sutra_centroider_pyr::sutra_centroider_pyr(carma_context *context, long nwfs,
   this->nvalid = nvalid;
   this->offset = offset;
   this->scale = scale;
+  //this->pyr_type = pyr_type;
 
 }
 
@@ -37,10 +38,18 @@ int sutra_centroider_pyr::get_cog(carma_streams *streams, float *cube,
 
 int sutra_centroider_pyr::get_pyr(float *cube, float *subsum, float *centroids,
     int *subindx, int *subindy, int nvalid, int ns, int nim) {
-
-  pyr_slopes(centroids, cube, subindx, subindy, subsum, ns, nvalid, nim,
-      this->device);
-
+    // if (pyr_type == [])  {
+    //     pyr_slopes(centroids, cube, subindx, subindy, subsum, ns, nvalid, nim,
+    //     this->device);
+    // } else if (pyr_type == "Pyramid") {
+    //     pyr_slopes(centroids, cube, subindx, subindy, subsum, ns, nvalid, nim,
+    //     this->device);
+    // } else if (pyr_type == "RoofPrism") {
+    //     roof_slopes(centroids, cube, subindx, subindy, subsum, ns, nvalid, nim,
+    //     this->device);
+    // }
+    pyr_slopes(centroids, cube, subindx, subindy, subsum, ns, nvalid, nim, this->device);
+    //roof_slopes(centroids, cube, subindx, subindy, subsum, ns, nvalid, nim, this->device);
   return EXIT_SUCCESS;
 }
 

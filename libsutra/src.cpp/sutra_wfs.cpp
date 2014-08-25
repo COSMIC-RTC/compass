@@ -441,7 +441,7 @@ int sutra_wfs::wfs_initgs(float xpos, float ypos, float lambda, float mag,
     this->d_gs->d_lgs = new sutra_lgs(current_context, this->nvalid, this->ntot,
         this->nmaxhr);
     this->d_gs->lgs = this->lgs;
-  } else this->d_gs->lgs = false;
+  }
 
   return EXIT_SUCCESS;
 }
@@ -526,6 +526,10 @@ int sutra_wfs::sensor_trace(sutra_dms *ydm, int rst) {
   return EXIT_SUCCESS;
 }
 
+/////////////////////////////////////////////////////////
+// COMPUTATION OF THE SHACK-HARTMANN WAVEFRONT SENSOR  //
+/////////////////////////////////////////////////////////
+
 int sutra_wfs::comp_sh_generic() {
   current_context->set_activeDevice(device);
 
@@ -562,7 +566,7 @@ int sutra_wfs::comp_sh_generic() {
           cudaMemset(this->d_fttotim->getData(), 0,
               sizeof(cuFloatComplex) * this->d_fttotim->getNbElem()));
 
-      int indxstart1, indxstart2=0, indxstart3;
+      int indxstart1, indxstart2, indxstart3;
 
       if ((cc == this->nffthr - 1) && (this->nvalid % this->nmaxhr != 0)) {
         indxstart1 = this->d_camplifoc->getNbElem()
@@ -714,7 +718,18 @@ int sutra_wfs::comp_sh_generic() {
   return EXIT_SUCCESS;
 }
 
+//////////////////////////////
+// PYRAMID WAVEFRONT SENSOR //
+//////////////////////////////
+
+// It starts by looking for the type of sensor. By default it assumes
+// a pyramid wfs. The pyramid can also be explicitely asked for, or
+// a roof prism can be asked for as well.
+
 int sutra_wfs::comp_pyr_generic() {
+    
+    //START COMMENTING HERE TO SWITCH TO PYRAMID
+  
   pyr_getpup(this->d_camplipup->getData(),
       this->d_gs->d_phase->d_screen->getData(), this->d_phalfxy->getData(),
       this->d_pupil->getData(), this->ntot, this->device);
@@ -806,6 +821,79 @@ int sutra_wfs::comp_pyr_generic() {
       this->d_subsum->getData());
   */
   return EXIT_SUCCESS;
+
+  //___________________________________________________________________
+//  // MODIF ROOF SENSOR
+//
+//  //PYR_GETPUP: reads pupil & phase and computes rolled electric field
+//   pyr_getpup(this->d_camplipup->getData(),
+//       this->d_gs->d_phase->d_screen->getData(), this->d_phalfxy->getData(),
+//       this->d_pupil->getData(), this->ntot, this->device);
+//
+//   carma_fft(this->d_camplipup->getData(), this->d_camplifoc->getData(), -1,
+//       *this->d_camplipup->getPlan());
+//
+//   pyr_submask(this->d_camplifoc->getData(), this->d_submask->getData(),
+//       this->ntot, this->device);
+//
+//   cutilSafeCall(
+//       cudaMemset(this->d_hrimg->getData(), 0,
+//           sizeof(float) * this->d_hrimg->getNbElem()));
+//
+//   //this->npup = 1;
+//   for (int cpt = 0; cpt < this->npup; cpt++) {
+//     // modulation loop
+//     // computes the high resolution images
+//     cutilSafeCall(
+//         cudaMemset(this->d_fttotim->getData(), 0,
+//             sizeof(cuFloatComplex) * this->d_fttotim->getNbElem()));
+//
+//     roof_rollmod(this->d_fttotim->getData(), this->d_camplifoc->getData(),
+//         this->d_poffsets->getData(), (this->pyr_cx->getData())[cpt],
+//         (this->pyr_cy->getData())[cpt], this->ntot, this->nfft, this->device);
+//  //   /*
+//  //    pyr_rollmod(this->d_fttotim->getData(),this->d_camplifoc->getData(), this->d_poffsets->getData(),0,
+//  //    0,this->ntot , this->nfft, this->device);
+//  //    */
+//
+//     carma_fft(this->d_fttotim->getData(), this->d_fttotim->getData(), 1,
+//         *this->d_fttotim->getPlan());
+//
+//     float fact = 1.0f / this->nfft / this->nfft / this->nfft / 2.0;
+//     //if (cpt == this->npup-1) fact = fact / this->npup;
+//
+//     roof_abs2(this->d_hrimg->getData(), this->d_fttotim->getData(), fact,
+//         this->nfft, 4, this->device);
+//   }
+//
+//   if (this->noise > 0) {
+//     this->d_bincube->prng('N', this->noise);
+//   } else
+//     cutilSafeCall(
+//         cudaMemset(this->d_bincube->getData(), 0,
+//             sizeof(float) * this->d_bincube->getNbElem()));
+//
+//   roof_fillbin(this->d_bincube->getData(), this->d_hrimg->getData(),
+//       this->nrebin, this->nfft, this->nfft / this->nrebin, 4, this->device);
+//
+//   pyr_subsum(this->d_subsum->getData(), this->d_bincube->getData(),
+//       this->d_validsubsx->getData(), this->d_validsubsy->getData(),
+//       this->nfft / this->nrebin, this->nvalid, 4, this->device);
+//
+//   int blocks, threads;
+//   getNumBlocksAndThreads(this->device, this->nvalid, blocks, threads);
+//   reduce(this->nvalid, threads, blocks, this->d_subsum->getData(),
+//       this->d_subsum->getData());
+//
+//   pyr_fact(this->d_bincube->getData(), this->nphot, this->d_subsum->getData(),
+//       this->nfft / this->nrebin, 4, this->device);
+//
+//   pyr_subsum(this->d_subsum->getData(), this->d_bincube->getData(),
+//       this->d_validsubsx->getData(), this->d_validsubsy->getData(),
+//       this->nfft / this->nrebin, this->nvalid, 4, this->device);
+//
+//   return EXIT_SUCCESS;
+
 }
 
 int sutra_wfs::comp_image() {

@@ -425,7 +425,7 @@ func __mysinc(ar)
   return sin(ar)/ar;
 }
 
-func make_pupil(dim,pupd,xc=,yc=,real=,cobs=)
+func make_pupil(dim,pupd,xc=,yc=,real=,cobs=,t_spiders=,spiders_type=)
   /* DOCUMENT func make_pupil(dim,pupd,xc=,yc=,real=)
    */
 {
@@ -441,6 +441,35 @@ func make_pupil(dim,pupd,xc=,yc=,real=,cobs=)
       pup -= exp(-(dist(dim,xc=xc,yc=yc)/(pupd*cobs/2.))^60.)^0.69314;
     } else {
       pup -= dist(dim,xc=xc,yc=yc) < (pupd*cobs+1.)/2.;
+
+      X=span(-0.5*(1-1./dim),0.5*(1-1./dim),dim)(,-:1:dim);
+      Y=transpose(X);
+      t_spiders=t_spiders*pupd/dim;
+
+      if (spiders_type=="four") {
+
+      //spiders_map_1 = abs(X) > t_spiders/2;
+      //spiders_map_2 = abs(Y) > t_spiders/2;
+
+      spiders_map_1 = ((Y > (X+t_spiders/(2*sin(pi/4)))*tan(pi/4))+(Y < (X-t_spiders/(2*sin(pi/4)))*tan(pi/4)));
+      spiders_map_2 = ((Y > (-X+t_spiders/(2*sin(pi/4)))*tan(pi/4))+(Y < (-X-t_spiders/(2*sin(pi/4)))*tan(pi/4)));
+
+      pup = pup*spiders_map_1*spiders_map_2;
+
+      } else if (spiders_type=="six") {
+
+      //spiders_map_1 = abs(X) > t_spiders/2;
+      //spiders_map_2 = ((Y > (X+t_spiders/(2*sin(pi/6)))*tan(pi/6))+(Y < (X-t_spiders/(2*sin(pi/6)))*tan(pi/6)));
+      //spiders_map_3 = ((Y > (-X+t_spiders/(2*sin(pi/6)))*tan(pi/6))+(Y < (-X-t_spiders/(2*sin(pi/6)))*tan(pi/6)));
+      
+      spiders_map_1 = ((Y > (-X+t_spiders/(2*sin(pi/2-pi/12)))*tan(pi/2-pi/12))+(Y < (-X-t_spiders/(2*sin(pi/2-pi/12)))*tan(pi/2-pi/12)));
+
+      spiders_map_2 = ((Y > (X+t_spiders/(2*sin(pi/6+pi/12)))*tan(pi/6+pi/12))+(Y < (X-t_spiders/(2*sin(pi/6+pi/12)))*tan(pi/6+pi/12)));
+      spiders_map_3 = ((Y > (-X+t_spiders/(2*sin(pi/6-pi/12)))*tan(pi/6-pi/12))+(Y < (-X-t_spiders/(2*sin(pi/6-pi/12)))*tan(pi/6-pi/12)));
+      
+      pup = pup*spiders_map_1*spiders_map_2*spiders_map_3;
+
+      }
     }
   }
     
