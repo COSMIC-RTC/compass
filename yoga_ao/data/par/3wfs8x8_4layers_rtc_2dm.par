@@ -18,6 +18,7 @@ y_atmos.frac         = &([0.4,0.2,0.25,0.15]);
 y_atmos.alt          = &([0,1000,5000,10000]);
 y_atmos.windspeed    = &([10,15,20,35]);
 y_atmos.winddir      = &([0,10,25,15]);
+y_atmos.L0      = &([1,1,1,1]*1.e6);
 
 /*
 target inits
