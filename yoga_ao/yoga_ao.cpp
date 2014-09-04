@@ -2297,6 +2297,24 @@ void Y_rtc_docentroids(int argc) {
    */
 }
 
+void Y_rtc_docentroids_geom(int argc) {
+  rtc_struct *rhandler = (rtc_struct *) yget_obj(argc - 1, &yRTC);
+  sutra_rtc *rtc_handler = (sutra_rtc *) (rhandler->sutra_rtc);
+  sensors_struct *handler = (sensors_struct *) yget_obj(argc - 2, &ySensors);
+  sutra_sensors *sensors_handler = (sutra_sensors *) (handler->sutra_sensors);
+
+  if (argc > 2) {
+    long ncontrol = ygets_l(argc - 3);
+    rtc_handler->do_centroids_geom(ncontrol, sensors_handler);
+  } else
+    rtc_handler->do_centroids(0,sensors_handler);
+
+  /* now done inside sutra_rtc::do_centroids
+   sutra_context *context_handle = _getCurrentContext();
+   int activeDevice = context_handle->set_activeDeviceForCpy(rhandler->device);
+   */
+}
+
 void Y_rtc_doimat(int argc) {
   rtc_struct *rhandler = (rtc_struct *) yget_obj(argc - 1, &yRTC);
   sutra_rtc *rtc_handler = (sutra_rtc *) (rhandler->sutra_rtc);

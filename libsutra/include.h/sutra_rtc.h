@@ -30,34 +30,36 @@ public:
   ~sutra_rtc();
 
   int
-  add_centroider(long nwfs, long nvalid, float offset, float scale, long device,
-      char *typec);
+    add_centroider(long nwfs, long nvalid, float offset, float scale, long device,
+		 char *typec);
   int
-  rm_centroider();
+    rm_centroider();
+  
+  int
+    add_controller(int nactu, long delay, long device, const char *typec);
+  int
+    rm_controller();
 
   int
-  add_controller(int nactu, long delay, long device, const char *typec);
+    do_imat(int ncntrl, sutra_sensors *sensors, sutra_dms *ydm);
   int
-  rm_controller();
+    do_imatkl(int ncntrl, sutra_sensors *sensors, sutra_dms *ydms);
+  int
+    do_imatkl4pzt(int ncntrl, sutra_sensors *sensors, sutra_dms *ydms);
+  int
+    do_imat_geom(int ncntrl, sutra_sensors *sensors, sutra_dms *ydm, int type);
 
   int
-  do_imat(int ncntrl, sutra_sensors *sensors, sutra_dms *ydm);
+    do_centroids(sutra_sensors *sensors);
   int
-  do_imatkl(int ncntrl, sutra_sensors *sensors, sutra_dms *ydms);
+    do_centroids(int ncntrl, sutra_sensors *sensors);
   int
-  do_imatkl4pzt(int ncntrl, sutra_sensors *sensors, sutra_dms *ydms);
+    do_centroids(int ncntrl, sutra_sensors *sensors, bool imat);
   int
-  do_imat_geom(int ncntrl, sutra_sensors *sensors, sutra_dms *ydm, int type);
+    do_centroids_geom(int ncntrl, sutra_sensors *sensors);
 
   int
-  do_centroids(sutra_sensors *sensors);
-  int
-  do_centroids(int ncntrl, sutra_sensors *sensors);
-  int
-  do_centroids(int ncntrl, sutra_sensors *sensors, bool imat);
-
-  int
-  do_control(int ncntrl, sutra_dms *ydm);
+    do_control(int ncntrl, sutra_dms *ydm);
 
 };
 

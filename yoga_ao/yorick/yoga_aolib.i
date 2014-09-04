@@ -575,6 +575,14 @@ extern rtc_docentroids;
       
    SEE ALSO:
  */
+extern rtc_docentroids_geom;
+/* DOCUMENT rtc_docentroids_geom
+   rtc_docentroids_geom,yoga_rtc_obj,ncontroller,yoga_wfs_obj
+   do centroiding using non diffractive wfs model
+   for a controller in a yoga_rtc_obj object
+      
+   SEE ALSO:
+ */
 extern rtc_doCmm;
 /* DOCUMENT rtc_doCmm
    rtc_doimat,yoga_rtc_obj,ncontroller,yoga_wfs_obj,yoga_atmos_obj,diamTel,cobs

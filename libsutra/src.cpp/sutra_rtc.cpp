@@ -255,6 +255,23 @@ int sutra_rtc::do_centroids(int ncntrl, sutra_sensors *sensors, bool imat) {
   return EXIT_SUCCESS;
 }
 
+int sutra_rtc::do_centroids_geom(int ncntrl, sutra_sensors *sensors) {
+  int inds2 = 0;
+
+  for (size_t idx_cntr = 0; idx_cntr < (this->d_centro).size(); idx_cntr++) {
+
+    int nwfs = this->d_centro[idx_cntr]->nwfs;
+    sensors->d_wfs[nwfs]->slopes_geom(0, (*this->d_control[ncntrl]->d_centroids)[inds2]);
+    /*
+    this->d_centro[idx_cntr]->get_cog(sensors->d_wfs[nwfs],
+        (*this->d_control[ncntrl]->d_centroids)[inds2]);
+    */
+    inds2 += 2 * sensors->d_wfs[nwfs]->nvalid;
+  }
+
+  return EXIT_SUCCESS;
+}
+
 int sutra_rtc::do_control(int ncntrl, sutra_dms *ydm) {
 
   this->d_control[ncntrl]->comp_com();
