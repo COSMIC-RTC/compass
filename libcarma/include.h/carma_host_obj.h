@@ -15,8 +15,11 @@
 #ifndef _CARMA_HOST_OBJ_H_
 #define _CARMA_HOST_OBJ_H_
 
+#include <iostream>
 #include <carma.h>
-#include <carma_obj.h>
+#include <carma_utils.h>
+#include <carma_streams.h>
+#include <carma_context.h>
 
 enum MemAlloc {
   MA_MALLOC, MA_PAGELOCK, MA_ZEROCPY, MA_PORTABLE, MA_WRICOMB, MA_GENEPIN
@@ -24,6 +27,8 @@ enum MemAlloc {
 
 #define MEMORY_ALIGNMENT  4096
 #define ALIGN_UP(x,size) ( ((size_t)x+(size-1))&(~(size-1)) )
+
+using namespace std;
 
 template<class T_data>
 class carma_obj;

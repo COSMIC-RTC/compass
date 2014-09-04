@@ -21,7 +21,6 @@
 #include <carma_utils.h>
 #include <carma_streams.h>
 #include <carma_context.h>
-#include <carma_host_obj.h>
 
 /*
  create a memory object

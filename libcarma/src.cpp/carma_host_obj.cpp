@@ -1,4 +1,6 @@
 #include <carma_host_obj.h>
+#include <carma_obj.h>
+
 #include <cuda_runtime.h>
 #include <sys/mman.h> // for mmap() / munmap()
 template<class T_data>

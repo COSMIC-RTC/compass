@@ -53,7 +53,7 @@ __global__ void camplipup_krnl(cuFloatComplex *amplipup, float *phase,
     int idimx = idim % nphase; // nphase : size of the phase support in subaps
     int idimy = idim / nphase;
 
-    printf("%d %d %d %d %d %d\n", nim, idim, idimx, idimy, ivalid[nim], jvalid[nim]);
+    //printf("%d %d %d %d %d %d\n", nim, idim, idimx, idimy, ivalid[nim], jvalid[nim]);
 
     int idphase = idimx + idimy * npup + istart[ivalid[nim]]
         + jstart[jvalid[nim]] * npup;

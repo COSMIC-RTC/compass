@@ -19,7 +19,7 @@ public:
 
 public:
   virtual
-  ~sutra_centroider()=0;
+  ~sutra_centroider(){};
 
   bool is_type(string typec) {
     return (typec.compare(get_type()) == 0);
