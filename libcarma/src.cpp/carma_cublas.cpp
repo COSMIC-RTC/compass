@@ -2,6 +2,11 @@
 #include <carma_obj.h>
 #include <carma_sparse_obj.h>
 
+// Define not supported status for pre-6.0 compatibility.
+#if CUDA_VERSION < 6000
+#define CUBLAS_STATUS_NOT_SUPPORTED 15
+#endif
+
 cublasStatus_t __carma_checkCublasStatus(cublasStatus_t status, int line,
     string file)
     /**< Generic CUBLAS check status routine */

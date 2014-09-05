@@ -2,6 +2,11 @@
 #include <carma_obj.h>
 #include <carma_sparse_obj.h>
 
+// Define not supported status for pre-6.0 compatibility.
+#if CUDA_VERSION < 6000
+#define CUSPARSE_STATUS_ZERO_PIVOT 9
+#endif
+
 #define carma_checkCusparseStatus(status) carma_checkCusparseStatus_v2(status, __LINE__, __FILE__)
 
 cusparseStatus_t carma_checkCusparseStatus_v2(cusparseStatus_t status, int line,
