@@ -46,14 +46,16 @@ ifneq ($(DEBUG),)
  LIB_CPPFLAGS  += -O0 -g -DDEBUG
  LIB_NVCCFLAGS += -g -G -lineinfo -DDEBUG
 else
- LIB_CPPFLAGS  += -O2 
+ LIB_CPPFLAGS  += -Os
+ LIB_NVCCFLAGS += -O3 
 endif
 
-#ifneq ($(CULA_ROOT),)
-# LIB_CPPFLAGS  += -I$(CULA_INC_PATH) -DUSE_CULA
-# LIB_NVCCFLAGS += -I$(CULA_INC_PATH) -DUSE_CULA
-# LIB_DEPLIBS   += -L$(CULA_LIB_PATH_64) -lcula_lapack_basic 
-#endif
+ifneq ($(CULA_ROOT),)
+ LIB_CPPFLAGS  += -I$(CULA_INC_PATH) -DUSE_CULA
+ LIB_NVCCFLAGS += -I$(CULA_INC_PATH) -DUSE_CULA
+ LIB_DEPLIBS   += -L$(CULA_LIB_PATH_64) -lcula_lapack_basic 
+endif
+
 ifneq ($(MAGMA_ROOT),)
  #use the same keyword as in make.inc
  LIB_CPPFLAGS  += -I$(MAGMA_ROOT)/include -DUSE_MAGMA -DUSE_MAGMA_WITH_MKL
@@ -67,12 +69,6 @@ endif
 
 ifneq ($(COMPILATION_LAM),)
   LIB_DEPLIBS += -L$(NVIDIA_CURRENT_LIB_PATH_64) 
-endif
-
-ifneq ($(DEBUG),)
-  NVCCFLAGS+= -O0 -g -G -lineinfo -DDEBUG
-else
-  NVCCFLAGS+= -O2
 endif
 
 all: $(LIB_NAME)
@@ -91,5 +87,5 @@ $(OBJ_DIR)/%.o: $(CPP_DIR)/%.cpp
 
 $(LIB_NAME): $(OBJS)
 	@printf '\033[36m%s\033[31m%s\033[m\n' "Linking       " $(LIB_NAME)
-	$(GCC) -shared $(OBJS) -o $@ $(LIB_DEPLIBS)
+	@$(GCC) -shared $(OBJS) -o $@ $(LIB_DEPLIBS)
 

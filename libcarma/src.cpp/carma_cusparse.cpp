@@ -12,31 +12,34 @@ cusparseStatus_t carma_checkCusparseStatus_v2(cusparseStatus_t status, int line,
   case CUSPARSE_STATUS_SUCCESS:
     return status;
   case CUSPARSE_STATUS_NOT_INITIALIZED:
-    cerr << "!!!!! Cusparse error : CUBLAS_STATUS_NOT_INITIALIZED !!!!!\n";
+    cerr << "Cusparse error : The CUSPARSE library was not initialized.\n";
     break;
   case CUSPARSE_STATUS_ALLOC_FAILED:
-    cerr << "!!!!! Cusparse error : CUBLAS_STATUS_ALLOC_FAILED !!!!!\n";
+    cerr << "Cusparse error : Resource allocation failed inside the CUSPARSE library. !!!!!\n";
     break;
   case CUSPARSE_STATUS_INVALID_VALUE:
-    cerr << "!!!!! Cusparse error : CUBLAS_STATUS_ALLOC_FAILED !!!!!\n";
+    cerr << "Cusparse error : An unsupported value or parameter was passed to the function.\n";
     break;
   case CUSPARSE_STATUS_ARCH_MISMATCH:
-    cerr << "!!!!! Cusparse error : CUBLAS_STATUS_ARCH_MISMATCH !!!!!\n";
+    cerr << "Cusparse error : The function requires a feature absent from the device architecture.\n";
     break;
   case CUSPARSE_STATUS_MAPPING_ERROR:
-    cerr << "!!!!! Cusparse error : CUBLAS_STATUS_MAPPING_ERROR !!!!!\n";
+    cerr << "Cusparse error : An access to GPU memory space failed, which is usually caused by a failure to bind a texture.\n";
     break;
   case CUSPARSE_STATUS_EXECUTION_FAILED:
-    cerr << "!!!!! Cusparse error : CUBLAS_STATUS_EXECUTION_FAILED !!!!!\n";
+    cerr << "Cusparse error : The function requires a feature absent from the device architecture.\n";
     break;
   case CUSPARSE_STATUS_INTERNAL_ERROR:
-    cerr << "!!!!! Cusparse error : CUBLAS_STATUS_INTERNAL_ERROR !!!!!\n";
+    cerr << "Cusparse error : An internal CUSPARSE operation failed.\n";
     break;
   case CUSPARSE_STATUS_MATRIX_TYPE_NOT_SUPPORTED:
-    cerr << "!!!!! Cusparse error : CUSPARSE_STATUS_MATRIX_TYPE_NOT_SUPPORTED !!!!!\n";
+    cerr << "Cusparse error : The matrix type is not supported by this function.\n";
+    break;
+  case CUSPARSE_STATUS_ZERO_PIVOT:
+    cerr << "Cusparse error : An entry of the matrix is either structural zero or numerical zero (singular block)\n";
     break;
   }
-  cerr << "!!!!! Cusparse error in " << file << "@" << line << " !!!!!\n";
+  cerr << "Cusparse error in " << file << "@" << line << endl;
   return status;
 }
 

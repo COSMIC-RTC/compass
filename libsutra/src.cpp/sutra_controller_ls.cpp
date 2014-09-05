@@ -72,6 +72,7 @@ int sutra_controller_ls::svdec_imat() {
       nslope(), one, *d_imat, nslope(), zero, *d_U, nactu())) {
     return EXIT_FAILURE;
   }
+
   if (carma_use_magma()) {
     // we can skip this step syevd use only the lower part
     //fill_sym_matrix('U', d_U->getData(), nactu, nactu * nactu);

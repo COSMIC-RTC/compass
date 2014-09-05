@@ -10,28 +10,31 @@ cublasStatus_t __carma_checkCublasStatus(cublasStatus_t status, int line,
   case CUBLAS_STATUS_SUCCESS:
     return status;
   case CUBLAS_STATUS_NOT_INITIALIZED:
-    cerr << "!!!!! Cublas error : CUBLAS_STATUS_NOT_INITIALIZED !!!!!\n";
+    cerr << "CUBLAS error : Unsupported numerical value was passed to function.\n";
     break;
   case CUBLAS_STATUS_ALLOC_FAILED:
-    cerr << "!!!!! Cublas error : CUBLAS_STATUS_ALLOC_FAILED !!!!!\n";
+    cerr << "CUBLAS error : Resource allocation failed.\n";
     break;
   case CUBLAS_STATUS_INVALID_VALUE:
-    cerr << "!!!!! Cublas error : CUBLAS_STATUS_ALLOC_FAILED !!!!!\n";
+    cerr << "CUBLAS error : CUBLAS_STATUS_ALLOC_FAILED !!!!!\n";
     break;
   case CUBLAS_STATUS_ARCH_MISMATCH:
-    cerr << "!!!!! Cublas error : CUBLAS_STATUS_ARCH_MISMATCH !!!!!\n";
+    cerr << "CUBLAS error : Resource allocation failed.\n";
     break;
   case CUBLAS_STATUS_MAPPING_ERROR:
-    cerr << "!!!!! Cublas error : CUBLAS_STATUS_MAPPING_ERROR !!!!!\n";
+    cerr << "CUBLAS error : Unsupported numerical value was passed to function.\n";
     break;
   case CUBLAS_STATUS_EXECUTION_FAILED:
-    cerr << "!!!!! Cublas error : CUBLAS_STATUS_EXECUTION_FAILED !!!!!\n";
+    cerr << "CUBLAS error : Resource allocation failed.\n";
     break;
   case CUBLAS_STATUS_INTERNAL_ERROR:
-    cerr << "!!!!! Cublas error : CUBLAS_STATUS_INTERNAL_ERROR !!!!!\n";
+    cerr << "!CUBLAS error : An internal CUBLAS operation failed.\n";
+    break;
+  case CUBLAS_STATUS_NOT_SUPPORTED:
+    cerr << "CUBLAS error : Unsupported numerical value was passed to function.\n";
     break;
   }
-  cerr << "!!!!! Cublas error in " << file << "@" << line << " !!!!!\n";
+  cerr << "CUBLAS error in " << file << "@" << line << endl;
   return status;
 }
 

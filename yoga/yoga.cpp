@@ -1405,8 +1405,8 @@ void Y_yoga_mv(int argc)
       dims_data_y[1] = carma_obj_handler_mat->getDims(1);
       handle_vecty->carma_object = new caObjS(context_handle, dims_data_y);
       caObjS *carma_obj_handler_vecty = (caObjS *) (handle_vecty->carma_object);
-      carma_obj_handler_vecty->gemv('n', 1.0f, carma_obj_handler_mat,
-          carma_obj_handler_mat->getDims(1), carma_obj_handler_vectx, 1, 0.0f,
+      carma_obj_handler_vecty->gemv('n', alpha, carma_obj_handler_mat,
+          carma_obj_handler_mat->getDims(1), carma_obj_handler_vectx, 1, beta,
           1);
       // here 1 is the increment
     } else if (handle_mat->type == Y_DOUBLE) {
@@ -1428,8 +1428,8 @@ void Y_yoga_mv(int argc)
       dims_data_y[1] = carma_obj_handler_mat->getDims(1);
       handle_vecty->carma_object = new caObjD(context_handle, dims_data_y);
       caObjD *carma_obj_handler_vecty = (caObjD *) (handle_vecty->carma_object);
-      carma_obj_handler_vecty->gemv('n', 1.0, carma_obj_handler_mat,
-          carma_obj_handler_mat->getDims(1), carma_obj_handler_vectx, 1, 0.0,
+      carma_obj_handler_vecty->gemv('n', alpha, carma_obj_handler_mat,
+          carma_obj_handler_mat->getDims(1), carma_obj_handler_vectx, 1, beta,
           1);
       // here 1 is the increment
     }
@@ -1528,9 +1528,9 @@ void Y_yoga_symv(int argc)
       dims_data_y[1] = carma_obj_handler_mat->getDims(1);
       handle_vecty->carma_object = new caObjS(context_handle, dims_data_y);
       caObjS *carma_obj_handler_vecty = (caObjS *) (handle_vecty->carma_object);
-      carma_obj_handler_vecty->symv(CUBLAS_FILL_MODE_LOWER, 1.0f,
+      carma_obj_handler_vecty->symv(CUBLAS_FILL_MODE_LOWER, alpha,
           carma_obj_handler_mat, carma_obj_handler_mat->getDims(1),
-          carma_obj_handler_vectx, 1, 0.0f, 1);
+          carma_obj_handler_vectx, 1, beta, 1);
       // here 1 is the increment
     } else if (handle_mat->type == Y_DOUBLE) {
       handle_vecty->type = handle_vectx->type;
@@ -1551,9 +1551,9 @@ void Y_yoga_symv(int argc)
       dims_data_y[1] = carma_obj_handler_mat->getDims(1);
       handle_vecty->carma_object = new caObjD(context_handle, dims_data_y);
       caObjD *carma_obj_handler_vecty = (caObjD *) (handle_vecty->carma_object);
-      carma_obj_handler_vecty->symv(CUBLAS_FILL_MODE_LOWER, 1.0,
+      carma_obj_handler_vecty->symv(CUBLAS_FILL_MODE_LOWER, alpha,
           carma_obj_handler_mat, carma_obj_handler_mat->getDims(1),
-          carma_obj_handler_vectx, 1, 0.0, 1);
+          carma_obj_handler_vectx, 1, beta, 1);
       // here 1 is the increment
     }
   }
@@ -2933,11 +2933,11 @@ void Y_yoga_poisson(int argc) {
    *    - first  : the yoga_obj to be filled with random numbers
    *    - second : (1) optional seed 
    */
-  int seed = 1234;
+  //int seed = 1234;
   if (yarg_subroutine()) {
     yObj_struct *handle = (yObj_struct *) yget_obj(argc - 1, &yObj);
-    if (argc > 1)
-      seed = ygets_i(argc - 2);
+//    if (argc > 1)
+//      seed = ygets_i(argc - 2);
     carma_context *context_handle = _getCurrentContext();
     context_handle->set_activeDevice(handle->device);
     if (handle->type == Y_FLOAT) {
@@ -5008,10 +5008,10 @@ void Y_yoga_fillarray(int argc)
       y_error("range out of bounds");
     Ncol = mrange[2] - mrange[1] + 1;
     Nlig = mrange[6] - mrange[5] + 1;
-    long dims[3];
-    dims[0] = 2;
-    dims[1] = Ncol;
-    dims[2] = Nlig;
+//    long dims[3];
+//    dims[0] = 2;
+//    dims[1] = Ncol;
+//    dims[2] = Nlig;
 
     int x0 = carma_out_handler->getDims(1) * (mrange[5] - 1) + (mrange[1] - 1);
     //if (Ncol == 1) x0 = (mrange[1]-1);

@@ -25,7 +25,12 @@
 
 #include <cufft.h>
 
+#ifdef DEBUG
 #define DEBUG_TRACE(fmt, args...) fprintf(stderr, "[%s@%d]:" fmt, __FILE__, __LINE__, ## args)
+#else
+#define DEBUG_TRACE(fmt, args...) //fprintf(stderr, "[%s@%d]:" fmt, __FILE__, __LINE__, ## args)
+#endif
+
 #define SCAST(type, new_var, var) type new_var=static_cast<type>(var)
 
 ////////////////////////////////////////////////////////////////////////////
