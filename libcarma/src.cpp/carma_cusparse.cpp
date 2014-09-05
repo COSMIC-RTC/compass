@@ -2,11 +2,6 @@
 #include <carma_obj.h>
 #include <carma_sparse_obj.h>
 
-// Define not supported status for pre-6.0 compatibility.
-#if CUDA_VERSION < 6000
-#define CUSPARSE_STATUS_ZERO_PIVOT 9
-#endif
-
 #define carma_checkCusparseStatus(status) carma_checkCusparseStatus_v2(status, __LINE__, __FILE__)
 
 cusparseStatus_t carma_checkCusparseStatus_v2(cusparseStatus_t status, int line,
@@ -40,9 +35,12 @@ cusparseStatus_t carma_checkCusparseStatus_v2(cusparseStatus_t status, int line,
   case CUSPARSE_STATUS_MATRIX_TYPE_NOT_SUPPORTED:
     cerr << "Cusparse error : The matrix type is not supported by this function.\n";
     break;
+// Define not supported status for pre-6.0 compatibility.
+#if CUDA_VERSION >= 6000
   case CUSPARSE_STATUS_ZERO_PIVOT:
     cerr << "Cusparse error : An entry of the matrix is either structural zero or numerical zero (singular block)\n";
     break;
+#endif
   }
   cerr << "Cusparse error in " << file << "@" << line << endl;
   return status;

@@ -2,11 +2,6 @@
 #include <carma_obj.h>
 #include <carma_sparse_obj.h>
 
-// Define not supported status for pre-6.0 compatibility.
-#if CUDA_VERSION < 6000
-#define CUBLAS_STATUS_NOT_SUPPORTED 15
-#endif
-
 cublasStatus_t __carma_checkCublasStatus(cublasStatus_t status, int line,
     string file)
     /**< Generic CUBLAS check status routine */
@@ -35,9 +30,12 @@ cublasStatus_t __carma_checkCublasStatus(cublasStatus_t status, int line,
   case CUBLAS_STATUS_INTERNAL_ERROR:
     cerr << "!CUBLAS error : An internal CUBLAS operation failed.\n";
     break;
+// Define not supported status for pre-6.0 compatibility.
+#if CUDA_VERSION >= 6000
   case CUBLAS_STATUS_NOT_SUPPORTED:
     cerr << "CUBLAS error : Unsupported numerical value was passed to function.\n";
     break;
+#endif
   }
   cerr << "CUBLAS error in " << file << "@" << line << endl;
   return status;
