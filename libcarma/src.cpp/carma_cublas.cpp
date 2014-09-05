@@ -35,11 +35,9 @@ cublasStatus_t __carma_checkCublasStatus(cublasStatus_t status, int line,
   case CUBLAS_STATUS_INTERNAL_ERROR:
     cerr << "!CUBLAS error : An internal CUBLAS operation failed.\n";
     break;
-#ifdef CUBLAS_STATUS_NOT_SUPPORTED
   case CUBLAS_STATUS_NOT_SUPPORTED:
     cerr << "CUBLAS error : Unsupported numerical value was passed to function.\n";
     break;
-#endif
   }
   cerr << "CUBLAS error in " << file << "@" << line << endl;
   return status;
