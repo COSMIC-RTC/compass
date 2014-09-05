@@ -35,9 +35,11 @@ cusparseStatus_t carma_checkCusparseStatus_v2(cusparseStatus_t status, int line,
   case CUSPARSE_STATUS_MATRIX_TYPE_NOT_SUPPORTED:
     cerr << "Cusparse error : The matrix type is not supported by this function.\n";
     break;
+#ifdef CUSPARSE_STATUS_ZERO_PIVOT
   case CUSPARSE_STATUS_ZERO_PIVOT:
     cerr << "Cusparse error : An entry of the matrix is either structural zero or numerical zero (singular block)\n";
     break;
+#endif
   }
   cerr << "Cusparse error in " << file << "@" << line << endl;
   return status;
