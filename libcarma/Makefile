@@ -60,11 +60,10 @@ ifneq ($(MAGMA_ROOT),)
  #use the same keyword as in make.inc
  LIB_CPPFLAGS  += -I$(MAGMA_ROOT)/include -DUSE_MAGMA -DUSE_MAGMA_WITH_MKL
  LIB_CPPFLAGS  += -DADD_ -DHAVE_CUBLAS -DMAGMA_SETAFFINITY -DMAGMA_ILP64 -DMKL_ILP64
- LIB_NVCCFLAGS += -I$(MAGMA_ROOT)/include -DUSE_MAGMA -DADD_
+ #comment this line if you are using magma 1.5
+ LIB_CPPFLAGS  += -DUSE_MAGMA_1_4
  LIB_NVCCFLAGS += -Xcompiler -fno-strict-aliasing
  LIB_DEPLIBS   += -L$(MAGMA_ROOT)/lib -lmagma 
-# LIB_DEPLIBS   += -openmp -lmkl_intel_ilp64 -lmkl_core -lmkl_intel_thread 
-# LIB_DEPLIBS   += -lpthread 
 endif
 
 ifneq ($(COMPILATION_LAM),)

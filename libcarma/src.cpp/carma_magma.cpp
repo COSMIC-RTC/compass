@@ -7,6 +7,12 @@
 #include "magma.h"
 #include "magma_lapack.h"
 
+#ifdef USE_MAGMA_1_4
+#define lapacke_vec_const(var) var
+#define magma_vec_const(var) var
+#define magma_uplo_const(var) var
+#endif
+
 #define CHECK_MAGMA(fct, info) fct; \
   if (info != 0){							\
     printf("%s@%d magma returned error %d: %s.\n", __FILE__, __LINE__,	\
@@ -66,7 +72,7 @@ int carma_syevd_gen(magma_vec_t jobz, magma_int_t N, magma_int_t ldda, T *d_mat,
 
   /* Query for workspace sizes */
   CHECK_MAGMA(
-      ptr_syevd_gpu(jobz, 'L', N, NULL, ldda, NULL, NULL, lda, aux_work, -1, aux_iwork, -1, &info),
+      ptr_syevd_gpu(jobz, magma_uplo_const('L'), N, NULL, ldda, NULL, NULL, lda, aux_work, -1, aux_iwork, -1, &info),
       info);
 
   lwork = (magma_int_t) aux_work[0];
@@ -77,7 +83,7 @@ int carma_syevd_gen(magma_vec_t jobz, magma_int_t N, magma_int_t ldda, T *d_mat,
   cudaMallocHost((void**) &h_work, (lwork) * sizeof(T));
 
   CHECK_MAGMA(
-      ptr_syevd_gpu(jobz, 'L', N, d_mat, ldda, h_eigenvals, h_R, lda, h_work,
+      ptr_syevd_gpu(jobz, magma_uplo_const('L'), N, d_mat, ldda, h_eigenvals, h_R, lda, h_work,
           lwork, iwork, liwork, &info), info);
 
   cudaFreeHost(h_R);
@@ -102,13 +108,13 @@ int carma_syevd(char jobz, carma_obj<T> *mat, carma_host_obj<T> *eigenvals) {
    if (N & 31) { //if dimension of mat is not a multiple of 32
    magma_int_t ldda = 0;
    float *d_padded_data = create_padded_data<float>(N, 32, ldda, *mat);
-   int err = carma_syevd_gen<float>(jobz, N, ldda, d_padded_data,
+   int err = carma_syevd_gen<float>(magma_vec_const(jobz), N, ldda, d_padded_data,
    eigenvals, ptr_syevd_gpu);
    destroy_padded_data<float>(N, ldda, d_padded_data, *mat);
    return err;
    }
    */
-  return carma_syevd_gen<T, ptr_syevd_gpu>(jobz, N, N, *mat, *eigenvals);
+  return carma_syevd_gen<T, ptr_syevd_gpu>(magma_vec_const(jobz), N, N, *mat, *eigenvals);
 }
 
 template<class T>
@@ -118,12 +124,12 @@ int carma_syevd(char jobz, magma_int_t N, T *mat, T *eigenvals) {
 }
 template<>
 int carma_syevd<float>(char jobz, magma_int_t N, float *mat, float *eigenvals) {
-  return carma_syevd_gen<float, magma_ssyevd_gpu>(jobz, N, N, mat, eigenvals);
+  return carma_syevd_gen<float, magma_ssyevd_gpu>(magma_vec_const(jobz), N, N, mat, eigenvals);
 }
 template<>
 int carma_syevd<double>(char jobz, magma_int_t N, double *mat,
     double *eigenvals) {
-  return carma_syevd_gen<double, magma_dsyevd_gpu>(jobz, N, N, mat, eigenvals);
+  return carma_syevd_gen<double, magma_dsyevd_gpu>(magma_vec_const(jobz), N, N, mat, eigenvals);
 }
 
 template<class T, int method>
@@ -139,7 +145,7 @@ int carma_syevd<float, 1>(char jobz, caObjS *mat,
     cerr << "Matrix must be symmetric\n";
     return EXIT_FAILURE;
   }
-  return carma_syevd_gen<float, magma_ssyevd_gpu>(jobz, N, N, *mat, *eigenvals);
+  return carma_syevd_gen<float, magma_ssyevd_gpu>(magma_vec_const(jobz), N, N, *mat, *eigenvals);
 }
 template<>
 int carma_syevd<double, 1>(char jobz, caObjD *mat,
@@ -149,7 +155,7 @@ int carma_syevd<double, 1>(char jobz, caObjD *mat,
     cerr << "Matrix must be symmetric\n";
     return EXIT_FAILURE;
   }
-  return carma_syevd_gen<double, magma_dsyevd_gpu>(jobz, N, N, *mat, *eigenvals);
+  return carma_syevd_gen<double, magma_dsyevd_gpu>(magma_vec_const(jobz), N, N, *mat, *eigenvals);
 }
 /*
  template<> int carma_syevd<float, 2>(char jobz, caObjS *mat,
@@ -159,7 +165,7 @@ int carma_syevd<double, 1>(char jobz, caObjD *mat,
  }
  template<> int carma_syevd<double, 2>(char jobz, caObjD *mat,
  carma_host_obj<double> *eigenvals) {
- return carma_syevd<double, magma_dsyevd_gpu_magmablas>(jobz, mat, eigenvals);
+ return carma_syevd<double, magma_dsyevd_gpu_magmablas>(magma_vec_const(jobz), mat, eigenvals);
  }
  template<> int carma_syevd<float, 3>(char jobz, caObjS *mat,
  carma_host_obj<float> *eigenvals) {
@@ -168,7 +174,7 @@ int carma_syevd<double, 1>(char jobz, caObjD *mat,
  }
  template<> int carma_syevd<double, 3>(char jobz, caObjD *mat,
  carma_host_obj<double> *eigenvals) {
- return carma_syevd<double, magma_dsyevd_gpu_kblas>(jobz, mat, eigenvals);
+ return carma_syevd<double, magma_dsyevd_gpu_kblas>(magma_vec_const(jobz), mat, eigenvals);
  }
  */
 template<class T>
@@ -185,7 +191,7 @@ int carma_syevd_m_gen(magma_int_t ngpu, magma_uplo_t jobz, magma_int_t N,
 
   /* Query for workspace sizes */
   CHECK_MAGMA(
-      ptr_syevd_m(ngpu, jobz, 'L', N, NULL, lda, NULL, aux_work, -1, aux_iwork, -1, &info),
+      ptr_syevd_m(ngpu, magma_vec_const(jobz), magma_uplo_const('L'), N, NULL, lda, NULL, aux_work, -1, aux_iwork, -1, &info),
       info);
 
   //fprintf(stderr, "%s@%d : I'm here\n", __FILE__, __LINE__);
@@ -197,7 +203,7 @@ int carma_syevd_m_gen(magma_int_t ngpu, magma_uplo_t jobz, magma_int_t N,
   cudaMallocHost((void**) &h_work, (lwork) * sizeof(T));
 
   CHECK_MAGMA(
-      ptr_syevd_m(ngpu, jobz, 'L', N, mat, lda, eigenvals, h_work, lwork, iwork,
+      ptr_syevd_m(ngpu, magma_vec_const(jobz), magma_uplo_const('L'), N, mat, lda, eigenvals, h_work, lwork, iwork,
           liwork, &info), info);
 
   //cudaFreeHost(h_R);
@@ -215,12 +221,12 @@ int carma_syevd_m(long ngpu, char jobz, magma_int_t N, T *mat, T *eigenvals) {
 template<>
 int carma_syevd_m<float>(long ngpu, char jobz, magma_int_t N, float *mat,
     float *eigenvals) {
-  return carma_syevd_m_gen<float>(ngpu, jobz, N, mat, eigenvals, magma_ssyevd_m);
+  return carma_syevd_m_gen<float>(ngpu, magma_uplo_const(jobz), N, mat, eigenvals, magma_ssyevd_m);
 }
 template<>
 int carma_syevd_m<double>(long ngpu, char jobz, magma_int_t N, double *mat,
     double *eigenvals) {
-  return carma_syevd_m_gen<double>(ngpu, jobz, N, mat, eigenvals,
+  return carma_syevd_m_gen<double>(ngpu, magma_uplo_const(jobz), N, mat, eigenvals,
       magma_dsyevd_m);
 }
 
@@ -238,7 +244,7 @@ int carma_syevd_m<float>(long ngpu, char jobz, carma_host_obj<float> *mat,
     cerr << "Matrix must be symmetric\n";
     return EXIT_FAILURE;
   }
-  return carma_syevd_m_gen<float>(ngpu, jobz, N, *mat, *eigenvals,
+  return carma_syevd_m_gen<float>(ngpu, magma_uplo_const(jobz), N, *mat, *eigenvals,
       magma_ssyevd_m);
 }
 template<>
@@ -249,7 +255,7 @@ int carma_syevd_m<double>(long ngpu, char jobz, carma_host_obj<double> *mat,
     cerr << "Matrix must be symmetric\n";
     return EXIT_FAILURE;
   }
-  return carma_syevd_m_gen<double>(ngpu, jobz, N, *mat, *eigenvals,
+  return carma_syevd_m_gen<double>(magma_int_t(ngpu), magma_uplo_const(jobz), N, *mat, *eigenvals,
       magma_dsyevd_m);
 }
 
@@ -272,7 +278,7 @@ int carma_syevd_m<float>(long ngpu, char jobz, carma_host_obj<float> *mat,
   magma_int_t lda = N;
   lapackf77_slacpy(MagmaUpperLowerStr, &N, &N, *mat, &lda, *U, &lda);
 
-  return carma_syevd_m_gen<float>(ngpu, jobz, N, *U, *eigenvals, magma_ssyevd_m);
+  return carma_syevd_m_gen<float>(ngpu, magma_uplo_const(jobz), N, *U, *eigenvals, magma_ssyevd_m);
 }
 template<>
 int carma_syevd_m<double>(long ngpu, char jobz, carma_host_obj<double> *mat,
@@ -286,7 +292,7 @@ int carma_syevd_m<double>(long ngpu, char jobz, carma_host_obj<double> *mat,
   magma_int_t lda = N;
   lapackf77_dlacpy(MagmaUpperLowerStr, &N, &N, *mat, &lda, *U, &lda);
 
-  return carma_syevd_m_gen<double>(ngpu, jobz, N, *U, *eigenvals,
+  return carma_syevd_m_gen<double>(ngpu, magma_uplo_const(jobz), N, *U, *eigenvals,
       magma_dsyevd_m);
 }
 
@@ -337,7 +343,7 @@ int carma_svd_cpu_gen(carma_host_obj<T> *mat, carma_host_obj<T> *eigenvals,
 
   magma_int_t info = 0;
   CHECK_MAGMA(
-      ptr_gesvd('A', 'A', m, n, *tmp, m, *eigenvals, *mes2mod, m, *mod2act, n,
+      ptr_gesvd(magma_vec_const('A'), magma_vec_const('A'), m, n, *tmp, m, *eigenvals, *mes2mod, m, *mod2act, n,
           *h_work, lwork, &info), info);
 
   delete h_work;
@@ -374,8 +380,8 @@ int carma_potri_gen(magma_int_t N, magma_int_t ldda, T *d_iA,
         magma_int_t ldda, magma_int_t *info)) {
 
   magma_int_t info = 0;
-  CHECK_MAGMA(ptr_potrf('L', N, d_iA, ldda, &info), info);
-  CHECK_MAGMA(ptr_potri('L', N, d_iA, ldda, &info), info);
+  CHECK_MAGMA(ptr_potrf(magma_uplo_const('L'), N, d_iA, ldda, &info), info);
+  CHECK_MAGMA(ptr_potri(magma_uplo_const('L'), N, d_iA, ldda, &info), info);
 
   fill_sym_matrix<T>('L', d_iA, N, N * ldda);
   return EXIT_SUCCESS;
@@ -435,14 +441,14 @@ int carma_potri_m_gen(long num_gpus, T *h_A, T *d_iA, long N,
   ptr_setmatrix_1D_col_bcyclic(N, N, h_A, lda, d_lA, ldda, num_gpus, nb);
 
   magma_int_t info = 0;
-  CHECK_MAGMA(ptr_potrf(num_gpus, 'L', N, d_lA, N, &info), info);
+  CHECK_MAGMA(ptr_potrf(num_gpus, magma_uplo_const('L'), N, d_lA, N, &info), info);
   CHECK_MAGMA(
       ptr_getmatrix_1D_col_bcyclic(N, N, d_lA, ldda, h_A, lda, num_gpus, nb),
       info);
 
   cudaMemcpy(h_A, d_iA, N * N * sizeof(T), cudaMemcpyHostToDevice);
   //d_iA->host2device(h_A);
-  CHECK_MAGMA(ptr_potri('L', N, d_iA, N, &info), info);
+  CHECK_MAGMA(ptr_potri(magma_uplo_const('L'), N, d_iA, N, &info), info);
 
   fill_sym_matrix<T>('L', d_iA, N, N * N);
   return EXIT_SUCCESS;
@@ -686,8 +692,9 @@ int carma_syevd_cpu_gen(magma_vec_t jobz, magma_int_t N, magma_int_t lda,
 
   /* Query for workspace sizes */
   char uplo = 'L';
+  char job2= lapacke_vec_const(jobz);
   CHECK_MAGMA(
-      ptr_syevd_cpu(&jobz, &uplo, &N, NULL, &lda, NULL, NULL, &lda, aux_iwork, &liwork, &info),
+      ptr_syevd_cpu(&job2, &uplo, &N, NULL, &lda, NULL, NULL, &lda, aux_iwork, &liwork, &info),
       info);
 
   liwork = aux_iwork[0];
@@ -696,7 +703,7 @@ int carma_syevd_cpu_gen(magma_vec_t jobz, magma_int_t N, magma_int_t lda,
   cudaMallocHost((void**) &h_R, (N * lda) * sizeof(T));
 
   CHECK_MAGMA(
-      ptr_syevd_cpu(&jobz, &uplo, &N, d_mat, &lda, h_eigenvals, h_R, &lda,
+      ptr_syevd_cpu(&job2, &uplo, &N, d_mat, &lda, h_eigenvals, h_R, &lda,
           iwork, &liwork, &info), info);
 
   cudaFreeHost(h_R);
@@ -719,7 +726,7 @@ int carma_syevd_cpu<float>(char jobz, carma_host_obj<float> *h_A,
     cerr << "Matrix must be symmetric\n";
     return EXIT_FAILURE;
   }
-  return carma_syevd_cpu_gen<float>(jobz, N, N, *h_A, *eigenvals,
+  return carma_syevd_cpu_gen<float>(magma_vec_const(jobz), N, N, *h_A, *eigenvals,
       lapackf77_ssyevd);
 }
 template<>
@@ -730,7 +737,7 @@ int carma_syevd_cpu<double>(char jobz, carma_host_obj<double> *h_A,
     cerr << "Matrix must be symmetric\n";
     return EXIT_FAILURE;
   }
-  return carma_syevd_cpu_gen<double>(jobz, N, N, *h_A, *eigenvals,
+  return carma_syevd_cpu_gen<double>(magma_vec_const(jobz), N, N, *h_A, *eigenvals,
       lapackf77_dsyevd);
 }
 
@@ -742,13 +749,13 @@ int carma_syevd_cpu(char jobz, magma_int_t N, T *h_A, T *eigenvals) {
 template<>
 int carma_syevd_cpu<float>(char jobz, magma_int_t N, float *h_A,
     float *eigenvals) {
-  return carma_syevd_cpu_gen<float>(jobz, N, N, h_A, eigenvals,
+  return carma_syevd_cpu_gen<float>(magma_vec_const(jobz), N, N, h_A, eigenvals,
       lapackf77_ssyevd);
 }
 template<>
 int carma_syevd_cpu<double>(char jobz, magma_int_t N, double *h_A,
     double *eigenvals) {
-  return carma_syevd_cpu_gen<double>(jobz, N, N, h_A, eigenvals,
+  return carma_syevd_cpu_gen<double>(magma_vec_const(jobz), N, N, h_A, eigenvals,
       lapackf77_dsyevd);
 }
 
@@ -760,13 +767,19 @@ int carma_axpy_cpu(long N, T alpha, T *h_X, long incX, T *h_Y, long incY) {
 template<>
 int carma_axpy_cpu<float>(long N, float alpha, float *h_X, long incX,
     float *h_Y, long incY) {
-  blasf77_saxpy(&N, &alpha, h_X, &incX, h_Y, &incY);
+  magma_int_t tmp_N=N;
+  magma_int_t tmp_incX=incX;
+  magma_int_t tmp_incY=incY;
+  blasf77_saxpy(&tmp_N, &alpha, h_X, &tmp_incX, h_Y, &tmp_incY);
   return EXIT_SUCCESS;
 }
 template<>
 int carma_axpy_cpu<double>(long N, double alpha, double *h_X, long incX,
     double *h_Y, long incY) {
-  blasf77_daxpy(&N, &alpha, h_X, &incX, h_Y, &incY);
+  magma_int_t tmp_N=N;
+  magma_int_t tmp_incX=incX;
+  magma_int_t tmp_incY=incY;
+  blasf77_daxpy(&tmp_N, &alpha, h_X, &tmp_incX, h_Y, &tmp_incY);
   return EXIT_SUCCESS;
 }
 
@@ -780,16 +793,28 @@ template<>
 int carma_gemm_cpu<float>(char transa, char transb, long m, long n, long k,
     float alpha, float *A, long lda, float *B, long ldb, float beta, float *C,
     long ldc) {
-  blasf77_sgemm(&transa, &transb, &m, &n, &k, &alpha, A, &lda, B, &ldb, &beta,
-      C, &ldc);
+  magma_int_t tmp_m=m;
+  magma_int_t tmp_n=n;
+  magma_int_t tmp_k=k;
+  magma_int_t tmp_lda=lda;
+  magma_int_t tmp_ldb=ldb;
+  magma_int_t tmp_ldc=ldc;
+  blasf77_sgemm(&transa, &transb, &tmp_m, &tmp_n, &tmp_k, &alpha, A, &tmp_lda, B, &tmp_ldb, &beta,
+      C, &tmp_ldc);
   return EXIT_SUCCESS;
 }
 template<>
 int carma_gemm_cpu<double>(char transa, char transb, long m, long n, long k,
     double alpha, double *A, long lda, double *B, long ldb, double beta,
     double *C, long ldc) {
-  blasf77_dgemm(&transa, &transb, &m, &n, &k, &alpha, A, &lda, B, &ldb, &beta,
-      C, &ldc);
+  magma_int_t tmp_m=m;
+  magma_int_t tmp_n=n;
+  magma_int_t tmp_k=k;
+  magma_int_t tmp_lda=lda;
+  magma_int_t tmp_ldb=ldb;
+  magma_int_t tmp_ldc=ldc;
+  blasf77_dgemm(&transa, &transb, &tmp_m, &tmp_n, &tmp_k, &alpha, A, &tmp_lda, B, &tmp_ldb, &beta,
+      C, &tmp_ldc);
   return EXIT_SUCCESS;
 }
 
