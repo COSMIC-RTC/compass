@@ -4,7 +4,7 @@
 
 // Define not supported status for pre-6.0 compatibility.
 #if CUDA_VERSION < 6000
-#define CUSPARSE_STATUS_ZERO_PIVOT (cusparseStatus_t)9
+#define CUSPARSE_STATUS_ZERO_PIVOT 9
 #endif
 
 #define carma_checkCusparseStatus(status) carma_checkCusparseStatus_v2(status, __LINE__, __FILE__)
