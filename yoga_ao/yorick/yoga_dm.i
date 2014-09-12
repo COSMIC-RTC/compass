@@ -37,7 +37,7 @@ func make_pzt_dm(nm,&influ,disp=)
   // compute IF on partial (local) support:
   smallsize = long(ceil(2*ir+10));
   y_dm(nm)._influsize = smallsize;
-  x     = indgen(smallsize)(,-:1:smallsize)-smallsize/2-0.5;
+  x     = indgen(smallsize)(,-:1:smallsize)-smallsize/2. - 0.5;
   y     = transpose(x);
   tmpx  = clip(abs(x/ir),1e-8,2.);
   tmpy  = clip(abs(y/ir),1e-8,2.);
@@ -51,7 +51,7 @@ func make_pzt_dm(nm,&influ,disp=)
   xy    = [xy,transpose(xy)];
   // express "centered" coordinate of actuator in pixels:
   xy    = (xy-1.-(nxact-1.)/2.)*pitch;
-
+  
   // fill cub (X coord  and Y coord):
   cub(,,1) = xy(,,1); cub(,,2) = xy(,,2);
 
@@ -76,6 +76,7 @@ func make_pzt_dm(nm,&influ,disp=)
 
   // filtering actuators outside of a disk radius = rad (see above)
   cubval   = cub(inbigcirc,);
+  //cubval = cub;
 
   y_dm(nm)._ntotact = dimsof(cubval)(2);
   y_dm(nm)._xpos    = &(cubval(,1));
