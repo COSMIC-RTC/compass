@@ -231,7 +231,6 @@ int sutra_source::raytrace(sutra_atmos *yatmos, bool async) {
   cutilSafeCall(
       cudaMemset(this->d_phase->d_screen->getData(), 0,
           sizeof(float) * this->d_phase->d_screen->getNbElem()));
-
   float delta;
   map<type_screen, float>::iterator p;
   p = xoff.begin();
@@ -244,6 +243,7 @@ int sutra_source::raytrace(sutra_atmos *yatmos, bool async) {
       sutra_tscreen * ps;
       ps = yatmos->d_screens[alt];
       p++;
+
       if ((p == xoff.end()) && async) {
 
         target_raytrace_async(this->phase_telemetry,
@@ -254,8 +254,10 @@ int sutra_source::raytrace(sutra_atmos *yatmos, bool async) {
             (int) ps->d_tscreen->d_screen->getDims(1),
             xoff[make_pair("atmos", alt)], yoff[make_pair("atmos", alt)],
             this->block_size);
+
       } else {
-    	  if (this->lgs){
+
+    	  if (this->lgs == true){
     		  delta = 1.0f - alt/this->d_lgs->hg;
     		  target_lgs_raytrace(this->d_phase->d_screen->getData(),
     		              ps->d_tscreen->d_screen->getData(),
@@ -264,8 +266,9 @@ int sutra_source::raytrace(sutra_atmos *yatmos, bool async) {
     		              (int) ps->d_tscreen->d_screen->getDims(1),
     		              xoff[make_pair(types, alt)], yoff[make_pair(types, alt)],delta,
     		              this->block_size);
+
     	  }
-    	  else
+    	  else{
 
     		  target_raytrace(this->d_phase->d_screen->getData(),
     				  ps->d_tscreen->d_screen->getData(),
@@ -274,9 +277,11 @@ int sutra_source::raytrace(sutra_atmos *yatmos, bool async) {
     				  (int) ps->d_tscreen->d_screen->getDims(1),
     				  xoff[make_pair("atmos", alt)], yoff[make_pair("atmos", alt)],
     				  this->block_size);
+
+    	  }
       }
     } else
-      p++;
+    	p++;
   }
 
   return EXIT_SUCCESS;
@@ -401,8 +406,9 @@ int sutra_source::comp_image(int puponly) {
 }
 
 int sutra_source::comp_strehl() {
-  //this->strehl_se = expf(-this->phase_var);
-  //this->strehl_le = expf(-(this->phase_var_avg / this->strehl_counter));
+  this->strehl_se = expf(-this->phase_var);
+  this->strehl_le = expf(-this->phase_var_avg/this->phase_var_count);
+  /*
   cudaMemcpy(&(this->strehl_se),
       &(this->d_image->getData()[this->d_image->imax(1) - 1]), sizeof(float),
       cudaMemcpyDeviceToHost);
@@ -412,7 +418,7 @@ int sutra_source::comp_strehl() {
 
   this->strehl_se /= this->ref_strehl;
   this->strehl_le /= (this->ref_strehl * this->strehl_counter);
-
+  */
   return EXIT_SUCCESS;
 }
 
