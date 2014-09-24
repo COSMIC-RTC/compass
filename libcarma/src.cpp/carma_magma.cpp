@@ -118,16 +118,16 @@ int carma_syevd(char jobz, carma_obj<T> *mat, carma_host_obj<T> *eigenvals) {
 }
 
 template<class T>
-int carma_syevd(char jobz, magma_int_t N, T *mat, T *eigenvals) {
+int carma_syevd(char jobz, long N, T *mat, T *eigenvals) {
   cerr << "carma_syevd: this method not implemented !\n";
   return EXIT_FAILURE;
 }
 template<>
-int carma_syevd<float>(char jobz, magma_int_t N, float *mat, float *eigenvals) {
+int carma_syevd<float>(char jobz, long N, float *mat, float *eigenvals) {
   return carma_syevd_gen<float, magma_ssyevd_gpu>(magma_vec_const(jobz), N, N, mat, eigenvals);
 }
 template<>
-int carma_syevd<double>(char jobz, magma_int_t N, double *mat,
+int carma_syevd<double>(char jobz, long N, double *mat,
     double *eigenvals) {
   return carma_syevd_gen<double, magma_dsyevd_gpu>(magma_vec_const(jobz), N, N, mat, eigenvals);
 }
@@ -849,17 +849,17 @@ template int carma_syevd<float>(char jobz, carma_obj<float> *mat, carma_host_obj
 template int carma_syevd<double>(char jobz, carma_obj<double> *mat, carma_host_obj<double> *eigenvals);
 
 template<class T>
-int carma_syevd(char jobz, int N, T *mat, T *eigenvals) {
+int carma_syevd(char jobz, long N, T *mat, T *eigenvals) {
   cerr << "carma_syevd: this method not implemented !\n";
   return EXIT_FAILURE;
 }
 template<>
-int carma_syevd<float>(char jobz, int N, float *mat, float *eigenvals) {
+int carma_syevd<float>(char jobz, long N, float *mat, float *eigenvals) {
   MAGMA_TRACE("carma_syevd: this method not implemented !\n");
   return EXIT_FAILURE;
 }
 template<>
-int carma_syevd<double>(char jobz, int N, double *mat,
+int carma_syevd<double>(char jobz, long N, double *mat,
     double *eigenvals) {
   MAGMA_TRACE("carma_syevd: this method not implemented !\n");
   return EXIT_FAILURE;
