@@ -1,5 +1,4 @@
 require,"yoga.i";
-
 require,"util_fr.i";
 
 func bench_evd(n, niter)
@@ -179,8 +178,8 @@ func check_syevd(n, compare_yorick=)
   } else {
     write, format="in %0.3fs\n", tps2;
   }
-  write, "Verif: max(abs( d_mat - d_U*diag(h_EV)*d_Ut";
-  max(abs( mat - yoga_mm(yoga_mm(d_U, yoga_obj(diag(h_EV)), 'n', 'n'), d_U, 'n', 't')() ));
+  write, "Verif: max(abs( d_mat - d_U*unit(n)*h_EV(,-)*d_Ut";
+  max(abs( mat - yoga_mm(yoga_mm(d_U, yoga_obj(unit(n)*h_EV(,-)), 'n', 'n'), d_U, 'n', 't')() ));
   
   write, "\ntest with double (inplace)";
   h_EV2 = array(0., n);
@@ -194,8 +193,8 @@ func check_syevd(n, compare_yorick=)
   } else {
     write, format="in %0.3fs\n", tps2;
   }
-  write, "Verif: max(abs( d_mat - d_U*diag(h_EV)*d_Ut";
-  max(abs( mat - yoga_mm(yoga_mm(d_mat, yoga_obj(diag(h_EV)), 'n', 'n'), d_U, 'n', 't')() ));
+  write, "Verif: max(abs( d_mat - d_U*unit(n)*h_EV(,-)*d_Ut";
+  max(abs( mat - yoga_mm(yoga_mm(d_mat, yoga_obj(unit(n)*h_EV(,-)), 'n', 'n'), d_U, 'n', 't')() ));
 
 
   write, "\ntest with double (inplace, noComputeU)";
@@ -255,9 +254,9 @@ func check_syevd_m(n, ngpu, compare_yorick=)
     write, format="in %0.3fs\n", tps2;
   }
 
-  write, "max(abs( mat - h_U*diag(h_EV)*h_Ut";
+  write, "max(abs( mat - h_U*unit(n)*h_EV(,-)*h_Ut";
   d_U=yoga_obj(h_U);
-  max(abs( mat - yoga_mm(yoga_mm(d_U, yoga_obj(diag(h_EV)), 'n', 'n'), d_U, 'n', 't')() ));
+  max(abs( mat - yoga_mm(yoga_mm(d_U, yoga_obj(unit(n)*h_EV(,-)), 'n', 'n'), d_U, 'n', 't')() ));
 }
 
 func compare_syevd(n, ngpu)

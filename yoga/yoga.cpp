@@ -910,30 +910,30 @@ void Y_yoga_host2device(int argc)
       carma_context *context_handle = _getCurrentContext();
       context_handle->set_activeDeviceForCpy(handle->device);
       long ntot;
-      long dims;
+      long dims[Y_DIMSIZE];
       if (handle->type == Y_FLOAT) {
         caObjS *carma_obj_handler = (caObjS *) (handle->carma_object);
-        float *data = ygeta_f(argc - 2, &ntot, &dims);
+        float *data = ygeta_f(argc - 2, &ntot, dims);
         carma_obj_handler->host2device(data);
       } else if (handle->type == Y_DOUBLE) {
         caObjD *carma_obj_handler = (caObjD *) (handle->carma_object);
-        double *data = ygeta_d(argc - 2, &ntot, &dims);
+        double *data = ygeta_d(argc - 2, &ntot, dims);
         carma_obj_handler->host2device(data);
       } else if (handle->type == Y_INT) {
         caObjI *carma_obj_handler = (caObjI *) (handle->carma_object);
-        int *data = ygeta_i(argc - 2, &ntot, &dims);
+        int *data = ygeta_i(argc - 2, &ntot, dims);
         carma_obj_handler->host2device(data);
       } else if (handle->type == Y_SHORT) {
         caObjUI *carma_obj_handler = (caObjUI *) (handle->carma_object);
-        unsigned int *data = (unsigned int *) ygeta_i(argc - 2, &ntot, &dims);
+        unsigned int *data = (unsigned int *) ygeta_i(argc - 2, &ntot, dims);
         carma_obj_handler->host2device(data);
       } else if (handle->type == Y_SCOMPLEX) {
         caObjC *carma_obj_handler = (caObjC *) (handle->carma_object);
-        float *data = ygeta_f(argc - 2, &ntot, &dims);
+        float *data = ygeta_f(argc - 2, &ntot, dims);
         carma_obj_handler->host2device((cuFloatComplex*) data);
       } else if (handle->type == Y_COMPLEX) {
         caObjZ *carma_obj_handler = (caObjZ *) (handle->carma_object);
-        double *data = ygeta_d(argc - 2, &ntot, &dims);
+        double *data = ygeta_d(argc - 2, &ntot, dims);
         carma_obj_handler->host2device((cuDoubleComplex*) data);
       } else
         throw "Type not found";
@@ -2745,7 +2745,7 @@ void Y_yoga_random(int argc) {
   } else {
     // called as a function : we need to create an object
     long ntot;
-    long dims;
+    long dims[Y_DIMSIZE];
 
     int yType = yarg_typeid(argc - 1);
 
@@ -2762,7 +2762,7 @@ void Y_yoga_random(int argc) {
       }
     } else
       y_error("expecting a string for the type and a list of dimensions");
-    long *dims_data = ygeta_l(argc - 2, &ntot, &dims);
+    long *dims_data = ygeta_l(argc - 2, &ntot, dims);
     carma_context *context_handle = _getCurrentContext();
     int activeDevice = context_handle->get_activeDevice();
     int mdevice = activeDevice;
@@ -2786,8 +2786,7 @@ void Y_yoga_random(int argc) {
     } else if (yType == Y_COMPLEX) {
       handle->carma_object = new caObjZ(context_handle, dims_data);
     }
-
-    if (handle->type == Y_FLOAT) {
+	if (handle->type == Y_FLOAT) {
       caObjS *carma_obj_handler = (caObjS *) (handle->carma_object);
       //carma_obj_handler->init_prng(handle->device);
       carma_obj_handler->init_prng_host(seed);
@@ -2809,7 +2808,6 @@ void Y_yoga_random(int argc) {
       carma_obj_handler->prng('U');
     }
   }
-  cutilSafeThreadSync();
 }
 
 void Y_yoga_random_n(int argc) {
@@ -2861,7 +2859,7 @@ void Y_yoga_random_n(int argc) {
   } else {
     // called as a function : we need to create an object
     long ntot;
-    long dims;
+    long dims[Y_DIMSIZE];
 
     int yType = yarg_typeid(argc - 1);
     if (yType == Y_STRING) {
@@ -2877,7 +2875,7 @@ void Y_yoga_random_n(int argc) {
       }
     }
 
-    long *dims_data = ygeta_l(argc - 2, &ntot, &dims);
+    long *dims_data = ygeta_l(argc - 2, &ntot, dims);
 
     carma_context *context_handle = _getCurrentContext();
     int activeDevice = context_handle->get_activeDevice();
@@ -2923,7 +2921,6 @@ void Y_yoga_random_n(int argc) {
       carma_obj_handler->prng('N');
     }
   }
-  cutilSafeThreadSync();
 }
 
 void Y_yoga_poisson(int argc) {
@@ -2962,7 +2959,6 @@ void Y_yoga_poisson(int argc) {
   } else {
     y_error("yoga_poisson can only be called as a subroutine");
   }
-  cutilSafeThreadSync();
 }
 
 /*
@@ -3215,7 +3211,6 @@ void Y_yoga_fft(int argc) {
       }
     }
   }
-  cutilSafeThreadSync();
 }
 
 /*

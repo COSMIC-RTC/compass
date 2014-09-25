@@ -372,3 +372,6 @@ func checkConvFFT3d(size,sizeker,nim,width, method,ctype=)
   return timeProfile;
 }
 
+if(batch()) {
+  check_yoga_fft;
+}
