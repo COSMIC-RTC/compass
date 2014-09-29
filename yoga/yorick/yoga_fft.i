@@ -156,10 +156,6 @@ func checkFFTMulti(nbsamp, sizex,sizey,ctype=) {
     timeProfile=[];
     yoga_fft,a;
     grow, timeProfile, tac(timeTic);
-    yoga_random,a; 
-    grow, timeProfile, tac(timeTic);
-    yoga_fft,a;
-    grow, timeProfile, tac(timeTic);
     res = a();
     grow, timeProfile, tac(timeTic);
     a=[];

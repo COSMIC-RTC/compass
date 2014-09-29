@@ -542,14 +542,22 @@ int sutra_wfs::comp_sh_generic() {
       this->d_gs->d_phase->d_screen->getDims(1), this->nfft,
       this->nphase * this->nphase * this->nvalid, this->device);
 
+  if (*this->d_camplipup->getPlan() == 0L) {
+    carma_initfft<cuFloatComplex, cuFloatComplex>(
+    		this->d_camplipup->getDims(),
+    		this->d_camplipup->getPlan(),
+        carma_select_plan<cuFloatComplex, cuFloatComplex>());
+
+  }
+  //carma_obj<cuFloatComplex> tmp_carmaobj(this->current_context, this->d_camplipup->getDims());
   // do fft of the cube  
-  carma_fft(this->d_camplipup->getData(), this->d_camplifoc->getData(), 1,
+  carma_fft<cuFloatComplex, cuFloatComplex>(*this->d_camplipup, *this->d_camplifoc, 1,
       *this->d_camplipup->getPlan());
+
   // get the hrimage by taking the | |^2
   // keep it in amplifoc to save mem space
-  abs2c(this->d_camplifoc->getData(), this->d_camplifoc->getData(),
-      this->d_hrimg->getDims(1) * this->d_hrimg->getDims(2)
-          * this->d_hrimg->getDims(3), this->device);
+  abs2c(*this->d_camplifoc, *this->d_camplifoc,
+      this->d_camplifoc->getNbElem(), this->device);
 
   //set bincube to 0 or noise
   cutilSafeCall(

@@ -3127,7 +3127,6 @@ void Y_sensors_trace(int argc) {
   int nsensor = ygets_i(argc - 2);
 
   char *type_trace = ygets_q(argc - 3);
-  //DEBUG_TRACE("%d %s\n", nsensor, type_trace);
   if (strcmp(type_trace, "atmos") == 0) {
     atmos_struct *handlera = (atmos_struct *) yget_obj(argc - 4, &yAtmos);
     sutra_atmos *atmos_handler = (sutra_atmos *) (handlera->sutra_atmos);

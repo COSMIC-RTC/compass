@@ -57,7 +57,7 @@ int cgetrealp(float *d_odata, cuFloatComplex *d_idata, int N, int device) {
 }
 
 __global__ void abs2_krnl(float *odata, cuFloatComplex *idata, int N) {
-  __shared__ cuFloatComplex cache;
+  cuFloatComplex cache;
 
   int tid = threadIdx.x + blockIdx.x * blockDim.x;
 
@@ -81,7 +81,7 @@ int abs2(float *d_odata, cuFloatComplex *d_idata, int N, int device) {
 
 __global__ void abs2c_krnl(cuFloatComplex *odata, cuFloatComplex *idata,
     int N) {
-  __shared__ cuFloatComplex cache;
+  cuFloatComplex cache;
   int tid = threadIdx.x + blockIdx.x * blockDim.x;
 
   if (tid < N) {
@@ -96,7 +96,7 @@ int abs2c(cuFloatComplex *d_odata, cuFloatComplex *d_idata, int N, int device) {
   getNumBlocksAndThreads(device, N, nblocks, nthreads);
 
   dim3 grid(nblocks), threads(nthreads);
-
+  //DEBUG_TRACE("N = %d, nthreads = %d, nblocks = %d;",N , nthreads, nblocks);
   abs2c_krnl<<<grid, threads>>>(d_odata, d_idata, N);
   cutilCheckMsg("abs2c_kernel<<<>>> execution failed\n");
 
@@ -282,7 +282,7 @@ int addai<double>(double *d_odata, double *i_data, int i, int sgn, int N, int de
 
 template<class T>
 __global__ void roll_krnl(T *idata, int N, int M, int Ntot) {
-  __shared__ T tmp;
+  T tmp;
 
   int tidt = threadIdx.x + blockIdx.x * blockDim.x;
   int nim = tidt / Ntot;
@@ -333,7 +333,7 @@ roll<cuFloatComplex>(cuFloatComplex *idata, int N, int M, int nim);
 
 template<class T>
 __global__ void roll_krnl(T *idata, int N, int M) {
-  __shared__ T tmp;
+  T tmp;
 
   int tid = threadIdx.x + blockIdx.x * blockDim.x;
 
