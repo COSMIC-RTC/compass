@@ -38,7 +38,6 @@ class kp_kalman_core_full
    int ordreAR;
    int nb_p, nb_act, nb_z, nb_az, nb_n;
    bool gainComputed;
-   bool variablesInitialized;
    bool isZonal;
 };
 

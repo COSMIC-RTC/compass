@@ -60,7 +60,7 @@ NVCCFLAGS = -m64 -Xcompiler -fPIC -use_fast_math -c -I$(CUH_DIR)  -I$(H_DIR) \
 
 ifneq ($(COMPILATION_LAM),)
   CFLAGS = -DCOMPILATION_LAM
-  LIB_DEPLIBS += -L$(NVIDIA_CURRENT_LIB_PATH_64) -lcuda
+  LIB_DEPLIBS += -L$(NVIDIA_CURRENT_LIB_PATH_64) -lcuda -lgsl
   LIB_DEPLIBS += -L$(MAGMA_ROOT)/lib -lmagma
   LIB_DEPLIBS += $(LAM_KP_DIR)/libkp_kalman.a
   LIB_CPPFLAGS += -m64 -lmkl_intel -lmkl_intel_thread -lmkl_core -liomp5 -lpthread -lm -I$(MAGMA_ROOT)/include -DHAVE_CUBLAS -I$(LAM_KP_DIR) -I$(LAM_KP_INTERFACE_DIR) 

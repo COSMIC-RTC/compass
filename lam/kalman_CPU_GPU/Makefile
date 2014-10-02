@@ -7,10 +7,11 @@ LAM_KP_DIR = $(COMPASS_ROOT_DIR)/lam/kalman_CPU_GPU
 LAM_KP_INTERFACE_DIR = $(LAM_KP_DIR)/compass_interface
 
 #MLIB    = icc -O2 -Wall -mkl -c -I$(MAGMA_ROOT)/include -DHAVE_CUBLAS 
-CFLAGS = -O2 -Wall  -m64 -I$(MAGMA_ROOT)/include -DHAVE_CUBLAS  -I$(LAM_KP_DIR) -I$(LAM_KP_INTERFACE_DIR) -I$(COMPASS_ROOT_DIR)/libcarma/include.h -I$(COMPASS_ROOT_DIR)/libsutra/include.h -fPIC
+CFLAGS = -O2 -Wall  -m64 -I$(MAGMA_ROOT)/include -DHAVE_CUBLAS  -I$(LAM_KP_DIR) -I$(LAM_KP_INTERFACE_DIR) -I$(COMPASS_ROOT_DIR)/libcarma/include.h -I$(COMPASS_ROOT_DIR)/libsutra/include.h -fPIC -I/home/tgautrais/soft/cuda-6.5/include #-I/home/usr.off/include 
+ 
 
 # We have some temporal problems with cuda thrust
-CUFLAGS = -m64 -Xcompiler -fPIC -use_fast_math -arch=sm_35 -I/home/usr.off/include
+CUFLAGS = -m64 -Xcompiler -fPIC -use_fast_math -arch=sm_35 -I/home/tgautrais/soft/cuda-6.5/include #-I/home/usr.off/include 
 
 SRC_CPP := $(wildcard $(LAM_KP_DIR)/*.cpp)
 SRC_CPP += $(LAM_KP_INTERFACE_DIR)/kp_carma_tools.cpp

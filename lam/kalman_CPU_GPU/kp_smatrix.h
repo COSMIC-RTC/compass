@@ -31,7 +31,7 @@ class kp_smatrix
    //init from transpose sparce matrix
    void init_from_transpose(const kp_smatrix& M);
    void check();
-   void init_from_matrix(const kp_matrix& B);
+   void init_from_matrix(const kp_matrix& B, double epsilon = 0.0);
    void resize2rowMajor();
    void resize2colMajor();
    char get_majorDim()const  {return majorDim;}

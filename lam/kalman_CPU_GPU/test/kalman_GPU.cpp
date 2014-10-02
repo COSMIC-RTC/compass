@@ -251,7 +251,7 @@ int main()
 		//CPR_km1 = CPT_km1 - CPC_km1
 
 		CPR_km1 = CPT_km1;
-		CPR_km1 -= CPC_km1;
+		CPR_km1 += CPC_km1;
 
 
 		// VARIANCE PHASE RESIDUELLE ( INSTANT K-1 )

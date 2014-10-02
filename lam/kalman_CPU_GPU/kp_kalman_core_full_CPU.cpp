@@ -545,7 +545,7 @@ void kp_kalman_core_full_CPU::next_step(const kp_vector& Y_k, kp_vector& U_k)
 	// tmp_vec1 = X_kskm1 - Nact_Ukm2 (= X_kskm1 - N_Act * U_km2)
 	for(int i = 0 ; i < nb_az ; i++)
 	{
-		tmp_vec1.d[i] = X_kskm1.d[nb_az+i] - Nact_Ukm2.d[i] ;
+		tmp_vec1.d[i] = X_kskm1.d[nb_az+i] + Nact_Ukm2.d[i] ;
 	}
 
 	// Y_kskm1 = D_Mo * tmp_vec1 (= D_Mo * (X_kskm1 - N_Act * U_km2))
@@ -560,7 +560,7 @@ void kp_kalman_core_full_CPU::next_step(const kp_vector& Y_k, kp_vector& U_k)
 	// innovation = Y_k - Y_kskm1
 	innovation = Y_k;
 
-	innovation -= Y_kskm1;
+	innovation += Y_kskm1;
 	X_kskm1_tmp = X_kskm1; 
 
 	// X_kskm1_tmp = H_inf *  (Y_k - Y_kskm1)
@@ -602,9 +602,9 @@ U_k.resize(nb_act);
 //temps_op3.start();
 	//TENSION de CORRECTION
 	if (isZonal)
-		kp_gemv ('N', 1, PROJ, X_kp1sk_tmp, 0, U_k); 
+		kp_gemv ('N', -1, PROJ, X_kp1sk_tmp, 0, U_k); 
 	else
-		kp_gemv ('N', 1, PROJ, X_kp1sk_debut, 0, U_k);  
+		kp_gemv ('N', -1, PROJ, X_kp1sk_debut, 0, U_k);  
 
 
 //temps_op3.pause();

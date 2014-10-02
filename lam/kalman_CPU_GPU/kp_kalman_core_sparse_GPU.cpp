@@ -713,7 +713,7 @@ void kp_kalman_core_sparse_GPU::next_step(const kp_vector& Y_k, kp_vector& U_k)
 	// tmp_vec1 = X_kskm1 - Nact_Ukm2 (= X_kskm1 - N_Act * U_km2)
 	//kp_cu_cudaMemcpy(tmp_vec1->d, cu_X_kskm1->d_cu+nb_az, nb_az*sizeof(real), cudaMemcpyDeviceToHost);
 	kernel_memcpy_real(cu_tmp_vec1.d_cu, cu_X_kskm1.d_cu+nb_az, nb_az);
-	cu_tmp_vec1 -= cu_Nact_Ukm2 ;
+	cu_tmp_vec1 += cu_Nact_Ukm2 ;
 		
 	// Y_kskm1 = D_Mo * tmp_vec1 (= D_Mo * (X_kskm1 - N_Act * U_km2))
 	//kp_gemv (1,D_Mo, *tmp_vec1,0,*Y_kskm1); 
@@ -728,7 +728,7 @@ void kp_kalman_core_sparse_GPU::next_step(const kp_vector& Y_k, kp_vector& U_k)
 	// innovation = Y_k - Y_kskm1
 	cu_innovation = cu_Y_k;
 	//cu_Y_kskm1 = *Y_kskm1;
-	cu_innovation -= cu_Y_kskm1;
+	cu_innovation += cu_Y_kskm1;
 	cu_X_kskm1_tmp = cu_X_kskm1;
 
 	// X_kskm1_tmp = H_inf *  (Y_k - Y_kskm1)
@@ -789,7 +789,7 @@ void kp_kalman_core_sparse_GPU::next_step(const kp_vector& Y_k, kp_vector& U_k)
 	//kp_cu_gemv(cublasHandle, 'N', 1, *cu_PROJ_full, cu_X_kp1sk_tmp, 0, cu_U_k);
 	if (isZonal)
         {
-                kp_cu_gemv(cusparseHandle, 'N', 1, cu_PROJ, cu_X_kp1sk_tmp, 0, cu_U_k);
+                kp_cu_gemv(cusparseHandle, 'N', -1, cu_PROJ, cu_X_kp1sk_tmp, 0, cu_U_k);
                 //kp_smatrix PROJ_test; kp_vector X_kp1sk_tmp_test,U_k_test(cu_U_k.size());
                 //kp_cu2kp_smatrix(PROJ_test, cu_PROJ);
                 //kp_cu2kp_vector(X_kp1sk_tmp_test, cu_X_kp1sk_tmp);
@@ -817,7 +817,7 @@ void kp_kalman_core_sparse_GPU::next_step(const kp_vector& Y_k, kp_vector& U_k)
 
         }
 	else
-		kp_cu_gemv(cusparseHandle, 'N', 1, cu_PROJ, cu_X_kp1sk_debut, 0, cu_U_k);
+		kp_cu_gemv(cusparseHandle, 'N', -1, cu_PROJ, cu_X_kp1sk_debut, 0, cu_U_k);
 
 	//MISE A JOUR
 	cu_U_km2 = cu_U_km1;

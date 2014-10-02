@@ -45,14 +45,12 @@ void kp_kalman_core_sparse_CPU::calculate_gain(real bruit_pix,
 		const  kp_vector& atur_,
 		const  kp_vector& btur_)
 {
-	atur = atur_;
-	btur = btur_;
-	if (atur.size() != nb_az)
+	if (atur_.size() != nb_az)
 	{
 		cerr<<"Error | kp_kalman_core_sparse_CPU::calculate_gain | size problem atur"<<endl;
 		exit(EXIT_FAILURE);
 	}
-	if (btur.size() != nb_az)
+	if (btur_.size() != nb_az)
 	{
 		cerr<<"Error | kp_kalman_core_sparse_CPU::calculate_gain | size problem btur"<<endl;
 		exit(EXIT_FAILURE);
@@ -63,24 +61,34 @@ void kp_kalman_core_sparse_CPU::calculate_gain(real bruit_pix,
 		exit(EXIT_FAILURE);
 	}
 
-	ofstream fichier;
+	//ofstream fichier;
 
 
+              
 
 	bool AR1 = true;
-	for(int i = 0 ; i < btur.size() ; i++) AR1 &= (btur.d[i]==0);
+	for(int i = 0 ; i < btur_.size() ; i++) AR1 &= (btur_.d[i]==0);
 	if (AR1) ordreAR = 1 ; else ordreAR = 2;
 
 	int expression = 2;
-	real seuil = 1/pow(10,14);
+	real seuil = 1/pow(10,10);
 	int boucle = 0;
 	real ecart = 1.0;
 	const int boucle_max = 50;
+
 	const real SigmaW = k_W*bruit_pix;
+        /*kp_matrix SigmaW();
+        SigmaW = bruit_pix;
+        SigmaW *= k_W;*/
+
 	//real Trac_T[boucle_max];
 	real trac1_tmp, trac2_tmp;
 
-	H_inf.resize(0,0);
+        kp_matrix H_inf2(0,0);
+        if (!gainComputed) 
+                H_inf.resize(0,0);
+
+
 
 
 //kp_timer temps_alphak, temps_betak, temps_Tk, temps_inversion ;
@@ -96,7 +104,7 @@ void kp_kalman_core_sparse_CPU::calculate_gain(real bruit_pix,
 	// pour ordreAR 1 et 2
 	for (int i = 0 ; i < nb_az ; i++)
 	{
-		alpha_kp1.d[i * alpha_kp1.dim1 + i] = atur.d[i];
+		alpha_kp1.d[i * alpha_kp1.dim1 + i] = atur_.d[i];
 	}
 	//pour ordreAR 2 uniquement
 	if (ordreAR == 2)
@@ -104,7 +112,7 @@ void kp_kalman_core_sparse_CPU::calculate_gain(real bruit_pix,
 		for (int i = 0 ; i < nb_az ; i++)
 		{
 			alpha_kp1.d[(i+nb_az) * alpha_kp1.dim1 + i] = 1.0;
-			alpha_kp1.d[i * alpha_kp1.dim1 + (i+nb_az)] = btur.d[i];
+			alpha_kp1.d[i * alpha_kp1.dim1 + (i+nb_az)] = btur_.d[i];
 		}
 
 	}
@@ -345,9 +353,9 @@ fichier.close();*/
 		//calcul de Sinf_0_0 (matrice superieure gauche de S_inf)
         	kp_matrix* Atur_Tkp1sk = new kp_matrix(nb_az,nb_az);
 		// Atur_Tkp1sk = Atur * T_kp1sk
-		for(int i = 0 ; i < atur.size() ; i++)
+		for(int i = 0 ; i < atur_.size() ; i++)
 			for (int j = 0 ; j < Atur_Tkp1sk->dim2 ; j++)
-			Atur_Tkp1sk->d[j * Atur_Tkp1sk->dim1 + i] = atur.d[i] * T_kp1sk.d[j * T_kp1sk.dim1 + i];
+			Atur_Tkp1sk->d[j * Atur_Tkp1sk->dim1 + i] = atur_.d[i] * T_kp1sk.d[j * T_kp1sk.dim1 + i];
 
 		
 			
@@ -358,9 +366,9 @@ fichier.close();*/
 		Atur_Tkp1sk_t-> init_from_transpose(*Atur_Tkp1sk);
 		
 		// Sinf_0_0_t = Atur * Atur_Tkp1sk_t  ( = Atur * (Atur * T_kp1sk)T )
-		for(int i = 0 ; i < atur.size() ; i++)
+		for(int i = 0 ; i < atur_.size() ; i++)
 			for (int j = 0 ; j < Sinf_0_0_t->dim2 ; j++)
-				Sinf_0_0_t->d[j * Sinf_0_0_t->dim1 + i] = atur.d[i] * Atur_Tkp1sk_t->d[j * Atur_Tkp1sk_t->dim1 + i];
+				Sinf_0_0_t->d[j * Sinf_0_0_t->dim1 + i] = atur_.d[i] * Atur_Tkp1sk_t->d[j * Atur_Tkp1sk_t->dim1 + i];
 
 		delete Atur_Tkp1sk_t ; Atur_Tkp1sk_t = NULL;
 		// Sinf_0_0 = (Sinf_0_0_t)T  ( = Atur * T_kp1sk * (Atur)T)
@@ -388,9 +396,9 @@ fichier.close();*/
 		// T_kp1sk_t = (T_kp1sk)T
 		T_kp1sk_t-> init_from_transpose(T_kp1sk);
 		// Sinf_1_0_t = Atur * T_kp1sk_t  ( = Atur * (T_kp1sk)T )
-		for(int i = 0 ; i < atur.size() ; i++)
+		for(int i = 0 ; i < atur_.size() ; i++)
 			for (int j = 0 ; j < Sinf_1_0_t->dim2 ; j++)
-				Sinf_1_0_t->d[j * Sinf_1_0_t->dim1 + i] = atur.d[i] * T_kp1sk_t->d[j * T_kp1sk_t->dim1 + i];
+				Sinf_1_0_t->d[j * Sinf_1_0_t->dim1 + i] = atur_.d[i] * T_kp1sk_t->d[j * T_kp1sk_t->dim1 + i];
 
 		delete T_kp1sk_t ; T_kp1sk_t = NULL;
 		// Sinf_1_0 = (Sinf_1_0_t)T  ( = T_kp1sk * (Atur)T )
@@ -450,6 +458,7 @@ fichier.close();*/
 
 		// Sigma_tot = Sigma_tot + SigmaW*Id (avec SigmaW reel)  (= [0 D_Mo] * Sinf * [0 ; (D_Mo)T] + SigmaW*Id)
 		for(int i = 0 ; i < Sigma_tot->dim1 ; i++) Sigma_tot->d[i * Sigma_tot->dim1 + i] += SigmaW;
+		//for(int i = 0 ; i < Sigma_tot->dim1 ; i++) Sigma_tot->d[i * Sigma_tot->dim1 + i] += SigmaW.d[i];
 		delete zeros_Dmo ; zeros_Dmo = NULL;
 		
 		//inversion de Sigma_tot
@@ -459,9 +468,20 @@ fichier.close();*/
 		inv_Sigmatot->inverse();
 		// ATTENTION !!!! Le pointeur Sigma_tot n'existe plus
 		
-		H_inf.resize(nb_n,nb_p);
-		// H_inf = Sinf_zerosDmot * inv_Sigmatot  ( = Sinf * [0 (D_Mo)T] * inv(Sigma_tot))
-		kp_gemm ('N', 'N', 1 , *Sinf_zerosDmot, *inv_Sigmatot , 0, H_inf);
+                if (!gainComputed)
+                {
+                        H_inf.resize(nb_n,nb_p);
+                        // H_inf = Sinf_zerosDmot * inv_Sigmatot  ( = Sinf * [0 (D_Mo)T] * inv(Sigma_tot))
+		        kp_gemm ('N', 'N', 1 , *Sinf_zerosDmot, *inv_Sigmatot , 0, H_inf);
+                }
+
+                else
+                {
+                        H_inf2.resize(nb_n,nb_p);
+                        // H_inf = Sinf_zerosDmot * inv_Sigmatot  ( = Sinf * [0 (D_Mo)T] * inv(Sigma_tot))
+		        kp_gemm ('N', 'N', 1 , *Sinf_zerosDmot, *inv_Sigmatot , 0, H_inf2);
+                }
+
 
 		delete Sinf_zerosDmot ; Sinf_zerosDmot = NULL;
 		delete inv_Sigmatot ; inv_Sigmatot = NULL;
@@ -494,6 +514,7 @@ fichier.close();*/
 		// Sigma_tot = SigmaW * Id (avec SigmaW reel)
 		Sigma_tot->zeros();
 		for(int i = 0 ; i < Sigma_tot->dim1 ; i++) Sigma_tot->d[i * Sigma_tot->dim1 + i] += SigmaW;
+		//for(int i = 0 ; i < Sigma_tot->dim1 ; i++) Sigma_tot->d[i * Sigma_tot->dim1 + i] += SigmaW.d[i];
 
 
 		// Sigma_tot = Sigma_tot + C1 * Tkp1sk_C1t  ( = (C1 * T_kp1sk * (C1)T) + SigmaW*Id )
@@ -522,14 +543,26 @@ fichier.close();*/
 			
 			kp_matrix* Atur_Hopt = new kp_matrix(nb_az, nb_p);
 			// Atur_Hopt = Atur * H_opt
-			for(int i = 0 ; i < atur.size() ; i++)
+			for(int i = 0 ; i < atur_.size() ; i++)
 				for (int j = 0 ; j < Atur_Hopt->dim2 ; j++)
-					Atur_Hopt->d[j * Atur_Hopt->dim1 + i] = atur.d[i] * H_opt->d[j * H_opt->dim1 + i];
+					Atur_Hopt->d[j * Atur_Hopt->dim1 + i] = atur_.d[i] * H_opt->d[j * H_opt->dim1 + i];
 
-			H_inf.resize(nb_n,nb_p);
+			
+
+
 			ms.push_back(Atur_Hopt) ; ms.push_back(H_opt);
-			// H_inf = [ Atur*H_opt ; H_opt]
-			kp_vertcat(H_inf,ms);
+                        if(!gainComputed)
+                        {
+                                H_inf.resize(nb_n,nb_p);
+			        // H_inf = [ Atur*H_opt ; H_opt]
+			        kp_vertcat(H_inf,ms);
+                        }
+                        else
+                        {
+                                H_inf2.resize(nb_n,nb_p);
+			        // H_inf2 = [ Atur*H_opt ; H_opt]
+			        kp_vertcat(H_inf2,ms);
+                        }
 			ms.clear();
 			delete Atur_Hopt ; Atur_Hopt = NULL;
 			delete H_opt ; H_opt = NULL;
@@ -537,14 +570,22 @@ fichier.close();*/
 		
 		else
 		{
-			H_inf.resize(nb_n,nb_p);
-			kp_gemm	('N', 'N', 1 , *Tkp1sk_C1t, *inv_Sigmatot , 0, H_inf);
+                        if(!gainComputed)
+                        {
+			        H_inf.resize(nb_n,nb_p);
+			        kp_gemm	('N', 'N', 1 , *Tkp1sk_C1t, *inv_Sigmatot , 0, H_inf);
+                        }
+                        else
+                        {
+			        H_inf2.resize(nb_n,nb_p);
+			        kp_gemm	('N', 'N', 1 , *Tkp1sk_C1t, *inv_Sigmatot , 0, H_inf2);
+                        }
 		}
 	
 	
 	}
 
-fichier.open("H_inf_sparse_CPU.dat",ios::out);
+/*fichier.open("H_inf_sparse_CPU.dat",ios::out);
 for(int i=0 ; i<H_inf.dim1 ; i++)
 {
 	for (int j=0 ; j<H_inf.dim2 ; j++)
@@ -553,7 +594,13 @@ for(int i=0 ; i<H_inf.dim1 ; i++)
 	}
 	fichier << endl;
 }
-fichier.close();
+fichier.close();*/
+
+	atur = atur_;
+	btur = btur_;
+        if (gainComputed) H_inf = H_inf2;
+
+
 
 	gainComputed = true;
 
@@ -580,7 +627,7 @@ void kp_kalman_core_sparse_CPU::next_step(const kp_vector& Y_k, kp_vector& U_k)
 	A1_01_Xkfin.zeros();
 
 
-	ofstream fichier2;
+	//ofstream fichier2;
 
 
 
@@ -588,12 +635,12 @@ void kp_kalman_core_sparse_CPU::next_step(const kp_vector& Y_k, kp_vector& U_k)
 //temps_op1.start();
 	// VECTEUR d'ESTIMATION de MESURE ( A l' INSTANT K )
 	// Nact_Ukm2 = N_Act * U_km2
-	kp_gemv (1, N_Act, U_km2, 0, Nact_Ukm2);
+        kp_gemv (1, N_Act, U_km2, 0, Nact_Ukm2);
 
 	// tmp_vec1 = X_kskm1 - Nact_Ukm2 (= X_kskm1 - N_Act * U_km2)
 	for(int i = 0 ; i < nb_az ; i++)
 	{
-		tmp_vec1.d[i] = X_kskm1.d[nb_az+i] - Nact_Ukm2.d[i] ;
+		tmp_vec1.d[i] = X_kskm1.d[nb_az+i] + Nact_Ukm2.d[i] ;
 	}
 
 	// Y_kskm1 = D_Mo * tmp_vec1 (= D_Mo * (X_kskm1 - N_Act * U_km2))
@@ -611,20 +658,22 @@ void kp_kalman_core_sparse_CPU::next_step(const kp_vector& Y_k, kp_vector& U_k)
 
 	// innovation = Y_k - Y_kskm1
 	innovation = Y_k;
-	innovation -= Y_kskm1;
+	innovation += Y_kskm1;
 
 	X_kskm1_tmp = X_kskm1; 
 
 	// X_kskm1_tmp = H_inf *  (Y_k - Y_kskm1)
 	kp_gemv ('N', 1, H_inf, innovation, 1, X_kskm1_tmp); 
 
-fichier2.open("Hinf_inov_auto.dat",ios::out);
+
+
+/*fichier2.open("Hinf_inov_auto.dat",ios::out);
 for(int i=0 ; i<X_kskm1_tmp.size() ; i++)
 {
 	fichier2 << __SP X_kskm1_tmp.d[i] << " ";
 }
 fichier2<<endl;
-fichier2.close();
+fichier2.close();*/
 
 
 
@@ -662,22 +711,22 @@ fichier2.close();
 
 
 
-fichier2.open("X_kp1sk_auto.dat",ios::app);
+/*fichier2.open("X_kp1sk_auto.dat",ios::app);
 for(int i=0 ; i<X_kskm1.size() ; i++)
 {
 	fichier2 << __SP X_kskm1.d[i] << " ";
 }
 fichier2<<endl;
-fichier2.close();
+fichier2.close();*/
 
 
 U_k.resize(nb_act);
 //temps_op3.start();
 	//TENSION de CORRECTION 
 	if (isZonal)
-		kp_gemv (1, PROJ, X_kp1sk_tmp, 0, U_k); 
+		kp_gemv (-1, PROJ, X_kp1sk_tmp, 0, U_k); 
 	else
-		kp_gemv (1, PROJ, X_kp1sk_debut, 0, U_k);
+		kp_gemv (-1, PROJ, X_kp1sk_debut, 0, U_k);
 
 //temps_op3.pause();
 

@@ -31,11 +31,13 @@ class kp_kalman_core_sparse
    virtual ~kp_kalman_core_sparse(){}
 
  protected:
+ //public:
    //kp_smatrix D_Mo, N_Act, PROJ;
    //kp_vector atur;
    //kp_vector btur;
    int ordreAR;
    int nb_p, nb_act, nb_z, nb_az, nb_n;
+ protected :
    bool gainComputed;
    bool isZonal;
 };

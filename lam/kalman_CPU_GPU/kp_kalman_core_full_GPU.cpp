@@ -563,7 +563,7 @@ void kp_kalman_core_full_GPU::next_step(const kp_vector& Y_k, kp_vector& U_k)
 	// tmp_vec1 = X_kskm1 - Nact_Ukm2 (= X_kskm1 - N_Act * U_km2)
 	//kp_cu_cudaMemcpy(tmp_vec1->d, cu_X_kskm1->d_cu+nb_az, nb_az*sizeof(real), cudaMemcpyDeviceToHost);
 	kernel_memcpy_real(cu_tmp_vec1.d_cu, cu_X_kskm1.d_cu+nb_az, nb_az);
-	cu_tmp_vec1 -= cu_Nact_Ukm2 ;
+	cu_tmp_vec1 += cu_Nact_Ukm2 ;
 
 		
 	// Y_kskm1 = D_Mo * tmp_vec1 (= D_Mo * (X_kskm1 - N_Act * U_km2))
@@ -580,7 +580,7 @@ void kp_kalman_core_full_GPU::next_step(const kp_vector& Y_k, kp_vector& U_k)
 	// innovation = Y_k - Y_kskm1
 	cu_innovation = cu_Y_k;
 	//cu_Y_kskm1 = *Y_kskm1;
-	cu_innovation -= cu_Y_kskm1;
+	cu_innovation += cu_Y_kskm1;
 	cu_X_kskm1_tmp = cu_X_kskm1;
 
 
@@ -630,9 +630,9 @@ void kp_kalman_core_full_GPU::next_step(const kp_vector& Y_k, kp_vector& U_k)
 	//kp_cu_vector* cu_U_k = new kp_cu_vector(nb_act);
 
 	if (isZonal)
-		kp_cu_gemv(cublasHandle, 'N', 1, cu_PROJ, cu_X_kp1sk_tmp, 0, cu_U_k);
+		kp_cu_gemv(cublasHandle, 'N', -1, cu_PROJ, cu_X_kp1sk_tmp, 0, cu_U_k);
 	else
-		kp_cu_gemv(cublasHandle, 'N', 1, cu_PROJ, cu_X_kp1sk_debut, 0, cu_U_k);
+		kp_cu_gemv(cublasHandle, 'N', -1, cu_PROJ, cu_X_kp1sk_debut, 0, cu_U_k);
 
 	//kp_cu_gemv(cublasHandle, 'N', 1, *cu_PROJ_full, cu_X_kp1sk_tmp, 0, cu_U_k);
 //temps_op3.pause();

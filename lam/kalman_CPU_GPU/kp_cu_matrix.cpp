@@ -257,8 +257,8 @@ void kp_cu_matrix::init_from_matrix(const kp_matrix& M, int r1, int r2, int c1, 
 	if (r1 < 0 || r1 > r2 || r2 > M.dim1 || 
 			c1 < 0 || c1 > c2 || c2 > M.dim2)
 	{
-		cout<<r1<<" "<<r2<<" "<<M.dim1<<endl;
-		cout<<c1<<" "<<c2<<" "<<M.dim2<<endl;
+		//cout<<r1<<" "<<r2<<" "<<M.dim1<<endl;
+		//cout<<c1<<" "<<c2<<" "<<M.dim2<<endl;
 		cerr<<"Error | kp_cu_matrix::init_from_matrix | index problems"<<endl;
 		exit(EXIT_FAILURE);
 	}
@@ -279,8 +279,8 @@ void kp_cu_matrix::init_from_matrix(const kp_cu_matrix& M, int r1, int r2, int c
 	if (r1 < 0 || r1 > r2 || r2 > M.dim1 || 
 			c1 < 0 || c1 > c2 || c2 > M.dim2)
 	{
-		cout<<r1<<" "<<r2<<" "<<M.dim1<<endl;
-		cout<<c1<<" "<<c2<<" "<<M.dim2<<endl;
+		//cout<<r1<<" "<<r2<<" "<<M.dim1<<endl;
+		//cout<<c1<<" "<<c2<<" "<<M.dim2<<endl;
 		cerr<<"Error | kp_cu_matrix::init_from_matrix | index problems"<<endl;
 		exit(EXIT_FAILURE);
 	}
@@ -745,7 +745,7 @@ void kp_cu_gemm(cublasHandle_t handle, char op_A, char op_B, real alpha, const k
 
 	#ifdef KP_SINGLE
 	
-cout<<"single precision"<<endl;
+//cout<<"single precision"<<endl;
 	/*if (A.precision == 'D')
 	{
 	double *dAd, *dBd, *dCd;

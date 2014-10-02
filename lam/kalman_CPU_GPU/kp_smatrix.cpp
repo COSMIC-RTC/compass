@@ -5,6 +5,7 @@
 #include <iostream>
 #include <algorithm>
 #include <string.h>
+#include <cmath>
 using namespace std;
 
 #ifdef __WITH_FLOPS_CALCULATOR__
@@ -151,7 +152,7 @@ void kp_smatrix::init_from_transpose(const kp_smatrix&M)
 }
 //                                                                                           
 
-void kp_smatrix::init_from_matrix(const kp_matrix& B)
+void kp_smatrix::init_from_matrix(const kp_matrix& B, double epsilon /* = 0.0 */)
 {
 	int nb_el = B.dim1*B.dim2;
 	int*  row = new int[nb_el]; 
@@ -162,7 +163,7 @@ void kp_smatrix::init_from_matrix(const kp_matrix& B)
 	{
 		for (int i=0 ; i<B.dim1 ; i++)
 		{
-			if (B(i,j) != 0)
+			if (fabs(B(i,j)) > epsilon)
 			{
 				row[cmpt] = i+1;
 				col[cmpt] = j+1;

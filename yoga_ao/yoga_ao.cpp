@@ -2371,7 +2371,8 @@ void Y_rtc_setgain(int argc) {
     control->set_gain(gain);
   }
   if   ( (rtc_handler->d_control.at(ncontrol)->get_type().compare("kalman_CPU")== 0)
-       ||(rtc_handler->d_control.at(ncontrol)->get_type().compare("kalman_GPU")== 0)){
+       ||(rtc_handler->d_control.at(ncontrol)->get_type().compare("kalman_GPU")== 0)
+       ||(rtc_handler->d_control.at(ncontrol)->get_type().compare("kalman_uninitialized")== 0) ){
   //Pour kalman gain correspond a k_W
     float gain = ygets_f(argc - 3);
     SCAST(sutra_controller_kalman *, control, rtc_handler->d_control.at(ncontrol));
@@ -3558,16 +3559,19 @@ float* hPROJ = ygeta_f(argc-6, &ntot, dims);
   bool is_GPU = ygets_s(argc - 12);
 
 
-  if ( (rtc_handler->d_control.at(ncontrol)->get_type().compare("kalman_CPU") == 0)
-     ||(rtc_handler->d_control.at(ncontrol)->get_type().compare("kalman_GPU") == 0)) {
+  if ( (rtc_handler->d_control.at(ncontrol)->get_type().compare("kalman_uninitialized") == 0)) {
 
     SCAST(sutra_controller_kalman *, control, rtc_handler->d_control.at(ncontrol));
     control->init_kalman(D_Mo, N_Act, PROJ, is_zonal, is_sparse, is_GPU );
-  
+  }
+   else
+    y_error("Controller needs to be kalman_uninitialized\n");
 // debut TMP
     int nactu = rtc_handler->d_control.at(ncontrol)->nactu();
     carma_context* current_context = rtc_handler->current_context;
-       
+      
+  if ( (rtc_handler->d_control.at(ncontrol)->get_type().compare("kalman_uninitialized") == 0)) {
+
     if (is_zonal)
     {
        //cD_Mo   = calculate_D_Mo(current_context, ncentroids*2, nactu, is_zonal);
@@ -3595,7 +3599,7 @@ float* hPROJ = ygeta_f(argc-6, &ntot, dims);
 //
   }
   else
-    y_error("Controller needs to be either kalman_CPU or kalman_GPU\n");
+    y_error("Controller needs to be either kalman_CPU or Kalman_GPU\n");
 }
 
 void Y_rtc_kalmancalculategain(int argc) {

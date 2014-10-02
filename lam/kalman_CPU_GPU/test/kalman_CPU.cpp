@@ -236,7 +236,7 @@ int main(int argc, char* argv[])
 		//CPR_km1 = CPT_km1 - CPC_km1
 
 		CPR_km1 = CPT_km1;
-		CPR_km1 -= CPC_km1;
+		CPR_km1 += CPC_km1;
 		
 		// VARIANCE PHASE RESIDUELLE ( INSTANT K-1 )
 		// Var_PhRes = var(CPR_km1)
@@ -326,6 +326,8 @@ int main(int argc, char* argv[])
 		}*/
 
 
+                //if (boucle == 2500) 
+                  //      kalman_CPU.calculate_gain(BRUIT_PIX, k_W, SigmaV, A1_00, A1_01);
 
 		boucle++;
 	}

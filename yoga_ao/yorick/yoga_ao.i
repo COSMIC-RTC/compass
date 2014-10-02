@@ -707,9 +707,11 @@ func rtc_init(clean=)
 
             D_Mo = create_dmo(1,1);
 
-            // creation de N_Act (en um/V)
+            // creation de N_Act (en um/V et non normalise)
             N_Act  = create_nact(1); //N_Act = N_Act-min(N_Act); N_Act = N_Act/max(N_Act);
             PROJ   = LUsolve(N_Act);
+            //for(k=1;k<=241;k++) for(l=1;l<=241;l++) if(abs(PROJ(k,l))<1e-10) PROJ(k,l)=0.0;
+
             //Mint = imat_geom(meth=0);
             //D_Mo = Mint(,+)*PROJ(+,);
 
@@ -720,7 +722,7 @@ close,f2;
 f3= open("PROJ_manuel.dat", "w");
 write,f3,format="%e \n",PROJ;
 close,f3;
-f4= open("D_Mo_manuel.dat", "w");
+f4= open("D_Mo_2.dat", "w");
 write,f4,format="%e \n",D_Mo;
 close,f4;  
 f5= open("Mint_manuel.dat", "w");
@@ -728,8 +730,8 @@ write,f5,format="%e \n",Mint;
 close,f5;  
 */
             //Creation de SigmaTur puis conversion de rad^2 en um^2
-            //SigmaTur = (create_sigmaTur(1)*0.806-53.4) * (y_wfs(1).lambda/2/pi)^2;
-            SigmaTur = create_sigmaTur(1) * (y_wfs(1).lambda/2/pi)^2;
+            //SigmaTur = (create_sigmaTur(1)*0.806-53.4) * (y_wfs(nwfs).lambda/2/pi)^2;
+            SigmaTur = create_sigmaTur(1) * (y_wfs(nwfs).lambda/2/pi)^2;
 
             //SigmaTur = create_sigmaTur(1);//pli,SigmaTur;
             atur = array(0.985, sum(y_dm(ndms)._ntotact));
@@ -737,19 +739,17 @@ close,f5;
             ordreAR = anyof(btur)+1;
             isZonal=1 ; isSparse=1;
             SigmaV = create_sigmav(SigmaTur, isZonal, ordreAR, atur, btur) ;
-            //window,1; pli,D_Mo; colorbar,min(D_Mo),max(D_Mo); error;
+            //window,1; pli,D_Mo; colorbar,min(D_Mo),max(D_Mo);
             //window,2; pli,N_Act; colorbar,min(N_Act),max(N_Act);
             //window,3; pli,PROJ; colorbar,min(PROJ),max(PROJ);
             //window,4; pli,SigmaV;colorbar,min(SigmaV),max(SigmaV);
             //SigmaV=SigmaV-min(SigmaV);SigmaV=SigmaV/max(SigmaV);
             //SigmaV=SigmaV*(2.1384-0.4320)+0.4320;
             //SigmaV=SigmaV*(y_wfs(1).lambda/2/pi)^2;
-            //error;
-
             if (controllers(i).type  == "kalman_CPU")
-              rtc_initkalman, g_rtc, 0, y_wfs(1).noise, D_Mo, N_Act, PROJ, SigmaV, atur, btur, isZonal, isSparse, 0;
+              rtc_initkalman, g_rtc, 0, avg(noise_cov(nwfs)), D_Mo, N_Act, PROJ, SigmaV, atur, btur, isZonal, isSparse, 0;
             else
-              rtc_initkalman, g_rtc, 0, y_wfs(1).noise, D_Mo, N_Act, PROJ, SigmaV, atur, btur, isZonal, isSparse, 1;
+              rtc_initkalman, g_rtc, 0, avg(noise_cov(nwfs)), D_Mo, N_Act, PROJ, SigmaV, atur, btur, isZonal, isSparse, 1;
 
           }          
 	  // Florian features

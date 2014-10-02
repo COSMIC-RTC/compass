@@ -885,10 +885,11 @@ func noise_cov(ns)
     //d = patchDiam / (y_dm(ndm).nact-1); // Interactuator distance
     //d = 1.;
     r0 = get_r0(y_atmos.r0,0.5,y_wfs(ns).lambda);
-  
+      
     sig = (pi^2/2) * (1 / Nph) * (1./r0)^2; // Photon noise in rad²
     sig = sig / (2*pi / (y_wfs(ns).lambda * 1e-6))^2;
     sig *= RASC^2;
+
     //error;
     
     //Electronic noise
@@ -898,7 +899,8 @@ func noise_cov(ns)
     sigphi = (pi^2/3) * (1 / Nph^2) * (y_wfs(ns).noise)^2 * Ns^2 * (Ns/Nd)^2; // Phase variance in rad²
     sigsh = sigphi / (2*pi / (y_wfs(ns).lambda * 1e-6))^2; // Noise variance in rad²
     sigsh *= RASC^2; // Electronic noise variance in arcsec²
-    sig *= 0; // No photon noise for debug
+
+    //sig *= 0; // No photon noise for debug
     cov_n = array(0.0f,2*numberof(sig));
     cov_n(:numberof(sig)) = sig + sigsh;
     cov_n(numberof(sig)+1:) = sig + sigsh;

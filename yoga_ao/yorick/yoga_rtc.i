@@ -994,8 +994,10 @@ func create_sigmaTur(n){
   
 func create_dmo(nm,nw) {
   // coefficient permettant d''obtenir les meme pentes entre l''ASO COMPASS et celle obtenues par D_MO apres injection du meme ecran de phase.
-  //coeff=y_wfs(nw).pixsize*2*pi/y_wfs(nw).lambda;
-  coeff=y_wfs(nw).lambda/y_wfs(nw).pixsize;
+
+  // D_Mo[arcsec/micron] = D_Mo[px/rad] * coeff
+  coeff=y_wfs(nw).pixsize*2*pi/y_wfs(nw).lambda;
+
 
   nb_p   = (y_wfs(nw)._nvalid) * 2;
   nb_act = y_dm(nm)._ntotact;
@@ -1021,7 +1023,7 @@ func create_dmo(nm,nw) {
         // à DROITE 
         MD_ssp(i,j+1) = -1;
         MD_ssp(i+1,j+1) = 1;
-        MD_ssp = MD_ssp/coeff;
+        MD_ssp = (MD_ssp/2/pi)*coeff;
         // repositionnement en colonne ( pupille CARRÉE  nActuator*nActuator  )
         V_ssp = MD_ssp(*);
         // repositionnement en colonne ( pupille DISQUE nb_act )
@@ -1042,7 +1044,7 @@ func create_dmo(nm,nw) {
         // à DROITE 
         MD_ssp(i+1,j) = -1;
         MD_ssp(i+1,j+1) = 1;
-        MD_ssp = MD_ssp/coeff;
+        MD_ssp = (MD_ssp/2/pi)*coeff;
         // repositionnement en colonne ( pupille CARRÉE  nActuator*nActuator  )
         V_ssp = MD_ssp(*);
         // repositionnement en colonne ( pupille DISQUE nb_act )

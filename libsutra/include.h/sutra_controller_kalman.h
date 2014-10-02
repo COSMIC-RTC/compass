@@ -18,8 +18,10 @@
 #define __SP setprecision(20)<<
 
 #ifdef COMPILATION_LAM
-#include "/home/tgautrais/compass_debug/lam/kalman_CPU_GPU/kp_real.h"
+#include "/home/tgautrais/compass/trunk/lam/kalman_CPU_GPU/kp_vector.h"
+#include "/home/tgautrais/compass/trunk/lam/kalman_CPU_GPU/kp_real.h"
 #endif
+
 
 class kp_kalman_core_sparse;
 class kp_kalman_core_full;
@@ -36,7 +38,7 @@ public:
    void calculate_gain(double bruit, carma_host_obj<float>& SigmaV,
 		     carma_host_obj<float>& atur, carma_host_obj<float>& btur);
    
-   virtual string get_type() {if(isGPU) return "kalman_GPU";else return "kalman_CPU";};
+   virtual string get_type() {if (isInit){if(isGPU) return "kalman_GPU";else return "kalman_CPU";}else return "kalman_uninitialized";};
    
    virtual int comp_com();
    //int frame_delay();
@@ -45,6 +47,7 @@ public:
 
  private:
    cusparseHandle_t cusparseHandle;
+   cublasHandle_t cublasHandle;
    kp_kalman_core_sparse* core_sparse;
    kp_kalman_core_full* core_full;
    bool isGPU;
@@ -59,11 +62,21 @@ public:
  public:
 #ifdef COMPILATION_LAM
    real** Yk;
+   //kp_vector X_kp1sk_tmp;
 #endif
    int ind_Yk;
    bool matrices_matlab;
    bool pentes_matlab;
    bool sigmaVmatlab;
+   
+ //private:
+   //double var_bruit;
+   
+
+   
+   //int iteration;
+   //vector<double> X_kp1sk_vec_total;
+
 
 };
 

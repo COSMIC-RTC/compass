@@ -38,9 +38,7 @@ private	:
   kp_vector U_km2 ;
   kp_vector U_km1; 
   kp_vector X_kskm1;
-
   kp_smatrix D_Mo, N_Act, PROJ;
-
   kp_vector atur;
   kp_vector btur;
   kp_matrix H_inf;
