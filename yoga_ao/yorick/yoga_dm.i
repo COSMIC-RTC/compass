@@ -10,7 +10,7 @@ func make_pzt_dm(nm,&influ,disp=)
    */
 {
   extern y_dm;
-  
+
   coupling=y_dm(nm).coupling;
 
   // best parameters, as determined by a multi-dimensional fit
@@ -37,7 +37,7 @@ func make_pzt_dm(nm,&influ,disp=)
   // compute IF on partial (local) support:
   smallsize = long(ceil(2*ir+10));
   y_dm(nm)._influsize = smallsize;
-  x     = indgen(smallsize)(,-:1:smallsize)-smallsize/2. - 0.5;
+  x     = indgen(smallsize)(,-:1:smallsize)-smallsize/2 - 0.5;
   y     = transpose(x);
   tmpx  = clip(abs(x/ir),1e-8,2.);
   tmpy  = clip(abs(y/ir),1e-8,2.);
@@ -97,7 +97,6 @@ func make_pzt_dm(nm,&influ,disp=)
   fact = y_dm(nm).unitpervolt/max(influ);
   influ = float(influ*fact);
   y_dm(nm)._influ = &influ;
-
   comp_dmgeom,nm;
 
   return influ;

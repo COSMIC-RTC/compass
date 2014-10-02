@@ -128,7 +128,7 @@ __device__ void lgs_raytrace(float *odata, float *idata, int nx, int ny,
   tidi = iref + jref * Nx;
 
   //if ((x < nx) && (y < ny)) {
-
+/*
   if (tidi < Nx * Nx)
     cache[threadIdx.x + threadIdx.y * (blockSize+1)] = idata[tidi];
   //}
@@ -169,7 +169,7 @@ __device__ void lgs_raytrace(float *odata, float *idata, int nx, int ny,
 		  else cache[bx + by * (blockSize+1)] = 0.0f;
 	  }
   }
-
+*/
   __syncthreads();
 
   if ((x < nx) && (y < ny)) {
@@ -182,16 +182,16 @@ __device__ void lgs_raytrace(float *odata, float *idata, int nx, int ny,
     wx2 = xshift;
     wy1 = (1.0f - yshift);
     wy2 = yshift;
-/*
+
     odata[tido] += (wx1 * wy1 * idata[iref + jref * Nx]
         + wx2 * wy1 * idata[iref + 1 + jref * Nx]
         + wx1 * wy2 * idata[iref + (jref + 1) * Nx]
-        + wx2 * wy2 * idata[iref + 1 + (jref + 1) * Nx]);*/
-
+        + wx2 * wy2 * idata[iref + 1 + (jref + 1) * Nx]);
+/*
     odata[tido] += (wx1 * wy1 * cache[threadIdx.x + threadIdx.y * (blockSize+1)]
             + wx2 * wy1 * cache[threadIdx.x + 1 + threadIdx.y * (blockSize+1)]
             + wx1 * wy2 * cache[threadIdx.x + (threadIdx.y + 1) * (blockSize+1)]
-            + wx2 * wy2 * cache[threadIdx.x + 1 + (threadIdx.y + 1) * (blockSize+1)]);
+            + wx2 * wy2 * cache[threadIdx.x + 1 + (threadIdx.y + 1) * (blockSize+1)]);*/
 
   }
 }
