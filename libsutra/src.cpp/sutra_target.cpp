@@ -393,7 +393,7 @@ int sutra_source::comp_image(int puponly) {
       this->d_image->getDims(1) * this->d_image->getDims(2), this->device);
 
   // scale image because of fft
-  this->d_image->scale(1.0f / this->d_image->getNbElem(), 1);
+  //this->d_image->scale(1.0f / this->d_image->getNbElem(), 1);
 
   // if long exposure image is not null
   if (this->d_leimage != 0L) {
@@ -406,8 +406,18 @@ int sutra_source::comp_image(int puponly) {
 }
 
 int sutra_source::comp_strehl() {
-  this->strehl_se = expf(-this->phase_var);
-  this->strehl_le = expf(-this->phase_var_avg/this->phase_var_count);
+  //this->strehl_se = expf(-this->phase_var);
+  //this->strehl_le = expf(-this->phase_var_avg/this->phase_var_count);
+  
+  cudaMemcpy(&(this->strehl_se),
+        &(this->d_image->getData()[this->d_image->imax(1) - 1]), sizeof(float),
+        cudaMemcpyDeviceToHost);
+  cudaMemcpy(&(this->strehl_le),
+        &(this->d_leimage->getData()[this->d_leimage->imax(1) - 1]),
+        sizeof(float), cudaMemcpyDeviceToHost);
+  this->strehl_se /= (this->d_wherephase->getDims(1) * this->d_wherephase->getDims(1));
+  this->strehl_le /=  (this->strehl_counter * ( this->d_wherephase->getDims(1)* this->d_wherephase->getDims(1)));
+  
   /*
   cudaMemcpy(&(this->strehl_se),
       &(this->d_image->getData()[this->d_image->imax(1) - 1]), sizeof(float),
