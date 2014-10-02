@@ -3559,18 +3559,19 @@ float* hPROJ = ygeta_f(argc-6, &ntot, dims);
   bool is_GPU = ygets_s(argc - 12);
 
 
+    SCAST(sutra_controller_kalman *, control, rtc_handler->d_control.at(ncontrol));
   if ( (rtc_handler->d_control.at(ncontrol)->get_type().compare("kalman_uninitialized") == 0)) {
 
-    SCAST(sutra_controller_kalman *, control, rtc_handler->d_control.at(ncontrol));
     control->init_kalman(D_Mo, N_Act, PROJ, is_zonal, is_sparse, is_GPU );
   }
    else
-    y_error("Controller needs to be kalman_uninitialized\n");
+    y_error("Controller needs to be either kalman_CPU or kalman_CPU\n");
 // debut TMP
     int nactu = rtc_handler->d_control.at(ncontrol)->nactu();
     carma_context* current_context = rtc_handler->current_context;
       
-  if ( (rtc_handler->d_control.at(ncontrol)->get_type().compare("kalman_uninitialized") == 0)) {
+  if ( (rtc_handler->d_control.at(ncontrol)->get_type().compare("kalman_CPU") == 0)
+     ||(rtc_handler->d_control.at(ncontrol)->get_type().compare("kalman_GPU") == 0) ) {
 
     if (is_zonal)
     {
