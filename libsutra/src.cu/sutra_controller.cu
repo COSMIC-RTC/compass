@@ -81,10 +81,32 @@ __global__ void add_md_krnl(float *o_matrix, float *i_matrix, float *i_vector,
 }
 
 __global__ void
+TT_filt_krnl(float *mat, int n, int N){
+	int tid = threadIdx.x + blockIdx.x * blockDim.x;
+	while (tid < N){
+		tid % (n+1) ? mat[tid] *= -1.0f : mat[tid] = (float)(1.-mat[tid]);
+		tid += blockDim.x * gridDim.x;
+	}
+}
+
+__global__ void
 fill_filtmat_krnl(float *filter, int nactu, int N){
 	int tid = threadIdx.x + blockIdx.x * blockDim.x;
 	while (tid < N){
-		tid % (nactu+1) ? filter[tid] = (float)-1./nactu : filter[tid] = (float)(1.-1./nactu);
+		filter[tid] =tid % (nactu+1) ? (float)-1./nactu : (float)(1.-1./nactu);
+		tid += blockDim.x * gridDim.x;
+	}
+}
+
+__global__ void
+fill_cmat_krnl(float *cmat, float *wtt, float *Mtt, long nact, long nslope, long N){
+	int tid = threadIdx.x + blockIdx.x * blockDim.x;
+	int i,j;
+	while (tid < N) {
+		i = tid/nact;
+		j = tid - i*nact;
+		//if(j < nact-2) cmat[tid] = 1.0f;
+		cmat[tid] = (j < nact-2) ? wtt[j + i*(nact-2)] : Mtt[j - (nact - 2) + i*2];
 		tid += blockDim.x * gridDim.x;
 	}
 }
@@ -243,6 +265,31 @@ fill_filtmat(float *filter, int nactu, int N, int device){
 
 	fill_filtmat_krnl<<<grid, threads>>>(filter, nactu, N);
 	cutilCheckMsg("fill_filtmat_krnl<<<>>> execution failed\n");
+
+	return EXIT_SUCCESS;
+}
+int
+TT_filt(float *mat, int n, int device){
+	int nthreads = 0, nblocks = 0;
+	int N = n*n;
+	getNumBlocksAndThreads(device, N, nblocks, nthreads);
+	dim3 grid(nblocks), threads(nthreads);
+
+	TT_filt_krnl<<<grid, threads>>>(mat,n,N);
+	cutilCheckMsg("TT_filt_krnl<<<>>> execution failed\n");
+
+	return EXIT_SUCCESS;
+}
+
+int
+fill_cmat(float *cmat, float *wtt, float *Mtt, int nactu, int nslopes, int device){
+	int nthreads = 0, nblocks = 0;
+	int N = nactu * nslopes;
+	getNumBlocksAndThreads(device, N, nblocks, nthreads);
+	dim3 grid(nblocks), threads(nthreads);
+
+	fill_cmat_krnl<<<grid, threads>>>(cmat,wtt,Mtt,nactu,nslopes,N);
+	cutilCheckMsg("fill_cmat_krnl<<<>>> execution failed\n");
 
 	return EXIT_SUCCESS;
 }

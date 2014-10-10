@@ -757,20 +757,96 @@ close,f5;
 	    write,"doing imat and filtering unseen actuators";
 	    imat_init,i,clean=clean;
 	    write,"done";
+	    rtc_setgain,g_rtc,0,controllers(i).gain;
+            mgain = array(1.0f,(y_dm._ntotact)(sum));
+            rtc_loadmgain,g_rtc,0,mgain;
+	    
+	    Cphi_vk = create_sigmaTur(1);
+	    F = unit(dimsof(Cphi_vk)(3)) - array(1./(dimsof(Cphi_vk)(3)),dimsof(Cphi_vk)(3),dimsof(Cphi_vk)(3));
+	    //Cphi_vk = (F(,+)*Cphi_vk(+,))(,+)*F(,+);
+	    
+	    // Cphim computation
+	    //Nact = create_nact(1) / y_dm(1).unitpervolt;
+	    Nact = create_nact_geom(1);
+	    //restore,openb("Nact");
+	    //Nact/=y_dm(1).unitpervolt;
+	    G = LUsolve(Nact);
+	    //G = Nact;
+	    Cphim = mat_cphim_gpu(i-1);
+	    //Cphim = mat_cphim();
+	    cmat_init,i,clean=clean;
+	    /*
 	    //error;
 	    
-	    L0_d = &array(1e5f,y_atmos.nscreens);
-	    alphaX = alphaY = array(0.0f,numberof(y_wfs.xpos)+1);
-	    alphaX(:numberof(y_wfs.xpos)) = y_wfs.xpos/RASC;
-	    alphaX(numberof(y_wfs.xpos) + 1) = (y_wfs.xpos(0)+10.)/RASC;
-	    alphaY(:numberof(y_wfs.xpos)) = y_wfs.ypos/RASC;
-	    alphaY(numberof(y_wfs.xpos) + 1) = (y_wfs.ypos(0))/RASC;
+	    Cphim = F(,+) * Cphim(+,);
+	    Cphim = G(,+) * Cphim(+,);
+	    //Cphim /= 25.8;
+
+	    // Imat & Cmm
+	    imat = rtc_getimat(g_rtc,0);
+	    Cmm = rtc_getCmm(g_rtc,0);
+	    cmm = mat_cmm();
 	    
+	    // Noise
+	    noisemat = noise_cov(1);
+	    Cn = unit(numberof(noisemat)) * noisemat;
+
+	    // Cmat computation (two ways)
+	    //D_kolmo = (imat(,+) * Cphi_kolmo(+,))(,+) * imat(,+) + Cn;
+	    //Dvk = (imat(,+) * Cphi_vk(+,))(,+) * imat(,+) + Cn;
+	    Cmm += Cn;
+	    cmm += Cn;
+
+	    //D1_kolmo = LUsolve(D_kolmo);
+	    //D1vk = LUsolve(Dvk);
+	    //Cmm1 = invgen(Cmm,50);
+	    cmm1 = invgen(cmm,50);
+	    //Cmm1f = invgen(Cmm,dimsof(imat)(2) - dimsof(imat)(3));
+
+	    //cmat_kolmo = (Cphi_kolmo(,+) * imat(,+))(,+) * D1_kolmo(+,);
+	    //cmat_vk = (Cphi_vk(,+) * imat(,+))(,+) * D1vk(+,);
+	    //cmat_cmm = (Cphi_vk(,+) * imat(,+))(,+) * Cmm1(+,);
+	    //cmat_cphim = (Cphim(,+) * Cmm1(+,));
+	    cmat_cphim2 = (Cphim(,+) * cmm1(+,));
+	    //restore,openb("cmatls");
+	    /*
+	    D = imat(+,)*imat(+,);
+	    D = invcond(D,y_controllers(1).maxcond);
+	    cmatls = D(,+) * imat(,+);
+	    cmat_mvtt = cmatls / 20.;
+	    cmat_mvtt(:y_dm(1)._ntotact,) = cmat_cphim2;
+	    */
+	    /*
+	    Nslopes = dimsof(imat)(2);
+	    Nactu = dimsof(imat)(3);
+	    Dm = imat(,:Nactu-2);
+	    Dtt = imat(,Nactu-1:);
+	    Dm1 = (invcond(Dm(+,)*Dm(+,),y_controllers(1).maxcond))(,+) * Dm(,+);
+	    //Dtt1 = (LUsolve(Dtt(+,)*Dtt(+,)))(,+) * Dtt(,+);
+	    TT2ho = Dm1(,+) * Dtt(+,);
+	    //cmat_mvtt2 = array(0.0f,Nactu,Nslopes);
+	    //cmat_mvtt2(:Nactu-2,) = cmat_cphim2 - TT2ho(,+) * Dtt1(+,);
+	    //cmat_mvtt2(Nactu-1:,) = Dtt1;
+
+	    M = Dm(,+) * TT2ho(+,);
+	    M1 = (LUsolve(M(+,)*M(+,)))(,+) * M(,+);
+	    MM1 = M(,+) * M1(+,);
+	    Ftt = unit(dimsof(MM1)(2)) - MM1;
+	    cmat_mvtt3 = array(0.0f,Nactu,Nslopes);
+	    cmat_mvtt3(:Nactu-2,) = cmat_cphim2(,+) * Ftt(+,);
+	    cmat_mvtt3(Nactu-1:,) = M1;
+	    //cmat_cphimf = (Cphim(,+) * Cmm1f(+,));
+	    //fls = cmat_ls(,+) * imat(+,);
+	    rtc_setcmat,g_rtc,i-1,cmat_mvtt3;
 	    //error;
-	    rtc_doCmm,g_rtc,i-1,g_wfs,g_atmos,y_tel.diam,y_tel.cobs,*y_atmos.L0, float(*y_atmos.frac * (y_atmos.r0)^(-5./3)),alphaX,alphaY;
-	    //error;
-	    
-	    comp_mode = "GPU";
+	    */
+
+
+
+
+
+	    /*
+ 	    comp_mode = "CPU";
 	    method = "n";
 	    //ndms = ndms(1);
 	    //error;
@@ -888,33 +964,36 @@ close,f5;
 		tmp = invgen(Cmm,50);
 		D1 = LUsolve(D);
 		//tmp = LUsolve(Cmm);
-		/*
+		
 		  s = SVdec(tmp,U,Vt);
 		  E = unit(numberof(s)) * (1/s);
 		  for(ii=1 ; ii<=numberof(s) ; ii++){
 		  if (s(ii) < s(1)/1500.) E(ii,ii)=0.;}
 		  //E(y_dm(1)._ntotact,y_dm(1)._ntotact) = 0.;
 		  tmp = (U(,+)*E(+,))(,+)*U(,+);
-		*/
+		
 		//error;
 		C = (covmat(,+)*imat(,+))(,+)*tmp(+,);
 		cmat = (covmat(,+)*imat(,+))(,+)*D1(+,);
 		//cmat = C;
-		//error;
+		error;
 	      }	 
 	      //error;
 	      rtc_setcmat,g_rtc,i-1,cmat;
-	    }
 	  }
-        }
+	      */
+	  }
+	}
       }
     }
   }
 }
+
 func invgen(mat , nfilt)
 /* DOCUMENT invgen( mat, nfilt)
    mat   : matrice a inverser
    nfilt : nombre de modes a filtrer
+   written by Rico
 */
 {
    s = SVdec(mat,u,vt);
@@ -926,6 +1005,23 @@ func invgen(mat , nfilt)
    } else {
        s1 = 1.0 / s;
    }
+   m1 =  (u*s1(-,))(,+) * vt(+,);
+   return m1;
+}
+
+func invcond(mat , cond)
+/* DOCUMENT invgen( mat, nfilt)
+   mat   : matrice a inverser
+   nfilt : nombre de modes a filtrer
+   written by Rico
+*/
+{
+   s = SVdec(mat,u,vt);
+   ok = where(s>=max(s)/cond);
+   last = max(ok);
+   s1=s;
+   s1(:last) = 1./s(:last);
+   s1(last+1:) = 0.;
    m1 =  (u*s1(-,))(,+) * vt(+,);
    return m1;
 }

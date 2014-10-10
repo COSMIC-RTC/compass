@@ -30,9 +30,10 @@ func imat_init(ncontrol,clean=)
     
     rtc_doimat,g_rtc,ncontrol-1,g_wfs,g_dm;
     imat = rtc_getimat(g_rtc,ncontrol-1);
-    /*
-    imat = imat_geom();
-    */
+    
+    //imat = imat_geom(meth=0);
+    //rtc_setimat,g_rtc,ncontrol-1,imat;
+    
   } else {
     if (simul_name != [])
       imat = fits_read(swrite(format=dirsave+"imat-%d-%s.fits",ncontrol,simul_name));
@@ -207,7 +208,12 @@ func cmat_init(ncontrol,clean=,method=)
     write,format="cmat time %f\n",tac();
   }
   if (((*y_rtc.controllers(ncontrol)).type)(1) == "mv"){
-    rtc_buildcmatmv,g_rtc,ncontrol-1,y_dm(1).type,method;
+    rtc_loadnoisemat,g_rtc,ncontrol-1,noise_cov(1);
+    imat = rtc_getimat(g_rtc,0);
+    Nactu = dimsof(imat)(3);
+    Dm = imat(,:Nactu-2);
+    Dtt = imat(,Nactu-1:);
+    rtc_buildcmatmv,g_rtc,ncontrol-1,Dm,Dtt,y_controllers(ncontrol-1).maxcond;
   }
 
   cmat = rtc_getcmat(g_rtc,ncontrol-1);
@@ -934,7 +940,7 @@ func stat_cov(n,r0)
     interactp = double(x(2) - x(1));
     interactm = patchDiam/(y_dm(n).nact-1);
     p2m = interactm/interactp;
-    norm = (p2m/r0)^(5./3)/2.;
+    norm = -(p2m/r0)^(5./3)/2.;
     //norm = -(0.0269484/r0)^(5./3);
     //norm = -(p2m*patchDiam/(2*r0))^(5./3);
     //norm = 1.;
@@ -973,6 +979,9 @@ func create_sigmaTur(n){
   //Some constants
   k1 = 0.1716613621245709486;
   k2 = 1.0056349179985892838;
+  //L0 = (*y_atmos.L0)(1);
+  L0 = 1.e5;
+  r0 = y_atmos.r0;
   // Actuators positions
   x = *y_dm(n)._xpos;
   y = *y_dm(n)._ypos;
@@ -1069,12 +1078,11 @@ func create_nact(nm) {
   tmpx = *y_dm(nm)._i1;
   tmpy = *y_dm(nm)._j1;
   offs = ((y_dm(1)._n2-y_dm(1)._n1+1) - (max(tmpx) - min(tmpx)))/2 - min(tmpx);
-  tmpx += offs;
-  tmpy += offs;
+  tmpx += offs+1;
+  tmpy += offs+1;
   mask = yoga_getdm(g_dm,y_dm(nm).type,y_dm(nm).alt) * 0;
-  mask(tmpx + tmpy * dimsof(mask)(2)) = 1;
+  mask(tmpx + (tmpy-1) * dimsof(mask)(2)) = 1;
   masq_act = where(mask);
-  
   for (i=1;i<=y_dm(nm)._ntotact;i++) {
     com = array(0.,y_dm(nm)._ntotact);
     com(i)= float(y_dm(nm).push4imat);
@@ -1125,6 +1133,282 @@ func create_sigmav(SigmaTur, isZonal, ordreAR, atur, btur)
   //window,2;pli, SigmaV;error;
   return SigmaV;
 }
+include,"/home/ferreira/compass/trunk/yoga_ao/yorick/dphi_rico.i";
+/*
+func dphi_lowpass(r,x0,L0,rmax) {
+  return (r^(5./3.)) *  Ij0t83(r*(pi/x0),L0,rmax)*(2*(2*pi)^(8/3.)*0.0228956);
+}
 
+func Ij0t83(x,L0,rmax) {
+  extern YLARGE, XLARGE;
+  if( YLARGE==[] ) {
+    write,"computing array of tabulated integral";
+    n = 10000;
+    XLARGE = span(0,rmax,n);
+    dX = (XLARGE(0)-XLARGE(1))/(n-1);
+    y = (XLARGE^2 + (1./L0)^2)^(-8./6.) * unMoinsJ0(XLARGE);
+    YLARGE = y(zcen)(cum) * dX;
+  }
+  return interp(YLARGE,XLARGE,x);
+}
 
+func unMoinsJ0(x,L=)
+{
+  if( numberof(dimsof(x))==1 ) {   // x is a scalar
+    if( x<0.1 ) {
+      // J0(x) = x^2/4 - x^4/64 + ...
+      //       = (x/2)^2  ( 1 - (x/2)^2 / 4 + ... ) to minimize computation errors
+      x22 = (x/2.)^2; 
+      return (1-x22/4.)*x22;
+    } else {
+      // classique
+      return (1-bessj0(x));
+    }
+  } else {  // x is a vector
+    y = double(x);
+    for(i=1; i<=numberof(x); i++)
+      y(i) = unMoinsJ0(x(i));
+    return y;
+  }
+}
+*/
+func mat_cphim_gpu(nc){
+// Positions des coins inferieurs gauches des ssp valides ramenees dans ipupil (origine au centre)
+  s2ipup = (dimsof(*y_geom._ipupil)(2) - dimsof(*y_geom._spupil)(2))/2.;
+  posx = *y_wfs(1)._istart + s2ipup ;
+  posx = (posx * (*y_wfs(1)._isvalid))(*);
+  posx = posx(where(posx!=0)) - dimsof(*y_geom._ipupil)(2)/2 - 1;
+  posy = *y_wfs(1)._jstart + s2ipup ;
+  posy = (transpose(posy * (*y_wfs(1)._isvalid)))(*);
+  posy = posy(where(posy!=0)) - dimsof(*y_geom._ipupil)(2)/2 - 1;
 
+  // Conversion en metres
+  sspDiam = posx(2) - posx(1);
+  p2m = (y_tel.diam/y_wfs(1).nxsub) / sspDiam;
+  posx *= p2m;
+  posy *= p2m;
+  sspDiam = sspDiam*p2m;
+
+  // Position des actuateurs et origine ramenee au centre de ipupil
+  actu_x = (*y_dm(1)._xpos - dimsof(*y_geom._ipupil)(2)/2 )*p2m;
+  actu_y = (*y_dm(1)._ypos - dimsof(*y_geom._ipupil)(2)/2 )*p2m;
+
+  k2 = y_wfs(1).lambda / 2. / pi / y_dm(1).unitpervolt;
+  L0_d = &(float(*y_atmos.L0));
+  alphaX = alphaY = array(0.0f,numberof(y_wfs.xpos));
+  alphaX(:numberof(y_wfs.xpos)) = y_wfs.xpos/RASC;
+  alphaY(:numberof(y_wfs.xpos)) = y_wfs.ypos/RASC;
+  Nact = create_nact_geom(1);
+
+  rtc_doCphim,g_rtc,nc,g_wfs,g_atmos,g_dm,*L0_d,float(*y_atmos.frac * (y_atmos.r0)^(-5./3)),alphaX,alphaY,posx,posy,actu_x,actu_y,y_tel.diam,k2,Nact;
+
+   rtc_doCmm,g_rtc,nc,g_wfs,g_atmos,y_tel.diam,y_tel.cobs,*L0_d, float(*y_atmos.frac * (y_atmos.r0)^(-5./3)),alphaX,alphaY;
+}
+func mat_cphim(void)
+{
+  // Positions des coins inferieurs gauches des ssp valides ramenees dans ipupil (origine au centre)
+  s2ipup = (dimsof(*y_geom._ipupil)(2) - dimsof(*y_geom._spupil)(2))/2.;
+  posx = *y_wfs(1)._istart + s2ipup ;
+  posx = (posx * (*y_wfs(1)._isvalid))(*);
+  posx = posx(where(posx!=0)) - dimsof(*y_geom._ipupil)(2)/2 - 1;
+  posy = *y_wfs(1)._jstart + s2ipup ;
+  posy = (transpose(posy * (*y_wfs(1)._isvalid)))(*);
+  posy = posy(where(posy!=0)) - dimsof(*y_geom._ipupil)(2)/2 - 1;
+
+  // Conversion en metres
+  sspDiam = posx(2) - posx(1);
+  p2m = (y_tel.diam/y_wfs(1).nxsub) / sspDiam;
+  posx *= p2m;
+  posy *= p2m;
+  sspDiam = sspDiam*p2m;
+  
+  //Calcul de la position des points A,B (centre des bords gauche et droit des ssp)
+  Ax = posx;
+  Ay = posy + sspDiam/2.;
+  Bx = posx + sspDiam;
+  By = Ay;
+  //Calcul de la position des points C,D (centre des bords bas et haut des ssp)
+  Cx = posx + sspDiam/2.;
+  Cy = posy;
+  Dx = Cx;
+  Dy = posy + sspDiam;
+
+  // Position des actuateurs et origine ramenee au centre de ipupil
+  actu_x = (*y_dm(1)._xpos - dimsof(*y_geom._ipupil)(2)/2 )*p2m;
+  actu_y = (*y_dm(1)._ypos - dimsof(*y_geom._ipupil)(2)/2 )*p2m;
+
+  //Position de l'actuateur de reference
+  actu_x0 = actu_x(numberof(actu_x)/2 + 1) * 0;
+  actu_y0 = actu_x(numberof(actu_y)/2 + 1) * 0; 
+  //error;
+
+  //Taille max du support
+  dmax = 0.;
+  maxalt = *y_atmos.alt(y_atmos.nscreens);
+  for (cc=0 ; cc<=numberof(y_wfs) ; cc++) {
+    tmp = abs(y_wfs(cc).xpos/RASC,y_wfs(cc).ypos/RASC);
+       if (tmp > dmax) dmax = tmp;
+  }
+  rmax = dmax * 2 * maxalt + y_tel.diam;
+
+  //error;
+  cphim = array(0.0f,y_dm(1)._ntotact,2*y_wfs(1)._nvalid);
+  seeing = y_wfs(1).lambda * 1e-6 / y_atmos.r0;
+  for (cs=1 ; cs<= y_atmos.nscreens ; cs++){
+    L0 = (*y_atmos.L0)(cs);
+    delta_h = abs(y_dm(1).alt - (*y_atmos.alt)(cs));
+    x0 = (actu_x(2) - actu_x(1)) * 0.5/*+ (delta_h * seeing / 2.)*/;
+    k1 = RASC * y_wfs(1).lambda * 1.e-6 / 2. / pi / sspDiam;
+    k2 = y_wfs(1).lambda / 2. / pi / y_dm(1).unitpervolt;
+    k3 = 1.;
+    //error;
+    for(i = 1 ; i<=dimsof(cphim)(2) ; i++){
+      //Covariance selon x
+      for(j=1 ; j<=dimsof(cphim)(3)/2 ; j++){
+	ca = sqrt((actu_x(i) - Ax(j))^2 + (actu_y(i) - Ay(j))^2);
+	cb = sqrt((actu_x(i) - Bx(j))^2 + (actu_y(i) - By(j))^2);
+	bo = sqrt((Bx(j) - actu_x0)^2 + (By(j) - actu_y0)^2);
+	ao = sqrt((Ax(j) - actu_x0)^2 + (Ay(j) - actu_y0)^2);
+      
+	//cphim(i,j) += 0.5 * (y_atmos.r0)^(-5./3.) * (*y_atmos.frac)(cs) * (dphi_lowpass(ca,x0,L0,rmax) + dphi_lowpass(bo,x0,L0,rmax) - dphi_lowpass(cb,x0,L0,rmax) - dphi_lowpass(ao,x0,L0,rmax));
+	cphim(i,j) += 0.5 * (y_atmos.r0)^(-5./3.) * (*y_atmos.frac)(cs) * (dphi_lowpass(ca,x0) + dphi_lowpass(bo,x0) - dphi_lowpass(cb,x0) - dphi_lowpass(ao,x0));
+	//cphim(i,j) += 0.5 * (y_atmos.r0)^(-5./3.) * (*y_atmos.frac)(cs) * (dphi_lowpass(ca,x0)  - dphi_lowpass(cb,x0));
+      }
+      j=1;
+      //Covariance selon y
+      for(jj=dimsof(cphim)(3)/2 + 1 ; jj<=dimsof(cphim)(3) ; jj++){
+	cc = sqrt((actu_x(i) - Cx(j))^2 + (actu_y(i) - Cy(j))^2);
+	cd = sqrt((actu_x(i) - Dx(j))^2 + (actu_y(i) - Dy(j))^2);
+	Do = sqrt((Dx(j) - actu_x0)^2 + (Dy(j) - actu_y0)^2);
+	co = sqrt((Cx(j) - actu_x0)^2 + (Cy(j) - actu_y0)^2);
+	j++;
+      
+	//cphim(i,jj) += 0.5 * (y_atmos.r0)^(-5./3.) * (*y_atmos.frac)(cs) * (dphi_lowpass(cc,x0,L0,rmax) + dphi_lowpass(Do,x0,L0,rmax) - dphi_lowpass(cd,x0,L0,rmax) - dphi_lowpass(co,x0,L0,rmax));
+	cphim(i,jj) += 0.5 * (y_atmos.r0)^(-5./3.) * (*y_atmos.frac)(cs) * (dphi_lowpass(cc,x0) + dphi_lowpass(Do,x0) - dphi_lowpass(cd,x0) - dphi_lowpass(co,x0));
+	//cphim(i,jj) += 0.5 * (y_atmos.r0)^(-5./3.) * (*y_atmos.frac)(cs) * (dphi_lowpass(cc,x0) - dphi_lowpass(cd,x0));
+      }
+    }
+  }
+  
+  return k1*k2*k3*cphim;
+}
+
+func mat_cmm(void)
+{
+  // Positions des coins inferieurs gauches des ssp valides ramenees dans ipupil (origine au centre)
+  s2ipup = (dimsof(*y_geom._ipupil)(2) - dimsof(*y_geom._spupil)(2))/2.;
+  posx = *y_wfs(1)._istart + s2ipup ;
+  posx = (posx * (*y_wfs(1)._isvalid))(*);
+  posx = posx(where(posx!=0)) - dimsof(*y_geom._ipupil)(2)/2 - 1;
+  posy = *y_wfs(1)._jstart + s2ipup ;
+  posy = (transpose(posy * (*y_wfs(1)._isvalid)))(*);
+  posy = posy(where(posy!=0)) - dimsof(*y_geom._ipupil)(2)/2 - 1;
+
+  // Conversion en metres
+  sspDiam = posx(2) - posx(1);
+  p2m = (y_tel.diam/y_wfs(1).nxsub) / sspDiam;
+  posx *= p2m;
+  posy *= p2m;
+  sspDiam = sspDiam*p2m;
+  
+  //Calcul de la position des points A,B (centre des bords gauche et droit des ssp)
+  Ax = posx;
+  Ay = posy + sspDiam/2.;
+  Bx = posx + sspDiam;
+  By = Ay;
+  //Calcul de la position des points C,D (centre des bords bas et haut des ssp)
+  Cx = posx + sspDiam/2.;
+  Cy = posy;
+  Dx = Cx;
+  Dy = posy + sspDiam;
+
+  //error;
+  cmm = array(0.0f,2*y_wfs(1)._nvalid,2*y_wfs(1)._nvalid);
+  seeing = y_wfs(1).lambda * 1e-6 / y_atmos.r0 * RASC;
+  for (cs=1 ; cs<= y_atmos.nscreens ; cs++){
+    delta_h = abs(y_dm(1).alt - (*y_atmos.alt)(cs));
+    L0 = *y_atmos.L0(cs);
+    x0 = 0.;
+    k1 = RASC * y_wfs(1).lambda * 1.e-6 / 2. / pi / sspDiam;
+    //error;
+    for(i = 1 ; i<=dimsof(cmm)(2)/2 ; i++){
+      //Covariance  xx
+      for(j=1 ; j<=dimsof(cmm)(3)/2 ; j++){
+	aa = sqrt((Ax(i) - Ax(j))^2 + (Ay(i) - Ay(j))^2);
+	bb = sqrt((Bx(i) - Bx(j))^2 + (By(i) - By(j))^2);
+	ab = sqrt((Ax(i) - Bx(j))^2 + (Ay(i) - By(j))^2);
+	ba = sqrt((Bx(i) - Ax(j))^2 + (By(i) - Ay(j))^2);
+      
+	cmm(i,j) += 0.5 * (y_atmos.r0)^(-5./3.) * (*y_atmos.frac)(cs) * (dphi(ab,x0) + dphi(ba,x0) - dphi(aa,x0) - dphi(bb,x0));
+      }
+      j=1;
+      //Covariance  xy
+      for(jj=dimsof(cmm)(3)/2 + 1 ; jj<=dimsof(cmm)(3) ; jj++){
+	ac = sqrt((Ax(i) - Cx(j))^2 + (Ay(i) - Cy(j))^2);
+	ad = sqrt((Ax(i) - Dx(j))^2 + (Ay(i) - Dy(j))^2);
+	bc = sqrt((Bx(i) - Cx(j))^2 + (By(i) - Cy(j))^2);
+	bd = sqrt((Bx(i) - Dx(j))^2 + (By(i) - Dy(j))^2);
+	j++;
+
+	cmm(i,jj) += 0.5 * (y_atmos.r0)^(-5./3.) * (*y_atmos.frac)(cs) * (dphi(bc,x0) + dphi(ad,x0) - dphi(ac,x0) - dphi(bd,x0));
+      }
+    }
+    //Covariance yy
+    ii=1;
+    jj=1;
+    for(i=dimsof(cmm)(3)/2 + 1 ; i<=dimsof(cmm)(3) ; i++){
+      for(j=dimsof(cmm)(3)/2 + 1 ; j<=dimsof(cmm)(3) ; j++){
+	cc = sqrt((Cx(ii) - Cx(jj))^2 + (Cy(ii) - Cy(jj))^2);
+	dd = sqrt((Dx(ii) - Dx(jj))^2 + (Dy(ii) - Dy(jj))^2);
+	cd = sqrt((Cx(ii) - Dx(jj))^2 + (Cy(ii) - Dy(jj))^2);
+	dc = sqrt((Dx(ii) - Cx(jj))^2 + (Dy(ii) - Cy(jj))^2);
+	jj++;
+      
+	cmm(i,j) += 0.5 * (y_atmos.r0)^(-5./3.) * (*y_atmos.frac)(cs) * (dphi(cd,x0) + dphi(dc,x0) - dphi(cc,x0) - dphi(dd,x0));
+      }
+      ii++;
+      jj=1;
+    }
+  }
+  cmm(dimsof(cmm)(3)/2+1:,:dimsof(cmm)(3)/2) = cmm(:dimsof(cmm)(3)/2,dimsof(cmm)(3)/2+1:);
+  
+  return k1*k1*cmm;
+}
+
+func create_nact_geom(nm) {
+  
+  nb_act = y_dm(nm)._ntotact;
+  nact = array(0.0f,nb_act,nb_act);
+  coupling = y_dm(1).coupling;
+
+  // Actuators positions
+  tmpx = *y_dm(nm)._i1;
+  tmpy = *y_dm(nm)._j1;
+  offs = ((y_dm(1)._n2-y_dm(1)._n1+1) - (max(tmpx) - min(tmpx)))/2 - min(tmpx);
+  tmpx += offs+1;
+  tmpy += offs+1;
+  mask = yoga_getdm(g_dm,y_dm(nm).type,y_dm(nm).alt) * 0;
+  mask(tmpx + (tmpy-1) * dimsof(mask)(2)) = 1;
+  masq_act = where(mask);
+  pitch = masq_act(2) - masq_act(1);
+  //error;
+  for (i=1;i<=y_dm(nm)._ntotact;i++) {
+    shape=mask*0;
+    //Diagonal
+    shape(tmpx(i) + (tmpy(i)-1) * dimsof(mask)(2)) = 1;
+    // Left, right, above and under the current actuator
+    shape(tmpx(i) - pitch + (tmpy(i)-1) * dimsof(mask)(2)) = coupling;
+    shape(tmpx(i) + (tmpy(i) - pitch -1) * dimsof(mask)(2)) = coupling;
+    shape(tmpx(i) + pitch + (tmpy(i)-1) * dimsof(mask)(2)) = coupling;
+    shape(tmpx(i) + (tmpy(i) + pitch -1) * dimsof(mask)(2)) = coupling;
+    // Diagonals of the current actuators 
+    shape(tmpx(i) - pitch + (tmpy(i) - pitch -1) * dimsof(mask)(2)) = coupling^2 ;
+    shape(tmpx(i) + pitch + (tmpy(i) - pitch -1) * dimsof(mask)(2)) = coupling^2 ;
+    shape(tmpx(i) - pitch + (tmpy(i) + pitch -1) * dimsof(mask)(2)) = coupling^2 ;
+    shape(tmpx(i) + pitch + (tmpy(i) + pitch -1) * dimsof(mask)(2)) = coupling^2 ;
+
+    nact(i,) = shape(*)(masq_act);
+  }
+
+  return nact;
+}

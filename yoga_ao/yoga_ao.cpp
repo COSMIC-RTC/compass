@@ -3296,16 +3296,19 @@ void Y_yoga_gettemplate(int argc) {
 }
 // Florian features
 void Y_rtc_buildcmatmv(int argc) {
+  long ntot;
+  long dims[Y_DIMSIZE];
   rtc_struct *rhandler = (rtc_struct *) yget_obj(argc - 1, &yRTC);
   sutra_rtc *rtc_handler = (sutra_rtc *) (rhandler->sutra_rtc);
   long ncontrol = ygets_l(argc - 2);
-  char *dmtype = ygets_q(argc - 3);
-  char *method = ygets_q(argc - 4);
+  float *Dm = ygeta_f(argc - 3, &ntot, dims);
+  float *Dtt = ygeta_f(argc - 4, &ntot, dims);
+  float cond = ygets_f(argc - 5);
   carma_context *context_handle = _getCurrentContext();
   context_handle->set_activeDeviceForCpy(rhandler->device);
 
   SCAST(sutra_controller_mv *, controller, rtc_handler->d_control[ncontrol]);
-  controller->build_cmat(dmtype,method);
+  controller->build_cmat(Dm,Dtt,cond);
 }
 void Y_rtc_doimatkl(int argc) {
   rtc_struct *rhandler = (rtc_struct *) yget_obj(argc - 1, &yRTC);
@@ -3360,6 +3363,37 @@ void Y_rtc_doCmm(int argc){
     controller->compute_Cmm(atmos_handler,sensors_handler,L0,cn2,alphaX,alphaY,diamTel,cobs);
 
   }
+
+void Y_rtc_doCphim(int argc){
+    long ntot;
+    long dims[Y_DIMSIZE];
+    rtc_struct *rhandler = (rtc_struct *) yget_obj(argc - 1, &yRTC);
+    sutra_rtc *rtc_handler = (sutra_rtc *) (rhandler->sutra_rtc);
+    long ncontrol = ygets_l(argc - 2);
+    sensors_struct *shandler = (sensors_struct *) yget_obj(argc - 3, &ySensors);
+    sutra_sensors *sensors_handler = (sutra_sensors *) (shandler->sutra_sensors);
+    atmos_struct *ahandler = (atmos_struct *) yget_obj(argc - 4, &yAtmos);
+    sutra_atmos *atmos_handler = (sutra_atmos *) (ahandler->sutra_atmos);
+    dms_struct *handler = (dms_struct *) yget_obj(argc - 5, &yDMs);
+    sutra_dms *dms_handler = (sutra_dms *) (handler->sutra_dms);
+    float *L0 = ygeta_f(argc - 6, &ntot, dims);
+    float *cn2 = ygeta_f(argc - 7, &ntot, dims);
+    float *alphaX = ygeta_f(argc - 8, &ntot, dims);
+    float *alphaY = ygeta_f(argc - 9, &ntot, dims);
+    float *X = ygeta_f(argc - 10, &ntot, dims);
+    float *Y = ygeta_f(argc - 11, &ntot, dims);
+    float *xactu = ygeta_f(argc - 12, &ntot, dims);
+    float *yactu = ygeta_f(argc - 13, &ntot, dims);
+    float diamTel = ygets_f(argc - 14);
+    float k2 = ygets_f(argc - 15);
+    float *Nact = ygeta_f(argc - 16, &ntot, dims);
+
+    carma_context *context_handle = _getCurrentContext();
+    context_handle->set_activeDeviceForCpy(rhandler->device);
+    SCAST(sutra_controller_mv *, controller, rtc_handler->d_control[ncontrol]);
+    controller->compute_Cphim(atmos_handler,sensors_handler,dms_handler,L0,cn2,alphaX,alphaY,X,Y,xactu,yactu,diamTel,k2,Nact);
+
+}
 
   void Y_rtc_docovmat(int argc){
     long ntot;
@@ -3430,6 +3464,18 @@ void Y_rtc_getCmm(int argc) {
   SCAST(sutra_controller_mv *, controller, rtc_handler->d_control[ncontrol]);
   float *data = ypush_f((long*) controller->d_Cmm->getDims());
   controller->d_Cmm->device2host(data);
+}
+void Y_rtc_getCphim(int argc) {
+  rtc_struct *rhandler = (rtc_struct *) yget_obj(argc - 1, &yRTC);
+  sutra_rtc *rtc_handler = (sutra_rtc *) (rhandler->sutra_rtc);
+  long ncontrol = ygets_l(argc - 2);
+
+  carma_context *context_handle = _getCurrentContext();
+  context_handle->set_activeDeviceForCpy(rhandler->device);
+
+  SCAST(sutra_controller_mv *, controller, rtc_handler->d_control[ncontrol]);
+  float *data = ypush_f((long*) controller->d_Cphim->getDims());
+  controller->d_Cphim->device2host(data);
 }
 void Y_rtc_getcovmat(int argc) {
   rtc_struct *rhandler = (rtc_struct *) yget_obj(argc - 1, &yRTC);

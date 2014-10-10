@@ -72,6 +72,10 @@ mult_int(float *o_data, float *i_data, float gain, int N,int device);
 int
 fill_filtmat(float *filter, int nactu, int N, int device);
 int
+TT_filt(float *mat, int n, int device);
+int
+fill_cmat(float *cmat, float *wtt, float *Mtt, int nactu, int nslopes, int device);
+int
 do_statmat(float *statcov,long dim, float *xpos, float *ypos, float norm, int device);
 int
 add_md(float *o_matrix, float *i_matrix, float *i_vector, int N,int device);

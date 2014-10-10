@@ -585,8 +585,16 @@ extern rtc_docentroids_geom;
  */
 extern rtc_doCmm;
 /* DOCUMENT rtc_doCmm
-   rtc_doimat,yoga_rtc_obj,ncontroller,yoga_wfs_obj,yoga_atmos_obj,diamTel,cobs
-   do Cmm matrix for a controller in a yoga_rtc_obj object
+   rtc_doCmm,yoga_rtc_obj,ncontroller,yoga_wfs_obj,yoga_atmos_obj,diamTel,cobs
+   do Cmm matrix for a mv controller in a yoga_rtc_obj object
+      
+   SEE ALSO:
+ */
+extern rtc_doCphim;
+/* DOCUMENT rtc_doCmm
+   rtc_doCphim,yoga_rtc_obj,ncontroller,yoga_wfs_obj,yoga_atmos_obj,yoga_dm_obj,L0,cn2,alphaX
+                alphaY,xactu,yactu,diamTel,k2;
+   do Cphim matrix for a mv controller in a yoga_rtc_obj object
       
    SEE ALSO:
  */
@@ -707,6 +715,13 @@ extern rtc_getklbasis;
    SEE ALSO:
 */
 extern rtc_getCmm;
+/* DOCUMENT rtc_getcovmat
+   rtc_getCmm,yoga_rtc_obj,ncontroller
+   retrieve the inverse of the covariance matrix  from a yoga_rtc_obj with MV controller
+
+   SEE ALSO:
+*/
+extern rtc_getCphim;
 /* DOCUMENT rtc_getcovmat
    rtc_getCmm,yoga_rtc_obj,ncontroller
    retrieve the inverse of the covariance matrix  from a yoga_rtc_obj with MV controller
