@@ -1133,8 +1133,8 @@ func create_sigmav(SigmaTur, isZonal, ordreAR, atur, btur)
   //window,2;pli, SigmaV;error;
   return SigmaV;
 }
-include,"/home/ferreira/compass/trunk/yoga_ao/yorick/dphi_rico.i";
 /*
+include,"dphi_rico.i";
 func dphi_lowpass(r,x0,L0,rmax) {
   return (r^(5./3.)) *  Ij0t83(r*(pi/x0),L0,rmax)*(2*(2*pi)^(8/3.)*0.0228956);
 }
