@@ -886,8 +886,8 @@ func noise_cov(ns)
     //d = 1.;
     r0 = get_r0(y_atmos.r0,0.5,y_wfs(ns).lambda);
       
-    sig = (pi^2/2) * (1 / Nph) * (1./r0)^2; // Photon noise in rad²
-    sig = sig / (2*pi / (y_wfs(ns).lambda * 1e-6))^2;
+    sig = (pi^2/2) * (1 / Nph) * (1./r0)^2; // Photon noise in m⁻²
+    sig = sig / (2*pi / (y_wfs(ns).lambda * 1e-6))^2; // Noise variance in rad²
     sig *= RASC^2;
 
     //error;
@@ -896,11 +896,12 @@ func noise_cov(ns)
     Ns = y_wfs(ns).npix ; // Number of pixel
     //Nd = Ns/3. ; // FWHM of the image in pixels (Nyquist condition ?)
     Nd = (y_wfs(ns).lambda*1e-6) * RASC / y_wfs(ns).pixsize;
-    sigphi = (pi^2/3) * (1 / Nph^2) * (y_wfs(ns).noise)^2 * Ns^2 * (Ns/Nd)^2; // Phase variance in rad²
+    sigphi = (pi^2/3) * (1 / Nph^2) * (y_wfs(ns).noise)^2 * Ns^2 * (Ns/Nd)^2; // Phase variance in m⁻²
     sigsh = sigphi / (2*pi / (y_wfs(ns).lambda * 1e-6))^2; // Noise variance in rad²
     sigsh *= RASC^2; // Electronic noise variance in arcsec²
 
     //sig *= 0; // No photon noise for debug
+
     cov_n = array(0.0f,2*numberof(sig));
     cov_n(:numberof(sig)) = sig + sigsh;
     cov_n(numberof(sig)+1:) = sig + sigsh;
