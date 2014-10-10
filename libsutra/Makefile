@@ -39,10 +39,10 @@ LIB_DEPLIBS += -L$(COMPASS_ROOT_DIR)/libcarma -lcarma
 LIB_CPPFLAGS = -c -fPIC -Wall -DUNIX -I$(H_DIR) -I$(COMPASS_ROOT_DIR)/libcarma/$(H_DIR) -I$(CUDA_INC_PATH) -I$(CURED_INC_PATH)
 
 ifneq ($(DEBUG),)
-  LIB_CPPFLAGS+= -O0 -g -DDEBUG
-  NVCCFLAGS+= -O0 -g -DDEBUG -G -lineinfo
+  LIB_CPPFLAGS+= -g -DDEBUG
+  NVCCFLAGS+= -g -DDEBUG -G -lineinfo
 else
-  LIB_CPPFLAGS+= -Os
+  LIB_CPPFLAGS+= -O3
   NVCCFLAGS+= -O3
 endif
 

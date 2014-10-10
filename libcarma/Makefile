@@ -43,10 +43,10 @@ LIB_NVCCFLAGS += -gencode $(GENCODE)
 
 # --ptxas-options=-v # #-arch sm_13 -fpermissive 
 ifneq ($(DEBUG),)
- LIB_CPPFLAGS  += -O0 -g -DDEBUG
+ LIB_CPPFLAGS  += -g -DDEBUG
  LIB_NVCCFLAGS += -g -G -lineinfo -DDEBUG
 else
- LIB_CPPFLAGS  += -Os
+ LIB_CPPFLAGS  += -O3
  LIB_NVCCFLAGS += -O3 
 endif
 

@@ -83,7 +83,7 @@ func script_system(filename,verbose=,strehl=,r0=,clean=)
                                         |_|    
 
    */
-  //yoga_start_profiler;
+  //yoga_start_profile;
   
   time_move = 0;
   mytime = tic();
@@ -175,7 +175,7 @@ func script_system(filename,verbose=,strehl=,r0=,clean=)
     } 
   }
 
-  //yoga_stop_profiler;
+  //yoga_stop_profile;
   
   write,"\n done with simulation \n";
   write,format="simulation time : %f sec. per iteration\n",tac(mytime)/y_loop.niter;
