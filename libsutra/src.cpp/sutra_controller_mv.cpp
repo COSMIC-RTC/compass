@@ -75,6 +75,13 @@ sutra_controller_mv::~sutra_controller_mv() {
   delete this->d_imat;
   delete this->d_cmat;
   delete this->d_gain;
+  delete this->d_Cmm;
+  delete this->d_Cphim;
+  delete this->d_olmeas;
+  delete this->d_compbuff;
+  delete this->d_compbuff2;
+  delete this->d_U;
+  delete this->d_noisemat;
 
   delete this->d_eigenvals;
   delete this->h_eigenvals;
