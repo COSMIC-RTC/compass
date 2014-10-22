@@ -347,7 +347,7 @@ __global__ void centroid_max(T *g_idata, T *g_odata, int n, int nmax, int nsub,
   reduce_krnl(sdata, nmax, tid);
 
   if (tid == 0)
-    g_odata[blockIdx.x] = sdata[tid] / subsum;
+    g_odata[blockIdx.x] = ((sdata[tid] / subsum) - offset) * scale;
 
   // put back the brightest pixels values 
   if ((tid >= nmax) && (tid < 2 * nmax))
