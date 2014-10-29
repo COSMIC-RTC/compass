@@ -582,7 +582,7 @@ func rtc_init(clean=)
             rtc_setthresh,g_rtc,i-1,centroiders(i).thresh;
           }
           
-          if (centroiders(i).type == "nmax") {
+          if (centroiders(i).type == "bpcog") {
             rtc_setnmax,g_rtc,i-1,centroiders(i).nmax;
           }
           
@@ -675,12 +675,8 @@ func rtc_init(clean=)
 
           if (controllers(i).type  == "ls") {
             imat_init,i,clean=clean;
-	    /*
-	    imat = rtc_getimat(g_rtc,0);
-	    ii=where(abs(imat)<max(abs(imat)));
-	    imat(ii) = 0.;
-	    rtc_setimat,g_rtc,i-1,imat;
-	    */
+	    //imat = imat_geom(meth=0);
+	    //rtc_setimat,g_rtc,i-1,imat;
             write,"done";
             cmat_init,i,clean=clean;
             rtc_setgain,g_rtc,0,controllers(i).gain;
@@ -755,26 +751,31 @@ close,f5;
 	  // Florian features
 	  if (controllers(i).type == "mv"){      
 	    write,"doing imat and filtering unseen actuators";
-	    imat_init,i,clean=clean;
+	    //imat_init,i,clean=clean;
+	    imat = imat_geom(meth=0);
+	    rtc_setimat,g_rtc,i-1,imat;
 	    write,"done";
 	    rtc_setgain,g_rtc,0,controllers(i).gain;
             mgain = array(1.0f,(y_dm._ntotact)(sum));
             rtc_loadmgain,g_rtc,0,mgain;
 	    
-	    Cphi_vk = create_sigmaTur(1);
-	    F = unit(dimsof(Cphi_vk)(3)) - array(1./(dimsof(Cphi_vk)(3)),dimsof(Cphi_vk)(3),dimsof(Cphi_vk)(3));
+	    Cphim = mat_cphim_gpu(i-1);
+	    cmat_init,i,clean=clean;
+	    //Cphi_vk = create_sigmaTur(1);
+	    //F = unit(dimsof(Cphi_vk)(3)) - array(1./(dimsof(Cphi_vk)(3)),dimsof(Cphi_vk)(3),dimsof(Cphi_vk)(3));
 	    //Cphi_vk = (F(,+)*Cphi_vk(+,))(,+)*F(,+);
 	    
 	    // Cphim computation
 	    //Nact = create_nact(1) / y_dm(1).unitpervolt;
-	    Nact = create_nact_geom(1);
+	    //Nact = create_nact_geom(1);
 	    //restore,openb("Nact");
 	    //Nact/=y_dm(1).unitpervolt;
-	    G = LUsolve(Nact);
+	    //G = LUsolve(Nact);
 	    //G = Nact;
-	    Cphim = mat_cphim_gpu(i-1);
+
 	    //Cphim = mat_cphim();
-	    cmat_init,i,clean=clean;
+
+
 	    /*
 	    //error;
 	    
@@ -809,13 +810,13 @@ close,f5;
 	    //cmat_cphim = (Cphim(,+) * Cmm1(+,));
 	    cmat_cphim2 = (Cphim(,+) * cmm1(+,));
 	    //restore,openb("cmatls");
-	    /*
+	    
 	    D = imat(+,)*imat(+,);
 	    D = invcond(D,y_controllers(1).maxcond);
 	    cmatls = D(,+) * imat(,+);
 	    cmat_mvtt = cmatls / 20.;
 	    cmat_mvtt(:y_dm(1)._ntotact,) = cmat_cphim2;
-	    */
+	    
 	    /*
 	    Nslopes = dimsof(imat)(2);
 	    Nactu = dimsof(imat)(3);

@@ -696,3 +696,62 @@ func get_r0(r0_at_lambda1, lambda1, lambda2)
 {
   return (lambda2/lambda1)^(6./5) * r0_at_lambda1;
 }
+
+
+
+
+
+func plsh( u, sc, color=)
+/* DOCUMENT plsh, slopes
+            plsh, slopes, scale, color=
+
+Displays a view (field of vectors) of the Hartmann slopes. Used in
+its 1st form, plht autoscales the plot.
+When used with scale=0, it prints the scale used when autoscaling.
+
+
+*/
+{
+
+
+  if( max(abs(u))==0 ) {
+    u(*) = 1.;
+    write,"WARNING : vector is null\n";
+  }
+
+  iwfs = 1;
+  nssp = y_wfs(iwfs).nxsub;
+  x = float((*y_wfs(iwfs)._validsubs)(1,));
+  y = float((*y_wfs(iwfs)._validsubs)(2,));
+  x -= avg(x);
+  y -= avg(y);
+  x /= max(abs(x));
+  y /= max(abs(y));
+
+  n = numberof(u);
+  if( n!=2*numberof(x) ) {
+    exit, "Dimensions pas correcte !!!!"
+  }
+  ux = u(1:n/2);
+  uy = u(n/2+1:);
+
+  plv, uy(,-:1:2), ux(,-:1:2), y(,-:1:2), x(,-:1:2), scale=sc;
+
+  limits,-1.1,1.1,-1.1,1.1;
+
+  if( !is_array(sc) ) {           // si scale n'est pas defini, on le calcule
+    sc = 2.5/nssp/max(abs(u(*)));
+  }
+  
+  if( sc==0 ) {
+    sc = 2.5/nssp/max(abs(u(*)));           // si scale==0, on le calcule aussi ...
+    print,"Scale = ",sc;
+  }
+  
+  plt, swrite(format="Scale = %g",double(sc)), 0.22, 0.88;
+    
+}
+
+
+
+

@@ -131,7 +131,10 @@ func imat_init(ncontrol,clean=)
     }
   } else
     rtc_setimat,g_rtc,ncontrol-1,imat;
-  
+
+  //imat = imat_geom(meth=0);
+  //rtc_setimat,g_rtc,ncontrol-1,imat;
+
   controllers = *y_rtc.controllers;
   controllers(ncontrol).imat = &imat;
   y_rtc.controllers = &controllers;
@@ -213,6 +216,7 @@ func cmat_init(ncontrol,clean=,method=)
     Nactu = dimsof(imat)(3);
     Dm = imat(,:Nactu-2);
     Dtt = imat(,Nactu-1:);
+    write,"Building cmat...";
     rtc_buildcmatmv,g_rtc,ncontrol-1,Dm,Dtt,y_controllers(ncontrol-1).maxcond;
   }
 
@@ -1133,8 +1137,9 @@ func create_sigmav(SigmaTur, isZonal, ordreAR, atur, btur)
   //window,2;pli, SigmaV;error;
   return SigmaV;
 }
-/*
+
 include,"dphi_rico.i";
+/*
 func dphi_lowpass(r,x0,L0,rmax) {
   return (r^(5./3.)) *  Ij0t83(r*(pi/x0),L0,rmax)*(2*(2*pi)^(8/3.)*0.0228956);
 }
@@ -1200,9 +1205,13 @@ func mat_cphim_gpu(nc){
   alphaY(:numberof(y_wfs.xpos)) = y_wfs.ypos/RASC;
   Nact = create_nact_geom(1);
 
+  write,"Computing Cphim...";
   rtc_doCphim,g_rtc,nc,g_wfs,g_atmos,g_dm,*L0_d,float(*y_atmos.frac * (y_atmos.r0)^(-5./3)),alphaX,alphaY,posx,posy,actu_x,actu_y,y_tel.diam,k2,Nact;
+  write,"Done";
 
-   rtc_doCmm,g_rtc,nc,g_wfs,g_atmos,y_tel.diam,y_tel.cobs,*L0_d, float(*y_atmos.frac * (y_atmos.r0)^(-5./3)),alphaX,alphaY;
+  write,"Computing (Cmm + Cn)^-1 ...";
+  rtc_doCmm,g_rtc,nc,g_wfs,g_atmos,y_tel.diam,y_tel.cobs,*L0_d, float(*y_atmos.frac * (y_atmos.r0)^(-5./3)),alphaX,alphaY;
+  write,"Done";
 }
 func mat_cphim(void)
 {

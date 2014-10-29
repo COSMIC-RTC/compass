@@ -20,7 +20,7 @@ public:
   carma_obj<float> *d_cmat;
   carma_obj<float> *d_gain;
 
-  // Florian features
+  // Cphim & Cmm features
   carma_obj<float> *d_covmat;
   carma_obj<float> *d_KLbasis;
   carma_obj<float> *d_noisemat;

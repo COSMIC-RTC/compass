@@ -160,7 +160,7 @@ int sutra_rtc::do_imat(int ncntrl, sutra_sensors *sensors, sutra_dms *ydm) {
   cout << "starting imat measurement" << endl;
   while (p != ydm->d_dms.end()) {
     for (int j = 0; j < p->second->ninflu; j++) {
-      p->second->comp_oneactu(j, p->second->push4imat);
+        p->second->comp_oneactu(j, p->second->push4imat);
       for (size_t idx_cntr = 0; idx_cntr < (this->d_centro).size();
           idx_cntr++) {
         int nwfs = this->d_centro[idx_cntr]->nwfs;
@@ -173,18 +173,47 @@ int sutra_rtc::do_imat(int ncntrl, sutra_sensors *sensors, sutra_dms *ydm) {
         sensors->d_wfs[nwfs]->kernconv = false;
       }
       //cout << "actu # " << j << endl;
-      do_centroids(ncntrl, sensors, true);
+     do_centroids(ncntrl, sensors, true);
 
       convert_centro(*this->d_control[ncntrl]->d_centroids,
-          *this->d_control[ncntrl]->d_centroids, 0, 1.0f / p->second->push4imat,
+          *this->d_control[ncntrl]->d_centroids, 0, 0.5f / p->second->push4imat,
           this->d_control[ncntrl]->d_centroids->getNbElem(),
           this->d_control[ncntrl]->d_centroids->getDevice());
 
       this->d_control[ncntrl]->d_centroids->copyInto((*d_imat)[inds1],
           this->d_control[ncntrl]->nslope());
 
-      p->second->reset_shape();
-      inds1 += this->d_control[ncntrl]->nslope();
+
+     p->second->reset_shape();
+
+      p->second->comp_oneactu(j, -1.0f*p->second->push4imat);
+      for (size_t idx_cntr = 0; idx_cntr < (this->d_centro).size();
+          idx_cntr++) {
+        int nwfs = this->d_centro[idx_cntr]->nwfs;
+        float tmp_noise = sensors->d_wfs[nwfs]->noise;
+        sensors->d_wfs[nwfs]->noise = -1;
+        sensors->d_wfs[nwfs]->kernconv = true;
+        sensors->d_wfs[nwfs]->sensor_trace(ydm, 1);
+        sensors->d_wfs[nwfs]->comp_image();
+        sensors->d_wfs[nwfs]->noise = tmp_noise;
+        sensors->d_wfs[nwfs]->kernconv = false;
+      }
+
+      do_centroids(ncntrl, sensors, true);
+
+         convert_centro(*this->d_control[ncntrl]->d_centroids,
+             *this->d_control[ncntrl]->d_centroids, 0, 0.5f / p->second->push4imat,
+             this->d_control[ncntrl]->d_centroids->getNbElem(),
+             this->d_control[ncntrl]->d_centroids->getDevice());
+
+         float alphai = -1.0f;
+         cublasSaxpy(current_context->get_cublasHandle(),
+        		 this->d_control[ncntrl]->d_centroids->getNbElem(), &alphai,
+        		 this->d_control[ncntrl]->d_centroids->getData(),1,
+        		 (*d_imat)[inds1],1);
+
+         p->second->reset_shape();
+     inds1 += this->d_control[ncntrl]->nslope();
     }
     p++;
   }

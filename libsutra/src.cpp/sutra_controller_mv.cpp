@@ -80,7 +80,6 @@ sutra_controller_mv::~sutra_controller_mv() {
   delete this->d_olmeas;
   delete this->d_compbuff;
   delete this->d_compbuff2;
-  delete this->d_U;
   delete this->d_noisemat;
 
   delete this->d_eigenvals;
@@ -135,6 +134,7 @@ sutra_controller_mv::compute_Cmm(sutra_atmos *atmos, sutra_sensors *sensors, flo
 int
 sutra_controller_mv::compute_Cphim(sutra_atmos *atmos, sutra_sensors *sensors, sutra_dms *dms, float *L0, float *cn2, float *alphaX, float *alphaY, float *X, float *Y,float *xactu, float *yactu, float diamTel, float k2, float *Nact) {
 
+	// Find number of actuators without TT DM
 	struct cphim_struct cphim_struct;
 	int Nactu = 0;
 	map<type_screen, sutra_dm *>::iterator p;
@@ -146,6 +146,7 @@ sutra_controller_mv::compute_Cphim(sutra_atmos *atmos, sutra_sensors *sensors, s
 	      p++;
       }
 
+    // Compute Cphim matrix
 	init_cphim_struct(&cphim_struct, atmos, sensors, dms, diamTel);
 	update_cphim_sys(&cphim_struct, sensors, alphaX, alphaY, xactu, yactu,X,Y);
 	tab_u831J0(&cphim_struct,-4.0f,10.0f,this->device);
@@ -153,8 +154,9 @@ sutra_controller_mv::compute_Cphim(sutra_atmos *atmos, sutra_sensors *sensors, s
 	CPHIM(this->d_Cphim->getData(), Nactu, this->nslope(), 0, 0, Nactu, &cphim_struct, atmos, sensors, alphaX, alphaY, k2, this->device);
 	free_cphim_struct(&cphim_struct);
 
+	// Filter piston
 	piston_filt_cphim(this->d_Cphim);
-
+	//Init and inverse the coupling matrix
 	long dims_data2[3];
 	dims_data2[0] = 2;
 	dims_data2[1] = nactu() - 2;
@@ -587,12 +589,9 @@ int sutra_controller_mv::build_cmat(float *Dm, float *Dtt, float cond){
 	dims_data[2] = nslope();
 	carma_obj<float> *d_Ftt = new carma_obj<float>(current_context, dims_data);
 
-
-
-
 	// (Cmm + Cn)⁻¹
 	add_md(this->d_Cmm->getData(),this->d_Cmm->getData(),this->d_noisemat->getData(), nslope(), this->device);
-	invgen(this->d_Cmm,50.0f,0);
+	invgen(this->d_Cmm,(float)(nslope()-nactu())/2,0);
 	// Cphim * (Cmm + Cn)⁻¹
 	carma_gemm(cublas_handle, 'n', 'n', nactu() - 2, nslope(), nslope(), 1.0f,
 				this->d_Cphim->getData(), nactu() - 2, this->d_Cmm->getData(), nslope(), 0.0f,
