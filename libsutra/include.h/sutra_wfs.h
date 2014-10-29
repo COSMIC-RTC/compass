@@ -186,7 +186,7 @@ convolve_cube(cuFloatComplex *d_odata, cuFloatComplex *d_idata, int N, int n,
 // this is for cog
 template<class T>
 void
-subap_reduce(int size, int threads, int blocks, T *d_idata, T *d_odata);
+subap_reduce(int size, int threads, int blocks, T *d_idata, T *d_odata, int device);
 template<class T>
 void
 subap_reduce_async(int threads, int blocks, carma_streams *streams, T *d_idata,
@@ -195,12 +195,12 @@ subap_reduce_async(int threads, int blocks, carma_streams *streams, T *d_idata,
 template<class T>
 void
 subap_reduce(int size, int threads, int blocks, T *d_idata, T *d_odata,
-    T thresh);
+    T thresh, int device);
 // this is for wcog
 template<class T>
 void
 subap_reduce(int size, int threads, int blocks, T *d_idata, T *d_odata,
-    T *weights);
+    T *weights, int device);
 template<class T>
 void
 phase_reduce(int threads, int blocks, T *d_idata, T *d_odata, int *indx,

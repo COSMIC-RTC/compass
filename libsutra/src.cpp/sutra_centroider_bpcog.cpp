@@ -37,9 +37,16 @@ int sutra_centroider_bpcog::get_cog(carma_streams *streams, float *cube,
     float *subsum, float *centroids, int nvalid, int npix, int ntot) {
   // brightest pixels cog
   // TODO: implemente sutra_centroider_bpcog::get_cog_async
+#if 1
   subap_centromax(npix * npix, nvalid, cube, centroids, npix, this->nmax,
       this->scale, this->offset);
-
+#else
+  float *d_minim;
+  cudaMalloc((void**)&d_minim, nvalid*sizeof(float));
+  subap_centromax2<float>(npix * npix, nvalid, cube, centroids, d_minim, npix, this->nmax,
+      this->scale, this->offset);
+  cudaFree(d_minim);
+#endif
   return EXIT_SUCCESS;
 }
 

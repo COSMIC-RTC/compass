@@ -697,7 +697,7 @@ int sutra_wfs::comp_sh_generic() {
         this->d_bincube->getData(), this->d_subsum->getData());
   else
     subap_reduce(this->d_bincube->getNbElem(), this->npix * this->npix,
-        this->nvalid, this->d_bincube->getData(), this->d_subsum->getData());
+        this->nvalid, this->d_bincube->getData(), this->d_subsum->getData(), this->device);
 
   //fprintf(stderr, "[%s@%d]: I'm here!\n", __FILE__, __LINE__);
 
@@ -912,7 +912,7 @@ int sutra_wfs::comp_image() {
     if(result==EXIT_SUCCESS) {
       if (noise > 0) this->d_binimg->prng('N',this->noise);
       fillbinimg(this->d_binimg->getData(),this->d_bincube->getData(),this->npix,this->nvalid,this->npix*this->nxsub,
-          this->d_validsubsx->getData(),this->d_validsubsy->getData(), 0 /*(this->noise > 0)*/ ,this->device);
+          this->d_validsubsx->getData(),this->d_validsubsy->getData(), 0/*(this->noise > 0)*/ ,this->device);
     }
   } else if (this->type == "pyr"){
     result = comp_pyr_generic();

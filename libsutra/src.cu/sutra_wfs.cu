@@ -122,6 +122,7 @@ __global__ void bimg_krnl(float *bimage, float *bcube, int npix, int npix2,
     int idbin = xim + yim * nsub + ivalid[nim] * npix
         + jvalid[nim] * npix * nsub;
     bimage[idbin] = alpha * bimage[idbin] + bcube[tid];
+
     tid += blockDim.x * gridDim.x;
   }
 }
@@ -255,14 +256,20 @@ __global__ void fillbincube_krnl(float *bcube, cuFloatComplex *hrimage,
    */
   int npix, nsubap, nrebin;
   int tid = threadIdx.x + blockIdx.x * blockDim.x;
-
+  int nim = tid / Npix;
+      int tidim = tid - nim * Npix;
+      int xim = tidim % 20;
+      int yim = tidim / 20;
   while (tid < N) {
     nsubap = tid / Npix;
     npix = tid % Npix;
+   // if (xim>=6 && xim<14 && yim>=6 && yim<14){
     for (int i = 0; i < Nrebin; i++) {
       nrebin = indxpix[i + npix * Nrebin];
       bcube[tid] += hrimage[nrebin + Nfft * nsubap].x;
     }
+   // }
+   // else bcube[tid] = 0.;
     tid += blockDim.x * gridDim.x;
   }
 }
@@ -522,9 +529,15 @@ __global__ void reduce2(T *g_idata, T *g_odata, T *weights, unsigned int n, unsi
 }
 
 template<class T>
-void subap_reduce(int size, int threads, int blocks, T *d_idata, T *d_odata) {
+void subap_reduce(int size, int threads, int blocks, T *d_idata, T *d_odata, int device) {
 
-  unsigned int nelem_thread = 2;
+	struct cudaDeviceProp deviceProperties;
+	cudaGetDeviceProperties(&deviceProperties, device);
+	int maxThreads = deviceProperties.maxThreadsPerBlock;
+	unsigned int nelem_thread = 1;
+	while((threads/nelem_thread > maxThreads) || (threads % nelem_thread != 0)){
+		nelem_thread++;
+	}
 
   dim3 dimBlock(threads / nelem_thread, 1, 1);
   dim3 dimGrid(blocks, 1, 1);
@@ -540,10 +553,10 @@ void subap_reduce(int size, int threads, int blocks, T *d_idata, T *d_odata) {
 }
 template void
 subap_reduce<float>(int size, int threads, int blocks, float *d_idata,
-    float *d_odata);
+    float *d_odata, int device);
 template void
 subap_reduce<double>(int size, int threads, int blocks, double *d_idata,
-    double *d_odata);
+    double *d_odata, int device);
 
 template<class T>
 __global__ void reduce2_async(T *g_idata, T *g_odata, unsigned int n,
@@ -594,8 +607,17 @@ subap_reduce_async<double>(int threads, int blocks, carma_streams *streams,
 
 template<class T>
 void subap_reduce(int size, int threads, int blocks, T *d_idata, T *d_odata,
-    T thresh) {
-  dim3 dimBlock(threads, 1, 1);
+    T thresh, int device) {
+
+  struct cudaDeviceProp deviceProperties;
+  cudaGetDeviceProperties(&deviceProperties, device);
+  int maxThreads = deviceProperties.maxThreadsPerBlock;
+  unsigned int nelem_thread = 1;
+  while((threads/nelem_thread > maxThreads) || (threads % nelem_thread != 0)){
+		nelem_thread++;
+  }
+
+  dim3 dimBlock(threads / nelem_thread, 1, 1);
   dim3 dimGrid(blocks, 1, 1);
 
   // when there is only one warp per block, we need to allocate two warps 
@@ -603,22 +625,31 @@ void subap_reduce(int size, int threads, int blocks, T *d_idata, T *d_odata,
   int smemSize =
       (threads <= 32) ? 2 * threads * sizeof(T) : threads * sizeof(T);
   reduce2<T> <<<dimGrid, dimBlock, smemSize>>>(d_idata, d_odata, thresh,
-      size);
+      size,nelem_thread);
 
   cutilCheckMsg("reduce_kernel<<<>>> execution failed\n");
 }
 template void
 subap_reduce<float>(int size, int threads, int blocks, float *d_idata,
-    float *d_odata, float thresh);
+    float *d_odata, float thresh, int device);
 
 template void
 subap_reduce<double>(int size, int threads, int blocks, double *d_idata,
-    double *d_odata, double thresh);
+    double *d_odata, double thresh, int device);
 
 template<class T>
 void subap_reduce(int size, int threads, int blocks, T *d_idata, T *d_odata,
-    T *weights) {
-  dim3 dimBlock(threads, 1, 1);
+    T *weights, int device) {
+
+	struct cudaDeviceProp deviceProperties;
+	cudaGetDeviceProperties(&deviceProperties, device);
+	int maxThreads = deviceProperties.maxThreadsPerBlock;
+	unsigned int nelem_thread = 1;
+	while((threads/nelem_thread > maxThreads) || (threads % nelem_thread == 0)){
+		nelem_thread++;
+	}
+
+  dim3 dimBlock(threads / nelem_thread, 1, 1);
   dim3 dimGrid(blocks, 1, 1);
 
   // when there is only one warp per block, we need to allocate two warps 
@@ -626,17 +657,17 @@ void subap_reduce(int size, int threads, int blocks, T *d_idata, T *d_odata,
   int smemSize =
       (threads <= 32) ? 2 * threads * sizeof(T) : threads * sizeof(T);
   reduce2<T> <<<dimGrid, dimBlock, smemSize>>>(d_idata, d_odata, weights,
-      size);
+      size,nelem_thread);
 
   cutilCheckMsg("reduce_kernel<<<>>> execution failed\n");
 }
 template void
 subap_reduce<float>(int size, int threads, int blocks, float *d_idata,
-    float *d_odata, float *weights);
+    float *d_odata, float *weights, int device);
 
 template void
 subap_reduce<double>(int size, int threads, int blocks, double *d_idata,
-    double *d_odata, double *weights);
+    double *d_odata, double *weights, int device);
 
 template<class T>
 __global__ void reduce_phasex(T *g_idata, T *g_odata, int *indx, unsigned int n,

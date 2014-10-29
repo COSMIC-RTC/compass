@@ -61,7 +61,7 @@ convert_centro(float *d_odata, float *d_idata, float offset, float scale, int N,
 template<class T>
 void
 get_centroids(int size, int threads, int blocks, int n, T *d_idata, T *d_odata,
-    T *alpha, T scale, T offset);
+    T *alpha, T scale, T offset, int device);
 template<class T>
 void
 get_centroids_async(int threads, int blocks, int n, carma_streams *streams,
@@ -69,14 +69,18 @@ get_centroids_async(int threads, int blocks, int n, carma_streams *streams,
 template<class T>
 void
 get_centroids(int size, int threads, int blocks, int n, T *d_idata, T *d_odata,
-    T *alpha, T thresh, T scale, T offset);
+    T *alpha, T thresh, T scale, T offset, int device);
 template<class T>
 void
 get_centroids(int size, int threads, int blocks, int n, T *d_idata, T *d_odata,
-    T *alpha, T *weights, T scale, T offset);
+    T *alpha, T *weights, T scale, T offset, int device);
 template<class T>
 void
 subap_centromax(int threads, int blocks, T *d_idata, T *d_odata, int npix,
+    int nmax, T scale, T offset);
+template<class T>
+void
+subap_centromax2(int threads, int blocks, T *d_idata, T *d_odata, T *d_minim, int npix,
     int nmax, T scale, T offset);
 template<class T>
 void

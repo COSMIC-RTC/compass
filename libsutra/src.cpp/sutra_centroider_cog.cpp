@@ -28,6 +28,7 @@ int sutra_centroider_cog::init_bincube(sutra_wfs *wfs) {
 
 int sutra_centroider_cog::get_cog(carma_streams *streams, float *cube,
     float *subsum, float *centroids, int nvalid, int npix, int ntot) {
+
   // simple cog
   int nstreams = streams->get_nbStreams();
   //fprintf(stderr, "\n[%s@%d]: nstreams=%d\n", __FILE__, __LINE__, nstreams);
@@ -40,10 +41,9 @@ int sutra_centroider_cog::get_cog(carma_streams *streams, float *cube,
     //fprintf(stderr, "\n[%s@%d] I'm here\n", __FILE__, __LINE__);
     //streams->wait_all_streams();
   } else {
-    subap_reduce(ntot, npix * npix, nvalid, cube, subsum);
-
-    get_centroids(ntot, npix * npix, nvalid, npix, cube, centroids, subsum,
-        this->scale, this->offset);
+    subap_reduce(ntot, (npix * npix), nvalid, cube, subsum, this->device);
+    get_centroids(ntot, (npix * npix), nvalid, npix, cube, centroids, subsum,
+        this->scale, this->offset, this->device);
   }
   return EXIT_SUCCESS;
 }
