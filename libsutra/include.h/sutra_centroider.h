@@ -76,6 +76,9 @@ get_centroids(int size, int threads, int blocks, int n, T *d_idata, T *d_odata,
     T *alpha, T *weights, T scale, T offset, int device);
 template<class T>
 void
+subap_bpcentro(int threads, int blocks, int npix, T *d_idata, unsigned int *values, T *d_odata,T scale, T offset);
+template<class T>
+void
 subap_centromax(int threads, int blocks, T *d_idata, T *d_odata, int npix,
     int nmax, T scale, T offset);
 template<class T>
@@ -84,8 +87,8 @@ subap_centromax2(int threads, int blocks, T *d_idata, T *d_odata, T *d_minim, in
     int nmax, T scale, T offset);
 template<class T>
 void
-subap_sortmax(int size, int threads, int blocks, T *d_idata, T *d_odata,
-    int *values, int nmax);
+subap_sortmax(int threads, int blocks, T *d_idata, T *d_odata,
+    unsigned int *values, int nmax);
 template<class T>
 void
 subap_sortmaxi(int threads, int blocks, T *d_idata, int *values, int nmax,

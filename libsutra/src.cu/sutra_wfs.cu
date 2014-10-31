@@ -507,7 +507,7 @@ __global__ void reduce2(T *g_idata, T *g_odata, T *weights, unsigned int n, unsi
 
   // load shared mem
   unsigned int tid = threadIdx.x;
-  //unsigned int i = blockIdx.x * blockDim.x + threadIdx.x;
+  unsigned int i = blockIdx.x * blockDim.x + threadIdx.x;
 
   sdata[tid] = 0;
   for (int cc=0;cc < nelem_thread; cc++) {
@@ -518,14 +518,15 @@ __global__ void reduce2(T *g_idata, T *g_odata, T *weights, unsigned int n, unsi
       sdata[tid] += 0;
   }
 
-  // sdata[tid] = (i < n) ? g_idata[i] * weights[i] : 0;
+//   sdata[tid] = (i < n) ? g_idata[i] * weights[i] : 0;
 
   __syncthreads();
 
   red_krnl(sdata, blockDim.x, tid);
+
   // write result for this block to global mem
   if (tid == 0)
-    g_odata[blockIdx.x] = sdata[0];
+    g_odata[blockIdx.x] = sdata[tid];
 }
 
 template<class T>
@@ -645,7 +646,7 @@ void subap_reduce(int size, int threads, int blocks, T *d_idata, T *d_odata,
 	cudaGetDeviceProperties(&deviceProperties, device);
 	int maxThreads = deviceProperties.maxThreadsPerBlock;
 	unsigned int nelem_thread = 1;
-	while((threads/nelem_thread > maxThreads) || (threads % nelem_thread == 0)){
+	while((threads/nelem_thread > maxThreads) || (threads % nelem_thread != 0)){
 		nelem_thread++;
 	}
 

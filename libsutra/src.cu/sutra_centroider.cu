@@ -246,7 +246,7 @@ __device__ inline void sortmax_krnl(T *sdata, int *values, int size,
   }
 }
 template<class T>
-__global__ void sortmax(T *g_idata, T *g_odata, int *values, int nmax) {
+__global__ void sortmax(T *g_idata, T *g_odata, unsigned int *values, int nmax) {
   extern __shared__ uint svalues[];
   T *sdata = (T*) &svalues[blockDim.x];
 
@@ -269,11 +269,14 @@ __global__ void sortmax(T *g_idata, T *g_odata, int *values, int nmax) {
   }
 
   if (tid < nmax) {
-    g_odata[nmax * blockIdx.x + tid] = sdata[tid];
+    g_odata[nmax * blockIdx.x + tid] = sdata[tid];// - sdata[nmax - 1];
     values[nmax * blockIdx.x + tid] = svalues[tid];
   }
+  /*
   __syncthreads();
-
+  if ((blockIdx.x == 0) && (tid < nmax))
+	  printf("tid %d sdata %f \n",tid,g_odata[tid]);
+	  */
 }
 
 template<class T>
@@ -569,7 +572,60 @@ __global__ void centroid_max2(T *g_idata, T *g_odata, T *g_minim, int n, int nma
     g_odata[blockIdx.x + nsub] = (subsum != 0.0f ? ((sdata[tid] / subsum) - offset) * scale : 0.0f);
 */
 }
+template<class T>
+__global__ void centroid_bpix(int nsub, int n, T *g_idata, unsigned int *values, T *g_odata, T scale, T offset) {
+  extern __shared__ uint svalues[];
+  T *sdata = (T*) &svalues[blockDim.x];
+  T subsum;
+ // T minimum;
 
+  // load shared mem
+  unsigned int tid = threadIdx.x;
+  unsigned int i = blockIdx.x * blockDim.x + threadIdx.x;
+
+  svalues[tid] = values[i];
+  sdata[tid] = g_idata[i] - g_idata[blockIdx.x * blockDim.x + blockDim.x -1];
+
+  __syncthreads();
+
+  reduce_krnl(sdata, blockDim.x, tid);
+
+  __syncthreads();
+ // get the sum per subap
+  if (tid == 0)
+    subsum = (abs(sdata[tid]) > 1.e-6 ? sdata[tid] : 0.0f);
+
+  __syncthreads();
+
+// Reload sdata
+  sdata[tid] = g_idata[i] - g_idata[blockIdx.x * blockDim.x + blockDim.x -1];
+
+  __syncthreads();
+
+  // compute the centroid on the first part of the array
+    sdata[tid] *= ((svalues[tid] % n) + 1);
+  // x centroid
+    __syncthreads();
+  reduce_krnl(sdata, blockDim.x, tid);
+  //__syncthreads();
+  if (tid == 0)
+    g_odata[blockIdx.x] =(subsum != 0.0f ? ((sdata[tid] / subsum) - offset) * scale : 0.0f);
+  __syncthreads();
+  sdata[tid] = g_idata[i] - g_idata[blockIdx.x * blockDim.x + blockDim.x -1];
+
+  __syncthreads();
+
+  // compute the centroid on the first part of the array
+    sdata[tid] *= (svalues[tid] / n + 1);
+  // y centroid
+    __syncthreads();
+
+  reduce_krnl(sdata, blockDim.x, tid);
+  //__syncthreads();
+  if (tid == 0)
+    g_odata[blockIdx.x + nsub] = (subsum != 0.0f ? ((sdata[tid] / subsum) - offset) * scale : 0.0f);
+
+}
 template<class T>
 __global__ void centroidx(T *g_idata, T *g_odata, T *alpha, unsigned int n,
     unsigned int N, T scale, T offset, unsigned int nelem_thread) {
@@ -794,25 +850,27 @@ __global__ void centroidx(T *g_idata, T *g_odata, T *alpha, T *weights,
  // unsigned int x = (tid % n) + 1;
   unsigned int x;
   int idim;
-  sdata[tid] = 0;
+  sdata[tid] = 0.0f;
   for (int cc=0;cc < nelem_thread; cc++) {
 	  x = ((tid * nelem_thread + cc) % n) + 1;
 	  idim = tid * nelem_thread + cc + (blockDim.x * nelem_thread) * blockIdx.x;
 	  if (idim < N)
 		  sdata[tid] += g_idata[idim] * x * weights[idim];
 	  else
-		  sdata[tid] += 0;
+		  sdata[tid] += 0.0f;
   }
+  __syncthreads();
 
  // sdata[tid] = (i < N) ? g_idata[i] * x * weights[i] : 0;
 
   __syncthreads();
 
   reduce_krnl(sdata, blockDim.x, tid);
-
+  //if(tid == 0)
+  //	printf("blockIdx %d sdata %f \n",blockIdx.x,sdata[tid]);
   // write result for this block to global mem
   if (tid == 0)
-    g_odata[blockIdx.x] = ((sdata[0] * 1.0 / (alpha[blockIdx.x] + 1.e-6))
+    g_odata[blockIdx.x] = ((sdata[tid] * 1.0 / (alpha[blockIdx.x] + 1.e-6))
         - offset) * scale;
 }
 
@@ -827,14 +885,14 @@ __global__ void centroidy(T *g_idata, T *g_odata, T *alpha, T *weights,
   //unsigned int y = (tid / n) + 1;
   unsigned int y;
   int idim;
-  sdata[tid] = 0;
+  sdata[tid] = 0.0f;
   for (int cc=0;cc < nelem_thread; cc++) {
 	  y = ((tid * nelem_thread + cc) / n) + 1;
 	  idim = tid * nelem_thread + cc + (blockDim.x * nelem_thread) * blockIdx.x;
 	  if (idim < N)
 		  sdata[tid] += g_idata[idim] * y * weights[idim];
 	  else
-		  sdata[tid] += 0;
+		  sdata[tid] += 0.0f;
   }
 
   //sdata[tid] = (i < N) ? g_idata[i] * y * weights[i] : 0;
@@ -845,7 +903,7 @@ __global__ void centroidy(T *g_idata, T *g_odata, T *alpha, T *weights,
 
   // write result for this block to global mem
   if (tid == 0)
-    g_odata[blockIdx.x] = ((sdata[0] * 1.0 / (alpha[blockIdx.x] + 1.e-6))
+    g_odata[blockIdx.x] = ((sdata[tid] * 1.0 / (alpha[blockIdx.x] + 1.e-6))
         - offset) * scale;
 }
 
@@ -1057,30 +1115,47 @@ __global__ void convert_krnl(float *odata, float *idata, float offset,
 |_____\__,_|\__,_|_| |_|\___|_| |_|\___|_|  |___/
  
  */
+template<class T>
+void subap_bpcentro(int threads, int blocks, int npix, T *d_idata, unsigned int *values, T *d_odata,
+    T scale, T offset) {
+  dim3 dimBlock(threads, 1, 1);
+  dim3 dimGrid(blocks, 1, 1);
+
+  // when there is only one warp per block, we need to allocate two warps
+  // worth of shared memory so that we don't index shared memory out of bounds
+  int smemSize = threads * (sizeof(T) + sizeof(uint));
+
+  centroid_bpix<T> <<<dimGrid, dimBlock, smemSize>>>(blocks,npix,d_idata, values, d_odata, scale, offset);
+
+  cutilCheckMsg("centroid_bpix<<<>>> execution failed\n");
+}
+template void
+subap_bpcentro<float>(int threads, int blocks, int npix, float *d_idata, unsigned int *values, float *d_odata,
+    float scale, float offset);
+template void
+subap_bpcentro<double>(int threads, int blocks, int npix, double *d_idata, unsigned int *values, double *d_odata,
+    double scale, double offset);
 
 template<class T>
-void subap_sortmax(int size, int threads, int blocks, T *d_idata, T *d_odata,
-    int *values, int nmax) {
+void subap_sortmax(int threads, int blocks, T *d_idata, T *d_odata,
+    unsigned int *values, int nmax) {
   dim3 dimBlock(threads, 1, 1);
   dim3 dimGrid(blocks, 1, 1);
 
   // when there is only one warp per block, we need to allocate two warps 
   // worth of shared memory so that we don't index shared memory out of bounds
-  int smemSize =
-      (threads <= 32) ?
-          2 * threads * (sizeof(T) + sizeof(uint)) :
-          threads * (sizeof(T) + sizeof(uint));
+  size_t smemSize = threads * (sizeof(T) + sizeof(uint));
   sortmax<T> <<<dimGrid, dimBlock, smemSize>>>(d_idata, d_odata, values,
       nmax);
 
   cutilCheckMsg("sortmax_kernel<<<>>> execution failed\n");
 }
 template void
-subap_sortmax<float>(int size, int threads, int blocks, float *d_idata,
-    float *d_odata, int *values, int nmax);
+subap_sortmax<float>(int threads, int blocks, float *d_idata,
+    float *d_odata, unsigned int *values, int nmax);
 template void
-subap_sortmax<double>(int size, int threads, int blocks, double *d_idata,
-    double *d_odata, int *values, int nmax);
+subap_sortmax<double>(int threads, int blocks, double *d_idata,
+    double *d_odata, unsigned int *values, int nmax);
 
 template<class T>
 void subap_centromax(int threads, int blocks, T *d_idata, T *d_odata, int npix,

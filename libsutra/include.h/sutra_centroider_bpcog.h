@@ -8,6 +8,8 @@ using namespace std;
 class sutra_centroider_bpcog: public sutra_centroider {
 public:
   int nmax;
+  carma_obj<float> *d_bpix;
+  carma_obj<uint> *d_bpind;
 
 public:
   sutra_centroider_bpcog(carma_context *context, long nwfs, long nvalid,
