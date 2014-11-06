@@ -1,0 +1,408 @@
+<?py
+import datetime
+now = datetime.datetime.now()
+template_strs = ['CLASSNAME','C_TYPE','NUMPY_TYPENAME_T','NUMPY_TYPENAME']
+template_type_str = 'ARRAY_TYPE'
+c_types_info = {
+                #'int':['Int', "int", "np.int32_t", "np.int32",[]],
+                #'unsigned int':['UInt',"uint", "np.uint32_t", "np.uint32", []],
+                'double':['Double', "double", "np.float64_t", "np.float64",[]],
+                'float':['Float', "float", "np.float32_t", "np.float32",[]],
+                }
+?>#
+import numpy as np
+cimport numpy as np
+from libcpp cimport bool
+
+
+import ctypes
+
+assert sizeof(int) == sizeof(np.int32_t)
+assert sizeof(float) == sizeof(np.float32_t)
+assert sizeof(double) == sizeof(np.float64_t)
+
+#external type required
+ctypedef int cufftHandle
+ctypedef int cublasFillMode_t
+ctypedef int cublasSideMode_t
+
+
+
+#################################################
+# C-Class carma_context
+#################################################
+cdef extern from "carma_context.h":
+    cdef cppclass carma_context "carma_context":
+        carma_context()
+        int get_ndevice()
+        int set_activeDevice(int newDevice, int silent)
+        int set_activeDeviceForce(int newDevice, int silent)
+        int set_activeDeviceForCpy(int newDevice, int silent)
+        int get_activeDevice()
+
+
+#################################################
+# P-Class chakra_context
+#################################################
+cdef class chakra_context:
+    cdef carma_context* c
+
+
+    def __cinit__(self):
+        self.c            = new carma_context()
+
+
+    def get_ndevice(self):
+       return self.c.get_ndevice()
+
+
+    def set_activeDevice(self, int newDevice, int silent=1):
+        return self.c.set_activeDevice(newDevice, silent)
+
+    def set_activeDeviceForce(self, newDevice, int silent=1):
+        return self.c.set_activeDeviceForce(newDevice, silent)
+
+    def set_activeDeviceForCpy(self, int newDevice, int silent=1):
+        return self.c.set_activeDeviceForCpy(newDevice, silent)
+ 
+    def get_activeDevice(self):
+        return self.c.get_activeDevice()
+
+
+
+#################################################
+# C-Class carma_obj
+#################################################
+cdef extern from "carma_obj.h":
+    cdef cppclass carma_obj[T]:
+        T *d_data
+        
+
+        carma_obj(carma_obj[T] *obj)
+        carma_obj(carma_context *context, const long *dims)
+        carma_obj(carma_context *context,carma_obj[T] *obj)
+        carma_obj(carma_context *context,long *dims, T *data)
+
+        T* getData()                        #
+        int getDims()                       #
+        int getDims(int i)                  
+        int getNbElem()                     #
+        carma_context *getContext()         
+        int getDevice()                     #
+        bool is_rng_init()                  #
+
+        int host2device(T *data)            #
+        int device2host(T *data)            #
+        int device2hostOpt(T *data)
+        int host2deviceVect(T *data, int incx, int incy)#
+        int device2hostVect(T *data, int incx, int incy)#
+        int host2deviceMat(T *data, int lda, int ldb)
+        int device2hostMat(T *data, int lda, int ldb)
+
+
+        int copyInto(T *data, int nb_elem)  #
+        int copyFrom(T *data, int nb_elem)  #
+
+        cufftHandle* getPlan()
+        unsigned int * getValues()
+        T sum()
+
+        int transpose(carma_obj[T] *source)
+
+  #/**< Cublas V2 */
+        int imax(int incx)  #
+        int imin(int incx)  #
+        T asum(int incx)    #
+        T nrm2(int incx)    #
+        T dot(carma_obj[T] *source, int incx, int incy)
+        void scale(T alpha, int incx)                               #
+        void swap(carma_obj[T] *source, int incx, int incy)         #
+        void copy(carma_obj[T] *source, int incx, int incy)         #
+        void axpy(T alpha, carma_obj[T] *source, int incx, int incy)#
+
+#int carma_axpy_cpu<float>(long N, float alpha, float *h_X, long incX,
+#    float *h_Y, long incY) {
+
+
+##        void rot(carma_obj[T] *source, int incx, int incy, T sc, T ss)
+
+        void gemv(char trans, T alpha, carma_obj[T] *matA, int lda,
+            carma_obj[T] *vectx, int incx, T beta, int incy)
+#        void ger(T alpha, carma_obj[T] *vectx, int incx,
+#            carma_obj[T] *vecty, int incy, int lda)
+        void symv(cublasFillMode_t uplo, T alpha, carma_obj[T] *matA,
+            int lda, carma_obj[T] *vectx, int incx, T beta, int incy)
+
+        void gemm(char transa, char transb, T alpha, carma_obj[T] *matA,
+            int lda, carma_obj[T] *matB, int ldb, T beta, int ldc)
+        void symm(cublasSideMode_t side, cublasFillMode_t uplo, T alpha,
+            carma_obj[T] *matA, int lda, carma_obj[T] *matB, int ldb,
+            T beta, int ldc)
+        void syrk(cublasFillMode_t uplo, char transa, T alpha,
+            carma_obj[T] *matA, int lda, T beta, int ldc)
+        void syrkx(cublasFillMode_t uplo, char transa, T alpha,
+            carma_obj[T] *matA, int lda, carma_obj[T] *matB, int ldb,
+            T beta, int ldc)
+        void geam(char transa, char transb, T alpha, carma_obj[T] *matA,
+            int lda, T beta, carma_obj[T] *matB, int ldb, int ldc)
+        void dgmm(cublasSideMode_t side, carma_obj[T] *matA, int lda,
+            carma_obj[T] *vectx, int incx, int ldc)
+
+        #/**< Curand */
+#        int init_prng(int device)
+#        int destroy_prng()
+#        int prng(T *output, char gtype, float alpha, float beta)
+#        int prng(T *output, char gtype, float alpha)
+#        int prng(char gtype, float alpha, float beta)
+#        int prng(char gtype, float alpha)
+#        int prng(char gtype)
+#        int init_prng_host(int seed)
+#        int prng_host(char gtype)
+#        int prng_host(char gtype, T alpha)
+#        int destroy_prng_host()
+
+
+
+<?py
+pxd_code_str ='''
+##########################################################
+#  P-Class `CLASSNAME`
+#########################################################
+cdef class chakra_obj_CLASSNAME:
+    cdef carma_obj[C_TYPE] *c_o
+    cdef chakra_context context
+    #cdef C_TYPE *cpu_data
+
+
+    def __cinit__(self,chakra_context ctxt=None ,
+                  chakra_obj_CLASSNAME obj=None,
+                  np.ndarray[ndim=3, dtype=NUMPY_TYPENAME_T] data=None,
+                  np.ndarray[ndim=1, dtype=np.int64_t] dims=None,
+                  int ndim=3):
+
+        """
+        chakra_obj(chakra_obj obj)
+        chakra_obj(chakra_context ctxt, chakra_obj obj)
+        chakra_obj(chakra_context ctxt, np.ndarray dims)
+        chakra_obj(chakra_context ctxt, np.ndarray data)
+
+        input data must be a np.ndarray with ndim=3, should extra-dimension(s) be 1
+        actual number of dimension can be specified with argument ndim (default=3) 
+        """
+
+        if (ctxt is None):
+            #if no context: copy constructor called
+            #using the context associated to the chakra_obj argument
+            if(obj is None):
+                raise ValueError("Missing argument chakra_context or chakra_obj")
+            else:
+                obj.activateDevice()
+                self.c_o=new carma_obj[C_TYPE](obj.c_o)
+                self.context=obj.getContext()
+            return
+
+        self.context=ctxt
+
+        if(obj is not None):
+            #copy constructor
+            ctxt.set_activeDevice(obj.getDevice())
+            self.c_o = new carma_obj[C_TYPE](ctxt.c,obj.c_o)
+            return
+
+        if(data is None):
+            if(dims is None):
+                raise ValueError("Missing argument data (np.array[ndim=3]) or dims (np.ndarray[ndim=1])")
+            self.c_o= new carma_obj[C_TYPE](ctxt.c,<long*>dims.data)
+            return
+
+
+        cdef long cdims[4]
+        cdims[0]=ndim
+
+        for i in range(ndim):
+            cdims[i+1]=data.shape[i]
+
+        self.c_o=new carma_obj[C_TYPE](ctxt.c,cdims,<C_TYPE*>data.data)
+        
+
+
+    def get_Dims(self):
+        """ return the number of dimensions and the dimensions (array dims_data) """
+        n=self.c_o.getDims(0)
+        dims = np.ones(n+1,dtype=np.int64,order='c')
+        for i in range(n+1):
+            dims[i]=self.c_o.getDims(i) 
+        return dims
+
+
+    def getNbElem(self):
+        return self.c_o.getNbElem()
+
+
+    def getDevice(self):
+        """ return the device used by the current chakra_obj"""
+        return self.c_o.getDevice()
+
+    def activateDevice(self, int silent=1):
+        """ activate the device used by the current chakra_obj"""
+        self.context.set_activeDevice(self.getDevice(),silent)
+
+
+    def getContext(self):
+        """ return a pointer to the carma_context associated with the current chakra_obj
+        """
+        return self.context
+
+    def is_rng_init(self):
+        self.c_o.is_rng_init()
+
+
+    def host2device(self,np.ndarray[ndim=3, dtype=NUMPY_TYPENAME_T] data):
+        """
+        host2device(np.ndarray[ndim=3, dtype=NUMPY_TYPENAME_T] data):
+        copy data from host to device
+        """
+        self.context.set_activeDeviceForCpy(self.getDevice())
+        self.c_o.host2device( <C_TYPE*> data.data)
+
+
+    def device2host(self, int dim=3):
+        """
+        device2host(self,dim=3)
+        copy data from device to host
+        return np.ndarray of dim dimension(s)
+        """
+        sh=np.append(self.get_Dims(),[1,1])
+        cdef np.ndarray[ dtype=NUMPY_TYPENAME_T, ndim=3] res=np.zeros(sh[1:4],dtype=NUMPY_TYPENAME)
+        type(self.getDevice())
+        self.context.set_activeDeviceForCpy(self.getDevice())
+        self.c_o.device2host(<C_TYPE*>res.data)
+        return np.reshape(res,sh[1:dim+1],order='c')
+
+
+    def device2hostOpt(self,dim=3):
+        """
+        device2hostOpt(self,dim=3)
+        copy data from device o_data to host
+        return np.ndarray of dim dimension(s)
+        """
+        sh=np.append(self.get_Dims(),[1,1])
+        cdef np.ndarray[ dtype=NUMPY_TYPENAME_T, ndim=3] res=np.zeros(sh[1:4], dtype=NUMPY_TYPENAME)
+        self.context.set_activeDeviceForCpy(self.getDevice())
+        self.c_o.device2hostOpt(<C_TYPE*>res.data)
+        return np.reshape(res,sh[1:dim+1],order='c')
+
+
+    def host2deviceVect(self, np.ndarray[ndim=3, dtype=NUMPY_TYPENAME_T] data, int incx, int incy):
+        """
+        host2deviceVect(self,np.ndarray[ndim=3, dtype=NUMPY_TYPENAME_T] data, int incx, int incy):
+        """
+        self.c_o.host2deviceVect( <C_TYPE*> data.data, incx,incy)
+
+
+    def copyFrom(self, chakra_obj_CLASSNAME src):
+        """
+        copyFromChakra_Obj(self, chakra_obj_CLASSNAME src)
+        copy the data from src to the current chakra_obj
+        """ 
+        if(self.getDevice()!=src.getDevice()):
+            raise ValueError("copy only on the same device")
+        self.context.set_activeDeviceForCpy(self.getDevice())
+        self.c_o.copyFrom( src.c_o.getData(), src.c_o.getNbElem())
+
+
+    def copyInto(self, chakra_obj_CLASSNAME dest):
+        """
+        copyIntoChakra_Obj(self, chakra_obj dest)
+        copy data from current chakra_obj to dest
+        """
+        if(self.getDevice()!=dest.getDevice()):
+            raise ValueError("copy only on the same device")
+        self.context.set_activeDeviceForCpy(self.getDevice())
+        self.c_o.copyInto(dest.c_o.getData(), dest.c_o.getNbElem())
+
+
+    def imax (self):
+        """ return the smallest index of the maximum magnitude element """
+        return self.c_o.imax(1)
+
+    def imin (self):
+        """ return  the smallest index of the minimum magnitude element  """
+        return self.c_o.imin(1)
+
+    def asum(self):
+        """ return the sum of the absolute values of the data's elements """
+        return self.c_o.asum(1)
+
+    def sum(self):
+        """ return the sum of the data's elements """
+        return self.c_o.sum()
+
+    def nrm2(self):
+        """ return the Euclidean norm """
+        return self.c_o.nrm2(1)
+
+    def scale(self, alpha):
+        """ compute x=alpha*x """
+        self.c_o.scale(alpha,1)
+
+
+    def swap(self, chakra_obj_CLASSNAME src):
+        """ swap content of carma objects """
+        if(self.getDevice()!=src.getDevice()):
+            raise ValueError("swap only on the same device")
+        self.context.set_activeDeviceForCpy(self.getDevice())
+        self.c_o.swap(src.c_o,1,1)
+
+
+    def copy(self, chakra_obj_CLASSNAME src):
+        if(self.getDevice()!=src.getDevice()):
+            raise ValueError("swap only on the same device")
+        self.context.set_activeDeviceForCpy(self.getDevice())
+        self.c_o.copy(src.c_o,1,1)
+
+
+    def axpy( self, C_TYPE alpha, chakra_obj_CLASSNAME dest=None):
+        """ axpy( self, C_TYPE alpha, chakra_obj_CLASSNAME dest=None) 
+        return: alpha*self.data +beta*dest.data (into dest chakra_obj)
+        """
+        if(dest==None):
+            c=self.getContext()
+            dest=chakra_obj_CLASSNAME(ctxt=self.getContext(),dims=self.get_Dims())
+        if(self.getDevice()!=dest.getDevice()):
+            raise ValueError("swap only on the same device")
+        self.context.set_activeDeviceForCpy(self.getDevice())
+        dest.c_o.axpy(alpha,self.c_o,1,1)
+        return dest
+
+
+    def gemv(self, chakra_obj_CLASSNAME Vx, C_TYPE alpha=1, chakra_obj_CLASSNAME Vy=None, C_TYPE beta=0 ):
+        """  gemv(self, chakra_obj_CLASSNAME Vx, C_TYPE alpha, chakra_obj_CLASSNAME Vy, C_TYPE beta )
+        return  Vy=alpha*self*Vx+beta*Vy
+        """
+        dimM=self.get_Dims()
+        dimY=(1,dimM[1])
+        if(Vy is None):
+            Vy=chakra_obj_CLASSNAME(ctxt=self.getContext(),dims=dimM[:2])
+
+        if( (self.getDevice()!=Vx.getDevice()) or Vx.getDevice()!= Vy.getDevice()):
+            raise ValueError("swap only on the same device")
+        self.context.set_activeDeviceForCpy(self.getDevice())
+        Vy.c_o.gemv('n',alpha,self.c_o,dimM[1],Vx.c_o,1,beta,1)
+        return Vy
+        
+
+'''
+
+
+
+for ctype,info in c_types_info.items():
+    code = pxd_code_str
+    code = code.replace(template_strs[0], info[0])
+    code = code.replace(template_strs[1], info[1])
+    code = code.replace(template_type_str, ctype)
+    code = code.replace(template_strs[2], info[2])
+    code = code.replace(template_strs[3], info[3])
+    out.write(code)
+    
+?>
