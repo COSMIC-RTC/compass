@@ -23,3 +23,8 @@ Content
     setup.py                    compilation setups
     clean.py                    cleaning script
     test.py                     small python test code
+
+
+
+TODO
+    test functions after copy

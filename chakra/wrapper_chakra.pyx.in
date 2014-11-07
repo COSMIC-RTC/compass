@@ -14,18 +14,28 @@ import numpy as np
 cimport numpy as np
 from libcpp cimport bool
 
-
 import ctypes
 
 assert sizeof(int) == sizeof(np.int32_t)
 assert sizeof(float) == sizeof(np.float32_t)
 assert sizeof(double) == sizeof(np.float64_t)
 
-#external type required
-ctypedef int cufftHandle
-ctypedef int cublasFillMode_t
-ctypedef int cublasSideMode_t
 
+
+#external type required
+ctypedef extern int cufftHandle
+
+
+cdef extern from "cublas_v2.h":
+    ctypedef CUBLASAPI
+
+cdef extern from "cublas_api.h":
+    ctypedef enum cublasFillMode_t:
+        CUBLAS_FILL_MODE_LOWER
+        CUBLAS_FILL_MODE_UPPER
+    ctypedef enum cublasSideMode_t:
+        CUBLAS_SIDE_LEFT
+        CUBLAS_SIDE_RIGHT
 
 
 #################################################
@@ -357,20 +367,22 @@ cdef class chakra_obj_CLASSNAME:
 
     def copy(self, chakra_obj_CLASSNAME src):
         if(self.getDevice()!=src.getDevice()):
-            raise ValueError("swap only on the same device")
+            raise ValueError("copy only on the same device")
         self.context.set_activeDeviceForCpy(self.getDevice())
         self.c_o.copy(src.c_o,1,1)
 
 
     def axpy( self, C_TYPE alpha, chakra_obj_CLASSNAME dest=None):
-        """ axpy( self, C_TYPE alpha, chakra_obj_CLASSNAME dest=None) 
+        """ axpy( self, C_TYPE alpha, chakra_obj_CLASSNAME dest=None)
+        self, dest:  vector
+        alpha, beta: scalars
         return: alpha*self.data +beta*dest.data (into dest chakra_obj)
         """
         if(dest==None):
             c=self.getContext()
             dest=chakra_obj_CLASSNAME(ctxt=self.getContext(),dims=self.get_Dims())
         if(self.getDevice()!=dest.getDevice()):
-            raise ValueError("swap only on the same device")
+            raise ValueError("axpy only on the same device")
         self.context.set_activeDeviceForCpy(self.getDevice())
         dest.c_o.axpy(alpha,self.c_o,1,1)
         return dest
@@ -378,18 +390,184 @@ cdef class chakra_obj_CLASSNAME:
 
     def gemv(self, chakra_obj_CLASSNAME Vx, C_TYPE alpha=1, chakra_obj_CLASSNAME Vy=None, C_TYPE beta=0 ):
         """  gemv(self, chakra_obj_CLASSNAME Vx, C_TYPE alpha, chakra_obj_CLASSNAME Vy, C_TYPE beta )
+        self:           matrix
+        Vx, Vy:         vectors
+        alpha, beta:    scalars
         return  Vy=alpha*self*Vx+beta*Vy
         """
-        dimM=self.get_Dims()
-        dimY=(1,dimM[1])
+        cdef dimM=self.get_Dims()
         if(Vy is None):
-            Vy=chakra_obj_CLASSNAME(ctxt=self.getContext(),dims=dimM[:2])
+            dimY=np.array([1,dimM[1]],dtype=np.int64)
+            Vy=chakra_obj_CLASSNAME(ctxt=self.getContext(),dims=dimY)
 
-        if( (self.getDevice()!=Vx.getDevice()) or Vx.getDevice()!= Vy.getDevice()):
-            raise ValueError("swap only on the same device")
+        if( (self.getDevice()!=Vx.getDevice()) or 
+             self.getDevice()!= Vy.getDevice()):
+            raise ValueError("gemv only on the same device")
         self.context.set_activeDeviceForCpy(self.getDevice())
         Vy.c_o.gemv('n',alpha,self.c_o,dimM[1],Vx.c_o,1,beta,1)
         return Vy
+
+
+    def symv(self,chakra_obj_CLASSNAME Vx, C_TYPE alpha=1,
+             chakra_obj_CLASSNAME Vy=None , C_TYPE beta=0):
+        """
+        symv(self,chakra_obj_CLASSNAME Vx, C_TYPE alpha=1,chakra_obj_CLASSNAME Vy=None , C_TYPE beta=0)
+        self:           symmetric matrix
+        Vx, Vy:         vectors
+        alpha,beta:     scalars
+        return Vy=alpha*self*Vx+beta*Vy
+        """
+        cdef dimM=self.get_Dims()
+        if(Vy is None):
+            dimY=np.array([1,dimM[1]],dtype=np.int64)
+            Vy=chakra_obj_CLASSNAME(ctxt=self.getContext(),dims=dimY)
+        if(self.getDevice()!=Vx.getDevice() or
+           self.getDevice()!=Vy.getDevice()):
+            raise ValueError("symv only on the same device")
+        self.context.set_activeDeviceForCpy(self.getDevice())
+        Vy.c_o.symv(CUBLAS_FILL_MODE_LOWER, alpha, self.c_o, dimM[1],
+                    Vx.c_o, 1, beta, 1)
+        return Vy
+
+#TODO check device past this point
+
+    def gemm(self,chakra_obj_CLASSNAME B, char opA='n', char opB='n',
+    C_TYPE alpha=1, chakra_obj_CLASSNAME C=None, beta=0):
+        """
+        gemm(self,chakra_obj_CLASSNAME B, char opA='n', char opB='n', C_TYPE alpha=1, chakra_obj_CLASSNAME C=None, beta=0)
+        self,B,C:       matrices
+        alpha, beta:    scalars
+        opA,opB:        character ( 'n', 
+        return C=alpha self*B+beta*C 
+        """
+        cdef dimA=self.get_Dims()
+        cdef dimB=B.get_Dims()
+        if(C is None):
+            dimC=np.ndarray(3,dtype=np.int64)
+            dimC[0]=2
+            dimC[1]= dimA[1] if opA=='n' else dimA[2]
+            dimC[2]= dimB[2] if opB=='n' else dimB[1]
+            C=chakra_obj_CLASSNAME(ctxt=self.getContext(), dims=dimC)
+        else:
+            dimC=C.get_Dims()
+        
+        C.c_o.gemm(opA,opB,alpha,self.c_o,dimA[1],B.c_o,dimB[1],beta,dimC[1])
+
+        return C
+
+
+    def symm(self, chakra_obj_CLASSNAME B, char side='l', C_TYPE alpha=1,
+             chakra_obj_CLASSNAME C=None, beta=0):
+        """
+        symm(self, chakra_obj_CLASSNAME B, char side='l', C_TYPE alpha=1, chakra_obj_CLASSNAME C=None, beta=0):
+        self:           symmetric matrix
+        B,C:            matrices
+        alpha,beta:     scalars
+        side:           character
+        return alpha*A*B+beta*C     if side='l'
+               alpha*B*A+beta*C     otherwise
+        """
+
+        prodSide=CUBLAS_SIDE_LEFT if side=='l' else CUBLAS_SIDE_RIGHT
+
+        cdef dimA=self.get_Dims()
+        cdef dimB=B.get_Dims()
+        if(C is None):
+            dimC=np.ndarray(3,dtype=np.int64)
+            dimC[0]=2
+            if(side=='l'):
+                dimC[1]= dimA[1]
+                dimC[2]= dimB[2]
+            else:
+                dimC[1]= dimA[2]
+                dimC[2]= dimB[1]
+
+            C=chakra_obj_CLASSNAME(ctxt=self.getContext(), dims=dimC)
+        else:
+            dimC=C.get_Dims()
+        
+        C.c_o.symm(prodSide,CUBLAS_FILL_MODE_LOWER, alpha,self.c_o,dimA[1],
+                    B.c_o,dimB[1],beta,dimC[1])
+        return C
+
+
+    def syrk(self, char opA='n', C_TYPE alpha=1, chakra_obj_CLASSNAME C=None,
+             C_TYPE beta=0):
+        """
+        A:              matrix
+        C:              symmetric matrix
+        alpha, beta:    scalars
+        return alpha*A*tA+beta*C
+        """
+
+        cdef dimA=self.get_Dims()
+        if(C is None):
+            dimC=np.ndarray(3,dtype=np.int64)
+            dimC[0]=2
+            if(opA=='n'):
+                dimC[1]=dimA[1]
+                dimC[2]=dimA[2]
+            else:
+                dimC[1]=dimA[2]
+                dimC[2]=dimA[1]
+
+            C=chakra_obj_CLASSNAME(ctxt=self.getContext(), dims=dimC)
+        else:
+            dimC=C.get_Dims()
+
+        C.c_o.syrk(CUBLAS_FILL_MODE_UPPER, opA,alpha, self.c_o, dimA[1], beta,
+                    dimC[1])
+        return C
+
+        #void syrkx(cublasFillMode_t uplo, char transa, T alpha,
+        #    carma_obj[T] *matA, int lda, carma_obj[T] *matB, int ldb,
+        #    T beta, int ldc)
+    def syrkx(self, chakra_obj_CLASSNAME B, char opA='n', char opB='n', 
+              C_TYPE alpha=1, chakra_obj_CLASSNAME C=None, C_TYPE beta=0):
+        """
+        A,B:            matrices
+        C:              symmetric matrix
+        alpha,beta:     scalars
+        return alpha*A*tB+beta*C
+        """
+        cdef dimA=self.get_Dims()
+        cdef dimB=B.get_Dims()
+        if(C is None):
+            dimC=2
+            if(opA=='n'):
+                dimC[1]=dimA[1]
+                dimC[2]=dimB[2]
+            else:
+                dimC[1]=dimA[2]
+                dimC[2]=dimB[1]
+            C=chakra_obj_CLASSNAME(self.getContext,dims=dimC)
+        else:
+            dimC=C.get_Dims()
+        C.c_o.syrkx(CUBLAS_FILL_MODE_UPPER, opA,alpha,self.c_o,dimA[1],
+                    B.c_o, dimB[1],beta,dimC[1])
+
+
+        #void geam(char transa, char transb, T alpha, carma_obj[T] *matA,
+        #    int lda, T beta, carma_obj[T] *matB, int ldb, int ldc)
+    def geam(self):
+        """
+        A,B,C:          matrices
+        alpha,beta:     scalars
+        return C= alpha*B+beta*B
+        """
+
+        return
+
+        #void dgmm(cublasSideMode_t side, carma_obj[T] *matA, int lda,
+        #    carma_obj[T] *vectx, int incx, int ldc)
+    def dgmm(self):
+        """
+
+        """
+        return
+
+
+
         
 
 '''

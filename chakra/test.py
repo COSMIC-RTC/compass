@@ -56,3 +56,18 @@ b_out=oa.device2host(1)
 print " copy from cp2:"
 print b_out
 
+print "gemv"
+data_gemv=np.ones((5,6,1),dtype=np.float32)
+print np.reshape(data_gemv,(5,6))
+o_gemv=ch.chakra_obj_Float(c,data=data_gemv)
+res_gemv=o_gemv.gemv(ob,2)
+data_gemv=res_gemv.device2host(1)
+print data_gemv
+
+print "symv"
+data_symv=np.ones((6,6,1),dtype=np.float32)
+print np.reshape(data_symv,(6,6))
+o_symv=ch.chakra_obj_Float(c,data=data_symv)
+res_symv=o_symv.symv(ob,2)
+data_symv=res_symv.device2host(1)
+print data_symv
