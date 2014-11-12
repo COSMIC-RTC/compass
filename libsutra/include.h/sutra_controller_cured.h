@@ -5,6 +5,7 @@
 
 class sutra_controller_cured: public sutra_controller {
 public:
+  int delay;
   float gain;
   int   ndivs; //number of subdivision levels for cured
   bool  tt_flag; //flag for separate tt
@@ -13,6 +14,7 @@ public:
   carma_host_obj<float> *h_centroids;
   carma_host_obj<float> *h_err;
   carma_obj<float> *d_err; // current error
+  carma_obj<float> *d_cenbuff; // centroids circular buffer
 
   // data for CuReD */
   carma_obj<float> *d_imat;
@@ -39,6 +41,10 @@ public:
 
   int
     init_cured(int nxsubs, int *isvalid, int ndivs, int tt);
+  int 
+    frame_delay();
+  int
+    set_delay(int delay);
 };
 
 #endif // _sutra_controller_cured_H_

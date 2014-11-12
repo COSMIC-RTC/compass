@@ -7,11 +7,13 @@ sutra_controller_cured::sutra_controller_cured(carma_context *context,
     sutra_controller(context, nvalid * 2, nactu) {
 
   this->gain = 0;
+  this->delay = delay;
 
   this->h_centroids = 0L;
   this->h_err = 0L;
   this->h_parcure = 0L;
   this->h_syscure = 0L;
+  this->d_cenbuff = 0L;
 
   long dims_data1[2] = { 1, 0 };
   long dims_data2[3] = { 2, 0, 0 };
@@ -28,7 +30,14 @@ sutra_controller_cured::sutra_controller_cured(carma_context *context,
 
   dims_data2[1] = nvalid * 2;
   dims_data2[2] = nactu;
+
   this->d_imat = new carma_obj<float>(context, dims_data2);
+  if (delay > 0) {
+    dims_data2[1] = nvalid * 2;
+    dims_data2[2] = delay + 1;
+    this->d_cenbuff = new carma_obj<float>(context, dims_data2);
+  } else
+    this->d_cenbuff = 0L;
 }
 
 sutra_controller_cured::~sutra_controller_cured() {
@@ -42,6 +51,8 @@ sutra_controller_cured::~sutra_controller_cured() {
     delete this->d_imat;
  if (this->d_err != 0L)
     delete this->d_err;
+ if (this->d_cenbuff)
+    delete this->d_cenbuff;
  curefree((sysCure*)this->h_syscure, (parCure *)this->h_parcure);
 }
 
@@ -55,6 +66,7 @@ int sutra_controller_cured::set_gain(float gain) {
 }
 
 int sutra_controller_cured::comp_com() {
+  this->frame_delay();
   h_centroids->cpy_obj(this->d_centroids, cudaMemcpyDeviceToHost);
 
   if (this->tt_flag) {
@@ -86,3 +98,29 @@ int sutra_controller_cured::init_cured(int nxsubs, int *isvalid, int ndivs, int 
   return EXIT_SUCCESS;
 }
 
+int sutra_controller_cured::frame_delay() {
+  // here we place the content of d_centroids into cenbuf and get
+  // the actual centroid frame for error computation depending on delay value
+
+  if (delay > 0) {
+    for (int cc = 0; cc < delay; cc++)
+      shift_buf(&((this->d_cenbuff->getData())[cc * this->nslope()]), 1,
+          this->nslope(), this->device);
+
+    cutilSafeCall(
+        cudaMemcpy(&(this->d_cenbuff->getData()[delay * this->nslope()]),
+            this->d_centroids->getData(), sizeof(float) * this->nslope(),
+            cudaMemcpyDeviceToDevice));
+
+    cutilSafeCall(
+        cudaMemcpy(this->d_centroids->getData(), this->d_cenbuff->getData(),
+            sizeof(float) * this->nslope(), cudaMemcpyDeviceToDevice));
+  }
+
+  return EXIT_SUCCESS;
+}
+
+int sutra_controller_cured::set_delay(int delay) {
+  this->delay = delay;
+  return EXIT_SUCCESS;
+}
