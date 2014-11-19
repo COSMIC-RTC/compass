@@ -154,7 +154,7 @@ sutra_controller_mv::compute_Cphim(sutra_atmos *atmos, sutra_sensors *sensors, s
 	CPHIM(this->d_Cphim->getData(), Nactu, this->nslope(), 0, 0, Nactu, &cphim_struct, atmos, sensors, alphaX, alphaY, k2, this->device);
 	free_cphim_struct(&cphim_struct);
 
-	// Filter piston
+	// Piston filter
 	piston_filt_cphim(this->d_Cphim);
 	//Init and inverse the coupling matrix
 	long dims_data2[3];
@@ -430,6 +430,7 @@ sutra_controller_mv::invgen(carma_obj<float> *d_mat, float cond, int job){
 
 	d_U->copy(d_mat,1,1);
 	carma_syevd<float,1>('V',d_U,h_eigenvals);
+	//syevd_f('V',d_U,h_eigenvals);
 	if (job == 1){
 		float maxe = h_eigenvals->getData()[d_mat->getDims()[1] - 1];
 

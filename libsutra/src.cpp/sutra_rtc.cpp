@@ -160,6 +160,7 @@ int sutra_rtc::do_imat(int ncntrl, sutra_sensors *sensors, sutra_dms *ydm) {
   cout << "starting imat measurement" << endl;
   while (p != ydm->d_dms.end()) {
     for (int j = 0; j < p->second->ninflu; j++) {
+    	// Push
         p->second->comp_oneactu(j, p->second->push4imat);
       for (size_t idx_cntr = 0; idx_cntr < (this->d_centro).size();
           idx_cntr++) {
@@ -185,7 +186,7 @@ int sutra_rtc::do_imat(int ncntrl, sutra_sensors *sensors, sutra_dms *ydm) {
 
 
      p->second->reset_shape();
-
+     // Pull
       p->second->comp_oneactu(j, -1.0f*p->second->push4imat);
       for (size_t idx_cntr = 0; idx_cntr < (this->d_centro).size();
           idx_cntr++) {

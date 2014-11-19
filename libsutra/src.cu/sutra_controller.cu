@@ -122,6 +122,24 @@ do_statcov_krnl(float *statcov, float *xpos, float *ypos, float norm, long dim, 
 		tid += blockDim.x * gridDim.x;
 	}
 }
+
+__global__ void
+floattodouble_krnl(float *i_data, double *o_data, int N){
+	int tid = threadIdx.x + blockIdx.x * blockDim.x;
+	while (tid < N){
+		o_data[tid] = (double)i_data[tid];
+		tid += blockDim.x * gridDim.x;
+	}
+}
+
+__global__ void
+doubletofloat_krnl(double *i_data, float *o_data, int N){
+	int tid = threadIdx.x + blockIdx.x * blockDim.x;
+	while (tid < N){
+		o_data[tid] = (float)i_data[tid];
+		tid += blockDim.x * gridDim.x;
+	}
+}
 /*
  _                           _                   
  | |    __ _ _   _ _ __   ___| |__   ___ _ __ ___ 
@@ -302,6 +320,28 @@ do_statmat(float *statcov, long dim, float *xpos, float *ypos, float norm, int d
 	dim3 grid(nblocks), threads(nthreads);
 	do_statcov_krnl<<<grid , threads>>>(statcov,xpos,ypos,norm,dim,N);
 	cutilCheckMsg("do_statcov_krnl<<<>>> execution failed\n");
+
+	return EXIT_SUCCESS;
+}
+
+int
+floattodouble(float *i_data, double *o_data, int N, int device){
+	int nthreads = 0, nblocks = 0;
+	getNumBlocksAndThreads(device, N, nblocks, nthreads);
+	dim3 grid(nblocks), threads(nthreads);
+	floattodouble_krnl<<<grid , threads>>>(i_data,o_data,N);
+	cutilCheckMsg("floattodouble_krnl<<<>>> execution failed\n");
+
+	return EXIT_SUCCESS;
+}
+
+int
+doubletofloat(double *i_data, float *o_data, int N, int device){
+	int nthreads = 0, nblocks = 0;
+	getNumBlocksAndThreads(device, N, nblocks, nthreads);
+	dim3 grid(nblocks), threads(nthreads);
+	doubletofloat_krnl<<<grid , threads>>>(i_data,o_data,N);
+	cutilCheckMsg("floattodouble_krnl<<<>>> execution failed\n");
 
 	return EXIT_SUCCESS;
 }

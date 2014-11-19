@@ -40,6 +40,9 @@ public:
     return current_context->get_cublasHandle();
   }
 
+  int
+  syevd_f(char meth, carma_obj<float> *d_U, carma_host_obj<float> *h_eingenvals);
+
 public:
 //I would propose to make them protected (+ proper
 //set of fuctions). It could make life easier!
@@ -79,4 +82,9 @@ int
 do_statmat(float *statcov,long dim, float *xpos, float *ypos, float norm, int device);
 int
 add_md(float *o_matrix, float *i_matrix, float *i_vector, int N,int device);
+int
+floattodouble(float *idata, double *odata, int N, int device);
+int
+doubletofloat(double *idata, float *odata, int N, int device);
+
 #endif // _sutra_controller_H_
