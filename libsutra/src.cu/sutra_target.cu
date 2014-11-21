@@ -82,16 +82,37 @@ __device__ void generic_raytrace(float *odata, float *idata, int nx, int ny,
 
   iref = (int) xref;
   jref = (int) yref;
+  
   /*
+  // Utilisation de la memoire partagee (valable dans le cas ou (Nx >= nx+xoff+1) et (Ny=Nx >= ny+yoff+1) ) 
+
   tidi = iref + jref * Nx;
 
-  //if ((x < nx) && (y < ny)) {
   if (tidi < Nx * Nx) {
-    cache[threadIdx.x + threadIdx.y * blockSize] = idata[tidi];
+
+    // copie des elements idata vers la memeoire partagee (variable cache) du bloc, 
+    // pour cache[0:(blockDim.x+1)-2 ; (blockDim.x+1):2*(blockDim.x+1)-2 ; ... ; ((blockDim.y+1)-1)*(blockDim.x+1):(blockDim.y+1)*(blockDim.x+1)-2]
+    cache[threadIdx.x + threadIdx.y * (blockDim.x+1)] = idata[tidi];
+    
+    // si le thread est le dernier element du bloc suivant l'axe x, on copie des elements idata vers la memeoire partagee (variable cache) du bloc,
+    // pour cache[(blockDim.x+1)-1 ; 2*(blockDim.x+1)-1 ; ... ; blockDim.y*(blockDim.x+1)-1]
+    if(threadIdx.x == blockDim.x-1) 
+       cache[threadIdx.x + threadIdx.y * (blockDim.x+1) + 1] = idata[tidi+1];
+    if((threadIdx.y == blockDim.y-1) )
+    {
+       // si le thread est le dernier element du bloc suivant l'axe y, on copie des elements idata vers la memeoire partagee (variable cache) du bloc,
+       // pour cache[((blockDim.y+1)-1)*(blockDim.x+1):(blockDim.y+1)*(blockDim.x+1)-2]
+       cache[threadIdx.x + threadIdx.y * (blockDim.x+1) + (blockDim.x + 1)] = idata[tidi+Nx];
+
+       // si le thread est le dernier element du bloc suivant l'axe y, on copie de l'element idata vers la memeoire partagee (variable cache) du bloc,
+       // pour cache[(blockDim.y+1)*(blockDim.x+1)-1]
+       if(threadIdx.x == blockDim.x-1)
+          cache[threadIdx.x + threadIdx.y * (blockDim.x+1) + (blockDim.x+1) + 1]= idata[tidi+Nx+1];
+    }
   }
 
-  __syncthreads();
-*/
+  __syncthreads();*/
+
   if ((x < nx) && (y < ny)) {
     tido = x + y * nx;
 
@@ -102,12 +123,13 @@ __device__ void generic_raytrace(float *odata, float *idata, int nx, int ny,
     wx2 = xshift;
     wy1 = (1.0f - yshift);
     wy2 = yshift;
-/*
-    odata[tido] += (wx1 * wy1 * cache[threadIdx.x + threadIdx.y * blockSize]
-        + wx2 * wy1 * cache[threadIdx.x + 1 + threadIdx.y * blockSize]
-        + wx1 * wy2 * cache[threadIdx.x + (threadIdx.y + 1) * blockSize]
-        + wx2 * wy2 * cache[threadIdx.x + 1 + (threadIdx.y + 1) * blockSize]);
-*/
+
+
+    /*odata[tido] += (wx1 * wy1 * cache[threadIdx.x + threadIdx.y * (blockDim.x+1)]
+        + wx2 * wy1 * cache[threadIdx.x + 1 + threadIdx.y * (blockDim.x+1)]
+        + wx1 * wy2 * cache[threadIdx.x + (threadIdx.y + 1) * (blockDim.x+1)]
+        + wx2 * wy2 * cache[threadIdx.x + 1 + (threadIdx.y + 1) * (blockDim.x+1)]);*/
+
 
     odata[tido] += (wx1 * wy1 * idata[iref + jref * Nx]
             + wx2 * wy1 * idata[iref + 1 + jref * Nx]

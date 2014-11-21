@@ -221,7 +221,7 @@ void sutra_controller_kalman::init_kalman(carma_host_obj<float>& chD_Mo, carma_h
 
 
 
-   cudaSetDevice(2);
+   //cudaSetDevice(2);
 
    if (is_sparse)
    {
@@ -273,7 +273,7 @@ void sutra_controller_kalman::init_kalman(carma_host_obj<float>& chD_Mo, carma_h
    else
       core_full = new kp_kalman_core_full_CPU(kD_Mo, kN_Act, kPROJ, is_zonal);
 
-   cudaSetDevice(0);
+   //cudaSetDevice(0);
    
    isInit = true;
 }
@@ -356,7 +356,7 @@ void sutra_controller_kalman::calculate_gain(double bruit,
    kp_carma_host_obj_to_kp_vector(chatur, katur);
    kp_carma_host_obj_to_kp_vector(chbtur, kbtur);
 
-   cudaSetDevice(2);
+   //cudaSetDevice(2);
    //gain (attribut de la classe) correspond a k_W
    if (!isGainSet)
    {
@@ -370,7 +370,7 @@ void sutra_controller_kalman::calculate_gain(double bruit,
    else if (core_full)
       core_full->calculate_gain(bruit, gain, kSigmaV, katur, kbtur);
 
-   cudaSetDevice(0);
+   //cudaSetDevice(0);
 }
 //                                                              
 /*int sutra_controller_kalman::frame_delay() {
@@ -426,7 +426,7 @@ int sutra_controller_kalman::comp_com() {
 
    if (pentes_matlab) Y_k.d = Yk[ind_Yk];//SUPPR
 
-   cudaSetDevice(2);
+   //cudaSetDevice(2);
    if (core_sparse)
    {
       core_sparse->next_step(Y_k, U_k);
@@ -435,7 +435,7 @@ int sutra_controller_kalman::comp_com() {
    {
       core_full->next_step(Y_k, U_k);
    }
-   cudaSetDevice(0);
+   //cudaSetDevice(0);
 
    //conversion des tensions de rad en V : U_k[V] = U_k[rad]*lamda[um]/(2*pi)/unitpervolt[um/V] 
    //U_k *= 1.654/(2*M_PI)/0.01;
