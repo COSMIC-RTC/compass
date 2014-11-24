@@ -48,7 +48,7 @@ sutra_source::sutra_source(carma_context *context, float xpos, float ypos,
   int *wherephase = new int[sumpup];
   int cpt = 0;
   for (int cc = 0; cc < this->d_pupil->getNbElem(); cc++) {
-    if (pupil[cc] == 1) {
+    if (pupil[cc] > 0) {
       wherephase[cpt] = cc;
       cpt += 1;
     }
@@ -76,6 +76,10 @@ inline int sutra_source::init_source(carma_context *context, float xpos,
   this->npos = size;
 
   this->d_phase = new sutra_phase(context, size);
+    
+  // ADDING INSTRUMENTAL PHASE
+  // this->d_phase_instru = new sutra_phase(context, size);
+  //
 
   this->type = type;
   this->device = device;
@@ -133,6 +137,11 @@ sutra_source::~sutra_source() {
   //delete this->current_context;
 
   delete this->d_phase;
+    
+  // REMOVING PHASE INSTRU
+  // delete this->d_phase_instru;
+  //
+    
   delete this->phase_telemetry;
 
   if (d_image != 0L)
@@ -231,6 +240,7 @@ int sutra_source::raytrace(sutra_atmos *yatmos, bool async) {
   cutilSafeCall(
       cudaMemset(this->d_phase->d_screen->getData(), 0,
           sizeof(float) * this->d_phase->d_screen->getNbElem()));
+
   float delta;
   map<type_screen, float>::iterator p;
   p = xoff.begin();
@@ -243,7 +253,6 @@ int sutra_source::raytrace(sutra_atmos *yatmos, bool async) {
       sutra_tscreen * ps;
       ps = yatmos->d_screens[alt];
       p++;
-
       if ((p == xoff.end()) && async) {
 
         target_raytrace_async(this->phase_telemetry,
@@ -254,10 +263,8 @@ int sutra_source::raytrace(sutra_atmos *yatmos, bool async) {
             (int) ps->d_tscreen->d_screen->getDims(1),
             xoff[make_pair("atmos", alt)], yoff[make_pair("atmos", alt)],
             this->block_size);
-
       } else {
-
-    	  if (this->lgs == true){
+    	  if (this->lgs){
     		  delta = 1.0f - alt/this->d_lgs->hg;
     		  target_lgs_raytrace(this->d_phase->d_screen->getData(),
     		              ps->d_tscreen->d_screen->getData(),
@@ -266,9 +273,8 @@ int sutra_source::raytrace(sutra_atmos *yatmos, bool async) {
     		              (int) ps->d_tscreen->d_screen->getDims(1),
     		              xoff[make_pair(types, alt)], yoff[make_pair(types, alt)],delta,
     		              this->block_size);
-
     	  }
-    	  else{
+    	  else
 
     		  target_raytrace(this->d_phase->d_screen->getData(),
     				  ps->d_tscreen->d_screen->getData(),
@@ -277,11 +283,9 @@ int sutra_source::raytrace(sutra_atmos *yatmos, bool async) {
     				  (int) ps->d_tscreen->d_screen->getDims(1),
     				  xoff[make_pair("atmos", alt)], yoff[make_pair("atmos", alt)],
     				  this->block_size);
-
-    	  }
       }
     } else
-    	p++;
+      p++;
   }
 
   return EXIT_SUCCESS;
@@ -383,6 +387,13 @@ int sutra_source::comp_image(int puponly) {
       this->d_pupil->getData(), this->scale, puponly,
       this->d_phase->d_screen->getDims(1), this->d_phase->d_screen->getDims(2),
       this->d_amplipup->getDims(1), this->device);
+    
+//  // fill complex amplitude in the pupil with phase @ lambda
+//  fill_amplipup(this->d_amplipup->getData(), this->d_phase->d_screen->getData(),
+//              this->d_phase_instru->d_screen_instru->getData(),
+//              this->d_pupil->getData(), this->scale, puponly,
+//              this->d_phase->d_screen->getDims(1), this->d_phase->d_screen->getDims(2),
+//              this->d_amplipup->getDims(1), this->device);
 
   // do fft : complex amplitude in the focal plane
   carma_fft(this->d_amplipup->getData(), this->d_amplipup->getData(), 1,
@@ -427,8 +438,8 @@ int sutra_source::comp_strehl() {
       sizeof(float), cudaMemcpyDeviceToHost);
 
   this->strehl_se /= this->ref_strehl;
-  this->strehl_le /= (this->ref_strehl * this->strehl_counter);
-  */
+  this->strehl_le /= (this->ref_strehl * this->strehl_counter);*/
+
   return EXIT_SUCCESS;
 }
 
@@ -446,7 +457,7 @@ sutra_target::sutra_target(carma_context *context, int ntargets, float *xpos,
 
 sutra_target::~sutra_target() {
 //  for (size_t idx = 0; idx < (this->d_targets).size(); idx++) {
-  while((this->d_targets).size()>0) {
+    while((this->d_targets).size()>0) {
     delete this->d_targets.back();
     d_targets.pop_back();
   }

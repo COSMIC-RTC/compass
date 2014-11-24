@@ -542,22 +542,14 @@ int sutra_wfs::comp_sh_generic() {
       this->d_gs->d_phase->d_screen->getDims(1), this->nfft,
       this->nphase * this->nphase * this->nvalid, this->device);
 
-  if (*this->d_camplipup->getPlan() == 0L) {
-    carma_initfft<cuFloatComplex, cuFloatComplex>(
-    		this->d_camplipup->getDims(),
-    		this->d_camplipup->getPlan(),
-        carma_select_plan<cuFloatComplex, cuFloatComplex>());
-
-  }
-  //carma_obj<cuFloatComplex> tmp_carmaobj(this->current_context, this->d_camplipup->getDims());
   // do fft of the cube  
-  carma_fft<cuFloatComplex, cuFloatComplex>(*this->d_camplipup, *this->d_camplifoc, 1,
+  carma_fft(this->d_camplipup->getData(), this->d_camplifoc->getData(), 1,
       *this->d_camplipup->getPlan());
-
   // get the hrimage by taking the | |^2
   // keep it in amplifoc to save mem space
-  abs2c(*this->d_camplifoc, *this->d_camplifoc,
-      this->d_camplifoc->getNbElem(), this->device);
+  abs2c(this->d_camplifoc->getData(), this->d_camplifoc->getData(),
+      this->d_hrimg->getDims(1) * this->d_hrimg->getDims(2)
+          * this->d_hrimg->getDims(3), this->device);
 
   //set bincube to 0 or noise
   cutilSafeCall(
@@ -738,169 +730,169 @@ int sutra_wfs::comp_pyr_generic() {
     
     //START COMMENTING HERE TO SWITCH TO PYRAMID
   
-  pyr_getpup(this->d_camplipup->getData(),
-      this->d_gs->d_phase->d_screen->getData(), this->d_phalfxy->getData(),
-      this->d_pupil->getData(), this->ntot, this->device);
-
-  carma_fft(this->d_camplipup->getData(), this->d_camplifoc->getData(), -1,
-      *this->d_camplipup->getPlan());
-
-  pyr_submask(this->d_camplifoc->getData(), this->d_submask->getData(),
-      this->ntot, this->device);
-
-  cutilSafeCall(
-      cudaMemset(this->d_hrimg->getData(), 0,
-          sizeof(float) * this->d_hrimg->getNbElem()));
-
-  //this->npup = 1;
-  for (int cpt = 0; cpt < this->npup; cpt++) {
-    // modulation loop
-    // computes the high resolution images
-    cutilSafeCall(
-        cudaMemset(this->d_fttotim->getData(), 0,
-            sizeof(cuFloatComplex) * this->d_fttotim->getNbElem()));
-
-    // here we split the image in 4 quadrant and roll them
-    pyr_rollmod(this->d_fttotim->getData(), this->d_camplifoc->getData(),
-        this->d_poffsets->getData(), (this->pyr_cx->getData())[cpt],
-        (this->pyr_cy->getData())[cpt], this->ntot, this->nfft, this->device);
-
-    // case of diffractive pyramid
-    // multiply d_camplifoc->getData() by pyramid + modulation phase
-    // fft
-    // reorder the 4 quadrants
-
-    /*
-     pyr_rollmod(this->d_fttotim->getData(),this->d_camplifoc->getData(), this->d_poffsets->getData(),0,
-     0,this->ntot , this->nfft, this->device);
-     */
-
-    carma_fft(this->d_fttotim->getData(), this->d_fttotim->getData(), 1,
-        *this->d_fttotim->getPlan());
-
-    float fact = 1.0f / this->nfft / this->nfft / this->nfft / 2.0;
-    //if (cpt == this->npup-1) fact = fact / this->npup;
-
-    pyr_abs2(this->d_hrimg->getData(), this->d_fttotim->getData(), fact,
-        this->nfft, 4, this->device);
-  }
-  /*
-   // spatial filtering by the pixel extent:
-   carma_fft(this->d_fttotim->getData(), this->d_fttotim->getData(), -1,
-   *this->d_fttotim->getPlan());
-
-   pyr_submask3d(this->d_fttotim->getData(), this->d_sincar->getData(),this->nfft, 4, this->device);
-
-   carma_fft(this->d_fttotim->getData(), this->d_fttotim->getData(), 1,
-   *this->d_fttotim->getPlan());
-
-   pyr_abs(this->d_hrimg->getData(), this->d_fttotim->getData(),this->nfft, 4, this->device);
-
-   pyr_fact(this->d_hrimg->getData(),1.0f/this->nfft/this->nfft,this->nfft,4,this->device);
-   */
-
-  if (this->noise > 0) {
-    this->d_bincube->prng('N', this->noise);
-  } else
-    cutilSafeCall(
-        cudaMemset(this->d_bincube->getData(), 0,
-            sizeof(float) * this->d_bincube->getNbElem()));
-
-  pyr_fillbin(this->d_bincube->getData(), this->d_hrimg->getData(),
-      this->nrebin, this->nfft, this->nfft / this->nrebin, 4, this->device);
-
-  pyr_subsum(this->d_subsum->getData(), this->d_bincube->getData(),
-      this->d_validsubsx->getData(), this->d_validsubsy->getData(),
-      this->nfft / this->nrebin, this->nvalid, 4, this->device);
-
-  int blocks, threads;
-  getNumBlocksAndThreads(this->device, this->nvalid, blocks, threads);
-  reduce(this->nvalid, threads, blocks, this->d_subsum->getData(),
-      this->d_subsum->getData());
-
-  pyr_fact(this->d_bincube->getData(), this->nphot, this->d_subsum->getData(),
-      this->nfft / this->nrebin, 4, this->device);
-
-  pyr_subsum(this->d_subsum->getData(), this->d_bincube->getData(),
-      this->d_validsubsx->getData(), this->d_validsubsy->getData(),
-      this->nfft / this->nrebin, this->nvalid, 4, this->device);
-  /*
-  reduce(this->nvalid, threads, blocks, this->d_subsum->getData(),
-      this->d_subsum->getData());
-  */
-  return EXIT_SUCCESS;
+//  pyr_getpup(this->d_camplipup->getData(),
+//      this->d_gs->d_phase->d_screen->getData(), this->d_phalfxy->getData(),
+//      this->d_pupil->getData(), this->ntot, this->device);
+//
+//  carma_fft(this->d_camplipup->getData(), this->d_camplifoc->getData(), -1,
+//      *this->d_camplipup->getPlan());
+//
+//  pyr_submask(this->d_camplifoc->getData(), this->d_submask->getData(),
+//      this->ntot, this->device);
+//
+//  cutilSafeCall(
+//      cudaMemset(this->d_hrimg->getData(), 0,
+//          sizeof(float) * this->d_hrimg->getNbElem()));
+//
+//  //this->npup = 1;
+//  for (int cpt = 0; cpt < this->npup; cpt++) {
+//    // modulation loop
+//    // computes the high resolution images
+//    cutilSafeCall(
+//        cudaMemset(this->d_fttotim->getData(), 0,
+//            sizeof(cuFloatComplex) * this->d_fttotim->getNbElem()));
+//
+//    // here we split the image in 4 quadrant and roll them
+//    pyr_rollmod(this->d_fttotim->getData(), this->d_camplifoc->getData(),
+//        this->d_poffsets->getData(), (this->pyr_cx->getData())[cpt],
+//        (this->pyr_cy->getData())[cpt], this->ntot, this->nfft, this->device);
+//
+//    // case of diffractive pyramid
+//    // multiply d_camplifoc->getData() by pyramid + modulation phase
+//    // fft
+//    // reorder the 4 quadrants
+//
+//    /*
+//     pyr_rollmod(this->d_fttotim->getData(),this->d_camplifoc->getData(), this->d_poffsets->getData(),0,
+//     0,this->ntot , this->nfft, this->device);
+//     */
+//
+//    carma_fft(this->d_fttotim->getData(), this->d_fttotim->getData(), 1,
+//        *this->d_fttotim->getPlan());
+//
+//    float fact = 1.0f / this->nfft / this->nfft / this->nfft / 2.0;
+//    //if (cpt == this->npup-1) fact = fact / this->npup;
+//
+//    pyr_abs2(this->d_hrimg->getData(), this->d_fttotim->getData(), fact,
+//        this->nfft, 4, this->device);
+//  }
+//  /*
+//   // spatial filtering by the pixel extent:
+//   carma_fft(this->d_fttotim->getData(), this->d_fttotim->getData(), -1,
+//   *this->d_fttotim->getPlan());
+//
+//   pyr_submask3d(this->d_fttotim->getData(), this->d_sincar->getData(),this->nfft, 4, this->device);
+//
+//   carma_fft(this->d_fttotim->getData(), this->d_fttotim->getData(), 1,
+//   *this->d_fttotim->getPlan());
+//
+//   pyr_abs(this->d_hrimg->getData(), this->d_fttotim->getData(),this->nfft, 4, this->device);
+//
+//   pyr_fact(this->d_hrimg->getData(),1.0f/this->nfft/this->nfft,this->nfft,4,this->device);
+//   */
+//
+//  if (this->noise > 0) {
+//    this->d_bincube->prng('N', this->noise);
+//  } else
+//    cutilSafeCall(
+//        cudaMemset(this->d_bincube->getData(), 0,
+//            sizeof(float) * this->d_bincube->getNbElem()));
+//
+//  pyr_fillbin(this->d_bincube->getData(), this->d_hrimg->getData(),
+//      this->nrebin, this->nfft, this->nfft / this->nrebin, 4, this->device);
+//
+//  pyr_subsum(this->d_subsum->getData(), this->d_bincube->getData(),
+//      this->d_validsubsx->getData(), this->d_validsubsy->getData(),
+//      this->nfft / this->nrebin, this->nvalid, 4, this->device);
+//
+//  int blocks, threads;
+//  getNumBlocksAndThreads(this->device, this->nvalid, blocks, threads);
+//  reduce(this->nvalid, threads, blocks, this->d_subsum->getData(),
+//      this->d_subsum->getData());
+//
+//  pyr_fact(this->d_bincube->getData(), this->nphot, this->d_subsum->getData(),
+//      this->nfft / this->nrebin, 4, this->device);
+//
+//  pyr_subsum(this->d_subsum->getData(), this->d_bincube->getData(),
+//      this->d_validsubsx->getData(), this->d_validsubsy->getData(),
+//      this->nfft / this->nrebin, this->nvalid, 4, this->device);
+//  /*
+//  reduce(this->nvalid, threads, blocks, this->d_subsum->getData(),
+//      this->d_subsum->getData());
+//  */
+//  return EXIT_SUCCESS;
 
   //___________________________________________________________________
-//  // MODIF ROOF SENSOR
-//
-//  //PYR_GETPUP: reads pupil & phase and computes rolled electric field
-//   pyr_getpup(this->d_camplipup->getData(),
-//       this->d_gs->d_phase->d_screen->getData(), this->d_phalfxy->getData(),
-//       this->d_pupil->getData(), this->ntot, this->device);
-//
-//   carma_fft(this->d_camplipup->getData(), this->d_camplifoc->getData(), -1,
-//       *this->d_camplipup->getPlan());
-//
-//   pyr_submask(this->d_camplifoc->getData(), this->d_submask->getData(),
-//       this->ntot, this->device);
-//
-//   cutilSafeCall(
-//       cudaMemset(this->d_hrimg->getData(), 0,
-//           sizeof(float) * this->d_hrimg->getNbElem()));
-//
-//   //this->npup = 1;
-//   for (int cpt = 0; cpt < this->npup; cpt++) {
-//     // modulation loop
-//     // computes the high resolution images
-//     cutilSafeCall(
-//         cudaMemset(this->d_fttotim->getData(), 0,
-//             sizeof(cuFloatComplex) * this->d_fttotim->getNbElem()));
-//
-//     roof_rollmod(this->d_fttotim->getData(), this->d_camplifoc->getData(),
-//         this->d_poffsets->getData(), (this->pyr_cx->getData())[cpt],
-//         (this->pyr_cy->getData())[cpt], this->ntot, this->nfft, this->device);
-//  //   /*
-//  //    pyr_rollmod(this->d_fttotim->getData(),this->d_camplifoc->getData(), this->d_poffsets->getData(),0,
-//  //    0,this->ntot , this->nfft, this->device);
-//  //    */
-//
-//     carma_fft(this->d_fttotim->getData(), this->d_fttotim->getData(), 1,
-//         *this->d_fttotim->getPlan());
-//
-//     float fact = 1.0f / this->nfft / this->nfft / this->nfft / 2.0;
-//     //if (cpt == this->npup-1) fact = fact / this->npup;
-//
-//     roof_abs2(this->d_hrimg->getData(), this->d_fttotim->getData(), fact,
-//         this->nfft, 4, this->device);
-//   }
-//
-//   if (this->noise > 0) {
-//     this->d_bincube->prng('N', this->noise);
-//   } else
-//     cutilSafeCall(
-//         cudaMemset(this->d_bincube->getData(), 0,
-//             sizeof(float) * this->d_bincube->getNbElem()));
-//
-//   roof_fillbin(this->d_bincube->getData(), this->d_hrimg->getData(),
-//       this->nrebin, this->nfft, this->nfft / this->nrebin, 4, this->device);
-//
-//   pyr_subsum(this->d_subsum->getData(), this->d_bincube->getData(),
-//       this->d_validsubsx->getData(), this->d_validsubsy->getData(),
-//       this->nfft / this->nrebin, this->nvalid, 4, this->device);
-//
-//   int blocks, threads;
-//   getNumBlocksAndThreads(this->device, this->nvalid, blocks, threads);
-//   reduce(this->nvalid, threads, blocks, this->d_subsum->getData(),
-//       this->d_subsum->getData());
-//
-//   pyr_fact(this->d_bincube->getData(), this->nphot, this->d_subsum->getData(),
-//       this->nfft / this->nrebin, 4, this->device);
-//
-//   pyr_subsum(this->d_subsum->getData(), this->d_bincube->getData(),
-//       this->d_validsubsx->getData(), this->d_validsubsy->getData(),
-//       this->nfft / this->nrebin, this->nvalid, 4, this->device);
-//
-//   return EXIT_SUCCESS;
+  // MODIF ROOF SENSOR
+
+  //PYR_GETPUP: reads pupil & phase and computes rolled electric field
+   pyr_getpup(this->d_camplipup->getData(),
+       this->d_gs->d_phase->d_screen->getData(), this->d_phalfxy->getData(),
+       this->d_pupil->getData(), this->ntot, this->device);
+
+   carma_fft(this->d_camplipup->getData(), this->d_camplifoc->getData(), -1,
+       *this->d_camplipup->getPlan());
+
+   pyr_submask(this->d_camplifoc->getData(), this->d_submask->getData(),
+       this->ntot, this->device);
+
+   cutilSafeCall(
+       cudaMemset(this->d_hrimg->getData(), 0,
+           sizeof(float) * this->d_hrimg->getNbElem()));
+
+   //this->npup = 1;
+   for (int cpt = 0; cpt < this->npup; cpt++) {
+     // modulation loop
+     // computes the high resolution images
+     cutilSafeCall(
+         cudaMemset(this->d_fttotim->getData(), 0,
+             sizeof(cuFloatComplex) * this->d_fttotim->getNbElem()));
+
+     roof_rollmod(this->d_fttotim->getData(), this->d_camplifoc->getData(),
+         this->d_poffsets->getData(), (this->pyr_cx->getData())[cpt],
+         (this->pyr_cy->getData())[cpt], this->ntot, this->nfft, this->device);
+  //   /*
+  //    pyr_rollmod(this->d_fttotim->getData(),this->d_camplifoc->getData(), this->d_poffsets->getData(),0,
+  //    0,this->ntot , this->nfft, this->device);
+  //    */
+
+     carma_fft(this->d_fttotim->getData(), this->d_fttotim->getData(), 1,
+         *this->d_fttotim->getPlan());
+
+     float fact = 1.0f / this->nfft / this->nfft / this->nfft / 2.0;
+     //if (cpt == this->npup-1) fact = fact / this->npup;
+
+     roof_abs2(this->d_hrimg->getData(), this->d_fttotim->getData(), fact,
+         this->nfft, 4, this->device);
+   }
+
+   if (this->noise > 0) {
+     this->d_bincube->prng('N', this->noise);
+   } else
+     cutilSafeCall(
+         cudaMemset(this->d_bincube->getData(), 0,
+             sizeof(float) * this->d_bincube->getNbElem()));
+
+   roof_fillbin(this->d_bincube->getData(), this->d_hrimg->getData(),
+       this->nrebin, this->nfft, this->nfft / this->nrebin, 4, this->device);
+
+   pyr_subsum(this->d_subsum->getData(), this->d_bincube->getData(),
+       this->d_validsubsx->getData(), this->d_validsubsy->getData(),
+       this->nfft / this->nrebin, this->nvalid, 4, this->device);
+
+   int blocks, threads;
+   getNumBlocksAndThreads(this->device, this->nvalid, blocks, threads);
+   reduce(this->nvalid, threads, blocks, this->d_subsum->getData(),
+       this->d_subsum->getData());
+
+   pyr_fact(this->d_bincube->getData(), this->nphot, this->d_subsum->getData(),
+       this->nfft / this->nrebin, 4, this->device);
+
+   pyr_subsum(this->d_subsum->getData(), this->d_bincube->getData(),
+       this->d_validsubsx->getData(), this->d_validsubsy->getData(),
+       this->nfft / this->nrebin, this->nvalid, 4, this->device);
+
+   return EXIT_SUCCESS;
 
 }
 

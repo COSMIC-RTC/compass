@@ -48,8 +48,8 @@ int sutra_centroider_pyr::get_pyr(float *cube, float *subsum, float *centroids,
     //     roof_slopes(centroids, cube, subindx, subindy, subsum, ns, nvalid, nim,
     //     this->device);
     // }
-    pyr_slopes(centroids, cube, subindx, subindy, subsum, ns, nvalid, nim, this->device);
-    //roof_slopes(centroids, cube, subindx, subindy, subsum, ns, nvalid, nim, this->device);
+    //pyr_slopes(centroids, cube, subindx, subindy, subsum, ns, nvalid, nim, this->device);
+    roof_slopes(centroids, cube, subindx, subindy, subsum, ns, nvalid, nim, this->device);
   return EXIT_SUCCESS;
 }
 

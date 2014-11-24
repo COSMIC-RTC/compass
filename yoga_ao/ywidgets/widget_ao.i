@@ -638,8 +638,9 @@ func update_main(type,nlayer)
     plg,y_geom.pupdiam/2*cos(rho)+nx/2.,y_geom.pupdiam/2*sin(rho)+nx/2.,color="red",marks=0,width=3;
   }
   if (type == "Phase - Target") {
-    pupcustom = *y_geom._spupil; // modif: lecture pupille
-    //target_atmostrace,g_target,nlayer,g_atmos;
+    //pupcustom = *y_geom._apodizer; // modif: lecture pupille
+    pupcustom = *y_geom._spupil;
+      //target_atmostrace,g_target,nlayer,g_atmos;
     if (g_dm != []) {
       //target_dmtrace,g_target,nlayer,g_dm;
       //mscreen = target_getphasetele(g_target,nlayer);
@@ -663,7 +664,7 @@ func update_main(type,nlayer)
     mimg=roll(mimg);
     OWA=2*y_dm.nact(1);
     mimg=mimg(Di(2)/2-1-OWA:Di(2)/2+OWA,Di(2)/2-1-OWA:Di(2)/2+OWA);
-    mimg=mimg*(mimg > max(mimg)/10000)+max(mimg)/10000*(mimg < max(mimg)/10000);
+    mimg=mimg*(mimg > max(mimg)/100000)+max(mimg)/100000*(mimg < max(mimg)/100000);
     pli,log10(mimg);
     myxtitle = swrite(format="image (log scale) for target # %d", nlayer+1);
     port= viewport();

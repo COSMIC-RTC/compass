@@ -9,6 +9,7 @@ struct geom_struct
   pointer _ipupil;   // total pupil (include full guard band)
   pointer _mpupil;   // medium pupil (part of the guard band)
   pointer _spupil;   // small pupil (without guard band)
+  pointer _apodizer; // apodizer (same size as small pupil)
   long  _p1;         // min x,y for valid points in mpupil
   long  _p2;         // max x,y for valid points in mpupil
   long  _n;          // linear size of mpupil
@@ -20,15 +21,19 @@ struct tel_struct
 {
   float diam;        // telescope diameter (in meters)
   float cobs;        // central obstruction ratio
+  string type_ap;    // EELT aperture type: "Nominal", "BP1", "BP3", "BP5" (for back-up plan with 1, 3, or 5 missing annulus).
   float t_spiders;   // secondary supports ratio
   string spiders_type; // secondary supports type: "four" or "six"
+  float pupangle;    // rotation angle of pupil
+  long nbrmissing;  // number of missing segments for EELT pupil (max is 20)
+  float referr;     // std of reflectivity errors for EELT segments (fraction)
 };
 
 struct atmos_struct
 {
   long    nscreens;    // number of turbulent layers
   float   r0;          // global r0 @ 0.5µm
-  float   pupixsize;   // pupil piwel size (in meters)
+  float   pupixsize;   // pupil pixel size (in meters)
   pointer   L0;        // L0 per layers in meters
   pointer dim_screens; // linear size of phase screens
   pointer alt;         // altitudes of each layer
@@ -43,6 +48,7 @@ struct atmos_struct
 struct target_struct
 {
   long    ntargets;  // number of targets
+  long    apod;      // boolean for apodizer
   pointer lambda;    // observation wavelength for each target
   pointer xpos;      // x positions on sky (in arcsec) for each target
   pointer ypos;      // y positions on sky (in arcsec) for each target

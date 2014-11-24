@@ -1,7 +1,106 @@
+#include"fits-utils.i"
+
 dtor = pi/180.;
 radeg = 1./dtor;
 
 RASC = 180*3600/pi;
+
+//
+
+func rotscale(A,alpha,M)
+/*
+    This function reads the array A and proceed with its Fourier transform (matrix-based, not an FFT).
+    It then rotate the resulting array with the rotate2 routine, and computes a second FT with a new size M.
+*/
+{
+    OWA=256;
+    E=qft(A,1.,OWA,int(4*OWA));
+    E_rot=rotate2(re_part(E),alpha)+1i*rotate2(im_part(E),alpha);
+    B=qft(E_rot,OWA,1.,int(M));
+    return B;
+}
+
+func qft(A,D1,D2,M)
+/*
+ 
+ This function computes the Fourier transform E of the field A.
+ - D1: diameter of A
+ - D2: diameter of E (in lambda/D)
+ - M: number of points for E (along one axis)
+ 
+ The FT is computed using array products.
+ 
+ It returns E, the complex electric field.
+ 
+ */
+{
+	//extern N,x,X,u,U,E,I;
+	
+	if (int(sqrt(numberof(A)))==0) {
+		exit, "A must be a square array!"
+	}
+	
+	N=int(sqrt(numberof(A)));
+	
+	//o=array(1,N);
+	
+	//x=span(-D1*0.5+1./(4*N),D1*0.5-1./(4*N), N);
+	
+	x=VECT(D1,N);
+	X=MESH(D1,N);
+    
+	Y=transpose(X);
+	
+	//o=array(1,M);
+	//u=span(-D2*0.5+1./(4*M),D2*0.5-1./(4*M), M);
+	//U=o(-,)*u(,-);
+	
+	u=VECT(D2,M);
+	U=MESH(D2,M);
+    
+	V=transpose(U);
+	
+	XU=x(,-)*u(-,);
+	YV=transpose(XU);
+	
+	E1=exp(2*pi*1i*XU);
+	E2=exp(2*pi*1i*YV);
+	
+	Ex=A(,+)*E1(+,)*D1/N;
+	E=E2(,+)*Ex(+,)*D1/N;
+	
+	//I=abs(E)^2;
+	//I=log10(I/max(I(,)));
+    
+    return E;
+}
+
+func VECT(D,N)
+{
+	o=array(1,N);
+	x=span(-D*0.5+1./(4*N),D*0.5-1./(4*N), N);
+	return x;
+}
+
+func MESH(D,N)
+{
+	o=array(1,N);
+	x=span(-D*0.5+1./(4*N),D*0.5-1./(4*N), N);
+	X=o(-,)*x(,-);
+	return X;
+}
+
+func pad_array(A,N)
+{
+	L=max(dimsof(A));
+    D=(N-L)/2;
+    O=array(0.0,N,N);
+    O(D+1:N-D,D+1:N-D)=A;
+    A=O;
+    return A;
+}
+
+//
 
 func regressAx(y,x)
 /* DOCUMENT coef = regressAx(y,x)
@@ -425,7 +524,7 @@ func __mysinc(ar)
   return sin(ar)/ar;
 }
 
-func make_pupil(dim,pupd,xc=,yc=,real=,cobs=,t_spiders=,spiders_type=)
+func make_pupil_generic(dim,pupd,xc=,yc=,real=,cobs=,t_spiders=,spiders_type=,angle=)
   /* DOCUMENT func make_pupil(dim,pupd,xc=,yc=,real=)
    */
 {
@@ -444,36 +543,221 @@ func make_pupil(dim,pupd,xc=,yc=,real=,cobs=,t_spiders=,spiders_type=)
 
       X=span(-0.5*(1-1./dim),0.5*(1-1./dim),dim)(,-:1:dim);
       Y=transpose(X);
-      t_spiders=t_spiders*pupd/dim;
+        
+      if (!is_set(spiders_type)) spiders_type="six";
+      if (!is_set(t_spiders)) t_spiders=0.01;
 
+      t_spiders=t_spiders*pupd/dim;
+        
       if (spiders_type=="four") {
 
-      //spiders_map_1 = abs(X) > t_spiders/2;
-      //spiders_map_2 = abs(Y) > t_spiders/2;
-
-      spiders_map_1 = ((Y > (X+t_spiders/(2*sin(pi/4)))*tan(pi/4))+(Y < (X-t_spiders/(2*sin(pi/4)))*tan(pi/4)));
-      spiders_map_2 = ((Y > (-X+t_spiders/(2*sin(pi/4)))*tan(pi/4))+(Y < (-X-t_spiders/(2*sin(pi/4)))*tan(pi/4)));
-
-      pup = pup*spiders_map_1*spiders_map_2;
+          spiders_map_1 = ((Y > (X+t_spiders/(2*sin(pi/4)))*tan(pi/4))+(Y < (X-t_spiders/(2*sin(pi/4)))*tan(pi/4)));
+          spiders_map_2 = ((Y > (-X+t_spiders/(2*sin(pi/4)))*tan(pi/4))+(Y < (-X-t_spiders/(2*sin(pi/4)))*tan(pi/4)));
+          pup = pup*spiders_map_1*spiders_map_2;
 
       } else if (spiders_type=="six") {
-
-      //spiders_map_1 = abs(X) > t_spiders/2;
-      //spiders_map_2 = ((Y > (X+t_spiders/(2*sin(pi/6)))*tan(pi/6))+(Y < (X-t_spiders/(2*sin(pi/6)))*tan(pi/6)));
-      //spiders_map_3 = ((Y > (-X+t_spiders/(2*sin(pi/6)))*tan(pi/6))+(Y < (-X-t_spiders/(2*sin(pi/6)))*tan(pi/6)));
       
-      spiders_map_1 = ((Y > (-X+t_spiders/(2*sin(pi/2-pi/12)))*tan(pi/2-pi/12))+(Y < (-X-t_spiders/(2*sin(pi/2-pi/12)))*tan(pi/2-pi/12)));
-
-      spiders_map_2 = ((Y > (X+t_spiders/(2*sin(pi/6+pi/12)))*tan(pi/6+pi/12))+(Y < (X-t_spiders/(2*sin(pi/6+pi/12)))*tan(pi/6+pi/12)));
-      spiders_map_3 = ((Y > (-X+t_spiders/(2*sin(pi/6-pi/12)))*tan(pi/6-pi/12))+(Y < (-X-t_spiders/(2*sin(pi/6-pi/12)))*tan(pi/6-pi/12)));
-      
-      pup = pup*spiders_map_1*spiders_map_2*spiders_map_3;
+          angle = 180/15.;
+          spiders_map_1 = ((Y > (-X+t_spiders/(2*sin(pi/2-pi/angle)))*tan(pi/2-pi/angle))+(Y < (-X-t_spiders/(2*sin(pi/2-pi/angle)))*tan(pi/2-pi/angle)));
+          spiders_map_2 = ((Y > (X+t_spiders/(2*sin(pi/6+pi/angle)))*tan(pi/6+pi/angle))+(Y < (X-t_spiders/(2*sin(pi/6+pi/angle)))*tan(pi/6+pi/angle)));
+          spiders_map_3 = ((Y > (-X+t_spiders/(2*sin(pi/6-pi/angle)))*tan(pi/6-pi/angle))+(Y < (-X-t_spiders/(2*sin(pi/6-pi/angle)))*tan(pi/6-pi/angle)));
+          pup = pup*spiders_map_1*spiders_map_2*spiders_map_3;
 
       }
     }
   }
     
   return pup;
+}
+
+func make_VLT(dim,pupd,cobs,t_spiders)
+/* DOCUMENT func make_VLT(dim,pupd,cobs,t_spiders)
+ */
+{
+    
+    diam=8.0;
+    y_tel.diam=diam;
+    
+    cobs=0.14;
+    y_tel.cobs=cobs;
+    
+    t_spiders=0.005;
+    y_tel.t_spiders=t_spiders;
+    
+    X=MESH(1.,dim);
+    Y=transpose(X);
+    R=sqrt(X^2.+Y^2.);
+    
+    off=2.52/36;
+    t_spiders=0.09/18;
+    angle = 50.5*pi/180;
+    
+    pup=(R<0.5)*(R>cobs/2);
+    
+    spiders_map = ((Y > (X-cobs/2+t_spiders/sin(angle))*tan(angle))+(Y < (X-cobs/2)*tan(angle)))*(X>0)*(Y>0);
+    spiders_map = spiders_map+spiders_map(dim:1:-1,);
+    spiders_map = spiders_map+spiders_map(,dim:1:-1);
+    
+    pup = pup*spiders_map;
+    
+    return pup;
+}
+
+// EELT pupil building ; to be called by main pupil building routine (make_pupil).
+func make_EELT(dim,pupd,type_ap,cobs,N_seg,nbr_miss_seg,std_ref_err,t_spiders,angle)
+{
+    if (fileExist(swrite(format="/root/compass/trunk/yoga_ao/data/apertures/"+"%s_N%d_COBS%d_CLOCKED%d_TSPIDERS%2.1f_MS%d_REFERR%d.fits",type_ap,dim,long(100*cobs),long(angle),100*t_spiders,nbr_miss_seg,long(100*std_ref_err))))
+    {
+    
+        pup = fits_read(swrite(format="/root/compass/trunk/yoga_ao/data/apertures/"+"%s_N%d_COBS%d_CLOCKED%d_TSPIDERS%2.1f_MS%d_REFERR%d.fits",type_ap,dim,long(100*cobs),long(angle),100*t_spiders,nbr_miss_seg,long(100*std_ref_err)));
+    
+    } else {
+    
+        f=open("/root/compass/trunk/yoga_ao/data/apertures/Coord_"+type_ap+".dat","r");
+        x_seg= y_seg= array(0.0,N_seg);
+        read, f, x_seg, y_seg;
+        close, f;
+        
+        f2=open("/root/compass/trunk/yoga_ao/data/apertures/EELT_MISSING_"+type_ap+".dat","r");
+        k_seg = array(0.0,1,20);
+        read, f2, k_seg;
+        close, f2;
+        
+        W=1.45*cos(pi/6);
+        D=40.;
+        y_tel.diam=D;
+        X=MESH(1.*D*dim/pupd,dim);
+        Y=transpose(X);
+        
+        if (nbr_miss_seg>0) k_seg=k_seg(1:nbr_miss_seg);
+        k_seg=int(k_seg(sort(k_seg)));
+        
+        f3=open("/root/compass/trunk/yoga_ao/data/apertures/EELT_REF_ERROR.dat","r");
+        ref_err = array(0.0,798);
+        read, f3, ref_err;
+        close, f3;
+        mean_ref = sum(ref_err)/798;
+        std_ref = sqrt(1./798.*sum((ref_err-mean_ref)^2));
+        ref_err = ref_err * std_ref_err/std_ref;
+        if (nbr_miss_seg>0) ref_err(k_seg) = 1.0;
+        
+        pup=array(0.0,dim,dim);
+        for (i=1 ; i<= N_seg ; i++)
+        {
+            Xt=X+x_seg(i);
+            Yt=Y+y_seg(i);
+            pup=pup+(1-ref_err(i))*(Yt<0.5*W)*(Yt>=-0.5*W)*(0.5*(Yt+tan(pi/3.)*Xt)<0.5*W)*(0.5*(Yt+tan(pi/3.)*Xt)>=-0.5*W)*(0.5*(Yt-tan(pi/3.)*Xt)<0.5*W)*(0.5*(Yt-tan(pi/3.)*Xt)>=-0.5*W);
+        }
+        t_spiders_ori=t_spiders;
+        t_spiders = t_spiders*D*dim/pupd;
+        spiders_map_1 = abs(X) > t_spiders/2;
+        spiders_map_2 = ((Y > (X+t_spiders/(2*sin(pi/6)))*tan(pi/6))+(Y < (X-t_spiders/(2*sin(pi/6)))*tan(pi/6)));
+        spiders_map_3 = ((Y > (-X+t_spiders/(2*sin(pi/6)))*tan(pi/6))+(Y < (-X-t_spiders/(2*sin(pi/6)))*tan(pi/6)));
+        t_spiders = t_spiders_ori;
+        pup = pup*spiders_map_1*spiders_map_2*spiders_map_3;
+        if (angle != 0) pup=rotate2(pup,angle);
+        "EELT pupil has been created.";
+        
+        fits_write, swrite(format="/root/compass/trunk/yoga_ao/data/apertures/"+"%s_N%d_COBS%d_CLOCKED%d_TSPIDERS%2.1f_MS%d_REFERR%d.fits",type_ap,dim,long(100*cobs),long(angle),100*t_spiders_ori,nbr_miss_seg,long(100*std_ref_err)), pup, overwrite=1;
+        "New aperture saved";
+        
+    }
+    
+    return pup;
+}
+
+// Main pupil building routine.
+func make_pupil(dim,pupd,type_ap=,angle=,spiders_type=,t_spiders=,nbr_miss_seg=,std_ref_err=,xc=,yc=,real=,cobs=)
+{
+    if (!is_set(angle)) angle=0.;
+    if (!is_set(nbr_miss_seg)) nbr_miss_seg=0;
+    if (!is_set(std_ref_err)) std_ref_err=0.;
+
+    if (type_ap=="EELT-Nominal") {
+        
+        N_seg=798;
+        cobs = 0.3;
+        y_tel.cobs = cobs;
+        pup=make_EELT(dim,pupd,type_ap,cobs,N_seg,nbr_miss_seg,std_ref_err,t_spiders,angle);
+        
+    } else if (type_ap=="EELT-BP1") {
+        
+        N_seg=768;
+        cobs = 0.369;
+        y_tel.cobs = cobs;
+        pup=make_EELT(dim,pupd,type_ap,cobs,N_seg,nbr_miss_seg,std_ref_err,t_spiders,angle);
+        
+    } else if (type_ap=="EELT-BP3") {
+
+        N_seg=672;
+        cobs = 0.503;
+        y_tel.cobs = cobs;
+        pup=make_EELT(dim,pupd,type_ap,cobs,N_seg,nbr_miss_seg,std_ref_err,t_spiders,angle);
+        
+    } else if (type_ap=="EELT-BP5") {
+
+        N_seg=558;
+        cobs = 0.632;
+        y_tel.cobs = cobs;
+        pup=make_EELT(dim,pupd,type_ap,cobs,N_seg,nbr_miss_seg,std_ref_err,t_spiders,angle);
+        
+    } else if (type_ap=="VLT") {
+        
+        pup=make_VLT(dim,pupd);
+        
+    } else {
+        
+        type_ap="Generic";
+        y_tel.type_ap=type_ap;
+        pup=make_pupil_generic(dim,pupd,xc=xc,yc=yc,real=real,cobs=cobs,t_spiders=t_spiders,spiders_type=spiders_type,angle=angle);
+    }
+    
+    return pup;
+}
+
+func make_apodizer(dim,pupd,filename,angle)
+/* DOCUMENT func make_apodizer(dim,pupd,filename)
+ */
+{
+    "Opening apodizer";
+    pup=fits_read(filename);
+    
+    A=dimsof(pup);
+    A=A(2);
+    
+    if (A>dim) {
+        error, "Apodizer dimensions must be smaller.";
+    }
+    
+    if (A != pupd) {
+        pup=bilinear(pup,pupd,pupd);
+    }
+    
+    if (angle != 0) {
+        pup=rotate2(pup,angle);
+    }
+    
+    //pup=rotscale(pup,angle,pupd);
+    
+    reg=where(dist(pupd)>pupd/2.);
+    pup(reg)=0.;
+    
+    pupf=array(0.,dim,dim);
+    
+    if (dim != pupd) {
+        if ((dim-pupd)%2 != 0) {
+            pupf((dim-pupd+1)/2+1:(dim+pupd+1)/2,(dim-pupd+1)/2+1:(dim+pupd+1)/2)=pup;
+        
+        } else {
+            pupf((dim-pupd)/2+1:(dim+pupd)/2,(dim-pupd)/2+1:(dim+pupd)/2)=pup;
+        }
+    } else {
+        pupf=pup;
+    }
+    
+    pupf=abs(pupf);
+    
+    return pupf;
 }
 
 func plvf(vy,vx,y,x,autoscale=,scale=,width=,hsize=,hang=,color=,type=,prop=)
@@ -696,62 +980,3 @@ func get_r0(r0_at_lambda1, lambda1, lambda2)
 {
   return (lambda2/lambda1)^(6./5) * r0_at_lambda1;
 }
-
-
-
-
-
-func plsh( u, sc, color=)
-/* DOCUMENT plsh, slopes
-            plsh, slopes, scale, color=
-
-Displays a view (field of vectors) of the Hartmann slopes. Used in
-its 1st form, plht autoscales the plot.
-When used with scale=0, it prints the scale used when autoscaling.
-
-
-*/
-{
-
-
-  if( max(abs(u))==0 ) {
-    u(*) = 1.;
-    write,"WARNING : vector is null\n";
-  }
-
-  iwfs = 1;
-  nssp = y_wfs(iwfs).nxsub;
-  x = float((*y_wfs(iwfs)._validsubs)(1,));
-  y = float((*y_wfs(iwfs)._validsubs)(2,));
-  x -= avg(x);
-  y -= avg(y);
-  x /= max(abs(x));
-  y /= max(abs(y));
-
-  n = numberof(u);
-  if( n!=2*numberof(x) ) {
-    exit, "Dimensions pas correcte !!!!"
-  }
-  ux = u(1:n/2);
-  uy = u(n/2+1:);
-
-  plv, uy(,-:1:2), ux(,-:1:2), y(,-:1:2), x(,-:1:2), scale=sc;
-
-  limits,-1.1,1.1,-1.1,1.1;
-
-  if( !is_array(sc) ) {           // si scale n'est pas defini, on le calcule
-    sc = 2.5/nssp/max(abs(u(*)));
-  }
-  
-  if( sc==0 ) {
-    sc = 2.5/nssp/max(abs(u(*)));           // si scale==0, on le calcule aussi ...
-    print,"Scale = ",sc;
-  }
-  
-  plt, swrite(format="Scale = %g",double(sc)), 0.22, 0.88;
-    
-}
-
-
-
-

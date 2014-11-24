@@ -37,6 +37,9 @@ public:
   int phase_var_count; // counter for average phase variance in the pupil
 
   sutra_phase *d_phase; // phase for this target
+  // INTRO PHASE INSTRU
+  //sutra_phase *d_phase_instru;
+  //
   carma_host_obj<float> *phase_telemetry; // 
   sutra_lgs *d_lgs; // the lgs object
   carma_obj<float> *object; // the object intensity map
@@ -118,8 +121,14 @@ target_raytrace_async(carma_host_obj<float> *phase_telemetry, float *d_odata,
     int block_size);
 int
 fft_goodsize(long size);
+
+// ATTEMPT AT ADDING PHASE_INSTRU
+/*int
+fill_amplipup(cuFloatComplex *amplipup, float *phase, float *phase_instru, float *mask, float scale,
+    int puponly, int nx, int ny, int Nx, int device);*/
+
 int
 fill_amplipup(cuFloatComplex *amplipup, float *phase, float *mask, float scale,
-    int puponly, int nx, int ny, int Nx, int device);
+              int puponly, int nx, int ny, int Nx, int device);
 
 #endif // _SUTRA_TARGET_H_

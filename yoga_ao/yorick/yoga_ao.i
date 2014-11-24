@@ -1,3 +1,5 @@
+#include"fits-utils.i"
+
 // Environment check
 yoga_ao_top = get_env("YOGA_AO_TOP");
 if (!yoga_ao_top) error,"YOGA_AO_TOP is not defined!";
@@ -86,18 +88,21 @@ func geom_init(pupdiam)
 
   // Initialize pupil array:
 
+  // useful pupil
+  spupil=float(make_pupil(y_geom.pupdiam,y_geom.pupdiam,type_ap=y_tel.type_ap,angle=y_tel.pupangle,spiders_type=y_tel.spiders_type,t_spiders=y_tel.t_spiders,nbr_miss_seg=y_tel.nbrmissing,std_ref_err=y_tel.referr,xc=,yc=,real=,cobs=y_tel.cobs));
+    
   // large pupil (used for image formation)
-  ipupil = float(make_pupil(y_geom.ssize,y_geom.pupdiam,xc=y_geom.cent,yc=y_geom.cent,\
-                            cobs=y_tel.cobs,t_spiders=y_tel.t_spiders,spiders_type=y_tel.spiders_type));
-
-  // useful pupil 
-  spupil = float(make_pupil(y_geom.pupdiam,y_geom.pupdiam,xc=y_geom.pupdiam/2+0.5,\
-                            yc=y_geom.pupdiam/2+0.5,  cobs=y_tel.cobs,t_spiders=y_tel.t_spiders,spiders_type=y_tel.spiders_type));
-
+  ipupil=pad_array(spupil,y_geom.ssize);
+    
   // useful pupil + 4 pixels
-  mpupil = float(make_pupil(y_geom._n,y_geom.pupdiam,xc=y_geom._n/2+0.5,yc=y_geom._n/2+0.5,\
-                            cobs=y_tel.cobs,t_spiders=y_tel.t_spiders,spiders_type=y_tel.spiders_type));
-
+  mpupil=pad_array(spupil,y_geom._n);
+    
+  if (y_target.apod==1)
+  {
+      apodizer = float(make_apodizer(y_geom.pupdiam,y_geom.pupdiam,"/root/compass/trunk/yoga_ao/data/apodizer/SP_HARMONI_I4_C6_N1024.fits",180/12.));
+      y_geom._apodizer = &apodizer;
+  }
+    
   y_geom._ipupil = &ipupil;
   y_geom._spupil = &spupil;
   y_geom._mpupil = &mpupil;
@@ -323,9 +328,28 @@ func target_init(void)
   if (y_target != []) {
     sizes = y_geom.pupdiam;
     sizes = sizes(-::y_target.ntargets-1);
-    
-    g_target = yoga_target(y_target.ntargets,*y_target.xpos,*y_target.ypos,*y_target.lambda,*y_target.mag,sizes,*y_geom._spupil);
-
+      
+    // ATTEMPT AT MAKING IT POSSIBLE TO WORK WITH NON BINARY PUPILS
+    // switching *y_geom._spupil and *y_geom._apodizer with ceil(*y_geom._spupil) and ceil(*y_geom._apodizer)
+      
+    ceiled_pupil=ceil(*y_geom._spupil);
+    if (anyof(ceiled_pupil>1)) ceiled_pupil(where(ceiled_pupil>1))=1;
+      
+    if (y_target.apod != []) {
+        if (y_target.apod == 1) {
+            ceiled_apodizer=ceil(*y_geom._apodizer * *y_geom._spupil);
+            if (anyof(ceiled_apodizer>1)) ceiled_apodizer(where(ceiled_apodizer>1))=1;
+            g_target = yoga_target(y_target.ntargets,*y_target.xpos,*y_target.ypos,*y_target.lambda,*y_target.mag,sizes,ceiled_apodizer);
+        } else {
+            g_target = yoga_target(y_target.ntargets,*y_target.xpos,*y_target.ypos,*y_target.lambda,*y_target.mag,sizes,ceiled_pupil);
+        }
+    } else {
+        g_target = yoga_target(y_target.ntargets,*y_target.xpos,*y_target.ypos,*y_target.lambda,*y_target.mag,sizes,ceiled_pupil);
+    }
+      
+    //g_target = yoga_target(y_target.ntargets,*y_target.xpos,*y_target.ypos,*y_target.lambda,*y_target.mag,sizes,*y_geom._apodizer);
+    //g_target = yoga_target(y_target.ntargets,*y_target.xpos,*y_target.ypos,*y_target.lambda,*y_target.mag,sizes,*y_geom._apodizer);
+      
     for (cc=1;cc<=y_target.ntargets;cc++) {
       if (y_atmos != []) {
         for (dd=1;dd<=y_atmos.nscreens;dd++) {
@@ -856,7 +880,7 @@ close,f5;
 	      if(y_dm(ndms).type == "pzt"){
 		tmp = (dimsof(*y_geom._ipupil)(2)-(y_dm(ndms)._n2 - y_dm(ndms)._n1 +1))/2;
 		pup = (*y_geom._ipupil)(tmp+1:-tmp,tmp+1:-tmp);
-		indx_valid = where(pup);
+		indx_valid = where(pup); // CHANGE: where(pup) to where(pup > 0)
 		x = *y_dm(ndms)._xpos;
 		y = *y_dm(ndms)._ypos; 
 		interactp = x(2) - x(1);
@@ -867,11 +891,11 @@ close,f5;
 	      if(y_dm(ndms).type == "kl"){
 		N = int(ceil(sqrt(y_dm(ndms).nkl)));
 		pup = make_pupil(N,N-1,cobs=y_tel.cobs);
-		indx_valid = where(pup);
+		indx_valid = where(pup); // CHANGE: where(pup) to where(pup > 0)
 		while (numberof(indx_valid) < y_dm(ndms).nkl){
 		  N+=1;
 		  pup = make_pupil(N,N-1,cobs=y_tel.cobs);
-		  indx_valid = where(pup);
+		  indx_valid = where(pup); // CHANGE: where(pup) to where(pup > 0)
 		}
 		x = span(-1,1,N)(,-:1:N);
 		y = transpose(x)(*)(ind_sub);

@@ -264,18 +264,39 @@ func init_wfs_geom(n,init=)
     
     y_wfs(n)._pyr_offsets = &(pshift);
     
-    // find the modulation positions if not user defined
-    if (*y_wfs(n).pyr_pos == []){
-      cx = lround(mod_ampl_pixels*sin(indgen(y_wfs(n).pyr_npts)*2.*pi/y_wfs(n).pyr_npts));
-      cy = lround(mod_ampl_pixels*cos(indgen(y_wfs(n).pyr_npts)*2.*pi/y_wfs(n).pyr_npts));
-      mod_npts = y_wfs(n).pyr_npts;
-    } else {
-      write,format="%s\n", "Using user-defined positions for the pyramid modulation";
-      // user defined positions
-      cx = lround((*y_wfs(n).pyr_pos)(:,1)/qpixsize);
-      cy = lround((*y_wfs(n).pyr_pos)(:,2)/qpixsize);
-      mod_npts = dimsof(cx)(2);
-    }
+      if ((y_wfs(n).pyrtype) == "Pyramid") {
+          
+          if (*y_wfs(n).pyr_pos == []){
+              cx = lround(mod_ampl_pixels*sin(indgen(y_wfs(n).pyr_npts)*2.*pi/y_wfs(n).pyr_npts));
+              cy = lround(mod_ampl_pixels*cos(indgen(y_wfs(n).pyr_npts)*2.*pi/y_wfs(n).pyr_npts));
+              mod_npts = y_wfs(n).pyr_npts;
+          } else {
+              write,format="%s\n", "Using user-defined positions for the pyramid modulation";
+              // user defined positions
+              cx = lround((*y_wfs(n).pyr_pos)(:,1)/qpixsize);
+              cy = lround((*y_wfs(n).pyr_pos)(:,2)/qpixsize);
+              mod_npts = dimsof(cx)(2);
+          }
+          
+      } else if ((y_wfs(n).pyrtype) == "RoofPrism") {
+          cx = lround(2.*mod_ampl_pixels*(indgen(y_wfs(n).pyr_npts)-(y_wfs(n).pyr_npts+1)/2.)/y_wfs(n).pyr_npts);
+          cy = cx;
+          mod_npts = y_wfs(n).pyr_npts;
+          
+      } else {
+          if (*y_wfs(n).pyr_pos == []){
+              cx = lround(mod_ampl_pixels*sin(indgen(y_wfs(n).pyr_npts)*2.*pi/y_wfs(n).pyr_npts));
+              cy = lround(mod_ampl_pixels*cos(indgen(y_wfs(n).pyr_npts)*2.*pi/y_wfs(n).pyr_npts));
+              mod_npts = y_wfs(n).pyr_npts;
+          } else {
+              write,format="%s\n", "Using user-defined positions for the pyramid modulation";
+              // user defined positions
+              cx = lround((*y_wfs(n).pyr_pos)(:,1)/qpixsize);
+              cy = lround((*y_wfs(n).pyr_pos)(:,2)/qpixsize);
+              mod_npts = dimsof(cx)(2);
+          } 
+      }
+      
     y_wfs(n)._pyr_cx = &(cx);
     y_wfs(n)._pyr_cy = &(cy);
 
