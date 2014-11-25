@@ -41,7 +41,7 @@ carma_context::carma_context() {
   //DEBUG_TRACE("context init\n");
   //cuInit(0);
   //DEBUG_TRACE("context done\n");
-
+	srandom(1234);
   cutilSafeCall(cudaGetDeviceCount(&(this->ndevice)));
   if (this->ndevice == 0) {
     fprintf(stderr,
@@ -71,7 +71,7 @@ carma_context::carma_context() {
       gpuid[gpu_count++] = current_device;
     current_device++;
   }
-
+#if 0
   if (gpu_count > 1) {
     bool has_uva = true;
     for (int i = 0; i < gpu_count - 1; i++) {
@@ -100,7 +100,7 @@ carma_context::carma_context() {
       printf("*** All GPUs listed can support UVA... ***\n");
     }
   }
-
+#endif
   this->activeDevice = set_activeDevice(0);//get_maxGflopsDeviceId(), 1);
 
   carma_initCublas(&cublasHandle);

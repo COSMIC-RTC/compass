@@ -228,8 +228,9 @@ carma_obj<T_data>::~carma_obj() {
     this->destroy_prng_host();
 
   if (this->d_states != 0)
-    cutilSafeCall(cudaFree(this->d_states));
-  this->d_states = 0;
+	  this->destroy_prng();
+  //  cutilSafeCall(cudaFree(this->d_states));
+  //this->d_states = 0;
 
 #if DEBUG
   printf("CARMA Object deleted @ %8.8lX on GPU%d\n", (unsigned long)this, this->device);

@@ -262,6 +262,7 @@ public:
 
   /**< Curand */
   int init_prng(int device);
+  int init_prng(int device, long seed);
   int destroy_prng();
   int prng(T_data *output, char gtype, float alpha, float beta);
   int prng(T_data *output, char gtype, float alpha);

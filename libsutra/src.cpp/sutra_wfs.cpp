@@ -429,11 +429,11 @@ int sutra_wfs::wfs_initgs(float xpos, float ypos, float lambda, float mag,
       "wfs", this->device);
   this->noise = noise;
   if (noise > -1) {
-    this->d_bincube->init_prng(this->device);
+    this->d_bincube->init_prng(this->device, seed);
     this->d_bincube->prng('N', noise, 0.0f);
   }
   if (noise > 0) {
-    this->d_binimg->init_prng(this->device);
+    this->d_binimg->init_prng(this->device, seed);
     this->d_binimg->prng('N', noise, 0.0f);
   }
 
@@ -709,7 +709,7 @@ int sutra_wfs::comp_sh_generic() {
   // add noise
   if (this->noise > -1) {
     //cout << "adding poisson noise" << endl;
-    this->d_bincube->prng('P');
+	  this->d_bincube->prng('P');
   }
   if (this->noise > 0) {
     //cout << "adding detector noise" << endl;

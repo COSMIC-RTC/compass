@@ -2,7 +2,7 @@
 #include <cstdlib> /* required for randomize() and random() */
 
 template<class T>
-int carma_obj<T>::init_prng(int device) {
+int carma_obj<T>::init_prng(int device, long seed) {
   struct cudaDeviceProp deviceProperties;
   // Get device properties
   cutilSafeCall(cudaGetDeviceProperties(&deviceProperties, device));
@@ -22,7 +22,7 @@ int carma_obj<T>::init_prng(int device) {
   //randomize();
   int aseed[genPerBlock * blockCount];
   for (int cc = 0; cc <= genPerBlock * blockCount; cc++)
-    aseed[cc] = random();
+    aseed[cc] = seed + cc;//random();
 
   int *seeds;
   cutilSafeCall(
@@ -35,6 +35,20 @@ int carma_obj<T>::init_prng(int device) {
   cudaFree(seeds);
 
   return EXIT_SUCCESS;
+}
+
+template int
+caObjS::init_prng(int device, long seed);
+template int
+caObjD::init_prng(int device, long seed);
+template int
+caObjC::init_prng(int device, long seed);
+template int
+caObjZ::init_prng(int device, long seed);
+
+template <class T>
+int carma_obj<T>::init_prng(int device) {
+	this->init_prng(this->device, 1234);
 }
 
 template int
