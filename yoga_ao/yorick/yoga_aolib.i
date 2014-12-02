@@ -783,7 +783,7 @@ extern rtc_docontrol;
 
 extern rtc_kalmancalculategain;
 /* DOCUMENT rtc_kalmancalculategain
-   rtc_kalmancalculategain,yoga_rtc_obj,ncontroller,bruit, k_W, SigmaV, atur, btur
+   rtc_kalmancalculategain,yoga_rtc_obj,ncontroller,bruit, SigmaV, atur, btur
       
    SEE ALSO:
  */
@@ -791,6 +791,13 @@ extern rtc_kalmancalculategain;
 extern rtc_initkalman;
 /* DOCUMENT rtc_initkalman
    rtc_initkalman,yoga_rtc_obj,ncontroller,bruit, D_Mo, N_Act, PROJ, SigmaV, atur, btur, is_zonal, is_sparse, is_GPU
+      
+   SEE ALSO:
+ */
+
+extern rtc_kalmangettime;
+/* DOCUMENT rtc_kalmangettime
+   rtc_initkalman,yoga_rtc_obj,ncontroller
       
    SEE ALSO:
  */

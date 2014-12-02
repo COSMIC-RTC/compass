@@ -18,8 +18,8 @@
 #define __SP setprecision(20)<<
 
 #ifdef COMPILATION_LAM
-#include "/home/tgautrais/compass/trunk/lam/kalman_CPU_GPU/kp_vector.h"
-#include "/home/tgautrais/compass/trunk/lam/kalman_CPU_GPU/kp_real.h"
+#include "kp_vector.h"
+#include "kp_KFPP.h"
 #endif
 
 
@@ -29,13 +29,18 @@ class kp_kalman_core_full;
 
 class sutra_controller_kalman: public sutra_controller {
 public:
-   sutra_controller_kalman(carma_context* context, int nslope_, int nactu_);
+   sutra_controller_kalman(carma_context* context, int nvalid_, int nactu_);
 
    ~sutra_controller_kalman();
    
    void init_kalman(carma_host_obj<float>& D_Mo, carma_host_obj<float>& N_Act, carma_host_obj<float>& PROJ, bool is_zonal, bool is_sparse, bool is_GPU);
 
-   void calculate_gain(double bruit, carma_host_obj<float>& SigmaV,
+double gettime();
+double gettime_op1();
+double gettime_op2();
+double gettime_op3();
+
+   void calculate_gain(float bruit, carma_host_obj<float>& SigmaV,
 		     carma_host_obj<float>& atur, carma_host_obj<float>& btur);
    
    virtual string get_type() {if (isInit){if(isGPU) return "kalman_GPU";else return "kalman_CPU";}else return "kalman_uninitialized";};
@@ -61,7 +66,7 @@ public:
 
  public:
 #ifdef COMPILATION_LAM
-   real** Yk;
+   KFPP** Yk;
    //kp_vector X_kp1sk_tmp;
 #endif
    int ind_Yk;
@@ -69,8 +74,8 @@ public:
    bool pentes_matlab;
    bool sigmaVmatlab;
    
- //private:
-   //double var_bruit;
+ private:
+   float var_bruit;
    
 
    

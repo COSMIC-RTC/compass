@@ -1,406 +1,365 @@
 #include "kernels.h"
 
 //prototypes
-template<typename T> __global__ void Add(T *A, const T *B, int numElements);
-template<typename T> __global__ void Sub(T *A, const T *B, int numElements);
-template<typename T> __global__ void Mult(T *A, const T *B, int numElements);
-__global__ void Div(real *A, const real *B, int numElements);
+template<typename T> __global__ void Add_lam(T *A, const T *B, int numElements);
+template<typename T> __global__ void Sub_lam(T *A, const T *B, int numElements);
+template<typename T> __global__ void Mult_lam(T *A, const T *B, int numElements);
+template<typename T> __global__ void Div_lam(T *A, const T *B, int numElements);
 
-template<typename T> __global__ void AddConst(T *A, T val, int numElements);
-template<typename T> __global__ void SubConst(T *A, T val, int numElements);
-template<typename T> __global__ void MultConst(T *A, T val, int numElements);
-__global__ void DivConst(real *A, real val, int numElements);
+template<typename T> __global__ void AddConst_lam(T *A, T val, int numElements);
+template<typename T> __global__ void SubConst_lam(T *A, T val, int numElements);
+template<typename T> __global__ void MultConst_lam(T *A, T val, int numElements);
+template<typename T> __global__ void DivConst_lam(T *A, T val, int numElements);
 
-__global__ void Sqrt(real *A, int numElements);
-__global__ void Inv(real *A, int numElements);
+template<typename T> __global__ void Sqrt_lam(T *A, int numElements);
+template<typename T> __global__ void Inv_lam(T *A, int numElements);
 
-template<typename T> __global__ void Memcpy(T* d_cu_dst, const T* d_cu_src, int length);
-
-
-template<typename T> __global__ void Memset(T* dev_dst, T valeur, int numElements);
-
-__global__ void A1_2vec(real* Atur_d_cu, real* Btur_d_cu, int* colind, int* rowind, real* values, int nb_az, int nnz);
-
-__global__ void MemcpyDiag(real *dev_dst, const real *dev_src, int rowDebut, int colDebut, int numElements, int dev_dest_dim1);
-__global__ void MemsetDiag(real *dev_dst, real val, int rowDebut, int colDebut, int numElements, int dev_dest_dim1);
-
-__global__ void Sparse2full(real *dev_dst, int *dev_src_rowind, int *dev_src_colind, real* dev_src_values, int nnz, int src_dim1);
-
-__global__ void AddDiagConst(real* dev_dst, real val, int dim1);
-
-__global__ void GetDiag(real* dst_diag, real* src_M,  int dim1);
-
-__global__ void DiagMult(real* mat_dst, real* mat_src, real* vec_src, int mat_src_dim1, int nb_elements);
-__global__ void DiagMult2(real* mat_dst, real* mat_src, real* vec_src, int mat_src_dim1, int nb_elements);
-__global__ void DiagMult3(real* mat_dst1, real* mat_dst2, real* mat_src, real* vec_src, int mat_src_dim1, int nb_elements);
-__global__ void SetSubmatrix(real* mat_dst, real* mat_src, int src_dim1, int r1, int c1, int nb_rows, int nb_elements);
-__global__ void SetLinf(real* mat_Linf, real* mat_Hinf, real* atur, real* btur, int nb_n, int nb_elements, int ordreAR);
-//__global__ void SetLinfAR2(real* mat_Linf, real* mat_Hinf, real* atur, real* btur, int nb_n, int nb_elements);
-__global__ void AddA1(real* mat, real* atur, real* btur, int nb_az, int nb_elements, int ordreAR);
+template<typename T, typename U> __global__ void Memcpy_lam(T* d_cu_dst, const U* d_cu_src, int length);
 
 
-template<typename T> void kernel_add(T* d_cu1, const T* d_cu2, int length);
-template<typename T> void kernel_sub(T* d_cu1, const T* d_cu2, int length);
-template<typename T> void kernel_mult(T* d_cu1, const T* d_cu2, int length);
-template<typename T> void kernel_add_const(T* d_cu1, T valeur, int length);
-template<typename T> void kernel_sub_const(T* d_cu1, T valeur, int length);
-template<typename T> void kernel_mult_const(T* d_cu1, T valeur, int length);
-template<typename T> void kernel_memcpy(T* d_cu_dst, const T* d_cu_src, int length);
-template<typename T> void kernel_memset(T* d_cu_dst, T valeur, int length);
+template<typename T> __global__ void Memset_lam(T* dev_dst, T valeur, int numElements);
+
+template<typename T> __global__ void A1_2vec_lam(T* Atur_d_cu, T* Btur_d_cu, int* colind, int* rowind, T* values, int nb_az, int nnz);
+
+template<typename T> __global__ void MemcpyDiag_lam(T *dev_dst, const T *dev_src, int rowDebut, int colDebut, int numElements, int dev_dest_dim1);
+template<typename T> __global__ void MemsetDiag_lam(T *dev_dst, T val, int rowDebut, int colDebut, int numElements, int dev_dest_dim1);
+
+template<typename T> __global__ void Sparse2full_lam(T *dev_dst, int *dev_src_rowind, int *dev_src_colind, T* dev_src_values, int nnz, int src_dim1);
+
+template<typename T> __global__ void AddDiagConst_lam(T* dev_dst, T val, int dim1);
+
+template<typename T> __global__ void GetDiag_lam(T* dst_diag, T* src_M,  int dim1);
+
+template<typename T> __global__ void DiagMult_lam(T* mat_dst, T* mat_src, T* vec_src, int mat_src_dim1, int nb_elements);
+template<typename T> __global__ void DiagMult2_lam(T* mat_dst, T* mat_src, T* vec_src, int mat_src_dim1, int nb_elements);
+template<typename T> __global__ void DiagMult3_lam(T* mat_dst1, T* mat_dst2, T* mat_src, T* vec_src, int mat_src_dim1, int nb_elements);
+template<typename T> __global__ void SetSubmatrix_lam(T* mat_dst, T* mat_src, int src_dim1, int r1, int c1, int nb_rows, int nb_elements);
+template<typename T> __global__ void SetLinf_lam(T* mat_Linf, T* mat_Hinf, T* atur, T* btur, int nb_n, int nb_elements, int ordreAR);
+//template<typename T> __global__ void SetLinfAR2(T* mat_Linf, T* mat_Hinf, T* atur, T* btur, int nb_n, int nb_elements);
+template<typename T> __global__ void AddA1_lam(T* mat, T* atur, T* btur, int nb_az, int nb_elements, int ordreAR);
+
+
+
 
 
 
 
 
 // Kernel wrappers
-extern "C" void kernel_add_int(int* d_cu1, const int* d_cu2, int length)
-{kernel_add<int>(d_cu1, d_cu2, length);}
-extern "C" void kernel_add_real(real* d_cu1, const real* d_cu2, int length)
-{kernel_add<real>(d_cu1, d_cu2, length);}
 template<typename T> void kernel_add(T* d_cu1, const T* d_cu2, int length)
 {
 	int threadsPerBlock = 256;
 	int blocksPerGrid = (length + threadsPerBlock - 1) / threadsPerBlock;
-	Add<T><<<blocksPerGrid,threadsPerBlock>>>(d_cu1, d_cu2, length);
+	Add_lam<T><<<blocksPerGrid,threadsPerBlock>>>(d_cu1, d_cu2, length);
 }
-
-extern "C" void kernel_sub_int(int* d_cu1, const int* d_cu2, int length)
-{kernel_sub<int>(d_cu1, d_cu2, length);}
-extern "C" void kernel_sub_real(real* d_cu1, const real* d_cu2, int length)
-{kernel_sub<real>(d_cu1, d_cu2, length);}
 template<typename T> void kernel_sub(T* d_cu1, const T* d_cu2, int length)
 {
 	int threadsPerBlock = 256;
 	int blocksPerGrid = (length + threadsPerBlock - 1) / threadsPerBlock;
-	Sub<T><<<blocksPerGrid,threadsPerBlock>>>(d_cu1, d_cu2, length);
+	Sub_lam<T><<<blocksPerGrid,threadsPerBlock>>>(d_cu1, d_cu2, length);
 }
-
-extern "C" void kernel_mult_int(int* d_cu1, const int* d_cu2, int length)
-{kernel_mult<int>(d_cu1, d_cu2, length);}
-extern "C" void kernel_mult_real(real* d_cu1, const real* d_cu2, int length)
-{kernel_mult<real>(d_cu1, d_cu2, length);}
 template<typename T> void kernel_mult(T* d_cu1, const T* d_cu2, int length)
 {
 	int threadsPerBlock = 256;
 	int blocksPerGrid = (length + threadsPerBlock - 1) / threadsPerBlock;
-	Mult<T><<<blocksPerGrid,threadsPerBlock>>>(d_cu1, d_cu2, length);
+	Mult_lam<T><<<blocksPerGrid,threadsPerBlock>>>(d_cu1, d_cu2, length);
 }
-
-extern "C" void kernel_div(real* d_cu1, const real* d_cu2, int length)
+template<typename T>  void kernel_div(T* d_cu1, const T* d_cu2, int length)
 {
 	int threadsPerBlock = 256;
 	int blocksPerGrid = (length + threadsPerBlock - 1) / threadsPerBlock;
-	Div<<<blocksPerGrid,threadsPerBlock>>>(d_cu1, d_cu2, length);
+	Div_lam<T><<<blocksPerGrid,threadsPerBlock>>>(d_cu1, d_cu2, length);
 }
-
-extern "C" void kernel_add_const_int(int* d_cu1, int valeur, int length)
-{kernel_add_const<int>(d_cu1, valeur, length);}
-extern "C" void kernel_add_const_real(real* d_cu1, real valeur, int length)
-{kernel_add_const<real>(d_cu1, valeur, length);}
 template<typename T> void kernel_add_const(T* d_cu1, T valeur, int length)
 {
 	int threadsPerBlock = 256;
 	int blocksPerGrid = (length + threadsPerBlock - 1) / threadsPerBlock;
-	AddConst<T><<<blocksPerGrid,threadsPerBlock>>>(d_cu1, valeur, length);
+	AddConst_lam<T><<<blocksPerGrid,threadsPerBlock>>>(d_cu1, valeur, length);
 }
-
-extern "C" void kernel_sub_const_int(int* d_cu1, int valeur, int length)
-{kernel_sub_const<int>(d_cu1, valeur, length);}
-extern "C" void kernel_sub_const_real(real* d_cu1, real valeur, int length)
-{kernel_sub_const<real>(d_cu1, valeur, length);}
 template<typename T> void kernel_sub_const(T* d_cu1, T valeur, int length)
 {
 	int threadsPerBlock = 256;
 	int blocksPerGrid = (length + threadsPerBlock - 1) / threadsPerBlock;
-	SubConst<T><<<blocksPerGrid,threadsPerBlock>>>(d_cu1, valeur, length);
+	SubConst_lam<T><<<blocksPerGrid,threadsPerBlock>>>(d_cu1, valeur, length);
 }
-
-extern "C" void kernel_mult_const_int(int* d_cu1, int valeur, int length)
-{kernel_mult_const<int>(d_cu1, valeur, length);}
-extern "C" void kernel_mult_const_real(real* d_cu1, real valeur, int length)
-{kernel_mult_const<real>(d_cu1, valeur, length);}
 template<typename T> void kernel_mult_const(T* d_cu1, T valeur, int length)
 {
 	int threadsPerBlock = 256;
 	int blocksPerGrid = (length + threadsPerBlock - 1) / threadsPerBlock;
-	MultConst<T><<<blocksPerGrid,threadsPerBlock>>>(d_cu1, valeur, length);
+	MultConst_lam<T><<<blocksPerGrid,threadsPerBlock>>>(d_cu1, valeur, length);
 }
-
-extern "C" void kernel_div_const(real* d_cu1, real valeur, int length)
+template<typename T>  void kernel_div_const(T* d_cu1, T valeur, int length)
 {
 	int threadsPerBlock = 256;
 	int blocksPerGrid = (length + threadsPerBlock - 1) / threadsPerBlock;
-	DivConst<<<blocksPerGrid,threadsPerBlock>>>(d_cu1, valeur, length);
+	DivConst_lam<T><<<blocksPerGrid,threadsPerBlock>>>(d_cu1, valeur, length);
 }
-
-extern "C" void kernel_sqrt(real* d_cu1, int length)
+template<typename T> void kernel_sqrt(T* d_cu1, int length)
 {
 	int threadsPerBlock = 256;
 	int blocksPerGrid = (length + threadsPerBlock - 1) / threadsPerBlock;
-	Sqrt<<<blocksPerGrid,threadsPerBlock>>>(d_cu1, length);
+	Sqrt_lam<T><<<blocksPerGrid,threadsPerBlock>>>(d_cu1, length);
 }
-extern "C" void kernel_inv(real* d_cu1, int length)
+
+template<typename T> void kernel_inv(T* d_cu1, int length)
 {
 	int threadsPerBlock = 256;
 	int blocksPerGrid = (length + threadsPerBlock - 1) / threadsPerBlock;
-	Inv<<<blocksPerGrid,threadsPerBlock>>>(d_cu1, length);
+	Inv_lam<T><<<blocksPerGrid,threadsPerBlock>>>(d_cu1, length);
 }
 
 
 
-
-
-extern "C" void kernel_memcpy_real(real* d_cu_dst, const real* d_cu_src, int length)
-{kernel_memcpy<real>(d_cu_dst, d_cu_src, length);}
-extern "C" void kernel_memcpy_int(int* d_cu_dst, const int* d_cu_src, int length)
-{kernel_memcpy<int>(d_cu_dst, d_cu_src, length);}
-template<typename T> void kernel_memcpy(T* d_cu_dst, const T* d_cu_src, int length)
+template<typename T, typename U> void kernel_memcpy(T* d_cu_dst, const U* d_cu_src, int length)
 {
 	int threadsPerBlock = 256;
 	int blocksPerGrid = (length + threadsPerBlock - 1) / threadsPerBlock;
-	Memcpy<T><<<blocksPerGrid,threadsPerBlock>>>(d_cu_dst, d_cu_src, length);
+	Memcpy_lam<T,U><<<blocksPerGrid,threadsPerBlock>>>(d_cu_dst, d_cu_src, length);
 }
 
 
-extern "C" void kernel_memset_int(int* d_cu_dst, const int valeur, int length)
-{kernel_memset<int>(d_cu_dst, valeur, length);}
-extern "C" void kernel_memset_real(real* d_cu_dst, const real valeur, int length)
-{kernel_memset<real>(d_cu_dst, valeur, length);}
 template<typename T> void kernel_memset(T* d_cu_dst, T valeur, int length)
 {
 	int threadsPerBlock = 256;
 	int blocksPerGrid = (length + threadsPerBlock - 1) / threadsPerBlock;
-	Memset<T><<<blocksPerGrid,threadsPerBlock>>>(d_cu_dst, valeur, length);
+	Memset_lam<T><<<blocksPerGrid,threadsPerBlock>>>(d_cu_dst, valeur, length);
 }	
-
-extern "C" void kernel_A1_2vec(real* Atur_d_cu, real* Btur_d_cu, int* colind, int* rowind, real* values, int nb_az, int nnz)
+template<typename T> void kernel_A1_2vec(T* Atur_d_cu, T* Btur_d_cu, int* colind, int* rowind, T* values, int nb_az, int nnz)
 {
 	int threadsPerBlock = 256;
 	int blocksPerGrid = (nnz + threadsPerBlock - 1) / threadsPerBlock;
-	A1_2vec<<<blocksPerGrid,threadsPerBlock>>>(Atur_d_cu, Btur_d_cu, colind, rowind, values, nb_az, nnz);
-}	
-extern "C" void kernel_memcpy_diag(real *dev_dst, const real *dev_src, int rowDebut, int colDebut, int numElements, int dev_dest_dim1)
+	A1_2vec_lam<T><<<blocksPerGrid,threadsPerBlock>>>(Atur_d_cu, Btur_d_cu, colind, rowind, values, nb_az, nnz);
+}
+template<typename T> void kernel_memcpy_diag(T *dev_dst, const T *dev_src, int rowDebut, int colDebut, int numElements, int dev_dest_dim1)
 {
 	int threadsPerBlock = 256;
 	int blocksPerGrid = (numElements + threadsPerBlock - 1) / threadsPerBlock;
-	MemcpyDiag<<<blocksPerGrid,threadsPerBlock>>>(dev_dst, dev_src, rowDebut, colDebut, numElements, dev_dest_dim1);
+	MemcpyDiag_lam<T><<<blocksPerGrid,threadsPerBlock>>>(dev_dst, dev_src, rowDebut, colDebut, numElements, dev_dest_dim1);
 }
-
-extern "C" void kernel_memset_diag(real *dev_dst, real val, int rowDebut, int colDebut, int numElements, int dev_dest_dim1)
+template<typename T> void kernel_memset_diag(T *dev_dst, T val, int rowDebut, int colDebut, int numElements, int dev_dest_dim1)
 {
 	int threadsPerBlock = 256;
 	int blocksPerGrid = (numElements + threadsPerBlock - 1) / threadsPerBlock;
-	MemsetDiag<<<blocksPerGrid,threadsPerBlock>>>(dev_dst, val, rowDebut, colDebut, numElements, dev_dest_dim1);
+	MemsetDiag_lam<T><<<blocksPerGrid,threadsPerBlock>>>(dev_dst, val, rowDebut, colDebut, numElements, dev_dest_dim1);
 }
-
-extern "C" void kernel_sparse2full(real *dev_dst, int *dev_src_rowind, int *dev_src_colind, real* dev_src_values, int nnz, int src_dim1, int src_dim2)
+template<typename T> void kernel_sparse2full(T *dev_dst, int *dev_src_rowind, int *dev_src_colind, T* dev_src_values, int nnz, int src_dim1, int src_dim2)
 {
 	int threadsPerBlock = 256;
 	int blocksPerGrid = (nnz + threadsPerBlock - 1) / threadsPerBlock;
-	kernel_memset_real(dev_dst, 0.0, src_dim1*src_dim2);
-	Sparse2full<<<blocksPerGrid,threadsPerBlock>>>(dev_dst, dev_src_rowind, dev_src_colind, dev_src_values, nnz, src_dim1);
+	T zero = (T) 0.0;
+	kernel_memset<T>(dev_dst, zero, src_dim1*src_dim2);
+	Sparse2full_lam<T><<<blocksPerGrid,threadsPerBlock>>>(dev_dst, dev_src_rowind, dev_src_colind, dev_src_values, nnz, src_dim1);
 }
-
-extern "C" void kernel_add_diag_const(real* d_cu1, real val, int dim1)
+template<typename T> void kernel_add_diag_const(T* d_cu1, T val, int dim1)
 {
 	int threadsPerBlock = 256;
 	int blocksPerGrid = (dim1 + threadsPerBlock - 1) / threadsPerBlock;
-	AddDiagConst<<<blocksPerGrid,threadsPerBlock>>>(d_cu1, val, dim1);
+	AddDiagConst_lam<T><<<blocksPerGrid,threadsPerBlock>>>(d_cu1, val, dim1);
 }
-
-extern "C" void kernel_get_diag(real* dst_diag, real* src_M, int dim1)
+template<typename T> void kernel_get_diag(T* dst_diag, T* src_M, int dim1)
 {
 	int threadsPerBlock = 256;
 	int blocksPerGrid = (dim1 + threadsPerBlock - 1) / threadsPerBlock;
-	GetDiag<<<blocksPerGrid,threadsPerBlock>>>(dst_diag, src_M, dim1);
+	GetDiag_lam<T><<<blocksPerGrid,threadsPerBlock>>>(dst_diag, src_M, dim1);
 }
-
-extern "C" void kernel_diag_mult(real* mat_dst, real* mat_src, real* vec_src, int dim1, int nb_elements)
+template<typename T> void kernel_diag_mult(T* mat_dst, T* mat_src, T* vec_src, int dim1, int nb_elements)
 {
 	int threadsPerBlock = 256;
 	int blocksPerGrid = (nb_elements + threadsPerBlock - 1) / threadsPerBlock;
-	DiagMult<<<blocksPerGrid,threadsPerBlock>>>(mat_dst, mat_src, vec_src, dim1, nb_elements);
+	DiagMult_lam<T><<<blocksPerGrid,threadsPerBlock>>>(mat_dst, mat_src, vec_src, dim1, nb_elements);
 }
-
-extern "C" void kernel_diag_mult2(real* mat_dst, real* mat_src, real* vec_src, int dim1, int nb_elements)
+template<typename T> void kernel_diag_mult2(T* mat_dst, T* mat_src, T* vec_src, int dim1, int nb_elements)
 {
 	int threadsPerBlock = 256;
 	int blocksPerGrid = (nb_elements + threadsPerBlock - 1) / threadsPerBlock;
-	DiagMult2<<<blocksPerGrid,threadsPerBlock>>>(mat_dst, mat_src, vec_src, dim1, nb_elements);
+	DiagMult2_lam<T><<<blocksPerGrid,threadsPerBlock>>>(mat_dst, mat_src, vec_src, dim1, nb_elements);
 }
-
-extern "C" void kernel_diag_mult3(real* mat_dst1, real* mat_dst2, real* mat_src, real* vec_src, int dim1, int nb_elements)
+template<typename T> void kernel_diag_mult3(T* mat_dst1, T* mat_dst2, T* mat_src, T* vec_src, int dim1, int nb_elements)
 {
 	int threadsPerBlock = 256;
 	int blocksPerGrid = (nb_elements + threadsPerBlock - 1) / threadsPerBlock;
-	DiagMult3<<<blocksPerGrid,threadsPerBlock>>>(mat_dst1, mat_dst2, mat_src, vec_src, dim1, nb_elements);
+	DiagMult3_lam<T><<<blocksPerGrid,threadsPerBlock>>>(mat_dst1, mat_dst2, mat_src, vec_src, dim1, nb_elements);
 }
-
-extern "C" void kernel_set_submatrix(real* mat_dst, real* mat_src, int src_dim1, int r1, int c1, int nb_rows, int nb_col)
+template<typename T> void kernel_set_submatrix(T* mat_dst, T* mat_src, int src_dim1, int r1, int c1, int nb_rows, int nb_col)
 {
 	int threadsPerBlock = 256;
 	int nb_elements = nb_rows*nb_col;
 	int blocksPerGrid = (nb_elements + threadsPerBlock - 1) / threadsPerBlock;
-	SetSubmatrix<<<blocksPerGrid,threadsPerBlock>>>(mat_dst, mat_src, src_dim1, r1, c1, nb_rows, nb_elements);
+	SetSubmatrix_lam<T><<<blocksPerGrid,threadsPerBlock>>>(mat_dst, mat_src, src_dim1, r1, c1, nb_rows, nb_elements);
 }
 
-
-extern "C" void kernel_set_Linf(real* mat_Linf, real* mat_Hinf, real* atur, real* btur, int nb_n, int nb_p, int ordreAR)
+template<typename T> void kernel_set_Linf(T* mat_Linf, T* mat_Hinf, T* atur, T* btur, int nb_n, int nb_p, int ordreAR)
 {
 	int threadsPerBlock = 256;
 	int nb_elements = nb_n*nb_p;
 	int blocksPerGrid = (nb_elements + threadsPerBlock - 1) / threadsPerBlock;
-	SetLinf<<<blocksPerGrid,threadsPerBlock>>>(mat_Linf, mat_Hinf, atur, btur, nb_n, nb_elements, ordreAR);
+	SetLinf_lam<T><<<blocksPerGrid,threadsPerBlock>>>(mat_Linf, mat_Hinf, atur, btur, nb_n, nb_elements, ordreAR);
 
 }
 
-/*extern "C" void kernel_set_Linf_AR2(real* mat_Linf, real* mat_Hinf, real* atur, real* btur, int nb_n, int nb_p)
+/*
+extern "C" void kernel_set_Linf_AR2_KFPP(KFPP* mat_Linf, KFPP* mat_Hinf, KFPP* atur, KFPP* btur, int nb_n, int nb_p)
+{kernel_set_Linf_AR2_tpl<KFPP>(mat_Linf, mat_Hinf, atur, btur, nb_n, nb_p);}
+extern "C" void kernel_set_Linf_AR2_double(double* mat_Linf, double* mat_Hinf, double* atur, double* btur, int nb_n, int nb_p)
+{kernel_set_Linf_AR2_tpl<double>(mat_Linf, mat_Hinf, atur, btur, nb_n, nb_p);}
+template<typename T> void kernel_set_Linf_AR2(T* mat_Linf, T* mat_Hinf, T* atur, T* btur, int nb_n, int nb_p)
 {
 	int threadsPerBlock = 256;
 	int nb_elements = nb_n*nb_p;
 	int blocksPerGrid = (nb_elements + threadsPerBlock - 1) / threadsPerBlock;
-	SetLinfAR2<<<blocksPerGrid,threadsPerBlock>>>(mat_Linf, mat_Hinf, atur, btur, nb_n, nb_elements);
+	SetLinfAR2<T><<<blocksPerGrid,threadsPerBlock>>>(mat_Linf, mat_Hinf, atur, btur, nb_n, nb_elements);
 
 }*/
-
-extern "C" void kernel_add_A1(real* mat, real* atur, real* btur, int nb_az, int ordreAR)
+template<typename T> void kernel_add_A1(T* mat, T* atur, T* btur, int nb_az, int ordreAR)
 {
 	int threadsPerBlock = 256;
 	int nb_elements = 4*nb_az*nb_az;
 	int blocksPerGrid = (nb_elements + threadsPerBlock - 1) / threadsPerBlock;
-	AddA1<<<blocksPerGrid,threadsPerBlock>>>(mat, atur, btur, nb_az, nb_elements, ordreAR);
+	AddA1_lam<T><<<blocksPerGrid,threadsPerBlock>>>(mat, atur, btur, nb_az, nb_elements, ordreAR);
 }
 
 
 // Kernels
 
-template<typename T> __global__ void Add(T* A, const T* B, int numElements)
+template<typename T> __global__ void Add_lam(T* A, const T* B, int numElements)
 {
     int i = blockDim.x * blockIdx.x + threadIdx.x;
 
-    if (i < numElements)
+    while (i < numElements)
     {
         A[i] = A[i] + B[i];
+	i += gridDim.x * blockDim.x;
     }
 }
-template<typename T> __global__ void Sub(T* A, const T* B, int numElements)
+template<typename T> __global__ void Sub_lam(T* A, const T* B, int numElements)
 {
     int i = blockDim.x * blockIdx.x + threadIdx.x;
-
-    if (i < numElements)
+    
+    while (i < numElements)
     {
         A[i] = A[i] - B[i];
+	i += gridDim.x * blockDim.x;
     }
 }
-template<typename T> __global__ void Mult(T *A, const T *B, int numElements)
+template<typename T> __global__ void Mult_lam(T *A, const T *B, int numElements)
 {
     int i = blockDim.x * blockIdx.x + threadIdx.x;
 
-    if (i < numElements)
+    while (i < numElements)
     {
         A[i] = A[i] * B[i];
+	i += gridDim.x * blockDim.x;
     }
 }
-__global__ void Div(real *A, const real *B, int numElements)
+template<typename T> __global__ void Div_lam(T *A, const T *B, int numElements)
 {
     int i = blockDim.x * blockIdx.x + threadIdx.x;
 
-    if (i < numElements)
+    while (i < numElements)
     {
         A[i] = A[i] / B[i];
+	i += gridDim.x * blockDim.x;
     }
 }
 
-template<typename T> __global__ void AddConst(T *A, T val, int numElements)
+template<typename T> __global__ void AddConst_lam(T *A, T val, int numElements)
 {
     int i = blockDim.x * blockIdx.x + threadIdx.x;
 
-    if (i < numElements)
+    while (i < numElements)
     {
         A[i] = A[i] + val;
+	i += gridDim.x * blockDim.x;
     }
 }
-template<typename T> __global__ void SubConst(T *A, T val, int numElements)
+template<typename T> __global__ void SubConst_lam(T *A, T val, int numElements)
 {
     int i = blockDim.x * blockIdx.x + threadIdx.x;
 
-    if (i < numElements)
+    while (i < numElements)
     {
         A[i] = A[i] - val;
+	i += gridDim.x * blockDim.x;
     }
 }
-template<typename T> __global__ void MultConst(T *A, T val, int numElements)
+template<typename T> __global__ void MultConst_lam(T *A, T val, int numElements)
 {
     int i = blockDim.x * blockIdx.x + threadIdx.x;
 
-    if (i < numElements)
+    while (i < numElements)
     {
         A[i] = A[i] * val;
+	i += gridDim.x * blockDim.x;
     }
 }
-__global__ void DivConst(real* A, real val, int numElements)
+template<typename T> __global__ void DivConst_lam(T* A, T val, int numElements)
 {
     int i = blockDim.x * blockIdx.x + threadIdx.x;
 
-    if (i < numElements)
+    while (i < numElements)
     {
         A[i] = A[i] / val;
+	i += gridDim.x * blockDim.x;
     }
 }
 
-__global__ void Sqrt(real *A, int numElements)
+template<typename T> __global__ void Sqrt_lam(T *A, int numElements)
 {
     int i = blockDim.x * blockIdx.x + threadIdx.x;
 
-    if (i < numElements)
+    while (i < numElements)
     {
-        A[i] = sqrt(A[i]) ;
+        A[i] = sqrt(A[i]); 
+	i += gridDim.x * blockDim.x;
     }
 }
-__global__ void Inv(real *A, int numElements)
+template<typename T> __global__ void Inv_lam(T *A, int numElements)
 {
     int i = blockDim.x * blockIdx.x + threadIdx.x;
 
-    if (i < numElements)
+    while (i < numElements)
     {
         A[i] = 1/A[i] ;
+	i += gridDim.x * blockDim.x;
     }
 }
 
-
-template<typename T> __global__ void Memcpy(T* dev_dst, const T* dev_src, int numElements)
+template<typename T, typename U> __global__ void Memcpy_lam(T* dev_dst, const U* dev_src, int numElements)
 {
     int i = blockDim.x * blockIdx.x + threadIdx.x;
 
-    if (i < numElements)
+    while (i < numElements)
     {
-        dev_dst[i] = dev_src[i] ;
+        dev_dst[i] = (T)dev_src[i] ;
+	i += gridDim.x * blockDim.x;
     }
 }
 
-template<typename T> __global__ void Memset(T* dev_dst, T valeur, int numElements)
+template<typename T> __global__ void Memset_lam(T* dev_dst, T valeur, int numElements)
 {
     int i = blockDim.x * blockIdx.x + threadIdx.x;
 
-    if (i < numElements)
+    while (i < numElements)
     {
         dev_dst[i] = valeur ;
+	i += gridDim.x * blockDim.x;
     }
 }
 
 
-__global__ void A1_2vec(real* Atur_d_cu, real* Btur_d_cu, int* colind, int* rowind, real* values, int nb_az, int nnz)
+template<typename T> __global__ void A1_2vec_lam(T* Atur_d_cu, T* Btur_d_cu, int* colind, int* rowind, T* values, int nb_az, int nnz)
 {
     int i = blockDim.x * blockIdx.x + threadIdx.x;
     
-    int col = colind[i];
-    int row = rowind[i];
-    real val = values[i];
     
 
 
-    if(i<nnz)
+    while(i<nnz)
     {	
+        int col = colind[i];
+        int row = rowind[i];
+        KFPP val = values[i];
+
 	// si col<=nb_az && row<=nb_az
 	if (col<=nb_az && row<=nb_az)
 	{
@@ -415,118 +374,128 @@ __global__ void A1_2vec(real* Atur_d_cu, real* Btur_d_cu, int* colind, int* rowi
             else Btur_d_cu[row-1]=0;
 
 	}
+	i += gridDim.x * blockDim.x;
 
     }
 }
 
 
-__global__ void MemcpyDiag(real *dev_dst, const real *dev_src, int rowDebut, int colDebut, int numElements, int dev_dest_dim1)
+template<typename T> __global__ void MemcpyDiag_lam(T *dev_dst, const T *dev_src, int rowDebut, int colDebut, int numElements, int dev_dest_dim1)
 {
     int i = blockDim.x * blockIdx.x + threadIdx.x;
-    int j = (i+colDebut) * dev_dest_dim1 + (i+rowDebut);
 
-    if (i < numElements)
+    while (i < numElements)
     {
+        int j = (i+colDebut) * dev_dest_dim1 + (i+rowDebut);
         dev_dst[j] = dev_src[i] ;
+	i += gridDim.x * blockDim.x;
     }
 }
 
-__global__ void MemsetDiag(real *dev_dst, real val, int rowDebut, int colDebut, int numElements, int dev_dest_dim1)
+template<typename T> __global__ void MemsetDiag_lam(T *dev_dst, T val, int rowDebut, int colDebut, int numElements, int dev_dest_dim1)
 {
     int i = blockDim.x * blockIdx.x + threadIdx.x;
-    int j = (i+colDebut) * dev_dest_dim1 + (i+rowDebut);
 
-    if (i < numElements)
+    while (i < numElements)
     {
+        int j = (i+colDebut) * dev_dest_dim1 + (i+rowDebut);
         dev_dst[j] = val ;
+	i += gridDim.x * blockDim.x;
     }
 }
 
-__global__ void Sparse2full(real *dev_dst, int *dev_src_rowind, int *dev_src_colind, real* dev_src_values, int nnz, int src_dim1)
+template<typename T> __global__ void Sparse2full_lam(T *dev_dst, int *dev_src_rowind, int *dev_src_colind, T* dev_src_values, int nnz, int src_dim1)
 {
     int i = blockDim.x * blockIdx.x + threadIdx.x;
 
-    if (i < nnz)
+    while (i < nnz)
     {
-    int j = (dev_src_colind[i]-1) * src_dim1 + (dev_src_rowind[i]-1);
+        int j = (dev_src_colind[i]-1) * src_dim1 + (dev_src_rowind[i]-1);
         dev_dst[j] =  dev_src_values[i];
+	i += gridDim.x * blockDim.x;
     }
 }
 
-__global__ void AddDiagConst(real *A, real val, int dim1)
+template<typename T> __global__ void AddDiagConst_lam(T *A, T val, int dim1)
 {
     int i = blockDim.x * blockIdx.x + threadIdx.x;
-    int j = i*(dim1+1);
 
-    if (i < dim1)
+    while (i < dim1)
     {
+        int j = i*(dim1+1);
         A[j] = A[j] + val;
+	i += gridDim.x * blockDim.x;
     }
 }
 
-__global__ void GetDiag(real* dst_diag, real* src_M, int dim1)
+template<typename T> __global__ void GetDiag_lam(T* dst_diag, T* src_M, int dim1)
 {
     int i = blockDim.x * blockIdx.x + threadIdx.x;
-    int j = i*(dim1+1);
 
-    if (i < dim1)
+    while (i < dim1)
     {
+        int j = i*(dim1+1);
         dst_diag[i] = src_M[j];
+	i += gridDim.x * blockDim.x;
     }
 }
 
-__global__ void DiagMult(real* mat_dst, real* mat_src, real* vec_src, int dim1, int nb_elements)
+template<typename T> __global__ void DiagMult_lam(T* mat_dst, T* mat_src, T* vec_src, int dim1, int nb_elements)
 {
     int ind = blockDim.x*blockIdx.x+threadIdx.x;
-    if(ind<nb_elements)
+    while(ind<nb_elements)
     {
         int col = (int)(ind/dim1) ;
         int ligne = ind - dim1*col;
 
         mat_dst[ind] = mat_src[ind] * vec_src[ligne];
+	ind += gridDim.x * blockDim.x;
     }
 }
 
-__global__ void DiagMult2(real* mat_dst, real* mat_src, real* vec_src, int dim1, int nb_elements)
+template<typename T> __global__ void DiagMult2_lam(T* mat_dst, T* mat_src, T* vec_src, int dim1, int nb_elements)
 {
     int ind = blockDim.x*blockIdx.x+threadIdx.x;
-    if(ind<nb_elements)
+    while(ind<nb_elements)
     {
         int col = (int)(ind/dim1) ;
         int ligne = ind - dim1*col;
 
         mat_dst[ind] = mat_src[ind] * vec_src[ligne] * vec_src[col];
+	ind += gridDim.x * blockDim.x;
     }
 }
 
-__global__ void DiagMult3(real* mat_dst1, real* mat_dst2, real* mat_src, real* vec_src, int dim1, int nb_elements)
+template<typename T> __global__ void DiagMult3_lam(T* mat_dst1, T* mat_dst2, T* mat_src, T* vec_src, int dim1, int nb_elements)
 {
     int ind = blockDim.x*blockIdx.x+threadIdx.x;
-    if(ind<nb_elements)
+    while(ind<nb_elements)
     {
         int col = (int)(ind/dim1) ;
         int ligne = ind - dim1*col;
-	real val = mat_src[ind] * vec_src[ligne];
+	KFPP val = mat_src[ind] * vec_src[ligne];
         mat_dst1[ind] = val;
 	mat_dst2[ind] = val * vec_src[col];
+	ind += gridDim.x * blockDim.x;
     }
 }
 
-__global__ void SetSubmatrix(real* mat_dst, real* mat_src, int src_dim1, int r1, int c1, int nb_rows, int nb_elements)
+template<typename T> __global__ void SetSubmatrix_lam(T* mat_dst, T* mat_src, int src_dim1, int r1, int c1, int nb_rows, int nb_elements)
 {
     int ind = blockDim.x*blockIdx.x+threadIdx.x;
-    if(ind<nb_elements)
+    while(ind<nb_elements)
     {
 	    int col = (int)(ind/nb_rows) ;
             int ligne = ind - nb_rows*col;
 	    mat_dst[ind] = mat_src[(col+c1)*src_dim1+(ligne+r1)];        
+	    ind += gridDim.x * blockDim.x;
     }
 }
 
-/*__global__ void SetLinfAR1(real* mat_Linf, real* mat_Hinf, real* atur, int nb_n, int nb_elements)
+/*template<typename T> __global__ void SetLinfAR1(T* mat_Linf, T* mat_Hinf, T* atur, int nb_n, int nb_elements)
 {
     int ind = blockDim.x*blockIdx.x+threadIdx.x;
-    if(ind<nb_elements)
+    while(ind<nb_elements)
     {
         int col = (int)(ind/nb_n) ;
         int ligne = ind - nb_n*col;
@@ -539,13 +508,14 @@ __global__ void SetSubmatrix(real* mat_dst, real* mat_src, int src_dim1, int r1,
 	{
 	     mat_Linf[ind] = mat_Hinf[col*nb_n + ligne-nb_az];
 	}
+	ind += gridDim.x * blockDim.x;
     }
 }*/
 
-__global__ void SetLinf(real* mat_Linf, real* mat_Hinf, real* atur, real* btur, int nb_n, int nb_elements, int ordreAR)
+template<typename T> __global__ void SetLinf_lam(T* mat_Linf, T* mat_Hinf, T* atur, T* btur, int nb_n, int nb_elements, int ordreAR)
 {
     int ind = blockDim.x*blockIdx.x+threadIdx.x;
-    if(ind<nb_elements)
+    while(ind<nb_elements)
     {
 	int col = (int)(ind/nb_n) ;
         int ligne = ind - nb_n*col;
@@ -560,15 +530,16 @@ __global__ void SetLinf(real* mat_Linf, real* mat_Hinf, real* atur, real* btur, 
 	{
 	     mat_Linf[ind] = mat_Hinf[col*nb_n + ligne-nb_az];
 	}
+	ind += gridDim.x * blockDim.x;
 
     }
 }
 
 
-__global__ void AddA1(real* mat, real* atur, real* btur, int nb_az, int nb_elements, int ordreAR)
+template<typename T> __global__ void AddA1_lam(T* mat, T* atur, T* btur, int nb_az, int nb_elements, int ordreAR)
 {
     int ind = blockDim.x*blockIdx.x+threadIdx.x;
-    if(ind<nb_elements)
+    while(ind<nb_elements)
     {
 	int nb_n = 2*nb_az;
 	int col = (int)(ind/nb_n) ;
@@ -582,10 +553,12 @@ __global__ void AddA1(real* mat, real* atur, real* btur, int nb_az, int nb_eleme
 	}
 	else if(ligne == col+nb_az) 
 		mat[ind] += 1.0;
+        ind += gridDim.x * blockDim.x;
 
     }
 
 }
 
+#include "kernel_def.hu"
 
 

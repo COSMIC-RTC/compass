@@ -11,10 +11,9 @@
 #include <string>
 #include <matio.h>
 using namespace std;
-
-void   kp_init4matio_smatrix(kp_smatrix& M, mat_t* mat, string name);
-void   kp_init4matio_matrix(kp_matrix&M, mat_t* mat, string name);
-void   kp_init4matio_vector(kp_vector&M, mat_t* mat, string name);
+template<typename T> void   kp_init4matio_smatrix(kp_smatrix<T>& M, mat_t* mat, string name);
+template<typename T> void   kp_init4matio_matrix(kp_matrix<T>&M, mat_t* mat, string name);
+template<typename T> void   kp_init4matio_vector(kp_vector<T>&M, mat_t* mat, string name);
 void   kp_init4matio_vector(vector<double>&v, mat_t* mat, string name);
 void   kp_init4matio_vector(vector<int>&vi,   mat_t* mat, string name);
 double kp_init4matio_double(mat_t* mat, string name);
@@ -27,6 +26,7 @@ matvar_t * kp_matio_readvar(mat_t* mat, string name);
 //so we just supprime 1;
 void   kp_init4matio_index_vector(vector<int>&vi,   mat_t* mat, string name);
 
+#include "kp_init4matio.hpp"
 
 #endif
 

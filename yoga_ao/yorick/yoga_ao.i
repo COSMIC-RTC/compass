@@ -767,9 +767,9 @@ close,f5;
             //SigmaV=SigmaV*(2.1384-0.4320)+0.4320;
             //SigmaV=SigmaV*(y_wfs(1).lambda/2/pi)^2;
             if (controllers(i).type  == "kalman_CPU")
-              rtc_initkalman, g_rtc, 0, avg(noise_cov(nwfs)), D_Mo, N_Act, PROJ, SigmaV, atur, btur, isZonal, isSparse, 0;
+              rtc_initkalman, g_rtc, 0, avg(noise_cov(1)), D_Mo, N_Act, PROJ, SigmaV, atur, btur, isZonal, isSparse, 0;
             else
-              rtc_initkalman, g_rtc, 0, avg(noise_cov(nwfs)), D_Mo, N_Act, PROJ, SigmaV, atur, btur, isZonal, isSparse, 1;
+              rtc_initkalman, g_rtc, 0, avg(noise_cov(1)), D_Mo, N_Act, PROJ, SigmaV, atur, btur, isZonal, isSparse, 1;
 
           }          
 	  // Florian features

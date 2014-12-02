@@ -3,6 +3,8 @@
 
 
 #include "kp_smatrix.h"
+#include "kp_matrix.h"
+#include "kp_vector.h"
 #include "A1_2vec.h"
 #include <math.h>
 #include "kp_init4matio.h"

@@ -1,6 +1,7 @@
 //sutra_controller_kalman.cpp
 
 #include "sutra_controller_kalman.h"
+//#include "magma.h"
 
 #ifdef COMPILATION_LAM
 
@@ -99,7 +100,7 @@ carma_obj<float>* calculate_atur(carma_context* context, int n_actu_zern, bool i
 }
 
 
-sutra_controller_kalman::sutra_controller_kalman(carma_context* context_, int nslope_, int nactu_) : sutra_controller(context_, nslope_, nactu_) {
+sutra_controller_kalman::sutra_controller_kalman(carma_context* context_, int nvalid_, int nactu_) : sutra_controller(context_, nvalid_ * 2, nactu_) {
    core_sparse = NULL;
    core_full = NULL;
    cusparseHandle = NULL;
@@ -136,8 +137,8 @@ sutra_controller_kalman::sutra_controller_kalman(carma_context* context_, int ns
 
    if(pentes_matlab)
    {
-      Yk = new real* [5000];
-      for (int i=0 ; i<5000 ; i++) Yk[i] = new real [416];
+      Yk = new KFPP* [5000];
+      for (int i=0 ; i<5000 ; i++) Yk[i] = new KFPP [416];
 
        ind_Yk=0;
        string line;
@@ -186,7 +187,7 @@ void sutra_controller_kalman::init_kalman(carma_host_obj<float>& chD_Mo, carma_h
 
 
    //convert from carma_host_obj to kp_matrix
-   kp_matrix kD_Mo, kN_Act, kPROJ;
+   kp_matrix<KFPP> kD_Mo, kN_Act, kPROJ;
 
    if (!matrices_matlab)
    {
@@ -226,10 +227,10 @@ void sutra_controller_kalman::init_kalman(carma_host_obj<float>& chD_Mo, carma_h
    if (is_sparse)
    {
       //convert from kp_matrix to kp_smatrix (full -> sparse)
-      kp_smatrix sD_Mo, sN_Act, sPROJ;
-      sD_Mo.init_from_matrix(kD_Mo,pow(10.0,-12.0));sD_Mo.resize2rowMajor();
-      sN_Act.init_from_matrix(kN_Act,pow(10.0,-12.0));sN_Act.resize2rowMajor();
-      sPROJ.init_from_matrix(kPROJ,pow(10.0,-12.0));sPROJ.resize2rowMajor();
+      kp_smatrix<KFPP> sD_Mo, sN_Act, sPROJ;
+      sD_Mo.init_from_matrix(kD_Mo,pow(10.0,-12.0));sD_Mo.resize2colMajor();
+      sN_Act.init_from_matrix(kN_Act,pow(10.0,-12.0));sN_Act.resize2colMajor();
+      sPROJ.init_from_matrix(kPROJ,pow(10.0,-12.0));sPROJ.resize2colMajor();
       
       if (is_GPU)
       {
@@ -240,35 +241,64 @@ void sutra_controller_kalman::init_kalman(carma_host_obj<float>& chD_Mo, carma_h
             exit(EXIT_FAILURE);
          }
 
-	 cublasStatus_t cublasStat = cublasCreate(&cublasHandle);
+	 /*cublasStatus_t cublasStat = cublasCreate(&cublasHandle);
          if (cublasStat != CUBLAS_STATUS_SUCCESS)
          { 
             cerr<<"Error | sutra_controller_kalman::sutra_controller_kalman  | cublasCreate failed "<<endl;
             exit(EXIT_FAILURE);
-         }
+         }*/
 
 
-
-	/*core_sparse = new kp_kalman_core_sparse_GPU(sD_Mo, sN_Act, sPROJ,
-					       is_zonal, 
-					       current_context->get_cublasHandle(),
-					       cusparseHandle);*/
 
 	core_sparse = new kp_kalman_core_sparse_GPU(sD_Mo, sN_Act, sPROJ,
 					       is_zonal, 
-					       cublasHandle, 
+					       current_context->get_cublasHandle(),
 					       cusparseHandle);
+
+	/*core_sparse = new kp_kalman_core_sparse_GPU(sD_Mo, sN_Act, sPROJ,
+					       is_zonal, 
+					       cublasHandle, 
+					       cusparseHandle);*/
 
 	 
       }
-      else
+      else{ 
+
+      ofstream fichier;
+      fichier.open("D_Mo.dat",ios::out);
+      for (int i=0 ; i < sD_Mo.nnz ; i++)
+      {
+            fichier<<sD_Mo.rowind[i]<<" "<<sD_Mo.colind[i]<<" "<<sD_Mo.values[i]<<" ";
+         fichier << endl;
+      }
+      fichier.close();
+
+
+      fichier.open("N_Act.dat",ios::out);
+      for (int i=0 ; i < sN_Act.nnz ; i++)
+      {
+            fichier<<sN_Act.rowind[i]<<" "<<sN_Act.colind[i]<<" "<<sN_Act.values[i]<<" ";
+         fichier << endl;
+      }
+      fichier.close();
+    
+
+      fichier.open("PROJ.dat",ios::out);
+      for (int i=0 ; i < sPROJ.nnz ; i++)
+      {
+            fichier<<sPROJ.rowind[i]<<" "<<sPROJ.colind[i]<<" "<<sPROJ.values[i]<<" ";
+         fichier << endl;
+      }
+      fichier.close();
+
          core_sparse = new kp_kalman_core_sparse_CPU(sD_Mo, sN_Act, sPROJ,
 					       is_zonal);
+      }
 
    }  
    else if (is_GPU)
-      /*core_full = new kp_kalman_core_full_GPU(kD_Mo, kN_Act, kPROJ, is_zonal, current_context->get_cublasHandle());*/
-   core_full = new kp_kalman_core_full_GPU(kD_Mo, kN_Act, kPROJ, is_zonal, cublasHandle);
+      core_full = new kp_kalman_core_full_GPU(kD_Mo, kN_Act, kPROJ, is_zonal, current_context->get_cublasHandle());
+      //core_full = new kp_kalman_core_full_GPU(kD_Mo, kN_Act, kPROJ, is_zonal, cublasHandle);
 
    else
       core_full = new kp_kalman_core_full_CPU(kD_Mo, kN_Act, kPROJ, is_zonal);
@@ -296,11 +326,11 @@ sutra_controller_kalman::~sutra_controller_kalman() {
       cusparseHandle = NULL;
    }
    
-   if (cublasHandle)
+   /*if (cublasHandle)
    {
       cublasDestroy(cublasHandle);
       cublasHandle = NULL;
-   }
+   }*/
 
    if (pentes_matlab)
    {
@@ -308,11 +338,10 @@ sutra_controller_kalman::~sutra_controller_kalman() {
       delete[] Yk;
    }
    
-   //if (delay > 0) delete d_cenbuff;
 
 }
 
-void sutra_controller_kalman::calculate_gain(double bruit,
+void sutra_controller_kalman::calculate_gain(float bruit,
     carma_host_obj<float>& chSigmaV, carma_host_obj<float>& chatur,
     carma_host_obj<float>& chbtur) {
         
@@ -323,7 +352,7 @@ void sutra_controller_kalman::calculate_gain(double bruit,
       exit(EXIT_FAILURE);
    }
    //convert carma_obj to kp_matrix
-   kp_matrix kSigmaV;
+   kp_matrix<double> kSigmaV;
    if (!sigmaVmatlab)
       kp_carma_host_obj_to_kp_matrix(chSigmaV, kSigmaV);
    else 
@@ -352,7 +381,7 @@ void sutra_controller_kalman::calculate_gain(double bruit,
 
    
    //convert carma_obj to kp_vector
-   kp_vector katur, kbtur;
+   kp_vector<double> katur, kbtur;
    kp_carma_host_obj_to_kp_vector(chatur, katur);
    kp_carma_host_obj_to_kp_vector(chbtur, kbtur);
 
@@ -372,34 +401,42 @@ void sutra_controller_kalman::calculate_gain(double bruit,
 
    //cudaSetDevice(0);
 }
-//                                                              
-/*int sutra_controller_kalman::frame_delay() {
-  // here we place the content of d_centroids into cenbuf and get
-  // the actual centroid frame for error computation depending on delay value
 
-  if (delay > 0) {
-    for (int cc = 0; cc < delay; cc++)
-      shift_buf(&((this->d_cenbuff->getData())[cc * this->nslope()]), 1,
-          this->nslope(), this->device);
+double sutra_controller_kalman::gettime(){
+   if(core_sparse)
+   {
+      return core_sparse->temps_boucle.rez();
+   }
+   else return -1;
+}
+double sutra_controller_kalman::gettime_op1(){
+   if(core_sparse)
+   {
+      return core_sparse->temps_boucle_op1.rez();
+   }
+   else return -1;
+}
+double sutra_controller_kalman::gettime_op2(){
+   if(core_sparse)
+   {
+      return core_sparse->temps_boucle_op2.rez();
+   }
+   else return -1;
+}
+double sutra_controller_kalman::gettime_op3(){
+   if(core_sparse)
+   {
+      return core_sparse->temps_boucle_op3.rez();
+   }
+   else return -1;
+}
 
-    cutilSafeCall(
-        cudaMemcpy(&(this->d_cenbuff->getData()[delay * this->nslope()]),
-            this->d_centroids->getData(), sizeof(float) * this->nslope(),
-            cudaMemcpyDeviceToDevice));
-    
-    cutilSafeCall(
-        cudaMemcpy(this->d_centroids->getData(), this->d_cenbuff->getData(),
-            sizeof(float) * this->nslope(), cudaMemcpyDeviceToDevice));
-  }
-
-  return EXIT_SUCCESS;
-}*/                       
 int sutra_controller_kalman::comp_com() {
    //frame_delay();
    //d_com2->copy(this->d_com1, 1, 1);
    //d_com1->copy(this->d_com, 1, 1);
    
-   kp_vector Y_k,Y_k_tmp, U_k;
+   kp_vector<KFPP> Y_k,Y_k_tmp, U_k;
 
    //d_centroids->axpy(1/0.3, d_centroids, 1, 1);
 
@@ -407,7 +444,21 @@ int sutra_controller_kalman::comp_com() {
    //carma_obj<float> cd_centroids_tmp(current_context, d_centroids->getDims());
    //cd_centroids_tmp.axpy(1/0.135, d_centroids, 1, 1);  // 0.135 = pixsize :  angle en arcsec par rapport a l'axe optique de la microlentille permettant d'obtenir un deplacement du spot sur detecteur de 1 pixel
 
+
+/*const long int* dim_Y = d_centroids->getDims();
+carma_host_obj<float> Y_host(dim_Y);
+Y_host.cpy_obj(d_centroids,cudaMemcpyDeviceToHost);
+
+ofstream fichier;
+fichier.open("Yk.dat",ios::out);
+for(int i=0;i<dim_Y[1];i++)
+	fichier<< __SP Y_host.getData()[i]<<" ";
+fichier.close();
+exit(EXIT_FAILURE);*/
+
    kp_carma_obj_to_kp_vector(*d_centroids, Y_k); 
+
+
 
         /*gsl_rng* rng;
 	rng = gsl_rng_alloc(gsl_rng_mt19937);
@@ -424,8 +475,12 @@ int sutra_controller_kalman::comp_com() {
    fichier<<endl;
    fichier.close();*/
 
-   if (pentes_matlab) Y_k.d = Yk[ind_Yk];//SUPPR
-
+  if (pentes_matlab) 
+   {
+	   KFPP*  Y_k_d = Y_k.getData();
+	   KFPP** address = &Y_k_d;
+	   *address = Yk[ind_Yk];//SUPPR
+   }
    //cudaSetDevice(2);
    if (core_sparse)
    {
@@ -474,6 +529,18 @@ int sutra_controller_kalman::comp_com() {
    kp_kp_vector_to_carma_obj(U_k, *d_com);
 
 
+   /*kp_vector<float> tensions;
+   kp_carma_obj_to_kp_vector(*d_com, tensions);
+   ofstream fichier;
+   fichier.open("tensions_GPU_float_full.dat",ios::app);
+   for (int i=0 ; i<tensions.size() ; i++)
+	   fichier <<  tensions[i] <<" ";
+   fichier<<endl;
+   fichier.close();*/
+
+
+
+
    if (pentes_matlab) ind_Yk++;//SUPPR
 
    //iteration += 1;
@@ -502,7 +569,7 @@ carma_obj<float>* calculate_atur(carma_context* context, int n_actu_zern, bool i
   return NULL;
 }
 
-sutra_controller_kalman::sutra_controller_kalman(carma_context* context_, int nslope_, int nactu_) : sutra_controller(context_, nslope_, nactu_) {
+sutra_controller_kalman::sutra_controller_kalman(carma_context* context_, int nvalid_, int nactu_) : sutra_controller(context_, nvalid_ * 2, nactu_) {
    core_sparse = NULL;
    core_full = NULL;
    cusparseHandle = NULL;
@@ -520,7 +587,7 @@ void sutra_controller_kalman::init_kalman(carma_host_obj<float>& chD_Mo,
 sutra_controller_kalman::~sutra_controller_kalman() {
 }
 
-void sutra_controller_kalman::calculate_gain(double bruit,
+void sutra_controller_kalman::calculate_gain(float bruit,
     carma_host_obj<float>& chSigmaV, carma_host_obj<float>& chatur,
     carma_host_obj<float>& chbtur) {
 }

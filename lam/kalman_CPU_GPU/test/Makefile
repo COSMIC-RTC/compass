@@ -2,7 +2,9 @@
 CXX=g++
 
 
-SRC_CPP = kp_init4matio.cpp  kp_multif_phasetur.cpp sp_parmap.cpp
+SRC_CPP = kp_init4matio.cpp  sp_parmap.cpp
+
+CARMA_INC =  $(COMPASS_ROOT_DIR)/libcarma/include.h
 
 ifeq ($(CXX),icc)
 	CXXFLAGS_MKL = -mkl
@@ -10,10 +12,14 @@ else
 	CXXFLAGS_MKL = -lmkl_intel_lp64 -lmkl_intel_thread -lmkl_core -liomp5 -lpthread -lm
 endif
 
-CXXFLAGS_CPU = -m64 -O2 -Wall $(CXXFLAGS_MKL) $(LIBS) -I.. 
-CXXFLAGS_GPU = $(CXXFLAGS_CPU)-I$(CUDA_INC_PATH)  -I$(MAGMA_ROOT)/include -DHAVE_CUBLAS
+CXXFLAGS_CPU = -m64 -O2 -Wall $(CXXFLAGS_MKL) $(LIBS) -I.. -g -I$(CUDA_INC_PATH) -I$(CARMA_INC)
+ifeq ($(COMPILATION_LAM),double)
+  CXXFLAGS_CPU += -DKP_DOUBLE
+endif
 
-LDFLAGS_CPU =  -L$(CUDA_LIB_PATH_64) -lmatio -lgsl -lcudart -lcublas -lcusparse 
+CXXFLAGS_GPU = $(CXXFLAGS_CPU) -I$(CUDA_INC_PATH)  -I$(MAGMA_ROOT)/include -DHAVE_CUBLAS
+
+LDFLAGS_CPU =  -L$(CUDA_LIB_PATH_64) -lmatio -lgsl -lcudart -lcublas -lcusparse -L$(MAGMA_ROOT)/lib -lmagma
 LDFLAGS_GPU = $(LDFLAGS_CPU) -L$(MAGMA_ROOT)/lib -lcublas -lcusparse -lcudart -lmagma
 
 

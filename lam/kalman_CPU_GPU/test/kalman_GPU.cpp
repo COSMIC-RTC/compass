@@ -5,6 +5,8 @@
 #include <ctime>
 #include <gsl/gsl_rng.h>
 #include <gsl/gsl_randist.h>
+//#include "ed/inc/sysalloc.h"
+#include "magma.h"
 
 
 #define __SP setprecision(20)<<
@@ -15,7 +17,13 @@
 
 int main()
 {
-	cudaSetDevice(0);	
+	/*int ret;
+   	static char Trace[10000000];
+  	SYS_INIT (Trace, ON);*/
+
+
+
+	//cudaSetDevice(0);	
 	//cudaDeviceReset();
 	const bool afficher_temps = 1;
 	const bool comparaison_matlab = 0;
@@ -46,8 +54,8 @@ int main()
 	
 
 	gsl_rng* rng;
-	int i,j;
-	real E_coh=0;
+	int i;
+	KFPP E_coh=0;
 	
 	rng = gsl_rng_alloc(gsl_rng_mt19937);
 	gsl_rng_set(rng, time(NULL));
@@ -68,19 +76,19 @@ int main()
 	
 	//CHARGEMENT DES MATRICES (load de Matlab)
 	
-	kp_smatrix* D_Mo_s  = new kp_smatrix(); 
-	kp_smatrix* N_Act_s = new kp_smatrix();
-	kp_smatrix* PROJ_s  = new kp_smatrix();
-	kp_matrix* D_Mo_f   = new kp_matrix(); 
-	kp_matrix* N_Act_f  = new kp_matrix();
-	kp_matrix* PROJ_f   = new kp_matrix();
+	kp_smatrix<KFPP>* D_Mo_s  = new kp_smatrix<KFPP>(); 
+	kp_smatrix<KFPP>* N_Act_s = new kp_smatrix<KFPP>();
+	kp_smatrix<KFPP>* PROJ_s  = new kp_smatrix<KFPP>();
+	kp_matrix<KFPP>* D_Mo_f   = new kp_matrix<KFPP>(); 
+	kp_matrix<KFPP>* N_Act_f  = new kp_matrix<KFPP>();
+	kp_matrix<KFPP>* PROJ_f   = new kp_matrix<KFPP>();
 
 
-	kp_smatrix D_Sys;
-	kp_smatrix* A1 = new kp_smatrix();
-	kp_smatrix N_Ph;
+	kp_smatrix<KFPP> D_Sys;
+	kp_smatrix<double>* A1 = new kp_smatrix<double>();
+	kp_smatrix<KFPP> N_Ph;
 
-	kp_matrix SigmaV;
+	kp_matrix<double> SigmaV;
 
 	int nb_z  = -1;
 	int nb_az = -1;
@@ -120,16 +128,15 @@ int main()
 	}
 	else nb_az = NB_ACT;
 	Mat_Close(mat);
-	const int NB_Z  = nb_z;
 	const int NB_AZ = nb_az;
 	//INITIALISATIONS et PARAMETRES
 	const int L0 = 25;
 	const int i0var = 51;
 
-	const real BRUIT_RAD = 0.04;
-	const real k_W = 5;
-	const real BRUIT_PIX = BRUIT_RAD/(M_PI*M_PI);
-	const real SQRT_BRUIT_PIX = sqrt(BRUIT_PIX);
+	const float BRUIT_RAD = 0.04;
+	const float k_W = 5;
+	const float BRUIT_PIX = BRUIT_RAD/(M_PI*M_PI);
+	const float SQRT_BRUIT_PIX = sqrt(BRUIT_PIX);
 	const int NB_BOUCLE = 5000;
 
 	if (!sparse_matrix && isZonal)
@@ -157,36 +164,34 @@ int main()
 
 	
 	// Atur
-	kp_vector A1_00(NB_AZ) ; A1_00.zeros();
+	kp_vector<double> A1_00(NB_AZ) ; A1_00.zeros();
 	// Btur (different de zero si AR2)
-	kp_vector A1_01(NB_AZ) ; A1_01.zeros();
+	kp_vector<double> A1_01(NB_AZ) ; A1_01.zeros();
 	A1_2vec(A1_00, A1_01, *A1);
 	delete A1 ; A1 = NULL;
 
 
-	real* Trac_T;
-	int boucle_riccati = 0;
 	
 	
 	//Initialisation boucle OA
-	kp_vector Var_PhRes(NB_BOUCLE) ; Var_PhRes.zeros();
-	kp_vector U_km1(NB_ACT) ; U_km1.zeros();
-	kp_vector U_k(NB_ACT) ; U_k.zeros();
+	kp_vector<KFPP> Var_PhRes(NB_BOUCLE) ; Var_PhRes.zeros();
+	kp_vector<KFPP> U_km1(NB_ACT) ; U_km1.zeros();
+	kp_vector<KFPP> U_k(NB_ACT) ; U_k.zeros();
 
-	kp_vector CPC_km1(NB_PX) ; CPC_km1.zeros();
-	kp_vector CPC_k(NB_PX) ; CPC_k.zeros();
-	kp_vector CPC_kp1(NB_PX) ; CPC_kp1.zeros();
-	kp_vector X_kskm1(NB_N) ; X_kskm1.zeros();
-	kp_vector X_kp1sk(NB_N) ; X_kp1sk.zeros();
-	kp_vector CPT_km1(NB_PX);
-	kp_vector CPR_km1(NB_PX);
-	kp_vector Y_k(NB_P);
-	kp_vector randn(NB_P);
-	kp_vector racSigmaW_randn(NB_P);
-	kp_vector Y_kskm1(NB_P);
+	kp_vector<KFPP> CPC_km1(NB_PX) ; CPC_km1.zeros();
+	kp_vector<KFPP> CPC_k(NB_PX) ; CPC_k.zeros();
+	kp_vector<KFPP> CPC_kp1(NB_PX) ; CPC_kp1.zeros();
+	kp_vector<KFPP> X_kskm1(NB_N) ; X_kskm1.zeros();
+	kp_vector<KFPP> X_kp1sk(NB_N) ; X_kp1sk.zeros();
+	kp_vector<KFPP> CPT_km1(NB_PX);
+	kp_vector<KFPP> CPR_km1(NB_PX);
+	kp_vector<KFPP> Y_k(NB_P);
+	kp_vector<KFPP> randn(NB_P);
+	kp_vector<KFPP> racSigmaW_randn(NB_P);
+	kp_vector<KFPP> Y_kskm1(NB_P);
 
 	
-	real mean_CPCkp1; 
+	KFPP mean_CPCkp1; 
 
 
 
@@ -214,7 +219,7 @@ int main()
 
 
 
-	kp_multif_phasetur mf_phasetur;
+	kp_multif_phasetur<KFPP> mf_phasetur;
 	vector<string> fichiers_phase;
 
 	fichiers_phase.push_back("/home/tgautrais/Documents/v2_kalman_kp/data/PHASTUR_08_160_VKv14Pix.mat");
@@ -256,7 +261,7 @@ int main()
 
 		// VARIANCE PHASE RESIDUELLE ( INSTANT K-1 )
 		// Var_PhRes = var(CPR_km1)
-		Var_PhRes.d[boucle] = CPR_km1.var();
+		Var_PhRes[boucle] = CPR_km1.var();
 
 
 		// randn = randn(NB_P);
@@ -370,6 +375,7 @@ int main()
 		boucle++;
 	}
 	
+	gsl_rng_free(rng);
 		//cout<<"ratio="<<kalman_GPU.temps_init_1boucle.rez()<<" "<<kalman_GPU.temps_1boucle.rez()<<" "<<kalman_GPU.temps_init_1boucle.rez()/kalman_GPU.temps_1boucle.rez()<<endl;
 	if (comparaison_matlab) Mat_Close(mat);
 
@@ -378,7 +384,7 @@ int main()
 	
 	cout << "---FIN EXECUTION KALMAN---" << endl;
 
-
+    cout<<"temps kalman core : "<<kalman_GPU.temps_boucle.rez()<<" s."<<endl;
 	if (afficher_temps) 
 	{
 		temps_boucle.pause();
@@ -400,11 +406,11 @@ int main()
 		temps7.tv_sec<<"."<< temps7.tv_nsec <<endl;
 		fichier.close();*/
 	}
-	kp_vector* VarPhRes_fin = new kp_vector(NB_BOUCLE-i0var+1) ;
+	kp_vector<KFPP>* VarPhRes_fin = new kp_vector<KFPP>(NB_BOUCLE-i0var+1) ;
 	//fichier.open("Var_Ph_Res.dat",ios_base::app);
 	for (i=0 ; i<NB_BOUCLE-i0var+1 ; i++)
 	{
-		VarPhRes_fin->d[i] = Var_PhRes.d[i+i0var-1];
+		*(VarPhRes_fin->getData(i)) = Var_PhRes[i+i0var-1];
 	}
 	cout <<"length_th="<<NB_BOUCLE-i0var+1<<endl;
 	cout <<"length_reel=" << VarPhRes_fin->size()<<endl;
@@ -422,7 +428,7 @@ int main()
 	cublasDestroy(cublasHandle);
 	magma_finalize();
 
-
+	//sys_mem_trace ();
 	return 0;
 }
 

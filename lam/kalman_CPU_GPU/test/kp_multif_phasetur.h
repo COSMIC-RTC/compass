@@ -9,11 +9,12 @@
 #include "kp_matrix.h"
 using namespace std;
 
+template<typename T> 
 class kp_multif_phasetur
 {
  public:
    void init(const vector<string>& files);   
-   bool set_next_phase(kp_vector& CPT_km1);
+  bool set_next_phase(kp_vector<T>& CPT_km1);
    
    int get_boucle() {return boucle;};
 private:
@@ -21,10 +22,11 @@ private:
  private:
    vector<string> files;
    int fidx_next;
-   kp_matrix PHAS_TUR;
+   kp_matrix<T> PHAS_TUR;
    int boucle;
    int boucle_local;
 };
 
+#include "kp_multif_phasetur.hpp"
 
 #endif

@@ -1,14 +1,22 @@
 //kp_kalman_core_sparse_GPU.cpp
 
 #include "kp_kalman_core_sparse_GPU.h"
+
+
+#include "kp_vector.h"
+#include "kp_matrix.h"
+#include "kp_smatrix.h"
+
+#include "kp_cu2kp.h"
+#include "kp_cu_reduce.h"
+#include "cublas_v2.h"
 #include <fstream>
 #include <iomanip>
-
 #define __SP setprecision(20)<<
 
 
-kp_kalman_core_sparse_GPU::kp_kalman_core_sparse_GPU(const kp_smatrix& D_Mo_,
-	const kp_smatrix& N_Act_, const kp_smatrix& PROJ_, bool isZonal_, 
+kp_kalman_core_sparse_GPU::kp_kalman_core_sparse_GPU(const kp_smatrix<KFPP>& D_Mo_,
+	const kp_smatrix<KFPP>& N_Act_, const kp_smatrix<KFPP>& PROJ_, bool isZonal_, 
 	cublasHandle_t cublasHandle_, cusparseHandle_t cusparseHandle_) 
 	: kp_kalman_core_sparse(D_Mo_, N_Act_, PROJ_, isZonal_), cublasHandle(cublasHandle_),cusparseHandle(cusparseHandle_)
 {
@@ -46,30 +54,30 @@ kp_kalman_core_sparse_GPU::~kp_kalman_core_sparse_GPU()
 {
 }
 
-void kp_kalman_core_sparse_GPU::calculate_gain(real bruit_pix,
-		real k_W, 
-		const  kp_matrix&  SigmaV,
-		const  kp_vector& atur_,
-		const  kp_vector& btur_)
+void kp_kalman_core_sparse_GPU::calculate_gain(float bruit_pix,
+		float k_W, 
+		const  kp_matrix<double>&  SigmaV,
+		const  kp_vector<double>& atur_,
+		const  kp_vector<double>& btur_)
 {
 	//atur = atur_;
 	//btur = btur_;
-	cu_atur = atur_;
-	cu_btur = btur_;
+	kp_cu_vector<double> cu_atur_(atur_);
+	kp_cu_vector<double> cu_btur_(btur_);
 	
 
 
-	if (cu_atur.size() != nb_az)
+	if (cu_atur_.size() != nb_az)
 	{
 		cerr<<"Error | kp_kalman_core_sparse_GPU::kp_kalman_core_sparse_GPU | size problem atur"<<endl;
 		exit(EXIT_FAILURE);
 	}
-	if (cu_btur.size() != nb_az)
+	if (cu_btur_.size() != nb_az)
 	{
 		cerr<<"Error | kp_kalman_core_sparse_GPU::kp_kalman_core_sparse_GPU | size problem btur"<<endl;
 		exit(EXIT_FAILURE);
 	}
-	if ((SigmaV.dim1 != SigmaV.dim2) || (SigmaV.dim1 != nb_az))
+	if ((SigmaV.getDim1() != SigmaV.getDim2()) || (SigmaV.getDim1() != nb_az))
 	{
 		cerr<<"Error | kp_kalman_core_sparse_GPU::calculate_gain | size problem SigmaV"<<endl;
 		exit(EXIT_FAILURE);
@@ -79,62 +87,70 @@ void kp_kalman_core_sparse_GPU::calculate_gain(real bruit_pix,
 
 
 
-	//ofstream fichier;
+	ofstream fichier;
 	bool AR1 = true;
-	for(int i = 0 ; i < btur_.size() ; i++) AR1 &= (btur_.d[i]==0);
+	for(int i = 0 ; i < btur_.size() ; i++) AR1 &= (btur_[i]==0);
 	if (AR1) ordreAR = 1 ; else ordreAR = 2;
 	int expression = 2;
-	real seuil = 1/pow(10,14);
+	KFPP seuil = 1/pow(10,14);
 	int boucle = 0;
-	real ecart = 1.0;
+	KFPP ecart = 1.0;
 	const int boucle_max = 50;
-	const real SigmaW = k_W*bruit_pix;
-	//real Trac_T[boucle_max];
-	real trac1_tmp, trac2_tmp;
+	const double SigmaW = k_W*bruit_pix;
+	//KFPP Trac_T[boucle_max];
+	double trac1_tmp, trac2_tmp;
 
+        kp_cu_matrix<double> cu_H_inf2(0,0);
+        if (!gainComputed) 
+                cu_H_inf.resize(0,0);
 
 //kp_cu_timer temps_alphak, temps_betak, temps_Tk, temps_inversion ;
 //kp_cu_timer temps_apres_boucle;
 
-	kp_cu_matrix cu_alpha_kp1(0,0);
+	kp_cu_matrix<double> cu_alpha_kp1(0,0);
 	if (ordreAR == 1) cu_alpha_kp1.resize(nb_az,nb_az);
 	else cu_alpha_kp1.resize(nb_n,nb_n);
 	cu_alpha_kp1.zeros();
 	
 	// pour ordreAR 1 et 2
-	kernel_memcpy_diag(cu_alpha_kp1.d_cu, cu_atur.d_cu, 0, 0, nb_az, cu_alpha_kp1.dim1);
+	kernel_memcpy_diag(cu_alpha_kp1.getData(), cu_atur_.getData(), 0, 0, nb_az, cu_alpha_kp1.getDim1());
 	//pour ordreAR 2 uniquement
 	if (ordreAR == 2)
 	{
-		kernel_memset_diag(cu_alpha_kp1.d_cu, 1.0, 0, nb_az, nb_az, cu_alpha_kp1.dim1);
-		kernel_memcpy_diag(cu_alpha_kp1.d_cu, cu_btur.d_cu, nb_az, 0, nb_az, cu_alpha_kp1.dim1);
+		kernel_memset_diag(cu_alpha_kp1.getData(), 1.0, 0, nb_az, nb_az, cu_alpha_kp1.getDim1());
+		kernel_memcpy_diag(cu_alpha_kp1.getData(), cu_btur_.getData(), nb_az, 0, nb_az, cu_alpha_kp1.getDim1());
 	}
-	kp_cu_matrix cu_beta_kp1(0,0);
+	kp_cu_matrix<double> cu_beta_kp1(0,0);
 	if (ordreAR == 1) cu_beta_kp1.resize(nb_az, nb_az);
 	else cu_beta_kp1.resize(nb_n, nb_n);
 	cu_beta_kp1.zeros();
 
-	kp_cu_smatrix cu_C1;
+	kp_cu_smatrix<double> cu_C1;
 	cu_C1.resize(0,0,0);
+	kp_cu_smatrix<double> cu_D_Mo_double(cu_D_Mo);
 	// si ordreAR 1 C1 = D_Mo
 	if (ordreAR == 1) 
 	{
-		cu_C1 = cu_D_Mo;
+		cu_C1 = cu_D_Mo_double;
+		if (expression != 1)
+			cu_D_Mo_double.resize(0,0,0);
 	}
 	//si ordreAR 2 C1 = [zeros(nb_p,nb_az) D_Mo]
 	else 
 	{
-		cu_C1.resize( cu_D_Mo.nnz, nb_p, nb_n);
-		cu_C1.set_majorDim(cu_D_Mo.get_majorDim());
-		kernel_memcpy_int(cu_C1.colind_cu, cu_D_Mo.colind_cu, cu_C1.nnz);
-		kernel_add_const_int(cu_C1.colind_cu, nb_az, cu_C1.nnz);
-		kernel_memcpy_int(cu_C1.rowind_cu, cu_D_Mo.rowind_cu, cu_C1.nnz);
-		kernel_memcpy_real(cu_C1.values_cu, cu_D_Mo.values_cu, cu_C1.nnz);
+		cu_C1.resize( cu_D_Mo_double.nnz, nb_p, nb_n);
+		cu_C1.set_majorDim(cu_D_Mo_double.get_majorDim());
+		kernel_memcpy(cu_C1.colind_cu, cu_D_Mo_double.colind_cu, cu_C1.nnz);
+		kernel_add_const(cu_C1.colind_cu, nb_az, cu_C1.nnz);
+		kernel_memcpy(cu_C1.rowind_cu, cu_D_Mo_double.rowind_cu, cu_C1.nnz);
+		kernel_memcpy(cu_C1.values_cu, cu_D_Mo_double.values_cu, cu_C1.nnz);
+
+		cu_D_Mo_double.resize(0,0,0);
 	}
 
 
 	// VRAI SEULEMENT SI SigmaW = k*Id (k reel)
-	kp_cu_matrix cu_C1_dense(cu_C1.dim1, cu_C1.dim2);
+	kp_cu_matrix<double> cu_C1_dense(cu_C1.getDim1(), cu_C1.getDim2());
 
 	cu_C1_dense.init_from_smatrix(cu_C1);
 
@@ -143,7 +159,7 @@ void kp_kalman_core_sparse_GPU::calculate_gain(real bruit_pix,
 	// beta_kp1 = (C1)T * C1
 	
 	kp_cu_gemm (cusparseHandle,'T', 1, cu_C1, cu_C1_dense, 0, cu_beta_kp1);
-	//kp_smatrix C1_tmp_test,C1_test; kp_matrix C1_dense_test, beta_kp1_test(cu_C1.dim2, cu_C1_dense.dim2);
+	//kp_smatrix C1_tmp_test,C1_test; kp_matrix C1_dense_test, beta_kp1_test(cu_C1.getDim2(), cu_C1_dense.getDim2());
 	//kp_cu2kp_smatrix(C1_tmp_test, cu_C1);C1_test.init_from_transpose(C1_tmp_test); C1_tmp_test.resize(0,0,0);
 	//kp_cu2kp_matrix(C1_dense_test, cu_C1_dense);
         //cu_beta_kp1 = beta_kp1_test;
@@ -158,26 +174,26 @@ void kp_kalman_core_sparse_GPU::calculate_gain(real bruit_pix,
 		
 
 
-	vector<kp_cu_matrix*> cu_ms ;
+	vector<kp_cu_matrix<double>*> cu_ms ;
 
-	kp_cu_matrix cu_SigmaV(SigmaV); 
-	kp_cu_matrix cu_T_kp1sk(0,0);
+	kp_cu_matrix<double> cu_SigmaV(SigmaV); 
+	kp_cu_matrix<double> cu_T_kp1sk(0,0);
 	if (ordreAR == 1) cu_T_kp1sk = cu_SigmaV;
 	else
 	{
 		// beta_kp1_tmp = [SigmaV ; zeros(nb_az, nb_az)];
-		kp_cu_matrix cu_zeros_nbaz_nbaz(nb_az, nb_az);
+		kp_cu_matrix<double> cu_zeros_nbaz_nbaz(nb_az, nb_az);
 		cu_zeros_nbaz_nbaz.zeros();
-		kp_cu_matrix cu_T_kp1sk_tmp(cu_SigmaV);
+		kp_cu_matrix<double> cu_T_kp1sk_tmp(cu_SigmaV);
 		cu_ms.push_back(&cu_T_kp1sk_tmp); cu_ms.push_back(&cu_zeros_nbaz_nbaz);
-		kp_cu_matrix cu_beta_kp1_tmp(nb_n, nb_az);
+		kp_cu_matrix<double> cu_beta_kp1_tmp(nb_n, nb_az);
 		kp_cu_vertcat(cu_beta_kp1_tmp, cu_ms);
 		cu_zeros_nbaz_nbaz.resize(0,0);
 		cu_T_kp1sk_tmp.resize(0,0);
 		cu_ms.clear();
 
 		// T_kp1sk = [beta_kp1_tmp zeros_nbn_nbaz];
-		kp_cu_matrix cu_zeros_nbn_nbaz(nb_n, nb_az);
+		kp_cu_matrix<double> cu_zeros_nbn_nbaz(nb_n, nb_az);
 		cu_zeros_nbn_nbaz.zeros();
 		cu_ms.push_back(&cu_beta_kp1_tmp); cu_ms.push_back(&cu_zeros_nbn_nbaz);
 		kp_cu_horizcat(cu_T_kp1sk, cu_ms);
@@ -188,20 +204,20 @@ void kp_kalman_core_sparse_GPU::calculate_gain(real bruit_pix,
 
 	if (expression==2 || ordreAR==2) cu_SigmaV.resize(0,0);
 
-	kp_cu_matrix cu_alpha_k(cu_alpha_kp1.dim1, cu_alpha_kp1.dim2);
-	kp_cu_matrix cu_T_k(cu_T_kp1sk.dim1, cu_T_kp1sk.dim2);
-	kp_cu_matrix cu_beta_k(cu_beta_kp1.dim1, cu_beta_kp1.dim2);
+	kp_cu_matrix<double> cu_alpha_k(cu_alpha_kp1.getDim1(), cu_alpha_kp1.getDim2());
+	kp_cu_matrix<double> cu_T_k(cu_T_kp1sk.getDim1(), cu_T_kp1sk.getDim2());
+	kp_cu_matrix<double> cu_beta_k(cu_beta_kp1.getDim1(), cu_beta_kp1.getDim2());
 	
-	kp_cu_matrix cu_IBG_1(cu_alpha_k.dim2, cu_beta_k.dim1);
+	kp_cu_matrix<double> cu_IBG_1(cu_alpha_k.getDim2(), cu_beta_k.getDim1());
 
-	kp_cu_matrix cu_Tk_IBG1(cu_T_k.dim1, cu_IBG_1.dim2);
-	kp_cu_matrix cu_betak_Tk(cu_beta_k.dim1, cu_T_k.dim2);
-	kp_cu_matrix cu_alphak_IBG1(cu_alpha_k.dim1, cu_IBG_1.dim2);
-	kp_cu_matrix cu_alphak_IBG1_betak(cu_alpha_k.dim1, cu_beta_k.dim2);
-	kp_cu_matrix cu_Tk_IBG1_alphak(cu_T_k.dim1, cu_alpha_k.dim2);
+	kp_cu_matrix<double> cu_Tk_IBG1(cu_T_k.getDim1(), cu_IBG_1.getDim2());
+	kp_cu_matrix<double> cu_betak_Tk(cu_beta_k.getDim1(), cu_T_k.getDim2());
+	kp_cu_matrix<double> cu_alphak_IBG1(cu_alpha_k.getDim1(), cu_IBG_1.getDim2());
+	kp_cu_matrix<double> cu_alphak_IBG1_betak(cu_alpha_k.getDim1(), cu_beta_k.getDim2());
+	kp_cu_matrix<double> cu_Tk_IBG1_alphak(cu_T_k.getDim1(), cu_alpha_k.getDim2());
 
-	kp_cu_vector cu_diag_cu_Tkp1sk(cu_T_kp1sk.dim1);
-	kp_cu_vector cu_diag_cu_Tk(cu_T_k.dim1);
+	kp_cu_vector<double> cu_diag_cu_Tkp1sk(cu_T_kp1sk.getDim1());
+	kp_cu_vector<double> cu_diag_cu_Tk(cu_T_k.getDim1());
 
 
 
@@ -218,8 +234,8 @@ void kp_kalman_core_sparse_GPU::calculate_gain(real bruit_pix,
 
 		// Calcul de IBG_1
 		// betak_Tk = beta_k * T_k
-		kp_cu_gemm (cublasHandle, 'N', 'N', 1 , cu_beta_k, cu_T_k, 0, cu_betak_Tk);
-	//kp_matrix beta_k_test, T_k_test, betak_Tk_tmp(cu_beta_k.dim1, cu_T_k.dim2);
+		cu_betak_Tk.gemm(cublasHandle, 'N', 'N', 1 , cu_beta_k, cu_T_k, 0);
+	//kp_matrix beta_k_test, T_k_test, betak_Tk_tmp(cu_beta_k.getDim1(), cu_T_k.getDim2());
 	//kp_cu2kp_matrix(beta_k_test, cu_beta_k); kp_cu2kp_matrix(T_k_test, cu_T_k);
         //kp_gemm('N', 'N', 1, beta_k_test, T_k_test, 0, betak_Tk_tmp);
         //cu_betak_Tk = betak_Tk_tmp;
@@ -227,14 +243,14 @@ void kp_kalman_core_sparse_GPU::calculate_gain(real bruit_pix,
 
 		//if (ordreAR ==1)
 			
-			//for (int i=0 ; i<nb_az ; i++) (cu_betak_Tk.d_cu[i * cu_betak_Tk.dim1 + i]) += 1;
+			//for (int i=0 ; i<nb_az ; i++) (cu_betak_Tk.getData()[i * cu_betak_Tk.getDim1() + i]) += 1;
 		//else
-			//for (int i=0 ; i<nb_n ; i++) (cu_betak_Tk.d_cu[i * cu_betak_Tk.dim1 + i]) += 1;
+			//for (int i=0 ; i<nb_n ; i++) (cu_betak_Tk.getData()[i * cu_betak_Tk.getDim1() + i]) += 1;
 
 
 
 
-		kernel_add_diag_const(cu_betak_Tk.d_cu, 1, cu_betak_Tk.dim1);
+		kernel_add_diag_const(cu_betak_Tk.getData(), 1.0, cu_betak_Tk.getDim1());
 
 
 
@@ -255,17 +271,17 @@ void kp_kalman_core_sparse_GPU::calculate_gain(real bruit_pix,
 		// Calcul de alpha_kp1
 		
 		// alphak_IBG1 = alpha_k * IBG_1
-		kp_cu_gemm (cublasHandle, 'N', 'N', 1 , cu_alpha_k, cu_IBG_1 , 0, cu_alphak_IBG1);
+		cu_alphak_IBG1.gemm (cublasHandle, 'N', 'N', 1 , cu_alpha_k, cu_IBG_1 , 0);
 	//kp_matrix MatA, MatB, MatC;
 	//kp_cu2kp_matrix(MatA, cu_alpha_k); kp_cu2kp_matrix(MatB, cu_IBG_1);
-	//MatC.resize(MatA.dim1,MatB.dim2);
+	//MatC.resize(MatA.getDim1(),MatB.getDim2());
         //kp_gemm('N', 'N', 1, MatA, MatB, 0, MatC);
         //cu_betak_Tk = MatC;
 	//MatA.resize(0,0);MatB.resize(0,0);MatC.resize(0,0);
         	// alpha_kp1 = alphak_IBG1 * alphak (= alpha_k * IBG1 * alpha_k) 
-		kp_cu_gemm (cublasHandle, 'N', 'N', 1 , cu_alphak_IBG1, cu_alpha_k , 0, cu_alpha_kp1);
+		cu_alpha_kp1.gemm (cublasHandle, 'N', 'N', 1 , cu_alphak_IBG1, cu_alpha_k , 0);
 	//kp_cu2kp_matrix(MatA, cu_alphak_IBG1); kp_cu2kp_matrix(MatB, cu_alpha_k);
-	//MatC.resize(MatA.dim1,MatB.dim2);
+	//MatC.resize(MatA.getDim1(),MatB.getDim2());
         //kp_gemm('N', 'N', 1, MatA, MatB, 0, MatC);
         //cu_alpha_kp1 = MatC;
 	//MatA.resize(0,0);MatB.resize(0,0);MatC.resize(0,0);
@@ -281,9 +297,9 @@ void kp_kalman_core_sparse_GPU::calculate_gain(real bruit_pix,
 		// Calcul de beta_kp1
 
 		// alphak_IBG1_betak = alphak_IBG1 * beta_k (= alpha_k * IBG1 * beta_k)
-		kp_cu_gemm (cublasHandle, 'N', 'N', 1 , cu_alphak_IBG1, cu_beta_k , 0, cu_alphak_IBG1_betak);
+		cu_alphak_IBG1_betak.gemm (cublasHandle, 'N', 'N', 1 , cu_alphak_IBG1, cu_beta_k , 0);
 	//kp_cu2kp_matrix(MatA, cu_alphak_IBG1); kp_cu2kp_matrix(MatB, cu_beta_k);
-	//MatC.resize(MatA.dim1,MatB.dim2);
+	//MatC.resize(MatA.getDim1(),MatB.getDim2());
         //kp_gemm('N', 'N', 1, MatA, MatB, 0, MatC);
         //cu_alphak_IBG1_betak = MatC;
 	//MatA.resize(0,0);MatB.resize(0,0);MatC.resize(0,0);
@@ -291,9 +307,9 @@ void kp_kalman_core_sparse_GPU::calculate_gain(real bruit_pix,
 
 
 		//beta_kp1 = alphak_IBG1_betak * (alpha_k)T (= alpha_k * IBG1 * beta_k * (alpkha_k)T)
-		kp_cu_gemm (cublasHandle, 'N', 'T', 1 , cu_alphak_IBG1_betak, cu_alpha_k , 1, cu_beta_kp1);
+		cu_beta_kp1.gemm (cublasHandle, 'N', 'T', 1 , cu_alphak_IBG1_betak, cu_alpha_k , 1);
 	//kp_cu2kp_matrix(MatA, cu_alphak_IBG1_betak); kp_cu2kp_matrix(MatB, cu_alpha_k);
-	//MatC.resize(MatA.dim1,MatB.dim2);
+	//MatC.resize(MatA.getDim1(),MatB.getDim2());
         //kp_gemm('N', 'N', 1, MatA, MatB, 0, MatC);
         //cu_beta_kp1 = MatC;
 	//MatA.resize(0,0);MatB.resize(0,0);MatC.resize(0,0);
@@ -310,24 +326,24 @@ void kp_kalman_core_sparse_GPU::calculate_gain(real bruit_pix,
 		//Calcul de T_kp1sk
 
 		// Tk_IBG1 = T_k * IBG1
-		kp_cu_gemm (cublasHandle, 'N', 'N', 1, cu_T_k ,cu_IBG_1, 0, cu_Tk_IBG1);
+		cu_Tk_IBG1.gemm(cublasHandle, 'N', 'N', 1, cu_T_k ,cu_IBG_1, 0);
 	//kp_cu2kp_matrix(MatA, cu_T_k); kp_cu2kp_matrix(MatB, cu_IBG_1);
-	//MatC.resize(MatA.dim1,MatB.dim2);
+	//MatC.resize(MatA.getDim1(),MatB.getDim2());
         //kp_gemm('N', 'N', 1, MatA, MatB, 0, MatC);
         //cu_Tk_IBG1 = MatC;
 	//MatA.resize(0,0);MatB.resize(0,0);MatC.resize(0,0);
 		// Tk_IBG1_alphak = Tk_IBG1 * alpha_k (= T_k * IBG1 * alpha_k)
-		kp_cu_gemm (cublasHandle, 'N', 'N', 1 , cu_Tk_IBG1 , cu_alpha_k , 0, cu_Tk_IBG1_alphak);
+		cu_Tk_IBG1_alphak.gemm(cublasHandle, 'N', 'N', 1 , cu_Tk_IBG1 , cu_alpha_k , 0);
 	//kp_cu2kp_matrix(MatA, cu_Tk_IBG1); kp_cu2kp_matrix(MatB, cu_alpha_k);
-	//MatC.resize(MatA.dim1,MatB.dim2);
+	//MatC.resize(MatA.getDim1(),MatB.getDim2());
         //kp_gemm('N', 'N', 1, MatA, MatB, 0, MatC);
         //cu_Tk_IBG1_alphak = MatC;
 	//MatA.resize(0,0);MatB.resize(0,0);MatC.resize(0,0);
 
 		// T_kp1sk = (alpha_k)T * Tk_IBG1_alphak (= (alpha_k)T * T_k * IBG1 * alpha_k)
-		kp_cu_gemm (cublasHandle, 'T', 'N', 1 , cu_alpha_k, cu_Tk_IBG1_alphak , 1, cu_T_kp1sk);
+		cu_T_kp1sk.gemm(cublasHandle, 'T', 'N', 1 , cu_alpha_k, cu_Tk_IBG1_alphak , 1);
 	//kp_cu2kp_matrix(MatA, cu_alpha_k); kp_cu2kp_matrix(MatB, cu_Tk_IBG1_alphak);
-	//MatC.resize(MatA.dim1,MatB.dim2);
+	//MatC.resize(MatA.getDim1(),MatB.getDim2());
         //kp_gemm('N', 'N', 1, MatA, MatB, 0, MatC);
         //cu_T_kp1sk = MatC;
 	//MatA.resize(0,0);MatB.resize(0,0);MatC.resize(0,0);
@@ -337,11 +353,20 @@ void kp_kalman_core_sparse_GPU::calculate_gain(real bruit_pix,
 
 
 
-		kernel_get_diag(cu_diag_cu_Tkp1sk.d_cu, cu_T_kp1sk.d_cu, cu_T_kp1sk.dim1);	
-		kernel_get_diag(cu_diag_cu_Tk.d_cu, cu_T_k.d_cu, cu_T_k.dim1);	
+		kernel_get_diag(cu_diag_cu_Tkp1sk.getData(), cu_T_kp1sk.getData(), cu_T_kp1sk.getDim1());	
+		kernel_get_diag(cu_diag_cu_Tk.getData(), cu_T_k.getData(), cu_T_k.getDim1());	
 
 		trac1_tmp = kp_cu_reduce(cu_diag_cu_Tkp1sk);
 		trac2_tmp = kp_cu_reduce(cu_diag_cu_Tk);
+		/*kp_vector<double> diag_Tkp1sk,diag_Tk;
+		kp_cu2kp_vector(diag_Tkp1sk,cu_diag_cu_Tkp1sk);
+		kp_cu2kp_vector(diag_Tk,cu_diag_cu_Tk);
+		trac1_tmp=0;trac2_tmp=0;
+		for (int i=0 ; i< diag_Tkp1sk.size() ; i++)
+		{
+			trac1_tmp += diag_Tkp1sk[i];
+			trac2_tmp += diag_Tk[i];
+		}*/
 		
 		//Trac_T[boucle]=trac1_tmp;
 		ecart =fabs(trac1_tmp/trac2_tmp-1.0);
@@ -350,6 +375,8 @@ void kp_kalman_core_sparse_GPU::calculate_gain(real bruit_pix,
 
 
 	}
+
+
 
         if (boucle >= boucle_max)
         {
@@ -388,27 +415,27 @@ void kp_kalman_core_sparse_GPU::calculate_gain(real bruit_pix,
 	{
 		cu_C1.resize(0,0,0);
 		//calcul de Sinf_0_0 (matrice superieure gauche de S_inf)
-        	kp_cu_matrix cu_Atur_Tkp1sk(nb_az,nb_az);
+        	kp_cu_matrix<double> cu_Atur_Tkp1sk(nb_az,nb_az);
 		// Atur_Tkp1sk = Atur * T_kp1sk
-		//for(int i = 0 ; i < cu_atur.size() ; i++)
-			//for (int j = 0 ; j < cu_Atur_Tkp1sk.dim2 ; j++)
-			//cu_Atur_Tkp1sk.d_cu[j * cu_Atur_Tkp1sk.dim1 + i] = cu_atur.d_cu[i] * cu_T_kp1sk.d_cu[j * cu_T_kp1sk.dim1 + i];
+		//for(int i = 0 ; i < cu_atur_.size() ; i++)
+			//for (int j = 0 ; j < cu_Atur_Tkp1sk.getDim2() ; j++)
+			//cu_Atur_Tkp1sk.getData()[j * cu_Atur_Tkp1sk.getDim1() + i] = cu_atur_.getData()[i] * cu_T_kp1sk.getData()[j * cu_T_kp1sk.getDim1() + i];
 
-		kernel_diag_mult(cu_Atur_Tkp1sk.d_cu, cu_T_kp1sk.d_cu, cu_atur.d_cu, cu_atur.size(), cu_T_kp1sk.dim1*cu_T_kp1sk.dim2);
+		kernel_diag_mult(cu_Atur_Tkp1sk.getData(), cu_T_kp1sk.getData(), cu_atur_.getData(), cu_atur_.size(), cu_T_kp1sk.getDim1()*cu_T_kp1sk.getDim2());
 
 		
 			
-		kp_cu_matrix cu_Sinf_0_0(0,0);
-		kp_cu_matrix cu_Sinf_0_0_t(nb_az,nb_az);
-		kp_cu_matrix cu_Atur_Tkp1sk_t(0,0);
+		kp_cu_matrix<double> cu_Sinf_0_0(0,0);
+		kp_cu_matrix<double> cu_Sinf_0_0_t(nb_az,nb_az);
+		kp_cu_matrix<double> cu_Atur_Tkp1sk_t(0,0);
 		// Atur_Tkp1sk_t = (Atur_Tkp1sk)T
 		cu_Atur_Tkp1sk_t.init_from_transpose(cublasHandle, cu_Atur_Tkp1sk);
 		
 		// Sinf_0_0_t = Atur * Atur_Tkp1sk_t  ( = Atur * (Atur * T_kp1sk)T )
-		//for(int i = 0 ; i < cu_atur.size() ; i++)
-			//for (int j = 0 ; j < cu_Sinf_0_0_t.dim2 ; j++)
-				//cu_Sinf_0_0_t.d_cu[j * cu_Sinf_0_0_t.dim1 + i] = cu_atur.d_cu[i] * cu_Atur_Tkp1sk_t.d_cu[j * cu_Atur_Tkp1sk_t.dim1 + i];
-		kernel_diag_mult(cu_Sinf_0_0_t.d_cu, cu_Atur_Tkp1sk_t.d_cu, cu_atur.d_cu, cu_atur.size(), cu_Atur_Tkp1sk_t.dim1*cu_Atur_Tkp1sk_t.dim2);
+		//for(int i = 0 ; i < cu_atur_.size() ; i++)
+			//for (int j = 0 ; j < cu_Sinf_0_0_t.getDim2() ; j++)
+				//cu_Sinf_0_0_t.getData()[j * cu_Sinf_0_0_t.getDim1() + i] = cu_atur_.getData()[i] * cu_Atur_Tkp1sk_t.getData()[j * cu_Atur_Tkp1sk_t.getDim1() + i];
+		kernel_diag_mult(cu_Sinf_0_0_t.getData(), cu_Atur_Tkp1sk_t.getData(), cu_atur_.getData(), cu_atur_.size(), cu_Atur_Tkp1sk_t.getDim1()*cu_Atur_Tkp1sk_t.getDim2());
 
 
 		cu_Atur_Tkp1sk_t.resize(0,0);
@@ -422,7 +449,7 @@ void kp_kalman_core_sparse_GPU::calculate_gain(real bruit_pix,
 		
 		
 		// calcul de Sinf_0 (matrice superieure de S_inf)
-		kp_cu_matrix cu_Sinf_0(nb_az,nb_n);
+		kp_cu_matrix<double> cu_Sinf_0(nb_az,nb_n);
 		cu_ms.push_back(&cu_Sinf_0_0) ; cu_ms.push_back(&cu_Atur_Tkp1sk) ;
 		// Sinf = [ Sinf_0_0  A_tur*T_kp1sk ] 
 		kp_cu_horizcat(cu_Sinf_0, cu_ms);
@@ -432,23 +459,23 @@ void kp_kalman_core_sparse_GPU::calculate_gain(real bruit_pix,
 
 
 		// calcul de Sinf_1 (matrice inferieure de S_inf)
-		kp_cu_matrix cu_Sinf_1_0(0,0);
-		kp_cu_matrix cu_Sinf_1_0_t(nb_az,nb_az);
-		kp_cu_matrix cu_T_kp1sk_t(0,0);
+		kp_cu_matrix<double> cu_Sinf_1_0(0,0);
+		kp_cu_matrix<double> cu_Sinf_1_0_t(nb_az,nb_az);
+		kp_cu_matrix<double> cu_T_kp1sk_t(0,0);
 		// T_kp1sk_t = (T_kp1sk)T
 		cu_T_kp1sk_t.init_from_transpose(cublasHandle, cu_T_kp1sk);
 		// Sinf_1_0_t = Atur * T_kp1sk_t  ( = Atur * (T_kp1sk)T )
-		//for(int i = 0 ; i < cu_atur.size() ; i++)
-			//for (int j = 0 ; j < cu_Sinf_1_0_t.dim2 ; j++)
-				//cu_Sinf_1_0_t.d_cu[j * cu_Sinf_1_0_t.dim1 + i] = cu_atur.d_cu[i] * cu_T_kp1sk_t.d_cu[j * cu_T_kp1sk_t.dim1 + i];
-		kernel_diag_mult(cu_Sinf_1_0_t.d_cu, cu_T_kp1sk_t.d_cu, cu_atur.d_cu, cu_atur.size(), cu_T_kp1sk_t.dim1*cu_T_kp1sk_t.dim2);
+		//for(int i = 0 ; i < cu_atur_.size() ; i++)
+			//for (int j = 0 ; j < cu_Sinf_1_0_t.getDim2() ; j++)
+				//cu_Sinf_1_0_t.getData()[j * cu_Sinf_1_0_t.getDim1() + i] = cu_atur.getData()[i] * cu_T_kp1sk_t.getData()[j * cu_T_kp1sk_t.getDim1() + i];
+		kernel_diag_mult(cu_Sinf_1_0_t.getData(), cu_T_kp1sk_t.getData(), cu_atur_.getData(), cu_atur_.size(), cu_T_kp1sk_t.getDim1()*cu_T_kp1sk_t.getDim2());
 
 		cu_T_kp1sk_t.resize(0,0);
 		// Sinf_1_0 = (Sinf_1_0_t)T  ( = T_kp1sk * (Atur)T )
 		cu_Sinf_1_0.init_from_transpose(cublasHandle, cu_Sinf_1_0_t);
 		cu_Sinf_1_0_t.resize(0,0);
 		
-		kp_cu_matrix cu_Sinf_1(nb_az,nb_n);
+		kp_cu_matrix<double> cu_Sinf_1(nb_az,nb_n);
 		cu_ms.push_back(&cu_Sinf_1_0) ; cu_ms.push_back(&cu_T_kp1sk) ;
 		// Sinf_1 = [ Sinf_1_0  T_kp1sk] 
 		kp_cu_horizcat(cu_Sinf_1, cu_ms);
@@ -457,7 +484,7 @@ void kp_kalman_core_sparse_GPU::calculate_gain(real bruit_pix,
 		cu_T_kp1sk.resize(0,0);
 	
 		// S_inf = [ Sinf_0 ; Sinf_1 ]
-		kp_cu_matrix cu_S_inf(nb_n, nb_n);
+		kp_cu_matrix<double> cu_S_inf(nb_n, nb_n);
 
 		cu_ms.push_back(&cu_Sinf_0) ; cu_ms.push_back(&cu_Sinf_1) ;	 
 		kp_cu_vertcat(cu_S_inf, cu_ms);	
@@ -470,18 +497,19 @@ void kp_kalman_core_sparse_GPU::calculate_gain(real bruit_pix,
 
 
 
-		kp_cu_smatrix cu_zeros_Dmo;cu_zeros_Dmo.resize(0,0,0);
-		cu_zeros_Dmo.resize(cu_D_Mo.nnz, cu_D_Mo.dim1, nb_n);
-		kernel_memcpy_int(cu_zeros_Dmo.rowind_cu, cu_D_Mo.rowind_cu, cu_zeros_Dmo.nnz);
-		kernel_memcpy_int(cu_zeros_Dmo.colind_cu, cu_D_Mo.colind_cu, cu_zeros_Dmo.nnz);
-		kernel_memcpy_real(cu_zeros_Dmo.values_cu, cu_D_Mo.values_cu, cu_zeros_Dmo.nnz);
-		kernel_add_const_int(cu_zeros_Dmo.colind_cu, nb_az, cu_zeros_Dmo.nnz);
-		cu_zeros_Dmo.set_majorDim(cu_D_Mo.get_majorDim());
+		kp_cu_smatrix<double> cu_zeros_Dmo;cu_zeros_Dmo.resize(0,0,0);
+		cu_zeros_Dmo.resize(cu_D_Mo_double.nnz, cu_D_Mo_double.getDim1(), nb_n);
+		kernel_memcpy(cu_zeros_Dmo.rowind_cu, cu_D_Mo_double.rowind_cu, cu_zeros_Dmo.nnz);
+		kernel_memcpy(cu_zeros_Dmo.colind_cu, cu_D_Mo_double.colind_cu, cu_zeros_Dmo.nnz);
+		kernel_memcpy(cu_zeros_Dmo.values_cu, cu_D_Mo_double.values_cu, cu_zeros_Dmo.nnz);
+		kernel_add_const(cu_zeros_Dmo.colind_cu, nb_az, cu_zeros_Dmo.nnz);
+		cu_zeros_Dmo.set_majorDim(cu_D_Mo_double.get_majorDim());
 		
+		cu_D_Mo_double.resize(0,0,0);
 
-		kp_cu_matrix cu_Sinf_zerosDmot_tmp(nb_p, nb_n);
+		kp_cu_matrix<double> cu_Sinf_zerosDmot_tmp(nb_p, nb_n);
 		// Sinft = (S_inf)T
-		kp_cu_matrix cu_Sinft(0,0) ; cu_Sinft.init_from_transpose(cublasHandle, cu_S_inf);
+		kp_cu_matrix<double> cu_Sinft(0,0) ; cu_Sinft.init_from_transpose(cublasHandle, cu_S_inf);
 
 
 
@@ -500,7 +528,7 @@ void kp_kalman_core_sparse_GPU::calculate_gain(real bruit_pix,
 
 		// Sinf_zerosDmot_tmp = zeros_Dmo * Sinft  ( = [0 D_Mo] * (Sinf)T )
 		kp_cu_gemm (cusparseHandle,'N', 1 , cu_zeros_Dmo, cu_Sinft , 0, cu_Sinf_zerosDmot_tmp);
-	//kp_smatrix zeros_Dmo_test; kp_matrix Sinft_test, Sinf_zerosDmot_tmp_test(cu_zeros_Dmo.dim1, cu_Sinft.dim2);
+	//kp_smatrix zeros_Dmo_test; kp_matrix Sinft_test, Sinf_zerosDmot_tmp_test(cu_zeros_Dmo.getDim1(), cu_Sinft.getDim2());
 	//kp_cu2kp_smatrix(zeros_Dmo_test, cu_zeros_Dmo); kp_cu2kp_matrix(Sinft_test, cu_Sinft);
         //kp_gemm( 1, zeros_Dmo_test, Sinft_test, 0, Sinf_zerosDmot_tmp_test);
         //cu_Sinf_zerosDmot_tmp = Sinf_zerosDmot_tmp_test;
@@ -512,7 +540,7 @@ void kp_kalman_core_sparse_GPU::calculate_gain(real bruit_pix,
 //--------------------------------------------------
 
 		cu_Sinft.resize(0,0);
-		kp_cu_matrix cu_Sinf_zerosDmot(0,0);
+		kp_cu_matrix<double> cu_Sinf_zerosDmot(0,0);
 		// Sinf_zerosDmot = (Sinf_zerosDmot_tmp)T
 		cu_Sinf_zerosDmot.init_from_transpose(cublasHandle, cu_Sinf_zerosDmot_tmp);
 		cu_Sinf_zerosDmot_tmp.resize(0,0);
@@ -522,18 +550,18 @@ void kp_kalman_core_sparse_GPU::calculate_gain(real bruit_pix,
 
 
 		// calcul de Sigma_tot = [0 D_Mo] * S_inf * [0 D_Mo]' + SigmaW
-		kp_cu_matrix cu_inv_Sigmatot(nb_p,nb_p);
+		kp_cu_matrix<double> cu_inv_Sigmatot(nb_p,nb_p);
 		// Sigma_tot = zeros_Dmo * Sinf_zerosDmot  ( = [0 D_Mo] * Sinf * [0 ; (D_Mo)T] )
 		//
 		kp_cu_gemm (cusparseHandle, 'N', 1 , cu_zeros_Dmo, cu_Sinf_zerosDmot , 0, cu_inv_Sigmatot);
-	//kp_matrix cu_sinf_zerosdmot_test, inv_Sigmatot_test(cu_zeros_Dmo.dim1, cu_Sinf_zerosDmot.dim2);
+	//kp_matrix cu_sinf_zerosdmot_test, inv_Sigmatot_test(cu_zeros_Dmo.getDim1(), cu_Sinf_zerosDmot.getDim2());
 	//kp_cu2kp_smatrix(zeros_Dmo_test, cu_zeros_Dmo); kp_cu2kp_matrix(cu_sinf_zerosdmot_test, cu_Sinf_zerosDmot);
         //kp_gemm( 1, zeros_Dmo_test, cu_sinf_zerosdmot_test, 0, inv_Sigmatot_test);
         //cu_inv_Sigmatot = inv_Sigmatot_test;
 		//kp_cu_gemm (cusparseHandle,cublasHandle, 'N', 'N', 1 , cu_zeros_Dmo, cu_Sinf_zerosDmot , 0, cu_inv_Sigmatot);
 
 		// Sigma_tot = Sigma_tot + SigmaW*Id (avec SigmaW reel)  (= [0 D_Mo] * Sinf * [0 ; (D_Mo)T] + SigmaW*Id)
-		//for(int i = 0 ; i < cu_inv_Sigmatot.dim1 ; i++) cu_inv_Sigmatot.d_cu[i * cu_inv_Sigmatot.dim1 + i] += SigmaW;
+		//for(int i = 0 ; i < cu_inv_Sigmatot.getDim1() ; i++) cu_inv_Sigmatot.getData()[i * cu_inv_Sigmatot.getDim1() + i] += SigmaW;
 		
 //----------------------------------------------------------------		
 		
@@ -541,18 +569,32 @@ void kp_kalman_core_sparse_GPU::calculate_gain(real bruit_pix,
 		
 	
 		
-		kernel_add_diag_const(cu_inv_Sigmatot.d_cu, SigmaW, cu_inv_Sigmatot.dim1);
+		kernel_add_diag_const(cu_inv_Sigmatot.getData(), SigmaW, cu_inv_Sigmatot.getDim1());
 		cu_zeros_Dmo.resize(0,0,0);
 		
 		//inversion de Sigma_tot
 		// inv_Sigmatot = inv(Sigma_tot)
 		cu_inv_Sigmatot.inverse();
 		// ATTENTION !!!! Le pointeur Sigma_tot n'existe plus
-		cu_H_inf.resize(nb_n,nb_p);
+                
+                /*if (!gainComputed)
+                {
+                        cu_H_inf.resize(nb_n,nb_p);
+                        // H_inf = Sinf_zerosDmot * inv_Sigmatot  ( = Sinf * [0 (D_Mo)T] * inv(Sigma_tot))
+		        cu_H_inf.gemm (cublasHandle, 'N', 'N', 1 , cu_Sinf_zerosDmot, cu_inv_Sigmatot , 0);
+                }
+
+                else*/
+                {
+                        cu_H_inf2.resize(nb_n,nb_p);
+                        // H_inf = Sinf_zerosDmot * inv_Sigmatot  ( = Sinf * [0 (D_Mo)T] * inv(Sigma_tot))
+		        cu_H_inf2.gemm (cublasHandle, 'N', 'N', 1 , cu_Sinf_zerosDmot, cu_inv_Sigmatot , 0);
+                }
+                
+
 		// H_inf = Sinf_zerosDmot * inv_Sigmatot  ( = Sinf * [0 (D_Mo)T] * inv(Sigma_tot))
-		kp_cu_gemm (cublasHandle, 'N', 'N', 1 , cu_Sinf_zerosDmot, cu_inv_Sigmatot , 0, cu_H_inf);
 	//kp_matrix MatA,MatB,MatC;kp_cu2kp_matrix(MatA, cu_Sinf_zerosDmot); kp_cu2kp_matrix(MatB, cu_inv_Sigmatot);
-	//MatC.resize(MatA.dim1,MatB.dim2);
+	//MatC.resize(MatA.getDim1(),MatB.getDim2());
         //kp_gemm('N', 'N', 1, MatA, MatB, 0, MatC);
         //cu_H_inf = MatC;
 	//MatA.resize(0,0);MatB.resize(0,0);MatC.resize(0,0);
@@ -565,15 +607,15 @@ void kp_kalman_core_sparse_GPU::calculate_gain(real bruit_pix,
 	{
 
         	//Calcul de T_kp1sk * (C1)T
-		kp_cu_matrix cu_Tkp1skt(0,0);
+		kp_cu_matrix<double> cu_Tkp1skt(0,0);
 		// Tkp1skt = (T_kp1sk)T
 		cu_Tkp1skt.init_from_transpose(cublasHandle, cu_T_kp1sk);
 		cu_T_kp1sk.resize(0,0);
-		kp_cu_matrix cu_Tkp1sk_C1t_tmp(cu_C1.dim1, cu_Tkp1skt.dim2);
+		kp_cu_matrix<double> cu_Tkp1sk_C1t_tmp(cu_C1.getDim1(), cu_Tkp1skt.getDim2());
 		// Tkp1sk_C1t_tmp = C1 * Tkp1skt  ( = C1 * (T_kp1sk)T )
 		
         	kp_cu_gemm (cusparseHandle, 'N', 1 , cu_C1, cu_Tkp1skt , 0, cu_Tkp1sk_C1t_tmp);
-	//kp_smatrix C1_test; kp_matrix Tkp1skt_test, Tkp1sk_C1t_tmp_test(cu_C1.dim1, cu_Tkp1skt.dim2);
+	//kp_smatrix C1_test; kp_matrix Tkp1skt_test, Tkp1sk_C1t_tmp_test(cu_C1.getDim1(), cu_Tkp1skt.getDim2());
 	//kp_cu2kp_smatrix(C1_test, cu_C1); kp_cu2kp_matrix(Tkp1skt_test, cu_Tkp1skt);
         //kp_gemm( 1, C1_test, Tkp1skt_test, 0, Tkp1sk_C1t_tmp_test);
         //cu_Tkp1sk_C1t_tmp = Tkp1sk_C1t_tmp_test;
@@ -581,22 +623,22 @@ void kp_kalman_core_sparse_GPU::calculate_gain(real bruit_pix,
 
 
 		cu_Tkp1skt.resize(0,0);
-        	kp_cu_matrix cu_Tkp1sk_C1t(0,0);
+        	kp_cu_matrix<double> cu_Tkp1sk_C1t(0,0);
 		// Tkp1sk_C1t = (Tkp1sk_C1t_tmp)T ( = T_kp1sk * (C1)T )
 		cu_Tkp1sk_C1t.init_from_transpose(cublasHandle, cu_Tkp1sk_C1t_tmp);
 		cu_Tkp1sk_C1t_tmp.resize(0,0);
 		
 		//Calcul de C1 * T_kp1sk * C1' + SigmaW
-        	kp_cu_matrix cu_inv_Sigmatot(cu_C1.dim1, cu_Tkp1sk_C1t.dim2);
+        	kp_cu_matrix<double> cu_inv_Sigmatot(cu_C1.getDim1(), cu_Tkp1sk_C1t.getDim2());
 		// Sigma_tot = SigmaW * Id (avec SigmaW reel)
 		cu_inv_Sigmatot.zeros();
-		//for(int i = 0 ; i < cu_inv_Sigmatot.dim1 ; i++) cu_inv_Sigmatot.d_cu[i * cu_inv_Sigmatot.dim1 + i] += SigmaW;
-		kernel_add_diag_const(cu_inv_Sigmatot.d_cu, SigmaW, cu_inv_Sigmatot.dim1);
+		//for(int i = 0 ; i < cu_inv_Sigmatot.getDim1() ; i++) cu_inv_Sigmatot.getData()[i * cu_inv_Sigmatot.getDim1() + i] += SigmaW;
+		kernel_add_diag_const(cu_inv_Sigmatot.getData(), SigmaW, cu_inv_Sigmatot.getDim1());
 
 	
 		// Sigma_tot = Sigma_tot + C1 * Tkp1sk_C1t  ( = (C1 * T_kp1sk * (C1)T) + SigmaW*Id )
 		kp_cu_gemm (cusparseHandle, 'N',1 , cu_C1, cu_Tkp1sk_C1t , 1, cu_inv_Sigmatot);
-	//kp_matrix Tkp1sk_C1t_test, inv_Sigmatot_test(cu_C1.dim1, cu_Tkp1sk_C1t.dim2);
+	//kp_matrix Tkp1sk_C1t_test, inv_Sigmatot_test(cu_C1.getDim1(), cu_Tkp1sk_C1t.getDim2());
 	//kp_cu2kp_smatrix(C1_test, cu_C1); kp_cu2kp_matrix(Tkp1sk_C1t_test, cu_Tkp1sk_C1t);
         //kp_gemm( 1, C1_test, Tkp1sk_C1t_test, 0, inv_Sigmatot_test);
         //cu_inv_Sigmatot = inv_Sigmatot_test;
@@ -612,12 +654,11 @@ void kp_kalman_core_sparse_GPU::calculate_gain(real bruit_pix,
 		
 		if (ordreAR == 1)
 		{
-			kp_cu_matrix cu_H_opt(cu_Tkp1sk_C1t.dim1, cu_inv_Sigmatot.dim2);
-
+			kp_cu_matrix<double> cu_H_opt(cu_Tkp1sk_C1t.getDim1(), cu_inv_Sigmatot.getDim2());
 			// H_opt = Tkp1sk_C1t * inv_Sigmatot
-			kp_cu_gemm(cublasHandle, 'N', 'N', 1 , cu_Tkp1sk_C1t, cu_inv_Sigmatot , 0, cu_H_opt);
+			cu_H_opt.gemm(cublasHandle, 'N', 'N', 1 , cu_Tkp1sk_C1t, cu_inv_Sigmatot , 0);
 	//kp_matrix MatA,MatB,MatC;kp_cu2kp_matrix(MatA, cu_Tkp1sk_C1t); kp_cu2kp_matrix(MatB, cu_inv_Sigmatot);
-	//MatC.resize(MatA.dim1,MatB.dim2);
+	//MatC.resize(MatA.getDim1(),MatB.getDim2());
         //kp_gemm('N', 'N', 1, MatA, MatB, 0, MatC);
         //cu_H_opt = MatC;
 	//MatA.resize(0,0);MatB.resize(0,0);MatC.resize(0,0);
@@ -625,17 +666,28 @@ void kp_kalman_core_sparse_GPU::calculate_gain(real bruit_pix,
 			cu_Tkp1sk_C1t.resize(0,0);
 			cu_inv_Sigmatot.resize(0,0);
 			
-			kp_cu_matrix cu_Atur_Hopt(nb_az, nb_p);
+			kp_cu_matrix<double> cu_Atur_Hopt(nb_az, nb_p);
 			// Atur_Hopt = Atur * H_opt
-			//for(int i = 0 ; i < cu_atur.size() ; i++)
-				//for (int j = 0 ; j < cu_Atur_Hopt.dim2 ; j++)
-					//cu_Atur_Hopt.d_cu[j * cu_Atur_Hopt.dim1 + i] = cu_atur.d_cu[i] * cu_H_opt.d_cu[j * cu_H_opt.dim1 + i];
-			kernel_diag_mult(cu_Atur_Hopt.d_cu, cu_H_opt.d_cu, cu_atur.d_cu, cu_atur.size(), cu_H_opt.dim1*cu_H_opt.dim2);
+			//for(int i = 0 ; i < cu_atur_.size() ; i++)
+				//for (int j = 0 ; j < cu_Atur_Hopt.getDim2() ; j++)
+					//cu_Atur_Hopt.getData()[j * cu_Atur_Hopt.getDim1() + i] = cu_atur_.getData()[i] * cu_H_opt.getData()[j * cu_H_opt.getDim1() + i];
+			kernel_diag_mult(cu_Atur_Hopt.getData(), cu_H_opt.getData(), cu_atur_.getData(), cu_atur_.size(), cu_H_opt.getDim1()*cu_H_opt.getDim2());
 
-			cu_H_inf.resize(nb_n,nb_p);
+			//cu_H_inf.resize(nb_n,nb_p);
 			cu_ms.push_back(&cu_Atur_Hopt) ; cu_ms.push_back(&cu_H_opt);
 			// H_inf = [ Atur*H_opt ; H_opt]
-			kp_cu_vertcat(cu_H_inf, cu_ms);
+                        /*if(!gainComputed)
+                        {
+                                cu_H_inf.resize(nb_n,nb_p);
+			        // H_inf = [ Atur*H_opt ; H_opt]
+			        kp_cu_vertcat(cu_H_inf,cu_ms);
+                        }
+                        else*/
+                        {
+                                cu_H_inf2.resize(nb_n,nb_p);
+			        // H_inf2 = [ Atur*H_opt ; H_opt]
+			        kp_cu_vertcat(cu_H_inf2,cu_ms);
+                        }
 			cu_ms.clear();
 			cu_Atur_Hopt.resize(0,0);
 			cu_H_opt.resize(0,0);
@@ -643,10 +695,21 @@ void kp_kalman_core_sparse_GPU::calculate_gain(real bruit_pix,
 		
 		else
 		{
-			cu_H_inf.resize(nb_n,nb_p);
-			kp_cu_gemm(cublasHandle, 'N', 'N', 1 , cu_Tkp1sk_C1t, cu_inv_Sigmatot , 0, cu_H_inf);
+			/*cu_H_inf.resize(nb_n,nb_p);
+
+                        if(!gainComputed)
+                        {
+			        cu_H_inf.resize(nb_n,nb_p);
+			        cu_H_inf.gemm(cublasHandle, 'N', 'N', 1 , cu_Tkp1sk_C1t, cu_inv_Sigmatot , 0);
+                        }
+                        else*/
+                        {
+			        cu_H_inf2.resize(nb_n,nb_p);
+			        cu_H_inf2.gemm(cublasHandle, 'N', 'N', 1 , cu_Tkp1sk_C1t, cu_inv_Sigmatot , 0);
+                        }
+
 	//kp_matrix MatA,MatB,MatC;kp_cu2kp_matrix(MatA, cu_Tkp1sk_C1t); kp_cu2kp_matrix(MatB, cu_inv_Sigmatot);
-	//MatC.resize(MatA.dim1,MatB.dim2);
+	//MatC.resize(MatA.getDim1(),MatB.getDim2());
         //kp_gemm('N', 'N', 1, MatA, MatB, 0, MatC);
         //cu_H_inf = MatC;
 	//MatA.resize(0,0);MatB.resize(0,0);MatC.resize(0,0);
@@ -661,12 +724,20 @@ void kp_kalman_core_sparse_GPU::calculate_gain(real bruit_pix,
 //temps_apres_boucle.pause();
 //cout<< "temps apres boucle = "<<temps_apres_boucle.rez()<<endl;
 
-	/*kp_matrix H_inf;
+
+	cu_atur = cu_atur_;
+	cu_btur = cu_btur_;
+        //if (gainComputed) cu_H_inf = cu_H_inf2;
+	cu_H_inf = cu_H_inf2;
+
+	gainComputed = true;
+
+	/*kp_matrix<float> H_inf;
 	kp_cu2kp_matrix(H_inf, cu_H_inf);
 	fichier.open("H_inf_sparse_GPU.dat",ios::out);
-	for(int i=0;i<H_inf.dim1;i++)
+	for(int i=0;i<H_inf.getDim1();i++)
 	{
-		for (int j=0;j<H_inf.dim2;j++)
+		for (int j=0;j<H_inf.getDim2();j++)
 		{
 			fichier<< __SP H_inf(i,j)<<" ";
 		}
@@ -674,27 +745,34 @@ void kp_kalman_core_sparse_GPU::calculate_gain(real bruit_pix,
 	}	
 	fichier.close();*/
 
-	gainComputed = true;
-
-
 
 }
 
 
 
 
-void kp_kalman_core_sparse_GPU::next_step(const kp_vector& Y_k, kp_vector& U_k)
+void kp_kalman_core_sparse_GPU::next_step(const kp_vector<KFPP>& Y_k, kp_vector<KFPP>& U_k)
 {
-//ofstream fichier;
+//ofstream fichier2;
+
+temps_boucle.start();
 	if(!gainComputed)
 	{
 		cerr << "Error | kp_kalman_core_sparse_GPU::next_step | gain has not been initialized" << endl;
 		exit(EXIT_FAILURE);
 	}
 
-	real mean_Xkp1skdebut;
+	KFPP mean_Xkp1skdebut;
 
 	cu_Y_k = Y_k;
+
+
+/*fichier2.open("Yk.dat",ios::out);
+for(int i=0;i<Y_k.size();i++)
+	fichier2<< __SP Y_k.d[i]<<" ";
+fichier2.close();
+exit(EXIT_FAILURE);*/
+
 	cu_Nact_Ukm2.zeros();
 	cu_tmp_vec1.zeros();
 	cu_innovation.zeros();
@@ -704,41 +782,121 @@ void kp_kalman_core_sparse_GPU::next_step(const kp_vector& Y_k, kp_vector& U_k)
 	cu_A1_00_Xkdebut.zeros();
 	cu_A1_01_Xkfin.zeros();
 
-//temps_op1.start();
+temps_boucle_op1.start();
 	// VECTEUR d'ESTIMATION de MESURE ( A l' INSTANT K )
 	// Nact_Ukm2 = N_Act * U_km2 
 	//kp_gemv (1, N_Act, *U_km2, 0, *Nact_Ukm2);
 	kp_cu_gemv (cusparseHandle, 'N', 1, cu_N_Act, cu_U_km2, 0, cu_Nact_Ukm2);
-	
+
+/*kp_vector Nact_Ukm2_tmp;
+kp_cu2kp_vector(Nact_Ukm2_tmp, cu_Nact_Ukm2);
+cout<<"ooooooooooo Nact_Ukm2[200] = "<<Nact_Ukm2_tmp.d[200]<<endl;*/
+
 	// tmp_vec1 = X_kskm1 - Nact_Ukm2 (= X_kskm1 - N_Act * U_km2)
-	//kp_cu_cudaMemcpy(tmp_vec1->d, cu_X_kskm1->d_cu+nb_az, nb_az*sizeof(real), cudaMemcpyDeviceToHost);
-	kernel_memcpy_real(cu_tmp_vec1.d_cu, cu_X_kskm1.d_cu+nb_az, nb_az);
+	//kp_cu_cudaMemcpy(tmp_vec1->d, cu_X_kskm1->d_cu+nb_az, nb_az*sizeof(KFPP), cudaMemcpyDeviceToHost);
+	kernel_memcpy(cu_tmp_vec1.getData(), cu_X_kskm1.getData()+nb_az, nb_az);
 	cu_tmp_vec1 += cu_Nact_Ukm2 ;
 		
+/*kp_vector tmp_vec1_tmp;
+kp_cu2kp_vector(tmp_vec1_tmp, cu_tmp_vec1);
+cout<<"ooooooooooo tmp_vec1_tmp[200] = "<<tmp_vec1_tmp.d[200]<<endl;*/
+
 	// Y_kskm1 = D_Mo * tmp_vec1 (= D_Mo * (X_kskm1 - N_Act * U_km2))
 	//kp_gemv (1,D_Mo, *tmp_vec1,0,*Y_kskm1); 
 	kp_cu_gemv (cusparseHandle, 'N', 1, cu_D_Mo, cu_tmp_vec1, 0, cu_Y_kskm1); 
 
-//temps_op1.pause();
+/*kp_vector Y_kskm1_tmp;
+kp_cu2kp_vector(Y_kskm1_tmp, cu_Y_kskm1);
+cout<<"ooooooooooo Y_kskm1_tmp[200] = "<<Y_kskm1_tmp.d[200]<<endl;*/
+temps_boucle_op1.pause();
 	
 
-//temps_op2.start();			
+temps_boucle_op2.start();			
 	// VECTEUR D'ESTIMATION de PREDICTION ( A l' INSTANT K )
 		
 	// innovation = Y_k - Y_kskm1
 	cu_innovation = cu_Y_k;
+
+
+
+/*kp_vector innovation_tmp;
+kp_cu2kp_vector(innovation_tmp, cu_innovation);
+fichier2.open("Innovation1.dat",ios::out);
+for(int i=0;i<innovation_tmp.size();i++)
+	fichier2<< __SP innovation_tmp.d[i]<<" ";
+fichier2.close();
+innovation_tmp.resize(0);*/
+
 	//cu_Y_kskm1 = *Y_kskm1;
 	cu_innovation += cu_Y_kskm1;
+
+/*kp_cu2kp_vector(innovation_tmp, cu_innovation);
+fichier2.open("Innovation2.dat",ios::out);
+for(int i=0;i<innovation_tmp.size();i++)
+	fichier2<< __SP innovation_tmp.d[i]<<" ";
+fichier2.close();
+innovation_tmp.resize(0);
+kp_cu2kp_vector(innovation_tmp, cu_innovation);
+cout<<"ooooooooooo innovation_tmp[200] = "<<innovation_tmp.d[200]<<endl;*/
+
 	cu_X_kskm1_tmp = cu_X_kskm1;
+
+/*innovation_tmp.resize(0);
+kp_vector X_kskm1_tmp_tmp;
+kp_cu2kp_vector(X_kskm1_tmp_tmp, cu_X_kskm1_tmp);
+cout<<"ooooooooooo X_kskm1_tmp_tmp[200] = "<<X_kskm1_tmp_tmp.d[200]<<endl;*/
 
 	// X_kskm1_tmp = H_inf *  (Y_k - Y_kskm1)
 	//kp_gemv ('N',1,H_inf,*innovation,1,*X_kskm1_tmp); 
         
 
+/*kp_matrix H_inf_tmp;
+kp_cu2kp_matrix(H_inf_tmp, cu_H_inf);
+fichier2.open("H_inf_sparse_GPU.dat",ios::out);
+for(int i=0;i<H_inf_tmp.getDim1();i++)
+{
+	for (int j=0;j<H_inf_tmp.getDim2();j++)
+	{
+		fichier2<< __SP H_inf_tmp(i,j)<<" ";
+	}
+	fichier2 << endl;
+}	
+fichier2.close();
+H_inf_tmp.resize(0,0);
+
+kp_cu2kp_vector(innovation_tmp, cu_innovation);
+fichier2.open("Innovation3.dat",ios::out);
+for(int i=0;i<innovation_tmp.size();i++)
+	fichier2<< __SP innovation_tmp.d[i]<<" ";
+fichier2.close();
+innovation_tmp.resize(0);*/
 
 
 
-	kp_cu_gemv (cublasHandle, 'N', 1, cu_H_inf, cu_innovation, 1, cu_X_kskm1_tmp);
+	cu_X_kskm1_tmp.gemv (cublasHandle, 'N', 1, cu_H_inf, cu_innovation, 1);
+
+/*kp_cu2kp_matrix(H_inf_tmp, cu_H_inf);
+fichier2.open("H_inf_sparse_GPU2.dat",ios::out);
+for(int i=0;i<H_inf_tmp.getDim1();i++)
+{
+	for (int j=0;j<H_inf_tmp.getDim2();j++)
+	{
+		fichier2<< __SP H_inf_tmp(i,j)<<" ";
+	}
+	fichier2 << endl;
+}	
+fichier2.close();
+kp_cu2kp_vector(innovation_tmp, cu_innovation);
+fichier2.open("Innovation4.dat",ios::out);
+for(int i=0;i<innovation_tmp.size();i++)
+	fichier2<< __SP innovation_tmp.d[i]<<" ";
+fichier2.close();
+exit(EXIT_FAILURE);*/
+
+	/*kp_cu_vector cu_Hinf_innovation(cu_H_inf.getDim1());cu_Hinf_innovation.zeros();
+	kp_cu_gemv (cublasHandle, 'N', 1, cu_H_inf, cu_innovation, 0, cu_Hinf_innovation);
+	cu_X_kskm1_tmp += cu_Hinf_innovation;*/
+
         //kp_matrix H_inf_test;
         //kp_cu2kp_matrix(H_inf_test, cu_H_inf);
         //kp_vector innovation_test, X_kskm1_tmp_test(cu_X_kskm1_tmp.size());
@@ -747,7 +905,9 @@ void kp_kalman_core_sparse_GPU::next_step(const kp_vector& Y_k, kp_vector& U_k)
         //cu_X_kskm1_tmp = X_kskm1_tmp_test;
 
 
-
+/*X_kskm1_tmp_tmp.resize(0);
+kp_cu2kp_vector(X_kskm1_tmp_tmp, cu_X_kskm1_tmp);
+cout<<"ooooooooooo X_kskm1_tmp_tmp[200] = "<<X_kskm1_tmp_tmp.d[200]<<endl;*/
 
 
 
@@ -756,32 +916,39 @@ void kp_kalman_core_sparse_GPU::next_step(const kp_vector& Y_k, kp_vector& U_k)
 	//kp_cu_gemv (cusparseHandle,'N',1, *cu_A1, cu_X_kskm1_tmp,0,cu_X_kp1sk);
 	
 
-	kernel_memset_real(cu_X_kp1sk.d_cu, 0.0, nb_az);
-	kernel_memcpy_real(cu_A1_00_Xkdebut.d_cu, cu_X_kskm1_tmp.d_cu, nb_az);
-	kernel_memcpy_real(cu_A1_01_Xkfin.d_cu, cu_X_kskm1_tmp.d_cu+nb_az, nb_az);
+	kernel_memset(cu_X_kp1sk.getData(), (KFPP)0.0, nb_az);
+	kernel_memcpy(cu_A1_00_Xkdebut.getData(), cu_X_kskm1_tmp.getData(), nb_az);
+	kernel_memcpy(cu_A1_01_Xkfin.getData(), cu_X_kskm1_tmp.getData()+nb_az, nb_az);
 	cu_A1_00_Xkdebut *= cu_atur;
 	cu_A1_01_Xkfin *= cu_btur;
-	kernel_memcpy_real(cu_X_kp1sk.d_cu, cu_A1_00_Xkdebut.d_cu, nb_az);
-	kernel_add_real(cu_X_kp1sk.d_cu, cu_A1_01_Xkfin.d_cu, nb_az);
-	kernel_memcpy_real(cu_X_kp1sk.d_cu + nb_az, cu_X_kskm1_tmp.d_cu, nb_az);
+	kernel_memcpy(cu_X_kp1sk.getData(), cu_A1_00_Xkdebut.getData(), nb_az);
+	kernel_add(cu_X_kp1sk.getData(), cu_A1_01_Xkfin.getData(), nb_az);
+	kernel_memcpy(cu_X_kp1sk.getData() + nb_az, cu_X_kskm1_tmp.getData(), nb_az);
 
 
 	//init_from_kp_cu_vector2kp_vector(*X_kp1sk_debut, cu_X_kp1sk,0 , nb_az);
-	kernel_memcpy_real(cu_X_kp1sk_debut.d_cu, cu_X_kp1sk.d_cu, nb_az);
+	kernel_memcpy(cu_X_kp1sk_debut.getData(), cu_X_kp1sk.getData(), nb_az);
 
 	if (isZonal)
 	{
 		mean_Xkp1skdebut = kp_cu_reduce(cu_X_kp1sk_debut)/nb_az;
+		/*kp_vector<double> Xkp1skdebut;
+		kp_cu2kp_vector(Xkp1skdebut,cu_X_kp1sk_debut);
+		mean_Xkp1skdebut=0;
+		for (int i=0 ; i< Xkp1skdebut.size() ; i++)
+			mean_Xkp1skdebut += Xkp1skdebut[i];
+		mean_Xkp1skdebut /= nb_az;*/
+
 		// X_kp1sk_tmp = X_kp1sk(1:nb_az)-mean(X_kp1sk(1:nb_az))*ones(nb_az,1)
 		cu_X_kp1sk_tmp = cu_X_kp1sk_debut; 
 		cu_X_kp1sk_tmp -= mean_Xkp1skdebut; 
 	}
 
-//temps_op2.pause();
+temps_boucle_op2.pause();
 //
 
 
-//temps_op3.start();
+temps_boucle_op3.start();
 	//TENSION de CORRECTION
 
 	//kp_gemv (1,PROJ, *X_kp1sk_tmp, 0, *U_k);
@@ -796,18 +963,18 @@ void kp_kalman_core_sparse_GPU::next_step(const kp_vector& Y_k, kp_vector& U_k)
 		//kp_gemv(1, PROJ_test, X_kp1sk_tmp_test, 0, U_k_test);
                 //cu_U_k = U_k_test;
 
-                /*ofstream fichier;
-                fichier.open("PROJ_test.dat", ios::out);
-                for (int i=0;i<PROJ_test.nnz;i++) fichier<<PROJ_test.rowind[i]<<" "<<PROJ_test.colind[i]<<" "<<PROJ_test.values[i]<<endl;
-                fichier.close();
+                /*
+                fichier2.open("PROJ_test.dat", ios::out);
+                for (int i=0;i<PROJ_test.nnz;i++) fichier2<<PROJ_test.rowind[i]<<" "<<PROJ_test.colind[i]<<" "<<PROJ_test.values[i]<<endl;
+                fichier2.close();
 
-                fichier.open("X_kp1sk_tmp_test.dat", ios::out);
-                for (int i=0;i<X_kp1sk_tmp_test.size();i++) fichier<<X_kp1sk_tmp_test.d[i]<<endl;
-                fichier.close();
+                fichier2.open("X_kp1sk_tmp_test.dat", ios::out);
+                for (int i=0;i<X_kp1sk_tmp_test.size();i++) fichier2<<X_kp1sk_tmp_test.d[i]<<endl;
+                fichier2.close();
 
-                fichier.open("U_k_test.dat", ios::out);
-                for (int i=0;i<U_k_test.size();i++) fichier<<U_k_test.d[i]<<endl;
-                fichier.close();
+                fichier2.open("U_k_test.dat", ios::out);
+                for (int i=0;i<U_k_test.size();i++) fichier2<<U_k_test.d[i]<<endl;
+                fichier2.close();
 
                 //cout<<"matrices OK"<<endl;
                 //cin.ignore();*/
@@ -831,8 +998,9 @@ void kp_kalman_core_sparse_GPU::next_step(const kp_vector& Y_k, kp_vector& U_k)
 	// avant au lieu de la faire apres, on donne cu_U_km1
 	kp_cu2kp_vector(U_k, cu_U_km1);	
 
-//temps_op3.pause();
+temps_boucle_op3.pause();
 
+temps_boucle.pause();
 
 
 }

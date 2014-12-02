@@ -1,36 +1,25 @@
 //kp_vector.cpp
-#include "kp_vector.h"
-#include "kp_matrix.h"
-#include <math.h>
-#include <iostream>
-#include <string.h>
-using namespace std;
 
-#ifdef __WITH_FLOPS_CALCULATOR__
-#include "kp_flopscalc.h"
-#endif
+#ifndef __SEGER__KP_VECTOR_HPP__
+#define __SEGER__KP_VECTOR_HPP__
 
-kp_vector::kp_vector(const kp_vector&v)
+#ifndef KP_WITH_CARMA
+template<typename real>
+template<typename T>
+kp_vector<real>::kp_vector(const kp_vector<T>&v)
 {
    _create(v.size());
-   memcpy(d, v.d, sizeof(real) * v.size());
+   this->operator=(v); 
 }
-//                                                                                         
-kp_vector::kp_vector(const vector<double>& v)
+template<typename real>
+kp_vector<real>::kp_vector(const kp_vector<real>&v)
 {
    _create(v.size());
-   for (size_t i = 0 ; i < v.size() ; i++)
-     d[i] = v[i];
+   this->operator=(v); 
 }
-//                                                                                         
-kp_vector::kp_vector(const int vec_size, const double val)
-{
-   _create(vec_size);
-   for (int i = 0 ; i < vec_size ; i++)
-     d[i] = val;
-}
-//                                                                                         
-void kp_vector::resize(int s_)
+	
+template<typename real>
+void kp_vector<real>::resize(int s_)
 {
    if (s != s_)
      {
@@ -39,69 +28,153 @@ void kp_vector::resize(int s_)
      }
 }
 //                                                                                           
-void kp_vector::operator=( const kp_vector& v)
+template<typename real> 
+template<typename T>  
+void kp_vector<real>::operator=( const kp_vector<T>& v)
+{
+   resize(v.size());
+   if (typeid(real) == typeid(T))
+      memcpy(d, v.getData(), sizeof(real) * v.size());
+   else
+      for (int i=0 ; i<v.size() ; i++)
+         d[i] = (real) v[i];
+}
+template<typename real> 
+void kp_vector<real>::operator=( const kp_vector<real>& v)
 {
    resize(v.size());
    memcpy(d, v.d, sizeof(real) * v.size());
-  
-   #ifdef __WITH_FLOPS_CALCULATOR__
-   kp_fpc_global.add_other(size());
-   #endif
 }
+
 //                                                                                            
-void kp_vector::zeros()
+template<typename real>  
+void kp_vector<real>::zeros()
 {
    memset(d, 0, sizeof(real) * s);
    
-   #ifdef __WITH_FLOPS_CALCULATOR__
-   kp_fpc_global.add_other(size());
-   #endif
 }
+
+
+#else
+
+template<typename real> 
+kp_vector<real>::kp_vector(const kp_vector<real>&v)
+{
+   carma_host_object = new carma_host_obj(&v.carma_host_object);
+   s = (int) carma_host_object->getDims(1);
+   d = carma_host_object->getData();
+}
+//                                                                                         
+
+
+template<typename real>
+void kp_vector<real>::resize(int s_)
+{
+	_clear();
+	_create(s_);
+}
+
+template<typename real>
+void kp_vector<real>::operator=( const kp_vector<real>& v)
+{
+   _clear();
+   kp_vector(v);     
+}
+
+
+template<typename real>
+void kp_vector<real>::zeros()
+{
+   s_avant = s;
+   _clear();
+   kp_vector(s_avant);
+}
+
+template<typename real>
+void kp_vector<real>::_create(int s_)
+{
+	s = s_; 
+	long dims_data[2] = {1, s_};
+	carma_host_object = new carma_host_obj(dims_data);
+	d = carma_host_object->getData();
+}	
+
+
 //                                                                                            
-void kp_vector::operator/=(real val)
+template<typename real> 
+void kp_vector<real>::_clear()        
+{
+	if (d==NULL || carma_host_object==NULL)
+	{
+		cerr<<"Error | kp_vector::_clear | d == NULL"<<endl;
+		exit(EXIT_FAILURE);
+	}
+	delete  carma_host_object;
+	carma_host_object = NULL;
+	d = NULL;
+}
+
+#endif
+
+
+
+
+template<typename real>
+kp_vector<real>::kp_vector(){_create(0);}
+
+template<typename real> 
+kp_vector<real>::kp_vector(int s_){_create(s_);}
+
+template<typename real>                                                                                   
+kp_vector<real>::kp_vector(const vector<double>& v)
+{
+   _create(v.size());
+   for (size_t i = 0 ; i < v.size() ; i++)
+     d[i] = v[i];
+}
+                                                                                         
+template<typename real> 
+kp_vector<real>::kp_vector(const int vec_size, const double val)
+{
+   _create(vec_size);
+   for (int i = 0 ; i < vec_size ; i++)
+     d[i] = val;
+}
+
+template<typename real> 
+kp_vector<real>::~kp_vector(){_clear();}
+
+
+template<typename real> 
+void kp_vector<real>::operator/=(real val)
 {
    for (int i = 0 ; i < s ; i++)
      d[i] /= val;
-   
-   #ifdef __WITH_FLOPS_CALCULATOR__
-   kp_fpc_global.add_other(size());
-   #endif
-
 }
 //                                                                                            
-void kp_vector::operator*=(real val)
+template<typename real> 
+void kp_vector<real>::operator*=(real val)
 {
    for (int i = 0 ; i < s ; i++)
      d[i] *= val;
-   
-   #ifdef __WITH_FLOPS_CALCULATOR__
-   kp_fpc_global.add_other(size());
-   #endif
-
 }
 //                                                                                            
-void kp_vector::operator+=(real val)
+template<typename real>
+void kp_vector<real>::operator+=(real val)
 {
    for (int i = 0 ; i < s ; i++)
      d[i] += val;
-   #ifdef __WITH_FLOPS_CALCULATOR__
-   kp_fpc_global.add_other(size());
-   #endif
-
 }
 //                                                                                            
-void kp_vector::operator-=(real val)
+template<typename real>
+void kp_vector<real>::operator-=(real val)
 {
    for (int i = 0 ; i < s ; i++)
      d[i] -= val;
-   
-   #ifdef __WITH_FLOPS_CALCULATOR__
-   kp_fpc_global.add_other(size());
-   #endif
-
 }
 //                                                                                            
-void kp_vector::operator+=(const kp_vector& v)
+template<typename real>
+void kp_vector<real>::operator+=(const kp_vector<real>& v)
 {
    if (size() != v.size())
      {
@@ -110,13 +183,10 @@ void kp_vector::operator+=(const kp_vector& v)
      }
    for (int i = 0 ; i < size() ; i++)
      d[i] += v.d[i];
-   
-   #ifdef __WITH_FLOPS_CALCULATOR__
-   kp_fpc_global.add_other(v.size());
-   #endif
 }
 //                                                                                            
-void kp_vector::operator-=(const kp_vector& v)
+template<typename real>
+void kp_vector<real>::operator-=(const kp_vector<real>& v)
 {
    if (size() != v.size())
      {
@@ -125,13 +195,10 @@ void kp_vector::operator-=(const kp_vector& v)
      }
    for (int i = 0 ; i < size() ; i++)
      d[i] -= v.d[i];
-   
-   #ifdef __WITH_FLOPS_CALCULATOR__
-   kp_fpc_global.add_other(size());
-   #endif
 }
 //                                                                                            
-void kp_vector::operator*=(const kp_vector& v)
+template<typename real>
+void kp_vector<real>::operator*=(const kp_vector<real>& v)
 {
    if (size() != v.size())
      {
@@ -140,25 +207,18 @@ void kp_vector::operator*=(const kp_vector& v)
      }
    for (int i = 0 ; i < size() ; i++)
      d[i] *= v.d[i];
-   
-   #ifdef __WITH_FLOPS_CALCULATOR__
-   kp_fpc_global.add_other(size());
-   #endif
 }
-//                                                                                            
-void kp_vector::init_from_matrix_column(const kp_matrix& M, int col)
-{
-   resize(M.dim1); //number of rows in matrix (because we set from column)
-   for (int i = 0 ; i < M.dim1 ; i++)
-     el(i) = M(i, col); 
-   
-   #ifdef __WITH_FLOPS_CALCULATOR__
-   kp_fpc_global.add_other(size());
-   #endif
 
+template<typename real>
+void kp_vector<real>::init_from_matrix_column(const kp_matrix<real>& M, int col)
+{
+   resize(M.getDim1()); //number of rows in matrix (because we set from column)
+   for (int i = 0 ; i < M.getDim1() ; i++)
+     el(i) = M(i, col); 
 }
 //                                                                                            
-void kp_vector::init_from_vector(const kp_vector& v, int ind_begin, int ind_end)
+template<typename real>
+void kp_vector<real>::init_from_vector(const kp_vector<real>& v, int ind_begin, int ind_end)
 {
    if (this == &v)
      {
@@ -175,14 +235,10 @@ void kp_vector::init_from_vector(const kp_vector& v, int ind_begin, int ind_end)
      {
 	d[i] = v[ind_begin + i]; 
      }
-   
-   #ifdef __WITH_FLOPS_CALCULATOR__
-   kp_fpc_global.add_other(size());
-   #endif
-
 }
 //                                                                                            
-void kp_vector::init_from_idx(const kp_vector& v, const vector<int>& idx)
+template<typename real>
+void kp_vector<real>::init_from_idx(const kp_vector<real>& v, const vector<int>& idx)
 {
    resize(idx.size());
    for (size_t i = 0 ; i < idx.size(); i++)
@@ -195,14 +251,10 @@ void kp_vector::init_from_idx(const kp_vector& v, const vector<int>& idx)
 	  }
 	d[i] = v[idx[i]];
      }
-   
-   #ifdef __WITH_FLOPS_CALCULATOR__
-   kp_fpc_global.add_other(size());
-   #endif
-
 }
 //                                                                                            
-void kp_vector::set_from_subvector(const kp_vector& subv, const vector<int>& idx)
+template<typename real> 
+void kp_vector<real>::set_from_subvector(const kp_vector<real>& subv, const vector<int>& idx)
 {
    if (this == &subv)
      {
@@ -224,13 +276,10 @@ void kp_vector::set_from_subvector(const kp_vector& subv, const vector<int>& idx
 	  }
 	d[idx[i]] = subv[i];
      }
-   
-   #ifdef __WITH_FLOPS_CALCULATOR__
-   kp_fpc_global.add_other(idx.size());
-   #endif
 }
 //                                                                                            
-void kp_vector::set_from_subvector(const kp_vector& subv, int start)
+template<typename real>
+void kp_vector<real>::set_from_subvector(const kp_vector<real>& subv, int start)
 {
    if (size() < (subv.size() + start))
      {
@@ -240,14 +289,10 @@ void kp_vector::set_from_subvector(const kp_vector& subv, int start)
      }
    for (size_t i = 0 ; i < (unsigned int)subv.size() ; i++)
      d[i + start] = subv[i];
-   
-   #ifdef __WITH_FLOPS_CALCULATOR__
-   kp_fpc_global.add_other(subv.size());
-   #endif
-
 }
 //                                                                                            
-real kp_vector::var()
+template<typename real> 
+real kp_vector<real>::var()
 {
    long double sum   = 0;
    long double sum_2 = 0;
@@ -258,15 +303,11 @@ real kp_vector::var()
      }
    
    long double rez = (sum_2 - sum * sum / (long double)s) / (long double)(s - 1); 
-   
-   #ifdef __WITH_FLOPS_CALCULATOR__
-   kp_fpc_global.add_other((long)size() * 3);
-   #endif
-   
    return rez;
 }
 //                                                                                            
-real kp_vector::mean()
+template<typename real> 
+real kp_vector<real>::mean()
 {
    long double sum   = 0;
    for (int i = 0 ; i < s ; i++)
@@ -274,14 +315,11 @@ real kp_vector::mean()
 	sum   += d[i];
      }   
    
-   #ifdef __WITH_FLOPS_CALCULATOR__
-   kp_fpc_global.add_other(size());
-   #endif
-   
    return sum / (long double)s; 
 }
 //                                                                                            
-real kp_vector::sum_sqr()
+template<typename real> 
+real kp_vector<real>::sum_sqr()
 {
    real rez = 0;
    for (size_t i = 0 ; i < (unsigned int)size() ; i++)
@@ -290,8 +328,18 @@ real kp_vector::sum_sqr()
      }
    return rez;
 }
+
+template<typename real>
+void kp_vector<real>::_create(int s_)
+{
+	s = s_; 
+	d = new real[s];
+}	
+
+
 //                                                                                            
-void kp_vector::_clear()        
+template<typename real>
+void kp_vector<real>::_clear()        
 {
    if (d == NULL)
      {
@@ -301,28 +349,26 @@ void kp_vector::_clear()
    delete [] d;
    d = NULL;
 }
-//                                                                                            
-void kp_inverse(kp_vector& v)
-{
-   for (int i = 0 ; i < v.size() ; i++)
-     v[i] = 1 / v[i];
-   
-   #ifdef __WITH_FLOPS_CALCULATOR__
-   kp_fpc_global.add_other(v.size());
-   #endif
-}
-//                                                                                           
-void sqrt(kp_vector& v)
-{
-   for (int i = 0 ; i < v.size() ; i++)
-     v[i] = sqrt(v[i]);
 
-   #ifdef __WITH_FLOPS_CALCULATOR__
-   kp_fpc_global.add_other(v.size());
-   #endif
+
+
+//                                                                                            
+template<typename real> 
+void kp_inverse(kp_vector<real>& v)
+{
+   for (int i = 0 ; i < v.size() ; i++)
+     *(v.getData(i)) = 1 / v[i];
 }
 //                                                                                           
-double kp_calc_diff(const kp_vector& v1,const kp_vector& v2)
+template<typename real>
+void sqrt(kp_vector<real>& v)
+{
+   for (int i = 0 ; i < v.size() ; i++)
+     *(v.getData(i))  = sqrt(v[i]);
+}
+//                                                                                           
+template<typename real>
+double kp_calc_diff(const kp_vector<real>& v1,const kp_vector<real>& v2)
 {
    if (v1.size() != v2.size())
      {
@@ -338,7 +384,8 @@ double kp_calc_diff(const kp_vector& v1,const kp_vector& v2)
    return rez;
 }
 //                                                                                           
-void kp_vertcat(kp_vector& rez, vector<kp_vector*> vs)
+template<typename real>
+void kp_vertcat(kp_vector<real>& rez, vector<kp_vector<real>*> vs)
 {
    int sum_s = 0;
    for (size_t i = 0 ; i < vs.size() ; i++)
@@ -353,7 +400,8 @@ void kp_vertcat(kp_vector& rez, vector<kp_vector*> vs)
      }
 }
 //                                                                                           
-ostream& operator<<(ostream& out, kp_vector& v)
+template<typename real>
+ostream& operator<<(ostream& out, kp_vector<real>& v)
 {
    for (int i = 0 ; i < v.size() ; i++)
      {
@@ -363,3 +411,4 @@ ostream& operator<<(ostream& out, kp_vector& v)
      }
    return out;
 }
+#endif

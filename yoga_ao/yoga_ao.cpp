@@ -3609,44 +3609,16 @@ float* hPROJ = ygeta_f(argc-6, &ntot, dims);
   if ( (rtc_handler->d_control.at(ncontrol)->get_type().compare("kalman_uninitialized") == 0)) {
 
     control->init_kalman(D_Mo, N_Act, PROJ, is_zonal, is_sparse, is_GPU );
-  }
-   else
+  } else
     y_error("Controller needs to be either kalman_CPU or kalman_CPU\n");
-// debut TMP
-    int nactu = rtc_handler->d_control.at(ncontrol)->nactu();
-    carma_context* current_context = rtc_handler->current_context;
       
   if ( (rtc_handler->d_control.at(ncontrol)->get_type().compare("kalman_CPU") == 0)
      ||(rtc_handler->d_control.at(ncontrol)->get_type().compare("kalman_GPU") == 0) ) {
 
-    if (is_zonal)
-    {
-       //cD_Mo   = calculate_D_Mo(current_context, ncentroids*2, nactu, is_zonal);
-       //cN_Act  = calculate_N_Act(current_context, nactu, nactu, is_zonal);
-       //cPROJ   = calculate_PROJ(current_context, nactu, nactu, is_zonal);
-       //catur   = calculate_atur(current_context, nactu, is_zonal);
-       //cbtur   = calculate_btur(current_context, nactu, is_zonal);
-       //cSigmaV = calculate_SigmaV(current_context, nactu, is_zonal);
-    }
-    else
-    {
-       int nzernike = 495;
-       //cD_Mo   = calculate_D_Mo(current_context, ncentroids*2, nzernike, is_zonal);
-       //cN_Act  = calculate_N_Act(current_context, nzernike, nactu, is_zonal);
-       //cPROJ   = calculate_PROJ(current_context, nactu, nzernike, is_zonal);
-       //catur   = calculate_atur(current_context, nzernike, is_zonal);
-       //cbtur   = calculate_btur(current_context, nzernike, is_zonal);
-       //cSigmaV = calculate_SigmaV(current_context, nzernike, is_zonal);
-    }
     //bruit en arcsec^2
    control->calculate_gain(bruit, SigmaV, atur, btur);
-    //delete catur;
-    //delete cbtur;	
-//fin TMP    
-//
-  }
-  else
-    y_error("Controller needs to be either kalman_CPU or Kalman_GPU\n");
+  } else
+    y_error("Controller needs to be either kalman_CPU or Kalman_GPU.\nEnsure that COMPILATION_LAM was defined as an environment variable before compiling.\n");
 }
 
 void Y_rtc_kalmancalculategain(int argc) {
@@ -3657,17 +3629,16 @@ void Y_rtc_kalmancalculategain(int argc) {
   sutra_rtc *rtc_handler = (sutra_rtc *) (rhandler->sutra_rtc);
   long ncontrol = ygets_l(argc - 2);
 
-    double bruit = ygets_d(argc - 3);
-    double k_W = ygets_d(argc - 4);
+    float bruit = ygets_f(argc - 3);
 	    
 
-  float* hSigmaV = ygeta_f(argc-5, &ntot, dims);
+  float* hSigmaV = ygeta_f(argc-4, &ntot, dims);
   carma_host_obj<float> SigmaV(dims, hSigmaV);
 
-  float* hatur = ygeta_f(argc-6, &ntot, dims);
+  float* hatur = ygeta_f(argc-5, &ntot, dims);
   carma_host_obj<float> atur(dims, hatur);
   
-  float* hbtur = ygeta_f(argc-7, &ntot, dims);
+  float* hbtur = ygeta_f(argc-6, &ntot, dims);
   carma_host_obj<float> btur(dims, hbtur);
 	    
 	    
@@ -3676,9 +3647,33 @@ void Y_rtc_kalmancalculategain(int argc) {
     
           SCAST(sutra_controller_kalman *, control, rtc_handler->d_control.at(ncontrol));
     control->calculate_gain(bruit, SigmaV, atur, btur);
-  }
-  else
+  } else
     y_error("Controller needs to be either kalman_CPU or kalman_GPU\n");
+}
+
+
+
+
+void Y_rtc_kalmangettime(int argc) {
+ 
+  rtc_struct *rhandler = (rtc_struct *) yget_obj(argc - 1, &yRTC);
+  sutra_rtc *rtc_handler = (sutra_rtc *) (rhandler->sutra_rtc);
+  long ncontrol = ygets_l(argc - 2);
+	    
+  if ( (rtc_handler->d_control.at(ncontrol)->get_type().compare("kalman_CPU") == 0)
+     ||(rtc_handler->d_control.at(ncontrol)->get_type().compare("kalman_GPU") == 0)) {
+    
+          SCAST(sutra_controller_kalman *, control, rtc_handler->d_control.at(ncontrol));
+    double tps  = control->gettime();
+    double tps1 = control->gettime_op1();
+    double tps2 = control->gettime_op2();
+    double tps3 = control->gettime_op3();
+
+    cout<<"temps boucle OA kalman = "<<tps<<endl;
+    cout<<"      - temps boucle OA kalman op1 = "<<tps1<<endl;
+    cout<<"      - temps boucle OA kalman op2 = "<<tps2<<endl;
+    cout<<"      - temps boucle OA kalman op3 = "<<tps3<<endl;
+  }
 }
 
 

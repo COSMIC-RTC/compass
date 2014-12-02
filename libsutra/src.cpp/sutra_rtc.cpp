@@ -73,57 +73,10 @@ int sutra_rtc::add_controller(int nactu, long delay, long device,
   } else if (type_ctr.compare("mv") == 0) {
     d_control.push_back(
         new sutra_controller_mv(current_context, ncentroids, nactu, delay));
-  } else if ( (type_ctr.compare("kalman_GPU") == 0) ||(type_ctr.compare("kalman_CPU") == 0)) 
-  {
-
-// We choose parameters by hand now....
-    //bool is_zonal = false;
-    //bool is_sparse = false;
-
-       /*carma_obj<float> *cD_Mo, *cN_Act, *cPROJ, *catur, *cbtur, *cSigmaV;
-    if (is_zonal)
-    {
-       cD_Mo   = calculate_D_Mo(current_context, ncentroids*2, nactu, is_zonal);
-       cN_Act  = calculate_N_Act(current_context, nactu, nactu, is_zonal);
-       cPROJ   = calculate_PROJ(current_context, nactu, nactu, is_zonal);
-       catur   = calculate_atur(current_context, nactu, is_zonal);
-       cbtur   = calculate_btur(current_context, nactu, is_zonal);
-       cSigmaV = calculate_SigmaV(current_context, nactu, is_zonal);
-    }
-    else
-    {
-       int nzernike = 495;
-       cD_Mo   = calculate_D_Mo(current_context, ncentroids*2, nzernike, is_zonal);
-       cN_Act  = calculate_N_Act(current_context, nzernike, nactu, is_zonal);
-       cPROJ   = calculate_PROJ(current_context, nactu, nzernike, is_zonal);
-       catur   = calculate_atur(current_context, nzernike, is_zonal);
-       cbtur   = calculate_btur(current_context, nzernike, is_zonal);
-       cSigmaV = calculate_SigmaV(current_context, nzernike, is_zonal);
-    }
-    double Bruit = 0.004;
-    double K_W = 5;
-//  end of choosing parameters by hand....*/
-
-    /*sutra_controller_kalman* k;	
-    if (type_ctr.compare("kalman_GPU") == 0)
-       k = new sutra_controller_kalman(current_context, *cD_Mo, *cN_Act, *cPROJ, is_zonal, is_sparse, true);
-    else
-       k = new sutra_controller_kalman(current_context, *cD_Mo, *cN_Act, *cPROJ, is_zonal, is_sparse, false);*/
-
-    d_control.push_back(new sutra_controller_kalman(current_context, ncentroids*2, nactu));
-
-    //k->calculate_gain(Bruit, K_W, *cSigmaV, *catur, *cbtur);
-    //d_control.push_back(k);
-	  
-    //delete cD_Mo;
-    //delete cN_Act;
-    //delete cPROJ;
-    //delete cSigmaV;
-    //delete catur;
-    //delete cbtur;	  	  
-  }
-  else
-  {
+  } else if ( (type_ctr.compare("kalman_GPU") == 0) ||(type_ctr.compare("kalman_CPU") == 0)){
+    d_control.push_back(
+        new sutra_controller_kalman(current_context, ncentroids, nactu));
+  } else {
     DEBUG_TRACE("Controller '%s' unknown\n", typec);
     return EXIT_FAILURE;
   }
