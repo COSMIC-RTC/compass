@@ -431,7 +431,7 @@ sutra_controller_mv::invgen(carma_obj<float> *d_mat, float cond, int job){
 	d_U->copy(d_mat,1,1);
 	carma_syevd<float,1>('V',d_U,h_eigenvals);
 	//syevd_f('V',d_U,h_eigenvals);
-	if (job == 1){
+	if (job == 1){ // Conditionnement
 		float maxe = h_eigenvals->getData()[d_mat->getDims()[1] - 1];
 
 		for (i=0 ; i<d_mat->getDims()[1] ; i++){
@@ -441,7 +441,7 @@ sutra_controller_mv::invgen(carma_obj<float> *d_mat, float cond, int job){
 				h_eigenvals_inv->getData()[i] = 1./h_eigenvals->getData()[i];
 		}
 	}
-	if (job == 0){
+	if (job == 0){ // Filtre #cond modes
 		for (i=0 ; i<d_mat->getDims()[1] ; i++){
 					if(i < cond)
 						h_eigenvals_inv->getData()[i] = 0.;

@@ -140,6 +140,14 @@ doubletofloat_krnl(double *i_data, float *o_data, int N){
 		tid += blockDim.x * gridDim.x;
 	}
 }
+__global__ void
+pupphase_krnl(float *o_data, float *i_data, int *indx_pup, int N){
+	int tid = threadIdx.x + blockIdx.x * blockDim.x;
+	while (tid < N){
+		o_data[tid] = i_data[indx_pup[tid]];
+		tid += blockDim.x * gridDim.x;
+	}
+}
 /*
  _                           _                   
  | |    __ _ _   _ _ __   ___| |__   ___ _ __ ___ 
@@ -342,6 +350,17 @@ doubletofloat(double *i_data, float *o_data, int N, int device){
 	dim3 grid(nblocks), threads(nthreads);
 	doubletofloat_krnl<<<grid , threads>>>(i_data,o_data,N);
 	cutilCheckMsg("floattodouble_krnl<<<>>> execution failed\n");
+
+	return EXIT_SUCCESS;
+}
+
+int
+get_pupphase(float *o_data, float *i_data, int *indx_pup, int Nphi, int device){
+	int nthreads = 0, nblocks = 0;
+	getNumBlocksAndThreads(device, Nphi, nblocks, nthreads);
+	dim3 grid(nblocks), threads(nthreads);
+	pupphase_krnl<<<grid , threads>>>(o_data,i_data,indx_pup,Nphi);
+	cutilCheckMsg("pupphase_krnl<<<>>> execution failed\n");
 
 	return EXIT_SUCCESS;
 }

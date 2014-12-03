@@ -145,14 +145,14 @@ int sutra_controller_ls::build_cmat(int nfilt, bool filt_tt) {
   if (carma_use_magma()) {
     for (int cc = nfilt; cc < nb_elem; cc++) {
       float eigenval = h_eigenvals->getData()[cc];
-      h_eigenvals_inv->getData()[cc] = 1.0f / eigenval;
-        //(fabs(eigenval) > 1.e-6) ? 1.0f / eigenval : 0.f;
+      h_eigenvals_inv->getData()[cc] = //1.0f / eigenval;
+        (fabs(eigenval) > 1.e-9) ? 1.0f / eigenval : 0.f;
     }
   } else {
      for (int cc =  0; cc < nb_elem-nfilt ; cc++) {
       float eigenval = h_eigenvals->getData()[cc];
       h_eigenvals_inv->getData()[cc] =
-        (fabs(eigenval) > 1.e-6) ? 1.0f / eigenval : 0.f;
+        (fabs(eigenval) > 1.e-9) ? 1.0f / eigenval : 0.f;
     }
   }
   d_eigenvals_inv->host2device(h_eigenvals_inv->getData());

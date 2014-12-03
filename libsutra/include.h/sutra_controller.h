@@ -42,6 +42,8 @@ public:
 
   int
   syevd_f(char meth, carma_obj<float> *d_U, carma_host_obj<float> *h_eingenvals);
+  int
+  invgen(carma_obj<float> *d_mat, float cond, int job);
 
 public:
 //I would propose to make them protected (+ proper
@@ -86,5 +88,7 @@ int
 floattodouble(float *idata, double *odata, int N, int device);
 int
 doubletofloat(double *idata, float *odata, int N, int device);
+int
+get_pupphase(float *odata, float *idata, int *indx_pup, int Nphi, int device);
 
 #endif // _sutra_controller_H_

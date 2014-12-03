@@ -48,7 +48,7 @@ caObjZ::init_prng(int device, long seed);
 
 template <class T>
 int carma_obj<T>::init_prng(int device) {
-	this->init_prng(this->device, 1234);
+	return this->init_prng(this->device, 1234);
 }
 
 template int

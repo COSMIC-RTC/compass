@@ -250,14 +250,15 @@ comp_fulldmshape<double>(int threads, int blocks, double *d_idata,
 __global__ void
 getIF_krnl(float *IF, float *dmshape, int *indx_pup, long nb_pts, long column, long nb_col){
 	int tid = blockIdx.x * blockDim.x + threadIdx.x;
-	if (tid < nb_pts)
+	while (tid < nb_pts){
 		IF[column * nb_pts + tid] = dmshape[indx_pup[tid]];
+		tid += blockDim.x * gridDim.x;
+	}
 }
 int
 getIF(float *IF, float *dmshape, int *indx_pup, long nb_pts, int column, long nb_col, int device){
 	int nthreads = 0, nblocks = 0;
 	getNumBlocksAndThreads(device, nb_pts, nblocks, nthreads);
-
 	dim3 grid(nblocks), threads(nthreads);
 	getIF_krnl<<<grid , threads>>>(IF,dmshape,indx_pup,nb_pts,column, nb_col);
 	cutilCheckMsg("getIF_krnl<<<>>> execution failed\n");

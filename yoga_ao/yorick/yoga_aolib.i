@@ -543,7 +543,11 @@ extern rtc_addcontrol;
       
    SEE ALSO:
  */
-
+extern rtc_init_proj;
+/* DOCUMENT rtc_init_proj
+   rtc_init_proj,yoga_rtc_obj,ncontrol,yoga_dm_obj,indx_dm,unitpervolt,indx_pup
+   initialize the projector for controller type geo
+ */
 extern rtc_rmcontrol;
 /* DOCUMENT rtc_rmcontrol
    rtc_rmcontrol,yoga_rtc_obj
@@ -728,6 +732,20 @@ extern rtc_getCphim;
 
    SEE ALSO:
 */
+extern rtc_getproj;
+/* DOCUMENT rtc_getproj
+   rtc_getproj,yoga_rtc_obj,ncontroller
+   retrieve the projection matrix from a yoga_rtc_obj with geo controller
+
+   SEE ALSO:
+*/
+extern rtc_getphi;
+/* DOCUMENT rtc_getphi
+   rtc_getphi,yoga_rtc_obj,ncontroller
+   retrieve the target phase loaded in a yoga_rtc_obj with geo controller
+
+   SEE ALSO:
+*/
 extern rtc_getcovmat;
 /* DOCUMENT rtc_getcovmat
    rtc_getcovmat,yoga_rtc_obj,ncontroller
@@ -777,6 +795,14 @@ extern rtc_docontrol;
 /* DOCUMENT rtc_docontrol
    rtc_docontrol,yoga_rtc_obj,ncontrolleryoga_dm_obj
    compute and apply command (including delay) for a controller in a yoga_rtc_obj object
+      
+   SEE ALSO:
+ */
+
+extern rtc_docontrol_geo;
+/* DOCUMENT rtc_docontrol
+   rtc_docontrol,yoga_rtc_obj,ncontroller,yoga_dm_obj,yoga_target_obj,ntarget
+   compute and apply command for a controller type geo in a yoga_rtc_obj object
       
    SEE ALSO:
  */

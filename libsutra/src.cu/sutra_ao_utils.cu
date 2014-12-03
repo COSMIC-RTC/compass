@@ -1,5 +1,37 @@
 #include <sutra_ao_utils.h>
 
+template<class T>
+struct SharedMemory {
+  __device__
+  inline operator T*() {
+    extern __shared__ int __smem[];
+    return (T*) __smem;
+  }
+
+  __device__
+  inline operator const T*() const {
+    extern __shared__ int __smem[];
+    return (T*) __smem;
+  }
+};
+
+// specialize for double to avoid unaligned memory
+// access compile errors
+template<>
+struct SharedMemory<double> {
+  __device__
+  inline operator double*() {
+    extern __shared__ double __smem_d[];
+    return (double*) __smem_d;
+  }
+
+  __device__
+  inline operator const double*() const {
+    extern __shared__ double __smem_d[];
+    return (double*) __smem_d;
+  }
+};
+
 unsigned int nextPow2(unsigned int x) {
   --x;
   x |= x >> 1;
@@ -380,3 +412,98 @@ roll<double>(double *idata, int N, int M);
 template int
 roll<cuFloatComplex>(cuFloatComplex *idata, int N, int M);
 
+template<class T>
+__device__ void reduce_krnl(T *sdata, int size, int n) {
+  if (!((size & (size - 1)) == 0)) {
+    unsigned int s;
+    if (size % 2 != 0)
+      s = size / 2 + 1;
+    else
+      s = size / 2;
+    unsigned int s_old = size;
+    while (s > 0) {
+      if ((n < s) && (n + s < s_old)) {
+        sdata[n] += sdata[n + s];
+      }
+      __syncthreads();
+      s_old = s;
+      s /= 2;
+      if ((2 * s < s_old) && (s != 0))
+        s += 1;
+    }
+  } else {
+    // do reduction in shared mem
+    for (unsigned int s = size / 2; s > 0; s >>= 1) {
+      if (n < s) {
+        sdata[n] += sdata[n + s];
+      }
+      __syncthreads();
+    }
+  }
+}
+
+template<class T>
+__global__ void avg_krnl(T *data, T *p_sum){
+	T *sdata = SharedMemory<T>();
+	//Load shared memory
+	int tid = threadIdx.x + blockDim.x * blockIdx.x;
+	int sid = threadIdx.x;
+
+	sdata[sid] = data[tid];
+
+	__syncthreads();
+
+	reduce_krnl(sdata,blockDim.x,sid);
+
+	__syncthreads();
+
+	if (threadIdx.x == 0)
+		p_sum[blockIdx.x] = sdata[0];
+}
+
+template<class T>
+__global__ void remove_avg_krnl(T *data, int N, T avg){
+	int tid = threadIdx.x + blockDim.x * blockIdx.x;
+	while(tid < N){
+		data[tid] -= avg;
+		tid += blockDim.x * gridDim.x;
+	}
+}
+
+template<class T>
+int remove_avg(T *data, int N, int device){
+
+	int nthreads = 0, nblocks = 0;
+	getNumBlocksAndThreads(device, N, nblocks, nthreads);
+	dim3 grid(nblocks), threads(nthreads);
+	int smemSize = nthreads * sizeof(T);
+
+	T *p_sum_c;
+	T *p_sum;
+	p_sum_c = (T*)malloc(nblocks*sizeof(T));
+	cutilSafeCall(
+	      cudaMalloc((void** )&(p_sum), sizeof(T) * nblocks));
+
+	avg_krnl<<< grid, threads, smemSize>>>(data,p_sum);
+	cutilCheckMsg("avg_krnl<<<>>> execution failed\n");
+	cutilSafeCall(
+			cudaMemcpy(p_sum_c,p_sum,nblocks*sizeof(T),cudaMemcpyDeviceToHost));
+	cutilSafeCall(
+			cudaFree(p_sum));
+
+	T avg = 0;
+	for(int i=0 ; i<nblocks ; i++){
+		avg += p_sum_c[i];
+	}
+	avg /= N;
+
+	remove_avg_krnl<<< grid, threads >>>(data,N,avg);
+	cutilCheckMsg("remove_avg_krnl<<<>>> execution failed\n");
+
+	return EXIT_SUCCESS;
+}
+
+template int
+remove_avg<float>(float *data, int N, int device);
+template int
+remove_avg<double>(double *data, int N, int device);

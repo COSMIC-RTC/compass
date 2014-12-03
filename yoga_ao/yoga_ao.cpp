@@ -2231,12 +2231,17 @@ void Y_rtc_addcontrol(int argc) {
   long delay = ygets_l(argc - 3);
   char *type_control = ygets_q(argc - 4);
 
-  //rtc_struct *handle    =(rtc_struct *)ypush_obj(&yRTC, sizeof(rtc_struct));
-
   carma_context *context_handle = _getCurrentContext();
   int activeDevice = context_handle->set_activeDeviceForCpy(rhandler->device);
 
-  rtc_handler->add_controller(nactu, delay, activeDevice, type_control);
+  if (argc > 4){
+    long Nphi = ygets_l(argc - 5);
+    rtc_handler->add_controller_geo(nactu, Nphi, delay, activeDevice);
+  }
+  //rtc_struct *handle    =(rtc_struct *)ypush_obj(&yRTC, sizeof(rtc_struct));
+
+  else
+    rtc_handler->add_controller(nactu, delay, activeDevice, type_control);
 }
 
 void Y_rtc_rmcontrol(int argc) {
@@ -2370,6 +2375,12 @@ void Y_rtc_setgain(int argc) {
     SCAST(sutra_controller_cured *, control, rtc_handler->d_control.at(ncontrol));
     control->set_gain(gain);
   }
+  if (rtc_handler->d_control.at(ncontrol)->get_type().compare("geo")
+      == 0){
+    float gain = ygets_f(argc - 3);
+    SCAST(sutra_controller_geo *, control, rtc_handler->d_control.at(ncontrol));
+    control->set_gain(gain);
+  }
   if   ( (rtc_handler->d_control.at(ncontrol)->get_type().compare("kalman_CPU")== 0)
        ||(rtc_handler->d_control.at(ncontrol)->get_type().compare("kalman_GPU")== 0)
        ||(rtc_handler->d_control.at(ncontrol)->get_type().compare("kalman_uninitialized")== 0) ){
@@ -2450,6 +2461,16 @@ void Y_rtc_setdelay(int argc) {
   if (rtc_handler->d_control.at(ncontrol)->get_type().compare("ls") == 0) {
     long delay = ygets_l(argc - 3);
     SCAST(sutra_controller_ls *, control, rtc_handler->d_control.at(ncontrol));
+    control->set_delay(delay);
+  }
+   if (rtc_handler->d_control.at(ncontrol)->get_type().compare("mv") == 0) {
+    long delay = ygets_l(argc - 3);
+    SCAST(sutra_controller_mv *, control, rtc_handler->d_control.at(ncontrol));
+    control->set_delay(delay);
+  }
+   if (rtc_handler->d_control.at(ncontrol)->get_type().compare("cured") == 0) {
+    long delay = ygets_l(argc - 3);
+    SCAST(sutra_controller_cured *, control, rtc_handler->d_control.at(ncontrol));
     control->set_delay(delay);
   }
 }
@@ -2654,6 +2675,28 @@ void Y_rtc_buildcmat(int argc) {
   }
 }
 
+void Y_rtc_init_proj(int argc) {
+  long ntot;
+  long dims[Y_DIMSIZE];
+  rtc_struct *rhandler = (rtc_struct *) yget_obj(argc - 1, &yRTC);
+  sutra_rtc *rtc_handler = (sutra_rtc *) (rhandler->sutra_rtc);
+  long ncontrol = ygets_l(argc - 2);
+  dms_struct *handlera = (dms_struct *) yget_obj(argc - 3, &yDMs);
+  sutra_dms *dms_handler = (sutra_dms *) (handlera->sutra_dms);
+  int *indx_dm = ygeta_i(argc - 4, &ntot, dims);
+  float *unitpervolt = ygeta_f(argc - 5, &ntot, dims);
+  int *indx_pup = ygeta_i(argc - 6, &ntot, dims);
+
+  carma_context *context_handle = _getCurrentContext();
+  context_handle->set_activeDeviceForCpy(rhandler->device);
+
+  if (rtc_handler->d_control.at(ncontrol)->get_type().compare("geo") == 0) {
+    SCAST(sutra_controller_geo *, control, rtc_handler->d_control.at(ncontrol));
+    control->init_proj(dms_handler,indx_dm,unitpervolt,indx_pup);
+}
+  else y_error("**** ERROR : init_proj only for controller type geo **** \n");
+}
+
 void Y_rtc_imatsvd(int argc) {
   rtc_struct *rhandler = (rtc_struct *) yget_obj(argc - 1, &yRTC);
   sutra_rtc *rtc_handler = (sutra_rtc *) (rhandler->sutra_rtc);
@@ -2700,6 +2743,26 @@ void Y_rtc_docontrol(int argc) {
 
   rtc_handler->do_control(ncontrol, dms_handler);
 
+}
+
+void Y_rtc_docontrol_geo(int argc) {
+  long ntot;
+  long dims[Y_DIMSIZE];
+  rtc_struct *rhandler = (rtc_struct *) yget_obj(argc - 1, &yRTC);
+  sutra_rtc *rtc_handler = (sutra_rtc *) (rhandler->sutra_rtc);
+  long ncontrol = ygets_l(argc - 2);
+  dms_struct *handlera = (dms_struct *) yget_obj(argc - 3, &yDMs);
+  sutra_dms *dms_handler = (sutra_dms *) (handlera->sutra_dms);
+  target_struct *handler = (target_struct *) yget_obj(argc - 4, &yTarget);
+  sutra_target *target_handler = (sutra_target *) (handler->sutra_target);
+  long ntarget = ygets_l(argc - 5);
+
+  carma_context *context_handle = _getCurrentContext();
+  context_handle->set_activeDevice(rhandler->device);
+
+  SCAST(sutra_controller_geo *, control, rtc_handler->d_control.at(ncontrol));
+  control->comp_dphi(target_handler->d_targets.at(ntarget));
+  rtc_handler->do_control(ncontrol, dms_handler);
 }
 
 void Y_controller_setdata(int argc) {
@@ -3453,6 +3516,31 @@ void Y_rtc_loadklbasis(int argc) {
   controller->load_klbasis(klbasis);
 
 }
+void Y_rtc_getproj(int argc) {
+  rtc_struct *rhandler = (rtc_struct *) yget_obj(argc - 1, &yRTC);
+  sutra_rtc *rtc_handler = (sutra_rtc *) (rhandler->sutra_rtc);
+  long ncontrol = ygets_l(argc - 2);
+
+  carma_context *context_handle = _getCurrentContext();
+  context_handle->set_activeDeviceForCpy(rhandler->device);
+
+  SCAST(sutra_controller_geo *, controller, rtc_handler->d_control[ncontrol]);
+  float *data = ypush_f((long*) controller->d_proj->getDims());
+  controller->d_proj->device2host(data);
+}
+void Y_rtc_getphi(int argc) {
+  rtc_struct *rhandler = (rtc_struct *) yget_obj(argc - 1, &yRTC);
+  sutra_rtc *rtc_handler = (sutra_rtc *) (rhandler->sutra_rtc);
+  long ncontrol = ygets_l(argc - 2);
+
+  carma_context *context_handle = _getCurrentContext();
+  context_handle->set_activeDeviceForCpy(rhandler->device);
+
+  SCAST(sutra_controller_geo *, controller, rtc_handler->d_control[ncontrol]);
+  float *data = ypush_f((long*) controller->d_phi->getDims());
+  controller->d_phi->device2host(data);
+}
+
 void Y_rtc_getCmm(int argc) {
   rtc_struct *rhandler = (rtc_struct *) yget_obj(argc - 1, &yRTC);
   sutra_rtc *rtc_handler = (sutra_rtc *) (rhandler->sutra_rtc);

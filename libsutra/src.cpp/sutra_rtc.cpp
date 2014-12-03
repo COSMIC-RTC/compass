@@ -56,6 +56,12 @@ int sutra_rtc::add_centroider(long nwfs, long nvalid, float offset, float scale,
   return EXIT_SUCCESS;
 }
 
+int sutra_rtc::add_controller_geo(int nactu, int Nphi, long delay, long device){
+	current_context->set_activeDevice(device);
+	this->d_control.push_back(new sutra_controller_geo(current_context, nactu, Nphi, delay));
+	return EXIT_SUCCESS;
+}
+
 int sutra_rtc::add_controller(int nactu, long delay, long device,
     const char *typec) {
   int ncentroids = 0;
@@ -263,7 +269,8 @@ int sutra_rtc::do_control(int ncntrl, sutra_dms *ydm) {
   p = ydm->d_dms.begin();
   int idx = 0;
   if ( (this->d_control[ncntrl]->get_type().compare("ls") == 0) ||
-       (this->d_control[ncntrl]->get_type().compare("mv") == 0) ) {
+       (this->d_control[ncntrl]->get_type().compare("mv") == 0) ||
+       (this->d_control[ncntrl]->get_type().compare("geo") == 0)) {
     // "streamed" controllers case
 
     while (p != ydm->d_dms.end()) {

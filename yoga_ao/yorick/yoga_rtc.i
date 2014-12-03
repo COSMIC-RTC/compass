@@ -205,6 +205,7 @@ func cmat_init(ncontrol,clean=,method=)
     }
   }
     write,"building cmat";
+    write,"filtering ",nfilt," modes";
     tic;
     rtc_buildcmat,g_rtc,ncontrol-1,nfilt;
   

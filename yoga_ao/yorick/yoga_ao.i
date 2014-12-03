@@ -695,7 +695,26 @@ func rtc_init(clean=)
           controllers(i).nvalid = &(y_wfs(nwfs)._nvalid);
           controllers(i).nactu  = &(y_dm(ndms)._ntotact);
 
-          rtc_addcontrol,g_rtc,sum(y_dm(ndms)._ntotact),controllers(i).delay,controllers(i).type;
+	  if (controllers(i).type == "geo")
+	    rtc_addcontrol,g_rtc,sum(y_dm(ndms)._ntotact),controllers(i).delay,controllers(i).type,numberof(where(*y_geom._spupil));
+	  else
+	    rtc_addcontrol,g_rtc,sum(y_dm(ndms)._ntotact),controllers(i).delay,controllers(i).type;
+
+	  if (controllers(i).type == "geo") {
+	    indx_pup = where(*y_geom._spupil);
+	    cpt = 0;
+	    indx_dm = array(0,numberof(ndms) * numberof(indx_pup));
+	    for (dmn = 1 ; dmn<= numberof(ndms) ; dmn++){
+	      tmp = (dimsof(*y_geom._ipupil)(2)-(y_dm(dmn)._n2 - y_dm(dmn)._n1 +1))/2;
+	      pup_dm = (*y_geom._ipupil)(tmp+1:-tmp,tmp+1:-tmp);
+	      indx_dm(cpt+1:cpt+numberof(where(pup_dm))) = where(pup_dm) - 1;	  
+	      cpt += numberof(where(pup_dm));
+	    }
+	    //error;
+	    rtc_init_proj,g_rtc,i-1,g_dm,indx_dm,y_dm.unitpervolt,indx_pup - 1;
+	    //rtc_docontrol_geo,g_rtc,0,g_dm,g_target,0;
+	    //error;
+	  }
 
           if (controllers(i).type  == "ls") {
             imat_init,i,clean=clean;

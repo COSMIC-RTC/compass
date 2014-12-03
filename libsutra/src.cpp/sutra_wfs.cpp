@@ -92,11 +92,12 @@ sutra_wfs::sutra_wfs(carma_context *context, const char* type, long nxsub,
     else
       dims_data3[3] = nvalid;
   }
-  this->d_hrimg = new carma_obj<float>(context, dims_data3);
+  else
+	  this->d_hrimg = new carma_obj<float>(context, dims_data3); // Useless for SH
 
   int mdims[2];
   if (this->type == "sh") {
-    this->d_submask = new carma_obj<float>(context, dims_data3);
+    //this->d_submask = new carma_obj<float>(context, dims_data3); // Useless for SH
     this->d_camplipup = new carma_obj<cuFloatComplex>(context, dims_data3);
     this->d_camplifoc = new carma_obj<cuFloatComplex>(context, dims_data3);
     mdims[0] = (int) dims_data3[1];
@@ -488,7 +489,8 @@ int sutra_wfs::wfs_initarrays(cuFloatComplex *halfxy, cuFloatComplex *offsets,
     int *phasemap, int *validsubsx, int *validsubsy) {
   this->d_phalfxy->host2device(halfxy);
   this->d_poffsets->host2device(offsets);
-  this->d_submask->host2device(focmask);
+  if (this->type != "sh")
+	  this->d_submask->host2device(focmask);
   this->d_pupil->host2device(pupil);
   this->pyr_cx->fill_from(cx);
   this->pyr_cy->fill_from(cy);
@@ -548,8 +550,8 @@ int sutra_wfs::comp_sh_generic() {
   // get the hrimage by taking the | |^2
   // keep it in amplifoc to save mem space
   abs2c(this->d_camplifoc->getData(), this->d_camplifoc->getData(),
-      this->d_hrimg->getDims(1) * this->d_hrimg->getDims(2)
-          * this->d_hrimg->getDims(3), this->device);
+      this->d_camplifoc->getDims(1) * this->d_camplifoc->getDims(2)
+          * this->d_camplifoc->getDims(3), this->device);
 
   //set bincube to 0 or noise
   cutilSafeCall(

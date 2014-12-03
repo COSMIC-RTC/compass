@@ -66,7 +66,7 @@ public:
   int
   kl_floloadarrays(float *covmat, float *filter, float *evals, float *bas);
   int
-  get_IF(float *IF, int *indx_pup, long nb_pts);
+  get_IF(float *IF, int *indx_pup, long nb_pts, float ampli);
 };
 
 class sutra_dms {
