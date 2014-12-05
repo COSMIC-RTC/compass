@@ -71,6 +71,7 @@ carma_context::carma_context() {
       gpuid[gpu_count++] = current_device;
     current_device++;
   }
+  //TODO fix UVA issues
 #if 0
   if (gpu_count > 1) {
     bool has_uva = true;
@@ -239,27 +240,27 @@ int carma_context::get_maxGflopsDeviceId()
   current_device = device_count - 1;
   while (current_device >= 0) {
     cudaGetDeviceProperties(&deviceProp, current_device);
-    if (deviceProp.major == 9999 && deviceProp.minor == 9999) {
-      sm_per_multiproc = 1;
-    } else if (deviceProp.major <= 2) {
-      sm_per_multiproc = arch_cores_sm[deviceProp.major];
-    } else {
-      sm_per_multiproc = arch_cores_sm[2];
-    }
-
-    int compute_perf = deviceProp.multiProcessorCount * sm_per_multiproc
-        * deviceProp.clockRate;
-    if (compute_perf >= max_compute_perf) {
-      // If we find GPU with SM major > 2, search only these
-      if (best_SM_arch > 2) {
-        // If our device==dest_SM_arch, choose this, or else pass
-        if (deviceProp.major == best_SM_arch) {
+    if (deviceProp.computeMode != cudaComputeModeProhibited) {
+      if (deviceProp.major == 9999 && deviceProp.minor == 9999) {
+        sm_per_multiproc = 1;
+      } else {
+        sm_per_multiproc = ConvertSMVer2Cores(deviceProp.major,
+            deviceProp.minor);
+      }
+      int compute_perf = deviceProp.multiProcessorCount * sm_per_multiproc
+          * deviceProp.clockRate;
+      if (compute_perf >= max_compute_perf) {
+        // If we find GPU with SM major > 2, search only these
+        if (best_SM_arch > 2) {
+          // If our device==dest_SM_arch, choose this, or else pass
+          if (deviceProp.major == best_SM_arch) {
+            max_compute_perf = compute_perf;
+            max_perf_device = current_device;
+          }
+        } else {
           max_compute_perf = compute_perf;
           max_perf_device = current_device;
         }
-      } else {
-        max_compute_perf = compute_perf;
-        max_perf_device = current_device;
       }
     }
     --current_device;

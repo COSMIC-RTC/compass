@@ -22,7 +22,6 @@
 
 #include <cuda_runtime_api.h>
 #include <cuda.h>
-
 #include <cufft.h>
 
 #ifdef DEBUG

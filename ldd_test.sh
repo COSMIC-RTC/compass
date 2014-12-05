@@ -1,33 +1,33 @@
 #!/bin/bash
 
 echo "################################################"
-echo "ldd libcarma"
+echo "ldd -d libcarma"
 echo "################################################"
-(cd libcarma && ldd libcarma.so)
+(cd libcarma && ldd -d libcarma.so)
 echo "################################################"
 echo "ldd -u libcarma"
 echo "################################################"
 (cd libcarma && ldd -u libcarma.so)
 echo "################################################"
-echo "ldd libsutra"
+echo "ldd -d libsutra"
 echo "################################################"
-(cd libsutra && ldd libsutra.so)
+(cd libsutra && ldd -d libsutra.so)
 echo "################################################"
 echo "ldd -u libsutra"
 echo "################################################"
 (cd libsutra && ldd -u libsutra.so)
 echo "################################################"
-echo "ldd yoga"
+echo "ldd -d yoga"
 echo "################################################"
-(cd yoga && ldd yoga.so)
+(cd yoga && ldd -d yoga.so)
 echo "################################################"
 echo "ldd -u yoga"
 echo "################################################"
 (cd yoga && ldd -u yoga.so)
 echo "################################################"
-echo "ldd yoga_ao"
+echo "ldd -d yoga_ao"
 echo "################################################"
-(cd yoga_ao && ldd yoga_ao.so)
+(cd yoga_ao && ldd -d yoga_ao.so)
 echo "################################################"
 echo "ldd -u yoga_ao"
 echo "################################################"
