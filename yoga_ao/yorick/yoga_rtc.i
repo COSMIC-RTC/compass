@@ -1193,13 +1193,13 @@ func mat_cphim_gpu(nc){
   p2m = (y_tel.diam/y_wfs(1).nxsub) / sspDiam;
   posx *= p2m;
   posy *= p2m;
-  sspDiam = sspDiam*p2m;
+  sspDiam = (sspDiam)*p2m; //(sspDiam - 1) * p2m -> 1.07 for the factor below... close but not enough for 30m 60x60 case)
 
   // Position des actuateurs et origine ramenee au centre de ipupil
   actu_x = (*y_dm(1)._xpos - dimsof(*y_geom._ipupil)(2)/2 )*p2m;
   actu_y = (*y_dm(1)._ypos - dimsof(*y_geom._ipupil)(2)/2 )*p2m;
-
-  k2 = y_wfs(1).lambda / 2. / pi / y_dm(1).unitpervolt;
+  //error;
+  k2 = y_wfs(1).lambda / 2. / pi / y_dm(1).unitpervolt / sspDiam * 1.058; // 1.058 hardcoded for debug... need to find where it comes from
   L0_d = &(float(*y_atmos.L0));
   alphaX = alphaY = array(0.0f,numberof(y_wfs.xpos));
   alphaX(:numberof(y_wfs.xpos)) = y_wfs.xpos/RASC;
@@ -1210,7 +1210,7 @@ func mat_cphim_gpu(nc){
   rtc_doCphim,g_rtc,nc,g_wfs,g_atmos,g_dm,*L0_d,float(*y_atmos.frac * (y_atmos.r0)^(-5./3)),alphaX,alphaY,posx,posy,actu_x,actu_y,y_tel.diam,k2,Nact;
   write,"Done";
 
-  write,"Computing (Cmm + Cn)^-1 ...";
+  write,"Computing Cmm ...";
   rtc_doCmm,g_rtc,nc,g_wfs,g_atmos,y_tel.diam,y_tel.cobs,*L0_d, float(*y_atmos.frac * (y_atmos.r0)^(-5./3)),alphaX,alphaY;
   write,"Done";
 }

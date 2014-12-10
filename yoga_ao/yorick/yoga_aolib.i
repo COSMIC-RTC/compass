@@ -571,7 +571,20 @@ extern rtc_setnmax;
       
    SEE ALSO:
  */
-
+extern rtc_setCphim;
+/* DOCUMENT rtc_setCphim
+   rtc_setCphim,yoga_rtc_obj,ncentro,data
+   set Cphim for a MV controller in a yoga_rtc_obj object
+      
+   SEE ALSO:
+ */
+extern rtc_setCmm;
+/* DOCUMENT rtc_setCmm
+   rtc_setCmm,yoga_rtc_obj,ncentro,data
+   set Cmm for a MV controller in a yoga_rtc_obj object
+      
+   SEE ALSO:
+ */
 extern rtc_docentroids;
 /* DOCUMENT rtc_docentroids
    rtc_docentroids,yoga_rtc_obj,ncontroller,yoga_wfs_obj

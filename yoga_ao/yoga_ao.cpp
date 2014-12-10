@@ -2652,6 +2652,44 @@ void Y_rtc_setcovmat(int argc) {
     y_error("Controller needs to be mv\n");
   }
 }
+void Y_rtc_setCphim(int argc) {
+  rtc_struct *rhandler = (rtc_struct *) yget_obj(argc - 1, &yRTC);
+  sutra_rtc *rtc_handler = (sutra_rtc *) (rhandler->sutra_rtc);
+  long ncontrol = ygets_l(argc - 2);
+
+  carma_context *context_handle = _getCurrentContext();
+  context_handle->set_activeDeviceForCpy(rhandler->device);
+
+  long ntot;
+  long dims[Y_DIMSIZE];
+  float *data = ygeta_f(argc - 3, &ntot, dims);
+  if (rtc_handler->d_control.at(ncontrol)->get_type().compare("mv") == 0) {
+    SCAST(sutra_controller_mv *, control, rtc_handler->d_control.at(ncontrol));
+    control->d_Cphim->host2device(data);
+  } else {
+    y_error("Controller needs to be mv\n");
+  }
+}
+
+void Y_rtc_setCmm(int argc) {
+  rtc_struct *rhandler = (rtc_struct *) yget_obj(argc - 1, &yRTC);
+  sutra_rtc *rtc_handler = (sutra_rtc *) (rhandler->sutra_rtc);
+  long ncontrol = ygets_l(argc - 2);
+
+  carma_context *context_handle = _getCurrentContext();
+  context_handle->set_activeDeviceForCpy(rhandler->device);
+
+  long ntot;
+  long dims[Y_DIMSIZE];
+  float *data = ygeta_f(argc - 3, &ntot, dims);
+  if (rtc_handler->d_control.at(ncontrol)->get_type().compare("mv") == 0) {
+    SCAST(sutra_controller_mv *, control, rtc_handler->d_control.at(ncontrol));
+    control->d_Cmm->host2device(data);
+  } else {
+    y_error("Controller needs to be mv\n");
+  }
+}
+
 void Y_rtc_buildcmat(int argc) {
   rtc_struct *rhandler = (rtc_struct *) yget_obj(argc - 1, &yRTC);
   sutra_rtc *rtc_handler = (sutra_rtc *) (rhandler->sutra_rtc);

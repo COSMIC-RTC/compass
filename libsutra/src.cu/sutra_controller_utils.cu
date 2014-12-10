@@ -1679,7 +1679,7 @@ __device__ float compute_cphim_element(int ipos, int jpos, float convert, float 
 
 	// for now return a dummy value
 
-  const float lambda2 = 0.016414;
+  const float lambda2 = 0.016414031750058719; // RASC * 0.5 * 1e-6 / 2. / pi ie lambda = 0.5e-6
 
   //DM m
   int m = ipos / Ndm;
@@ -1706,9 +1706,9 @@ __device__ float compute_cphim_element(int ipos, int jpos, float convert, float 
     xy_j = 1;
   } else xy_j = 0;
 */
-  const float sspSizen = teldiam / Nssp[n];
+  //const float sspSizen = teldiam / Nssp[n] ;
 
-  const float kk = lambda2 / (sspSizen) * k2;
+  const float kk = lambda2 * k2; // k2 = y_wfs(1).lambda / 2. / pi / y_dm(1).unitpervolt / sspDiam (Yorick computation)
 
   //Layer l
   float covar = 0.0;

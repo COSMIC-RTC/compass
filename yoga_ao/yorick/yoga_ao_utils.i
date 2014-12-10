@@ -980,3 +980,30 @@ func get_r0(r0_at_lambda1, lambda1, lambda2)
 {
   return (lambda2/lambda1)^(6./5) * r0_at_lambda1;
 }
+
+func plsh(slp,nwfs,scale){
+  slpx = slp(:numberof(slp)/2);
+  slpy = slp(numberof(slp)/2 + 1:);
+
+  s2ipup = (dimsof(*y_geom._ipupil)(2) - dimsof(*y_geom._spupil)(2))/2.;
+  posx = *y_wfs(1)._istart + s2ipup ;
+  posx = (posx * (*y_wfs(1)._isvalid))(*);
+  posx = posx(where(posx!=0)) - dimsof(*y_geom._ipupil)(2)/2 - 1;
+  posy = *y_wfs(1)._jstart + s2ipup ;
+  posy = (transpose(posy * (*y_wfs(1)._isvalid)))(*);
+  posy = posy(where(posy!=0)) - dimsof(*y_geom._ipupil)(2)/2 - 1;
+
+  fma;
+  plv,slpy(,-:1:2),slpx(,-:1:2),posy(,-:1:2),posx(,-:1:2),scale=scale;
+
+}
+
+func pldm(com){
+
+  yoga_setcomm,g_dm,"pzt",0.,com;
+  yoga_shapedm,g_dm,"pzt",0.;
+  dm = yoga_getdm(g_dm,"pzt",0.);
+  yoga_resetdm,g_dm,"pzt",0.;
+
+  return dm;
+}

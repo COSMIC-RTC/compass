@@ -689,10 +689,12 @@ func rtc_init(clean=)
 	      imat = manual_imat();
             correct_dm,imat;
             //} 
-          nwfs = *controllers(i).nwfs;
-          if (numberof(y_wfs) == 1) nwfs = nwfs(1); // fixing a bug ... still not understood
-          ndms = *controllers(i).ndm;
-          controllers(i).nvalid = &(y_wfs(nwfs)._nvalid);
+	  if (controllers(i).type != "geo"){
+	    nwfs = *controllers(i).nwfs;
+	    if (numberof(y_wfs) == 1) nwfs = nwfs(1); // fixing a bug ... still not understood
+	    controllers(i).nvalid = &(y_wfs(nwfs)._nvalid);
+	  }
+	  ndms = *controllers(i).ndm;
           controllers(i).nactu  = &(y_dm(ndms)._ntotact);
 
 	  if (controllers(i).type == "geo")
@@ -803,7 +805,18 @@ close,f5;
             rtc_loadmgain,g_rtc,0,mgain;
 	    
 	    Cphim = mat_cphim_gpu(i-1);
+	    /*
+	    restore,openb("Cvm_geom");
+	    restore,openb("Cmm_geom");
+	    rtc_setCphim,g_rtc,0,-Cvm_geom;
+	    rtc_setCmm,g_rtc,0,Cmm_geom;
+	    */
 	    cmat_init,i,clean=clean;
+	    /*
+	    Cmm1 = invgen(Cmm_geom,50);
+	    cmat = Cvm_geom(,+) * Cmm1(+,);
+	    rtc_setcmat,g_rtc,0,cmat;
+	    */
 	    //Cphi_vk = create_sigmaTur(1);
 	    //F = unit(dimsof(Cphi_vk)(3)) - array(1./(dimsof(Cphi_vk)(3)),dimsof(Cphi_vk)(3),dimsof(Cphi_vk)(3));
 	    //Cphi_vk = (F(,+)*Cphi_vk(+,))(,+)*F(,+);
