@@ -44,6 +44,7 @@ sutra_dm::sutra_dm(carma_context *context, const char* type, long dim,
   }
 
   if (strcmp(type, "pzt") == 0) {
+	this->d_KLbasis = NULL;
     dims_data1[1] = ninflupos;
     this->d_influpos = new carma_obj<int>(context, dims_data1);
 
@@ -89,6 +90,8 @@ sutra_dm::~sutra_dm() {
     delete this->d_zr;
   if (this->d_ztheta != NULL)
     delete this->d_ztheta;
+  if (this->d_KLbasis != NULL)
+      delete this->d_ztheta;
 }
 
 int sutra_dm::pzt_loadarrays(float *influ, int *influpos, int *npoints,
@@ -199,6 +202,177 @@ sutra_dm::get_IF(float *IF, int *indx_pup, long nb_pts, float ampli){
 	return EXIT_SUCCESS;
 }
 
+int
+sutra_dm::compute_KLbasis(float *xpos, float *ypos, int *indx, long dim, float norm, float ampli){
+
+	long dims_data[3];
+	dims_data[0] = 2;
+	dims_data[1] = this->ninflu;
+	dims_data[2] = this->ninflu;
+	carma_obj<float> *d_statcov = new carma_obj<float>(current_context, dims_data);
+	this->d_KLbasis = new carma_obj<float>(current_context, dims_data);
+	long dims_data2[2];
+	dims_data2[0] = 1;
+	dims_data2[1] = dim;
+	carma_obj<int> *d_indx = new carma_obj<int>(this->current_context, dims_data2);
+
+	//Compute the statistic matrix from actuators positions & Kolmogorov statistic
+	carma_obj<float> *d_xpos = new carma_obj<float>(current_context, dims_data);
+	carma_obj<float> *d_ypos = new carma_obj<float>(current_context, dims_data);
+
+	d_xpos->host2device(xpos);
+	d_ypos->host2device(ypos);
+	dm_dostatmat(d_statcov->getData(), this->ninflu,d_xpos->getData(), d_ypos->getData(), norm, device);
+	// Compute and apply piston filter
+
+	this->piston_filt(d_statcov);
+
+	dims_data[1] = dim;
+	dims_data[2] = this->ninflu;
+	carma_obj<float> *d_IF = new carma_obj<float>(this->current_context, dims_data);
+	dims_data[1] = this->ninflu;
+	dims_data[2] = this->ninflu;
+	carma_obj<float> *d_geocov = new carma_obj<float>(current_context, dims_data);
+
+	// Get influence functions of the DM (to be CUsparsed)
+	d_indx->host2device(indx);
+	this->get_IF(d_IF->getData(),d_indx->getData(),dim,1.0f);
+
+	// Compute geometric matrix (to be CUsparsed)
+	this->do_geomat(d_geocov->getData(),d_IF->getData(),dim,ampli);
+
+	delete d_IF;
+
+	// Double diagonalisation to obtain KL basis on actuators
+	this->DDiago(d_statcov,d_geocov);
+
+	delete d_geocov;
+	delete d_indx;
+	delete d_xpos;
+	delete d_ypos;
+
+	return EXIT_SUCCESS;
+}
+
+int
+sutra_dm::do_geomat(float *d_geocov, float *d_IF, long n_pts, float ampli){
+	carma_gemm(cublas_handle(), 't', 'n', this->ninflu, this->ninflu, n_pts, 1.0f,
+	      d_IF, n_pts, d_IF, n_pts, 0.0f,
+	      d_geocov, this->ninflu);
+	multi_vect(d_geocov,ampli,this->ninflu*this->ninflu,this->device);
+
+	return EXIT_SUCCESS;
+}
+
+int
+sutra_dm::piston_filt(carma_obj <float> *d_statcov){
+	long Nmod = d_statcov->getDims()[1];
+	long dims_data[3];
+	dims_data[0] = 2;
+	dims_data[1] = Nmod;
+	dims_data[2] = Nmod;
+	carma_obj<float> *d_F = new carma_obj<float>(current_context, dims_data);
+	carma_obj<float> *d_tmp = new carma_obj<float>(current_context, dims_data);
+
+	int N = d_statcov->getDims()[1] * d_statcov->getDims()[1];
+	fill_filtermat(d_F->getData(),Nmod, N, device);
+
+	carma_gemm(cublas_handle(), 'n', 'n', Nmod, Nmod, Nmod, 1.0f,
+			  d_F->getData(), Nmod, d_statcov->getData(), Nmod, 0.0f,
+			  d_tmp->getData(), Nmod);
+	carma_gemm(cublas_handle(), 'n', 'n', Nmod, Nmod, Nmod, 1.0f,
+			      d_tmp->getData(), Nmod, d_F->getData(), Nmod, 0.0f,
+			      d_statcov->getData(), Nmod);
+
+	delete d_tmp;
+	delete d_F;
+
+	return EXIT_SUCCESS;
+}
+
+int
+sutra_dm::set_comkl(float *comvec){
+	if(this->d_KLbasis == NULL){
+		cerr << "KLbasis has to be computed before calling this function" << endl;
+		return EXIT_FAILURE;
+	}
+	else{
+		long dims_data[2] = {1,this->ninflu};
+		carma_obj<float> d_comkl(current_context,dims_data,comvec);
+
+		carma_gemv(cublas_handle(),'n', ninflu, ninflu, 1.0f, this->d_KLbasis->getData(),this->d_KLbasis->getDims()[1],
+					d_comkl.getData(),1, 0.0f, this->d_comm->getData(),1);
+
+		return EXIT_SUCCESS;
+	}
+}
+
+int
+sutra_dm::DDiago(carma_obj<float> *d_statcov, carma_obj<float> *d_geocov){
+	const long dims_data[3] = {2, this->ninflu, this->ninflu};
+	carma_obj<float> *d_M1 = new carma_obj<float>(current_context,dims_data);
+	carma_obj<float> *d_tmp = new carma_obj<float>(current_context,dims_data);
+	carma_obj<float> *d_tmp2 = new carma_obj<float>(current_context,dims_data);
+
+	const long dims_data2[2]={1,this->ninflu};
+	carma_obj<float> *d_eigenvals = new carma_obj<float>(current_context,dims_data2);
+	carma_obj<float> *d_eigenvals_sqrt = new carma_obj<float>(current_context,dims_data2);
+	carma_obj<float> *d_eigenvals_inv = new carma_obj<float>(current_context,dims_data2);
+	carma_host_obj<float> *h_eigenvals = new carma_host_obj<float>(dims_data2, MA_PAGELOCK);
+	carma_host_obj<float> *h_eigenvals_inv = new carma_host_obj<float>(dims_data2, MA_PAGELOCK);
+	carma_host_obj<float> *h_eigenvals_sqrt = new carma_host_obj<float>(dims_data2, MA_PAGELOCK);
+
+	// 1. SVdec(geocov,U) --> Ut * geocov * U = D²
+	carma_syevd<float,1>('V', d_geocov, h_eigenvals);
+
+	d_eigenvals->host2device(*h_eigenvals);
+	for (int i=0 ; i<this->ninflu ; i++){
+		h_eigenvals_sqrt->getData()[i] = sqrt(h_eigenvals->getData()[i]); // D = sqrt(D²)
+		h_eigenvals_inv->getData()[i] = 1./sqrt(h_eigenvals->getData()[i]);// D⁻¹ = 1/sqrt(D²)
+	}
+	d_eigenvals_sqrt->host2device(*h_eigenvals_sqrt);
+	d_eigenvals_inv->host2device(*h_eigenvals_inv);
+
+	// 2. M⁻¹ = sqrt(eigenvals) * Ut : here, we have transpose(M⁻¹)
+
+	carma_dgmm<float>(cublas_handle(),CUBLAS_SIDE_RIGHT,this->ninflu,this->ninflu,
+					d_geocov->getData(), this->ninflu, d_eigenvals_sqrt->getData(),1,
+					d_M1->getData(), this->ninflu);
+
+	// 3. C' = M⁻¹ * statcov * M⁻¹t
+	carma_gemm<float>(cublas_handle(), 't', 'n', ninflu, ninflu, ninflu, 1.0f,
+		      d_M1->getData(), ninflu, d_statcov->getData(), ninflu, 0.0f,
+		      d_tmp->getData(), ninflu);
+
+	carma_gemm<float>(cublas_handle(), 'n', 'n', ninflu, ninflu, ninflu, 1.0f,
+			      d_tmp->getData(), ninflu, d_M1->getData(), ninflu, 0.0f,
+			      d_tmp2->getData(), ninflu);
+
+	// 4. SVdec(C',A)
+	carma_syevd<float,1>('V', d_tmp2, h_eigenvals);
+
+	// 5. M = U * D⁻¹
+	carma_dgmm<float>(cublas_handle(),CUBLAS_SIDE_RIGHT,this->ninflu,this->ninflu,
+				d_geocov->getData(), this->ninflu, d_eigenvals_inv->getData(),1,
+				d_tmp->getData(), this->ninflu);
+
+	// 6. B = M * A;
+	carma_gemm<float>(cublas_handle(), 'n', 'n', ninflu, ninflu, ninflu, 1.0f,
+			      d_tmp->getData(), ninflu, d_tmp2->getData(), ninflu, 0.0f,
+			      d_KLbasis->getData(), ninflu);
+
+	delete d_M1;
+	delete d_tmp;
+	delete d_tmp2;
+	delete d_eigenvals;
+	delete d_eigenvals_sqrt;
+	delete d_eigenvals_inv;
+	delete h_eigenvals;
+	delete h_eigenvals_sqrt;
+	delete h_eigenvals_inv;
+
+	return EXIT_SUCCESS;
+}
 sutra_dms::sutra_dms(int ndm) {
   this->ndm = ndm;
 }

@@ -266,3 +266,79 @@ getIF(float *IF, float *dmshape, int *indx_pup, long nb_pts, int column, long nb
 	return EXIT_SUCCESS;
 }
 
+__global__ void
+do_statmat_krnl(float *statcov, float *xpos, float *ypos, float norm, long dim, long N){
+	int tid = threadIdx.x + blockIdx.x * blockDim.x;
+	int i,j;
+	while (tid < N) {
+		i = tid/dim;
+		j = tid - i*dim;
+		statcov[i*dim + j] = (float)(6.88 * pow(sqrt(pow((double)(xpos[i]-xpos[j]),2) + pow((double)(ypos[i]-ypos[j]),2)),5./3.) * norm);
+		tid += blockDim.x * gridDim.x;
+	}
+}
+int
+dm_dostatmat(float *statcov, long dim, float *xpos, float *ypos, float norm, int device){
+	int nthreads = 0, nblocks = 0;
+	int N = (dim * dim);
+	getNumBlocksAndThreads(device, N, nblocks, nthreads);
+	dim3 grid(nblocks), threads(nthreads);
+	do_statmat_krnl<<<grid , threads>>>(statcov,xpos,ypos,norm,dim,N);
+	cutilCheckMsg("do_statcov_krnl<<<>>> execution failed\n");
+
+	return EXIT_SUCCESS;
+}
+
+__global__ void
+fill_filtermat_krnl(float *filter, int nactu, int N){
+	int tid = threadIdx.x + blockIdx.x * blockDim.x;
+	while (tid < N){
+		filter[tid] =tid % (nactu+1) ? (float)-1./nactu : (float)(1.-1./nactu);
+		tid += blockDim.x * gridDim.x;
+	}
+}
+
+int
+fill_filtermat(float *filter, int nactu, int N, int device){
+	int nthreads = 0, nblocks = 0;
+	getNumBlocksAndThreads(device, N, nblocks, nthreads);
+	dim3 grid(nblocks), threads(nthreads);
+
+	fill_filtermat_krnl<<<grid, threads>>>(filter, nactu, N);
+	cutilCheckMsg("fill_filtmat_krnl<<<>>> execution failed\n");
+
+	return EXIT_SUCCESS;
+}
+
+__global__ void multi_krnl(float *i_data, float gain, int N) {
+
+  int tid = threadIdx.x + blockIdx.x * blockDim.x;
+
+  while (tid < N) {
+    i_data[tid] = i_data[tid] * gain;
+    tid += blockDim.x * gridDim.x;
+  }
+}
+
+int
+multi_vect(float *d_data, float gain, int N, int device) {
+
+  struct cudaDeviceProp deviceProperties;
+  cudaGetDeviceProperties(&deviceProperties, device);
+
+  int maxThreads = deviceProperties.maxThreadsPerBlock;
+  int nBlocks = deviceProperties.multiProcessorCount * 8;
+  int nThreads = (N + nBlocks - 1) / nBlocks;
+
+  if (nThreads > maxThreads) {
+    nThreads = maxThreads;
+    nBlocks = (N + nThreads - 1) / nThreads;
+  }
+
+  dim3 grid(nBlocks), threads(nThreads);
+
+  multi_krnl<<<grid, threads>>>(d_data, gain, N);
+
+  cutilCheckMsg("mult_kernel<<<>>> execution failed\n");
+  return EXIT_SUCCESS;
+}

@@ -2042,6 +2042,51 @@ void Y_yoga_setdm(int argc) {
       data);
 }
 
+void Y_yoga_computeKLbasis(int argc) {
+  long ntot;
+  long dims[Y_DIMSIZE];
+  
+  dms_struct *handler = (dms_struct *) yget_obj(argc - 1, &yDMs);
+  sutra_dms *dms_handler = (sutra_dms *) (handler->sutra_dms);
+  char *type = ygets_q(argc - 2);
+  float alt = ygets_f(argc - 3);
+  float *xpos = ygeta_f(argc - 4 , &ntot, dims);
+  float *ypos = ygeta_f(argc - 5 , &ntot, dims);
+  int *indx_pup = ygeta_i(argc - 6, &ntot, dims);
+  long dim = ygets_l(argc - 7);
+  float norm = ygets_f(argc - 8);
+  float ampli = ygets_f(argc - 9);
+
+  dms_handler->d_dms.at(make_pair(type, alt))->compute_KLbasis(xpos,ypos,indx_pup,dim,norm,ampli);
+
+} 
+
+void Y_yoga_setcomkl(int argc) {
+  long ntot;
+  long dims[Y_DIMSIZE];
+  
+  dms_struct *handler = (dms_struct *) yget_obj(argc - 1, &yDMs);
+  sutra_dms *dms_handler = (sutra_dms *) (handler->sutra_dms);
+  char *type = ygets_q(argc - 2);
+  float alt = ygets_f(argc - 3);
+  float *comvec = ygeta_f(argc - 4 , &ntot, dims);
+
+  dms_handler->d_dms.at(make_pair(type, alt))->set_comkl(comvec);
+
+} 
+
+ void Y_yoga_getKLbasis(int argc) {
+  dms_struct *handler = (dms_struct *) yget_obj(argc - 1, &yDMs);
+  sutra_dms *dms_handler = (sutra_dms *) (handler->sutra_dms);
+  char *type = ygets_q(argc - 2);
+  float alt = ygets_f(argc - 3);
+  float *data =
+      ypush_f(
+          (long*) dms_handler->d_dms.at(make_pair(type, alt))->d_KLbasis->getDims());
+  dms_handler->d_dms.at(make_pair(type, alt))->d_KLbasis->device2host(
+      data);
+}
+
 void Y_target_dmtrace(int argc) {
   target_struct *handler = (target_struct *) yget_obj(argc - 1, &yTarget);
   sutra_target *target_handler = (sutra_target *) (handler->sutra_target);

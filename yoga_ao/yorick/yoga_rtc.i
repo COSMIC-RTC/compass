@@ -922,7 +922,7 @@ func geo_cov(mat)
 // Matrice creuse --> code à optimiser
 {
   d_mat = yoga_obj(mat);
-  geocov = array(0.0,dimsof(mat)(3),dimsof(mat)(3));
+  geocov = array(0.0f,dimsof(mat)(3),dimsof(mat)(3));
   d_geo = yoga_obj(geocov);
   yoga_mm,d_geo,d_mat,d_mat,'t','n';
   geocov = d_geo();

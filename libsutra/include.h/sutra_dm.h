@@ -31,6 +31,7 @@ public:
   carma_obj<int> *d_istart;
   carma_obj<int> *d_xoff;
   carma_obj<int> *d_yoff;
+  carma_obj<float> *d_KLbasis;
 
   //zernike
   carma_obj<float> *d_coeffs;
@@ -41,6 +42,9 @@ public:
   sutra_kl *d_kl;
 
   carma_context *current_context;
+  cublasHandle_t cublas_handle() {
+      return current_context->get_cublasHandle();
+    }
 
 public:
   sutra_dm(carma_context *context, const char* type, long dim, long ninflu,
@@ -67,6 +71,18 @@ public:
   kl_floloadarrays(float *covmat, float *filter, float *evals, float *bas);
   int
   get_IF(float *IF, int *indx_pup, long nb_pts, float ampli);
+  int
+  get_IF_sparse(int *indx_pup, long nb_pts, float ampli);
+  int
+  do_geomat(float *d_geocov, float *d_IF, long n_pts, float ampli);
+  int
+  DDiago(carma_obj<float> *d_statcov, carma_obj<float>*d_geocov);
+  int
+  compute_KLbasis(float *xpos, float *ypos, int *indx, long dim, float norm, float ampli);
+  int
+  piston_filt(carma_obj <float> *d_statcov);
+  int
+  set_comkl(float *comvec);
 };
 
 class sutra_dms {
@@ -106,5 +122,11 @@ comp_fulldmshape(int threads, int blocks, T *d_idata, T *d_odata, int ninflu,
     int diminflu, T *comm, int N);
 int
 getIF(float *IF, float *dmshape, int *indx_pup, long nb_pts, int column, long nb_col, int device);
+int
+dm_dostatmat(float *d_statcov, long Nkl, float *d_xpos, float *d_ypos, float norm, int device);
+int
+multi_vect(float *d_data, float gain, int N, int device);
+int
+fill_filtermat(float *filter, int nactu, int N, int device);
 
 #endif // _SUTRA_DM_H_

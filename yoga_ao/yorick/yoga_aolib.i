@@ -944,6 +944,37 @@ extern yoga_loadkl;
    SEE ALSO:
  */
 
+extern yoga_computeKLbasis;
+/*DOCUMENT yoga_computeKLbasis,g_dm,type,alt,xpos,ypos,indx_pup,dim,norm,ampli
+  Compute the KLbasis (on the actuators) for a pzt DM
+
+  alt : conjugated altitude
+  type : DM type
+  xpos : X position of actuators [m]
+  ypos : Y position of actuators [m]
+  indx_pup : where(pup>0)
+  dim : number of points in the pupil
+  norm : normalisation factor
+  ampli : amplification factor
+*/
+
+extern yoga_setcomkl;
+/*DOCUMENT yoga_setcomkl,yoga_dms_obj,type,alt,comvec
+  Apply a KL vector comvec on a pzt DM using KL basis
+
+  alt : conjugated altitude
+  type : DM type
+*/
+
+extern yoga_getKLbasis;
+/*DOCUMENT yoga_getKLbasis,g_dm,type,alt
+  return the KLbasis (on the actuators) for a pzt DM (has to be computed before function call)
+
+  alt : conjugated altitude
+  type : DM type
+
+  SEE ALSO : yoga_computeKLbasis
+*/
 
 extern yoga_addtt;
 /* DOCUMENT yoga_addtt

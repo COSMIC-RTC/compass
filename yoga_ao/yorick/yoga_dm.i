@@ -287,3 +287,50 @@ func make_flo_kl_dm(nm,disp=)
   y_dm(nm)._ntotact = y_dm(nm).nkl;
 }
 
+func compute_klbasis(ndm){
+  /* DOCUMENT function compute_klbasis,ndm
+
+     return the KL basis on pzt actuators (only for pzt dm)
+  */
+  if(y_dm(ndm).type == "pzt"){
+    tmp = (dimsof(*y_geom._ipupil)(2)-(y_dm(ndm)._n2 - y_dm(ndm)._n1 +1))/2;
+    pup = (*y_geom._ipupil)(tmp+1:-tmp,tmp+1:-tmp);
+    indx_valid = where(pup > 0); 
+    x = *y_dm(ndm)._xpos;
+    y = *y_dm(ndm)._ypos; 
+    interactp = x(2) - x(1);
+    interactm = y_tel.diam/(y_dm(ndm).nact-1);
+    p2m = interactm/interactp;
+    norm = -(p2m*y_tel.diam/(2*y_atmos.r0))^(5./3);
+    yoga_computeKLbasis,g_dm,"pzt",y_dm(ndm).alt,x,y,indx_valid,numberof(indx_valid),norm,1.0f;
+    KLbasis = yoga_getKLbasis(g_dm,"pzt",y_dm(ndm).alt)(,::-1);
+  }
+  else{
+    KLbasis = [];
+    write,"DM must be pzt type";
+  }
+  
+  return KLbasis;
+
+}
+
+func setcomkl(ndm,comvec,plot=){
+
+  if(y_dm(ndm).type == "pzt"){
+    yoga_setcomkl,g_dm,"pzt",y_dm(ndm).alt,comvec(::-1); // Reverse vector because KL basis is reversed on GPU
+    if(plot == 1){
+      yoga_shapedm,g_dm,"pzt",y_dm(ndm).alt;
+      dm = yoga_getdm(g_dm,"pzt",y_dm(ndm).alt);
+      window,0;
+      fma;
+      pli,dm;
+    }
+  
+    return yoga_getcomm(g_dm,"pzt",y_dm(ndm).alt);
+  }
+  else{
+    write,"DM must be pzt type";
+    return 0;
+  }
+}
+
