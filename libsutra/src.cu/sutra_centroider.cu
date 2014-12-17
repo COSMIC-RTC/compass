@@ -488,16 +488,12 @@ __global__ void centroid_max2(T *g_idata, T *g_odata, T *g_minim, int n, int nma
   //__syncthreads();
   __syncthreads();
  if (tid < nmax) {
-//	 if ((blockIdx.x == 68))
-//		 printf("nmax %d ssp%d tid %d sdata %f sdatamin %f g_minim %f diff %f \n", nmax, blockIdx.x, tid, sdata[tid], sdata[nmax - 1], g_minim[blockIdx.x],sdata[tid]-g_minim[blockIdx.x]);
 	 sdata[tid] -= g_minim[blockIdx.x];
   }
  else {
 	 sdata[tid] = 0.0f;
  }
 
-	 if ((blockIdx.x == 68))
-		 printf("nmax %d ssp%d tid %d sdata %f \n", nmax, blockIdx.x, tid, sdata[tid]);
   __syncthreads();
  if ((tid >= nmax) && (tid < 2 * nmax)) {
     sdata[tid] = sdata[tid - nmax];
