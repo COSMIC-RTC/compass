@@ -75,6 +75,10 @@ template int
 caObjC::destroy_prng();
 template int
 caObjZ::destroy_prng();
+template int
+caObjI::destroy_prng();
+template int
+caObjUI::destroy_prng();
 
 template<class T>
 int carma_obj<T>::prng(T *output, char gtype, float alpha, float beta) {

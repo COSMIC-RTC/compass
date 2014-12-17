@@ -377,7 +377,8 @@ int carma_cula_svd(carma_obj<T> *imat, carma_obj<T> *eigenvals,
 
 extern "C" {
 void sumGetNumBlocksAndThreads(int n, int device, int &blocks, int &threads);
-int snapTransformSize(int dataSize);
+//int snapTransformSize(int dataSize);
+int snapTransformSize(unsigned int dataSize);
 bool isPow2(unsigned int x);
 unsigned int nextPow2(unsigned int x);
 }

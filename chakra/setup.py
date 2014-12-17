@@ -117,6 +117,7 @@ class clean(_clean):
 ext = Extension('chakra',
                 sources=[#COMPASS['inc']+'/libcarma/src.cpp/carma_context.cpp',
                     #COMPASS['inc']+'/libcarma/src.cpp/carma_cublas.cpp',
+                    COMPASS['inc']+'/libcarma/src.cpp/carma_fft_conv.cpp',
                     'wrapper_chakra.pyx'],
                 library_dirs=[CUDA['lib64'], COMPASS['lib']+"/libcarma"],
                 libraries=['cudart', 'cufft','cublas','carma'],

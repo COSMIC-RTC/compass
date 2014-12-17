@@ -22,9 +22,7 @@ Content
     process_tmpl.py             template management
     setup.py                    compilation setups
     clean.py                    cleaning script
-    test.py                     small python test code
+    test                        directory containing small python test codes
 
 
 
-TODO
-    test functions after copy

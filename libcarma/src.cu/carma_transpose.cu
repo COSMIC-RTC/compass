@@ -118,3 +118,11 @@ transposeCU<float>(float *d_idata, float *d_odata, long N1, long N2);
 template int
 transposeCU<double>(double *d_idata, double *d_odata, long N1, long N2);
 
+template int
+transposeCU<cuFloatComplex>(cuFloatComplex *d_idata, cuFloatComplex *d_odata
+            , long N1, long N2);
+
+template int
+transposeCU<cuDoubleComplex>(cuDoubleComplex *d_idata, cuDoubleComplex *d_odata
+            , long N1, long N2);
+

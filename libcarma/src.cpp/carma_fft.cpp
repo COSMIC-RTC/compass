@@ -111,8 +111,10 @@ void carma_initfft(const long *dims_data, cufftHandle *plan, cufftType tPlan) {
     int mdims[2];
     mdims[0] = (int) dims_data[1];
     mdims[1] = (int) dims_data[2];
-    cufftSafeCall(
-        cufftPlanMany(plan, 2 ,mdims,NULL,1,0,NULL,1,0,CUFFT_C2C ,(int)dims_data[3]));
+    cufftSafeCall( 
+        /*cufftPlan3d(plan,dims_data[1],dims_data[2],dims_data[3], tPlan));*/
+        //cufftPlanMany(plan, 2 ,mdims,NULL,1,0,NULL,1,0,CUFFT_C2C ,(int)dims_data[3]));
+        cufftPlanMany(plan, 2 ,mdims,NULL,1,0,NULL,1,0,tPlan ,(int)dims_data[3]));
   }
 
 }

@@ -31,7 +31,10 @@ carma_obj<T_data>::carma_obj(carma_obj<T_data> *src) {
   init(src->current_context, src->dims_data, src->d_data, false,
       src->get_nbStreams());
 }
-
+template
+caObjI::carma_obj(caObjI *src);
+template
+caObjUI::carma_obj(caObjUI *src);
 template
 caObjS::carma_obj(caObjS *src);
 template
@@ -50,6 +53,10 @@ carma_obj<T_data>::carma_obj(carma_context *current_context,
   init(current_context, src->dims_data, src->d_data, false, 0);
 }
 
+template
+caObjI::carma_obj(carma_context *current_context, caObjI *src);
+template
+caObjUI::carma_obj(carma_context *current_context, caObjUI *src);
 template
 caObjS::carma_obj(carma_context *current_context, caObjS *src);
 template
@@ -424,6 +431,14 @@ template int
 caObjS::copyInto(float *data, int nb_elem);
 template int
 caObjD::copyInto(double *data, int nb_elem);
+template int
+caObjC::copyInto(cuFloatComplex *data, int nb_elem);
+template int
+caObjZ::copyInto(cuDoubleComplex *data, int nb_elem);
+template int
+caObjI::copyInto(int *data, int nb_elem);
+template int
+caObjUI::copyInto(unsigned int *data, int nb_elem);
 
 template<class T_data>
 int carma_obj<T_data>::copyFrom(T_data *data, int nb_elem) {
@@ -445,6 +460,14 @@ template int
 caObjS::copyFrom(float *data, int nb_elem);
 template int
 caObjD::copyFrom(double *data, int nb_elem);
+template int
+caObjC::copyFrom(cuFloatComplex *data, int nb_elem);
+template int
+caObjZ::copyFrom(cuDoubleComplex *data, int nb_elem);
+template int
+caObjI::copyFrom(int *data, int nb_elem);
+template int
+caObjUI::copyFrom(unsigned int *data, int nb_elem);
 
 template<class T_data>
 T_data carma_obj<T_data>::sum() {
@@ -476,6 +499,8 @@ template float
 caObjS::sum();
 template double
 caObjD::sum();
+/*add template cuFloatComplex
+caObjC::sum();*/
 
 template<class T_data>
 int carma_obj<T_data>::transpose(carma_obj<T_data> *source) {
@@ -492,6 +517,10 @@ template int
 caObjS::transpose(caObjS *data);
 template int
 caObjD::transpose(caObjD *data);
+template int
+caObjC::transpose(caObjC *data);
+template int
+caObjZ::transpose(caObjZ *data);
 
 /*
  __   __         _      _
