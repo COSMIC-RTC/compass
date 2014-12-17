@@ -83,7 +83,7 @@ void carma_sparse_host_obj<T_data>::operator=( carma_sparse_obj<T_data> &M) {
 
 template<class T_data>
 void carma_sparse_host_obj<T_data>::init_from_matrix(
-    const long *dims, T_data * M, char majorDim='R') {
+    const long *dims, T_data * M, char majorDim) {
 
   long nb_el = dims[1] * dims[2];
   T_data* valB = M;
@@ -168,7 +168,7 @@ void carma_sparse_host_obj<T_data>::init_from_matrix(
 
 template<class T_data>
 void carma_sparse_host_obj<T_data>::copy_into_matrix(
-    T_data * M, char majorDim='R') {
+    T_data * M, char majorDim) {
   int ld;
   if(majorDim=='R'){
     ld=dims_data[1];

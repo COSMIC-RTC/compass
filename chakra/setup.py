@@ -127,7 +127,7 @@ ext = Extension('chakra',
                 # we're only going to use certain compiler args with nvcc and not with gcc
                 # the implementation of this trick is in customize_compiler() below
                 extra_compile_args={'gcc': [],
-                                    'nvcc': ['-arch=sm_30', 
+                                    'nvcc': ['-gencode '+os.environ['GENCODE'], 
                                              '--ptxas-options=-v', 
                                              '-c', '--compiler-options', 
                                              "'-fPIC'"]},

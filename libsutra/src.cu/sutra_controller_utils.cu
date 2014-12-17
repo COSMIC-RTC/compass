@@ -278,7 +278,7 @@ __global__ void tabulateDPHI_lowpass_kernel(float* tabDPHI_d, float *tab_int_x, 
 	const int ty = blockIdx.x;
 
 	const int tid = ty * blockDim.x + tx;
-	int l = tid / Ndphi;
+	//int l = tid / Ndphi;
 	int j = tid % Ndphi;
 	float r = (float)j / convert;
 	long indexL0 = 0;
@@ -1682,16 +1682,16 @@ __device__ float compute_cphim_element(int ipos, int jpos, float convert, float 
   const float lambda2 = 0.016414031750058719; // RASC * 0.5 * 1e-6 / 2. / pi ie lambda = 0.5e-6
 
   //DM m
-  int m = ipos / Ndm;
+  //int m = ipos / Ndm;
   //if (type_mat == 3) m = Nw-1;
   //WFS n
   int n = jpos / (2 * Nsubap);
   //if (type_mat == 2) n = Nw-1;
 
   //Nact i
-  int i = ipos % (Nact);
+  //int i = ipos % (Nact);
   //subap j
-  int j = jpos % (2 * Nsubap);
+  //int j = jpos % (2 * Nsubap);
   /*
   //xy i
   int xy_i;
@@ -1730,10 +1730,10 @@ __device__ float compute_cphim_element(int ipos, int jpos, float convert, float 
 
       float s2 = sspSizenl * 0.5;
 
-      float ac = 0.;
-      float ad = 2*s2;
-      float bc = -ad;   // initially -s1-s2;
-      float bd = 0;   // initially -s1+s2;
+      //float ac = 0.;
+      //float ad = 2*s2;
+      //float bc = -ad;   // initially -s1-s2;
+      //float bd = 0;   // initially -s1+s2;
 
       if (jpos < Nsubap) covar += 0.5 * pasDPHI * cphim_XX(du,dv,u[pos_ssp],v[pos_ssp],s2,tabDPHI,indexL0[l],convert,Ndphi) * kk * cn2[l];
       else covar += 0.5 * pasDPHI * cphim_YY(du,dv,u[pos_ssp],v[pos_ssp],s2,tabDPHI,indexL0[l],convert,Ndphi) * kk * cn2[l];

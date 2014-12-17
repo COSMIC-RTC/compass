@@ -74,7 +74,7 @@ __device__ void generic_raytrace(float *odata, float *idata, int nx, int ny,
 
   int tido;
 
-  int iref, jref, tidi;
+  int iref, jref; //, tidi;
   float xref = x + xoff;
   float yref = y + yoff;
 
@@ -147,7 +147,7 @@ __device__ void lgs_raytrace(float *odata, float *idata, int nx, int ny,
 
   int tido;
 
-  int iref, jref, tidi;
+  int iref, jref; //, tidi;
   float xref = x * delta + xoff;
   float yref = y * delta + yoff;
 

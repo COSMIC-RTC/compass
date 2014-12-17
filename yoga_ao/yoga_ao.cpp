@@ -2595,9 +2595,9 @@ void Y_rtc_getcentroids(int argc) {
   rtc_struct *rhandler = (rtc_struct *) yget_obj(argc - 1, &yRTC);
   sutra_rtc *rtc_handler = (sutra_rtc *) (rhandler->sutra_rtc);
   long ncontrol = ygets_l(argc - 2);
-  sutra_wfs *wfs_handler;
+  sutra_wfs *wfs_handler=0L;
 
-  if(ncontrol>=rtc_handler->d_control.size()){
+  if(ncontrol>=abs(rtc_handler->d_control.size())){
     if(argc<4) {
       fprintf(stderr, "Controller not initialized on the GPU, you have to specify the WFS\n");
       return;
@@ -2610,7 +2610,7 @@ void Y_rtc_getcentroids(int argc) {
   carma_context *context_handle = _getCurrentContext();
   context_handle->set_activeDeviceForCpy(rhandler->device);
 
-  if(ncontrol>=rtc_handler->d_control.size()){
+  if(ncontrol>=abs(rtc_handler->d_control.size())){
 
     float *data = ypush_f((long*)wfs_handler->d_slopes->getDims());
     carma_obj<float> d_data(context_handle, wfs_handler->d_slopes->getDims());
@@ -2829,8 +2829,8 @@ void Y_rtc_docontrol(int argc) {
 }
 
 void Y_rtc_docontrol_geo(int argc) {
-  long ntot;
-  long dims[Y_DIMSIZE];
+  //long ntot;
+  //long dims[Y_DIMSIZE];
   rtc_struct *rhandler = (rtc_struct *) yget_obj(argc - 1, &yRTC);
   sutra_rtc *rtc_handler = (sutra_rtc *) (rhandler->sutra_rtc);
   long ncontrol = ygets_l(argc - 2);
@@ -3689,17 +3689,17 @@ void Y_sensors_rmlayer(int argc) {
 
 // Florian features
 void Y_yoga_getflokl(int argc) {
-  long ntot;
-  long dims[Y_DIMSIZE];
+  //long ntot;
+  //long dims[Y_DIMSIZE];
   dms_struct *handler = (dms_struct *) yget_obj(argc - 1, &yDMs);
   sutra_dms *dms_handler = (sutra_dms *) (handler->sutra_dms);
   //char *type            = ygets_q(argc-2);
-  long nkl = ygets_l(argc - 2);
-  long dim = ygets_l(argc - 3);
-  float *covmat = ygeta_f(argc - 4, &ntot, dims);
-  float *filter = ygeta_f(argc - 5, &ntot, dims);
-  float *evals = ygeta_f(argc - 6, &ntot, dims);
-  float *bas = ygeta_f(argc - 7, &ntot, dims);
+//  long nkl = ygets_l(argc - 2);
+//  long dim = ygets_l(argc - 3);
+//  float *covmat = ygeta_f(argc - 4, &ntot, dims);
+//  float *filter = ygeta_f(argc - 5, &ntot, dims);
+//  float *evals = ygeta_f(argc - 6, &ntot, dims);
+//  float *bas = ygeta_f(argc - 7, &ntot, dims);
   float alt = ygets_f(argc-8);
   cout << "flag 1" << endl;
   dms_handler->d_dms.at(make_pair("kl", alt))->d_kl->get_flokl();

@@ -47,7 +47,7 @@ int carma_streams::add_stream() {
   this->events.push_back(event_tmp);
 
 #if DEBUG
-  printf("CARMA Stream created @ %8.8lX\n", (unsigned long)stream_tmp);
+  printf("CARMA Stream created @ 0x%p\n", stream_tmp);
 #endif
 
   return get_nbStreams();
@@ -64,7 +64,7 @@ int carma_streams::del_stream() {
     return 0;
 
 #if DEBUG
-  printf("CARMA Stream deleting @ %8.8lX\n", (unsigned long)this->streams.back());
+  printf("CARMA Stream deleting @ 0x%p\n", this->streams.back());
 #endif
   cutilSafeCall(cudaStreamDestroy(this->streams.back()));
   this->streams.pop_back();

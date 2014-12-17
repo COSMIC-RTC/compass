@@ -24,7 +24,7 @@ template<
         int m, int n, const cusparseMatDescr_t descrA, const T_data *A, int lda,
         const int *nnzPerRow, T_data *csrValA, int *csrRowPtrA, int *csrColIndA)>
 void carma_sparse_obj<T_data>::init_carma_sparse_obj(carma_context *current_context,
-    const long *dims, T_data * M, bool loadFromHost = true) {
+    const long *dims, T_data * M, bool loadFromHost) {
   _create(0, 0, 0);
   device = current_context->get_activeDevice();
   this->current_context = current_context;

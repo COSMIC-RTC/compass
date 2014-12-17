@@ -60,19 +60,21 @@ carma_context::carma_context() {
   }
 
   int current_device = 0;
-  int gpuid[64]; // we want to find the first two GPU's that can support P2P
-  int gpu_count = 0; // GPUs that meet the criteria
+  //FIXME fix UVA issues
+  //int gpuid[64]; // we want to find the first two GPU's that can support P2P
+  //int gpu_count = 0; // GPUs that meet the criteria
   carma_device *current_yd = NULL;
   while (current_device < this->ndevice) {
     current_yd = new carma_device(current_device);
     devices.push_back(current_yd);
 
-    if (current_yd->isGPUCapableP2P())
-      gpuid[gpu_count++] = current_device;
+    //FIXME fix UVA issues
+    //if (current_yd->isGPUCapableP2P())
+    //  gpuid[gpu_count++] = current_device;
     current_device++;
   }
-  //TODO fix UVA issues
-#if 0
+
+#if 0 //FIXME fix UVA issues
   if (gpu_count > 1) {
     bool has_uva = true;
     for (int i = 0; i < gpu_count - 1; i++) {
@@ -127,7 +129,7 @@ carma_context::carma_context() {
 #endif
 
 #if DEBUG
-  printf("CARMA Context created @ %8.8lX\n", (unsigned long)this);
+  printf("CARMA Context created @ %p\n", this);
 #endif
 }
 
@@ -153,7 +155,7 @@ carma_context::~carma_context() {
   }
   delete[] can_access_peer;
 #if DEBUG
-  printf("CARMA Context deleted @ %8.8lX\n", (unsigned long)this);
+  printf("CARMA Context deleted @ %p\n", this);
 #endif
 }
 
@@ -223,7 +225,6 @@ int carma_context::get_maxGflopsDeviceId()
   int current_device = 0, sm_per_multiproc = 0;
   int max_compute_perf = 0, max_perf_device = 0;
   int device_count = 0, best_SM_arch = 0;
-  int arch_cores_sm[3] = { 1, 8, 32 };
   cudaDeviceProp deviceProp;
 
   cudaGetDeviceCount(&device_count);
@@ -275,8 +276,8 @@ void carma_context::releaseCtx(int nGPUs, int *iGPUs, CUcontext *ctx){
   for(int id_gpu=0; id_gpu<nGPUs; id_gpu++){
     DEBUG_TRACE("Get context of device %d\n",iGPUs[id_gpu]);
     CUSafeCall(cuCtxSetCurrent(devices[iGPUs[id_gpu]]->getCUcontext()));
-    DEBUG_TRACE("Release context (0x%x) of device %d\n",
-        devices[iGPUs[id_gpu]]->getCUcontext(),iGPUs[id_gpu]);
+    DEBUG_TRACE("Release context (0x%p) of device %d\n",
+        (void *)devices[iGPUs[id_gpu]]->getCUcontext(),iGPUs[id_gpu]);
     CUSafeCall(cuCtxPopCurrent(&(ctx[id_gpu])));
   }
   CUSafeCall(cuCtxSetCurrent(context));
@@ -288,8 +289,8 @@ void carma_context::reattachCtx(int nGPUs, int *iGPUs){
   CUcontext context;
   CUSafeCall(cuCtxGetCurrent(&context));
   for(int id_gpu=0; id_gpu<nGPUs; id_gpu++){
-    DEBUG_TRACE("reattach context (0x%x) of device %d\n",
-        devices[iGPUs[id_gpu]]->getCUcontext(),iGPUs[id_gpu]);
+    DEBUG_TRACE("reattach context (0x%p) of device %d\n",
+        (void *)devices[iGPUs[id_gpu]]->getCUcontext(),iGPUs[id_gpu]);
     CUSafeCall(cuCtxPushCurrent(devices[iGPUs[id_gpu]]->getCUcontext()));
   }
   CUSafeCall(cuCtxSetCurrent(context));

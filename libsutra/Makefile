@@ -36,7 +36,7 @@ LIB_DEPLIBS += -L$(COMPASS_ROOT_DIR)/libcarma -lcarma
 # set compiler (or rarely loader) flags specific to this package
 
 
-LIB_CPPFLAGS = -c -fPIC -Wall -DUNIX -I$(H_DIR) -I$(COMPASS_ROOT_DIR)/libcarma/$(H_DIR) -I$(CUDA_INC_PATH) -I$(CURED_INC_PATH)
+LIB_CPPFLAGS = -c -fPIC -Wall -Wno-unused-result -DUNIX -I$(H_DIR) -I$(COMPASS_ROOT_DIR)/libcarma/$(H_DIR) -I$(CUDA_INC_PATH) -I$(CURED_INC_PATH)
 
 ifneq ($(DEBUG),)
   LIB_CPPFLAGS+= -g -DDEBUG

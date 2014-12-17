@@ -568,7 +568,7 @@ int sutra_wfs::comp_sh_generic() {
           cudaMemset(this->d_fttotim->getData(), 0,
               sizeof(cuFloatComplex) * this->d_fttotim->getNbElem()));
 
-      int indxstart1, indxstart2, indxstart3;
+      int indxstart1, indxstart2=0, indxstart3;
 
       if ((cc == this->nffthr - 1) && (this->nvalid % this->nmaxhr != 0)) {
         indxstart1 = this->d_camplifoc->getNbElem()

@@ -256,10 +256,10 @@ __global__ void fillbincube_krnl(float *bcube, cuFloatComplex *hrimage,
    */
   int npix, nsubap, nrebin;
   int tid = threadIdx.x + blockIdx.x * blockDim.x;
-  int nim = tid / Npix;
-      int tidim = tid - nim * Npix;
-      int xim = tidim % 20;
-      int yim = tidim / 20;
+  //int nim = tid / Npix;
+  //int tidim = tid - nim * Npix;
+  //int xim = tidim % 20;
+  //int yim = tidim / 20;
   while (tid < N) {
     nsubap = tid / Npix;
     npix = tid % Npix;
@@ -507,7 +507,7 @@ __global__ void reduce2(T *g_idata, T *g_odata, T *weights, unsigned int n, unsi
 
   // load shared mem
   unsigned int tid = threadIdx.x;
-  unsigned int i = blockIdx.x * blockDim.x + threadIdx.x;
+  //unsigned int i = blockIdx.x * blockDim.x + threadIdx.x;
 
   sdata[tid] = 0;
   for (int cc=0;cc < nelem_thread; cc++) {

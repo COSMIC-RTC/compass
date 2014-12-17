@@ -723,8 +723,8 @@ int sutra_controller_mv::build_cmat(const char *dmtype, char *method) {
 	  long *dims_data = new long[2];
 	  dims_data[0] = 1;
 	  dims_data[1] = this->nactu();
-	  carma_host_obj<float> *h_eigenvals = new carma_host_obj<float>(dims_data, MA_PAGELOCK);
-	  carma_obj<float> *d_eigenvals = new carma_obj<float>(current_context, dims_data);
+	  //carma_host_obj<float> *h_eigenvals = new carma_host_obj<float>(dims_data, MA_PAGELOCK);
+	  //carma_obj<float> *d_eigenvals = new carma_obj<float>(current_context, dims_data);
 
   	  carma_gemm(cublas_handle, 'n', 'n', nslope(), nactu(), nactu(), one,
   			d_imat->getData(), nslope(), d_covmat->getData(), nactu(), zero,

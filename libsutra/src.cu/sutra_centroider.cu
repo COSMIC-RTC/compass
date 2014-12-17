@@ -455,7 +455,7 @@ __global__ void centroid_max2(T *g_idata, T *g_odata, T *g_minim, int n, int nma
     T scale, T offset) {
   extern __shared__ uint svalues[];
   T *sdata = (T*) &svalues[blockDim.x];
-  T subsum;
+//  T subsum;
 
   // load shared mem
   unsigned int tid = threadIdx.x;
@@ -520,8 +520,8 @@ __global__ void centroid_max2(T *g_idata, T *g_odata, T *g_minim, int n, int nma
   //__syncthreads();
   __syncthreads();
  // get the sum per subap
-  if (tid == 0)
-    subsum = (abs(sdata[tid]) > 1.e-6 ? sdata[tid] : 0.0f);
+//  if (tid == 0)
+//    subsum = (abs(sdata[tid]) > 1.e-6 ? sdata[tid] : 0.0f);
 
   //__syncthreads();
   __syncthreads();
