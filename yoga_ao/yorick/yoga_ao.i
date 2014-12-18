@@ -516,7 +516,7 @@ func dm_init(void)
         yoga_loadkl,g_dm,float(y_dm(n).alt),float(*(*y_dm(n)._klbas).rabas)(*),
           float(*(*y_dm(n)._klbas).azbas)(*),int(*(*y_dm(n)._klbas).ord),float(*(*y_dm(n)._klbas).cr)(*),
           float(*(*y_dm(n)._klbas).cp)(*);
-        //error;
+        error;
         /*
         // verif :
 	res1 = pol2car(*y_dm(n)._klbas,gkl_sfi(*y_dm(n)._klbas, 1));

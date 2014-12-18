@@ -396,7 +396,7 @@ func make_klbas(nfunc,cobs,dim,nr=,np=,funct=,outscl=)
   gkl_fcom,kers,cobs,nfunc,evals,nord,npo,ord,rabas;
 
   azbas = make_azimuth(nord, np);
-
+ 
   klbasis = kl_basis_struct();
   klbasis.nr=nr;
   klbasis.np=np;
