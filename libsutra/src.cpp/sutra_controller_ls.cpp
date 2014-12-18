@@ -13,6 +13,8 @@ sutra_controller_ls::sutra_controller_ls(carma_context *context, long nvalid,
   this->delay = delay;
   this->gain = 0.0f;
 
+  this->is_modopti = 0;
+
   long dims_data1[2] = { 1, 0 };
   long dims_data2[3] = { 2, 0, 0 };
 
@@ -27,8 +29,6 @@ sutra_controller_ls::sutra_controller_ls(carma_context *context, long nvalid,
   dims_data2[1] = dims_data2[2] = nactu;
   d_U = new carma_obj<float>(current_context, dims_data2);
 
-  this->d_cenbuff = 0L;
-
   dims_data1[1] = nvalid * 2 < nactu ? nvalid * 2 : nactu;
   this->d_eigenvals = new carma_obj<float>(context, dims_data1);
   this->h_eigenvals = new carma_host_obj<float>(dims_data1, MA_PAGELOCK);
@@ -37,8 +37,14 @@ sutra_controller_ls::sutra_controller_ls(carma_context *context, long nvalid,
     dims_data2[1] = nvalid * 2;
     dims_data2[2] = delay + 1;
     this->d_cenbuff = new carma_obj<float>(context, dims_data2);
-  } else
+  }
+  else
     this->d_cenbuff = 0L;
+  this->d_M2V = 0L;
+  this->d_S2M = 0L;
+  this->d_slpol = 0L;
+  this->nrec = 0;
+  this->nmodes = 0;
 
   dims_data1[1] = nactu;
   this->d_err = new carma_obj<float>(context, dims_data1);
@@ -58,6 +64,12 @@ sutra_controller_ls::~sutra_controller_ls() {
     delete this->d_cenbuff;
   delete this->d_err;
   delete this->d_gain;
+
+  if(this->is_modopti){
+	  delete this->d_M2V;
+	  delete this->d_S2M;
+	  delete this->d_slpol;
+  }
 }
 
 string sutra_controller_ls::get_type() {
@@ -247,4 +259,28 @@ int sutra_controller_ls::comp_com() {
   }
 
   return EXIT_SUCCESS;
+}
+
+int sutra_controller_ls::init_modalOpti(int nmodes, int nrec){
+
+	this->is_modopti = 1;
+	this->nrec = nrec;
+	this->nmodes = nmodes;
+	long dims_data2[3] = {2,nactu(),nmodes};
+	this->d_M2V = new carma_obj<float>(current_context,dims_data2);
+	dims_data2[1] = nslope();
+	dims_data2[2] = nrec;
+	this->d_slpol = new carma_obj<float>(current_context,dims_data2);
+	dims_data2[1] = nmodes;
+	dims_data2[2] = nslope();
+	this->d_S2M = new carma_obj<float>(current_context,dims_data2);
+
+	return EXIT_SUCCESS;
+}
+
+int sutra_controller_ls::loadOpenLoopSlp(float *ol_slopes){
+
+	this->d_slpol->host2device(ol_slopes);
+
+	return EXIT_SUCCESS;
 }

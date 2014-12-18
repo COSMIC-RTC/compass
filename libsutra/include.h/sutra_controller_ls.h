@@ -21,6 +21,14 @@ public:
   carma_obj<float> *d_cenbuff; // centroids circular buffer
   carma_obj<float> *d_err; // current error
 
+  // Modal optimization components
+  int is_modopti; // Flag for using modal optimization
+  int nrec;
+  int nmodes;
+  carma_obj<float> *d_M2V; // Modes to Volts matrix
+  carma_obj<float> *d_S2M; // Slopes to Modes matrix
+  carma_obj<float> *d_slpol; // Open-loop measurements buffer, recorded and loaded from Yorick
+
 public:
   sutra_controller_ls(carma_context *context, long nvalid, long nactu,
       long delay);
@@ -46,6 +54,10 @@ public:
   load_mgain(float *mgain);
   int
   set_delay(int delay);
+  int
+  init_modalOpti(int nmodes, int nrec);
+  int
+  loadOpenLoopSlp(float *ol_slopes);
 
 };
 
