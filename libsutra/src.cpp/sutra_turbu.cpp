@@ -268,6 +268,28 @@ int sutra_atmos::init_screen(float altitude, float *h_A, float *h_B,
   return EXIT_SUCCESS;
 }
 
+int sutra_atmos::move_atmos() {
+
+  map<float, sutra_tscreen *>::iterator p;
+  p = this->d_screens.begin();
+
+  while (p != this->d_screens.end()) {
+    p->second->accumx += p->second->deltax;
+    p->second->accumy += p->second->deltay;
+
+    int deltax = (int) p->second->accumx;
+    int deltay = (int) p->second->accumy;
+    for (int cc = 0; cc < deltax; cc++)
+      p->second->extrude(1);
+    p->second->accumx -= deltax;
+    for (int cc = 0; cc < deltay; cc++)
+      p->second->extrude(0);
+    p->second->accumy -= deltay;
+    p++;
+  }
+  return EXIT_SUCCESS;
+}
+
 /*
  void checkCulaStatus(culaStatus status)
  {

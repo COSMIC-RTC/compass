@@ -717,6 +717,13 @@ extern rtc_loadcovmat;
 
    SEE ALSO:
 */
+extern rtc_loadOpenLoopSlp;
+/* DOCUMENT rtc_loadOpenLoopSlp
+       rtc_loadOpenLoopSlp,yoga_rtc_obj,ncontroller,ol_slopes
+    load open loop slopes on a yoga_rtc_obj type LS for modal optimization
+
+    SEE ALSO:
+*/
 extern rtc_loadklbasis;
 /* DOCUMENT rtc_loadklbasis
    rtc_loadklbasis,yoga_rtc_obj,ncontroller,klbasis
@@ -1280,14 +1287,7 @@ extern move_atmos;
 
    SEE ALSO:
  */
-extern move_sky;
-/* DOCUMENT move_sky
-   move_sky,yoga_atmos_obj,yoga_target_obj
-     
-   multi-layer & multi-target extrude process for a yAtmos object and a yTarget object
 
-   SEE ALSO:
- */
 extern sensors_trace;
 /* DOCUMENT sensors_trace
    sensors_trace,yoga_sensors_obj,nsensor,yoga_atmos_obj

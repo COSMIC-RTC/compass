@@ -320,8 +320,7 @@ func ao_loop(one)
 
     mytime = tic();
 
-    if (g_target != []) move_sky,g_atmos,g_target;
-    else move_atmos,g_atmos;
+    move_atmos,g_atmos;
     
     if ((y_target != []) && (g_target != [])) {
       // loop on targets

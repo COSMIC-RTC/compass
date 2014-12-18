@@ -94,79 +94,6 @@ static y_userobj_t yAotemplate = { const_cast<char*>("yAotemplate Object"),
  *
  */
 
-int move_atmos(sutra_atmos *atmos, sutra_target *target) {
-
-  map<float, sutra_tscreen *>::iterator p;
-  map<type_screen, float>::iterator pp;
-  p = atmos->d_screens.begin();
-  sutra_tscreen *tmp;
-  int cpt = 1;
-  while (p != atmos->d_screens.end()) {
-    tmp = p->second;
-
-    int tmpx = (int) (tmp->accumx + tmp->deltax) - (int) (tmp->accumx);
-    int tmpy = (int) (tmp->accumy + tmp->deltay) - (int) (tmp->accumy);
-
-    tmp->accumx += tmp->deltax;
-    tmp->accumy += tmp->deltay;
-
-    if (abs(tmpx) > 0) {
-      for (int cc = 0; cc < abs(tmpx); cc++)
-        tmp->extrude(1);
-      tmp->accumx -= (int) tmp->accumx;
-    }
-    if (abs(tmpy) > 0) {
-      for (int cc = 0; cc < abs(tmpy); cc++)
-        tmp->extrude(0);
-      tmp->accumy -= (int) tmp->accumy;
-    }
-
-    /*
-     for (int dd=0;dd<target->ntargets;dd++) {
-     pp = target->d_targets.at(dd)->xoff.find(make_pair("atmos",tmp->altitude));
-     if (pp != target->d_targets.at(dd)->xoff.end()) {
-     target->d_targets.at(dd)->xoff[make_pair("atmos",tmp->altitude)] += (tmp->deltax-deltax);
-     }
-     }
-
-     for (int cc=0;cc<deltay;cc++) tmp->extrude(0);
-     tmp->accumy -= deltay;
-
-     for (int dd=0;dd<target->ntargets;dd++) {
-     pp = target->d_targets.at(dd)->yoff.find(make_pair("atmos",tmp->altitude));
-     if (pp != target->d_targets.at(dd)->yoff.end()) {
-     target->d_targets.at(dd)->yoff[make_pair("atmos",tmp->altitude)] += (tmp->deltay-deltay);
-     }
-     }
-     */
-    p++;
-    cpt++;
-  }
-  return 0;
-}
-
-int move_atmos(sutra_atmos *atmos) {
-
-  map<float, sutra_tscreen *>::iterator p;
-  p = atmos->d_screens.begin();
-
-  while (p != atmos->d_screens.end()) {
-    p->second->accumx += p->second->deltax;
-    p->second->accumy += p->second->deltay;
-
-    int deltax = (int) p->second->accumx;
-    int deltay = (int) p->second->accumy;
-    for (int cc = 0; cc < deltax; cc++)
-      p->second->extrude(1);
-    p->second->accumx -= deltax;
-    for (int cc = 0; cc < deltay; cc++)
-      p->second->extrude(0);
-    p->second->accumy -= deltay;
-    p++;
-  }
-  return 0;
-}
-
 extern "C" {
 
 /*
@@ -2460,6 +2387,25 @@ void Y_rtc_loadmgain(int argc) {
   }
 }
 
+void Y_rtc_loadOpenLoopSlp(int argc) {
+  long ntot;
+  long dims[Y_DIMSIZE];
+
+  rtc_struct *rhandler = (rtc_struct *) yget_obj(argc - 1, &yRTC);
+  sutra_rtc *rtc_handler = (sutra_rtc *) (rhandler->sutra_rtc);
+  long ncontrol = ygets_l(argc - 2);
+
+  carma_context *context_handle = _getCurrentContext();
+  context_handle->set_activeDeviceForCpy(rhandler->device);
+  if (rtc_handler->d_control.at(ncontrol)->get_type().compare("ls") == 0) {
+    float *ol_slopes = ygeta_f(argc - 3, &ntot, dims);
+    SCAST(sutra_controller_ls *, control, rtc_handler->d_control.at(ncontrol));
+    control->loadOpenLoopSlp(ol_slopes);
+  } else {
+    y_error("Controller needs to be ls \n");
+  }
+}
+
 void Y_rtc_loadnoisemat(int argc) {
   long ntot;
   long dims[Y_DIMSIZE];
@@ -3249,20 +3195,7 @@ void Y_move_atmos(int argc) {
   carma_context *context_handle = _getCurrentContext();
   context_handle->set_activeDeviceForCpy(handler_a->device);
 
-  move_atmos(atmos_handler);
-}
-
-void Y_move_sky(int argc) {
-  atmos_struct *handler_a = (atmos_struct *) yget_obj(argc - 1, &yAtmos);
-  sutra_atmos *atmos_handler = (sutra_atmos *) (handler_a->sutra_atmos);
-
-  target_struct *handler = (target_struct *) yget_obj(argc - 2, &yTarget);
-  sutra_target *target_handler = (sutra_target *) (handler->sutra_target);
-
-  carma_context *context_handle = _getCurrentContext();
-  context_handle->set_activeDeviceForCpy(handler->device);
-
-  move_atmos(atmos_handler, target_handler);
+  atmos_handler->move_atmos();
 }
 
 void Y_sensors_trace(int argc) {

@@ -105,8 +105,7 @@ func script_system(filename,verbose=,strehl=,r0=,clean=)
 
   for (cc=1;cc<=y_loop.niter;cc++) {
     
-    if (g_target != []) move_sky,g_atmos,g_target;
-    else move_atmos,g_atmos;
+    move_atmos,g_atmos;
     /*
     mscreen = get_tscreen(g_atmos,(*y_atmos.alt)(1));
     tst(,,cc)=mscreen;
@@ -302,8 +301,7 @@ func script_profile(filename,verbose=)
     tmp = [];
     mytime = tic();
     
-    if (g_target != []) move_sky,g_atmos,g_target;
-    else move_atmos,g_atmos;
+    move_atmos,g_atmos;
     grow,tmp,tac(mytime);
     
     if ((y_wfs != []) && (g_wfs != [])) {
@@ -637,8 +635,7 @@ func script_relax(filename,verbose=)
   
   for (cc=1;cc<=y_loop.niter;cc++) {
     
-    if (g_target != []) move_sky,g_atmos,g_target;
-    else move_atmos,g_atmos;
+    move_atmos,g_atmos;
     if ((y_wfs != []) && (g_wfs != [])) {
       // loop on wfs
       for (i=1;i<=numberof(y_wfs);i++) {
@@ -815,8 +812,7 @@ func script_valid_rtc(filename,verbose=,strehl=,r0=,clean=, output=)
   yoga_start_profile;
   for (cc=1;cc<=y_loop.niter;cc++) {
     
-    if (g_target != []) move_sky,g_atmos,g_target;
-    else move_atmos,g_atmos;
+    move_atmos,g_atmos;
     /*
     mscreen = get_tscreen(g_atmos,(*y_atmos.alt)(1));
     tst(,,cc)=mscreen;
@@ -962,7 +958,7 @@ func script_pyr_diff(filename,verbose=)
   g_target;
   
   error;
-move_sky,g_atmos,g_target;
+move_atmos,g_atmos;
 sensors_trace,g_wfs,0,"atmos",g_atmos;
 sensors_compimg,g_wfs,0;
  res=sensors_getdata(g_wfs,0,"amplifoc");

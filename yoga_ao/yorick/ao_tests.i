@@ -71,7 +71,7 @@ func script_atmos_full(void)
       mytime = tic();
       for (cc=1;cc<=y_loop.niter;cc++) {
         //tinter = tic();
-        move_sky,g_atmos,g_target;
+        move_atmos,g_atmos;
         /*
         if (cc % 10 == 0) {
           time_move = tac(mytime)/cc;
@@ -134,7 +134,7 @@ func script_atmos(filename)
   mytime = tic();
   for (cc=1;cc<=y_loop.niter;cc++) {
     //tinter = tic();
-    move_sky,g_atmos,g_target;
+    move_atmos,g_atmos;
     if (cc % 10 == 0) {
       time_move = tac(mytime)/cc;
       write,format="\r Estimated remaining time : %.2f s",(y_loop.niter - cc)*time_move;
@@ -174,7 +174,7 @@ func script_atmos(filename)
   for (cc=1;cc<=niter;cc++) {
     screen_cpu = extrude(screen_cpu,float(cpu_r0 /pupixsize), A, B, ist);
      dphi_cpu   += calc_dphis(screen_cpu(1:y_geom.pupdiam,1:y_geom.pupdiam));
-     move_sky,g_atmos,g_target;
+     move_atmos,g_atmos;
      target_atmostrace,g_target,0,g_atmos;
      screen_gpu2 = target_getphase(g_target,0);
      dphi_gpu2   += calc_dphis(screen_gpu2);
@@ -236,7 +236,7 @@ func script_atmosgpu(filename)
   mytime = tic();
   for (cc=1;cc<=y_loop.niter;cc++) {
     //tinter = tic();
-    move_sky,g_atmos,g_target;
+    move_atmos,g_atmos;
     if (cc % 10 == 0) {
       time_move = tac(mytime)/cc;
       write,format="\r Estimated remaining time : %.2f s",(y_loop.niter - cc)*time_move;
@@ -255,7 +255,7 @@ func script_atmosgpu(filename)
   niter = 100000;
   mytime = tic();
   for (cc=1;cc<=niter;cc++) {
-     move_sky,g_atmos,g_target;
+     move_atmos,g_atmos;
      target_atmostrace,g_target,0,g_atmos;
      screen_gpu = target_getphase(g_target,0);
      dphi_gpu   += calc_dphis(screen_gpu);
@@ -388,7 +388,7 @@ func script_wfs(filename,&slpgeom1,&slpgeom2,verbose=)
 
   // warming up !
   // move sky
-  move_sky,g_atmos,g_target;
+  move_atmos,g_atmos;
   
   // build wfs image
   for (i=1;i<=numberof(y_wfs);i++) {
@@ -420,7 +420,7 @@ func script_wfs(filename,&slpgeom1,&slpgeom2,verbose=)
   for (cc=1;cc<=y_loop.niter;cc++) {
 
   // move sky
-    move_sky,g_atmos,g_target;
+    move_atmos,g_atmos;
 
     if ((y_wfs != []) && (g_wfs != [])) {
       tmp1 = tmp2 = [];
@@ -617,7 +617,7 @@ func check_centroiding(filename,thresh=,nmax=)
   g_rtc;
 
   // move sky
-  move_sky,g_atmos,g_target;
+  move_atmos,g_atmos;
   
   // build wfs image
   for (i=1;i<=numberof(y_wfs);i++) {
@@ -662,8 +662,8 @@ func check_centroiding(filename,thresh=,nmax=)
   slp2=sensors_getslopes(g_wfs,0);
   res2=sensors_getdata(g_wfs,0,"bincube");
   tmp=indices(y_wfs(1).npix);
-  slpx=(res2*tmp(,,1)(,,-:1:y_wfs(1)._nvalid))(*,)(sum,)/res2(*,)(sum,);
-  slpy=(res2*tmp(,,2)(,,-:1:y_wfs(1)._nvalid))(*,)(sum,)/res2(*,)(sum,);
+  slpx=(res2*tmp(,,1)(,,-:1:y_wfs(1)._nvalid))(*,)(sum,)/(res2(*,)(sum,));
+  slpy=(res2*tmp(,,2)(,,-:1:y_wfs(1)._nvalid))(*,)(sum,)/(res2(*,)(sum,));
   //centro=_(slpx,slpy);
   centro=_((slpx-(y_wfs(1).npix/2.+0.5))*y_wfs(1).pixsize,(slpy-(y_wfs(1).npix/2.+0.5))*y_wfs(1).pixsize);
   "cog: centro-slp2";
@@ -674,6 +674,7 @@ func check_centroiding(filename,thresh=,nmax=)
 
   slopes_geom,g_wfs,0,0;
   // check thresholded slopes 
+  thresh = (*y_rtc.centroiders)(2).thresh;
   if (thresh == []) thresh=1000.;
   sensors_compslopes,g_wfs,0,g_rtc,1,thresh;
   slp2=sensors_getslopes(g_wfs,0);
@@ -687,23 +688,6 @@ func check_centroiding(filename,thresh=,nmax=)
   slpy=(res2*tmp(,,2)(,,-:1:y_wfs(1)._nvalid))(*,)(sum,)/res2(*,)(sum,);
   centro=_((slpx-(y_wfs(1).npix/2.+0.5))*y_wfs(1).pixsize,(slpy-(y_wfs(1).npix/2.+0.5))*y_wfs(1).pixsize);
   "tcog: centro-slp2";
-  //centro/slp2;
-  tmp_array=abs(centro-slp2);
-  [min(tmp_array),max(tmp_array),avg(tmp_array)];
-  // to convert in arcsec : (slp2-(y_wfs(nwfs).npix/2.+0.5))*y_wfs(nwfs).pixsize
-  
-  slopes_geom,g_wfs,0,0;
-  // check slopes nmax
-  if (nmax == []) nmax=5;
-  sensors_compslopes,g_wfs,0,g_rtc,2,long(nmax);
-  slp2=sensors_getslopes(g_wfs,0);
-  res2=sensors_getdata(g_wfs,0,"bincube");
-  tmp=indices(y_wfs(1).npix);
-  for (i=1;i<=dimsof(res2)(4);i++) res2(*,i)((sort(res2(*,i)))(::-1)(nmax+1:))=0.;
-  slpx=(res2*tmp(,,1)(,,-:1:y_wfs(1)._nvalid))(*,)(sum,)/res2(*,)(sum,);
-  slpy=(res2*tmp(,,2)(,,-:1:y_wfs(1)._nvalid))(*,)(sum,)/res2(*,)(sum,);
-  centro=_((slpx-(y_wfs(1).npix/2.+0.5))*y_wfs(1).pixsize,(slpy-(y_wfs(1).npix/2.+0.5))*y_wfs(1).pixsize);
-  "bpcog: centro-slp2";
   //centro/slp2;
   tmp_array=abs(centro-slp2);
   [min(tmp_array),max(tmp_array),avg(tmp_array)];
@@ -723,7 +707,50 @@ func check_centroiding(filename,thresh=,nmax=)
   tmp_array=abs(centro-slp2);
   [min(tmp_array),max(tmp_array),avg(tmp_array)];
   // to convert in arcsec : (slp2-(y_wfs(1).npix/2.+0.5))*y_wfs(1).pixsize
-
+ 
+  slopes_geom,g_wfs,0,0;
+  // check slopes nmax
+  nmax = (*y_rtc.centroiders)(3).nmax;
+  if (nmax == []) nmax=5;
+  sensors_compslopes,g_wfs,0,g_rtc,2,long(nmax);
+  slp2=sensors_getslopes(g_wfs,0);
+  res2=sensors_getdata(g_wfs,0,"bincube");
+  tmp=indices(y_wfs(1).npix);
+  for (i=1;i<=dimsof(res2)(4);i++){
+    res2(*,i)((sort(res2(*,i)))(::-1)(nmax+1:))=0.;
+    res2(*,i)((sort(res2(*,i)))(::-1)(:nmax)) -= res2(*,i)((sort(res2(*,i)))(::-1)(nmax));
+  }
+  slpx=(res2*tmp(,,1)(,,-:1:y_wfs(1)._nvalid))(*,)(sum,)/res2(*,)(sum,);
+  slpy=(res2*tmp(,,2)(,,-:1:y_wfs(1)._nvalid))(*,)(sum,)/res2(*,)(sum,);
+  centro=_((slpx-(y_wfs(1).npix/2.+0.5))*y_wfs(1).pixsize,(slpy-(y_wfs(1).npix/2.+0.5))*y_wfs(1).pixsize);
+  "bpcog: centro-slp2";
+  //centro/slp2;
+  tmp_array=abs(centro-slp2);
+  [min(tmp_array),max(tmp_array),avg(tmp_array)];
+  // to convert in arcsec : (slp2-(y_wfs(nwfs).npix/2.+0.5))*y_wfs(nwfs).pixsize
+  /*
+  data_gpu = slp2(:184);
+  ind_gpu = slp2(185:);
+  
+  res2=sensors_getdata(g_wfs,0,"bincube");
+for (i=1;i<=dimsof(res2)(4);i++){
+    res2(*,i)((sort(res2(*,i)))(::-1)(nmax+1:))=0.;
+    res2(*,i)((sort(res2(*,i)))(::-1)(:nmax)) -= res2(*,i)((sort(res2(*,i)))(::-1)(nmax));
+  }
+  data_cpu = res2(*,)(sum,);
+  */
+  /*
+  res2=sensors_getdata(g_wfs,0,"bincube");
+  data_cpu = array(0.0f,184);
+  ind_cpu = array(0,184);
+  pos = 1;
+  for(i=1 ; i<=184 ; i++){
+    tmp = res2(*,i);
+    data_cpu(i) = tmp(sort(tmp))(::-1)(pos)- tmp(sort(tmp))(::-1)(nmax);
+    ind_cpu(i) = where(tmp == tmp(sort(tmp))(::-1)(pos));
+  }
+  */
+ 
   sensors_compslopes,g_wfs,0,g_rtc,4;
   res2=centroider_getdata(g_rtc,4,"corr");
   res3=sensors_getdata(g_wfs,0,"bincube");
@@ -876,7 +903,7 @@ func script_testwfs(filename,&slpgeom1,&slpgeom2,verbose=)
 
   // warming up !
   // move sky
-  move_sky,g_atmos,g_target;
+  move_atmos,g_atmos;
   
   // build wfs image
   for (i=1;i<=numberof(y_wfs);i++) {
@@ -908,7 +935,7 @@ func script_testwfs(filename,&slpgeom1,&slpgeom2,verbose=)
   for (cc=1;cc<=y_loop.niter;cc++) {
 
   // move sky
-    move_sky,g_atmos,g_target;
+    move_atmos,g_atmos;
 
     if ((y_wfs != []) && (g_wfs != [])) {
       tmp1 = tmp2 = [];

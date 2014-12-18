@@ -74,7 +74,7 @@ public:
   init_screen(float alt, float *h_A, float *h_B, unsigned int *h_istencilx,
       unsigned int *h_istencily, int seed);
   int
-  move();
+  move_atmos();
 };
 
 int

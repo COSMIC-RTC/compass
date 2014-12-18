@@ -209,6 +209,7 @@ struct controller_struct
   float   gain;     //
   long    nkl;      // Florain features : number of KL modes used for computation of covmat in case of minimum variance controller
   long    cured_ndivs; // subdivision levels in cured
+  int     modopti;  // Flag for modal optimization
 };
 
 struct loop_struct
