@@ -223,19 +223,10 @@ void kp_kalman_core_sparse_CPU::calculate_gain(float bruit_pix,
 		T_k = T_kp1sk;
 
 
-
-
-
-
-
-
 		// Calcul de IBG_1
 		// betak_Tk = beta_k * T_k
 		
 		kp_gemm ('N', 'N', 1 , beta_k, T_k, 0, betak_Tk);
-
-	
-
 
 
 
@@ -248,17 +239,9 @@ void kp_kalman_core_sparse_CPU::calculate_gain(float bruit_pix,
 
 		IBG_1 = betak_Tk;
 
-
-
-
 //temps_inversion.start();
 		IBG_1.inverse();
 //temps_inversion.pause();
-		
-
-		
-
-
 
 
 //temps_alphak.start();
@@ -270,11 +253,6 @@ void kp_kalman_core_sparse_CPU::calculate_gain(float bruit_pix,
         	// alpha_kp1 = alphak_IBG1 * alphak (= alpha_k * IBG1 * alpha_k) 
 		kp_gemm ('N', 'N', 1 , alphak_IBG1, alpha_k , 0, alpha_kp1);
 //temps_alphak.pause();	
-
-
-
-
-
 
 
 //temps_betak.start();
@@ -290,12 +268,6 @@ void kp_kalman_core_sparse_CPU::calculate_gain(float bruit_pix,
 //temps_betak.pause();
 
 
-
-
-
-
-
-
 //temps_Tk.start();
 		//Calcul de T_kp1sk
 
@@ -306,12 +278,7 @@ void kp_kalman_core_sparse_CPU::calculate_gain(float bruit_pix,
 
 		// T_kp1sk = (alpha_k)T * Tk_IBG1_alphak (= (alpha_k)T * T_k * IBG1 * alpha_k)
 		kp_gemm ('T', 'N', 1 , alpha_k, Tk_IBG1_alphak , 1, T_kp1sk);
-		
-
 //temps_Tk.pause();
-
-
-
 
 		trac1_tmp=0;trac2_tmp=0;
 		for (int i=0 ; i< T_kp1sk.getDim1() ; i++)
@@ -337,20 +304,6 @@ cout<<"temps inversion " << temps_inversion.rez()<<endl;
 cout<< "temps alpha_k = "<<temps_alphak.rez()<<endl;
 cout<< "temps beta_k = "<<temps_betak.rez()<<endl;
 cout<< "temps T_k = "<<temps_Tk.rez()<<endl;*/
-
-
-/*fichier.open("Tkp1sk_sparse_CPU.dat",ios::out);
-for(int i=0 ; i<T_kp1sk.getDim1() ; i++)
-{
-	for (int j=0 ; j<T_kp1sk.getDim2() ; j++)
-	{
-		fichier << __SP T_kp1sk(i,j) << " ";
-	}
-	fichier << endl;
-}
-fichier.close();*/
-
-
 
 	if ( (expression == 1) && (ordreAR == 1))
 	{
@@ -471,20 +424,10 @@ fichier.close();*/
 		// inv_Sigmatot = inv(Sigma_tot)
 		inv_Sigmatot->inverse();
 		// ATTENTION !!!! Le pointeur Sigma_tot n'existe plus
-		
-                /*if (!gainComputed)
-                {
-                        H_inf.resize(nb_n,nb_p);
-                        // H_inf = Sinf_zerosDmot * inv_Sigmatot  ( = Sinf * [0 (D_Mo)T] * inv(Sigma_tot))
-		        kp_gemm ('N', 'N', 1 , Sinf_zerosDmot, *inv_Sigmatot , 0, H_inf);
-                }
 
-                else*/
-                {
-                        H_inf2.resize(nb_n,nb_p);
-                        // H_inf = Sinf_zerosDmot * inv_Sigmatot  ( = Sinf * [0 (D_Mo)T] * inv(Sigma_tot))
-		        kp_gemm ('N', 'N', 1 , Sinf_zerosDmot, *inv_Sigmatot , 0, H_inf2);
-                }
+                H_inf2.resize(nb_n,nb_p);
+                // H_inf = Sinf_zerosDmot * inv_Sigmatot  ( = Sinf * [0 (D_Mo)T] * inv(Sigma_tot))
+		kp_gemm ('N', 'N', 1 , Sinf_zerosDmot, *inv_Sigmatot , 0, H_inf2);
 
 
 		Sinf_zerosDmot.resize(0,0) ;
@@ -522,9 +465,6 @@ fichier.close();*/
 		for(int i = 0 ; i < Sigma_tot->getDim1() ; i++) (*Sigma_tot)(i,i) += SigmaW;
 
 
-		//for(int i = 0 ; i < Sigma_tot->dim1 ; i++) Sigma_tot->d[i * Sigma_tot->dim1 + i] += SigmaW.d[i];
-
-
 		// Sigma_tot = Sigma_tot + C1 * Tkp1sk_C1t  ( = (C1 * T_kp1sk * (C1)T) + SigmaW*Id )
 		kp_gemm ('N', 1 , C1, Tkp1sk_C1t , 1, *Sigma_tot);
 
@@ -559,18 +499,9 @@ fichier.close();*/
 
 
 			ms.push_back(&Atur_Hopt) ; ms.push_back(&H_opt);
-                        /*if(!gainComputed)
-                        {
-                                H_inf.resize(nb_n,nb_p);
-			        // H_inf = [ Atur*H_opt ; H_opt]
-			        kp_vertcat(H_inf,ms);
-                        }
-                        else*/
-                        {
-                                H_inf2.resize(nb_n,nb_p);
-			        // H_inf2 = [ Atur*H_opt ; H_opt]
-			        kp_vertcat(H_inf2,ms);
-                        }
+			H_inf2.resize(nb_n,nb_p);
+			// H_inf2 = [ Atur*H_opt ; H_opt]
+			kp_vertcat(H_inf2,ms);
 			ms.clear();
 		        Atur_Hopt.resize(0,0) ;
 			H_opt.resize(0,0) ;
@@ -578,16 +509,8 @@ fichier.close();*/
 		
 		else
 		{
-                        /*if(!gainComputed)
-                        {
-			        H_inf.resize(nb_n,nb_p);
-			        kp_gemm	('N', 'N', 1 , Tkp1sk_C1t, *inv_Sigmatot , 0, H_inf);
-                        }
-                        else*/
-                        {
-			        H_inf2.resize(nb_n,nb_p);
-			        kp_gemm	('N', 'N', 1 , Tkp1sk_C1t, *inv_Sigmatot , 0, H_inf2);
-                        }
+			H_inf2.resize(nb_n,nb_p);
+			kp_gemm	('N', 'N', 1 , Tkp1sk_C1t, *inv_Sigmatot , 0, H_inf2);
 			Tkp1sk_C1t.resize(0,0);
 			delete inv_Sigmatot ; inv_Sigmatot = NULL;
 		}
@@ -600,22 +523,7 @@ fichier.close();*/
 	btur = btur_;
         H_inf = H_inf2;
 
-
-
 	gainComputed = true;
-
-
-/*fichier.open("H_inf_sparse_CPU.dat",ios::out);
-for(int i=0 ; i<H_inf.getDim1() ; i++)
-{
-	for (int j=0 ; j<H_inf.getDim2() ; j++)
-	{
-		fichier << __SP H_inf(i,j) << " ";
-	}
-	fichier << endl;
-}
-fichier.close();*/
-
 
 }
 
@@ -640,9 +548,6 @@ temps_boucle.start();
 
 	//ofstream fichier2;
 
-
-
-
 //temps_op1.start();
 	// VECTEUR d'ESTIMATION de MESURE ( A l' INSTANT K )
 	// Nact_Ukm2 = N_Act * U_km2
@@ -659,34 +564,22 @@ temps_boucle.start();
 
 //temps_op1.pause();
 		
-
-
-
-
 			
 //temps_op2.start();			
 	// VECTEUR D'ESTIMATION de PREDICTION ( A l' INSTANT K )
 
 	// innovation = Y_k - Y_kskm1
 	innovation = Y_k;
+#ifdef __STANDALONE__
+	innovation -= Y_kskm1;
+#else
 	innovation += Y_kskm1;
+#endif
 
 	X_kskm1_tmp = X_kskm1; 
 
 	// X_kskm1_tmp = H_inf *  (Y_k - Y_kskm1)
 	kp_gemv ('N', 1, H_inf, innovation, 1, X_kskm1_tmp); 
-
-
-
-/*fichier2.open("Hinf_inov_auto.dat",ios::out);
-for(int i=0 ; i<X_kskm1_tmp.size() ; i++)
-{
-	fichier2 << __SP X_kskm1_tmp.d[i] << " ";
-}
-fichier2<<endl;
-fichier2.close();*/
-
-
 
 
 	// X_kskm1_tmp = X_kskm1_tmp + H_inf * innovation (= X_kskm1 + H_inf * (Y_k - Y_kskm1))
@@ -719,16 +612,6 @@ fichier2.close();*/
 	}
 
 //temps_op2.pause();
-
-
-
-/*fichier2.open("X_kp1sk_auto.dat",ios::app);
-for(int i=0 ; i<X_kskm1.size() ; i++)
-{
-	fichier2 << __SP X_kskm1.d[i] << " ";
-}
-fichier2<<endl;
-fichier2.close();*/
 
 
 U_k.resize(nb_act);

@@ -21,7 +21,7 @@ else
 endif
 
 CXXFLAGS_CPU = -m64 -O2 -Wall $(CXXFLAGS_MKL) $(LIBS) -I$(KALMAN_DIR) -I$(KP_DIR) -g -I$(CUDA_INC_PATH) -I$(CARMA_INC)
-ifeq ($(COMPILATION_LAM),double)
+ifeq ($(filter $(COMPILATION_LAM),double),double)
   CXXFLAGS_CPU += -DKP_DOUBLE
 endif
 

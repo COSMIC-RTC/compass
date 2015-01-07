@@ -44,7 +44,6 @@ kp_kalman_core_full_GPU::kp_kalman_core_full_GPU(const kp_matrix<KFPP>& D_Mo_,
 }
 
 
-
 kp_kalman_core_full_GPU::~kp_kalman_core_full_GPU()
 {
 }
@@ -58,7 +57,6 @@ void kp_kalman_core_full_GPU::calculate_gain(float bruit_pix,
 
         kp_cu_vector<double> cu_atur_(atur_);
         kp_cu_vector<double> cu_btur_(btur_);
-	
 	
 
 	if (cu_atur_.size() != nb_az)
@@ -112,8 +110,6 @@ int expression = 2;
 	else cu_beta_kp1.resize(nb_n, nb_n);
 	cu_beta_kp1.zeros();
 
-
-
 	// zeros_Dmo = [0 D_Mo]
 	kp_cu_matrix<double> cu_D_Mo_double(cu_D_Mo);
 	kp_cu_matrix<double> cu_zeros_Dmo(0,0);
@@ -143,10 +139,6 @@ int expression = 2;
 
 	// beta_kp1 = (C1)T * C1 / SigmaW (avec SigmaW reel)
 	cu_beta_kp1 *= 1/SigmaW ;
-
-		
-
-
 
 	kp_cu_matrix<double> cu_SigmaV(SigmaV); 
 	kp_cu_matrix<double> cu_T_kp1sk(0,0);
@@ -179,30 +171,18 @@ int expression = 2;
 
 	if(ordreAR==2 || expression==2) cu_SigmaV.resize(0,0) ; 
 
-
-
 	kp_cu_matrix<double> cu_alpha_k(cu_alpha_kp1.getDim1(), cu_alpha_kp1.getDim2());
 	kp_cu_matrix<double> cu_T_k(cu_T_kp1sk.getDim1(), cu_T_kp1sk.getDim2());
 	kp_cu_matrix<double> cu_beta_k(cu_beta_kp1.getDim1(), cu_beta_kp1.getDim2());
-	
 	kp_cu_matrix<double> cu_IBG_1(cu_alpha_k.getDim2(), cu_beta_k.getDim1());
-
-
-
 	kp_cu_matrix<double> cu_Tk_IBG1(cu_T_k.getDim1(), cu_IBG_1.getDim2());
 	kp_cu_matrix<double> cu_betak_Tk(cu_beta_k.getDim1(), cu_T_k.getDim2());
 	kp_cu_matrix<double> cu_alphak_IBG1(cu_alpha_k.getDim1(), cu_IBG_1.getDim2());
 	kp_cu_matrix<double> cu_alphak_IBG1_betak(cu_alpha_k.getDim1(), cu_beta_k.getDim2());
 	kp_cu_matrix<double> cu_Tk_IBG1_alphak(cu_T_k.getDim1(), cu_alpha_k.getDim2());
-
 	kp_cu_vector<double> cu_diag_cu_Tkp1sk(cu_T_kp1sk.getDim1());
 	kp_cu_vector<double> cu_diag_cu_Tk(cu_T_k.getDim1());
-
-
 	//ofstream fichier;
-
-
-
 
 	while( (ecart>seuil) && (boucle < boucle_max) )
 	{
@@ -214,35 +194,13 @@ int expression = 2;
 
 		// Calcul de IBG_1
 		// betak_Tk = beta_k * T_k
-//cout<<"cu_beta_k="<<cu_beta_k.getDim1()<<"x"<<cu_beta_k.getDim2()<<endl;
-//cout<<"cu_T_k="<<cu_T_k.getDim1()<<"x"<<cu_T_k.getDim2()<<endl;
-//cout<<"cu_betak_Tk="<<cu_betak_Tk.getDim1()<<"x"<<cu_betak_Tk.getDim2()<<endl;
-		
-                
-                
-                
                 cu_betak_Tk.gemm(cublasHandle, 'N', 'N', 1 , cu_beta_k, cu_T_k, 0);
-
-		/*if (ordreAR ==1)
-			
-			for (int i=0 ; i<nb_az ; i++) (cu_betak_Tk.getData()[i * cu_betak_Tk.getDim1() + i]) += 1;
-		else
-		{
-			for (int i=0 ; i<nb_n ; i++) (cu_betak_Tk.getData()[i * cu_betak_Tk.getDim1() + i]) += 1;
-		}*/
 		kernel_add_diag_const(cu_betak_Tk.getData(), 1.0, cu_betak_Tk.getDim1());
-
-
 
 		cu_IBG_1 = cu_betak_Tk;
 //temps_inversion.start();
 		cu_IBG_1.inverse();
 //temps_inversion.pause();
-
-		
-
-
-		
 
 	
 //temps_alphak.start();
@@ -252,11 +210,7 @@ int expression = 2;
 
         	// alpha_kp1 = alphak_IBG1 * alphak (= alpha_k * IBG1 * alpha_k) 
 		cu_alpha_kp1.gemm(cublasHandle, 'N', 'N', 1 , cu_alphak_IBG1, cu_alpha_k , 0);
-
 //temps_alphak.pause();
-
-
-
 
 //temps_betak.start();
 		// Calcul de beta_kp1
@@ -264,12 +218,9 @@ int expression = 2;
 		// alphak_IBG1_betak = alphak_IBG1 * beta_k (= alpha_k * IBG1 * beta_k)
 		cu_alphak_IBG1_betak.gemm(cublasHandle, 'N', 'N', 1 , cu_alphak_IBG1, cu_beta_k , 0);
 
-
 		//beta_kp1 = alphak_IBG1_betak * (alpha_k)T (= alpha_k * IBG1 * beta_k * (alpkha_k)T)
 		cu_beta_kp1.gemm(cublasHandle, 'N', 'T', 1 , cu_alphak_IBG1_betak, cu_alpha_k , 1);
 //temps_betak.pause();
-
-
 
 
 //temps_Tk.start();
@@ -282,35 +233,17 @@ int expression = 2;
 
 		// T_kp1sk = (alpha_k)T * Tk_IBG1_alphak (= (alpha_k)T * T_k * IBG1 * alpha_k)
 		cu_T_kp1sk.gemm(cublasHandle, 'T', 'N', 1 , cu_alpha_k, cu_Tk_IBG1_alphak , 1);
-		
 //temps_Tk.pause();
-	
-
-
 
 		kernel_get_diag(cu_diag_cu_Tkp1sk.getData(), cu_T_kp1sk.getData(), cu_T_kp1sk.getDim1());	
 		kernel_get_diag(cu_diag_cu_Tk.getData(), cu_T_k.getData(), cu_T_k.getDim1());	
 
-	
 		trac1_tmp = kp_cu_reduce(cu_diag_cu_Tkp1sk);
 		trac2_tmp = kp_cu_reduce(cu_diag_cu_Tk);
-		/*kp_vector<double> diag_Tkp1sk,diag_Tk;
-		kp_cu2kp_vector(diag_Tkp1sk,cu_diag_cu_Tkp1sk);
-		kp_cu2kp_vector(diag_Tk,cu_diag_cu_Tk);
-		trac1_tmp=0;trac2_tmp=0;
-		for (int i=0 ; i< diag_Tkp1sk.size() ; i++)
-		{
-			trac1_tmp += diag_Tkp1sk[i];
-			trac2_tmp += diag_Tk[i];
-		}*/
-
-
 		
 		//Trac_T[boucle]=trac1_tmp;
 		ecart =fabs(trac1_tmp/trac2_tmp-1.0);
 		boucle ++;
-
-
 	}
         if (boucle >= boucle_max)
         {
@@ -325,23 +258,6 @@ cout<< "temps alpha_k = "<<temps_alphak.rez()<<endl;
 cout<< "temps beta_k = "<<temps_betak.rez()<<endl;
 cout<< "temps T_k = "<<temps_Tk.rez()<<endl;*/
 
-
-	/*kp_matrix T_kp1sk_test;
-	kp_cu2kp_matrix(T_kp1sk_test, cu_T_kp1sk);
-	fichier.open("Tkp1sk_full_GPU.dat",ios::out);
-	for(int i=0;i<T_kp1sk_test.getDim1();i++)
-	{
-		for (int j=0;j<T_kp1sk_test.getDim2();j++)
-		{
-			fichier<< __SP T_kp1sk_test(i,j)<<" ";
-		}
-		fichier << endl;
-	}	
-	fichier.close();*/
-
-
-	
-
 	cu_T_k.resize(0,0);
 	cu_alpha_kp1.resize(0,0) ;
 	cu_alpha_k.resize(0,0);
@@ -355,9 +271,6 @@ cout<< "temps T_k = "<<temps_Tk.rez()<<endl;*/
 	cu_betak_Tk.resize(0,0);
 
 
-
-
-
 	if ( (expression == 1) && (ordreAR == 1))
 	{
 		//calcul de Sinf_0_0 (matrice superieure gauche de S_inf)
@@ -365,11 +278,9 @@ cout<< "temps T_k = "<<temps_Tk.rez()<<endl;*/
 		kp_cu_matrix<double> cu_Sinf_0_0(nb_az,nb_az);
 		kernel_diag_mult3(cu_Atur_Tkp1sk.getData(), cu_Sinf_0_0.getData(), cu_T_kp1sk.getData(), cu_atur_.getData(), cu_atur_.size(), cu_T_kp1sk.getDim1()*cu_T_kp1sk.getDim2());
 
-
 		// Sinf_0_0 = Sinf_0_0 + SigmaV
 		cu_Sinf_0_0 += cu_SigmaV ;
 		cu_SigmaV.resize(0,0) ; 
-		
 		
 		// calcul de Sinf_0 (matrice superieure de S_inf)
 		kp_cu_matrix<double> cu_Sinf_0(nb_az,nb_n);
@@ -380,11 +291,9 @@ cout<< "temps T_k = "<<temps_Tk.rez()<<endl;*/
 		cu_Sinf_0_0.resize(0,0);
 		cu_Atur_Tkp1sk.resize(0,0);
 
-
 		// calcul de Sinf_1 (matrice inferieure de S_inf)
 		kp_cu_matrix<double> cu_Sinf_1_0(nb_az,nb_az);
 		kernel_diag_mult(cu_Sinf_1_0.getData(), cu_T_kp1sk.getData(), cu_atur_.getData(), cu_atur_.size(), cu_T_kp1sk.getDim1()*cu_T_kp1sk.getDim2());
-
 
 		kp_cu_matrix<double> cu_Sinf_1(nb_az,nb_n);
 		cu_ms.push_back(&cu_Sinf_1_0) ; cu_ms.push_back(&cu_T_kp1sk) ;
@@ -403,11 +312,6 @@ cout<< "temps T_k = "<<temps_Tk.rez()<<endl;*/
 		cu_Sinf_1.resize(0,0);
 	
 
-
-
-
-
-
 		kp_cu_matrix<double> cu_Sinf_zerosDmot(nb_n,nb_p);
 
 		// Sinf_zerosDmot = S_inf * [0 D_Mo]T 
@@ -415,33 +319,12 @@ cout<< "temps T_k = "<<temps_Tk.rez()<<endl;*/
 
 		cu_S_inf.resize(0,0);
 
-	/*kp_matrix Sinf_zerosDmot;
-	kp_cu2kp_matrix(Sinf_zerosDmot, cu_Sinf_zerosDmot);
-	fichier.open("Sinf_zerosDmot.dat",ios::out);
-	for(int i=0;i<Sinf_zerosDmot.getDim1();i++)
-	{
-		for (j=0;j<Sinf_zerosDmot.getDim2();j++)
-		{
-			fichier<< __SP Sinf_zerosDmot(i,j)<<" ";
-		}
-		fichier << endl;
-	}	
-	fichier.close();*/
-
-
-
-
-
-
 		// calcul de Sigma_tot = [0 D_Mo] * S_inf * [0 D_Mo]' + SigmaW
 		kp_cu_matrix<double> cu_inv_Sigmatot(nb_p,nb_p);
 		// Sigma_tot = zeros_Dmo * Sinf_zerosDmot  ( = [0 D_Mo] * Sinf * [0 ; (D_Mo)T] )
 		cu_inv_Sigmatot.gemm(cublasHandle, 'N', 'N', 1 , cu_zeros_Dmo, cu_Sinf_zerosDmot , 0);
 
 		// Sigma_tot = Sigma_tot + SigmaW*Id (avec SigmaW reel)  (= [0 D_Mo] * Sinf * [0 ; (D_Mo)T] + SigmaW*Id)
-		//for(int i = 0 ; i < cu_inv_Sigmatot.getDim1() ; i++) cu_inv_Sigmatot.getData()[i * cu_inv_Sigmatot.getDim1() + i] += SigmaW;
-		
-		
 		kernel_add_diag_const(cu_inv_Sigmatot.getData(), SigmaW, cu_inv_Sigmatot.getDim1());
 		cu_zeros_Dmo.resize(0,0) ; 
 		
@@ -454,8 +337,6 @@ cout<< "temps T_k = "<<temps_Tk.rez()<<endl;*/
 		cu_H_inf2.gemm(cublasHandle, 'N', 'N', 1 , cu_Sinf_zerosDmot, cu_inv_Sigmatot , 0);
 		cu_Sinf_zerosDmot.resize(0,0);
 		cu_inv_Sigmatot.resize(0,0);
-		
-		
 	}
 	else
 	{
@@ -467,7 +348,6 @@ cout<< "temps T_k = "<<temps_Tk.rez()<<endl;*/
         	cu_Tkp1sk_C1t.gemm(cublasHandle, 'N', 'T', 1 , cu_T_kp1sk, cu_C1 , 0);
 
 		cu_T_kp1sk.resize(0,0);
-
 		
 		//Calcul de C1 * T_kp1sk * C1' + SigmaW
         	kp_cu_matrix<double> cu_inv_Sigmatot(cu_C1.getDim1(), cu_Tkp1sk_C1t.getDim2());
@@ -475,7 +355,6 @@ cout<< "temps T_k = "<<temps_Tk.rez()<<endl;*/
 		cu_inv_Sigmatot.zeros();
 		//for(int i = 0 ; i < cu_inv_Sigmatot.getDim1() ; i++) cu_inv_Sigmatot.getData()[i * cu_inv_Sigmatot.getDim1() + i] += SigmaW;
 		kernel_add_diag_const(cu_inv_Sigmatot.getData(), SigmaW, cu_inv_Sigmatot.getDim1());
-
 	
 		// Sigma_tot = Sigma_tot + C1 * Tkp1sk_C1t  ( = (C1 * T_kp1sk * (C1)T) + SigmaW*Id )
 		cu_inv_Sigmatot.gemm(cublasHandle, 'N', 'N', 1 , cu_C1, cu_Tkp1sk_C1t , 1);
@@ -498,9 +377,6 @@ cout<< "temps T_k = "<<temps_Tk.rez()<<endl;*/
 			
 			kp_cu_matrix<double> cu_Atur_Hopt(nb_az, nb_p);
 			// Atur_Hopt = Atur * H_opt
-			/*for(int i = 0 ; i < cu_atur_.size() ; i++)
-				for (j = 0 ; j < cu_Atur_Hopt.getDim2() ; j++)
-					cu_Atur_Hopt.getData()[j * cu_Atur_Hopt.getDim1() + i] = cu_atur_.getData()[i] * cu_H_opt.getData()[j * cu_H_opt.getDim1() + i];*/
 			kernel_diag_mult(cu_Atur_Hopt.getData(), cu_H_opt.getData(), cu_atur_.getData(), cu_atur_.size(), cu_H_opt.getDim1()*cu_H_opt.getDim2());
 
 			cu_H_inf2.resize(nb_n,nb_p);
@@ -511,7 +387,6 @@ cout<< "temps T_k = "<<temps_Tk.rez()<<endl;*/
 			cu_Atur_Hopt.resize(0,0);
 			cu_H_opt.resize(0,0);
 		}
-		
 		else
 		{
 			cu_H_inf2.resize(nb_n,nb_p);
@@ -519,41 +394,14 @@ cout<< "temps T_k = "<<temps_Tk.rez()<<endl;*/
 			cu_Tkp1sk_C1t.resize(0,0);
 			cu_inv_Sigmatot.resize(0,0);
 		}
-	
-	
 	}
-
-
-
-
-	/*kp_matrix H_inf;
-	kp_cu2kp_matrix(H_inf, cu_H_inf);
-	fichier.open("H_inf_full_GPU.dat",ios::out);
-	for(int i=0;i<H_inf.getDim1();i++)
-	{
-		for (int j=0;j<H_inf.getDim2();j++)
-		{
-			fichier<< __SP H_inf(i,j)<<" ";
-		}
-		fichier << endl;
-	}	
-	fichier.close();*/
-
-
 
 	cu_atur = cu_atur_;
 	cu_btur = cu_btur_;
         //if (gainComputed) cu_H_inf = cu_H_inf2;
 	cu_H_inf = cu_H_inf2;
 
-	
-
 	gainComputed = true;
-	
-
-
-
-
 }
 
 
@@ -579,8 +427,6 @@ void kp_kalman_core_full_GPU::next_step(const kp_vector<KFPP>& Y_k, kp_vector<KF
 	cu_A1_00_Xkdebut.zeros();
 	cu_A1_01_Xkfin.zeros();
 
-
-
 //temps_op1.start();
 	// VECTEUR d'ESTIMATION de MESURE ( A l' INSTANT K )
 	// Nact_Ukm2 = N_Act * U_km2 
@@ -591,14 +437,11 @@ void kp_kalman_core_full_GPU::next_step(const kp_vector<KFPP>& Y_k, kp_vector<KF
 	//kp_cu_cudaMemcpy(tmp_vec1->d, cu_X_kskm1->d_cu+nb_az, nb_az*sizeof(KFPP), cudaMemcpyDeviceToHost);
 	kernel_memcpy(cu_tmp_vec1.getData(), cu_X_kskm1.getData()+nb_az, nb_az);
 	cu_tmp_vec1 += cu_Nact_Ukm2 ;
-
 		
 	// Y_kskm1 = D_Mo * tmp_vec1 (= D_Mo * (X_kskm1 - N_Act * U_km2))
 	//kp_gemv (1,D_Mo, *tmp_vec1,0,*Y_kskm1); 
 	cu_Y_kskm1.gemv(cublasHandle, 'N', 1, cu_D_Mo, cu_tmp_vec1, 0); 
 //temps_op1.pause();
-
-
 
 		
 //temps_op2.start();			
@@ -606,22 +449,20 @@ void kp_kalman_core_full_GPU::next_step(const kp_vector<KFPP>& Y_k, kp_vector<KF
 		
 	// innovation = Y_k - Y_kskm1
 	cu_innovation = cu_Y_k;
-	//cu_Y_kskm1 = *Y_kskm1;
+
+#ifdef __STANDALONE__
+	cu_innovation -= cu_Y_kskm1;
+#else
 	cu_innovation += cu_Y_kskm1;
+#endif
+
 	cu_X_kskm1_tmp = cu_X_kskm1;
 
 
-
-
-	/*// X_kskm1_tmp = H_inf *  (Y_k - Y_kskm1)
-	kp_gemv ('N',1,H_inf,*innovation,1,*X_kskm1_tmp); */
+	// X_kskm1_tmp = H_inf *  (Y_k - Y_kskm1)
 	cu_X_kskm1_tmp.gemv(cublasHandle, 'N', 1, cu_H_inf, cu_innovation, 1);
 
-
-
 	// X_kskm1_tmp = X_kskm1_tmp + H_inf * innovation (= X_kskm1 + H_inf * (Y_k - Y_kskm1))
-
-	//kp_cu_gemv (cublasHandle,'N',1, *cu_A1, cu_X_kskm1_tmp,0,cu_X_kp1sk);
 	kernel_memset(cu_X_kp1sk.getData(), (KFPP)0.0, nb_az);
 	kernel_memcpy(cu_A1_00_Xkdebut.getData(), cu_X_kskm1_tmp.getData(), nb_az);
 	kernel_memcpy(cu_A1_01_Xkfin.getData(), cu_X_kskm1_tmp.getData()+nb_az, nb_az);
@@ -639,13 +480,6 @@ void kp_kalman_core_full_GPU::next_step(const kp_vector<KFPP>& Y_k, kp_vector<KF
 	if (isZonal)
 	{
 		mean_Xkp1skdebut = kp_cu_reduce(cu_X_kp1sk_debut)/nb_az;
-		/*kp_vector<double> Xkp1skdebut;
-		kp_cu2kp_vector(Xkp1skdebut,cu_X_kp1sk_debut);
-		mean_Xkp1skdebut=0;
-		for (int i=0 ; i< Xkp1skdebut.size() ; i++)
-			mean_Xkp1skdebut += Xkp1skdebut[i];
-		mean_Xkp1skdebut /= nb_az;*/
-
 
 		// X_kp1sk_tmp = X_kp1sk(1:nb_az)-mean(X_kp1sk(1:nb_az))*ones(nb_az,1)
 		cu_X_kp1sk_tmp = cu_X_kp1sk_debut; 
@@ -653,45 +487,19 @@ void kp_kalman_core_full_GPU::next_step(const kp_vector<KFPP>& Y_k, kp_vector<KF
 	}
 //temps_op2.pause();
 
-
-
-
 	
 //temps_op3.start();
 	//TENSION de CORRECTION
-
-
-	//kp_gemv (1,PROJ, *X_kp1sk_tmp, 0, *U_k);
-	//kp_cu_vector* cu_U_k = new kp_cu_vector(nb_act);
-
 	if (isZonal)
 		cu_U_k.gemv(cublasHandle, 'N', -1, cu_PROJ, cu_X_kp1sk_tmp, 0);
 	else
 		cu_U_k.gemv(cublasHandle, 'N', -1, cu_PROJ, cu_X_kp1sk_debut, 0);
-
-	//kp_cu_gemv(cublasHandle, 'N', 1, *cu_PROJ_full, cu_X_kp1sk_tmp, 0, cu_U_k);
 //temps_op3.pause();
-
-
-
 	
 	//MISE A JOUR
 	cu_U_km2 = cu_U_km1;
 	cu_U_km1 = cu_U_k;
 	cu_X_kskm1 = cu_X_kp1sk;
-	//*U_km2 = *U_km1; 
-	//*U_km1 = *U_k; 
-	//*X_kskm1 = *X_kp1sk;
-		
-	// On doit donner cu_U_k, mais comme on vient de faire la mise a jour juste 
-	// avant au lieu de la faire apres, on donne cu_U_km1
 	kp_cu2kp_vector(U_k, cu_U_km1);	
-
-
-
-
-
-
-
 
 }
