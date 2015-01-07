@@ -739,6 +739,11 @@ func rtc_init(clean=)
 	    rtc_setgain,g_rtc,0,controllers(i).gain;
           }           
           if ((controllers(i).type  == "kalman_CPU") || (controllers(i).type  == "kalman_GPU")) {
+env_var = get_env("COMPILATION_LAM");
+found_str = strfind("standalone",env_var);
+if (found_str(2) != -1)
+  write,"\nWARNING : Environment variable COMPILATION_LAM contains the word \"standalone\". Make sure that this variable did not contain \"standalone\" when compiling, which would mean that Kalman filter was compiled for standalone version (in lam/kalman_CPU_GPU/test), which is not compatible with COMPASS\n";
+
             if (controllers(i).type  == "kalman_CPU")
               write,"initializing kalman_CPU controller";
             else

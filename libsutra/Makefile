@@ -69,7 +69,7 @@ ifneq ($(COMPILATION_LAM),)
   OBJS += $(LAM_KP_CLASSES_DIR)/lib_kp_classes.a  $(LAM_KALMAN_DIR)/lib_kalman.a
 endif
 
-ifeq ($(COMPILATION_LAM),double)
+ifeq ($(filter $(COMPILATION_LAM),double),double)
   CFLAGS += -DKP_DOUBLE
 endif
 
