@@ -11,57 +11,6 @@
 #define min(a,b) (((a) < (b)) ? (a) : (b)) 
 #define round(a) ((a >= 0) ? (int)(a + 0.5) : (int)(a - 0.5))
 
-sysCure*
-cureSystem() {
-
-  int i, j;
-  int linenum;
-  float readme;
-  sysCure *sys;
-  FILE *file;
-
-  sys = (sysCure*) malloc(sizeof(sysCure));
-  file = fopen("cured_params.txt", "r");
-
-  fscanf(file, "%e", &readme);
-  sys->linenum = (int) readme;
-  linenum = sys->linenum;
-  fscanf(file, "%e", &readme);
-  sys->numofelems = (int) readme;
-  fscanf(file, "%e", &readme);
-  sys->numofresults = (int) readme;
-
-  sys->I_sub = (int*) malloc(linenum * linenum * sizeof(int));
-  sys->I_fried = (int*) malloc((linenum + 1) * (linenum + 1) * sizeof(int));
-  sys->I_act = sys->I_fried;
-
-  for (i = 0; i < linenum * linenum; i++) {
-    fscanf(file, "%e", &readme);
-    sys->I_sub[i] = (int) readme;
-  }
-  fscanf(file, "%e", &readme);
-  sys->ndivs = (int) readme;
-
-  for (i = 0; i < (linenum + 1) * (linenum + 1); i++)
-    sys->I_fried[i] = 0;
-  for (i = 0; i < linenum; i++)
-    for (j = 0; j < linenum; j++)
-      sys->I_fried[i * (linenum + 1) + j] = sys->I_sub[i * linenum + j];
-  for (i = 0; i < linenum; i++)
-    for (j = 0; j < linenum; j++)
-      sys->I_fried[i * (linenum + 1) + j + 1] = sys->I_fried[i * (linenum + 1)
-          + j + 1] | sys->I_sub[i * linenum + j];
-  for (i = 0; i < linenum; i++)
-    for (j = 0; j < linenum; j++)
-      sys->I_fried[(i + 1) * (linenum + 1) + j] = sys->I_fried[(i + 1)
-          * (linenum + 1) + j] | sys->I_sub[i * linenum + j];
-  for (i = 0; i < linenum; i++)
-    for (j = 0; j < linenum; j++)
-      sys->I_fried[(i + 1) * (linenum + 1) + j + 1] = sys->I_fried[(i + 1)
-          * (linenum + 1) + j + 1] | sys->I_sub[i * linenum + j];
-
-  return sys;
-}
 
 sysCure*
 cureSystem(int linenum, int numofelems, int numofresults, int *I_sub,
@@ -80,6 +29,9 @@ cureSystem(int linenum, int numofelems, int numofresults, int *I_sub,
   sys->I_sub = (int*) malloc(linenum * linenum * sizeof(int));
   sys->I_fried = (int*) malloc((linenum + 1) * (linenum + 1) * sizeof(int));
   sys->I_act = sys->I_fried;
+
+  sys->dataX = (float*) malloc(numofelems* sizeof(float));
+  sys->dataY = (float*) malloc(numofelems* sizeof(float));
 
   memcpy(sys->I_sub, I_sub, linenum * linenum * sizeof(int));
 
@@ -140,490 +92,398 @@ cureInit(sysCure *sys) {
 
   /* not implemented: CuReD(0) */
   if (ndivs == 0) {
+    //AO_ToDo: warning must be added...or error...whatever
+	//for(i = 0; i < numofresults; i++)
+	//	result[i] = 0;
     return 0;
   }
 
-  /* create part sizes */
-  mainpartsize = linenum / parts;
-  rest = linenum - parts * mainpartsize;
-  for (i = 0; i < parts; i++)
-    partsize[i] = mainpartsize;
-  for (i = 0; i < rest; i++)
-    partsize[(parts - rest) / 2 + i] += 1;
-  for (i = 0; i < parts; i++)
-    for (j = 0; j < parts; j++) {
-      start = i * parts + j;
-      part_par[start].I_sub = (int*) malloc(
-          (partsize[i]) * (partsize[j]) * sizeof(int));
-      I_sub_p_iter[start] = part_par[start].I_sub;
-      part_par[start].numofelems = 0;
-      part_par[start].linenumX = partsize[i];
-      part_par[start].linenumY = partsize[j];
-    }
-  /* create I_sub parts and connection to I_sub */
-  iter = I_sub;
-  S_iter = S_connect;
-  start = 0;
-  for (i = 0; i < parts; i++) {
-    for (j = 0; j < partsize[i]; j++)
-      for (k = 0; k < parts; k++)
-        for (l = 0; l < partsize[k]; l++) {
-          *(I_sub_p_iter[start + k]) = *iter;
-          part_par[start + k].numofelems += *iter;
-          if (*iter) {
-            *S_iter = start + k;
-            *iter = start + k + 1;
-            S_iter++;
-          }
-          I_sub_p_iter[start + k]++;
-          iter++;
-        }
-    start += parts;
-  }
+/* create part sizes */
+mainpartsize = linenum/parts;
+rest = linenum - parts*mainpartsize;
+for(i = 0; i < parts; i++)
+	partsize[i] = mainpartsize;
+for(i = 0; i < rest; i++)
+	partsize[(parts-rest)/2+i] += 1;
+for(i = 0; i < parts; i++)
+	for(j = 0; j < parts; j++) {
+		start = i*parts+j;
+		part_par[start].I_sub = (int*)malloc((partsize[i])*(partsize[j])*sizeof(int));
+		I_sub_p_iter[start] = part_par[start].I_sub;
+		part_par[start].numofelems = 0;
+		part_par[start].linenumX = partsize[i];
+		part_par[start].linenumY = partsize[j];
+		}
+/* create I_sub parts and connection to I_sub */
+iter = I_sub;
+S_iter = S_connect;
+start = 0;
+for(i = 0; i < parts; i++) {
+	for(j = 0; j < partsize[i]; j++)
+		for(k = 0; k < parts; k++)
+			for(l = 0; l < partsize[k]; l++) {
+				*(I_sub_p_iter[start+k]) = *iter;
+				part_par[start+k].numofelems += *iter;
+				if(*iter) {
+					*S_iter = start+k;
+					*iter = start+k+1;
+					S_iter++;
+					}
+				I_sub_p_iter[start+k]++;
+				iter++;
+				}
+	start += parts;
+	}
 
-  for (i = 0; i < parts; i++)
-    for (j = 0; j < parts; j++) {
-      start = i * parts + j;
-      part_par[start].numofresults = part_par[start].numofelems
-          + part_par[start].linenumX + part_par[start].linenumY + 1;
-    }
+for(i = 0; i < parts; i++)
+	for(j = 0; j < parts; j++) {
+		start = i*parts+j;
+		part_par[start].numofresults = part_par[start].numofelems + part_par[start].linenumX + part_par[start].linenumY + 1;
+		}
 
-  /* create the parameters and fields for the parts for faster computation */
-  for (k = 0; k < parts * parts; k++) {
-    part_par[k].lineX_start = (int*) malloc(
-        (part_par[k].linenumX) * sizeof(int));
-    part_par[k].lineX_length = (int*) malloc(
-        (part_par[k].linenumX) * sizeof(int));
-    part_par[k].lineX_starta = (int*) malloc(
-        (part_par[k].linenumX) * sizeof(int));
-    part_par[k].lineX_startb = (int*) malloc(
-        (part_par[k].linenumX) * sizeof(int));
-    part_par[k].lineX_enda = (int*) malloc(
-        (part_par[k].linenumX) * sizeof(int));
-    part_par[k].lineX_endb = (int*) malloc(
-        (part_par[k].linenumX) * sizeof(int));
-    part_par[k].actX_start = (int*) malloc(
-        (part_par[k].linenumX + 1) * sizeof(int));
-    part_par[k].actX_length = (int*) malloc(
-        (part_par[k].linenumX + 1) * sizeof(int));
-    part_par[k].lineY_start = (int*) malloc(
-        (part_par[k].linenumY) * sizeof(int));
-    part_par[k].lineY_length = (int*) malloc(
-        (part_par[k].linenumY) * sizeof(int));
-    part_par[k].lineY_starta = (int*) malloc(
-        (part_par[k].linenumY) * sizeof(int));
-    part_par[k].lineY_startb = (int*) malloc(
-        (part_par[k].linenumY) * sizeof(int));
-    part_par[k].lineY_enda = (int*) malloc(
-        (part_par[k].linenumY) * sizeof(int));
-    part_par[k].lineY_endb = (int*) malloc(
-        (part_par[k].linenumY) * sizeof(int));
-    part_par[k].connect_length = (int*) malloc(4 * sizeof(int));
-    part_par[k].empty = (int*) malloc(4 * sizeof(int));
-    part_par[k].connect_pos = (int*) malloc(
-        (2 * part_par[k].linenumX + 2 * part_par[k].linenumY + 4)
-            * sizeof(int));
-    part_par[k].act_weight = (float*) malloc(
-        (part_par[k].numofresults) * sizeof(float));
-    part_par[k].actconnect = (int*) malloc(
-        (part_par[k].numofresults) * sizeof(int));
+/* create the parameters and fields for the parts for faster computation */
+for(k = 0; k < parts*parts; k++) {
+	part_par[k].lineX_start = (int*)malloc((part_par[k].linenumX)*sizeof(int));
+	part_par[k].lineX_length = (int*)malloc((part_par[k].linenumX)*sizeof(int));
+	part_par[k].lineX_starta = (int*)malloc((part_par[k].linenumX)*sizeof(int));
+	part_par[k].lineX_startb = (int*)malloc((part_par[k].linenumX)*sizeof(int));
+	part_par[k].lineX_enda = (int*)malloc((part_par[k].linenumX)*sizeof(int));
+	part_par[k].lineX_endb = (int*)malloc((part_par[k].linenumX)*sizeof(int));
+	part_par[k].actX_start = (int*)malloc((part_par[k].linenumX+1)*sizeof(int));
+	part_par[k].actX_length = (int*)malloc((part_par[k].linenumX+1)*sizeof(int));
+	part_par[k].lineY_start = (int*)malloc((part_par[k].linenumY)*sizeof(int));
+	part_par[k].lineY_length = (int*)malloc((part_par[k].linenumY)*sizeof(int));
+	part_par[k].lineY_starta = (int*)malloc((part_par[k].linenumY)*sizeof(int));
+	part_par[k].lineY_startb = (int*)malloc((part_par[k].linenumY)*sizeof(int));
+	part_par[k].lineY_enda = (int*)malloc((part_par[k].linenumY)*sizeof(int));
+	part_par[k].lineY_endb = (int*)malloc((part_par[k].linenumY)*sizeof(int));
+	part_par[k].connect_length = (int*)malloc(4*sizeof(int));
+	part_par[k].empty = (int*)malloc(4*sizeof(int));
+	part_par[k].connect_pos = (int*)malloc((2*part_par[k].linenumX+2*part_par[k].linenumY+4)*sizeof(int));
+	part_par[k].act_weight = (float*)malloc((part_par[k].numofresults)*sizeof(float));
+	part_par[k].actconnect = (int*)malloc((part_par[k].numofresults)*sizeof(int));
 
-    part_arrays[k].linestart = (float**) malloc(
-        part_par[k].linenumY * sizeof(float*)); /* array of starts of y lines */
-    part_arrays[k].extrastart = (float**) malloc(
-        part_par[k].linenumY * sizeof(float*));
-    part_arrays[k].linesX = (float*) malloc(
-        (part_par[k].linenumX + part_par[k].numofelems) * sizeof(float)); /* x lines */
-    part_arrays[k].linesY = (float*) malloc(
-        (part_par[k].linenumY + part_par[k].numofelems) * sizeof(float)); /* y lines */
-    part_arrays[k].extraX = (float*) malloc(
-        (part_par[k].linenumY + part_par[k].numofelems) * sizeof(float));
-    part_arrays[k].extraY = (float*) malloc(
-        (part_par[k].linenumX + part_par[k].numofelems) * sizeof(float));
-    part_arrays[k].meantX = (float*) malloc(
-        part_par[k].linenumX * sizeof(float)); /* total mean */
-    part_arrays[k].meantY = (float*) malloc(
-        part_par[k].linenumY * sizeof(float));
-    part_arrays[k].meanaX = (float*) malloc(
-        part_par[k].linenumX * sizeof(float)); /* mean on common part with previous */
-    part_arrays[k].meanaY = (float*) malloc(
-        part_par[k].linenumY * sizeof(float));
-    part_arrays[k].meanbX = (float*) malloc(
-        part_par[k].linenumX * sizeof(float)); /* mean on common part with next */
-    part_arrays[k].meanbY = (float*) malloc(
-        part_par[k].linenumY * sizeof(float));
-    part_arrays[k].avgaX = (float*) malloc(
-        part_par[k].linenumY * sizeof(float)); /* average on common part with previous */
-    part_arrays[k].avgaY = (float*) malloc(
-        part_par[k].linenumX * sizeof(float));
-    part_arrays[k].avgbX = (float*) malloc(
-        part_par[k].linenumY * sizeof(float)); /* average on common part with next */
-    part_arrays[k].avgbY = (float*) malloc(
-        part_par[k].linenumX * sizeof(float));
-    part_arrays[k].trendX = (float*) malloc(
-        part_par[k].linenumX * sizeof(float));
-    part_arrays[k].trendY = (float*) malloc(
-        part_par[k].linenumY * sizeof(float));
+	part_arrays[k].linestart = (float**)malloc(part_par[k].linenumY*sizeof(float*)); /* array of starts of y lines */
+	part_arrays[k].extrastart = (float**)malloc(part_par[k].linenumY*sizeof(float*));
+	part_arrays[k].linesX = (float*)malloc((part_par[k].linenumX+part_par[k].numofelems)*sizeof(float)); /* x lines */
+	part_arrays[k].linesY = (float*)malloc((part_par[k].linenumY+part_par[k].numofelems)*sizeof(float)); /* y lines */
+	part_arrays[k].extraX = (float*)malloc((part_par[k].linenumY+part_par[k].numofelems)*sizeof(float));
+	part_arrays[k].extraY = (float*)malloc((part_par[k].linenumX+part_par[k].numofelems)*sizeof(float));
+	part_arrays[k].meantX = (float*)malloc(part_par[k].linenumX*sizeof(float)); /* total mean */
+	part_arrays[k].meantY = (float*)malloc(part_par[k].linenumY*sizeof(float));
+	part_arrays[k].meanaX = (float*)malloc(part_par[k].linenumX*sizeof(float)); /* mean on common part with previous */
+	part_arrays[k].meanaY = (float*)malloc(part_par[k].linenumY*sizeof(float));
+	part_arrays[k].meanbX = (float*)malloc(part_par[k].linenumX*sizeof(float)); /* mean on common part with next */
+	part_arrays[k].meanbY = (float*)malloc(part_par[k].linenumY*sizeof(float));
+	part_arrays[k].avgaX = (float*)malloc(part_par[k].linenumY*sizeof(float)); /* average on common part with previous */
+	part_arrays[k].avgaY = (float*)malloc(part_par[k].linenumX*sizeof(float));
+	part_arrays[k].avgbX = (float*)malloc(part_par[k].linenumY*sizeof(float)); /* average on common part with next */
+	part_arrays[k].avgbY = (float*)malloc(part_par[k].linenumX*sizeof(float));
+	part_arrays[k].trendX = (float*)malloc(part_par[k].linenumX*sizeof(float));
+	part_arrays[k].trendY = (float*)malloc(part_par[k].linenumY*sizeof(float));
 
-    if (part_par[k].numofelems == 0) {
-      part_par[k].numofresults = 0;
-      continue;
-    }
+	if(part_par[k].numofelems == 0) {
+		part_par[k].numofresults = 0;
+		continue;
+		}
+	
+	/* setup of geometric parameters */
+	for(i = 0; i < 4; i++)
+		part_par[k].empty[i] = 0;
+	/* x line setup */
+	iter = part_par[k].I_sub;
+	help2 = part_par[k].linenumX;
+	for(i = 0; i < part_par[k].linenumX; i++) {
+		part_par[k].lineX_start[i] = 0;
+		part_par[k].lineX_length[i] = 0;
+		for (j = 0; j < part_par[k].linenumY; j++) {
+			part_par[k].lineX_length[i] += iter[j];
+			if(part_par[k].lineX_length[i] == 0)
+				part_par[k].lineX_start[i]++;
+			}
+		iter += part_par[k].linenumY;
+		if(part_par[k].lineX_length[i] == 0) { /* remove empty lines */
+			i--;
+			part_par[k].linenumX--;
+			if(i < 0)
+				part_par[k].empty[0]++;
+			else
+				part_par[k].empty[1]++;
+			}
+		}
 
-    /* setup of geometric parameters */
-    for (i = 0; i < 4; i++)
-      part_par[k].empty[i] = 0;
-    /* x line setup */
-    iter = part_par[k].I_sub;
-    help2 = part_par[k].linenumX;
-    for (i = 0; i < part_par[k].linenumX; i++) {
-      part_par[k].lineX_start[i] = 0;
-      part_par[k].lineX_length[i] = 0;
-      for (j = 0; j < part_par[k].linenumY; j++) {
-        part_par[k].lineX_length[i] += iter[j];
-        if (part_par[k].lineX_length[i] == 0)
-          part_par[k].lineX_start[i]++;
-      }
-      iter += part_par[k].linenumY;
-      if (part_par[k].lineX_length[i] == 0) { /* remove empty lines */
-        i--;
-        part_par[k].linenumX--;
-        if (i < 0)
-          part_par[k].empty[0]++;
-        else
-          part_par[k].empty[1]++;
-      }
-    }
+	/* y line setup */
+	iter = part_par[k].I_sub;
+	for(i = 0; i < part_par[k].linenumY; i++) {
+		part_par[k].lineY_start[i] = 0;
+		part_par[k].lineY_length[i] = 0;
+		}
+	for(i = 0; i < help2/* old part_par[k].linenumX*/; i++) {
+		for(j = 0; j < part_par[k].linenumY; j++) {
+			part_par[k].lineY_length[j] += iter[j];
+			if(part_par[k].lineY_length[j] == 0)
+				part_par[k].lineY_start[j]++;
+			}
+		iter += part_par[k].linenumY;
+		}
+	for(i = 0; i < part_par[k].linenumY; i++) { /* remove empty lines */
+		if(part_par[k].lineY_length[i] == 0) {
+			for(j = i; j < part_par[k].linenumY-1; j++) {
+				part_par[k].lineY_start[j] = part_par[k].lineY_start[j+1];
+				part_par[k].lineY_length[j] = part_par[k].lineY_length[j+1];
+				}
+			i--;
+			part_par[k].linenumY--;
+			if(i < 0)
+				part_par[k].empty[2]++;
+			else
+				part_par[k].empty[3]++;
+			}
+		}
+	
+	for(i = 0; i < part_par[k].linenumX; i++)
+		part_par[k].lineX_start[i] -= part_par[k].empty[2];
+	for(i = 0; i < part_par[k].linenumY; i++)
+		part_par[k].lineY_start[i] -= part_par[k].empty[0];
+	part_par[k].numofresults = part_par[k].numofelems + part_par[k].linenumX + part_par[k].linenumY + 1;
 
-    /* y line setup */
-    iter = part_par[k].I_sub;
-    for (i = 0; i < part_par[k].linenumY; i++) {
-      part_par[k].lineY_start[i] = 0;
-      part_par[k].lineY_length[i] = 0;
-    }
-    for (i = 0; i < help2/* old part_par[k].linenumX*/; i++) {
-      for (j = 0; j < part_par[k].linenumY; j++) {
-        part_par[k].lineY_length[j] += iter[j];
-        if (part_par[k].lineY_length[j] == 0)
-          part_par[k].lineY_start[j]++;
-      }
-      iter += part_par[k].linenumY;
-    }
-    for (i = 0; i < part_par[k].linenumY; i++) { /* remove empty lines */
-      if (part_par[k].lineY_length[i] == 0) {
-        for (j = i; j < part_par[k].linenumY - 1; j++) {
-          part_par[k].lineY_start[j] = part_par[k].lineY_start[j + 1];
-          part_par[k].lineY_length[j] = part_par[k].lineY_length[j + 1];
-        }
-        i--;
-        part_par[k].linenumY--;
-        if (i < 0)
-          part_par[k].empty[2]++;
-        else
-          part_par[k].empty[3]++;
-      }
-    }
+	part_par[k].lineX_starta[0] = part_par[k].lineX_start[0];
+	part_par[k].lineX_enda[0] = part_par[k].lineX_start[0]+part_par[k].lineX_length[0];
+	for(i = 1; i < part_par[k].linenumX; i++) {
+		part_par[k].lineX_starta[i] = max(part_par[k].lineX_start[i-1],part_par[k].lineX_start[i]);
+		part_par[k].lineX_enda[i] = min(part_par[k].lineX_start[i-1]+part_par[k].lineX_length[i-1],part_par[k].lineX_start[i]+part_par[k].lineX_length[i]);
+		}
+	part_par[k].lineX_startb[part_par[k].linenumX-1] = part_par[k].lineX_start[part_par[k].linenumX-1];
+	part_par[k].lineX_endb[part_par[k].linenumX-1] = part_par[k].lineX_start[part_par[k].linenumX-1]+part_par[k].lineX_length[part_par[k].linenumX-1];
+	for(i = 0; i < part_par[k].linenumX-1; i++) {
+		part_par[k].lineX_startb[i] = max(part_par[k].lineX_start[i+1],part_par[k].lineX_start[i]);
+		part_par[k].lineX_endb[i] = min(part_par[k].lineX_start[i+1]+part_par[k].lineX_length[i+1],part_par[k].lineX_start[i]+part_par[k].lineX_length[i]);
+		}
 
-    for (i = 0; i < part_par[k].linenumX; i++)
-      part_par[k].lineX_start[i] -= part_par[k].empty[2];
-    for (i = 0; i < part_par[k].linenumY; i++)
-      part_par[k].lineY_start[i] -= part_par[k].empty[0];
-    part_par[k].numofresults = part_par[k].numofelems + part_par[k].linenumX
-        + part_par[k].linenumY + 1;
+	part_par[k].actX_start[0] = part_par[k].lineX_start[0];
+	part_par[k].actX_length[0] = part_par[k].lineX_length[0]+1;
+	for(i = 1; i < part_par[k].linenumX; i++) {
+		part_par[k].actX_start[i] = min(part_par[k].lineX_start[i-1],part_par[k].lineX_start[i]);
+		help = max(part_par[k].lineX_start[i-1]+part_par[k].lineX_length[i-1],part_par[k].lineX_start[i]+part_par[k].lineX_length[i]);
+		part_par[k].actX_length[i] = help+1-part_par[k].actX_start[i];
+		}
+	part_par[k].actX_start[part_par[k].linenumX] = part_par[k].lineX_start[part_par[k].linenumX-1];
+	part_par[k].actX_length[part_par[k].linenumX] = part_par[k].lineX_length[part_par[k].linenumX-1]+1;
 
-    part_par[k].lineX_starta[0] = part_par[k].lineX_start[0];
-    part_par[k].lineX_enda[0] = part_par[k].lineX_start[0]
-        + part_par[k].lineX_length[0];
-    for (i = 1; i < part_par[k].linenumX; i++) {
-      part_par[k].lineX_starta[i] =
-          max(part_par[k].lineX_start[i-1],part_par[k].lineX_start[i]);
-      part_par[k].lineX_enda[i] =
-          min(part_par[k].lineX_start[i-1]+part_par[k].lineX_length[i-1],part_par[k].lineX_start[i]+part_par[k].lineX_length[i]);
-    }
-    part_par[k].lineX_startb[part_par[k].linenumX - 1] =
-        part_par[k].lineX_start[part_par[k].linenumX - 1];
-    part_par[k].lineX_endb[part_par[k].linenumX - 1] =
-        part_par[k].lineX_start[part_par[k].linenumX - 1]
-            + part_par[k].lineX_length[part_par[k].linenumX - 1];
-    for (i = 0; i < part_par[k].linenumX - 1; i++) {
-      part_par[k].lineX_startb[i] =
-          max(part_par[k].lineX_start[i+1],part_par[k].lineX_start[i]);
-      part_par[k].lineX_endb[i] =
-          min(part_par[k].lineX_start[i+1]+part_par[k].lineX_length[i+1],part_par[k].lineX_start[i]+part_par[k].lineX_length[i]);
-    }
+	startweight = part_par[k].act_weight;
+	for(i = 0 ; i < part_par[k].actX_length[0] ; i++)
+		startweight[i] = 2;
+	startweight += part_par[k].actX_length[0];
+	for(i = 1 ; i < part_par[k].linenumX ; i++) {
+		for(j = 0 ; j < part_par[k].actX_length[i] ; j++) {
+			row = j+part_par[k].actX_start[i];
+			sum = 0;
+			if(part_par[k].actX_start[i-1] <= row && part_par[k].actX_start[i-1]+part_par[k].actX_length[i-1] > row)
+				sum++;
+			if(part_par[k].actX_start[i+1] <= row && part_par[k].actX_start[i+1]+part_par[k].actX_length[i+1] > row)
+				sum++;
+			startweight[j] = 2*sum;
+			}
+		startweight += part_par[k].actX_length[i];
+		}
+	for(i = 0 ; i < part_par[k].actX_length[part_par[k].linenumX] ; i++)
+		startweight[i] = 2;
 
-    part_par[k].actX_start[0] = part_par[k].lineX_start[0];
-    part_par[k].actX_length[0] = part_par[k].lineX_length[0] + 1;
-    for (i = 1; i < part_par[k].linenumX; i++) {
-      part_par[k].actX_start[i] =
-          min(part_par[k].lineX_start[i-1],part_par[k].lineX_start[i]);
-      help =
-          max(part_par[k].lineX_start[i-1]+part_par[k].lineX_length[i-1],part_par[k].lineX_start[i]+part_par[k].lineX_length[i]);
-      part_par[k].actX_length[i] = help + 1 - part_par[k].actX_start[i];
-    }
-    part_par[k].actX_start[part_par[k].linenumX] =
-        part_par[k].lineX_start[part_par[k].linenumX - 1];
-    part_par[k].actX_length[part_par[k].linenumX] =
-        part_par[k].lineX_length[part_par[k].linenumX - 1] + 1;
+	part_par[k].lineY_starta[0] = part_par[k].lineY_start[0];
+	part_par[k].lineY_enda[0] = part_par[k].lineY_start[0]+part_par[k].lineY_length[0];
+	for(i = 1; i < part_par[k].linenumY; i++) {
+		part_par[k].lineY_starta[i] = max(part_par[k].lineY_start[i-1],part_par[k].lineY_start[i]);
+		part_par[k].lineY_enda[i] = min(part_par[k].lineY_start[i-1]+part_par[k].lineY_length[i-1],part_par[k].lineY_start[i]+part_par[k].lineY_length[i]);
+		}
+	part_par[k].lineY_startb[part_par[k].linenumY-1] = part_par[k].lineY_start[part_par[k].linenumY-1];
+	part_par[k].lineY_endb[part_par[k].linenumY-1] = part_par[k].lineY_start[part_par[k].linenumY-1]+part_par[k].lineY_length[part_par[k].linenumY-1];
+	for(i = 0; i < part_par[k].linenumY-1; i++) {
+		part_par[k].lineY_startb[i] = max(part_par[k].lineY_start[i+1],part_par[k].lineY_start[i]);
+		part_par[k].lineY_endb[i] = min(part_par[k].lineY_start[i+1]+part_par[k].lineY_length[i+1],part_par[k].lineY_start[i]+part_par[k].lineY_length[i]);
+		}
 
-    startweight = part_par[k].act_weight;
-    for (i = 0; i < part_par[k].actX_length[0]; i++)
-      startweight[i] = 2;
-    startweight += part_par[k].actX_length[0];
-    for (i = 1; i < part_par[k].linenumX; i++) {
-      for (j = 0; j < part_par[k].actX_length[i]; j++) {
-        row = j + part_par[k].actX_start[i];
-        sum = 0;
-        if (part_par[k].actX_start[i - 1] <= row
-            && part_par[k].actX_start[i - 1] + part_par[k].actX_length[i - 1]
-                > row)
-          sum++;
-        if (part_par[k].actX_start[i + 1] <= row
-            && part_par[k].actX_start[i + 1] + part_par[k].actX_length[i + 1]
-                > row)
-          sum++;
-        startweight[j] = 2 * sum;
-      }
-      startweight += part_par[k].actX_length[i];
-    }
-    for (i = 0; i < part_par[k].actX_length[part_par[k].linenumX]; i++)
-      startweight[i] = 2;
+	}
 
-    part_par[k].lineY_starta[0] = part_par[k].lineY_start[0];
-    part_par[k].lineY_enda[0] = part_par[k].lineY_start[0]
-        + part_par[k].lineY_length[0];
-    for (i = 1; i < part_par[k].linenumY; i++) {
-      part_par[k].lineY_starta[i] =
-          max(part_par[k].lineY_start[i-1],part_par[k].lineY_start[i]);
-      part_par[k].lineY_enda[i] =
-          min(part_par[k].lineY_start[i-1]+part_par[k].lineY_length[i-1],part_par[k].lineY_start[i]+part_par[k].lineY_length[i]);
-    }
-    part_par[k].lineY_startb[part_par[k].linenumY - 1] =
-        part_par[k].lineY_start[part_par[k].linenumY - 1];
-    part_par[k].lineY_endb[part_par[k].linenumY - 1] =
-        part_par[k].lineY_start[part_par[k].linenumY - 1]
-            + part_par[k].lineY_length[part_par[k].linenumY - 1];
-    for (i = 0; i < part_par[k].linenumY - 1; i++) {
-      part_par[k].lineY_startb[i] =
-          max(part_par[k].lineY_start[i+1],part_par[k].lineY_start[i]);
-      part_par[k].lineY_endb[i] =
-          min(part_par[k].lineY_start[i+1]+part_par[k].lineY_length[i+1],part_par[k].lineY_start[i]+part_par[k].lineY_length[i]);
-    }
+/* setup for connection of the parts */
+for(k = 0; k < parts*parts; k++) {
+	part_par[k].connect_length[0] = 0; /* set to -1 if empty lines are cut at that side */
+	if(part_par[k].empty[0] || part_par[k].numofelems == 0)
+		part_par[k].connect_length[0] = -1;
+	part_par[k].connect_length[1] = 0;
+	if(part_par[k].empty[1] || part_par[k].numofelems == 0)
+		part_par[k].connect_length[1] = -1;
+	part_par[k].connect_length[2] = 0;
+	if(part_par[k].empty[2] || part_par[k].numofelems == 0)
+		part_par[k].connect_length[2] = -1;
+	part_par[k].connect_length[3] = 0;
+	if(part_par[k].empty[3] || part_par[k].numofelems == 0)
+		part_par[k].connect_length[3] = -1;
+	}
+for(i = 1; i < parts; i++) {
+	for(j = 0; j < parts; j++) {
+		start = i*parts+j;
+		if(part_par[start].connect_length[0] != -1 && part_par[start-parts].connect_length[1] != -1) {
+			help = part_par[start-parts].linenumX;
+			sum = min(part_par[start].actX_start[0]+part_par[start].actX_length[0]+part_par[start].empty[2],part_par[start-parts].actX_start[help]+part_par[start-parts].actX_length[help]+part_par[start-parts].empty[2]);
+			row = max(part_par[start].actX_start[0]+part_par[start].empty[2],part_par[start-parts].actX_start[help]+part_par[start-parts].empty[2]);
+			sum -= row;
+			if(sum < 0) sum = 0;
+			part_par[start].connect_length[0] = sum;
+			part_par[start-parts].connect_length[1] = sum;
+			for(k = 0; k < sum; k++) {
+				part_par[start].connect_pos[k] = row-part_par[start].actX_start[0]-part_par[start].empty[2]+k;
+				part_par[start-parts].connect_pos[part_par[start-parts].linenumY+1+k] = part_par[start-parts].numofresults;
+				part_par[start-parts].connect_pos[part_par[start-parts].linenumY+1+k] -= part_par[start-parts].actX_length[help];
+				part_par[start-parts].connect_pos[part_par[start-parts].linenumY+1+k] += row - part_par[start-parts].actX_start[help]-part_par[start-parts].empty[2];
+				part_par[start-parts].connect_pos[part_par[start-parts].linenumY+1+k] += k;
+				}
+			}
+		}
+	}
+for(i = 0; i < parts; i++) {
+	for(j = 1; j < parts; j++) {
+		start = i*parts+j;
+		if(part_par[start].connect_length[2] != -1 && part_par[start-1].connect_length[3] != -1) {
+			help = 0;
+			help2 = -1;
+			row = max(part_par[start].empty[0],part_par[start-1].empty[0]);
+			sum = partsize[i] - row - max(part_par[start].empty[1],part_par[start-1].empty[1]);
+			for(k = 0; k < row-part_par[start].empty[0]; k++)
+				help += part_par[start].actX_length[k];
+			for(k = 0; k < row-part_par[start-1].empty[0]; k++)
+				help2 += part_par[start-1].actX_length[k];
+			for(k = 0; k < sum+1; k++) {
+				help2 += part_par[start-1].actX_length[k+row-part_par[start-1].empty[0]];
+				if(part_par[start].actX_start[k+row-part_par[start].empty[0]] == 0 && part_par[start-1].actX_start[k+row-part_par[start-1].empty[0]]+part_par[start-1].actX_length[k+row-part_par[start-1].empty[0]] == part_par[start-1].linenumY+1) {
+					part_par[start].connect_pos[2*part_par[start].linenumY+2+part_par[start].connect_length[2]] = help;
+					part_par[start].connect_length[2]++;
+					part_par[start-1].connect_pos[2*part_par[start-1].linenumY+part_par[start-1].linenumX+3+part_par[start-1].connect_length[3]] = help2;
+					part_par[start-1].connect_length[3]++;
+					}
+				help += part_par[start].actX_length[k+row-part_par[start].empty[0]];
+				}
+			}
+		}
+	}
 
-  }
+for(i = 0; i < parts*parts; i++) {
+	if(part_par[i].connect_length[0] < 1)
+		part_par[i].connect_length[0] = 1;
+	if(part_par[i].connect_length[1] < 1)
+		part_par[i].connect_length[1] = 1;
+	if(part_par[i].connect_length[2] < 1)
+		part_par[i].connect_length[2] = 1;
+	if(part_par[i].connect_length[3] < 1)
+		part_par[i].connect_length[3] = 1;
+	}
 
-  /* setup for connection of the parts */
-  for (k = 0; k < parts * parts; k++) {
-    part_par[k].connect_length[0] = 0; /* set to -1 if empty lines are cut at that side */
-    if (part_par[k].empty[0] || part_par[k].numofelems == 0)
-      part_par[k].connect_length[0] = -1;
-    part_par[k].connect_length[1] = 0;
-    if (part_par[k].empty[1] || part_par[k].numofelems == 0)
-      part_par[k].connect_length[1] = -1;
-    part_par[k].connect_length[2] = 0;
-    if (part_par[k].empty[2] || part_par[k].numofelems == 0)
-      part_par[k].connect_length[2] = -1;
-    part_par[k].connect_length[3] = 0;
-    if (part_par[k].empty[3] || part_par[k].numofelems == 0)
-      part_par[k].connect_length[3] = -1;
-  }
-  for (i = 1; i < parts; i++) {
-    for (j = 0; j < parts; j++) {
-      start = i * parts + j;
-      if (part_par[start].connect_length[0] != -1
-          && part_par[start - parts].connect_length[1] != -1) {
-        help = part_par[start - parts].linenumX;
-        sum =
-            min(part_par[start].actX_start[0]+part_par[start].actX_length[0]+part_par[start].empty[2],part_par[start-parts].actX_start[help]+part_par[start-parts].actX_length[help]+part_par[start-parts].empty[2]);
-        row =
-            max(part_par[start].actX_start[0]+part_par[start].empty[2],part_par[start-parts].actX_start[help]+part_par[start-parts].empty[2]);
-        sum -= row;
-        if (sum < 0)
-          sum = 0;
-        part_par[start].connect_length[0] = sum;
-        part_par[start - parts].connect_length[1] = sum;
-        for (k = 0; k < sum; k++) {
-          part_par[start].connect_pos[k] = row - part_par[start].actX_start[0]
-              - part_par[start].empty[2] + k;
-          part_par[start - parts].connect_pos[part_par[start - parts].linenumY
-              + 1 + k] = part_par[start - parts].numofresults;
-          part_par[start - parts].connect_pos[part_par[start - parts].linenumY
-              + 1 + k] -= part_par[start - parts].actX_length[help];
-          part_par[start - parts].connect_pos[part_par[start - parts].linenumY
-              + 1 + k] += row - part_par[start - parts].actX_start[help]
-              - part_par[start - parts].empty[2];
-          part_par[start - parts].connect_pos[part_par[start - parts].linenumY
-              + 1 + k] += k;
-        }
-      }
-    }
-  }
-  for (i = 0; i < parts; i++) {
-    for (j = 1; j < parts; j++) {
-      start = i * parts + j;
-      if (part_par[start].connect_length[2] != -1
-          && part_par[start - 1].connect_length[3] != -1) {
-        help = 0;
-        help2 = -1;
-        row = max(part_par[start].empty[0],part_par[start-1].empty[0]);
-        sum = partsize[i] - row
-            - max(part_par[start].empty[1],part_par[start-1].empty[1]);
-        for (k = 0; k < row - part_par[start].empty[0]; k++)
-          help += part_par[start].actX_length[k];
-        for (k = 0; k < row - part_par[start - 1].empty[0]; k++)
-          help2 += part_par[start - 1].actX_length[k];
-        for (k = 0; k < sum + 1; k++) {
-          help2 += part_par[start - 1].actX_length[k + row
-              - part_par[start - 1].empty[0]];
-          if (part_par[start].actX_start[k + row - part_par[start].empty[0]]
-              == 0
-              && part_par[start - 1].actX_start[k + row
-                  - part_par[start - 1].empty[0]]
-                  + part_par[start - 1].actX_length[k + row
-                      - part_par[start - 1].empty[0]]
-                  == part_par[start - 1].linenumY + 1) {
-            part_par[start].connect_pos[2 * part_par[start].linenumY + 2
-                + part_par[start].connect_length[2]] = help;
-            part_par[start].connect_length[2]++;
-            part_par[start - 1].connect_pos[2 * part_par[start - 1].linenumY
-                + part_par[start - 1].linenumX + 3
-                + part_par[start - 1].connect_length[3]] = help2;
-            part_par[start - 1].connect_length[3]++;
-          }
-          help +=
-              part_par[start].actX_length[k + row - part_par[start].empty[0]];
-        }
-      }
-    }
-  }
-
-  for (i = 0; i < parts * parts; i++) {
-    if (part_par[i].connect_length[0] < 1)
-      part_par[i].connect_length[0] = 1;
-    if (part_par[i].connect_length[1] < 1)
-      part_par[i].connect_length[1] = 1;
-    if (part_par[i].connect_length[2] < 1)
-      part_par[i].connect_length[2] = 1;
-    if (part_par[i].connect_length[3] < 1)
-      part_par[i].connect_length[3] = 1;
-  }
-
-  /* create connection from results on parts to result */
-  for (i = 0; i < parts * parts; i++)
-    I_sub_p_iter[i] = part_par[i].actconnect;
-  for (i = 0; i < numofresults; i++)
-    actweight[i] = 0;
-  startweight = actweight;
-  start = 0;
-  if (I_sub[0]) {
-    (*startweight)++;
-    startweight++;
-    *(I_sub_p_iter[I_sub[0] - 1]++) = start;
-    start++;
-  }
-  for (j = 0; j < linenum - 1; j++) {
-    if (I_sub[j]) {
-      (*startweight)++;
-      *(I_sub_p_iter[I_sub[j] - 1]++) = start;
-    }
-    if (I_sub[j + 1] != 0 && I_sub[j + 1] != I_sub[j]) {
-      (*startweight)++;
-      *(I_sub_p_iter[I_sub[j + 1] - 1]++) = start;
-    }
-    if (*startweight) {
-      startweight++;
-      start++;
-    }
-  }
-  if (I_sub[linenum - 1]) {
-    (*startweight)++;
-    *(I_sub_p_iter[I_sub[linenum - 1] - 1]++) = start;
-    startweight++;
-    start++;
-  }
-  for (i = 0; i < linenum - 1; i++) {
-    if (I_sub[i * linenum]) {
-      (*startweight)++;
-      *(I_sub_p_iter[I_sub[i * linenum] - 1]++) = start;
-    }
-    if (I_sub[(i + 1) * linenum] != 0
-        && I_sub[(i + 1) * linenum] != I_sub[i * linenum]) {
-      (*startweight)++;
-      *(I_sub_p_iter[I_sub[(i + 1) * linenum] - 1]++) = start;
-    }
-    if (*startweight) {
-      startweight++;
-      start++;
-    }
-    for (j = 0; j < linenum - 1; j++) {
-      if (I_sub[i * linenum + j]) {
-        (*startweight)++;
-        *(I_sub_p_iter[I_sub[i * linenum + j] - 1]++) = start;
-      }
-      if (I_sub[i * linenum + j + 1] != 0
-          && I_sub[i * linenum + j + 1] != I_sub[i * linenum + j]) {
-        (*startweight)++;
-        *(I_sub_p_iter[I_sub[i * linenum + j + 1] - 1]++) = start;
-      }
-      if (I_sub[(i + 1) * linenum + j] != 0
-          && I_sub[(i + 1) * linenum + j] != I_sub[i * linenum + j]
-          && I_sub[(i + 1) * linenum + j] != I_sub[i * linenum + j + 1]) {
-        (*startweight)++;
-        *(I_sub_p_iter[I_sub[(i + 1) * linenum + j] - 1]++) = start;
-      }
-      if (I_sub[(i + 1) * linenum + j + 1] != 0
-          && I_sub[(i + 1) * linenum + j + 1] != I_sub[(i + 1) * linenum + j]
-          && I_sub[(i + 1) * linenum + j + 1] != I_sub[i * linenum + j + 1]) {
-        (*startweight)++;
-        *(I_sub_p_iter[I_sub[(i + 1) * linenum + j + 1] - 1]++) = start;
-      }
-      if (*startweight) {
-        startweight++;
-        start++;
-      }
-    }
-    if (I_sub[(i + 1) * linenum - 1]) {
-      (*startweight)++;
-      *(I_sub_p_iter[I_sub[(i + 1) * linenum - 1] - 1]++) = start;
-    }
-    if (I_sub[(i + 2) * linenum - 1] != 0
-        && I_sub[(i + 2) * linenum - 1] != I_sub[(i + 1) * linenum - 1]) {
-      (*startweight)++;
-      *(I_sub_p_iter[I_sub[(i + 2) * linenum - 1] - 1]++) = start;
-    }
-    if (*startweight) {
-      startweight++;
-      start++;
-    }
-  }
-  if (I_sub[(linenum - 1) * linenum]) {
-    (*startweight)++;
-    startweight++;
-    *(I_sub_p_iter[I_sub[(linenum - 1) * linenum] - 1]++) = start;
-    start++;
-  }
-  for (j = 0; j < linenum - 1; j++) {
-    if (I_sub[(linenum - 1) * linenum + j]) {
-      (*startweight)++;
-      *(I_sub_p_iter[I_sub[(linenum - 1) * linenum + j] - 1]++) = start;
-    }
-    if (I_sub[(linenum - 1) * linenum + j + 1] != 0
-        && I_sub[(linenum - 1) * linenum + j + 1]
-            != I_sub[(linenum - 1) * linenum + j]) {
-      (*startweight)++;
-      *(I_sub_p_iter[I_sub[(linenum - 1) * linenum + j + 1] - 1]++) = start;
-    }
-    if (*startweight) {
-      startweight++;
-      start++;
-    }
-  }
-  if (I_sub[linenum * linenum - 1]) {
-    (*startweight)++;
-    startweight++;
-    *(I_sub_p_iter[I_sub[linenum * linenum - 1] - 1]++) = start;
-    start++;
-  }
+/* create connection from results on parts to result */
+for(i = 0; i < parts*parts; i++)
+	I_sub_p_iter[i] = part_par[i].actconnect;
+for(i = 0; i < numofresults; i++)
+	actweight[i] = 0;
+startweight = actweight;
+start = 0;
+if(I_sub[0]) {
+	(*startweight)++;
+	startweight++;
+	*(I_sub_p_iter[I_sub[0]-1]++) = start;
+	start++;
+	}
+for(j = 0; j < linenum-1; j++) {
+	if(I_sub[j]) {
+		(*startweight)++;
+		*(I_sub_p_iter[I_sub[j]-1]++) = start;
+		}
+	if(I_sub[j+1] != 0 && I_sub[j+1] != I_sub[j]) {
+		(*startweight)++;
+		*(I_sub_p_iter[I_sub[j+1]-1]++) = start;
+		}
+	if(*startweight) {
+		startweight++;
+		start++;
+		}
+	}
+if(I_sub[linenum-1]) {
+	(*startweight)++;
+	*(I_sub_p_iter[I_sub[linenum-1]-1]++) = start;
+	startweight++;
+	start++;
+	}
+for(i = 0; i < linenum-1; i++) {
+	if(I_sub[i*linenum]) {
+		(*startweight)++;
+		*(I_sub_p_iter[I_sub[i*linenum]-1]++) = start;
+		}
+	if(I_sub[(i+1)*linenum] != 0 && I_sub[(i+1)*linenum] != I_sub[i*linenum]) {
+		(*startweight)++;
+		*(I_sub_p_iter[I_sub[(i+1)*linenum]-1]++) = start;
+		}
+	if(*startweight) {
+		startweight++;
+		start++;
+		}
+	for(j = 0; j < linenum-1; j++) {
+		if(I_sub[i*linenum+j]) {
+			(*startweight)++;
+			*(I_sub_p_iter[I_sub[i*linenum+j]-1]++) = start;
+			}
+		if(I_sub[i*linenum+j+1] != 0 && I_sub[i*linenum+j+1] != I_sub[i*linenum+j]) {
+			(*startweight)++;
+			*(I_sub_p_iter[I_sub[i*linenum+j+1]-1]++) = start;
+			}
+		if(I_sub[(i+1)*linenum+j] != 0 && I_sub[(i+1)*linenum+j] != I_sub[i*linenum+j] && I_sub[(i+1)*linenum+j] != I_sub[i*linenum+j+1]) {
+			(*startweight)++;
+			*(I_sub_p_iter[I_sub[(i+1)*linenum+j]-1]++) = start;
+			}
+		if(I_sub[(i+1)*linenum+j+1] != 0 && I_sub[(i+1)*linenum+j+1] != I_sub[(i+1)*linenum+j] && I_sub[(i+1)*linenum+j+1] != I_sub[i*linenum+j+1]) {
+			(*startweight)++;
+			*(I_sub_p_iter[I_sub[(i+1)*linenum+j+1]-1]++) = start;
+			}
+		if(*startweight) {
+			startweight++;
+			start++;
+			}
+		}
+	if(I_sub[(i+1)*linenum-1]) {
+		(*startweight)++;
+		*(I_sub_p_iter[I_sub[(i+1)*linenum-1]-1]++) = start;
+		}
+	if(I_sub[(i+2)*linenum-1] != 0 && I_sub[(i+2)*linenum-1] != I_sub[(i+1)*linenum-1]) {
+		(*startweight)++;
+		*(I_sub_p_iter[I_sub[(i+2)*linenum-1]-1]++) = start;
+		}
+	if(*startweight) {
+		startweight++;
+		start++;
+		}
+	}
+if(I_sub[(linenum-1)*linenum]) {
+	(*startweight)++;
+	startweight++;
+	*(I_sub_p_iter[I_sub[(linenum-1)*linenum]-1]++) = start;
+	start++;
+	}
+for(j = 0; j < linenum-1; j++) {
+	if(I_sub[(linenum-1)*linenum+j]) {
+		(*startweight)++;
+		*(I_sub_p_iter[I_sub[(linenum-1)*linenum+j]-1]++) = start;
+		}
+	if(I_sub[(linenum-1)*linenum+j+1] != 0 && I_sub[(linenum-1)*linenum+j+1] != I_sub[(linenum-1)*linenum+j]) {
+		(*startweight)++;
+		*(I_sub_p_iter[I_sub[(linenum-1)*linenum+j+1]-1]++) = start;
+		}
+	if(*startweight) {
+		startweight++;
+		start++;
+		}
+	}
+if(I_sub[linenum*linenum-1]) {
+	(*startweight)++;
+	startweight++;
+	*(I_sub_p_iter[I_sub[linenum*linenum-1]-1]++) = start;
+	start++;
+	}
 
   /* create the data field for the parts */
   for (i = 0; i < parts * parts; i++) {
@@ -753,6 +613,86 @@ void curefree(sysCure* sys, parCure *par){
     safefree(sys->I_sub);
     safefree(sys->I_fried);
     safefree(sys);
+  }
+}
+
+void fModPyrMeas__ao(const int nSubap, const float Sx[], const float Sy[], float Sxs[], float Sys[])
+
+
+{
+  int jc;
+  int ic;
+  int ja1;
+  int ja2;
+  float s;
+  int ja;
+  int b_ja;
+  int i0;
+  int ia;
+  int jb;
+  int i1;
+  
+  //XAO 200 subaps
+  //static const float kernel[11] = { -0.0462, 0.0, -0.1366, 0.0, -1.2683, 3.1466, -1.2683, 0.0, -0.1366, 0.0, -0.0462 };
+ 
+  //METIS 38 subaps modulation 4
+  static const float kernel[11] = { -0.0002, 0.0388, -0.0216, 0.0606, -0.5708, 1.6404, -0.5708, 0.0606, -0.0216, 0.0388,   -0.0002 };
+ 
+  
+  for (jc = 0; jc < nSubap; jc++) {
+    for (ic = 0; ic < nSubap; ic++) {
+      if (11 < 7 + ic) {
+        ja1 = ic - 11;
+      } else {
+        ja1 = -6;
+      }
+
+      if (nSubap < 6 + ic) {
+        ja2 = nSubap-6;
+      } else {
+        ja2 = ic;
+      }
+
+      s = 0.0;
+      for (ja = 0; ja < 1; ja++) {
+        b_ja = jc + ja;
+        i0 = (ja2 - ja1) - 1;
+        for (ia = 0; ia <= i0; ia++) {
+          jb = (ja1 + ia) + 1;
+          s += Sx[(jb + nSubap * b_ja) + 5] * kernel[ic - jb];
+        }
+      }
+
+      Sxs[ic + nSubap * jc] = s;
+    }
+  }
+
+  for (jc = 0; jc < nSubap; jc++) {
+    if (11 < 7 + jc) {
+      ja1 = jc - 11;
+    } else {
+      ja1 = -6;
+    }
+
+    if (nSubap < 6 + jc) {
+      ja2 = nSubap-6;
+    } else {
+      ja2 = jc;
+    }
+
+    for (ic = 0; ic < nSubap; ic++) {
+      s = 0.0;
+      i1 = (ja2 - ja1) - 1;
+      for (ja = 0; ja <= i1; ja++) {
+        b_ja = ja1 + ja;
+        jb = (jc - b_ja) - 1;
+        for (ia = 0; ia < 1; ia++) {
+          s += Sy[(ic + ia) + nSubap * (b_ja + 6)] * kernel[jb];
+        }
+      }
+
+      Sys[ic + nSubap * jc] = s;
+    }
   }
 }
 
@@ -1103,10 +1043,15 @@ int cured(sysCure* sys, parCure *par, float *data, float *result_vec, float *ttX
 
   /* variable definitions */
   int i, j, k, l, m, start, help, len1, len2, len3, len4;
+  int ii;
   int ndivs = sys->ndivs;
   int parts = 1 << ndivs;
   int numofelems = sys->numofelems;
   int numofresults = sys->numofresults;
+  
+  int linenum = sys->linenum;
+  int *I_sub = sys->I_sub;
+  
   int *S_connect = par->S_connect;
   float error, v1, v2, diff1, diff2, diff3, diff4, shift1, shift2, shift3;
   float tiptiltX=0.0, tiptiltY=0.0;
@@ -1121,24 +1066,79 @@ int cured(sysCure* sys, parCure *par, float *data, float *result_vec, float *ttX
   float **result_p = par->result_p;
   float **connect = par->connect;
 
+  dataX = sys->dataX;
+  dataY = sys->dataY;
+  
   p_par *part_par = par->parts;
   p_arrays *part_arrays = par->arrays;
 
   /* connection from data array to Sx, Sy */
-  dataX = &(data[0]);
-  dataY = &(data[numofelems]);
-/* tiptilt separation */
+  //old code: set data pointer to compass array 
+  //dataX = &(data[0]);
+  //dataY = &(data[numofelems]);  
+  //--> new code: copy data from compass to internal array 
+  
+  //AO_ToDo: better not copy but use pointer on data in initCure routine...
+  //AO_ToDo: workaround here with local arrays for measurements
+  for (i=0; i<sys->numofelems; i++)
+  {
+    dataX[i] = data[i];  // short for: sys->dataX[i] = data[i];
+    dataY[i] = data[numofelems + i]; // short for: sys->dataY[i] = data[i];
+  }
+  
 
+  // Preprocessing for PWFS   
+  int PWFS = 0;
+  if (PWFS) {
+  
+    float Sx[linenum*linenum];
+    float Sy[linenum*linenum];
+    float Sxs[linenum*linenum];
+    float Sys[linenum*linenum];
+    int idx=0;
+    for(ii=0;ii<linenum*linenum;ii++) {
+      if (I_sub[ii]) {
+        Sx[ii] = dataX[idx];
+        Sy[ii] = dataY[idx];
+        idx++;
+      } else {
+        Sx[ii]=0.0;
+        Sy[ii]=0.0;
+      }  
+      
+      Sxs[ii]=0.0;
+      Sys[ii]=0.0; 
+    }
+    
+    //printf("0> Preprocessing applied now...  \n");
+    fModPyrMeas__ao(linenum, Sx, Sy, Sxs, Sys);
+
+    //copy preprocessed output to arrays holding WFS measurements dataX and dataY
+    idx=0;
+    for(ii=0;ii<linenum*linenum;ii++) {
+      if (I_sub[ii]) {
+        dataX[idx] = Sxs[ii];
+        dataY[idx] = Sys[ii];
+        idx++;
+      }
+    }
+
+  }
+  
+  
+  
+float ttgain = 1.0;
+/* tiptilt separation */
  if(ttX!=NULL &&  ttY!=NULL){
    for(i = 0; i < numofelems; i++)
      tiptiltX += dataX[i];
    tiptiltX /= numofelems;
-   *ttX = tiptiltX;
+   *ttX = ttgain * tiptiltX;
    
    for(i = 0; i < numofelems; i++)
      tiptiltY += dataY[i];
    tiptiltY /= numofelems;
-   *ttY = tiptiltY;
+   *ttY = ttgain * tiptiltY;
  }
  
   /* distribute Sx, Sy */
@@ -1284,3 +1284,5 @@ int cured(sysCure* sys, parCure *par, float *data, float *result_vec, float *ttX
 
   return 0;
 }
+
+

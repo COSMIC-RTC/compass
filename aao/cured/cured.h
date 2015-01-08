@@ -57,6 +57,9 @@ typedef struct {
   int *I_sub; /* mask of active subapertures */
   int *I_fried; /* mask of actuators according to the Fried geometry */
   int *I_act; /* mask of active actuators ( = I_fried) */
+  float *dataX; /* array holding measurements (X), needed to have a fixed adress for prepro step */
+  float *dataY; /* array holding measurements (Y) */
+
 } sysCure;
 
 typedef struct {
@@ -75,7 +78,7 @@ typedef struct {
 
 /* system setup - needs yao_params.txt for the system description */
 /* creates the system struct sysCure */
-sysCure* cureSystem();
+
 sysCure* cureSystem(int linenum, int numofelems, int numofresults, int *I_sub, int ndivs);
 
 /* creating structs needed too run CuReD */
