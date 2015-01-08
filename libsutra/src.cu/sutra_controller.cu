@@ -1,5 +1,5 @@
 #include <sutra_controller.h>
-
+#include <math_constants.h>
 /*
  _  __                    _     
  | |/ /___ _ __ _ __   ___| |___ 
@@ -148,6 +148,55 @@ pupphase_krnl(float *o_data, float *i_data, int *indx_pup, int N){
 		tid += blockDim.x * gridDim.x;
 	}
 }
+
+__device__ cuComplex
+exp_complex(cuComplex z){
+	cuComplex res;
+	float t = expf(z.x);
+	sincosf(z.y,&res.y,&res.x);
+	res.x *= t;
+	res.y *= t;
+
+	return res;
+}
+
+__global__ void
+compute_Hcor_krnl(float *o_data, int nrow, int ncol, float Fs, float Te, float gmin, float gmax, int delay){
+	int tid = threadIdx.x + blockIdx.x * blockDim.x;
+	int j = tid/nrow;
+	int i = tid - j*nrow;
+
+	float step = (Fs/2.0f - (Fs/(2*ncol)))/(ncol-1);
+	float f = Fs/(2*ncol) + j*step;
+	float G = gmin + i*(gmax-gmin)/(nrow-1);
+	cuFloatComplex pTe = make_cuFloatComplex(0.0f,2*CUDART_PI_F*f*Te);
+	cuFloatComplex moins_pTe = make_cuFloatComplex(0.0f,-2*CUDART_PI_F*f*Te);
+	cuFloatComplex pTe2 = cuCmulf(pTe,pTe);
+	cuFloatComplex UnMoinsepTe = make_cuFloatComplex(1.0f-exp_complex(moins_pTe).x,-exp_complex(moins_pTe).y);
+	cuFloatComplex pdelay = make_cuFloatComplex(0.0f,-2*CUDART_PI_F*f*Te*delay);
+
+	cuFloatComplex res = cuCdivf(UnMoinsepTe,pTe2);
+	cuFloatComplex Hbo = cuCmulf(res,exp_complex(pdelay));
+	Hbo.x = 1 + G*Hbo.x;
+	Hbo.y *= G;
+	float mod = cuCabsf(Hbo);
+
+	o_data[tid] = 1/(mod * mod);
+
+}
+
+__global__ void
+absnormfft_krnl(cuFloatComplex *idata, float *odata, int N, float norm){
+	int tid = threadIdx.x + blockIdx.x * blockDim.x;
+	cuFloatComplex cache;
+	while (tid < N){
+		cache = idata[tid + 1]; // Reject first element (0 frequency)
+		odata[tid] = (cache.x * cache.x + cache.y * cache.y) * norm;
+		tid += blockDim.x * gridDim.x;
+	}
+
+}
+
 /*
  _                           _                   
  | |    __ _ _   _ _ __   ___| |__   ___ _ __ ___ 
@@ -362,5 +411,28 @@ get_pupphase(float *o_data, float *i_data, int *indx_pup, int Nphi, int device){
 	pupphase_krnl<<<grid , threads>>>(o_data,i_data,indx_pup,Nphi);
 	cutilCheckMsg("pupphase_krnl<<<>>> execution failed\n");
 
+	return EXIT_SUCCESS;
+}
+
+int
+compute_Hcor_gpu(float *o_data, int nrow, int ncol, float Fs, float gmin, float gmax, int delay, int device){
+	int nthreads = 0, nblocks = 0;
+	getNumBlocksAndThreads(device, nrow*ncol, nblocks, nthreads);
+	dim3 grid(nblocks), threads(nthreads);
+
+	compute_Hcor_krnl<<<grid , threads>>>(o_data,nrow,ncol,Fs,1.0f/Fs,gmin,gmax,delay);
+	cutilCheckMsg("compute_Hcor_krnl<<<>>> execution failed\n");
+
+	return EXIT_SUCCESS;
+}
+
+int
+absnormfft(cuFloatComplex *idata, float *odata, int N, float norm, int device){
+	int nthreads = 0, nblocks = 0;
+	getNumBlocksAndThreads(device, N, nblocks, nthreads);
+	dim3 grid(nblocks), threads(nthreads);
+
+	absnormfft_krnl<<<grid , threads>>>(idata,odata,N,norm);
+	cutilCheckMsg("absnormfft_krnl<<<>>> execution failed\n");
 	return EXIT_SUCCESS;
 }

@@ -210,6 +210,11 @@ struct controller_struct
   long    nkl;      // Florain features : number of KL modes used for computation of covmat in case of minimum variance controller
   long    cured_ndivs; // subdivision levels in cured
   int     modopti;  // Flag for modal optimization
+  int     nrec;     // Number of sample of open loop slopes for modal optimization computation
+  int     nmodes;   // Number of modes for M2V matrix (modal optimization)
+  float     gmin;     // Minimum gain for modal optimization
+  float     gmax;     // Maximum gain for modal optimization
+  int     ngain;    // Number of tested gains
 };
 
 struct loop_struct

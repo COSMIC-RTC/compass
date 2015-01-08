@@ -2363,6 +2363,23 @@ void Y_rtc_setgain(int argc) {
   }
 }
 
+void Y_rtc_getmgain(int argc) {
+  rtc_struct *rhandler = (rtc_struct *) yget_obj(argc - 1, &yRTC);
+  sutra_rtc *rtc_handler = (sutra_rtc *) (rhandler->sutra_rtc);
+  long ncontrol = ygets_l(argc - 2);
+
+  carma_context *context_handle = _getCurrentContext();
+  context_handle->set_activeDeviceForCpy(rhandler->device);
+
+  if (rtc_handler->d_control.at(ncontrol)->get_type().compare("ls") == 0) {
+    SCAST(sutra_controller_ls *, control, rtc_handler->d_control.at(ncontrol));
+      float *data = ypush_f((long*) control->d_gain->getDims());
+      control->d_gain->device2host(data);
+  } else {
+    y_error("Controller needs to be ls or mv\n");
+  }
+}
+
 void Y_rtc_loadmgain(int argc) {
   long ntot;
   long dims[Y_DIMSIZE];
@@ -2439,6 +2456,94 @@ void Y_rtc_getnoisemat(int argc) {
     control->d_noisemat->device2host(data);
   } else {
     y_error("Controller needs to be mv\n");
+  }
+}
+
+void Y_rtc_getslpol(int argc) {
+  rtc_struct *rhandler = (rtc_struct *) yget_obj(argc - 1, &yRTC);
+  sutra_rtc *rtc_handler = (sutra_rtc *) (rhandler->sutra_rtc);
+  long ncontrol = ygets_l(argc - 2);
+
+  carma_context *context_handle = _getCurrentContext();
+  context_handle->set_activeDeviceForCpy(rhandler->device);
+
+  if (rtc_handler->d_control.at(ncontrol)->get_type().compare("ls") == 0) {
+    SCAST(sutra_controller_ls *, control, rtc_handler->d_control.at(ncontrol));
+    if (control->is_modopti == 1){
+      float *data = ypush_f((long*) control->d_slpol->getDims());
+      control->d_slpol->device2host(data);
+    }
+    else {
+      y_error("Modal Optimization not initialized");
+    }
+  } else {
+    y_error("Controller needs to be ls\n");
+  }
+}
+
+void Y_rtc_getHcor(int argc) {
+  rtc_struct *rhandler = (rtc_struct *) yget_obj(argc - 1, &yRTC);
+  sutra_rtc *rtc_handler = (sutra_rtc *) (rhandler->sutra_rtc);
+  long ncontrol = ygets_l(argc - 2);
+
+  carma_context *context_handle = _getCurrentContext();
+  context_handle->set_activeDeviceForCpy(rhandler->device);
+
+  if (rtc_handler->d_control.at(ncontrol)->get_type().compare("ls") == 0) {
+    SCAST(sutra_controller_ls *, control, rtc_handler->d_control.at(ncontrol));
+    if (control->is_modopti == 1){
+      float *data = ypush_f((long*) control->d_Hcor->getDims());
+      control->d_Hcor->device2host(data);
+    }
+    else {
+      y_error("Modal Optimization not initialized");
+    }
+  } else {
+    y_error("Controller needs to be ls\n");
+  }
+}
+
+void Y_rtc_getS2M(int argc) {
+  rtc_struct *rhandler = (rtc_struct *) yget_obj(argc - 1, &yRTC);
+  sutra_rtc *rtc_handler = (sutra_rtc *) (rhandler->sutra_rtc);
+  long ncontrol = ygets_l(argc - 2);
+
+  carma_context *context_handle = _getCurrentContext();
+  context_handle->set_activeDeviceForCpy(rhandler->device);
+
+  if (rtc_handler->d_control.at(ncontrol)->get_type().compare("ls") == 0) {
+    SCAST(sutra_controller_ls *, control, rtc_handler->d_control.at(ncontrol));
+    if (control->is_modopti == 1){
+      float *data = ypush_f((long*) control->d_S2M->getDims());
+      control->d_S2M->device2host(data);
+    }
+    else {
+      y_error("Modal Optimization not initialized");
+    }
+  } else {
+    y_error("Controller needs to be ls\n");
+  }
+}
+
+void Y_rtc_getM2V(int argc) {
+  rtc_struct *rhandler = (rtc_struct *) yget_obj(argc - 1, &yRTC);
+  sutra_rtc *rtc_handler = (sutra_rtc *) (rhandler->sutra_rtc);
+  long ncontrol = ygets_l(argc - 2);
+
+  carma_context *context_handle = _getCurrentContext();
+  context_handle->set_activeDeviceForCpy(rhandler->device);
+
+  if (rtc_handler->d_control.at(ncontrol)->get_type().compare("ls") == 0) {
+    SCAST(sutra_controller_ls *, control, rtc_handler->d_control.at(ncontrol));
+    if (control->is_modopti == 1){
+      float *data = ypush_f((long*) control->d_M2V->getDims());
+      control->d_M2V->device2host(data);
+    }
+    else {
+      y_error("Modal Optimization not initialized");
+    }
+  } else {
+    y_error("Controller needs to be ls\n");
   }
 }
 
@@ -2724,6 +2829,48 @@ void Y_rtc_init_proj(int argc) {
     control->init_proj(dms_handler,indx_dm,unitpervolt,indx_pup);
 }
   else y_error("**** ERROR : init_proj only for controller type geo **** \n");
+}
+
+void Y_rtc_initModalOpti(int argc) {
+  long ntot;
+  long dims[Y_DIMSIZE];
+  rtc_struct *rhandler = (rtc_struct *) yget_obj(argc - 1, &yRTC);
+  sutra_rtc *rtc_handler = (sutra_rtc *) (rhandler->sutra_rtc);
+  long ncontrol = ygets_l(argc - 2);
+  float nmodes = ygets_f(argc - 3);
+  float nrec = ygets_f(argc - 4);
+  float *M2V = ygeta_f(argc - 5, &ntot, dims);
+  float gmin = ygets_f(argc - 6);
+  float gmax = ygets_f(argc - 7);
+  int ngain = ygets_i(argc - 8);
+  float Fs = ygets_f(argc - 9);
+
+  carma_context *context_handle = _getCurrentContext();
+  context_handle->set_activeDeviceForCpy(rhandler->device);
+
+  if (rtc_handler->d_control.at(ncontrol)->get_type().compare("ls") == 0) {
+    SCAST(sutra_controller_ls *, control, rtc_handler->d_control.at(ncontrol));
+    control->init_modalOpti(nmodes,nrec,M2V,gmin,gmax,ngain,Fs);
+}
+  else y_error("**** ERROR : Modal Optimization only for controller type ls **** \n");
+  
+}
+
+void Y_rtc_modalControlOptimization(int argc) {
+  rtc_struct *rhandler = (rtc_struct *) yget_obj(argc - 1, &yRTC);
+  sutra_rtc *rtc_handler = (sutra_rtc *) (rhandler->sutra_rtc);
+  long ncontrol = ygets_l(argc - 2);
+
+  carma_context *context_handle = _getCurrentContext();
+  context_handle->set_activeDeviceForCpy(rhandler->device);
+
+  if (rtc_handler->d_control.at(ncontrol)->get_type().compare("ls") == 0) {
+    SCAST(sutra_controller_ls *, control, rtc_handler->d_control.at(ncontrol));
+    if(control->is_modopti)
+      control->modalControlOptimization();
+    else y_error("**** ERROR : Modal Optimization not initialized **** \n");
+}
+  else y_error("**** ERROR : Modal Optimization only for controller type ls **** \n");
 }
 
 void Y_rtc_imatsvd(int argc) {

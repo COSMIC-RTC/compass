@@ -43,8 +43,18 @@ sutra_controller_ls::sutra_controller_ls(carma_context *context, long nvalid,
   this->d_M2V = 0L;
   this->d_S2M = 0L;
   this->d_slpol = 0L;
+  this->d_Hcor = 0L;
+  this->d_com1 = 0L;
+  this->d_com2 = 0L;
+  this->d_compbuff = 0L;
+  this->d_compbuff2 = 0L;
+  this->cpt_rec = 0;
   this->nrec = 0;
   this->nmodes = 0;
+  this->gmin = 0.0f;
+  this->gmax = 0.0f;
+  this->ngain = 0;
+  this->Fs = 0.0f;
 
   dims_data1[1] = nactu;
   this->d_err = new carma_obj<float>(context, dims_data1);
@@ -69,6 +79,11 @@ sutra_controller_ls::~sutra_controller_ls() {
 	  delete this->d_M2V;
 	  delete this->d_S2M;
 	  delete this->d_slpol;
+	  delete this->d_Hcor;
+	  delete this->d_com1;
+	  delete this->d_com2;
+	  delete this->d_compbuff;
+	  delete this->d_compbuff2;
   }
 }
 
@@ -217,12 +232,31 @@ int sutra_controller_ls::comp_com() {
 
   this->frame_delay();
   int nstreams = streams->get_nbStreams();
+
+  if(this->is_modopti){
+	if(this->cpt_rec > this->nrec-1 + this->delay){
+		cout <<"Refreshing modal gains..."<< endl;
+		modalControlOptimization();
+		this->cpt_rec = 0;
+	}
+	if(cpt_rec>=this->delay){
+	// POLC to retrieve open-loop measurements for further refreshing modal gains
+		this->d_com2->copy(this->d_com1, 1, 1);
+		this->d_com1->copy(this->d_com, 1, 1);
+		// POLC equations
+		carma_geam<float>(cublas_handle(), 'n', 'n', nactu(), 1, (float)(delay-1), this->d_com2->getData(),
+			nactu(), 1.0f - (delay-1), this->d_com1->getData(), nactu(), this->d_compbuff->getData(), nactu());
+		carma_gemv<float>(cublas_handle(), 'n', nslope(), nactu(), 1.0f, *d_imat, nslope(),
+			*d_compbuff, 1, 0.0f, *d_compbuff2, 1);
+		carma_geam<float>(cublas_handle(), 'n', 'n', nslope(), 1, 1.0f, *d_centroids,
+			nslope(), -1.0f, *d_compbuff2, nslope(), this->d_slpol->getData((this->cpt_rec-this->delay)*nslope()), nslope());
+	}
+	this->cpt_rec++;
+  }
   if (nstreams > 1) {
     float alpha = -1.0f;
     float beta = 0.0f;
-    //cout << this->d_cmat->getDims(1) << " x " << this->d_cmat->getDims(2) << endl;
-    //cout << this->d_centroids->getNbElem()<< endl;
-    //cout << this->d_err->getNbElem()<< endl;
+
     for (int i = 0; i < nstreams; i++) {
       int istart1 = i * this->d_cmat->getDims(2) * this->d_cmat->getDims(1)
           / nstreams;
@@ -254,28 +288,132 @@ int sutra_controller_ls::comp_com() {
         this->d_centroids, 1, 0.0f, 1);
 
     // apply modal gain & loop gain
-    mult_int(this->d_com->getData(), this->d_err->getData(),
+    if(this->is_modopti)
+      mult_int(this->d_com->getData(), this->d_err->getData(),
+        this->gain, this->nactu(), this->device);
+    else
+      mult_int(this->d_com->getData(), this->d_err->getData(),
         this->d_gain->getData(), this->gain, this->nactu(), this->device);
   }
 
   return EXIT_SUCCESS;
 }
 
-int sutra_controller_ls::init_modalOpti(int nmodes, int nrec){
+int sutra_controller_ls::build_cmat_modopti(){
+
+	long dims_data2[3] = {2,nactu(),this->nmodes};
+	carma_obj<float> d_tmp(current_context,dims_data2);
+
+	// Compute cmat as M2V*(modal gains)*S2M
+	carma_dgmm(cublas_handle(),CUBLAS_SIDE_RIGHT,nactu(),this->nmodes,
+			this->d_M2V->getData(),nactu(),this->d_gain->getData(),1,
+			d_tmp.getData(),nactu());
+	carma_gemm(cublas_handle(),'n','n',nactu(),nslope(),this->nmodes,1.0f,
+			d_tmp.getData(),nactu(),this->d_S2M->getData(),this->nmodes,0.0f,
+			this->d_cmat->getData(),nactu());
+
+	return EXIT_SUCCESS;
+}
+
+int sutra_controller_ls::init_modalOpti(int nmodes, int nrec, float *M2V, float gmin, float gmax,
+											int ngain, float Fs){
 
 	this->is_modopti = 1;
+	this->cpt_rec = 0;
 	this->nrec = nrec;
 	this->nmodes = nmodes;
+	this->gmin = gmin;
+	this->gmax = gmax;
+	this->ngain = ngain;
+	this->gain = 1.0f;
+	this->Fs = Fs;
+	long dims_data1[2] = {1,nmodes};
+	this->d_gain = new carma_obj<float>(current_context,dims_data1);
+	dims_data1[1] = nactu();
+	this->d_com1 = new carma_obj<float>(current_context,dims_data1);
+	this->d_com2 = new carma_obj<float>(current_context,dims_data1);
+	this->d_compbuff = new carma_obj<float>(this->current_context, dims_data1);
+	dims_data1[1] = nslope();
+	this->d_compbuff2 = new carma_obj<float>(this->current_context, dims_data1);
 	long dims_data2[3] = {2,nactu(),nmodes};
-	this->d_M2V = new carma_obj<float>(current_context,dims_data2);
+	this->d_M2V = new carma_obj<float>(current_context,dims_data2,M2V);
 	dims_data2[1] = nslope();
 	dims_data2[2] = nrec;
 	this->d_slpol = new carma_obj<float>(current_context,dims_data2);
 	dims_data2[1] = nmodes;
 	dims_data2[2] = nslope();
 	this->d_S2M = new carma_obj<float>(current_context,dims_data2);
+	dims_data2[1] = nslope();
+	dims_data2[2] = nmodes;
+	carma_obj<float> *d_tmp = new carma_obj<float>(current_context,dims_data2);
+	dims_data2[1] = nmodes;
+	carma_obj<float> *d_tmp2 = new carma_obj<float>(current_context,dims_data2);
 
+	cout << "Computing S2M matrix..."<< endl;
+	// 1. tmp = D*M2V
+	carma_gemm(cublas_handle(), 'n', 'n', nslope(), nmodes, nactu(), 1.0f,
+	      this->d_imat->getData(), nslope(), d_M2V->getData(), nactu(), 0.0f,
+	      d_tmp->getData(), nslope());
+	// 2. tmp2 = (D*M2V)t * (D*M2V)
+	carma_gemm(cublas_handle(), 't', 'n', nmodes, nmodes, nslope(), 1.0f,
+		      d_tmp->getData(), nslope(), d_tmp->getData(), nslope(), 0.0f,
+		      d_tmp2->getData(), nmodes);
+	
+	// 3. tmp2 = (tmp2)⁻¹
+	carma_potri(d_tmp2);
+	// 4. S2M = (D*M2V)⁻¹
+	carma_gemm(cublas_handle(), 'n', 't', nmodes, nslope(), nmodes, 1.0f,
+			      d_tmp2->getData(), nmodes, d_tmp->getData(), nslope(), 0.0f,
+			      d_S2M->getData(), nmodes);
+
+	delete d_tmp;
+	delete d_tmp2;
+
+	cout <<"Computing transfer functions..."<< endl;
+	compute_Hcor();
+	
 	return EXIT_SUCCESS;
+}
+
+int sutra_controller_ls::modalControlOptimization(){
+
+  long dims_data[2] = {1,this->nrec/2 + 1};
+  carma_obj<cuFloatComplex> d_FFT(current_context,dims_data);
+  dims_data[1] = this->nrec/2;
+  carma_obj<float> d_fftmodes(current_context,dims_data);
+  dims_data[1] = this->ngain;
+  carma_obj<float> d_phaseError(current_context,dims_data);
+  long dims_data2[3] = {2,this->nrec,this->nmodes};
+  carma_obj<float> d_modes(current_context,dims_data2);
+  int imin;
+  float mgain[this->nmodes];
+
+  // 1. modes = S2M * slopes_open_loop and transpose for fft
+  carma_gemm(cublas_handle(),'t','t',this->nrec,this->nmodes,nslope(),1.0f,
+	     this->d_slpol->getData(),nslope(),this->d_S2M->getData(),this->nmodes,0.0f,
+	     d_modes.getData(),this->nrec);
+  this->d_slpol->scale(0.0f,1);
+
+  // 2. Init and compute FFT modes
+  dims_data[1] = this->nrec;
+  carma_initfft<float,cuFloatComplex>(dims_data,d_modes.getPlan(),CUFFT_R2C);
+  for(int i=0; i < this->nmodes ; i++){
+    carma_fft<float,cuFloatComplex>(d_modes.getData(i*this->nrec),d_FFT.getData(),-1,*d_modes.getPlan());
+    absnormfft(d_FFT.getData(),d_fftmodes.getData(),this->nrec/2,2.0f/(float)this->nrec,this->device);
+    carma_gemv(cublas_handle(),'n',this->ngain,this->nrec/2,1.0f,
+    		this->d_Hcor->getData(),this->ngain,
+    		d_fftmodes.getData(),1,0.0f, d_phaseError.getData(),1);
+
+    // Find and store optimum gain for mode i
+    imin = carma_wheremin(cublas_handle(),this->ngain,d_phaseError.getData(),1) - 1;
+    mgain[i] = this->gmin + imin*(this->gmax - this->gmin)/(this->ngain-1);
+  }
+
+  this->d_gain->host2device(mgain);
+  // Compute CMAT
+  build_cmat_modopti();
+
+  return EXIT_SUCCESS;
 }
 
 int sutra_controller_ls::loadOpenLoopSlp(float *ol_slopes){
@@ -284,3 +422,42 @@ int sutra_controller_ls::loadOpenLoopSlp(float *ol_slopes){
 
 	return EXIT_SUCCESS;
 }
+
+int sutra_controller_ls::compute_Hcor(){
+
+	long dims_data[3] = {2,this->ngain,this->nrec/2};
+	this->d_Hcor = new carma_obj<float>(current_context,dims_data);
+
+	compute_Hcor_gpu(this->d_Hcor->getData(),this->ngain,this->nrec/2,this->Fs,this->gmin,this->gmax,this->delay,this->device);
+
+	return EXIT_SUCCESS;
+}
+/*
+int sutra_controller_ls::init_OpenLoopSlp(sutra_atmos *atmos, sutra_target *target, sutra_sensors *sensors, sutra_rtc *rtc){
+	// Perform an open loop simulation to get open loop slopes
+	for (int i = 0 ; i < this->nrec ; i++){
+		atmos->move_atmos();
+		for (int j = 0 ; j < target->ntargets ; j++){
+			target->d_targets[j]->raytrace(atmos);
+		}
+		int indx_rec = 0;
+		for (int k = 0 ; k < sensors->nsensors() ; k++){
+			sensors->d_wfs[k]->sensor_trace(atmos);
+
+			if (sensors->d_wfs[k]->type == "cog")
+				sensors->d_wfs[k]->comp_image_tele();
+			else
+				sensors->d_wfs[k]->comp_image();
+		}
+
+		rtc->do_centroids(sensors);
+		for (int ii = 0 ; ii < sensors->nsensors() ; ii++){
+			sensors->d_wfs[ii]->d_slopes->copyInto(&(this->d_slpol)[indx_rec],2*sensors->d_wfs[ii]->nvalid);
+			indx_rec += 2*sensors->d_wfs[ii]->nvalid;
+		}
+
+	}
+	return EXIT_SUCCESS;
+}
+*/
+

@@ -48,11 +48,12 @@ sutra_controller_mv::sutra_controller_mv(carma_context *context, long nvalid,
   dims_data1[1] = nslope();
   this->d_noisemat = new carma_obj<float>(this->current_context, dims_data1);
   this->d_olmeas = new carma_obj<float>(this->current_context, dims_data1);
-  this->d_compbuff = new carma_obj<float>(this->current_context, dims_data1);
+  //this->d_compbuff = new carma_obj<float>(this->current_context, dims_data1);
   this->d_compbuff2 = new carma_obj<float>(this->current_context, dims_data1);
   dims_data1[1] = nactu();
   this->d_com1 = new carma_obj<float>(this->current_context, dims_data1);
   this->d_com2 = new carma_obj<float>(this->current_context, dims_data1);
+  this->d_compbuff = new carma_obj<float>(this->current_context, dims_data1);
   this->d_err = new carma_obj<float>(this->current_context, dims_data1);
   this->d_gain = new carma_obj<float>(this->current_context, dims_data1);
 

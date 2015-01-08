@@ -548,6 +548,26 @@ extern rtc_init_proj;
    rtc_init_proj,yoga_rtc_obj,ncontrol,yoga_dm_obj,indx_dm,unitpervolt,indx_pup
    initialize the projector for controller type geo
  */
+extern rtc_initModalOpti;
+/*DOCUMENT rtc_initModalOpti
+  rtc_initModalOpti,g_rtc,ncontrol,nmodes,nrec,M2V
+  Initialize arrays for modal optimization
+
+  g_rtc = yoga_obj_rtc
+  ncontrol = controller number
+  nmodes = number of modes considered
+  nrec = number of open loop slopes to record
+  M2V = Modes to Volt matrix
+
+  SEE ALSO:
+*/
+extern rtc_modalControlOptimization;
+/*DOCUMENT rtc_modalControlOptimization
+  rtc_modalControlOptimization,g_rtc,ncontrol
+  compute optimized modal gains
+
+  SEE ALSO:
+*/
 extern rtc_rmcontrol;
 /* DOCUMENT rtc_rmcontrol
    rtc_rmcontrol,yoga_rtc_obj
@@ -632,7 +652,34 @@ extern rtc_getimat;
       
    SEE ALSO:
  */
+extern rtc_getslpol;
+/* DOCUMENT rtc_getslpol
+   res = rtc_getslpol(yoga_rtc_obj,ncontroller)
+   get open-loop slopes buffer used for modal optimization
 
+   SEE ALSO:
+*/
+extern rtc_getHcor;
+/* DOCUMENT rtc_getHcor
+   res = rtc_getHcor(yoga_rtc_obj,ncontroller)
+   get the transfer functions used for modal optimization
+
+   SEE ALSO:
+*/
+extern rtc_getS2M;
+/* DOCUMENT rtc_getS2M
+   res = rtc_getS2M(yoga_rtc_obj,ncontroller)
+   get the Slopes to Modes matrix used for modal optimization
+
+   SEE ALSO:
+*/
+extern rtc_getM2V;
+/* DOCUMENT rtc_getM2V
+   res = rtc_getM2V(yoga_rtc_obj,ncontroller)
+   get the Modes to Volts matrix used for modal optimization
+
+   SEE ALSO:
+*/
 extern rtc_setimat;
 /* DOCUMENT rtc_setimat
    rtc_setimat,yoga_rtc_obj,ncontroller,imat
@@ -777,6 +824,13 @@ extern rtc_loadmgain;
 /* DOCUMENT rtc_loadmgain
    rtc_loadmgain,yoga_rtc_obj,ncontroller,mgain
    set modal gain for a controller in a yoga_rtc_obj object
+      
+   SEE ALSO:
+ */
+extern rtc_getmgain;
+/* DOCUMENT rtc_getmgain
+   rtc_getmgain,yoga_rtc_obj,ncontroller
+   get modal gain for a controller in a yoga_rtc_obj object
       
    SEE ALSO:
  */

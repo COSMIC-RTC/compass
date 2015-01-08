@@ -90,5 +90,8 @@ int
 doubletofloat(double *idata, float *odata, int N, int device);
 int
 get_pupphase(float *odata, float *idata, int *indx_pup, int Nphi, int device);
-
+int
+compute_Hcor_gpu(float *o_data, int nrow, int ncol, float Fs, float gmin, float gmax, int delay, int device);
+int
+absnormfft(cuFloatComplex *idata, float *odata, int N, float norm, int device);
 #endif // _sutra_controller_H_

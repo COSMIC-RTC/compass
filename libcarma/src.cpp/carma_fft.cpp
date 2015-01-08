@@ -102,8 +102,10 @@ void carma_initfft(const long *dims_data, cufftHandle *plan, cufftType tPlan) {
     fprintf(stderr, "Wrong data type\n");
     throw "Wrong data type\n";
   }
-
-  if (dims_data[0] == 2)
+  if (dims_data[0] == 1)
+      /* Create a 1D FFT plan. */
+      cufftSafeCall(cufftPlan1d(plan, dims_data[1], tPlan,1));
+  else if (dims_data[0] == 2)
     /* Create a 2D FFT plan. */
     cufftSafeCall(cufftPlan2d(plan, dims_data[1], dims_data[2], tPlan));
   else

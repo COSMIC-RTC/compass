@@ -23,11 +23,21 @@ public:
 
   // Modal optimization components
   int is_modopti; // Flag for using modal optimization
-  int nrec;
-  int nmodes;
+  int nrec; // Number of recorded open slopes measurements
+  int nmodes; //Number of modes
+  float gmin; // Gain min
+  float gmax; // Gain max
+  int ngain; // Number of tested gains between gmin and gmax
+  float Fs; // Sampling frequency
+  int cpt_rec; // Counter for modal gains refresh
   carma_obj<float> *d_M2V; // Modes to Volts matrix
   carma_obj<float> *d_S2M; // Slopes to Modes matrix
   carma_obj<float> *d_slpol; // Open-loop measurements buffer, recorded and loaded from Yorick
+  carma_obj<float> *d_Hcor; // Transfer function
+  carma_obj<float> *d_com1; // Command k-1 for POLC
+  carma_obj<float> *d_com2; // Command k-2 for POLC
+  carma_obj<float> *d_compbuff; // Buffer for POLC computation
+  carma_obj<float> *d_compbuff2; // Buffer for POLC computation
 
 public:
   sutra_controller_ls(carma_context *context, long nvalid, long nactu,
@@ -45,6 +55,8 @@ public:
   int
   build_cmat(int nfilt);
   int
+  build_cmat_modopti();
+  int
   frame_delay();
   int
   comp_com();
@@ -55,9 +67,17 @@ public:
   int
   set_delay(int delay);
   int
-  init_modalOpti(int nmodes, int nrec);
+  init_modalOpti(int nmodes, int nrec, float *M2V, float gmin, float gmax, int ngain, float Fs);
+  /*
+  int
+  init_OpenLoopSlp(sutra_atmos *atmos, sutra_target *target, sutra_sensors *sensors, sutra_rtc *rtc);
+  */
   int
   loadOpenLoopSlp(float *ol_slopes);
+  int
+  modalControlOptimization();
+  int
+  compute_Hcor();
 
 };
 

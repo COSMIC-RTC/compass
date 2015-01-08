@@ -712,23 +712,36 @@ func rtc_init(clean=)
 	      indx_dm(cpt+1:cpt+numberof(where(pup_dm))) = where(pup_dm) - 1;	  
 	      cpt += numberof(where(pup_dm));
 	    }
-	    //error;
 	    rtc_init_proj,g_rtc,i-1,g_dm,indx_dm,y_dm.unitpervolt,indx_pup - 1;
 	    //rtc_docontrol_geo,g_rtc,0,g_dm,g_target,0;
-	    //error;
 	  }
 
           if (controllers(i).type  == "ls") {
             imat_init,i,clean=clean;
-	    //imat = imat_geom(meth=0);
-	    //rtc_setimat,g_rtc,i-1,imat;
             write,"done";
-            cmat_init,i,clean=clean;
-            rtc_setgain,g_rtc,0,controllers(i).gain;
-            mgain = array(1.0f,(y_dm._ntotact)(sum));
-            // filtering tilt ...
-            //mgain(-1:0) = 0.0f;
-            rtc_loadmgain,g_rtc,0,mgain;
+	    if (controllers(i).modopti == 1){
+	      write,"Initializing Modal Optimization : ";
+	      if (controllers(i).nrec == 0) controllers(i).nrec = 2048;
+	      else controllers(i).nrec = int(2^(ceil(log(controllers(i).nrec)/log(2)))); //Next power of 2 (for fft)
+	      if (controllers(i).nmodes == 0) controllers(i).nmodes = sum(y_dm(ndms)._ntotact);
+	      if (controllers(i).gmax == 0) controllers(i).gmax = 1.0f;
+	      if (controllers(i).ngain == 0) controllers(i).ngain = 15;
+	      KL2V = compute_KL2V(i);
+	      rtc_initModalOpti,g_rtc,i-1,controllers(i).nmodes,controllers(i).nrec,KL2V,
+		controllers(i).gmin,controllers(i).gmax,controllers(i).ngain,1/y_loop.ittime;
+	      ol_slopes = openLoopSlp(controllers(i).nrec,i);
+	      write,"Done";
+	      rtc_loadOpenLoopSlp,g_rtc,i-1,ol_slopes;
+	      rtc_modalControlOptimization,g_rtc,i-1;
+	    }
+	    else{
+	      cmat_init,i,clean=clean;
+	      rtc_setgain,g_rtc,0,controllers(i).gain;
+	      mgain = array(1.0f,(y_dm._ntotact)(sum));
+	      // filtering tilt ...
+	      //mgain(-1:0) = 0.0f;
+	      rtc_loadmgain,g_rtc,0,mgain;
+	    }
           }
           if (controllers(i).type  == "cured") {
             write,"initializing cured controller";

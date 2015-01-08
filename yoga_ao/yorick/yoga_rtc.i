@@ -1422,3 +1422,61 @@ func create_nact_geom(nm) {
 
   return nact;
 }
+
+func openLoopSlp(nrec,nctrl){
+  ol_slopes = array(0.0f,sum(y_wfs._nvalid * 2),nrec);
+  for(sc=1 ; sc <= nrec ; sc++){
+    write,format="\r Recording %d open-loop slopes : %d %%",y_controllers(nctrl).nrec,int(sc/float(nrec)*100);
+    if (g_target != []) move_atmos,g_atmos;
+    if ((y_target != []) && (g_target != [])) {
+      // loop on targets
+      for (tt=1;tt<=y_target.ntargets;tt++) {
+	target_atmostrace,g_target,tt-1,g_atmos;
+      }
+    }
+    
+    if ((y_wfs != []) && (g_wfs != [])) {
+      // loop on wfs
+      for (ww=1;ww<=numberof(y_wfs);ww++) {
+	sensors_trace,g_wfs,ww-1,"atmos",g_atmos;
+
+	if(y_wfs(i).type=="cog") {
+	  sensors_compimg_tele,g_wfs,ww-1;
+	} else {
+	  sensors_compimg,g_wfs,ww-1;
+	}
+
+	sensors_compslopes,g_wfs,ww-1,g_rtc,nctrl-1;
+	ol_slopes((ww-1)*y_wfs(ww)._nvalid*2+1:ww*y_wfs(ww)._nvalid*2,sc) = sensors_getslopes(g_wfs,ww-1);
+      }
+    }
+  }
+
+  return ol_slopes;
+}
+
+func compute_KL2V(nctrl){
+  KL2V = array(0.0f,sum(y_dm._ntotact),sum(y_dm._ntotact));
+  ndms = *y_controllers(nctrl).ndm;
+  nTT = 0;
+  indx_act = 0;
+  for (i=1 ; i <= numberof(ndms) ; i++){
+    if(y_dm(ndms(i)).type == "pzt"){
+      KL2V(indx_act + 1 : indx_act + y_dm(ndms(i))._ntotact,indx_act + 1 : indx_act + y_dm(ndms(i))._ntotact) = compute_klbasis(ndms(i));
+      indx_act += y_dm(ndms(i))._ntotact
+      }
+    if(y_dm(ndms(i)).type == "tt")
+      nTT += 1; 
+    
+  }
+  if (nTT == 0)
+    KL2V = KL2V(,:y_controllers(nctrl).nmodes);
+  
+  else{
+    KL2V = KL2V(,:y_controllers(nctrl).nmodes);
+    KL2V(,:y_controllers(nctrl).nmodes-2) = KL2V(,3:);
+    KL2V(,y_controllers(nctrl).nmodes-1:) = array(0.0f,sum(y_dm._ntotact),2);
+    KL2V(sum(y_dm._ntotact) - 1:,y_controllers(nctrl).nmodes-1:) = unit(2);
+  }
+  return KL2V;
+}
