@@ -48,12 +48,23 @@ else
 endif
 
 MPICXX           = $(shell hich mpicxx 2>/dev/null)
+ICC              = $(shell which icc)
+
 ifeq ($(MPICXX),)
+ifeq ($(ICC),)
   GCC ?= $(CC)
+else
+  GCC ?= $(ICC)
+endif
 else
   GCC = $(MPICXX)
 endif
-GCC = $(CC)
+
+ifneq ($(ICC),)
+  GCC = $(ICC)
+endif
+GCC := $(CC)
+
 
 NVCC = $(CUDA_ROOT)/bin/nvcc
 NVCCFLAGS += -m64 -Xcompiler -fPIC -use_fast_math -c -I$(CUH_DIR)  -I$(H_DIR) \
