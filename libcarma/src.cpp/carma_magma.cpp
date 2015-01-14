@@ -414,6 +414,7 @@ int carma_potri<double>(carma_obj<double> *d_iA) {
       magma_dpotri_gpu);
 }
 
+#if (MAGMA_VERSION_MAJOR == 1) && (MAGMA_VERSION_MINOR <= 5)
 template<class T>
 int carma_potri_m_gen(long num_gpus, T *h_A, T *d_iA, long N,
     magma_int_t (*ptr_potrf)(magma_int_t num_gpus, magma_uplo_t uplo,
@@ -424,9 +425,23 @@ int carma_potri_m_gen(long num_gpus, T *h_A, T *d_iA, long N,
     void (*ptr_setmatrix_1D_col_bcyclic)(magma_int_t m, magma_int_t N,
         const T *hA, magma_int_t lda, T *dA[], magma_int_t ldda,
         magma_int_t num_gpus, magma_int_t nb),
-    void (*ptr_getmatrix_1D_col_bcyclic)(magma_int_t m, magma_int_t N, const T * const dA[],
+    void (*ptr_getmatrix_1D_col_bcyclic)(magma_int_t m, magma_int_t N, T *dA[],
         magma_int_t ldda, T *hA, magma_int_t lda, magma_int_t num_gpus,
         magma_int_t nb)) {
+#else
+  int carma_potri_m_gen(long num_gpus, T *h_A, T *d_iA, long N,
+      magma_int_t (*ptr_potrf)(magma_int_t num_gpus, magma_uplo_t uplo,
+          magma_int_t N, T **d_A, magma_int_t ldda, magma_int_t *info),
+      magma_int_t (*ptr_potri)(magma_uplo_t uplo, magma_int_t N, T *d_A,
+          magma_int_t ldda, magma_int_t *info),
+      magma_int_t (*ptr_get_potrf_nb)(magma_int_t m),
+      void (*ptr_setmatrix_1D_col_bcyclic)(magma_int_t m, magma_int_t N,
+          const T *hA, magma_int_t lda, T *dA[], magma_int_t ldda,
+          magma_int_t num_gpus, magma_int_t nb),
+      void (*ptr_getmatrix_1D_col_bcyclic)(magma_int_t m, magma_int_t N, const T * const dA[],
+          magma_int_t ldda, T *hA, magma_int_t lda, magma_int_t num_gpus,
+          magma_int_t nb)) {
+#endif
   magma_int_t nb = ptr_get_potrf_nb(N);
   magma_int_t ldda = ((N + nb - 1) / nb) * nb;
   magma_int_t lda = N;
