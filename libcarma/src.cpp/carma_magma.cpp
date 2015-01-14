@@ -414,8 +414,8 @@ int carma_potri<double>(carma_obj<double> *d_iA) {
       magma_dpotri_gpu);
 }
 
-#if (MAGMA_VERSION_MAJOR == 1) && (MAGMA_VERSION_MINOR <= 5)
 template<class T>
+#if (MAGMA_VERSION_MAJOR == 1) && (MAGMA_VERSION_MINOR <= 5)
 int carma_potri_m_gen(long num_gpus, T *h_A, T *d_iA, long N,
     magma_int_t (*ptr_potrf)(magma_int_t num_gpus, magma_uplo_t uplo,
         magma_int_t N, T **d_A, magma_int_t ldda, magma_int_t *info),
