@@ -7,7 +7,7 @@
 #include "magma.h"
 #include "magma_lapack.h"
 
-#ifdef USE_MAGMA_1_4
+#if (MAGMA_VERSION_MAJOR == 1) && (MAGMA_VERSION_MINOR == 4)
 #define lapacke_vec_const(var) var
 #define magma_vec_const(var) var
 #define magma_uplo_const(var) var
@@ -424,7 +424,7 @@ int carma_potri_m_gen(long num_gpus, T *h_A, T *d_iA, long N,
     void (*ptr_setmatrix_1D_col_bcyclic)(magma_int_t m, magma_int_t N,
         const T *hA, magma_int_t lda, T *dA[], magma_int_t ldda,
         magma_int_t num_gpus, magma_int_t nb),
-    void (*ptr_getmatrix_1D_col_bcyclic)(magma_int_t m, magma_int_t N, T *dA[],
+    void (*ptr_getmatrix_1D_col_bcyclic)(magma_int_t m, magma_int_t N, const T * const dA[],
         magma_int_t ldda, T *hA, magma_int_t lda, magma_int_t num_gpus,
         magma_int_t nb)) {
   magma_int_t nb = ptr_get_potrf_nb(N);
