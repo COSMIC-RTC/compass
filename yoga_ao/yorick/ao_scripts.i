@@ -106,6 +106,8 @@ func script_system(filename,verbose=,strehl=,r0=,clean=)
   for (cc=1;cc<=y_loop.niter;cc++) {
     
     move_atmos,g_atmos;
+
+    error;
     /*
     mscreen = get_tscreen(g_atmos,(*y_atmos.alt)(1));
     tst(,,cc)=mscreen;
@@ -145,7 +147,8 @@ func script_system(filename,verbose=,strehl=,r0=,clean=)
 
     if ((y_rtc != []) && (g_rtc != [])
         && (y_wfs != []) && (g_wfs != [])) {
-      rtc_docentroids,g_rtc,g_wfs,0;
+      //rtc_docentroids,g_rtc,g_wfs,0;
+      rtc_docentroids_geom,g_rtc,g_wfs,0;
       //rtc_docentroids_geom,g_rtc,g_wfs,0; 
       // compute command and apply
       if (g_dm != []) rtc_docontrol,g_rtc,0,g_dm;

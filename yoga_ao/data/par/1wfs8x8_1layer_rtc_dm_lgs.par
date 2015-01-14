@@ -15,7 +15,7 @@ atmosphere inits
 y_atmos.r0           = 0.16;
 y_atmos.nscreens     = 1;
 y_atmos.frac         = &([1.0]);
-y_atmos.alt          = &([0.0]);
+y_atmos.alt          = &([45000.0]);
 y_atmos.windspeed    = &([20.]);
 y_atmos.winddir      = &([0]);
 y_atmos.L0           = &([1.e5]);

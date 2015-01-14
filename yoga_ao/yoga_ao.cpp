@@ -331,6 +331,23 @@ void Y_get_tscreen(int argc) {
   }
 }
 
+void Y_set_tscreen(int argc) {
+
+  if (yarg_subroutine())
+    y_error("can only be called as a function");
+  else {
+    atmos_struct *handle = (atmos_struct *) yget_obj(argc - 1, &yAtmos);
+    carma_context *context_handle = _getCurrentContext();
+    context_handle->set_activeDeviceForCpy(handle->device);
+    float alt = ygets_f(argc - 2);
+    float *data = ygeta_f(argc-3);
+    sutra_atmos *atmos_handler = (sutra_atmos *) handle->sutra_atmos;
+    caObjS *carma_obj_handler =
+        (caObjS *) (atmos_handler->d_screens[alt]->d_tscreen->d_screen);
+    carma_obj_handler->host2device(data);
+  }
+}
+
 void Y_extrude_tscreen(int argc) {
 
   if (yarg_subroutine()) {

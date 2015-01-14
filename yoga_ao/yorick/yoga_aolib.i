@@ -62,6 +62,17 @@ extern get_tscreen;
    
    SEE ALSO:
  */
+extern set_tscreen;
+/* DOCUMENT set_tscreen
+   set_tscreen,yoga_atmos_obj,altitude,screen
+     
+   sets the screen in an yAtmos object for a given altitude to screen
+   yoga_atmos_obj : the yAtmos object
+   altitude       : the altitude of the given screen
+   screen         : the screen you want to put (!!! must be a float !!!)
+   
+   SEE ALSO:
+ */
 extern get_spupil;
 /* DOCUMENT get_spupil
    pup = get_spupil(yoga_atmos_obj)
