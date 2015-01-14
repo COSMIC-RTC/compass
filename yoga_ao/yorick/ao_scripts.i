@@ -106,8 +106,6 @@ func script_system(filename,verbose=,strehl=,r0=,clean=)
   for (cc=1;cc<=y_loop.niter;cc++) {
     
     move_atmos,g_atmos;
-
-    error;
     /*
     mscreen = get_tscreen(g_atmos,(*y_atmos.alt)(1));
     tst(,,cc)=mscreen;
