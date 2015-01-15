@@ -145,8 +145,8 @@ func script_system(filename,verbose=,strehl=,r0=,clean=)
 
     if ((y_rtc != []) && (g_rtc != [])
         && (y_wfs != []) && (g_wfs != [])) {
-      //rtc_docentroids,g_rtc,g_wfs,0;
-      rtc_docentroids_geom,g_rtc,g_wfs,0;
+      rtc_docentroids,g_rtc,g_wfs,0;
+      //rtc_docentroids_geom,g_rtc,g_wfs,0;
       //rtc_docentroids_geom,g_rtc,g_wfs,0; 
       // compute command and apply
       if (g_dm != []) rtc_docontrol,g_rtc,0,g_dm;
