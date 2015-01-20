@@ -3885,12 +3885,10 @@ void ySparseObj_eval(void *obj, int n)
 void Y_yoga_sparse_obj(int argc)
 /** @brief ySparseObj_struct constructor.
  *  @param[in] argc : command line argument(s)
- *  as for a yoga_obj several cases are handled :
- *   - a pointer to a yoga_obj is passed as an argument : copy the pointee in a new yoga_obj
- *   - a yoga_obj is passed as an argument : create a copy
- *   - a string (type of object) and an array of dimensions (Yorick convention) is passed
+ *  as for a yoga_sparse_obj several cases are handled :
+ *   - a yoga_obj is passed as an argument : create a sparse copy
  *   - an existing array is passed : create a new object an fill it with array content
- *  supported types : float, double, scomplex, complex, uint, int, long
+ *  supported types : float, double
  *  the created object is pushed on the stack
  *  @see Y_yoga_obj
  */
@@ -3904,21 +3902,21 @@ void Y_yoga_sparse_obj(int argc)
     int oType;
     int yType = yarg_typeid(argc-1);
     if (yType == Y_OPAQUE) { // Copy constructor
-      ySparseObj_struct *handle_obj = (ySparseObj_struct *) yget_obj(argc-1,
-          &ySparseObj);
+      yObj_struct *handle_obj = (yObj_struct *) yget_obj(argc-1,
+          &yObj);
       ySparseObj_struct *handle = (ySparseObj_struct *) ypush_obj(&ySparseObj,
           sizeof(ySparseObj_struct));
       handle->type = handle_obj->type;
       if (handle->type == Y_FLOAT) {
-        carma_sparse_obj<float> *carma_sparse_obj_handler =
-            (carma_sparse_obj<float> *) (handle_obj->carma_sparse_object);
+        carma_obj<float> *carma_obj_handler =
+            (carma_obj<float> *) (handle_obj->carma_object);
         handle->carma_sparse_object = new carma_sparse_obj<float>(
-            carma_sparse_obj_handler);
+            carma_obj_handler);
       } else if (handle->type == Y_DOUBLE) {
-        carma_sparse_obj<double> *carma_sparse_obj_handler =
-            (carma_sparse_obj<double> *) (handle_obj->carma_sparse_object);
+        carma_obj<double> *carma_obj_handler =
+            (carma_obj<double> *) (handle_obj->carma_object);
         handle->carma_sparse_object = new carma_sparse_obj<double>(
-            carma_sparse_obj_handler);
+            carma_obj_handler);
       } else
         throw "Type unknown";
     } else { // Standard constructor

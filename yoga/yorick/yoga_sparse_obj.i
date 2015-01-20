@@ -10,23 +10,29 @@ require,"util_fr.i";
                                    
  */
 
-func check_yoga_sparse_obj(size)
+func check_yoga_sparse_obj(m, n)
 {
-  if (is_void(size)) size= 512;
+  if (is_void(m)) m= 1000;
+  if (is_void(n)) n= 1000;
 
-  matA=random(size, size);
+  matA=random(m, n);
 
-  mask=int(random(size,size)+0.2); nz=numberof(where(mask==0));
-  write, format="putting %d zeros %0.2f %% of the matrix\n", nz, float(nz)/(size*size)*100;
+  mask=int(random(m,n)+0.2); nz=numberof(where(mask==0));
+  write, format="putting %d zeros %0.2f %% of the matrix\n", nz, float(nz)/(m*n)*100;
   matA*=mask;
   
-  matA_gpu = yoga_sparse_obj(matA);
-  matA_gpu;
+  matA_gpu = yoga_obj(matA);
+  matAs_gpu = yoga_sparse_obj(matA);
+  matAs_gpu2 = yoga_sparse_obj(matA_gpu);
+  matAs_gpu;
+  write, "max(abs(matAs_gpu()-matA))";
+  max(abs(matAs_gpu()-matA));
 
-  write, "max(abs(matA_gpu()-matA))";
-  max(abs(matA_gpu()-matA));
+  matAs_gpu2;
+  write, "max(abs(matAs_gpu2()-matA))";
+  max(abs(matAs_gpu2()-matA));
 
-  checkall_yoga_cusparse;
+  //checkall_yoga_cusparse;
   
 }
 

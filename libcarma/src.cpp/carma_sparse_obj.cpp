@@ -29,23 +29,23 @@ void carma_sparse_obj<T_data>::init_carma_sparse_obj(carma_context *current_cont
   device = current_context->get_activeDevice();
   this->current_context = current_context;
   int *nnzPerRow=NULL, nnzTotalDevHostPtr=0;
-  cudaMalloc((void**) &nnzPerRow, dims[2] * sizeof(*nnzPerRow));
+  cudaMalloc((void**) &nnzPerRow, dims[2] * sizeof(int));
   T_data *d_M;
   if (loadFromHost) {
-    cudaMalloc((void**) &d_M, dims[1] * dims[2] * sizeof(*d_M));
-    cudaMemcpy(d_M, M, dims[1] * dims[2] * sizeof(*d_M),
+    cudaMalloc((void**) &d_M, dims[1] * dims[2] * sizeof(T_data));
+    cudaMemcpy(d_M, M, dims[1] * dims[2] * sizeof(T_data),
         cudaMemcpyHostToDevice);
   } else {
     d_M = M;
   }
-
+  nz_elem=0;
   cusparseHandle_t handle = current_context->get_cusparseHandle();
-  ptr_nnz(handle, CUSPARSE_DIRECTION_ROW, dims[1], dims[2], descr, d_M, dims[1],
+  ptr_nnz(handle, CUSPARSE_DIRECTION_ROW, dims[2], dims[1], descr, d_M, dims[2],
       nnzPerRow, &nnzTotalDevHostPtr);
-  //DEBUG_TRACE("nnzTotalDevHostPtr %d\n",nnzTotalDevHostPtr);
+  DEBUG_TRACE("nnzTotalDevHostPtr %d\n",nnzTotalDevHostPtr);
   resize(nnzTotalDevHostPtr, dims[1], dims[2]);
 
-  ptr_dense2csr(handle, dims[1], dims[2], descr, d_M, dims[1], nnzPerRow,
+  ptr_dense2csr(handle, dims[2], dims[1], descr, d_M, dims[2], nnzPerRow,
       this->d_data, this->d_rowind, this->d_colind);
 
   if (loadFromHost) {
