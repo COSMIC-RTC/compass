@@ -1,0 +1,98 @@
+
+/*
+geometry inits
+*/
+y_geom.zenithangle = 0.;
+
+/*
+telescope inits
+*/
+y_tel.diam = 8.f;
+y_tel.cobs = 0.f;
+
+/*
+atmosphere inits
+*/
+y_atmos.r0           = 0.1249; // r0=0.1249um a 0.5um correspond a un r0 de 0.525 um a 1.654 um
+y_atmos.nscreens     = 3;
+y_atmos.frac         = &([0.5,0.17,0.33]);
+y_atmos.alt          = &([0.0,2500.,4000.]);
+y_atmos.windspeed    = &([7.5,12.5,15]);
+y_atmos.winddir      = &([0,90,0]);
+y_atmos.L0           = &([25,25,25]);
+
+
+/*
+target inits
+*/
+y_target.ntargets = 1;
+y_target.xpos     = &([0.0f]);
+y_target.ypos     = &([0.0f]);
+y_target.lambda   = &([1.654]);
+y_target.mag      = &([10.]);
+
+/*
+loop inits
+*/
+y_loop.niter  = 2000;
+y_loop.ittime = 1/500.0f;
+
+/*
+wfs inits
+*/
+y_wfs                  = array(wfs_struct(),1); // clean start
+y_wfs(1:).type          = "sh";
+y_wfs(1:).nxsub         = 16; // = y_tel.diam/(y_atmos.r0*(y_wfs(1:).lambda/0.5)^(6/5))
+y_wfs(1:).npix          = 14;
+y_wfs(1:).pixsize       = 0.3412; //=y_wfs(1:).lambda/(y_tel.diam/y_wfs(1:).nxsub)/2*180/pi*3600;
+y_wfs(1:).fracsub       = 0.5;
+y_wfs(1:).xpos          = 0.0;
+y_wfs(1:).ypos          = 0.0;
+y_wfs(1:).lambda        = 1.654;
+y_wfs(1:).gsmag         = 5.;
+y_wfs(1:).optthroughput = 0.5;
+y_wfs(1:).zerop         = 1.e11;
+y_wfs(1:).noise         = 1.1;
+
+/*
+dm inits
+*/
+ndm = 1;
+y_dm                  = array(dm_struct(),ndm); // clean start
+
+y_dm(1).type          = "pzt";
+y_dm(1).nact          = y_wfs(1).nxsub+1;
+y_dm(1).alt           = 0.;
+y_dm(1).thresh        = 0.44;
+y_dm(1).coupling      = 0.3;
+y_dm(1).unitpervolt   = 1.0; //0.01*2*pi/y_wfs(1).lambda;
+y_dm(1).push4imat     = 1.0f;
+
+/*
+centroiders inits
+*/
+ncentroiders = 1;
+y_centroiders           = array(centroider_struct(),ncentroiders);
+
+y_centroiders.nwfs      = 1;
+y_centroiders(1).type   = "cog";
+
+/*
+controllers inits
+*/
+ncontrollers = 1;
+y_controllers          = array(controller_struct(),ncontrollers);
+
+y_controllers(1).type    = "kalman_GPU";
+y_controllers(1).nwfs    = &[1];
+y_controllers(1).ndm     = &[1];
+y_controllers(1).gain    = 230;
+
+
+/*
+rtc inits
+*/
+y_rtc.nwfs =1;
+y_rtc.centroiders = &(y_centroiders);
+y_rtc.controllers  = &(y_controllers);
+
