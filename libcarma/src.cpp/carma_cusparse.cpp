@@ -168,3 +168,78 @@ cusparseStatus_t carma_gemm<double>(cusparseHandle_t handle, char op_A, double a
     carma_obj<double>* C){
   return carma_gemm<double, cusparseDcsrmm>(handle, op_A, alpha, A, B, beta, C);
 }
+
+template<class T_data,
+    cusparseStatus_t csrgemm(cusparseHandle_t handle,
+        cusparseOperation_t transA, cusparseOperation_t transB, int m, int n,
+        int k, const cusparseMatDescr_t descrA, const int nnzA,
+        const T_data *csrValA, const int *csrRowPtrA, const int *csrColIndA,
+        const cusparseMatDescr_t descrB, const int nnzB, const T_data *csrValB,
+        const int *csrRowPtrB, const int *csrColIndB,
+        const cusparseMatDescr_t descrC, T_data *csrValC,
+        const int *csrRowPtrC, int *csrColIndC )>
+cusparseStatus_t carma_gemm(cusparseHandle_t handle, char op_A, char op_B, T_data alpha,
+    carma_sparse_obj<T_data>* A, carma_sparse_obj<T_data>* B, T_data beta,
+    carma_sparse_obj<T_data>* C){
+  //ofstream fichier;
+
+  cusparseOperation_t transA = carma_char2cusparseOperation(op_A);
+  cusparseOperation_t transB = carma_char2cusparseOperation(op_B);
+  cusparseStatus_t status;
+
+  const int m = A->getDims(1);
+  const int n = B->getDims(2);
+  const int k = A->getDims(2);
+
+  int baseC, nnzC;
+  // nnzTotalDevHostPtr points to host memory
+  int *nnzTotalDevHostPtr = &nnzC;
+  cusparseSetPointerMode(handle, CUSPARSE_POINTER_MODE_HOST);
+  int *csrRowPtrC;
+  cudaMalloc((void**)&csrRowPtrC, sizeof(int)*(m+1));
+  status = cusparseXcsrgemmNnz(handle, transA, transB, m, n, k,
+          A->descr, A->nz_elem, A->d_rowind, A->d_colind,
+          B->descr, B->nz_elem, B->d_rowind, B->d_colind,
+          C->descr, csrRowPtrC, nnzTotalDevHostPtr );
+  if (status != CUSPARSE_STATUS_SUCCESS) {
+    cerr << "Error | carma_gemm (sparse) | Matrix-matrix multiplication failed"
+        << endl;
+    throw "Error | carma_gemm (sparse) | Matrix-matrix multiplication failed";
+    //exit(EXIT_FAILURE);
+  }
+  if (NULL != nnzTotalDevHostPtr){
+      nnzC = *nnzTotalDevHostPtr;
+  }else{
+      cudaMemcpy(&nnzC, csrRowPtrC+m, sizeof(int), cudaMemcpyDeviceToHost);
+      cudaMemcpy(&baseC, csrRowPtrC, sizeof(int), cudaMemcpyDeviceToHost);
+      nnzC -= baseC;
+  }
+  C->resize(nnzC, m, n);
+  cudaMemcpy(C->d_rowind, csrRowPtrC, sizeof(int)*(m+1), cudaMemcpyDeviceToDevice);
+  status = csrgemm(handle, transA, transB, m, n, k,
+      A->descr, A->nz_elem, A->d_data, A->d_rowind, A->d_colind,
+      B->descr, B->nz_elem, B->d_data, B->d_rowind, B->d_colind,
+      C->descr, C->d_data, C->d_rowind, C->d_colind);
+  if (status != CUSPARSE_STATUS_SUCCESS) {
+    cerr << "Error | carma_gemm (sparse) | Matrix-matrix multiplication failed"
+        << endl;
+    throw "Error | carma_gemm (sparse) | Matrix-matrix multiplication failed";
+    //exit(EXIT_FAILURE);
+  }
+  return status;
+}
+
+template<>
+cusparseStatus_t carma_gemm<float>(cusparseHandle_t handle, char op_A, char op_B, float alpha,
+    carma_sparse_obj<float>* A, carma_sparse_obj<float>* B, float beta,
+    carma_sparse_obj<float>* C){
+  return carma_gemm<float, cusparseScsrgemm>(handle, op_A, op_B, alpha, A, B, beta, C);
+}
+
+template<>
+cusparseStatus_t carma_gemm<double>(cusparseHandle_t handle, char op_A, char op_B, double alpha,
+    carma_sparse_obj<double>* A, carma_sparse_obj<double>* B, double beta,
+    carma_sparse_obj<double>* C){
+  return carma_gemm<double, cusparseDcsrgemm>(handle, op_A, op_B, alpha, A, B, beta, C);
+}
+

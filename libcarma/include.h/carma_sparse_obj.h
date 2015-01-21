@@ -109,5 +109,9 @@ cusparseStatus_t carma_gemm(cusparseHandle_t handle, char op_A, T_data alpha,
     carma_sparse_obj<T_data>* A, carma_obj<T_data>* B, T_data beta,
     carma_obj<T_data>* C);
 
+template<class T_data>
+cusparseStatus_t carma_gemm(cusparseHandle_t handle, char op_A, char op_B, T_data alpha,
+    carma_sparse_obj<T_data>* A, carma_sparse_obj<T_data>* B, T_data beta,
+    carma_sparse_obj<T_data>* C);
 
 #endif /* CARMA_SPARSE_OBJ_H_ */
