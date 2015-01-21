@@ -68,6 +68,43 @@ carma_sparse_obj<double>::carma_sparse_obj(carma_context *current_context, const
 }
 
 template<class T_data>
+carma_sparse_obj<T_data>::carma_sparse_obj(carma_context *current_context,
+		const long *dims, T_data *values, int *colind, int *rowind, int nz,
+		bool loadFromHost) {
+	DEBUG_TRACE("Recons \n");
+	_create(nz, dims[1], dims[2]);
+	this->current_context = current_context;
+	device = current_context->get_activeDevice();
+	DEBUG_TRACE("Recons \n");
+
+	if (loadFromHost) {
+		cudaMemcpy(this->d_data, values, nz * sizeof(T_data), cudaMemcpyHostToDevice);
+		cudaMemcpy(this->d_colind, colind, nz * sizeof(int),
+				cudaMemcpyHostToDevice);
+		cudaMemcpy(this->d_rowind, rowind, (dims[1] + 1) * sizeof(int),
+				cudaMemcpyHostToDevice);
+	} else {
+		DEBUG_TRACE("Recons \n");
+
+		cudaMemcpy(this->d_data, values, nz * sizeof(T_data), cudaMemcpyDeviceToDevice);
+		cudaMemcpy(this->d_colind, colind, nz * sizeof(int),
+				cudaMemcpyDeviceToDevice);
+		cudaMemcpy(this->d_rowind, rowind, (dims[1] + 1) * sizeof(int),
+				cudaMemcpyDeviceToDevice);
+		DEBUG_TRACE("Recons \n");
+
+	}
+}
+template
+carma_sparse_obj<float>::carma_sparse_obj(carma_context *current_context,
+		const long *dims, float *values, int *colind, int *rowind, int nz,
+		bool loadFromHost);
+template
+carma_sparse_obj<double>::carma_sparse_obj(carma_context *current_context,
+		const long *dims, double *values, int *colind, int *rowind, int nz,
+		bool loadFromHost);
+
+template<class T_data>
 carma_sparse_obj<T_data>::carma_sparse_obj(carma_obj<T_data>* M){
   _create(0, 0, 0);
 }

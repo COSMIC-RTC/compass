@@ -37,6 +37,7 @@ public:
   carma_sparse_obj(carma_sparse_obj<T_data>* M);
   carma_sparse_obj(carma_context *current_context, carma_sparse_host_obj<T_data>* M);
   carma_sparse_obj(carma_context *current_context, const long *dims, T_data * M, bool loadFromHost);
+  carma_sparse_obj(carma_context *current_context, const long *dims, T_data *values, int *colind, int *rowind, int nz, bool loadFromHost);
   virtual ~carma_sparse_obj();
 
   void operator=( carma_sparse_obj<T_data>& M);
