@@ -148,7 +148,7 @@ int carma_getri_cpu(long N, T *h_A);
 template<class T>
 int carma_potri_cpu(long N, T *h_A);
 template<class T>
-int carma_syevd_cpu(char jobz, long N, T *h_A, T *eigenvals);
+int carma_syevd_cpu(char jobz, int N, T *h_A, T *eigenvals);
 template<class T>
 int carma_axpy_cpu(long N, T alpha, T *h_X, long incX, T *h_Y, long incY);
 template<class T>
