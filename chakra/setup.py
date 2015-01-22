@@ -1,6 +1,7 @@
 import  os, re
 from os.path import join as pjoin
-from setuptools import setup
+from distutils.core import setup
+#from setuptools import setup
 from distutils.extension import Extension
 from Cython.Distutils import build_ext
 import numpy
@@ -105,7 +106,10 @@ class clean(_clean):
     module_lib = pjoin('.',module_name+'.so')
     if (os.path.exists(module_lib)): os.remove(module_lib)
     if (os.path.exists('./wrapper_chakra.cpp')): os.remove('./wrapper_chakra.cpp')
-    if (os.path.exists('./wrapper_chakra.pyx')): os.remove('./wrapper_chakra.pyx')
+    if (os.path.exists('./wrapper_chakra_obj.cpp')): os.remove('./wrapper_chakra_obj.cpp')
+    if (os.path.exists('./wrapper_chakra_obj.pyx')): os.remove('./wrapper_chakra_obj.pyx')
+    if (os.path.exists('./wrapper_chakra_host_obj.cpp')): os.remove('./wrapper_chakra_host_obj.cpp')
+    if (os.path.exists('./wrapper_chakra_host_obj.pyx')): os.remove('./wrapper_chakra_host_obj.pyx')
     if (os.path.exists('./wrapper.cpp')): os.remove('./wrapper.cpp')
     if (os.path.exists('./build')): remove_tree('./build')
     if (os.path.exists('./dist')):  remove_tree('./dist')
@@ -117,8 +121,11 @@ class clean(_clean):
 ext = Extension('chakra',
                 sources=[#COMPASS['inc']+'/libcarma/src.cpp/carma_context.cpp',
                     #COMPASS['inc']+'/libcarma/src.cpp/carma_cublas.cpp',
-                    COMPASS['inc']+'/libcarma/src.cpp/carma_fft_conv.cpp',
-                    'wrapper_chakra.pyx'],
+                    #COMPASS['inc']+'/libcarma/src.cpp/carma_fft_conv.cpp',
+                    #'wrapper_chakra_obj.pyx',
+                    #'wrapper_chakra_host_obj.pyx'
+                    'wrapper_chakra.pyx'
+                    ],
                 library_dirs=[CUDA['lib64'], COMPASS['lib']+"/libcarma"],
                 libraries=['cudart', 'cufft','cublas','carma'],
                 language='c++',
@@ -178,6 +185,7 @@ def customize_compiler_for_nvcc(self):
 # run the customize_compiler
 class custom_build_ext(build_ext):
     def build_extensions(self):
+        if (os.path.exists('./wrapper_chakra.cpp')): os.remove('./wrapper_chakra.cpp')
         customize_compiler_for_nvcc(self.compiler)
         build_ext.build_extensions(self)
 

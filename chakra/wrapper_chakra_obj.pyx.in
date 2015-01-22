@@ -2,140 +2,43 @@
 import re
 import datetime
 now = datetime.datetime.now()
-template_strs = ['CLASSNAME','DIM','C_TYPE','NUMPY_TYPENAME_T','NUMPY_TYPENAME','CAST','C_FFT_TYPE']
+template_strs = ['CLASSNAME','DIM','C_TYPE','NUMPY_TYPENAME_T','NUMPY_TYPENAME','CAST','C_FFT_TYPE','PY_FFT_TYPE']
 template_type_str = 'ARRAY_TYPE'
 c_types_info = {
-                'int1':['Int', '1', 'int','np.int32_t', 'np.int32','SIMPLE','',[]],
-                'int2':['Int', '2', 'int','np.int32_t', 'np.int32','SIMPLE','',[]],
-                'int3':['Int', '3', 'int','np.int32_t', 'np.int32','SIMPLE','',[]],
-                'int4':['Int', '4', 'int','np.int32_t', 'np.int32','SIMPLE','',[]],
-                'unsigned int1':['UInt', '1','unsigned int','np.uint32_t', 'np.uint32','SIMPLE','', []],
-                'unsigned int2':['UInt', '2','unsigned int','np.uint32_t', 'np.uint32','SIMPLE','', []],
-                'unsigned int3':['UInt', '3','unsigned int','np.uint32_t', 'np.uint32','SIMPLE','', []],
-                'unsigned int4':['UInt', '4','unsigned int','np.uint32_t', 'np.uint32','SIMPLE','', []],
+                'int1':['Int', '1', 'int','np.int32_t', 'np.int32','SIMPLE','','',[]],
+                'int2':['Int', '2', 'int','np.int32_t', 'np.int32','SIMPLE','','',[]],
+                'int3':['Int', '3', 'int','np.int32_t', 'np.int32','SIMPLE','','',[]],
+                'int4':['Int', '4', 'int','np.int32_t', 'np.int32','SIMPLE','','',[]],
+                'unsigned int1':['UInt', '1','unsigned int','np.uint32_t', 'np.uint32','SIMPLE','','', []],
+                'unsigned int2':['UInt', '2','unsigned int','np.uint32_t', 'np.uint32','SIMPLE','','', []],
+                'unsigned int3':['UInt', '3','unsigned int','np.uint32_t', 'np.uint32','SIMPLE','','', []],
+                'unsigned int4':['UInt', '4','unsigned int','np.uint32_t', 'np.uint32','SIMPLE','','', []],
 
-                'float1':  ['Float', '1', 'float', 'np.float32_t', 'np.float32','SIMPLE','cuFloatComplex',[]],
-                'float2':  ['Float', '2', 'float', 'np.float32_t', 'np.float32','SIMPLE','cuFloatComplex',[]],
-                'float3':   ['Float'   ,'3', 'float', 'np.float32_t', 'np.float32','SIMPLE','cuFloatComplex',[]],
-                'float4':   ['Float'   ,'4', 'float', 'np.float32_t', 'np.float32','SIMPLE','cuFloatComplex',[]],
-                'complexS1':['ComplexS', '1', 'cuFloatComplex', 'np.complex64_t', 'np.complex64','COMPLEX','float',[]],
-                'complexS2':['ComplexS', '2', 'cuFloatComplex', 'np.complex64_t', 'np.complex64','COMPLEX','float',[]],
-                'complexS3':['ComplexS', '3', 'cuFloatComplex', 'np.complex64_t', 'np.complex64','COMPLEX','float',[]],
-                'complexS4':['ComplexS', '4', 'cuFloatComplex', 'np.complex64_t', 'np.complex64','COMPLEX','float',[]],
+                'float1':  ['Float', '1', 'float', 'np.float32_t', 'np.float32','SIMPLE','cuFloatComplex','ComplexS',[]],
+                'float2':  ['Float', '2', 'float', 'np.float32_t', 'np.float32','SIMPLE','cuFloatComplex','ComplexS',[]],
+                'float3':   ['Float'   ,'3', 'float', 'np.float32_t', 'np.float32','SIMPLE','cuFloatComplex','ComplexS',[]],
+                'float4':   ['Float'   ,'4', 'float', 'np.float32_t', 'np.float32','SIMPLE','cuFloatComplex','ComplexS',[]],
+                'complexS1':['ComplexS', '1', 'cuFloatComplex', 'np.complex64_t', 'np.complex64','COMPLEX','float','Float',[]],
+                'complexS2':['ComplexS', '2', 'cuFloatComplex', 'np.complex64_t', 'np.complex64','COMPLEX','float','Float',[]],
+                'complexS3':['ComplexS', '3', 'cuFloatComplex', 'np.complex64_t', 'np.complex64','COMPLEX','float','Float',[]],
+                'complexS4':['ComplexS', '4', 'cuFloatComplex', 'np.complex64_t', 'np.complex64','COMPLEX','float','Float',[]],
 
-                'double1':['Double', '1', 'double', 'np.float64_t', 'np.float64','SIMPLE','cuDoubleComplex',[]],
-                'double2':['Double', '2', 'double', 'np.float64_t', 'np.float64','SIMPLE','cuDoubleComplex',[]],
-                'double3':['Double', '3', 'double', 'np.float64_t', 'np.float64','SIMPLE','cuDoubleComplex',[]],
-                'double4':['Double', '4', 'double', 'np.float64_t', 'np.float64','SIMPLE','cuDoubleComplex',[]],
-                'complexD1':['ComplexD', '1', 'cuDoubleComplex', 'np.complex128_t', 'np.complex128','COMPLEX','double',[]],
-                'complexD2':['ComplexD', '2', 'cuDoubleComplex', 'np.complex128_t', 'np.complex128','COMPLEX','double',[]],
-                'complexD3':['ComplexD', '3', 'cuDoubleComplex', 'np.complex128_t', 'np.complex128','COMPLEX','double',[]],
-                'complexD4':['ComplexD', '4', 'cuDoubleComplex', 'np.complex128_t', 'np.complex128','COMPLEX','double',[]],
+                'double1':['Double', '1', 'double', 'np.float64_t', 'np.float64','SIMPLE','cuDoubleComplex','ComplexD',[]],
+                'double2':['Double', '2', 'double', 'np.float64_t', 'np.float64','SIMPLE','cuDoubleComplex','ComplexD',[]],
+                'double3':['Double', '3', 'double', 'np.float64_t', 'np.float64','SIMPLE','cuDoubleComplex','ComplexD',[]],
+                'double4':['Double', '4', 'double', 'np.float64_t', 'np.float64','SIMPLE','cuDoubleComplex','ComplexD',[]],
+                'complexD1':['ComplexD', '1', 'cuDoubleComplex', 'np.complex128_t', 'np.complex128','COMPLEX','double','Double',[]],
+                'complexD2':['ComplexD', '2', 'cuDoubleComplex', 'np.complex128_t', 'np.complex128','COMPLEX','double','Double',[]],
+                'complexD3':['ComplexD', '3', 'cuDoubleComplex', 'np.complex128_t', 'np.complex128','COMPLEX','double','Double',[]],
+                'complexD4':['ComplexD', '4', 'cuDoubleComplex', 'np.complex128_t', 'np.complex128','COMPLEX','double','Double',[]],
                 }
 ?>
 
-
-import numpy as np
-cimport numpy as np
-from libc.stdint cimport uintptr_t
-from libcpp cimport bool
-
-
-#external type required
-#cuda types
-cdef extern from "vector_types.h":
-    struct float2:
-        pass
-    struct double2:
-        pass
-cdef extern from "cuComplex.h":
-    ctypedef float2 cuFloatComplex
-    ctypedef double2 cuDoubleComplex
-
-ctypedef extern int cufftHandle
-
-cdef extern from "cublas_v2.h":
-    ctypedef CUBLASAPI
-
-cdef extern from "cublas_api.h":
-    ctypedef enum cublasFillMode_t:
-        CUBLAS_FILL_MODE_LOWER
-        CUBLAS_FILL_MODE_UPPER
-    ctypedef enum cublasSideMode_t:
-        CUBLAS_SIDE_LEFT
-        CUBLAS_SIDE_RIGHT
-
-#cuda plan
-cdef extern from "cufft.h":
-    ctypedef enum cufftType:
-        CUFFT_R2C
-        CUFFT_C2R
-        CUFFT_C2C
-        CUFFT_D2Z
-        CUFFT_Z2D
-        CUFFT_Z2Z
-  
-          
 
 assert sizeof(int) == sizeof(np.int32_t)
 assert sizeof(float) == sizeof(np.float32_t)
 assert sizeof(double) == sizeof(np.float64_t)
 
-
-#################################################
-# C-Class carma_context
-#################################################
-cdef extern from "carma_context.h":
-    cdef cppclass carma_context "carma_context":
-        carma_context()
-        int get_ndevice()
-        int set_activeDevice(int newDevice, int silent)
-        int set_activeDeviceForce(int newDevice, int silent)
-        int set_activeDeviceForCpy(int newDevice, int silent)
-        int get_activeDevice()
-
-
-#################################################
-# P-Class chakra_context
-#################################################
-cdef class chakra_context:
-    cdef carma_context* c
-
-
-    def __cinit__(self):
-        self.c            = new carma_context()
-
-    def get_ndevice(self):
-        """Return number of device."""
-        return self.c.get_ndevice()
-
-    def set_activeDevice(self, int newDevice, int silent=1):
-        """Activate a device.
-        
-        newDevice -- int device to activate
-        silent    -- int (default=1)
-        """
-        return self.c.set_activeDevice(newDevice, silent)
-
-    def set_activeDeviceForce(self, newDevice, int silent=1):
-        """Activate a device.
-        
-        newDevice -- int device to activate
-        silent    -- int (default=1)
-        """
-        return self.c.set_activeDeviceForce(newDevice, silent)
-
-    def set_activeDeviceForCpy(self, int newDevice, int silent=1):
-        """Activate a device.
-        
-        newDevice -- int device to activate
-        silent    -- int (default=1)
-        """
-        return self.c.set_activeDeviceForCpy(newDevice, silent)
- 
-    def get_activeDevice(self):
-        """Return the index of actual activated device"""
-        return self.c.get_activeDevice()
 
 
 #################################################
@@ -148,6 +51,7 @@ cdef extern from "carma_obj.h":
         long *dims_data
         int nb_elem
         int device
+        carma_streams *stream
 
         carma_obj(carma_obj[T] *obj)
         carma_obj(carma_context *context, const long *dims)
@@ -176,7 +80,7 @@ cdef extern from "carma_obj.h":
         int copyFrom(T *data, int nb_elem)  #
 
         cufftHandle* getPlan()
-        unsigned int * getValues()#TODO
+        unsigned int * getValues()
         T sum()                   # (float and double only)        
 
         int transpose(carma_obj[T] *source) #
@@ -341,21 +245,29 @@ cdef class chakra_obj_CLASSNAMEDIMD:
             self.c_o = new carma_obj[C_TYPE](ctxt.c,obj.c_o)
             return
 
-        if(data is None):
-            if(dims is None):
-                raise ValueError("Missing argument data (np.array[ndim=DIM]) or dims (np.ndarray[ndim=1])")
-            if(dims[0]!=DIM):
-                raise ValueError("Wrong number of dimension: got ",dims[0]," (expected: DIM)")
-            self.c_o= new carma_obj[C_TYPE](ctxt.c,<long*>dims.data)
-            return
-
         cdef long cdims[DIM+1]
         cdims[0]=DIM
         cdef int i
+
+        if(data is None):
+            if(dims is None):
+                raise ValueError("Missing argument data (np.array[ndim=DIM]) or dims (np.ndarray[ndim=1])")
+
+            if( dims.shape[0]!=DIM ):
+                raise ValueError("Wrong number of dimension: got ",dims.shape[0]," (expected: DIM)")
+            for i in range(DIM):
+                cdims[i+1]=dims[i]
+            #self.c_o= new carma_obj[C_TYPE](ctxt.c,<long*>dims.data)
+            self.c_o= new carma_obj[C_TYPE](ctxt.c,cdims)
+            return
+
+        cdef np.ndarray data_F=np.asfortranarray(data)
         for i in range(DIM):
             cdims[i+1]=data.shape[i]
-
-        self.c_o=new carma_obj[C_TYPE](ctxt.c,cdims,<C_TYPE*>data.data)
+        if(data.flags.fortran):
+            self.c_o=new carma_obj[C_TYPE](ctxt.c,cdims,<C_TYPE*>data.data)
+        else:
+            self.c_o=new carma_obj[C_TYPE](ctxt.c,cdims,<C_TYPE*>data_F.data)
 
 
     def getData_ptr(self):
@@ -371,13 +283,15 @@ cdef class chakra_obj_CLASSNAMEDIMD:
 
 
     def get_Dims(self):
-        """Return the number of dimensions and the dimensions (array dims_data)."""
-        n=self.c_o.getDimsi(0)
-        cdef dims = np.ndarray((n+1),dtype=np.int64)
+        """Return the dimensions of the chakra_obj."""
+
+        cdef np.ndarray dims = np.ndarray((DIM+1),dtype=np.int64)
+        cdef const long *cdims
         cdef int i
-        for i in range(n+1):
-            dims[i]=self.c_o.getDimsi(i) 
-        return dims
+        cdims=self.c_o.getDims()
+        for i in range(DIM+1):
+            dims[i]=cdims[i] 
+        return dims[1:DIM+1]
 
 
     def getNbElem(self):
@@ -413,7 +327,11 @@ cdef class chakra_obj_CLASSNAMEDIMD:
         data -- NUMPY_TYPENAME: data to copy from host to device
         """
         self.context.set_activeDeviceForCpy(self.getDevice())
-        self.c_o.host2device(<C_TYPE*>data.data)
+        if(data.flags.fortran):
+            self.c_o.host2device(<C_TYPE*>data.data)
+            return
+        cdef np.ndarray data_F=data.flatten(order="F")
+        self.c_o.host2device(<C_TYPE*>data_F.data)
        
 
     def device2host(self):
@@ -422,11 +340,13 @@ cdef class chakra_obj_CLASSNAMEDIMD:
         return np.ndarray(dtype=NUMPY_TYPENAME) of DIM dimension(s)
         """
         sh=self.get_Dims()
-        cdef np.ndarray[ dtype=NUMPY_TYPENAME_T, ndim=DIM] res=np.zeros(sh[1:DIM+1],dtype=NUMPY_TYPENAME)
+        cdef np.ndarray[ dtype=NUMPY_TYPENAME_T, ndim=DIM] res=np.zeros(sh,dtype=NUMPY_TYPENAME)
+        cdef np.ndarray[ dtype=NUMPY_TYPENAME_T, ndim=1] tmp=np.zeros(self.c_o.getNbElem(),
+                                                                        dtype=NUMPY_TYPENAME)
         self.context.set_activeDeviceForCpy(self.getDevice())
-        self.c_o.device2host(<C_TYPE*>res.data)
+        self.c_o.device2host(<C_TYPE*>tmp.data)
+        res=tmp.reshape(sh,order="F")
         return res
-
 
     def device2hostOpt(self):
         """Copy data from device o_data to host.
@@ -434,10 +354,13 @@ cdef class chakra_obj_CLASSNAMEDIMD:
         return np.ndarray(dtype=NUMPY_TYPENAME) of DIM dimension(s)
         """
         sh=self.get_Dims()
-        cdef np.ndarray[ dtype=NUMPY_TYPENAME_T, ndim=DIM] res=np.zeros(sh[1:4], dtype=NUMPY_TYPENAME)
+        cdef np.ndarray[ dtype=NUMPY_TYPENAME_T, ndim=DIM] res=np.zeros(sh, dtype=NUMPY_TYPENAME)
+        cdef np.ndarray[ dtype=NUMPY_TYPENAME_T, ndim=1] tmp=np.zeros(self.c_o.getNbElem(),
+                                                                        dtype=NUMPY_TYPENAME)
         self.context.set_activeDeviceForCpy(self.getDevice())
-        self.c_o.device2hostOpt(<C_TYPE*>res.data)
-        return np.reshape(res,sh[1:DIM+1])
+        self.c_o.device2hostOpt(<C_TYPE*>tmp.data)
+        res=tmp.reshape(sh,order="F")
+        return res
 
 
     def copyFrom(self, chakra_obj_CLASSNAMEDIMD src):
@@ -596,10 +519,9 @@ ENDCOMPLEX
         cdef dimX=self.get_Dims()
         cdef dimY=Y.get_Dims()
         if(A is None):
-            dimA=np.ndarray(3,dtype=np.int64)
-            dimA[0]=2
-            dimA[1]=dimY[1]
-            dimA[2]=dimX[1]
+            dimA=np.ndarray(2,dtype=np.int64)
+            dimA[0]=dimY[0]
+            dimA[1]=dimX[0]
             A=chakra_obj_CLASSNAME2D(self.getContext(),dims=dimA)
         if(device !=Y.getDevice() or
            device !=A.getDevice()):
@@ -612,7 +534,7 @@ CASTCOMPLEX
         a.x=alpha.x
         a.y=alpha.y
 ENDCOMPLEX
-        A.c_o.ger(a,Y.c_o,1,self.c_o,1,dimY[1])
+        A.c_o.ger(a,Y.c_o,1,self.c_o,1,dimY[0])
 
         return A
 
@@ -634,8 +556,7 @@ pxd_code_str_2D='''
         self.context.set_activeDeviceForCpy(device)
         cdef dimM=self.get_Dims()
         if(Vy is None):
-            dimY=np.array([1,dimM[1]],dtype=np.int64)
-            Vy=chakra_obj_CLASSNAME1D(ctxt=self.getContext(),dims=dimY)
+            Vy=chakra_obj_CLASSNAME1D(ctxt=self.getContext(),dims=dimM[0:1])
 
         if( (self.getDevice()!=Vx.getDevice()) or 
              self.getDevice()!= Vy.getDevice()):
@@ -653,7 +574,8 @@ CASTCOMPLEX
         b.y=beta.y
 ENDCOMPLEX
 
-        Vy.c_o.gemv('N',a, self.c_o,dimM[1],Vx.c_o,1,b,1)
+        #Vy.c_o.gemv('N',a, self.c_o,dimM[1],Vx.c_o,1,b,1)
+        Vy.c_o.gemv('N',a, self.c_o,dimM[0],Vx.c_o,1,b,1)
 
         return Vy
 
@@ -672,8 +594,9 @@ ENDCOMPLEX
         self.context.set_activeDevice(device)
         cdef dimM=self.get_Dims()
         if(Vy is None):
-            dimY=np.array([1,dimM[1]],dtype=np.int64)
-            Vy=chakra_obj_CLASSNAMEDIMD(ctxt=self.getContext(),dims=dimY)
+            #dimY=np.array([1,dimM[1]],dtype=np.int64)
+            #Vy=chakra_obj_CLASSNAMEDIMD(ctxt=self.getContext(),dims=dimY)
+            Vy=chakra_obj_CLASSNAMEDIMD(ctxt=self.getContext(),dims=dimM)
         if(device !=Vx.getDevice() or
            device !=Vy.getDevice() ):
             raise ValueError("symv only on the same device")
@@ -690,13 +613,13 @@ CASTCOMPLEX
         b.x=beta.x
         b.y=beta.y
 ENDCOMPLEX
-        Vy.c_o.symv(CUBLAS_FILL_MODE_LOWER, a, self.c_o, dimM[1],
+        Vy.c_o.symv(CUBLAS_FILL_MODE_LOWER, a, self.c_o, dimM[0],
                     Vx.c_o, 1, b, 1)
 
         return Vy
 
 
-    def gemm(self,chakra_obj_CLASSNAME2D B, char opA='n', char opB='n',
+    def gemm(self,chakra_obj_CLASSNAME2D B, str opA='n', str opB='n',
              NUMPY_TYPENAME_T alpha=1, chakra_obj_CLASSNAME2D C=None, NUMPY_TYPENAME_T beta=0):
         """Cublas gemm
 
@@ -717,10 +640,9 @@ ENDCOMPLEX
         cdef dimA=self.get_Dims()
         cdef dimB=B.get_Dims()
         if(C is None):
-            dimC=np.ndarray(3,dtype=np.int64)
-            dimC[0]=2
-            dimC[1]= dimA[1] if opA=='n' else dimA[2]
-            dimC[2]= dimB[2] if opB=='n' else dimB[1]
+            dimC=np.ndarray(2,dtype=np.int64)
+            dimC[0]= dimA[0] if opA=='n' else dimA[1]
+            dimC[1]= dimB[1] if opB=='n' else dimB[0]
             C=chakra_obj_CLASSNAMEDIMD(ctxt=self.getContext(), dims=dimC)
         else:
             dimC=C.get_Dims()
@@ -742,12 +664,12 @@ CASTCOMPLEX
         b.y=beta.y
 ENDCOMPLEX
 
-        C.c_o.gemm(opA,opB,a,self.c_o,dimA[1],B.c_o,dimB[1],b,dimC[1])
+        C.c_o.gemm(ord(opA),ord(opB),a,self.c_o,dimA[0],B.c_o,dimB[0],b,dimC[0])
 
         return C
 
 
-    def symm(self, chakra_obj_CLASSNAME2D B, char side='l', NUMPY_TYPENAME_T alpha=1,
+    def symm(self, chakra_obj_CLASSNAME2D B, str side='l', NUMPY_TYPENAME_T alpha=1,
              chakra_obj_CLASSNAME2D C=None, NUMPY_TYPENAME_T beta=0):
         """Cublas symm
 
@@ -767,14 +689,13 @@ ENDCOMPLEX
         cdef dimA=self.get_Dims()
         cdef dimB=B.get_Dims()
         if(C is None):
-            dimC=np.ndarray(3,dtype=np.int64)
-            dimC[0]=2
+            dimC=np.ndarray(2,dtype=np.int64)
             if(side=='l'):
-                dimC[1]= dimA[1]
-                dimC[2]= dimB[2]
+                dimC[0]= dimA[0]
+                dimC[1]= dimB[1]
             else:
-                dimC[1]= dimA[2]
-                dimC[2]= dimB[1]
+                dimC[0]= dimA[1]
+                dimC[1]= dimB[0]
 
             C=chakra_obj_CLASSNAMEDIMD(ctxt=self.getContext(), dims=dimC)
         else:
@@ -796,12 +717,12 @@ CASTCOMPLEX
         b.x=beta.x
         b.y=beta.y
 ENDCOMPLEX
-        C.c_o.symm(prodSide,CUBLAS_FILL_MODE_LOWER, a,self.c_o,dimA[1],
-                    B.c_o,dimB[1],b,dimC[1])
+        C.c_o.symm(prodSide,CUBLAS_FILL_MODE_LOWER, a,self.c_o,dimA[0],
+                    B.c_o,dimB[0],b,dimC[0])
         return C
 
 
-    def syrk(self, char opA='n', NUMPY_TYPENAME_T alpha=1, chakra_obj_CLASSNAME2D C=None,
+    def syrk(self, str opA='n', NUMPY_TYPENAME_T alpha=1, chakra_obj_CLASSNAME2D C=None,
              NUMPY_TYPENAME_T beta=0):
         """Cublas syrk
 
@@ -820,14 +741,13 @@ ENDCOMPLEX
         self.context.set_activeDevice(device)
         cdef dimA=self.get_Dims()
         if(C is None):
-            dimC=np.ndarray(3,dtype=np.int64)
-            dimC[0]=2
+            dimC=np.ndarray(2,dtype=np.int64)
             if(opA=='n'):
-                dimC[1]=dimA[1]
-                dimC[2]=dimA[1]
+                dimC[0]=dimA[0]
+                dimC[1]=dimA[0]
             else:
-                dimC[1]=dimA[2]
-                dimC[2]=dimA[2]
+                dimC[0]=dimA[1]
+                dimC[1]=dimA[1]
 
             C=chakra_obj_CLASSNAMEDIMD(ctxt=self.getContext(), dims=dimC)
         else:
@@ -848,18 +768,17 @@ CASTCOMPLEX
         b.x=beta.x
         b.y=beta.y
 ENDCOMPLEX
-        C.c_o.syrk(CUBLAS_FILL_MODE_UPPER, opA,a, self.c_o, dimA[1], b,
-                    dimC[1])
+        C.c_o.syrk(CUBLAS_FILL_MODE_UPPER, ord(opA),a, self.c_o, dimA[0], b,
+                    dimC[0])
         return C
 
 
-    def syrkx(self, chakra_obj_CLASSNAME2D B, char opA='n', char opB='n', 
+    def syrkx(self, chakra_obj_CLASSNAME2D B, str opA='n', 
               NUMPY_TYPENAME_T alpha=1, chakra_obj_CLASSNAME2D C=None, NUMPY_TYPENAME_T beta=0):
         """Cublas syrkx
 
         B -- chakra_obj_CLASSNAME2D
         opA -- char (default = 'n')
-        opB -- char (default = 'n')
         apha -- NUMPY_TYPENAME (default = 1)
         C -- chakra_obj_CLASSNAME2D (default = None)
         beta -- NUMPY_TYPENAME (default = 0)
@@ -874,14 +793,13 @@ ENDCOMPLEX
         cdef dimA=self.get_Dims()
         cdef dimB=B.get_Dims()
         if(C is None):
-            dimC=np.ndarray(3,dtype=np.int64)
-            dimC[0]=2
+            dimC=np.ndarray(2,dtype=np.int64)
             if(opA=='n'):
-                dimC[1]=dimA[1]
-                dimC[2]=dimB[1]
+                dimC[0]=dimA[0]
+                dimC[1]=dimB[0]
             else:
-                dimC[1]=dimA[2]
-                dimC[2]=dimB[2]
+                dimC[0]=dimA[1]
+                dimC[1]=dimB[1]
             C=chakra_obj_CLASSNAMEDIMD(self.getContext(),dims=dimC)
         else:
             dimC=C.get_Dims()
@@ -902,14 +820,14 @@ CASTCOMPLEX
         b.x=beta.x
         b.y=beta.y
 ENDCOMPLEX
-        C.c_o.syrkx(CUBLAS_FILL_MODE_UPPER, opA,a,self.c_o,dimA[1],
-                    B.c_o, dimB[1],b,dimC[1])
+        C.c_o.syrkx(CUBLAS_FILL_MODE_UPPER, ord(opA),a,self.c_o,dimA[0],
+                    B.c_o, dimB[0],b,dimC[0])
 
         return C
 
 
     def geam(self, chakra_obj_CLASSNAME2D B, NUMPY_TYPENAME_T alpha=1, NUMPY_TYPENAME_T beta=0, 
-             char opA='n', char opB='n', chakra_obj_CLASSNAME2D C=None):
+             str opA='n', str opB='n', chakra_obj_CLASSNAME2D C=None):
         """Cublas geam
 
         B -- chakra_obj_CLASSNAME2D
@@ -929,14 +847,13 @@ ENDCOMPLEX
         cdef dimA=self.get_Dims()
         cdef dimB=B.get_Dims()
         if( C is None):
-            dimC=np.ndarray(3,dtype=np.int64)
-            dimC[0]=2
+            dimC=np.ndarray(2,dtype=np.int64)
             if(opA=='n'):
+                dimC[0]=dimA[0]
                 dimC[1]=dimA[1]
-                dimC[2]=dimA[2]
             else:
-                dimC[1]=dimA[2]
-                dimC[2]=dimA[1]
+                dimC[0]=dimA[1]
+                dimC[1]=dimA[0]
             C=chakra_obj_CLASSNAMEDIMD(self.getContext(),dims=dimC)
         else:
             dimC=C.get_Dims()
@@ -958,12 +875,12 @@ CASTCOMPLEX
         b.x=beta.x
         b.y=beta.y
 ENDCOMPLEX
-        C.c_o.geam(opA, opB, a, self.c_o, dimA[1],
-                   b, B.c_o, dimB[1], dimC[1])
+        C.c_o.geam(ord(opA), ord(opB), a, self.c_o, dimA[0],
+                   b, B.c_o, dimB[0], dimC[0])
         return C
         
 
-    def dgmm(self, chakra_obj_CLASSNAME1D X, char sidec='l',
+    def dgmm(self, chakra_obj_CLASSNAME1D X, str sidec='l',
              chakra_obj_CLASSNAME2D C=None):
         """Cublas dgmm
 
@@ -980,14 +897,13 @@ ENDCOMPLEX
         cdef dimA=self.get_Dims()
         cdef dimX=X.get_Dims()
         if(C is None):
-            dimC=np.ndarray(3,dtype=np.int64)
-            dimC[0]=2
+            dimC=np.ndarray(2,dtype=np.int64)
             if(sidec=='l'):
+                dimC[0]=dimA[0]
                 dimC[1]=dimA[1]
-                dimC[2]=dimA[2]
             else:
-                dimC[1]=dimA[2]
-                dimC[2]=dimA[1]
+                dimC[0]=dimA[1]
+                dimC[1]=dimA[0]
             C=chakra_obj_CLASSNAMEDIMD(self.getContext(),dims=dimC)
         else:
             dimC=C.getDims()
@@ -1009,10 +925,9 @@ ENDCOMPLEX
         self.context.set_activeDeviceForCpy(device)
         cdef dimA=self.getDims()
         if(dest is None):
-            dimD=np.ndarray(3,dtype=np.int64)
-            dimD[0]=2
-            dimD[1]=dimA[2]
-            dimD[2]=dimA[1]
+            dimD=np.ndarray(2,dtype=np.int64)
+            dimD[0]=dimA[1]
+            dimD[1]=dimA[0]
             dest= chakra_obj_CLASSNAMEDIMD(self.getContext,dims=dimD)
         else:
             dimD=dest.getDims()
@@ -1050,8 +965,40 @@ pxd_code_str_Ncplx='''
 
 
 
-pxd_code_str_fft='''
-    def fft(self,dest=None, int direction=1):
+pxd_code_str_fftR='''
+    def fft(self, chakra_obj_PY_FFT_TYPEDIMD dest=None, int direction=1):
+        cdef plan
+        cdef cufftHandle *handle = self.c_o.getPlan()
+        cdef uintptr_t output
+
+        cdef np.ndarray ds=self.get_Dims()
+        cdef np.ndarray dd
+
+        cdef long dims_src[DIM+1]
+        dims_src[0]=DIM
+        for i in range(DIM):
+            dims_src[i+1]=ds[i]
+
+        if(dest is None):
+            dd=self.get_Dims()
+            dd[DIM-1]=dd[DIM-1]/2+1
+            dest=chakra_obj_PY_FFT_TYPEDIMD(self.getContext(),dims=dd)
+
+        try:
+            plan=dict_fft_CLASSNAMEDIMD[dest.__class__]
+        except KeyError:
+            print "fft not available from ", self.__class__.__name__, " to ",dest.__class__.__name__
+            return
+
+        output = dest.getData_ptr()
+        carma_initfft[C_TYPE,C_FFT_TYPE](dims_src,self.c_o.getPlan(),plan)
+        carma_fft[C_TYPE,C_FFT_TYPE](self.c_o.getData(), <C_FFT_TYPE*><void*>output, direction,handle[0])
+
+        return dest
+
+'''
+pxd_code_str_fftC='''
+    def fft(self, bool inplace=False, bool C2R=False, dest=None, int direction=1):
         """Compute fft, using "cufftExec"
 
         dest -- chakra_obj (default = None)
@@ -1065,40 +1012,59 @@ pxd_code_str_fft='''
 
         cdef plan
 
+        cdef cufftHandle *handle = self.c_o.getPlan()
+        cdef uintptr_t output
+
+        cdef np.ndarray ds=self.get_Dims()
+        cdef np.ndarray dd=self.get_Dims()
+
+        cdef int i
+
+        cdef long dims_src[DIM+1]
+        cdef long dims_dest[DIM+1]
+        dims_src[0]=DIM
+        dims_dest[0]=DIM
+        for i in range(DIM):
+            dims_src[i+1]=ds[i]
+            dims_dest[i+1]=ds[i]
+
+        if(C2R):
+            dims_dest[DIM]=(dims_dest[DIM]-1)*2
+            dd[DIM-1]=(dd[DIM-1]-1)*2
+
         if(dest is None):
-            dest=self
+            if(inplace):
+                dest=self
+            else:
+                if(C2R):
+                    dest=chakra_obj_PY_FFT_TYPEDIMD(self.getContext(),dims=dd)
+                else:
+                    dest=chakra_obj_CLASSNAMEDIMD(self.getContext(),dims=dd)
+
         cdef t_dest=dest.__class__
         try:
             plan=dict_fft_CLASSNAMEDIMD[t_dest]
         except KeyError:
             print "fft not available from ", self.__class__.__name__, " to ",dest.__class__.__name__
             return
-
-        cdef cufftHandle *handle = self.c_o.getPlan()
-        cdef uintptr_t output = dest.getData_ptr()
-
-CASTSIMPLE
-        carma_initfft[C_TYPE,C_FFT_TYPE](self.c_o.getDims(),self.c_o.getPlan(),plan)
-        carma_fft[C_TYPE,C_FFT_TYPE](self.c_o.getData(), <C_FFT_TYPE*><void*>output, direction,handle[0])
-ENDSIMPLE
-CASTCOMPLEX
-        cdef dd=dest.get_Dims()
-        cdef long dims[4]
-        for i in range(dd[0]+1):
-            dims[i]=dd[i]
+        output = dest.getData_ptr()
 
         if(t_dest==self.__class__):
-            carma_initfft[C_TYPE,C_TYPE](self.c_o.getDims(),self.c_o.getPlan(),plan)
+            carma_initfft[C_TYPE,C_TYPE](dims_src,self.c_o.getPlan(),plan)
             carma_fft[C_TYPE,C_TYPE](self.c_o.getData(), <C_TYPE*><void*>output, direction,handle[0])
         else:
-            carma_initfft[C_TYPE,C_FFT_TYPE](dims,self.c_o.getPlan(),plan)
+            carma_initfft[C_TYPE,C_FFT_TYPE](dims_dest,self.c_o.getPlan(),plan)
             carma_fft[C_TYPE,C_FFT_TYPE](self.c_o.getData(), <C_FFT_TYPE*><void*>output, direction,handle[0])
-ENDCOMPLEX
 
+        if(not inplace):
+            return dest
 
 '''
 
 pxd_code_str_fftconv='''
+#see dims array
+#dims[0]:first dimension (dims do not contain the number of dimensions)
+#in code below: dims[0]:number of dimensions (folowed by dimensions)
     def fftconv_init(self, chakra_obj_FloatDIMD ker, type="real"):
         cdef dimsIm=self.get_Dims()
         cdef dimsKer=ker.get_Dims()
@@ -1149,11 +1115,6 @@ for ctype,info in c_types_info.items():
 
         code+=pxd_code_str2
 
-        if(info[0]=="Float" or info[0]=="Double"):
-#code with no template (yet) for other types than float and double
-#(sum,nrm2...)
-            code += pxd_code_str_Ncplx
-
         if(info[1]=='1'):
 #code specific to vector (cublas functions)
             code+= pxd_code_str_1D
@@ -1162,10 +1123,17 @@ for ctype,info in c_types_info.items():
 #code specific to matrix (cublas functions)
             code+= pxd_code_str_2D
 
-        code+=pxd_code_str_fft
+        if(info[0]=="Float" or info[0]=="Double"):
+#code with no template (yet) for other types than float and double
+#(sum,nrm2...)
+            code += pxd_code_str_Ncplx
+            code+=pxd_code_str_fftR
 
-        if(info[0]=="Float"):
-            code+=pxd_code_str_fftconv
+        if(info[0]=="ComplexS" or info[0]=="ComplexD"):
+            code+=pxd_code_str_fftC
+
+#        if(info[0]=="Float"):
+#            code+=pxd_code_str_fftconv
 
     if(info[5]=="SIMPLE"):
         code=re.sub("CASTSIMPLE(\n)?","",code)
@@ -1186,6 +1154,7 @@ for ctype,info in c_types_info.items():
     code = code.replace(template_strs[3], info[3])
     code = code.replace(template_strs[4], info[4])
     code = code.replace(template_strs[6], info[6])
+    code = code.replace(template_strs[7], info[7])
 
     out.write(code)
     

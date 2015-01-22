@@ -17,24 +17,26 @@ print "Precision: ", prec
 
 c=ch.chakra_context()
 
-shm=np.array((2,sizem,sizen),dtype=np.int64)
+#generatig random chakra_obj 2d
+shm=np.array([sizem,sizen],dtype=np.int64)
 Mat=ch.chakra_obj_Float2D(c,dims=shm)
 Mat.random(time.clock())
 
-shsym=np.array((2,sizem,sizem),dtype=np.int64)
+#generating random symetric chakra_obj 2d
+shsym=np.array([sizem,sizem],dtype=np.int64)
 MatSym=ch.chakra_obj_Float2D(c,dims=shsym)
 MatSym.random(time.clock())
 data_R=MatSym.device2host()
 data_R=(data_R+data_R.T)/2
-#F-order
-MatSym.host2device(np.asfortranarray(data_R))
+MatSym.host2device(data_R)
 
 
-shx=np.array((1,sizen),dtype=np.int64)
+#generating 3 random chakra_obj 1d
+shx=np.array([sizen],dtype=np.int64)
 Vectx=ch.chakra_obj_Float1D(c,dims=shx)
 Vectx.random(time.clock())
 
-shy=np.array((1,sizem),dtype=np.int64)
+shy=np.array([sizem],dtype=np.int64)
 Vecty=ch.chakra_obj_Float1D(c,dims=shy)
 Vecty.random(time.clock())
 
@@ -45,44 +47,70 @@ Vectx2.random(time.clock())
 
 def test_gemv():
 
+    #function gemv
+    # testing: y=A.x
+    # x and y are vector, A a matrix
+
     A=Mat.device2host()
     x=Vectx.device2host()
     y=Vecty.device2host()
 
     y=A.dot(x)
 
-    #F-order
-    Mat.host2device(np.asfortranarray(A)) 
-
     Mat.gemv(Vectx,1,Vecty,0)
+    Vecty_2=Mat.gemv(Vectx)
+    
+    yG=Vecty.device2host()
 
-    d=10**np.ceil(np.log10(y))
-    npt.assert_array_almost_equal(y/d,Vecty.device2host()/d,dec)
+    M=np.argmax(np.abs(y-yG))
+
+    d=1
+    if(0<np.abs(y.item(M))):
+        d=10**np.ceil(np.log10(np.abs(y.item(M))))
+    npt.assert_almost_equal(y.item(M)/d,yG.item(M)/d,dec)
+    npt.assert_array_almost_equal(yG,Vecty_2.device2host(),dec)
 
 def test_ger():
 
+    # function ger
+    # testing: A= x.y
+    #   and  : A= x.y+ A
+    # x and y are vectors, A a matrix
 
     x=Vectx.device2host()
     A=Mat.device2host()
     y=Vecty.device2host()
 
-    #F-order
-    MatT=ch.chakra_obj_Float2D(c,data=np.asfortranarray(A.T))
-   
-    caOres=Vecty.ger(Vectx,A=MatT)
+    MatT=ch.chakra_obj_Float2D(obj=Mat)
 
+    caOres=Vectx.ger(Vecty,A=MatT)
+    caOresB=Vectx.ger(Vecty)
+
+    B=np.outer(y,x)
     A=np.outer(y,x)+A
     
     res=caOres.device2host()
-    #order-F
-    res=np.reshape(res,(res.shape[1],res.shape[0]))
+    resB=caOresB.device2host()
 
-    d=10**np.ceil(np.log10(A))
+    Ma=np.argmax(np.abs(A-res))
+    Mb=np.argmax(np.abs(B-resB))
+
+    d=1
+    if(0<np.abs(A.item(Ma))):
+        d=10**np.ceil(np.log10(np.abs(A.item(Ma))))
+    dB=1
+    if(0<np.abs(B.item(Mb))): 
+        dB=10**np.ceil(np.log10(np.abs(B.item(Mb))))
 
     npt.assert_array_almost_equal(A/d,res/d,dec)
+    npt.assert_array_almost_equal(B/d,resB/d,dec)
 
 
 def test_symv():
+
+    #function symv
+    # testing: y=A.x
+    # x and y are vector, A a symetric matrix
 
     A=MatSym.device2host()
 
@@ -91,11 +119,14 @@ def test_symv():
 
     y=A.dot(x2)
 
-    #F-order
-    MatSym.host2device(np.asfortranarray(A))
-
     MatSym.symv(Vectx2,1,Vecty,0)
 
-    d=10**np.ceil(np.log10(y))
-    npt.assert_array_almost_equal(y/d,Vecty.device2host()/d,dec)
+    yG=Vecty.device2host()
+
+    M=np.argmax(np.abs(y-yG))
+    d=1
+    if(0<np.abs(y.item(M))):
+        d=10**np.ceil(np.log10(np.abs(y.item(M))))
+
+    npt.assert_array_almost_equal(y/d,yG/d,dec)
 

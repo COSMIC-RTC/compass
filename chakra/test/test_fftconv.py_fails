@@ -17,3 +17,7 @@ spec_pad=a.fftconv_init(k,"complex")
 print type(sizeKer)
 print sizeKer/2
 c.fftconv(a,k,a_pad, spec_pad,sizeKer/2,sizeKer/2)
+
+
+def test_fft_conv():
+    return 1

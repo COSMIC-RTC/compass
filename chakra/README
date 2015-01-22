@@ -12,17 +12,24 @@ In order to compile, environment variable required:
 The compilation is done with the command:
     python setup.py build_ext --inplace
 
+    REQUIREMENT:
+        * cython
+        * python 2.7
+
 To clean the folder, use the command:
     python clean.py
 
 
-
 Content
-    wrapper_chakra.pyx.in       wrapper sources
-    process_tmpl.py             template management
-    setup.py                    compilation setups
-    clean.py                    cleaning script
-    test                        directory containing small python test codes
-
-
-
+    * wrapper sources:
+            wrapper_chakra.pyx
+            wrapper_chakra_type.pyx
+            wrapper_chakra_context.pyx
+            wrapper_chakra_obj.pyx.in
+            wrapper_chakra_host_obj.pyx.in
+            wrapper_magma.pyx.in
+            wrapper_chakra_streams.pyx
+    * process_tmpl.py             template management
+    * setup.py                    compilation setups
+    * clean.py                    cleaning script
+    * test                        directory containing small python test codes

@@ -18,7 +18,12 @@ for filepattern in ('*.so', '*.pyc'):
             print("delete {}".format(filename))        
             os.remove(filename)
 
+FILE=['wrapper_chakra_obj', 'wrapper_chakra_host_obj','wrapper_magma']
+
 if os.path.exists('wrapper_chakra.cpp'):
     os.remove('wrapper_chakra.cpp')
-if os.path.exists('wrapper_chakra.pyx'):
-    os.remove('wrapper_chakra.pyx')
+for f in FILE:
+    if os.path.exists(f+'.pyx'):
+        os.remove(f+'.pyx')
+    if os.path.exists(f+'.cpp'):
+        os.remove(f+'.cpp')

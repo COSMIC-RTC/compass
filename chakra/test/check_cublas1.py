@@ -11,30 +11,32 @@ print "Test cublas 1"
 print "precision: ", prec 
 
 c=ch.chakra_context()
-#sh2=np.array((2,size,size),dtype=np.int64)
-sh2=np.ndarray((3),dtype=np.int64)
+sh2=np.ndarray((2),dtype=np.int64)
 
-sh2[0]=2
+sh2[0]=size
 sh2[1]=size
-sh2[2]=size
 caF2D=ch.chakra_obj_Float2D(c,dims=sh2)
 caF2D.random(time.clock()*10**6)
 
-sh1=np.ndarray((2),dtype=np.int64)
-sh1[0]=1
-sh1[1]=size*size
+sh1=np.ndarray((1),dtype=np.int64)
+sh1[0]=size*size
 Vect=ch.chakra_obj_Float1D(c,dims=sh1)
 Vect.random(time.clock()*10**6)
 
 
 def test_imax():
-    imaxC=caF2D.device2host().argmax()+1 
+    #imax return the index in column major of the maximum absolute value element
+    imaxC=caF2D.device2host().flatten("F").argmax()+1 
     imaxG=caF2D.imax()
-    
+
+    print caF2D.device2host()
+    print caF2D.device2host().flatten()
+
     npt.assert_equal(imaxG,imaxC)
 
 def test_imin():
-    iminC=caF2D.device2host().argmin()+1 
+    #imax return the index in column major of the minimum obsolute value element
+    iminC=caF2D.device2host().flatten("F").argmin()+1 
     iminG=caF2D.imin()
     
     npt.assert_equal(iminG,iminC)
@@ -43,12 +45,20 @@ def test_asum():
     sumC=np.abs(caF2D.device2host()).sum()
     sumG=caF2D.asum()
     
-    npt.assert_approx_equal(sumG,sumC, dec)
+    M=np.argmax(np.abs(sumG-sumC))
+    d=1
+    if(0<np.abs(sumC.item(M))):
+         d=10**np.ceil(np.log10(np.abs(sumC.item(M))))
+    npt.assert_almost_equal(sumG/d,sumC/d, dec)
 
 def test_nrm2():
     nC=np.linalg.norm(caF2D.device2host())
     nG=caF2D.nrm2()
-    npt.assert_approx_equal(nG,nC, dec)
+
+    d=1
+    if(0<np.abs(nC)):
+         d=10**np.ceil(np.log10(np.abs(nC)))
+    npt.assert_almost_equal(nG/d,nC/d, dec)
 
 def test_scale():
     sC=caF2D.device2host()*10.0
@@ -86,5 +96,7 @@ def test_dot():
     dotC=np.dot(d_ca,d_ca)
     dotG=Vect.dot(Vect)
 
-    d=10**np.ceil(np.log10(dotC))
+    d=1
+    if(0<np.abs(dotC)):
+        d=10**np.ceil(np.log10(np.abs(dotC)))
     npt.assert_almost_equal(dotC/d,dotG/d,decimal=dec)
