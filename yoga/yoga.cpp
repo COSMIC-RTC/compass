@@ -2716,19 +2716,19 @@ void Y_yoga_random(int argc) {
     if (handle->type == Y_FLOAT) {
       caObjS *carma_obj_handler = (caObjS *) (handle->carma_object);
       if (carma_obj_handler->is_rng_init() == false) {
-        //carma_obj_handler->init_prng(handle->device);
-        carma_obj_handler->init_prng_host(seed);
+        carma_obj_handler->init_prng(handle->device);
+        //carma_obj_handler->init_prng_host(seed);
       }
-      //carma_obj_handler->prng('U');
-      carma_obj_handler->prng_host('U');
+      carma_obj_handler->prng('U');
+      //carma_obj_handler->prng_host('U');
     } else if (handle->type == Y_DOUBLE) {
       caObjD *carma_obj_handler = (caObjD *) (handle->carma_object);
       if (carma_obj_handler->is_rng_init() == false) {
-        //carma_obj_handler->init_prng(handle->device);
-        carma_obj_handler->init_prng_host(seed);
+        carma_obj_handler->init_prng(handle->device);
+        //carma_obj_handler->init_prng_host(seed);
       }
-      //carma_obj_handler->prng('U');
-      carma_obj_handler->prng_host('U');
+      carma_obj_handler->prng('U');
+      //carma_obj_handler->prng_host('U');
     } else if (handle->type == Y_SCOMPLEX) {
       caObjC *carma_obj_handler = (caObjC *) (handle->carma_object);
       if (carma_obj_handler->is_rng_init() == false) {
@@ -2788,16 +2788,16 @@ void Y_yoga_random(int argc) {
     }
 	if (handle->type == Y_FLOAT) {
       caObjS *carma_obj_handler = (caObjS *) (handle->carma_object);
-      //carma_obj_handler->init_prng(handle->device);
-      carma_obj_handler->init_prng_host(seed);
-      //carma_obj_handler->prng('U');
-      carma_obj_handler->prng_host('U');
+      carma_obj_handler->init_prng(handle->device);
+      //carma_obj_handler->init_prng_host(seed);
+      carma_obj_handler->prng('U');
+      //carma_obj_handler->prng_host('U');
     } else if (handle->type == Y_DOUBLE) {
       caObjD *carma_obj_handler = (caObjD *) (handle->carma_object);
-      //carma_obj_handler->init_prng(handle->device);
-      carma_obj_handler->init_prng_host(seed);
-      //carma_obj_handler->prng('U');
-      carma_obj_handler->prng_host('U');
+      carma_obj_handler->init_prng(handle->device);
+      //carma_obj_handler->init_prng_host(seed);
+      carma_obj_handler->prng('U');
+      //carma_obj_handler->prng_host('U');
     } else if (handle->type == Y_SCOMPLEX) {
       caObjC *carma_obj_handler = (caObjC *) (handle->carma_object);
       carma_obj_handler->init_prng(handle->device);
@@ -4196,6 +4196,126 @@ void Y_yoga_mm_sparse(int argc)
 
       cusparseHandle_t cusparseHandle=context_handle->get_cusparseHandle();
       carma_gemm<double>(cusparseHandle, opA, alpha, carma_obj_handler_matA, carma_obj_handler_matB, beta, carma_obj_handler_matC);
+    }
+  }
+}
+
+void Y_yoga_mm_sparse2(int argc)
+/** @brief wrapper routine for yoga_sparse mm method
+ *  @param[in] argc : command line arguments
+ *  can work as a (1) subroutine (return discarded) or (2) as a function
+ *    - first   : (1) the C matrix yoga_sparse_obj / (2) the A matrix yoga_sparse_obj
+ *    - second  : (1) the A matrix yoga_sparse_obj / (2) the B matrix yoga_sparse_obj
+ *    - third   : (1) the B matrix yoga_sparse_obj
+ *    - fourth  : (1) the opA
+ *    - fifth   : (1) the opB
+ *  in case (2) the destination is pushed on the stack as a yoga_sparse_obj
+ *  only floating point types supported (single or double precision)
+ */
+{
+  carma_context *context_handle = _getCurrentContext();
+  if (yarg_subroutine()) {
+    SCAST(ySparseObj_struct *, handle_matC, yget_obj(argc - 1, &ySparseObj));
+    SCAST(ySparseObj_struct *, handle_matA, yget_obj(argc - 2, &ySparseObj));
+    SCAST(ySparseObj_struct *, handle_matB, yget_obj(argc - 3, &ySparseObj));
+    if ((handle_matA->device != handle_matB->device)
+        || (handle_matA->device != handle_matC->device)
+        || (handle_matB->device != handle_matC->device))
+      y_error("mm only on the same device");
+    context_handle->set_activeDevice(handle_matA->device);
+
+    char opA = 'n';
+    if (argc > 3)
+      opA = ygets_c(argc - 4);
+
+    char opB = 'n';
+    if (argc > 4)
+      opB = ygets_c(argc - 5);
+
+    if (handle_matC->type == Y_FLOAT) {
+
+      SCAST(carma_sparse_obj<float>*, carma_obj_handler_matA, handle_matA->carma_sparse_object);
+      SCAST(carma_sparse_obj<float>*, carma_obj_handler_matB, handle_matB->carma_sparse_object);
+      SCAST(carma_sparse_obj<float>*, carma_obj_handler_matC, handle_matC->carma_sparse_object);
+
+      cusparseHandle_t cusparseHandle=context_handle->get_cusparseHandle();
+      carma_gemm<float>(cusparseHandle, opA,opB, carma_obj_handler_matA, carma_obj_handler_matB, carma_obj_handler_matC);
+    }
+    if (handle_matC->type == Y_DOUBLE) {
+
+      SCAST(carma_sparse_obj<double>*, carma_obj_handler_matA, handle_matA->carma_sparse_object);
+      SCAST(carma_sparse_obj<double>*, carma_obj_handler_matB, handle_matB->carma_sparse_object);
+      SCAST(carma_sparse_obj<double>*, carma_obj_handler_matC, handle_matC->carma_sparse_object);
+
+      cusparseHandle_t cusparseHandle=context_handle->get_cusparseHandle();
+      carma_gemm<double>(cusparseHandle, opA, opB, carma_obj_handler_matA, carma_obj_handler_matB, carma_obj_handler_matC);
+    }
+  } else {
+    // called as a function : need to allocate space
+    SCAST(ySparseObj_struct *, handle_matA, yget_obj(argc - 1, &ySparseObj));
+    SCAST(ySparseObj_struct *, handle_matB, yget_obj(argc - 2, &ySparseObj));
+    if (handle_matA->device != handle_matB->device)
+      y_error("mm only on the same device");
+    context_handle->set_activeDevice(handle_matA->device);
+
+    char opA = 'n';
+    if (argc > 2)
+      opA = ygets_c(argc - 3);
+
+    char opB = 'n';
+    if (argc > 3)
+      opB = ygets_c(argc - 4);
+
+    if (handle_matA->type == Y_FLOAT) {
+
+      SCAST(ySparseObj_struct *, handle_matC, ypush_obj(&ySparseObj, sizeof(ySparseObj_struct)));
+      handle_matC->device = handle_matA->device;
+
+      handle_matC->type = handle_matA->type;
+      SCAST(carma_sparse_obj<float>*, carma_obj_handler_matA, handle_matA->carma_sparse_object);
+      SCAST(carma_sparse_obj<float>*, carma_obj_handler_matB, handle_matC->carma_sparse_object);
+
+      long dims_data_mat[3];
+      dims_data_mat[0] = 2;
+      if (opA == 'n')
+        dims_data_mat[1] = carma_obj_handler_matA->getDims(1);
+      else
+        dims_data_mat[1] = carma_obj_handler_matA->getDims(2);
+      if (opB == 'n')
+        dims_data_mat[2] = carma_obj_handler_matB->getDims(2);
+      else
+        dims_data_mat[2] = carma_obj_handler_matB->getDims(1);
+
+      handle_matC->carma_sparse_object = new carma_sparse_obj<float>();
+      SCAST(carma_sparse_obj<float>*, carma_obj_handler_matC, handle_matC->carma_sparse_object);
+
+      cusparseHandle_t cusparseHandle=context_handle->get_cusparseHandle();
+      carma_gemm<float>(cusparseHandle, opA, opB, carma_obj_handler_matA, carma_obj_handler_matB, carma_obj_handler_matC);
+    } else if (handle_matA->type == Y_DOUBLE) {
+
+      SCAST(ySparseObj_struct *, handle_matC, ypush_obj(&ySparseObj,sizeof(ySparseObj_struct)));
+      handle_matC->device = handle_matA->device;
+
+      handle_matC->type = handle_matA->type;
+      SCAST(carma_sparse_obj<double>*, carma_obj_handler_matA, handle_matA->carma_sparse_object);
+      SCAST(carma_sparse_obj<double>*, carma_obj_handler_matB, handle_matB->carma_sparse_object);
+
+      long dims_data_mat[3];
+      dims_data_mat[0] = 2;
+      if (opA == 'n')
+        dims_data_mat[1] = carma_obj_handler_matA->getDims(1);
+      else
+        dims_data_mat[1] = carma_obj_handler_matA->getDims(2);
+      if (opB == 'n')
+        dims_data_mat[2] = carma_obj_handler_matB->getDims(2);
+      else
+        dims_data_mat[2] = carma_obj_handler_matB->getDims(1);
+
+      handle_matC->carma_sparse_object = new carma_sparse_obj<double>();
+      SCAST(carma_sparse_obj<double>*, carma_obj_handler_matC, handle_matC->carma_sparse_object);
+
+      cusparseHandle_t cusparseHandle=context_handle->get_cusparseHandle();
+      carma_gemm<double>(cusparseHandle, opA, opB, carma_obj_handler_matA, carma_obj_handler_matB, carma_obj_handler_matC);
     }
   }
 }

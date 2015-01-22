@@ -110,8 +110,12 @@ cusparseStatus_t carma_gemm(cusparseHandle_t handle, char op_A, T_data alpha,
     carma_obj<T_data>* C);
 
 template<class T_data>
-cusparseStatus_t carma_gemm(cusparseHandle_t handle, char op_A, char op_B, T_data alpha,
-    carma_sparse_obj<T_data>* A, carma_sparse_obj<T_data>* B, T_data beta,
+cusparseStatus_t carma_gemm(cusparseHandle_t handle, char op_A, char op_B,
+    carma_sparse_obj<T_data>* A, carma_sparse_obj<T_data>* B,
     carma_sparse_obj<T_data>* C);
+
+template<class T_data>
+cusparseStatus_t carma_csr2dense(cusparseHandle_t handle, int m, int n,
+    carma_sparse_obj<T_data>* A, T_data *B,int ldb);
 
 #endif /* CARMA_SPARSE_OBJ_H_ */

@@ -26,12 +26,14 @@ func check_yoga_sparse_obj(m, n)
   matAs_gpu2 = yoga_sparse_obj(matA_gpu);
   matAs_gpu;
   write, "max(abs(matAs_gpu()-matA))";
-  max(abs(matAs_gpu()-matA));
+  max(abs(matA_gpu()-matA));
 
   matAs_gpu2;
   write, "max(abs(matAs_gpu2()-matA))";
   max(abs(matAs_gpu2()-matA));
 
+  tmp = yoga_mm_sparse2(matAs_gpu, matAs_gpu, 't', 'n')
+  
   //checkall_yoga_cusparse;
   
 }

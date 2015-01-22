@@ -969,6 +969,23 @@ extern yoga_mm_sparse;
      
    SEE ALSO:
 */
+
+extern yoga_mm_sparse2;
+/* DOCUMENT yoga_mm_sparse2
+   matC = yoga_mm_sparse2(matA,matB[,opA, opB])
+   or
+   yoga_mm_sparse2,matC,matA,matB[,opA, opB]
+
+   This function performs the matrix-matrix multiplication (BLAS gemm)
+   C = alpha * opA( A ) * opB ( B ) + beta * C
+
+   opA : operation on matrix A : 't' for transpose, 'n' for nothing
+   opB : operation on matrix B : 't' for transpose, 'n' for nothing
+
+   If called as a function, it creates a new yoga object
+     
+   SEE ALSO:
+*/
 /*                                                                _               _            _     _
  *  _   _  ___   __ _  __ _     ___ _ __   __ _ _ __ ___  ___    | |__   ___  ___| |_     ___ | |__ (_)
  * | | | |/ _ \ / _` |/ _` |   / __| '_ \ / _` | '__/ __|/ _ \   | '_ \ / _ \/ __| __|   / _ \| '_ \| |
