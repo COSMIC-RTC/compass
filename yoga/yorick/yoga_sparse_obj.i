@@ -14,26 +14,36 @@ func check_yoga_sparse_obj(m, n)
 {
   if (is_void(m)) m= 1000;
   if (is_void(n)) n= 1000;
+  if (is_void(k)) k= 1000;
 
-  matA=random(m, n);
+  matA=random(m, k);
+  matB=random(k, n);
 
-  mask=int(random(m,n)+0.2); nz=numberof(where(mask==0));
+  mask=int(random(m,k)+0.2); nz=numberof(where(mask==0));
   write, format="putting %d zeros %0.2f %% of the matrix\n", nz, float(nz)/(m*n)*100;
   matA*=mask;
-  
+  mask=int(random(k,n)+0.2); nz=numberof(where(mask==0));
+  matB*=mask;
+
   matA_gpu = yoga_obj(matA);
+  
   matAs_gpu = yoga_sparse_obj(matA);
-  matAs_gpu2 = yoga_sparse_obj(matA_gpu);
   matAs_gpu;
   write, "max(abs(matAs_gpu()-matA))";
-  max(abs(matA_gpu()-matA));
-
+  max(abs(matAs_gpu()-matA));
+  
+  matAs_gpu2 = yoga_sparse_obj(matA_gpu);
   matAs_gpu2;
   write, "max(abs(matAs_gpu2()-matA))";
   max(abs(matAs_gpu2()-matA));
 
-  tmp = yoga_mm_sparse2(matAs_gpu, matAs_gpu, 't', 'n')
-  
+  matBs_gpu = yoga_sparse_obj(matB);
+  matBs_gpu
+  tmp = yoga_mm_sparse2(matAs_gpu, matBs_gpu, 'n', 'n');
+  tmp;
+
+  max(abs(tmp()-matA(,+)*matB(+,)));
+  error;
   //checkall_yoga_cusparse;
   
 }
