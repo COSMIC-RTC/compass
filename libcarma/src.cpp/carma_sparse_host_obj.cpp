@@ -177,10 +177,10 @@ void carma_sparse_host_obj<T_data>::copy_into_matrix(
   }
   T_data* val = this->h_data;
   int index=0;
-  for(int i=0; i<ld; i++){
+  for(int i=0; i<dims_data[1]; i++){
     while(index<rowind[i+1]){
       if(majorDim=='R'){
-        M[i*rowind[i]+colind[index]]=*val;
+        M[i*ld+colind[index]]=*val;
       } else {
         M[i+ld*colind[index]]=*val;
       }

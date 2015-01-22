@@ -9,7 +9,8 @@
 #include "carma_sparse_host_obj.h"
 
 template<class T_data>
-carma_sparse_obj<T_data>::carma_sparse_obj() {
+carma_sparse_obj<T_data>::carma_sparse_obj(carma_context *current_context) {
+  this->current_context = current_context;
   _create(0, 0, 0);
 }
 
@@ -29,7 +30,7 @@ void carma_sparse_obj<T_data>::init_carma_sparse_obj(carma_context *current_cont
   device = current_context->get_activeDevice();
   this->current_context = current_context;
   int *nnzPerRow=NULL, nnzTotalDevHostPtr=0;
-  cudaMalloc((void**) &nnzPerRow, dims[2] * sizeof(int));
+  cudaMalloc((void**) &nnzPerRow, dims[1] * sizeof(int));
   T_data *d_M;
   if (loadFromHost) {
     cudaMalloc((void**) &d_M, dims[1] * dims[2] * sizeof(T_data));
@@ -40,12 +41,12 @@ void carma_sparse_obj<T_data>::init_carma_sparse_obj(carma_context *current_cont
   }
   nz_elem=0;
   cusparseHandle_t handle = current_context->get_cusparseHandle();
-  ptr_nnz(handle, CUSPARSE_DIRECTION_ROW, dims[2], dims[1], descr, d_M, dims[2],
+  ptr_nnz(handle, CUSPARSE_DIRECTION_ROW, dims[1], dims[2], descr, d_M, dims[1],
       nnzPerRow, &nnzTotalDevHostPtr);
   //DEBUG_TRACE("nnzTotalDevHostPtr %d\n",nnzTotalDevHostPtr);
   resize(nnzTotalDevHostPtr, dims[1], dims[2]);
 
-  ptr_dense2csr(handle, dims[2], dims[1], descr, d_M, dims[2], nnzPerRow,
+  ptr_dense2csr(handle, dims[1], dims[2], descr, d_M, dims[1], nnzPerRow,
       this->d_data, this->d_rowind, this->d_colind);
 
   if (loadFromHost) {
@@ -314,7 +315,7 @@ carma_sparse_obj<T_data>::~carma_sparse_obj<T_data>() {
   _clear();
 }
 
-#define EXPLICITE_TEMPLATE(T_data) template carma_sparse_obj<T_data>::carma_sparse_obj(); \
+#define EXPLICITE_TEMPLATE(T_data) template carma_sparse_obj<T_data>::carma_sparse_obj(carma_context *current_context); \
     template carma_sparse_obj<T_data>::carma_sparse_obj( \
         carma_sparse_obj<T_data>* M); \
     template carma_sparse_obj<T_data>::carma_sparse_obj(carma_context *current_context, \

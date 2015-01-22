@@ -32,7 +32,7 @@ public:
 private:
 
 public:
-  carma_sparse_obj();
+  carma_sparse_obj(carma_context *current_context);
   carma_sparse_obj(carma_obj<T_data>* M);
   carma_sparse_obj(carma_sparse_obj<T_data>* M);
   carma_sparse_obj(carma_context *current_context, carma_sparse_host_obj<T_data>* M);
@@ -115,7 +115,6 @@ cusparseStatus_t carma_gemm(cusparseHandle_t handle, char op_A, char op_B,
     carma_sparse_obj<T_data>* C);
 
 template<class T_data>
-cusparseStatus_t carma_csr2dense(cusparseHandle_t handle, int m, int n,
-    carma_sparse_obj<T_data>* A, T_data *B,int ldb);
+cusparseStatus_t carma_csr2dense(carma_sparse_obj<T_data>* A, T_data *B);
 
 #endif /* CARMA_SPARSE_OBJ_H_ */
