@@ -24,6 +24,9 @@ CFLAGS_KALMAN = $(CFLAGS) -I$(LAM_KALMAN_DIR)
 ifeq ($(filter $(COMPILATION_LAM),standalone),standalone)
   CFLAGS_KALMAN += -D__STANDALONE__
 endif
+ifeq ($(filter $(COMPILATION_LAM),temps_kalman),temps_kalman)
+  CFLAGS_KALMAN += -D__TEMPS_BOUCLE_KALMAN__
+endif
 
 SRC_KP_CPP := $(wildcard $(LAM_KP_CLASSES)/*.cpp)
 SRC_KP_CU := $(wildcard $(LAM_KP_CLASSES)/*.cu)
@@ -43,7 +46,7 @@ OBJ_KALMAN_CPP := $(patsubst $(LAM_KALMAN_DIR)/%.cpp,$(LAM_KALMAN_DIR)/%.o,$(SRC
 OBJ_CU := $(OBJ_KP_CU)
 OBJ_CPP := $(OBJ_KP_CPP) $(OBJ_KALMAN_CPP)
 
-LDFLAGS = -lmkl_intel_lp64 -lmkl_intel_thread -lmkl_core -liomp5 -lpthread -lm -lcublas -lcudart -lstdc++ -lgfortran -lz -lmatio
+LDFLAGS = -lmkl_intel_lp64 -lmkl_intel_thread -lmkl_core -liomp5 -lpthread -lm -lcublas -lcudart -lstdc++ -lgfortran -lz 
 
 all:  $(LIB_KALMAN)
 kalman: $(LIB_KALMAN)

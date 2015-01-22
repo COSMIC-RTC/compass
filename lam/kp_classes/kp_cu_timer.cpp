@@ -7,7 +7,7 @@ using namespace std;
 
 kp_cu_timer::kp_cu_timer()
 {
-   is_start = 0;
+   is_start = false;
    sdkCreateTimer(&timer);
    sdkResetTimer(&timer);
 }

@@ -3939,10 +3939,15 @@ void Y_rtc_kalmangettime(int argc) {
     double tps2 = control->gettime_op2();
     double tps3 = control->gettime_op3();
 
-    cout<<"temps boucle OA kalman = "<<tps<<endl;
-    cout<<"      - temps boucle OA kalman op1 = "<<tps1<<endl;
-    cout<<"      - temps boucle OA kalman op2 = "<<tps2<<endl;
-    cout<<"      - temps boucle OA kalman op3 = "<<tps3<<endl;
+    if (tps==0)
+        cout << "WARNING ! Elapsed time in Kalman is 0.00 s. Make sure that COMPILATION_LAM (the environment variable) contained the word \"temps_kalman\" when compiling. This is necessary to use rtc_kalmangettime."<<endl;
+    else
+        cout<<"temps boucle OA kalman = "<<tps<<" s"<<endl;
+        cout<<"      - temps boucle OA kalman op1 = "<<tps1<<" s"<<endl;
+        cout<<"      - temps boucle OA kalman op2 = "<<tps2<<" s"<<endl;
+        cout<<"      - temps boucle OA kalman op3 = "<<tps3<<" s"<<endl;
+
+
   }
 }
 

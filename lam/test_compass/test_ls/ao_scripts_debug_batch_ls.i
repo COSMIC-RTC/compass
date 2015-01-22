@@ -47,7 +47,7 @@ func script_system(filename,verbose=,strehl=,r0=,clean=)
   // reading parfile
   read_parfile,filename;
 
-  if (y_loop.niter == []) y_loop.niter = 100000;
+  if (y_loop.niter == []) y_loop.niter = 2000;
 
   if (r0 > 0) y_atmos.r0 = r0;
 
@@ -83,7 +83,7 @@ func script_system(filename,verbose=,strehl=,r0=,clean=)
                                         |_|    
 
    */
-  //yoga_start_profile;
+  //yoga_start_profiler;
   
   time_move = 0;
   mytime = tic();
@@ -102,6 +102,41 @@ func script_system(filename,verbose=,strehl=,r0=,clean=)
     write,"iter# | S.E. SR | L.E. SR | Est. Rem. | framerate";
     write,"----------------------------------------------------";
   }
+/*
+//DEBUT_DEBUG
+nb_az = 241;
+nb_p = 416;
+atur = array(0.98, 241);
+(A1_Tur = array(structof(atur), nb_az, nb_az))(1:nb_az*nb_az:nb_az+1) = atur;
+A2_Tur = array(0., nb_az, nb_az);
+Zeros_nbaz = A2_Tur;
+Id_nbaz = unit(nb_az);
+A10 = grow(A1_Tur, A2_Tur);
+A11 = grow(Id_nbaz,Zeros_nbaz);
+A1 = transpose(grow(transpose(A10),transpose(A11)));
+N_Act  = create_nact(1);
+D_Mo   = create_dmo(1,1)/pi/pi;
+PROJ   = LUsolve(N_Act);
+ndim1 = 2*nb_az;
+ndim2 = nb_p;
+f1=open("H_inf_sparse_CPU.dat","r");
+tmp=rdfile(f1,ndim1);
+H_inf=array(0.0f,ndim1,ndim2)
+for (i=1;i<=ndim1;i++) {tmp3 = strtok(tmp(i)," ",ndim2);for (j=1;j<=ndim2;j++){sread,tmp3(j),format="%f",H_inf(i,j);}}
+close,f1;
+X_kskm1=array(0., 2*nb_az);
+Y_kskm1=array(0., nb_p);
+U_km2  =array(0., nb_az);
+U_km1  =array(0., nb_az);
+U_k    =array(0., nb_az);
+//window,1;pli,A1;colorbar;error;
+ph_miroir = array(0,(dimsof(*y_geom._spupil)(2)),(dimsof(*y_geom._spupil)(3)));
+ph_tur = array(0.0f,(dimsof(*y_geom._spupil)(2)),(dimsof(*y_geom._spupil)(3)));
+ph_aso = array(0,(dimsof(*y_geom._spupil)(2)),(dimsof(*y_geom._spupil)(3)));
+subsample=100.;
+//FIN_DEBUG
+*/
+
 
   for (cc=1;cc<=y_loop.niter;cc++) {
     
@@ -123,6 +158,12 @@ func script_system(filename,verbose=,strehl=,r0=,clean=)
       }
       //saving average image from target #1
     }
+
+
+
+
+
+
     
     if ((y_wfs != []) && (g_wfs != [])) {
       // loop on wfs
@@ -141,15 +182,125 @@ func script_system(filename,verbose=,strehl=,r0=,clean=)
       
       // do centroiding
     }
+/*
+//DEBUT_DEBUG
+pentes = rtc_getcentroids(g_rtc,0); // retreive slopes
+//write,U_k;
+
+ph_tur = get_tscreen(g_atmos,0.0) ;
+//window,20;pli,ph_tur;colorbar,min(ph_tur),max(ph_tur);
+//f5= open("ph_tur.dat", "a");
+//for(i=1;i<dimsof(ph_tur)(2);i++) for(j=1;j<dimsof(ph_tur)(3);j++) write,f5,format="%e ",ph_tur(i,j);
+//write,f5,"\n";
+//close,f5;  
 
 
+ph_tur = ph_tur((dimsof(ph_tur)(2)-dimsof(*y_geom._spupil)(2))/2+1 : (dimsof(ph_tur)(2)+dimsof(*y_geom._spupil)(2))/2 , (dimsof(ph_tur)(3)-dimsof(*y_geom._spupil)(3))/2+1 : (dimsof(ph_tur)(3)+dimsof(*y_geom._spupil)(3))/2)* *y_geom._spupil;
+val=0;cmpt=0;for(i=1;i<=(dimsof(*y_geom._spupil)(2));i++){for(j=1;j<=(dimsof(*y_geom._spupil)(3));j++){if(ph_tur(i,j)!=0){val+=ph_tur(i,j);cmpt++;}}}
+ph_tur = ph_tur - val/cmpt;
+ph_tur = ph_tur * *y_geom._spupil;
+val=0;cmpt=0;for(i=1;i<=(dimsof(*y_geom._spupil)(2));i++){for(j=1;j<=(dimsof(*y_geom._spupil)(3));j++){if(ph_tur(i,j)!=0){val+=ph_tur(i,j);cmpt++;}}}
+//write, "piston phase turbulente = ",val/cmpt;
+
+ph_aso =  sensors_getdata(g_wfs, 0, "phase");
+ph_aso =  ph_aso(3:dimsof(ph_aso)(2)-2,3:dimsof(ph_aso)(3)-2);// * *y_geom._spupil;
+//val=0;cmpt=0;for(i=1;i<=(dimsof(*y_geom._spupil)(2));i++){for(j=1;j<=(dimsof(*y_geom._spupil)(3));j++){if(ph_aso(i,j)!=0){val+=ph_aso(i,j);cmpt++;}}}
+//ph_aso = ph_aso - val/cmpt;
+//ph_aso = ph_aso * *y_geom._spupil;
+f6= open("ph_aso.dat", "a");
+for(i=1;i<dimsof(ph_aso)(2);i++) for(j=1;j<dimsof(ph_aso)(3);j++) write,f6,format="%e ",ph_aso(i,j);
+write,f6,"\n";
+close,f6;  
+
+if(cc % subsample == 1){
+window,10;pli,ph_aso;colorbar,min(ph_aso),max(ph_aso);
+pltitle,"Phase WFS";
+
+
+window,11;pli,ph_miroir;colorbar,min(ph_miroir),max(ph_miroir);
+pltitle,"Phase miroir";
+
+facteur = (max(ph_tur)-min(ph_tur))/(max(ph_miroir)-min(ph_miroir));
+constante = -min(ph_miroir)*facteur-max(ph_tur);
+write,"facteur=",facteur,"  constante=",constante;
+ph_miroir2 = facteur*ph_miroir + constante;
+window,12;pli,ph_miroir2;colorbar,min(ph_miroir2),max(ph_miroir2);
+pltitle,"Phase corrigee * facteur + offset";
+
+
+ph_aso2= ph_tur+ph_miroir2; 
+window,13;pli,ph_tur;colorbar,min(ph_tur),max(ph_tur);
+pltitle,"Phase turbulente";
+window,14;pli,ph_aso2;colorbar,min(ph_aso2),max(ph_aso2);
+pltitle,"(Phase corrigee * facteur + offset) + Phase turbulente";
+
+}
+//FIN_DEBUG
+*/
     if ((y_rtc != []) && (g_rtc != [])
         && (y_wfs != []) && (g_wfs != [])) {
       rtc_docentroids,g_rtc,g_wfs,0;
-      //rtc_docentroids_geom,g_rtc,g_wfs,0;
       //rtc_docentroids_geom,g_rtc,g_wfs,0; 
+
+
+
       // compute command and apply
       if (g_dm != []) rtc_docontrol,g_rtc,0,g_dm;
+/*
+//DEBUT_DEBUG
+f3= open("Yk_manuel.dat", "a");write,f3,format="%e \n",pentes;close,f3;
+
+//window,1;pli,pentes;
+
+Y_kskm1 = N_Act(,+)*U_km2(+);
+Y_kskm1 = X_kskm1(nb_az+1:2*nb_az) - Y_kskm1;
+Y_kskm1 = D_Mo(,+)*Y_kskm1(+);
+
+inov = pentes-Y_kskm1;
+X_kp1sk = H_inf(,+)*inov(+); 
+f4= open("Hinf_inov_manuel.dat", "a");write,f4,format="%e \n",X_kp1sk;close,f4;
+X_kp1sk = X_kskm1 + X_kp1sk;
+X_kp1sk = A1(,+)*X_kp1sk(+);
+f5= open("X_kp1sk_manuel.dat", "a");write,f5,format="%e \n",X_kp1sk;close,f5;
+
+X_kp1sk_debut = X_kp1sk(1:nb_az)-avg(X_kp1sk(1:nb_az));
+U_k = PROJ(,+)*X_kp1sk_debut(+);
+
+f6= open("Uk_manuel.dat", "a");write,f6,format="%e \n",U_k;close,f6;
+
+U_km2 = U_km1;
+U_km1 = U_k;
+X_kskm1 = X_kp1sk;
+
+
+coms = rtc_getcom(g_rtc,0); // get corresponding commands
+yoga_setcomm,g_dm,y_dm(1).type,y_dm(1).alt,-U_k; // send commands to the dm struct on the gpu
+
+yoga_shapedm,g_dm,y_dm(1).type,y_dm(1).alt; // apply the command and shape the dm
+ph_miroir = yoga_getdm(g_dm,y_dm(1).type,y_dm(1).alt); // retreive the dm shape*/
+
+ /*//BOUCLE OUVERTE
+yoga_setcomm,g_dm,y_dm(1).type,y_dm(1).alt,U_k*0.0; // send commands to the dm struct on the gpu
+yoga_shapedm,g_dm,y_dm(1).type,y_dm(1).alt; // apply the command and shape the dm*/
+
+
+/*ph_miroir = ph_miroir((dimsof(ph_miroir)(2)-dimsof(*y_geom._spupil)(2))/2+1 : (dimsof(ph_miroir)(2)+dimsof(*y_geom._spupil)(2))/2  , (dimsof(ph_miroir)(2)-dimsof(*y_geom._spupil)(2))/2+1 : (dimsof(ph_miroir)(2)+dimsof(*y_geom._spupil)(2))/2) ;
+ph_miroir = ph_miroir* *y_geom._spupil;
+
+val=0;cmpt=0;for(i=1;i<=(dimsof(*y_geom._spupil)(2));i++){for(j=1;j<=(dimsof(*y_geom._spupil)(3));j++){if(ph_miroir(i,j)!=0){val+=ph_miroir(i,j);cmpt++;}}}
+if(cmpt != 0){
+ph_miroir = ph_miroir - val/cmpt;
+ph_miroir = ph_miroir * *y_geom._spupil;
+}
+
+//ph_miroir = ph_miroir - avg(ph_miroir); //filtrage piston
+
+
+//error;
+//hitReturn;
+if(cc % subsample == 1) hitReturn;
+//FIN_DEBUG
+*/
 
 
     }
@@ -165,7 +316,7 @@ func script_system(filename,verbose=,strehl=,r0=,clean=)
           strehltmp = target_getstrehl(g_target,0);
           grow,strehlsp,strehltmp(1);
           grow,strehllp,strehltmp(2);
-          write,format=" %5i    %5.2f     %5.2f     %5.2f s   %5.2f it./s\n",
+          write,format=" %5i    %5.4f     %5.4f     %5.2f s   %5.2f it./s\n",
             cc,strehlsp(0),strehllp(0),(y_loop.niter - cc)*time_move, -1/timetmp*subsample; 
         } else {
           write,format="\v",;
@@ -174,9 +325,8 @@ func script_system(filename,verbose=,strehl=,r0=,clean=)
       }
     } 
   }
-rtc_kalmangettime,g_rtc,0;
-rtc_rmcontrol,g_rtc;
-  //yoga_stop_profile;
+
+  //yoga_stop_profiler;
   
   write,"\n done with simulation \n";
   write,format="simulation time : %f sec. per iteration\n",tac(mytime)/y_loop.niter;
@@ -187,35 +337,190 @@ rtc_rmcontrol,g_rtc;
   //error;
 }
 
-if(batch()) {
-  testname=get_argv();
-  nb_tests=numberof(testname);
-  for(i=2; i<=nb_tests; i++){
-    /* valid_rtc stuf
-     *
-     * pos = strfind("/", testname(i), back=1)(2)+1;
-     * output_dir=testname(i);
-     * if(pos){ // "/" find
-     *   output_dir=strpart(testname(i), pos:);
-     * }
-     * write, "test de "+testname(i)+", output="+output_dir;
-     * script_valid_rtc,testname(i), output=output_dir;
-     */
-    script_system,testname(i),strehl=1;
+
+
+func script_system_batch(filename)
+{
+  extern y_geom,y_tel,y_loop,y_atmos,y_wfs,y_controller;
+  extern g_atmos,g_target,g_wfs;
+  extern ipupil;
+
+  verbose = 1;
+  strehl = 1;
+  r0 = 0;
+  clean = 1;
+
+  if (strehl) {
+    extern strehlsp,strehllp,mimg;
   }
-} else {
-  tmp = get_argv();
-  if (numberof(tmp) > 1) {
-    if (numberof(tmp) < 3) {
-      filename = tmp(2);
-      script_system,filename,strehl=1;
-    }
-    if (numberof(tmp) > 3) {
-      filename = tmp(4);
-      script_system,filename,strehl=1;
-    }
+
+  if ((!(fileExist(filename))) && (!(fileExist(YOGA_AO_PARPATH+filename))))
+    error,"could not find",filename;
+
+  // reading parfile
+  read_parfile,filename;
+
+  if (y_loop.niter == []) y_loop.niter = 2000;
+
+  if (r0 > 0) y_atmos.r0 = r0;
+
+  // init system
+  wfs_init;
+
+  atmos_init;
+
+  dm_init;
+
+  target_init;
+  rtc_init,clean=clean;
+  
+  /*
+                 _         _                   
+ _ __ ___   __ _(_)_ __   | | ___   ___  _ __  
+| '_ ` _ \ / _` | | '_ \  | |/ _ \ / _ \| '_ \ 
+| | | | | | (_| | | | | | | | (_) | (_) | |_) |
+|_| |_| |_|\__,_|_|_| |_| |_|\___/ \___/| .__/ 
+                                        |_|    
+
+   */
+  //yoga_start_profiler;
+  
+  time_move = 0;
+  mytime = tic();
+  if (strehl) 
+  {
+    mimg = 0.; // initializing average image
+    strehllp = strehlsp = [];
   }
+
+
+  for (cc=1;cc<=y_loop.niter;cc++) 
+  {
+    
+    move_atmos,g_atmos;
+   
+ 
+    if ((y_target != []) && (g_target != [])) 
+    {
+      // loop on targets
+      for (i=1;i<=y_target.ntargets;i++) 
+      {
+        target_atmostrace,g_target,i-1,g_atmos;
+        if (g_dm != []) 
+          target_dmtrace,g_target,i-1,g_dm;
+      }
+      //saving average image from target #1
+    }
+
+
+
+
+
+
+    
+    if ((y_wfs != []) && (g_wfs != [])) 
+    {
+      // loop on wfs
+      for (i=1;i<=numberof(y_wfs);i++) 
+      {
+        sensors_trace,g_wfs,i-1,"atmos",g_atmos;
+        if ((!y_wfs(i).openloop) && (g_dm != [])) 
+          sensors_trace,g_wfs,i-1,"dm",g_dm,0;
+
+	if(y_wfs(i).type=="cog") 
+	  sensors_compimg_tele,g_wfs,i-1;
+	else 
+	  sensors_compimg,g_wfs,i-1;
+      }
+      
+      // do centroiding
+    }
+    
+
+
+    if ((y_rtc != []) && (g_rtc != []) && (y_wfs != []) && (g_wfs != [])) 
+    {
+      rtc_docentroids,g_rtc,g_wfs,0;
+      //rtc_docentroids_geom,g_rtc,g_wfs,0; 
+
+      // compute command and apply
+      if (g_dm != []) rtc_docontrol,g_rtc,0,g_dm;
+
+    }
+    
+    
+    subsample=100.;
+    if (cc % subsample == 0) 
+    {
+      timetmp = time_move*(cc-subsample);
+      time_move = tac(mytime)/cc;
+      timetmp -= time_move*cc;
+        
+      strehltmp = target_getstrehl(g_target,0);
+      grow,strehlsp,strehltmp(1);
+      grow,strehllp,strehltmp(2);
+      //write,format=" %5i    %5.4f     %5.4f     %5.2f s   %5.2f it./s\n",
+      //cc,strehlsp(0),strehllp(0),(y_loop.niter - cc)*time_move, -1/timetmp*subsample; 
+     }
+    
+  }
+
+  //yoga_stop_profiler;
+  
+
+    sortie = array(0.0f,4);
+    sortie(1) = y_tel.diam;
+    sortie(2) = y_wfs.noise;
+    sortie(3) = y_controllers.gain;
+    sortie(4) = strehllp(0);
+  rtc_rmcontrol,g_rtc;
+   
+    return sortie;
 }
+  testname=get_argv();
+  ls_dir = get_env("COMPASS_ROOT_DIR")+"/lam/test_compass/test_ls";
+  if (dimsof(testname)(2) >=4){
+    nb_tests=numberof(testname);
+    write,format="Lancement batch avec %d fichiers\n",nb_tests-3;
+    for(i=4; i<=nb_tests; i++)
+    {
+      write,format="Execution du fichier %d sur %d : %s",i-3,nb_tests-3,testname(i);
+      res = script_system_batch(testname(i));
+      diam=res(1) ; bruit=res(2) ; kW=res(3) ; strehl=res(4);
+      write,format="diam=%f bruit=%e gain=%.3f strehl=%e\n\n",diam,bruit,kW,strehl;
+
+      f1= open(ls_dir+"/resultats_scripts_ls.dat", "a");
+      write,f1,format="%f %e %.3f %e \n",diam,bruit,kW,strehl;
+      close,f1;
+
+    }
+  }else{
+    dossier_batch = ls_dir+"/batch";
+    system,"rm -f "+ ls_dir +"/liste_fichiers_batch.txt"
+    system,"ls -1 "+dossier_batch+"/ > "+ls_dir+"/liste_fichiers_batch.txt";
+    nb_tests=0;  
+    f=open(ls_dir+"/liste_fichiers_batch.txt","r");  
+    while (str = rdline(f) ) nb_tests++;
+    close,f;
+
+    f=open(ls_dir +"/liste_fichiers_batch.txt","r");
+    write,format="Lancement batch avec %d fichiers\n",nb_tests;
+    for(i=1; i<=nb_tests; i++)
+    {
+      nomFichier = rdline(f);
+      write,format="Execution du fichier %d sur %d : %s",i,nb_tests,nomFichier;
+      res = script_system_batch(dossier_batch+"/"+nomFichier);
+      diam=res(1) ; bruit=res(2) ; kW=res(3) ; strehl=res(4);
+      write,format="diam=%f bruit=%e gain=%.3f strehl=%e\n\n",diam,bruit,kW,strehl;
+
+      f1= open(ls_dir+"/resultats_scripts_ls.dat", "a");
+      write,f1,format="%f %e %.3f %e \n",diam,bruit,kW,strehl;
+      close,f1;
+    }
+    close,f;
+   }
+  
+
 
 func compare_yao(filename)
 {
@@ -960,7 +1265,7 @@ func script_pyr_diff(filename,verbose=)
   g_target;
   
   error;
-move_atmos,g_atmos;
+move_sky,g_atmos,g_target;
 sensors_trace,g_wfs,0,"atmos",g_atmos;
 sensors_compimg,g_wfs,0;
  res=sensors_getdata(g_wfs,0,"amplifoc");
@@ -1057,3 +1362,4 @@ res=sensors_getdata(g_wfs,0,"bincube");
 }
 
 //script_system, YOGA_AO_PARPATH+"1wfs40x40_1layer_rtc_dm.par",strehl=1;
+

@@ -54,10 +54,10 @@ class kp_kalman_core_sparse
 
 
     public:
-  kp_cu_timer temps_boucle;//, temps_op2, temps_op3 ;
-  kp_cu_timer temps_boucle_op1;//, temps_op2, temps_op3 ;
-  kp_cu_timer temps_boucle_op2;//, temps_op2, temps_op3 ;
-  kp_cu_timer temps_boucle_op3;//, temps_op2, temps_op3 ;
+  kp_cu_timer temps_boucle;
+  kp_cu_timer temps_boucle_op1;
+  kp_cu_timer temps_boucle_op2;
+  kp_cu_timer temps_boucle_op3;
 };
 
 

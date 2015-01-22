@@ -13,6 +13,16 @@ y_tel.cobs = 0.f;
 /*
 atmosphere inits
 */
+/*
+y_atmos.r0           = 0.1249;
+y_atmos.nscreens     = 1;
+y_atmos.frac         = &([1.0]);
+y_atmos.alt          = &([0.0]);
+y_atmos.windspeed    = &([11.0]);
+y_atmos.winddir      = &([0]);
+y_atmos.L0           = &([25]);
+*/
+
 y_atmos.r0           = 0.1249; // r0=0.1249um a 0.5um correspond a un r0 de 0.525 um a 1.654 um
 y_atmos.nscreens     = 3;
 y_atmos.frac         = &([0.5,0.17,0.33]);
@@ -69,6 +79,16 @@ y_dm(1).unitpervolt   = 1.0; //0.01*2*pi/y_wfs(1).lambda;
 y_dm(1).push4imat     = 1.0f;
 
 /*
+y_dm(1).type          = "kl";
+y_dm(1).nkl           = 50;
+y_dm(1).alt           = 0.;
+y_dm(1).thresh        = 0.44;
+y_dm(1).unitpervolt   = 0.01f;
+y_dm(1).push4imat     = 0.01f;
+*/
+
+
+/*
 centroiders inits
 */
 ncentroiders = 1;
@@ -83,7 +103,7 @@ controllers inits
 ncontrollers = 1;
 y_controllers          = array(controller_struct(),ncontrollers);
 
-y_controllers(1).type    = "kalman_CPU";
+y_controllers(1).type    = "kalman_GPU";
 y_controllers(1).nwfs    = &[1];
 y_controllers(1).ndm     = &[1];
 y_controllers(1).gain    = 230;

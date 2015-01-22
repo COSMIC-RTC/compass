@@ -64,9 +64,9 @@ ifneq ($(MAGMA_ROOT),)
  LIB_DEPLIBS   += -L$(MAGMA_ROOT)/lib -lmagma 
 endif
 
-ifneq ($(COMPILATION_LAM),)
-  LIB_DEPLIBS += -L$(NVIDIA_CURRENT_LIB_PATH_64) 
-endif
+#ifneq ($(COMPILATION_LAM),)
+#  LIB_DEPLIBS += -L$(NVIDIA_CURRENT_LIB_PATH_64) 
+#endif
 
 all: $(LIB_NAME)
 

@@ -394,6 +394,10 @@ cout<< "temps T_k = "<<temps_Tk.rez()<<endl;*/
 
 void kp_kalman_core_full_CPU::next_step(const kp_vector<KFPP>& Y_k, kp_vector<KFPP>& U_k)
 {
+#ifdef __TEMPS_BOUCLE_KALMAN__
+temps_boucle.start();
+#endif
+
 	if(!gainComputed)
 	{
 		cerr << "Error | kp_kalman_core_full_CPU::next_step | gain has not been initialized"<<endl;
@@ -407,7 +411,10 @@ void kp_kalman_core_full_CPU::next_step(const kp_vector<KFPP>& Y_k, kp_vector<KF
 	A1_01_Xkfin.zeros();
 
 
-//temps_op1.start();
+#ifdef __TEMPS_BOUCLE_KALMAN__
+temps_boucle_op1.start();
+#endif
+
 	// VECTEUR d'ESTIMATION de MESURE ( A l' INSTANT K )
 
 	// Nact_Ukm2 = N_Act * U_km2 
@@ -419,10 +426,14 @@ void kp_kalman_core_full_CPU::next_step(const kp_vector<KFPP>& Y_k, kp_vector<KF
 
 	// Y_kskm1 = D_Mo * tmp_vec1 (= D_Mo * (X_kskm1 - N_Act * U_km2))
 	kp_gemv ('N', 1, D_Mo, tmp_vec1, 0, Y_kskm1); 
-//temps_op1.pause();
+
+#ifdef __TEMPS_BOUCLE_KALMAN__
+temps_boucle_op1.pause();
 
 
-//temps_op2.start();			
+temps_boucle_op2.start();			
+#endif
+
 	// VECTEUR D'ESTIMATION de PREDICTION ( A l' INSTANT K )
 
 	// innovation = Y_k - Y_kskm1
@@ -466,21 +477,32 @@ void kp_kalman_core_full_CPU::next_step(const kp_vector<KFPP>& Y_k, kp_vector<KF
 		X_kp1sk_tmp = X_kp1sk_debut; 
 		X_kp1sk_tmp -= mean_Xkp1skdebut; 
 	}
-//temps_op2.pause();
+
+#ifdef __TEMPS_BOUCLE_KALMAN__
+temps_boucle_op2.pause();
 
 
-U_k.resize(nb_act);
-//temps_op3.start();
+temps_boucle_op3.start();
+#endif
+
+        U_k.resize(nb_act);
 	//TENSION de CORRECTION
 	if (isZonal)
 		kp_gemv ('N', -1, PROJ, X_kp1sk_tmp, 0, U_k); 
 	else
 		kp_gemv ('N', -1, PROJ, X_kp1sk_debut, 0, U_k);  
-//temps_op3.pause();
+
+#ifdef __TEMPS_BOUCLE_KALMAN__
+temps_boucle_op3.pause();
+#endif
 
 	//MISE A JOUR
 	
 	U_km2 = U_km1; 
 	U_km1 = U_k; 
 	X_kskm1 = X_kp1sk;
+
+#ifdef __TEMPS_BOUCLE_KALMAN__
+temps_boucle.pause();
+#endif
 }

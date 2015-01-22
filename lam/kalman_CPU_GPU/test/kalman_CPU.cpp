@@ -29,7 +29,7 @@ int main(int argc, char* argv[])
 	cout <<("---DEBUT EXECUTION KALMAN---")<<endl;
 	
 	ofstream fichier,fichier2;
-	mat_t *mat, *mat2;
+	mat_t *mat;
 
 	
 	//CHARGEMENT DES MATRICES (load de Matlab)
@@ -176,14 +176,6 @@ int main(int argc, char* argv[])
 		temps_riccati.pause();
 		cout << "      Temps riccati = " << temps_riccati.rez() << endl;
 	}
-
-	/*kp_matrix H_inf_tmp;
-	mat2 = Mat_Open("/home/tgautrais/Documents/v2_kalman_kp/data/H_inf_CPU_D.mat",MAT_ACC_RDONLY);
-	kp_init4matio_matrix(H_inf_tmp, mat2, "H_inf_40mD");
-	kalman_CPU.H_inf = H_inf_tmp;
-	Mat_Close(mat2);
-	H_inf_tmp.resize(0,0);*/
-
 	
 	kp_multif_phasetur<KFPP> mf_phasetur;
 	vector<string> fichiers_phase;

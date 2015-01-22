@@ -35,7 +35,6 @@ class kp_kalman_core_sparse_GPU : public kp_kalman_core_sparse
 
 
    virtual ~kp_kalman_core_sparse_GPU();
-   //void init_for_next_step();
 
 private :
   kp_cu_vector<KFPP> cu_U_km2 ;
@@ -55,7 +54,6 @@ private :
   cusparseHandle_t cusparseHandle;
 
 
-
 //variables de next_step
 	kp_cu_vector<KFPP> cu_Y_k;	
 	kp_cu_vector<KFPP> cu_U_k;
@@ -70,9 +68,6 @@ private :
 	kp_cu_vector<KFPP> cu_A1_01_Xkfin;
 	kp_cu_vector<KFPP> cu_X_kp1sk_debut;
 
-
-
 };
-
 
 #endif

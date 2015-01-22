@@ -44,13 +44,16 @@ class kp_kalman_core_full
    virtual ~kp_kalman_core_full(){}
 
  protected:
-   //kp_matrix D_Mo, N_Act, PROJ;
-   //kp_vector atur;
-   //kp_vector btur;
    int ordreAR;
    int nb_p, nb_act, nb_z, nb_az, nb_n;
    bool gainComputed;
    bool isZonal;
+
+ public:
+  kp_cu_timer temps_boucle;
+  kp_cu_timer temps_boucle_op1;
+  kp_cu_timer temps_boucle_op2;
+  kp_cu_timer temps_boucle_op3;
 };
 
 

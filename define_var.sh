@@ -36,6 +36,7 @@ export YORICK_PATH=$YORICK_ROOT
 export PATH=$YORICK_PATH:$PATH
 #alias yorick="rlwrap -s 2000 yorick"
 
+
 echo "COMPASS will use this configuration, please add those lines into the .bashrc"
 
 echo "# CUDA default definitions"
