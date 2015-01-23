@@ -14,6 +14,7 @@ sutra_dm::sutra_dm(carma_context *context, const char* type, long dim,
   this->d_mask = NULL;
   this->d_zr = NULL;
   this->d_ztheta = NULL;
+  this->d_KLbasis = NULL;
 
   this->current_context = context;
   this->ninflu = ninflu;
@@ -44,7 +45,6 @@ sutra_dm::sutra_dm(carma_context *context, const char* type, long dim,
   }
 
   if (strcmp(type, "pzt") == 0) {
-	this->d_KLbasis = NULL;
     dims_data1[1] = ninflupos;
     this->d_influpos = new carma_obj<int>(context, dims_data1);
 
@@ -91,7 +91,7 @@ sutra_dm::~sutra_dm() {
   if (this->d_ztheta != NULL)
     delete this->d_ztheta;
   if (this->d_KLbasis != NULL)
-      delete this->d_ztheta;
+    delete this->d_KLbasis;
 }
 
 int sutra_dm::pzt_loadarrays(float *influ, int *influpos, int *npoints,
@@ -203,6 +203,67 @@ sutra_dm::get_IF(float *IF, int *indx_pup, long nb_pts, float ampli){
 }
 
 int
+sutra_dm::get_IF_sparse(carma_sparse_obj<float> *&d_IFsparse, int *indx_pup, long nb_pts, float ampli){
+
+	int nnz_tot = 0;
+	float *values[this->ninflu];
+	int *colind[this->ninflu];
+	int NZ[this->ninflu];
+	long dims_data2[3] = {2,1,nb_pts};
+	carma_obj<float> d_IF(current_context,dims_data2);
+	carma_sparse_obj<float> *d_IFsparse_vec;
+
+	for(int i=0 ; i<this->ninflu ; i++){
+		//Compute and store IF for actu i in d_IF
+		this->comp_oneactu(i,ampli);
+		getIF(d_IF.getData(),this->d_shape->d_screen->getData(),indx_pup,nb_pts,0,this->ninflu,this->device);
+		//CUsparse d_IF
+		d_IFsparse_vec = new carma_sparse_obj<float>(&d_IF);
+		// Retrieve nnz, values and colind from d_IFsparse_vec, stored on CPU
+		NZ[i] = d_IFsparse_vec->getNzElem();
+		values[i] = (float*)malloc(NZ[i]*sizeof(float));
+		colind[i] = (int*)malloc(NZ[i]*sizeof(int));
+
+		cutilSafeCall(
+		      cudaMemcpy(values[i], d_IFsparse_vec->getData(), sizeof(float) * NZ[i],
+		          cudaMemcpyDeviceToHost));
+		cutilSafeCall(
+			  cudaMemcpy(colind[i], d_IFsparse_vec->d_colind, sizeof(int) * NZ[i],
+				  cudaMemcpyDeviceToHost));
+
+		nnz_tot += NZ[i];
+
+		delete d_IFsparse_vec;
+	}
+	//Reconstruction of d_data, d_colind, d_rowind for IFsparse
+	long dims_data[2] = {1,nnz_tot};
+	carma_obj<float> d_val(current_context,dims_data);
+	carma_obj<int> d_col(current_context,dims_data);
+	dims_data[1] = this->ninflu + 1;
+	carma_obj<int> d_row(current_context,dims_data);
+	int cpt[this->ninflu + 1];
+	cpt[0] = 0;
+
+	for(int i=0 ; i<this->ninflu ; i++){
+		cutilSafeCall(
+			  cudaMemcpyAsync(d_val.getData(cpt[i]), values[i], sizeof(float) * NZ[i],
+				  cudaMemcpyHostToDevice));
+		cutilSafeCall(
+			  cudaMemcpyAsync(d_col.getData(cpt[i]), colind[i], sizeof(int) * NZ[i],
+				  cudaMemcpyHostToDevice));
+		cpt[i+1] = cpt[i] + NZ[i];
+	}
+	cutilSafeCall(
+		  cudaMemcpy(d_row.getData(), cpt, sizeof(int) * (this->ninflu + 1),
+			  cudaMemcpyHostToDevice));
+	dims_data2[1] = this->ninflu;
+	d_IFsparse = new carma_sparse_obj<float>(current_context, dims_data2,
+			d_val.getData(), d_col.getData(), d_row.getData(),nnz_tot,false);
+
+	return EXIT_SUCCESS;
+}
+
+int
 sutra_dm::compute_KLbasis(float *xpos, float *ypos, int *indx, long dim, float norm, float ampli){
 
 	long dims_data[3];
@@ -227,22 +288,28 @@ sutra_dm::compute_KLbasis(float *xpos, float *ypos, int *indx, long dim, float n
 
 	this->piston_filt(d_statcov);
 
-	dims_data[1] = dim;
-	dims_data[2] = this->ninflu;
-	carma_obj<float> *d_IF = new carma_obj<float>(this->current_context, dims_data);
 	dims_data[1] = this->ninflu;
 	dims_data[2] = this->ninflu;
 	carma_obj<float> *d_geocov = new carma_obj<float>(current_context, dims_data);
-
-	// Get influence functions of the DM (to be CUsparsed)
 	d_indx->host2device(indx);
-	this->get_IF(d_IF->getData(),d_indx->getData(),dim,1.0f);
 
+	//Sparse version for geomat
+	carma_sparse_obj<float> *d_IFsparse;
+	this->get_IF_sparse(d_IFsparse,d_indx->getData(),dim,1.0f);
+	this->do_geomatFromSparse(d_geocov->getData(),d_IFsparse,ampli);
+
+	delete d_IFsparse;
+
+	//Dense version for geomat
+	/*
+	dims_data[1] = dim;
+	dims_data[2] = this->ninflu;
+	carma_obj<float> *d_IF = new carma_obj<float>(this->current_context, dims_data);
+	// Get influence functions of the DM
+	this->get_IF(d_IF->getData(),d_indx->getData(),dim,1.0f);
 	// Compute geometric matrix (to be CUsparsed)
 	this->do_geomat(d_geocov->getData(),d_IF->getData(),dim,ampli);
-
-	delete d_IF;
-
+*/
 	// Double diagonalisation to obtain KL basis on actuators
 	this->DDiago(d_statcov,d_geocov);
 
@@ -254,6 +321,33 @@ sutra_dm::compute_KLbasis(float *xpos, float *ypos, int *indx, long dim, float n
 	return EXIT_SUCCESS;
 }
 
+int
+sutra_dm::do_geomatFromSparse(float *d_geocov, carma_sparse_obj<float> *d_IFsparse, float ampli){
+
+	carma_sparse_obj<float> *d_tmp = new carma_sparse_obj<float>(this->current_context);
+	carma_obj<float> d_IF(this->current_context,d_IFsparse->getDims());
+	/*
+	carma_csr2dense<float>(d_IFsparse, d_IF.getData());
+	int n_pts = d_IFsparse->getDims(2);
+	carma_gemm(cublas_handle(), 'n', 't', this->ninflu, this->ninflu, n_pts, 1.0f,
+		      d_IF.getData(), this->ninflu, d_IF.getData(), this->ninflu, 0.0f,
+		      d_geocov, this->ninflu);
+	multi_vect(d_geocov,ampli,this->ninflu*this->ninflu,this->device);
+	*/
+
+	DEBUG_TRACE("IFsparse : %d x %d", d_IFsparse->getDims(1),d_IFsparse->getDims(2));
+	DEBUG_TRACE("tmp : %d", d_tmp->nz_elem);
+carma_gemm<float>(cusparse_handle(),'n','t',d_IFsparse,d_IFsparse,d_tmp);
+
+DEBUG_TRACE("Here ! \n");
+carma_csr2dense<float>(d_tmp, d_geocov);
+DEBUG_TRACE("Here ! \n");
+multi_vect(d_geocov,ampli,this->ninflu*this->ninflu,this->device);
+DEBUG_TRACE("Here ! \n");
+
+	delete d_tmp;
+	return EXIT_SUCCESS;
+}
 int
 sutra_dm::do_geomat(float *d_geocov, float *d_IF, long n_pts, float ampli){
 	carma_gemm(cublas_handle(), 't', 'n', this->ninflu, this->ninflu, n_pts, 1.0f,
@@ -334,6 +428,10 @@ sutra_dm::DDiago(carma_obj<float> *d_statcov, carma_obj<float> *d_geocov){
 	d_eigenvals_inv->host2device(*h_eigenvals_inv);
 
 	// 2. M⁻¹ = sqrt(eigenvals) * Ut : here, we have transpose(M⁻¹)
+	/*
+	carma_dgmm<float>(cublas_handle(),CUBLAS_SIDE_RIGHT,this->ninflu,this->ninflu,
+					d_geocov->getData(), this->ninflu, d_eigenvals_inv->getData(),1,
+					d_M1->getData(), this->ninflu);*/
 
 	carma_dgmm<float>(cublas_handle(),CUBLAS_SIDE_RIGHT,this->ninflu,this->ninflu,
 					d_geocov->getData(), this->ninflu, d_eigenvals_sqrt->getData(),1,

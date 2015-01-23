@@ -342,3 +342,73 @@ multi_vect(float *d_data, float gain, int N, int device) {
   cutilCheckMsg("mult_kernel<<<>>> execution failed\n");
   return EXIT_SUCCESS;
 }
+
+__device__ void reduce_krnl(int *sdata, int size, int n) {
+  if (!((size & (size - 1)) == 0)) {
+    unsigned int s;
+    if (size % 2 != 0)
+      s = size / 2 + 1;
+    else
+      s = size / 2;
+    unsigned int s_old = size;
+    while (s > 0) {
+      if ((n < s) && (n + s < s_old)) {
+        sdata[n] += sdata[n + s];
+      }
+      __syncthreads();
+      s_old = s;
+      s /= 2;
+      if ((2 * s < s_old) && (s != 0))
+        s += 1;
+    }
+  } else {
+    // do reduction in shared mem
+    for (unsigned int s = size / 2; s > 0; s >>= 1) {
+      if (n < s) {
+        sdata[n] += sdata[n + s];
+      }
+      __syncthreads();
+    }
+  }
+}
+
+__global__ void find_nnz_krnl(float *d_data, int *subsum, int N) {
+	int *sdata = SharedMemory<int>();
+	int tid = threadIdx.x + blockDim.x*blockIdx.x;
+	int sid = threadIdx.x;
+
+	//Load shared memory with 1 if d_data[tid]!= 0, with 0 else
+	sdata[sid] = (d_data[tid] != 0);
+
+	__syncthreads();
+	reduce_krnl(sdata,blockDim.x,sid);
+	__syncthreads();
+
+	if(threadIdx.x == 0)
+		subsum[blockIdx.x] = sdata[0];
+
+}
+int
+find_nnz(float *d_data, int N, int device) {
+	int nthreads = 0, nblocks = 0;
+	getNumBlocksAndThreads(device, N, nblocks, nthreads);
+	dim3 grid(nblocks), threads(nthreads);
+	int smemSize = nthreads * sizeof(int);
+
+	int *subsum;
+	int subsum_c[nblocks];
+	//subsum_c = (int*)malloc(nblocks*sizeof(int));
+	cutilSafeCall(
+		      cudaMalloc((void** )&(subsum), sizeof(int) * nblocks));
+	find_nnz_krnl<<<grid, threads, smemSize>>>(d_data,subsum,N);
+	cutilCheckMsg("find_nnz_krnl<<<>>> execution failed\n");
+	cutilSafeCall(
+				cudaMemcpy(subsum_c,subsum,nblocks*sizeof(int),cudaMemcpyDeviceToHost));
+	cutilSafeCall(
+				cudaFree(subsum));
+	int nnz = 0;
+	for (int i=0 ; i<nblocks ; i++)
+		nnz += subsum_c[i];
+
+	return nnz;
+}

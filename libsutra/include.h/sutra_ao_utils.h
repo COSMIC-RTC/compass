@@ -2,6 +2,7 @@
 #define _SUTRA_AO_UTILS_H_
 #include <carma.h>
 #include <carma_obj.h>
+#include <carma_sparse_obj.h>
 
 int
 cfillrealp(cuFloatComplex *d_odata, float *d_idata, int N, int device);

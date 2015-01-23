@@ -398,7 +398,7 @@ int sutra_controller_ls::modalControlOptimization(){
   dims_data[1] = this->nrec;
   carma_initfft<float,cuFloatComplex>(dims_data,d_modes.getPlan(),CUFFT_R2C);
   for(int i=0; i < this->nmodes ; i++){
-    carma_fft<float,cuFloatComplex>(d_modes.getData(i*this->nrec),d_FFT.getData(),-1,*d_modes.getPlan());
+    carma_fft<float,cuFloatComplex>(d_modes.getData(i*this->nrec),d_FFT.getData(),1,*d_modes.getPlan());
     absnormfft(d_FFT.getData(),d_fftmodes.getData(),this->nrec/2,2.0f/(float)this->nrec,this->device);
     carma_gemv(cublas_handle(),'n',this->ngain,this->nrec/2,1.0f,
     		this->d_Hcor->getData(),this->ngain,

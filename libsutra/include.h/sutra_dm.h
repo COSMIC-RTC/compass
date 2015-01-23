@@ -45,6 +45,9 @@ public:
   cublasHandle_t cublas_handle() {
       return current_context->get_cublasHandle();
     }
+  cusparseHandle_t cusparse_handle() {
+        return current_context->get_cusparseHandle();
+      }
 
 public:
   sutra_dm(carma_context *context, const char* type, long dim, long ninflu,
@@ -72,9 +75,11 @@ public:
   int
   get_IF(float *IF, int *indx_pup, long nb_pts, float ampli);
   int
-  get_IF_sparse(int *indx_pup, long nb_pts, float ampli);
+  get_IF_sparse(carma_sparse_obj<float> *&d_IFsparse, int *indx_pup, long nb_pts, float ampli);
   int
   do_geomat(float *d_geocov, float *d_IF, long n_pts, float ampli);
+  int
+  do_geomatFromSparse(float *d_geocov, carma_sparse_obj<float> *d_IFsparse, float ampli);
   int
   DDiago(carma_obj<float> *d_statcov, carma_obj<float>*d_geocov);
   int
@@ -128,5 +133,7 @@ int
 multi_vect(float *d_data, float gain, int N, int device);
 int
 fill_filtermat(float *filter, int nactu, int N, int device);
+int
+find_nnz(float *d_data, int N,int device);
 
 #endif // _SUTRA_DM_H_
