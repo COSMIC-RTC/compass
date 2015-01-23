@@ -4234,7 +4234,6 @@ void Y_yoga_mm_sparse2(int argc)
         || (handle_matB->device != handle_matC->device))
       y_error("mm only on the same device");
     context_handle->set_activeDevice(handle_matA->device);
-
     char opA = 'n';
     if (argc > 3)
       opA = ygets_c(argc - 4);
@@ -4261,7 +4260,7 @@ void Y_yoga_mm_sparse2(int argc)
       cusparseHandle_t cusparseHandle=context_handle->get_cusparseHandle();
       carma_gemm<double>(cusparseHandle, opA, opB, carma_obj_handler_matA, carma_obj_handler_matB, carma_obj_handler_matC);
     }
-  } else {
+  } else {  
     // called as a function : need to allocate space
     SCAST(ySparseObj_struct *, handle_matA, yget_obj(argc - 1, &ySparseObj));
     SCAST(ySparseObj_struct *, handle_matB, yget_obj(argc - 2, &ySparseObj));
@@ -4284,7 +4283,7 @@ void Y_yoga_mm_sparse2(int argc)
 
       handle_matC->type = handle_matA->type;
       SCAST(carma_sparse_obj<float>*, carma_obj_handler_matA, handle_matA->carma_sparse_object);
-      SCAST(carma_sparse_obj<float>*, carma_obj_handler_matB, handle_matC->carma_sparse_object);
+      SCAST(carma_sparse_obj<float>*, carma_obj_handler_matB, handle_matB->carma_sparse_object);
 
       long dims_data_mat[3];
       dims_data_mat[0] = 2;
