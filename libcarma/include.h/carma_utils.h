@@ -64,6 +64,20 @@ enum CUTBoolean {
 #define MIN(a,b) ((a < b) ? a : b)
 #define MAX(a,b) ((a > b) ? a : b)
 
+inline unsigned int nextPow2(unsigned int x) {
+  --x;
+  x |= x >> 1;
+  x |= x >> 2;
+  x |= x >> 4;
+  x |= x >> 8;
+  x |= x >> 16;
+  return ++x;
+}
+
+inline bool isPow2(unsigned int x) {
+  return ((x & (x - 1)) == 0);
+}
+
 void getNumBlocksAndThreads(int device, int n, int &blocks, int &threads);
 template <class T_data>
 int  find_nnz(T_data *d_data, int N, int *d_nnz, int device);
@@ -153,5 +167,6 @@ inline void __cutilSafeMalloc(void *pointer, const char *file, const int line) {
     exit(-1);
   }
 }
+
 
 #endif // _CARMA_UTILS_H_

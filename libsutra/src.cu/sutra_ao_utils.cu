@@ -1,46 +1,5 @@
 #include <sutra_ao_utils.h>
-
-template<class T>
-struct SharedMemory {
-  __device__
-  inline operator T*() {
-    extern __shared__ int __smem[];
-    return (T*) __smem;
-  }
-
-  __device__
-  inline operator const T*() const {
-    extern __shared__ int __smem[];
-    return (T*) __smem;
-  }
-};
-
-// specialize for double to avoid unaligned memory
-// access compile errors
-template<>
-struct SharedMemory<double> {
-  __device__
-  inline operator double*() {
-    extern __shared__ double __smem_d[];
-    return (double*) __smem_d;
-  }
-
-  __device__
-  inline operator const double*() const {
-    extern __shared__ double __smem_d[];
-    return (double*) __smem_d;
-  }
-};
-
-unsigned int nextPow2(unsigned int x) {
-  --x;
-  x |= x >> 1;
-  x |= x >> 2;
-  x |= x >> 4;
-  x |= x >> 8;
-  x |= x >> 16;
-  return ++x;
-}
+#include "carma_utils.cuh"
 
 __global__ void cfillrealp_krnl(cuFloatComplex *odata, float *idata, int N) {
 
@@ -411,36 +370,6 @@ roll<double>(double *idata, int N, int M);
 
 template int
 roll<cuFloatComplex>(cuFloatComplex *idata, int N, int M);
-
-template<class T>
-__device__ void reduce_krnl(T *sdata, int size, int n) {
-  if (!((size & (size - 1)) == 0)) {
-    unsigned int s;
-    if (size % 2 != 0)
-      s = size / 2 + 1;
-    else
-      s = size / 2;
-    unsigned int s_old = size;
-    while (s > 0) {
-      if ((n < s) && (n + s < s_old)) {
-        sdata[n] += sdata[n + s];
-      }
-      __syncthreads();
-      s_old = s;
-      s /= 2;
-      if ((2 * s < s_old) && (s != 0))
-        s += 1;
-    }
-  } else {
-    // do reduction in shared mem
-    for (unsigned int s = size / 2; s > 0; s >>= 1) {
-      if (n < s) {
-        sdata[n] += sdata[n + s];
-      }
-      __syncthreads();
-    }
-  }
-}
 
 template<class T>
 __global__ void avg_krnl(T *data, T *p_sum){

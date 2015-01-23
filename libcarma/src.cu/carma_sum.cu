@@ -1,18 +1,5 @@
 #include <carma_obj.h>
-
-bool isPow2(unsigned int x) {
-  return ((x & (x - 1)) == 0);
-}
-
-unsigned int nextPow2(unsigned int x) {
-  --x;
-  x |= x >> 1;
-  x |= x >> 2;
-  x |= x >> 4;
-  x |= x >> 8;
-  x |= x >> 16;
-  return ++x;
-}
+#include "carma_utils.cuh"
 
 void sumGetNumBlocksAndThreads(int n, int device, int &blocks, int &threads) {
 
@@ -29,37 +16,6 @@ void sumGetNumBlocksAndThreads(int n, int device, int &blocks, int &threads) {
 
 }
 
-template<class T>
-struct SharedMemory {
-  __device__
-  inline operator T*() {
-    extern __shared__ int __smem[];
-    return (T*) __smem;
-  }
-
-  __device__
-  inline operator const T*() const {
-    extern __shared__ int __smem[];
-    return (T*) __smem;
-  }
-};
-
-// specialize for double to avoid unaligned memory 
-// access compile errors
-template<>
-struct SharedMemory<double> {
-  __device__
-  inline operator double*() {
-    extern __shared__ double __smem_d[];
-    return (double*) __smem_d;
-  }
-
-  __device__
-  inline operator const double*() const {
-    extern __shared__ double __smem_d[];
-    return (double*) __smem_d;
-  }
-};
 /*
  Parallel sum reduction using shared memory
  - takes log(n) steps for n input elements

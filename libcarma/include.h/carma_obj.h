@@ -379,8 +379,6 @@ extern "C" {
 void sumGetNumBlocksAndThreads(int n, int device, int &blocks, int &threads);
 //int snapTransformSize(int dataSize);
 int snapTransformSize(unsigned int dataSize);
-bool isPow2(unsigned int x);
-unsigned int nextPow2(unsigned int x);
 }
 
 #endif // _CARMA_OBJ_H_
