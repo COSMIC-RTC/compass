@@ -295,7 +295,7 @@ func compute_klbasis(ndm){
   if(y_dm(ndm).type == "pzt"){
     tmp = (dimsof(*y_geom._ipupil)(2)-(y_dm(ndm)._n2 - y_dm(ndm)._n1 +1))/2;
     pup = (*y_geom._ipupil)(tmp+1:-tmp,tmp+1:-tmp);
-    indx_valid = where(pup > 0); 
+    indx_valid = where(pup > 0)-1; 
     x = *y_dm(ndm)._xpos;
     y = *y_dm(ndm)._ypos; 
     interactp = x(2) - x(1);
@@ -315,10 +315,17 @@ func compute_klbasis(ndm){
 }
 
 func setcomkl(ndm,comvec,plot=){
+  /*DOCUMENT function setcomkl,ndm,comvec,plot=
 
+    Set the KL command vector comvec on the pzt DM #ndm and return the pzt command vector
+applied
+    Set plot=1 to apply the command and plot the DM shape
+
+    SEE ALSO : compute_klbasis
+  */
   if(y_dm(ndm).type == "pzt"){
     yoga_setcomkl,g_dm,"pzt",y_dm(ndm).alt,comvec(::-1); // Reverse vector because KL basis is reversed on GPU
-    if(plot == 1){
+    if(plot){
       yoga_shapedm,g_dm,"pzt",y_dm(ndm).alt;
       dm = yoga_getdm(g_dm,"pzt",y_dm(ndm).alt);
       window,0;
