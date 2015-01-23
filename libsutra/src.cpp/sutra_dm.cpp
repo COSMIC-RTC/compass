@@ -213,6 +213,7 @@ sutra_dm::get_IF_sparse(carma_sparse_obj<float> *&d_IFsparse, int *indx_pup, lon
 	carma_obj<float> d_IF(current_context,dims_data2);
 	carma_sparse_obj<float> *d_IFsparse_vec;
 
+	cout << "Computing IF sparse..." << endl;
 	for(int i=0 ; i<this->ninflu ; i++){
 		//Compute and store IF for actu i in d_IF
 		this->comp_oneactu(i,ampli);
@@ -325,25 +326,10 @@ int
 sutra_dm::do_geomatFromSparse(float *d_geocov, carma_sparse_obj<float> *d_IFsparse, float ampli){
 
 	carma_sparse_obj<float> *d_tmp = new carma_sparse_obj<float>(this->current_context);
-	carma_obj<float> d_IF(this->current_context,d_IFsparse->getDims());
-	/*
-	carma_csr2dense<float>(d_IFsparse, d_IF.getData());
-	int n_pts = d_IFsparse->getDims(2);
-	carma_gemm(cublas_handle(), 'n', 't', this->ninflu, this->ninflu, n_pts, 1.0f,
-		      d_IF.getData(), this->ninflu, d_IF.getData(), this->ninflu, 0.0f,
-		      d_geocov, this->ninflu);
+
+	carma_gemm<float>(cusparse_handle(),'n','t',d_IFsparse,d_IFsparse,d_tmp);
+	carma_csr2dense<float>(d_tmp, d_geocov);
 	multi_vect(d_geocov,ampli,this->ninflu*this->ninflu,this->device);
-	*/
-
-	DEBUG_TRACE("IFsparse : %d x %d", d_IFsparse->getDims(1),d_IFsparse->getDims(2));
-	DEBUG_TRACE("tmp : %d", d_tmp->nz_elem);
-carma_gemm<float>(cusparse_handle(),'n','t',d_IFsparse,d_IFsparse,d_tmp);
-
-DEBUG_TRACE("Here ! \n");
-carma_csr2dense<float>(d_tmp, d_geocov);
-DEBUG_TRACE("Here ! \n");
-multi_vect(d_geocov,ampli,this->ninflu*this->ninflu,this->device);
-DEBUG_TRACE("Here ! \n");
 
 	delete d_tmp;
 	return EXIT_SUCCESS;
