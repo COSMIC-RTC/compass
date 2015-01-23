@@ -27,7 +27,7 @@
 #ifdef DEBUG
 #define DEBUG_TRACE(fmt, args...) fprintf(stderr, "[%s@%d]: " fmt "\n", __FILE__, __LINE__, ## args)
 #else
-#define DEBUG_TRACE(fmt, args...) //fprintf(stderr, "[%s@%d]: " fmt "\n", __FILE__, __LINE__, ## args)
+#define DEBUG_TRACE(fmt, args...) fprintf(stderr, "[%s@%d]: " fmt "\n", __FILE__, __LINE__, ## args)
 #endif
 
 #define SCAST(type, new_var, var) type new_var=static_cast<type>(var)
@@ -65,6 +65,8 @@ enum CUTBoolean {
 #define MAX(a,b) ((a > b) ? a : b)
 
 void getNumBlocksAndThreads(int device, int n, int &blocks, int &threads);
+template <class T_data>
+int  find_nnz(T_data *d_data, int N, int *d_nnz, int device);
 
 void carma_start_profile();
 void carma_stop_profile();

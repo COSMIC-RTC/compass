@@ -5,6 +5,7 @@
 #include <sutra_phase.h>
 #include <sutra_kl.h>
 #include <sutra_ao_utils.h>
+#include <carma_utils.h>
 
 typedef std::pair<std::string, float> type_screen;
 

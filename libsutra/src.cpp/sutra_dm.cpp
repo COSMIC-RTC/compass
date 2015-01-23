@@ -221,6 +221,7 @@ sutra_dm::get_IF_sparse(carma_sparse_obj<float> *&d_IFsparse, int *indx_pup, lon
 		//CUsparse d_IF
 		d_IFsparse_vec = new carma_sparse_obj<float>(&d_IF);
 		// Retrieve nnz, values and colind from d_IFsparse_vec, stored on CPU
+		//DEBUG_TRACE("nnz : %d \n",d_IFsparse_vec->getNzElem());
 		NZ[i] = d_IFsparse_vec->getNzElem();
 		values[i] = (float*)malloc(NZ[i]*sizeof(float));
 		colind[i] = (int*)malloc(NZ[i]*sizeof(int));
