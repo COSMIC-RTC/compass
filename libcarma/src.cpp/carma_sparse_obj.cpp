@@ -43,14 +43,19 @@ void carma_sparse_obj<T_data>::init_carma_sparse_obj(carma_context *current_cont
   cudaMalloc((void**) &nnzPerRow, dims[1] * sizeof(int));
  // nz_elem=0;
   if(dims[1]== 1){
-	  nnzTotalDevHostPtr = find_nnz(d_M,dims[2], nnzPerRow,current_context->get_activeDevice());
+	  int *tmp_colind=NULL;
+	  cudaMalloc((void**) &tmp_colind, dims[2] * sizeof(int));
+	  find_nnz(d_M, tmp_colind, dims[2], nnzPerRow, nnzTotalDevHostPtr,this->device);
+	  resize(nnzTotalDevHostPtr, dims[1], dims[2]);
+	  fill_sparse_vect(d_M, tmp_colind, this->d_data, this->d_colind, this->d_rowind, this->nz_elem, this->device);
+	  cudaFree(tmp_colind);
   }else{
 	  ptr_nnz(handle, CUSPARSE_DIRECTION_ROW, dims[1], dims[2], descr, d_M, dims[1],
 		  nnzPerRow, &nnzTotalDevHostPtr);
+	  resize(nnzTotalDevHostPtr, dims[1], dims[2]);
+	  ptr_dense2csr(handle, dims[1], dims[2], descr, d_M, dims[1], nnzPerRow,
+			  this->d_data, this->d_rowind, this->d_colind);
   }
-  resize(nnzTotalDevHostPtr, dims[1], dims[2]);
-  ptr_dense2csr(handle, dims[1], dims[2], descr, d_M, dims[1], nnzPerRow,
-		  this->d_data, this->d_rowind, this->d_colind);
   cudaFree(nnzPerRow);
   if (loadFromHost) {
 	cudaFree(d_M);
