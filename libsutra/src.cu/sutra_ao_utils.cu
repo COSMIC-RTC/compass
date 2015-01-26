@@ -407,9 +407,8 @@ int remove_avg(T *data, int N, int device){
 	dim3 grid(nblocks), threads(nthreads);
 	int smemSize = nthreads * sizeof(T);
 
-	T *p_sum_c;
+	T p_sum_c[nblocks];
 	T *p_sum;
-	p_sum_c = (T*)malloc(nblocks*sizeof(T));
 	cutilSafeCall(
 	      cudaMalloc((void** )&(p_sum), sizeof(T) * nblocks));
 
