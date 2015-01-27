@@ -78,9 +78,9 @@ public:
   int
   get_IF_sparse(carma_sparse_obj<float> *&d_IFsparse, int *indx_pup, long nb_pts, float ampli);
   int
-  do_geomat(float *d_geocov, float *d_IF, long n_pts, float ampli);
+  do_geomat(float *d_geocov, float *d_IF, long n_pts);
   int
-  do_geomatFromSparse(float *d_geocov, carma_sparse_obj<float> *d_IFsparse, float ampli);
+  do_geomatFromSparse(float *d_geocov, carma_sparse_obj<float> *d_IFsparse);
   int
   DDiago(carma_obj<float> *d_statcov, carma_obj<float>*d_geocov);
   int
@@ -130,8 +130,6 @@ int
 getIF(float *IF, float *dmshape, int *indx_pup, long nb_pts, int column, long nb_col, carma_device *device);
 int
 dm_dostatmat(float *d_statcov, long Nkl, float *d_xpos, float *d_ypos, float norm, carma_device *device);
-int
-multi_vect(float *d_data, float gain, int N, carma_device *device);
 int
 fill_filtermat(float *filter, int nactu, int N, carma_device *device);
 int

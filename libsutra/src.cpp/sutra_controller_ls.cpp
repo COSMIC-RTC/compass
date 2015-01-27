@@ -233,8 +233,10 @@ int sutra_controller_ls::comp_com() {
   this->frame_delay();
   int nstreams = streams->get_nbStreams();
 
+  //Modal Control Optimization
   if(this->is_modopti){
-	if(this->cpt_rec > this->nrec-1 + this->delay){
+	  //Refresh when enough slopes have been recorded
+	if(this->cpt_rec > this->nrec + this->delay){
 		cout <<"Refreshing modal gains..."<< endl;
 		modalControlOptimization();
 		this->cpt_rec = 0;

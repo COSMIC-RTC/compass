@@ -280,14 +280,18 @@ sutra_dm::compute_KLbasis(float *xpos, float *ypos, int *indx, long dim, float n
 	carma_obj<int> *d_indx = new carma_obj<int>(this->current_context, dims_data2);
 
 	//Compute the statistic matrix from actuators positions & Kolmogorov statistic
-	carma_obj<float> *d_xpos = new carma_obj<float>(current_context, dims_data);
-	carma_obj<float> *d_ypos = new carma_obj<float>(current_context, dims_data);
+	dims_data2[1] = this->ninflu;
+	carma_obj<float> *d_xpos = new carma_obj<float>(current_context, dims_data2);
+	carma_obj<float> *d_ypos = new carma_obj<float>(current_context, dims_data2);
 
 	d_xpos->host2device(xpos);
 	d_ypos->host2device(ypos);
 	dm_dostatmat(d_statcov->getData(), this->ninflu,d_xpos->getData(), d_ypos->getData(), norm, current_context->get_device(device));
-	// Compute and apply piston filter
 
+	delete d_xpos;
+	delete d_ypos;
+
+	// Compute and apply piston filter
 	this->piston_filt(d_statcov);
 
 	dims_data[1] = this->ninflu;
@@ -297,8 +301,8 @@ sutra_dm::compute_KLbasis(float *xpos, float *ypos, int *indx, long dim, float n
 
 	//Sparse version for geomat
 	carma_sparse_obj<float> *d_IFsparse;
-	this->get_IF_sparse(d_IFsparse,d_indx->getData(),dim,1.0f);
-	this->do_geomatFromSparse(d_geocov->getData(),d_IFsparse,ampli);
+	this->get_IF_sparse(d_IFsparse,d_indx->getData(),dim,ampli);
+	this->do_geomatFromSparse(d_geocov->getData(),d_IFsparse);
 
 	delete d_IFsparse;
 
@@ -308,39 +312,36 @@ sutra_dm::compute_KLbasis(float *xpos, float *ypos, int *indx, long dim, float n
 	dims_data[2] = this->ninflu;
 	carma_obj<float> *d_IF = new carma_obj<float>(this->current_context, dims_data);
 	// Get influence functions of the DM
-	this->get_IF(d_IF->getData(),d_indx->getData(),dim,1.0f);
+	this->get_IF(d_IF->getData(),d_indx->getData(),dim,ampli);
 	// Compute geometric matrix (to be CUsparsed)
-	this->do_geomat(d_geocov->getData(),d_IF->getData(),dim,ampli);
+	this->do_geomat(d_geocov->getData(),d_IF->getData(),dim);
 */
 	// Double diagonalisation to obtain KL basis on actuators
 	this->DDiago(d_statcov,d_geocov);
 
 	delete d_geocov;
 	delete d_indx;
-	delete d_xpos;
-	delete d_ypos;
+
 
 	return EXIT_SUCCESS;
 }
 
 int
-sutra_dm::do_geomatFromSparse(float *d_geocov, carma_sparse_obj<float> *d_IFsparse, float ampli){
+sutra_dm::do_geomatFromSparse(float *d_geocov, carma_sparse_obj<float> *d_IFsparse){
 
 	carma_sparse_obj<float> *d_tmp = new carma_sparse_obj<float>(this->current_context);
 
 	carma_gemm<float>(cusparse_handle(),'n','t',d_IFsparse,d_IFsparse,d_tmp);
 	carma_csr2dense<float>(d_tmp, d_geocov);
-	multi_vect(d_geocov,ampli,this->ninflu*this->ninflu,this->current_context->get_device(device));
 
 	delete d_tmp;
 	return EXIT_SUCCESS;
 }
 int
-sutra_dm::do_geomat(float *d_geocov, float *d_IF, long n_pts, float ampli){
+sutra_dm::do_geomat(float *d_geocov, float *d_IF, long n_pts){
 	carma_gemm(cublas_handle(), 't', 'n', this->ninflu, this->ninflu, n_pts, 1.0f,
 	      d_IF, n_pts, d_IF, n_pts, 0.0f,
 	      d_geocov, this->ninflu);
-	multi_vect(d_geocov,ampli,this->ninflu*this->ninflu,this->current_context->get_device(device));
 
 	return EXIT_SUCCESS;
 }
