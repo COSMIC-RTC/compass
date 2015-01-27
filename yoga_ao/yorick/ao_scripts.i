@@ -1057,3 +1057,128 @@ res=sensors_getdata(g_wfs,0,"bincube");
 }
 
 //script_system, YOGA_AO_PARPATH+"1wfs40x40_1layer_rtc_dm.par",strehl=1;
+
+func script_geo(filename,verbose=,strehl=,r0=,clean=)
+{
+  //activeDevice,1;
+  
+  extern y_geom,y_tel,y_loop,y_atmos,y_wfs;
+  extern g_atmos,g_target,g_wfs;
+  extern ipupil;
+
+  if (verbose == []) verbose = 1;
+  if (strehl == []) strehl = 0;
+  if (r0 == []) r0 = 0;
+  if (clean == []) clean = 1;
+
+  if (strehl) {
+    extern strehlsp,strehllp,mimg;
+  }
+  
+  if (filename == []) filename = YOGA_AO_PARPATH+"1wfs40x40_1layer_rtc_geo_dm.par";
+  //if (filename == []) filename = YOGA_AO_PARPATH+"1pyr32x32_1layer_rtc_dm.par";
+
+  if ((!(fileExist(filename))) && (!(fileExist(YOGA_AO_PARPATH+filename))))
+    error,"could not find"+filename;
+  
+  if (!(fileExist(filename)))
+    filename = YOGA_AO_PARPATH+filename;
+
+  // reading parfile
+  read_parfile,filename;
+
+  if (y_loop.niter == []) y_loop.niter = 100000;
+
+  if (r0 > 0) y_atmos.r0 = r0;
+
+  // init system
+  wfs_init;
+
+  atmos_init;
+
+  dm_init;
+
+  target_init;
+  rtc_init,clean=clean;
+
+  if (verbose) write,"... Done with inits !";
+  write,"The following objects have been initialized on the GPU :";
+  write,"--------------------------------------------------------";
+  g_atmos;
+  write,"--------------------------------------------------------";
+  g_wfs;
+  write,"--------------------------------------------------------";
+  g_target;
+  write,"--------------------------------------------------------";
+  g_dm;
+  write,"--------------------------------------------------------";
+  g_rtc;
+  
+  /*
+                 _         _                   
+ _ __ ___   __ _(_)_ __   | | ___   ___  _ __  
+| '_ ` _ \ / _` | | '_ \  | |/ _ \ / _ \| '_ \ 
+| | | | | | (_| | | | | | | | (_) | (_) | |_) |
+|_| |_| |_|\__,_|_|_| |_| |_|\___/ \___/| .__/ 
+                                        |_|    
+
+   */
+  //yoga_start_profiler;
+  
+  time_move = 0;
+  mytime = tic();
+
+  if (strehl) {
+    mimg = 0.; // initializing average image
+    strehllp = strehlsp = [];
+    write,"\n";
+    write,"----------------------------------------------------";
+    write,"iter# | S.E. SR | L.E. SR | Est. Rem. | framerate";
+    write,"----------------------------------------------------";
+  }
+
+  //com_buf = array(0.0f,y_dm(1)._ntotact,2);
+  for (cc=1;cc<=y_loop.niter;cc++) {
+    
+    move_atmos,g_atmos;
+ 
+    if ((y_target != []) && (g_target != [])) {
+      // loop on targets
+      for (i=1;i<=y_target.ntargets;i++) {
+        target_atmostrace,g_target,i-1,g_atmos;
+        if (g_dm != []) {
+	  rtc_docontrol_geo,g_rtc,0,g_dm,g_target,0;
+          target_dmtrace,g_target,i-1,g_dm;
+        }
+      }
+      //saving average image from target #1
+    }
+
+    if (verbose) {
+      subsample=100.;
+      if (cc % subsample == 0) {
+        timetmp = time_move*(cc-subsample);
+        time_move = tac(mytime)/cc;
+        timetmp -= time_move*cc;
+        if (strehl) {
+          //error;
+          strehltmp = target_getstrehl(g_target,0);
+          grow,strehlsp,strehltmp(1);
+          grow,strehllp,strehltmp(2);
+          //grow,strehlsp,exp(-strehltmp(3));
+          //grow,strehllp,exp(-strehltmp(4));
+          write,format=" %5i    %5.2f     %5.2f     %5.2f s   %5.2f it./s\n",
+            cc,strehlsp(0),strehllp(0),(y_loop.niter - cc)*time_move, -1/timetmp*subsample; 
+        } else {
+          write,format="\v",;
+          write,format="\r Estimated remaining time : %.2f s (%.2f it./s)",(y_loop.niter - cc)*time_move, -1/timetmp*subsample;
+        }
+      }
+    } 
+  }
+  
+  write,"\n done with simulation \n";
+  write,format="simulation time : %f sec. per iteration\n",tac(mytime)/y_loop.niter;
+    if (strehl) 
+      return strehllp(0);
+}
