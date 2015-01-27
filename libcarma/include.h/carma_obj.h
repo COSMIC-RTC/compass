@@ -295,7 +295,7 @@ int transposeCU(T_data *d_idata, T_data *d_odata, long N1, long N2);
 
 // CU functions generic
 template<class T_data>
-int launch_generic1d(T_data *d_idata, T_data *d_odata, int N);
+int launch_generic1d(T_data *d_idata, T_data *d_odata, int N, carma_device *device);
 template<class T_data>
 int launch_generic2d(T_data *d_odata, T_data *d_idata, int N1, int N2);
 
@@ -316,21 +316,21 @@ int carma_fft(T_in *input, T_out *output, int dir, cufftHandle plan);
 
 // CU functions generic
 template<class T_data>
-int fillindex(T_data *d_odata, T_data *d_idata, int *indx, int N);
+int fillindex(T_data *d_odata, T_data *d_idata, int *indx, int N, carma_device *device);
 template<class T_data>
-int fillvalues(T_data *d_odata, unsigned int *indx, int N);
+int fillvalues(T_data *d_odata, unsigned int *indx, int N, carma_device *device);
 template<class T>
-int getarray2d(T *d_odata, T *d_idata, int x0, int Ncol, int NC, int N);
+int getarray2d(T *d_odata, T *d_idata, int x0, int Ncol, int NC, int N, carma_device *device);
 template<class T>
-int fillarray2d(T *d_odata, T *d_idata, int x0, int Ncol, int NC, int N);
+int fillarray2d(T *d_odata, T *d_idata, int x0, int Ncol, int NC, int N, carma_device *device);
 template<class T>
-int fillarray2d2(T *d_odata, T *d_idata, int x0, int Ncol, int NC, int N);
+int fillarray2d2(T *d_odata, T *d_idata, int x0, int Ncol, int NC, int N, carma_device *device);
 template<class T>
-int fill_sym_matrix(char src_uplo, T *d_data, int Ncol, int N);
+int fill_sym_matrix(char src_uplo, T *d_data, int Ncol, int N, carma_device *device);
 template<class T>
-int carma_plus(T *d_odata, T elpha, int N);
+int carma_plus(T *d_odata, T elpha, int N, carma_device *device);
 template<class T>
-int carma_plusai(T *d_odata, T *i_data, int i, int sgn, int N);
+int carma_plusai(T *d_odata, T *i_data, int i, int sgn, int N, carma_device *device);
 
 // CU functions fftconv
 int fftconv_unpad(float *d_odata, float *d_idata, int fftW, int dataH,

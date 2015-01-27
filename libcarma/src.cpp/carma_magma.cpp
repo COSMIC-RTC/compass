@@ -88,7 +88,7 @@ int carma_syevd_gen(magma_vec_t jobz, magma_int_t N, magma_int_t ldda, T *d_mat,
 
   cudaFreeHost(h_R);
   cudaFreeHost(h_work);
-  free(iwork);
+  magma_free_cpu(iwork);
 
   return EXIT_SUCCESS;
 }
@@ -177,13 +177,13 @@ int carma_syevd<double, 1>(char jobz, caObjD *mat,
  return carma_syevd<double, magma_dsyevd_gpu_kblas>(magma_vec_const(jobz), mat, eigenvals);
  }
  */
-template<class T>
-int carma_syevd_m_gen(magma_int_t ngpu, magma_uplo_t jobz, magma_int_t N,
-    T *mat, T *eigenvals,
+template<class T,
     magma_int_t (*ptr_syevd_m)(magma_int_t nrgpu, magma_vec_t jobz,
         magma_uplo_t uplo, magma_int_t n, T *a, magma_int_t lda, T *w, T *work,
         magma_int_t lwork, magma_int_t *iwork, magma_int_t liwork,
-        magma_int_t *info)) {
+        magma_int_t *info)>
+int carma_syevd_m_gen(magma_int_t ngpu, magma_uplo_t jobz, magma_int_t N,
+    T *mat, T *eigenvals) {
   magma_int_t *iwork;
   magma_int_t info = 0, lwork, liwork, lda = N, aux_iwork[1];
   T aux_work[1];
@@ -208,7 +208,7 @@ int carma_syevd_m_gen(magma_int_t ngpu, magma_uplo_t jobz, magma_int_t N,
 
   //cudaFreeHost(h_R);
   cudaFreeHost(h_work);
-  free(iwork);
+  magma_free_cpu(iwork);
 
   return EXIT_SUCCESS;
 }
@@ -221,13 +221,13 @@ int carma_syevd_m(long ngpu, char jobz, magma_int_t N, T *mat, T *eigenvals) {
 template<>
 int carma_syevd_m<float>(long ngpu, char jobz, magma_int_t N, float *mat,
     float *eigenvals) {
-  return carma_syevd_m_gen<float>(ngpu, magma_uplo_const(jobz), N, mat, eigenvals, magma_ssyevd_m);
+  return carma_syevd_m_gen<float, magma_ssyevd_m>(ngpu, magma_uplo_const(jobz), N, mat, eigenvals);
 }
 template<>
 int carma_syevd_m<double>(long ngpu, char jobz, magma_int_t N, double *mat,
     double *eigenvals) {
-  return carma_syevd_m_gen<double>(ngpu, magma_uplo_const(jobz), N, mat, eigenvals,
-      magma_dsyevd_m);
+  return carma_syevd_m_gen<double,
+      magma_dsyevd_m>(ngpu, magma_uplo_const(jobz), N, mat, eigenvals);
 }
 
 template<class T>
@@ -244,8 +244,8 @@ int carma_syevd_m<float>(long ngpu, char jobz, carma_host_obj<float> *mat,
     cerr << "Matrix must be symmetric\n";
     return EXIT_FAILURE;
   }
-  return carma_syevd_m_gen<float>(ngpu, magma_uplo_const(jobz), N, *mat, *eigenvals,
-      magma_ssyevd_m);
+  return carma_syevd_m_gen<float,
+      magma_ssyevd_m>(ngpu, magma_uplo_const(jobz), N, *mat, *eigenvals);
 }
 template<>
 int carma_syevd_m<double>(long ngpu, char jobz, carma_host_obj<double> *mat,
@@ -255,8 +255,8 @@ int carma_syevd_m<double>(long ngpu, char jobz, carma_host_obj<double> *mat,
     cerr << "Matrix must be symmetric\n";
     return EXIT_FAILURE;
   }
-  return carma_syevd_m_gen<double>(magma_int_t(ngpu), magma_uplo_const(jobz), N, *mat, *eigenvals,
-      magma_dsyevd_m);
+  return carma_syevd_m_gen<double,
+      magma_dsyevd_m>(magma_int_t(ngpu), magma_uplo_const(jobz), N, *mat, *eigenvals);
 }
 
 template<class T>
@@ -278,7 +278,7 @@ int carma_syevd_m<float>(long ngpu, char jobz, carma_host_obj<float> *mat,
   magma_int_t lda = N;
   lapackf77_slacpy(MagmaUpperLowerStr, &N, &N, *mat, &lda, *U, &lda);
 
-  return carma_syevd_m_gen<float>(ngpu, magma_uplo_const(jobz), N, *U, *eigenvals, magma_ssyevd_m);
+  return carma_syevd_m_gen<float, magma_ssyevd_m>(ngpu, magma_uplo_const(jobz), N, *U, *eigenvals);
 }
 template<>
 int carma_syevd_m<double>(long ngpu, char jobz, carma_host_obj<double> *mat,
@@ -292,8 +292,8 @@ int carma_syevd_m<double>(long ngpu, char jobz, carma_host_obj<double> *mat,
   magma_int_t lda = N;
   lapackf77_dlacpy(MagmaUpperLowerStr, &N, &N, *mat, &lda, *U, &lda);
 
-  return carma_syevd_m_gen<double>(ngpu, magma_uplo_const(jobz), N, *U, *eigenvals,
-      magma_dsyevd_m);
+  return carma_syevd_m_gen<double,
+      magma_dsyevd_m>(ngpu, magma_uplo_const(jobz), N, *U, *eigenvals);
 }
 
 template<class T>
@@ -319,13 +319,13 @@ int carma_svd<double>(caObjD *imat, caObjD *eigenvals, caObjD *mod2act,
   //return carma_gesvd<double>(mat, eigenvals, U, magma_dgesvd);
 }
 
-template<class T>
-int carma_svd_cpu_gen(carma_host_obj<T> *mat, carma_host_obj<T> *eigenvals,
-    carma_host_obj<T> *mod2act, carma_host_obj<T> *mes2mod,
+template<class T,
     magma_int_t (*ptr_gesvd)(magma_vec_t jobu, magma_vec_t jobvt, magma_int_t m,
         magma_int_t n, T *A, magma_int_t lda, T *s, T *U, magma_int_t ldu,
         T *VT, magma_int_t ldvt, T *work, magma_int_t lwork,
-        magma_int_t *info)) {
+        magma_int_t *info)>
+int carma_svd_cpu_gen(carma_host_obj<T> *mat, carma_host_obj<T> *eigenvals,
+    carma_host_obj<T> *mod2act, carma_host_obj<T> *mes2mod) {
   const long *dims = mat->getDims();
   long m = dims[1];
   long n = dims[2];
@@ -363,27 +363,27 @@ template<>
 int carma_svd_cpu<float>(carma_host_obj<float> *mat,
     carma_host_obj<float> *eigenvals, carma_host_obj<float> *mod2act,
     carma_host_obj<float> *mes2mod) {
-  return carma_svd_cpu_gen<float>(mat, eigenvals, mod2act, mes2mod, magma_sgesvd);
+  return carma_svd_cpu_gen<float, magma_sgesvd>(mat, eigenvals, mod2act, mes2mod);
 }
 template<>
 int carma_svd_cpu<double>(carma_host_obj<double> *mat,
     carma_host_obj<double> *eigenvals, carma_host_obj<double> *mod2act,
     carma_host_obj<double> *mes2mod) {
-  return carma_svd_cpu_gen<double>(mat, eigenvals, mod2act, mes2mod, magma_dgesvd);
+  return carma_svd_cpu_gen<double, magma_dgesvd>(mat, eigenvals, mod2act, mes2mod);
 }
 
-template<class T>
-int carma_potri_gen(magma_int_t N, magma_int_t ldda, T *d_iA,
+template<class T,
     magma_int_t (*ptr_potrf)(magma_uplo_t uplo, magma_int_t n, T *d_A,
         magma_int_t ldda, magma_int_t *info),
     magma_int_t (*ptr_potri)(magma_uplo_t uplo, magma_int_t n, T *d_A,
-        magma_int_t ldda, magma_int_t *info)) {
+        magma_int_t ldda, magma_int_t *info)>
+int carma_potri_gen(magma_int_t N, magma_int_t ldda, T *d_iA, carma_device *device) {
 
   magma_int_t info = 0;
   CHECK_MAGMA(ptr_potrf(magma_uplo_const('L'), N, d_iA, ldda, &info), info);
   CHECK_MAGMA(ptr_potri(magma_uplo_const('L'), N, d_iA, ldda, &info), info);
 
-  fill_sym_matrix<T>('L', d_iA, N, N * ldda);
+  fill_sym_matrix<T>('L', d_iA, N, N * ldda, device);
   return EXIT_SUCCESS;
 }
 
@@ -400,7 +400,7 @@ int carma_potri<float>(carma_obj<float> *d_iA) {
     MAGMA_TRACE("carma_potri : non square and positive-definite matrix\n");
     return EXIT_FAILURE;
   }
-  return carma_potri_gen<float>(N, N, *d_iA, magma_spotrf_gpu, magma_spotri_gpu);
+  return carma_potri_gen<float, magma_spotrf_gpu, magma_spotri_gpu>(N, N, *d_iA, d_iA->getContext()->get_device(d_iA->getDevice()));
 }
 template<>
 int carma_potri<double>(carma_obj<double> *d_iA) {
@@ -410,13 +410,12 @@ int carma_potri<double>(carma_obj<double> *d_iA) {
     MAGMA_TRACE("carma_potri : non square and positive-definite matrix\n");
     return EXIT_FAILURE;
   }
-  return carma_potri_gen<double>(N, N, *d_iA, magma_dpotrf_gpu,
-      magma_dpotri_gpu);
+  return carma_potri_gen<double, magma_dpotrf_gpu,
+      magma_dpotri_gpu>(N, N, *d_iA, d_iA->getContext()->get_device(d_iA->getDevice()));
 }
 
-template<class T>
 #if (MAGMA_VERSION_MAJOR == 1) && (MAGMA_VERSION_MINOR <= 5)
-int carma_potri_m_gen(long num_gpus, T *h_A, T *d_iA, long N,
+template<class T,
     magma_int_t (*ptr_potrf)(magma_int_t num_gpus, magma_uplo_t uplo,
         magma_int_t N, T **d_A, magma_int_t ldda, magma_int_t *info),
     magma_int_t (*ptr_potri)(magma_uplo_t uplo, magma_int_t N, T *d_A,
@@ -427,21 +426,22 @@ int carma_potri_m_gen(long num_gpus, T *h_A, T *d_iA, long N,
         magma_int_t num_gpus, magma_int_t nb),
     void (*ptr_getmatrix_1D_col_bcyclic)(magma_int_t m, magma_int_t N, T *dA[],
         magma_int_t ldda, T *hA, magma_int_t lda, magma_int_t num_gpus,
-        magma_int_t nb)) {
+        magma_int_t nb)>
 #else
-  int carma_potri_m_gen(long num_gpus, T *h_A, T *d_iA, long N,
-      magma_int_t (*ptr_potrf)(magma_int_t num_gpus, magma_uplo_t uplo,
-          magma_int_t N, T **d_A, magma_int_t ldda, magma_int_t *info),
-      magma_int_t (*ptr_potri)(magma_uplo_t uplo, magma_int_t N, T *d_A,
-          magma_int_t ldda, magma_int_t *info),
-      magma_int_t (*ptr_get_potrf_nb)(magma_int_t m),
-      void (*ptr_setmatrix_1D_col_bcyclic)(magma_int_t m, magma_int_t N,
-          const T *hA, magma_int_t lda, T *dA[], magma_int_t ldda,
-          magma_int_t num_gpus, magma_int_t nb),
-      void (*ptr_getmatrix_1D_col_bcyclic)(magma_int_t m, magma_int_t N, const T * const dA[],
-          magma_int_t ldda, T *hA, magma_int_t lda, magma_int_t num_gpus,
-          magma_int_t nb)) {
+template<class T,
+    magma_int_t (*ptr_potrf)(magma_int_t num_gpus, magma_uplo_t uplo,
+        magma_int_t N, T **d_A, magma_int_t ldda, magma_int_t *info),
+    magma_int_t (*ptr_potri)(magma_uplo_t uplo, magma_int_t N, T *d_A,
+        magma_int_t ldda, magma_int_t *info),
+    magma_int_t (*ptr_get_potrf_nb)(magma_int_t m),
+    void (*ptr_setmatrix_1D_col_bcyclic)(magma_int_t m, magma_int_t N,
+        const T *hA, magma_int_t lda, T *dA[], magma_int_t ldda,
+        magma_int_t num_gpus, magma_int_t nb),
+    void (*ptr_getmatrix_1D_col_bcyclic)(magma_int_t m, magma_int_t N, const T * const dA[],
+        magma_int_t ldda, T *hA, magma_int_t lda, magma_int_t num_gpus,
+        magma_int_t nb)>
 #endif
+  int carma_potri_m_gen(long num_gpus, T *h_A, T *d_iA, long N, carma_device *device) {
   magma_int_t nb = ptr_get_potrf_nb(N);
   magma_int_t ldda = ((N + nb - 1) / nb) * nb;
   magma_int_t lda = N;
@@ -465,7 +465,7 @@ int carma_potri_m_gen(long num_gpus, T *h_A, T *d_iA, long N,
   //d_iA->host2device(h_A);
   CHECK_MAGMA(ptr_potri(magma_uplo_const('L'), N, d_iA, N, &info), info);
 
-  fill_sym_matrix<T>('L', d_iA, N, N * N);
+  fill_sym_matrix<T>('L', d_iA, N, N * N, device);
   return EXIT_SUCCESS;
 }
 
@@ -483,9 +483,9 @@ int carma_potri_m<float>(long num_gpus, carma_host_obj<float> *h_A,
     cerr << "Matrix must be square and positive-definite\n";
     return EXIT_FAILURE;
   }
-  return carma_potri_m_gen<float>(num_gpus, *h_A, *d_iA, N, magma_spotrf_mgpu,
+  return carma_potri_m_gen<float, magma_spotrf_mgpu,
       magma_spotri_gpu, magma_get_spotrf_nb, magma_ssetmatrix_1D_col_bcyclic,
-      magma_sgetmatrix_1D_col_bcyclic);
+      magma_sgetmatrix_1D_col_bcyclic>(num_gpus, *h_A, *d_iA, N, d_iA->getContext()->get_device(d_iA->getDevice()));
 }
 template<>
 int carma_potri_m<double>(long num_gpus, carma_host_obj<double> *h_A,
@@ -496,18 +496,18 @@ int carma_potri_m<double>(long num_gpus, carma_host_obj<double> *h_A,
     return EXIT_FAILURE;
   }
 
-  return carma_potri_m_gen<double>(num_gpus, *h_A, *d_iA, N, magma_dpotrf_mgpu,
+  return carma_potri_m_gen<double, magma_dpotrf_mgpu,
       magma_dpotri_gpu, magma_get_dpotrf_nb, magma_dsetmatrix_1D_col_bcyclic,
-      magma_dgetmatrix_1D_col_bcyclic);
+      magma_dgetmatrix_1D_col_bcyclic>(num_gpus, *h_A, *d_iA, N, d_iA->getContext()->get_device(d_iA->getDevice()));
 }
 
-template<class T>
-int carma_getri_gen(long N, T *d_iA,
+template<class T,
     magma_int_t (*ptr_getrf)(magma_int_t m, magma_int_t N, T *dA,
         magma_int_t ldda, magma_int_t *ipiv, magma_int_t *info),
     magma_int_t (*ptr_getri)(magma_int_t N, T *dA, magma_int_t ldda,
         magma_int_t *ipiv, T *dwork, magma_int_t lwork, magma_int_t *info),
-    magma_int_t (*ptr_get_getri_nb)(magma_int_t N)) {
+    magma_int_t (*ptr_get_getri_nb)(magma_int_t N)>
+int carma_getri_gen(long N, T *d_iA) {
   magma_int_t *ipiv;
   magma_malloc_cpu((void**) &ipiv, N * sizeof(magma_int_t));
 
@@ -524,7 +524,7 @@ int carma_getri_gen(long N, T *d_iA,
   CHECK_MAGMA(ptr_getri(N, d_iA, ldda, ipiv, dwork, ldwork, &info), info);
 
   cudaFree(dwork);
-  free(ipiv);
+  magma_free_cpu(ipiv);
 
   return EXIT_SUCCESS;
 }
@@ -542,8 +542,8 @@ int carma_getri<float>(carma_obj<float> *d_iA) {
     return EXIT_FAILURE;
   }
 
-  return carma_getri_gen<float>(N, *d_iA, magma_sgetrf_gpu, magma_sgetri_gpu,
-      magma_get_sgetri_nb);
+  return carma_getri_gen<float, magma_sgetrf_gpu, magma_sgetri_gpu,
+      magma_get_sgetri_nb>(N, *d_iA);
 }
 template<>
 int carma_getri<double>(carma_obj<double> *d_iA) {
@@ -553,18 +553,18 @@ int carma_getri<double>(carma_obj<double> *d_iA) {
     return EXIT_FAILURE;
   }
 
-  return carma_getri_gen<double>(N, *d_iA, magma_dgetrf_gpu, magma_dgetri_gpu,
-      magma_get_dgetri_nb);
+  return carma_getri_gen<double, magma_dgetrf_gpu, magma_dgetri_gpu,
+      magma_get_dgetri_nb>(N, *d_iA);
 }
 
-template<class T>
-int carma_potri_cpu_gen(magma_int_t N, T *h_A,
+template<class T,
     void (*ptr_potrf)(const char *uplo, const magma_int_t *n, T *A,
         const magma_int_t *lda, magma_int_t *info),
     void (*ptr_potri)(const char *uplo, const magma_int_t *n, T *A,
         const magma_int_t *lda, magma_int_t *info),
     void (*ptr_copy)(const magma_int_t *n, const T *x, const magma_int_t *incx,
-        T *y, const magma_int_t *incy)) {
+        T *y, const magma_int_t *incy)>
+int carma_potri_cpu_gen(magma_int_t N, T *h_A) {
   magma_int_t info = 0;
   char uplo = 'L';
   magma_int_t one = 1;
@@ -591,8 +591,8 @@ int carma_potri_cpu<float>(carma_host_obj<float> *h_A) {
     return EXIT_FAILURE;
   }
 
-  return carma_potri_cpu_gen<float>(N, *h_A, lapackf77_spotrf, lapackf77_spotri,
-      blasf77_scopy);
+  return carma_potri_cpu_gen<float, lapackf77_spotrf, lapackf77_spotri,
+      blasf77_scopy>(N, *h_A);
 }
 template<>
 int carma_potri_cpu<double>(carma_host_obj<double> *h_A) {
@@ -601,8 +601,8 @@ int carma_potri_cpu<double>(carma_host_obj<double> *h_A) {
     cerr << "Matrix must be symmetric\n";
     return EXIT_FAILURE;
   }
-  return carma_potri_cpu_gen<double>(N, *h_A, lapackf77_dpotrf,
-      lapackf77_dpotri, blasf77_dcopy);
+  return carma_potri_cpu_gen<double, lapackf77_dpotrf,
+      lapackf77_dpotri, blasf77_dcopy>(N, *h_A);
 }
 
 template<class T>
@@ -613,14 +613,14 @@ int carma_potri_cpu(long N, T *h_A) {
 
 template<>
 int carma_potri_cpu<float>(long N, float *h_A) {
-  return carma_potri_cpu_gen<float>(N, h_A, lapackf77_spotrf, lapackf77_spotri,
-      blasf77_scopy);
+  return carma_potri_cpu_gen<float, lapackf77_spotrf, lapackf77_spotri,
+      blasf77_scopy>(N, h_A);
 }
 
 template<>
 int carma_potri_cpu<double>(long N, double *h_A) {
-  return carma_potri_cpu_gen<double>(N, h_A, lapackf77_dpotrf, lapackf77_dpotri,
-      blasf77_dcopy);
+  return carma_potri_cpu_gen<double, lapackf77_dpotrf, lapackf77_dpotri,
+      blasf77_dcopy>(N, h_A);
 }
 
 template<class T,
@@ -642,8 +642,8 @@ int carma_getri_cpu_gen(magma_int_t N, T *h_A) {
   CHECK_MAGMA(ptr_getrf(&N, &N, h_A, &lda, ipiv, &info), info);
   CHECK_MAGMA(ptr_getri(&N, h_A, &lda, ipiv, work, &lwork, &info), info);
 
-  free(work);
-  free(ipiv);
+  magma_free_cpu(work);
+  magma_free_cpu(ipiv);
   return EXIT_SUCCESS;
 }
 
@@ -722,7 +722,7 @@ int carma_syevd_cpu_gen(magma_vec_t jobz, magma_int_t N, magma_int_t lda,
           iwork, &liwork, &info), info);
 
   cudaFreeHost(h_R);
-  free(iwork);
+  magma_free_cpu(iwork);
 
   return EXIT_SUCCESS;
 }

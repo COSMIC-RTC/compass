@@ -5076,7 +5076,7 @@ void Y_yoga_getarray(int argc)
   int x0 = carma_in_handler->getDims(1) * (mrange[5] - 1) + (mrange[2] - 1);
   //if (Ncol == 1) x0 = (mrange[1]-1);
   getarray2d<float>(*carma_out_handler, *carma_in_handler, x0, Ncol,
-      carma_in_handler->getDims(1), Nlig * Ncol);
+      carma_in_handler->getDims(1), Nlig * Ncol, context_handle->get_device(carma_out_handler->getDevice()));
 }
 
 void Y_yoga_fillarray(int argc)
@@ -5139,7 +5139,7 @@ void Y_yoga_fillarray(int argc)
     int x0 = carma_out_handler->getDims(1) * (mrange[5] - 1) + (mrange[1] - 1);
     //if (Ncol == 1) x0 = (mrange[1]-1);
     fillarray2d<float>(*carma_out_handler, *carma_in_handler, x0, Ncol,
-        carma_out_handler->getDims(1), Nlig * Ncol);
+        carma_out_handler->getDims(1), Nlig * Ncol, context_handle->get_device(carma_out_handler->getDevice()));
   } else
     y_error("can only be called as a subroutine");
 }
@@ -5187,7 +5187,7 @@ void Y_yoga_plus(int argc) {
       float alpha = ygets_f(argc - 2);
       caObjS *carma_in_handler = (caObjS *) (handle_in->carma_object);
       carma_plus<float>(*carma_in_handler, alpha,
-          carma_in_handler->getNbElem());
+          carma_in_handler->getNbElem(), context_handle->get_device(carma_in_handler->getDevice()));
     } else
       y_error("double not implemented yet");
   } else
@@ -5214,7 +5214,7 @@ void Y_yoga_plusai(int argc) {
       caObjS *carma_in_handler = (caObjS *) (handle_in->carma_object);
       caObjS *carma_out_handler = (caObjS *) (handle_out->carma_object);
       carma_plusai<float>(*carma_out_handler, *carma_in_handler, idx, sgn,
-          carma_out_handler->getNbElem());
+          carma_out_handler->getNbElem(), context_handle->get_device(carma_in_handler->getDevice()));
     } else
       y_error("double not implemented yet");
   } else

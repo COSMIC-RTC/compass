@@ -298,11 +298,11 @@ __global__ void roll_krnl(T *idata, int N, int M, int Ntot) {
 }
 
 template<class T>
-int roll(T *idata, int N, int M, int nim) {
+int roll(T *idata, int N, int M, int nim, carma_device *device) {
 
   long Ntot = N * M * nim;
   int nBlocks, nThreads;
-  getNumBlocksAndThreads(0, Ntot / 2, nBlocks, nThreads);
+  getNumBlocksAndThreads(device, Ntot / 2, nBlocks, nThreads);
 
   dim3 grid(nBlocks), threads(nThreads);
 
@@ -314,13 +314,13 @@ int roll(T *idata, int N, int M, int nim) {
 }
 
 template int
-roll<float>(float *idata, int N, int M, int nim);
+roll<float>(float *idata, int N, int M, int nim, carma_device *device);
 
 template int
-roll<double>(double *idata, int N, int M, int nim);
+roll<double>(double *idata, int N, int M, int nim, carma_device *device);
 
 template int
-roll<cuFloatComplex>(cuFloatComplex *idata, int N, int M, int nim);
+roll<cuFloatComplex>(cuFloatComplex *idata, int N, int M, int nim, carma_device *device);
 
 template<class T>
 __global__ void roll_krnl(T *idata, int N, int M) {
@@ -345,13 +345,11 @@ __global__ void roll_krnl(T *idata, int N, int M) {
 }
 
 template<class T>
-int roll(T *idata, int N, int M) {
-  struct cudaDeviceProp deviceProperties;
-  cudaGetDeviceProperties(&deviceProperties, 0);
+int roll(T *idata, int N, int M, carma_device *device) {
 
   long Ntot = N * M;
   int nBlocks, nThreads;
-  getNumBlocksAndThreads(0, Ntot / 2, nBlocks, nThreads);
+  getNumBlocksAndThreads(device, Ntot / 2, nBlocks, nThreads);
 
   dim3 grid(nBlocks), threads(nThreads);
 
@@ -363,13 +361,13 @@ int roll(T *idata, int N, int M) {
 }
 
 template int
-roll<float>(float *idata, int N, int M);
+roll<float>(float *idata, int N, int M, carma_device *device);
 
 template int
-roll<double>(double *idata, int N, int M);
+roll<double>(double *idata, int N, int M, carma_device *device);
 
 template int
-roll<cuFloatComplex>(cuFloatComplex *idata, int N, int M);
+roll<cuFloatComplex>(cuFloatComplex *idata, int N, int M, carma_device *device);
 
 template<class T>
 __global__ void avg_krnl(T *data, T *p_sum){

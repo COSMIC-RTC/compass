@@ -537,7 +537,7 @@ int _genericCUS(caObjS *dest, caObjS *source) {
    *
    * this function returns the sum of the single-precision array
    */
-  return launch_generic1d((float*) *source, (float*) *dest, source->getNbElem());
+  return launch_generic1d((float*) *source, (float*) *dest, source->getNbElem(), dest->getContext()->get_device(dest->getDevice()));
 }
 int _genericCUD(caObjD *dest, caObjD *source) {
   /*! \brief sum wrapper for Yorick (double).
@@ -546,7 +546,7 @@ int _genericCUD(caObjD *dest, caObjD *source) {
    * this function returns the sum of the double-precision array
    */
   return launch_generic1d((double*) *source, (double*) *dest,
-      source->getNbElem());
+      source->getNbElem(), dest->getContext()->get_device(dest->getDevice()));
 }
 
 int _generic2CUS(caObjS *dest, caObjS *source) {

@@ -113,7 +113,7 @@ int sutra_controller_ls::svdec_imat() {
     d_eigenvals->host2device(*h_eigenvals);
   } else { // CULA case
     //We fill the upper matrix part of the matrix
-    fill_sym_matrix<float>('L', *d_U, nactu(), nactu() * nactu());
+    fill_sym_matrix<float>('L', *d_U, nactu(), nactu() * nactu(), current_context->get_device(device));
 
     carma_obj<float> d_tmp(d_U);
     carma_obj<float> d_tmp2(d_U);
