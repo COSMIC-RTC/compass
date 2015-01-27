@@ -41,9 +41,9 @@ int sutra_centroider_cog::get_cog(carma_streams *streams, float *cube,
     //fprintf(stderr, "\n[%s@%d] I'm here\n", __FILE__, __LINE__);
     //streams->wait_all_streams();
   } else {
-    subap_reduce(ntot, (npix * npix), nvalid, cube, subsum, this->device);
+    subap_reduce(ntot, (npix * npix), nvalid, cube, subsum, current_context->get_device(device));
     get_centroids(ntot, (npix * npix), nvalid, npix, cube, centroids, subsum,
-        this->scale, this->offset, this->device);
+        this->scale, this->offset, current_context->get_device(device));
   }
   return EXIT_SUCCESS;
 }

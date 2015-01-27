@@ -64,7 +64,7 @@ __global__ void iprof_krnl(cuFloatComplex *profout, float *profin,
 
 int interp_prof(cuFloatComplex *profout, float *prof1d, float *profcum,
     int npix, float *doffaxis, float hg, float pixsize, float h0, float deltah,
-    int hmax, int Ntot, int device) {
+    int hmax, int Ntot, carma_device *device) {
   int nthreads = 0, nblocks = 0;
   getNumBlocksAndThreads(device, Ntot, nblocks, nthreads);
 
@@ -93,7 +93,7 @@ __global__ void tftbeam_krnl(cuFloatComplex *profout, cuFloatComplex *fbeam,
 }
 
 int times_ftbeam(cuFloatComplex *profout, cuFloatComplex *ftbeam, int N,
-    int Ntot, int device) {
+    int Ntot, carma_device *device) {
   int nthreads = 0, nblocks = 0;
   getNumBlocksAndThreads(device, Ntot, nblocks, nthreads);
 
@@ -122,7 +122,7 @@ __global__ void rollbeamexp_krnl(float *imout, cuFloatComplex *iprof,
 }
 
 int rollbeamexp(float *imout, cuFloatComplex *iprof, float *beam, int N,
-    int Ntot, int device) {
+    int Ntot, carma_device *device) {
   int nthreads = 0, nblocks = 0;
   getNumBlocksAndThreads(device, Ntot, nblocks, nthreads);
 
@@ -204,7 +204,7 @@ __global__ void rotate_krnl(cuFloatComplex *odata, float *idata, int width,
 }
 
 int lgs_rotate(cuFloatComplex *odata, float *idata, int width, int height,
-    float *theta, float center, int Ntot, int device) {
+    float *theta, float center, int Ntot, carma_device *device) {
   int nthreads = 0, nblocks = 0;
   getNumBlocksAndThreads(device, Ntot, nblocks, nthreads);
   dim3 grid(nblocks), threads(nthreads);
@@ -247,7 +247,7 @@ __global__ void rotate3d_krnl(cuFloatComplex *g_odata, int width, int height,
 
 int rotate3d(cuFloatComplex *d_odata, cudaMemcpy3DParms copyParams,
     cudaArray *d_array, cudaChannelFormatDesc channelDesc, int width,
-    int height, float *theta, float center, int Ntot, int device) {
+    int height, float *theta, float center, int Ntot, carma_device *device) {
   tex3.normalized = false;
   tex3.filterMode = cudaFilterModeLinear; // linear interpolation
   tex3.addressMode[0] = cudaAddressModeClamp; // wrap texture coordinates
@@ -259,11 +259,9 @@ int rotate3d(cuFloatComplex *d_odata, cudaMemcpy3DParms copyParams,
   // bind array to 3D texture
   cutilSafeCall(cudaBindTextureToArray(tex3, d_array, channelDesc));
 
-  struct cudaDeviceProp deviceProperties;
-  cudaGetDeviceProperties(&deviceProperties, device);
 
-  int maxThreads = deviceProperties.maxThreadsPerBlock;
-  int nBlocks = deviceProperties.multiProcessorCount * 8;
+  int maxThreads = device->get_properties().maxThreadsPerBlock;
+  int nBlocks = device->get_properties().multiProcessorCount * 8;
   int nThreads = (Ntot + nBlocks - 1) / nBlocks;
 
   if (nThreads > maxThreads) {

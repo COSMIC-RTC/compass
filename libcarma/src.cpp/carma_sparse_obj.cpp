@@ -45,9 +45,9 @@ void carma_sparse_obj<T_data>::init_carma_sparse_obj(carma_context *current_cont
   if(dims[1]== 1){
 	  int *tmp_colind=NULL;
 	  cudaMalloc((void**) &tmp_colind, dims[2] * sizeof(int));
-	  find_nnz(d_M, tmp_colind, dims[2], nnzPerRow, nnzTotalDevHostPtr,this->device);
+	  find_nnz(d_M, tmp_colind, dims[2], nnzPerRow, nnzTotalDevHostPtr,current_context->get_device(device));
 	  resize(nnzTotalDevHostPtr, dims[1], dims[2]);
-	  fill_sparse_vect(d_M, tmp_colind, this->d_data, this->d_colind, this->d_rowind, this->nz_elem, this->device);
+	  fill_sparse_vect(d_M, tmp_colind, this->d_data, this->d_colind, this->d_rowind, this->nz_elem, current_context->get_device(device));
 	  cudaFree(tmp_colind);
   }else{
 	  ptr_nnz(handle, CUSPARSE_DIRECTION_ROW, dims[1], dims[2], descr, d_M, dims[1],

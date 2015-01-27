@@ -138,7 +138,7 @@ int sutra_centroider_corr::load_corr(float *corr, float *corr_norm, int ndim) {
   }
 
   fillcorr(*(this->d_corrfnct), tmp, this->npix, 2 * this->npix,
-      this->npix * this->npix * this->nvalid, nval, this->device);
+      this->npix * this->npix * this->nvalid, nval, this->current_context->get_device(device));
 
   cutilSafeCall(cudaFree(tmp));
 
@@ -163,13 +163,13 @@ int sutra_centroider_corr::get_cog(sutra_wfs *wfs, float *slopes) {
           sizeof(cuFloatComplex) * this->d_corrspot->getNbElem()));
   // correlation algorithm
   fillcorr(*(this->d_corrspot), *(wfs->d_bincube), this->npix, 2 * this->npix,
-      this->npix * this->npix * this->nvalid, 1, this->device);
+      this->npix * this->npix * this->nvalid, 1, this->current_context->get_device(device));
 
   carma_fft<cuFloatComplex, cuFloatComplex>(*(this->d_corrspot),
       *(this->d_corrspot), 1, *this->d_corrfnct->getPlan());
 
   correl(*(this->d_corrspot), *(this->d_corrfnct),
-      this->d_corrfnct->getNbElem(), this->device);
+      this->d_corrfnct->getNbElem(), this->current_context->get_device(device));
   // after this d_corrspot contains the fft of the correl function
 
   carma_fft<cuFloatComplex, cuFloatComplex>(*(this->d_corrspot),
@@ -178,10 +178,10 @@ int sutra_centroider_corr::get_cog(sutra_wfs *wfs, float *slopes) {
   // size is 2 x npix so it is even ...
   roll2real(*(this->d_corr), *(this->d_corrspot), 2 * this->npix,
       (2 * this->npix) * (2 * this->npix), this->d_corrspot->getNbElem(),
-      this->device);
+      this->current_context->get_device(device));
   //here need to normalize
   corr_norm(*(this->d_corr), *(this->d_corrnorm), this->d_corrnorm->getNbElem(),
-      this->d_corr->getNbElem(), this->device);
+      this->d_corr->getNbElem(), this->current_context->get_device(device));
 
   // need to find max for each subap
   // if the corr array for one subap is greater than 20x20

@@ -82,7 +82,7 @@ gene_vonkarman(cuFloatComplex *d_odata, float *d_idata, float k0, int nalias,
     int nx, int ny, int block_size);
 int
 norm_pscreen(float *d_odata, float *d_idata, int nx, int ny, float norm_fact,
-    int device);
+    carma_device *device);
 
 extern "C" {
 }

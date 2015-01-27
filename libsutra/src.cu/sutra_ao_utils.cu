@@ -11,7 +11,7 @@ __global__ void cfillrealp_krnl(cuFloatComplex *odata, float *idata, int N) {
   }
 }
 
-int cfillrealp(cuFloatComplex *d_odata, float *d_idata, int N, int device) {
+int cfillrealp(cuFloatComplex *d_odata, float *d_idata, int N, carma_device *device) {
 
   int nthreads = 0, nblocks = 0;
   getNumBlocksAndThreads(device, N, nblocks, nthreads);
@@ -34,7 +34,7 @@ __global__ void cgetrealp_krnl(float *odata, cuFloatComplex *idata, int N) {
   }
 }
 
-int cgetrealp(float *d_odata, cuFloatComplex *d_idata, int N, int device) {
+int cgetrealp(float *d_odata, cuFloatComplex *d_idata, int N, carma_device *device) {
 
   int nthreads = 0, nblocks = 0;
   getNumBlocksAndThreads(device, N, nblocks, nthreads);
@@ -58,7 +58,7 @@ __global__ void abs2_krnl(float *odata, cuFloatComplex *idata, int N) {
   }
 }
 
-int abs2(float *d_odata, cuFloatComplex *d_idata, int N, int device) {
+int abs2(float *d_odata, cuFloatComplex *d_idata, int N, carma_device *device) {
   int nthreads = 0, nblocks = 0;
   getNumBlocksAndThreads(device, N, nblocks, nthreads);
 
@@ -82,7 +82,7 @@ __global__ void abs2c_krnl(cuFloatComplex *odata, cuFloatComplex *idata,
   }
 }
 
-int abs2c(cuFloatComplex *d_odata, cuFloatComplex *d_idata, int N, int device) {
+int abs2c(cuFloatComplex *d_odata, cuFloatComplex *d_idata, int N, carma_device *device) {
   int nthreads = 0, nblocks = 0;
   getNumBlocksAndThreads(device, N, nblocks, nthreads);
 
@@ -106,7 +106,7 @@ __global__ void subapnorm_krnl(float *odata, float *idata, float *fact,
 }
 
 int subap_norm(float *d_odata, float *d_idata, float *fact, float *norm,
-    float nphot, int n, int N, int device) {
+    float nphot, int n, int N, carma_device *device) {
   int nthreads = 0, nblocks = 0;
   getNumBlocksAndThreads(device, N, nblocks, nthreads);
 
@@ -129,7 +129,7 @@ __global__ void subapnormasync_krnl(float *odata, float *idata, float *fact,
 }
 
 int subap_norm_async(float *d_odata, float *d_idata, float *fact, float *norm,
-    float nphot, int n, int N, carma_streams *streams, int device) {
+    float nphot, int n, int N, carma_streams *streams, carma_device *device) {
   int nthreads = 0, nblocks = 0;
   int nstreams = streams->get_nbStreams();
   getNumBlocksAndThreads(device, N / nstreams, nblocks, nthreads);
@@ -157,7 +157,7 @@ __global__ void krnl_fillindx(float *odata, float *idata, int *indx,
 }
 
 int fillindx(float *d_odata, float *d_idata, int *indx, float alpha, float beta,
-    int N, int device) {
+    int N, carma_device *device) {
   int nthreads = 0, nblocks = 0;
   getNumBlocksAndThreads(device, N, nblocks, nthreads);
 
@@ -170,12 +170,12 @@ int fillindx(float *d_odata, float *d_idata, int *indx, float alpha, float beta,
   return EXIT_SUCCESS;
 }
 
-int fillindx(float *d_odata, float *d_idata, int *indx, int N, int device) {
+int fillindx(float *d_odata, float *d_idata, int *indx, int N, carma_device *device) {
   return fillindx(d_odata, d_idata, indx, 1.0f, 0.0f, N, device);
 
 }
 int fillindx(float *d_odata, float *d_idata, int *indx, float alpha, int N,
-    int device) {
+    carma_device *device) {
   return fillindx(d_odata, d_idata, indx, alpha, 0.0f, N, device);
 
 }
@@ -196,7 +196,7 @@ __global__ void fillarr2d_krnl(float *odata, float *idata, int tidx0, int Ncol,
 }
 
 int fillarr2d(float *d_odata, float *d_idata, int x0, int Ncol, int NC, int N,
-    int device) {
+    carma_device *device) {
   int nthreads = 0, nblocks = 0;
   getNumBlocksAndThreads(device, N, nblocks, nthreads);
 
@@ -226,7 +226,7 @@ __global__ void getarr2d_krnl(float *odata, float *idata, int tidx0, int Ncol,
 }
 
 int getarr2d(float *d_odata, float *d_idata, int x0, int Ncol, int NC, int N,
-    int device) {
+    carma_device *device) {
   int nthreads = 0, nblocks = 0;
   getNumBlocksAndThreads(device, N, nblocks, nthreads);
 
@@ -254,7 +254,7 @@ __global__ void addai_krnl(T *odata, T* idata, int i, int sgn, int N) {
 }
 
 template<class T>
-int addai(T *d_odata, T *i_data, int i, int sgn, int N, int device) {
+int addai(T *d_odata, T *i_data, int i, int sgn, int N, carma_device *device) {
   int nthreads = 0, nblocks = 0;
   getNumBlocksAndThreads(device, N, nblocks, nthreads);
 
@@ -267,9 +267,9 @@ int addai(T *d_odata, T *i_data, int i, int sgn, int N, int device) {
   return EXIT_SUCCESS;
 }
 template
-int addai<float>(float *d_odata, float *i_data, int i, int sgn, int N, int device);
+int addai<float>(float *d_odata, float *i_data, int i, int sgn, int N, carma_device *device);
 template
-int addai<double>(double *d_odata, double *i_data, int i, int sgn, int N, int device);
+int addai<double>(double *d_odata, double *i_data, int i, int sgn, int N, carma_device *device);
 
 template<class T>
 __global__ void roll_krnl(T *idata, int N, int M, int Ntot) {
@@ -400,7 +400,7 @@ __global__ void remove_avg_krnl(T *data, int N, T avg){
 }
 
 template<class T>
-int remove_avg(T *data, int N, int device){
+int remove_avg(T *data, int N, carma_device *device){
 
 	int nthreads = 0, nblocks = 0;
 	getNumBlocksAndThreads(device, N, nblocks, nthreads);
@@ -432,6 +432,6 @@ int remove_avg(T *data, int N, int device){
 }
 
 template int
-remove_avg<float>(float *data, int N, int device);
+remove_avg<float>(float *data, int N, carma_device *device);
 template int
-remove_avg<double>(double *data, int N, int device);
+remove_avg<double>(double *data, int N, carma_device *device);

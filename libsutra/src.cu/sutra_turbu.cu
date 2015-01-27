@@ -89,7 +89,7 @@ __global__ void dphiy_krnl(float *odata, float *idata, int N, int iter,
 }
 
 int norm_pscreen(float *d_odata, float *d_idata, int nx, int ny,
-    float norm_fact, int device) {
+    float norm_fact, carma_device *device) {
   float sfx, sfy, norm = 0;
   int nthreads = 0, nblocks = 0;
   getNumBlocksAndThreads(device, nx * ny, nblocks, nthreads);
@@ -140,7 +140,7 @@ int norm_pscreen(float *d_odata, float *d_idata, int nx, int ny,
  }
  }
 
- int cgetscreen(float *d_odata,cuFloatComplex *d_idata,int N,int device)
+ int cgetscreen(float *d_odata,cuFloatComplex *d_idata,int N,carma_device *device)
  {
 
  int nthreads = 0,nblocks = 0;

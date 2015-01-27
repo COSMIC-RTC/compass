@@ -81,7 +81,7 @@ public:
   int
   invgen(carma_obj<float> *d_mat, float cond, int job);
  // int
- // do_statmat(float *statcov,long dim, float *xpos, float *ypos, float norm, int device);
+ // do_statmat(float *statcov,long dim, float *xpos, float *ypos, float norm, carma_device *device);
   int
   DDiago(carma_obj<float> *d_statcov, carma_obj<float> *d_geocov);
   int

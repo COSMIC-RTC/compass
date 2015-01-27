@@ -226,7 +226,7 @@ int sutra_source::raytrace_shm(sutra_atmos *yatmos) {
             (int) ps->second->d_tscreen->d_screen->getDims(2),
             xoff[make_pair("atmos", alt)], yoff[make_pair("atmos", alt)],
             ps->second->d_tscreen->d_screen->getNbElem(),
-            ps->second->channelDesc, this->device);
+            ps->second->channelDesc, current_context->get_device(device));
       }
     }
     p++;
@@ -337,7 +337,7 @@ int sutra_source::raytrace(sutra_dms *ydms, int rst, bool async) {
     // select phase pixels in the valid portion of pupil
     fillindx(this->d_phasepts->getData(), this->d_phase->d_screen->getData(),
         this->d_wherephase->getData(), this->scale,
-        this->d_wherephase->getNbElem(), this->device);
+        this->d_wherephase->getNbElem(), current_context->get_device(device));
 
     float phase_avg = 0;
     // compute avg phase in the pupil
@@ -347,7 +347,7 @@ int sutra_source::raytrace(sutra_dms *ydms, int rst, bool async) {
     // substract avg from phase in the pupil
     fillindx(this->d_phasepts->getData(), this->d_phase->d_screen->getData(),
         this->d_wherephase->getData(), this->scale, -phase_avg,
-        this->d_wherephase->getNbElem(), this->device);
+        this->d_wherephase->getNbElem(), current_context->get_device(device));
 
     // compute instantaneous phase variance and average
     this->phase_var = this->d_phasepts->dot(this->d_phasepts, 1, 1);
@@ -378,7 +378,7 @@ int sutra_source::comp_image(int puponly) {
 
   /*
    fillpupil(this->d_amplipup->getData(), mask, this->d_phase->d_screen->getDims(1),
-   this->d_phase->d_screen->getDims(2), this->d_amplipup->getDims(1),this->device);
+   this->d_phase->d_screen->getDims(2), this->d_amplipup->getDims(1),current_context->get_device(device));
 
    */
 
@@ -386,14 +386,14 @@ int sutra_source::comp_image(int puponly) {
   fill_amplipup(this->d_amplipup->getData(), this->d_phase->d_screen->getData(),
       this->d_pupil->getData(), this->scale, puponly,
       this->d_phase->d_screen->getDims(1), this->d_phase->d_screen->getDims(2),
-      this->d_amplipup->getDims(1), this->device);
+      this->d_amplipup->getDims(1), current_context->get_device(device));
     
 //  // fill complex amplitude in the pupil with phase @ lambda
 //  fill_amplipup(this->d_amplipup->getData(), this->d_phase->d_screen->getData(),
 //              this->d_phase_instru->d_screen_instru->getData(),
 //              this->d_pupil->getData(), this->scale, puponly,
 //              this->d_phase->d_screen->getDims(1), this->d_phase->d_screen->getDims(2),
-//              this->d_amplipup->getDims(1), this->device);
+//              this->d_amplipup->getDims(1), current_context->get_device(device));
 
   // do fft : complex amplitude in the focal plane
   carma_fft(this->d_amplipup->getData(), this->d_amplipup->getData(), 1,
@@ -401,7 +401,7 @@ int sutra_source::comp_image(int puponly) {
 
   // take square norm to retreive short exposure image
   abs2(this->d_image->getData(), this->d_amplipup->getData(),
-      this->d_image->getDims(1) * this->d_image->getDims(2), this->device);
+      this->d_image->getDims(1) * this->d_image->getDims(2), current_context->get_device(device));
 
   // scale image because of fft
   //this->d_image->scale(1.0f / this->d_image->getNbElem(), 1);

@@ -120,13 +120,13 @@ void update_cphim_atm(struct cphim_struct *cphim_struct, sutra_sensors *sensors,
 void update_cphim_sys(struct cphim_struct *cphim_struct, sutra_sensors *sensors, float *alphaX, float *alphaY, float *xactu, float *yactu, float *X, float *Y);
 void matcov_gpu_3(float* data, int nrows, int ncols, int xoffset, int yoffset, int lda, struct tomo_struct tomo, struct gtomo_struct *tomo_gpu);
 void matcov_gpu_4(float* data, int nrows, int ncols, int xoffset, int yoffset, int lda, struct gtomo_struct *tomo_gpu, sutra_atmos *atmos, sutra_sensors *sensors, float *alphaX, float *alphaY);
-void CPHIM(float* data, int nrows, int ncols, int xoffset, int yoffset, int lda, struct cphim_struct *cphim_struct, sutra_atmos *atmos, sutra_sensors *sensors, float* alphaX, float *alphaY, float k2, int device);
+void CPHIM(float* data, int nrows, int ncols, int xoffset, int yoffset, int lda, struct cphim_struct *cphim_struct, sutra_atmos *atmos, sutra_sensors *sensors, float* alphaX, float *alphaY, float k2, carma_device *device);
 void generateXY(struct gtomo_struct *tomo_gpu, sutra_sensors *sensors);
 void tab_dphi_gpu_gb(float *tab_dphi, struct gtomo_struct *tomo_gpu, long Ndphi, float *L0diff_d, int Nl0, float convert);
 void sub_pos_gpu_gb(struct gtomo_struct *tomo_gpu, long Nlayer, long Nw, long Nsubap);
 void sub_pos_cphim(struct cphim_struct *cphim_struct, long Nlayer, long Nw, long Nsubap);
-void tab_u831J0(struct cphim_struct *cphim_gpu, float tmin, float tmax, int device);
-void cuda_zcen(float *idata, float *odata, int N, int device);
+void tab_u831J0(struct cphim_struct *cphim_gpu, float tmin, float tmax, carma_device *device);
+void cuda_zcen(float *idata, float *odata, int N, carma_device *device);
 void cumsum(float *odata, float *idata, int N);
 void init_cphim_struct(struct cphim_struct *cphim_struct, sutra_atmos *atmos, sutra_sensors *sensors, sutra_dms *dms, float diamTel);
 void free_cphim_struct(struct cphim_struct *cphim_struct);

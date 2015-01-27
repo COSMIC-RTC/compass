@@ -127,14 +127,14 @@ void
 comp_fulldmshape(int threads, int blocks, T *d_idata, T *d_odata, int ninflu,
     int diminflu, T *comm, int N);
 int
-getIF(float *IF, float *dmshape, int *indx_pup, long nb_pts, int column, long nb_col, int device);
+getIF(float *IF, float *dmshape, int *indx_pup, long nb_pts, int column, long nb_col, carma_device *device);
 int
-dm_dostatmat(float *d_statcov, long Nkl, float *d_xpos, float *d_ypos, float norm, int device);
+dm_dostatmat(float *d_statcov, long Nkl, float *d_xpos, float *d_ypos, float norm, carma_device *device);
 int
-multi_vect(float *d_data, float gain, int N, int device);
+multi_vect(float *d_data, float gain, int N, carma_device *device);
 int
-fill_filtermat(float *filter, int nactu, int N, int device);
+fill_filtermat(float *filter, int nactu, int N, carma_device *device);
 int
-find_nnz(float *d_data, int N,int device);
+find_nnz(float *d_data, int N,carma_device *device);
 
 #endif // _SUTRA_DM_H_

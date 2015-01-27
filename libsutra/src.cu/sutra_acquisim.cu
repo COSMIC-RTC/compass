@@ -26,7 +26,7 @@ __global__ void bcube_krnl(T *bimage, T *bcube, int npix, int npix2, int nsub,
 
 template<class T>
 int fillbincube(T *bimage, T *bcube, int npix, int nsub, int Nsub, int *ivalid,
-    int *jvalid, int device) {
+    int *jvalid, carma_device *device) {
   int Npix = npix * npix;
   int N = Npix * nsub;
   int nthreads = 0, nblocks = 0;
@@ -43,10 +43,10 @@ int fillbincube(T *bimage, T *bcube, int npix, int nsub, int Nsub, int *ivalid,
 }
 template int
 fillbincube<float>(float *bimage, float *bcube, int npix, int nsub, int Nsub,
-    int *ivalid, int *jvalid, int device);
+    int *ivalid, int *jvalid, carma_device *device);
 template int
 fillbincube<double>(double *bimage, double *bcube, int npix, int nsub, int Nsub,
-    int *ivalid, int *jvalid, int device);
+    int *ivalid, int *jvalid, carma_device *device);
 
 template<class T>
 __global__ void bcube_krnl_async(T *bimage, T *bcube, int npix, int npix2,
@@ -75,7 +75,7 @@ __global__ void bcube_krnl_async(T *bimage, T *bcube, int npix, int npix2,
 template<class T>
 int fillbincube_async(carma_host_obj<T> *image_telemetry, T *bimage, T *bcube,
     int npix, int nsub, int Nsub, int *ivalid, int *jvalid, int nim,
-    int device) {
+    carma_device *device) {
   int nstreams = image_telemetry->get_nbStreams();
 
   int Npix = npix * npix;
@@ -106,16 +106,16 @@ int fillbincube_async(carma_host_obj<T> *image_telemetry, T *bimage, T *bcube,
 template int
 fillbincube_async<float>(carma_host_obj<float> *image_telemetry, float *bimage,
     float *bcube, int npix, int nsub, int Nsub, int *ivalid, int *jvalid,
-    int nim, int device);
+    int nim, carma_device *device);
 template int
 fillbincube_async<double>(carma_host_obj<double> *image_telemetry,
     double *bimage, double *bcube, int npix, int nsub, int Nsub, int *ivalid,
-    int *jvalid, int nim, int device);
+    int *jvalid, int nim, carma_device *device);
 
 template<class T>
 int fillbincube_async(carma_streams *streams, carma_obj<T> *bimage,
     carma_obj<T> *bcube, int npix, int nsub, int Nsub, int *ivalid, int *jvalid,
-    int device) {
+    carma_device *device) {
   int nstreams = streams->get_nbStreams();
 
   int Npix = npix * npix;
@@ -144,9 +144,9 @@ int fillbincube_async(carma_streams *streams, carma_obj<T> *bimage,
 template int
 fillbincube_async<float>(carma_streams *streams, carma_obj<float> *bimage,
     carma_obj<float> *bcube, int npix, int nsub, int Nsub, int *ivalid,
-    int *jvalid, int device);
+    int *jvalid, carma_device *device);
 template int
 fillbincube_async<double>(carma_streams *streams, carma_obj<double> *bimage,
     carma_obj<double> *bcube, int npix, int nsub, int Nsub, int *ivalid,
-    int *jvalid, int device);
+    int *jvalid, carma_device *device);
 

@@ -150,9 +150,9 @@ sutra_controller_mv::compute_Cphim(sutra_atmos *atmos, sutra_sensors *sensors, s
     // Compute Cphim matrix
 	init_cphim_struct(&cphim_struct, atmos, sensors, dms, diamTel);
 	update_cphim_sys(&cphim_struct, sensors, alphaX, alphaY, xactu, yactu,X,Y);
-	tab_u831J0(&cphim_struct,-4.0f,10.0f,this->device);
+	tab_u831J0(&cphim_struct,-4.0f,10.0f,current_context->get_device(device));
 	update_cphim_atm(&cphim_struct, sensors, atmos, L0, cn2, alphaX, alphaY);
-	CPHIM(this->d_Cphim->getData(), Nactu, this->nslope(), 0, 0, Nactu, &cphim_struct, atmos, sensors, alphaX, alphaY, k2, this->device);
+	CPHIM(this->d_Cphim->getData(), Nactu, this->nslope(), 0, 0, Nactu, &cphim_struct, atmos, sensors, alphaX, alphaY, k2, current_context->get_device(device));
 	free_cphim_struct(&cphim_struct);
 
 	// Piston filter
@@ -200,7 +200,7 @@ sutra_controller_mv::do_covmat(sutra_dm *ydm, char *method, int *indx_pup,long d
 		carma_obj<float> *d_ypos = new carma_obj<float>(current_context, dims_data);
 		d_xpos->host2device(xpos);
 		d_ypos->host2device(ypos);
-		do_statmat(d_statcov->getData(), Nkl,d_xpos->getData(), d_ypos->getData(), norm, device);
+		do_statmat(d_statcov->getData(), Nkl,d_xpos->getData(), d_ypos->getData(), norm, current_context->get_device(device));
 		// Compute and apply piston filter
 		this->piston_filt(d_statcov);
 
@@ -253,14 +253,14 @@ sutra_controller_mv::do_covmat(sutra_dm *ydm, char *method, int *indx_pup,long d
 					h_KLcov->getData()[this->nactu() - 1] = 0.;
 				}
 				d_KLcov->host2device(*h_KLcov);
-				add_md(this->d_covmat->getData(),this->d_covmat->getData(),d_KLcov->getData(),this->nactu(),this->device);
+				add_md(this->d_covmat->getData(),this->d_covmat->getData(),d_KLcov->getData(),this->nactu(),this->current_context->get_device(device));
 			}
 			if(strcmp(method, "n") == 0){
 				for (int i=0 ; i < this->nactu() ; i++){
 					h_KLcov->getData()[i] = -h_eigenvals->getData()[i];
 				}
 				d_KLcov->host2device(*h_KLcov);
-				add_md(this->d_covmat->getData(),this->d_covmat->getData(),d_KLcov->getData(),this->nactu(),this->device);
+				add_md(this->d_covmat->getData(),this->d_covmat->getData(),d_KLcov->getData(),this->nactu(),this->current_context->get_device(device));
 			}
 			delete h_KLcov;
 		}
@@ -360,7 +360,7 @@ sutra_controller_mv::do_geomat(carma_obj<float> *d_geocov, carma_obj<float> *d_I
 	carma_gemm(cublas_handle, 't', 'n', nactu(), nactu(), n_pts, 1.0f,
 	      d_IF->getData(), n_pts, d_IF->getData(), n_pts, 0.0f,
 	      d_geocov->getData(), nactu());
-	mult_vect(d_geocov->getData(),ampli,this->nactu()*this->nactu(),this->device);
+	mult_vect(d_geocov->getData(),ampli,this->nactu()*this->nactu(),this->current_context->get_device(device));
 
 	return EXIT_SUCCESS;
 }
@@ -376,7 +376,7 @@ sutra_controller_mv::piston_filt(carma_obj<float> *d_statcov){
 	carma_obj<float> *d_tmp = new carma_obj<float>(current_context, dims_data);
 
 	int N = d_statcov->getDims()[1] * d_statcov->getDims()[1];
-	fill_filtmat(d_F->getData(),Nmod, N, device);
+	fill_filtmat(d_F->getData(),Nmod, N, current_context->get_device(device));
 
 	carma_gemm(cublas_handle, 'n', 'n', Nmod, Nmod, Nmod, 1.0f,
 			  d_F->getData(), Nmod, d_statcov->getData(), Nmod, 0.0f,
@@ -403,7 +403,7 @@ sutra_controller_mv::piston_filt_cphim(carma_obj<float> *d_cphim){
 	carma_obj<float> *d_tmp = new carma_obj<float>(current_context, dims_data);
 
 	int N = Nmod * Nmod;
-	fill_filtmat(d_F->getData(),Nmod, N, device);
+	fill_filtmat(d_F->getData(),Nmod, N, current_context->get_device(device));
 
 	carma_gemm(cublas_handle, 'n', 'n', Nmod, nslope(), Nmod, 1.0f,
 			  d_F->getData(), Nmod, d_cphim->getData(), Nmod, 0.0f,
@@ -592,7 +592,7 @@ int sutra_controller_mv::build_cmat(float *Dm, float *Dtt, float cond){
 	carma_obj<float> *d_Ftt = new carma_obj<float>(current_context, dims_data);
 
 	// (Cmm + Cn)⁻¹
-	add_md(this->d_Cmm->getData(),this->d_Cmm->getData(),this->d_noisemat->getData(), nslope(), this->device);
+	add_md(this->d_Cmm->getData(),this->d_Cmm->getData(),this->d_noisemat->getData(), nslope(), this->current_context->get_device(device));
 	invgen(this->d_Cmm,(float)(nslope()-nactu())/2,0);
 	// Cphim * (Cmm + Cn)⁻¹
 	carma_gemm(cublas_handle, 'n', 'n', nactu() - 2, nslope(), nslope(), 1.0f,
@@ -635,7 +635,7 @@ int sutra_controller_mv::build_cmat(float *Dm, float *Dtt, float cond){
 								d_Ftt->getData(), nslope());
 
 	// TT filter
-	TT_filt(d_Ftt->getData(),nslope(),this->device);
+	TT_filt(d_Ftt->getData(),nslope(),this->current_context->get_device(device));
 
 	//cmat without TT
 	carma_gemm(cublas_handle, 'n', 'n', nactu()-2, nslope(), nslope(), 1.0f,
@@ -643,7 +643,7 @@ int sutra_controller_mv::build_cmat(float *Dm, float *Dtt, float cond){
 									d_cmat_tt->getData(), nactu() - 2);
 
 	// Fill CMAT
-	fill_cmat(this->d_cmat->getData(),d_cmat_tt->getData(),d_M1->getData(),nactu(),nslope(),this->device);
+	fill_cmat(this->d_cmat->getData(),d_cmat_tt->getData(),d_M1->getData(),nactu(),nslope(),this->current_context->get_device(device));
 
 	delete d_Dm;
 	delete d_Dtt;
@@ -733,7 +733,7 @@ int sutra_controller_mv::build_cmat(const char *dmtype, char *method) {
  	  carma_gemm(cublas_handle, 'n', 't', nslope(), nslope(), nactu(), one,
   			d_tmp3->getData(), nslope(), d_imat->getData(), nslope(), zero,
   			d_tmp2->getData(), nslope());
- 	  add_md(d_tmp4->getData(),d_tmp4->getData(),d_noisemat->getData(), nslope(), this->device);
+ 	  add_md(d_tmp4->getData(),d_tmp4->getData(),d_noisemat->getData(), nslope(), this->current_context->get_device(device));
   	  carma_geam(cublas_handle, 'n', 'n', nslope(), nslope(), one, d_tmp2->getData(),
   		  nslope(), one, d_tmp4->getData(), nslope(), d_tmp->getData(), nslope());
 
@@ -765,7 +765,7 @@ int sutra_controller_mv::frame_delay() {
   if (delay > 0) {
     for (int cc = 0; cc < delay; cc++)
       shift_buf(&((this->d_cenbuff->getData())[cc * this->nslope()]), 1,
-          this->nslope(), this->device);
+          this->nslope(), this->current_context->get_device(device));
 
     cutilSafeCall(
         cudaMemcpy(&(this->d_cenbuff->getData()[delay * this->nslope()]),
@@ -824,7 +824,7 @@ int sutra_controller_mv::comp_com() {
   }
   	  /*
   mult_int(this->d_com->getData(), this->d_err->getData(),
-          this->d_gain->getData(), this->gain, this->nactu(), this->device);*/
+          this->d_gain->getData(), this->gain, this->nactu(), this->current_context->get_device(device));*/
 
   carma_geam<float>(cublas_handle, 'n', 'n', nactu(), 1, this->gain, *d_err, nactu(),
         1.0f - this->gain, *d_com1, nactu(), *d_com, nactu());

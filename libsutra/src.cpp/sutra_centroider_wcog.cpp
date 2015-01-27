@@ -60,7 +60,7 @@ int sutra_centroider_wcog::load_weights(float *weights, int ndim) {
         cudaMemcpy(tmp, weights, sizeof(float) * this->npix * this->npix,
             cudaMemcpyHostToDevice));
     fillweights(*(this->d_weights), tmp, this->npix,
-        this->d_weights->getNbElem(), this->device);
+        this->d_weights->getNbElem(), this->current_context->get_device(device));
     cutilSafeCall(cudaFree(tmp));
   }
 
@@ -72,10 +72,10 @@ int sutra_centroider_wcog::get_cog(carma_streams *streams, float *cube,
   // wcog
   //TODO: Implement sutra_centroider_wcog::get_cog_async
   subap_reduce<float>(ntot, npix * npix, nvalid, cube, subsum,
-      *(this->d_weights), this->device);
+      *(this->d_weights), this->current_context->get_device(device));
 
   get_centroids<float>(ntot, npix * npix, nvalid, npix, cube, centroids, subsum,
-      *(this->d_weights), this->scale, this->offset, this->device);
+      *(this->d_weights), this->scale, this->offset, this->current_context->get_device(device));
 
   return EXIT_SUCCESS;
 }

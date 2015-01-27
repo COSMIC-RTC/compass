@@ -31,18 +31,15 @@ __global__ void camplipup_krnl(cuFloatComplex *amplipup, float *phase,
 
 int fillcamplipup(cuFloatComplex *amplipup, float *phase, float *offset,
     float *mask, float scale, int *istart, int *jstart, int *ivalid,
-    int *jvalid, int nphase, int npup, int Nfft, int Ntot, int device)
+    int *jvalid, int nphase, int npup, int Nfft, int Ntot, carma_device *device)
 // here amplipup is a cube of data of size nfft x nfft x nsubap
 // phase is an array of size pupdiam x pupdiam
 // offset is an array of size pdiam x pdiam
 // mask is an array of size pupdiam x pupdiam
 // number of thread required : pdiam x pdiam x nsubap
     {
-  struct cudaDeviceProp deviceProperties;
-  cudaGetDeviceProperties(&deviceProperties, device);
-
-  int maxThreads = deviceProperties.maxThreadsPerBlock;
-  int nBlocks = deviceProperties.multiProcessorCount * 8;
+  int maxThreads = device->get_properties().maxThreadsPerBlock;
+  int nBlocks = device->get_properties().multiProcessorCount * 8;
   int nThreads = (Ntot + nBlocks - 1) / nBlocks;
 
   if (nThreads > maxThreads) {
@@ -91,7 +88,7 @@ __global__ void bimg_krnl(float *bimage, float *bcube, int npix, int npix2,
 }
 
 int fillbinimg(float *bimage, float *bcube, int npix, int nsub, int Nsub,
-    int *ivalid, int *jvalid, bool add, int device) {
+    int *ivalid, int *jvalid, bool add, carma_device *device) {
   int Npix = npix * npix;
   int N = Npix * nsub;
   int nthreads = 0, nblocks = 0;
@@ -139,7 +136,7 @@ __global__ void bimg_krnl_async(float *bimage, float *bcube, int npix,
 
 int fillbinimg_async(carma_host_obj<float> *image_telemetry, float *bimage,
     float *bcube, int npix, int nsub, int Nsub, int *ivalid, int *jvalid,
-    int nim, bool add, int device) {
+    int nim, bool add, carma_device *device) {
   float *hdata = image_telemetry->getData();
   int nstreams = image_telemetry->get_nbStreams();
 
@@ -176,7 +173,7 @@ int fillbinimg_async(carma_host_obj<float> *image_telemetry, float *bimage,
 
 int fillbinimg_async(carma_streams *streams, carma_obj<float> *bimage,
     carma_obj<float> *bcube, int npix, int nsub, int Nsub, int *ivalid,
-    int *jvalid, bool add, int device) {
+    int *jvalid, bool add, carma_device *device) {
   float *g_image = bimage->getData();
   float *g_cube = bcube->getData();
   int nstreams = streams->get_nbStreams();
@@ -238,7 +235,7 @@ __global__ void fillbincube_krnl(float *bcube, cuFloatComplex *hrimage,
 }
 
 int fillbincube(float *bcube, cuFloatComplex *hrimage, int *indxpix, int Nfft,
-    int Npix, int Nrebin, int Nsub, int device) {
+    int Npix, int Nrebin, int Nsub, carma_device *device) {
   int N = Npix * Nsub;
   int nthreads = 0, nblocks = 0;
   getNumBlocksAndThreads(device, N, nblocks, nthreads);
@@ -276,7 +273,7 @@ __global__ void fillbincube_krnl_async(float *bcube, cuFloatComplex *hrimage,
 
 int fillbincube_async(carma_streams *streams, float *bcube,
     cuFloatComplex *hrimage, int *indxpix, int Nfft, int Npix, int Nrebin,
-    int Nsub, int device) {
+    int Nsub, carma_device *device) {
   int N = Npix * Nsub;
   int nthreads = 0, nblocks = 0;
   int nstreams = streams->get_nbStreams();
@@ -307,7 +304,7 @@ __global__ void indexfill_krnl(cuFloatComplex *odata, cuFloatComplex *idata,
 }
 
 int indexfill(cuFloatComplex *d_odata, cuFloatComplex *d_idata, int *indx,
-    int nx, int Nx, int N, int device) {
+    int nx, int Nx, int N, carma_device *device) {
 
   int ntot = nx * nx;
   int Ntot = Nx * Nx;
@@ -336,7 +333,7 @@ __global__ void conv_krnl(cuFloatComplex *odata, cuFloatComplex *idata, int N) {
 }
 
 int convolve(cuFloatComplex *d_odata, cuFloatComplex *d_idata, int N,
-    int device) {
+    carma_device *device) {
   int nthreads = 0, nblocks = 0;
   getNumBlocksAndThreads(device, N, nblocks, nthreads);
 
@@ -366,7 +363,7 @@ __global__ void conv_krnl(cuFloatComplex *odata, cuFloatComplex *idata, int N,
 }
 
 int convolve_cube(cuFloatComplex *d_odata, cuFloatComplex *d_idata, int N,
-    int n, int device) {
+    int n, carma_device *device) {
   int nthreads = 0, nblocks = 0;
   getNumBlocksAndThreads(device, N, nblocks, nthreads);
 
@@ -493,11 +490,9 @@ __global__ void reduce2(T *g_idata, T *g_odata, T *weights, unsigned int n, unsi
 }
 
 template<class T>
-void subap_reduce(int size, int threads, int blocks, T *d_idata, T *d_odata, int device) {
+void subap_reduce(int size, int threads, int blocks, T *d_idata, T *d_odata, carma_device *device) {
 
-	struct cudaDeviceProp deviceProperties;
-	cudaGetDeviceProperties(&deviceProperties, device);
-	int maxThreads = deviceProperties.maxThreadsPerBlock;
+	int maxThreads = device->get_properties().maxThreadsPerBlock;
 	unsigned int nelem_thread = 1;
 	while((threads/nelem_thread > maxThreads) || (threads % nelem_thread != 0)){
 		nelem_thread++;
@@ -517,10 +512,10 @@ void subap_reduce(int size, int threads, int blocks, T *d_idata, T *d_odata, int
 }
 template void
 subap_reduce<float>(int size, int threads, int blocks, float *d_idata,
-    float *d_odata, int device);
+    float *d_odata, carma_device *device);
 template void
 subap_reduce<double>(int size, int threads, int blocks, double *d_idata,
-    double *d_odata, int device);
+    double *d_odata, carma_device *device);
 
 template<class T>
 __global__ void reduce2_async(T *g_idata, T *g_odata, unsigned int n,
@@ -571,11 +566,9 @@ subap_reduce_async<double>(int threads, int blocks, carma_streams *streams,
 
 template<class T>
 void subap_reduce(int size, int threads, int blocks, T *d_idata, T *d_odata,
-    T thresh, int device) {
+    T thresh, carma_device *device) {
 
-  struct cudaDeviceProp deviceProperties;
-  cudaGetDeviceProperties(&deviceProperties, device);
-  int maxThreads = deviceProperties.maxThreadsPerBlock;
+  int maxThreads = device->get_properties().maxThreadsPerBlock;
   unsigned int nelem_thread = 1;
   while((threads/nelem_thread > maxThreads) || (threads % nelem_thread != 0)){
 		nelem_thread++;
@@ -595,19 +588,17 @@ void subap_reduce(int size, int threads, int blocks, T *d_idata, T *d_odata,
 }
 template void
 subap_reduce<float>(int size, int threads, int blocks, float *d_idata,
-    float *d_odata, float thresh, int device);
+    float *d_odata, float thresh, carma_device *device);
 
 template void
 subap_reduce<double>(int size, int threads, int blocks, double *d_idata,
-    double *d_odata, double thresh, int device);
+    double *d_odata, double thresh, carma_device *device);
 
 template<class T>
 void subap_reduce(int size, int threads, int blocks, T *d_idata, T *d_odata,
-    T *weights, int device) {
+    T *weights, carma_device *device) {
 
-	struct cudaDeviceProp deviceProperties;
-	cudaGetDeviceProperties(&deviceProperties, device);
-	int maxThreads = deviceProperties.maxThreadsPerBlock;
+	int maxThreads = device->get_properties().maxThreadsPerBlock;
 	unsigned int nelem_thread = 1;
 	while((threads/nelem_thread > maxThreads) || (threads % nelem_thread != 0)){
 		nelem_thread++;
@@ -627,11 +618,11 @@ void subap_reduce(int size, int threads, int blocks, T *d_idata, T *d_odata,
 }
 template void
 subap_reduce<float>(int size, int threads, int blocks, float *d_idata,
-    float *d_odata, float *weights, int device);
+    float *d_odata, float *weights, carma_device *device);
 
 template void
 subap_reduce<double>(int size, int threads, int blocks, double *d_idata,
-    double *d_odata, double *weights, int device);
+    double *d_odata, double *weights, carma_device *device);
 
 template<class T>
 __global__ void reduce_phasex(T *g_idata, T *g_odata, int *indx, unsigned int n,
@@ -842,14 +833,12 @@ __global__ void pyrgetpup_krnl(Tout *g_odata, Tin *g_idata, Tout *offsets,
 
 template<class Tout, class Tin>
 void pyr_getpup(Tout *d_odata, Tin *d_idata, Tout *d_offsets, Tin *d_pup,
-    int np, int device) {
-  struct cudaDeviceProp deviceProperties;
-  cudaGetDeviceProperties(&deviceProperties, device);
+    int np, carma_device *device) {
 
   int N = np * np / 2;
 
-  int maxThreads = deviceProperties.maxThreadsPerBlock;
-  int nBlocks = deviceProperties.multiProcessorCount * 8;
+  int maxThreads = device->get_properties().maxThreadsPerBlock;
+  int nBlocks = device->get_properties().multiProcessorCount * 8;
   int nThreads = (N + nBlocks - 1) / nBlocks;
 
   if (nThreads > maxThreads) {
@@ -867,10 +856,10 @@ void pyr_getpup(Tout *d_odata, Tin *d_idata, Tout *d_offsets, Tin *d_pup,
 }
 template void
 pyr_getpup<cuFloatComplex, float>(cuFloatComplex *d_odata, float *d_idata,
-    cuFloatComplex *d_offsets, float *d_pup, int np, int device);
+    cuFloatComplex *d_offsets, float *d_pup, int np, carma_device *device);
 template void
 pyr_getpup<cuDoubleComplex, double>(cuDoubleComplex *d_odata, double *d_idata,
-    cuDoubleComplex *d_offsets, double *d_pup, int np, int device);
+    cuDoubleComplex *d_offsets, double *d_pup, int np, carma_device *device);
 
 template<class T>
 __global__ void rollmod_krnl(T *g_odata, T *g_idata, T *g_mask, int cx, int cy,
@@ -942,14 +931,11 @@ __global__ void rollmod_krnl(T *g_odata, T *g_idata, T *g_mask, int cx, int cy,
 
 template<class T>
 void pyr_rollmod(T *d_odata, T *d_idata, T *d_mask, float cx, float cy, int np,
-    int ns, int device) {
-  struct cudaDeviceProp deviceProperties;
-  cudaGetDeviceProperties(&deviceProperties, device);
-
+    int ns, carma_device *device) {
   int N = ns * ns * 4;
 
-  int maxThreads = deviceProperties.maxThreadsPerBlock;
-  int nBlocks = deviceProperties.multiProcessorCount * 8;
+  int maxThreads = device->get_properties().maxThreadsPerBlock;
+  int nBlocks = device->get_properties().multiProcessorCount * 8;
   int nThreads = (N + nBlocks - 1) / nBlocks;
 
   if (nThreads > maxThreads) {
@@ -966,10 +952,10 @@ void pyr_rollmod(T *d_odata, T *d_idata, T *d_mask, float cx, float cy, int np,
 }
 template void
 pyr_rollmod<cuFloatComplex>(cuFloatComplex *d_odata, cuFloatComplex*d_idata,
-    cuFloatComplex*d_mask, float cx, float cy, int np, int ns, int device);
+    cuFloatComplex*d_mask, float cx, float cy, int np, int ns, carma_device *device);
 template void
 pyr_rollmod<cuDoubleComplex>(cuDoubleComplex *d_odata, cuDoubleComplex *d_idata,
-    cuDoubleComplex *d_mask, float cx, float cy, int np, int ns, int device);
+    cuDoubleComplex *d_mask, float cx, float cy, int np, int ns, carma_device *device);
 
 //////////////////////////////////////////////////////////////
 // ADDING PYR_ROLLMOD MODIFIED FOR ROOF-PRISM: ROOF_ROOLMOD //
@@ -1045,14 +1031,12 @@ __global__ void roof_rollmod_krnl(T *g_odata, T *g_idata, T *g_mask, int cx, int
 
 template<class T>
 void roof_rollmod(T *d_odata, T *d_idata, T *d_mask, float cx, float cy, int np,
-    int ns, int device) {
-  struct cudaDeviceProp deviceProperties;
-  cudaGetDeviceProperties(&deviceProperties, device);
+    int ns, carma_device *device) {
 
   int N = ns * ns * 4;
 
-  int maxThreads = deviceProperties.maxThreadsPerBlock;
-  int nBlocks = deviceProperties.multiProcessorCount * 8;
+  int maxThreads = device->get_properties().maxThreadsPerBlock;
+  int nBlocks = device->get_properties().multiProcessorCount * 8;
   int nThreads = (N + nBlocks - 1) / nBlocks;
 
   if (nThreads > maxThreads) {
@@ -1069,10 +1053,10 @@ void roof_rollmod(T *d_odata, T *d_idata, T *d_mask, float cx, float cy, int np,
 }
 template void
 roof_rollmod<cuFloatComplex>(cuFloatComplex *d_odata, cuFloatComplex*d_idata,
-    cuFloatComplex*d_mask, float cx, float cy, int np, int ns, int device);
+    cuFloatComplex*d_mask, float cx, float cy, int np, int ns, carma_device *device);
 template void
 roof_rollmod<cuDoubleComplex>(cuDoubleComplex *d_odata, cuDoubleComplex *d_idata,
-    cuDoubleComplex *d_mask, float cx, float cy, int np, int ns, int device);
+    cuDoubleComplex *d_mask, float cx, float cy, int np, int ns, carma_device *device);
 
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
@@ -1118,14 +1102,11 @@ __global__ void fillbinpyr_krnl(T *g_odata, T *g_idata, unsigned int nrebin,
 
 template<class T>
 void pyr_fillbin(T *d_odata, T *d_idata, int nrebin, int np, int ns, int nim,
-    int device) {
-  struct cudaDeviceProp deviceProperties;
-  cudaGetDeviceProperties(&deviceProperties, device);
-
+    carma_device *device) {
   int N = ns * ns * nim;
 
-  int maxThreads = deviceProperties.maxThreadsPerBlock;
-  int nBlocks = deviceProperties.multiProcessorCount * 8;
+  int maxThreads = device->get_properties().maxThreadsPerBlock;
+  int nBlocks = device->get_properties().multiProcessorCount * 8;
   int nThreads = (N + nBlocks - 1) / nBlocks;
 
   if (nThreads > maxThreads) {
@@ -1143,10 +1124,10 @@ void pyr_fillbin(T *d_odata, T *d_idata, int nrebin, int np, int ns, int nim,
 }
 template void
 pyr_fillbin<float>(float *d_odata, float *d_idata, int nrebin, int np, int ns,
-    int nim, int device);
+    int nim, carma_device *device);
 template void
 pyr_fillbin<double>(double *d_odata, double *d_idata, int nrebin, int np,
-    int ns, int nim, int device);
+    int ns, int nim, carma_device *device);
 
 //////////////////////////////////////////////////////////////
 // ADDING PYR_FILLBIN MODIFIED FOR ROOF-PRISM: ROOF_FILLBIN //
@@ -1195,14 +1176,12 @@ __global__ void fillbinroof_krnl(T *g_odata, T *g_idata, unsigned int nrebin,
 
 template<class T>
 void roof_fillbin(T *d_odata, T *d_idata, int nrebin, int np, int ns, int nim,
-    int device) {
-  struct cudaDeviceProp deviceProperties;
-  cudaGetDeviceProperties(&deviceProperties, device);
+    carma_device *device) {
 
   int N = ns * ns * nim;
 
-  int maxThreads = deviceProperties.maxThreadsPerBlock;
-  int nBlocks = deviceProperties.multiProcessorCount * 8;
+  int maxThreads = device->get_properties().maxThreadsPerBlock;
+  int nBlocks = device->get_properties().multiProcessorCount * 8;
   int nThreads = (N + nBlocks - 1) / nBlocks;
 
   if (nThreads > maxThreads) {
@@ -1220,10 +1199,10 @@ void roof_fillbin(T *d_odata, T *d_idata, int nrebin, int np, int ns, int nim,
 }
 template void
 roof_fillbin<float>(float *d_odata, float *d_idata, int nrebin, int np, int ns,
-    int nim, int device);
+    int nim, carma_device *device);
 template void
 roof_fillbin<double>(double *d_odata, double *d_idata, int nrebin, int np,
-    int ns, int nim, int device);
+    int ns, int nim, carma_device *device);
 
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
@@ -1255,14 +1234,12 @@ __global__ void abspyr_krnl(Tout *g_odata, Tin *g_idata, unsigned int ns,
 }
 
 template<class Tout, class Tin>
-void pyr_abs(Tout *d_odata, Tin *d_idata, int ns, int nim, int device) {
-  struct cudaDeviceProp deviceProperties;
-  cudaGetDeviceProperties(&deviceProperties, device);
+void pyr_abs(Tout *d_odata, Tin *d_idata, int ns, int nim, carma_device *device) {
 
   int N = ns * ns / 2;
 
-  int maxThreads = deviceProperties.maxThreadsPerBlock;
-  int nBlocks = deviceProperties.multiProcessorCount * 8;
+  int maxThreads = device->get_properties().maxThreadsPerBlock;
+  int nBlocks = device->get_properties().multiProcessorCount * 8;
   int nThreads = (N + nBlocks - 1) / nBlocks;
 
   if (nThreads > maxThreads) {
@@ -1278,10 +1255,10 @@ void pyr_abs(Tout *d_odata, Tin *d_idata, int ns, int nim, int device) {
 }
 template void
 pyr_abs<float, cuFloatComplex>(float *d_odata, cuFloatComplex *d_idata, int ns,
-    int nim, int device);
+    int nim, carma_device *device);
 template void
 pyr_abs<double, cuDoubleComplex>(double *d_odata, cuDoubleComplex *d_idata,
-    int ns, int nim, int device);
+    int ns, int nim, carma_device *device);
 
 template<class Tin, class Tout>
 __global__ void abs2pyr_krnl(Tout *g_odata, Tin *g_idata, Tout fact,
@@ -1312,14 +1289,12 @@ __global__ void abs2pyr_krnl(Tout *g_odata, Tin *g_idata, Tout fact,
 
 template<class Tin, class Tout>
 void pyr_abs2(Tout *d_odata, Tin *d_idata, Tout fact, int ns, int nim,
-    int device) {
-  struct cudaDeviceProp deviceProperties;
-  cudaGetDeviceProperties(&deviceProperties, device);
+    carma_device *device) {
 
   int N = ns * ns / 2;
 
-  int maxThreads = deviceProperties.maxThreadsPerBlock;
-  int nBlocks = deviceProperties.multiProcessorCount * 8;
+  int maxThreads = device->get_properties().maxThreadsPerBlock;
+  int nBlocks = device->get_properties().multiProcessorCount * 8;
   int nThreads = (N + nBlocks - 1) / nBlocks;
 
   if (nThreads > maxThreads) {
@@ -1337,10 +1312,10 @@ void pyr_abs2(Tout *d_odata, Tin *d_idata, Tout fact, int ns, int nim,
 
 template void
 pyr_abs2<cuFloatComplex, float>(float *d_odata, cuFloatComplex *d_idata,
-    float fact, int ns, int nim, int device);
+    float fact, int ns, int nim, carma_device *device);
 template void
 pyr_abs2<cuDoubleComplex, double>(double *d_odata, cuDoubleComplex *d_idata,
-    double fact, int ns, int nim, int device);
+    double fact, int ns, int nim, carma_device *device);
 
 ////////////////////////////////////////////////////////
 // ADDING PYR_ABS2 MODIFIED FOR ROOF-PRISM: ROOF_ABS2 //
@@ -1378,14 +1353,12 @@ __global__ void abs2roof_krnl(Tout *g_odata, Tin *g_idata, Tout fact,
 
 template<class Tin, class Tout>
 void roof_abs2(Tout *d_odata, Tin *d_idata, Tout fact, int ns, int nim,
-    int device) {
-  struct cudaDeviceProp deviceProperties;
-  cudaGetDeviceProperties(&deviceProperties, device);
+    carma_device *device) {
 
   int N = ns * ns / 2;
 
-  int maxThreads = deviceProperties.maxThreadsPerBlock;
-  int nBlocks = deviceProperties.multiProcessorCount * 8;
+  int maxThreads = device->get_properties().maxThreadsPerBlock;
+  int nBlocks = device->get_properties().multiProcessorCount * 8;
   int nThreads = (N + nBlocks - 1) / nBlocks;
 
   if (nThreads > maxThreads) {
@@ -1403,10 +1376,10 @@ void roof_abs2(Tout *d_odata, Tin *d_idata, Tout fact, int ns, int nim,
 
 template void
 roof_abs2<cuFloatComplex, float>(float *d_odata, cuFloatComplex *d_idata,
-    float fact, int ns, int nim, int device);
+    float fact, int ns, int nim, carma_device *device);
 template void
 roof_abs2<cuDoubleComplex, double>(double *d_odata, cuDoubleComplex *d_idata,
-    double fact, int ns, int nim, int device);
+    double fact, int ns, int nim, carma_device *device);
 
 ////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////
@@ -1423,14 +1396,12 @@ __global__ void submask_krnl(Tout *g_odata, Tin *g_mask, unsigned int n) {
 }
 
 template<class Tout, class Tin>
-void pyr_submask(Tout *d_odata, Tin *d_mask, int n, int device) {
-  struct cudaDeviceProp deviceProperties;
-  cudaGetDeviceProperties(&deviceProperties, device);
+void pyr_submask(Tout *d_odata, Tin *d_mask, int n, carma_device *device) {
 
   int N = n * n;
 
-  int maxThreads = deviceProperties.maxThreadsPerBlock;
-  int nBlocks = deviceProperties.multiProcessorCount * 8;
+  int maxThreads = device->get_properties().maxThreadsPerBlock;
+  int nBlocks = device->get_properties().multiProcessorCount * 8;
   int nThreads = (N + nBlocks - 1) / nBlocks;
 
   if (nThreads > maxThreads) {
@@ -1446,10 +1417,10 @@ void pyr_submask(Tout *d_odata, Tin *d_mask, int n, int device) {
 }
 template void
 pyr_submask<cuFloatComplex, float>(cuFloatComplex *d_odata, float*d_mask, int n,
-    int device);
+    carma_device *device);
 template void
 pyr_submask<cuDoubleComplex, double>(cuDoubleComplex *d_odata, double *d_idata,
-    int n, int device);
+    int n, carma_device *device);
 
 template<class Tout, class Tin>
 __global__ void submask3d_krnl(Tout *g_odata, Tin *g_mask, unsigned int n,
@@ -1465,14 +1436,12 @@ __global__ void submask3d_krnl(Tout *g_odata, Tin *g_mask, unsigned int n,
 }
 
 template<class Tout, class Tin>
-void pyr_submask3d(Tout *d_odata, Tin *d_mask, int n, int nim, int device) {
-  struct cudaDeviceProp deviceProperties;
-  cudaGetDeviceProperties(&deviceProperties, device);
+void pyr_submask3d(Tout *d_odata, Tin *d_mask, int n, int nim, carma_device *device) {
 
   int N = n * n;
 
-  int maxThreads = deviceProperties.maxThreadsPerBlock;
-  int nBlocks = deviceProperties.multiProcessorCount * 8;
+  int maxThreads = device->get_properties().maxThreadsPerBlock;
+  int nBlocks = device->get_properties().multiProcessorCount * 8;
   int nThreads = (N + nBlocks - 1) / nBlocks;
 
   if (nThreads > maxThreads) {
@@ -1488,10 +1457,10 @@ void pyr_submask3d(Tout *d_odata, Tin *d_mask, int n, int nim, int device) {
 }
 template void
 pyr_submask3d<cuFloatComplex, float>(cuFloatComplex *d_odata, float*d_mask,
-    int n, int nim, int device);
+    int n, int nim, carma_device *device);
 template void
 pyr_submask3d<cuDoubleComplex, double>(cuDoubleComplex *d_odata,
-    double *d_idata, int n, int nim, int device);
+    double *d_idata, int n, int nim, carma_device *device);
 
 template<class T>
 __global__ void subsum_krnl(T *g_odata, T *g_idata, int *subindx, int *subindy,
@@ -1509,14 +1478,12 @@ __global__ void subsum_krnl(T *g_odata, T *g_idata, int *subindx, int *subindy,
 
 template<class T>
 void pyr_subsum(T *d_odata, T *d_idata, int *subindx, int *subindy, int ns,
-    int nvalid, int nim, int device) {
-  struct cudaDeviceProp deviceProperties;
-  cudaGetDeviceProperties(&deviceProperties, device);
+    int nvalid, int nim, carma_device *device) {
 
   int N = nvalid;
 
-  int maxThreads = deviceProperties.maxThreadsPerBlock;
-  int nBlocks = deviceProperties.multiProcessorCount * 8;
+  int maxThreads = device->get_properties().maxThreadsPerBlock;
+  int nBlocks = device->get_properties().multiProcessorCount * 8;
   int nThreads = (N + nBlocks - 1) / nBlocks;
 
   if (nThreads > maxThreads) {
@@ -1534,10 +1501,10 @@ void pyr_subsum(T *d_odata, T *d_idata, int *subindx, int *subindy, int ns,
 
 template void
 pyr_subsum<float>(float *d_odata, float *d_idata, int *subindx, int *subindy,
-    int ns, int nvalid, int nim, int device);
+    int ns, int nvalid, int nim, carma_device *device);
 template void
 pyr_subsum<double>(double *d_odata, double *d_idata, int *subindx, int *subindy,
-    int ns, int nvalid, int nim, int device);
+    int ns, int nvalid, int nim, carma_device *device);
 
 ////////////////////////////////////////////////////////////
 // ADDING PYR_SUBSUM MODIFIED FOR ROOF-PRISM: ROOF_SUBSUM //
@@ -1559,14 +1526,12 @@ __global__ void roof_subsum_krnl(T *g_odata, T *g_idata, int *subindx, int *subi
 
 template<class T>
 void roof_subsum(T *d_odata, T *d_idata, int *subindx, int *subindy, int ns,
-    int nvalid, int nim, int device) {
-  struct cudaDeviceProp deviceProperties;
-  cudaGetDeviceProperties(&deviceProperties, device);
+    int nvalid, int nim, carma_device *device) {
 
   int N = nvalid;
 
-  int maxThreads = deviceProperties.maxThreadsPerBlock;
-  int nBlocks = deviceProperties.multiProcessorCount * 8;
+  int maxThreads = device->get_properties().maxThreadsPerBlock;
+  int nBlocks = device->get_properties().multiProcessorCount * 8;
   int nThreads = (N + nBlocks - 1) / nBlocks;
 
   if (nThreads > maxThreads) {
@@ -1584,10 +1549,10 @@ void roof_subsum(T *d_odata, T *d_idata, int *subindx, int *subindy, int ns,
 
 template void
 roof_subsum<float>(float *d_odata, float *d_idata, int *subindx, int *subindy,
-    int ns, int nvalid, int nim, int device);
+    int ns, int nvalid, int nim, carma_device *device);
 template void
 roof_subsum<double>(double *d_odata, double *d_idata, int *subindx, int *subindy,
-    int ns, int nvalid, int nim, int device);
+    int ns, int nvalid, int nim, carma_device *device);
 
 ////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////
@@ -1629,14 +1594,12 @@ __global__ void pyrfact_krnl(float *g_data, float fact1, float *fact2,
 }
 
 template<class T>
-void pyr_fact(T *d_data, T fact, int n, int nim, int device) {
-  struct cudaDeviceProp deviceProperties;
-  cudaGetDeviceProperties(&deviceProperties, device);
+void pyr_fact(T *d_data, T fact, int n, int nim, carma_device *device) {
 
   int N = n * n;
 
-  int maxThreads = deviceProperties.maxThreadsPerBlock;
-  int nBlocks = deviceProperties.multiProcessorCount * 8;
+  int maxThreads = device->get_properties().maxThreadsPerBlock;
+  int nBlocks = device->get_properties().multiProcessorCount * 8;
   int nThreads = (N + nBlocks - 1) / nBlocks;
 
   if (nThreads > maxThreads) {
@@ -1652,18 +1615,16 @@ void pyr_fact(T *d_data, T fact, int n, int nim, int device) {
 }
 
 template void
-pyr_fact<float>(float *d_data, float fact, int ns, int nim, int device);
+pyr_fact<float>(float *d_data, float fact, int ns, int nim, carma_device *device);
 template void
-pyr_fact<double>(double *d_odata, double fact, int ns, int nim, int device);
+pyr_fact<double>(double *d_odata, double fact, int ns, int nim, carma_device *device);
 
-void pyr_fact(cuFloatComplex *d_data, float fact, int n, int nim, int device) {
-  struct cudaDeviceProp deviceProperties;
-  cudaGetDeviceProperties(&deviceProperties, device);
+void pyr_fact(cuFloatComplex *d_data, float fact, int n, int nim, carma_device *device) {
 
   int N = n * n;
 
-  int maxThreads = deviceProperties.maxThreadsPerBlock;
-  int nBlocks = deviceProperties.multiProcessorCount * 8;
+  int maxThreads = device->get_properties().maxThreadsPerBlock;
+  int nBlocks = device->get_properties().multiProcessorCount * 8;
   int nThreads = (N + nBlocks - 1) / nBlocks;
 
   if (nThreads > maxThreads) {
@@ -1679,14 +1640,12 @@ void pyr_fact(cuFloatComplex *d_data, float fact, int n, int nim, int device) {
 }
 
 void pyr_fact(float *d_data, float fact1, float *fact2, int n, int nim,
-    int device) {
-  struct cudaDeviceProp deviceProperties;
-  cudaGetDeviceProperties(&deviceProperties, device);
+    carma_device *device) {
 
   int N = n * n;
 
-  int maxThreads = deviceProperties.maxThreadsPerBlock;
-  int nBlocks = deviceProperties.multiProcessorCount * 8;
+  int maxThreads = device->get_properties().maxThreadsPerBlock;
+  int nBlocks = device->get_properties().multiProcessorCount * 8;
   int nThreads = (N + nBlocks - 1) / nBlocks;
 
   if (nThreads > maxThreads) {
@@ -1721,7 +1680,7 @@ void pyr_fact(float *d_data, float fact1, float *fact2, int n, int nim,
  }
 
  int fillcamplipup(cuFloatComplex *amplipup, float *phase, float *offset, float *mask, int *indx, int Nfft, int Npup, int Nsub, 
- int npup, int device)
+ int npup, carma_device *device)
  // here amplipup is a cube of data of size nfft x nfft x nsubap
  // phase is an array of size pupdiam x pupdiam
  // offset is an array of size pdiam x pdiam

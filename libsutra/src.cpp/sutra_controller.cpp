@@ -37,13 +37,13 @@ sutra_controller::syevd_f(char meth, carma_obj<float> *d_U, carma_host_obj<float
 	carma_host_obj<double> *h_eigen_double = new carma_host_obj<double>(dims_data2,MA_PAGELOCK);
 
 	// Copy float array in double array
-	floattodouble(d_U->getData(),d_Udouble->getData(),d_U->getNbElem(), this->device);
+	floattodouble(d_U->getData(),d_Udouble->getData(),d_U->getNbElem(), this->current_context->get_device(device));
 
 	//Doing syevd<double>
 	carma_syevd<double,1>(meth,d_Udouble,h_eigen_double);
 
 	// Reverse copy
-	doubletofloat(d_Udouble->getData(),d_U->getData(),d_U->getNbElem(), this->device);
+	doubletofloat(d_Udouble->getData(),d_U->getData(),d_U->getNbElem(), this->current_context->get_device(device));
 	for(int cc=0 ; cc<h_eigenvals->getNbElem() ; cc++){
 		h_eigenvals->getData()[cc] = (float)h_eigen_double->getData()[cc];
 	}

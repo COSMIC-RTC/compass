@@ -1980,7 +1980,7 @@ void matcov_gpu_4(float* data, int nrows, int ncols, int xoffset, int yoffset, i
 //============================================================================================
 //============================= CPHIM =============================================
 //============================================================================================
-void CPHIM(float* data, int nrows, int ncols, int xoffset, int yoffset, int lda, struct cphim_struct *cphim_struct, sutra_atmos *atmos, sutra_sensors *sensors, float* alphaX, float *alphaY, float k2, int device)
+void CPHIM(float* data, int nrows, int ncols, int xoffset, int yoffset, int lda, struct cphim_struct *cphim_struct, sutra_atmos *atmos, sutra_sensors *sensors, float* alphaX, float *alphaY, float k2, carma_device *device)
 {
 	/* *** matcov gpu kernel driver ***
 	*  Arguments
@@ -2267,7 +2267,7 @@ void init_cphim_struct(struct cphim_struct *cphim_struct, sutra_atmos *atmos, su
 
 }
 
-void tab_u831J0(struct cphim_struct *cphim_struct, float tmin, float tmax, int device){
+void tab_u831J0(struct cphim_struct *cphim_struct, float tmin, float tmax, carma_device *device){
 	// DEBUG_TRACE("tab_int !\n");
 	cudaError_t e;
 	long npts = cphim_struct->int_npts;
@@ -2316,7 +2316,7 @@ void cumsum(float *odata, float *idata, int N){
 	}
 }
 
-void cuda_zcen(float *idata, float *odata, int N, int device){
+void cuda_zcen(float *idata, float *odata, int N, carma_device *device){
 	int nblocks = 0 , nthreads = 0;
 	getNumBlocksAndThreads(device, N, nblocks, nthreads);
 	dim3 grid(nblocks), threads(nthreads);

@@ -223,7 +223,7 @@ getIF_krnl(float *IF, float *dmshape, int *indx_pup, long nb_pts, long column, l
 	}
 }
 int
-getIF(float *IF, float *dmshape, int *indx_pup, long nb_pts, int column, long nb_col, int device){
+getIF(float *IF, float *dmshape, int *indx_pup, long nb_pts, int column, long nb_col, carma_device *device){
 	int nthreads = 0, nblocks = 0;
 	getNumBlocksAndThreads(device, nb_pts, nblocks, nthreads);
 	dim3 grid(nblocks), threads(nthreads);
@@ -245,7 +245,7 @@ do_statmat_krnl(float *statcov, float *xpos, float *ypos, float norm, long dim, 
 	}
 }
 int
-dm_dostatmat(float *statcov, long dim, float *xpos, float *ypos, float norm, int device){
+dm_dostatmat(float *statcov, long dim, float *xpos, float *ypos, float norm, carma_device *device){
 	int nthreads = 0, nblocks = 0;
 	int N = (dim * dim);
 	getNumBlocksAndThreads(device, N, nblocks, nthreads);
@@ -266,7 +266,7 @@ fill_filtermat_krnl(float *filter, int nactu, int N){
 }
 
 int
-fill_filtermat(float *filter, int nactu, int N, int device){
+fill_filtermat(float *filter, int nactu, int N, carma_device *device){
 	int nthreads = 0, nblocks = 0;
 	getNumBlocksAndThreads(device, N, nblocks, nthreads);
 	dim3 grid(nblocks), threads(nthreads);
@@ -288,13 +288,10 @@ __global__ void multi_krnl(float *i_data, float gain, int N) {
 }
 
 int
-multi_vect(float *d_data, float gain, int N, int device) {
+multi_vect(float *d_data, float gain, int N, carma_device *device) {
 
-  struct cudaDeviceProp deviceProperties;
-  cudaGetDeviceProperties(&deviceProperties, device);
-
-  int maxThreads = deviceProperties.maxThreadsPerBlock;
-  int nBlocks = deviceProperties.multiProcessorCount * 8;
+  int maxThreads = device->get_properties().maxThreadsPerBlock;
+  int nBlocks = device->get_properties().multiProcessorCount * 8;
   int nThreads = (N + nBlocks - 1) / nBlocks;
 
   if (nThreads > maxThreads) {

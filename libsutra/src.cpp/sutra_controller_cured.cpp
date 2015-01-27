@@ -83,7 +83,7 @@ int sutra_controller_cured::comp_com() {
 
   h_err->cpy_obj(this->d_err, cudaMemcpyHostToDevice);
 
-  mult_int(this->d_com->getData(),this->d_err->getData(),-1.0f * this->gain, this->nactu(),this->device);
+  mult_int(this->d_com->getData(),this->d_err->getData(),-1.0f * this->gain, this->nactu(),this->current_context->get_device(device));
 
   return EXIT_SUCCESS;
 }
@@ -105,7 +105,7 @@ int sutra_controller_cured::frame_delay() {
   if (delay > 0) {
     for (int cc = 0; cc < delay; cc++)
       shift_buf(&((this->d_cenbuff->getData())[cc * this->nslope()]), 1,
-          this->nslope(), this->device);
+          this->nslope(), this->current_context->get_device(device));
 
     cutilSafeCall(
         cudaMemcpy(&(this->d_cenbuff->getData()[delay * this->nslope()]),

@@ -78,12 +78,13 @@ inline bool isPow2(unsigned int x) {
   return ((x & (x - 1)) == 0);
 }
 
-void getNumBlocksAndThreads(int device, int n, int &blocks, int &threads);
+class carma_device;
+void getNumBlocksAndThreads(carma_device *device, int n, int &blocks, int &threads);
 template <class T_data>
-int  find_nnz(T_data *d_data, int *tmp_colind, int N, int *d_nnz, int &h_nnz, int device);
+int  find_nnz(T_data *d_data, int *tmp_colind, int N, int *d_nnz, int &h_nnz, carma_device *device);
 template <class T_data>
 int
-fill_sparse_vect(T_data *dense_data, int *colind_sorted, T_data *values, int *colind, int *rowind, int nnz, int device);
+fill_sparse_vect(T_data *dense_data, int *colind_sorted, T_data *values, int *colind, int *rowind, int nnz, carma_device *device);
 
 void carma_start_profile();
 void carma_stop_profile();

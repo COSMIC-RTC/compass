@@ -42,7 +42,7 @@ int sutra_aotemplate::fill_data() {
 int sutra_aotemplate::do_compute() {
   // do computation on data and store in result
   int nthreads = 0, nblocks = 0;
-  getNumBlocksAndThreads(this->device, this->dim, nblocks, nthreads);
+  getNumBlocksAndThreads(current_context->get_device(device), this->dim, nblocks, nthreads);
 
   comp_aotemplate(nthreads, nblocks, this->d_data->getData(),
       this->d_res->getData(), this->d_data->getNbElem());

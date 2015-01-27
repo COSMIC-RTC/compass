@@ -1,18 +1,17 @@
 #include <carma_utils.h>
 #include <cuda_profiler_api.h>
+#include <carma_context.h>
 
-void getNumBlocksAndThreads(int device, int n, int &blocks, int &threads) {
+void getNumBlocksAndThreads(carma_device *device, int n, int &blocks, int &threads) {
 
-  struct cudaDeviceProp deviceProperties;
-  cudaGetDeviceProperties(&deviceProperties, device);
 
-  int maxThreads = deviceProperties.maxThreadsPerBlock;
-  blocks = deviceProperties.multiProcessorCount * 8;
+  int maxThreads = device->get_properties().maxThreadsPerBlock;
+  blocks = device->get_properties().multiProcessorCount * 8;
   threads = (n + blocks - 1) / blocks;
 
   if (threads > maxThreads) {
     threads = maxThreads;
-    blocks = MIN( deviceProperties.maxGridSize[0],(n + threads - 1) / threads);
+    blocks = MIN( device->get_properties().maxGridSize[0],(n + threads - 1) / threads);
   }
 }
 

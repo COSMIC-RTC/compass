@@ -41,27 +41,27 @@ public:
 };
 
 int
-fillweights(float *d_out, float *d_in, int npix, int N, int device);
+fillweights(float *d_out, float *d_in, int npix, int N, carma_device *device);
 int
 fillcorr(cuFloatComplex *d_out, float *d_in, int npix_in, int npix_out, int N,
-    int nvalid, int device);
+    int nvalid, carma_device *device);
 int
-correl(cuFloatComplex *d_odata, cuFloatComplex *d_idata, int N, int device);
+correl(cuFloatComplex *d_odata, cuFloatComplex *d_idata, int N, carma_device *device);
 int
 roll2real(float *d_odata, cuFloatComplex *d_idata, int n, int Npix, int N,
-    int device);
+    carma_device *device);
 int
-corr_norm(float *d_odata, float *d_idata, int Npix, int N, int device);
+corr_norm(float *d_odata, float *d_idata, int Npix, int N, carma_device *device);
 int
 convert_centro(float *d_odata, float *d_idata, float offset, float scale, int N,
-    int device);
-//int fillval_corr(cuFloatComplex *d_out, float val, int npix_in, int npix_out, int N, int device);
+    carma_device *device);
+//int fillval_corr(cuFloatComplex *d_out, float val, int npix_in, int npix_out, int N, carma_device *device);
 
 // CUDA templates
 template<class T>
 void
 get_centroids(int size, int threads, int blocks, int n, T *d_idata, T *d_odata,
-    T *alpha, T scale, T offset, int device);
+    T *alpha, T scale, T offset, carma_device *device);
 template<class T>
 void
 get_centroids_async(int threads, int blocks, int n, carma_streams *streams,
@@ -69,11 +69,11 @@ get_centroids_async(int threads, int blocks, int n, carma_streams *streams,
 template<class T>
 void
 get_centroids(int size, int threads, int blocks, int n, T *d_idata, T *d_odata,
-    T *alpha, T thresh, T scale, T offset, int device);
+    T *alpha, T thresh, T scale, T offset, carma_device *device);
 template<class T>
 void
 get_centroids(int size, int threads, int blocks, int n, T *d_idata, T *d_odata,
-    T *alpha, T *weights, T scale, T offset, int device);
+    T *alpha, T *weights, T scale, T offset, carma_device *device);
 template<class T>
 void
 subap_bpcentro(int threads, int blocks, int npix, T *d_idata, unsigned int *values, T *d_odata,T scale, T offset);
@@ -101,10 +101,10 @@ subap_pinterp(int threads, int blocks, T *d_idata, int *values, T *d_centroids,
 template<class T>
 void
 pyr_slopes(T *d_odata, T *d_idata, int *subindx, int *subindy, T *subsum,
-    int ns, int nvalid, int nim, int device);
+    int ns, int nvalid, int nim, carma_device *device);
 
 template<class T>
 void 
-roof_slopes(T *d_odata, T *d_idata, int *subindx, int *subindy, T *subsum, int ns, int nvalid, int nim, int device);
+roof_slopes(T *d_odata, T *d_idata, int *subindx, int *subindy, T *subsum, int ns, int nvalid, int nim, carma_device *device);
 
 #endif // _SUTRA_CENTROIDER_H_

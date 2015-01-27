@@ -136,10 +136,10 @@ int sutra_tscreen::generate_vk(float l0, int nalias) {
   carma_fft(data, data, 1, *this->d_tscreen_c->getPlan());
 
   cgetrealp(this->d_tscreen->d_screen->getData(), this->d_tscreen_c->getData(),
-      this->d_tscreen->d_screen->getNbElem(), this->device);
+      this->d_tscreen->d_screen->getNbElem(), current_context->get_device(device));
 
   norm_pscreen(data_o, this->d_tscreen->d_screen->getData(), this->screen_size,
-      this->screen_size, this->norm_vk, this->device);
+      this->screen_size, this->norm_vk, this->current_context->get_device(device));
 
   this->d_tscreen->d_screen->copyFrom(data_o,
       this->d_tscreen->d_screen->getNbElem());
@@ -156,17 +156,17 @@ int sutra_tscreen::extrude(int dir)
   if (dir == 1) { // adding a column to the left
     fillindx(this->d_z->getData(), this->d_tscreen->d_screen->getData(),
         (int *) this->d_istencilx->getData(), this->d_z->getNbElem(),
-        this->device);
+        current_context->get_device(device));
     x0 = this->screen_size - 1; //not in stencil
   } else {
     fillindx(this->d_z->getData(), this->d_tscreen->d_screen->getData(),
         (int *) this->d_istencily->getData(), this->d_z->getNbElem(),
-        this->device);
+        current_context->get_device(device));
     x0 = this->screen_size * (this->screen_size - 1);
   }
 
   addai<float>(this->d_z->getData(), this->d_tscreen->d_screen->getData(), x0, -1.0f,
-      this->d_z->getNbElem(), this->device);
+      this->d_z->getNbElem(), current_context->get_device(device));
 
   this->d_ytmp->gemv('n', 1.0f, this->d_A, this->d_A->getDims(1), this->d_z, 1,
       0.0f, 1);
@@ -177,7 +177,7 @@ int sutra_tscreen::extrude(int dir)
       this->d_noise, 1, 1.0f, 1);
 
   addai<float>(this->d_ytmp->getData(), this->d_tscreen->d_screen->getData(), x0, 1.0f,
-      this->d_ytmp->getNbElem(), this->device);
+      this->d_ytmp->getNbElem(), current_context->get_device(device));
 
   if (dir == 1) {
     x0 = 1;
@@ -190,7 +190,7 @@ int sutra_tscreen::extrude(int dir)
   }
 
   getarr2d(this->d_tscreen_o->getData(), this->d_tscreen->d_screen->getData(),
-      x0, Ncol, NC, N, this->device);
+      x0, Ncol, NC, N, current_context->get_device(device));
 
   if (dir == 1)
     x0 = 0;
@@ -198,7 +198,7 @@ int sutra_tscreen::extrude(int dir)
     x0 = 0;
 
   fillarr2d(this->d_tscreen->d_screen->getData(), this->d_tscreen_o->getData(),
-      x0, Ncol, NC, N, this->device);
+      x0, Ncol, NC, N, current_context->get_device(device));
 
   if (dir == 1) {
     x0 = this->screen_size - 1;
@@ -211,7 +211,7 @@ int sutra_tscreen::extrude(int dir)
   }
 
   fillarr2d(this->d_tscreen->d_screen->getData(), this->d_ytmp->getData(), x0,
-      Ncol, NC, N, this->device);
+      Ncol, NC, N, current_context->get_device(device));
 
   return EXIT_SUCCESS;
 }

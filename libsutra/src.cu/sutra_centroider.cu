@@ -85,8 +85,7 @@ __device__ inline void sortmax_krnl(T *sdata, unsigned int *values, int size,
 }
 
 template<class T>
-__device__ inline void sortmax_krnl(T *sdata, int *values, int size,
-    int n) {
+__device__ inline void sortmax_krnl(T *sdata, int *values, int size, int n) {
 
   if (!((size & (size - 1)) == 0)) {
     unsigned int s;
@@ -122,7 +121,8 @@ __device__ inline void sortmax_krnl(T *sdata, int *values, int size,
   }
 }
 template<class T>
-__global__ void sortmax(T *g_idata, T *g_odata, unsigned int *values, int nmax) {
+__global__ void sortmax(T *g_idata, T *g_odata, unsigned int *values,
+    int nmax) {
   extern __shared__ uint svalues[];
   T *sdata = (T*) &svalues[blockDim.x];
 
@@ -145,14 +145,14 @@ __global__ void sortmax(T *g_idata, T *g_odata, unsigned int *values, int nmax) 
   }
 
   if (tid < nmax) {
-    g_odata[nmax * blockIdx.x + tid] = sdata[tid];// - sdata[nmax - 1];
+    g_odata[nmax * blockIdx.x + tid] = sdata[tid]; // - sdata[nmax - 1];
     values[nmax * blockIdx.x + tid] = svalues[tid];
   }
   /*
-  __syncthreads();
-  if ((blockIdx.x == 0) && (tid < nmax))
-	  printf("tid %d sdata %f \n",tid,g_odata[tid]);
-	  */
+   __syncthreads();
+   if ((blockIdx.x == 0) && (tid < nmax))
+   printf("tid %d sdata %f \n",tid,g_odata[tid]);
+   */
 }
 
 template<class T>
@@ -259,25 +259,25 @@ __global__ void centroid_max(T *g_idata, T *g_odata, int n, int nmax, int nsub,
 
   // first copy the brightest values out for reduction  
   //__syncthreads();
- // if(tid == 0)
+  // if(tid == 0)
   const T minim = sdata[nmax - 1];
   __syncthreads();
-  if (tid < nmax -1 )
-	sdata[tid] -= minim;       // BIG BUG if nmax > 32
-  else sdata[tid] = 0.0f;
+  if (tid < nmax - 1)
+    sdata[tid] -= minim;       // BIG BUG if nmax > 32
+  else
+    sdata[tid] = 0.0f;
 
   __syncthreads();
   if ((tid >= nmax) && (tid < 2 * nmax)) {
     sdata[tid] = sdata[tid - nmax];
   }
-/*
-  if(tid == 0){
-      	  g_odata[blockIdx.x] = sdata[tid];
-      	  g_odata[blockIdx.x + nsub] = minim;
-      }
-      */
- __syncthreads();
-
+  /*
+   if(tid == 0){
+   g_odata[blockIdx.x] = sdata[tid];
+   g_odata[blockIdx.x + nsub] = minim;
+   }
+   */
+  __syncthreads();
 
   //if (tid < nmax)
   reduce_krnl(sdata, nmax, tid); // BIG BUG le retour
@@ -289,12 +289,12 @@ __global__ void centroid_max(T *g_idata, T *g_odata, int n, int nmax, int nsub,
 
   __syncthreads();
 
- // if (tid == 0)
+  // if (tid == 0)
 //	  g_odata[blockIdx.x] = subsum;
 
   // put back the brightest pixels values 
   if ((tid >= nmax) && (tid < 2 * nmax))
-	    sdata[tid - nmax] = sdata[tid];
+    sdata[tid - nmax] = sdata[tid];
 
   __syncthreads();
 
@@ -306,7 +306,8 @@ __global__ void centroid_max(T *g_idata, T *g_odata, int n, int nmax, int nsub,
   reduce_krnl(sdata, nmax, tid);
   //__syncthreads();
   if (tid == 0)
-    g_odata[blockIdx.x] =(subsum != 0.0f ? ((sdata[tid] / subsum) - offset) * scale : 0.0f);
+    g_odata[blockIdx.x] = (
+        subsum != 0.0f ? ((sdata[tid] / subsum) - offset) * scale : 0.0f);
   __syncthreads();
   // put back the brightest pixels values 
   if ((tid >= nmax) && (tid < 2 * nmax))
@@ -322,13 +323,14 @@ __global__ void centroid_max(T *g_idata, T *g_odata, int n, int nmax, int nsub,
   reduce_krnl(sdata, nmax, tid);
   //__syncthreads();
   if (tid == 0)
-    g_odata[blockIdx.x + nsub] = (subsum != 0.0f ? ((sdata[tid] / subsum) - offset) * scale : 0.0f);
+    g_odata[blockIdx.x + nsub] = (
+        subsum != 0.0f ? ((sdata[tid] / subsum) - offset) * scale : 0.0f);
 
 }
 
 template<class T>
-__global__ void centroid_max2(T *g_idata, T *g_odata, T *g_minim, int n, int nmax, int nsub,
-    T scale, T offset) {
+__global__ void centroid_max2(T *g_idata, T *g_odata, T *g_minim, int n,
+    int nmax, int nsub, T scale, T offset) {
   extern __shared__ uint svalues[];
   T *sdata = (T*) &svalues[blockDim.x];
 //  T subsum;
@@ -358,144 +360,146 @@ __global__ void centroid_max2(T *g_idata, T *g_odata, T *g_minim, int n, int nma
   // first copy the brightest values out for reduction
   //__syncthreads();
   __syncthreads();
-  if(tid == 0) {
-	  g_minim[blockIdx.x] = sdata[nmax - 1];
+  if (tid == 0) {
+    g_minim[blockIdx.x] = sdata[nmax - 1];
   }
   //__syncthreads();
   __syncthreads();
- if (tid < nmax) {
-	 sdata[tid] -= g_minim[blockIdx.x];
+  if (tid < nmax) {
+    sdata[tid] -= g_minim[blockIdx.x];
+  } else {
+    sdata[tid] = 0.0f;
   }
- else {
-	 sdata[tid] = 0.0f;
- }
 
   __syncthreads();
- if ((tid >= nmax) && (tid < 2 * nmax)) {
+  if ((tid >= nmax) && (tid < 2 * nmax)) {
     sdata[tid] = sdata[tid - nmax];
   }
 
- //__syncthreads();
- __syncthreads();
+  //__syncthreads();
+  __syncthreads();
 
- if (tid < nmax)
-	 g_minim[tid] = sdata[tid];
- __syncthreads();
+  if (tid < nmax)
+    g_minim[tid] = sdata[tid];
+  __syncthreads();
 
- // if (tid == 0){
+  // if (tid == 0){
   reduce_krnl(g_minim, nmax, tid);
   /*
-	  for (int cc =1 ; cc<nmax ; cc++){
-		  g_minim[cc] = sdata[cc];
-		  sdata[tid] += g_minim[cc];
-		  __threadfence();
-	  }
-  }
-  */
+   for (int cc =1 ; cc<nmax ; cc++){
+   g_minim[cc] = sdata[cc];
+   sdata[tid] += g_minim[cc];
+   __threadfence();
+   }
+   }
+   */
 
   //__syncthreads();
   __syncthreads();
- // get the sum per subap
+  // get the sum per subap
 //  if (tid == 0)
 //    subsum = (abs(sdata[tid]) > 1.e-6 ? sdata[tid] : 0.0f);
 
   //__syncthreads();
   __syncthreads();
-  if(tid == 0){
-         	  g_odata[blockIdx.x] = g_minim[tid];
-         	  g_odata[blockIdx.x + nsub] = 0.0f;
-         }
+  if (tid == 0) {
+    g_odata[blockIdx.x] = g_minim[tid];
+    g_odata[blockIdx.x + nsub] = 0.0f;
+  }
   //__syncthreads();
   __syncthreads();
   /*
- // if (tid == 0)
-//	  g_odata[blockIdx.x] = subsum;
+   // if (tid == 0)
+   //	  g_odata[blockIdx.x] = subsum;
 
-  // put back the brightest pixels values
-  if ((tid >= nmax) && (tid < 2 * nmax))
-	    sdata[tid - nmax] = sdata[tid];
+   // put back the brightest pixels values
+   if ((tid >= nmax) && (tid < 2 * nmax))
+   sdata[tid - nmax] = sdata[tid];
 
-  __syncthreads();
+   __syncthreads();
 
-  // compute the centroid on the first part of the array
-  if (tid < nmax)
-    sdata[tid] *= ((svalues[tid] % n) + 1);
-  // x centroid
+   // compute the centroid on the first part of the array
+   if (tid < nmax)
+   sdata[tid] *= ((svalues[tid] % n) + 1);
+   // x centroid
 
-  reduce_krnl(sdata, nmax, tid);
-  //__syncthreads();
-  if (tid == 0)
-    g_odata[blockIdx.x] =(subsum != 0.0f ? ((sdata[tid] / subsum) - offset) * scale : 0.0f);
-  __syncthreads();
-  // put back the brightest pixels values
-  if ((tid >= nmax) && (tid < 2 * nmax))
-    sdata[tid - nmax] = sdata[tid];
+   reduce_krnl(sdata, nmax, tid);
+   //__syncthreads();
+   if (tid == 0)
+   g_odata[blockIdx.x] =(subsum != 0.0f ? ((sdata[tid] / subsum) - offset) * scale : 0.0f);
+   __syncthreads();
+   // put back the brightest pixels values
+   if ((tid >= nmax) && (tid < 2 * nmax))
+   sdata[tid - nmax] = sdata[tid];
 
-  __syncthreads();
+   __syncthreads();
 
-  // compute the centroid on the first part of the array
-  if (tid < nmax)
-    sdata[tid] *= (svalues[tid] / n + 1);
-  // y centroid
+   // compute the centroid on the first part of the array
+   if (tid < nmax)
+   sdata[tid] *= (svalues[tid] / n + 1);
+   // y centroid
 
-  reduce_krnl(sdata, nmax, tid);
-  //__syncthreads();
-  if (tid == 0)
-    g_odata[blockIdx.x + nsub] = (subsum != 0.0f ? ((sdata[tid] / subsum) - offset) * scale : 0.0f);
-*/
+   reduce_krnl(sdata, nmax, tid);
+   //__syncthreads();
+   if (tid == 0)
+   g_odata[blockIdx.x + nsub] = (subsum != 0.0f ? ((sdata[tid] / subsum) - offset) * scale : 0.0f);
+   */
 }
 template<class T>
-__global__ void centroid_bpix(int nsub, int n, T *g_idata, unsigned int *values, T *g_odata, T scale, T offset) {
+__global__ void centroid_bpix(int nsub, int n, T *g_idata, unsigned int *values,
+    T *g_odata, T scale, T offset) {
   extern __shared__ uint svalues[];
   T *sdata = (T*) &svalues[blockDim.x];
   T subsum;
- // T minimum;
+  // T minimum;
 
   // load shared mem
   unsigned int tid = threadIdx.x;
   unsigned int i = blockIdx.x * blockDim.x + threadIdx.x;
 
   svalues[tid] = values[i];
-  sdata[tid] = g_idata[i] - g_idata[blockIdx.x * blockDim.x + blockDim.x -1];
+  sdata[tid] = g_idata[i] - g_idata[blockIdx.x * blockDim.x + blockDim.x - 1];
 
   __syncthreads();
 
   reduce_krnl(sdata, blockDim.x, tid);
 
   __syncthreads();
- // get the sum per subap
+  // get the sum per subap
   if (tid == 0)
     subsum = (abs(sdata[tid]) > 1.e-6 ? sdata[tid] : 0.0f);
 
   __syncthreads();
 
 // Reload sdata
-  sdata[tid] = g_idata[i] - g_idata[blockIdx.x * blockDim.x + blockDim.x -1];
+  sdata[tid] = g_idata[i] - g_idata[blockIdx.x * blockDim.x + blockDim.x - 1];
 
   __syncthreads();
 
   // compute the centroid on the first part of the array
-    sdata[tid] *= ((svalues[tid] % n) + 1);
+  sdata[tid] *= ((svalues[tid] % n) + 1);
   // x centroid
-    __syncthreads();
+  __syncthreads();
   reduce_krnl(sdata, blockDim.x, tid);
   //__syncthreads();
   if (tid == 0)
-    g_odata[blockIdx.x] =(subsum != 0.0f ? ((sdata[tid] / subsum) - offset) * scale : 0.0f);
+    g_odata[blockIdx.x] = (
+        subsum != 0.0f ? ((sdata[tid] / subsum) - offset) * scale : 0.0f);
   __syncthreads();
-  sdata[tid] = g_idata[i] - g_idata[blockIdx.x * blockDim.x + blockDim.x -1];
+  sdata[tid] = g_idata[i] - g_idata[blockIdx.x * blockDim.x + blockDim.x - 1];
 
   __syncthreads();
 
   // compute the centroid on the first part of the array
-    sdata[tid] *= (svalues[tid] / n + 1);
+  sdata[tid] *= (svalues[tid] / n + 1);
   // y centroid
-    __syncthreads();
+  __syncthreads();
 
   reduce_krnl(sdata, blockDim.x, tid);
   //__syncthreads();
   if (tid == 0)
-    g_odata[blockIdx.x + nsub] = (subsum != 0.0f ? ((sdata[tid] / subsum) - offset) * scale : 0.0f);
+    g_odata[blockIdx.x + nsub] = (
+        subsum != 0.0f ? ((sdata[tid] / subsum) - offset) * scale : 0.0f);
 
 }
 template<class T>
@@ -510,11 +514,11 @@ __global__ void centroidx(T *g_idata, T *g_odata, T *alpha, unsigned int n,
   unsigned int x;
   int idim;
   sdata[tid] = 0;
-  for (int cc=0;cc < nelem_thread; cc++) {
-	x = ((tid * nelem_thread + cc) % n) + 1;
+  for (int cc = 0; cc < nelem_thread; cc++) {
+    x = ((tid * nelem_thread + cc) % n) + 1;
     idim = tid * nelem_thread + cc + (blockDim.x * nelem_thread) * blockIdx.x;
     if (idim < N)
-      sdata[tid] +=g_idata[idim]*x;
+      sdata[tid] += g_idata[idim] * x;
     else
       sdata[tid] += 0;
   }
@@ -543,13 +547,13 @@ __global__ void centroidy(T *g_idata, T *g_odata, T *alpha, unsigned int n,
   unsigned int y;
   int idim;
   sdata[tid] = 0;
-  for (int cc=0;cc < nelem_thread; cc++) {
-	  y = ((tid * nelem_thread + cc) / n) + 1;
-	  idim = tid * nelem_thread + cc + (blockDim.x * nelem_thread) * blockIdx.x;
-	  if (idim < N)
-		sdata[tid] +=g_idata[idim]*y;
-	  else
-		sdata[tid] += 0;
+  for (int cc = 0; cc < nelem_thread; cc++) {
+    y = ((tid * nelem_thread + cc) / n) + 1;
+    idim = tid * nelem_thread + cc + (blockDim.x * nelem_thread) * blockIdx.x;
+    if (idim < N)
+      sdata[tid] += g_idata[idim] * y;
+    else
+      sdata[tid] += 0;
   }
 
   //sdata[tid] = (i < N) ? g_idata[i] * y : 0;
@@ -645,7 +649,8 @@ get_centroids_async<float>(int threads, int blocks, int n,
 
 template<class T>
 __global__ void centroidx(T *g_idata, T *g_odata, T *alpha, T thresh,
-    unsigned int n, unsigned int N, T scale, T offset, unsigned int nelem_thread) {
+    unsigned int n, unsigned int N, T scale, T offset,
+    unsigned int nelem_thread) {
   T *sdata = SharedMemory<T>();
 
   // load shared mem
@@ -655,17 +660,17 @@ __global__ void centroidx(T *g_idata, T *g_odata, T *alpha, T thresh,
   unsigned int x;
   int idim;
   sdata[tid] = 0;
-  for (int cc=0;cc < nelem_thread; cc++) {
-	  x = ((tid * nelem_thread + cc) % n) + 1;
-	  idim = tid * nelem_thread + cc + (blockDim.x * nelem_thread) * blockIdx.x;
-	  if (idim < N)
-		  sdata[tid] += (g_idata[idim] > thresh) ? g_idata[idim] * x : 0;
-	  else
-		  sdata[tid] += 0;
+  for (int cc = 0; cc < nelem_thread; cc++) {
+    x = ((tid * nelem_thread + cc) % n) + 1;
+    idim = tid * nelem_thread + cc + (blockDim.x * nelem_thread) * blockIdx.x;
+    if (idim < N)
+      sdata[tid] += (g_idata[idim] > thresh) ? g_idata[idim] * x : 0;
+    else
+      sdata[tid] += 0;
   }
 
- // if (i < N)
- //   sdata[tid] = (g_idata[i] > thresh) ? g_idata[i] * x : 0;
+  // if (i < N)
+  //   sdata[tid] = (g_idata[i] > thresh) ? g_idata[i] * x : 0;
 
   __syncthreads();
 
@@ -679,7 +684,8 @@ __global__ void centroidx(T *g_idata, T *g_odata, T *alpha, T thresh,
 
 template<class T>
 __global__ void centroidy(T *g_idata, T *g_odata, T *alpha, T thresh,
-    unsigned int n, unsigned int N, T scale, T offset, unsigned int nelem_thread) {
+    unsigned int n, unsigned int N, T scale, T offset,
+    unsigned int nelem_thread) {
   T *sdata = SharedMemory<T>();
 
   // load shared mem
@@ -689,17 +695,17 @@ __global__ void centroidy(T *g_idata, T *g_odata, T *alpha, T thresh,
   unsigned int y;
   int idim;
   sdata[tid] = 0;
-  for (int cc=0;cc < nelem_thread; cc++) {
-	  y = ((tid * nelem_thread + cc) / n) + 1;
-	  idim = tid * nelem_thread + cc + (blockDim.x * nelem_thread) * blockIdx.x;
-	  if (idim < N)
-		  sdata[tid] += (g_idata[idim] > thresh) ? g_idata[idim] * y : 0;
-	  else
-		  sdata[tid] += 0;
+  for (int cc = 0; cc < nelem_thread; cc++) {
+    y = ((tid * nelem_thread + cc) / n) + 1;
+    idim = tid * nelem_thread + cc + (blockDim.x * nelem_thread) * blockIdx.x;
+    if (idim < N)
+      sdata[tid] += (g_idata[idim] > thresh) ? g_idata[idim] * y : 0;
+    else
+      sdata[tid] += 0;
   }
 
- // if (i < N)
- //   sdata[tid] = (g_idata[i] > thresh) ? g_idata[i] * y : 0;
+  // if (i < N)
+  //   sdata[tid] = (g_idata[i] > thresh) ? g_idata[i] * y : 0;
 
   __syncthreads();
 
@@ -713,27 +719,28 @@ __global__ void centroidy(T *g_idata, T *g_odata, T *alpha, T thresh,
 
 template<class T>
 __global__ void centroidx(T *g_idata, T *g_odata, T *alpha, T *weights,
-    unsigned int n, unsigned int N, T scale, T offset, unsigned int nelem_thread) {
+    unsigned int n, unsigned int N, T scale, T offset,
+    unsigned int nelem_thread) {
   T *sdata = SharedMemory<T>();
 
   // load shared mem
   unsigned int tid = threadIdx.x;
- // unsigned int i = blockIdx.x * blockDim.x + threadIdx.x;
- // unsigned int x = (tid % n) + 1;
+  // unsigned int i = blockIdx.x * blockDim.x + threadIdx.x;
+  // unsigned int x = (tid % n) + 1;
   unsigned int x;
   int idim;
   sdata[tid] = 0.0f;
-  for (int cc=0;cc < nelem_thread; cc++) {
-	  x = ((tid * nelem_thread + cc) % n) + 1;
-	  idim = tid * nelem_thread + cc + (blockDim.x * nelem_thread) * blockIdx.x;
-	  if (idim < N)
-		  sdata[tid] += g_idata[idim] * x * weights[idim];
-	  else
-		  sdata[tid] += 0.0f;
+  for (int cc = 0; cc < nelem_thread; cc++) {
+    x = ((tid * nelem_thread + cc) % n) + 1;
+    idim = tid * nelem_thread + cc + (blockDim.x * nelem_thread) * blockIdx.x;
+    if (idim < N)
+      sdata[tid] += g_idata[idim] * x * weights[idim];
+    else
+      sdata[tid] += 0.0f;
   }
   __syncthreads();
 
- // sdata[tid] = (i < N) ? g_idata[i] * x * weights[i] : 0;
+  // sdata[tid] = (i < N) ? g_idata[i] * x * weights[i] : 0;
 
   __syncthreads();
 
@@ -748,7 +755,8 @@ __global__ void centroidx(T *g_idata, T *g_odata, T *alpha, T *weights,
 
 template<class T>
 __global__ void centroidy(T *g_idata, T *g_odata, T *alpha, T *weights,
-    unsigned int n, unsigned int N, T scale, T offset, unsigned int nelem_thread) {
+    unsigned int n, unsigned int N, T scale, T offset,
+    unsigned int nelem_thread) {
   T *sdata = SharedMemory<T>();
 
   // load shared mem
@@ -758,13 +766,13 @@ __global__ void centroidy(T *g_idata, T *g_odata, T *alpha, T *weights,
   unsigned int y;
   int idim;
   sdata[tid] = 0.0f;
-  for (int cc=0;cc < nelem_thread; cc++) {
-	  y = ((tid * nelem_thread + cc) / n) + 1;
-	  idim = tid * nelem_thread + cc + (blockDim.x * nelem_thread) * blockIdx.x;
-	  if (idim < N)
-		  sdata[tid] += g_idata[idim] * y * weights[idim];
-	  else
-		  sdata[tid] += 0.0f;
+  for (int cc = 0; cc < nelem_thread; cc++) {
+    y = ((tid * nelem_thread + cc) / n) + 1;
+    idim = tid * nelem_thread + cc + (blockDim.x * nelem_thread) * blockIdx.x;
+    if (idim < N)
+      sdata[tid] += g_idata[idim] * y * weights[idim];
+    else
+      sdata[tid] += 0.0f;
   }
 
   //sdata[tid] = (i < N) ? g_idata[i] * y * weights[i] : 0;
@@ -988,8 +996,8 @@ __global__ void convert_krnl(float *odata, float *idata, float offset,
  
  */
 template<class T>
-void subap_bpcentro(int threads, int blocks, int npix, T *d_idata, unsigned int *values, T *d_odata,
-    T scale, T offset) {
+void subap_bpcentro(int threads, int blocks, int npix, T *d_idata,
+    unsigned int *values, T *d_odata, T scale, T offset) {
   dim3 dimBlock(threads, 1, 1);
   dim3 dimGrid(blocks, 1, 1);
 
@@ -997,16 +1005,17 @@ void subap_bpcentro(int threads, int blocks, int npix, T *d_idata, unsigned int 
   // worth of shared memory so that we don't index shared memory out of bounds
   int smemSize = threads * (sizeof(T) + sizeof(uint));
 
-  centroid_bpix<T> <<<dimGrid, dimBlock, smemSize>>>(blocks,npix,d_idata, values, d_odata, scale, offset);
+  centroid_bpix<T> <<<dimGrid, dimBlock, smemSize>>>(blocks, npix, d_idata,
+      values, d_odata, scale, offset);
 
   cutilCheckMsg("centroid_bpix<<<>>> execution failed\n");
 }
 template void
-subap_bpcentro<float>(int threads, int blocks, int npix, float *d_idata, unsigned int *values, float *d_odata,
-    float scale, float offset);
+subap_bpcentro<float>(int threads, int blocks, int npix, float *d_idata,
+    unsigned int *values, float *d_odata, float scale, float offset);
 template void
-subap_bpcentro<double>(int threads, int blocks, int npix, double *d_idata, unsigned int *values, double *d_odata,
-    double scale, double offset);
+subap_bpcentro<double>(int threads, int blocks, int npix, double *d_idata,
+    unsigned int *values, double *d_odata, double scale, double offset);
 
 template<class T>
 void subap_sortmax(int threads, int blocks, T *d_idata, T *d_odata,
@@ -1017,17 +1026,16 @@ void subap_sortmax(int threads, int blocks, T *d_idata, T *d_odata,
   // when there is only one warp per block, we need to allocate two warps 
   // worth of shared memory so that we don't index shared memory out of bounds
   size_t smemSize = threads * (sizeof(T) + sizeof(uint));
-  sortmax<T> <<<dimGrid, dimBlock, smemSize>>>(d_idata, d_odata, values,
-      nmax);
+  sortmax<T> <<<dimGrid, dimBlock, smemSize>>>(d_idata, d_odata, values, nmax);
 
   cutilCheckMsg("sortmax_kernel<<<>>> execution failed\n");
 }
 template void
-subap_sortmax<float>(int threads, int blocks, float *d_idata,
-    float *d_odata, unsigned int *values, int nmax);
+subap_sortmax<float>(int threads, int blocks, float *d_idata, float *d_odata,
+    unsigned int *values, int nmax);
 template void
-subap_sortmax<double>(int threads, int blocks, double *d_idata,
-    double *d_odata, unsigned int *values, int nmax);
+subap_sortmax<double>(int threads, int blocks, double *d_idata, double *d_odata,
+    unsigned int *values, int nmax);
 
 template<class T>
 void subap_centromax(int threads, int blocks, T *d_idata, T *d_odata, int npix,
@@ -1037,10 +1045,10 @@ void subap_centromax(int threads, int blocks, T *d_idata, T *d_odata, int npix,
 
   // when there is only one warp per block, we need to allocate two warps 
   // worth of shared memory so that we don't index shared memory out of bounds
-/*  int smemSize =
-      (threads <= 32) ?
-          2 * threads * (sizeof(T) + sizeof(uint)) :
-          threads * (sizeof(T) + sizeof(uint));*/
+  /*  int smemSize =
+   (threads <= 32) ?
+   2 * threads * (sizeof(T) + sizeof(uint)) :
+   threads * (sizeof(T) + sizeof(uint));*/
   int smemSize = 2 * threads * (sizeof(T) + sizeof(uint));
 
   centroid_max<T> <<<dimGrid, dimBlock, smemSize>>>(d_idata, d_odata, npix,
@@ -1056,42 +1064,41 @@ subap_centromax<double>(int threads, int blocks, double *d_idata,
     double *d_odata, int npix, int nmax, double scale, double offset);
 
 template<class T>
-void subap_centromax2(int threads, int blocks, T *d_idata, T *d_odata, T *d_minim, int npix,
-    int nmax, T scale, T offset) {
+void subap_centromax2(int threads, int blocks, T *d_idata, T *d_odata,
+    T *d_minim, int npix, int nmax, T scale, T offset) {
   dim3 dimBlock(threads, 1, 1);
   dim3 dimGrid(blocks, 1, 1);
 
   // when there is only one warp per block, we need to allocate two warps
   // worth of shared memory so that we don't index shared memory out of bounds
-/*  int smemSize =
-      (threads <= 32) ?
-          2 * threads * (sizeof(T) + sizeof(uint)) :
-          threads * (sizeof(T) + sizeof(uint));*/
+  /*  int smemSize =
+   (threads <= 32) ?
+   2 * threads * (sizeof(T) + sizeof(uint)) :
+   threads * (sizeof(T) + sizeof(uint));*/
   int smemSize = 2 * threads * (sizeof(T) + sizeof(uint));
 
-  centroid_max2<T> <<<dimGrid, dimBlock, smemSize>>>(d_idata, d_odata, d_minim, npix,
-      nmax, blocks, scale, offset);
+  centroid_max2<T> <<<dimGrid, dimBlock, smemSize>>>(d_idata, d_odata, d_minim,
+      npix, nmax, blocks, scale, offset);
 
   cutilCheckMsg("centroid_kernel<<<>>> execution failed\n");
 }
 template void
-subap_centromax2<float>(int threads, int blocks, float *d_idata, float *d_odata, float *d_minim,
-    int npix, int nmax, float scale, float offset);
+subap_centromax2<float>(int threads, int blocks, float *d_idata, float *d_odata,
+    float *d_minim, int npix, int nmax, float scale, float offset);
 template void
 subap_centromax2<double>(int threads, int blocks, double *d_idata,
-    double *d_odata, double *d_minim, int npix, int nmax, double scale, double offset);
+    double *d_odata, double *d_minim, int npix, int nmax, double scale,
+    double offset);
 
 template<class T>
 void get_centroids(int size, int threads, int blocks, int n, T *d_idata,
-    T *d_odata, T *alpha, T scale, T offset, int device) {
+    T *d_odata, T *alpha, T scale, T offset, carma_device *device) {
 
-	struct cudaDeviceProp deviceProperties;
-		cudaGetDeviceProperties(&deviceProperties, device);
-		int maxThreads = deviceProperties.maxThreadsPerBlock;
-		unsigned int nelem_thread = 1;
-		while((threads/nelem_thread > maxThreads) || (threads % nelem_thread != 0)){
-			nelem_thread++;
-		}
+  int maxThreads = device->get_properties().maxThreadsPerBlock;
+  unsigned int nelem_thread = 1;
+  while ((threads / nelem_thread > maxThreads) || (threads % nelem_thread != 0)) {
+    nelem_thread++;
+  }
 
   dim3 dimBlock(threads / nelem_thread, 1, 1);
   dim3 dimGrid(blocks, 1, 1);
@@ -1113,23 +1120,23 @@ void get_centroids(int size, int threads, int blocks, int n, T *d_idata,
 
 template void
 get_centroids<float>(int size, int threads, int blocks, int n, float *d_idata,
-    float *d_odata, float *alpha, float scale, float offset, int device);
+    float *d_odata, float *alpha, float scale, float offset,
+    carma_device *device);
 
 template void
 get_centroids<double>(int size, int threads, int blocks, int n, double *d_idata,
-    double *d_odata, double *alpha, double scale, double offset, int device);
+    double *d_odata, double *alpha, double scale, double offset,
+    carma_device *device);
 
 template<class T>
 void get_centroids(int size, int threads, int blocks, int n, T *d_idata,
-    T *d_odata, T *alpha, T thresh, T scale, T offset, int device) {
+    T *d_odata, T *alpha, T thresh, T scale, T offset, carma_device *device) {
 
-	struct cudaDeviceProp deviceProperties;
-	cudaGetDeviceProperties(&deviceProperties, device);
-	int maxThreads = deviceProperties.maxThreadsPerBlock;
-	unsigned int nelem_thread = 1;
-	while((threads/nelem_thread > maxThreads) || (threads % nelem_thread != 0)){
-		nelem_thread++;
-	}
+  int maxThreads = device->get_properties().maxThreadsPerBlock;
+  unsigned int nelem_thread = 1;
+  while ((threads / nelem_thread > maxThreads) || (threads % nelem_thread != 0)) {
+    nelem_thread++;
+  }
 
   dim3 dimBlock(threads / nelem_thread, 1, 1);
   dim3 dimGrid(blocks, 1, 1);
@@ -1151,23 +1158,23 @@ void get_centroids(int size, int threads, int blocks, int n, T *d_idata,
 
 template void
 get_centroids<float>(int size, int threads, int blocks, int n, float *d_idata,
-    float *d_odata, float *alpha, float thresh, float scale, float offset, int device);
+    float *d_odata, float *alpha, float thresh, float scale, float offset,
+    carma_device *device);
 
 template void
 get_centroids<double>(int size, int threads, int blocks, int n, double *d_idata,
-    double *d_odata, double *alpha, double thresh, double scale, double offset, int device);
+    double *d_odata, double *alpha, double thresh, double scale, double offset,
+    carma_device *device);
 
 template<class T>
 void get_centroids(int size, int threads, int blocks, int n, T *d_idata,
-    T *d_odata, T *alpha, T *weights, T scale, T offset, int device) {
+    T *d_odata, T *alpha, T *weights, T scale, T offset, carma_device *device) {
 
-	struct cudaDeviceProp deviceProperties;
-	cudaGetDeviceProperties(&deviceProperties, device);
-	int maxThreads = deviceProperties.maxThreadsPerBlock;
-	unsigned int nelem_thread = 1;
-	while((threads/nelem_thread > maxThreads) || (threads % nelem_thread != 0)){
-		nelem_thread++;
-	}
+  int maxThreads = device->get_properties().maxThreadsPerBlock;
+  unsigned int nelem_thread = 1;
+  while ((threads / nelem_thread > maxThreads) || (threads % nelem_thread != 0)) {
+    nelem_thread++;
+  }
 
   dim3 dimBlock(threads / nelem_thread, 1, 1);
   dim3 dimGrid(blocks, 1, 1);
@@ -1189,20 +1196,19 @@ void get_centroids(int size, int threads, int blocks, int n, T *d_idata,
 
 template void
 get_centroids<float>(int size, int threads, int blocks, int n, float *d_idata,
-    float *d_odata, float *alpha, float *weights, float scale, float offset, int device);
+    float *d_odata, float *alpha, float *weights, float scale, float offset,
+    carma_device *device);
 
 template void
 get_centroids<double>(int size, int threads, int blocks, int n, double *d_idata,
     double *d_odata, double *alpha, double *weights, double scale,
-    double offset, int device);
+    double offset, carma_device *device);
 
-int fillweights(float *d_out, float *d_in, int npix, int N, int device) {
+int fillweights(float *d_out, float *d_in, int npix, int N,
+    carma_device *device) {
 
-  struct cudaDeviceProp deviceProperties;
-  cudaGetDeviceProperties(&deviceProperties, device);
-
-  int maxThreads = deviceProperties.maxThreadsPerBlock;
-  int nBlocks = deviceProperties.multiProcessorCount * 8;
+  int maxThreads = device->get_properties().maxThreadsPerBlock;
+  int nBlocks = device->get_properties().multiProcessorCount * 8;
   int nThreads = (N + nBlocks - 1) / nBlocks;
 
   if (nThreads > maxThreads) {
@@ -1219,13 +1225,10 @@ int fillweights(float *d_out, float *d_in, int npix, int N, int device) {
 }
 
 int fillcorr(cuFloatComplex *d_out, float *d_in, int npix_in, int npix_out,
-    int N, int nvalid, int device) {
+    int N, int nvalid, carma_device *device) {
 
-  struct cudaDeviceProp deviceProperties;
-  cudaGetDeviceProperties(&deviceProperties, device);
-
-  int maxThreads = deviceProperties.maxThreadsPerBlock;
-  int nBlocks = deviceProperties.multiProcessorCount * 8;
+  int maxThreads = device->get_properties().maxThreadsPerBlock;
+  int nBlocks = device->get_properties().multiProcessorCount * 8;
   int nThreads = (N + nBlocks - 1) / nBlocks;
 
   if (nThreads > maxThreads) {
@@ -1251,13 +1254,10 @@ int fillcorr(cuFloatComplex *d_out, float *d_in, int npix_in, int npix_out,
 }
 
 int correl(cuFloatComplex *d_odata, cuFloatComplex *d_idata, int N,
-    int device) {
+    carma_device *device) {
 
-  struct cudaDeviceProp deviceProperties;
-  cudaGetDeviceProperties(&deviceProperties, device);
-
-  int maxThreads = deviceProperties.maxThreadsPerBlock;
-  int nBlocks = deviceProperties.multiProcessorCount * 8;
+  int maxThreads = device->get_properties().maxThreadsPerBlock;
+  int nBlocks = device->get_properties().multiProcessorCount * 8;
   int nThreads = (N + nBlocks - 1) / nBlocks;
 
   if (nThreads > maxThreads) {
@@ -1274,13 +1274,10 @@ int correl(cuFloatComplex *d_odata, cuFloatComplex *d_idata, int N,
 }
 
 int roll2real(float *d_odata, cuFloatComplex *d_idata, int n, int Npix, int N,
-    int device) {
+    carma_device *device) {
 
-  struct cudaDeviceProp deviceProperties;
-  cudaGetDeviceProperties(&deviceProperties, device);
-
-  int maxThreads = deviceProperties.maxThreadsPerBlock;
-  int nBlocks = deviceProperties.multiProcessorCount * 8;
+  int maxThreads = device->get_properties().maxThreadsPerBlock;
+  int nBlocks = device->get_properties().multiProcessorCount * 8;
   int nThreads = (N + nBlocks - 1) / nBlocks;
 
   if (nThreads > maxThreads) {
@@ -1296,13 +1293,11 @@ int roll2real(float *d_odata, cuFloatComplex *d_idata, int n, int Npix, int N,
   return EXIT_SUCCESS;
 }
 
-int corr_norm(float *d_odata, float *d_idata, int Npix, int N, int device) {
+int corr_norm(float *d_odata, float *d_idata, int Npix, int N,
+    carma_device *device) {
 
-  struct cudaDeviceProp deviceProperties;
-  cudaGetDeviceProperties(&deviceProperties, device);
-
-  int maxThreads = deviceProperties.maxThreadsPerBlock;
-  int nBlocks = deviceProperties.multiProcessorCount * 8;
+  int maxThreads = device->get_properties().maxThreadsPerBlock;
+  int nBlocks = device->get_properties().multiProcessorCount * 8;
   int nThreads = (N + nBlocks - 1) / nBlocks;
 
   if (nThreads > maxThreads) {
@@ -1319,13 +1314,10 @@ int corr_norm(float *d_odata, float *d_idata, int Npix, int N, int device) {
 }
 
 int fillval_corr(cuFloatComplex *d_out, float val, int npix_in, int npix_out,
-    int N, int device) {
+    int N, carma_device *device) {
 
-  struct cudaDeviceProp deviceProperties;
-  cudaGetDeviceProperties(&deviceProperties, device);
-
-  int maxThreads = deviceProperties.maxThreadsPerBlock;
-  int nBlocks = deviceProperties.multiProcessorCount * 8;
+  int maxThreads = device->get_properties().maxThreadsPerBlock;
+  int nBlocks = device->get_properties().multiProcessorCount * 8;
   int nThreads = (N + nBlocks - 1) / nBlocks;
 
   if (nThreads > maxThreads) {
@@ -1411,13 +1403,10 @@ subap_pinterp<float>(int threads, int blocks, float *d_idata, int *values,
  */
 
 int convert_centro(float *d_odata, float *d_idata, float offset, float scale,
-    int N, int device) {
+    int N, carma_device *device) {
 
-  struct cudaDeviceProp deviceProperties;
-  cudaGetDeviceProperties(&deviceProperties, device);
-
-  int maxThreads = deviceProperties.maxThreadsPerBlock;
-  int nBlocks = deviceProperties.multiProcessorCount * 8;
+  int maxThreads = device->get_properties().maxThreadsPerBlock;
+  int nBlocks = device->get_properties().multiProcessorCount * 8;
   int nThreads = (N + nBlocks - 1) / nBlocks;
 
   if (nThreads > maxThreads) {
@@ -1442,32 +1431,30 @@ __global__ void pyrslopes_krnl(T *g_odata, T *g_idata, int *subindx,
   if (i < nvalid) {
     int i2 = subindx[i] + subindy[i] * ns;
     /*
-    g_odata[i] = ((g_idata[i2 + ns * ns] + g_idata[i2 + 3 * ns * ns])
-        - (g_idata[i2] + g_idata[i2 + 2 * ns * ns])) / subsum[0];
-    g_odata[i + nvalid] = ((g_idata[i2 + 2 * ns * ns]
-        + g_idata[i2 + 3 * ns * ns]) - (g_idata[i2] + g_idata[i2 + ns * ns]))
-        / subsum[0];
-    */
+     g_odata[i] = ((g_idata[i2 + ns * ns] + g_idata[i2 + 3 * ns * ns])
+     - (g_idata[i2] + g_idata[i2 + 2 * ns * ns])) / subsum[0];
+     g_odata[i + nvalid] = ((g_idata[i2 + 2 * ns * ns]
+     + g_idata[i2 + 3 * ns * ns]) - (g_idata[i2] + g_idata[i2 + ns * ns]))
+     / subsum[0];
+     */
     g_odata[i] = ((g_idata[i2 + ns * ns] + g_idata[i2 + 3 * ns * ns])
         - (g_idata[i2] + g_idata[i2 + 2 * ns * ns])) / subsum[i];
     g_odata[i + nvalid] = ((g_idata[i2 + 2 * ns * ns]
         + g_idata[i2 + 3 * ns * ns]) - (g_idata[i2] + g_idata[i2 + ns * ns]))
         / subsum[i];
-    
+
   }
 }
 
 template<class T>
 void pyr_slopes(T *d_odata, T *d_idata, int *subindx, int *subindy, T *subsum,
-    int ns, int nvalid, int nim, int device) {
+    int ns, int nvalid, int nim, carma_device *device) {
   //cout << "hello cu" << endl;
-  struct cudaDeviceProp deviceProperties;
-  cudaGetDeviceProperties(&deviceProperties, device);
 
   int N = nvalid;
 
-  int maxThreads = deviceProperties.maxThreadsPerBlock;
-  int nBlocks = deviceProperties.multiProcessorCount * 8;
+  int maxThreads = device->get_properties().maxThreadsPerBlock;
+  int nBlocks = device->get_properties().multiProcessorCount * 8;
   int nThreads = (N + nBlocks - 1) / nBlocks;
 
   if (nThreads > maxThreads) {
@@ -1485,12 +1472,10 @@ void pyr_slopes(T *d_odata, T *d_idata, int *subindx, int *subindy, T *subsum,
 
 template void
 pyr_slopes<float>(float *d_odata, float *d_idata, int *subindx, int *subindy,
-    float *subsum, int ns, int nvalid, int nim, int device);
+    float *subsum, int ns, int nvalid, int nim, carma_device *device);
 template void
 pyr_slopes<double>(double *d_odata, double *d_idata, int *subindx, int *subindy,
-    double *subsum, int ns, int nvalid, int nim, int device);
-
-
+    double *subsum, int ns, int nvalid, int nim, carma_device *device);
 
 ////////////////////////////////////////////////////////////
 // ADDING PYR_SLOPES MODIFIED FOR ROOF-PRISM: ROOF_SLOPES //
@@ -1505,21 +1490,19 @@ __global__ void roofslopes_krnl(T *g_odata, T *g_idata, int *subindx,
   if (i < nvalid) {
     int i2 = subindx[i] + subindy[i] * ns;
     g_odata[i] = (g_idata[i2 + ns * ns] - g_idata[i2]) / subsum[i];
-    g_odata[i + nvalid] = (g_idata[i2 + 3 * ns * ns] - g_idata[i2 + 2 * ns * ns]) / subsum[i];
+    g_odata[i + nvalid] =
+        (g_idata[i2 + 3 * ns * ns] - g_idata[i2 + 2 * ns * ns]) / subsum[i];
   }
 }
 
 template<class T>
 void roof_slopes(T *d_odata, T *d_idata, int *subindx, int *subindy, T *subsum,
-    int ns, int nvalid, int nim, int device) {
+    int ns, int nvalid, int nim, carma_device *device) {
   //cout << "hello cu" << endl;
-  struct cudaDeviceProp deviceProperties;
-  cudaGetDeviceProperties(&deviceProperties, device);
-
   int N = nvalid;
 
-  int maxThreads = deviceProperties.maxThreadsPerBlock;
-  int nBlocks = deviceProperties.multiProcessorCount * 8;
+  int maxThreads = device->get_properties().maxThreadsPerBlock;
+  int nBlocks = device->get_properties().multiProcessorCount * 8;
   int nThreads = (N + nBlocks - 1) / nBlocks;
 
   if (nThreads > maxThreads) {
@@ -1537,10 +1520,11 @@ void roof_slopes(T *d_odata, T *d_idata, int *subindx, int *subindy, T *subsum,
 
 template void
 roof_slopes<float>(float *d_odata, float *d_idata, int *subindx, int *subindy,
-    float *subsum, int ns, int nvalid, int nim, int device);
+    float *subsum, int ns, int nvalid, int nim, carma_device *device);
 template void
-roof_slopes<double>(double *d_odata, double *d_idata, int *subindx, int *subindy,
-    double *subsum, int ns, int nvalid, int nim, int device);
+roof_slopes<double>(double *d_odata, double *d_idata, int *subindx,
+    int *subindy, double *subsum, int ns, int nvalid, int nim,
+    carma_device *device);
 
 ////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////

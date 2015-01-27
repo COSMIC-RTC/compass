@@ -9,13 +9,13 @@ sutra_rtc::sutra_rtc(carma_context *context) {
 sutra_rtc::~sutra_rtc() {
 
   //  for (size_t idx = 0; idx < (this->d_centro).size(); idx++) {
-  while( (this->d_centro).size()>0){
+  while ((this->d_centro).size() > 0) {
     delete this->d_centro.back();
     (this->d_centro).pop_back();
   }
 
 //  for (size_t idx = 0; idx < (this->d_control).size(); idx++) {
-  while( (this->d_control).size()>0){
+  while ((this->d_control).size() > 0) {
     delete this->d_control.back();
     (this->d_control).pop_back();
   }
@@ -56,10 +56,12 @@ int sutra_rtc::add_centroider(long nwfs, long nvalid, float offset, float scale,
   return EXIT_SUCCESS;
 }
 
-int sutra_rtc::add_controller_geo(int nactu, int Nphi, long delay, long device){
-	current_context->set_activeDevice(device);
-	this->d_control.push_back(new sutra_controller_geo(current_context, nactu, Nphi, delay));
-	return EXIT_SUCCESS;
+int sutra_rtc::add_controller_geo(int nactu, int Nphi, long delay,
+    long device) {
+  current_context->set_activeDevice(device);
+  this->d_control.push_back(
+      new sutra_controller_geo(current_context, nactu, Nphi, delay));
+  return EXIT_SUCCESS;
 }
 
 int sutra_rtc::add_controller(int nactu, long delay, long device,
@@ -79,7 +81,8 @@ int sutra_rtc::add_controller(int nactu, long delay, long device,
   } else if (type_ctr.compare("mv") == 0) {
     d_control.push_back(
         new sutra_controller_mv(current_context, ncentroids, nactu, delay));
-  } else if ( (type_ctr.compare("kalman_GPU") == 0) ||(type_ctr.compare("kalman_CPU") == 0)){
+  } else if ((type_ctr.compare("kalman_GPU") == 0)
+      || (type_ctr.compare("kalman_CPU") == 0)) {
     d_control.push_back(
         new sutra_controller_kalman(current_context, ncentroids, nactu));
   } else {
@@ -92,7 +95,7 @@ int sutra_rtc::add_controller(int nactu, long delay, long device,
 int sutra_rtc::rm_controller() {
 
   //for (size_t idx = 0; idx < (this->d_control).size(); idx++) {
-  while((this->d_control).size()>0){
+  while ((this->d_control).size() > 0) {
     delete this->d_control.back();
     d_control.pop_back();
   }
@@ -119,8 +122,8 @@ int sutra_rtc::do_imat(int ncntrl, sutra_sensors *sensors, sutra_dms *ydm) {
   cout << "starting imat measurement" << endl;
   while (p != ydm->d_dms.end()) {
     for (int j = 0; j < p->second->ninflu; j++) {
-    	// Push
-        p->second->comp_oneactu(j, p->second->push4imat);
+      // Push
+      p->second->comp_oneactu(j, p->second->push4imat);
       for (size_t idx_cntr = 0; idx_cntr < (this->d_centro).size();
           idx_cntr++) {
         int nwfs = this->d_centro[idx_cntr]->nwfs;
@@ -133,20 +136,20 @@ int sutra_rtc::do_imat(int ncntrl, sutra_sensors *sensors, sutra_dms *ydm) {
         sensors->d_wfs[nwfs]->kernconv = false;
       }
       //cout << "actu # " << j << endl;
-     do_centroids(ncntrl, sensors, true);
+      do_centroids(ncntrl, sensors, true);
 
+      int device = this->d_control[ncntrl]->d_centroids->getDevice();
       convert_centro(*this->d_control[ncntrl]->d_centroids,
           *this->d_control[ncntrl]->d_centroids, 0, 0.5f / p->second->push4imat,
           this->d_control[ncntrl]->d_centroids->getNbElem(),
-          this->d_control[ncntrl]->d_centroids->getDevice());
+          current_context->get_device(device));
 
       this->d_control[ncntrl]->d_centroids->copyInto((*d_imat)[inds1],
           this->d_control[ncntrl]->nslope());
 
-
-     p->second->reset_shape();
-     // Pull
-      p->second->comp_oneactu(j, -1.0f*p->second->push4imat);
+      p->second->reset_shape();
+      // Pull
+      p->second->comp_oneactu(j, -1.0f * p->second->push4imat);
       for (size_t idx_cntr = 0; idx_cntr < (this->d_centro).size();
           idx_cntr++) {
         int nwfs = this->d_centro[idx_cntr]->nwfs;
@@ -158,22 +161,21 @@ int sutra_rtc::do_imat(int ncntrl, sutra_sensors *sensors, sutra_dms *ydm) {
         sensors->d_wfs[nwfs]->noise = tmp_noise;
         sensors->d_wfs[nwfs]->kernconv = false;
       }
-
+      device = this->d_control[ncntrl]->d_centroids->getDevice();
       do_centroids(ncntrl, sensors, true);
+      convert_centro(*this->d_control[ncntrl]->d_centroids,
+          *this->d_control[ncntrl]->d_centroids, 0, 0.5f / p->second->push4imat,
+          this->d_control[ncntrl]->d_centroids->getNbElem(),
+          current_context->get_device(device));
 
-         convert_centro(*this->d_control[ncntrl]->d_centroids,
-             *this->d_control[ncntrl]->d_centroids, 0, 0.5f / p->second->push4imat,
-             this->d_control[ncntrl]->d_centroids->getNbElem(),
-             this->d_control[ncntrl]->d_centroids->getDevice());
+      float alphai = -1.0f;
+      cublasSaxpy(current_context->get_cublasHandle(),
+          this->d_control[ncntrl]->d_centroids->getNbElem(), &alphai,
+          this->d_control[ncntrl]->d_centroids->getData(), 1, (*d_imat)[inds1],
+          1);
 
-         float alphai = -1.0f;
-         cublasSaxpy(current_context->get_cublasHandle(),
-        		 this->d_control[ncntrl]->d_centroids->getNbElem(), &alphai,
-        		 this->d_control[ncntrl]->d_centroids->getData(),1,
-        		 (*d_imat)[inds1],1);
-
-         p->second->reset_shape();
-     inds1 += this->d_control[ncntrl]->nslope();
+      p->second->reset_shape();
+      inds1 += this->d_control[ncntrl]->nslope();
     }
     p++;
   }
@@ -250,11 +252,12 @@ int sutra_rtc::do_centroids_geom(int ncntrl, sutra_sensors *sensors) {
   for (size_t idx_cntr = 0; idx_cntr < (this->d_centro).size(); idx_cntr++) {
 
     int nwfs = this->d_centro[idx_cntr]->nwfs;
-    sensors->d_wfs[nwfs]->slopes_geom(0, (*this->d_control[ncntrl]->d_centroids)[inds2]);
-    /*
-    this->d_centro[idx_cntr]->get_cog(sensors->d_wfs[nwfs],
+    sensors->d_wfs[nwfs]->slopes_geom(0,
         (*this->d_control[ncntrl]->d_centroids)[inds2]);
-    */
+    /*
+     this->d_centro[idx_cntr]->get_cog(sensors->d_wfs[nwfs],
+     (*this->d_control[ncntrl]->d_centroids)[inds2]);
+     */
     inds2 += 2 * sensors->d_wfs[nwfs]->nvalid;
   }
 
@@ -268,9 +271,9 @@ int sutra_rtc::do_control(int ncntrl, sutra_dms *ydm) {
   map<type_screen, sutra_dm *>::iterator p;
   p = ydm->d_dms.begin();
   int idx = 0;
-  if ( (this->d_control[ncntrl]->get_type().compare("ls") == 0) ||
-       (this->d_control[ncntrl]->get_type().compare("mv") == 0) ||
-       (this->d_control[ncntrl]->get_type().compare("geo") == 0)) {
+  if ((this->d_control[ncntrl]->get_type().compare("ls") == 0)
+      || (this->d_control[ncntrl]->get_type().compare("mv") == 0)
+      || (this->d_control[ncntrl]->get_type().compare("geo") == 0)) {
     // "streamed" controllers case
 
     while (p != ydm->d_dms.end()) {
@@ -282,7 +285,8 @@ int sutra_rtc::do_control(int ncntrl, sutra_dms *ydm) {
               cudaMemcpyAsync((*p->second->d_comm)[istart],
                   (*this->d_control[ncntrl]->d_com)[idx + istart],
                   sizeof(float) * p->second->ninflu / nstreams,
-                  cudaMemcpyDeviceToDevice, (*this->d_control[ncntrl]->streams)[i]));
+                  cudaMemcpyDeviceToDevice,
+                  (*this->d_control[ncntrl]->streams)[i]));
           p->second->comp_shape();
         }
       } else {
@@ -296,7 +300,7 @@ int sutra_rtc::do_control(int ncntrl, sutra_dms *ydm) {
       p->second->comp_shape((*this->d_control[ncntrl]->d_com)[idx]);
       idx += p->second->ninflu;
       p++;
-   }
+    }
   }
 
   return EXIT_SUCCESS;

@@ -155,38 +155,38 @@ public:
 int
 fillcamplipup(cuFloatComplex *amplipup, float *phase, float *offset,
     float *mask, float scale, int *istart, int *jstart, int *ivalid,
-    int *jvalid, int nphase, int npup, int Nfft, int Ntot, int device);
+    int *jvalid, int nphase, int npup, int Nfft, int Ntot, carma_device *device);
 int
 indexfill(cuFloatComplex *d_odata, cuFloatComplex *d_idata, int *indx, int nx,
-    int Nx, int N, int device);
+    int Nx, int N, carma_device *device);
 int
 fillbincube(float *bcube, cuFloatComplex *hrimage, int *indxpix, int Nfft,
-    int Npix, int Nrebin, int Nsub, int device);
+    int Npix, int Nrebin, int Nsub, carma_device *device);
 int
 fillbincube_async(carma_streams *streams, float *bcube, cuFloatComplex *hrimage,
-    int *indxpix, int Nfft, int Npix, int Nrebin, int Nsub, int device);
+    int *indxpix, int Nfft, int Npix, int Nrebin, int Nsub, carma_device *device);
 int
 fillbinimg(float *bimage, float *bcube, int npix, int nsub, int Nsub,
-    int *ivalid, int *jvalid, bool add, int device);
+    int *ivalid, int *jvalid, bool add, carma_device *device);
 int
 fillbinimg_async(carma_streams *streams, carma_obj<float> *bimage,
     carma_obj<float> *bcube, int npix, int nsub, int Nsub, int *ivalid,
-    int *jvalid, bool add, int device);
+    int *jvalid, bool add, carma_device *device);
 int
 fillbinimg_async(carma_host_obj<float> *image_telemetry, float *bimage,
     float *bcube, int npix, int nsub, int Nsub, int *ivalid, int *jvalid,
-    int nim, bool add, int device);
+    int nim, bool add, carma_device *device);
 int
-convolve(cuFloatComplex *d_odata, cuFloatComplex *d_idata, int N, int device);
+convolve(cuFloatComplex *d_odata, cuFloatComplex *d_idata, int N, carma_device *device);
 int
 convolve_cube(cuFloatComplex *d_odata, cuFloatComplex *d_idata, int N, int n,
-    int device);
+    carma_device *device);
 
 // CUDA templates
 // this is for cog
 template<class T>
 void
-subap_reduce(int size, int threads, int blocks, T *d_idata, T *d_odata, int device);
+subap_reduce(int size, int threads, int blocks, T *d_idata, T *d_odata, carma_device *device);
 template<class T>
 void
 subap_reduce_async(int threads, int blocks, carma_streams *streams, T *d_idata,
@@ -195,12 +195,12 @@ subap_reduce_async(int threads, int blocks, carma_streams *streams, T *d_idata,
 template<class T>
 void
 subap_reduce(int size, int threads, int blocks, T *d_idata, T *d_odata,
-    T thresh, int device);
+    T thresh, carma_device *device);
 // this is for wcog
 template<class T>
 void
 subap_reduce(int size, int threads, int blocks, T *d_idata, T *d_odata,
-    T *weights, int device);
+    T *weights, carma_device *device);
 template<class T>
 void
 phase_reduce(int threads, int blocks, T *d_idata, T *d_odata, int *indx,
@@ -212,53 +212,53 @@ phase_derive(int size, int threads, int blocks, int n, T *d_idata, T *d_odata,
 template<class Tout, class Tin>
 void
 pyr_getpup(Tout *d_odata, Tin *d_idata, Tout *d_offsets, Tin *d_pup, int np,
-    int device);
+    carma_device *device);
 template<class T>
 void
 pyr_rollmod(T *d_odata, T *d_idata, T *d_mask, float cx, float cy, int np,
-    int ns, int device);
+    int ns, carma_device *device);
 template<class T>
 void
 pyr_fillbin(T *d_odata, T *d_idata, int nrebin, int np, int ns, int nim,
-    int device);
+    carma_device *device);
 template<class Tin, class Tout>
 void
-pyr_abs2(Tout *d_odata, Tin *d_idata, Tout fact, int ns, int nim, int device);
+pyr_abs2(Tout *d_odata, Tin *d_idata, Tout fact, int ns, int nim, carma_device *device);
 template<class Tout, class Tin>
 void
-pyr_submask(Tout *d_odata, Tin *d_mask, int n, int device);
+pyr_submask(Tout *d_odata, Tin *d_mask, int n, carma_device *device);
 template<class Tout, class Tin>
 void
-pyr_abs(Tout *d_odata, Tin *d_idata, int ns, int nim, int device);
+pyr_abs(Tout *d_odata, Tin *d_idata, int ns, int nim, carma_device *device);
 template<class Tout, class Tin>
 void
-pyr_submask3d(Tout *d_odata, Tin *d_mask, int n, int nim, int device);
+pyr_submask3d(Tout *d_odata, Tin *d_mask, int n, int nim, carma_device *device);
 template<class T>
 void
 pyr_subsum(T *d_odata, T *d_idata, int *subindx, int *subindy, int ns,
-    int nvalid, int nim, int device);
+    int nvalid, int nim, carma_device *device);
 template<class T>
 void
-pyr_fact(T *d_data, T fact, int n, int nim, int device);
+pyr_fact(T *d_data, T fact, int n, int nim, carma_device *device);
 void
-pyr_fact(cuFloatComplex *d_data, float fact, int n, int nim, int device);
+pyr_fact(cuFloatComplex *d_data, float fact, int n, int nim, carma_device *device);
 void
-pyr_fact(float *d_data, float fact1, float *fact2, int n, int nim, int device);
+pyr_fact(float *d_data, float fact1, float *fact2, int n, int nim, carma_device *device);
 
 template<class Tin, class Tout>
 void 
-roof_abs2(Tout *d_odata, Tin *d_idata, Tout fact, int ns, int nim, int device); 
+roof_abs2(Tout *d_odata, Tin *d_idata, Tout fact, int ns, int nim, carma_device *device);
 
 template<class T>
 void
-roof_subsum(T *d_odata, T *d_idata, int *subindx, int *subindy, int ns, int nvalid, int nim, int device);
+roof_subsum(T *d_odata, T *d_idata, int *subindx, int *subindy, int ns, int nvalid, int nim, carma_device *device);
 
 template<class T>
 void 
-roof_rollmod(T *d_odata, T *d_idata, T *d_mask, float cx, float cy, int np, int ns, int device);
+roof_rollmod(T *d_odata, T *d_idata, T *d_mask, float cx, float cy, int np, int ns, carma_device *device);
 
 template<class T>
 void
-roof_fillbin(T *d_odata, T *d_idata, int nrebin, int np, int ns, int nim, int device);
+roof_fillbin(T *d_odata, T *d_idata, int nrebin, int np, int ns, int nim, carma_device *device);
 
 #endif // _SUTRA_WFS_H_

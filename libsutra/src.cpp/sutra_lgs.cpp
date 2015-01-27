@@ -124,7 +124,7 @@ int sutra_lgs::load_prof(float *prof1d, float *profcum, float hg, float h0,
   return EXIT_SUCCESS;
 }
 
-int sutra_lgs::lgs_update(int device) {
+int sutra_lgs::lgs_update(carma_device *device) {
   interp_prof(this->d_prof2d->getData(), this->d_prof1d->getData(),
       this->d_profcum->getData(), this->npix, this->d_doffaxis->getData(),
       this->hg, this->pixsize, this->h0, this->deltah, this->nprof,
@@ -146,7 +146,7 @@ int sutra_lgs::lgs_update(int device) {
   return EXIT_SUCCESS;
 }
 
-int sutra_lgs::lgs_makespot(int device, int nin) {
+int sutra_lgs::lgs_makespot(carma_device *device, int nin) {
   cutilSafeCall(
       cudaMemset(this->d_lgskern->getData(), 0,
           sizeof(float) * this->d_lgskern->getNbElem()));
@@ -175,7 +175,7 @@ int sutra_lgs::lgs_makespot(int device, int nin) {
   return EXIT_SUCCESS;
 }
 
-int sutra_lgs::load_kernels(float *lgskern, int device) {
+int sutra_lgs::load_kernels(float *lgskern, carma_device *device) {
   this->d_lgskern->host2device(lgskern);
   cfillrealp(this->d_ftlgskern->getData(), this->d_lgskern->getData(),
       this->d_ftlgskern->getNbElem(), device);

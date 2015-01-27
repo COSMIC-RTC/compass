@@ -213,7 +213,7 @@ int sutra_controller_ls::frame_delay() {
   if (delay > 0) {
     for (int cc = 0; cc < delay; cc++)
       shift_buf(&((this->d_cenbuff->getData())[cc * this->nslope()]), 1,
-          this->nslope(), this->device);
+          this->nslope(), this->current_context->get_device(device));
 
     cutilSafeCall(
         cudaMemcpy(&(this->d_cenbuff->getData()[delay * this->nslope()]),
@@ -277,7 +277,7 @@ int sutra_controller_ls::comp_com() {
     }
 
     mult_int(this->d_com->getData(), this->d_err->getData(),
-        this->d_gain->getData(), this->gain, this->nactu(), this->device,
+        this->d_gain->getData(), this->gain, this->nactu(), this->current_context->get_device(device),
         this->streams);
 
     this->streams->wait_all_streams();
@@ -290,10 +290,10 @@ int sutra_controller_ls::comp_com() {
     // apply modal gain & loop gain
     if(this->is_modopti)
       mult_int(this->d_com->getData(), this->d_err->getData(),
-        this->gain, this->nactu(), this->device);
+        this->gain, this->nactu(), this->current_context->get_device(device));
     else
       mult_int(this->d_com->getData(), this->d_err->getData(),
-        this->d_gain->getData(), this->gain, this->nactu(), this->device);
+        this->d_gain->getData(), this->gain, this->nactu(), this->current_context->get_device(device));
   }
 
   return EXIT_SUCCESS;
@@ -399,7 +399,7 @@ int sutra_controller_ls::modalControlOptimization(){
   carma_initfft<float,cuFloatComplex>(dims_data,d_modes.getPlan(),CUFFT_R2C);
   for(int i=0; i < this->nmodes ; i++){
     carma_fft<float,cuFloatComplex>(d_modes.getData(i*this->nrec),d_FFT.getData(),1,*d_modes.getPlan());
-    absnormfft(d_FFT.getData(),d_fftmodes.getData(),this->nrec/2,2.0f/(float)this->nrec,this->device);
+    absnormfft(d_FFT.getData(),d_fftmodes.getData(),this->nrec/2,2.0f/(float)this->nrec,this->current_context->get_device(device));
     carma_gemv(cublas_handle(),'n',this->ngain,this->nrec/2,1.0f,
     		this->d_Hcor->getData(),this->ngain,
     		d_fftmodes.getData(),1,0.0f, d_phaseError.getData(),1);
@@ -428,7 +428,7 @@ int sutra_controller_ls::compute_Hcor(){
 	long dims_data[3] = {2,this->ngain,this->nrec/2};
 	this->d_Hcor = new carma_obj<float>(current_context,dims_data);
 
-	compute_Hcor_gpu(this->d_Hcor->getData(),this->ngain,this->nrec/2,this->Fs,this->gmin,this->gmax,this->delay,this->device);
+	compute_Hcor_gpu(this->d_Hcor->getData(),this->ngain,this->nrec/2,this->Fs,this->gmin,this->gmax,this->delay,this->current_context->get_device(device));
 
 	return EXIT_SUCCESS;
 }

@@ -133,7 +133,7 @@ int sutra_dm::comp_shape(float *comvec) {
   this->reset_shape();
 
   int nthreads = 0, nblocks = 0;
-  getNumBlocksAndThreads(this->device, this->d_shape->d_screen->getNbElem(),
+  getNumBlocksAndThreads(current_context->get_device(device), this->d_shape->d_screen->getNbElem(),
       nblocks, nthreads);
 
   if (this->type == "pzt")
@@ -167,7 +167,7 @@ int sutra_dm::comp_oneactu(int nactu, float ampli) {
   this->reset_shape();
   int nthreads = 0, nblocks = 0;
   //getNumBlocksAndThreads(this->device,this->dim * this->dim, nblocks, nthreads);
-  getNumBlocksAndThreads(this->device, this->influsize * this->influsize,
+  getNumBlocksAndThreads(current_context->get_device(device), this->influsize * this->influsize,
       nblocks, nthreads);
   if (this->type == "pzt")
     oneactu(nthreads, nblocks, this->d_influ->getData(),
@@ -194,7 +194,7 @@ sutra_dm::get_IF(float *IF, int *indx_pup, long nb_pts, float ampli){
 
 	for (int i=0 ; i<this->ninflu ; i++){
 		this->comp_oneactu(i,ampli);
-		getIF(IF,this->d_shape->d_screen->getData(),indx_pup,nb_pts,i,this->ninflu,device);
+		getIF(IF,this->d_shape->d_screen->getData(),indx_pup,nb_pts,i,this->ninflu,current_context->get_device(device));
 	}
 
 	this->reset_shape();
@@ -217,7 +217,7 @@ sutra_dm::get_IF_sparse(carma_sparse_obj<float> *&d_IFsparse, int *indx_pup, lon
 	for(int i=0 ; i<this->ninflu ; i++){
 		//Compute and store IF for actu i in d_IF
 		this->comp_oneactu(i,ampli);
-		getIF(d_IF.getData(),this->d_shape->d_screen->getData(),indx_pup,nb_pts,0,this->ninflu,this->device);
+		getIF(d_IF.getData(),this->d_shape->d_screen->getData(),indx_pup,nb_pts,0,this->ninflu,this->current_context->get_device(device));
 		//CUsparse d_IF
 		d_IFsparse_vec = new carma_sparse_obj<float>(&d_IF);
 		// Retrieve nnz, values and colind from d_IFsparse_vec, stored on CPU
@@ -285,7 +285,7 @@ sutra_dm::compute_KLbasis(float *xpos, float *ypos, int *indx, long dim, float n
 
 	d_xpos->host2device(xpos);
 	d_ypos->host2device(ypos);
-	dm_dostatmat(d_statcov->getData(), this->ninflu,d_xpos->getData(), d_ypos->getData(), norm, device);
+	dm_dostatmat(d_statcov->getData(), this->ninflu,d_xpos->getData(), d_ypos->getData(), norm, current_context->get_device(device));
 	// Compute and apply piston filter
 
 	this->piston_filt(d_statcov);
@@ -330,7 +330,7 @@ sutra_dm::do_geomatFromSparse(float *d_geocov, carma_sparse_obj<float> *d_IFspar
 
 	carma_gemm<float>(cusparse_handle(),'n','t',d_IFsparse,d_IFsparse,d_tmp);
 	carma_csr2dense<float>(d_tmp, d_geocov);
-	multi_vect(d_geocov,ampli,this->ninflu*this->ninflu,this->device);
+	multi_vect(d_geocov,ampli,this->ninflu*this->ninflu,this->current_context->get_device(device));
 
 	delete d_tmp;
 	return EXIT_SUCCESS;
@@ -340,7 +340,7 @@ sutra_dm::do_geomat(float *d_geocov, float *d_IF, long n_pts, float ampli){
 	carma_gemm(cublas_handle(), 't', 'n', this->ninflu, this->ninflu, n_pts, 1.0f,
 	      d_IF, n_pts, d_IF, n_pts, 0.0f,
 	      d_geocov, this->ninflu);
-	multi_vect(d_geocov,ampli,this->ninflu*this->ninflu,this->device);
+	multi_vect(d_geocov,ampli,this->ninflu*this->ninflu,this->current_context->get_device(device));
 
 	return EXIT_SUCCESS;
 }
@@ -356,7 +356,7 @@ sutra_dm::piston_filt(carma_obj <float> *d_statcov){
 	carma_obj<float> *d_tmp = new carma_obj<float>(current_context, dims_data);
 
 	int N = d_statcov->getDims()[1] * d_statcov->getDims()[1];
-	fill_filtermat(d_F->getData(),Nmod, N, device);
+	fill_filtermat(d_F->getData(),Nmod, N, current_context->get_device(device));
 
 	carma_gemm(cublas_handle(), 'n', 'n', Nmod, Nmod, Nmod, 1.0f,
 			  d_F->getData(), Nmod, d_statcov->getData(), Nmod, 0.0f,

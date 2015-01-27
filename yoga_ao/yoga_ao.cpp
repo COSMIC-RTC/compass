@@ -1270,8 +1270,8 @@ void Y_sensors_initlgs(int argc) {
   sensors_handler->d_wfs.at(nsensor)->d_gs->d_lgs->lgs_init(nprof, hg, h0,
       deltah, pixsize, doffaxis, prof1d, profcum, beam,
       (cuFloatComplex *) ftbeam, azimuth);
-  sensors_handler->d_wfs.at(nsensor)->d_gs->d_lgs->lgs_update(handler->device);
-  sensors_handler->d_wfs.at(nsensor)->d_gs->d_lgs->lgs_makespot(handler->device,
+  sensors_handler->d_wfs.at(nsensor)->d_gs->d_lgs->lgs_update(context_handle->get_device(handler->device));
+  sensors_handler->d_wfs.at(nsensor)->d_gs->d_lgs->lgs_makespot(context_handle->get_device(handler->device),
       0);
 }
 
@@ -1294,8 +1294,8 @@ void Y_sensors_updatelgsprof(int argc) {
 
   sensors_handler->d_wfs.at(nsensor)->d_gs->d_lgs->load_prof(prof1d, profcum,
       hg, h0, deltah);
-  sensors_handler->d_wfs.at(nsensor)->d_gs->d_lgs->lgs_update(handler->device);
-  sensors_handler->d_wfs.at(nsensor)->d_gs->d_lgs->lgs_makespot(handler->device,
+  sensors_handler->d_wfs.at(nsensor)->d_gs->d_lgs->lgs_update(context_handle->get_device(handler->device));
+  sensors_handler->d_wfs.at(nsensor)->d_gs->d_lgs->lgs_makespot(context_handle->get_device(handler->device),
       0);
 }
 
@@ -1308,8 +1308,8 @@ void Y_sensors_updatelgs(int argc) {
 
   int nsensor = ygets_i(argc - 2);
 
-  sensors_handler->d_wfs.at(nsensor)->d_gs->d_lgs->lgs_update(handler->device);
-  sensors_handler->d_wfs.at(nsensor)->d_gs->d_lgs->lgs_makespot(handler->device,
+  sensors_handler->d_wfs.at(nsensor)->d_gs->d_lgs->lgs_update(context_handle->get_device(handler->device));
+  sensors_handler->d_wfs.at(nsensor)->d_gs->d_lgs->lgs_makespot(context_handle->get_device(handler->device),
       0);
 }
 

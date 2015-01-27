@@ -101,8 +101,8 @@ int
 sutra_controller_geo::comp_dphi(sutra_source *target){
 
 	// Get the target phase in the pupil
-	get_pupphase(this->d_phi->getData(),target->d_phase->d_screen->getData(), this->d_indx_pup->getData(), this->Nphi, this->device);
-	remove_avg(this->d_phi->getData(), this->d_phi->getNbElem(), this->device);
+	get_pupphase(this->d_phi->getData(),target->d_phase->d_screen->getData(), this->d_indx_pup->getData(), this->Nphi, this->current_context->get_device(device));
+	remove_avg(this->d_phi->getData(), this->d_phi->getNbElem(), current_context->get_device(device));
 
 	return EXIT_SUCCESS;
 }

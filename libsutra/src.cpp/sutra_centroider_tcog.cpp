@@ -37,10 +37,10 @@ int sutra_centroider_tcog::set_threshold(float threshold) {
 int sutra_centroider_tcog::get_cog(carma_streams *streams, float *cube,
     float *subsum, float *centroids, int nvalid, int npix, int ntot) {
   //TODO: Implement sutra_centroider_tcog::get_cog_async
-  subap_reduce(ntot, npix * npix, nvalid, cube, subsum, this->threshold, this->device);
+  subap_reduce(ntot, npix * npix, nvalid, cube, subsum, this->threshold, this->current_context->get_device(device));
 
   get_centroids(ntot, npix * npix, nvalid, npix, cube, centroids, subsum,
-      this->threshold, this->scale, this->offset, this->device);
+      this->threshold, this->scale, this->offset, this->current_context->get_device(device));
 
   return EXIT_SUCCESS;
 }

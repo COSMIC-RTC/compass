@@ -29,7 +29,7 @@ __global__ void find_nnz_krnl(T_data *d_data, int *colind, int *d_nnz, int N) {
 }
 template <class T_data>
 int
-find_nnz(T_data *d_data, int *colind, int N, int *d_nnz, int &h_nnz, int device) {
+find_nnz(T_data *d_data, int *colind, int N, int *d_nnz, int &h_nnz, carma_device *device) {
 	int nthreads = 0, nblocks = 0;
 	getNumBlocksAndThreads(device, N, nblocks, nthreads);
 	dim3 grid(nblocks), threads(nthreads);
@@ -49,9 +49,9 @@ find_nnz(T_data *d_data, int *colind, int N, int *d_nnz, int &h_nnz, int device)
 }
 
 template
-int find_nnz<float>(float *d_data, int *colind,int N, int *d_nnz, int &h_nnz, int device);
+int find_nnz<float>(float *d_data, int *colind,int N, int *d_nnz, int &h_nnz, carma_device *device);
 template
-int find_nnz<double>(double *d_data, int *colind, int N, int *d_nnz, int &h_nnz, int device);
+int find_nnz<double>(double *d_data, int *colind, int N, int *d_nnz, int &h_nnz, carma_device *device);
 
 
 
@@ -72,7 +72,7 @@ __global__ void fill_sparse_vect_krnl(T_data *dense_data, int *colind_sorted, T_
 }
 template <class T_data>
 int
-fill_sparse_vect(T_data *dense_data, int *colind_sorted, T_data *values, int *colind, int *rowind, int nnz, int device) {
+fill_sparse_vect(T_data *dense_data, int *colind_sorted, T_data *values, int *colind, int *rowind, int nnz, carma_device *device) {
 	int nthreads = 0, nblocks = 0;
 	getNumBlocksAndThreads(device, nnz, nblocks, nthreads);
 	dim3 grid(nblocks), threads(nthreads);
@@ -83,8 +83,8 @@ fill_sparse_vect(T_data *dense_data, int *colind_sorted, T_data *values, int *co
 }
 template
 int
-fill_sparse_vect<float>(float *dense_data, int *colind_sorted, float *values, int *colind, int *rowind, int nnz, int device);
+fill_sparse_vect<float>(float *dense_data, int *colind_sorted, float *values, int *colind, int *rowind, int nnz, carma_device *device);
 template
 int
-fill_sparse_vect<double>(double *dense_data, int *colind_sorted, double *values, int *colind, int *rowind, int nnz, int device);
+fill_sparse_vect<double>(double *dense_data, int *colind_sorted, double *values, int *colind, int *rowind, int nnz, carma_device *device);
 

@@ -206,13 +206,10 @@ absnormfft_krnl(cuFloatComplex *idata, float *odata, int N, float norm){
  
  */
 
-int shift_buf(float *d_data, int offset, int N, int device) {
+int shift_buf(float *d_data, int offset, int N, carma_device *device) {
 
-  struct cudaDeviceProp deviceProperties;
-  cudaGetDeviceProperties(&deviceProperties, device);
-
-  int maxThreads = deviceProperties.maxThreadsPerBlock;
-  int nBlocks = deviceProperties.multiProcessorCount * 8;
+  int maxThreads = device->get_properties().maxThreadsPerBlock;
+  int nBlocks = device->get_properties().multiProcessorCount * 8;
   int nThreads = (N + nBlocks - 1) / nBlocks;
 
   if (nThreads > maxThreads) {
@@ -228,13 +225,9 @@ int shift_buf(float *d_data, int offset, int N, int device) {
   return EXIT_SUCCESS;
 }
 
-int mult_vect(float *d_data, float *scale, int N, int device) {
-
-  struct cudaDeviceProp deviceProperties;
-  cudaGetDeviceProperties(&deviceProperties, device);
-
-  int maxThreads = deviceProperties.maxThreadsPerBlock;
-  int nBlocks = deviceProperties.multiProcessorCount * 8;
+int mult_vect(float *d_data, float *scale, int N, carma_device *device) {
+  int maxThreads = device->get_properties().maxThreadsPerBlock;
+  int nBlocks = device->get_properties().multiProcessorCount * 8;
   int nThreads = (N + nBlocks - 1) / nBlocks;
 
   if (nThreads > maxThreads) {
@@ -250,13 +243,10 @@ int mult_vect(float *d_data, float *scale, int N, int device) {
   return EXIT_SUCCESS;
 }
 
-int mult_vect(float *d_data, float gain, int N, int device) {
+int mult_vect(float *d_data, float gain, int N, carma_device *device) {
 
-  struct cudaDeviceProp deviceProperties;
-  cudaGetDeviceProperties(&deviceProperties, device);
-
-  int maxThreads = deviceProperties.maxThreadsPerBlock;
-  int nBlocks = deviceProperties.multiProcessorCount * 8;
+  int maxThreads = device->get_properties().maxThreadsPerBlock;
+  int nBlocks = device->get_properties().multiProcessorCount * 8;
   int nThreads = (N + nBlocks - 1) / nBlocks;
 
   if (nThreads > maxThreads) {
@@ -273,7 +263,7 @@ int mult_vect(float *d_data, float gain, int N, int device) {
 }
 
 int mult_int(float *o_data, float *i_data, float *scale, float gain, int N,
-    int device, carma_streams *streams) {
+    carma_device *device, carma_streams *streams) {
 
   int nthreads = 0, nblocks = 0;
 
@@ -292,7 +282,7 @@ int mult_int(float *o_data, float *i_data, float *scale, float gain, int N,
 }
 
 int mult_int(float *o_data, float *i_data, float *scale, float gain, int N,
-    int device) {
+    carma_device *device) {
 
   int nthreads = 0, nblocks = 0;
 
@@ -306,7 +296,7 @@ int mult_int(float *o_data, float *i_data, float *scale, float gain, int N,
   return EXIT_SUCCESS;
 }
 
-int mult_int(float *o_data, float *i_data, float gain, int N,int device) {
+int mult_int(float *o_data, float *i_data, float gain, int N,carma_device *device) {
 
   int nthreads = 0, nblocks = 0;
 
@@ -321,7 +311,7 @@ int mult_int(float *o_data, float *i_data, float gain, int N,int device) {
 }
 
 int add_md(float *o_matrix, float *i_matrix, float *i_vector, int N,
-    int device) {
+    carma_device *device) {
   int nthreads = 0, nblocks = 0;
   getNumBlocksAndThreads(device, N, nblocks, nthreads);
   dim3 grid(nblocks), threads(nthreads);
@@ -333,7 +323,7 @@ int add_md(float *o_matrix, float *i_matrix, float *i_vector, int N,
 }
 
 int
-fill_filtmat(float *filter, int nactu, int N, int device){
+fill_filtmat(float *filter, int nactu, int N, carma_device *device){
 	int nthreads = 0, nblocks = 0;
 	getNumBlocksAndThreads(device, N, nblocks, nthreads);
 	dim3 grid(nblocks), threads(nthreads);
@@ -344,7 +334,7 @@ fill_filtmat(float *filter, int nactu, int N, int device){
 	return EXIT_SUCCESS;
 }
 int
-TT_filt(float *mat, int n, int device){
+TT_filt(float *mat, int n, carma_device *device){
 	int nthreads = 0, nblocks = 0;
 	int N = n*n;
 	getNumBlocksAndThreads(device, N, nblocks, nthreads);
@@ -357,7 +347,7 @@ TT_filt(float *mat, int n, int device){
 }
 
 int
-fill_cmat(float *cmat, float *wtt, float *Mtt, int nactu, int nslopes, int device){
+fill_cmat(float *cmat, float *wtt, float *Mtt, int nactu, int nslopes, carma_device *device){
 	int nthreads = 0, nblocks = 0;
 	int N = nactu * nslopes;
 	getNumBlocksAndThreads(device, N, nblocks, nthreads);
@@ -370,7 +360,7 @@ fill_cmat(float *cmat, float *wtt, float *Mtt, int nactu, int nslopes, int devic
 }
 
 int
-do_statmat(float *statcov, long dim, float *xpos, float *ypos, float norm, int device){
+do_statmat(float *statcov, long dim, float *xpos, float *ypos, float norm, carma_device *device){
 	int nthreads = 0, nblocks = 0;
 	int N = (dim * dim);
 	getNumBlocksAndThreads(device, N, nblocks, nthreads);
@@ -382,7 +372,7 @@ do_statmat(float *statcov, long dim, float *xpos, float *ypos, float norm, int d
 }
 
 int
-floattodouble(float *i_data, double *o_data, int N, int device){
+floattodouble(float *i_data, double *o_data, int N, carma_device *device){
 	int nthreads = 0, nblocks = 0;
 	getNumBlocksAndThreads(device, N, nblocks, nthreads);
 	dim3 grid(nblocks), threads(nthreads);
@@ -393,7 +383,7 @@ floattodouble(float *i_data, double *o_data, int N, int device){
 }
 
 int
-doubletofloat(double *i_data, float *o_data, int N, int device){
+doubletofloat(double *i_data, float *o_data, int N, carma_device *device){
 	int nthreads = 0, nblocks = 0;
 	getNumBlocksAndThreads(device, N, nblocks, nthreads);
 	dim3 grid(nblocks), threads(nthreads);
@@ -404,7 +394,7 @@ doubletofloat(double *i_data, float *o_data, int N, int device){
 }
 
 int
-get_pupphase(float *o_data, float *i_data, int *indx_pup, int Nphi, int device){
+get_pupphase(float *o_data, float *i_data, int *indx_pup, int Nphi, carma_device *device){
 	int nthreads = 0, nblocks = 0;
 	getNumBlocksAndThreads(device, Nphi, nblocks, nthreads);
 	dim3 grid(nblocks), threads(nthreads);
@@ -415,7 +405,7 @@ get_pupphase(float *o_data, float *i_data, int *indx_pup, int Nphi, int device){
 }
 
 int
-compute_Hcor_gpu(float *o_data, int nrow, int ncol, float Fs, float gmin, float gmax, int delay, int device){
+compute_Hcor_gpu(float *o_data, int nrow, int ncol, float Fs, float gmin, float gmax, int delay, carma_device *device){
 	int nthreads = 0, nblocks = 0;
 	getNumBlocksAndThreads(device, nrow*ncol, nblocks, nthreads);
 	dim3 grid(nblocks), threads(nthreads);
@@ -427,7 +417,7 @@ compute_Hcor_gpu(float *o_data, int nrow, int ncol, float Fs, float gmin, float 
 }
 
 int
-absnormfft(cuFloatComplex *idata, float *odata, int N, float norm, int device){
+absnormfft(cuFloatComplex *idata, float *odata, int N, float norm, carma_device *device){
 	int nthreads = 0, nblocks = 0;
 	getNumBlocksAndThreads(device, N, nblocks, nthreads);
 	dim3 grid(nblocks), threads(nthreads);

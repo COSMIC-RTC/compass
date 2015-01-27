@@ -105,7 +105,7 @@ public:
 int
 target_texraytrace(float *d_odata, float *d_idata, int nx, int ny, int Nx,
     int Ny, float xoff, float yoff, int Ntot, cudaChannelFormatDesc channelDesc,
-    int device);
+    carma_device *device);
 int
 target_raytrace(float *d_odata, float *d_idata, int nx, int ny, int Nx,
     float xoff, float yoff, int block_size);
@@ -125,10 +125,10 @@ fft_goodsize(long size);
 // ATTEMPT AT ADDING PHASE_INSTRU
 /*int
 fill_amplipup(cuFloatComplex *amplipup, float *phase, float *phase_instru, float *mask, float scale,
-    int puponly, int nx, int ny, int Nx, int device);*/
+    int puponly, int nx, int ny, int Nx, carma_device *device);*/
 
 int
 fill_amplipup(cuFloatComplex *amplipup, float *phase, float *mask, float scale,
-              int puponly, int nx, int ny, int Nx, int device);
+              int puponly, int nx, int ny, int Nx, carma_device *device);
 
 #endif // _SUTRA_TARGET_H_

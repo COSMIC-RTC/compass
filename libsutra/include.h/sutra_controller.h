@@ -61,37 +61,37 @@ protected:
 };
 
 int
-shift_buf(float *d_data, int offset, int N, int device);
+shift_buf(float *d_data, int offset, int N, carma_device *device);
 int
-mult_vect(float *d_data, float *scale, int N, int device);
+mult_vect(float *d_data, float *scale, int N, carma_device *device);
 int
-mult_vect(float *d_data, float gain, int N, int device);
-int
-mult_int(float *o_data, float *i_data, float *scale, float gain, int N,
-    int device);
+mult_vect(float *d_data, float gain, int N, carma_device *device);
 int
 mult_int(float *o_data, float *i_data, float *scale, float gain, int N,
-    int device, carma_streams *streams);
+    carma_device *device);
 int
-mult_int(float *o_data, float *i_data, float gain, int N,int device);
+mult_int(float *o_data, float *i_data, float *scale, float gain, int N,
+    carma_device *device, carma_streams *streams);
 int
-fill_filtmat(float *filter, int nactu, int N, int device);
+mult_int(float *o_data, float *i_data, float gain, int N,carma_device *device);
 int
-TT_filt(float *mat, int n, int device);
+fill_filtmat(float *filter, int nactu, int N, carma_device *device);
 int
-fill_cmat(float *cmat, float *wtt, float *Mtt, int nactu, int nslopes, int device);
+TT_filt(float *mat, int n, carma_device *device);
 int
-do_statmat(float *statcov,long dim, float *xpos, float *ypos, float norm, int device);
+fill_cmat(float *cmat, float *wtt, float *Mtt, int nactu, int nslopes, carma_device *device);
 int
-add_md(float *o_matrix, float *i_matrix, float *i_vector, int N,int device);
+do_statmat(float *statcov,long dim, float *xpos, float *ypos, float norm, carma_device *device);
 int
-floattodouble(float *idata, double *odata, int N, int device);
+add_md(float *o_matrix, float *i_matrix, float *i_vector, int N,carma_device *device);
 int
-doubletofloat(double *idata, float *odata, int N, int device);
+floattodouble(float *idata, double *odata, int N, carma_device *device);
 int
-get_pupphase(float *odata, float *idata, int *indx_pup, int Nphi, int device);
+doubletofloat(double *idata, float *odata, int N, carma_device *device);
 int
-compute_Hcor_gpu(float *o_data, int nrow, int ncol, float Fs, float gmin, float gmax, int delay, int device);
+get_pupphase(float *odata, float *idata, int *indx_pup, int Nphi, carma_device *device);
 int
-absnormfft(cuFloatComplex *idata, float *odata, int N, float norm, int device);
+compute_Hcor_gpu(float *o_data, int nrow, int ncol, float Fs, float gmin, float gmax, int delay, carma_device *device);
+int
+absnormfft(cuFloatComplex *idata, float *odata, int N, float norm, carma_device *device);
 #endif // _sutra_controller_H_

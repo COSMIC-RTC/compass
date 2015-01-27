@@ -23,7 +23,7 @@ __global__ void texraytrace_krnl(float* g_odata, int nx, int ny, float xoff,
 
 int target_texraytrace(float *d_odata, float *d_idata, int nx, int ny, int Nx,
     int Ny, float xoff, float yoff, int Ntot, cudaChannelFormatDesc channelDesc,
-    int device) {
+    carma_device *device) {
   tex2d.addressMode[0] = cudaAddressModeClamp;
   tex2d.addressMode[1] = cudaAddressModeClamp;
   tex2d.filterMode = cudaFilterModeLinear;
@@ -51,10 +51,7 @@ int target_texraytrace(float *d_odata, float *d_idata, int nx, int ny, int Nx,
    driver takes care of satisfying all restrictions."
    */
 
-  struct cudaDeviceProp deviceProperties;
-  cudaGetDeviceProperties(&deviceProperties, device);
-
-  int nBlocks = deviceProperties.multiProcessorCount * 2;
+  int nBlocks = device->get_properties().multiProcessorCount * 2;
 
   dim3 dimBlock(nBlocks, nBlocks, 1);
   dim3 dimGrid(nx / dimBlock.x + 1, ny / dimBlock.y + 1, 1);
@@ -345,13 +342,10 @@ __global__ void fillamplikrnl(cuFloatComplex *amplipup, float *phase,
 }
 
 int fill_amplipup(cuFloatComplex *amplipup, float *phase, float *mask,
-    float scale, int puponly, int nx, int ny, int Nx, int device) {
+    float scale, int puponly, int nx, int ny, int Nx, carma_device *device) {
 
-  struct cudaDeviceProp deviceProperties;
-  cudaGetDeviceProperties(&deviceProperties, device);
-
-  int maxThreads = deviceProperties.maxThreadsPerBlock;
-  int nBlocks = deviceProperties.multiProcessorCount * 8;
+  int maxThreads = device->get_properties().maxThreadsPerBlock;
+  int nBlocks = device->get_properties().multiProcessorCount * 8;
   int nThreads = (nx * ny + nBlocks - 1) / nBlocks;
 
   if (nThreads > maxThreads) {
@@ -396,7 +390,7 @@ int fill_amplipup(cuFloatComplex *amplipup, float *phase, float *mask,
 
 
 
- int fillampli(cuFloatComplex *d_odata,float *d_idata, float *mask,int nx, int ny, int Nx, int device)
+ int fillampli(cuFloatComplex *d_odata,float *d_idata, float *mask,int nx, int ny, int Nx, carma_device *device)
  {
 
  struct cudaDeviceProp deviceProperties;
@@ -441,7 +435,7 @@ int fill_amplipup(cuFloatComplex *amplipup, float *phase, float *mask,
  }
 
 
- int fillpupil(cuFloatComplex *d_odata,float *mask,int nx, int ny, int Nx, int device)
+ int fillpupil(cuFloatComplex *d_odata,float *mask,int nx, int ny, int Nx, carma_device *device)
  {
  struct cudaDeviceProp deviceProperties;
  cudaGetDeviceProperties(&deviceProperties, device);
