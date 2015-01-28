@@ -259,58 +259,6 @@ template
 caObjS2::~carma_obj();
 
 template<class T_data>
-int carma_obj<T_data>::get_nbStreams() {
-  /** \brief get the number of streams attached to the host object
-   */
-  return streams->get_nbStreams();
-}
-
-template<class T_data>
-int carma_obj<T_data>::add_stream() {
-  this->streams->add_stream();
-  return this->streams->get_nbStreams();
-}
-
-template<class T_data>
-int carma_obj<T_data>::add_stream(int nb) {
-  this->streams->add_stream(nb);
-  return this->streams->get_nbStreams();
-}
-
-template<class T_data>
-cudaStream_t carma_obj<T_data>::get_cudaStream_t(int stream) {
-  return this->streams->get_stream(stream);
-}
-template cudaStream_t
-caObjS::get_cudaStream_t(int stream);
-
-template<class T_data>
-int carma_obj<T_data>::del_stream() {
-  this->streams->del_stream();
-  return this->streams->get_nbStreams();
-}
-
-template<class T_data>
-int carma_obj<T_data>::del_stream(int nb) {
-  this->streams->del_stream(nb);
-  return this->streams->get_nbStreams();
-}
-
-template<class T_data>
-int carma_obj<T_data>::wait_stream(int stream) {
-  this->streams->wait_stream(stream);
-  return EXIT_SUCCESS;
-}
-
-template<class T_data>
-int carma_obj<T_data>::wait_all_streams() {
-  this->streams->wait_all_streams();
-  return EXIT_SUCCESS;
-}
-template int
-caObjS::wait_all_streams();
-
-template<class T_data>
 int carma_obj<T_data>::host2device(T_data *data) {
   /** \brief host2device data transfer.
    * \param data : input data

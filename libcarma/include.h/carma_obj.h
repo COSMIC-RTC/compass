@@ -147,14 +147,38 @@ public:
       int nb_streams);
   ~carma_obj();
 
-  int get_nbStreams();
-  int add_stream();
-  int add_stream(int nb);
-  int del_stream();
-  int del_stream(int nb);
-  cudaStream_t get_cudaStream_t(int stream);
-  int wait_stream(int stream);
-  int wait_all_streams();
+  int get_nbStreams() {
+    /** \brief get the number of streams attached to the host object
+     */
+    return streams->get_nbStreams();
+  }
+  int add_stream() {
+    this->streams->add_stream();
+    return this->streams->get_nbStreams();
+  }
+  int add_stream(int nb) {
+    this->streams->add_stream(nb);
+    return this->streams->get_nbStreams();
+  }
+  int del_stream() {
+    this->streams->del_stream();
+    return this->streams->get_nbStreams();
+  }
+  int del_stream(int nb) {
+    this->streams->del_stream(nb);
+    return this->streams->get_nbStreams();
+  }
+  cudaStream_t get_cudaStream_t(int stream) {
+    return this->streams->get_stream(stream);
+  }
+  int wait_stream(int stream) {
+    this->streams->wait_stream(stream);
+    return EXIT_SUCCESS;
+  }
+  int wait_all_streams() {
+    this->streams->wait_all_streams();
+    return EXIT_SUCCESS;
+  }
 
   /**< General Utilities */
   operator T_data*() {
