@@ -190,10 +190,8 @@ int carma_context::set_activeDeviceForce(int newDevice, int silent) {
     silent=0;
 #endif
     if (!silent) {
-      cudaDeviceProp deviceProp;
-      cutilSafeCall(cudaGetDeviceProperties(&deviceProp, newDevice));
-      cout << "Using device " << newDevice << ": \"" << deviceProp.name
-          << "\" with Compute " << deviceProp.major << "." << deviceProp.minor
+      cout << "Using device " << newDevice << ": \"" << devices[newDevice]->get_properties().name
+          << "\" with Compute " << devices[newDevice]->get_properties().major << "." << devices[newDevice]->get_properties().minor
           << " capability" << endl;
     }
     activeDevice = newDevice;
@@ -210,8 +208,8 @@ string carma_context::get_activeDeviceStr() {
   cudaDeviceProp deviceProp;
   cutilSafeCall(cudaGetDeviceProperties(&deviceProp, activeDevice));
   stringstream buf;
-  buf << "Using device " << activeDevice << ": \"" << deviceProp.name
-      << "\" with Compute " << deviceProp.major << "." << deviceProp.minor
+  buf << "Using device " << activeDevice << ": \"" << devices[activeDevice]->get_properties().name
+      << "\" with Compute " << devices[activeDevice]->get_properties().major << "." << devices[activeDevice]->get_properties().minor
       << " capability" << endl;
   return buf.str();
 }
@@ -230,9 +228,8 @@ int carma_context::get_maxGflopsDeviceId()
   cudaGetDeviceCount(&device_count);
   // Find the best major SM Architecture GPU device
   while (current_device < device_count) {
-    cudaGetDeviceProperties(&deviceProp, current_device);
-    if (deviceProp.major > best_SM_arch) {
-      best_SM_arch = deviceProp.major;
+    if (devices[current_device]->get_properties().major > best_SM_arch) {
+      best_SM_arch = devices[current_device]->get_properties().major;
     }
     current_device++;
   }
@@ -240,7 +237,7 @@ int carma_context::get_maxGflopsDeviceId()
   // Find the best CUDA capable GPU device
   current_device = device_count - 1;
   while (current_device >= 0) {
-    cudaGetDeviceProperties(&deviceProp, current_device);
+    deviceProp=devices[current_device]->get_properties();
     if (deviceProp.computeMode != cudaComputeModeProhibited) {
       if (deviceProp.major == 9999 && deviceProp.minor == 9999) {
         sm_per_multiproc = 1;

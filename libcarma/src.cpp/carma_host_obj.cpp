@@ -336,7 +336,7 @@ void carma_host_obj<T_data>::init(const long *dims_data,const T_data *data,
     cudaDeviceProp prop;
     cudaGetDeviceProperties(&prop, 0);
     if (!prop.canMapHostMemory) {
-      cerr << "Can't map host memory\n";
+      DEBUG_TRACE("Can't map host memory");
       throw "Can't map host memory\n";
     }
     cudaSetDeviceFlags(cudaDeviceMapHost);

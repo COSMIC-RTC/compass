@@ -554,11 +554,11 @@ int sutra_wfs_mpi::wfs_initgs(float xpos, float ypos, float lambda, float mag,
       "wfs", this->device);
   this->noise = noise;
   if (noise > -1) {
-    this->d_bincube->init_prng(this->device);
+    this->d_bincube->init_prng();
     this->d_bincube->prng('N', noise, 0.0f);
   }
   if (noise > 0) {
-    this->d_binimg->init_prng(this->device);
+    this->d_binimg->init_prng();
     this->d_binimg->prng('N', noise, 0.0f);
   }
 

@@ -2,11 +2,8 @@
 #include <cstdlib> /* required for randomize() and random() */
 
 template<class T>
-int carma_obj<T>::init_prng(int device, long seed) {
-  struct cudaDeviceProp deviceProperties;
-  // Get device properties
-  cutilSafeCall(cudaGetDeviceProperties(&deviceProperties, device));
-
+int carma_obj<T>::init_prng(long seed) {
+  cudaDeviceProp deviceProperties = current_context->get_device(device)->get_properties();
   int maxThreads = deviceProperties.maxThreadsPerBlock;
   int maxBlockDim = (deviceProperties.maxThreadsDim)[0];
   int genPerBlock = min(maxThreads, maxBlockDim) / 2;
@@ -38,31 +35,30 @@ int carma_obj<T>::init_prng(int device, long seed) {
 }
 
 template int
-caObjS::init_prng(int device, long seed);
+caObjS::init_prng(long seed);
 template int
-caObjD::init_prng(int device, long seed);
+caObjD::init_prng(long seed);
 template int
-caObjC::init_prng(int device, long seed);
+caObjC::init_prng(long seed);
 template int
-caObjZ::init_prng(int device, long seed);
+caObjZ::init_prng(long seed);
 
 template <class T>
-int carma_obj<T>::init_prng(int device) {
-	return this->init_prng(this->device, 1234);
+int carma_obj<T>::init_prng() {
+	return this->init_prng(1234);
 }
 
 template int
-caObjS::init_prng(int device);
+caObjS::init_prng();
 template int
-caObjD::init_prng(int device);
+caObjD::init_prng();
 template int
-caObjC::init_prng(int device);
+caObjC::init_prng();
 template int
-caObjZ::init_prng(int device);
+caObjZ::init_prng();
 
 template<class T>
 int carma_obj<T>::destroy_prng() {
-  cutilSafeThreadSync();
   cutilSafeCall(cudaFree(this->d_states));
   return EXIT_SUCCESS;
 }
@@ -224,7 +220,6 @@ int caObjD::prng_host(char gtype, double alpha) {
 
 template<class T>
 int carma_obj<T>::destroy_prng_host() {
-  cutilSafeThreadSync();
   curandDestroyGenerator(this->gen);
   return EXIT_SUCCESS;
 }

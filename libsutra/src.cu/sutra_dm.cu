@@ -93,7 +93,7 @@ __global__ void oneactu_krnl_fast(T *g_idata, T *g_odata, int nactu, T ampli,
     if ((ixactu > -1) && (ixactu < dim_im) && (iyactu > -1)
         && (iyactu < dim_im)) {
       int tid = ixactu + iyactu * dim_im;
-      g_odata[tid] = ampli * g_idata[i + nactu * dim_influ * dim_influ];
+      g_odata[tid] = ampli * g_idata[i + nactu * N];
     }
   }
 }

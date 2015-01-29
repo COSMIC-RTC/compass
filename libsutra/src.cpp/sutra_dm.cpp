@@ -173,11 +173,11 @@ int sutra_dm::comp_oneactu(int nactu, float ampli) {
     oneactu(nthreads, nblocks, this->d_influ->getData(),
         this->d_shape->d_screen->getData(), nactu, ampli,
         this->d_xoff->getData(), this->d_yoff->getData(), this->dim,
-        this->influsize, this->d_shape->d_screen->getNbElem());
+        this->influsize, this->influsize*this->influsize);
   if (this->type == "tt")
     oneactu(nthreads, nblocks, this->d_influ->getData(),
         this->d_shape->d_screen->getData(), nactu, ampli, this->dim,
-        this->influsize, this->d_shape->d_screen->getNbElem());
+        this->influsize, this->influsize*this->influsize);
   if (this->type == "kl") {
     int xoff = (int) ((this->d_shape->d_screen->getDims()[1] - this->d_kl->dim)
         / 2.0f);

@@ -430,11 +430,11 @@ int sutra_wfs::wfs_initgs(float xpos, float ypos, float lambda, float mag,
       "wfs", this->device);
   this->noise = noise;
   if (noise > -1) {
-    this->d_bincube->init_prng(this->device, seed);
+    this->d_bincube->init_prng(seed);
     this->d_bincube->prng('N', noise, 0.0f);
   }
   if (noise > 0) {
-    this->d_binimg->init_prng(this->device, seed);
+    this->d_binimg->init_prng(seed);
     this->d_binimg->prng('N', noise, 0.0f);
   }
 
@@ -620,17 +620,18 @@ int sutra_wfs::comp_sh_generic() {
 
       float *data2 = this->d_bincube->getData();
       //fprintf(stderr, "[%s@%d]: I'm here!\n", __FILE__, __LINE__);
-      if (this->nstreams > 1)
+      if (this->nstreams > 1) {
         fillbincube_async(this->streams, &(data2[indxstart3]),
             this->d_fttotim->getData(), this->d_binmap->getData(),
             this->ntot * this->ntot, this->npix * this->npix,
             this->nrebin * this->nrebin, this->nmaxhr, this->current_context->get_device(device));
-      else
+      } else {
         fillbincube(&(data2[indxstart3]), this->d_fttotim->getData(),
             this->d_binmap->getData(), this->ntot * this->ntot,
             this->npix * this->npix, this->nrebin * this->nrebin, this->nmaxhr,
             this->current_context->get_device(device));
       //fprintf(stderr, "[%s@%d]: I'm here!\n", __FILE__, __LINE__);
+      }
     }
   } else {
     if (this->lgs) {
@@ -646,16 +647,17 @@ int sutra_wfs::comp_sh_generic() {
       carma_fft(this->d_fttotim->getData(), this->d_fttotim->getData(), -1,
           *this->d_fttotim->getPlan());
 
-      if (this->nstreams > 1)
+      if (this->nstreams > 1){
         fillbincube_async(this->streams, this->d_bincube->getData(),
             this->d_fttotim->getData(), this->d_binmap->getData(),
             this->nfft * this->nfft, this->npix * this->npix,
             this->nrebin * this->nrebin, this->nvalid, this->current_context->get_device(device));
-      else
+      } else {
         fillbincube(this->d_bincube->getData(), this->d_fttotim->getData(),
             this->d_binmap->getData(), this->nfft * this->nfft,
             this->npix * this->npix, this->nrebin * this->nrebin, this->nvalid,
             this->current_context->get_device(device));
+      }
     } else {
       if (this->kernconv) {
         carma_fft(this->d_camplifoc->getData(), this->d_camplifoc->getData(), 1,
@@ -669,43 +671,42 @@ int sutra_wfs::comp_sh_generic() {
             -1, *this->d_camplipup->getPlan());
       }
 
-      if (this->nstreams > 1)
+      if (this->nstreams > 1) {
         fillbincube_async(this->streams, this->d_bincube->getData(),
             this->d_camplifoc->getData(), this->d_binmap->getData(),
             this->nfft * this->nfft, this->npix * this->npix,
             this->nrebin * this->nrebin, this->nvalid, this->current_context->get_device(device));
-      else
+      } else {
         fillbincube(this->d_bincube->getData(), this->d_camplifoc->getData(),
             this->d_binmap->getData(), this->nfft * this->nfft,
             this->npix * this->npix, this->nrebin * this->nrebin, this->nvalid,
             this->current_context->get_device(device));
+      }
     }
 
   }
   // normalize images :
   // get the sum value per subap
-  //fprintf(stderr, "[%s@%d]: I'm here!\n", __FILE__, __LINE__);
 
-  if (this->nstreams > 1)
+  if (this->nstreams > 1) {
     subap_reduce_async(this->npix * this->npix, this->nvalid, this->streams,
         this->d_bincube->getData(), this->d_subsum->getData());
-  else
+  } else {
     subap_reduce(this->d_bincube->getNbElem(), this->npix * this->npix,
         this->nvalid, this->d_bincube->getData(), this->d_subsum->getData(), this->current_context->get_device(device));
+  }
 
-  //fprintf(stderr, "[%s@%d]: I'm here!\n", __FILE__, __LINE__);
-
-  if (this->nstreams > 1)
+  if (this->nstreams > 1) {
     subap_norm_async(this->d_bincube->getData(), this->d_bincube->getData(),
         this->d_fluxPerSub->getData(), this->d_subsum->getData(), this->nphot,
         this->npix * this->npix, this->d_bincube->getNbElem(), this->streams,
         current_context->get_device(device));
-  else
+  } else {
     // multiply each subap by nphot*fluxPersub/sumPerSub
     subap_norm(this->d_bincube->getData(), this->d_bincube->getData(),
         this->d_fluxPerSub->getData(), this->d_subsum->getData(), this->nphot,
         this->npix * this->npix, this->d_bincube->getNbElem(), current_context->get_device(device));
-
+  }
   //fprintf(stderr, "[%s@%d]: I'm here!\n", __FILE__, __LINE__);
 
   // add noise
@@ -921,7 +922,6 @@ int sutra_wfs::comp_image() {
     DEBUG_TRACE("unknown wfs type : %s\n", this->type.c_str());
     result = EXIT_FAILURE;
   }
-
   return result;
 }
 

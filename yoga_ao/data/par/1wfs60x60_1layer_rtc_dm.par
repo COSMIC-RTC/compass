@@ -6,7 +6,7 @@ y_geom.zenithangle = 0.;
 /*
 telescope inits
 */
-y_tel.diam = 30.f;
+y_tel.diam = 40.f;
 y_tel.cobs = 0.12f;
 
 /*

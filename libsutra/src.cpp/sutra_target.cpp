@@ -85,8 +85,7 @@ inline int sutra_source::init_source(carma_context *context, float xpos,
   this->device = device;
   this->scale = float(2 * 3.14159265 / lambda); // phase is expected in microns
 
-  //struct cudaDeviceProp deviceProperties;
-  //cudaGetDeviceProperties(&deviceProperties, device);
+  //cudaDeviceProp deviceProperties = current_context->get_device(device)->get_properties();
   //this->blockSize = (int)sqrt(deviceProperties.maxThreadsPerBlock);
   this->block_size = 8;
   this->phase_var_avg = 0;

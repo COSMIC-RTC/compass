@@ -2716,7 +2716,7 @@ void Y_yoga_random(int argc) {
     if (handle->type == Y_FLOAT) {
       caObjS *carma_obj_handler = (caObjS *) (handle->carma_object);
       if (carma_obj_handler->is_rng_init() == false) {
-        carma_obj_handler->init_prng(handle->device);
+        carma_obj_handler->init_prng(seed);
         //carma_obj_handler->init_prng_host(seed);
       }
       carma_obj_handler->prng('U');
@@ -2724,7 +2724,7 @@ void Y_yoga_random(int argc) {
     } else if (handle->type == Y_DOUBLE) {
       caObjD *carma_obj_handler = (caObjD *) (handle->carma_object);
       if (carma_obj_handler->is_rng_init() == false) {
-        carma_obj_handler->init_prng(handle->device);
+        carma_obj_handler->init_prng(seed);
         //carma_obj_handler->init_prng_host(seed);
       }
       carma_obj_handler->prng('U');
@@ -2732,13 +2732,13 @@ void Y_yoga_random(int argc) {
     } else if (handle->type == Y_SCOMPLEX) {
       caObjC *carma_obj_handler = (caObjC *) (handle->carma_object);
       if (carma_obj_handler->is_rng_init() == false) {
-        carma_obj_handler->init_prng(handle->device);
+        carma_obj_handler->init_prng(seed);
       }
       carma_obj_handler->prng('U');
     } else if (handle->type == Y_COMPLEX) {
       caObjZ *carma_obj_handler = (caObjZ *) (handle->carma_object);
       if (carma_obj_handler->is_rng_init() == false) {
-        carma_obj_handler->init_prng(handle->device);
+        carma_obj_handler->init_prng(seed);
       }
       carma_obj_handler->prng('U');
     }
@@ -2788,23 +2788,23 @@ void Y_yoga_random(int argc) {
     }
 	if (handle->type == Y_FLOAT) {
       caObjS *carma_obj_handler = (caObjS *) (handle->carma_object);
-      carma_obj_handler->init_prng(handle->device);
+      carma_obj_handler->init_prng(seed);
       //carma_obj_handler->init_prng_host(seed);
       carma_obj_handler->prng('U');
       //carma_obj_handler->prng_host('U');
     } else if (handle->type == Y_DOUBLE) {
       caObjD *carma_obj_handler = (caObjD *) (handle->carma_object);
-      carma_obj_handler->init_prng(handle->device);
+      carma_obj_handler->init_prng(seed);
       //carma_obj_handler->init_prng_host(seed);
       carma_obj_handler->prng('U');
       //carma_obj_handler->prng_host('U');
     } else if (handle->type == Y_SCOMPLEX) {
       caObjC *carma_obj_handler = (caObjC *) (handle->carma_object);
-      carma_obj_handler->init_prng(handle->device);
+      carma_obj_handler->init_prng(seed);
       carma_obj_handler->prng('U');
     } else if (handle->type == Y_COMPLEX) {
       caObjZ *carma_obj_handler = (caObjZ *) (handle->carma_object);
-      carma_obj_handler->init_prng(handle->device);
+      carma_obj_handler->init_prng(seed);
       carma_obj_handler->prng('U');
     }
   }
@@ -2830,7 +2830,6 @@ void Y_yoga_random_n(int argc) {
     if (handle->type == Y_FLOAT) {
       caObjS *carma_obj_handler = (caObjS *) (handle->carma_object);
       if (carma_obj_handler->is_rng_init() == false) {
-        //carma_obj_handler->init_prng(handle->device);
         carma_obj_handler->init_prng_host(seed);
       }
       //carma_obj_handler->prng('N');
@@ -2838,7 +2837,6 @@ void Y_yoga_random_n(int argc) {
     } else if (handle->type == Y_DOUBLE) {
       caObjD *carma_obj_handler = (caObjD *) (handle->carma_object);
       if (carma_obj_handler->is_rng_init() == false) {
-        //carma_obj_handler->init_prng(handle->device);
         carma_obj_handler->init_prng_host(seed);
       }
       //carma_obj_handler->prng('N');
@@ -2846,13 +2844,13 @@ void Y_yoga_random_n(int argc) {
     } else if (handle->type == Y_SCOMPLEX) {
       caObjC *carma_obj_handler = (caObjC *) (handle->carma_object);
       if (carma_obj_handler->is_rng_init() == false) {
-        carma_obj_handler->init_prng(handle->device);
+        carma_obj_handler->init_prng(seed);
       }
       carma_obj_handler->prng('N');
     } else if (handle->type == Y_COMPLEX) {
       caObjZ *carma_obj_handler = (caObjZ *) (handle->carma_object);
       if (carma_obj_handler->is_rng_init() == false) {
-        carma_obj_handler->init_prng(handle->device);
+        carma_obj_handler->init_prng(seed);
       }
       carma_obj_handler->prng('N');
     }
@@ -2901,23 +2899,23 @@ void Y_yoga_random_n(int argc) {
 
     if (handle->type == Y_FLOAT) {
       caObjS *carma_obj_handler = (caObjS *) (handle->carma_object);
-      //carma_obj_handler->init_prng(handle->device);
+      //carma_obj_handler->init_prng(h);
       carma_obj_handler->init_prng_host(seed);
       //carma_obj_handler->prng('N');
       carma_obj_handler->prng_host('N');
     } else if (handle->type == Y_DOUBLE) {
       caObjD *carma_obj_handler = (caObjD *) (handle->carma_object);
-      //carma_obj_handler->init_prng(handle->device);
+      //carma_obj_handler->init_prng();
       carma_obj_handler->init_prng_host(seed);
       //carma_obj_handler->prng('N');
       carma_obj_handler->prng_host('N');
     } else if (handle->type == Y_SCOMPLEX) {
       caObjC *carma_obj_handler = (caObjC *) (handle->carma_object);
-      carma_obj_handler->init_prng(handle->device);
+      carma_obj_handler->init_prng(seed);
       carma_obj_handler->prng('N');
     } else if (handle->type == Y_COMPLEX) {
       caObjZ *carma_obj_handler = (caObjZ *) (handle->carma_object);
-      carma_obj_handler->init_prng(handle->device);
+      carma_obj_handler->init_prng(seed);
       carma_obj_handler->prng('N');
     }
   }
@@ -2930,26 +2928,26 @@ void Y_yoga_poisson(int argc) {
    *    - first  : the yoga_obj to be filled with random numbers
    *    - second : (1) optional seed 
    */
-  //int seed = 1234;
+  int seed = 1234;
   if (yarg_subroutine()) {
     yObj_struct *handle = (yObj_struct *) yget_obj(argc - 1, &yObj);
-//    if (argc > 1)
-//      seed = ygets_i(argc - 2);
+    if (argc > 1)
+      seed = ygets_i(argc - 2);
     carma_context *context_handle = _getCurrentContext();
     context_handle->set_activeDevice(handle->device);
     if (handle->type == Y_FLOAT) {
       caObjS *carma_obj_handler = (caObjS *) (handle->carma_object);
       if (carma_obj_handler->is_rng_init() == false) {
-        carma_obj_handler->init_prng(handle->device);
-        //carma_obj_handler->init_prng_host(seed);
+        //carma_obj_handler->init_prng();
+        carma_obj_handler->init_prng(seed);
       }
       carma_obj_handler->prng('P');
       //carma_obj_handler->prng_host('P');
     } else if (handle->type == Y_DOUBLE) {
       caObjD *carma_obj_handler = (caObjD *) (handle->carma_object);
       if (carma_obj_handler->is_rng_init() == false) {
-        carma_obj_handler->init_prng(handle->device);
-        //carma_obj_handler->init_prng_host(seed);
+        //carma_obj_handler->init_prng();
+        carma_obj_handler->init_prng(seed);
       }
       carma_obj_handler->prng('P');
       //carma_obj_handler->prng_host('P');
@@ -4285,17 +4283,6 @@ void Y_yoga_mm_sparse2(int argc)
       SCAST(carma_sparse_obj<float>*, carma_obj_handler_matA, handle_matA->carma_sparse_object);
       SCAST(carma_sparse_obj<float>*, carma_obj_handler_matB, handle_matB->carma_sparse_object);
 
-      long dims_data_mat[3];
-      dims_data_mat[0] = 2;
-      if (opA == 'n')
-        dims_data_mat[1] = carma_obj_handler_matA->getDims(1);
-      else
-        dims_data_mat[1] = carma_obj_handler_matA->getDims(2);
-      if (opB == 'n')
-        dims_data_mat[2] = carma_obj_handler_matB->getDims(2);
-      else
-        dims_data_mat[2] = carma_obj_handler_matB->getDims(1);
-
       handle_matC->carma_sparse_object = new carma_sparse_obj<float>(carma_obj_handler_matA->current_context);
       SCAST(carma_sparse_obj<float>*, carma_obj_handler_matC, handle_matC->carma_sparse_object);
 
@@ -4309,17 +4296,6 @@ void Y_yoga_mm_sparse2(int argc)
       handle_matC->type = handle_matA->type;
       SCAST(carma_sparse_obj<double>*, carma_obj_handler_matA, handle_matA->carma_sparse_object);
       SCAST(carma_sparse_obj<double>*, carma_obj_handler_matB, handle_matB->carma_sparse_object);
-
-      long dims_data_mat[3];
-      dims_data_mat[0] = 2;
-      if (opA == 'n')
-        dims_data_mat[1] = carma_obj_handler_matA->getDims(1);
-      else
-        dims_data_mat[1] = carma_obj_handler_matA->getDims(2);
-      if (opB == 'n')
-        dims_data_mat[2] = carma_obj_handler_matB->getDims(2);
-      else
-        dims_data_mat[2] = carma_obj_handler_matB->getDims(1);
 
       handle_matC->carma_sparse_object = new carma_sparse_obj<double>(carma_obj_handler_matA->current_context);
       SCAST(carma_sparse_obj<double>*, carma_obj_handler_matC, handle_matC->carma_sparse_object);

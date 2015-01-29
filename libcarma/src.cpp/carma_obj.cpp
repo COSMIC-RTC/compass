@@ -452,13 +452,8 @@ caObjC::sum();*/
 
 template<class T_data>
 int carma_obj<T_data>::transpose(carma_obj<T_data> *source) {
-
-  cutilSafeThreadSync();
-
   transposeCU(source->d_data, this->d_data, this->dims_data[1],
       this->dims_data[2]);
-
-  cutilSafeThreadSync();
   return EXIT_SUCCESS;
 }
 template int

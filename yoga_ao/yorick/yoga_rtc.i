@@ -27,104 +27,17 @@ func imat_init(ncontrol,clean=)
         //y_wfs(cc)._profna = &prof;
       }
     }
-    
-    rtc_doimat,g_rtc,ncontrol-1,g_wfs,g_dm;
-    imat = rtc_getimat(g_rtc,ncontrol-1);
-    
-    //imat = imat_geom(meth=0);
-    //rtc_setimat,g_rtc,ncontrol-1,imat;
-    
+        
   } else {
     if (simul_name != [])
       imat = fits_read(swrite(format=dirsave+"imat-%d-%s.fits",ncontrol,simul_name));
   }
 
-  correct_dm,imat;
-  
-  /*
-  g_dm = 0;
-  g_dm = yoga_dms(numberof(y_dm));
-    
-  for (nm=1;nm<=numberof(y_dm);nm++) {
-    // filter actuators only in stackarray mirrors:
-    inds = 1;
-    if (y_dm(nm).type == "pzt") {
-      dmx = *y_dm(nm)._xpos;
-      dmy = *y_dm(nm)._ypos;
-      dmi1 = *y_dm(nm)._i1;
-      dmj1 = *y_dm(nm)._j1;
-        
-      if (imat_clean) {
-        tmp = resp(inds:inds+y_dm(nm)._ntotact-1);
-        ok = where(tmp >  y_dm(nm).thresh*max(tmp));
-        nok= where(tmp <= y_dm(nm).thresh*max(tmp));
-        if (simul_name != []) {
-          fits_write,swrite(format=dirsave+"pztok-%d-%s.fits",nm,simul_name),ok,overwrite=1;
-          fits_write,swrite(format=dirsave+"pztnok-%d-%s.fits",nm,simul_name),nok,overwrite=1;
-        }
-      } else {
-        ok = fits_read(swrite(format=dirsave+"pztok-%d-%s.fits",nm,simul_name));
-        nok= fits_read(swrite(format=dirsave+"pztnok-%d-%s.fits",nm,simul_name));
-      }
-      
-      y_dm(nm)._xpos    = &(dmx(ok));
-      y_dm(nm)._ypos    = &(dmy(ok));
-      y_dm(nm)._i1      = &(int(dmi1(ok)));
-      y_dm(nm)._j1      = &(int(dmj1(ok)));
-      y_dm(nm)._influ   = &((*(y_dm(nm)._influ))(,,ok));
-      y_dm(nm)._ntotact = (dimsof(*(y_dm(nm)._influ)))(4);
-        
-      comp_dmgeom,nm;
-      
-      dims      = long(y_dm(nm)._n2-y_dm(nm)._n1+1);
-      dim       = dimsof(*y_geom._mpupil)(2);
-      if (dims > dim) dim = dims;
-      
-      ninflu    = long(y_dm(nm)._ntotact);
-      influsize = long(y_dm(nm)._influsize);
-      ninflupos = long(numberof(*y_dm(nm)._influpos));
-      n_npts    = long(numberof(*y_dm(nm)._ninflu));
-      yoga_addpzt,g_dm,float(y_dm(nm).alt),dim,ninflu,influsize,ninflupos,n_npts,float(y_dm(nm).push4imat);
-      
-      yoga_loadpzt,g_dm,float(y_dm(nm).alt),float(*y_dm(nm)._influ),
-        int(*y_dm(nm)._influpos),int(*y_dm(nm)._ninflu),int(*y_dm(nm)._influstart),
-        int(*y_dm(nm)._i1),int(*y_dm(nm)._j1);
-      
-    } else if (y_dm(nm).type == "tt") {
-        
-      dim       = long(y_dm(nm)._n2-y_dm(nm)._n1+1);
-      yoga_addtt,g_dm,float(y_dm(nm).alt),dim,float(y_dm(nm).push4imat);
-      
-      yoga_loadtt,g_dm,float(y_dm(nm).alt),float(*y_dm(nm)._influ);
-    } else if (y_dm(nm).type == "kl") {
-      
-      dim       = long(y_dm(nm)._n2-y_dm(nm)._n1+1);
-      ninflu    = long(y_dm(nm).nkl);
-      influsize = long((*y_dm(nm)._klbas).ncp);
-      nr        = long((*y_dm(nm)._klbas).nr);
-      np        = long((*y_dm(nm)._klbas).np);
-      
-      yoga_addkl,g_dm,float(y_dm(nm).alt),dim,ninflu,influsize,nr,np,float(y_dm(nm).push4imat);
-      
-      yoga_loadkl,g_dm,float(y_dm(nm).alt),float(*(*y_dm(nm)._klbas).rabas)(*),
-        float(*(*y_dm(nm)._klbas).azbas)(*),int(*(*y_dm(nm)._klbas).ord),float(*(*y_dm(nm)._klbas).cr)(*),
-        float(*(*y_dm(nm)._klbas).cp)(*);
-    }
-    
-    inds += y_dm(nm)._ntotact;
-  }
-  */
-  ndms = *controllers(ncontrol).ndm;
-  controllers(ncontrol).nactu  = &(y_dm(ndms)._ntotact);
-  
-  rtc_rmcontrol,g_rtc;
-  
-  rtc_addcontrol,g_rtc,sum(y_dm(ndms)._ntotact),controllers(ncontrol).delay,controllers(ncontrol).type;
-
   if (imat_clean) {
+    write,format="%s", "doing imat... ";
     tic;
     rtc_doimat,g_rtc,ncontrol-1,g_wfs,g_dm;
-    write,format = "imat time : %f\n",tac();
+    write,format = "done in : %f s\n",tac();  
     imat = rtc_getimat(g_rtc,ncontrol-1);
     if (simul_name != []) {
       fits_write,swrite(format=dirsave+"imat-%d-%s.fits",ncontrol,simul_name),imat,overwrite=1;
@@ -132,9 +45,63 @@ func imat_init(ncontrol,clean=)
   } else
     rtc_setimat,g_rtc,ncontrol-1,imat;
 
-  //imat = imat_geom(meth=0);
-  //rtc_setimat,g_rtc,ncontrol-1,imat;
+  controllers = *y_rtc.controllers;
+  controllers(ncontrol).imat = &imat;
+  y_rtc.controllers = &controllers;
+  
+  // now restore original profile in lgs spots
+  for (cc=1;cc<=numberof(y_wfs);cc++) {
+    if (y_wfs(cc).gsalt > 0) {
+      // lgs mode requested
+      h    = *y_wfs(cc)._altna;
+      prof = *y_wfs(cc)._profna;
+      prep_lgs_prof,cc,prof,h,y_wfs(cc).beamsize;
+    }
+  }
+}
 
+func imat_init_old(ncontrol,clean=)
+{
+  extern y_rtc,g_dm;
+
+  dirsave = YOGA_AO_SAVEPATH+"mat/";
+  mkdirp,dirsave;
+
+  if (clean == []) clean = 1;
+
+  if (simul_name == []) imat_clean = 1;
+  else
+    imat_clean = ((!fileExist(swrite(format=dirsave+"imat-%d-%s.fits",ncontrol,simul_name))) || clean);
+
+  if (imat_clean) {
+    // first check if wfs is using lgs
+    // if so, load new lgs spot, just for imat
+    for (cc=1;cc<=numberof(y_wfs);cc++) {
+      if (y_wfs(cc).gsalt > 0) {
+        // lgs mode requested
+        profilename = "allProfileNa_withAltitude_1Gaussian.fits";
+        prof=fits_read(YOGA_AO_SAVEPATH+profilename);
+        h    = prof(,1);
+        prof = prof(,2:)(,avg);
+        prep_lgs_prof,cc,prof,h,y_wfs(cc).beamsize,imat=1;
+        //y_wfs(cc)._altna  = &h;
+        //y_wfs(cc)._profna = &prof;
+      }
+    }
+    
+    //yoga_start_profile;
+    rtc_doimat,g_rtc,ncontrol-1,g_wfs,g_dm;
+    imat = rtc_getimat(g_rtc,ncontrol-1);
+    //yoga_stop_profile;
+    
+    //imat = imat_geom(meth=0);
+    //rtc_setimat,g_rtc,ncontrol-1,imat;
+    
+  } else {
+    imat = fits_read(swrite(format=dirsave+"imat-%d-%s.fits",ncontrol,simul_name));
+    rtc_setimat,g_rtc,ncontrol-1,imat;
+  }
+  
   controllers = *y_rtc.controllers;
   controllers(ncontrol).imat = &imat;
   y_rtc.controllers = &controllers;

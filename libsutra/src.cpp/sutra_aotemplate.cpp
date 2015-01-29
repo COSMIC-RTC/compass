@@ -33,7 +33,7 @@ int sutra_aotemplate::fill_data(float *idata) {
 
 int sutra_aotemplate::fill_data() {
   // fill data with random numbers
-  this->d_data->init_prng(this->device);
+  this->d_data->init_prng();
   this->d_data->prng('N');
 
   return EXIT_SUCCESS;

@@ -98,10 +98,10 @@ func geom_init(pupdiam)
   mpupil=pad_array(spupil,y_geom._n);
     
   if (y_target.apod==1)
-  {
+    {
       apodizer = float(make_apodizer(y_geom.pupdiam,y_geom.pupdiam,"/root/compass/trunk/yoga_ao/data/apodizer/SP_HARMONI_I4_C6_N1024.fits",180/12.));
       y_geom._apodizer = &apodizer;
-  }
+    }
     
   y_geom._ipupil = &ipupil;
   y_geom._spupil = &spupil;
@@ -226,15 +226,15 @@ func wfs_init(void)
   // create sensor object on gpu
   if (y_wfs(1).type == "sh")
     g_wfs = yoga_sensors(numberof(y_wfs),y_wfs(1).type,y_wfs.nxsub,y_wfs._nvalid,y_wfs.npix,y_wfs._pdiam,
-			 y_wfs._nrebin,y_wfs._Nfft,y_wfs._Ntot,y_geom._n,y_wfs._subapd,
-			 y_wfs._nphotons,y_wfs.gsalt > 0);
+                         y_wfs._nrebin,y_wfs._Nfft,y_wfs._Ntot,y_geom._n,y_wfs._subapd,
+                         y_wfs._nphotons,y_wfs.gsalt > 0);
   if (y_wfs(1).type == "pyr")
     g_wfs = yoga_sensors(numberof(y_wfs),y_wfs(1).type,y_wfs.nxsub,y_wfs._nvalid,y_wfs.npix,y_wfs._pdiam,
-			 y_wfs._nrebin,y_wfs._Nfft,y_wfs._Ntot,y_wfs(1).pyr_npts,y_wfs._subapd,
-			 y_wfs._nphotons,y_wfs.gsalt > 0);
+                         y_wfs._nrebin,y_wfs._Nfft,y_wfs._Ntot,y_wfs(1).pyr_npts,y_wfs._subapd,
+                         y_wfs._nphotons,y_wfs.gsalt > 0);
   if (y_wfs(1).type == "geo")
     g_wfs = yoga_sensors(numberof(y_wfs),y_wfs(1).type,y_wfs.nxsub,y_wfs._nvalid,y_wfs._pdiam,
-			 y_geom._n,y_wfs._subapd);
+                         y_geom._n,y_wfs._subapd);
   
   // init sensor gs object on gpu
   if (y_wfs(1).type == "geo") {
@@ -336,15 +336,15 @@ func target_init(void)
     if (anyof(ceiled_pupil>1)) ceiled_pupil(where(ceiled_pupil>1))=1;
       
     if (y_target.apod != []) {
-        if (y_target.apod == 1) {
-            ceiled_apodizer=ceil(*y_geom._apodizer * *y_geom._spupil);
-            if (anyof(ceiled_apodizer>1)) ceiled_apodizer(where(ceiled_apodizer>1))=1;
-            g_target = yoga_target(y_target.ntargets,*y_target.xpos,*y_target.ypos,*y_target.lambda,*y_target.mag,sizes,ceiled_apodizer);
-        } else {
-            g_target = yoga_target(y_target.ntargets,*y_target.xpos,*y_target.ypos,*y_target.lambda,*y_target.mag,sizes,ceiled_pupil);
-        }
-    } else {
+      if (y_target.apod == 1) {
+        ceiled_apodizer=ceil(*y_geom._apodizer * *y_geom._spupil);
+        if (anyof(ceiled_apodizer>1)) ceiled_apodizer(where(ceiled_apodizer>1))=1;
+        g_target = yoga_target(y_target.ntargets,*y_target.xpos,*y_target.ypos,*y_target.lambda,*y_target.mag,sizes,ceiled_apodizer);
+      } else {
         g_target = yoga_target(y_target.ntargets,*y_target.xpos,*y_target.ypos,*y_target.lambda,*y_target.mag,sizes,ceiled_pupil);
+      }
+    } else {
+      g_target = yoga_target(y_target.ntargets,*y_target.xpos,*y_target.ypos,*y_target.lambda,*y_target.mag,sizes,ceiled_pupil);
     }
       
     //g_target = yoga_target(y_target.ntargets,*y_target.xpos,*y_target.ypos,*y_target.lambda,*y_target.mag,sizes,*y_geom._apodizer);
@@ -391,9 +391,9 @@ func target_init(void)
   if (y_wfs != []) {
     if ((y_wfs != []) && (g_wfs != [])) {
       for (cc=1;cc<=numberof(y_wfs);cc++) {
-	if (y_wfs(cc).gsalt != 0.)
-	  gsalt = 1./y_wfs(cc).gsalt;
-	else gsalt = 0.;
+        if (y_wfs(cc).gsalt != 0.)
+          gsalt = 1./y_wfs(cc).gsalt;
+        else gsalt = 0.;
         if (y_atmos != []) {
           for (dd=1;dd<=y_atmos.nscreens;dd++) {
             xoff = (gsalt * (*y_atmos.alt)(dd) * (y_tel.diam/2.) + (y_wfs.xpos)(cc)*4.848e-6*(*y_atmos.alt)(dd))/y_atmos.pupixsize;
@@ -409,7 +409,7 @@ func target_init(void)
             dim  = dimsof(*y_geom._mpupil)(2);
             dim_dm = max([dim,dims]);
             xoff = (y_wfs.xpos)(cc)*4.848e-6*(y_dm.alt)(dd)/(y_tel.diam / y_geom.pupdiam);
-	    yoff = (y_wfs.ypos)(cc)*4.848e-6*(y_dm.alt)(dd)/(y_tel.diam / y_geom.pupdiam);
+            yoff = (y_wfs.ypos)(cc)*4.848e-6*(y_dm.alt)(dd)/(y_tel.diam / y_geom.pupdiam);
             xoff = float(xoff+(dim_dm-y_geom._n)/2);
             yoff = float(yoff+(dim_dm-y_geom._n)/2);
             sensors_addlayer,g_wfs,cc-1,y_dm(dd).type,(y_dm.alt)(dd),xoff,yoff;
@@ -447,7 +447,7 @@ func dm_init(void)
         y_dm(n)._puppixoffset = long(y_dm(n).pupoffset/y_tel.diam*y_geom.pupdiam);
       
       if (y_dm(n).type == "pzt") {
-	// find out the support dimension for the given mirror.
+        // find out the support dimension for the given mirror.
         patchDiam = long(y_geom.pupdiam+2*max(abs([y_wfs.xpos,y_wfs.ypos]))*
                          4.848e-6*abs(y_dm(n).alt)/(y_tel.diam/y_geom.pupdiam));
         //patchDiam;
@@ -466,12 +466,12 @@ func dm_init(void)
       
       if (y_dm(n).alt == 0) {
         if (y_dm(n).type == "tt") {
-	  max_extent = max(y_dm._n2-y_dm._n1+1);
-	  extent = long(max_extent*1.05);
-	  if (extent %2 != 0) extent +=1;
-	  y_dm(n)._n1 = long(clip(floor(y_geom.cent-extent/2.),1,));
-	  y_dm(n)._n2 = long(clip(ceil(y_geom.cent+extent/2.),,y_geom.ssize));
-	}
+          max_extent = max(y_dm._n2-y_dm._n1+1);
+          extent = long(max_extent*1.05);
+          if (extent %2 != 0) extent +=1;
+          y_dm(n)._n1 = long(clip(floor(y_geom.cent-extent/2.),1,));
+          y_dm(n)._n2 = long(clip(ceil(y_geom.cent+extent/2.),,y_geom.ssize));
+        }
       }
       //y_dm(n)._n1;y_dm(n)._n2;
       if (y_dm(n).type == "pzt") {
@@ -519,8 +519,8 @@ func dm_init(void)
         error;
         /*
         // verif :
-	res1 = pol2car(*y_dm(n)._klbas,gkl_sfi(*y_dm(n)._klbas, 1));
-	res2 = yoga_getkl(g_dm,0.,1);
+        res1 = pol2car(*y_dm(n)._klbas,gkl_sfi(*y_dm(n)._klbas, 1));
+        res2 = yoga_getkl(g_dm,0.,1);
         */
       }
 
@@ -528,7 +528,7 @@ func dm_init(void)
       if (y_dm(n).type == "flo_kl") {
         dim       = long(y_dm(n)._n2-y_dm(n)._n1+1);
         make_flo_kl_dm, n;
-	//error;
+        //error;
         
         dim       = long(y_dm(n)._n2-y_dm(n)._n1+1);
         ninflu    = long(y_dm(n).nkl);
@@ -542,8 +542,8 @@ func dm_init(void)
         //error;
         /*
         // verif :
-	res1 = pol2car(*y_dm(n)._klbas,gkl_sfi(*y_dm(n)._klbas, 1));
-	res2 = yoga_getkl(g_dm,0.,1);
+        res1 = pol2car(*y_dm(n)._klbas,gkl_sfi(*y_dm(n)._klbas, 1));
+        res2 = yoga_getkl(g_dm,0.,1);
         */
       }
     }
@@ -595,7 +595,7 @@ func rtc_init(clean=)
 
         if (y_wfs(nwfs).type == "pyr") {
           s_offset = s_scale = 0.0f
-	    }
+            }
 
         rtc_addcentro,g_rtc,nwfs-1,y_wfs(nwfs)._nvalid,centroiders(i).type,s_offset,s_scale;
         
@@ -681,67 +681,68 @@ func rtc_init(clean=)
       
       if ((y_wfs != []) && (y_dm != [])) {
         for (i=1;i<=numberof(controllers);i++) {
-            write,"doing imat and filtering unseen actuators";
+          write,format="%s", "doing imat_geom and filtering unseen actuators... ";
+          tic;
           //if (controllers(i).type  == "cured") {
-            if (y_wfs(1).type == "sh")
-	      imat = imat_geom(meth=0);
-	    else
-	      imat = manual_imat();
-            correct_dm,imat;
-            //} 
-	  if (controllers(i).type != "geo"){
-	    nwfs = *controllers(i).nwfs;
-	    if (numberof(y_wfs) == 1) nwfs = nwfs(1); // fixing a bug ... still not understood
-	    controllers(i).nvalid = &(y_wfs(nwfs)._nvalid);
-	  }
-	  ndms = *controllers(i).ndm;
+          if (y_wfs(1).type == "sh")
+            imat = imat_geom(meth=0);
+          else
+            imat = manual_imat();
+          correct_dm,imat;
+          write,format = "done in : %f s\n",tac();  
+          //} 
+          if (controllers(i).type != "geo"){
+            nwfs = *controllers(i).nwfs;
+            if (numberof(y_wfs) == 1) nwfs = nwfs(1); // fixing a bug ... still not understood
+            controllers(i).nvalid = &(y_wfs(nwfs)._nvalid);
+          }
+          ndms = *controllers(i).ndm;
           controllers(i).nactu  = &(y_dm(ndms)._ntotact);
 
-	  if (controllers(i).type == "geo")
-	    rtc_addcontrol,g_rtc,sum(y_dm(ndms)._ntotact),controllers(i).delay,controllers(i).type,numberof(where(*y_geom._spupil));
-	  else
-	    rtc_addcontrol,g_rtc,sum(y_dm(ndms)._ntotact),controllers(i).delay,controllers(i).type;
+          if (controllers(i).type == "geo")
+            rtc_addcontrol,g_rtc,sum(y_dm(ndms)._ntotact),controllers(i).delay,controllers(i).type,numberof(where(*y_geom._spupil));
+          else
+            rtc_addcontrol,g_rtc,sum(y_dm(ndms)._ntotact),controllers(i).delay,controllers(i).type;
 
-	  if (controllers(i).type == "geo") {
-	    indx_pup = where(*y_geom._spupil);
-	    cpt = 0;
-	    indx_dm = array(0,numberof(ndms) * numberof(indx_pup));
-	    for (dmn = 1 ; dmn<= numberof(ndms) ; dmn++){
-	      tmp = (dimsof(*y_geom._ipupil)(2)-(y_dm(dmn)._n2 - y_dm(dmn)._n1 +1))/2;
-	      pup_dm = (*y_geom._ipupil)(tmp+1:-tmp,tmp+1:-tmp);
-	      indx_dm(cpt+1:cpt+numberof(where(pup_dm))) = where(pup_dm) - 1;	  
-	      cpt += numberof(where(pup_dm));
-	    }
-	    rtc_init_proj,g_rtc,i-1,g_dm,indx_dm,y_dm.unitpervolt,indx_pup - 1;
-	    //rtc_docontrol_geo,g_rtc,0,g_dm,g_target,0;
-	  }
+          if (controllers(i).type == "geo") {
+            indx_pup = where(*y_geom._spupil);
+            cpt = 0;
+            indx_dm = array(0,numberof(ndms) * numberof(indx_pup));
+            for (dmn = 1 ; dmn<= numberof(ndms) ; dmn++){
+              tmp = (dimsof(*y_geom._ipupil)(2)-(y_dm(dmn)._n2 - y_dm(dmn)._n1 +1))/2;
+              pup_dm = (*y_geom._ipupil)(tmp+1:-tmp,tmp+1:-tmp);
+              indx_dm(cpt+1:cpt+numberof(where(pup_dm))) = where(pup_dm) - 1;	  
+              cpt += numberof(where(pup_dm));
+            }
+            rtc_init_proj,g_rtc,i-1,g_dm,indx_dm,y_dm.unitpervolt,indx_pup - 1;
+            //rtc_docontrol_geo,g_rtc,0,g_dm,g_target,0;
+          }
 
           if (controllers(i).type  == "ls") {
             imat_init,i,clean=clean;
             write,"done";
-	    if (controllers(i).modopti == 1){
-	      write,"Initializing Modal Optimization : ";
-	      if (controllers(i).nrec == 0) controllers(i).nrec = 2048;
-	      else controllers(i).nrec = int(2^(ceil(log(controllers(i).nrec)/log(2)))); //Next power of 2 (for fft)
-	      if (controllers(i).nmodes == 0) controllers(i).nmodes = sum(y_dm(ndms)._ntotact);
-	      if (controllers(i).gmax == 0) controllers(i).gmax = 1.0f;
-	      if (controllers(i).ngain == 0) controllers(i).ngain = 15;
-	      KL2V = compute_KL2V(i);
-	      rtc_initModalOpti,g_rtc,i-1,controllers(i).nmodes,controllers(i).nrec,KL2V,
-		controllers(i).gmin,controllers(i).gmax,controllers(i).ngain,1/y_loop.ittime;
-	      ol_slopes = openLoopSlp(controllers(i).nrec,i);
-	      write,"Done";
-	      rtc_loadOpenLoopSlp,g_rtc,i-1,ol_slopes;
-	      rtc_modalControlOptimization,g_rtc,i-1;
-	    }
-	    else{
-	      cmat_init,i,clean=clean;
-	      rtc_setgain,g_rtc,0,controllers(i).gain;
-	      mgain = array(1.0f,(y_dm._ntotact)(sum));
-	      // filtering tilt ...
-	      //mgain(-1:0) = 0.0f;
-	      rtc_loadmgain,g_rtc,0,mgain;
-	    }
+            if (controllers(i).modopti == 1){
+              write,"Initializing Modal Optimization : ";
+              if (controllers(i).nrec == 0) controllers(i).nrec = 2048;
+              else controllers(i).nrec = int(2^(ceil(log(controllers(i).nrec)/log(2)))); //Next power of 2 (for fft)
+              if (controllers(i).nmodes == 0) controllers(i).nmodes = sum(y_dm(ndms)._ntotact);
+              if (controllers(i).gmax == 0) controllers(i).gmax = 1.0f;
+              if (controllers(i).ngain == 0) controllers(i).ngain = 15;
+              KL2V = compute_KL2V(i);
+              rtc_initModalOpti,g_rtc,i-1,controllers(i).nmodes,controllers(i).nrec,KL2V,
+                controllers(i).gmin,controllers(i).gmax,controllers(i).ngain,1/y_loop.ittime;
+              ol_slopes = openLoopSlp(controllers(i).nrec,i);
+              write,"Done";
+              rtc_loadOpenLoopSlp,g_rtc,i-1,ol_slopes;
+              rtc_modalControlOptimization,g_rtc,i-1;
+            } else{
+              cmat_init,i,clean=clean;
+              rtc_setgain,g_rtc,0,controllers(i).gain;
+              mgain = array(1.0f,(y_dm._ntotact)(sum));
+              // filtering tilt ...
+              //mgain(-1:0) = 0.0f;
+              rtc_loadmgain,g_rtc,0,mgain;
+            }
           }
           if (controllers(i).type  == "cured") {
             write,"initializing cured controller";
@@ -749,14 +750,14 @@ func rtc_init(clean=)
             else tt_flag = 0;
             controller_initcured,g_rtc,0,int(y_wfs(1).nxsub),int(*y_wfs(1)._isvalid),
               int(controllers(i).cured_ndivs),int(tt_flag);
-	    rtc_setgain,g_rtc,0,controllers(i).gain;
+            rtc_setgain,g_rtc,0,controllers(i).gain;
           }           
           if ((controllers(i).type  == "kalman_CPU") || (controllers(i).type  == "kalman_GPU")) {
 
             env_var = get_env("COMPILATION_LAM");
             found_str = strfind("standalone",env_var);
             if (found_str(2) != -1)
-            write,"\nWARNING : Environment variable COMPILATION_LAM contains the word \"standalone\". Make sure that this variable did not contain \"standalone\" when compiling, which would mean that Kalman filter was compiled for standalone version (in lam/kalman_CPU_GPU/test), which is not compatible with COMPASS\n.";
+              write,"\nWARNING : Environment variable COMPILATION_LAM contains the word \"standalone\". Make sure that this variable did not contain \"standalone\" when compiling, which would mean that Kalman filter was compiled for standalone version (in lam/kalman_CPU_GPU/test), which is not compatible with COMPASS\n.";
 
             if (controllers(i).type  == "kalman_CPU")
               write,"initializing kalman_CPU controller";
@@ -787,254 +788,254 @@ func rtc_init(clean=)
               rtc_initkalman, g_rtc, 0, avg(noise_cov(1)), D_Mo, N_Act, PROJ, SigmaV, atur, btur, isZonal, isSparse, 1;
 
           }          
-	  // Florian features
-	  if (controllers(i).type == "mv"){      
-	    write,"doing imat and filtering unseen actuators";
-	    //imat_init,i,clean=clean;
-	    imat = imat_geom(meth=0);
-	    rtc_setimat,g_rtc,i-1,imat;
-	    write,"done";
-	    rtc_setgain,g_rtc,0,controllers(i).gain;
+          // Florian features
+          if (controllers(i).type == "mv"){   
+            write,"doing imat and filtering unseen actuators";
+            //imat_init,i,clean=clean;
+            imat = imat_geom(meth=0);
+            rtc_setimat,g_rtc,i-1,imat;
+            write,"done";
+            rtc_setgain,g_rtc,0,controllers(i).gain;
             mgain = array(1.0f,(y_dm._ntotact)(sum));
             rtc_loadmgain,g_rtc,0,mgain;
 	    
-	    Cphim = mat_cphim_gpu(i-1);
-	    /*
-	    restore,openb("Cvm_geom");
-	    restore,openb("Cmm_geom");
-	    rtc_setCphim,g_rtc,0,-Cvm_geom;
-	    rtc_setCmm,g_rtc,0,Cmm_geom;
-	    */
-	    cmat_init,i,clean=clean;
-	    /*
-	    Cmm1 = invgen(Cmm_geom,50);
-	    cmat = Cvm_geom(,+) * Cmm1(+,);
-	    rtc_setcmat,g_rtc,0,cmat;
-	    */
-	    //Cphi_vk = create_sigmaTur(1);
-	    //F = unit(dimsof(Cphi_vk)(3)) - array(1./(dimsof(Cphi_vk)(3)),dimsof(Cphi_vk)(3),dimsof(Cphi_vk)(3));
-	    //Cphi_vk = (F(,+)*Cphi_vk(+,))(,+)*F(,+);
+            Cphim = mat_cphim_gpu(i-1);
+            /*
+              restore,openb("Cvm_geom");
+              restore,openb("Cmm_geom");
+              rtc_setCphim,g_rtc,0,-Cvm_geom;
+              rtc_setCmm,g_rtc,0,Cmm_geom;
+            */
+            cmat_init,i,clean=clean;
+            /*
+              Cmm1 = invgen(Cmm_geom,50);
+              cmat = Cvm_geom(,+) * Cmm1(+,);
+              rtc_setcmat,g_rtc,0,cmat;
+            */
+            //Cphi_vk = create_sigmaTur(1);
+            //F = unit(dimsof(Cphi_vk)(3)) - array(1./(dimsof(Cphi_vk)(3)),dimsof(Cphi_vk)(3),dimsof(Cphi_vk)(3));
+            //Cphi_vk = (F(,+)*Cphi_vk(+,))(,+)*F(,+);
 	    
-	    // Cphim computation
-	    //Nact = create_nact(1) / y_dm(1).unitpervolt;
-	    //Nact = create_nact_geom(1);
-	    //restore,openb("Nact");
-	    //Nact/=y_dm(1).unitpervolt;
-	    //G = LUsolve(Nact);
-	    //G = Nact;
+            // Cphim computation
+            //Nact = create_nact(1) / y_dm(1).unitpervolt;
+            //Nact = create_nact_geom(1);
+            //restore,openb("Nact");
+            //Nact/=y_dm(1).unitpervolt;
+            //G = LUsolve(Nact);
+            //G = Nact;
 
-	    //Cphim = mat_cphim();
+            //Cphim = mat_cphim();
 
 
-	    /*
-	    //error;
+            /*
+            //error;
 	    
-	    Cphim = F(,+) * Cphim(+,);
-	    Cphim = G(,+) * Cphim(+,);
-	    //Cphim /= 25.8;
+            Cphim = F(,+) * Cphim(+,);
+            Cphim = G(,+) * Cphim(+,);
+            //Cphim /= 25.8;
 
-	    // Imat & Cmm
-	    imat = rtc_getimat(g_rtc,0);
-	    Cmm = rtc_getCmm(g_rtc,0);
-	    cmm = mat_cmm();
+            // Imat & Cmm
+            imat = rtc_getimat(g_rtc,0);
+            Cmm = rtc_getCmm(g_rtc,0);
+            cmm = mat_cmm();
 	    
-	    // Noise
-	    noisemat = noise_cov(1);
-	    Cn = unit(numberof(noisemat)) * noisemat;
+            // Noise
+            noisemat = noise_cov(1);
+            Cn = unit(numberof(noisemat)) * noisemat;
 
-	    // Cmat computation (two ways)
-	    //D_kolmo = (imat(,+) * Cphi_kolmo(+,))(,+) * imat(,+) + Cn;
-	    //Dvk = (imat(,+) * Cphi_vk(+,))(,+) * imat(,+) + Cn;
-	    Cmm += Cn;
-	    cmm += Cn;
+            // Cmat computation (two ways)
+            //D_kolmo = (imat(,+) * Cphi_kolmo(+,))(,+) * imat(,+) + Cn;
+            //Dvk = (imat(,+) * Cphi_vk(+,))(,+) * imat(,+) + Cn;
+            Cmm += Cn;
+            cmm += Cn;
 
-	    //D1_kolmo = LUsolve(D_kolmo);
-	    //D1vk = LUsolve(Dvk);
-	    //Cmm1 = invgen(Cmm,50);
-	    cmm1 = invgen(cmm,50);
-	    //Cmm1f = invgen(Cmm,dimsof(imat)(2) - dimsof(imat)(3));
+            //D1_kolmo = LUsolve(D_kolmo);
+            //D1vk = LUsolve(Dvk);
+            //Cmm1 = invgen(Cmm,50);
+            cmm1 = invgen(cmm,50);
+            //Cmm1f = invgen(Cmm,dimsof(imat)(2) - dimsof(imat)(3));
 
-	    //cmat_kolmo = (Cphi_kolmo(,+) * imat(,+))(,+) * D1_kolmo(+,);
-	    //cmat_vk = (Cphi_vk(,+) * imat(,+))(,+) * D1vk(+,);
-	    //cmat_cmm = (Cphi_vk(,+) * imat(,+))(,+) * Cmm1(+,);
-	    //cmat_cphim = (Cphim(,+) * Cmm1(+,));
-	    cmat_cphim2 = (Cphim(,+) * cmm1(+,));
-	    //restore,openb("cmatls");
+            //cmat_kolmo = (Cphi_kolmo(,+) * imat(,+))(,+) * D1_kolmo(+,);
+            //cmat_vk = (Cphi_vk(,+) * imat(,+))(,+) * D1vk(+,);
+            //cmat_cmm = (Cphi_vk(,+) * imat(,+))(,+) * Cmm1(+,);
+            //cmat_cphim = (Cphim(,+) * Cmm1(+,));
+            cmat_cphim2 = (Cphim(,+) * cmm1(+,));
+            //restore,openb("cmatls");
 	    
-	    D = imat(+,)*imat(+,);
-	    D = invcond(D,y_controllers(1).maxcond);
-	    cmatls = D(,+) * imat(,+);
-	    cmat_mvtt = cmatls / 20.;
-	    cmat_mvtt(:y_dm(1)._ntotact,) = cmat_cphim2;
+            D = imat(+,)*imat(+,);
+            D = invcond(D,y_controllers(1).maxcond);
+            cmatls = D(,+) * imat(,+);
+            cmat_mvtt = cmatls / 20.;
+            cmat_mvtt(:y_dm(1)._ntotact,) = cmat_cphim2;
 	    
-	    /*
-	    Nslopes = dimsof(imat)(2);
-	    Nactu = dimsof(imat)(3);
-	    Dm = imat(,:Nactu-2);
-	    Dtt = imat(,Nactu-1:);
-	    Dm1 = (invcond(Dm(+,)*Dm(+,),y_controllers(1).maxcond))(,+) * Dm(,+);
-	    //Dtt1 = (LUsolve(Dtt(+,)*Dtt(+,)))(,+) * Dtt(,+);
-	    TT2ho = Dm1(,+) * Dtt(+,);
-	    //cmat_mvtt2 = array(0.0f,Nactu,Nslopes);
-	    //cmat_mvtt2(:Nactu-2,) = cmat_cphim2 - TT2ho(,+) * Dtt1(+,);
-	    //cmat_mvtt2(Nactu-1:,) = Dtt1;
+            /*
+            Nslopes = dimsof(imat)(2);
+            Nactu = dimsof(imat)(3);
+            Dm = imat(,:Nactu-2);
+            Dtt = imat(,Nactu-1:);
+            Dm1 = (invcond(Dm(+,)*Dm(+,),y_controllers(1).maxcond))(,+) * Dm(,+);
+            //Dtt1 = (LUsolve(Dtt(+,)*Dtt(+,)))(,+) * Dtt(,+);
+            TT2ho = Dm1(,+) * Dtt(+,);
+            //cmat_mvtt2 = array(0.0f,Nactu,Nslopes);
+            //cmat_mvtt2(:Nactu-2,) = cmat_cphim2 - TT2ho(,+) * Dtt1(+,);
+            //cmat_mvtt2(Nactu-1:,) = Dtt1;
 
-	    M = Dm(,+) * TT2ho(+,);
-	    M1 = (LUsolve(M(+,)*M(+,)))(,+) * M(,+);
-	    MM1 = M(,+) * M1(+,);
-	    Ftt = unit(dimsof(MM1)(2)) - MM1;
-	    cmat_mvtt3 = array(0.0f,Nactu,Nslopes);
-	    cmat_mvtt3(:Nactu-2,) = cmat_cphim2(,+) * Ftt(+,);
-	    cmat_mvtt3(Nactu-1:,) = M1;
-	    //cmat_cphimf = (Cphim(,+) * Cmm1f(+,));
-	    //fls = cmat_ls(,+) * imat(+,);
-	    rtc_setcmat,g_rtc,i-1,cmat_mvtt3;
-	    //error;
-	    */
-
-
+            M = Dm(,+) * TT2ho(+,);
+            M1 = (LUsolve(M(+,)*M(+,)))(,+) * M(,+);
+            MM1 = M(,+) * M1(+,);
+            Ftt = unit(dimsof(MM1)(2)) - MM1;
+            cmat_mvtt3 = array(0.0f,Nactu,Nslopes);
+            cmat_mvtt3(:Nactu-2,) = cmat_cphim2(,+) * Ftt(+,);
+            cmat_mvtt3(Nactu-1:,) = M1;
+            //cmat_cphimf = (Cphim(,+) * Cmm1f(+,));
+            //fls = cmat_ls(,+) * imat(+,);
+            rtc_setcmat,g_rtc,i-1,cmat_mvtt3;
+            //error;
+            */
 
 
 
-	    /*
- 	    comp_mode = "CPU";
-	    method = "n";
-	    //ndms = ndms(1);
-	    //error;
-	    if(comp_mode == "GPU"){
-	      ndms = ndms(1);
-	      if(y_dm(ndms).type == "pzt"){
-		tmp = (dimsof(*y_geom._ipupil)(2)-(y_dm(ndms)._n2 - y_dm(ndms)._n1 +1))/2;
-		pup = (*y_geom._ipupil)(tmp+1:-tmp,tmp+1:-tmp);
-		indx_valid = where(pup); // CHANGE: where(pup) to where(pup > 0)
-		x = *y_dm(ndms)._xpos;
-		y = *y_dm(ndms)._ypos; 
-		interactp = x(2) - x(1);
-		interactm = y_tel.diam/(y_dm(ndms).nact-1);
-		p2m = interactm/interactp;
-		norm = -(p2m*y_tel.diam/(2*y_atmos.r0))^(5./3);
-	      }
-	      if(y_dm(ndms).type == "kl"){
-		N = int(ceil(sqrt(y_dm(ndms).nkl)));
-		pup = make_pupil(N,N-1,cobs=y_tel.cobs);
-		indx_valid = where(pup); // CHANGE: where(pup) to where(pup > 0)
-		while (numberof(indx_valid) < y_dm(ndms).nkl){
-		  N+=1;
-		  pup = make_pupil(N,N-1,cobs=y_tel.cobs);
-		  indx_valid = where(pup); // CHANGE: where(pup) to where(pup > 0)
-		}
-		x = span(-1,1,N)(,-:1:N);
-		y = transpose(x)(*)(ind_sub);
-		x = x(*)(ind_sub);
-		norm = (y_tel.diam/(2*y_atmos.r0))^(-5./3);
-	      }
-	      write,"Computing covariance matrix...";
-	      rtc_docovmat,g_rtc,i-1,g_dm,y_dm(ndms).type,y_dm(ndms).alt,indx_valid,numberof(indx_valid),x,y,numberof(x),norm,1.,method;
-	      write, "done";
-	      noisemat = noise_cov(1);
-	      if (method == "inv"){
-		noisemat = float(1./noisemat);
-	      }
-	      rtc_loadnoisemat,g_rtc,long(i-1),noisemat;
-	      write,"Initializing command matrix...";
-	      cmat_init,i,clean=clean,method=method;
-	      write,"done";
-	      rtc_setgain,g_rtc,i-1,controllers(i).gain;
-	      mgain = array(1.0f,(y_dm._ntotact)(sum));
-	      rtc_loadmgain,g_rtc,i-1,mgain;
-	    }
+
+
+            /*
+              comp_mode = "CPU";
+              method = "n";
+              //ndms = ndms(1);
+              //error;
+              if(comp_mode == "GPU"){
+              ndms = ndms(1);
+              if(y_dm(ndms).type == "pzt"){
+              tmp = (dimsof(*y_geom._ipupil)(2)-(y_dm(ndms)._n2 - y_dm(ndms)._n1 +1))/2;
+              pup = (*y_geom._ipupil)(tmp+1:-tmp,tmp+1:-tmp);
+              indx_valid = where(pup); // CHANGE: where(pup) to where(pup > 0)
+              x = *y_dm(ndms)._xpos;
+              y = *y_dm(ndms)._ypos; 
+              interactp = x(2) - x(1);
+              interactm = y_tel.diam/(y_dm(ndms).nact-1);
+              p2m = interactm/interactp;
+              norm = -(p2m*y_tel.diam/(2*y_atmos.r0))^(5./3);
+              }
+              if(y_dm(ndms).type == "kl"){
+              N = int(ceil(sqrt(y_dm(ndms).nkl)));
+              pup = make_pupil(N,N-1,cobs=y_tel.cobs);
+              indx_valid = where(pup); // CHANGE: where(pup) to where(pup > 0)
+              while (numberof(indx_valid) < y_dm(ndms).nkl){
+              N+=1;
+              pup = make_pupil(N,N-1,cobs=y_tel.cobs);
+              indx_valid = where(pup); // CHANGE: where(pup) to where(pup > 0)
+              }
+              x = span(-1,1,N)(,-:1:N);
+              y = transpose(x)(*)(ind_sub);
+              x = x(*)(ind_sub);
+              norm = (y_tel.diam/(2*y_atmos.r0))^(-5./3);
+              }
+              write,"Computing covariance matrix...";
+              rtc_docovmat,g_rtc,i-1,g_dm,y_dm(ndms).type,y_dm(ndms).alt,indx_valid,numberof(indx_valid),x,y,numberof(x),norm,1.,method;
+              write, "done";
+              noisemat = noise_cov(1);
+              if (method == "inv"){
+              noisemat = float(1./noisemat);
+              }
+              rtc_loadnoisemat,g_rtc,long(i-1),noisemat;
+              write,"Initializing command matrix...";
+              cmat_init,i,clean=clean,method=method;
+              write,"done";
+              rtc_setgain,g_rtc,i-1,controllers(i).gain;
+              mgain = array(1.0f,(y_dm._ntotact)(sum));
+              rtc_loadmgain,g_rtc,i-1,mgain;
+              }
 		    
-	    if(comp_mode == "CPU"){
-	      covmat = array(0.0,sum(y_dm(ndms)._ntotact),sum(y_dm(ndms)._ntotact));
-	      istart = 0;
-	      for (ndm = 1 ; ndm <= numberof(ndms) ; ndm++){
-		//cov_matrix = docovmat(g_rtc,g_atmos,g_dm,y_dm(ndm)._ntotact,ndm,method,mode="real");
-		//covmat(istart+1:istart+y_dm(ndm)._ntotact,istart+1:istart+y_dm(ndm)._ntotact) = cov_matrix;
-		cov_matrix = stat_cov(ndm,y_atmos.r0);
-		if (y_dm(ndm).type == "pzt")
-		  covmat(istart+1:istart+y_dm(ndm)._ntotact,istart+1:istart+y_dm(ndm)._ntotact) = cov_matrix;
-		else{
-		  Ckl = SVdec(cov_matrix);
-		  covmat(istart+1:istart+y_dm(ndm)._ntotact,istart+1:istart+y_dm(ndm)._ntotact) = unit(y_dm(ndm)._ntotact) * Ckl;
-		}
-		istart += y_dm(ndm)._ntotact;
-	      }
-	      noisemat = noise_cov(1);
-	      //error;
-	      for (ns = 2 ; ns<= numberof(nwfs) ; ns++){
-		grow,noisemat,noise_cov(ns);
-	      }
-	      //error;
-	      rtc_setgain,g_rtc,i-1,controllers(i).gain;
-	      mgain = array(1.0f,(y_dm._ntotact)(sum));
-	      rtc_loadmgain,g_rtc,i-1,mgain;
+              if(comp_mode == "CPU"){
+              covmat = array(0.0,sum(y_dm(ndms)._ntotact),sum(y_dm(ndms)._ntotact));
+              istart = 0;
+              for (ndm = 1 ; ndm <= numberof(ndms) ; ndm++){
+              //cov_matrix = docovmat(g_rtc,g_atmos,g_dm,y_dm(ndm)._ntotact,ndm,method,mode="real");
+              //covmat(istart+1:istart+y_dm(ndm)._ntotact,istart+1:istart+y_dm(ndm)._ntotact) = cov_matrix;
+              cov_matrix = stat_cov(ndm,y_atmos.r0);
+              if (y_dm(ndm).type == "pzt")
+              covmat(istart+1:istart+y_dm(ndm)._ntotact,istart+1:istart+y_dm(ndm)._ntotact) = cov_matrix;
+              else{
+              Ckl = SVdec(cov_matrix);
+              covmat(istart+1:istart+y_dm(ndm)._ntotact,istart+1:istart+y_dm(ndm)._ntotact) = unit(y_dm(ndm)._ntotact) * Ckl;
+              }
+              istart += y_dm(ndm)._ntotact;
+              }
+              noisemat = noise_cov(1);
+              //error;
+              for (ns = 2 ; ns<= numberof(nwfs) ; ns++){
+              grow,noisemat,noise_cov(ns);
+              }
+              //error;
+              rtc_setgain,g_rtc,i-1,controllers(i).gain;
+              mgain = array(1.0f,(y_dm._ntotact)(sum));
+              rtc_loadmgain,g_rtc,i-1,mgain;
 	      
-	      imat = rtc_getimat(g_rtc,0);
-	      //imat = imat_geom(meth=0);
-	      //ii = where(abs(imat)<max(abs(imat)));
-	      //imat(ii) = 0.;
-	      //rtc_setimat,g_rtc,0,float(imat);
+              imat = rtc_getimat(g_rtc,0);
+              //imat = imat_geom(meth=0);
+              //ii = where(abs(imat)<max(abs(imat)));
+              //imat(ii) = 0.;
+              //rtc_setimat,g_rtc,0,float(imat);
 
-	      if (method == "inv"){
-		// Reconstructeur 1
-		//error;
-		noisemat = float(1./noisemat);
-		Cn = unit(numberof(noisemat)) * (noisemat);
+              if (method == "inv"){
+              // Reconstructeur 1
+              //error;
+              noisemat = float(1./noisemat);
+              Cn = unit(numberof(noisemat)) * (noisemat);
 			
-		s = SVdec(covmat,U);
-		E = unit(numberof(s)) * (1/s);
-		E(numberof(s),numberof(s))=0.;
-		covmat = (U(,+)*E(+,))(,+)*U(,+);
+              s = SVdec(covmat,U);
+              E = unit(numberof(s)) * (1/s);
+              E(numberof(s),numberof(s))=0.;
+              covmat = (U(,+)*E(+,))(,+)*U(,+);
 			
-		tmp = (imat(+,) * Cn(+,))(,+) * imat(+,) + covmat;
-		//error;
-		//tmp = LUsolve(tmp);
-		s = SVdec(tmp,U);
-		E = unit(numberof(s)) * (1/s);
-		E(numberof(s),numberof(s))=0.;
-		tmp = (U(,+)*E(+,))(,+)*U(,+);
-		cmat = (tmp(,+)*imat(,+))(,+)*Cn(+,);
-		//error;
-	      }
-	      if (method == "n"){
-		// Reconstructeur 2
+              tmp = (imat(+,) * Cn(+,))(,+) * imat(+,) + covmat;
+              //error;
+              //tmp = LUsolve(tmp);
+              s = SVdec(tmp,U);
+              E = unit(numberof(s)) * (1/s);
+              E(numberof(s),numberof(s))=0.;
+              tmp = (U(,+)*E(+,))(,+)*U(,+);
+              cmat = (tmp(,+)*imat(,+))(,+)*Cn(+,);
+              //error;
+              }
+              if (method == "n"){
+              // Reconstructeur 2
 		      
-		Cn = double(unit(numberof(noisemat)) * noisemat);
-		//Cn = double(unit(numberof(noisemat)) * 0.);
-		//restore,openb("covpzt");
-		//covmat = stat_cov(1,y_atmos.r0);// * -(y_tel.diam/2.)^(5./3);
-		D = (imat(,+)*covmat(+,))(,+)*imat(,+) + Cn;
-		//error;
-		Cmm = rtc_getCmm(g_rtc,0);
-		//Cmm = fits_read("../../../../matcov_gpu/res.fits");
+              Cn = double(unit(numberof(noisemat)) * noisemat);
+              //Cn = double(unit(numberof(noisemat)) * 0.);
+              //restore,openb("covpzt");
+              //covmat = stat_cov(1,y_atmos.r0);// * -(y_tel.diam/2.)^(5./3);
+              D = (imat(,+)*covmat(+,))(,+)*imat(,+) + Cn;
+              //error;
+              Cmm = rtc_getCmm(g_rtc,0);
+              //Cmm = fits_read("../../../../matcov_gpu/res.fits");
 		
-		Cmm /=RASC^(5./3)/(2.*pi / (y_wfs(1).lambda * 1e-6))*0.594279;
-		Cmm += Cn;
-		//Cmm(1:204,1:204) -= 0.02;
-		//Cmm(205:,205:) -= 0.02;
-		tmp = invgen(Cmm,50);
-		D1 = LUsolve(D);
-		//tmp = LUsolve(Cmm);
+              Cmm /=RASC^(5./3)/(2.*pi / (y_wfs(1).lambda * 1e-6))*0.594279;
+              Cmm += Cn;
+              //Cmm(1:204,1:204) -= 0.02;
+              //Cmm(205:,205:) -= 0.02;
+              tmp = invgen(Cmm,50);
+              D1 = LUsolve(D);
+              //tmp = LUsolve(Cmm);
 		
-		  s = SVdec(tmp,U,Vt);
-		  E = unit(numberof(s)) * (1/s);
-		  for(ii=1 ; ii<=numberof(s) ; ii++){
-		  if (s(ii) < s(1)/1500.) E(ii,ii)=0.;}
-		  //E(y_dm(1)._ntotact,y_dm(1)._ntotact) = 0.;
-		  tmp = (U(,+)*E(+,))(,+)*U(,+);
+              s = SVdec(tmp,U,Vt);
+              E = unit(numberof(s)) * (1/s);
+              for(ii=1 ; ii<=numberof(s) ; ii++){
+              if (s(ii) < s(1)/1500.) E(ii,ii)=0.;}
+              //E(y_dm(1)._ntotact,y_dm(1)._ntotact) = 0.;
+              tmp = (U(,+)*E(+,))(,+)*U(,+);
 		
-		//error;
-		C = (covmat(,+)*imat(,+))(,+)*tmp(+,);
-		cmat = (covmat(,+)*imat(,+))(,+)*D1(+,);
-		//cmat = C;
-		error;
-	      }	 
-	      //error;
-	      rtc_setcmat,g_rtc,i-1,cmat;
-	  }
-	      */
-	  }
-	}
+              //error;
+              C = (covmat(,+)*imat(,+))(,+)*tmp(+,);
+              cmat = (covmat(,+)*imat(,+))(,+)*D1(+,);
+              //cmat = C;
+              error;
+              }	 
+              //error;
+              rtc_setcmat,g_rtc,i-1,cmat;
+              }
+            */
+          }
+        }
       }
     }
   }
@@ -1047,17 +1048,17 @@ func invgen(mat , nfilt)
    written by Rico
 */
 {
-   s = SVdec(mat,u,vt);
-   if( nfilt>0 ) {
-       s1 = s;
-       s1(1-nfilt:0) = 1.0;
-       s1 = 1./s1;
-       s1(1-nfilt:0) = 0.0;
-   } else {
-       s1 = 1.0 / s;
-   }
-   m1 =  (u*s1(-,))(,+) * vt(+,);
-   return m1;
+  s = SVdec(mat,u,vt);
+  if( nfilt>0 ) {
+    s1 = s;
+    s1(1-nfilt:0) = 1.0;
+    s1 = 1./s1;
+    s1(1-nfilt:0) = 0.0;
+  } else {
+    s1 = 1.0 / s;
+  }
+  m1 =  (u*s1(-,))(,+) * vt(+,);
+  return m1;
 }
 
 func invcond(mat , cond)
@@ -1067,12 +1068,12 @@ func invcond(mat , cond)
    written by Rico
 */
 {
-   s = SVdec(mat,u,vt);
-   ok = where(s>=max(s)/cond);
-   last = max(ok);
-   s1=s;
-   s1(:last) = 1./s(:last);
-   s1(last+1:) = 0.;
-   m1 =  (u*s1(-,))(,+) * vt(+,);
-   return m1;
+  s = SVdec(mat,u,vt);
+  ok = where(s>=max(s)/cond);
+  last = max(ok);
+  s1=s;
+  s1(:last) = 1./s(:last);
+  s1(last+1:) = 0.;
+  m1 =  (u*s1(-,))(,+) * vt(+,);
+  return m1;
 }

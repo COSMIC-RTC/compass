@@ -125,7 +125,7 @@ cdef extern from "carma_obj.h":
             carma_obj[T] *vectx, int incx, int ldc)                         #
 
         #/**< Curand */
-        int init_prng(int device)
+        int init_prng(int seed)
 #        int destroy_prng()
 #        int prng(T *output, char gtype, float alpha, float beta)
 #        int prng(T *output, char gtype, float alpha)
@@ -471,7 +471,7 @@ CASTSIMPLE
         self.c_o.prng_host('U')
 ENDSIMPLE
 CASTCOMPLEX
-            self.c_o.init_prng(self.getDevice())           
+            self.c_o.init_prng(seed)           
         self.c_o.prng('U')
 ENDCOMPLEX
 

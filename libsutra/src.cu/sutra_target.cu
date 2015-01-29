@@ -393,7 +393,7 @@ int fill_amplipup(cuFloatComplex *amplipup, float *phase, float *mask,
  int fillampli(cuFloatComplex *d_odata,float *d_idata, float *mask,int nx, int ny, int Nx, carma_device *device)
  {
 
- struct cudaDeviceProp deviceProperties;
+ struct cudaDeviceProp deviceProperties = ;
  cudaGetDeviceProperties(&deviceProperties, device);
  // FIX ME !!!!!!!!
  int blockSize = 16;

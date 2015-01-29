@@ -366,7 +366,6 @@ int convolve_cube(cuFloatComplex *d_odata, cuFloatComplex *d_idata, int N,
     int n, carma_device *device) {
   int nthreads = 0, nblocks = 0;
   getNumBlocksAndThreads(device, N, nblocks, nthreads);
-
   dim3 grid(nblocks), threads(nthreads);
 
   conv_krnl<<<grid, threads>>>(d_odata, d_idata, N, n);
@@ -416,7 +415,7 @@ __global__ void reduce2(T *g_idata, T *g_odata, unsigned int n, unsigned int nel
   sdata[tid] = 0;
   for (int cc=0;cc < nelem_thread; cc++) {
     int idim = tid * nelem_thread + cc + (blockDim.x * nelem_thread) * blockIdx.x;
-    if (idim < n) 
+    if (idim < n)
       sdata[tid] +=g_idata[idim];
     else
       sdata[tid] += 0;
@@ -425,11 +424,16 @@ __global__ void reduce2(T *g_idata, T *g_odata, unsigned int n, unsigned int nel
   //sdata[tid] = (i < n) ? g_idata[i] : 0;
 
   __syncthreads();
-
   red_krnl(sdata, blockDim.x, tid);
+  __syncthreads();
+
+//  if (tid == 0)
+//    printf("blockIdx.x %d \n", blockIdx.x);
+//  __syncthreads();
+//
   // write result for this block to global mem
   if (tid == 0)
-    g_odata[blockIdx.x] = sdata[0];
+    g_odata[blockIdx.x] = sdata[tid];
 }
 
 template<class T>
@@ -503,10 +507,11 @@ void subap_reduce(int size, int threads, int blocks, T *d_idata, T *d_odata, car
 
   // when there is only one warp per block, we need to allocate two warps 
   // worth of shared memory so that we don't index shared memory out of bounds
-  int smemSize =
-      (threads <= 32) ? 2 * threads * sizeof(T) : threads * sizeof(T);
-
+  int smemSize = threads * sizeof(T);
+  //DEBUG_TRACE("blocks %d, threads %d, smemSize %d, size %d", blocks, threads / nelem_thread, smemSize, size);
+  cutilSafeThreadSync();
   reduce2<T> <<<dimGrid, dimBlock, smemSize>>>(d_idata, d_odata, (unsigned int)size,nelem_thread);
+  cutilSafeThreadSync();
 
   cutilCheckMsg("reduce2_kernel<<<>>> execution failed\n");
 }
@@ -548,8 +553,7 @@ void subap_reduce_async(int threads, int blocks, carma_streams *streams,
   int nbelem = threads * blocks;
   // when there is only one warp per block, we need to allocate two warps
   // worth of shared memory so that we don't index shared memory out of bounds
-  int smemSize =
-      (threads <= 32) ? 2 * threads * sizeof(T) : threads * sizeof(T);
+  int smemSize = threads * sizeof(T);
   for (int i = 0; i < nstreams; i++) {
     reduce2_async<T> <<<dimGrid, dimBlock, smemSize, (*streams)[i]>>>(d_idata,
         d_odata, nbelem, i * blocks / nstreams);
@@ -579,11 +583,11 @@ void subap_reduce(int size, int threads, int blocks, T *d_idata, T *d_odata,
 
   // when there is only one warp per block, we need to allocate two warps 
   // worth of shared memory so that we don't index shared memory out of bounds
-  int smemSize =
-      (threads <= 32) ? 2 * threads * sizeof(T) : threads * sizeof(T);
+  int smemSize =  threads * sizeof(T);
+  cutilSafeThreadSync();
   reduce2<T> <<<dimGrid, dimBlock, smemSize>>>(d_idata, d_odata, thresh,
       size,nelem_thread);
-
+  cutilSafeThreadSync();
   cutilCheckMsg("reduce_kernel<<<>>> execution failed\n");
 }
 template void
@@ -606,14 +610,13 @@ void subap_reduce(int size, int threads, int blocks, T *d_idata, T *d_odata,
 
   dim3 dimBlock(threads / nelem_thread, 1, 1);
   dim3 dimGrid(blocks, 1, 1);
-
+  cutilSafeThreadSync();
   // when there is only one warp per block, we need to allocate two warps 
   // worth of shared memory so that we don't index shared memory out of bounds
-  int smemSize =
-      (threads <= 32) ? 2 * threads * sizeof(T) : threads * sizeof(T);
+  int smemSize = threads * sizeof(T);
   reduce2<T> <<<dimGrid, dimBlock, smemSize>>>(d_idata, d_odata, weights,
       size,nelem_thread);
-
+  cutilSafeThreadSync();
   cutilCheckMsg("reduce_kernel<<<>>> execution failed\n");
 }
 template void
