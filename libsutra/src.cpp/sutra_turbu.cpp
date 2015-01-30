@@ -131,7 +131,7 @@ int sutra_tscreen::generate_vk(float l0, int nalias) {
   gene_vonkarman(data, data_o, k0, nalias, this->screen_size, this->screen_size,
       block_size);
 
-  roll<cuFloatComplex>(data, this->screen_size, this->screen_size);
+  roll<cuFloatComplex>(data, this->screen_size, this->screen_size, current_context->get_device(device));
 
   carma_fft(data, data, 1, *this->d_tscreen_c->getPlan());
 
