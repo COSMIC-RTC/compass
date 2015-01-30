@@ -38,10 +38,10 @@ subap_norm_async(float *d_odata, float *d_idata, float *fact, float *norm,
 // templates
 template<class T>
 int
-roll(T *idata, int N, int M, int nim);
+roll(T *idata, int N, int M, int nim, carma_device *device);
 template<class T>
 int
-roll(T *idata, int N, int M);
+roll(T *idata, int N, int M, carma_device *device);
 template<class T>
 int
 sutra_invgene(carma_obj<T> *imat, carma_obj<T> *cmat, carma_obj<T> *eigenvals,
