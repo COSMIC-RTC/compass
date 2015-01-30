@@ -720,7 +720,6 @@ func rtc_init(clean=)
 
           if (controllers(i).type  == "ls") {
             imat_init,i,clean=clean;
-            write,"done";
             if (controllers(i).modopti == 1){
               write,"Initializing Modal Optimization : ";
               if (controllers(i).nrec == 0) controllers(i).nrec = 2048;
@@ -790,11 +789,12 @@ func rtc_init(clean=)
           }          
           // Florian features
           if (controllers(i).type == "mv"){   
-            write,"doing imat and filtering unseen actuators";
+            write,format="%s", "doing imat_geom... ";
+            tic;
             //imat_init,i,clean=clean;
             imat = imat_geom(meth=0);
             rtc_setimat,g_rtc,i-1,imat;
-            write,"done";
+            write,format = "done in : %f s\n",tac();  
             rtc_setgain,g_rtc,0,controllers(i).gain;
             mgain = array(1.0f,(y_dm._ntotact)(sum));
             rtc_loadmgain,g_rtc,0,mgain;
