@@ -68,7 +68,7 @@ sutra_wfs::sutra_wfs(carma_context *context, const char* type, long nxsub,
 
   dims_data2[1] = npix * nxsub;
   dims_data2[2] = npix * nxsub;
-  if ((this->type == "pyr") || (this->type == "pyr3")) {
+  if ((this->type == "pyr") || (this->type == "pyr3") || (this->type == "roof")) {
     dims_data2[1] += 3;
     dims_data2[2] += 3;
   }
@@ -79,6 +79,8 @@ sutra_wfs::sutra_wfs(carma_context *context, const char* type, long nxsub,
 
   dims_data3[1] = nfft;
   dims_data3[2] = nfft;
+  if (this->type == "roof")
+    dims_data3[3] = 4;
   if (this->type == "pyr")
     dims_data3[3] = 4;
   if (this->type == "pyr3")
@@ -91,9 +93,8 @@ sutra_wfs::sutra_wfs(carma_context *context, const char* type, long nxsub,
       dims_data3[3] = nvalid / (nslaves + 1);
     else
       dims_data3[3] = nvalid;
-  }
-  else
-	  this->d_hrimg = new carma_obj<float>(context, dims_data3); // Useless for SH
+  } else
+    this->d_hrimg = new carma_obj<float>(context, dims_data3); // Useless for SH
 
   int mdims[2];
   if (this->type == "sh") {
@@ -109,7 +110,7 @@ sutra_wfs::sutra_wfs(carma_context *context, const char* type, long nxsub,
     dims_data3[2] = npix;
   }
 
-  if ((this->type == "pyr") || (this->type == "pyr3")) {
+  if ((this->type == "pyr") || (this->type == "pyr3") || (this->type == "roof")) {
     dims_data2[1] = ntot;
     dims_data2[2] = ntot;
     this->d_submask = new carma_obj<float>(context, dims_data2);
@@ -204,7 +205,7 @@ sutra_wfs::sutra_wfs(carma_context *context, const char* type, long nxsub,
     this->d_binmap = new carma_obj<int>(context, dims_data2);
   }
 
-  if (this->type == "pyr") {
+  if ( (this->type == "pyr") || (this->type == "roof")) {
     dims_data3[1] = nfft;
     dims_data3[2] = nfft;
     dims_data3[3] = 4;
@@ -236,7 +237,7 @@ sutra_wfs::sutra_wfs(carma_context *context, const char* type, long nxsub,
   dims_data1[1] = nvalid;
   this->d_subsum = new carma_obj<float>(context, dims_data1);
 
-  if (this->type == "pyr")
+  if ( (this->type == "pyr") || (this->type == "roof"))
     this->d_psum = new carma_obj<float>(context, dims_data1);
 
   this->d_fluxPerSub = new carma_obj<float>(context, dims_data1);
@@ -490,7 +491,7 @@ int sutra_wfs::wfs_initarrays(cuFloatComplex *halfxy, cuFloatComplex *offsets,
   this->d_phalfxy->host2device(halfxy);
   this->d_poffsets->host2device(offsets);
   if (this->type != "sh")
-	  this->d_submask->host2device(focmask);
+    this->d_submask->host2device(focmask);
   this->d_pupil->host2device(pupil);
   this->pyr_cx->fill_from(cx);
   this->pyr_cy->fill_from(cy);
@@ -505,7 +506,8 @@ int sutra_wfs::wfs_initarrays(cuFloatComplex *halfxy, cuFloatComplex *offsets,
 
 int sutra_wfs::load_kernels(float *lgskern) {
   if (this->lgs)
-    this->d_gs->d_lgs->load_kernels(lgskern, this->current_context->get_device(device));
+    this->d_gs->d_lgs->load_kernels(lgskern,
+        this->current_context->get_device(device));
 
   return EXIT_SUCCESS;
 }
@@ -542,7 +544,8 @@ int sutra_wfs::comp_sh_generic() {
       this->d_jstart->getData(), this->d_validsubsx->getData(),
       this->d_validsubsy->getData(), this->nphase,
       this->d_gs->d_phase->d_screen->getDims(1), this->nfft,
-      this->nphase * this->nphase * this->nvalid, this->current_context->get_device(device));
+      this->nphase * this->nphase * this->nvalid,
+      this->current_context->get_device(device));
 
   // do fft of the cube  
   carma_fft(this->d_camplipup->getData(), this->d_camplifoc->getData(), 1,
@@ -568,7 +571,7 @@ int sutra_wfs::comp_sh_generic() {
           cudaMemset(this->d_fttotim->getData(), 0,
               sizeof(cuFloatComplex) * this->d_fttotim->getNbElem()));
 
-      int indxstart1, indxstart2=0, indxstart3;
+      int indxstart1, indxstart2 = 0, indxstart3;
 
       if ((cc == this->nffthr - 1) && (this->nvalid % this->nmaxhr != 0)) {
         indxstart1 = this->d_camplifoc->getNbElem()
@@ -587,18 +590,21 @@ int sutra_wfs::comp_sh_generic() {
       cuFloatComplex *data = this->d_camplifoc->getData();
       indexfill(this->d_fttotim->getData(), &(data[indxstart1]),
           this->d_hrmap->getData(), this->nfft, this->ntot,
-          this->nfft * this->nfft * this->nmaxhr, this->current_context->get_device(device));
+          this->nfft * this->nfft * this->nmaxhr,
+          this->current_context->get_device(device));
 
       if (this->lgs) {
         // compute lgs spot on the fly from binned profile image
-        this->d_gs->d_lgs->lgs_makespot(this->current_context->get_device(device), indxstart2);
+        this->d_gs->d_lgs->lgs_makespot(
+            this->current_context->get_device(device), indxstart2);
         // convolve with psf
         carma_fft(this->d_fttotim->getData(), this->d_fttotim->getData(), 1,
             *this->d_fttotim->getPlan());
 
         convolve(this->d_fttotim->getData(),
             this->d_gs->d_lgs->d_ftlgskern->getData(),
-            this->d_fttotim->getNbElem(), this->current_context->get_device(device));
+            this->d_fttotim->getNbElem(),
+            this->current_context->get_device(device));
 
         carma_fft(this->d_fttotim->getData(), this->d_fttotim->getData(), -1,
             *this->d_fttotim->getPlan());
@@ -624,34 +630,38 @@ int sutra_wfs::comp_sh_generic() {
         fillbincube_async(this->streams, &(data2[indxstart3]),
             this->d_fttotim->getData(), this->d_binmap->getData(),
             this->ntot * this->ntot, this->npix * this->npix,
-            this->nrebin * this->nrebin, this->nmaxhr, this->current_context->get_device(device));
+            this->nrebin * this->nrebin, this->nmaxhr,
+            this->current_context->get_device(device));
       } else {
         fillbincube(&(data2[indxstart3]), this->d_fttotim->getData(),
             this->d_binmap->getData(), this->ntot * this->ntot,
             this->npix * this->npix, this->nrebin * this->nrebin, this->nmaxhr,
             this->current_context->get_device(device));
-      //fprintf(stderr, "[%s@%d]: I'm here!\n", __FILE__, __LINE__);
+        //fprintf(stderr, "[%s@%d]: I'm here!\n", __FILE__, __LINE__);
       }
     }
   } else {
     if (this->lgs) {
-      this->d_gs->d_lgs->lgs_makespot(this->current_context->get_device(device), 0);
+      this->d_gs->d_lgs->lgs_makespot(this->current_context->get_device(device),
+          0);
 
       carma_fft(this->d_camplifoc->getData(), this->d_fttotim->getData(), 1,
           *this->d_fttotim->getPlan());
 
       convolve(this->d_fttotim->getData(),
           this->d_gs->d_lgs->d_ftlgskern->getData(),
-          this->d_fttotim->getNbElem(), this->current_context->get_device(device));
+          this->d_fttotim->getNbElem(),
+          this->current_context->get_device(device));
 
       carma_fft(this->d_fttotim->getData(), this->d_fttotim->getData(), -1,
           *this->d_fttotim->getPlan());
 
-      if (this->nstreams > 1){
+      if (this->nstreams > 1) {
         fillbincube_async(this->streams, this->d_bincube->getData(),
             this->d_fttotim->getData(), this->d_binmap->getData(),
             this->nfft * this->nfft, this->npix * this->npix,
-            this->nrebin * this->nrebin, this->nvalid, this->current_context->get_device(device));
+            this->nrebin * this->nrebin, this->nvalid,
+            this->current_context->get_device(device));
       } else {
         fillbincube(this->d_bincube->getData(), this->d_fttotim->getData(),
             this->d_binmap->getData(), this->nfft * this->nfft,
@@ -675,7 +685,8 @@ int sutra_wfs::comp_sh_generic() {
         fillbincube_async(this->streams, this->d_bincube->getData(),
             this->d_camplifoc->getData(), this->d_binmap->getData(),
             this->nfft * this->nfft, this->npix * this->npix,
-            this->nrebin * this->nrebin, this->nvalid, this->current_context->get_device(device));
+            this->nrebin * this->nrebin, this->nvalid,
+            this->current_context->get_device(device));
       } else {
         fillbincube(this->d_bincube->getData(), this->d_camplifoc->getData(),
             this->d_binmap->getData(), this->nfft * this->nfft,
@@ -693,7 +704,8 @@ int sutra_wfs::comp_sh_generic() {
         this->d_bincube->getData(), this->d_subsum->getData());
   } else {
     subap_reduce(this->d_bincube->getNbElem(), this->npix * this->npix,
-        this->nvalid, this->d_bincube->getData(), this->d_subsum->getData(), this->current_context->get_device(device));
+        this->nvalid, this->d_bincube->getData(), this->d_subsum->getData(),
+        this->current_context->get_device(device));
   }
 
   if (this->nstreams > 1) {
@@ -705,14 +717,15 @@ int sutra_wfs::comp_sh_generic() {
     // multiply each subap by nphot*fluxPersub/sumPerSub
     subap_norm(this->d_bincube->getData(), this->d_bincube->getData(),
         this->d_fluxPerSub->getData(), this->d_subsum->getData(), this->nphot,
-        this->npix * this->npix, this->d_bincube->getNbElem(), current_context->get_device(device));
+        this->npix * this->npix, this->d_bincube->getNbElem(),
+        current_context->get_device(device));
   }
   //fprintf(stderr, "[%s@%d]: I'm here!\n", __FILE__, __LINE__);
 
   // add noise
   if (this->noise > -1) {
     //cout << "adding poisson noise" << endl;
-	  this->d_bincube->prng('P');
+    this->d_bincube->prng('P');
   }
   if (this->noise > 0) {
     //cout << "adding detector noise" << endl;
@@ -730,45 +743,47 @@ int sutra_wfs::comp_sh_generic() {
 // a roof prism can be asked for as well.
 
 int sutra_wfs::comp_pyr_generic() {
-    
-    //START COMMENTING HERE TO SWITCH TO PYRAMID
-  
+  //___________________________________________________________________
+  //  PYRAMID SENSOR
+
   pyr_getpup(this->d_camplipup->getData(),
       this->d_gs->d_phase->d_screen->getData(), this->d_phalfxy->getData(),
-      this->d_pupil->getData(), this->ntot, this->current_context->get_device(device));
+      this->d_pupil->getData(), this->ntot,
+      this->current_context->get_device(device));
 
   carma_fft(this->d_camplipup->getData(), this->d_camplifoc->getData(), -1,
       *this->d_camplipup->getPlan());
-//
+  //
   pyr_submask(this->d_camplifoc->getData(), this->d_submask->getData(),
       this->ntot, this->current_context->get_device(device));
 
   cutilSafeCall(
       cudaMemset(this->d_hrimg->getData(), 0,
           sizeof(float) * this->d_hrimg->getNbElem()));
-//
+  //
   //this->npup = 1;
   for (int cpt = 0; cpt < this->npup; cpt++) {
-//    // modulation loop
-//    // computes the high resolution images
+    //    // modulation loop
+    //    // computes the high resolution images
     cutilSafeCall(
         cudaMemset(this->d_fttotim->getData(), 0,
             sizeof(cuFloatComplex) * this->d_fttotim->getNbElem()));
-//
-//    // here we split the image in 4 quadrant and roll them
+    //
+    //    // here we split the image in 4 quadrant and roll them
     pyr_rollmod(this->d_fttotim->getData(), this->d_camplifoc->getData(),
         this->d_poffsets->getData(), (this->pyr_cx->getData())[cpt],
-        (this->pyr_cy->getData())[cpt], this->ntot, this->nfft, this->current_context->get_device(device));
-//
-//    // case of diffractive pyramid
-//    // multiply d_camplifoc->getData() by pyramid + modulation phase
-//    // fft
-//    // reorder the 4 quadrants
-//
-//    /*
-//     pyr_rollmod(this->d_fttotim->getData(),this->d_camplifoc->getData(), this->d_poffsets->getData(),0,
-//     0,this->ntot , this->nfft, this->current_context->get_device(device));
-//     */
+        (this->pyr_cy->getData())[cpt], this->ntot, this->nfft,
+        this->current_context->get_device(device));
+    //
+    //    // case of diffractive pyramid
+    //    // multiply d_camplifoc->getData() by pyramid + modulation phase
+    //    // fft
+    //    // reorder the 4 quadrants
+    //
+    //    /*
+    //     pyr_rollmod(this->d_fttotim->getData(),this->d_camplifoc->getData(), this->d_poffsets->getData(),0,
+    //     0,this->ntot , this->nfft, this->current_context->get_device(device));
+    //     */
 
     carma_fft(this->d_fttotim->getData(), this->d_fttotim->getData(), 1,
         *this->d_fttotim->getPlan());
@@ -779,145 +794,163 @@ int sutra_wfs::comp_pyr_generic() {
     pyr_abs2(this->d_hrimg->getData(), this->d_fttotim->getData(), fact,
         this->nfft, 4, this->current_context->get_device(device));
   }
-//  /*
-//   // spatial filtering by the pixel extent:
-//   carma_fft(this->d_fttotim->getData(), this->d_fttotim->getData(), -1,
-//   *this->d_fttotim->getPlan());
-//
-//   pyr_submask3d(this->d_fttotim->getData(), this->d_sincar->getData(),this->nfft, 4, this->current_context->get_device(device));
-//
-//   carma_fft(this->d_fttotim->getData(), this->d_fttotim->getData(), 1,
-//   *this->d_fttotim->getPlan());
-//
-//   pyr_abs(this->d_hrimg->getData(), this->d_fttotim->getData(),this->nfft, 4, this->current_context->get_device(device));
-//
-//  pyr_fact(this->d_hrimg->getData(),1.0f/this->nfft/this->nfft,this->nfft,4,this->current_context->get_device(device));
-//   */
+  //  /*
+  //   // spatial filtering by the pixel extent:
+  //   carma_fft(this->d_fttotim->getData(), this->d_fttotim->getData(), -1,
+  //   *this->d_fttotim->getPlan());
+  //
+  //   pyr_submask3d(this->d_fttotim->getData(), this->d_sincar->getData(),this->nfft, 4, this->current_context->get_device(device));
+  //
+  //   carma_fft(this->d_fttotim->getData(), this->d_fttotim->getData(), 1,
+  //   *this->d_fttotim->getPlan());
+  //
+  //   pyr_abs(this->d_hrimg->getData(), this->d_fttotim->getData(),this->nfft, 4, this->current_context->get_device(device));
+  //
+  //  pyr_fact(this->d_hrimg->getData(),1.0f/this->nfft/this->nfft,this->nfft,4,this->current_context->get_device(device));
+  //   */
 
-    cutilSafeCall(
-        cudaMemset(this->d_bincube->getData(), 0,
-           sizeof(float) * this->d_bincube->getNbElem()));
-           
- pyr_fillbin(this->d_bincube->getData(), this->d_hrimg->getData(),
-      this->nrebin, this->nfft, this->nfft / this->nrebin, 4, this->current_context->get_device(device));
+  cutilSafeCall(
+      cudaMemset(this->d_bincube->getData(), 0,
+          sizeof(float) * this->d_bincube->getNbElem()));
 
- pyr_subsum(this->d_subsum->getData(), this->d_bincube->getData(),
-     this->d_validsubsx->getData(), this->d_validsubsy->getData(),
-    this->nfft / this->nrebin, this->nvalid, 4, this->current_context->get_device(device));
+  pyr_fillbin(this->d_bincube->getData(), this->d_hrimg->getData(),
+      this->nrebin, this->nfft, this->nfft / this->nrebin, 4,
+      this->current_context->get_device(device));
 
- int blocks, threads;
- getNumBlocksAndThreads(current_context->get_device(device), this->nvalid, blocks, threads);
- reduce(this->nvalid, threads, blocks, this->d_subsum->getData(),
-     this->d_subsum->getData());
+  pyr_subsum(this->d_subsum->getData(), this->d_bincube->getData(),
+      this->d_validsubsx->getData(), this->d_validsubsy->getData(),
+      this->nfft / this->nrebin, this->nvalid, 4,
+      this->current_context->get_device(device));
+
+  int blocks, threads;
+  getNumBlocksAndThreads(current_context->get_device(device), this->nvalid,
+      blocks, threads);
+  reduce(this->nvalid, threads, blocks, this->d_subsum->getData(),
+      this->d_subsum->getData());
 
   pyr_fact(this->d_bincube->getData(), this->nphot, this->d_subsum->getData(),
-     this->nfft / this->nrebin, 4, this->current_context->get_device(device));
+      this->nfft / this->nrebin, 4, this->current_context->get_device(device));
 
   // add noise
   if (this->noise > -1) {
     //cout << "adding poisson noise" << endl;
-	  this->d_bincube->prng('P');
+    this->d_bincube->prng('P');
   }
   if (this->noise > 0) {
     //cout << "adding detector noise" << endl;
     this->d_bincube->prng('N', this->noise, 1.0f);
   }
-  
+
   pyr_subsum(this->d_subsum->getData(), this->d_bincube->getData(),
-     this->d_validsubsx->getData(), this->d_validsubsy->getData(),
-     this->nfft / this->nrebin, this->nvalid, 4, this->current_context->get_device(device));
-//  /*
-//  reduce(this->nvalid, threads, blocks, this->d_subsum->getData(),
-//      this->d_subsum->getData());
-//  */
+      this->d_validsubsx->getData(), this->d_validsubsy->getData(),
+      this->nfft / this->nrebin, this->nvalid, 4,
+      this->current_context->get_device(device));
+  //  /*
+  //  reduce(this->nvalid, threads, blocks, this->d_subsum->getData(),
+  //      this->d_subsum->getData());
+  //  */
   return EXIT_SUCCESS;
 
+}
+
+int sutra_wfs::comp_roof_generic() {
+
   //___________________________________________________________________
-  // MODIF ROOF SENSOR
-
+  //  ROOF SENSOR
   //PYR_GETPUP: reads pupil & phase and computes rolled electric field
-/*   pyr_getpup(this->d_camplipup->getData(),
-       this->d_gs->d_phase->d_screen->getData(), this->d_phalfxy->getData(),
-       this->d_pupil->getData(), this->ntot, this->current_context->get_device(device));
+  pyr_getpup(this->d_camplipup->getData(),
+      this->d_gs->d_phase->d_screen->getData(), this->d_phalfxy->getData(),
+      this->d_pupil->getData(), this->ntot,
+      this->current_context->get_device(device));
 
-   carma_fft(this->d_camplipup->getData(), this->d_camplifoc->getData(), -1,
-       *this->d_camplipup->getPlan());
+  carma_fft(this->d_camplipup->getData(), this->d_camplifoc->getData(), -1,
+      *this->d_camplipup->getPlan());
 
-   pyr_submask(this->d_camplifoc->getData(), this->d_submask->getData(),
-       this->ntot, this->current_context->get_device(device));
+  pyr_submask(this->d_camplifoc->getData(), this->d_submask->getData(),
+      this->ntot, this->current_context->get_device(device));
 
-   cutilSafeCall(
-       cudaMemset(this->d_hrimg->getData(), 0,
-           sizeof(float) * this->d_hrimg->getNbElem()));
+  cutilSafeCall(
+      cudaMemset(this->d_hrimg->getData(), 0,
+          sizeof(float) * this->d_hrimg->getNbElem()));
 
-   //this->npup = 1;
-   for (int cpt = 0; cpt < this->npup; cpt++) {
-     // modulation loop
-     // computes the high resolution images
-     cutilSafeCall(
-         cudaMemset(this->d_fttotim->getData(), 0,
-             sizeof(cuFloatComplex) * this->d_fttotim->getNbElem()));
+  //this->npup = 1;
+  for (int cpt = 0; cpt < this->npup; cpt++) {
+    // modulation loop
+    // computes the high resolution images
+    cutilSafeCall(
+        cudaMemset(this->d_fttotim->getData(), 0,
+            sizeof(cuFloatComplex) * this->d_fttotim->getNbElem()));
 
-     roof_rollmod(this->d_fttotim->getData(), this->d_camplifoc->getData(),
-         this->d_poffsets->getData(), (this->pyr_cx->getData())[cpt],
-         (this->pyr_cy->getData())[cpt], this->ntot, this->nfft, this->current_context->get_device(device));
-  //   
-  //    pyr_rollmod(this->d_fttotim->getData(),this->d_camplifoc->getData(), this->d_poffsets->getData(),0,
-  //    0,this->ntot , this->nfft, this->current_context->get_device(device));
-  //    
+    roof_rollmod(this->d_fttotim->getData(), this->d_camplifoc->getData(),
+        this->d_poffsets->getData(), (this->pyr_cx->getData())[cpt],
+        (this->pyr_cy->getData())[cpt], this->ntot, this->nfft,
+        this->current_context->get_device(device));
+    //
+    //    pyr_rollmod(this->d_fttotim->getData(),this->d_camplifoc->getData(), this->d_poffsets->getData(),0,
+    //    0,this->ntot , this->nfft, this->current_context->get_device(device));
+    //
 
-     carma_fft(this->d_fttotim->getData(), this->d_fttotim->getData(), 1,
-         *this->d_fttotim->getPlan());
+    carma_fft(this->d_fttotim->getData(), this->d_fttotim->getData(), 1,
+        *this->d_fttotim->getPlan());
 
-     float fact = 1.0f / this->nfft / this->nfft / this->nfft / 2.0;
-     //if (cpt == this->npup-1) fact = fact / this->npup;
+    float fact = 1.0f / this->nfft / this->nfft / this->nfft / 2.0;
+    //if (cpt == this->npup-1) fact = fact / this->npup;
 
-     roof_abs2(this->d_hrimg->getData(), this->d_fttotim->getData(), fact,
-         this->nfft, 4, this->current_context->get_device(device));
-   }
+    roof_abs2(this->d_hrimg->getData(), this->d_fttotim->getData(), fact,
+        this->nfft, 4, this->current_context->get_device(device));
+  }
 
-   if (this->noise > 0) {
-     this->d_bincube->prng('N', this->noise);
-   } else
-     cutilSafeCall(
-         cudaMemset(this->d_bincube->getData(), 0,
-             sizeof(float) * this->d_bincube->getNbElem()));
+  if (this->noise > 0) {
+    this->d_bincube->prng('N', this->noise);
+  } else
+    cutilSafeCall(
+        cudaMemset(this->d_bincube->getData(), 0,
+            sizeof(float) * this->d_bincube->getNbElem()));
 
-   roof_fillbin(this->d_bincube->getData(), this->d_hrimg->getData(),
-       this->nrebin, this->nfft, this->nfft / this->nrebin, 4, this->current_context->get_device(device));
+  roof_fillbin(this->d_bincube->getData(), this->d_hrimg->getData(),
+      this->nrebin, this->nfft, this->nfft / this->nrebin, 4,
+      this->current_context->get_device(device));
 
-   pyr_subsum(this->d_subsum->getData(), this->d_bincube->getData(),
-       this->d_validsubsx->getData(), this->d_validsubsy->getData(),
-       this->nfft / this->nrebin, this->nvalid, 4, this->current_context->get_device(device));
+  pyr_subsum(this->d_subsum->getData(), this->d_bincube->getData(),
+      this->d_validsubsx->getData(), this->d_validsubsy->getData(),
+      this->nfft / this->nrebin, this->nvalid, 4,
+      this->current_context->get_device(device));
 
-   int blocks, threads;
-   getNumBlocksAndThreads(this->current_context->get_device(device), this->nvalid, blocks, threads);
-   reduce(this->nvalid, threads, blocks, this->d_subsum->getData(),
-       this->d_subsum->getData());
+  int blocks, threads;
+  getNumBlocksAndThreads(this->current_context->get_device(device),
+      this->nvalid, blocks, threads);
+  reduce(this->nvalid, threads, blocks, this->d_subsum->getData(),
+      this->d_subsum->getData());
 
-   pyr_fact(this->d_bincube->getData(), this->nphot, this->d_subsum->getData(),
-       this->nfft / this->nrebin, 4, this->current_context->get_device(device));
+  pyr_fact(this->d_bincube->getData(), this->nphot, this->d_subsum->getData(),
+      this->nfft / this->nrebin, 4, this->current_context->get_device(device));
 
-   pyr_subsum(this->d_subsum->getData(), this->d_bincube->getData(),
-       this->d_validsubsx->getData(), this->d_validsubsy->getData(),
-       this->nfft / this->nrebin, this->nvalid, 4, this->current_context->get_device(device));
+  pyr_subsum(this->d_subsum->getData(), this->d_bincube->getData(),
+      this->d_validsubsx->getData(), this->d_validsubsy->getData(),
+      this->nfft / this->nrebin, this->nvalid, 4,
+      this->current_context->get_device(device));
 
-   return EXIT_SUCCESS;
-*/
+  return EXIT_SUCCESS;
+
 }
 
 int sutra_wfs::comp_image() {
 
   int result;
-  if (this->type == "sh"){
+  if (this->type == "sh") {
     result = comp_sh_generic();
-    if(result==EXIT_SUCCESS) {
-      if (noise > 0) this->d_binimg->prng('N',this->noise);
-      fillbinimg(this->d_binimg->getData(),this->d_bincube->getData(),this->npix,this->nvalid,this->npix*this->nxsub,
-          this->d_validsubsx->getData(),this->d_validsubsy->getData(), 0/*(this->noise > 0)*/ ,this->current_context->get_device(device));
+    if (result == EXIT_SUCCESS) {
+      if (noise > 0)
+        this->d_binimg->prng('N', this->noise);
+      fillbinimg(this->d_binimg->getData(), this->d_bincube->getData(),
+          this->npix, this->nvalid, this->npix * this->nxsub,
+          this->d_validsubsx->getData(), this->d_validsubsy->getData(),
+          0/*(this->noise > 0)*/, this->current_context->get_device(device));
     }
-  } else if (this->type == "pyr"){
+  } else if (this->type == "pyr") {
     result = comp_pyr_generic();
+  } else if (this->type == "roof") {
+    result = comp_roof_generic();
   } else {
     DEBUG_TRACE("unknown wfs type : %s\n", this->type.c_str());
     result = EXIT_FAILURE;
@@ -927,21 +960,22 @@ int sutra_wfs::comp_image() {
 
 int sutra_wfs::comp_image_tele() {
   int result;
-  if (this->type == "sh"){
+  if (this->type == "sh") {
     result = comp_sh_generic();
-  }else {
+  } else {
     DEBUG_TRACE("unknown wfs type : %s\n", this->type.c_str());
     result = EXIT_FAILURE;
   }
 
-  if (noise > 0) this->d_binimg->prng('N',this->noise);
+  if (noise > 0)
+    this->d_binimg->prng('N', this->noise);
 
-  if(result==EXIT_SUCCESS)
-       fillbinimg_async(this->image_telemetry, this->d_binimg->getData(),
-           this->d_bincube->getData(), this->npix, this->nvalid,
-           this->npix * this->nxsub, this->d_validsubsx->getData(),
-           this->d_validsubsy->getData(), this->d_binimg->getNbElem(), false,
-           this->current_context->get_device(device));
+  if (result == EXIT_SUCCESS)
+    fillbinimg_async(this->image_telemetry, this->d_binimg->getData(),
+        this->d_bincube->getData(), this->npix, this->nvalid,
+        this->npix * this->nxsub, this->d_validsubsx->getData(),
+        this->d_validsubsy->getData(), this->d_binimg->getNbElem(), false,
+        this->current_context->get_device(device));
 
   return result;
 }
@@ -1017,7 +1051,7 @@ sutra_sensors::sutra_sensors(carma_context *context, int nwfs, long *nxsub,
 
 sutra_sensors::~sutra_sensors() {
 //  for (size_t idx = 0; idx < (this->d_wfs).size(); idx++) {
-  while((this->d_wfs).size()>0) {
+  while ((this->d_wfs).size() > 0) {
     delete this->d_wfs.back();
     d_wfs.pop_back();
   }

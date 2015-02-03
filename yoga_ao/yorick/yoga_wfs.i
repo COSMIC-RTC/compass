@@ -72,7 +72,7 @@ func init_wfs_size(wfs,&pdiam,&Nfft,&Ntot,&nrebin,&pixsize,&qpixsize)
       qpixsize = (pdiam * (wfs.lambda*1.e-6) / subapdiam  * RASC) / Nfft;
     }
 
-    if (wfs.type == "pyr") {
+    if ((wfs.type == "pyr")||(wfs.type == "roof")) {
       //while (pdiam % wfs.npix != 0) pdiam+=1;
       padding = 2;
       nphase  =  pdiam * wfs.nxsub+ 2 * padding * pdiam;
@@ -184,7 +184,7 @@ func init_wfs_geom(n,init=)
   y_wfs(n)._subapd   = y_tel.diam/y_wfs(n).nxsub;
   y_wfs(n)._pdiam    = pdiam;
   
-  if (y_wfs(n).type == "pyr") y_wfs(n).npix = pdiam;
+  if ((y_wfs(n).type == "pyr")||(y_wfs(n).type == "roof")) y_wfs(n).npix = pdiam;
   
   if ((init == 1) || ((y_wfs(n).type == "geo") && (n==1))) {
     //this is the wfs with largest # of subaps
@@ -192,7 +192,7 @@ func init_wfs_geom(n,init=)
     geom_init,pdiam * y_wfs(n).nxsub;
   }
 
-  if (y_wfs(n).type == "pyr") {
+  if ((y_wfs(n).type == "pyr")||(y_wfs(n).type == "roof")) {
     padding = 2;
     npup  =  y_wfs(n)._Ntot;
     n1    = y_geom.ssize / 2 - y_geom.pupdiam / 2 - padding * y_wfs(n).npix+1;

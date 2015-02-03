@@ -123,6 +123,8 @@ private:
   comp_sh_generic();
   int
   comp_pyr_generic();
+  int
+  comp_roof_generic();
 };
 
 class sutra_sensors {

@@ -34,6 +34,7 @@
 #include <sutra_centroider_cog.h>
 #include <sutra_centroider_corr.h>
 #include <sutra_centroider_pyr.h>
+#include <sutra_centroider_roof.h>
 #include <sutra_centroider_tcog.h>
 #include <sutra_centroider_wcog.h>
 #include <carma.h>
@@ -1196,7 +1197,8 @@ void Y_sensors_initarr(int argc) {
         offsets, pupil, fluxPerSub, isvalid, validsubsx, validsubsy, istart,
         jstart, (cuFloatComplex*) kernel);
   }
-  if (sensors_handler->d_wfs.at(nsensor)->type == "pyr") {
+  if ((sensors_handler->d_wfs.at(nsensor)->type == "pyr") ||
+      (sensors_handler->d_wfs.at(nsensor)->type == "roof")){
     float *halfxy = ygeta_f(argc - 3, &ntot, dims);
     float *offsets = ygeta_f(argc - 4, &ntot, dims);
     float *focmask = ygeta_f(argc - 5, &ntot, dims);
@@ -1418,7 +1420,8 @@ void Y_sensors_getdata(int argc) {
       sensors_handler->d_wfs.at(nsensor)->d_camplifoc->device2host(
           (cuFloatComplex *) data);
     }
-    if (sensors_handler->d_wfs.at(nsensor)->type == "pyr") {
+    if ((sensors_handler->d_wfs.at(nsensor)->type == "pyr") ||
+        (sensors_handler->d_wfs.at(nsensor)->type == "roof")){
       long *ndims_data = new long[4];
       ndims_data[0] = 3;
       ndims_data[1] = 2;
@@ -1538,7 +1541,8 @@ void Y_sensors_getdata(int argc) {
         (cuFloatComplex *) data);
   }
   if (strcmp(type_data, "poffsets") == 0) {
-    if (sensors_handler->d_wfs.at(nsensor)->type == "pyr") {
+    if ((sensors_handler->d_wfs.at(nsensor)->type == "pyr") ||
+        (sensors_handler->d_wfs.at(nsensor)->type == "roof")){
       long *ndims_data = new long[4];
       ndims_data[0] = 3;
       ndims_data[1] = 2;
@@ -1551,7 +1555,8 @@ void Y_sensors_getdata(int argc) {
     }
   }
   if (strcmp(type_data, "phalfxy") == 0) {
-    if (sensors_handler->d_wfs.at(nsensor)->type == "pyr") {
+    if ((sensors_handler->d_wfs.at(nsensor)->type == "pyr") ||
+        (sensors_handler->d_wfs.at(nsensor)->type == "roof")){
       long *ndims_data = new long[4];
       ndims_data[0] = 3;
       ndims_data[1] = 2;

@@ -202,7 +202,7 @@ func wfs_init(void)
   extern g_wfs;
   // first get the wfs with max # of subaps
   // we'll derive the geometry from the requirements in terms of sampling
-  if (noneof(y_wfs.type == "pyr")) indmax = wheremax(y_wfs.nxsub)(1);
+  if (noneof(y_wfs.type == "pyr") || noneof(y_wfs.type == "roof")) indmax = wheremax(y_wfs.nxsub)(1);
   else {
     if (anyof(y_wfs.type == "sh"))
       indmax = wheremax(y_wfs(where(y_wfs.type == "sh")).nxsub)(1);
@@ -228,7 +228,7 @@ func wfs_init(void)
     g_wfs = yoga_sensors(numberof(y_wfs),y_wfs(1).type,y_wfs.nxsub,y_wfs._nvalid,y_wfs.npix,y_wfs._pdiam,
                          y_wfs._nrebin,y_wfs._Nfft,y_wfs._Ntot,y_geom._n,y_wfs._subapd,
                          y_wfs._nphotons,y_wfs.gsalt > 0);
-  if (y_wfs(1).type == "pyr")
+  if ((y_wfs(1).type == "pyr") || (y_wfs(1).type == "roof"))
     g_wfs = yoga_sensors(numberof(y_wfs),y_wfs(1).type,y_wfs.nxsub,y_wfs._nvalid,y_wfs.npix,y_wfs._pdiam,
                          y_wfs._nrebin,y_wfs._Nfft,y_wfs._Ntot,y_wfs(1).pyr_npts,y_wfs._subapd,
                          y_wfs._nphotons,y_wfs.gsalt > 0);
@@ -254,7 +254,7 @@ func wfs_init(void)
         int((*y_wfs(i)._validsubs)(1,)-1),int((*y_wfs(i)._validsubs)(2,)-1),int(*y_wfs(i)._istart+1),
         int(*y_wfs(i)._jstart+1),float(*y_wfs(i)._ftkernel);
     
-    if (y_wfs(i).type == "pyr") {
+    if ((y_wfs(i).type == "pyr") || (y_wfs(i).type == "roof")) {
       tmp = array(float,2,y_wfs(i)._Ntot,y_wfs(i)._Ntot);
       tmp(1,,) = (*y_wfs(i)._halfxy).re;
       tmp(2,,) = (*y_wfs(i)._halfxy).im;
@@ -593,7 +593,7 @@ func rtc_init(clean=)
           s_scale = y_wfs(centroiders(i).nwfs).pixsize;
         }
 
-        if (y_wfs(nwfs).type == "pyr") {
+        if ((y_wfs(nwfs).type == "pyr") || (y_wfs(nwfs).type == "roof")){
           s_offset = s_scale = 0.0f
             }
 

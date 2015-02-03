@@ -41,6 +41,10 @@ int sutra_rtc::add_centroider(long nwfs, long nvalid, float offset, float scale,
     d_centro.push_back(
         new sutra_centroider_pyr(current_context, nwfs, nvalid, offset, scale,
             device));
+  else if (strcmp(typec, "roof") == 0)
+    d_centro.push_back(
+        new sutra_centroider_roof(current_context, nwfs, nvalid, offset, scale,
+            device));
   else if (strcmp(typec, "tcog") == 0)
     d_centro.push_back(
         new sutra_centroider_tcog(current_context, nwfs, nvalid, offset, scale,
