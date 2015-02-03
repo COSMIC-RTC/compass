@@ -122,31 +122,50 @@ __device__ inline void sortmax_krnl(T *sdata, int *values, int size, int n) {
 }
 template<class T>
 __global__ void sortmax(T *g_idata, T *g_odata, unsigned int *values,
-    int nmax) {
+    int nmax, int Npix, int size, int nelem_thread) {
   extern __shared__ uint svalues[];
-  T *sdata = (T*) &svalues[blockDim.x];
-
+  T *sdata = (T*) &svalues[Npix];
+/*
   // load shared mem
   unsigned int tid = threadIdx.x;
   unsigned int i = blockIdx.x * blockDim.x + threadIdx.x;
 
   svalues[tid] = tid;
   sdata[tid] = g_idata[i];
+*/
+  unsigned int tid = threadIdx.x;
+  //unsigned int i = blockIdx.x * blockDim.x + threadIdx.x;
+  //unsigned int y = (tid / n) + 1;
+  int idim;
+  int sdim;
+
+  for (int cc = 0; cc < nelem_thread; cc++) {
+	 idim = tid * nelem_thread + cc + (blockDim.x * nelem_thread) * blockIdx.x;
+	 sdim = tid * nelem_thread + cc;
+	 if (idim < size){
+	   sdata[sdim] = g_idata[idim];
+	   svalues[sdim] = sdim;
+	 }
+  }
 
   __syncthreads();
 
   for (int cc = 0; cc < nmax; cc++) {
+	  for (int cpt = 0; cpt < nelem_thread ; cpt++){
+		  sdim = tid * nelem_thread + cpt;
+		  if (sdim >= cc)
+			  sortmax_krnl(&(sdata[cc]), &(svalues[cc]), Npix - cc, sdim - cc);
+		  __syncthreads();
+	  }
 
-    if (tid >= cc)
-      sortmax_krnl(&(sdata[cc]), &(svalues[cc]), blockDim.x - cc, tid - cc);
-
-    __syncthreads();
 
   }
-
-  if (tid < nmax) {
-    g_odata[nmax * blockIdx.x + tid] = sdata[tid]; // - sdata[nmax - 1];
-    values[nmax * blockIdx.x + tid] = svalues[tid];
+  for (int cpt = 0; cpt < nelem_thread ; cpt++){
+	  sdim = tid * nelem_thread + cpt;
+	  if (sdim < nmax) {
+		g_odata[nmax * blockIdx.x + sdim] = sdata[sdim]; // - sdata[nmax - 1];
+		values[nmax * blockIdx.x + sdim] = svalues[sdim];
+	  }
   }
   /*
    __syncthreads();
@@ -1019,23 +1038,30 @@ subap_bpcentro<double>(int threads, int blocks, int npix, double *d_idata,
 
 template<class T>
 void subap_sortmax(int threads, int blocks, T *d_idata, T *d_odata,
-    unsigned int *values, int nmax) {
-  dim3 dimBlock(threads, 1, 1);
+    unsigned int *values, int nmax, carma_device *device) {
+
+	int maxThreads = device->get_properties().maxThreadsPerBlock;
+	unsigned int nelem_thread = 1;
+	while((threads/nelem_thread > maxThreads) || (threads % nelem_thread != 0)){
+		nelem_thread++;
+	}
+
+  dim3 dimBlock(threads / nelem_thread, 1, 1);
   dim3 dimGrid(blocks, 1, 1);
 
   // when there is only one warp per block, we need to allocate two warps 
   // worth of shared memory so that we don't index shared memory out of bounds
   size_t smemSize = threads * (sizeof(T) + sizeof(uint));
-  sortmax<T> <<<dimGrid, dimBlock, smemSize>>>(d_idata, d_odata, values, nmax);
+  sortmax<T> <<<dimGrid, dimBlock, smemSize>>>(d_idata, d_odata, values, nmax, threads, threads*blocks, nelem_thread);
 
   cutilCheckMsg("sortmax_kernel<<<>>> execution failed\n");
 }
 template void
 subap_sortmax<float>(int threads, int blocks, float *d_idata, float *d_odata,
-    unsigned int *values, int nmax);
+    unsigned int *values, int nmax, carma_device *device);
 template void
 subap_sortmax<double>(int threads, int blocks, double *d_idata, double *d_odata,
-    unsigned int *values, int nmax);
+    unsigned int *values, int nmax, carma_device *device);
 
 template<class T>
 void subap_centromax(int threads, int blocks, T *d_idata, T *d_odata, int npix,
@@ -1100,7 +1126,8 @@ void get_centroids(int size, int threads, int blocks, int n, T *d_idata,
     nelem_thread++;
   }
 
-  dim3 dimBlock(threads / nelem_thread, 1, 1);
+  threads /= nelem_thread;
+  dim3 dimBlock(threads, 1, 1);
   dim3 dimGrid(blocks, 1, 1);
 
   // when there is only one warp per block, we need to allocate two warps 
@@ -1137,8 +1164,8 @@ void get_centroids(int size, int threads, int blocks, int n, T *d_idata,
   while ((threads / nelem_thread > maxThreads) || (threads % nelem_thread != 0)) {
     nelem_thread++;
   }
-
-  dim3 dimBlock(threads / nelem_thread, 1, 1);
+  threads /= nelem_thread;
+  dim3 dimBlock(threads, 1, 1);
   dim3 dimGrid(blocks, 1, 1);
 
   // when there is only one warp per block, we need to allocate two warps 
@@ -1176,7 +1203,8 @@ void get_centroids(int size, int threads, int blocks, int n, T *d_idata,
     nelem_thread++;
   }
 
-  dim3 dimBlock(threads / nelem_thread, 1, 1);
+  threads /= nelem_thread;
+  dim3 dimBlock(threads, 1, 1);
   dim3 dimGrid(blocks, 1, 1);
 
   // when there is only one warp per block, we need to allocate two warps 

@@ -88,7 +88,7 @@ subap_centromax2(int threads, int blocks, T *d_idata, T *d_odata, T *d_minim, in
 template<class T>
 void
 subap_sortmax(int threads, int blocks, T *d_idata, T *d_odata,
-    unsigned int *values, int nmax);
+    unsigned int *values, int nmax, carma_device *device);
 template<class T>
 void
 subap_sortmaxi(int threads, int blocks, T *d_idata, int *values, int nmax,
