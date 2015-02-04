@@ -1315,6 +1315,28 @@ void Y_sensors_updatelgs(int argc) {
       0);
 }
 
+void Y_sensors_fillbinimage(int argc) {
+  sensors_struct *handler = (sensors_struct *) yget_obj(argc - 1, &ySensors);
+  sutra_sensors *sensors_handler = (sutra_sensors *) (handler->sutra_sensors);
+
+  int nsensor = ygets_i(argc - 2);
+
+  /*
+   if(argc>2) { // With a telemetry object
+   carma_host_struct *handle_obj = (carma_host_struct *)yget_obj(piargs[0],&carma_host_caObj);telemetry_struct *handler2 = (telemetry_struct *)yget_obj(argc-3,&yTelemetry);
+   sutra_telemetry *telemetry_handler = (sutra_telemetry *)(handler2->sutra_telemetry);
+
+   string type_obj = string(ygets_q(argc-4));
+
+   sensors_handler->d_wfs.at(nsensor)->comp_image(telemetry_handler, type_obj, nsensor);
+   } else {
+   sensors_handler->d_wfs.at(nsensor)->comp_image();
+   }
+   */
+  sensors_handler->d_wfs.at(nsensor)->fill_binimage();
+  //sensors_handler->d_wfs.at(nsensor)->streams->wait_all_streams();
+}
+
 void Y_sensors_compimg(int argc) {
   sensors_struct *handler = (sensors_struct *) yget_obj(argc - 1, &ySensors);
   sutra_sensors *sensors_handler = (sutra_sensors *) (handler->sutra_sensors);
@@ -1669,6 +1691,33 @@ void Y_acquisim_fillbcube(int argc)
     long dims[Y_DIMSIZE];
     float *a = ygeta_f(argc - 2, &ntot, dims);
     acquisim_handler->comp_image(dims, a);
+    //acquisim_handler->comp_image_tele(dims,a);
+
+  } catch (string &msg) {
+    y_error(msg.c_str());
+  } catch (char const * msg) {
+    y_error(msg);
+  } catch (...) {
+    stringstream buf;
+    buf << "unknown error with sutra_wfs construction in " << __FILE__ << "@"
+        << __LINE__ << endl;
+    y_error(buf.str().c_str());
+  }
+}
+
+void Y_acquisim_fillbcube_2D(int argc)
+//long nxsub, long nvalid, long npix, long nrebin, long nfft
+    {
+  try {
+    acquisim_struct *handle = (acquisim_struct *) yget_obj(argc - 1,
+        &yAcquisim);
+    sutra_acquisim *acquisim_handler = (sutra_acquisim *) handle->sutra_acquisim;
+    long ntot;
+    long dims[Y_DIMSIZE];
+    float *a = ygeta_f(argc - 2, &ntot, dims);
+    long dims2[Y_DIMSIZE];
+    int *num_ssp = ygeta_i(argc - 3, &ntot, dims2);
+    acquisim_handler->comp_image_2D(dims, a, num_ssp);
     //acquisim_handler->comp_image_tele(dims,a);
 
   } catch (string &msg) {

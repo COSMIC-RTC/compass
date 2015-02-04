@@ -522,6 +522,53 @@ __global__ void centroid_bpix(int nsub, int n, T *g_idata, unsigned int *values,
 
 }
 template<class T>
+__global__ void centroidx_2D(T *g_idata, T *g_odata, T *alpha, unsigned int n,
+    unsigned int N, T scale, T offset, unsigned int nelem_thread) {
+  T *sdata = SharedMemory<T>();
+
+  // load shared mem
+  const unsigned int tid = threadIdx.x + blockIdx.y * blockDim.x;
+  const unsigned int i = blockIdx.x * blockDim.x * blockDim.y + tid;
+  //unsigned int x = (tid % n) + 1;
+  sdata[tid] = (i < N) ? g_idata[i] * (threadIdx.x+1) : 0;
+
+  __syncthreads();
+  reduce_krnl(sdata, blockDim.x*blockDim.y, tid);
+  __syncthreads();
+
+  // write result for this block to global mem
+  if (tid == 0)
+    g_odata[blockIdx.x] = ((sdata[0] * 1.0 / (alpha[blockIdx.x] + 1.e-6))
+        - offset) * scale;
+}
+template<class T>
+__global__ void centroidy_2D(T *g_idata, T *g_odata, T *alpha, unsigned int n,
+    unsigned int N, T scale, T offset, unsigned int nelem_thread) {
+  T *sdata = SharedMemory<T>();
+
+  // load shared mem
+  const unsigned int tid = threadIdx.x + blockIdx.y * blockDim.x;
+  const unsigned int i = blockIdx.x * blockDim.x * blockDim.y + tid;
+  //unsigned int x = (tid % n) + 1;
+  sdata[tid] = (i < N) ? g_idata[i] * (threadIdx.y+1) : 0;
+
+  __syncthreads();
+  reduce_krnl(sdata, blockDim.x*blockDim.y, tid);
+  __syncthreads();
+
+  // write result for this block to global mem
+  if (tid == 0)
+    g_odata[blockIdx.x] = ((sdata[0] * 1.0 / (alpha[blockIdx.x] + 1.e-6))
+        - offset) * scale;
+}
+template
+__global__ void centroidx_2D<float>(float *g_idata, float *g_odata, float *alpha, unsigned int n,
+    unsigned int N, float scale, float offset, unsigned int nelem_thread);
+template
+__global__ void centroidy_2D<float>(float *g_idata, float *g_odata, float *alpha, unsigned int n,
+    unsigned int N, float scale, float offset, unsigned int nelem_thread);
+
+template<class T>
 __global__ void centroidx(T *g_idata, T *g_odata, T *alpha, unsigned int n,
     unsigned int N, T scale, T offset, unsigned int nelem_thread) {
   T *sdata = SharedMemory<T>();

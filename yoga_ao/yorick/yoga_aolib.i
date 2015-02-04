@@ -317,6 +317,18 @@ extern acquisim_fillbcube;
    SEE ALSO:
  */
 
+extern acquisim_fillbcube_2D;
+/* DOCUMENT acquisim_fillbcube_2D
+   acquisim_fillbcube_2D,yoga_sensor_obj, sensor_number,image, num_ssp
+     
+   inits the guide star for an yWfs object
+   yoga_sensors_obj : the ySensors object
+   sensor_number: which sensor fill
+   image        : image used to fill WFS bincube
+   num_ssp      : *(y_wfs(sensor_number)._isvalid))(*)(cum)(2:) * ((y_wfs(sensor_number)._isvalid))(*)
+   SEE ALSO:
+ */
+
 extern yoga_sensors;
 /* DOCUMENT yoga_sensors
    obj = yoga_sensors(nsensors,nxsub,nvalid,npix,nphase,nrebin,nfft,ntot,npup,pdiam,nphot,lgs[,ndevice])
@@ -392,6 +404,17 @@ extern sensors_initarr;
    
    SEE ALSO:
  */
+extern sensors_fillbinimage;
+/* DOCUMENT sensors_fillbinimage
+   sensors_fillbinimage,yoga_sensors_obj,nsensor
+     
+   fill the bin image for a given sensor in a ySensors object
+   yoga_sensors_obj : the ySensors object
+   nsensor          : index of given wfs
+
+   SEE ALSO:
+ */
+
 extern sensors_compimg;
 /* DOCUMENT sensors_compimg
    sensors_compimg,yoga_sensors_obj,nsensor

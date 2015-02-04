@@ -2,6 +2,42 @@
 #include <sutra_ao_utils.h>
 
 template<class T>
+__global__ void bcube_krnl_2D(T *bimage, T *bcube, int *num_ssp) {
+  const unsigned int x = threadIdx.x; // on lance npix thread en x avec npix nb pix par sous-pup
+  const unsigned int y = threadIdx.y; // idem en y
+
+  const unsigned int deltaX = blockIdx.x; // on lance nssp blocks en x, i.e. 80 dans le cas d'un 80x80
+  const unsigned int deltaY = blockIdx.y; // idem en y
+
+  const unsigned int npix = blockDim.x;
+  const unsigned int nssp = gridDim.x;
+
+  const T input = bimage[(x + npix * deltaX) + nssp * npix * (y + npix * deltaY)];
+
+
+  const unsigned int nim = deltaX + nssp * deltaY;
+
+  if (num_ssp[nim])
+    bcube[(num_ssp[nim]-1) * npix * npix + x + y * npix] = input;
+// (par exemple en yorick : num_ssp = (*(y_wfs(1)._isvalid))(*)(cum)(2:) * ((y_wfs(1)._isvalid))(*) )
+}
+
+template<class T>
+int fillbincube_2D(T *bimage, T *bcube, int npix, int nxsub, int *num_ssp) {
+  dim3 grid(nxsub, nxsub), threads(npix, npix);
+
+  bcube_krnl_2D<T> <<<grid, threads>>>(bimage, bcube, num_ssp);
+
+  cutilCheckMsg("binimg_kernel<<<>>> execution failed\n");
+
+  return EXIT_SUCCESS;
+}
+template int
+fillbincube_2D<float>(float *bimage, float *bcube, int npix, int nsub, int *num_ssp);
+template int
+fillbincube_2D<double>(double *bimage, double *bcube, int npix, int nsub, int *num_ssp);
+
+template<class T>
 __global__ void bcube_krnl(T *bimage, T *bcube, int npix, int npix2, int nsub,
     int *ivalid, int *jvalid, int N) {
   /*
@@ -93,8 +129,8 @@ int fillbincube_async(carma_host_obj<T> *image_telemetry, T *bimage, T *bcube,
         (*image_telemetry)[i * nim / nstreams], sizeof(float) * nim / nstreams,
         cudaMemcpyHostToDevice, image_telemetry->get_cudaStream_t(i));
     bcube_krnl_async<T> <<<grid, threads, 0,
-    image_telemetry->get_cudaStream_t(i)>>>(bimage, bcube, npix, Npix,
-        Nsub, ivalid, jvalid, N, i * N / nstreams);
+        image_telemetry->get_cudaStream_t(i)>>>(bimage, bcube, npix, Npix, Nsub,
+        ivalid, jvalid, N, i * N / nstreams);
     // asynchronously launch nstreams memcopies.  Note that memcopy in stream x will only
     //   commence executing when all previous CUDA calls in stream x have completed
   }
@@ -130,9 +166,8 @@ int fillbincube_async(carma_streams *streams, carma_obj<T> *bimage,
   // asynchronously launch nstreams kernels, each operating on its own portion of data
   for (int i = 0; i < nstreams; i++) {
 
-    bcube_krnl_async<T> <<<grid, threads, 0, streams->get_stream(i)>>>(
-        *bimage, *bcube, npix, Npix, Nsub, ivalid, jvalid, N,
-        i * N / nstreams);
+    bcube_krnl_async<T> <<<grid, threads, 0, streams->get_stream(i)>>>(*bimage,
+        *bcube, npix, Npix, Nsub, ivalid, jvalid, N, i * N / nstreams);
     // asynchronously launch nstreams memcopies.  Note that memcopy in stream x will only
     //   commence executing when all previous CUDA calls in stream x have completed
   }

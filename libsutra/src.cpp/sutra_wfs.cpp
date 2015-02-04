@@ -934,6 +934,14 @@ int sutra_wfs::comp_roof_generic() {
 
 }
 
+int sutra_wfs::fill_binimage() {
+  fillbinimg(this->d_binimg->getData(), this->d_bincube->getData(),
+      this->npix, this->nvalid, this->npix * this->nxsub,
+      this->d_validsubsx->getData(), this->d_validsubsy->getData(),
+      0, this->current_context->get_device(device));
+  return EXIT_SUCCESS;
+}
+
 int sutra_wfs::comp_image() {
 
   int result;

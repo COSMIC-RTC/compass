@@ -112,6 +112,8 @@ public:
   int
   comp_image_tele();
   int
+  fill_binimage();
+  int
   comp_image();
   int
   slopes_geom(int type, float *slopes);
