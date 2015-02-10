@@ -88,9 +88,10 @@ func geom_init(pupdiam)
 
   // Initialize pupil array:
 
+  cent = y_geom.pupdiam/2 + 0.5; 
+
   // useful pupil
-  spupil=float(make_pupil(y_geom.pupdiam,y_geom.pupdiam,type_ap=y_tel.type_ap,angle=y_tel.pupangle,spiders_type=y_tel.spiders_type,t_spiders=y_tel.t_spiders,nbr_miss_seg=y_tel.nbrmissing,std_ref_err=y_tel.referr,xc=,yc=,real=,cobs=y_tel.cobs));
-    
+  spupil=float(make_pupil(y_geom.pupdiam,y_geom.pupdiam,type_ap=y_tel.type_ap,angle=y_tel.pupangle,spiders_type=y_tel.spiders_type,t_spiders=y_tel.t_spiders,nbr_miss_seg=y_tel.nbrmissing,std_ref_err=y_tel.referr,xc=cent,yc=cent,real=,cobs=y_tel.cobs));
   // large pupil (used for image formation)
   ipupil=pad_array(spupil,y_geom.ssize);
     
