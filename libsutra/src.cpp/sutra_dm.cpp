@@ -189,48 +189,55 @@ int sutra_dm::comp_oneactu(int nactu, float ampli) {
   return EXIT_SUCCESS;
 }
 
+template<class T>
 int
-sutra_dm::get_IF(float *IF, int *indx_pup, long nb_pts, float ampli){
+sutra_dm::get_IF(T *IF, int *indx_pup, long nb_pts, float ampli){
 
 	for (int i=0 ; i<this->ninflu ; i++){
 		this->comp_oneactu(i,ampli);
-		getIF(IF,this->d_shape->d_screen->getData(),indx_pup,nb_pts,i,this->ninflu,current_context->get_device(device));
+		getIF<T>(IF,this->d_shape->d_screen->getData(),indx_pup,nb_pts,i,this->ninflu,current_context->get_device(device));
 	}
 
 	this->reset_shape();
 
 	return EXIT_SUCCESS;
 }
+template int
+sutra_dm::get_IF<float>(float *IF, int *indx_pup, long nb_pts, float ampli);
+template int
+sutra_dm::get_IF<double>(double *IF, int *indx_pup, long nb_pts, float ampli);
 
+template<class T>
 int
-sutra_dm::get_IF_sparse(carma_sparse_obj<float> *&d_IFsparse, int *indx_pup, long nb_pts, float ampli){
+sutra_dm::get_IF_sparse(carma_sparse_obj<T> *&d_IFsparse, int *indx_pup, long nb_pts, float ampli){
 
 	int nnz_tot = 0;
 	float *values[this->ninflu];
 	int *colind[this->ninflu];
 	int NZ[this->ninflu];
 	long dims_data2[3] = {2,1,nb_pts};
-	carma_obj<float> d_IF(current_context,dims_data2);
-	carma_sparse_obj<float> *d_IFsparse_vec;
+	carma_obj<T> d_IF(current_context,dims_data2);
+	carma_sparse_obj<T> *d_IFsparse_vec;
 
 	cout << "Computing IF sparse..." << endl;
 	for(int i=0 ; i<this->ninflu ; i++){
 		//Compute and store IF for actu i in d_IF
 		this->comp_oneactu(i,ampli);
-		getIF(d_IF.getData(),this->d_shape->d_screen->getData(),indx_pup,nb_pts,0,this->ninflu,this->current_context->get_device(device));
+		getIF<T>(d_IF.getData(),this->d_shape->d_screen->getData(),indx_pup,nb_pts,0,this->ninflu,this->current_context->get_device(device));
 		//CUsparse d_IF
-		d_IFsparse_vec = new carma_sparse_obj<float>(&d_IF);
+		d_IFsparse_vec = new carma_sparse_obj<T>(&d_IF);
 		// Retrieve nnz, values and colind from d_IFsparse_vec, stored on CPU
 		//DEBUG_TRACE("nnz : %d \n",d_IFsparse_vec->getNzElem());
+
 		NZ[i] = d_IFsparse_vec->getNzElem();
-		values[i] = (float*)malloc(NZ[i]*sizeof(float));
+		values[i] = (float*)malloc(NZ[i]*sizeof(T));
 		colind[i] = (int*)malloc(NZ[i]*sizeof(int));
 
 		cutilSafeCall(
-		      cudaMemcpy(values[i], d_IFsparse_vec->getData(), sizeof(float) * NZ[i],
+		      cudaMemcpyAsync(values[i], d_IFsparse_vec->getData(), sizeof(T) * NZ[i],
 		          cudaMemcpyDeviceToHost));
 		cutilSafeCall(
-			  cudaMemcpy(colind[i], d_IFsparse_vec->d_colind, sizeof(int) * NZ[i],
+			  cudaMemcpyAsync(colind[i], d_IFsparse_vec->d_colind, sizeof(int) * NZ[i],
 				  cudaMemcpyDeviceToHost));
 
 		nnz_tot += NZ[i];
@@ -239,7 +246,7 @@ sutra_dm::get_IF_sparse(carma_sparse_obj<float> *&d_IFsparse, int *indx_pup, lon
 	}
 	//Reconstruction of d_data, d_colind, d_rowind for IFsparse
 	long dims_data[2] = {1,nnz_tot};
-	carma_obj<float> d_val(current_context,dims_data);
+	carma_obj<T> d_val(current_context,dims_data);
 	carma_obj<int> d_col(current_context,dims_data);
 	dims_data[1] = this->ninflu + 1;
 	carma_obj<int> d_row(current_context,dims_data);
@@ -248,7 +255,7 @@ sutra_dm::get_IF_sparse(carma_sparse_obj<float> *&d_IFsparse, int *indx_pup, lon
 
 	for(int i=0 ; i<this->ninflu ; i++){
 		cutilSafeCall(
-			  cudaMemcpyAsync(d_val.getData(cpt[i]), values[i], sizeof(float) * NZ[i],
+			  cudaMemcpyAsync(d_val.getData(cpt[i]), values[i], sizeof(T) * NZ[i],
 				  cudaMemcpyHostToDevice));
 		cutilSafeCall(
 			  cudaMemcpyAsync(d_col.getData(cpt[i]), colind[i], sizeof(int) * NZ[i],
@@ -256,14 +263,18 @@ sutra_dm::get_IF_sparse(carma_sparse_obj<float> *&d_IFsparse, int *indx_pup, lon
 		cpt[i+1] = cpt[i] + NZ[i];
 	}
 	cutilSafeCall(
-		  cudaMemcpy(d_row.getData(), cpt, sizeof(int) * (this->ninflu + 1),
+		  cudaMemcpyAsync(d_row.getData(), cpt, sizeof(int) * (this->ninflu + 1),
 			  cudaMemcpyHostToDevice));
 	dims_data2[1] = this->ninflu;
-	d_IFsparse = new carma_sparse_obj<float>(current_context, dims_data2,
+	d_IFsparse = new carma_sparse_obj<T>(current_context, dims_data2,
 			d_val.getData(), d_col.getData(), d_row.getData(),nnz_tot,false);
 
 	return EXIT_SUCCESS;
 }
+template int
+sutra_dm::get_IF_sparse<float>(carma_sparse_obj<float> *&d_IFsparse, int *indx_pup, long nb_pts, float ampli);
+template int
+sutra_dm::get_IF_sparse<double>(carma_sparse_obj<double> *&d_IFsparse, int *indx_pup, long nb_pts, float ampli);
 
 int
 sutra_dm::compute_KLbasis(float *xpos, float *ypos, int *indx, long dim, float norm, float ampli){
@@ -300,22 +311,26 @@ sutra_dm::compute_KLbasis(float *xpos, float *ypos, int *indx, long dim, float n
 	d_indx->host2device(indx);
 
 	//Sparse version for geomat
-	carma_sparse_obj<float> *d_IFsparse;
-	this->get_IF_sparse(d_IFsparse,d_indx->getData(),dim,ampli);
-	this->do_geomatFromSparse(d_geocov->getData(),d_IFsparse);
+	carma_sparse_obj<double> *d_IFsparse;
+	carma_obj<double> *d_geodouble = new carma_obj<double>(current_context,d_geocov->getDims());
+	this->get_IF_sparse<double>(d_IFsparse,d_indx->getData(),dim,ampli);
+	this->do_geomatFromSparse(d_geodouble->getData(),d_IFsparse);
+	doubletofloat(d_geodouble->getData(),d_geocov->getData(),d_geocov->getNbElem(),current_context->get_device(device));
 
+	delete d_geodouble;
 	delete d_IFsparse;
-
 	//Dense version for geomat
-	/*
+/*
 	dims_data[1] = dim;
 	dims_data[2] = this->ninflu;
+
 	carma_obj<float> *d_IF = new carma_obj<float>(this->current_context, dims_data);
 	// Get influence functions of the DM
 	this->get_IF(d_IF->getData(),d_indx->getData(),dim,ampli);
 	// Compute geometric matrix (to be CUsparsed)
 	this->do_geomat(d_geocov->getData(),d_IF->getData(),dim);
 */
+
 	// Double diagonalisation to obtain KL basis on actuators
 	this->DDiago(d_statcov,d_geocov);
 
@@ -326,17 +341,23 @@ sutra_dm::compute_KLbasis(float *xpos, float *ypos, int *indx, long dim, float n
 	return EXIT_SUCCESS;
 }
 
+template<class T>
 int
-sutra_dm::do_geomatFromSparse(float *d_geocov, carma_sparse_obj<float> *d_IFsparse){
+sutra_dm::do_geomatFromSparse(T *d_geocov, carma_sparse_obj<T> *d_IFsparse){
 
-	carma_sparse_obj<float> *d_tmp = new carma_sparse_obj<float>(this->current_context);
+	carma_sparse_obj<T> *d_tmp = new carma_sparse_obj<T>(this->current_context);
 
-	carma_gemm<float>(cusparse_handle(),'n','t',d_IFsparse,d_IFsparse,d_tmp);
-	carma_csr2dense<float>(d_tmp, d_geocov);
+	carma_gemm<T>(cusparse_handle(),'n','t',d_IFsparse,d_IFsparse,d_tmp);
+	carma_csr2dense<T>(d_tmp, d_geocov);
 
 	delete d_tmp;
 	return EXIT_SUCCESS;
 }
+template int
+sutra_dm::do_geomatFromSparse<float>(float *d_geocov, carma_sparse_obj<float> *d_IFsparse);
+template int
+sutra_dm::do_geomatFromSparse<double>(double *d_geocov, carma_sparse_obj<double> *d_IFsparse);
+
 int
 sutra_dm::do_geomat(float *d_geocov, float *d_IF, long n_pts){
 	carma_gemm(cublas_handle(), 't', 'n', this->ninflu, this->ninflu, n_pts, 1.0f,

@@ -85,6 +85,10 @@ int  find_nnz(T_data *d_data, int *tmp_colind, int N, int *d_nnz, int &h_nnz, ca
 template <class T_data>
 int
 fill_sparse_vect(T_data *dense_data, int *colind_sorted, T_data *values, int *colind, int *rowind, int nnz, carma_device *device);
+int
+floattodouble(float *idata, double *odata, int N, carma_device *device);
+int
+doubletofloat(double *idata, float *odata, int N, carma_device *device);
 
 void carma_start_profile();
 void carma_stop_profile();

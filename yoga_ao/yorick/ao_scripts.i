@@ -174,13 +174,14 @@ func script_system(filename,verbose=,strehl=,r0=,clean=)
       }
     } 
   }
-rtc_kalmangettime,g_rtc,0;
-rtc_rmcontrol,g_rtc;
+  
+  //rtc_kalmangettime,g_rtc,0;
+  //rtc_rmcontrol,g_rtc;
   //yoga_stop_profile;
   
   write,"\n done with simulation \n";
   write,format="simulation time : %f sec. per iteration\n",tac(mytime)/y_loop.niter;
-    if (strehl) 
+  if (strehl) 
       return strehllp(0);
   //mimg /= y_loop.niter;
   //window,1;fma;pli,mimg; 

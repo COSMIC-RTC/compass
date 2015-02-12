@@ -214,24 +214,32 @@ template void
 comp_fulldmshape<double>(int threads, int blocks, double *d_idata,
     double *d_odata, int ninflu, int diminflu, double *comm, int N);
 
+template<class T>
 __global__ void
-getIF_krnl(float *IF, float *dmshape, int *indx_pup, long nb_pts, long column, long nb_col){
+getIF_krnl(T *IF, float *dmshape, int *indx_pup, long nb_pts, long column, long nb_col){
 	int tid = blockIdx.x * blockDim.x + threadIdx.x;
 	while (tid < nb_pts){
 		IF[column * nb_pts + tid] = dmshape[indx_pup[tid]];
 		tid += blockDim.x * gridDim.x;
 	}
 }
+template<class T>
 int
-getIF(float *IF, float *dmshape, int *indx_pup, long nb_pts, int column, long nb_col, carma_device *device){
+getIF(T *IF, float *dmshape, int *indx_pup, long nb_pts, int column, long nb_col, carma_device *device){
 	int nthreads = 0, nblocks = 0;
 	getNumBlocksAndThreads(device, nb_pts, nblocks, nthreads);
 	dim3 grid(nblocks), threads(nthreads);
-	getIF_krnl<<<grid , threads>>>(IF,dmshape,indx_pup,nb_pts,column, nb_col);
+	getIF_krnl<T><<<grid , threads>>>(IF,dmshape,indx_pup,nb_pts,column, nb_col);
 	cutilCheckMsg("getIF_krnl<<<>>> execution failed\n");
 
 	return EXIT_SUCCESS;
 }
+template
+int
+getIF<float>(float *IF, float *dmshape, int *indx_pup, long nb_pts, int column, long nb_col, carma_device *device);
+template
+int
+getIF<double>(double *IF, float *dmshape, int *indx_pup, long nb_pts, int column, long nb_col, carma_device *device);
 
 __global__ void
 do_statmat_krnl(float *statcov, float *xpos, float *ypos, float norm, long dim, long N){

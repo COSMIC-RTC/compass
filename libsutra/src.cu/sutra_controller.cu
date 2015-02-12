@@ -124,23 +124,6 @@ do_statcov_krnl(float *statcov, float *xpos, float *ypos, float norm, long dim, 
 }
 
 __global__ void
-floattodouble_krnl(float *i_data, double *o_data, int N){
-	int tid = threadIdx.x + blockIdx.x * blockDim.x;
-	while (tid < N){
-		o_data[tid] = (double)i_data[tid];
-		tid += blockDim.x * gridDim.x;
-	}
-}
-
-__global__ void
-doubletofloat_krnl(double *i_data, float *o_data, int N){
-	int tid = threadIdx.x + blockIdx.x * blockDim.x;
-	while (tid < N){
-		o_data[tid] = (float)i_data[tid];
-		tid += blockDim.x * gridDim.x;
-	}
-}
-__global__ void
 pupphase_krnl(float *o_data, float *i_data, int *indx_pup, int N){
 	int tid = threadIdx.x + blockIdx.x * blockDim.x;
 	while (tid < N){
@@ -371,27 +354,6 @@ do_statmat(float *statcov, long dim, float *xpos, float *ypos, float norm, carma
 	return EXIT_SUCCESS;
 }
 
-int
-floattodouble(float *i_data, double *o_data, int N, carma_device *device){
-	int nthreads = 0, nblocks = 0;
-	getNumBlocksAndThreads(device, N, nblocks, nthreads);
-	dim3 grid(nblocks), threads(nthreads);
-	floattodouble_krnl<<<grid , threads>>>(i_data,o_data,N);
-	cutilCheckMsg("floattodouble_krnl<<<>>> execution failed\n");
-
-	return EXIT_SUCCESS;
-}
-
-int
-doubletofloat(double *i_data, float *o_data, int N, carma_device *device){
-	int nthreads = 0, nblocks = 0;
-	getNumBlocksAndThreads(device, N, nblocks, nthreads);
-	dim3 grid(nblocks), threads(nthreads);
-	doubletofloat_krnl<<<grid , threads>>>(i_data,o_data,N);
-	cutilCheckMsg("floattodouble_krnl<<<>>> execution failed\n");
-
-	return EXIT_SUCCESS;
-}
 
 int
 get_pupphase(float *o_data, float *i_data, int *indx_pup, int Nphi, carma_device *device){

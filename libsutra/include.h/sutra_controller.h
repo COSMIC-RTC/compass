@@ -85,10 +85,6 @@ do_statmat(float *statcov,long dim, float *xpos, float *ypos, float norm, carma_
 int
 add_md(float *o_matrix, float *i_matrix, float *i_vector, int N,carma_device *device);
 int
-floattodouble(float *idata, double *odata, int N, carma_device *device);
-int
-doubletofloat(double *idata, float *odata, int N, carma_device *device);
-int
 get_pupphase(float *odata, float *idata, int *indx_pup, int Nphi, carma_device *device);
 int
 compute_Hcor_gpu(float *o_data, int nrow, int ncol, float Fs, float gmin, float gmax, int delay, carma_device *device);

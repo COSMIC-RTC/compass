@@ -73,14 +73,21 @@ public:
   // Florian features
   int
   kl_floloadarrays(float *covmat, float *filter, float *evals, float *bas);
+
+  template<class T>
   int
-  get_IF(float *IF, int *indx_pup, long nb_pts, float ampli);
+  get_IF(T *IF, int *indx_pup, long nb_pts, float ampli);
+  template<class T>
   int
-  get_IF_sparse(carma_sparse_obj<float> *&d_IFsparse, int *indx_pup, long nb_pts, float ampli);
+  get_IF_sparse(carma_sparse_obj<T> *&d_IFsparse, int *indx_pup, long nb_pts, float ampli);
+
   int
   do_geomat(float *d_geocov, float *d_IF, long n_pts);
+
+  template<class T>
   int
-  do_geomatFromSparse(float *d_geocov, carma_sparse_obj<float> *d_IFsparse);
+  do_geomatFromSparse(T *d_geocov, carma_sparse_obj<T> *d_IFsparse);
+
   int
   DDiago(carma_obj<float> *d_statcov, carma_obj<float>*d_geocov);
   int
@@ -126,8 +133,10 @@ template<class T>
 void
 comp_fulldmshape(int threads, int blocks, T *d_idata, T *d_odata, int ninflu,
     int diminflu, T *comm, int N);
+
+template<class T>
 int
-getIF(float *IF, float *dmshape, int *indx_pup, long nb_pts, int column, long nb_col, carma_device *device);
+getIF(T *IF, float *dmshape, int *indx_pup, long nb_pts, int column, long nb_col, carma_device *device);
 int
 dm_dostatmat(float *d_statcov, long Nkl, float *d_xpos, float *d_ypos, float norm, carma_device *device);
 int

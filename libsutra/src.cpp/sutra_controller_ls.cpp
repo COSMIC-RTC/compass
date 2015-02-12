@@ -236,7 +236,7 @@ int sutra_controller_ls::comp_com() {
   //Modal Control Optimization
   if(this->is_modopti){
 	  //Refresh when enough slopes have been recorded
-	if(this->cpt_rec > this->nrec + this->delay){
+	if(this->cpt_rec >= this->nrec + this->delay){
 		cout <<"Refreshing modal gains..."<< endl;
 		modalControlOptimization();
 		this->cpt_rec = 0;

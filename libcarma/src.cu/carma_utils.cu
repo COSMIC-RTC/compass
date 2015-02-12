@@ -88,3 +88,42 @@ template
 int
 fill_sparse_vect<double>(double *dense_data, int *colind_sorted, double *values, int *colind, int *rowind, int nnz, carma_device *device);
 
+__global__ void
+floattodouble_krnl(float *i_data, double *o_data, int N){
+	int tid = threadIdx.x + blockIdx.x * blockDim.x;
+	while (tid < N){
+		o_data[tid] = (double)i_data[tid];
+		tid += blockDim.x * gridDim.x;
+	}
+}
+
+__global__ void
+doubletofloat_krnl(double *i_data, float *o_data, int N){
+	int tid = threadIdx.x + blockIdx.x * blockDim.x;
+	while (tid < N){
+		o_data[tid] = (float)i_data[tid];
+		tid += blockDim.x * gridDim.x;
+	}
+}
+
+int
+floattodouble(float *i_data, double *o_data, int N, carma_device *device){
+	int nthreads = 0, nblocks = 0;
+	getNumBlocksAndThreads(device, N, nblocks, nthreads);
+	dim3 grid(nblocks), threads(nthreads);
+	floattodouble_krnl<<<grid , threads>>>(i_data,o_data,N);
+	cutilCheckMsg("floattodouble_krnl<<<>>> execution failed\n");
+
+	return EXIT_SUCCESS;
+}
+
+int
+doubletofloat(double *i_data, float *o_data, int N, carma_device *device){
+	int nthreads = 0, nblocks = 0;
+	getNumBlocksAndThreads(device, N, nblocks, nthreads);
+	dim3 grid(nblocks), threads(nthreads);
+	doubletofloat_krnl<<<grid , threads>>>(i_data,o_data,N);
+	cutilCheckMsg("floattodouble_krnl<<<>>> execution failed\n");
+
+	return EXIT_SUCCESS;
+}
