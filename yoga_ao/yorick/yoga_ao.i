@@ -77,7 +77,7 @@ func geom_init(pupdiam)
   _p2       = long(floor(y_geom.cent+_p/2.));
   _p        = _p2-_p1+1;
 
-  y_geom.pupdiam = _p;
+  y_geom.pupdiam = _p; // Always even
   y_geom._p1     = _p1;
   y_geom._p2     = _p2;
 
@@ -97,7 +97,13 @@ func geom_init(pupdiam)
     
   // useful pupil + 4 pixels
   mpupil=pad_array(spupil,y_geom._n);
-    
+  /*
+  // YAO style
+  ipupil=float(make_pupil(y_geom.ssize,y_geom.pupdiam,type_ap=y_tel.type_ap,angle=y_tel.pupangle,spiders_type=y_tel.spiders_type,t_spiders=y_tel.t_spiders,nbr_miss_seg=y_tel.nbrmissing,std_ref_err=y_tel.referr,xc=y_geom.cent,yc=y_geom.cent,real=,cobs=y_tel.cobs));
+
+  mpupil = ipupil(y_geom._n1:y_geom._n2,y_geom._n1:y_geom._n2);
+  spupil = ipupil(y_geom._p1:y_geom._p2,y_geom._p1:y_geom._p2);
+  */
   if (y_target.apod==1)
     {
       apodizer = float(make_apodizer(y_geom.pupdiam,y_geom.pupdiam,"/root/compass/trunk/yoga_ao/data/apodizer/SP_HARMONI_I4_C6_N1024.fits",180/12.));
@@ -715,6 +721,7 @@ func rtc_init(clean=)
               indx_dm(cpt+1:cpt+numberof(where(pup_dm))) = where(pup_dm) - 1;	  
               cpt += numberof(where(pup_dm));
             }
+	    //error;
             rtc_init_proj,g_rtc,i-1,g_dm,indx_dm,y_dm.unitpervolt,indx_pup - 1;
             //rtc_docontrol_geo,g_rtc,0,g_dm,g_target,0;
           }

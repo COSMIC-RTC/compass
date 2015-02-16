@@ -370,13 +370,16 @@ template int
 roll<cuFloatComplex>(cuFloatComplex *idata, int N, int M, carma_device *device);
 
 template<class T>
-__global__ void avg_krnl(T *data, T *p_sum){
+__global__ void avg_krnl(T *data, T *p_sum, int N){
 	T *sdata = SharedMemory<T>();
 	//Load shared memory
 	int tid = threadIdx.x + blockDim.x * blockIdx.x;
 	int sid = threadIdx.x;
 
-	sdata[sid] = data[tid];
+	if(tid<N)
+		sdata[sid] = data[tid];
+	else
+		sdata[sid] = 0;
 
 	__syncthreads();
 
@@ -410,7 +413,7 @@ int remove_avg(T *data, int N, carma_device *device){
 	cutilSafeCall(
 	      cudaMalloc((void** )&(p_sum), sizeof(T) * nblocks));
 
-	avg_krnl<<< grid, threads, smemSize>>>(data,p_sum);
+	avg_krnl<<< grid, threads, smemSize>>>(data,p_sum,N);
 	cutilCheckMsg("avg_krnl<<<>>> execution failed\n");
 	cutilSafeCall(
 			cudaMemcpy(p_sum_c,p_sum,nblocks*sizeof(T),cudaMemcpyDeviceToHost));
@@ -422,7 +425,6 @@ int remove_avg(T *data, int N, carma_device *device){
 		avg += p_sum_c[i];
 	}
 	avg /= N;
-
 	remove_avg_krnl<<< grid, threads >>>(data,N,avg);
 	cutilCheckMsg("remove_avg_krnl<<<>>> execution failed\n");
 

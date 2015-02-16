@@ -122,12 +122,12 @@ do_statcov_krnl(float *statcov, float *xpos, float *ypos, float norm, long dim, 
 		tid += blockDim.x * gridDim.x;
 	}
 }
-
+template<class T>
 __global__ void
-pupphase_krnl(float *o_data, float *i_data, int *indx_pup, int N){
+pupphase_krnl(T *o_data, float *i_data, int *indx_pup, int N){
 	int tid = threadIdx.x + blockIdx.x * blockDim.x;
 	while (tid < N){
-		o_data[tid] = i_data[indx_pup[tid]];
+		o_data[tid] = (T)i_data[indx_pup[tid]];
 		tid += blockDim.x * gridDim.x;
 	}
 }
@@ -178,6 +178,40 @@ absnormfft_krnl(cuFloatComplex *idata, float *odata, int N, float norm){
 		tid += blockDim.x * gridDim.x;
 	}
 
+}
+
+__global__ void
+adjust_csrcol_krnl(int *colind, int *nnz, int Nphi, int nnztot){
+	int tid = nnz[0] + threadIdx.x + blockIdx.x * blockDim.x;
+	int i = 1;
+	int N = nnz[0] + nnz[i];
+
+	if(tid < nnztot){
+		while(tid > N){
+			i++;
+			N += nnz[i];
+		}
+		__syncthreads();
+
+		colind[tid] += i*Nphi;
+	}
+}
+
+__global__ void
+adjust_csrrow_krnl(int *rowind, int *nact, int *nnz, int nact_tot){
+	int tid = nact[0] + threadIdx.x + blockIdx.x * blockDim.x;
+	int i =1;
+	int N = nact[0] + nact[1];
+
+	if(tid < nact_tot){
+		while(tid > N){
+			i++;
+			N += nact[i];
+		}
+		__syncthreads();
+
+		rowind[tid] += nnz[i-1];
+	}
 }
 
 /*
@@ -354,9 +388,9 @@ do_statmat(float *statcov, long dim, float *xpos, float *ypos, float norm, carma
 	return EXIT_SUCCESS;
 }
 
-
+template<class T>
 int
-get_pupphase(float *o_data, float *i_data, int *indx_pup, int Nphi, carma_device *device){
+get_pupphase(T *o_data, float *i_data, int *indx_pup, int Nphi, carma_device *device){
 	int nthreads = 0, nblocks = 0;
 	getNumBlocksAndThreads(device, Nphi, nblocks, nthreads);
 	dim3 grid(nblocks), threads(nthreads);
@@ -365,6 +399,10 @@ get_pupphase(float *o_data, float *i_data, int *indx_pup, int Nphi, carma_device
 
 	return EXIT_SUCCESS;
 }
+template int
+get_pupphase<float>(float *o_data, float *i_data, int *indx_pup, int Nphi, carma_device *device);
+template int
+get_pupphase<double>(double *o_data, float *i_data, int *indx_pup, int Nphi, carma_device *device);
 
 int
 compute_Hcor_gpu(float *o_data, int nrow, int ncol, float Fs, float gmin, float gmax, int delay, carma_device *device){
@@ -386,5 +424,25 @@ absnormfft(cuFloatComplex *idata, float *odata, int N, float norm, carma_device 
 
 	absnormfft_krnl<<<grid , threads>>>(idata,odata,N,norm);
 	cutilCheckMsg("absnormfft_krnl<<<>>> execution failed\n");
+	return EXIT_SUCCESS;
+}
+
+
+int
+adjust_csr_index(int *colind, int *rowind, int *NNZ, int *nact, int nnz_tot, int nact_tot, int col_off, int row_off, int Nphi, carma_device *device){
+	int N = nnz_tot - col_off;
+	int nthreads = 0, nblocks = 0;
+	getNumBlocksAndThreads(device, N, nblocks, nthreads);
+	dim3 grid(nblocks), threads(nthreads);
+
+	adjust_csrcol_krnl<<<grid , threads>>>(colind,NNZ,Nphi,nnz_tot);
+
+	N = nact_tot - row_off;
+	nthreads = 0, nblocks = 0;
+	getNumBlocksAndThreads(device, N, nblocks, nthreads);
+	dim3 grid2(nblocks), threads2(nthreads);
+
+	adjust_csrrow_krnl<<<grid2 , threads2>>>(rowind,nact,NNZ,nact_tot);
+
 	return EXIT_SUCCESS;
 }

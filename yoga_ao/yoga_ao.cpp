@@ -2899,7 +2899,7 @@ void Y_rtc_init_proj(int argc) {
 
   if (rtc_handler->d_control.at(ncontrol)->get_type().compare("geo") == 0) {
     SCAST(sutra_controller_geo *, control, rtc_handler->d_control.at(ncontrol));
-    control->init_proj(dms_handler,indx_dm,unitpervolt,indx_pup);
+    control->init_proj_sparse(dms_handler,indx_dm,unitpervolt,indx_pup);
 }
   else y_error("**** ERROR : init_proj only for controller type geo **** \n");
 }
@@ -3773,7 +3773,7 @@ void Y_rtc_getphi(int argc) {
   context_handle->set_activeDeviceForCpy(rhandler->device);
 
   SCAST(sutra_controller_geo *, controller, rtc_handler->d_control[ncontrol]);
-  float *data = ypush_f((long*) controller->d_phi->getDims());
+  double *data = (double*)ypush_f((long*) controller->d_phi->getDims());
   controller->d_phi->device2host(data);
 }
 

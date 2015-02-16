@@ -11,8 +11,12 @@ public:
 
   carma_obj<float> *d_gain;
   carma_obj<float> *d_proj;
-  carma_obj<float> *d_phi;
+  carma_obj<double> *d_phi;
   carma_obj<int> *d_indx_pup;
+  carma_sparse_obj<double> *d_IFsparse;
+  carma_obj<float> *d_geocov;
+  carma_obj<double> *d_compdouble;
+  carma_obj<float> *d_compfloat;
   //carma_obj<float> *d_cenbuff; // centroids circular buffer
 
 public:
@@ -23,6 +27,10 @@ public:
 
   string
   get_type();
+
+  cusparseHandle_t cusparse_handle() {
+		return current_context->get_cusparseHandle();
+	}
 
   int
   set_gain(float gain);
@@ -36,6 +44,8 @@ public:
   comp_com();
   int
   init_proj(sutra_dms *dms, int *indx_dm, float *unitpervolt, int *indx_pup);
+  int
+  init_proj_sparse(sutra_dms *dms, int *indx_dm, float *unitpervolt, int *indx_pup);
 
 
 };

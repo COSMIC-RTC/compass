@@ -84,10 +84,15 @@ int
 do_statmat(float *statcov,long dim, float *xpos, float *ypos, float norm, carma_device *device);
 int
 add_md(float *o_matrix, float *i_matrix, float *i_vector, int N,carma_device *device);
+
+template<class T>
 int
-get_pupphase(float *odata, float *idata, int *indx_pup, int Nphi, carma_device *device);
+get_pupphase(T *odata, float *idata, int *indx_pup, int Nphi, carma_device *device);
+
 int
 compute_Hcor_gpu(float *o_data, int nrow, int ncol, float Fs, float gmin, float gmax, int delay, carma_device *device);
 int
 absnormfft(cuFloatComplex *idata, float *odata, int N, float norm, carma_device *device);
+int
+adjust_csr_index(int *colind, int *rowind, int *NNZ, int *nact, int nnz_tot, int nact_tot, int col_off, int row_off, int Nphi, carma_device *device);
 #endif // _sutra_controller_H_
