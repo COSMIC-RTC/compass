@@ -75,23 +75,23 @@ func script_system(filename,verbose=,strehl=,r0=,clean=)
   g_rtc;
   
   /*
-                 _         _                   
- _ __ ___   __ _(_)_ __   | | ___   ___  _ __  
-| '_ ` _ \ / _` | | '_ \  | |/ _ \ / _ \| '_ \ 
-| | | | | | (_| | | | | | | | (_) | (_) | |_) |
-|_| |_| |_|\__,_|_|_| |_| |_|\___/ \___/| .__/ 
-                                        |_|    
+    _         _                   
+    _ __ ___   __ _(_)_ __   | | ___   ___  _ __  
+    | '_ ` _ \ / _` | | '_ \  | |/ _ \ / _ \| '_ \ 
+    | | | | | | (_| | | | | | | | (_) | (_) | |_) |
+    |_| |_| |_|\__,_|_|_| |_| |_|\___/ \___/| .__/ 
+    |_|    
 
-   */
+  */
   //yoga_start_profile;
   
   time_move = 0;
   mytime = tic();
   /*
-  mspec=0;
-  mscreen = get_tscreen(g_atmos,(*y_atmos.alt)(1));
-  nxscreen = dimsof(mscreen)(2);
-  tst=(mscreen*0.)(,,-:1:y_loop.niter);
+    mspec=0;
+    mscreen = get_tscreen(g_atmos,(*y_atmos.alt)(1));
+    nxscreen = dimsof(mscreen)(2);
+    tst=(mscreen*0.)(,,-:1:y_loop.niter);
   */
 
   if (strehl) {
@@ -107,9 +107,9 @@ func script_system(filename,verbose=,strehl=,r0=,clean=)
     
     move_atmos,g_atmos;
     /*
-    mscreen = get_tscreen(g_atmos,(*y_atmos.alt)(1));
-    tst(,,cc)=mscreen;
-    mspec += circavg(abs(fft(mscreen)/nxscreen/nxscreen)^2);
+      mscreen = get_tscreen(g_atmos,(*y_atmos.alt)(1));
+      tst(,,cc)=mscreen;
+      mspec += circavg(abs(fft(mscreen)/nxscreen/nxscreen)^2);
     */
    
  
@@ -185,7 +185,7 @@ func script_system(filename,verbose=,strehl=,r0=,clean=)
   write,"\n done with simulation \n";
   write,format="simulation time : %f sec. per iteration\n",tac(mytime)/y_loop.niter;
   if (strehl) 
-      return strehllp(0);
+    return strehllp(0);
   //mimg /= y_loop.niter;
   //window,1;fma;pli,mimg; 
   //error;
@@ -207,7 +207,7 @@ if(batch()) {
      */
     script_system,testname(i),strehl=1;
   }
-} else {
+ } else {
   tmp = get_argv();
   if (numberof(tmp) > 1) {
     if (numberof(tmp) < 3) {
@@ -219,7 +219,7 @@ if(batch()) {
       script_system,filename,strehl=1;
     }
   }
-}
+ }
 
 func compare_yao(filename)
 {
@@ -293,14 +293,14 @@ func script_profile(filename,verbose=)
   g_rtc;
 
   /*
-                 _         _                   
- _ __ ___   __ _(_)_ __   | | ___   ___  _ __  
-| '_ ` _ \ / _` | | '_ \  | |/ _ \ / _ \| '_ \ 
-| | | | | | (_| | | | | | | | (_) | (_) | |_) |
-|_| |_| |_|\__,_|_|_| |_| |_|\___/ \___/| .__/ 
-                                        |_|    
+    _         _                   
+    _ __ ___   __ _(_)_ __   | | ___   ___  _ __  
+    | '_ ` _ \ / _` | | '_ \  | |/ _ \ / _ \| '_ \ 
+    | | | | | | (_| | | | | | | | (_) | (_) | |_) |
+    |_| |_| |_|\__,_|_|_| |_| |_|\___/ \___/| .__/ 
+    |_|    
 
-   */
+  */
   prof = 0.; // initializing average image
   
   for (cc=1;cc<=y_loop.niter;cc++) {
@@ -333,19 +333,19 @@ func script_profile(filename,verbose=)
 	  rtc_docontrol,g_rtc,0;
 	  rtc_applycontrol,g_rtc,0,g_dm;
 	}
-	  grow,tmp,tac(mytime);
+	grow,tmp,tac(mytime);
       
+      }
     }
-
     if ((y_target != []) && (g_target != [])) {
       // loop on targets
       for (i=1;i<=y_target.ntargets;i++) {
-        target_atmostrace,g_target,i-1,g_atmos;
-        grow,tmp,tac(mytime);
-        if (g_dm != []) {
-          target_dmtrace,g_target,i-1,g_dm;
-          grow,tmp,tac(mytime);
-        }
+	target_atmostrace,g_target,i-1,g_atmos;
+	grow,tmp,tac(mytime);
+	if (g_dm != []) {
+	  target_dmtrace,g_target,i-1,g_dm;
+	  grow,tmp,tac(mytime);
+	}
       }
       prof += tmp;
     }
@@ -422,7 +422,7 @@ func script_imat(filename,verbose=,strehl=,r0=,clean=)
 
   //pli,eclat(target_getimage(g_target,0,"se"));
   pli, yoga_getdm
-  error;
+    error;
 }
 
 func script_pyr(filename,verbose=)
@@ -471,21 +471,21 @@ func script_pyr(filename,verbose=)
   
   
   sensors_compimg_tele,g_wfs,0;
- pup=*y_geom._mpupil
-phase = pup *0.
-phase_rad = pup *0.
-  npup = dimsof(phase_rad)(2);
-wfs_pupil = roll( pup * exp(1i*phase_rad) );
-xy = indices(npup)-(npup+1)/2.;
-phase_shift = roll( exp(1i*2*pi*(0.5*xy(,,sum))/npup) );
-complex_amplitude = wfs_pupil*phase_shift;
-res=sensors_getdata(g_wfs,0,"amplipup");
- complex_amplitude = fft(wfs_pupil*phase_shift,-1);
+  pup=*y_geom._mpupil
+    phase = pup *0.
+    phase_rad = pup *0.
+    npup = dimsof(phase_rad)(2);
+  wfs_pupil = roll( pup * exp(1i*phase_rad) );
+  xy = indices(npup)-(npup+1)/2.;
+  phase_shift = roll( exp(1i*2*pi*(0.5*xy(,,sum))/npup) );
+  complex_amplitude = wfs_pupil*phase_shift;
+  res=sensors_getdata(g_wfs,0,"amplipup");
+  complex_amplitude = fft(wfs_pupil*phase_shift,-1);
   complex_amplitude *= *y_wfs(1)._submask;
-res=sensors_getdata(g_wfs,0,"amplifoc");
- pyr_npix = y_wfs(1)._Nfft;
- cx = *y_wfs(1)._pyr_cx;
- cy = *y_wfs(1)._pyr_cy;
+  res=sensors_getdata(g_wfs,0,"amplifoc");
+  pyr_npix = y_wfs(1)._Nfft;
+  cx = *y_wfs(1)._pyr_cx;
+  cy = *y_wfs(1)._pyr_cy;
   xoffset = [1,0,1,0]*pyr_npix;
   yoffset = [1,1,0,0]*pyr_npix;
   reimaged_pupil = array(0.,[3,pyr_npix,pyr_npix,4]);
@@ -493,32 +493,32 @@ res=sensors_getdata(g_wfs,0,"amplifoc");
   for (k=1;k<=numberof(cx);k++) {
     for (i=1;i<=4;i++) {
       ca = roll(complex_amplitude,[xoffset(i)+cx(k),yoffset(i)+cy(k)]);
- small_comp_amp = roll(ca(1:pyr_npix,1:pyr_npix));
- reimaged_pupil(,,i) += abs(fft(small_comp_amp*roll(pshift),1))^2;
+      small_comp_amp = roll(ca(1:pyr_npix,1:pyr_npix));
+      reimaged_pupil(,,i) += abs(fft(small_comp_amp*roll(pshift),1))^2;
     }
   }
-res=sensors_getdata(g_wfs,0,"hrimg");
+  res=sensors_getdata(g_wfs,0,"hrimg");
 
-/*
- yoga_oneactu,g_dm,"pzt",0,225,100;
-sensors_trace,g_wfs,0,"dm",g_dm;
-sensors_compimg,g_wfs,0;
-*/
+  /*
+    yoga_oneactu,g_dm,"pzt",0,225,100;
+    sensors_trace,g_wfs,0,"dm",g_dm;
+    sensors_compimg,g_wfs,0;
+  */
  
- tmp = array(0.,[3,pyr_npix/y_wfs(1)._nrebin,pyr_npix/y_wfs(1)._nrebin,4]);
- for (i=1;i<=4;i++) tmp(,,i) = bin2d(reimaged_pupil(,,i),y_wfs(1)._nrebin);
- reimaged_pupil = tmp;
+  tmp = array(0.,[3,pyr_npix/y_wfs(1)._nrebin,pyr_npix/y_wfs(1)._nrebin,4]);
+  for (i=1;i<=4;i++) tmp(,,i) = bin2d(reimaged_pupil(,,i),y_wfs(1)._nrebin);
+  reimaged_pupil = tmp;
 
-     pup = *y_geom._mpupil;
-    pupreb = bin2d(pup*1.,y_wfs(1).npix)/y_wfs(1).npix^2.;
-    wsubok = where(pupreb>=y_wfs(1).fracsub);
+  pup = *y_geom._mpupil;
+  pupreb = bin2d(pup*1.,y_wfs(1).npix)/y_wfs(1).npix^2.;
+  wsubok = where(pupreb>=y_wfs(1).fracsub);
     
   pixels = reimaged_pupil(*,)(wsubok,);
 
   sigx = (pixels(,[2,4])(,sum)-pixels(,[1,3])(,sum))/(pixels(,sum)+1e-6);
   sigy = (pixels(,[3,4])(,sum)-pixels(,[1,2])(,sum))/(pixels(,sum)+1e-6);
 
-res=sensors_getdata(g_wfs,0,"bincube");
+  res=sensors_getdata(g_wfs,0,"bincube");
 
   pixels = res(*,)(wsubok,);
 
@@ -526,7 +526,7 @@ res=sensors_getdata(g_wfs,0,"bincube");
   sigy2 = (pixels(,[3,4])(,sum)-pixels(,[1,2])(,sum))/(pixels(,sum)+1e-6);
 
 
- error;
+  error;
 
   mytime = tic();
   for (cc=1;cc<=y_loop.niter;cc++) {
@@ -535,8 +535,8 @@ res=sensors_getdata(g_wfs,0,"bincube");
     if ((y_wfs != []) && (g_wfs != [])) {
       // loop on wfs
       for (i=1;i<=numberof(y_wfs);i++) {
-        sensors_trace,g_wfs,i-1,"atmos",g_atmos;
-        sensors_compimg_tele,g_wfs,i-1;
+	sensors_trace,g_wfs,i-1,"atmos",g_atmos;
+	sensors_compimg_tele,g_wfs,i-1;
       }
     }
     error;
@@ -548,22 +548,22 @@ res=sensors_getdata(g_wfs,0,"bincube");
 }
 
 /*
-activeDevice,1;res1=script_profile("1wfs8x8_1layer_rtc_dm.par");res2=script_profile("1wfs16x16_1layer_rtc_dm.par");res3=script_profile("1wfs40x40_1layer_rtc_dm.par");res4=script_profile("1wfs60x60_1layer_rtc_dm.par");res5=script_profile("1wfs80x80_1layer_rtc_dm.par");
-prof=[res1,res2,res3,res4,res5];
-diam=[4.,8.,20.,30.,40.];
+  activeDevice,1;res1=script_profile("1wfs8x8_1layer_rtc_dm.par");res2=script_profile("1wfs16x16_1layer_rtc_dm.par");res3=script_profile("1wfs40x40_1layer_rtc_dm.par");res4=script_profile("1wfs60x60_1layer_rtc_dm.par");res5=script_profile("1wfs80x80_1layer_rtc_dm.par");
+  prof=[res1,res2,res3,res4,res5];
+  diam=[4.,8.,20.,30.,40.];
 
-1.70972e-05,1.49579e-05,0.000176983,6.05841e-05,0.000225203,1.83723e-05, 1.33798e-05
-1.73852e-05,1.50435e-05,0.000176213,2.17693e-05,0.00012555,1.78308e-05, 1.32682e-05
+  1.70972e-05,1.49579e-05,0.000176983,6.05841e-05,0.000225203,1.83723e-05, 1.33798e-05
+  1.73852e-05,1.50435e-05,0.000176213,2.17693e-05,0.00012555,1.78308e-05, 1.32682e-05
 
-2.77002e-05,2.27838e-05,0.000238173,4.21488e-05,0.0393674,2.89803e-05, 2.11103e-05
+  2.77002e-05,2.27838e-05,0.000238173,4.21488e-05,0.0393674,2.89803e-05, 2.11103e-05
 
-30m :
-fast
-[0.00022509,0.000241423,0.000254502,0.000359016,0.000382632,0.0456178,0.0456362,0.0456483]
-1.63331e-05,1.30796e-05,0.000104513,2.36161e-05,0.0452352,1.83451e-05,1.20678e-05
-uva
-[0.000243724,0.000260524,0.000273978,0.000385617,0.000410179,0.0457285,0.0457473,0.0457598]
-[1.63908e-05,1.30837e-05,0.000100648,2.34144e-05,0.0453188,1.84021e-05,1.19252e-05]
+  30m :
+  fast
+  [0.00022509,0.000241423,0.000254502,0.000359016,0.000382632,0.0456178,0.0456362,0.0456483]
+  1.63331e-05,1.30796e-05,0.000104513,2.36161e-05,0.0452352,1.83451e-05,1.20678e-05
+  uva
+  [0.000243724,0.000260524,0.000273978,0.000385617,0.000410179,0.0457285,0.0457473,0.0457598]
+  [1.63908e-05,1.30837e-05,0.000100648,2.34144e-05,0.0453188,1.84021e-05,1.19252e-05]
 
 */
 func script_relax(filename,verbose=)
@@ -615,14 +615,14 @@ func script_relax(filename,verbose=)
   g_rtc;
 
   /*
-                 _         _                   
- _ __ ___   __ _(_)_ __   | | ___   ___  _ __  
-| '_ ` _ \ / _` | | '_ \  | |/ _ \ / _ \| '_ \ 
-| | | | | | (_| | | | | | | | (_) | (_) | |_) |
-|_| |_| |_|\__,_|_|_| |_| |_|\___/ \___/| .__/ 
-                                        |_|    
+    _         _                   
+    _ __ ___   __ _(_)_ __   | | ___   ___  _ __  
+    | '_ ` _ \ / _` | | '_ \  | |/ _ \ / _ \| '_ \ 
+    | | | | | | (_| | | | | | | | (_) | (_) | |_) |
+    |_| |_| |_|\__,_|_|_| |_| |_|\___/ \___/| .__/ 
+    |_|    
 
-   */
+  */
   cb_mir        = yoga_getdm(g_dm,"pzt",0.)(,,-:1:1); 
   cb_tt         = yoga_getdm(g_dm,"tt",0.)(,,-:1:1); 
   cb_phase      = sensors_getdata(g_wfs,0,"phasetele")(,,-:1:1);
@@ -648,18 +648,18 @@ func script_relax(filename,verbose=)
     if ((y_wfs != []) && (g_wfs != [])) {
       // loop on wfs
       for (i=1;i<=numberof(y_wfs);i++) {
-        sensors_trace,g_wfs,i-1,"atmos",g_atmos;
-        if ((!y_wfs(i).openloop) && (g_dm != [])) {
-          sensors_trace,g_wfs,i-1,"dm",g_dm,0;
-        }
-        sensors_compimg_tele,g_wfs,i-1;
+	sensors_trace,g_wfs,i-1,"atmos",g_atmos;
+	if ((!y_wfs(i).openloop) && (g_dm != [])) {
+	  sensors_trace,g_wfs,i-1,"dm",g_dm,0;
+	}
+	sensors_compimg_tele,g_wfs,i-1;
       }
       
       // do centroiding
       if ((y_rtc != []) && (g_rtc != [])) {
-        rtc_docentroids,g_rtc,0;
-        // compute command and apply
-        if (g_dm != []) {
+	rtc_docentroids,g_rtc,0;
+	// compute command and apply
+	if (g_dm != []) {
 	  rtc_docontrol,g_rtc,0;
 	  rtc_applycontrol,g_rtc,0,g_dm;
 	}
@@ -683,21 +683,21 @@ func script_relax(filename,verbose=)
     
 
     /*
-    grow,cb_centro,sensors_getslopes(g_wfs,0);
-    slopes_geom,g_wfs,0,1;
-    grow,cb_slps,sensors_getslopes(g_wfs,0);
+      grow,cb_centro,sensors_getslopes(g_wfs,0);
+      slopes_geom,g_wfs,0,1;
+      grow,cb_slps,sensors_getslopes(g_wfs,0);
     */
     yoga_resetdm,g_dm,"pzt",0.;
     yoga_resetdm,g_dm,"tt",0.;
     
     
-     if (verbose) { 
+    if (verbose) { 
       if (cc % 10 == 0) {
-        time_move = tac(mytime)/cc;
-        write,format="\v",;
-        write,format="\r Estimated remaining time : %.2f s",(y_loop.niter - cc)*time_move;
+	time_move = tac(mytime)/cc;
+	write,format="\v",;
+	write,format="\r Estimated remaining time : %.2f s",(y_loop.niter - cc)*time_move;
       }
-     } 
+    } 
   }
 
   write,"\n done with simulation \n";
@@ -783,22 +783,22 @@ func script_valid_rtc(filename,verbose=,strehl=,r0=,clean=, output=)
   y_loop.niter = 1000;
   
   /*
-                 _         _                   
- _ __ ___   __ _(_)_ __   | | ___   ___  _ __  
-| '_ ` _ \ / _` | | '_ \  | |/ _ \ / _ \| '_ \ 
-| | | | | | (_| | | | | | | | (_) | (_) | |_) |
-|_| |_| |_|\__,_|_|_| |_| |_|\___/ \___/| .__/ 
-                                        |_|    
+    _         _                   
+    _ __ ___   __ _(_)_ __   | | ___   ___  _ __  
+    | '_ ` _ \ / _` | | '_ \  | |/ _ \ / _ \| '_ \ 
+    | | | | | | (_| | | | | | | | (_) | (_) | |_) |
+    |_| |_| |_|\__,_|_|_| |_| |_|\___/ \___/| .__/ 
+    |_|    
 
-   */
+  */
   
   time_move = 0;
   mytime = tic();
   /*
-  mspec=0;
-  mscreen = get_tscreen(g_atmos,(*y_atmos.alt)(1));
-  nxscreen = dimsof(mscreen)(2);
-  tst=(mscreen*0.)(,,-:1:y_loop.niter);
+    mspec=0;
+    mscreen = get_tscreen(g_atmos,(*y_atmos.alt)(1));
+    nxscreen = dimsof(mscreen)(2);
+    tst=(mscreen*0.)(,,-:1:y_loop.niter);
   */
 
   if (strehl) {
@@ -826,27 +826,27 @@ func script_valid_rtc(filename,verbose=,strehl=,r0=,clean=, output=)
     
     move_atmos,g_atmos;
     /*
-    mscreen = get_tscreen(g_atmos,(*y_atmos.alt)(1));
-    tst(,,cc)=mscreen;
-    mspec += circavg(abs(fft(mscreen)/nxscreen/nxscreen)^2);
+      mscreen = get_tscreen(g_atmos,(*y_atmos.alt)(1));
+      tst(,,cc)=mscreen;
+      mspec += circavg(abs(fft(mscreen)/nxscreen/nxscreen)^2);
     */
     
     if ((y_wfs != []) && (g_wfs != [])) {
       // loop on wfs
       for (i=1;i<=numberof(y_wfs);i++) {
-        sensors_trace,g_wfs,i-1,"atmos",g_atmos;
-        if ((!y_wfs(i).openloop) && (g_dm != [])) {
-          sensors_trace,g_wfs,i-1,"dm",g_dm,0;
-        }
-        sensors_compimg_tele,g_wfs,i-1;
-    img_cube(,,cc) = sensors_getdata(g_wfs,i-1,"imgtele");
-    binimg_cube(,,,cc) = sensors_getdata(g_wfs,i-1,"bincube");
+	sensors_trace,g_wfs,i-1,"atmos",g_atmos;
+	if ((!y_wfs(i).openloop) && (g_dm != [])) {
+	  sensors_trace,g_wfs,i-1,"dm",g_dm,0;
+	}
+	sensors_compimg_tele,g_wfs,i-1;
+	img_cube(,,cc) = sensors_getdata(g_wfs,i-1,"imgtele");
+	binimg_cube(,,,cc) = sensors_getdata(g_wfs,i-1,"bincube");
       }
       // do centroiding
     }
     
     if ((y_rtc != []) && (g_rtc != [])
-        && (y_wfs != []) && (g_wfs != [])) {
+	&& (y_wfs != []) && (g_wfs != [])) {
       rtc_docentroids,g_rtc,0;
       // compute command and apply
       centro_cube(,cc) = rtc_getcentroids(g_rtc, 0);
@@ -861,10 +861,10 @@ func script_valid_rtc(filename,verbose=,strehl=,r0=,clean=, output=)
     if ((y_target != []) && (g_target != [])) {
       // loop on targets
       for (i=1;i<=y_target.ntargets;i++) {
-        target_atmostrace,g_target,i-1,g_atmos;
-        if (g_dm != []) {
-          target_dmtrace,g_target,i-1,g_dm;
-        }
+	target_atmostrace,g_target,i-1,g_atmos;
+	if (g_dm != []) {
+	  target_dmtrace,g_target,i-1,g_dm;
+	}
       }
       //saving average image from target #1
     }
@@ -872,19 +872,19 @@ func script_valid_rtc(filename,verbose=,strehl=,r0=,clean=, output=)
     if (verbose) {
       subsample=100.;
       if (cc % subsample == 0) {
-        timetmp = time_move*(cc-subsample);
-        time_move = tac(mytime)/cc;
-        timetmp -= time_move*cc;
-        if (strehl) {
-          strehltmp = target_getstrehl(g_target,0);
-          grow,strehlsp,strehltmp(1);
-          grow,strehllp,strehltmp(2);
-          write,format=" %5i    %5.2f     %5.2f     %5.2f s   %5.2f it./s\n",
-            cc,strehlsp(0),strehllp(0),(y_loop.niter - cc)*time_move, -1/timetmp*subsample; 
-        } else {
-          write,format="\v",;
-          write,format="\r Estimated remaining time : %.2f s (%.2f it./s)",(y_loop.niter - cc)*time_move, -1/timetmp*subsample;
-        }
+	timetmp = time_move*(cc-subsample);
+	time_move = tac(mytime)/cc;
+	timetmp -= time_move*cc;
+	if (strehl) {
+	  strehltmp = target_getstrehl(g_target,0);
+	  grow,strehlsp,strehltmp(1);
+	  grow,strehllp,strehltmp(2);
+	  write,format=" %5i    %5.2f     %5.2f     %5.2f s   %5.2f it./s\n",
+	    cc,strehlsp(0),strehllp(0),(y_loop.niter - cc)*time_move, -1/timetmp*subsample; 
+	} else {
+	  write,format="\v",;
+	  write,format="\r Estimated remaining time : %.2f s (%.2f it./s)",(y_loop.niter - cc)*time_move, -1/timetmp*subsample;
+	}
       }
     } 
   }
@@ -973,41 +973,41 @@ func script_pyr_diff(filename,verbose=)
   g_target;
   
   error;
-move_atmos,g_atmos;
-sensors_trace,g_wfs,0,"atmos",g_atmos;
-sensors_compimg,g_wfs,0;
- res=sensors_getdata(g_wfs,0,"amplifoc");
- pli,roll(res(1,,)^2+res(2,,)^2)^0.2;
+  move_atmos,g_atmos;
+  sensors_trace,g_wfs,0,"atmos",g_atmos;
+  sensors_compimg,g_wfs,0;
+  res=sensors_getdata(g_wfs,0,"amplifoc");
+  pli,roll(res(1,,)^2+res(2,,)^2)^0.2;
 
-    xy = indices(Nfft)-(Nfft+1)/2.;
- npup = y_wfs(1)._Ntot/2;
+  xy = indices(Nfft)-(Nfft+1)/2.;
+  npup = y_wfs(1)._Ntot/2;
 
- xy = indices(npup)/(npup)-0.5;
- pshift = roll(exp(1i*2*pi*xy(,,sum)));
+  xy = indices(npup)/(npup)-0.5;
+  pshift = roll(exp(1i*2*pi*xy(,,sum)));
 
- phasemap_diff = array(complex,2*npup,2*npup);
- phasemap_diff(1:npup,1:npup)   = pshift;
- phasemap_diff(npup+1:,1:npup)  = transpose(pshift)(::-1,);
- phasemap_diff(npup+1:,npup+1:)  = pshift(::-1,::-1);
- phasemap_diff(1:npup,npup+1:) = transpose(pshift)(,::-1);
+  phasemap_diff = array(complex,2*npup,2*npup);
+  phasemap_diff(1:npup,1:npup)   = pshift;
+  phasemap_diff(npup+1:,1:npup)  = transpose(pshift)(::-1,);
+  phasemap_diff(npup+1:,npup+1:)  = pshift(::-1,::-1);
+  phasemap_diff(1:npup,npup+1:) = transpose(pshift)(,::-1);
 
 
   sensors_compimg,g_wfs,0;
- pup=*y_geom._mpupil
-phase = pup *0.
-phase_rad = pup *0.
-  npup = dimsof(phase_rad)(2);
-wfs_pupil = roll( pup * exp(1i*phase_rad) );
-xy = indices(npup)-(npup+1)/2.;
-phase_shift = roll( exp(1i*2*pi*(0.5*xy(,,sum))/npup) );
-complex_amplitude = wfs_pupil*phase_shift;
-res=sensors_getdata(g_wfs,0,"amplipup");
- complex_amplitude = fft(wfs_pupil*phase_shift,-1);
+  pup=*y_geom._mpupil
+    phase = pup *0.
+    phase_rad = pup *0.
+    npup = dimsof(phase_rad)(2);
+  wfs_pupil = roll( pup * exp(1i*phase_rad) );
+  xy = indices(npup)-(npup+1)/2.;
+  phase_shift = roll( exp(1i*2*pi*(0.5*xy(,,sum))/npup) );
+  complex_amplitude = wfs_pupil*phase_shift;
+  res=sensors_getdata(g_wfs,0,"amplipup");
+  complex_amplitude = fft(wfs_pupil*phase_shift,-1);
   complex_amplitude *= *y_wfs(1)._submask;
-res=sensors_getdata(g_wfs,0,"amplifoc");
- pyr_npix = y_wfs(1)._Nfft;
- cx = *y_wfs(1)._pyr_cx;
- cy = *y_wfs(1)._pyr_cy;
+  res=sensors_getdata(g_wfs,0,"amplifoc");
+  pyr_npix = y_wfs(1)._Nfft;
+  cx = *y_wfs(1)._pyr_cx;
+  cy = *y_wfs(1)._pyr_cy;
   xoffset = [1,0,1,0]*pyr_npix;
   yoffset = [1,1,0,0]*pyr_npix;
   reimaged_pupil = array(0.,[3,pyr_npix,pyr_npix,4]);
@@ -1015,32 +1015,32 @@ res=sensors_getdata(g_wfs,0,"amplifoc");
   for (k=1;k<=numberof(cx);k++) {
     for (i=1;i<=4;i++) {
       ca = roll(complex_amplitude,[xoffset(i)+cx(k),yoffset(i)+cy(k)]);
- small_comp_amp = roll(ca(1:pyr_npix,1:pyr_npix));
- reimaged_pupil(,,i) += abs(fft(small_comp_amp*roll(pshift),1))^2;
+      small_comp_amp = roll(ca(1:pyr_npix,1:pyr_npix));
+      reimaged_pupil(,,i) += abs(fft(small_comp_amp*roll(pshift),1))^2;
     }
   }
-res=sensors_getdata(g_wfs,0,"hrimg");
+  res=sensors_getdata(g_wfs,0,"hrimg");
 
-/*
- yoga_oneactu,g_dm,"pzt",0,225,100;
-sensors_trace,g_wfs,0,"dm",g_dm;
-sensors_compimg,g_wfs,0;
-*/
+  /*
+    yoga_oneactu,g_dm,"pzt",0,225,100;
+    sensors_trace,g_wfs,0,"dm",g_dm;
+    sensors_compimg,g_wfs,0;
+  */
  
- tmp = array(0.,[3,pyr_npix/y_wfs(1)._nrebin,pyr_npix/y_wfs(1)._nrebin,4]);
- for (i=1;i<=4;i++) tmp(,,i) = bin2d(reimaged_pupil(,,i),y_wfs(1)._nrebin);
- reimaged_pupil = tmp;
+  tmp = array(0.,[3,pyr_npix/y_wfs(1)._nrebin,pyr_npix/y_wfs(1)._nrebin,4]);
+  for (i=1;i<=4;i++) tmp(,,i) = bin2d(reimaged_pupil(,,i),y_wfs(1)._nrebin);
+  reimaged_pupil = tmp;
 
-     pup = *y_geom._mpupil;
-    pupreb = bin2d(pup*1.,y_wfs(1).npix)/y_wfs(1).npix^2.;
-    wsubok = where(pupreb>=y_wfs(1).fracsub);
+  pup = *y_geom._mpupil;
+  pupreb = bin2d(pup*1.,y_wfs(1).npix)/y_wfs(1).npix^2.;
+  wsubok = where(pupreb>=y_wfs(1).fracsub);
     
   pixels = reimaged_pupil(*,)(wsubok,);
 
   sigx = (pixels(,[2,4])(,sum)-pixels(,[1,3])(,sum))/(pixels(,sum)+1e-6);
   sigy = (pixels(,[3,4])(,sum)-pixels(,[1,2])(,sum))/(pixels(,sum)+1e-6);
 
-res=sensors_getdata(g_wfs,0,"bincube");
+  res=sensors_getdata(g_wfs,0,"bincube");
 
   pixels = res(*,)(wsubok,);
 
@@ -1048,7 +1048,7 @@ res=sensors_getdata(g_wfs,0,"bincube");
   sigy2 = (pixels(,[3,4])(,sum)-pixels(,[1,2])(,sum))/(pixels(,sum)+1e-6);
 
 
- error;
+  error;
 
   mytime = tic();
   for (cc=1;cc<=y_loop.niter;cc++) {
@@ -1057,8 +1057,8 @@ res=sensors_getdata(g_wfs,0,"bincube");
     if ((y_wfs != []) && (g_wfs != [])) {
       // loop on wfs
       for (i=1;i<=numberof(y_wfs);i++) {
-        sensors_trace,g_wfs,i-1,"atmos",g_atmos;
-        sensors_compimg_tele,g_wfs,i-1;
+	sensors_trace,g_wfs,i-1,"atmos",g_atmos;
+	sensors_compimg_tele,g_wfs,i-1;
       }
     }
     error;
@@ -1128,14 +1128,14 @@ func script_geo(filename,verbose=,strehl=,r0=,clean=)
   g_rtc;
   
   /*
-                 _         _                   
- _ __ ___   __ _(_)_ __   | | ___   ___  _ __  
-| '_ ` _ \ / _` | | '_ \  | |/ _ \ / _ \| '_ \ 
-| | | | | | (_| | | | | | | | (_) | (_) | |_) |
-|_| |_| |_|\__,_|_|_| |_| |_|\___/ \___/| .__/ 
-                                        |_|    
+    _         _                   
+    _ __ ___   __ _(_)_ __   | | ___   ___  _ __  
+    | '_ ` _ \ / _` | | '_ \  | |/ _ \ / _ \| '_ \ 
+    | | | | | | (_| | | | | | | | (_) | (_) | |_) |
+    |_| |_| |_|\__,_|_|_| |_| |_|\___/ \___/| .__/ 
+    |_|    
 
-   */
+  */
   //yoga_start_profiler;
   
   time_move = 0;
@@ -1158,12 +1158,12 @@ func script_geo(filename,verbose=,strehl=,r0=,clean=)
     if ((y_target != []) && (g_target != [])) {
       // loop on targets
       for (i=1;i<=y_target.ntargets;i++) {
-        target_atmostrace,g_target,i-1,g_atmos;
-        if (g_dm != []) {
+	target_atmostrace,g_target,i-1,g_atmos;
+	if (g_dm != []) {
 	  rtc_docontrol_geo,g_rtc,0,g_dm,g_target,0;
 	  rtc_applycontrol,g_rtc,0,g_dm;
-          target_dmtrace,g_target,i-1,g_dm;
-        }
+	  target_dmtrace,g_target,i-1,g_dm;
+	}
       }
       //saving average image from target #1
     }
@@ -1171,28 +1171,28 @@ func script_geo(filename,verbose=,strehl=,r0=,clean=)
     if (verbose) {
       subsample=100.;
       if (cc % subsample == 0) {
-        timetmp = time_move*(cc-subsample);
-        time_move = tac(mytime)/cc;
-        timetmp -= time_move*cc;
-        if (strehl) {
-          //error;
-          strehltmp = target_getstrehl(g_target,0);
-          grow,strehlsp,strehltmp(1);
-          grow,strehllp,strehltmp(2);
-          //grow,strehlsp,exp(-strehltmp(3));
-          //grow,strehllp,exp(-strehltmp(4));
-          write,format=" %5i    %5.2f     %5.2f     %5.2f s   %5.2f it./s\n",
-            cc,strehlsp(0),strehllp(0),(y_loop.niter - cc)*time_move, -1/timetmp*subsample; 
-        } else {
-          write,format="\v",;
-          write,format="\r Estimated remaining time : %.2f s (%.2f it./s)",(y_loop.niter - cc)*time_move, -1/timetmp*subsample;
-        }
+	timetmp = time_move*(cc-subsample);
+	time_move = tac(mytime)/cc;
+	timetmp -= time_move*cc;
+	if (strehl) {
+	  //error;
+	  strehltmp = target_getstrehl(g_target,0);
+	  grow,strehlsp,strehltmp(1);
+	  grow,strehllp,strehltmp(2);
+	  //grow,strehlsp,exp(-strehltmp(3));
+	  //grow,strehllp,exp(-strehltmp(4));
+	  write,format=" %5i    %5.2f     %5.2f     %5.2f s   %5.2f it./s\n",
+	    cc,strehlsp(0),strehllp(0),(y_loop.niter - cc)*time_move, -1/timetmp*subsample; 
+	} else {
+	  write,format="\v",;
+	  write,format="\r Estimated remaining time : %.2f s (%.2f it./s)",(y_loop.niter - cc)*time_move, -1/timetmp*subsample;
+	}
       }
     } 
   }
   
   write,"\n done with simulation \n";
   write,format="simulation time : %f sec. per iteration\n",tac(mytime)/y_loop.niter;
-    if (strehl) 
-      return strehllp(0);
+  if (strehl) 
+    return strehllp(0);
 }
