@@ -149,7 +149,10 @@ func script_system(filename,verbose=,strehl=,r0=,clean=)
       //rtc_docentroids_geom,g_rtc,g_wfs,0;
       //rtc_docentroids_geom,g_rtc,g_wfs,0; 
       // compute command and apply
-      if (g_dm != []) rtc_docontrol,g_rtc,0,g_dm;
+      if (g_dm != []) {
+	rtc_docontrol,g_rtc,0;
+	rtc_applycontrol,g_rtc,0,g_dm;
+      }
 
 
     }
@@ -326,9 +329,12 @@ func script_profile(filename,verbose=)
         rtc_docentroids,g_rtc,g_wfs,0;
         grow,tmp,tac(mytime);
         // compute command and apply
-        if (g_dm != []) rtc_docontrol,g_rtc,0,g_dm;
-        grow,tmp,tac(mytime);
-      }
+        if (g_dm != []) {
+	  rtc_docontrol,g_rtc,0;
+	  rtc_applycontrol,g_rtc,0,g_dm;
+	}
+	  grow,tmp,tac(mytime);
+      
     }
 
     if ((y_target != []) && (g_target != [])) {
@@ -653,7 +659,10 @@ func script_relax(filename,verbose=)
       if ((y_rtc != []) && (g_rtc != [])) {
         rtc_docentroids,g_rtc,g_wfs,0;
         // compute command and apply
-        if (g_dm != []) rtc_docontrol,g_rtc,0,g_dm;
+        if (g_dm != []) {
+	  rtc_docontrol,g_rtc,0;
+	  rtc_applycontrol,g_rtc,0,g_dm;
+	}
       }
     }
     
@@ -842,7 +851,10 @@ func script_valid_rtc(filename,verbose=,strehl=,r0=,clean=, output=)
       // compute command and apply
       centro_cube(,cc) = rtc_getcentroids(g_rtc, 0);
       slopes_cube(,cc) = sensors_getdata(g_wfs, 0, "slopes");
-      if (g_dm != []) rtc_docontrol,g_rtc,0,g_dm;
+      if (g_dm != []) {
+	rtc_docontrol,g_rtc,0;
+	rtc_applycontrol,g_rtc,0,g_dm;
+      }
       com_cube(,cc) = controller_getdata(g_rtc, 0, "com");
     }
     
@@ -1149,6 +1161,7 @@ func script_geo(filename,verbose=,strehl=,r0=,clean=)
         target_atmostrace,g_target,i-1,g_atmos;
         if (g_dm != []) {
 	  rtc_docontrol_geo,g_rtc,0,g_dm,g_target,0;
+	  rtc_applycontrol,g_rtc,0,g_dm;
           target_dmtrace,g_target,i-1,g_dm;
         }
       }

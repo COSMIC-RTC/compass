@@ -901,8 +901,16 @@ extern rtc_framedelay;
 
 extern rtc_docontrol;
 /* DOCUMENT rtc_docontrol
-   rtc_docontrol,yoga_rtc_obj,ncontrolleryoga_dm_obj
-   compute and apply command (including delay) for a controller in a yoga_rtc_obj object
+   rtc_docontrol,yoga_rtc_obj,ncontroller
+   compute command for a controller in a yoga_rtc_obj object
+      
+   SEE ALSO:
+ */
+
+extern rtc_applycontrol;
+/* DOCUMENT rtc_docontrol
+   rtc_applycontrol,yoga_rtc_obj,ncontroller,yoga_dm_obj
+   apply command on a yoga_dm_obj controlled by a yoga_rtc_obj object
       
    SEE ALSO:
  */

@@ -7,7 +7,7 @@ require,yoga_ao_top+"/yorick/yoga_ao.i";
 mypath = anyof(split_path(get_path())==(yoga_ao_top+"/")) ? [] : get_path()+":"+yoga_ao_top+"/";
 if (mypath != []) set_path,mypath;
 
-YOGA_AO_SAVEPATH = yoga_ao_top+"/data/";
+YOGA_AO_SAVEPATH = yoga_ao_top+"/data";
 mkdirp,YOGA_AO_SAVEPATH;
 // creates data dir if does not exists (else mkdirp does nothing)
 
@@ -642,8 +642,8 @@ func check_centroiding(filename,thresh=,nmax=)
   "abs(geom - slopes): [min, max, avg]";
   tmp_array=abs(geom-slp);
   [min(tmp_array),max(tmp_array),avg(tmp_array)];
-  plmk,geom,slp;
-  
+  //plmk,geom,slp;
+  /*
   // check geom slopes (including pupil model : real derivative)
   slopes_geom,g_wfs,0,0;
   slp=sensors_getslopes(g_wfs,0);
@@ -653,8 +653,8 @@ func check_centroiding(filename,thresh=,nmax=)
   //slp/slp1;
   tmp_array=abs(slp-slp1);
   [min(tmp_array),max(tmp_array),avg(tmp_array)];
-  plmk,slp1,slp,color="red";
-
+  //plmk,slp1,slp,color="red";
+  */
   // first put back slopes to geom to be sure d_slopes are modified in yoga_wfs
   slopes_geom,g_wfs,0,0;
   // check slopes
@@ -1103,3 +1103,172 @@ centro=*y_rtc.centroiders;
 tmp5 = *centro(1).weights;
 
  */
+
+func script_modopti(Gmin,Gmax,N)
+{
+  //activeDevice,1;
+
+  extern y_geom,y_tel,y_loop,y_atmos,y_wfs;
+  extern g_atmos,g_target,g_wfs;
+  extern ipupil;
+  
+  if (filename == []) filename = YOGA_AO_SAVEPATH+"/par/1wfs8x8_1layer_rtc_modopti_dm.par";
+  //if (filename == []) filename = YOGA_AO_PARPATH+"1pyr32x32_1layer_rtc_dm.par";
+
+  if ((!(fileExist(filename))) && (!(fileExist(YOGA_AO_PARPATH+filename))))
+    error,"could not find"+filename;
+  
+  if (!(fileExist(filename)))
+    filename = YOGA_AO_PARPATH+filename;
+  read_parfile,filename;
+  
+  G = span(Gmin,Gmax,N);
+  strehl = array(0.0f,N,y_loop.niter - 50);
+  strehl_opti = array(0.0f,5,y_loop.niter - 50);
+  phi_res = array(0.0f,N);
+  SRgi = phi_res;
+  modG = array(0.0f,5*(y_loop.niter/y_controllers(1).nrec + 1),y_controllers(1).nmodes);
+  restore,openb("S2M");
+  for(Gi=1;Gi<=N+5;Gi++){
+  
+  // reading parfile
+  read_parfile,filename;
+  
+  if (Gi<=N){
+    y_controllers(1).modopti = 0;
+    y_controllers(1).gain = G(Gi);
+  }
+  else{
+    y_controllers(1).modopti = 1;
+    cpt_mG=0;
+  }
+  if (y_loop.niter == []) y_loop.niter = 100000;
+
+  // init system
+  wfs_init;
+
+  atmos_init;
+
+  dm_init;
+
+  target_init;
+  rtc_init,clean=clean;
+
+  if (Gi==1) {
+  write,"The following objects have been initialized on the GPU :";
+  write,"--------------------------------------------------------";
+  g_atmos;
+  write,"--------------------------------------------------------";
+  g_wfs;
+  write,"--------------------------------------------------------";
+  g_target;
+  write,"--------------------------------------------------------";
+  g_dm;
+  write,"--------------------------------------------------------";
+  g_rtc;
+  }
+  
+  slopes = array(0.0f,y_wfs(1)._nvalid*2,y_loop.niter);
+  /*
+                 _         _                   
+ _ __ ___   __ _(_)_ __   | | ___   ___  _ __  
+| '_ ` _ \ / _` | | '_ \  | |/ _ \ / _ \| '_ \ 
+| | | | | | (_| | | | | | | | (_) | (_) | |_) |
+|_| |_| |_|\__,_|_|_| |_| |_|\___/ \___/| .__/ 
+                                        |_|    
+
+   */
+  //Align atmos with modal optimisation mode
+  if(Gi<=N){
+  for (k=1;k<=y_controllers(1).nrec;k++){
+    move_atmos,g_atmos;
+  }
+  }
+  for (cc=1;cc<=y_loop.niter;cc++) {
+    
+    move_atmos,g_atmos;  
+ 
+    if ((y_target != []) && (g_target != [])) {
+      // loop on targets
+      for (i=1;i<=y_target.ntargets;i++) {
+        target_atmostrace,g_target,i-1,g_atmos;
+        if (g_dm != []) {
+          target_dmtrace,g_target,i-1,g_dm;
+        }
+      }
+    }
+    
+    if ((y_wfs != []) && (g_wfs != [])) {
+      // loop on wfs
+      for (i=1;i<=numberof(y_wfs);i++) {
+        sensors_trace,g_wfs,i-1,"atmos",g_atmos;
+        if ((!y_wfs(i).openloop) && (g_dm != [])) {
+          sensors_trace,g_wfs,i-1,"dm",g_dm,0;
+        }
+
+	if(y_wfs(i).type=="cog") {
+	  sensors_compimg_tele,g_wfs,i-1;
+	} else {
+	  sensors_compimg,g_wfs,i-1;
+	}
+      }     
+    }
+
+    if ((y_rtc != []) && (g_rtc != [])
+        && (y_wfs != []) && (g_wfs != [])) {
+      rtc_docentroids,g_rtc,g_wfs,0;
+      slopes(,cc) = rtc_getcentroids(g_rtc,0);
+      //rtc_docentroids_geom,g_rtc,g_wfs,0; 
+      // compute command and apply
+      if (g_dm != []) {
+	rtc_docontrol,g_rtc,0;
+	rtc_applycontrol,g_rtc,0,g_dm;
+      }
+
+    }
+    
+    if(cc>50 && Gi<=N)
+      strehl(Gi,cc-50) = target_getstrehl(g_target,0)(2);
+    if(Gi>N){
+      strehl_opti(Gi-N,cc-50) = target_getstrehl(g_target,0)(2);
+      if((cc-2)/y_controllers(1).nrec >= cpt_mG){
+	cpt_mG++;
+	modG((Gi-N-1)*dimsof(modG)(2)/5+cpt_mG,) = rtc_getmgain(g_rtc,0); 
+      }
+    }
+  }
+  //S2M = rtc_getS2M(g_rtc,0);
+  res = S2M(,+) * slopes(+,);
+  phi_res(Gi) = sum(res(,rms)^2);
+  SRgi(Gi) = avg(strehl(Gi,));
+  }
+  write,"\n";
+  write,"------------------------------------";
+  write,"Gain   | Final SR | Avg SR | Min SR | Max SR";
+  write,"------------------------------------";
+  for(k=1;k<=N;k++){
+    write,format=" %5.4f   %2.4f    %2.4f    %2.4f    %2.4f\n",G(k),strehl(k,y_loop.niter-50),avg(strehl(k,)),min(strehl(k,)),max(strehl(k,));
+  }
+
+  nref = y_loop.niter/y_controllers(1).nrec;
+  write,"\n";
+  write,"------------------------------------";
+  write,"Avg. Init   | Avg. refresh  |  Avg. SR";
+  write,"------------------------------------";
+  for(k=1;k<=5;k++){
+    write,format="%2.4f        ",avg(modG((k-1)*nref + 1,));
+    for(m=1;m<=nref;m++){
+      write,format="%2.4f  ",avg(modG((k-1)*nref + m,));
+    }
+    write,format="%2.4f",avg(strehl_opti(k,));
+    write,"\n";
+  }
+
+  write,format="Best gain LS : %5.4f for avg SR = %5.4f \n ",G(where(strehl(,avg)==max(strehl(,avg)))),avg(strehl(where(strehl(,avg)==max(strehl(,avg))),)); 
+  write,"\n";
+
+  window,0;
+  plg,res,G,color="blue";
+  plg,SRgi*100,G,color="red";
+  error;
+}

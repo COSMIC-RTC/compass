@@ -2980,7 +2980,7 @@ void Y_rtc_framedelay(int argc) {
   }
 }
 
-void Y_rtc_docontrol(int argc) {
+void Y_rtc_applycontrol(int argc) {
   rtc_struct *rhandler = (rtc_struct *) yget_obj(argc - 1, &yRTC);
   sutra_rtc *rtc_handler = (sutra_rtc *) (rhandler->sutra_rtc);
   long ncontrol = ygets_l(argc - 2);
@@ -2990,7 +2990,20 @@ void Y_rtc_docontrol(int argc) {
   carma_context *context_handle = _getCurrentContext();
   context_handle->set_activeDevice(rhandler->device);
 
-  rtc_handler->do_control(ncontrol, dms_handler);
+  rtc_handler->apply_control(ncontrol, dms_handler);
+
+}
+
+
+void Y_rtc_docontrol(int argc) {
+  rtc_struct *rhandler = (rtc_struct *) yget_obj(argc - 1, &yRTC);
+  sutra_rtc *rtc_handler = (sutra_rtc *) (rhandler->sutra_rtc);
+  long ncontrol = ygets_l(argc - 2);
+
+  carma_context *context_handle = _getCurrentContext();
+  context_handle->set_activeDevice(rhandler->device);
+
+  rtc_handler->do_control(ncontrol);
 
 }
 
@@ -3011,7 +3024,7 @@ void Y_rtc_docontrol_geo(int argc) {
 
   SCAST(sutra_controller_geo *, control, rtc_handler->d_control.at(ncontrol));
   control->comp_dphi(target_handler->d_targets.at(ntarget));
-  rtc_handler->do_control(ncontrol, dms_handler);
+  rtc_handler->do_control(ncontrol);
 }
 
 void Y_controller_setdata(int argc) {

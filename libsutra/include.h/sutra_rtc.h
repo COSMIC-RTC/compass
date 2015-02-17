@@ -60,9 +60,10 @@ public:
     do_centroids(int ncntrl, sutra_sensors *sensors, bool imat);
   int
     do_centroids_geom(int ncntrl, sutra_sensors *sensors);
-
   int
-    do_control(int ncntrl, sutra_dms *ydm);
+    do_control(int ncntrl);
+  int
+  	apply_control(int ncntrl, sutra_dms *ydm);
 
 };
 

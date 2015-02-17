@@ -266,9 +266,14 @@ int sutra_rtc::do_centroids_geom(int ncntrl, sutra_sensors *sensors) {
   return EXIT_SUCCESS;
 }
 
-int sutra_rtc::do_control(int ncntrl, sutra_dms *ydm) {
+int sutra_rtc::do_control(int ncntrl) {
 
   this->d_control[ncntrl]->comp_com();
+
+  return EXIT_SUCCESS;
+}
+
+int sutra_rtc::apply_control(int ncntrl, sutra_dms *ydm) {
 
   map<type_screen, sutra_dm *>::iterator p;
   p = ydm->d_dms.begin();
