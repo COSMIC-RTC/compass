@@ -2204,7 +2204,7 @@ void rtc_print(void *obj) {
 
   cout << "Contains " << rtc_handler->d_centro.size() << " Centroider(s) : "
       << endl;
-  cout << "Centro #" << " | " << "Type " << " | " << "nwfs" << " | " << "Nvalid"
+  cout << "Centro #" << " | " << "Type " << "  | " << "Nvalid"
       << endl;
 
   for (size_t idx = 0; idx < rtc_handler->d_centro.size(); idx++) {
@@ -2254,18 +2254,20 @@ void Y_yoga_rtc(int argc) {
 void Y_rtc_addcentro(int argc) {
   rtc_struct *rhandler = (rtc_struct *) yget_obj(argc - 1, &yRTC);
   sutra_rtc *rtc_handler = (sutra_rtc *) (rhandler->sutra_rtc);
-  long nwfs = ygets_l(argc - 2);
-  long nvalid = ygets_l(argc - 3);
-  char *type_centro = ygets_q(argc - 4);
-  float offset = ygets_f(argc - 5);
-  float scale = ygets_f(argc - 6);
+  sensors_struct *shandler = (sensors_struct *) yget_obj(argc - 2, &ySensors);
+  sutra_sensors *sensors_handler = (sutra_sensors *) (shandler->sutra_sensors);;
+  long nwfs = ygets_l(argc - 3);
+  long nvalid = ygets_l(argc - 4);
+  char *type_centro = ygets_q(argc - 5);
+  float offset = ygets_f(argc - 6);
+  float scale = ygets_f(argc - 7);
 
   //rtc_struct *handle    =(rtc_struct *)ypush_obj(&yRTC, sizeof(rtc_struct));
 
   carma_context *context_handle = _getCurrentContext();
   int activeDevice = context_handle->set_activeDeviceForCpy(rhandler->device);
 
-  rtc_handler->add_centroider(nwfs, nvalid, offset, scale, activeDevice,
+  rtc_handler->add_centroider(sensors_handler, nwfs, nvalid, offset, scale, activeDevice,
       type_centro);
 }
 
@@ -2332,14 +2334,12 @@ void Y_rtc_setnmax(int argc) {
 void Y_rtc_docentroids(int argc) {
   rtc_struct *rhandler = (rtc_struct *) yget_obj(argc - 1, &yRTC);
   sutra_rtc *rtc_handler = (sutra_rtc *) (rhandler->sutra_rtc);
-  sensors_struct *handler = (sensors_struct *) yget_obj(argc - 2, &ySensors);
-  sutra_sensors *sensors_handler = (sutra_sensors *) (handler->sutra_sensors);
 
-  if (argc > 2) {
-    long ncontrol = ygets_l(argc - 3);
-    rtc_handler->do_centroids(ncontrol, sensors_handler);
+  if (argc > 1) {
+    long ncontrol = ygets_l(argc - 2);
+    rtc_handler->do_centroids(ncontrol);
   } else
-    rtc_handler->do_centroids(sensors_handler);
+    rtc_handler->do_centroids();
 
   /* now done inside sutra_rtc::do_centroids
    sutra_context *context_handle = _getCurrentContext();
@@ -2350,14 +2350,12 @@ void Y_rtc_docentroids(int argc) {
 void Y_rtc_docentroids_geom(int argc) {
   rtc_struct *rhandler = (rtc_struct *) yget_obj(argc - 1, &yRTC);
   sutra_rtc *rtc_handler = (sutra_rtc *) (rhandler->sutra_rtc);
-  sensors_struct *handler = (sensors_struct *) yget_obj(argc - 2, &ySensors);
-  sutra_sensors *sensors_handler = (sutra_sensors *) (handler->sutra_sensors);
 
-  if (argc > 2) {
-    long ncontrol = ygets_l(argc - 3);
-    rtc_handler->do_centroids_geom(ncontrol, sensors_handler);
+  if (argc > 1) {
+    long ncontrol = ygets_l(argc - 2);
+    rtc_handler->do_centroids_geom(ncontrol);
   } else
-    rtc_handler->do_centroids(0,sensors_handler);
+    rtc_handler->do_centroids(0);
 
   /* now done inside sutra_rtc::do_centroids
    sutra_context *context_handle = _getCurrentContext();
@@ -2383,9 +2381,9 @@ void Y_rtc_doimat(int argc) {
   context_handle->set_activeDeviceForCpy(rhandler->device);
 
   if (geom > -1)
-    rtc_handler->do_imat_geom(ncontrol, sensors_handler, dms_handler, geom);
+    rtc_handler->do_imat_geom(ncontrol, dms_handler, geom);
   else
-    rtc_handler->do_imat(ncontrol, sensors_handler, dms_handler);
+    rtc_handler->do_imat(ncontrol, dms_handler);
 }
 
 void Y_rtc_setgain(int argc) {
@@ -2738,7 +2736,7 @@ void Y_rtc_getcentroids(int argc) {
 
     float *data = ypush_f((long*)wfs_handler->d_slopes->getDims());
     carma_obj<float> d_data(context_handle, wfs_handler->d_slopes->getDims());
-    rtc_handler->d_centro.at(ncontrol)->get_cog(wfs_handler, d_data);
+    rtc_handler->d_centro.at(ncontrol)->get_cog(d_data);
     d_data.device2host(data);
   } else {
     float *data = ypush_f(
@@ -3202,26 +3200,24 @@ void Y_sensors_initweights(int argc) {
   float *weights = ygeta_f(argc - 5, &ntot, dims);
   SCAST(sutra_centroider_wcog *, centroider_wcog,
       rtc_handler->d_centro.at(ncentro));
-  centroider_wcog->init_weights(sensors_handler->d_wfs.at(nsensor));
+  centroider_wcog->init_weights();
   centroider_wcog->load_weights(weights, dims[0]);
 }
 
 void Y_sensors_initbcube(int argc) {
 
-  sensors_struct *handler = (sensors_struct *) yget_obj(argc - 1, &ySensors);
-  sutra_sensors *sensors_handler = (sutra_sensors *) (handler->sutra_sensors);
-
-  carma_context *context_handle = _getCurrentContext();
-  context_handle->set_activeDevice(handler->device);
-
-  int nsensor = ygets_i(argc - 2);
-
-  rtc_struct *rhandler = (rtc_struct *) yget_obj(argc - 3, &yRTC);
+  rtc_struct *rhandler = (rtc_struct *) yget_obj(argc - 1, &yRTC);
   sutra_rtc *rtc_handler = (sutra_rtc *) (rhandler->sutra_rtc);
-  int ncentro = ygets_i(argc - 4);
+  carma_context *context_handle = _getCurrentContext();
+  context_handle->set_activeDevice(rhandler->device);
 
-  rtc_handler->d_centro.at(ncentro)->init_bincube(
-      sensors_handler->d_wfs.at(nsensor));
+  int ncentro = ygets_i(argc - 2);
+
+  if(rtc_handler->d_centro.at(ncentro)->get_type()=="corr"){
+    SCAST(sutra_centroider_corr *, centroider_corr,
+        rtc_handler->d_centro.at(ncentro));
+    centroider_corr->init_bincube();
+  }
 }
 
 void Y_sensors_initcorr(int argc) {
@@ -3249,7 +3245,7 @@ void Y_sensors_initcorr(int argc) {
 
   SCAST(sutra_centroider_corr *, centroider_corr,
       rtc_handler->d_centro.at(ncentro));
-  centroider_corr->init_corr(sensors_handler->d_wfs.at(nsensor), sizex, sizey,
+  centroider_corr->init_corr(sizex, sizey,
       interpmat);
   centroider_corr->load_corr(weights, corr_norm, mydim);
 }
@@ -3321,8 +3317,7 @@ void Y_sensors_compslopes(int argc) {
 
   }
 
-  rtc_handler->d_centro.at(ncentro)->get_cog(
-      sensors_handler->d_wfs.at(nsensor));
+  rtc_handler->d_centro.at(ncentro)->get_cog();
 
 }
 
@@ -3626,29 +3621,25 @@ void Y_rtc_doimatkl(int argc) {
   rtc_struct *rhandler = (rtc_struct *) yget_obj(argc - 1, &yRTC);
   sutra_rtc *rtc_handler = (sutra_rtc *) (rhandler->sutra_rtc);
   long ncontrol = ygets_l(argc - 2);
-  sensors_struct *handler = (sensors_struct *) yget_obj(argc - 3, &ySensors);
-  sutra_sensors *sensors_handler = (sutra_sensors *) (handler->sutra_sensors);
-  dms_struct *handlera = (dms_struct *) yget_obj(argc - 4, &yDMs);
+  dms_struct *handlera = (dms_struct *) yget_obj(argc - 3, &yDMs);
   sutra_dms *dms_handler = (sutra_dms *) (handlera->sutra_dms);
 
   carma_context *context_handle = _getCurrentContext();
   context_handle->set_activeDeviceForCpy(rhandler->device);
 
-  rtc_handler->do_imatkl(ncontrol, sensors_handler, dms_handler);
+  rtc_handler->do_imatkl(ncontrol, dms_handler);
 }
 void Y_rtc_doimatkl4pzt(int argc) {
   rtc_struct *rhandler = (rtc_struct *) yget_obj(argc - 1, &yRTC);
   sutra_rtc *rtc_handler = (sutra_rtc *) (rhandler->sutra_rtc);
   long ncontrol = ygets_l(argc - 2);
-  sensors_struct *handler = (sensors_struct *) yget_obj(argc - 3, &ySensors);
-  sutra_sensors *sensors_handler = (sutra_sensors *) (handler->sutra_sensors);
-  dms_struct *handlera = (dms_struct *) yget_obj(argc - 4, &yDMs);
+  dms_struct *handlera = (dms_struct *) yget_obj(argc - 3, &yDMs);
   sutra_dms *dms_handler = (sutra_dms *) (handlera->sutra_dms);
 
   carma_context *context_handle = _getCurrentContext();
   context_handle->set_activeDeviceForCpy(rhandler->device);
 
-  rtc_handler->do_imatkl4pzt(ncontrol, sensors_handler, dms_handler);
+  rtc_handler->do_imatkl4pzt(ncontrol, dms_handler);
 }
 
   // Florian features

@@ -919,7 +919,7 @@ func script_testwfs(filename,&slpgeom1,&slpgeom2,verbose=)
     grow,tmp,sensors_getslopes(g_wfs,i-1);
   slpgeom1 = slpgeom2 = array(0.0,numberof(tmp),y_loop.niter);
   
-  rtc_docentroids,g_rtc,g_wfs,0;
+  rtc_docentroids,g_rtc,0;
   tmp=rtc_getcentroids(g_rtc,0);
   cb_slopes = array(0.0,numberof(tmp),y_loop.niter);
 
@@ -963,7 +963,7 @@ func script_testwfs(filename,&slpgeom1,&slpgeom2,verbose=)
       slpgeom2(,cc) = tmp2;
 
       //window,2;pli,roll(sensors_getdata(g_wfs,0,"fttotim")(1,,,1));
-      rtc_docentroids,g_rtc,g_wfs,0;
+      rtc_docentroids,g_rtc,0;
       cb_slopes(,cc) = rtc_getcentroids(g_rtc,0);
       /*
       res3=sensors_getdata(g_wfs,0,"bincube");

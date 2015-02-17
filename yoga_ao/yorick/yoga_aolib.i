@@ -641,14 +641,14 @@ extern rtc_setCmm;
  */
 extern rtc_docentroids;
 /* DOCUMENT rtc_docentroids
-   rtc_docentroids,yoga_rtc_obj,ncontroller,yoga_wfs_obj
+   rtc_docentroids,yoga_rtc_obj,ncontroller
    do centroiding for a controller in a yoga_rtc_obj object
       
    SEE ALSO:
  */
 extern rtc_docentroids_geom;
 /* DOCUMENT rtc_docentroids_geom
-   rtc_docentroids_geom,yoga_rtc_obj,ncontroller,yoga_wfs_obj
+   rtc_docentroids_geom,yoga_rtc_obj,ncontroller
    do centroiding using non diffractive wfs model
    for a controller in a yoga_rtc_obj object
       
@@ -1245,12 +1245,10 @@ extern sensors_initweights;
 
 extern sensors_initbcube;
 /* DOCUMENT sensors_initbcube
-   sensors_initbcube,yoga_sensors_obj,nsensor,yoga_rtc_obj,ncentro
+   sensors_initbcube,yoga_rtc_obj,ncentro
      
-   init structures for bincube in centroider  for a given sensor in a ySensors object
+   init structures for bincube in centroider
    
-   yoga_sensors_obj : the ySensors object
-   nsensor          : index of given wfs
    yoga_rtc_obj     : the yRTC object
    ncentro          : index of given centroider
 

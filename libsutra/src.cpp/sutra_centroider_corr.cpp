@@ -1,7 +1,7 @@
 #include <sutra_centroider_corr.h>
 #include <string>
 
-sutra_centroider_corr::sutra_centroider_corr(carma_context *context, long nwfs,
+sutra_centroider_corr::sutra_centroider_corr(carma_context *context, sutra_sensors *sensors, int nwfs,
     long nvalid, float offset, float scale, int device) {
   this->d_corrfnct = 0L;
   this->d_corrspot = 0L;
@@ -12,6 +12,7 @@ sutra_centroider_corr::sutra_centroider_corr(carma_context *context, long nwfs,
 
   this->current_context = context;
 
+  this->wfs = sensors->d_wfs[nwfs];
   this->nwfs = nwfs;
   this->nvalid = nvalid;
   this->device = device;
@@ -44,14 +45,14 @@ string sutra_centroider_corr::get_type() {
   return "corr";
 }
 
-int sutra_centroider_corr::init_bincube(sutra_wfs *wfs) {
+int sutra_centroider_corr::init_bincube() {
 
   this->npix = wfs->npix;
 
   return EXIT_SUCCESS;
 }
 
-int sutra_centroider_corr::init_corr(sutra_wfs *wfs, int isizex, int isizey,
+int sutra_centroider_corr::init_corr(int isizex, int isizey,
     float *interpmat) {
   current_context->set_activeDevice(device);
   if (this->d_corrfnct != 0L)
@@ -156,7 +157,7 @@ int sutra_centroider_corr::get_cog(carma_streams *streams, float *cube,
   return EXIT_SUCCESS;
 }
 
-int sutra_centroider_corr::get_cog(sutra_wfs *wfs, float *slopes) {
+int sutra_centroider_corr::get_cog(float *slopes) {
   //set corrspot to 0
   cutilSafeCall(
       cudaMemset(*(this->d_corrspot), 0,
@@ -203,6 +204,6 @@ int sutra_centroider_corr::get_cog(sutra_wfs *wfs, float *slopes) {
   return EXIT_SUCCESS;
 }
 
-int sutra_centroider_corr::get_cog(sutra_wfs *wfs) {
-  return this->get_cog(wfs, *(wfs->d_slopes));
+int sutra_centroider_corr::get_cog() {
+  return this->get_cog(*(wfs->d_slopes));
 }

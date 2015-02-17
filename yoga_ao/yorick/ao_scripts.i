@@ -145,9 +145,9 @@ func script_system(filename,verbose=,strehl=,r0=,clean=)
 
     if ((y_rtc != []) && (g_rtc != [])
         && (y_wfs != []) && (g_wfs != [])) {
-      rtc_docentroids,g_rtc,g_wfs,0;
-      //rtc_docentroids_geom,g_rtc,g_wfs,0;
-      //rtc_docentroids_geom,g_rtc,g_wfs,0; 
+      rtc_docentroids,g_rtc,0;
+      //rtc_docentroids_geom,g_rtc,0;
+      //rtc_docentroids_geom,g_rtc,0; 
       // compute command and apply
       if (g_dm != []) {
 	rtc_docontrol,g_rtc,0;
@@ -326,7 +326,7 @@ func script_profile(filename,verbose=)
       
       // do centroiding
       if ((y_rtc != []) && (g_rtc != [])) {
-        rtc_docentroids,g_rtc,g_wfs,0;
+        rtc_docentroids,g_rtc,0;
         grow,tmp,tac(mytime);
         // compute command and apply
         if (g_dm != []) {
@@ -657,7 +657,7 @@ func script_relax(filename,verbose=)
       
       // do centroiding
       if ((y_rtc != []) && (g_rtc != [])) {
-        rtc_docentroids,g_rtc,g_wfs,0;
+        rtc_docentroids,g_rtc,0;
         // compute command and apply
         if (g_dm != []) {
 	  rtc_docontrol,g_rtc,0;
@@ -847,7 +847,7 @@ func script_valid_rtc(filename,verbose=,strehl=,r0=,clean=, output=)
     
     if ((y_rtc != []) && (g_rtc != [])
         && (y_wfs != []) && (g_wfs != [])) {
-      rtc_docentroids,g_rtc,g_wfs,0;
+      rtc_docentroids,g_rtc,0;
       // compute command and apply
       centro_cube(,cc) = rtc_getcentroids(g_rtc, 0);
       slopes_cube(,cc) = sensors_getdata(g_wfs, 0, "slopes");

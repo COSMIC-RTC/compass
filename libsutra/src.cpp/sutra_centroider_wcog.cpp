@@ -1,12 +1,13 @@
 #include <sutra_centroider_wcog.h>
 #include <string>
 
-sutra_centroider_wcog::sutra_centroider_wcog(carma_context *context, long nwfs,
+sutra_centroider_wcog::sutra_centroider_wcog(carma_context *context, sutra_sensors *sensors, int nwfs,
     long nvalid, float offset, float scale, int device) {
   this->current_context = context;
 
   this->device = device;
   context->set_activeDevice(device);
+  this->wfs = sensors->d_wfs[nwfs];
   this->nwfs = nwfs;
   this->nvalid = nvalid;
   this->offset = offset;
@@ -23,11 +24,7 @@ string sutra_centroider_wcog::get_type() {
   return "wcog";
 }
 
-int sutra_centroider_wcog::init_bincube(sutra_wfs *wfs) {
-  return EXIT_SUCCESS;
-}
-
-int sutra_centroider_wcog::init_weights(sutra_wfs *wfs) {
+int sutra_centroider_wcog::init_weights() {
   if (this->d_weights != 0L)
     delete this->d_weights;
 
@@ -80,12 +77,12 @@ int sutra_centroider_wcog::get_cog(carma_streams *streams, float *cube,
   return EXIT_SUCCESS;
 }
 
-int sutra_centroider_wcog::get_cog(sutra_wfs *wfs, float *slopes) {
+int sutra_centroider_wcog::get_cog(float *slopes) {
   return this->get_cog(wfs->streams, *(wfs->d_bincube), *(wfs->d_subsum),
       slopes, wfs->nvalid, wfs->npix, wfs->d_bincube->getNbElem());
 }
 
-int sutra_centroider_wcog::get_cog(sutra_wfs *wfs) {
-  return this->get_cog(wfs, *(wfs->d_slopes));
+int sutra_centroider_wcog::get_cog() {
+  return this->get_cog(*(wfs->d_slopes));
 }
 

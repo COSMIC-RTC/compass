@@ -47,7 +47,7 @@ y_wfs(1:).fracsub       = 0.8;
 y_wfs(1:).xpos          = 0.0;
 y_wfs(1:).ypos          = 0.0;
 y_wfs(1:).lambda        = 0.5;
-y_wfs(1:).gsmag         = 5.;
+y_wfs(1:).gsmag         = 5.2;
 y_wfs(1:).optthroughput = 0.5;
 y_wfs(1:).zerop         = 1.e11;
 y_wfs(1:).noise         = 3;
@@ -96,9 +96,9 @@ y_controllers(1).gain    = 0.35;
 
 y_controllers(1).modopti = 1;
 y_controllers(1).nrec    = 2048;
-y_controllers(1).nmodes  = 5070;
+y_controllers(1).nmodes  = 5064;
 y_controllers(1).gmin    = 0.001;
-y_controllers(1).gmax    = 0.9;
+y_controllers(1).gmax    = 0.5;
 y_controllers(1).ngain   = 500;
 
 /*

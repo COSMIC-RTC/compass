@@ -12,7 +12,7 @@ public:
   carma_obj<uint> *d_bpind;
 
 public:
-  sutra_centroider_bpcog(carma_context *context, long nwfs, long nvalid,
+  sutra_centroider_bpcog(carma_context *context, sutra_sensors *sensors, int nwfs, long nvalid,
       float offset, float scale, int device, int nmax);
   sutra_centroider_bpcog(const sutra_centroider_bpcog& centroider);
   ~sutra_centroider_bpcog();
@@ -26,15 +26,12 @@ public:
   set_nmax(int nmax);
 
   int
-  init_bincube(sutra_wfs *wfs);
-
-  int
   get_cog(carma_streams *streams, float *cube, float *subsum, float *centroids,
       int nvalid, int npix, int ntot);
   int
-  get_cog(sutra_wfs *wfs, float *slopes);
+  get_cog(float *slopes);
   int
-  get_cog(sutra_wfs *wfs);
+  get_cog();
 };
 
 #endif // _SUTRA_CENTROIDER_H_

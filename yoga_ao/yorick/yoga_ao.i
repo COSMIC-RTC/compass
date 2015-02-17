@@ -604,9 +604,9 @@ func rtc_init(clean=)
           s_offset = s_scale = 0.0f
             }
 
-        rtc_addcentro,g_rtc,nwfs-1,y_wfs(nwfs)._nvalid,centroiders(i).type,s_offset,s_scale;
+        rtc_addcentro,g_rtc,g_wfs,nwfs-1,y_wfs(nwfs)._nvalid,centroiders(i).type,s_offset,s_scale;
         
-        sensors_initbcube,g_wfs,nwfs-1,g_rtc,i-1;
+        sensors_initbcube,g_rtc,i-1;
 
         if (y_wfs(nwfs).type == "sh") {
           if (centroiders(i).type == "tcog") {

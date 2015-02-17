@@ -9,7 +9,7 @@ class sutra_centroider_roof: public sutra_centroider {
 public:
 
 public:
-  sutra_centroider_roof(carma_context *context, long nwfs, long nvalid,
+  sutra_centroider_roof(carma_context *context, sutra_sensors *sensors, int nwfs, long nvalid,
       float offset, float scale, int device);
   sutra_centroider_roof(const sutra_centroider_roof& centroider);
   ~sutra_centroider_roof();
@@ -22,15 +22,12 @@ public:
       int *subindy, int nvalid, int ns, int nim);
 
   int
-  init_bincube(sutra_wfs *wfs);
-
-  int
   get_cog(carma_streams *streams, float *cube, float *subsum, float *centroids,
       int nvalid, int npix, int ntot);
   int
-  get_cog(sutra_wfs *wfs, float *slopes);
+  get_cog(float *slopes);
   int
-  get_cog(sutra_wfs *wfs);
+  get_cog();
 };
 
 #endif // _SUTRA_CENTROIDER_ROOF_H_

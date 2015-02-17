@@ -1,10 +1,11 @@
 #include <sutra_centroider_tcog.h>
 #include <string>
 
-sutra_centroider_tcog::sutra_centroider_tcog(carma_context *context, long nwfs,
+sutra_centroider_tcog::sutra_centroider_tcog(carma_context *context, sutra_sensors *sensors, int nwfs,
     long nvalid, float offset, float scale, int device) {
   this->current_context = context;
 
+  this->wfs = sensors->d_wfs[nwfs];
   this->nwfs = nwfs;
   this->nvalid = nvalid;
   this->device = device;
@@ -24,10 +25,6 @@ string sutra_centroider_tcog::get_type() {
   return "tcog";
 }
 
-int sutra_centroider_tcog::init_bincube(sutra_wfs *wfs) {
-  return EXIT_SUCCESS;
-}
-
 int sutra_centroider_tcog::set_threshold(float threshold) {
   this->threshold = threshold;
 
@@ -45,12 +42,12 @@ int sutra_centroider_tcog::get_cog(carma_streams *streams, float *cube,
   return EXIT_SUCCESS;
 }
 
-int sutra_centroider_tcog::get_cog(sutra_wfs *wfs, float *slopes) {
+int sutra_centroider_tcog::get_cog(float *slopes) {
   return this->get_cog(wfs->streams, *(wfs->d_bincube), *(wfs->d_subsum),
       slopes, wfs->nvalid, wfs->npix, wfs->d_bincube->getNbElem());
 }
 
-int sutra_centroider_tcog::get_cog(sutra_wfs *wfs) {
-  return this->get_cog(wfs, *(wfs->d_slopes));
+int sutra_centroider_tcog::get_cog() {
+  return this->get_cog(*(wfs->d_slopes));
 }
 

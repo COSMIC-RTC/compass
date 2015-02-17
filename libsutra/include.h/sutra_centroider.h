@@ -9,6 +9,7 @@ using namespace std;
 class sutra_centroider {
 public:
   int device;
+  sutra_wfs *wfs;
   int nwfs;
   int nvalid;
 
@@ -29,15 +30,12 @@ public:
   get_type()=0;
 
   virtual int
-  init_bincube(sutra_wfs *wfs)=0;
-
-  virtual int
   get_cog(carma_streams *streams, float *cube, float *subsum, float *centroids,
       int nvalid, int npix, int ntot)=0;
   virtual int
-  get_cog(sutra_wfs *wfs, float *slopes)=0;
+  get_cog(float *slopes)=0;
   virtual int
-  get_cog(sutra_wfs *wfs)=0;
+  get_cog()=0;
 };
 
 int

@@ -23,35 +23,35 @@ sutra_rtc::~sutra_rtc() {
   //delete this->current_context;
 }
 
-int sutra_rtc::add_centroider(long nwfs, long nvalid, float offset, float scale,
+int sutra_rtc::add_centroider(sutra_sensors *sensors, int nwfs, long nvalid, float offset, float scale,
     long device, char *typec) {
   if (strcmp(typec, "bpcog") == 0)
     d_centro.push_back(
-        new sutra_centroider_bpcog(current_context, nwfs, nvalid, offset, scale,
+        new sutra_centroider_bpcog(current_context, sensors, nwfs, nvalid, offset, scale,
             device, 10));
   else if (strcmp(typec, "cog") == 0)
     d_centro.push_back(
-        new sutra_centroider_cog(current_context, nwfs, nvalid, offset, scale,
+        new sutra_centroider_cog(current_context, sensors, nwfs, nvalid, offset, scale,
             device));
   else if (strcmp(typec, "corr") == 0)
     d_centro.push_back(
-        new sutra_centroider_corr(current_context, nwfs, nvalid, offset, scale,
+        new sutra_centroider_corr(current_context, sensors, nwfs, nvalid, offset, scale,
             device));
   else if (strcmp(typec, "pyr") == 0)
     d_centro.push_back(
-        new sutra_centroider_pyr(current_context, nwfs, nvalid, offset, scale,
+        new sutra_centroider_pyr(current_context, sensors, nwfs, nvalid, offset, scale,
             device));
   else if (strcmp(typec, "roof") == 0)
     d_centro.push_back(
-        new sutra_centroider_roof(current_context, nwfs, nvalid, offset, scale,
+        new sutra_centroider_roof(current_context, sensors, nwfs, nvalid, offset, scale,
             device));
   else if (strcmp(typec, "tcog") == 0)
     d_centro.push_back(
-        new sutra_centroider_tcog(current_context, nwfs, nvalid, offset, scale,
+        new sutra_centroider_tcog(current_context, sensors, nwfs, nvalid, offset, scale,
             device));
   else if (strcmp(typec, "wcog") == 0)
     d_centro.push_back(
-        new sutra_centroider_wcog(current_context, nwfs, nvalid, offset, scale,
+        new sutra_centroider_wcog(current_context, sensors, nwfs, nvalid, offset, scale,
             device));
   else {
     cerr << "centroider unknown\n";
@@ -107,7 +107,7 @@ int sutra_rtc::rm_controller() {
   return EXIT_SUCCESS;
 }
 
-int sutra_rtc::do_imat(int ncntrl, sutra_sensors *sensors, sutra_dms *ydm) {
+int sutra_rtc::do_imat(int ncntrl, sutra_dms *ydm) {
   carma_obj<float> *d_imat;
   if (this->d_control[ncntrl]->get_type().compare("ls") == 0) {
     SCAST(sutra_controller_ls *, control, this->d_control[ncntrl]);
@@ -130,17 +130,17 @@ int sutra_rtc::do_imat(int ncntrl, sutra_sensors *sensors, sutra_dms *ydm) {
 
       for (size_t idx_cntr = 0; idx_cntr < (this->d_centro).size();
           idx_cntr++) {
-        int nwfs = this->d_centro[idx_cntr]->nwfs;
-        float tmp_noise = sensors->d_wfs[nwfs]->noise;
-        sensors->d_wfs[nwfs]->noise = -1;
-        sensors->d_wfs[nwfs]->kernconv = true;
-        sensors->d_wfs[nwfs]->sensor_trace(ydm, 1);
-        sensors->d_wfs[nwfs]->comp_image();
-        sensors->d_wfs[nwfs]->noise = tmp_noise;
-        sensors->d_wfs[nwfs]->kernconv = false;
+        sutra_wfs *wfs = this->d_centro[idx_cntr]->wfs;
+        float tmp_noise = wfs->noise;
+        wfs->noise = -1;
+        wfs->kernconv = true;
+        wfs->sensor_trace(ydm, 1);
+        wfs->comp_image();
+        wfs->noise = tmp_noise;
+        wfs->kernconv = false;
       }
       //cout << "actu # " << j << endl;
-      do_centroids(ncntrl, sensors, true);
+      do_centroids(ncntrl, true);
 
       int device = this->d_control[ncntrl]->d_centroids->getDevice();
       convert_centro(*this->d_control[ncntrl]->d_centroids,
@@ -154,17 +154,17 @@ int sutra_rtc::do_imat(int ncntrl, sutra_sensors *sensors, sutra_dms *ydm) {
       p->second->comp_oneactu(j, -1.0f * p->second->push4imat);
       for (size_t idx_cntr = 0; idx_cntr < (this->d_centro).size();
           idx_cntr++) {
-        int nwfs = this->d_centro[idx_cntr]->nwfs;
-        float tmp_noise = sensors->d_wfs[nwfs]->noise;
-        sensors->d_wfs[nwfs]->noise = -1;
-        sensors->d_wfs[nwfs]->kernconv = true;
-        sensors->d_wfs[nwfs]->sensor_trace(ydm, 1);
-        sensors->d_wfs[nwfs]->comp_image();
-        sensors->d_wfs[nwfs]->noise = tmp_noise;
-        sensors->d_wfs[nwfs]->kernconv = false;
+        sutra_wfs *wfs = this->d_centro[idx_cntr]->wfs;
+        float tmp_noise = wfs->noise;
+        wfs->noise = -1;
+        wfs->kernconv = true;
+        wfs->sensor_trace(ydm, 1);
+        wfs->comp_image();
+        wfs->noise = tmp_noise;
+        wfs->kernconv = false;
       }
       device = this->d_control[ncntrl]->d_centroids->getDevice();
-      do_centroids(ncntrl, sensors, true);
+      do_centroids(ncntrl, true);
       convert_centro(*this->d_control[ncntrl]->d_centroids,
           *this->d_control[ncntrl]->d_centroids, 0, 0.5f / p->second->push4imat,
           this->d_control[ncntrl]->d_centroids->getNbElem(),
@@ -185,7 +185,7 @@ int sutra_rtc::do_imat(int ncntrl, sutra_sensors *sensors, sutra_dms *ydm) {
   return EXIT_SUCCESS;
 }
 
-int sutra_rtc::do_imat_geom(int ncntrl, sutra_sensors *sensors, sutra_dms *ydm,
+int sutra_rtc::do_imat_geom(int ncntrl, sutra_dms *ydm,
     int type) {
   if (this->d_control[ncntrl]->get_type().compare("ls") == 0) {
     SCAST(sutra_controller_ls *, control, this->d_control[ncntrl]);
@@ -199,14 +199,14 @@ int sutra_rtc::do_imat_geom(int ncntrl, sutra_sensors *sensors, sutra_dms *ydm,
         inds2 = 0;
         for (size_t idx_cntr = 0; idx_cntr < (this->d_control).size();
             idx_cntr++) {
-          int nwfs = this->d_centro[idx_cntr]->nwfs;
+          sutra_wfs *wfs = this->d_centro[idx_cntr]->wfs;
 
-          sensors->d_wfs[nwfs]->sensor_trace(ydm, 1);
+          wfs->sensor_trace(ydm, 1);
           //sensors->d_wfs[nwfs]->comp_image();
 
-          sensors->d_wfs[nwfs]->slopes_geom(type,
+          wfs->slopes_geom(type,
               (*control->d_imat)[inds1 + inds2]);
-          inds2 += 2 * sensors->d_wfs[nwfs]->nvalid;
+          inds2 += 2 * wfs->nvalid;
         }
         p->second->reset_shape();
         inds1 += control->nslope();
@@ -217,50 +217,43 @@ int sutra_rtc::do_imat_geom(int ncntrl, sutra_sensors *sensors, sutra_dms *ydm,
   return EXIT_SUCCESS;
 }
 
-int sutra_rtc::do_centroids(sutra_sensors *sensors) {
+int sutra_rtc::do_centroids() {
   for (size_t idx_cntr = 0; idx_cntr < (this->d_centro).size(); idx_cntr++) {
-    int nwfs = this->d_centro[idx_cntr]->nwfs;
-
-    this->d_centro[idx_cntr]->get_cog(sensors->d_wfs[nwfs]);
-
+    this->d_centro[idx_cntr]->get_cog();
   }
 
   return EXIT_SUCCESS;
 }
 
-int sutra_rtc::do_centroids(int ncntrl, sutra_sensors *sensors) {
-  return do_centroids(ncntrl, sensors, false);
+int sutra_rtc::do_centroids(int ncntrl) {
+  return do_centroids(ncntrl, false);
 }
 
-int sutra_rtc::do_centroids(int ncntrl, sutra_sensors *sensors, bool imat) {
+int sutra_rtc::do_centroids(int ncntrl, bool imat) {
   int inds2 = 0;
 
   for (size_t idx_cntr = 0; idx_cntr < (this->d_centro).size(); idx_cntr++) {
 
-    int nwfs = this->d_centro[idx_cntr]->nwfs;
+    this->d_centro[idx_cntr]->get_cog((*this->d_control[ncntrl]->d_centroids)[inds2]);
 
-    this->d_centro[idx_cntr]->get_cog(sensors->d_wfs[nwfs],
-        (*this->d_control[ncntrl]->d_centroids)[inds2]);
-
-    inds2 += 2 * sensors->d_wfs[nwfs]->nvalid;
+    inds2 += 2 * this->d_centro[idx_cntr]->wfs->nvalid;
   }
 
   return EXIT_SUCCESS;
 }
 
-int sutra_rtc::do_centroids_geom(int ncntrl, sutra_sensors *sensors) {
+int sutra_rtc::do_centroids_geom(int ncntrl) {
   int inds2 = 0;
 
   for (size_t idx_cntr = 0; idx_cntr < (this->d_centro).size(); idx_cntr++) {
 
-    int nwfs = this->d_centro[idx_cntr]->nwfs;
-    sensors->d_wfs[nwfs]->slopes_geom(0,
-        (*this->d_control[ncntrl]->d_centroids)[inds2]);
+    sutra_wfs *wfs = this->d_centro[idx_cntr]->wfs;
+    wfs->slopes_geom(0,(*this->d_control[ncntrl]->d_centroids)[inds2]);
     /*
      this->d_centro[idx_cntr]->get_cog(sensors->d_wfs[nwfs],
      (*this->d_control[ncntrl]->d_centroids)[inds2]);
      */
-    inds2 += 2 * sensors->d_wfs[nwfs]->nvalid;
+    inds2 += 2 * wfs->nvalid;
   }
 
   return EXIT_SUCCESS;

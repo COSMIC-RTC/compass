@@ -266,7 +266,7 @@ func manual_imat(void)
       //mimg = sensors_getimg(g_wfs,0);
       
       //slopes_geom,g_wfs,0,0;
-      rtc_docentroids,g_rtc,g_wfs;
+      rtc_docentroids,g_rtc;
       slps = rtc_getcentroids(g_rtc,0, g_wfs, 0);
       grow,imat_cpu,slps/float(y_dm(1).push4imat);
       //fma;limits;
@@ -558,8 +558,8 @@ func doklbasis(g_dm,nkl,n)
           float(*(klbas).cp)(*);
   
    //error;
-   // rtc_doimatkl,g_rtc,0,g_wfs,g_dm,long(y_dm(n).alt);
-   //rtc_doimat,g_rtc,0,g_wfs,g_dm;
+   // rtc_doimatkl,g_rtc,0,g_dm,long(y_dm(n).alt);
+   //rtc_doimat,g_rtc,0,g_dm;
    //error;
   }
   // KL basis recovery
@@ -804,10 +804,10 @@ func klbasis_init(ndms,nctrl,nctrltot){
       rtc_addcontrol,g_rtc,y_dm(i)._ntotact,controllers(nctrl).delay,controllers(nctrl).type;
       // Computing imat KL
       if(y_dm(i).type == "pzt"){
-	rtc_doimatkl4pzt,g_rtc,nctrltot,g_wfs,g_dm;
+	rtc_doimatkl4pzt,g_rtc,nctrltot,g_dm;
       }
       else{
-	   rtc_doimatkl,g_rtc,nctrltot,g_wfs,g_dm;
+	   rtc_doimatkl,g_rtc,nctrltot,g_dm;
       }
       imatkl = rtc_getimat(g_rtc,nctrltot);
       // Removing all the temporary objects

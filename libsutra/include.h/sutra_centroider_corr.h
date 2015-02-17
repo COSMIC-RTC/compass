@@ -18,7 +18,7 @@ public:
   carma_obj<float> *d_interpmat;
 
 public:
-  sutra_centroider_corr(carma_context *context, long nwfs, long nvalid,
+  sutra_centroider_corr(carma_context *context, sutra_sensors *sensors, int nwfs, long nvalid,
       float offset, float scale, int device);
   sutra_centroider_corr(const sutra_centroider_corr& centroider);
   ~sutra_centroider_corr();
@@ -27,20 +27,20 @@ public:
   get_type();
 
   int
-  init_corr(sutra_wfs *wfs, int isizex, int isizey, float *interpmat);
+  init_corr(int isizex, int isizey, float *interpmat);
   int
   load_corr(float *corr, float *corr_norm, int ndim);
 
   int
-  init_bincube(sutra_wfs *wfs);
+  init_bincube();
 
   int
   get_cog(carma_streams *streams, float *cube, float *subsum, float *centroids,
       int nvalid, int npix, int ntot);
   int
-  get_cog(sutra_wfs *wfs, float *slopes);
+  get_cog(float *slopes);
   int
-  get_cog(sutra_wfs *wfs);
+  get_cog();
 };
 
 #endif // _SUTRA_CENTROIDER_CORR_H_

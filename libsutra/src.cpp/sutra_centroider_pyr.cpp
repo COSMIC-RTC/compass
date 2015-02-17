@@ -1,12 +1,13 @@
 #include <sutra_centroider_pyr.h>
 #include <string>
 
-sutra_centroider_pyr::sutra_centroider_pyr(carma_context *context, long nwfs,
+sutra_centroider_pyr::sutra_centroider_pyr(carma_context *context, sutra_sensors *sensors, int nwfs,
     long nvalid, float offset, float scale, int device) {
   this->current_context = context;
 
   this->device = device;
   context->set_activeDevice(device);
+  this->wfs = sensors->d_wfs[nwfs];
   this->nwfs = nwfs;
   this->nvalid = nvalid;
   this->offset = offset;
@@ -23,11 +24,6 @@ string sutra_centroider_pyr::get_type() {
   return "pyr";
 }
 
-int sutra_centroider_pyr::init_bincube(sutra_wfs *wfs) {
-
-  return EXIT_SUCCESS;
-}
-
 int sutra_centroider_pyr::get_cog(carma_streams *streams, float *cube,
     float *subsum, float *centroids, int nvalid, int npix, int ntot) {
   //TODO: Implement sutra_centroider_pyr::get_cog
@@ -42,13 +38,13 @@ int sutra_centroider_pyr::get_pyr(float *cube, float *subsum, float *centroids,
   return EXIT_SUCCESS;
 }
 
-int sutra_centroider_pyr::get_cog(sutra_wfs *wfs, float *slopes) {
+int sutra_centroider_pyr::get_cog(float *slopes) {
   return this->get_pyr(*(wfs->d_bincube), *(wfs->d_subsum), slopes,
       *(wfs->d_validsubsx), *(wfs->d_validsubsy), wfs->nvalid,
       wfs->nfft / wfs->nrebin, 4);
 }
 
-int sutra_centroider_pyr::get_cog(sutra_wfs *wfs) {
-  return this->get_cog(wfs, *(wfs->d_slopes));
+int sutra_centroider_pyr::get_cog() {
+  return this->get_cog(*(wfs->d_slopes));
 }
 

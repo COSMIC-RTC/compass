@@ -10,7 +10,7 @@ public:
   float threshold;
 
 public:
-  sutra_centroider_tcog(carma_context *context, long nwfs, long nvalid,
+  sutra_centroider_tcog(carma_context *context, sutra_sensors *sensors, int nwfs, long nvalid,
       float offset, float scale, int device);
   sutra_centroider_tcog(const sutra_centroider& centroider);
   ~sutra_centroider_tcog();
@@ -22,15 +22,12 @@ public:
   set_threshold(float threshold);
 
   int
-  init_bincube(sutra_wfs *wfs);
-
-  int
   get_cog(carma_streams *streams, float *cube, float *subsum, float *centroids,
       int nvalid, int npix, int ntot);
   int
-  get_cog(sutra_wfs *wfs, float *slopes);
+  get_cog(float *slopes);
   int
-  get_cog(sutra_wfs *wfs);
+  get_cog();
 };
 
 #endif // _SUTRA_CENTROIDER_TCOG_H_

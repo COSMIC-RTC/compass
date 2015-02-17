@@ -353,7 +353,7 @@ func ao_loop(one)
     if ((y_wfs != []) && (g_wfs != [])) {
       // do centroiding
       if ((y_rtc != []) && (g_rtc != [])) {
-        rtc_docentroids,g_rtc,g_wfs,0;
+        rtc_docentroids,g_rtc,0;
         // compute command and apply
         if (g_dm != []) rtc_docontrol,g_rtc,0,g_dm;
       }
