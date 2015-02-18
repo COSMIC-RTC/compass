@@ -582,10 +582,8 @@ void subap_reduce(int size, int threads, int blocks, T *d_idata, T *d_odata,
   // when there is only one warp per block, we need to allocate two warps 
   // worth of shared memory so that we don't index shared memory out of bounds
   int smemSize =  threads * sizeof(T);
-  cutilSafeThreadSync();
   reduce2<T> <<<dimGrid, dimBlock, smemSize>>>(d_idata, d_odata, thresh,
       size,nelem_thread);
-  cutilSafeThreadSync();
   cutilCheckMsg("reduce_kernel<<<>>> execution failed\n");
 }
 template void
@@ -608,13 +606,11 @@ void subap_reduce(int size, int threads, int blocks, T *d_idata, T *d_odata,
 
   dim3 dimBlock(threads / nelem_thread, 1, 1);
   dim3 dimGrid(blocks, 1, 1);
-  cutilSafeThreadSync();
   // when there is only one warp per block, we need to allocate two warps 
   // worth of shared memory so that we don't index shared memory out of bounds
   int smemSize = threads * sizeof(T);
   reduce2<T> <<<dimGrid, dimBlock, smemSize>>>(d_idata, d_odata, weights,
       size,nelem_thread);
-  cutilSafeThreadSync();
   cutilCheckMsg("reduce_kernel<<<>>> execution failed\n");
 }
 template void
