@@ -672,7 +672,7 @@ extern rtc_doCphim;
 extern rtc_doimatkl;
 extern rtc_doimat;
 /* DOCUMENT rtc_doimat
-   rtc_doimat,yoga_rtc_obj,ncontroller,yoga_wfs_obj,yoga_dm_obj[,geomtype]
+   rtc_doimat,yoga_rtc_obj,ncontroller,yoga_dm_obj[,geomtype]
    do imat for a controller in a yoga_rtc_obj object
    geomtype : optional, type of geometric slopes computation
       
@@ -1201,12 +1201,10 @@ extern dms_comp_shape;
 
 extern sensors_compslopes;
 /* DOCUMENT sensors_compslopes
-   sensors_compslopes,yoga_sensors_obj,nsensor,yoga_rtc_obj,ncentro[,nmax/threshold]
+   sensors_compslopes,yoga_rtc_obj,ncentro[,nmax/threshold]
      
    general slopes computation for a given sensor in a ySensors object
    
-   yoga_sensors_obj : the ySensors object
-   nsensor          : index of given wfs
    yoga_rtc_obj     : the yRTC object
    ncentro          : index of given centroider
    nmax             : nmax brightest pixels (if not provided set to default in centroider struct)
@@ -1229,7 +1227,7 @@ extern sensors_initnmax;
 
 extern sensors_initweights;
 /* DOCUMENT sensors_initweights
-   sensors_initweights,yoga_sensors_obj,nsensor,yoga_rtc_obj,ncentro,weights
+   sensors_initweights,yoga_rtc_obj,ncentro,weights
      
    init structures for weighted cog centroiding for a given sensor in a ySensors object
    and loads corresponding weighting functions
@@ -1271,13 +1269,11 @@ extern sensors_loadweights;
 
 extern sensors_initcorr;
 /* DOCUMENT sensors_initcorr
-   sensors_initcorr,yoga_sensors_obj,nsensor,yoga_rtc_obj,ncentro,corrfnct,corr_norm,sizex,sizey,interpmat
+   sensors_initcorr,yoga_rtc_obj,ncentro,corrfnct,corr_norm,sizex,sizey,interpmat
      
    init structures for correlation centroiding for a given sensor in a ySensors object
    and loads corresponding corr functions
    
-   yoga_sensors_obj : the ySensors object
-   nsensor          : index of given wfs
    yoga_rtc_obj     : the yRTC object
    ncentro          : index of given centroider
    corrfnct         : function to use for correlation can be 2d (same for all subaps) or 3d array
@@ -1291,12 +1287,11 @@ extern sensors_initcorr;
 
 extern sensors_loadcorrfnct;
 /* DOCUMENT sensors_loadcorrfnct
-   sensors_loadcorrfnct,yoga_sensors_obj,yoga_rtc_obj,ncentro,corrfnct,corr_norm
+   sensors_loadcorrfnct,yoga_rtc_obj,ncentro,corrfnct,corr_norm
      
    loads functions to use for correlationcentroiding for a given sensor
    in a ySensors object
    
-   yoga_sensors_obj : the ySensors object
    yoga_rtc_obj     : the yRTC object
    ncentro          : index of given centroider
    corrfnct         : function to use for correlation can be 2d

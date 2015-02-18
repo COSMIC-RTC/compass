@@ -30,14 +30,16 @@ OBJS += $(patsubst $(CU_DIR)/%.cu,$(OBJ_DIR)/%.cuo,$(SRC_CU))
 OBJS += $(patsubst %.cpp,%.o,$(CURED_CPP))
 
 
-LIB_DEPLIBS= -L$(CUDA_LIB_PATH_64) -lcudart -lcublas -lcufft -lstdc++ -lcurand
-LIB_DEPLIBS += -L$(COMPASS_ROOT_DIR)/libcarma -lcarma
+LIB_DEPLIBS  = -Wl,-rpath=$(CUDA_LIB_PATH_64) -L$(CUDA_LIB_PATH_64)
+LIB_DEPLIBS += -lcudart -lcublas -lcufft -lstdc++ -lcurand
+LIB_DEPLIBS += -Wl,-rpath=$(COMPASS_ROOT_DIR)/libcarma -L$(COMPASS_ROOT_DIR)/libcarma -lcarma
 
 
 # set compiler (or rarely loader) flags specific to this package
 
 
-LIB_CPPFLAGS = -c -fPIC -Wall -Wno-unused-result -DUNIX -I$(H_DIR) -I$(COMPASS_ROOT_DIR)/libcarma/$(H_DIR) -I$(CUDA_INC_PATH) -I$(CURED_INC_PATH)
+LIB_CPPFLAGS = -c -fPIC -Wall -Wno-unused-result -DUNIX
+LIB_CPPFLAGS+= -I$(H_DIR) -I$(COMPASS_ROOT_DIR)/libcarma/$(H_DIR) -I$(CUDA_INC_PATH) -I$(CURED_INC_PATH)
 
 ifneq ($(DEBUG),)
   LIB_CPPFLAGS+= -g -DDEBUG
@@ -47,8 +49,8 @@ else
   NVCCFLAGS+= -O3
 endif
 
-MPICXX           = $(shell hich mpicxx 2>/dev/null)
-ICC              = $(shell which icc)
+MPICXX           = $(shell which mpicxx 2>/dev/null)
+ICC              = $(shell which icc 2>/dev/null)
 
 ifeq ($(MPICXX),)
 ifeq ($(ICC),)
@@ -63,17 +65,18 @@ endif
 ifneq ($(ICC),)
   GCC = $(ICC)
 endif
+
 GCC := $(CC)
 
-
 NVCC = $(CUDA_ROOT)/bin/nvcc
-NVCCFLAGS += -m64 -Xcompiler -fPIC -use_fast_math -c -I$(CUH_DIR)  -I$(H_DIR) \
-	-I$(COMPASS_ROOT_DIR)/libcarma/$(CUH_DIR)  -I$(COMPASS_ROOT_DIR)/libcarma/$(H_DIR) -I$(CURED_INC_PATH) -gencode $(GENCODE)
+NVCCFLAGS += -m64 -Xcompiler -fPIC -use_fast_math -c
+NVCCFLAGS += -I$(CUH_DIR)  -I$(H_DIR) -I$(COMPASS_ROOT_DIR)/libcarma/$(CUH_DIR)  
+NVCCFLAGS += -I$(COMPASS_ROOT_DIR)/libcarma/$(H_DIR) -I$(CURED_INC_PATH) -gencode $(GENCODE)
 
 ifneq ($(COMPILATION_LAM),)
   CFLAGS = -DCOMPILATION_LAM -O3 -DHAVE_CUBLAS -I$(MAGMA_ROOT)/include -I$(LAM_KP_CLASSES_DIR) -I$(LAM_KP_INTERFACE_DIR) -I$(LAM_KALMAN_DIR)
-  LIB_DEPLIBS += -L$(NVIDIA_CURRENT_LIB_PATH_64) -lcuda -lgsl
-  LIB_DEPLIBS += -L$(MAGMA_ROOT)/lib -lmagma
+  LIB_DEPLIBS += -Wl,-rpath=$(NVIDIA_CURRENT_LIB_PATH_64) -L$(NVIDIA_CURRENT_LIB_PATH_64) -lcuda -lgsl
+  LIB_DEPLIBS += -Wl,-rpath=$(MAGMA_ROOT)/lib -L$(MAGMA_ROOT)/lib -lmagma
   LIB_DEPLIBS += $(LAM_KP_CLASSES_DIR)/lib_kp_classes.a
   LIB_DEPLIBS += $(LAM_KALMAN_DIR)/lib_kalman.a
   LIB_CPPFLAGS += -lmkl_intel_lp64 -lmkl_intel_thread -lmkl_core -liomp5 -lpthread -lm
@@ -82,6 +85,11 @@ endif
 
 ifeq ($(filter $(COMPILATION_LAM),double),double)
   CFLAGS += -DKP_DOUBLE
+endif
+
+ifneq ($(BRAMA_ROOT),)
+ LIB_CPPFLAGS  += -I$(BRAMA_ROOT) -I$(ACE_ROOT) -I$(TAO_ROOT) -I$(TAO_ROOT)/orbsvcs -I$(DDS_ROOT) -DUSE_BRAMA
+ LIB_DEPLIBS   += -Wl,-rpath=$(BRAMA_ROOT) -L$(BRAMA_ROOT) -lBRAMACommon 
 endif
 
 all: $(LIB_NAME)

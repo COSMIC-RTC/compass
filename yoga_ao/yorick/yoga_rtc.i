@@ -36,7 +36,7 @@ func imat_init(ncontrol,clean=)
   if (imat_clean) {
     write,format="%s", "doing imat... ";
     tic;
-    rtc_doimat,g_rtc,ncontrol-1,g_wfs,g_dm;
+    rtc_doimat,g_rtc,ncontrol-1,g_dm;
     write,format = "done in : %f s\n",tac();  
     imat = rtc_getimat(g_rtc,ncontrol-1);
     if (simul_name != []) {
@@ -90,7 +90,7 @@ func imat_init_old(ncontrol,clean=)
     }
     
     //yoga_start_profile;
-    rtc_doimat,g_rtc,ncontrol-1,g_wfs,g_dm;
+    rtc_doimat,g_rtc,ncontrol-1,g_dm;
     imat = rtc_getimat(g_rtc,ncontrol-1);
     //yoga_stop_profile;
     
@@ -1413,7 +1413,7 @@ func openLoopSlp(nrec,nctrl){
 	  sensors_compimg,g_wfs,ww-1;
 	}
 
-	sensors_compslopes,g_wfs,ww-1,g_rtc,nctrl-1;
+	sensors_compslopes,g_rtc,nctrl-1;
 	ol_slopes((ww-1)*y_wfs(ww)._nvalid*2+1:ww*y_wfs(ww)._nvalid*2,sc) = sensors_getslopes(g_wfs,ww-1);
       }
     }

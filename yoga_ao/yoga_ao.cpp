@@ -2367,14 +2367,12 @@ void Y_rtc_doimat(int argc) {
   rtc_struct *rhandler = (rtc_struct *) yget_obj(argc - 1, &yRTC);
   sutra_rtc *rtc_handler = (sutra_rtc *) (rhandler->sutra_rtc);
   long ncontrol = ygets_l(argc - 2);
-  sensors_struct *handler = (sensors_struct *) yget_obj(argc - 3, &ySensors);
-  sutra_sensors *sensors_handler = (sutra_sensors *) (handler->sutra_sensors);
-  dms_struct *handlera = (dms_struct *) yget_obj(argc - 4, &yDMs);
+  dms_struct *handlera = (dms_struct *) yget_obj(argc - 3, &yDMs);
   sutra_dms *dms_handler = (sutra_dms *) (handlera->sutra_dms);
 
   int geom = -1;
-  if (argc > 4)
-    geom = ygets_i(argc - 5);
+  if (argc > 3)
+    geom = ygets_i(argc - 4);
   //rtc_struct *handle    =(rtc_struct *)ypush_obj(&yRTC, sizeof(rtc_struct));
 
   carma_context *context_handle = _getCurrentContext();
@@ -3185,19 +3183,15 @@ void Y_sensors_initweights(int argc) {
   long ntot;
   long dims[Y_DIMSIZE];
 
-  sensors_struct *handler = (sensors_struct *) yget_obj(argc - 1, &ySensors);
-  sutra_sensors *sensors_handler = (sutra_sensors *) (handler->sutra_sensors);
+  rtc_struct *rhandler = (rtc_struct *) yget_obj(argc - 1, &yRTC);
+  sutra_rtc *rtc_handler = (sutra_rtc *) (rhandler->sutra_rtc);
+  int ncentro = ygets_i(argc - 2);
+
+  float *weights = ygeta_f(argc - 3, &ntot, dims);
 
   carma_context *context_handle = _getCurrentContext();
-  context_handle->set_activeDevice(handler->device);
+  context_handle->set_activeDevice(rhandler->device);
 
-  int nsensor = ygets_i(argc - 2);
-
-  rtc_struct *rhandler = (rtc_struct *) yget_obj(argc - 3, &yRTC);
-  sutra_rtc *rtc_handler = (sutra_rtc *) (rhandler->sutra_rtc);
-  int ncentro = ygets_i(argc - 4);
-
-  float *weights = ygeta_f(argc - 5, &ntot, dims);
   SCAST(sutra_centroider_wcog *, centroider_wcog,
       rtc_handler->d_centro.at(ncentro));
   centroider_wcog->init_weights();
@@ -3224,24 +3218,19 @@ void Y_sensors_initcorr(int argc) {
   long ntot;
   long dims[Y_DIMSIZE];
 
-  sensors_struct *handler = (sensors_struct *) yget_obj(argc - 1, &ySensors);
-  sutra_sensors *sensors_handler = (sutra_sensors *) (handler->sutra_sensors);
+  rtc_struct *rhandler = (rtc_struct *) yget_obj(argc - 1, &yRTC);
+  sutra_rtc *rtc_handler = (sutra_rtc *) (rhandler->sutra_rtc);
+  int ncentro = ygets_i(argc - 2);
+
+  float *weights = ygeta_f(argc - 3, &ntot, dims);
+  int mydim = dims[0];
+  float *corr_norm = ygeta_f(argc - 4, &ntot, dims);
+  int sizex = ygets_i(argc - 5);
+  int sizey = ygets_i(argc - 6);
+  float *interpmat = ygeta_f(argc - 7, &ntot, dims);
 
   carma_context *context_handle = _getCurrentContext();
-  context_handle->set_activeDevice(handler->device);
-
-  int nsensor = ygets_i(argc - 2);
-
-  rtc_struct *rhandler = (rtc_struct *) yget_obj(argc - 3, &yRTC);
-  sutra_rtc *rtc_handler = (sutra_rtc *) (rhandler->sutra_rtc);
-  int ncentro = ygets_i(argc - 4);
-
-  float *weights = ygeta_f(argc - 5, &ntot, dims);
-  int mydim = dims[0];
-  float *corr_norm = ygeta_f(argc - 6, &ntot, dims);
-  int sizex = ygets_i(argc - 7);
-  int sizey = ygets_i(argc - 8);
-  float *interpmat = ygeta_f(argc - 9, &ntot, dims);
+  context_handle->set_activeDevice(rhandler->device);
 
   SCAST(sutra_centroider_corr *, centroider_corr,
       rtc_handler->d_centro.at(ncentro));
@@ -3254,18 +3243,16 @@ void Y_sensors_loadcorrfnct(int argc) {
   long ntot;
   long dims[Y_DIMSIZE];
 
-  sensors_struct *handler = (sensors_struct *) yget_obj(argc - 1, &ySensors);
+  rtc_struct *rhandler = (rtc_struct *) yget_obj(argc - 1, &yRTC);
+  sutra_rtc *rtc_handler = (sutra_rtc *) (rhandler->sutra_rtc);
+  int ncentro = ygets_i(argc - 2);
+
+  float *weights = ygeta_f(argc - 3, &ntot, dims);
+  int mydim = dims[0];
+  float *corr_norm = ygeta_f(argc - 4, &ntot, dims);
 
   carma_context *context_handle = _getCurrentContext();
-  context_handle->set_activeDevice(handler->device);
-
-  rtc_struct *rhandler = (rtc_struct *) yget_obj(argc - 2, &yRTC);
-  sutra_rtc *rtc_handler = (sutra_rtc *) (rhandler->sutra_rtc);
-  int ncentro = ygets_i(argc - 3);
-
-  float *weights = ygeta_f(argc - 4, &ntot, dims);
-  int mydim = dims[0];
-  float *corr_norm = ygeta_f(argc - 5, &ntot, dims);
+  context_handle->set_activeDevice(rhandler->device);
 
   SCAST(sutra_centroider_corr *, centroider_corr,
       rtc_handler->d_centro.at(ncentro));
@@ -3293,15 +3280,12 @@ void Y_sensors_loadweights(int argc) {
 }
 
 void Y_sensors_compslopes(int argc) {
-  sensors_struct *handler = (sensors_struct *) yget_obj(argc - 1, &ySensors);
-  sutra_sensors *sensors_handler = (sutra_sensors *) (handler->sutra_sensors);
-  int nsensor = ygets_i(argc - 2);
-  rtc_struct *rhandler = (rtc_struct *) yget_obj(argc - 3, &yRTC);
+  rtc_struct *rhandler = (rtc_struct *) yget_obj(argc - 1, &yRTC);
   sutra_rtc *rtc_handler = (sutra_rtc *) (rhandler->sutra_rtc);
-  int ncentro = ygets_i(argc - 4);
+  int ncentro = ygets_i(argc - 2);
 
   carma_context *context_handle = _getCurrentContext();
-  context_handle->set_activeDevice(handler->device);
+  context_handle->set_activeDevice(rhandler->device);
 
   //cout << ncentro << " " << (rtc_handler->d_centro.at(ncentro)->typec) << endl;
   if (argc > 4) {

@@ -666,7 +666,7 @@ func rtc_init(clean=)
           }
           
           if (centroiders(i).type == "wcog") {
-            sensors_initweights,g_wfs,nwfs-1,g_rtc,i-1,*(centroiders(i).weights);
+            sensors_initweights,g_rtc,i-1,*(centroiders(i).weights);
           }
           
           if (centroiders(i).type == "corr") {
@@ -676,7 +676,7 @@ func rtc_init(clean=)
             centroiders(i).sizex = 3;
             centroiders(i).sizey = 3;
             centroiders(i).interpmat = &float(create_interp_mat(centroiders(i).sizex,centroiders(i).sizey));
-            sensors_initcorr,g_wfs,nwfs-1,g_rtc,i-1,*(centroiders(i).weights),corrnorm,
+            sensors_initcorr,g_rtc,i-1,*(centroiders(i).weights),corrnorm,
               centroiders(i).sizex,centroiders(i).sizey,*(centroiders(i).interpmat);
           }
         }

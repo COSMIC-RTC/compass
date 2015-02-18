@@ -14,8 +14,8 @@ SRC_CU  = $(wildcard $(CU_DIR)/*.cu)
 OBJS := $(patsubst $(CPP_DIR)/%.cpp,$(OBJ_DIR)/%.o,$(SRC_CPP)) 
 OBJS += $(patsubst $(CU_DIR)/%.cu,$(OBJ_DIR)/%.cuo,$(SRC_CU)) 
 
-LIB_DEPLIBS  = -fPIC -Wall -lstdc++ 
-LIB_DEPLIBS += -L$(CUDA_LIB_PATH_64) -lcuda -lcudart -lcublas -lcufft -lcurand -lcusparse -lnvToolsExt  -lpthread
+LIB_DEPLIBS  = -fPIC -shared -Wl,-rpath=$(CUDA_LIB_PATH_64) -L$(CUDA_LIB_PATH_64)
+LIB_DEPLIBS += -lcuda -lcudart -lcublas -lcufft -lcurand -lcusparse -lnvToolsExt  -lpthread
 
 # set compiler (or rarely loader) flags specific to this package
 LIB_CPPFLAGS = -c -fPIC -Wall -fno-common -I$(H_DIR) -I$(CUDA_INC_PATH)
@@ -61,7 +61,7 @@ ifneq ($(MAGMA_ROOT),)
  LIB_CPPFLAGS  += -I$(MAGMA_ROOT)/include -DUSE_MAGMA #-DUSE_MAGMA_WITH_MKL
  LIB_CPPFLAGS  += -DADD_ -DHAVE_CUBLAS -DMAGMA_SETAFFINITY #-DMAGMA_ILP64 -DMKL_ILP64
  LIB_NVCCFLAGS += -Xcompiler -fno-strict-aliasing
- LIB_DEPLIBS   += -L$(MAGMA_ROOT)/lib -lmagma 
+ LIB_DEPLIBS   += -Wl,-rpath=$(MAGMA_ROOT)/lib -L$(MAGMA_ROOT)/lib -lmagma 
 endif
 
 #ifneq ($(COMPILATION_LAM),)
@@ -84,5 +84,5 @@ $(OBJ_DIR)/%.o: $(CPP_DIR)/%.cpp
 
 $(LIB_NAME): $(OBJS)
 	@printf '\033[36m%s\033[31m%s\033[m\n' "Linking       " $(LIB_NAME)
-	@$(GCC) -shared $(OBJS) -o $@ $(LIB_DEPLIBS)
+	@$(GCC) $(OBJS) -o $@ $(LIB_DEPLIBS)
 

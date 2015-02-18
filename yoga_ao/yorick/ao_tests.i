@@ -446,29 +446,29 @@ func script_wfs(filename,&slpgeom1,&slpgeom2,verbose=)
       if (ncentro > 0) {
         for (i=1;i<=ncentro;i++) {
           if (centroiders(i).type == "cog") {
-          sensors_compslopes,g_wfs,centroiders(i).nwfs-1,g_rtc,i-1;
+          sensors_compslopes,g_rtc,i-1;
           tmps = sensors_getslopes(g_wfs,centroiders(i).nwfs-1);
           tmps = (tmps - (y_wfs(centroiders(i).nwfs).npix/2.+0.5))*y_wfs(centroiders(i).nwfs).pixsize;
           }
           if (centroiders(i).type == "tcog") {
             extra = centroiders(i).thresh;
-            sensors_compslopes,g_wfs,centroiders(i).nwfs-1,g_rtc,i-1,extra;
+            sensors_compslopes,g_rtc,i-1,extra;
           tmps = sensors_getslopes(g_wfs,centroiders(i).nwfs-1);
           tmps = (tmps - (y_wfs(centroiders(i).nwfs).npix/2.+0.5))*y_wfs(centroiders(i).nwfs).pixsize;
           }
           if (centroiders(i).type == "bpcog") {
             extra = long(centroiders(i).nmax);
-            sensors_compslopes,g_wfs,centroiders(i).nwfs-1,g_rtc,i-1,extra;
+            sensors_compslopes,g_rtc,i-1,extra;
           tmps = sensors_getslopes(g_wfs,centroiders(i).nwfs-1);
           tmps = (tmps - (y_wfs(centroiders(i).nwfs).npix/2.+0.5))*y_wfs(centroiders(i).nwfs).pixsize;
           }
           if (centroiders(i).type == "wcog") {
-          sensors_compslopes,g_wfs,centroiders(i).nwfs-1,g_rtc,i-1,extra;
+          sensors_compslopes,g_rtc,i-1,extra;
           tmps = sensors_getslopes(g_wfs,centroiders(i).nwfs-1);
           tmps = (tmps - (y_wfs(centroiders(i).nwfs).npix/2.+0.5))*y_wfs(centroiders(i).nwfs).pixsize;
           }
           if (centroiders(i).type == "corr") {
-          sensors_compslopes,g_wfs,centroiders(i).nwfs-1,g_rtc,i-1;
+          sensors_compslopes,g_rtc,i-1;
           tmps = sensors_getslopes(g_wfs,centroiders(i).nwfs-1);
           tmps = (tmps - (y_wfs(centroiders(i).nwfs).npix/2.+1.))*y_wfs(centroiders(i).nwfs).pixsize;
           }
@@ -658,7 +658,7 @@ func check_centroiding(filename,thresh=,nmax=)
   // first put back slopes to geom to be sure d_slopes are modified in yoga_wfs
   slopes_geom,g_wfs,0,0;
   // check slopes
-  sensors_compslopes,g_wfs,0,g_rtc,0;
+  sensors_compslopes,g_rtc,0;
   slp2=sensors_getslopes(g_wfs,0);
   res2=sensors_getdata(g_wfs,0,"bincube");
   tmp=indices(y_wfs(1).npix);
@@ -676,7 +676,7 @@ func check_centroiding(filename,thresh=,nmax=)
   // check thresholded slopes 
   thresh = (*y_rtc.centroiders)(2).thresh;
   if (thresh == []) thresh=1000.;
-  sensors_compslopes,g_wfs,0,g_rtc,1,thresh;
+  sensors_compslopes,g_rtc,1,thresh;
   slp2=sensors_getslopes(g_wfs,0);
   res2=sensors_getdata(g_wfs,0,"bincube");
   tmp=indices(y_wfs(1).npix);
@@ -694,7 +694,7 @@ func check_centroiding(filename,thresh=,nmax=)
   // to convert in arcsec : (slp2-(y_wfs(nwfs).npix/2.+0.5))*y_wfs(nwfs).pixsize
 
   // check slopes wcog
-  sensors_compslopes,g_wfs,0,g_rtc,3;
+  sensors_compslopes,g_rtc,3;
   slp2=sensors_getslopes(g_wfs,0);
   res2=sensors_getdata(g_wfs,0,"bincube");
   tmp=indices(y_wfs(1).npix);
@@ -712,7 +712,7 @@ func check_centroiding(filename,thresh=,nmax=)
   // check slopes nmax
   nmax = (*y_rtc.centroiders)(3).nmax;
   if (nmax == []) nmax=5;
-  sensors_compslopes,g_wfs,0,g_rtc,2,long(nmax);
+  sensors_compslopes,g_rtc,2,long(nmax);
   slp2=sensors_getslopes(g_wfs,0);
   res2=sensors_getdata(g_wfs,0,"bincube");
   tmp=indices(y_wfs(1).npix);
@@ -751,7 +751,7 @@ for (i=1;i<=dimsof(res2)(4);i++){
   }
   */
  
-  sensors_compslopes,g_wfs,0,g_rtc,4;
+  sensors_compslopes,g_rtc,4;
   res2=centroider_getdata(g_rtc,4,"corr");
   res3=sensors_getdata(g_wfs,0,"bincube");
   rcorr = res2 * 0.0f;
