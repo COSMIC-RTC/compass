@@ -34,6 +34,7 @@
 #include <sstream>
 #include <iomanip>
 #include "yoga_api.h"
+#include "pstdlib.h"
 
 static y_userobj_t yContext = {
 /**
@@ -350,6 +351,33 @@ void Y_context_getactivedevice(int argc)
   }
 }
 
+void Y_context_get_device_name(int argc)
+/** @brief simple routine to retrieve current active device
+ *  @param[in] argc : command line argument (current context expected)
+ *  the current active device id is pushed on the stack
+ */
+{
+  try {
+    carma_context *context_handle = _getCurrentContext();
+    int device = context_handle->get_activeDevice();
+    if(argc>0)
+      device = ygets_i(argc - 1);
+
+    string name = context_handle->get_activeDeviceName(device);
+    //long name_len = static_cast<long>(name.length());
+    //long dims[Y_DIMSIZE]={1, 1};
+    ystring_t *yname = ypush_q(0);
+    *yname=p_strcpy(name.c_str());
+    strcpy(*yname, name.c_str());
+
+  } catch (...) {
+    stringstream buf;
+    buf << "unknown error with carma_context in " << __FILE__ << "@" << __LINE__
+        << endl;
+    y_error(buf.str().c_str());
+  }
+}
+
 void Y_context_get_maxGflopsDeviceId(int argc)
 /** @brief simple routine to retrieve current active device
  *  @param[in] argc : command line argument (current context expected)
@@ -357,8 +385,7 @@ void Y_context_get_maxGflopsDeviceId(int argc)
  */
 {
   try {
-    context_struct *handle = (context_struct *) yget_obj(argc - 1, &yContext);
-    carma_context *context_handle = (carma_context *) handle->carma_context;
+    carma_context *context_handle = _getCurrentContext();
     int device = context_handle->get_maxGflopsDeviceId();
     ypush_int(device);
   } catch (...) {

@@ -174,6 +174,8 @@ Y_yoga_context(int argc);
 void
 Y_context_getactivedevice(int argc);
 void
+Y_context_get_device_name(int argc);
+void
 Y_context_get_maxGflopsDeviceId(int argc);
 void
 Y_activeDevice(int argc);

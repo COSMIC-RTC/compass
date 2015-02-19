@@ -98,7 +98,7 @@ public:
   int get_activeDevice() {
     return activeDevice;
   }
-  string get_activeDeviceStr();
+  string get_activeDeviceName(int device);
   int set_activeDevice(int newDevice, int silent = 1);
   int set_activeDeviceForce(int newDevice, int silent = 1);
   int set_activeDeviceForCpy(int newDevice, int silent = 1);

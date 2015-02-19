@@ -1009,7 +1009,26 @@ extern yoga_sparse_host_obj
 */
 
 extern context_getactivedevice;
+/* DOCUMENT context_getactivedevice
+   device = context_getactivedevice()
+   
+   SEE ALSO:
+*/
+
+extern context_get_device_name;
+/* DOCUMENT context_get_device_name
+   device_name = context_get_device_name()
+   
+   SEE ALSO:
+*/
+
 extern context_get_maxGflopsDeviceId;
+/* DOCUMENT context_get_maxGflopsDeviceId
+   maxGflopsDeviceId = context_get_maxGflopsDeviceId()
+   
+   SEE ALSO:
+*/
+
 
 /*  __  __       _       
  * |  \/  | __ _(_)_ __  

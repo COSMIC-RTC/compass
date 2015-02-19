@@ -204,12 +204,10 @@ int carma_context::set_activeDeviceForce(int newDevice, int silent) {
   return activeDevice;
 }
 
-string carma_context::get_activeDeviceStr() {
-  cudaDeviceProp deviceProp;
-  cutilSafeCall(cudaGetDeviceProperties(&deviceProp, activeDevice));
+string carma_context::get_activeDeviceName(int device) {
   stringstream buf;
-  buf << "Using device " << activeDevice << ": \"" << devices[activeDevice]->get_properties().name
-      << "\" with Compute " << devices[activeDevice]->get_properties().major << "." << devices[activeDevice]->get_properties().minor
+  buf << "device " << device << ": \"" << devices[device]->get_properties().name
+      << "\" with Compute " << devices[device]->get_properties().major << "." << devices[device]->get_properties().minor
       << " capability" << endl;
   return buf.str();
 }
