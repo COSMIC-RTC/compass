@@ -122,7 +122,7 @@ sutra_controller_geo::init_proj_sparse(sutra_dms *dms, int *indx_dm, float *unit
 	map<type_screen, sutra_dm *>::iterator p;
 	p = dms->d_dms.begin();
 	while (p != dms->d_dms.end()) {
-	  p->second->get_IF_sparse<double>(d_IFi[ind], d_indx.getData(this->Nphi * ind), this->Nphi, 1.0f);
+	  p->second->get_IF_sparse<double>(d_IFi[ind], d_indx.getData(this->Nphi * ind), this->Nphi, 1.0f,1);
 	  NNZ[ind] = d_IFi[ind]->nz_elem;
 	  Nact[ind] = p->second->ninflu;
 	  nnz += d_IFi[ind]->nz_elem;

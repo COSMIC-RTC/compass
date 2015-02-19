@@ -15,6 +15,9 @@ sutra_dm::sutra_dm(carma_context *context, const char* type, long dim,
   this->d_zr = NULL;
   this->d_ztheta = NULL;
   this->d_KLbasis = NULL;
+  //this->d_IFsparse = NULL;
+  //this->d_commdouble = NULL;
+  //this->d_shapedouble = NULL;
 
   this->current_context = context;
   this->ninflu = ninflu;
@@ -45,8 +48,11 @@ sutra_dm::sutra_dm(carma_context *context, const char* type, long dim,
   }
 
   if (strcmp(type, "pzt") == 0) {
+	//this->d_IFsparse = 0L;
+	//this->d_commdouble = new carma_obj<float>(context, dims_data1);
     dims_data1[1] = ninflupos;
     this->d_influpos = new carma_obj<int>(context, dims_data1);
+    //this->d_shapedouble = new carma_obj<double>(context,this->d_shape->d_screen->getDims());
 
     dims_data1[1] = n_npoints;
     this->d_npoints = new carma_obj<int>(context, dims_data1);
@@ -92,6 +98,14 @@ sutra_dm::~sutra_dm() {
     delete this->d_ztheta;
   if (this->d_KLbasis != NULL)
     delete this->d_KLbasis;
+  /*
+  if (this->d_IFsparse != NULL)
+    delete this->d_IFsparse;
+  if (this->d_commdouble != NULL)
+    delete this->d_commdouble;
+  if (this->d_shapedouble != NULL)
+    delete this->d_shapedouble;
+    */
 }
 
 int sutra_dm::pzt_loadarrays(float *influ, int *influpos, int *npoints,
@@ -102,6 +116,10 @@ int sutra_dm::pzt_loadarrays(float *influ, int *influpos, int *npoints,
   this->d_istart->host2device(istart);
   this->d_influpos->host2device(influpos);
   this->d_npoints->host2device(npoints);
+  /*
+  int *osef;
+  this->get_IF_sparse(this->d_IFsparse,osef,this->d_shape->d_screen->getNbElem(),1.0f,0);
+  */
 
   return EXIT_SUCCESS;
 }
@@ -136,12 +154,21 @@ int sutra_dm::comp_shape(float *comvec) {
   getNumBlocksAndThreads(current_context->get_device(device), this->d_shape->d_screen->getNbElem(),
       nblocks, nthreads);
 
-  if (this->type == "pzt")
+  if (this->type == "pzt"){
+	  //IFsparse version
+	  /*
+	floattodouble(comvec,d_commdouble->getData(),this->ninflu,current_context->get_device(device));
+	carma_gemv(cusparse_handle(),'t',1.0,this->d_IFsparse,this->d_commdouble,0.0,this->d_shapedouble);
+	doubletofloat(this->d_shapedouble->getData(),this->d_shape->d_screen->getData(),this->d_shape->d_screen->getNbElem(),current_context->get_device(device));
+	*/
+
     comp_dmshape(nthreads, nblocks, this->d_influ->getData(),
         this->d_shape->d_screen->getData(), this->d_influpos->getData(),
         this->d_istart->getData(), this->d_npoints->getData(), comvec,
         this->influsize * this->influsize,
         this->d_shape->d_screen->getNbElem());
+
+  }
 
   if (this->type == "tt")
     comp_fulldmshape(nthreads, nblocks, this->d_influ->getData(),
@@ -195,7 +222,7 @@ sutra_dm::get_IF(T *IF, int *indx_pup, long nb_pts, float ampli){
 
 	for (int i=0 ; i<this->ninflu ; i++){
 		this->comp_oneactu(i,ampli);
-		getIF<T>(IF,this->d_shape->d_screen->getData(),indx_pup,nb_pts,i,this->ninflu,current_context->get_device(device));
+		getIF<T>(IF,this->d_shape->d_screen->getData(),indx_pup,nb_pts,i,1,this->ninflu,current_context->get_device(device));
 	}
 
 	this->reset_shape();
@@ -209,7 +236,7 @@ sutra_dm::get_IF<double>(double *IF, int *indx_pup, long nb_pts, float ampli);
 
 template<class T>
 int
-sutra_dm::get_IF_sparse(carma_sparse_obj<T> *&d_IFsparse, int *indx_pup, long nb_pts, float ampli){
+sutra_dm::get_IF_sparse(carma_sparse_obj<T> *&d_IFsparse, int *indx_pup, long nb_pts, float ampli, int puponly){
 
 	int nnz_tot = 0;
 	float *values[this->ninflu];
@@ -223,7 +250,7 @@ sutra_dm::get_IF_sparse(carma_sparse_obj<T> *&d_IFsparse, int *indx_pup, long nb
 	for(int i=0 ; i<this->ninflu ; i++){
 		//Compute and store IF for actu i in d_IF
 		this->comp_oneactu(i,ampli);
-		getIF<T>(d_IF.getData(),this->d_shape->d_screen->getData(),indx_pup,nb_pts,0,this->ninflu,this->current_context->get_device(device));
+		getIF<T>(d_IF.getData(),this->d_shape->d_screen->getData(),indx_pup,nb_pts,0,this->ninflu,puponly,this->current_context->get_device(device));
 		//CUsparse d_IF
 		d_IFsparse_vec = new carma_sparse_obj<T>(&d_IF);
 		// Retrieve nnz, values and colind from d_IFsparse_vec, stored on CPU
@@ -266,15 +293,16 @@ sutra_dm::get_IF_sparse(carma_sparse_obj<T> *&d_IFsparse, int *indx_pup, long nb
 		  cudaMemcpyAsync(d_row.getData(), cpt, sizeof(int) * (this->ninflu + 1),
 			  cudaMemcpyHostToDevice));
 	dims_data2[1] = this->ninflu;
+
 	d_IFsparse = new carma_sparse_obj<T>(current_context, dims_data2,
 			d_val.getData(), d_col.getData(), d_row.getData(),nnz_tot,false);
 
 	return EXIT_SUCCESS;
 }
 template int
-sutra_dm::get_IF_sparse<float>(carma_sparse_obj<float> *&d_IFsparse, int *indx_pup, long nb_pts, float ampli);
+sutra_dm::get_IF_sparse<float>(carma_sparse_obj<float> *&d_IFsparse, int *indx_pup, long nb_pts, float ampli, int puponly);
 template int
-sutra_dm::get_IF_sparse<double>(carma_sparse_obj<double> *&d_IFsparse, int *indx_pup, long nb_pts, float ampli);
+sutra_dm::get_IF_sparse<double>(carma_sparse_obj<double> *&d_IFsparse, int *indx_pup, long nb_pts, float ampli, int puponly);
 
 int
 sutra_dm::compute_KLbasis(float *xpos, float *ypos, int *indx, long dim, float norm, float ampli){
@@ -311,14 +339,14 @@ sutra_dm::compute_KLbasis(float *xpos, float *ypos, int *indx, long dim, float n
 	d_indx->host2device(indx);
 
 	//Sparse version for geomat
-	carma_sparse_obj<double> *d_IFsparse;
+	carma_sparse_obj<double> *d_IFsparsepup;
 	carma_obj<double> *d_geodouble = new carma_obj<double>(current_context,d_geocov->getDims());
-	this->get_IF_sparse<double>(d_IFsparse,d_indx->getData(),dim,ampli);
-	this->do_geomatFromSparse(d_geodouble->getData(),d_IFsparse);
+	this->get_IF_sparse<double>(d_IFsparsepup,d_indx->getData(),dim,ampli,1);
+	this->do_geomatFromSparse(d_geodouble->getData(),d_IFsparsepup);
 	doubletofloat(d_geodouble->getData(),d_geocov->getData(),d_geocov->getNbElem(),current_context->get_device(device));
 
 	delete d_geodouble;
-	delete d_IFsparse;
+	delete d_IFsparsepup;
 	//Dense version for geomat
 /*
 	dims_data[1] = dim;
