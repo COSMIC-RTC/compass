@@ -1562,6 +1562,17 @@ void Y_sensors_getdata(int argc) {
     sensors_handler->d_wfs.at(nsensor)->d_gs->d_lgs->d_prof2d->device2host(
         (cuFloatComplex *) data);
   }
+  if (strcmp(type_data, "ftbeam") == 0) {
+    long *ndims_data = new long[3];
+    ndims_data[0] = 2;
+    ndims_data[1] = 2;
+    const long *ndims_obj =
+        sensors_handler->d_wfs.at(nsensor)->d_gs->d_lgs->d_ftbeam->getDims();
+    ndims_data[2] = ndims_obj[1];
+    float *data = ypush_f(ndims_data);
+    sensors_handler->d_wfs.at(nsensor)->d_gs->d_lgs->d_ftbeam->device2host(
+        (cuFloatComplex *) data);
+  }
   if (strcmp(type_data, "poffsets") == 0) {
     if ((sensors_handler->d_wfs.at(nsensor)->type == "pyr") ||
         (sensors_handler->d_wfs.at(nsensor)->type == "roof")){

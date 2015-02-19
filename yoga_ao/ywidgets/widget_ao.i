@@ -355,7 +355,8 @@ func ao_loop(one)
       if ((y_rtc != []) && (g_rtc != [])) {
         rtc_docentroids,g_rtc,0;
         // compute command and apply
-        if (g_dm != []) rtc_docontrol,g_rtc,0,g_dm;
+        rtc_docontrol,g_rtc,0;
+        if (g_dm != []) rtc_applycontrol,g_rtc,0,g_dm;
       }
     }
       
@@ -661,11 +662,13 @@ func update_main(type,nlayer)
     window,(*ao_disp._wins)(1);fma;
     Di=dimsof(mimg);
     mimg=roll(mimg);
-    OWA=2*y_dm.nact(1);
+    //OWA=2*y_dm.nact(1);
+    OWA = Di(2) > 128 ? 64 : Di(2);
     mimg=mimg(Di(2)/2-1-OWA:Di(2)/2+OWA,Di(2)/2-1-OWA:Di(2)/2+OWA);
     mimg=mimg*(mimg > max(mimg)/100000)+max(mimg)/100000*(mimg < max(mimg)/100000);
-    pli,log10(mimg);
-    myxtitle = swrite(format="image (log scale) for target # %d", nlayer+1);
+    //pli,log10(mimg);    
+    pli,mimg;
+    myxtitle = swrite(format="image for target # %d", nlayer+1);
     port= viewport();
     plt, myxtitle, port(zcen:1:2)(1), port(4)+0.005,
       font="helvetica", justify="CB", height=long(pltitle_height*ao_disp._defaultdpi/200.);

@@ -84,8 +84,7 @@ __global__ void tftbeam_krnl(cuFloatComplex *profout, cuFloatComplex *fbeam,
 
   while (tid < Ntot) {
     idim = tid % N;
-    __shared__ cuFloatComplex tmp;
-    tmp = profout[tid];
+    cuFloatComplex tmp = profout[tid];
     profout[tid].x = tmp.x * fbeam[idim].x - tmp.y * fbeam[idim].y;
     profout[tid].y = tmp.y * fbeam[idim].x + tmp.x * fbeam[idim].y;
     tid += blockDim.x * gridDim.x;
