@@ -16,7 +16,9 @@ mkdirp,YOGA_AO_SAVEPATH;
 
 YOGA_AO_PARPATH = YOGA_AO_SAVEPATH+"par/par4bench/";
 BENCH_SAVE_PATH = YOGA_AO_SAVEPATH+"bench-results/";
+
 mkdirp,YOGA_AO_PARPATH;
+mkdirp,BENCH_SAVE_PATH;
 
 /******************************* SCRIPT ***************************************************/
 
@@ -203,7 +205,7 @@ atmos_init_time = tac()- synctime;
   docontrol_time /= y_loop.niter / 1000.; 
   applycontrol_time /= y_loop.niter / 1000.;
   time_per_iter = move_atmos_time + t_raytrace_atmos_time + t_raytrace_dm_time + s_raytrace_atmos_time + s_raytrace_dm_time + comp_img_time + docentroids_time + docontrol_time + applycontrol_time;
-  error;
+
   tmp = timestamp();
   date = strpart(tmp,5:11)+strpart(tmp,21:);
   svnversion = rdfile(popen("svnversion",0))(1);
@@ -227,7 +229,7 @@ atmos_init_time = tac()- synctime;
   if(!(fileExist(SRfile))){
     f2=open(SRfile,"w");
     write,f2,"--------------------------------------------------------------------------";
-    write,f2,format="Date : %s\t Revision : %s Device : %s \n",date,svnversion,context_get_device_name(context_getactivedevice);
+    write,f2,format="Date : %s\t Revision : %s Device : %s \n",date,svnversion,context_get_device_name(context_getactivedevice());
     write,f2,"--------------------------------------------------------------------------";
     write,f2,"System type\tnxsub\twfs.npix\tNphotons\tController\tCentroider";
   }
