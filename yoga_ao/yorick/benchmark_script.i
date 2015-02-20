@@ -38,7 +38,15 @@ func script4bench(filename,centroider,controller){
   if(y_centroiders(1).type == "tcog") y_centroiders(1).thresh = 9.;
   if(y_centroiders(1).type == "bpcog") y_centroiders(1).nmax = 16;
   if(y_centroiders(1).type == "geom") y_centroiders(1).type = "cog";
-
+  if(y_centroiders(1).type == "wcog") {
+    y_centroiders(1).type_fct = "gauss";
+    y_centroiders(1).width   = 2.0;
+  }
+  if(y_centroiders(1).type == "corr") {
+    y_centroiders(1).type_fct = "gauss";
+    y_centroiders(1).width   = 2.0;
+  }
+  
   y_controllers(1).type = controller;
   if(y_controllers(1).type == "modopti"){
     y_controllers(1).type = "ls";
@@ -206,6 +214,12 @@ atmos_init_time = tac()- synctime;
   applycontrol_time /= y_loop.niter / 1000.;
   time_per_iter = move_atmos_time + t_raytrace_atmos_time + t_raytrace_dm_time + s_raytrace_atmos_time + s_raytrace_dm_time + comp_img_time + docentroids_time + docontrol_time + applycontrol_time;
 
+  if(y_wfs(1).gsalt > 0)
+    type = "lgs";
+  else type = "ngs";
+  if(y_wfs(1).gsmag > 3)
+    type += " noisy";
+  
   tmp = timestamp();
   date = strpart(tmp,5:11)+strpart(tmp,21:);
   svnversion = rdfile(popen("svnversion",0))(1);
@@ -222,7 +236,7 @@ atmos_init_time = tac()- synctime;
   else
     f=open(savefile,"a");
 
-  write,f,format="%s\t%d\t%d\t%f\t%s\t%s\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\n","scao",y_wfs(1).nxsub,y_wfs(1).npix,y_wfs(1)._nphotons,controller,centroider,strehllp(0),avg(strehlsp),strehlsp(rms),wfs_init_time,atmos_init_time,dm_init_time,target_init_time,rtc_init_time,move_atmos_time,t_raytrace_atmos_time,t_raytrace_dm_time,s_raytrace_atmos_time,s_raytrace_dm_time,comp_img_time,docentroids_time,docontrol_time,applycontrol_time,time_per_iter;
+  write,f,format="%s\t%d\t%d\t%f\t%s\t%s\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\n",type,y_wfs(1).nxsub,y_wfs(1).npix,y_wfs(1)._nphotons,controller,centroider,strehllp(0),avg(strehlsp),strehlsp(rms),wfs_init_time,atmos_init_time,dm_init_time,target_init_time,rtc_init_time,move_atmos_time,t_raytrace_atmos_time,t_raytrace_dm_time,s_raytrace_atmos_time,s_raytrace_dm_time,comp_img_time,docentroids_time,docontrol_time,applycontrol_time,time_per_iter;
 
   close,f;
 
@@ -236,7 +250,7 @@ atmos_init_time = tac()- synctime;
   else
     f2=open(SRfile,"a");
 
-  write,f2,format="%s\t%d\t%d\t%f\t%s\t%s","scao",y_wfs(1).nxsub,y_wfs(1).npix,y_wfs(1)._nphotons,controller,centroider;
+  write,f2,format="%s\t%d\t%d\t%f\t%s\t%s",type,y_wfs(1).nxsub,y_wfs(1).npix,y_wfs(1)._nphotons,controller,centroider;
 
   for(i=1 ; i<=y_loop.niter ; i++){
     write,f2,format="\t %f ",strehlsp(i);
