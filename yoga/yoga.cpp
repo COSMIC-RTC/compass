@@ -339,8 +339,7 @@ void Y_context_getactivedevice(int argc)
  */
 {
   try {
-    context_struct *handle = (context_struct *) yget_obj(argc - 1, &yContext);
-    carma_context *context_handle = (carma_context *) handle->carma_context;
+    carma_context *context_handle = _getCurrentContext();
     int activeDevice = context_handle->get_activeDevice();
     ypush_int(activeDevice);
   } catch (...) {

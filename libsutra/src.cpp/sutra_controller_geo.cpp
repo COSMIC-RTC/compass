@@ -169,7 +169,7 @@ sutra_controller_geo::init_proj_sparse(sutra_dms *dms, int *indx_dm, float *unit
 		d_NNZ.host2device(NNZ);
 		d_nact.host2device(Nact);
 
-		adjust_csr_index(d_col.getData(),d_row.getData(1),d_NNZ.getData(),d_nact.getData(),nnz,this->nactu(),NNZ[0],Nact[0],this->Nphi,current_context->get_device(device));
+		adjust_csr_index(d_row.getData(1),d_NNZ.getData(),d_nact.getData(),this->nactu(),Nact[0],current_context->get_device(device));
 	}
 
 	long dims_data2[3] = {2,dms->nact_total(),Nphi};

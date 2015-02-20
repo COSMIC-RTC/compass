@@ -429,16 +429,10 @@ absnormfft(cuFloatComplex *idata, float *odata, int N, float norm, carma_device 
 
 
 int
-adjust_csr_index(int *colind, int *rowind, int *NNZ, int *nact, int nnz_tot, int nact_tot, int col_off, int row_off, int Nphi, carma_device *device){
-	int N = nnz_tot - col_off;
+adjust_csr_index(int *rowind, int *NNZ, int *nact, int nact_tot, int row_off, carma_device *device){
+
+	int N = nact_tot - row_off;
 	int nthreads = 0, nblocks = 0;
-	getNumBlocksAndThreads(device, N, nblocks, nthreads);
-	dim3 grid(nblocks), threads(nthreads);
-
-	adjust_csrcol_krnl<<<grid , threads>>>(colind,NNZ,Nphi,nnz_tot);
-
-	N = nact_tot - row_off;
-	nthreads = 0, nblocks = 0;
 	getNumBlocksAndThreads(device, N, nblocks, nthreads);
 	dim3 grid2(nblocks), threads2(nthreads);
 

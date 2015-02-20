@@ -94,5 +94,5 @@ compute_Hcor_gpu(float *o_data, int nrow, int ncol, float Fs, float gmin, float 
 int
 absnormfft(cuFloatComplex *idata, float *odata, int N, float norm, carma_device *device);
 int
-adjust_csr_index(int *colind, int *rowind, int *NNZ, int *nact, int nnz_tot, int nact_tot, int col_off, int row_off, int Nphi, carma_device *device);
+adjust_csr_index(int *rowind, int *NNZ, int *nact, int nact_tot, int row_off, carma_device *device);
 #endif // _sutra_controller_H_
