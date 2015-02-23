@@ -30,6 +30,7 @@ func script4bench(filename,centroider,controller){
   extern strehlsp,strehllp;
 
   //Profil variables
+  g_timer = yoga_timer();
   move_atmos_time = t_raytrace_atmos_time = t_raytrace_dm_time = s_raytrace_atmos_time = s_raytrace_dm_time = comp_img_time = docentroids_time = docontrol_time = applycontrol_time = 0.;
 
   // reading parfile
@@ -55,35 +56,41 @@ func script4bench(filename,centroider,controller){
 
   y_loop.niter = 2000;
  _yogaThreadSync;
-  tic;
+  yoga_timer_start,g_timer;
   _yogaThreadSync;
-  synctime = tac();
+  synctime = yoga_timer_stop(g_timer);
+  yoga_timer_reset,g_timer;
 
   // init system
-  tic;
+  yoga_timer_start,g_timer;
   wfs_init;
-_yogaThreadSync;
-  wfs_init_time = tac() - synctime;
+  _yogaThreadSync;
+  wfs_init_time = yoga_timer_stop(g_timer) - synctime;
+  yoga_timer_reset,g_timer;
 
-  tic;
+  yoga_timer_start,g_timer;
   atmos_init;
   _yogaThreadSync;
-atmos_init_time = tac()- synctime;
+atmos_init_time = yoga_timer_stop(g_timer)- synctime;
+ yoga_timer_reset,g_timer;
 
-  tic;
+  yoga_timer_start,g_timer;
   dm_init;
   _yogaThreadSync;
-  dm_init_time = tac()- synctime;
+  dm_init_time = yoga_timer_stop(g_timer)- synctime;
+  yoga_timer_reset,g_timer;
 
-  tic;
+  yoga_timer_start,g_timer;
   target_init;
   _yogaThreadSync;
-  target_init_time = tac()- synctime;
+  target_init_time = yoga_timer_stop(g_timer)- synctime;
+  yoga_timer_reset,g_timer;
 
-  tic;
+  yoga_timer_start,g_timer;
   rtc_init,clean=1;
    _yogaThreadSync;
- rtc_init_time = tac()- synctime;
+ rtc_init_time = yoga_timer_stop(g_timer)- synctime;
+ yoga_timer_reset,g_timer;
 
   write,"... Done with inits !";
 
@@ -91,24 +98,27 @@ atmos_init_time = tac()- synctime;
 
   for (cc=1;cc<=y_loop.niter;cc++) {
     _yogaThreadSync;
-    tic,0;
+    yoga_timer_start,g_timer;
     move_atmos,g_atmos;
     _yogaThreadSync;
-    move_atmos_time += tac(0)- synctime;
+    move_atmos_time += yoga_timer_stop(g_timer)- synctime;
+    yoga_timer_reset,g_timer;
 
     if(y_controllers(1).type != "geo"){
       if ((y_target != []) && (g_target != [])) {
 	// loop on targets
 	for (i=1;i<=y_target.ntargets;i++) {
-	  tic,1;
+	  yoga_timer_start,g_timer;
 	  target_atmostrace,g_target,i-1,g_atmos;
 	    _yogaThreadSync;
-	    t_raytrace_atmos_time += tac(1)- synctime;
+	    t_raytrace_atmos_time += yoga_timer_stop(g_timer)- synctime;
+	    yoga_timer_reset,g_timer;
 	  if (g_dm != []) {
-	    tic,2;
+	    yoga_timer_start,g_timer;
 	    target_dmtrace,g_target,i-1,g_dm;
 	      _yogaThreadSync;
-  t_raytrace_dm_time += tac(2)- synctime;
+	      t_raytrace_dm_time += yoga_timer_stop(g_timer)- synctime;
+	      yoga_timer_reset,g_timer;
 	  }
 	}
       }
@@ -116,27 +126,31 @@ atmos_init_time = tac()- synctime;
       if ((y_wfs != []) && (g_wfs != [])) {
 	// loop on wfs
 	for (i=1;i<=numberof(y_wfs);i++) {
-	  tic,3;
+	  yoga_timer_start,g_timer;
 	  sensors_trace,g_wfs,i-1,"atmos",g_atmos;
     _yogaThreadSync;
-	  s_raytrace_atmos_time += tac(3)- synctime;
+	  s_raytrace_atmos_time += yoga_timer_stop(g_timer)- synctime;
+	  yoga_timer_reset,g_timer;
 	  if ((!y_wfs(i).openloop) && (g_dm != [])) {
-	    tic,4;
+	    yoga_timer_start,g_timer;
 	    sensors_trace,g_wfs,i-1,"dm",g_dm,0;
 	      _yogaThreadSync;
-  s_raytrace_dm_time += tac(4)- synctime;
+	      s_raytrace_dm_time += yoga_timer_stop(g_timer)- synctime;
+	      yoga_timer_reset,g_timer;
 	  }
 
 	  if(y_wfs(i).type=="cog") {
-	    tic,5;
+	    yoga_timer_start,g_timer;
 	    sensors_compimg_tele,g_wfs,i-1;
 	     _yogaThreadSync;
-   comp_img_time += tac(5)- synctime;
+	     comp_img_time += yoga_timer_stop(g_timer)- synctime;
+	     yoga_timer_reset,g_timer;
 	  } else {
-	    tic,5;
+	    yoga_timer_start,g_timer;
 	    sensors_compimg,g_wfs,i-1;
 	      _yogaThreadSync;
-  comp_img_time += tac(5)- synctime;
+	      comp_img_time += yoga_timer_stop(g_timer)- synctime;
+	      yoga_timer_reset,g_timer;
 	  }
 	}   
       }
@@ -144,50 +158,58 @@ atmos_init_time = tac()- synctime;
       if ((y_rtc != []) && (g_rtc != [])
 	  && (y_wfs != []) && (g_wfs != [])) {
 	if(centroider == "geom"){
-	  tic,6;
+	  yoga_timer_start,g_timer;
 	  rtc_docentroids_geom,g_rtc,0;
 	    _yogaThreadSync;
-  docentroids_time += tac(6)- synctime;
+	    docentroids_time += yoga_timer_stop(g_timer)- synctime;
+	    yoga_timer_reset,g_timer;
 	}
 	else {
-	  tic,6;
+	  yoga_timer_start,g_timer;
 	  rtc_docentroids,g_rtc,0;
 	     _yogaThreadSync;
- docentroids_time += tac(6)- synctime;
+	     docentroids_time += yoga_timer_stop(g_timer)- synctime;
+	     yoga_timer_reset,g_timer;
 	}
 	// compute command and apply
 	if (g_dm != []) {
-	  tic,7;
+	  yoga_timer_start,g_timer;
 	  rtc_docontrol,g_rtc,0;
 	    _yogaThreadSync;
-  docontrol_time += tac(7)- synctime;
-	  tic,8;
+  docontrol_time += yoga_timer_stop(g_timer)- synctime;
+  yoga_timer_reset,g_timer;
+	  yoga_timer_start,g_timer;
   rtc_applycontrol,g_rtc,0,g_dm;
 	    _yogaThreadSync;
-  applycontrol_time += tac(8)- synctime;
+  applycontrol_time += yoga_timer_stop(g_timer)- synctime;
+  yoga_timer_reset,g_timer;
 	}
       }
     }
     else{
       if ((y_target != []) && (g_target != [])) {
 	for (i=1;i<=y_target.ntargets;i++) {
-	  tic;
+	  yoga_timer_start,g_timer;
 	  target_atmostrace,g_target,i-1,g_atmos;
 	  _yogaThreadSync;
-	  t_raytrace_atmos_time += tac();
+	  t_raytrace_atmos_time += yoga_timer_stop(g_timer)- synctime;
+	  yoga_timer_reset,g_timer;
 	  if (g_dm != []) {
-	    tic;
+	    yoga_timer_start,g_timer;
 	    rtc_docontrol_geo,g_rtc,0,g_dm,g_target,0;
 	    _yogaThreadSync;
-	    docontrol_time += tac();
-	    tic;
+	    docontrol_time += yoga_timer_stop(g_timer)- synctime;
+	    yoga_timer_reset,g_timer;
+	    yoga_timer_start,g_timer;
 	    rtc_applycontrol,g_rtc,0,g_dm;
 	    _yogaThreadSync;
-	    applycontrol_time += tac();
-	    tic;
+	    applycontrol_time += yoga_timer_stop(g_timer)- synctime;
+	    yoga_timer_reset,g_timer;
+	    yoga_timer_start,g_timer;
 	    target_dmtrace,g_target,i-1,g_dm;
 	    _yogaThreadSync;
-	    t_raytrace_dm_time += tac();
+	    t_raytrace_dm_time += yoga_timer_stop(g_timer)- synctime;
+	    yoga_timer_reset,g_timer;
 	  }
 	}
       }
