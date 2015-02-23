@@ -30,11 +30,19 @@
 #include <carma_cusparse.h>
 #include <carma_utils.h>
 #include <carma_ipcs.h>
+#include <carma_timer.h>
 #include <carma.h>
 #include <sstream>
 #include <iomanip>
 #include "yoga_api.h"
 #include "pstdlib.h"
+
+static y_userobj_t yTimer = {
+/**
+ * @typedef Yorick API timer userobj_RTC
+ */
+const_cast<char*>("yTimer Object"), &timer_free, &timer_print, 0, 0, 0 };
+
 
 static y_userobj_t yContext = {
 /**
@@ -77,6 +85,73 @@ const_cast<char*>("Carma Sparse Host Object"), &ySparseHostObj_free, &ySparseHos
     &ySparseHostObj_eval, 0, 0 };
 
 extern "C" {
+
+/*
+ */
+
+void
+timer_print(void *obj){
+  cout << "CArMA timer object\n";
+}
+
+void
+timer_free(void *obj) {
+  /** @brief timer_struct destructor.
+   *  @param obj : timer_struct to freed
+   */
+  timer_struct *handler = (timer_struct *) obj;
+  try {
+    SCAST(carma_timer*, handler_timer, handler->carma_timer);
+    delete handler_timer;
+  } catch (string &msg) {
+    y_error(msg.c_str());
+  } catch (char const * msg) {
+    y_error(msg);
+  }
+}
+
+
+timer_struct*
+yoga_getTimer(int argc, int pos){
+  return (timer_struct *) yget_obj(argc - pos, &yTimer);
+}
+
+void
+Y_yoga_timer(int argc)
+/** @brief ipcs_struct creator.
+ *  @param[in] argc : command line argument (current ipcs expected)
+ */
+{
+  try {
+    timer_struct *handle = (timer_struct *) ypush_obj(&yTimer,
+        sizeof(timer_struct));
+    handle->carma_timer = new carma_timer();
+  } catch (string &msg) {
+    y_error(msg.c_str());
+  } catch (char const * msg) {
+    y_error(msg);
+  } catch (...) {
+    stringstream buf;
+    buf << "unknown error with carma_timer construction in " << __FILE__
+        << "@" << __LINE__ << endl;
+    y_error(buf.str().c_str());
+  }
+}
+
+void
+Y_yoga_timer_start(int argc){
+  timer_struct *handler = (timer_struct *) yget_obj(argc - 1, &yTimer);
+  SCAST(carma_timer*, handler_timer, handler->carma_timer);
+  handler_timer->start();
+}
+
+void
+Y_yoga_timer_stop(int argc){
+  timer_struct *handler = (timer_struct *) yget_obj(argc - 1, &yTimer);
+  SCAST(carma_timer*, handler_timer, handler->carma_timer);
+  handler_timer->stop();
+  ypush_double(handler_timer->elapsed());
+}
 
 /*
  *  ___ ____   ____ ____

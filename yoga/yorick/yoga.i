@@ -134,6 +134,34 @@ extern activeDeviceForce;
 */
 
 /*
+ */
+extern yoga_timer;
+/* DOCUMENT yoga_timer
+   g_timer = yoga_timer();
+
+   init a yoga_timer
+   
+   SEE ALSO:
+*/
+extern yoga_timer_start;
+/* DOCUMENT yoga_timer_start
+   yoga_timer_start, g_timer;
+
+   start the yoga_timer g_timer
+   
+   SEE ALSO:
+*/
+extern yoga_timer_stop;
+/* DOCUMENT yoga_timer_stop
+   elapsed_time = yoga_timer_stop(g_timer);
+
+   stop the yoga_timer g_timer and return the elapsed time in s
+   
+   SEE ALSO:
+*/
+
+ 
+/*
  *  ___ ____   ____ ____
  * |_ _|  _ \ / ___/ ___|
  *  | || |_) | |   \___ \

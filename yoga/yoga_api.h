@@ -52,6 +52,14 @@ typedef struct context_struct {
 } context_struct;
 
 
+typedef struct timer_struct {
+  /**
+   * @typedef Yorick API context structure
+   */
+  void *carma_timer; /**< pointer to a carma_context object */
+} timer_struct;
+
+
 
 typedef struct ipcs_struct {
   /**
@@ -97,6 +105,26 @@ typedef struct ySparseHostObj_struct {
   void *carma_sparse_host_object; /**< pointer to a yoga_sparse_host_object */
   int type; /**< type of data in the yoga_sparse_host_object (Yorick API types) */
 } ySparseHostObj_struct;
+
+/*
+ */
+
+void
+timer_print(void *obj);
+void
+timer_free(void *obj);
+
+timer_struct*
+yoga_getTimer(int argc, int pos);
+
+void
+Y_yoga_timer(int argc);
+
+void
+Y_yoga_timer_start(int argc);
+
+void
+Y_yoga_timer_stop(int argc);
 
 /*
  *  ___ ____   ____ ____
