@@ -96,6 +96,11 @@ atmos_init_time = yoga_timer_stop(g_timer)- synctime;
 
   strehllp = strehlsp = [];
 
+  if(controller != "modopti"){
+    for(zz = 1 ; zz <= 2048 ; zz++)
+      move_atmos,g_atmos;
+  }
+
   for (cc=1;cc<=y_loop.niter;cc++) {
     _yogaThreadSync;
     yoga_timer_start,g_timer;
@@ -254,12 +259,18 @@ atmos_init_time = yoga_timer_stop(g_timer)- synctime;
     write,f,"--------------------------------------------------------------------------";
     write,f,format="Date : %s\t Revision : %s \t  %s \n",date,svnversion,context_get_device_name(context_getactivedevice());
     write,f,"--------------------------------------------------------------------------";
-    write,f,"System type\tnxsub\twfs.npix\tNphotons\tController\tCentroider\tFinal SR LE\tAvg. SR SE\trms SR SE\twfs_init\tatmos_init\tdm_init\ttarget_init\trtc_init\tmove_atmos\tt_raytrace_atmos\tt_raytrace_dm\ts_raytrace_atmos\ts_raytrace_dm\tcomp_img\tdocentroids\tdocontrol\tapplycontrol\titer_time";
+    write,f,"System type\tnxsub\twfs.npix\tNphotons\tController\tCentroider\tFinal SR LE\tAvg. SR SE\trms SR SE\twfs_init\tatmos_init\tdm_init\ttarget_init\trtc_init\tmove_atmos\tt_raytrace_atmos\tt_raytrace_dm\ts_raytrace_atmos\ts_raytrace_dm\tcomp_img\tdocentroids\tdocontrol\tapplycontrol\titer_time\tAvg.gain";
   }
   else
     f=open(savefile,"a");
 
-  write,f,format="%s\t%d\t%d\t%f\t%s\t%s\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\n",type,y_wfs(1).nxsub,y_wfs(1).npix,y_wfs(1)._nphotons,controller,centroider,strehllp(0),avg(strehlsp),strehlsp(rms),wfs_init_time,atmos_init_time,dm_init_time,target_init_time,rtc_init_time,move_atmos_time,t_raytrace_atmos_time,t_raytrace_dm_time,s_raytrace_atmos_time,s_raytrace_dm_time,comp_img_time,docentroids_time,docontrol_time,applycontrol_time,time_per_iter;
+  if(controller == "modopti"){
+    G=avg(rtc_getmgain(g_rtc,0));
+    write,"Avg. gain : ",G;
+  }
+  else G = 0;
+      
+  write,f,format="%s\t%d\t%d\t%f\t%s\t%s\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\n",type,y_wfs(1).nxsub,y_wfs(1).npix,y_wfs(1)._nphotons,controller,centroider,strehllp(0),avg(strehlsp),strehlsp(rms),wfs_init_time,atmos_init_time,dm_init_time,target_init_time,rtc_init_time,move_atmos_time,t_raytrace_atmos_time,t_raytrace_dm_time,s_raytrace_atmos_time,s_raytrace_dm_time,comp_img_time,docentroids_time,docontrol_time,applycontrol_time,time_per_iter,G;
 
   close,f;
 
