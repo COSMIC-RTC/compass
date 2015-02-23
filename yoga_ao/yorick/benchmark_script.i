@@ -268,7 +268,7 @@ atmos_init_time = yoga_timer_stop(g_timer)- synctime;
     G=avg(rtc_getmgain(g_rtc,0));
     write,"Avg. gain : ",G;
   }
-  else G = 0;
+  else G = 0.;
       
   write,f,format="%s\t%d\t%d\t%f\t%s\t%s\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\n",type,y_wfs(1).nxsub,y_wfs(1).npix,y_wfs(1)._nphotons,controller,centroider,strehllp(0),avg(strehlsp),strehlsp(rms),wfs_init_time,atmos_init_time,dm_init_time,target_init_time,rtc_init_time,move_atmos_time,t_raytrace_atmos_time,t_raytrace_dm_time,s_raytrace_atmos_time,s_raytrace_dm_time,comp_img_time,docentroids_time,docontrol_time,applycontrol_time,time_per_iter,G;
 
