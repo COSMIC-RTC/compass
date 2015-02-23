@@ -153,6 +153,13 @@ Y_yoga_timer_stop(int argc){
   ypush_double(handler_timer->elapsed());
 }
 
+void
+Y_yoga_timer_reset(int argc){
+  timer_struct *handler = (timer_struct *) yget_obj(argc - 1, &yTimer);
+  SCAST(carma_timer*, handler_timer, handler->carma_timer);
+  handler_timer->reset();
+}
+
 /*
  *  ___ ____   ____ ____
  * |_ _|  _ \ / ___/ ___|

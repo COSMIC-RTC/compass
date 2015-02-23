@@ -160,6 +160,15 @@ extern yoga_timer_stop;
    SEE ALSO:
 */
 
+ extern yoga_timer_reset;
+/* DOCUMENT yoga_timer_reset
+   yoga_timer_reset, g_timer;
+
+   set the yoga_timer g_timer to 0
+   
+   SEE ALSO:
+*/
+
  
 /*
  *  ___ ____   ____ ____

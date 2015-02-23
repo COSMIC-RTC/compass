@@ -126,6 +126,9 @@ Y_yoga_timer_start(int argc);
 void
 Y_yoga_timer_stop(int argc);
 
+void
+Y_yoga_timer_reset(int argc);
+
 /*
  *  ___ ____   ____ ____
  * |_ _|  _ \ / ___/ ___|
