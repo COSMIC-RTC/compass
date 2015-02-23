@@ -1034,10 +1034,9 @@ int sutra_wfs::slopes_geom(int type) {
   return EXIT_SUCCESS;
 }
 
-sutra_sensors::sutra_sensors(carma_context *context, const char* type, int nwfs,
-    long *nxsub, long *nvalid, long *npix, long *nphase, long *nrebin,
-    long *nfft, long *ntot, long npup, float *pdiam, float *nphot, int *lgs,
-    int device) {
+sutra_sensors::sutra_sensors(carma_context *context, const char* type, int nwfs, long *nxsub,
+    long *nvalid, long *npix, long *nphase, long *nrebin, long *nfft,
+    long *ntot, long npup, float *pdiam, float *nphot, int *lgs, int device) {
 
   for (int i = 0; i < nwfs; i++) {
     d_wfs.push_back(

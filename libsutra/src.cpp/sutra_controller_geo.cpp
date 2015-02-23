@@ -9,10 +9,10 @@ sutra_controller_geo::sutra_controller_geo(carma_context *context, long nactu, l
 	this->gain = 0.0f;
 	this->Nphi = Nphi;
 
-	long dims_data2[3];
-	dims_data2[0] = 2;
-	dims_data2[1] = nactu;
-	dims_data2[2] = Nphi;
+//	long dims_data2[3];
+//	dims_data2[0] = 2;
+//	dims_data2[1] = nactu;
+//	dims_data2[2] = Nphi;
 	//this->d_proj = new carma_obj<float>(this->current_context, dims_data2);
 	this->d_proj = 0L;
 	this->d_geocov = 0L;

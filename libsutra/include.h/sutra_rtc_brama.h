@@ -12,10 +12,11 @@
 #include<sutra_rtc.h>
 #include<BRAMA_supervisor.h>
 
-class sutra_rtc_brama: public sutra_rtc, public BRAMA_supervisor {
+class sutra_rtc_brama: public sutra_rtc {
 private:
+  BRAMA_supervisor *brama;
   DDS::DataReaderListener_var cmd_listener;
-  EventDataReaderListenerImpl* cmd_listener_servant;
+  CommandDataReaderListenerImpl* cmd_listener_servant;
   DDS::DataReader_var cmd_dr;
   DDS::DataWriter_var superframe_base_dw;
   BRAMA::SuperFrameDataWriter_var superframe_dw;

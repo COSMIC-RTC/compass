@@ -88,8 +88,14 @@ ifeq ($(filter $(COMPILATION_LAM),double),double)
 endif
 
 ifneq ($(BRAMA_ROOT),)
- LIB_CPPFLAGS  += -I$(BRAMA_ROOT) -I$(ACE_ROOT) -I$(TAO_ROOT) -I$(TAO_ROOT)/orbsvcs -I$(DDS_ROOT) -DUSE_BRAMA
- LIB_DEPLIBS   += -Wl,-rpath=$(BRAMA_ROOT) -L$(BRAMA_ROOT) -lBRAMACommon 
+ 	LIB_CPPFLAGS  += -I$(BRAMA_ROOT) -I$(ACE_ROOT) -I$(TAO_ROOT) -I$(TAO_ROOT)/orbsvcs -I$(DDS_ROOT) -DUSE_BRAMA
+  LIB_DEPLIBS   += -Wl,-rpath=$(ACE_ROOT)/lib,-rpath=$(TAO_ROOT)/tao,-rpath=$(DDS_ROOT)/lib 
+# LIB_DEPLIBS   += -L$(ACE_ROOT)/lib -L$(TAO_ROOT)/tao -L$(DDS_ROOT)/lib 
+ 	LIB_DEPLIBS   += -Wl,-rpath=$(BRAMA_ROOT) -L$(BRAMA_ROOT) -lBRAMACommon 
+# LIB_DEPLIBS   += -Wl,-rpath=$(ACE_ROOT)/lib -L$(ACE_ROOT)/lib
+#	LIB_DEPLIBS 	+= -lTAO_Svc_Utils -lOpenDDS_InfoRepoDiscovery -lOpenDDS_Dcps -lTAO_PortableServer -lTAO_AnyTypeCode -lTAO -lACE
+  LIB_CPPFLAGS  += -fvisibility-inlines-hidden -fno-strict-aliasing -pthread -pipe -D_GNU_SOURCE -D__ACE_INLINE__
+  LIB_DEPLIBS   += -Wl,-E -fvisibility-inlines-hidden -fno-strict-aliasing -pthread -pipe -L$(ACE_ROOT)/lib -L$(DDS_ROOT)/lib -L$(TAO_ROOT)/tao -lBRAMACommon -lOpenDDS_InfoRepoDiscovery -lOpenDDS_Dcps -lTAO_PortableServer -lTAO_AnyTypeCode -lTAO -lACE -ldl -lrt
 endif
 
 all: $(LIB_NAME)

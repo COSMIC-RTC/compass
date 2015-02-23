@@ -36,6 +36,19 @@ ifneq ($(DEBUG),)
 PKG_CPPFLAGS+= -g -DDEBUG
 endif
 
+ifneq ($(BRAMA_ROOT),)
+ PKG_I += $(I_DIR)/yoga_brama.i
+ OBJS  += yoga_brama.o
+  PKG_CPPFLAGS  += -I$(BRAMA_ROOT) -I$(ACE_ROOT) -I$(TAO_ROOT) -I$(TAO_ROOT)/orbsvcs -I$(DDS_ROOT) -DUSE_BRAMA
+  PKG_DEPLIBS   += -Wl,-rpath=$(ACE_ROOT)/lib,-rpath=$(TAO_ROOT)/tao,-rpath=$(DDS_ROOT)/lib 
+# PKG_DEPLIBS   += -L$(ACE_ROOT)/lib -L$(TAO_ROOT)/tao -L$(DDS_ROOT)/lib 
+  PKG_DEPLIBS   += -Wl,-rpath=$(BRAMA_ROOT) -L$(BRAMA_ROOT) -lBRAMACommon 
+# PKG_DEPLIBS   += -Wl,-rpath=$(ACE_ROOT)/lib -L$(ACE_ROOT)/lib
+# PKG_DEPLIBS   += -lTAO_Svc_Utils -lOpenDDS_InfoRepoDiscovery -lOpenDDS_Dcps -lTAO_PortableServer -lTAO_AnyTypeCode -lTAO -lACE
+  PKG_CPPFLAGS  += -fvisibility-inlines-hidden -fno-strict-aliasing -pthread -pipe -D_GNU_SOURCE -D__ACE_INLINE__
+  PKG_DEPLIBS   += -Wl,-E -fvisibility-inlines-hidden -fno-strict-aliasing -pthread -pipe -L$(ACE_ROOT)/lib -L$(DDS_ROOT)/lib -L$(TAO_ROOT)/tao -lBRAMACommon -lOpenDDS_InfoRepoDiscovery -lOpenDDS_Dcps -lTAO_PortableServer -lTAO_AnyTypeCode -lTAO -lACE -ldl -lrt
+endif
+
 PKG_LDFLAGS= 
 
 # list of additional package names you want in PKG_EXENAME
@@ -74,13 +87,13 @@ Y_SITE=$(Y_EXE_SITE)
 # reduce chance of yorick-1.5 corrupting this Makefile
 MAKE_TEMPLATE = protect-against-1.5
 
-yoga_ao.o: yoga_ao.cpp
+%.o: %.cpp
 	@printf '\033[36m%s\033[31m%s\033[m\n' "Compiling     " $@
-	@$(CC) $(CFLAGS) $(PKG_CPPFLAGS) $< -c -o $@
+	$(CC) $(CFLAGS) $(PKG_CPPFLAGS) $< -c -o $@
 
 $(PKG_NAME): $(OBJS)
 	@printf '\033[36m%s\033[31m%s\033[m\n' "Linking       " $(PKG_NAME)
-	@$(CC) -o $@ $^ $(PKG_DEPLIBS)
+	$(CC) -o $@ $^ $(PKG_DEPLIBS)
 
 #configure:
 #	yorick -batch make.i

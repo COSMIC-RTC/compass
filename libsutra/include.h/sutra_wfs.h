@@ -9,11 +9,6 @@
 #include <sutra_lgs.h>
 //#include <sutra_slopes.h>
 
-extern "C" {
-void
-my_abort(int err);
-}
-
 using namespace std;
 
 class sutra_wfs {

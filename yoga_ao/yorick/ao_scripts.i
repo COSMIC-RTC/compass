@@ -18,7 +18,7 @@ YOGA_AO_PARPATH = YOGA_AO_SAVEPATH+"par/";
 mkdirp,YOGA_AO_PARPATH;
 
 //activeDevice,1;
-func script_system(filename,verbose=,strehl=,r0=,clean=)
+func script_system(filename,verbose=,strehl=,r0=,clean=,brama=)
 {
   //activeDevice,1;
   
@@ -30,6 +30,7 @@ func script_system(filename,verbose=,strehl=,r0=,clean=)
   if (strehl == []) strehl = 0;
   if (r0 == []) r0 = 0;
   if (clean == []) clean = 1;
+  if (brama == []) brama = 0;
 
   if (strehl) {
     extern strehlsp,strehllp,mimg;
@@ -59,7 +60,7 @@ func script_system(filename,verbose=,strehl=,r0=,clean=)
   dm_init;
 
   target_init;
-  rtc_init,clean=clean;
+  rtc_init,clean=clean, brama=brama;
 
   if (verbose) write,"... Done with inits !";
   write,"The following objects have been initialized on the GPU :";
@@ -156,7 +157,8 @@ func script_system(filename,verbose=,strehl=,r0=,clean=)
 
 
     }
-    
+    if(brama) rtc_publish, g_rtc;
+
     if (verbose) {
       subsample=100.;
       if (cc % subsample == 0) {

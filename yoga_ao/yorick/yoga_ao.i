@@ -557,7 +557,7 @@ func dm_init(void)
   }
 }
 
-func rtc_init(clean=)
+func rtc_init(clean=, brama=)
 /* DOCUMENT rtc_init
    rtc_init[,clean=]
      
@@ -575,6 +575,10 @@ func rtc_init(clean=)
 {
   extern g_rtc,g_atmos,g_dm;
   g_rtc = yoga_rtc(activeDevice());
+
+  if(brama==1) 
+    g_rtc = yoga_rtc_brama(g_rtc);
+
   if (y_rtc != []) {
     centroiders = *y_rtc.centroiders;
     if (y_wfs != []) {

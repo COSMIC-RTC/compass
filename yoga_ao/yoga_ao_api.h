@@ -81,6 +81,7 @@ typedef struct sensors_struct {
 
 typedef struct rtc_struct {
   void *sutra_rtc;
+  int use_brama;
   int device;
 } rtc_struct;
 
