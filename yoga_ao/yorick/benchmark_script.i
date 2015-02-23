@@ -245,8 +245,9 @@ atmos_init_time = yoga_timer_stop(g_timer)- synctime;
   tmp = timestamp();
   date = strpart(tmp,5:11)+strpart(tmp,21:);
   svnversion = rdfile(popen("svnversion",0))(1);
-  savefile = BENCH_SAVE_PATH + "results_scao_revision_"+svnversion+".csv";
-  SRfile = BENCH_SAVE_PATH + "SR_scao_revision_"+svnversion+".csv";
+  hostname = rdfile(popen("hostname",0))(1);
+  savefile = BENCH_SAVE_PATH + "results_"+hostname+"_scao_revision_"+svnversion+".csv";
+  SRfile = BENCH_SAVE_PATH + "SR_"+hostname+"_scao_revision_"+svnversion+".csv";
 
   if(!(fileExist(savefile))){
     f=open(savefile,"w");
