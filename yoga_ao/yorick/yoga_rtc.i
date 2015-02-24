@@ -180,12 +180,8 @@ func cmat_init(ncontrol,clean=,method=)
   }
   if (((*y_rtc.controllers(ncontrol)).type)(1) == "mv"){
     rtc_loadnoisemat,g_rtc,ncontrol-1,noise_cov(1);
-    imat = rtc_getimat(g_rtc,0);
-    Nactu = dimsof(imat)(3);
-    Dm = imat(,:Nactu-2);
-    Dtt = imat(,Nactu-1:);
     write,"Building cmat...";
-    rtc_buildcmatmv,g_rtc,ncontrol-1,Dm,Dtt,y_controllers(ncontrol-1).maxcond;
+    rtc_buildcmatmv,g_rtc,ncontrol-1,y_controllers(ncontrol-1).maxcond;
   }
 
   cmat = rtc_getcmat(g_rtc,ncontrol-1);

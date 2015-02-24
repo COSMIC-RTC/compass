@@ -770,6 +770,11 @@ extern rtc_setcmat;
    SEE ALSO:
  */
 extern rtc_buildcmatmv;
+/* DOCUMENT rtc_buildcmatmv
+   rtc_buildcmatmv,yoga_rtc_obj,ncontroller,cond
+   compute the cmat for MV controller
+   SEE ALSO:
+ */
 extern rtc_buildcmat;
 /* DOCUMENT rtc_buildcmat
    rtc_buildcmat,yoga_rtc_obj,ncontroller,nfilt,filt_tt

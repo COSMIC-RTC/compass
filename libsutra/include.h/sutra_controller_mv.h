@@ -56,7 +56,7 @@ public:
   int
   build_cmat(const char *dmtype, char *method);
   int
-  build_cmat(float *Dm, float *Dtt, float cond);
+  build_cmat(float cond);
   int
   frame_delay();
   int

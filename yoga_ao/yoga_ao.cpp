@@ -3604,14 +3604,12 @@ void Y_rtc_buildcmatmv(int argc) {
   rtc_struct *rhandler = (rtc_struct *) yget_obj(argc - 1, &yRTC);
   sutra_rtc *rtc_handler = (sutra_rtc *) (rhandler->sutra_rtc);
   long ncontrol = ygets_l(argc - 2);
-  float *Dm = ygeta_f(argc - 3, &ntot, dims);
-  float *Dtt = ygeta_f(argc - 4, &ntot, dims);
-  float cond = ygets_f(argc - 5);
+  float cond = ygets_f(argc - 3);
   carma_context *context_handle = _getCurrentContext();
   context_handle->set_activeDeviceForCpy(rhandler->device);
 
   SCAST(sutra_controller_mv *, controller, rtc_handler->d_control[ncontrol]);
-  controller->build_cmat(Dm,Dtt,cond);
+  controller->build_cmat(cond);
 }
 void Y_rtc_doimatkl(int argc) {
   rtc_struct *rhandler = (rtc_struct *) yget_obj(argc - 1, &yRTC);
