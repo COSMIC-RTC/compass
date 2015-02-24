@@ -25,7 +25,7 @@ if [ $# -gt 0 ]; then
     YORICK_PATH=$1
 fi
 
-DATE=`date +%F_%R`
+DATE=`date +%F_%Hh%M`
 
 if [ -z "$YORICK_PATH" ]; then
     echo "yorick is not in the path, use $0 full_yorick_path"
@@ -38,8 +38,8 @@ else
 	        for COG in "cog" "tcog" "bpcog" "geom"
             do
 	            CMD=$YORICK_PATH" -batch benchmark_script.i "$f" "$COG" "$CTR
-	            echo "execute $CMD" >> $DATE\_outputfile
-	            $CMD 2>> $DATE\_outputfile >> $DATE\_outputfile
+	            echo "execute $CMD" >> $DATE\_$HOSTNAME\_outputfile
+	            $CMD 2>> $DATE\_$HOSTNAME\_outputfile >> $DATE\_$HOSTNAME\_outputfile
             done
         done
     done
@@ -65,8 +65,8 @@ else
 	        for COG in "wcog" "corr"
             do
 	            CMD=$YORICK_PATH" -batch benchmark_script.i "$f" "$COG" "$CTR
-	            echo "execute $CMD" >> $DATE\_outputfile
-	            $CMD 2>> $DATE\_outputfile >> $DATE\_outputfile
+	            echo "execute $CMD" >> $DATE\_$HOSTNAME\_outputfile
+	            $CMD 2>> $DATE\_$HOSTNAME\_outputfile >> $DATE\_$HOSTNAME\_outputfile
             done
         done
     done
