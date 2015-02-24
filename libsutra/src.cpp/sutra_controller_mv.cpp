@@ -564,21 +564,14 @@ int sutra_controller_mv::set_delay(int delay) {
 
 // Florian features
 int sutra_controller_mv::build_cmat(float *Dm, float *Dtt, float cond){
+
 	long *dims_data = new long[3];
 	dims_data[0] = 2;
+
 	dims_data[1] = nslope();
-	dims_data[2] = nactu() - 2;
-	carma_obj<float> *d_Dm = new carma_obj<float>(current_context, dims_data);
 	dims_data[2] = 2;
 	carma_obj<float> *d_Dtt = new carma_obj<float>(current_context, dims_data);
 	carma_obj<float> *d_M = new carma_obj<float>(current_context, dims_data);
-	dims_data[1] = nactu() - 2;
-	dims_data[2] = nslope();
-	carma_obj<float> *d_tmp = new carma_obj<float>(current_context, dims_data);
-	carma_obj<float> *d_cmat_tt = new carma_obj<float>(current_context, dims_data);
-	carma_obj<float> *d_Dm1 = new carma_obj<float>(current_context, dims_data);
-	dims_data[2] = nactu() - 2;
-	carma_obj<float> *d_tmp2 = new carma_obj<float>(current_context, dims_data);
 	dims_data[1] = nactu() - 2;
 	dims_data[2] = 2;
 	carma_obj<float> *d_TT2ho = new carma_obj<float>(current_context, dims_data);
@@ -587,75 +580,114 @@ int sutra_controller_mv::build_cmat(float *Dm, float *Dtt, float cond){
 	carma_obj<float> *d_M1 = new carma_obj<float>(current_context, dims_data);
 	dims_data[2] = 2;
 	carma_obj<float> *d_tmp3 = new carma_obj<float>(current_context, dims_data);
-	dims_data[1] = nslope();
-	dims_data[2] = nslope();
-	carma_obj<float> *d_Ftt = new carma_obj<float>(current_context, dims_data);
 
+	DEBUG_TRACE("Cmm+Cn");
+	printMemInfo();
 	// (Cmm + Cn)⁻¹
 	add_md(this->d_Cmm->getData(),this->d_Cmm->getData(),this->d_noisemat->getData(), nslope(), this->current_context->get_device(device));
 	invgen(this->d_Cmm,(float)(nslope()-nactu())/2,0);
+	DEBUG_TRACE("Cmm+Cn inv");
+	printMemInfo();
+	dims_data[1] = nactu() - 2;
+	dims_data[2] = nslope();
+	carma_obj<float> *d_tmp = new carma_obj<float>(current_context, dims_data);
 	// Cphim * (Cmm + Cn)⁻¹
 	carma_gemm(cublas_handle, 'n', 'n', nactu() - 2, nslope(), nslope(), 1.0f,
 				this->d_Cphim->getData(), nactu() - 2, this->d_Cmm->getData(), nslope(), 0.0f,
 				d_tmp->getData(), nactu() - 2);
-
+	DEBUG_TRACE("Cphim*Cmm");
+		printMemInfo();
 	// Imat decomposition TT
+	dims_data[1] = nslope();
+	dims_data[2] = nactu() - 2;
+	carma_obj<float> *d_Dm = new carma_obj<float>(current_context, dims_data);
+	dims_data[1] = nactu() - 2;
+	dims_data[2] = nactu() - 2;
+	carma_obj<float> *d_tmp2 = new carma_obj<float>(current_context, dims_data);
 	d_Dm->host2device(Dm);
 	d_Dtt->host2device(Dtt);
 	// Dm⁻¹
 	carma_gemm(cublas_handle, 't', 'n', nactu() - 2, nactu() - 2, nslope(), 1.0f,
 					d_Dm->getData(), nslope(), d_Dm->getData(), nslope(), 0.0f,
 					d_tmp2->getData(), nactu() - 2);
+	DEBUG_TRACE("Dm-1");
+			printMemInfo();
 	invgen(d_tmp2,cond,1);
+	DEBUG_TRACE("Dm-1");
+				printMemInfo();
+	dims_data[1] = nactu() - 2;
+	dims_data[2] = nslope();
+	carma_obj<float> *d_Dm1 = new carma_obj<float>(current_context, dims_data);
 	carma_gemm(cublas_handle, 'n', 't', nactu() - 2, nslope(), nactu() - 2, 1.0f,
 						d_tmp2->getData(), nactu() - 2, d_Dm->getData(), nslope(), 0.0f,
 						d_Dm1->getData(), nactu() - 2);
+	DEBUG_TRACE("Dm1");
+				printMemInfo();
+	delete d_tmp2;
 
 	// TT2ho = Dm⁻¹ * Dtt
 	carma_gemm(cublas_handle, 'n', 'n', nactu() - 2, 2, nslope(), 1.0f,
 							d_Dm1->getData(), nactu() - 2, d_Dtt->getData(), nslope(), 0.0f,
 							d_TT2ho->getData(), nactu() - 2);
+	DEBUG_TRACE("TT2ho");
+				printMemInfo();
+	delete d_Dm1;
+
 	// M = Dm * TT2ho
 	carma_gemm(cublas_handle, 'n', 'n', nslope(), 2, nactu() - 2, 1.0f,
 								d_Dm->getData(), nslope(), d_TT2ho->getData(), nactu() - 2, 0.0f,
 								d_M->getData(), nslope());
+	DEBUG_TRACE("M");
+				printMemInfo();
+	delete d_Dm;
 
 	// M⁻¹
 	carma_gemm(cublas_handle, 't', 'n', 2, 2, nslope(), 1.0f,
 						d_M->getData(), nslope(), d_M->getData(), nslope(), 0.0f,
 						d_tmp3->getData(), 2);
 	invgen(d_tmp3,0.0f,0);
+	DEBUG_TRACE("M inv");
+				printMemInfo();
 	carma_gemm(cublas_handle, 'n', 't', 2, nslope(), 2, 1.0f,
 						d_tmp3->getData(), 2, d_M->getData(), nslope(), 0.0f,
 						d_M1->getData(), 2);
-
+	DEBUG_TRACE("M*M-1");
+				printMemInfo();
 	// M*M⁻¹
+	dims_data[1] = nslope();
+	dims_data[2] = nslope();
+	carma_obj<float> *d_Ftt = new carma_obj<float>(current_context, dims_data);
 	carma_gemm(cublas_handle, 'n', 'n', nslope(), nslope(), 2, 1.0f,
 								d_M->getData(), nslope(), d_M1->getData(), 2, 0.0f,
 								d_Ftt->getData(), nslope());
-
+	DEBUG_TRACE("DFtt");
+				printMemInfo();
 	// TT filter
 	TT_filt(d_Ftt->getData(),nslope(),this->current_context->get_device(device));
-
+	DEBUG_TRACE("TT filt");
+				printMemInfo();
 	//cmat without TT
+	dims_data[1] = nactu() - 2;
+	dims_data[2] = nslope();
+	carma_obj<float> *d_cmat_tt = new carma_obj<float>(current_context, dims_data);
 	carma_gemm(cublas_handle, 'n', 'n', nactu()-2, nslope(), nslope(), 1.0f,
 									d_tmp->getData(), nactu() - 2, d_Ftt->getData(), nslope(), 0.0f,
 									d_cmat_tt->getData(), nactu() - 2);
+	DEBUG_TRACE("cmat_tt");
+				printMemInfo();
+	delete d_tmp;
+	delete d_Ftt;
 
 	// Fill CMAT
 	fill_cmat(this->d_cmat->getData(),d_cmat_tt->getData(),d_M1->getData(),nactu(),nslope(),this->current_context->get_device(device));
-
-	delete d_Dm;
+	DEBUG_TRACE("fill cmat");
+					printMemInfo();
 	delete d_Dtt;
 	delete d_M;
-	delete d_tmp;
-	delete d_tmp2;
 	delete d_tmp3;
 	delete d_cmat_tt;
-	delete d_Dm1;
 	delete d_TT2ho;
 	delete d_M1;
-	delete d_Ftt;
 
 	return EXIT_SUCCESS;
 }

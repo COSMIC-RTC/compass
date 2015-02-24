@@ -89,6 +89,8 @@ int
 floattodouble(float *idata, double *odata, int N, carma_device *device);
 int
 doubletofloat(double *idata, float *odata, int N, carma_device *device);
+int
+printMemInfo();
 
 void carma_start_profile();
 void carma_stop_profile();

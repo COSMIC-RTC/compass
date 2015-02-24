@@ -84,7 +84,7 @@ __global__ void
 TT_filt_krnl(float *mat, int n, int N){
 	int tid = threadIdx.x + blockIdx.x * blockDim.x;
 	while (tid < N){
-		tid % (n+1) ? mat[tid] *= -1.0f : mat[tid] = (float)(1.-mat[tid]);
+		tid % (n+1) ? mat[tid] *= -1.0f : mat[tid] = (1.0f-mat[tid]);
 		tid += blockDim.x * gridDim.x;
 	}
 }
@@ -356,7 +356,6 @@ TT_filt(float *mat, int n, carma_device *device){
 	int N = n*n;
 	getNumBlocksAndThreads(device, N, nblocks, nthreads);
 	dim3 grid(nblocks), threads(nthreads);
-
 	TT_filt_krnl<<<grid, threads>>>(mat,n,N);
 	cutilCheckMsg("TT_filt_krnl<<<>>> execution failed\n");
 

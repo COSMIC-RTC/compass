@@ -112,3 +112,20 @@ float gammln(float xx) {
 }
 
 }
+
+int printMemInfo() {
+	size_t free_mem;
+	size_t total_mem;
+	float free_float;
+	float total_float;
+	float used_mem;
+
+	cutilSafeCall(cudaMemGetInfo(&free_mem, &total_mem));
+	free_float = (float) free_mem / 1000000.;
+	total_float = (float) total_mem / 1000000.;
+	used_mem = total_float - free_float;
+	printf("GPU Memory usage : used memory = %f MB, total memory = %f \n",
+			used_mem, total_float);
+
+	return EXIT_SUCCESS;
+}
