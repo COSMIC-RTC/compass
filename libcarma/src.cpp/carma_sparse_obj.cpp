@@ -56,6 +56,8 @@ void carma_sparse_obj<T_data>::init_carma_sparse_obj(carma_context *current_cont
 	  ptr_dense2csr(handle, dims[1], dims[2], descr, d_M, dims[1], nnzPerRow,
 			  this->d_data, this->d_rowind, this->d_colind);
   }
+  format = "CSR";
+
   cudaFree(nnzPerRow);
   if (loadFromHost) {
 	cudaFree(d_M);
@@ -82,6 +84,7 @@ carma_sparse_obj<T_data>::carma_sparse_obj(carma_context *current_context,
 	_create(nz, dims[1], dims[2]);
 	this->current_context = current_context;
 	device = current_context->get_activeDevice();
+	this->format = "CSR";
 
 	if (loadFromHost) {
 		cudaMemcpy(this->d_data, values, nz * sizeof(T_data), cudaMemcpyHostToDevice);
@@ -133,6 +136,7 @@ carma_sparse_obj<T_data>::carma_sparse_obj(
   cudaMemcpy(d_colind, M->d_colind, nz_elem*sizeof(int), cudaMemcpyDeviceToDevice);
 
   majorDim = M->majorDim;
+  this->format = M->format;
 
   cusparseSetMatDiagType(descr, cusparseGetMatDiagType(M->descr));
   cusparseSetMatFillMode(descr, cusparseGetMatFillMode(M->descr));
@@ -158,6 +162,7 @@ carma_sparse_obj<T_data>::carma_sparse_obj(carma_context *current_context,
       cudaMemcpyHostToDevice);
 
   majorDim = M->get_majorDim();
+  this->format = "CSR";
 }
 
 template<class T_data>
@@ -168,6 +173,7 @@ void carma_sparse_obj<T_data>::operator=( carma_sparse_obj<T_data> &M) {
   cudaMemcpy(d_colind, M.d_colind, nz_elem*sizeof(int), cudaMemcpyDeviceToDevice);
 
   majorDim = M.majorDim;
+  this->format = M.format;
 
   cusparseSetMatDiagType(descr, cusparseGetMatDiagType(M.descr));
   cusparseSetMatFillMode(descr, cusparseGetMatFillMode(M.descr));
@@ -187,6 +193,7 @@ void carma_sparse_obj<T_data>::operator=(
       cudaMemcpyHostToDevice);
 
   majorDim = M.get_majorDim();
+  this->format = "CSR";
 }
 
 template<class T_data>
@@ -199,6 +206,7 @@ void carma_sparse_obj<T_data>::resize(int nz_elem_, int dim1_, int dim2_) {
     dims_data[1] = dim1_;
     dims_data[2] = dim2_;
     majorDim = 'U';
+    this->format = "unknown";
   }
 
 }
@@ -221,6 +229,7 @@ void carma_sparse_obj<T_data>::_create(int nz_elem_, int dim1_, int dim2_) {
   }
 
   majorDim = 'U';
+  format = "unknown";
 
   status = cusparseCreateMatDescr(&descr);
   if (status != CUSPARSE_STATUS_SUCCESS) {

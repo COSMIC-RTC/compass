@@ -978,6 +978,39 @@ extern yoga_sparse_obj
    SEE ALSO:
 */
 
+extern yoga_csr2bsr;
+/* DOCUMENT yoga_csr2bsr
+   matA = yoga_csr2bsr(blockdim,matB)
+   or
+   yoga_csr2bsr,matA, blockdim,matB
+
+   convert matB in CSR format into matA in BSR format
+   SEE ALSO:
+*/
+
+extern yoga_bsr2csr;
+/* DOCUMENT yoga_bsr2csr
+   matA = yoga_bsr2csr(matB)
+   or
+   yoga_bsr2csr,matA, matB
+
+   convert matB in BSR format into matA in CSR format
+   SEE ALSO:
+*/
+
+extern yoga_mv_ksparse;
+/* DOCUMENT yoga_mv_ysparse
+   vecty = yoga_mv_ysparse(matA,vectx[,alpha])
+   or
+   yoga_mv_ysparse,vecty,matA,vectx[,alpha,beta]
+
+   This function performs the matrix-vector multiplication product (BLAS gemv)
+   y = alpha * A * x + beta * y
+   If called as a function, it creates a new yoga object
+     
+   SEE ALSO:
+*/
+
 extern yoga_mv_sparse;
 /* DOCUMENT yoga_mv_sparse
    vecty = yoga_mv_sparse(matA,vectx[,alpha])

@@ -64,6 +64,12 @@ ifneq ($(MAGMA_ROOT),)
  LIB_DEPLIBS   += -Wl,-rpath=$(MAGMA_ROOT)/lib -L$(MAGMA_ROOT)/lib -lmagma 
 endif
 
+ifneq ($(KSPARSE_ROOT),)
+ #use the same keyword as in make.inc
+ LIB_CPPFLAGS  += -I$(KSPARSE_ROOT)/include -DUSE_KSPARSE
+ LIB_DEPLIBS   += -Wl,-rpath=$(KSPARSE_ROOT)/lib -L$(KSPARSE_ROOT)/lib -lksparse 
+endif
+
 #ifneq ($(COMPILATION_LAM),)
 #  LIB_DEPLIBS += -L$(NVIDIA_CURRENT_LIB_PATH_64) 
 #endif

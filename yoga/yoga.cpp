@@ -3924,6 +3924,7 @@ void ySparseObj_print(void *obj)
 {
   ostringstream mystr;
   ySparseObj_struct *handler = (ySparseObj_struct *) obj;
+
   try {
     if (handler->type == Y_FLOAT) {
       carma_sparse_obj<float> *carma_sparse_obj_handler =
@@ -3934,6 +3935,11 @@ void ySparseObj_print(void *obj)
       y_print(mystr.str().c_str(), 1);
       mystr.str("");
       const long *dims = carma_sparse_obj_handler->getDims();
+      if(carma_sparse_obj_handler->format=="BSR"){
+        mystr << "Format: BSR (block size="<<carma_sparse_obj_handler->blockDim << ")" << endl;
+      } else {
+        mystr << "Format: " << carma_sparse_obj_handler->format << endl;
+      }
       mystr << "  Dims: " << dims[1];
       for (int i = 2; i <= dims[0]; i++)
         mystr << "x" << dims[i];
@@ -3946,6 +3952,11 @@ void ySparseObj_print(void *obj)
       y_print(mystr.str().c_str(), 1);
       mystr.str("");
       const long *dims = carma_sparse_obj_handler->getDims();
+      if(carma_sparse_obj_handler->format=="BSR"){
+        mystr << "Format: BSR (block size="<<carma_sparse_obj_handler->blockDim << ")" << endl;
+      } else {
+        mystr << "Format: " << carma_sparse_obj_handler->format << endl;
+      }
       mystr << "Dims : " << dims[1];
       for (int i = 2; i <= dims[0]; i++)
         mystr << "x" << dims[i];
@@ -4063,6 +4074,192 @@ void Y_yoga_sparse_obj(int argc)
     buf << "unknown error with yObj construction in " << __FILE__ << "@"
         << __LINE__ << endl;
     y_error(buf.str().c_str());
+  }
+}
+
+void Y_yoga_csr2bsr(int argc)
+/** @brief wrapper routine for yoga_csr2bsr method
+ *  @param[in] argc : command line arguments
+ *  can work as a (1) subroutine (return discarded) or (2) as a function
+ *    - first  : (1) the destnation yoga_sparse_obj / (2) block size
+ *    - second : (1) the block size / (2) the source yoga_sparse_obj
+ *    - third  : (1) the source yoga_sparse_obj
+ *  in case (2) the destination is pushed on the stack as a yoga_sparse_obj
+ *  only floating point types supported (single or double precision)
+ */
+{
+  if (yarg_subroutine()) {
+    SCAST(ySparseObj_struct *, handle_mat_dst, yget_obj(argc - 1, &ySparseObj));
+    int blockdim = ygets_i(argc - 2);
+    SCAST(ySparseObj_struct *, handle_mat_src, yget_obj(argc - 3, &ySparseObj));
+
+    if (handle_mat_src->type == Y_FLOAT) {
+      SCAST(carma_sparse_obj<float>*, carma_obj_handler_mat_dst, handle_mat_dst->carma_sparse_object);
+      SCAST(carma_sparse_obj<float>*, carma_obj_handler_mat_src, handle_mat_src->carma_sparse_object);
+      carma_csr2bsr<float>(carma_obj_handler_mat_src, blockdim, carma_obj_handler_mat_dst);
+    }
+    if (handle_mat_src->type == Y_DOUBLE) {
+      SCAST(carma_sparse_obj<double>*, carma_obj_handler_mat_dst, handle_mat_dst->carma_sparse_object);
+      SCAST(carma_sparse_obj<double>*, carma_obj_handler_mat_src, handle_mat_src->carma_sparse_object);
+      carma_csr2bsr<double>(carma_obj_handler_mat_src, blockdim, carma_obj_handler_mat_dst);
+    }
+  } else {
+    // called as a function : need to allocate space
+    int blockdim = ygets_i(argc - 1);
+    SCAST(ySparseObj_struct *, handle_mat_src, yget_obj(argc - 2, &ySparseObj));
+
+    carma_context *context_handle = _getCurrentContext();
+    context_handle->set_activeDevice(handle_mat_src->device);
+    SCAST(ySparseObj_struct *, handle_mat_dst, ypush_obj(&ySparseObj, sizeof(ySparseObj_struct)));
+    handle_mat_dst->device = handle_mat_src->device;
+    handle_mat_dst->type = handle_mat_src->type;
+    if (handle_mat_src->type == Y_FLOAT) {
+      SCAST(carma_sparse_obj<float>*, carma_obj_handler_mat_src, handle_mat_src->carma_sparse_object);
+      carma_sparse_obj<float>* carma_obj_handler_mat_dst = new carma_sparse_obj<float>(context_handle);
+      carma_csr2bsr<float>(carma_obj_handler_mat_src, blockdim, carma_obj_handler_mat_dst);
+      handle_mat_dst->carma_sparse_object = carma_obj_handler_mat_dst;
+    } else if (handle_mat_src->type == Y_DOUBLE) {
+      SCAST(carma_sparse_obj<double>*, carma_obj_handler_mat_src, handle_mat_src->carma_sparse_object);
+      carma_sparse_obj<double>* carma_obj_handler_mat_dst = new carma_sparse_obj<double>(context_handle);
+      carma_csr2bsr<double>(carma_obj_handler_mat_src, blockdim, carma_obj_handler_mat_dst);
+      handle_mat_dst->carma_sparse_object = carma_obj_handler_mat_dst;
+    }
+  }
+}
+
+void Y_yoga_bsr2csr(int argc)
+/** @brief wrapper routine for yoga_bsr2csr method
+ *  @param[in] argc : command line arguments
+ *  can work as a (1) subroutine (return discarded) or (2) as a function
+ *    - first  : (1) the destnation yoga_sparse_obj / (2) the source yoga_sparse_obj
+ *    - second  : (1) the source yoga_sparse_obj
+ *  in case (2) the destination is pushed on the stack as a yoga_sparse_obj
+ *  only floating point types supported (single or double precision)
+ */
+{
+  if (yarg_subroutine()) {
+    SCAST(ySparseObj_struct *, handle_mat_dst, yget_obj(argc - 1, &ySparseObj));
+    SCAST(ySparseObj_struct *, handle_mat_src, yget_obj(argc - 2, &ySparseObj));
+
+    if (handle_mat_src->type == Y_FLOAT) {
+      SCAST(carma_sparse_obj<float>*, carma_obj_handler_mat_dst, handle_mat_dst->carma_sparse_object);
+      SCAST(carma_sparse_obj<float>*, carma_obj_handler_mat_src, handle_mat_src->carma_sparse_object);
+      carma_bsr2csr(carma_obj_handler_mat_src, carma_obj_handler_mat_dst);
+    }
+    if (handle_mat_src->type == Y_DOUBLE) {
+      SCAST(carma_sparse_obj<double>*, carma_obj_handler_mat_dst, handle_mat_dst->carma_sparse_object);
+      SCAST(carma_sparse_obj<double>*, carma_obj_handler_mat_src, handle_mat_src->carma_sparse_object);
+      carma_bsr2csr(carma_obj_handler_mat_src, carma_obj_handler_mat_dst);
+    }
+  } else {
+    // called as a function : need to allocate space
+    SCAST(ySparseObj_struct *, handle_mat_src, yget_obj(argc - 1, &ySparseObj));
+
+    carma_context *context_handle = _getCurrentContext();
+    context_handle->set_activeDevice(handle_mat_src->device);
+    SCAST(ySparseObj_struct *, handle_mat_dst, ypush_obj(&ySparseObj, sizeof(ySparseObj_struct)));
+    handle_mat_dst->device = handle_mat_src->device;
+    handle_mat_dst->type = handle_mat_src->type;
+    if (handle_mat_src->type == Y_FLOAT) {
+      SCAST(carma_sparse_obj<float>*, carma_obj_handler_mat_src, handle_mat_src->carma_sparse_object);
+      carma_sparse_obj<float>* carma_obj_handler_mat_dst= new carma_sparse_obj<float>(context_handle);
+      carma_bsr2csr(carma_obj_handler_mat_src, carma_obj_handler_mat_dst);
+      handle_mat_dst->carma_sparse_object = carma_obj_handler_mat_dst;
+    } else if (handle_mat_src->type == Y_DOUBLE) {
+      SCAST(carma_sparse_obj<double>*, carma_obj_handler_mat_src, handle_mat_src->carma_sparse_object);
+      carma_sparse_obj<double>* carma_obj_handler_mat_dst= new carma_sparse_obj<double>(context_handle);
+      carma_bsr2csr(carma_obj_handler_mat_src, carma_obj_handler_mat_dst);
+      handle_mat_dst->carma_sparse_object = carma_obj_handler_mat_dst;
+    }
+  }
+}
+
+void Y_yoga_mv_ksparse(int argc)
+/** @brief wrapper routine for yoga_sparse mv method
+ *  @param[in] argc : command line arguments
+ *  can work as a (1) subroutine (return discarded) or (2) as a function
+ *    - first  : (1) the destnation vector yoga_obj / (2) the matrix yoga_sparse_obj
+ *    - second : (1) the matrix yoga_sparse_obj / (2) the source vector yoga_obj
+ *    - third : (1) the source vector yoga_obj / (2) optional scaling factor for dest
+ *    - fourth  : (1) optional scaling factor for dest / (2) optional scaling factor for src
+ *    - fifth  : (1) optional scaling factor for src
+ *  in case (2) the destination is pushed on the stack as a yoga_obj
+ *  only floating point types supported (single or double precision)
+ */
+{
+  if (yarg_subroutine()) {
+    SCAST(yObj_struct *, handle_vecty, yget_obj(argc - 1, &yObj));
+    SCAST(ySparseObj_struct *, handle_mat, yget_obj(argc - 2, &ySparseObj));
+    SCAST(yObj_struct *, handle_vectx, yget_obj(argc - 3, &yObj));
+    if ((handle_vecty->device != handle_mat->device)
+        || (handle_vecty->device != handle_vectx->device)
+        || (handle_mat->device != handle_vectx->device))
+      y_error("mv only on the same device");
+    carma_context *context_handle = _getCurrentContext();
+    context_handle->set_activeDevice(handle_mat->device);
+
+    double alpha = 1.0;
+    if (argc > 3) {
+      alpha = ygets_d(argc - 4);
+    }
+    double beta = 0.0;
+    if (argc > 4) {
+      beta = ygets_d(argc - 5);
+    }
+    if (handle_mat->type == Y_FLOAT) {
+      SCAST(carma_sparse_obj<float>*, carma_obj_handler_mat, handle_mat->carma_sparse_object);
+      SCAST(caObjS *, carma_obj_handler_vectx, handle_vectx->carma_object);
+      SCAST(caObjS *, carma_obj_handler_vecty, handle_vecty->carma_object);
+      carma_kgemv(carma_obj_handler_mat, float(alpha), carma_obj_handler_vectx->getData(), float(beta), carma_obj_handler_vecty->getData());
+    }
+    if (handle_mat->type == Y_DOUBLE) {
+      SCAST(carma_sparse_obj<double>*, carma_obj_handler_mat, handle_mat->carma_sparse_object);
+      SCAST(caObjD *, carma_obj_handler_vectx, handle_vectx->carma_object);
+      SCAST(caObjD *, carma_obj_handler_vecty, handle_vecty->carma_object);
+
+      carma_kgemv(carma_obj_handler_mat, alpha, carma_obj_handler_vectx->getData(), beta, carma_obj_handler_vecty->getData());
+    }
+  } else {
+    // called as a function : need to allocate space
+    SCAST(ySparseObj_struct *, handle_mat, yget_obj(argc - 1, &ySparseObj));
+    SCAST(yObj_struct *, handle_vectx, yget_obj(argc - 2, &yObj));
+    if (handle_vectx->device != handle_mat->device){
+      y_error("mv only on the same device");
+    }
+    carma_context *context_handle = _getCurrentContext();
+    context_handle->set_activeDevice(handle_mat->device);
+    SCAST(yObj_struct *, handle_vecty, ypush_obj(&yObj, sizeof(yObj_struct)));
+    handle_vecty->device = handle_mat->device;
+    handle_vecty->type = handle_vectx->type;
+    double alpha = 1.0;
+    if (argc > 2) {
+      alpha = ygets_d(argc - 3);
+    }
+    double beta = 0.0;
+    if (argc > 3) {
+      beta = ygets_d(argc - 4);
+    }
+    if (handle_mat->type == Y_FLOAT) {
+      SCAST(carma_sparse_obj<float>*, carma_obj_handler_mat, handle_mat->carma_sparse_object);
+      SCAST(caObjS*, carma_obj_handler_vectx, handle_vectx->carma_object);
+      long dims_data_y[2];
+      dims_data_y[0] = 1;
+      dims_data_y[1] = carma_obj_handler_mat->getDims(1);
+      handle_vecty->carma_object = new caObjS(context_handle, dims_data_y);
+      SCAST(caObjS*, carma_obj_handler_vecty, handle_vecty->carma_object);
+
+      carma_kgemv(carma_obj_handler_mat, float(alpha), carma_obj_handler_vectx->getData(), float(beta), carma_obj_handler_vecty->getData());
+    } else if (handle_mat->type == Y_DOUBLE) {
+      SCAST(carma_sparse_obj<double>*, carma_obj_handler_mat, handle_mat->carma_sparse_object);
+      SCAST(caObjD*, carma_obj_handler_vectx, handle_vectx->carma_object);
+      long dims_data_y[2];
+      dims_data_y[0] = 1;
+      dims_data_y[1] = carma_obj_handler_mat->getDims(1);
+      handle_vecty->carma_object = new caObjD(context_handle, dims_data_y);
+      SCAST(caObjD*, carma_obj_handler_vecty, handle_vecty->carma_object);
+
+      carma_kgemv(carma_obj_handler_mat, alpha, carma_obj_handler_vectx->getData(), beta, carma_obj_handler_vecty->getData());
+    }
   }
 }
 

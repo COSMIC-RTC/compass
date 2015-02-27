@@ -30,5 +30,4 @@ cusparseOperation_t carma_char2cusparseOperation(char operation);
  *
  */
 
-
 #endif /* CARMA_SPARSE_H_ */
