@@ -1,0 +1,781 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="compass" />
+		<Option makefile_is_custom="1" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc" />
+		<Build>
+			<Target title="all">
+				<Option output="bin/Release/compass" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Release/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-O2" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+				</Linker>
+			</Target>
+			<Target title="install">
+				<Option output="compass" prefix_auto="1" extension_auto="1" />
+				<Option type="0" />
+				<Option compiler="gcc" />
+			</Target>
+			<Target title="clean">
+				<Option output="compass" prefix_auto="1" extension_auto="1" />
+				<Option type="0" />
+				<Option compiler="gcc" />
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="-Wall" />
+		</Compiler>
+		<Unit filename="Makefile">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="aao/cured/cured.cpp">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="aao/cured/cured.h">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="check_var.sh">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="compile.sh">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="configure.sh">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="define_var.sh">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="lam/kalman_CPU_GPU/A1_2vec.cpp">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="lam/kalman_CPU_GPU/A1_2vec.h">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="lam/kalman_CPU_GPU/compass_interface/kp_carma_tools.cpp">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="lam/kalman_CPU_GPU/compass_interface/kp_carma_tools.h">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="lam/kalman_CPU_GPU/compass_interface/sutra_controller_kalman.cpp">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="lam/kalman_CPU_GPU/compass_interface/sutra_controller_kalman.h">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="lam/kalman_CPU_GPU/compass_interface/test_carma_tools.cpp">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="lam/kalman_CPU_GPU/empty_compass_interface/sutra_controller_kalman.cpp">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="lam/kalman_CPU_GPU/empty_compass_interface/sutra_controller_kalman.h">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="lam/kalman_CPU_GPU/helper_timer.h">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="lam/kalman_CPU_GPU/kernels.cu">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="lam/kalman_CPU_GPU/kernels.h">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="lam/kalman_CPU_GPU/kp_cu2kp.cpp">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="lam/kalman_CPU_GPU/kp_cu2kp.h">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="lam/kalman_CPU_GPU/kp_cu_cuda.cpp">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="lam/kalman_CPU_GPU/kp_cu_cuda.h">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="lam/kalman_CPU_GPU/kp_cu_matrix.cpp">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="lam/kalman_CPU_GPU/kp_cu_matrix.h">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="lam/kalman_CPU_GPU/kp_cu_reduce.cu">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="lam/kalman_CPU_GPU/kp_cu_reduce.h">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="lam/kalman_CPU_GPU/kp_cu_smatrix.cpp">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="lam/kalman_CPU_GPU/kp_cu_smatrix.h">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="lam/kalman_CPU_GPU/kp_cu_timer.cpp">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="lam/kalman_CPU_GPU/kp_cu_timer.h">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="lam/kalman_CPU_GPU/kp_cu_vector.cpp">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="lam/kalman_CPU_GPU/kp_cu_vector.h">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="lam/kalman_CPU_GPU/kp_exceptions.h">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="lam/kalman_CPU_GPU/kp_flopscalc.cpp">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="lam/kalman_CPU_GPU/kp_flopscalc.h">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="lam/kalman_CPU_GPU/kp_kalman_core_full.cpp">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="lam/kalman_CPU_GPU/kp_kalman_core_full.h">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="lam/kalman_CPU_GPU/kp_kalman_core_full_CPU.cpp">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="lam/kalman_CPU_GPU/kp_kalman_core_full_CPU.h">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="lam/kalman_CPU_GPU/kp_kalman_core_full_GPU.cpp">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="lam/kalman_CPU_GPU/kp_kalman_core_full_GPU.h">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="lam/kalman_CPU_GPU/kp_kalman_core_sparse.cpp">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="lam/kalman_CPU_GPU/kp_kalman_core_sparse.h">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="lam/kalman_CPU_GPU/kp_kalman_core_sparse_CPU.cpp">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="lam/kalman_CPU_GPU/kp_kalman_core_sparse_CPU.h">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="lam/kalman_CPU_GPU/kp_kalman_core_sparse_GPU.cpp">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="lam/kalman_CPU_GPU/kp_kalman_core_sparse_GPU.h">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="lam/kalman_CPU_GPU/kp_matrix.cpp">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="lam/kalman_CPU_GPU/kp_matrix.h">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="lam/kalman_CPU_GPU/kp_randn.cpp">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="lam/kalman_CPU_GPU/kp_randn.h">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="lam/kalman_CPU_GPU/kp_real.h">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="lam/kalman_CPU_GPU/kp_smatrix.cpp">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="lam/kalman_CPU_GPU/kp_smatrix.h">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="lam/kalman_CPU_GPU/kp_timer.cpp">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="lam/kalman_CPU_GPU/kp_timer.h">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="lam/kalman_CPU_GPU/kp_tlib.cpp">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="lam/kalman_CPU_GPU/kp_tlib.h">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="lam/kalman_CPU_GPU/kp_vector.cpp">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="lam/kalman_CPU_GPU/kp_vector.h">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="lam/kalman_CPU_GPU/test/kalman_CPU.cpp">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="lam/kalman_CPU_GPU/test/kalman_CPU.h">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="lam/kalman_CPU_GPU/test/kalman_GPU.cpp">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="lam/kalman_CPU_GPU/test/kalman_GPU.h">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="lam/kalman_CPU_GPU/test/kp_init4matio.cpp">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="lam/kalman_CPU_GPU/test/kp_init4matio.h">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="lam/kalman_CPU_GPU/test/kp_multif_phasetur.cpp">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="lam/kalman_CPU_GPU/test/kp_multif_phasetur.h">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="lam/kalman_CPU_GPU/test/sp_parmap.cpp">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="lam/kalman_CPU_GPU/test/sp_parmap.h">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="ldd_test.sh">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="libcarma/include.cuh/convolutionFFT2D.cuh">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="libcarma/include.h/carma.h">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="libcarma/include.h/carma_context.h">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="libcarma/include.h/carma_cublas.h">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="libcarma/include.h/carma_cusparse.h">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="libcarma/include.h/carma_exception.h">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="libcarma/include.h/carma_fft.h">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="libcarma/include.h/carma_host_obj.h">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="libcarma/include.h/carma_multithread.h">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="libcarma/include.h/carma_obj.h">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="libcarma/include.h/carma_sparse_host_obj.h">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="libcarma/include.h/carma_sparse_obj.h">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="libcarma/include.h/carma_streams.h">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="libcarma/include.h/carma_utils.h">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="libcarma/include.h/convolutionFFT2D_common.h">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="libcarma/src.cpp/carma_context.cpp">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="libcarma/src.cpp/carma_cublas.cpp">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="libcarma/src.cpp/carma_cula.cpp">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="libcarma/src.cpp/carma_cusparse.cpp">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="libcarma/src.cpp/carma_fft.cpp">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="libcarma/src.cpp/carma_fft_conv.cpp">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="libcarma/src.cpp/carma_host_obj.cpp">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="libcarma/src.cpp/carma_magma.cpp">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="libcarma/src.cpp/carma_multithread.cpp">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="libcarma/src.cpp/carma_obj.cpp">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="libcarma/src.cpp/carma_rng.cpp">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="libcarma/src.cpp/carma_sparse_host_obj.cpp">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="libcarma/src.cpp/carma_sparse_obj.cpp">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="libcarma/src.cpp/carma_streams.cpp">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="libcarma/src.cpp/carma_utils.cpp">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="libcarma/src.cu/carma_fft_conv.cu">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="libcarma/src.cu/carma_obj.cu">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="libcarma/src.cu/carma_rng.cu">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="libcarma/src.cu/carma_sum.cu">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="libcarma/src.cu/carma_svd.cu">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="libcarma/src.cu/carma_transpose.cu">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="libcarma/src.cu/convolutionFFT2D.cu">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="libsutra/include.h/sutra_acquisim.h">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="libsutra/include.h/sutra_ao_utils.h">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="libsutra/include.h/sutra_aotemplate.h">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="libsutra/include.h/sutra_centroider.h">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="libsutra/include.h/sutra_centroider_bpcog.h">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="libsutra/include.h/sutra_centroider_cog.h">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="libsutra/include.h/sutra_centroider_corr.h">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="libsutra/include.h/sutra_centroider_pyr.h">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="libsutra/include.h/sutra_centroider_tcog.h">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="libsutra/include.h/sutra_centroider_wcog.h">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="libsutra/include.h/sutra_controller.h">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="libsutra/include.h/sutra_controller_cured.h">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="libsutra/include.h/sutra_controller_kalman.h">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="libsutra/include.h/sutra_controller_ls.h">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="libsutra/include.h/sutra_controller_mv.h">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="libsutra/include.h/sutra_dm.h">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="libsutra/include.h/sutra_kl.h">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="libsutra/include.h/sutra_lgs.h">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="libsutra/include.h/sutra_phase.h">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="libsutra/include.h/sutra_rtc.h">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="libsutra/include.h/sutra_target.h">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="libsutra/include.h/sutra_telemetry.h">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="libsutra/include.h/sutra_turbu.h">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="libsutra/include.h/sutra_wfs.h">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="libsutra/src.cpp/sutra_acquisim.cpp">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="libsutra/src.cpp/sutra_aotemplate.cpp">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="libsutra/src.cpp/sutra_centroider_bpcog.cpp">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="libsutra/src.cpp/sutra_centroider_cog.cpp">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="libsutra/src.cpp/sutra_centroider_corr.cpp">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="libsutra/src.cpp/sutra_centroider_pyr.cpp">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="libsutra/src.cpp/sutra_centroider_tcog.cpp">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="libsutra/src.cpp/sutra_centroider_wcog.cpp">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="libsutra/src.cpp/sutra_controller.cpp">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="libsutra/src.cpp/sutra_controller_cured.cpp">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="libsutra/src.cpp/sutra_controller_kalman.cpp">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="libsutra/src.cpp/sutra_controller_ls.cpp">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="libsutra/src.cpp/sutra_controller_mv.cpp">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="libsutra/src.cpp/sutra_dm.cpp">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="libsutra/src.cpp/sutra_kl.cpp">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="libsutra/src.cpp/sutra_lgs.cpp">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="libsutra/src.cpp/sutra_phase.cpp">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="libsutra/src.cpp/sutra_rtc.cpp">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="libsutra/src.cpp/sutra_target.cpp">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="libsutra/src.cpp/sutra_telemetry.cpp">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="libsutra/src.cpp/sutra_turbu.cpp">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="libsutra/src.cpp/sutra_wfs.cpp">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="libsutra/src.cu/sutra_acquisim.cu">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="libsutra/src.cu/sutra_ao_utils.cu">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="libsutra/src.cu/sutra_aotemplate.cu">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="libsutra/src.cu/sutra_centroider.cu">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="libsutra/src.cu/sutra_controller.cu">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="libsutra/src.cu/sutra_dm.cu">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="libsutra/src.cu/sutra_kl.cu">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="libsutra/src.cu/sutra_lgs.cu">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="libsutra/src.cu/sutra_target.cu">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="libsutra/src.cu/sutra_turbu.cu">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="libsutra/src.cu/sutra_wfs.cu">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="reinstall.sh">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="svi-pc/common/svipc.h">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="svi-pc/common/svipc_misc.c">
+			<Option compilerVar="CC" />
+			<Option target="all" />
+		</Unit>
+		<Unit filename="svi-pc/common/svipc_misc.h">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="svi-pc/common/svipc_msq.c">
+			<Option compilerVar="CC" />
+			<Option target="all" />
+		</Unit>
+		<Unit filename="svi-pc/common/svipc_msq.h">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="svi-pc/common/svipc_sem.c">
+			<Option compilerVar="CC" />
+			<Option target="all" />
+		</Unit>
+		<Unit filename="svi-pc/common/svipc_sem.h">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="svi-pc/common/svipc_shm.c">
+			<Option compilerVar="CC" />
+			<Option target="all" />
+		</Unit>
+		<Unit filename="svi-pc/common/svipc_shm.h">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="svi-pc/demo/msq-demo.i">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="svi-pc/demo/ping.i">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="svi-pc/demo/sem-demo.i">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="svi-pc/demo/tictac.i">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="svi-pc/demo/timing-demo.i">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="svi-pc/python/svipc_module.c">
+			<Option compilerVar="CC" />
+			<Option target="all" />
+		</Unit>
+		<Unit filename="svi-pc/yorick/svipc.i">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="svi-pc/yorick/yorick_svipc.c">
+			<Option compilerVar="CC" />
+			<Option target="all" />
+		</Unit>
+		<Unit filename="wrapper_mpi/CudaTimer.h">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="wrapper_mpi/main.cpp">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="wrapper_mpi/mpi_yorick.cpp">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="wrapper_mpi/sutra_wfs_mpi.cpp">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="wrapper_mpi/sutra_wfs_mpi.cu">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="wrapper_mpi/sutra_wfs_mpi.h">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="wrapper_mpi/test.i">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="yoga/yoga.cpp">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="yoga/yoga_api.h">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="yoga/yorick/check_yoga.i">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="yoga/yorick/fits-utils.i">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="yoga/yorick/util_fr.i">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="yoga/yorick/yoga.i">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="yoga/yorick/yoga_cula.i">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="yoga/yorick/yoga_fft.i">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="yoga/yorick/yoga_magma.i">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="yoga/yorick/yoga_obj.i">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="yoga/yorick/yoga_rng.i">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="yoga/yorick/yoga_scan.i">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="yoga/yorick/yoga_sort.i">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="yoga/yorick/yoga_sparse_obj.i">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="yoga/ywrap.c">
+			<Option compilerVar="CC" />
+			<Option target="all" />
+		</Unit>
+		<Unit filename="yoga_ao/yoga_ao.cpp">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="yoga_ao/yoga_ao_api.h">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="yoga_ao/yorick/ao_scripts.i">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="yoga_ao/yorick/ao_tests.i">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="yoga_ao/yorick/batch_relax.sh">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="yoga_ao/yorick/yoga_acquisim.i">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="yoga_ao/yorick/yoga_ao.i">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="yoga_ao/yorick/yoga_ao_dm.i">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="yoga_ao/yorick/yoga_ao_utils.i">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="yoga_ao/yorick/yoga_ao_ystruct.i">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="yoga_ao/yorick/yoga_aolib.i">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="yoga_ao/yorick/yoga_aotemplate.i">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="yoga_ao/yorick/yoga_dm.i">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="yoga_ao/yorick/yoga_kl.i">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="yoga_ao/yorick/yoga_rtc.i">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="yoga_ao/yorick/yoga_turbu.i">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="yoga_ao/yorick/yoga_wfs.i">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="yoga_ao/ywidgets/atmos_utils.i">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="yoga_ao/ywidgets/dm_utils.i">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="yoga_ao/ywidgets/pyk.i">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="yoga_ao/ywidgets/rtc_utils.i">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="yoga_ao/ywidgets/target_utils.i">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="yoga_ao/ywidgets/wfs_utils.i">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="yoga_ao/ywidgets/widget_ao.i">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="yoga_ao/ywidgets/widget_sky.i">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="yoga_ao/ywidgets/widget_wfs.i">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="yoga_ao/ywidgets/widgets_utils.i">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="yoga_ao/ywrap.c">
+			<Option compilerVar="CC" />
+			<Option target="all" />
+		</Unit>
+		<Unit filename="yoga_py/yoga_py.cpp">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="yoga_template/Makefile">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="yoga_template/check_template.i">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="yoga_template/erreur_tomo.i">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="yoga_template/script_magma/Makefile">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="yoga_template/script_magma/testing_dsyevd_gpu.cpp">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="yoga_template/yoga_template.cpp">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="yoga_template/yoga_template.cu">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="yoga_template/yoga_template.h">
+			<Option target="all" />
+		</Unit>
+		<Unit filename="yoga_template/yoga_template.i">
+			<Option target="all" />
+		</Unit>
+		<Extensions>
+			<code_completion />
+			<debugger />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>

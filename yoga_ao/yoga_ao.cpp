@@ -3599,8 +3599,8 @@ void Y_yoga_gettemplate(int argc) {
 }
 // Florian features
 void Y_rtc_buildcmatmv(int argc) {
-  long ntot;
-  long dims[Y_DIMSIZE];
+//  long ntot;
+//  long dims[Y_DIMSIZE];
   rtc_struct *rhandler = (rtc_struct *) yget_obj(argc - 1, &yRTC);
   sutra_rtc *rtc_handler = (sutra_rtc *) (rhandler->sutra_rtc);
   long ncontrol = ygets_l(argc - 2);

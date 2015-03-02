@@ -347,9 +347,9 @@ void context_print(void *obj)
   SCAST(carma_context*, context, handler->carma_context);
   unsigned int activeDevice = context->get_activeDevice();
   unsigned int nDevice = context->get_ndevice();
-  size_t len=strlen(context->get_device(0)->getName());
+  size_t len=context->get_device(0)->getName().length();
   for (size_t idx = 1; idx < nDevice; idx++) {
-    size_t tmp = strlen(context->get_device(idx)->getName());
+    size_t tmp = context->get_device(idx)->getName().length();
     if(len<tmp) len=tmp;
   }
   cout << "CArMA Context : " << endl;
@@ -357,12 +357,12 @@ void context_print(void *obj)
   cout << "Dev Id" << " | " << setw(4+len-4) << "name" << " | " << "mem (MB)" << " | " << "cores (MP)" << " | "
       << "compute" << " | " << "GFlops" << endl;
   for (size_t idx = 0; idx < nDevice; idx++) {
-    const char *name=context->get_device(idx)->getName();
+    string name=context->get_device(idx)->getName();
     char mem[9];
     sprintf(mem, "%8zu", context->get_device(idx)->getMem()/1024/1024);
 
     cout << ((idx == activeDevice) ? "<U>" : "   ") << setw(3) << idx
-        << " | " << setw(4+len-strlen(name)) << name << " | " << mem << " | " << setw(5)
+        << " | " << setw(4+len-name.length()) << name << " | " << mem << " | " << setw(5)
         << context->get_device(idx)->get_sm_per_multiproc() * context->get_device(idx)->get_properties().multiProcessorCount <<
       (context->get_device(idx)->get_properties().multiProcessorCount<10?"  (":" (") <<
       context->get_device(idx)->get_properties().multiProcessorCount << ")"

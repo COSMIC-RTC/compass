@@ -155,7 +155,7 @@ func check_syevd(n, compare_yorick=)
 
   write, format="\ngeneration for the matrix %dx%d... ", n, n;
   tic; 
-  tmp = yoga_obj(random(n, n)-0.5 + diag(random(n)));
+  tmp = yoga_obj(float(random(n, n)-0.5));
   d_mat = yoga_mm(tmp, tmp, 'n', 't')
   mat = d_mat(); //tmp(,+)*tmp(,+);
   tmp = [];
@@ -169,8 +169,8 @@ func check_syevd(n, compare_yorick=)
   }
 
   write, "\ntest with double";
-  d_U = yoga_obj(mat*0.);
-  h_EV = array(0., n);
+  d_U = yoga_obj(float(mat*0.));
+  h_EV = array(0.f, n);
   write, format="%s", "doing yoga_syevd, d_mat, h_EV, d_U... ";
   tic; yoga_syevd, d_mat, h_EV, d_U; tps2=tac();
   if(compare_yorick){
@@ -181,10 +181,10 @@ func check_syevd(n, compare_yorick=)
     write, format="in %0.3fs\n", tps2;
   }
   write, "Verif: max(abs( d_mat - d_U*unit(n)*h_EV(,-)*d_Ut";
-  max(abs( mat - yoga_mm(yoga_mm(d_U, yoga_obj(unit(n)*h_EV(,-)), 'n', 'n'), d_U, 'n', 't')() ));
+  max(abs( mat - yoga_mm(yoga_mm(d_U, yoga_obj(float(unit(n)*h_EV(,-))), 'n', 'n'), d_U, 'n', 't')() ));
   
   write, "\ntest with double (inplace)";
-  h_EV2 = array(0., n);
+  h_EV2 = array(0.f, n);
   write, format="%s", "doing yoga_syevd, d_mat, h_EV2... ";
   tic; yoga_syevd, d_mat, h_EV2; tps2=tac();
 
@@ -196,12 +196,12 @@ func check_syevd(n, compare_yorick=)
     write, format="in %0.3fs\n", tps2;
   }
   write, "Verif: max(abs( d_mat - d_U*unit(n)*h_EV(,-)*d_Ut";
-  max(abs( mat - yoga_mm(yoga_mm(d_mat, yoga_obj(unit(n)*h_EV(,-)), 'n', 'n'), d_U, 'n', 't')() ));
+  max(abs( mat - yoga_mm(yoga_mm(d_mat, yoga_obj(float(unit(n)*h_EV(,-))), 'n', 'n'), d_U, 'n', 't')() ));
 
 
   write, "\ntest with double (inplace, noComputeU)";
-  d_mat = yoga_obj(mat);
-  h_EV3 = array(0., n);
+  d_mat = yoga_obj(float(mat));
+  h_EV3 = array(0.f, n);
   write, format="%s", "doing yoga_syevd, d_mat, h_EV2... ";
   tic; yoga_syevd, d_mat, h_EV3, noComputeU=1; tps2=tac();
 

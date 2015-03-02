@@ -13,7 +13,7 @@ sutra_rtc_brama::~sutra_rtc_brama() {
 }
 
 void sutra_rtc_brama::initDDS() {
-  char *topics[] = BRAMA_TOPICS;
+  string topics[] = BRAMA_TOPICS;
 
   try {
     // Create a publisher and subscriber for the two topics

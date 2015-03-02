@@ -1,8 +1,6 @@
 #include <sutra_rtc_brama.h>
 #include <yoga_ao_api.h>
 
-static y_userobj_t yRTC;
-
 extern "C" {
 
 void Y_yoga_rtc_brama(int argc) {

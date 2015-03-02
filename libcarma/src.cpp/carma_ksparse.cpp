@@ -38,16 +38,14 @@ int carma_kgemv<double>(carma_sparse_obj<double>* A, double alpha,
 
 #else
 template<>
-int carma_kgemv<double>(int matrix_dim,
-    double alpha, double *A, int* bsr_row_ptr, int* bsr_col_ind,
+int carma_kgemv<double>(carma_sparse_obj<double>* A, double alpha,
     const double* __restrict x, double beta, double *y) {
   DEBUG_TRACE("KSPARSE not compiled");
   return EXIT_FAILURE;
 }
 template<>
-int carma_kgemv<float>(int matrix_dim, float alpha,
-    float *A, int* bsr_row_ptr, int* bsr_col_ind, const float* __restrict x,
-    float beta, float *y) {
+int carma_kgemv<float>(carma_sparse_obj<float>* A, float alpha,
+    const float* __restrict x, float beta, float *y) {
   DEBUG_TRACE("KSPARSE not compiled");
   return EXIT_FAILURE;
 }

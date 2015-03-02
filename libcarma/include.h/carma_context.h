@@ -20,10 +20,8 @@
 #include <stdlib.h>
 #include <string>
 #include <vector>
-#include <driver_types.h>
 #include <vector_types.h>
 #include <cuda_runtime_api.h>
-#include <cuda.h>
 
 #include <carma_utils.h>
 #include <carma_cublas.h>
@@ -38,11 +36,12 @@ protected:
   float compute_perf;
   float sm_per_multiproc;
   bool p2p_activate;
-  char name[16];
+  string  name;
   size_t totalMem;
 
-  CUdevice dev;
-  CUcontext ctx;
+  cublasHandle_t cublasHandle;
+  cusparseHandle_t cusparseHandle;
+
 public:
   carma_device(int devid);
   carma_device(const carma_device& device);
@@ -68,11 +67,16 @@ public:
     return p2p_activate;
   }
 
-  CUcontext getCUcontext() {return ctx;}
-
-  const char *getName() {return name;}
+  string getName() {return name;}
 
   size_t getMem() {return totalMem;}
+
+  cublasHandle_t get_cublasHandle() {
+    return cublasHandle;
+  }
+  cusparseHandle_t get_cusparseHandle() {
+    return cusparseHandle;
+  }
 };
 
 class carma_context {
@@ -81,8 +85,6 @@ protected:
   vector<carma_device *> devices;
   int activeDevice;
   int** can_access_peer;
-  cublasHandle_t cublasHandle;
-  cusparseHandle_t cusparseHandle;
 
 public:
   carma_context();
@@ -104,14 +106,18 @@ public:
   int set_activeDeviceForCpy(int newDevice, int silent = 1);
   int get_maxGflopsDeviceId();
   cublasHandle_t get_cublasHandle() {
-    return cublasHandle;
+    return get_cublasHandle(activeDevice);
   }
   cusparseHandle_t get_cusparseHandle() {
-    return cusparseHandle;
+    return get_cusparseHandle(activeDevice);
   }
 
-  void releaseCtx(int nGPUs, int *iGPUs, CUcontext *ctx);
-  void reattachCtx(int nGPUs, int *iGPUs);
+  cublasHandle_t get_cublasHandle(int device) {
+    return devices[device]->get_cublasHandle();
+  }
+  cusparseHandle_t get_cusparseHandle(int device) {
+    return devices[device]->get_cusparseHandle();
+  }
 
 };
 

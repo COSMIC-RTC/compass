@@ -1,0 +1,102 @@
+/*
+geometry inits
+*/
+y_geom.zenithangle = 0.;
+
+/*
+telescope inits
+*/
+y_tel.diam = 8.f;
+y_tel.cobs = 0.12f;
+
+/*
+atmosphere inits
+*/
+y_atmos.r0           = 0.16;
+y_atmos.nscreens     = 1;
+y_atmos.frac         = &([1.0]);
+y_atmos.alt          = &([0.0]);
+y_atmos.windspeed    = &([20.]);
+y_atmos.winddir      = &([45]);
+
+/*
+target inits
+*/
+y_target.ntargets = 1;
+y_target.xpos     = &([0.0f]);
+y_target.ypos     = &([0.0f]);
+y_target.lambda   = &([1.65]);
+y_target.mag      = &([10.]);
+
+/*
+loop inits
+*/
+y_loop.niter  = 1000;
+y_loop.ittime = 1/500.0f;
+
+/*
+wfs inits
+*/
+y_wfs                  = array(wfs_struct(),1); // clean start
+y_wfs(1).type          = "sh";
+y_wfs(1).nxsub         = 23;
+y_wfs(1).npix          = 16;
+y_wfs(1).pixsize       = 0.3;
+y_wfs(1).fracsub       = 0.8;
+y_wfs(1).xpos          = 0.0;
+y_wfs(1).ypos          = 0.0;
+y_wfs(1).lambda        = 0.5;
+y_wfs(1).gsmag         = 5.;
+y_wfs(1).optthroughput = 0.5;
+y_wfs(1).zerop         = 1.e11;
+y_wfs(1).noise         = 3;
+
+/*
+dm inits
+*/
+ndm = 1;
+y_dm                  = array(dm_struct(),ndm); // clean start
+
+y_dm(1).type          = "pzt";
+y_dm(1).nact          = y_wfs(1).npix+1;
+y_dm(1).alt           = 0.;
+y_dm(1).thresh        = 0.3;
+y_dm(1).coupling      = 0.2;
+y_dm(1).unitpervolt   = 0.01;
+y_dm(1).push4imat     = 100.0f;
+/*
+y_dm(2).type          = "tt";
+y_dm(2).alt           = 0.;
+y_dm(2).unitpervolt   = 0.0005;
+y_dm(2).push4imat     = 10.0f;
+*/
+
+/*
+centroiders inits
+*/
+ncentroiders = 1;
+y_centroiders           = array(centroider_struct(),ncentroiders);
+
+y_centroiders.nwfs      = 1;
+y_centroiders(1).type   = "cog";
+
+/*
+controllers inits
+*/
+ncontrollers = 1;
+y_controllers          = array(controller_struct(),ncontrollers);
+
+y_controllers(1).type    = "ls";
+y_controllers(1).nwfs    = &[1];
+y_controllers(1).ndm     = &[1];
+y_controllers(1).maxcond = 150.;
+y_controllers(1).delay   = 1;
+y_controllers(1).gain    = 0.4;
+
+/*
+rtc inits
+*/
+y_rtc.nwfs =1;
+y_rtc.centroiders = &(y_centroiders);
+y_rtc.controllers  = &(y_controllers);
+

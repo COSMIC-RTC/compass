@@ -15,6 +15,7 @@
 #endif
 
 carma_device::carma_device(int devid) {
+  cutilSafeCall(cudaSetDevice(devid));
   this->id = devid;
   cudaGetDeviceProperties(&(this->properties), devid);
   this->sm_per_multiproc = ConvertSMVer2Cores(this->properties.major,
@@ -23,18 +24,27 @@ carma_device::carma_device(int devid) {
       * this->sm_per_multiproc * this->properties.clockRate;
 
   this->p2p_activate = false;
-  //DEBUG_TRACE("cuDeviceGet\n");
-  cuDeviceGet(&dev, devid);
-  cuDeviceGetName(name, 16, dev);
-  cuDeviceTotalMem(&totalMem, dev);
-  //DEBUG_TRACE("cuCtxCreate\n");
-  cuCtxCreate(&ctx, CU_CTX_MAP_HOST | CU_CTX_SCHED_AUTO, dev);
+
+  name = string(this->properties.name);
+  size_t freeMem;
+  cutilSafeCall(cudaMemGetInfo(&freeMem, &totalMem));
+
+  carma_initCublas(&cublasHandle);
+  carma_initCusparse(&cusparseHandle);
+
+  //  cusparsePointerMode_t mode;
+  //  cusparseGetPointerMode(cusparseHandle, &mode);
+  //  DEBUG_TRACE("%d\n", mode);
+
   //DEBUG_TRACE("done\n");
 }
 
+
 carma_device::~carma_device() {
+  carma_shutdownCublas(cublasHandle);
+  carma_shutdownCusparse(cusparseHandle);
+
   this->id = -1;
-  cuCtxDestroy(ctx);
 }
 
 carma_context::carma_context() {
@@ -60,21 +70,18 @@ carma_context::carma_context() {
   }
 
   int current_device = 0;
-  //FIXME fix UVA issues
-  //int gpuid[64]; // we want to find the first two GPU's that can support P2P
-  //int gpu_count = 0; // GPUs that meet the criteria
+  int gpuid[64]; // we want to find the first two GPU's that can support P2P
+  int gpu_count = 0; // GPUs that meet the criteria
   carma_device *current_yd = NULL;
   while (current_device < this->ndevice) {
     current_yd = new carma_device(current_device);
     devices.push_back(current_yd);
 
-    //FIXME fix UVA issues
-    //if (current_yd->isGPUCapableP2P())
-    //  gpuid[gpu_count++] = current_device;
+    if (current_yd->isGPUCapableP2P())
+      gpuid[gpu_count++] = current_device;
     current_device++;
   }
 
-#if 0 //FIXME fix UVA issues
   if (gpu_count > 1) {
     bool has_uva = true;
     for (int i = 0; i < gpu_count - 1; i++) {
@@ -103,15 +110,8 @@ carma_context::carma_context() {
       printf("*** All GPUs listed can support UVA... ***\n");
     }
   }
-#endif
+
   this->activeDevice = set_activeDevice(0);//get_maxGflopsDeviceId(), 1);
-
-  carma_initCublas(&cublasHandle);
-  carma_initCusparse(&cusparseHandle);
-
-//  cusparsePointerMode_t mode;
-//  cusparseGetPointerMode(cusparseHandle, &mode);
-//  DEBUG_TRACE("%d\n", mode);
 
 #ifdef USE_CULA
   // CULA init 
@@ -144,9 +144,6 @@ carma_context::~carma_context() {
   magma_finalize();
 #endif
 
-  carma_shutdownCublas(cublasHandle);
-  carma_shutdownCusparse(cusparseHandle);
-
   size_t idx = 0;
   while(this->devices.size()>0){
     delete this->devices.back();
@@ -176,7 +173,6 @@ int carma_context::set_activeDevice(int newDevice, int silent) {
 
 int carma_context::set_activeDeviceForce(int newDevice, int silent) {
   if (newDevice < ndevice) {
-    CUSafeCall(cuCtxSetCurrent(devices[newDevice]->getCUcontext()));
     cutilSafeCall(cudaSetDevice(newDevice));
 #ifdef USE_CULA
     culaStatus status = culaSelectDevice(newDevice);
@@ -262,32 +258,4 @@ int carma_context::get_maxGflopsDeviceId()
     --current_device;
   }
   return max_perf_device;
-}
-
-void carma_context::releaseCtx(int nGPUs, int *iGPUs, CUcontext *ctx){
-  //DEBUG_TRACE("entering into releaseCtx\n");
-  CUcontext context;
-  CUSafeCall(cuCtxGetCurrent(&context));
-  for(int id_gpu=0; id_gpu<nGPUs; id_gpu++){
-    DEBUG_TRACE("Get context of device %d\n",iGPUs[id_gpu]);
-    CUSafeCall(cuCtxSetCurrent(devices[iGPUs[id_gpu]]->getCUcontext()));
-    DEBUG_TRACE("Release context (0x%p) of device %d\n",
-        (void *)devices[iGPUs[id_gpu]]->getCUcontext(),iGPUs[id_gpu]);
-    CUSafeCall(cuCtxPopCurrent(&(ctx[id_gpu])));
-  }
-  CUSafeCall(cuCtxSetCurrent(context));
-
-}
-
-void carma_context::reattachCtx(int nGPUs, int *iGPUs){
-  //DEBUG_TRACE("entering into attachCtx\n");
-  CUcontext context;
-  CUSafeCall(cuCtxGetCurrent(&context));
-  for(int id_gpu=0; id_gpu<nGPUs; id_gpu++){
-    DEBUG_TRACE("reattach context (0x%p) of device %d\n",
-        (void *)devices[iGPUs[id_gpu]]->getCUcontext(),iGPUs[id_gpu]);
-    CUSafeCall(cuCtxPushCurrent(devices[iGPUs[id_gpu]]->getCUcontext()));
-  }
-  CUSafeCall(cuCtxSetCurrent(context));
-
 }
