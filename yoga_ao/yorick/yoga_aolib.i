@@ -261,7 +261,7 @@ extern yoga_phase;
 extern phase_set;
 
 // wfs
-extern yoga_wfs;
+//extern yoga_wfs;
 /* DOCUMENT yoga_wfs
    obj = yoga_wfs(nxsub,nvalid,npix,nphase,nrebin,nfft,ntot,npup,pdiam,nphot,lgs[,ndevice])
      
@@ -280,7 +280,7 @@ extern yoga_wfs;
       
    SEE ALSO:
  */
-extern wfs_initgs;
+//extern wfs_initgs;
 /* DOCUMENT wfs_initgs
    wfs_initgs,yoga_wfs_obj,xpos,ypos,lambda,mag,size
      

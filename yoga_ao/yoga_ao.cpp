@@ -63,10 +63,10 @@ static y_userobj_t yTarget = { const_cast<char*>("yTarget Object"),
 
 static y_userobj_t yPhase = { const_cast<char*>("yPhase Object"), &phase_free,
     &phase_print, &phase_eval, 0, 0 };
-
+/*
 static y_userobj_t yWfs = { const_cast<char*>("yWfs Object"), &wfs_free,
     &wfs_print, 0, 0, 0 };
-
+*/
 static y_userobj_t yTelemetry = { const_cast<char*>("yTelemetry Object"),
     &telemetry_free, &telemetry_print, 0, 0, 0 };
 
@@ -834,7 +834,7 @@ void Y_phase_set(int argc) {
  *       \_/\_/  |_|   |____/
  *
  */
-
+/*
 wfs_struct*
 yoga_ao_getyWfs(int argc, int pos) {
   return (wfs_struct *) yget_obj(argc - pos, &yWfs);
@@ -921,7 +921,7 @@ void Y_wfs_initgs(int argc) {
   sutra_wfs *wfs_handler = (sutra_wfs *) handle->sutra_wfs;
   wfs_handler->wfs_initgs(xpos, ypos, lambda, mag, size, noise, seed);
 }
-
+*/
 /*
  *     _       _                     _
  *    | |_ ___| | ___ _ __ ___   ___| |_ _ __ _   _

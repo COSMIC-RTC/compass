@@ -124,8 +124,8 @@ int printMemInfo() {
 	free_float = (float) free_mem / 1000000.;
 	total_float = (float) total_mem / 1000000.;
 	used_mem = total_float - free_float;
-	printf("GPU Memory usage : used memory = %f MB, total memory = %f \n",
-			used_mem, total_float);
+	printf("GPU Memory usage : used memory = %f MB, free memory = %f \n",
+			used_mem, free_float);
 
 	return EXIT_SUCCESS;
 }

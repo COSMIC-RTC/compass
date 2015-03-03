@@ -7,6 +7,7 @@
 
 using namespace std;
 
+class sutra_sensors;
 class sutra_lgs {
 public:
   long nvalid;
@@ -18,6 +19,7 @@ public:
   float pixsize;
   long nprof;
 
+  cufftHandle *ftlgskern_plan;
   carma_obj<float> *d_doffaxis;
   carma_obj<float> *d_azimuth;
   carma_obj<float> *d_prof1d;
@@ -36,7 +38,7 @@ public:
    */
 
 public:
-  sutra_lgs(carma_context *context, long nvalid, long npix, long nmaxhr);
+  sutra_lgs(carma_context *context, sutra_sensors *sensors, long nvalid, long npix, long nmaxhr);
   sutra_lgs(const sutra_lgs& lgs);
   ~sutra_lgs();
 

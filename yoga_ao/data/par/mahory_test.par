@@ -1,0 +1,197 @@
+/*
+geometry inits
+*/
+y_geom.zenithangle = 0.;
+
+/*
+telescope inits
+*/
+y_tel.diam = 40.f;
+y_tel.cobs = 0.12f;
+
+/*
+atmosphere inits
+*/
+y_atmos.r0           = 0.16;
+y_atmos.nscreens     = 3;
+y_atmos.frac         = &([0.52,0.28,0.2]);
+y_atmos.alt          = &([0.0, 4500., 9000.]);
+y_atmos.windspeed    = &([20.,20.,20.]);
+y_atmos.winddir      = &([45,45,45]);
+y_atmos.L0           = &([1e5f,1e5f,1e5f]);
+
+/*
+target inits
+*/
+y_target.ntargets = 1;
+y_target.xpos     = &([0.0f]);
+y_target.ypos     = &([0.0f]);
+y_target.lambda   = &([1.65]);
+y_target.mag      = &([10.]);
+
+/*
+loop inits
+*/
+y_loop.niter  = 2000;
+y_loop.ittime = 1/500.0f;
+
+/*
+wfs inits
+*/
+y_wfs                  = array(wfs_struct(),5); // clean start
+y_wfs(1).type          = "sh";
+y_wfs(1).nxsub         = 80;
+y_wfs(1).npix          = 20;
+y_wfs(1).pixsize       = 1.5;
+y_wfs(1).fracsub       = 0.8;
+y_wfs(1).xpos          = -60.0;
+y_wfs(1).ypos          = -60.0;
+y_wfs(1).lambda        = 0.5;
+y_wfs(1).gsmag         = 5.;
+y_wfs(1).optthroughput = 0.5;
+y_wfs(1).zerop         = 1.e11;
+y_wfs(1).noise         = 3;
+
+y_wfs(1).gsalt            = 90*1.e3;
+y_wfs(1).lltx             = -28.;
+y_wfs(1).llty             = -28.;
+y_wfs(1).laserpower       = 10;
+y_wfs(1).lgsreturnperwatt = 1.e3;
+y_wfs(1).proftype         = "Exp";
+y_wfs(1).beamsize         = 0.8;
+
+y_wfs(2).type          = "sh";
+y_wfs(2).nxsub         = 80;
+y_wfs(2).npix          = 20;
+y_wfs(2).pixsize       = 1.5;
+y_wfs(2).fracsub       = 0.8;
+y_wfs(2).xpos          = -60.0;
+y_wfs(2).ypos          = 60.0;
+y_wfs(2).lambda        = 0.5;
+y_wfs(2).gsmag         = 5.;
+y_wfs(2).optthroughput = 0.5;
+y_wfs(2).zerop         = 1.e11;
+y_wfs(2).noise         = 3;
+
+y_wfs(2).gsalt            = 90*1.e3;
+y_wfs(2).lltx             = -28.;
+y_wfs(2).llty             = 28.;
+y_wfs(2).laserpower       = 10;
+y_wfs(2).lgsreturnperwatt = 1.e3;
+y_wfs(2).proftype         = "Exp";
+y_wfs(2).beamsize         = 0.8;
+
+y_wfs(3).type          = "sh";
+y_wfs(3).nxsub         = 80;
+y_wfs(3).npix          = 20;
+y_wfs(3).pixsize       = 1.5;
+y_wfs(3).fracsub       = 0.8;
+y_wfs(3).xpos          = 60.0;
+y_wfs(3).ypos          = -60.0;
+y_wfs(3).lambda        = 0.5;
+y_wfs(3).gsmag         = 5.;
+y_wfs(3).optthroughput = 0.5;
+y_wfs(3).zerop         = 1.e11;
+y_wfs(3).noise         = 3;
+
+y_wfs(3).gsalt            = 90*1.e3;
+y_wfs(3).lltx             = 28.;
+y_wfs(3).llty             = -28.;
+y_wfs(3).laserpower       = 10;
+y_wfs(3).lgsreturnperwatt = 1.e3;
+y_wfs(3).proftype         = "Exp";
+y_wfs(3).beamsize         = 0.8;
+
+y_wfs(4).type          = "sh";
+y_wfs(4).nxsub         = 80;
+y_wfs(4).npix          = 20;
+y_wfs(4).pixsize       = 1.5;
+y_wfs(4).fracsub       = 0.8;
+y_wfs(4).xpos          = 60.0;
+y_wfs(4).ypos          = 60.0;
+y_wfs(4).lambda        = 0.5;
+y_wfs(4).gsmag         = 5.;
+y_wfs(4).optthroughput = 0.5;
+y_wfs(4).zerop         = 1.e11;
+y_wfs(4).noise         = 3;
+
+y_wfs(4).gsalt            = 90*1.e3;
+y_wfs(4).lltx             = 28.;
+y_wfs(4).llty             = 28.;
+y_wfs(4).laserpower       = 10;
+y_wfs(4).lgsreturnperwatt = 1.e3;
+y_wfs(4).proftype         = "Exp";
+y_wfs(4).beamsize         = 0.8;
+
+y_wfs(5).type          = "sh";
+y_wfs(5).nxsub         = 80;
+y_wfs(5).npix          = 20;
+y_wfs(5).pixsize       = 1.5;
+y_wfs(5).fracsub       = 0.8;
+y_wfs(5).xpos          = 0.0;
+y_wfs(5).ypos          = 0.0;
+y_wfs(5).lambda        = 0.5;
+y_wfs(5).gsmag         = 5.;
+y_wfs(5).optthroughput = 0.5;
+y_wfs(5).zerop         = 1.e11;
+y_wfs(5).noise         = 3;
+
+/*
+dm inits
+*/
+ndm = 2;
+y_dm                  = array(dm_struct(),ndm); // clean start
+
+y_dm(1).type          = "pzt";
+y_dm(1).nact          = 81;
+y_dm(1).alt           = 0.;
+y_dm(1).thresh        = 0.3;
+y_dm(1).coupling      = 0.2;
+y_dm(1).unitpervolt   = 0.01;
+y_dm(1).push4imat     = 100.0f;
+
+y_dm(2).type          = "pzt";
+y_dm(2).nact          = 81;
+y_dm(2).alt           = 9000.;
+y_dm(2).thresh        = 0.3;
+y_dm(2).coupling      = 0.2;
+y_dm(2).unitpervolt   = 0.01;
+y_dm(2).push4imat     = 100.0f;
+
+/*
+centroiders inits
+*/
+ncentroiders = 5;
+y_centroiders           = array(centroider_struct(),ncentroiders);
+
+y_centroiders(1).nwfs   = 1;
+y_centroiders(1).type   = "cog";
+y_centroiders(2).nwfs   = 2;
+y_centroiders(2).type   = "cog";
+y_centroiders(3).nwfs   = 3;
+y_centroiders(3).type   = "cog";
+y_centroiders(4).nwfs   = 4;
+y_centroiders(4).type   = "cog";
+y_centroiders(5).nwfs   = 5;
+y_centroiders(5).type   = "cog";
+
+/*
+controllers inits
+*/
+ncontrollers = 1;
+y_controllers          = array(controller_struct(),ncontrollers);
+
+y_controllers(1).type    = "ls";
+y_controllers(1).nwfs    = &[1,2,3,4,5];
+y_controllers(1).ndm     = &[1,2];
+y_controllers(1).maxcond = 500.;
+y_controllers(1).delay   = 1;
+y_controllers(1).gain    = 0.3;
+
+/*
+rtc inits
+*/
+y_rtc.nwfs =1;
+y_rtc.centroiders = &(y_centroiders);
+y_rtc.controllers  = &(y_controllers);
+

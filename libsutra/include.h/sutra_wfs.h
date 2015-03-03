@@ -10,7 +10,7 @@
 //#include <sutra_slopes.h>
 
 using namespace std;
-
+class sutra_sensors;
 class sutra_wfs {
 public:
   int device;
@@ -31,20 +31,20 @@ public:
   bool lgs;
   bool kernconv;
 
+  cufftHandle *campli_plan;
+  cufftHandle *fttotim_plan;
+  carma_obj<cuFloatComplex> *d_ftkernel;
   carma_obj<cuFloatComplex> *d_camplipup;
   carma_obj<cuFloatComplex> *d_camplifoc;
   carma_obj<cuFloatComplex> *d_fttotim;
-  carma_obj<cuFloatComplex> *d_ftkernel;
 
   carma_obj<float> *d_pupil;
-  carma_obj<float> *d_hrimg;
   carma_obj<float> *d_bincube;
   carma_obj<float> *d_binimg;
   carma_obj<float> *d_subsum;
   carma_obj<float> *d_offsets;
   carma_obj<float> *d_fluxPerSub;
   carma_obj<float> *d_sincar;
-  carma_obj<float> *d_submask;
   carma_obj<int> *d_hrmap;
 
   carma_obj<int> *d_isvalid; // nxsub x nxsub
@@ -61,6 +61,8 @@ public:
   carma_obj<int> *d_jstart; // nxsub
 
   // pyramid only
+  carma_obj<float> *d_hrimg;
+  carma_obj<float> *d_submask;
   carma_obj<float> *d_psum;
   carma_obj<cuFloatComplex> *d_phalfxy;
   carma_obj<cuFloatComplex> *d_poffsets;
@@ -76,7 +78,7 @@ public:
   carma_context *current_context;
 
 public:
-  sutra_wfs(carma_context *context, const char* type, long nxsub, long nvalid,
+  sutra_wfs(carma_context *context,sutra_sensors *sensors,  const char* type, long nxsub, long nvalid,
       long npix, long nphase, long nrebin, long nfft, long ntot, long npup,
       float pdiam, float nphotons, int lgs, int device);
   sutra_wfs(carma_context *context, long nxsub, long nvalid, long nphase,
@@ -96,7 +98,7 @@ public:
       float *focmask, float *pupil, int *isvalid, int *cx, int *cy,
       float *sincar, int *phasemap, int *validsubsx, int *validsubsy);
   int
-  wfs_initgs(float xpos, float ypos, float lambda, float mag, long size,
+  wfs_initgs(sutra_sensors *sensors, float xpos, float ypos, float lambda, float mag, long size,
       float noise, long seed);
   int
   load_kernels(float *lgskern);
@@ -130,6 +132,15 @@ public:
     return d_wfs.size();
   }
   vector<sutra_wfs *> d_wfs;
+  map<vector<int>,cufftHandle*> campli_plans;
+  map<vector<int>,cufftHandle*> fttotim_plans;
+  map<vector<int>,cufftHandle*> ftlgskern_plans;
+
+  carma_obj<cuFloatComplex> *d_camplipup;
+  carma_obj<cuFloatComplex> *d_camplifoc;
+  carma_obj<cuFloatComplex> *d_fttotim;
+  carma_obj<cuFloatComplex> *d_ftlgskern;
+  carma_obj<float> *d_lgskern;
 
 public:
   sutra_sensors(carma_context *context, const char* type, int nwfs, long *nxsub,
@@ -151,6 +162,8 @@ public:
 };
 
 // General utilities
+int
+compute_nmaxhr(long nvalid);
 int
 fillcamplipup(cuFloatComplex *amplipup, float *phase, float *offset,
     float *mask, float scale, int *istart, int *jstart, int *ivalid,

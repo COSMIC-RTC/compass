@@ -224,7 +224,7 @@ Y_phase_set(int argc);
  *   \ V  V / |  _|  ___) |
  *    \_/\_/  |_|   |____/
  */
-
+/*
 wfs_struct*
 yoga_ao_getyWfs(int argc, int pos);
 void
@@ -236,7 +236,7 @@ void
 Y_yoga_wfs(int argc);
 void
 Y_wfs_initgs(int argc);
-
+*/
 /* _       _                     _
  *| |_ ___| | ___ _ __ ___   ___| |_ _ __ _   _
  *| __/ _ \ |/ _ \ '_ ` _ \ / _ \ __| '__| | | |

@@ -2,12 +2,36 @@
 #include <sutra_ao_utils.h>
 #include <carma_utils.h>
 
-sutra_wfs::sutra_wfs(carma_context *context, const char* type, long nxsub,
+int  compute_nmaxhr(long nvalid) {
+	// this is the big array => we use nmaxhr and treat it sequentially
+
+	int mnmax = 100;
+	int nmaxhr = mnmax;
+	if (nvalid > 2 * mnmax) {
+		int tmp0 = nvalid % mnmax;
+		int tmp = 0;
+		for (int cc = 1; cc < mnmax / 5; cc++) {
+			tmp = nvalid % (mnmax + cc);
+			if ((tmp > tmp0) || (tmp == 0)) {
+				if (tmp == 0)
+					tmp0 = 2 * mnmax;
+				else
+					tmp = tmp0;
+
+				nmaxhr = mnmax + cc;
+			}
+		}
+		return nmaxhr;
+	}
+	return nvalid;
+}
+
+sutra_wfs::sutra_wfs(carma_context *context, sutra_sensors *sensors, const char* type, long nxsub,
     long nvalid, long npix, long nphase, long nrebin, long nfft, long ntot,
     long npup, float pdiam, float nphotons, int lgs, int device) {
-  this->d_camplipup = 0L;
-  this->d_camplifoc = 0L;
-  this->d_fttotim = 0L;
+  this->d_camplipup = sensors->d_camplipup;
+  this->d_camplifoc = sensors->d_camplifoc;
+  this->d_fttotim = sensors->d_fttotim;
   this->d_ftkernel = 0L;
   this->d_pupil = 0L;
   this->d_hrimg = 0L;
@@ -99,15 +123,35 @@ sutra_wfs::sutra_wfs(carma_context *context, const char* type, long nxsub,
   int mdims[2];
   if (this->type == "sh") {
     //this->d_submask = new carma_obj<float>(context, dims_data3); // Useless for SH
-    this->d_camplipup = new carma_obj<cuFloatComplex>(context, dims_data3);
-    this->d_camplifoc = new carma_obj<cuFloatComplex>(context, dims_data3);
+
+    //this->d_camplipup = new carma_obj<cuFloatComplex>(context, dims_data3);
+    //this->d_camplifoc = new carma_obj<cuFloatComplex>(context, dims_data3);
     mdims[0] = (int) dims_data3[1];
     mdims[1] = (int) dims_data3[2];
-    cufftHandle *plan = this->d_camplipup->getPlan(); ///< FFT plan
-    cufftSafeCall(
-        cufftPlanMany(plan, 2 ,mdims,NULL,1,0,NULL,1,0, CUFFT_C2C ,(int)dims_data3[3]));
+
+    //int vector_dims[3] = {mdims[0],mdims[1],(int)dims_data3[3]};
+    vector<int> vdims (dims_data3+1,dims_data3 + 4);
+
+	if (sensors->campli_plans.find(vdims) == sensors->campli_plans.end()) {
+		//DEBUG_TRACE("Creating FFT plan : %d %d %d",mdims[0],mdims[1],dims_data3[3]);printMemInfo();
+		cufftHandle *plan = (cufftHandle*)malloc(sizeof(cufftHandle));// = this->d_camplipup->getPlan(); ///< FFT plan
+		cufftSafeCall(
+				cufftPlanMany(plan, 2 ,mdims,NULL,1,0,NULL,1,0, CUFFT_C2C ,(int)dims_data3[3]));
+
+		sensors->campli_plans.insert(pair<vector<int>, cufftHandle*>(vdims, plan));
+
+		this->campli_plan = plan;
+		//DEBUG_TRACE("FFT plan created");printMemInfo();
+	}
+	else{
+		//DEBUG_TRACE("FFT plan already exists : %d %d %d",mdims[0],mdims[1],dims_data3[3]);
+		this->campli_plan = sensors->campli_plans.at(vdims);
+	}
+
+
     dims_data3[1] = npix;
     dims_data3[2] = npix;
+
   }
 
   if ((this->type == "pyr") || (this->type == "pyr3") || (this->type == "roof")) {
@@ -137,52 +181,70 @@ sutra_wfs::sutra_wfs(carma_context *context, const char* type, long nxsub,
   if (this->type == "sh") {
     if (this->ntot != this->nfft) {
       // this is the big array => we use nmaxhr and treat it sequentially
-      int mnmax = 500;
-      if (nvalid > 2 * mnmax) {
-        this->nmaxhr = mnmax;
-        int tmp0 = nvalid % mnmax;
-        int tmp = 0;
-        for (int cc = 1; cc < mnmax / 5; cc++) {
-          tmp = nvalid % (mnmax + cc);
-          if ((tmp > tmp0) || (tmp == 0)) {
-            if (tmp == 0)
-              tmp0 = 2 * mnmax;
-            else
-              tmp = tmp0;
-            this->nmaxhr = mnmax + cc;
-          }
-        }
-        this->nffthr = (
-            nvalid % this->nmaxhr == 0 ?
-                nvalid / this->nmaxhr : nvalid / this->nmaxhr + 1);
-      }
+    	int mnmax = 500;
+    	if (nvalid > 2 * mnmax) {
+    		nmaxhr = compute_nmaxhr(nvalid);
 
+    		this->nffthr = (
+    				nvalid % this->nmaxhr == 0 ?
+    						nvalid / this->nmaxhr : nvalid / this->nmaxhr + 1);
+    	}
       dims_data3[1] = ntot;
       dims_data3[2] = ntot;
       dims_data3[3] = nmaxhr;
-      this->d_fttotim = new carma_obj<cuFloatComplex>(context, dims_data3);
+
+      //this->d_fttotim = new carma_obj<cuFloatComplex>(context, dims_data3);
+
       mdims[0] = (int) dims_data3[1];
       mdims[1] = (int) dims_data3[2];
-      cufftHandle *plan = this->d_fttotim->getPlan(); ///< FFT plan
-      cufftSafeCall(
-          cufftPlanMany(plan, 2 ,mdims,NULL,1,0,NULL,1,0,CUFFT_C2C , (int)dims_data3[3]));
+      int vector_dims[3] = {mdims[0],mdims[1],(int)dims_data3[3]};
+      vector<int> vdims (vector_dims,vector_dims + sizeof(vector_dims)/sizeof(int));
 
+      if (sensors->fttotim_plans.find(vdims) == sensors->fttotim_plans.end()){
+    	  cufftHandle *plan = (cufftHandle*)malloc(sizeof(cufftHandle));// = this->d_fttotim->getPlan(); ///< FFT plan
+    	  //DEBUG_TRACE("Creating FFT plan :%d %d %d",mdims[0],mdims[1],dims_data3[3]);printMemInfo();
+    	  cufftSafeCall(
+    			  cufftPlanMany(plan, 2 ,mdims,NULL,1,0,NULL,1,0,CUFFT_C2C , (int)dims_data3[3]));
+    	  sensors->fttotim_plans.insert(pair<vector<int>,cufftHandle*>(vdims,plan));
+    	  this->fttotim_plan = plan;
+    	  //DEBUG_TRACE("FFT plan created : ");printMemInfo();
+      }
+      else{
+    	  //DEBUG_TRACE("FFT plan already exists %d %d %d",mdims[0],mdims[1],dims_data3[3]);
+    	  this->fttotim_plan = sensors->fttotim_plans.at(vdims);
+      }
       dims_data1[1] = nfft * nfft;
       this->d_hrmap = new carma_obj<int>(context, dims_data1);
 
     } else {
       if (this->lgs) {
+
         dims_data3[1] = ntot;
         dims_data3[2] = ntot;
         dims_data3[3] = nvalid;
-        this->d_fttotim = new carma_obj<cuFloatComplex>(context, dims_data3);
+       // this->d_fttotim = new carma_obj<cuFloatComplex>(context, dims_data3);
         mdims[0] = (int) dims_data3[1];
         mdims[1] = (int) dims_data3[2];
-        cufftHandle *plan = this->d_fttotim->getPlan(); ///< FFT plan
-        cufftSafeCall(
-            cufftPlanMany(plan, 2 ,mdims,NULL,1,0,NULL,1,0,CUFFT_C2C , (int)dims_data3[3]));
+        int vector_dims[3] = {mdims[0],mdims[1],(int)dims_data3[3]};
+        vector<int> vdims (vector_dims,vector_dims + sizeof(vector_dims)/sizeof(int));
+
+		if (sensors->fttotim_plans.find(vdims) == sensors->fttotim_plans.end()) {
+			//DEBUG_TRACE("Creating FFT plan : %d %d %d",mdims[0],mdims[1],dims_data3[3]);printMemInfo();
+			cufftHandle *plan = (cufftHandle*)malloc(sizeof(cufftHandle)); // = this->d_fttotim->getPlan(); ///< FFT plan
+			cufftSafeCall(
+					cufftPlanMany(plan, 2 ,mdims,NULL,1,0,NULL,1,0,CUFFT_C2C , (int)dims_data3[3]));
+			sensors->fttotim_plans.insert(
+					pair<vector<int>, cufftHandle*>(vdims, plan));
+			this->fttotim_plan = plan;
+			//DEBUG_TRACE("FFT plan created : ");printMemInfo();
+		}
+		else{
+			//DEBUG_TRACE("FFT plan already exists : %d %d %d",mdims[0],mdims[1],dims_data3[3]);
+			this->fttotim_plan = sensors->fttotim_plans.at(vdims);
+		}
       }
     }
+
 
     dims_data2[1] = ntot;
     dims_data2[2] = ntot;
@@ -255,6 +317,8 @@ sutra_wfs::sutra_wfs(carma_context *context, const char* type, long nxsub,
 
 sutra_wfs::sutra_wfs(carma_context *context, long nxsub, long nvalid,
     long nphase, long npup, float pdiam, int device) {
+  this->campli_plan = 0L;
+  this->fttotim_plan = 0L;
   this->d_camplipup = 0L;
   this->d_camplifoc = 0L;
   this->d_fttotim = 0L;
@@ -351,12 +415,12 @@ sutra_wfs::sutra_wfs(carma_context *context, long nxsub, long nvalid,
 
 sutra_wfs::~sutra_wfs() {
   current_context->set_activeDevice(device);
-  if (this->d_camplipup != 0L)
+  if (this->type != "sh" && this->d_camplipup != 0L)
     delete this->d_camplipup;
-  if (this->d_camplifoc != 0L)
+  if (this->type != "sh" && this->d_camplifoc != 0L)
     delete this->d_camplifoc;
 
-  if (this->d_fttotim != 0L)
+  if (this->type != "sh" &&this->d_fttotim != 0L)
     delete this->d_fttotim;
 
   if (this->d_ftkernel != 0L)
@@ -425,7 +489,7 @@ sutra_wfs::~sutra_wfs() {
   //delete this->current_context;
 }
 
-int sutra_wfs::wfs_initgs(float xpos, float ypos, float lambda, float mag,
+int sutra_wfs::wfs_initgs(sutra_sensors *sensors,float xpos, float ypos, float lambda, float mag,
     long size, float noise, long seed) {
   this->d_gs = new sutra_source(current_context, xpos, ypos, lambda, mag, size,
       "wfs", this->device);
@@ -440,7 +504,7 @@ int sutra_wfs::wfs_initgs(float xpos, float ypos, float lambda, float mag,
   }
 
   if (this->lgs) {
-    this->d_gs->d_lgs = new sutra_lgs(current_context, this->nvalid, this->ntot,
+    this->d_gs->d_lgs = new sutra_lgs(current_context,sensors, this->nvalid, this->ntot,
         this->nmaxhr);
     this->d_gs->lgs = this->lgs;
   }
@@ -546,10 +610,10 @@ int sutra_wfs::comp_sh_generic() {
       this->d_gs->d_phase->d_screen->getDims(1), this->nfft,
       this->nphase * this->nphase * this->nvalid,
       this->current_context->get_device(device));
-
   // do fft of the cube  
   carma_fft(this->d_camplipup->getData(), this->d_camplifoc->getData(), 1,
-      *this->d_camplipup->getPlan());
+      *this->campli_plan);//*this->d_camplipup->getPlan());
+
   // get the hrimage by taking the | |^2
   // keep it in amplifoc to save mem space
   abs2c(this->d_camplifoc->getData(), this->d_camplifoc->getData(),
@@ -599,7 +663,7 @@ int sutra_wfs::comp_sh_generic() {
             this->current_context->get_device(device), indxstart2);
         // convolve with psf
         carma_fft(this->d_fttotim->getData(), this->d_fttotim->getData(), 1,
-            *this->d_fttotim->getPlan());
+            *this->fttotim_plan);//*this->d_fttotim->getPlan());
 
         convolve(this->d_fttotim->getData(),
             this->d_gs->d_lgs->d_ftlgskern->getData(),
@@ -607,20 +671,20 @@ int sutra_wfs::comp_sh_generic() {
             this->current_context->get_device(device));
 
         carma_fft(this->d_fttotim->getData(), this->d_fttotim->getData(), -1,
-            *this->d_fttotim->getPlan());
+        		*this->fttotim_plan);//*this->d_fttotim->getPlan());
 
       }
 
       if (this->kernconv) {
         carma_fft(this->d_fttotim->getData(), this->d_fttotim->getData(), 1,
-            *this->d_fttotim->getPlan());
+        		*this->fttotim_plan);//*this->d_fttotim->getPlan());
 
         convolve_cube(this->d_fttotim->getData(), this->d_ftkernel->getData(),
             this->d_fttotim->getNbElem(), this->d_ftkernel->getNbElem(),
             this->current_context->get_device(device));
 
         carma_fft(this->d_fttotim->getData(), this->d_fttotim->getData(), -1,
-            *this->d_fttotim->getPlan());
+        		*this->fttotim_plan);//*this->d_fttotim->getPlan());
 
       }
 
@@ -646,7 +710,7 @@ int sutra_wfs::comp_sh_generic() {
           0);
 
       carma_fft(this->d_camplifoc->getData(), this->d_fttotim->getData(), 1,
-          *this->d_fttotim->getPlan());
+    		  *this->fttotim_plan);//*this->d_fttotim->getPlan());
 
       convolve(this->d_fttotim->getData(),
           this->d_gs->d_lgs->d_ftlgskern->getData(),
@@ -654,7 +718,7 @@ int sutra_wfs::comp_sh_generic() {
           this->current_context->get_device(device));
 
       carma_fft(this->d_fttotim->getData(), this->d_fttotim->getData(), -1,
-          *this->d_fttotim->getPlan());
+    		  *this->fttotim_plan);//*this->d_fttotim->getPlan());
 
       if (this->nstreams > 1) {
         fillbincube_async(this->streams, this->d_bincube->getData(),
@@ -671,14 +735,14 @@ int sutra_wfs::comp_sh_generic() {
     } else {
       if (this->kernconv) {
         carma_fft(this->d_camplifoc->getData(), this->d_camplifoc->getData(), 1,
-            *this->d_camplipup->getPlan());
+        		*this->campli_plan);//*this->d_camplipup->getPlan());
 
         convolve_cube(this->d_camplifoc->getData(), this->d_ftkernel->getData(),
             this->d_camplifoc->getNbElem(), this->d_ftkernel->getNbElem(),
             this->current_context->get_device(device));
 
         carma_fft(this->d_camplifoc->getData(), this->d_camplifoc->getData(),
-            -1, *this->d_camplipup->getPlan());
+            -1, *this->campli_plan);//*this->d_camplipup->getPlan());
       }
 
       if (this->nstreams > 1) {
@@ -1036,14 +1100,64 @@ int sutra_wfs::slopes_geom(int type) {
 
 sutra_sensors::sutra_sensors(carma_context *context, const char* type, int nwfs, long *nxsub,
     long *nvalid, long *npix, long *nphase, long *nrebin, long *nfft,
-    long *ntot, long npup, float *pdiam, float *nphot, int *lgs, int device) {
+    long *ntot, long npup, float *pdiam, float *nphot, int *lgs,
+		int device) {
+	//DEBUG_TRACE("Before create sensors : ");printMemInfo();
+	int maxnfft;
+	int maxntot;
+	int maxnvalid = 0;
+	int wfs4nfft = 0;
+	int wfs4ntot = 0;
+	int is_lgs = 0;
+	for (int i = 0; i < nwfs; i++) {
+		if (i == 0) {
+			maxntot = ntot[i];
+			maxnfft = nfft[i];
+		} else {
+			if (ntot[i] > maxntot) {
+				maxntot = ntot[i];
+				wfs4ntot = i;
+			}
+			if (nfft[i] > maxnfft) {
+				maxnfft = nfft[i];
+				wfs4nfft = i;
+			}
+		}
+		if (ntot[i] == nfft[i]) {
+			if (nvalid[i] > maxnvalid) {
+				maxnvalid = nvalid[i];
+			}
+		}
+		if(lgs[i]>0)
+			is_lgs = 1;
+	}
+	//DEBUG_TRACE("maxntot : %d maxnfft : %d maxnvalid : %d nvalid[wfs4nfft] : %d nmaxhr : %d\n ",maxntot,maxnfft,maxnvalid,nvalid[wfs4nfft],compute_nmaxhr(nvalid[wfs4ntot]));
+	long dims_data3[4] = {3,maxnfft,maxnfft,nvalid[wfs4nfft]};
+	this->d_camplifoc = new carma_obj<cuFloatComplex>(context, dims_data3);
+	this->d_camplipup = new carma_obj<cuFloatComplex>(context, dims_data3);
 
-  for (int i = 0; i < nwfs; i++) {
-    d_wfs.push_back(
-        new sutra_wfs(context, type, nxsub[i], nvalid[i], npix[i], nphase[i],
-            nrebin[i], nfft[i], ntot[i], npup, pdiam[i], nphot[i], lgs[i],
-            device));
-  }
+	dims_data3[1] = maxntot;
+	dims_data3[2] = maxntot;
+	dims_data3[3] = compute_nmaxhr(nvalid[wfs4ntot]);
+	if(maxnvalid > dims_data3[3])
+		dims_data3[3] = maxnvalid;
+	this->d_fttotim = new carma_obj<cuFloatComplex>(context, dims_data3);
+	if (is_lgs){
+		this->d_ftlgskern = new carma_obj<cuFloatComplex>(context, dims_data3);
+		this->d_lgskern = new carma_obj<float>(context, dims_data3);
+	} else {
+		this->d_ftlgskern = 0L;
+		this->d_lgskern = 0L;
+	}
+	//DEBUG_TRACE("After creating sensors arrays : ");printMemInfo();
+	for (int i = 0; i < nwfs; i++) {
+		d_wfs.push_back(
+				new sutra_wfs(context,this, type, nxsub[i], nvalid[i], npix[i],
+						nphase[i], nrebin[i], nfft[i], ntot[i], npup, pdiam[i],
+						nphot[i], lgs[i], device));
+		//DEBUG_TRACE("After creating wfs #%d : ",i);printMemInfo();
+	}
+	//DEBUG_TRACE("Final sensors : ");printMemInfo();
 }
 
 sutra_sensors::sutra_sensors(carma_context *context, int nwfs, long *nxsub,
@@ -1054,6 +1168,12 @@ sutra_sensors::sutra_sensors(carma_context *context, int nwfs, long *nxsub,
         new sutra_wfs(context, nxsub[i], nvalid[i], nphase[i], npup, pdiam[i],
             device));
   }
+  this->d_camplifoc = 0L;
+  this->d_camplipup = 0L;
+  this->d_fttotim = 0L;
+  this->d_lgskern = 0L;
+  this->d_ftlgskern = 0L;
+
 }
 
 sutra_sensors::~sutra_sensors() {
@@ -1062,12 +1182,36 @@ sutra_sensors::~sutra_sensors() {
     delete this->d_wfs.back();
     d_wfs.pop_back();
   }
+  map<vector<int>,cufftHandle*> :: iterator it;
+  for(it=campli_plans.begin() ; it != campli_plans.end(); it++){
+	  cufftDestroy(*it->second);
+	  free(it->second);
+  }
+  for(it=fttotim_plans.begin() ; it != fttotim_plans.end(); it++){
+  	  cufftDestroy(*it->second);
+  	  free(it->second);
+    }
+  for(it=ftlgskern_plans.begin() ; it != ftlgskern_plans.end(); it++){
+	  cufftDestroy(*it->second);
+	  free(it->second);
+      }
+
+  if(this->d_camplifoc != 0L)
+	  delete this->d_camplifoc;
+  if(this->d_camplipup != 0L)
+  	  delete this->d_camplipup;
+  if(this->d_fttotim != 0L)
+  	  delete this->d_fttotim;
+  if(this->d_lgskern != 0L)
+      delete this->d_lgskern;
+  if(this->d_ftlgskern != 0L)
+      delete this->d_ftlgskern;
 }
 
 int sutra_sensors::sensors_initgs(float *xpos, float *ypos, float *lambda,
     float *mag, long *size, float *noise, long *seed) {
   for (size_t idx = 0; idx < (this->d_wfs).size(); idx++) {
-    (this->d_wfs)[idx]->wfs_initgs(xpos[idx], ypos[idx], lambda[idx], mag[idx],
+    (this->d_wfs)[idx]->wfs_initgs(this,xpos[idx], ypos[idx], lambda[idx], mag[idx],
         size[idx], noise[idx], seed[idx]);
   }
   return EXIT_SUCCESS;
@@ -1075,7 +1219,7 @@ int sutra_sensors::sensors_initgs(float *xpos, float *ypos, float *lambda,
 int sutra_sensors::sensors_initgs(float *xpos, float *ypos, float *lambda,
     float *mag, long *size, float *noise) {
   for (size_t idx = 0; idx < (this->d_wfs).size(); idx++) {
-    (this->d_wfs)[idx]->wfs_initgs(xpos[idx], ypos[idx], lambda[idx], mag[idx],
+    (this->d_wfs)[idx]->wfs_initgs(this,xpos[idx], ypos[idx], lambda[idx], mag[idx],
         size[idx], noise[idx], 1234 * idx);
   }
   return EXIT_SUCCESS;
@@ -1083,7 +1227,7 @@ int sutra_sensors::sensors_initgs(float *xpos, float *ypos, float *lambda,
 int sutra_sensors::sensors_initgs(float *xpos, float *ypos, float *lambda,
     float *mag, long *size) {
   for (size_t idx = 0; idx < (this->d_wfs).size(); idx++) {
-    (this->d_wfs)[idx]->wfs_initgs(xpos[idx], ypos[idx], lambda[idx], mag[idx],
+    (this->d_wfs)[idx]->wfs_initgs(this,xpos[idx], ypos[idx], lambda[idx], mag[idx],
         size[idx], -1, 1234);
   }
   return EXIT_SUCCESS;

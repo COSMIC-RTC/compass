@@ -1,7 +1,8 @@
 #include <sutra_ao_utils.h>
 #include <sutra_lgs.h>
+#include<sutra_wfs.h>
 
-sutra_lgs::sutra_lgs(carma_context *context, long nvalid, long npix,
+sutra_lgs::sutra_lgs(carma_context *context, sutra_sensors *sensors, long nvalid, long npix,
     long nmaxhr) {
   this->current_context = context;
   this->nvalid = nvalid;
@@ -39,14 +40,35 @@ sutra_lgs::sutra_lgs(carma_context *context, long nvalid, long npix,
   dims_data3[1] = npix;
   dims_data3[2] = npix;
   dims_data3[3] = nmaxhr;
-  this->d_lgskern = new carma_obj<float>(context, dims_data3);
-  this->d_ftlgskern = new carma_obj<cuFloatComplex>(context, dims_data3);
+  //this->d_lgskern = new carma_obj<float>(context, dims_data3);
+  //this->d_ftlgskern = new carma_obj<cuFloatComplex>(context, dims_data3);
+  this->d_lgskern = sensors->d_lgskern;
+  this->d_ftlgskern = sensors->d_ftlgskern;
 
   mdims[0] = (int) dims_data3[1];
   mdims[1] = (int) dims_data3[2];
-  plan = this->d_ftlgskern->getPlan();
-  cufftSafeCall(
-      cufftPlanMany(plan, 2 ,mdims,NULL,1,0,NULL,1,0,CUFFT_C2C , (int)dims_data3[3]));
+
+  vector<int> vdims (dims_data3+1,dims_data3 + 4);
+
+  if (sensors->ftlgskern_plans.find(vdims) == sensors->ftlgskern_plans.end()) {
+	  //DEBUG_TRACE("Creating FFT plan : %d %d %d",mdims[0],mdims[1],dims_data3[3]);printMemInfo();
+	  cufftHandle *plan = (cufftHandle*)malloc(sizeof(cufftHandle));// = this->d_camplipup->getPlan(); ///< FFT plan
+	  cufftSafeCall(
+			cufftPlanMany(plan, 2 ,mdims,NULL,1,0,NULL,1,0, CUFFT_C2C ,(int)dims_data3[3]));
+
+	  sensors->ftlgskern_plans.insert(pair<vector<int>, cufftHandle*>(vdims, plan));
+
+	  this->ftlgskern_plan = plan;
+	  //DEBUG_TRACE("FFT plan created");printMemInfo();
+  }
+  else{
+	  this->ftlgskern_plan = sensors->ftlgskern_plans.at(vdims);
+	  //DEBUG_TRACE("FFT plan already exists : %d %d %d",mdims[0],mdims[1],dims_data3[3]);
+  }
+
+ // plan = this->d_ftlgskern->getPlan();
+ // cufftSafeCall(
+ //     cufftPlanMany(plan, 2 ,mdims,NULL,1,0,NULL,1,0,CUFFT_C2C , (int)dims_data3[3]));
 
   /*
    cudaExtent volumeSize = make_cudaExtent(npix,npix,nvalid);
@@ -61,7 +83,6 @@ sutra_lgs::sutra_lgs(carma_context *context, long nvalid, long npix,
    copyParams.extent   = volumeSize;
    copyParams.kind     = cudaMemcpyDeviceToDevice;
    */
-
   delete[] dims_data1;
   delete[] dims_data2;
   delete[] dims_data3;
@@ -75,8 +96,8 @@ sutra_lgs::~sutra_lgs() {
   delete this->d_prof2d;
   delete this->d_beam;
   delete this->d_ftbeam;
-  delete this->d_lgskern;
-  delete this->d_ftlgskern;
+  //delete this->d_lgskern;
+  //delete this->d_ftlgskern;
 
   //delete this->current_context;
 
@@ -170,7 +191,7 @@ int sutra_lgs::lgs_makespot(carma_device *device, int nin) {
 
   //prepare for wfs code
   carma_fft(this->d_ftlgskern->getData(), this->d_ftlgskern->getData(), 1,
-      *this->d_ftlgskern->getPlan());
+      *this->ftlgskern_plan);
 
   return EXIT_SUCCESS;
 }
@@ -180,7 +201,7 @@ int sutra_lgs::load_kernels(float *lgskern, carma_device *device) {
   cfillrealp(this->d_ftlgskern->getData(), this->d_lgskern->getData(),
       this->d_ftlgskern->getNbElem(), device);
   carma_fft(this->d_ftlgskern->getData(), this->d_ftlgskern->getData(), 1,
-      *this->d_ftlgskern->getPlan());
+      *this->ftlgskern_plan);
 
   return EXIT_SUCCESS;
 }
