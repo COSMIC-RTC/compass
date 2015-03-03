@@ -42,7 +42,7 @@ y_loop.ittime = 1/500.0f;
 wfs inits
 */
 nwfs = 1;
-y_wfs                  = array(wfs_struct(),nwfs); // clean start
+y_wfs                  = array(wfs_struct(atmos_seen=1),nwfs); // clean start
 y_wfs(1).nxsub         = 8;
 y_wfs(1).npix          = 15;
 y_wfs(1).pixsize       = 0.3;

@@ -22,7 +22,7 @@ y_target.mag      = &([10.]);
 /*
 wfs inits
 */
-y_wfs                  = array(wfs_struct(),1); // clean start
+y_wfs                  = array(wfs_struct(atmos_seen=1),1); // clean start
 y_wfs(1:).type          = "geo";
 y_wfs(1:).nxsub         = 80;
 y_wfs(1:).fracsub       = 0.8;

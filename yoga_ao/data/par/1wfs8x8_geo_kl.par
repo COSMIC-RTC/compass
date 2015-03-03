@@ -33,7 +33,7 @@ y_target.mag      = &([10.]);
 /*
 wfs inits
 */
-// y_wfs                  = array(wfs_struct(),1); // clean start
+// y_wfs                  = array(wfs_struct(atmos_seen=1),1); // clean start
 // y_wfs(1:).type          = "sh";
 // y_wfs(1:).nxsub         = 8;
 // y_wfs(1:).fracsub       = 0.8;
@@ -41,7 +41,7 @@ wfs inits
 // y_wfs(1:).ypos          = 0.0;
 // y_wfs(1:).lambda        = 0.65;
 
-y_wfs                  = array(wfs_struct(),1); // clean start
+y_wfs                  = array(wfs_struct(atmos_seen=1),1); // clean start
 y_wfs(1).type          = "sh";
 y_wfs(1).nxsub         = 8;
 y_wfs(1).npix          = 8;
