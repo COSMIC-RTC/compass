@@ -330,7 +330,7 @@ cusparseStatus_t carma_csr2bsr_gen(carma_sparse_obj<T_data> *A, int blockDim,
 template<>
 cusparseStatus_t carma_csr2bsr(carma_sparse_obj<float>* src, int blockDim,
     carma_sparse_obj<float> *dest) {
-  if(A->format!="CSR") {
+  if(src->format!="CSR") {
     DEBUG_TRACE("carma_csr2bsr needs a CSR matrix as input");
   }
   return carma_csr2bsr_gen<float, cusparseScsr2bsr>(src, blockDim, dest);
@@ -339,7 +339,7 @@ cusparseStatus_t carma_csr2bsr(carma_sparse_obj<float>* src, int blockDim,
 template<>
 cusparseStatus_t carma_csr2bsr(carma_sparse_obj<double>* src, int blockDim,
     carma_sparse_obj<double> *dest) {
-  if(A->format!="CSR") {
+  if(src->format!="CSR") {
     DEBUG_TRACE("carma_csr2bsr needs a CSR matrix as input");
   }
   return carma_csr2bsr_gen<double, cusparseDcsr2bsr>(src, blockDim, dest);
@@ -386,7 +386,7 @@ cusparseStatus_t carma_bsr2csr_gen(carma_sparse_obj<T_data> *A,
 template<>
 cusparseStatus_t carma_bsr2csr(carma_sparse_obj<float>* src,
     carma_sparse_obj<float> *dest) {
-  if(A->format!="BSR") {
+  if(src->format!="BSR") {
     DEBUG_TRACE("carma_bsr2csr needs a BSR matrix as input");
   }
   return carma_bsr2csr_gen<float, cusparseSbsr2csr>(src, dest);
@@ -395,7 +395,7 @@ cusparseStatus_t carma_bsr2csr(carma_sparse_obj<float>* src,
 template<>
 cusparseStatus_t carma_bsr2csr(carma_sparse_obj<double>* src,
     carma_sparse_obj<double> *dest) {
-  if(A->format!="BSR") {
+  if(src->format!="BSR") {
     DEBUG_TRACE("carma_bsr2csr needs a BSR matrix as input");
   }
   return carma_bsr2csr_gen<double, cusparseDbsr2csr>(src, dest);
