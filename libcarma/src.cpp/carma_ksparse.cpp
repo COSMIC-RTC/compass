@@ -26,12 +26,18 @@ int carma_kgemv_gen(int matrix_dim, int block_dim, T_data alpha, T_data *A,
 template<>
 int carma_kgemv<float>(carma_sparse_obj<float>* A, float alpha,
     const float* __restrict x, float beta, float *y) {
+  if(A->format!="BSR") {
+    DEBUG_TRACE("carma_kgemv needs a BSR matrix as input");
+  }
   return carma_kgemv_gen<float, ksparse_sbsrmv>(A->dims_data[1], A->blockDim,
       alpha, A->d_data, A->d_rowind, A->d_colind, x, beta, y);
 }
 template<>
 int carma_kgemv<double>(carma_sparse_obj<double>* A, double alpha,
     const double* __restrict x, double beta, double *y) {
+  if(A->format!="BSR") {
+    DEBUG_TRACE("carma_kgemv needs a BSR matrix as input");
+  }
   return carma_kgemv_gen<double, ksparse_dbsrmv>(A->dims_data[1], A->blockDim,
       alpha, A->d_data, A->d_rowind, A->d_colind, x, beta, y);
 }

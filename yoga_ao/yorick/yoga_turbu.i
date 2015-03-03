@@ -28,7 +28,7 @@ func yoga_atmos_create(nscreen,r0,L0,pupixsize,screen_size,frac,alt,windspeed,wi
 
  if (numberof(windspeed) != nscreen) error("wrong windspeed dimensions");
   if (numberof(winddir) != nscreen) error("wrong winddir dimensions");
-  if (numberof(frac) != nscreen) error("wrong winddir dimensions");
+  if (numberof(frac) != nscreen) error("wrong frac dimensions");
   if (numberof(alt) != nscreen) error("wrong alt dimensions");
   //if (numberof(deltax) != nscreen) error("wrong deltax dimensions");
   //if (numberof(deltay) != nscreen) error("wrong deltay dimensions");
@@ -71,7 +71,7 @@ func yoga_atmos_create(nscreen,r0,L0,pupixsize,screen_size,frac,alt,windspeed,wi
   r0 = r0  / frac^(3./5.);
   // create atmos object on gpu
   atmos_obj = yoga_atmos(int(nscreen),float(r0),long(screen_size),long(size2),float(alt),float(windspeed),float(winddir),float(deltax),float(deltay),float(pupil));
-  
+
   // fill gpu screen object with data
   for (i=1;i<=nscreen;i++) {
     A = fits_read(swrite(format=dirsave+"A_%d_L0_%d.fits",screen_size(i),long(L0(i))));
