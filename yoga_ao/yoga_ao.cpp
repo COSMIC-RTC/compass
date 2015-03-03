@@ -3431,7 +3431,13 @@ void Y_sensors_trace(int argc) {
   int nsensor = ygets_i(argc - 2);
 
   char *type_trace = ygets_q(argc - 3);
-  if (strcmp(type_trace, "atmos") == 0) {
+  if (strcmp(type_trace, "all") == 0) {
+    atmos_struct *handlera = (atmos_struct *) yget_obj(argc - 4, &yAtmos);
+    sutra_atmos *atmos_handler = (sutra_atmos *) (handlera->sutra_atmos);
+    dms_struct *handlerd = (dms_struct *) yget_obj(argc - 5, &yDMs);
+    sutra_dms *dms_handler = (sutra_dms *) (handlerd->sutra_dms);
+    sensors_handler->d_wfs.at(nsensor)->sensor_trace(atmos_handler,dms_handler);
+  } else if (strcmp(type_trace, "atmos") == 0) {
     atmos_struct *handlera = (atmos_struct *) yget_obj(argc - 4, &yAtmos);
     sutra_atmos *atmos_handler = (sutra_atmos *) (handlera->sutra_atmos);
     sensors_handler->d_wfs.at(nsensor)->sensor_trace(atmos_handler);

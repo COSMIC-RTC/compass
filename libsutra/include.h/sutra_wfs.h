@@ -107,6 +107,8 @@ public:
   int
   sensor_trace(sutra_dms *ydm, int rst);
   int
+  sensor_trace(sutra_atmos *atmos, sutra_dms *ydms);
+  int
   comp_image_tele();
   int
   fill_binimage();

@@ -65,8 +65,10 @@ struct wfs_struct
   float  optthroughput;  // wfs global throughput
   float  fracsub;        // minimal illumination fraction for valid subaps
   long   openloop;       // 1 if in "open-loop" mode (i.e. does not see dm)
-  float  fssize;       //size of field stop in arcsec
-  string fstop;       //size of field stop in arcsec
+  float  fssize;         //size of field stop in arcsec
+  string fstop;          //size of field stop in arcsec
+  int atmos_seen;        // 1 if the WFS sees the atmosphere layers
+  pointer dms_seen;      // index of dms seen by the WFS
   
   //target kwrd
   float xpos;      // guide star x position on sky (in arcsec) 

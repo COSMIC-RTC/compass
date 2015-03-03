@@ -207,6 +207,11 @@ func wfs_init(void)
 {
   extern y_geom;
   extern g_wfs;
+  if(*y_wfs(1).dms_seen == []){
+    for(i=1 ; i<=numberof(y_wfs) ; i++){
+      if(!y_wfs(i).openloop) y_wfs(i).dms_seen = &(indgen(numberof(y_dm)));
+    }
+  }
   // first get the wfs with max # of subaps
   // we'll derive the geometry from the requirements in terms of sampling
   if (noneof(y_wfs.type == "pyr") || noneof(y_wfs.type == "roof")) indmax = wheremax(y_wfs.nxsub)(1);
@@ -330,7 +335,6 @@ func target_init(void)
   extern g_target;
   
   type = "atmos";
-
  
   if (y_target != []) {
     sizes = y_geom.pupdiam;
@@ -401,7 +405,7 @@ func target_init(void)
         if (y_wfs(cc).gsalt != 0.)
           gsalt = 1./y_wfs(cc).gsalt;
         else gsalt = 0.;
-        if (y_atmos != []) {
+        if (y_atmos != [] && y_wfs(cc).atmos_seen) {
           for (dd=1;dd<=y_atmos.nscreens;dd++) {
             xoff = (gsalt * (*y_atmos.alt)(dd) * (y_tel.diam/2.) + (y_wfs.xpos)(cc)*4.848e-6*(*y_atmos.alt)(dd))/y_atmos.pupixsize;
             yoff = (gsalt * (*y_atmos.alt)(dd) * (y_tel.diam/2.) + (y_wfs.ypos)(cc)*4.848e-6*(*y_atmos.alt)(dd))/y_atmos.pupixsize;
@@ -410,8 +414,9 @@ func target_init(void)
             sensors_addlayer,g_wfs,cc-1,type,(*y_atmos.alt)(dd),xoff,yoff;
           }
         }
-        if (y_dm != []) {
-          for (dd=1;dd<=numberof(y_dm);dd++) {
+        if (y_dm != [] && !y_wfs(cc).openloop) {
+          for (ddd=1;ddd<=numberof(*y_wfs(cc).dms_seen);ddd++) {
+	    dd = (*y_wfs(cc).dms_seen)(ddd);
             dims = y_dm(dd)._n2 - y_dm(dd)._n1 + 1;
             dim  = dimsof(*y_geom._mpupil)(2);
             dim_dm = max([dim,dims]);
@@ -425,7 +430,7 @@ func target_init(void)
       }
     }
   }
- 
+
 }
 
 func dm_init(void)
@@ -523,7 +528,6 @@ func dm_init(void)
         yoga_loadkl,g_dm,float(y_dm(n).alt),float(*(*y_dm(n)._klbas).rabas)(*),
           float(*(*y_dm(n)._klbas).azbas)(*),int(*(*y_dm(n)._klbas).ord),float(*(*y_dm(n)._klbas).cr)(*),
           float(*(*y_dm(n)._klbas).cp)(*);
-        error;
         /*
         // verif :
         res1 = pol2car(*y_dm(n)._klbas,gkl_sfi(*y_dm(n)._klbas, 1));
@@ -701,6 +705,7 @@ func rtc_init(clean=, brama=)
             imat = manual_imat();
           correct_dm,imat;
           write,format = "done in : %f s\n",tac();  
+
           //} 
           if (controllers(i).type != "geo"){
             nwfs = *controllers(i).nwfs;
@@ -732,6 +737,8 @@ func rtc_init(clean=, brama=)
 
           if (controllers(i).type  == "ls") {
             imat_init,i,clean=clean;
+	    //imat = imat_geom(meth=0);
+            //rtc_setimat,g_rtc,i-1,imat;
             if (controllers(i).modopti == 1){
               write,"Initializing Modal Optimization : ";
               if (controllers(i).nrec == 0) controllers(i).nrec = 2048;

@@ -594,6 +594,13 @@ int sutra_wfs::sensor_trace(sutra_dms *ydm, int rst) {
   return EXIT_SUCCESS;
 }
 
+int sutra_wfs::sensor_trace(sutra_atmos *yatmos, sutra_dms *ydms) {
+	this->d_gs->raytrace(yatmos);
+	this->d_gs->raytrace(ydms, 0);
+
+	return EXIT_SUCCESS;
+}
+
 /////////////////////////////////////////////////////////
 // COMPUTATION OF THE SHACK-HARTMANN WAVEFRONT SENSOR  //
 /////////////////////////////////////////////////////////
