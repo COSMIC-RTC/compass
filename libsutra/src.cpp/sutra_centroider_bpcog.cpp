@@ -6,7 +6,7 @@ sutra_centroider_bpcog::sutra_centroider_bpcog(carma_context *context,
   this->current_context = context;
 
   this->device = device;
-  context->set_activeDevice(device);
+  context->set_activeDevice(device,1);
   this->wfs = sensors->d_wfs[nwfs];
   this->nwfs = nwfs;
   this->nvalid = nvalid;
@@ -36,6 +36,7 @@ string sutra_centroider_bpcog::get_type() {
 }
 
 int sutra_centroider_bpcog::set_nmax(int nmax) {
+  current_context->set_activeDevice(device,1);
 	this->nmax = nmax;
 	delete this->d_bpix;
 	delete this->d_bpind;
@@ -53,6 +54,7 @@ int sutra_centroider_bpcog::set_nmax(int nmax) {
 
 int sutra_centroider_bpcog::get_cog(carma_streams *streams, float *cube,
     float *subsum, float *centroids, int nvalid, int npix, int ntot) {
+  current_context->set_activeDevice(device,1);
   // brightest pixels cog
   // TODO: implemente sutra_centroider_bpcog::get_cog_async
 	subap_sortmax<float>(npix * npix, nvalid, cube,this->d_bpix->getData(),this->d_bpind->getData(),this->nmax,current_context->get_device(device));

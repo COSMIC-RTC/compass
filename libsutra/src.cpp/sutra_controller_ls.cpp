@@ -62,7 +62,7 @@ sutra_controller_ls::sutra_controller_ls(carma_context *context, long nvalid,
 }
 
 sutra_controller_ls::~sutra_controller_ls() {
-  current_context->set_activeDevice(device);
+  current_context->set_activeDevice(device,1);
 
   delete this->d_imat;
   delete this->d_cmat;
@@ -95,6 +95,7 @@ int sutra_controller_ls::svdec_imat() {
   // doing U = Dt.D where D is i_mat
   float one = 1., zero = 0.;
 
+  current_context->set_activeDevice(device,1);
   if (carma_syrk<float>(cublas_handle(), CUBLAS_FILL_MODE_LOWER, 't', nactu(),
       nslope(), one, *d_imat, nslope(), zero, *d_U, nactu())) {
     return EXIT_FAILURE;
@@ -132,6 +133,7 @@ int sutra_controller_ls::set_gain(float gain) {
 }
 
 int sutra_controller_ls::load_mgain(float *mgain) {
+  current_context->set_activeDevice(device,1);
   this->d_gain->host2device(mgain);
   return EXIT_SUCCESS;
 }
@@ -142,6 +144,7 @@ int sutra_controller_ls::set_delay(int delay) {
 }
 
 int sutra_controller_ls::build_cmat(int nfilt, bool filt_tt) {
+  current_context->set_activeDevice(device,1);
   carma_obj<float> *d_eigenvals_inv;
   carma_host_obj<float> *h_eigenvals_inv;
   carma_obj<float> *d_tmp, *d_tmp2;
@@ -203,6 +206,7 @@ int sutra_controller_ls::build_cmat(int nfilt, bool filt_tt) {
 }
 
 int sutra_controller_ls::build_cmat(int nfilt) {
+  current_context->set_activeDevice(device,1);
   return this->build_cmat(nfilt, false);
 }
 
@@ -210,6 +214,7 @@ int sutra_controller_ls::frame_delay() {
   // here we place the content of d_centroids into cenbuf and get
   // the actual centroid frame for error computation depending on delay value
 
+  current_context->set_activeDevice(device,1);
   if (delay > 0) {
     for (int cc = 0; cc < delay; cc++)
       shift_buf(&((this->d_cenbuff->getData())[cc * this->nslope()]), 1,
@@ -230,6 +235,7 @@ int sutra_controller_ls::frame_delay() {
 
 int sutra_controller_ls::comp_com() {
 
+  current_context->set_activeDevice(device,1);
   this->frame_delay();
   int nstreams = streams->get_nbStreams();
 
@@ -303,6 +309,7 @@ int sutra_controller_ls::comp_com() {
 
 int sutra_controller_ls::build_cmat_modopti(){
 
+  current_context->set_activeDevice(device,1);
 	long dims_data2[3] = {2,nactu(),this->nmodes};
 	carma_obj<float> d_tmp(current_context,dims_data2);
 
@@ -320,6 +327,7 @@ int sutra_controller_ls::build_cmat_modopti(){
 int sutra_controller_ls::init_modalOpti(int nmodes, int nrec, float *M2V, float gmin, float gmax,
 											int ngain, float Fs){
 
+  current_context->set_activeDevice(device,1);
 	this->is_modopti = 1;
 	this->cpt_rec = 0;
 	this->nrec = nrec;
@@ -379,6 +387,7 @@ int sutra_controller_ls::init_modalOpti(int nmodes, int nrec, float *M2V, float 
 
 int sutra_controller_ls::modalControlOptimization(){
 
+  current_context->set_activeDevice(device,1);
   long dims_data[2] = {1,this->nrec/2 + 1};
   carma_obj<cuFloatComplex> d_FFT(current_context,dims_data);
   dims_data[1] = this->nrec/2;
@@ -420,6 +429,7 @@ int sutra_controller_ls::modalControlOptimization(){
 
 int sutra_controller_ls::loadOpenLoopSlp(float *ol_slopes){
 
+  current_context->set_activeDevice(device,1);
 	this->d_slpol->host2device(ol_slopes);
 
 	return EXIT_SUCCESS;
@@ -427,6 +437,7 @@ int sutra_controller_ls::loadOpenLoopSlp(float *ol_slopes){
 
 int sutra_controller_ls::compute_Hcor(){
 
+  current_context->set_activeDevice(device,1);
 	long dims_data[3] = {2,this->ngain,this->nrec/2};
 	this->d_Hcor = new carma_obj<float>(current_context,dims_data);
 

@@ -9,7 +9,7 @@ sutra_centroider_tcog::sutra_centroider_tcog(carma_context *context, sutra_senso
   this->nwfs = nwfs;
   this->nvalid = nvalid;
   this->device = device;
-  context->set_activeDevice(device);
+  context->set_activeDevice(device,1);
   this->offset = offset;
   this->scale = scale;
 
@@ -33,6 +33,7 @@ int sutra_centroider_tcog::set_threshold(float threshold) {
 
 int sutra_centroider_tcog::get_cog(carma_streams *streams, float *cube,
     float *subsum, float *centroids, int nvalid, int npix, int ntot) {
+  current_context->set_activeDevice(device,1);
   //TODO: Implement sutra_centroider_tcog::get_cog_async
   subap_reduce(ntot, npix * npix, nvalid, cube, subsum, this->threshold, this->current_context->get_device(device));
 

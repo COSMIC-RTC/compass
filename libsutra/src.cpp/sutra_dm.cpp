@@ -20,13 +20,14 @@ sutra_dm::sutra_dm(carma_context *context, const char* type, long dim,
   //this->d_shapedouble = NULL;
 
   this->current_context = context;
+  this->device = device;
+  current_context->set_activeDevice(device,1);
   this->ninflu = ninflu;
   this->dim = dim;
   this->influsize = influsize;
   this->d_shape = new sutra_phase(context, dim);
   this->type = type;
   this->push4imat = push4imat;
-  this->device = device;
 
   long dims_data1[2];
   dims_data1[0] = 1;
@@ -72,6 +73,7 @@ sutra_dm::sutra_dm(carma_context *context, const char* type, long dim,
 
 sutra_dm::~sutra_dm() {
   //delete this->current_context;
+  current_context->set_activeDevice(device,1);
 
   delete this->d_shape;
   delete this->d_comm;
@@ -110,6 +112,7 @@ sutra_dm::~sutra_dm() {
 
 int sutra_dm::pzt_loadarrays(float *influ, int *influpos, int *npoints,
     int *istart, int *xoff, int *yoff) {
+  current_context->set_activeDevice(device,1);
   this->d_influ->host2device(influ);
   this->d_xoff->host2device(xoff);
   this->d_yoff->host2device(yoff);
@@ -126,6 +129,7 @@ int sutra_dm::pzt_loadarrays(float *influ, int *influpos, int *npoints,
 
 int sutra_dm::kl_loadarrays(float *rabas, float *azbas, int *ord, float *cr,
     float *cp) {
+  current_context->set_activeDevice(device,1);
   this->d_kl->d_rabas->host2device(rabas);
   this->d_kl->d_azbas->host2device(azbas);
   this->d_kl->h_ord->fill_from(ord);
@@ -137,7 +141,7 @@ int sutra_dm::kl_loadarrays(float *rabas, float *azbas, int *ord, float *cr,
 }
 
 int sutra_dm::reset_shape() {
-  current_context->set_activeDeviceForce(device);
+  current_context->set_activeDevice(device,1);
 
   cutilSafeCall(
       cudaMemset(this->d_shape->d_screen->getData(), 0,
@@ -147,7 +151,7 @@ int sutra_dm::reset_shape() {
 }
 
 int sutra_dm::comp_shape(float *comvec) {
-  current_context->set_activeDeviceForce(device);
+  current_context->set_activeDevice(device,1);
   this->reset_shape();
 
   int nthreads = 0, nblocks = 0;
@@ -191,6 +195,7 @@ int sutra_dm::comp_shape() {
 }
 
 int sutra_dm::comp_oneactu(int nactu, float ampli) {
+  current_context->set_activeDevice(device,1);
   this->reset_shape();
   int nthreads = 0, nblocks = 0;
   //getNumBlocksAndThreads(this->device,this->dim * this->dim, nblocks, nthreads);
@@ -238,6 +243,7 @@ template<class T>
 int
 sutra_dm::get_IF_sparse(carma_sparse_obj<T> *&d_IFsparse, int *indx_pup, long nb_pts, float ampli, int puponly){
 
+  current_context->set_activeDevice(device,1);
 	int nnz_tot = 0;
 	float *values[this->ninflu];
 	int *colind[this->ninflu];
@@ -307,6 +313,7 @@ sutra_dm::get_IF_sparse<double>(carma_sparse_obj<double> *&d_IFsparse, int *indx
 int
 sutra_dm::compute_KLbasis(float *xpos, float *ypos, int *indx, long dim, float norm, float ampli){
 
+  current_context->set_activeDevice(device,1);
 	long dims_data[3];
 	dims_data[0] = 2;
 	dims_data[1] = this->ninflu;
@@ -373,6 +380,7 @@ template<class T>
 int
 sutra_dm::do_geomatFromSparse(T *d_geocov, carma_sparse_obj<T> *d_IFsparse){
 
+  current_context->set_activeDevice(device,1);
 	carma_sparse_obj<T> *d_tmp = new carma_sparse_obj<T>(this->current_context);
 
 	carma_gemm<T>(cusparse_handle(),'n','t',d_IFsparse,d_IFsparse,d_tmp);
@@ -388,6 +396,7 @@ sutra_dm::do_geomatFromSparse<double>(double *d_geocov, carma_sparse_obj<double>
 
 int
 sutra_dm::do_geomat(float *d_geocov, float *d_IF, long n_pts){
+  current_context->set_activeDevice(device,1);
 	carma_gemm(cublas_handle(), 't', 'n', this->ninflu, this->ninflu, n_pts, 1.0f,
 	      d_IF, n_pts, d_IF, n_pts, 0.0f,
 	      d_geocov, this->ninflu);
@@ -397,6 +406,7 @@ sutra_dm::do_geomat(float *d_geocov, float *d_IF, long n_pts){
 
 int
 sutra_dm::piston_filt(carma_obj <float> *d_statcov){
+  current_context->set_activeDevice(device,1);
 	long Nmod = d_statcov->getDims()[1];
 	long dims_data[3];
 	dims_data[0] = 2;
@@ -423,6 +433,7 @@ sutra_dm::piston_filt(carma_obj <float> *d_statcov){
 
 int
 sutra_dm::set_comkl(float *comvec){
+  current_context->set_activeDevice(device,1);
 	if(this->d_KLbasis == NULL){
 		cerr << "KLbasis has to be computed before calling this function" << endl;
 		return EXIT_FAILURE;
@@ -440,6 +451,7 @@ sutra_dm::set_comkl(float *comvec){
 
 int
 sutra_dm::DDiago(carma_obj<float> *d_statcov, carma_obj<float> *d_geocov){
+  current_context->set_activeDevice(device,1);
 	const long dims_data[3] = {2, this->ninflu, this->ninflu};
 	carma_obj<float> *d_M1 = new carma_obj<float>(current_context,dims_data);
 	carma_obj<float> *d_tmp = new carma_obj<float>(current_context,dims_data);
@@ -539,6 +551,7 @@ int sutra_dms::remove_dm(const char* type, float alt) {
 // Florian features
 int sutra_dm::kl_floloadarrays(float *covmat, float *filter, float *evals,
     float *bas) {
+  current_context->set_activeDevice(device,1);
   this->d_kl->d_covmat->host2device(covmat);
   this->d_kl->d_filter->host2device(filter);
   this->d_kl->d_bas->host2device(bas);

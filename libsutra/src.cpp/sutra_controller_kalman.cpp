@@ -36,6 +36,7 @@ sutra_controller_kalman::sutra_controller_kalman(carma_context* context_, int nv
 
 
 void sutra_controller_kalman::init_kalman(carma_host_obj<float>& chD_Mo, carma_host_obj<float>& chN_Act, carma_host_obj<float>& chPROJ, bool is_zonal, bool is_sparse, bool is_GPU) {
+  current_context->set_activeDevice(device);
    if (isInit)
    {
            cerr << "Error |sutra_controller_kalman::init_kalman | Kalman controller has already been initialized"<<endl;
@@ -91,6 +92,7 @@ void sutra_controller_kalman::init_kalman(carma_host_obj<float>& chD_Mo, carma_h
 }
 
 sutra_controller_kalman::~sutra_controller_kalman() {
+  current_context->set_activeDevice(device);
    if(core_full)
    {
       delete core_full;
@@ -112,7 +114,8 @@ sutra_controller_kalman::~sutra_controller_kalman() {
 void sutra_controller_kalman::calculate_gain(float bruit,
     carma_host_obj<float>& chSigmaV, carma_host_obj<float>& chatur,
     carma_host_obj<float>& chbtur) {
-        
+  current_context->set_activeDevice(device);
+
    if (!isInit)
    {
       cerr << "Error | sutra_controller_kalman::calculate_gain | Kalman controller has not been initialiez"<<endl;
@@ -143,27 +146,31 @@ void sutra_controller_kalman::calculate_gain(float bruit,
 }
 
 double sutra_controller_kalman::gettime(){
-   if(core_sparse)
+  current_context->set_activeDevice(device);
+  if(core_sparse)
       return core_sparse->temps_boucle.rez();
    else if(core_full)
       return core_full->temps_boucle.rez();
    else return -1;
 }
 double sutra_controller_kalman::gettime_op1(){
-   if(core_sparse)
+  current_context->set_activeDevice(device);
+  if(core_sparse)
       return core_sparse->temps_boucle_op1.rez();
    else if(core_full)
       return core_full->temps_boucle_op1.rez();
    else return -1;
 }
 double sutra_controller_kalman::gettime_op2(){
-   if(core_sparse)
+  current_context->set_activeDevice(device);
+ if(core_sparse)
       return core_sparse->temps_boucle_op2.rez();
    else if(core_full)
       return core_full->temps_boucle_op2.rez();
    else return -1;
 }
 double sutra_controller_kalman::gettime_op3(){
+  current_context->set_activeDevice(device);
    if(core_sparse)
       return core_sparse->temps_boucle_op3.rez();
    else if(core_full)
@@ -173,6 +180,7 @@ double sutra_controller_kalman::gettime_op3(){
 
 int sutra_controller_kalman::comp_com() {
    
+  current_context->set_activeDevice(device);
    kp_vector<KFPP> Y_k,Y_k_tmp, U_k;
    kp_carma_obj_to_kp_vector(*d_centroids, Y_k); 
    if (core_sparse)
@@ -186,6 +194,7 @@ int sutra_controller_kalman::comp_com() {
 
 #else
 sutra_controller_kalman::sutra_controller_kalman(carma_context* context_, int nvalid_, int nactu_) : sutra_controller(context_, nvalid_ * 2, nactu_) {
+  current_context->set_activeDevice(device,1);
    core_sparse = NULL;
    core_full = NULL;
    cusparseHandle = NULL;

@@ -29,7 +29,7 @@ PKG_DEPLIBS = -Wl,-rpath=$(YOGA_DIR) -L$(YOGA_DIR) -Wl,-rpath=$(COMPASS_ROOT_DIR
 PKG_DEPLIBS+= -Wl,-rpath=$(COMPASS_ROOT_DIR)/libsutra -L$(COMPASS_ROOT_DIR)/libsutra -lsutra
 
 # set compiler (or rarely loader) flags specific to this package
-PKG_CPPFLAGS = -Wall -fno-common -I$(COMPASS_ROOT_DIR)/libcarma/include.h 
+PKG_CPPFLAGS = -Wall -fno-common -I$(COMPASS_ROOT_DIR)/yoga -I$(COMPASS_ROOT_DIR)/libcarma/include.h 
 PKG_CPPFLAGS+= -I$(COMPASS_ROOT_DIR)/libsutra/include.h -I$(CUDA_INC_PATH) #-I/usr/local/cula/include
 
 ifneq ($(DEBUG),)

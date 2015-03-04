@@ -130,6 +130,8 @@ private:
 
 class sutra_sensors {
 public:
+  int device;
+  carma_context *current_context;
   size_t nsensors() {
     return d_wfs.size();
   }

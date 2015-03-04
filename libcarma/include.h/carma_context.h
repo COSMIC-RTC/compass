@@ -79,6 +79,10 @@ public:
   }
 };
 
+#define set_activeDevice(newDevice, silent) _set_activeDevice(newDevice, silent, __FILE__, __LINE__)
+#define set_activeDeviceForce(newDevice, silent) _set_activeDeviceForce(newDevice, silent, __FILE__, __LINE__)
+#define set_activeDeviceForCpy(newDevice, silent) _set_activeDeviceForCpy(newDevice, silent, __FILE__, __LINE__)
+
 class carma_context {
 protected:
   int ndevice;
@@ -101,9 +105,9 @@ public:
     return activeDevice;
   }
   string get_activeDeviceName(int device);
-  int set_activeDevice(int newDevice, int silent = 1);
-  int set_activeDeviceForce(int newDevice, int silent = 1);
-  int set_activeDeviceForCpy(int newDevice, int silent = 1);
+  int _set_activeDevice(int newDevice, int silent, string file, int line);
+  int _set_activeDeviceForce(int newDevice, int silent, string file, int line);
+  int _set_activeDeviceForCpy(int newDevice, int silent, string file, int line);
   int get_maxGflopsDeviceId();
   cublasHandle_t get_cublasHandle() {
     return get_cublasHandle(activeDevice);

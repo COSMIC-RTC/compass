@@ -6,7 +6,7 @@ sutra_centroider_wcog::sutra_centroider_wcog(carma_context *context, sutra_senso
   this->current_context = context;
 
   this->device = device;
-  context->set_activeDevice(device);
+  context->set_activeDevice(device,1);
   this->wfs = sensors->d_wfs[nwfs];
   this->nwfs = nwfs;
   this->nvalid = nvalid;
@@ -25,6 +25,7 @@ string sutra_centroider_wcog::get_type() {
 }
 
 int sutra_centroider_wcog::init_weights() {
+  current_context->set_activeDevice(device,1);
   if (this->d_weights != 0L)
     delete this->d_weights;
 
@@ -36,7 +37,7 @@ int sutra_centroider_wcog::init_weights() {
   dims_data3[2] = this->npix;
   dims_data3[3] = this->nvalid;
 
-  current_context->set_activeDevice(device);
+  current_context->set_activeDevice(device,1);
   this->d_weights = new carma_obj<float>(current_context, dims_data3);
 
   delete[] dims_data3;

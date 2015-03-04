@@ -17,6 +17,9 @@ using namespace std;
 class sutra_phase {
 public:
 
+  carma_context *current_context;
+  int device;
+
   carma_obj<float> *d_screen;
   long screen_size;
   float *zerCoeff;

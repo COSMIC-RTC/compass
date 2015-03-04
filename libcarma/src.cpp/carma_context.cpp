@@ -48,9 +48,7 @@ carma_device::~carma_device() {
 }
 
 carma_context::carma_context() {
-  //DEBUG_TRACE("context init\n");
-  //cuInit(0);
-  //DEBUG_TRACE("context done\n");
+  //TODO : why seed is initialized here ?
 	srandom(1234);
   cutilSafeCall(cudaGetDeviceCount(&(this->ndevice)));
   if (this->ndevice == 0) {
@@ -111,7 +109,7 @@ carma_context::carma_context() {
     }
   }
 
-  this->activeDevice = set_activeDevice(0);//get_maxGflopsDeviceId(), 1);
+  this->activeDevice = set_activeDevice(0, 1);//get_maxGflopsDeviceId(), 1);
 
 #ifdef USE_CULA
   // CULA init 
@@ -156,22 +154,22 @@ carma_context::~carma_context() {
 #endif
 }
 
-int carma_context::set_activeDeviceForCpy(int newDevice, int silent) {
+int carma_context::_set_activeDeviceForCpy(int newDevice, int silent, string file, int line) {
   if (activeDevice == newDevice)
     return activeDevice;
   if (can_access_peer[activeDevice][newDevice] == 1)
     return activeDevice;
-  return set_activeDevice(newDevice, silent);
+  return _set_activeDevice(newDevice, silent, file, line);
 }
 
-int carma_context::set_activeDevice(int newDevice, int silent) {
+int carma_context::_set_activeDevice(int newDevice, int silent, string file, int line) {
     if (this->activeDevice == newDevice)
     return this->activeDevice;
 
-    return set_activeDeviceForce(newDevice, silent);
+    return _set_activeDeviceForce(newDevice, silent, file, line);
 }
 
-int carma_context::set_activeDeviceForce(int newDevice, int silent) {
+int carma_context::_set_activeDeviceForce(int newDevice, int silent, string file, int line) {
   if (newDevice < ndevice) {
     cutilSafeCall(cudaSetDevice(newDevice));
 #ifdef USE_CULA
@@ -192,10 +190,8 @@ int carma_context::set_activeDeviceForce(int newDevice, int silent) {
     }
     activeDevice = newDevice;
   } else {
-    cerr << "Invalid Device Id : " << newDevice << " Your system has only "
-        << ndevice << " CUDA capable device(s) available " << endl;
-    cerr << "Leaving activeDevice to its current value : " << activeDevice
-        << endl;
+    fprintf(stderr, "[%s:%d] Invalid Device Id : %d, Your system has only %d CUDA capable device(s) available ",file.c_str(), line, newDevice, ndevice);
+    cerr << "Leaving activeDevice to its current value : " << activeDevice << endl;
   }
   return activeDevice;
 }

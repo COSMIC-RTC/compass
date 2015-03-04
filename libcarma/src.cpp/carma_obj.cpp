@@ -209,7 +209,7 @@ carma_obj<T_data>::~carma_obj() {
 
   //cutilSafeCall( cudaThreadSynchronize() );
   int old_device = current_context->get_activeDevice();
-  current_context->set_activeDevice(this->device);
+  current_context->set_activeDevice(this->device, 1);
 
   cutilSafeCall(cudaFree(this->d_data));
   this->d_data = 0;
@@ -242,7 +242,7 @@ carma_obj<T_data>::~carma_obj() {
 #if DEBUG
   printf("CARMA Object deleted @ 0x%p on GPU%d\n", this, this->device);
 #endif
-  current_context->set_activeDevice(old_device);
+  current_context->set_activeDevice(old_device, 1);
 }
 
 template

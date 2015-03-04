@@ -5,6 +5,7 @@ sutra_controller::sutra_controller(carma_context* context, int nslope,
     int nactu) {
   this->current_context = context;
   this->device = context->get_activeDevice();
+  //current_context->set_activeDevice(device,1);
 
   int nstreams = 1; //nvalid/10;
   while (nactu % nstreams != 0)
@@ -30,6 +31,7 @@ sutra_controller::~sutra_controller() {
 }
 int
 sutra_controller::syevd_f(char meth, carma_obj<float> *d_U, carma_host_obj<float> *h_eigenvals){
+  current_context->set_activeDevice(device,1);
 	// Init double arrays
 	const long dims_data[3] = {2, d_U->getDims()[1], d_U->getDims()[2]};
 	carma_obj<double> *d_Udouble = new carma_obj<double>(current_context,dims_data);
@@ -56,6 +58,7 @@ sutra_controller::syevd_f(char meth, carma_obj<float> *d_U, carma_host_obj<float
 int
 sutra_controller::invgen(carma_obj<float> *d_mat, float cond, int job){
 
+  current_context->set_activeDevice(device,1);
 	const long dims_data[3] = {2, d_mat->getDims()[1], d_mat->getDims()[2]};
 	carma_obj<float> *d_U = new carma_obj<float>(current_context,dims_data);
 	carma_obj<float> *d_tmp = new carma_obj<float>(current_context,dims_data);

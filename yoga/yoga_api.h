@@ -34,6 +34,7 @@
 #define _YOGA_API_H_
 
 #include <yapi.h>
+#define Y_SCOMPLEX 99
 
 extern "C" {
 

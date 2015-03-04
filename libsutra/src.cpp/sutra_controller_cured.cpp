@@ -41,7 +41,7 @@ sutra_controller_cured::sutra_controller_cured(carma_context *context,
 }
 
 sutra_controller_cured::~sutra_controller_cured() {
-  current_context->set_activeDevice(device);
+  current_context->set_activeDevice(device,1);
 
   if (this->h_centroids != 0L)
     delete this->h_centroids;
@@ -66,6 +66,7 @@ int sutra_controller_cured::set_gain(float gain) {
 }
 
 int sutra_controller_cured::comp_com() {
+  current_context->set_activeDevice(device,1);
   this->frame_delay();
   h_centroids->cpy_obj(this->d_centroids, cudaMemcpyDeviceToHost);
 

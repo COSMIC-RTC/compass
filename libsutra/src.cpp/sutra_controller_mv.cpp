@@ -70,7 +70,7 @@ sutra_controller_mv::sutra_controller_mv(carma_context *context, long nvalid,
 }
 
 sutra_controller_mv::~sutra_controller_mv() {
-  current_context->set_activeDevice(device);
+  current_context->set_activeDevice(device,1);
   delete this->d_U;
 
   delete this->d_imat;
@@ -110,17 +110,20 @@ int sutra_controller_mv::set_gain(float gain) {
 }
 
 int sutra_controller_mv::load_mgain(float *mgain) {
+  current_context->set_activeDevice(device,1);
   this->d_gain->host2device(mgain);
   return EXIT_SUCCESS;
 }
 
 int sutra_controller_mv::load_noisemat(float *noise) {
+  current_context->set_activeDevice(device,1);
   this->d_noisemat->host2device(noise);
   return EXIT_SUCCESS;
 }
 // Florian features
 int
 sutra_controller_mv::compute_Cmm(sutra_atmos *atmos, sutra_sensors *sensors, float *L0, float *cn2, float *alphaX, float *alphaY, float diamTel, float cobs){
+  current_context->set_activeDevice(device,1);
 
 	struct gtomo_struct g_tomo;
 	init_tomo_gpu_gb(&g_tomo, atmos, sensors, diamTel, cobs);
@@ -134,6 +137,7 @@ sutra_controller_mv::compute_Cmm(sutra_atmos *atmos, sutra_sensors *sensors, flo
 
 int
 sutra_controller_mv::compute_Cphim(sutra_atmos *atmos, sutra_sensors *sensors, sutra_dms *dms, float *L0, float *cn2, float *alphaX, float *alphaY, float *X, float *Y,float *xactu, float *yactu, float diamTel, float k2, float *Nact) {
+  current_context->set_activeDevice(device,1);
 
 	// Find number of actuators without TT DM
 	struct cphim_struct cphim_struct;
@@ -182,6 +186,7 @@ sutra_controller_mv::compute_Cphim(sutra_atmos *atmos, sutra_sensors *sensors, s
 
 int
 sutra_controller_mv::do_covmat(sutra_dm *ydm, char *method, int *indx_pup,long dim, float *xpos, float *ypos, long Nkl, float norm, float ampli){
+  current_context->set_activeDevice(device,1);
 		long dims_data[3];
 		dims_data[0] = 2;
 		dims_data[1] = Nkl;
@@ -357,6 +362,7 @@ sutra_controller_mv::do_covmat(sutra_dm *ydm, char *method, int *indx_pup,long d
 
 int
 sutra_controller_mv::do_geomat(carma_obj<float> *d_geocov, carma_obj<float> *d_IF, long n_pts, float ampli){
+  current_context->set_activeDevice(device,1);
 	carma_gemm(cublas_handle, 't', 'n', nactu(), nactu(), n_pts, 1.0f,
 	      d_IF->getData(), n_pts, d_IF->getData(), n_pts, 0.0f,
 	      d_geocov->getData(), nactu());
@@ -367,6 +373,7 @@ sutra_controller_mv::do_geomat(carma_obj<float> *d_geocov, carma_obj<float> *d_I
 
 int
 sutra_controller_mv::piston_filt(carma_obj<float> *d_statcov){
+  current_context->set_activeDevice(device,1);
 	long Nmod = d_statcov->getDims()[1];
 	long dims_data[3];
 	dims_data[0] = 2;
@@ -393,6 +400,7 @@ sutra_controller_mv::piston_filt(carma_obj<float> *d_statcov){
 
 int
 sutra_controller_mv::piston_filt_cphim(carma_obj<float> *d_cphim){
+  current_context->set_activeDevice(device,1);
 	long Nmod = d_cphim->getDims()[1];
 	long dims_data[3];
 	dims_data[0] = 2;
@@ -419,6 +427,7 @@ sutra_controller_mv::piston_filt_cphim(carma_obj<float> *d_cphim){
 int
 sutra_controller_mv::invgen(carma_obj<float> *d_mat, float cond, int job){
 
+  current_context->set_activeDevice(device,1);
 	const long dims_data[3] = {2, d_mat->getDims()[1], d_mat->getDims()[2]};
 	carma_obj<float> *d_U = new carma_obj<float>(current_context,dims_data);
 	carma_obj<float> *d_tmp = new carma_obj<float>(current_context,dims_data);
@@ -484,6 +493,7 @@ int sutra_controller_mv::do_statmat(float *statcov, float *xpos, float *ypos){
 }
 */
 int sutra_controller_mv::DDiago(carma_obj<float> *d_statcov, carma_obj<float> *d_geocov){
+  current_context->set_activeDevice(device,1);
 	const long dims_data[3] = {2, this->nactu(), this->nactu()};
 	carma_obj<float> *d_M1 = new carma_obj<float>(current_context,dims_data);
 	carma_obj<float> *d_tmp = new carma_obj<float>(current_context,dims_data);
@@ -550,10 +560,12 @@ int sutra_controller_mv::DDiago(carma_obj<float> *d_statcov, carma_obj<float> *d
 }
 
 int sutra_controller_mv::load_covmat(float *covmat) {
+  current_context->set_activeDevice(device,1);
   this->d_covmat->host2device(covmat);
   return EXIT_SUCCESS;
 }
 int sutra_controller_mv::load_klbasis(float *klbasis) {
+  current_context->set_activeDevice(device,1);
   this->d_KLbasis->host2device(klbasis);
   return EXIT_SUCCESS;
 }
@@ -565,6 +577,7 @@ int sutra_controller_mv::set_delay(int delay) {
 // Florian features
 int sutra_controller_mv::build_cmat(float cond){
 
+  current_context->set_activeDevice(device,1);
 	long *dims_data = new long[3];
 	dims_data[0] = 2;
 
@@ -669,6 +682,7 @@ int sutra_controller_mv::build_cmat(const char *dmtype, char *method) {
   float one = 1.;
   float zero = 0.;
 
+  current_context->set_activeDevice(device,1);
   if(strcmp(method,"inv") == 0){
 	  //  R = (Dt*Cn⁻¹*D + Cphi⁻¹)⁻¹*Dt*Cn⁻¹
 
@@ -768,6 +782,7 @@ int sutra_controller_mv::frame_delay() {
   // here we place the content of d_centroids into cenbuf and get
   // the actual centroid frame for error computation depending on delay value
 
+  current_context->set_activeDevice(device,1);
   if (delay > 0) {
     for (int cc = 0; cc < delay; cc++)
       shift_buf(&((this->d_cenbuff->getData())[cc * this->nslope()]), 1,
@@ -788,6 +803,7 @@ int sutra_controller_mv::frame_delay() {
 
 int sutra_controller_mv::comp_com() {
 
+  current_context->set_activeDevice(device,1);
   this->frame_delay();
   this->d_com2->copy(this->d_com1, 1, 1);
   this->d_com1->copy(this->d_com, 1, 1);

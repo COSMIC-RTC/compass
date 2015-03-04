@@ -13,15 +13,5 @@
 #include <carma_utils.h>
 #include <carma_context.h>
 
-#define Y_SCOMPLEX 99
 
-using namespace std;
-
-extern "C" {
-// TOOLS
-void _carmaThreadExit();
-void _carmaThreadSync();
-carma_context *_getCurrentContext();
-
-}
 #endif // _CARMA_H_

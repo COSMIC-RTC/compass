@@ -16,7 +16,7 @@ sutra_centroider_corr::sutra_centroider_corr(carma_context *context, sutra_senso
   this->nwfs = nwfs;
   this->nvalid = nvalid;
   this->device = device;
-  context->set_activeDevice(device);
+  context->set_activeDevice(device,1);
   this->offset = offset;
   this->scale = scale;
   this->npix = 0;
@@ -54,7 +54,7 @@ int sutra_centroider_corr::init_bincube() {
 
 int sutra_centroider_corr::init_corr(int isizex, int isizey,
     float *interpmat) {
-  current_context->set_activeDevice(device);
+  current_context->set_activeDevice(device,1);
   if (this->d_corrfnct != 0L)
     delete this->d_corrfnct;
   if (this->d_corrspot != 0L)
@@ -116,6 +116,7 @@ int sutra_centroider_corr::init_corr(int isizex, int isizey,
 }
 
 int sutra_centroider_corr::load_corr(float *corr, float *corr_norm, int ndim) {
+  current_context->set_activeDevice(device,1);
   int nval = (ndim == 3) ? 1 : this->nvalid;
 
   this->d_corrnorm->host2device(corr_norm);
@@ -158,6 +159,7 @@ int sutra_centroider_corr::get_cog(carma_streams *streams, float *cube,
 }
 
 int sutra_centroider_corr::get_cog(float *slopes) {
+  current_context->set_activeDevice(device,1);
   //set corrspot to 0
   cutilSafeCall(
       cudaMemset(*(this->d_corrspot), 0,

@@ -10,6 +10,7 @@ using namespace std;
 class sutra_sensors;
 class sutra_lgs {
 public:
+  int device;
   long nvalid;
   long npix;
   long nmaxhr;

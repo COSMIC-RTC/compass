@@ -29,6 +29,7 @@ sutra_tscreen::sutra_tscreen(carma_context *context, long size, long size2,
   this->deltax = deltax;
   this->deltay = deltay;
   this->device = device;
+  this->current_context->set_activeDevice(device,1);
 
   this->norm_vk = 0;
   this->d_tscreen_c = 0;
@@ -80,6 +81,7 @@ sutra_tscreen::~sutra_tscreen() {
 
 int sutra_tscreen::init_screen(float *h_A, float *h_B,
     unsigned int *h_istencilx, unsigned int *h_istencily, int seed) {
+  this->current_context->set_activeDevice(device,1);
   // initial memcopies
   this->d_A->host2device(h_A);
   this->d_B->host2device(h_B);
@@ -95,6 +97,7 @@ int sutra_tscreen::init_screen(float *h_A, float *h_B,
 }
 
 int sutra_tscreen::init_vk(int seed, int pupd) {
+  this->current_context->set_activeDevice(device,1);
   long *dims_data2 = new long[3];
   dims_data2[0] = 2;
   dims_data2[1] = this->screen_size;
@@ -117,6 +120,7 @@ int sutra_tscreen::init_vk(int seed, int pupd) {
 }
 
 int sutra_tscreen::generate_vk(float l0, int nalias) {
+  this->current_context->set_activeDevice(device,1);
   this->d_tscreen_o->prng_host('N');
 
   cuFloatComplex *data = this->d_tscreen_c->getData();
@@ -147,9 +151,10 @@ int sutra_tscreen::generate_vk(float l0, int nalias) {
   return EXIT_SUCCESS;
 }
 
-int sutra_tscreen::extrude(int dir)
+int sutra_tscreen::extrude(int dir){
 // dir =1 moving in x
-    {
+
+  this->current_context->set_activeDevice(device,1);
   int x0, Ncol, NC, N;
   NC = screen_size;
 

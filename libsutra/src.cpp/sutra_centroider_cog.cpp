@@ -6,7 +6,7 @@ sutra_centroider_cog::sutra_centroider_cog(carma_context *context, sutra_sensors
   this->current_context = context;
 
   this->device = device;
-  context->set_activeDevice(device);
+  context->set_activeDevice(device,1);
   this->wfs = sensors->d_wfs[nwfs];
   this->nwfs = nwfs;
   this->nvalid = nvalid;
@@ -25,6 +25,7 @@ string sutra_centroider_cog::get_type() {
 int sutra_centroider_cog::get_cog(carma_streams *streams, float *cube,
     float *subsum, float *centroids, int nvalid, int npix, int ntot) {
 
+  current_context->set_activeDevice(device,1);
   // simple cog
   int nstreams = streams->get_nbStreams();
   //fprintf(stderr, "\n[%s@%d]: nstreams=%d\n", __FILE__, __LINE__, nstreams);

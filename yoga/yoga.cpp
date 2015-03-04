@@ -406,10 +406,11 @@ _getCurrentContext()
  */
 {
   ypush_global(yfind_global("current_context\0", 0));
-  context_struct *handle = (context_struct *) yget_obj(0, &yContext);
+  context_struct *handle = yoga_getContext(1,1);
   yarg_drop(1);
 
   SCAST(carma_context*, context, handle->carma_context);
+  //printf("CARMA Context is @ %p\n", context);
 
   return context;
 }
@@ -517,7 +518,7 @@ void _yoga_setDevice(int mydevice)
  */
 {
   carma_context *context_handle = _getCurrentContext();
-  context_handle->set_activeDevice(mydevice);
+  context_handle->set_activeDevice(mydevice,1);
 }
 
 int _yoga_getDevice()
@@ -655,7 +656,7 @@ void yObj_eval(void *obj, int n)
   yObj_struct *handler = (yObj_struct *) obj;
 
   carma_context *context_handle = _getCurrentContext();
-  context_handle->set_activeDeviceForCpy(handler->device);
+  context_handle->set_activeDeviceForCpy(handler->device,1);
 
   try {
     if (handler->type == Y_FLOAT) {
@@ -709,7 +710,7 @@ void yObj_free(void *obj)
   if (handler->isRef)
     return;
   carma_context *context_handle = _getCurrentContext();
-  context_handle->set_activeDevice(handler->device);
+  context_handle->set_activeDevice(handler->device,1);
   try {
     if (handler->type == Y_FLOAT) {
       caObjS *carma_obj_handler = (caObjS *) (handler->carma_object);
@@ -784,7 +785,7 @@ void Y_yoga_obj(int argc)
       handle->device = handle_obj->device;
       handle->isRef = 0;
       carma_context *context_handle = _getCurrentContext();
-      context_handle->set_activeDevice(handle->device);
+      context_handle->set_activeDevice(handle->device,1);
       if (handle->type == Y_FLOAT) {
         caObjS *carma_obj_handler = (caObjS *) (handle_obj->carma_object);
         handle->carma_object = new caObjS(context_handle, carma_obj_handler);
@@ -829,7 +830,7 @@ void Y_yoga_obj(int argc)
           odevice = ygets_i(argc - 2);
       }
 
-      activeDevice = context_handle->set_activeDevice(odevice);
+      activeDevice = context_handle->set_activeDevice(odevice,1);
 
       yObj_struct *handle = (yObj_struct *) ypush_obj(&yObj,
           sizeof(yObj_struct));
@@ -950,7 +951,7 @@ void Y_yoga_setv(int argc)
   yObj_struct *handle = (yObj_struct *) ypush_obj(&yObj, sizeof(yObj_struct));
   carma_context *context_handle = _getCurrentContext();
 
-  context_handle->set_activeDevice(handle->device);
+  context_handle->set_activeDevice(handle->device,1);
   handle->type = yType;
 
   long dims_data[2];
@@ -990,7 +991,7 @@ void Y_yoga_setm(int argc)
   yObj_struct *handle = (yObj_struct *) ypush_obj(&yObj, sizeof(yObj_struct));
 
   carma_context *context_handle = _getCurrentContext();
-  context_handle->set_activeDevice(handle->device);
+  context_handle->set_activeDevice(handle->device,1);
   handle->type = yType;
   if (yType == Y_FLOAT) {
     handle->carma_object = new caObjS(context_handle, (long*) dims);
@@ -1016,7 +1017,7 @@ void Y_yoga_host2device(int argc)
     try {
       yObj_struct *handle = (yObj_struct *) yget_obj(argc - 1, &yObj);
       carma_context *context_handle = _getCurrentContext();
-      context_handle->set_activeDeviceForCpy(handle->device);
+      context_handle->set_activeDeviceForCpy(handle->device,1);
       long ntot;
       long dims[Y_DIMSIZE];
       if (handle->type == Y_FLOAT) {
@@ -1068,7 +1069,7 @@ void Y_yoga_device2host(int argc)
 {
   yObj_struct *handle = (yObj_struct *) yget_obj(argc - 1, &yObj);
   carma_context *context_handle = _getCurrentContext();
-  context_handle->set_activeDeviceForCpy(handle->device);
+  context_handle->set_activeDeviceForCpy(handle->device,1);
   int opt;
   if (argc > 1)
     opt = ygets_i(argc - 2);
@@ -1111,7 +1112,7 @@ void Y_yoga_imin(int argc)
 {
   yObj_struct *handle = (yObj_struct *) yget_obj(argc - 1, &yObj);
   carma_context *context_handle = _getCurrentContext();
-  context_handle->set_activeDevice(handle->device);
+  context_handle->set_activeDevice(handle->device,1);
   if (handle->type == Y_FLOAT) {
     caObjS *carma_obj_handler = (caObjS *) (handle->carma_object);
     ypush_int(carma_obj_handler->imin(1)); // here 1 is the increment
@@ -1130,7 +1131,7 @@ void Y_yoga_imax(int argc)
 {
   yObj_struct *handle = (yObj_struct *) yget_obj(argc - 1, &yObj);
   carma_context *context_handle = _getCurrentContext();
-  context_handle->set_activeDevice(handle->device);
+  context_handle->set_activeDevice(handle->device,1);
 
   if (handle->type == Y_FLOAT) {
     caObjS *carma_obj_handler = (caObjS *) (handle->carma_object);
@@ -1151,7 +1152,7 @@ void Y_yoga_asum(int argc)
 {
   yObj_struct *handle = (yObj_struct *) yget_obj(argc - 1, &yObj);
   carma_context *context_handle = _getCurrentContext();
-  context_handle->set_activeDeviceForCpy(handle->device);
+  context_handle->set_activeDeviceForCpy(handle->device,1);
   if (handle->type == Y_FLOAT) {
     caObjS *carma_obj_handler = (caObjS *) (handle->carma_object);
     ypush_double((double) carma_obj_handler->asum(1)); // here 1 is the increment
@@ -1171,7 +1172,7 @@ void Y_yoga_sum(int argc)
 {
   yObj_struct *handle = (yObj_struct *) yget_obj(argc - 1, &yObj);
   carma_context *context_handle = _getCurrentContext();
-  context_handle->set_activeDeviceForCpy(handle->device);
+  context_handle->set_activeDeviceForCpy(handle->device,1);
   if (handle->type == Y_FLOAT) {
     caObjS *carma_obj_handler = (caObjS *) (handle->carma_object);
     ypush_double((double) carma_obj_handler->sum());
@@ -1191,7 +1192,7 @@ void Y_yoga_nrm2(int argc)
 {
   yObj_struct *handle = (yObj_struct *) yget_obj(argc - 1, &yObj);
   carma_context *context_handle = _getCurrentContext();
-  context_handle->set_activeDevice(handle->device);
+  context_handle->set_activeDevice(handle->device,1);
   if (handle->type == Y_FLOAT) {
     caObjS *carma_obj_handler = (caObjS *) (handle->carma_object);
     ypush_double((double) carma_obj_handler->nrm2(1)); // here 1 is the increment
@@ -1214,7 +1215,7 @@ void Y_yoga_scale(int argc)
   if (yarg_subroutine()) {
     yObj_struct *handle = (yObj_struct *) yget_obj(argc - 1, &yObj);
     carma_context *context_handle = _getCurrentContext();
-    context_handle->set_activeDeviceForCpy(handle->device);
+    context_handle->set_activeDeviceForCpy(handle->device,1);
     if (handle->type == Y_FLOAT) {
       float alpha = ygets_f(argc - 2);
       caObjS *carma_obj_handler = (caObjS *) (handle->carma_object);
@@ -1243,7 +1244,7 @@ void Y_yoga_swap(int argc)
   if (handle_dest->device != handle_src->device)
     y_error("swap only on the same device");
   carma_context *context_handle = _getCurrentContext();
-  context_handle->set_activeDeviceForCpy(handle_dest->device);
+  context_handle->set_activeDeviceForCpy(handle_dest->device,1);
   if (handle_dest->type == Y_FLOAT) {
     caObjS *carma_obj_handler_dest = (caObjS *) (handle_dest->carma_object);
     caObjS *carma_obj_handler_src = (caObjS *) (handle_src->carma_object);
@@ -1270,7 +1271,7 @@ void Y_yoga_copy(int argc)
     if (handle_dest->device != handle_src->device)
       y_error("copy only on the same device");
     carma_context *context_handle = _getCurrentContext();
-    context_handle->set_activeDeviceForCpy(handle_dest->device);
+    context_handle->set_activeDeviceForCpy(handle_dest->device,1);
     if (handle_dest->type == Y_FLOAT) {
       caObjS *carma_obj_handler_dest = (caObjS *) (handle_dest->carma_object);
       caObjS *carma_obj_handler_src = (caObjS *) (handle_src->carma_object);
@@ -1303,7 +1304,7 @@ void Y_yoga_axpy(int argc)
     if (handle_dest->device != handle_src->device)
       y_error("axpy only on the same device");
     carma_context *context_handle = _getCurrentContext();
-    context_handle->set_activeDeviceForCpy(handle_dest->device);
+    context_handle->set_activeDeviceForCpy(handle_dest->device,1);
     if (handle_src->type == Y_FLOAT) {
       float alpha = ygets_f(argc - 2);
       caObjS *carma_obj_handler_dest = (caObjS *) (handle_dest->carma_object);
@@ -1319,7 +1320,7 @@ void Y_yoga_axpy(int argc)
     // called as a function : we need to create a destination object
     yObj_struct *handle_src = (yObj_struct *) yget_obj(argc - 1, &yObj);
     carma_context *context_handle = _getCurrentContext();
-    context_handle->set_activeDeviceForCpy(handle_src->device);
+    context_handle->set_activeDeviceForCpy(handle_src->device,1);
     yObj_struct *handle_dest = (yObj_struct *) ypush_obj(&yObj,
         sizeof(yObj_struct));
     handle_dest->device = handle_src->device;
@@ -1405,7 +1406,7 @@ void Y_yoga_dot(int argc)
   if (handle1->device != handle2->device)
     y_error("dot only on the same device");
   carma_context *context_handle = _getCurrentContext();
-  context_handle->set_activeDeviceForCpy(handle2->device);
+  context_handle->set_activeDeviceForCpy(handle2->device,1);
   if (handle1->type == Y_FLOAT) {
     caObjS *carma_obj_handler1 = (caObjS *) (handle1->carma_object);
     caObjS *carma_obj_handler2 = (caObjS *) (handle2->carma_object);
@@ -1442,7 +1443,7 @@ void Y_yoga_mv(int argc)
         || (handle_mat->device != handle_vectx->device))
       y_error("mv only on the same device");
     carma_context *context_handle = _getCurrentContext();
-    context_handle->set_activeDevice(handle_mat->device);
+    context_handle->set_activeDevice(handle_mat->device,1);
 
     if (handle_mat->type == Y_FLOAT) {
       caObjS *carma_obj_handler_mat = (caObjS *) (handle_mat->carma_object);
@@ -1490,7 +1491,7 @@ void Y_yoga_mv(int argc)
     if (handle_vectx->device != handle_mat->device)
       y_error("mv only on the same device");
     carma_context *context_handle = _getCurrentContext();
-    context_handle->set_activeDevice(handle_mat->device);
+    context_handle->set_activeDevice(handle_mat->device,1);
     yObj_struct *handle_vecty = (yObj_struct *) ypush_obj(&yObj,
         sizeof(yObj_struct));
     handle_vecty->device = handle_mat->device;
@@ -1566,7 +1567,7 @@ void Y_yoga_symv(int argc)
         || (handle_mat->device != handle_vectx->device))
       y_error("symv only on the same device");
     carma_context *context_handle = _getCurrentContext();
-    context_handle->set_activeDevice(handle_mat->device);
+    context_handle->set_activeDevice(handle_mat->device,1);
 
     if (handle_mat->type == Y_FLOAT) {
       caObjS *carma_obj_handler_mat = (caObjS *) (handle_mat->carma_object);
@@ -1613,7 +1614,7 @@ void Y_yoga_symv(int argc)
     if (handle_vectx->device != handle_mat->device)
       y_error("symv only on the same device");
     carma_context *context_handle = _getCurrentContext();
-    context_handle->set_activeDevice(handle_mat->device);
+    context_handle->set_activeDevice(handle_mat->device,1);
     yObj_struct *handle_vecty = (yObj_struct *) ypush_obj(&yObj,
         sizeof(yObj_struct));
     handle_vecty->device = handle_mat->device;
@@ -1687,7 +1688,7 @@ void Y_yoga_rank1(int argc)
         || (handle_mat->device != handle_vectx->device))
       y_error("rank1 only on the same device");
     carma_context *context_handle = _getCurrentContext();
-    context_handle->set_activeDevice(handle_mat->device);
+    context_handle->set_activeDevice(handle_mat->device,1);
     if (handle_mat->type == Y_FLOAT) {
       caObjS *carma_obj_handler_mat = (caObjS *) (handle_mat->carma_object);
       caObjS *carma_obj_handler_vectx = (caObjS *) (handle_vectx->carma_object);
@@ -1711,7 +1712,7 @@ void Y_yoga_rank1(int argc)
     if (handle_vectx->device != handle_vecty->device)
       y_error("rank1 only on the same device");
     carma_context *context_handle = _getCurrentContext();
-    context_handle->set_activeDevice(handle_vectx->device);
+    context_handle->set_activeDevice(handle_vectx->device,1);
     yObj_struct *handle_matA = (yObj_struct *) ypush_obj(&yObj,
         sizeof(yObj_struct));
     handle_matA->device = handle_vecty->device;
@@ -1769,7 +1770,7 @@ void Y_yoga_mm(int argc)
         || (handle_matB->device != handle_matC->device))
       y_error("mm only on the same device");
     carma_context *context_handle = _getCurrentContext();
-    context_handle->set_activeDevice(handle_matA->device);
+    context_handle->set_activeDevice(handle_matA->device,1);
 
     char opA = 'n';
     if (argc > 3)
@@ -1819,7 +1820,7 @@ void Y_yoga_mm(int argc)
     if (handle_matA->device != handle_matB->device)
       y_error("mm only on the same device");
     carma_context *context_handle = _getCurrentContext();
-    context_handle->set_activeDevice(handle_matA->device);
+    context_handle->set_activeDevice(handle_matA->device,1);
 
     char opA = 'n';
     if (argc > 2)
@@ -2053,7 +2054,7 @@ void Y_yoga_symm(int argc)
         || (handle_matB->device != handle_matC->device))
       y_error("symm only on the same device");
     carma_context *context_handle = _getCurrentContext();
-    context_handle->set_activeDevice(handle_matA->device);
+    context_handle->set_activeDevice(handle_matA->device,1);
 
     char sidec = 'l';
     if (argc > 3)
@@ -2094,7 +2095,7 @@ void Y_yoga_symm(int argc)
     if (handle_matA->device != handle_matB->device)
       y_error("symm only on the same device");
     carma_context *context_handle = _getCurrentContext();
-    context_handle->set_activeDevice(handle_matA->device);
+    context_handle->set_activeDevice(handle_matA->device,1);
 
     char sidec = 'l';
     if (argc > 2)
@@ -2194,7 +2195,7 @@ void Y_yoga_syrk(int argc)
     if ((handle_matA->device != handle_matC->device))
       y_error("syrk only on the same device");
     carma_context *context_handle = _getCurrentContext();
-    context_handle->set_activeDevice(handle_matA->device);
+    context_handle->set_activeDevice(handle_matA->device,1);
 
     char opA = 'n';
     cublasFillMode_t uplo = CUBLAS_FILL_MODE_LOWER;
@@ -2238,7 +2239,7 @@ void Y_yoga_syrk(int argc)
     // called as a function : need to allocate space
     yObj_struct *handle_matA = (yObj_struct *) yget_obj(argc - 1, &yObj);
     carma_context *context_handle = _getCurrentContext();
-    context_handle->set_activeDevice(handle_matA->device);
+    context_handle->set_activeDevice(handle_matA->device,1);
 
     char opA = 'n';
     if (argc > 1)
@@ -2334,7 +2335,7 @@ void Y_yoga_syrkx(int argc)
         || (handle_matB->device != handle_matC->device))
       y_error("syrkx only on the same device");
     carma_context *context_handle = _getCurrentContext();
-    context_handle->set_activeDevice(handle_matA->device);
+    context_handle->set_activeDevice(handle_matA->device,1);
 
     char opA = 'n';
     if (argc > 3)
@@ -2381,7 +2382,7 @@ void Y_yoga_syrkx(int argc)
     if (handle_matA->device != handle_matB->device)
       y_error("syrkx only on the same device");
     carma_context *context_handle = _getCurrentContext();
-    context_handle->set_activeDevice(handle_matA->device);
+    context_handle->set_activeDevice(handle_matA->device,1);
 
     char opA = 'n';
     if (argc > 2)
@@ -2481,7 +2482,7 @@ void Y_yoga_am(int argc)
         || (handle_matB->device != handle_matC->device))
       y_error("am only on the same device");
     carma_context *context_handle = _getCurrentContext();
-    context_handle->set_activeDevice(handle_matA->device);
+    context_handle->set_activeDevice(handle_matA->device,1);
 
     char opA = 'n';
     if (argc > 3)
@@ -2531,7 +2532,7 @@ void Y_yoga_am(int argc)
     if (handle_matA->device != handle_matB->device)
       y_error("am only on the same device");
     carma_context *context_handle = _getCurrentContext();
-    context_handle->set_activeDevice(handle_matA->device);
+    context_handle->set_activeDevice(handle_matA->device,1);
 
     char opA = 'n';
     if (argc > 2)
@@ -2631,7 +2632,7 @@ void Y_yoga_dmm(int argc)
         || (handle_matA->device != handle_matC->device))
       y_error("dmm only on the same device");
     carma_context *context_handle = _getCurrentContext();
-    context_handle->set_activeDevice(handle_matA->device);
+    context_handle->set_activeDevice(handle_matA->device,1);
 
     char sidec = 'l';
     if (argc > 3)
@@ -2669,7 +2670,7 @@ void Y_yoga_dmm(int argc)
     if (handle_vectx->device != handle_matA->device)
       y_error("dmm only on the same device");
     carma_context *context_handle = _getCurrentContext();
-    context_handle->set_activeDevice(handle_matA->device);
+    context_handle->set_activeDevice(handle_matA->device,1);
 
     char sidec = 'l';
     if (argc > 2)
@@ -2754,7 +2755,7 @@ void Y_yoga_transpose(int argc)
     if (handle_dest->device != handle_src->device)
       y_error("transpose only on the same device");
     carma_context *context_handle = _getCurrentContext();
-    context_handle->set_activeDeviceForCpy(handle_dest->device);
+    context_handle->set_activeDeviceForCpy(handle_dest->device,1);
     if (handle_src->type == Y_FLOAT) {
       caObjS *carma_obj_handler_dest = (caObjS *) (handle_dest->carma_object);
       caObjS *carma_obj_handler_src = (caObjS *) (handle_src->carma_object);
@@ -2771,7 +2772,7 @@ void Y_yoga_transpose(int argc)
         sizeof(yObj_struct));
     handle_dest->device = handle_src->device;
     carma_context *context_handle = _getCurrentContext();
-    context_handle->set_activeDeviceForCpy(handle_dest->device);
+    context_handle->set_activeDeviceForCpy(handle_dest->device,1);
     if (handle_src->type == Y_FLOAT) {
       handle_dest->type = handle_src->type;
       caObjS *carma_obj_handler_src = (caObjS *) (handle_src->carma_object);
@@ -2820,7 +2821,7 @@ void Y_yoga_random(int argc) {
     if (argc > 1)
       seed = ygets_i(argc - 2);
     carma_context *context_handle = _getCurrentContext();
-    context_handle->set_activeDevice(handle->device);
+    context_handle->set_activeDevice(handle->device,1);
     if (handle->type == Y_FLOAT) {
       caObjS *carma_obj_handler = (caObjS *) (handle->carma_object);
       if (carma_obj_handler->is_rng_init() == false) {
@@ -2878,7 +2879,7 @@ void Y_yoga_random(int argc) {
       mdevice = ygets_i(argc - 3);
     }
 
-    activeDevice = context_handle->set_activeDevice(mdevice);
+    activeDevice = context_handle->set_activeDevice(mdevice,1);
 
     yObj_struct *handle = (yObj_struct *) ypush_obj(&yObj, sizeof(yObj_struct));
 
@@ -2934,7 +2935,7 @@ void Y_yoga_random_n(int argc) {
     if (argc > 1)
       seed = ygets_i(argc - 2);
     carma_context *context_handle = _getCurrentContext();
-    context_handle->set_activeDevice(handle->device);
+    context_handle->set_activeDevice(handle->device,1);
     if (handle->type == Y_FLOAT) {
       caObjS *carma_obj_handler = (caObjS *) (handle->carma_object);
       if (carma_obj_handler->is_rng_init() == false) {
@@ -2990,7 +2991,7 @@ void Y_yoga_random_n(int argc) {
     if (argc > 2) {
       mdevice = ygets_i(argc - 3);
     }
-    activeDevice = context_handle->set_activeDevice(mdevice);
+    activeDevice = context_handle->set_activeDevice(mdevice,1);
 
     yObj_struct *handle = (yObj_struct *) ypush_obj(&yObj, sizeof(yObj_struct));
     handle->device = mdevice;
@@ -3042,7 +3043,7 @@ void Y_yoga_poisson(int argc) {
     if (argc > 1)
       seed = ygets_i(argc - 2);
     carma_context *context_handle = _getCurrentContext();
-    context_handle->set_activeDevice(handle->device);
+    context_handle->set_activeDevice(handle->device,1);
     if (handle->type == Y_FLOAT) {
       caObjS *carma_obj_handler = (caObjS *) (handle->carma_object);
       if (carma_obj_handler->is_rng_init() == false) {
@@ -3093,7 +3094,7 @@ void Y_yoga_fft(int argc) {
       if (handle_dest->device != handle_src->device)
         y_error("transpose only on the same device");
       carma_context *context_handle = _getCurrentContext();
-      context_handle->set_activeDevice(handle_dest->device);
+      context_handle->set_activeDevice(handle_dest->device,1);
       int dir;
       if (argc > 3)
         dir = ygets_i(argc - 3);
@@ -3208,7 +3209,7 @@ void Y_yoga_fft(int argc) {
     } else {
       int dir;
       carma_context *context_handle = _getCurrentContext();
-      context_handle->set_activeDevice(handle_src->device);
+      context_handle->set_activeDevice(handle_src->device,1);
       if (argc > 1)
         dir = ygets_i(argc - 2);
       else
@@ -3242,7 +3243,7 @@ void Y_yoga_fft(int argc) {
   } else {
     yObj_struct *handle_src = (yObj_struct *) yget_obj(argc - 1, &yObj);
     carma_context *context_handle = _getCurrentContext();
-    context_handle->set_activeDevice(handle_src->device);
+    context_handle->set_activeDevice(handle_src->device,1);
     // called as a function : we need to create an object to push on the stack
     // check if src plan exists
     // create if not and execute
@@ -3352,7 +3353,7 @@ void Y_yoga_fftconv(int argc)
         || (handle_res->device != handle_pspec->device))
       y_error("fftconv only on the same device");
     carma_context *context_handle = _getCurrentContext();
-    context_handle->set_activeDevice(handle_res->device);
+    context_handle->set_activeDevice(handle_res->device,1);
     int kernelY = ygets_i(argc - 6);
     int kernelX = ygets_i(argc - 7);
 
@@ -3392,7 +3393,7 @@ void Y_yoga_fftconv_init(int argc)
     if (handle_im->device != handle_ker->device)
       y_error("fftconv only on the same device");
     carma_context *context_handle = _getCurrentContext();
-    context_handle->set_activeDevice(handle_im->device);
+    context_handle->set_activeDevice(handle_im->device,1);
     char *type_data = ygets_q(argc - 3);
     caObjS *carma_im_handler = (caObjS *) (handle_im->carma_object);
     caObjS *carma_ker_handler = (caObjS *) (handle_ker->carma_object);
@@ -4109,7 +4110,7 @@ void Y_yoga_csr2bsr(int argc)
     SCAST(ySparseObj_struct *, handle_mat_src, yget_obj(argc - 2, &ySparseObj));
 
     carma_context *context_handle = _getCurrentContext();
-    context_handle->set_activeDevice(handle_mat_src->device);
+    context_handle->set_activeDevice(handle_mat_src->device,1);
     SCAST(ySparseObj_struct *, handle_mat_dst, ypush_obj(&ySparseObj, sizeof(ySparseObj_struct)));
     handle_mat_dst->device = handle_mat_src->device;
     handle_mat_dst->type = handle_mat_src->type;
@@ -4156,7 +4157,7 @@ void Y_yoga_bsr2csr(int argc)
     SCAST(ySparseObj_struct *, handle_mat_src, yget_obj(argc - 1, &ySparseObj));
 
     carma_context *context_handle = _getCurrentContext();
-    context_handle->set_activeDevice(handle_mat_src->device);
+    context_handle->set_activeDevice(handle_mat_src->device,1);
     SCAST(ySparseObj_struct *, handle_mat_dst, ypush_obj(&ySparseObj, sizeof(ySparseObj_struct)));
     handle_mat_dst->device = handle_mat_src->device;
     handle_mat_dst->type = handle_mat_src->type;
@@ -4196,7 +4197,7 @@ void Y_yoga_mv_ksparse(int argc)
         || (handle_mat->device != handle_vectx->device))
       y_error("mv only on the same device");
     carma_context *context_handle = _getCurrentContext();
-    context_handle->set_activeDevice(handle_mat->device);
+    context_handle->set_activeDevice(handle_mat->device,1);
 
     double alpha = 1.0;
     if (argc > 3) {
@@ -4227,7 +4228,7 @@ void Y_yoga_mv_ksparse(int argc)
       y_error("mv only on the same device");
     }
     carma_context *context_handle = _getCurrentContext();
-    context_handle->set_activeDevice(handle_mat->device);
+    context_handle->set_activeDevice(handle_mat->device,1);
     SCAST(yObj_struct *, handle_vecty, ypush_obj(&yObj, sizeof(yObj_struct)));
     handle_vecty->device = handle_mat->device;
     handle_vecty->type = handle_vectx->type;
@@ -4285,7 +4286,7 @@ void Y_yoga_mv_sparse(int argc)
         || (handle_mat->device != handle_vectx->device))
       y_error("mv only on the same device");
     carma_context *context_handle = _getCurrentContext();
-    context_handle->set_activeDevice(handle_mat->device);
+    context_handle->set_activeDevice(handle_mat->device,1);
 
     if (handle_mat->type == Y_FLOAT) {
       SCAST(carma_sparse_obj<float>*, carma_obj_handler_mat, handle_mat->carma_sparse_object);
@@ -4330,7 +4331,7 @@ void Y_yoga_mv_sparse(int argc)
       y_error("mv only on the same device");
     }
     carma_context *context_handle = _getCurrentContext();
-    context_handle->set_activeDevice(handle_mat->device);
+    context_handle->set_activeDevice(handle_mat->device,1);
     SCAST(yObj_struct *, handle_vecty, ypush_obj(&yObj, sizeof(yObj_struct)));
     handle_vecty->device = handle_mat->device;
     handle_vecty->type = handle_vectx->type;
@@ -4405,7 +4406,7 @@ void Y_yoga_mm_sparse(int argc)
         || (handle_matA->device != handle_matC->device)
         || (handle_matB->device != handle_matC->device))
       y_error("mm only on the same device");
-    context_handle->set_activeDevice(handle_matA->device);
+    context_handle->set_activeDevice(handle_matA->device,1);
 
     char opA = 'n';
     if (argc > 3)
@@ -4447,7 +4448,7 @@ void Y_yoga_mm_sparse(int argc)
     SCAST(yObj_struct *, handle_matB, yget_obj(argc - 2, &yObj));
     if (handle_matA->device != handle_matB->device)
       y_error("mm only on the same device");
-    context_handle->set_activeDevice(handle_matA->device);
+    context_handle->set_activeDevice(handle_matA->device,1);
 
     char opA = 'n';
     if (argc > 2)
@@ -4536,7 +4537,7 @@ void Y_yoga_mm_sparse2(int argc)
         || (handle_matA->device != handle_matC->device)
         || (handle_matB->device != handle_matC->device))
       y_error("mm only on the same device");
-    context_handle->set_activeDevice(handle_matA->device);
+    context_handle->set_activeDevice(handle_matA->device,1);
     char opA = 'n';
     if (argc > 3)
       opA = ygets_c(argc - 4);
@@ -4569,7 +4570,7 @@ void Y_yoga_mm_sparse2(int argc)
     SCAST(ySparseObj_struct *, handle_matB, yget_obj(argc - 2, &ySparseObj));
     if (handle_matA->device != handle_matB->device)
       y_error("mm only on the same device");
-    context_handle->set_activeDevice(handle_matA->device);
+    context_handle->set_activeDevice(handle_matA->device,1);
 
     char opA = 'n';
     if (argc > 2)
@@ -5299,7 +5300,7 @@ void Y_yoga_getarray(int argc)
     handle_in = (yObj_struct *) yget_obj(argc - 1, &yObj);
   }
   carma_context *context_handle = _getCurrentContext();
-  context_handle->set_activeDeviceForCpy(handle_in->device);
+  context_handle->set_activeDeviceForCpy(handle_in->device,1);
 
   if ((yarg_typeid(argc - 2) != Y_RANGE) && (yarg_typeid(argc - 2) != Y_VOID))
     y_error("expecting a range");
@@ -5374,7 +5375,7 @@ void Y_yoga_fillarray(int argc)
     if (handle_in->device != handle_out->device)
       y_error("getarray only on the same device");
     carma_context *context_handle = _getCurrentContext();
-    context_handle->set_activeDeviceForCpy(handle_in->device);
+    context_handle->set_activeDeviceForCpy(handle_in->device,1);
     caObjS *carma_out_handler = (caObjS *) (handle_out->carma_object);
     caObjS *carma_in_handler = (caObjS *) (handle_in->carma_object);
     argc--;
@@ -5447,7 +5448,7 @@ void Y_yoga_getvalue(int argc)
   else {
     yObj_struct *handle_in = (yObj_struct *) yget_obj(argc - 1, &yObj);
     carma_context *context_handle = _getCurrentContext();
-    context_handle->set_activeDeviceForCpy(handle_in->device);
+    context_handle->set_activeDeviceForCpy(handle_in->device,1);
     int pos = ygets_i(argc - 2);
     long dims[2];
     dims[0] = dims[1] = 1;
@@ -5463,7 +5464,7 @@ void Y_yoga_plus(int argc) {
   if (yarg_subroutine()) {
     yObj_struct *handle_in = (yObj_struct *) yget_obj(argc - 1, &yObj);
     carma_context *context_handle = _getCurrentContext();
-    context_handle->set_activeDevice(handle_in->device);
+    context_handle->set_activeDevice(handle_in->device,1);
     if (handle_in->type == Y_FLOAT) {
       float alpha = ygets_f(argc - 2);
       caObjS *carma_in_handler = (caObjS *) (handle_in->carma_object);
@@ -5482,7 +5483,7 @@ void Y_yoga_plusai(int argc) {
     if (handle_in->device != handle_out->device)
       y_error("getarray only on the same device");
     carma_context *context_handle = _getCurrentContext();
-    context_handle->set_activeDevice(handle_in->device);
+    context_handle->set_activeDevice(handle_in->device,1);
     int idx = ygets_i(argc - 3);
     int sgn;
     if (argc > 3)

@@ -41,6 +41,7 @@
 #include <sstream>
 #include <iomanip>
 #include <sutra_aotemplate.h>
+#include <yoga_api.h>
 #include <yoga_ao_api.h>
 
 /**
@@ -114,7 +115,7 @@ yoga_ao_getyAtmos(int argc, int pos) {
 void atmos_free(void *obj) {
   atmos_struct *handler = (atmos_struct *) obj;
   carma_context *context_handle = _getCurrentContext();
-  context_handle->set_activeDevice(handler->device);
+  context_handle->set_activeDevice(handler->device,1);
   try {
     sutra_atmos *atmos_obj_handler = (sutra_atmos *) (handler->sutra_atmos);
     delete atmos_obj_handler;
@@ -203,7 +204,7 @@ void Y_yoga_atmos(int argc) {
 
     if (argc > 10)
       odevice = ygets_i(argc - 11);
-    activeDevice = context_handle->set_activeDevice(odevice);
+    activeDevice = context_handle->set_activeDevice(odevice,1);
 
     atmos_struct *handle = (atmos_struct *) ypush_obj(&yAtmos,
         sizeof(atmos_struct));
@@ -233,7 +234,7 @@ void Y_get_spupil(int argc) {
   else {
     atmos_struct *handle = (atmos_struct *) yget_obj(argc - 1, &yAtmos);
     carma_context *context_handle = _getCurrentContext();
-    context_handle->set_activeDeviceForCpy(handle->device);
+    context_handle->set_activeDeviceForCpy(handle->device,1);
     sutra_atmos *atmos_handler = (sutra_atmos *) handle->sutra_atmos;
     if (atmos_handler->d_screens.find(0.0f) != atmos_handler->d_screens.end()) {
       caObjS *carma_obj_handler = (caObjS *) (atmos_handler->d_pupil);
@@ -260,7 +261,7 @@ yoga_ao_getyTscreen(int argc, int pos) {
 void tscreen_free(void *obj) {
   tscreen_struct *handler = (tscreen_struct *) obj;
   carma_context *context_handle = _getCurrentContext();
-  context_handle->set_activeDevice(handler->device);
+  context_handle->set_activeDevice(handler->device,1);
   try {
     sutra_tscreen *tscreen_obj_handler =
         (sutra_tscreen *) (handler->sutra_tscreen);
@@ -293,7 +294,7 @@ void Y_init_tscreen(int argc)
   sutra_atmos *atmos_obj_handler = (sutra_atmos *) (handler->sutra_atmos);
 
   carma_context *context_handle = _getCurrentContext();
-  context_handle->set_activeDevice(handler->device);
+  handler->device = context_handle->get_activeDevice();
 
   float altitude = ygets_f(argc - 2);
 
@@ -322,7 +323,7 @@ void Y_get_tscreen(int argc) {
   else {
     atmos_struct *handle = (atmos_struct *) yget_obj(argc - 1, &yAtmos);
     carma_context *context_handle = _getCurrentContext();
-    context_handle->set_activeDeviceForCpy(handle->device);
+    context_handle->set_activeDeviceForCpy(handle->device,1);
     float alt = ygets_f(argc - 2);
     sutra_atmos *atmos_handler = (sutra_atmos *) handle->sutra_atmos;
     caObjS *carma_obj_handler =
@@ -341,7 +342,7 @@ void Y_set_tscreen(int argc) {
   else {
     atmos_struct *handle = (atmos_struct *) yget_obj(argc - 1, &yAtmos);
     carma_context *context_handle = _getCurrentContext();
-    context_handle->set_activeDeviceForCpy(handle->device);
+    context_handle->set_activeDeviceForCpy(handle->device,1);
     float alt = ygets_f(argc - 2);
     float *data = ygeta_f(argc-3, &ntot, dims);
     sutra_atmos *atmos_handler = (sutra_atmos *) handle->sutra_atmos;
@@ -356,7 +357,7 @@ void Y_extrude_tscreen(int argc) {
   if (yarg_subroutine()) {
     atmos_struct *handle = (atmos_struct *) yget_obj(argc - 1, &yAtmos);
     carma_context *context_handle = _getCurrentContext();
-    context_handle->set_activeDeviceForCpy(handle->device);
+    context_handle->set_activeDeviceForCpy(handle->device,1);
     float alt = ygets_f(argc - 2);
     sutra_atmos *atmos_handler = (sutra_atmos *) handle->sutra_atmos;
     sutra_tscreen *tscreen_handler =
@@ -378,7 +379,7 @@ void Y_get_tscreen_config(int argc) {
   else {
     atmos_struct *handle = (atmos_struct *) yget_obj(argc - 1, &yAtmos);
     carma_context *context_handle = _getCurrentContext();
-    context_handle->set_activeDeviceForCpy(handle->device);
+    context_handle->set_activeDeviceForCpy(handle->device,1);
     float alt = ygets_f(argc - 2);
     sutra_atmos *atmos_handler = (sutra_atmos *) handle->sutra_atmos;
     sutra_tscreen *tscreen_handler =
@@ -416,7 +417,7 @@ void Y_get_tscreen_update(int argc) {
   else {
     atmos_struct *handle = (atmos_struct *) yget_obj(argc - 1, &yAtmos);
     carma_context *context_handle = _getCurrentContext();
-    context_handle->set_activeDeviceForCpy(handle->device);
+    context_handle->set_activeDeviceForCpy(handle->device,1);
     float alt = ygets_f(argc - 2);
     sutra_atmos *atmos_handler = (sutra_atmos *) handle->sutra_atmos;
     sutra_tscreen *tscreen_handler =
@@ -430,7 +431,7 @@ void Y_tscreen_initvk(int argc) {
 
   atmos_struct *handle = (atmos_struct *) yget_obj(argc - 1, &yAtmos);
   carma_context *context_handle = _getCurrentContext();
-  context_handle->set_activeDevice(handle->device);
+  context_handle->set_activeDevice(handle->device,1);
   float alt = ygets_f(argc - 2);
   int pupd = ygets_l(argc - 3);
   long seed = 1234;
@@ -446,7 +447,7 @@ void Y_tscreen_genevk(int argc) {
 
   atmos_struct *handle = (atmos_struct *) yget_obj(argc - 1, &yAtmos);
   carma_context *context_handle = _getCurrentContext();
-  context_handle->set_activeDevice(handle->device);
+  context_handle->set_activeDevice(handle->device,1);
   float alt = ygets_f(argc - 2);
   float l0 = 0.0f;
   if (argc > 2)
@@ -477,7 +478,7 @@ yoga_ao_getySource(int argc, int pos) {
 void source_free(void *obj) {
   source_struct *handler = (source_struct *) obj;
   carma_context *context_handle = _getCurrentContext();
-  context_handle->set_activeDevice(handler->device);
+  context_handle->set_activeDevice(handler->device,1);
   try {
     sutra_source *source_obj_handler = (sutra_source *) (handler->sutra_source);
     delete source_obj_handler;
@@ -515,7 +516,7 @@ yoga_ao_getyTarget(int argc, int pos) {
 void target_free(void *obj) {
   target_struct *handler = (target_struct *) obj;
   carma_context *context_handle = _getCurrentContext();
-  context_handle->set_activeDevice(handler->device);
+  context_handle->set_activeDevice(handler->device,1);
   try {
     sutra_target *target_obj_handler = (sutra_target *) (handler->sutra_target);
     delete target_obj_handler;
@@ -549,8 +550,7 @@ void Y_yoga_target(int argc) {
 
   try {
     carma_context *context_handle = _getCurrentContext();
-    int activeDevice = context_handle->get_activeDevice();
-    int odevice = activeDevice;
+    int odevice = context_handle->get_activeDevice();;
     int ntargets = ygets_i(argc - 1);
 
     float *xpos;
@@ -581,7 +581,7 @@ void Y_yoga_target(int argc) {
 
     if (argc > 7)
       odevice = ygets_i(argc - 8);
-    activeDevice = context_handle->set_activeDevice(odevice);
+    context_handle->set_activeDevice(odevice,1);
 
     target_struct *handle = (target_struct *) ypush_obj(&yTarget,
         sizeof(target_struct));
@@ -607,7 +607,7 @@ void Y_target_addlayer(int argc) {
   sutra_target *target_handler = (sutra_target *) (handler->sutra_target);
 
   carma_context *context_handle = _getCurrentContext();
-  context_handle->set_activeDevice(handler->device);
+  context_handle->set_activeDevice(handler->device,1);
 
   int ntarget = ygets_i(argc - 2);
   char *type = ygets_q(argc - 3);
@@ -632,7 +632,7 @@ void Y_target_atmostrace(int argc) {
   sutra_target *target_handler = (sutra_target *) (handler->sutra_target);
   
   carma_context *context_handle = _getCurrentContext();
-  context_handle->set_activeDevice(handler->device);
+  context_handle->set_activeDevice(handler->device,1);
   
   int ntarget = ygets_i(argc - 2);
   
@@ -646,7 +646,7 @@ void Y_target_getimage(int argc) {
   sutra_target *target_handler = (sutra_target *) (handler->sutra_target);
 
   carma_context *context_handle = _getCurrentContext();
-  context_handle->set_activeDeviceForCpy(handler->device);
+  context_handle->set_activeDeviceForCpy(handler->device,1);
 
   int ntarget = ygets_i(argc - 2);
 
@@ -671,7 +671,7 @@ void Y_target_getphase(int argc) {
   sutra_target *target_handler = (sutra_target *) (handler->sutra_target);
 
   carma_context *context_handle = _getCurrentContext();
-  context_handle->set_activeDeviceForCpy(handler->device);
+  context_handle->set_activeDeviceForCpy(handler->device,1);
 
   int ntarget = ygets_i(argc - 2);
 
@@ -686,7 +686,7 @@ void Y_target_getphasetele(int argc) {
   sutra_target *target_handler = (sutra_target *) (handler->sutra_target);
 
   carma_context *context_handle = _getCurrentContext();
-  context_handle->set_activeDeviceForCpy(handler->device);
+  context_handle->set_activeDeviceForCpy(handler->device,1);
 
   int ntarget = ygets_i(argc - 2);
 
@@ -701,7 +701,7 @@ void Y_target_getamplipup(int argc) {
   sutra_target *target_handler = (sutra_target *) (handler->sutra_target);
 
   carma_context *context_handle = _getCurrentContext();
-  context_handle->set_activeDeviceForCpy(handler->device);
+  context_handle->set_activeDeviceForCpy(handler->device,1);
 
   int ntarget = ygets_i(argc - 2);
 
@@ -722,7 +722,7 @@ void Y_target_getstrehl(int argc) {
   sutra_target *target_handler = (sutra_target *) (handler->sutra_target);
 
   carma_context *context_handle = _getCurrentContext();
-  context_handle->set_activeDeviceForCpy(handler->device);
+  context_handle->set_activeDeviceForCpy(handler->device,1);
 
   int ntarget = ygets_i(argc - 2);
 
@@ -757,7 +757,7 @@ yoga_ao_getyPhase(int argc, int pos) {
 void phase_free(void *obj) {
   phase_struct *handler = (phase_struct *) obj;
   carma_context *context_handle = _getCurrentContext();
-  context_handle->set_activeDevice(handler->device);
+  context_handle->set_activeDevice(handler->device,1);
   try {
     sutra_phase *phase_obj_handler = (sutra_phase *) (handler->sutra_phase);
     delete phase_obj_handler;
@@ -778,7 +778,7 @@ void phase_print(void *obj) {
 void phase_eval(void *obj, int n) {
   phase_struct *handler = (phase_struct *) obj;
   carma_context *context_handle = _getCurrentContext();
-  context_handle->set_activeDeviceForCpy(handler->device);
+  context_handle->set_activeDeviceForCpy(handler->device,1);
   sutra_phase *phase_handler = (sutra_phase *) (handler->sutra_phase);
   float *data = ypush_f((long*) phase_handler->d_screen->getDims());
   phase_handler->d_screen->device2host(data);
@@ -793,7 +793,7 @@ void Y_yoga_phase(int argc) {
 
     if (argc > 1)
       odevice = ygets_i(argc - 2);
-    activeDevice = context_handle->set_activeDevice(odevice);
+    activeDevice = context_handle->set_activeDevice(odevice,1);
 
     phase_struct *handle = (phase_struct *) ypush_obj(&yPhase,
         sizeof(phase_struct));
@@ -843,7 +843,7 @@ yoga_ao_getyWfs(int argc, int pos) {
 void wfs_free(void *obj) {
   wfs_struct *handler = (wfs_struct *) obj;
   carma_context *context_handle = _getCurrentContext();
-  context_handle->set_activeDevice(handler->device);
+  context_handle->set_activeDevice(handler->device,1);
   try {
     sutra_wfs *wfs_obj_handler = (sutra_wfs *) (handler->sutra_wfs);
     delete wfs_obj_handler;
@@ -881,7 +881,7 @@ void Y_yoga_wfs(int argc)
 
     if (argc > 11)
       odevice = ygets_i(argc - 12);
-    activeDevice = context_handle->set_activeDevice(odevice);
+    activeDevice = context_handle->set_activeDevice(odevice,1);
 
     wfs_struct *handle = (wfs_struct *) ypush_obj(&yWfs, sizeof(wfs_struct));
     handle->device = odevice;
@@ -916,7 +916,7 @@ void Y_wfs_initgs(int argc) {
     seed = ygets_l(argc - 8);
 
   carma_context *context_handle = _getCurrentContext();
-  context_handle->set_activeDevice(handle->device);
+  context_handle->set_activeDevice(handle->device,1);
 
   sutra_wfs *wfs_handler = (sutra_wfs *) handle->sutra_wfs;
   wfs_handler->wfs_initgs(xpos, ypos, lambda, mag, size, noise, seed);
@@ -939,7 +939,7 @@ yoga_ao_getyTelemetry(int argc, int pos) {
 void telemetry_free(void *obj) {
   telemetry_struct *handler = (telemetry_struct *) obj;
   carma_context *context_handle = _getCurrentContext();
-  context_handle->set_activeDevice(handler->device);
+  context_handle->set_activeDevice(handler->device,1);
   try {
     sutra_telemetry *telemetry_obj_handler =
         (sutra_telemetry *) (handler->sutra_telemetry);
@@ -1004,7 +1004,7 @@ yoga_ao_getySensors(int argc, int pos) {
 void sensors_free(void *obj) {
   sensors_struct *handler = (sensors_struct *) obj;
   carma_context *context_handle = _getCurrentContext();
-  context_handle->set_activeDevice(handler->device);
+  context_handle->set_activeDevice(handler->device,1);
   try {
     sutra_sensors *sensors_obj_handler =
         (sutra_sensors *) (handler->sutra_sensors);
@@ -1097,7 +1097,6 @@ void Y_yoga_sensors(int argc)
 
       //done inside sutra_wfs constructor
       //odevice = context_handle->set_activeDevice(odevice);
-
       handle->sutra_sensors = new sutra_sensors(context_handle, type_data,
           nsensors, nxsub, nvalid, npix, nphase, nrebin, nfft, ntota, npup,
           pdiam, nphot, lgs, odevice);
@@ -1135,9 +1134,8 @@ void Y_sensors_initgs(int argc) {
   long *size = ygeta_l(argc - 6, &ntot, dims);
   if (ntot != abs(sensors_handler->nsensors()) )
     y_error("wrong dimension for size");
-
   carma_context *context_handle = _getCurrentContext();
-  context_handle->set_activeDevice(handle->device);
+  context_handle->set_activeDevice(handle->device,1);
 
   if (argc > 7) {
     float *noise = ygeta_f(argc - 7, &ntot, dims);
@@ -1157,7 +1155,7 @@ void Y_sensors_addlayer(int argc) {
   sutra_sensors *sensors_handler = (sutra_sensors *) (handler->sutra_sensors);
 
   carma_context *context_handle = _getCurrentContext();
-  context_handle->set_activeDevice(handler->device);
+  context_handle->set_activeDevice(handler->device,1);
 
   int nsensor = ygets_i(argc - 2);
   char *type = ygets_q(argc - 3);
@@ -1175,7 +1173,7 @@ void Y_sensors_initarr(int argc) {
   sutra_sensors *sensors_handler = (sutra_sensors *) (handler->sutra_sensors);
 
   carma_context *context_handle = _getCurrentContext();
-  context_handle->set_activeDevice(handler->device);
+  context_handle->set_activeDevice(handler->device,1);
 
   int nsensor = ygets_i(argc - 2);
 
@@ -1237,7 +1235,7 @@ void Y_sensors_loadkernels(int argc) {
   sutra_sensors *sensors_handler = (sutra_sensors *) (handler->sutra_sensors);
 
   carma_context *context_handle = _getCurrentContext();
-  context_handle->set_activeDevice(handler->device);
+  context_handle->set_activeDevice(handler->device,1);
 
   int nsensor = ygets_i(argc - 2);
 
@@ -1253,7 +1251,7 @@ void Y_sensors_initlgs(int argc) {
   sutra_sensors *sensors_handler = (sutra_sensors *) (handler->sutra_sensors);
 
   carma_context *context_handle = _getCurrentContext();
-  context_handle->set_activeDevice(handler->device);
+  context_handle->set_activeDevice(handler->device,1);
 
   int nsensor = ygets_i(argc - 2);
 
@@ -1284,7 +1282,7 @@ void Y_sensors_updatelgsprof(int argc) {
   sutra_sensors *sensors_handler = (sutra_sensors *) (handler->sutra_sensors);
 
   carma_context *context_handle = _getCurrentContext();
-  context_handle->set_activeDevice(handler->device);
+  context_handle->set_activeDevice(handler->device,1);
 
   int nsensor = ygets_i(argc - 2);
 
@@ -1306,7 +1304,7 @@ void Y_sensors_updatelgs(int argc) {
   sutra_sensors *sensors_handler = (sutra_sensors *) (handler->sutra_sensors);
 
   carma_context *context_handle = _getCurrentContext();
-  context_handle->set_activeDevice(handler->device);
+  context_handle->set_activeDevice(handler->device,1);
 
   int nsensor = ygets_i(argc - 2);
 
@@ -1366,7 +1364,7 @@ void Y_sensors_compimg_tele(int argc) {
   int nsensor = ygets_i(argc - 2);
 
   carma_context *context_handle = _getCurrentContext();
-  context_handle->set_activeDeviceForCpy(handler->device);
+  context_handle->set_activeDeviceForCpy(handler->device,1);
 
   sensors_handler->d_wfs.at(nsensor)->comp_image_tele();
 }
@@ -1376,7 +1374,7 @@ void Y_sensors_getimg(int argc) {
   sutra_sensors *sensors_handler = (sutra_sensors *) (handler->sutra_sensors);
 
   carma_context *context_handle = _getCurrentContext();
-  context_handle->set_activeDeviceForCpy(handler->device);
+  context_handle->set_activeDeviceForCpy(handler->device,1);
 
   int nsensor = ygets_i(argc - 2);
 
@@ -1401,7 +1399,7 @@ void Y_sensors_getdata(int argc) {
   sutra_sensors *sensors_handler = (sutra_sensors *) (handler->sutra_sensors);
 
   carma_context *context_handle = _getCurrentContext();
-  context_handle->set_activeDeviceForCpy(handler->device);
+  context_handle->set_activeDeviceForCpy(handler->device,1);
 
   int nsensor = ygets_i(argc - 2);
 
@@ -1612,7 +1610,7 @@ void Y_sensors_setphase(int argc) {
   sutra_sensors *sensors_handler = (sutra_sensors *) (handler->sutra_sensors);
 
   carma_context *context_handle = _getCurrentContext();
-  context_handle->set_activeDevice(handler->device);
+  context_handle->set_activeDevice(handler->device,1);
 
   int nsensor = ygets_i(argc - 2);
 
@@ -1645,7 +1643,7 @@ yoga_ao_getyAcquisim(int argc, int pos) {
 void acquisim_free(void *obj) {
   acquisim_struct *handler = (acquisim_struct *) obj;
   carma_context *context_handle = _getCurrentContext();
-  context_handle->set_activeDevice(handler->device);
+  context_handle->set_activeDevice(handler->device,1);
   try {
     sutra_acquisim *acquisim_obj_handler =
         (sutra_acquisim *) (handler->sutra_acquisim);
@@ -1760,7 +1758,7 @@ yoga_ao_getyDMs(int argc, int pos) {
 void dms_free(void *obj) {
   dms_struct *handler = (dms_struct *) obj;
   carma_context *context_handle = _getCurrentContext();
-  context_handle->set_activeDevice(handler->device);
+  context_handle->set_activeDevice(handler->device,1);
   try {
     sutra_dms *dms_obj_handler = (sutra_dms *) (handler->sutra_dms);
     delete dms_obj_handler;
@@ -1834,7 +1832,7 @@ void Y_yoga_addpzt(int argc) {
   if (argc > 8)
     odevice = ygets_i(argc - 9);
 
-  activeDevice = context_handle->set_activeDevice(odevice);
+  activeDevice = context_handle->set_activeDevice(odevice,1);
 
   dms_handler->add_dm(context_handle, "pzt", alt, dim, ninflu, influsize,
       ninflupos, n_npts, push4imat, odevice);
@@ -1886,7 +1884,7 @@ void Y_yoga_addkl(int argc) {
   if (argc > 8)
     odevice = ygets_i(argc - 9);
 
-  activeDevice = context_handle->set_activeDevice(odevice);
+  activeDevice = context_handle->set_activeDevice(odevice,1);
 
   dms_handler->add_dm(context_handle, "kl", alt, dim, ninflu, influsize, nr, np,
       push4imat, odevice);
@@ -1956,7 +1954,7 @@ void Y_yoga_addtt(int argc) {
   if (argc > 4)
     odevice = ygets_i(argc - 5);
 
-  activeDevice = context_handle->set_activeDevice(odevice);
+  activeDevice = context_handle->set_activeDevice(odevice,1);
 
   dms_handler->add_dm(context_handle, "tt", alt, dim, 2, dim, 1, 1, push4imat,
       odevice);
@@ -2103,7 +2101,7 @@ void Y_target_dmtrace(int argc) {
   sutra_target *target_handler = (sutra_target *) (handler->sutra_target);
 
   carma_context *context_handle = _getCurrentContext();
-  context_handle->set_activeDevice(handler->device);
+  context_handle->set_activeDevice(handler->device,1);
 
   int ntarget = ygets_i(argc - 2);
 
@@ -2122,7 +2120,7 @@ void Y_dms_getdata(int argc) {
   sutra_dms *dms_handler = (sutra_dms *) (dhandler->sutra_dms);
 
   carma_context *context_handle = _getCurrentContext();
-  context_handle->set_activeDeviceForCpy(dhandler->device);
+  context_handle->set_activeDeviceForCpy(dhandler->device,1);
 
   char *type = ygets_q(argc - 2);
   float alt = ygets_f(argc - 3);
@@ -2159,7 +2157,7 @@ void Y_dms_comp_shape(int argc) {
   sutra_dms *dms_handler = (sutra_dms *) (dhandler->sutra_dms);
 
   carma_context *context_handle = _getCurrentContext();
-  context_handle->set_activeDeviceForCpy(dhandler->device);
+  context_handle->set_activeDeviceForCpy(dhandler->device,1);
 
   long ntot;
   long dims[Y_DIMSIZE];
@@ -2197,7 +2195,7 @@ yoga_ao_getyRTC(int argc, int pos) {
 void rtc_free(void *obj) {
   rtc_struct *handler = (rtc_struct *) obj;
   carma_context *context_handle = _getCurrentContext();
-  context_handle->set_activeDevice(handler->device);
+  context_handle->set_activeDevice(handler->device,1);
   try {
     sutra_rtc *rtc_obj_handler = (sutra_rtc *) (handler->sutra_rtc);
     delete rtc_obj_handler;
@@ -2277,7 +2275,7 @@ void Y_rtc_addcentro(int argc) {
   //rtc_struct *handle    =(rtc_struct *)ypush_obj(&yRTC, sizeof(rtc_struct));
 
   carma_context *context_handle = _getCurrentContext();
-  int activeDevice = context_handle->set_activeDeviceForCpy(rhandler->device);
+  int activeDevice = context_handle->set_activeDeviceForCpy(rhandler->device,1);
 
   rtc_handler->add_centroider(sensors_handler, nwfs, nvalid, offset, scale, activeDevice,
       type_centro);
@@ -2291,7 +2289,7 @@ void Y_rtc_addcontrol(int argc) {
   char *type_control = ygets_q(argc - 4);
 
   carma_context *context_handle = _getCurrentContext();
-  int activeDevice = context_handle->set_activeDeviceForCpy(rhandler->device);
+  int activeDevice = context_handle->set_activeDeviceForCpy(rhandler->device,1);
 
   if (argc > 4){
     long Nphi = ygets_l(argc - 5);
@@ -2308,7 +2306,7 @@ void Y_rtc_rmcontrol(int argc) {
   sutra_rtc *rtc_handler = (sutra_rtc *) (rhandler->sutra_rtc);
 
   carma_context *context_handle = _getCurrentContext();
-  context_handle->set_activeDevice(rhandler->device);
+  context_handle->set_activeDevice(rhandler->device,1);
 
   rtc_handler->rm_controller();
 }
@@ -2320,7 +2318,7 @@ void Y_rtc_setthresh(int argc) {
   float thresh = ygets_f(argc - 3);
 
   carma_context *context_handle = _getCurrentContext();
-  context_handle->set_activeDeviceForCpy(rhandler->device);
+  context_handle->set_activeDeviceForCpy(rhandler->device,1);
   if (rtc_handler->d_centro.at(ncentro)->is_type("tcog")) {
     SCAST(sutra_centroider_tcog *, centroider_tcog,
         rtc_handler->d_centro.at(ncentro));
@@ -2335,7 +2333,7 @@ void Y_rtc_setnmax(int argc) {
   int nmax = ygets_f(argc - 3);
 
   carma_context *context_handle = _getCurrentContext();
-  context_handle->set_activeDevice(rhandler->device);
+  context_handle->set_activeDevice(rhandler->device,1);
   if (rtc_handler->d_centro.at(ncentro)->is_type("bpcog")) {
     SCAST(sutra_centroider_bpcog *, centroider_bpcog,
         rtc_handler->d_centro.at(ncentro));
@@ -2355,7 +2353,7 @@ void Y_rtc_docentroids(int argc) {
 
   /* now done inside sutra_rtc::do_centroids
    sutra_context *context_handle = _getCurrentContext();
-   int activeDevice = context_handle->set_activeDeviceForCpy(rhandler->device);
+   int activeDevice = context_handle->set_activeDeviceForCpy(rhandler->device,1);
    */
 }
 
@@ -2371,7 +2369,7 @@ void Y_rtc_docentroids_geom(int argc) {
 
   /* now done inside sutra_rtc::do_centroids
    sutra_context *context_handle = _getCurrentContext();
-   int activeDevice = context_handle->set_activeDeviceForCpy(rhandler->device);
+   int activeDevice = context_handle->set_activeDeviceForCpy(rhandler->device,1);
    */
 }
 
@@ -2388,7 +2386,7 @@ void Y_rtc_doimat(int argc) {
   //rtc_struct *handle    =(rtc_struct *)ypush_obj(&yRTC, sizeof(rtc_struct));
 
   carma_context *context_handle = _getCurrentContext();
-  context_handle->set_activeDeviceForCpy(rhandler->device);
+  context_handle->set_activeDeviceForCpy(rhandler->device,1);
 
   if (geom > -1)
     rtc_handler->do_imat_geom(ncontrol, dms_handler, geom);
@@ -2408,7 +2406,7 @@ void Y_rtc_setgain(int argc) {
 
   // get context and check if proper device is selected
   carma_context *context_handle = _getCurrentContext();
-  context_handle->set_activeDeviceForCpy(rhandler->device);
+  context_handle->set_activeDeviceForCpy(rhandler->device,1);
 
   // retreive gain and set it in the corresponding sutra_controller
   if (rtc_handler->d_control.at(ncontrol)->get_type().compare("ls") == 0) {
@@ -2450,7 +2448,7 @@ void Y_rtc_getmgain(int argc) {
   long ncontrol = ygets_l(argc - 2);
 
   carma_context *context_handle = _getCurrentContext();
-  context_handle->set_activeDeviceForCpy(rhandler->device);
+  context_handle->set_activeDeviceForCpy(rhandler->device,1);
 
   if (rtc_handler->d_control.at(ncontrol)->get_type().compare("ls") == 0) {
     SCAST(sutra_controller_ls *, control, rtc_handler->d_control.at(ncontrol));
@@ -2470,7 +2468,7 @@ void Y_rtc_loadmgain(int argc) {
   long ncontrol = ygets_l(argc - 2);
 
   carma_context *context_handle = _getCurrentContext();
-  context_handle->set_activeDeviceForCpy(rhandler->device);
+  context_handle->set_activeDeviceForCpy(rhandler->device,1);
   if (rtc_handler->d_control.at(ncontrol)->get_type().compare("ls") == 0) {
     float *mgain = ygeta_f(argc - 3, &ntot, dims);
     SCAST(sutra_controller_ls *, control, rtc_handler->d_control.at(ncontrol));
@@ -2494,7 +2492,7 @@ void Y_rtc_loadOpenLoopSlp(int argc) {
   long ncontrol = ygets_l(argc - 2);
 
   carma_context *context_handle = _getCurrentContext();
-  context_handle->set_activeDeviceForCpy(rhandler->device);
+  context_handle->set_activeDeviceForCpy(rhandler->device,1);
   if (rtc_handler->d_control.at(ncontrol)->get_type().compare("ls") == 0) {
     float *ol_slopes = ygeta_f(argc - 3, &ntot, dims);
     SCAST(sutra_controller_ls *, control, rtc_handler->d_control.at(ncontrol));
@@ -2513,7 +2511,7 @@ void Y_rtc_loadnoisemat(int argc) {
   long ncontrol = ygets_l(argc - 2);
 
   carma_context *context_handle = _getCurrentContext();
-  context_handle->set_activeDeviceForCpy(rhandler->device);
+  context_handle->set_activeDeviceForCpy(rhandler->device,1);
   if (rtc_handler->d_control.at(ncontrol)->get_type().compare("mv") == 0) {
     float *noise = ygeta_f(argc - 3, &ntot, dims);
     SCAST(sutra_controller_mv *, control, rtc_handler->d_control.at(ncontrol));
@@ -2529,7 +2527,7 @@ void Y_rtc_getnoisemat(int argc) {
   long ncontrol = ygets_l(argc - 2);
 
   carma_context *context_handle = _getCurrentContext();
-  context_handle->set_activeDeviceForCpy(rhandler->device);
+  context_handle->set_activeDeviceForCpy(rhandler->device,1);
 
   if (rtc_handler->d_control.at(ncontrol)->get_type().compare("mv") == 0) {
     SCAST(sutra_controller_mv *, control, rtc_handler->d_control.at(ncontrol));
@@ -2546,7 +2544,7 @@ void Y_rtc_getslpol(int argc) {
   long ncontrol = ygets_l(argc - 2);
 
   carma_context *context_handle = _getCurrentContext();
-  context_handle->set_activeDeviceForCpy(rhandler->device);
+  context_handle->set_activeDeviceForCpy(rhandler->device,1);
 
   if (rtc_handler->d_control.at(ncontrol)->get_type().compare("ls") == 0) {
     SCAST(sutra_controller_ls *, control, rtc_handler->d_control.at(ncontrol));
@@ -2568,7 +2566,7 @@ void Y_rtc_getHcor(int argc) {
   long ncontrol = ygets_l(argc - 2);
 
   carma_context *context_handle = _getCurrentContext();
-  context_handle->set_activeDeviceForCpy(rhandler->device);
+  context_handle->set_activeDeviceForCpy(rhandler->device,1);
 
   if (rtc_handler->d_control.at(ncontrol)->get_type().compare("ls") == 0) {
     SCAST(sutra_controller_ls *, control, rtc_handler->d_control.at(ncontrol));
@@ -2590,7 +2588,7 @@ void Y_rtc_getS2M(int argc) {
   long ncontrol = ygets_l(argc - 2);
 
   carma_context *context_handle = _getCurrentContext();
-  context_handle->set_activeDeviceForCpy(rhandler->device);
+  context_handle->set_activeDeviceForCpy(rhandler->device,1);
 
   if (rtc_handler->d_control.at(ncontrol)->get_type().compare("ls") == 0) {
     SCAST(sutra_controller_ls *, control, rtc_handler->d_control.at(ncontrol));
@@ -2612,7 +2610,7 @@ void Y_rtc_getM2V(int argc) {
   long ncontrol = ygets_l(argc - 2);
 
   carma_context *context_handle = _getCurrentContext();
-  context_handle->set_activeDeviceForCpy(rhandler->device);
+  context_handle->set_activeDeviceForCpy(rhandler->device,1);
 
   if (rtc_handler->d_control.at(ncontrol)->get_type().compare("ls") == 0) {
     SCAST(sutra_controller_ls *, control, rtc_handler->d_control.at(ncontrol));
@@ -2634,7 +2632,7 @@ void Y_rtc_setdelay(int argc) {
   long ncontrol = ygets_l(argc - 2);
 
   carma_context *context_handle = _getCurrentContext();
-  context_handle->set_activeDeviceForCpy(rhandler->device);
+  context_handle->set_activeDeviceForCpy(rhandler->device,1);
   if (rtc_handler->d_control.at(ncontrol)->get_type().compare("ls") == 0) {
     long delay = ygets_l(argc - 3);
     SCAST(sutra_controller_ls *, control, rtc_handler->d_control.at(ncontrol));
@@ -2658,7 +2656,7 @@ void Y_rtc_getimat(int argc) {
   long ncontrol = ygets_l(argc - 2);
 
   carma_context *context_handle = _getCurrentContext();
-  context_handle->set_activeDeviceForCpy(rhandler->device);
+  context_handle->set_activeDeviceForCpy(rhandler->device,1);
 
   if (rtc_handler->d_control.at(ncontrol)->get_type().compare("ls") == 0) {
     SCAST(sutra_controller_ls *, control, rtc_handler->d_control.at(ncontrol));
@@ -2683,7 +2681,7 @@ void Y_rtc_setimat(int argc) {
   long ncontrol = ygets_l(argc - 2);
 
   carma_context *context_handle = _getCurrentContext();
-  context_handle->set_activeDeviceForCpy(rhandler->device);
+  context_handle->set_activeDeviceForCpy(rhandler->device,1);
 
   long ntot;
   long dims[Y_DIMSIZE];
@@ -2704,7 +2702,7 @@ void Y_rtc_setcentroids(int argc) {
   long ncontrol = ygets_l(argc - 2);
 
   carma_context *context_handle = _getCurrentContext();
-  context_handle->set_activeDeviceForCpy(rhandler->device);
+  context_handle->set_activeDeviceForCpy(rhandler->device,1);
 
   long ntot;
   long dims[Y_DIMSIZE];
@@ -2740,7 +2738,7 @@ void Y_rtc_getcentroids(int argc) {
     wfs_handler = sensor_handler->d_wfs.at(nwfs);
   }
   carma_context *context_handle = _getCurrentContext();
-  context_handle->set_activeDeviceForCpy(rhandler->device);
+  context_handle->set_activeDeviceForCpy(rhandler->device,1);
 
   if(ncontrol>=abs(rtc_handler->d_control.size())){
 
@@ -2761,7 +2759,7 @@ void Y_rtc_getcom(int argc) {
   long ncontrol = ygets_l(argc - 2);
 
   carma_context *context_handle = _getCurrentContext();
-  context_handle->set_activeDeviceForCpy(rhandler->device);
+  context_handle->set_activeDeviceForCpy(rhandler->device,1);
 
   float *data = ypush_f(
       (long*) rtc_handler->d_control.at(ncontrol)->d_com->getDims());
@@ -2774,7 +2772,7 @@ void Y_rtc_getcmat(int argc) {
   long ncontrol = ygets_l(argc - 2);
 
   carma_context *context_handle = _getCurrentContext();
-  context_handle->set_activeDeviceForCpy(rhandler->device);
+  context_handle->set_activeDeviceForCpy(rhandler->device,1);
 
   if (rtc_handler->d_control.at(ncontrol)->get_type().compare("ls") == 0) {
     SCAST(sutra_controller_ls *, control, rtc_handler->d_control.at(ncontrol));
@@ -2795,7 +2793,7 @@ void Y_rtc_setcmat(int argc) {
   long ncontrol = ygets_l(argc - 2);
 
   carma_context *context_handle = _getCurrentContext();
-  context_handle->set_activeDeviceForCpy(rhandler->device);
+  context_handle->set_activeDeviceForCpy(rhandler->device,1);
 
   long ntot;
   long dims[Y_DIMSIZE];
@@ -2817,7 +2815,7 @@ void Y_rtc_setcovmat(int argc) {
   long ncontrol = ygets_l(argc - 2);
 
   carma_context *context_handle = _getCurrentContext();
-  context_handle->set_activeDeviceForCpy(rhandler->device);
+  context_handle->set_activeDeviceForCpy(rhandler->device,1);
 
   long ntot;
   long dims[Y_DIMSIZE];
@@ -2835,7 +2833,7 @@ void Y_rtc_setCphim(int argc) {
   long ncontrol = ygets_l(argc - 2);
 
   carma_context *context_handle = _getCurrentContext();
-  context_handle->set_activeDeviceForCpy(rhandler->device);
+  context_handle->set_activeDeviceForCpy(rhandler->device,1);
 
   long ntot;
   long dims[Y_DIMSIZE];
@@ -2854,7 +2852,7 @@ void Y_rtc_setCmm(int argc) {
   long ncontrol = ygets_l(argc - 2);
 
   carma_context *context_handle = _getCurrentContext();
-  context_handle->set_activeDeviceForCpy(rhandler->device);
+  context_handle->set_activeDeviceForCpy(rhandler->device,1);
 
   long ntot;
   long dims[Y_DIMSIZE];
@@ -2879,7 +2877,7 @@ void Y_rtc_buildcmat(int argc) {
   //rtc_struct *handle    =(rtc_struct *)ypush_obj(&yRTC, sizeof(rtc_struct));
 
   carma_context *context_handle = _getCurrentContext();
-  context_handle->set_activeDeviceForCpy(rhandler->device);
+  context_handle->set_activeDeviceForCpy(rhandler->device,1);
 
   if (rtc_handler->d_control.at(ncontrol)->get_type().compare("ls") == 0) {
     SCAST(sutra_controller_ls *, control, rtc_handler->d_control.at(ncontrol));
@@ -2903,7 +2901,7 @@ void Y_rtc_init_proj(int argc) {
   int *indx_pup = ygeta_i(argc - 6, &ntot, dims);
 
   carma_context *context_handle = _getCurrentContext();
-  context_handle->set_activeDeviceForCpy(rhandler->device);
+  context_handle->set_activeDeviceForCpy(rhandler->device,1);
 
   if (rtc_handler->d_control.at(ncontrol)->get_type().compare("geo") == 0) {
     SCAST(sutra_controller_geo *, control, rtc_handler->d_control.at(ncontrol));
@@ -2927,7 +2925,7 @@ void Y_rtc_initModalOpti(int argc) {
   float Fs = ygets_f(argc - 9);
 
   carma_context *context_handle = _getCurrentContext();
-  context_handle->set_activeDeviceForCpy(rhandler->device);
+  context_handle->set_activeDeviceForCpy(rhandler->device,1);
 
   if (rtc_handler->d_control.at(ncontrol)->get_type().compare("ls") == 0) {
     SCAST(sutra_controller_ls *, control, rtc_handler->d_control.at(ncontrol));
@@ -2943,7 +2941,7 @@ void Y_rtc_modalControlOptimization(int argc) {
   long ncontrol = ygets_l(argc - 2);
 
   carma_context *context_handle = _getCurrentContext();
-  context_handle->set_activeDeviceForCpy(rhandler->device);
+  context_handle->set_activeDeviceForCpy(rhandler->device,1);
 
   if (rtc_handler->d_control.at(ncontrol)->get_type().compare("ls") == 0) {
     SCAST(sutra_controller_ls *, control, rtc_handler->d_control.at(ncontrol));
@@ -2962,7 +2960,7 @@ void Y_rtc_imatsvd(int argc) {
   //rtc_struct *handle    =(rtc_struct *)ypush_obj(&yRTC, sizeof(rtc_struct));
 
   carma_context *context_handle = _getCurrentContext();
-  context_handle->set_activeDeviceForCpy(rhandler->device);
+  context_handle->set_activeDeviceForCpy(rhandler->device,1);
 
   if (rtc_handler->d_control.at(ncontrol)->get_type().compare("ls") == 0) {
     SCAST(sutra_controller_ls *, control, rtc_handler->d_control.at(ncontrol));
@@ -2978,7 +2976,7 @@ void Y_rtc_framedelay(int argc) {
   sutra_rtc *rtc_handler = (sutra_rtc *) (rhandler->sutra_rtc);
 
   carma_context *context_handle = _getCurrentContext();
-  context_handle->set_activeDeviceForCpy(rhandler->device);
+  context_handle->set_activeDeviceForCpy(rhandler->device,1);
 
   int ncontrol = ygets_i(argc - 2);
 
@@ -2996,7 +2994,7 @@ void Y_rtc_applycontrol(int argc) {
   sutra_dms *dms_handler = (sutra_dms *) (handlera->sutra_dms);
 
   carma_context *context_handle = _getCurrentContext();
-  context_handle->set_activeDevice(rhandler->device);
+  context_handle->set_activeDevice(rhandler->device,1);
 
   rtc_handler->apply_control(ncontrol, dms_handler);
 
@@ -3009,7 +3007,7 @@ void Y_rtc_docontrol(int argc) {
   long ncontrol = ygets_l(argc - 2);
 
   carma_context *context_handle = _getCurrentContext();
-  context_handle->set_activeDevice(rhandler->device);
+  context_handle->set_activeDevice(rhandler->device,1);
 
   rtc_handler->do_control(ncontrol);
 
@@ -3028,7 +3026,7 @@ void Y_rtc_docontrol_geo(int argc) {
   long ntarget = ygets_l(argc - 5);
 
   carma_context *context_handle = _getCurrentContext();
-  context_handle->set_activeDevice(rhandler->device);
+  context_handle->set_activeDevice(rhandler->device,1);
 
   SCAST(sutra_controller_geo *, control, rtc_handler->d_control.at(ncontrol));
   control->comp_dphi(target_handler->d_targets.at(ntarget));
@@ -3040,7 +3038,7 @@ void Y_controller_setdata(int argc) {
   sutra_rtc *rtc_handler = (sutra_rtc *) (rhandler->sutra_rtc);
 
   carma_context *context_handle = _getCurrentContext();
-  context_handle->set_activeDeviceForCpy(rhandler->device);
+  context_handle->set_activeDeviceForCpy(rhandler->device,1);
 
   int ncontrol = ygets_i(argc - 2);
 
@@ -3071,7 +3069,7 @@ void Y_controller_getdata(int argc) {
   sutra_rtc *rtc_handler = (sutra_rtc *) (rhandler->sutra_rtc);
 
   carma_context *context_handle = _getCurrentContext();
-  context_handle->set_activeDeviceForCpy(rhandler->device);
+  context_handle->set_activeDeviceForCpy(rhandler->device,1);
 
   int ncontrol = ygets_i(argc - 2);
 
@@ -3128,7 +3126,7 @@ void Y_controller_initcured(int argc) {
   //rtc_struct *handle    =(rtc_struct *)ypush_obj(&yRTC, sizeof(rtc_struct));
 
   carma_context *context_handle = _getCurrentContext();
-  context_handle->set_activeDeviceForCpy(rhandler->device);
+  context_handle->set_activeDeviceForCpy(rhandler->device,1);
 
   if (rtc_handler->d_control.at(ncontrol)->get_type().compare("cured") == 0) {
     SCAST(sutra_controller_cured *, control,
@@ -3156,7 +3154,7 @@ void Y_slopes_geom(int argc) {
   int type = ygets_i(argc - 3);
 
   carma_context *context_handle = _getCurrentContext();
-  context_handle->set_activeDevice(handler->device);
+  context_handle->set_activeDevice(handler->device,1);
 
   sensors_handler->d_wfs.at(nsensor)->slopes_geom(type);
 }
@@ -3166,7 +3164,7 @@ void Y_sensors_getslopes(int argc) {
   sutra_sensors *sensors_handler = (sutra_sensors *) (handler->sutra_sensors);
 
   carma_context *context_handle = _getCurrentContext();
-  context_handle->set_activeDeviceForCpy(handler->device);
+  context_handle->set_activeDeviceForCpy(handler->device,1);
 
   int nsensor = ygets_i(argc - 2);
 
@@ -3181,7 +3179,7 @@ void Y_sensors_initnmax(int argc) {
    sutra_sensors *sensors_handler = (sutra_sensors *)(handler->sutra_sensors);
 
    carma_context *context_handle = _getCurrentContext();
-   int activeDevice = context_handle->set_activeDevice(handler->device);
+   int activeDevice = context_handle->set_activeDevice(handler->device,1);
 
    int nsensor = ygets_i(argc-2);
 
@@ -3202,7 +3200,7 @@ void Y_sensors_initweights(int argc) {
   float *weights = ygeta_f(argc - 3, &ntot, dims);
 
   carma_context *context_handle = _getCurrentContext();
-  context_handle->set_activeDevice(rhandler->device);
+  context_handle->set_activeDevice(rhandler->device,1);
 
   SCAST(sutra_centroider_wcog *, centroider_wcog,
       rtc_handler->d_centro.at(ncentro));
@@ -3215,7 +3213,7 @@ void Y_sensors_initbcube(int argc) {
   rtc_struct *rhandler = (rtc_struct *) yget_obj(argc - 1, &yRTC);
   sutra_rtc *rtc_handler = (sutra_rtc *) (rhandler->sutra_rtc);
   carma_context *context_handle = _getCurrentContext();
-  context_handle->set_activeDevice(rhandler->device);
+  context_handle->set_activeDevice(rhandler->device,1);
 
   int ncentro = ygets_i(argc - 2);
 
@@ -3242,7 +3240,7 @@ void Y_sensors_initcorr(int argc) {
   float *interpmat = ygeta_f(argc - 7, &ntot, dims);
 
   carma_context *context_handle = _getCurrentContext();
-  context_handle->set_activeDevice(rhandler->device);
+  context_handle->set_activeDevice(rhandler->device,1);
 
   SCAST(sutra_centroider_corr *, centroider_corr,
       rtc_handler->d_centro.at(ncentro));
@@ -3264,7 +3262,7 @@ void Y_sensors_loadcorrfnct(int argc) {
   float *corr_norm = ygeta_f(argc - 4, &ntot, dims);
 
   carma_context *context_handle = _getCurrentContext();
-  context_handle->set_activeDevice(rhandler->device);
+  context_handle->set_activeDevice(rhandler->device,1);
 
   SCAST(sutra_centroider_corr *, centroider_corr,
       rtc_handler->d_centro.at(ncentro));
@@ -3278,7 +3276,7 @@ void Y_sensors_loadweights(int argc) {
   sensors_struct *handler = (sensors_struct *) yget_obj(argc - 1, &ySensors);
 
   carma_context *context_handle = _getCurrentContext();
-  context_handle->set_activeDevice(handler->device);
+  context_handle->set_activeDevice(handler->device,1);
 
   rtc_struct *rhandler = (rtc_struct *) yget_obj(argc - 2, &yRTC);
   sutra_rtc *rtc_handler = (sutra_rtc *) (rhandler->sutra_rtc);
@@ -3297,7 +3295,7 @@ void Y_sensors_compslopes(int argc) {
   int ncentro = ygets_i(argc - 2);
 
   carma_context *context_handle = _getCurrentContext();
-  context_handle->set_activeDevice(rhandler->device);
+  context_handle->set_activeDevice(rhandler->device,1);
 
   //cout << ncentro << " " << (rtc_handler->d_centro.at(ncentro)->typec) << endl;
   if (argc > 4) {
@@ -3323,7 +3321,7 @@ void Y_sensors_getnmax(int argc) {
    sutra_sensors *sensors_handler = (sutra_sensors *)(handler->sutra_sensors);
 
    carma_context *context_handle = _getCurrentContext();
-   int activeDevice = context_handle->set_activeDeviceForCpy(handler->device);
+   int activeDevice = context_handle->set_activeDeviceForCpy(handler->device,1);
 
    int nsensor = ygets_i(argc-2);
 
@@ -3336,7 +3334,7 @@ void Y_centroider_getdata(int argc) {
   sutra_rtc *rtc_handler = (sutra_rtc *) (rhandler->sutra_rtc);
 
   carma_context *context_handle = _getCurrentContext();
-  context_handle->set_activeDeviceForCpy(rhandler->device);
+  context_handle->set_activeDeviceForCpy(rhandler->device,1);
 
   int ncentro = ygets_i(argc - 2);
 
@@ -3417,7 +3415,7 @@ void Y_move_atmos(int argc) {
   sutra_atmos *atmos_handler = (sutra_atmos *) (handler_a->sutra_atmos);
 
   carma_context *context_handle = _getCurrentContext();
-  context_handle->set_activeDeviceForCpy(handler_a->device);
+  context_handle->set_activeDeviceForCpy(handler_a->device,1);
 
   atmos_handler->move_atmos();
 }
@@ -3426,7 +3424,7 @@ void Y_sensors_trace(int argc) {
   sensors_struct *handler = (sensors_struct *) yget_obj(argc - 1, &ySensors);
   sutra_sensors *sensors_handler = (sutra_sensors *) (handler->sutra_sensors);
   carma_context *context_handle = _getCurrentContext();
-  context_handle->set_activeDeviceForce(handler->device);
+  context_handle->set_activeDeviceForce(handler->device,1);
 
   int nsensor = ygets_i(argc - 2);
 
@@ -3506,7 +3504,7 @@ yoga_ao_getyAotemplate(int argc, int pos) {
 void aotemplate_free(void *obj) {
   aotemplate_struct *handler = (aotemplate_struct *) obj;
   carma_context *context_handle = _getCurrentContext();
-  context_handle->set_activeDevice(handler->device);
+  context_handle->set_activeDevice(handler->device,1);
   try {
     sutra_aotemplate *aotemplate_obj_handler =
         (sutra_aotemplate *) (handler->sutra_aotemplate);
@@ -3538,7 +3536,7 @@ void Y_yoga_aotemplate(int argc) {
     if (argc > 1)
       odevice = ygets_i(argc - 2);
 
-    activeDevice = context_handle->set_activeDevice(odevice);
+    activeDevice = context_handle->set_activeDevice(odevice,1);
 
     aotemplate_struct *handle = (aotemplate_struct *) ypush_obj(&yAotemplate,
         sizeof(aotemplate_struct));
@@ -3612,7 +3610,7 @@ void Y_rtc_buildcmatmv(int argc) {
   long ncontrol = ygets_l(argc - 2);
   float cond = ygets_f(argc - 3);
   carma_context *context_handle = _getCurrentContext();
-  context_handle->set_activeDeviceForCpy(rhandler->device);
+  context_handle->set_activeDeviceForCpy(rhandler->device,1);
 
   SCAST(sutra_controller_mv *, controller, rtc_handler->d_control[ncontrol]);
   controller->build_cmat(cond);
@@ -3625,7 +3623,7 @@ void Y_rtc_doimatkl(int argc) {
   sutra_dms *dms_handler = (sutra_dms *) (handlera->sutra_dms);
 
   carma_context *context_handle = _getCurrentContext();
-  context_handle->set_activeDeviceForCpy(rhandler->device);
+  context_handle->set_activeDeviceForCpy(rhandler->device,1);
 
   rtc_handler->do_imatkl(ncontrol, dms_handler);
 }
@@ -3637,7 +3635,7 @@ void Y_rtc_doimatkl4pzt(int argc) {
   sutra_dms *dms_handler = (sutra_dms *) (handlera->sutra_dms);
 
   carma_context *context_handle = _getCurrentContext();
-  context_handle->set_activeDeviceForCpy(rhandler->device);
+  context_handle->set_activeDeviceForCpy(rhandler->device,1);
 
   rtc_handler->do_imatkl4pzt(ncontrol, dms_handler);
 }
@@ -3661,7 +3659,7 @@ void Y_rtc_doCmm(int argc){
     float *alphaY = ygeta_f(argc - 10, &ntot, dims);
 
     carma_context *context_handle = _getCurrentContext();
-    context_handle->set_activeDeviceForCpy(rhandler->device);
+    context_handle->set_activeDeviceForCpy(rhandler->device,1);
     SCAST(sutra_controller_mv *, controller, rtc_handler->d_control[ncontrol]);
     controller->compute_Cmm(atmos_handler,sensors_handler,L0,cn2,alphaX,alphaY,diamTel,cobs);
 
@@ -3692,7 +3690,7 @@ void Y_rtc_doCphim(int argc){
     float *Nact = ygeta_f(argc - 16, &ntot, dims);
 
     carma_context *context_handle = _getCurrentContext();
-    context_handle->set_activeDeviceForCpy(rhandler->device);
+    context_handle->set_activeDeviceForCpy(rhandler->device,1);
     SCAST(sutra_controller_mv *, controller, rtc_handler->d_control[ncontrol]);
     controller->compute_Cphim(atmos_handler,sensors_handler,dms_handler,L0,cn2,alphaX,alphaY,X,Y,xactu,yactu,diamTel,k2,Nact);
 
@@ -3718,7 +3716,7 @@ void Y_rtc_doCphim(int argc){
     char *method = ygets_q(argc - 13);
 
     carma_context *context_handle = _getCurrentContext();
-    context_handle->set_activeDeviceForCpy(rhandler->device);
+    context_handle->set_activeDeviceForCpy(rhandler->device,1);
     SCAST(sutra_controller_mv *, controller, rtc_handler->d_control[ncontrol]);
 
     controller->do_covmat(dms_handler->d_dms.at(make_pair(type, alt)),method,indx_pup,dim,xpos,ypos,Nkl,norm,ampli);
@@ -3734,7 +3732,7 @@ void Y_rtc_doCphim(int argc){
   float *covmat = ygeta_f(argc - 3, &ntot, dims);
 
   carma_context *context_handle = _getCurrentContext();
-  context_handle->set_activeDeviceForCpy(rhandler->device);
+  context_handle->set_activeDeviceForCpy(rhandler->device,1);
 
   SCAST(sutra_controller_mv *, controller, rtc_handler->d_control[ncontrol]);
   controller->load_covmat(covmat);
@@ -3750,7 +3748,7 @@ void Y_rtc_loadklbasis(int argc) {
   float *klbasis = ygeta_f(argc - 3, &ntot, dims);
 
   carma_context *context_handle = _getCurrentContext();
-  context_handle->set_activeDeviceForCpy(rhandler->device);
+  context_handle->set_activeDeviceForCpy(rhandler->device,1);
 
   SCAST(sutra_controller_mv *, controller, rtc_handler->d_control[ncontrol]);
   controller->load_klbasis(klbasis);
@@ -3762,7 +3760,7 @@ void Y_rtc_getproj(int argc) {
   long ncontrol = ygets_l(argc - 2);
 
   carma_context *context_handle = _getCurrentContext();
-  context_handle->set_activeDeviceForCpy(rhandler->device);
+  context_handle->set_activeDeviceForCpy(rhandler->device,1);
 
   SCAST(sutra_controller_geo *, controller, rtc_handler->d_control[ncontrol]);
   float *data = ypush_f((long*) controller->d_proj->getDims());
@@ -3774,7 +3772,7 @@ void Y_rtc_getphi(int argc) {
   long ncontrol = ygets_l(argc - 2);
 
   carma_context *context_handle = _getCurrentContext();
-  context_handle->set_activeDeviceForCpy(rhandler->device);
+  context_handle->set_activeDeviceForCpy(rhandler->device,1);
 
   SCAST(sutra_controller_geo *, controller, rtc_handler->d_control[ncontrol]);
   double *data = (double*)ypush_f((long*) controller->d_phi->getDims());
@@ -3787,7 +3785,7 @@ void Y_rtc_getCmm(int argc) {
   long ncontrol = ygets_l(argc - 2);
 
   carma_context *context_handle = _getCurrentContext();
-  context_handle->set_activeDeviceForCpy(rhandler->device);
+  context_handle->set_activeDeviceForCpy(rhandler->device,1);
 
   SCAST(sutra_controller_mv *, controller, rtc_handler->d_control[ncontrol]);
   float *data = ypush_f((long*) controller->d_Cmm->getDims());
@@ -3799,7 +3797,7 @@ void Y_rtc_getCphim(int argc) {
   long ncontrol = ygets_l(argc - 2);
 
   carma_context *context_handle = _getCurrentContext();
-  context_handle->set_activeDeviceForCpy(rhandler->device);
+  context_handle->set_activeDeviceForCpy(rhandler->device,1);
 
   SCAST(sutra_controller_mv *, controller, rtc_handler->d_control[ncontrol]);
   float *data = ypush_f((long*) controller->d_Cphim->getDims());
@@ -3811,7 +3809,7 @@ void Y_rtc_getcovmat(int argc) {
   long ncontrol = ygets_l(argc - 2);
 
   carma_context *context_handle = _getCurrentContext();
-  context_handle->set_activeDeviceForCpy(rhandler->device);
+  context_handle->set_activeDeviceForCpy(rhandler->device,1);
 
   SCAST(sutra_controller_mv *, controller, rtc_handler->d_control[ncontrol]);
   float *data = ypush_f((long*) controller->d_covmat->getDims());
@@ -3823,7 +3821,7 @@ void Y_rtc_getklbasis(int argc) {
   long ncontrol = ygets_l(argc - 2);
 
   carma_context *context_handle = _getCurrentContext();
-  context_handle->set_activeDeviceForCpy(rhandler->device);
+  context_handle->set_activeDeviceForCpy(rhandler->device,1);
 
   SCAST(sutra_controller_mv *, controller, rtc_handler->d_control[ncontrol]);
   float *data = ypush_f((long*) controller->d_KLbasis->getDims());
@@ -3835,7 +3833,7 @@ void Y_sensors_rmlayer(int argc) {
   sutra_sensors *sensors_handler = (sutra_sensors *) (handler->sutra_sensors);
 
   carma_context *context_handle = _getCurrentContext();
-  context_handle->set_activeDevice(handler->device);
+  context_handle->set_activeDevice(handler->device,1);
 
   int nsensor = ygets_i(argc-2);
   char *type = ygets_q(argc - 3);

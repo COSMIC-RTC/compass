@@ -37,7 +37,7 @@ sutra_controller_geo::sutra_controller_geo(carma_context *context, long nactu, l
 }
 
 sutra_controller_geo::~sutra_controller_geo() {
-  current_context->set_activeDevice(device);
+  current_context->set_activeDevice(device,1);
   delete this->d_proj;
   delete this->d_gain;
   delete this->d_indx_pup;
@@ -68,6 +68,7 @@ int sutra_controller_geo::load_mgain(float *mgain) {
 
 int
 sutra_controller_geo::init_proj(sutra_dms *dms, int *indx_dm, float *unitpervolt, int *indx_pup){
+  current_context->set_activeDevice(device,1);
 	long dims_data[3] = {2,this->Nphi,nactu()};
 	carma_obj<float> d_IF(current_context,dims_data);
 	dims_data[1] = nactu();
@@ -107,7 +108,8 @@ sutra_controller_geo::init_proj(sutra_dms *dms, int *indx_dm, float *unitpervolt
 int
 sutra_controller_geo::init_proj_sparse(sutra_dms *dms, int *indx_dm, float *unitpervolt, int *indx_pup){
 
-	carma_sparse_obj<double> *d_IFi[dms->ndm];
+  current_context->set_activeDevice(device,1);
+  carma_sparse_obj<double> *d_IFi[dms->ndm];
 	long dims_data1[2] = {1,this->Nphi * dms->ndm};
 	carma_obj<int> d_indx(current_context,dims_data1, indx_dm);
 
@@ -197,6 +199,7 @@ sutra_controller_geo::init_proj_sparse(sutra_dms *dms, int *indx_dm, float *unit
 int
 sutra_controller_geo::comp_dphi(sutra_source *target){
 
+  current_context->set_activeDevice(device,1);
 	// Get the target phase in the pupil
 	get_pupphase(this->d_phi->getData(),target->d_phase->d_screen->getData(), this->d_indx_pup->getData(), this->Nphi, this->current_context->get_device(device));
 	remove_avg(this->d_phi->getData(), this->d_phi->getNbElem(), current_context->get_device(device));
@@ -212,6 +215,7 @@ sutra_controller_geo::comp_com(){
 	carma_gemv(cublas_handle(),'n', nactu(), this->Nphi, -1.0f, this->d_proj->getData(),this->d_proj->getDims()[1],
 			this->d_phi->getData(),1, 0.0f, this->d_com->getData(),1);
 */
+  current_context->set_activeDevice(device,1);
 	// Sparse version
 	carma_gemv(cusparse_handle(),'n',1.0,this->d_IFsparse,this->d_phi,0.0,this->d_compdouble);
 	doubletofloat(this->d_compdouble->getData(),this->d_compfloat->getData(),this->nactu(),current_context->get_device(device));

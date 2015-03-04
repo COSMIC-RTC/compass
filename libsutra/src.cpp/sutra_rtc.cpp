@@ -7,6 +7,7 @@ sutra_rtc::sutra_rtc(carma_context *context) {
 }
 
 sutra_rtc::~sutra_rtc() {
+  current_context->set_activeDevice(device,1);
 
   //  for (size_t idx = 0; idx < (this->d_centro).size(); idx++) {
   while ((this->d_centro).size() > 0) {
@@ -25,6 +26,7 @@ sutra_rtc::~sutra_rtc() {
 
 int sutra_rtc::add_centroider(sutra_sensors *sensors, int nwfs, long nvalid, float offset, float scale,
     long device, char *typec) {
+  current_context->set_activeDevice(device,1);
   if (strcmp(typec, "bpcog") == 0)
     d_centro.push_back(
         new sutra_centroider_bpcog(current_context, sensors, nwfs, nvalid, offset, scale,
@@ -62,7 +64,7 @@ int sutra_rtc::add_centroider(sutra_sensors *sensors, int nwfs, long nvalid, flo
 
 int sutra_rtc::add_controller_geo(int nactu, int Nphi, long delay,
     long device) {
-  current_context->set_activeDevice(device);
+  current_context->set_activeDevice(device,1);
   this->d_control.push_back(
       new sutra_controller_geo(current_context, nactu, Nphi, delay));
   return EXIT_SUCCESS;
@@ -70,11 +72,12 @@ int sutra_rtc::add_controller_geo(int nactu, int Nphi, long delay,
 
 int sutra_rtc::add_controller(int nactu, long delay, long device,
     const char *typec) {
+  current_context->set_activeDevice(device,1);
   int ncentroids = 0;
   for (size_t idx = 0; idx < (this->d_centro).size(); idx++)
     ncentroids += this->d_centro[idx]->nvalid;
 
-  current_context->set_activeDevice(device);
+  current_context->set_activeDevice(device,1);
   string type_ctr(typec);
   if (type_ctr.compare("ls") == 0) {
     d_control.push_back(
@@ -98,6 +101,7 @@ int sutra_rtc::add_controller(int nactu, long delay, long device,
 
 int sutra_rtc::rm_controller() {
 
+  current_context->set_activeDevice(device,1);
   //for (size_t idx = 0; idx < (this->d_control).size(); idx++) {
   while ((this->d_control).size() > 0) {
     delete this->d_control.back();
@@ -108,6 +112,7 @@ int sutra_rtc::rm_controller() {
 }
 
 int sutra_rtc::do_imat(int ncntrl, sutra_dms *ydm) {
+  current_context->set_activeDevice(device,1);
   carma_obj<float> *d_imat;
   if (this->d_control[ncntrl]->get_type().compare("ls") == 0) {
     SCAST(sutra_controller_ls *, control, this->d_control[ncntrl]);
@@ -187,6 +192,7 @@ int sutra_rtc::do_imat(int ncntrl, sutra_dms *ydm) {
 
 int sutra_rtc::do_imat_geom(int ncntrl, sutra_dms *ydm,
     int type) {
+  current_context->set_activeDevice(device,1);
   if (this->d_control[ncntrl]->get_type().compare("ls") == 0) {
     SCAST(sutra_controller_ls *, control, this->d_control[ncntrl]);
     map<type_screen, sutra_dm *>::iterator p;
@@ -218,6 +224,7 @@ int sutra_rtc::do_imat_geom(int ncntrl, sutra_dms *ydm,
 }
 
 int sutra_rtc::do_centroids() {
+  current_context->set_activeDevice(device,1);
   for (size_t idx_cntr = 0; idx_cntr < (this->d_centro).size(); idx_cntr++) {
     this->d_centro[idx_cntr]->get_cog();
   }
@@ -230,6 +237,7 @@ int sutra_rtc::do_centroids(int ncntrl) {
 }
 
 int sutra_rtc::do_centroids(int ncntrl, bool imat) {
+  current_context->set_activeDevice(device,1);
   int inds2 = 0;
 
   for (size_t idx_cntr = 0; idx_cntr < (this->d_centro).size(); idx_cntr++) {
@@ -243,6 +251,7 @@ int sutra_rtc::do_centroids(int ncntrl, bool imat) {
 }
 
 int sutra_rtc::do_centroids_geom(int ncntrl) {
+  current_context->set_activeDevice(device,1);
   int inds2 = 0;
 
   for (size_t idx_cntr = 0; idx_cntr < (this->d_centro).size(); idx_cntr++) {
@@ -260,6 +269,7 @@ int sutra_rtc::do_centroids_geom(int ncntrl) {
 }
 
 int sutra_rtc::do_control(int ncntrl) {
+  current_context->set_activeDevice(device,1);
 
   this->d_control[ncntrl]->comp_com();
 
@@ -267,6 +277,7 @@ int sutra_rtc::do_control(int ncntrl) {
 }
 
 int sutra_rtc::apply_control(int ncntrl, sutra_dms *ydm) {
+  current_context->set_activeDevice(device,1);
 
   map<type_screen, sutra_dm *>::iterator p;
   p = ydm->d_dms.begin();

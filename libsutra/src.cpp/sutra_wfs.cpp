@@ -77,7 +77,7 @@ sutra_wfs::sutra_wfs(carma_context *context, sutra_sensors *sensors, const char*
   this->nphot = nphotons;
   this->lgs = (lgs == 1 ? true : false);
   this->device = device;
-  context->set_activeDevice(device);
+  context->set_activeDevice(device,1);
   this->nmaxhr = nvalid;
   this->nffthr = 1;
 
@@ -361,7 +361,7 @@ sutra_wfs::sutra_wfs(carma_context *context, long nxsub, long nvalid,
   this->npup = npup;
   this->subapd = pdiam;
   this->device = device;
-  context->set_activeDevice(device);
+  context->set_activeDevice(device,1);
 
   this->npix = 0;
   this->nrebin = 0;
@@ -414,7 +414,7 @@ sutra_wfs::sutra_wfs(carma_context *context, long nxsub, long nvalid,
 }
 
 sutra_wfs::~sutra_wfs() {
-  current_context->set_activeDevice(device);
+  current_context->set_activeDevice(device,1);
   if (this->type != "sh" && this->d_camplipup != 0L)
     delete this->d_camplipup;
   if (this->type != "sh" && this->d_camplifoc != 0L)
@@ -491,6 +491,7 @@ sutra_wfs::~sutra_wfs() {
 
 int sutra_wfs::wfs_initgs(sutra_sensors *sensors,float xpos, float ypos, float lambda, float mag,
     long size, float noise, long seed) {
+  current_context->set_activeDevice(device,1);
   this->d_gs = new sutra_source(current_context, xpos, ypos, lambda, mag, size,
       "wfs", this->device);
   this->noise = noise;
@@ -516,6 +517,7 @@ int sutra_wfs::wfs_initarrays(int *phasemap, int *hrmap, int *binmap,
     float *offsets, float *pupil, float *fluxPerSub, int *isvalid,
     int *validsubsx, int *validsubsy, int *istart, int *jstart,
     cuFloatComplex *kernel) {
+  current_context->set_activeDevice(device,1);
   this->d_phasemap->host2device(phasemap);
   this->d_offsets->host2device(offsets);
   this->d_pupil->host2device(pupil);
@@ -536,6 +538,7 @@ int sutra_wfs::wfs_initarrays(int *phasemap, int *hrmap, int *binmap,
 int sutra_wfs::wfs_initarrays(int *phasemap, float *offsets, float *pupil,
     float *fluxPerSub, int *isvalid, int *validsubsx, int *validsubsy,
     int *istart, int *jstart) {
+  current_context->set_activeDevice(device,1);
   this->d_phasemap->host2device(phasemap);
   this->d_offsets->host2device(offsets);
   this->d_pupil->host2device(pupil);
@@ -552,6 +555,7 @@ int sutra_wfs::wfs_initarrays(int *phasemap, float *offsets, float *pupil,
 int sutra_wfs::wfs_initarrays(cuFloatComplex *halfxy, cuFloatComplex *offsets,
     float *focmask, float *pupil, int *isvalid, int *cx, int *cy, float *sincar,
     int *phasemap, int *validsubsx, int *validsubsy) {
+  current_context->set_activeDevice(device,1);
   this->d_phalfxy->host2device(halfxy);
   this->d_poffsets->host2device(offsets);
   if (this->type != "sh")
@@ -569,6 +573,7 @@ int sutra_wfs::wfs_initarrays(cuFloatComplex *halfxy, cuFloatComplex *offsets,
 }
 
 int sutra_wfs::load_kernels(float *lgskern) {
+  current_context->set_activeDevice(device,1);
   if (this->lgs)
     this->d_gs->d_lgs->load_kernels(lgskern,
         this->current_context->get_device(device));
@@ -577,6 +582,7 @@ int sutra_wfs::load_kernels(float *lgskern) {
 }
 
 int sutra_wfs::sensor_trace(sutra_atmos *yatmos) {
+  current_context->set_activeDevice(device,1);
   //do raytracing to get the phase
   this->d_gs->raytrace(yatmos);
 
@@ -588,6 +594,7 @@ int sutra_wfs::sensor_trace(sutra_atmos *yatmos) {
 }
 
 int sutra_wfs::sensor_trace(sutra_dms *ydm, int rst) {
+  current_context->set_activeDevice(device,1);
   //do raytracing to get the phase
   this->d_gs->raytrace(ydm, rst);
 
@@ -606,7 +613,7 @@ int sutra_wfs::sensor_trace(sutra_atmos *yatmos, sutra_dms *ydms) {
 /////////////////////////////////////////////////////////
 
 int sutra_wfs::comp_sh_generic() {
-  current_context->set_activeDevice(device);
+  current_context->set_activeDevice(device,1);
 
   // segment phase and fill cube of complex ampli with exp(i*phase_seg)
   fillcamplipup(this->d_camplipup->getData(),
@@ -817,6 +824,7 @@ int sutra_wfs::comp_pyr_generic() {
   //___________________________________________________________________
   //  PYRAMID SENSOR
 
+  current_context->set_activeDevice(device,1);
   pyr_getpup(this->d_camplipup->getData(),
       this->d_gs->d_phase->d_screen->getData(), this->d_phalfxy->getData(),
       this->d_pupil->getData(), this->ntot,
@@ -926,6 +934,7 @@ int sutra_wfs::comp_pyr_generic() {
 
 int sutra_wfs::comp_roof_generic() {
 
+  current_context->set_activeDevice(device,1);
   //___________________________________________________________________
   //  ROOF SENSOR
   //PYR_GETPUP: reads pupil & phase and computes rolled electric field
@@ -1006,6 +1015,7 @@ int sutra_wfs::comp_roof_generic() {
 }
 
 int sutra_wfs::fill_binimage() {
+  current_context->set_activeDevice(device,1);
   fillbinimg(this->d_binimg->getData(), this->d_bincube->getData(),
       this->npix, this->nvalid, this->npix * this->nxsub,
       this->d_validsubsx->getData(), this->d_validsubsy->getData(),
@@ -1015,6 +1025,7 @@ int sutra_wfs::fill_binimage() {
 
 int sutra_wfs::comp_image() {
 
+  current_context->set_activeDevice(device,1);
   int result;
   if (this->type == "sh") {
     result = comp_sh_generic();
@@ -1038,6 +1049,7 @@ int sutra_wfs::comp_image() {
 }
 
 int sutra_wfs::comp_image_tele() {
+  current_context->set_activeDevice(device,1);
   int result;
   if (this->type == "sh") {
     result = comp_sh_generic();
@@ -1060,6 +1072,7 @@ int sutra_wfs::comp_image_tele() {
 }
 
 int sutra_wfs::slopes_geom(int type, float *slopes) {
+  current_context->set_activeDevice(device,1);
   /*
    normalization notes :
    σ² = 0.17 (λ/D)^2 (D/r_0)^(5/3) , σ² en radians d'angle
@@ -1109,27 +1122,25 @@ sutra_sensors::sutra_sensors(carma_context *context, const char* type, int nwfs,
     long *nvalid, long *npix, long *nphase, long *nrebin, long *nfft,
     long *ntot, long npup, float *pdiam, float *nphot, int *lgs,
 		int device) {
+  this->current_context = context;
+  this->device = device;
+  current_context->set_activeDevice(device,1);
 	//DEBUG_TRACE("Before create sensors : ");printMemInfo();
-	int maxnfft;
-	int maxntot;
-	int maxnvalid = 0;
+	int maxnfft = nfft[0];
+	int maxntot = ntot[0];
+	int maxnvalid = nvalid[0];
 	int wfs4nfft = 0;
 	int wfs4ntot = 0;
-	int is_lgs = 0;
-	for (int i = 0; i < nwfs; i++) {
-		if (i == 0) {
-			maxntot = ntot[i];
-			maxnfft = nfft[i];
-		} else {
-			if (ntot[i] > maxntot) {
-				maxntot = ntot[i];
-				wfs4ntot = i;
-			}
-			if (nfft[i] > maxnfft) {
-				maxnfft = nfft[i];
-				wfs4nfft = i;
-			}
-		}
+	int is_lgs = (lgs[0]>0?1:0);
+	for (int i = 1; i < nwfs; i++) {
+    if (ntot[i] > maxntot) {
+      maxntot = ntot[i];
+      wfs4ntot = i;
+    }
+    if (nfft[i] > maxnfft) {
+      maxnfft = nfft[i];
+      wfs4nfft = i;
+    }
 		if (ntot[i] == nfft[i]) {
 			if (nvalid[i] > maxnvalid) {
 				maxnvalid = nvalid[i];
@@ -1156,19 +1167,23 @@ sutra_sensors::sutra_sensors(carma_context *context, const char* type, int nwfs,
 		this->d_ftlgskern = 0L;
 		this->d_lgskern = 0L;
 	}
-	//DEBUG_TRACE("After creating sensors arrays : ");printMemInfo();
+//	DEBUG_TRACE("After creating sensors arrays : ");printMemInfo();
 	for (int i = 0; i < nwfs; i++) {
 		d_wfs.push_back(
 				new sutra_wfs(context,this, type, nxsub[i], nvalid[i], npix[i],
 						nphase[i], nrebin[i], nfft[i], ntot[i], npup, pdiam[i],
 						nphot[i], lgs[i], device));
-		//DEBUG_TRACE("After creating wfs #%d : ",i);printMemInfo();
+//		DEBUG_TRACE("After creating wfs #%d : ",i);printMemInfo();
 	}
-	//DEBUG_TRACE("Final sensors : ");printMemInfo();
+//	DEBUG_TRACE("Final sensors : ");printMemInfo();
 }
 
 sutra_sensors::sutra_sensors(carma_context *context, int nwfs, long *nxsub,
     long *nvalid, long *nphase, long npup, float *pdiam, int device) {
+  this->current_context = context;
+  this->device = device;
+  current_context->set_activeDevice(device,1);
+  DEBUG_TRACE("device %d", device);
 
   for (int i = 0; i < nwfs; i++) {
     d_wfs.push_back(
@@ -1184,6 +1199,7 @@ sutra_sensors::sutra_sensors(carma_context *context, int nwfs, long *nxsub,
 }
 
 sutra_sensors::~sutra_sensors() {
+  current_context->set_activeDevice(device,1);
 //  for (size_t idx = 0; idx < (this->d_wfs).size(); idx++) {
   while ((this->d_wfs).size() > 0) {
     delete this->d_wfs.back();
@@ -1217,6 +1233,8 @@ sutra_sensors::~sutra_sensors() {
 
 int sutra_sensors::sensors_initgs(float *xpos, float *ypos, float *lambda,
     float *mag, long *size, float *noise, long *seed) {
+  DEBUG_TRACE("device %d", device);
+  current_context->set_activeDevice(device,1);
   for (size_t idx = 0; idx < (this->d_wfs).size(); idx++) {
     (this->d_wfs)[idx]->wfs_initgs(this,xpos[idx], ypos[idx], lambda[idx], mag[idx],
         size[idx], noise[idx], seed[idx]);
@@ -1225,6 +1243,8 @@ int sutra_sensors::sensors_initgs(float *xpos, float *ypos, float *lambda,
 }
 int sutra_sensors::sensors_initgs(float *xpos, float *ypos, float *lambda,
     float *mag, long *size, float *noise) {
+  DEBUG_TRACE("device %d", device);
+  current_context->set_activeDevice(device,1);
   for (size_t idx = 0; idx < (this->d_wfs).size(); idx++) {
     (this->d_wfs)[idx]->wfs_initgs(this,xpos[idx], ypos[idx], lambda[idx], mag[idx],
         size[idx], noise[idx], 1234 * idx);
@@ -1233,6 +1253,8 @@ int sutra_sensors::sensors_initgs(float *xpos, float *ypos, float *lambda,
 }
 int sutra_sensors::sensors_initgs(float *xpos, float *ypos, float *lambda,
     float *mag, long *size) {
+  DEBUG_TRACE("device %d", device);
+  current_context->set_activeDevice(device,1);
   for (size_t idx = 0; idx < (this->d_wfs).size(); idx++) {
     (this->d_wfs)[idx]->wfs_initgs(this,xpos[idx], ypos[idx], lambda[idx], mag[idx],
         size[idx], -1, 1234);

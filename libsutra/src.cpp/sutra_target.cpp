@@ -33,6 +33,9 @@ int fft_goodsize(long size) {
 
 sutra_source::sutra_source(carma_context *context, float xpos, float ypos,
     float lambda, float mag, long size, string type, float *pupil, int device) {
+  this->current_context=context;
+  this->device=device;
+  current_context->set_activeDevice(device,1);
 
   this->init_source(context, xpos, ypos, lambda, mag, size, type, device);
   this->d_pupil = new carma_obj<float>(this->current_context,
@@ -61,11 +64,15 @@ sutra_source::sutra_source(carma_context *context, float xpos, float ypos,
 
 sutra_source::sutra_source(carma_context *context, float xpos, float ypos,
     float lambda, float mag, long size, string type, int device) {
+  this->device = device;
+  current_context=context;
+  current_context->set_activeDevice(device,1);
   this->init_source(context, xpos, ypos, lambda, mag, size, type, device);
 }
 
 inline int sutra_source::init_source(carma_context *context, float xpos,
     float ypos, float lambda, float mag, long size, string type, int device) {
+  current_context->set_activeDevice(device,1);
   this->current_context = context;
   this->strehl_counter = 0;
 
@@ -134,6 +141,7 @@ inline int sutra_source::init_source(carma_context *context, float xpos,
 
 sutra_source::~sutra_source() {
   //delete this->current_context;
+  current_context->set_activeDevice(device,1);
 
   delete this->d_phase;
     
@@ -171,6 +179,7 @@ sutra_source::~sutra_source() {
 }
 
 int sutra_source::init_strehlmeter() {
+  current_context->set_activeDevice(device,1);
   this->strehl_counter = 0;
   this->comp_image(1);
 
@@ -190,6 +199,7 @@ int sutra_source::init_strehlmeter() {
 }
 
 int sutra_source::add_layer(string type, float alt, float mxoff, float myoff) {
+  current_context->set_activeDevice(device,1);
   xoff[make_pair(type, alt)] = mxoff;
   yoff[make_pair(type, alt)] = myoff;
 
@@ -197,6 +207,7 @@ int sutra_source::add_layer(string type, float alt, float mxoff, float myoff) {
 }
 
 int sutra_source::remove_layer(string type, float alt) {
+  current_context->set_activeDevice(device,1);
   xoff.erase(make_pair(type, alt));
   yoff.erase(make_pair(type, alt));
 
@@ -204,6 +215,7 @@ int sutra_source::remove_layer(string type, float alt) {
 }
 
 int sutra_source::raytrace_shm(sutra_atmos *yatmos) {
+  current_context->set_activeDevice(device,1);
   cutilSafeCall(
       cudaMemset(this->d_phase->d_screen->getData(), 0,
           sizeof(float) * this->d_phase->d_screen->getNbElem()));
@@ -236,6 +248,7 @@ int sutra_source::raytrace_shm(sutra_atmos *yatmos) {
 
 int sutra_source::raytrace(sutra_atmos *yatmos, bool async) {
 //  cutilSafeCall(cudaDeviceSynchronize());
+  current_context->set_activeDevice(device,1);
   cutilSafeCall(
       cudaMemset(this->d_phase->d_screen->getData(), 0,
           sizeof(float) * this->d_phase->d_screen->getNbElem()));
@@ -297,6 +310,7 @@ int sutra_source::raytrace(sutra_atmos *yatmos) {
 }
 
 int sutra_source::raytrace(sutra_dms *ydms, int rst, bool async) {
+  current_context->set_activeDevice(device,1);
   if (rst == 1)
     cutilSafeCall(
         cudaMemset(this->d_phase->d_screen->getData(), 0,
@@ -367,6 +381,7 @@ int sutra_source::raytrace(sutra_dms *ydms, int rst) {
 }
 
 int sutra_source::comp_image(int puponly) {
+  current_context->set_activeDevice(device,1);
   if (this->d_amplipup == 0)
     return -1;
 
@@ -419,6 +434,7 @@ int sutra_source::comp_strehl() {
   //this->strehl_se = expf(-this->phase_var);
   //this->strehl_le = expf(-this->phase_var_avg/this->phase_var_count);
   
+  current_context->set_activeDevice(device,1);
   cudaMemcpy(&(this->strehl_se),
         &(this->d_image->getData()[this->d_image->imax(1) - 1]), sizeof(float),
         cudaMemcpyDeviceToHost);
@@ -445,6 +461,7 @@ int sutra_source::comp_strehl() {
 sutra_target::sutra_target(carma_context *context, int ntargets, float *xpos,
     float *ypos, float *lambda, float *mag, long *sizes, float *pupil,
     int device) {
+
   this->ntargets = ntargets;
 
   for (int i = 0; i < ntargets; i++) {
