@@ -359,7 +359,7 @@ void context_print(void *obj)
   for (size_t idx = 0; idx < nDevice; idx++) {
     string name=context->get_device(idx)->getName();
     char mem[9];
-    sprintf(mem, "%8zu", context->get_device(idx)->getMem()/1024/1024);
+    sprintf(mem, "%8zu", context->get_device(idx)->getTotalMem()/1024/1024);
 
     cout << ((idx == activeDevice) ? "<U>" : "   ") << setw(3) << idx
         << " | " << setw(4+len-name.length()) << name << " | " << mem << " | " << setw(5)
@@ -427,13 +427,13 @@ void Y_context_getactivedevice(int argc)
     ypush_int(activeDevice);
   } catch (...) {
     stringstream buf;
-    buf << "unknown error with carma_context in " << __FILE__ << "@" << __LINE__
+    buf << "unknown error with context_getactivedevice in " << __FILE__ << "@" << __LINE__
         << endl;
     y_error(buf.str().c_str());
   }
 }
 
-void Y_context_get_device_name(int argc)
+void Y_context_get_device_info(int argc)
 /** @brief simple routine to retrieve current active device
  *  @param[in] argc : command line argument (current context expected)
  *  the current active device id is pushed on the stack
@@ -442,10 +442,10 @@ void Y_context_get_device_name(int argc)
   try {
     carma_context *context_handle = _getCurrentContext();
     int device = context_handle->get_activeDevice();
-    if(argc>0)
+    if(argc>1)
       device = ygets_i(argc - 1);
 
-    string name = context_handle->get_activeDeviceName(device);
+    string name = context_handle->get_DeviceInfo(device);
     //long name_len = static_cast<long>(name.length());
     //long dims[Y_DIMSIZE]={1, 1};
     ystring_t *yname = ypush_q(0);
@@ -454,7 +454,34 @@ void Y_context_get_device_name(int argc)
 
   } catch (...) {
     stringstream buf;
-    buf << "unknown error with carma_context in " << __FILE__ << "@" << __LINE__
+    buf << "unknown error with context_get_device_info in " << __FILE__ << "@" << __LINE__
+        << endl;
+    y_error(buf.str().c_str());
+  }
+}
+
+void Y_context_get_device_meminfo(int argc)
+/** @brief simple routine to retrieve current active device
+ *  @param[in] argc : command line argument (current context expected)
+ *  the current active device id is pushed on the stack
+ */
+{
+  try {
+    carma_context *context_handle = _getCurrentContext();
+    int device = context_handle->get_activeDevice();
+    if(argc>1)
+      device = ygets_i(argc - 1);
+
+    string name = context_handle->get_DeviceMemInfo(device);
+    //long name_len = static_cast<long>(name.length());
+    //long dims[Y_DIMSIZE]={1, 1};
+    ystring_t *yname = ypush_q(0);
+    *yname=p_strcpy(name.c_str());
+    strcpy(*yname, name.c_str());
+
+  } catch (...) {
+    stringstream buf;
+    buf << "unknown error with context_get_device_meminfo in " << __FILE__ << "@" << __LINE__
         << endl;
     y_error(buf.str().c_str());
   }
@@ -541,9 +568,9 @@ void _yogaThreadExit()
 /*! \brief simple wrapper for general ThreadExist
  */
 {
-  //cerr << "Shutting down : " ;
+//  cerr << "Shutting down : " ;
   cutilSafeCall(cudaThreadExit());
-  //cerr << "OK " << __LINE__ << endl;
+//  cerr << "OK " << __LINE__ << endl;
 }
 
 void _yogaThreadSync()

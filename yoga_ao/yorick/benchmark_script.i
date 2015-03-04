@@ -257,7 +257,7 @@ atmos_init_time = yoga_timer_stop(g_timer)- synctime;
   if(!(fileExist(savefile))){
     f=open(savefile,"w");
     write,f,"--------------------------------------------------------------------------";
-    write,f,format="Date : %s\t Revision : %s \t  %s \n",date,svnversion,context_get_device_name(context_getactivedevice());
+    write,f,format="Date : %s\t Revision : %s \t  %s \n",date,svnversion,context_get_device_info();
     write,f,"--------------------------------------------------------------------------";
     write,f,"System type\tnxsub\twfs.npix\tNphotons\tController\tCentroider\tFinal SR LE\tAvg. SR SE\trms SR SE\twfs_init\tatmos_init\tdm_init\ttarget_init\trtc_init\tmove_atmos\tt_raytrace_atmos\tt_raytrace_dm\ts_raytrace_atmos\ts_raytrace_dm\tcomp_img\tdocentroids\tdocontrol\tapplycontrol\titer_time\tAvg.gain";
   }
@@ -277,7 +277,7 @@ atmos_init_time = yoga_timer_stop(g_timer)- synctime;
   if(!(fileExist(SRfile))){
     f2=open(SRfile,"w");
     write,f2,"--------------------------------------------------------------------------";
-    write,f2,format="Date : %s\t Revision : %s \t %s \n",date,svnversion,context_get_device_name(context_getactivedevice());
+    write,f2,format="Date : %s\t Revision : %s \t %s \n",date,svnversion,context_get_device_info();
     write,f2,"--------------------------------------------------------------------------";
     write,f2,"System type\tnxsub\twfs.npix\tNphotons\tController\tCentroider";
   }

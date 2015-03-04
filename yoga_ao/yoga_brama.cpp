@@ -1,4 +1,5 @@
 #include <sutra_rtc_brama.h>
+#include <yoga_api.h>
 #include <yoga_ao_api.h>
 
 extern "C" {
@@ -34,7 +35,7 @@ void Y_rtc_publish(int argc) {
   sutra_rtc_brama *rtc_handler = (sutra_rtc_brama *) (handle->sutra_rtc);
 
   carma_context *context_handle = _getCurrentContext();
-  context_handle->set_activeDevice(handle->device);
+  context_handle->set_activeDevice(handle->device,1);
 
   rtc_handler->publish();
 }

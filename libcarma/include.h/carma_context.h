@@ -36,7 +36,7 @@ protected:
   float compute_perf;
   float sm_per_multiproc;
   bool p2p_activate;
-  string  name;
+  size_t freeMem;
   size_t totalMem;
 
   cublasHandle_t cublasHandle;
@@ -67,9 +67,13 @@ public:
     return p2p_activate;
   }
 
-  string getName() {return name;}
+  string getName() {return properties.name;}
 
-  size_t getMem() {return totalMem;}
+  size_t getTotalMem() {return totalMem;}
+  size_t getFreeMem() {
+    cutilSafeCall(cudaMemGetInfo(&freeMem, &totalMem));
+    return freeMem;
+  }
 
   cublasHandle_t get_cublasHandle() {
     return cublasHandle;
@@ -79,8 +83,8 @@ public:
   }
 };
 
-#define set_activeDevice(newDevice, silent) _set_activeDevice(newDevice, silent, __FILE__, __LINE__)
-#define set_activeDeviceForce(newDevice, silent) _set_activeDeviceForce(newDevice, silent, __FILE__, __LINE__)
+#define set_activeDevice(newDevice, silent)       _set_activeDevice(newDevice, silent, __FILE__, __LINE__)
+#define set_activeDeviceForce(newDevice, silent)  _set_activeDeviceForce(newDevice, silent, __FILE__, __LINE__)
 #define set_activeDeviceForCpy(newDevice, silent) _set_activeDeviceForCpy(newDevice, silent, __FILE__, __LINE__)
 
 class carma_context {
@@ -104,10 +108,17 @@ public:
   int get_activeDevice() {
     return activeDevice;
   }
-  string get_activeDeviceName(int device);
-  int _set_activeDevice(int newDevice, int silent, string file, int line);
+  string get_DeviceName(int device);
+  string get_DeviceInfo(int device);
+  string get_DeviceMemInfo(int device);
+
+  inline int _set_activeDeviceForCpy(int newDevice, int silent, string file, int line) {
+    return (can_access_peer[activeDevice][newDevice] != 1)?_set_activeDevice(newDevice, silent, file, line):activeDevice;
+  }
+  inline int _set_activeDevice(int newDevice, int silent, string file, int line) {
+    return (this->activeDevice != newDevice)?_set_activeDeviceForce(newDevice, silent, file, line):activeDevice;
+  }
   int _set_activeDeviceForce(int newDevice, int silent, string file, int line);
-  int _set_activeDeviceForCpy(int newDevice, int silent, string file, int line);
   int get_maxGflopsDeviceId();
   cublasHandle_t get_cublasHandle() {
     return get_cublasHandle(activeDevice);

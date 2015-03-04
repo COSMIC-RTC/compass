@@ -206,7 +206,9 @@ Y_yoga_context(int argc);
 void
 Y_context_getactivedevice(int argc);
 void
-Y_context_get_device_name(int argc);
+Y_context_get_device_info(int argc);
+void
+Y_context_get_device_meminfo(int argc);
 void
 Y_context_get_maxGflopsDeviceId(int argc);
 void

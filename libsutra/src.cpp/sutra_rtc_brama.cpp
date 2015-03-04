@@ -14,7 +14,7 @@ sutra_rtc_brama::~sutra_rtc_brama() {
 
 void sutra_rtc_brama::initDDS() {
   string topics[] = BRAMA_TOPICS;
-  current_context->set_activeDevice(device);
+  current_context->set_activeDevice(device,1);
 
   try {
     // Create a publisher and subscriber for the two topics
@@ -58,7 +58,7 @@ void sutra_rtc_brama::initDDS() {
 
 void sutra_rtc_brama::publish() {
   ACE_Time_Value ace_wait(0, 25);
-  current_context->set_activeDevice(device);
+  current_context->set_activeDevice(device,1);
 
 
   int nvalid = 0;

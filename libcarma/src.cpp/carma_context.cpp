@@ -25,8 +25,6 @@ carma_device::carma_device(int devid) {
 
   this->p2p_activate = false;
 
-  name = string(this->properties.name);
-  size_t freeMem;
   cutilSafeCall(cudaMemGetInfo(&freeMem, &totalMem));
 
   carma_initCublas(&cublasHandle);
@@ -39,7 +37,6 @@ carma_device::carma_device(int devid) {
   //DEBUG_TRACE("done\n");
 }
 
-
 carma_device::~carma_device() {
   carma_shutdownCublas(cublasHandle);
   carma_shutdownCusparse(cusparseHandle);
@@ -49,7 +46,7 @@ carma_device::~carma_device() {
 
 carma_context::carma_context() {
   //TODO : why seed is initialized here ?
-	srandom(1234);
+  srandom(1234);
   cutilSafeCall(cudaGetDeviceCount(&(this->ndevice)));
   if (this->ndevice == 0) {
     fprintf(stderr,
@@ -109,7 +106,7 @@ carma_context::carma_context() {
     }
   }
 
-  this->activeDevice = set_activeDevice(0, 1);//get_maxGflopsDeviceId(), 1);
+  this->activeDevice = set_activeDeviceForce(0, 1); //get_maxGflopsDeviceId(), 1);
 
 #ifdef USE_CULA
   // CULA init 
@@ -143,7 +140,7 @@ carma_context::~carma_context() {
 #endif
 
   size_t idx = 0;
-  while(this->devices.size()>0){
+  while (this->devices.size() > 0) {
     delete this->devices.back();
     this->devices.pop_back();
     delete[] can_access_peer[idx++];
@@ -154,22 +151,8 @@ carma_context::~carma_context() {
 #endif
 }
 
-int carma_context::_set_activeDeviceForCpy(int newDevice, int silent, string file, int line) {
-  if (activeDevice == newDevice)
-    return activeDevice;
-  if (can_access_peer[activeDevice][newDevice] == 1)
-    return activeDevice;
-  return _set_activeDevice(newDevice, silent, file, line);
-}
-
-int carma_context::_set_activeDevice(int newDevice, int silent, string file, int line) {
-    if (this->activeDevice == newDevice)
-    return this->activeDevice;
-
-    return _set_activeDeviceForce(newDevice, silent, file, line);
-}
-
-int carma_context::_set_activeDeviceForce(int newDevice, int silent, string file, int line) {
+int carma_context::_set_activeDeviceForce(int newDevice, int silent,
+    string file, int line) {
   if (newDevice < ndevice) {
     cutilSafeCall(cudaSetDevice(newDevice));
 #ifdef USE_CULA
@@ -184,23 +167,43 @@ int carma_context::_set_activeDeviceForce(int newDevice, int silent, string file
     silent=0;
 #endif
     if (!silent) {
-      cout << "Using device " << newDevice << ": \"" << devices[newDevice]->get_properties().name
-          << "\" with Compute " << devices[newDevice]->get_properties().major << "." << devices[newDevice]->get_properties().minor
-          << " capability" << endl;
+      cout << "Using device " << newDevice << ": \""
+          << devices[newDevice]->get_properties().name << "\" with Compute "
+          << devices[newDevice]->get_properties().major << "."
+          << devices[newDevice]->get_properties().minor << " capability"
+          << endl;
     }
     activeDevice = newDevice;
   } else {
-    fprintf(stderr, "[%s:%d] Invalid Device Id : %d, Your system has only %d CUDA capable device(s) available ",file.c_str(), line, newDevice, ndevice);
-    cerr << "Leaving activeDevice to its current value : " << activeDevice << endl;
+    fprintf(stderr,
+        "[%s:%d] Invalid Device Id : %d, Your system has only %d CUDA capable device(s) available ",
+        file.c_str(), line, newDevice, ndevice);
+    cerr << "Leaving activeDevice to its current value : " << activeDevice
+        << endl;
   }
   return activeDevice;
 }
 
-string carma_context::get_activeDeviceName(int device) {
+string carma_context::get_DeviceName(int device) {
+  stringstream buf;
+  return devices[device]->get_properties().name;
+}
+
+string carma_context::get_DeviceInfo(int device) {
   stringstream buf;
   buf << "device " << device << ": \"" << devices[device]->get_properties().name
-      << "\" with Compute " << devices[device]->get_properties().major << "." << devices[device]->get_properties().minor
-      << " capability" << endl;
+      << "\" with Compute " << devices[device]->get_properties().major << "."
+      << devices[device]->get_properties().minor << " capability";
+  return buf.str();
+}
+
+string carma_context::get_DeviceMemInfo(int device) {
+  stringstream buf;
+  size_t totalMem = devices[device]->getTotalMem()/1024/1024;
+  size_t usedMem = totalMem - devices[device]->getFreeMem()/1024/1024;
+  buf << "device " << device << ": \"" << devices[device]->get_properties().name
+      << "\" memory used " << usedMem << "MB / "
+      << totalMem << "MB (" << usedMem*100./totalMem << "%)";
   return buf.str();
 }
 
@@ -227,7 +230,7 @@ int carma_context::get_maxGflopsDeviceId()
   // Find the best CUDA capable GPU device
   current_device = device_count - 1;
   while (current_device >= 0) {
-    deviceProp=devices[current_device]->get_properties();
+    deviceProp = devices[current_device]->get_properties();
     if (deviceProp.computeMode != cudaComputeModeProhibited) {
       if (deviceProp.major == 9999 && deviceProp.minor == 9999) {
         sm_per_multiproc = 1;

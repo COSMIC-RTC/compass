@@ -1085,9 +1085,18 @@ extern context_getactivedevice;
    SEE ALSO:
 */
 
-extern context_get_device_name;
-/* DOCUMENT context_get_device_name
-   device_name = context_get_device_name()
+extern context_get_device_info;
+/* DOCUMENT context_get_device_info
+   device_name = context_get_device_info()
+   device_name = context_get_device_info(device)
+   
+   SEE ALSO:
+*/
+
+extern context_get_device_meminfo;
+/* DOCUMENT context_get_device_meminfo
+   device_meminfo = context_get_device_meminfo()
+   device_meminfo = context_get_device_meminfo(device)
    
    SEE ALSO:
 */

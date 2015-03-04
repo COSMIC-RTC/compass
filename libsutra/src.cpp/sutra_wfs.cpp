@@ -1233,7 +1233,6 @@ sutra_sensors::~sutra_sensors() {
 
 int sutra_sensors::sensors_initgs(float *xpos, float *ypos, float *lambda,
     float *mag, long *size, float *noise, long *seed) {
-  DEBUG_TRACE("device %d", device);
   current_context->set_activeDevice(device,1);
   for (size_t idx = 0; idx < (this->d_wfs).size(); idx++) {
     (this->d_wfs)[idx]->wfs_initgs(this,xpos[idx], ypos[idx], lambda[idx], mag[idx],
@@ -1243,7 +1242,6 @@ int sutra_sensors::sensors_initgs(float *xpos, float *ypos, float *lambda,
 }
 int sutra_sensors::sensors_initgs(float *xpos, float *ypos, float *lambda,
     float *mag, long *size, float *noise) {
-  DEBUG_TRACE("device %d", device);
   current_context->set_activeDevice(device,1);
   for (size_t idx = 0; idx < (this->d_wfs).size(); idx++) {
     (this->d_wfs)[idx]->wfs_initgs(this,xpos[idx], ypos[idx], lambda[idx], mag[idx],
@@ -1253,7 +1251,6 @@ int sutra_sensors::sensors_initgs(float *xpos, float *ypos, float *lambda,
 }
 int sutra_sensors::sensors_initgs(float *xpos, float *ypos, float *lambda,
     float *mag, long *size) {
-  DEBUG_TRACE("device %d", device);
   current_context->set_activeDevice(device,1);
   for (size_t idx = 0; idx < (this->d_wfs).size(); idx++) {
     (this->d_wfs)[idx]->wfs_initgs(this,xpos[idx], ypos[idx], lambda[idx], mag[idx],
