@@ -14,9 +14,7 @@ c_types_info = {
                 }
 ?>
 
-#import numpy as np
-#cimport numpy as np
-
+"""
 cdef extern from "carma_obj.h":
     int carma_svd[T](carma_obj[T] *imat, carma_obj[T] *eigenvals,
         carma_obj[T] *mod2act, carma_obj[T] *mes2mod)
@@ -32,7 +30,7 @@ cdef extern from "carma_host_obj.h":
     int carma_getri_cpu[T](long N, T *h_A)
     int carma_potri_cpu[T](long N, T *h_A)
     int carma_syevd_cpu[T](char jobz, int N, T *h_A, T *eigenvals)
-
+"""
 <?py
 
 pxd_code_str='''

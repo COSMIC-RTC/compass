@@ -106,11 +106,9 @@ class clean(_clean):
     module_lib = pjoin('.',module_name+'.so')
     if (os.path.exists(module_lib)): os.remove(module_lib)
     if (os.path.exists('./wrapper_chakra.cpp')): os.remove('./wrapper_chakra.cpp')
-    if (os.path.exists('./wrapper_chakra_obj.cpp')): os.remove('./wrapper_chakra_obj.cpp')
     if (os.path.exists('./wrapper_chakra_obj.pyx')): os.remove('./wrapper_chakra_obj.pyx')
-    if (os.path.exists('./wrapper_chakra_host_obj.cpp')): os.remove('./wrapper_chakra_host_obj.cpp')
     if (os.path.exists('./wrapper_chakra_host_obj.pyx')): os.remove('./wrapper_chakra_host_obj.pyx')
-    if (os.path.exists('./wrapper.cpp')): os.remove('./wrapper.cpp')
+    if (os.path.exists('./wrapper_magma.pyx')): os.remove('./wrapper_magma.pyx')
     if (os.path.exists('./build')): remove_tree('./build')
     if (os.path.exists('./dist')):  remove_tree('./dist')
     self.walkAndClean()
@@ -133,11 +131,12 @@ ext = Extension('chakra',
                 # this syntax is specific to this build system
                 # we're only going to use certain compiler args with nvcc and not with gcc
                 # the implementation of this trick is in customize_compiler() below
-                extra_compile_args={'gcc': [],
-                                    'nvcc': ['-gencode '+os.environ['GENCODE'], 
-                                             '--ptxas-options=-v', 
-                                             '-c', '--compiler-options', 
-                                             "'-fPIC'"]},
+                extra_compile_args={'gcc': [],},
+                                    #nvcc not needed (cuda code alreay compiled)
+                                    #'nvcc': ['-gencode '+os.environ['GENCODE'], 
+                                    #         '--ptxas-options=-v', 
+                                    #         '-c', '--compiler-options', 
+                                    #         "'-fPIC'"]},
                 include_dirs = [numpy_include, 
                                 CUDA['include'], 
                                 COMPASS['inc']+'/libcarma/include.h'])
@@ -201,9 +200,6 @@ if 'build_ext' in sys.argv or 'develop' in sys.argv or 'install' in sys.argv:
 
 
 setup(name='chakra',
-      # random metadata. there's more you can supploy
-      author='Robert McGibbon',
-      version='0.1',
 
       ext_modules = [ext],
 

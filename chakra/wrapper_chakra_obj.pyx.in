@@ -40,7 +40,7 @@ assert sizeof(float) == sizeof(np.float32_t)
 assert sizeof(double) == sizeof(np.float64_t)
 
 
-
+"""
 #################################################
 # C-Class carma_obj
 #################################################
@@ -147,7 +147,7 @@ cdef extern from "carma_obj.h":
         carma_obj[float] *padded_data, carma_obj[cuFloatComplex] *padded_spectrum, int kernelY, int kernelX)
     cdef int carma_fftconv(carma_obj[float] *data_out, carma_obj[float] *padded_data,
         carma_obj[cuFloatComplex] *padded_spectrum, int kernelY, int kernelX)
-
+"""
 #Dictionary fft available:
 # Dictionary contain fft input type
 # key:   fft output type
@@ -207,8 +207,6 @@ pxd_code_str ='''
 
 
 cdef class chakra_obj_CLASSNAMEDIMD:
-    cdef carma_obj[C_TYPE] *c_o
-    cdef chakra_context context
 
     def __cinit__(self,chakra_context ctxt=None ,
                   chakra_obj_CLASSNAMEDIMD obj=None,
@@ -306,9 +304,8 @@ cdef class chakra_obj_CLASSNAMEDIMD:
 
     def activateDevice(self, int silent=1):
         """Activate the device used by the current chakra_obj."""
-        cdef carma_context *c=<carma_context*>self.c_o.getContext()
         cdef int dev = self.c_o.getDevice()
-        c[0].set_activeDevice(dev,silent)
+        self.context.set_activeDevice(dev,silent)
 
 
     def getContext(self):

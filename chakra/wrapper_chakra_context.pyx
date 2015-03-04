@@ -1,4 +1,5 @@
 
+"""
 #################################################
 # C-Class carma_context
 #################################################
@@ -10,12 +11,11 @@ cdef extern from "carma_context.h":
         int set_activeDeviceForce(int newDevice, int silent)
         int set_activeDeviceForCpy(int newDevice, int silent)
         int get_activeDevice()
-
+"""
 #################################################
 # P-Class chakra_context
 #################################################
 cdef class chakra_context:
-    cdef carma_context* c
 
 
     def __cinit__(self):

@@ -36,7 +36,7 @@ c_types_info = {
 
 
 
-    
+"""    
 cdef extern from "carma_host_obj.h":
     ctypedef enum MemAlloc:
         MA_MALLOC
@@ -46,6 +46,9 @@ cdef extern from "carma_host_obj.h":
         MA_WRICOMB
         MA_GENEPIN
 
+#################################################
+# C-Class carma_host_obj
+#################################################
     cdef cppclass carma_host_obj[T]:
 
         T *h_data #< Input data
@@ -113,7 +116,7 @@ cdef extern from "carma_host_obj.h":
     #int carma_syevd_cpu[T](char jobz, carma_host_obj[T] *h_A,
     #    carma_host_obj[T] *eigenvals)
 
-    
+"""    
 
 
 cdef dict_MemAlloc={"malloc":(MA_MALLOC),
@@ -128,8 +131,6 @@ cdef dict_MemAlloc={"malloc":(MA_MALLOC),
 <?py
 pxd_code_str='''
 cdef class chakra_host_obj_CLASSNAMEDIMD:
-    cdef carma_host_obj[C_TYPE] *c_h
-    cdef C_TYPE* data_h
 
     def __cinit__(self, 
             np.ndarray[ndim=1, dtype=np.int64_t] dims=None,
