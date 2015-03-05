@@ -27,6 +27,7 @@ fi
 
 DATE=`date +%F_%Hh%M`
 SVN=`svnversion`
+OUTPUT="../data/bench-results/outputfile_$DATE\_$HOSTNAME\_r$SVN"
 
 if [ -z "$YORICK_PATH" ]; then
     echo "yorick is not in the path, use $0 full_yorick_path"
@@ -39,8 +40,8 @@ else
 	        for COG in "cog" "tcog" "bpcog" "geom"
             do
 	            CMD=$YORICK_PATH" -batch benchmark_script.i "$f" "$COG" "$CTR
-	            echo "execute $CMD" >> $DATE\_$HOSTNAME\_r$SVN\_outputfile
-	            $CMD 2>> $DATE\_$HOSTNAME\_r$SVN\_outputfile >> $DATE\_$HOSTNAME\_r$SVN\_outputfile
+	            echo "execute $CMD" >> $OUTPUT
+	            $CMD 2>> $OUTPUT >> $OUTPUT
             done
         done
     done
@@ -66,8 +67,8 @@ else
 	        for COG in "wcog" "corr"
             do
 	            CMD=$YORICK_PATH" -batch benchmark_script.i "$f" "$COG" "$CTR
-	            echo "execute $CMD" >> $DATE\_$HOSTNAME\_r$SVN\_outputfile
-	            $CMD 2>> $DATE\_$HOSTNAME\_r$SVN\_outputfile >> $DATE\_$HOSTNAME\_r$SVN\_outputfile
+	            echo "execute $CMD" >> $OUTPUT
+	            $CMD 2>> $OUTPUT >> $OUTPUT
             done
         done
     done
