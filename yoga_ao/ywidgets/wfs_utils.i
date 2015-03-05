@@ -234,7 +234,7 @@ func load_default_wfs(tconf,teldiam)
   extern y_wfs;
   
   if (tconf == 1) { // one wfs 50cm / subap  
-    y_wfs                  = array(wfs_struct(),1); // clean start
+    y_wfs                  = array(wfs_struct(atmos_seen=1),1); // clean start
     y_wfs(1).type          = "sh";
     y_wfs(1).nxsub         = long(teldiam * 1/0.5);
     y_wfs(1).npix          = 6;
@@ -250,7 +250,7 @@ func load_default_wfs(tconf,teldiam)
     y_wfs(1).gsalt         = 0.;
   }
   if (tconf == 2) { // one wfs 60cm / subap  
-    y_wfs                  = array(wfs_struct(),1); // clean start
+    y_wfs                  = array(wfs_struct(atmos_seen=1),1); // clean start
     y_wfs(1).type          = "sh";
     y_wfs(1).nxsub         = long(teldiam * 1/0.6);
     y_wfs(1).npix          = 6;
@@ -266,7 +266,7 @@ func load_default_wfs(tconf,teldiam)
     y_wfs(1).gsalt         = 0.;
   }
   if (tconf == 3) { // one pyr 
-    y_wfs                  = array(wfs_struct(),1); // clean start
+    y_wfs                  = array(wfs_struct(atmos_seen=1),1); // clean start
     y_wfs(1).type          = "pyr";
     y_wfs(1).nxsub         = long(teldiam * 1/0.5);
     y_wfs(1).npix          = 4;
@@ -286,7 +286,7 @@ func load_default_wfs(tconf,teldiam)
     y_wfs(1).pyr_ampl      = 0.45;
   }
   if (tconf == 4) { // one pyr 
-    y_wfs                  = array(wfs_struct(),1); // clean start
+    y_wfs                  = array(wfs_struct(atmos_seen=1),1); // clean start
     y_wfs(1).type          = "pyr";
     y_wfs(1).nxsub         = long(teldiam * 1/0.2);
     y_wfs(1).npix          = 4;
@@ -306,7 +306,7 @@ func load_default_wfs(tconf,teldiam)
     y_wfs(1).pyr_ampl      = 0.45;
   }
   if (tconf == 5) { // one wfs 20cm / subap  
-    y_wfs                  = array(wfs_struct(),1); // clean start
+    y_wfs                  = array(wfs_struct(atmos_seen=1),1); // clean start
     y_wfs(1).type          = "sh";
     y_wfs(1).nxsub         = long(teldiam * 1/0.2);
     y_wfs(1).npix          = 6;
@@ -322,7 +322,7 @@ func load_default_wfs(tconf,teldiam)
     y_wfs(1).gsalt         = 0.;
   }
   if (tconf == 6) { // 1 wfs lgs
-    y_wfs                  = array(wfs_struct(),1); // clean start
+    y_wfs                  = array(wfs_struct(atmos_seen=1),1); // clean start
     y_wfs.type          = "sh";
     y_wfs.nxsub         = long(teldiam * 1/0.5);
     y_wfs.npix          = 6;
@@ -346,7 +346,7 @@ func load_default_wfs(tconf,teldiam)
     y_wfs(1).beamsize         = 0.8;
   }
   if (tconf == 7) { // 3 wfs
-    y_wfs                  = array(wfs_struct(),3); // clean start
+    y_wfs                  = array(wfs_struct(atmos_seen=1),3); // clean start
     y_wfs.type          = "sh";
     y_wfs.nxsub         = long(teldiam * 1/0.5);
     y_wfs.npix          = 6;
@@ -369,7 +369,7 @@ func load_default_wfs(tconf,teldiam)
 
   }
   if (tconf == 8) { // canary
-    y_wfs                  = array(wfs_struct(),4); // clean start
+    y_wfs                  = array(wfs_struct(atmos_seen=1),4); // clean start
     y_wfs.type          = "sh";
     y_wfs.nxsub         = long(teldiam * 1/0.5);
     y_wfs.npix          = 16;
