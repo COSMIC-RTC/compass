@@ -1,0 +1,37 @@
+The chakra_ao folder contain provide a python interface to the sutra of compass project.
+
+In order to compile, environment variable required:
+    path to compass: COMPASS_ROOT_DIR
+    path to cuda   : CUDA_ROOT
+
+The compilation is done with the command:
+    python setup.py build_ext --inplace
+
+    REQUIREMENT:
+        * cython
+        * python 2.7
+        * carma librairie
+        * sutra librairie
+        * chakra module
+        
+
+To clean the folder, use the command:
+    python clean.py
+
+Content:
+    * wrapper sources:
+            chakra_ao.pxd
+            chakra_ao.pyx
+            atmos.pyx
+            geom.pyx
+            target.pyx
+            tel.pyx
+            make_pupil.py
+            iterkolmo.py
+    * data                        folder containig turbulence matrices and stencils
+    * EELT_data                   folder containing EELT datas (curently not used)
+    * setup.py                    compilation setups
+    * clean.py                    cleaning script
+    * test.py                     python test codes
+
+

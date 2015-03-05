@@ -1,8 +1,4 @@
-
-The chakra folder contain elements to wrap compass project with python
-
-
-curently only parts of carma context and carma objects are available
+The chakra folder contains elements to wrap the carma of compass project with python.
 
 
 In order to compile, environment variable required:
@@ -15,15 +11,15 @@ The compilation is done with the command:
     REQUIREMENT:
         * cython
         * python 2.7
+        * carma librairie
 
 To clean the folder, use the command:
     python clean.py
 
-
 Content
     * wrapper sources:
+            chakra.pxd
             wrapper_chakra.pyx
-            wrapper_chakra_type.pyx
             wrapper_chakra_context.pyx
             wrapper_chakra_obj.pyx.in
             wrapper_chakra_host_obj.pyx.in
