@@ -101,7 +101,7 @@ int sutra_controller_ls::svdec_imat() {
     return EXIT_FAILURE;
   }
 
-  if (carma_use_magma()) {
+  if (!carma_disabled()) {
     // we can skip this step syevd use only the lower part
     //fill_sym_matrix('U', d_U->getData(), nactu, nactu * nactu);
 
@@ -172,7 +172,7 @@ int sutra_controller_ls::build_cmat(int nfilt, bool filt_tt) {
   if (filt_tt)
     nb_elem -= 2;
   */
-  if (carma_use_magma()) {
+  if (!carma_disabled()) {
     for (int cc = nfilt; cc < nb_elem; cc++) {
       float eigenval = h_eigenvals->getData()[cc];
       h_eigenvals_inv->getData()[cc] = //1.0f / eigenval;
