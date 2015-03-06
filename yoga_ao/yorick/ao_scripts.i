@@ -128,10 +128,13 @@ func script_system(filename,verbose=,strehl=,r0=,clean=,brama=)
     if ((y_wfs != []) && (g_wfs != [])) {
       // loop on wfs
       for (i=1;i<=numberof(y_wfs);i++) {
+	sensors_trace,g_wfs,i-1,"all",g_atmos,g_dm;
+	/*
         sensors_trace,g_wfs,i-1,"atmos",g_atmos;
         if ((!y_wfs(i).openloop) && (g_dm != [])) {
           sensors_trace,g_wfs,i-1,"dm",g_dm,0;
         }
+	*/
 
 	if(y_wfs(i).type=="cog") {
 	  sensors_compimg_tele,g_wfs,i-1;

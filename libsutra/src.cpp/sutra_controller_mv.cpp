@@ -583,7 +583,6 @@ int sutra_controller_mv::build_cmat(float cond){
 
 	dims_data[1] = nslope();
 	dims_data[2] = 2;
-	//carma_obj<float> *d_Dtt = new carma_obj<float>(current_context, dims_data);
 	carma_obj<float> *d_M = new carma_obj<float>(current_context, dims_data);
 	dims_data[1] = nactu() - 2;
 	dims_data[2] = 2;

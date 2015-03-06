@@ -6,7 +6,7 @@ y_geom.zenithangle = 0.;
 /*
 telescope inits
 */
-y_tel.diam = 4.f;
+y_tel.diam = 8.f;
 y_tel.cobs = 0.12f;
 
 /*
@@ -40,7 +40,7 @@ wfs inits
 */
 y_wfs                  = array(wfs_struct(atmos_seen=1),1); // clean start
 y_wfs(1).type          = "sh";
-y_wfs(1).nxsub         = 8;
+y_wfs(1).nxsub         = 40;
 y_wfs(1).npix          = 8;
 y_wfs(1).pixsize       = 0.3;
 y_wfs(1).fracsub       = 0.8;

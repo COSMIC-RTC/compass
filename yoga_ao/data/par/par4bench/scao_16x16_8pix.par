@@ -98,7 +98,7 @@ y_controllers(1).modopti = 0;
 y_controllers(1).nrec    = 2048;
 y_controllers(1).nmodes  = 216;
 y_controllers(1).gmin    = 0.001;
-y_controllers(1).gmax    = 0.9;
+y_controllers(1).gmax    = 0.5;
 y_controllers(1).ngain   = 500;
 
 /*

@@ -164,7 +164,7 @@ compute_Hcor_krnl(float *o_data, int nrow, int ncol, float Fs, float Te, float g
 	Hbo.y *= G;
 	float mod = cuCabsf(Hbo);
 
-	o_data[tid] = 1/(mod * mod);
+	o_data[tid] = 1.0f/(mod * mod);
 
 }
 

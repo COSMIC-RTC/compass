@@ -88,7 +88,9 @@ ncentroiders = 1;
 y_centroiders           = array(centroider_struct(),ncentroiders);
 
 y_centroiders.nwfs      = 1;
-y_centroiders(1).type   = "cog";
+y_centroiders(1).type   = "corr";
+y_centroiders(1).type_fct = "gauss";
+y_centroiders(1).width   = 2.0;
 
 /*
 controllers inits

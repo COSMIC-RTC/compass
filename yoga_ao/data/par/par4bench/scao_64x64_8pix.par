@@ -94,7 +94,7 @@ y_controllers(1).maxcond = 1500.;
 y_controllers(1).delay   = 1;
 y_controllers(1).gain    = 0.4;
 
-y_controllers(1).modopti = 1;
+y_controllers(1).modopti = 0;
 y_controllers(1).nrec    = 2048;
 y_controllers(1).nmodes  = 3259;
 y_controllers(1).gmin    = 0.001;

@@ -242,10 +242,11 @@ atmos_init_time = yoga_timer_stop(g_timer)- synctime;
   time_per_iter = move_atmos_time + t_raytrace_atmos_time + t_raytrace_dm_time + s_raytrace_atmos_time + s_raytrace_dm_time + comp_img_time + docentroids_time + docontrol_time + applycontrol_time;
 
   if(y_wfs(1).gsalt > 0)
-    type = "lgs";
-  else type = "ngs";
+    type = "lgs ";
+  else type = "ngs ";
   if(y_wfs(1).gsmag > 3)
-    type += " noisy";
+    type += " noisy ";
+  type += y_wfs(1).type;
   
   tmp = timestamp();
   date = strpart(tmp,5:11)+strpart(tmp,21:);
