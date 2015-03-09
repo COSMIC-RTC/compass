@@ -7,7 +7,7 @@ cdef class param_tel:
         self.diam=0
         self.type_ap="Generic"
         self.t_spiders=0.01
-        self.spiders_type="six"
+        self.spiders_type=None
         self.nbrmissing=0
         self.referr=0
 

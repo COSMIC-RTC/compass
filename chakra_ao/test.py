@@ -13,9 +13,9 @@ p_target=ao.param_target()
 #geom
 p_geom.set_zenithangle(10.)
 #large test
-p_geom.set_pupdiam(1016)
+#p_geom.set_pupdiam(2040)
 #small test
-#p_geom.set_pupdiam(144)
+p_geom.set_pupdiam(144)
 
 #tel
 p_tel.set_diam(4.)
@@ -30,13 +30,11 @@ p_atmos.set_alt([0.0])
 p_atmos.set_windspeed([20.0])
 p_atmos.set_winddir([45])
 #large test
-p_atmos.set_dim_screens([1024])
-p_atmos.set_L0([1.e5])
+#p_atmos.set_dim_screens([2048])
+#p_atmos.set_L0([1.e5])
 #small test
-"""
 p_atmos.set_dim_screens([152])
 p_atmos.set_L0([1.e3])
-"""
 
 #target
 p_target.set_nTargets(1)
@@ -61,4 +59,4 @@ tar=p_target.target_init(c,p_atmos,p_geom)
 # and display:
 #   the turbulence
 #   the target's image 
-ao.see_atmos_target(50,atm,tar,alt=0,n_tar=0,f=1)
+ao.see_atmos_target(5,atm,tar,alt=0,n_tar=0,f=0.15)

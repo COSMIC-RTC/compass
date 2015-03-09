@@ -61,6 +61,17 @@ cdef class param_geom:
         self.cent=c
 
 
+    def get_ipupil(self):
+        """return the full pupil support"""
+        return self._ipupil
+
+    def get_mpupil(self):
+        """return the padded pupil"""
+        return self._mpupil
+
+    def get_spupil(self):
+        """return the pupil"""
+        return self._spupil
 
 
     def get_n(self):

@@ -24,7 +24,7 @@ include "target.pyx"
 include "tel.pyx"
 
 
-def see_atmos_target(int n, atmos atm, target tar, float alt=0, int n_tar=0,float f=1):
+def see_atmos_target(int n, atmos atm, target tar, float alt=0, int n_tar=0,float f=1, int log=0):
     """Display the turbulence of the atmos and the image of the target after a call to the function:
     - move_atmos
     - target.atmos_raytrace
@@ -56,5 +56,7 @@ def see_atmos_target(int n, atmos atm, target tar, float alt=0, int n_tar=0,floa
         ph=np.roll(ph,ph.shape[0]/2,axis=0)
         ph=np.roll(ph,ph.shape[1]/2,axis=1)
         image.clear()
-        im2=image.imshow(ph[s0:e0,s1:e1],cmap='Blues_r')
+        if(log==1):
+            ph=np.log(ph[s0:e0,s1:e1])
+        im2=image.matshow(ph[s0:e0,s1:e1],cmap='Blues_r')
         pl.draw()

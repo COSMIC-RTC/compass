@@ -13,7 +13,7 @@ def make_pupil(dim,pupd,tel,xc=-1,
 
 
 
-def make_pupil_generic(dim, pupd, t_spiders=0.01, spiders_type="six",
+def make_pupil_generic(dim, pupd, t_spiders=0.01, spiders_type=None,
                     xc=-1, yc=-1, real=0, cobs=0):
     """
     cdef np.ndarray pup = dist(dim,xc,yc)
