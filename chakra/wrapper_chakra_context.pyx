@@ -17,9 +17,8 @@ cdef extern from "carma_context.h":
 #################################################
 cdef class chakra_context:
 
-
     def __cinit__(self):
-        self.c            = new carma_context()
+        self.c = carma_context.instance()
 
     def get_ndevice(self):
         """Return number of device."""

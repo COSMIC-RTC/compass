@@ -178,8 +178,17 @@ cdef extern from "sutra_target.h":
 #################################################
 cdef class atmos:
     cdef sutra_atmos *s_a
-    cdef carma_context context
-
+    cdef chakra_context context
+    cdef realinit(self,chakra_context ctxt,int nscreens,
+                np.ndarray[dtype=np.float32_t] r0,
+                np.ndarray[dtype=np.int64_t] size,
+                np.ndarray[dtype=np.float32_t] altitude,
+                np.ndarray[dtype=np.float32_t] windspeed,
+                np.ndarray[dtype=np.float32_t] winddir,
+                np.ndarray[dtype=np.float32_t] deltax,
+                np.ndarray[dtype=np.float32_t] deltay,
+                np.ndarray[ndim=2,dtype=np.float32_t] pupil,
+                int device )
 
 #################################################
 # P-Class target

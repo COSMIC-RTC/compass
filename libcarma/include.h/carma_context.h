@@ -94,10 +94,25 @@ protected:
   int activeDevice;
   int** can_access_peer;
 
-public:
+  /// singleton context
+  static carma_context *s_instance;
+
   carma_context();
   carma_context(const carma_context& cntxt);
+public:
   ~carma_context();
+
+  static carma_context *instance()
+  {
+      if (!s_instance)
+        s_instance = new carma_context;
+      return s_instance;
+  }
+
+  void kill(){
+    if (s_instance)
+      delete s_instance;
+  }
 
   int get_ndevice() {
     return ndevice;

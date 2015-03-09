@@ -51,7 +51,7 @@ c=ch.chakra_context()
 #   geom
 p_geom.geom_init(p_tel,p_geom.pupdiam)
 #   atmos
-atm=p_atmos.atmos_init(p_tel,p_geom,1./500.)
+atm=p_atmos.atmos_init(c,p_tel,p_geom,1./500.)
 #   target
 tar=p_target.target_init(c,p_atmos,p_geom)
 

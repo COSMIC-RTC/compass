@@ -14,6 +14,8 @@
 #include "magma_lapack.h"
 #endif
 
+carma_context *carma_context::s_instance=NULL;
+
 carma_device::carma_device(int devid) {
   cutilSafeCall(cudaSetDevice(devid));
   this->id = devid;
@@ -45,6 +47,7 @@ carma_device::~carma_device() {
 }
 
 carma_context::carma_context() {
+
   //TODO : why seed is initialized here ?
   srandom(1234);
   cutilSafeCall(cudaGetDeviceCount(&(this->ndevice)));
@@ -129,6 +132,7 @@ carma_context::carma_context() {
 }
 
 carma_context::~carma_context() {
+
 #ifdef USE_CULA
   // CULA finalize
   culaShutdown();
@@ -146,6 +150,8 @@ carma_context::~carma_context() {
     delete[] can_access_peer[idx++];
   }
   delete[] can_access_peer;
+
+  s_instance= NULL;
 #if DEBUG
   printf("CARMA Context deleted @ %p\n", this);
 #endif

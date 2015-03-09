@@ -3,7 +3,7 @@ import matplotlib.pyplot as pl
 #import matplotlib.animation as animation
 import time
 
-import pyfits as pf
+#import pyfits as pf
 
 def create_stencil(n):
     Zx = np.array(np.tile(np.arange(n), (n,1)),dtype=np.float64)+1
@@ -160,19 +160,6 @@ def AB(n,L0):
     U1,l,V1 = np.linalg.svd(bbt)
     print "compute B"
     B = np.dot(U1,np.diag(l))
-    #B=np.dot(B,B.T)
-
-    Ay=pf.getdata("../yoga_ao/data/turbu/A_152_L0_36000.fits")
-    By=pf.getdata("../yoga_ao/data/turbu/B_152_L0_36000.fits")
-
-    Ay=np.require(Ay.T,"O")#np.reshape(A.T,A.shape),"O")
-    By=np.require(By.T,"O")#np.reshape(B.T,B.shape),"O")
-
-
-    #print "A",np.max(np.abs(Ay-A)), np.min(Ay), np.max(Ay)
-    ##print "A",np.max(np.abs(Ay-A))/np.max(Ay)
-    #print "B",np.max(np.abs((By-B))), np.min(By), np.max(By)
-    ##print "B",np.max(np.abs((By-B)))/ np.max(By)
 
     test=np.zeros((n*n),np.float32)
     test[istencil]=np.arange(A.shape[1])+1

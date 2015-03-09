@@ -381,7 +381,7 @@ void Y_yoga_context(int argc)
   try {
     context_struct *handle = (context_struct *) ypush_obj(&yContext,
         sizeof(context_struct));
-    handle->carma_context = new carma_context();
+    handle->carma_context = carma_context::instance();
   } catch (string &msg) {
     y_error(msg.c_str());
   } catch (char const * msg) {

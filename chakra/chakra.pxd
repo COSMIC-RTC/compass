@@ -58,12 +58,14 @@ cdef extern from "carma_context.h":
         pass
 
     cdef cppclass carma_context :
-        carma_context()
+        #carma_context()
         int get_ndevice()
         int set_activeDevice(int newDevice, int silent)
         int set_activeDeviceForce(int newDevice, int silent)
         int set_activeDeviceForCpy(int newDevice, int silent)
         int get_activeDevice()
+        @staticmethod
+        carma_context* instance()
 
 #################################################
 # P-Class chakra_context

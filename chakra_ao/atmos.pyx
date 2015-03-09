@@ -77,7 +77,7 @@ cdef class param_atmos:
 
 
 
-    def atmos_init(self, param_tel tel,  param_geom geom,
+    def atmos_init(self, chakra_context c, param_tel tel,  param_geom geom,
                     double ittime, wfs=None,target=None):
         """Create and initialise an atmos object
         TODO
@@ -135,8 +135,8 @@ cdef class param_atmos:
             for i in range(self.nscreens):
                 frac_l0=tel.diam/self.L0[i]
                 self.L0[i]=geom.pupdiam/frac_l0
-
-        return atmos_create(self.nscreens,self.r0,self.L0,self.pupixsize,
+        print "entering atmos_create"
+        return atmos_create(c,self.nscreens,self.r0,self.L0,self.pupixsize,
             self.dim_screens,self.frac,self.alt,self.windspeed,
             self.winddir,self.deltax,self.deltay,geom._spupil)
 
@@ -147,8 +147,10 @@ cdef class param_atmos:
 # P-Class atmos
 #################################################
 cdef class atmos:
-
-    def __cinit__(self,chakra_context ctxt,int nscreens,
+    def __cinit__(self):
+        self.context = None
+        
+    cdef realinit(self,chakra_context ctxt,int nscreens,
                 np.ndarray[dtype=np.float32_t] r0,
                 np.ndarray[dtype=np.int64_t] size,
                 np.ndarray[dtype=np.float32_t] altitude,
@@ -158,6 +160,7 @@ cdef class atmos:
                 np.ndarray[dtype=np.float32_t] deltay,
                 np.ndarray[ndim=2,dtype=np.float32_t] pupil,
                 int device ):
+        print "entered into atmos"
         
         cdef np.ndarray[ndim=1,dtype=np.int64_t]size2
         size2 = compute_size2(size)
@@ -173,7 +176,7 @@ cdef class atmos:
                 <np.float32_t*>deltay.data,
                 <np.float32_t*>pupil.data,
                 device)
-        context = ctxt.c
+        self.context = ctxt
 
 
 
@@ -273,7 +276,7 @@ cdef class atmos:
 
 
  
-cdef atmos_create(int nscreens,
+cdef atmos_create(chakra_context c, int nscreens,
               float r0,
               np.ndarray[dtype=np.float32_t] L0,
               float pupixsize,
@@ -286,13 +289,16 @@ cdef atmos_create(int nscreens,
               np.ndarray[dtype=np.float32_t] deltay,
               np.ndarray[ndim=2,dtype=np.float32_t] pupil):
     """Create and initialise an atmos object."""
+    print "entered into atmos_create"
 
     # get fraction of r0 for corresponding layer
     r0_layers = r0/(frac**(3./5.)*pupixsize)
     # create atmos object on gpu
 
-    c=chakra_context()
-    atmos_obj = atmos(c,nscreens, r0_layers, dim_screens,alt,
+    print "entering into atmos"
+    atmos_obj = atmos()
+    print "end of atmos"
+    atmos_obj.realinit(chakra_context(),nscreens, r0_layers, dim_screens,alt,
                     windspeed,winddir,deltax,deltay,pupil,0)
 
     cdef int i,j

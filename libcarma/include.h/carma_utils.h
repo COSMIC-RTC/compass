@@ -42,7 +42,7 @@ enum CUTBoolean {
 // We define these calls here, so the user doesn't need to include __FILE__ and __LINE__
 // The advantage is the developers gets to use the inline function so they can debug
 //#ifdef DEBUG
-#define CUSafeCall(err)              __CUSafeCall        (err, __FILE__, __LINE__)
+//#define CUSafeCall(err)              __CUSafeCall        (err, __FILE__, __LINE__)
 #define cutilSafeCallNoSync(err)     __cudaSafeCallNoSync(err, __FILE__, __LINE__)
 #define cutilSafeCall(err)           __cudaSafeCall      (err, __FILE__, __LINE__)
 #define cutilSafeThreadSync()        __cudaSafeThreadSync(__FILE__, __LINE__)
@@ -103,7 +103,8 @@ inline void __cudaSafeCallNoSync(cudaError err, const char *file,
   if (cudaSuccess != err) {
     fprintf(stderr, "(%s:%i) : cudaSafeCallNoSync() Runtime API error : %s.\n",
         file, line, cudaGetErrorString(err));
-    exit(EXIT_FAILURE);
+    //exit(EXIT_FAILURE);
+    throw cudaGetErrorString(err);
   }
 }
 
@@ -111,22 +112,25 @@ inline void __cudaSafeCall(cudaError err, const char *file, const int line) {
   if (cudaSuccess != err) {
     fprintf(stderr, "(%s:%i) : cudaSafeCall() Runtime API error : %s.\n", file,
         line, cudaGetErrorString(err));
-    exit(EXIT_FAILURE);
+    //exit(EXIT_FAILURE);
+    throw cudaGetErrorString(err);
   }
 }
-
+/*
 inline void __CUSafeCall(CUresult err, const char *file, const int line) {
   if (CUDA_SUCCESS != err) {
-    /* char *text; */
-    /* if(cuGetErrorName(err, &text) == CUDA_ERROR_INVALID_VALUE )  */
+    / * char *text; * /
+    / * if(cuGetErrorName(err, &text) == CUDA_ERROR_INVALID_VALUE )  * /
       fprintf(stderr, "(%s:%i) : CUSafeCall() Driver API not recognized error : %d.\n", file,
 	      line, err);
-    /* else */
-    /*   fprintf(stderr, "(%s:%i) : CUSafeCall() Driver API error : %s (%d).\n", file, */
-    /* 	      line, text, err); */
-    exit(EXIT_FAILURE);
+    / * else * /
+    / *   fprintf(stderr, "(%s:%i) : CUSafeCall() Driver API error : %s (%d).\n", file, * /
+    / * 	      line, text, err); * /
+      //exit(EXIT_FAILURE);
+      throw cudaGetErrorString(err);
   }
 }
+*/
 
 inline void __cudaSafeThreadSync(const char *file, const int line) {
   cudaError err = cudaThreadSynchronize();
@@ -134,14 +138,16 @@ inline void __cudaSafeThreadSync(const char *file, const int line) {
     fprintf(stderr,
         "(%s:%i) : cudaThreadSynchronize() Driver API error : %s.\n", file,
         line, cudaGetErrorString(err));
-    exit(EXIT_FAILURE);
+    //exit(EXIT_FAILURE);
+    throw cudaGetErrorString(err);
   }
 }
 
 inline void __cufftSafeCall(cufftResult err, const char *file, const int line) {
   if (CUFFT_SUCCESS != err) {
     fprintf(stderr, "(%s:%i) : cufftSafeCall() CUFFT error.\n", file, line);
-    exit(EXIT_FAILURE);
+    //exit(EXIT_FAILURE);
+    throw "cufftSafeCall() CUFFT error";
   }
 }
 
