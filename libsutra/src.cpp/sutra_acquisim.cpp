@@ -9,7 +9,8 @@
 
 sutra_acquisim::sutra_acquisim(sutra_sensors *sensors, int wfs_num) {
   // TODO Auto-generated constructor stub
-  this->wfs = sensors->d_wfs[wfs_num];
+  if( sensors->d_wfs[wfs_num]->type == "sh")
+    this->wfs = dynamic_cast<sutra_wfs_sh*>(sensors->d_wfs[wfs_num]);
 }
 
 sutra_acquisim::~sutra_acquisim() {

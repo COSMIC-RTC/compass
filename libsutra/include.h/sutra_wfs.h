@@ -52,54 +52,24 @@ public:
 
   carma_host_obj<float> *image_telemetry;
 
-  // sh only
-  carma_obj<int> *d_phasemap;
-  carma_obj<int> *d_binmap;
-  carma_obj<int> *d_validsubsx; // nvalid
-  carma_obj<int> *d_validsubsy; // nvalid
-  carma_obj<int> *d_istart; // nxsub 
-  carma_obj<int> *d_jstart; // nxsub
-
-  // pyramid only
-  carma_obj<float> *d_hrimg;
-  carma_obj<float> *d_submask;
-  carma_obj<float> *d_psum;
-  carma_obj<cuFloatComplex> *d_phalfxy;
-  carma_obj<cuFloatComplex> *d_poffsets;
-
-  carma_host_obj<int> *pyr_cx;
-  carma_host_obj<int> *pyr_cy;
-
   sutra_source *d_gs;
 
   carma_streams *streams;
   int nstreams;
 
+  carma_obj<int> *d_phasemap;
+  carma_obj<int> *d_validsubsx; // nvalid
+  carma_obj<int> *d_validsubsy; // nvalid
+
   carma_context *current_context;
 
 public:
-  sutra_wfs(carma_context *context,sutra_sensors *sensors,  const char* type, long nxsub, long nvalid,
-      long npix, long nphase, long nrebin, long nfft, long ntot, long npup,
-      float pdiam, float nphotons, int lgs, int device);
-  sutra_wfs(carma_context *context, long nxsub, long nvalid, long nphase,
-      long npup, float pdiam, int device);
-  sutra_wfs(const sutra_wfs& wfs);
-  ~sutra_wfs();
+  virtual ~sutra_wfs()=0;
 
-  int
-  wfs_initarrays(int *phasemap, int *hrmap, int *binmap, float *offsets,
-      float *pupil, float *fluxPerSub, int *isvalid, int *validsubsx,
-      int *validsubsy, int *istart, int *jstart, cuFloatComplex *kernel);
-  int
-  wfs_initarrays(int *phasemap, float *offsets, float *pupil, float *fluxPerSub,
-      int *isvalid, int *validsubsx, int *validsubsy, int *istart, int *jstart);
-  int
-  wfs_initarrays(cuFloatComplex *halfxy, cuFloatComplex *offsets,
-      float *focmask, float *pupil, int *isvalid, int *cx, int *cy,
-      float *sincar, int *phasemap, int *validsubsx, int *validsubsy);
   int
   wfs_initgs(sutra_sensors *sensors, float xpos, float ypos, float lambda, float mag, long size,
       float noise, long seed);
+
   int
   load_kernels(float *lgskern);
   int
@@ -108,24 +78,14 @@ public:
   sensor_trace(sutra_dms *ydm, int rst);
   int
   sensor_trace(sutra_atmos *atmos, sutra_dms *ydms);
-  int
-  comp_image_tele();
-  int
-  fill_binimage();
-  int
-  comp_image();
-  int
-  slopes_geom(int type, float *slopes);
-  int
-  slopes_geom(int type);
+  virtual int
+  comp_image()=0;
+  virtual int
+  comp_image_tele()=0;
 
 private:
-  int
-  comp_sh_generic();
-  int
-  comp_pyr_generic();
-  int
-  comp_roof_generic();
+  virtual int
+  comp_generic()=0;
 };
 
 class sutra_sensors {
@@ -147,7 +107,7 @@ public:
   carma_obj<float> *d_lgskern;
 
 public:
-  sutra_sensors(carma_context *context, const char* type, int nwfs, long *nxsub,
+  sutra_sensors(carma_context *context, string type, int nwfs, long *nxsub,
       long *nvalid, long *npix, long *nphase, long *nrebin, long *nfft,
       long *ntot, long npup, float *pdiam, float *nphot, int *lgs, int device);
   sutra_sensors(carma_context *context, int nwfs, long *nxsub, long *nvalid,

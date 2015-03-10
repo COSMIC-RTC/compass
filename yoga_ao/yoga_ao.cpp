@@ -25,7 +25,10 @@
 #include <sutra_turbu.h>
 #include <sutra_target.h>
 #include <sutra_phase.h>
-#include <sutra_wfs.h>
+#include <sutra_wfs_geom.h>
+#include <sutra_wfs_pyr_pyr4.h>
+#include <sutra_wfs_pyr_roof.h>
+#include <sutra_wfs_sh.h>
 #include <sutra_acquisim.h>
 #include <sutra_rtc.h>
 #include <sutra_dm.h>
@@ -1176,8 +1179,8 @@ void Y_sensors_initarr(int argc) {
   context_handle->set_activeDevice(handler->device,1);
 
   int nsensor = ygets_i(argc - 2);
-
-  if (sensors_handler->d_wfs.at(nsensor)->type == "sh") {
+  string type=sensors_handler->d_wfs.at(nsensor)->type;
+  if (type == "sh") {
     int *phasemap = ygeta_i(argc - 3, &ntot, dims);
     int *hrmap = ygeta_i(argc - 4, &ntot, dims);
     int *binmap = ygeta_i(argc - 5, &ntot, dims);
@@ -1191,12 +1194,12 @@ void Y_sensors_initarr(int argc) {
     int *jstart = ygeta_i(argc - 13, &ntot, dims);
     float *kernel = ygeta_f(argc - 14, &ntot, dims);
 
-    sensors_handler->d_wfs.at(nsensor)->wfs_initarrays(phasemap, hrmap, binmap,
+    sutra_wfs_sh *wfs = dynamic_cast<sutra_wfs_sh *>(sensors_handler->d_wfs.at(nsensor));
+    wfs->wfs_initarrays(phasemap, hrmap, binmap,
         offsets, pupil, fluxPerSub, isvalid, validsubsx, validsubsy, istart,
         jstart, (cuFloatComplex*) kernel);
   }
-  if ((sensors_handler->d_wfs.at(nsensor)->type == "pyr") ||
-      (sensors_handler->d_wfs.at(nsensor)->type == "roof")){
+  if (type == "roof"){
     float *halfxy = ygeta_f(argc - 3, &ntot, dims);
     float *offsets = ygeta_f(argc - 4, &ntot, dims);
     float *focmask = ygeta_f(argc - 5, &ntot, dims);
@@ -1208,7 +1211,27 @@ void Y_sensors_initarr(int argc) {
     int *phasemap = ygeta_i(argc - 11, &ntot, dims);
     int *validx = ygeta_i(argc - 12, &ntot, dims);
     int *validy = ygeta_i(argc - 13, &ntot, dims);
-    sensors_handler->d_wfs.at(nsensor)->wfs_initarrays((cuFloatComplex*) halfxy,
+
+    sutra_wfs_pyr_roof *wfs = dynamic_cast<sutra_wfs_pyr_roof *>(sensors_handler->d_wfs.at(nsensor));
+    wfs->wfs_initarrays((cuFloatComplex*) halfxy,
+        (cuFloatComplex*) offsets, focmask, pupil, isvalid, cx, cy, sincar,
+        phasemap, validx, validy);
+  }
+  if (type == "pyr"){
+    float *halfxy = ygeta_f(argc - 3, &ntot, dims);
+    float *offsets = ygeta_f(argc - 4, &ntot, dims);
+    float *focmask = ygeta_f(argc - 5, &ntot, dims);
+    float *pupil = ygeta_f(argc - 6, &ntot, dims);
+    int *isvalid = ygeta_i(argc - 7, &ntot, dims);
+    int *cx = ygeta_i(argc - 8, &ntot, dims);
+    int *cy = ygeta_i(argc - 9, &ntot, dims);
+    float *sincar = ygeta_f(argc - 10, &ntot, dims);
+    int *phasemap = ygeta_i(argc - 11, &ntot, dims);
+    int *validx = ygeta_i(argc - 12, &ntot, dims);
+    int *validy = ygeta_i(argc - 13, &ntot, dims);
+
+    sutra_wfs_pyr_pyr4 *wfs = dynamic_cast<sutra_wfs_pyr_pyr4 *>(sensors_handler->d_wfs.at(nsensor));
+    wfs->wfs_initarrays((cuFloatComplex*) halfxy,
         (cuFloatComplex*) offsets, focmask, pupil, isvalid, cx, cy, sincar,
         phasemap, validx, validy);
   }
@@ -1220,11 +1243,10 @@ void Y_sensors_initarr(int argc) {
     int *isvalid = ygeta_i(argc - 7, &ntot, dims);
     int *validsubsx = ygeta_i(argc - 8, &ntot, dims);
     int *validsubsy = ygeta_i(argc - 9, &ntot, dims);
-    int *istart = ygeta_i(argc - 10, &ntot, dims);
-    int *jstart = ygeta_i(argc - 11, &ntot, dims);
 
-    sensors_handler->d_wfs.at(nsensor)->wfs_initarrays(phasemap, offsets, pupil,
-        fluxPerSub, isvalid, validsubsx, validsubsy, istart, jstart);
+    sutra_wfs_geom *wfs = dynamic_cast<sutra_wfs_geom *>(sensors_handler->d_wfs.at(nsensor));
+    wfs->wfs_initarrays(phasemap, offsets, pupil,
+        fluxPerSub, isvalid, validsubsx, validsubsy);
   }
 }
 
@@ -1331,7 +1353,11 @@ void Y_sensors_fillbinimage(int argc) {
    sensors_handler->d_wfs.at(nsensor)->comp_image();
    }
    */
-  sensors_handler->d_wfs.at(nsensor)->fill_binimage();
+  if (sensors_handler->d_wfs.at(nsensor)->type != "sh") {
+    y_error("wfs should be a SH");
+  }
+  sutra_wfs_sh *wfs = dynamic_cast<sutra_wfs_sh *>(sensors_handler->d_wfs.at(nsensor));
+  wfs->fill_binimage();
   //sensors_handler->d_wfs.at(nsensor)->streams->wait_all_streams();
 }
 
@@ -1454,9 +1480,13 @@ void Y_sensors_getdata(int argc) {
     }
   }
   if (strcmp(type_data, "hrimg") == 0) {
-    float *data = ypush_f(
-        (long*) sensors_handler->d_wfs.at(nsensor)->d_hrimg->getDims());
-    sensors_handler->d_wfs.at(nsensor)->d_hrimg->device2host(data);
+    if ((sensors_handler->d_wfs.at(nsensor)->type == "pyr") ||
+        (sensors_handler->d_wfs.at(nsensor)->type == "roof")){
+      sutra_wfs_pyr *wfs = dynamic_cast<sutra_wfs_pyr *>(sensors_handler->d_wfs.at(nsensor));
+
+      float *data = ypush_f( (long*) wfs->d_hrimg->getDims());
+      wfs->d_hrimg->device2host(data);
+    }
   }
   if (strcmp(type_data, "fttotim") == 0) {
     long *ndims_data = new long[5];
@@ -1521,9 +1551,13 @@ void Y_sensors_getdata(int argc) {
     sensors_handler->d_wfs.at(nsensor)->d_subsum->device2host(data);
   }
   if (strcmp(type_data, "psum") == 0) {
-    float *data = ypush_f(
-        (long*) sensors_handler->d_wfs.at(nsensor)->d_psum->getDims());
-    sensors_handler->d_wfs.at(nsensor)->d_psum->device2host(data);
+    if ((sensors_handler->d_wfs.at(nsensor)->type == "pyr") ||
+        (sensors_handler->d_wfs.at(nsensor)->type == "roof")){
+      sutra_wfs_pyr *wfs = dynamic_cast<sutra_wfs_pyr *>(sensors_handler->d_wfs.at(nsensor));
+
+      float *data = ypush_f((long*) wfs->d_psum->getDims());
+      wfs->d_psum->device2host(data);
+    }
   }
   if (strcmp(type_data, "slopes") == 0) {
     float *data = ypush_f(
@@ -1574,29 +1608,28 @@ void Y_sensors_getdata(int argc) {
   if (strcmp(type_data, "poffsets") == 0) {
     if ((sensors_handler->d_wfs.at(nsensor)->type == "pyr") ||
         (sensors_handler->d_wfs.at(nsensor)->type == "roof")){
+      sutra_wfs_pyr *wfs = dynamic_cast<sutra_wfs_pyr *>(sensors_handler->d_wfs.at(nsensor));
       long *ndims_data = new long[4];
       ndims_data[0] = 3;
       ndims_data[1] = 2;
-      const long *ndims_obj =
-          sensors_handler->d_wfs.at(nsensor)->d_poffsets->getDims();
+      const long *ndims_obj =wfs->d_poffsets->getDims();
       memcpy(&ndims_data[2], &(ndims_obj[1]), sizeof(long) * 2);
       float *data = ypush_f(ndims_data);
-      sensors_handler->d_wfs.at(nsensor)->d_poffsets->device2host(
-          (cuFloatComplex *) data);
+      wfs->d_poffsets->device2host((cuFloatComplex *) data);
     }
   }
   if (strcmp(type_data, "phalfxy") == 0) {
     if ((sensors_handler->d_wfs.at(nsensor)->type == "pyr") ||
         (sensors_handler->d_wfs.at(nsensor)->type == "roof")){
+      sutra_wfs_pyr *wfs = dynamic_cast<sutra_wfs_pyr *>(sensors_handler->d_wfs.at(nsensor));
+
       long *ndims_data = new long[4];
       ndims_data[0] = 3;
       ndims_data[1] = 2;
-      const long *ndims_obj =
-          sensors_handler->d_wfs.at(nsensor)->d_phalfxy->getDims();
+      const long *ndims_obj = wfs->d_phalfxy->getDims();
       memcpy(&ndims_data[2], &(ndims_obj[1]), sizeof(long) * 2);
       float *data = ypush_f(ndims_data);
-      sensors_handler->d_wfs.at(nsensor)->d_phalfxy->device2host(
-          (cuFloatComplex *) data);
+      wfs->d_phalfxy->device2host((cuFloatComplex *) data);
     }
   }
 
@@ -3156,7 +3189,11 @@ void Y_slopes_geom(int argc) {
   carma_context *context_handle = _getCurrentContext();
   context_handle->set_activeDevice(handler->device,1);
 
-  sensors_handler->d_wfs.at(nsensor)->slopes_geom(type);
+  if (sensors_handler->d_wfs.at(nsensor)->type != "sh") {
+    y_error("wfs should be a SH");
+  }
+  sutra_wfs_sh *wfs = dynamic_cast<sutra_wfs_sh *>(sensors_handler->d_wfs.at(nsensor));
+  wfs->slopes_geom(type);
 }
 
 void Y_sensors_getslopes(int argc) {

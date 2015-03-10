@@ -8,11 +8,11 @@
 #ifndef SUTRA_ACQUISIM_H_
 #define SUTRA_ACQUISIM_H_
 
-#include <sutra_wfs.h>
+#include <sutra_wfs_sh.h>
 
 class sutra_acquisim {
 public:
-  sutra_wfs *wfs;
+    sutra_wfs_sh *wfs;
 
 public:
   sutra_acquisim(sutra_sensors *sensors, int wfs_num);

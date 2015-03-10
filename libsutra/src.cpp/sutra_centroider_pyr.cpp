@@ -1,8 +1,11 @@
 #include <sutra_centroider_pyr.h>
+#include <sutra_wfs_pyr_pyr4.h>
 #include <string>
 
 sutra_centroider_pyr::sutra_centroider_pyr(carma_context *context, sutra_sensors *sensors, int nwfs,
     long nvalid, float offset, float scale, int device) {
+  if(sensors->d_wfs[nwfs]->type != "pyr")
+    throw "sutra_centroider_roof expect a sutra_wfs_pyr_pyr4 sensor";
   this->current_context = context;
 
   this->device = device;

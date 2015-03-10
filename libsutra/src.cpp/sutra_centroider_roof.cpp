@@ -3,6 +3,8 @@
 
 sutra_centroider_roof::sutra_centroider_roof(carma_context *context, sutra_sensors *sensors, int nwfs,
     long nvalid, float offset, float scale, int device) {
+  if(sensors->d_wfs[nwfs]->type != "roof")
+    throw "sutra_centroider_roof expect a sutra_wfs_pyr_roof sensor";
   this->current_context = context;
 
   this->device = device;
@@ -41,7 +43,7 @@ int sutra_centroider_roof::get_roof(float *cube, float *subsum,
 }
 
 int sutra_centroider_roof::get_cog(float *slopes) {
-return this->get_roof(*(wfs->d_bincube), *(wfs->d_subsum), slopes,
+  return this->get_roof(*(wfs->d_bincube), *(wfs->d_subsum), slopes,
     *(wfs->d_validsubsx), *(wfs->d_validsubsy), wfs->nvalid,
     wfs->nfft / wfs->nrebin, 4);
 }

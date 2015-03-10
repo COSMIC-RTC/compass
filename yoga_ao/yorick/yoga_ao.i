@@ -283,8 +283,7 @@ func wfs_init(void)
     if (y_wfs(i).type == "geo")
       sensors_initarr,g_wfs,i-1,int(*y_wfs(i)._phasemap),float(*y_wfs(i)._halfxy),float(*y_geom._mpupil),
         (*y_wfs(i)._fluxPerSub)(where(*y_wfs(i)._isvalid)),int(*y_wfs(i)._isvalid),
-        int((*y_wfs(i)._validsubs)(1,)-1),int((*y_wfs(i)._validsubs)(2,)-1),int(*y_wfs(i)._istart+1),
-        int(*y_wfs(i)._jstart+1);
+        int((*y_wfs(i)._validsubs)(1,)-1),int((*y_wfs(i)._validsubs)(2,)-1);
   }
 
   // lgs case
