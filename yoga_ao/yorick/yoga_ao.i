@@ -41,7 +41,7 @@ func read_parfile(filename)
   y_loop   = loop_struct();
   y_rtc    = rtc_struct();
   
-  include,filename;
+  require,filename;
   
   if(y_rtc.nwfs == 0)
     y_rtc=[];
