@@ -336,13 +336,13 @@ func ao_loop(one)
     if ((y_wfs != []) && (g_wfs != [])) {
       // loop on wfs
       for (i=1;i<=numberof(y_wfs);i++) {
-	sensors_trace,g_wfs,i-1,"all",g_atmos,g_dm;
-	/*
+	//sensors_trace,g_wfs,i-1,"all",g_atmos,g_dm;
+	
         sensors_trace,g_wfs,i-1,"atmos",g_atmos;
         if ((!y_wfs(i).openloop) && (g_dm != [])) {
           sensors_trace,g_wfs,i-1,"dm",g_dm,0;
         }
-	*/
+	
         
         if ((enable_display == 1) && (aodisp_type == "Image - WFS") &&
             (i == aodisp_num + 1) && (y_wfs(i).type == "sh")) {
