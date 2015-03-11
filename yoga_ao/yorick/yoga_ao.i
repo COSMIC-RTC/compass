@@ -214,13 +214,13 @@ func wfs_init(void)
   }
   // first get the wfs with max # of subaps
   // we'll derive the geometry from the requirements in terms of sampling
-  if (noneof(y_wfs.type == "pyr") || noneof(y_wfs.type == "roof")) indmax = wheremax(y_wfs.nxsub)(1);
-  else {
+//  if (noneof(y_wfs.type == "pyr") || noneof(y_wfs.type == "roof")) indmax = wheremax(y_wfs.nxsub)(1);
+ // else {
     if (anyof(y_wfs.type == "sh"))
       indmax = wheremax(y_wfs(where(y_wfs.type == "sh")).nxsub)(1);
     else
       indmax = wheremax(y_wfs.nxsub)(1);
-  }
+ // }
   
   // init geometry
   if (noneof(y_wfs.type == "geo"))
@@ -283,7 +283,8 @@ func wfs_init(void)
     if (y_wfs(i).type == "geo")
       sensors_initarr,g_wfs,i-1,int(*y_wfs(i)._phasemap),float(*y_wfs(i)._halfxy),float(*y_geom._mpupil),
         (*y_wfs(i)._fluxPerSub)(where(*y_wfs(i)._isvalid)),int(*y_wfs(i)._isvalid),
-        int((*y_wfs(i)._validsubs)(1,)-1),int((*y_wfs(i)._validsubs)(2,)-1);
+        int((*y_wfs(i)._validsubs)(1,)-1),int((*y_wfs(i)._validsubs)(2,)-1),int(*y_wfs(i)._istart+1),
+        int(*y_wfs(i)._jstart+1);
   }
 
   // lgs case
