@@ -1053,8 +1053,8 @@ void Y_yoga_sensors(int argc)
 
   try {
     int nsensors = ygets_i(argc - 1);
-    char *type_data = ygets_q(argc - 2);
-    if (strcmp(type_data, "geo") == 0) {
+    ystring_t *type_data = ygeta_q(argc - 2, &ntot, dims);
+    if (strcmp(type_data[0], "geo") == 0) {
       long *nxsub = ygeta_l(argc - 3, &ntot, dims);
       long *nvalid = ygeta_l(argc - 4, &ntot, dims);
       long *nphase = ygeta_l(argc - 5, &ntot, dims);
@@ -1084,7 +1084,7 @@ void Y_yoga_sensors(int argc)
       long *nrebin = ygeta_l(argc - 7, &ntot, dims);
       long *nfft = ygeta_l(argc - 8, &ntot, dims);
       long *ntota = ygeta_l(argc - 9, &ntot, dims);
-      long npup = ygets_l(argc - 10);
+      long *npup = ygeta_l(argc - 10, &ntot, dims);
       float *pdiam = ygeta_f(argc - 11, &ntot, dims);
       float *nphot = ygeta_f(argc - 12, &ntot, dims);
       int *lgs = ygeta_i(argc - 13, &ntot, dims);
@@ -2269,7 +2269,7 @@ void rtc_print(void *obj) {
 
   cout << "Contains " << rtc_handler->d_centro.size() << " Centroider(s) : "
       << endl;
-  cout << "Centro #" << " | " << "Type " << "  | " << "Nvalid"
+  cout << "Centro #" << " | " << "Type " << " | " << "nwfs" << " | " << "Nvalid"
       << endl;
 
   for (size_t idx = 0; idx < rtc_handler->d_centro.size(); idx++) {

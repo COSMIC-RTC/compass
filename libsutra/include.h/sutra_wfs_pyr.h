@@ -35,7 +35,14 @@ public:
       float *focmask, float *pupil, int *isvalid, int *cx, int *cy,
       float *sincar, int *phasemap, int *validsubsx, int *validsubsy);
 
+  virtual int
+  comp_image()=0;
+  virtual int
+  comp_image_tele()=0;
+
 private:
+  virtual int
+  comp_generic()=0;
 };
 
 #endif // _SUTRA_WFS_PYR_H_

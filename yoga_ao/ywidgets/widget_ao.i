@@ -99,6 +99,7 @@ func load_parfile(parfile,filename)
   g_wfs = g_atmos = g_rtc = g_target = [];
   
   read_parfile,parfile;
+
   //y_atmos.nscreens;
   if (y_tel != []) {
     pyk,swrite(format=ao_disp._cmd+"glade.get_widget('teldiam').set_value(%f)",y_tel.diam);
@@ -122,8 +123,10 @@ func load_parfile(parfile,filename)
       pyk,swrite(format=ao_disp._cmd+"glade.get_widget('wfs_select').insert_text(%d,'%s')",0,
                  swrite(format="WFS # %d",numberof(y_wfs)-cc+1));
     pyk,swrite(format=ao_disp._cmd+"glade.get_widget('wfs_select').set_active(%d)",0);
-    if (y_rtc != []) pyk,swrite(format=ao_disp._cmd+"glade.get_widget('centro_select').set_active(%d)",0);
-    else pyk,swrite(format=ao_disp._cmd+"glade.get_widget('default_centro').set_active(%d)",0);
+    //if (y_rtc != []) 
+    // pyk,swrite(format=ao_disp._cmd+"glade.get_widget('centro_select').set_active(%d)",0);
+    //else 
+    //  pyk,swrite(format=ao_disp._cmd+"glade.get_widget('default_centro').set_active(%d)",0);
   }
   if (y_target != []) {
     pyk,swrite(format=ao_disp._cmd+"glade.get_widget('ntargets').set_value(%d)",y_target.ntargets);
@@ -157,6 +160,7 @@ func load_parfile(parfile,filename)
     }
     update_control_prop; 
   }
+  
 }
 
 func ao_win_init(pid1)
@@ -336,7 +340,7 @@ func ao_loop(one)
     if ((y_wfs != []) && (g_wfs != [])) {
       // loop on wfs
       for (i=1;i<=numberof(y_wfs);i++) {
-	//sensors_trace,g_wfs,i-1,"all",g_atmos,g_dm;
+        //sensors_trace,g_wfs,i-1,"all",g_atmos,g_dm;
 	
         sensors_trace,g_wfs,i-1,"atmos",g_atmos;
         if ((!y_wfs(i).openloop) && (g_dm != [])) {

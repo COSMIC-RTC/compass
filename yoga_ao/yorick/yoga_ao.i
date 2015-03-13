@@ -42,7 +42,7 @@ func read_parfile(filename)
   y_rtc    = rtc_struct();
   
   require,filename;
-  
+
   if(y_rtc.nwfs == 0)
     y_rtc=[];
 }
@@ -233,24 +233,28 @@ func wfs_init(void)
   
   // do the same for other wfs
   for (i=1;i<=numberof(y_wfs);i++) {
-    if (i != wheremax(y_wfs.nxsub)(1)) {
+    if (i != indmax) {
       init_wfs_geom,i;
     }
   }
   
+  tmp_pup = array(y_geom._n, numberof(y_wfs));
+  ind_pyr = where(y_wfs.type == "pyr");
+  if(numberof(ind_pyr)>0)
+    tmp_pup(ind_pyr) = y_wfs(ind_pyr).pyr_npts;
+  ind_roof = where(y_wfs.type == "roof");
+  if(numberof(ind_roof)>0)
+    tmp_pup(ind_roof) = y_wfs(ind_roof).pyr_npts;
+
   // create sensor object on gpu
-  if (y_wfs(1).type == "sh")
-    g_wfs = yoga_sensors(numberof(y_wfs),y_wfs(1).type,y_wfs.nxsub,y_wfs._nvalid,y_wfs.npix,y_wfs._pdiam,
-                         y_wfs._nrebin,y_wfs._Nfft,y_wfs._Ntot,y_geom._n,y_wfs._subapd,
-                         y_wfs._nphotons,y_wfs.gsalt > 0);
-  if ((y_wfs(1).type == "pyr") || (y_wfs(1).type == "roof"))
-    g_wfs = yoga_sensors(numberof(y_wfs),y_wfs(1).type,y_wfs.nxsub,y_wfs._nvalid,y_wfs.npix,y_wfs._pdiam,
-                         y_wfs._nrebin,y_wfs._Nfft,y_wfs._Ntot,y_wfs(1).pyr_npts,y_wfs._subapd,
-                         y_wfs._nphotons,y_wfs.gsalt > 0);
   if (y_wfs(1).type == "geo")
     g_wfs = yoga_sensors(numberof(y_wfs),y_wfs(1).type,y_wfs.nxsub,y_wfs._nvalid,y_wfs._pdiam,
                          y_geom._n,y_wfs._subapd);
-  
+  else
+    g_wfs = yoga_sensors(numberof(y_wfs),y_wfs.type,y_wfs.nxsub,y_wfs._nvalid,y_wfs.npix,y_wfs._pdiam,
+                         y_wfs._nrebin,y_wfs._Nfft,y_wfs._Ntot,tmp_pup,y_wfs._subapd,
+                         y_wfs._nphotons,y_wfs.gsalt > 0);
+    
   // init sensor gs object on gpu
   if (y_wfs(1).type == "geo") {
     sensors_initgs,g_wfs,y_wfs.xpos,y_wfs.ypos,y_wfs.lambda,[0](-::numberof(y_wfs)-1),
