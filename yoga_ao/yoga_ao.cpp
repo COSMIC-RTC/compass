@@ -3130,7 +3130,7 @@ void Y_controller_getdata(int argc) {
   int ncontrol = ygets_i(argc - 2);
 
   char *type_data = ygets_q(argc - 3);
-  if (strcmp(type_data, "mes2mod") == 0) {
+  if (strcmp(type_data, "U") == 0) {
     if (rtc_handler->d_control.at(ncontrol)->get_type().compare("ls") == 0) {
       SCAST(sutra_controller_ls *, control,
           rtc_handler->d_control.at(ncontrol));

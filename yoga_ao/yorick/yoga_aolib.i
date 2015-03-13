@@ -1340,7 +1340,7 @@ extern controller_getdata;
    
    yoga_rtc_obj : the yRTC object
    ncontrol     : index of given controller
-   type         : type of data "eigenvals" 
+   type         : type of data "eigenvals" , "U"
 
    SEE ALSO:
  */
@@ -1353,7 +1353,7 @@ extern controller_setdata;
    
    yoga_rtc_obj : the yRTC object
    ncontrol     : index of given controller
-   type         : type of data "eigenvals", "mes2mod", "mod2act" 
+   type         : type of data "eigenvals", "U" 
 
    SEE ALSO:
  */

@@ -137,7 +137,7 @@ func cmat_init(ncontrol,clean=,method=)
     rtc_imatsvd,g_rtc,ncontrol-1;
     write,format="svd time %f\n",tac();
     eigenv = controller_getdata(g_rtc,ncontrol-1,"eigenvals");
-    if (simul_name != []) {
+    if (simul_name != [] ) {
       U = controller_getdata(g_rtc,ncontrol-1,"U");
       fits_write,swrite(format=dirsave+"eigenv-%d-%s.fits",ncontrol,simul_name),eigenv,overwrite=1;
       fits_write,swrite(format=dirsave+"U-%d-%s.fits",ncontrol,simul_name),U,overwrite=1;
@@ -446,6 +446,7 @@ func correct_dm(imat)
 {
   extern g_dm,y_dm;
 
+  dirsave = YOGA_AO_SAVEPATH+"mat/";
   if (simul_name == []) imat_clean = 1;
 
   g_dm = 0;
@@ -461,8 +462,11 @@ func correct_dm(imat)
       dmy = *y_dm(nm)._ypos;
       dmi1 = *y_dm(nm)._i1;
       dmj1 = *y_dm(nm)._j1;
-        
-      if (imat_clean) {
+      
+      if(!imat_clean && fileExist(swrite(format=dirsave+"pztok-%d-%s.fits",nm,simul_name))){
+        ok = fits_read(swrite(format=dirsave+"pztok-%d-%s.fits",nm,simul_name));
+        nok= fits_read(swrite(format=dirsave+"pztnok-%d-%s.fits",nm,simul_name));
+      } else {
         tmp = resp(inds:inds+y_dm(nm)._ntotact-1);
         ok = where(tmp >  y_dm(nm).thresh*max(tmp));
         nok= where(tmp <= y_dm(nm).thresh*max(tmp));
@@ -470,9 +474,6 @@ func correct_dm(imat)
           fits_write,swrite(format=dirsave+"pztok-%d-%s.fits",nm,simul_name),ok,overwrite=1;
           fits_write,swrite(format=dirsave+"pztnok-%d-%s.fits",nm,simul_name),nok,overwrite=1;
         }
-      } else {
-        ok = fits_read(swrite(format=dirsave+"pztok-%d-%s.fits",nm,simul_name));
-        nok= fits_read(swrite(format=dirsave+"pztnok-%d-%s.fits",nm,simul_name));
       }
       
       y_dm(nm)._xpos    = &(dmx(ok));
