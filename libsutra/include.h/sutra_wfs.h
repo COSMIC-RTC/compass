@@ -153,8 +153,6 @@ fillbinimg_async(carma_host_obj<float> *image_telemetry, float *bimage,
     float *bcube, int npix, int nsub, int Nsub, int *ivalid, int *jvalid,
     int nim, bool add, carma_device *device);
 int
-convolve(cuFloatComplex *d_odata, cuFloatComplex *d_idata, int N, carma_device *device);
-int
 convolve_cube(cuFloatComplex *d_odata, cuFloatComplex *d_idata, int N, int n,
     carma_device *device);
 

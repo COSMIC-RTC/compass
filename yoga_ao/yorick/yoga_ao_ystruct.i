@@ -172,7 +172,7 @@ struct dm_struct
   pointer _influpos;  //
   pointer _ninflu;    // 
   pointer _influstart;//
-  
+  pointer _influkernel; // Pointer to convolution kernel for comp_dmshape
   pointer _klbas;           // pointer to a kl struct
 };
 

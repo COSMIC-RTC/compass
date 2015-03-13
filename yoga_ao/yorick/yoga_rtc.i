@@ -447,7 +447,7 @@ func correct_dm(imat)
   extern g_dm,y_dm;
 
   if (simul_name == []) imat_clean = 1;
-  
+
   g_dm = 0;
   g_dm = yoga_dms(numberof(y_dm));
     
@@ -496,8 +496,8 @@ func correct_dm(imat)
       
       yoga_loadpzt,g_dm,float(y_dm(nm).alt),float(*y_dm(nm)._influ),
         int(*y_dm(nm)._influpos),int(*y_dm(nm)._ninflu),int(*y_dm(nm)._influstart),
-        int(*y_dm(nm)._i1),int(*y_dm(nm)._j1);
-      
+        int(*y_dm(nm)._i1),int(*y_dm(nm)._j1),float(*y_dm(nm)._influkernel);
+
     } else if (y_dm(nm).type == "tt") {
         
       dim       = long(y_dm(nm)._n2-y_dm(nm)._n1+1);

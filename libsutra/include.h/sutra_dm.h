@@ -32,7 +32,12 @@ public:
   carma_obj<int> *d_istart;
   carma_obj<int> *d_xoff;
   carma_obj<int> *d_yoff;
+  carma_obj<int> *d_pos; // Convolution preprocess
   carma_obj<float> *d_KLbasis;
+  carma_obj<float> *d_kernconv; // Convolution preprocess
+  carma_obj<float> *d_mapactu; // Convolution process
+  carma_obj<cuFloatComplex> *d_ftkernconv; // Convolution process
+  carma_obj<cuFloatComplex> *d_ftmapactu; // Convolution process
   //carma_sparse_obj<float> *d_IFsparse;
   //carma_obj<float> *d_commdouble;
   //carma_obj<double> *d_shapedouble;
@@ -62,7 +67,7 @@ public:
 
   int
   pzt_loadarrays(float *influ, int *influpos, int *npoints, int *istart,
-      int *xoff, int *yoff);
+      int *xoff, int *yoff, float *kernconv);
   int
   kl_loadarrays(float *rabas, float *azbas, int *ord, float *cr, float *cp);
   int
@@ -99,6 +104,8 @@ public:
   piston_filt(carma_obj <float> *d_statcov);
   int
   set_comkl(float *comvec);
+  int
+  prepare_convolve();
 };
 
 class sutra_dms {
@@ -146,5 +153,9 @@ int
 fill_filtermat(float *filter, int nactu, int N, carma_device *device);
 int
 find_nnz(float *d_data, int N,carma_device *device);
+int
+fillpos(int threads, int blocks, int *o_data, int *xoff, int *yoff, int influsize, int nactu,int dim, int N);
+int
+fill_mapactu(int threads, int blocks, float *mapactu, int *pos, float *comvec, int nactu, int N);
 
 #endif // _SUTRA_DM_H_

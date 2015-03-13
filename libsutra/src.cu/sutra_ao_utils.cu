@@ -435,3 +435,55 @@ template int
 remove_avg<float>(float *data, int N, carma_device *device);
 template int
 remove_avg<double>(double *data, int N, carma_device *device);
+
+__global__ void conv_krnl(cuFloatComplex *odata, cuFloatComplex *idata, int N) {
+
+  int tid = threadIdx.x + blockIdx.x * blockDim.x;
+  cuFloatComplex tmp;
+
+  while (tid < N) {
+    tmp.x = idata[tid].x * odata[tid].x - idata[tid].y * odata[tid].y;
+    tmp.y = idata[tid].y * odata[tid].x + idata[tid].x * odata[tid].y;
+    odata[tid] = tmp;
+    tid += blockDim.x * gridDim.x;
+  }
+}
+
+int convolve(cuFloatComplex *d_odata, cuFloatComplex *d_idata, int N,
+    carma_device *device) {
+  int nthreads = 0, nblocks = 0;
+  getNumBlocksAndThreads(device, N, nblocks, nthreads);
+
+  dim3 grid(nblocks), threads(nthreads);
+
+  conv_krnl<<<grid, threads>>>(d_odata, d_idata, N);
+
+  cutilCheckMsg("conv_kernel<<<>>> execution failed\n");
+  return EXIT_SUCCESS;
+}
+
+__global__ void convmod_krnl(cuFloatComplex *odata, cuFloatComplex *idata,int mod, int N) {
+
+  int tid = threadIdx.x + blockIdx.x * blockDim.x;
+  cuFloatComplex tmp;
+
+  while (tid < N) {
+    tmp.x = (idata[tid].x * odata[tid].x - idata[tid].y * odata[tid].y) / mod;
+    tmp.y = (idata[tid].y * odata[tid].x + idata[tid].x * odata[tid].y) / mod;
+    odata[tid] = tmp;
+    tid += blockDim.x * gridDim.x;
+  }
+}
+
+int convolve_modulate(cuFloatComplex *d_odata, cuFloatComplex *d_idata, int mod, int N,
+    carma_device *device) {
+  int nthreads = 0, nblocks = 0;
+  getNumBlocksAndThreads(device, N, nblocks, nthreads);
+
+  dim3 grid(nblocks), threads(nthreads);
+
+  convmod_krnl<<<grid, threads>>>(d_odata, d_idata,mod, N);
+
+  cutilCheckMsg("conv_kernel<<<>>> execution failed\n");
+  return EXIT_SUCCESS;
+}

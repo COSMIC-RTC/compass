@@ -1894,9 +1894,10 @@ void Y_yoga_loadpzt(int argc) {
   int *istart = ygeta_i(argc - 6, &ntot, dims);
   int *xoff = ygeta_i(argc - 7, &ntot, dims);
   int *yoff = ygeta_i(argc - 8, &ntot, dims);
+  float *kern = ygeta_f(argc - 9, &ntot, dims);
 
   dms_handler->d_dms.at(make_pair("pzt", alt))->pzt_loadarrays(influ, influpos,
-      npoints, istart, xoff, yoff);
+					               npoints, istart, xoff, yoff, kern);
 }
 
 void Y_yoga_addkl(int argc) {
@@ -2028,6 +2029,28 @@ void Y_yoga_getcomm(int argc) {
   float *comm = ypush_f(const_cast<long*>(dms_handler->d_dms.at(make_pair(type, alt))->d_comm->getDims()));
 
   dms_handler->d_dms.at(make_pair(type, alt))->d_comm->device2host(comm);
+}
+
+void Y_yoga_getmapactu(int argc) {
+
+  dms_struct *handler = (dms_struct *) yget_obj(argc - 1, &yDMs);
+  sutra_dms *dms_handler = (sutra_dms *) (handler->sutra_dms);
+  char *type = ygets_q(argc - 2);
+  float alt = ygets_f(argc - 3);
+  float *mapactu = ypush_f(const_cast<long*>(dms_handler->d_dms.at(make_pair(type, alt))->d_mapactu->getDims()));
+
+  dms_handler->d_dms.at(make_pair(type, alt))->d_mapactu->device2host(mapactu);
+}
+
+void Y_yoga_getpos(int argc) {
+
+  dms_struct *handler = (dms_struct *) yget_obj(argc - 1, &yDMs);
+  sutra_dms *dms_handler = (sutra_dms *) (handler->sutra_dms);
+  char *type = ygets_q(argc - 2);
+  float alt = ygets_f(argc - 3);
+  int *pos = ypush_i(const_cast<long*>(dms_handler->d_dms.at(make_pair(type, alt))->d_pos->getDims()));
+
+  dms_handler->d_dms.at(make_pair(type, alt))->d_pos->device2host(pos);
 }
 
 void Y_yoga_shapedm(int argc) {

@@ -277,12 +277,14 @@ int sutra_rtc::do_centroids_geom(int ncntrl) {
   for (size_t idx_cntr = 0; idx_cntr < (this->d_centro).size(); idx_cntr++) {
 
     sutra_wfs *wfs = this->d_centro[idx_cntr]->wfs;
-    if(wfs->type != "sh"){
+    if(wfs->type == "sh"){
       sutra_wfs_sh *_wfs = dynamic_cast<sutra_wfs_sh *>(wfs);
       _wfs->slopes_geom(0,(*this->d_control[ncntrl]->d_centroids)[inds2]);
-    } else if(wfs->type != "geo"){
+
+    } else if(wfs->type == "geo"){
       sutra_wfs_geom *_wfs = dynamic_cast<sutra_wfs_geom *>(wfs);
       _wfs->slopes_geom(0,(*this->d_control[ncntrl]->d_centroids)[inds2]);
+
     } else {
       DEBUG_TRACE("wfs could be a SH or a geo");
       return EXIT_FAILURE;

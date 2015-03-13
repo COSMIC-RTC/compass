@@ -1118,6 +1118,8 @@ extern yoga_setcomm;
    comm        : command vector
    SEE ALSO:
  */
+extern yoga_getmapactu;
+extern yoga_getpos;
 
 extern yoga_getcomm;
 /* DOCUMENT yoga_getcomm

@@ -36,6 +36,7 @@ func make_pzt_dm(nm,&influ,disp=)
 
   // compute IF on partial (local) support:
   smallsize = long(ceil(2*ir+10));
+  smallsize += smallsize&1;
   y_dm(nm)._influsize = smallsize;
   x     = indgen(smallsize)(,-:1:smallsize)-smallsize/2 - 0.5;
   y     = transpose(x);
@@ -98,6 +99,16 @@ func make_pzt_dm(nm,&influ,disp=)
   influ = float(influ*fact);
   y_dm(nm)._influ = &influ;
   comp_dmgeom,nm;
+  
+  // Prepare kernel convolution for comp dm_shape
+  dims       = long(y_dm(nm)._n2-y_dm(nm)._n1+1);
+  dim       = dimsof(*y_geom._mpupil)(2);
+  if (dims >= dim) dim = dims;
+  kimg = influ(,,1);
+  kernconv = array(0.,dim,dim);
+  off = (dim - y_dm(nm)._influsize)/2;
+  kernconv(off+1:off+y_dm(nm)._influsize,off+1:off+y_dm(nm)._influsize) = kimg;
+  y_dm(nm)._influkernel = &(roll(kernconv));
 
   return influ;
 }

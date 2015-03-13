@@ -15,6 +15,11 @@ sutra_dm::sutra_dm(carma_context *context, const char* type, long dim,
   this->d_zr = NULL;
   this->d_ztheta = NULL;
   this->d_KLbasis = NULL;
+  this->d_pos = NULL;
+  this->d_kernconv = NULL;
+  this->d_ftkernconv = NULL;
+  this->d_ftmapactu = NULL;
+  this->d_mapactu = NULL;
   //this->d_IFsparse = NULL;
   //this->d_commdouble = NULL;
   //this->d_shapedouble = NULL;
@@ -34,6 +39,7 @@ sutra_dm::sutra_dm(carma_context *context, const char* type, long dim,
   dims_data1[1] = ninflu;
   this->d_comm = new carma_obj<float>(context, dims_data1);
 
+
   if (strcmp(type, "kl") != 0) {
     long *dims_data3 = new long[4];
     dims_data3[0] = 3;
@@ -49,6 +55,21 @@ sutra_dm::sutra_dm(carma_context *context, const char* type, long dim,
   }
 
   if (strcmp(type, "pzt") == 0) {
+	  // Convolution version
+	  /*
+	dims_data1[1] = 4 * ninflu;
+	this->d_pos = new carma_obj<int>(context, dims_data1);
+	long dims_data2[3] = {2,this->dim,this->dim};
+	this->d_kernconv = new carma_obj<float>(context,dims_data2);
+	this->d_mapactu = new carma_obj<float>(context,dims_data2);
+	dims_data2[2] = this->dim/2 + 1;
+	this->d_ftkernconv = new carma_obj<cuFloatComplex>(context,dims_data2);
+	this->d_ftmapactu = new carma_obj<cuFloatComplex>(context,dims_data2);
+	cufftHandle *plan = this->d_ftkernconv->getPlan();
+	cufftSafeCall(cufftPlan2d(plan, dims_data2[1], dims_data2[1], CUFFT_R2C));
+	plan = this->d_ftmapactu->getPlan();
+	cufftSafeCall(cufftPlan2d(plan, dims_data2[1], dims_data2[1], CUFFT_C2R));
+	*/
 	//this->d_IFsparse = 0L;
 	//this->d_commdouble = new carma_obj<float>(context, dims_data1);
     dims_data1[1] = ninflupos;
@@ -100,6 +121,17 @@ sutra_dm::~sutra_dm() {
     delete this->d_ztheta;
   if (this->d_KLbasis != NULL)
     delete this->d_KLbasis;
+  if (this->d_pos != NULL)
+      delete this->d_pos;
+  if (this->d_kernconv != NULL)
+      delete this->d_kernconv;
+  if (this->d_mapactu != NULL)
+      delete this->d_mapactu;
+  if (this->d_ftmapactu != NULL)
+      delete this->d_ftmapactu;
+  if (this->d_ftkernconv != NULL)
+      delete this->d_ftkernconv;
+
   /*
   if (this->d_IFsparse != NULL)
     delete this->d_IFsparse;
@@ -110,8 +142,21 @@ sutra_dm::~sutra_dm() {
     */
 }
 
+int sutra_dm::prepare_convolve(){
+
+	current_context->set_activeDevice(device,1);
+	int nthreads = 0, nblocks = 0;
+	getNumBlocksAndThreads(current_context->get_device(device), this->d_pos->getNbElem(),
+	      nblocks, nthreads);
+	fillpos(nthreads, nblocks, this->d_pos->getData(), this->d_xoff->getData(),
+			this->d_yoff->getData(), this->influsize, this->ninflu, this->dim, this->d_pos->getNbElem());
+	carma_fft(this->d_kernconv->getData(),this->d_ftkernconv->getData(),1,*this->d_ftkernconv->getPlan());
+
+	return EXIT_SUCCESS;
+}
+
 int sutra_dm::pzt_loadarrays(float *influ, int *influpos, int *npoints,
-    int *istart, int *xoff, int *yoff) {
+    int *istart, int *xoff, int *yoff, float *kernconv) {
   current_context->set_activeDevice(device,1);
   this->d_influ->host2device(influ);
   this->d_xoff->host2device(xoff);
@@ -119,6 +164,9 @@ int sutra_dm::pzt_loadarrays(float *influ, int *influpos, int *npoints,
   this->d_istart->host2device(istart);
   this->d_influpos->host2device(influpos);
   this->d_npoints->host2device(npoints);
+  //this->d_kernconv->host2device(kernconv);
+  //this->prepare_convolve();
+
   /*
   int *osef;
   this->get_IF_sparse(this->d_IFsparse,osef,this->d_shape->d_screen->getNbElem(),1.0f,0);
@@ -159,6 +207,24 @@ int sutra_dm::comp_shape(float *comvec) {
       nblocks, nthreads);
 
   if (this->type == "pzt"){
+	  //Convolution version
+	  /*
+	  int threads = 0, blocks = 0;
+
+	    getNumBlocksAndThreads(current_context->get_device(device), this->d_pos->getNbElem(),
+	        blocks, threads);
+		fill_mapactu(threads, blocks, this->d_mapactu->getData(),
+				this->d_pos->getData(), comvec, this->ninflu, this->d_pos->getNbElem());
+		carma_fft(this->d_mapactu->getData(), this->d_ftmapactu->getData(), 1,
+				*this->d_ftkernconv->getPlan());
+		convolve_modulate(this->d_ftmapactu->getData(),
+				this->d_ftkernconv->getData(), this->dim * this->dim,
+				this->d_ftmapactu->getNbElem(),
+				this->current_context->get_device(device));
+		carma_fft(this->d_ftmapactu->getData(),
+				this->d_shape->d_screen->getData(), -1,
+				*this->d_ftmapactu->getPlan());
+	*/
 	  //IFsparse version
 	  /*
 	floattodouble(comvec,d_commdouble->getData(),this->ninflu,current_context->get_device(device));

@@ -326,3 +326,53 @@ multi_vect(float *d_data, float gain, int N, carma_device *device) {
   return EXIT_SUCCESS;
 }
 
+__global__ void
+fillpos_krnl(int *pos, int *xoff, int *yoff, int size, int nactu, int dim, int N){
+	int tid = threadIdx.x + blockIdx.x * blockDim.x;
+	if(tid < N){
+		int pix = tid / nactu;
+		int actu = tid - pix * nactu;
+
+		if(pix == 0) pos[tid] = (xoff[actu] + size/2) + (yoff[actu] + size/2) * dim;
+		if(pix == 1) pos[tid] = (xoff[actu]-1 + size/2) + (yoff[actu] + size/2) * dim;
+		if(pix == 2) pos[tid] = (xoff[actu] + size/2) + (yoff[actu]-1 + size/2) * dim;
+		if(pix == 3) pos[tid] = (xoff[actu]-1 + size/2) + (yoff[actu]-1 + size/2) * dim;
+	}
+}
+
+int
+fillpos(int threads, int blocks, int *pos, int *xoff, int *yoff, int size, int nactu, int dim, int N){
+	dim3 dimBlock(threads, 1, 1);
+	dim3 dimGrid(blocks, 1, 1);
+
+	fillpos_krnl<<<dimGrid,dimBlock>>>(pos,xoff,yoff,size,nactu,dim,N);
+
+	cutilCheckMsg("fillpos_kernel<<<>>> execution failed\n");
+
+	return EXIT_SUCCESS;
+}
+
+__global__ void
+fillmapactu_krnl(float *mapactu, float *comvec, int *pos, int nactu, int N){
+	int tid = threadIdx.x + blockIdx.x * blockDim.x;
+	if(tid < N){
+		int pix = tid / nactu;
+		int actu = tid - pix * nactu;
+
+		mapactu[pos[tid]] = comvec[actu]/4.0f;
+	}
+
+}
+
+int
+fill_mapactu(int threads, int blocks, float *mapactu, int *pos, float *comvec, int nactu, int N){
+	dim3 dimBlock(threads, 1, 1);
+	dim3 dimGrid(blocks, 1, 1);
+
+	fillmapactu_krnl<<<dimGrid,dimBlock>>>(mapactu,comvec,pos,nactu,N);
+
+	cutilCheckMsg("fillmapactu_kernel<<<>>> execution failed\n");
+
+	return EXIT_SUCCESS;
+}
+

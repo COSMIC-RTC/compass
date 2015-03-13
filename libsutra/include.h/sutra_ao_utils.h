@@ -13,6 +13,11 @@ abs2(float *d_odata, cuFloatComplex *d_idata, int N, carma_device *device);
 int
 abs2c(cuFloatComplex *d_odata, cuFloatComplex *d_idata, int N, carma_device *device);
 int
+convolve(cuFloatComplex *d_odata, cuFloatComplex *d_idata, int N,carma_device *device);
+int
+convolve_modulate(cuFloatComplex *d_odata, cuFloatComplex *d_idata, int mod, int N,
+    carma_device *device);
+int
 subap_norm(float *d_odata, float *d_idata, float *fact, float *norm,
     float nphot, int n, int N, carma_device *device);
 int
@@ -49,5 +54,6 @@ sutra_invgene(carma_obj<T> *imat, carma_obj<T> *cmat, carma_obj<T> *eigenvals,
 template<class T>
 int
 remove_avg(T *data, int N, carma_device *device);
+
 
 #endif // _SUTRA_AO_UTILS_H_
