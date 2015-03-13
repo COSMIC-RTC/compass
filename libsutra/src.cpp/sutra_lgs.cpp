@@ -180,7 +180,7 @@ int sutra_lgs::lgs_makespot(carma_device *device, int nin) {
   // get abs of real and roll
   cuFloatComplex *data = this->d_prof2d->getData();
   rollbeamexp(this->d_lgskern->getData(), &(data[nin]), this->d_beam->getData(),
-      this->npix, this->d_lgskern->getNbElem(), device);
+      this->npix, this->npix*this->npix*this->nmaxhr/*this->d_lgskern->getNbElem()*/, device);
 
   // rotate image and fill kernels ft
   float *data2 = this->d_azimuth->getData();
@@ -204,7 +204,7 @@ int sutra_lgs::lgs_makespot(carma_device *device, int nin) {
 int sutra_lgs::load_kernels(float *lgskern, carma_device *device) {
   this->d_lgskern->host2device(lgskern);
   cfillrealp(this->d_ftlgskern->getData(), this->d_lgskern->getData(),
-      this->d_ftlgskern->getNbElem(), device);
+      /*this->d_ftlgskern->getNbElem()*/this->npix*this->npix*this->nmaxhr, device);
   carma_fft(this->d_ftlgskern->getData(), this->d_ftlgskern->getData(), 1,
       *this->ftlgskern_plan);
 

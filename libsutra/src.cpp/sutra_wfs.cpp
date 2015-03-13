@@ -115,18 +115,19 @@ sutra_sensors::sutra_sensors(carma_context *context, char **type, int nwfs,
       maxnfft = nfft[i];
       wfs4nfft = i;
     }
-    if (ntot[i] == nfft[i]) {
-      if (nvalid[i] > maxnvalid) {
-        maxnvalid = nvalid[i];
-      }
-    }
-    if (lgs[i] > 0)
-      is_lgs = 1;
-  }
-  //DEBUG_TRACE("maxntot : %d maxnfft : %d maxnvalid : %d nvalid[wfs4nfft] : %d nmaxhr : %d\n ",maxntot,maxnfft,maxnvalid,nvalid[wfs4nfft],compute_nmaxhr(nvalid[wfs4ntot]));
-  long dims_data3[4] = { 3, maxnfft, maxnfft, nvalid[wfs4nfft] };
-  this->d_camplifoc = new carma_obj<cuFloatComplex>(context, dims_data3);
-  this->d_camplipup = new carma_obj<cuFloatComplex>(context, dims_data3);
+	if (ntot[i] == nfft[i]) {
+		if (nvalid[i] > maxnvalid) {
+				maxnvalid = nvalid[i];
+		}
+	}
+	if(lgs[i]>0)
+		is_lgs = 1;
+	}
+	//DEBUG_TRACE("maxntot : %d maxnfft : %d maxnvalid : %d nvalid[wfs4nfft] : %d nmaxhr : %d\n ",maxntot,maxnfft,maxnvalid,nvalid[wfs4nfft],compute_nmaxhr(nvalid[wfs4ntot]));
+	long dims_data3[4] = {3,maxnfft,maxnfft,maxnvalid};
+	this->d_camplifoc = new carma_obj<cuFloatComplex>(context, dims_data3);
+	this->d_camplipup = new carma_obj<cuFloatComplex>(context, dims_data3);
+
 
   dims_data3[1] = maxntot;
   dims_data3[2] = maxntot;

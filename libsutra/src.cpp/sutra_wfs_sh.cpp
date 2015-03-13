@@ -305,6 +305,15 @@ int sutra_wfs_sh::wfs_initarrays(int *phasemap, int *hrmap, int *binmap,
 
 int sutra_wfs_sh::comp_generic() {
   current_context->set_activeDevice(device,1);
+  cutilSafeCall(
+        cudaMemset(this->d_camplipup->getData(), 0,
+            sizeof(cuFloatComplex) * this->d_camplipup->getNbElem()));
+  cutilSafeCall(
+        cudaMemset(this->d_camplifoc->getData(), 0,
+            sizeof(cuFloatComplex) * this->d_camplifoc->getNbElem()));
+  cutilSafeCall(
+        cudaMemset(this->d_fttotim->getData(), 0,
+            sizeof(cuFloatComplex) * this->d_fttotim->getNbElem()));
 
   // segment phase and fill cube of complex ampli with exp(i*phase_seg)
   fillcamplipup(this->d_camplipup->getData(),
