@@ -973,11 +973,12 @@ extern yoga_addpzt;
    SEE ALSO:
  */
 
-extern yoga_rmpzt;
-/* DOCUMENT yoga_rmpzt
-   yoga_rmpzt,yoga_dms_obj,alt
-   remove a pzt dm from yoga_dms_obj object
-      
+extern yoga_rmdm;
+/* DOCUMENT yoga_rmdm
+   yoga_rmdm,yoga_dms_obj,type,alt
+   remove a dm from yoga_dms_obj object
+   
+   type        : type of DM
    alt         : conjugated altitude
    SEE ALSO:
  */

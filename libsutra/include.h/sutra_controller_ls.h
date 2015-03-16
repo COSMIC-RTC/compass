@@ -41,7 +41,7 @@ public:
 
 public:
   sutra_controller_ls(carma_context *context, long nvalid, long nactu,
-      long delay);
+      long delay, sutra_dms *dms, char **type, float *alt, int ndm);
   sutra_controller_ls(const sutra_controller_ls& controller);
   ~sutra_controller_ls();
 

@@ -1871,13 +1871,13 @@ void Y_yoga_addpzt(int argc) {
       ninflupos, n_npts, push4imat, odevice);
 }
 
-void Y_yoga_rmpzt(int argc) {
+void Y_yoga_rmdm(int argc) {
   dms_struct *handler = (dms_struct *) yget_obj(argc - 1, &yDMs);
   sutra_dms *dms_handler = (sutra_dms *) (handler->sutra_dms);
-  //char *type            = ygets_q(argc-2);
-  float alt = ygets_f(argc - 2);
+  char *type            = ygets_q(argc-2);
+  float alt = ygets_f(argc - 3);
 
-  dms_handler->remove_dm("pzt", alt);
+  dms_handler->remove_dm(type, alt);
 }
 
 void Y_yoga_loadpzt(int argc) {
@@ -2338,23 +2338,32 @@ void Y_rtc_addcentro(int argc) {
 }
 
 void Y_rtc_addcontrol(int argc) {
+  long ntot;
+  long dims[Y_DIMSIZE];
+
   rtc_struct *rhandler = (rtc_struct *) yget_obj(argc - 1, &yRTC);
   sutra_rtc *rtc_handler = (sutra_rtc *) (rhandler->sutra_rtc);
   long nactu = ygets_l(argc - 2);
   long delay = ygets_l(argc - 3);
   char *type_control = ygets_q(argc - 4);
+  dms_struct *handlera = (dms_struct *) yget_obj(argc - 5, &yDMs);
+  sutra_dms *dms_handler = (sutra_dms *) (handlera->sutra_dms);
+  ystring_t *type_dmseen = ygeta_q(argc - 6, &ntot, dims);
+  float *alt = ygeta_f(argc - 7, &ntot, dims);
+  int ndm = ygets_i(argc - 8);
+
 
   carma_context *context_handle = _getCurrentContext();
   int activeDevice = context_handle->set_activeDeviceForCpy(rhandler->device,1);
 
-  if (argc > 4){
-    long Nphi = ygets_l(argc - 5);
-    rtc_handler->add_controller_geo(nactu, Nphi, delay, activeDevice);
+  if (argc > 8){
+    long Nphi = ygets_l(argc - 9);
+    rtc_handler->add_controller_geo(nactu, Nphi, delay, activeDevice,dms_handler,type_dmseen,alt,ndm);
   }
   //rtc_struct *handle    =(rtc_struct *)ypush_obj(&yRTC, sizeof(rtc_struct));
 
   else
-    rtc_handler->add_controller(nactu, delay, activeDevice, type_control);
+    rtc_handler->add_controller(nactu, delay, activeDevice, type_control,dms_handler,type_dmseen,alt,ndm);
 }
 
 void Y_rtc_rmcontrol(int argc) {

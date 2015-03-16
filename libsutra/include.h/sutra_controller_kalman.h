@@ -29,7 +29,7 @@ class kp_kalman_core_full;
 
 class sutra_controller_kalman: public sutra_controller {
 public:
-   sutra_controller_kalman(carma_context* context, int nvalid_, int nactu_);
+   sutra_controller_kalman(carma_context* context, int nvalid_, int nactu_, sutra_dms *dms, char **type, float *alt, int ndm);
 
    ~sutra_controller_kalman();
    

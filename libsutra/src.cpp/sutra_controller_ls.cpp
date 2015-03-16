@@ -2,8 +2,8 @@
 #include <string>
 
 sutra_controller_ls::sutra_controller_ls(carma_context *context, long nvalid,
-    long nactu, long delay) :
-    sutra_controller(context, nvalid * 2, nactu) {
+    long nactu, long delay, sutra_dms *dms, char **type, float *alt, int ndm) :
+    sutra_controller(context, nvalid * 2, nactu, dms, type, alt, ndm) {
   this->d_imat = 0L;
   this->d_cmat = 0L;
   this->d_eigenvals = 0L;

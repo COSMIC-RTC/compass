@@ -3,8 +3,9 @@
 #include <cured.h>
 
 sutra_controller_cured::sutra_controller_cured(carma_context *context,
-					       long nvalid, long nactu, long delay) :
-    sutra_controller(context, nvalid * 2, nactu) {
+		long nvalid, long nactu, long delay, sutra_dms *dms, char **type,
+		float *alt, int ndm) :
+		sutra_controller(context, nvalid * 2, nactu, dms, type, alt, ndm) {
 
   this->gain = 0;
   this->delay = delay;

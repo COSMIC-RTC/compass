@@ -706,10 +706,10 @@ func rtc_init(clean=, brama=)
           tic;
           //if (controllers(i).type  == "cured") {
           if (y_wfs(1).type == "sh")
-            imat = imat_geom(meth=0);
+            imat = imat_geom(i,meth=0);
           else
             imat = manual_imat();
-          correct_dm,imat;
+          correct_dm,imat,i;
           write,format = "done in : %f s\n",tac();  
 
           //} 
@@ -722,9 +722,9 @@ func rtc_init(clean=, brama=)
           controllers(i).nactu  = &(y_dm(ndms)._ntotact);
 
           if (controllers(i).type == "geo")
-            rtc_addcontrol,g_rtc,sum(y_dm(ndms)._ntotact),controllers(i).delay,controllers(i).type,numberof(where(*y_geom._spupil));
+            rtc_addcontrol,g_rtc,sum(y_dm(ndms)._ntotact),controllers(i).delay,controllers(i).type,numberof(where(*y_geom._spupil)),g_dm,y_dm(*y_controllers(i).ndm).type,y_dm(*y_controllers(i).ndm).alt,numberof(*y_controllers(i).ndm);
           else
-            rtc_addcontrol,g_rtc,sum(y_dm(ndms)._ntotact),controllers(i).delay,controllers(i).type;
+            rtc_addcontrol,g_rtc,sum(y_dm(ndms)._ntotact),controllers(i).delay,controllers(i).type,g_dm,y_dm(*y_controllers(i).ndm).type,y_dm(*y_controllers(i).ndm).alt,numberof(*y_controllers(i).ndm);
 
           if (controllers(i).type == "geo") {
             indx_pup = where(*y_geom._spupil);

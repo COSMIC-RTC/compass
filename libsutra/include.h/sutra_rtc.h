@@ -36,15 +36,17 @@ public:
 		 char *typec);
   int
     rm_centroider();
-  int
-  add_controller_geo(int nactu, int Nphi, long delay, long device);
-  int
-    add_controller(int nactu, long delay, long device, const char *typec);
-  int
-    rm_controller();
+	int
+	add_controller_geo(int nactu, int Nphi, long delay, long device,
+			sutra_dms *dms, char **type_dmseen, float *alt, int ndm);
+	int
+	add_controller(int nactu, long delay, long device, const char *typec,
+			sutra_dms *dms, char **type_dmseen, float *alt, int ndm);
+	int
+	rm_controller();
 
   int
-    do_imat(int ncntrl, sutra_dms *ydm);
+    do_imat(int ncntrl, sutra_dms *ydms);
   int
     do_imatkl(int ncntrl, sutra_dms *ydms);
   int

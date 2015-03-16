@@ -65,15 +65,15 @@ int sutra_rtc::add_centroider(sutra_sensors *sensors, int nwfs, long nvalid, flo
 }
 
 int sutra_rtc::add_controller_geo(int nactu, int Nphi, long delay,
-    long device) {
+    long device, sutra_dms *dms, char **type_dmseen, float *alt, int ndm) {
   current_context->set_activeDevice(device,1);
   this->d_control.push_back(
-      new sutra_controller_geo(current_context, nactu, Nphi, delay));
+      new sutra_controller_geo(current_context, nactu, Nphi, delay, dms, type_dmseen, alt, ndm));
   return EXIT_SUCCESS;
 }
 
 int sutra_rtc::add_controller(int nactu, long delay, long device,
-    const char *typec) {
+    const char *typec, sutra_dms *dms, char **type_dmseen, float *alt, int ndm) {
   current_context->set_activeDevice(device,1);
   int ncentroids = 0;
   for (size_t idx = 0; idx < (this->d_centro).size(); idx++)
@@ -83,17 +83,17 @@ int sutra_rtc::add_controller(int nactu, long delay, long device,
   string type_ctr(typec);
   if (type_ctr.compare("ls") == 0) {
     d_control.push_back(
-        new sutra_controller_ls(current_context, ncentroids, nactu, delay));
+        new sutra_controller_ls(current_context, ncentroids, nactu, delay, dms, type_dmseen, alt, ndm));
   } else if (type_ctr.compare("cured") == 0) {
     d_control.push_back(
-        new sutra_controller_cured(current_context, ncentroids, nactu, delay));
+        new sutra_controller_cured(current_context, ncentroids, nactu, delay, dms, type_dmseen, alt, ndm));
   } else if (type_ctr.compare("mv") == 0) {
     d_control.push_back(
-        new sutra_controller_mv(current_context, ncentroids, nactu, delay));
+        new sutra_controller_mv(current_context, ncentroids, nactu, delay, dms, type_dmseen, alt, ndm));
   } else if ((type_ctr.compare("kalman_GPU") == 0)
       || (type_ctr.compare("kalman_CPU") == 0)) {
     d_control.push_back(
-        new sutra_controller_kalman(current_context, ncentroids, nactu));
+        new sutra_controller_kalman(current_context, ncentroids, nactu, dms, type_dmseen, alt, ndm));
   } else {
     DEBUG_TRACE("Controller '%s' unknown\n", typec);
     return EXIT_FAILURE;
@@ -128,10 +128,10 @@ int sutra_rtc::do_imat(int ncntrl, sutra_dms *ydm) {
   }
 
   map<type_screen, sutra_dm *>::iterator p;
-  p = ydm->d_dms.begin();
+  p = this->d_control[ncntrl]->d_dmseen.begin();
   int inds1;
   inds1 = 0;
-  while (p != ydm->d_dms.end()) {
+  while (p != this->d_control[ncntrl]->d_dmseen.end()) {
     for (int j = 0; j < p->second->ninflu; j++) {
       // Push
       p->second->comp_oneactu(j, p->second->push4imat);
@@ -197,10 +197,10 @@ int sutra_rtc::do_imat_geom(int ncntrl, sutra_dms *ydm,
     int type) {
   current_context->set_activeDevice(device,1);
   map<type_screen, sutra_dm *>::iterator p;
-  p = ydm->d_dms.begin();
+  p = this->d_control[ncntrl]->d_dmseen.begin();
   int inds1, inds2;
   inds1 = 0;
-  while (p != ydm->d_dms.end()) {
+  while (p != this->d_control[ncntrl]->d_dmseen.end()) {
     for (int j = 0; j < p->second->ninflu; j++) {
       p->second->comp_oneactu(j, p->second->push4imat); //
       inds2 = 0;
@@ -311,14 +311,14 @@ int sutra_rtc::apply_control(int ncntrl, sutra_dms *ydm) {
   current_context->set_activeDevice(device,1);
 
   map<type_screen, sutra_dm *>::iterator p;
-  p = ydm->d_dms.begin();
+  p = this->d_control[ncntrl]->d_dmseen.begin();
   int idx = 0;
   if ((this->d_control[ncntrl]->get_type().compare("ls") == 0)
       || (this->d_control[ncntrl]->get_type().compare("mv") == 0)
       || (this->d_control[ncntrl]->get_type().compare("geo") == 0)) {
     // "streamed" controllers case
 
-    while (p != ydm->d_dms.end()) {
+    while (p != this->d_control[ncntrl]->d_dmseen.end()) {
       int nstreams = this->d_control[ncntrl]->streams->get_nbStreams();
       if (nstreams > p->second->ninflu) {
         for (int i = 0; i < nstreams; i++) {
@@ -338,7 +338,7 @@ int sutra_rtc::apply_control(int ncntrl, sutra_dms *ydm) {
       p++;
     }
   } else { // "non-streamed" controllers
-    while (p != ydm->d_dms.end()) {
+    while (p != this->d_control[ncntrl]->d_dmseen.end()) {
       p->second->comp_shape((*this->d_control[ncntrl]->d_com)[idx]);
       idx += p->second->ninflu;
       p++;

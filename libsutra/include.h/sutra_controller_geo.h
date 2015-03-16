@@ -21,7 +21,7 @@ public:
 
 public:
   sutra_controller_geo(carma_context *context, long nactu, long Nphi,
-      long delay);
+      long delay, sutra_dms *dms, char **type, float *alt, int ndm);
   sutra_controller_geo(const sutra_controller_geo& controller);
   ~sutra_controller_geo();
 

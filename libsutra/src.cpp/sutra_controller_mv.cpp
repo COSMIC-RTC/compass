@@ -3,8 +3,8 @@
 #include <string>
 
 sutra_controller_mv::sutra_controller_mv(carma_context *context, long nvalid,
-    long nactu_, long delay) :
-    sutra_controller(context, nvalid * 2, nactu_) {
+    long nactu_, long delay, sutra_dms *dms, char **type, float *alt, int ndm) :
+    sutra_controller(context, nvalid * 2, nactu_, dms, type, alt, ndm) {
 
 
   this->delay = delay;

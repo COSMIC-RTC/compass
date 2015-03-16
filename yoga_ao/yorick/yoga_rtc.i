@@ -292,17 +292,25 @@ func manual_cmat(ncontrol,nfilt)
   return cmat;
 }
 
-func imat_geom(meth=)
+func imat_geom(ncontrol,meth=)
 {
   if (meth == []) meth = 0;
-  slps = sensors_getslopes(g_wfs,0);
-  nslp = numberof(slps);
+  nwfs = numberof(*y_controllers(ncontrol).nwfs);
+  ndm = numberof(*y_controllers(ncontrol).ndm);
+  nslp = 0;
+  for(i=1 ; i<=nwfs ; i++){
+    wfs = ((*y_controllers(ncontrol).nwfs)(i) - 1)(1);
+    slps = sensors_getslopes(g_wfs,wfs);
+    nslp += numberof(slps);
+  }
   imat_cpu = slps(,-);
   
-  for (nm=1;nm<=numberof(y_dm);nm++)
+  for (nmc=1 ; nmc<=ndm ; nmc++)
+    nm = (*y_controllers(ncontrol).ndm)(nmc)(1);
     yoga_resetdm,g_dm,y_dm(nm).type,y_dm(nm).alt;
   
-  for (nm=1;nm<=numberof(y_dm);nm++) {
+  for (nmc=1 ; nmc<=ndm ; nmc++) {
+    nm = (*y_controllers(ncontrol).ndm)(nmc)(1);
     for (i=1;i<=y_dm(nm)._ntotact;i++) {
       /*
       com = array(0.,y_dm(nm)._ntotact);
@@ -313,18 +321,23 @@ func imat_geom(meth=)
       yoga_oneactu,g_dm,y_dm(nm).type,y_dm(nm).alt,i-1,float(y_dm(nm).push4imat);
       //dm_shape = yoga_getdm(g_dm,y_dm(nm).type,y_dm(nm).alt);
       //window,0;pli,dm_shape;
+      slps = 0.;
+      slps = slps(,-);
+      for(nw = 1 ; nw<=nwfs ; nw++){
+	wfs = ((*y_controllers(ncontrol).nwfs)(nw) - 1)(1);
+	sensors_trace,g_wfs,wfs,"dm",g_dm,1;
       
-      sensors_trace,g_wfs,0,"dm",g_dm,1;
       
       //mscreen = sensors_getdata(g_wfs,0,"phase");
       //window,1;pli,mscreen;
       //hitReturn;
 
-      slopes_geom,g_wfs,0,meth;
+	slopes_geom,g_wfs,wfs,meth;
       
-      slps = sensors_getslopes(g_wfs,0);
+	grow,slps,sensors_getslopes(g_wfs,wfs);
+      }
       
-      grow,imat_cpu,slps/float(y_dm(nm).push4imat);
+      grow,imat_cpu,slps(2:)/float(y_dm(nm).push4imat);
       
       //fma;limits;
       //display_slopes,slps,1,"Phase Difference";
@@ -442,21 +455,29 @@ func findMaxParaboloid(corrMap,sizex,sizey,&imat)
   return res;
 }
 
-func correct_dm(imat)
+func correct_dm(imat,ncontrol)
 {
   extern g_dm,y_dm;
 
   dirsave = YOGA_AO_SAVEPATH+"mat/";
   if (simul_name == []) imat_clean = 1;
-
+  /*
   g_dm = 0;
   g_dm = yoga_dms(numberof(y_dm));
-    
+  */
+  for(i=1 ; i<= numberof(*y_controllers(ncontrol).ndm) ; i++){
+    nm = ((*y_controllers(ncontrol).ndm)(i))(1);
+    yoga_rmdm,g_dm,y_dm(nm).type,y_dm(nm).alt;
+  }
   resp = sqrt((imat^2.)(sum,));
 
-  for (nm=1;nm<=numberof(y_dm);nm++) {
+  inds = 1;
+  ndm = numberof(*y_controllers(ncontrol).ndm);
+  for (nmc=1 ; nmc<=ndm ; nmc++) {
+    nm = (*y_controllers(ncontrol).ndm)(nmc)(1);
+    nactu_nm = y_dm(nm)._ntotact;
     // filter actuators only in stackarray mirrors:
-    inds = 1;
+    
     if (y_dm(nm).type == "pzt") {
       dmx = *y_dm(nm)._xpos;
       dmy = *y_dm(nm)._ypos;
@@ -520,7 +541,7 @@ func correct_dm(imat)
         float(*(*y_dm(nm)._klbas).cp)(*);
     }
     
-    inds += y_dm(nm)._ntotact;
+    inds += nactu_nm;
   }
 
 

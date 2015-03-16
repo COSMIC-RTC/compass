@@ -2,7 +2,7 @@
 #include <string>
 
 sutra_controller::sutra_controller(carma_context* context, int nslope,
-    int nactu) {
+    int nactu, sutra_dms *dms, char **type, float *alt, int ndm) {
   this->current_context = context;
   this->device = context->get_activeDevice();
   //current_context->set_activeDevice(device,1);
@@ -20,6 +20,10 @@ sutra_controller::sutra_controller(carma_context* context, int nslope,
   this->d_centroids = new carma_obj<float>(context, dims_data1);
   dims_data1[1] = nactu;
   this->d_com = new carma_obj<float>(context, dims_data1);
+
+  for(int i=0 ; i<ndm ; i++){
+	  this->d_dmseen[make_pair(type[i],alt[i])] = dms->d_dms[make_pair(type[i],alt[i])];
+  }
 
 }
 

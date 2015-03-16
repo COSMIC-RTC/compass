@@ -27,7 +27,7 @@ public:
 
 public:
   sutra_controller_cured(carma_context *context, long nvalid, long nactu,
-			 long delay);
+			 long delay, sutra_dms *dms, char **type, float *alt, int ndm);
   sutra_controller_cured(const sutra_controller_cured& controller);
   ~sutra_controller_cured();
 

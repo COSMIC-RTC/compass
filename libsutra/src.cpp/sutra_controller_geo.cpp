@@ -1,8 +1,8 @@
 #include <sutra_controller_geo.h>
 
 sutra_controller_geo::sutra_controller_geo(carma_context *context, long nactu, long Nphi,
-      long delay):
-      sutra_controller(context, 0, nactu){
+      long delay, sutra_dms *dms, char **type, float *alt, int ndm):
+      sutra_controller(context, 0, nactu, dms, type, alt, ndm){
 
 	this->delay = delay;
 	this->device = device;

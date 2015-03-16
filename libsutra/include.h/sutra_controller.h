@@ -14,7 +14,8 @@ class sutra_controller {
 public:
 
   //allocation of d_centroids and d_com
-  sutra_controller(carma_context* context, int nslope, int nactu);
+	sutra_controller(carma_context* context, int nslope, int nactu,
+			sutra_dms *dms, char **type, float *alt, int ndm);
   virtual
   ~sutra_controller();
 
@@ -49,6 +50,7 @@ public:
 //I would propose to make them protected (+ proper
 //set of fuctions). It could make life easier!
 //But we should discuss it
+  map <type_screen,sutra_dm *> d_dmseen;
   carma_obj<float> *d_centroids; // current centroids
   carma_obj<float> *d_com; // current command
 
