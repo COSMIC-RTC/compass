@@ -57,6 +57,10 @@ void carma_sparse_obj<T_data>::init_carma_sparse_obj(carma_context *current_cont
 			  this->d_data, this->d_rowind, this->d_colind);
   }
   format = "CSR";
+#ifndef USE_MAGMA_SPARSE
+  d_spMat=s_spMat=0L;
+#endif
+
 
   cudaFree(nnzPerRow);
   if (loadFromHost) {
@@ -136,7 +140,10 @@ carma_sparse_obj<T_data>::carma_sparse_obj(
   cudaMemcpy(d_colind, M->d_colind, nz_elem*sizeof(int), cudaMemcpyDeviceToDevice);
 
   majorDim = M->majorDim;
-  this->format = M->format;
+  format = M->format;
+
+  d_spMat = M->d_spMat;
+  s_spMat = M->s_spMat;
 
   cusparseSetMatDiagType(descr, cusparseGetMatDiagType(M->descr));
   cusparseSetMatFillMode(descr, cusparseGetMatFillMode(M->descr));
@@ -162,7 +169,8 @@ carma_sparse_obj<T_data>::carma_sparse_obj(carma_context *current_context,
       cudaMemcpyHostToDevice);
 
   majorDim = M->get_majorDim();
-  this->format = "CSR";
+  format = "CSR";
+
 }
 
 template<class T_data>
@@ -174,6 +182,9 @@ void carma_sparse_obj<T_data>::operator=( carma_sparse_obj<T_data> &M) {
 
   majorDim = M.majorDim;
   this->format = M.format;
+
+  d_spMat = M.d_spMat;
+  s_spMat = M.s_spMat;
 
   cusparseSetMatDiagType(descr, cusparseGetMatDiagType(M.descr));
   cusparseSetMatFillMode(descr, cusparseGetMatFillMode(M.descr));
@@ -233,9 +244,7 @@ void carma_sparse_obj<T_data>::_create(int nz_elem_, int dim1_, int dim2_) {
 
   status = cusparseCreateMatDescr(&descr);
   if (status != CUSPARSE_STATUS_SUCCESS) {
-    cerr
-        << "Error | carma_sparse_obj<T_data>::_create | Matrix descriptor initialization failed"
-        << endl;
+    DEBUG_TRACE("Error | carma_sparse_obj<T_data>::_create | Matrix descriptor initialization failed");
     throw "Error | carma_sparse_obj<T_data>::_create | Matrix descriptor initialization failed";
     //exit(EXIT_FAILURE);
 
@@ -250,11 +259,11 @@ void carma_sparse_obj<T_data>::_create(int nz_elem_, int dim1_, int dim2_) {
 template<class T_data>
 void carma_sparse_obj<T_data>::_clear() {
   cusparseStatus_t status;
-
+//DEBUG_TRACE("clear %p : d_data %p d_rowind %p d_colind %p", this, d_data, d_rowind, d_colind);
   if (nz_elem > 0) {
     if ( d_data == NULL
         || d_rowind == NULL || d_colind == NULL) {
-      cerr << "Error | carma_sparse_obj<T_data>::_clear | double clear" << endl;
+      DEBUG_TRACE("Error | carma_sparse_obj<T_data>::_clear | double clear");
       throw "Error | carma_sparse_obj<T_data>::_clear | double clear";
     }
     cudaFree(d_data);
@@ -270,14 +279,14 @@ void carma_sparse_obj<T_data>::_clear() {
   dims_data[2] = 0;
   majorDim = 'U';
 
+//  DEBUG_TRACE("clear %p : d_data %p d_rowind %p d_colind %p", this, d_data, d_rowind, d_colind);
   status = cusparseDestroyMatDescr(descr);
+//  DEBUG_TRACE("clear %p : d_data %p d_rowind %p d_colind %p", this, d_data, d_rowind, d_colind);
 
   descr = 0;
 
   if (status != CUSPARSE_STATUS_SUCCESS) {
-    cerr
-        << "Error | carma_sparse_obj<T_data>::_clear | Matrix descriptor destruction failed"
-        << endl;
+    DEBUG_TRACE("Error | carma_sparse_obj<T_data>::_clear | Matrix descriptor destruction failed");
     throw "Error | carma_sparse_obj<T_data>::_clear | Matrix descriptor destruction failed";
     //exit(EXIT_FAILURE);
   }
@@ -291,6 +300,9 @@ void carma_sparse_obj<T_data>::init_from_transpose(
   cudaMemcpy(d_data, M->d_data, nz_elem*sizeof(T_data), cudaMemcpyDeviceToDevice);
   cudaMemcpy(d_rowind, M->d_rowind, (M->getDims(1)+1)*sizeof(int), cudaMemcpyDeviceToDevice);
   cudaMemcpy(d_colind, M->d_colind, nz_elem*sizeof(int), cudaMemcpyDeviceToDevice);
+
+  d_spMat = M->d_spMat;
+  s_spMat = M->s_spMat;
 
   if (M->majorDim == 'C')
     majorDim = 'R';
@@ -328,6 +340,10 @@ bool carma_sparse_obj<T_data>::isColumnMajor() {
 
 template<class T_data>
 carma_sparse_obj<T_data>::~carma_sparse_obj<T_data>() {
+#ifdef USE_MAGMA_SPARSE
+  carma_sparse_magma_free<T_data>(this);
+#endif
+
   _clear();
 }
 

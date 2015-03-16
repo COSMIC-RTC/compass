@@ -54,7 +54,7 @@ enum CUTBoolean {
 //#define CUSafeCall(err)              err
 //#define cutilSafeCallNoSync(err)     err
 //#define cutilSafeCall(err)           err
-//#define cutilSafeThreadSync()        cudaThreadSynchronize()
+//#define cutilSafeThreadSync()        cudaDeviceSynchronize()
 //#define cufftSafeCall(err)           err
 //#define cutilCheckError(err)         err
 //#define cutilCheckMsg(msg)
@@ -133,10 +133,10 @@ inline void __CUSafeCall(CUresult err, const char *file, const int line) {
 */
 
 inline void __cudaSafeThreadSync(const char *file, const int line) {
-  cudaError err = cudaThreadSynchronize();
+  cudaError err = cudaDeviceSynchronize();
   if (cudaSuccess != err) {
     fprintf(stderr,
-        "(%s:%i) : cudaThreadSynchronize() Driver API error : %s.\n", file,
+        "(%s:%i) : cudaDeviceSynchronize() Driver API error : %s.\n", file,
         line, cudaGetErrorString(err));
     //exit(EXIT_FAILURE);
     throw cudaGetErrorString(err);
@@ -168,9 +168,9 @@ inline void __cutilCheckMsg(const char *errorMessage, const char *file,
     exit(EXIT_FAILURE);
   }
 #ifdef DEBUG
-  err = cudaThreadSynchronize();
+  err = cudaDeviceSynchronize();
   if( cudaSuccess != err) {
-    fprintf(stderr, "(%s:%i) : cutilCheckMsg cudaThreadSynchronize error: %s : %s.\n",
+    fprintf(stderr, "(%s:%i) : cutilCheckMsg cudaDeviceSynchronize error: %s : %s.\n",
         file, line, errorMessage, cudaGetErrorString( err) );
     exit(EXIT_FAILURE);
   }

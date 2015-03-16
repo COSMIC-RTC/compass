@@ -564,12 +564,12 @@ int _yoga_getnDevice()
   return context_handle->get_ndevice();
 }
 
-void _yogaThreadExit()
+void _yogaDeviceReset()
 /*! \brief simple wrapper for general ThreadExist
  */
 {
 //  cerr << "Shutting down : " ;
-  cutilSafeCall(cudaThreadExit());
+  cutilSafeCall(cudaDeviceReset());
 //  cerr << "OK " << __LINE__ << endl;
 }
 
@@ -584,7 +584,7 @@ void _yoga_init()
 /*! \brief simple routine for general init at YoGA launch
  */
 {
-  ycall_on_quit(_yogaThreadExit);
+  ycall_on_quit(_yogaDeviceReset);
 }
 
 void _yoga_start_profile() {
@@ -4155,6 +4155,56 @@ void Y_yoga_csr2bsr(int argc)
   }
 }
 
+void Y_yoga_csr2ell(int argc)
+/** @brief wrapper routine for yoga_csr2ell method
+ *  @param[in] argc : command line arguments
+ *  can work as a (1) subroutine (return discarded) or (2) as a function
+ *    - first  : (1) the destnation yoga_sparse_obj / (2) the source yoga_sparse_obj
+ *    - second  : (1) the source yoga_sparse_obj
+ *  in case (2) the destination is pushed on the stack as a yoga_sparse_obj
+ *  only floating point types supported (single or double precision)
+ */
+{
+  if (yarg_subroutine()) {
+    SCAST(ySparseObj_struct *, handle_mat_dst, yget_obj(argc - 1, &ySparseObj));
+    SCAST(ySparseObj_struct *, handle_mat_src, yget_obj(argc - 2, &ySparseObj));
+
+    if (handle_mat_src->type == Y_FLOAT) {
+      SCAST(carma_sparse_obj<float>*, carma_obj_handler_mat_dst, handle_mat_dst->carma_sparse_object);
+      SCAST(carma_sparse_obj<float>*, carma_obj_handler_mat_src, handle_mat_src->carma_sparse_object);
+      *carma_obj_handler_mat_dst = *carma_obj_handler_mat_src;
+      carma_magma_csr2ell<float>(carma_obj_handler_mat_dst);
+
+    }
+    if (handle_mat_src->type == Y_DOUBLE) {
+      SCAST(carma_sparse_obj<double>*, carma_obj_handler_mat_dst, handle_mat_dst->carma_sparse_object);
+      SCAST(carma_sparse_obj<double>*, carma_obj_handler_mat_src, handle_mat_src->carma_sparse_object);
+      *carma_obj_handler_mat_dst = *carma_obj_handler_mat_src;
+      carma_magma_csr2ell<double>(carma_obj_handler_mat_dst);
+    }
+  } else {
+    // called as a function : need to allocate space
+    SCAST(ySparseObj_struct *, handle_mat_src, yget_obj(argc - 1, &ySparseObj));
+
+    carma_context *context_handle = _getCurrentContext();
+    context_handle->set_activeDevice(handle_mat_src->device,1);
+    SCAST(ySparseObj_struct *, handle_mat_dst, ypush_obj(&ySparseObj, sizeof(ySparseObj_struct)));
+    handle_mat_dst->device = handle_mat_src->device;
+    handle_mat_dst->type = handle_mat_src->type;
+    if (handle_mat_src->type == Y_FLOAT) {
+      SCAST(carma_sparse_obj<float>*, carma_obj_handler_mat_src, handle_mat_src->carma_sparse_object);
+      carma_sparse_obj<float>* carma_obj_handler_mat_dst = new carma_sparse_obj<float>(carma_obj_handler_mat_src);
+      carma_magma_csr2ell<float>(carma_obj_handler_mat_dst);
+      handle_mat_dst->carma_sparse_object = carma_obj_handler_mat_dst;
+    } else if (handle_mat_src->type == Y_DOUBLE) {
+      SCAST(carma_sparse_obj<double>*, carma_obj_handler_mat_src, handle_mat_src->carma_sparse_object);
+      carma_sparse_obj<double>* carma_obj_handler_mat_dst = new carma_sparse_obj<double>(carma_obj_handler_mat_src);
+      carma_magma_csr2ell<double>(carma_obj_handler_mat_dst);
+      handle_mat_dst->carma_sparse_object = carma_obj_handler_mat_dst;
+    }
+  }
+}
+
 void Y_yoga_bsr2csr(int argc)
 /** @brief wrapper routine for yoga_bsr2csr method
  *  @param[in] argc : command line arguments
@@ -4198,6 +4248,95 @@ void Y_yoga_bsr2csr(int argc)
       carma_sparse_obj<double>* carma_obj_handler_mat_dst= new carma_sparse_obj<double>(context_handle);
       carma_bsr2csr(carma_obj_handler_mat_src, carma_obj_handler_mat_dst);
       handle_mat_dst->carma_sparse_object = carma_obj_handler_mat_dst;
+    }
+  }
+}
+
+void Y_yoga_mv_magma(int argc)
+/** @brief wrapper routine for yoga_sparse mv method
+ *  @param[in] argc : command line arguments
+ *  can work as a (1) subroutine (return discarded) or (2) as a function
+ *    - first  : (1) the destnation vector yoga_obj / (2) the matrix yoga_sparse_obj
+ *    - second : (1) the matrix yoga_sparse_obj / (2) the source vector yoga_obj
+ *    - third : (1) the source vector yoga_obj / (2) optional scaling factor for dest
+ *    - fourth  : (1) optional scaling factor for dest / (2) optional scaling factor for src
+ *    - fifth  : (1) optional scaling factor for src
+ *  in case (2) the destination is pushed on the stack as a yoga_obj
+ *  only floating point types supported (single or double precision)
+ */
+{
+  if (yarg_subroutine()) {
+    SCAST(yObj_struct *, handle_vecty, yget_obj(argc - 1, &yObj));
+    SCAST(ySparseObj_struct *, handle_mat, yget_obj(argc - 2, &ySparseObj));
+    SCAST(yObj_struct *, handle_vectx, yget_obj(argc - 3, &yObj));
+    if ((handle_vecty->device != handle_mat->device)
+        || (handle_vecty->device != handle_vectx->device)
+        || (handle_mat->device != handle_vectx->device))
+      y_error("mv only on the same device");
+    carma_context *context_handle = _getCurrentContext();
+    context_handle->set_activeDevice(handle_mat->device,1);
+
+    double alpha = 1.0;
+    if (argc > 3) {
+      alpha = ygets_d(argc - 4);
+    }
+    double beta = 0.0;
+    if (argc > 4) {
+      beta = ygets_d(argc - 5);
+    }
+    if (handle_mat->type == Y_FLOAT) {
+      SCAST(carma_sparse_obj<float>*, carma_obj_handler_mat, handle_mat->carma_sparse_object);
+      SCAST(caObjS *, carma_obj_handler_vectx, handle_vectx->carma_object);
+      SCAST(caObjS *, carma_obj_handler_vecty, handle_vecty->carma_object);
+      carma_magma_spmv<float>(alpha, carma_obj_handler_mat, carma_obj_handler_vectx, beta, carma_obj_handler_vecty);
+    }
+    if (handle_mat->type == Y_DOUBLE) {
+      SCAST(carma_sparse_obj<double>*, carma_obj_handler_mat, handle_mat->carma_sparse_object);
+      SCAST(caObjD *, carma_obj_handler_vectx, handle_vectx->carma_object);
+      SCAST(caObjD *, carma_obj_handler_vecty, handle_vecty->carma_object);
+
+      carma_magma_spmv<double>(alpha, carma_obj_handler_mat, carma_obj_handler_vectx, beta, carma_obj_handler_vecty);
+    }
+  } else {
+    // called as a function : need to allocate space
+    SCAST(ySparseObj_struct *, handle_mat, yget_obj(argc - 1, &ySparseObj));
+    SCAST(yObj_struct *, handle_vectx, yget_obj(argc - 2, &yObj));
+    if (handle_vectx->device != handle_mat->device){
+      y_error("mv only on the same device");
+    }
+    carma_context *context_handle = _getCurrentContext();
+    context_handle->set_activeDevice(handle_mat->device,1);
+    SCAST(yObj_struct *, handle_vecty, ypush_obj(&yObj, sizeof(yObj_struct)));
+    handle_vecty->device = handle_mat->device;
+    handle_vecty->type = handle_vectx->type;
+    double alpha = 1.0;
+    if (argc > 2) {
+      alpha = ygets_d(argc - 3);
+    }
+    double beta = 0.0;
+    if (argc > 3) {
+      beta = ygets_d(argc - 4);
+    }
+    if (handle_mat->type == Y_FLOAT) {
+      SCAST(carma_sparse_obj<float>*, carma_obj_handler_mat, handle_mat->carma_sparse_object);
+      SCAST(caObjS*, carma_obj_handler_vectx, handle_vectx->carma_object);
+      long dims_data_y[2];
+      dims_data_y[0] = 1;
+      dims_data_y[1] = carma_obj_handler_mat->getDims(1);
+      handle_vecty->carma_object = new caObjS(context_handle, dims_data_y);
+      SCAST(caObjS*, carma_obj_handler_vecty, handle_vecty->carma_object);
+
+      carma_magma_spmv<float>(alpha, carma_obj_handler_mat, carma_obj_handler_vectx, beta, carma_obj_handler_vecty);
+    } else if (handle_mat->type == Y_DOUBLE) {
+      SCAST(carma_sparse_obj<double>*, carma_obj_handler_mat, handle_mat->carma_sparse_object);
+      SCAST(caObjD*, carma_obj_handler_vectx, handle_vectx->carma_object);
+      long dims_data_y[2];
+      dims_data_y[0] = 1;
+      dims_data_y[1] = carma_obj_handler_mat->getDims(1);
+      handle_vecty->carma_object = new caObjD(context_handle, dims_data_y);
+      SCAST(caObjD*, carma_obj_handler_vecty, handle_vecty->carma_object);
+
+      carma_magma_spmv<double>(alpha, carma_obj_handler_mat, carma_obj_handler_vectx, beta, carma_obj_handler_vecty);
     }
   }
 }

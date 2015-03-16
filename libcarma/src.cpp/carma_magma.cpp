@@ -1,11 +1,21 @@
 #include <carma_obj.h>
 #include <carma_host_obj.h>
+#include <carma_sparse_obj.h>
 
 #define MAGMA_TRACE(fmt, args...) fprintf(stderr, "%s:%d Warning: " fmt, __FILE__, __LINE__, ## args)
 
 #ifdef USE_MAGMA
 #include "magma.h"
 #include "magma_lapack.h"
+#ifdef USE_MAGMA_SPARSE
+#include "magmasparse.h"
+#define TEST_USE_SMAGMA(...) __VA_ARGS__
+#else
+#warning "SPARSE MAGMA will not be used"
+#define TEST_USE_SMAGMA(...) \
+  MAGMA_TRACE("!!!!!! SPARSE MAGMA not compiled !!!!!!\n"); \
+  return EXIT_FAILURE;
+#endif
 
 #if (MAGMA_VERSION_MAJOR == 1) && (MAGMA_VERSION_MINOR == 4)
 #define lapacke_vec_const(var) var
@@ -358,6 +368,85 @@ int carma_potri_cpu_gen(magma_int_t N, T *h_A) {
   return EXIT_SUCCESS;
 }
 
+template<class T, class var,
+    magma_int_t (*mtransfer)(var A, var *B,magma_location_t src,
+                             magma_location_t dst,
+                             magma_queue_t queue ),
+    magma_int_t (*mconvert)( var A, var *B,
+                             magma_storage_t old_format,
+                             magma_storage_t new_format,
+                             magma_queue_t queue ),
+    magma_int_t (*mfree)(    var *A, magma_queue_t queue )>
+var carma_csr2ell_gen(carma_sparse_obj<T> *dA){
+    var A;
+    if(dA->format!="CSR") {
+      DEBUG_TRACE("carma_fill_magma_sparse_matrix needs a CSR matrix as input");
+      return A;
+    }
+
+    A.storage_type = Magma_CSR;
+    A.memory_location = Magma_DEV;
+    A.fill_mode = Magma_FULL;
+    A.num_rows = dA->dims_data[1];
+    A.num_cols = dA->dims_data[2];
+    A.nnz = dA->nz_elem;
+    A.dval = dA->d_data;
+    A.drow = dA->d_rowind;
+    A.dcol = dA->d_colind;
+    magma_queue_t queue;
+    magma_queue_create( /*devices[ opts->device ],*/ &queue );
+
+    var hA, hB;
+    mtransfer( A, &hA, Magma_DEV, Magma_CPU, queue );
+    mfree( &A, queue );
+    mconvert( hA, &hB, Magma_CSR, Magma_ELL, queue );
+    mfree( &hA, queue );
+    mtransfer( hB, &A, Magma_CPU, Magma_DEV, queue );
+    mfree( &hB, queue );
+    magma_queue_destroy(queue);
+//DEBUG_TRACE("nnz %d d_data %p d_rowind %p d_colind %p", A.nnz, A.dval, A.drow, A.dcol);
+    dA->format = "ELL";
+    dA->nz_elem = A.nnz;
+    dA->d_data = A.dval;
+    dA->d_rowind = A.drow;
+    dA->d_colind = A.dcol;
+
+    return A;
+}
+
+template<class T, class varM, class varV,
+magma_int_t (*spmv)(
+    T alpha,
+    varM A,
+    varV x,
+    T beta,
+    varV y,
+    magma_queue_t queue )>
+int carma_spmv_gen(T alpha, varM dA, carma_obj<T> *dx, T beta, carma_obj<T> *dy) {
+
+    varV x,y;
+    x.memory_location = Magma_DEV;
+    x.num_rows = dx->getNbElem();
+    x.num_cols = 1;
+    x.nnz = x.num_rows;
+    x.dval = dx->getData();
+    x.major = MagmaColMajor;
+
+    y.memory_location = Magma_DEV;
+    y.num_rows = dy->getNbElem();
+    y.num_cols = 1;
+    y.nnz = x.num_rows;
+    y.dval = dy->getData();
+    y.major = MagmaColMajor;
+
+    magma_queue_t queue;
+    magma_queue_create( /*devices[ opts->device ],*/ &queue );
+    spmv( alpha, dA, x, beta, y, queue );
+    magma_queue_destroy(queue);
+
+  return EXIT_SUCCESS;
+}
+
 #define TEST_USE_MAGMA(...) __VA_ARGS__
 
 #else
@@ -366,6 +455,12 @@ int carma_potri_cpu_gen(magma_int_t N, T *h_A) {
 #define TEST_USE_MAGMA(...) \
   MAGMA_TRACE("!!!!!! MAGMA not compiled !!!!!!\n"); \
   return EXIT_FAILURE;
+
+#warning "SPARSE MAGMA will not be used"
+#define TEST_USE_SMAGMA(...) \
+  MAGMA_TRACE("!!!!!! SPARSE MAGMA not compiled !!!!!!\n"); \
+  return EXIT_FAILURE;
+
 #endif
 
 /*
@@ -755,4 +850,89 @@ int carma_gemm_cpu<double>(char transa, char transb, long m, long n, long k,
       blasf77_dgemm(&transa, &transb, &tmp_m, &tmp_n, &tmp_k, &alpha, A, &tmp_lda, B, &tmp_ldb, &beta, C, &tmp_ldc));
   return EXIT_SUCCESS;
 }
+
+template<>
+int carma_magma_csr2ell<float>(carma_sparse_obj<float> *dA){
+  TEST_USE_SMAGMA(
+  dA->s_spMat=carma_csr2ell_gen<float, magma_s_sparse_matrix, magma_s_mtransfer,
+      magma_s_mconvert, magma_s_mfree>(dA);
+
+  return EXIT_SUCCESS;
+  );
+}
+
+template<>
+int carma_magma_csr2ell<double>(carma_sparse_obj<double> *dA){
+  TEST_USE_SMAGMA(
+  dA->d_spMat=carma_csr2ell_gen<double, magma_d_sparse_matrix, magma_d_mtransfer,
+      magma_d_mconvert, magma_d_mfree>(dA);
+  return EXIT_SUCCESS;
+  );
+}
+
+template<>
+int carma_magma_spmv<float>(float alpha, carma_sparse_obj<float> *dA, carma_obj<float> *dx, float beta, carma_obj<float> *dy){
+  if(dA->format!="ELL") {
+    DEBUG_TRACE("carma_fill_magma_sparse_matrix needs a ELL matrix as input");
+    return EXIT_FAILURE;
+  }
+  TEST_USE_SMAGMA(
+  return carma_spmv_gen<float, magma_s_sparse_matrix, magma_s_vector,
+      magma_s_spmv>(alpha, dA->s_spMat, dx, beta, dy);
+  );
+}
+
+template<>
+int carma_magma_spmv<double>(double alpha, carma_sparse_obj<double> *dA, carma_obj<double> *dx, double beta, carma_obj<double> *dy){
+  if(dA->format!="ELL") {
+    DEBUG_TRACE("carma_fill_magma_sparse_matrix needs a ELL matrix as input");
+    return EXIT_FAILURE;
+  }
+  TEST_USE_SMAGMA(
+  return carma_spmv_gen<double, magma_d_sparse_matrix, magma_d_vector,
+      magma_d_spmv>(alpha, dA->d_spMat, dx, beta, dy);
+  );
+}
+
+template<>
+int carma_sparse_magma_free<float>(carma_sparse_obj<float> *dA){
+  if(dA->format!="ELL") {
+    return EXIT_FAILURE;
+  }
+  TEST_USE_SMAGMA(
+      magma_queue_t queue;
+      magma_queue_create( /*devices[ opts->device ],*/ &queue );
+      int ret = magma_s_mfree(&(dA->s_spMat), queue);
+      magma_queue_destroy(queue);
+
+      dA->format = "NONE";
+      dA->nz_elem = dA->s_spMat.nnz;
+      dA->d_data = dA->s_spMat.dval;
+      dA->d_rowind = dA->s_spMat.drow;
+      dA->d_colind = dA->s_spMat.dcol;
+      return ret;
+  );
+}
+
+template<>
+int carma_sparse_magma_free<double>(carma_sparse_obj<double> *dA){
+  if(dA->format!="ELL") {
+    return EXIT_FAILURE;
+  }
+  TEST_USE_SMAGMA(
+      magma_queue_t queue;
+      magma_queue_create( /*devices[ opts->device ],*/ &queue );
+      int ret = magma_d_mfree(&(dA->d_spMat), queue);
+      magma_queue_destroy(queue);
+
+      dA->format = "NONE";
+      dA->nz_elem = dA->d_spMat.nnz;
+      dA->d_data = dA->d_spMat.dval;
+      dA->d_rowind = dA->d_spMat.drow;
+      dA->d_colind = dA->d_spMat.dcol;
+      return ret;
+  );
+}
+
+
 

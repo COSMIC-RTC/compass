@@ -400,7 +400,6 @@ template<class T_data>
 carma_host_obj<T_data>::~carma_host_obj() {
   /** \brief carma_host_obj destructor.
    */
-  //cutilSafeCall( cudaThreadSynchronize() );
   if (this->h_data != 0L) {
     if (mallocType == MA_MALLOC)
       delete[] this->h_data;

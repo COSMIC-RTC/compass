@@ -207,7 +207,6 @@ carma_obj<T_data>::~carma_obj() {
   /** \brief carma_obj destructor.
    */
 
-  //cutilSafeCall( cudaThreadSynchronize() );
   int old_device = current_context->get_activeDevice();
   current_context->set_activeDevice(this->device, 1);
 

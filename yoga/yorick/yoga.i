@@ -41,22 +41,14 @@ extern snapTransformSize
  */
 
 //==================================================================
-extern _yogaThreadExit
+extern _yogaDeviceReset
 /* PROTOTYPE
-   void _yogaThreadExit(void);
+   void _yogaDeviceReset(void);
 */
 
 extern _yogaThreadSync
 /* PROTOTYPE
    void _yogaThreadSync(void);
-*/
-
-/*
-  quit_yorick = quit;
-  func quit(void) {
-  _yogaThreadExit;
-  quit_yorick;
-  }
 */
 
 extern _yoga_init;
@@ -978,6 +970,16 @@ extern yoga_sparse_obj
    SEE ALSO:
 */
 
+extern yoga_csr2ell;
+/* DOCUMENT yoga_csr2ell
+   matA = yoga_csr2ell(matB)
+   or
+   yoga_csr2ell,matA,matB
+
+   convert matB in CSR format into matA in ELL format
+   SEE ALSO:
+*/
+
 extern yoga_csr2bsr;
 /* DOCUMENT yoga_csr2bsr
    matA = yoga_csr2bsr(blockdim,matB)
@@ -998,11 +1000,24 @@ extern yoga_bsr2csr;
    SEE ALSO:
 */
 
-extern yoga_mv_ksparse;
-/* DOCUMENT yoga_mv_ysparse
-   vecty = yoga_mv_ysparse(matA,vectx[,alpha])
+extern yoga_mv_magma;
+/* DOCUMENT yoga_mv_magma
+   vecty = yoga_mv_magma(matA,vectx[,alpha])
    or
-   yoga_mv_ysparse,vecty,matA,vectx[,alpha,beta]
+   yoga_mv_magma,vecty,matA,vectx[,alpha,beta]
+
+   This function performs the matrix-vector multiplication product (BLAS gemv)
+   y = alpha * A * x + beta * y
+   If called as a function, it creates a new yoga object
+     
+   SEE ALSO:
+*/
+
+extern yoga_mv_ksparse;
+/* DOCUMENT yoga_mv_ksparse
+   vecty = yoga_mv_ksparse(matA,vectx[,alpha])
+   or
+   yoga_mv_ksparse,vecty,matA,vectx[,alpha,beta]
 
    This function performs the matrix-vector multiplication product (BLAS gemv)
    y = alpha * A * x + beta * y

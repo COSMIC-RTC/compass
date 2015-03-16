@@ -124,6 +124,9 @@ carma_context::carma_context() {
 #ifdef USE_MAGMA
   // MAGMA init 
   magma_init();
+  #if DEBUG
+  magma_print_environment();
+  #endif
 #endif
 
 #if DEBUG

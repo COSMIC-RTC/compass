@@ -61,7 +61,11 @@ ifneq ($(MAGMA_ROOT),)
  LIB_CPPFLAGS  += -I$(MAGMA_ROOT)/include -DUSE_MAGMA -DUSE_MAGMA_WITH_MKL
  LIB_CPPFLAGS  += -DADD_ -DHAVE_CUBLAS -DMAGMA_SETAFFINITY -DMAGMA_ILP64 -DMKL_ILP64
  LIB_NVCCFLAGS += -Xcompiler -fno-strict-aliasing
- LIB_DEPLIBS   += -Wl,-rpath=$(MAGMA_ROOT)/lib -L$(MAGMA_ROOT)/lib -lmagma 
+ LIB_DEPLIBS   += -Wl,-rpath=$(MAGMA_ROOT)/lib -L$(MAGMA_ROOT)/lib -lmagma
+ifneq ($(USE_MAGMA_SPARSE),)
+ LIB_CPPFLAGS  += -DUSE_MAGMA_SPARSE
+ LIB_DEPLIBS   += -lmagma_sparse
+endif
 endif
 
 ifneq ($(KSPARSE_ROOT),)

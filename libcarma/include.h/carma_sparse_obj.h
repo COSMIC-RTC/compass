@@ -13,6 +13,13 @@
 template<class T_data>
 class carma_sparse_host_obj;
 
+#ifndef USE_MAGMA_SPARSE
+typedef void* magma_d_sparse_matrix;
+typedef void* magma_s_sparse_matrix;
+#else
+#include "magmasparse.h"
+#endif
+
 template<class T_data>
 class carma_sparse_obj {
 public:
@@ -30,6 +37,12 @@ public:
   char majorDim;
   std::string format;
   int blockDim; // blockdim for BSR format
+
+  // Magma stuff
+  union {
+      magma_d_sparse_matrix d_spMat;
+      magma_s_sparse_matrix s_spMat;
+  };
 private:
 
 public:
@@ -127,6 +140,15 @@ cusparseStatus_t carma_csr2bsr(carma_sparse_obj<T_data>* src, int blockDim,
 template<class T_data>
 cusparseStatus_t carma_bsr2csr(carma_sparse_obj<T_data>* src,
     carma_sparse_obj<T_data> *dest);
+
+template<class T_data>
+int carma_magma_csr2ell(carma_sparse_obj<T_data> *dA);
+
+template<class T_data>
+int carma_magma_spmv(T_data alpha, carma_sparse_obj<T_data> *dA, carma_obj<T_data> *dx, T_data beta, carma_obj<T_data> *dy);
+
+template<class T_data>
+int carma_sparse_magma_free(carma_sparse_obj<T_data> *dA);
 
 template<class T_data>
 int carma_kgemv(carma_sparse_obj<T_data>* A, T_data alpha,

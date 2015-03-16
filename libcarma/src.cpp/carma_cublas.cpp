@@ -35,6 +35,8 @@ cublasStatus_t __carma_checkCublasStatus(cublasStatus_t status, int line,
   case CUBLAS_STATUS_NOT_SUPPORTED:
     cerr << "CUBLAS error : Unsupported numerical value was passed to function.\n";
     break;
+#endif
+#if CUDA_VERSION > 6000
   case CUBLAS_STATUS_LICENSE_ERROR:
     cerr << "CUBLAS error : The functionnality requested requires some license and an error was detected when trying to check the current licensing. This error can happen if the license is not present or is expired or if the environment variable NVIDIA_LICENSE_FILE is not set properly.\n";
     break;
