@@ -722,7 +722,7 @@ func rtc_init(clean=, brama=)
           controllers(i).nactu  = &(y_dm(ndms)._ntotact);
 
           if (controllers(i).type == "geo")
-            rtc_addcontrol,g_rtc,sum(y_dm(ndms)._ntotact),controllers(i).delay,controllers(i).type,numberof(where(*y_geom._spupil)),g_dm,y_dm(*y_controllers(i).ndm).type,y_dm(*y_controllers(i).ndm).alt,numberof(*y_controllers(i).ndm);
+            rtc_addcontrol,g_rtc,sum(y_dm(ndms)._ntotact),controllers(i).delay,controllers(i).type,g_dm,y_dm(*y_controllers(i).ndm).type,y_dm(*y_controllers(i).ndm).alt,numberof(*y_controllers(i).ndm),numberof(where(*y_geom._spupil));
           else
             rtc_addcontrol,g_rtc,sum(y_dm(ndms)._ntotact),controllers(i).delay,controllers(i).type,g_dm,y_dm(*y_controllers(i).ndm).type,y_dm(*y_controllers(i).ndm).alt,numberof(*y_controllers(i).ndm);
 
@@ -817,7 +817,7 @@ func rtc_init(clean=, brama=)
             write,format="%s", "doing imat_geom... ";
             tic;
             //imat_init,i,clean=clean;
-            imat = imat_geom(meth=0);
+            imat = imat_geom(i,meth=0);
             rtc_setimat,g_rtc,i-1,imat;
             write,format = "done in : %f s\n",tac();  
             rtc_setgain,g_rtc,0,controllers(i).gain;
