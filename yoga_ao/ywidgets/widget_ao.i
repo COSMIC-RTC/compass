@@ -586,7 +586,12 @@ func update_main(type,nlayer)
     mscreen = sensors_getdata(g_wfs,nlayer,"phase");
 
     //Pupil on top of phase screen
-    pupcustom = *y_geom._mpupil; // modif: lecture pupille
+    if(y_wfs(nlayer+1).atmos_seen == 0){
+      pup=float(make_pupil(y_geom.pupdiam,y_geom.pupdiam,type_ap=y_tel.type_ap,angle=y_tel.pupangle,spiders_type=y_tel.spiders_type,t_spiders=y_tel.t_spiders,nbr_miss_seg=y_tel.nbrmissing,std_ref_err=y_tel.referr,xc=cent,yc=cent,real=,cobs=));
+      pupcustom = pad_array(pup,y_geom._n);
+    }
+    else
+      pupcustom = *y_geom._mpupil; // modif: lecture pupille
     mscreen = mscreen*pupcustom; // modif: multiplication mscreen par pupille
 
     //mscreen = sensors_getdata(g_wfs,nlayer,"phasetele");

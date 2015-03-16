@@ -328,6 +328,13 @@ func init_wfs_geom(n,init=)
     y_wfs(n)._istart = &istart;
     y_wfs(n)._jstart = &jstart;
 
+    if(y_wfs(n).atmos_seen == 0){
+      cent = y_geom.pupdiam/2 + 0.5;
+      pup = float(make_pupil(y_geom.pupdiam,y_geom.pupdiam,type_ap=y_tel.type_ap,angle=y_tel.pupangle,spiders_type=y_tel.spiders_type,t_spiders=y_tel.t_spiders,nbr_miss_seg=y_tel.nbrmissing,std_ref_err=y_tel.referr,xc=cent,yc=cent,real=,cobs=));
+      pup = pad_array(pup,y_geom._n);
+    }
+    else pup = *y_geom._mpupil;
+    //pup = *y_geom._mpupil;
     // sorting out valid subaps
     fluxPerSub = array(float,y_wfs(n).nxsub,y_wfs(n).nxsub);
 
@@ -335,7 +342,7 @@ func init_wfs_geom(n,init=)
       for (j=1;j<=y_wfs(n).nxsub;j++) {
         indi = istart(i)+2;
         indj = jstart(j)+2;
-        fluxPerSub(i,j) = sum((*y_geom._mpupil)(indi:indi+pdiam-1,indj:indj+pdiam-1));
+        fluxPerSub(i,j) = sum(pup(indi:indi+pdiam-1,indj:indj+pdiam-1));
       }
     }
     fluxPerSub = fluxPerSub/pdiam^2.;
@@ -345,7 +352,6 @@ func init_wfs_geom(n,init=)
     y_wfs(n)._isvalid = &int(tmp);
     y_wfs(n)._nvalid = sum(*y_wfs(n)._isvalid);
     y_wfs(n)._fluxPerSub = &float(fluxPerSub);
-
     // this defines how we cut the phase into subaps
     phasemap = array(0,pdiam,pdiam,y_wfs(n)._nvalid);
     tmp = indices(y_geom._n)-1;// we need c-like indices
