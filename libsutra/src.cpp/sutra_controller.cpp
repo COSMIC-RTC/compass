@@ -14,17 +14,37 @@ sutra_controller::sutra_controller(carma_context* context, int nslope,
   cerr << "controller uses " << nstreams << " streams" << endl;
   streams = new carma_streams(nstreams);
 
+  this->open_loop = 0;
+  this->d_perturb = NULL;
+  this->cpt_pertu = 0;
+
   long dims_data1[2] = { 1, 0 };
 
   dims_data1[1] = nslope;
   this->d_centroids = new carma_obj<float>(context, dims_data1);
   dims_data1[1] = nactu;
   this->d_com = new carma_obj<float>(context, dims_data1);
+  this->d_voltage = new carma_obj<float>(context, dims_data1);
 
   for(int i=0 ; i<ndm ; i++){
 	  this->d_dmseen[make_pair(type[i],alt[i])] = dms->d_dms[make_pair(type[i],alt[i])];
   }
 
+}
+int
+sutra_controller::set_openloop(int open_loop_status){
+	this->open_loop = open_loop_status;
+
+	return EXIT_SUCCESS;
+}
+int
+sutra_controller::set_perturbcom(float *perturb, int N){
+
+	long dims_data2[3] = {2,this->nactu(),N};
+	this->d_perturb = new carma_obj<float>(current_context,dims_data2);
+	this->d_perturb->host2device(perturb);
+
+	return EXIT_SUCCESS;
 }
 
 sutra_controller::~sutra_controller() {
@@ -32,6 +52,9 @@ sutra_controller::~sutra_controller() {
 
   delete this->d_centroids;
   delete this->d_com;
+  delete this->d_voltage;
+  if(this->d_perturb != NULL)
+	  delete this->d_perturb;
 }
 int
 sutra_controller::syevd_f(char meth, carma_obj<float> *d_U, carma_host_obj<float> *h_eigenvals){

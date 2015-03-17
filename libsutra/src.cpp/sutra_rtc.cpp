@@ -302,7 +302,10 @@ int sutra_rtc::do_centroids_geom(int ncntrl) {
 int sutra_rtc::do_control(int ncntrl) {
   current_context->set_activeDevice(device,1);
 
-  this->d_control[ncntrl]->comp_com();
+  if(this->d_control[ncntrl]->open_loop)
+	  return EXIT_SUCCESS;
+  else
+	  this->d_control[ncntrl]->comp_com();
 
   return EXIT_SUCCESS;
 }
@@ -325,21 +328,21 @@ int sutra_rtc::apply_control(int ncntrl, sutra_dms *ydm) {
           int istart = i * p->second->ninflu / nstreams;
           cutilSafeCall(
               cudaMemcpyAsync((*p->second->d_comm)[istart],
-                  (*this->d_control[ncntrl]->d_com)[idx + istart],
+                  (*this->d_control[ncntrl]->d_voltage)[idx + istart],
                   sizeof(float) * p->second->ninflu / nstreams,
                   cudaMemcpyDeviceToDevice,
                   (*this->d_control[ncntrl]->streams)[i]));
           p->second->comp_shape();
         }
       } else {
-        p->second->comp_shape((*this->d_control[ncntrl]->d_com)[idx]);
+        p->second->comp_shape((*this->d_control[ncntrl]->d_voltage)[idx]);
       }
       idx += p->second->ninflu;
       p++;
     }
   } else { // "non-streamed" controllers
     while (p != this->d_control[ncntrl]->d_dmseen.end()) {
-      p->second->comp_shape((*this->d_control[ncntrl]->d_com)[idx]);
+      p->second->comp_shape((*this->d_control[ncntrl]->d_voltage)[idx]);
       idx += p->second->ninflu;
       p++;
     }

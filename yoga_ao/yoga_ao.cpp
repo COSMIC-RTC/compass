@@ -2930,6 +2930,37 @@ void Y_rtc_setCmm(int argc) {
   }
 }
 
+void Y_rtc_setperturbcom(int argc) {
+  long ntot;
+  long dims[Y_DIMSIZE];
+  rtc_struct *rhandler = (rtc_struct *) yget_obj(argc - 1, &yRTC);
+  sutra_rtc *rtc_handler = (sutra_rtc *) (rhandler->sutra_rtc);
+  long ncontrol = ygets_l(argc - 2);
+  float *perturb = ygeta_f(argc - 3, &ntot, dims);
+  int dim = ygets_i(argc - 4);
+
+  carma_context *context_handle = _getCurrentContext();
+  context_handle->set_activeDeviceForCpy(rhandler->device,1);
+
+  rtc_handler->d_control.at(ncontrol)->set_perturbcom(perturb,dim);
+
+}
+
+void Y_rtc_setopenloop(int argc) {
+  long ntot;
+  long dims[Y_DIMSIZE];
+  rtc_struct *rhandler = (rtc_struct *) yget_obj(argc - 1, &yRTC);
+  sutra_rtc *rtc_handler = (sutra_rtc *) (rhandler->sutra_rtc);
+  long ncontrol = ygets_l(argc - 2);
+  int openloop = ygets_i(argc - 3);
+
+  carma_context *context_handle = _getCurrentContext();
+  context_handle->set_activeDeviceForCpy(rhandler->device,1);
+
+  rtc_handler->d_control.at(ncontrol)->set_openloop(openloop);
+
+}
+
 void Y_rtc_buildcmat(int argc) {
   rtc_struct *rhandler = (rtc_struct *) yget_obj(argc - 1, &yRTC);
   sutra_rtc *rtc_handler = (sutra_rtc *) (rhandler->sutra_rtc);
@@ -3823,6 +3854,18 @@ void Y_rtc_loadklbasis(int argc) {
   controller->load_klbasis(klbasis);
 
 }
+void Y_rtc_getvoltage(int argc) {
+  rtc_struct *rhandler = (rtc_struct *) yget_obj(argc - 1, &yRTC);
+  sutra_rtc *rtc_handler = (sutra_rtc *) (rhandler->sutra_rtc);
+  long ncontrol = ygets_l(argc - 2);
+
+  carma_context *context_handle = _getCurrentContext();
+  context_handle->set_activeDeviceForCpy(rhandler->device,1);
+
+  float *data = ypush_f((long*) rtc_handler->d_control[ncontrol]->d_voltage->getDims());
+  rtc_handler->d_control[ncontrol]->d_voltage->device2host(data);
+}
+
 void Y_rtc_getproj(int argc) {
   rtc_struct *rhandler = (rtc_struct *) yget_obj(argc - 1, &yRTC);
   sutra_rtc *rtc_handler = (sutra_rtc *) (rhandler->sutra_rtc);
@@ -3835,6 +3878,7 @@ void Y_rtc_getproj(int argc) {
   float *data = ypush_f((long*) controller->d_proj->getDims());
   controller->d_proj->device2host(data);
 }
+
 void Y_rtc_getphi(int argc) {
   rtc_struct *rhandler = (rtc_struct *) yget_obj(argc - 1, &yRTC);
   sutra_rtc *rtc_handler = (sutra_rtc *) (rhandler->sutra_rtc);

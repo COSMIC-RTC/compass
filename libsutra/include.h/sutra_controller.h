@@ -42,6 +42,10 @@ public:
   }
 
   int
+  set_perturbcom(float *perturb, int N);
+  int
+  set_openloop(int open_loop_status);
+  int
   syevd_f(char meth, carma_obj<float> *d_U, carma_host_obj<float> *h_eingenvals);
   int
   invgen(carma_obj<float> *d_mat, float cond, int job);
@@ -50,9 +54,13 @@ public:
 //I would propose to make them protected (+ proper
 //set of fuctions). It could make life easier!
 //But we should discuss it
+  int cpt_pertu;
+  int open_loop;
   map <type_screen,sutra_dm *> d_dmseen;
   carma_obj<float> *d_centroids; // current centroids
   carma_obj<float> *d_com; // current command
+  carma_obj<float> *d_perturb; // perturbation command buffer
+  carma_obj<float> *d_voltage; // commands sent to mirror
 
   carma_streams *streams;
 

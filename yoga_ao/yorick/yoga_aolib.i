@@ -639,6 +639,21 @@ extern rtc_setCmm;
       
    SEE ALSO:
  */
+extern rtc_setperturbcom;
+/* DOCUMENT rtc_setperturbcom
+   rtc_setperturbcom,yoga_rtc_obj,ncontroller,perturbcom,dim
+   set perturbation volts in a yoga_rtc_obj object
+
+   perturbcom = perturbations buffer (must be (nactu x N))
+   dim = second dimension of th buffer i.e. N
+*/
+extern rtc_setopenloop;
+/* DOCUMENT rtc_setopenloop
+   rtc_setopenloop,yoga_rtc_obj,ncontroller,openloop
+   set open-loop status for a yoga_rtc_obj object
+
+   openloop = 1 for open-loop, 0 for closed-loop
+*/
 extern rtc_docentroids;
 /* DOCUMENT rtc_docentroids
    rtc_docentroids,yoga_rtc_obj,ncontroller
@@ -750,6 +765,14 @@ extern rtc_getcom;
 /* DOCUMENT rtc_getcom
    res = rtc_getcom(yoga_rtc_obj,ncontroller)
    get commands for a controller in a yoga_rtc_obj object
+      
+   SEE ALSO:
+ */
+
+extern rtc_getvoltage;
+/* DOCUMENT rtc_getvoltage
+   res = rtc_getvoltage(yoga_rtc_obj,ncontroller)
+   get commands sent to mirrors for a controller in a yoga_rtc_obj object
       
    SEE ALSO:
  */
