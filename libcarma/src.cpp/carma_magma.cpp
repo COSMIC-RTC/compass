@@ -368,6 +368,7 @@ int carma_potri_cpu_gen(magma_int_t N, T *h_A) {
   return EXIT_SUCCESS;
 }
 
+#ifdef USE_MAGMA_SPARSE
 template<class T, class var,
     magma_int_t (*mtransfer)(var A, var *B,magma_location_t src,
                              magma_location_t dst,
@@ -446,6 +447,7 @@ int carma_spmv_gen(T alpha, varM dA, carma_obj<T> *dx, T beta, carma_obj<T> *dy)
 
   return EXIT_SUCCESS;
 }
+#endif
 
 #define TEST_USE_MAGMA(...) __VA_ARGS__
 
