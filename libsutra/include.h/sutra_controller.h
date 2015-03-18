@@ -46,6 +46,8 @@ public:
   int
   set_openloop(int open_loop_status);
   int
+  comp_voltage();
+  int
   syevd_f(char meth, carma_obj<float> *d_U, carma_host_obj<float> *h_eingenvals);
   int
   invgen(carma_obj<float> *d_mat, float cond, int job);

@@ -850,18 +850,5 @@ int sutra_controller_mv::comp_com() {
   carma_geam<float>(cublas_handle, 'n', 'n', nactu(), 1, this->gain, *d_err, nactu(),
         1.0f - this->gain, *d_com1, nactu(), *d_com, nactu());
 
-  this->d_com->copyInto(this->d_voltage->getData(),this->nactu());
-
-  if(this->d_perturb != NULL){ // Apply volt perturbations (circular buffer)
-
-      	carma_axpy(cublas_handle, this->nactu(), 1.0f,
-  					this->d_perturb->getData(this->cpt_pertu * this->nactu()),
-  					1, this->d_voltage->getData(), 1);
-  		if (this->cpt_pertu == this->d_perturb->getDims()[2] - 1)
-  			this->cpt_pertu = 0;
-  		else
-  			this->cpt_pertu += 1;
-      }
-
   return EXIT_SUCCESS;
 }

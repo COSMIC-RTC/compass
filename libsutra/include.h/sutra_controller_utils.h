@@ -7,28 +7,28 @@
 #include <cstdio>
 
 struct gtomo_struct {
-  float DiamTel;
-  float obs;
-  float pasDPHI;
-  long Nw;
-  long Nx;
-  long *Nssp;
-  float *diamPup;
-  float *XPup;
-  float *YPup;
-  float *thetaML;
-  float *alphaX;
-  float *alphaY;
-  float *GsAlt;
+  float DiamTel; // Telescope diameter [m]
+  float obs; // Central obstruction
+  float pasDPHI; // DPHI step
+  long Nw; // Number of WFS
+  long Nx; // Total number of valid ssp
+  long *Nssp; // Number of nxsub for each wfs
+  float *diamPup; // Nssp
+  float *XPup; // 0
+  float *YPup; // 0
+  float *thetaML; // 0
+  float *alphaX; //wfs positions
+  float *alphaY; //wfs positions
+  float *GsAlt; //LGS altitude (0)
 
-  float lgs_cst;
-  float spot_width;
-  float lgs_depth;
-  float lgs_alt;
-  int   nlgs;
+  float lgs_cst; // 0
+  float spot_width; // 1
+  float lgs_depth; //10000
+  float lgs_alt; // 90000.
+  int   nlgs; // 0
 
-  long  *ioff_d;
-  long  *Nssp_d;
+  long  *ioff_d; // Cumulative number of nvalid ssp with ioff[0] = 0
+  long  *Nssp_d; // Nssp
 
   float *alphaX_d;
   float *alphaY_d;

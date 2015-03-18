@@ -750,6 +750,9 @@ func rtc_init(clean=, brama=)
           if (controllers(i).type  == "ls") {
             imat_init,i,clean=clean;
 	    //perturb = array(0.0f,sum(*controllers(i).nactu),3);
+	    //perturb(,1) = 0;
+	    //perturb(,2) = indgen(sum(*controllers(i).nactu));
+	    //perturb(,3) = perturb(,2)(::-1);
 	    //rtc_setperturbcom,g_rtc,0,perturb,3;
 	    //imat = imat_geom(meth=0);
             //rtc_setimat,g_rtc,i-1,imat;

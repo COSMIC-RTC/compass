@@ -303,18 +303,6 @@ int sutra_controller_ls::comp_com() {
       mult_int(this->d_com->getData(), this->d_err->getData(),
         this->d_gain->getData(), this->gain, this->nactu(), this->current_context->get_device(device));
 
-    this->d_com->copyInto(this->d_voltage->getData(),this->nactu());
-
-    if(this->d_perturb != NULL){ // Apply volt perturbations (circular buffer)
-
-    	carma_axpy(cublas_handle(), this->nactu(), 1.0f,
-					this->d_perturb->getData(this->cpt_pertu * this->nactu()),
-					1, this->d_voltage->getData(), 1);
-		if (this->cpt_pertu == this->d_perturb->getDims()[2] - 1)
-			this->cpt_pertu = 0;
-		else
-			this->cpt_pertu += 1;
-    }
   }
 
   return EXIT_SUCCESS;

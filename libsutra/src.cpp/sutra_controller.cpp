@@ -46,6 +46,27 @@ sutra_controller::set_perturbcom(float *perturb, int N){
 
 	return EXIT_SUCCESS;
 }
+int
+sutra_controller::comp_voltage(){
+
+	if(this->open_loop)
+		cutilSafeCall(cudaMemset(this->d_voltage->getData(),0.0f,this->nactu()*sizeof(float)));
+	else
+		this->d_com->copyInto(this->d_voltage->getData(),this->nactu());
+
+	if(this->d_perturb != NULL){ // Apply volt perturbations (circular buffer)
+
+	    	carma_axpy(cublas_handle(), this->nactu(), 1.0f,
+						this->d_perturb->getData(this->cpt_pertu * this->nactu()),
+						1, this->d_voltage->getData(), 1);
+			if (this->cpt_pertu == this->d_perturb->getDims()[2] - 1)
+				this->cpt_pertu = 0;
+			else
+				this->cpt_pertu += 1;
+	}
+
+	return EXIT_SUCCESS;
+}
 
 sutra_controller::~sutra_controller() {
   delete this->streams;
