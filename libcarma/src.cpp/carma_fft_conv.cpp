@@ -51,29 +51,29 @@ int carma_initfftconv(caObjS *data_in, caObjS *kernel_in, caObjS *padded_data,
   cufftHandle *plan = padded_data->getPlan(); ///< FFT plan
 
   if (odata == NULL)
-    cutilSafeCall(
+    carmaSafeCall(
         cudaMalloc((void** )&odata, sizeof(float) * padded_data->getNbElem()));
-  cutilSafeCall(
+  carmaSafeCall(
       cudaMemset(padded_data->getOData(), 0,
           padded_data->getNbElem() * sizeof(float)));
   if (data_in->getDims(0) == 3) {
     int mdims[2];
     mdims[0] = padded_data->getDims(1);
     mdims[1] = padded_data->getDims(2);
-    cufftSafeCall(
+    carmafftSafeCall(
         cufftPlanMany(plan, 2 ,mdims,NULL,1,0,NULL,1,0,CUFFT_R2C ,padded_data->getDims(3)));
   } else {
-    cufftSafeCall(
+    carmafftSafeCall(
         cufftPlan2d(plan, padded_data->getDims(1), padded_data->getDims(2),
             CUFFT_R2C));
   }
   // plan fwd
   cuFloatComplex *odata2 = padded_spectrum->getOData();
   if (odata2 == NULL)
-    cutilSafeCall(
+    carmaSafeCall(
         cudaMalloc((void** )&odata2,
             sizeof(cuFloatComplex) * padded_spectrum->getNbElem()));
-  cutilSafeCall(
+  carmaSafeCall(
       cudaMemset(padded_spectrum->getOData(), 0,
           padded_spectrum->getNbElem() * sizeof(float)));
 
@@ -82,10 +82,10 @@ int carma_initfftconv(caObjS *data_in, caObjS *kernel_in, caObjS *padded_data,
     int mdims[2];
     mdims[0] = (int) padded_data->getDims(1);
     mdims[1] = (int) padded_data->getDims(2);
-    cufftSafeCall(
+    carmafftSafeCall(
         cufftPlanMany(plan, 2 ,mdims,NULL,1,0,NULL,1,0,CUFFT_C2R ,(int)padded_spectrum->getDims(3)));
   } else {
-    cufftSafeCall(
+    carmafftSafeCall(
         cufftPlan2d(plan, padded_data->getDims(1), padded_data->getDims(2),
             CUFFT_C2R));
   }

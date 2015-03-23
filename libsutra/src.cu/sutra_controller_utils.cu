@@ -1015,7 +1015,7 @@ void tab_dphi_lowpass(float *tab_dphi, struct cphim_struct *cphim_struct, long N
   dim3 dimGrid(nblocks, 1);
 
   tabulateDPHI_lowpass_kernel<<<dimGrid, dimBlock, 0, cphim_struct->cphim_stream>>>(tab_dphi,cphim_struct->tab_int_x, cphim_struct->tab_int_y, cphim_struct->dx, L0diff_d, Nl0, Ndphi, convert, convert_int, cphim_struct->int_npts);
-  cutilCheckMsg("tabulateDPHI_gpu_gb_kernel<<<>>> execution failed\n");
+  carmaCheckMsg("tabulateDPHI_gpu_gb_kernel<<<>>> execution failed\n");
   //CudaCheckError();
 }
 
@@ -1044,7 +1044,7 @@ void tab_dphi_gpu_gb(float *tab_dphi, struct gtomo_struct *tomo_gpu, long Ndphi,
   dim3 dimGrid(nblocks, 1);
 
   tabulateDPHI_gpu_gb_kernel<<<dimGrid, dimBlock, 0, tomo_gpu->matcov_stream>>>(tab_dphi, L0diff_d, Nl0, Ndphi, convert);
-  cutilCheckMsg("tabulateDPHI_gpu_gb_kernel<<<>>> execution failed\n");
+  carmaCheckMsg("tabulateDPHI_gpu_gb_kernel<<<>>> execution failed\n");
   //CudaCheckError();
 }
 //------------------------------------------------------------------------------------
@@ -1066,7 +1066,7 @@ void sub_pos_gpu_gb(struct gtomo_struct *tomo_gpu, long Nlayer, long Nw, long Ns
   int nb = (int)(2);
     long *tmp;
     tmp=(long*)malloc((nb)*sizeof(long));
-    cutilSafeCall(cudaMemcpy(tmp, tomo_gpu->ioff_d, sizeof(long) * nb,
+    carmaSafeCall(cudaMemcpy(tmp, tomo_gpu->ioff_d, sizeof(long) * nb,
     	            cudaMemcpyDeviceToHost));
     for (int ii = 0 ; ii < nb ; ii++){
   	  printf("%5.5d \n",tmp[ii]);
@@ -1079,12 +1079,12 @@ void sub_pos_gpu_gb(struct gtomo_struct *tomo_gpu, long Nlayer, long Nw, long Ns
 				  tomo_gpu->Nssp_d, tomo_gpu->diamPup_d, tomo_gpu->thetaML_d,
 				  tomo_gpu->ioff_d, tomo_gpu->X_d, tomo_gpu->Y_d,
 				  tomo_gpu->XPup_d, tomo_gpu->YPup_d, tomo_gpu->u_d, tomo_gpu->v_d);
-  cutilCheckMsg("subposition_gpu_gb_kernel<<<>>> execution failed\n");
+  carmaCheckMsg("subposition_gpu_gb_kernel<<<>>> execution failed\n");
 /*
    int nb = (int)(184);
       float *tmpp;
       tmpp=(float*)malloc((nb)*sizeof(float));
-      cutilSafeCall(cudaMemcpy(tmpp, tomo_gpu->u_d, sizeof(float) * nb,
+      carmaSafeCall(cudaMemcpy(tmpp, tomo_gpu->u_d, sizeof(float) * nb,
       	            cudaMemcpyDeviceToHost));
       for (int ii = 0 ; ii < nb ; ii++){
     	  printf("%5.5f \n",tmpp[ii]);
@@ -1187,7 +1187,7 @@ void update_tomo_atm_gpu_gb(struct gtomo_struct *tomo_gpu, sutra_sensors *sensor
  // FILE *f = fopen("tabDPHI_d.txt","w");
     float *tmpp;
     tmpp=(float*)malloc((nb)*sizeof(float));
-    cutilSafeCall(cudaMemcpy(tmpp, tomo_gpu->h_d, sizeof(float) * nb,
+    carmaSafeCall(cudaMemcpy(tmpp, tomo_gpu->h_d, sizeof(float) * nb,
     	            cudaMemcpyDeviceToHost));
     for (int ii = 0 ; ii < nb ; ii++){
     	DEBUG_TRACE("%5.5f \n",tmpp[ii]);
@@ -1195,7 +1195,7 @@ void update_tomo_atm_gpu_gb(struct gtomo_struct *tomo_gpu, sutra_sensors *sensor
     */
 
   tab_dphi_gpu_gb(tomo_gpu->tabDPHI_d, tomo_gpu, Ndphi, tomo_gpu->L0diff_d, Nl0,convert);
-  cutilSafeCall(cudaDeviceSynchronize());
+  carmaSafeCall(cudaDeviceSynchronize());
 
   // %%%%%%% Computation of the sub-apertures positions and sizes %%%%%%%%%%%
  // u, v :arrays containing all the sub-apertures coordinates of all WFS, one after the other
@@ -1204,10 +1204,10 @@ void update_tomo_atm_gpu_gb(struct gtomo_struct *tomo_gpu, sutra_sensors *sensor
   //Computes  u and v
   // DEBUG_TRACE("Here %d %d %d!\n", (long)atmos->nscreens, (long)tomo_gpu->Nw, (long)sensors->d_wfs[0]->nvalid);
   sub_pos_gpu_gb(tomo_gpu, (long)atmos->nscreens, (long)tomo_gpu->Nw, (long)sensors->d_wfs[0]->nvalid);
-  cutilSafeCall(cudaDeviceSynchronize());
+  carmaSafeCall(cudaDeviceSynchronize());
  // FILE *f = fopen("tabDPHI_d.txt","w");
   /*
-    cutilSafeCall(cudaMemcpy(tmpp, tomo_gpu->h_d, sizeof(float) * nb,
+    carmaSafeCall(cudaMemcpy(tmpp, tomo_gpu->h_d, sizeof(float) * nb,
     	            cudaMemcpyDeviceToHost));
     for (int ii = 0 ; ii < nb ; ii++){
     	DEBUG_TRACE("%5.5f \n",tmpp[ii]);
@@ -1322,7 +1322,7 @@ void update_tomo_sys_gpu_gb(struct gtomo_struct *tomo_gpu, sutra_sensors *sensor
   int nb = (int)(408);
   float *tmp;
   tmp=(float*)malloc((nb)*sizeof(float));
-  cutilSafeCall(cudaMemcpy(tmp, tomo_gpu->Y_d, sizeof(float) * nb,
+  carmaSafeCall(cudaMemcpy(tmp, tomo_gpu->Y_d, sizeof(float) * nb,
   	            cudaMemcpyDeviceToHost));
   for (int ii = 0 ; ii < nb ; ii++){
 	  printf("%5.5f \n",tmp[ii]);
@@ -1948,7 +1948,7 @@ void matcov_gpu_4(float* data, int nrows, int ncols, int xoffset, int yoffset, i
   int nb = (int)(1224);
   float *tmp;
   tmp=(float*)malloc((nb)*sizeof(float));
-  cutilSafeCall(cudaMemcpy(tmp, tomo_gpu->u_d, sizeof(float) * nb,
+  carmaSafeCall(cudaMemcpy(tmp, tomo_gpu->u_d, sizeof(float) * nb,
   	            cudaMemcpyDeviceToHost));
   for (int ii = 0 ; ii < nb ; ii++){
 	  printf("%5.20f \n",tmp[ii]);
@@ -1961,14 +1961,14 @@ void matcov_gpu_4(float* data, int nrows, int ncols, int xoffset, int yoffset, i
 						tomo_gpu->indexL0_d, tomo_gpu->cn2_d, Ndphi, tomo_gpu->Nw, atmos->nscreens,
 						Nsubap, tomo_gpu->alphaX_d, tomo_gpu->alphaY_d, tomo_gpu->lgs_cst, (float)0.0/*sensors->d_wfs[0]->noise*/,
 						tomo_gpu->spot_width, tomo_gpu->lgs_depth, tomo_gpu->lgs_alt, type_mat, tomo_gpu->nlgs, tomo_gpu->DiamTel);
-  cutilCheckMsg("matcov_kernel_4<<<>>> execution failed\n");
+  carmaCheckMsg("matcov_kernel_4<<<>>> execution failed\n");
   cudaStreamSynchronize(tomo_gpu->matcov_stream);
   /*
   int nb = (int)sensors->d_wfs[0]->nvalid * 2;
   nb = nb*nb;
     float *tmp;
     tmp=(float*)malloc((nb)*sizeof(float));
-    cutilSafeCall(cudaMemcpy(tmp, data, sizeof(float) * nb,
+    carmaSafeCall(cudaMemcpy(tmp, data, sizeof(float) * nb,
     	            cudaMemcpyDeviceToHost));
     for (int ii = 0 ; ii < nb ; ii++)
     	cout << tmp[ii] << endl;
@@ -2035,7 +2035,7 @@ void CPHIM(float* data, int nrows, int ncols, int xoffset, int yoffset, int lda,
   int nb = (int)(1224);
   float *tmp;
   tmp=(float*)malloc((nb)*sizeof(float));
-  cutilSafeCall(cudaMemcpy(tmp, tomo_gpu->u_d, sizeof(float) * nb,
+  carmaSafeCall(cudaMemcpy(tmp, tomo_gpu->u_d, sizeof(float) * nb,
   	            cudaMemcpyDeviceToHost));
   for (int ii = 0 ; ii < nb ; ii++){
 	  printf("%5.20f \n",tmp[ii]);
@@ -2049,7 +2049,7 @@ void CPHIM(float* data, int nrows, int ncols, int xoffset, int yoffset, int lda,
 						Nsubap, cphim_struct->Nactu, cphim_struct->alphaX_d, cphim_struct->alphaY_d, cphim_struct->lgs_cst, (float)0.0,
 						cphim_struct->spot_width, cphim_struct->lgs_depth, cphim_struct->lgs_alt, cphim_struct->nlgs, cphim_struct->DiamTel, k2);
 
-  cutilCheckMsg("matcov_kernel_4<<<>>> execution failed\n");
+  carmaCheckMsg("matcov_kernel_4<<<>>> execution failed\n");
   cudaStreamSynchronize(cphim_struct->cphim_stream);
 }
 
@@ -2110,7 +2110,7 @@ void sub_pos_cphim(struct cphim_struct *cphim_struct, long Nlayer, long Nw, long
   int nb = (int)(msize);
       float *tmpp;
       tmpp=(float*)malloc((nb)*sizeof(float));
-      cutilSafeCall(cudaMemcpy(tmpp, cphim_struct->X_d, sizeof(float) * nb,
+      carmaSafeCall(cudaMemcpy(tmpp, cphim_struct->X_d, sizeof(float) * nb,
       	            cudaMemcpyDeviceToHost));
       for (int ii = 0 ; ii < nb ; ii++){
     	  printf("%5.5f \n",tmpp[ii]);
@@ -2123,12 +2123,12 @@ void sub_pos_cphim(struct cphim_struct *cphim_struct, long Nlayer, long Nw, long
 				  cphim_struct->Nssp_d, cphim_struct->diamPup_d, cphim_struct->thetaML_d,
 				  cphim_struct->ioff_d, cphim_struct->X_d, cphim_struct->Y_d,
 				  cphim_struct->XPup_d, cphim_struct->YPup_d, cphim_struct->u_d, cphim_struct->v_d);
-  cutilCheckMsg("subposition_gpu_gb_kernel<<<>>> execution failed\n");
+  carmaCheckMsg("subposition_gpu_gb_kernel<<<>>> execution failed\n");
 /*
    int nb = (int)(184);
       float *tmpp;
       tmpp=(float*)malloc((nb)*sizeof(float));
-      cutilSafeCall(cudaMemcpy(tmpp, tomo_gpu->u_d, sizeof(float) * nb,
+      carmaSafeCall(cudaMemcpy(tmpp, tomo_gpu->u_d, sizeof(float) * nb,
       	            cudaMemcpyDeviceToHost));
       for (int ii = 0 ; ii < nb ; ii++){
     	  printf("%5.5f \n",tmpp[ii]);
@@ -2287,7 +2287,7 @@ void tab_u831J0(struct cphim_struct *cphim_struct, float tmin, float tmax, carma
 	process_err(e, "alloc gpu tab_int_y");
 	// DEBUG_TRACE("tab_int !\n");
 	compute_u831J0<<<grid,threads>>>(cphim_struct->tab_int_x, cphim_struct->tab_int_y, npts, tmin, tmax, dt);
-	cutilCheckMsg("compute_u831J0<<<>>> execution failed\n");
+	carmaCheckMsg("compute_u831J0<<<>>> execution failed\n");
 	// DEBUG_TRACE("tab_int !\n");
 	e = cudaMalloc((void**)&(temp_d), (npts-1) * sizeof(float));
 	process_err(e, "alloc gpu temp_d");
@@ -2305,7 +2305,7 @@ void tab_u831J0(struct cphim_struct *cphim_struct, float tmin, float tmax, carma
 	float smallInt = (float)(0.75 * pow(smallx,1/3.) * (1 - smallx * smallx / 112.));
 	// DEBUG_TRACE("tab_int !\n");
 	intfrominftomin<<<grid,threads>>>(cphim_struct->tab_int_y, smallInt, npts);
-	cutilCheckMsg("intfrominftomin<<<>>> execution failed\n");
+	carmaCheckMsg("intfrominftomin<<<>>> execution failed\n");
 
 }
 
@@ -2322,7 +2322,7 @@ void cuda_zcen(float *idata, float *odata, int N, carma_device *device){
 	dim3 grid(nblocks), threads(nthreads);
 
 	cuda_zcen_krnl<<<grid , threads>>>(idata, odata, N);
-	cutilCheckMsg("cuda_zcen_krnl<<<>>> execution failed\n");
+	carmaCheckMsg("cuda_zcen_krnl<<<>>> execution failed\n");
 
 }
 
@@ -2419,7 +2419,7 @@ void update_cphim_atm(struct cphim_struct *cphim_struct, sutra_sensors *sensors,
  // FILE *f = fopen("tabDPHI_d.txt","w");
     float *tmpp;
     tmpp=(float*)malloc((nb)*sizeof(float));
-    cutilSafeCall(cudaMemcpy(tmpp, cphim_struct->h_d, sizeof(float) * nb,
+    carmaSafeCall(cudaMemcpy(tmpp, cphim_struct->h_d, sizeof(float) * nb,
     	            cudaMemcpyDeviceToHost));
     for (int ii = 0 ; ii < nb ; ii++){
     	DEBUG_TRACE("%5.5f \n",tmpp[ii]);
@@ -2427,13 +2427,13 @@ void update_cphim_atm(struct cphim_struct *cphim_struct, sutra_sensors *sensors,
     */
 
   tab_dphi_lowpass(cphim_struct->tabDPHI_d, cphim_struct, Ndphi, cphim_struct->L0diff_d, Nl0,convert,convert_int);
-  //cutilSafeCall(cudaDeviceSynchronize());
+  //carmaSafeCall(cudaDeviceSynchronize());
   /*
   int nb = (int)(Ndphi);
    // FILE *f = fopen("tabDPHI_d.txt","w");
       float *tmpp;
       tmpp=(float*)malloc((nb)*sizeof(float));
-      cutilSafeCall(cudaMemcpy(tmpp, cphim_struct->tabDPHI_d, sizeof(float) * nb,
+      carmaSafeCall(cudaMemcpy(tmpp, cphim_struct->tabDPHI_d, sizeof(float) * nb,
       	            cudaMemcpyDeviceToHost));
       for (int ii = 0 ; ii < nb ; ii++){
       	printf("%5.5f \n",tmpp[ii]);
@@ -2446,12 +2446,12 @@ void update_cphim_atm(struct cphim_struct *cphim_struct, sutra_sensors *sensors,
   //Computes  u and v
  // DEBUG_TRACE("Here %d %d %d!\n", (long)atmos->nscreens, (long)cphim_struct->Nw, (long)sensors->d_wfs[0]->nvalid);
   sub_pos_cphim(cphim_struct, (long)atmos->nscreens, (long)cphim_struct->Nw, (long)sensors->d_wfs[0]->nvalid);
-  //cutilSafeCall(cudaDeviceSynchronize());
+  //carmaSafeCall(cudaDeviceSynchronize());
 /*
   int nb = (int)(atmos->nscreens * sensors->d_wfs[0]->nvalid * cphim_struct->Nw);
     float *tmpp;
     tmpp=(float*)malloc((nb)*sizeof(float));
-    cutilSafeCall(cudaMemcpy(tmpp, cphim_struct->u_d, sizeof(float) * nb,
+    carmaSafeCall(cudaMemcpy(tmpp, cphim_struct->u_d, sizeof(float) * nb,
     	            cudaMemcpyDeviceToHost));
     for (int ii = 0 ; ii < nb ; ii++){
   	  printf("%5.5f \n",tmpp[ii]);
@@ -2573,7 +2573,7 @@ void update_cphim_sys(struct cphim_struct *cphim_struct, sutra_sensors *sensors,
   int nb = (int)(cphim_struct->Nactu);
   float *tmp;
   tmp=(float*)malloc((nb)*sizeof(float));
-  cutilSafeCall(cudaMemcpy(tmp, cphim_struct->yact_d, sizeof(float) * nb,
+  carmaSafeCall(cudaMemcpy(tmp, cphim_struct->yact_d, sizeof(float) * nb,
   	            cudaMemcpyDeviceToHost));
   for (int ii = 0 ; ii < nb ; ii++){
 	  printf("%5.5f \n",tmp[ii]);

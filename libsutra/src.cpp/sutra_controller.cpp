@@ -40,29 +40,30 @@ sutra_controller::set_openloop(int open_loop_status){
 int
 sutra_controller::set_perturbcom(float *perturb, int N){
 
+  if(this->d_perturb != NULL) delete this->d_perturb;
 	long dims_data2[3] = {2,this->nactu(),N};
 	this->d_perturb = new carma_obj<float>(current_context,dims_data2);
 	this->d_perturb->host2device(perturb);
-
+	this->cpt_pertu=0;
 	return EXIT_SUCCESS;
 }
 int
 sutra_controller::comp_voltage(){
 
 	if(this->open_loop)
-		cutilSafeCall(cudaMemset(this->d_voltage->getData(),0.0f,this->nactu()*sizeof(float)));
+		carmaSafeCall(cudaMemset(this->d_voltage->getData(),0.0f,this->nactu()*sizeof(float)));
 	else
 		this->d_com->copyInto(this->d_voltage->getData(),this->nactu());
 
 	if(this->d_perturb != NULL){ // Apply volt perturbations (circular buffer)
 
-	    	carma_axpy(cublas_handle(), this->nactu(), 1.0f,
-						this->d_perturb->getData(this->cpt_pertu * this->nactu()),
-						1, this->d_voltage->getData(), 1);
-			if (this->cpt_pertu == this->d_perturb->getDims()[2] - 1)
-				this->cpt_pertu = 0;
+			carma_axpy(cublas_handle(), this->nactu(), 1.0f,
+			           this->d_perturb->getData(this->cpt_pertu * this->nactu()),
+			           1, this->d_voltage->getData(), 1);
+			if(this->cpt_pertu < this->d_perturb->getDims()[2]-1)
+			  this->cpt_pertu += 1;
 			else
-				this->cpt_pertu += 1;
+        this->cpt_pertu = 0;
 	}
 
 	return EXIT_SUCCESS;

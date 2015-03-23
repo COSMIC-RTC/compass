@@ -329,7 +329,7 @@ int sutra_rtc::apply_control(int ncntrl, sutra_dms *ydm) {
       if (nstreams > p->second->ninflu) {
         for (int i = 0; i < nstreams; i++) {
           int istart = i * p->second->ninflu / nstreams;
-          cutilSafeCall(
+          carmaSafeCall(
               cudaMemcpyAsync((*p->second->d_comm)[istart],
                   (*this->d_control[ncntrl]->d_voltage)[idx + istart],
                   sizeof(float) * p->second->ninflu / nstreams,

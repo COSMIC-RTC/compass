@@ -180,7 +180,7 @@ int getarray2d(T *d_odata, T *d_idata, int x0, int Ncol, int NC, int N, carma_de
 
   getarray2d_krnl<<<grid, threads>>>(d_odata, d_idata, x0, Ncol, NC, N);
 
-  cutilCheckMsg("getarray2d_kernel<<<>>> execution failed\n");
+  carmaCheckMsg("getarray2d_kernel<<<>>> execution failed\n");
 
   return EXIT_SUCCESS;
 }
@@ -220,7 +220,7 @@ int fillarray2d(T *d_odata, T *d_idata, int x0, int Ncol, int NC, int N, carma_d
 
   fillarray2d_krnl<<<grid, threads>>>(d_odata, d_idata, x0, Ncol, NC, N);
 
-  cutilCheckMsg("fillarray2d_kernel<<<>>> execution failed\n");
+  carmaCheckMsg("fillarray2d_kernel<<<>>> execution failed\n");
 
   return EXIT_SUCCESS;
 }
@@ -254,7 +254,7 @@ int carma_plus(T *d_odata, T alpha, int N, carma_device *device) {
 
   plus_krnl<<<grid, threads>>>(d_odata, alpha, N);
 
-  cutilCheckMsg("plus_kernel<<<>>> execution failed\n");
+  carmaCheckMsg("plus_kernel<<<>>> execution failed\n");
 
   return EXIT_SUCCESS;
 }
@@ -289,7 +289,7 @@ int carma_plusai(T *d_odata, T *i_data, int i, int sgn, int N, carma_device *dev
 
   plusai_krnl<<<grid, threads>>>(d_odata, i_data, i, sgn, N);
 
-  cutilCheckMsg("plusai_kernel<<<>>> execution failed\n");
+  carmaCheckMsg("plusai_kernel<<<>>> execution failed\n");
 
   return EXIT_SUCCESS;
 }
@@ -327,7 +327,7 @@ int fillarray2d2(T *d_odata, T *d_idata, int x0, int Ncol, int NC, int N, carma_
 
   fillarray2d2_krnl<<<grid, threads>>>(d_odata, d_idata, x0, Ncol, NC, N);
 
-  cutilCheckMsg("fillarray2d_kernel<<<>>> execution failed\n");
+  carmaCheckMsg("fillarray2d_kernel<<<>>> execution failed\n");
 
   return EXIT_SUCCESS;
 }
@@ -370,7 +370,7 @@ int fill_sym_matrix(char src_uplo, T *d_data, int Ncol, int N, carma_device *dev
 
   kern_fill_sym_matrix<<<grid, threads>>>(src_uplo, d_data, Ncol, N);
 
-  cutilCheckMsg("kern_fill_sym_matrix<<<>>> execution failed");
+  carmaCheckMsg("kern_fill_sym_matrix<<<>>> execution failed");
 
   return EXIT_SUCCESS;
 }

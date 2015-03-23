@@ -698,13 +698,13 @@ void get_centroids_async(int threads, int blocks, int n, carma_streams *streams,
         d_idata, d_odata, alpha, n, nbelem, scale, offset,
         i * blocks / nstreams);
 
-    cutilCheckMsg("centroidx_kernel<<<>>> execution failed\n");
+    carmaCheckMsg("centroidx_kernel<<<>>> execution failed\n");
 
     centroidy_async<T> <<<dimGrid, dimBlock, smemSize, streams->get_stream(i)>>>(
         d_idata, &(d_odata[blocks]), alpha, n, nbelem, scale, offset,
         i * blocks / nstreams);
 
-    cutilCheckMsg("centroidy_kernel<<<>>> execution failed\n");
+    carmaCheckMsg("centroidy_kernel<<<>>> execution failed\n");
   }
 }
 
@@ -1074,7 +1074,7 @@ void subap_bpcentro(int threads, int blocks, int npix, T *d_idata,
   centroid_bpix<T> <<<dimGrid, dimBlock, smemSize>>>(blocks, npix, d_idata,
       values, d_odata, scale, offset);
 
-  cutilCheckMsg("centroid_bpix<<<>>> execution failed\n");
+  carmaCheckMsg("centroid_bpix<<<>>> execution failed\n");
 }
 template void
 subap_bpcentro<float>(int threads, int blocks, int npix, float *d_idata,
@@ -1101,7 +1101,7 @@ void subap_sortmax(int threads, int blocks, T *d_idata, T *d_odata,
   size_t smemSize = threads * (sizeof(T) + sizeof(uint));
   sortmax<T> <<<dimGrid, dimBlock, smemSize>>>(d_idata, d_odata, values, nmax, threads, threads*blocks, nelem_thread);
 
-  cutilCheckMsg("sortmax_kernel<<<>>> execution failed\n");
+  carmaCheckMsg("sortmax_kernel<<<>>> execution failed\n");
 }
 template void
 subap_sortmax<float>(int threads, int blocks, float *d_idata, float *d_odata,
@@ -1127,7 +1127,7 @@ void subap_centromax(int threads, int blocks, T *d_idata, T *d_odata, int npix,
   centroid_max<T> <<<dimGrid, dimBlock, smemSize>>>(d_idata, d_odata, npix,
       nmax, blocks, scale, offset);
 
-  cutilCheckMsg("centroid_kernel<<<>>> execution failed\n");
+  carmaCheckMsg("centroid_kernel<<<>>> execution failed\n");
 }
 template void
 subap_centromax<float>(int threads, int blocks, float *d_idata, float *d_odata,
@@ -1153,7 +1153,7 @@ void subap_centromax2(int threads, int blocks, T *d_idata, T *d_odata,
   centroid_max2<T> <<<dimGrid, dimBlock, smemSize>>>(d_idata, d_odata, d_minim,
       npix, nmax, blocks, scale, offset);
 
-  cutilCheckMsg("centroid_kernel<<<>>> execution failed\n");
+  carmaCheckMsg("centroid_kernel<<<>>> execution failed\n");
 }
 template void
 subap_centromax2<float>(int threads, int blocks, float *d_idata, float *d_odata,
@@ -1184,12 +1184,12 @@ void get_centroids(int size, int threads, int blocks, int n, T *d_idata,
   centroidx<T> <<<dimGrid, dimBlock, smemSize>>>(d_idata, d_odata, alpha, n,
       size, scale, offset, nelem_thread);
 
-  cutilCheckMsg("centroidx_kernel<<<>>> execution failed\n");
+  carmaCheckMsg("centroidx_kernel<<<>>> execution failed\n");
 
   centroidy<T> <<<dimGrid, dimBlock, smemSize>>>(d_idata, &(d_odata[blocks]),
       alpha, n, size, scale, offset, nelem_thread);
 
-  cutilCheckMsg("centroidy_kernel<<<>>> execution failed\n");
+  carmaCheckMsg("centroidy_kernel<<<>>> execution failed\n");
 }
 
 template void
@@ -1222,12 +1222,12 @@ void get_centroids(int size, int threads, int blocks, int n, T *d_idata,
   centroidx<T> <<<dimGrid, dimBlock, smemSize>>>(d_idata, d_odata, alpha,
       thresh, n, size, scale, offset, nelem_thread);
 
-  cutilCheckMsg("centroidx_kernel<<<>>> execution failed\n");
+  carmaCheckMsg("centroidx_kernel<<<>>> execution failed\n");
 
   centroidy<T> <<<dimGrid, dimBlock, smemSize>>>(d_idata, &(d_odata[blocks]),
       alpha, thresh, n, size, scale, offset, nelem_thread);
 
-  cutilCheckMsg("centroidy_kernel<<<>>> execution failed\n");
+  carmaCheckMsg("centroidy_kernel<<<>>> execution failed\n");
 }
 
 template void
@@ -1261,12 +1261,12 @@ void get_centroids(int size, int threads, int blocks, int n, T *d_idata,
   centroidx<T> <<<dimGrid, dimBlock, smemSize>>>(d_idata, d_odata, alpha,
       weights, n, size, scale, offset, nelem_thread);
 
-  cutilCheckMsg("centroidx_kernel<<<>>> execution failed\n");
+  carmaCheckMsg("centroidx_kernel<<<>>> execution failed\n");
 
   centroidy<T> <<<dimGrid, dimBlock, smemSize>>>(d_idata, &(d_odata[blocks]),
       alpha, weights, n, size, scale, offset, nelem_thread);
 
-  cutilCheckMsg("centroidy_kernel<<<>>> execution failed\n");
+  carmaCheckMsg("centroidy_kernel<<<>>> execution failed\n");
 }
 
 template void
@@ -1294,7 +1294,7 @@ int fillweights(float *d_out, float *d_in, int npix, int N,
   dim3 grid(nBlocks), threads(nThreads);
 
   fillweights_krnl<<<grid, threads>>>(d_out, d_in, npix * npix, N);
-  cutilCheckMsg("<<<fillweights_krnl>>> execution failed\n");
+  carmaCheckMsg("<<<fillweights_krnl>>> execution failed\n");
 
   return EXIT_SUCCESS;
 }
@@ -1323,7 +1323,7 @@ int fillcorr(cuFloatComplex *d_out, float *d_in, int npix_in, int npix_out,
     //cout << "2d" << endl;
   }
 
-  cutilCheckMsg("fillcorr_kernel<<<>>> execution failed\n");
+  carmaCheckMsg("fillcorr_kernel<<<>>> execution failed\n");
 
   return EXIT_SUCCESS;
 }
@@ -1344,7 +1344,7 @@ int correl(cuFloatComplex *d_odata, cuFloatComplex *d_idata, int N,
 
   corr_krnl<<<grid, threads>>>(d_odata, d_idata, N);
 
-  cutilCheckMsg("corr_kernel<<<>>> execution failed\n");
+  carmaCheckMsg("corr_kernel<<<>>> execution failed\n");
   return EXIT_SUCCESS;
 }
 
@@ -1364,7 +1364,7 @@ int roll2real(float *d_odata, cuFloatComplex *d_idata, int n, int Npix, int N,
 
   roll2real_krnl<<<grid, threads>>>(d_odata, d_idata, n, Npix, N);
 
-  cutilCheckMsg("roll2real_kernel<<<>>> execution failed\n");
+  carmaCheckMsg("roll2real_kernel<<<>>> execution failed\n");
   return EXIT_SUCCESS;
 }
 
@@ -1384,7 +1384,7 @@ int corr_norm(float *d_odata, float *d_idata, int Npix, int N,
 
   corrnorm_krnl<<<grid, threads>>>(d_odata, d_idata, Npix, N);
 
-  cutilCheckMsg("corrnorm_kernel<<<>>> execution failed\n");
+  carmaCheckMsg("corrnorm_kernel<<<>>> execution failed\n");
   return EXIT_SUCCESS;
 }
 
@@ -1403,7 +1403,7 @@ int fillval_corr(cuFloatComplex *d_out, float val, int npix_in, int npix_out,
   dim3 grid(nBlocks), threads(nThreads);
 
   fillval_krnl<<<grid, threads>>>(d_out, val, npix_in, npix_out, N);
-  cutilCheckMsg("fillcorr_kernel<<<>>> execution failed\n");
+  carmaCheckMsg("fillcorr_kernel<<<>>> execution failed\n");
 
   return EXIT_SUCCESS;
 }
@@ -1427,7 +1427,7 @@ void subap_sortmaxi(int threads, int blocks, T *d_idata, int *values, int nmax,
   sortmaxi<T> <<<dimGrid, dimBlock, smemSize>>>(d_idata, values, nmax, offx,
       offy, npix, Npix, Npix * Npix);
 
-  cutilCheckMsg("sortmaxi_kernel<<<>>> execution failed\n");
+  carmaCheckMsg("sortmaxi_kernel<<<>>> execution failed\n");
 }
 template void
 subap_sortmaxi<float>(int threads, int blocks, float *d_idata, int *values,
@@ -1465,7 +1465,7 @@ void subap_pinterp(int threads, int blocks, T *d_idata, int *values,
       values, d_matinterp, sizex, sizey, nvalid, Npix, Npix * Npix, scale,
       offset);
 
-  cutilCheckMsg("sortmaxi_kernel<<<>>> execution failed\n");
+  carmaCheckMsg("sortmaxi_kernel<<<>>> execution failed\n");
 }
 
 template void
@@ -1493,7 +1493,7 @@ int convert_centro(float *d_odata, float *d_idata, float offset, float scale,
 
   convert_krnl<<<grid, threads>>>(d_odata, d_idata, offset, scale, N);
 
-  cutilCheckMsg("convert_kernel<<<>>> execution failed\n");
+  carmaCheckMsg("convert_kernel<<<>>> execution failed\n");
   return EXIT_SUCCESS;
 }
 
@@ -1542,7 +1542,7 @@ void pyr_slopes(T *d_odata, T *d_idata, int *subindx, int *subindy, T *subsum,
   pyrslopes_krnl<T> <<<grid, threads>>>(d_odata, d_idata, subindx, subindy,
       subsum, ns, nvalid, nim);
 
-  cutilCheckMsg("pyrslopes_kernel<<<>>> execution failed\n");
+  carmaCheckMsg("pyrslopes_kernel<<<>>> execution failed\n");
 }
 
 template void
@@ -1590,7 +1590,7 @@ void roof_slopes(T *d_odata, T *d_idata, int *subindx, int *subindy, T *subsum,
   roofslopes_krnl<T> <<<grid, threads>>>(d_odata, d_idata, subindx, subindy,
       subsum, ns, nvalid, nim);
 
-  cutilCheckMsg("roofslopes_kernel<<<>>> execution failed\n");
+  carmaCheckMsg("roofslopes_kernel<<<>>> execution failed\n");
 }
 
 template void

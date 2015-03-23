@@ -71,7 +71,7 @@ public:
 
   size_t getTotalMem() {return totalMem;}
   size_t getFreeMem() {
-    cutilSafeCall(cudaMemGetInfo(&freeMem, &totalMem));
+    carmaSafeCall(cudaMemGetInfo(&freeMem, &totalMem));
     return freeMem;
   }
 

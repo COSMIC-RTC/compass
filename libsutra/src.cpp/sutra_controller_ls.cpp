@@ -220,12 +220,12 @@ int sutra_controller_ls::frame_delay() {
       shift_buf(&((this->d_cenbuff->getData())[cc * this->nslope()]), 1,
           this->nslope(), this->current_context->get_device(device));
 
-    cutilSafeCall(
+    carmaSafeCall(
         cudaMemcpy(&(this->d_cenbuff->getData()[delay * this->nslope()]),
             this->d_centroids->getData(), sizeof(float) * this->nslope(),
             cudaMemcpyDeviceToDevice));
 
-    cutilSafeCall(
+    carmaSafeCall(
         cudaMemcpy(this->d_centroids->getData(), this->d_cenbuff->getData(),
             sizeof(float) * this->nslope(), cudaMemcpyDeviceToDevice));
   }
@@ -291,6 +291,9 @@ int sutra_controller_ls::comp_com() {
     this->streams->wait_all_streams();
 
   } else {
+//    float *cmat=(float*)malloc(this->d_cmat->getNbElem()*sizeof(float));
+//    d_cmat->device2host(cmat);
+//    DEBUG_TRACE("here %f %f %d", cmat[0], this->gain, this->open_loop);
     // compute error
     this->d_err->gemv('n', -1.0f, this->d_cmat, this->d_cmat->getDims(1),
         this->d_centroids, 1, 0.0f, 1);

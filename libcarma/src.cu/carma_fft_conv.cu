@@ -51,7 +51,7 @@ int fftconv_unpad(float *d_odata, float *d_idata, int fftW, int dataH,
       iDivUp(nim, threads.z));
 
   unpad_krnl<<<grid, threads>>>(d_odata, d_idata, fftW, dataW, N, n, nim);
-  cutilCheckMsg("unpad_kernel<<<>>> execution failed\n");
+  carmaCheckMsg("unpad_kernel<<<>>> execution failed\n");
 
   return EXIT_SUCCESS;
 }

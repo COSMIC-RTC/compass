@@ -164,12 +164,12 @@ void carma_obj<T_data>::init(carma_context *context, const long *dims_data,
   for (int i = 2; i < size_data; i++)
     this->nb_elem *= dims_data[i];
 
-  cutilSafeCall(
+  carmaSafeCall(
       cudaMalloc((void** )&(this->d_data), sizeof(T_data) * this->nb_elem));
   this->device = current_context->get_activeDevice();
 
   if (data == NULL)
-    cutilSafeCall(cudaMemset(this->d_data, 0, sizeof(T_data) * this->nb_elem));
+    carmaSafeCall(cudaMemset(this->d_data, 0, sizeof(T_data) * this->nb_elem));
 
   else if (fromHost)
     this->host2device(data);
@@ -181,7 +181,7 @@ void carma_obj<T_data>::init(carma_context *context, const long *dims_data,
   this->d_states = 0;
   this->values = 0;
   this->o_data = 0;
-  cutilSafeCall(cudaMalloc((void** )&(this->d_numValid), sizeof(size_t)));
+  carmaSafeCall(cudaMalloc((void** )&(this->d_numValid), sizeof(size_t)));
 
   this->streams = new carma_streams();
   this->add_stream(nb_streams);
@@ -195,7 +195,7 @@ void carma_obj<T_data>::init(carma_context *context, const long *dims_data,
 /*
  template<class T_data>
  carma_obj<T_data>& carma_obj<T_data>::operator= (const carma_obj<T_data>& obj){
- if(this->d_data!=0) cutilSafeCall( cudaFree(this->d_data) );
+ if(this->d_data!=0) carmaSafeCall( cudaFree(this->d_data) );
  if(this->dims_data!=0) delete(this->dims_data);
  carma_obj<T_data> *new_obj = new carma_obj(carma_context *current_context, obj);
  return new_obj;
@@ -210,7 +210,7 @@ carma_obj<T_data>::~carma_obj() {
   int old_device = current_context->get_activeDevice();
   current_context->set_activeDevice(this->device, 1);
 
-  cutilSafeCall(cudaFree(this->d_data));
+  carmaSafeCall(cudaFree(this->d_data));
   this->d_data = 0;
 
   delete[] (this->dims_data);
@@ -222,20 +222,20 @@ carma_obj<T_data>::~carma_obj() {
   delete this->streams;
 
   if (this->values != 0)
-    cutilSafeCall(cudaFree(this->values));
+    carmaSafeCall(cudaFree(this->values));
 
-  //if (this->o_data!=0) cutilSafeCall( cudaFree(this->o_data) );
+  //if (this->o_data!=0) carmaSafeCall( cudaFree(this->o_data) );
 
   /* Destroy the CUFFT plan. */
   if (this->plan != 0)
-    cufftSafeCall(cufftDestroy(this->plan));
+    carmafftSafeCall(cufftDestroy(this->plan));
 
   if (this->gen != 0)
     this->destroy_prng_host();
 
   if (this->d_states != 0)
 	  this->destroy_prng();
-  //  cutilSafeCall(cudaFree(this->d_states));
+  //  carmaSafeCall(cudaFree(this->d_states));
   //this->d_states = 0;
 
 #if DEBUG
@@ -264,7 +264,7 @@ int carma_obj<T_data>::host2device(T_data *data) {
    *
    * this method fills d_input with the imput data
    */
-  cutilSafeCall(
+  carmaSafeCall(
       cudaMemcpy(this->d_data, data, sizeof(T_data) * this->nb_elem,
           cudaMemcpyHostToDevice));
 
@@ -308,7 +308,7 @@ int carma_obj<T_data>::device2host(T_data *data) {
    *
    * this method copies the values in d_output to the output array
    */
-  cutilSafeCall(
+  carmaSafeCall(
       cudaMemcpy(data, this->d_data, sizeof(T_data) * this->nb_elem,
           cudaMemcpyDeviceToHost));
 
@@ -338,7 +338,7 @@ int carma_obj<T_data>::device2hostOpt(T_data *data) {
   if (this->o_data == 0)
     return EXIT_FAILURE;
 
-  cutilSafeCall(
+  carmaSafeCall(
       cudaMemcpy(data, this->o_data, sizeof(T_data) * this->nb_elem,
           cudaMemcpyDeviceToHost));
 
@@ -368,7 +368,7 @@ int carma_obj<T_data>::copyInto(T_data *data, int nb_elem) {
   if (nb_elem > this->nb_elem)
     nb_elem = this->nb_elem;
 
-  cutilSafeCall(
+  carmaSafeCall(
       cudaMemcpy(data, this->d_data, sizeof(T_data) * nb_elem,
           cudaMemcpyDeviceToDevice));
 
@@ -397,7 +397,7 @@ int carma_obj<T_data>::copyFrom(T_data *data, int nb_elem) {
   if (nb_elem > this->nb_elem)
     nb_elem = this->nb_elem;
 
-  cutilSafeCall(
+  carmaSafeCall(
       cudaMemcpy(this->d_data, data, sizeof(T_data) * nb_elem,
           cudaMemcpyDeviceToDevice));
 
@@ -425,7 +425,7 @@ T_data carma_obj<T_data>::sum() {
 
   reduce<T_data>(this->nb_elem, nThreads, nBlocks, this->d_data, this->d_data);
 
-  cutilCheckMsg("Kernel execution failed");
+  carmaCheckMsg("Kernel execution failed");
 
   // sum partial block sums on GPU
   int s = nBlocks;

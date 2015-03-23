@@ -573,7 +573,7 @@ func dm_init(void)
   }
 }
 
-func rtc_init(clean=, brama=)
+func rtc_init(clean=, brama=, doimat=)
 /* DOCUMENT rtc_init
    rtc_init[,clean=]
      
@@ -594,6 +594,9 @@ func rtc_init(clean=, brama=)
 
   if(brama==1) 
     g_rtc = yoga_rtc_brama(g_rtc);
+
+  if(doimat==[]) 
+    doimat = 1;
 
   if (y_rtc != []) {
     centroiders = *y_rtc.centroiders;
@@ -747,15 +750,8 @@ func rtc_init(clean=, brama=)
             //rtc_docontrol_geo,g_rtc,0,g_dm,g_target,0;
           }
 
-          if (controllers(i).type  == "ls") {
+          if (controllers(i).type  == "ls" && doimat) {
             imat_init,i,clean=clean;
-	    //perturb = array(0.0f,sum(*controllers(i).nactu),3);
-	    //perturb(,1) = 0;
-	    //perturb(,2) = indgen(sum(*controllers(i).nactu));
-	    //perturb(,3) = perturb(,2)(::-1);
-	    //rtc_setperturbcom,g_rtc,0,perturb,3;
-	    //imat = imat_geom(meth=0);
-            //rtc_setimat,g_rtc,i-1,imat;
             if (controllers(i).modopti == 1){
               write,"Initializing Modal Optimization : ";
               if (controllers(i).nrec == 0) controllers(i).nrec = 2048;
@@ -778,6 +774,17 @@ func rtc_init(clean=, brama=)
               //mgain(-1:0) = 0.0f;
               rtc_loadmgain,g_rtc,0,mgain;
             }
+          } else {
+            nactu= (*controllers(i).nactu)(sum);
+            nvalid= *controllers(i).nvalid
+            imat = array(0., nactu*nvalid*2);
+            rtc_setimat,g_rtc,i-1,imat;
+            rtc_setcmat,g_rtc,i-1,imat;
+            rtc_setgain,g_rtc,0,controllers(i).gain;
+            mgain = array(1.0f,(y_dm._ntotact)(sum));
+            // filtering tilt ...
+            //mgain(-1:0) = 0.0f;
+            rtc_loadmgain,g_rtc,0,mgain;
           }
           if (controllers(i).type  == "cured") {
             write,"initializing cured controller";
@@ -844,4 +851,7 @@ func rtc_init(clean=, brama=)
       }
     }
   }
+  if(brama==1) 
+    rtc_initDDS, g_rtc;
+
 }

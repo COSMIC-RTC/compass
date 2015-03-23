@@ -36,13 +36,13 @@ find_nnz(T_data *d_data, int *colind, int N, int *d_nnz, int &h_nnz, carma_devic
 	int smemSize = nthreads * sizeof(int);
 
 	find_nnz_krnl<<<grid, threads, smemSize>>>(d_data,colind,d_nnz,N);
-	cutilCheckMsg("find_nnz_krnl<<<>>> execution failed\n");
+	carmaCheckMsg("find_nnz_krnl<<<>>> execution failed\n");
 
 	// wrap raw pointer with a device_ptr
 	thrust::device_ptr<int> dev_ptr(colind);
 
 	thrust::sort(dev_ptr,dev_ptr+N);
-	cutilSafeCall(
+	carmaSafeCall(
 				cudaMemcpy(&h_nnz,d_nnz,sizeof(int),cudaMemcpyDeviceToHost));
 
 	return EXIT_SUCCESS;
@@ -78,7 +78,7 @@ fill_sparse_vect(T_data *dense_data, int *colind_sorted, T_data *values, int *co
 	dim3 grid(nblocks), threads(nthreads);
 
 	fill_sparse_vect_krnl<<<grid, threads>>>(dense_data, colind_sorted, values, colind, rowind, nnz);
-	cutilCheckMsg("find_nnz_krnl<<<>>> execution failed\n");
+	carmaCheckMsg("find_nnz_krnl<<<>>> execution failed\n");
 	return EXIT_SUCCESS;
 }
 template
@@ -112,7 +112,7 @@ floattodouble(float *i_data, double *o_data, int N, carma_device *device){
 	getNumBlocksAndThreads(device, N, nblocks, nthreads);
 	dim3 grid(nblocks), threads(nthreads);
 	floattodouble_krnl<<<grid , threads>>>(i_data,o_data,N);
-	cutilCheckMsg("floattodouble_krnl<<<>>> execution failed\n");
+	carmaCheckMsg("floattodouble_krnl<<<>>> execution failed\n");
 
 	return EXIT_SUCCESS;
 }
@@ -123,7 +123,7 @@ doubletofloat(double *i_data, float *o_data, int N, carma_device *device){
 	getNumBlocksAndThreads(device, N, nblocks, nthreads);
 	dim3 grid(nblocks), threads(nthreads);
 	doubletofloat_krnl<<<grid , threads>>>(i_data,o_data,N);
-	cutilCheckMsg("floattodouble_krnl<<<>>> execution failed\n");
+	carmaCheckMsg("floattodouble_krnl<<<>>> execution failed\n");
 
 	return EXIT_SUCCESS;
 }

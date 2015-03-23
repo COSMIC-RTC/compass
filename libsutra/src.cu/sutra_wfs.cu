@@ -59,7 +59,7 @@ int fillcamplipup(cuFloatComplex *amplipup, float *phase, float *offset,
 
   camplipup_krnl<<<grid, threads>>>(amplipup, phase, offset, mask, scale,
       istart, jstart, ivalid, jvalid, nphase, nphase2, npup, Nfft, Ntot);
-  cutilCheckMsg("fillcamplipup_kernel<<<>>> execution failed\n");
+  carmaCheckMsg("fillcamplipup_kernel<<<>>> execution failed\n");
 
   return EXIT_SUCCESS;
 }
@@ -105,7 +105,7 @@ int fillbinimg(float *bimage, float *bcube, int npix, int nsub, int Nsub,
   bimg_krnl<<<grid, threads>>>(bimage, bcube, npix, Npix, Nsub, ivalid, jvalid,
       alpha, N);
 
-  cutilCheckMsg("binimg_kernel<<<>>> execution failed\n");
+  carmaCheckMsg("binimg_kernel<<<>>> execution failed\n");
 
   return EXIT_SUCCESS;
 }
@@ -166,7 +166,7 @@ int fillbinimg_async(carma_host_obj<float> *image_telemetry, float *bimage,
         image_telemetry->get_cudaStream_t(i));
   }
   //cudaStreamSynchronize(image_telemetry->get_cudaStream_t(nstreams-1));
-  cutilCheckMsg("binimg_kernel<<<>>> execution failed\n");
+  carmaCheckMsg("binimg_kernel<<<>>> execution failed\n");
 
   return EXIT_SUCCESS;
 }
@@ -202,7 +202,7 @@ int fillbinimg_async(carma_streams *streams, carma_obj<float> *bimage,
     //   commence executing when all previous CUDA calls in stream x have completed
   }
 
-  cutilCheckMsg("binimg_kernel<<<>>> execution failed\n");
+  carmaCheckMsg("binimg_kernel<<<>>> execution failed\n");
 
   return EXIT_SUCCESS;
 }
@@ -244,7 +244,7 @@ int fillbincube(float *bcube, cuFloatComplex *hrimage, int *indxpix, int Nfft,
 
   fillbincube_krnl<<<grid, threads>>>(bcube, hrimage, indxpix, Nfft, Npix,
       Nrebin, N);
-  cutilCheckMsg("fillbincube_kernel<<<>>> execution failed\n");
+  carmaCheckMsg("fillbincube_kernel<<<>>> execution failed\n");
 
   return EXIT_SUCCESS;
 }
@@ -285,7 +285,7 @@ int fillbincube_async(carma_streams *streams, float *bcube,
   for (int i = 0; i < nstreams; i++) {
     fillbincube_krnl_async<<<grid, threads, 0, streams->get_stream(i)>>>(bcube,
         hrimage, indxpix, Nfft, Npix, Nrebin, N, i * N / nstreams);
-    cutilCheckMsg("fillbincubeasync_kernel<<<>>> execution failed\n");
+    carmaCheckMsg("fillbincubeasync_kernel<<<>>> execution failed\n");
   }
   return EXIT_SUCCESS;
 }
@@ -315,7 +315,7 @@ int indexfill(cuFloatComplex *d_odata, cuFloatComplex *d_idata, int *indx,
 
   indexfill_krnl<<<grid, threads>>>(d_odata, d_idata, indx, ntot, Ntot, N);
 
-  cutilCheckMsg("indexfill_kernel<<<>>> execution failed\n");
+  carmaCheckMsg("indexfill_kernel<<<>>> execution failed\n");
   return EXIT_SUCCESS;
 }
 
@@ -344,7 +344,7 @@ int convolve_cube(cuFloatComplex *d_odata, cuFloatComplex *d_idata, int N,
 
   conv_krnl<<<grid, threads>>>(d_odata, d_idata, N, n);
 
-  cutilCheckMsg("conv_kernel<<<>>> execution failed\n");
+  carmaCheckMsg("conv_kernel<<<>>> execution failed\n");
   return EXIT_SUCCESS;
 }
 
@@ -485,7 +485,7 @@ void subap_reduce(int size, int threads, int blocks, T *d_idata, T *d_odata, car
   int smemSize = threads * sizeof(T);
   reduce2<T> <<<dimGrid, dimBlock, smemSize>>>(d_idata, d_odata, (unsigned int)size,nelem_thread);
 
-  cutilCheckMsg("reduce2_kernel<<<>>> execution failed\n");
+  carmaCheckMsg("reduce2_kernel<<<>>> execution failed\n");
 }
 template void
 subap_reduce<float>(int size, int threads, int blocks, float *d_idata,
@@ -531,7 +531,7 @@ void subap_reduce_async(int threads, int blocks, carma_streams *streams,
         d_odata, nbelem, i * blocks / nstreams);
   }
 
-  cutilCheckMsg("reduce_kernel<<<>>> execution failed\n");
+  carmaCheckMsg("reduce_kernel<<<>>> execution failed\n");
 }
 template void
 subap_reduce_async<float>(int threads, int blocks, carma_streams *streams,
@@ -558,7 +558,7 @@ void subap_reduce(int size, int threads, int blocks, T *d_idata, T *d_odata,
   int smemSize =  threads * sizeof(T);
   reduce2<T> <<<dimGrid, dimBlock, smemSize>>>(d_idata, d_odata, thresh,
       size,nelem_thread);
-  cutilCheckMsg("reduce_kernel<<<>>> execution failed\n");
+  carmaCheckMsg("reduce_kernel<<<>>> execution failed\n");
 }
 template void
 subap_reduce<float>(int size, int threads, int blocks, float *d_idata,
@@ -585,7 +585,7 @@ void subap_reduce(int size, int threads, int blocks, T *d_idata, T *d_odata,
   int smemSize = threads * sizeof(T);
   reduce2<T> <<<dimGrid, dimBlock, smemSize>>>(d_idata, d_odata, weights,
       size,nelem_thread);
-  cutilCheckMsg("reduce_kernel<<<>>> execution failed\n");
+  carmaCheckMsg("reduce_kernel<<<>>> execution failed\n");
 }
 template void
 subap_reduce<float>(int size, int threads, int blocks, float *d_idata,
@@ -714,12 +714,12 @@ void phase_reduce(int threads, int blocks, T *d_idata, T *d_odata, int *indx,
   reduce_phasex<T> <<<dimGrid, dimBlock, smemSize>>>(d_idata, d_odata, indx,
       threads, alpha);
 
-  cutilCheckMsg("reduce_phasex_kernel<<<>>> execution failed\n");
+  carmaCheckMsg("reduce_phasex_kernel<<<>>> execution failed\n");
 
   reduce_phasey<T> <<<dimGrid, dimBlock, smemSize>>>(d_idata,
       &(d_odata[blocks]), indx, threads, alpha);
 
-  cutilCheckMsg("reduce_phasey_kernel<<<>>> execution failed\n");
+  carmaCheckMsg("reduce_phasey_kernel<<<>>> execution failed\n");
 }
 
 template void
@@ -743,12 +743,12 @@ void phase_derive(int size, int threads, int blocks, int n, T *d_idata,
   derive_phasex<T> <<<dimGrid, dimBlock, smemSize>>>(d_idata, d_odata, indx,
       mask, alpha, n, size, fluxPerSub);
 
-  cutilCheckMsg("phase_derivex_kernel<<<>>> execution failed\n");
+  carmaCheckMsg("phase_derivex_kernel<<<>>> execution failed\n");
 
   derive_phasey<T> <<<dimGrid, dimBlock, smemSize>>>(d_idata,
       &(d_odata[blocks]), indx, mask, alpha, n, size, fluxPerSub);
 
-  cutilCheckMsg("phase_derivey_kernel<<<>>> execution failed\n");
+  carmaCheckMsg("phase_derivey_kernel<<<>>> execution failed\n");
 }
 
 template void
@@ -823,7 +823,7 @@ void pyr_getpup(Tout *d_odata, Tin *d_idata, Tout *d_offsets, Tin *d_pup,
   pyrgetpup_krnl<Tout, Tin> <<<grid, threads, smemSize>>>(d_odata, d_idata,
       d_offsets, d_pup, np);
 
-  cutilCheckMsg("pyrgetpup_kernel<<<>>> execution failed\n");
+  carmaCheckMsg("pyrgetpup_kernel<<<>>> execution failed\n");
 }
 template void
 pyr_getpup<cuFloatComplex, float>(cuFloatComplex *d_odata, float *d_idata,
@@ -919,7 +919,7 @@ void pyr_rollmod(T *d_odata, T *d_idata, T *d_mask, float cx, float cy, int np,
   rollmod_krnl<T> <<<grid, threads>>>(d_odata, d_idata, d_mask, cx, cy, np,
       ns, 4);
 
-  cutilCheckMsg("rollmod_kernel<<<>>> execution failed\n");
+  carmaCheckMsg("rollmod_kernel<<<>>> execution failed\n");
 }
 template void
 pyr_rollmod<cuFloatComplex>(cuFloatComplex *d_odata, cuFloatComplex*d_idata,
@@ -1020,7 +1020,7 @@ void roof_rollmod(T *d_odata, T *d_idata, T *d_mask, float cx, float cy, int np,
   roof_rollmod_krnl<T> <<<grid, threads>>>(d_odata, d_idata, d_mask, cx, cy, np,
       ns, 4);
 
-  cutilCheckMsg("roof_rollmod_kernel<<<>>> execution failed\n");
+  carmaCheckMsg("roof_rollmod_kernel<<<>>> execution failed\n");
 }
 template void
 roof_rollmod<cuFloatComplex>(cuFloatComplex *d_odata, cuFloatComplex*d_idata,
@@ -1091,7 +1091,7 @@ void pyr_fillbin(T *d_odata, T *d_idata, int nrebin, int np, int ns, int nim,
   fillbinpyr_krnl<T> <<<grid, threads, smemSize>>>(d_odata, d_idata, nrebin,
       np, ns, nim);
 
-  cutilCheckMsg("pyrgetpup_kernel<<<>>> execution failed\n");
+  carmaCheckMsg("pyrgetpup_kernel<<<>>> execution failed\n");
 }
 template void
 pyr_fillbin<float>(float *d_odata, float *d_idata, int nrebin, int np, int ns,
@@ -1166,7 +1166,7 @@ void roof_fillbin(T *d_odata, T *d_idata, int nrebin, int np, int ns, int nim,
   fillbinroof_krnl<T> <<<grid, threads, smemSize>>>(d_odata, d_idata, nrebin,
       np, ns, nim);
 
-  cutilCheckMsg("pyrgetpup_kernel<<<>>> execution failed\n");
+  carmaCheckMsg("pyrgetpup_kernel<<<>>> execution failed\n");
 }
 template void
 roof_fillbin<float>(float *d_odata, float *d_idata, int nrebin, int np, int ns,
@@ -1222,7 +1222,7 @@ void pyr_abs(Tout *d_odata, Tin *d_idata, int ns, int nim, carma_device *device)
 
   abspyr_krnl<Tout, Tin> <<<grid, threads>>>(d_odata, d_idata, ns, nim);
 
-  cutilCheckMsg("abspyr_kernel<<<>>> execution failed\n");
+  carmaCheckMsg("abspyr_kernel<<<>>> execution failed\n");
 }
 template void
 pyr_abs<float, cuFloatComplex>(float *d_odata, cuFloatComplex *d_idata, int ns,
@@ -1278,7 +1278,7 @@ void pyr_abs2(Tout *d_odata, Tin *d_idata, Tout fact, int ns, int nim,
   abs2pyr_krnl<Tin, Tout> <<<grid, threads>>>(d_odata, d_idata, fact, ns,
       nim);
 
-  cutilCheckMsg("abs2pyr_kernel<<<>>> execution failed\n");
+  carmaCheckMsg("abs2pyr_kernel<<<>>> execution failed\n");
 }
 
 template void
@@ -1342,7 +1342,7 @@ void roof_abs2(Tout *d_odata, Tin *d_idata, Tout fact, int ns, int nim,
   abs2roof_krnl<Tin, Tout> <<<grid, threads>>>(d_odata, d_idata, fact, ns,
       nim);
 
-  cutilCheckMsg("abs2pyr_kernel<<<>>> execution failed\n");
+  carmaCheckMsg("abs2pyr_kernel<<<>>> execution failed\n");
 }
 
 template void
@@ -1384,7 +1384,7 @@ void pyr_submask(Tout *d_odata, Tin *d_mask, int n, carma_device *device) {
 
   submask_krnl<Tout, Tin> <<<grid, threads>>>(d_odata, d_mask, n);
 
-  cutilCheckMsg("submask_kernel<<<>>> execution failed\n");
+  carmaCheckMsg("submask_kernel<<<>>> execution failed\n");
 }
 template void
 pyr_submask<cuFloatComplex, float>(cuFloatComplex *d_odata, float*d_mask, int n,
@@ -1424,7 +1424,7 @@ void pyr_submask3d(Tout *d_odata, Tin *d_mask, int n, int nim, carma_device *dev
 
   submask3d_krnl<Tout, Tin> <<<grid, threads>>>(d_odata, d_mask, n, nim);
 
-  cutilCheckMsg("submask3d_kernel<<<>>> execution failed\n");
+  carmaCheckMsg("submask3d_kernel<<<>>> execution failed\n");
 }
 template void
 pyr_submask3d<cuFloatComplex, float>(cuFloatComplex *d_odata, float*d_mask,
@@ -1467,7 +1467,7 @@ void pyr_subsum(T *d_odata, T *d_idata, int *subindx, int *subindy, int ns,
   subsum_krnl<T> <<<grid, threads>>>(d_odata, d_idata, subindx, subindy, ns,
       nvalid, nim);
 
-  cutilCheckMsg("subsum_kernel<<<>>> execution failed\n");
+  carmaCheckMsg("subsum_kernel<<<>>> execution failed\n");
 }
 
 template void
@@ -1515,7 +1515,7 @@ void roof_subsum(T *d_odata, T *d_idata, int *subindx, int *subindy, int ns,
   roof_subsum_krnl<T> <<<grid, threads>>>(d_odata, d_idata, subindx, subindy, ns,
       nvalid, nim);
 
-  cutilCheckMsg("subsum_kernel<<<>>> execution failed\n");
+  carmaCheckMsg("subsum_kernel<<<>>> execution failed\n");
 }
 
 template void
@@ -1582,7 +1582,7 @@ void pyr_fact(T *d_data, T fact, int n, int nim, carma_device *device) {
 
   pyrfact_krnl<T> <<<grid, threads>>>(d_data, fact, n, nim);
 
-  cutilCheckMsg("pyrfact_kernel<<<>>> execution failed\n");
+  carmaCheckMsg("pyrfact_kernel<<<>>> execution failed\n");
 }
 
 template void
@@ -1607,7 +1607,7 @@ void pyr_fact(cuFloatComplex *d_data, float fact, int n, int nim, carma_device *
 
   pyrfact_krnl<<<grid, threads>>>(d_data, fact, n, nim);
 
-  cutilCheckMsg("pyrfact_kernel<<<>>> execution failed\n");
+  carmaCheckMsg("pyrfact_kernel<<<>>> execution failed\n");
 }
 
 void pyr_fact(float *d_data, float fact1, float *fact2, int n, int nim,
@@ -1628,7 +1628,7 @@ void pyr_fact(float *d_data, float fact1, float *fact2, int n, int nim,
 
   pyrfact_krnl<<<grid, threads>>>(d_data, fact1, fact2, n, nim);
 
-  cutilCheckMsg("pyrfact_kernel<<<>>> execution failed\n");
+  carmaCheckMsg("pyrfact_kernel<<<>>> execution failed\n");
 }
 
 /*
@@ -1678,7 +1678,7 @@ void pyr_fact(float *d_data, float fact1, float *fact2, int n, int nim,
  dim3 grid(nBlocks), threads(nThreads);
 
  fillcamplipup_krnl<<<grid, threads>>>(amplipup,phase,offset,mask,indx,Nfft,Npup,npup,N);
- cutilCheckMsg("fillcamplipup_kernel<<<>>> execution failed\n");
+ carmaCheckMsg("fillcamplipup_kernel<<<>>> execution failed\n");
 
  return EXIT_SUCCESS;
  }

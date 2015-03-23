@@ -403,7 +403,7 @@ void Y_get_tscreen_config(int argc) {
     } else if (strcmp(type_data, "values") == 0) {
       int *data = ypush_i(
           (long*) tscreen_handler->d_tscreen->d_screen->getDims());
-      cutilSafeCall(
+      carmaSafeCall(
           cudaMemcpy((void ** )&data,
               tscreen_handler->d_tscreen->d_screen->getValues(),
               sizeof(unsigned int)
@@ -1100,9 +1100,11 @@ void Y_yoga_sensors(int argc)
 
       //done inside sutra_wfs constructor
       //odevice = context_handle->set_activeDevice(odevice);
-      handle->sutra_sensors = new sutra_sensors(context_handle, type_data,
+      sutra_sensors *sensors = new sutra_sensors(context_handle, type_data,
           nsensors, nxsub, nvalid, npix, nphase, nrebin, nfft, ntota, npup,
           pdiam, nphot, lgs, odevice);
+      sensors->allocate_buffers();
+      handle->sutra_sensors = (void*)sensors;
     }
   } catch (string &msg) {
     y_error(msg.c_str());
@@ -2385,7 +2387,7 @@ void Y_rtc_setthresh(int argc) {
   carma_context *context_handle = _getCurrentContext();
   context_handle->set_activeDeviceForCpy(rhandler->device,1);
   if (rtc_handler->d_centro.at(ncentro)->is_type("tcog")) {
-    SCAST(sutra_centroider_tcog *, centroider_tcog,
+    CAST(sutra_centroider_tcog *, centroider_tcog,
         rtc_handler->d_centro.at(ncentro));
     centroider_tcog->set_threshold(thresh);
   }
@@ -2400,7 +2402,7 @@ void Y_rtc_setnmax(int argc) {
   carma_context *context_handle = _getCurrentContext();
   context_handle->set_activeDevice(rhandler->device,1);
   if (rtc_handler->d_centro.at(ncentro)->is_type("bpcog")) {
-    SCAST(sutra_centroider_bpcog *, centroider_bpcog,
+    CAST(sutra_centroider_bpcog *, centroider_bpcog,
         rtc_handler->d_centro.at(ncentro));
     centroider_bpcog->set_nmax(nmax);
   }
@@ -2476,25 +2478,25 @@ void Y_rtc_setgain(int argc) {
   // retreive gain and set it in the corresponding sutra_controller
   if (rtc_handler->d_control.at(ncontrol)->get_type().compare("ls") == 0) {
     float gain = ygets_f(argc - 3);
-    SCAST(sutra_controller_ls *, control, rtc_handler->d_control.at(ncontrol));
+    CAST(sutra_controller_ls *, control, rtc_handler->d_control.at(ncontrol));
     control->set_gain(gain);
   } 
   if (rtc_handler->d_control.at(ncontrol)->get_type().compare("mv")
       == 0) {
     float gain = ygets_f(argc - 3);
-    SCAST(sutra_controller_mv *, control, rtc_handler->d_control.at(ncontrol));
+    CAST(sutra_controller_mv *, control, rtc_handler->d_control.at(ncontrol));
     control->set_gain(gain);
   } 
   if (rtc_handler->d_control.at(ncontrol)->get_type().compare("cured")
       == 0){
     float gain = ygets_f(argc - 3);
-    SCAST(sutra_controller_cured *, control, rtc_handler->d_control.at(ncontrol));
+    CAST(sutra_controller_cured *, control, rtc_handler->d_control.at(ncontrol));
     control->set_gain(gain);
   }
   if (rtc_handler->d_control.at(ncontrol)->get_type().compare("geo")
       == 0){
     float gain = ygets_f(argc - 3);
-    SCAST(sutra_controller_geo *, control, rtc_handler->d_control.at(ncontrol));
+    CAST(sutra_controller_geo *, control, rtc_handler->d_control.at(ncontrol));
     control->set_gain(gain);
   }
   if   ( (rtc_handler->d_control.at(ncontrol)->get_type().compare("kalman_CPU")== 0)
@@ -2502,7 +2504,7 @@ void Y_rtc_setgain(int argc) {
        ||(rtc_handler->d_control.at(ncontrol)->get_type().compare("kalman_uninitialized")== 0) ){
   //Pour kalman gain correspond a k_W
     float gain = ygets_f(argc - 3);
-    SCAST(sutra_controller_kalman *, control, rtc_handler->d_control.at(ncontrol));
+    CAST(sutra_controller_kalman *, control, rtc_handler->d_control.at(ncontrol));
     control->set_gain(gain);
   }
 }
@@ -2516,7 +2518,7 @@ void Y_rtc_getmgain(int argc) {
   context_handle->set_activeDeviceForCpy(rhandler->device,1);
 
   if (rtc_handler->d_control.at(ncontrol)->get_type().compare("ls") == 0) {
-    SCAST(sutra_controller_ls *, control, rtc_handler->d_control.at(ncontrol));
+    CAST(sutra_controller_ls *, control, rtc_handler->d_control.at(ncontrol));
       float *data = ypush_f((long*) control->d_gain->getDims());
       control->d_gain->device2host(data);
   } else {
@@ -2536,12 +2538,12 @@ void Y_rtc_loadmgain(int argc) {
   context_handle->set_activeDeviceForCpy(rhandler->device,1);
   if (rtc_handler->d_control.at(ncontrol)->get_type().compare("ls") == 0) {
     float *mgain = ygeta_f(argc - 3, &ntot, dims);
-    SCAST(sutra_controller_ls *, control, rtc_handler->d_control.at(ncontrol));
+    CAST(sutra_controller_ls *, control, rtc_handler->d_control.at(ncontrol));
     control->load_mgain(mgain);
   } else if (rtc_handler->d_control.at(ncontrol)->get_type().compare("mv")
       == 0) {
     float *mgain = ygeta_f(argc - 3, &ntot, dims);
-    SCAST(sutra_controller_mv *, control, rtc_handler->d_control.at(ncontrol));
+    CAST(sutra_controller_mv *, control, rtc_handler->d_control.at(ncontrol));
     control->load_mgain(mgain);
   } else {
     y_error("Controller needs to be ls or mv\n");
@@ -2560,7 +2562,7 @@ void Y_rtc_loadOpenLoopSlp(int argc) {
   context_handle->set_activeDeviceForCpy(rhandler->device,1);
   if (rtc_handler->d_control.at(ncontrol)->get_type().compare("ls") == 0) {
     float *ol_slopes = ygeta_f(argc - 3, &ntot, dims);
-    SCAST(sutra_controller_ls *, control, rtc_handler->d_control.at(ncontrol));
+    CAST(sutra_controller_ls *, control, rtc_handler->d_control.at(ncontrol));
     control->loadOpenLoopSlp(ol_slopes);
   } else {
     y_error("Controller needs to be ls \n");
@@ -2579,7 +2581,7 @@ void Y_rtc_loadnoisemat(int argc) {
   context_handle->set_activeDeviceForCpy(rhandler->device,1);
   if (rtc_handler->d_control.at(ncontrol)->get_type().compare("mv") == 0) {
     float *noise = ygeta_f(argc - 3, &ntot, dims);
-    SCAST(sutra_controller_mv *, control, rtc_handler->d_control.at(ncontrol));
+    CAST(sutra_controller_mv *, control, rtc_handler->d_control.at(ncontrol));
     control->load_noisemat(noise);
   } else {
     y_error("Controller needs to be mv\n");
@@ -2595,7 +2597,7 @@ void Y_rtc_getnoisemat(int argc) {
   context_handle->set_activeDeviceForCpy(rhandler->device,1);
 
   if (rtc_handler->d_control.at(ncontrol)->get_type().compare("mv") == 0) {
-    SCAST(sutra_controller_mv *, control, rtc_handler->d_control.at(ncontrol));
+    CAST(sutra_controller_mv *, control, rtc_handler->d_control.at(ncontrol));
     float *data = ypush_f((long*) control->d_noisemat->getDims());
     control->d_noisemat->device2host(data);
   } else {
@@ -2612,7 +2614,7 @@ void Y_rtc_getslpol(int argc) {
   context_handle->set_activeDeviceForCpy(rhandler->device,1);
 
   if (rtc_handler->d_control.at(ncontrol)->get_type().compare("ls") == 0) {
-    SCAST(sutra_controller_ls *, control, rtc_handler->d_control.at(ncontrol));
+    CAST(sutra_controller_ls *, control, rtc_handler->d_control.at(ncontrol));
     if (control->is_modopti == 1){
       float *data = ypush_f((long*) control->d_slpol->getDims());
       control->d_slpol->device2host(data);
@@ -2634,7 +2636,7 @@ void Y_rtc_getHcor(int argc) {
   context_handle->set_activeDeviceForCpy(rhandler->device,1);
 
   if (rtc_handler->d_control.at(ncontrol)->get_type().compare("ls") == 0) {
-    SCAST(sutra_controller_ls *, control, rtc_handler->d_control.at(ncontrol));
+    CAST(sutra_controller_ls *, control, rtc_handler->d_control.at(ncontrol));
     if (control->is_modopti == 1){
       float *data = ypush_f((long*) control->d_Hcor->getDims());
       control->d_Hcor->device2host(data);
@@ -2656,7 +2658,7 @@ void Y_rtc_getS2M(int argc) {
   context_handle->set_activeDeviceForCpy(rhandler->device,1);
 
   if (rtc_handler->d_control.at(ncontrol)->get_type().compare("ls") == 0) {
-    SCAST(sutra_controller_ls *, control, rtc_handler->d_control.at(ncontrol));
+    CAST(sutra_controller_ls *, control, rtc_handler->d_control.at(ncontrol));
     if (control->is_modopti == 1){
       float *data = ypush_f((long*) control->d_S2M->getDims());
       control->d_S2M->device2host(data);
@@ -2678,7 +2680,7 @@ void Y_rtc_getM2V(int argc) {
   context_handle->set_activeDeviceForCpy(rhandler->device,1);
 
   if (rtc_handler->d_control.at(ncontrol)->get_type().compare("ls") == 0) {
-    SCAST(sutra_controller_ls *, control, rtc_handler->d_control.at(ncontrol));
+    CAST(sutra_controller_ls *, control, rtc_handler->d_control.at(ncontrol));
     if (control->is_modopti == 1){
       float *data = ypush_f((long*) control->d_M2V->getDims());
       control->d_M2V->device2host(data);
@@ -2700,17 +2702,17 @@ void Y_rtc_setdelay(int argc) {
   context_handle->set_activeDeviceForCpy(rhandler->device,1);
   if (rtc_handler->d_control.at(ncontrol)->get_type().compare("ls") == 0) {
     long delay = ygets_l(argc - 3);
-    SCAST(sutra_controller_ls *, control, rtc_handler->d_control.at(ncontrol));
+    CAST(sutra_controller_ls *, control, rtc_handler->d_control.at(ncontrol));
     control->set_delay(delay);
   }
    if (rtc_handler->d_control.at(ncontrol)->get_type().compare("mv") == 0) {
     long delay = ygets_l(argc - 3);
-    SCAST(sutra_controller_mv *, control, rtc_handler->d_control.at(ncontrol));
+    CAST(sutra_controller_mv *, control, rtc_handler->d_control.at(ncontrol));
     control->set_delay(delay);
   }
    if (rtc_handler->d_control.at(ncontrol)->get_type().compare("cured") == 0) {
     long delay = ygets_l(argc - 3);
-    SCAST(sutra_controller_cured *, control, rtc_handler->d_control.at(ncontrol));
+    CAST(sutra_controller_cured *, control, rtc_handler->d_control.at(ncontrol));
     control->set_delay(delay);
   }
 }
@@ -2724,17 +2726,17 @@ void Y_rtc_getimat(int argc) {
   context_handle->set_activeDeviceForCpy(rhandler->device,1);
 
   if (rtc_handler->d_control.at(ncontrol)->get_type().compare("ls") == 0) {
-    SCAST(sutra_controller_ls *, control, rtc_handler->d_control.at(ncontrol));
+    CAST(sutra_controller_ls *, control, rtc_handler->d_control.at(ncontrol));
     float *data = ypush_f((long*) control->d_imat->getDims());
     control->d_imat->device2host(data);
   } else if (rtc_handler->d_control.at(ncontrol)->get_type().compare("mv")
       == 0) {
-    SCAST(sutra_controller_mv *, control, rtc_handler->d_control.at(ncontrol));
+    CAST(sutra_controller_mv *, control, rtc_handler->d_control.at(ncontrol));
     float *data = ypush_f((long*) control->d_imat->getDims());
     control->d_imat->device2host(data);
   } else if (rtc_handler->d_control.at(ncontrol)->get_type().compare("cured")
       == 0) {
-    SCAST(sutra_controller_cured *, control, rtc_handler->d_control.at(ncontrol));
+    CAST(sutra_controller_cured *, control, rtc_handler->d_control.at(ncontrol));
     float *data = ypush_f((long*) control->d_imat->getDims());
     control->d_imat->device2host(data);
   }
@@ -2752,11 +2754,11 @@ void Y_rtc_setimat(int argc) {
   long dims[Y_DIMSIZE];
   float *data = ygeta_f(argc - 3, &ntot, dims);
   if (rtc_handler->d_control.at(ncontrol)->get_type().compare("ls") == 0) {
-    SCAST(sutra_controller_ls *, control, rtc_handler->d_control.at(ncontrol));
+    CAST(sutra_controller_ls *, control, rtc_handler->d_control.at(ncontrol));
     control->d_imat->host2device(data);
   }
   if (rtc_handler->d_control.at(ncontrol)->get_type().compare("mv") == 0) {
-      SCAST(sutra_controller_mv *, control, rtc_handler->d_control.at(ncontrol));
+      CAST(sutra_controller_mv *, control, rtc_handler->d_control.at(ncontrol));
       control->d_imat->host2device(data);
     }
 }
@@ -2773,15 +2775,15 @@ void Y_rtc_setcentroids(int argc) {
   long dims[Y_DIMSIZE];
   float *data = ygeta_f(argc - 3, &ntot, dims);
   if (rtc_handler->d_control.at(ncontrol)->get_type().compare("ls") == 0) {
-    SCAST(sutra_controller_ls *, control, rtc_handler->d_control.at(ncontrol));
+    CAST(sutra_controller_ls *, control, rtc_handler->d_control.at(ncontrol));
     control->d_centroids->host2device(data);
   }
   if (rtc_handler->d_control.at(ncontrol)->get_type().compare("mv") == 0) {
-    SCAST(sutra_controller_mv *, control, rtc_handler->d_control.at(ncontrol));
+    CAST(sutra_controller_mv *, control, rtc_handler->d_control.at(ncontrol));
     control->d_centroids->host2device(data);
   }
   if (rtc_handler->d_control.at(ncontrol)->get_type().compare("cured") == 0) {
-    SCAST(sutra_controller_cured *, control, rtc_handler->d_control.at(ncontrol));
+    CAST(sutra_controller_cured *, control, rtc_handler->d_control.at(ncontrol));
     control->d_centroids->host2device(data);
   }
 }
@@ -2840,12 +2842,12 @@ void Y_rtc_getcmat(int argc) {
   context_handle->set_activeDeviceForCpy(rhandler->device,1);
 
   if (rtc_handler->d_control.at(ncontrol)->get_type().compare("ls") == 0) {
-    SCAST(sutra_controller_ls *, control, rtc_handler->d_control.at(ncontrol));
+    CAST(sutra_controller_ls *, control, rtc_handler->d_control.at(ncontrol));
     float *data = ypush_f((long*) control->d_cmat->getDims());
     control->d_cmat->device2host(data);
   } else if (rtc_handler->d_control.at(ncontrol)->get_type().compare("mv")
       == 0) {
-    SCAST(sutra_controller_mv *, control, rtc_handler->d_control.at(ncontrol));
+    CAST(sutra_controller_mv *, control, rtc_handler->d_control.at(ncontrol));
     float *data = ypush_f((long*) control->d_cmat->getDims());
     control->d_cmat->device2host(data);
   } else {
@@ -2864,11 +2866,11 @@ void Y_rtc_setcmat(int argc) {
   long dims[Y_DIMSIZE];
   float *data = ygeta_f(argc - 3, &ntot, dims);
   if (rtc_handler->d_control.at(ncontrol)->get_type().compare("ls") == 0) {
-    SCAST(sutra_controller_ls *, control, rtc_handler->d_control.at(ncontrol));
+    CAST(sutra_controller_ls *, control, rtc_handler->d_control.at(ncontrol));
     control->d_cmat->host2device(data);
   } else if (rtc_handler->d_control.at(ncontrol)->get_type().compare("mv")
       == 0) {
-    SCAST(sutra_controller_mv *, control, rtc_handler->d_control.at(ncontrol));
+    CAST(sutra_controller_mv *, control, rtc_handler->d_control.at(ncontrol));
     control->d_cmat->host2device(data);
   } else {
     y_error("Controller needs to be ls or mv\n");
@@ -2886,7 +2888,7 @@ void Y_rtc_setcovmat(int argc) {
   long dims[Y_DIMSIZE];
   float *data = ygeta_f(argc - 3, &ntot, dims);
   if (rtc_handler->d_control.at(ncontrol)->get_type().compare("mv") == 0) {
-    SCAST(sutra_controller_mv *, control, rtc_handler->d_control.at(ncontrol));
+    CAST(sutra_controller_mv *, control, rtc_handler->d_control.at(ncontrol));
     control->d_covmat->host2device(data);
   } else {
     y_error("Controller needs to be mv\n");
@@ -2904,7 +2906,7 @@ void Y_rtc_setCphim(int argc) {
   long dims[Y_DIMSIZE];
   float *data = ygeta_f(argc - 3, &ntot, dims);
   if (rtc_handler->d_control.at(ncontrol)->get_type().compare("mv") == 0) {
-    SCAST(sutra_controller_mv *, control, rtc_handler->d_control.at(ncontrol));
+    CAST(sutra_controller_mv *, control, rtc_handler->d_control.at(ncontrol));
     control->d_Cphim->host2device(data);
   } else {
     y_error("Controller needs to be mv\n");
@@ -2923,7 +2925,7 @@ void Y_rtc_setCmm(int argc) {
   long dims[Y_DIMSIZE];
   float *data = ygeta_f(argc - 3, &ntot, dims);
   if (rtc_handler->d_control.at(ncontrol)->get_type().compare("mv") == 0) {
-    SCAST(sutra_controller_mv *, control, rtc_handler->d_control.at(ncontrol));
+    CAST(sutra_controller_mv *, control, rtc_handler->d_control.at(ncontrol));
     control->d_Cmm->host2device(data);
   } else {
     y_error("Controller needs to be mv\n");
@@ -2976,7 +2978,7 @@ void Y_rtc_buildcmat(int argc) {
   context_handle->set_activeDeviceForCpy(rhandler->device,1);
 
   if (rtc_handler->d_control.at(ncontrol)->get_type().compare("ls") == 0) {
-    SCAST(sutra_controller_ls *, control, rtc_handler->d_control.at(ncontrol));
+    CAST(sutra_controller_ls *, control, rtc_handler->d_control.at(ncontrol));
     if (filt_tt > 0)
       control->build_cmat(nfilt, true);
     else
@@ -3000,7 +3002,7 @@ void Y_rtc_init_proj(int argc) {
   context_handle->set_activeDeviceForCpy(rhandler->device,1);
 
   if (rtc_handler->d_control.at(ncontrol)->get_type().compare("geo") == 0) {
-    SCAST(sutra_controller_geo *, control, rtc_handler->d_control.at(ncontrol));
+    CAST(sutra_controller_geo *, control, rtc_handler->d_control.at(ncontrol));
     control->init_proj_sparse(dms_handler,indx_dm,unitpervolt,indx_pup);
 }
   else y_error("**** ERROR : init_proj only for controller type geo **** \n");
@@ -3024,7 +3026,7 @@ void Y_rtc_initModalOpti(int argc) {
   context_handle->set_activeDeviceForCpy(rhandler->device,1);
 
   if (rtc_handler->d_control.at(ncontrol)->get_type().compare("ls") == 0) {
-    SCAST(sutra_controller_ls *, control, rtc_handler->d_control.at(ncontrol));
+    CAST(sutra_controller_ls *, control, rtc_handler->d_control.at(ncontrol));
     control->init_modalOpti(nmodes,nrec,M2V,gmin,gmax,ngain,Fs);
 }
   else y_error("**** ERROR : Modal Optimization only for controller type ls **** \n");
@@ -3040,7 +3042,7 @@ void Y_rtc_modalControlOptimization(int argc) {
   context_handle->set_activeDeviceForCpy(rhandler->device,1);
 
   if (rtc_handler->d_control.at(ncontrol)->get_type().compare("ls") == 0) {
-    SCAST(sutra_controller_ls *, control, rtc_handler->d_control.at(ncontrol));
+    CAST(sutra_controller_ls *, control, rtc_handler->d_control.at(ncontrol));
     if(control->is_modopti)
       control->modalControlOptimization();
     else y_error("**** ERROR : Modal Optimization not initialized **** \n");
@@ -3059,7 +3061,7 @@ void Y_rtc_imatsvd(int argc) {
   context_handle->set_activeDeviceForCpy(rhandler->device,1);
 
   if (rtc_handler->d_control.at(ncontrol)->get_type().compare("ls") == 0) {
-    SCAST(sutra_controller_ls *, control, rtc_handler->d_control.at(ncontrol));
+    CAST(sutra_controller_ls *, control, rtc_handler->d_control.at(ncontrol));
 
     if (control->svdec_imat() == EXIT_FAILURE)
       y_error(
@@ -3077,7 +3079,7 @@ void Y_rtc_framedelay(int argc) {
   int ncontrol = ygets_i(argc - 2);
 
   if (rtc_handler->d_control.at(ncontrol)->get_type().compare("ls") == 0) {
-    SCAST(sutra_controller_ls *, control, rtc_handler->d_control.at(ncontrol));
+    CAST(sutra_controller_ls *, control, rtc_handler->d_control.at(ncontrol));
     control->frame_delay();
   }
 }
@@ -3124,7 +3126,7 @@ void Y_rtc_docontrol_geo(int argc) {
   carma_context *context_handle = _getCurrentContext();
   context_handle->set_activeDevice(rhandler->device,1);
 
-  SCAST(sutra_controller_geo *, control, rtc_handler->d_control.at(ncontrol));
+  CAST(sutra_controller_geo *, control, rtc_handler->d_control.at(ncontrol));
   control->comp_dphi(target_handler->d_targets.at(ntarget));
   rtc_handler->do_control(ncontrol);
 }
@@ -3145,14 +3147,14 @@ void Y_controller_setdata(int argc) {
   if (strcmp(type_data, "U") == 0) {
     float *data = ygeta_f(argc - 4, &ntot, dims);
     if (rtc_handler->d_control.at(ncontrol)->get_type().compare("ls") == 0) {
-      SCAST(sutra_controller_ls *, control,
+      CAST(sutra_controller_ls *, control,
           rtc_handler->d_control.at(ncontrol));
       control->d_U->host2device(data);
     }
   } else if (strcmp(type_data, "eigenvals") == 0) {
     float *data = ygeta_f(argc - 4, &ntot, dims);
     if (rtc_handler->d_control.at(ncontrol)->get_type().compare("ls") == 0) {
-      SCAST(sutra_controller_ls *, control,
+      CAST(sutra_controller_ls *, control,
           rtc_handler->d_control.at(ncontrol));
       control->h_eigenvals->fill_from(data);
       control->d_eigenvals->host2device(data);
@@ -3172,28 +3174,28 @@ void Y_controller_getdata(int argc) {
   char *type_data = ygets_q(argc - 3);
   if (strcmp(type_data, "U") == 0) {
     if (rtc_handler->d_control.at(ncontrol)->get_type().compare("ls") == 0) {
-      SCAST(sutra_controller_ls *, control,
+      CAST(sutra_controller_ls *, control,
           rtc_handler->d_control.at(ncontrol));
       float *data = ypush_f((long*) control->d_U->getDims());
       control->d_U->device2host(data);
     }
   } else if (strcmp(type_data, "eigenvals") == 0) {
     if (rtc_handler->d_control.at(ncontrol)->get_type().compare("ls") == 0) {
-      SCAST(sutra_controller_ls *, control,
+      CAST(sutra_controller_ls *, control,
           rtc_handler->d_control.at(ncontrol));
       float *data = ypush_f((long*) control->h_eigenvals->getDims());
       control->h_eigenvals->fill_into(data);
     }
   } else if (strcmp(type_data, "cenbuff") == 0) {
     if (rtc_handler->d_control.at(ncontrol)->get_type().compare("ls") == 0) {
-      SCAST(sutra_controller_ls *, control,
+      CAST(sutra_controller_ls *, control,
           rtc_handler->d_control.at(ncontrol));
       float *data = ypush_f((long*) control->d_cenbuff->getDims());
       control->d_cenbuff->device2host(data);
     }
   } else if (strcmp(type_data, "err") == 0) {
     if (rtc_handler->d_control.at(ncontrol)->get_type().compare("ls") == 0) {
-      SCAST(sutra_controller_ls *, control,
+      CAST(sutra_controller_ls *, control,
           rtc_handler->d_control.at(ncontrol));
       float *data = ypush_f((long*) control->d_err->getDims());
       control->d_err->device2host(data);
@@ -3225,7 +3227,7 @@ void Y_controller_initcured(int argc) {
   context_handle->set_activeDeviceForCpy(rhandler->device,1);
 
   if (rtc_handler->d_control.at(ncontrol)->get_type().compare("cured") == 0) {
-    SCAST(sutra_controller_cured *, control,
+    CAST(sutra_controller_cured *, control,
         rtc_handler->d_control.at(ncontrol));
     control->init_cured(nxsubs, isvalid, ndivs, tt);
   }
@@ -3302,7 +3304,7 @@ void Y_sensors_initweights(int argc) {
   carma_context *context_handle = _getCurrentContext();
   context_handle->set_activeDevice(rhandler->device,1);
 
-  SCAST(sutra_centroider_wcog *, centroider_wcog,
+  CAST(sutra_centroider_wcog *, centroider_wcog,
       rtc_handler->d_centro.at(ncentro));
   centroider_wcog->init_weights();
   centroider_wcog->load_weights(weights, dims[0]);
@@ -3318,7 +3320,7 @@ void Y_sensors_initbcube(int argc) {
   int ncentro = ygets_i(argc - 2);
 
   if(rtc_handler->d_centro.at(ncentro)->get_type()=="corr"){
-    SCAST(sutra_centroider_corr *, centroider_corr,
+    CAST(sutra_centroider_corr *, centroider_corr,
         rtc_handler->d_centro.at(ncentro));
     centroider_corr->init_bincube();
   }
@@ -3342,7 +3344,7 @@ void Y_sensors_initcorr(int argc) {
   carma_context *context_handle = _getCurrentContext();
   context_handle->set_activeDevice(rhandler->device,1);
 
-  SCAST(sutra_centroider_corr *, centroider_corr,
+  CAST(sutra_centroider_corr *, centroider_corr,
       rtc_handler->d_centro.at(ncentro));
   centroider_corr->init_corr(sizex, sizey,
       interpmat);
@@ -3364,7 +3366,7 @@ void Y_sensors_loadcorrfnct(int argc) {
   carma_context *context_handle = _getCurrentContext();
   context_handle->set_activeDevice(rhandler->device,1);
 
-  SCAST(sutra_centroider_corr *, centroider_corr,
+  CAST(sutra_centroider_corr *, centroider_corr,
       rtc_handler->d_centro.at(ncentro));
   centroider_corr->load_corr(weights, corr_norm, mydim);
 }
@@ -3384,7 +3386,7 @@ void Y_sensors_loadweights(int argc) {
 
   float *weights = ygeta_f(argc - 4, &ntot, dims);
 
-  SCAST(sutra_centroider_wcog *, centroider_wcog,
+  CAST(sutra_centroider_wcog *, centroider_wcog,
       rtc_handler->d_centro.at(ncentro));
   centroider_wcog->load_weights(weights, dims[0]);
 }
@@ -3400,11 +3402,11 @@ void Y_sensors_compslopes(int argc) {
   //cout << ncentro << " " << (rtc_handler->d_centro.at(ncentro)->typec) << endl;
   if (argc > 4) {
     if (rtc_handler->d_centro.at(ncentro)->is_type("bpcog")) {
-      SCAST(sutra_centroider_bpcog *, centroider_bpcog,
+      CAST(sutra_centroider_bpcog *, centroider_bpcog,
           rtc_handler->d_centro.at(ncentro));
       centroider_bpcog->set_nmax(ygets_i(argc - 5) );
     } else if (rtc_handler->d_centro.at(ncentro)->is_type("tcog")) {
-      SCAST(sutra_centroider_tcog *, centroider_tcog,
+      CAST(sutra_centroider_tcog *, centroider_tcog,
           rtc_handler->d_centro.at(ncentro));
       centroider_tcog->set_threshold(ygets_f(argc - 5) );
     }
@@ -3441,14 +3443,14 @@ void Y_centroider_getdata(int argc) {
   char *type_data = ygets_q(argc - 3);
   if ((strcmp(type_data, "weights") == 0)
       && rtc_handler->d_centro.at(ncentro)->is_type("wcog")) {
-    SCAST(sutra_centroider_wcog *, centroider_wcog,
+    CAST(sutra_centroider_wcog *, centroider_wcog,
         rtc_handler->d_centro.at(ncentro));
     float *data = ypush_f((long*) centroider_wcog->d_weights->getDims());
     centroider_wcog->d_weights->device2host(data);
   }
   if ((strcmp(type_data, "corrnorm") == 0)
       && rtc_handler->d_centro.at(ncentro)->is_type("corr")) {
-    SCAST(sutra_centroider_corr *, centroider_corr,
+    CAST(sutra_centroider_corr *, centroider_corr,
         rtc_handler->d_centro.at(ncentro));
     float *data = ypush_f((long*) centroider_corr->d_corrnorm->getDims());
 
@@ -3456,7 +3458,7 @@ void Y_centroider_getdata(int argc) {
   }
   if ((strcmp(type_data, "corrfnct") == 0)
       && rtc_handler->d_centro.at(ncentro)->is_type("corr")) {
-    SCAST(sutra_centroider_corr *, centroider_corr,
+    CAST(sutra_centroider_corr *, centroider_corr,
         rtc_handler->d_centro.at(ncentro));
     long *ndims_data = new long[5];
     ndims_data[0] = 4;
@@ -3468,7 +3470,7 @@ void Y_centroider_getdata(int argc) {
   }
   if ((strcmp(type_data, "corrspot") == 0)
       && rtc_handler->d_centro.at(ncentro)->is_type("corr")) {
-    SCAST(sutra_centroider_corr *, centroider_corr,
+    CAST(sutra_centroider_corr *, centroider_corr,
         rtc_handler->d_centro.at(ncentro));
     long *ndims_data = new long[5];
     ndims_data[0] = 4;
@@ -3480,21 +3482,21 @@ void Y_centroider_getdata(int argc) {
   }
   if ((strcmp(type_data, "corr") == 0)
       && rtc_handler->d_centro.at(ncentro)->is_type("corr")) {
-    SCAST(sutra_centroider_corr *, centroider_corr,
+    CAST(sutra_centroider_corr *, centroider_corr,
         rtc_handler->d_centro.at(ncentro));
     float *data = ypush_f((long*) centroider_corr->d_corr->getDims());
     centroider_corr->d_corr->device2host(data);
   }
   if ((strcmp(type_data, "corrmax") == 0)
       && rtc_handler->d_centro.at(ncentro)->is_type("corr")) {
-    SCAST(sutra_centroider_corr *, centroider_corr,
+    CAST(sutra_centroider_corr *, centroider_corr,
         rtc_handler->d_centro.at(ncentro));
     int *data = ypush_i((long*) centroider_corr->d_corrmax->getDims());
     centroider_corr->d_corrmax->device2host(data);
   }
   if ((strcmp(type_data, "matinterp") == 0)
       && rtc_handler->d_centro.at(ncentro)->is_type("corr")) {
-    SCAST(sutra_centroider_corr *, centroider_corr,
+    CAST(sutra_centroider_corr *, centroider_corr,
         rtc_handler->d_centro.at(ncentro));
     float *data = ypush_f((long*) centroider_corr->d_interpmat->getDims());
     centroider_corr->d_interpmat->device2host(data);
@@ -3712,7 +3714,7 @@ void Y_rtc_buildcmatmv(int argc) {
   carma_context *context_handle = _getCurrentContext();
   context_handle->set_activeDeviceForCpy(rhandler->device,1);
 
-  SCAST(sutra_controller_mv *, controller, rtc_handler->d_control[ncontrol]);
+  CAST(sutra_controller_mv *, controller, rtc_handler->d_control[ncontrol]);
   controller->build_cmat(cond);
 }
 void Y_rtc_doimatkl(int argc) {
@@ -3760,7 +3762,7 @@ void Y_rtc_doCmm(int argc){
 
     carma_context *context_handle = _getCurrentContext();
     context_handle->set_activeDeviceForCpy(rhandler->device,1);
-    SCAST(sutra_controller_mv *, controller, rtc_handler->d_control[ncontrol]);
+    CAST(sutra_controller_mv *, controller, rtc_handler->d_control[ncontrol]);
     controller->compute_Cmm(atmos_handler,sensors_handler,L0,cn2,alphaX,alphaY,diamTel,cobs);
 
   }
@@ -3791,7 +3793,7 @@ void Y_rtc_doCphim(int argc){
 
     carma_context *context_handle = _getCurrentContext();
     context_handle->set_activeDeviceForCpy(rhandler->device,1);
-    SCAST(sutra_controller_mv *, controller, rtc_handler->d_control[ncontrol]);
+    CAST(sutra_controller_mv *, controller, rtc_handler->d_control[ncontrol]);
     controller->compute_Cphim(atmos_handler,sensors_handler,dms_handler,L0,cn2,alphaX,alphaY,X,Y,xactu,yactu,diamTel,k2,Nact);
 
 }
@@ -3817,7 +3819,7 @@ void Y_rtc_doCphim(int argc){
 
     carma_context *context_handle = _getCurrentContext();
     context_handle->set_activeDeviceForCpy(rhandler->device,1);
-    SCAST(sutra_controller_mv *, controller, rtc_handler->d_control[ncontrol]);
+    CAST(sutra_controller_mv *, controller, rtc_handler->d_control[ncontrol]);
 
     controller->do_covmat(dms_handler->d_dms.at(make_pair(type, alt)),method,indx_pup,dim,xpos,ypos,Nkl,norm,ampli);
 
@@ -3834,7 +3836,7 @@ void Y_rtc_doCphim(int argc){
   carma_context *context_handle = _getCurrentContext();
   context_handle->set_activeDeviceForCpy(rhandler->device,1);
 
-  SCAST(sutra_controller_mv *, controller, rtc_handler->d_control[ncontrol]);
+  CAST(sutra_controller_mv *, controller, rtc_handler->d_control[ncontrol]);
   controller->load_covmat(covmat);
 
 }
@@ -3850,7 +3852,7 @@ void Y_rtc_loadklbasis(int argc) {
   carma_context *context_handle = _getCurrentContext();
   context_handle->set_activeDeviceForCpy(rhandler->device,1);
 
-  SCAST(sutra_controller_mv *, controller, rtc_handler->d_control[ncontrol]);
+  CAST(sutra_controller_mv *, controller, rtc_handler->d_control[ncontrol]);
   controller->load_klbasis(klbasis);
 
 }
@@ -3874,7 +3876,7 @@ void Y_rtc_getproj(int argc) {
   carma_context *context_handle = _getCurrentContext();
   context_handle->set_activeDeviceForCpy(rhandler->device,1);
 
-  SCAST(sutra_controller_geo *, controller, rtc_handler->d_control[ncontrol]);
+  CAST(sutra_controller_geo *, controller, rtc_handler->d_control[ncontrol]);
   float *data = ypush_f((long*) controller->d_proj->getDims());
   controller->d_proj->device2host(data);
 }
@@ -3887,7 +3889,7 @@ void Y_rtc_getphi(int argc) {
   carma_context *context_handle = _getCurrentContext();
   context_handle->set_activeDeviceForCpy(rhandler->device,1);
 
-  SCAST(sutra_controller_geo *, controller, rtc_handler->d_control[ncontrol]);
+  CAST(sutra_controller_geo *, controller, rtc_handler->d_control[ncontrol]);
   double *data = (double*)ypush_f((long*) controller->d_phi->getDims());
   controller->d_phi->device2host(data);
 }
@@ -3900,7 +3902,7 @@ void Y_rtc_getCmm(int argc) {
   carma_context *context_handle = _getCurrentContext();
   context_handle->set_activeDeviceForCpy(rhandler->device,1);
 
-  SCAST(sutra_controller_mv *, controller, rtc_handler->d_control[ncontrol]);
+  CAST(sutra_controller_mv *, controller, rtc_handler->d_control[ncontrol]);
   float *data = ypush_f((long*) controller->d_Cmm->getDims());
   controller->d_Cmm->device2host(data);
 }
@@ -3912,7 +3914,7 @@ void Y_rtc_getCphim(int argc) {
   carma_context *context_handle = _getCurrentContext();
   context_handle->set_activeDeviceForCpy(rhandler->device,1);
 
-  SCAST(sutra_controller_mv *, controller, rtc_handler->d_control[ncontrol]);
+  CAST(sutra_controller_mv *, controller, rtc_handler->d_control[ncontrol]);
   float *data = ypush_f((long*) controller->d_Cphim->getDims());
   controller->d_Cphim->device2host(data);
 }
@@ -3924,7 +3926,7 @@ void Y_rtc_getcovmat(int argc) {
   carma_context *context_handle = _getCurrentContext();
   context_handle->set_activeDeviceForCpy(rhandler->device,1);
 
-  SCAST(sutra_controller_mv *, controller, rtc_handler->d_control[ncontrol]);
+  CAST(sutra_controller_mv *, controller, rtc_handler->d_control[ncontrol]);
   float *data = ypush_f((long*) controller->d_covmat->getDims());
   controller->d_covmat->device2host(data);
 }
@@ -3936,7 +3938,7 @@ void Y_rtc_getklbasis(int argc) {
   carma_context *context_handle = _getCurrentContext();
   context_handle->set_activeDeviceForCpy(rhandler->device,1);
 
-  SCAST(sutra_controller_mv *, controller, rtc_handler->d_control[ncontrol]);
+  CAST(sutra_controller_mv *, controller, rtc_handler->d_control[ncontrol]);
   float *data = ypush_f((long*) controller->d_KLbasis->getDims());
   controller->d_KLbasis->device2host(data);
 }
@@ -4044,7 +4046,7 @@ float* hPROJ = ygeta_f(argc-6, &ntot, dims);
   bool is_GPU = ygets_s(argc - 12);
 
 
-    SCAST(sutra_controller_kalman *, control, rtc_handler->d_control.at(ncontrol));
+    CAST(sutra_controller_kalman *, control, rtc_handler->d_control.at(ncontrol));
   if ( (rtc_handler->d_control.at(ncontrol)->get_type().compare("kalman_uninitialized") == 0)) {
 
     control->init_kalman(D_Mo, N_Act, PROJ, is_zonal, is_sparse, is_GPU );
@@ -4084,7 +4086,7 @@ void Y_rtc_kalmancalculategain(int argc) {
   if ( (rtc_handler->d_control.at(ncontrol)->get_type().compare("kalman_CPU") == 0)
      ||(rtc_handler->d_control.at(ncontrol)->get_type().compare("kalman_GPU") == 0)) {
     
-          SCAST(sutra_controller_kalman *, control, rtc_handler->d_control.at(ncontrol));
+          CAST(sutra_controller_kalman *, control, rtc_handler->d_control.at(ncontrol));
     control->calculate_gain(bruit, SigmaV, atur, btur);
   } else
     y_error("Controller needs to be either kalman_CPU or kalman_GPU\n");
@@ -4102,7 +4104,7 @@ void Y_rtc_kalmangettime(int argc) {
   if ( (rtc_handler->d_control.at(ncontrol)->get_type().compare("kalman_CPU") == 0)
      ||(rtc_handler->d_control.at(ncontrol)->get_type().compare("kalman_GPU") == 0)) {
     
-          SCAST(sutra_controller_kalman *, control, rtc_handler->d_control.at(ncontrol));
+          CAST(sutra_controller_kalman *, control, rtc_handler->d_control.at(ncontrol));
     double tps  = control->gettime();
     double tps1 = control->gettime_op1();
     double tps2 = control->gettime_op2();

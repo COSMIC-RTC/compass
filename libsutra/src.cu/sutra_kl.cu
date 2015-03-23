@@ -146,7 +146,7 @@ int getkl(float alpha, float ampli, float *d_odata, float *rabas, float *azbas,
   getkl_krnl<<<blocks, threads>>>(alpha, ampli, d_odata, rabas, azbas, cr, cp,
       nr, np, nx, Nx, xoff, yoff);
 
-  cutilCheckMsg("get_kernel<<<>>> execution failed\n");
+  carmaCheckMsg("get_kernel<<<>>> execution failed\n");
   return EXIT_SUCCESS;
 }
 
@@ -178,7 +178,7 @@ int combikl(float *com, int nkl, float *d_odata, float *rabas, int *d_ord,
   combikl_krnl<<<blocks, threads>>>(com, nkl, d_odata, rabas, d_ord, azbas, cr,
       cp, nr, np, nx, Nx, xoff, yoff);
 
-  cutilCheckMsg("get_kernel<<<>>> execution failed\n");
+  carmaCheckMsg("get_kernel<<<>>> execution failed\n");
   return EXIT_SUCCESS;
 }
 
@@ -195,7 +195,7 @@ int cget_flokl(long nkl, long dim, float *covmat, float *filter, float *bas) {
   //for (i=0;i<dim;i++) bas[i] = i;
   flokrnl<<<dim, 1>>>(dim, bas);
   printf("flag CUDA done \n");
-  cutilCheckMsg("get_kernel<<<>>> execution failed\n");
+  carmaCheckMsg("get_kernel<<<>>> execution failed\n");
   return EXIT_SUCCESS;
 }
 

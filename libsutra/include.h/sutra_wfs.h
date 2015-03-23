@@ -116,6 +116,8 @@ class sutra_sensors {
                   long *nphase, long npup, float *pdiam, int device);
     ~sutra_sensors();
 
+    int allocate_buffers();
+
     int
     sensors_initgs(float *xpos, float *ypos, float *lambda, float *mag,
                    long *size, float *noise, long *seed);

@@ -218,6 +218,17 @@ sutra_sensors::~sutra_sensors() {
     delete this->d_ftlgskern;
 }
 
+int sutra_sensors::allocate_buffers() {
+  current_context->set_activeDevice(device,1);
+  for (size_t idx = 0; idx < (this->d_wfs).size(); idx++) {
+    if(this->d_wfs[idx]->type=="sh"){
+      sutra_wfs_sh *wfs = dynamic_cast<sutra_wfs_sh *>(this->d_wfs[idx]);
+      wfs->allocate_buffers(this);
+    }
+  }
+  return EXIT_SUCCESS;
+}
+
 int sutra_sensors::sensors_initgs(float *xpos, float *ypos, float *lambda,
                                   float *mag, long *size, float *noise,
                                   long *seed) {

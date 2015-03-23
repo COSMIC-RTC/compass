@@ -30,7 +30,7 @@ extern "C" void padKernel(float *d_Dst, float *d_Src, int fftH, int fftW,
   SET_FLOAT_BASE;
   padKernel_kernel<<<grid, threads>>>(d_Dst, d_Src, fftH, fftW, kernelH,
       kernelW, kernelY, kernelX);
-  cutilCheckMsg("padKernel_kernel<<<>>> execution failed\n");
+  carmaCheckMsg("padKernel_kernel<<<>>> execution failed\n");
 }
 
 extern "C" void padKernel3d(float *d_Dst, float *d_Src, int fftH, int fftW,
@@ -45,7 +45,7 @@ extern "C" void padKernel3d(float *d_Dst, float *d_Src, int fftH, int fftW,
   padKernel3d_kernel<<<grid, threads>>>(d_Dst, d_Src, fftH, fftW, kernelH,
       kernelW, kernelY, kernelX, nim);
 
-  cutilCheckMsg("padKernel3d_kernel<<<>>> execution failed\n");
+  carmaCheckMsg("padKernel3d_kernel<<<>>> execution failed\n");
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -61,7 +61,7 @@ extern "C" void padDataClampToBorder(float *d_Dst, float *d_Src, int fftH,
   SET_FLOAT_BASE;
   padDataClampToBorder_kernel<<<grid, threads>>>(d_Dst, d_Src, fftH, fftW,
       dataH, dataW, kernelH, kernelW, kernelY, kernelX);
-  cutilCheckMsg("padDataClampToBorder_kernel<<<>>> execution failed\n");
+  carmaCheckMsg("padDataClampToBorder_kernel<<<>>> execution failed\n");
 }
 
 extern "C" void padDataClampToBorder3d(float *d_Dst, float *d_Src, int fftH,
@@ -75,7 +75,7 @@ extern "C" void padDataClampToBorder3d(float *d_Dst, float *d_Src, int fftH,
   SET_FLOAT_BASE;
   padDataClampToBorder3d_kernel<<<grid, threads>>>(d_Dst, d_Src, fftH, fftW,
       dataH, dataW, kernelH, kernelW, kernelY, kernelX, nim);
-  cutilCheckMsg("padDataClampToBorder3d_kernel<<<>>> execution failed\n");
+  carmaCheckMsg("padDataClampToBorder3d_kernel<<<>>> execution failed\n");
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -89,7 +89,7 @@ extern "C" void modulateAndNormalize(fComplex *d_Dst, fComplex *d_Src, int fftH,
 
   modulateAndNormalize_kernel<<<iDivUp(dataSize, 256), 256>>>(d_Dst, d_Src,
       dataSize, 1.0f / (float) (fftW * fftH));
-  cutilCheckMsg("modulateAndNormalize() execution failed\n");
+  carmaCheckMsg("modulateAndNormalize() execution failed\n");
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -117,7 +117,7 @@ extern "C" void spPostprocess2D(void *d_Dst, void *d_Src, uint DY, uint DX,
   spPostprocess2D_kernel<<<iDivUp(threadCount, BLOCKDIM), BLOCKDIM>>>(
       (fComplex *) d_Dst, (fComplex *) d_Src, DY, DX, threadCount, padding,
       (float) phaseBase);
-  cutilCheckMsg("spPostprocess2D_kernel<<<>>> execution failed\n");
+  carmaCheckMsg("spPostprocess2D_kernel<<<>>> execution failed\n");
 }
 
 extern "C" void spPreprocess2D(void *d_Dst, void *d_Src, uint DY, uint DX,
@@ -139,7 +139,7 @@ extern "C" void spPreprocess2D(void *d_Dst, void *d_Src, uint DY, uint DX,
   spPreprocess2D_kernel<<<iDivUp(threadCount, BLOCKDIM), BLOCKDIM>>>(
       (fComplex *) d_Dst, (fComplex *) d_Src, DY, DX, threadCount, padding,
       (float) phaseBase);
-  cutilCheckMsg("spPreprocess2D_kernel<<<>>> execution failed\n");
+  carmaCheckMsg("spPreprocess2D_kernel<<<>>> execution failed\n");
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -164,5 +164,5 @@ extern "C" void spProcess2D(void *d_Dst, void *d_SrcA, void *d_SrcB, uint DY,
   spProcess2D_kernel<<<iDivUp(threadCount, BLOCKDIM), BLOCKDIM>>>(
       (fComplex *) d_Dst, (fComplex *) d_SrcA, (fComplex *) d_SrcB, DY, DX,
       threadCount, (float) phaseBase, 0.5f / (float) (DY * DX));
-  cutilCheckMsg("spProcess2D_kernel<<<>>> execution failed\n");
+  carmaCheckMsg("spProcess2D_kernel<<<>>> execution failed\n");
 }

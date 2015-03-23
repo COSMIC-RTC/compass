@@ -12,8 +12,8 @@ carma_streams::carma_streams(unsigned int nbStreams) {
     add_stream();
   }
 
-  //cutilSafeCall(cudaEventCreateWithFlags(&(this->start_event), cudaDeviceBlockingSync));
-  //cutilSafeCall( cudaEventCreateWithFlags(&(this->stop_event), cudaDeviceBlockingSync));
+  //carmaSafeCall(cudaEventCreateWithFlags(&(this->start_event), cudaDeviceBlockingSync));
+  //carmaSafeCall( cudaEventCreateWithFlags(&(this->stop_event), cudaDeviceBlockingSync));
   //cudaEventDefault
 }
 
@@ -39,11 +39,11 @@ int carma_streams::get_nbStreams() {
 
 int carma_streams::add_stream() {
   cudaStream_t stream_tmp;
-  cutilSafeCall(cudaStreamCreate(&stream_tmp));
+  carmaSafeCall(cudaStreamCreate(&stream_tmp));
   this->streams.push_back(stream_tmp);
 
   cudaEvent_t event_tmp;
-  cutilSafeCall(cudaEventCreate(&event_tmp));
+  carmaSafeCall(cudaEventCreate(&event_tmp));
   this->events.push_back(event_tmp);
 
 #if DEBUG
@@ -66,10 +66,10 @@ int carma_streams::del_stream() {
 #if DEBUG
   printf("CARMA Stream deleting @ 0x%p\n", this->streams.back());
 #endif
-  cutilSafeCall(cudaStreamDestroy(this->streams.back()));
+  carmaSafeCall(cudaStreamDestroy(this->streams.back()));
   this->streams.pop_back();
 
-  cutilSafeCall(cudaEventDestroy(this->events.back()));
+  carmaSafeCall(cudaEventDestroy(this->events.back()));
   this->events.pop_back();
 
   return get_nbStreams();
@@ -96,18 +96,18 @@ cudaEvent_t carma_streams::get_event(int stream) {
 }
 
 int carma_streams::wait_event(int stream) {
-  cutilSafeCall(cudaEventSynchronize(this->events[stream]));
+  carmaSafeCall(cudaEventSynchronize(this->events[stream]));
   return EXIT_SUCCESS;
 }
 
 int carma_streams::wait_stream(int stream) {
-  cutilSafeCall(cudaStreamSynchronize(this->streams[stream]));
+  carmaSafeCall(cudaStreamSynchronize(this->streams[stream]));
   return EXIT_SUCCESS;
 }
 
 int carma_streams::wait_all_streams() {
   for (unsigned int stream = 0; stream < streams.size(); stream++)
-    cutilSafeCall(cudaStreamSynchronize(this->streams[stream]));
+    carmaSafeCall(cudaStreamSynchronize(this->streams[stream]));
   return EXIT_SUCCESS;
 }
 

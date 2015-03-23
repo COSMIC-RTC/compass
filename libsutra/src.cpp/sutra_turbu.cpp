@@ -105,7 +105,7 @@ int sutra_tscreen::init_vk(int seed, int pupd) {
   this->d_tscreen_c = new carma_obj<cuFloatComplex>(current_context,
       dims_data2);
   cufftHandle *plan = this->d_tscreen_c->getPlan();
-  cufftSafeCall(
+  carmafftSafeCall(
       cufftPlan2d(plan, this->screen_size, this->screen_size, CUFFT_C2C));
 
   if (this->d_tscreen_o->is_rng_init() == false)
@@ -124,7 +124,7 @@ int sutra_tscreen::generate_vk(float l0, int nalias) {
   this->d_tscreen_o->prng_host('N');
 
   cuFloatComplex *data = this->d_tscreen_c->getData();
-  cutilSafeCall(
+  carmaSafeCall(
       cudaMemset(data, 0,
           this->screen_size * this->screen_size * sizeof(cuFloatComplex)));
 
@@ -373,10 +373,10 @@ int sutra_atmos::move_atmos() {
  // cula to get double precision on the svd
 
 
- cutilSafeCall(cudaMemcpy(mmLar2->data[1], mmLar1->data[0], 2*size*2*size*sizeof(float), 
+ carmaSafeCall(cudaMemcpy(mmLar2->data[1], mmLar1->data[0], 2*size*2*size*sizeof(float), 
  cudaMemcpyDeviceToDevice));
  // s1(0)=1;s1 = 1./s1;s1(0)=0; // the null eignevalue is not inverted
- cutilSafeCall(cudaMemset((float *)mmLar1->data[1],0,2*size*2*size * sizeof(float)));
+ carmaSafeCall(cudaMemset((float *)mmLar1->data[1],0,2*size*2*size * sizeof(float)));
 
  getinvCU((float *)mmLar1->data[1],S,2*size);
 
@@ -393,7 +393,7 @@ int sutra_atmos::move_atmos() {
  mmMed1->compute('n','n',1.0f,0.0f,mmMed2->data[0]);  
 
 
- cutilSafeCall(cudaMemcpy(d_A, mmMed2->data[0], size*2*size*sizeof(float), 
+ carmaSafeCall(cudaMemcpy(d_A, mmMed2->data[0], size*2*size*sizeof(float), 
  cudaMemcpyDeviceToDevice));
 
  //bbt = xx - A(,+)*xz(,+);
@@ -402,7 +402,7 @@ int sutra_atmos::move_atmos() {
 
  mmMed2->compute('n','n',-1.0f,1.0f,mmMed2->data[2]);  
 
- cutilSafeCall(cudaMemcpy(tmpout, mmMed2->data[2], size*size*sizeof(float), 
+ carmaSafeCall(cudaMemcpy(tmpout, mmMed2->data[2], size*size*sizeof(float), 
  cudaMemcpyDeviceToHost));
  float* VT = NULL;
  cudaMalloc((void**)&S, size*sizeof(float));
@@ -422,7 +422,7 @@ int sutra_atmos::move_atmos() {
 
  mmSma->compute('n','n',1.0f,0.0f,mmSma->data[2]);  
 
- cutilSafeCall(cudaMemcpy(d_B, mmSma->data[2], size*size*sizeof(float), 
+ carmaSafeCall(cudaMemcpy(d_B, mmSma->data[2], size*size*sizeof(float), 
  cudaMemcpyDeviceToDevice));
 
  cudaFree(VT);

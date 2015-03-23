@@ -59,7 +59,7 @@ int gene_vonkarman(cuFloatComplex *d_odata, float *d_idata, float k0,
   vonkarman_krnl<<<blocks, threads, smemSize>>>(d_odata, d_idata, k0, nalias,
       nx, ny, block_size);
 
-  cutilCheckMsg("raytrace_kernel<<<>>> execution failed\n");
+  carmaCheckMsg("raytrace_kernel<<<>>> execution failed\n");
   return EXIT_SUCCESS;
 }
 
@@ -101,16 +101,16 @@ int norm_pscreen(float *d_odata, float *d_idata, int nx, int ny,
 
   int npts = 5;
   for (int i = 1; i < npts + 1; i++) {
-    cutilSafeCall(cudaMemset(d_odata, 0, sizeof(float) * nx * ny));
+    carmaSafeCall(cudaMemset(d_odata, 0, sizeof(float) * nx * ny));
     dphix_krnl<<<grid, threads>>>(d_odata, d_idata, nx * ny, i, nx);
-    cutilCheckMsg("dphix_kernel<<<>>> execution failed\n");
+    carmaCheckMsg("dphix_kernel<<<>>> execution failed\n");
     //sfx  = cublasSasum(nx*ny,d_odata,1)/((nx-i)*ny);
     // here we can use asum because the initial array is positive (result of a square)
     cublasSasum(cublas_handle, nx * ny, d_odata, 1, &sfx);
 
-    cutilSafeCall(cudaMemset(d_odata, 0, sizeof(float) * nx * ny));
+    carmaSafeCall(cudaMemset(d_odata, 0, sizeof(float) * nx * ny));
     dphiy_krnl<<<grid, threads>>>(d_odata, d_idata, nx * ny, i, nx);
-    cutilCheckMsg("dphiy_kernel<<<>>> execution failed\n");
+    carmaCheckMsg("dphiy_kernel<<<>>> execution failed\n");
     //sfy  = cublasSasum(nx*ny,d_odata,1)/((ny-i)*nx);
     cublasSasum(cublas_handle, nx * ny, d_odata, 1, &sfy);
 
@@ -119,7 +119,7 @@ int norm_pscreen(float *d_odata, float *d_idata, int nx, int ny,
   }
   norm /= npts;
 
-  cutilSafeCall(cudaMemset(d_odata, 0, sizeof(float) * nx * ny));
+  carmaSafeCall(cudaMemset(d_odata, 0, sizeof(float) * nx * ny));
   //cublasSaxpy(nx*ny,1.0f/norm*norm_fact, d_idata, 1, d_odata, 1);
   norm = (1.0f / norm) * norm_fact;
   cublasSaxpy(cublas_handle, nx * ny, &norm, d_idata, 1, d_odata, 1);

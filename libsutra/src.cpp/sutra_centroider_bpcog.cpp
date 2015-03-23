@@ -58,7 +58,7 @@ int sutra_centroider_bpcog::get_cog(carma_streams *streams, float *cube,
   // brightest pixels cog
   // TODO: implemente sutra_centroider_bpcog::get_cog_async
 	subap_sortmax<float>(npix * npix, nvalid, cube,this->d_bpix->getData(),this->d_bpind->getData(),this->nmax,current_context->get_device(device));
-//cutilSafeCall(cudaDeviceSynchronize());
+//carmaSafeCall(cudaDeviceSynchronize());
 /*
 	int nb = (int)(this->d_bpix->getNbElem());
 	float *tmpp;

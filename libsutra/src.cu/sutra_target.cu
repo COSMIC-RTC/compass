@@ -30,7 +30,7 @@ int target_texraytrace(float *d_odata, float *d_idata, int nx, int ny, int Nx,
   tex2d.normalized = false;
 
   //size_t offset = 0;
-  cutilSafeCall(
+  carmaSafeCall(
       cudaBindTexture2D(0, tex2d, d_idata, channelDesc, Nx, Ny,
           sizeof(float) * Nx));
   /*
@@ -58,7 +58,7 @@ int target_texraytrace(float *d_odata, float *d_idata, int nx, int ny, int Nx,
 
   texraytrace_krnl<<<dimGrid, dimBlock, 0>>>(d_odata, nx, ny, xoff, yoff);
 
-  cutilCheckMsg("texraytrace_krnl <<<>>> execution failed\n");
+  carmaCheckMsg("texraytrace_krnl <<<>>> execution failed\n");
 
   return EXIT_SUCCESS;
 }
@@ -252,7 +252,7 @@ int target_raytrace(float *d_odata, float *d_idata, int nx, int ny, int Nx,
   raytrace_krnl<<<blocks, threads, smemSize>>>(d_odata, d_idata, nx, ny, xoff,
       yoff, Nx, block_size);
 
-  cutilCheckMsg("raytrace_kernel<<<>>> execution failed\n");
+  carmaCheckMsg("raytrace_kernel<<<>>> execution failed\n");
   return EXIT_SUCCESS;
 }
 
@@ -267,7 +267,7 @@ int target_lgs_raytrace(float *d_odata, float *d_idata, int nx, int ny, int Nx,
   raytrace_lgs_krnl<<<blocks, threads, smemSize>>>(d_odata, d_idata, nx, ny, xoff,
       yoff, Nx, block_size,delta);
 
-  cutilCheckMsg("raytrace_kernel<<<>>> execution failed\n");
+  carmaCheckMsg("raytrace_kernel<<<>>> execution failed\n");
   return EXIT_SUCCESS;
 }
 
@@ -284,7 +284,7 @@ int target_raytrace_async(carma_streams *streams, float *d_odata,
     raytrace_krnl<<<blocks, threads, smemSize, streams->get_stream(i)>>>(
         d_odata, d_idata, nx, ny, xoff, yoff, Nx, block_size, i * block_size);
 
-  cutilCheckMsg("raytrace_kernel<<<>>> execution failed\n");
+  carmaCheckMsg("raytrace_kernel<<<>>> execution failed\n");
   return EXIT_SUCCESS;
 }
 
@@ -303,7 +303,7 @@ int target_raytrace_async(carma_host_obj<float> *phase_telemetry,
     phase_telemetry->get_cudaStream_t(i)>>>(d_odata, d_idata, nx, ny, xoff,
         yoff, Nx, block_size, i * block_size);
 
-  cutilCheckMsg("raytrace_kernel<<<>>> execution failed\n");
+  carmaCheckMsg("raytrace_kernel<<<>>> execution failed\n");
   // asynchronously launch nstreams memcopies.  Note that memcopy in stream x will only
   //   commence executing when all previous CUDA calls in stream x have completed
   int delta = block_size * nx;
@@ -357,7 +357,7 @@ int fill_amplipup(cuFloatComplex *amplipup, float *phase, float *mask,
 
   fillamplikrnl<<<grid, threads>>>(amplipup, phase, mask, scale, puponly, nx,
       nx * ny, Nx);
-  cutilCheckMsg("fillcamplipup_kernel<<<>>> execution failed\n");
+  carmaCheckMsg("fillcamplipup_kernel<<<>>> execution failed\n");
 
   return EXIT_SUCCESS;
 }
@@ -404,7 +404,7 @@ int fill_amplipup(cuFloatComplex *amplipup, float *phase, float *mask,
 
  int smemSize = (blockSize + 1) * (blockSize + 1) * sizeof(float);
 
- cutilCheckMsg("fillampli_kernel<<<>>> execution failed\n");
+ carmaCheckMsg("fillampli_kernel<<<>>> execution failed\n");
  fillampli_krnl<<<blocks, threads, smemSize>>>(d_odata, d_idata, mask, nx,ny,Nx, blockSize);
 
  return EXIT_SUCCESS;
@@ -450,7 +450,7 @@ int fill_amplipup(cuFloatComplex *amplipup, float *phase, float *mask,
 
  fillpupil_krnl<<<blocks, threads,smemSize>>>(d_odata, mask, nx,ny,Nx,blockSize);
 
- cutilCheckMsg("fillpupil_kernel<<<>>> execution failed\n");
+ carmaCheckMsg("fillpupil_kernel<<<>>> execution failed\n");
  return EXIT_SUCCESS;
  }
 

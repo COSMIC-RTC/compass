@@ -20,7 +20,7 @@ int cfillrealp(cuFloatComplex *d_odata, float *d_idata, int N, carma_device *dev
 
   cfillrealp_krnl<<<grid, threads>>>(d_odata, d_idata, N);
 
-  cutilCheckMsg("cfillrealp_kernel<<<>>> execution failed\n");
+  carmaCheckMsg("cfillrealp_kernel<<<>>> execution failed\n");
   return EXIT_SUCCESS;
 }
 
@@ -43,7 +43,7 @@ int cgetrealp(float *d_odata, cuFloatComplex *d_idata, int N, carma_device *devi
 
   cgetrealp_krnl<<<grid, threads>>>(d_odata, d_idata, N);
 
-  cutilCheckMsg("cgetrealp_kernel<<<>>> execution failed\n");
+  carmaCheckMsg("cgetrealp_kernel<<<>>> execution failed\n");
   return EXIT_SUCCESS;
 }
 
@@ -65,7 +65,7 @@ int abs2(float *d_odata, cuFloatComplex *d_idata, int N, carma_device *device) {
   dim3 grid(nblocks), threads(nthreads);
 
   abs2_krnl<<<grid, threads>>>(d_odata, d_idata, N);
-  cutilCheckMsg("abs2_kernel<<<>>> execution failed\n");
+  carmaCheckMsg("abs2_kernel<<<>>> execution failed\n");
 
   return EXIT_SUCCESS;
 }
@@ -89,7 +89,7 @@ int abs2c(cuFloatComplex *d_odata, cuFloatComplex *d_idata, int N, carma_device 
   dim3 grid(nblocks), threads(nthreads);
   //DEBUG_TRACE("N = %d, nthreads = %d, nblocks = %d;",N , nthreads, nblocks);
   abs2c_krnl<<<grid, threads>>>(d_odata, d_idata, N);
-  cutilCheckMsg("abs2c_kernel<<<>>> execution failed\n");
+  carmaCheckMsg("abs2c_kernel<<<>>> execution failed\n");
 
   return EXIT_SUCCESS;
 }
@@ -113,7 +113,7 @@ int subap_norm(float *d_odata, float *d_idata, float *fact, float *norm,
   dim3 grid(nblocks), threads(nthreads);
 
   subapnorm_krnl<<<grid, threads>>>(d_odata, d_idata, fact, norm, nphot, n, N);
-  cutilCheckMsg("subapnorm_kernel<<<>>> execution failed\n");
+  carmaCheckMsg("subapnorm_kernel<<<>>> execution failed\n");
 
   return EXIT_SUCCESS;
 }
@@ -139,7 +139,7 @@ int subap_norm_async(float *d_odata, float *d_idata, float *fact, float *norm,
   for (int i = 0; i < nstreams; i++) {
     subapnormasync_krnl<<<grid, threads, 0, streams->get_stream(i)>>>(d_odata,
         d_idata, fact, norm, nphot, n, N, i * nblocks * nthreads);
-    cutilCheckMsg("subapnormasync_kernel<<<>>> execution failed\n");
+    carmaCheckMsg("subapnormasync_kernel<<<>>> execution failed\n");
   }
 
   return EXIT_SUCCESS;
@@ -165,7 +165,7 @@ int fillindx(float *d_odata, float *d_idata, int *indx, float alpha, float beta,
 
   krnl_fillindx<<<grid, threads>>>(d_odata, d_idata, indx, alpha, beta, N);
 
-  cutilCheckMsg("fillindx_kernel<<<>>> execution failed\n");
+  carmaCheckMsg("fillindx_kernel<<<>>> execution failed\n");
 
   return EXIT_SUCCESS;
 }
@@ -204,7 +204,7 @@ int fillarr2d(float *d_odata, float *d_idata, int x0, int Ncol, int NC, int N,
 
   fillarr2d_krnl<<<grid, threads>>>(d_odata, d_idata, x0, Ncol, NC, N);
 
-  cutilCheckMsg("fillarr2d_kernel<<<>>> execution failed\n");
+  carmaCheckMsg("fillarr2d_kernel<<<>>> execution failed\n");
 
   return EXIT_SUCCESS;
 }
@@ -234,7 +234,7 @@ int getarr2d(float *d_odata, float *d_idata, int x0, int Ncol, int NC, int N,
 
   getarr2d_krnl<<<grid, threads>>>(d_odata, d_idata, x0, Ncol, NC, N);
 
-  cutilCheckMsg("getarr2d_kernel<<<>>> execution failed\n");
+  carmaCheckMsg("getarr2d_kernel<<<>>> execution failed\n");
 
   return EXIT_SUCCESS;
 }
@@ -262,7 +262,7 @@ int addai(T *d_odata, T *i_data, int i, int sgn, int N, carma_device *device) {
 
   addai_krnl<T><<<grid, threads>>>(d_odata, i_data, i, sgn, N);
 
-  cutilCheckMsg("plusai_kernel<<<>>> execution failed\n");
+  carmaCheckMsg("plusai_kernel<<<>>> execution failed\n");
 
   return EXIT_SUCCESS;
 }
@@ -308,7 +308,7 @@ int roll(T *idata, int N, int M, int nim, carma_device *device) {
 
   roll_krnl<T><<<grid, threads>>>(idata, N, M, Ntot / 2);
 
-  cutilCheckMsg("roll_kernel<<<>>> execution failed\n");
+  carmaCheckMsg("roll_kernel<<<>>> execution failed\n");
   return EXIT_SUCCESS;
 
 }
@@ -355,7 +355,7 @@ int roll(T *idata, int N, int M, carma_device *device) {
 
   roll_krnl<T><<<grid, threads>>>(idata, N, M);
 
-  cutilCheckMsg("roll_kernel<<<>>> execution failed\n");
+  carmaCheckMsg("roll_kernel<<<>>> execution failed\n");
   return EXIT_SUCCESS;
 
 }
@@ -410,14 +410,14 @@ int remove_avg(T *data, int N, carma_device *device){
 
 	T p_sum_c[nblocks];
 	T *p_sum;
-	cutilSafeCall(
+	carmaSafeCall(
 	      cudaMalloc((void** )&(p_sum), sizeof(T) * nblocks));
 
 	avg_krnl<<< grid, threads, smemSize>>>(data,p_sum,N);
-	cutilCheckMsg("avg_krnl<<<>>> execution failed\n");
-	cutilSafeCall(
+	carmaCheckMsg("avg_krnl<<<>>> execution failed\n");
+	carmaSafeCall(
 			cudaMemcpy(p_sum_c,p_sum,nblocks*sizeof(T),cudaMemcpyDeviceToHost));
-	cutilSafeCall(
+	carmaSafeCall(
 			cudaFree(p_sum));
 
 	T avg = 0;
@@ -426,7 +426,7 @@ int remove_avg(T *data, int N, carma_device *device){
 	}
 	avg /= N;
 	remove_avg_krnl<<< grid, threads >>>(data,N,avg);
-	cutilCheckMsg("remove_avg_krnl<<<>>> execution failed\n");
+	carmaCheckMsg("remove_avg_krnl<<<>>> execution failed\n");
 
 	return EXIT_SUCCESS;
 }
@@ -458,7 +458,7 @@ int convolve(cuFloatComplex *d_odata, cuFloatComplex *d_idata, int N,
 
   conv_krnl<<<grid, threads>>>(d_odata, d_idata, N);
 
-  cutilCheckMsg("conv_kernel<<<>>> execution failed\n");
+  carmaCheckMsg("conv_kernel<<<>>> execution failed\n");
   return EXIT_SUCCESS;
 }
 
@@ -484,6 +484,6 @@ int convolve_modulate(cuFloatComplex *d_odata, cuFloatComplex *d_idata, int mod,
 
   convmod_krnl<<<grid, threads>>>(d_odata, d_idata,mod, N);
 
-  cutilCheckMsg("conv_kernel<<<>>> execution failed\n");
+  carmaCheckMsg("conv_kernel<<<>>> execution failed\n");
   return EXIT_SUCCESS;
 }

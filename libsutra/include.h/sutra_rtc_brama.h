@@ -20,7 +20,6 @@ private:
   DDS::DataReader_var cmd_dr;
   DDS::DataWriter_var superframe_base_dw;
   BRAMA::SuperFrameDataWriter_var superframe_dw;
-  BRAMA::SuperFrame superframe;
   DDS::InstanceHandle_t superframe_handle;
 
   CORBA::Octet* buff_intensities;
@@ -38,6 +37,7 @@ public:
   ~sutra_rtc_brama();
 
   void initDDS();
+  void update_param();
   void publish();
 
 };

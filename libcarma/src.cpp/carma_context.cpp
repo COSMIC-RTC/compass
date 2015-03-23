@@ -17,7 +17,7 @@
 carma_context *carma_context::s_instance=NULL;
 
 carma_device::carma_device(int devid) {
-  cutilSafeCall(cudaSetDevice(devid));
+  carmaSafeCall(cudaSetDevice(devid));
   this->id = devid;
   cudaGetDeviceProperties(&(this->properties), devid);
   this->sm_per_multiproc = ConvertSMVer2Cores(this->properties.major,
@@ -27,7 +27,7 @@ carma_device::carma_device(int devid) {
 
   this->p2p_activate = false;
 
-  cutilSafeCall(cudaMemGetInfo(&freeMem, &totalMem));
+  carmaSafeCall(cudaMemGetInfo(&freeMem, &totalMem));
 
   carma_initCublas(&cublasHandle);
   carma_initCusparse(&cusparseHandle);
@@ -50,7 +50,7 @@ carma_context::carma_context() {
 
   //TODO : why seed is initialized here ?
   srandom(1234);
-  cutilSafeCall(cudaGetDeviceCount(&(this->ndevice)));
+  carmaSafeCall(cudaGetDeviceCount(&(this->ndevice)));
   if (this->ndevice == 0) {
     fprintf(stderr,
         "carma_context() CUDA error: no devices supporting CUDA.\n");
@@ -85,20 +85,20 @@ carma_context::carma_context() {
     for (int i = 0; i < gpu_count - 1; i++) {
       has_uva &= devices[gpuid[i]]->get_properties().unifiedAddressing;
       for (int j = i + 1; j < gpu_count; j++) {
-        cutilSafeCall(
+        carmaSafeCall(
             cudaDeviceCanAccessPeer(&can_access_peer[gpuid[i]][gpuid[j]],
                 gpuid[i], gpuid[j]));
-        cutilSafeCall(
+        carmaSafeCall(
             cudaDeviceCanAccessPeer(&can_access_peer[gpuid[j]][gpuid[i]],
                 gpuid[i], gpuid[j]));
         if ((can_access_peer[gpuid[i]][gpuid[j]] == 1)
             && (can_access_peer[gpuid[j]][gpuid[i]] == 1)) {
           printf("*** Enabling peer access between GPU%d and GPU%d... ***\n",
               gpuid[i], gpuid[j]);
-          cutilSafeCall(cudaSetDevice(gpuid[i]));
-          cutilSafeCall(cudaDeviceEnablePeerAccess(gpuid[j], 0));
-          cutilSafeCall(cudaSetDevice(gpuid[j]));
-          cutilSafeCall(cudaDeviceEnablePeerAccess(gpuid[i], 0));
+          carmaSafeCall(cudaSetDevice(gpuid[i]));
+          carmaSafeCall(cudaDeviceEnablePeerAccess(gpuid[j], 0));
+          carmaSafeCall(cudaSetDevice(gpuid[j]));
+          carmaSafeCall(cudaDeviceEnablePeerAccess(gpuid[i], 0));
         }
       }
     }
@@ -163,7 +163,7 @@ carma_context::~carma_context() {
 int carma_context::_set_activeDeviceForce(int newDevice, int silent,
     string file, int line) {
   if (newDevice < ndevice) {
-    cutilSafeCall(cudaSetDevice(newDevice));
+    carmaSafeCall(cudaSetDevice(newDevice));
 #ifdef USE_CULA
     culaStatus status = culaSelectDevice(newDevice);
     if(status) {

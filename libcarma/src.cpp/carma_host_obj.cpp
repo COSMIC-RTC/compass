@@ -330,7 +330,7 @@ void carma_host_obj<T_data>::init(const long *dims_data,const T_data *data,
   if (mallocType == MA_MALLOC) {
     h_data = new T_data[this->nb_elem];
   } else if (mallocType == MA_PAGELOCK) {
-    cutilSafeCall(
+    carmaSafeCall(
         cudaHostAlloc((void** )&(this->h_data), sizeof(T_data) * this->nb_elem, cudaHostAllocDefault));
   } else if (mallocType == MA_ZEROCPY) {
     cudaDeviceProp prop;
@@ -340,13 +340,13 @@ void carma_host_obj<T_data>::init(const long *dims_data,const T_data *data,
       throw "Can't map host memory\n";
     }
     cudaSetDeviceFlags(cudaDeviceMapHost);
-    cutilSafeCall(
+    carmaSafeCall(
         cudaHostAlloc((void** )&(this->h_data), sizeof(T_data) * this->nb_elem, cudaHostAllocWriteCombined | cudaHostAllocMapped));
   } else if (mallocType == MA_PORTABLE) {
-    cutilSafeCall(
+    carmaSafeCall(
         cudaHostAlloc((void** )&(this->h_data), sizeof(T_data) * this->nb_elem, cudaHostAllocWriteCombined | cudaHostAllocMapped | cudaHostAllocPortable));
   } else if (mallocType == MA_WRICOMB) {
-    cutilSafeCall(
+    carmaSafeCall(
         cudaHostAlloc((void** )&(this->h_data), sizeof(T_data) * this->nb_elem, cudaHostAllocWriteCombined));
   } else if (mallocType == MA_GENEPIN) {
     cudaSetDeviceFlags(cudaDeviceBlockingSync | cudaDeviceMapHost);
@@ -354,7 +354,7 @@ void carma_host_obj<T_data>::init(const long *dims_data,const T_data *data,
         (sizeof(T_data) * this->nb_elem + MEMORY_ALIGNMENT),
         PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANON, -1, 0);
     this->h_data = (T_data *) ALIGN_UP( data_UA, MEMORY_ALIGNMENT );
-    cutilSafeCall(
+    carmaSafeCall(
         cudaHostRegister(h_data, sizeof(T_data) * this->nb_elem, cudaHostRegisterMapped));
   } else
     throw "Error : type of malloc unknown";
@@ -371,7 +371,7 @@ void carma_host_obj<T_data>::init(const long *dims_data,const T_data *data,
     if (mallocType == MA_MALLOC) {
       memset(this->h_data, 0, sizeof(T_data) * this->nb_elem);
     } else {
-      //cutilSafeCall(cudaMemset((T_data *)this->h_data, 0, sizeof(T_data)*this->nb_elem));
+      //carmaSafeCall(cudaMemset((T_data *)this->h_data, 0, sizeof(T_data)*this->nb_elem));
       memset(this->h_data, 0, sizeof(T_data) * this->nb_elem);
     }
   } else
@@ -382,14 +382,14 @@ template<class T_data>
 void carma_host_obj<T_data>::get_devpntr(void **pntr_dev) {
   /** \brief retreive device pointer from a host object
    */
-  //cutilSafeCall(cudaHostGetDevicePointer((void **)&d_a, (void *)(this->d_data), this->mallocType));
-  cutilSafeCall(cudaHostGetDevicePointer(pntr_dev, (void * )(this->h_data), 0));
+  //carmaSafeCall(cudaHostGetDevicePointer((void **)&d_a, (void *)(this->d_data), this->mallocType));
+  carmaSafeCall(cudaHostGetDevicePointer(pntr_dev, (void * )(this->h_data), 0));
 }
 
 /*
  template<class T_data>
  carma_host_obj<T_data>& carma_host_obj<T_data>::operator= (const carma_host_obj<T_data>& obj){
- if(this->d_data!=0L) cutilSafeCall( cudaFree(this->d_data) );
+ if(this->d_data!=0L) carmaSafeCall( cudaFree(this->d_data) );
  if(this->dims_data!=0L) delete(this->dims_data);
  carma_host_obj<T_data> *new_obj = new carma_host_obj(obj);
  return new_obj;
@@ -404,10 +404,10 @@ carma_host_obj<T_data>::~carma_host_obj() {
     if (mallocType == MA_MALLOC)
       delete[] this->h_data;
     else if (mallocType == MA_GENEPIN) {
-      cutilSafeCall(cudaHostUnregister(this->h_data));
+      carmaSafeCall(cudaHostUnregister(this->h_data));
       munmap(this->data_UA, sizeof(T_data) * this->nb_elem);
     } else
-      cutilSafeCall(cudaFreeHost(this->h_data));
+      carmaSafeCall(cudaFreeHost(this->h_data));
     this->h_data = 0L;
   }
 
@@ -534,21 +534,21 @@ int carma_host_obj<T_data>::fill_from(const T_data *data) {
   if (get_nbStreams() > 1) {
     int nstreams = get_nbStreams();
     for (int i = 0; i < nstreams; i++) {
-      cutilSafeCall(
+      carmaSafeCall(
           cudaMemcpyAsync(&(h_data[i * nb_elem / nstreams]),
               &(data[i * nb_elem / nstreams]),
               sizeof(T_data) * nb_elem / nstreams, cudaMemcpyHostToHost,
               get_cudaStream_t(i)));
     }
   } else if (get_nbStreams() == 1) {
-    cutilSafeCall(
+    carmaSafeCall(
         cudaMemcpyAsync(h_data, data, nb_elem * sizeof(T_data),
             cudaMemcpyHostToHost, get_cudaStream_t(0)));
   } else {
     if (mallocType == MA_MALLOC) {
       copy(data, data + nb_elem, h_data);
     } else {
-      cutilSafeCall(
+      carmaSafeCall(
           cudaMemcpy(h_data, data, nb_elem * sizeof(T_data),
               cudaMemcpyHostToHost));
     }
@@ -573,21 +573,21 @@ int carma_host_obj<T_data>::fill_into(T_data *data) {
   if (get_nbStreams() > 1) {
     int nstreams = get_nbStreams();
     for (int i = 0; i < nstreams; i++) {
-      cutilSafeCall(
+      carmaSafeCall(
           cudaMemcpyAsync(&(data[i * nb_elem / nstreams]),
               &(h_data[i * nb_elem / nstreams]),
               sizeof(T_data) * nb_elem / nstreams, cudaMemcpyHostToHost,
               get_cudaStream_t(i)));
     }
   } else if (get_nbStreams() == 1) {
-    cutilSafeCall(
+    carmaSafeCall(
         cudaMemcpyAsync(data, h_data, nb_elem * sizeof(T_data),
             cudaMemcpyHostToHost, get_cudaStream_t(0)));
   } else {
     if (mallocType == MA_MALLOC) {
       copy(h_data, h_data + nb_elem, data);
     } else {
-      cutilSafeCall(
+      carmaSafeCall(
           cudaMemcpy(data, h_data, nb_elem * sizeof(T_data),
               cudaMemcpyHostToHost));
     }
@@ -632,17 +632,17 @@ int carma_host_obj<T_data>::cpy_obj(carma_obj<T_data> *caObj,
   if (get_nbStreams() > 1) {
     int nstreams = get_nbStreams();
     for (int i = 0; i < nstreams; i++) {
-      cutilSafeCall(
+      carmaSafeCall(
           cudaMemcpyAsync(&(data_dst[i * nb_elem / nstreams]),
               &(data_src[i * nb_elem / nstreams]),
               sizeof(T_data) * nb_elem / nstreams, flag, get_cudaStream_t(i)));
     }
   } else if (get_nbStreams() == 1) {
-    cutilSafeCall(
+    carmaSafeCall(
         cudaMemcpyAsync(data_dst, data_src, sizeof(T_data) * nb_elem, flag,
             get_cudaStream_t(0)));
   } else {
-    cutilSafeCall(
+    carmaSafeCall(
         cudaMemcpy(data_dst, data_src, nb_elem * sizeof(T_data), flag));
   }
   return EXIT_SUCCESS;
@@ -672,11 +672,11 @@ int carma_host_obj<T_data>::cpy_obj(carma_obj<T_data> *caObj,
 
   carma_streams streams_tmp = *(this->streams);
   if (flag == cudaMemcpyHostToDevice) {
-    cutilSafeCall(
+    carmaSafeCall(
         cudaMemcpyAsync(*caObj, h_data, caObj->getNbElem() * sizeof(T_data),
             flag, get_cudaStream_t(stream)));
   } else if (flag == cudaMemcpyDeviceToHost) {
-    cutilSafeCall(
+    carmaSafeCall(
         cudaMemcpyAsync(h_data, *caObj, caObj->getNbElem() * sizeof(T_data),
             flag, get_cudaStream_t(stream)));
   } else

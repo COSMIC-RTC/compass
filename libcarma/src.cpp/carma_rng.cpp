@@ -10,7 +10,7 @@ int carma_obj<T>::init_prng(long seed) {
   int blockCount = deviceProperties.multiProcessorCount * 2;
 
   // Allocate memory for RNG states
-  cutilSafeCall(
+  carmaSafeCall(
       cudaMalloc((void ** )&(this->d_states),
           blockCount * genPerBlock * sizeof(curandState)));
 
@@ -22,7 +22,7 @@ int carma_obj<T>::init_prng(long seed) {
     aseed[cc] = seed + cc;//random();
 
   int *seeds;
-  cutilSafeCall(
+  carmaSafeCall(
       cudaMalloc((void ** )&seeds, genPerBlock * blockCount * sizeof(int)));
   cudaMemcpy(seeds, aseed, genPerBlock * blockCount * sizeof(int),
       cudaMemcpyHostToDevice);
@@ -59,7 +59,7 @@ caObjZ::init_prng();
 
 template<class T>
 int carma_obj<T>::destroy_prng() {
-  cutilSafeCall(cudaFree(this->d_states));
+  carmaSafeCall(cudaFree(this->d_states));
   return EXIT_SUCCESS;
 }
 

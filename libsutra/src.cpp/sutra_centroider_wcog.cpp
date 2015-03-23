@@ -52,14 +52,14 @@ int sutra_centroider_wcog::load_weights(float *weights, int ndim) {
     // weights is a 2d array
     // same weight for each subap
     float *tmp; ///< Input data
-    cutilSafeCall(
+    carmaSafeCall(
         cudaMalloc((void** )&tmp, sizeof(float) * this->npix * this->npix));
-    cutilSafeCall(
+    carmaSafeCall(
         cudaMemcpy(tmp, weights, sizeof(float) * this->npix * this->npix,
             cudaMemcpyHostToDevice));
     fillweights(*(this->d_weights), tmp, this->npix,
         this->d_weights->getNbElem(), this->current_context->get_device(device));
-    cutilSafeCall(cudaFree(tmp));
+    carmaSafeCall(cudaFree(tmp));
   }
 
   return EXIT_SUCCESS;

@@ -46,7 +46,7 @@ void comp_dmshape(int threads, int blocks, T *d_idata, T *d_odata, int *pos,
   dmshape_krnl<T> <<<dimGrid, dimBlock, smemSize>>>(d_idata, d_odata, pos,
       istart, npts, comm, n, N);
 
-  cutilCheckMsg("dmshape_kernel<<<>>> execution failed\n");
+  carmaCheckMsg("dmshape_kernel<<<>>> execution failed\n");
 
 }
 
@@ -110,7 +110,7 @@ void oneactu(int threads, int blocks, T *d_idata, T *d_odata, int nactu,
   oneactu_krnl_fast<T> <<<dimGrid, dimBlock>>>(d_idata, d_odata, nactu, ampli,
       xoff, yoff, dim_im, dim_influ, N);
 
-  cutilCheckMsg("oneactu_kernel<<<>>> execution failed\n");
+  carmaCheckMsg("oneactu_kernel<<<>>> execution failed\n");
 
 }
 
@@ -153,7 +153,7 @@ void oneactu(int threads, int blocks, T *d_idata, T *d_odata, int nactu,
   oneactu_krnl_fast<T> <<<dimGrid, dimBlock>>>(d_idata, d_odata, nactu, ampli,
       dim_im, dim_influ, N);
 
-  cutilCheckMsg("oneactu_kernel<<<>>> execution failed\n");
+  carmaCheckMsg("oneactu_kernel<<<>>> execution failed\n");
 
 }
 
@@ -202,7 +202,7 @@ void comp_fulldmshape(int threads, int blocks, T *d_idata, T *d_odata,
   fulldmshape_krnl<T> <<<dimGrid, dimBlock, smemSize>>>(d_idata, d_odata,
       ninflu, diminflu, comm, N);
 
-  cutilCheckMsg("fulldmshape_kernel<<<>>> execution failed\n");
+  carmaCheckMsg("fulldmshape_kernel<<<>>> execution failed\n");
 
 }
 
@@ -241,7 +241,7 @@ getIF(T *IF, float *dmshape, int *indx_pup, long nb_pts, int column, long nb_col
 	if (puponly)
 		getIF_krnl<T><<<grid , threads>>>(IF,dmshape,indx_pup,nb_pts,column, nb_col);
 	else getIFfull_krnl<T><<<grid , threads>>>(IF,dmshape,nb_pts,column, nb_col);
-	cutilCheckMsg("getIF_krnl<<<>>> execution failed\n");
+	carmaCheckMsg("getIF_krnl<<<>>> execution failed\n");
 
 	return EXIT_SUCCESS;
 }
@@ -270,7 +270,7 @@ dm_dostatmat(float *statcov, long dim, float *xpos, float *ypos, float norm, car
 	getNumBlocksAndThreads(device, N, nblocks, nthreads);
 	dim3 grid(nblocks), threads(nthreads);
 	do_statmat_krnl<<<grid , threads>>>(statcov,xpos,ypos,norm,dim,N);
-	cutilCheckMsg("do_statcov_krnl<<<>>> execution failed\n");
+	carmaCheckMsg("do_statcov_krnl<<<>>> execution failed\n");
 
 	return EXIT_SUCCESS;
 }
@@ -291,7 +291,7 @@ fill_filtermat(float *filter, int nactu, int N, carma_device *device){
 	dim3 grid(nblocks), threads(nthreads);
 
 	fill_filtermat_krnl<<<grid, threads>>>(filter, nactu, N);
-	cutilCheckMsg("fill_filtmat_krnl<<<>>> execution failed\n");
+	carmaCheckMsg("fill_filtmat_krnl<<<>>> execution failed\n");
 
 	return EXIT_SUCCESS;
 }
@@ -322,7 +322,7 @@ multi_vect(float *d_data, float gain, int N, carma_device *device) {
 
   multi_krnl<<<grid, threads>>>(d_data, gain, N);
 
-  cutilCheckMsg("mult_kernel<<<>>> execution failed\n");
+  carmaCheckMsg("mult_kernel<<<>>> execution failed\n");
   return EXIT_SUCCESS;
 }
 
@@ -347,7 +347,7 @@ fillpos(int threads, int blocks, int *pos, int *xoff, int *yoff, int size, int n
 
 	fillpos_krnl<<<dimGrid,dimBlock>>>(pos,xoff,yoff,size,nactu,dim,N);
 
-	cutilCheckMsg("fillpos_kernel<<<>>> execution failed\n");
+	carmaCheckMsg("fillpos_kernel<<<>>> execution failed\n");
 
 	return EXIT_SUCCESS;
 }
@@ -371,7 +371,7 @@ fill_mapactu(int threads, int blocks, float *mapactu, int *pos, float *comvec, i
 
 	fillmapactu_krnl<<<dimGrid,dimBlock>>>(mapactu,comvec,pos,nactu,N);
 
-	cutilCheckMsg("fillmapactu_kernel<<<>>> execution failed\n");
+	carmaCheckMsg("fillmapactu_kernel<<<>>> execution failed\n");
 
 	return EXIT_SUCCESS;
 }

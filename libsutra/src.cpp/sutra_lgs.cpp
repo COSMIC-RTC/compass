@@ -36,7 +36,7 @@ sutra_lgs::sutra_lgs(carma_context *context, sutra_sensors *sensors, long nvalid
   mdims[0] = (int) dims_data2[1];
 
   cufftHandle *plan = this->d_prof2d->getPlan(); ///< FFT plan
-  cufftSafeCall(
+  carmafftSafeCall(
       cufftPlanMany(plan, 1 ,mdims,NULL,1,0,NULL,1,0, CUFFT_C2C ,(int)dims_data2[2]));
 
   dims_data3[1] = npix;
@@ -55,7 +55,7 @@ sutra_lgs::sutra_lgs(carma_context *context, sutra_sensors *sensors, long nvalid
   if (sensors->ftlgskern_plans.find(vdims) == sensors->ftlgskern_plans.end()) {
 	  //DEBUG_TRACE("Creating FFT plan : %d %d %d",mdims[0],mdims[1],dims_data3[3]);printMemInfo();
 	  cufftHandle *plan = (cufftHandle*)malloc(sizeof(cufftHandle));// = this->d_camplipup->getPlan(); ///< FFT plan
-	  cufftSafeCall(
+	  carmafftSafeCall(
 			cufftPlanMany(plan, 2 ,mdims,NULL,1,0,NULL,1,0, CUFFT_C2C ,(int)dims_data3[3]));
 
 	  sensors->ftlgskern_plans.insert(pair<vector<int>, cufftHandle*>(vdims, plan));
@@ -69,14 +69,14 @@ sutra_lgs::sutra_lgs(carma_context *context, sutra_sensors *sensors, long nvalid
   }
 
  // plan = this->d_ftlgskern->getPlan();
- // cufftSafeCall(
+ // carmafftSafeCall(
  //     cufftPlanMany(plan, 2 ,mdims,NULL,1,0,NULL,1,0,CUFFT_C2C , (int)dims_data3[3]));
 
   /*
    cudaExtent volumeSize = make_cudaExtent(npix,npix,nvalid);
 
    this->channelDesc = cudaCreateChannelDesc(32, 0, 0, 0, cudaChannelFormatKindFloat);
-   cutilSafeCall( cudaMalloc3DArray(&(this->d_spotarray), &(this->channelDesc), volumeSize) );
+   carmaSafeCall( cudaMalloc3DArray(&(this->d_spotarray), &(this->channelDesc), volumeSize) );
 
    // prepare 3d cppy
    this->copyParams.srcPtr = make_cudaPitchedPtr((void*)(this->d_lgskern->getData()), volumeSize.width*sizeof(float),
@@ -104,7 +104,7 @@ sutra_lgs::~sutra_lgs() {
 
   //delete this->current_context;
 
-  //cutilSafeCall(cudaFreeArray(this->d_spotarray));
+  //carmaSafeCall(cudaFreeArray(this->d_spotarray));
 }
 
 int sutra_lgs::lgs_init(int nprof, float hg, float h0, float deltah,
@@ -173,7 +173,7 @@ int sutra_lgs::lgs_update(carma_device *device) {
 }
 
 int sutra_lgs::lgs_makespot(carma_device *device, int nin) {
-  cutilSafeCall(
+  carmaSafeCall(
       cudaMemset(this->d_lgskern->getData(), 0,
           sizeof(float) * this->d_lgskern->getNbElem()));
   // build final image

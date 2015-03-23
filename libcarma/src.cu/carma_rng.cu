@@ -194,7 +194,7 @@ int carma_prng_init(int *seed, const int nThreads, const int nBlocks,
 
   // Initialise RNG  
   initPRNG<<<grid, threads>>>(state, nThreads * nBlocks, seed, nThreads);
-  cutilCheckMsg("initRNG<<<>>> execution failed\n");
+  carmaCheckMsg("initRNG<<<>>> execution failed\n");
 
   return EXIT_SUCCESS;
 }
@@ -220,7 +220,7 @@ int carma_prng_cu(float *results, const int nThreads, const int nBlocks,
   if (gtype == 'P') {
     carma_curand_poisson<float> <<<nBlocks, nThreads>>>(state, results, n);
   }
-  cutilCheckMsg("PRNG<<<>>> execution failed\n");
+  carmaCheckMsg("PRNG<<<>>> execution failed\n");
   return EXIT_SUCCESS;
 }
 template<>
@@ -239,7 +239,7 @@ int carma_prng_cu(double *results, const int nThreads, const int nBlocks,
   if (gtype == 'P')
     carma_curand_poisson<double> <<<nBlocks, nThreads>>>(state, results, n);
 
-  cutilCheckMsg("PRNG<<<>>> execution failed\n");
+  carmaCheckMsg("PRNG<<<>>> execution failed\n");
   return EXIT_SUCCESS;
 }
 
@@ -260,7 +260,7 @@ int carma_prng_cu(cuFloatComplex *results, const int nThreads,
     //   if (gtype == 'P')
     //  carma_curand_poisson<float><<<1, nThreads>>>(state, (float *)results, 2*n);
 
-  cutilCheckMsg("PRNG<<<>>> execution failed\n");
+  carmaCheckMsg("PRNG<<<>>> execution failed\n");
   return EXIT_SUCCESS;
 }
 template<>
@@ -280,6 +280,6 @@ int carma_prng_cu(cuDoubleComplex *results, const int nThreads,
     //   if (gtype == 'P')
     //  carma_curand_poisson<double><<<1, nThreads>>>(state, (double *)results, 2*n);
 
-  cutilCheckMsg("PRNG<<<>>> execution failed\n");
+  carmaCheckMsg("PRNG<<<>>> execution failed\n");
   return EXIT_SUCCESS;
 }

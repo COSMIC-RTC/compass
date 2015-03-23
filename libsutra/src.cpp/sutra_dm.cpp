@@ -66,9 +66,9 @@ sutra_dm::sutra_dm(carma_context *context, const char* type, long dim,
 	this->d_ftkernconv = new carma_obj<cuFloatComplex>(context,dims_data2);
 	this->d_ftmapactu = new carma_obj<cuFloatComplex>(context,dims_data2);
 	cufftHandle *plan = this->d_ftkernconv->getPlan();
-	cufftSafeCall(cufftPlan2d(plan, dims_data2[1], dims_data2[1], CUFFT_R2C));
+	carmafftSafeCall(cufftPlan2d(plan, dims_data2[1], dims_data2[1], CUFFT_R2C));
 	plan = this->d_ftmapactu->getPlan();
-	cufftSafeCall(cufftPlan2d(plan, dims_data2[1], dims_data2[1], CUFFT_C2R));
+	carmafftSafeCall(cufftPlan2d(plan, dims_data2[1], dims_data2[1], CUFFT_C2R));
 	*/
 	//this->d_IFsparse = 0L;
 	//this->d_commdouble = new carma_obj<float>(context, dims_data1);
@@ -191,7 +191,7 @@ int sutra_dm::kl_loadarrays(float *rabas, float *azbas, int *ord, float *cr,
 int sutra_dm::reset_shape() {
   current_context->set_activeDevice(device,1);
 
-  cutilSafeCall(
+  carmaSafeCall(
       cudaMemset(this->d_shape->d_screen->getData(), 0,
           sizeof(float) * this->d_shape->d_screen->getNbElem()));
 
@@ -332,10 +332,10 @@ sutra_dm::get_IF_sparse(carma_sparse_obj<T> *&d_IFsparse, int *indx_pup, long nb
 		values[i] = (float*)malloc(NZ[i]*sizeof(T));
 		colind[i] = (int*)malloc(NZ[i]*sizeof(int));
 
-		cutilSafeCall(
+		carmaSafeCall(
 		      cudaMemcpyAsync(values[i], d_IFsparse_vec->getData(), sizeof(T) * NZ[i],
 		          cudaMemcpyDeviceToHost));
-		cutilSafeCall(
+		carmaSafeCall(
 			  cudaMemcpyAsync(colind[i], d_IFsparse_vec->d_colind, sizeof(int) * NZ[i],
 				  cudaMemcpyDeviceToHost));
 
@@ -353,15 +353,15 @@ sutra_dm::get_IF_sparse(carma_sparse_obj<T> *&d_IFsparse, int *indx_pup, long nb
 	cpt[0] = 0;
 
 	for(int i=0 ; i<this->ninflu ; i++){
-		cutilSafeCall(
+		carmaSafeCall(
 			  cudaMemcpyAsync(d_val.getData(cpt[i]), values[i], sizeof(T) * NZ[i],
 				  cudaMemcpyHostToDevice));
-		cutilSafeCall(
+		carmaSafeCall(
 			  cudaMemcpyAsync(d_col.getData(cpt[i]), colind[i], sizeof(int) * NZ[i],
 				  cudaMemcpyHostToDevice));
 		cpt[i+1] = cpt[i] + NZ[i];
 	}
-	cutilSafeCall(
+	carmaSafeCall(
 		  cudaMemcpyAsync(d_row.getData(), cpt, sizeof(int) * (this->ninflu + 1),
 			  cudaMemcpyHostToDevice));
 	dims_data2[1] = this->ninflu;

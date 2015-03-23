@@ -284,7 +284,7 @@ int sutra_wfs_mpi::allocate_worker_sh() {
   mdims[0] = (int) dims_data3[1];
   mdims[1] = (int) dims_data3[2];
   cufftHandle *plan = this->d_camplipup->getPlan(); ///< FFT plan
-  cufftSafeCall(
+  carmafftSafeCall(
       cufftPlanMany(plan, 2 ,mdims,NULL,1,0,NULL,1,0, CUFFT_C2C ,(int)dims_data3[3]));
   dims_data3[1] = npix;
   dims_data3[2] = npix;
@@ -306,7 +306,7 @@ int sutra_wfs_mpi::allocate_worker_sh() {
     mdims[0] = (int) dims_data3[1];
     mdims[1] = (int) dims_data3[2];
     cufftHandle *plan = this->d_fttotim->getPlan(); ///< FFT plan
-    cufftSafeCall(
+    carmafftSafeCall(
         cufftPlanMany(plan, 2 ,mdims,NULL,1,0,NULL,1,0,CUFFT_C2C , (int)dims_data3[3]));
 
     dims_data1[1] = nfft * nfft;
@@ -398,7 +398,7 @@ int sutra_wfs_mpi::allocate_worker_pyr() {
     mdims[0] = (int) dims_data3[1];
     mdims[1] = (int) dims_data3[2];
     cufftHandle *plan = this->d_camplipup->getPlan(); ///< FFT plan
-    cufftSafeCall(
+    carmafftSafeCall(
         cufftPlanMany(plan, 2 ,mdims,NULL,1,0,NULL,1,0, CUFFT_C2C ,(int)dims_data3[3]));
     dims_data3[1] = npix;
     dims_data3[2] = npix;
@@ -411,7 +411,7 @@ int sutra_wfs_mpi::allocate_worker_pyr() {
     this->d_camplipup = new carma_obj<cuFloatComplex>(this->current_context, dims_data2);
     this->d_camplifoc = new carma_obj<cuFloatComplex>(this->current_context, dims_data2);
     cufftHandle *plan = this->d_camplipup->getPlan(); ///< FFT plan
-    cufftSafeCall(cufftPlan2d(plan, dims_data2[1], dims_data2[2], CUFFT_C2C));
+    carmafftSafeCall(cufftPlan2d(plan, dims_data2[1], dims_data2[2], CUFFT_C2C));
 
     dims_data3[1] = nfft / nrebin;
     dims_data3[2] = nfft / nrebin;
@@ -458,7 +458,7 @@ int sutra_wfs_mpi::allocate_worker_pyr() {
       mdims[0] = (int) dims_data3[1];
       mdims[1] = (int) dims_data3[2];
       cufftHandle *plan = this->d_fttotim->getPlan(); ///< FFT plan
-      cufftSafeCall(
+      carmafftSafeCall(
           cufftPlanMany(plan, 2 ,mdims,NULL,1,0,NULL,1,0,CUFFT_C2C , (int)dims_data3[3]));
 
       dims_data1[1] = nfft * nfft;
@@ -473,7 +473,7 @@ int sutra_wfs_mpi::allocate_worker_pyr() {
         mdims[0] = (int) dims_data3[1];
         mdims[1] = (int) dims_data3[2];
         cufftHandle *plan = this->d_fttotim->getPlan(); ///< FFT plan
-        cufftSafeCall(
+        carmafftSafeCall(
             cufftPlanMany(plan, 2 ,mdims,NULL,1,0,NULL,1,0,CUFFT_C2C , (int)dims_data3[3]));
       }
     }
@@ -507,7 +507,7 @@ int sutra_wfs_mpi::allocate_worker_pyr() {
     mdims[0] = (int) dims_data3[1];
     mdims[1] = (int) dims_data3[2];
     cufftHandle *plan = this->d_fttotim->getPlan(); ///< FFT plan
-    cufftSafeCall(
+    carmafftSafeCall(
         cufftPlanMany(plan, 2 ,mdims,NULL,1,0,NULL,1,0,CUFFT_C2C , (int)dims_data3[3]));
 
     dims_data2[1] = ntot;
@@ -749,7 +749,7 @@ int sutra_wfs_mpi::comp_sh_generic() {
           * this->d_camplifoc->getDims(3), this->device);
 
   //set bincube to 0 or noise
-  cutilSafeCall(
+  carmaSafeCall(
       cudaMemset(this->d_bincube->getData(), 0,
           sizeof(float) * this->d_bincube->getNbElem()));
   // increase fov if required
@@ -760,7 +760,7 @@ int sutra_wfs_mpi::comp_sh_generic() {
 
     for (int cc = 0; cc < this->nffthr; cc++) {
       /*
-      cutilSafeCall(
+      carmaSafeCall(
           cudaMemset(this->d_fttotim->getData(), 0,
               sizeof(cuFloatComplex) * this->d_fttotim->getNbElem()));
 */
@@ -928,7 +928,7 @@ int sutra_wfs_mpi::comp_pyr_generic() {
   pyr_submask(this->d_camplifoc->getData(), this->d_submask->getData(),
       this->ntot, this->device);
 
-  cutilSafeCall(
+  carmaSafeCall(
       cudaMemset(this->d_hrimg->getData(), 0,
           sizeof(float) * this->d_hrimg->getNbElem()));
 
@@ -936,7 +936,7 @@ int sutra_wfs_mpi::comp_pyr_generic() {
   for (int cpt = 0; cpt < this->npup; cpt++) {
     // modulation loop
     // computes the high resolution images
-    cutilSafeCall(
+    carmaSafeCall(
         cudaMemset(this->d_fttotim->getData(), 0,
             sizeof(cuFloatComplex) * this->d_fttotim->getNbElem()));
 
@@ -982,7 +982,7 @@ int sutra_wfs_mpi::comp_pyr_generic() {
   if (this->noise > 0) {
     this->d_bincube->prng('N', this->noise);
   } else
-    cutilSafeCall(
+    carmaSafeCall(
         cudaMemset(this->d_bincube->getData(), 0,
             sizeof(float) * this->d_bincube->getNbElem()));
 

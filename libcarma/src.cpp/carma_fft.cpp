@@ -104,16 +104,16 @@ void carma_initfft(const long *dims_data, cufftHandle *plan, cufftType tPlan) {
   }
   if (dims_data[0] == 1)
       /* Create a 1D FFT plan. */
-      cufftSafeCall(cufftPlan1d(plan, dims_data[1], tPlan,1));
+      carmafftSafeCall(cufftPlan1d(plan, dims_data[1], tPlan,1));
   else if (dims_data[0] == 2)
     /* Create a 2D FFT plan. */
-    cufftSafeCall(cufftPlan2d(plan, dims_data[1], dims_data[2], tPlan));
+    carmafftSafeCall(cufftPlan2d(plan, dims_data[1], dims_data[2], tPlan));
   else
   /* Create a 3D FFT plan. */{
     int mdims[2];
     mdims[0] = (int) dims_data[1];
     mdims[1] = (int) dims_data[2];
-    cufftSafeCall( 
+    carmafftSafeCall( 
         /*cufftPlan3d(plan,dims_data[1],dims_data[2],dims_data[3], tPlan));*/
         //cufftPlanMany(plan, 2 ,mdims,NULL,1,0,NULL,1,0,CUFFT_C2C ,(int)dims_data[3]));
         cufftPlanMany(plan, 2 ,mdims,NULL,1,0,NULL,1,0,tPlan ,(int)dims_data[3]));
@@ -151,8 +151,8 @@ int carma_fft(T_in *input, T_out *output, int dir, cufftHandle plan) {
    */
 
   //CUFFT_FORWARD = -1 and CUFFT_INVERSE = 1 (cf cufft.h)
-  //cufftSafeCall( fft_compute(plan, (T_in*)input, (T_out*)output, dir * CUFFT_FORWARD));
-  cufftSafeCall(
+  //carmafftSafeCall( fft_compute(plan, (T_in*)input, (T_out*)output, dir * CUFFT_FORWARD));
+  carmafftSafeCall(
       fft_compute(plan, (T_in*)input, (T_out*)output, dir * CUFFT_FORWARD));
   return EXIT_SUCCESS;
 }

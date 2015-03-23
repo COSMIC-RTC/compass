@@ -52,6 +52,17 @@ sutra_wfs_sh::sutra_wfs_sh(carma_context *context, sutra_sensors *sensors, long 
 
   this->kernconv = false;
 
+  this->offset = 0;
+
+}
+
+int sutra_wfs_sh::define_mpi_rank(int rank, int size){
+  nvalid = nvalid/size;
+  offset = rank*nvalid;
+  return EXIT_SUCCESS;
+}
+
+int sutra_wfs_sh::allocate_buffers(sutra_sensors *sensors) {
   long *dims_data1 = new long[2];
   dims_data1[0] = 1;
   long *dims_data2 = new long[3];
@@ -62,26 +73,21 @@ sutra_wfs_sh::sutra_wfs_sh(carma_context *context, sutra_sensors *sensors, long 
   dims_data2[1] = npix * nxsub;
   dims_data2[2] = npix * nxsub;
 
-  this->d_binimg = new carma_obj<float>(context, dims_data2);
+  this->d_binimg = new carma_obj<float>(current_context, dims_data2);
   // using 1 stream for telemetry
   this->image_telemetry = new carma_host_obj<float>(dims_data2, MA_PAGELOCK, 1);
 
   dims_data3[1] = nfft;
   dims_data3[2] = nfft;
 
-  int nslaves = 0;
-
-  if (nslaves > 0)
-    dims_data3[3] = nvalid / (nslaves + 1);
-  else
-    dims_data3[3] = nvalid;
+  dims_data3[3] = nvalid;
 
   int mdims[2];
 
-  //this->d_submask = new carma_obj<float>(context, dims_data3); // Useless for SH
+  //this->d_submask = new carma_obj<float>(current_context, dims_data3); // Useless for SH
 
-  //this->d_camplipup = new carma_obj<cuFloatComplex>(context, dims_data3);
-  //this->d_camplifoc = new carma_obj<cuFloatComplex>(context, dims_data3);
+  //this->d_camplipup = new carma_obj<cuFloatComplex>(current_context, dims_data3);
+  //this->d_camplifoc = new carma_obj<cuFloatComplex>(current_context, dims_data3);
   mdims[0] = (int) dims_data3[1];
   mdims[1] = (int) dims_data3[2];
 
@@ -91,7 +97,7 @@ sutra_wfs_sh::sutra_wfs_sh(carma_context *context, sutra_sensors *sensors, long 
   if (sensors->campli_plans.find(vdims) == sensors->campli_plans.end()) {
     //DEBUG_TRACE("Creating FFT plan : %d %d %d",mdims[0],mdims[1],dims_data3[3]);printMemInfo();
     cufftHandle *plan = (cufftHandle*) malloc(sizeof(cufftHandle)); // = this->d_camplipup->getPlan(); ///< FFT plan
-    cufftSafeCall(
+    carmafftSafeCall(
         cufftPlanMany(plan, 2 ,mdims,NULL,1,0,NULL,1,0, CUFFT_C2C ,(int)dims_data3[3]));
 
     sensors->campli_plans.insert(
@@ -107,7 +113,7 @@ sutra_wfs_sh::sutra_wfs_sh(carma_context *context, sutra_sensors *sensors, long 
   dims_data3[1] = npix;
   dims_data3[2] = npix;
 
-  this->d_bincube = new carma_obj<float>(context, dims_data3);
+  this->d_bincube = new carma_obj<float>(current_context, dims_data3);
 
   this->nstreams = 1;
   while (nvalid % this->nstreams != 0)
@@ -116,7 +122,7 @@ sutra_wfs_sh::sutra_wfs_sh(carma_context *context, sutra_sensors *sensors, long 
   this->streams = new carma_streams(nstreams);
 
   dims_data1[1] = 2 * nvalid;
-  this->d_slopes = new carma_obj<float>(context, dims_data1);
+  this->d_slopes = new carma_obj<float>(current_context, dims_data1);
 
   if (this->ntot != this->nfft) {
     // this is the big array => we use nmaxhr and treat it sequentially
@@ -132,7 +138,7 @@ sutra_wfs_sh::sutra_wfs_sh(carma_context *context, sutra_sensors *sensors, long 
     dims_data3[2] = ntot;
     dims_data3[3] = nmaxhr;
 
-    //this->d_fttotim = new carma_obj<cuFloatComplex>(context, dims_data3);
+    //this->d_fttotim = new carma_obj<cuFloatComplex>(current_context, dims_data3);
 
     mdims[0] = (int) dims_data3[1];
     mdims[1] = (int) dims_data3[2];
@@ -143,7 +149,7 @@ sutra_wfs_sh::sutra_wfs_sh(carma_context *context, sutra_sensors *sensors, long 
     if (sensors->fttotim_plans.find(vdims) == sensors->fttotim_plans.end()) {
       cufftHandle *plan = (cufftHandle*) malloc(sizeof(cufftHandle)); // = this->d_fttotim->getPlan(); ///< FFT plan
       //DEBUG_TRACE("Creating FFT plan :%d %d %d",mdims[0],mdims[1],dims_data3[3]);printMemInfo();
-      cufftSafeCall(
+      carmafftSafeCall(
           cufftPlanMany(plan, 2 ,mdims,NULL,1,0,NULL,1,0,CUFFT_C2C , (int)dims_data3[3]));
       sensors->fttotim_plans.insert(
           pair<vector<int>, cufftHandle*>(vdims, plan));
@@ -154,7 +160,7 @@ sutra_wfs_sh::sutra_wfs_sh(carma_context *context, sutra_sensors *sensors, long 
       this->fttotim_plan = sensors->fttotim_plans.at(vdims);
     }
     dims_data1[1] = nfft * nfft;
-    this->d_hrmap = new carma_obj<int>(context, dims_data1);
+    this->d_hrmap = new carma_obj<int>(current_context, dims_data1);
 
   } else {
     if (this->lgs) {
@@ -162,7 +168,7 @@ sutra_wfs_sh::sutra_wfs_sh(carma_context *context, sutra_sensors *sensors, long 
       dims_data3[1] = ntot;
       dims_data3[2] = ntot;
       dims_data3[3] = nvalid;
-      // this->d_fttotim = new carma_obj<cuFloatComplex>(context, dims_data3);
+      // this->d_fttotim = new carma_obj<cuFloatComplex>(current_context, dims_data3);
       mdims[0] = (int) dims_data3[1];
       mdims[1] = (int) dims_data3[2];
       int vector_dims[3] = { mdims[0], mdims[1], (int) dims_data3[3] };
@@ -172,7 +178,7 @@ sutra_wfs_sh::sutra_wfs_sh(carma_context *context, sutra_sensors *sensors, long 
       if (sensors->fttotim_plans.find(vdims) == sensors->fttotim_plans.end()) {
         //DEBUG_TRACE("Creating FFT plan : %d %d %d",mdims[0],mdims[1],dims_data3[3]);printMemInfo();
         cufftHandle *plan = (cufftHandle*) malloc(sizeof(cufftHandle)); // = this->d_fttotim->getPlan(); ///< FFT plan
-        cufftSafeCall(
+        carmafftSafeCall(
             cufftPlanMany(plan, 2 ,mdims,NULL,1,0,NULL,1,0,CUFFT_C2C , (int)dims_data3[3]));
         sensors->fttotim_plans.insert(
             pair<vector<int>, cufftHandle*>(vdims, plan));
@@ -187,40 +193,41 @@ sutra_wfs_sh::sutra_wfs_sh(carma_context *context, sutra_sensors *sensors, long 
 
   dims_data2[1] = ntot;
   dims_data2[2] = ntot;
-  this->d_ftkernel = new carma_obj<cuFloatComplex>(context, dims_data2);
+  this->d_ftkernel = new carma_obj<cuFloatComplex>(current_context, dims_data2);
 
   dims_data2[1] = npup;
   dims_data2[2] = npup;
-  this->d_pupil = new carma_obj<float>(context, dims_data2);
+  this->d_pupil = new carma_obj<float>(current_context, dims_data2);
 
   dims_data2[1] = nphase;
   dims_data2[2] = nphase;
-  this->d_offsets = new carma_obj<float>(context, dims_data2);
+  this->d_offsets = new carma_obj<float>(current_context, dims_data2);
 
   dims_data1[1] = nxsub;
-  this->d_istart = new carma_obj<int>(context, dims_data1);
-  this->d_jstart = new carma_obj<int>(context, dims_data1);
+  this->d_istart = new carma_obj<int>(current_context, dims_data1);
+  this->d_jstart = new carma_obj<int>(current_context, dims_data1);
 
   dims_data2[1] = nrebin * nrebin;
   dims_data2[2] = npix * npix;
-  this->d_binmap = new carma_obj<int>(context, dims_data2);
+  this->d_binmap = new carma_obj<int>(current_context, dims_data2);
 
   dims_data1[1] = nvalid;
-  this->d_subsum = new carma_obj<float>(context, dims_data1);
+  this->d_subsum = new carma_obj<float>(current_context, dims_data1);
 
-  this->d_fluxPerSub = new carma_obj<float>(context, dims_data1);
-  this->d_validsubsx = new carma_obj<int>(context, dims_data1);
-  this->d_validsubsy = new carma_obj<int>(context, dims_data1);
+  this->d_fluxPerSub = new carma_obj<float>(current_context, dims_data1);
+  this->d_validsubsx = new carma_obj<int>(current_context, dims_data1);
+  this->d_validsubsy = new carma_obj<int>(current_context, dims_data1);
 
   dims_data2[1] = nxsub;
   dims_data2[2] = nxsub;
-  this->d_isvalid = new carma_obj<int>(context, dims_data2);
+  this->d_isvalid = new carma_obj<int>(current_context, dims_data2);
 
   dims_data2[1] = nphase * nphase;
   dims_data2[2] = nvalid;
-  this->d_phasemap = new carma_obj<int>(context, dims_data2);
-}
+  this->d_phasemap = new carma_obj<int>(current_context, dims_data2);
 
+  return EXIT_SUCCESS;
+}
 
 sutra_wfs_sh::~sutra_wfs_sh() {
   current_context->set_activeDevice(device,1);
@@ -305,13 +312,13 @@ int sutra_wfs_sh::wfs_initarrays(int *phasemap, int *hrmap, int *binmap,
 
 int sutra_wfs_sh::comp_generic() {
   current_context->set_activeDevice(device,1);
-  cutilSafeCall(
+  carmaSafeCall(
         cudaMemset(this->d_camplipup->getData(), 0,
             sizeof(cuFloatComplex) * this->d_camplipup->getNbElem()));
-  cutilSafeCall(
+  carmaSafeCall(
         cudaMemset(this->d_camplifoc->getData(), 0,
             sizeof(cuFloatComplex) * this->d_camplifoc->getNbElem()));
-  cutilSafeCall(
+  carmaSafeCall(
         cudaMemset(this->d_fttotim->getData(), 0,
             sizeof(cuFloatComplex) * this->d_fttotim->getNbElem()));
 
@@ -335,7 +342,7 @@ int sutra_wfs_sh::comp_generic() {
           * this->d_camplifoc->getDims(3), current_context->get_device(device));
 
   //set bincube to 0 or noise
-  cutilSafeCall(
+  carmaSafeCall(
       cudaMemset(this->d_bincube->getData(), 0,
           sizeof(float) * this->d_bincube->getNbElem()));
   // increase fov if required
@@ -345,7 +352,7 @@ int sutra_wfs_sh::comp_generic() {
   if (this->ntot != this->nfft) {
 
     for (int cc = 0; cc < this->nffthr; cc++) {
-      cutilSafeCall(
+      carmaSafeCall(
           cudaMemset(this->d_fttotim->getData(), 0,
               sizeof(cuFloatComplex) * this->d_fttotim->getNbElem()));
 

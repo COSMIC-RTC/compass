@@ -72,7 +72,7 @@ int interp_prof(cuFloatComplex *profout, float *prof1d, float *profcum,
 
   iprof_krnl<<<grid, threads>>>(profout, prof1d, profcum, npix, doffaxis, hg,
       pixsize, h0, deltah, hmax, Ntot);
-  cutilCheckMsg("iprof_krnl<<<>>> execution failed\n");
+  carmaCheckMsg("iprof_krnl<<<>>> execution failed\n");
 
   return EXIT_SUCCESS;
 }
@@ -99,7 +99,7 @@ int times_ftbeam(cuFloatComplex *profout, cuFloatComplex *ftbeam, int N,
   dim3 grid(nblocks), threads(nthreads);
 
   tftbeam_krnl<<<grid, threads>>>(profout, ftbeam, N, Ntot);
-  cutilCheckMsg("tftbeam_krnl<<<>>> execution failed\n");
+  carmaCheckMsg("tftbeam_krnl<<<>>> execution failed\n");
 
   return EXIT_SUCCESS;
 }
@@ -128,7 +128,7 @@ int rollbeamexp(float *imout, cuFloatComplex *iprof, float *beam, int N,
   dim3 grid(nblocks), threads(nthreads);
 
   rollbeamexp_krnl<<<grid, threads>>>(imout, iprof, beam, N, Ntot);
-  cutilCheckMsg("beamexp_krnl<<<>>> execution failed\n");
+  carmaCheckMsg("beamexp_krnl<<<>>> execution failed\n");
 
   return EXIT_SUCCESS;
 
@@ -212,7 +212,7 @@ int lgs_rotate(cuFloatComplex *odata, float *idata, int width, int height,
 
   rotate_krnl<<<grid, threads>>>(odata, idata, width, height, theta, center, N,
       Ntot);
-  cutilCheckMsg("rotate_krnl<<<>>> execution failed\n");
+  carmaCheckMsg("rotate_krnl<<<>>> execution failed\n");
 
   return EXIT_SUCCESS;
 }
@@ -254,9 +254,9 @@ int rotate3d(cuFloatComplex *d_odata, cudaMemcpy3DParms copyParams,
   tex3.addressMode[2] = cudaAddressModeClamp;
 
   // copy the data into the array
-  cutilSafeCall(cudaMemcpy3D(&copyParams));
+  carmaSafeCall(cudaMemcpy3D(&copyParams));
   // bind array to 3D texture
-  cutilSafeCall(cudaBindTextureToArray(tex3, d_array, channelDesc));
+  carmaSafeCall(cudaBindTextureToArray(tex3, d_array, channelDesc));
 
 
   int maxThreads = device->get_properties().maxThreadsPerBlock;
@@ -276,7 +276,7 @@ int rotate3d(cuFloatComplex *d_odata, cudaMemcpy3DParms copyParams,
   rotate3d_krnl<<<grid, threads, 0>>>(d_odata, width, height, N, theta, center,
       Ntot);
 
-  cutilCheckMsg("rotate3d_krnl <<<>>> execution failed\n");
+  carmaCheckMsg("rotate3d_krnl <<<>>> execution failed\n");
 
   return EXIT_SUCCESS;
 }

@@ -123,8 +123,7 @@ Y_yoga_timer(int argc)
  */
 {
   try {
-    timer_struct *handle = (timer_struct *) ypush_obj(&yTimer,
-        sizeof(timer_struct));
+    timer_struct* handle=yoga_getTimer(argc,1);
     handle->carma_timer = new carma_timer();
   } catch (string &msg) {
     y_error(msg.c_str());
@@ -140,14 +139,14 @@ Y_yoga_timer(int argc)
 
 void
 Y_yoga_timer_start(int argc){
-  timer_struct *handler = (timer_struct *) yget_obj(argc - 1, &yTimer);
+  timer_struct* handler=yoga_getTimer(argc,1);
   SCAST(carma_timer*, handler_timer, handler->carma_timer);
   handler_timer->start();
 }
 
 void
 Y_yoga_timer_stop(int argc){
-  timer_struct *handler = (timer_struct *) yget_obj(argc - 1, &yTimer);
+  timer_struct* handler=yoga_getTimer(argc,1);
   SCAST(carma_timer*, handler_timer, handler->carma_timer);
   handler_timer->stop();
   ypush_double(handler_timer->elapsed());
@@ -155,7 +154,7 @@ Y_yoga_timer_stop(int argc){
 
 void
 Y_yoga_timer_reset(int argc){
-  timer_struct *handler = (timer_struct *) yget_obj(argc - 1, &yTimer);
+  timer_struct* handler=yoga_getTimer(argc,1);
   SCAST(carma_timer*, handler_timer, handler->carma_timer);
   handler_timer->reset();
 }
@@ -178,7 +177,7 @@ ipcs_free(void *obj) {
   /** @brief ipcs_struct destructor.
    *  @param obj : ipcs_struct to freed
    */
-  ipcs_struct *handler = (ipcs_struct *) obj;
+  SCAST(ipcs_struct*,handler,obj);
   try {
     SCAST(carma_ipcs*, handler_ipcs, handler->carma_ipcs);
     delete handler_ipcs;
@@ -202,8 +201,7 @@ Y_yoga_ipcs(int argc)
  */
 {
   try {
-    ipcs_struct *handle = (ipcs_struct *) ypush_obj(&yIPCs,
-        sizeof(ipcs_struct));
+    SCAST(ipcs_struct*,handle,ypush_obj(&yIPCs, sizeof(ipcs_struct)));
     handle->carma_ipcs = new carma_ipcs();
   } catch (string &msg) {
     y_error(msg.c_str());
@@ -343,7 +341,7 @@ void context_print(void *obj)
  *  @param[in] obj : context_struct to print
  */
 {
-  context_struct *handler = (context_struct *) obj;
+  SCAST(context_struct *,handler, obj);
   SCAST(carma_context*, context, handler->carma_context);
   unsigned int activeDevice = context->get_activeDevice();
   unsigned int nDevice = context->get_ndevice();
@@ -379,8 +377,7 @@ void Y_yoga_context(int argc)
  */
 {
   try {
-    context_struct *handle = (context_struct *) ypush_obj(&yContext,
-        sizeof(context_struct));
+    SCAST(context_struct *,handle,ypush_obj(&yContext,sizeof(context_struct)));
     handle->carma_context = carma_context::instance();
   } catch (string &msg) {
     y_error(msg.c_str());
@@ -569,7 +566,7 @@ void _yogaDeviceReset()
  */
 {
 //  cerr << "Shutting down : " ;
-  cutilSafeCall(cudaDeviceReset());
+  carmaSafeCall(cudaDeviceReset());
 //  cerr << "OK " << __LINE__ << endl;
 }
 
@@ -577,7 +574,7 @@ void _yogaThreadSync()
 /*! \brief simple wrapper for general threads synchronization
  */
 {
-  cutilSafeThreadSync();
+  carmaSafeDeviceSynchronize();
 }
 
 void _yoga_init()
@@ -3185,13 +3182,13 @@ void Y_yoga_fft(int argc) {
              cufftHandle *plan = carma_obj_handler_src->getPlan(); ///< FFT plan
              if (carma_obj_handler_src->getDims()[0] == 2)
              // Create a 2D FFT plan.
-             cufftSafeCall(cufftPlan2d(plan, carma_obj_handler_src->getDims()[1], carma_obj_handler_src->getDims()[2], carma_select_plan<double, cuDoubleComplex>()));
+             carmafftSafeCall(cufftPlan2d(plan, carma_obj_handler_src->getDims()[1], carma_obj_handler_src->getDims()[2], carma_select_plan<double, cuDoubleComplex>()));
              else{
              // Create a 3D FFT plan.
              int mdims[2];
              mdims[0] = (int) (carma_obj_handler_src->getDims()[1]);
              mdims[1] = (int) (carma_obj_handler_src->getDims()[2]);
-             cufftSafeCall(cufftPlanMany(plan, 2 ,mdims,NULL,1,0,NULL,1,0, carma_select_plan<double, cuDoubleComplex>(), (int)(carma_obj_handler_src->getDims()[3])));
+             carmafftSafeCall(cufftPlanMany(plan, 2 ,mdims,NULL,1,0,NULL,1,0, carma_select_plan<double, cuDoubleComplex>(), (int)(carma_obj_handler_src->getDims()[3])));
              }
              */
             carma_initfft<cufftDoubleReal, cuDoubleComplex>(

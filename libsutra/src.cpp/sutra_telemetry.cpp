@@ -15,8 +15,8 @@ sutra_telemetry::sutra_telemetry(type_telemetry_pair obj,
     carma_host_obj<float> *host_obj, unsigned int nbStreams) {
   add_obj(obj, host_obj);
   streams = new carma_streams(nbStreams);
-  //cutilSafeCall(cudaEventCreateWithFlags(&(this->start_event), cudaDeviceBlockingSync));
-  //cutilSafeCall( cudaEventCreateWithFlags(&(this->stop_event), cudaDeviceBlockingSync));
+  //carmaSafeCall(cudaEventCreateWithFlags(&(this->start_event), cudaDeviceBlockingSync));
+  //carmaSafeCall( cudaEventCreateWithFlags(&(this->stop_event), cudaDeviceBlockingSync));
   //cudaEventDefault
 }
 
@@ -24,8 +24,8 @@ sutra_telemetry::sutra_telemetry(std::string type_obj, int num_obj,
     carma_host_obj<float> *host_obj, unsigned int nbStreams) {
   add_obj(type_obj, num_obj, host_obj);
   streams = new carma_streams(nbStreams);
-  //cutilSafeCall(cudaEventCreateWithFlags(&(this->start_event), cudaDeviceBlockingSync));
-  //cutilSafeCall( cudaEventCreateWithFlags(&(this->stop_event), cudaDeviceBlockingSync));
+  //carmaSafeCall(cudaEventCreateWithFlags(&(this->start_event), cudaDeviceBlockingSync));
+  //carmaSafeCall( cudaEventCreateWithFlags(&(this->stop_event), cudaDeviceBlockingSync));
   //cudaEventDefault
 }
 

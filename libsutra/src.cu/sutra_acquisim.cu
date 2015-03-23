@@ -28,7 +28,7 @@ int fillbincube_2D(T *bimage, T *bcube, int npix, int nxsub, int *num_ssp) {
 
   bcube_krnl_2D<T> <<<grid, threads>>>(bimage, bcube, num_ssp);
 
-  cutilCheckMsg("binimg_kernel<<<>>> execution failed\n");
+  carmaCheckMsg("binimg_kernel<<<>>> execution failed\n");
 
   return EXIT_SUCCESS;
 }
@@ -73,7 +73,7 @@ int fillbincube(T *bimage, T *bcube, int npix, int nsub, int Nsub, int *ivalid,
   bcube_krnl<T> <<<grid, threads>>>(bimage, bcube, npix, Npix, Nsub, ivalid,
       jvalid, N);
 
-  cutilCheckMsg("binimg_kernel<<<>>> execution failed\n");
+  carmaCheckMsg("binimg_kernel<<<>>> execution failed\n");
 
   return EXIT_SUCCESS;
 }
@@ -135,7 +135,7 @@ int fillbincube_async(carma_host_obj<T> *image_telemetry, T *bimage, T *bcube,
     //   commence executing when all previous CUDA calls in stream x have completed
   }
   //cudaStreamSynchronize(image_telemetry->get_cudaStream_t(nstreams-1));
-  cutilCheckMsg("binimg_kernel<<<>>> execution failed\n");
+  carmaCheckMsg("binimg_kernel<<<>>> execution failed\n");
 
   return EXIT_SUCCESS;
 }
@@ -172,7 +172,7 @@ int fillbincube_async(carma_streams *streams, carma_obj<T> *bimage,
     //   commence executing when all previous CUDA calls in stream x have completed
   }
 
-  cutilCheckMsg("binimg_kernel<<<>>> execution failed\n");
+  carmaCheckMsg("binimg_kernel<<<>>> execution failed\n");
 
   return EXIT_SUCCESS;
 }

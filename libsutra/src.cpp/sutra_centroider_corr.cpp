@@ -83,7 +83,7 @@ int sutra_centroider_corr::init_corr(int isizex, int isizey,
   mdims[0] = (int) dims_data3[1];
   mdims[1] = (int) dims_data3[2];
   cufftHandle *plan = this->d_corrfnct->getPlan(); ///< FFT plan
-  cufftSafeCall(
+  carmafftSafeCall(
       cufftPlanMany(plan, 2 ,mdims,NULL,1,0,NULL,1,0,CUFFT_C2C , (int)dims_data3[3]));
 
   dims_data3[1] = 2 * this->npix - 1;
@@ -124,17 +124,17 @@ int sutra_centroider_corr::load_corr(float *corr, float *corr_norm, int ndim) {
   float *tmp; ///< Input data
 
   if (ndim == 3) {
-    cutilSafeCall(
+    carmaSafeCall(
         cudaMalloc((void** )&tmp,
             sizeof(float) * this->npix * this->npix * this->nvalid));
-    cutilSafeCall(
+    carmaSafeCall(
         cudaMemcpy(tmp, corr,
             sizeof(float) * this->npix * this->npix * this->nvalid,
             cudaMemcpyHostToDevice));
   } else {
-    cutilSafeCall(
+    carmaSafeCall(
         cudaMalloc((void** )&tmp, sizeof(float) * this->npix * this->npix));
-    cutilSafeCall(
+    carmaSafeCall(
         cudaMemcpy(tmp, corr, sizeof(float) * this->npix * this->npix,
             cudaMemcpyHostToDevice));
   }
@@ -142,7 +142,7 @@ int sutra_centroider_corr::load_corr(float *corr, float *corr_norm, int ndim) {
   fillcorr(*(this->d_corrfnct), tmp, this->npix, 2 * this->npix,
       this->npix * this->npix * this->nvalid, nval, this->current_context->get_device(device));
 
-  cutilSafeCall(cudaFree(tmp));
+  carmaSafeCall(cudaFree(tmp));
 
   carma_fft<cuFloatComplex, cuFloatComplex>(*(this->d_corrfnct),
       *(this->d_corrfnct), 1, *this->d_corrfnct->getPlan());
@@ -161,7 +161,7 @@ int sutra_centroider_corr::get_cog(carma_streams *streams, float *cube,
 int sutra_centroider_corr::get_cog(float *slopes) {
   current_context->set_activeDevice(device,1);
   //set corrspot to 0
-  cutilSafeCall(
+  carmaSafeCall(
       cudaMemset(*(this->d_corrspot), 0,
           sizeof(cuFloatComplex) * this->d_corrspot->getNbElem()));
   // correlation algorithm

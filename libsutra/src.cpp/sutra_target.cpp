@@ -126,7 +126,7 @@ inline int sutra_source::init_source(carma_context *context, float xpos,
     this->d_amplipup = new carma_obj<cuFloatComplex>(context, dims_data2);
 
     cufftHandle *plan = this->d_amplipup->getPlan(); ///< FFT plan
-    cufftSafeCall(
+    carmafftSafeCall(
         cufftPlan2d(plan, this->d_amplipup->getDims(1),
             this->d_amplipup->getDims(2), CUFFT_C2C));
   }
@@ -191,7 +191,7 @@ int sutra_source::init_strehlmeter() {
     this->d_leimage = new carma_obj<float>(this->current_context,
         this->d_image->getDims());
   else
-    cutilSafeCall(
+    carmaSafeCall(
         cudaMemset(this->d_leimage->getData(), 0,
             sizeof(float) * this->d_leimage->getNbElem()));
 
@@ -216,7 +216,7 @@ int sutra_source::remove_layer(string type, float alt) {
 
 int sutra_source::raytrace_shm(sutra_atmos *yatmos) {
   current_context->set_activeDevice(device,1);
-  cutilSafeCall(
+  carmaSafeCall(
       cudaMemset(this->d_phase->d_screen->getData(), 0,
           sizeof(float) * this->d_phase->d_screen->getNbElem()));
 
@@ -247,9 +247,9 @@ int sutra_source::raytrace_shm(sutra_atmos *yatmos) {
 }
 
 int sutra_source::raytrace(sutra_atmos *yatmos, bool async) {
-//  cutilSafeCall(cudaDeviceSynchronize());
+//  carmaSafeCall(cudaDeviceSynchronize());
   current_context->set_activeDevice(device,1);
-  cutilSafeCall(
+  carmaSafeCall(
       cudaMemset(this->d_phase->d_screen->getData(), 0,
           sizeof(float) * this->d_phase->d_screen->getNbElem()));
 
@@ -312,7 +312,7 @@ int sutra_source::raytrace(sutra_atmos *yatmos) {
 int sutra_source::raytrace(sutra_dms *ydms, int rst, bool async) {
   current_context->set_activeDevice(device,1);
   if (rst == 1)
-    cutilSafeCall(
+    carmaSafeCall(
         cudaMemset(this->d_phase->d_screen->getData(), 0,
             sizeof(float) * this->d_phase->d_screen->getNbElem()));
   map<type_screen, float>::iterator p;
@@ -386,7 +386,7 @@ int sutra_source::comp_image(int puponly) {
     return -1;
 
   // set complex amplitude in the pupil plane to zero
-  cutilSafeCall(
+  carmaSafeCall(
       cudaMemset(this->d_amplipup->getData(), 0,
           sizeof(cuFloatComplex) * this->d_amplipup->getNbElem()));
 

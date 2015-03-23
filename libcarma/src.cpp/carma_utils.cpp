@@ -120,7 +120,7 @@ int printMemInfo() {
 	float total_float;
 	float used_mem;
 
-	cutilSafeCall(cudaMemGetInfo(&free_mem, &total_mem));
+	carmaSafeCall(cudaMemGetInfo(&free_mem, &total_mem));
 	free_float = (float) free_mem / 1000000.;
 	total_float = (float) total_mem / 1000000.;
 	used_mem = total_float - free_float;

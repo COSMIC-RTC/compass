@@ -144,18 +144,18 @@ sutra_controller_geo::init_proj_sparse(sutra_dms *dms, int *indx_dm, float *unit
 	p = dms->d_dms.begin();
 
 	for (int i = 0; i < dms->ndm; i++) {
-		cutilSafeCall(
+		carmaSafeCall(
 				cudaMemcpyAsync(d_val.getData(cpt[i]), d_IFi[i]->d_data,
 						sizeof(double) * d_IFi[i]->nz_elem, cudaMemcpyDeviceToDevice));
-		cutilSafeCall(
+		carmaSafeCall(
 				cudaMemcpyAsync(d_col.getData(cpt[i]), d_IFi[i]->d_colind,
 						sizeof(int) * d_IFi[i]->nz_elem, cudaMemcpyDeviceToDevice));
 		if(i == 0)
-			cutilSafeCall(
+			carmaSafeCall(
 						cudaMemcpyAsync(d_row.getData(), d_IFi[i]->d_rowind, sizeof(int) * (p->second->ninflu + 1),
 							cudaMemcpyDeviceToDevice));
 		else
-			cutilSafeCall(
+			carmaSafeCall(
 						cudaMemcpyAsync(d_row.getData(nact+1), &(d_IFi[i]->d_rowind[1]), sizeof(int) * (p->second->ninflu),
 							cudaMemcpyDeviceToDevice));
 		cpt[i+1] = cpt[i] + d_IFi[i]->nz_elem;

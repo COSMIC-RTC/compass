@@ -38,7 +38,7 @@ int sutra_wfs_pyr_pyr4::comp_generic() {
   pyr_submask(this->d_camplifoc->getData(), this->d_submask->getData(),
       this->ntot, this->current_context->get_device(device));
 
-  cutilSafeCall(
+  carmaSafeCall(
       cudaMemset(this->d_hrimg->getData(), 0,
           sizeof(float) * this->d_hrimg->getNbElem()));
   //
@@ -46,7 +46,7 @@ int sutra_wfs_pyr_pyr4::comp_generic() {
   for (int cpt = 0; cpt < this->npup; cpt++) {
     //    // modulation loop
     //    // computes the high resolution images
-    cutilSafeCall(
+    carmaSafeCall(
         cudaMemset(this->d_fttotim->getData(), 0,
             sizeof(cuFloatComplex) * this->d_fttotim->getNbElem()));
     //
@@ -90,7 +90,7 @@ int sutra_wfs_pyr_pyr4::comp_generic() {
   //  pyr_fact(this->d_hrimg->getData(),1.0f/this->nfft/this->nfft,this->nfft,4,this->current_context->get_device(device));
   //   */
 
-  cutilSafeCall(
+  carmaSafeCall(
       cudaMemset(this->d_bincube->getData(), 0,
           sizeof(float) * this->d_bincube->getNbElem()));
 

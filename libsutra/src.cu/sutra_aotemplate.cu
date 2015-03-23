@@ -36,7 +36,7 @@ void comp_aotemplate(int threads, int blocks, T *d_idata, T *d_odata, int N) {
   comp_aotemplate_krnl<T> <<<dimGrid, dimBlock, smemSize>>>(d_idata, d_odata,
       smemSize, N);
 
-  cutilCheckMsg("comp_aotemplate_kernel<<<>>> execution failed\n");
+  carmaCheckMsg("comp_aotemplate_kernel<<<>>> execution failed\n");
 
 }
 

@@ -238,7 +238,7 @@ int shift_buf(float *d_data, int offset, int N, carma_device *device) {
 
   shift_krnl<<<grid, threads>>>(d_data, offset, N);
 
-  cutilCheckMsg("shift_kernel<<<>>> execution failed\n");
+  carmaCheckMsg("shift_kernel<<<>>> execution failed\n");
   return EXIT_SUCCESS;
 }
 
@@ -256,7 +256,7 @@ int mult_vect(float *d_data, float *scale, int N, carma_device *device) {
 
   mult_krnl<<<grid, threads>>>(d_data, scale, N);
 
-  cutilCheckMsg("mult_kernel<<<>>> execution failed\n");
+  carmaCheckMsg("mult_kernel<<<>>> execution failed\n");
   return EXIT_SUCCESS;
 }
 
@@ -275,7 +275,7 @@ int mult_vect(float *d_data, float gain, int N, carma_device *device) {
 
   mult_krnl<<<grid, threads>>>(d_data, gain, N);
 
-  cutilCheckMsg("mult_kernel<<<>>> execution failed\n");
+  carmaCheckMsg("mult_kernel<<<>>> execution failed\n");
   return EXIT_SUCCESS;
 }
 
@@ -292,7 +292,7 @@ int mult_int(float *o_data, float *i_data, float *scale, float gain, int N,
   for (int i = 0; i < nstreams; i++) {
     mult_int_krnl<<<grid, threads, 0, streams->get_stream(i)>>>(o_data, i_data,
         scale, gain, N, i * nblocks * nthreads);
-    cutilCheckMsg("multint_kernel<<<>>> execution failed\n");
+    carmaCheckMsg("multint_kernel<<<>>> execution failed\n");
   }
 
   return EXIT_SUCCESS;
@@ -308,7 +308,7 @@ int mult_int(float *o_data, float *i_data, float *scale, float gain, int N,
   dim3 grid(nblocks), threads(nthreads);
 
   mult_int_krnl<<<grid, threads>>>(o_data, i_data, scale, gain, N);
-  cutilCheckMsg("multint_kernel<<<>>> execution failed\n");
+  carmaCheckMsg("multint_kernel<<<>>> execution failed\n");
 
   return EXIT_SUCCESS;
 }
@@ -322,7 +322,7 @@ int mult_int(float *o_data, float *i_data, float gain, int N,carma_device *devic
   dim3 grid(nblocks), threads(nthreads);
 
   mult_int_krnl<<<grid, threads>>>(o_data, i_data, gain, N);
-  cutilCheckMsg("multint_kernel<<<>>> execution failed\n");
+  carmaCheckMsg("multint_kernel<<<>>> execution failed\n");
 
   return EXIT_SUCCESS;
 }
@@ -334,7 +334,7 @@ int add_md(float *o_matrix, float *i_matrix, float *i_vector, int N,
   dim3 grid(nblocks), threads(nthreads);
 
   add_md_krnl<<<grid, threads>>>(o_matrix, i_matrix, i_vector, N);
-  cutilCheckMsg("add_md_kernel<<<>>> execution failed\n");
+  carmaCheckMsg("add_md_kernel<<<>>> execution failed\n");
 
   return EXIT_SUCCESS;
 }
@@ -346,7 +346,7 @@ fill_filtmat(float *filter, int nactu, int N, carma_device *device){
 	dim3 grid(nblocks), threads(nthreads);
 
 	fill_filtmat_krnl<<<grid, threads>>>(filter, nactu, N);
-	cutilCheckMsg("fill_filtmat_krnl<<<>>> execution failed\n");
+	carmaCheckMsg("fill_filtmat_krnl<<<>>> execution failed\n");
 
 	return EXIT_SUCCESS;
 }
@@ -357,7 +357,7 @@ TT_filt(float *mat, int n, carma_device *device){
 	getNumBlocksAndThreads(device, N, nblocks, nthreads);
 	dim3 grid(nblocks), threads(nthreads);
 	TT_filt_krnl<<<grid, threads>>>(mat,n,N);
-	cutilCheckMsg("TT_filt_krnl<<<>>> execution failed\n");
+	carmaCheckMsg("TT_filt_krnl<<<>>> execution failed\n");
 
 	return EXIT_SUCCESS;
 }
@@ -370,7 +370,7 @@ fill_cmat(float *cmat, float *wtt, float *Mtt, int nactu, int nslopes, carma_dev
 	dim3 grid(nblocks), threads(nthreads);
 
 	fill_cmat_krnl<<<grid, threads>>>(cmat,wtt,Mtt,nactu,nslopes,N);
-	cutilCheckMsg("fill_cmat_krnl<<<>>> execution failed\n");
+	carmaCheckMsg("fill_cmat_krnl<<<>>> execution failed\n");
 
 	return EXIT_SUCCESS;
 }
@@ -382,7 +382,7 @@ do_statmat(float *statcov, long dim, float *xpos, float *ypos, float norm, carma
 	getNumBlocksAndThreads(device, N, nblocks, nthreads);
 	dim3 grid(nblocks), threads(nthreads);
 	do_statcov_krnl<<<grid , threads>>>(statcov,xpos,ypos,norm,dim,N);
-	cutilCheckMsg("do_statcov_krnl<<<>>> execution failed\n");
+	carmaCheckMsg("do_statcov_krnl<<<>>> execution failed\n");
 
 	return EXIT_SUCCESS;
 }
@@ -394,7 +394,7 @@ get_pupphase(T *o_data, float *i_data, int *indx_pup, int Nphi, carma_device *de
 	getNumBlocksAndThreads(device, Nphi, nblocks, nthreads);
 	dim3 grid(nblocks), threads(nthreads);
 	pupphase_krnl<<<grid , threads>>>(o_data,i_data,indx_pup,Nphi);
-	cutilCheckMsg("pupphase_krnl<<<>>> execution failed\n");
+	carmaCheckMsg("pupphase_krnl<<<>>> execution failed\n");
 
 	return EXIT_SUCCESS;
 }
@@ -410,7 +410,7 @@ compute_Hcor_gpu(float *o_data, int nrow, int ncol, float Fs, float gmin, float 
 	dim3 grid(nblocks), threads(nthreads);
 
 	compute_Hcor_krnl<<<grid , threads>>>(o_data,nrow,ncol,Fs,1.0f/Fs,gmin,gmax,delay);
-	cutilCheckMsg("compute_Hcor_krnl<<<>>> execution failed\n");
+	carmaCheckMsg("compute_Hcor_krnl<<<>>> execution failed\n");
 
 	return EXIT_SUCCESS;
 }
@@ -422,7 +422,7 @@ absnormfft(cuFloatComplex *idata, float *odata, int N, float norm, carma_device 
 	dim3 grid(nblocks), threads(nthreads);
 
 	absnormfft_krnl<<<grid , threads>>>(idata,odata,N,norm);
-	cutilCheckMsg("absnormfft_krnl<<<>>> execution failed\n");
+	carmaCheckMsg("absnormfft_krnl<<<>>> execution failed\n");
 	return EXIT_SUCCESS;
 }
 

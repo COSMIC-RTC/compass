@@ -32,7 +32,7 @@ int multim(T *d_odata, T *i_data, int N) {
 
   multim_krnl<<<grid, threads>>>(d_odata, i_data, N);
 
-  cutilCheckMsg("multim_kernel<<<>>> execution failed\n");
+  carmaCheckMsg("multim_kernel<<<>>> execution failed\n");
 
   return EXIT_SUCCESS;
 }

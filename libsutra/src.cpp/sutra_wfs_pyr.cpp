@@ -82,7 +82,7 @@ sutra_wfs_pyr::sutra_wfs_pyr(carma_context *context, sutra_sensors *sensors, lon
   this->d_camplipup = new carma_obj<cuFloatComplex>(context, dims_data2);
   this->d_camplifoc = new carma_obj<cuFloatComplex>(context, dims_data2);
   cufftHandle *plan = this->d_camplipup->getPlan(); ///< FFT plan
-  cufftSafeCall(cufftPlan2d(plan, dims_data2[1], dims_data2[2], CUFFT_C2C));
+  carmafftSafeCall(cufftPlan2d(plan, dims_data2[1], dims_data2[2], CUFFT_C2C));
 
   dims_data3[1] = nfft / nrebin;
   dims_data3[2] = nfft / nrebin;
@@ -105,7 +105,7 @@ sutra_wfs_pyr::sutra_wfs_pyr(carma_context *context, sutra_sensors *sensors, lon
   mdims[0] = (int) dims_data3[1];
   mdims[1] = (int) dims_data3[2];
   plan = this->d_fttotim->getPlan(); ///< FFT plan
-  cufftSafeCall(
+  carmafftSafeCall(
       cufftPlanMany(plan, 2 ,mdims,NULL,1,0,NULL,1,0,CUFFT_C2C , (int)dims_data3[3]));
 
   dims_data2[1] = ntot;
