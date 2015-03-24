@@ -122,7 +122,7 @@ func init_control_prop(type,maxcond,delay,gain)
 
 func load_default_control(type)
 {
-  extern y_rtc;
+  extern y_rtc,y_controllers;
 
   if (y_wfs == []) {
     write,"warning : no wfs defined, controller was not initizalized";
