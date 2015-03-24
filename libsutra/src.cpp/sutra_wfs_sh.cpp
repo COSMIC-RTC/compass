@@ -287,7 +287,7 @@ int sutra_wfs_sh::wfs_initarrays(int *phasemap, int *hrmap, int *binmap,
     float *offsets, float *pupil, float *fluxPerSub, int *isvalid,
     int *validsubsx, int *validsubsy, int *istart, int *jstart,
     cuFloatComplex *kernel) {
-  if(this->d_binim == NULL) {
+  if(this->d_binimg == NULL) {
     DEBUG_TRACE("ERROR : d_bincube not initialized, did you do the allocate_buffers?");
     throw "ERROR : d_bincube not initialized, did you do the allocate_buffers?";
   }
@@ -315,7 +315,7 @@ int sutra_wfs_sh::wfs_initarrays(int *phasemap, int *hrmap, int *binmap,
 /////////////////////////////////////////////////////////
 
 int sutra_wfs_sh::comp_generic() {
-  if(this->d_binim == NULL) {
+  if(this->d_binimg == NULL) {
     DEBUG_TRACE("ERROR : d_bincube not initialized, did you do the allocate_buffers?");
     throw "ERROR : d_bincube not initialized, did you do the allocate_buffers?";
   }
@@ -536,7 +536,7 @@ int sutra_wfs_sh::comp_generic() {
 // a roof prism can be asked for as well.
 
 int sutra_wfs_sh::fill_binimage() {
-  if(this->d_binim == NULL) {
+  if(this->d_binimg == NULL) {
     DEBUG_TRACE("ERROR : d_bincube not initialized, did you do the allocate_buffers?");
     throw "ERROR : d_bincube not initialized, did you do the allocate_buffers?";
   }
@@ -585,7 +585,7 @@ int sutra_wfs_sh::comp_image_tele() {
 }
 
 int sutra_wfs_sh::slopes_geom(int type, float *slopes) {
-  if(this->d_binim == NULL) {
+  if(this->d_binimg == NULL) {
     DEBUG_TRACE("ERROR : d_bincube not initialized, did you do the allocate_buffers?");
     throw "ERROR : d_bincube not initialized, did you do the allocate_buffers?";
   }
