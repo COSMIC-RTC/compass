@@ -287,6 +287,10 @@ int sutra_wfs_sh::wfs_initarrays(int *phasemap, int *hrmap, int *binmap,
     float *offsets, float *pupil, float *fluxPerSub, int *isvalid,
     int *validsubsx, int *validsubsy, int *istart, int *jstart,
     cuFloatComplex *kernel) {
+  if(this->d_binim == NULL) {
+    DEBUG_TRACE("ERROR : d_bincube not initialized, did you do the allocate_buffers?");
+    throw "ERROR : d_bincube not initialized, did you do the allocate_buffers?";
+  }
   current_context->set_activeDevice(device,1);
   this->d_phasemap->host2device(phasemap);
   this->d_offsets->host2device(offsets);
@@ -311,6 +315,10 @@ int sutra_wfs_sh::wfs_initarrays(int *phasemap, int *hrmap, int *binmap,
 /////////////////////////////////////////////////////////
 
 int sutra_wfs_sh::comp_generic() {
+  if(this->d_binim == NULL) {
+    DEBUG_TRACE("ERROR : d_bincube not initialized, did you do the allocate_buffers?");
+    throw "ERROR : d_bincube not initialized, did you do the allocate_buffers?";
+  }
   current_context->set_activeDevice(device,1);
   carmaSafeCall(
         cudaMemset(this->d_camplipup->getData(), 0,
@@ -528,6 +536,10 @@ int sutra_wfs_sh::comp_generic() {
 // a roof prism can be asked for as well.
 
 int sutra_wfs_sh::fill_binimage() {
+  if(this->d_binim == NULL) {
+    DEBUG_TRACE("ERROR : d_bincube not initialized, did you do the allocate_buffers?");
+    throw "ERROR : d_bincube not initialized, did you do the allocate_buffers?";
+  }
   current_context->set_activeDevice(device,1);
   fillbinimg(this->d_binimg->getData(), this->d_bincube->getData(),
       this->npix, this->nvalid, this->npix * this->nxsub,
@@ -573,6 +585,10 @@ int sutra_wfs_sh::comp_image_tele() {
 }
 
 int sutra_wfs_sh::slopes_geom(int type, float *slopes) {
+  if(this->d_binim == NULL) {
+    DEBUG_TRACE("ERROR : d_bincube not initialized, did you do the allocate_buffers?");
+    throw "ERROR : d_bincube not initialized, did you do the allocate_buffers?";
+  }
   current_context->set_activeDevice(device,1);
   /*
    normalization notes :
