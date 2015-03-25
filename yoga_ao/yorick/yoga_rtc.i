@@ -131,46 +131,46 @@ func cmat_init(ncontrol,clean=,method=)
     cmat_clean = ((!fileExist(swrite(format=dirsave+"eigenv-%d-%s.fits",ncontrol,simul_name))) || clean);
 
   if (((*y_rtc.controllers(ncontrol)).type)(1) == "ls"){
-  if (cmat_clean) {
-    write,"doing svd";
-    tic;
-    rtc_imatsvd,g_rtc,ncontrol-1;
-    write,format="svd time %f\n",tac();
-    eigenv = controller_getdata(g_rtc,ncontrol-1,"eigenvals");
-    if (simul_name != [] ) {
-      U = controller_getdata(g_rtc,ncontrol-1,"U");
-      fits_write,swrite(format=dirsave+"eigenv-%d-%s.fits",ncontrol,simul_name),eigenv,overwrite=1;
-      fits_write,swrite(format=dirsave+"U-%d-%s.fits",ncontrol,simul_name),U,overwrite=1;
-    }
-  } else {
-    eigenv  = fits_read(swrite(format=dirsave+"eigenv-%d-%s.fits",ncontrol,simul_name));
-    U = fits_read(swrite(format=dirsave+"U-%d-%s.fits",ncontrol,simul_name));
-    controller_setdata,g_rtc,ncontrol-1,"eigenvals",eigenv;
-    controller_setdata,g_rtc,ncontrol-1,"U",U;
-  }
-
-  imat = rtc_getimat(g_rtc,ncontrol-1);
-
-  maxcond = (*y_rtc.controllers)(ncontrol).maxcond;
-  if (eigenv(1) < eigenv(0)) mfilt = where((eigenv/eigenv(-2)) < 1./maxcond);
-  else mfilt = where(1./(eigenv/eigenv(3)) > maxcond);
-  //nfilt = numberof(mfilt)+2;
-  nfilt = numberof(mfilt);
-  //error;
-  if ( (wfs_disp!=[]) && (numberof(*wfs_disp._winits) > 0)) {
-    if ((*wfs_disp._winits)(5)) {
-    window,(*wfs_disp._wins)(5);fma;logxy,0,1;
-    if (eigenv(1) < eigenv(0)) {
-      plg, eigenv(::-1), marks=0;
-      plmk, eigenv(::-1), msize = 0.3, marker=4;
+    if (cmat_clean) {
+      write,"doing svd";
+      tic;
+      rtc_imatsvd,g_rtc,ncontrol-1;
+      write,format="svd time %f\n",tac();
+      eigenv = controller_getdata(g_rtc,ncontrol-1,"eigenvals");
+      if (simul_name != [] ) {
+        U = controller_getdata(g_rtc,ncontrol-1,"U");
+        fits_write,swrite(format=dirsave+"eigenv-%d-%s.fits",ncontrol,simul_name),eigenv,overwrite=1;
+        fits_write,swrite(format=dirsave+"U-%d-%s.fits",ncontrol,simul_name),U,overwrite=1;
+      }
     } else {
-      plg, eigenv, marks=0;
-      plmk, eigenv, msize = 0.3, marker=4;
+      eigenv  = fits_read(swrite(format=dirsave+"eigenv-%d-%s.fits",ncontrol,simul_name));
+      U = fits_read(swrite(format=dirsave+"U-%d-%s.fits",ncontrol,simul_name));
+      controller_setdata,g_rtc,ncontrol-1,"eigenvals",eigenv;
+      controller_setdata,g_rtc,ncontrol-1,"U",U;
     }
-    x0 = dimsof(imat)(3) - nfilt + 0.5;
-    pldj, x0 ,min(eigenv), x0, max(eigenv), color="red";
+
+    imat = rtc_getimat(g_rtc,ncontrol-1);
+
+    maxcond = (*y_rtc.controllers)(ncontrol).maxcond;
+    if (eigenv(1) < eigenv(0)) mfilt = where((eigenv/eigenv(-2)) < 1./maxcond);
+    else mfilt = where(1./(eigenv/eigenv(3)) > maxcond);
+    //nfilt = numberof(mfilt)+2;
+    nfilt = numberof(mfilt);
+    //error;
+    if ( (wfs_disp!=[]) && (numberof(*wfs_disp._winits) > 0)) {
+      if ((*wfs_disp._winits)(5)) {
+        window,(*wfs_disp._wins)(5);fma;logxy,0,1;
+        if (eigenv(1) < eigenv(0)) {
+          plg, eigenv(::-1), marks=0;
+          plmk, eigenv(::-1), msize = 0.3, marker=4;
+        } else {
+          plg, eigenv, marks=0;
+          plmk, eigenv, msize = 0.3, marker=4;
+        }
+        x0 = dimsof(imat)(3) - nfilt + 0.5;
+        pldj, x0 ,min(eigenv), x0, max(eigenv), color="red";
+      }
     }
-  }
     write,"building cmat";
     write,"filtering ",nfilt," modes";
     tic;
@@ -195,7 +195,7 @@ func cmat_init(ncontrol,clean=,method=)
 func cmat_update(ncontrol,maxcond)
 {
   extern y_rtc;
-//error;
+  //error;
   imat = rtc_getimat(g_rtc,ncontrol);
 
   eigenv = controller_getdata(g_rtc,ncontrol,"eigenvals");
@@ -209,16 +209,16 @@ func cmat_update(ncontrol,maxcond)
   write,format="nb modes filtered : %d",nfilt;
   if ( (wfs_disp!=[]) && (numberof(*wfs_disp._winits) > 0)) {
     if ((*wfs_disp._winits)(5)) {
-    window,(*wfs_disp._wins)(5);fma;logxy,0,1;
-    if (eigenv(1) < eigenv(0)) {
-      plg, eigenv(::-1), marks=0;
-      plmk, eigenv(::-1), msize = 0.3, marker=4;
-    } else {
-      plg, eigenv, marks=0;
-      plmk, eigenv, msize = 0.3, marker=4;
-    }
-    x0 = dimsof(imat)(3) - nfilt + 0.5;
-    pldj, x0 ,min(eigenv), x0, max(eigenv), color="red";
+      window,(*wfs_disp._wins)(5);fma;logxy,0,1;
+      if (eigenv(1) < eigenv(0)) {
+        plg, eigenv(::-1), marks=0;
+        plmk, eigenv(::-1), msize = 0.3, marker=4;
+      } else {
+        plg, eigenv, marks=0;
+        plmk, eigenv, msize = 0.3, marker=4;
+      }
+      x0 = dimsof(imat)(3) - nfilt + 0.5;
+      pldj, x0 ,min(eigenv), x0, max(eigenv), color="red";
     }
   }
   write,"building cmat";
@@ -246,14 +246,14 @@ func manual_imat(void)
   for (nm=1;nm<=numberof(y_dm);nm++) {
     for (i=1;i<=y_dm(nm)._ntotact;i++) {
       
-        com = array(0.,y_dm(nm)._ntotact);
-        com(i)= float(y_dm(nm).push4imat);
-        yoga_setcomm,g_dm,y_dm(nm).type,y_dm(nm).alt,com;
-        yoga_shapedm,g_dm,y_dm(nm).type,y_dm(nm).alt;
+      com = array(0.,y_dm(nm)._ntotact);
+      com(i)= float(y_dm(nm).push4imat);
+      yoga_setcomm,g_dm,y_dm(nm).type,y_dm(nm).alt,com;
+      yoga_shapedm,g_dm,y_dm(nm).type,y_dm(nm).alt;
             
-        //yoga_oneactu,g_dm,y_dm(nm).type,y_dm(nm).alt,i-1,float(y_dm(1).push4imat);
+      //yoga_oneactu,g_dm,y_dm(nm).type,y_dm(nm).alt,i-1,float(y_dm(1).push4imat);
       
-	//dm_shape = yoga_getdm(g_dm,y_dm(nm).type,y_dm(nm).alt);
+      //dm_shape = yoga_getdm(g_dm,y_dm(nm).type,y_dm(nm).alt);
       
       sensors_trace,g_wfs,0,"dm",g_dm,1;
       //mscreen = sensors_getdata(g_wfs,0,"phase");
@@ -303,41 +303,40 @@ func imat_geom(ncontrol,meth=)
     slps = sensors_getslopes(g_wfs,wfs);
     nslp += numberof(slps);
   }
-  imat_cpu = slps(,-);
-  
-  for (nmc=1 ; nmc<=ndm ; nmc++)
-    nm = (*y_controllers(ncontrol).ndm)(nmc)(1);
-    yoga_resetdm,g_dm,y_dm(nm).type,y_dm(nm).alt;
-  
+  slps = array(0.f,nslp);
+  imat_cpu =slps(,-);
   for (nmc=1 ; nmc<=ndm ; nmc++) {
     nm = (*y_controllers(ncontrol).ndm)(nmc)(1);
+    yoga_resetdm,g_dm,y_dm(nm).type,y_dm(nm).alt;
     for (i=1;i<=y_dm(nm)._ntotact;i++) {
       /*
-      com = array(0.,y_dm(nm)._ntotact);
-      com(i)= float(y_dm(nm).push4imat);
-      yoga_setcomm,g_dm,y_dm(nm).type,y_dm(nm).alt,com;
-      yoga_shapedm,g_dm,y_dm(nm).type,y_dm(nm).alt;
+        com = array(0.,y_dm(nm)._ntotact);
+        com(i)= float(y_dm(nm).push4imat);
+        yoga_setcomm,g_dm,y_dm(nm).type,y_dm(nm).alt,com;
+        yoga_shapedm,g_dm,y_dm(nm).type,y_dm(nm).alt;
       */
       yoga_oneactu,g_dm,y_dm(nm).type,y_dm(nm).alt,i-1,float(y_dm(nm).push4imat);
       //dm_shape = yoga_getdm(g_dm,y_dm(nm).type,y_dm(nm).alt);
       //window,0;pli,dm_shape;
-      slps = 0.;
-      slps = slps(,-);
+      slps = array(0.f, sum(y_wfs._nvalid)*2);
+      nslps = 1;
       for(nw = 1 ; nw<=nwfs ; nw++){
-	wfs = ((*y_controllers(ncontrol).nwfs)(nw) - 1)(1);
-	sensors_trace,g_wfs,wfs,"dm",g_dm,1;
+        wfs = ((*y_controllers(ncontrol).nwfs)(nw) - 1)(1);
+        sensors_trace,g_wfs,wfs,"dm",g_dm,1;
       
       
-      //mscreen = sensors_getdata(g_wfs,0,"phase");
-      //window,1;pli,mscreen;
-      //hitReturn;
+        //mscreen = sensors_getdata(g_wfs,0,"phase");
+        //window,1;pli,mscreen;
+        //hitReturn;
 
-	slopes_geom,g_wfs,wfs,meth;
+        slopes_geom,g_wfs,wfs,meth;
       
-	grow,slps,sensors_getslopes(g_wfs,wfs);
+        slps(nslps:nslps+y_wfs(wfs+1)._nvalid*2-1)=sensors_getslopes(g_wfs,wfs);
+        nslps+=y_wfs(wfs+1)._nvalid*2;
+        
       }
       
-      grow,imat_cpu,slps(2:)/float(y_dm(nm).push4imat);
+      grow,imat_cpu,slps/float(y_dm(nm).push4imat);
       
       //fma;limits;
       //display_slopes,slps,1,"Phase Difference";
@@ -352,7 +351,7 @@ func create_interp_mat(dimx,dimy)
 /* DOCUMENT create_interp_mat(dimx,dimy)
      
    SEE ALSO:
- */
+*/
 {
   nn = max([dimx,dimy]);
   tmp = indices(nn)(1:dimx,1:dimy,);
@@ -369,7 +368,7 @@ func fitmax(im,xmin,xmax,ymin,ymax,interp_mat=,full=)
 /* DOCUMENT fitmax(im,xmin,xmax,ymin,ymax,interp_mat=,full=)
      
    SEE ALSO:
- */
+*/
 {
   z = im(xmin:xmax,ymin:ymax)(*);
   nx = xmax-xmin+1;
@@ -420,7 +419,7 @@ func correlfft(a,b)
 /* DOCUMENT correlfft(a,b)
      
    SEE ALSO:
- */
+*/
 {
   extern normalisation;
   n = dimsof(a)(2);
@@ -442,7 +441,7 @@ func findMaxParaboloid(corrMap,sizex,sizey,&imat)
 /* DOCUMENT findMaxParaboloid(corrMap,sizex,sizey,imat)
      
    SEE ALSO:
- */
+*/
 {
   if (imat == []) imat = create_interp_mat(sizex,sizey);
   iPos = where2(corrMap==max(corrMap))(,1);
@@ -462,8 +461,8 @@ func correct_dm(imat,ncontrol)
   dirsave = YOGA_AO_SAVEPATH+"mat/";
   if (simul_name == []) imat_clean = 1;
   /*
-  g_dm = 0;
-  g_dm = yoga_dms(numberof(y_dm));
+    g_dm = 0;
+    g_dm = yoga_dms(numberof(y_dm));
   */
   for(i=1 ; i<= numberof(*y_controllers(ncontrol).ndm) ; i++){
     nm = ((*y_controllers(ncontrol).ndm)(i))(1);
@@ -558,54 +557,54 @@ func dopztbasis(g_dm,ndm,Nactu)
     psize=y_tel.diam/y_geom.pupdiam;
     patchDiam = long(y_geom.pupdiam+2*max(abs([y_wfs.xpos,y_wfs.ypos]))*4.848e-6*abs(y_dm(ndm).alt)/psize);
     pup = float(make_pupil(y_geom.ssize,patchDiam,xc=y_geom.cent,yc=y_geom.cent,cobs=y_tel.cobs))(tmp+1:-tmp,tmp+1:-tmp);
-      }
+  }
   indx_valid = where(pup);
   IFtot = array(float,numberof(indx_valid),Nactu);
   ind = 0;
   //for(j=1;j<=ndm;j++){
   j = ndm;
-    C =float( unit(y_dm(j)._ntotact));
-    IF = build_dm_gpu(j,C(,1));
-    //tmp = (dimsof(IF)(2)-y_geom._n)/2;
-    //window,0; fma; pli,IF*pup;
-      //hitReturn;
-    IF = IF(*)(indx_valid);
-    IF = IF(,-);
-    for (i=2;i<=y_dm(j)._ntotact;i++){ 
-      tmp = build_dm_gpu(j,C(,i));
-      grow,IF,tmp(*)(indx_valid);
-      //window,0; fma; pli,tmp*pup;
-      //hitReturn;
-    }
-    IFtot(,ind+1:ind+y_dm(j)._ntotact) = IF;
-    ind += y_dm(j)._ntotact;
-    if(i == y_dm(j)._ntotact) raz = build_dm_gpu(j,array(0.0f,y_dm(j)._ntotact));
-    //}
+  C =float( unit(y_dm(j)._ntotact));
+  IF = build_dm_gpu(j,C(,1));
+  //tmp = (dimsof(IF)(2)-y_geom._n)/2;
+  //window,0; fma; pli,IF*pup;
+  //hitReturn;
+  IF = IF(*)(indx_valid);
+  IF = IF(,-);
+  for (i=2;i<=y_dm(j)._ntotact;i++){ 
+    tmp = build_dm_gpu(j,C(,i));
+    grow,IF,tmp(*)(indx_valid);
+    //window,0; fma; pli,tmp*pup;
+    //hitReturn;
+  }
+  IFtot(,ind+1:ind+y_dm(j)._ntotact) = IF;
+  ind += y_dm(j)._ntotact;
+  if(i == y_dm(j)._ntotact) raz = build_dm_gpu(j,array(0.0f,y_dm(j)._ntotact));
+  //}
   return IFtot;
 }
 func DDiago(mat,del,&s)
 /*
-Double diagonalisation. En general, mat est la matrice de cov statistique,
-et del la matrice de covariance geometrique.
+  Double diagonalisation. En general, mat est la matrice de cov statistique,
+  et del la matrice de covariance geometrique.
 
-En sortie, on a une base de modes telle que
+  En sortie, on a une base de modes telle que
 
-b(+,)*(del(,+)*b(+,))(+,) = identite (modes orthonormes)
+  b(+,)*(del(,+)*b(+,))(+,) = identite (modes orthonormes)
 
-et
+  et
 
-b1(,+) * (mat(,+)*b1(,+))(+,) = matrice diagonale (modes non correles)
+  b1(,+) * (mat(,+)*b1(,+))(+,) = matrice diagonale (modes non correles)
 */
 {
   s = SVdec(del,mp);
   m = mp / sqrt(s)(-,);
-// m1 = LUsolve(m);
+  // m1 = LUsolve(m);
   m1 = transpose(mp * sqrt(s)(-,));
   cp = m1(,+) * (mat(,+) * m1(,+))(+,);
   s = SVdec(cp,a);
   b = m(,+) * a(+,);
-return b
-}
+  return b
+    }
 
 func geo_cov(mat)
 // Performs (transpose(mat) * mat) where mat is the matrix containing the influence functions in colums
@@ -648,8 +647,8 @@ func stat_cov(n,r0)
     ind_sub = where(pup);
     while (numberof(ind_sub) < y_dm(n).nkl){
       N+=1;
-       pup = make_pupil(N,N-1,cobs=y_tel.cobs);
-       ind_sub = where(pup);
+      pup = make_pupil(N,N-1,cobs=y_tel.cobs);
+      ind_sub = where(pup);
     }
     x = span(-1,1,N)(,-:1:N);
     y = transpose(x)(*)(ind_sub);
@@ -760,9 +759,9 @@ func create_dmo(nm,nw) {
     }
   }
   /*DMo2 =  array(0.0f,nb_p,nb_act);
-  DMo2(1:nb_p/2,) = DMo(nb_p/2+1:nb_p,);
-  DMo2(nb_p/2+1:nb_p,) = DMo(1:nb_p/2,);
-  return DMo2;*/
+    DMo2(1:nb_p/2,) = DMo(nb_p/2+1:nb_p,);
+    DMo2(nb_p/2+1:nb_p,) = DMo(1:nb_p/2,);
+    return DMo2;*/
   return DMo;
 }
 
@@ -794,36 +793,36 @@ func create_sigmav(SigmaTur, isZonal, ordreAR, atur, btur)
 { //atur et btur sont des vecteurs (sous-diagonales de A1)
   dims = dimsof(SigmaTur);
   if ( (dims(1)!=2) || (dims(2)!=dims(3))){
-     write, "Incorrect dimensions of matrix SigmaTur in function create_sigmav"
-  }
+    write, "Incorrect dimensions of matrix SigmaTur in function create_sigmav"
+      }
 
   nb_az = dims(2);
   if (ordreAR == 1)
-  {
-     (A1_Tur = array(structof(atur), nb_az, nb_az))(1:nb_az*nb_az:nb_az+1) = atur;
-     A1_TurT=transpose(A1_Tur);
-     SigmaV1 = A1_Tur(,+)*SigmaTur(+,);
-     SigmaV = SigmaTur - (SigmaV1(,+)*A1_TurT(+,));
-  }
+    {
+      (A1_Tur = array(structof(atur), nb_az, nb_az))(1:nb_az*nb_az:nb_az+1) = atur;
+      A1_TurT=transpose(A1_Tur);
+      SigmaV1 = A1_Tur(,+)*SigmaTur(+,);
+      SigmaV = SigmaTur - (SigmaV1(,+)*A1_TurT(+,));
+    }
   else if (ordreAR == 2)
-  {
-     if (isZonal == 0)
-     {
-       (A2_Tur = array(structof(atur), nb_az, nb_az))(1:nb_az*nb_az:nb_az+1) = atur;
-       (B2_Tur = array(structof(btur), nb_az, nb_az))(1:nb_az*nb_az:nb_az+1) = btur;
-       A2Tur_SigmaTur = A2_Tur(,+)*SigmaTur(+,);
-       Sig1 = LUsolve(unit(width_of(SigmaTur)) - B2_Tur , A2Tur_SigmaTur);
+    {
+      if (isZonal == 0)
+        {
+          (A2_Tur = array(structof(atur), nb_az, nb_az))(1:nb_az*nb_az:nb_az+1) = atur;
+          (B2_Tur = array(structof(btur), nb_az, nb_az))(1:nb_az*nb_az:nb_az+1) = btur;
+          A2Tur_SigmaTur = A2_Tur(,+)*SigmaTur(+,);
+          Sig1 = LUsolve(unit(width_of(SigmaTur)) - B2_Tur , A2Tur_SigmaTur);
      
-       B2Tur_SigmaTur = B2_Tur(,+)*SigmaTur(+,);
-       A2Tur_Sig1 = A2_Tur(,+)*Sig1(+,);
-       B2Tur_Sig1 = B2_Tur(,+)*Sig1(+,);
+          B2Tur_SigmaTur = B2_Tur(,+)*SigmaTur(+,);
+          A2Tur_Sig1 = A2_Tur(,+)*Sig1(+,);
+          B2Tur_Sig1 = B2_Tur(,+)*Sig1(+,);
 
 
-       Sig2 = A2Tur_SigmaTur(,+)*A2_Tur(+,) + B2Tur_SigmaTur(,+)*B2_Tur(+,) + A2Tur_Sig1(,+)*B2_Tur(+,) + B2Tur_Sig1(,+)*A2_Tur(+,);
-       if (isZonal == 0) Sig2 = (Sig2 + transpose(Sig2))/2;
-       SigmaV = SigmaTur - Sig2;
-     }
-  }
+          Sig2 = A2Tur_SigmaTur(,+)*A2_Tur(+,) + B2Tur_SigmaTur(,+)*B2_Tur(+,) + A2Tur_Sig1(,+)*B2_Tur(+,) + B2Tur_Sig1(,+)*A2_Tur(+,);
+          if (isZonal == 0) Sig2 = (Sig2 + transpose(Sig2))/2;
+          SigmaV = SigmaTur - Sig2;
+        }
+    }
   //window,1;pli, SigmaTur
   //window,2;pli, SigmaV;error;
   return SigmaV;
@@ -831,45 +830,45 @@ func create_sigmav(SigmaTur, isZonal, ordreAR, atur, btur)
 
 //include,"dphi_rico.i";
 /*
-func dphi_lowpass(r,x0,L0,rmax) {
+  func dphi_lowpass(r,x0,L0,rmax) {
   return (r^(5./3.)) *  Ij0t83(r*(pi/x0),L0,rmax)*(2*(2*pi)^(8/3.)*0.0228956);
-}
+  }
 
-func Ij0t83(x,L0,rmax) {
+  func Ij0t83(x,L0,rmax) {
   extern YLARGE, XLARGE;
   if( YLARGE==[] ) {
-    write,"computing array of tabulated integral";
-    n = 10000;
-    XLARGE = span(0,rmax,n);
-    dX = (XLARGE(0)-XLARGE(1))/(n-1);
-    y = (XLARGE^2 + (1./L0)^2)^(-8./6.) * unMoinsJ0(XLARGE);
-    YLARGE = y(zcen)(cum) * dX;
+  write,"computing array of tabulated integral";
+  n = 10000;
+  XLARGE = span(0,rmax,n);
+  dX = (XLARGE(0)-XLARGE(1))/(n-1);
+  y = (XLARGE^2 + (1./L0)^2)^(-8./6.) * unMoinsJ0(XLARGE);
+  YLARGE = y(zcen)(cum) * dX;
   }
   return interp(YLARGE,XLARGE,x);
-}
-
-func unMoinsJ0(x,L=)
-{
-  if( numberof(dimsof(x))==1 ) {   // x is a scalar
-    if( x<0.1 ) {
-      // J0(x) = x^2/4 - x^4/64 + ...
-      //       = (x/2)^2  ( 1 - (x/2)^2 / 4 + ... ) to minimize computation errors
-      x22 = (x/2.)^2; 
-      return (1-x22/4.)*x22;
-    } else {
-      // classique
-      return (1-bessj0(x));
-    }
-  } else {  // x is a vector
-    y = double(x);
-    for(i=1; i<=numberof(x); i++)
-      y(i) = unMoinsJ0(x(i));
-    return y;
   }
-}
+
+  func unMoinsJ0(x,L=)
+  {
+  if( numberof(dimsof(x))==1 ) {   // x is a scalar
+  if( x<0.1 ) {
+  // J0(x) = x^2/4 - x^4/64 + ...
+  //       = (x/2)^2  ( 1 - (x/2)^2 / 4 + ... ) to minimize computation errors
+  x22 = (x/2.)^2; 
+  return (1-x22/4.)*x22;
+  } else {
+  // classique
+  return (1-bessj0(x));
+  }
+  } else {  // x is a vector
+  y = double(x);
+  for(i=1; i<=numberof(x); i++)
+  y(i) = unMoinsJ0(x(i));
+  return y;
+  }
+  }
 */
 func mat_cphim_gpu(nc){
-// Positions des coins inferieurs gauches des ssp valides ramenees dans ipupil (origine au centre)
+  // Positions des coins inferieurs gauches des ssp valides ramenees dans ipupil (origine au centre)
   s2ipup = (dimsof(*y_geom._ipupil)(2) - dimsof(*y_geom._spupil)(2))/2.;
   posx = *y_wfs(1)._istart + s2ipup ;
   posx = (posx * (*y_wfs(1)._isvalid))(*);
@@ -947,7 +946,7 @@ func mat_cphim(void)
   maxalt = *y_atmos.alt(y_atmos.nscreens);
   for (cc=0 ; cc<=numberof(y_wfs) ; cc++) {
     tmp = abs(y_wfs(cc).xpos/RASC,y_wfs(cc).ypos/RASC);
-       if (tmp > dmax) dmax = tmp;
+    if (tmp > dmax) dmax = tmp;
   }
   rmax = dmax * 2 * maxalt + y_tel.diam;
 
@@ -965,27 +964,27 @@ func mat_cphim(void)
     for(i = 1 ; i<=dimsof(cphim)(2) ; i++){
       //Covariance selon x
       for(j=1 ; j<=dimsof(cphim)(3)/2 ; j++){
-	ca = sqrt((actu_x(i) - Ax(j))^2 + (actu_y(i) - Ay(j))^2);
-	cb = sqrt((actu_x(i) - Bx(j))^2 + (actu_y(i) - By(j))^2);
-	bo = sqrt((Bx(j) - actu_x0)^2 + (By(j) - actu_y0)^2);
-	ao = sqrt((Ax(j) - actu_x0)^2 + (Ay(j) - actu_y0)^2);
+        ca = sqrt((actu_x(i) - Ax(j))^2 + (actu_y(i) - Ay(j))^2);
+        cb = sqrt((actu_x(i) - Bx(j))^2 + (actu_y(i) - By(j))^2);
+        bo = sqrt((Bx(j) - actu_x0)^2 + (By(j) - actu_y0)^2);
+        ao = sqrt((Ax(j) - actu_x0)^2 + (Ay(j) - actu_y0)^2);
       
-	//cphim(i,j) += 0.5 * (y_atmos.r0)^(-5./3.) * (*y_atmos.frac)(cs) * (dphi_lowpass(ca,x0,L0,rmax) + dphi_lowpass(bo,x0,L0,rmax) - dphi_lowpass(cb,x0,L0,rmax) - dphi_lowpass(ao,x0,L0,rmax));
-	cphim(i,j) += 0.5 * (y_atmos.r0)^(-5./3.) * (*y_atmos.frac)(cs) * (dphi_lowpass(ca,x0) + dphi_lowpass(bo,x0) - dphi_lowpass(cb,x0) - dphi_lowpass(ao,x0));
-	//cphim(i,j) += 0.5 * (y_atmos.r0)^(-5./3.) * (*y_atmos.frac)(cs) * (dphi_lowpass(ca,x0)  - dphi_lowpass(cb,x0));
+        //cphim(i,j) += 0.5 * (y_atmos.r0)^(-5./3.) * (*y_atmos.frac)(cs) * (dphi_lowpass(ca,x0,L0,rmax) + dphi_lowpass(bo,x0,L0,rmax) - dphi_lowpass(cb,x0,L0,rmax) - dphi_lowpass(ao,x0,L0,rmax));
+        cphim(i,j) += 0.5 * (y_atmos.r0)^(-5./3.) * (*y_atmos.frac)(cs) * (dphi_lowpass(ca,x0) + dphi_lowpass(bo,x0) - dphi_lowpass(cb,x0) - dphi_lowpass(ao,x0));
+        //cphim(i,j) += 0.5 * (y_atmos.r0)^(-5./3.) * (*y_atmos.frac)(cs) * (dphi_lowpass(ca,x0)  - dphi_lowpass(cb,x0));
       }
       j=1;
       //Covariance selon y
       for(jj=dimsof(cphim)(3)/2 + 1 ; jj<=dimsof(cphim)(3) ; jj++){
-	cc = sqrt((actu_x(i) - Cx(j))^2 + (actu_y(i) - Cy(j))^2);
-	cd = sqrt((actu_x(i) - Dx(j))^2 + (actu_y(i) - Dy(j))^2);
-	Do = sqrt((Dx(j) - actu_x0)^2 + (Dy(j) - actu_y0)^2);
-	co = sqrt((Cx(j) - actu_x0)^2 + (Cy(j) - actu_y0)^2);
-	j++;
+        cc = sqrt((actu_x(i) - Cx(j))^2 + (actu_y(i) - Cy(j))^2);
+        cd = sqrt((actu_x(i) - Dx(j))^2 + (actu_y(i) - Dy(j))^2);
+        Do = sqrt((Dx(j) - actu_x0)^2 + (Dy(j) - actu_y0)^2);
+        co = sqrt((Cx(j) - actu_x0)^2 + (Cy(j) - actu_y0)^2);
+        j++;
       
-	//cphim(i,jj) += 0.5 * (y_atmos.r0)^(-5./3.) * (*y_atmos.frac)(cs) * (dphi_lowpass(cc,x0,L0,rmax) + dphi_lowpass(Do,x0,L0,rmax) - dphi_lowpass(cd,x0,L0,rmax) - dphi_lowpass(co,x0,L0,rmax));
-	cphim(i,jj) += 0.5 * (y_atmos.r0)^(-5./3.) * (*y_atmos.frac)(cs) * (dphi_lowpass(cc,x0) + dphi_lowpass(Do,x0) - dphi_lowpass(cd,x0) - dphi_lowpass(co,x0));
-	//cphim(i,jj) += 0.5 * (y_atmos.r0)^(-5./3.) * (*y_atmos.frac)(cs) * (dphi_lowpass(cc,x0) - dphi_lowpass(cd,x0));
+        //cphim(i,jj) += 0.5 * (y_atmos.r0)^(-5./3.) * (*y_atmos.frac)(cs) * (dphi_lowpass(cc,x0,L0,rmax) + dphi_lowpass(Do,x0,L0,rmax) - dphi_lowpass(cd,x0,L0,rmax) - dphi_lowpass(co,x0,L0,rmax));
+        cphim(i,jj) += 0.5 * (y_atmos.r0)^(-5./3.) * (*y_atmos.frac)(cs) * (dphi_lowpass(cc,x0) + dphi_lowpass(Do,x0) - dphi_lowpass(cd,x0) - dphi_lowpass(co,x0));
+        //cphim(i,jj) += 0.5 * (y_atmos.r0)^(-5./3.) * (*y_atmos.frac)(cs) * (dphi_lowpass(cc,x0) - dphi_lowpass(cd,x0));
       }
     }
   }
@@ -1034,23 +1033,23 @@ func mat_cmm(void)
     for(i = 1 ; i<=dimsof(cmm)(2)/2 ; i++){
       //Covariance  xx
       for(j=1 ; j<=dimsof(cmm)(3)/2 ; j++){
-	aa = sqrt((Ax(i) - Ax(j))^2 + (Ay(i) - Ay(j))^2);
-	bb = sqrt((Bx(i) - Bx(j))^2 + (By(i) - By(j))^2);
-	ab = sqrt((Ax(i) - Bx(j))^2 + (Ay(i) - By(j))^2);
-	ba = sqrt((Bx(i) - Ax(j))^2 + (By(i) - Ay(j))^2);
+        aa = sqrt((Ax(i) - Ax(j))^2 + (Ay(i) - Ay(j))^2);
+        bb = sqrt((Bx(i) - Bx(j))^2 + (By(i) - By(j))^2);
+        ab = sqrt((Ax(i) - Bx(j))^2 + (Ay(i) - By(j))^2);
+        ba = sqrt((Bx(i) - Ax(j))^2 + (By(i) - Ay(j))^2);
       
-	cmm(i,j) += 0.5 * (y_atmos.r0)^(-5./3.) * (*y_atmos.frac)(cs) * (dphi(ab,x0) + dphi(ba,x0) - dphi(aa,x0) - dphi(bb,x0));
+        cmm(i,j) += 0.5 * (y_atmos.r0)^(-5./3.) * (*y_atmos.frac)(cs) * (dphi(ab,x0) + dphi(ba,x0) - dphi(aa,x0) - dphi(bb,x0));
       }
       j=1;
       //Covariance  xy
       for(jj=dimsof(cmm)(3)/2 + 1 ; jj<=dimsof(cmm)(3) ; jj++){
-	ac = sqrt((Ax(i) - Cx(j))^2 + (Ay(i) - Cy(j))^2);
-	ad = sqrt((Ax(i) - Dx(j))^2 + (Ay(i) - Dy(j))^2);
-	bc = sqrt((Bx(i) - Cx(j))^2 + (By(i) - Cy(j))^2);
-	bd = sqrt((Bx(i) - Dx(j))^2 + (By(i) - Dy(j))^2);
-	j++;
+        ac = sqrt((Ax(i) - Cx(j))^2 + (Ay(i) - Cy(j))^2);
+        ad = sqrt((Ax(i) - Dx(j))^2 + (Ay(i) - Dy(j))^2);
+        bc = sqrt((Bx(i) - Cx(j))^2 + (By(i) - Cy(j))^2);
+        bd = sqrt((Bx(i) - Dx(j))^2 + (By(i) - Dy(j))^2);
+        j++;
 
-	cmm(i,jj) += 0.5 * (y_atmos.r0)^(-5./3.) * (*y_atmos.frac)(cs) * (dphi(bc,x0) + dphi(ad,x0) - dphi(ac,x0) - dphi(bd,x0));
+        cmm(i,jj) += 0.5 * (y_atmos.r0)^(-5./3.) * (*y_atmos.frac)(cs) * (dphi(bc,x0) + dphi(ad,x0) - dphi(ac,x0) - dphi(bd,x0));
       }
     }
     //Covariance yy
@@ -1058,13 +1057,13 @@ func mat_cmm(void)
     jj=1;
     for(i=dimsof(cmm)(3)/2 + 1 ; i<=dimsof(cmm)(3) ; i++){
       for(j=dimsof(cmm)(3)/2 + 1 ; j<=dimsof(cmm)(3) ; j++){
-	cc = sqrt((Cx(ii) - Cx(jj))^2 + (Cy(ii) - Cy(jj))^2);
-	dd = sqrt((Dx(ii) - Dx(jj))^2 + (Dy(ii) - Dy(jj))^2);
-	cd = sqrt((Cx(ii) - Dx(jj))^2 + (Cy(ii) - Dy(jj))^2);
-	dc = sqrt((Dx(ii) - Cx(jj))^2 + (Dy(ii) - Cy(jj))^2);
-	jj++;
+        cc = sqrt((Cx(ii) - Cx(jj))^2 + (Cy(ii) - Cy(jj))^2);
+        dd = sqrt((Dx(ii) - Dx(jj))^2 + (Dy(ii) - Dy(jj))^2);
+        cd = sqrt((Cx(ii) - Dx(jj))^2 + (Cy(ii) - Dy(jj))^2);
+        dc = sqrt((Dx(ii) - Cx(jj))^2 + (Dy(ii) - Cy(jj))^2);
+        jj++;
       
-	cmm(i,j) += 0.5 * (y_atmos.r0)^(-5./3.) * (*y_atmos.frac)(cs) * (dphi(cd,x0) + dphi(dc,x0) - dphi(cc,x0) - dphi(dd,x0));
+        cmm(i,j) += 0.5 * (y_atmos.r0)^(-5./3.) * (*y_atmos.frac)(cs) * (dphi(cd,x0) + dphi(dc,x0) - dphi(cc,x0) - dphi(dd,x0));
       }
       ii++;
       jj=1;
@@ -1121,19 +1120,19 @@ func openLoopSlp(nrec,nctrl){
     if ((y_target != []) && (g_target != [])) {
       // loop on targets
       for (tt=1;tt<=y_target.ntargets;tt++) {
-	target_atmostrace,g_target,tt-1,g_atmos;
+        target_atmostrace,g_target,tt-1,g_atmos;
       }
     }
     
     if ((y_wfs != []) && (g_wfs != [])) {
       // loop on wfs
       for (ww=1;ww<=numberof(y_wfs);ww++) {
-	sensors_trace,g_wfs,ww-1,"atmos",g_atmos;
+        sensors_trace,g_wfs,ww-1,"atmos",g_atmos;
 
-	sensors_compimg,g_wfs,ww-1;
+        sensors_compimg,g_wfs,ww-1;
 	
-	sensors_compslopes,g_rtc,nctrl-1;
-	ol_slopes((ww-1)*y_wfs(ww)._nvalid*2+1:ww*y_wfs(ww)._nvalid*2,sc) = sensors_getslopes(g_wfs,ww-1);
+        sensors_compslopes,g_rtc,nctrl-1;
+        ol_slopes((ww-1)*y_wfs(ww)._nvalid*2+1:ww*y_wfs(ww)._nvalid*2,sc) = sensors_getslopes(g_wfs,ww-1);
       }
     }
   }
@@ -1150,7 +1149,7 @@ func compute_KL2V(nctrl){
     if(y_dm(ndms(i)).type == "pzt"){
       KL2V(indx_act + 1 : indx_act + y_dm(ndms(i))._ntotact,indx_act + 1 : indx_act + y_dm(ndms(i))._ntotact) = compute_klbasis(ndms(i));
       indx_act += y_dm(ndms(i))._ntotact
-      }
+        }
     if(y_dm(ndms(i)).type == "tt")
       nTT += 1; 
     
