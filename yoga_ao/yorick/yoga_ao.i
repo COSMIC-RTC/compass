@@ -775,8 +775,8 @@ func rtc_init(clean=, brama=, doimat=)
               rtc_loadmgain,g_rtc,0,mgain;
             }
           } else {
-            nactu= (*controllers(i).nactu)(sum);
-            nvalid= *controllers(i).nvalid
+            nactu= sum(*controllers(i).nactu);
+            nvalid= sum(*controllers(i).nvalid);
             imat = array(0., nactu*nvalid*2);
             rtc_setimat,g_rtc,i-1,imat;
             rtc_setcmat,g_rtc,i-1,imat;

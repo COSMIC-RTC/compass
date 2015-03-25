@@ -154,9 +154,9 @@ func script_canapass(filename,verbose=,strehl=,r0=,clean=,brama=)
     }
     if(brama)
       rtc_publish, g_rtc;
-    a= yoga_getdm(g_dm,"pzt", 0)
-    pli,a;
-    pause, 100;
+//    a= yoga_getdm(g_dm,"pzt", 0)
+//    pli,a;
+//    pause, 100;
     if (verbose) {
       subsample=100.;
       if (cc % subsample == 0) {
