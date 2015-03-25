@@ -134,32 +134,34 @@ def Czz(n,Zx,Zy,ist,L0):
     return zz
 
 
-def AB(n,L0):
-    print "create stencil and Z,X matrices"
+def AB(n,L0,rank=0):
+    if(rank==0):print "create stencil and Z,X matrices"
     Zx,Zy,Xx,Xy,istencil = create_stencil(n)
-    print "create zz"
+    if(rank==0):print "create zz"
     zz = Czz(n,Zx,Zy,istencil,L0)
-    print "create xz"
+    if(rank==0):print "create xz"
     xz = Cxz(n,Zx,Zy,Xx,Xy,istencil,L0)
-    print "create xx"
+    if(rank==0):print "create xx"
     xx = Cxx(n,Zx[0,n-1],Zy[0,n-1],Xx,Xy,L0)
 
     U,s,V = np.linalg.svd(zz)
     s1 = s
-    s1[2*n-1]=1
+    s1[s.size-1]=1
     s1 = 1./s1    
-    s1[2*n-1]=0
-    #zz1 = np.dot(np.dot(V.T,np.diag(s1)),U.T)
-    print "compute zz pseudo_inverse"
-    zz1=np.linalg.pinv(zz)
-    print "compute A"
+    s1[s.size-1]=0
+    zz1 = np.dot(np.dot(U,np.diag(s1)),V)
+    if(rank==0):print "compute zz pseudo_inverse"
+    #zz1=np.linalg.pinv(zz)
+
+    if(rank==0):print "compute A"
     A = np.dot(xz,zz1)
-    print "compute bbt"
+
+    if(rank==0):print "compute bbt"
     bbt = xx - np.dot(A,xz.T)
-    print "svd of bbt"
+    if(rank==0):print "svd of bbt"
     U1,l,V1 = np.linalg.svd(bbt)
-    print "compute B"
-    B = np.dot(U1,np.diag(l))
+    if(rank==0):print "compute B"
+    B = np.dot(U1,np.sqrt(np.diag(l)))
 
     test=np.zeros((n*n),np.float32)
     test[istencil]=np.arange(A.shape[1])+1
@@ -168,7 +170,6 @@ def AB(n,L0):
 
 
     return np.asfortranarray(A.astype(np.float32)),np.asfortranarray(B.astype(np.float32)),istencil.astype(np.uint32), isty.astype(np.uint32)
-    #return Ay.astype(np.float32),By.astype(np.float32),istencil.astype(np.uint32), isty.astype(np.uint32)
 
 
 

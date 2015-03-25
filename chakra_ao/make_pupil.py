@@ -1,6 +1,6 @@
 import numpy as np
 
-import matplotlib.pyplot as pl
+#import matplotlib.pyplot as pl
 
 EELT_data="./EELT_data/"
 def make_pupil(dim,pupd,tel,xc=-1,
@@ -13,13 +13,14 @@ def make_pupil(dim,pupd,tel,xc=-1,
 
 
 
-def make_pupil_generic(dim, pupd, t_spiders=0.01, spiders_type=None,
+def make_pupil_generic(dim, pupd, t_spiders=0.01, spiders_type="six",
                     xc=-1, yc=-1, real=0, cobs=0):
     """
     cdef np.ndarray pup = dist(dim,xc,yc)
     cdef np.ndarray[ndim=2,dtype=np.float32_t] spiders_map
     cdef float angle
     """
+
 
     pup=dist(dim,xc,yc)
     
@@ -34,39 +35,40 @@ def make_pupil_generic(dim, pupd, t_spiders=0.01, spiders_type=None,
         else:
             pup -= (dist(dim,xc,yc) < (pupd*cobs+1.)*0.5).astype(np.float32)
 
-        step=1./dim
-        first=0.5*(step-1)
+            step=1./dim
+            first=0.5*(step-1)
 
-        X=np.tile(np.arange(dim,dtype=np.float32)*step+first,(dim,1))
+            X=np.tile(np.arange(dim,dtype=np.float32)*step+first,(dim,1))
 
-
-        t_spiders=t_spiders*pupd/dim
+            if(t_spiders<0):
+                t_spiders=0.01
+            t_spiders=t_spiders*pupd/dim
         
-        if (spiders_type=="four"):
+            if (spiders_type=="four"):
 
-            s4_2=2*np.sin(np.pi/4)
-            t4=np.tan(np.pi/4)
+                s4_2=2*np.sin(np.pi/4)
+                t4=np.tan(np.pi/4)
 
-            spiders_map = ( (X.T > (X+t_spiders/s4_2)*t4) + (X.T < (X-t_spiders/s4_2)*t4) ).astype(np.float32)
-            spiders_map*= ( (X.T > (-X+t_spiders/s4_2)*t4)+ (X.T < (-X-t_spiders/s4_2)*t4)).astype(np.float32)
+                spiders_map = ( (X.T > (X+t_spiders/s4_2)*t4) + (X.T < (X-t_spiders/s4_2)*t4) ).astype(np.float32)
+                spiders_map*= ( (X.T > (-X+t_spiders/s4_2)*t4)+ (X.T < (-X-t_spiders/s4_2)*t4)).astype(np.float32)
         
-            pup = pup*spiders_map
+                pup = pup*spiders_map
 
 
-        elif (spiders_type=="six"):
+            elif (spiders_type=="six"):
       
-            angle = 180/15.
-            s2ma_2=2*np.sin(np.pi/2-np.pi/angle)
-            s6pa_2=2*np.sin(np.pi/6+np.pi/angle)
-            s6ma_2=2*np.sin(np.pi/6-np.pi/angle)
-            t2ma=np.tan(np.pi/2-np.pi/angle)
-            t6pa=np.tan(np.pi/6+np.pi/angle)
-            t6ma=np.tan(np.pi/6-np.pi/angle)
+                angle = 180/15.
+                s2ma_2=2*np.sin(np.pi/2-np.pi/angle)
+                s6pa_2=2*np.sin(np.pi/6+np.pi/angle)
+                s6ma_2=2*np.sin(np.pi/6-np.pi/angle)
+                t2ma=np.tan(np.pi/2-np.pi/angle)
+                t6pa=np.tan(np.pi/6+np.pi/angle)
+                t6ma=np.tan(np.pi/6-np.pi/angle)
 
-            spiders_map = ((X.T > (-X+t_spiders/s2ma_2)*t2ma)+ (X.T < (-X-t_spiders/s2ma_2)*t2ma ))
-            spiders_map*= ((X.T > ( X+t_spiders/s6pa_2)*t6pa)+ (X.T < ( X-t_spiders/s6pa_2)*t6pa ))
-            spiders_map*= ((X.T > (-X+t_spiders/s6ma_2)*t6ma)+ (X.T < (-X-t_spiders/s6ma_2)*t6ma ))
-            pup = pup*spiders_map
+                spiders_map = ((X.T > (-X+t_spiders/s2ma_2)*t2ma)+ (X.T < (-X-t_spiders/s2ma_2)*t2ma ))
+                spiders_map*= ((X.T > ( X+t_spiders/s6pa_2)*t6pa)+ (X.T < ( X-t_spiders/s6pa_2)*t6pa ))
+                spiders_map*= ((X.T > (-X+t_spiders/s6ma_2)*t6ma)+ (X.T < (-X-t_spiders/s6ma_2)*t6ma ))
+                pup = pup*spiders_map
 
     print "generic pupil created"
     return pup
@@ -153,7 +155,8 @@ def make_EELT(dim,pupd,tel,N_seg):#dim,pupd,type_ap,cobs,N_seg,nbr_miss_seg,std_
 
         pup = pup*spiders_map
 
-        """TODO
+        #TODO rotate2
+        """
         yoga_ao/yorick/yoga_ao_utils.i:658
         if (angle != 0) pup=rotate2(pup,angle);
         "EELT pupil has been created.";
@@ -188,9 +191,13 @@ def pad_array(A,N):
 
 def dist(dim, xc=-1, yc=-1):
     if(xc <0):
-        xc=dim/2
+        xc=(dim-1)/2.
+    else:
+        xc-=1.
     if(yc <0):
-        yc=dim/2
+        yc=(dim-1)/2.
+    else:
+        yc-=1.
 
     dx=np.tile(np.arange(dim)-xc,(dim,1))
     dy=dx.T
@@ -198,15 +205,43 @@ def dist(dim, xc=-1, yc=-1):
     d=np.sqrt(dx**2+dy**2)
     return np.asfortranarray(d)
 
+'''
+def rotate2(image,angle, xc=-1,yc=-1, splin=0,outside=0):
+    """rotate2(image,angle,xc,yc,splin,outside)
+
+    Rotate the input image. Angle is in degrees, CCW.
+
+    KEYWORDS:
+    xc, yc: Center for coordinate transform. Note that this is
+    compatible with the center defined by dist(), but is
+    offset by 0.5 pixels w.r.t what you read on the yorick graphic
+    window. I.e. the center of the bottom- left pixel is (1,1) in this
+    function's conventions, not (0.5,0.5).
+
+    splin: use spline2() instead of bilinear() for the interpolation
+
+    outside: value for outliers.
+    """
+
+    angle *= np.pi/180.
+
+    x,y = indices(image.shape[0],image.shape[1])
+
+    if (xc<0) xc=np.ceil(image.shape[0]/2.+0.5)
+    if (yc<0) yc=np.ceil(image.shape[1]/2.+0.5)
+
+  x-=xc
+  y-=yc
+
+  x =  np.cos(angle)*x + np.sin(angle)*y
+  y = -np.sin(angle)*x + np.cos(angle)*y
+
+  x +=xc;
+  y +=yc;
+
+  if (splin!=0) return spline2(image,x,y,outside=outside)
+  return bilinear(image,x,y,outside=outside)
+'''
 
 
 
-
-class telescope:
-    diam=0.
-    cobs=0.
-    t_spiders=0.
-    pupangle=0.
-
-
-tel=telescope()

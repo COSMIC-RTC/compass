@@ -2,11 +2,11 @@
 #################################################
 # P-Class (parametres) param_tel
 #################################################
-cdef class param_tel:
+cdef class Param_tel:
     def __cinit__(self):
         self.diam=0
         self.type_ap="Generic"
-        self.t_spiders=0.01
+        self.t_spiders=-1
         self.spiders_type=None
         self.nbrmissing=0
         self.referr=0

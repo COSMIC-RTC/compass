@@ -1,13 +1,12 @@
-import make_pupil as mkP
 
 #################################################
-# P-Class (parametres) param_geom
+# P-Class (parametres) Param_geom
 #################################################
-cdef class param_geom:
+cdef class Param_geom:
     #def __cinit__(self):
 
 
-    def geom_init(self, param_tel tel, long pupdiam):
+    def geom_init(self, Param_tel tel, long pupdiam):
         self.pupdiam=pupdiam
         #first poxer of 2 greater than pupdiam
         self.ssize=long(2**np.ceil(np.log2(pupdiam)+1))
@@ -25,14 +24,13 @@ cdef class param_geom:
         #useful pupil
 
         self._spupil=mkP.make_pupil(self.pupdiam,self.pupdiam,tel)
-
-
+        
         # large pupil (used for image formation)
         self._ipupil=mkP.pad_array(self._spupil,self.ssize)
         
         # useful pupil + 4 pixels
-        self._mpupil=mkP.pad_array(self._spupil,self._n)
-        """TODO
+        self._mpupil=mkP.pad_array(self._spupil,self._n).astype(np.float32)
+        """TODO apodizer
         from yorick, func geom_init, file yoga_ao/yorick/yoga_ao.i, l 102
         if (y_target.apod==1):
             apodizer = float(make_apodizer(y_geom.pupdiam,y_geom.pupdiam,"/root/compass/trunk/yoga_ao/data/apodizer/SP_HARMONI_I4_C6_N1024.fits",180/12.))

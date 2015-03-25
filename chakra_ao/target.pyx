@@ -1,8 +1,8 @@
 
 #################################################
-# P-Class (parametres) param_target
+# P-Class (parametres) Param_target
 #################################################
-cdef class param_target:
+cdef class Param_target:
     def __cinit__(self):
         self.ntargets=0
 
@@ -29,20 +29,22 @@ cdef class param_target:
         """l -- list of float"""
         self.mag =np.array(l,dtype=np.float32)
 
-    def target_init(self,chakra_context ctxt, param_atmos atm,
-                    param_geom geom, param_wfs=None,param_dm=None):
+    def target_init(self,chakra_context ctxt, Param_atmos atm,
+                    Param_geom geom, Param_tel tel,wfs=None, 
+                    Sensors sensors=None,
+                    param_dm=None):
         """Create a cython target from parametres structures
         
 
         ctxt    -- chakra_context
-        atm     -- param_atmos
-        geom    -- param_geom
-        wfs     -- param_wfs
-        dm      --param_dm
+        atm     -- Param_atmos
+        geom    -- Param_geom
+        wfs     -- Param_wfs
+        dm      -- Param_dm
         """
-        cdef str type_target="atmos"
+        cdef bytes type_target=bytes("atmos")
 
-        cdef target Target
+        cdef Target target
         cdef float xoff
         cdef float yoff
         #if (y_target != []) {
@@ -58,10 +60,10 @@ cdef class param_target:
         if(self.apod==1):
                 ceiled_apodizer=np.ceil(geom._apodizer*geom._spupil)
                 ceiled_apodizer[np.where(ceiled_apodizer>1)]=1
-                Target = target(ctxt, self.ntargets,self.xpos,self.ypos,
+                target = Target(ctxt, self.ntargets,self.xpos,self.ypos,
                             self.Lambda, self.mag,sizes,ceiled_apodizer)
         else:
-                Target= target(ctxt, self.ntargets,self.xpos,self.ypos,
+                target= Target(ctxt, self.ntargets,self.xpos,self.ypos,
                                 self.Lambda, self.mag,sizes,ceiled_pupil)
 
         cdef int i
@@ -71,21 +73,73 @@ cdef class param_target:
                 for j in range(atm.nscreens):
                     xoff=self.xpos[i]*4.848e-6*atm.alt[j]/atm.pupixsize
                     yoff=self.ypos[i]*4.848e-6*atm.alt[j]/atm.pupixsize
-                    Target.add_layer(i,type_target,atm.alt[j],xoff,yoff)
+                    target.add_layer(i,type_target,atm.alt[j],xoff,yoff)
             #if(param_dm is not None):
-                """TODO
+                """TODO dm !=None
                 cf yorick func target_init,  file yoga_ao/yorick/yoga_ao.i  l 369"""
 
-            Target.init_strehlmeter(i)
+            target.init_strehlmeter(i)
 
-        return Target
+        if(wfs is not None):
+            if(sensors is not None):
+                for i in range(len(wfs)):
+                    if(wfs[i].gsalt!=0):
+                        gsalt=1/wfs[i].gsalt
+                    else:
+                         gsalt=0
+                    
+                    if(wfs[i].atmos_seen):
+                        for j in range(atm.nscreens):
+                            xoff=(gsalt * atm.alt[j] * (tel.diam/2.) + wfs[i].xpos*4.848e-6*atm.alt[j])/atm.pupixsize
+                            yoff = (gsalt * atm.alt[j] * (tel.diam/2.) + wfs[i].ypos*4.848e-6**atm.alt[j])/atm.pupixsize
+                            xoff = xoff+(atm.dim_screens[j]-geom._n)/2
+                            yoff = yoff+(atm.dim_screens[j]-geom._n)/2
+                            sensors.sensors.d_wfs[i].d_gs.add_layer(type_target, atm.alt[j],xoff,yoff)
+                            print "atmos_seen == true"
+        return target
+
+"""
+  if (y_wfs != []) {
+    if ((y_wfs != []) && (g_wfs != [])) {
+      for (cc=1;cc<=numberof(y_wfs);cc++) {
+        if (y_wfs(cc).gsalt != 0.)
+          gsalt = 1./y_wfs(cc).gsalt;
+        else gsalt = 0.;
+        if (y_atmos != [] && y_wfs(cc).atmos_seen) {
+          for (dd=1;dd<=y_atmos.nscreens;dd++) {
+            xoff = (gsalt * (*y_atmos.alt)(dd) * (y_tel.diam/2.) + (y_wfs.xpos)(cc)*4.848e-6*(*y_atmos.alt)(dd))/y_atmos.pupixsize;
+            yoff = (gsalt * (*y_atmos.alt)(dd) * (y_tel.diam/2.) + (y_wfs.ypos)(cc)*4.848e-6*(*y_atmos.alt)(dd))/y_atmos.pupixsize;
+            xoff = float(xoff+((*y_atmos.dim_screens)(dd)-y_geom._n)/2);
+            yoff = float(yoff+((*y_atmos.dim_screens)(dd)-y_geom._n)/2);
+            sensors_addlayer,g_wfs,cc-1,type,(*y_atmos.alt)(dd),xoff,yoff;
+          }
+        }
+        if (y_dm != [] && !y_wfs(cc).openloop) {
+          for (ddd=1;ddd<=numberof(*y_wfs(cc).dms_seen);ddd++) {
+	    dd = (*y_wfs(cc).dms_seen)(ddd);
+            dims = y_dm(dd)._n2 - y_dm(dd)._n1 + 1;
+            dim  = dimsof(*y_geom._mpupil)(2);
+            dim_dm = max([dim,dims]);
+            xoff = (y_wfs.xpos)(cc)*4.848e-6*(y_dm.alt)(dd)/(y_tel.diam / y_geom.pupdiam);
+            yoff = (y_wfs.ypos)(cc)*4.848e-6*(y_dm.alt)(dd)/(y_tel.diam / y_geom.pupdiam);
+            xoff = float(xoff+(dim_dm-y_geom._n)/2);
+            yoff = float(yoff+(dim_dm-y_geom._n)/2);
+            sensors_addlayer,g_wfs,cc-1,y_dm(dd).type,(y_dm.alt)(dd),xoff,yoff;
+          }
+        }
+      }
+    }
+  }
+"""
+
+
 
 
 
 #################################################
 # P-Class target
 #################################################
-cdef class target:
+cdef class Target:
 
     def __cinit__(self,chakra_context ctxt, int ntargets, 
                     np.ndarray[dtype=np.float32_t] xpos,
@@ -118,7 +172,7 @@ cdef class target:
 
 
     def add_layer(self, int n, bytes l_type, float alt, float xoff, float yoff):
-        """TODO
+        """TODO doc
 
         n       -- int   : 
         l_type  -- str   :
@@ -131,15 +185,15 @@ cdef class target:
 
 
     def init_strehlmeter(self, int nTarget):
-        """TODO
+        """TODO doc
 
         nTarget -- int :
         """
         cdef sutra_source *s_s_ptr
         self.target.d_targets[nTarget].init_strehlmeter()
 
-    def atmos_trace(self, int nTarget, atmos atm):
-        """ TODO
+    def atmos_trace(self, int nTarget, Atmos atm):
+        """ TODO doc
 
         int --  nTarget :
         atm --  atmos
@@ -148,7 +202,7 @@ cdef class target:
         self.target.d_targets[nTarget].raytrace(atm.s_a)
 
     def get_image(self,int nTarget, bytes type_im, long puponly=0):
-        """TODO
+        """TODO doc
 
         nTarget -- int :
         type_im -- str :
@@ -171,7 +225,7 @@ cdef class target:
 
 
     def get_phase(self, int nTarget):
-        """TODO
+        """TODO doc
 
         nTarget -- int :
         """
@@ -188,7 +242,7 @@ cdef class target:
 
 
     def get_phasetele(self, int nTarget):
-        """TODO
+        """TODO doc
 
         nTarget -- int :
         """
@@ -207,7 +261,7 @@ cdef class target:
 
 
     def get_amplipup(self, int nTarget):
-        """TODO
+        """TODO doc
 
         nTarget -- int :
         """
@@ -225,7 +279,7 @@ cdef class target:
 
 
     def get_strehl(self, int nTarget):
-        """TODO
+        """TODO doc
 
         nTarget -- int :
         """

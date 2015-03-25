@@ -8,7 +8,7 @@ The compilation is done with the command:
     python setup.py build_ext --inplace
 
     REQUIREMENT:
-        * cython
+        * cython 0.22
         * python 2.7
         * carma librairie
         * sutra librairie
@@ -28,10 +28,11 @@ Content:
             tel.pyx
             make_pupil.py
             iterkolmo.py
+            loop.pyx
+            wfs.pyx
+            sensors.pyx
     * data                        folder containig turbulence matrices and stencils
     * EELT_data                   folder containing EELT datas (curently not used)
     * setup.py                    compilation setups
     * clean.py                    cleaning script
     * test.py                     python test codes
-
-

@@ -1,12 +1,18 @@
 from chakra cimport *
 
+import numpy as np
 cimport numpy as np
 
+from libc.stdlib cimport malloc, free
+from libcpp.cast cimport dynamic_cast
+from libcpp.string cimport string
 from libcpp.map cimport map
 from libcpp.vector cimport vector
 from libcpp.pair cimport pair
 
 from libc.stdint cimport uintptr_t
+
+
 
 
 cdef np.float32_t dtor = (np.pi/180.)
@@ -169,14 +175,201 @@ cdef extern from "sutra_target.h":
     cdef int target_raytrace_async(carma_host_obj[float] *phase_telemetry, float *d_odata,
             float *d_idata, int nx, int ny, int Nx, float xoff, float yoff, int block_size)
 
-    cdef int fft_goodsize(long size)
+    #cdef int fft_goodsize(long size)
 
+
+
+
+cdef extern from "sutra_wfs.h":
+#################################################
+# C-Class sutra_sensor
+#################################################
+    cdef cppclass sutra_sensors:
+        int device;
+        carma_context *current_context;
+        size_t nsensors() 
+        
+        vector[sutra_wfs *] d_wfs;
+        map[vector[int],cufftHandle*] campli_plans;
+        map[vector[int],cufftHandle*] fttotim_plans;
+        map[vector[int],cufftHandle*] ftlgskern_plans;
+
+        carma_obj[cuFloatComplex] *d_camplipup;
+        carma_obj[cuFloatComplex] *d_camplifoc;
+        carma_obj[cuFloatComplex] *d_fttotim;
+        carma_obj[cuFloatComplex] *d_ftlgskern;
+        carma_obj[float] *d_lgskern;
+
+        sutra_sensors(carma_context *context, const char** type, int nwfs, long *nxsub,
+          long *nvalid, long *npix, long *nphase, long *nrebin, long *nfft,
+          long *ntot, long *npup, float *pdiam, float *nphot, int *lgs, int device);
+        sutra_sensors(carma_context *context, int nwfs, long *nxsub, long *nvalid,
+          long *nphase, long npup, float *pdiam, int device);
+
+        int sensors_initgs(float *xpos, float *ypos, float *Lambda, float *mag,
+          long *size, float *noise, long *seed);
+        int sensors_initgs(float *xpos, float *ypos, float *Lambda, float *mag,
+          long *size, float *noise);
+        int sensors_initgs(float *xpos, float *ypos, float *Lambda, float *mag,
+          long *size)
+        int allocate_buffers()
+
+#################################################
+# C-Class sutra_wfs
+#################################################
+    cdef cppclass sutra_wfs:
+
+        int device
+        string type
+        long nxsub
+        long nvalid
+        long npix
+        long nrebin
+        long nfft
+        long ntot
+        long npup
+        long nphase
+        long nmaxhr
+        long nffthr
+        float subapd
+        float nphot
+        float noise
+        bool lgs
+        bool kernconv
+
+        cufftHandle *campli_plan
+        cufftHandle *fttotim_plan
+        carma_obj[cuFloatComplex] *d_ftkernel
+        carma_obj[cuFloatComplex] *d_camplipup
+        carma_obj[cuFloatComplex] *d_camplifoc
+        carma_obj[cuFloatComplex] *d_fttotim
+
+        carma_obj[float] *d_pupil
+        carma_obj[float] *d_bincube
+        carma_obj[float] *d_binimg
+        carma_obj[float] *d_subsum
+        carma_obj[float] *d_offsets
+        carma_obj[float] *d_fluxPerSub
+        carma_obj[float] *d_sincar
+        carma_obj[int] *d_hrmap
+
+        carma_obj[int] *d_isvalid # nxsub x nxsub
+        carma_obj[float] *d_slopes
+
+        carma_host_obj[float] *image_telemetry
+
+      # sh only
+        carma_obj[int] *d_phasemap
+        carma_obj[int] *d_binmap
+        carma_obj[int] *d_validsubsx # nvalid
+        carma_obj[int] *d_validsubsy # nvalid
+        carma_obj[int] *d_istart # nxsub 
+        carma_obj[int] *d_jstart # nxsub
+
+      # pyramid only
+        carma_obj[float] *d_hrimg
+        carma_obj[float] *d_submask
+        carma_obj[float] *d_psum
+        carma_obj[cuFloatComplex] *d_phalfxy
+        carma_obj[cuFloatComplex] *d_poffsets
+
+        carma_host_obj[int] *pyr_cx
+        carma_host_obj[int] *pyr_cy
+
+        sutra_source *d_gs
+
+        carma_streams *streams
+        int nstreams
+
+        carma_context *current_context
+
+        sutra_wfs(carma_context *context,sutra_sensors *sensors,  const char* type, long nxsub, long nvalid,
+          long npix, long nphase, long nrebin, long nfft, long ntot, long npup,
+          float pdiam, float nphotons, int lgs, int device)
+        sutra_wfs(carma_context *context, long nxsub, long nvalid, long nphase,
+          long npup, float pdiam, int device)
+        sutra_wfs(const sutra_wfs& wfs)
+
+        int wfs_initarrays(int *phasemap, int *hrmap, int *binmap, float *offsets,
+          float *pupil, float *fluxPerSub, int *isvalid, int *validsubsx,
+          int *validsubsy, int *istart, int *jstart, cuFloatComplex *kernel)
+        int wfs_initarrays(int *phasemap, float *offsets, float *pupil, float *fluxPerSub,
+          int *isvalid, int *validsubsx, int *validsubsy, int *istart, int *jstart)
+        int wfs_initarrays(cuFloatComplex *halfxy, cuFloatComplex *offsets,
+          float *focmask, float *pupil, int *isvalid, int *cx, int *cy,
+          float *sincar, int *phasemap, int *validsubsx, int *validsubsy)
+        int wfs_initgs(sutra_sensors *sensors, float xpos, float ypos, float Lambda, float mag, long size,
+          float noise, long seed)
+        int load_kernels(float *lgskern)
+        int sensor_trace(sutra_atmos *yatmos)
+        # TODO int sensor_trace(sutra_dms *ydm, int rst)
+        # TODO int sensor_trace(sutra_atmos *atmos, sutra_dms *ydms)
+        int comp_image_tele()
+        int fill_binimage()
+        int comp_image()
+        int slopes_geom(int type, float *slopes)
+        int slopes_geom(int type)
+
+        int comp_sh_generic()
+        int comp_pyr_generic()
+        int comp_roof_generic()
 
 
 #################################################
-# P-Class atmos
+# C-Class sutra_wfs_sh
 #################################################
-cdef class atmos:
+cdef extern from "sutra_wfs_sh.h":
+    cdef cppclass sutra_wfs_sh(sutra_wfs):
+         int  wfs_initarrays(int *phasemap, int *hrmap, int *binmap, float *offsets,
+      float *pupil, float *fluxPerSub, int *isvalid, int *validsubsx,
+      int *validsubsy, int *istart, int *jstart, cuFloatComplex *kernel)
+
+
+#################################################
+# C-Class sutra_wfs_pyr_roof
+#################################################
+cdef extern from "sutra_wfs_pyr.h":
+    cdef cppclass sutra_wfs_pyr(sutra_wfs):
+        int wfs_initarrays(cuFloatComplex *halfxy, cuFloatComplex *offsets,
+      float *focmask, float *pupil, int *isvalid, int *cx, int *cy,
+      float *sincar, int *phasemap, int *validsubsx, int *validsubsy)
+
+#################################################
+# C-Class sutra_wfs_pyr_roof
+#################################################
+cdef extern from "sutra_wfs_pyr_roof.h":
+    cdef cppclass sutra_wfs_pyr_roof(sutra_wfs_pyr):
+        sutra_wfs_pyr_roof(const sutra_wfs_pyr_roof& wfs)
+
+#################################################
+# C-Class sutra_wfs_pyr_pyr4
+#################################################
+cdef extern from "sutra_wfs_pyr_pyr4.h":
+    cdef cppclass sutra_wfs_pyr_pyr4(sutra_wfs_pyr):
+        sutra_wfs_pyr_pyr4(const sutra_wfs_pyr_pyr4& wfs)
+
+#################################################
+# C-Class sutra_wfs_geom
+#################################################
+cdef extern from "sutra_wfs_geom.h":
+    cdef cppclass sutra_wfs_geom(sutra_wfs):
+        #sutra_wfs_geom(carma_context *context, long nxsub, long nvalid, long nphase,
+        #    long npup, float pdiam, int device)
+        sutra_wfs_geom(const sutra_wfs_geom& wfs)
+        int wfs_initarrays(int *phasemap, float *offsets, float *pupil,
+            float *fluxPerSub, int *isvalid, int *validsubsx, int *validsubsy)
+
+
+cdef extern from *:
+    sutra_wfs_geom* dynamic_cast_wfs_geom_ptr "dynamic_cast<sutra_wfs_geom*>" (sutra_wfs*) except NULL
+    sutra_wfs_sh* dynamic_cast_wfs_sh_ptr "dynamic_cast<sutra_wfs_sh*>" (sutra_wfs*) except NULL
+    sutra_wfs_pyr_pyr4* dynamic_cast_wfs_pyr_pyr4_ptr "dynamic_cast<sutra_wfs_pyr_pyr4*>" (sutra_wfs*) except NULL
+    sutra_wfs_pyr_roof* dynamic_cast_wfs_pyr_roof_ptr "dynamic_cast<sutra_wfs_pyr_roof*>" (sutra_wfs*) except NULL
+
+#################################################
+# P-Class Atmos
+#################################################
+cdef class Atmos:
     cdef sutra_atmos *s_a
     cdef chakra_context context
     cdef realinit(self,chakra_context ctxt,int nscreens,
@@ -191,9 +384,9 @@ cdef class atmos:
                 int device )
 
 #################################################
-# P-Class target
+# P-Class Target
 #################################################
-cdef class target:
+cdef class Target:
     cdef sutra_target *target
     cdef readonly int ntargets
     """number of targets"""
@@ -211,10 +404,28 @@ cdef class target:
     cdef chakra_context context
 
 
+cdef class Sensors:
+    cdef sutra_sensors *sensors
+
+    cdef sensors_initgs(self,np.ndarray[dtype=np.float32_t] xpos,
+                             np.ndarray[dtype=np.float32_t] ypos,
+                             np.ndarray[dtype=np.float32_t] Lambda,
+                             np.ndarray[dtype=np.float32_t] mag,
+                             np.ndarray[dtype=np.int64_t  ] size,
+                             np.ndarray[dtype=np.float32_t] noise,
+                             np.ndarray[dtype=np.int64_t  ] seed)
+
+    #cdef sensors_initarr(self, int n, int *phasemap, float *offset, float *pupil,
+     #       int *isvalid, int *validsubx, int *validsuby, float* flux_foc, 
+     #       int *istart, int *jstart, float *ftkern_sinc, int *hrmap, 
+     #       int *binmap, float *halfxy)
+
+    cdef sensors_initarr(self,int n, Param_wfs wfs, Param_geom geom)
+    cdef sensors_addlayer(self,int i, bytes type, float alt, float xoff, float yoff)
 #################################################
-# P-Class (parametres) param_atmos
+# P-Class (parametres) Param_atmos
 #################################################
-cdef class param_atmos:
+cdef class Param_atmos:
 
     cdef readonly long nscreens           
     """number of turbulent layers."""
@@ -242,9 +453,9 @@ cdef class param_atmos:
 
 
 #################################################
-# P-Class (parametres) param_geom
+# P-Class (parametres) Param_geom
 #################################################
-cdef class param_geom:
+cdef class Param_geom:
     cdef readonly long  ssize
     """linear size of full image (in pixels)."""
     cdef readonly float zenithangle
@@ -267,9 +478,9 @@ cdef class param_geom:
 
 
 #################################################
-# P-Class (parametres) param_tel
+# P-Class (parametres) Param_tel
 #################################################
-cdef class param_tel:
+cdef class Param_tel:
   cdef readonly float diam
   """telescope diameter (in meters)."""
   cdef readonly float cobs
@@ -289,9 +500,9 @@ cdef class param_tel:
 
 
 #################################################
-# P-Class (parametres) param_target
+# P-Class (parametres) Param_target
 #################################################
-cdef class param_target:
+cdef class Param_target:
     cdef readonly int ntargets
     """number of targets"""
     cdef readonly int apod
@@ -306,64 +517,64 @@ cdef class param_target:
     """magnitude for each target"""
 
 #################################################
-# P-Class (parametres) param_wfs
+# P-Class (parametres) Param_wfs
 #################################################
-cdef class param_wfs:
-    cdef public str typ
+cdef class Param_wfs:
+    cdef readonly str type
     """type of wfs : "sh" or "pyr"."""
-    cdef public long nxsub
+    cdef readonly long nxsub
     """linear number of subaps."""
-    cdef public long  npix
+    cdef readonly long  npix
     """number of pixels per subap."""
-    cdef public float pixsize
+    cdef readonly float pixsize
     """pixel size (in arcsec) for a subap."""
-    cdef public float Lambda
+    cdef readonly float Lambda
     """observation wavelength (in µm) for a subap."""
-    cdef public float optthroughput
+    cdef readonly float optthroughput
     """wfs global throughput."""
-    cdef public float fracsub
+    cdef readonly float fracsub
     """minimal illumination fraction for valid subaps."""
-    cdef public long openloop
+    cdef readonly long openloop
     """1 if in "open-loop" mode (i.e. does not see dm)."""
-    cdef public float fssize
+    cdef readonly float fssize
     """size of field stop in arcsec."""
-    cdef public str fstop
+    cdef readonly str fstop
     """size of field stop in arcsec."""
 
-    #TODO 
-    #int atmos_seen;        // 1 if the WFS sees the atmosphere layers
-    #pointer dms_seen;      // index of dms seen by the WFS
+    cdef readonly int atmos_seen
+    """1 if the WFS sees the atmosphere layers"""
+    #TODO pointer dms_seen;      // index of dms seen by the WFS
 
 
 #target kwrd
-    cdef public float xpos
+    cdef readonly float xpos
     """guide star x position on sky (in arcsec)."""
-    cdef public float ypos
+    cdef readonly float ypos
     """guide star x position on sky (in arcsec)."""
-    cdef public float gsalt
+    cdef readonly float gsalt
     """altitude of guide star (in m) 0 if ngs."""
-    cdef public float gsmag
+    cdef readonly float gsmag
     """magnitude of guide star."""
-    cdef public float zerop
+    cdef readonly float zerop
     """detector zero point."""
-    cdef public float noise
+    cdef readonly float noise
     """desired noise : < 0 = no noise / 0 = photon only / > 0 photon + ron."""
 
-    cdef public float kernel      # 
-    cdef float* _ftkernel #
+    cdef readonly float kernel      # 
+    cdef np.ndarray _ftkernel #(float*)
 
 # lgs only
-    cdef public float lgsreturnperwatt
+    cdef readonly float lgsreturnperwatt
     """return per watt factor (high season : 10 ph/cm2/s/W)."""
-    cdef public float laserpower
+    cdef readonly float laserpower
     """laser power in W."""
-    cdef public float lltx
+    cdef readonly float lltx
     """x position (in meters) of llt."""
-    cdef public float llty
+    cdef readonly float llty
     """y position (in meters) of llt."""
-    cdef public str proftype
+    cdef readonly str proftype
     """type of sodium profile "gauss", "exp", etc ..."""
-    cdef public float beamsize
+    cdef readonly float beamsize
     """laser beam fwhm on-sky (in arcsec)."""
 
 #internal kwrd
@@ -375,22 +586,25 @@ cdef class param_wfs:
 
     cdef float   _nphotons     # number of photons per subap
     cdef float   _subapd       # subap diameter (m)
-    cdef float* _fluxPerSub   # fraction of nphotons per subap
+    cdef readonly np.ndarray _fluxPerSub   # fraction of nphotons per subap
     cdef float   _qpixsize     # quantum pixel size for the simulation
 
-    cdef float* _istart       # x start indexes for cutting phase screens 
-    cdef float* _jstart       # y start indexes for cutting phase screens 
-    cdef float* _validsubs    # (i,j) indices of valid subaps
-    cdef float* _isvalid      # array of 0/1 for valid subaps
-    cdef float* _phasemap     # array of pixels transform from phase screen into
+    cdef readonly np.ndarray _istart    # (int*) x start indexes for cutting phase screens 
+    cdef readonly np.ndarray _jstart    # (int*) y start indexes for cutting phase screens 
+    #cdef np.ndarray _validsubs    # (i,j) indices of valid subaps
+    cdef readonly np.ndarray _validsubsx    #(int*) indices of valid subaps along axis x
+    cdef readonly np.ndarray _validsubsy    #(int*) indices of valid subaps along axis y
+    cdef readonly np.ndarray _isvalid      #(int*) array of 0/1 for valid subaps
+    cdef readonly np.ndarray _phasemap     #(int*) array of pixels transform from phase screen into
                          # subaps phase screens
-    cdef float* _hrmap        # array of pixels transform from minimal FoV image to
+    cdef readonly np.ndarray _hrmap        #(int*) array of pixels transform from minimal FoV image to (in case type is "sh" or "geo"
+    cdef np.ndarray _sincar        #(float*) array of pixels transform from minimal FoV image to (in case type is "pyr" or "roof")
                          # full FoV image (array of 0 if the same)
-    cdef float* _binmap       # array of pixels transform from full FoV hr images to
+    cdef readonly np.ndarray _binmap       #(int*) array of pixels transform from full FoV hr images to
                          # binned images
-    cdef float* _halfxy       # phase offset for 1/2 pixel shift in (x,y)
+    cdef readonly np.ndarray _halfxy       #(float*) phase offset for 1/2 pixel shift in (x,y)
 
-    cdef float* _submask       # fieldstop for each subap
+    cdef readonly np.ndarray _submask       #(float*) fieldstop for each subap
 
     cdef float* _lgskern      # lgs kernels for each subap
     cdef float* _profna       # sodium profile
@@ -402,28 +616,27 @@ cdef class param_wfs:
     cdef float* _azimuth      # angles of rotation for each spot
 
 # pyramid-nly kwrds
-    cdef public float   pyr_ampl
+    cdef readonly float pyr_ampl
     """pyramid wfs modulation amplitude radius [arcsec]."""
-    cdef public long    pyr_npts
+    cdef readonly long pyr_npts
     """total number of point along modulation circle [unitless]."""
-    cdef float* pyr_pos    # positions for modulation, overwrites ampl and npts [arcsec]
-    cdef public str  pyr_loc
+    cdef np.ndarray pyr_pos    # positions for modulation, overwrites ampl and npts [arcsec]
+    cdef readonly str pyr_loc
     """Location of modulation, before/after the field stop.
     valid value are "before" or "after" (default "after")."""
-    cdef public str  pyrtype
+    cdef readonly str pyrtype
     """Type of pyramid, either 0 for "Pyramid" or 1 for "RoofPrism"."""
 
 # pyramid internal kwrds
-    cdef float* _pyr_offsets   #
-    cdef float* _pyr_cx   #
-    cdef float* _pyr_cy   #
-
+    cdef readonly np.ndarray _pyr_offsets   #(float*)
+    cdef readonly np.ndarray _pyr_cx   #(int*)
+    cdef readonly np.ndarray _pyr_cy   #(int*)
 
 
 #################################################
-# P-Class (parametres) param_dm
+# P-Class (parametres) Param_dm
 #################################################
-cdef class param_dm:
+cdef class Param_dm:
   cdef str  type
   """ type of dm"""
   cdef readonly long    nact
@@ -477,4 +690,13 @@ cdef class param_dm:
   cdef np.ndarray _influstart
   cdef np.ndarray _klbas
   """ np.ndarray to a kl struct"""
+
+
+#################################################
+# P-Class (parametres) Param_loop
+#################################################
+cdef class Param_loop:
+    cdef long niter     # number of iterations
+    cdef float ittime   # iteration time (in sec)
+
 
