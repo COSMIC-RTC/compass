@@ -123,7 +123,8 @@ Y_yoga_timer(int argc)
  */
 {
   try {
-    timer_struct* handle=yoga_getTimer(argc,1);
+    timer_struct *handle = (timer_struct *) ypush_obj(&yTimer,
+        sizeof(timer_struct));
     handle->carma_timer = new carma_timer();
   } catch (string &msg) {
     y_error(msg.c_str());
