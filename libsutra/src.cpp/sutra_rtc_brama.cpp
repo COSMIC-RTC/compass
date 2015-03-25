@@ -209,12 +209,15 @@ void sutra_rtc_brama::publish() {
     ncmd += d_control[i]->nactu();
   }
 
+//  for(int idx=0; idx<ncmd; idx++){
+//    BRAMA_DEBUG_TRACE("%d %f", idx, buff_commands_servant[idx]);
+//  }
   zFrame.ints.from = CORBA::string_dup("BRAMA intensities");
   zFrame.ints.typeofelements = CORBA::string_dup("intensities");
   zFrame.ints.sizeofelements = sizeof(float);
   zFrame.ints.dimensions = BRAMA::Dims(2, 2, dims_intensities, 0);
   zFrame.ints.framecounter = framecounter;
-  zFrame.ints.data = BRAMA::Values(nvalid, nvalid, buff_intensities, 0);
+  zFrame.ints.data = BRAMA::Values(nvalid * sizeof(float), nvalid * sizeof(float), buff_intensities, 0);
   zFrame.ints.timestamp = get_timestamp();
 
   zFrame.slps.from = CORBA::string_dup("BRAMA slopes");
@@ -222,7 +225,7 @@ void sutra_rtc_brama::publish() {
   zFrame.slps.sizeofelements = sizeof(float);
   zFrame.slps.dimensions = BRAMA::Dims(2, 2, dims_slopes, 0);
   zFrame.slps.framecounter = framecounter;
-  zFrame.slps.data = BRAMA::Values(nslp, nslp, buff_slopes, 0);
+  zFrame.slps.data = BRAMA::Values(nslp * sizeof(float), nslp * sizeof(float), buff_slopes, 0);
   zFrame.slps.timestamp = get_timestamp();
 
   zFrame.cmds.from = CORBA::string_dup("BRAMA commands");
@@ -230,7 +233,7 @@ void sutra_rtc_brama::publish() {
   zFrame.cmds.sizeofelements = sizeof(float);
   zFrame.cmds.dimensions = BRAMA::Dims(2, 2, dims_commands, 0);
   zFrame.cmds.framecounter = framecounter;
-  zFrame.cmds.data = BRAMA::Values(ncmd, ncmd, buff_commands, 0);
+  zFrame.cmds.data = BRAMA::Values(ncmd * sizeof(float), ncmd * sizeof(float), buff_commands, 0);
   zFrame.cmds.timestamp = get_timestamp();
 
  //cout << "Publishing zFrame: " << zFrame.framecounter << endl;
