@@ -100,48 +100,50 @@ sutra_sensors::sutra_sensors(carma_context *context, char **type, int nwfs,
   this->device = device;
   current_context->set_activeDevice(device,1);
   //DEBUG_TRACE("Before create sensors : ");printMemInfo();
-  int maxnfft = nfft[0];
-  int maxntot = ntot[0];
-  int maxnvalid = nvalid[0];
-  int wfs4nfft = 0;
-  int wfs4ntot = 0;
-  int is_lgs = (lgs[0] > 0 ? 1 : 0);
-  for (int i = 1; i < nwfs; i++) {
-    if (ntot[i] > maxntot) {
-      maxntot = ntot[i];
-      wfs4ntot = i;
-    }
-    if (nfft[i] > maxnfft) {
-      maxnfft = nfft[i];
-      wfs4nfft = i;
-    }
-	if (ntot[i] == nfft[i]) {
-		if (nvalid[i] > maxnvalid) {
-				maxnvalid = nvalid[i];
+	if (strcmp(type[0], "sh") == 0) {
+		int maxnfft = nfft[0];
+		int maxntot = ntot[0];
+		int maxnvalid = nvalid[0];
+		int wfs4nfft = 0;
+		int wfs4ntot = 0;
+		int is_lgs = (lgs[0] > 0 ? 1 : 0);
+		for (int i = 1; i < nwfs; i++) {
+			if (ntot[i] > maxntot) {
+				maxntot = ntot[i];
+				wfs4ntot = i;
+			}
+			if (nfft[i] > maxnfft) {
+				maxnfft = nfft[i];
+				wfs4nfft = i;
+			}
+			if (ntot[i] == nfft[i]) {
+				if (nvalid[i] > maxnvalid) {
+					maxnvalid = nvalid[i];
+				}
+			}
+			if (lgs[i] > 0)
+				is_lgs = 1;
+		}
+		//DEBUG_TRACE("maxntot : %d maxnfft : %d maxnvalid : %d nvalid[wfs4nfft] : %d nmaxhr : %d\n ",maxntot,maxnfft,maxnvalid,nvalid[wfs4nfft],compute_nmaxhr(nvalid[wfs4ntot]));
+		long dims_data3[4] = { 3, maxnfft, maxnfft, maxnvalid };
+		this->d_camplifoc = new carma_obj<cuFloatComplex>(context, dims_data3);
+		this->d_camplipup = new carma_obj<cuFloatComplex>(context, dims_data3);
+
+		dims_data3[1] = maxntot;
+		dims_data3[2] = maxntot;
+		dims_data3[3] = compute_nmaxhr(nvalid[wfs4ntot]);
+		if (maxnvalid > dims_data3[3])
+			dims_data3[3] = maxnvalid;
+		this->d_fttotim = new carma_obj<cuFloatComplex>(context, dims_data3);
+		if (is_lgs) {
+			this->d_ftlgskern = new carma_obj<cuFloatComplex>(context,
+					dims_data3);
+			this->d_lgskern = new carma_obj<float>(context, dims_data3);
+		} else {
+			this->d_ftlgskern = 0L;
+			this->d_lgskern = 0L;
 		}
 	}
-	if(lgs[i]>0)
-		is_lgs = 1;
-	}
-	//DEBUG_TRACE("maxntot : %d maxnfft : %d maxnvalid : %d nvalid[wfs4nfft] : %d nmaxhr : %d\n ",maxntot,maxnfft,maxnvalid,nvalid[wfs4nfft],compute_nmaxhr(nvalid[wfs4ntot]));
-	long dims_data3[4] = {3,maxnfft,maxnfft,maxnvalid};
-	this->d_camplifoc = new carma_obj<cuFloatComplex>(context, dims_data3);
-	this->d_camplipup = new carma_obj<cuFloatComplex>(context, dims_data3);
-
-
-  dims_data3[1] = maxntot;
-  dims_data3[2] = maxntot;
-  dims_data3[3] = compute_nmaxhr(nvalid[wfs4ntot]);
-  if (maxnvalid > dims_data3[3])
-    dims_data3[3] = maxnvalid;
-  this->d_fttotim = new carma_obj<cuFloatComplex>(context, dims_data3);
-  if (is_lgs) {
-    this->d_ftlgskern = new carma_obj<cuFloatComplex>(context, dims_data3);
-    this->d_lgskern = new carma_obj<float>(context, dims_data3);
-  } else {
-    this->d_ftlgskern = 0L;
-    this->d_lgskern = 0L;
-  }
 //	DEBUG_TRACE("After creating sensors arrays : ");printMemInfo();
   for (int i = 0; i < nwfs; i++) {
     sutra_wfs *wfs = NULL;
