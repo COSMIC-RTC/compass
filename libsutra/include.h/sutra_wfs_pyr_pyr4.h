@@ -23,8 +23,6 @@ public:
 
   int
   comp_image();
-  int
-  comp_image_tele();
 
 private:
   int

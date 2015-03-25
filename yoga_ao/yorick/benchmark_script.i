@@ -144,19 +144,11 @@ atmos_init_time = yoga_timer_stop(g_timer)- synctime;
 	      yoga_timer_reset,g_timer;
 	  }
 
-	  if(y_wfs(i).type=="cog") {
-	    yoga_timer_start,g_timer;
-	    sensors_compimg_tele,g_wfs,i-1;
-	     _yogaThreadSync;
-	     comp_img_time += yoga_timer_stop(g_timer)- synctime;
-	     yoga_timer_reset,g_timer;
-	  } else {
-	    yoga_timer_start,g_timer;
-	    sensors_compimg,g_wfs,i-1;
-	      _yogaThreadSync;
-	      comp_img_time += yoga_timer_stop(g_timer)- synctime;
-	      yoga_timer_reset,g_timer;
-	  }
+    yoga_timer_start,g_timer;
+	  sensors_compimg,g_wfs,i-1;
+	  _yogaThreadSync;
+	  comp_img_time += yoga_timer_stop(g_timer)- synctime;
+	  yoga_timer_reset,g_timer;
 	}   
       }
 

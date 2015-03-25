@@ -133,11 +133,7 @@ func script_system(filename,verbose=,strehl=,r0=,clean=,brama=)
          }
          */
 
-        if(y_wfs(i).type=="cog") {
-          sensors_compimg_tele,g_wfs,i-1;
-        } else {
-          sensors_compimg,g_wfs,i-1;
-        }
+        sensors_compimg,g_wfs,i-1;
       }
 
       // do centroiding
@@ -320,7 +316,7 @@ func script_profile(filename,verbose=)
           sensors_trace,g_wfs,i-1,"dm",g_dm,0;
           grow,tmp,tac(mytime);
         }
-        sensors_compimg_tele,g_wfs,i-1;
+        sensors_compimg,g_wfs,i-1;
         grow,tmp,tac(mytime);
       }
 
@@ -468,7 +464,7 @@ func script_pyr(filename,verbose=)
   write,"--------------------------------------------------------";
   g_target;
 
-  sensors_compimg_tele,g_wfs,0;
+  sensors_compimg,g_wfs,0;
   pup=*y_geom._mpupil
   phase = pup *0.
   phase_rad = pup *0.
@@ -533,7 +529,7 @@ func script_pyr(filename,verbose=)
       // loop on wfs
       for (i=1;i<=numberof(y_wfs);i++) {
         sensors_trace,g_wfs,i-1,"atmos",g_atmos;
-        sensors_compimg_tele,g_wfs,i-1;
+        sensors_compimg,g_wfs,i-1;
       }
     }
     error;
@@ -647,7 +643,7 @@ func script_relax(filename,verbose=)
         if ((!y_wfs(i).openloop) && (g_dm != [])) {
           sensors_trace,g_wfs,i-1,"dm",g_dm,0;
         }
-        sensors_compimg_tele,g_wfs,i-1;
+        sensors_compimg,g_wfs,i-1;
       }
 
       // do centroiding
@@ -830,8 +826,8 @@ func script_valid_rtc(filename,verbose=,strehl=,r0=,clean=, output=)
         if ((!y_wfs(i).openloop) && (g_dm != [])) {
           sensors_trace,g_wfs,i-1,"dm",g_dm,0;
         }
-        sensors_compimg_tele,g_wfs,i-1;
-        img_cube(,,cc) = sensors_getdata(g_wfs,i-1,"imgtele");
+        sensors_compimg,g_wfs,i-1;
+        img_cube(,,cc) = sensors_getdata(g_wfs,i-1,"binimg");
         binimg_cube(,,,cc) = sensors_getdata(g_wfs,i-1,"bincube");
       }
       // do centroiding
@@ -1045,7 +1041,7 @@ for (cc=1;cc<=y_loop.niter;cc++) {
     // loop on wfs
     for (i=1;i<=numberof(y_wfs);i++) {
       sensors_trace,g_wfs,i-1,"atmos",g_atmos;
-      sensors_compimg_tele,g_wfs,i-1;
+      sensors_compimg,g_wfs,i-1;
     }
   }
   error;

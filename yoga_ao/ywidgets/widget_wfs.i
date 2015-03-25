@@ -150,11 +150,7 @@ func wfs_loop(one)
           sensors_trace,g_wfs,i-1,"dm",g_dm,0;
         }
         
-        if ((enable_display == 1) && (wfsdisp_type == "Image - WFS") && (i == wfsdisp_num + 1)) {
-            sensors_compimg_tele,g_wfs,i-1;
-        } else sensors_compimg,g_wfs,i-1;
-        
-        //sensors_compimg,g_wfs,i-1;
+        sensors_compimg,g_wfs,i-1;
       }
       
       // do centroiding

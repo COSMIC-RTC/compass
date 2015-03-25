@@ -357,7 +357,7 @@ int fill_amplipup(cuFloatComplex *amplipup, float *phase, float *mask,
 
   fillamplikrnl<<<grid, threads>>>(amplipup, phase, mask, scale, puponly, nx,
       nx * ny, Nx);
-  carmaCheckMsg("fillcamplipup_kernel<<<>>> execution failed\n");
+  carmaCheckMsg("fillamplikrnl<<<>>> execution failed\n");
 
   return EXIT_SUCCESS;
 }

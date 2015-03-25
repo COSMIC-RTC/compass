@@ -63,26 +63,26 @@ class sutra_wfs {
 
     carma_context *current_context;
 
+    /// MPI stuff
+    int offset;
+    int nvalid_tot;
+    int rank;
+
   public:
     virtual ~sutra_wfs() {
     }
 
-    int
-    wfs_initgs(sutra_sensors *sensors, float xpos, float ypos, float lambda,
-               float mag, long size, float noise, long seed);
+    int wfs_initgs(sutra_sensors *sensors, float xpos, float ypos, float lambda,
+                   float mag, long size, float noise, long seed);
 
-    int
-    load_kernels(float *lgskern);
-    int
-    sensor_trace(sutra_atmos *yatmos);
-    int
-    sensor_trace(sutra_dms *ydm, int rst);
-    int
-    sensor_trace(sutra_atmos *atmos, sutra_dms *ydms);
-    virtual int
-    comp_image()=0;
-    virtual int
-    comp_image_tele()=0;
+    int load_kernels(float *lgskern);
+    int sensor_trace(sutra_atmos *yatmos);
+    int sensor_trace(sutra_dms *ydm, int rst);
+    int sensor_trace(sutra_atmos *atmos, sutra_dms *ydms);
+    virtual int comp_image()=0;
+
+    virtual int define_mpi_rank(int rank, int size)=0;
+    virtual int allocate_buffers(sutra_sensors *sensors)=0;
 
   private:
     virtual int
@@ -136,7 +136,7 @@ int
 fillcamplipup(cuFloatComplex *amplipup, float *phase, float *offset,
               float *mask, float scale, int *istart, int *jstart, int *ivalid,
               int *jvalid, int nphase, int npup, int Nfft, int Ntot,
-              carma_device *device);
+              carma_device *device, int offset_phase);
 int
 indexfill(cuFloatComplex *d_odata, cuFloatComplex *d_idata, int *indx, int nx,
           int Nx, int N, carma_device *device);

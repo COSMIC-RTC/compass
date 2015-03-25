@@ -288,8 +288,6 @@ Y_sensors_updatelgs(int argc);
 void
 Y_sensors_compimg(int argc);
 void
-Y_sensors_compimg_tele(int argc);
-void
 Y_sensors_getimg(int argc);
 void
 Y_sensors_getdata(int argc);

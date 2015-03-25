@@ -461,10 +461,7 @@ int sutra_controller_ls::init_OpenLoopSlp(sutra_atmos *atmos, sutra_target *targ
 		for (int k = 0 ; k < sensors->nsensors() ; k++){
 			sensors->d_wfs[k]->sensor_trace(atmos);
 
-			if (sensors->d_wfs[k]->type == "cog")
-				sensors->d_wfs[k]->comp_image_tele();
-			else
-				sensors->d_wfs[k]->comp_image();
+			sensors->d_wfs[k]->comp_image();
 		}
 
 		rtc->do_centroids(sensors);

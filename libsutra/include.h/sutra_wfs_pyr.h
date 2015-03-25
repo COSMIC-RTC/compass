@@ -37,8 +37,9 @@ public:
 
   virtual int
   comp_image()=0;
-  virtual int
-  comp_image_tele()=0;
+
+  int define_mpi_rank(int rank, int size) {return EXIT_SUCCESS;}
+  int allocate_buffers(sutra_sensors *sensors) {return EXIT_SUCCESS;}
 
 private:
   virtual int

@@ -134,11 +134,7 @@ func script_canapass(filename,verbose=,strehl=,r0=,clean=,brama=)
          }
          */
 
-        if(y_wfs(i).type=="cog") {
-          sensors_compimg_tele,g_wfs,i-1;
-        } else {
-          sensors_compimg,g_wfs,i-1;
-        }
+        sensors_compimg,g_wfs,i-1;
       }
 
       // do centroiding

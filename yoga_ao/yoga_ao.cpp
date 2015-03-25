@@ -1359,7 +1359,7 @@ void Y_sensors_fillbinimage(int argc) {
     y_error("wfs should be a SH");
   }
   sutra_wfs_sh *wfs = dynamic_cast<sutra_wfs_sh *>(sensors_handler->d_wfs.at(nsensor));
-  wfs->fill_binimage();
+  wfs->fill_binimage(0);
   //sensors_handler->d_wfs.at(nsensor)->streams->wait_all_streams();
 }
 
@@ -1385,18 +1385,6 @@ void Y_sensors_compimg(int argc) {
   //sensors_handler->d_wfs.at(nsensor)->streams->wait_all_streams();
 }
 
-void Y_sensors_compimg_tele(int argc) {
-  sensors_struct *handler = (sensors_struct *) yget_obj(argc - 1, &ySensors);
-  sutra_sensors *sensors_handler = (sutra_sensors *) (handler->sutra_sensors);
-
-  int nsensor = ygets_i(argc - 2);
-
-  carma_context *context_handle = _getCurrentContext();
-  context_handle->set_activeDeviceForCpy(handler->device,1);
-
-  sensors_handler->d_wfs.at(nsensor)->comp_image_tele();
-}
-
 void Y_sensors_getimg(int argc) {
   sensors_struct *handler = (sensors_struct *) yget_obj(argc - 1, &ySensors);
   sutra_sensors *sensors_handler = (sutra_sensors *) (handler->sutra_sensors);
@@ -1419,6 +1407,8 @@ void Y_sensors_getimg(int argc) {
    telemetry_handler->wait_obj(type_obj, nsensor);
    } else
    */
+  if(sensors_handler->d_wfs.at(nsensor)->type=="sh")
+    dynamic_cast<sutra_wfs_sh*>(sensors_handler->d_wfs.at(nsensor))->fill_binimage(0);
   sensors_handler->d_wfs.at(nsensor)->d_binimg->device2host(data);
 }
 
@@ -1521,6 +1511,9 @@ void Y_sensors_getdata(int argc) {
   if (strcmp(type_data, "imgtele") == 0) {
     float *data = ypush_f(
         (long*) sensors_handler->d_wfs.at(nsensor)->image_telemetry->getDims());
+    if(sensors_handler->d_wfs.at(nsensor)->type=="sh")
+      dynamic_cast<sutra_wfs_sh*>(sensors_handler->d_wfs.at(nsensor))->fill_binimage(1);
+
     sensors_handler->d_wfs.at(nsensor)->image_telemetry->fill_into(data);
   }
   if (strcmp(type_data, "phasetele") == 0) {

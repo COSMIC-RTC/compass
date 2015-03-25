@@ -19,8 +19,6 @@ public:
   carma_obj<int> *d_istart; // nxsub 
   carma_obj<int> *d_jstart; // nxsub
 
-  int offset;
-
 public:
   sutra_wfs_sh(carma_context *context,sutra_sensors *sensors, long nxsub, long nvalid,
       long npix, long nphase, long nrebin, long nfft, long ntot, long npup,
@@ -36,7 +34,7 @@ public:
       float *pupil, float *fluxPerSub, int *isvalid, int *validsubsx,
       int *validsubsy, int *istart, int *jstart, cuFloatComplex *kernel);
   int
-  fill_binimage();
+  fill_binimage(int async);
 
   int
   slopes_geom(int type, float *slopes);
@@ -44,8 +42,6 @@ public:
   slopes_geom(int type);
   int
   comp_image();
-  int
-  comp_image_tele();
 
 private:
   int

@@ -54,11 +54,23 @@ sutra_wfs_sh::sutra_wfs_sh(carma_context *context, sutra_sensors *sensors, long 
 
   this->offset = 0;
 
+  /// MPI stuff
+  this->offset = 0;
+  this->nvalid_tot = nvalid;
+  this->rank = 0;
+
+
 }
 
 int sutra_wfs_sh::define_mpi_rank(int rank, int size){
-  nvalid = nvalid/size;
-  offset = rank*nvalid;
+  int r = this->nvalid%size;
+  if(rank<r){
+    this->nvalid = this->nvalid/size + 1;
+    this->offset = rank*this->nvalid;
+  } else {
+    this->nvalid = this->nvalid/size;
+    this->offset = rank*this->nvalid +r;
+  }
   return EXIT_SUCCESS;
 }
 
@@ -73,9 +85,11 @@ int sutra_wfs_sh::allocate_buffers(sutra_sensors *sensors) {
   dims_data2[1] = npix * nxsub;
   dims_data2[2] = npix * nxsub;
 
-  this->d_binimg = new carma_obj<float>(current_context, dims_data2);
-  // using 1 stream for telemetry
-  this->image_telemetry = new carma_host_obj<float>(dims_data2, MA_PAGELOCK, 1);
+  if(rank==0) {
+    this->d_binimg = new carma_obj<float>(current_context, dims_data2);
+    // using 1 stream for telemetry
+    this->image_telemetry = new carma_host_obj<float>(dims_data2, MA_PAGELOCK, 1);
+  }
 
   dims_data3[1] = nfft;
   dims_data3[2] = nfft;
@@ -112,6 +126,8 @@ int sutra_wfs_sh::allocate_buffers(sutra_sensors *sensors) {
 
   dims_data3[1] = npix;
   dims_data3[2] = npix;
+  if(rank==0)
+    dims_data3[3] = nvalid_tot;
 
   this->d_bincube = new carma_obj<float>(current_context, dims_data3);
 
@@ -338,7 +354,7 @@ int sutra_wfs_sh::comp_generic() {
       this->d_validsubsy->getData(), this->nphase,
       this->d_gs->d_phase->d_screen->getDims(1), this->nfft,
       this->nphase * this->nphase * this->nvalid,
-      this->current_context->get_device(device));
+      this->current_context->get_device(device), this->offset);
   // do fft of the cube  
   carma_fft(this->d_camplipup->getData(), this->d_camplifoc->getData(), 1,
       *this->campli_plan);//*this->d_camplipup->getPlan());
@@ -535,16 +551,27 @@ int sutra_wfs_sh::comp_generic() {
 // a pyramid wfs. The pyramid can also be explicitely asked for, or
 // a roof prism can be asked for as well.
 
-int sutra_wfs_sh::fill_binimage() {
+int sutra_wfs_sh::fill_binimage(int async=0) {
   if(this->d_binimg == NULL) {
     DEBUG_TRACE("ERROR : d_bincube not initialized, did you do the allocate_buffers?");
     throw "ERROR : d_bincube not initialized, did you do the allocate_buffers?";
   }
+  if (noise > 0)
+    this->d_binimg->prng('N', this->noise);
+
   current_context->set_activeDevice(device,1);
-  fillbinimg(this->d_binimg->getData(), this->d_bincube->getData(),
-      this->npix, this->nvalid, this->npix * this->nxsub,
-      this->d_validsubsx->getData(), this->d_validsubsy->getData(),
-      0, this->current_context->get_device(device));
+  if(async){
+    fillbinimg_async(this->image_telemetry, this->d_binimg->getData(),
+        this->d_bincube->getData(), this->npix, this->nvalid,
+        this->npix * this->nxsub, this->d_validsubsx->getData(),
+        this->d_validsubsy->getData(), this->d_binimg->getNbElem(), false,
+        this->current_context->get_device(device));
+  } else {
+    fillbinimg(this->d_binimg->getData(), this->d_bincube->getData(),
+        this->npix, this->nvalid, this->npix * this->nxsub,
+        this->d_validsubsx->getData(), this->d_validsubsy->getData(),
+        0, this->current_context->get_device(device));
+  }
   return EXIT_SUCCESS;
 }
 
@@ -552,34 +579,6 @@ int sutra_wfs_sh::comp_image() {
   current_context->set_activeDevice(device,1);
 
   int result = comp_generic();
-
-  if (noise > 0)
-    this->d_binimg->prng('N', this->noise);
-
-  if (result == EXIT_SUCCESS)
-    fillbinimg(this->d_binimg->getData(), this->d_bincube->getData(),
-               this->npix, this->nvalid, this->npix * this->nxsub,
-               this->d_validsubsx->getData(), this->d_validsubsy->getData(),
-               0/*(this->noise > 0)*/,
-               this->current_context->get_device(device));
-
-  return result;
-}
-
-int sutra_wfs_sh::comp_image_tele() {
-  current_context->set_activeDevice(device,1);
-
-  int result = comp_generic();
-
-  if (noise > 0)
-    this->d_binimg->prng('N', this->noise);
-
-  if (result == EXIT_SUCCESS)
-    fillbinimg_async(this->image_telemetry, this->d_binimg->getData(),
-        this->d_bincube->getData(), this->npix, this->nvalid,
-        this->npix * this->nxsub, this->d_validsubsx->getData(),
-        this->d_validsubsy->getData(), this->d_binimg->getNbElem(), false,
-        this->current_context->get_device(device));
 
   return result;
 }

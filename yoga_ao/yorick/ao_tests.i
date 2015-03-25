@@ -1206,11 +1206,7 @@ func script_modopti(Gmin,Gmax,N)
           sensors_trace,g_wfs,i-1,"dm",g_dm,0;
         }
 
-	if(y_wfs(i).type=="cog") {
-	  sensors_compimg_tele,g_wfs,i-1;
-	} else {
-	  sensors_compimg,g_wfs,i-1;
-	}
+     	sensors_compimg,g_wfs,i-1;
       }     
     }
 

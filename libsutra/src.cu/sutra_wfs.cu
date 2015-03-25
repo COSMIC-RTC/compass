@@ -5,8 +5,8 @@
 __global__ void camplipup_krnl(cuFloatComplex *amplipup, float *phase,
     float *offset, float *mask, float scale, int *istart, int *jstart,
     int *ivalid, int *jvalid, int nphase, int nphase2, int npup, int Nfft,
-    int N) {
-  int tid = threadIdx.x + blockIdx.x * blockDim.x;
+    int N, int offset_phase) {
+  int tid = threadIdx.x + blockIdx.x * blockDim.x;// + offset_phase;
 
   while (tid < N) {
     int nim = tid / nphase2;
@@ -31,7 +31,7 @@ __global__ void camplipup_krnl(cuFloatComplex *amplipup, float *phase,
 
 int fillcamplipup(cuFloatComplex *amplipup, float *phase, float *offset,
     float *mask, float scale, int *istart, int *jstart, int *ivalid,
-    int *jvalid, int nphase, int npup, int Nfft, int Ntot, carma_device *device)
+    int *jvalid, int nphase, int npup, int Nfft, int Ntot, carma_device *device, int offset_phase=0)
 // here amplipup is a cube of data of size nfft x nfft x nsubap
 // phase is an array of size pupdiam x pupdiam
 // offset is an array of size pdiam x pdiam
@@ -58,8 +58,8 @@ int fillcamplipup(cuFloatComplex *amplipup, float *phase, float *offset,
   int nphase2 = nphase * nphase;
 
   camplipup_krnl<<<grid, threads>>>(amplipup, phase, offset, mask, scale,
-      istart, jstart, ivalid, jvalid, nphase, nphase2, npup, Nfft, Ntot);
-  carmaCheckMsg("fillcamplipup_kernel<<<>>> execution failed\n");
+      istart, jstart, ivalid, jvalid, nphase, nphase2, npup, Nfft, Ntot, offset_phase);
+  carmaCheckMsg("camplipup_krnl<<<>>> execution failed\n");
 
   return EXIT_SUCCESS;
 }

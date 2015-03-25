@@ -426,17 +426,6 @@ extern sensors_compimg;
    SEE ALSO:
  */
 
-extern sensors_compimg_tele;
-/* DOCUMENT sensors_compimg_tele
-   sensors_compimg_tele,yoga_sensors_obj,nsensor
-     
-   image computation for a given sensor in a ySensors object
-   yoga_sensors_obj : the ySensors object
-   nsensor          : index of given wfs
-
-   SEE ALSO:
- */
-
 extern slopes_geom;
 /* DOCUMENT slopes_geom
    slopes_geom,yoga_sensors_obj,nsensor,lambOverD

@@ -348,11 +348,7 @@ func ao_loop(one)
         }
 	
         
-        if ((enable_display == 1) && (aodisp_type == "Image - WFS") &&
-            (i == aodisp_num + 1) && (y_wfs(i).type == "sh")) {
-            sensors_compimg_tele,g_wfs,i-1;
-        } else sensors_compimg,g_wfs,i-1;      
-        //sensors_compimg,g_wfs,i-1;
+        sensors_compimg,g_wfs,i-1;      
       }      
     }
     

@@ -1130,12 +1130,8 @@ func openLoopSlp(nrec,nctrl){
       for (ww=1;ww<=numberof(y_wfs);ww++) {
 	sensors_trace,g_wfs,ww-1,"atmos",g_atmos;
 
-	if(y_wfs(i).type=="cog") {
-	  sensors_compimg_tele,g_wfs,ww-1;
-	} else {
-	  sensors_compimg,g_wfs,ww-1;
-	}
-
+	sensors_compimg,g_wfs,ww-1;
+	
 	sensors_compslopes,g_rtc,nctrl-1;
 	ol_slopes((ww-1)*y_wfs(ww)._nvalid*2+1:ww*y_wfs(ww)._nvalid*2,sc) = sensors_getslopes(g_wfs,ww-1);
       }

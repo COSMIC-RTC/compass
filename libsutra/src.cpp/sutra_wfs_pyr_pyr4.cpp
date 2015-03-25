@@ -140,9 +140,3 @@ int sutra_wfs_pyr_pyr4::comp_image() {
   int result = comp_generic();
   return result;
 }
-
-int sutra_wfs_pyr_pyr4::comp_image_tele() {
-  current_context->set_activeDevice(device,1);
-    DEBUG_TRACE("unknown wfs type : %s\n", this->type.c_str());
-  return EXIT_FAILURE;
-}
