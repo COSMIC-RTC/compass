@@ -204,7 +204,7 @@ void sutra_rtc_brama::publish() {
   int ncmd = 0;
   for (unsigned int i = 0; i < d_control.size(); i++) {
     d_control[i]->d_centroids->device2host(buff_slopes_servant + nslp);
-    d_control[i]->d_com->device2host(buff_commands_servant + ncmd);
+    d_control[i]->d_voltage->device2host(buff_commands_servant + ncmd);
     nslp += d_control[i]->nslope();
     ncmd += d_control[i]->nactu();
   }
