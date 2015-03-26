@@ -1,9 +1,9 @@
 require,"yoga_aolib.i";
 require,"util_fr.i";
 
-func yoga_atmos_create(nscreen,r0,L0,pupixsize,screen_size,frac,alt,windspeed,winddir,deltax,deltay,pupil)
+func yoga_atmos_create(nscreen,r0,L0,pupixsize,screen_size,frac,alt,windspeed,winddir,deltax,deltay)
 /* DOCUMENT yoga_atmos_create
-   g_atmos = yoga_atmos_create(nscreen,r0,L0,pupixsize,screen_size,frac,alt,windspeed,winddir,deltax,deltay,pupil)
+   g_atmos = yoga_atmos_create(nscreen,r0,L0,pupixsize,screen_size,frac,alt,windspeed,winddir,deltax,deltay)
 
    creates an extrude ready yAtmos object on the gpu with all proper inits
    nscreen     : number of screens
@@ -17,7 +17,6 @@ func yoga_atmos_create(nscreen,r0,L0,pupixsize,screen_size,frac,alt,windspeed,wi
    wdir     : array of wind directions per layers
    deltax   : array of x displacement per iteration (one per layers)
    deltay   : array of y displacement per iteration (one per layers)
-   pupil    : array containing the pupil
 
    SEE ALSO:
  */
@@ -70,7 +69,7 @@ func yoga_atmos_create(nscreen,r0,L0,pupixsize,screen_size,frac,alt,windspeed,wi
   // get fraction of r0 for corresponding layer
   r0 = r0  / frac^(3./5.);
   // create atmos object on gpu
-  atmos_obj = yoga_atmos(int(nscreen),float(r0),long(screen_size),long(size2),float(alt),float(windspeed),float(winddir),float(deltax),float(deltay),float(pupil));
+  atmos_obj = yoga_atmos(int(nscreen),float(r0),long(screen_size),long(size2),float(alt),float(windspeed),float(winddir),float(deltax),float(deltay));
 
   // fill gpu screen object with data
   for (i=1;i<=nscreen;i++) {

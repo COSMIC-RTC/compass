@@ -230,7 +230,7 @@ int sutra_tscreen::extrude(int dir){
 
 sutra_atmos::sutra_atmos(carma_context *context, int nscreens, float *r0,
     long *size, long *size2, float *altitude, float *windspeed, float *winddir,
-    float *deltax, float *deltay, float *pupil, int device) {
+    float *deltax, float *deltay, int device) {
   this->nscreens = nscreens;
   //this->r0       = r0;
   this->current_context = context;
@@ -242,17 +242,6 @@ sutra_atmos::sutra_atmos(carma_context *context, int nscreens, float *r0,
             new sutra_tscreen(context, size[i], size2[i], r0[i], altitude[i],
                 windspeed[i], winddir[i], deltax[i], deltay[i], device)));
   }
-
-  if (d_screens.find(0.0f) != d_screens.end()) {
-    long msize = d_screens[0.0f]->screen_size;
-    long *dims_data2 = new long[3];
-    dims_data2[0] = 2;
-    dims_data2[1] = msize;
-    dims_data2[2] = msize;
-    this->d_pupil = new carma_obj<float>(context, dims_data2);
-    this->d_pupil->host2device(pupil);
-  } else
-    cout << "Could not find 0km altitude screen" << endl;
 
 }
 

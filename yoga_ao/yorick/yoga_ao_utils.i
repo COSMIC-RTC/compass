@@ -606,19 +606,19 @@ func make_VLT(dim,pupd,cobs,t_spiders)
 // EELT pupil building ; to be called by main pupil building routine (make_pupil).
 func make_EELT(dim,pupd,type_ap,cobs,N_seg,nbr_miss_seg,std_ref_err,t_spiders,angle)
 {
-    if (fileExist(swrite(format="/root/compass/trunk/yoga_ao/data/apertures/"+"%s_N%d_COBS%d_CLOCKED%d_TSPIDERS%2.1f_MS%d_REFERR%d.fits",type_ap,dim,long(100*cobs),long(angle),100*t_spiders,nbr_miss_seg,long(100*std_ref_err))))
+    if (fileExist(swrite(format=YOGA_AO_SAVEPATH+"apertures/"+"%s_N%d_COBS%d_CLOCKED%d_TSPIDERS%2.1f_MS%d_REFERR%d.fits",type_ap,dim,long(100*cobs),long(angle),100*t_spiders,nbr_miss_seg,long(100*std_ref_err))))
     {
     
-        pup = fits_read(swrite(format="/root/compass/trunk/yoga_ao/data/apertures/"+"%s_N%d_COBS%d_CLOCKED%d_TSPIDERS%2.1f_MS%d_REFERR%d.fits",type_ap,dim,long(100*cobs),long(angle),100*t_spiders,nbr_miss_seg,long(100*std_ref_err)));
+        pup = fits_read(swrite(format=YOGA_AO_SAVEPATH+"apertures/"+"%s_N%d_COBS%d_CLOCKED%d_TSPIDERS%2.1f_MS%d_REFERR%d.fits",type_ap,dim,long(100*cobs),long(angle),100*t_spiders,nbr_miss_seg,long(100*std_ref_err)));
     
     } else {
     
-        f=open("/root/compass/trunk/yoga_ao/data/apertures/Coord_"+type_ap+".dat","r");
+        f=open(YOGA_AO_SAVEPATH+"apertures/Coord_"+type_ap+".dat","r");
         x_seg= y_seg= array(0.0,N_seg);
         read, f, x_seg, y_seg;
         close, f;
         
-        f2=open("/root/compass/trunk/yoga_ao/data/apertures/EELT_MISSING_"+type_ap+".dat","r");
+        f2=open(YOGA_AO_SAVEPATH+"apertures/EELT_MISSING_"+type_ap+".dat","r");
         k_seg = array(0.0,1,20);
         read, f2, k_seg;
         close, f2;
@@ -632,7 +632,7 @@ func make_EELT(dim,pupd,type_ap,cobs,N_seg,nbr_miss_seg,std_ref_err,t_spiders,an
         if (nbr_miss_seg>0) k_seg=k_seg(1:nbr_miss_seg);
         k_seg=int(k_seg(sort(k_seg)));
         
-        f3=open("/root/compass/trunk/yoga_ao/data/apertures/EELT_REF_ERROR.dat","r");
+        f3=open(YOGA_AO_SAVEPATH+"apertures/EELT_REF_ERROR.dat","r");
         ref_err = array(0.0,798);
         read, f3, ref_err;
         close, f3;
@@ -658,7 +658,7 @@ func make_EELT(dim,pupd,type_ap,cobs,N_seg,nbr_miss_seg,std_ref_err,t_spiders,an
         if (angle != 0) pup=rotate2(pup,angle);
         "EELT pupil has been created.";
         
-        fits_write, swrite(format="/root/compass/trunk/yoga_ao/data/apertures/"+"%s_N%d_COBS%d_CLOCKED%d_TSPIDERS%2.1f_MS%d_REFERR%d.fits",type_ap,dim,long(100*cobs),long(angle),100*t_spiders_ori,nbr_miss_seg,long(100*std_ref_err)), pup, overwrite=1;
+        fits_write, swrite(format=YOGA_AO_SAVEPATH+"apertures/"+"%s_N%d_COBS%d_CLOCKED%d_TSPIDERS%2.1f_MS%d_REFERR%d.fits",type_ap,dim,long(100*cobs),long(angle),100*t_spiders_ori,nbr_miss_seg,long(100*std_ref_err)), pup, overwrite=1;
         "New aperture saved";
         
     }

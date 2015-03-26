@@ -68,10 +68,6 @@ public:
   set_delay(int delay);
   int
   init_modalOpti(int nmodes, int nrec, float *M2V, float gmin, float gmax, int ngain, float Fs);
-  /*
-  int
-  init_OpenLoopSlp(sutra_atmos *atmos, sutra_target *target, sutra_sensors *sensors, sutra_rtc *rtc);
-  */
   int
   loadOpenLoopSlp(float *ol_slopes);
   int

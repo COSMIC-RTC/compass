@@ -201,12 +201,10 @@ void Y_yoga_atmos(int argc) {
     if (ntot != nscreens)
       y_error("wrong dimension for screens deltay");
 
-    float *pupil;
-    pupil = ygeta_f(argc - 10, &ntot, dims);
     //if (ntot != nscreens) y_error("wrong dimension for screens speed");
 
-    if (argc > 10)
-      odevice = ygets_i(argc - 11);
+    if (argc > 9)
+      odevice = ygets_i(argc - 10);
     activeDevice = context_handle->set_activeDevice(odevice,1);
 
     atmos_struct *handle = (atmos_struct *) ypush_obj(&yAtmos,
@@ -216,7 +214,7 @@ void Y_yoga_atmos(int argc) {
     handle->sutra_atmos = new sutra_atmos(context_handle, nscreens,
         (float *) r0, (long *) size, (long *) size2, (float *) alt,
         (float *) wspeed, (float *) wdir, (float *) deltax, (float *) deltay,
-        (float *) pupil, odevice);
+        odevice);
 
   } catch (string &msg) {
     y_error(msg.c_str());
@@ -227,23 +225,6 @@ void Y_yoga_atmos(int argc) {
     buf << "unknown error with sutra_atmos construction in " << __FILE__ << "@"
         << __LINE__ << endl;
     y_error(buf.str().c_str());
-  }
-}
-
-void Y_get_spupil(int argc) {
-
-  if (yarg_subroutine())
-    y_error("can only be called as a function");
-  else {
-    atmos_struct *handle = (atmos_struct *) yget_obj(argc - 1, &yAtmos);
-    carma_context *context_handle = _getCurrentContext();
-    context_handle->set_activeDeviceForCpy(handle->device,1);
-    sutra_atmos *atmos_handler = (sutra_atmos *) handle->sutra_atmos;
-    if (atmos_handler->d_screens.find(0.0f) != atmos_handler->d_screens.end()) {
-      caObjS *carma_obj_handler = (caObjS *) (atmos_handler->d_pupil);
-      float *data = ypush_f((long*) carma_obj_handler->getDims());
-      carma_obj_handler->device2host(data);
-    }
   }
 }
 
@@ -582,8 +563,11 @@ void Y_yoga_target(int argc) {
     float *pup;
     pup = ygeta_f(argc - 7, &ntot, dims);
 
-    if (argc > 7)
-      odevice = ygets_i(argc - 8);
+    int Npts;
+    Npts = ygets_i(argc - 8);
+
+    if (argc > 8)
+      odevice = ygets_i(argc - 9);
     context_handle->set_activeDevice(odevice,1);
 
     target_struct *handle = (target_struct *) ypush_obj(&yTarget,
@@ -591,7 +575,7 @@ void Y_yoga_target(int argc) {
     handle->device = odevice;
 
     handle->sutra_target = new sutra_target(context_handle, ntargets, xpos,
-        ypos, lambda, mag, sizes, pup, odevice);
+        ypos, lambda, mag, sizes, pup, Npts, odevice);
 
   } catch (string &msg) {
     y_error(msg.c_str());

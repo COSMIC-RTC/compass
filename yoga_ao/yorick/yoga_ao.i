@@ -109,7 +109,7 @@ func geom_init(pupdiam)
   */
   if (y_target.apod==1)
     {
-      apodizer = float(make_apodizer(y_geom.pupdiam,y_geom.pupdiam,"/root/compass/trunk/yoga_ao/data/apodizer/SP_HARMONI_I4_C6_N1024.fits",180/12.));
+      apodizer = float(make_apodizer(y_geom.pupdiam,y_geom.pupdiam,YOGA_AO_SAVEPATH+"apodizer/SP_HARMONI_I4_C6_N1024.fits",180/12.));
       y_geom._apodizer = &apodizer;
     }
     
@@ -188,7 +188,7 @@ func atmos_init(void)
   // create atmos object on the gpu
   g_atmos = yoga_atmos_create(y_atmos.nscreens,y_atmos.r0,*y_atmos.L0,y_atmos.pupixsize,*y_atmos.dim_screens,
                               *y_atmos.frac,*y_atmos.alt,*y_atmos.windspeed,*y_atmos.winddir,
-                              *y_atmos.deltax,*y_atmos.deltay,*y_geom._spupil);
+                              *y_atmos.deltax,*y_atmos.deltay);
 
 }
 
@@ -355,19 +355,15 @@ func target_init(void)
     // ATTEMPT AT MAKING IT POSSIBLE TO WORK WITH NON BINARY PUPILS
     // switching *y_geom._spupil and *y_geom._apodizer with ceil(*y_geom._spupil) and ceil(*y_geom._apodizer)
       
-    ceiled_pupil=ceil(*y_geom._spupil);
-    if (anyof(ceiled_pupil>1)) ceiled_pupil(where(ceiled_pupil>1))=1;
-      
     if (y_target.apod != []) {
       if (y_target.apod == 1) {
-        ceiled_apodizer=ceil(*y_geom._apodizer * *y_geom._spupil);
-        if (anyof(ceiled_apodizer>1)) ceiled_apodizer(where(ceiled_apodizer>1))=1;
-        g_target = yoga_target(y_target.ntargets,*y_target.xpos,*y_target.ypos,*y_target.lambda,*y_target.mag,sizes,ceiled_apodizer);
+        apodizer=*y_geom._apodizer * *y_geom._spupil;
+        g_target = yoga_target(y_target.ntargets,*y_target.xpos,*y_target.ypos,*y_target.lambda,*y_target.mag,sizes,apodizer,numberof(where(apodizer > 0)));
       } else {
-        g_target = yoga_target(y_target.ntargets,*y_target.xpos,*y_target.ypos,*y_target.lambda,*y_target.mag,sizes,ceiled_pupil);
+        g_target = yoga_target(y_target.ntargets,*y_target.xpos,*y_target.ypos,*y_target.lambda,*y_target.mag,sizes,*y_geom._spupil,numberof(where(*y_geom._spupil > 0)));
       }
     } else {
-      g_target = yoga_target(y_target.ntargets,*y_target.xpos,*y_target.ypos,*y_target.lambda,*y_target.mag,sizes,ceiled_pupil);
+      g_target = yoga_target(y_target.ntargets,*y_target.xpos,*y_target.ypos,*y_target.lambda,*y_target.mag,sizes,*y_geom._spupil,numberof(where(*y_geom._spupil > 0)));
     }
       
     //g_target = yoga_target(y_target.ntargets,*y_target.xpos,*y_target.ypos,*y_target.lambda,*y_target.mag,sizes,*y_geom._apodizer);

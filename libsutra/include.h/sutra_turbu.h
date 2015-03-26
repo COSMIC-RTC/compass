@@ -61,13 +61,12 @@ public:
   int nscreens;
   map<float, sutra_tscreen *> d_screens;
   float r0;
-  carma_obj<float> *d_pupil;
   carma_context *current_context;
 
 public:
   sutra_atmos(carma_context *context, int nscreens, float *r0, long *size,
       long *size2, float *altitude, float *windspeed, float *winddir,
-      float *deltax, float *deltay, float *pupil, int device);
+      float *deltax, float *deltay, int device);
   ~sutra_atmos();
 
   int

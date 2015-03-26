@@ -119,8 +119,6 @@ atmos_print(void *obj);
 
 void
 Y_yoga_atmos(int argc);
-void
-Y_get_spupil(int argc);
 
 /* _   ____
  *| |_/ ___|  ___ _ __ ___  ___ _ __

@@ -21,7 +21,7 @@ require,"yoga.i";
 // atmosphere model
 extern yoga_atmos;
 /* DOCUMENT yoga_atmos
-   obj = yoga_atmos(nscreens,r0,size,size2,alt,wspeed,wdir,deltax,deltay,pupil[,ndevice])
+   obj = yoga_atmos(nscreens,r0,size,size2,alt,wspeed,wdir,deltax,deltay,ndevice])
 
    creates an yAtmos object on the gpu
    nscreens : # of layers
@@ -33,7 +33,6 @@ extern yoga_atmos;
    wdir     : array of wind directions per layers
    deltax   : array of x displacement per iteration (one per layers)
    deltay   : array of y displacement per iteration (one per layers)
-   pupil    : array containing the pupil
    
    SEE ALSO:
  */
@@ -70,15 +69,6 @@ extern set_tscreen;
    yoga_atmos_obj : the yAtmos object
    altitude       : the altitude of the given screen
    screen         : the screen you want to put (!!! must be a float !!!)
-   
-   SEE ALSO:
- */
-extern get_spupil;
-/* DOCUMENT get_spupil
-   pup = get_spupil(yoga_atmos_obj)
-     
-   returns the pupil in an yAtmos object
-   yoga_atmos_obj : the yAtmos object
    
    SEE ALSO:
  */

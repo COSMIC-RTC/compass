@@ -32,7 +32,7 @@ int fft_goodsize(long size) {
 }
 
 sutra_source::sutra_source(carma_context *context, float xpos, float ypos,
-    float lambda, float mag, long size, string type, float *pupil, int device) {
+    float lambda, float mag, long size, string type, float *pupil, int Npts, int device) {
   this->current_context=context;
   this->device=device;
   current_context->set_activeDevice(device,1);
@@ -41,14 +41,14 @@ sutra_source::sutra_source(carma_context *context, float xpos, float ypos,
   this->d_pupil = new carma_obj<float>(this->current_context,
       this->d_phase->d_screen->getDims());
   this->d_pupil->host2device(pupil);
-  long sumpup = (long) this->d_pupil->asum(1);
+
   long *dims_data1 = new long[2];
   dims_data1[0] = 1;
-  dims_data1[1] = pow(2, (long) (logf(sumpup) / logf(2)) + 1);
+  dims_data1[1] = pow(2, (long) (logf(Npts) / logf(2)) + 1);
   this->d_phasepts = new carma_obj<float>(this->current_context, dims_data1);
-  dims_data1[1] = sumpup;
+  dims_data1[1] = Npts;
   this->d_wherephase = new carma_obj<int>(this->current_context, dims_data1);
-  int *wherephase = new int[sumpup];
+  int *wherephase = new int[Npts];
   int cpt = 0;
   for (int cc = 0; cc < this->d_pupil->getNbElem(); cc++) {
     if (pupil[cc] > 0) {
@@ -459,7 +459,7 @@ int sutra_source::comp_strehl() {
 }
 
 sutra_target::sutra_target(carma_context *context, int ntargets, float *xpos,
-    float *ypos, float *lambda, float *mag, long *sizes, float *pupil,
+    float *ypos, float *lambda, float *mag, long *sizes, float *pupil, int Npts,
     int device) {
 
   this->ntargets = ntargets;
@@ -467,7 +467,7 @@ sutra_target::sutra_target(carma_context *context, int ntargets, float *xpos,
   for (int i = 0; i < ntargets; i++) {
     d_targets.push_back(
         new sutra_source(context, xpos[i], ypos[i], lambda[i], mag[i], sizes[i],
-            "target", pupil, device));
+            "target", pupil, Npts, device));
   }
 }
 

@@ -449,29 +449,4 @@ int sutra_controller_ls::compute_Hcor(){
 
 	return EXIT_SUCCESS;
 }
-/*
-int sutra_controller_ls::init_OpenLoopSlp(sutra_atmos *atmos, sutra_target *target, sutra_sensors *sensors, sutra_rtc *rtc){
-	// Perform an open loop simulation to get open loop slopes
-	for (int i = 0 ; i < this->nrec ; i++){
-		atmos->move_atmos();
-		for (int j = 0 ; j < target->ntargets ; j++){
-			target->d_targets[j]->raytrace(atmos);
-		}
-		int indx_rec = 0;
-		for (int k = 0 ; k < sensors->nsensors() ; k++){
-			sensors->d_wfs[k]->sensor_trace(atmos);
-
-			sensors->d_wfs[k]->comp_image();
-		}
-
-		rtc->do_centroids(sensors);
-		for (int ii = 0 ; ii < sensors->nsensors() ; ii++){
-			sensors->d_wfs[ii]->d_slopes->copyInto(&(this->d_slpol)[indx_rec],2*sensors->d_wfs[ii]->nvalid);
-			indx_rec += 2*sensors->d_wfs[ii]->nvalid;
-		}
-
-	}
-	return EXIT_SUCCESS;
-}
-*/
 
