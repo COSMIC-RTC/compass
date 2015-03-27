@@ -19,7 +19,6 @@ sutra_wfs_pyr::sutra_wfs_pyr(carma_context *context, sutra_sensors *sensors, lon
   this->d_sincar = 0L;
   this->d_submask = 0L;
   this->d_hrmap = 0L;
-  this->d_isvalid = 0L;
   this->d_slopes = 0L;
   this->image_telemetry = 0L;
   this->d_phasemap = 0L;
@@ -134,10 +133,6 @@ sutra_wfs_pyr::sutra_wfs_pyr(carma_context *context, sutra_sensors *sensors, lon
   this->d_validsubsx = new carma_obj<int>(context, dims_data1);
   this->d_validsubsy = new carma_obj<int>(context, dims_data1);
 
-  dims_data2[1] = nxsub;
-  dims_data2[2] = nxsub;
-  this->d_isvalid = new carma_obj<int>(context, dims_data2);
-
   dims_data2[1] = nphase * nphase;
   dims_data2[2] = nvalid;
   this->d_phasemap = new carma_obj<int>(context, dims_data2);
@@ -177,8 +172,6 @@ sutra_wfs_pyr::~sutra_wfs_pyr() {
   if (this->d_hrmap != 0L)
     delete this->d_hrmap;
 
-  if (this->d_isvalid != 0L)
-    delete this->d_isvalid;
   if (this->d_slopes != 0L)
     delete this->d_slopes;
 
@@ -215,7 +208,7 @@ sutra_wfs_pyr::~sutra_wfs_pyr() {
 
 
 int sutra_wfs_pyr::wfs_initarrays(cuFloatComplex *halfxy, cuFloatComplex *offsets,
-    float *focmask, float *pupil, int *isvalid, int *cx, int *cy, float *sincar,
+    float *focmask, float *pupil, int *cx, int *cy, float *sincar,
     int *phasemap, int *validsubsx, int *validsubsy) {
   current_context->set_activeDevice(device,1);
   this->d_phalfxy->host2device(halfxy);
@@ -224,7 +217,6 @@ int sutra_wfs_pyr::wfs_initarrays(cuFloatComplex *halfxy, cuFloatComplex *offset
   this->d_pupil->host2device(pupil);
   this->pyr_cx->fill_from(cx);
   this->pyr_cy->fill_from(cy);
-  this->d_isvalid->host2device(isvalid);
   this->d_sincar->host2device(sincar);
   this->d_phasemap->host2device(phasemap);
   this->d_validsubsx->host2device(validsubsx);

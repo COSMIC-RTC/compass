@@ -47,7 +47,6 @@ class sutra_wfs {
     carma_obj<float> *d_sincar;
     carma_obj<int> *d_hrmap;
 
-    carma_obj<int> *d_isvalid; // nxsub x nxsub
     carma_obj<float> *d_slopes;
 
     carma_host_obj<float> *image_telemetry;

@@ -275,7 +275,7 @@ func wfs_init(void)
       else pup = *y_geom._mpupil;
       sensors_initarr,g_wfs,i-1,int(*y_wfs(i)._phasemap),int(*y_wfs(i)._hrmap),
         int(*y_wfs(i)._binmap),float(*y_wfs(i)._halfxy),float(pup),
-        (*y_wfs(i)._fluxPerSub)(where(*y_wfs(i)._isvalid)),int(*y_wfs(i)._isvalid),
+        (*y_wfs(i)._fluxPerSub)(where(*y_wfs(i)._isvalid)),
         int((*y_wfs(i)._validsubs)(1,)-1),int((*y_wfs(i)._validsubs)(2,)-1),int(*y_wfs(i)._istart+1),
         int(*y_wfs(i)._jstart+1),float(*y_wfs(i)._ftkernel);
     }
@@ -289,13 +289,13 @@ func wfs_init(void)
       tmp2(2,,) = (*y_wfs(i)._pyr_offsets).im;
       
       sensors_initarr,g_wfs,i-1,float(tmp),float(tmp2),float(*y_wfs(i)._submask),float(*y_geom._mpupil),
-        int(*y_wfs(i)._isvalid),int(*y_wfs(i)._pyr_cx),int(*y_wfs(i)._pyr_cy),float(*y_wfs(i)._hrmap),
+        int(*y_wfs(i)._pyr_cx),int(*y_wfs(i)._pyr_cy),float(*y_wfs(i)._hrmap),
         int(*y_wfs(i)._phasemap),int((*y_wfs(i)._validsubs)(1,)-1),int((*y_wfs(i)._validsubs)(2,)-1);
     }
     
     if (y_wfs(i).type == "geo")
       sensors_initarr,g_wfs,i-1,int(*y_wfs(i)._phasemap),float(*y_wfs(i)._halfxy),float(*y_geom._mpupil),
-        (*y_wfs(i)._fluxPerSub)(where(*y_wfs(i)._isvalid)),int(*y_wfs(i)._isvalid),
+        (*y_wfs(i)._fluxPerSub)(where(*y_wfs(i)._isvalid)),
         int((*y_wfs(i)._validsubs)(1,)-1),int((*y_wfs(i)._validsubs)(2,)-1);
   }
 

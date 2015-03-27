@@ -1173,16 +1173,15 @@ void Y_sensors_initarr(int argc) {
     float *offsets = ygeta_f(argc - 6, &ntot, dims);
     float *pupil = ygeta_f(argc - 7, &ntot, dims);
     float *fluxPerSub = ygeta_f(argc - 8, &ntot, dims);
-    int *isvalid = ygeta_i(argc - 9, &ntot, dims);
-    int *validsubsx = ygeta_i(argc - 10, &ntot, dims);
-    int *validsubsy = ygeta_i(argc - 11, &ntot, dims);
-    int *istart = ygeta_i(argc - 12, &ntot, dims);
-    int *jstart = ygeta_i(argc - 13, &ntot, dims);
-    float *kernel = ygeta_f(argc - 14, &ntot, dims);
+    int *validsubsx = ygeta_i(argc - 9, &ntot, dims);
+    int *validsubsy = ygeta_i(argc - 10, &ntot, dims);
+    int *istart = ygeta_i(argc - 11, &ntot, dims);
+    int *jstart = ygeta_i(argc - 12, &ntot, dims);
+    float *kernel = ygeta_f(argc - 13, &ntot, dims);
 
     sutra_wfs_sh *wfs = dynamic_cast<sutra_wfs_sh *>(sensors_handler->d_wfs.at(nsensor));
     wfs->wfs_initarrays(phasemap, hrmap, binmap,
-        offsets, pupil, fluxPerSub, isvalid, validsubsx, validsubsy, istart,
+        offsets, pupil, fluxPerSub, validsubsx, validsubsy, istart,
         jstart, (cuFloatComplex*) kernel);
   }
   if (type == "roof"){
@@ -1190,17 +1189,16 @@ void Y_sensors_initarr(int argc) {
     float *offsets = ygeta_f(argc - 4, &ntot, dims);
     float *focmask = ygeta_f(argc - 5, &ntot, dims);
     float *pupil = ygeta_f(argc - 6, &ntot, dims);
-    int *isvalid = ygeta_i(argc - 7, &ntot, dims);
-    int *cx = ygeta_i(argc - 8, &ntot, dims);
-    int *cy = ygeta_i(argc - 9, &ntot, dims);
-    float *sincar = ygeta_f(argc - 10, &ntot, dims);
-    int *phasemap = ygeta_i(argc - 11, &ntot, dims);
-    int *validx = ygeta_i(argc - 12, &ntot, dims);
-    int *validy = ygeta_i(argc - 13, &ntot, dims);
+    int *cx = ygeta_i(argc - 7, &ntot, dims);
+    int *cy = ygeta_i(argc - 8, &ntot, dims);
+    float *sincar = ygeta_f(argc - 9, &ntot, dims);
+    int *phasemap = ygeta_i(argc - 10, &ntot, dims);
+    int *validx = ygeta_i(argc - 11, &ntot, dims);
+    int *validy = ygeta_i(argc - 12, &ntot, dims);
 
     sutra_wfs_pyr_roof *wfs = dynamic_cast<sutra_wfs_pyr_roof *>(sensors_handler->d_wfs.at(nsensor));
     wfs->wfs_initarrays((cuFloatComplex*) halfxy,
-        (cuFloatComplex*) offsets, focmask, pupil, isvalid, cx, cy, sincar,
+        (cuFloatComplex*) offsets, focmask, pupil, cx, cy, sincar,
         phasemap, validx, validy);
   }
   if (type == "pyr"){
@@ -1208,17 +1206,16 @@ void Y_sensors_initarr(int argc) {
     float *offsets = ygeta_f(argc - 4, &ntot, dims);
     float *focmask = ygeta_f(argc - 5, &ntot, dims);
     float *pupil = ygeta_f(argc - 6, &ntot, dims);
-    int *isvalid = ygeta_i(argc - 7, &ntot, dims);
-    int *cx = ygeta_i(argc - 8, &ntot, dims);
-    int *cy = ygeta_i(argc - 9, &ntot, dims);
-    float *sincar = ygeta_f(argc - 10, &ntot, dims);
-    int *phasemap = ygeta_i(argc - 11, &ntot, dims);
-    int *validx = ygeta_i(argc - 12, &ntot, dims);
-    int *validy = ygeta_i(argc - 13, &ntot, dims);
+    int *cx = ygeta_i(argc - 7, &ntot, dims);
+    int *cy = ygeta_i(argc - 8, &ntot, dims);
+    float *sincar = ygeta_f(argc - 9, &ntot, dims);
+    int *phasemap = ygeta_i(argc - 10, &ntot, dims);
+    int *validx = ygeta_i(argc - 11, &ntot, dims);
+    int *validy = ygeta_i(argc - 12, &ntot, dims);
 
     sutra_wfs_pyr_pyr4 *wfs = dynamic_cast<sutra_wfs_pyr_pyr4 *>(sensors_handler->d_wfs.at(nsensor));
     wfs->wfs_initarrays((cuFloatComplex*) halfxy,
-        (cuFloatComplex*) offsets, focmask, pupil, isvalid, cx, cy, sincar,
+        (cuFloatComplex*) offsets, focmask, pupil, cx, cy, sincar,
         phasemap, validx, validy);
   }
   if (sensors_handler->d_wfs.at(nsensor)->type == "geo") {
@@ -1226,13 +1223,12 @@ void Y_sensors_initarr(int argc) {
     float *offsets = ygeta_f(argc - 4, &ntot, dims);
     float *pupil = ygeta_f(argc - 5, &ntot, dims);
     float *fluxPerSub = ygeta_f(argc - 6, &ntot, dims);
-    int *isvalid = ygeta_i(argc - 7, &ntot, dims);
-    int *validsubsx = ygeta_i(argc - 8, &ntot, dims);
-    int *validsubsy = ygeta_i(argc - 9, &ntot, dims);
+    int *validsubsx = ygeta_i(argc - 7, &ntot, dims);
+    int *validsubsy = ygeta_i(argc - 8, &ntot, dims);
 
     sutra_wfs_geom *wfs = dynamic_cast<sutra_wfs_geom *>(sensors_handler->d_wfs.at(nsensor));
     wfs->wfs_initarrays(phasemap, offsets, pupil,
-        fluxPerSub, isvalid, validsubsx, validsubsy);
+        fluxPerSub, validsubsx, validsubsy);
   }
 }
 

@@ -20,7 +20,6 @@ sutra_wfs_geom::sutra_wfs_geom(carma_context *context, long nxsub, long nvalid,
   this->d_fluxPerSub = 0L;
   this->d_sincar = 0L;
   this->d_hrmap = 0L;
-  this->d_isvalid = 0L;
   this->d_slopes = 0L;
   this->image_telemetry = 0L;
   this->d_phasemap = 0L;
@@ -79,10 +78,6 @@ sutra_wfs_geom::sutra_wfs_geom(carma_context *context, long nxsub, long nvalid,
   this->d_validsubsx = new carma_obj<int>(context, dims_data1);
   this->d_validsubsy = new carma_obj<int>(context, dims_data1);
 
-  dims_data2[1] = nxsub;
-  dims_data2[2] = nxsub;
-  this->d_isvalid = new carma_obj<int>(context, dims_data2);
-
   dims_data2[1] = nphase * nphase;
   dims_data2[2] = nvalid;
   this->d_phasemap = new carma_obj<int>(context, dims_data2);
@@ -118,8 +113,6 @@ sutra_wfs_geom::~sutra_wfs_geom() {
   if (this->d_hrmap != 0L)
     delete this->d_hrmap;
 
-  if (this->d_isvalid != 0L)
-    delete this->d_isvalid;
   if (this->d_slopes != 0L)
     delete this->d_slopes;
 
@@ -144,7 +137,7 @@ sutra_wfs_geom::~sutra_wfs_geom() {
 }
 
 int sutra_wfs_geom::wfs_initarrays(int *phasemap, float *offsets, float *pupil,
-    float *fluxPerSub, int *isvalid, int *validsubsx, int *validsubsy) {
+    float *fluxPerSub,int *validsubsx, int *validsubsy) {
   current_context->set_activeDevice(device,1);
   this->d_phasemap->host2device(phasemap);
   this->d_offsets->host2device(offsets);
@@ -152,7 +145,6 @@ int sutra_wfs_geom::wfs_initarrays(int *phasemap, float *offsets, float *pupil,
   this->d_fluxPerSub->host2device(fluxPerSub);
   this->d_validsubsx->host2device(validsubsx);
   this->d_validsubsy->host2device(validsubsy);
-  this->d_isvalid->host2device(isvalid);
 
   return EXIT_SUCCESS;
 }

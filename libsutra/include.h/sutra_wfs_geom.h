@@ -23,7 +23,7 @@ public:
 
   int
   wfs_initarrays(int *phasemap, float *offsets, float *pupil, float *fluxPerSub,
-      int *isvalid, int *validsubsx, int *validsubsy);
+      int *validsubsx, int *validsubsy);
   int
   slopes_geom(int type, float *slopes);
   int

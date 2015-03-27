@@ -386,7 +386,6 @@ extern sensors_initarr;
    offsets          : array of pixels offsets for subaps phase screens
    pupil            : the pupil array
    fluxpersub       : array of flux per subaperture
-   isvalid          : array nxsub x nxsub of 0/1 for valid subaps
    validsubsx       : array nvalid x coordinates of valid subs in a nxsub x nxsub array
    validsubsy       : array nvalid y coordinates of valid subs in a nxsub x nxsub array
    istart           : i index of first phase elem of subap

@@ -6,7 +6,7 @@ __global__ void camplipup_krnl(cuFloatComplex *amplipup, float *phase,
     float *offset, float *mask, float scale, int *istart, int *jstart,
     int *ivalid, int *jvalid, int nphase, int nphase2, int npup, int Nfft,
     int N, int offset_phase) {
-  int tid = threadIdx.x + blockIdx.x * blockDim.x;// + offset_phase;
+  int tid = threadIdx.x + blockIdx.x * blockDim.x + offset_phase;
 
   while (tid < N) {
     int nim = tid / nphase2;

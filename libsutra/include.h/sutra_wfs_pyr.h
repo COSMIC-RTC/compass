@@ -32,7 +32,7 @@ public:
 
   int
   wfs_initarrays(cuFloatComplex *halfxy, cuFloatComplex *offsets,
-      float *focmask, float *pupil, int *isvalid, int *cx, int *cy,
+      float *focmask, float *pupil, int *cx, int *cy,
       float *sincar, int *phasemap, int *validsubsx, int *validsubsy);
 
   virtual int

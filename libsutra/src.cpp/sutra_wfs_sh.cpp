@@ -19,7 +19,6 @@ sutra_wfs_sh::sutra_wfs_sh(carma_context *context, sutra_sensors *sensors, long 
   this->d_fluxPerSub = 0L;
   this->d_sincar = 0L;
   this->d_hrmap = 0L;
-  this->d_isvalid = 0L;
   this->d_slopes = 0L;
   this->image_telemetry = 0L;
   this->d_phasemap = 0L;
@@ -228,16 +227,12 @@ int sutra_wfs_sh::allocate_buffers(sutra_sensors *sensors) {
   dims_data2[2] = npix * npix;
   this->d_binmap = new carma_obj<int>(current_context, dims_data2);
 
-  dims_data1[1] = nvalid;
+  dims_data1[1] = nvalid_tot;
   this->d_subsum = new carma_obj<float>(current_context, dims_data1);
 
   this->d_fluxPerSub = new carma_obj<float>(current_context, dims_data1);
   this->d_validsubsx = new carma_obj<int>(current_context, dims_data1);
   this->d_validsubsy = new carma_obj<int>(current_context, dims_data1);
-
-  dims_data2[1] = nxsub;
-  dims_data2[2] = nxsub;
-  this->d_isvalid = new carma_obj<int>(current_context, dims_data2);
 
   dims_data2[1] = nphase * nphase;
   dims_data2[2] = nvalid;
@@ -269,8 +264,6 @@ sutra_wfs_sh::~sutra_wfs_sh() {
   if (this->d_hrmap != 0L)
     delete this->d_hrmap;
 
-  if (this->d_isvalid != 0L)
-    delete this->d_isvalid;
   if (this->d_slopes != 0L)
     delete this->d_slopes;
 
@@ -301,7 +294,7 @@ sutra_wfs_sh::~sutra_wfs_sh() {
 }
 
 int sutra_wfs_sh::wfs_initarrays(int *phasemap, int *hrmap, int *binmap,
-    float *offsets, float *pupil, float *fluxPerSub, int *isvalid,
+    float *offsets, float *pupil, float *fluxPerSub,
     int *validsubsx, int *validsubsy, int *istart, int *jstart,
     cuFloatComplex *kernel) {
   if(this->d_bincube == NULL) {
@@ -318,7 +311,6 @@ int sutra_wfs_sh::wfs_initarrays(int *phasemap, int *hrmap, int *binmap,
     this->d_hrmap->host2device(hrmap);
   this->d_validsubsx->host2device(validsubsx);
   this->d_validsubsy->host2device(validsubsy);
-  this->d_isvalid->host2device(isvalid);
   this->d_istart->host2device(istart);
   this->d_jstart->host2device(jstart);
   this->d_ftkernel->host2device(kernel);
