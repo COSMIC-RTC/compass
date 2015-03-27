@@ -47,6 +47,7 @@ cdef class Param_target:
         cdef Target target
         cdef float xoff
         cdef float yoff
+        cdef int Npts
         #if (y_target != []) {
         cdef np.ndarray sizes= np.ones(self.ntargets,dtype=np.int64)*geom.pupdiam
         #sizes = sizes(-::y_target.ntargets-1);
@@ -58,13 +59,16 @@ cdef class Param_target:
         ceiled_pupil[np.where(ceiled_pupil>1)]=1;
 
         if(self.apod==1):
+                Npts=0
+                #TODO apodizer, Npts=nb element of apodizer>0
                 ceiled_apodizer=np.ceil(geom._apodizer*geom._spupil)
                 ceiled_apodizer[np.where(ceiled_apodizer>1)]=1
                 target = Target(ctxt, self.ntargets,self.xpos,self.ypos,
-                            self.Lambda, self.mag,sizes,ceiled_apodizer)
+                            self.Lambda, self.mag,sizes,ceiled_apodizer,Npts)
         else:
+                Npts=np.sum(ceiled_pupil)
                 target= Target(ctxt, self.ntargets,self.xpos,self.ypos,
-                                self.Lambda, self.mag,sizes,ceiled_pupil)
+                                self.Lambda, self.mag,sizes,ceiled_pupil,Npts)
 
         cdef int i
         cdef int j
@@ -95,7 +99,6 @@ cdef class Param_target:
                             xoff = xoff+(atm.dim_screens[j]-geom._n)/2
                             yoff = yoff+(atm.dim_screens[j]-geom._n)/2
                             sensors.sensors.d_wfs[i].d_gs.add_layer(type_target, atm.alt[j],xoff,yoff)
-                            print "atmos_seen == true"
         return target
 
 """
@@ -148,6 +151,7 @@ cdef class Target:
                     np.ndarray[dtype=np.float32_t] mag,
                     np.ndarray[dtype=np.int64_t] size,
                     np.ndarray[ndim=2, dtype=np.float32_t] pupil,
+                    int Npts,
                     int device=-1
                     ):
 
@@ -168,7 +172,8 @@ cdef class Target:
         self.target= new sutra_target(ctxt.c,ntargets,
                     <float*>xpos.data,<float*>ypos.data,
                     <float*>Lambda.data,<float*>mag.data,
-                    <long*>size.data,<float*>pupil.data,device)
+                    <long*>size.data,<float*>pupil.data,Npts,
+                    device)
 
 
     def add_layer(self, int n, bytes l_type, float alt, float xoff, float yoff):

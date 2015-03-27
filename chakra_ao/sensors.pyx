@@ -11,7 +11,9 @@ cdef class Sensors:
                     np.ndarray[dtype=np.int64_t] ntota=None,
                     np.ndarray[dtype=np.float32_t] nphot=None,
                     np.ndarray[dtype=np.int32_t] lgs=None,
-                    int odevice=-1
+                    int odevice=-1,
+                    int comm_size=1,
+                    int rank=0
                 ):
 
         cdef char *type
@@ -42,6 +44,7 @@ cdef class Sensors:
                         <float*>nphot.data,
                         <int*>lgs.data,
                         odevice)
+        self.sensors.define_mpi_rank(rank,comm_size)
         self.sensors.allocate_buffers()
         self.sensors.device=odevice
 
@@ -68,8 +71,6 @@ cdef class Sensors:
                         <float*>noise.data, <long*>seed.data)
 
 
-#    cdef sensors_initarr(self, int n, int *phasemap, float *offset, float *pupil,
-#            int *isvalid, int *validsubsx, int *validsubsy, float* flux_foc, 
 #            int *istart, int *jstart, float *ftkern_sinc, int *hrmap, int *binmap,
 #            float *halfxy):
 
@@ -89,7 +90,6 @@ cdef class Sensors:
         cdef int* phasemap=<int*>wfs._phasemap.data
         cdef int* hrmap=<int*>wfs._hrmap.data
         cdef int* binmap=<int*>wfs._binmap.data
-        cdef int* isvalid=<int*>wfs._isvalid.data
         cdef int* validx=<int*>wfs._validsubsx.data
         cdef int* validy=<int*>wfs._validsubsy.data
         tmp_istart=np.copy(wfs._istart+1)
@@ -148,7 +148,7 @@ cdef class Sensors:
             tmp=wfs._halfxy.astype(np.complex64)
             tmp2=wfs._pyr_offsets.astype(np.complex64)
             wfs_pyr.wfs_initarrays(<cuFloatComplex*>tmp.data,<cuFloatComplex*>tmp2.data,
-                    submask, pupil,isvalid,cx, cy, 
+                    submask, pupil,cx, cy, 
                     sincar, phasemap, validx,validy)
 
         elif(self.sensors.d_wfs[n].type==type_roof):
@@ -169,14 +169,14 @@ cdef class Sensors:
             tmp=wfs._halfxy.astype(np.complex64)
             tmp2=wfs._pyr_offsets.astype(np.complex64)
             wfs_roof.wfs_initarrays(<cuFloatComplex*>tmp.data,<cuFloatComplex*>tmp2.data,
-                    submask, pupil,isvalid,cx, cy, 
+                    submask, pupil,cx, cy, 
                     sincar, phasemap, validx,validy)
 
 
         elif(self.sensors.d_wfs[n].type==type_sh):
             wfs_sh=dynamic_cast_wfs_sh_ptr(self.sensors.d_wfs[n])
             wfs_sh.wfs_initarrays(phasemap,hrmap,binmap,halfxy,
-                    pupil,fluxPerSub,isvalid,validy, validx,
+                    pupil,fluxPerSub,validy, validx,
                     istart, jstart,<cuFloatComplex*>ftkernel)
             
 
@@ -197,11 +197,6 @@ cdef class Sensors:
 
        self.sensors.d_wfs[i].d_gs.add_layer(<char*>type, alt, xoff, yoff)
          
-
-    def sensors_compimg_tele(self, int n):
-        cdef carma_context *context = carma_context.instance()
-        context.set_activeDeviceForCpy(self.sensors.device,1)
-        self.sensors.d_wfs[n].comp_image_tele()
 
     def sensors_compimg(self, int n):
         cdef carma_context *context = carma_context.instance()
@@ -234,17 +229,21 @@ cdef class Sensors:
         #img.fill_into(<float*>data.data)
         return data
     
-    def get_binimg(self, int n):
+    cdef _get_binimg(self, int n):
         cdef carma_obj[float] *img
         cdef const long *cdims
         cdef np.ndarray[ndim=2,dtype=np.float32_t] data
         img=self.sensors.d_wfs[n].d_binimg
         cdims=img.getDims() 
         data=np.empty((cdims[1],cdims[2]),dtype=np.float32)
+        dynamic_cast_wfs_sh_ptr(self.sensors.d_wfs[n]).fill_binimage(0)
         img.device2host(<float*>data.data)
         return data
 
-    def get_bincube(self, int n):
+    def get_binimg(self,int n):
+        return self._get_binimg(n)
+
+    cdef _get_bincube(self, int n):
         cdef carma_obj[float] *cube
         cdef const long *cdims
         cdef np.ndarray[ndim=3,dtype=np.float32_t] data
@@ -253,6 +252,9 @@ cdef class Sensors:
         data=np.empty((cdims[1],cdims[2],cdims[3]),dtype=np.float32)
         cube.device2host(<float*>data.data)
         return data
+
+    def get_bincube(self,int n):
+        return self._get_bincube(n)
 
     def get_phase(self, int n):
         cdef carma_obj[float] *cube
@@ -301,3 +303,59 @@ cdef class Sensors:
         #elif(type_trace=="dm"): # TODO dm
         #    self.sensors.d_wfs[n].sensors_trace(dm)
 
+
+
+    cdef Bcast_dscreen(self):
+        cdef carma_obj[float] *screen
+        cdef float *ptr
+        cdef int i,nsensors, size_i
+        cdef long size
+
+        nsensors=self.sensors.nsensors()
+        for i in range(nsensors):
+            screen=self.sensors.d_wfs[i].d_gs.d_phase.d_screen
+            size=screen.getNbElem()
+            size_i=size
+            ptr=<float*>malloc(size*sizeof(float))
+            screen.device2host(ptr)
+            mpi.MPI_Barrier(mpi.MPI_COMM_WORLD)
+            mpi.MPI_Bcast(ptr,size_i,mpi.MPI_FLOAT,0,mpi.MPI_COMM_WORLD)
+            screen.host2device(ptr)
+            free(ptr)
+            mpi.MPI_Barrier(mpi.MPI_COMM_WORLD)
+
+
+
+    cdef gather_bincube(self,MPI.Intracomm comm,int n):
+        cdef np.ndarray[ndim=3,dtype=np.float32_t] tmp,bincube
+        cdef np.ndarray[ndim=1,dtype=np.float32_t] tmp_flat,bincube_flat
+        tmp=self._get_bincube(n).astype(np.float32)
+        cdef int nx=self.sensors.d_wfs[n].npix
+        cdef int ny=nx
+        cdef int nz=self.sensors.d_wfs[n].nvalid
+        cdef int nz_t=self.sensors.d_wfs[n].nvalid_tot
+        cdef int size=nx*ny*nz
+        cdef int recv_size=nx*ny*nz_t
+        cdef int *count_bincube=self.sensors.d_wfs[n].count_bincube
+        cdef int *displ_bincube=self.sensors.d_wfs[n].displ_bincube
+
+        bincube=np.empty((nx,ny,nz_t),dtype=np.float32,order="F")
+        bincube_flat=np.empty((nx*ny*nz_t),dtype=np.float32)
+        tmp_flat=np.copy(tmp.flatten()[:nx*ny*nz])
+
+        mpi.MPI_Gatherv(<float*>tmp_flat.data,size,mpi.MPI_FLOAT,
+                    <float*>bincube_flat.data,
+                    count_bincube  ,
+                    displ_bincube ,
+                    mpi.MPI_FLOAT,0,mpi.MPI_COMM_WORLD)
+
+        if(self._get_rank(n)==0):
+            bincube=np.reshape(bincube_flat,(nx,ny,nz_t),order="F")
+            self.sensors.d_wfs[n].d_bincube.host2device(<float*>bincube.data)
+
+    cdef _get_rank(self,int n):
+        return self.sensors.d_wfs[n].rank
+
+    def get_rank(self,int n):
+        return self.sensors.d_wfs[n].rank
+        

@@ -223,10 +223,15 @@ sutra_sensors::~sutra_sensors() {
 int sutra_sensors::allocate_buffers() {
   current_context->set_activeDevice(device,1);
   for (size_t idx = 0; idx < (this->d_wfs).size(); idx++) {
-    if(this->d_wfs[idx]->type=="sh"){
-      sutra_wfs_sh *wfs = dynamic_cast<sutra_wfs_sh *>(this->d_wfs[idx]);
-      wfs->allocate_buffers(this);
-    }
+    this->d_wfs[idx]->allocate_buffers(this);
+  }
+  return EXIT_SUCCESS;
+}
+
+int sutra_sensors::define_mpi_rank(int rank, int size) {
+  current_context->set_activeDevice(device,1);
+  for (size_t idx = 0; idx < (this->d_wfs).size(); idx++) {
+    this->d_wfs[idx]->define_mpi_rank(rank,size);
   }
   return EXIT_SUCCESS;
 }

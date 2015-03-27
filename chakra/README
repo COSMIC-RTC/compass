@@ -9,7 +9,7 @@ The compilation is done with the command:
     python setup.py build_ext --inplace
 
     REQUIREMENT:
-        * cython
+        * cython 0.22
         * python 2.7
         * carma librairie
 

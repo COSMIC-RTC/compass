@@ -62,6 +62,8 @@ sutra_wfs_sh::sutra_wfs_sh(carma_context *context, sutra_sensors *sensors, long 
 }
 
 int sutra_wfs_sh::define_mpi_rank(int rank, int size){
+  int count=this->nvalid/size;
+  int i;
   this->rank = rank;
   int r = this->nvalid%size;
   if(rank<r){
@@ -71,6 +73,18 @@ int sutra_wfs_sh::define_mpi_rank(int rank, int size){
     this->nvalid = this->nvalid/size;
     this->offset = rank*this->nvalid +r;
   }
+
+  displ_bincube = new int[size];
+  count_bincube = new int[size];
+  for(i=0;i<r;i++){
+    count_bincube[i]=npix*npix*(count+1);
+    displ_bincube[i]=i*count_bincube[i];
+  }
+  for(i=r;i<size;i++){
+    count_bincube[i]=npix*npix*count;
+    displ_bincube[i]=i*count_bincube[i]+r*npix*npix;
+  }
+
   return EXIT_SUCCESS;
 }
 
@@ -302,15 +316,15 @@ int sutra_wfs_sh::wfs_initarrays(int *phasemap, int *hrmap, int *binmap,
     throw "ERROR : d_bincube not initialized, did you do the allocate_buffers?";
   }
   current_context->set_activeDevice(device,1);
-  this->d_phasemap->host2device(phasemap);
+  this->d_phasemap->host2device(&phasemap[offset*nphase*nphase]);
   this->d_offsets->host2device(offsets);
   this->d_pupil->host2device(pupil);
   this->d_binmap->host2device(binmap);
-  this->d_fluxPerSub->host2device(fluxPerSub);
+  this->d_fluxPerSub->host2device(&fluxPerSub[offset]);
   if (this->ntot != this->nfft)
     this->d_hrmap->host2device(hrmap);
-  this->d_validsubsx->host2device(validsubsx);
-  this->d_validsubsy->host2device(validsubsy);
+  this->d_validsubsx->host2device(&validsubsx[offset]);
+  this->d_validsubsy->host2device(&validsubsy[offset]);
   this->d_istart->host2device(istart);
   this->d_jstart->host2device(jstart);
   this->d_ftkernel->host2device(kernel);
@@ -555,13 +569,13 @@ int sutra_wfs_sh::fill_binimage(int async=0) {
   current_context->set_activeDevice(device,1);
   if(async){
     fillbinimg_async(this->image_telemetry, this->d_binimg->getData(),
-        this->d_bincube->getData(), this->npix, this->nvalid,
+        this->d_bincube->getData(), this->npix, this->nvalid_tot,
         this->npix * this->nxsub, this->d_validsubsx->getData(),
         this->d_validsubsy->getData(), this->d_binimg->getNbElem(), false,
         this->current_context->get_device(device));
   } else {
     fillbinimg(this->d_binimg->getData(), this->d_bincube->getData(),
-        this->npix, this->nvalid, this->npix * this->nxsub,
+        this->npix, this->nvalid_tot, this->npix * this->nxsub,
         this->d_validsubsx->getData(), this->d_validsubsy->getData(),
         0, this->current_context->get_device(device));
   }

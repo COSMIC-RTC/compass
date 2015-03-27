@@ -4,6 +4,12 @@ import chakra_ao as ao
 import chakra as ch
 import numpy as np
 
+import mpi4py
+from mpi4py import MPI
+
+comm=MPI.COMM_WORLD
+comm_size=comm.Get_size()
+rank=comm.Get_rank()
 
 p_geom=ao.Param_geom()
 p_atmos=ao.Param_atmos()
@@ -78,7 +84,7 @@ c=ch.chakra_context()
 list_wfs=[p_wfs]
 
 #   wfs
-wfs=ao.wfs_init(list_wfs,p_atmos,p_tel,p_geom,p_loop)
+wfs=ao.wfs_init(list_wfs,p_atmos,p_tel,p_geom,p_loop,comm_size,rank)
 #   atmos
 atm=p_atmos.atmos_init(c,p_tel,p_geom,p_loop)
 #   target
@@ -92,4 +98,4 @@ tar=p_target.target_init(c,p_atmos,p_geom,p_tel,list_wfs,wfs,p_tel)
 
 
 wfs.sensors_trace(0,"atmos",atm,0)
-ao.see_atmos_target(50,atm,tar,wfs,alt=0,n_tar=0,f=0.15)
+ao.see_atmos_target(50,atm,tar,wfs,comm,alt=0,n_tar=0,f=0.15)

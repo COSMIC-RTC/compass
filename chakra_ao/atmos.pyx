@@ -78,7 +78,7 @@ cdef class Param_atmos:
 
 
     def atmos_init(self, chakra_context c, Param_tel tel,  Param_geom geom,
-                    Param_loop loop, wfs=None,target=None):
+                    Param_loop loop, wfs=None,target=None, int rank=0):
         """Create and initialise an atmos object
         TODO doc
         tel     -- Param_tel    : 
@@ -138,7 +138,8 @@ cdef class Param_atmos:
                 self.L0[i]=geom.pupdiam/frac_l0
         return atmos_create(c,self.nscreens,self.r0,self.L0,self.pupixsize,
             self.dim_screens,self.frac,self.alt,self.windspeed,
-            self.winddir,self.deltax,self.deltay,geom._spupil)
+            self.winddir,self.deltax,self.deltay,rank)
+            #DELself.winddir,self.deltax,self.deltay,geom._spupil,rank)
 
 
 
@@ -158,7 +159,7 @@ cdef class Atmos:
                 np.ndarray[dtype=np.float32_t] winddir,
                 np.ndarray[dtype=np.float32_t] deltax,
                 np.ndarray[dtype=np.float32_t] deltay,
-                np.ndarray[ndim=2,dtype=np.float32_t] pupil,
+                #np.ndarray[ndim=2,dtype=np.float32_t] pupil,
                 int device ):
         
         cdef np.ndarray[ndim=1,dtype=np.int64_t]size2
@@ -173,7 +174,7 @@ cdef class Atmos:
                 <np.float32_t*>winddir.data,
                 <np.float32_t*>deltax.data,
                 <np.float32_t*>deltay.data,
-                <np.float32_t*>pupil.data,
+                #<np.float32_t*>pupil.data,
                 device)
         self.context = ctxt
 
@@ -286,7 +287,7 @@ cdef atmos_create(chakra_context c, int nscreens,
               np.ndarray[dtype=np.float32_t] winddir,
               np.ndarray[dtype=np.float32_t] deltax,
               np.ndarray[dtype=np.float32_t] deltay,
-              np.ndarray[ndim=2,dtype=np.float32_t] pupil):
+              int verbose):
     """Create and initialise an atmos object."""
 
     # get fraction of r0 for corresponding layer
@@ -295,7 +296,7 @@ cdef atmos_create(chakra_context c, int nscreens,
 
     atmos_obj = Atmos()
     atmos_obj.realinit(chakra_context(),nscreens, r0_layers, dim_screens,alt,
-                    windspeed,winddir,deltax,deltay,pupil,0)
+                    windspeed,winddir,deltax,deltay,0)
 
     cdef int i,j
     cdef np.ndarray[ndim=2,dtype=np.float32_t] A,B
@@ -314,7 +315,7 @@ cdef atmos_create(chakra_context c, int nscreens,
 
         if(os.path.isfile(file_A) and os.path.isfile(file_B) and
            os.path.isfile(file_istx) and os.path.isfile(file_isty)):
-            print "reading files"
+            if(verbose==0):print "reading files"
             A=np.load(file_A)
             B=np.load(file_B)
             istx=np.load(file_istx).astype(np.uint32)
@@ -322,11 +323,12 @@ cdef atmos_create(chakra_context c, int nscreens,
 
         else:
             A,B,istx,isty=itK.AB(dim_screens[i],L0[i])
-            print "writing files"
-            np.save(file_A,A)
-            np.save(file_B,B)
-            np.save(file_istx,istx)
-            np.save(file_isty,isty)
+            if(verbose==0):
+                print "writing files"
+                np.save(file_A,A)
+                np.save(file_B,B)
+                np.save(file_istx,istx)
+                np.save(file_isty,isty)
 
         tscreen=atmos_obj.s_a.d_screens[alt[i]]
         tscreen.init_screen(<float*>(A.data),<float*>(B.data),

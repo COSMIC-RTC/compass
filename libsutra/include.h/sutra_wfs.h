@@ -66,6 +66,8 @@ class sutra_wfs {
     int offset;
     int nvalid_tot;
     int rank;
+    int *displ_bincube;
+    int *count_bincube;
 
   public:
     virtual ~sutra_wfs() {
@@ -116,6 +118,7 @@ class sutra_sensors {
     ~sutra_sensors();
 
     int allocate_buffers();
+    int define_mpi_rank(int rank, int size);
 
     int
     sensors_initgs(float *xpos, float *ypos, float *lambda, float *mag,

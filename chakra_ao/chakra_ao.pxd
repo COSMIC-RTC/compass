@@ -12,7 +12,10 @@ from libcpp.pair cimport pair
 
 from libc.stdint cimport uintptr_t
 
-
+#from mpi4py import MPI
+from mpi4py cimport MPI
+# C-level cdef, typed, Python objects
+from mpi4py cimport libmpi as mpi
 
 
 cdef np.float32_t dtor = (np.pi/180.)
@@ -87,12 +90,12 @@ cdef extern from "sutra_turbu.h":
         int nscreens
         map.map[float, sutra_tscreen *] d_screens
         float r0
-        carma_obj[float] *d_pupil
+        #carma_obj[float] *d_pupil
         carma_context *current_context
 
         sutra_atmos(carma_context *context, int nscreens, float *r0, long *size,
                     long *size2, float *altitude, float *windspeed, float *winddir,
-                    float *deltax, float *deltay, float *pupil, int device)
+                    float *deltax, float *deltay, int device)
         init_screen(float alt, float *h_A, float *h_B, unsigned int *h_istencilx,
                     unsigned int *h_istencily, int seed)
         int move_atmos()
@@ -154,7 +157,7 @@ cdef extern from "sutra_target.h":
         vector.vector[sutra_source *] d_targets
 
         sutra_target(carma_context *context, int ntargets, float *xpos, float *ypos,
-            float *Lambda, float *mag, long *sizes, float *pupil, int device)
+            float *Lambda, float *mag, long *sizes, float *pupil, int Npts, int device)
         # not implemented
         #int get_phase(int ntarget, float *dest)
 
@@ -185,34 +188,36 @@ cdef extern from "sutra_wfs.h":
 # C-Class sutra_sensor
 #################################################
     cdef cppclass sutra_sensors:
-        int device;
-        carma_context *current_context;
+        int device
+        carma_context *current_context
         size_t nsensors() 
         
-        vector[sutra_wfs *] d_wfs;
-        map[vector[int],cufftHandle*] campli_plans;
-        map[vector[int],cufftHandle*] fttotim_plans;
-        map[vector[int],cufftHandle*] ftlgskern_plans;
+        vector[sutra_wfs *] d_wfs
+        map[vector[int],cufftHandle*] campli_plans
+        map[vector[int],cufftHandle*] fttotim_plans
+        map[vector[int],cufftHandle*] ftlgskern_plans
 
-        carma_obj[cuFloatComplex] *d_camplipup;
-        carma_obj[cuFloatComplex] *d_camplifoc;
-        carma_obj[cuFloatComplex] *d_fttotim;
-        carma_obj[cuFloatComplex] *d_ftlgskern;
-        carma_obj[float] *d_lgskern;
+        carma_obj[cuFloatComplex] *d_camplipup
+        carma_obj[cuFloatComplex] *d_camplifoc
+        carma_obj[cuFloatComplex] *d_fttotim
+        carma_obj[cuFloatComplex] *d_ftlgskern
+        carma_obj[float] *d_lgskern
 
         sutra_sensors(carma_context *context, const char** type, int nwfs, long *nxsub,
           long *nvalid, long *npix, long *nphase, long *nrebin, long *nfft,
-          long *ntot, long *npup, float *pdiam, float *nphot, int *lgs, int device);
+          long *ntot, long *npup, float *pdiam, float *nphot, int *lgs, int device)
         sutra_sensors(carma_context *context, int nwfs, long *nxsub, long *nvalid,
-          long *nphase, long npup, float *pdiam, int device);
+          long *nphase, long npup, float *pdiam, int device)
 
         int sensors_initgs(float *xpos, float *ypos, float *Lambda, float *mag,
-          long *size, float *noise, long *seed);
+          long *size, float *noise, long *seed)
         int sensors_initgs(float *xpos, float *ypos, float *Lambda, float *mag,
-          long *size, float *noise);
+          long *size, float *noise)
         int sensors_initgs(float *xpos, float *ypos, float *Lambda, float *mag,
           long *size)
         int allocate_buffers()
+        int define_mpi_rank(int rank, int size)
+
 
 #################################################
 # C-Class sutra_wfs
@@ -237,6 +242,12 @@ cdef extern from "sutra_wfs.h":
         bool lgs
         bool kernconv
 
+        int rank
+        int offset
+        int nvalid_tot
+        int* displ_bincube
+        int* count_bincube
+
         cufftHandle *campli_plan
         cufftHandle *fttotim_plan
         carma_obj[cuFloatComplex] *d_ftkernel
@@ -253,7 +264,6 @@ cdef extern from "sutra_wfs.h":
         carma_obj[float] *d_sincar
         carma_obj[int] *d_hrmap
 
-        carma_obj[int] *d_isvalid # nxsub x nxsub
         carma_obj[float] *d_slopes
 
         carma_host_obj[float] *image_telemetry
@@ -291,12 +301,12 @@ cdef extern from "sutra_wfs.h":
         sutra_wfs(const sutra_wfs& wfs)
 
         int wfs_initarrays(int *phasemap, int *hrmap, int *binmap, float *offsets,
-          float *pupil, float *fluxPerSub, int *isvalid, int *validsubsx,
+          float *pupil, float *fluxPerSub, int *validsubsx,
           int *validsubsy, int *istart, int *jstart, cuFloatComplex *kernel)
         int wfs_initarrays(int *phasemap, float *offsets, float *pupil, float *fluxPerSub,
-          int *isvalid, int *validsubsx, int *validsubsy, int *istart, int *jstart)
+          int *validsubsx, int *validsubsy, int *istart, int *jstart)
         int wfs_initarrays(cuFloatComplex *halfxy, cuFloatComplex *offsets,
-          float *focmask, float *pupil, int *isvalid, int *cx, int *cy,
+          float *focmask, float *pupil, int *cx, int *cy,
           float *sincar, int *phasemap, int *validsubsx, int *validsubsy)
         int wfs_initgs(sutra_sensors *sensors, float xpos, float ypos, float Lambda, float mag, long size,
           float noise, long seed)
@@ -304,15 +314,10 @@ cdef extern from "sutra_wfs.h":
         int sensor_trace(sutra_atmos *yatmos)
         # TODO int sensor_trace(sutra_dms *ydm, int rst)
         # TODO int sensor_trace(sutra_atmos *atmos, sutra_dms *ydms)
-        int comp_image_tele()
-        int fill_binimage()
         int comp_image()
-        int slopes_geom(int type, float *slopes)
-        int slopes_geom(int type)
-
-        int comp_sh_generic()
-        int comp_pyr_generic()
-        int comp_roof_generic()
+        int comp_generic()
+        int define_mpi_rank(int rank, int size)
+        int allocate_buffers(sutra_sensors *sensors)
 
 
 #################################################
@@ -320,9 +325,12 @@ cdef extern from "sutra_wfs.h":
 #################################################
 cdef extern from "sutra_wfs_sh.h":
     cdef cppclass sutra_wfs_sh(sutra_wfs):
-         int  wfs_initarrays(int *phasemap, int *hrmap, int *binmap, float *offsets,
-      float *pupil, float *fluxPerSub, int *isvalid, int *validsubsx,
-      int *validsubsy, int *istart, int *jstart, cuFloatComplex *kernel)
+        int  wfs_initarrays(int *phasemap, int *hrmap, int *binmap, float *offsets,
+            float *pupil, float *fluxPerSub, int *validsubsx,
+            int *validsubsy, int *istart, int *jstart, cuFloatComplex *kernel)
+        int fill_binimage(int async)
+        int slopes_geom(int type, float *slopes)
+        int slopes_geom(int type)
 
 
 #################################################
@@ -331,7 +339,7 @@ cdef extern from "sutra_wfs_sh.h":
 cdef extern from "sutra_wfs_pyr.h":
     cdef cppclass sutra_wfs_pyr(sutra_wfs):
         int wfs_initarrays(cuFloatComplex *halfxy, cuFloatComplex *offsets,
-      float *focmask, float *pupil, int *isvalid, int *cx, int *cy,
+      float *focmask, float *pupil, int *cx, int *cy,
       float *sincar, int *phasemap, int *validsubsx, int *validsubsy)
 
 #################################################
@@ -357,7 +365,7 @@ cdef extern from "sutra_wfs_geom.h":
         #    long npup, float pdiam, int device)
         sutra_wfs_geom(const sutra_wfs_geom& wfs)
         int wfs_initarrays(int *phasemap, float *offsets, float *pupil,
-            float *fluxPerSub, int *isvalid, int *validsubsx, int *validsubsy)
+            float *fluxPerSub, int *validsubsx, int *validsubsy)
 
 
 cdef extern from *:
@@ -380,9 +388,7 @@ cdef class Atmos:
                 np.ndarray[dtype=np.float32_t] winddir,
                 np.ndarray[dtype=np.float32_t] deltax,
                 np.ndarray[dtype=np.float32_t] deltay,
-                np.ndarray[ndim=2,dtype=np.float32_t] pupil,
                 int device )
-
 #################################################
 # P-Class Target
 #################################################
@@ -415,13 +421,16 @@ cdef class Sensors:
                              np.ndarray[dtype=np.float32_t] noise,
                              np.ndarray[dtype=np.int64_t  ] seed)
 
-    #cdef sensors_initarr(self, int n, int *phasemap, float *offset, float *pupil,
-     #       int *isvalid, int *validsubx, int *validsuby, float* flux_foc, 
-     #       int *istart, int *jstart, float *ftkern_sinc, int *hrmap, 
-     #       int *binmap, float *halfxy)
 
     cdef sensors_initarr(self,int n, Param_wfs wfs, Param_geom geom)
     cdef sensors_addlayer(self,int i, bytes type, float alt, float xoff, float yoff)
+    cdef _get_bincube(self, int n)
+    cdef _get_binimg(self, int n)
+    cdef gather_bincube(self,MPI.Intracomm comm,int n)
+    cdef _get_rank(self,int n)
+    cdef Bcast_dscreen(self)
+
+
 #################################################
 # P-Class (parametres) Param_atmos
 #################################################

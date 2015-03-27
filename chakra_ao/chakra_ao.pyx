@@ -29,7 +29,7 @@ include "sensors.pyx"
 include "loop.pyx"
 
 
-def see_atmos_target(int n, Atmos atm, Target tar,Sensors wfs, float alt=0, int n_tar=0,float f=1, int log=0):
+def see_atmos_target(int n, Atmos atm, Target tar,Sensors wfs, MPI.Intracomm comm, float alt=0, int n_tar=0,float f=1, int log=0):
     """Display the turbulence of the atmos and the image of the target after a call to the function:
     - move_atmos
     - target.atmos_raytrace
@@ -49,28 +49,33 @@ def see_atmos_target(int n, Atmos atm, Target tar,Sensors wfs, float alt=0, int 
     e0=min(ph.shape[0],ph.shape[0]*0.5+ph.shape[0]*f)
     s1=max(0,ph.shape[1]*0.5-ph.shape[1]*f)
     e1=min(ph.shape[1],ph.shape[1]*0.5+ph.shape[1]*f)
-    
-    pl.ion()
-    pl.show()
+   
+    if(wfs.get_rank(0)==0):
+        pl.ion()
+        pl.show()
     for i in range(n):
-        atm.move_atmos()
-        tar.atmos_trace(n_tar, atm)
-        wfs.sensors_trace(0,"atmos",atm,0)
+        if(wfs.get_rank(0)==0):
+            atm.move_atmos()
+            tar.atmos_trace(n_tar, atm)
+            wfs.sensors_trace(0,"atmos",atm,0)
+        wfs.Bcast_dscreen()
         wfs.sensors_compimg(0)
-        turbu.clear()
-        screen=atm.get_screen(alt)
-        im1=turbu.imshow(screen,cmap='Blues')
-        ph=tar.get_image(n_tar,"se")
-        ph=np.roll(ph,ph.shape[0]/2,axis=0)
-        ph=np.roll(ph,ph.shape[1]/2,axis=1)
-        image.clear()
-        if(log==1):
-            ph=np.log(ph[s0:e0,s1:e1])
-        im2=image.matshow(ph[s0:e0,s1:e1],cmap='Blues_r')
-        sh.clear()
-        shak=wfs.get_binimg(0)
-        im3=sh.matshow(shak,cmap='Blues_r')
-        pl.draw()
+        wfs.gather_bincube(comm,0)
+        if(wfs.get_rank(0)==0):
+            shak=wfs._get_binimg(0)
+            turbu.clear()
+            screen=atm.get_screen(alt)
+            im1=turbu.imshow(screen,cmap='Blues')
+            ph=tar.get_image(n_tar,"se")
+            ph=np.roll(ph,ph.shape[0]/2,axis=0)
+            ph=np.roll(ph,ph.shape[1]/2,axis=1)
+            image.clear()
+            if(log==1):
+                ph=np.log(ph[s0:e0,s1:e1])
+            im2=image.matshow(ph[s0:e0,s1:e1],cmap='Blues_r')
+            sh.clear()
+            im3=sh.matshow(shak,cmap='Blues_r')
+            pl.draw()
 
 
 

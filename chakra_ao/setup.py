@@ -1,3 +1,7 @@
+import sys
+print sys.path
+
+
 import  os, re
 from os.path import join as pjoin
 from distutils.core import setup
@@ -6,7 +10,6 @@ from Cython.Distutils import build_ext
 
 import numpy
 from distutils.extension import Extension
-
 
 
 def find_in_path(name, path):
@@ -129,7 +132,7 @@ class custom_build_ext(build_ext):
 ext=Extension('chakra_ao',
               sources=['chakra_ao.pyx'],
               library_dirs=[CUDA['lib64'],COMPASS['lib']+"/libsutra"],#,COMPASS['lib']+"/libcarma"],
-              libraries=[ 'sutra'],
+              libraries=[ 'sutra','mpi_cxx'],
               language='c++',
               runtime_library_dirs=[],#CUDA['lib64']],
               extra_compile_args={'gcc': []},
@@ -137,7 +140,9 @@ ext=Extension('chakra_ao',
                               CUDA['include'],
                               COMPASS['inc']+'/libcarma/include.h',
                               COMPASS['inc']+'/libsutra/include.h',
-                              '../chakra'])
+                              '../chakra',
+                              '/usr/local/lib/python2.7/dist-packages/mpi4py-1.3.1-py2.7-linux-x86_64.egg/mpi4py/include',
+                              '/usr/lib/openmpi/include'])
 
 setup(
     name="chakra_ao",

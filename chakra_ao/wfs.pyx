@@ -172,7 +172,7 @@ cdef wheremax(list liste):
     return j
 
 
-def wfs_init(list wfs, Param_atmos atmos, Param_tel tel, Param_geom geom, Param_loop loop):
+def wfs_init(list wfs, Param_atmos atmos, Param_tel tel, Param_geom geom, Param_loop loop,int comm_size=1,rank=0):
 
     """TODO dms_seen
     if(*y_wfs(1).dms_seen == []){
@@ -201,16 +201,16 @@ def wfs_init(list wfs, Param_atmos atmos, Param_tel tel, Param_geom geom, Param_
     cdef int pixsize0=wfs[0].pixsize
     if(any_geo==0):
     #    init_wfs_geom(indmax,1)
-        init_wfs_geom(wfs[indmax], wfs[0], indmax, atmos, tel, geom, loop, init=1)
+        init_wfs_geom(wfs[indmax], wfs[0], indmax, atmos, tel, geom, loop, init=1,comm_size=comm_size, verbose=rank)
     else:
     #    init_wfs_geom(indmax)
-        init_wfs_geom(wfs[indmax], wfs[0], indmax, atmos, tel, geom, loop, init=0)
+        init_wfs_geom(wfs[indmax], wfs[0], indmax, atmos, tel, geom, loop, init=0,comm_size=comm_size, verbose=rank)
 
     ##do the same for other wfs
     for i in range(nsensors):
         if(i!=indmax):
     #        init_wfs_geom(i)
-            init_wfs_geom(wfs[i], wfs[0], i, atmos, tel, geom, loop, init=0)
+            init_wfs_geom(wfs[i], wfs[0], i, atmos, tel, geom, loop, init=0,comm_size=comm_size, verbose=rank)
 
     # create sensor object on gpu
     # and init sensor gs object on gpu
@@ -242,7 +242,7 @@ def wfs_init(list wfs, Param_atmos atmos, Param_tel tel, Param_geom geom, Param_
     if(wfs[0].type=="sh"):
 
         g_wfs= Sensors(nsensors,wfs[0].type,npup,nxsub,nvalid,nphase,pdiam,npix,nrebin,
-                nfft,ntota,nphot,lgs)
+                nfft,ntota,nphot,lgs,comm_size=comm_size, rank=rank)
 
         mag=np.array([o.gsmag    for o in wfs], dtype=np.float32)
         noise=np.array([o.noise    for o in wfs], dtype=np.float32)
@@ -250,7 +250,7 @@ def wfs_init(list wfs, Param_atmos atmos, Param_tel tel, Param_geom geom, Param_
     elif(wfs[0].type=="pyr" or wfs[0].type=="roof"):
         npup=np.array([wfs[0].pyr_npts])
         g_wfs= Sensors(nsensors,wfs[0].type,npup,nxsub,nvalid,nphase,pdiam,npix,nrebin,
-                nfft,ntota,nphot,lgs)
+                nfft,ntota,nphot,lgs,comm_size=comm_size, rank=rank)
 
         mag=np.array([o.gsmag    for o in wfs], dtype=np.float32)
         noise=np.array([o.noise    for o in wfs], dtype=np.float32)
@@ -259,7 +259,7 @@ def wfs_init(list wfs, Param_atmos atmos, Param_tel tel, Param_geom geom, Param_
         
     elif(wfs[0].type=="geo"):
         npup=np.array([wfs[0].geom._n])
-        g_wfs= Sensors(nsensors, wfs[0].type,npup,nxsub,nvalid,nphase,pdiam)
+        g_wfs= Sensors(nsensors, wfs[0].type,npup,nxsub,nvalid,nphase,pdiam,comm_size=comm_size, rank=rank)
 
         mag=np.zeros(nsensors-1,dtype=np.float32)
         noise=np.zeros(nsensors-1,dtype=np.float32)-1
@@ -273,10 +273,10 @@ def wfs_init(list wfs, Param_atmos atmos, Param_tel tel, Param_geom geom, Param_
     return g_wfs
 
 cdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
-                Param_tel tel, Param_geom geom, Param_loop loop, int init=0):
+                Param_tel tel, Param_geom geom, Param_loop loop, int init=0, int comm_size=1, int verbose=0):
 
-    print "*-----------------------"
-    print "Doing inits on WFS", n
+    if(verbose==0):print "*-----------------------"
+    if(verbose==0):print "Doing inits on WFS", n
 
     cdef long pdiam
 
@@ -309,7 +309,7 @@ cdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
     cdef np.ndarray x=np.empty((1,1),dtype=np.float32)
     cdef np.ndarray y=np.empty((1,1),dtype=np.float32)
 
-    cdef int i,j,indi, indj
+    cdef int i,j,indi#, indj
     cdef long n1,n2,npup
     cdef float coef1,coef2
 
@@ -391,6 +391,8 @@ cdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
         wfs._nvalid     = wsubok[0].size
         validx=np.where(pupvalid)[0].astype(np.int32)
         validy=np.where(pupvalid)[1].astype(np.int32)
+        #TODO validx,y: select valids only for current proc 
+        #TODO same for isvalid?
         wfs._validsubsx=validx
         wfs._validsubsy=validy
 
@@ -428,7 +430,7 @@ cdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
                 cy=np.round(mod_ampl_pixels*np.cos((np.arange(wfs.pyr_npts)+1)*2.*np.pi/wfs.pyr_npts))
                 mod_npts = wfs.pyr_npts
             else:
-                print "Using user-defined positions for the pyramid modulation"
+                if(verbose==0):print "Using user-defined positions for the pyramid modulation"
                 cx=np.round(wfs.pyr_pos[:,0]/qpixsize)
                 cy=np.round(wfs.pyr_pos[:,1]/qpixsize)
                 mod_npts=cx.shape[0]
@@ -462,8 +464,6 @@ cdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
         y-=1
         tmp=x+y*geom._n
         for i in range(wfs._nvalid):
-            #indi=start(wfs._validsubs[0][i])+1 #+2-1 (yorick->python
-            #indj=start(wfs._validsubs[1][i])+1
             indi=istart[wfs._validsubsx[i]]+1 #+2-1 (yorick->python
             indj=jstart[wfs._validsubsy[i]]+1
             phasemap[:,i]=tmp[indi:indi+pdiam, indj:indj+pdiam].flatten("F")
@@ -474,6 +474,8 @@ cdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
     if(wfs.type == "sh" or wfs.type == "geo"):
         # this is the i,j index of lower left pixel of subap
         istart =((np.linspace(0.5, geom.pupdiam + 0.5  ,wfs.nxsub+1)+1)[:-1]).astype(np.int64)
+
+        
         jstart=np.copy(istart)
         wfs._istart = istart.astype(np.int32)
         wfs._jstart = jstart.astype(np.int32)
@@ -493,6 +495,10 @@ cdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
         wfs._isvalid= pupvalid.astype(np.int32)
         wfs._nvalid=np.sum(pupvalid)
         wfs._fluxPerSub =fluxPerSub
+        if(verbose==0):
+            pupvalid2=pupvalid[:,pupvalid.shape[0]/2:]
+        else:
+            pupvalid2=pupvalid[:,:pupvalid.shape[0]/2]
         validx=np.where(pupvalid)[0].astype(np.int32)
         validy=np.where(pupvalid)[1].astype(np.int32)
         wfs._validsubsx=validx
@@ -505,7 +511,10 @@ cdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
         x-=1
         y-=1
         tmp=x+y*geom._n
-        for i in range(wfs._nvalid):
+        #NICO PRINT
+        n=wfs._nvalid/2
+        #for i in range(wfs._nvalid):
+        for i in range(n):
             indi=istart[wfs._validsubsx[i]]+1 #+2-1 (yorick->python
             indj=jstart[wfs._validsubsy[i]]+1
             phasemap[:,i]=tmp[indi:indi+pdiam, indj:indj+pdiam].flatten("C")
@@ -632,12 +641,12 @@ cdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
 # for unobstructed subaperture
 # per iteration
 
-        print "nphotons : ", wfs._nphotons
+        if(verbose==0):print "nphotons : ", wfs._nphotons
 
 
 cdef init_wfs_size( Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
                 Param_tel tel, int psize, long *pdiam, int *Nfft, int *Ntot, int *nrebin, 
-                float *pixsize, float *qpixsize):
+                float *pixsize, float *qpixsize,int verbose=0):
     """   init_wfs_size(wfs,pdiam,Nfft,Ntot,nrebin,pixsize,qpixsize)
 
     computes the quatum pixel sizes and all useful dimensions for a given wfs
@@ -673,9 +682,9 @@ cdef init_wfs_size( Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
     cdef np.ndarray w,npix_ok 
 
     if(r0!=0):
-        print "r0 for WFS :",r0," m"
+        if(verbose):print "r0 for WFS :",r0," m"
         #seeing = RASC * (wfs.lambda * 1.e-6) / r0
-        print "seeing for WFS : ",RASC * (wfs.Lambda * 1.e-6) / r0
+        if(verbose):print "seeing for WFS : ",RASC * (wfs.Lambda * 1.e-6) / r0
 
     if(pdiam[0]<0):
     # this case is usualy for the wfs with max # of subaps
@@ -755,13 +764,13 @@ cdef init_wfs_size( Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
             Ntot[0]+=1
 
     if (wfs.type != "geo"):
-        print "quantum pixsize : ", qpixsize[0]
-        print "simulated FoV : ",Ntot[0] * qpixsize[0] ," x ",Ntot[0] * qpixsize[0]
-        print "actual pixsize : ",pixsize[0]
-        print "actual FoV : ",pixsize[0] * wfs.npix ," x ",pixsize[0] * wfs.npix
-        print "number of phase points : ",pdiam[0]
-        print "size of fft support : ",Nfft[0]
+        if(verbose):print "quantum pixsize : ", qpixsize[0]
+        if(verbose):print "simulated FoV : ",Ntot[0] * qpixsize[0] ," x ",Ntot[0] * qpixsize[0]
+        if(verbose):print "actual pixsize : ",pixsize[0]
+        if(verbose):print "actual FoV : ",pixsize[0] * wfs.npix ," x ",pixsize[0] * wfs.npix
+        if(verbose):print "number of phase points : ",pdiam[0]
+        if(verbose):print "size of fft support : ",Nfft[0]
         if (Ntot[0] > Nfft[0]):
-            print "size of HR spot support : ",Ntot[0]
+            if(verbose):print "size of HR spot support : ",Ntot[0]
 
 
