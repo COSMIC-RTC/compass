@@ -2147,15 +2147,16 @@ void init_cphim_struct(struct cphim_struct *cphim_struct, sutra_atmos *atmos, su
 
   int Nactu = 0;
   int Ndm = 0;
-  map<type_screen, sutra_dm *>::iterator p;
-      p = dms->d_dms.begin();
-      while (p != dms->d_dms.end()) {
-        if (p->second->type != "tt"){
-      	  Nactu += p->second->ninflu;
-      	  Ndm += 1;
-        }
-        p++;
-      }
+  vector<sutra_dm *>::iterator p;
+  p = dms->d_dms.begin();
+  while (p != dms->d_dms.end()) {
+    sutra_dm *dm = *p;
+    if (dm->type != "tt"){
+      Nactu += dm->ninflu;
+      Ndm += 1;
+    }
+    p++;
+  }
 
   cphim_struct->Nactu = Nactu;
   cphim_struct->Ndm = Ndm;

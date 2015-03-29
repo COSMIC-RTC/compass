@@ -322,7 +322,10 @@ int sutra_source::raytrace(sutra_dms *ydms, int rst, bool async) {
     if ((types.find("pzt") == 0) || (types.find("tt") == 0)
         || (types.find("kl") == 0)) {
       float alt = p->first.second;
-      sutra_dm *ps = ydms->d_dms[make_pair(types, alt)];
+      int inddm=ydms->get_inddm(types, alt);
+      if(inddm<0)
+        throw "error in sutra_source::raytrace, dm not find";
+      sutra_dm *ps = ydms->d_dms[inddm];
       p++;
       if ((p == xoff.end()) && async) {
         target_raytrace_async(this->phase_telemetry,

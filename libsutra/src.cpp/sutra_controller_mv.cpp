@@ -142,14 +142,15 @@ sutra_controller_mv::compute_Cphim(sutra_atmos *atmos, sutra_sensors *sensors, s
 	// Find number of actuators without TT DM
 	struct cphim_struct cphim_struct;
 	int Nactu = 0;
-	map<type_screen, sutra_dm *>::iterator p;
+	vector<sutra_dm *>::iterator p;
 	p = dms->d_dms.begin();
-      while (p != dms->d_dms.end()) {
-    	  if (p->second->type != "tt"){
-	      	  Nactu += p->second->ninflu;
-    	  }
-	      p++;
-      }
+	while (p != dms->d_dms.end()) {
+    sutra_dm *dm = *p;
+	  if (dm->type != "tt"){
+	    Nactu += dm->ninflu;
+	  }
+	  p++;
+	}
 
     // Compute Cphim matrix
 	init_cphim_struct(&cphim_struct, atmos, sensors, dms, diamTel);

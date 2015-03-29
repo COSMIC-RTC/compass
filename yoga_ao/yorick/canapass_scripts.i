@@ -6,6 +6,7 @@ require,yoga_ao_top+"/yorick/yoga_ao.i";
 //require,yoga_ao_top+"/ywidgets/widget_wfs.i";
 
 #include"fits-utils.i"
+require, yoga_ao_top+"/ywidgets/widgets_utils.i"
 
 mypath = anyof(split_path(get_path())==(yoga_ao_top+"/")) ? [] : get_path()+":"+yoga_ao_top+"/";
 if (mypath != []) set_path,mypath;
@@ -154,9 +155,34 @@ func script_canapass(filename,verbose=,strehl=,r0=,clean=,brama=)
     }
     if(brama)
       rtc_publish, g_rtc;
-//    a= yoga_getdm(g_dm,"pzt", 0)
-//    pli,a;
-//    pause, 100;
+/*   check DMs 
+ * window, 0
+ * a= yoga_getdm(g_dm,"pzt", 0)
+ * pli,a;
+ * window, 1
+ * a= yoga_getdm(g_dm,"pzt", 0.1)
+ * pli,a;
+ * window, 2
+ * a= yoga_getdm(g_dm,"tt", 0)
+ * pli,a;
+ * window, 3
+ *   a= yoga_getdm(g_dm,"tt", 0,1)
+ * pli,a;
+ * pause, 100;
+ */
+/*     check SH 
+ * offset = 1;
+ * all_slopes = rtc_getcentroids(g_rtc,0); 
+ * for(nwfs=1; nwfs<=10; nwfs++){
+ *   window, nwfs
+ *   fma;
+ *   display_slopes,all_slopes(offset:offset+y_wfs(nwfs)._nvalid*2-1),nwfs,"centroids";
+ *   offset+=y_wfs(nwfs)._nvalid*2
+ * }
+ * pause, 100;
+ */    
+
+    
     if (verbose) {
       subsample=100.;
       if (cc % subsample == 0) {

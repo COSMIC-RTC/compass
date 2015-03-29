@@ -58,7 +58,7 @@ public:
 //But we should discuss it
   int cpt_pertu;
   int open_loop;
-  map <type_screen,sutra_dm *> d_dmseen;
+  vector<sutra_dm *> d_dmseen;
   carma_obj<float> *d_centroids; // current centroids
   carma_obj<float> *d_com; // current command
   carma_obj<float> *d_perturb; // perturbation command buffer

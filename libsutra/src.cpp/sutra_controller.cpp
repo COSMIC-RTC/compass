@@ -27,7 +27,7 @@ sutra_controller::sutra_controller(carma_context* context, int nslope,
   this->d_voltage = new carma_obj<float>(context, dims_data1);
 
   for(int i=0 ; i<ndm ; i++){
-	  this->d_dmseen[make_pair(type[i],alt[i])] = dms->d_dms[make_pair(type[i],alt[i])];
+	  this->d_dmseen.push_back(dms->d_dms[dms->get_inddm(type[i],alt[i])]);
   }
 
 }

@@ -73,7 +73,7 @@ sutra_controller_geo::init_proj(sutra_dms *dms, int *indx_dm, float *unitpervolt
 	carma_obj<float> d_IF(current_context,dims_data);
 	dims_data[1] = nactu();
 	carma_obj<float> d_tmp(current_context,dims_data);
-	long dims_data1[2] = {1,this->Nphi * dms->ndm};
+	long dims_data1[2] = {1,this->Nphi * dms->ndm()};
 	carma_obj<int> d_indx(current_context,dims_data1, indx_dm);
 
 	this->d_indx_pup->host2device(indx_pup);
@@ -81,11 +81,12 @@ sutra_controller_geo::init_proj(sutra_dms *dms, int *indx_dm, float *unitpervolt
 	// Get influence functions in d_IF
 	int indx_start = 0;
 	int ind = 0;
-	map<type_screen, sutra_dm *>::iterator p;
+	vector<sutra_dm *>::iterator p;
 	p = dms->d_dms.begin();
 	while (p != dms->d_dms.end()) {
-	  p->second->get_IF<float>(d_IF.getData(indx_start * this->Nphi), d_indx.getData(this->Nphi * ind), this->Nphi, 1.0f/*unitpervolt[ind]*/);
-	  indx_start += p->second->ninflu;
+	  sutra_dm *dm = *p;
+	  dm->get_IF<float>(d_IF.getData(indx_start * this->Nphi), d_indx.getData(this->Nphi * ind), this->Nphi, 1.0f/*unitpervolt[ind]*/);
+	  indx_start += dm->ninflu;
 	  ind++;
 	  p++;
 	}
@@ -109,8 +110,8 @@ int
 sutra_controller_geo::init_proj_sparse(sutra_dms *dms, int *indx_dm, float *unitpervolt, int *indx_pup){
 
   current_context->set_activeDevice(device,1);
-  carma_sparse_obj<double> *d_IFi[dms->ndm];
-	long dims_data1[2] = {1,this->Nphi * dms->ndm};
+  carma_sparse_obj<double> *d_IFi[dms->ndm()];
+	long dims_data1[2] = {1,this->Nphi * dms->ndm()};
 	carma_obj<int> d_indx(current_context,dims_data1, indx_dm);
 
 	this->d_indx_pup->host2device(indx_pup);
@@ -119,16 +120,17 @@ sutra_controller_geo::init_proj_sparse(sutra_dms *dms, int *indx_dm, float *unit
 	int indx_start = 0;
 	int ind = 0;
 	int nnz = 0;
-	int NNZ[dms->ndm];
-	int Nact[dms->ndm];
-	map<type_screen, sutra_dm *>::iterator p;
+	int NNZ[dms->ndm()];
+	int Nact[dms->ndm()];
+	vector<sutra_dm *>::iterator p;
 	p = dms->d_dms.begin();
 	while (p != dms->d_dms.end()) {
-	  p->second->get_IF_sparse<double>(d_IFi[ind], d_indx.getData(this->Nphi * ind), this->Nphi, 1.0f,1);
+    sutra_dm *dm = *p;
+	  dm->get_IF_sparse<double>(d_IFi[ind], d_indx.getData(this->Nphi * ind), this->Nphi, 1.0f,1);
 	  NNZ[ind] = d_IFi[ind]->nz_elem;
-	  Nact[ind] = p->second->ninflu;
+	  Nact[ind] = dm->ninflu;
 	  nnz += d_IFi[ind]->nz_elem;
-	  indx_start += p->second->ninflu;
+	  indx_start += dm->ninflu;
 	  ind++;
 	  p++;
 	}
@@ -138,12 +140,13 @@ sutra_controller_geo::init_proj_sparse(sutra_dms *dms, int *indx_dm, float *unit
 	carma_obj<int> d_col(current_context,dims_data);
 	dims_data[1] = this->nactu() + 1;
 	carma_obj<int> d_row(current_context,dims_data);
-	int cpt[dms->ndm];
+	int cpt[dms->ndm()];
 	int nact = 0;
 	cpt[0] = 0;
 	p = dms->d_dms.begin();
 
-	for (int i = 0; i < dms->ndm; i++) {
+	for (int i = 0; i < dms->ndm(); i++) {
+    sutra_dm *dm = *p;
 		carmaSafeCall(
 				cudaMemcpyAsync(d_val.getData(cpt[i]), d_IFi[i]->d_data,
 						sizeof(double) * d_IFi[i]->nz_elem, cudaMemcpyDeviceToDevice));
@@ -152,20 +155,20 @@ sutra_controller_geo::init_proj_sparse(sutra_dms *dms, int *indx_dm, float *unit
 						sizeof(int) * d_IFi[i]->nz_elem, cudaMemcpyDeviceToDevice));
 		if(i == 0)
 			carmaSafeCall(
-						cudaMemcpyAsync(d_row.getData(), d_IFi[i]->d_rowind, sizeof(int) * (p->second->ninflu + 1),
+						cudaMemcpyAsync(d_row.getData(), d_IFi[i]->d_rowind, sizeof(int) * (dm->ninflu + 1),
 							cudaMemcpyDeviceToDevice));
 		else
 			carmaSafeCall(
-						cudaMemcpyAsync(d_row.getData(nact+1), &(d_IFi[i]->d_rowind[1]), sizeof(int) * (p->second->ninflu),
+						cudaMemcpyAsync(d_row.getData(nact+1), &(d_IFi[i]->d_rowind[1]), sizeof(int) * (dm->ninflu),
 							cudaMemcpyDeviceToDevice));
 		cpt[i+1] = cpt[i] + d_IFi[i]->nz_elem;
-		nact += p->second->ninflu;
+		nact += dm->ninflu;
 		p++;
 		delete d_IFi[i];
 	}
 
-	if(dms->ndm > 1){
-		dims_data[1] = dms->ndm;
+	if(dms->ndm() > 1){
+		dims_data[1] = dms->ndm();
 		carma_obj<int>d_NNZ(current_context,dims_data);
 		carma_obj<int>d_nact(current_context,dims_data);
 		d_NNZ.host2device(NNZ);

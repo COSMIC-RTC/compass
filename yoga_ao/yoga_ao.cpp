@@ -1785,15 +1785,18 @@ void dms_print(void *obj) {
   cout << "Contains " << dms_handler->d_dms.size() << " DMs : " << endl;
   cout << "DM #" << " | " << "Type " << " | " << "  Alt  " << " | " << "Nact"
       << " | " << "Dim" << endl;
-  map<type_screen, sutra_dm *>::iterator p;
+  vector<sutra_dm *>::iterator p;
+  vector<type_screen>::iterator q;
   p = dms_handler->d_dms.begin();
+  q = dms_handler->d_type.begin();
   int cpt = 0;
   while (p != dms_handler->d_dms.end()) {
+    sutra_dm *dm = *p;
     cpt++;
-    string types = p->first.first;
-    float alt = p->first.second;
-    long dim = p->second->dim;
-    long ninflu = p->second->ninflu;
+    string types = (*q).first;
+    float alt = (*q).second;
+    long dim = dm->dim;
+    long ninflu = dm->ninflu;
     cout << setw(4) << cpt << " | " << setw(5) << types << " | " << setw(7)
         << alt << " | " << setw(4) << ninflu << " | " << setw(4) << dim << endl;
     p++;
@@ -1842,8 +1845,13 @@ void Y_yoga_addpzt(int argc) {
 
   activeDevice = context_handle->set_activeDevice(odevice,1);
 
-  dms_handler->add_dm(context_handle, "pzt", alt, dim, ninflu, influsize,
-      ninflupos, n_npts, push4imat, odevice);
+  if(dms_handler->add_dm(context_handle, "pzt", alt, dim, ninflu, influsize,
+      ninflupos, n_npts, push4imat, odevice)==EXIT_FAILURE) {
+    stringstream buf;
+    buf << "unknown error with yoga_addpzt function in " << __FILE__ << "@"
+        << __LINE__ << " DM(ptz," << alt << ") already exist" << endl;
+    y_error(buf.str().c_str());
+  }
 }
 
 void Y_yoga_rmdm(int argc) {
@@ -1871,7 +1879,14 @@ void Y_yoga_loadpzt(int argc) {
   int *yoff = ygeta_i(argc - 8, &ntot, dims);
   float *kern = ygeta_f(argc - 9, &ntot, dims);
 
-  dms_handler->d_dms.at(make_pair("pzt", alt))->pzt_loadarrays(influ, influpos,
+  int inddm = dms_handler->get_inddm("pzt", alt);
+  if(inddm<0) {
+    stringstream buf;
+    buf << "unknown error with yoga_loadpzt function in " << __FILE__ << "@"
+        << __LINE__ << " DM(pzt," << alt << ") doesn't exist" << endl;
+    y_error(buf.str().c_str());
+  }
+  dms_handler->d_dms[inddm]->pzt_loadarrays(influ, influpos,
 					               npoints, istart, xoff, yoff, kern);
 }
 
@@ -1895,8 +1910,13 @@ void Y_yoga_addkl(int argc) {
 
   activeDevice = context_handle->set_activeDevice(odevice,1);
 
-  dms_handler->add_dm(context_handle, "kl", alt, dim, ninflu, influsize, nr, np,
-      push4imat, odevice);
+  if(dms_handler->add_dm(context_handle, "kl", alt, dim, ninflu, influsize, nr, np,
+      push4imat, odevice)==EXIT_FAILURE) {
+    stringstream buf;
+    buf << "unknown error with yoga_addkl function in " << __FILE__ << "@"
+        << __LINE__ << " DM(kl," << alt << ") already exist" << endl;
+    y_error(buf.str().c_str());
+  }
 }
 void Y_yoga_loadkl(int argc) {
   long ntot;
@@ -1912,7 +1932,14 @@ void Y_yoga_loadkl(int argc) {
   float *cr = ygeta_f(argc - 6, &ntot, dims);
   float *cp = ygeta_f(argc - 7, &ntot, dims);
 
-  dms_handler->d_dms.at(make_pair("kl", alt))->kl_loadarrays(rabas, azbas, ord,
+  int inddm = dms_handler->get_inddm("kl", alt);
+  if(inddm<0) {
+    stringstream buf;
+    buf << "unknown error with yoga_loadkl function in " << __FILE__ << "@"
+        << __LINE__ << " DM(kl," << alt << ") doesn't exist" << endl;
+    y_error(buf.str().c_str());
+  }
+  dms_handler->d_dms[inddm]->kl_loadarrays(rabas, azbas, ord,
       cr, cp);
 }
 
@@ -1922,6 +1949,13 @@ void Y_yoga_rmkl(int argc) {
   //char *type            = ygets_q(argc-2);
   float alt = ygets_f(argc - 2);
 
+  int inddm = dms_handler->get_inddm("kl", alt);
+  if(inddm<0) {
+    stringstream buf;
+    buf << "unknown error with yoga_loadkl function in " << __FILE__ << "@"
+        << __LINE__ << " DM(kl," << alt << ") doesn't exist" << endl;
+    y_error(buf.str().c_str());
+  }
   dms_handler->remove_dm("kl", alt);
 }
 
@@ -1932,21 +1966,28 @@ void Y_yoga_getkl(int argc) {
   float alt = ygets_f(argc - 2);
   long nkl = ygets_l(argc - 3);
 
+  int inddm = dms_handler->get_inddm("kl", alt);
+  if(inddm<0) {
+    stringstream buf;
+    buf << "unknown error with yoga_loadkl function in " << __FILE__ << "@"
+        << __LINE__ << " DM(kl," << alt << ") doesn't exist" << endl;
+    y_error(buf.str().c_str());
+  }
   int xoff =
-      (int) ((dms_handler->d_dms.at(make_pair("kl", alt))->d_shape->d_screen->getDims()[1]
-          - dms_handler->d_dms.at(make_pair("kl", alt))->d_kl->dim) / 2.0f);
+      (int) ((dms_handler->d_dms[inddm]->d_shape->d_screen->getDims()[1]
+          - dms_handler->d_dms[inddm]->d_kl->dim) / 2.0f);
   int yoff = xoff;
 
-  dms_handler->d_dms.at(make_pair("kl", alt))->d_kl->do_compute(
-      dms_handler->d_dms.at(make_pair("kl", alt))->d_shape->d_screen->getData(),
+  dms_handler->d_dms[inddm]->d_kl->do_compute(
+      dms_handler->d_dms[inddm]->d_shape->d_screen->getData(),
       nkl,
-      dms_handler->d_dms.at(make_pair("kl", alt))->d_shape->d_screen->getDims()[1],
+      dms_handler->d_dms[inddm]->d_shape->d_screen->getDims()[1],
       xoff, yoff);
 
   float *data =
       ypush_f(
-          (long*) dms_handler->d_dms.at(make_pair("kl", alt))->d_shape->d_screen->getDims());
-  dms_handler->d_dms.at(make_pair("kl", alt))->d_shape->d_screen->device2host(
+          (long*) dms_handler->d_dms[inddm]->d_shape->d_screen->getDims());
+  dms_handler->d_dms[inddm]->d_shape->d_screen->device2host(
       data);
 }
 
@@ -1965,8 +2006,13 @@ void Y_yoga_addtt(int argc) {
 
   activeDevice = context_handle->set_activeDevice(odevice,1);
 
-  dms_handler->add_dm(context_handle, "tt", alt, dim, 2, dim, 1, 1, push4imat,
-      odevice);
+  if(dms_handler->add_dm(context_handle, "tt", alt, dim, 2, dim, 1, 1, push4imat,
+      odevice) == EXIT_FAILURE) {
+    stringstream buf;
+    buf << "unknown error with yoga_addtt function in " << __FILE__ << "@"
+        << __LINE__ << " DM(tt," << alt << ") already exist" << endl;
+    y_error(buf.str().c_str());
+  }
 }
 
 void Y_yoga_loadtt(int argc) {
@@ -1979,7 +2025,14 @@ void Y_yoga_loadtt(int argc) {
   float alt = ygets_f(argc - 2);
   float *influ = ygeta_f(argc - 3, &ntot, dims);
 
-  dms_handler->d_dms.at(make_pair("tt", alt))->d_influ->host2device(influ);
+  int inddm = dms_handler->get_inddm("tt", alt);
+  if(inddm<0) {
+    stringstream buf;
+    buf << "unknown error with yoga_loadtt function in " << __FILE__ << "@"
+        << __LINE__ << " DM(tt," << alt << ") doesn't exist" << endl;
+    y_error(buf.str().c_str());
+  }
+  dms_handler->d_dms[inddm]->d_influ->host2device(influ);
 }
 
 void Y_yoga_setcomm(int argc) {
@@ -1992,7 +2045,14 @@ void Y_yoga_setcomm(int argc) {
   float alt = ygets_f(argc - 3);
   float *comm = ygeta_f(argc - 4, &ntot, dims);
 
-  dms_handler->d_dms.at(make_pair(type, alt))->d_comm->host2device(comm);
+  int inddm = dms_handler->get_inddm(type, alt);
+  if(inddm<0) {
+    stringstream buf;
+    buf << "unknown error with yoga_setcomm function in " << __FILE__ << "@"
+        << __LINE__ << " DM(" << type << "," << alt << ") doesn't exist" << endl;
+    y_error(buf.str().c_str());
+  }
+  dms_handler->d_dms[inddm]->d_comm->host2device(comm);
 }
 
 void Y_yoga_getcomm(int argc) {
@@ -2001,9 +2061,17 @@ void Y_yoga_getcomm(int argc) {
   sutra_dms *dms_handler = (sutra_dms *) (handler->sutra_dms);
   char *type = ygets_q(argc - 2);
   float alt = ygets_f(argc - 3);
-  float *comm = ypush_f(const_cast<long*>(dms_handler->d_dms.at(make_pair(type, alt))->d_comm->getDims()));
 
-  dms_handler->d_dms.at(make_pair(type, alt))->d_comm->device2host(comm);
+  int inddm = dms_handler->get_inddm(type, alt);
+  if(inddm<0) {
+    stringstream buf;
+    buf << "unknown error with yoga_getcomm function in " << __FILE__ << "@"
+        << __LINE__ << " DM(" << type << "," << alt << ") doesn't exist" << endl;
+    y_error(buf.str().c_str());
+  }
+  float *comm = ypush_f(const_cast<long*>(dms_handler->d_dms[inddm]->d_comm->getDims()));
+
+  dms_handler->d_dms[inddm]->d_comm->device2host(comm);
 }
 
 void Y_yoga_getmapactu(int argc) {
@@ -2012,9 +2080,17 @@ void Y_yoga_getmapactu(int argc) {
   sutra_dms *dms_handler = (sutra_dms *) (handler->sutra_dms);
   char *type = ygets_q(argc - 2);
   float alt = ygets_f(argc - 3);
-  float *mapactu = ypush_f(const_cast<long*>(dms_handler->d_dms.at(make_pair(type, alt))->d_mapactu->getDims()));
 
-  dms_handler->d_dms.at(make_pair(type, alt))->d_mapactu->device2host(mapactu);
+  int inddm = dms_handler->get_inddm(type, alt);
+  if(inddm<0) {
+    stringstream buf;
+    buf << "unknown error with yoga_getmapactu function in " << __FILE__ << "@"
+        << __LINE__ << " DM(" << type << "," << alt << ") doesn't exist" << endl;
+    y_error(buf.str().c_str());
+  }
+  float *mapactu = ypush_f(const_cast<long*>(dms_handler->d_dms[inddm]->d_mapactu->getDims()));
+
+  dms_handler->d_dms[inddm]->d_mapactu->device2host(mapactu);
 }
 
 void Y_yoga_getpos(int argc) {
@@ -2023,9 +2099,17 @@ void Y_yoga_getpos(int argc) {
   sutra_dms *dms_handler = (sutra_dms *) (handler->sutra_dms);
   char *type = ygets_q(argc - 2);
   float alt = ygets_f(argc - 3);
-  int *pos = ypush_i(const_cast<long*>(dms_handler->d_dms.at(make_pair(type, alt))->d_pos->getDims()));
 
-  dms_handler->d_dms.at(make_pair(type, alt))->d_pos->device2host(pos);
+  int inddm = dms_handler->get_inddm(type, alt);
+  if(inddm<0) {
+    stringstream buf;
+    buf << "unknown error with yoga_getpos function in " << __FILE__ << "@"
+        << __LINE__ << " DM(" << type << "," << alt << ") doesn't exist" << endl;
+    y_error(buf.str().c_str());
+  }
+  int *pos = ypush_i(const_cast<long*>(dms_handler->d_dms[inddm]->d_pos->getDims()));
+
+  dms_handler->d_dms[inddm]->d_pos->device2host(pos);
 }
 
 void Y_yoga_shapedm(int argc) {
@@ -2034,7 +2118,14 @@ void Y_yoga_shapedm(int argc) {
   char *type = ygets_q(argc - 2);
   float alt = ygets_f(argc - 3);
 
-  dms_handler->d_dms.at(make_pair(type, alt))->comp_shape();
+  int inddm = dms_handler->get_inddm(type, alt);
+  if(inddm<0) {
+    stringstream buf;
+    buf << "unknown error with yoga_shapedm function in " << __FILE__ << "@"
+        << __LINE__ << " DM(" << type << "," << alt << ") doesn't exist" << endl;
+    y_error(buf.str().c_str());
+  }
+  dms_handler->d_dms[inddm]->comp_shape();
 }
 
 void Y_yoga_resetdm(int argc) {
@@ -2043,7 +2134,14 @@ void Y_yoga_resetdm(int argc) {
   char *type = ygets_q(argc - 2);
   float alt = ygets_f(argc - 3);
 
-  dms_handler->d_dms.at(make_pair(type, alt))->reset_shape();
+  int inddm = dms_handler->get_inddm(type, alt);
+  if(inddm<0) {
+    stringstream buf;
+    buf << "unknown error with yoga_resetdm function in " << __FILE__ << "@"
+        << __LINE__ << " DM(" << type << "," << alt << ") doesn't exist" << endl;
+    y_error(buf.str().c_str());
+  }
+  dms_handler->d_dms[inddm]->reset_shape();
 }
 
 void Y_yoga_oneactu(int argc) {
@@ -2054,7 +2152,14 @@ void Y_yoga_oneactu(int argc) {
   long nactu = ygets_l(argc - 4);
   float ampli = ygets_f(argc - 5);
 
-  dms_handler->d_dms.at(make_pair(type, alt))->comp_oneactu(nactu, ampli);
+  int inddm = dms_handler->get_inddm(type, alt);
+  if(inddm<0) {
+    stringstream buf;
+    buf << "unknown error with yoga_oneactu function in " << __FILE__ << "@"
+        << __LINE__ << " DM(" << type << "," << alt << ") doesn't exist" << endl;
+    y_error(buf.str().c_str());
+  }
+  dms_handler->d_dms[inddm]->comp_oneactu(nactu, ampli);
 }
 
 void Y_yoga_getdm(int argc) {
@@ -2062,10 +2167,18 @@ void Y_yoga_getdm(int argc) {
   sutra_dms *dms_handler = (sutra_dms *) (handler->sutra_dms);
   char *type = ygets_q(argc - 2);
   float alt = ygets_f(argc - 3);
+
+  int inddm = dms_handler->get_inddm(type, alt);
+  if(inddm<0) {
+    stringstream buf;
+    buf << "unknown error with yoga_getdm function in " << __FILE__ << "@"
+        << __LINE__ << " DM(" << type << "," << alt << ") doesn't exist" << endl;
+    y_error(buf.str().c_str());
+  }
   float *data =
       ypush_f(
-          (long*) dms_handler->d_dms.at(make_pair(type, alt))->d_shape->d_screen->getDims());
-  dms_handler->d_dms.at(make_pair(type, alt))->d_shape->d_screen->device2host(
+          (long*) dms_handler->d_dms[inddm]->d_shape->d_screen->getDims());
+  dms_handler->d_dms[inddm]->d_shape->d_screen->device2host(
       data);
 }
 
@@ -2078,7 +2191,15 @@ void Y_yoga_setdm(int argc) {
   char *type = ygets_q(argc - 2);
   float alt = ygets_f(argc - 3);
   float *data = ygeta_f(argc - 4, &ntot, dims);
-  dms_handler->d_dms.at(make_pair(type, alt))->d_shape->d_screen->host2device(
+
+  int inddm = dms_handler->get_inddm(type, alt);
+  if(inddm<0) {
+    stringstream buf;
+    buf << "unknown error with yoga_setdm function in " << __FILE__ << "@"
+        << __LINE__ << " DM(" << type << "," << alt << ") doesn't exist" << endl;
+    y_error(buf.str().c_str());
+  }
+  dms_handler->d_dms[inddm]->d_shape->d_screen->host2device(
       data);
 }
 
@@ -2097,7 +2218,14 @@ void Y_yoga_computeKLbasis(int argc) {
   float norm = ygets_f(argc - 8);
   float ampli = ygets_f(argc - 9);
 
-  dms_handler->d_dms.at(make_pair(type, alt))->compute_KLbasis(xpos,ypos,indx_pup,dim,norm,ampli);
+  int inddm = dms_handler->get_inddm(type, alt);
+  if(inddm<0) {
+    stringstream buf;
+    buf << "unknown error with yoga_computeKLbasis function in " << __FILE__ << "@"
+        << __LINE__ << " DM(" << type << "," << alt << ") doesn't exist" << endl;
+    y_error(buf.str().c_str());
+  }
+  dms_handler->d_dms[inddm]->compute_KLbasis(xpos,ypos,indx_pup,dim,norm,ampli);
 
 } 
 
@@ -2111,7 +2239,14 @@ void Y_yoga_setcomkl(int argc) {
   float alt = ygets_f(argc - 3);
   float *comvec = ygeta_f(argc - 4 , &ntot, dims);
 
-  dms_handler->d_dms.at(make_pair(type, alt))->set_comkl(comvec);
+  int inddm = dms_handler->get_inddm(type, alt);
+  if(inddm<0) {
+    stringstream buf;
+    buf << "unknown error with yoga_setcomkl function in " << __FILE__ << "@"
+        << __LINE__ << " DM(" << type << "," << alt << ") doesn't exist" << endl;
+    y_error(buf.str().c_str());
+  }
+  dms_handler->d_dms[inddm]->set_comkl(comvec);
 
 } 
 
@@ -2120,10 +2255,18 @@ void Y_yoga_setcomkl(int argc) {
   sutra_dms *dms_handler = (sutra_dms *) (handler->sutra_dms);
   char *type = ygets_q(argc - 2);
   float alt = ygets_f(argc - 3);
+
+  int inddm = dms_handler->get_inddm(type, alt);
+  if(inddm<0) {
+    stringstream buf;
+    buf << "unknown error with yoga_getKLbasis function in " << __FILE__ << "@"
+        << __LINE__ << " DM(" << type << "," << alt << ") doesn't exist" << endl;
+    y_error(buf.str().c_str());
+  }
   float *data =
       ypush_f(
-          (long*) dms_handler->d_dms.at(make_pair(type, alt))->d_KLbasis->getDims());
-  dms_handler->d_dms.at(make_pair(type, alt))->d_KLbasis->device2host(
+          (long*) dms_handler->d_dms[inddm]->d_KLbasis->getDims());
+  dms_handler->d_dms[inddm]->d_KLbasis->device2host(
       data);
 }
 
@@ -2156,29 +2299,36 @@ void Y_dms_getdata(int argc) {
   char *type = ygets_q(argc - 2);
   float alt = ygets_f(argc - 3);
 
+  int inddm=dms_handler->get_inddm(type, alt);
+  if(inddm<0) {
+    stringstream buf;
+    buf << "unknown error with yoga_getdata function in " << __FILE__ << "@"
+        << __LINE__ << " DM(" << type << "," << alt << ") doesn't exist" << endl;
+    y_error(buf.str().c_str());
+  }
   char *type_data = ygets_q(argc - 4);
   if (strcmp(type_data, "xoff") == 0) {
     int *data = ypush_i(
-        (long*) dms_handler->d_dms.at(make_pair(type, alt))->d_xoff->getDims());
-    dms_handler->d_dms.at(make_pair(type, alt))->d_xoff->device2host(data);
+        (long*) dms_handler->d_dms[inddm]->d_xoff->getDims());
+    dms_handler->d_dms[inddm]->d_xoff->device2host(data);
   }
   if (strcmp(type_data, "yoff") == 0) {
     int *data = ypush_i(
-        (long*) dms_handler->d_dms.at(make_pair(type, alt))->d_yoff->getDims());
-    dms_handler->d_dms.at(make_pair(type, alt))->d_yoff->host2device(data);
+        (long*) dms_handler->d_dms[inddm]->d_yoff->getDims());
+    dms_handler->d_dms[inddm]->d_yoff->host2device(data);
   }
   if (strcmp(type_data, "rabas") == 0) {
     float *data =
         ypush_f(
-            (long*) dms_handler->d_dms.at(make_pair(type, alt))->d_kl->d_rabas->getDims());
-    dms_handler->d_dms.at(make_pair(type, alt))->d_kl->d_rabas->host2device(
+            (long*) dms_handler->d_dms[inddm]->d_kl->d_rabas->getDims());
+    dms_handler->d_dms[inddm]->d_kl->d_rabas->host2device(
         data);
   }
   if (strcmp(type_data, "azbas") == 0) {
     float *data =
         ypush_f(
-            (long*) dms_handler->d_dms.at(make_pair(type, alt))->d_kl->d_azbas->getDims());
-    dms_handler->d_dms.at(make_pair(type, alt))->d_kl->d_azbas->host2device(
+            (long*) dms_handler->d_dms[inddm]->d_kl->d_azbas->getDims());
+    dms_handler->d_dms[inddm]->d_kl->d_azbas->host2device(
         data);
   }
 }
@@ -2197,12 +2347,13 @@ void Y_dms_comp_shape(int argc) {
 
     carma_obj<float> d_com(context_handle, const_cast<const long*>(dims), com);
 
-    map<type_screen, sutra_dm *>::iterator p;
+    vector<sutra_dm *>::iterator p;
     p = dms_handler->d_dms.begin();
     int idx = 0;
     while (p != dms_handler->d_dms.end()) {
-      p->second->comp_shape(d_com[idx]);
-      idx += p->second->ninflu;
+      sutra_dm *dm =*p;
+      dm->comp_shape(d_com[idx]);
+      idx += dm->ninflu;
       p++;
     }
   }
@@ -3794,7 +3945,14 @@ void Y_rtc_doCphim(int argc){
     context_handle->set_activeDeviceForCpy(rhandler->device,1);
     CAST(sutra_controller_mv *, controller, rtc_handler->d_control[ncontrol]);
 
-    controller->do_covmat(dms_handler->d_dms.at(make_pair(type, alt)),method,indx_pup,dim,xpos,ypos,Nkl,norm,ampli);
+    int inddm = dms_handler->get_inddm(type, alt);
+    if(inddm<0) {
+      stringstream buf;
+      buf << "unknown error with yoga_docovmat function in " << __FILE__ << "@"
+          << __LINE__ << " DM(" << type << "," << alt << ") doesn't exist" << endl;
+      y_error(buf.str().c_str());
+    }
+    controller->do_covmat(dms_handler->d_dms[inddm],method,indx_pup,dim,xpos,ypos,Nkl,norm,ampli);
 
   }
   void Y_rtc_loadcovmat(int argc) {
@@ -3944,14 +4102,22 @@ void Y_yoga_getflokl(int argc) {
 //  float *evals = ygeta_f(argc - 6, &ntot, dims);
 //  float *bas = ygeta_f(argc - 7, &ntot, dims);
   float alt = ygets_f(argc-8);
+  int inddm=dms_handler->get_inddm("kl", alt);
+  if(inddm<0) {
+    stringstream buf;
+    buf << "unknown error with yoga_getflokl function in " << __FILE__ << "@"
+        << __LINE__ << " DM(" << "kl" << "," << alt << ") doesn't exist" << endl;
+    y_error(buf.str().c_str());
+  }
+
   cout << "flag 1" << endl;
-  dms_handler->d_dms.at(make_pair("kl", alt))->d_kl->get_flokl();
+  dms_handler->d_dms[inddm]->d_kl->get_flokl();
   cout << "flag 2" << endl;
   float *data =
       ypush_f(
-          (long*) dms_handler->d_dms.at(make_pair("kl", alt))->d_kl->d_bas->getDims());
+          (long*) dms_handler->d_dms[inddm]->d_kl->d_bas->getDims());
   cout << "flag 3" << endl;
-  dms_handler->d_dms.at(make_pair("kl", alt))->d_kl->d_bas->device2host(data);
+  dms_handler->d_dms[inddm]->d_kl->d_bas->device2host(data);
   cout << "flag 4" << endl;
 }
 
@@ -3980,8 +4146,15 @@ void Y_yoga_floloadkl(int argc) {
   cout << "flag9" << endl;
   float alt = ygets_f(argc-8);
   cout << "flag10" << endl;
+  int inddm=dms_handler->get_inddm("kl", alt);
+  if(inddm<0) {
+    stringstream buf;
+    buf << "unknown error with yoga_getflolaodkl function in " << __FILE__ << "@"
+        << __LINE__ << " DM(" << "kl" << "," << alt << ") doesn't exist" << endl;
+    y_error(buf.str().c_str());
+  }
 
-  dms_handler->d_dms.at(make_pair("kl", alt))->kl_floloadarrays(covmat, filter,
+  dms_handler->d_dms[inddm]->kl_floloadarrays(covmat, filter,
       evals, bas);
   cout << "flag11" << endl;
 }

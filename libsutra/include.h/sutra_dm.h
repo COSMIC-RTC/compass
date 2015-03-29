@@ -110,8 +110,8 @@ public:
 
 class sutra_dms {
 public:
-  int ndm;
-  map<type_screen, sutra_dm *> d_dms;
+  vector<sutra_dm *> d_dms;
+  vector<type_screen> d_type;
 
 public:
   sutra_dms(int ndm);
@@ -122,8 +122,11 @@ public:
       long ninflu, long influsize, long ninflupos, long n_npoints,
       float push4imat, int device);
   int
-  remove_dm(const char* type, float alt);
+  remove_dm(string type, float alt);
 
+  int get_inddm(string type, float alt);
+
+  int ndm() {return d_dms.size();};
   int nact_total();
 };
 

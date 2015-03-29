@@ -127,14 +127,15 @@ int sutra_rtc::do_imat(int ncntrl, sutra_dms *ydm) {
     return EXIT_SUCCESS;
   }
 
-  map<type_screen, sutra_dm *>::iterator p;
+  vector<sutra_dm *>::iterator p;
   p = this->d_control[ncntrl]->d_dmseen.begin();
   int inds1;
   inds1 = 0;
   while (p != this->d_control[ncntrl]->d_dmseen.end()) {
-    for (int j = 0; j < p->second->ninflu; j++) {
+    sutra_dm *dm = *p;
+    for (int j = 0; j < dm->ninflu; j++) {
       // Push
-      p->second->comp_oneactu(j, p->second->push4imat);
+      dm->comp_oneactu(j, dm->push4imat);
 
       for (size_t idx_cntr = 0; idx_cntr < (this->d_centro).size();
           idx_cntr++) {
@@ -152,14 +153,14 @@ int sutra_rtc::do_imat(int ncntrl, sutra_dms *ydm) {
 
       int device = this->d_control[ncntrl]->d_centroids->getDevice();
       convert_centro(*this->d_control[ncntrl]->d_centroids,
-          *this->d_control[ncntrl]->d_centroids, 0, 0.5f / p->second->push4imat,
+          *this->d_control[ncntrl]->d_centroids, 0, 0.5f / dm->push4imat,
           this->d_control[ncntrl]->d_centroids->getNbElem(),
           current_context->get_device(device));
       this->d_control[ncntrl]->d_centroids->copyInto((*d_imat)[inds1],
           this->d_control[ncntrl]->nslope());
-      p->second->reset_shape();
+      dm->reset_shape();
       // Pull
-      p->second->comp_oneactu(j, -1.0f * p->second->push4imat);
+      dm->comp_oneactu(j, -1.0f * dm->push4imat);
       for (size_t idx_cntr = 0; idx_cntr < (this->d_centro).size();
           idx_cntr++) {
         sutra_wfs *wfs = this->d_centro[idx_cntr]->wfs;
@@ -174,7 +175,7 @@ int sutra_rtc::do_imat(int ncntrl, sutra_dms *ydm) {
       device = this->d_control[ncntrl]->d_centroids->getDevice();
       do_centroids(ncntrl, true);
       convert_centro(*this->d_control[ncntrl]->d_centroids,
-          *this->d_control[ncntrl]->d_centroids, 0, 0.5f / p->second->push4imat,
+          *this->d_control[ncntrl]->d_centroids, 0, 0.5f / dm->push4imat,
           this->d_control[ncntrl]->d_centroids->getNbElem(),
           current_context->get_device(device));
 
@@ -184,7 +185,7 @@ int sutra_rtc::do_imat(int ncntrl, sutra_dms *ydm) {
           this->d_control[ncntrl]->d_centroids->getData(), 1, (*d_imat)[inds1],
           1);
 
-      p->second->reset_shape();
+      dm->reset_shape();
       inds1 += this->d_control[ncntrl]->nslope();
     }
     p++;
@@ -196,13 +197,14 @@ int sutra_rtc::do_imat(int ncntrl, sutra_dms *ydm) {
 int sutra_rtc::do_imat_geom(int ncntrl, sutra_dms *ydm,
     int type) {
   current_context->set_activeDevice(device,1);
-  map<type_screen, sutra_dm *>::iterator p;
+  vector<sutra_dm *>::iterator p;
   p = this->d_control[ncntrl]->d_dmseen.begin();
   int inds1, inds2;
   inds1 = 0;
   while (p != this->d_control[ncntrl]->d_dmseen.end()) {
-    for (int j = 0; j < p->second->ninflu; j++) {
-      p->second->comp_oneactu(j, p->second->push4imat); //
+    sutra_dm *dm = *p;
+    for (int j = 0; j < dm->ninflu; j++) {
+      dm->comp_oneactu(j, dm->push4imat); //
       inds2 = 0;
       for (size_t idx_cntr = 0; idx_cntr < (this->d_control).size();
           idx_cntr++) {
@@ -235,7 +237,7 @@ int sutra_rtc::do_imat_geom(int ncntrl, sutra_dms *ydm,
         }
         inds2 += 2 * wfs->nvalid;
       }
-      p->second->reset_shape();
+      dm->reset_shape();
       inds1 += this->d_control[ncntrl]->nslope();
     }
     p++;
@@ -316,7 +318,7 @@ int sutra_rtc::apply_control(int ncntrl, sutra_dms *ydm) {
 
   this->d_control[ncntrl]->comp_voltage();
 
-  map<type_screen, sutra_dm *>::iterator p;
+  vector<sutra_dm *>::iterator p;
   p = this->d_control[ncntrl]->d_dmseen.begin();
   int idx = 0;
   if ((this->d_control[ncntrl]->get_type().compare("ls") == 0)
@@ -325,28 +327,31 @@ int sutra_rtc::apply_control(int ncntrl, sutra_dms *ydm) {
     // "streamed" controllers case
 
     while (p != this->d_control[ncntrl]->d_dmseen.end()) {
+      sutra_dm *dm = *p;
+
       int nstreams = this->d_control[ncntrl]->streams->get_nbStreams();
-      if (nstreams > p->second->ninflu) {
+      if (nstreams > dm->ninflu) {
         for (int i = 0; i < nstreams; i++) {
-          int istart = i * p->second->ninflu / nstreams;
+          int istart = i * dm->ninflu / nstreams;
           carmaSafeCall(
-              cudaMemcpyAsync((*p->second->d_comm)[istart],
+              cudaMemcpyAsync((*dm->d_comm)[istart],
                   (*this->d_control[ncntrl]->d_voltage)[idx + istart],
-                  sizeof(float) * p->second->ninflu / nstreams,
+                  sizeof(float) * dm->ninflu / nstreams,
                   cudaMemcpyDeviceToDevice,
                   (*this->d_control[ncntrl]->streams)[i]));
-          p->second->comp_shape();
+          dm->comp_shape();
         }
       } else {
-        p->second->comp_shape((*this->d_control[ncntrl]->d_voltage)[idx]);
+        dm->comp_shape((*this->d_control[ncntrl]->d_voltage)[idx]);
       }
-      idx += p->second->ninflu;
+      idx += dm->ninflu;
       p++;
     }
   } else { // "non-streamed" controllers
     while (p != this->d_control[ncntrl]->d_dmseen.end()) {
-      p->second->comp_shape((*this->d_control[ncntrl]->d_voltage)[idx]);
-      idx += p->second->ninflu;
+      sutra_dm *dm = *p;
+      dm->comp_shape((*this->d_control[ncntrl]->d_voltage)[idx]);
+      idx += dm->ninflu;
       p++;
     }
   }
