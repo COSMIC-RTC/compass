@@ -1800,6 +1800,7 @@ void dms_print(void *obj) {
     cout << setw(4) << cpt << " | " << setw(5) << types << " | " << setw(7)
         << alt << " | " << setw(4) << ninflu << " | " << setw(4) << dim << endl;
     p++;
+    q++;
   }
 }
 
