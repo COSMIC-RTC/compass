@@ -611,7 +611,7 @@ sutra_dms::sutra_dms(int ndm) {
 sutra_dms::~sutra_dms() {
   for (std::vector<sutra_dm *>::iterator it = this->d_dms.begin();
       this->d_dms.end() != it; it++) {
-    delete it.base();
+    delete *it;
   }
   this->d_dms.clear();
   this->d_type.clear();

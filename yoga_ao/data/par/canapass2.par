@@ -52,7 +52,7 @@ y_wfs(its).gsmag         = 3.;
 y_wfs(its).optthroughput = 0.5;
 y_wfs(its).zerop         = 1.e11;
 y_wfs(its).noise         = 0.5;
-y_wfs(its).atmos_seen    = 0;
+y_wfs(its).atmos_seen    = 1;
 y_wfs(its).dms_seen      = &([1,2,4]);
 
 y_wfs(its).xpos            = 0.0;
@@ -70,7 +70,7 @@ y_wfs(ilgs).gsmag         = 10.;
 y_wfs(ilgs).optthroughput = 0.5;
 y_wfs(ilgs).zerop         = 1.e11;
 y_wfs(ilgs).noise         = 0.5;
-y_wfs(ilgs).atmos_seen    = 0;
+y_wfs(ilgs).atmos_seen    = 1;
 y_wfs(ilgs).dms_seen      = &([1,2,3]);
 
 y_wfs(ilgs(1)).xpos          = -16.0;
@@ -103,7 +103,7 @@ y_wfs(ings).gsmag         = 3.;
 y_wfs(ings).optthroughput = 0.5;
 y_wfs(ings).zerop         = 1.e11;
 y_wfs(ings).noise         = 0.5;
-y_wfs(ings).atmos_seen    = 0;
+y_wfs(ings).atmos_seen    = 1;
 y_wfs(ings).dms_seen      = &([1,2]);
 
 y_wfs(ings(1)).xpos            = -50.0;
