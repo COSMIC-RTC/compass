@@ -62,6 +62,8 @@ sutra_wfs_sh::sutra_wfs_sh(carma_context *context, sutra_sensors *sensors, long 
 }
 
 int sutra_wfs_sh::define_mpi_rank(int rank, int size){
+  this->device = rank%2;
+
   int count=this->nvalid/size;
   int i;
   this->rank = rank;
@@ -89,6 +91,7 @@ int sutra_wfs_sh::define_mpi_rank(int rank, int size){
 }
 
 int sutra_wfs_sh::allocate_buffers(sutra_sensors *sensors) {
+  current_context->set_activeDevice(device,1);
   long *dims_data1 = new long[2];
   dims_data1[0] = 1;
   long *dims_data2 = new long[3];

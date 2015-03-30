@@ -13,10 +13,11 @@ from libcpp.pair cimport pair
 from libc.stdint cimport uintptr_t
 
 #from mpi4py import MPI
-from mpi4py cimport MPI
 # C-level cdef, typed, Python objects
-from mpi4py cimport libmpi as mpi
-
+#from mpi4py cimport MPI
+cimport mpi4py.MPI as MPI
+#from mpi4py cimport libmpi as mpi
+cimport mpi4py.mpi_c as mpi
 
 cdef np.float32_t dtor = (np.pi/180.)
 
