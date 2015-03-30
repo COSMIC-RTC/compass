@@ -214,6 +214,17 @@ extern target_getimage;
    SEE ALSO:
  */
  
+extern target_resetphase;
+/* DOCUMENT target_resetphase
+   target_resetphase,yoga_target_obj,ntarget
+     
+   reset the phase for a given target in an yTarget object
+   yoga_target_obj : the yTarget object
+   ntarget         : index of the given target
+
+   SEE ALSO:
+ */
+
 extern target_getphase;
 /* DOCUMENT target_getphase
    screen = target_getphase(yoga_target_obj,ntarget)
@@ -224,6 +235,7 @@ extern target_getphase;
 
    SEE ALSO:
  */
+
 extern target_getphasetele;
 /* DOCUMENT target_getphasetele
    screen = target_getphasetele(yoga_target_obj,ntarget)
@@ -456,6 +468,17 @@ extern sensors_getdata;
    nsensor          : index of given wfs
    type             : type of data "amplipup" or "amplifoc" or "hrimg" or
                       "bincube" or "phase" or "totimg" or "lgskern" or "ftlgskern"
+
+   SEE ALSO:
+ */
+
+extern sensors_resetphase;
+/* DOCUMENT sensors_resetphase
+   sensors_resetphase,yoga_sensors_obj,nsensor
+     
+   resets phase of a given sensor in a ySensors object
+   yoga_sensors_obj : the ySensors object
+   nsensor          : index of given wfs
 
    SEE ALSO:
  */

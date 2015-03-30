@@ -653,6 +653,20 @@ void Y_target_getimage(int argc) {
     target_handler->d_targets.at(ntarget)->d_leimage->device2host(data);
 }
 
+void Y_target_resetphase(int argc) {
+  target_struct *handler = (target_struct *) yget_obj(argc - 1, &yTarget);
+  sutra_target *target_handler = (sutra_target *) (handler->sutra_target);
+
+  carma_context *context_handle = _getCurrentContext();
+  context_handle->set_activeDeviceForCpy(handler->device,1);
+
+  int ntarget = ygets_i(argc - 2);
+
+  carmaSafeCall(
+      cudaMemset(target_handler->d_targets.at(ntarget)->d_phase->d_screen->getData(), 0,
+          sizeof(float) * target_handler->d_targets.at(ntarget)->d_phase->d_screen->getNbElem()));
+}
+
 void Y_target_getphase(int argc) {
   target_struct *handler = (target_struct *) yget_obj(argc - 1, &yTarget);
   sutra_target *target_handler = (sutra_target *) (handler->sutra_target);
@@ -1632,6 +1646,23 @@ void Y_sensors_setphase(int argc) {
 
   sensors_handler->d_wfs.at(nsensor)->d_gs->d_phase->d_screen->host2device(
       data);
+}
+
+void Y_sensors_resetphase(int argc) {
+  long ntot;
+  long dims[Y_DIMSIZE];
+
+  sensors_struct *handler = (sensors_struct *) yget_obj(argc - 1, &ySensors);
+  sutra_sensors *sensors_handler = (sutra_sensors *) (handler->sutra_sensors);
+
+  carma_context *context_handle = _getCurrentContext();
+  context_handle->set_activeDevice(handler->device,1);
+
+  int nsensor = ygets_i(argc - 2);
+
+  carmaSafeCall(
+      cudaMemset(sensors_handler->d_wfs.at(nsensor)->d_gs->d_phase->d_screen->getData(), 0,
+          sizeof(float) * sensors_handler->d_wfs.at(nsensor)->d_gs->d_phase->d_screen->getNbElem()));
 }
 
 /*

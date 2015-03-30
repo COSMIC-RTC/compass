@@ -28,6 +28,7 @@ func script_canapass(filename,verbose=,strehl=,r0=,clean=,brama=)
   extern ipupil;
   extern canastop,cc;
   extern time_move,time_stop,strehl_flag,brama_flag,verbose_flag;
+  extern y_see_atmos;
 
   if (verbose == []) verbose = 1;
   if (strehl == []) strehl = 0;
@@ -38,7 +39,8 @@ func script_canapass(filename,verbose=,strehl=,r0=,clean=,brama=)
   if (strehl) {
     extern strehlsp,strehllp,mimg;
   }
-
+  y_see_atmos=0;
+  
   brama_flag = brama;
   verbose_flag = verbose;
   strehl_flag = strehl;
@@ -127,7 +129,8 @@ func script_canapass(filename,verbose=,strehl=,r0=,clean=,brama=)
     if ((y_target != []) && (g_target != [])) {
       // loop on targets
       for (i=1;i<=y_target.ntargets;i++) {
-        target_atmostrace,g_target,i-1,g_atmos;
+        if(y_see_atmos)
+          target_atmostrace,g_target,i-1,g_atmos;
         if (g_dm != []) {
           target_dmtrace,g_target,i-1,g_dm;
         }
@@ -138,7 +141,8 @@ func script_canapass(filename,verbose=,strehl=,r0=,clean=,brama=)
     if ((y_wfs != []) && (g_wfs != [])) {
       // loop on wfs
       for (i=1;i<=numberof(y_wfs);i++) {
-        sensors_trace,g_wfs,i-1,"all",g_atmos,g_dm;
+       if(y_see_atmos)
+           sensors_trace,g_wfs,i-1,"all",g_atmos,g_dm;
         /*
          sensors_trace,g_wfs,i-1,"atmos",g_atmos;
          if ((!y_wfs(i).openloop) && (g_dm != [])) {
@@ -261,6 +265,7 @@ if(batch()) {
 
 
 func loop_canapass(one) {
+  extern y_see_atmos;
   extern cc;
   cc++;
   move_atmos,g_atmos;
@@ -273,7 +278,10 @@ func loop_canapass(one) {
   if ((y_target != []) && (g_target != [])) {
     // loop on targets
     for (i=1;i<=y_target.ntargets;i++) {
-      target_atmostrace,g_target,i-1,g_atmos;
+      if(y_see_atmos)
+        target_atmostrace,g_target,i-1,g_atmos;
+      else
+        target_resetphase,g_target,i-1,g_atmos;
       if (g_dm != []) {
         target_dmtrace,g_target,i-1,g_dm;
       }
@@ -284,13 +292,15 @@ func loop_canapass(one) {
   if ((y_wfs != []) && (g_wfs != [])) {
     // loop on wfs
     for (i=1;i<=numberof(y_wfs);i++) {
-      sensors_trace,g_wfs,i-1,"all",g_atmos,g_dm;
-      /*
-        sensors_trace,g_wfs,i-1,"atmos",g_atmos;
+      if (g_dm != []) {
+        if(y_see_atmos)
+          sensors_trace,g_wfs,i-1,"atmos",g_atmos;
+        else
+          sensors_resetphase,g_wfs,i-1
         if ((!y_wfs(i).openloop) && (g_dm != [])) {
-        sensors_trace,g_wfs,i-1,"dm",g_dm,0;
+          sensors_trace,g_wfs,i-1,"dm",g_dm,0;
         }
-      */
+      }
 
       sensors_compimg,g_wfs,i-1;
     }
