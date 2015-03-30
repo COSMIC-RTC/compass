@@ -26,6 +26,8 @@ func script_canapass(filename,verbose=,strehl=,r0=,clean=,brama=)
   extern y_geom,y_tel,y_loop,y_atmos,y_wfs;
   extern g_atmos,g_target,g_wfs;
   extern ipupil;
+  extern canastop,cc;
+  extern time_move,time_stop,strehl_flag,brama_flag,verbose_flag;
 
   if (verbose == []) verbose = 1;
   if (strehl == []) strehl = 0;
@@ -37,7 +39,11 @@ func script_canapass(filename,verbose=,strehl=,r0=,clean=,brama=)
     extern strehlsp,strehllp,mimg;
   }
 
-  if (filename == []) filename = YOGA_AO_PARPATH+"1wfs8x8_1layer_rtc_dm.par";
+  brama_flag = brama;
+  verbose_flag = verbose;
+  strehl_flag = strehl;
+  
+  if (filename == []) filename = YOGA_AO_PARPATH+"canapass2.par";
   //if (filename == []) filename = YOGA_AO_PARPATH+"1pyr32x32_1layer_rtc_dm.par";
 
   if ((!(fileExist(filename))) && (!(fileExist(YOGA_AO_PARPATH+filename))))
@@ -104,6 +110,11 @@ func script_canapass(filename,verbose=,strehl=,r0=,clean=,brama=)
   }
 
   cc=0;
+  canastop = 0;
+
+  loop_canapass,0;
+  return;
+  
   while (1) {
     cc++;
     move_atmos,g_atmos;
@@ -245,4 +256,103 @@ if(batch()) {
       script_canapass,filename,strehl=1;
     }
   }
+}
+
+
+
+func loop_canapass(one) {
+  extern cc;
+  cc++;
+  move_atmos,g_atmos;
+  /*
+    mscreen = get_tscreen(g_atmos,(*y_atmos.alt)(1));
+    tst(,,cc)=mscreen;
+    mspec += circavg(abs(fft(mscreen)/nxscreen/nxscreen)^2);
+  */
+
+  if ((y_target != []) && (g_target != [])) {
+    // loop on targets
+    for (i=1;i<=y_target.ntargets;i++) {
+      target_atmostrace,g_target,i-1,g_atmos;
+      if (g_dm != []) {
+        target_dmtrace,g_target,i-1,g_dm;
+      }
+    }
+    //saving average image from target #1
+  }
+
+  if ((y_wfs != []) && (g_wfs != [])) {
+    // loop on wfs
+    for (i=1;i<=numberof(y_wfs);i++) {
+      sensors_trace,g_wfs,i-1,"all",g_atmos,g_dm;
+      /*
+        sensors_trace,g_wfs,i-1,"atmos",g_atmos;
+        if ((!y_wfs(i).openloop) && (g_dm != [])) {
+        sensors_trace,g_wfs,i-1,"dm",g_dm,0;
+        }
+      */
+
+      sensors_compimg,g_wfs,i-1;
+    }
+
+    // do centroiding
+  }
+
+  if ((y_rtc != []) && (g_rtc != [])
+      && (y_wfs != []) && (g_wfs != [])) {
+    rtc_docentroids,g_rtc,0;
+    //rtc_docentroids_geom,g_rtc,0;
+    //rtc_docentroids_geom,g_rtc,0; 
+    // compute command and apply
+    if (g_dm != []) {
+      rtc_docontrol,g_rtc,0;
+      rtc_applycontrol,g_rtc,0,g_dm;
+    }
+
+  }
+  if(brama_flag)
+    rtc_publish, g_rtc;
+  //    a= yoga_getdm(g_dm,"pzt", 0)
+  //    pli,a;
+  //    pause, 100;
+  if (verbose_flag) {
+    subsample=100.;
+    if (cc % subsample == 0) {
+      timetmp = time_move*(cc-subsample);
+      time_move = tac(mytime)/cc;
+      timetmp -= time_move*cc;
+      if (strehl_flag) {
+        //error;
+        strehltmp = target_getstrehl(g_target,0);
+        grow,strehlsp,strehltmp(1);
+        grow,strehllp,strehltmp(2);
+        write,format=" %5i    %5.2f     %5.2f     %5.2f it./s\n",
+          cc,strehlsp(0),strehllp(0), -1/timetmp*subsample;
+      } else {
+        write,format="\v",;
+        write,format="\r framerate : %.2f it./s", -1/timetmp*subsample;
+      }
+    }
+  }
+
+  if ((!one) && (!canastop)) after,0.001,loop_canapass;
+  else end_canapass;
+}
+
+func end_canapass(void)
+{
+  write,"\n done with simulation \n";
+  write,format="simulation time : %f sec. per iteration\n",tac(mytime)/y_loop.niter;
+  //if (strehl)
+  //return strehllp(0);
+  //mimg /= y_loop.niter;
+  //window,1;fma;pli,mimg; 
+  //error;
+
+}
+
+func start_canapass(void){
+  extern canastop;
+  canastop = 0;
+  after,0.001,loop_canapass;
 }
