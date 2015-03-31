@@ -5,7 +5,6 @@
 
 class sutra_controller_geo: public sutra_controller {
 public:
-  int delay;
   float gain;
   long Nphi;
 
@@ -21,7 +20,7 @@ public:
 
 public:
   sutra_controller_geo(carma_context *context, long nactu, long Nphi,
-      long delay, sutra_dms *dms, char **type, float *alt, int ndm);
+      float delay, sutra_dms *dms, char **type, float *alt, int ndm);
   sutra_controller_geo(const sutra_controller_geo& controller);
   ~sutra_controller_geo();
 
@@ -34,8 +33,6 @@ public:
 
   int
   set_gain(float gain);
-  int
-  set_delay(int delay);
   int
   load_mgain(float *mgain);
   int

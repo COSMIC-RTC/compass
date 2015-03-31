@@ -1,10 +1,9 @@
 #include <sutra_controller_geo.h>
 
 sutra_controller_geo::sutra_controller_geo(carma_context *context, long nactu, long Nphi,
-      long delay, sutra_dms *dms, char **type, float *alt, int ndm):
-      sutra_controller(context, 0, nactu, dms, type, alt, ndm){
+      float delay, sutra_dms *dms, char **type, float *alt, int ndm):
+      sutra_controller(context, 0, nactu, 0.0f, dms, type, alt, ndm){
 
-	this->delay = delay;
 	this->device = device;
 	this->gain = 0.0f;
 	this->Nphi = Nphi;
@@ -53,11 +52,6 @@ string sutra_controller_geo::get_type() {
 
 int sutra_controller_geo::set_gain(float gain) {
   this->gain = gain;
-  return EXIT_SUCCESS;
-}
-
-int sutra_controller_geo::set_delay(int delay) {
-  this->delay = delay;
   return EXIT_SUCCESS;
 }
 

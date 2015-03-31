@@ -196,7 +196,7 @@ int sutra_controller_kalman::comp_com() {
 sutra_controller_kalman::sutra_controller_kalman(carma_context* context_,
 		int nvalid_, int nactu_, sutra_dms *dms, char **type, float *alt,
 		int ndm) :
-		sutra_controller(context_, nvalid_ * 2, nactu_, dms, type, alt, ndm) {
+		sutra_controller(context_, nvalid_ * 2, nactu_,0.0f, dms, type, alt, ndm) {
   current_context->set_activeDevice(device,1);
    core_sparse = NULL;
    core_full = NULL;

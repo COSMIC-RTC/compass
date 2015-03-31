@@ -14,7 +14,7 @@ class sutra_controller {
 public:
 
   //allocation of d_centroids and d_com
-	sutra_controller(carma_context* context, int nslope, int nactu,
+	sutra_controller(carma_context* context, int nslope, int nactu, float delay,
 			sutra_dms *dms, char **type, float *alt, int ndm);
   virtual
   ~sutra_controller();
@@ -51,6 +51,8 @@ public:
   syevd_f(char meth, carma_obj<float> *d_U, carma_host_obj<float> *h_eingenvals);
   int
   invgen(carma_obj<float> *d_mat, float cond, int job);
+  int
+  command_delay();
 
 public:
 //I would propose to make them protected (+ proper
@@ -58,11 +60,17 @@ public:
 //But we should discuss it
   int cpt_pertu;
   int open_loop;
+  float delay;
+  float a; // Coefficient for linear interpolation on command buffer to allow non-integer delay
+  float b; // Coefficient for linear interpolation on command buffer to allow non-integer delay
+  float c; // Coefficient for linear interpolation on command buffer to allow non-integer delay
   vector<sutra_dm *> d_dmseen;
   carma_obj<float> *d_centroids; // current centroids
   carma_obj<float> *d_com; // current command
   carma_obj<float> *d_perturb; // perturbation command buffer
   carma_obj<float> *d_voltage; // commands sent to mirror
+  carma_obj<float> *d_com1; // commands k-1
+  carma_obj<float> *d_com2; // commands k-2
 
   carma_streams *streams;
 
@@ -102,7 +110,7 @@ int
 get_pupphase(T *odata, float *idata, int *indx_pup, int Nphi, carma_device *device);
 
 int
-compute_Hcor_gpu(float *o_data, int nrow, int ncol, float Fs, float gmin, float gmax, int delay, carma_device *device);
+compute_Hcor_gpu(float *o_data, int nrow, int ncol, float Fs, float gmin, float gmax, float delay, carma_device *device);
 int
 absnormfft(cuFloatComplex *idata, float *odata, int N, float norm, carma_device *device);
 int

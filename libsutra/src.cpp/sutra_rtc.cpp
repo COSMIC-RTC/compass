@@ -5,7 +5,6 @@
 sutra_rtc::sutra_rtc(carma_context *context) {
   this->current_context = context;
   this->device = context->get_activeDevice();
-  this->delay = 0;
 }
 
 sutra_rtc::~sutra_rtc() {
@@ -64,7 +63,7 @@ int sutra_rtc::add_centroider(sutra_sensors *sensors, int nwfs, long nvalid, flo
   return EXIT_SUCCESS;
 }
 
-int sutra_rtc::add_controller_geo(int nactu, int Nphi, long delay,
+int sutra_rtc::add_controller_geo(int nactu, int Nphi, float delay,
     long device, sutra_dms *dms, char **type_dmseen, float *alt, int ndm) {
   current_context->set_activeDevice(device,1);
   this->d_control.push_back(
@@ -72,7 +71,7 @@ int sutra_rtc::add_controller_geo(int nactu, int Nphi, long delay,
   return EXIT_SUCCESS;
 }
 
-int sutra_rtc::add_controller(int nactu, long delay, long device,
+int sutra_rtc::add_controller(int nactu, float delay, long device,
     const char *typec, sutra_dms *dms, char **type_dmseen, float *alt, int ndm) {
   current_context->set_activeDevice(device,1);
   int ncentroids = 0;
@@ -317,6 +316,8 @@ int sutra_rtc::apply_control(int ncntrl, sutra_dms *ydm) {
   current_context->set_activeDevice(device,1);
 
   this->d_control[ncntrl]->comp_voltage();
+  this->d_control[ncntrl]->command_delay();
+
 
   vector<sutra_dm *>::iterator p;
   p = this->d_control[ncntrl]->d_dmseen.begin();

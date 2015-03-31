@@ -5,7 +5,6 @@
 
 class sutra_controller_ls: public sutra_controller {
 public:
-  int delay;
   float gain;
 
   carma_obj<float> *d_imat;
@@ -41,7 +40,7 @@ public:
 
 public:
   sutra_controller_ls(carma_context *context, long nvalid, long nactu,
-      long delay, sutra_dms *dms, char **type, float *alt, int ndm);
+      float delay, sutra_dms *dms, char **type, float *alt, int ndm);
   sutra_controller_ls(const sutra_controller_ls& controller);
   ~sutra_controller_ls();
 
@@ -65,7 +64,7 @@ public:
   int
   load_mgain(float *mgain);
   int
-  set_delay(int delay);
+  set_delay(float delay);
   int
   init_modalOpti(int nmodes, int nrec, float *M2V, float gmin, float gmax, int ngain, float Fs);
   int

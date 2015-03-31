@@ -3,11 +3,10 @@
 #include <string>
 
 sutra_controller_mv::sutra_controller_mv(carma_context *context, long nvalid,
-    long nactu_, long delay, sutra_dms *dms, char **type, float *alt, int ndm) :
-    sutra_controller(context, nvalid * 2, nactu_, dms, type, alt, ndm) {
+    long nactu_, float delay, sutra_dms *dms, char **type, float *alt, int ndm) :
+    sutra_controller(context, nvalid * 2, nactu_, delay, dms, type, alt, ndm) {
 
 
-  this->delay = delay;
   this->device = device;
   this->gain = 0.0f;
 
@@ -30,9 +29,9 @@ sutra_controller_mv::sutra_controller_mv(carma_context *context, long nvalid,
   dims_data2[1] = dims_data2[2] = nactu();
   d_U = new carma_obj<float>(this->current_context, dims_data2);
   this->d_cenbuff = 0L;
-  if (delay > 0) {
+  if ((int)delay > 0) {
     dims_data2[1] = 2 * nvalid;
-    dims_data2[2] = delay + 1;
+    dims_data2[2] = (int)delay + 1;
     this->d_cenbuff = new carma_obj<float>(this->current_context, dims_data2);
   }
   dims_data2[1] = nslope();
@@ -570,7 +569,7 @@ int sutra_controller_mv::load_klbasis(float *klbasis) {
   this->d_KLbasis->host2device(klbasis);
   return EXIT_SUCCESS;
 }
-int sutra_controller_mv::set_delay(int delay) {
+int sutra_controller_mv::set_delay(float delay) {
   this->delay = delay;
   return EXIT_SUCCESS;
 }
@@ -783,13 +782,13 @@ int sutra_controller_mv::frame_delay() {
   // the actual centroid frame for error computation depending on delay value
 
   current_context->set_activeDevice(device,1);
-  if (delay > 0) {
+  if ((int)delay > 0) {
     for (int cc = 0; cc < delay; cc++)
       shift_buf(&((this->d_cenbuff->getData())[cc * this->nslope()]), 1,
           this->nslope(), this->current_context->get_device(device));
 
     carmaSafeCall(
-        cudaMemcpy(&(this->d_cenbuff->getData()[delay * this->nslope()]),
+        cudaMemcpy(&(this->d_cenbuff->getData()[(int)delay * this->nslope()]),
             this->d_centroids->getData(), sizeof(float) * this->nslope(),
             cudaMemcpyDeviceToDevice));
 
@@ -804,7 +803,7 @@ int sutra_controller_mv::frame_delay() {
 int sutra_controller_mv::comp_com() {
 
   current_context->set_activeDevice(device,1);
-  this->frame_delay();
+  //this->frame_delay();
   this->d_com2->copy(this->d_com1, 1, 1);
   this->d_com1->copy(this->d_com, 1, 1);
   // POLC equations

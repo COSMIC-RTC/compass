@@ -5,7 +5,6 @@
 
 class sutra_controller_cured: public sutra_controller {
 public:
-  int delay;
   float gain;
   int   ndivs; //number of subdivision levels for cured
   bool  tt_flag; //flag for separate tt
@@ -27,7 +26,7 @@ public:
 
 public:
   sutra_controller_cured(carma_context *context, long nvalid, long nactu,
-			 long delay, sutra_dms *dms, char **type, float *alt, int ndm);
+			 float delay, sutra_dms *dms, char **type, float *alt, int ndm);
   sutra_controller_cured(const sutra_controller_cured& controller);
   ~sutra_controller_cured();
 
@@ -44,7 +43,7 @@ public:
   int 
     frame_delay();
   int
-    set_delay(int delay);
+    set_delay(float delay);
 };
 
 #endif // _sutra_controller_cured_H_

@@ -19,7 +19,6 @@ using namespace std;
 class sutra_rtc {
 public:
   int device;
-  int delay;
 
   vector<sutra_centroider *> d_centro;
   vector<sutra_controller *> d_control;
@@ -37,10 +36,10 @@ public:
   int
     rm_centroider();
 	int
-	add_controller_geo(int nactu, int Nphi, long delay, long device,
+	add_controller_geo(int nactu, int Nphi, float delay, long device,
 			sutra_dms *dms, char **type_dmseen, float *alt, int ndm);
 	int
-	add_controller(int nactu, long delay, long device, const char *typec,
+	add_controller(int nactu, float delay, long device, const char *typec,
 			sutra_dms *dms, char **type_dmseen, float *alt, int ndm);
 	int
 	rm_controller();

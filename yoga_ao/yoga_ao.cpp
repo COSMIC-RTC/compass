@@ -2502,7 +2502,7 @@ void Y_rtc_addcontrol(int argc) {
   rtc_struct *rhandler = (rtc_struct *) yget_obj(argc - 1, &yRTC);
   sutra_rtc *rtc_handler = (sutra_rtc *) (rhandler->sutra_rtc);
   long nactu = ygets_l(argc - 2);
-  long delay = ygets_l(argc - 3);
+  float delay = ygets_f(argc - 3);
   char *type_control = ygets_q(argc - 4);
   dms_struct *handlera = (dms_struct *) yget_obj(argc - 5, &yDMs);
   sutra_dms *dms_handler = (sutra_dms *) (handlera->sutra_dms);
@@ -2857,17 +2857,17 @@ void Y_rtc_setdelay(int argc) {
   carma_context *context_handle = _getCurrentContext();
   context_handle->set_activeDeviceForCpy(rhandler->device,1);
   if (rtc_handler->d_control.at(ncontrol)->get_type().compare("ls") == 0) {
-    long delay = ygets_l(argc - 3);
+    float delay = ygets_f(argc - 3);
     CAST(sutra_controller_ls *, control, rtc_handler->d_control.at(ncontrol));
     control->set_delay(delay);
   }
    if (rtc_handler->d_control.at(ncontrol)->get_type().compare("mv") == 0) {
-    long delay = ygets_l(argc - 3);
+    float delay = ygets_f(argc - 3);
     CAST(sutra_controller_mv *, control, rtc_handler->d_control.at(ncontrol));
     control->set_delay(delay);
   }
    if (rtc_handler->d_control.at(ncontrol)->get_type().compare("cured") == 0) {
-    long delay = ygets_l(argc - 3);
+    float delay = ygets_f(argc - 3);
     CAST(sutra_controller_cured *, control, rtc_handler->d_control.at(ncontrol));
     control->set_delay(delay);
   }

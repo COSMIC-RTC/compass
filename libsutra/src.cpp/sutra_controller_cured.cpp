@@ -3,12 +3,11 @@
 #include <cured.h>
 
 sutra_controller_cured::sutra_controller_cured(carma_context *context,
-		long nvalid, long nactu, long delay, sutra_dms *dms, char **type,
+		long nvalid, long nactu, float delay, sutra_dms *dms, char **type,
 		float *alt, int ndm) :
-		sutra_controller(context, nvalid * 2, nactu, dms, type, alt, ndm) {
+		sutra_controller(context, nvalid * 2, nactu, delay, dms, type, alt, ndm) {
 
   this->gain = 0;
-  this->delay = delay;
 
   this->h_centroids = 0L;
   this->h_err = 0L;
@@ -33,9 +32,9 @@ sutra_controller_cured::sutra_controller_cured(carma_context *context,
   dims_data2[2] = nactu;
 
   this->d_imat = new carma_obj<float>(context, dims_data2);
-  if (delay > 0) {
+  if ((int)delay > 0) {
     dims_data2[1] = nvalid * 2;
-    dims_data2[2] = delay + 1;
+    dims_data2[2] = (int)delay + 1;
     this->d_cenbuff = new carma_obj<float>(context, dims_data2);
   } else
     this->d_cenbuff = 0L;
@@ -68,7 +67,7 @@ int sutra_controller_cured::set_gain(float gain) {
 
 int sutra_controller_cured::comp_com() {
   current_context->set_activeDevice(device,1);
-  this->frame_delay();
+  //this->frame_delay();
   h_centroids->cpy_obj(this->d_centroids, cudaMemcpyDeviceToHost);
 
   if (this->tt_flag) {
@@ -104,13 +103,13 @@ int sutra_controller_cured::frame_delay() {
   // here we place the content of d_centroids into cenbuf and get
   // the actual centroid frame for error computation depending on delay value
 
-  if (delay > 0) {
+  if ((int)delay > 0) {
     for (int cc = 0; cc < delay; cc++)
       shift_buf(&((this->d_cenbuff->getData())[cc * this->nslope()]), 1,
           this->nslope(), this->current_context->get_device(device));
 
     carmaSafeCall(
-        cudaMemcpy(&(this->d_cenbuff->getData()[delay * this->nslope()]),
+        cudaMemcpy(&(this->d_cenbuff->getData()[(int)delay * this->nslope()]),
             this->d_centroids->getData(), sizeof(float) * this->nslope(),
             cudaMemcpyDeviceToDevice));
 
@@ -122,7 +121,7 @@ int sutra_controller_cured::frame_delay() {
   return EXIT_SUCCESS;
 }
 
-int sutra_controller_cured::set_delay(int delay) {
+int sutra_controller_cured::set_delay(float delay) {
   this->delay = delay;
   return EXIT_SUCCESS;
 }

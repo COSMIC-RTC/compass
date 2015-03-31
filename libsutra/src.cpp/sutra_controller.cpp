@@ -2,10 +2,12 @@
 #include <string>
 
 sutra_controller::sutra_controller(carma_context* context, int nslope,
-    int nactu, sutra_dms *dms, char **type, float *alt, int ndm) {
+    int nactu, float delay, sutra_dms *dms, char **type, float *alt, int ndm) {
   this->current_context = context;
   this->device = context->get_activeDevice();
   //current_context->set_activeDevice(device,1);
+  this->d_com1 = NULL;
+  this->d_com2 = NULL;
 
   int nstreams = 1; //nvalid/10;
   while (nactu % nstreams != 0)
@@ -18,12 +20,44 @@ sutra_controller::sutra_controller(carma_context* context, int nslope,
   this->d_perturb = NULL;
   this->cpt_pertu = 0;
 
+  if(delay < 2)
+	  this->delay = delay;
+  else
+	  this->delay = 2.0f;
+
+  int floor = (int)delay;
+  if(floor > 0 && floor < 2){
+	  this->a = 0;
+	  this->c = delay - floor;
+	  this->b = 1 - this->c;
+  }
+  else if(floor == 0){
+	  this->b = delay;
+	  this->a = 1 - this->b;
+	  this->c = 0;
+  }
+  else { // Maximum delay is 2
+	  this->a = 0;
+	  this->c = 1;
+	  this->b = 0;
+  }
+
+  //DEBUG_TRACE("delay = %f a = %f b = %f c = %f floor = %f",this->delay,this->a,this->b,this->c,floor);
+
+
   long dims_data1[2] = { 1, 0 };
 
   dims_data1[1] = nslope;
   this->d_centroids = new carma_obj<float>(context, dims_data1);
   dims_data1[1] = nactu;
   this->d_com = new carma_obj<float>(context, dims_data1);
+  if (this->delay > 1){
+	  this->d_com1 = new carma_obj<float>(context, dims_data1);
+	  this->d_com2 = new carma_obj<float>(context, dims_data1);
+  }
+  else if(this->delay > 0)
+	  this->d_com1 = new carma_obj<float>(context, dims_data1);
+
   this->d_voltage = new carma_obj<float>(context, dims_data1);
 
   for(int i=0 ; i<ndm ; i++){
@@ -47,11 +81,39 @@ sutra_controller::set_perturbcom(float *perturb, int N){
 	this->cpt_pertu=0;
 	return EXIT_SUCCESS;
 }
+int sutra_controller::command_delay() {
+	current_context->set_activeDevice(device,1);
+
+	if(delay > 1){
+		this->d_com2->copy(this->d_com1,1,1);
+		this->d_com1->copy(this->d_com,1,1);
+	}
+	else if(delay >0)
+		this->d_com1->copy(this->d_com,1,1);
+
+  return EXIT_SUCCESS;
+}
 int
 sutra_controller::comp_voltage(){
 
 	if(this->open_loop)
 		carmaSafeCall(cudaMemset(this->d_voltage->getData(),0.0f,this->nactu()*sizeof(float)));
+	else if(this->delay > 0){
+		//DEBUG_TRACE("a = %f   b = %f   c = %f",this->a,this->b,this->c);
+		carmaSafeCall(cudaMemset(this->d_voltage->getData(),0.0f,this->nactu()*sizeof(float)));
+		carma_axpy(cublas_handle(), this->nactu(), this->a,
+					this->d_com->getData(),
+					1, this->d_voltage->getData(), 1);
+		carma_axpy(cublas_handle(), this->nactu(), this->b,
+					this->d_com1->getData(),
+					1, this->d_voltage->getData(), 1);
+		if(delay > 1)
+			carma_axpy(cublas_handle(), this->nactu(), this->c,
+						this->d_com2->getData(),
+						1, this->d_voltage->getData(), 1);
+	}
+
+
 	else
 		this->d_com->copyInto(this->d_voltage->getData(),this->nactu());
 

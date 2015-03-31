@@ -144,7 +144,7 @@ exp_complex(cuComplex z){
 }
 
 __global__ void
-compute_Hcor_krnl(float *o_data, int nrow, int ncol, float Fs, float Te, float gmin, float gmax, int delay){
+compute_Hcor_krnl(float *o_data, int nrow, int ncol, float Fs, float Te, float gmin, float gmax, float delay){
 	int tid = threadIdx.x + blockIdx.x * blockDim.x;
 	int j = tid/nrow;
 	int i = tid - j*nrow;
@@ -404,7 +404,7 @@ template int
 get_pupphase<double>(double *o_data, float *i_data, int *indx_pup, int Nphi, carma_device *device);
 
 int
-compute_Hcor_gpu(float *o_data, int nrow, int ncol, float Fs, float gmin, float gmax, int delay, carma_device *device){
+compute_Hcor_gpu(float *o_data, int nrow, int ncol, float Fs, float gmin, float gmax, float delay, carma_device *device){
 	int nthreads = 0, nblocks = 0;
 	getNumBlocksAndThreads(device, nrow*ncol, nblocks, nthreads);
 	dim3 grid(nblocks), threads(nthreads);

@@ -2,15 +2,14 @@
 #include <string>
 
 sutra_controller_ls::sutra_controller_ls(carma_context *context, long nvalid,
-    long nactu, long delay, sutra_dms *dms, char **type, float *alt, int ndm) :
-    sutra_controller(context, nvalid * 2, nactu, dms, type, alt, ndm) {
+    long nactu, float delay, sutra_dms *dms, char **type, float *alt, int ndm) :
+    sutra_controller(context, nvalid * 2, nactu, delay, dms, type, alt, ndm) {
   this->d_imat = 0L;
   this->d_cmat = 0L;
   this->d_eigenvals = 0L;
   this->h_eigenvals = 0L;
   this->d_cenbuff = 0L;
 
-  this->delay = delay;
   this->gain = 0.0f;
 
   this->is_modopti = 0;
@@ -35,7 +34,7 @@ sutra_controller_ls::sutra_controller_ls(carma_context *context, long nvalid,
 
   if (delay > 0) {
     dims_data2[1] = nvalid * 2;
-    dims_data2[2] = delay + 1;
+    dims_data2[2] = (int)delay + 1;
     this->d_cenbuff = new carma_obj<float>(context, dims_data2);
   }
   else
@@ -138,7 +137,7 @@ int sutra_controller_ls::load_mgain(float *mgain) {
   return EXIT_SUCCESS;
 }
 
-int sutra_controller_ls::set_delay(int delay) {
+int sutra_controller_ls::set_delay(float delay) {
   this->delay = delay;
   return EXIT_SUCCESS;
 }
@@ -221,7 +220,7 @@ int sutra_controller_ls::frame_delay() {
           this->nslope(), this->current_context->get_device(device));
 
     carmaSafeCall(
-        cudaMemcpy(&(this->d_cenbuff->getData()[delay * this->nslope()]),
+        cudaMemcpy(&(this->d_cenbuff->getData()[(int)delay * this->nslope()]),
             this->d_centroids->getData(), sizeof(float) * this->nslope(),
             cudaMemcpyDeviceToDevice));
 
@@ -236,7 +235,7 @@ int sutra_controller_ls::frame_delay() {
 int sutra_controller_ls::comp_com() {
 
   current_context->set_activeDevice(device,1);
-  this->frame_delay();
+  //this->frame_delay();
   int nstreams = streams->get_nbStreams();
 
   //Modal Control Optimization
@@ -257,7 +256,7 @@ int sutra_controller_ls::comp_com() {
 		carma_gemv<float>(cublas_handle(), 'n', nslope(), nactu(), 1.0f, *d_imat, nslope(),
 			*d_compbuff, 1, 0.0f, *d_compbuff2, 1);
 		carma_geam<float>(cublas_handle(), 'n', 'n', nslope(), 1, 1.0f, *d_centroids,
-			nslope(), -1.0f, *d_compbuff2, nslope(), this->d_slpol->getData((this->cpt_rec-this->delay)*nslope()), nslope());
+			nslope(), -1.0f, *d_compbuff2, nslope(), this->d_slpol->getData((this->cpt_rec-(int)this->delay)*nslope()), nslope());
 	}
 	this->cpt_rec++;
   }

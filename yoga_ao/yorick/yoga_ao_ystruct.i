@@ -207,7 +207,7 @@ struct controller_struct
   pointer imat;     // full interaction matrix
   pointer cmat;     // full control matrix
   float   maxcond;  // max condition number
-  long    delay;    // 
+  float    delay;    // 
   float   gain;     //
   long    nkl;      // Florain features : number of KL modes used for computation of covmat in case of minimum variance controller
   long    cured_ndivs; // subdivision levels in cured

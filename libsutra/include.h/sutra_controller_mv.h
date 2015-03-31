@@ -13,7 +13,6 @@ using namespace std;
 
 class sutra_controller_mv: public sutra_controller {
 public:
-  int delay;
   float gain;
 
   carma_obj<float> *d_imat;
@@ -44,7 +43,7 @@ public:
 
 public:
   sutra_controller_mv(carma_context *context, long nvalid, long nactu,
-      long delay, sutra_dms *dms, char **type, float *alt, int ndm);
+      float delay, sutra_dms *dms, char **type, float *alt, int ndm);
   sutra_controller_mv(const sutra_controller_mv& controller);
   ~sutra_controller_mv();
 
@@ -66,7 +65,7 @@ public:
   int
   load_mgain(float *mgain);
   int
-  set_delay(int delay);
+  set_delay(float delay);
   // Florian features
   int
   load_noisemat(float *noise);
