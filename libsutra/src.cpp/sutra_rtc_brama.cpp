@@ -80,21 +80,40 @@ void sutra_rtc_brama::update_param() {
       DEBUG_TRACE("Updating perturbation voltages on controller %d", ncontrol);
 
       unsigned int ncmd = d_control[ncontrol]->nactu();
-
-      if (cmd.dimensions[0] != 2 || cmd.dimensions[1] != ncmd) {
-        BRAMA_DEBUG_TRACE("wrong dimensions : %d %d %d", cmd.dimensions[0],
-                          cmd.dimensions[1], cmd.dimensions[2]);
-        BRAMA_DEBUG_TRACE("it should be : 2 %d nb_elem", ncmd);
-        throw CORBA::BAD_PARAM();
-      }
-
       CORBA::Float *data = (CORBA::Float*)cmd.data.get_buffer();
-      for(int idx=0; idx<ncmd; idx++){
-        BRAMA_DEBUG_TRACE("cmd %d: %f", idx, data[idx]);
+
+      if (cmd.dimensions[0] == 1) {
+        if (cmd.dimensions[1] == ncmd) {
+          d_control[ncontrol]->set_perturbcom(data, 1);
+          return;
+        } else {
+          BRAMA_DEBUG_TRACE("wrong dimensions : %d %d", cmd.dimensions[0],
+                            cmd.dimensions[1]);
+          BRAMA_DEBUG_TRACE("it should be : 1 %d", ncmd);
+          throw CORBA::BAD_PARAM();
+        }
+      } else if (cmd.dimensions[0] == 2){
+        if (cmd.dimensions[1] == ncmd){
+          d_control[ncontrol]->set_perturbcom(data, cmd.dimensions[2]);
+          return;
+        } else {
+          BRAMA_DEBUG_TRACE("wrong dimensions : %d %d %d", cmd.dimensions[0],
+                            cmd.dimensions[1], cmd.dimensions[2]);
+          BRAMA_DEBUG_TRACE("it should be : 2 %d nb_elem", ncmd);
+          throw CORBA::BAD_PARAM();
+        }
+      } else {
+        CORBA::ULong *data = (CORBA::ULong*)cmd.dimensions.get_buffer();
+
+        cerr << "wrong dimensions: ";
+        // Print in Normal order
+        std::copy(data,
+                  data+data[0]+1,
+                  std::ostream_iterator<CORBA::ULong>(std::cout,",")
+                 );
+        std::cout << "\n";
+       throw CORBA::BAD_PARAM();
       }
-      BRAMA_DEBUG_TRACE("nb_elem %d", cmd.dimensions[2]);
-      d_control[ncontrol]->set_perturbcom(data, cmd.dimensions[2]);
-      return;
     } else {
       throw "Unknown parameter";
     }
