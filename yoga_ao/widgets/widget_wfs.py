@@ -359,14 +359,14 @@ class wfs:
       maxcond = self.glade.get_widget('maxcond').get_value()
       delay   = self.glade.get_widget('delay').get_value()
       gain    = self.glade.get_widget('loop_gain').get_value()
-      self.py2yo('init_control_prop %d %f %d %f' % (control+1,maxcond,delay,gain))
+      self.py2yo('init_control_prop %d %f %f %f' % (control+1,maxcond,delay,gain))
 
    def on_cmat_up_clicked(self,wdg):
       control = self.glade.get_widget('type_control').get_active()
       maxcond = self.glade.get_widget('maxcond').get_value()
       delay   = self.glade.get_widget('delay').get_value()
       gain    = self.glade.get_widget('loop_gain').get_value()
-      self.py2yo('update_control %d %f %d %f' % (control+1,maxcond,delay,gain))
+      self.py2yo('update_control %d %f %f %f' % (control+1,maxcond,delay,gain))
 
 
    ######################################################

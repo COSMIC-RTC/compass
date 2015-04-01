@@ -86,7 +86,7 @@ func update_control_prop(void)
   if (y_rtc == []) {
     pyk,swrite(format=wfs_disp._cmd+"y_init_control(%d)",1);
   } else {
-    pyk,swrite(format=wfs_disp._cmd+"y_update_control_gui('%s', %f, %d, %f)",
+    pyk,swrite(format=wfs_disp._cmd+"y_update_control_gui('%s', %f, %f, %f)",
                (*y_rtc.controllers)(1).type,(*y_rtc.controllers)(1).maxcond,
                (*y_rtc.controllers)(1).delay,(*y_rtc.controllers)(1).gain);
   }
