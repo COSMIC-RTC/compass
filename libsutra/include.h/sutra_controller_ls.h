@@ -62,7 +62,9 @@ public:
   int
   set_gain(float gain);
   int
-  load_mgain(float *mgain);
+  set_mgain(float *mgain);
+  int
+  set_cmat(float *cmat);
   int
   set_delay(float delay);
   int

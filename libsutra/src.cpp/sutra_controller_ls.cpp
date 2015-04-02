@@ -133,7 +133,13 @@ int sutra_controller_ls::set_gain(float gain) {
   return EXIT_SUCCESS;
 }
 
-int sutra_controller_ls::load_mgain(float *mgain) {
+int sutra_controller_ls::set_cmat(float *cmat) {
+  current_context->set_activeDevice(device,1);
+  this->d_cmat->host2device(cmat);
+  return EXIT_SUCCESS;
+}
+
+int sutra_controller_ls::set_mgain(float *mgain) {
   current_context->set_activeDevice(device,1);
   this->d_gain->host2device(mgain);
   return EXIT_SUCCESS;

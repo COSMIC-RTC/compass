@@ -63,9 +63,11 @@ public:
   int
   set_gain(float gain);
   int
-  load_mgain(float *mgain);
+  set_mgain(float *mgain);
   int
   set_delay(float delay);
+  int
+  set_cmat(float *cmat);
   // Florian features
   int
   load_noisemat(float *noise);

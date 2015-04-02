@@ -2695,12 +2695,12 @@ void Y_rtc_loadmgain(int argc) {
   if (rtc_handler->d_control.at(ncontrol)->get_type().compare("ls") == 0) {
     float *mgain = ygeta_f(argc - 3, &ntot, dims);
     CAST(sutra_controller_ls *, control, rtc_handler->d_control.at(ncontrol));
-    control->load_mgain(mgain);
+    control->set_mgain(mgain);
   } else if (rtc_handler->d_control.at(ncontrol)->get_type().compare("mv")
       == 0) {
     float *mgain = ygeta_f(argc - 3, &ntot, dims);
     CAST(sutra_controller_mv *, control, rtc_handler->d_control.at(ncontrol));
-    control->load_mgain(mgain);
+    control->set_mgain(mgain);
   } else {
     y_error("Controller needs to be ls or mv\n");
   }
