@@ -141,9 +141,9 @@ func load_parfile(parfile,filename)
     pyk,swrite(format=ao_disp._cmd+"glade.get_widget('ndm').set_value(%d)",numberof(y_dm));
     pyk,swrite(format=wfs_disp._cmd+"y_dm_clear(%d)",1);    
     //pyk,swrite(format=ao_disp._cmd+"glade.get_widget('target_select').clear()");
-    for (cc=1;cc<=y_target.ntargets;cc++)
+    for (cc=1;cc<=numberof(y_dm);cc++)
       pyk,swrite(format=ao_disp._cmd+"glade.get_widget('dm_select').insert_text(%d,'%s')",0,
-                 swrite(format="DM # %d",y_target.ntargets-cc+1));
+                 swrite(format="DM # %d",numberof(y_dm)-cc+1));
     pyk,swrite(format=ao_disp._cmd+"glade.get_widget('dm_select').set_active(%d)",0);
   }
   if (y_rtc != []) {
@@ -542,7 +542,7 @@ func update_main_display2(type)
     //pyk,swrite(format=sky_disp._cmd+"glade.get_widget('winselect_number').clear()");
     for (cc=1;cc<=numberof(y_dm);cc++)
       pyk,swrite(format=sky_disp._cmd+"glade.get_widget('winselect_number').insert_text(%d,'%s')",0,
-                 swrite(format="DM # %d",y_target.ntargets-cc+1));  
+                 swrite(format="DM # %d",numberof(y_dm)-cc+1));  
   }
   if (type == "Phase - Target") {
     pyk,swrite(format=wfs_disp._cmd+"y_winnum_clear(%d)",1);    
