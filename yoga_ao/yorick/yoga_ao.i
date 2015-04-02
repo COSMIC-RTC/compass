@@ -746,42 +746,45 @@ func rtc_init(clean=, brama=, doimat=)
             //rtc_docontrol_geo,g_rtc,0,g_dm,g_target,0;
           }
 
-          if (controllers(i).type  == "ls" && doimat) {
-            imat_init,i,clean=clean;
-            if (controllers(i).modopti == 1){
-              write,"Initializing Modal Optimization : ";
-              if (controllers(i).nrec == 0) controllers(i).nrec = 2048;
-              else controllers(i).nrec = int(2^(ceil(log(controllers(i).nrec)/log(2)))); //Next power of 2 (for fft)
-              if (controllers(i).nmodes == 0) controllers(i).nmodes = sum(y_dm(ndms)._ntotact);
-              if (controllers(i).gmax == 0) controllers(i).gmax = 1.0f;
-              if (controllers(i).ngain == 0) controllers(i).ngain = 15;
-              KL2V = compute_KL2V(i);
-              rtc_initModalOpti,g_rtc,i-1,controllers(i).nmodes,controllers(i).nrec,KL2V,
-                controllers(i).gmin,controllers(i).gmax,controllers(i).ngain,1/y_loop.ittime;
-              ol_slopes = openLoopSlp(controllers(i).nrec,i);
-              write,"Done";
-              rtc_loadOpenLoopSlp,g_rtc,i-1,ol_slopes;
-              rtc_modalControlOptimization,g_rtc,i-1;
-            } else{
-              cmat_init,i,clean=clean;
-              rtc_setgain,g_rtc,0,controllers(i).gain;
-              mgain = array(1.0f,(y_dm._ntotact)(sum));
-              // filtering tilt ...
-              //mgain(-1:0) = 0.0f;
-              rtc_loadmgain,g_rtc,0,mgain;
-            }
-          } else {
-            nactu= sum(*controllers(i).nactu);
-            nvalid= sum(*controllers(i).nvalid);
-            imat = array(0., nactu*nvalid*2);
-            rtc_setimat,g_rtc,i-1,imat;
-            rtc_setcmat,g_rtc,i-1,imat;
-            rtc_setgain,g_rtc,0,controllers(i).gain;
-            mgain = array(1.0f,(y_dm._ntotact)(sum));
-            // filtering tilt ...
-            //mgain(-1:0) = 0.0f;
-            rtc_loadmgain,g_rtc,0,mgain;
-          }
+          if (controllers(i).type  == "ls"){
+	      if(doimat){
+		imat_init,i,clean=clean;
+		if (controllers(i).modopti == 1){
+		  write,"Initializing Modal Optimization : ";
+		  if (controllers(i).nrec == 0) controllers(i).nrec = 2048;
+		  else controllers(i).nrec = int(2^(ceil(log(controllers(i).nrec)/log(2)))); //Next power of 2 (for fft)
+		  if (controllers(i).nmodes == 0) controllers(i).nmodes = sum(y_dm(ndms)._ntotact);
+		  if (controllers(i).gmax == 0) controllers(i).gmax = 1.0f;
+		  if (controllers(i).ngain == 0) controllers(i).ngain = 15;
+		  KL2V = compute_KL2V(i);
+		  rtc_initModalOpti,g_rtc,i-1,controllers(i).nmodes,controllers(i).nrec,KL2V,
+		    controllers(i).gmin,controllers(i).gmax,controllers(i).ngain,1/y_loop.ittime;
+		  ol_slopes = openLoopSlp(controllers(i).nrec,i);
+		  write,"Done";
+		  rtc_loadOpenLoopSlp,g_rtc,i-1,ol_slopes;
+		  rtc_modalControlOptimization,g_rtc,i-1;
+		} else{
+		  cmat_init,i,clean=clean;
+		  rtc_setgain,g_rtc,0,controllers(i).gain;
+		  mgain = array(1.0f,(y_dm._ntotact)(sum));
+		  // filtering tilt ...
+		  //mgain(-1:0) = 0.0f;
+		  rtc_loadmgain,g_rtc,0,mgain;
+		}
+	      } else {
+		nactu= sum(*controllers(i).nactu);
+		nvalid= sum(*controllers(i).nvalid);
+		imat = array(0., nactu*nvalid*2);
+		rtc_setimat,g_rtc,i-1,imat;
+		rtc_setcmat,g_rtc,i-1,imat;
+		rtc_setgain,g_rtc,0,controllers(i).gain;
+		mgain = array(1.0f,(y_dm._ntotact)(sum));
+		// filtering tilt ...
+		//mgain(-1:0) = 0.0f;
+		rtc_loadmgain,g_rtc,0,mgain;
+	      }
+	    }
+
           if (controllers(i).type  == "cured") {
             write,"initializing cured controller";
             if (anyof(y_dm.type == "tt")) tt_flag = 1;
@@ -825,7 +828,19 @@ func rtc_init(clean=, brama=, doimat=)
             else
               rtc_initkalman, g_rtc, 0, avg(noise_cov(1)), D_Mo, N_Act, PROJ, SigmaV, atur, btur, isZonal, isSparse, 1;
 
-          }          
+          } 
+	  if(controllers(i).type == "generic"){
+	    decayFactor = array(0.0f,sum(y_dm(ndms)._ntotact));
+	    mgain = array(0.0f,sum(y_dm(ndms)._ntotact));
+	    matE = array(0.0f,sum(y_dm(ndms)._ntotact),sum(y_dm(ndms)._ntotact));
+	    cmat = array(0.0f,sum(y_dm(ndms)._ntotact),sum(*controllers(i).nvalid)*2);
+	    law = "integrator";
+
+	    rtc_setdecayFactor,g_rtc,0,decayFactor;
+	    rtc_setmgain,g_rtc,0,mgain;
+	    rtc_setcmat,g_rtc,0,cmat;
+	    rtc_setmatE,g_rtc,0,matE;
+	  }
           // Florian features
           if (controllers(i).type == "mv"){   
             write,format="%s", "doing imat_geom... ";

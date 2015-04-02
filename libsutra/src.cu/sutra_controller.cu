@@ -29,6 +29,16 @@ __global__ void mult_krnl(float *i_data, float *scale, int N) {
   }
 }
 
+__global__ void mult_krnl(float *i_data, float *scale, float gain, int N) {
+
+  int tid = threadIdx.x + blockIdx.x * blockDim.x;
+
+  while (tid < N) {
+    i_data[tid] = i_data[tid] * scale[tid] * gain;
+    tid += blockDim.x * gridDim.x;
+  }
+}
+
 __global__ void mult_krnl(float *i_data, float gain, int N) {
 
   int tid = threadIdx.x + blockIdx.x * blockDim.x;
@@ -255,6 +265,24 @@ int mult_vect(float *d_data, float *scale, int N, carma_device *device) {
   dim3 grid(nBlocks), threads(nThreads);
 
   mult_krnl<<<grid, threads>>>(d_data, scale, N);
+
+  carmaCheckMsg("mult_kernel<<<>>> execution failed\n");
+  return EXIT_SUCCESS;
+}
+
+int mult_vect(float *d_data, float *scale, float gain, int N, carma_device *device) {
+  int maxThreads = device->get_properties().maxThreadsPerBlock;
+  int nBlocks = device->get_properties().multiProcessorCount * 8;
+  int nThreads = (N + nBlocks - 1) / nBlocks;
+
+  if (nThreads > maxThreads) {
+    nThreads = maxThreads;
+    nBlocks = (N + nThreads - 1) / nThreads;
+  }
+
+  dim3 grid(nBlocks), threads(nThreads);
+
+  mult_krnl<<<grid, threads>>>(d_data, scale, gain, N);
 
   carmaCheckMsg("mult_kernel<<<>>> execution failed\n");
   return EXIT_SUCCESS;

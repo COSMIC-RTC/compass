@@ -2,6 +2,7 @@
 #define _SUTRA_RTC_H_
 
 #include <sutra_controller_geo.h>
+#include <sutra_controller_generic.h>
 #include <sutra_controller_ls.h>
 #include <sutra_controller_mv.h>
 #include <sutra_controller_cured.h>

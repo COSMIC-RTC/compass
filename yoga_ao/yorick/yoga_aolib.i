@@ -618,7 +618,27 @@ extern rtc_setthresh;
       
    SEE ALSO:
  */
-
+extern rtc_setmatE;
+/* DOCUMENT rtc_setmatE
+   rtc_setmatE,yoga_rtc_obj,ncontrol,matE
+   set matrix matE for generic controller in a yoga_rtc_obj object
+      
+   SEE ALSO:
+ */
+extern rtc_setdecayFactor;
+/* DOCUMENT rtc_setdecayFactor
+   rtc_setdecayFactor,yoga_rtc_obj,ncontrol,decayFactor
+   set decay factor for generic controller in a yoga_rtc_obj object
+      
+   SEE ALSO:
+ */
+extern rtc_setmgain;
+/* DOCUMENT rtc_setmgain
+   rtc_setmgain,yoga_rtc_obj,ncontrol,mgain
+   set modal gain in a yoga_rtc_obj object
+      
+   SEE ALSO:
+ */
 extern rtc_setnmax;
 /* DOCUMENT rtc_setnmax
    rtc_setnmax,yoga_rtc_obj,ncentro,nmax

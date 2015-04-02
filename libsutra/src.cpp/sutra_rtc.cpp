@@ -89,6 +89,9 @@ int sutra_rtc::add_controller(int nactu, float delay, long device,
   } else if (type_ctr.compare("mv") == 0) {
     d_control.push_back(
         new sutra_controller_mv(current_context, ncentroids, nactu, delay, dms, type_dmseen, alt, ndm));
+  } else if (type_ctr.compare("generic") == 0) {
+      d_control.push_back(
+          new sutra_controller_generic(current_context, ncentroids, nactu, delay, dms, type_dmseen, alt, ndm));
   } else if ((type_ctr.compare("kalman_GPU") == 0)
       || (type_ctr.compare("kalman_CPU") == 0)) {
     d_control.push_back(

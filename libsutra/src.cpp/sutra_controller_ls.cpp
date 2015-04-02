@@ -4,6 +4,8 @@
 sutra_controller_ls::sutra_controller_ls(carma_context *context, long nvalid,
     long nactu, float delay, sutra_dms *dms, char **type, float *alt, int ndm) :
     sutra_controller(context, nvalid * 2, nactu, delay, dms, type, alt, ndm) {
+
+  current_context->set_activeDevice(device,1);
   this->d_imat = 0L;
   this->d_cmat = 0L;
   this->d_eigenvals = 0L;
@@ -260,6 +262,8 @@ int sutra_controller_ls::comp_com() {
 	}
 	this->cpt_rec++;
   }
+
+  // INTEGRATOR
   if (nstreams > 1) {
     float alpha = -1.0f;
     float beta = 0.0f;

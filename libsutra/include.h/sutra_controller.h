@@ -85,6 +85,8 @@ shift_buf(float *d_data, int offset, int N, carma_device *device);
 int
 mult_vect(float *d_data, float *scale, int N, carma_device *device);
 int
+mult_vect(float *d_data, float *scale, float gain, int N, carma_device *device);
+int
 mult_vect(float *d_data, float gain, int N, carma_device *device);
 int
 mult_int(float *o_data, float *i_data, float *scale, float gain, int N,

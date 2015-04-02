@@ -3028,10 +3028,95 @@ void Y_rtc_setcmat(int argc) {
       == 0) {
     CAST(sutra_controller_mv *, control, rtc_handler->d_control.at(ncontrol));
     control->d_cmat->host2device(data);
+  } else if (rtc_handler->d_control.at(ncontrol)->get_type().compare("generic")
+      == 0) {
+    CAST(sutra_controller_generic *, control, rtc_handler->d_control.at(ncontrol));
+    control->d_cmat->host2device(data);
   } else {
     y_error("Controller needs to be ls or mv\n");
   }
 }
+  void Y_rtc_setdecayFactor(int argc) {
+    rtc_struct *rhandler = (rtc_struct *) yget_obj(argc - 1, &yRTC);
+    sutra_rtc *rtc_handler = (sutra_rtc *) (rhandler->sutra_rtc);
+    long ncontrol = ygets_l(argc - 2);
+
+    carma_context *context_handle = _getCurrentContext();
+    context_handle->set_activeDeviceForCpy(rhandler->device,1);
+
+    long ntot;
+    long dims[Y_DIMSIZE];
+    float *data = ygeta_f(argc - 3, &ntot, dims);
+
+    if (rtc_handler->d_control.at(ncontrol)->get_type().compare("generic") == 0){
+      CAST(sutra_controller_generic *, control, rtc_handler->d_control.at(ncontrol));
+      control->set_decayFactor(data);
+    }
+    else
+      y_error("Controller needs to be generic\n");
+  }
+
+  void Y_rtc_setmatE(int argc) {
+    rtc_struct *rhandler = (rtc_struct *) yget_obj(argc - 1, &yRTC);
+    sutra_rtc *rtc_handler = (sutra_rtc *) (rhandler->sutra_rtc);
+    long ncontrol = ygets_l(argc - 2);
+
+    carma_context *context_handle = _getCurrentContext();
+    context_handle->set_activeDeviceForCpy(rhandler->device,1);
+
+    long ntot;
+    long dims[Y_DIMSIZE];
+    float *data = ygeta_f(argc - 3, &ntot, dims);
+
+    if (rtc_handler->d_control.at(ncontrol)->get_type().compare("generic") == 0){
+      CAST(sutra_controller_generic *, control, rtc_handler->d_control.at(ncontrol));
+      control->set_matE(data);
+    }
+    else
+      y_error("Controller needs to be generic\n");
+  }
+
+void Y_rtc_setmgain(int argc) {
+    rtc_struct *rhandler = (rtc_struct *) yget_obj(argc - 1, &yRTC);
+    sutra_rtc *rtc_handler = (sutra_rtc *) (rhandler->sutra_rtc);
+    long ncontrol = ygets_l(argc - 2);
+
+    carma_context *context_handle = _getCurrentContext();
+    context_handle->set_activeDeviceForCpy(rhandler->device,1);
+
+    long ntot;
+    long dims[Y_DIMSIZE];
+    float *data = ygeta_f(argc - 3, &ntot, dims);
+
+    if (rtc_handler->d_control.at(ncontrol)->get_type().compare("generic") == 0){
+      CAST(sutra_controller_generic *, control, rtc_handler->d_control.at(ncontrol));
+      control->set_mgain(data);
+    } else if (rtc_handler->d_control.at(ncontrol)->get_type().compare("ls") == 0){
+      CAST(sutra_controller_ls *, control, rtc_handler->d_control.at(ncontrol));
+      control->d_gain->host2device(data);
+    } else if (rtc_handler->d_control.at(ncontrol)->get_type().compare("ls") == 0){
+      CAST(sutra_controller_mv *, control, rtc_handler->d_control.at(ncontrol));
+      control->d_gain->host2device(data);
+    } else y_error("Controller needs to be generic, ls or mv \n");
+  }
+
+void Y_rtc_setcommandlaw(int argc) {
+    rtc_struct *rhandler = (rtc_struct *) yget_obj(argc - 1, &yRTC);
+    sutra_rtc *rtc_handler = (sutra_rtc *) (rhandler->sutra_rtc);
+    long ncontrol = ygets_l(argc - 2);
+
+    carma_context *context_handle = _getCurrentContext();
+    context_handle->set_activeDeviceForCpy(rhandler->device,1);
+    ystring_t law = ygets_q(argc - 3);
+
+    if (rtc_handler->d_control.at(ncontrol)->get_type().compare("generic") == 0){
+      CAST(sutra_controller_generic *, control, rtc_handler->d_control.at(ncontrol));
+      control->set_commandlaw(law);
+    }
+    else
+      y_error("Controller needs to be generic\n");
+  }
+
 void Y_rtc_setcovmat(int argc) {
   rtc_struct *rhandler = (rtc_struct *) yget_obj(argc - 1, &yRTC);
   sutra_rtc *rtc_handler = (sutra_rtc *) (rhandler->sutra_rtc);
