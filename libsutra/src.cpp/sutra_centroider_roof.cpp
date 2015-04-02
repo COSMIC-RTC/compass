@@ -49,6 +49,6 @@ int sutra_centroider_roof::get_cog(float *slopes) {
 }
 
 int sutra_centroider_roof::get_cog() {
-return this->get_cog(*(wfs->d_slopes));
+  return this->get_cog(*(wfs->d_slopes));
 }
 

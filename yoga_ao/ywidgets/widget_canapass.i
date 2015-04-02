@@ -465,8 +465,8 @@ func update_main(type,nlayer)
   }
   if (type == "Slopes - WFS") {
     if (nlayer > numberof(y_wfs)) return;
-    sensors_trace,g_wfs,nlayer,"atmos",g_atmos;
-    //slopes_geom,g_wfs,nlayer,0;
+    //sensors_trace,g_wfs,nlayer,"atmos",g_atmos;
+    slopes_geom,g_wfs,nlayer,0;
     slps = sensors_getslopes(g_wfs,nlayer);
     window,(*ao_disp._wins)(1);fma;
     display_slopes,slps,nlayer+1,"Phase Difference";
