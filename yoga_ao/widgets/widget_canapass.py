@@ -79,12 +79,9 @@ class wao:
    def on_toggle_atmos_toggled(self,wdg):
       self.py2yo('pyk_set y_see_atmos  %d' % wdg.get_active())
 
-   def on_toggle_openloop_toggled(self,wdg):
-      if wdg.get_active():
-         wdg.set_label("Closeloop")
-      else:
-         wdg.set_label("Openloop")
-      self.py2yo('pyk_set y_openloop %d' % (not wdg.get_active()))
+   def on_reset_strehl_clicked(self,wdg):
+      target = self.glade.get_widget('reset_target').get_value_as_int()
+      self.py2yo('target_reset_strehlmeter g_target 0')
 
    def y_win_clear(self,clear):
       cmodel = self.glade.get_widget('winselect_type').get_model()

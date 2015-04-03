@@ -368,23 +368,40 @@ https://github.com/yorick-yoga/yorick-yoga/wiki</property>
                           </packing>
                         </child>
                         <child>
-                          <widget class="GtkToggleButton" id="toggle_openloop">
-                            <property name="label" translatable="yes">Openloop</property>
+                          <placeholder/>
+                        </child>
+                        <child>
+                          <widget class="GtkButton" id="reset_strehl">
+                            <property name="label" translatable="yes">reset strehl</property>
+                            <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="receives_default">True</property>
                             <property name="use_action_appearance">False</property>
-                            <property name="image_position">right</property>
-                            <property name="inconsistent">True</property>
-                            <signal name="toggled" handler="on_toggle_openloop_toggled" swapped="no"/>
+                            <signal name="clicked" handler="on_reset_strehl_clicked" swapped="no"/>
                           </widget>
                           <packing>
                             <property name="expand">True</property>
                             <property name="fill">True</property>
-                            <property name="position">14</property>
+                            <property name="position">15</property>
                           </packing>
                         </child>
                         <child>
-                          <placeholder/>
+                          <widget class="GtkSpinButton" id="reset_target">
+                            <property name="visible">True</property>
+                            <property name="can_focus">True</property>
+                            <property name="invisible_char">●</property>
+                            <property name="primary_icon_activatable">False</property>
+                            <property name="secondary_icon_activatable">False</property>
+                            <property name="primary_icon_sensitive">True</property>
+                            <property name="secondary_icon_sensitive">True</property>
+                            <property name="adjustment">0 0 10 1 1 0</property>
+                            <property name="numeric">True</property>
+                          </widget>
+                          <packing>
+                            <property name="expand">True</property>
+                            <property name="fill">True</property>
+                            <property name="position">16</property>
+                          </packing>
                         </child>
                       </widget>
                       <packing>
