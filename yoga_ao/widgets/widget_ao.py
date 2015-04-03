@@ -562,6 +562,7 @@ class wao:
          nlayer = 0
       self.py2yo('pyk_set aodisp_num %d' % nlayer)
       self.py2yo('update_main "%s" %d' % (mtype,nlayer))
+      self.py2yo('pyk_set aodisp_num %d' % nlayer)
 
    def on_enable_display_toggled(self,wdg):
       val = wdg.get_active()

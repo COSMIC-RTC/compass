@@ -314,7 +314,7 @@ func start_ao_loop
 
 func ao_loop(one)
 {
-  extern aoloop,aodisp_type,aodisp_numn, aotimer;
+  extern aoloop,aodisp_type,aodisp_num, aotimer;
   extern g_atmos;
   extern y_atmos;
   extern time_move;
@@ -627,12 +627,14 @@ func update_main(type,nlayer)
     display_slopes,slps,nlayer+1,"Phase Difference";
   }
   if (type == "Centroids - WFS") {
+    if (nlayer > numberof(y_wfs)) return;
     //slps = sensors_getslopes(g_wfs,nlayer);
     slps = rtc_getcentroids(g_rtc,0);
     window,(*ao_disp._wins)(1);fma;
     display_slopes,slps,nlayer+1,"Centroids";
   }
   if (type == "Phase - DM") {
+    if (nlayer > numberof(y_dm)) return;
     mscreen = yoga_getdm(g_dm,y_dm(nlayer+1).type,y_dm(nlayer+1).alt);
     window,(*ao_disp._wins)(1);fma;
     pli,mscreen;
@@ -645,6 +647,7 @@ func update_main(type,nlayer)
     plg,y_geom.pupdiam/2*cos(rho)+nx/2.,y_geom.pupdiam/2*sin(rho)+nx/2.,color="red",marks=0,width=3;
   }
   if (type == "Phase - Target") {
+    if (nlayer > y_target.ntargets) return;
     //pupcustom = *y_geom._apodizer; // modif: lecture pupille
     pupcustom = *y_geom._spupil;
       //target_atmostrace,g_target,nlayer,g_atmos;
@@ -665,6 +668,7 @@ func update_main(type,nlayer)
     plg,y_geom.pupdiam/2*cos(rho)+nx/2.,y_geom.pupdiam/2*sin(rho)+nx/2.,color="red",marks=0,width=3;
   }
   if (type == "Image - Target") {
+    if (nlayer > y_target.ntargets) return;
     mimg = target_getimage(g_target,nlayer,"se");
     window,(*ao_disp._wins)(1);fma;
     Di=dimsof(mimg);

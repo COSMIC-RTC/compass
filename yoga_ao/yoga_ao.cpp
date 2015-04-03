@@ -614,6 +614,15 @@ void Y_target_init_strehlmeter(int argc) {
   target_handler->d_targets.at(ntarget)->init_strehlmeter();
 }
 
+void Y_target_reset_strehlmeter(int argc) {
+  target_struct *handler = (target_struct *) yget_obj(argc - 1, &yTarget);
+  sutra_target *target_handler = (sutra_target *) (handler->sutra_target);
+
+  int ntarget = ygets_i(argc - 2);
+
+  target_handler->d_targets.at(ntarget)->reset_strehlmeter();
+}
+
 void Y_target_atmostrace(int argc) {
   target_struct *handler = (target_struct *) yget_obj(argc - 1, &yTarget);
   sutra_target *target_handler = (sutra_target *) (handler->sutra_target);

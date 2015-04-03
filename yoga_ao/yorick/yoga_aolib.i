@@ -192,6 +192,16 @@ extern target_init_strehlmeter;
 
    SEE ALSO:
  */
+extern target_reset_strehlmeter;
+/* DOCUMENT target_reset_strehlmeter
+   target_reset_strehlmeter,yoga_target_obj,ntarget
+     
+   reset the strehl meter to 0
+   yoga_target_obj : the yTarget object
+   ntarget         : index of the given target
+
+   SEE ALSO:
+ */
 extern target_getstrehl;
 /* DOCUMENT target_getstrehl
    strehl = target_getstrehl(yoga_target_obj,ntarget)

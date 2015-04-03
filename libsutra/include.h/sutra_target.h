@@ -84,6 +84,8 @@ public:
   int
   init_strehlmeter();
   int
+  reset_strehlmeter();
+  int
   comp_strehl();
 };
 

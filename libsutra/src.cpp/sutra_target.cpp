@@ -198,6 +198,16 @@ int sutra_source::init_strehlmeter() {
   return EXIT_SUCCESS;
 }
 
+int sutra_source::reset_strehlmeter(){
+
+	carmaSafeCall(
+	        cudaMemset(this->d_leimage->getData(), 0,
+	            sizeof(float) * this->d_leimage->getNbElem()));
+	this->strehl_counter = 1;
+
+	return EXIT_SUCCESS;
+}
+
 int sutra_source::add_layer(string type, float alt, float mxoff, float myoff) {
   current_context->set_activeDevice(device,1);
   xoff[make_pair(type, alt)] = mxoff;
