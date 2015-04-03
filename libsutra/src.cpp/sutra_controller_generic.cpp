@@ -86,8 +86,8 @@ sutra_controller_generic::comp_com() {
 	else // v(k) = v(k-1)
 		this->d_com->copyFrom(this->d_com1->getData(), 1);
 	// v(k) = alpha*E*v(k-1)
-	mult_int(this->d_com->getData(),
-			this->d_decayFactor->getData(), -1.0f, this->nactu(),
+	mult_vect(this->d_com->getData(),
+			this->d_decayFactor->getData(), 1.0f, this->nactu(),
 			this->current_context->get_device(device));
 	//v(k) = alpha*E*v(k-1) + g*CMAT*s(k)
 	carma_axpy(cublas_handle(), nactu(), 1.0f, this->d_compbuff->getData(), 1,

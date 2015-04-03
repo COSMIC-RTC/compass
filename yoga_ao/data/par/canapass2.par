@@ -12,7 +12,7 @@ y_tel.cobs = 0.28f;
 /*
 atmosphere inits
 */
-y_atmos.r0           = 0.13;
+y_atmos.r0           = 0.15;
 y_atmos.nscreens     = 3;
 y_atmos.frac         = &([0.7,0.2,0.1]);
 y_atmos.alt          = &([0.,4000.,10000.]);
@@ -151,13 +151,13 @@ y_dm(1).push4imat     = 1.0f;
 
 y_dm(2).type          = "tt";
 y_dm(2).alt           = 0.;
-y_dm(2).unitpervolt   = 1000.0; // 0.0005;
-y_dm(2).push4imat     = 0.0005f; //10.0f;
+y_dm(2).unitpervolt   = 1.0; // 0.0005;
+y_dm(2).push4imat     = 0.5f; //10.0f;
 
 y_dm(3).type          = "tt";
 y_dm(3).alt           = 0.1;
-y_dm(3).unitpervolt   = 100.0;  // 0.0005;
-y_dm(3).push4imat     = 0.0005f; // 10.0f;
+y_dm(3).unitpervolt   = 1.0;  // 0.0005;
+y_dm(3).push4imat     = 0.5f; // 10.0f;
 
 y_dm(4).type          = "pzt";
 y_dm(4).nact          = 15;
@@ -184,7 +184,7 @@ controllers inits
 ncontrollers = 1;
 y_controllers          = array(controller_struct(),ncontrollers);
 
-y_controllers(1).type    = "ls";
+y_controllers(1).type    = "generic";
 y_controllers(1).nwfs    = &[1,2,3,4,5,6,7,8,9,10];
 y_controllers(1).ndm     = &[1,2,3,4];
 y_controllers(1).maxcond = 1500.;

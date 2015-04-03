@@ -103,21 +103,7 @@ void sutra_rtc_brama::update_param() {
       int ncontrol = carma_utils::from_string<int>(cmd_splited[1]);
       int openloop = carma_utils::from_string<int>(cmd_splited[2]);
       DEBUG_TRACE("Updating openloop num %d to %d", ncontrol, openloop);
-      if (d_control[ncontrol]->get_type() == "ls") {
-        sutra_controller_ls *control =
-            dynamic_cast<sutra_controller_ls *>(d_control[ncontrol]);
-        control->set_openloop(openloop);
-        return;
-      } else if (d_control[ncontrol]->get_type() == "mv") {
-        sutra_controller_mv *control =
-            dynamic_cast<sutra_controller_mv *>(d_control[ncontrol]);
-        control->set_openloop(openloop);
-        return;
-      } else {
-        BRAMA_DEBUG_TRACE("controller %d must be a ls or mv controller",
-                          ncontrol);
-        throw CORBA::BAD_PARAM();
-      }
+      d_control[ncontrol]->set_openloop(openloop);
     } else if (cmd_splited[0] == "CM") {
       int ncontrol = carma_utils::from_string<int>(cmd_splited[1]);
 

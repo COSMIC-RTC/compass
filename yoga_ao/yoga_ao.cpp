@@ -3006,7 +3006,12 @@ void Y_rtc_getcmat(int argc) {
     CAST(sutra_controller_mv *, control, rtc_handler->d_control.at(ncontrol));
     float *data = ypush_f((long*) control->d_cmat->getDims());
     control->d_cmat->device2host(data);
-  } else {
+  } else if (rtc_handler->d_control.at(ncontrol)->get_type().compare("generic")
+      == 0) {
+    CAST(sutra_controller_generic *, control, rtc_handler->d_control.at(ncontrol));
+    float *data = ypush_f((long*) control->d_cmat->getDims());
+    control->d_cmat->device2host(data);
+  }else {
     y_error("Controller needs to be ls or mv\n");
   }
 }

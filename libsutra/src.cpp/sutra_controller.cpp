@@ -49,12 +49,11 @@ sutra_controller::sutra_controller(carma_context* context, int nslope,
   this->d_centroids = new carma_obj<float>(context, dims_data1);
   dims_data1[1] = nactu;
   this->d_com = new carma_obj<float>(context, dims_data1);
+  this->d_com1 = new carma_obj<float>(context, dims_data1);
   if (this->delay > 1) {
-    this->d_com1 = new carma_obj<float>(context, dims_data1);
-    this->d_com2 = new carma_obj<float>(context, dims_data1);
-  } else if (this->delay > 0)
-    this->d_com1 = new carma_obj<float>(context, dims_data1);
-
+      this->d_com2 = new carma_obj<float>(context, dims_data1);
+  }
+    
   this->d_voltage = new carma_obj<float>(context, dims_data1);
 
   for (int i = 0; i < ndm; i++) {
@@ -71,9 +70,11 @@ int sutra_controller::set_openloop(int open_loop_status) {
     carmaSafeCall(
         cudaMemset(this->d_com1->getData(), 0.0f,
                    this->nactu() * sizeof(float)));
-    carmaSafeCall(
-        cudaMemset(this->d_com2->getData(), 0.0f,
-                   this->nactu() * sizeof(float)));
+   if (this->delay > 1) {
+     carmaSafeCall(
+		   cudaMemset(this->d_com2->getData(), 0.0f,
+			      this->nactu() * sizeof(float)));
+   }
   }
   return EXIT_SUCCESS;
 }
