@@ -1,6 +1,7 @@
 #ifdef USE_BRAMA
 
 #include<sutra_rtc_brama.h>
+#include<sutra_rtc_bramaListenerImpl.h>
 
 sutra_rtc_brama::sutra_rtc_brama(carma_context *context, ACE_TCHAR* name) :
     sutra_rtc(context) {
@@ -38,225 +39,6 @@ sutra_rtc_brama::~sutra_rtc_brama() {
   delete brama;
 }
 
-void sutra_rtc_brama::update_param() {
-  try {
-    BRAMA::Command cmd = cmd_listener_servant->getlastCmd();
-    const string type(cmd.name.in());
-    DEBUG_TRACE("get command type %s", type.c_str());
-
-    std::vector<string> cmd_splited;
-    carma_utils::split(cmd_splited, type, '_');
-
-    if (cmd_splited[0] == "gain") {
-      int ncontrol = carma_utils::from_string<int>(cmd_splited[1]);
-      DEBUG_TRACE("Updating mgain on controller %d", ncontrol);
-
-      unsigned int ncmd = d_control[ncontrol]->nactu();
-      CORBA::Float *data = (CORBA::Float*) cmd.data.get_buffer();
-
-      if ((cmd.dimensions[0] != 1) && (cmd.dimensions[1] == ncmd)) {
-        BRAMA_DEBUG_TRACE("wrong dimensions : %d %d", cmd.dimensions[0],
-                          cmd.dimensions[1]);
-        BRAMA_DEBUG_TRACE("it should be : 1 %d", ncmd);
-        throw CORBA::BAD_PARAM();
-      }
-      if (d_control[ncontrol]->get_type() == "ls") {
-        sutra_controller_ls *control =
-            dynamic_cast<sutra_controller_ls *>(d_control[ncontrol]);
-        control->set_mgain(data);
-        return;
-      } else if (d_control[ncontrol]->get_type() == "mv") {
-        sutra_controller_mv *control =
-            dynamic_cast<sutra_controller_mv *>(d_control[ncontrol]);
-        control->set_mgain(data);
-        return;
-      } else if (d_control[ncontrol]->get_type() == "generic") {
-        sutra_controller_generic *control =
-            dynamic_cast<sutra_controller_generic *>(d_control[ncontrol]);
-        control->set_mgain(data);
-        return;
-      } else {
-        BRAMA_DEBUG_TRACE("controller %d must be a ls or mv controller",
-                          ncontrol);
-        throw CORBA::BAD_PARAM();
-      }
-    } else if (cmd_splited[0] == "globalGain") {
-      int ncontrol = carma_utils::from_string<int>(cmd_splited[1]);
-      float gain = carma_utils::from_string<float>(cmd_splited[2]);
-      DEBUG_TRACE("Updating gain num %d to %f", ncontrol, gain);
-      if (d_control[ncontrol]->get_type() == "ls") {
-        sutra_controller_ls *control =
-            dynamic_cast<sutra_controller_ls *>(d_control[ncontrol]);
-        control->set_gain(gain);
-        return;
-      } else if (d_control[ncontrol]->get_type() == "mv") {
-        sutra_controller_mv *control =
-            dynamic_cast<sutra_controller_mv *>(d_control[ncontrol]);
-        control->set_gain(gain);
-        return;
-      } else {
-        BRAMA_DEBUG_TRACE("controller %d must be a ls or mv controller",
-                          ncontrol);
-        throw CORBA::BAD_PARAM();
-      }
-    } else if (cmd_splited[0] == "openLoop") {
-      int ncontrol = carma_utils::from_string<int>(cmd_splited[1]);
-      int openloop = carma_utils::from_string<int>(cmd_splited[2]);
-      DEBUG_TRACE("Updating openloop num %d to %d", ncontrol, openloop);
-      d_control[ncontrol]->set_openloop(openloop);
-    } else if (cmd_splited[0] == "CM") {
-      int ncontrol = carma_utils::from_string<int>(cmd_splited[1]);
-
-      DEBUG_TRACE("Updating control matrix num %d", ncontrol);
-
-      unsigned int nslope = d_control[ncontrol]->nslope();
-      unsigned int ncmd = d_control[ncontrol]->nactu();
-
-      if (cmd.dimensions[0] != 2 || cmd.dimensions[1] != ncmd
-          || cmd.dimensions[2] != nslope) {
-        BRAMA_DEBUG_TRACE("wrong dimensions : %d %d %d", cmd.dimensions[0],
-                          cmd.dimensions[1], cmd.dimensions[2]);
-        BRAMA_DEBUG_TRACE("it should be : 2 %d %d", ncmd, nslope);
-        throw CORBA::BAD_PARAM();
-      }
-
-      CORBA::Float *data = (CORBA::Float*) cmd.data.get_buffer();
-      if (d_control[ncontrol]->get_type() == "ls") {
-        sutra_controller_ls *control =
-            dynamic_cast<sutra_controller_ls *>(d_control[ncontrol]);
-        control->set_cmat(data);
-        return;
-      } else if (d_control[ncontrol]->get_type() == "mv") {
-        sutra_controller_mv *control =
-            dynamic_cast<sutra_controller_mv *>(d_control[ncontrol]);
-        control->set_cmat(data);
-        return;
-      } else if (d_control[ncontrol]->get_type() == "generic") {
-        sutra_controller_generic *control =
-            dynamic_cast<sutra_controller_generic *>(d_control[ncontrol]);
-        control->set_cmat(data);
-        return;
-      } else {
-        BRAMA_DEBUG_TRACE("controller %d must be a ls, mv or generic controller",
-                          ncontrol);
-        throw CORBA::BAD_PARAM();
-      }
-    } else if (cmd_splited[0] == "E") {
-      int ncontrol = carma_utils::from_string<int>(cmd_splited[1]);
-
-      DEBUG_TRACE("Updating E matrix num %d", ncontrol);
-
-      unsigned int ncmd = d_control[ncontrol]->nactu();
-
-      if (cmd.dimensions[0] != 2 || cmd.dimensions[1] != ncmd
-          || cmd.dimensions[2] != ncmd) {
-        BRAMA_DEBUG_TRACE("wrong dimensions : %d %d %d", cmd.dimensions[0],
-                          cmd.dimensions[1], cmd.dimensions[2]);
-        BRAMA_DEBUG_TRACE("it should be : 2 %d %d", ncmd, ncmd);
-        throw CORBA::BAD_PARAM();
-      }
-
-      CORBA::Float *data = (CORBA::Float*) cmd.data.get_buffer();
-      if (d_control[ncontrol]->get_type() == "generic") {
-        sutra_controller_generic *control =
-            dynamic_cast<sutra_controller_generic *>(d_control[ncontrol]);
-        control->set_matE(data);
-        return;
-      } else {
-        BRAMA_DEBUG_TRACE("controller %d must be a generic controller",
-                          ncontrol);
-        throw CORBA::BAD_PARAM();
-      }
-    } else if (cmd_splited[0] == "decayFactor") {
-      int ncontrol = carma_utils::from_string<int>(cmd_splited[1]);
-
-      DEBUG_TRACE("Updating decayFactor num %d", ncontrol);
-
-      unsigned int ncmd = d_control[ncontrol]->nactu();
-
-      if (cmd.dimensions[0] != 1 || cmd.dimensions[1] != ncmd) {
-        BRAMA_DEBUG_TRACE("wrong dimensions : %d %d", cmd.dimensions[0],
-                          cmd.dimensions[1]);
-        BRAMA_DEBUG_TRACE("it should be : 1 %d %d", ncmd);
-        throw CORBA::BAD_PARAM();
-      }
-
-      CORBA::Float *data = (CORBA::Float*) cmd.data.get_buffer();
-      if (d_control[ncontrol]->get_type() == "generic") {
-        sutra_controller_generic *control =
-            dynamic_cast<sutra_controller_generic *>(d_control[ncontrol]);
-        control->set_decayFactor(data);
-        return;
-      } else {
-        BRAMA_DEBUG_TRACE("controller %d must be a generic controller",
-                          ncontrol);
-        throw CORBA::BAD_PARAM();
-      }
-    } else if (cmd_splited[0] == "commandLaw") {
-      int ncontrol = carma_utils::from_string<int>(cmd_splited[1]);
-      string law=cmd_splited[2];
-
-      DEBUG_TRACE("Updating commandLaw num %d to %s", ncontrol, law.c_str());
-
-      if (d_control[ncontrol]->get_type() == "generic") {
-        sutra_controller_generic *control =
-            dynamic_cast<sutra_controller_generic *>(d_control[ncontrol]);
-        control->set_commandlaw(law);
-        return;
-      } else {
-        BRAMA_DEBUG_TRACE("controller %d must be a generic controller",
-                          ncontrol);
-        throw CORBA::BAD_PARAM();
-      }
-    } else if (cmd_splited[0] == "PertVolt") {
-      int ncontrol = carma_utils::from_string<int>(cmd_splited[1]);
-      DEBUG_TRACE("Updating perturbation voltages on controller %d", ncontrol);
-
-      unsigned int ncmd = d_control[ncontrol]->nactu();
-      CORBA::Float *data = (CORBA::Float*) cmd.data.get_buffer();
-
-      if (cmd.dimensions[0] == 1) {
-        if (cmd.dimensions[1] == ncmd) {
-          d_control[ncontrol]->set_perturbcom(data, 1);
-          return;
-        } else {
-          BRAMA_DEBUG_TRACE("wrong dimensions : %d %d", cmd.dimensions[0],
-                            cmd.dimensions[1]);
-          BRAMA_DEBUG_TRACE("it should be : 1 %d", ncmd);
-          throw CORBA::BAD_PARAM();
-        }
-      } else if (cmd.dimensions[0] == 2) {
-        if (cmd.dimensions[1] == ncmd) {
-          d_control[ncontrol]->set_perturbcom(data, cmd.dimensions[2]);
-          return;
-        } else {
-          BRAMA_DEBUG_TRACE("wrong dimensions : %d %d %d", cmd.dimensions[0],
-                            cmd.dimensions[1], cmd.dimensions[2]);
-          BRAMA_DEBUG_TRACE("it should be : 2 %d nb_elem", ncmd);
-          throw CORBA::BAD_PARAM();
-        }
-      } else {
-        CORBA::ULong *data = (CORBA::ULong*) cmd.dimensions.get_buffer();
-
-        cerr << "wrong dimensions: ";
-        // Print in Normal order
-        std::copy(data, data + data[0] + 1,
-                  std::ostream_iterator<CORBA::ULong>(std::cout, ","));
-        std::cout << "\n";
-        throw CORBA::BAD_PARAM();
-      }
-    } else {
-      throw "Unknown parameter";
-    }
-  } catch (char const*msg) {
-    //BRAMA_DEBUG_TRACE("%s",msg);
-  } catch (CORBA::BAD_PARAM &p) {
-    std::ostringstream stm;
-    stm << p;
-    BRAMA_DEBUG_TRACE("%s", stm.str().c_str());
-  }
-}
-
 void sutra_rtc_brama::initDDS() {
   string topics[] = BRAMA_TOPICS;
   current_context->set_activeDevice(device,1);
@@ -270,13 +52,14 @@ void sutra_rtc_brama::initDDS() {
     brama->register_all_data_types();
 
     // Create an BRAMA Event listener
-    cmd_listener = (new CommandDataReaderListenerImpl);
+    cmd_listener = (new sutra_rtc_bramaListenerImpl);
     cmd_listener_servant =
-        dynamic_cast<CommandDataReaderListenerImpl*>(cmd_listener.in());
+        dynamic_cast<sutra_rtc_bramaListenerImpl*>(cmd_listener.in());
 
     if (CORBA::is_nil(cmd_listener.in())) {
       throw "BRAMA Command listener is nil.";
     }
+    cmd_listener_servant->attach_rtc(this);
 
     cmd_dr = brama->create_datareader(topics[3], cmd_listener);
 
@@ -333,8 +116,6 @@ void sutra_rtc_brama::initDDS() {
 void sutra_rtc_brama::publish() {
 
   current_context->set_activeDevice(device,1);
-
-  update_param();
 
   BRAMA::SuperFrame zFrame;
   zFrame.from = CORBA::string_dup("BRAMA RTC");
