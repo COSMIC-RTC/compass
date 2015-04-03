@@ -144,11 +144,11 @@ func ao_loop(one)
   extern y_atmos;
   extern time_move;
   extern y_see_atmos;
-  extern y_openloop;
+  //extern y_openloop;
 
   if (!aoloop)  return;
 
-  rtc_setopenloop, g_rtc,0, y_openloop;
+  //rtc_setopenloop, g_rtc,0, y_openloop;
   mytime = tic();
 
   move_atmos,g_atmos;
@@ -229,11 +229,11 @@ func init_all(filename)
   extern y_atmos,y_wfs;
   extern g_wfs;
   extern imlp,strehllp,strehlsp,airy,sairy,niterok;
-  extern enable_display, y_see_atmos, y_openloop;
+  extern enable_display, y_see_atmos;//, y_openloop;
   
   y_see_atmos=0;
   enable_display=0;
-  y_openloop=1;
+  //y_openloop=1;
 
   //pyk,swrite(format=wfs_disp._cmd+"y_win_clear(%d)",1);
   
