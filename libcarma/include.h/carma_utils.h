@@ -85,8 +85,12 @@ enum CUTBoolean {
 //#define cutilSafeMalloc(mallocCall)  (mallocCall)
 //#endif
 
+#ifndef MIN
 #define MIN(a,b) ((a < b) ? a : b)
+#endif
+#ifndef MAX
 #define MAX(a,b) ((a > b) ? a : b)
+#endif
 
 inline unsigned int nextPow2(unsigned int x) {
   --x;

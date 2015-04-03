@@ -1,3 +1,5 @@
+#ifdef USE_BRAMA
+
 #include "libBRAMATypeSupportC.h"
 #include "libBRAMATypeSupportImpl.h"
 #include<sutra_rtc_bramaListenerImpl.h>
@@ -188,7 +190,7 @@ void sutra_rtc_bramaListenerImpl::on_data_available(DDS::DataReader_ptr reader)
                 if (cmd.dimensions[0] != 1 || cmd.dimensions[1] != ncmd) {
                   BRAMA_DEBUG_TRACE("wrong dimensions : %d %d",
                                     cmd.dimensions[0], cmd.dimensions[1]);
-                  BRAMA_DEBUG_TRACE("it should be : 1 %d %d", ncmd);
+                  BRAMA_DEBUG_TRACE("it should be : 1 %d", ncmd);
                   throw CORBA::BAD_PARAM();
                 }
 
@@ -322,3 +324,5 @@ void sutra_rtc_bramaListenerImpl::on_sample_lost(
         throw (CORBA::SystemException) {
 //  cerr << "CommandDataReaderListenerImpl::on_sample_lost" << endl;
 }
+
+#endif /* USE_BRAMA */
