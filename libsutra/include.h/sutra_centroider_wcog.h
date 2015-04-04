@@ -28,7 +28,7 @@ public:
   get_cog(carma_streams *streams, float *cube, float *subsum, float *centroids,
       int nvalid, int npix, int ntot);
   int
-  get_cog(float *slopes);
+  get_cog(float *subsum, float *slopes);
   int
   get_cog();
 };

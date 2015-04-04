@@ -2975,8 +2975,9 @@ void Y_rtc_getcentroids(int argc) {
   if(ncontrol>=abs(rtc_handler->d_control.size())){
 
     float *data = ypush_f((long*)wfs_handler->d_slopes->getDims());
+    carma_obj<float> d_tmp(context_handle, wfs_handler->d_subsum->getDims());
     carma_obj<float> d_data(context_handle, wfs_handler->d_slopes->getDims());
-    rtc_handler->d_centro.at(ncontrol)->get_cog(d_data);
+    rtc_handler->d_centro.at(ncontrol)->get_cog(d_tmp,d_data);
     d_data.device2host(data);
   } else {
     float *data = ypush_f(

@@ -35,66 +35,53 @@ func load_parfile(parfile,filename)
   
   read_parfile,parfile;
 
-  //y_atmos.nscreens;
-  if (y_tel != []) {
-    pyk,swrite(format=ao_disp._cmd+"glade.get_widget('teldiam').set_value(%f)",y_tel.diam);
-    pyk,swrite(format=ao_disp._cmd+"glade.get_widget('cobs').set_value(%f)",y_tel.cobs);
-  }
-  if (y_atmos != []) {
-    pyk,swrite(format=ao_disp._cmd+"glade.get_widget('nlayers').set_value(%d)",y_atmos.nscreens);
-    pyk,swrite(format=ao_disp._cmd+"glade.get_widget('r0').set_value(%f)",y_atmos.r0);
-    pyk,swrite(format=wfs_disp._cmd+"y_layer_clear(%d)",1);    
-    //pyk,swrite(format=ao_disp._cmd+"glade.get_widget('layer_select').clear()");
-    for (cc=1;cc<=y_atmos.nscreens;cc++)
-      pyk,swrite(format=ao_disp._cmd+"glade.get_widget('layer_select').insert_text(%d,'%s')",0,
-                 swrite(format="Layer # %d",numberof(y_wfs)-cc+1));
-    pyk,swrite(format=ao_disp._cmd+"glade.get_widget('layer_select').set_active(%d)",0);
-  }
-  if (y_wfs != []) {
-    pyk,swrite(format=ao_disp._cmd+"glade.get_widget('nwfs').set_value(%d)",numberof(y_wfs));
-    pyk,swrite(format=wfs_disp._cmd+"y_wfs_clear(%d)",1);    
-    //pyk,swrite(format=ao_disp._cmd+"glade.get_widget('wfs_select').clear()");
-    for (cc=1;cc<=numberof(y_wfs);cc++)
-      pyk,swrite(format=ao_disp._cmd+"glade.get_widget('wfs_select').insert_text(%d,'%s')",0,
-                 swrite(format="WFS # %d",numberof(y_wfs)-cc+1));
-    pyk,swrite(format=ao_disp._cmd+"glade.get_widget('wfs_select').set_active(%d)",0);
-    //if (y_rtc != []) 
-    // pyk,swrite(format=ao_disp._cmd+"glade.get_widget('centro_select').set_active(%d)",0);
-    //else 
-    //  pyk,swrite(format=ao_disp._cmd+"glade.get_widget('default_centro').set_active(%d)",0);
-  }
-  if (y_target != []) {
-    pyk,swrite(format=ao_disp._cmd+"glade.get_widget('ntargets').set_value(%d)",y_target.ntargets);
-    pyk,swrite(format=wfs_disp._cmd+"y_target_clear(%d)",1);    
-    //pyk,swrite(format=ao_disp._cmd+"glade.get_widget('target_select').clear()");
-    for (cc=1;cc<=y_target.ntargets;cc++)
-      pyk,swrite(format=ao_disp._cmd+"glade.get_widget('target_select').insert_text(%d,'%s')",0,
-                 swrite(format="Source # %d",y_target.ntargets-cc+1));
-    pyk,swrite(format=ao_disp._cmd+"glade.get_widget('target_select').set_active(%d)",0);
-  }
-  if (y_dm != []) {
-    pyk,swrite(format=ao_disp._cmd+"glade.get_widget('ndm').set_value(%d)",numberof(y_dm));
-    pyk,swrite(format=wfs_disp._cmd+"y_dm_clear(%d)",1);    
-    //pyk,swrite(format=ao_disp._cmd+"glade.get_widget('target_select').clear()");
+  pyk,swrite(format=ao_disp._cmd+"glade.get_widget('teldiam').set_value(%f)",y_tel.diam);
+  pyk,swrite(format=ao_disp._cmd+"glade.get_widget('cobs').set_value(%f)",y_tel.cobs);
+
+  pyk,swrite(format=ao_disp._cmd+"glade.get_widget('nlayers').set_value(%d)",y_atmos.nscreens);
+  pyk,swrite(format=ao_disp._cmd+"glade.get_widget('r0').set_value(%f)",y_atmos.r0);
+  pyk,swrite(format=wfs_disp._cmd+"y_layer_clear(%d)",1);    
+  //pyk,swrite(format=ao_disp._cmd+"glade.get_widget('layer_select').clear()");
+  for (cc=1;cc<=y_atmos.nscreens;cc++)
+    pyk,swrite(format=ao_disp._cmd+"glade.get_widget('layer_select').insert_text(%d,'%s')",0,
+               swrite(format="Layer # %d",numberof(y_wfs)-cc+1));
+  pyk,swrite(format=ao_disp._cmd+"glade.get_widget('layer_select').set_active(%d)",0);
+
+  pyk,swrite(format=ao_disp._cmd+"glade.get_widget('nwfs').set_value(%d)",numberof(y_wfs));
+  pyk,swrite(format=wfs_disp._cmd+"y_wfs_clear(%d)",1);    
+  //pyk,swrite(format=ao_disp._cmd+"glade.get_widget('wfs_select').clear()");
+  for (cc=1;cc<=numberof(y_wfs);cc++)
+    pyk,swrite(format=ao_disp._cmd+"glade.get_widget('wfs_select').insert_text(%d,'%s')",0,
+               swrite(format="WFS # %d",numberof(y_wfs)-cc+1));
+  pyk,swrite(format=ao_disp._cmd+"glade.get_widget('wfs_select').set_active(%d)",0);
+
+  pyk,swrite(format=ao_disp._cmd+"glade.get_widget('ntargets').set_value(%d)",y_target.ntargets);
+  pyk,swrite(format=wfs_disp._cmd+"y_target_clear(%d)",1);    
+  //pyk,swrite(format=ao_disp._cmd+"glade.get_widget('target_select').clear()");
+  for (cc=1;cc<=y_target.ntargets;cc++)
+    pyk,swrite(format=ao_disp._cmd+"glade.get_widget('target_select').insert_text(%d,'%s')",0,
+               swrite(format="Source # %d",y_target.ntargets-cc+1));
+  pyk,swrite(format=ao_disp._cmd+"glade.get_widget('target_select').set_active(%d)",0);
+
+  pyk,swrite(format=ao_disp._cmd+"glade.get_widget('ndm').set_value(%d)",numberof(y_dm));
+  pyk,swrite(format=wfs_disp._cmd+"y_dm_clear(%d)",1);    
+  //pyk,swrite(format=ao_disp._cmd+"glade.get_widget('target_select').clear()");
     
-    for (cc=1;cc<=numberof(y_dm);cc++)
-      pyk,swrite(format=ao_disp._cmd+"glade.get_widget('dm_select').insert_text(%d,'%s')",0, swrite(format="DM # %d",numberof(y_dm)-cc+1));
-    pyk,swrite(format=ao_disp._cmd+"glade.get_widget('dm_select').set_active(%d)",0);
-  }
-  if (y_rtc != []) {
-    pyk,swrite(format=wfs_disp._cmd+"y_centro_clear(%d)",1);    
-    //pyk,swrite(format=wfs_disp._cmd+"glade.get_widget('centro_select').clear()");
-    for (cc=1;cc<=numberof(y_wfs);cc++)
-      pyk,swrite(format=wfs_disp._cmd+"glade.get_widget('centro_select').insert_text(%d,'%s')",0,swrite(format="centro # %d",numberof(y_wfs)-cc+1));
-    pyk,swrite(format=wfs_disp._cmd+"glade.get_widget('centro_select').set_active(%d)",0);
-    type = (*y_rtc.centroiders)(1).type;
-    if (type == "wcog") {
-      if (type_fct == "gauss") {
-        pyk,swrite(format=wfs_disp._cmd+"glade.get_widget('type_func').set_active(%d)",0);
-      }
+  for (cc=1;cc<=numberof(y_dm);cc++)
+    pyk,swrite(format=ao_disp._cmd+"glade.get_widget('dm_select').insert_text(%d,'%s')",0, swrite(format="DM # %d",numberof(y_dm)-cc+1));
+  pyk,swrite(format=ao_disp._cmd+"glade.get_widget('dm_select').set_active(%d)",0);
+  pyk,swrite(format=wfs_disp._cmd+"y_centro_clear(%d)",1);    
+  //pyk,swrite(format=wfs_disp._cmd+"glade.get_widget('centro_select').clear()");
+  for (cc=1;cc<=numberof(y_wfs);cc++)
+    pyk,swrite(format=wfs_disp._cmd+"glade.get_widget('centro_select').insert_text(%d,'%s')",0,swrite(format="centro # %d",numberof(y_wfs)-cc+1));
+  pyk,swrite(format=wfs_disp._cmd+"glade.get_widget('centro_select').set_active(%d)",0);
+  type = (*y_rtc.centroiders)(1).type;
+  if (type == "wcog") {
+    if (type_fct == "gauss") {
+      pyk,swrite(format=wfs_disp._cmd+"glade.get_widget('type_func').set_active(%d)",0);
     }
-    update_control_prop; 
   }
+  update_control_prop; 
   
 }
 
@@ -122,7 +109,6 @@ func ao_win_init(pid1)
 
 func reset_dm(ndm)
 {
-  if (g_dm == []) return;
   yoga_resetdm,g_dm,y_dm(ndm).type,y_dm(ndm).alt;
 }
 
@@ -144,81 +130,68 @@ func ao_loop(one)
   extern y_atmos;
   extern time_move;
   extern y_see_atmos;
-  //extern y_openloop;
+  extern iter_move;
+  extern iter_fr;
+  extern avg_fr;
 
   if (!aoloop)  return;
 
-  //rtc_setopenloop, g_rtc,0, y_openloop;
-  mytime = tic();
-
   move_atmos,g_atmos;
     
-  if ((y_target != []) && (g_target != [])) {
-    // loop on targets
-    for (i=1;i<=y_target.ntargets;i++) {
-      if(y_see_atmos)
-        target_atmostrace,g_target,i-1,g_atmos;
-      else
-        target_resetphase,g_target,i-1,g_atmos;
-      if (g_dm != []) {
-        target_dmtrace,g_target,i-1,g_dm;
-      }
-    }
-    //saving average image from target #1
+
+  // loop on targets
+  for (i=1;i<=y_target.ntargets;i++) {
+    if(y_see_atmos)
+      target_atmostrace,g_target,i-1,g_atmos;
+    else
+      target_resetphase,g_target,i-1,g_atmos;
+    target_dmtrace,g_target,i-1,g_dm;
   }
 
-  if ((y_wfs != []) && (g_wfs != [])) {
-    // loop on wfs
-    for (i=1;i<=numberof(y_wfs);i++) {
-      if (g_dm != []) {
-        if(y_see_atmos)
-          sensors_trace,g_wfs,i-1,"atmos",g_atmos;
-        else
-          sensors_resetphase,g_wfs,i-1;
-        if ((!y_wfs(i).openloop) && (g_dm != [])) {
-          sensors_trace,g_wfs,i-1,"dm",g_dm,0;
-        }
-      }
-
-      sensors_compimg,g_wfs,i-1;
+  // loop on wfs
+  for (i=1;i<=numberof(y_wfs);i++) {
+    if(y_see_atmos)
+      sensors_trace,g_wfs,i-1,"atmos",g_atmos;
+    else
+      sensors_resetphase,g_wfs,i-1;
+    if (!y_wfs(i).openloop) {
+      sensors_trace,g_wfs,i-1,"dm",g_dm,0;
     }
-
-    // do centroiding
+    sensors_compimg,g_wfs,i-1;
   }
+
     
-  if ((y_rtc != []) && (g_rtc != [])
-      && (y_wfs != []) && (g_wfs != [])) {
-    rtc_docentroids,g_rtc,0;
-    //rtc_docentroids_geom,g_rtc,0;
-    //rtc_docentroids_geom,g_rtc,0; 
-    // compute command and apply
-    if (g_dm != []) {
-      rtc_docontrol,g_rtc,0;
-      rtc_applycontrol,g_rtc,0,g_dm;
-    }
-
-  }
+  rtc_docentroids,g_rtc,0;
+  //rtc_docentroids_geom,g_rtc,0;
+  //rtc_docentroids_geom,g_rtc,0; 
+  // compute command and apply
+  rtc_docontrol,g_rtc,0;
+  rtc_applycontrol,g_rtc,0,g_dm;
+  
   if(brama_flag)
     rtc_publish, g_rtc;
- 
-  update_main,aodisp_type,aodisp_num;    
-  /*  
-      if (wfsiter < 1) time_move = tac(mytime);
-      else {
-      time_move += 0.01*tac(mytime);
-      time_move /= 1.01;
-      }
-  */
-  time_move = tac(mytime);
-  aoiter ++;
-  if(sum(aotimer) == 0) aotimer=array(time_move,1000);
-  else                  aotimer(aoiter)=time_move; 
-  aoiter = aoiter%1000;
 
-  pyk,swrite(format=ao_disp._cmd+"glade.get_widget('progressbar_wfs').set_fraction(%f)",float((aoiter%1000)/1000.));
-  //mtext = swrite(format="Framerate : %.2f",1./time_move);
+  update_main,aodisp_type,aodisp_num;
+
+  if(aoiter>0)
+    time_move += tac(mytime);
+
+  mytime = tic();
+
+  aoiter ++;
+  if (aoiter == iter_fr) {
+    //write, format="aoiter %d, avg_fr %f, time_move %f\n", aoiter, avg_fr, time_move;
+    avg_fr = 1./time_move*iter_move;
+    time_move=0.;
+    iter_move=int(avg_fr+0.5);
+    iter_fr  =aoiter+iter_move;
+  }
+
+  progressbar_size = 1000
+  pyk,swrite(format=ao_disp._cmd+"glade.get_widget('progressbar_wfs').set_fraction(%f)",float(aoiter%progressbar_size)/progressbar_size);
+  //mtext = swrite(format="Framerate : %.2f",1./time_move);1
   strehltmp = target_getstrehl(g_target,0);
-  mtext = swrite(format="Framerate : %.2f L.E. Strehl : %.2f, S.E. Strehl %.2f",1./aotimer(avg),strehltmp(2),strehltmp(1));
+  mtext = swrite(format="Framerate : %.2f L.E. Strehl : %.2f, S.E. Strehl %.2f",avg_fr,strehltmp(2),strehltmp(1));
   pyk,swrite(format=ao_disp._cmd+"glade.get_widget('progressbar_wfs').set_text('%s')",mtext);
     
   if (!one) after,0.001,ao_loop;
@@ -572,7 +545,7 @@ if (anyof(strmatch(arg_wfs,"widget_canapass.i")) || get_env("EMACS")=="t" ) {
 
 ao_disp._wins            = &[13];
 ao_disp._winits          = &[0];
-ao_disp._defaultdpi      = 130;    
+ao_disp._defaultdpi      = 75;    
 ao_disp._ncolors         = 200;
 ao_disp._lut             = 0;     // default LUT index [0-41]
 ao_disp._xytitles_adjust = &[0.012,0.019]; // X and Y notch axis titles in main area
@@ -600,6 +573,10 @@ yoga_parfilename = "";
 
 nmax_device = yoga_getnDevice();
 pyk,swrite(format=ao_disp._cmd+"glade.get_widget('device').set_range(%d,%d)",0,nmax_device-1);  
-//pyk, ao_disp._cmd+"on_load_defaults_clicked()";
+pyk,swrite(format=ao_disp._cmd+"glade.get_widget('device').set_value(%d)",activeDevice());  
 
 brama_flag=1;
+avg_fr = 1.f
+iter_fr = 5;
+iter_move = iter_fr;
+time_move = 0.0f;

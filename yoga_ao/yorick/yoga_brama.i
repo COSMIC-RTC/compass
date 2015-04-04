@@ -6,14 +6,6 @@ extern yoga_rtc_brama;
    SEE ALSO:
  */
 
-extern rtc_initDDS;
-/* DOCUMENT rtc_initDDS
-   rtc_initDDS, g_rtc_brama
-   initialiaze DDS fof g_rtc_brama
-      
-   SEE ALSO:
- */
-
 extern rtc_publish;
 /* DOCUMENT rtc_publish
    rtc_publish, g_rtc_brama

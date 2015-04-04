@@ -583,8 +583,8 @@ https://github.com/yorick-yoga/yorick-yoga/wiki</property>
                             <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
                             <child>
                               <widget class="GtkDrawingArea" id="drawingarea_ao">
-                                <property name="width_request">760</property>
-                                <property name="height_request">780</property>
+                                <property name="width_request">450</property>
+                                <property name="height_request">475</property>
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
                                 <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK | GDK_ENTER_NOTIFY_MASK | GDK_LEAVE_NOTIFY_MASK</property>

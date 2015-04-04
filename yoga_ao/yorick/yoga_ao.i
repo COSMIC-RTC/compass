@@ -862,7 +862,4 @@ func rtc_init(clean=, brama=, doimat=)
       }
     }
   }
-  if(brama==1) 
-    rtc_initDDS, g_rtc;
-
 }

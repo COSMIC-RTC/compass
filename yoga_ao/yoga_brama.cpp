@@ -28,30 +28,6 @@ extern "C" {
     }
   }
 
-  void Y_rtc_initDDS(int argc) {
-    try {
-      rtc_struct* handle = yoga_ao_getyRTC(argc, 1);
-      if (handle->use_brama == 0)
-        y_error("DDS is not initialized");
-
-      sutra_rtc_brama *rtc_handler = (sutra_rtc_brama *) (handle->sutra_rtc);
-
-      carma_context *context_handle = _getCurrentContext();
-      context_handle->set_activeDevice(handle->device,1);
-
-      rtc_handler->initDDS();
-    } catch (string &msg) {
-      y_error(msg.c_str());
-    } catch (char const * msg) {
-      y_error(msg);
-    } catch (...) {
-      stringstream buf;
-      buf << "unknown error with rtc_initDDS in " << __FILE__ << "@" << __LINE__
-          << endl;
-      y_error(buf.str().c_str());
-    }
-  }
-
   void Y_rtc_publish(int argc) {
     try {
       rtc_struct* handle = yoga_ao_getyRTC(argc, 1);

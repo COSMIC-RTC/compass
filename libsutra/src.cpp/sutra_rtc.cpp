@@ -262,13 +262,13 @@ int sutra_rtc::do_centroids(int ncntrl) {
 
 int sutra_rtc::do_centroids(int ncntrl, bool imat) {
   current_context->set_activeDevice(device,1);
-  int inds2 = 0;
+  int indssp = 0;
 
   for (size_t idx_cntr = 0; idx_cntr < (this->d_centro).size(); idx_cntr++) {
 
-    this->d_centro[idx_cntr]->get_cog((*this->d_control[ncntrl]->d_centroids)[inds2]);
+    this->d_centro[idx_cntr]->get_cog((*this->d_control[ncntrl]->d_subsum)[indssp],(*this->d_control[ncntrl]->d_centroids)[2*indssp]);
 
-    inds2 += 2 * this->d_centro[idx_cntr]->wfs->nvalid;
+    indssp += this->d_centro[idx_cntr]->wfs->nvalid;
   }
 
   return EXIT_SUCCESS;

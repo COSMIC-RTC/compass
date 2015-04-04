@@ -158,7 +158,7 @@ int sutra_centroider_corr::get_cog(carma_streams *streams, float *cube,
   return EXIT_SUCCESS;
 }
 
-int sutra_centroider_corr::get_cog(float *slopes) {
+int sutra_centroider_corr::get_cog(float *subsum,float *slopes) {
   current_context->set_activeDevice(device,1);
   //set corrspot to 0
   carmaSafeCall(
@@ -207,5 +207,5 @@ int sutra_centroider_corr::get_cog(float *slopes) {
 }
 
 int sutra_centroider_corr::get_cog() {
-  return this->get_cog(*(wfs->d_slopes));
+  return this->get_cog(*(wfs->d_subsum),*(wfs->d_slopes));
 }

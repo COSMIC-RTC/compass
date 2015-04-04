@@ -65,6 +65,7 @@ public:
   float b; // Coefficient for linear interpolation on command buffer to allow non-integer delay
   float c; // Coefficient for linear interpolation on command buffer to allow non-integer delay
   vector<sutra_dm *> d_dmseen;
+  carma_obj<float> *d_subsum; // current flux
   carma_obj<float> *d_centroids; // current centroids
   carma_obj<float> *d_com; // current command
   carma_obj<float> *d_perturb; // perturbation command buffer

@@ -214,6 +214,8 @@ class carma_obj {
     /**< Memory transfers both ways */
     int host2device(T_data *data);
     int device2host(T_data *data);
+    int host2deviceAsync(T_data *data, cudaStream_t stream);
+    int device2hostAsync(T_data *data, cudaStream_t stream);
     int device2hostOpt(T_data *data);
     int host2deviceVect(T_data *data, int incx, int incy);
     int device2hostVect(T_data *data, int incx, int incy);

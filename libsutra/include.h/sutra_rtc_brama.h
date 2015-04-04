@@ -38,8 +38,9 @@ public:
   sutra_rtc_brama(carma_context *context, ACE_TCHAR* name);
   ~sutra_rtc_brama();
 
-  void initDDS();
   void publish();
+private:
+  void allocateBuffers();
 
 };
 

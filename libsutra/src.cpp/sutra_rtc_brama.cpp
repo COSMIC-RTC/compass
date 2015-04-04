@@ -18,35 +18,13 @@ sutra_rtc_brama::sutra_rtc_brama(carma_context *context, ACE_TCHAR* name) :
   dims_slopes = NULL;
   dims_commands = NULL;
 
-}
-
-sutra_rtc_brama::~sutra_rtc_brama() {
-
-  if (buff_intensities)
-    BRAMA::Values::freebuf(buff_intensities);
-  if (buff_slopes)
-    BRAMA::Values::freebuf(buff_slopes);
-  if (buff_commands)
-    BRAMA::Values::freebuf(buff_commands);
-
-  if (dims_intensities)
-    BRAMA::Dims::freebuf(dims_intensities);
-  if (dims_slopes)
-    BRAMA::Dims::freebuf(dims_slopes);
-  if (dims_commands)
-    BRAMA::Dims::freebuf(dims_commands);
-
-  delete brama;
-}
-
-void sutra_rtc_brama::initDDS() {
   string topics[] = BRAMA_TOPICS;
-  current_context->set_activeDevice(device,1);
 
   try {
-    // Create a publisher and subscriber for the two topics
-    brama->create_publisher();
+    // Create a subscriber for the command topic
     brama->create_subscriber();
+    // Create a publisher for the superframe topic
+    brama->create_publisher();
 
     // Register the BRAMA types
     brama->register_all_data_types();
@@ -74,22 +52,43 @@ void sutra_rtc_brama::initDDS() {
       throw "SuperFrameDataWriter could not be narrowed";
     }
 
-    BRAMA::SuperFrame superframe;
-    superframe_handle = superframe_dw->register_instance(superframe);
+    BRAMA::SuperFrame zFrame;
+    superframe_handle = superframe_dw->register_instance(zFrame);
 
-    int nvalid = 0;
-    for (unsigned int i = 0; i < d_centro.size(); i++) {
-      nvalid += d_centro[i]->nvalid;
-    }
+} catch (CORBA::Exception& e) {
+    cerr << "Exception caught in main.cpp:" << endl << e << endl;
+    ACE_OS::exit(1);
+  }
+}
 
+sutra_rtc_brama::~sutra_rtc_brama() {
+
+  if (buff_intensities)
+    BRAMA::Values::freebuf(buff_intensities);
+  if (buff_slopes)
+    BRAMA::Values::freebuf(buff_slopes);
+  if (buff_commands)
+    BRAMA::Values::freebuf(buff_commands);
+
+  if (dims_intensities)
+    BRAMA::Dims::freebuf(dims_intensities);
+  if (dims_slopes)
+    BRAMA::Dims::freebuf(dims_slopes);
+  if (dims_commands)
+    BRAMA::Dims::freebuf(dims_commands);
+
+  delete brama;
+}
+
+void sutra_rtc_brama::allocateBuffers() {
+  try {
     int nslp = 0;
     int ncmd = 0;
     for (unsigned int i = 0; i < d_control.size(); i++) {
-      nslp += d_control[i]->nslope();
-      ncmd += d_control[i]->nactu();
+      nslp   += d_control[i]->nslope();
+      ncmd   += d_control[i]->nactu();
     }
-
-    //cerr << nvalid << " " << ncmd << endl;
+    int nvalid = nslp/2;
 
     buff_intensities = BRAMA::Values::allocbuf(nvalid * sizeof(float));
     buff_slopes = BRAMA::Values::allocbuf(nslp * sizeof(float));
@@ -114,35 +113,33 @@ void sutra_rtc_brama::initDDS() {
 }
 
 void sutra_rtc_brama::publish() {
-
+  if(buff_intensities == NULL)
+    allocateBuffers();
   current_context->set_activeDevice(device,1);
 
-  BRAMA::SuperFrame zFrame;
-  zFrame.from = CORBA::string_dup("BRAMA RTC");
-  zFrame.framecounter = framecounter;
 
   CORBA::Float* buff_intensities_servant = (CORBA::Float*) buff_intensities;
   CORBA::Float* buff_slopes_servant = (CORBA::Float*) buff_slopes;
   CORBA::Float* buff_commands_servant = (CORBA::Float*) buff_commands;
 
-  int nvalid = 0;
-  for (unsigned int i = 0; i < d_centro.size(); i++) {
-    d_centro[i]->wfs->d_subsum->device2host(buff_intensities_servant + nvalid);
-    nvalid += d_centro[i]->nvalid;
-  }
-
   int nslp = 0;
   int ncmd = 0;
+  int nvalid = 0;
+
   for (unsigned int i = 0; i < d_control.size(); i++) {
+    d_control[i]->d_subsum->device2host(buff_intensities_servant + nvalid);
     d_control[i]->d_centroids->device2host(buff_slopes_servant + nslp);
     d_control[i]->d_voltage->device2host(buff_commands_servant + ncmd);
+    nvalid += d_control[i]->nslope()/2;
     nslp += d_control[i]->nslope();
     ncmd += d_control[i]->nactu();
   }
 
-//  for(int idx=0; idx<ncmd; idx++){
-//    BRAMA_DEBUG_TRACE("%d %f", idx, buff_commands_servant[idx]);
-//  }
+  BRAMA::SuperFrame zFrame;
+  zFrame.framecounter = framecounter;
+  zFrame.timestamp = get_timestamp();
+  zFrame.from = CORBA::string_dup("BRAMA RTC");
+
   zFrame.ints.from = CORBA::string_dup("BRAMA intensities");
   zFrame.ints.typeofelements = CORBA::string_dup("intensities");
   zFrame.ints.sizeofelements = sizeof(float);

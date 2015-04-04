@@ -42,13 +42,13 @@ int sutra_centroider_roof::get_roof(float *cube, float *subsum,
   return EXIT_SUCCESS;
 }
 
-int sutra_centroider_roof::get_cog(float *slopes) {
-  return this->get_roof(*(wfs->d_bincube), *(wfs->d_subsum), slopes,
+int sutra_centroider_roof::get_cog(float *subsum, float *slopes) {
+  return this->get_roof(*(wfs->d_bincube), subsum, slopes,
     *(wfs->d_validsubsx), *(wfs->d_validsubsy), wfs->nvalid,
     wfs->nfft / wfs->nrebin, 4);
 }
 
 int sutra_centroider_roof::get_cog() {
-  return this->get_cog(*(wfs->d_slopes));
+  return this->get_cog(*(wfs->d_subsum),*(wfs->d_slopes));
 }
 

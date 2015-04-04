@@ -42,13 +42,13 @@ int sutra_centroider_pyr::get_pyr(float *cube, float *subsum, float *centroids,
   return EXIT_SUCCESS;
 }
 
-int sutra_centroider_pyr::get_cog(float *slopes) {
-  return this->get_pyr(*(wfs->d_bincube), *(wfs->d_subsum), slopes,
+int sutra_centroider_pyr::get_cog(float *subsum, float *slopes) {
+  return this->get_pyr(*(wfs->d_bincube), subsum, slopes,
       *(wfs->d_validsubsx), *(wfs->d_validsubsy), wfs->nvalid,
       wfs->nfft / wfs->nrebin, 4);
 }
 
 int sutra_centroider_pyr::get_cog() {
-  return this->get_cog(*(wfs->d_slopes));
+  return this->get_cog(*(wfs->d_subsum),*(wfs->d_slopes));
 }
 

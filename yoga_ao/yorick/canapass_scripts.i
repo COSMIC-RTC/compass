@@ -126,50 +126,27 @@ func script_canapass(filename,verbose=,strehl=,r0=,clean=,brama=)
      mspec += circavg(abs(fft(mscreen)/nxscreen/nxscreen)^2);
      */
 
-    if ((y_target != []) && (g_target != [])) {
-      // loop on targets
-      for (i=1;i<=y_target.ntargets;i++) {
-        if(y_see_atmos)
-          target_atmostrace,g_target,i-1,g_atmos;
-        if (g_dm != []) {
-          target_dmtrace,g_target,i-1,g_dm;
-        }
-      }
-      //saving average image from target #1
+    // loop on targets
+    for (i=1;i<=y_target.ntargets;i++) {
+      if(y_see_atmos)
+        target_atmostrace,g_target,i-1,g_atmos;
+      target_dmtrace,g_target,i-1,g_dm;
     }
 
-    if ((y_wfs != []) && (g_wfs != [])) {
-      // loop on wfs
-      for (i=1;i<=numberof(y_wfs);i++) {
-       if(y_see_atmos)
-           sensors_trace,g_wfs,i-1,"all",g_atmos,g_dm;
-        /*
-         sensors_trace,g_wfs,i-1,"atmos",g_atmos;
-         if ((!y_wfs(i).openloop) && (g_dm != [])) {
-         sensors_trace,g_wfs,i-1,"dm",g_dm,0;
-         }
-         */
-
-        sensors_compimg,g_wfs,i-1;
-      }
-
-      // do centroiding
+    // loop on wfs
+    for (i=1;i<=numberof(y_wfs);i++) {
+      if(y_see_atmos)
+        sensors_trace,g_wfs,i-1,"all",g_atmos,g_dm;
+      sensors_compimg,g_wfs,i-1;
     }
 
-    if ((y_rtc != []) && (g_rtc != [])
-        && (y_wfs != []) && (g_wfs != [])) {
-      rtc_docentroids,g_rtc,0;
-      //rtc_docentroids_geom,g_rtc,0;
-      //rtc_docentroids_geom,g_rtc,0; 
-      // compute command and apply
-      if (g_dm != []) {
-        rtc_docontrol,g_rtc,0;
-        rtc_applycontrol,g_rtc,0,g_dm;
-      }
+    rtc_docentroids,g_rtc,0;
+    //rtc_docentroids_geom,g_rtc,0;
+    //rtc_docentroids_geom,g_rtc,0; 
+    // compute command and apply
+    rtc_docontrol,g_rtc,0;
+    rtc_applycontrol,g_rtc,0,g_dm;
 
-    }
-    if(brama)
-      rtc_publish, g_rtc;
 /*   check DMs 
  * window, 0
  * a= yoga_getdm(g_dm,"pzt", 0)

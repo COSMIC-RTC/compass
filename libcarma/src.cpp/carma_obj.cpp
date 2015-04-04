@@ -329,6 +329,75 @@ template int
 caObjD2::device2host(double2 *data);
 
 template<class T_data>
+int carma_obj<T_data>::host2deviceAsync(T_data *data, cudaStream_t stream) {
+  /** \brief host2device data transfer.
+   * \param data : input data
+   *
+   * this method fills d_input with the imput data
+   */
+  cudaMemcpyAsync(this->d_data, data, sizeof(T_data) * this->nb_elem,
+                  cudaMemcpyHostToDevice, stream);
+
+  return EXIT_SUCCESS;
+}
+
+template int
+caObjI::host2deviceAsync(int *data, cudaStream_t stream);
+template int
+caObjUI::host2deviceAsync(unsigned int *data, cudaStream_t stream);
+template int
+caObjS::host2deviceAsync(float *data, cudaStream_t stream);
+template int
+caObjD::host2deviceAsync(double *data, cudaStream_t stream);
+template int
+caObjS2::host2deviceAsync(float2 *data, cudaStream_t stream);
+template int
+caObjD2::host2deviceAsync(double2 *data, cudaStream_t stream);
+
+/*
+ template<class T_data>
+ T_data* carma_obj<T_data>::getData(){
+ * \brief getData data transfer.
+ * \return data : pointer on the data
+ *
+
+ return d_data;
+ }
+
+ template float* caObjS::getData();
+ template double* caObjD::getData();
+ template unsigned int* caObjUI::getData();
+ template float2* caObjS2::getData();
+ template double2* caObjD2::getData();
+ */
+
+template<class T_data>
+int carma_obj<T_data>::device2hostAsync(T_data *data, cudaStream_t stream) {
+  /** \brief device2host data transfer.
+   * \param data : output data
+   *
+   * this method copies the values in d_output to the output array
+   */
+  cudaMemcpyAsync(data, this->d_data, sizeof(T_data) * this->nb_elem,
+                  cudaMemcpyDeviceToHost, stream);
+
+  return EXIT_SUCCESS;
+}
+
+template int
+caObjS::device2hostAsync(float *data, cudaStream_t stream);
+template int
+caObjD::device2hostAsync(double *data, cudaStream_t stream);
+template int
+caObjI::device2hostAsync(int *data, cudaStream_t stream);
+template int
+caObjUI::device2hostAsync(unsigned int *data, cudaStream_t stream);
+template int
+caObjS2::device2hostAsync(float2 *data, cudaStream_t stream);
+template int
+caObjD2::device2hostAsync(double2 *data, cudaStream_t stream);
+
+template<class T_data>
 int carma_obj<T_data>::device2hostOpt(T_data *data) {
   /** \brief device2host data transfer.
    * \param data : output data
