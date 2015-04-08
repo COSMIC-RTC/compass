@@ -53,6 +53,7 @@ struct target_struct
   pointer xpos;      // x positions on sky (in arcsec) for each target
   pointer ypos;      // y positions on sky (in arcsec) for each target
   pointer mag;       // magnitude for each target
+  pointer dms_seen;  // index of dms seen by the target
 };
 
 struct wfs_struct

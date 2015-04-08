@@ -212,7 +212,7 @@ func wfs_init(void)
   extern g_wfs;
   if(*y_wfs(1).dms_seen == []){
     for(i=1 ; i<=numberof(y_wfs) ; i++){
-      if(!y_wfs(i).openloop) y_wfs(i).dms_seen = &(indgen(numberof(y_dm)));
+      if(!y_wfs(i).openloop && y_dm != []) y_wfs(i).dms_seen = &(indgen(numberof(y_dm)));
     }
   }
   // first get the wfs with max # of subaps
@@ -349,6 +349,11 @@ func target_init(void)
   type = "atmos";
  
   if (y_target != []) {
+    if(*y_target(1).dms_seen == []){
+    for(i=1 ; i<=y_target.ntargets ; i++){
+      if(y_dm != []) y_target(i).dms_seen = &(indgen(numberof(y_dm)));
+    }
+  }
     sizes = y_geom.pupdiam;
     sizes = sizes(-::y_target.ntargets-1);
       
@@ -386,7 +391,8 @@ func target_init(void)
         }
       }
       if (y_dm != []) {
-        for (dd=1;dd<=numberof(y_dm);dd++) {
+        for (ddd=1;ddd<=numberof(*y_target(cc).dms_seen);ddd++) {
+	  dd = (*y_target(cc).dms_seen)(ddd)
           dims = y_dm(dd)._n2 - y_dm(dd)._n1 + 1;
           dim  = dimsof(*y_geom._mpupil)(2);
           dim_dm = max([dim,dims]);
