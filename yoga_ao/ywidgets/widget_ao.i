@@ -490,9 +490,13 @@ func update_main_display1(type)
   }
   if (anyof(type == "target")) {
     pyk,swrite(format=ao_disp._cmd+"glade.get_widget('winselect_type').insert_text(%d,'%s')",6,
-               "Image - Target");
+               "Image SE - Target");
   }
-  
+  if (anyof(type == "target")) {
+    pyk,swrite(format=ao_disp._cmd+"glade.get_widget('winselect_type').insert_text(%d,'%s')",6,
+               "Image LE - Target");
+  }
+
   pyk,swrite(format=ao_disp._cmd+"glade.get_widget('winselect_type').set_active(%d)",0);
 }
 
@@ -551,7 +555,14 @@ func update_main_display2(type)
       pyk,swrite(format=sky_disp._cmd+"glade.get_widget('winselect_number').insert_text(%d,'%s')",0,
                  swrite(format="Source # %d",y_target.ntargets-cc+1));  
   }
-  if (type == "Image - Target") {
+  if (type == "Image SE - Target") {
+    pyk,swrite(format=wfs_disp._cmd+"y_winnum_clear(%d)",1);    
+    //pyk,swrite(format=sky_disp._cmd+"glade.get_widget('winselect_number').clear()");
+    for (cc=1;cc<=y_target.ntargets;cc++)
+      pyk,swrite(format=sky_disp._cmd+"glade.get_widget('winselect_number').insert_text(%d,'%s')",0,
+                 swrite(format="Source # %d",y_target.ntargets-cc+1));  
+  }  
+  if (type == "Image LE - Target") {
     pyk,swrite(format=wfs_disp._cmd+"y_winnum_clear(%d)",1);    
     //pyk,swrite(format=sky_disp._cmd+"glade.get_widget('winselect_number').clear()");
     for (cc=1;cc<=y_target.ntargets;cc++)
@@ -667,9 +678,26 @@ func update_main(type,nlayer)
     rho=indgen(1000)/1000.*2*pi;
     plg,y_geom.pupdiam/2*cos(rho)+nx/2.,y_geom.pupdiam/2*sin(rho)+nx/2.,color="red",marks=0,width=3;
   }
-  if (type == "Image - Target") {
+  if (type == "Image SE - Target") {
     if (nlayer > y_target.ntargets) return;
     mimg = target_getimage(g_target,nlayer,"se");
+    window,(*ao_disp._wins)(1);fma;
+    Di=dimsof(mimg);
+    mimg=roll(mimg);
+    //OWA=2*y_dm.nact(1);
+    OWA = Di(2) > 128 ? 64 : Di(2);
+    mimg=mimg(Di(2)/2-1-OWA:Di(2)/2+OWA,Di(2)/2-1-OWA:Di(2)/2+OWA);
+    mimg=mimg*(mimg > max(mimg)/100000)+max(mimg)/100000*(mimg < max(mimg)/100000);
+    //pli,log10(mimg);    
+    pli,mimg;
+    myxtitle = swrite(format="image for target # %d", nlayer+1);
+    port= viewport();
+    plt, myxtitle, port(zcen:1:2)(1), port(4)+0.005,
+      font="helvetica", justify="CB", height=long(pltitle_height*ao_disp._defaultdpi/200.);
+  }
+  if (type == "Image LE - Target") {
+    if (nlayer > y_target.ntargets) return;
+    mimg = target_getimage(g_target,nlayer,"le");
     window,(*ao_disp._wins)(1);fma;
     Di=dimsof(mimg);
     mimg=roll(mimg);

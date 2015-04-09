@@ -535,6 +535,10 @@ class wao:
    ######################################################
    # Main pane
    ######################################################
+   def on_reset_strehl_clicked(self,wdg):
+      target = self.glade.get_widget('reset_target').get_value_as_int()
+      self.py2yo('target_reset_strehlmeter g_target %d'%target)
+
    def y_win_clear(self,clear):
       cmodel = self.glade.get_widget('winselect_type').get_model()
       cmodel.clear()
