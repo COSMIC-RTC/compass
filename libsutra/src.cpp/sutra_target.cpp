@@ -203,7 +203,7 @@ int sutra_source::reset_strehlmeter(){
 	carmaSafeCall(
 	        cudaMemset(this->d_leimage->getData(), 0,
 	            sizeof(float) * this->d_leimage->getNbElem()));
-	this->strehl_counter = 1;
+	this->strehl_counter = 0;
 
 	return EXIT_SUCCESS;
 }
@@ -455,7 +455,10 @@ int sutra_source::comp_strehl() {
         &(this->d_leimage->getData()[this->d_leimage->imax(1) - 1]),
         sizeof(float), cudaMemcpyDeviceToHost);
   this->strehl_se /= (this->d_wherephase->getDims(1) * this->d_wherephase->getDims(1));
-  this->strehl_le /=  (this->strehl_counter * ( this->d_wherephase->getDims(1)* this->d_wherephase->getDims(1)));
+  if(this->strehl_counter > 0)
+	  this->strehl_le /=  (this->strehl_counter * ( this->d_wherephase->getDims(1)* this->d_wherephase->getDims(1)));
+  else
+	  this->strehl_le = this->strehl_se;
   
   /*
   cudaMemcpy(&(this->strehl_se),
