@@ -346,15 +346,18 @@ int sutra_wfs_sh::comp_generic() {
     throw "ERROR : d_bincube not initialized, did you do the allocate_buffers?";
   }
   current_context->set_activeDevice(device,1);
+  /*
   carmaSafeCall(
         cudaMemset(this->d_camplipup->getData(), 0,
             sizeof(cuFloatComplex) * this->d_camplipup->getNbElem()));
   carmaSafeCall(
         cudaMemset(this->d_camplifoc->getData(), 0,
             sizeof(cuFloatComplex) * this->d_camplifoc->getNbElem()));
+            */
   carmaSafeCall(
         cudaMemset(this->d_fttotim->getData(), 0,
             sizeof(cuFloatComplex) * this->d_fttotim->getNbElem()));
+
 
   // segment phase and fill cube of complex ampli with exp(i*phase_seg)
   fillcamplipup(this->d_camplipup->getData(),
@@ -372,8 +375,7 @@ int sutra_wfs_sh::comp_generic() {
   // get the hrimage by taking the | |^2
   // keep it in amplifoc to save mem space
   abs2c(this->d_camplifoc->getData(), this->d_camplifoc->getData(),
-      this->d_camplifoc->getDims(1) * this->d_camplifoc->getDims(2)
-          * this->d_camplifoc->getDims(3), current_context->get_device(device));
+      this->nfft*this->nfft*this->nvalid, current_context->get_device(device));
 
   //set bincube to 0 or noise
   carmaSafeCall(
@@ -386,14 +388,16 @@ int sutra_wfs_sh::comp_generic() {
   if (this->ntot != this->nfft) {
 
     for (int cc = 0; cc < this->nffthr; cc++) {
+    	/*
       carmaSafeCall(
           cudaMemset(this->d_fttotim->getData(), 0,
               sizeof(cuFloatComplex) * this->d_fttotim->getNbElem()));
+              */
 
       int indxstart1, indxstart2 = 0, indxstart3;
 
       if ((cc == this->nffthr - 1) && (this->nvalid % this->nmaxhr != 0)) {
-        indxstart1 = this->d_camplifoc->getNbElem()
+        indxstart1 = (this->nfft*this->nfft*this->nvalid)
             - this->nfft * this->nfft * this->nmaxhr;
         if (this->lgs)
           indxstart2 = this->ntot * this->nvalid - this->ntot * this->nmaxhr;
@@ -422,7 +426,7 @@ int sutra_wfs_sh::comp_generic() {
 
         convolve(this->d_fttotim->getData(),
             this->d_gs->d_lgs->d_ftlgskern->getData(),
-            this->d_fttotim->getNbElem(),
+            this->ntot*this->ntot*this->nmaxhr,
             this->current_context->get_device(device));
 
         carma_fft(this->d_fttotim->getData(), this->d_fttotim->getData(), -1,
@@ -435,7 +439,7 @@ int sutra_wfs_sh::comp_generic() {
         		*this->fttotim_plan);//*this->d_fttotim->getPlan());
 
         convolve_cube(this->d_fttotim->getData(), this->d_ftkernel->getData(),
-            this->d_fttotim->getNbElem(), this->d_ftkernel->getNbElem(),
+        		this->ntot*this->ntot*this->nmaxhr, this->d_ftkernel->getNbElem(),
             this->current_context->get_device(device));
 
         carma_fft(this->d_fttotim->getData(), this->d_fttotim->getData(), -1,
