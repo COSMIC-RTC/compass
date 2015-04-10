@@ -122,8 +122,10 @@ int sutra_wfs_sh::allocate_buffers(sutra_sensors *sensors) {
   mdims[0] = (int) dims_data3[1];
   mdims[1] = (int) dims_data3[2];
 
-  //int vector_dims[3] = {mdims[0],mdims[1],(int)dims_data3[3]};
-  vector<int> vdims(dims_data3 + 1, dims_data3 + 4);
+  int vector_dims[3] = {mdims[0],mdims[1],(int)dims_data3[3]};
+  vector<int> vdims(vector_dims,
+                        vector_dims + sizeof(vector_dims) / sizeof(int));
+  //vector<int> vdims(dims_data3 + 1, dims_data3 + 4);
 
   if (sensors->campli_plans.find(vdims) == sensors->campli_plans.end()) {
     //DEBUG_TRACE("Creating FFT plan : %d %d %d",mdims[0],mdims[1],dims_data3[3]);printMemInfo();
@@ -346,14 +348,13 @@ int sutra_wfs_sh::comp_generic() {
     throw "ERROR : d_bincube not initialized, did you do the allocate_buffers?";
   }
   current_context->set_activeDevice(device,1);
-  /*
+
   carmaSafeCall(
         cudaMemset(this->d_camplipup->getData(), 0,
             sizeof(cuFloatComplex) * this->d_camplipup->getNbElem()));
   carmaSafeCall(
         cudaMemset(this->d_camplifoc->getData(), 0,
             sizeof(cuFloatComplex) * this->d_camplifoc->getNbElem()));
-            */
   carmaSafeCall(
         cudaMemset(this->d_fttotim->getData(), 0,
             sizeof(cuFloatComplex) * this->d_fttotim->getNbElem()));
@@ -473,7 +474,7 @@ int sutra_wfs_sh::comp_generic() {
 
       convolve(this->d_fttotim->getData(),
           this->d_gs->d_lgs->d_ftlgskern->getData(),
-          this->d_fttotim->getNbElem(),
+          this->ntot*this->ntot*this->nvalid,
           this->current_context->get_device(device));
 
       carma_fft(this->d_fttotim->getData(), this->d_fttotim->getData(), -1,
@@ -497,7 +498,7 @@ int sutra_wfs_sh::comp_generic() {
         		*this->campli_plan);//*this->d_camplipup->getPlan());
 
         convolve_cube(this->d_camplifoc->getData(), this->d_ftkernel->getData(),
-            this->d_camplifoc->getNbElem(), this->d_ftkernel->getNbElem(),
+            this->nfft*this->nfft*this->nvalid, this->d_ftkernel->getNbElem(),
             this->current_context->get_device(device));
 
         carma_fft(this->d_camplifoc->getData(), this->d_camplifoc->getData(),

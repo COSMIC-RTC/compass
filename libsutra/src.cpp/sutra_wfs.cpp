@@ -104,17 +104,17 @@ sutra_sensors::sutra_sensors(carma_context *context, char **type, int nwfs,
 		int maxnfft = nfft[0];
 		int maxntot = ntot[0];
 		int maxnvalid = nvalid[0];
-		int wfs4nfft = 0;
-		int wfs4ntot = 0;
+		//int wfs4nfft = 0;
+		//int wfs4ntot = 0;
 		int is_lgs = (lgs[0] > 0 ? 1 : 0);
 		for (int i = 1; i < nwfs; i++) {
 			if (ntot[i] > maxntot) {
 				maxntot = ntot[i];
-				wfs4ntot = i;
+				//wfs4ntot = i;
 			}
 			if (nfft[i] > maxnfft) {
 				maxnfft = nfft[i];
-				wfs4nfft = i;
+				//wfs4nfft = i;
 			}
 			if (ntot[i] == nfft[i]) {
 				if (nvalid[i] > maxnvalid) {
@@ -131,7 +131,7 @@ sutra_sensors::sutra_sensors(carma_context *context, char **type, int nwfs,
 
 		dims_data3[1] = maxntot;
 		dims_data3[2] = maxntot;
-		dims_data3[3] = compute_nmaxhr(nvalid[wfs4ntot]);
+		dims_data3[3] = compute_nmaxhr(maxnvalid/*nvalid[wfs4ntot]*/);
 		if (maxnvalid > dims_data3[3])
 			dims_data3[3] = maxnvalid;
 		this->d_fttotim = new carma_obj<cuFloatComplex>(context, dims_data3);
