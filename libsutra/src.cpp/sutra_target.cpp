@@ -288,7 +288,8 @@ int sutra_source::raytrace(sutra_atmos *yatmos, bool async) {
       } else {
     	  if (this->lgs){
     		  delta = 1.0f - alt/this->d_lgs->hg;
-    		  target_lgs_raytrace(this->d_phase->d_screen->getData(),
+		  if(delta > 0)
+		    target_lgs_raytrace(this->d_phase->d_screen->getData(),
     		              ps->d_tscreen->d_screen->getData(),
     		              (int) d_phase->d_screen->getDims(1),
     		              (int) d_phase->d_screen->getDims(2),
