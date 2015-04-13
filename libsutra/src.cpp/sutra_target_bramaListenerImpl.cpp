@@ -56,10 +56,10 @@ void sutra_target_bramaListenerImpl::on_data_available(DDS::DataReader_ptr reade
               std::vector<string> cmd_splited;
               carma_utils::split(cmd_splited, type, '_');
 
-              if (cmd_splited[0] == "camicazExposure") {
+              if (cmd_splited[0] == "canapassExposure") {
                 int ntarget = carma_utils::from_string<int>(cmd_splited[1]);
                 int subsample = carma_utils::from_string<int>(cmd_splited[2]);
-                DEBUG_TRACE("Updating camicazExposure on target %d to %d", ntarget, subsample);
+                DEBUG_TRACE("Updating canapassExposure on target %d to %d", ntarget, subsample);
 
                 target->set_subsample(ntarget, subsample);
 
