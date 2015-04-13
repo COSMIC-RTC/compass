@@ -33,8 +33,9 @@ func load_parfile(parfile,filename)
   y_wfs = y_atmos = y_rtc = y_loop = y_tel = y_geom = y_target = [];
   g_wfs = g_atmos = g_rtc = g_target = [];
   
+  /*
   read_parfile,parfile;
-
+  
   pyk,swrite(format=ao_disp._cmd+"glade.get_widget('teldiam').set_value(%f)",y_tel.diam);
   pyk,swrite(format=ao_disp._cmd+"glade.get_widget('cobs').set_value(%f)",y_tel.cobs);
 
@@ -81,7 +82,8 @@ func load_parfile(parfile,filename)
       pyk,swrite(format=wfs_disp._cmd+"glade.get_widget('type_func').set_active(%d)",0);
     }
   }
-  update_control_prop; 
+  update_control_prop;
+  */
   
 }
 
@@ -204,13 +206,22 @@ func init_all(filename)
   extern imlp,strehllp,strehlsp,airy,sairy,niterok;
   extern enable_display, y_see_atmos;//, y_openloop;
   
+  extern yoga_parfilename;
+  extern avg_fr, iter_fr, iter_move, time_move;
+  
   y_see_atmos=0;
   enable_display=0;
   //y_openloop=1;
+  avg_fr = 1.f;
+  iter_fr = 5;
+  iter_move = iter_fr;
+  time_move = 0.0f;
 
   //pyk,swrite(format=wfs_disp._cmd+"y_win_clear(%d)",1);
   
   pyk,swrite(format=atmos_disp._cmd+"glade.get_widget('initall').set_sensitive(%d)",0);
+  if ( yoga_parfilename!="" && filename==[] )
+    filename = yoga_parfilename;
   
   if (filename == []) filename = yoga_ao_top+"/data/par/canapass2.par";
 
