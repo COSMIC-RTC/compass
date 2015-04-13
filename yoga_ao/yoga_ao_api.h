@@ -56,6 +56,7 @@ typedef struct source_struct {
 
 typedef struct target_struct {
   void *sutra_target;
+  int use_brama;
   int device;
 } target_struct;
 

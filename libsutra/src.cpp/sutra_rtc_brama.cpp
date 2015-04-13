@@ -29,7 +29,7 @@ sutra_rtc_brama::sutra_rtc_brama(carma_context *context, ACE_TCHAR* name) :
     // Register the BRAMA types
     brama->register_all_data_types();
 
-    // Create an BRAMA Event listener
+    // Create an BRAMA Command listener
     cmd_listener = (new sutra_rtc_bramaListenerImpl);
     cmd_listener_servant =
         dynamic_cast<sutra_rtc_bramaListenerImpl*>(cmd_listener.in());

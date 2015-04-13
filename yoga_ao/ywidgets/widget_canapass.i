@@ -170,9 +170,10 @@ func ao_loop(one)
   rtc_docontrol,g_rtc,0;
   rtc_applycontrol,g_rtc,0,g_dm;
   
-  if(brama_flag)
+  if(brama_flag) {
     rtc_publish, g_rtc;
-
+    target_publish, g_target;
+  }
   update_main,aodisp_type,aodisp_num;
 
   if(aoiter>0)
@@ -241,7 +242,7 @@ func init_all(filename)
 
   dm_init;
  
-  target_init;
+  target_init, brama=brama_flag;
 
   rtc_init,clean=1, brama=brama_flag, doimat=0;
   rtc_setopenloop, g_rtc, 0, 1;

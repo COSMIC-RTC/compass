@@ -14,3 +14,19 @@ extern rtc_publish;
    SEE ALSO:
  */
 
+extern yoga_target_brama;
+/* DOCUMENT yoga_target_brama
+   obj = yoga_target_brama(device)
+   creates an yTarget object on the gpu
+      
+   SEE ALSO:
+ */
+
+extern target_publish;
+/* DOCUMENT target_publish
+   target_publish, g_target_brama
+   publish data of g_target_brama
+      
+   SEE ALSO:
+ */
+

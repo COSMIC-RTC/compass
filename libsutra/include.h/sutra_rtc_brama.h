@@ -33,6 +33,7 @@ private:
   CORBA::ULong* dims_commands;
 
   long framecounter;
+  ACE_Mutex lock_;
 
 public:
   sutra_rtc_brama(carma_context *context, ACE_TCHAR* name);

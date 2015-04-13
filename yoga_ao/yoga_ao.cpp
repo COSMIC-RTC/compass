@@ -566,9 +566,10 @@ void Y_yoga_target(int argc) {
     int Npts;
     Npts = ygets_i(argc - 8);
 
-    if (argc > 8)
+    if (argc > 8) {
       odevice = ygets_i(argc - 9);
-    context_handle->set_activeDevice(odevice,1);
+      context_handle->set_activeDevice(odevice,1);
+    }
 
     target_struct *handle = (target_struct *) ypush_obj(&yTarget,
         sizeof(target_struct));
