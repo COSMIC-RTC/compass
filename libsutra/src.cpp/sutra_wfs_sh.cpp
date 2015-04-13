@@ -352,13 +352,11 @@ int sutra_wfs_sh::comp_generic() {
   carmaSafeCall(
         cudaMemset(this->d_camplipup->getData(), 0,
             sizeof(cuFloatComplex) * this->d_camplipup->getNbElem()));
+            /*
   carmaSafeCall(
         cudaMemset(this->d_camplifoc->getData(), 0,
             sizeof(cuFloatComplex) * this->d_camplifoc->getNbElem()));
-  carmaSafeCall(
-        cudaMemset(this->d_fttotim->getData(), 0,
-            sizeof(cuFloatComplex) * this->d_fttotim->getNbElem()));
-
+            */
 
   // segment phase and fill cube of complex ampli with exp(i*phase_seg)
   fillcamplipup(this->d_camplipup->getData(),
@@ -389,11 +387,11 @@ int sutra_wfs_sh::comp_generic() {
   if (this->ntot != this->nfft) {
 
     for (int cc = 0; cc < this->nffthr; cc++) {
-    	/*
+
       carmaSafeCall(
           cudaMemset(this->d_fttotim->getData(), 0,
               sizeof(cuFloatComplex) * this->d_fttotim->getNbElem()));
-              */
+
 
       int indxstart1, indxstart2 = 0, indxstart3;
 
@@ -466,6 +464,9 @@ int sutra_wfs_sh::comp_generic() {
     }
   } else {
     if (this->lgs) {
+    	  carmaSafeCall(
+    	        cudaMemset(this->d_fttotim->getData(), 0,
+    	            sizeof(cuFloatComplex) * this->d_fttotim->getNbElem()));
       this->d_gs->d_lgs->lgs_makespot(this->current_context->get_device(device),
           0);
 

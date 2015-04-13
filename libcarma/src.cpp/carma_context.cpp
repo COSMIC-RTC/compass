@@ -125,7 +125,7 @@ carma_context::carma_context() {
   // MAGMA init 
   magma_init();
   #if DEBUG
-  magma_print_environment();
+  //  magma_print_environment();
   #endif
 #endif
 

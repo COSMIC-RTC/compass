@@ -216,8 +216,6 @@ void carma_sparse_obj<T_data>::resize(int nz_elem_, int dim1_, int dim2_) {
     dims_data[0] = 2;
     dims_data[1] = dim1_;
     dims_data[2] = dim2_;
-    majorDim = 'U';
-    this->format = "unknown";
   }
 
 }
@@ -240,7 +238,7 @@ void carma_sparse_obj<T_data>::_create(int nz_elem_, int dim1_, int dim2_) {
   }
 
   majorDim = 'U';
-  format = "unknown";
+  format = "CSR";
 
   status = cusparseCreateMatDescr(&descr);
   if (status != CUSPARSE_STATUS_SUCCESS) {
