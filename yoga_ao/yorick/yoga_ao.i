@@ -37,7 +37,7 @@ func read_parfile(filename)
   y_geom   = geom_struct();
   y_atmos  = atmos_struct();
   y_tel    = tel_struct();
-  y_target = target_struct();
+  y_target = target_struct(zerop=1.0f);
   y_loop   = loop_struct();
   y_rtc    = rtc_struct();
   
@@ -258,9 +258,9 @@ func wfs_init(void)
   // init sensor gs object on gpu
   if (y_wfs(1).type == "geo") {
     sensors_initgs,g_wfs,y_wfs.xpos,y_wfs.ypos,y_wfs.lambda,[0](-::numberof(y_wfs)-1),
-      (y_geom._n)(-::numberof(y_wfs)-1),[-1](-::numberof(y_wfs)-1);
+      (y_geom._n)(-::numberof(y_wfs)-1),y_wfs(1).zerop,[-1](-::numberof(y_wfs)-1);
   } else {
-    sensors_initgs,g_wfs,y_wfs.xpos,y_wfs.ypos,y_wfs.lambda,y_wfs.gsmag,
+    sensors_initgs,g_wfs,y_wfs.xpos,y_wfs.ypos,y_wfs.lambda,y_wfs.gsmag,y_wfs(1).zerop,
       (y_geom._n)(-::numberof(y_wfs)-1),y_wfs.noise;
   }
   // fill sensor object with data
@@ -363,17 +363,17 @@ func target_init(brama=)
     if (y_target.apod != []) {
       if (y_target.apod == 1) {
         apodizer=*y_geom._apodizer * *y_geom._spupil;
-        g_target = yoga_target(y_target.ntargets,*y_target.xpos,*y_target.ypos,*y_target.lambda,*y_target.mag,sizes,apodizer,numberof(where(apodizer > 0)));
+        g_target = yoga_target(y_target.ntargets,*y_target.xpos,*y_target.ypos,*y_target.lambda,*y_target.mag,y_target(1).zerop,sizes,apodizer,numberof(where(apodizer > 0)));
         if(brama=1)
           yoga_target_brama,g_target, y_target.ntargets,*y_target.xpos,*y_target.ypos,*y_target.lambda,*y_target.mag,sizes,apodizer,numberof(where(apodizer > 0));
 
       } else {
-        g_target = yoga_target(y_target.ntargets,*y_target.xpos,*y_target.ypos,*y_target.lambda,*y_target.mag,sizes,*y_geom._spupil,numberof(where(*y_geom._spupil > 0)));
+        g_target = yoga_target(y_target.ntargets,*y_target.xpos,*y_target.ypos,*y_target.lambda,*y_target.mag,y_target(1).zerop,sizes,*y_geom._spupil,numberof(where(*y_geom._spupil > 0)));
         if(brama=1)
           yoga_target_brama,g_target, y_target.ntargets,*y_target.xpos,*y_target.ypos,*y_target.lambda,*y_target.mag,sizes,*y_geom._spupil,numberof(where(*y_geom._spupil > 0));
       }
     } else {
-      g_target = yoga_target(y_target.ntargets,*y_target.xpos,*y_target.ypos,*y_target.lambda,*y_target.mag,sizes,*y_geom._spupil,numberof(where(*y_geom._spupil > 0)));
+      g_target = yoga_target(y_target.ntargets,*y_target.xpos,*y_target.ypos,*y_target.lambda,*y_target.mag,y_target(1).zerop,sizes,*y_geom._spupil,numberof(where(*y_geom._spupil > 0)));
       if(brama=1)
         yoga_target_brama,g_target, y_target.ntargets,*y_target.xpos,*y_target.ypos,*y_target.lambda,*y_target.mag,sizes,*y_geom._spupil,numberof(where(*y_geom._spupil > 0));
    }

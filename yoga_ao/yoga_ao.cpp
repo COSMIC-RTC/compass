@@ -557,17 +557,20 @@ void Y_yoga_target(int argc) {
     if (ntot != ntargets)
       y_error("wrong dimension for screens mag");
 
+    float zerop;
+	zerop = ygets_f(argc - 6);
+
     long *sizes;
-    sizes = ygeta_l(argc - 6, &ntot, dims);
+    sizes = ygeta_l(argc - 7, &ntot, dims);
 
     float *pup;
-    pup = ygeta_f(argc - 7, &ntot, dims);
+    pup = ygeta_f(argc - 8, &ntot, dims);
 
     int Npts;
-    Npts = ygets_i(argc - 8);
+    Npts = ygets_i(argc - 9);
 
-    if (argc > 8) {
-      odevice = ygets_i(argc - 9);
+    if (argc > 9)
+      odevice = ygets_i(argc - 10);
       context_handle->set_activeDevice(odevice,1);
     }
 
@@ -576,7 +579,7 @@ void Y_yoga_target(int argc) {
     handle->device = odevice;
 
     handle->sutra_target = new sutra_target(context_handle, ntargets, xpos,
-        ypos, lambda, mag, sizes, pup, Npts, odevice);
+        ypos, lambda, mag, zerop, sizes, pup, Npts, odevice);
 
   } catch (string &msg) {
     y_error(msg.c_str());
@@ -657,10 +660,24 @@ void Y_target_getimage(int argc) {
       (long*) target_handler->d_targets.at(ntarget)->d_image->getDims());
 
   target_handler->d_targets.at(ntarget)->comp_image(puponly);
-  if (strcmp(type_im, "se") == 0)
+  if (strcmp(type_im, "se") == 0){
+    roll(target_handler->d_targets.at(ntarget)->d_image->getData(),
+	 target_handler->d_targets.at(ntarget)->d_image->getDims(1),
+	 target_handler->d_targets.at(ntarget)->d_image->getDims(2),
+	 target_handler->d_targets.at(ntarget)->current_context->get_device(target_handler->d_targets.at(ntarget)->device));
     target_handler->d_targets.at(ntarget)->d_image->device2host(data);
-  if (strcmp(type_im, "le") == 0)
+  }
+  if (strcmp(type_im, "le") == 0){
+    roll(target_handler->d_targets.at(ntarget)->d_leimage->getData(),
+	 target_handler->d_targets.at(ntarget)->d_leimage->getDims(1),
+	 target_handler->d_targets.at(ntarget)->d_leimage->getDims(2),
+	 target_handler->d_targets.at(ntarget)->current_context->get_device(target_handler->d_targets.at(ntarget)->device));
     target_handler->d_targets.at(ntarget)->d_leimage->device2host(data);
+  }
+  float flux = target_handler->d_targets.at(ntarget)->zp * powf(10,-0.4*target_handler->d_targets.at(ntarget)->mag);
+  for(int k = 0 ; k<target_handler->d_targets.at(ntarget)->d_image->getNbElem() ; k++){
+    data[k] *= flux;
+  }
 }
 
 void Y_target_resetphase(int argc) {
@@ -1144,21 +1161,22 @@ void Y_sensors_initgs(int argc) {
   float *mag = ygeta_f(argc - 5, &ntot, dims);
   if (ntot != abs(sensors_handler->nsensors()) )
     y_error("wrong dimension for mag");
-  long *size = ygeta_l(argc - 6, &ntot, dims);
+  float zerop = ygets_f(argc - 6);
+  long *size = ygeta_l(argc - 7, &ntot, dims);
   if (ntot != abs(sensors_handler->nsensors()) )
     y_error("wrong dimension for size");
   carma_context *context_handle = _getCurrentContext();
   context_handle->set_activeDevice(handle->device,1);
 
-  if (argc > 7) {
-    float *noise = ygeta_f(argc - 7, &ntot, dims);
-    long *seed = ygeta_l(argc - 8, &ntot, dims);
-    sensors_handler->sensors_initgs(xpos, ypos, lambda, mag, size, noise, seed);
-  } else if (argc > 6) {
-    float *noise = ygeta_f(argc - 7, &ntot, dims);
-    sensors_handler->sensors_initgs(xpos, ypos, lambda, mag, size, noise);
+  if (argc > 8) {
+    float *noise = ygeta_f(argc - 8, &ntot, dims);
+    long *seed = ygeta_l(argc - 9,&ntot, dims);
+    sensors_handler->sensors_initgs(xpos, ypos, lambda, mag, zerop, size, noise, seed);
+  } else if (argc > 7) {
+    float *noise = ygeta_f(argc - 8, &ntot, dims);
+    sensors_handler->sensors_initgs(xpos, ypos, lambda, mag, zerop, size, noise);
   } else {
-    sensors_handler->sensors_initgs(xpos, ypos, lambda, mag, size);
+    sensors_handler->sensors_initgs(xpos, ypos, lambda, mag, zerop, size);
 
   }
 }

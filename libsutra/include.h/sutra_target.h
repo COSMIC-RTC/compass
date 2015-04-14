@@ -55,14 +55,14 @@ public:
 
 public:
   sutra_source(carma_context *context, float xpos, float ypos, float lambda,
-      float mag, long size, string type, float *pupil, int Npts, int device);
+      float mag, float zerop, long size, string type, float *pupil, int Npts, int device);
   sutra_source(carma_context *context, float xpos, float ypos, float lambda,
-      float mag, long size, string type, int device);
+      float mag, float zerop, long size, string type, int device);
   sutra_source(const sutra_source& source);
   ~sutra_source();
   inline int
   init_source(carma_context *context, float xpos, float ypos, float lambda,
-      float mag, long size, string type, int device);
+      float mag, float zerop, long size, string type, int device);
   int
   add_layer(string type, float alt, float xoff, float yoff);
   int
@@ -96,7 +96,7 @@ public:
 
 public:
   sutra_target(carma_context *context, int ntargets, float *xpos, float *ypos,
-      float *lambda, float *mag, long *sizes, float *pupil, int Npts, int device);
+      float *lambda, float *mag, float zerop, long *sizes, float *pupil, int Npts, int device);
   ~sutra_target();
 
   int

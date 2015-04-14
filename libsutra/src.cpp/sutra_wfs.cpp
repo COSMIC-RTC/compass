@@ -31,10 +31,10 @@ int compute_nmaxhr(long nvalid) {
 }
 
 int sutra_wfs::wfs_initgs(sutra_sensors *sensors, float xpos, float ypos,
-                          float lambda, float mag, long size, float noise,
+                          float lambda, float mag, float zerop, long size, float noise,
                           long seed) {
   current_context->set_activeDevice(device,1);
-  this->d_gs = new sutra_source(current_context, xpos, ypos, lambda, mag, size,
+  this->d_gs = new sutra_source(current_context, xpos, ypos, lambda, mag, zerop, size,
                                 "wfs", this->device);
   this->noise = noise;
   if (noise > -1) {
@@ -237,30 +237,30 @@ int sutra_sensors::define_mpi_rank(int rank, int size) {
 }
 
 int sutra_sensors::sensors_initgs(float *xpos, float *ypos, float *lambda,
-                                  float *mag, long *size, float *noise,
+                                  float *mag, float zerop, long *size, float *noise,
                                   long *seed) {
   current_context->set_activeDevice(device,1);
   for (size_t idx = 0; idx < (this->d_wfs).size(); idx++) {
     (this->d_wfs)[idx]->wfs_initgs(this, xpos[idx], ypos[idx], lambda[idx],
-                                   mag[idx], size[idx], noise[idx], seed[idx]);
+                                   mag[idx],zerop, size[idx], noise[idx], seed[idx]);
   }
   return EXIT_SUCCESS;
 }
 int sutra_sensors::sensors_initgs(float *xpos, float *ypos, float *lambda,
-                                  float *mag, long *size, float *noise) {
+                                  float *mag, float zerop, long *size, float *noise) {
   current_context->set_activeDevice(device,1);
   for (size_t idx = 0; idx < (this->d_wfs).size(); idx++) {
     (this->d_wfs)[idx]->wfs_initgs(this, xpos[idx], ypos[idx], lambda[idx],
-                                   mag[idx], size[idx], noise[idx], 1234 * idx);
+                                   mag[idx],zerop, size[idx], noise[idx], 1234 * idx);
   }
   return EXIT_SUCCESS;
 }
 int sutra_sensors::sensors_initgs(float *xpos, float *ypos, float *lambda,
-                                  float *mag, long *size) {
+                                  float *mag, float zerop, long *size) {
   current_context->set_activeDevice(device,1);
   for (size_t idx = 0; idx < (this->d_wfs).size(); idx++) {
     (this->d_wfs)[idx]->wfs_initgs(this, xpos[idx], ypos[idx], lambda[idx],
-                                   mag[idx], size[idx], -1, 1234);
+                                   mag[idx],zerop, size[idx], -1, 1234);
   }
   return EXIT_SUCCESS;
 }

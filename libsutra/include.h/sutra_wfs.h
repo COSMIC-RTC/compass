@@ -74,7 +74,7 @@ class sutra_wfs {
     }
 
     int wfs_initgs(sutra_sensors *sensors, float xpos, float ypos, float lambda,
-                   float mag, long size, float noise, long seed);
+                   float mag, float zerop, long size, float noise, long seed);
 
     int load_kernels(float *lgskern);
     int sensor_trace(sutra_atmos *yatmos);
@@ -121,13 +121,13 @@ class sutra_sensors {
     int define_mpi_rank(int rank, int size);
 
     int
-    sensors_initgs(float *xpos, float *ypos, float *lambda, float *mag,
+    sensors_initgs(float *xpos, float *ypos, float *lambda, float *mag, float zerop,
                    long *size, float *noise, long *seed);
     int
-    sensors_initgs(float *xpos, float *ypos, float *lambda, float *mag,
+    sensors_initgs(float *xpos, float *ypos, float *lambda, float *mag,float zerop,
                    long *size, float *noise);
     int
-    sensors_initgs(float *xpos, float *ypos, float *lambda, float *mag,
+    sensors_initgs(float *xpos, float *ypos, float *lambda, float *mag,float zerop,
                    long *size);
 };
 

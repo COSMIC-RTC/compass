@@ -32,12 +32,12 @@ int fft_goodsize(long size) {
 }
 
 sutra_source::sutra_source(carma_context *context, float xpos, float ypos,
-    float lambda, float mag, long size, string type, float *pupil, int Npts, int device) {
+    float lambda, float mag, float zerop, long size, string type, float *pupil, int Npts, int device) {
   this->current_context=context;
   this->device=device;
   current_context->set_activeDevice(device,1);
 
-  this->init_source(context, xpos, ypos, lambda, mag, size, type, device);
+  this->init_source(context, xpos, ypos, lambda, mag, zerop, size, type, device);
   this->d_pupil = new carma_obj<float>(this->current_context,
       this->d_phase->d_screen->getDims());
   this->d_pupil->host2device(pupil);
@@ -63,15 +63,15 @@ sutra_source::sutra_source(carma_context *context, float xpos, float ypos,
 }
 
 sutra_source::sutra_source(carma_context *context, float xpos, float ypos,
-    float lambda, float mag, long size, string type, int device) {
+    float lambda, float mag, float zerop, long size, string type, int device) {
   this->device = device;
   current_context=context;
   current_context->set_activeDevice(device,1);
-  this->init_source(context, xpos, ypos, lambda, mag, size, type, device);
+  this->init_source(context, xpos, ypos, lambda, mag, zerop, size, type, device);
 }
 
 inline int sutra_source::init_source(carma_context *context, float xpos,
-    float ypos, float lambda, float mag, long size, string type, int device) {
+    float ypos, float lambda, float mag, float zerop, long size, string type, int device) {
   current_context->set_activeDevice(device,1);
   this->current_context = context;
   this->strehl_counter = 0;
@@ -80,6 +80,7 @@ inline int sutra_source::init_source(carma_context *context, float xpos,
   this->tposy = ypos;
   this->lambda = lambda;
   this->mag = mag;
+  this->zp = zerop;
   this->npos = size;
 
   this->d_phase = new sutra_phase(context, size);
@@ -432,7 +433,7 @@ int sutra_source::comp_image(int puponly) {
       this->d_image->getDims(1) * this->d_image->getDims(2), current_context->get_device(device));
 
   // scale image because of fft
-  //this->d_image->scale(1.0f / this->d_image->getNbElem(), 1);
+  this->d_image->scale(1.0f / (this->d_wherephase->getDims(1)* this->d_wherephase->getDims(1)), 1);
 
   // if long exposure image is not null
   if (this->d_leimage != 0L) {
@@ -440,7 +441,6 @@ int sutra_source::comp_image(int puponly) {
     this->d_leimage->axpy(1.0f, this->d_image, 1, 1);
     this->strehl_counter += 1;
   }
-
   return EXIT_SUCCESS;
 }
 
@@ -455,9 +455,9 @@ int sutra_source::comp_strehl() {
   cudaMemcpy(&(this->strehl_le),
         &(this->d_leimage->getData()[this->d_leimage->imax(1) - 1]),
         sizeof(float), cudaMemcpyDeviceToHost);
-  this->strehl_se /= (this->d_wherephase->getDims(1) * this->d_wherephase->getDims(1));
+  //this->strehl_se /= (this->d_wherephase->getDims(1) * this->d_wherephase->getDims(1));
   if(this->strehl_counter > 0)
-	  this->strehl_le /=  (this->strehl_counter * ( this->d_wherephase->getDims(1)* this->d_wherephase->getDims(1)));
+	  this->strehl_le /=  this->strehl_counter ;
   else
 	  this->strehl_le = this->strehl_se;
   
@@ -476,14 +476,14 @@ int sutra_source::comp_strehl() {
 }
 
 sutra_target::sutra_target(carma_context *context, int ntargets, float *xpos,
-    float *ypos, float *lambda, float *mag, long *sizes, float *pupil, int Npts,
+    float *ypos, float *lambda, float *mag, float zerop, long *sizes, float *pupil, int Npts,
     int device) {
 
   this->ntargets = ntargets;
 
   for (int i = 0; i < ntargets; i++) {
     d_targets.push_back(
-        new sutra_source(context, xpos[i], ypos[i], lambda[i], mag[i], sizes[i],
+        new sutra_source(context, xpos[i], ypos[i], lambda[i], mag[i], zerop, sizes[i],
             "target", pupil, Npts, device));
   }
 }
