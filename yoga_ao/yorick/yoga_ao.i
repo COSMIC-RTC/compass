@@ -364,18 +364,18 @@ func target_init(brama=)
       if (y_target.apod == 1) {
         apodizer=*y_geom._apodizer * *y_geom._spupil;
         g_target = yoga_target(y_target.ntargets,*y_target.xpos,*y_target.ypos,*y_target.lambda,*y_target.mag,y_target(1).zerop,sizes,apodizer,numberof(where(apodizer > 0)));
-        if(brama=1)
-          yoga_target_brama,g_target, y_target.ntargets,*y_target.xpos,*y_target.ypos,*y_target.lambda,*y_target.mag,sizes,apodizer,numberof(where(apodizer > 0));
+        if(brama==1)
+          yoga_target_brama,g_target, y_target.ntargets,*y_target.xpos,*y_target.ypos,*y_target.lambda,*y_target.mag,y_target(1).zerop,sizes,apodizer,numberof(where(apodizer > 0));
 
       } else {
         g_target = yoga_target(y_target.ntargets,*y_target.xpos,*y_target.ypos,*y_target.lambda,*y_target.mag,y_target(1).zerop,sizes,*y_geom._spupil,numberof(where(*y_geom._spupil > 0)));
-        if(brama=1)
-          yoga_target_brama,g_target, y_target.ntargets,*y_target.xpos,*y_target.ypos,*y_target.lambda,*y_target.mag,sizes,*y_geom._spupil,numberof(where(*y_geom._spupil > 0));
+        if(brama==1)
+          yoga_target_brama,g_target, y_target.ntargets,*y_target.xpos,*y_target.ypos,*y_target.lambda,*y_target.mag,y_target(1).zerop,sizes,*y_geom._spupil,numberof(where(*y_geom._spupil > 0));
       }
     } else {
       g_target = yoga_target(y_target.ntargets,*y_target.xpos,*y_target.ypos,*y_target.lambda,*y_target.mag,y_target(1).zerop,sizes,*y_geom._spupil,numberof(where(*y_geom._spupil > 0)));
-      if(brama=1)
-        yoga_target_brama,g_target, y_target.ntargets,*y_target.xpos,*y_target.ypos,*y_target.lambda,*y_target.mag,sizes,*y_geom._spupil,numberof(where(*y_geom._spupil > 0));
+      if(brama==1)
+        yoga_target_brama,g_target, y_target.ntargets,*y_target.xpos,*y_target.ypos,*y_target.lambda,*y_target.mag,y_target(1).zerop,sizes,*y_geom._spupil,numberof(where(*y_geom._spupil > 0));
    }
       
     //g_target = yoga_target(y_target.ntargets,*y_target.xpos,*y_target.ypos,*y_target.lambda,*y_target.mag,sizes,*y_geom._apodizer);

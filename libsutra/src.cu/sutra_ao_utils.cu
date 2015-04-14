@@ -370,6 +370,47 @@ template int
 roll<cuFloatComplex>(cuFloatComplex *idata, int N, int M, carma_device *device);
 
 template<class T>
+__global__ void roll_mult_krnl(T *odata, T *idata, int N, int M, T alpha) {
+  int tid = threadIdx.x + blockIdx.x * blockDim.x;
+
+  while (tid < (N * M / 2)) {
+    int x = tid % N;
+    int y = tid / N;
+
+    int xx = (x + N / 2) % N;
+    int yy = (y + M / 2) % M;
+    int tid2 = xx + yy * N;
+
+    odata[tid] = alpha * idata[tid2];
+    odata[tid2] = alpha * idata[tid];
+
+    tid += blockDim.x * gridDim.x;
+  }
+}
+
+template<class T>
+int roll_mult(T *odata, T *idata, int N, int M, T alpha, carma_device *device) {
+
+  long Ntot = N * M;
+  int nBlocks, nThreads;
+  getNumBlocksAndThreads(device, Ntot / 2, nBlocks, nThreads);
+
+  dim3 grid(nBlocks), threads(nThreads);
+
+  roll_mult_krnl<T><<<grid, threads>>>(odata, idata, N, M, alpha);
+
+  carmaCheckMsg("roll_kernel<<<>>> execution failed\n");
+  return EXIT_SUCCESS;
+
+}
+
+template int
+roll_mult<float>(float *odata, float *idata, int N, int M, float alpha, carma_device *device);
+
+template int
+roll_mult<double>(double *odata, double *idata, int N, int M, double alpha, carma_device *device);
+
+template<class T>
 __global__ void avg_krnl(T *data, T *p_sum, int N){
 	T *sdata = SharedMemory<T>();
 	//Load shared memory

@@ -49,6 +49,9 @@ int
 roll(T *idata, int N, int M, carma_device *device);
 template<class T>
 int
+roll_mult(T *odata, T *idata, int N, int M, T alpha, carma_device *device);
+template<class T>
+int
 sutra_invgene(carma_obj<T> *imat, carma_obj<T> *cmat, carma_obj<T> *eigenvals,
     carma_obj<T> *mod2act, carma_obj<T> *mes2mod, int nfilt);
 template<class T>

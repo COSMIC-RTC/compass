@@ -89,24 +89,27 @@ extern "C" {
       if (ntot != ntargets)
         y_error("wrong dimension for screens mag");
 
+      float zerop;
+      zerop = ygets_f(argc - 7);
+
       long *sizes;
-      sizes = ygeta_l(argc - 7, &ntot, dims);
+      sizes = ygeta_l(argc - 8, &ntot, dims);
 
       float *pup;
-      pup = ygeta_f(argc - 8, &ntot, dims);
+      pup = ygeta_f(argc - 9, &ntot, dims);
 
       int Npts;
-      Npts = ygets_i(argc - 9);
+      Npts = ygets_i(argc - 10);
 
-      if (argc > 9) {
-        odevice = ygets_i(argc - 10);
+      if (argc > 10) {
+        odevice = ygets_i(argc - 11);
       }
 
       handle->device = odevice;
 
       handle->sutra_target = new sutra_target_brama(context_handle, brama_name,
                                                     -1, ntargets, xpos, ypos,
-                                                    lambda, mag, sizes, pup,
+                                                    lambda, mag, zerop, sizes, pup,
                                                     Npts, odevice);
       handle->use_brama = 1;
 

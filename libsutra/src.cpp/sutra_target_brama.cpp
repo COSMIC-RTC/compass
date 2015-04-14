@@ -5,9 +5,9 @@
 sutra_target_brama::sutra_target_brama(carma_context *context, ACE_TCHAR* name,
                                        int subsample_, int ntargets,
                                        float *xpos, float *ypos, float *lambda,
-                                       float *mag, long *sizes, float *pupil,
+                                       float *mag, float zerop, long *sizes, float *pupil,
                                        int Npts, int device) :
-    sutra_target(context, ntargets, xpos, ypos, lambda, mag, sizes, pupil, Npts,
+    sutra_target(context, ntargets, xpos, ypos, lambda, mag, zerop, sizes, pupil, Npts,
                  device) {
   brama = new BRAMA_supervisor(name);
   frame_handle = 0;
@@ -107,8 +107,20 @@ void sutra_target_brama::publish() {
   CORBA::Float* buff_pixels_servant = (CORBA::Float*) buff_pixels;
 
   long idx = 0;
+  carma_obj<float> tmp_img(d_targets[0]->current_context, d_targets[0]->d_leimage->getDims());
   for (size_t target = 0; target < d_targets.size(); target++) {
-    d_targets[target]->d_leimage->device2host(buff_pixels_servant + idx);
+    float flux = d_targets[target]->zp
+        * powf(10, -0.4 * d_targets[target]->mag);
+    roll_mult<float>(
+        tmp_img.getData(),
+        d_targets[target]->d_leimage->getData(),
+        d_targets[target]->d_leimage->getDims(1),
+        d_targets[target]->d_leimage->getDims(2),
+        flux,
+        d_targets[target]->current_context->get_device(
+            d_targets[target]->device));
+    tmp_img.device2host(buff_pixels_servant + idx);
+
     idx += d_targets[target]->d_leimage->getNbElem();
   }
 

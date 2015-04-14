@@ -518,7 +518,7 @@ func update_main(type,nlayer)
     mimg = target_getimage(g_target,nlayer,"se");
     window,(*ao_disp._wins)(1);fma;
     Di=dimsof(mimg);
-    mimg=roll(mimg);
+    //mimg=roll(mimg);
     //OWA=2*y_dm.nact(1);
     OWA = Di(2) > 128 ? 64 : Di(2);
     mimg=mimg(Di(2)/2-1-OWA:Di(2)/2+OWA,Di(2)/2-1-OWA:Di(2)/2+OWA);
@@ -536,11 +536,11 @@ func update_main(type,nlayer)
     mimg = target_getimage(g_target,nlayer,"le");
     window,(*ao_disp._wins)(1);fma;
     Di=dimsof(mimg);
-    mimg=roll(mimg);
+    //mimg=roll(mimg);
     //OWA=2*y_dm.nact(1);
     OWA = Di(2) > 128 ? 64 : Di(2);
     mimg=mimg(Di(2)/2-1-OWA:Di(2)/2+OWA,Di(2)/2-1-OWA:Di(2)/2+OWA);
-    mimg=mimg*(mimg > max(mimg)/100000)+max(mimg)/100000*(mimg < max(mimg)/100000);
+    //mimg=mimg*(mimg > max(mimg)/100000)+max(mimg)/100000*(mimg < max(mimg)/100000);
     //pli,log10(mimg);    
     pli,mimg;
     myxtitle = swrite(format="image for target # %d", nlayer+1);

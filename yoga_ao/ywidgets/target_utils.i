@@ -150,7 +150,7 @@ func load_default_target(tconf)
 {
   extern y_target;
   
-  y_target  = target_struct(); // clean start
+  y_target  = target_struct(zerop=1.f); // clean start
 
   if (tconf == 1) { // one source ...  
     y_target.ntargets = 1;
