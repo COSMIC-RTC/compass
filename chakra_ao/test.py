@@ -33,7 +33,7 @@ p_geom.set_zenithangle(0.)
 #p_geom.set_pupdiam(144)
 
 #tel
-p_tel.set_diam(40.)
+p_tel.set_diam(4.)
 p_tel.set_cobs(0.30)
 
 
@@ -61,7 +61,7 @@ p_target.set_mag([10])
 
 #wfs
 p_wfs.set_type("sh")
-p_wfs.set_nxsub(80)
+p_wfs.set_nxsub(8)
 p_wfs.set_npix(8)
 p_wfs.set_pixsize(0.3)
 p_wfs.set_fracsub(0.8)
@@ -98,12 +98,12 @@ tar=p_target.target_init(c,p_atmos,p_geom,p_tel,list_wfs,wfs,p_tel)
 #ao.see_atmos_target(5,atm,tar,alt=0,n_tar=0,f=0.15)
 
 
-wfs.sensors_trace(0,"atmos",atm,0)
+#wfs.sensors_trace(0,"atmos",atm,0)
 import time
 
 start = time.time()
 
-ao.see_atmos_target(50,atm,tar,wfs,comm,alt=0,n_tar=0,f=0.15)
+ao.see_atmos_target(20,atm,tar,wfs,comm,alt=0,n_tar=0,f=0.15)
 
 end = time.time()
 print end - start

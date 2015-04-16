@@ -64,11 +64,11 @@ cdef class Param_target:
                 ceiled_apodizer=np.ceil(geom._apodizer*geom._spupil)
                 ceiled_apodizer[np.where(ceiled_apodizer>1)]=1
                 target = Target(ctxt, self.ntargets,self.xpos,self.ypos,
-                            self.Lambda, self.mag,sizes,ceiled_apodizer,Npts)
+                            self.Lambda, self.mag,self.zerop,sizes,ceiled_apodizer,Npts)
         else:
                 Npts=np.sum(ceiled_pupil)
                 target= Target(ctxt, self.ntargets,self.xpos,self.ypos,
-                                self.Lambda, self.mag,sizes,ceiled_pupil,Npts)
+                                self.Lambda, self.mag,self.zerop,sizes,ceiled_pupil,Npts)
 
         cdef int i
         cdef int j
@@ -149,6 +149,7 @@ cdef class Target:
                     np.ndarray[dtype=np.float32_t] ypos,
                     np.ndarray[dtype=np.float32_t] Lambda,
                     np.ndarray[dtype=np.float32_t] mag,
+                    float zerop,
                     np.ndarray[dtype=np.int64_t] size,
                     np.ndarray[ndim=2, dtype=np.float32_t] pupil,
                     int Npts,
@@ -172,7 +173,8 @@ cdef class Target:
         self.target= new sutra_target(ctxt.c,ntargets,
                     <float*>xpos.data,<float*>ypos.data,
                     <float*>Lambda.data,<float*>mag.data,
-                    <long*>size.data,<float*>pupil.data,Npts,
+                    zerop, <long*>size.data,
+                    <float*>pupil.data,Npts,
                     device)
 
 

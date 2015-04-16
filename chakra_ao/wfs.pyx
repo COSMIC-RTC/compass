@@ -201,16 +201,19 @@ def wfs_init(list wfs, Param_atmos atmos, Param_tel tel, Param_geom geom, Param_
     cdef int pixsize0=wfs[0].pixsize
     if(any_geo==0):
     #    init_wfs_geom(indmax,1)
-        init_wfs_geom(wfs[indmax], wfs[0], indmax, atmos, tel, geom, loop, init=1,comm_size=comm_size, verbose=rank)
+        init_wfs_geom(wfs[indmax], wfs[0], indmax, atmos, tel, geom, loop,
+                      init=1,comm_size=comm_size, verbose=rank)
     else:
     #    init_wfs_geom(indmax)
-        init_wfs_geom(wfs[indmax], wfs[0], indmax, atmos, tel, geom, loop, init=0,comm_size=comm_size, verbose=rank)
+        init_wfs_geom(wfs[indmax], wfs[0], indmax, atmos, tel, geom, loop,
+                      init=0,comm_size=comm_size, verbose=rank)
 
     ##do the same for other wfs
     for i in range(nsensors):
         if(i!=indmax):
     #        init_wfs_geom(i)
-            init_wfs_geom(wfs[i], wfs[0], i, atmos, tel, geom, loop, init=0,comm_size=comm_size, verbose=rank)
+            init_wfs_geom(wfs[i], wfs[0], i, atmos, tel, geom, loop,
+                        init=0,comm_size=comm_size, verbose=rank)
 
     # create sensor object on gpu
     # and init sensor gs object on gpu
@@ -232,6 +235,7 @@ def wfs_init(list wfs, Param_atmos atmos, Param_tel tel, Param_geom geom, Param_
     cdef np.ndarray ypos   = np.array([o.ypos   for o in wfs], dtype=np.float32)
     cdef np.ndarray Lambda = np.array([o.Lambda for o in wfs], dtype=np.float32)
     cdef np.ndarray mag
+    cdef float zerop= wfs[0].zerop
     cdef np.ndarray size   = np.zeros(nsensors,dtype=np.int64)+geom._n
     cdef np.ndarray noise
     cdef np.ndarray seed = np.array([],dtype=np.int64)
@@ -246,7 +250,7 @@ def wfs_init(list wfs, Param_atmos atmos, Param_tel tel, Param_geom geom, Param_
 
         mag=np.array([o.gsmag    for o in wfs], dtype=np.float32)
         noise=np.array([o.noise    for o in wfs], dtype=np.float32)
-        g_wfs.sensors_initgs(xpos,ypos,Lambda,mag,size,noise,seed)
+        g_wfs.sensors_initgs(xpos,ypos,Lambda,mag,zerop,size,noise,seed)
     elif(wfs[0].type=="pyr" or wfs[0].type=="roof"):
         npup=np.array([wfs[0].pyr_npts])
         g_wfs= Sensors(nsensors,wfs[0].type,npup,nxsub,nvalid,nphase,pdiam,npix,nrebin,
@@ -254,16 +258,17 @@ def wfs_init(list wfs, Param_atmos atmos, Param_tel tel, Param_geom geom, Param_
 
         mag=np.array([o.gsmag    for o in wfs], dtype=np.float32)
         noise=np.array([o.noise    for o in wfs], dtype=np.float32)
-        g_wfs.sensors_initgs(xpos,ypos,Lambda,mag,size,noise,seed)
+        g_wfs.sensors_initgs(xpos,ypos,Lambda,mag,zerop,size,noise,seed)
     
         
     elif(wfs[0].type=="geo"):
         npup=np.array([wfs[0].geom._n])
-        g_wfs= Sensors(nsensors, wfs[0].type,npup,nxsub,nvalid,nphase,pdiam,comm_size=comm_size, rank=rank)
+        g_wfs= Sensors(nsensors, wfs[0].type,npup,nxsub,nvalid,nphase,pdiam,
+                       comm_size=comm_size, rank=rank)
 
         mag=np.zeros(nsensors-1,dtype=np.float32)
         noise=np.zeros(nsensors-1,dtype=np.float32)-1
-        g_wfs.sensors_initgs(xpos,ypos,Lambda,mag,size,noise,seed)
+        g_wfs.sensors_initgs(xpos,ypos,Lambda,mag,zerop,size,noise,seed)
 
     # fill sensor object with data
     cdef int *ph=NULL
@@ -278,7 +283,7 @@ cdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
     if(verbose==0):print "*-----------------------"
     if(verbose==0):print "Doing inits on WFS", n
 
-    cdef long pdiam
+    cdef long pdiam=0
 
     if(init==0):
         if(wfs.type=="sh"):

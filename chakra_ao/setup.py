@@ -1,8 +1,13 @@
 import sys
+print sys.prefix
+print "SYS.PATH"
+print "======================================"
 print sys.path
+print "======================================"
 
 import  os, re
 from os.path import join as pjoin
+import subprocess
 from distutils.core import setup
 #from Cython.Build import cythonize
 from Cython.Distutils import build_ext
@@ -62,13 +67,12 @@ def locate_compass():
 
     if  'COMPASS_ROOT_DIR' in os.environ:
         root_compass = os.environ['COMPASS_ROOT_DIR']
-        inc_compass  = pjoin(root_compass,)#os.environ['COMPASS_ROOT_DIR']
-        lib_compass  = pjoin(root_compass,)#os.environ['COMPASS_ROOT_DIR']
         
     else:
         raise EnvironmentError('You must load compass environment')
         
-    compass_config = {'inc':inc_compass, 'lib':lib_compass}
+    compass_config = {'inc_sutra':root_compass+'/libsutra/include.h','inc_carma':root_compass+'/libcarma/include.h',
+                      'inc_chakra':root_compass+'/chakra', 'lib':root_compass}
     
     return compass_config
 
@@ -120,6 +124,51 @@ def customize_compiler_for_nvcc(self):
     self._compile = _compile
 
 
+def locate_MPI():
+    """return mpi config
+
+    NEED ENVIRONMENT VARIABLE: MPICXX
+
+    mpi_congig['mpicxx']   :compiler (mpi)
+    mpi_config['cincdirs'] :include directories (mpi)
+    mpi_config['clibs']    :librairies (mpi)
+    mpi_config['pincdirs'] :include directories (mpi4py)
+    """
+
+    #add env variable to module
+    #mpicxx=os.environ["MPICXX"]
+    mpicxx='mpicxx'
+
+    #add env variable to module
+    cincdirs=subprocess.check_output([mpicxx,"--showme:incdirs"])
+    cincdirs=cincdirs.split()
+    clibs=subprocess.check_output([mpicxx,"--showme:libs"])
+    clibs=clibs.split()
+    clibdir=subprocess.check_output([mpicxx,"--showme:libdirs"])
+    clibdirs=[]
+    clibdirs=clibdir.split()
+
+    pincdirs=[]
+    pincdirs.extend([mpi4py.get_include(),numpy.get_include()])
+
+    #try:
+    #    clibdir=os.environ["LIBMPI"]
+    #except KeyError:
+    #    raise KeyError("variable environment 'LIBMPI' must be set")
+        
+    #clibdir='/home/ndoucet/local/openmpi/openmpi-1.8.4/lib'
+    #clibdirs='/usr/local/openmpi-1.8.4_CUDA6.5/lib'
+
+    print "cincdirs",cincdirs
+    print "clibs ",clibs
+    print "clibdirs",clibdirs
+
+    mpi_config = {'mpicxx':mpicxx,'cincdirs':cincdirs, 'pincdirs':pincdirs, 'clibs':clibs,'clibdirs':clibdirs}
+
+    return mpi_config
+
+MPI=locate_MPI()
+
 # run the customize_compiler
 class custom_build_ext(build_ext):
     def build_extensions(self):
@@ -128,21 +177,37 @@ class custom_build_ext(build_ext):
         build_ext.build_extensions(self)
 
 
+source=['chakra_ao']
+librairies=['sutra'].extend(MPI['clibs'])
+include_dirs = [numpy_include, 
+                CUDA['include'],
+                COMPASS['inc_carma'],#COMPASS['inc']+'/libcarma/include.h',
+                COMPASS['inc_sutra'],#COMPASS['inc']+'/libsutra/include.h',
+                COMPASS['inc_chakra']]#'../chakra',
+include_dirs.extend(MPI['cincdirs'])
+include_dirs.extend(MPI['pincdirs'])
+
+library_dirs=[COMPASS['lib']+"/libsutra"]
+library_dirs.extend(MPI['clibdirs'])
 
 ext=Extension('chakra_ao',
               sources=['chakra_ao.pyx'],
-              library_dirs=[CUDA['lib64'],COMPASS['lib']+"/libsutra", '/home/sevin/anaconda/lib'],#,COMPASS['lib']+"/libcarma"],
-              libraries=[ 'sutra', 'mpichcxx', 'mpl'],
+              library_dirs=library_dirs,
+              libraries=[ 'sutra','mpi_cxx'],
               language='c++',
               runtime_library_dirs=[],#CUDA['lib64']],
               extra_compile_args={'gcc': []},
-              include_dirs = [numpy_include, 
-                              CUDA['include'],
-                              COMPASS['inc']+'/libcarma/include.h',
-                              COMPASS['inc']+'/libsutra/include.h',
-                              '../chakra',
-                              mpi4py.get_include(),
-                              '/home/sevin/anaconda/include'])
+              include_dirs = include_dirs
+              )
+                              #[numpy_include, 
+                              #CUDA['include'],
+                              #COMPASS['inc']+'/libcarma/include.h',
+                              #COMPASS['inc']+'/libsutra/include.h',
+                              #'../chakra',
+                              #'/usr/local/lib/python2.7/dist-packages/mpi4py-1.3.1-py2.7-linux-x86_64.egg/mpi4py/include',
+                              ##'/usr/lib/openmpi/include'
+                              #MPI['cincdirs']
+                              #])
 
 setup(
     name="chakra_ao",

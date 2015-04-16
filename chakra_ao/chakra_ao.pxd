@@ -13,11 +13,11 @@ from libcpp.pair cimport pair
 from libc.stdint cimport uintptr_t
 
 #from mpi4py import MPI
+from mpi4py cimport MPI
 # C-level cdef, typed, Python objects
-#from mpi4py cimport MPI
-cimport mpi4py.MPI as MPI
-#from mpi4py cimport libmpi as mpi
-cimport mpi4py.mpi_c as mpi
+from mpi4py cimport libmpi as mpi
+#from mpi4py cimport mpi_c as mpi
+
 
 cdef np.float32_t dtor = (np.pi/180.)
 
@@ -158,7 +158,8 @@ cdef extern from "sutra_target.h":
         vector.vector[sutra_source *] d_targets
 
         sutra_target(carma_context *context, int ntargets, float *xpos, float *ypos,
-            float *Lambda, float *mag, long *sizes, float *pupil, int Npts, int device)
+      float *Lambda, float *mag, float zerop, long *sizes, float *pupil, int Npts, int device);
+
         # not implemented
         #int get_phase(int ntarget, float *dest)
 
@@ -210,12 +211,12 @@ cdef extern from "sutra_wfs.h":
         sutra_sensors(carma_context *context, int nwfs, long *nxsub, long *nvalid,
           long *nphase, long npup, float *pdiam, int device)
 
-        int sensors_initgs(float *xpos, float *ypos, float *Lambda, float *mag,
-          long *size, float *noise, long *seed)
-        int sensors_initgs(float *xpos, float *ypos, float *Lambda, float *mag,
-          long *size, float *noise)
-        int sensors_initgs(float *xpos, float *ypos, float *Lambda, float *mag,
-          long *size)
+        int sensors_initgs(float *xpos, float *ypos, float *Lambda, float *mag, float zerop,
+                   long *size, float *noise, long *seed)
+        int sensors_initgs(float *xpos, float *ypos, float *Lambda, float *mag,float zerop,
+                   long *size, float *noise)
+        int sensors_initgs(float *xpos, float *ypos, float *Lambda, float *mag,float zerop,
+                   long *size)
         int allocate_buffers()
         int define_mpi_rank(int rank, int size)
 
@@ -418,6 +419,7 @@ cdef class Sensors:
                              np.ndarray[dtype=np.float32_t] ypos,
                              np.ndarray[dtype=np.float32_t] Lambda,
                              np.ndarray[dtype=np.float32_t] mag,
+                             float zerop,
                              np.ndarray[dtype=np.int64_t  ] size,
                              np.ndarray[dtype=np.float32_t] noise,
                              np.ndarray[dtype=np.int64_t  ] seed)
@@ -428,8 +430,10 @@ cdef class Sensors:
     cdef _get_bincube(self, int n)
     cdef _get_binimg(self, int n)
     cdef gather_bincube(self,MPI.Intracomm comm,int n)
+    cdef gather_bincube_cuda_aware(self,MPI.Intracomm comm,int n)
     cdef _get_rank(self,int n)
     cdef Bcast_dscreen(self)
+    cdef Bcast_dscreen_cuda_aware(self)
 
 
 #################################################
@@ -525,6 +529,10 @@ cdef class Param_target:
     """y positions on sky (in arcsec) for each target"""
     cdef readonly np.ndarray mag
     """magnitude for each target"""
+    cdef float zerop
+    """target flux for magnitude 0"""
+
+
 
 #################################################
 # P-Class (parametres) Param_wfs

@@ -53,21 +53,22 @@ cdef class Sensors:
                              np.ndarray[dtype=np.float32_t] ypos,
                              np.ndarray[dtype=np.float32_t] Lambda,
                              np.ndarray[dtype=np.float32_t] mag,
+                             float zerop,
                              np.ndarray[dtype=np.int64_t  ] size,
                              np.ndarray[dtype=np.float32_t] noise,
                              np.ndarray[dtype=np.int64_t  ] seed):
        
         if(noise.size==0):
             self.sensors.sensors_initgs(<float*>xpos.data, <float*>ypos.data,
-                        <float*>Lambda.data, <float*>mag.data, <long*>size.data)
+                        <float*>Lambda.data, <float*>mag.data,zerop, <long*>size.data)
 
         elif(seed.size ==0):
             self.sensors.sensors_initgs(<float*>xpos.data, <float*>ypos.data,
-                        <float*>Lambda.data, <float*>mag.data, <long*>size.data,
+                        <float*>Lambda.data, <float*>mag.data,zerop, <long*>size.data,
                         <float*>noise.data)
         else:
             self.sensors.sensors_initgs(<float*>xpos.data, <float*>ypos.data,
-                        <float*>Lambda.data, <float*>mag.data, <long*>size.data,
+                        <float*>Lambda.data, <float*>mag.data,zerop, <long*>size.data,
                         <float*>noise.data, <long*>seed.data)
 
 
@@ -318,14 +319,25 @@ cdef class Sensors:
             size_i=size
             ptr=<float*>malloc(size*sizeof(float))
             screen.device2host(ptr)
-            mpi.MPI_Barrier(mpi.MPI_COMM_WORLD)
             mpi.MPI_Bcast(ptr,size_i,mpi.MPI_FLOAT,0,mpi.MPI_COMM_WORLD)
             screen.host2device(ptr)
             free(ptr)
-            mpi.MPI_Barrier(mpi.MPI_COMM_WORLD)
+    """
+    cdef Bcast_dscreen_cuda_aware(self):
+        #cdef carma_obj[float] *screen
+        cdef float *ptr
+        cdef int i,nsensors, size_i
+        cdef long size
 
-
-
+        nsensors=self.sensors.nsensors()
+        for i in range(nsensors):
+            #screen=self.sensors.d_wfs[i].d_gs.d_phase.d_screen
+            size=self.sensors.d_wfs[i].d_gs.d_phase.d_screen.getNbElem()
+            size_i=size #convert from long to int
+            ptr=self.sensors.d_wfs[i].d_gs.d_phase.d_screen.getData()
+            #screen.device2host(ptr)
+            mpi.MPI_Bcast(ptr,size_i,mpi.MPI_FLOAT,0,mpi.MPI_COMM_WORLD)
+    """
     cdef gather_bincube(self,MPI.Intracomm comm,int n):
         cdef np.ndarray[ndim=3,dtype=np.float32_t] tmp,bincube
         cdef np.ndarray[ndim=1,dtype=np.float32_t] tmp_flat,bincube_flat
@@ -335,7 +347,6 @@ cdef class Sensors:
         cdef int nz=self.sensors.d_wfs[n].nvalid
         cdef int nz_t=self.sensors.d_wfs[n].nvalid_tot
         cdef int size=nx*ny*nz
-        cdef int recv_size=nx*ny*nz_t
         cdef int *count_bincube=self.sensors.d_wfs[n].count_bincube
         cdef int *displ_bincube=self.sensors.d_wfs[n].displ_bincube
 
@@ -353,8 +364,29 @@ cdef class Sensors:
             bincube=np.reshape(bincube_flat,(nx,ny,nz_t),order="F")
             self.sensors.d_wfs[n].d_bincube.host2device(<float*>bincube.data)
 
+
+    cdef gather_bincube_cuda_aware(self,MPI.Intracomm comm,int n):
+        cdef float *recv_bin=self.sensors.d_wfs[n].d_bincube.getData()
+        cdef float *send_bin=self.sensors.d_wfs[n].d_bincube.getData()
+        cdef int nx=self.sensors.d_wfs[n].npix
+        cdef int nz=self.sensors.d_wfs[n].nvalid
+        cdef int *count_bincube=self.sensors.d_wfs[n].count_bincube
+        cdef int *displ_bincube=self.sensors.d_wfs[n].displ_bincube
+        
+        mpi.MPI_Gatherv(send_bin,nx*nx*nz,mpi.MPI_FLOAT,
+                    recv_bin, count_bincube, displ_bincube ,
+                    mpi.MPI_FLOAT,0,mpi.MPI_COMM_WORLD)
+
+        #mpi.MPI_Allgatherv(send_bin,nx*nx*nz,mpi.MPI_FLOAT,
+        #            recv_bin, count_bincube, displ_bincube ,
+        #            mpi.MPI_FLOAT,mpi.MPI_COMM_WORLD)
+
+        #mpi.MPI_Gather(send_bin,nx*nx*nz,mpi.MPI_FLOAT,
+        #    recv_bin,nx*nx*nz,mpi.MPI_FLOAT,0,mpi.MPI_COMM_WORLD)
+
     cdef _get_rank(self,int n):
         return self.sensors.d_wfs[n].rank
+
 
     def get_rank(self,int n):
         return self.sensors.d_wfs[n].rank
