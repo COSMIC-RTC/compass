@@ -119,9 +119,13 @@ func start_ao_loop
   extern aoiter,aoloop, aotimer;
 
   aoiter = 0;
-  aotimer = array(0., 100);
   aoloop = 1;
-  if(enable_display) animate,1;
+
+  avg_fr = 1.f
+  iter_fr = 5;
+  iter_move = iter_fr;
+  time_move = 0.0f;
+
   ao_loop;
 }
 
@@ -136,7 +140,12 @@ func ao_loop(one)
   extern iter_fr;
   extern avg_fr;
 
-  if (!aoloop)  return;
+  if(enable_display) animate,1;
+  
+  if (!aoloop) {
+    animate,0;
+    return;
+  }
 
   move_atmos,g_atmos;
     
@@ -553,7 +562,7 @@ func update_main(type,nlayer)
 
 func ao_unzoom
 {
-  animate,0;
+  //animate,0;
   for (i=1;i<=numberof(*ao_disp._wins);i++) {
     if ((*ao_disp._winits)(i)) {
       window,(*ao_disp._wins)(i);
@@ -622,3 +631,4 @@ avg_fr = 1.f
 iter_fr = 5;
 iter_move = iter_fr;
 time_move = 0.0f;
+aoiter      = 0;
