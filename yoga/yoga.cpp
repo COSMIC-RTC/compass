@@ -592,6 +592,10 @@ void _yoga_stop_profile() {
   carma_stop_profile();
 }
 
+  void _yoga_printMemInfo() {
+    printMemInfo();
+  }
+
 /*
  *                                   _     _           _
  *  _   _  ___   __ _  __ _     ___ | |__ (_) ___  ___| |_

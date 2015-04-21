@@ -59,6 +59,14 @@ func yoga_init(void) {
   _yoga_init;
 }
 
+extern _yoga_printMemInfo;
+/* PROTOTYPE
+   int _yoga_printMemInfo(void)
+*/
+func yoga_printMemInfo(void) {
+  _yoga_printMemInfo;
+}
+
 extern _yoga_start_profile;
 /* PROTOTYPE
    int _yoga_start_profile(void)
