@@ -9,7 +9,7 @@
 int compute_nmaxhr(long nvalid) {
   // this is the big array => we use nmaxhr and treat it sequentially
 
-  int mnmax = 500;
+  int mnmax = 200;
   int nmaxhr = mnmax;
   if (nvalid > 2 * mnmax) {
     int tmp0 = nvalid % mnmax;
@@ -104,10 +104,13 @@ sutra_sensors::sutra_sensors(carma_context *context, char **type, int nwfs,
 		int maxnfft = nfft[0];
 		int maxntot = ntot[0];
 		int maxnvalid = 0;
+		int maxnvalid_tot = nvalid[0];
 		int wfs4nfft = 0;
 		int wfs4ntot = 0;
 		int is_lgs = (lgs[0] > 0 ? 1 : 0);
 		for (int i = 1; i < nwfs; i++) {
+		  if(nvalid[i] > maxnvalid_tot)
+		    maxnvalid_tot = nvalid[i];
 			if (ntot[i] > maxntot) {
 				maxntot = ntot[i];
 				wfs4ntot = i;
@@ -125,13 +128,13 @@ sutra_sensors::sutra_sensors(carma_context *context, char **type, int nwfs,
 				is_lgs = 1;
 		}
 		//DEBUG_TRACE("maxntot : %d maxnfft : %d maxnvalid : %d nmaxhr : %d \n ",maxntot,maxnfft,maxnvalid,compute_nmaxhr(nvalid[wfs4ntot]));
-		long dims_data3[4] = { 3, maxnfft, maxnfft, nvalid[wfs4nfft] };
+		long dims_data3[4] = { 3, maxnfft, maxnfft, maxnvalid_tot/*nvalid[wfs4nfft]*/ };
 		this->d_camplifoc = new carma_obj<cuFloatComplex>(context, dims_data3);
 		this->d_camplipup = new carma_obj<cuFloatComplex>(context, dims_data3);
 
 		dims_data3[1] = maxntot;
 		dims_data3[2] = maxntot;
-		dims_data3[3] = compute_nmaxhr(nvalid[wfs4ntot]);
+		dims_data3[3] = compute_nmaxhr(maxnvalid_tot/*nvalid[wfs4ntot]*/);
 		if (maxnvalid > dims_data3[3])
 			dims_data3[3] = maxnvalid;
 		this->d_fttotim = new carma_obj<cuFloatComplex>(context, dims_data3);
