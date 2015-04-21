@@ -263,7 +263,10 @@ func manual_imat(void)
       
       //slopes_geom,g_wfs,0,0;
       rtc_docentroids,g_rtc;
-      slps = rtc_getcentroids(g_rtc,0, g_wfs, 0);
+      if(y_wfs(1).type != "pyr")
+        slps = rtc_getcentroids(g_rtc,0, g_wfs, 0);
+      else
+        slps = sensors_getslopes(g_wfs,0);
       grow,imat_cpu,slps/float(y_dm(1).push4imat);
       //fma;limits;
       //plg,slps;	
@@ -867,41 +870,94 @@ func create_sigmav(SigmaTur, isZonal, ordreAR, atur, btur)
   }
   }
 */
+
+func selectDMforLayers(nc,Nlayers,indLayers){
+
+  pztDM = where(y_dm(*y_controllers(nc).ndm).type == "pzt");
+  
+  for(i = 1 ; i<= y_atmos.nscreens ; i++){
+    alt_diff = y_dm(pztDM).alt - (*y_atmos.alt)(i);
+    ind = where(abs(alt_diff) == min(abs(alt_diff)));
+    if(numberof(ind)>1) ind = ind(1);
+    indLayers(i) = (*y_controllers(nc).ndm)(ind);
+    Nlayers(ind) += 1;
+  }
+}
+
 func mat_cphim_gpu(nc){
   // Positions des coins inferieurs gauches des ssp valides ramenees dans ipupil (origine au centre)
   s2ipup = (dimsof(*y_geom._ipupil)(2) - dimsof(*y_geom._spupil)(2))/2.;
-  posx = *y_wfs(1)._istart + s2ipup ;
-  posx = (posx * (*y_wfs(1)._isvalid))(*);
-  posx = posx(where(posx!=0)) - dimsof(*y_geom._ipupil)(2)/2 - 1;
-  posy = *y_wfs(1)._jstart + s2ipup ;
-  posy = (transpose(posy * (*y_wfs(1)._isvalid)))(*);
-  posy = posy(where(posy!=0)) - dimsof(*y_geom._ipupil)(2)/2 - 1;
+  
+  nvalid = sum(y_wfs._nvalid(*y_controllers(nc+1).nwfs));
+  ind = 0;
+  X = Y = array(0.0,nvalid); // Tableaux finaux
+  for(k=1 ; k<= numberof(*y_controllers(nc+1).nwfs) ; k++){
+    kk = (*y_controllers(nc+1).nwfs)(k); // On ne considère que les WFS vus par le RTC
+    posx = *y_wfs(kk)._istart + s2ipup ; // Positions ramenées dans ipupil
+    posx = (posx * (*y_wfs(kk)._isvalid))(*); // Positions des ssp valides uniquements
+    posx = posx(where(posx!=0)) - dimsof(*y_geom._ipupil)(2)/2 - 1; // et centrées sur la pupille
+    posy = *y_wfs(kk)._jstart + s2ipup ;
+    posy = (transpose(posy * (*y_wfs(kk)._isvalid)))(*);
+    posy = posy(where(posy!=0)) - dimsof(*y_geom._ipupil)(2)/2 - 1;
 
-  // Conversion en metres
-  sspDiam = posx(2) - posx(1);
-  p2m = (y_tel.diam/y_wfs(1).nxsub) / sspDiam;
-  posx *= p2m;
-  posy *= p2m;
-  sspDiam = (sspDiam)*p2m; //(sspDiam - 1) * p2m -> 1.07 for the factor below... close but not enough for 30m 60x60 case)
+    // Conversion en metres
+    sspDiam = posx(2) - posx(1);
+    p2m = (y_tel.diam/y_wfs(kk).nxsub) / sspDiam;
+    posx *= p2m;
+    posy *= p2m;
+    
+    //Remplis les tableaux finaux
+    X(ind+1:ind+y_wfs(kk)._nvalid) = posx;
+    Y(ind+1:ind+y_wfs(kk)._nvalid) = posy;
+    ind += y_wfs(kk)._nvalid;
+  }
+  nactu = 0;
+  for(k=1 ; k<=numberof(*y_controllers(nc+1).ndm) ; k++){
+    kk = (*y_controllers(nc+1).ndm)(k);
+    if(y_dm(kk).type == "pzt")
+      nactu += y_dm(kk)._ntotact;
+  }
 
-  // Position des actuateurs et origine ramenee au centre de ipupil
-  actu_x = (*y_dm(1)._xpos - dimsof(*y_geom._ipupil)(2)/2 )*p2m;
-  actu_y = (*y_dm(1)._ypos - dimsof(*y_geom._ipupil)(2)/2 )*p2m;
-  //error;
-  k2 = y_wfs(1).lambda / 2. / pi / y_dm(1).unitpervolt / sspDiam * 1.058; // 1.058 hardcoded for debug... need to find where it comes from
-  L0_d = &(float(*y_atmos.L0));
-  alphaX = alphaY = array(0.0f,numberof(y_wfs.xpos));
+  Xactu = Yactu = array(0.0,nactu);
+  k2 = array(0.0,numberof(where(y_dm(*y_controllers(nc+1).ndm).type == "pzt")));
+  ind = 0;
+  indk = 1;
+  for(k=1 ; k<=numberof(*y_controllers(nc+1).ndm) ; k++){
+    kk = (*y_controllers(nc+1).ndm)(k);
+    if(y_dm(kk).type == "pzt"){
+      p2m = (y_tel.diam/(y_dm(kk).nact - 1)) / y_dm(kk)._pitch;
+      // Position des actuateurs et origine ramenee au centre de ipupil
+      actu_x = (*y_dm(kk)._xpos - dimsof(*y_geom._ipupil)(2)/2 )*p2m;
+      actu_y = (*y_dm(kk)._ypos - dimsof(*y_geom._ipupil)(2)/2 )*p2m;
+      
+      //Remplis les tableaux finaux
+      Xactu(ind+1 : ind+y_dm(kk)._ntotact) = actu_x;
+      Yactu(ind+1 : ind+y_dm(kk)._ntotact) = actu_y;
+      ind += y_dm(kk)._ntotact;
+      k2(indk) = y_wfs(1).lambda / 2. / pi / y_dm(kk).unitpervolt / (y_dm(kk)._pitch * p2m) * 1.058; // 1.058 hardcoded for debug... need to find where it comes from
+      indk ++;
+    }
+  }
+  pztDM = where(y_dm(*y_controllers(nc).ndm).type == "pzt");
+  NlayersDM = array(0,numberof(pztDM)); // Number of layers per DM
+  indlayersDM = array(0,y_atmos.nscreens); // Index of the DM for each layer
+  selectDMforLayers,nc+1,NlayersDM,indlayersDM;
+  FoV = y_wfs.pixsize * y_wfs.npix;
+  
+  L0_d = &(double(*y_atmos.L0));
+  alphaX = alphaY = array(0.0,numberof(y_wfs.xpos));
   alphaX(:numberof(y_wfs.xpos)) = y_wfs.xpos/RASC;
   alphaY(:numberof(y_wfs.xpos)) = y_wfs.ypos/RASC;
   Nact = create_nact_geom(1);
 
   write,"Computing Cphim...";
-  rtc_doCphim,g_rtc,nc,g_wfs,g_atmos,g_dm,*L0_d,float(*y_atmos.frac * (y_atmos.r0)^(-5./3)),alphaX,alphaY,posx,posy,actu_x,actu_y,y_tel.diam,k2,Nact;
+  rtc_doCphim,g_rtc,nc,g_wfs,g_atmos,g_dm,*L0_d,float(*y_atmos.frac * (y_atmos.r0)^(-5./3)),alphaX,alphaY,posx,posy,actu_x,actu_y,y_tel.diam,k2,Nact,NlayersDM,indlayersDM;
   write,"Done";
 
   write,"Computing Cmm ...";
-  rtc_doCmm,g_rtc,nc,g_wfs,g_atmos,y_tel.diam,y_tel.cobs,*L0_d, float(*y_atmos.frac * (y_atmos.r0)^(-5./3)),alphaX,alphaY;
+  rtc_doCmm,g_rtc,nc,g_wfs,g_atmos,double(y_tel.diam),double(y_tel.cobs),*L0_d, double(*y_atmos.frac * (y_atmos.r0)^(-5./3)),alphaX,alphaY;
   write,"Done";
+  error;
 }
 func mat_cphim(void)
 {
