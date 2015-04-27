@@ -658,8 +658,10 @@ func rtc_init(clean=, brama=, doimat=)
               make_lgs_prof1d,nwfs,prof,h,y_wfs(nwfs).beamsize,center="image";
               tmp=(*y_wfs(nwfs)._lgskern);
               tmp2 = makegaussian(dimsof(tmp)(2),2*y_wfs(nwfs)._nrebin);
-              tmp3 = roll( (fft(fft(tmp)*(fft(tmp2)),-1) ).re);
-              
+              tmp3=array(float,y_wfs(nwfs).npix,y_wfs(nwfs).npix,y_wfs(nwfs).nsspup);
+              for (i=1;i<=nsspup;i++) {
+                tmp3(,,i) = roll( (fft(fft(tmp(,,i))*(fft(tmp2)),-1) ).re);
+              }
               offset = (y_wfs(nwfs)._Ntot-y_wfs(nwfs)._nrebin*y_wfs(nwfs).npix)/2;
               rr = offset+1 : offset + y_wfs(nwfs)._nrebin*y_wfs(nwfs).npix;
               
