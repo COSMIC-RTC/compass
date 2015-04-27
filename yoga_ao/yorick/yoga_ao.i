@@ -658,9 +658,9 @@ func rtc_init(clean=, brama=, doimat=)
               make_lgs_prof1d,nwfs,prof,h,y_wfs(nwfs).beamsize,center="image";
               tmp=(*y_wfs(nwfs)._lgskern);
               tmp2 = makegaussian(dimsof(tmp)(2),2*y_wfs(nwfs)._nrebin);
-              tmp3=array(float,y_wfs(nwfs).npix,y_wfs(nwfs).npix,y_wfs(nwfs).nsspup);
-              for (i=1;i<=nsspup;i++) {
-                tmp3(,,i) = roll( (fft(fft(tmp(,,i))*(fft(tmp2)),-1) ).re);
+              tmp3=array(float,dimsof(tmp)(2),dimsof(tmp)(2),y_wfs(nwfs)._nvalid);
+              for (ii=1;ii<=y_wfs(nwfs)._nvalid;ii++) {
+                tmp3(,,ii) = roll( (fft(fft(tmp(,,ii))*(fft(tmp2)),-1) ).re);
               }
               offset = (y_wfs(nwfs)._Ntot-y_wfs(nwfs)._nrebin*y_wfs(nwfs).npix)/2;
               rr = offset+1 : offset + y_wfs(nwfs)._nrebin*y_wfs(nwfs).npix;
@@ -675,10 +675,12 @@ func rtc_init(clean=, brama=, doimat=)
                 //centroiders(i).weights = &float(ref_fctn);
                 */
             } else {
-              r0 = y_atmos.r0 / ((y_wfs(nwfs).lambda/0.5)^(6./5));
-              seeing = RASC * (y_wfs(nwfs).lambda * 1.e-6) / r0;   
-              npix = seeing / y_wfs(nwfs).pixsize;
-              centroiders(i).width = npix;
+              if (centroiders(i).width(1)==0) {
+                r0 = y_atmos.r0 / ((y_wfs(nwfs).lambda/0.5)^(6./5));
+                seeing = RASC * (y_wfs(nwfs).lambda * 1.e-6) / r0;   
+                npix = seeing / y_wfs(nwfs).pixsize;
+                centroiders(i).width = npix;
+              }
             }
           }
           
