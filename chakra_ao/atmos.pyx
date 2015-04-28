@@ -267,7 +267,6 @@ cdef class Atmos:
         print alt
 
 
-
     def move_atmos(self):
         self.s_a.move_atmos()
 
@@ -295,8 +294,10 @@ cdef atmos_create(chakra_context c, int nscreens,
     # create atmos object on gpu
 
     atmos_obj = Atmos()
+    cdef carma_context *context=carma_context.instance()
+    cdef int device = context.get_activeDevice()
     atmos_obj.realinit(chakra_context(),nscreens, r0_layers, dim_screens,alt,
-                    windspeed,winddir,deltax,deltay,0)
+                    windspeed,winddir,deltax,deltay,device)
 
     cdef int i,j
     cdef np.ndarray[ndim=2,dtype=np.float32_t] A,B

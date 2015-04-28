@@ -13,11 +13,12 @@ from libcpp.pair cimport pair
 from libc.stdint cimport uintptr_t
 
 #from mpi4py import MPI
-from mpi4py cimport MPI
+#from mpi4py cimport MPI
+cimport mpi4py.MPI as MPI
 # C-level cdef, typed, Python objects
-from mpi4py cimport libmpi as mpi
 #from mpi4py cimport mpi_c as mpi
-
+#from mpi4py cimport libmpi as mpi
+cimport mpi4py.libmpi as mpi
 
 cdef np.float32_t dtor = (np.pi/180.)
 
@@ -413,8 +414,8 @@ cdef class Target:
 
 
 cdef class Sensors:
+    
     cdef sutra_sensors *sensors
-
     cdef sensors_initgs(self,np.ndarray[dtype=np.float32_t] xpos,
                              np.ndarray[dtype=np.float32_t] ypos,
                              np.ndarray[dtype=np.float32_t] Lambda,
@@ -435,6 +436,13 @@ cdef class Sensors:
     cdef Bcast_dscreen(self)
     cdef Bcast_dscreen_cuda_aware(self)
 
+    #for profiling purpose
+    cdef gather_bincube_prof(self,MPI.Intracomm comm,int n)
+    cdef wait1_prof(self)
+    cdef wait2_prof(self)
+    cdef d2h_prof(self,float *ptr,n)
+    cdef h2d_prof(self,float *ptr,n)
+    cdef gather_prof(self,float *ptr, int size, int *count, int *disp)
 
 #################################################
 # P-Class (parametres) Param_atmos

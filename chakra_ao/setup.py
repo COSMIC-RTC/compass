@@ -12,6 +12,11 @@ from distutils.core import setup
 #from Cython.Build import cythonize
 from Cython.Distutils import build_ext
 
+## enable to dump annotate html for each pyx source file
+#import Cython.Compiler.Options
+#Cython.Compiler.Options.annotate = True
+
+
 import numpy
 from distutils.extension import Extension
 
@@ -114,7 +119,7 @@ def customize_compiler_for_nvcc(self):
             # from the extra_compile_args in the Extension class
             postargs = extra_postargs['nvcc']
         else:
-            postargs = extra_postargs['gcc']
+            postargs = extra_postargs['g++']
 
         super(obj, src, ext, cc_args, postargs, pp_opts)
         # reset the default compiler_so, which we might have changed for cuda
@@ -196,7 +201,7 @@ ext=Extension('chakra_ao',
               libraries=[ 'sutra','mpi_cxx'],
               language='c++',
               runtime_library_dirs=[],#CUDA['lib64']],
-              extra_compile_args={'gcc': []},
+              extra_compile_args={'g++': []},
               include_dirs = include_dirs
               )
                               #[numpy_include, 

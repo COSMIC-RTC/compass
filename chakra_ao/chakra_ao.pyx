@@ -1,5 +1,5 @@
-#import cython
-#  # cython: profile=True
+import cython
+# #cython: profile=True
 import numpy as np
 
 import os.path
@@ -31,14 +31,67 @@ include "wfs.pyx"
 include "sensors.pyx"
 include "loop.pyx"
 
-def see_atmos_target_disp(int n, Atmos atm, Target tar,Sensors wfs, MPI.Intracomm comm, float alt=0, int n_tar=0,float f=1, int log=0):
+def see_atmos_target_disp(int n, Atmos atm, Target tar,Sensors wfs, float alt=0, int n_tar=0,float f=1, int log=0):
     """Display the turbulence of the atmos and the image of the target after a call to the function:
     - move_atmos
     - target.atmos_raytrace
+    no mpi involved
 
     n       -- int      : number of iterations
     atm     -- Atmos    : Atmos used
     tar     -- Target   : Target used
+    alt     -- float    : altitude of the turbulence to diplay
+    n_tar   -- int      : number of the target 
+    f       -- float    : fraction of the image to display (centered on the image center)
+    """
+    f=f/2
+    fig, (turbu,image,sh)=pl.subplots(1,3, figsize=(15,10))
+
+    ph=tar.get_image(n_tar,"se")
+    s0=max(0,ph.shape[0]*0.5-ph.shape[0]*f)
+    e0=min(ph.shape[0],ph.shape[0]*0.5+ph.shape[0]*f)
+    s1=max(0,ph.shape[1]*0.5-ph.shape[1]*f)
+    e1=min(ph.shape[1],ph.shape[1]*0.5+ph.shape[1]*f)
+   
+    pl.ion()
+    pl.show()
+    cdef double start,end, t1,t2,t3,t4,t5,t6
+
+    start=time.time()
+    for i in range(n):
+        atm.move_atmos()
+        tar.atmos_trace(n_tar, atm)
+        wfs.sensors_trace(0,"atmos",atm,0)
+        wfs.sensors_compimg(0)
+        shak=wfs._get_binimg(0)
+        turbu.clear()
+        screen=atm.get_screen(alt)
+        im1=turbu.imshow(screen,cmap='Blues')
+        ph=tar.get_image(n_tar,"se")
+        ph=np.roll(ph,ph.shape[0]/2,axis=0)
+        ph=np.roll(ph,ph.shape[1]/2,axis=1)
+        image.clear()
+        if(log==1):
+            ph=np.log(ph[s0:e0,s1:e1])
+        im2=image.matshow(ph[s0:e0,s1:e1],cmap='Blues_r')
+        sh.clear()
+        im3=sh.matshow(shak,cmap='Blues_r')
+        pl.draw()
+    end=time.time()
+    print "time:",end-start
+
+
+def see_atmos_target_disp_mpi(int n, Atmos atm, Target tar,Sensors wfs, MPI.Intracomm comm, float alt=0, int n_tar=0,float f=1, int log=0):
+    """Display the turbulence of the atmos and the image of the target after a call to the function:
+    - move_atmos
+    - target.atmos_raytrace
+    need mpi communicator
+
+    n       -- int      : number of iterations
+    atm     -- Atmos    : Atmos used
+    tar     -- Target   : Target used
+    wfs     -- Sensors  : Sensor used
+    comm    --  MPI.Intracomm : mpi communicator
     alt     -- float    : altitude of the turbulence to diplay
     n_tar   -- int      : number of the target 
     f       -- float    : fraction of the image to display (centered on the image center)
@@ -84,15 +137,48 @@ def see_atmos_target_disp(int n, Atmos atm, Target tar,Sensors wfs, MPI.Intracom
     end=time.time()
     print comm.Get_rank(),"time:",end-start
 
-
-def see_atmos_target(int n, Atmos atm, Target tar,Sensors wfs, MPI.Intracomm comm, float alt=0, int n_tar=0,float f=1, int log=0):
-    """Display the turbulence of the atmos and the image of the target after a call to the function:
+def see_atmos_target_mpi_cu(int n, Atmos atm, Target tar,Sensors wfs, MPI.Intracomm comm, float alt=0, int n_tar=0,float f=1, int log=0):
+    """Compute the turbulence of the atmos and the image of the target after a call to the function:
     - move_atmos
     - target.atmos_raytrace
+    need mpi communicator
+    use mpi cuda_aware
 
     n       -- int      : number of iterations
     atm     -- Atmos    : Atmos used
     tar     -- Target   : Target used
+    wfs     -- Sensors  : Sensor used
+    comm    --  MPI.Intracomm : mpi communicator
+    alt     -- float    : altitude of the turbulence to diplay
+    n_tar   -- int      : number of the target 
+    f       -- float    : fraction of the image to display (centered on the image center)
+    """
+
+    cdef double start,end, t1,t2,t3,t4,t5,t6
+
+    start=time.time()
+    for i in range(n):
+        if(wfs.get_rank(0)==0):
+            atm.move_atmos()
+            tar.atmos_trace(n_tar, atm)
+            wfs.sensors_trace(0,"atmos",atm,0)
+        wfs.Bcast_dscreen_cuda_aware()
+        wfs.sensors_compimg(0)
+        wfs.gather_bincube_cuda_aware(comm,0)
+    end=time.time()
+    print comm.Get_rank(),"time:",end-start
+
+def see_atmos_target_mpi(int n, Atmos atm, Target tar,Sensors wfs, MPI.Intracomm comm, float alt=0, int n_tar=0,float f=1, int log=0):
+    """Compute the turbulence of the atmos and the image of the target after a call to the function:
+    - move_atmos
+    - target.atmos_raytrace
+    need mpi communicator
+
+    n       -- int      : number of iterations
+    atm     -- Atmos    : Atmos used
+    tar     -- Target   : Target used
+    wfs     -- Sensors  : Sensor used
+    comm    --  MPI.Intracomm : mpi communicator
     alt     -- float    : altitude of the turbulence to diplay
     n_tar   -- int      : number of the target 
     f       -- float    : fraction of the image to display (centered on the image center)
@@ -111,6 +197,35 @@ def see_atmos_target(int n, Atmos atm, Target tar,Sensors wfs, MPI.Intracomm com
         wfs.gather_bincube(comm,0)
     end=time.time()
     print comm.Get_rank(),"time:",end-start
+
+
+def see_atmos_target(int n, Atmos atm, Target tar,Sensors wfs, float alt=0, int n_tar=0,float f=1, int log=0):
+    """Compute the turbulence of the atmos and the image of the target after a call to the function:
+    - move_atmos
+    - target.atmos_raytrace
+    no mpi involved
+
+    n       -- int      : number of iterations
+    atm     -- Atmos    : Atmos used
+    tar     -- Target   : Target used
+    wfs     -- Sensors  : Sensor used
+    alt     -- float    : altitude of the turbulence to diplay
+    n_tar   -- int      : number of the target 
+    f       -- float    : fraction of the image to display (centered on the image center)
+    """
+
+    cdef double start,end, t1,t2,t3,t4,t5,t6
+
+    start=time.time()
+    for i in range(n):
+        if(wfs.get_rank(0)==0):
+            atm.move_atmos()
+            tar.atmos_trace(n_tar, atm)
+            wfs.sensors_trace(0,"atmos",atm,0)
+        wfs.sensors_compimg(0)
+    end=time.time()
+    print "time:",end-start
+
 
 cdef bin2d(np.ndarray data_in, int binfact):
     """

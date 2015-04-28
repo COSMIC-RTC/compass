@@ -199,6 +199,7 @@ cdef class Target:
         cdef sutra_source *s_s_ptr
         self.target.d_targets[nTarget].init_strehlmeter()
 
+    @cython.profile(True)
     def atmos_trace(self, int nTarget, Atmos atm):
         """ TODO doc
 

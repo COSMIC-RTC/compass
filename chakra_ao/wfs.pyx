@@ -139,6 +139,9 @@ cdef class Param_wfs:
 
 
 cdef type_present(list liste):
+    """for each type of wfs,
+    return 1 if the wfs type is present (0 else)
+    """
 
     cdef int i,l
 
@@ -161,6 +164,10 @@ cdef type_present(list liste):
     return pyr, roof, sh,geo
 
 cdef wheremax(list liste):
+    """return the index of the maximum value of the list
+
+    liste -- list of value
+    """
     cdef int i,j
     cdef int l=len(liste)
     cdef float m=0
@@ -279,7 +286,8 @@ def wfs_init(list wfs, Param_atmos atmos, Param_tel tel, Param_geom geom, Param_
 
 cdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
                 Param_tel tel, Param_geom geom, Param_loop loop, int init=0, int comm_size=1, int verbose=0):
-
+    """TODO doc
+    """
     if(verbose==0):print "*-----------------------"
     if(verbose==0):print "Doing inits on WFS", n
 
@@ -550,7 +558,7 @@ cdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
         if(wfs._Ntot!=wfs._Nfft):
             indi=long((wfs._Ntot-wfs._Nfft)/2.)+1 #+1 -1 (yorick>python)
             indj==long(indi+wfs._Nfft-1)-1
-            x,y=indices(wfs.Nfft)
+            x,y=indices(wfs._Nfft)
             #hrpix
             tmp=np.zeros((wfs._Ntot,wfs._Ntot))
             tmp[indi:indj,indi:indj]=np.roll( x+(y-1)*wfs._Nfft, wfs._Nfft/2,axis=0)

@@ -10,10 +10,11 @@ The compilation is done with the command:
     REQUIREMENT:
         * cython 0.22
         * python 2.7
+        * mpi4py 1.3.1
         * carma librairie
         * sutra librairie
         * chakra module
-        
+
 
 To clean the folder, use the command:
     python clean.py
@@ -35,4 +36,5 @@ Content:
     * EELT_data                   folder containing EELT datas (curently not used)
     * setup.py                    compilation setups
     * clean.py                    cleaning script
-    * test.py                     python test codes
+    * test.py                     python test code
+    * test_mpi.py                 python test code using mpi
