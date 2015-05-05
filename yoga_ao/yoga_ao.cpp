@@ -4101,12 +4101,12 @@ extern "C" {
     sutra_sensors *sensors_handler = (sutra_sensors *) (shandler->sutra_sensors);
     atmos_struct *ahandler = (atmos_struct *) yget_obj(argc - 4, &yAtmos);
     sutra_atmos *atmos_handler = (sutra_atmos *) (ahandler->sutra_atmos);
-    float diamTel = ygets_f(argc - 5);
-    float cobs = ygets_f(argc - 6);
-    float *L0 = ygeta_f(argc - 7, &ntot, dims);
-    float *cn2 = ygeta_f(argc - 8, &ntot, dims);
-    float *alphaX = ygeta_f(argc - 9, &ntot, dims);
-    float *alphaY = ygeta_f(argc - 10, &ntot, dims);
+    double diamTel = ygets_d(argc - 5);
+    double cobs = ygets_d(argc - 6);
+    double *L0 = ygeta_d(argc - 7, &ntot, dims);
+    double *cn2 = ygeta_d(argc - 8, &ntot, dims);
+    double *alphaX = ygeta_d(argc - 9, &ntot, dims);
+    double *alphaY = ygeta_d(argc - 10, &ntot, dims);
 
     carma_context *context_handle = _getCurrentContext();
     context_handle->set_activeDeviceForCpy(rhandler->device,1);
@@ -4128,24 +4128,44 @@ extern "C" {
     sutra_atmos *atmos_handler = (sutra_atmos *) (ahandler->sutra_atmos);
     dms_struct *handler = (dms_struct *) yget_obj(argc - 5, &yDMs);
     sutra_dms *dms_handler = (sutra_dms *) (handler->sutra_dms);
-    float *L0 = ygeta_f(argc - 6, &ntot, dims);
-    float *cn2 = ygeta_f(argc - 7, &ntot, dims);
-    float *alphaX = ygeta_f(argc - 8, &ntot, dims);
-    float *alphaY = ygeta_f(argc - 9, &ntot, dims);
-    float *X = ygeta_f(argc - 10, &ntot, dims);
-    float *Y = ygeta_f(argc - 11, &ntot, dims);
-    float *xactu = ygeta_f(argc - 12, &ntot, dims);
-    float *yactu = ygeta_f(argc - 13, &ntot, dims);
-    float diamTel = ygets_f(argc - 14);
-    float k2 = ygets_f(argc - 15);
-    float *Nact = ygeta_f(argc - 16, &ntot, dims);
+    double *L0 = ygeta_d(argc - 6, &ntot, dims);
+    double *cn2 = ygeta_d(argc - 7, &ntot, dims);
+    double *alphaX = ygeta_d(argc - 8, &ntot, dims);
+    double *alphaY = ygeta_d(argc - 9, &ntot, dims);
+    double *X = ygeta_d(argc - 10, &ntot, dims);
+    double *Y = ygeta_d(argc - 11, &ntot, dims);
+    double *xactu = ygeta_d(argc - 12, &ntot, dims);
+    double *yactu = ygeta_d(argc - 13, &ntot, dims);
+    double diamTel = ygets_d(argc - 14);
+    double *k2 = ygeta_d(argc - 15, &ntot, dims);
+    long *NlayerDm = ygeta_l(argc - 16, &ntot, dims);
+    long *indLayerDm = ygeta_l(argc - 17, &ntot, dims);
+    double *FoV = ygeta_d(argc - 18, &ntot, dims);
+    double *pitch = ygeta_d(argc - 19, &ntot, dims);
+    double *alt_dm = ygeta_d(argc - 20, &ntot, dims);
 
     carma_context *context_handle = _getCurrentContext();
     context_handle->set_activeDeviceForCpy(rhandler->device,1);
     CAST(sutra_controller_mv *, controller, rtc_handler->d_control[ncontrol]);
     controller->compute_Cphim(atmos_handler, sensors_handler, dms_handler, L0,
                               cn2, alphaX, alphaY, X, Y, xactu, yactu, diamTel,
-                              k2, Nact);
+                              k2,NlayerDm,indLayerDm,FoV,pitch,alt_dm);
+
+  }
+
+   void Y_rtc_filterCphim(int argc) {
+    long ntot;
+    long dims[Y_DIMSIZE];
+    rtc_struct *rhandler = (rtc_struct *) yget_obj(argc - 1, &yRTC);
+    sutra_rtc *rtc_handler = (sutra_rtc *) (rhandler->sutra_rtc);
+    long ncontrol = ygets_l(argc - 2);
+    float *F = ygeta_f(argc - 3, &ntot, dims);
+    float *Nact = ygeta_f(argc - 4, &ntot, dims);
+
+    carma_context *context_handle = _getCurrentContext();
+    context_handle->set_activeDeviceForCpy(rhandler->device,1);
+    CAST(sutra_controller_mv *, controller, rtc_handler->d_control[ncontrol]);
+    controller->filter_cphim(F,Nact);
 
   }
 
@@ -4509,4 +4529,3 @@ extern "C" {
   }
 
 }
-

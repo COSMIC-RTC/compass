@@ -715,6 +715,16 @@ extern rtc_doCphim;
       
    SEE ALSO:
  */
+extern rtc_filterCphim;
+/* DOCUMENT rtc_filterCphim
+   rtc_filterCphim,yoga_rtc_obj,ncontroller,F,Nact
+   filter the Cphim matrix from piston and actuators coupling
+
+   F = piston filter matrix
+   Nact = coupling matrix
+      
+   SEE ALSO:
+ */
 extern rtc_doimatkl;
 extern rtc_doimat;
 /* DOCUMENT rtc_doimat

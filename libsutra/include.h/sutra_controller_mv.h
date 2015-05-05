@@ -26,9 +26,9 @@ public:
   carma_obj<float> *d_Cmm;
   carma_obj<float> *d_Cphim;
   // svd computations
-  carma_obj<float> *d_eigenvals;
-  carma_host_obj<float> *h_eigenvals;
-  carma_obj<float> *d_U;
+  //carma_obj<float> *d_eigenvals;
+  //carma_host_obj<float> *h_eigenvals;
+  //carma_obj<float> *d_U;
 
   // loop components
   carma_obj<float> *d_cenbuff; // centroids circular buffer
@@ -78,7 +78,9 @@ public:
   int
   piston_filt(carma_obj<float> *d_statcov);
   int
-  piston_filt_cphim(carma_obj<float> *d_cphim);
+  piston_filt_cphim(carma_obj<float> *d_cphim, float *F);
+  int
+  filter_cphim(float *F, float *Nact);
   int
   invgen(carma_obj<float> *d_mat, float cond, int job);
  // int
@@ -90,9 +92,13 @@ public:
   int
   load_klbasis(float *klbasis);
   int
-  compute_Cmm(sutra_atmos *atmos, sutra_sensors *sensors, float *L0, float *cn2, float *alphaX, float *alphaY, float diamTel, float cobs);
+  compute_Cmm(sutra_atmos *atmos, sutra_sensors *sensors, double *L0, double *cn2, double *alphaX, double *alphaY, double diamTel, double cobs);
   int
-  compute_Cphim(sutra_atmos *atmos, sutra_sensors *sensors, sutra_dms *dms, float *L0, float *cn2, float *alphaX, float *alphaY, float *X, float *Y, float *xactu, float *yactu, float diamTel, float k2, float *Nact);
+  compute_Cphim(sutra_atmos *atmos,
+			sutra_sensors *sensors, sutra_dms *dms, double *L0, double *cn2,
+			double *alphaX, double *alphaY, double *X, double *Y, double *xactu,
+			double *yactu, double diamTel, double *k2, long *NlayerDm,
+			long *indLayerDm, double *FoV, double *pitch, double *alt_dm);
 };
 
 #endif // _sutra_controller_mv_H_

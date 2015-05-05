@@ -9,7 +9,7 @@
 int compute_nmaxhr(long nvalid) {
   // this is the big array => we use nmaxhr and treat it sequentially
 
-  int mnmax = 200;
+  int mnmax = 500;
   int nmaxhr = mnmax;
   if (nvalid > 2 * mnmax) {
     int tmp0 = nvalid % mnmax;

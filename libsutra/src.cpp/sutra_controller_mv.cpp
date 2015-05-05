@@ -23,11 +23,8 @@ sutra_controller_mv::sutra_controller_mv(carma_context *context, long nvalid,
   dims_data2[1] = nactu();
   dims_data2[2] = nslope();
   this->d_cmat = new carma_obj<float>(this->current_context, dims_data2);
-  dims_data2[1] = nactu() - 2;
-  dims_data2[2] = nslope();
-  this->d_Cphim = new carma_obj<float>(this->current_context, dims_data2);
-  dims_data2[1] = dims_data2[2] = nactu();
-  d_U = new carma_obj<float>(this->current_context, dims_data2);
+  //dims_data2[1] = dims_data2[2] = nactu();
+  //d_U = new carma_obj<float>(this->current_context, dims_data2);
   this->d_cenbuff = 0L;
   if ((int)delay > 0) {
     dims_data2[1] = 2 * nvalid;
@@ -40,10 +37,11 @@ sutra_controller_mv::sutra_controller_mv(carma_context *context, long nvalid,
 
   long dims_data1[2];
   dims_data1[0] = 1;
+  /*
   dims_data1[1] = nslope() < nactu() ? nslope() : nactu();
   this->d_eigenvals = new carma_obj<float>(this->current_context, dims_data1);
   this->h_eigenvals = new carma_host_obj<float>(dims_data1, MA_PAGELOCK);
-
+*/
   dims_data1[1] = nslope();
   this->d_noisemat = new carma_obj<float>(this->current_context, dims_data1);
   this->d_olmeas = new carma_obj<float>(this->current_context, dims_data1);
@@ -63,6 +61,7 @@ sutra_controller_mv::sutra_controller_mv(carma_context *context, long nvalid,
   dims_data2[1] = nactu();
   dims_data2[2] = nactu();
   this->d_KLbasis = new carma_obj<float>(this->current_context, dims_data2);
+  this->d_Cphim = 0L;
 
   cublas_handle = current_context->get_cublasHandle();
   //carma_checkCublasStatus(cublasCreate(&(this->cublas_handle)));
@@ -70,20 +69,21 @@ sutra_controller_mv::sutra_controller_mv(carma_context *context, long nvalid,
 
 sutra_controller_mv::~sutra_controller_mv() {
   current_context->set_activeDevice(device,1);
-  delete this->d_U;
+  //delete this->d_U;
 
   delete this->d_imat;
   delete this->d_cmat;
   delete this->d_gain;
   delete this->d_Cmm;
-  delete this->d_Cphim;
+  if(this->d_Cphim != 0L)
+	  delete this->d_Cphim;
   delete this->d_olmeas;
   delete this->d_compbuff;
   delete this->d_compbuff2;
   delete this->d_noisemat;
 
-  delete this->d_eigenvals;
-  delete this->h_eigenvals;
+  //delete this->d_eigenvals;
+  //delete this->h_eigenvals;
 
   if (this->delay > 0)
     delete this->d_cenbuff;
@@ -127,7 +127,7 @@ int sutra_controller_mv::load_noisemat(float *noise) {
 }
 // Florian features
 int
-sutra_controller_mv::compute_Cmm(sutra_atmos *atmos, sutra_sensors *sensors, float *L0, float *cn2, float *alphaX, float *alphaY, float diamTel, float cobs){
+sutra_controller_mv::compute_Cmm(sutra_atmos *atmos, sutra_sensors *sensors, double *L0, double *cn2, double *alphaX, double *alphaY, double diamTel, double cobs){
   current_context->set_activeDevice(device,1);
 
 	struct gtomo_struct g_tomo;
@@ -141,8 +141,13 @@ sutra_controller_mv::compute_Cmm(sutra_atmos *atmos, sutra_sensors *sensors, flo
 }
 
 int
-sutra_controller_mv::compute_Cphim(sutra_atmos *atmos, sutra_sensors *sensors, sutra_dms *dms, float *L0, float *cn2, float *alphaX, float *alphaY, float *X, float *Y,float *xactu, float *yactu, float diamTel, float k2, float *Nact) {
-  current_context->set_activeDevice(device,1);
+sutra_controller_mv::compute_Cphim(sutra_atmos *atmos,
+		sutra_sensors *sensors, sutra_dms *dms, double *L0, double *cn2,
+		double *alphaX, double *alphaY, double *X, double *Y, double *xactu,
+		double *yactu, double diamTel, double *k2, long *NlayerDm,
+		long *indLayerDm, double *FoV, double *pitch, double *alt_dm) {
+
+	current_context->set_activeDevice(device,1);
 
 	// Find number of actuators without TT DM
 	struct cphim_struct cphim_struct;
@@ -157,38 +162,42 @@ sutra_controller_mv::compute_Cphim(sutra_atmos *atmos, sutra_sensors *sensors, s
 	  p++;
 	}
 
+	long dims_data2[3] = {2,Nactu,nslope()};
+	if(this->d_Cphim != 0L) delete this->d_Cphim;
+	this->d_Cphim = new carma_obj<float>(this->current_context, dims_data2);
+
     // Compute Cphim matrix
 	init_cphim_struct(&cphim_struct, atmos, sensors, dms, diamTel);
-	update_cphim_sys(&cphim_struct, sensors, alphaX, alphaY, xactu, yactu,X,Y);
-	tab_u831J0(&cphim_struct,-4.0f,10.0f,current_context->get_device(device));
+	update_cphim_sys(&cphim_struct, sensors, alphaX, alphaY, xactu, yactu,X,Y,NlayerDm,indLayerDm,alt_dm,pitch,k2,FoV);
+	//tab_u831J0(&cphim_struct,-4.0f,10.0f,current_context->get_device(device));
 	update_cphim_atm(&cphim_struct, sensors, atmos, L0, cn2, alphaX, alphaY);
-	CPHIM(this->d_Cphim->getData(), Nactu, this->nslope(), 0, 0, Nactu, &cphim_struct, atmos, sensors, alphaX, alphaY, k2, current_context->get_device(device));
+	CPHIM(this->d_Cphim->getData(), Nactu, this->nslope(), 0, 0, Nactu, &cphim_struct, atmos, sensors, alphaX, alphaY, current_context->get_device(device));
 	free_cphim_struct(&cphim_struct);
 
+	return EXIT_SUCCESS;
+}
+
+int
+sutra_controller_mv::filter_cphim(float *F, float *Nact){
 	// Piston filter
-	piston_filt_cphim(this->d_Cphim);
+	piston_filt_cphim(this->d_Cphim, F);
 	//Init and inverse the coupling matrix
-	long dims_data2[3];
-	dims_data2[0] = 2;
-	dims_data2[1] = nactu() - 2;
-	dims_data2[2] = nactu() - 2;
+	long dims_data2[3] = {2,this->d_Cphim->getDims()[1],this->d_Cphim->getDims()[1]};
 	carma_obj<float> *d_Nact = new carma_obj<float>(current_context, dims_data2);
 	dims_data2[2] = nslope();
 	carma_obj<float> *d_tmp = new carma_obj<float>(current_context, dims_data2);
 	d_Nact->host2device(Nact);
 	carma_potri(d_Nact);
-	carma_gemm(cublas_handle, 'n', 'n', nactu()-2, nslope(), nactu()-2, 1.0f,
-				  d_Nact->getData(), nactu()-2, this->d_Cphim->getData(), nactu()-2, 0.0f,
-				  d_tmp->getData(), nactu()-2);
+	carma_gemm(cublas_handle, 'n', 'n', this->d_Cphim->getDims()[1], nslope(), this->d_Cphim->getDims()[1], 1.0f,
+				  d_Nact->getData(), this->d_Cphim->getDims()[1], this->d_Cphim->getData(), this->d_Cphim->getDims()[1], 0.0f,
+				  d_tmp->getData(), this->d_Cphim->getDims()[1]);
 	this->d_Cphim->copy(d_tmp,1,1);
 
 	delete d_Nact;
 	delete d_tmp;
 
-
 	return EXIT_SUCCESS;
 }
-
 
 int
 sutra_controller_mv::do_covmat(sutra_dm *ydm, char *method, int *indx_pup,long dim, float *xpos, float *ypos, long Nkl, float norm, float ampli){
@@ -405,8 +414,10 @@ sutra_controller_mv::piston_filt(carma_obj<float> *d_statcov){
 }
 
 int
-sutra_controller_mv::piston_filt_cphim(carma_obj<float> *d_cphim){
-  current_context->set_activeDevice(device,1);
+sutra_controller_mv::piston_filt_cphim(carma_obj<float> *d_cphim, float *F){
+
+	current_context->set_activeDevice(device,1);
+
 	long Nmod = d_cphim->getDims()[1];
 	long dims_data[3];
 	dims_data[0] = 2;
@@ -416,8 +427,7 @@ sutra_controller_mv::piston_filt_cphim(carma_obj<float> *d_cphim){
 	dims_data[2] = nslope();
 	carma_obj<float> *d_tmp = new carma_obj<float>(current_context, dims_data);
 
-	int N = Nmod * Nmod;
-	fill_filtmat(d_F->getData(),Nmod, N, current_context->get_device(device));
+	d_F->host2device(F);
 
 	carma_gemm(cublas_handle, 'n', 'n', Nmod, nslope(), Nmod, 1.0f,
 			  d_F->getData(), Nmod, d_cphim->getData(), Nmod, 0.0f,
@@ -601,8 +611,8 @@ int sutra_controller_mv::build_cmat(float cond){
 
 	// (Cmm + Cn)⁻¹
 	add_md(this->d_Cmm->getData(),this->d_Cmm->getData(),this->d_noisemat->getData(), nslope(), this->current_context->get_device(device));
-	invgen(this->d_Cmm,(float)(nslope()-nactu())/2,0);
-
+	//invgen(this->d_Cmm,(float)(nslope()-nactu()),0);
+	invgen(this->d_Cmm,cond,1);
 	// Cphim * (Cmm + Cn)⁻¹
 	carma_gemm(cublas_handle, 'n', 'n', nactu() - 2, nslope(), nslope(), 1.0f,
 				this->d_Cphim->getData(), nactu() - 2, this->d_Cmm->getData(), nslope(), 0.0f,
@@ -742,6 +752,7 @@ int sutra_controller_mv::build_cmat(const char *dmtype, char *method) {
   	  d_tmp = new carma_obj<float>(current_context, dims_data2);
   	  d_tmp2 = new carma_obj<float>(current_context, dims_data2);
   	  d_tmp4 = new carma_obj<float>(current_context, dims_data2);
+  	  carma_obj<float> *d_U;
   	  d_U = new carma_obj<float>(current_context, dims_data2);
   	  dims_data2[1] = nslope();
   	  dims_data2[2] = nactu();
@@ -778,6 +789,7 @@ int sutra_controller_mv::build_cmat(const char *dmtype, char *method) {
   	  delete d_tmp2;
   	  delete d_tmp3;
   	  delete d_tmp4;
+  	  delete d_U;
     }
   else { }//y_error("Specify the computation method for mv : inv or n \n");}
   return EXIT_SUCCESS;

@@ -398,8 +398,8 @@ func target_init(brama=)
         }
       }
       if (y_dm != []) {
-        for (ddd=1;ddd<=numberof(*y_target(cc).dms_seen);ddd++) {
-	  dd = (*y_target(cc).dms_seen)(ddd)
+        for (ddd=1;ddd<=numberof(*y_target.dms_seen);ddd++) {
+	  dd = (*y_target.dms_seen)(ddd)
           dims = y_dm(dd)._n2 - y_dm(dd)._n1 + 1;
           dim  = dimsof(*y_geom._mpupil)(2);
           dim_dm = max([dim,dims]);

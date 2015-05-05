@@ -179,7 +179,14 @@ func cmat_init(ncontrol,clean=,method=)
     write,format="cmat time %f\n",tac();
   }
   if (((*y_rtc.controllers(ncontrol)).type)(1) == "mv"){
-    rtc_loadnoisemat,g_rtc,ncontrol-1,noise_cov(1);
+    N = array(0.0f,2*sum(y_wfs(*y_controllers(ncontrol).nwfs)._nvalid));
+    ind = 0;
+    for(i=1 ; i<=numberof(*y_controllers(ncontrol).nwfs) ; i++){
+      k = (*y_controllers(ncontrol).nwfs)(i);
+      N(ind+1:ind+2*y_wfs(k)._nvalid) = noise_cov(k);
+      ind += 2*y_wfs(k)._nvalid;
+    }
+    rtc_loadnoisemat,g_rtc,ncontrol-1,N;
     write,"Building cmat...";
     rtc_buildcmatmv,g_rtc,ncontrol-1,y_controllers(ncontrol-1).maxcond;
   }
@@ -879,7 +886,7 @@ func selectDMforLayers(nc,Nlayers,indLayers){
     alt_diff = y_dm(pztDM).alt - (*y_atmos.alt)(i);
     ind = where(abs(alt_diff) == min(abs(alt_diff)));
     if(numberof(ind)>1) ind = ind(1);
-    indLayers(i) = (*y_controllers(nc).ndm)(ind);
+    indLayers(i) = (*y_controllers(nc).ndm)(ind)-1;
     Nlayers(ind) += 1;
   }
 }
@@ -920,21 +927,24 @@ func mat_cphim_gpu(nc){
 
   Xactu = Yactu = array(0.0,nactu);
   k2 = array(0.0,numberof(where(y_dm(*y_controllers(nc+1).ndm).type == "pzt")));
+  pitch = k2;
   ind = 0;
   indk = 1;
   for(k=1 ; k<=numberof(*y_controllers(nc+1).ndm) ; k++){
     kk = (*y_controllers(nc+1).ndm)(k);
     if(y_dm(kk).type == "pzt"){
-      p2m = (y_tel.diam/(y_dm(kk).nact - 1)) / y_dm(kk)._pitch;
+      //p2m = (y_tel.diam/(y_dm(kk).nact - 1)) / y_dm(kk)._pitch;
+      p2m = y_tel.diam/y_geom.pupdiam;
       // Position des actuateurs et origine ramenee au centre de ipupil
       actu_x = (*y_dm(kk)._xpos - dimsof(*y_geom._ipupil)(2)/2 )*p2m;
       actu_y = (*y_dm(kk)._ypos - dimsof(*y_geom._ipupil)(2)/2 )*p2m;
+      pitch(indk) = actu_x(2) - actu_x(1);
       
       //Remplis les tableaux finaux
       Xactu(ind+1 : ind+y_dm(kk)._ntotact) = actu_x;
       Yactu(ind+1 : ind+y_dm(kk)._ntotact) = actu_y;
       ind += y_dm(kk)._ntotact;
-      k2(indk) = y_wfs(1).lambda / 2. / pi / y_dm(kk).unitpervolt / (y_dm(kk)._pitch * p2m) * 1.058; // 1.058 hardcoded for debug... need to find where it comes from
+      k2(indk) = y_wfs(1).lambda / 2. / pi / y_dm(kk).unitpervolt / (y_dm(kk)._pitch * p2m) * 1.058 ; // 1.058 hardcoded for debug... need to find where it comes from
       indk ++;
     }
   }
@@ -942,22 +952,37 @@ func mat_cphim_gpu(nc){
   NlayersDM = array(0,numberof(pztDM)); // Number of layers per DM
   indlayersDM = array(0,y_atmos.nscreens); // Index of the DM for each layer
   selectDMforLayers,nc+1,NlayersDM,indlayersDM;
-  FoV = y_wfs.pixsize * y_wfs.npix;
+  FoV = y_wfs.pixsize * y_wfs.npix / RASC;
   
   L0_d = &(double(*y_atmos.L0));
   alphaX = alphaY = array(0.0,numberof(y_wfs.xpos));
   alphaX(:numberof(y_wfs.xpos)) = y_wfs.xpos/RASC;
   alphaY(:numberof(y_wfs.xpos)) = y_wfs.ypos/RASC;
-  Nact = create_nact_geom(1);
 
   write,"Computing Cphim...";
-  rtc_doCphim,g_rtc,nc,g_wfs,g_atmos,g_dm,*L0_d,float(*y_atmos.frac * (y_atmos.r0)^(-5./3)),alphaX,alphaY,posx,posy,actu_x,actu_y,y_tel.diam,k2,Nact,NlayersDM,indlayersDM;
+  rtc_doCphim,g_rtc,nc,g_wfs,g_atmos,g_dm,*L0_d,float(*y_atmos.frac * (y_atmos.r0)^(-5./3)),alphaX,alphaY,X,Y,Xactu,Yactu,y_tel.diam,k2,NlayersDM,indlayersDM,FoV,pitch,y_dm(pztDM).alt;
   write,"Done";
 
   write,"Computing Cmm ...";
   rtc_doCmm,g_rtc,nc,g_wfs,g_atmos,double(y_tel.diam),double(y_tel.cobs),*L0_d, double(*y_atmos.frac * (y_atmos.r0)^(-5./3)),alphaX,alphaY;
   write,"Done";
-  error;
+
+  Nact = F = array(0.0f,numberof(Xactu),numberof(Xactu));
+  ind = 0;
+  for(k=1 ; k<=numberof(*y_controllers(nc+1).ndm) ; k++){
+    kk = (*y_controllers(nc+1).ndm)(k);
+    if(y_dm(kk).type == "pzt"){
+      Nact(ind+1:ind+y_dm(kk)._ntotact,ind+1:ind+y_dm(kk)._ntotact) = create_nact_geom(kk);
+      tmp = array(-1./y_dm(kk)._ntotact,y_dm(kk)._ntotact,y_dm(kk)._ntotact);
+      for(j=1 ; j<= y_dm(kk)._ntotact ; j++)
+        tmp(j,j) = 1 - 1/y_dm(kk)._ntotact;
+      F(ind+1:ind+y_dm(kk)._ntotact,ind+1:ind+y_dm(kk)._ntotact) = tmp;
+      ind += y_dm(kk)._ntotact;
+    }
+  }
+
+  rtc_filterCphim,g_rtc,0,F,Nact;
+
 }
 func mat_cphim(void)
 {
@@ -1139,7 +1164,7 @@ func create_nact_geom(nm) {
   // Actuators positions
   tmpx = *y_dm(nm)._i1;
   tmpy = *y_dm(nm)._j1;
-  offs = ((y_dm(1)._n2-y_dm(1)._n1+1) - (max(tmpx) - min(tmpx)))/2 - min(tmpx);
+  offs = ((y_dm(nm)._n2-y_dm(nm)._n1+1) - (max(tmpx) - min(tmpx)))/2 - min(tmpx);
   tmpx += offs+1;
   tmpy += offs+1;
   mask = yoga_getdm(g_dm,y_dm(nm).type,y_dm(nm).alt) * 0;
