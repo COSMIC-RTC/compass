@@ -318,7 +318,6 @@ func wfs_init(void)
       prof = prof(,2:)(,avg);
       y_wfs(cc)._altna  = &h;
       y_wfs(cc)._profna = &prof;
-      
       // init sensor gs object with necessary data
       prep_lgs_prof,cc,prof,h,y_wfs(cc).beamsize;
       //sensors_loadkernels,g_wfs,cc-1,float(*y_wfs(cc)._lgskern);
@@ -650,18 +649,30 @@ func rtc_init(clean=, brama=, doimat=)
           }
           
           if (centroiders(i).type_fct == "model") {
+	    r0 = y_atmos.r0 / ((y_wfs(nwfs).lambda/0.5)^(6./5));
+            seeing = RASC * (y_wfs(nwfs).lambda * 1.e-6) / r0;   
+            npix = seeing / y_wfs(nwfs).pixsize;
             if (y_wfs(nwfs).gsalt > 0) {
-              profilename = "allProfileNa_withAltitude_1Gaussian.fits";
+	      if (y_wfs(nwfs).proftype == "None") 
+		y_wfs(nwfs).proftype = "Gauss1";
+	      if (y_wfs(nwfs).proftype == "Gauss1")
+		profilename = "allProfileNa_withAltitude_1Gaussian.fits";
+	      if (y_wfs(nwfs).proftype == "Gauss2")
+		profilename = "allProfileNa_withAltitude_2Gaussians.fits";
+	      if (y_wfs(nwfs).proftype == "Gauss3")
+		profilename = "allProfileNa_withAltitude_3Gaussians.fits";
+	      if (y_wfs(nwfs).proftype == "Exp")
+		profilename = "allProfileNa_withAltitude.fits";
               prof=fits_read(YOGA_AO_SAVEPATH+profilename);
               h    = prof(,1);
               prof = prof(,2:)(,avg);
               make_lgs_prof1d,nwfs,prof,h,y_wfs(nwfs).beamsize,center="image";
               tmp=(*y_wfs(nwfs)._lgskern);
-              tmp2 = makegaussian(dimsof(tmp)(2),2*y_wfs(nwfs)._nrebin);
+              tmp2 = makegaussian(dimsof(tmp)(2),npix*y_wfs(nwfs)._nrebin);
               tmp3=array(float,dimsof(tmp)(2),dimsof(tmp)(2),y_wfs(nwfs)._nvalid);
               for (ii=1;ii<=y_wfs(nwfs)._nvalid;ii++) {
-                tmp3(,,ii) = roll( (fft(fft(tmp(,,ii))*(fft(tmp2)),-1) ).re);
-              }
+		tmp3(,,ii) = roll( (fft(fft(tmp(,,ii))*(fft(tmp2)),-1) ).re);
+              }	      
               offset = (y_wfs(nwfs)._Ntot-y_wfs(nwfs)._nrebin*y_wfs(nwfs).npix)/2;
               rr = offset+1 : offset + y_wfs(nwfs)._nrebin*y_wfs(nwfs).npix;
               
@@ -676,9 +687,6 @@ func rtc_init(clean=, brama=, doimat=)
                 */
             } else {
               if (centroiders(i).width(1)==0) {
-                r0 = y_atmos.r0 / ((y_wfs(nwfs).lambda/0.5)^(6./5));
-                seeing = RASC * (y_wfs(nwfs).lambda * 1.e-6) / r0;   
-                npix = seeing / y_wfs(nwfs).pixsize;
                 centroiders(i).width = npix;
               }
             }
