@@ -167,7 +167,7 @@ func ao_win_init(pid1)
 {
   extern ao_disp;
 
-  if (numberof(*ao_disp._xid)==0) ao_disp._xid = &[0,0,0,0,0,0];
+  if (numberof(*ao_disp._xid)==0) ao_disp._xid = &[0,0,0,0,0,0,0];
   (*ao_disp._xid)(1) = pid1;
   
   if (catch(0x08)) {
@@ -184,11 +184,32 @@ func ao_win_init(pid1)
   (*ao_disp._winits)(1) = 1;
 }
 
+func SR_win_init(pid1)
+{
+  extern ao_disp;
+
+  if (numberof(*ao_disp._xid)==0) ao_disp._xid = &[0,0,0,0,0,0,0];
+  (*ao_disp._xid)(7) = pid1;
+  
+  if (catch(0x08)) {
+    (*ao_disp._winits)(7) = 1;
+  }
+  
+  if (!(*ao_disp._winits)(7)) {
+    stylename = yoga_ao_top+"/gs/yoga_SR.gs";
+    window,(*ao_disp._wins)(7),dpi=75,width=500,height=100,
+      xpos=-4,ypos=-25,style=stylename,parent=pid1;
+    limits,square=1;
+  }
+
+  (*ao_disp._winits)(1) = 1;
+}
+
 func turbu_win_init(pid2)
 {
   extern ao_disp;
 
-  if (numberof(*ao_disp._xid)==0) ao_disp._xid = &[0,0,0,0,0,0];
+  if (numberof(*ao_disp._xid)==0) ao_disp._xid = &[0,0,0,0,0,0,0];
   (*ao_disp._xid)(2) = pid2;
   
   if (catch(0x08)) {
@@ -210,7 +231,7 @@ func lgs_win_init(pid3)
 {
   extern ao_disp;
 
-  if (numberof(*ao_disp._xid)==0) ao_disp._xid = &[0,0,0,0,0,0];
+  if (numberof(*ao_disp._xid)==0) ao_disp._xid = &[0,0,0,0,0,0,0];
   (*ao_disp._xid)(3) = pid3;
   
   if (catch(0x08)) {
@@ -232,7 +253,7 @@ func centro_win_init(pid4)
 {
   extern ao_disp;
   
-  if (numberof(*ao_disp._xid)==0) ao_disp._xid = &[0,0,0,0,0,0];
+  if (numberof(*ao_disp._xid)==0) ao_disp._xid = &[0,0,0,0,0,0,0];
   (*ao_disp._xid)(4) = pid4;
   
   if (catch(0x08)) {
@@ -255,7 +276,7 @@ func control_win_init(pid5)
 {
   extern ao_disp;
   
-  if (numberof(*ao_disp._xid)==0) ao_disp._xid = &[0,0,0,0,0,0];
+  if (numberof(*ao_disp._xid)==0) ao_disp._xid = &[0,0,0,0,0,0,0];
   (*ao_disp._xid)(5) = pid5;
   
   if (catch(0x08)) {
@@ -267,7 +288,7 @@ func control_win_init(pid5)
     window,(*ao_disp._wins)(5),dpi=27,width=0,height=0,xpos=-2,ypos=-25,
       style=stylename,parent=pid5;
     limits,square=1;
-    palette,"gray.gp"; 
+    //palette,"gray.gp"; 
   }
 
   (*ao_disp._winits)(5) = 1;
@@ -277,7 +298,7 @@ func target_win_init(pid6)
 {
   extern ao_disp;
   
-  if (numberof(*ao_disp._xid)==0) ao_disp._xid = &[0,0,0,0,0,0];
+  if (numberof(*ao_disp._xid)==0) ao_disp._xid = &[0,0,0,0,0,0,0];
   (*ao_disp._xid)(6) = pid6;
   
   if (catch(0x08)) {
@@ -314,7 +335,7 @@ func start_ao_loop
 
 func ao_loop(one)
 {
-  extern aoloop,aodisp_type,aodisp_num, aotimer;
+  extern aoloop,aodisp_type,aodisp_num, aotimer,aostrehl,SR_monitor;
   extern g_atmos;
   extern y_atmos;
   extern time_move;
@@ -378,9 +399,22 @@ func ao_loop(one)
     aoiter = aoiter%1000;
 
     pyk,swrite(format=ao_disp._cmd+"glade.get_widget('progressbar_wfs').set_fraction(%f)",float((aoiter%1000)/1000.));
+    if(SR_monitor && aoiter%10 == 0){
+    window,(*(ao_disp._wins))(7);
+    fma; limits,0,100,0,1;
+    aostrehl  = roll(aostrehl,[-1,0,0]);
+    }
     //mtext = swrite(format="Framerate : %.2f",1./time_move);
-    strehltmp = target_getstrehl(g_target,0);
-    mtext = swrite(format="Framerate : %.2f L.E. Strehl : %.2f, S.E. Strehl %.2f",1./aotimer(avg),strehltmp(2),strehltmp(1));
+    for(i=1;i<=y_target.ntargets;i++){
+      strehltmp = target_getstrehl(g_target,i-1);
+      if(SR_monitor && aoiter%10 == 0){
+        aostrehl(0,i,) = strehltmp(:2);
+        plg,aostrehl(,i,1),marks=0,color=-4-i;
+      }
+      pyk,swrite(format=atmos_disp._cmd+"glade.get_widget('targetSR_%d').set_text('%f')",i,strehltmp(1));
+      pyk,swrite(format=atmos_disp._cmd+"glade.get_widget('targetSR_1%d').set_text('%f')",i,strehltmp(2));
+    }
+    mtext = swrite(format="Framerate : %.2f",1./aotimer(avg));
     pyk,swrite(format=ao_disp._cmd+"glade.get_widget('progressbar_wfs').set_text('%s')",mtext);
     
     if (!one) after,0.001,ao_loop;
@@ -391,7 +425,7 @@ func init_all(zenith,teldiam,cobs,r0,freq)
 {
   extern y_atmos,y_wfs;
   extern g_wfs;
-  extern imlp,strehllp,strehlsp,airy,sairy,niterok;
+  extern imlp,strehllp,strehlsp,airy,sairy,niterok,aostrehl;
 
   if ((y_wfs == []) || (y_atmos == [])) return;
       
@@ -440,6 +474,12 @@ func init_all(zenith,teldiam,cobs,r0,freq)
   airy = roll(abs(fft(*y_geom._ipupil*exp(*y_geom._ipupil*1i*0.)))^2)/numberof(*y_geom._ipupil);
   sairy = max(airy);
   niterok=0;
+  aostrehl = array(0.f,100,y_target.ntargets,2);
+
+  for(i=1;i<=y_target.ntargets;i++){
+    pyk,swrite(format=atmos_disp._cmd+"glade.get_widget('targetSR_%d').set_visible(1)",i);
+    pyk,swrite(format=atmos_disp._cmd+"glade.get_widget('targetSR_1%d').set_visible(1)",i);
+  }
   //y_target = [];
 }
 /*
@@ -749,8 +789,8 @@ if (anyof(strmatch(arg_wfs,"widget_ao.i")) || get_env("EMACS")=="t" ) {
   write,"standalone version";
 }
 
-ao_disp._wins            = &[13,14,15,16,17,18];
-ao_disp._winits          = &[0,0,0,0,0,0];
+ao_disp._wins            = &[13,14,15,16,17,18,19];
+ao_disp._winits          = &[0,0,0,0,0,0,0];
 ao_disp._defaultdpi      = 130;    
 ao_disp._ncolors         = 200;
 ao_disp._lut             = 0;     // default LUT index [0-41]
@@ -766,9 +806,11 @@ aodisp_num  = 0;
 aoloop      = 0;
 aoiter      = 0;
 aotimer     = array(0., 100);
+aostrehl    = [];
 
 
 enable_display = 1;
+SR_monitor     = 0;
 
 atmos_disp = ao_disp;
 sky_disp = ao_disp;

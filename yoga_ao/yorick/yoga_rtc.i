@@ -199,49 +199,6 @@ func cmat_init(ncontrol,clean=,method=)
   y_rtc.controllers = &controllers;
 }
 
-
-func cmat_update(ncontrol,maxcond)
-{
-  extern y_rtc;
-  //error;
-  imat = rtc_getimat(g_rtc,ncontrol);
-
-  eigenv = controller_getdata(g_rtc,ncontrol,"eigenvals");
-  
-  (*y_rtc.controllers)(ncontrol).maxcond = maxcond;
-  if (eigenv(1) < eigenv(0)) mfilt = where((eigenv/eigenv(-2)) < 1./maxcond);
-  else mfilt = where(1./(eigenv/eigenv(3)) > maxcond);
-  //nfilt = numberof(mfilt)+2;
-  nfilt = numberof(mfilt);
-
-  write,format="nb modes filtered : %d",nfilt;
-  if ( (wfs_disp!=[]) && (numberof(*wfs_disp._winits) > 0)) {
-    if ((*wfs_disp._winits)(5)) {
-      window,(*wfs_disp._wins)(5);fma;logxy,0,1;
-      if (eigenv(1) < eigenv(0)) {
-        plg, eigenv(::-1), marks=0;
-        plmk, eigenv(::-1), msize = 0.3, marker=4;
-      } else {
-        plg, eigenv, marks=0;
-        plmk, eigenv, msize = 0.3, marker=4;
-      }
-      x0 = dimsof(imat)(3) - nfilt + 0.5;
-      pldj, x0 ,min(eigenv), x0, max(eigenv), color="red";
-    }
-  }
-  write,"building cmat";
-  tic;
-  rtc_buildcmat,g_rtc,ncontrol,nfilt;
-  write,format="cmat time %f\n",tac();
-
-  cmat = rtc_getcmat(g_rtc,ncontrol);
-  
-  controllers = *y_rtc.controllers;
-  controllers(ncontrol).cmat = &float(cmat);
-  y_rtc.controllers = &controllers;
-}
-
-
 func manual_imat(void)
 {
   slps = rtc_getcentroids(g_rtc,0, g_wfs, 0);

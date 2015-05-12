@@ -102,6 +102,11 @@ class wao:
       nconf = wdg.get_active()
       teldiam = self.glade.get_widget('teldiam').get_value()
       self.py2yo('load_default_system %d %f' % (nconf+1,teldiam))
+      
+   def on_drawingarea_SR_map(self,wdg,*args):
+      drawingarea = self.glade.get_widget('drawingarea_SR')
+      mwid7 = drawingarea.window.xid;
+      self.py2yo('SR_win_init %d' % (mwid7))
 
    ######################################################
    # Atmosphere pane
@@ -319,6 +324,10 @@ class wao:
       if (typec == 4):
          self.glade.get_widget('type_func').set_sensitive(1)
          self.glade.get_widget('label_fct').set_sensitive(1)
+
+   def on_control_plot_changed(self,wdg):
+      typec = wdg.get_active()
+      self.py2yo('update_control_plot %d 0' % typec)
   
    def on_type_func_changed(self,wdg):   
       self.glade.get_widget('choose_centro').set_sensitive(0)
@@ -575,6 +584,15 @@ class wao:
       else:
          disp = 0;
       self.py2yo('pyk_set enable_display %d' % disp)
+
+   def on_SRmonitor_toggled(self,wdg):
+      val = wdg.get_active()
+      if (val == 1):
+         disp = 1;
+      else:
+         disp = 0;
+      self.glade.get_widget('drawingarea_SR').set_visible(disp)
+      self.py2yo('pyk_set SR_monitor %d' % disp)
 
    def on_start_ao_clicked(self,wdg):
       wdg.set_sensitive(0)

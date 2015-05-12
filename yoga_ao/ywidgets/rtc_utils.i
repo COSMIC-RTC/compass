@@ -183,5 +183,119 @@ func update_control(type,maxcond,delay,gain)
   }
 }
 
+func update_control_plot(type,ncontrol)
+{
+  extern y_rtc;
+  window,(*ao_disp._wins)(5);fma;logxy,0,0;
+  if (y_rtc == []) return;
+  else {
+    if(type == 0) {// Imat eigenvalues
+      if((*y_rtc.controllers)(ncontrol).type == "mv") eigenv = rtc_getDeigenvals(g_rtc,0);
+      else eigenv = controller_getdata(g_rtc,ncontrol,"eigenvals");
+      maxcond = (*y_rtc.controllers)(ncontrol).maxcond;
+      if (eigenv(1) < eigenv(0)) mfilt = where((eigenv/eigenv(-2)) < 1./maxcond);
+      else mfilt = where(1./(eigenv/eigenv(3)) > maxcond);
+      nfilt = numberof(mfilt);
+      if ( (ao_disp!=[]) && (numberof(*ao_disp._winits) > 0)) {
+        if ((*ao_disp._winits)(5)) {
+          logxy,0,1;
+          if (eigenv(1) < eigenv(0)) {
+            plg, eigenv(::-1), marks=0;
+            plmk, eigenv(::-1), msize = 0.3, marker=4;
+          } else {
+            plg, eigenv, marks=0;
+            plmk, eigenv, msize = 0.3, marker=4;
+          }
+          x0 = numberof(eigenv) - nfilt + 0.5;
+          pldj, x0 ,min(eigenv), x0, max(eigenv), color="red";
+        }
+      }
+    } else if(type == 1) { //Cmm
+      if((*y_rtc.controllers)(ncontrol).type == "mv"){
+        maxcond = (*y_rtc.controllers)(ncontrol).maxcond;
+        Cphim = mat_cphim_gpu(0);
+        Cmm = rtc_getCmm(g_rtc,0);
+        pli,Cmm;
+        rtc_buildcmatmv,g_rtc,0,maxcond;
+        rtc_filtercmatmv,g_rtc,0,maxcond;
+      }
 
+    } else if(type == 2) { //Cmm inverse
+      if((*y_rtc.controllers)(ncontrol).type == "mv"){
+        Cmm = rtc_getCmm(g_rtc,0);
+        pli,Cmm
+      }
+    } else if(type == 3) { //Cmm eigenvalues
+      if((*y_rtc.controllers)(ncontrol).type == "mv"){
+        eigenv = rtc_getCmmeigenvals(g_rtc,0);
+        maxcond = (*y_rtc.controllers)(ncontrol).maxcond;
+        if (eigenv(1) < eigenv(0)) mfilt = where((eigenv/eigenv(-2)) < 1./maxcond);
+        else mfilt = where(1./(eigenv/eigenv(3)) > maxcond);
+        nfilt = numberof(mfilt);
+        if ( (ao_disp!=[]) && (numberof(*ao_disp._winits) > 0)) {
+          if ((*ao_disp._winits)(5)) {
+            logxy,0,1;
+            if (eigenv(1) < eigenv(0)) {
+              plg, eigenv(::-1), marks=0;
+              plmk, eigenv(::-1), msize = 0.3, marker=4;
+            } else {
+              plg, eigenv, marks=0;
+              plmk, eigenv, msize = 0.3, marker=4;
+            }
+            x0 = numberof(eigenv) - nfilt + 0.5;
+            pldj, x0 ,min(eigenv), x0, max(eigenv), color="red";
+          }
+        }
+      }
+    } else if(type == 4) { //Cphim
+      Cphim = rtc_getCphim(g_rtc,0);
+      pli,Cphim;
+    } else if(type == 5) { //cmat
+      cmat = rtc_getcmat(g_rtc,0);
+      pli,cmat;
+    }
+  }
+}
+
+func cmat_update(ncontrol,maxcond)
+{
+  extern y_rtc;
+  (*y_rtc.controllers)(ncontrol).maxcond = maxcond;
+
+  //error;
+  if((*y_rtc.controllers)(ncontrol).type == "ls"){
+    eigenv = controller_getdata(g_rtc,ncontrol,"eigenvals");
+  
+    if (eigenv(1) < eigenv(0)) mfilt = where((eigenv/eigenv(-2)) < 1./maxcond);
+    else mfilt = where(1./(eigenv/eigenv(3)) > maxcond);
+    //nfilt = numberof(mfilt)+2;
+    nfilt = numberof(mfilt);
+
+    write,format="nb modes filtered : %d",nfilt;
+    type = 0;
+    pyk,swrite(format=wfs_disp._cmd+"glade.get_widget('control_plot').set_active(%d)",type);
+    update_control_plot(type,ncontrol);
+  
+    write,"building cmat";
+    tic;
+    rtc_buildcmat,g_rtc,ncontrol,nfilt;
+    write,format="cmat time %f\n",tac();
+
+    cmat = rtc_getcmat(g_rtc,ncontrol);
+  
+    controllers = *y_rtc.controllers;
+    controllers(ncontrol).cmat = &float(cmat);
+    y_rtc.controllers = &controllers;
+  }
+  else if((*y_rtc.controllers)(ncontrol).type == "mv"){
+    Cphim = mat_cphim_gpu(ncontrol-1);
+    write,"Building cmat...";
+    rtc_buildcmatmv,g_rtc,ncontrol-1,maxcond;
+    rtc_filtercmatmv,g_rtc,ncontrol-1,maxcond;
+    write,"cmat done"
+    type = 3;
+    pyk,swrite(format=wfs_disp._cmd+"glade.get_widget('control_plot').set_active(%d)",type);
+    update_control_plot(type,ncontrol);
+  }
+}
 
