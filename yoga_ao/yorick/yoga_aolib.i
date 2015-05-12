@@ -839,6 +839,12 @@ extern rtc_buildcmatmv;
    compute the cmat for MV controller
    SEE ALSO:
  */
+extern rtc_filtercmatmv;
+/* DOCUMENT rtc_filtercmatmv
+   rtc_filtercmatmv,yoga_rtc_obj,ncontroller,cond
+   filter TT from the cmat for MV controller
+   SEE ALSO:
+ */
 extern rtc_buildcmat;
 /* DOCUMENT rtc_buildcmat
    rtc_buildcmat,yoga_rtc_obj,ncontroller,nfilt,filt_tt
@@ -889,9 +895,30 @@ extern rtc_getklbasis;
    SEE ALSO:
 */
 extern rtc_getCmm;
-/* DOCUMENT rtc_getcovmat
+/* DOCUMENT rtc_getCmm
    rtc_getCmm,yoga_rtc_obj,ncontroller
    retrieve the inverse of the covariance matrix  from a yoga_rtc_obj with MV controller
+
+   SEE ALSO:
+*/
+extern rtc_getCmmeigenvals;
+/* DOCUMENT rtc_getCmmeigenvals
+   rtc_getCmmeigenvals,yoga_rtc_obj,ncontroller
+   retrieve the eigenvalues of the Cmm from a yoga_rtc_obj with MV controller
+
+   SEE ALSO:
+*/
+extern rtc_getDeigenvals;
+/* DOCUMENT rtc_getDeigenvals
+   rtc_getDeigenvals,yoga_rtc_obj,ncontroller
+   retrieve the eigenvalues of the imat without TT from a yoga_rtc_obj with MV controller
+
+   SEE ALSO:
+*/
+extern rtc_inverseCmm;
+/* DOCUMENT rtc_inverseCmm
+   rtc_inverseCmm,yoga_rtc_obj,ncontroller,cond
+   pseudo-inverse of the Cmm in a yoga_rtc_obj with MV controller
 
    SEE ALSO:
 */

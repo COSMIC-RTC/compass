@@ -26,8 +26,8 @@ public:
   carma_obj<float> *d_Cmm;
   carma_obj<float> *d_Cphim;
   // svd computations
-  //carma_obj<float> *d_eigenvals;
-  //carma_host_obj<float> *h_eigenvals;
+  carma_host_obj<float> *h_Cmmeigenvals;
+  carma_host_obj<float> *h_eigenvals;
   //carma_obj<float> *d_U;
 
   // loop components
@@ -82,7 +82,13 @@ public:
   int
   filter_cphim(float *F, float *Nact);
   int
+  filter_cmat(float cond);
+  int
   invgen(carma_obj<float> *d_mat, float cond, int job);
+  int
+  invgen(carma_obj<float> *d_mat, carma_host_obj<float> *h_eigen, float cond);
+  int
+  invgen_cpu(carma_obj<float> *d_mat, carma_host_obj<float> *h_eigen, float cond);
  // int
  // do_statmat(float *statcov,long dim, float *xpos, float *ypos, float norm, carma_device *device);
   int

@@ -4053,8 +4053,6 @@ extern "C" {
   }
 // Florian features
   void Y_rtc_buildcmatmv(int argc) {
-//  long ntot;
-//  long dims[Y_DIMSIZE];
     rtc_struct *rhandler = (rtc_struct *) yget_obj(argc - 1, &yRTC);
     sutra_rtc *rtc_handler = (sutra_rtc *) (rhandler->sutra_rtc);
     long ncontrol = ygets_l(argc - 2);
@@ -4062,8 +4060,31 @@ extern "C" {
     carma_context *context_handle = _getCurrentContext();
     context_handle->set_activeDeviceForCpy(rhandler->device,1);
 
-    CAST(sutra_controller_mv *, controller, rtc_handler->d_control[ncontrol]);
-    controller->build_cmat(cond);
+    if (rtc_handler->d_control.at(ncontrol)->get_type().compare("mv") == 0) {
+      CAST(sutra_controller_mv *, controller, rtc_handler->d_control[ncontrol]);
+      controller->build_cmat(cond);
+    } else {
+      y_error("Controller needs to be mv\n");
+    }
+  }
+  void Y_rtc_filtercmatmv(int argc) {
+    rtc_struct *rhandler = (rtc_struct *) yget_obj(argc - 1, &yRTC);
+    sutra_rtc *rtc_handler = (sutra_rtc *) (rhandler->sutra_rtc);
+    long ncontrol = ygets_l(argc - 2);
+    float cond = ygets_f(argc - 3);
+    carma_context *context_handle = _getCurrentContext();
+    context_handle->set_activeDeviceForCpy(rhandler->device,1);
+    if (rtc_handler->d_control.at(ncontrol)->get_type().compare("mv") == 0) {
+      CAST(sutra_controller_mv *, controller, rtc_handler->d_control[ncontrol]);
+      if(controller->d_Cmm != 0L){
+	if(controller->d_Cphim->getDims()[1] < controller->nactu())
+	  controller->filter_cmat(cond);
+	else
+	  y_error("No TT to filter\n");
+      } else y_error("Cmm must be initialized\n");     
+    } else {
+      y_error("Controller needs to be mv\n");
+    }
   }
   void Y_rtc_doimatkl(int argc) {
     rtc_struct *rhandler = (rtc_struct *) yget_obj(argc - 1, &yRTC);
@@ -4286,6 +4307,46 @@ extern "C" {
     CAST(sutra_controller_mv *, controller, rtc_handler->d_control[ncontrol]);
     float *data = ypush_f((long*) controller->d_Cmm->getDims());
     controller->d_Cmm->device2host(data);
+  }
+  void Y_rtc_inverseCmm(int argc) {
+    rtc_struct *rhandler = (rtc_struct *) yget_obj(argc - 1, &yRTC);
+    sutra_rtc *rtc_handler = (sutra_rtc *) (rhandler->sutra_rtc);
+    long ncontrol = ygets_l(argc - 2);
+    float cond = ygets_f(argc - 3);
+
+    carma_context *context_handle = _getCurrentContext();
+    context_handle->set_activeDeviceForCpy(rhandler->device,1);
+
+    CAST(sutra_controller_mv *, controller, rtc_handler->d_control[ncontrol]);
+    if(controller->h_Cmmeigenvals == 0L){
+      long dims_data1[2] = {1,controller->d_Cmm->getDims()[1]};
+      controller->h_Cmmeigenvals = new carma_host_obj<float>(dims_data1,MA_PAGELOCK);
+    }
+    controller->invgen_cpu(controller->d_Cmm,controller->h_Cmmeigenvals,cond);
+  }
+  void Y_rtc_getCmmeigenvals(int argc) {
+    rtc_struct *rhandler = (rtc_struct *) yget_obj(argc - 1, &yRTC);
+    sutra_rtc *rtc_handler = (sutra_rtc *) (rhandler->sutra_rtc);
+    long ncontrol = ygets_l(argc - 2);
+
+    carma_context *context_handle = _getCurrentContext();
+    context_handle->set_activeDeviceForCpy(rhandler->device,1);
+
+    CAST(sutra_controller_mv *, controller, rtc_handler->d_control[ncontrol]);
+    float *data = ypush_f((long*) controller->h_Cmmeigenvals->getDims());
+    controller->h_Cmmeigenvals->fill_into(data);
+  }
+  void Y_rtc_getDeigenvals(int argc) {
+    rtc_struct *rhandler = (rtc_struct *) yget_obj(argc - 1, &yRTC);
+    sutra_rtc *rtc_handler = (sutra_rtc *) (rhandler->sutra_rtc);
+    long ncontrol = ygets_l(argc - 2);
+
+    carma_context *context_handle = _getCurrentContext();
+    context_handle->set_activeDeviceForCpy(rhandler->device,1);
+
+    CAST(sutra_controller_mv *, controller, rtc_handler->d_control[ncontrol]);
+    float *data = ypush_f((long*) controller->h_eigenvals->getDims());
+    controller->h_eigenvals->fill_into(data);
   }
   void Y_rtc_getCphim(int argc) {
     rtc_struct *rhandler = (rtc_struct *) yget_obj(argc - 1, &yRTC);

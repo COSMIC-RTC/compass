@@ -618,11 +618,11 @@ func rtc_init(clean=, brama=, doimat=)
             s_offset = (y_wfs(centroiders(i).nwfs).npix/2.+0.5);
           } else {
             if (centroiders(i).type_fct == "model") {
-              if (y_wfs(nwfs).npix %2 == 0) {
+              if (y_wfs(nwfs).npix % 2 == 0) {
                 s_offset = (y_wfs(centroiders(i).nwfs).npix/2.+0.5);
               }
               else {
-                s_offset = (y_wfs(centroiders(i).nwfs).npix/2.+0.5);
+                s_offset = (y_wfs(centroiders(i).nwfs).npix/2/*+0.5*/);
               }
             } else {
               s_offset = (y_wfs(centroiders(i).nwfs).npix/2.+0.5);
@@ -716,7 +716,7 @@ func rtc_init(clean=, brama=, doimat=)
           if (centroiders(i).type == "corr") {
             aa = array(0.0f,2*y_wfs(nwfs).npix,2*y_wfs(nwfs).npix);
             aa(1:y_wfs(nwfs).npix,1:y_wfs(nwfs).npix) = 1.0;
-            corrnorm = float(roll(fft(abs(fft(aa))^2,-1).re)*0.+1.0f)(2:,2:);//;
+            corrnorm = float(roll(fft(abs(fft(aa))^2,-1).re)*0+1.0f)(2:,2:);
             centroiders(i).sizex = 3;
             centroiders(i).sizey = 3;
             centroiders(i).interpmat = &float(create_interp_mat(centroiders(i).sizex,centroiders(i).sizey));
