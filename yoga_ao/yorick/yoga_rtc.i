@@ -189,7 +189,8 @@ func cmat_init(ncontrol,clean=,method=)
     rtc_loadnoisemat,g_rtc,ncontrol-1,N;
     write,"Building cmat...";
     rtc_buildcmatmv,g_rtc,ncontrol-1,y_controllers(ncontrol-1).maxcond;
-    rtc_filtercmatmv,g_rtc,ncontrol-1,y_controllers(ncontrol-1).maxcond;
+    if(y_controllers(ncontrol-1).TTcond == 0) y_controllers(ncontrol-1).TTcond = y_controllers(ncontrol-1).maxcond;
+    rtc_filtercmatmv,g_rtc,ncontrol-1,y_controllers(ncontrol-1).TTcond;
   }
 
   cmat = rtc_getcmat(g_rtc,ncontrol-1);

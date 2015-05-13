@@ -386,6 +386,10 @@ class wao:
       maxcond = self.glade.get_widget('maxcond').get_value()
       self.py2yo('cmat_update %d %f' % (control,maxcond))
 
+   def on_spydrit_clicked(self,wdg):
+      typec = self.glade.get_widget('control_plot').get_active()
+      self.py2yo('spydr_control_plot %d 0' % typec)
+
    def y_update_control(self,dummy):
       self.py2yo('update_control_prop')
 
@@ -402,12 +406,34 @@ class wao:
       if (typec == "lqg"):
          self.glade.get_widget('type_control').set_active(3)
       self.glade.get_widget('maxcond').set_value(maxcond)
+      self.glade.get_widget('TTcond').set_value(maxcond)
       self.glade.get_widget('delay').set_value(delay)
       self.glade.get_widget('loop_gain').set_value(gain)
 
    def on_default_control_changed(self,wdg):
       type_control = wdg.get_active_text()
+      
+      if (type_control == "MV"):
+         self.glade.get_widget('label68').set_visible(1)
+         self.glade.get_widget('TTcond').set_visible(1)
+         self.glade.get_widget('filterTT').set_visible(1)
+      else:
+         self.glade.get_widget('label68').set_visible(0)
+         self.glade.get_widget('TTcond').set_visible(0)
+         self.glade.get_widget('filterTT').set_visible(0)
+         
       self.py2yo('load_default_control "%s"' % (type_control))
+
+   def on_type_control_changed(self,wdg):
+      type_control = wdg.get_active_text()
+      if (type_control == "MV"):
+         self.glade.get_widget('label68').set_visible(1)
+         self.glade.get_widget('TTcond').set_visible(1)
+         self.glade.get_widget('filterTT').set_visible(1)
+      else:
+         self.glade.get_widget('label68').set_visible(0)
+         self.glade.get_widget('TTcond').set_visible(0)
+         self.glade.get_widget('filterTT').set_visible(0)
 
    def on_set_control_clicked(self,wdg):
       control = self.glade.get_widget('type_control').get_active()
@@ -415,6 +441,10 @@ class wao:
       delay   = self.glade.get_widget('delay').get_value()
       gain    = self.glade.get_widget('loop_gain').get_value()
       self.py2yo('init_control_prop %d %f %f %f' % (control+1,maxcond,delay,gain))
+
+   def on_filterTT_clicked(self,wdg):
+      maxcond = self.glade.get_widget('TTcond').get_value()
+      self.py2yo('cmat_filterTT %f' % maxcond)
 
    def on_cmat_up_clicked(self,wdg):
       control = self.glade.get_widget('type_control').get_active()

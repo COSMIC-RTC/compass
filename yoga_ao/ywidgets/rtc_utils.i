@@ -92,8 +92,6 @@ func update_control_prop(void)
   }
 }
 
-
-
 func init_control_prop(type,maxcond,delay,gain)
 {
   extern y_rtc;
@@ -153,7 +151,6 @@ func load_default_control(type)
   update_control_prop;
 }
 
-
 func update_control(type,maxcond,delay,gain)
 {
   extern y_rtc;
@@ -183,16 +180,27 @@ func update_control(type,maxcond,delay,gain)
   }
 }
 
-func update_control_plot(type,ncontrol)
+func spydr_control_plot(type,ncontrol) {
+  
+  update_control_plot(type,ncontrol,onspydr=1);
+  
+}
+
+func update_control_plot(type,ncontrol,onspydr=)
 {
   extern y_rtc;
   window,(*ao_disp._wins)(5);fma;logxy,0,0;
   if (y_rtc == []) return;
   else {
     if(type == 0) {// Imat eigenvalues
-      if((*y_rtc.controllers)(ncontrol).type == "mv") eigenv = rtc_getDeigenvals(g_rtc,0);
-      else eigenv = controller_getdata(g_rtc,ncontrol,"eigenvals");
-      maxcond = (*y_rtc.controllers)(ncontrol).maxcond;
+      if((*y_rtc.controllers)(ncontrol).type == "mv") {
+        eigenv = rtc_getDeigenvals(g_rtc,0);
+        maxcond = (*y_rtc.controllers)(ncontrol).TTcond;
+      }
+      else {
+        eigenv = controller_getdata(g_rtc,ncontrol,"eigenvals");
+        maxcond = (*y_rtc.controllers)(ncontrol).maxcond;
+      }
       if (eigenv(1) < eigenv(0)) mfilt = where((eigenv/eigenv(-2)) < 1./maxcond);
       else mfilt = where(1./(eigenv/eigenv(3)) > maxcond);
       nfilt = numberof(mfilt);
@@ -216,6 +224,8 @@ func update_control_plot(type,ncontrol)
         Cphim = mat_cphim_gpu(0);
         Cmm = rtc_getCmm(g_rtc,0);
         pli,Cmm;
+        if(onspydr)
+          spydr,Cmm;
         rtc_buildcmatmv,g_rtc,0,maxcond;
         rtc_filtercmatmv,g_rtc,0,maxcond;
       }
@@ -224,6 +234,8 @@ func update_control_plot(type,ncontrol)
       if((*y_rtc.controllers)(ncontrol).type == "mv"){
         Cmm = rtc_getCmm(g_rtc,0);
         pli,Cmm
+        if(onspydr)
+          spydr,Cmm;
       }
     } else if(type == 3) { //Cmm eigenvalues
       if((*y_rtc.controllers)(ncontrol).type == "mv"){
@@ -250,9 +262,18 @@ func update_control_plot(type,ncontrol)
     } else if(type == 4) { //Cphim
       Cphim = rtc_getCphim(g_rtc,0);
       pli,Cphim;
+      if(onspydr)
+        spydr,Cphim;
     } else if(type == 5) { //cmat
       cmat = rtc_getcmat(g_rtc,0);
       pli,cmat;
+      if(onspydr)
+        spydr,cmat;
+    } else if(type == 6) { //imat
+      imat = rtc_getimat(g_rtc,0);
+      pli,imat;
+      if(onspydr)
+        spydr,imat;
     }
   }
 }
@@ -291,7 +312,7 @@ func cmat_update(ncontrol,maxcond)
     Cphim = mat_cphim_gpu(ncontrol-1);
     write,"Building cmat...";
     rtc_buildcmatmv,g_rtc,ncontrol-1,maxcond;
-    rtc_filtercmatmv,g_rtc,ncontrol-1,maxcond;
+    //rtc_filtercmatmv,g_rtc,ncontrol-1,maxcond;
     write,"cmat done"
     type = 3;
     pyk,swrite(format=wfs_disp._cmd+"glade.get_widget('control_plot').set_active(%d)",type);
@@ -299,3 +320,8 @@ func cmat_update(ncontrol,maxcond)
   }
 }
 
+func cmat_filterTT(maxcond) {
+  (*y_rtc.controllers)(ncontrol).TTcond = maxcond;
+  rtc_filtercmatmv,g_rtc,0,maxcond;
+  update_control_plot(0,1);
+}
