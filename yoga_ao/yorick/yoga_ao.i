@@ -649,7 +649,7 @@ func rtc_init(clean=, brama=, doimat=)
           }
           
           if (centroiders(i).type_fct == "model") {
-	    r0 = y_atmos.r0 / ((y_wfs(nwfs).lambda/0.5)^(6./5));
+	    r0 = get_r0(y_atmos.r0,0.5,y_wfs(nwfs).lambda);
             seeing = RASC * (y_wfs(nwfs).lambda * 1.e-6) / r0;   
             npix = seeing / y_wfs(nwfs).pixsize;
             if (y_wfs(nwfs).gsalt > 0) {

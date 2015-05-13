@@ -287,7 +287,7 @@ func control_win_init(pid5)
     stylename = yoga_ao_top+"/gs/yoga_ao.gs"; 
     window,(*ao_disp._wins)(5),dpi=27,width=0,height=0,xpos=-2,ypos=-25,
       style=stylename,parent=pid5;
-    limits,square=1;
+    limits,square=0;
     //palette,"gray.gp"; 
   }
 
