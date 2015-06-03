@@ -91,16 +91,16 @@ int carma_syevd_gen(magma_vec_t jobz, magma_int_t N, magma_int_t ldda, T *d_mat,
   liwork = aux_iwork[0];
   magma_malloc_cpu((void**) &iwork, (liwork) * sizeof(magma_int_t));
 
-  cudaMallocHost((void**) &h_R, (N * lda) * sizeof(T));
-  cudaMallocHost((void**) &h_work, (lwork) * sizeof(T));
+  magma_malloc_pinned((void**) &h_R, (N * lda) * sizeof(T));
+  magma_malloc_pinned((void**) &h_work, (lwork) * sizeof(T));
 
   CHECK_MAGMA(
       ptr_syevd_gpu(jobz, magma_uplo_const('L'), N, d_mat, ldda, h_eigenvals,
                     h_R, lda, h_work, lwork, iwork, liwork, &info),
       info);
 
-  cudaFreeHost(h_R);
-  cudaFreeHost(h_work);
+  magma_free_pinned(h_R);
+  magma_free_pinned(h_work);
   magma_free_cpu(iwork);
 
   return EXIT_SUCCESS;
@@ -114,7 +114,7 @@ template<class T, magma_int_t (*ptr_syevd_m)(magma_int_t nrgpu,
                                              magma_int_t *iwork,
                                              magma_int_t liwork,
                                              magma_int_t *info)>
-int carma_syevd_m_gen(magma_int_t ngpu, magma_uplo_t jobz, magma_int_t N,
+int carma_syevd_m_gen(magma_int_t ngpu, magma_vec_t jobz, magma_int_t N,
                       T *mat, T *eigenvals) {
   magma_int_t *iwork;
   magma_int_t info = 0, lwork, liwork, lda = N, aux_iwork[1];
@@ -123,7 +123,7 @@ int carma_syevd_m_gen(magma_int_t ngpu, magma_uplo_t jobz, magma_int_t N,
 
   /* Query for workspace sizes */
   CHECK_MAGMA(
-      ptr_syevd_m(ngpu, magma_vec_const(jobz), magma_uplo_const('L'), N, NULL, lda, NULL, aux_work, -1, aux_iwork, -1, &info),
+      ptr_syevd_m(ngpu, jobz, magma_uplo_const('L'), N, NULL, lda, NULL, aux_work, -1, aux_iwork, -1, &info),
       info);
 
   //fprintf(stderr, "%s@%d : I'm here\n", __FILE__, __LINE__);
@@ -131,16 +131,16 @@ int carma_syevd_m_gen(magma_int_t ngpu, magma_uplo_t jobz, magma_int_t N,
   liwork = aux_iwork[0];
 
   magma_malloc_cpu((void**) &iwork, (liwork) * sizeof(magma_int_t));
-  //cudaMallocHost((void**) &h_R, (N * lda) * sizeof(T));
-  cudaMallocHost((void**) &h_work, (lwork) * sizeof(T));
+  //magma_malloc_pinned((void**) &h_R, (N * lda) * sizeof(T));
+  magma_malloc_pinned((void**) &h_work, (lwork) * sizeof(T));
 
   CHECK_MAGMA(
-      ptr_syevd_m(ngpu, magma_vec_const(jobz), magma_uplo_const('L'), N, mat,
+      ptr_syevd_m(ngpu, jobz, magma_uplo_const('L'), N, mat,
                   lda, eigenvals, h_work, lwork, iwork, liwork, &info),
       info);
 
-  //cudaFreeHost(h_R);
-  cudaFreeHost(h_work);
+  //magma_free_pinned(h_R);
+  magma_free_pinned(h_work);
   magma_free_cpu(iwork);
 
   return EXIT_SUCCESS;
@@ -535,14 +535,14 @@ int carma_syevd_m<float>(long ngpu, char jobz, long N, float *mat,
                          float *eigenvals) {
   TEST_USE_MAGMA(
       magma_int_t N_=N; return carma_syevd_m_gen<float,
-      magma_ssyevd_m>(ngpu, magma_uplo_const(jobz), N_, mat, eigenvals));
+      magma_ssyevd_m>(ngpu, magma_vec_const(jobz), N_, mat, eigenvals));
 }
 template<>
 int carma_syevd_m<double>(long ngpu, char jobz, long N, double *mat,
                           double *eigenvals) {
   TEST_USE_MAGMA(
       magma_int_t N_=N; return carma_syevd_m_gen<double,
-      magma_dsyevd_m>(ngpu, magma_uplo_const(jobz), N_, mat, eigenvals));
+      magma_dsyevd_m>(ngpu, magma_vec_const(jobz), N_, mat, eigenvals));
 }
 
 template<>
@@ -555,7 +555,7 @@ int carma_syevd_m<float>(long ngpu, char jobz, carma_host_obj<float> *mat,
   }
   TEST_USE_MAGMA(
       return carma_syevd_m_gen<float,
-      magma_ssyevd_m>(ngpu, magma_uplo_const(jobz), N, *mat, *eigenvals));
+      magma_ssyevd_m>(ngpu, magma_vec_const(jobz), N, *mat, *eigenvals));
 }
 template<>
 int carma_syevd_m<double>(long ngpu, char jobz, carma_host_obj<double> *mat,
@@ -567,7 +567,7 @@ int carma_syevd_m<double>(long ngpu, char jobz, carma_host_obj<double> *mat,
   }
   TEST_USE_MAGMA(
       return carma_syevd_m_gen<double,
-      magma_dsyevd_m>(magma_int_t(ngpu), magma_uplo_const(jobz), N, *mat, *eigenvals));
+      magma_dsyevd_m>(magma_int_t(ngpu), magma_vec_const(jobz), N, *mat, *eigenvals));
 }
 
 template<>
@@ -579,7 +579,7 @@ int carma_syevd_m<float>(long ngpu, char jobz, carma_host_obj<float> *mat,
       magma_int_t N = mat->getDims(1); if (N != mat->getDims(2)) { cerr << "Matrix must be symmetric\n"; return EXIT_FAILURE; }
 
       magma_int_t lda = N; lapackf77_slacpy(MagmaUpperLowerStr, &N, &N, *mat, &lda, *U, &lda);
-      return carma_syevd_m_gen<float, magma_ssyevd_m>(ngpu, magma_uplo_const(jobz), N, *U, *eigenvals));
+      return carma_syevd_m_gen<float, magma_ssyevd_m>(ngpu, magma_vec_const(jobz), N, *U, *eigenvals));
 }
 template<>
 int carma_syevd_m<double>(long ngpu, char jobz, carma_host_obj<double> *mat,
@@ -589,7 +589,7 @@ int carma_syevd_m<double>(long ngpu, char jobz, carma_host_obj<double> *mat,
       /* Initialize the matrix */
       magma_int_t N = mat->getDims(1); if (N != mat->getDims(2)) { cerr << "Matrix must be symmetric\n"; return EXIT_FAILURE; }
       magma_int_t lda = N; lapackf77_dlacpy(MagmaUpperLowerStr, &N, &N, *mat, &lda, *U, &lda);
-      return carma_syevd_m_gen<double,magma_dsyevd_m>(ngpu, magma_uplo_const(jobz), N, *U, *eigenvals));
+      return carma_syevd_m_gen<double,magma_dsyevd_m>(ngpu, magma_vec_const(jobz), N, *U, *eigenvals));
 }
 
 template<>

@@ -362,7 +362,7 @@ void context_print(void *obj)
 
     cout << ((idx == activeDevice) ? "<U>" : "   ") << setw(3) << idx
         << " | " << setw(4+len-name.length()) << name << " | " << mem << " | " << setw(5)
-        << context->get_device(idx)->get_sm_per_multiproc() * context->get_device(idx)->get_properties().multiProcessorCount <<
+        << context->get_device(idx)->get_cores_per_sm() * context->get_device(idx)->get_properties().multiProcessorCount <<
       (context->get_device(idx)->get_properties().multiProcessorCount<10?"  (":" (") <<
       context->get_device(idx)->get_properties().multiProcessorCount << ")"
       << " | " << setw(5)
@@ -567,7 +567,7 @@ void _yogaDeviceReset()
  */
 {
 //  cerr << "Shutting down : " ;
-  carmaSafeCall(cudaDeviceReset());
+//  carmaSafeCall(cudaDeviceReset());
 //  cerr << "OK " << __LINE__ << endl;
 }
 
@@ -5013,6 +5013,108 @@ void Y_yoga_svd(int argc)
     }
   } else {
     y_error("yoga_svd must be call as a subroutine");
+  }
+}
+
+void Y_yoga_syevd_host(int argc)
+/** @brief wrapper routine for yoga evd method using magma
+ *  @param[in] argc : command line arguments
+ *    - first  : the yoga_host_obj to be decomposed (must be symmetric)
+ *    - second : an array for eignevalues
+ *    - third  : a yoga_host_obj for the U matrix (optional)
+ *  only floating point matrices can be decomposed (single or double precision)
+ */
+{
+  const char NKEYS = 1;
+  static char *syevd_knames[NKEYS + 1] = { const_cast<char*>("noComputeU") };
+  static long syevd_kglobs[NKEYS + 1] = { 0, -1 };
+  int kiargs[NKEYS];
+  yarg_kw_init(syevd_knames, syevd_kglobs, kiargs);
+  int iarg = argc - 1;
+  while (iarg >= 0) {
+    iarg = yarg_kw(iarg, syevd_kglobs, kiargs) - 1;
+  }
+
+  char jobz = 'V';
+  int nbarg = argc;
+  if (kiargs[0] >= 0) {
+    //printf("\nnoComputeU=%ld\n", ygets_l(kiargs[0]));
+    if (ygets_l(kiargs[0]) == 1)
+      jobz = 'N';
+    nbarg -= 2;
+  }
+  long N;
+
+  if (yarg_subroutine()) {
+    int yType = yarg_typeid(argc - 1);
+    if (yType == Y_OPAQUE) {
+      yHostObj_struct *handle_mat = (yHostObj_struct *) yget_obj(argc - 1, &yHostObj);
+      long dims[Y_DIMSIZE];
+
+      void *eigenvals = ygeta_any(argc - 2, &N, dims, &yType);
+
+      if (nbarg == 2) {
+        if (handle_mat->type == Y_FLOAT) {
+          carma_host_obj<float> *carma_obj_handler_mat = (carma_host_obj<float> *) (handle_mat->carma_host_object);
+          carma_syevd_cpu<float>(jobz, N, *carma_obj_handler_mat,
+              (float*) eigenvals);
+        } else if (handle_mat->type == Y_DOUBLE) {
+          carma_host_obj<double> *carma_obj_handler_mat = (carma_host_obj<double> *) (handle_mat->carma_host_object);
+          carma_syevd_cpu<double>(jobz, N, *carma_obj_handler_mat,
+              (double*) eigenvals);
+        } else {
+          y_error("carma_syevd_cpu not implemented for this type");
+        }
+      } else if (nbarg == 3) {
+        yHostObj_struct *handle_U = (yHostObj_struct *) yget_obj(argc - 3, &yObj);
+        if (handle_mat->type == Y_FLOAT) {
+          carma_host_obj<float> *carma_obj_handler_mat = (carma_host_obj<float> *) (handle_mat->carma_host_object);
+          carma_host_obj<float> *carma_obj_handler_U = (carma_host_obj<float> *) (handle_U->carma_host_object);
+          carma_obj_handler_U->fill_from(*carma_obj_handler_mat);
+          carma_syevd_cpu<float>(jobz, N, *carma_obj_handler_U, (float*) eigenvals);
+        } else if (handle_mat->type == Y_DOUBLE) {
+          carma_host_obj<double> *carma_obj_handler_mat = (carma_host_obj<double> *) (handle_mat->carma_host_object);
+          carma_host_obj<double> *carma_obj_handler_U = (carma_host_obj<double> *) (handle_U->carma_host_object);
+          carma_obj_handler_U->fill_from(*carma_obj_handler_mat);
+          carma_syevd_cpu<double>(jobz, N, *carma_obj_handler_U,
+              (double*) eigenvals);
+        } else {
+          y_error("carma_syevd_cpu not implemented for this type");
+        }
+      } else {
+        y_error("wrong number of arguments");
+      }
+    } else {
+      long ntot;
+      long dims[Y_DIMSIZE];
+
+      void *h_mat = ygeta_any(argc - 1, &ntot, dims, &yType);
+      void *eigenvals = ygeta_any(argc - 2, &N, dims, &yType);
+
+      if (nbarg == 2) {
+        if (yType == Y_FLOAT) {
+          carma_syevd_cpu<float>(jobz, N, (float*) h_mat, (float*) eigenvals);
+        } else if (yType == Y_DOUBLE) {
+          carma_syevd_cpu<double>(jobz, N, (double*) h_mat,
+              (double*) eigenvals);
+        } else {
+          y_error("carma_syevd_cpu not implemented for this type");
+        }
+      } else if (nbarg == 3) {
+        void *h_U = ygeta_any(argc - 3, &ntot, dims, &yType);
+        if (yType == Y_FLOAT) {
+          memcpy(h_U, h_mat, ntot * sizeof(float));
+          carma_syevd_cpu<float>(jobz, N, (float*) h_U, (float*) eigenvals);
+        } else if (yType == Y_DOUBLE) {
+          memcpy(h_U, h_mat, ntot * sizeof(double));
+          carma_syevd_cpu<double>(jobz, N, (double*) h_U, (double*) eigenvals);
+        } else {
+          y_error("carma_syevd_cpu not implemented for this type");
+        }
+      }
+    }
+  } else {
+    y_error("yoga_syevd_cpu must be call as a subroutine");
   }
 }
 

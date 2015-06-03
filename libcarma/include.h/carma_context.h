@@ -34,7 +34,7 @@ protected:
   int id;
   cudaDeviceProp properties;
   float compute_perf;
-  float sm_per_multiproc;
+  float cores_per_sm;
   bool p2p_activate;
   size_t freeMem;
   size_t totalMem;
@@ -56,8 +56,8 @@ public:
   float get_compute_perf() {
     return compute_perf;
   }
-  float get_sm_per_multiproc() {
-    return sm_per_multiproc;
+  float get_cores_per_sm() {
+    return cores_per_sm;
   }
   bool isGPUCapableP2P() {
     return (bool) (properties.major >= 2);
@@ -169,6 +169,7 @@ inline int ConvertSMVer2Cores(int major, int minor) {
       { 0x35, 192 }, // Kepler Generation (SM 3.5) GK11x class
       { 0x37, 192}, // Kepler Generation (SM 3.7) GK21x class
       { 0x50, 128}, // Maxwell Generation (SM 5.0) GM10x class
+      { 0x52, 128}, // Maxwell Generation (SM 5.2) GM20x class
       { -1, -1 } };
 
   int index = 0;

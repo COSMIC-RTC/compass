@@ -38,15 +38,8 @@ int fillcamplipup(cuFloatComplex *amplipup, float *phase, float *offset,
 // mask is an array of size pupdiam x pupdiam
 // number of thread required : pdiam x pdiam x nsubap
     {
-  int maxThreads = device->get_properties().maxThreadsPerBlock;
-  int nBlocks = device->get_properties().multiProcessorCount * 8;
-  int nThreads = (Ntot + nBlocks - 1) / nBlocks;
-
-  if (nThreads > maxThreads) {
-    nThreads = maxThreads;
-    nBlocks = (Ntot + nThreads - 1) / nThreads;
-  }
-
+  int nBlocks,nThreads;
+  getNumBlocksAndThreads(device, Ntot, nBlocks, nThreads);
   dim3 grid(nBlocks), threads(nThreads);
   /*
    int nthreads = 0,nblocks = 0;
@@ -806,17 +799,8 @@ template<class Tout, class Tin>
 void pyr_getpup(Tout *d_odata, Tin *d_idata, Tout *d_offsets, Tin *d_pup,
     int np, carma_device *device) {
 
-  int N = np * np / 2;
-
-  int maxThreads = device->get_properties().maxThreadsPerBlock;
-  int nBlocks = device->get_properties().multiProcessorCount * 8;
-  int nThreads = (N + nBlocks - 1) / nBlocks;
-
-  if (nThreads > maxThreads) {
-    nThreads = maxThreads;
-    nBlocks = (N + nThreads - 1) / nThreads;
-  }
-
+  int nBlocks,nThreads;
+  getNumBlocksAndThreads(device, np * np / 2, nBlocks, nThreads);
   dim3 grid(nBlocks), threads(nThreads);
 
   int smemSize = 2 * nThreads * sizeof(Tout);
@@ -903,17 +887,9 @@ __global__ void rollmod_krnl(T *g_odata, T *g_idata, T *g_mask, int cx, int cy,
 template<class T>
 void pyr_rollmod(T *d_odata, T *d_idata, T *d_mask, float cx, float cy, int np,
     int ns, carma_device *device) {
-  int N = ns * ns * 4;
 
-  int maxThreads = device->get_properties().maxThreadsPerBlock;
-  int nBlocks = device->get_properties().multiProcessorCount * 8;
-  int nThreads = (N + nBlocks - 1) / nBlocks;
-
-  if (nThreads > maxThreads) {
-    nThreads = maxThreads;
-    nBlocks = (N + nThreads - 1) / nThreads;
-  }
-
+  int nBlocks,nThreads;
+  getNumBlocksAndThreads(device, ns * ns * 4, nBlocks, nThreads);
   dim3 grid(nBlocks), threads(nThreads);
 
   rollmod_krnl<T> <<<grid, threads>>>(d_odata, d_idata, d_mask, cx, cy, np,
@@ -1004,17 +980,8 @@ template<class T>
 void roof_rollmod(T *d_odata, T *d_idata, T *d_mask, float cx, float cy, int np,
     int ns, carma_device *device) {
 
-  int N = ns * ns * 4;
-
-  int maxThreads = device->get_properties().maxThreadsPerBlock;
-  int nBlocks = device->get_properties().multiProcessorCount * 8;
-  int nThreads = (N + nBlocks - 1) / nBlocks;
-
-  if (nThreads > maxThreads) {
-    nThreads = maxThreads;
-    nBlocks = (N + nThreads - 1) / nThreads;
-  }
-
+  int nBlocks,nThreads;
+  getNumBlocksAndThreads(device, ns * ns * 4, nBlocks, nThreads);
   dim3 grid(nBlocks), threads(nThreads);
 
   roof_rollmod_krnl<T> <<<grid, threads>>>(d_odata, d_idata, d_mask, cx, cy, np,
@@ -1074,17 +1041,8 @@ __global__ void fillbinpyr_krnl(T *g_odata, T *g_idata, unsigned int nrebin,
 template<class T>
 void pyr_fillbin(T *d_odata, T *d_idata, int nrebin, int np, int ns, int nim,
     carma_device *device) {
-  int N = ns * ns * nim;
-
-  int maxThreads = device->get_properties().maxThreadsPerBlock;
-  int nBlocks = device->get_properties().multiProcessorCount * 8;
-  int nThreads = (N + nBlocks - 1) / nBlocks;
-
-  if (nThreads > maxThreads) {
-    nThreads = maxThreads;
-    nBlocks = (N + nThreads - 1) / nThreads;
-  }
-
+  int nBlocks,nThreads;
+  getNumBlocksAndThreads(device, ns * ns * nim, nBlocks, nThreads);
   dim3 grid(nBlocks), threads(nThreads);
 
   int smemSize = nThreads * sizeof(T);
@@ -1148,18 +1106,8 @@ __global__ void fillbinroof_krnl(T *g_odata, T *g_idata, unsigned int nrebin,
 template<class T>
 void roof_fillbin(T *d_odata, T *d_idata, int nrebin, int np, int ns, int nim,
     carma_device *device) {
-
-  int N = ns * ns * nim;
-
-  int maxThreads = device->get_properties().maxThreadsPerBlock;
-  int nBlocks = device->get_properties().multiProcessorCount * 8;
-  int nThreads = (N + nBlocks - 1) / nBlocks;
-
-  if (nThreads > maxThreads) {
-    nThreads = maxThreads;
-    nBlocks = (N + nThreads - 1) / nThreads;
-  }
-
+  int nBlocks,nThreads;
+  getNumBlocksAndThreads(device, ns * ns * nim, nBlocks, nThreads);
   dim3 grid(nBlocks), threads(nThreads);
 
   int smemSize = nThreads * sizeof(T);
@@ -1207,17 +1155,8 @@ __global__ void abspyr_krnl(Tout *g_odata, Tin *g_idata, unsigned int ns,
 template<class Tout, class Tin>
 void pyr_abs(Tout *d_odata, Tin *d_idata, int ns, int nim, carma_device *device) {
 
-  int N = ns * ns / 2;
-
-  int maxThreads = device->get_properties().maxThreadsPerBlock;
-  int nBlocks = device->get_properties().multiProcessorCount * 8;
-  int nThreads = (N + nBlocks - 1) / nBlocks;
-
-  if (nThreads > maxThreads) {
-    nThreads = maxThreads;
-    nBlocks = (N + nThreads - 1) / nThreads;
-  }
-
+  int nBlocks,nThreads;
+  getNumBlocksAndThreads(device, ns * ns / 2, nBlocks, nThreads);
   dim3 grid(nBlocks), threads(nThreads);
 
   abspyr_krnl<Tout, Tin> <<<grid, threads>>>(d_odata, d_idata, ns, nim);
@@ -1261,18 +1200,8 @@ __global__ void abs2pyr_krnl(Tout *g_odata, Tin *g_idata, Tout fact,
 template<class Tin, class Tout>
 void pyr_abs2(Tout *d_odata, Tin *d_idata, Tout fact, int ns, int nim,
     carma_device *device) {
-
-  int N = ns * ns / 2;
-
-  int maxThreads = device->get_properties().maxThreadsPerBlock;
-  int nBlocks = device->get_properties().multiProcessorCount * 8;
-  int nThreads = (N + nBlocks - 1) / nBlocks;
-
-  if (nThreads > maxThreads) {
-    nThreads = maxThreads;
-    nBlocks = (N + nThreads - 1) / nThreads;
-  }
-
+  int nBlocks,nThreads;
+  getNumBlocksAndThreads(device, ns * ns / 2, nBlocks, nThreads);
   dim3 grid(nBlocks), threads(nThreads);
 
   abs2pyr_krnl<Tin, Tout> <<<grid, threads>>>(d_odata, d_idata, fact, ns,
@@ -1326,17 +1255,8 @@ template<class Tin, class Tout>
 void roof_abs2(Tout *d_odata, Tin *d_idata, Tout fact, int ns, int nim,
     carma_device *device) {
 
-  int N = ns * ns / 2;
-
-  int maxThreads = device->get_properties().maxThreadsPerBlock;
-  int nBlocks = device->get_properties().multiProcessorCount * 8;
-  int nThreads = (N + nBlocks - 1) / nBlocks;
-
-  if (nThreads > maxThreads) {
-    nThreads = maxThreads;
-    nBlocks = (N + nThreads - 1) / nThreads;
-  }
-
+  int nBlocks,nThreads;
+  getNumBlocksAndThreads(device, ns * ns / 2, nBlocks, nThreads);
   dim3 grid(nBlocks), threads(nThreads);
 
   abs2roof_krnl<Tin, Tout> <<<grid, threads>>>(d_odata, d_idata, fact, ns,
@@ -1368,18 +1288,8 @@ __global__ void submask_krnl(Tout *g_odata, Tin *g_mask, unsigned int n) {
 
 template<class Tout, class Tin>
 void pyr_submask(Tout *d_odata, Tin *d_mask, int n, carma_device *device) {
-
-  int N = n * n;
-
-  int maxThreads = device->get_properties().maxThreadsPerBlock;
-  int nBlocks = device->get_properties().multiProcessorCount * 8;
-  int nThreads = (N + nBlocks - 1) / nBlocks;
-
-  if (nThreads > maxThreads) {
-    nThreads = maxThreads;
-    nBlocks = (N + nThreads - 1) / nThreads;
-  }
-
+  int nBlocks,nThreads;
+  getNumBlocksAndThreads(device, n * n, nBlocks, nThreads);
   dim3 grid(nBlocks), threads(nThreads);
 
   submask_krnl<Tout, Tin> <<<grid, threads>>>(d_odata, d_mask, n);
@@ -1409,17 +1319,8 @@ __global__ void submask3d_krnl(Tout *g_odata, Tin *g_mask, unsigned int n,
 template<class Tout, class Tin>
 void pyr_submask3d(Tout *d_odata, Tin *d_mask, int n, int nim, carma_device *device) {
 
-  int N = n * n;
-
-  int maxThreads = device->get_properties().maxThreadsPerBlock;
-  int nBlocks = device->get_properties().multiProcessorCount * 8;
-  int nThreads = (N + nBlocks - 1) / nBlocks;
-
-  if (nThreads > maxThreads) {
-    nThreads = maxThreads;
-    nBlocks = (N + nThreads - 1) / nThreads;
-  }
-
+  int nBlocks,nThreads;
+  getNumBlocksAndThreads(device, n*n, nBlocks, nThreads);
   dim3 grid(nBlocks), threads(nThreads);
 
   submask3d_krnl<Tout, Tin> <<<grid, threads>>>(d_odata, d_mask, n, nim);
@@ -1451,17 +1352,8 @@ template<class T>
 void pyr_subsum(T *d_odata, T *d_idata, int *subindx, int *subindy, int ns,
     int nvalid, int nim, carma_device *device) {
 
-  int N = nvalid;
-
-  int maxThreads = device->get_properties().maxThreadsPerBlock;
-  int nBlocks = device->get_properties().multiProcessorCount * 8;
-  int nThreads = (N + nBlocks - 1) / nBlocks;
-
-  if (nThreads > maxThreads) {
-    nThreads = maxThreads;
-    nBlocks = (N + nThreads - 1) / nThreads;
-  }
-
+  int nBlocks,nThreads;
+  getNumBlocksAndThreads(device, nvalid, nBlocks, nThreads);
   dim3 grid(nBlocks), threads(nThreads);
 
   subsum_krnl<T> <<<grid, threads>>>(d_odata, d_idata, subindx, subindy, ns,
@@ -1499,17 +1391,8 @@ template<class T>
 void roof_subsum(T *d_odata, T *d_idata, int *subindx, int *subindy, int ns,
     int nvalid, int nim, carma_device *device) {
 
-  int N = nvalid;
-
-  int maxThreads = device->get_properties().maxThreadsPerBlock;
-  int nBlocks = device->get_properties().multiProcessorCount * 8;
-  int nThreads = (N + nBlocks - 1) / nBlocks;
-
-  if (nThreads > maxThreads) {
-    nThreads = maxThreads;
-    nBlocks = (N + nThreads - 1) / nThreads;
-  }
-
+  int nBlocks,nThreads;
+  getNumBlocksAndThreads(device, nvalid, nBlocks, nThreads);
   dim3 grid(nBlocks), threads(nThreads);
 
   roof_subsum_krnl<T> <<<grid, threads>>>(d_odata, d_idata, subindx, subindy, ns,
@@ -1567,17 +1450,8 @@ __global__ void pyrfact_krnl(float *g_data, float fact1, float *fact2,
 template<class T>
 void pyr_fact(T *d_data, T fact, int n, int nim, carma_device *device) {
 
-  int N = n * n;
-
-  int maxThreads = device->get_properties().maxThreadsPerBlock;
-  int nBlocks = device->get_properties().multiProcessorCount * 8;
-  int nThreads = (N + nBlocks - 1) / nBlocks;
-
-  if (nThreads > maxThreads) {
-    nThreads = maxThreads;
-    nBlocks = (N + nThreads - 1) / nThreads;
-  }
-
+  int nBlocks,nThreads;
+  getNumBlocksAndThreads(device, n*n, nBlocks, nThreads);
   dim3 grid(nBlocks), threads(nThreads);
 
   pyrfact_krnl<T> <<<grid, threads>>>(d_data, fact, n, nim);
@@ -1591,18 +1465,8 @@ template void
 pyr_fact<double>(double *d_odata, double fact, int ns, int nim, carma_device *device);
 
 void pyr_fact(cuFloatComplex *d_data, float fact, int n, int nim, carma_device *device) {
-
-  int N = n * n;
-
-  int maxThreads = device->get_properties().maxThreadsPerBlock;
-  int nBlocks = device->get_properties().multiProcessorCount * 8;
-  int nThreads = (N + nBlocks - 1) / nBlocks;
-
-  if (nThreads > maxThreads) {
-    nThreads = maxThreads;
-    nBlocks = (N + nThreads - 1) / nThreads;
-  }
-
+  int nBlocks,nThreads;
+  getNumBlocksAndThreads(device, n*n, nBlocks, nThreads);
   dim3 grid(nBlocks), threads(nThreads);
 
   pyrfact_krnl<<<grid, threads>>>(d_data, fact, n, nim);
@@ -1613,17 +1477,8 @@ void pyr_fact(cuFloatComplex *d_data, float fact, int n, int nim, carma_device *
 void pyr_fact(float *d_data, float fact1, float *fact2, int n, int nim,
     carma_device *device) {
 
-  int N = n * n;
-
-  int maxThreads = device->get_properties().maxThreadsPerBlock;
-  int nBlocks = device->get_properties().multiProcessorCount * 8;
-  int nThreads = (N + nBlocks - 1) / nBlocks;
-
-  if (nThreads > maxThreads) {
-    nThreads = maxThreads;
-    nBlocks = (N + nThreads - 1) / nThreads;
-  }
-
+  int nBlocks,nThreads;
+  getNumBlocksAndThreads(device, n*n, nBlocks, nThreads);
   dim3 grid(nBlocks), threads(nThreads);
 
   pyrfact_krnl<<<grid, threads>>>(d_data, fact1, fact2, n, nim);
@@ -1664,17 +1519,8 @@ void pyr_fact(float *d_data, float fact1, float *fact2, int n, int nim,
  struct cudaDeviceProp deviceProperties;
  cudaGetDeviceProperties(&deviceProperties, device);
  
- int N = Npup * Nsub;
-
- int maxThreads = deviceProperties.maxThreadsPerBlock;
- int nBlocks = deviceProperties.multiProcessorCount*8;
- int nThreads = (N + nBlocks -1)/nBlocks;
-
- if (nThreads > maxThreads) {
- nThreads = maxThreads;
- nBlocks = (N + nThreads  -1)/nThreads;
- }
-
+  int nBlocks,nThreads;
+  getNumBlocksAndThreads(device, Npup * Nsub, nBlocks, nThreads);
  dim3 grid(nBlocks), threads(nThreads);
 
  fillcamplipup_krnl<<<grid, threads>>>(amplipup,phase,offset,mask,indx,Nfft,Npup,npup,N);

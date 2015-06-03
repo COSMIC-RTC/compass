@@ -258,18 +258,10 @@ int rotate3d(cuFloatComplex *d_odata, cudaMemcpy3DParms copyParams,
   // bind array to 3D texture
   carmaSafeCall(cudaBindTextureToArray(tex3, d_array, channelDesc));
 
-
-  int maxThreads = device->get_properties().maxThreadsPerBlock;
-  int nBlocks = device->get_properties().multiProcessorCount * 8;
-  int nThreads = (Ntot + nBlocks - 1) / nBlocks;
-
-  if (nThreads > maxThreads) {
-    nThreads = maxThreads;
-    nBlocks = (Ntot + nThreads - 1) / nThreads;
-  }
-
   int N = width * height;
 
+  int nBlocks,nThreads;
+  getNumBlocksAndThreads(device, Ntot, nBlocks, nThreads);
   dim3 grid(nBlocks), threads(nThreads);
 
   //cout << nBlocks << " " << nx / nBlocks << " " << ny / nBlocks << " " <<  nz / nBlocks <<endl;

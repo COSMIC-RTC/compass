@@ -4,15 +4,22 @@
 
 void getNumBlocksAndThreads(carma_device *device, int n, int &blocks, int &threads) {
 
-
   int maxThreads = device->get_properties().maxThreadsPerBlock;
-  blocks = device->get_properties().multiProcessorCount * 8;
+  blocks = device->get_properties().multiProcessorCount * 8; //device->get_cores_per_sm();
   threads = (n + blocks - 1) / blocks;
 
   if (threads > maxThreads) {
     threads = maxThreads;
     blocks = MIN( device->get_properties().maxGridSize[0],(n + threads - 1) / threads);
   }
+  /*
+  threads = device->get_cores_per_sm();
+  blocks = (n + threads - 1) / threads;
+  if (blocks > device->get_properties().maxGridSize[0]) {
+    blocks=device->get_properties().maxGridSize[0];
+    threads = (n + blocks - 1) / blocks;
+  }
+  */
 }
 
 void carma_start_profile() {

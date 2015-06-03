@@ -344,15 +344,8 @@ __global__ void fillamplikrnl(cuFloatComplex *amplipup, float *phase,
 int fill_amplipup(cuFloatComplex *amplipup, float *phase, float *mask,
     float scale, int puponly, int nx, int ny, int Nx, carma_device *device) {
 
-  int maxThreads = device->get_properties().maxThreadsPerBlock;
-  int nBlocks = device->get_properties().multiProcessorCount * 8;
-  int nThreads = (nx * ny + nBlocks - 1) / nBlocks;
-
-  if (nThreads > maxThreads) {
-    nThreads = maxThreads;
-    nBlocks = (nx * ny + nThreads - 1) / nThreads;
-  }
-
+  int nBlocks,nThreads;
+  getNumBlocksAndThreads(device, nx * ny, nBlocks, nThreads);
   dim3 grid(nBlocks), threads(nThreads);
 
   fillamplikrnl<<<grid, threads>>>(amplipup, phase, mask, scale, puponly, nx,

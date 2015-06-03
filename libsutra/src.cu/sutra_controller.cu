@@ -235,15 +235,8 @@ adjust_csrrow_krnl(int *rowind, int *nact, int *nnz, int nact_tot){
 
 int shift_buf(float *d_data, int offset, int N, carma_device *device) {
 
-  int maxThreads = device->get_properties().maxThreadsPerBlock;
-  int nBlocks = device->get_properties().multiProcessorCount * 8;
-  int nThreads = (N + nBlocks - 1) / nBlocks;
-
-  if (nThreads > maxThreads) {
-    nThreads = maxThreads;
-    nBlocks = (N + nThreads - 1) / nThreads;
-  }
-
+  int nBlocks,nThreads;
+  getNumBlocksAndThreads(device, N, nBlocks, nThreads);
   dim3 grid(nBlocks), threads(nThreads);
 
   shift_krnl<<<grid, threads>>>(d_data, offset, N);
@@ -253,15 +246,8 @@ int shift_buf(float *d_data, int offset, int N, carma_device *device) {
 }
 
 int mult_vect(float *d_data, float *scale, int N, carma_device *device) {
-  int maxThreads = device->get_properties().maxThreadsPerBlock;
-  int nBlocks = device->get_properties().multiProcessorCount * 8;
-  int nThreads = (N + nBlocks - 1) / nBlocks;
-
-  if (nThreads > maxThreads) {
-    nThreads = maxThreads;
-    nBlocks = (N + nThreads - 1) / nThreads;
-  }
-
+  int nBlocks,nThreads;
+  getNumBlocksAndThreads(device, N, nBlocks, nThreads);
   dim3 grid(nBlocks), threads(nThreads);
 
   mult_krnl<<<grid, threads>>>(d_data, scale, N);
@@ -271,15 +257,8 @@ int mult_vect(float *d_data, float *scale, int N, carma_device *device) {
 }
 
 int mult_vect(float *d_data, float *scale, float gain, int N, carma_device *device) {
-  int maxThreads = device->get_properties().maxThreadsPerBlock;
-  int nBlocks = device->get_properties().multiProcessorCount * 8;
-  int nThreads = (N + nBlocks - 1) / nBlocks;
-
-  if (nThreads > maxThreads) {
-    nThreads = maxThreads;
-    nBlocks = (N + nThreads - 1) / nThreads;
-  }
-
+  int nBlocks,nThreads;
+  getNumBlocksAndThreads(device, N, nBlocks, nThreads);
   dim3 grid(nBlocks), threads(nThreads);
 
   mult_krnl<<<grid, threads>>>(d_data, scale, gain, N);
@@ -290,15 +269,8 @@ int mult_vect(float *d_data, float *scale, float gain, int N, carma_device *devi
 
 int mult_vect(float *d_data, float gain, int N, carma_device *device) {
 
-  int maxThreads = device->get_properties().maxThreadsPerBlock;
-  int nBlocks = device->get_properties().multiProcessorCount * 8;
-  int nThreads = (N + nBlocks - 1) / nBlocks;
-
-  if (nThreads > maxThreads) {
-    nThreads = maxThreads;
-    nBlocks = (N + nThreads - 1) / nThreads;
-  }
-
+  int nBlocks,nThreads;
+  getNumBlocksAndThreads(device, N, nBlocks, nThreads);
   dim3 grid(nBlocks), threads(nThreads);
 
   mult_krnl<<<grid, threads>>>(d_data, gain, N);

@@ -1282,15 +1282,8 @@ get_centroids<double>(int size, int threads, int blocks, int n, double *d_idata,
 int fillweights(float *d_out, float *d_in, int npix, int N,
     carma_device *device) {
 
-  int maxThreads = device->get_properties().maxThreadsPerBlock;
-  int nBlocks = device->get_properties().multiProcessorCount * 8;
-  int nThreads = (N + nBlocks - 1) / nBlocks;
-
-  if (nThreads > maxThreads) {
-    nThreads = maxThreads;
-    nBlocks = (N + nThreads - 1) / nThreads;
-  }
-
+  int nBlocks,nThreads;
+  getNumBlocksAndThreads(device, N, nBlocks, nThreads);
   dim3 grid(nBlocks), threads(nThreads);
 
   fillweights_krnl<<<grid, threads>>>(d_out, d_in, npix * npix, N);
@@ -1302,15 +1295,8 @@ int fillweights(float *d_out, float *d_in, int npix, int N,
 int fillcorr(cuFloatComplex *d_out, float *d_in, int npix_in, int npix_out,
     int N, int nvalid, carma_device *device) {
 
-  int maxThreads = device->get_properties().maxThreadsPerBlock;
-  int nBlocks = device->get_properties().multiProcessorCount * 8;
-  int nThreads = (N + nBlocks - 1) / nBlocks;
-
-  if (nThreads > maxThreads) {
-    nThreads = maxThreads;
-    nBlocks = (N + nThreads - 1) / nThreads;
-  }
-
+  int nBlocks,nThreads;
+  getNumBlocksAndThreads(device, N, nBlocks, nThreads);
   dim3 grid(nBlocks), threads(nThreads);
 
   if (nvalid == 1) {
@@ -1331,15 +1317,8 @@ int fillcorr(cuFloatComplex *d_out, float *d_in, int npix_in, int npix_out,
 int correl(cuFloatComplex *d_odata, cuFloatComplex *d_idata, int N,
     carma_device *device) {
 
-  int maxThreads = device->get_properties().maxThreadsPerBlock;
-  int nBlocks = device->get_properties().multiProcessorCount * 8;
-  int nThreads = (N + nBlocks - 1) / nBlocks;
-
-  if (nThreads > maxThreads) {
-    nThreads = maxThreads;
-    nBlocks = (N + nThreads - 1) / nThreads;
-  }
-
+  int nBlocks,nThreads;
+  getNumBlocksAndThreads(device, N, nBlocks, nThreads);
   dim3 grid(nBlocks), threads(nThreads);
 
   corr_krnl<<<grid, threads>>>(d_odata, d_idata, N);
@@ -1351,15 +1330,8 @@ int correl(cuFloatComplex *d_odata, cuFloatComplex *d_idata, int N,
 int roll2real(float *d_odata, cuFloatComplex *d_idata, int n, int Npix, int N,
     carma_device *device) {
 
-  int maxThreads = device->get_properties().maxThreadsPerBlock;
-  int nBlocks = device->get_properties().multiProcessorCount * 8;
-  int nThreads = (N + nBlocks - 1) / nBlocks;
-
-  if (nThreads > maxThreads) {
-    nThreads = maxThreads;
-    nBlocks = (N + nThreads - 1) / nThreads;
-  }
-
+  int nBlocks,nThreads;
+  getNumBlocksAndThreads(device, N, nBlocks, nThreads);
   dim3 grid(nBlocks), threads(nThreads);
 
   roll2real_krnl<<<grid, threads>>>(d_odata, d_idata, n, Npix, N);
@@ -1371,15 +1343,8 @@ int roll2real(float *d_odata, cuFloatComplex *d_idata, int n, int Npix, int N,
 int corr_norm(float *d_odata, float *d_idata, int Npix, int N,
     carma_device *device) {
 
-  int maxThreads = device->get_properties().maxThreadsPerBlock;
-  int nBlocks = device->get_properties().multiProcessorCount * 8;
-  int nThreads = (N + nBlocks - 1) / nBlocks;
-
-  if (nThreads > maxThreads) {
-    nThreads = maxThreads;
-    nBlocks = (N + nThreads - 1) / nThreads;
-  }
-
+  int nBlocks,nThreads;
+  getNumBlocksAndThreads(device, N, nBlocks, nThreads);
   dim3 grid(nBlocks), threads(nThreads);
 
   corrnorm_krnl<<<grid, threads>>>(d_odata, d_idata, Npix, N);
@@ -1391,15 +1356,8 @@ int corr_norm(float *d_odata, float *d_idata, int Npix, int N,
 int fillval_corr(cuFloatComplex *d_out, float val, int npix_in, int npix_out,
     int N, carma_device *device) {
 
-  int maxThreads = device->get_properties().maxThreadsPerBlock;
-  int nBlocks = device->get_properties().multiProcessorCount * 8;
-  int nThreads = (N + nBlocks - 1) / nBlocks;
-
-  if (nThreads > maxThreads) {
-    nThreads = maxThreads;
-    nBlocks = (N + nThreads - 1) / nThreads;
-  }
-
+  int nBlocks,nThreads;
+  getNumBlocksAndThreads(device, N, nBlocks, nThreads);
   dim3 grid(nBlocks), threads(nThreads);
 
   fillval_krnl<<<grid, threads>>>(d_out, val, npix_in, npix_out, N);
@@ -1480,15 +1438,8 @@ subap_pinterp<float>(int threads, int blocks, float *d_idata, int *values,
 int convert_centro(float *d_odata, float *d_idata, float offset, float scale,
     int N, carma_device *device) {
 
-  int maxThreads = device->get_properties().maxThreadsPerBlock;
-  int nBlocks = device->get_properties().multiProcessorCount * 8;
-  int nThreads = (N + nBlocks - 1) / nBlocks;
-
-  if (nThreads > maxThreads) {
-    nThreads = maxThreads;
-    nBlocks = (N + nThreads - 1) / nThreads;
-  }
-
+  int nBlocks,nThreads;
+  getNumBlocksAndThreads(device, N, nBlocks, nThreads);
   dim3 grid(nBlocks), threads(nThreads);
 
   convert_krnl<<<grid, threads>>>(d_odata, d_idata, offset, scale, N);
@@ -1526,17 +1477,8 @@ void pyr_slopes(T *d_odata, T *d_idata, int *subindx, int *subindy, T *subsum,
     int ns, int nvalid, int nim, carma_device *device) {
   //cout << "hello cu" << endl;
 
-  int N = nvalid;
-
-  int maxThreads = device->get_properties().maxThreadsPerBlock;
-  int nBlocks = device->get_properties().multiProcessorCount * 8;
-  int nThreads = (N + nBlocks - 1) / nBlocks;
-
-  if (nThreads > maxThreads) {
-    nThreads = maxThreads;
-    nBlocks = (N + nThreads - 1) / nThreads;
-  }
-
+  int nBlocks,nThreads;
+  getNumBlocksAndThreads(device, nvalid, nBlocks, nThreads);
   dim3 grid(nBlocks), threads(nThreads);
 
   pyrslopes_krnl<T> <<<grid, threads>>>(d_odata, d_idata, subindx, subindy,
@@ -1574,17 +1516,9 @@ template<class T>
 void roof_slopes(T *d_odata, T *d_idata, int *subindx, int *subindy, T *subsum,
     int ns, int nvalid, int nim, carma_device *device) {
   //cout << "hello cu" << endl;
-  int N = nvalid;
 
-  int maxThreads = device->get_properties().maxThreadsPerBlock;
-  int nBlocks = device->get_properties().multiProcessorCount * 8;
-  int nThreads = (N + nBlocks - 1) / nBlocks;
-
-  if (nThreads > maxThreads) {
-    nThreads = maxThreads;
-    nBlocks = (N + nThreads - 1) / nThreads;
-  }
-
+  int nBlocks,nThreads;
+  getNumBlocksAndThreads(device, nvalid, nBlocks, nThreads);
   dim3 grid(nBlocks), threads(nThreads);
 
   roofslopes_krnl<T> <<<grid, threads>>>(d_odata, d_idata, subindx, subindy,

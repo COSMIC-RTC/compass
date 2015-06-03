@@ -20,10 +20,10 @@ carma_device::carma_device(int devid) {
   carmaSafeCall(cudaSetDevice(devid));
   this->id = devid;
   cudaGetDeviceProperties(&(this->properties), devid);
-  this->sm_per_multiproc = ConvertSMVer2Cores(this->properties.major,
+  this->cores_per_sm = ConvertSMVer2Cores(this->properties.major,
       this->properties.minor);
   this->compute_perf = this->properties.multiProcessorCount
-      * this->sm_per_multiproc * this->properties.clockRate;
+      * this->cores_per_sm * this->properties.clockRate;
 
   this->p2p_activate = false;
 
@@ -222,7 +222,7 @@ int carma_context::get_maxGflopsDeviceId()
  * This function returns the identifier of the best available GPU (with maximum GFLOPS)
  */
 {
-  int current_device = 0, sm_per_multiproc = 0;
+  int current_device = 0, cores_per_sm = 0;
   int max_compute_perf = 0, max_perf_device = 0;
   int device_count = 0, best_SM_arch = 0;
   cudaDeviceProp deviceProp;
@@ -242,12 +242,12 @@ int carma_context::get_maxGflopsDeviceId()
     deviceProp = devices[current_device]->get_properties();
     if (deviceProp.computeMode != cudaComputeModeProhibited) {
       if (deviceProp.major == 9999 && deviceProp.minor == 9999) {
-        sm_per_multiproc = 1;
+        cores_per_sm = 1;
       } else {
-        sm_per_multiproc = ConvertSMVer2Cores(deviceProp.major,
+        cores_per_sm = ConvertSMVer2Cores(deviceProp.major,
             deviceProp.minor);
       }
-      int compute_perf = deviceProp.multiProcessorCount * sm_per_multiproc
+      int compute_perf = deviceProp.multiProcessorCount * cores_per_sm
           * deviceProp.clockRate;
       if (compute_perf >= max_compute_perf) {
         // If we find GPU with SM major > 2, search only these

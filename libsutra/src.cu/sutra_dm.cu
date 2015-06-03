@@ -309,15 +309,8 @@ __global__ void multi_krnl(float *i_data, float gain, int N) {
 int
 multi_vect(float *d_data, float gain, int N, carma_device *device) {
 
-  int maxThreads = device->get_properties().maxThreadsPerBlock;
-  int nBlocks = device->get_properties().multiProcessorCount * 8;
-  int nThreads = (N + nBlocks - 1) / nBlocks;
-
-  if (nThreads > maxThreads) {
-    nThreads = maxThreads;
-    nBlocks = (N + nThreads - 1) / nThreads;
-  }
-
+  int nBlocks,nThreads;
+  getNumBlocksAndThreads(device, N, nBlocks, nThreads);
   dim3 grid(nBlocks), threads(nThreads);
 
   multi_krnl<<<grid, threads>>>(d_data, gain, N);
