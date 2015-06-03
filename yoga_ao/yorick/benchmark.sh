@@ -38,24 +38,15 @@ fi
 #FILES_LGS+="scao_64x64_16pix_lgs.par"
 #FILES_LGS+="scao_80x80_20pix_lgs.par"
 
-if [ $# -gt 0 ]; then
-    YORICK_PATH=$1
-fi
-
-if [ -z "$YORICK_PATH" ]; then
-    echo "yorick is not in the path, use $0 full_yorick_path"
-    exit
-else
-    for f in $FILES_LGS
+for f in $FILES_LGS
+do
+    for CTR in "ls" "modopti" "mv" "geo"
     do
-        for CTR in "ls" "modopti" "mv" "geo"
+        for COG in "wcog" "corr"
         do
-	        for COG in "wcog" "corr"
-            do
-	            CMD=$YORICK_PATH" -batch benchmark_script.i "$f" "$COG" "$CTR
-	            echo "execute $CMD" >> $OUTPUT
-	            $CMD 2>> $OUTPUT >> $OUTPUT
-            done
+            CMD=$YORICK_PATH" -batch benchmark_script.i "$f" "$COG" "$CTR
+            echo "execute $CMD" >> $OUTPUT
+            $CMD 2>> $OUTPUT >> $OUTPUT
         done
     done
-fi
+done
