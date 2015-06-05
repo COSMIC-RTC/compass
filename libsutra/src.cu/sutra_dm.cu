@@ -4,33 +4,37 @@
 template<class T>
 __global__ void dmshape_krnl(T *g_idata, T *g_odata, int *pos, int *istart,
     int *npts, T *comm, unsigned int n, int N) {
-  T *sdata = SharedMemory<T>();
+  //T *sdata = SharedMemory<T>();
 
   // load shared mem
-  unsigned int tid = threadIdx.x;
+ // unsigned int tid = threadIdx.x;
   unsigned int i = blockIdx.x * blockDim.x + threadIdx.x;
 
   if (i < N) {
     int local_istart = istart[i];
     int local_npts = npts[i];
 
-    sdata[tid] = 0;
+    //sdata[tid] = 0;
+    float value = 0;
 
     if (local_npts > 0) {
       for (int cc = 0; cc < local_npts; cc++) {
         int lpos = pos[local_istart + cc];
         int ninflu = lpos / n;
-        sdata[tid] += comm[ninflu] * g_idata[lpos];
+        //sdata[tid] += comm[ninflu] * g_idata[lpos];
+        value += comm[ninflu] * g_idata[lpos];
       }
     }
+    g_odata[i] = value;
   }
-
+/*
   __syncthreads();
 
   if (i < N) {
     // write result for this block to global mem
     g_odata[i] = sdata[tid];
   }
+*/
 }
 
 template<class T>
@@ -41,9 +45,9 @@ void comp_dmshape(int threads, int blocks, T *d_idata, T *d_odata, int *pos,
 
   // when there is only one warp per block, we need to allocate two warps 
   // worth of shared memory so that we don't index shared memory out of bounds
-  int smemSize =
-      (threads <= 32) ? 2 * threads * sizeof(T) : threads * sizeof(T);
-  dmshape_krnl<T> <<<dimGrid, dimBlock, smemSize>>>(d_idata, d_odata, pos,
+ // int smemSize =
+  //    (threads <= 32) ? 2 * threads * sizeof(T) : threads * sizeof(T);
+  dmshape_krnl<T> <<<dimGrid, dimBlock/*, smemSize*/>>>(d_idata, d_odata, pos,
       istart, npts, comm, n, N);
 
   carmaCheckMsg("dmshape_kernel<<<>>> execution failed\n");

@@ -40,6 +40,7 @@
 #include <sutra_centroider_roof.h>
 #include <sutra_centroider_tcog.h>
 #include <sutra_centroider_wcog.h>
+#include <sutra_controller_utils.h>
 #include <carma.h>
 #include <sstream>
 #include <iomanip>
@@ -3251,6 +3252,16 @@ extern "C" {
     } else {
       y_error("Controller needs to be mv\n");
     }
+  }
+
+  void Y_sutra_DPHIhighpass(int argc) {
+    double R = ygets_d(argc - 1);
+    double x0 = ygets_d(argc - 2);
+    int npts = ygets_i(argc - 3);
+
+    carma_context *context_handle = _getCurrentContext();
+
+    test_DPHI_highpass(R,x0,npts,context_handle->get_device(context_handle->get_activeDevice()));
   }
 
   void Y_rtc_setCmm(int argc) {

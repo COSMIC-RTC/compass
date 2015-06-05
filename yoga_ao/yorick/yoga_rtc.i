@@ -190,7 +190,8 @@ func cmat_init(ncontrol,clean=,method=)
     write,"Building cmat...";
     rtc_buildcmatmv,g_rtc,ncontrol-1,y_controllers(ncontrol-1).maxcond;
     if(y_controllers(ncontrol-1).TTcond == 0) y_controllers(ncontrol-1).TTcond = y_controllers(ncontrol-1).maxcond;
-    rtc_filtercmatmv,g_rtc,ncontrol-1,y_controllers(ncontrol-1).TTcond;
+    if(anyof(y_dm.type == "tt"))
+      rtc_filtercmatmv,g_rtc,ncontrol-1,y_controllers(ncontrol-1).TTcond;
   }
 
   cmat = rtc_getcmat(g_rtc,ncontrol-1);
@@ -439,7 +440,7 @@ func correct_dm(imat,ncontrol)
   }
   resp = sqrt((imat^2.)(sum,));
 
-  inds = 1;
+  inds = 0;
   ndm = numberof(*y_controllers(ncontrol).ndm);
   for (nmc=1 ; nmc<=ndm ; nmc++) {
     nm = (*y_controllers(ncontrol).ndm)(nmc)(1);
@@ -456,7 +457,7 @@ func correct_dm(imat,ncontrol)
         ok = fits_read(swrite(format=dirsave+"pztok-%d-%s.fits",nm,simul_name));
         nok= fits_read(swrite(format=dirsave+"pztnok-%d-%s.fits",nm,simul_name));
       } else {
-        tmp = resp(inds:inds+y_dm(nm)._ntotact-1);
+        tmp = resp(inds+1:inds+y_dm(nm)._ntotact);
         ok = where(tmp >  y_dm(nm).thresh*max(tmp));
         nok= where(tmp <= y_dm(nm).thresh*max(tmp));
         if (simul_name != []) {
@@ -903,7 +904,7 @@ func mat_cphim_gpu(nc){
       Xactu(ind+1 : ind+y_dm(kk)._ntotact) = actu_x;
       Yactu(ind+1 : ind+y_dm(kk)._ntotact) = actu_y;
       ind += y_dm(kk)._ntotact;
-      k2(indk) = y_wfs(1).lambda / 2. / pi / y_dm(kk).unitpervolt / (y_dm(kk)._pitch * p2m) * 1.058 ; // 1.058 hardcoded for debug... need to find where it comes from
+      k2(indk) = y_wfs(1).lambda / 2. / pi / y_dm(kk).unitpervolt / (y_dm(kk)._pitch * p2m);// * 1.058 ; // 1.058 hardcoded for debug... need to find where it comes from
       indk ++;
     }
   }
@@ -911,7 +912,8 @@ func mat_cphim_gpu(nc){
   NlayersDM = array(0,numberof(pztDM)); // Number of layers per DM
   indlayersDM = array(0,y_atmos.nscreens); // Index of the DM for each layer
   selectDMforLayers,nc+1,NlayersDM,indlayersDM;
-  FoV = y_wfs.pixsize * y_wfs.npix / RASC;
+  //FoV = y_wfs.pixsize * y_wfs.npix / RASC;
+  FoV = abs(y_wfs.xpos,y_wfs.ypos) / RASC;
   
   L0_d = &(double(*y_atmos.L0));
   alphaX = alphaY = array(0.0,numberof(y_wfs.xpos));

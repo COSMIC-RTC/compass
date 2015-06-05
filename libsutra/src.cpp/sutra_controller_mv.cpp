@@ -152,7 +152,6 @@ sutra_controller_mv::compute_Cphim(sutra_atmos *atmos,
 	current_context->set_activeDevice(device,1);
 
 	// Find number of actuators without TT DM
-	struct cphim_struct cphim_struct;
 	int Nactu = 0;
 	vector<sutra_dm *>::iterator p;
 	p = dms->d_dms.begin();
@@ -168,10 +167,11 @@ sutra_controller_mv::compute_Cphim(sutra_atmos *atmos,
 	if(this->d_Cphim != 0L) delete this->d_Cphim;
 	this->d_Cphim = new carma_obj<float>(this->current_context, dims_data2);
 
+	struct cphim_struct cphim_struct;
+
     // Compute Cphim matrix
 	init_cphim_struct(&cphim_struct, atmos, sensors, dms, diamTel);
 	update_cphim_sys(&cphim_struct, sensors, alphaX, alphaY, xactu, yactu,X,Y,NlayerDm,indLayerDm,alt_dm,pitch,k2,FoV);
-	//tab_u831J0(&cphim_struct,-4.0f,10.0f,current_context->get_device(device));
 	update_cphim_atm(&cphim_struct, sensors, atmos, L0, cn2, alphaX, alphaY);
 	CPHIM(this->d_Cphim->getData(), Nactu, this->nslope(), 0, 0, Nactu, &cphim_struct, atmos, sensors, alphaX, alphaY, current_context->get_device(device));
 	free_cphim_struct(&cphim_struct);
@@ -717,7 +717,7 @@ int sutra_controller_mv::build_cmat(float cond){
 	// Cphim * (Cmm + Cn)⁻¹
 	carma_gemm(cublas_handle, 'n', 'n', Nactu, nslope(), nslope(), 1.0f,
 				this->d_Cphim->getData(), Nactu, this->d_Cmm->getData(), nslope(), 0.0f,
-				d_cmat->getData(), Nactu);
+				d_cmat->getData(), nactu());
 
 	return EXIT_SUCCESS;
 }
@@ -809,9 +809,11 @@ int sutra_controller_mv::filter_cmat(float cond){
 		dims_data[2] = nslope();
 		carma_obj<float> *d_cmat_tt = new carma_obj<float>(current_context,
 				dims_data);
+
 		carma_gemm(cublas_handle, 'n', 'n', Nactu, nslope(), nslope(),
-				1.0f, d_cmat->getData(), Nactu, d_Ftt->getData(), nslope(),
+				1.0f, d_cmat->getData(), nactu(), d_Ftt->getData(), nslope(),
 				0.0f, d_cmat_tt->getData(), Nactu);
+
 
 		delete d_Ftt;
 
@@ -961,6 +963,7 @@ int sutra_controller_mv::comp_com() {
   this->d_com2->copy(this->d_com1, 1, 1);
   this->d_com1->copy(this->d_com, 1, 1);
   // POLC equations
+
   carma_geam<float>(cublas_handle, 'n', 'n', nactu(), 1, (float)(delay-1), *d_com2,
       nactu(), 1.0f - (delay-1), *d_com1, nactu(), *d_compbuff, nactu());
   carma_gemv<float>(cublas_handle, 'n', nslope(), nactu(), 1.0f, *d_imat, nslope(),

@@ -142,10 +142,11 @@ void generateXY(struct gtomo_struct *tomo_gpu, sutra_sensors *sensors);
 void tab_dphi_gpu_gb(double *tab_dphi, struct gtomo_struct *tomo_gpu, long Ndphi, double *L0diff_d, int Nl0, double convert);
 void sub_pos_gpu_gb(struct gtomo_struct *tomo_gpu, long Nlayer);
 void sub_pos_cphim(struct cphim_struct *cphim_struct, long Nlayer, long Nw, long Nsubap);
-void tab_u831J0(struct cphim_struct *cphim_gpu, double tmin, double tmax, carma_device *device);
+void tab_u831J0(double *tab_int_x, double *tab_int_y, long npts);
 void cuda_zcen(double *idata, double *odata, int N, carma_device *device);
 void cumsum(double *odata, double *idata, int N);
 void init_cphim_struct(struct cphim_struct *cphim_struct, sutra_atmos *atmos, sutra_sensors *sensors, sutra_dms *dms, double diamTel);
 void free_cphim_struct(struct cphim_struct *cphim_struct);
+void test_DPHI_highpass(double R, double x0, long npts, carma_device *device);
 
 #endif // SUTRA_CONTROLLER_UTILS_H_

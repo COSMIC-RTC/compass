@@ -7,7 +7,7 @@ require,yoga_ao_top+"/yorick/yoga_ao.i";
 mypath = anyof(split_path(get_path())==(yoga_ao_top+"/")) ? [] : get_path()+":"+yoga_ao_top+"/";
 if (mypath != []) set_path,mypath;
 
-YOGA_AO_SAVEPATH = yoga_ao_top+"/data";
+YOGA_AO_SAVEPATH = yoga_ao_top+"/data/";
 mkdirp,YOGA_AO_SAVEPATH;
 // creates data dir if does not exists (else mkdirp does nothing)
 
@@ -660,6 +660,7 @@ func check_centroiding(filename,thresh=,nmax=)
   // check slopes
   sensors_compslopes,g_rtc,0;
   slp2=sensors_getslopes(g_wfs,0);
+  cog = slp2;
   res2=sensors_getdata(g_wfs,0,"bincube");
   tmp=indices(y_wfs(1).npix);
   slpx=(res2*tmp(,,1)(,,-:1:y_wfs(1)._nvalid))(*,)(sum,)/(res2(*,)(sum,));
@@ -678,6 +679,7 @@ func check_centroiding(filename,thresh=,nmax=)
   if (thresh == []) thresh=1000.;
   sensors_compslopes,g_rtc,1,thresh;
   slp2=sensors_getslopes(g_wfs,0);
+  tcog = slp2;
   res2=sensors_getdata(g_wfs,0,"bincube");
   tmp=indices(y_wfs(1).npix);
   for (i=1;i<=dimsof(res2)(4);i++) {
@@ -696,6 +698,7 @@ func check_centroiding(filename,thresh=,nmax=)
   // check slopes wcog
   sensors_compslopes,g_rtc,3;
   slp2=sensors_getslopes(g_wfs,0);
+  wcog = slp2;
   res2=sensors_getdata(g_wfs,0,"bincube");
   tmp=indices(y_wfs(1).npix);
   www=*(*y_rtc.centroiders)(4).weights;
@@ -714,6 +717,7 @@ func check_centroiding(filename,thresh=,nmax=)
   if (nmax == []) nmax=5;
   sensors_compslopes,g_rtc,2,long(nmax);
   slp2=sensors_getslopes(g_wfs,0);
+  bpcog = slp2;
   res2=sensors_getdata(g_wfs,0,"bincube");
   tmp=indices(y_wfs(1).npix);
   for (i=1;i<=dimsof(res2)(4);i++){
@@ -774,12 +778,20 @@ for (i=1;i<=dimsof(res2)(4);i++){
   }
   
   slp2=sensors_getslopes(g_wfs,0);
+  corr = slp2;
   // to convert in arcsec : (slp2-(y_wfs(1).npix/2.+1))*y_wfs(1).pixsize
   "corr: ((slp-(y_wfs(1).npix/2.+0.5))*y_wfs(1).pixsize)-slp2;";
   //((slp-(y_wfs(1).npix/2.+0.5))*y_wfs(1).pixsize)/slp2;
   tmp_array=abs(((slp-(y_wfs(1).npix/2.+0.5))*y_wfs(1).pixsize)-slp2);
   [min(tmp_array),max(tmp_array),avg(tmp_array)];
   //error;
+
+  window,1;
+  plg,cog;
+  plg,tcog,color="blue";
+  plg,bpcog,color="green";
+  plg,wcog,color="magenta";
+  plg,corr,color="red";
 }
 
 /*

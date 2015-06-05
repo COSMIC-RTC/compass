@@ -255,10 +255,12 @@ func rodconan(r,L0,k=)
   ilarge = where(largeX);
   ismall = where(!largeX);
   if( is_array(ilarge) ) {
-    res(ilarge) = asymp_macdo(dprf0(ilarge));
+    if(numberof(ilarge)==1) res = asymp_macdo(dprf0(ilarge));
+    else res(ilarge) = asymp_macdo(dprf0(ilarge));
   }
   if( is_array(ismall) ) {
-    res(ismall) = -macdo_x56(dprf0(ismall), k=k);
+    if(numberof(ismall)==1) res = -macdo_x56(dprf0(ismall), k=k);
+    else res(ismall) = -macdo_x56(dprf0(ismall), k=k);
   }
   return (k1 * L0^(5./3)) * res; 
 }

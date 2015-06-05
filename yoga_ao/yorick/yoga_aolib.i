@@ -1549,3 +1549,10 @@ extern yoga_telemetry;
    SEE ALSO:
  */
 extern rtc_doimatkl4pzt;
+extern sutra_DPHIhighpass;
+/* DOCUMENT sutra_DPHIhighpass
+   sutra_DPHIhighpass,R,x0,npts
+   compute the tabulated integral u83J0 and DPHI highpass. Write results in .txt files
+   
+   SEE ALSO:
+ */

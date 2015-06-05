@@ -695,7 +695,12 @@ func update_main(type,nlayer)
       font="helvetica", justify="CB", height=long(pltitle_height*ao_disp._defaultdpi/200.);
     nx = dimsof(mscreen)(2);
     rho=indgen(1000)/1000.*2*pi;
-    plg,y_geom.pupdiam/2*cos(rho)+nx/2.,y_geom.pupdiam/2*sin(rho)+nx/2.,color="red",marks=0,width=3;
+    psize = y_tel.diam/y_geom.pupdiam;
+    patchDiam = long(y_geom.pupdiam+2*max(abs([y_wfs.xpos,y_wfs.ypos]))*
+                   4.848e-6*abs(y_dm(nlayer+1).alt)/psize);
+
+    //plg,y_geom.pupdiam/2*cos(rho)+nx/2.,y_geom.pupdiam/2*sin(rho)+nx/2.,color="red",marks=0,width=3;
+    plg,patchDiam/2*cos(rho)+nx/2.,patchDiam/2*sin(rho)+nx/2.,color="red",marks=0,width=3;
   }
   if (type == "Phase - Target") {
     if (nlayer > y_target.ntargets) return;

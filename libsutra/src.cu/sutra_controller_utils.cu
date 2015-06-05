@@ -254,24 +254,30 @@ __global__ void tabulateDPHI_gpu_gb_kernel(double* tabDPHI_d, double* L0diff_d, 
 	//}
 }
 
-__device__ double Ij0t83(double x, long indexL0, double *tab_x, double *tab_y, double convert, int npts){
-	if (x<=expf(-3.0f))
+__device__ double Ij0t83(double x, double *tab_x, double *tab_y, long npts){
+	if (x<=exp(-3.0))
 		return (double)(0.75 * pow((double)x,1/3.) * (1 - x*x/112.));
 	else{
+		double dt = 14./(npts-1); //14 = tmax - tmin
+		double convert = (log(x) + 4.)/dt;
+		long i0 = (long)convert;
+		long i1 = i0 + 1;
+		/*
 		long i1 = 0;
 		while(x > tab_x[i1])
 			i1++;
 		long i0 = i1 - 1;
+		*/
 		//long i0 = (long) ((logf(x) + 4.0f) * convert);
 		//long i1 = i0 + 1;
 		//return  ((x - (double)i0 / convert) * tab_y[indexL0 * npts + i1]
 	    //    + ((double)i1 / convert - x) * tab_y[indexL0 * npts + i0]);
-		return  (((x - tab_x[i0]) * tab_y[indexL0 * npts + i1]
-			        + (tab_x[i1] - x) * tab_y[indexL0 * npts + i0])) / (tab_x[i1] - tab_x[i0]);
+		return  (((x - tab_x[i0]) * tab_y[/*indexL0 * npts +*/ i1]
+			        + (tab_x[i1] - x) * tab_y[/*indexL0 * npts +*/ i0])) / (tab_x[i1] - tab_x[i0]);
 	}
 }
 
-__global__ void tabulateDPHI_lowpass_kernel(double* tabDPHI_d, double *tab_int_x, double *tab_int_y, double *dx, double* L0diff_d, long Nl0, long Ndphi, double convert, double convert_int, int npts)
+__global__ void tabulateDPHI_lowpass_kernel(double* tabDPHI_d, double *tab_int_x, double *tab_int_y, double *dx, double* L0diff_d, long Nl0, long Ndphi, double convert, double convert_int, long npts)
 {
 	const double pi = 3.1415926535897932384626433;
 	const int tx = threadIdx.x;
@@ -290,7 +296,7 @@ __global__ void tabulateDPHI_lowpass_kernel(double* tabDPHI_d, double *tab_int_x
 
 	//tabDPHI_d[tid] = Ij0t83((double)(r*(pi/dx)), indexL0, tab_int_x, tab_int_y, convert_int,npts);
 
-	tabDPHI_d[tid] = pow(r,(double)(5./3.)) * Ij0t83((double)(r*(pi/dx[dm])), indexL0, tab_int_x, tab_int_y, convert_int,npts)*(double)((2*pow((2*pi),(double)(8/3.))*0.0228956));
+	tabDPHI_d[tid] = pow(r,(double)(5./3.)) * Ij0t83((double)(r*(pi/dx[dm])), tab_int_x, tab_int_y, npts)*(double)((2*pow((2*pi),(double)(8/3.))*0.0228956));
 }
 
 
@@ -433,7 +439,13 @@ __device__ double cov_XY_gpu_gb(double du, double dv, double s0, double *tabDPHI
 //============================================================================================
 //============================= CPHIM ELEMENTARY FUNCTIONS ==================================
 //============================================================================================
-__device__ double DPHI_lowpass(double x, double y, double L0, double fc, double pas){
+__device__ double DPHI_highpass(double r, double fc, double *tab_x, double *tab_y, long npts){
+
+	const double pi = 3.1415926535897932384626433;
+	return pow(r,5/3.) * (1.1183343328701949 - Ij0t83(2*pi*fc*r,tab_x,tab_y,npts)) * pow(2*pi,8/3.) * 2 *0.0228956;
+}
+__device__ double DPHI_lowpass(double x, double y, double L0, double fc, double *tab_int_x, double *tab_int_y, long npts){
+	/*
 	double r = sqrt(x * x + y * y);
 	const double pi = 3.1415926535897932384626433;
 	int npts = (int)1/pas;
@@ -447,40 +459,46 @@ __device__ double DPHI_lowpass(double x, double y, double L0, double fc, double 
 	}
 
 	return 2*pow((2*pi),8/3.)*0.0228956*pow(r,5/3.) * dphi;
+	*/
+	double r = sqrt(x * x + y * y);
+
+	return rodconan_gpu_gb(r,L0,10) - DPHI_highpass(r,fc,tab_int_x,tab_int_y,npts);
 }
-__device__ double cphim_XX(double du, double dv, double posx, double posy, double s2, double L0, double fc, double pasDu)
+__device__ double cphim_XX(double du, double dv, double posx, double posy, double s2, double L0, double fc, long npts, double *tab_int_x, double *tab_int_y)
  /* DOCUMENT
    Compute the XX-covariance with the distance sqrt(du2+dv2). DPHI is precomputed on tabDPHI.
  */
 {
-	/*return -DPHI_lowpass(du - 2*s2, dv - s2, L0, fc, pasDu)
-	    + DPHI_lowpass(du, dv - s2, L0, fc, pasDu)
-	    + DPHI_lowpass(posx+ 2*s2, posy + s2, L0, fc, pasDu)
-	    - DPHI_lowpass(posx, posy+s2, L0, fc, pasDu);
-*/
+	return -DPHI_lowpass(du - 2*s2, dv - s2, L0, fc, tab_int_x, tab_int_y, npts)
+	    + DPHI_lowpass(du, dv - s2, L0, fc, tab_int_x, tab_int_y, npts)
+	    + DPHI_lowpass(posx+ 2*s2, posy + s2, L0, fc, tab_int_x, tab_int_y, npts)
+	    - DPHI_lowpass(posx, posy+s2, L0, fc, tab_int_x, tab_int_y, npts);
 
+/*
 		return -DPHI_gpu_gb(du - 2*s2, dv - s2, L0)
 				+ DPHI_gpu_gb(du, dv - s2, L0)
 				+ DPHI_gpu_gb(posx+ 2*s2, posy + s2, L0)
-				- DPHI_gpu_gb(posx, posy+s2, L0);
+				- DPHI_gpu_gb(posx, posy+s2, L0);*/
 
 }
 
 //------------------------------------------------------------------------------------
-__device__ double cphim_YY(double du, double dv, double posx, double posy, double s2, double L0, double fc, double pasDu)
+__device__ double cphim_YY(double du, double dv, double posx, double posy, double s2, double L0, double fc, long npts, double *tab_int_x, double *tab_int_y)
 /* DOCUMENT
    Compute the YY-covariance with the distance sqrt(du2+dv2). DPHI is precomputed on tabDPHI.
  */
 {
-	/*return  -DPHI_lowpass(du-s2, dv - 2*s2, L0, fc, pasDu)
-	    + DPHI_lowpass(du-s2, dv, L0, fc, pasDu)
-	    + DPHI_lowpass(posx+s2, posy + 2*s2, L0, fc, pasDu)
-	    - DPHI_lowpass(posx+s2, posy, L0, fc, pasDu);*/
+	return  -DPHI_lowpass(du-s2, dv - 2*s2, L0, fc, tab_int_x, tab_int_y, npts)
+	    + DPHI_lowpass(du-s2, dv, L0, fc, tab_int_x, tab_int_y, npts)
+	    + DPHI_lowpass(posx+s2, posy + 2*s2, L0, fc, tab_int_x, tab_int_y, npts)
+	    - DPHI_lowpass(posx+s2, posy, L0, fc, tab_int_x, tab_int_y, npts);
 
+/*
   return  -DPHI_gpu_gb(du-s2, dv - 2*s2, L0)
     + DPHI_gpu_gb(du-s2, dv, L0)
     + DPHI_gpu_gb(posx+s2, posy + 2*s2, L0)
-    - DPHI_gpu_gb(posx+s2, posy, L0);
+    - DPHI_gpu_gb(posx+s2, posy, L0);*/
+
 
 
 }
@@ -871,9 +889,9 @@ void init_tomo_gpu_gb(struct gtomo_struct *tomo_gpu, sutra_atmos *atmos, sutra_s
     tomo_gpu->thetaML[i] = 0.;
     if(sensors->d_wfs[i]->d_gs->lgs){
       tomo_gpu->nlgs += 1;
-      tomo_gpu->GsAlt[i] = 1.0f / tomo_gpu->lgs_alt;
+      tomo_gpu->GsAlt[i] = 1.0 / tomo_gpu->lgs_alt;
     }
-    else tomo_gpu->GsAlt[i] = 0.0f;
+    else tomo_gpu->GsAlt[i] = 0.0;
     tomo_gpu->Nx += sensors->d_wfs[i]->nvalid;
     }
 
@@ -1165,7 +1183,7 @@ void update_tomo_atm_gpu_gb(struct gtomo_struct *tomo_gpu, sutra_sensors *sensor
     int n = cc / atmos->nscreens;
     int l = cc - n * atmos->nscreens;
     if(n >= sensors->nsensors()) n-=1;
-    sspSizeL[cc] = ((double)(tomo_gpu->DiamTel/sensors->d_wfs[n]->nxsub)) * (1. - tomo_gpu->GsAlt[n] * h[l]);
+    sspSizeL[cc] = (((double)(tomo_gpu->DiamTel/sensors->d_wfs[n]->nxsub)) * (1. - tomo_gpu->GsAlt[n] * h[l]));//+ 2*sqrt(alphaX[n]*alphaX[n]+alphaY[n]*alphaY[n])*h[l] ;
   }
   //DEBUG_TRACE("HERE !");
 
@@ -1693,9 +1711,9 @@ __device__ double compute_element_4(int ipos, int jpos, double convert, double *
 }
 
 __device__ double compute_cphim_element(int ipos, int jpos, double convert, double *sspSizeL, long *Nssp, double *u, double *v,
-					double *xact, double *yact, double pasDu, double *L0, double *cn2, int Ndphi, int Nw, int Ndm, int Nlayer,
+					double *xact, double *yact, long npts, double *L0, double *cn2, int Ndphi, int Nw, int Ndm, int Nlayer,
 					long *Nsubap, long Nx, long *Nactu_tot, int Nact, long *NlayerDM, long *indLayerDm, double *dx, double *alphaX, double *alphaY, double lgs_cst, double noise_var, double spotWidth,
-					double dH_lgs, double alt_lgs, double *Hlayer, double *Hdm, double *FoV, int nlgs, double teldiam, double *k2)
+					double dH_lgs, double alt_lgs, double *Hlayer, double *Hdm, double *FoV, int nlgs, double teldiam, double *k2, double *tab_int_x, double *tab_int_y)
 {
 	/* *** Covariance matrix per-element generation ***
 	*   Arguments
@@ -1789,8 +1807,8 @@ __device__ double compute_cphim_element(int ipos, int jpos, double convert, doub
 		  //double bc = -ad;   // initially -s1-s2;
 		  //double bd = 0;   // initially -s1+s2;
 
-		  if (type == 0) covar += 0.5  * cphim_XX(du,dv,u[pos_ssp],v[pos_ssp],s2,L0[l],fc,pasDu) * kk * cn2[l];
-		  else covar += 0.5 * cphim_YY(du,dv,u[pos_ssp],v[pos_ssp],s2,L0[l],fc,pasDu) * kk * cn2[l];
+		  if (type == 0) covar += 0.5  * cphim_XX(du,dv,u[pos_ssp],v[pos_ssp],s2,L0[l],fc,npts, tab_int_x, tab_int_y) * kk * cn2[l];
+		  else covar += 0.5 * cphim_YY(du,dv,u[pos_ssp],v[pos_ssp],s2,L0[l],fc,npts, tab_int_x, tab_int_y) * kk * cn2[l];
 
 
 		}
@@ -1875,9 +1893,9 @@ __global__ void matcov_kernel_4(char uplo, char copy, float* data, int nrows, in
 
 __global__ void CPHIM_kernel(float* data, int nrows, int ncols, int xoffset, int yoffset, int lda,
 				       double convert, double *sspSizeL, long *Nssp, double *u, double *v, double *xact, double *yact,
-					double pasDu, double *L0, double *cn2, int Ndphi, int Nw, int Ndm, int Nlayer,
+					long npts, double *L0, double *cn2, int Ndphi, int Nw, int Ndm, int Nlayer,
 					long *Nsubap, long Nx, long *Nactu, int Nact,long *NlayerDM, long *indLayerDm, double *dx,  double *alphaX, double *alphaY, double lgs_cst, double noise_var, double spotWidth,
-					double dH_lgs, double alt_lgs, double *Hlayer, double *Hdm, double *FoV, int nlgs, double teldiam, double *k2)
+					double dH_lgs, double alt_lgs, double *Hlayer, double *Hdm, double *FoV, int nlgs, double teldiam, double *k2, double *tab_int_x, double *tab_int_y)
 {
   /* *** covariance matrix generation kernel ***
    *	The kernel generates the element values in a given matrix/submatrix
@@ -1911,8 +1929,8 @@ __global__ void CPHIM_kernel(float* data, int nrows, int ncols, int xoffset, int
 
   double value;
 
-  value = compute_cphim_element(	gx, gy, convert, sspSizeL, Nssp, u, v, xact, yact, pasDu, L0, cn2, Ndphi, Nw, Ndm, Nlayer,
-							Nsubap, Nx, Nactu, Nact, NlayerDM, indLayerDm, dx, alphaX, alphaY, lgs_cst, noise_var, spotWidth, dH_lgs, alt_lgs, Hlayer, Hdm, FoV, nlgs, teldiam, k2);
+  value = compute_cphim_element(	gx, gy, convert, sspSizeL, Nssp, u, v, xact, yact, npts, L0, cn2, Ndphi, Nw, Ndm, Nlayer,
+							Nsubap, Nx, Nactu, Nact, NlayerDM, indLayerDm, dx, alphaX, alphaY, lgs_cst, noise_var, spotWidth, dH_lgs, alt_lgs, Hlayer, Hdm, FoV, nlgs, teldiam, k2, tab_int_x,tab_int_y);
   data[ly * lda + lx] = (float)value;
 
 }
@@ -2005,16 +2023,18 @@ void matcov_gpu_4(float* data, int nrows, int ncols, int xoffset, int yoffset, i
   dim3 dimGrid(nbx, nby);
   const long Nsubap = sensors->d_wfs[0]->nvalid;//tomo_gpu->Nx;
 /*
-  int nb = (int)(1224);
+  int nb = (int)(atmos->nscreens*tomo_gpu->Nw);
   double *tmp;
   tmp=(double*)malloc((nb)*sizeof(double));
-  carmaSafeCall(cudaMemcpy(tmp, tomo_gpu->u_d, sizeof(double) * nb,
+  carmaSafeCall(cudaMemcpy(tmp, tomo_gpu->sspSizeL_d, sizeof(double) * nb,
   	            cudaMemcpyDeviceToHost));
   for (int ii = 0 ; ii < nb ; ii++){
-	  printf("%5.20f \n",tmp[ii]);
+	  printf("%f \n",tmp[ii]);
   }
-  printf("convert : %9.9f\n",convert);
-*/
+  //printf("convert : %9.9f\n",convert);
+   */
+
+
 
   matcov_kernel_4<<<dimGrid, dimBlock, 0, tomo_gpu->matcov_stream>>>(uplo, copy, data, nrows, ncols, xoffset, yoffset, lda, convert, tomo_gpu->sspSizeL_d,
 						tomo_gpu->Nssp_d, tomo_gpu->u_d, tomo_gpu->v_d, pasDPHI, tomo_gpu->tabDPHI_d,
@@ -2106,10 +2126,10 @@ void CPHIM(float* data, int nrows, int ncols, int xoffset, int yoffset, int lda,
 */
 
   CPHIM_kernel<<<dimGrid, dimBlock, 0, cphim_struct->cphim_stream>>>(data, nrows, ncols, xoffset, yoffset, lda, convert, cphim_struct->sspSizeL_d,
-						cphim_struct->Nssp_d, cphim_struct->u_d, cphim_struct->v_d, cphim_struct->xact_d, cphim_struct->yact_d, cphim_struct->pasDu,
+						cphim_struct->Nssp_d, cphim_struct->u_d, cphim_struct->v_d, cphim_struct->xact_d, cphim_struct->yact_d, cphim_struct->int_npts,
 						cphim_struct->L0diff_d, cphim_struct->cn2_d, Ndphi, cphim_struct->Nw, cphim_struct->Ndm, atmos->nscreens,
 						cphim_struct->Nsubap_d,cphim_struct->Nx, cphim_struct->Nactu_tot_d,cphim_struct->Nactu, cphim_struct->NlayerDM_d, cphim_struct->indLayerDm_d, cphim_struct->dx_d, cphim_struct->alphaX_d, cphim_struct->alphaY_d, cphim_struct->lgs_cst, (double)0.0,
-						cphim_struct->spot_width, cphim_struct->lgs_depth, cphim_struct->lgs_alt, cphim_struct->h_d,cphim_struct->hDm_d, cphim_struct->FoV_d, cphim_struct->nlgs, cphim_struct->DiamTel, cphim_struct->k2_d);
+						cphim_struct->spot_width, cphim_struct->lgs_depth, cphim_struct->lgs_alt, cphim_struct->h_d,cphim_struct->hDm_d, cphim_struct->FoV_d, cphim_struct->nlgs, cphim_struct->DiamTel, cphim_struct->k2_d, cphim_struct->tab_int_x, cphim_struct->tab_int_y);
 
   carmaCheckMsg("matcov_kernel_4<<<>>> execution failed\n");
   cudaStreamSynchronize(cphim_struct->cphim_stream);
@@ -2119,7 +2139,7 @@ __device__ double unMoinsJ0(double x){
 
 	if(x < 0.1){
 		double x22 = (x*x)/4.;
-		return (1.0f - x22/4.)*x22;
+		return (1.0 - x22/4.)*x22;
 	}
 	else
 		return (double)(1.0 -j0((double)x));
@@ -2131,8 +2151,8 @@ __global__ void compute_u831J0(double* x, double* y, int npts, double tmin, doub
 	double t;
 	while(tid < npts){
 		t = tmin + tid*dt;
-		x[tid] = expf(t);
-		y[tid] =  expf(-t*(5/3.)) * unMoinsJ0(expf(t)) * dt;
+		x[tid] = exp(t);
+		y[tid] =  exp(-t*(5/3.)) * unMoinsJ0(exp(t)) * dt;
 		tid += blockDim.x * gridDim.x ;
 	}
 }
@@ -2142,7 +2162,7 @@ __global__ void cuda_zcen_krnl(double *idata, double *odata, int N){
 	int tid = threadIdx.x + blockIdx.x * blockDim.x;
 
 	while(tid < N){
-		odata[tid] = (idata[tid+1] + idata[tid]) / 2.0f;
+		odata[tid] = (idata[tid+1] + idata[tid]) / 2.0;
 		tid += blockDim.x * gridDim.x ;
 	}
 }
@@ -2267,9 +2287,9 @@ void init_cphim_struct(struct cphim_struct *cphim_struct, sutra_atmos *atmos, su
     cphim_struct->thetaML[i] = 0.;
     if(sensors->d_wfs[i]->d_gs->lgs){
           cphim_struct->nlgs += 1;
-          cphim_struct->GsAlt[i] = 1.0f / cphim_struct->lgs_alt;
+          cphim_struct->GsAlt[i] = 1.0 / cphim_struct->lgs_alt;
     }
-    else cphim_struct->GsAlt[i] = 0.0f;
+    else cphim_struct->GsAlt[i] = 0.0;
     cphim_struct->GsAlt[i] = 0.;
     cphim_struct->Nx += sensors->d_wfs[i]->nvalid;
     }
@@ -2366,52 +2386,72 @@ void init_cphim_struct(struct cphim_struct *cphim_struct, sutra_atmos *atmos, su
 
   cphim_struct->L0diff_d = NULL;
   cphim_struct->tabDPHI_d = NULL;
-  cphim_struct->tab_int_x = NULL;
-  cphim_struct->tab_int_y = NULL;
+
+  e = cudaMalloc((void**)&(cphim_struct->tab_int_x), cphim_struct->int_npts*sizeof(double));
+  process_err(e, "alloc gpu tab_int_x");
+
+  e = cudaMalloc((void**)&(cphim_struct->tab_int_y), cphim_struct->int_npts*sizeof(double));
+  process_err(e, "alloc gpu tab_int_y");
 
   e = cudaStreamCreate(&(cphim_struct->cphim_stream));
   process_err(e, "create cphim stream");
 
 }
 
-void tab_u831J0(struct cphim_struct *cphim_struct, double tmin, double tmax, carma_device *device){
+void tab_u831J0(double *tab_int_x, double *tab_int_y, long npts){
 	// DEBUG_TRACE("tab_int !\n");
+
+	double tmin = -4.;
+	double tmax = 10.;
+	double *r_d;
 	cudaError_t e;
-	long npts = cphim_struct->int_npts;
+	double *t = (double*)malloc(sizeof(double)*npts);
+	e = cudaMemcpy(t, tab_int_x, (npts)*sizeof(double), cudaMemcpyDeviceToHost);
+	process_err(e, "copy test");
+
 	double *temp;
 	temp=(double*)malloc((npts-1)*sizeof(double));
 	double *tab;
 	tab=(double*)malloc((npts)*sizeof(double));
 	double *temp_d;
-	int nblocks = 0 , nthreads = 0;
+	//int nblocks = 0 , nthreads = 0;
 	double dt = (tmax - tmin)/(npts-1);
-	getNumBlocksAndThreads(device, npts, nblocks, nthreads);
+	//getNumBlocksAndThreads(device, npts, nblocks, nthreads);
+	/*
+	int nblocks = msize / tabDPHI_thread_x + ( ( msize % tabDPHI_thread_x) != 0);
+	dim3 dimBlock(tabDPHI_thread_x, 1);
+	dim3 dimGrid(nblocks, 1);
+	*/
+	int device;
+	cudaGetDevice(&device);
+	struct cudaDeviceProp props;
+	cudaGetDeviceProperties(&props,device);
+	int nthreads = props.maxThreadsPerBlock;
+	int nblocks = npts / nthreads + ( ( npts % nthreads) != 0);
 	dim3 grid(nblocks), threads(nthreads);
-	// DEBUG_TRACE("tab_int !\n");
-	e = cudaMalloc((void**)&(cphim_struct->tab_int_x), npts*sizeof(double));
-	process_err(e, "alloc gpu tab_int_x");
-	e = cudaMalloc((void**)&(cphim_struct->tab_int_y), npts*sizeof(double));
-	process_err(e, "alloc gpu tab_int_y");
-	// DEBUG_TRACE("tab_int !\n");
-	compute_u831J0<<<grid,threads>>>(cphim_struct->tab_int_x, cphim_struct->tab_int_y, npts, tmin, tmax, dt);
+	compute_u831J0<<<grid,threads>>>(tab_int_x, tab_int_y, npts, tmin, tmax, dt);
 	carmaCheckMsg("compute_u831J0<<<>>> execution failed\n");
 	// DEBUG_TRACE("tab_int !\n");
 	e = cudaMalloc((void**)&(temp_d), (npts-1) * sizeof(double));
 	process_err(e, "alloc gpu temp_d");
-	cuda_zcen(cphim_struct->tab_int_y,temp_d, npts-1, device);
+	nblocks = (npts-1) / nthreads + ( ( (npts-1) % nthreads) != 0);
+	dim3 grid2(nblocks);
+	cuda_zcen_krnl<<<grid2 , threads>>>(tab_int_y, temp_d, npts-1);
+	carmaCheckMsg("cuda_zcen_krnl<<<>>> execution failed\n");
+	//cuda_zcen(tab_int_y,temp_d, npts-1, device);
 	// DEBUG_TRACE("tab_int !\n");
-	e = cudaMemcpyAsync(temp, temp_d, (npts-1)*sizeof(double), cudaMemcpyDeviceToHost, cphim_struct->cphim_stream);
+	e = cudaMemcpy(temp, temp_d, (npts-1)*sizeof(double), cudaMemcpyDeviceToHost);
 	process_err(e, "copy cpu temp");
 	cudaFree(temp_d);
 	cumsum(tab, temp, npts);
 	// DEBUG_TRACE("tab_int !\n");
-	e = cudaMemcpyAsync(cphim_struct->tab_int_y, tab, (npts)*sizeof(double), cudaMemcpyHostToDevice, cphim_struct->cphim_stream);
+	e = cudaMemcpy(tab_int_y, tab, (npts)*sizeof(double), cudaMemcpyHostToDevice);
 	process_err(e, "copy gpu tab");
 	// DEBUG_TRACE("tab_int !\n");
-	double smallx = (double)expf(tmin);
-	double smallInt = (double)(0.75 * pow(smallx,1/3.) * (1 - smallx * smallx / 112.));
+	double smallx = exp(tmin);
+	double smallInt = (0.75 * pow(smallx,1/3.) * (1 - smallx * smallx / 112.));
 	// DEBUG_TRACE("tab_int !\n");
-	intfrominftomin<<<grid,threads>>>(cphim_struct->tab_int_y, smallInt, npts);
+	intfrominftomin<<<grid,threads>>>(tab_int_y, smallInt, npts);
 	carmaCheckMsg("intfrominftomin<<<>>> execution failed\n");
 
 }
@@ -2473,7 +2513,7 @@ void update_cphim_atm(struct cphim_struct *cphim_struct, sutra_sensors *sensors,
     int n = cc / atmos->nscreens;
     int l = cc - n * atmos->nscreens;
     if(n >= sensors->nsensors()) n-=1;
-    sspSizeL[cc] = ((double)(cphim_struct->DiamTel/sensors->d_wfs[n]->nxsub)) * (1. - cphim_struct->GsAlt[n] * h[l]);
+    sspSizeL[cc] = (((double)(cphim_struct->DiamTel/sensors->d_wfs[n]->nxsub)) * (1. - cphim_struct->GsAlt[n] * h[l])) ;//+ 2*sqrt(alphaX[n]*alphaX[n]+alphaY[n]*alphaY[n])*h[l];
   }
  // DEBUG_TRACE("Here !\n");
   e = cudaMemcpyAsync(cphim_struct->sspSizeL_d, sspSizeL, cphim_struct->Nw*atmos->nscreens*sizeof(double), cudaMemcpyHostToDevice, cphim_struct->cphim_stream);
@@ -2697,6 +2737,9 @@ void update_cphim_sys(struct cphim_struct *cphim_struct, sutra_sensors *sensors,
   e = cudaMemcpyAsync(cphim_struct->dx_d, pitch, cphim_struct->Ndm*sizeof(double), cudaMemcpyHostToDevice, cphim_struct->cphim_stream);
   process_err(e, "copy gpu dx_d");
 
+  cout << "   computing tabulated integral...";
+  tab_u831J0(cphim_struct->tab_int_x,cphim_struct->tab_int_y,cphim_struct->int_npts);
+  cout << " done" << endl;
   //cphim_struct->x0 = xactu[cphim_struct->Nactu/2 + 1] * 0;
   //cphim_struct->y0 = yactu[cphim_struct->Nactu/2 + 1] * 0;
   //cphim_struct->dx = (xactu[1] - xactu[0]) * 0.5;
@@ -2824,4 +2867,75 @@ void free_cphim_struct(struct cphim_struct *cphim_struct)
   // destroy matcov stream
   e = cudaStreamDestroy(cphim_struct->cphim_stream);
   process_err(e, "destroy matcov stream");
+}
+
+
+__global__ void test_dphi_highpass_krnl(double *odata, double *r, double *tabx, double *taby, double d, long N){
+	int tid = threadIdx.x + blockIdx.x * blockDim.x;
+	if( tid<N){
+		double fc = 1/(2*d);
+		odata[tid] = DPHI_highpass(r[tid],fc,tabx,taby,N);
+	}
+}
+
+void test_DPHI_highpass(double R, double x0, long npts, carma_device *device){
+	// DEBUG_TRACE("tab_int !\n");
+	cudaError_t e;
+	double *tabx_d;
+	double *taby_d;
+	e = cudaMalloc((void**)&(tabx_d), (npts) * sizeof(double));
+	process_err(e, "copy tabx_d");
+	e = cudaMalloc((void**)&(taby_d), (npts) * sizeof(double));
+	process_err(e, "copy taby_d");
+	tab_u831J0(tabx_d,taby_d,npts);
+
+	double *tabx = (double*)malloc(npts*sizeof(double));
+	double *taby = (double*)malloc(npts*sizeof(double));
+	e = cudaMemcpy(tabx, tabx_d, (npts)*sizeof(double), cudaMemcpyDeviceToHost);
+	process_err(e, "copy tabx");
+	e = cudaMemcpy(taby, taby_d, (npts)*sizeof(double), cudaMemcpyDeviceToHost);
+	process_err(e, "copy taby");
+	FILE *myfile;
+	myfile = fopen("tabulated_int.txt","w");
+	for(int i=0 ; i<npts ; i++){
+		fprintf(myfile,"%9.9f %9.9f\n",tabx[i],taby[i]);
+	}
+	fclose(myfile);
+
+	double *odata;
+	e = cudaMalloc((void**)&(odata), (npts) * sizeof(double));
+	double *r;
+	r = (double*)malloc(npts*sizeof(double));
+	double dr = R/(npts-1);
+	for(int i =0; i<npts;i++){
+		r[i] = i*dr;
+	}
+	double *r_d;
+	e = cudaMalloc((void**)&(r_d), (npts) * sizeof(double));
+	e = cudaMemcpy(r_d, r, (npts)*sizeof(double), cudaMemcpyHostToDevice);
+	process_err(e, "copy cpu temp");
+	process_err(e, "alloc gpu temp_d");
+	int nblocks = 0;
+	int nthreads = 0;
+	getNumBlocksAndThreads(device, npts, nblocks, nthreads);
+	dim3 grid(nblocks), threads(nthreads);
+	test_dphi_highpass_krnl<<<grid,threads>>>(odata,r_d,tabx_d,taby_d,x0,npts);
+
+	e = cudaMemcpy(tabx, r_d, (npts)*sizeof(double), cudaMemcpyDeviceToHost);
+		process_err(e, "copy tabx");
+	e = cudaMemcpy(taby, odata, (npts)*sizeof(double), cudaMemcpyDeviceToHost);
+			process_err(e, "copy taby");
+	myfile = fopen("DPHI_highpass.txt","w");
+	for(int i=0 ; i<npts ; i++){
+		fprintf(myfile,"%9.9f %9.9f\n",tabx[i],taby[i]);
+	}
+	fclose(myfile);
+
+	cudaFree(tabx_d);
+	cudaFree(taby_d);
+	cudaFree(odata);
+	cudaFree(r_d);
+	free(r);
+	free(tabx);
+	free(taby);
 }
