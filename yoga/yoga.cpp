@@ -2012,17 +2012,17 @@ void Y_yoga_mm_cpu(int argc)
       float *matB = ygeta_f(argc - 2, &ntot, dimB);
 
       dimC[0] = 2;
-      if (opA == 'n')
+      if (opA == 'n') // A (M,K)
         dimC[1] = dimA[1];
       else
         dimC[1] = dimA[2];
-      if (opB == 'n')
+      if (opB == 'n') // B (K,N)
         dimC[2] = dimB[2];
       else
         dimC[2] = dimB[1];
 
       float *matC = ypush_f(dimC);
-      int k = (((opA == 'N') || (opA == 'n')) ? dimA[2] : dimA[1]);
+      int k = ((opA == 'n') ? dimA[2] : dimA[1]);
 
       carma_gemm_cpu<float>(opA, opB, dimC[1], dimC[2], k, alpha, matA, dimA[1],
           matB, dimB[1], beta, matC, dimC[1]);
@@ -2639,8 +2639,8 @@ void Y_yoga_am(int argc)
   }
 }
 
-void Y_yoga_dmm(int argc)
-/** @brief wrapper routine for yoga_blas mv method
+void Y_yoga_dgmm(int argc)
+/** @brief wrapper routine for yoga_blas dgmm method
  *  @param[in] argc : command line arguments
  *  can work as a (1) subroutine (return discarded) or (2) as a function
  *    - first  : (1) the destnation vector yoga_obj / (2) the matrix yoga_obj

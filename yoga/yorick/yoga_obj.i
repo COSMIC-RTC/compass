@@ -254,15 +254,15 @@ func check_cublas3(sizem,sizen,sizek)
   vectx_gpu = yoga_obj(vectx);
   matC_gpu = yoga_obj(matC);
   
-// compute dmm
-  yoga_dmm,matC_gpu,matA_gpu,vectx_gpu;
+// compute dgmm
+  yoga_dgmm,matC_gpu,matA_gpu,vectx_gpu;
   tmp = array(0.0f,sizek,sizek);
   tmp(*)(1::sizek+1) = vectx;
   res2 = tmp(,+)*matA(+,);
   //res2 = matA(+,)*matA(+,); // op == 't'
   res2 += matC;
   
-  write,format="left dmm diff : %f\n",max(abs(matC_gpu()(*)-res2(*)));
+  write,format="left dgmm diff : %f\n",max(abs(matC_gpu()(*)-res2(*)));
   
   vecty = float(random(sizen))
   matC = array(0.0f,sizek,sizen);
@@ -270,7 +270,7 @@ func check_cublas3(sizem,sizen,sizek)
   vecty_gpu = yoga_obj(vecty);
   matC_gpu = yoga_obj(matC);
   
-  yoga_dmm,matC_gpu,matA_gpu,vecty_gpu,'r';
+  yoga_dgmm,matC_gpu,matA_gpu,vecty_gpu,'r';
 
   tmp = array(0.0f,sizen,sizen);
   tmp(*)(1::sizen+1) = vecty;
@@ -278,7 +278,7 @@ func check_cublas3(sizem,sizen,sizek)
   //res2 = matA(+,)*matA(+,); // op == 't'
   res2 += matC;
 
-  write,format="right dmm diff : %f\n",max(abs(matC_gpu()(*)-res2(*)));
+  write,format="right dgmm diff : %f\n",max(abs(matC_gpu()(*)-res2(*)));
 // delete objects
   matA_gpu = matC_gpu = vectx_gpu = ecty_gpu = [];
 

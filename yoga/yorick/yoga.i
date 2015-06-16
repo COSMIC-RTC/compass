@@ -611,11 +611,11 @@ extern yoga_am;
    SEE ALSO:
 */
 
-extern yoga_dmm;
-/* DOCUMENT yoga_dmm
-   matC = yoga_am(matA,vectx [,side])
+extern yoga_dgmm;
+/* DOCUMENT yoga_dgmm
+   matC = yoga_dgmm(matA,vectx [,side])
    or
-   yoga_am,matC,matA,vectx [,side] 
+   yoga_dgmm,matC,matA,vectx [,side] 
 
    This function performs the matrix-diagonal matrix multiply
    diagonal matrix is provided through the diagonal vector X

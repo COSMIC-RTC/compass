@@ -198,14 +198,14 @@ int carma_potri_gen(magma_int_t N, magma_int_t ldda, T *d_iA,
 }
 
 template<class T, void (*ptr_syevd_cpu)(const char *jobz, const char *uplo,
-                                        const magma_int_t *n, T *da,
+                                        const magma_int_t *n, T *A,
                                         const magma_int_t *lda, T *w, T *wa,
                                         const magma_int_t *ldwa,
                                         magma_int_t *iwork,
                                         const magma_int_t *liwork,
                                         magma_int_t *info)>
 int carma_syevd_cpu_gen(magma_vec_t jobz, magma_int_t N, magma_int_t lda,
-                        T *d_mat, T *h_eigenvals) {
+                        T *h_mat, T *h_eigenvals) {
   magma_int_t *iwork;
 
   magma_int_t info = 0, liwork = -1, aux_iwork[1];
@@ -224,7 +224,7 @@ int carma_syevd_cpu_gen(magma_vec_t jobz, magma_int_t N, magma_int_t lda,
   cudaMallocHost((void**) &h_R, (N * lda) * sizeof(T));
 
   CHECK_MAGMA(
-      ptr_syevd_cpu(&job2, &uplo, &N, d_mat, &lda, h_eigenvals, h_R, &lda,
+      ptr_syevd_cpu(&job2, &uplo, &N, h_mat, &lda, h_eigenvals, h_R, &lda,
                     iwork, &liwork, &info),
       info);
 
