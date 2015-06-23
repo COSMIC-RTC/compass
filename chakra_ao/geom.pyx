@@ -6,7 +6,7 @@ cdef class Param_geom:
     #def __cinit__(self):
 
 
-    def geom_init(self, Param_tel tel, long pupdiam):
+    def geom_init(self, Param_tel tel, long pupdiam,apod):
         self.pupdiam=pupdiam
         #first poxer of 2 greater than pupdiam
         self.ssize=long(2**np.ceil(np.log2(pupdiam)+1))
@@ -19,10 +19,12 @@ cdef class Param_geom:
         self._n = self.pupdiam+4
         self._n1= self._p1-2
         self._n2= self._p2+2
-       
+      
+        #TODO check filename 
+        cdef bytes filename = <bytes> chakra_ao_savepath+\
+                              <bytes>"apodizer/SP_HARMONI_I4_C6_N1024.npy"
 
         #useful pupil
-
         self._spupil=mkP.make_pupil(self.pupdiam,self.pupdiam,tel)
         
         # large pupil (used for image formation)
@@ -30,13 +32,9 @@ cdef class Param_geom:
         
         # useful pupil + 4 pixels
         self._mpupil=mkP.pad_array(self._spupil,self._n).astype(np.float32)
-        """TODO apodizer
-        from yorick, func geom_init, file yoga_ao/yorick/yoga_ao.i, l 102
-        if (y_target.apod==1):
-            apodizer = float(make_apodizer(y_geom.pupdiam,y_geom.pupdiam,"/root/compass/trunk/yoga_ao/data/apodizer/SP_HARMONI_I4_C6_N1024.fits",180/12.))
-            y_geom._apodizer = &apodizer
+        if(apod==1):
+            self.apodizer=make_apodizer(self.pupdiam,self.pupdiam,filename,180./12.)
 
-        """    
 
     def set_ssize( self,long s):
         """Set the attribute ssize to s

@@ -78,13 +78,14 @@ cdef class Param_atmos:
 
 
     def atmos_init(self, chakra_context c, Param_tel tel,  Param_geom geom,
-                    Param_loop loop, wfs=None,target=None, int rank=0):
+                    Param_loop loop, Param_wfs wfs=None, Param_target target=None,
+                    int rank=0):
         """Create and initialise an atmos object
         TODO doc
         tel     -- Param_tel    : 
         geom    -- Param_geom   : 
         loop    -- Param_loop   :
-        wfs     -- param_wfs not implemented yet
+        wfs     -- param_wfs    : 
         target  -- Param_target : 
         """
 
@@ -152,13 +153,13 @@ cdef class Atmos:
         self.context = None
         
     cdef realinit(self,chakra_context ctxt,int nscreens,
-                np.ndarray[dtype=np.float32_t] r0,
-                np.ndarray[dtype=np.int64_t] size,
-                np.ndarray[dtype=np.float32_t] altitude,
-                np.ndarray[dtype=np.float32_t] windspeed,
-                np.ndarray[dtype=np.float32_t] winddir,
-                np.ndarray[dtype=np.float32_t] deltax,
-                np.ndarray[dtype=np.float32_t] deltay,
+                np.ndarray[ndim=1,dtype=np.float32_t] r0,
+                np.ndarray[ndim=1,dtype=np.int64_t] size,
+                np.ndarray[ndim=1,dtype=np.float32_t] altitude,
+                np.ndarray[ndim=1,dtype=np.float32_t] windspeed,
+                np.ndarray[ndim=1,dtype=np.float32_t] winddir,
+                np.ndarray[ndim=1,dtype=np.float32_t] deltax,
+                np.ndarray[ndim=1,dtype=np.float32_t] deltay,
                 #np.ndarray[ndim=2,dtype=np.float32_t] pupil,
                 int device ):
         
@@ -189,8 +190,10 @@ cdef class Atmos:
         self.context.set_activeDevice(screen.getDevice(),1)
         cdef const long *dims
         dims=screen.getDims()
-        cdef np.ndarray data=np.empty((dims[1],dims[2]),dtype=np.float32)
-        screen.device2host(<float*>data.data)
+        cdef np.ndarray data_F=np.empty((dims[1],dims[2]),dtype=np.float32)
+        cdef np.ndarray data  =np.empty((dims[1],dims[2]),dtype=np.float32)
+        screen.device2host(<float*>data_F.data)
+        data=np.reshape(data_F.flatten("F"),(dims[1],dims[2]))
         return data
 
     def disp(self,float alt):
@@ -200,10 +203,12 @@ cdef class Atmos:
         """
         cdef carma_obj[float] *c_phase =self.s_a.d_screens[alt].d_tscreen.d_screen
         cdef const long *dims = c_phase.getDims()
-        cdef np.ndarray[ndim=2,dtype=np.float32_t] phase=np.ndarray((dims[2],dims[1]),
+        cdef np.ndarray[ndim=2,dtype=np.float32_t] data=np.zeros((dims[2],dims[1]),dtype=np.float32)
+        cdef np.ndarray[ndim=2,dtype=np.float32_t] phase=np.ndarray((dims[1],dims[2]),
                                                 dtype=np.float32)
-       
-        c_phase.device2host(<float*>phase.data)
+
+        c_phase.device2host(<float*>data.data)
+        phase=np.reshape(data.flatten("F"),(dims[1],dims[2]))
 
         pl.ion()
         pl.clf()
@@ -271,8 +276,24 @@ cdef class Atmos:
         self.s_a.move_atmos()
 
 
+    def __str__(self):
+        cdef map[float,sutra_tscreen*].iterator it = self.s_a.d_screens.begin()
+        cdef sutra_tscreen *screen
+        cdef int i=1
+        info= "Atmos obect:\n"
+        info+= "Contains "+str(self.s_a.nscreens)+" turbulent screen(s):\n" 
+        info+= "Screen # | alt.(m) | speed (m/s) | dir.(deg) | r0 (pix) | deltax | deltay\n"
+        while it !=self.s_a.d_screens.end():
+            screen=deref(it).second
+            info+= "%8d"%i+ " | "+"%7.4f"%screen.altitude+" | "+"%11.4f"%screen.windspeed+\
+                  " | "+"%9.4f"%screen.winddir+ " | "+ "%8.4f"%screen.amplitude**-(6./5.)+\
+                  " | "+ "%6.4f"%screen.deltax+ " | "+ "%6.4f"%screen.deltay+"\n"
+            i=i+1
+            inc(it)
 
+        info+= "--------------------------------------------------------"
 
+        return info
 
  
 cdef atmos_create(chakra_context c, int nscreens,
@@ -280,12 +301,12 @@ cdef atmos_create(chakra_context c, int nscreens,
               np.ndarray[dtype=np.float32_t] L0,
               float pupixsize,
               np.ndarray[ndim=1,dtype=np.int64_t] dim_screens,
-              np.ndarray[dtype=np.float32_t] frac,
-              np.ndarray[dtype=np.float32_t] alt,
-              np.ndarray[dtype=np.float32_t] windspeed,
-              np.ndarray[dtype=np.float32_t] winddir,
-              np.ndarray[dtype=np.float32_t] deltax,
-              np.ndarray[dtype=np.float32_t] deltay,
+              np.ndarray[ndim=1,dtype=np.float32_t] frac,
+              np.ndarray[ndim=1,dtype=np.float32_t] alt,
+              np.ndarray[ndim=1,dtype=np.float32_t] windspeed,
+              np.ndarray[ndim=1,dtype=np.float32_t] winddir,
+              np.ndarray[ndim=1,dtype=np.float32_t] deltax,
+              np.ndarray[ndim=1,dtype=np.float32_t] deltay,
               int verbose):
     """Create and initialise an atmos object."""
 
@@ -300,7 +321,7 @@ cdef atmos_create(chakra_context c, int nscreens,
                     windspeed,winddir,deltax,deltay,device)
 
     cdef int i,j
-    cdef np.ndarray[ndim=2,dtype=np.float32_t] A,B
+    cdef np.ndarray[ndim=2,dtype=np.float32_t] A,B,A_F,B_F
     cdef np.ndarray[ndim=1,dtype=np.uint32_t] istx,isty
     cdef sutra_tscreen *tscreen
 
@@ -309,30 +330,34 @@ cdef atmos_create(chakra_context c, int nscreens,
     #cdef np.ndarray[ndim=2,dtype=np.float32_t] phase
 
     for i in range(nscreens):
-        file_A=os.path.normpath(data+"/A_"+str(dim_screens[i])+"_L0_"+str(int(L0[i]))+".npy")
-        file_B=os.path.normpath(data+"/B_"+str(dim_screens[i])+"_L0_"+str(int(L0[i]))+".npy")
-        file_istx=os.path.normpath(data+"/istx_"+str(dim_screens[i])+"_L0_"+str(int(L0[i]))+".npy")
-        file_isty=os.path.normpath(data+"/isty_"+str(dim_screens[i])+"_L0_"+str(int(L0[i]))+".npy") 
+        file_A=os.path.normpath(chakra_ao_savepath+"/A_"+str(dim_screens[i])+"_L0_"+str(int(L0[i]))+".npy")
+        file_B=os.path.normpath(chakra_ao_savepath+"/B_"+str(dim_screens[i])+"_L0_"+str(int(L0[i]))+".npy")
+        file_istx=os.path.normpath(chakra_ao_savepath+"/istx_"+str(dim_screens[i])+"_L0_"+str(int(L0[i]))+".npy")
+        file_isty=os.path.normpath(chakra_ao_savepath+"/isty_"+str(dim_screens[i])+"_L0_"+str(int(L0[i]))+".npy") 
 
         if(os.path.isfile(file_A) and os.path.isfile(file_B) and
            os.path.isfile(file_istx) and os.path.isfile(file_isty)):
             if(verbose==0):print "reading files"
             A=np.load(file_A)
             B=np.load(file_B)
+            A_F=np.reshape(A.flatten("F"),(A.shape[0],A.shape[1]))
+            B_F=np.reshape(B.flatten("F"),(B.shape[0],B.shape[1]))
             istx=np.load(file_istx).astype(np.uint32)
             isty=np.load(file_isty).astype(np.uint32)
 
         else:
-            A,B,istx,isty=itK.AB(dim_screens[i],L0[i])
+            A,B,istx,isty=itK.AB(dim_screens[i],L0[i],verbose)
             if(verbose==0):
                 print "writing files"
                 np.save(file_A,A)
                 np.save(file_B,B)
                 np.save(file_istx,istx)
                 np.save(file_isty,isty)
+            A_F=np.reshape(A.flatten("F"),(A.shape[0],A.shape[1]))
+            B_F=np.reshape(B.flatten("F"),(B.shape[0],B.shape[1]))
 
         tscreen=atmos_obj.s_a.d_screens[alt[i]]
-        tscreen.init_screen(<float*>(A.data),<float*>(B.data),
+        tscreen.init_screen(<float*>(A_F.data),<float*>(B_F.data),
                 <unsigned int*>istx.data,<unsigned int*>isty.data,1234)
         for j in range(2*tscreen.screen_size):
             tscreen.extrude(0)

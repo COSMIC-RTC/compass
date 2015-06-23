@@ -214,6 +214,7 @@ def rodconan(r,L0):
     ismall = np.where(dprf0<=Xlim)
 
     res = r
+    #TODO  those lines have been changed (cf trunk/yoga_ao/yorick/yoga_turbu.i l 258->264)
     if( ilarge[0].size > 0):
         res[ilarge] = asymp_macdo(dprf0(ilarge))
     elif( ismall[0].size>0):

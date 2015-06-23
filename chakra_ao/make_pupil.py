@@ -5,9 +5,29 @@ import numpy as np
 EELT_data="./EELT_data/"
 def make_pupil(dim,pupd,tel,xc=-1,
                 yc=-1,real=0,cobs=-1):
-    
-    #if type_ap=="Generic":
-    return make_pupil_generic(dim,pupd,tel.t_spiders,tel.spiders_type,
+
+    #TODO ohter types
+    if(tel.type_ap=="EELT-Nominal"):
+        tel.set_cobs(0.3)
+        N_seg=798
+        raise NotImplementedError("make_EELT")
+    elif(tel.type_ap=="EELT-BP1"): 
+        tel.set_cobs(0.369)
+        N_seg=768
+        raise NotImplementedError("make_EELT")
+    elif(tel.type_ap=="EELT-BP3"):
+        tel.set_cobs(0.503)
+        N_seg=672
+        raise NotImplementedError("make_EELT")
+    elif(tel.type_ap=="EELT-BP5"): 
+        tel.set_cobs(0.632)
+        N_seg=558
+        raise NotImplementedError("make_EELT")
+    elif(tel.type_ap=="VLT"): 
+        raise NotImplementedError("make_VLT")
+    else:
+        tel.set_type_ap("Generic")
+        return make_pupil_generic(dim,pupd,tel.t_spiders,tel.spiders_type,
                                 xc,yc,real,tel.cobs)
 
 
@@ -204,44 +224,5 @@ def dist(dim, xc=-1, yc=-1):
 
     d=np.sqrt(dx**2+dy**2)
     return np.asfortranarray(d)
-
-'''
-def rotate2(image,angle, xc=-1,yc=-1, splin=0,outside=0):
-    """rotate2(image,angle,xc,yc,splin,outside)
-
-    Rotate the input image. Angle is in degrees, CCW.
-
-    KEYWORDS:
-    xc, yc: Center for coordinate transform. Note that this is
-    compatible with the center defined by dist(), but is
-    offset by 0.5 pixels w.r.t what you read on the yorick graphic
-    window. I.e. the center of the bottom- left pixel is (1,1) in this
-    function's conventions, not (0.5,0.5).
-
-    splin: use spline2() instead of bilinear() for the interpolation
-
-    outside: value for outliers.
-    """
-
-    angle *= np.pi/180.
-
-    x,y = indices(image.shape[0],image.shape[1])
-
-    if (xc<0) xc=np.ceil(image.shape[0]/2.+0.5)
-    if (yc<0) yc=np.ceil(image.shape[1]/2.+0.5)
-
-  x-=xc
-  y-=yc
-
-  x =  np.cos(angle)*x + np.sin(angle)*y
-  y = -np.sin(angle)*x + np.cos(angle)*y
-
-  x +=xc;
-  y +=yc;
-
-  if (splin!=0) return spline2(image,x,y,outside=outside)
-  return bilinear(image,x,y,outside=outside)
-'''
-
 
 

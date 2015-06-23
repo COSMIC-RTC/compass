@@ -13,7 +13,7 @@ from distutils.core import setup
 from Cython.Distutils import build_ext
 
 ## enable to dump annotate html for each pyx source file
-#import Cython.Compiler.Options
+import Cython.Compiler.Options
 #Cython.Compiler.Options.annotate = True
 
 
@@ -202,7 +202,7 @@ ext=Extension('chakra_ao',
               language='c++',
               runtime_library_dirs=[],#CUDA['lib64']],
               extra_compile_args={'g++': []},
-              include_dirs = include_dirs
+              include_dirs = include_dirs,
               )
                               #[numpy_include, 
                               #CUDA['include'],

@@ -1,6 +1,7 @@
 import cython
 # #cython: profile=True
 import numpy as np
+cimport numpy as np
 
 import os.path
 
@@ -12,7 +13,6 @@ from cython.operator cimport dereference as deref, preincrement as inc
 
 import time
 
-
 cdef float dtor = np.pi/180
 cdef long RASC = 180.*3600./np.pi
 
@@ -21,7 +21,13 @@ assert sizeof(long) == sizeof(np.int64_t)
 assert sizeof(float) == sizeof(np.float32_t)
 assert sizeof(double) == sizeof(np.float64_t)
 
-data="./data/"
+
+#chakra_ao_dir=os.environ.get('YOGA_AO_DIR')
+chakra_ao_dir="/home/ndoucet/workspace/compass/trunk/chakra_ao"
+print chakra_ao_dir
+chakra_ao_savepath=chakra_ao_dir+"/data/"
+print chakra_ao_savepath
+#data="./data/"
 
 include "atmos.pyx"
 include "geom.pyx"
@@ -30,6 +36,11 @@ include "tel.pyx"
 include "wfs.pyx"
 include "sensors.pyx"
 include "loop.pyx"
+include "rtc.pyx"
+include "dms.pyx"
+include "centroider.pyx"
+include "controller.pyx"
+include "kl.pyx"
 
 def see_atmos_target_disp(int n, Atmos atm, Target tar,Sensors wfs, float alt=0, int n_tar=0,float f=1, int log=0):
     """Display the turbulence of the atmos and the image of the target after a call to the function:
@@ -52,16 +63,28 @@ def see_atmos_target_disp(int n, Atmos atm, Target tar,Sensors wfs, float alt=0,
     e0=min(ph.shape[0],ph.shape[0]*0.5+ph.shape[0]*f)
     s1=max(0,ph.shape[1]*0.5-ph.shape[1]*f)
     e1=min(ph.shape[1],ph.shape[1]*0.5+ph.shape[1]*f)
+
    
     pl.ion()
     pl.show()
     cdef double start,end, t1,t2,t3,t4,t5,t6
 
+    screen=atm.get_screen(alt)
+    im1=turbu.imshow(screen,cmap='Blues')
+    ph=tar.get_image(n_tar,"se")
+    im2=image.matshow(ph[s0:e0,s1:e1],cmap='Blues_r')
+    ph=np.roll(ph,ph.shape[0]/2,axis=0)
+    ph=np.roll(ph,ph.shape[1]/2,axis=1)
+    shak=wfs._get_binimg(0)
+    im3=sh.matshow(shak,cmap='Blues_r')
+    pl.draw()
+
+
     start=time.time()
     for i in range(n):
         atm.move_atmos()
         tar.atmos_trace(n_tar, atm)
-        wfs.sensors_trace(0,"atmos",atm,0)
+        wfs.sensors_trace(0,"atmos",atm)
         wfs.sensors_compimg(0)
         shak=wfs._get_binimg(0)
         turbu.clear()
@@ -115,7 +138,7 @@ def see_atmos_target_disp_mpi(int n, Atmos atm, Target tar,Sensors wfs, MPI.Intr
         if(wfs.get_rank(0)==0):
             atm.move_atmos()
             tar.atmos_trace(n_tar, atm)
-            wfs.sensors_trace(0,"atmos",atm,0)
+            wfs.sensors_trace(0,"atmos",atm)
         wfs.Bcast_dscreen()
         wfs.sensors_compimg(0)
         wfs.gather_bincube(comm,0)
@@ -161,7 +184,7 @@ def see_atmos_target_mpi_cu(int n, Atmos atm, Target tar,Sensors wfs, MPI.Intrac
         if(wfs.get_rank(0)==0):
             atm.move_atmos()
             tar.atmos_trace(n_tar, atm)
-            wfs.sensors_trace(0,"atmos",atm,0)
+            wfs.sensors_trace(0,"atmos",atm)
         wfs.Bcast_dscreen_cuda_aware()
         wfs.sensors_compimg(0)
         wfs.gather_bincube_cuda_aware(comm,0)
@@ -191,7 +214,7 @@ def see_atmos_target_mpi(int n, Atmos atm, Target tar,Sensors wfs, MPI.Intracomm
         if(wfs.get_rank(0)==0):
             atm.move_atmos()
             tar.atmos_trace(n_tar, atm)
-            wfs.sensors_trace(0,"atmos",atm,0)
+            wfs.sensors_trace(0,"atmos",atm)
         wfs.Bcast_dscreen()
         wfs.sensors_compimg(0)
         wfs.gather_bincube(comm,0)
@@ -221,7 +244,7 @@ def see_atmos_target(int n, Atmos atm, Target tar,Sensors wfs, float alt=0, int 
         if(wfs.get_rank(0)==0):
             atm.move_atmos()
             tar.atmos_trace(n_tar, atm)
-            wfs.sensors_trace(0,"atmos",atm,0)
+            wfs.sensors_trace(0,"atmos",atm)
         wfs.sensors_compimg(0)
     end=time.time()
     print "time:",end-start
@@ -291,12 +314,11 @@ def  indices(int dim1, int dim2=-1):
     if (dim2<0):
         y =np.tile( (np.arange(dim1)+1),(dim1,1))
         x =np.copy(y.T) 
-        #return x,y
         return y,x
     else :
         x =np.tile( (np.arange(dim1)+1),(dim2,1))
         y =np.tile( (np.arange(dim2)+1),(dim1,1)).T
-        return x,y
+        return y,x
 
 
 cdef fft_goodsize(long s):
@@ -318,3 +340,78 @@ cdef makegaussian(int size, float fwhm, int xc=-1, int yc=-1, int norm=0):
         tmp = tmp/(fwhm**2.*1.140075)
     return tmp
 
+
+
+
+cdef make_apodizer(int dim, int pupd, bytes filename, float angle):
+
+    print "Opening apodizer"
+    cdef np.ndarray pup=np.load(filename)
+    cdef int A=pup.shape[0]
+
+    if(A>dim):
+        raise ValueError("Apodizer dimensions must be smaller.") 
+    
+    if (A != pupd):
+        print "TODO pup=bilinear(pup,pupd,pupd)"
+    
+    if (angle != 0):
+        print "TODO pup=rotate2(pup,angle)"
+    
+    reg=np.where(mkP.dist(pupd)>pupd/2.)
+    pup[reg]=0.
+    
+    cdef np.ndarray[ndim=2,dtype=np.float32_t] pupf= np.zeros((dim,dim),dtype=np.float32)
+    
+    if (dim != pupd):
+        if ((dim-pupd)%2 != 0):
+            pupf[(dim-pupd+1)/2:(dim+pupd+1)/2,(dim-pupd+1)/2:(dim+pupd+1)/2]=pup
+        
+        else:
+            pupf[(dim-pupd)/2:(dim+pupd)/2,(dim-pupd)/2:(dim+pupd)/2]=pup
+       
+    else:
+        pupf=pup
+    
+    pupf=np.abs(pupf).astype(np.float32)
+    
+    return pupf
+
+
+'''
+cdef rotate2(image,angle, xc=-1,yc=-1, splin=0,outside=0):
+    """rotate2(image,angle,xc,yc,splin,outside)
+
+    Rotate the input image. Angle is in degrees, CCW.
+
+    KEYWORDS:
+    xc, yc: Center for coordinate transform. Note that this is
+    compatible with the center defined by dist(), but is
+    offset by 0.5 pixels w.r.t what you read on the yorick graphic
+    window. I.e. the center of the bottom- left pixel is (1,1) in this
+    function's conventions, not (0.5,0.5).
+
+    splin: use spline2() instead of bilinear() for the interpolation
+
+    outside: value for outliers.
+    """
+
+    angle *= np.pi/180.
+
+    x,y = indices(image.shape[0],image.shape[1])
+
+    if (xc<0): xc=np.ceil(image.shape[0]/2.+0.5)
+    if (yc<0): yc=np.ceil(image.shape[1]/2.+0.5)
+
+    x-=xc
+    y-=yc
+
+    x =  np.cos(angle)*x + np.sin(angle)*y
+    y = -np.sin(angle)*x + np.cos(angle)*y
+
+    x +=xc
+    y +=yc
+
+#    if (splin!=0) return spline2(image,x,y,outside=outside)
+#    return bilinear(image,x,y,outside=outside)
+'''

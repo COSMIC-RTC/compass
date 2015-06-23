@@ -32,7 +32,7 @@ cdef class Param_target:
     def target_init(self,chakra_context ctxt, Param_atmos atm,
                     Param_geom geom, Param_tel tel,wfs=None, 
                     Sensors sensors=None,
-                    param_dm=None):
+                    dm=None):
         """Create a cython target from parametres structures
         
 
@@ -48,8 +48,17 @@ cdef class Param_target:
         cdef float xoff
         cdef float yoff
         cdef int Npts
-        #if (y_target != []) {
+
+        cdef int i, j, k
+
+        if(self.ntargets>0):
+            if(self.dms_seen is None):
+                for i in range(self.ntargets):
+                    if(dm is not None):
+                        self.dms_seen=np.arange(len(dm))+1
+
         cdef np.ndarray sizes= np.ones(self.ntargets,dtype=np.int64)*geom.pupdiam
+
         #sizes = sizes(-::y_target.ntargets-1);
 # ATTEMPT AT MAKING IT POSSIBLE TO WORK WITH NON BINARY PUPILS
 # switching *y_geom._spupil and *y_geom._apodizer with ceil(*y_geom._spupil) and ceil(*y_geom._apodizer)
@@ -65,22 +74,54 @@ cdef class Param_target:
                 ceiled_apodizer[np.where(ceiled_apodizer>1)]=1
                 target = Target(ctxt, self.ntargets,self.xpos,self.ypos,
                             self.Lambda, self.mag,self.zerop,sizes,ceiled_apodizer,Npts)
+                #TODO if brama ...
         else:
                 Npts=np.sum(ceiled_pupil)
                 target= Target(ctxt, self.ntargets,self.xpos,self.ypos,
                                 self.Lambda, self.mag,self.zerop,sizes,ceiled_pupil,Npts)
+                #TODO if brama ...
 
-        cdef int i
-        cdef int j
+        cdef long dims,dim, dim_dm
+
+        #cc=i
         for i in range(self.ntargets):
             if(atm.nscreens>0):
                 for j in range(atm.nscreens):
                     xoff=self.xpos[i]*4.848e-6*atm.alt[j]/atm.pupixsize
                     yoff=self.ypos[i]*4.848e-6*atm.alt[j]/atm.pupixsize
+                    xoff+=float((atm.dim_screens[j]-geom._n)/2)
+                    yoff+=float((atm.dim_screens[j]-geom._n)/2)
+                    pupdiff = (geom._n - geom.pupdiam)/2
+                    xoff += pupdiff
+                    yoff += pupdiff
                     target.add_layer(i,type_target,atm.alt[j],xoff,yoff)
-            #if(param_dm is not None):
-                """TODO dm !=None
-                cf yorick func target_init,  file yoga_ao/yorick/yoga_ao.i  l 369"""
+
+            #if (y_dm != []) {
+            if(dm is not None):
+                #j=ddd
+                #for (ddd=1;ddd<=numberof(*y_target(cc).dms_seen);ddd++) {
+                for j in range(self.dms_seen.size):
+                    #k=dd
+                    #dd = (*y_target(cc).dms_seen)(ddd)
+                    k=self.dms_seen[j]-1
+                    dims=dm[k]._n2-dm[k]._n1+1
+                    dim=geom._mpupil[2].size
+                    dim_dm = max(dim,dims)
+                    xoff=target.xpos[i]*4.848e-6*dm[k].alt/tel.diam*geom.pupdiam
+                    yoff=target.ypos[i]*4.848e-6*dm[k].alt/tel.diam*geom.pupdiam
+
+
+                    xoff+=float((dim_dm-geom._n)/2)
+                    yoff+=float((dim_dm-geom._n)/2)
+
+                    pupdiff=(geom._n-geom.pupdiam)/2
+                    xoff+=pupdiff
+                    yoff+=pupdiff
+
+                    if(dm[k].type_dm=="kl"):
+                        xoff+=2
+                        yoff+=2
+                    target.add_layer(i,dm[k].type_dm,dm[k].alt,xoff,yoff)
 
             target.init_strehlmeter(i)
 
@@ -95,46 +136,27 @@ cdef class Param_target:
                     if(wfs[i].atmos_seen):
                         for j in range(atm.nscreens):
                             xoff=(gsalt * atm.alt[j] * (tel.diam/2.) + wfs[i].xpos*4.848e-6*atm.alt[j])/atm.pupixsize
-                            yoff = (gsalt * atm.alt[j] * (tel.diam/2.) + wfs[i].ypos*4.848e-6**atm.alt[j])/atm.pupixsize
-                            xoff = xoff+(atm.dim_screens[j]-geom._n)/2
-                            yoff = yoff+(atm.dim_screens[j]-geom._n)/2
+                            yoff=(gsalt * atm.alt[j] * (tel.diam/2.) + wfs[i].ypos*4.848e-6**atm.alt[j])/atm.pupixsize
+                            xoff=xoff+(atm.dim_screens[j]-geom._n)/2
+                            yoff=yoff+(atm.dim_screens[j]-geom._n)/2
                             sensors.sensors.d_wfs[i].d_gs.add_layer(type_target, atm.alt[j],xoff,yoff)
+
+                    if(dm is not None and not wfs[i].openloop):
+                        for j in range(wfs[i].dms_seen.size):
+                            k=wfs[i].dms_seen[j]-1
+                            dims=dm[k]._n2-dm[k]._n1+1
+                            dim=geom._mpupil.shape[0]
+                            if(dim<dims):
+                                dim=dims
+                            xoff=wfs[i].xpos*4.848e-6*dm[k].alt/tel.diam*geom.pupdiam
+                            yoff=wfs[i].ypos*4.848e-6*dm[k].alt/tel.diam*geom.pupdiam
+                            xoff=xoff+(dim-geom._n)/2
+                            yoff=yoff+(dim-geom._n)/2
+                            sensors.sensors.d_wfs[i].d_gs.add_layer(dm[k].type_dm, dm[k].alt,xoff,yoff)
+
+
+
         return target
-
-"""
-  if (y_wfs != []) {
-    if ((y_wfs != []) && (g_wfs != [])) {
-      for (cc=1;cc<=numberof(y_wfs);cc++) {
-        if (y_wfs(cc).gsalt != 0.)
-          gsalt = 1./y_wfs(cc).gsalt;
-        else gsalt = 0.;
-        if (y_atmos != [] && y_wfs(cc).atmos_seen) {
-          for (dd=1;dd<=y_atmos.nscreens;dd++) {
-            xoff = (gsalt * (*y_atmos.alt)(dd) * (y_tel.diam/2.) + (y_wfs.xpos)(cc)*4.848e-6*(*y_atmos.alt)(dd))/y_atmos.pupixsize;
-            yoff = (gsalt * (*y_atmos.alt)(dd) * (y_tel.diam/2.) + (y_wfs.ypos)(cc)*4.848e-6*(*y_atmos.alt)(dd))/y_atmos.pupixsize;
-            xoff = float(xoff+((*y_atmos.dim_screens)(dd)-y_geom._n)/2);
-            yoff = float(yoff+((*y_atmos.dim_screens)(dd)-y_geom._n)/2);
-            sensors_addlayer,g_wfs,cc-1,type,(*y_atmos.alt)(dd),xoff,yoff;
-          }
-        }
-        if (y_dm != [] && !y_wfs(cc).openloop) {
-          for (ddd=1;ddd<=numberof(*y_wfs(cc).dms_seen);ddd++) {
-	    dd = (*y_wfs(cc).dms_seen)(ddd);
-            dims = y_dm(dd)._n2 - y_dm(dd)._n1 + 1;
-            dim  = dimsof(*y_geom._mpupil)(2);
-            dim_dm = max([dim,dims]);
-            xoff = (y_wfs.xpos)(cc)*4.848e-6*(y_dm.alt)(dd)/(y_tel.diam / y_geom.pupdiam);
-            yoff = (y_wfs.ypos)(cc)*4.848e-6*(y_dm.alt)(dd)/(y_tel.diam / y_geom.pupdiam);
-            xoff = float(xoff+(dim_dm-y_geom._n)/2);
-            yoff = float(yoff+(dim_dm-y_geom._n)/2);
-            sensors_addlayer,g_wfs,cc-1,y_dm(dd).type,(y_dm.alt)(dd),xoff,yoff;
-          }
-        }
-      }
-    }
-  }
-"""
-
 
 
 
@@ -145,12 +167,12 @@ cdef class Param_target:
 cdef class Target:
 
     def __cinit__(self,chakra_context ctxt, int ntargets, 
-                    np.ndarray[dtype=np.float32_t] xpos,
-                    np.ndarray[dtype=np.float32_t] ypos,
-                    np.ndarray[dtype=np.float32_t] Lambda,
-                    np.ndarray[dtype=np.float32_t] mag,
+                    np.ndarray[ndim=1,dtype=np.float32_t] xpos,
+                    np.ndarray[ndim=1,dtype=np.float32_t] ypos,
+                    np.ndarray[ndim=1,dtype=np.float32_t] Lambda,
+                    np.ndarray[ndim=1,dtype=np.float32_t] mag,
                     float zerop,
-                    np.ndarray[dtype=np.int64_t] size,
+                    np.ndarray[ndim=1,dtype=np.int64_t] size,
                     np.ndarray[ndim=2, dtype=np.float32_t] pupil,
                     int Npts,
                     int device=-1
@@ -169,12 +191,13 @@ cdef class Target:
         self.device=device
         self.context=ctxt
 
+        cdef np.ndarray[dtype=np.float32_t] pupil_F=pupil.flatten("F")
 
         self.target= new sutra_target(ctxt.c,ntargets,
                     <float*>xpos.data,<float*>ypos.data,
                     <float*>Lambda.data,<float*>mag.data,
                     zerop, <long*>size.data,
-                    <float*>pupil.data,Npts,
+                    <float*>pupil_F.data,Npts,
                     device)
 
 
@@ -206,8 +229,10 @@ cdef class Target:
         int --  nTarget :
         atm --  atmos
         """
+
         self.context.set_activeDevice(self.device)
-        self.target.d_targets[nTarget].raytrace(atm.s_a)
+        self.target.d_targets[0].raytrace(atm.s_a)
+
 
     def get_image(self,int nTarget, bytes type_im, long puponly=0):
         """TODO doc
@@ -221,14 +246,16 @@ cdef class Target:
 
         cdef const long *dims
         dims=src.d_image.getDims()
+        cdef np.ndarray data_F=np.empty((dims[2],dims[1]),dtype=np.float32)
         cdef np.ndarray data=np.empty((dims[1],dims[2]),dtype=np.float32)
 
         src.comp_image(puponly)
         if(type_im=="se"):
-            src.d_image.device2host(<float*>data.data)
+            src.d_image.device2host(<float*>data_F.data)
         elif(type_im=="le"):
-            src.d_leimage.device2host(<float*>data.data)
+            src.d_leimage.device2host(<float*>data_F.data)
 
+        data=np.reshape(data_F.flatten("F"),(dims[1],dims[2]))
         return data
 
 
@@ -243,9 +270,11 @@ cdef class Target:
 
         cdef const long *dims
         dims = src.d_phase.d_screen.getDims()
+        cdef np.ndarray data_F=np.empty((dims[2],dims[1]),dtype=np.float32)
         cdef np.ndarray data=np.empty((dims[1],dims[2]),dtype=np.float32)
-        src.d_phase.d_screen.device2host(<float*>data.data)
+        src.d_phase.d_screen.device2host(<float*>data_F.data)
 
+        data=np.reshape(data_F.flatten("F"),(dims[1],dims[2]))
         return data
 
 
@@ -260,10 +289,12 @@ cdef class Target:
 
         cdef const long *dims
         dims=src.phase_telemetry.getDims()
+        cdef np.ndarray data_F=np.empty((dims[1],dims[2]),dtype=np.float32)
         cdef np.ndarray data=np.empty((dims[1],dims[2]),dtype=np.float32)
 
-        src.phase_telemetry.fill_into(<float*>data.data)
+        src.phase_telemetry.fill_into(<float*>data_F.data)
 
+        data=np.reshape(data_F.flatten("F"),(dims[1],dims[2]))
         return data
 
 
@@ -280,9 +311,11 @@ cdef class Target:
         cdef const long *dims
         dims=src.d_amplipup.getDims()
 
+        cdef np.ndarray data_F=np.empty((dims[1],dims[2]),dtype=np.complex64)
         cdef np.ndarray data=np.empty((dims[1],dims[2]),dtype=np.complex64)
-        src.d_amplipup.device2host(<cuFloatComplex*>data.data)
+        src.d_amplipup.device2host(<cuFloatComplex*>data_F.data)
 
+        data=np.reshape(data_F.flatten("F"),(dims[1],dims[2]))
         return data
 
 
@@ -307,3 +340,15 @@ cdef class Target:
         return strehl
 
 
+    def __str__(self):
+        info = "Target objects:\n"
+        info+= "Contains "+str(self.target.ntargets)+" Target(s):\n"
+        cdef int i
+        cdef sutra_source *target
+        info+= "Source # | position(\") |  Mag  | Lambda (mic.)\n"
+        for i in range(self.target.ntargets):
+            target=self.target.d_targets.at(i)
+            info+= "%8d"%(i+1)+ " | "+ "%4d"%target.tposx+" , "+"%-4d"%target.tposy+\
+                  " | "+"%5.2f"%target.mag+" | "+"%5.3f"%target.Lambda+"\n"
+        info+= "--------------------------------------------------------"
+        return info
