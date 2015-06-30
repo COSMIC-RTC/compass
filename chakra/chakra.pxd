@@ -19,12 +19,31 @@ cdef extern from "cublas_v2.h":
     pass
 
 cdef extern from "cublas_api.h":
+
+    ctypedef enum cublasStatus_t:
+        CUBLAS_STATUS_SUCCESS         =0
+        CUBLAS_STATUS_NOT_INITIALIZED =1
+        CUBLAS_STATUS_ALLOC_FAILED    =3
+        CUBLAS_STATUS_INVALID_VALUE   =7
+        CUBLAS_STATUS_ARCH_MISMATCH   =8
+        CUBLAS_STATUS_MAPPING_ERROR   =11
+        CUBLAS_STATUS_EXECUTION_FAILED=13
+        CUBLAS_STATUS_INTERNAL_ERROR  =14
+        CUBLAS_STATUS_NOT_SUPPORTED   =15
+        CUBLAS_STATUS_LICENSE_ERROR   =16
+
+
     ctypedef enum cublasFillMode_t:
             CUBLAS_FILL_MODE_LOWER = 0
             CUBLAS_FILL_MODE_UPPER = 1
     ctypedef enum cublasSideMode_t:
             CUBLAS_SIDE_LEFT = 0
             CUBLAS_SIDE_RIGHT = 1
+
+    struct cublasContext:
+        pass
+    ctypedef cublasContext *cublasHandle_t
+
 
 #cuda plan
 cdef extern from "cufft.h":
@@ -64,6 +83,8 @@ cdef extern from "carma_context.h":
         int set_activeDeviceForce(int newDevice, int silent)
         int set_activeDeviceForCpy(int newDevice, int silent)
         int get_activeDevice()
+        carma_device* get_device(int dev)
+        cublasHandle_t get_cublasHandle()
         @staticmethod
         carma_context* instance()
 
@@ -463,3 +484,9 @@ cdef extern from "carma_host_obj.h":
     int carma_getri_cpu[T](long N, T *h_A)
     int carma_potri_cpu[T](long N, T *h_A)
     int carma_syevd_cpu[T](char jobz, int N, T *h_A, T *eigenvals)
+
+
+
+cdef extern from "carma_cublas.h":
+    cublasStatus_t carma_axpy[T](cublasHandle_t cublas_handle, int n, T alpha, T *vectx,
+        int incx, T *vecty, int incy)
