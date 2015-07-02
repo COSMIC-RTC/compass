@@ -229,10 +229,10 @@ cdef make_azimuth(nord,Np):
 
     cdef int i
     azi[0,:]=1.
-    azi[1,:]=np.cos(1.5*th)
 
-    for i in range(2,nord+1):
-        azi[i,:]=np.sin((i/2)*th)
+    for i in range(1,nord+1,2):
+        azi[i,:]=np.cos((i/2+1)*th)
+        azi[i+1,:]=np.sin((i+1)/2*th)
 
     return azi
 

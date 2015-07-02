@@ -9,8 +9,6 @@ cdef class Param_controller:
         self.ndm=np.array(l,dtype=np.int32)
     def set_nactu(self,l):
         self.nactu=np.array(l,dtype=np.int32)
-#    def set_imat(self,l):
-#    def set_cmat(self,l):
     def set_maxcond(self,float m):
         self.maxcond=m
     def set_delay(self,float d):
@@ -35,4 +33,6 @@ cdef class Param_controller:
         self.ngain=n
     def set_imat(self,np.ndarray[ndim=2,dtype=np.float32_t] imat):
         self.imat=imat
+    def set_cmat(self,np.ndarray[ndim=2,dtype=np.float32_t] cmat):
+        self.cmat=cmat
 

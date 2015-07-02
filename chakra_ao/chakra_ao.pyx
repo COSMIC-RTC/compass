@@ -119,34 +119,38 @@ def see_atmos_target_disp_mpi(int n, Atmos atm, Target tar,Sensors wfs, MPI.Intr
     n_tar   -- int      : number of the target 
     f       -- float    : fraction of the image to display (centered on the image center)
     """
-    f=f/2
-    fig, (turbu,image,sh)=pl.subplots(1,3, figsize=(15,10))
-
-    ph=tar.get_image(n_tar,"se")
-    s0=max(0,ph.shape[0]*0.5-ph.shape[0]*f)
-    e0=min(ph.shape[0],ph.shape[0]*0.5+ph.shape[0]*f)
-    s1=max(0,ph.shape[1]*0.5-ph.shape[1]*f)
-    e1=min(ph.shape[1],ph.shape[1]*0.5+ph.shape[1]*f)
-   
     if(wfs.get_rank(0)==0):
-        pl.ion()
-        pl.show()
+        f=f/2
+        fig, (turbu,image,sh)=pl.subplots(1,3, figsize=(15,10))
+
+        ph=tar.get_image(n_tar,"se")
+        s0=max(0,ph.shape[0]*0.5-ph.shape[0]*f)
+        e0=min(ph.shape[0],ph.shape[0]*0.5+ph.shape[0]*f)
+        s1=max(0,ph.shape[1]*0.5-ph.shape[1]*f)
+        e1=min(ph.shape[1],ph.shape[1]*0.5+ph.shape[1]*f)
+  
+    pl.ion()
+    pl.show()
     cdef double start,end, t1,t2,t3,t4,t5,t6
 
     start=time.time()
     for i in range(n):
         if(wfs.get_rank(0)==0):
+            print i
             atm.move_atmos()
             tar.atmos_trace(n_tar, atm)
             wfs.sensors_trace(0,"atmos",atm)
         wfs.Bcast_dscreen()
+        print "Bcast",wfs.get_rank(0),i
         wfs.sensors_compimg(0)
+        print "gather",wfs.get_rank(0),i
         wfs.gather_bincube(comm,0)
         if(wfs.get_rank(0)==0):
-            shak=wfs._get_binimg(0)
+            print wfs.get_rank(0),"disp"
             turbu.clear()
             screen=atm.get_screen(alt)
             im1=turbu.imshow(screen,cmap='Blues')
+
             ph=tar.get_image(n_tar,"se")
             ph=np.roll(ph,ph.shape[0]/2,axis=0)
             ph=np.roll(ph,ph.shape[1]/2,axis=1)
@@ -154,9 +158,17 @@ def see_atmos_target_disp_mpi(int n, Atmos atm, Target tar,Sensors wfs, MPI.Intr
             if(log==1):
                 ph=np.log(ph[s0:e0,s1:e1])
             im2=image.matshow(ph[s0:e0,s1:e1],cmap='Blues_r')
+
             sh.clear()
+            shak=wfs._get_binimg(0)
             im3=sh.matshow(shak,cmap='Blues_r')
             pl.draw()
+
+            sh_file="dbg/shak_"+str(i)+"_np_"+str(comm.Get_size())+".npy"
+            im_file="dbg/imag_"+str(i)+"_np_"+str(comm.Get_size())+".npy"
+            np.save(sh_file,shak)
+            np.save(im_file,ph)
+
     end=time.time()
     print comm.Get_rank(),"time:",end-start
 
@@ -353,9 +365,11 @@ cdef make_apodizer(int dim, int pupd, bytes filename, float angle):
         raise ValueError("Apodizer dimensions must be smaller.") 
     
     if (A != pupd):
+        #use misc.imresize (with bilinear)
         print "TODO pup=bilinear(pup,pupd,pupd)"
     
     if (angle != 0):
+        #use ndimage.interpolation.rotate
         print "TODO pup=rotate2(pup,angle)"
     
     reg=np.where(mkP.dist(pupd)>pupd/2.)

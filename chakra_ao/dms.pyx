@@ -507,23 +507,23 @@ cdef comp_dmgeom(Param_dm dm, Param_geom geom):
     cdef np.ndarray[ndim=1,dtype=np.int32_t] tmps=np.sort(tmp.flatten("F")).astype(np.int32)
     itmps=itmps[itmps>-1]
 
-    cdef np.ndarray[ndim=2,dtype=np.int32_t] istart,npts
-    istart=np.zeros((dim,dim),dtype=np.int32)
-    npts=np.zeros((dim,dim),dtype=np.int32) 
+    cdef np.ndarray[ndim=1,dtype=np.int32_t] istart,npts
+    istart=np.zeros((dim*dim),dtype=np.int32)
+    npts=np.zeros((dim*dim),dtype=np.int32) 
 
 
     cdef int cpt,ref
-    cpt=1
-    ref=1
-    
+    cpt=0
+    ref=0
+
     for i in range(dim*dim):
-        if( offs!=0 and mapactu[[i]]==0):
+        if( offs!=0 and mapactu.item(i)==0):
             npts[i]=0
         else:
-            while(tmps[cpt]==i-1 and cpt<tmp.size-1 ):
+            while(tmps[cpt]==i and cpt<tmp.size-1 ):
                 cpt+=1
-            npts.itemset(i,cpt-ref)
-            istart.itemset(i,ref)
+            npts[i]=cpt-ref
+            istart[i]=ref
             ref=cpt
 
     dm._influpos = itmps[:np.sum(npts)].astype(np.int64)
@@ -563,6 +563,9 @@ cdef class Dms:
         cdef int inddm = self.dms.get_inddm(type_dm,alt)
         if(inddm<0):
             raise StandardError("Unknown error")
+
+        cdef carma_context *context=carma_context.instance()
+        context.set_activeDevice(self.dms.d_dms[inddm].device,1)
         self.dms.d_dms[inddm].reset_shape()
 
 
@@ -570,14 +573,17 @@ cdef class Dms:
         cdef int inddm = self.dms.get_inddm(type_dm,alt)
         if(inddm<0):
             raise StandardError("Unknown error")
+
+        cdef carma_context *context=carma_context.instance()
+        context.set_activeDevice(self.dms.d_dms[inddm].device,1)
         self.dms.d_dms[inddm].comp_oneactu(nactu,ampli)
 
 
     cdef load_pzt(self, float alt,
         np.ndarray[ndim=3,dtype=np.float32_t] influ,
         np.ndarray[ndim=1,dtype=np.int32_t] influpos,
-        np.ndarray[ndim=2,dtype=np.int32_t] npoints,
-        np.ndarray[ndim=2,dtype=np.int32_t] istart,
+        np.ndarray[ndim=1,dtype=np.int32_t] npoints,
+        np.ndarray[ndim=1,dtype=np.int32_t] istart,
         np.ndarray[ndim=1,dtype=np.int32_t] xoff,
         np.ndarray[ndim=1,dtype=np.int32_t] yoff):#,
         #np.ndarray[dtype=np.float32_t] kern):
@@ -591,7 +597,9 @@ cdef class Dms:
             err="unknown error whith load_pzt\nDM (pzt"+str(alt)+") doesn't exist"
             raise ValueError(err)
 
-        #TODO check kern array?
+        cdef carma_context *context=carma_context.instance()
+        context.set_activeDevice(self.dms.d_dms[inddm].device,1)
+
         self.dms.d_dms[inddm].pzt_loadarrays(<float*>influ_F.data,
                                               <int*> influpos.data,
                                               <int*>npoints_F.data,
@@ -601,7 +609,6 @@ cdef class Dms:
                                               NULL) #<float*>kern.data)
 
 
-    #TODO dims of arrays
     cdef load_kl(self,float alt,
         np.ndarray[ndim=1,dtype=np.float32_t] rabas,
         np.ndarray[ndim=1,dtype=np.float32_t] azbas,
@@ -613,6 +620,9 @@ cdef class Dms:
         if(inddm<0):
             err="unknown error whith load_kl\nDM (kl"+str(alt)+") doesn't exist"
             raise ValueError(err)
+
+        cdef carma_context *context=carma_context.instance()
+        context.set_activeDevice(self.dms.d_dms[inddm].device,1)
 
 
         self.dms.d_dms[inddm].kl_loadarrays(<float*> rabas.data,
@@ -628,6 +638,9 @@ cdef class Dms:
         if(inddm<0):
             err="unknown error whith load_tt\nDM (tt"+str(alt)+") doesn't exist"
             raise ValueError(err)
+
+        cdef carma_context *context=carma_context.instance()
+        context.set_activeDevice(self.dms.d_dms[inddm].device,1)
         cdef const long *dims
         dims= self.dms.d_dms[inddm].d_influ.getDims()
         cdef np.ndarray[dtype=np.float32_t] influ_F=influ.flatten("F")
@@ -650,6 +663,9 @@ cdef class Dms:
             err="unknown error whith load_kl\nDM (kl"+str(alt)+") doesn't exist"
             raise ValueError(err)
 
+        cdef carma_context *context=carma_context.instance()
+        context.set_activeDevice(self.dms.d_dms[inddm].device,1)
+
         self.dms.d_dms[inddm].comp_shape()
 
 
@@ -664,6 +680,9 @@ cdef class Dms:
                 str(alt)+") doesn't exist"
             raise ValueError(err)
 
+        cdef carma_context *context=carma_context.instance()
+        context.set_activeDevice(self.dms.d_dms[inddm].device,1)
+
         self.dms.d_dms[inddm].compute_KLbasis(<float*>xpos.data, <float*>ypos.data, 
                 <int*>indx_pup.data, dim, norm, ampli)
 
@@ -672,16 +691,85 @@ cdef class Dms:
 
         cdef int inddm=self.dms.get_inddm(type_dm,alt)
         if(inddm<0):
-            err="unknown error with yoga_getKLbasis function DM("+type_dm+","+alt+") doesnt exists"
+            err="unknown error with get_KLbasis function DM("+type_dm+","+alt+") doesnt exists"
             raise ValueError(err)
+
+        cdef carma_context *context=carma_context.instance()
+        context.set_activeDevice(self.dms.d_dms[inddm].device,1)
         cdef const long *dims=self.dms.d_dms[inddm].d_KLbasis.getDims()
-        #TODO check ndim (=2?)
-        cdef np.ndarray[ndim=2,dtype=np.float32_t] data_F=np.zeros((dims[1],dims[2]),dtype=np.float32)
+        cdef np.ndarray[ndim=2,dtype=np.float32_t] data_F=np.zeros((dims[2],dims[1]),dtype=np.float32)
         cdef np.ndarray[ndim=2,dtype=np.float32_t] data=np.zeros((dims[1],dims[2]),dtype=np.float32)
 
         self.dms.d_dms[inddm].d_KLbasis.device2host(<float*>data_F.data)
         data=np.reshape(data_F.flatten("F"),(dims[1],dims[2]))
         return data
+
+
+
+    def get_dm(self,bytes type_dm,float alt):
+
+        cdef int inddm=self.dms.get_inddm(type_dm,alt)
+        if(inddm<0):
+            err="unknown error with get_dm function DM("+type_dm+","+alt+") doesnt exists"
+            raise ValueError(err)
+
+        cdef carma_context *context=carma_context.instance()
+        context.set_activeDevice(self.dms.d_dms[inddm].device,1)
+        cdef const long *dims=self.dms.d_dms[inddm].d_shape.d_screen.getDims()
+        cdef np.ndarray[ndim=2,dtype=np.float32_t] data_F=np.zeros((dims[2],dims[1]),dtype=np.float32)
+        cdef np.ndarray[ndim=2,dtype=np.float32_t] data=np.zeros((dims[1],dims[2]),dtype=np.float32)
+
+        self.dms.d_dms[inddm].d_shape.d_screen.device2host(<float*>data_F.data)
+        data=np.reshape(data_F.flatten("F"),(dims[1],dims[2]))
+        return data
+
+
+    cpdef getComm(self,bytes type_dm,float alt):
+
+        cdef int inddm=self.dms.get_inddm(type_dm,alt)
+        if(inddm<0):
+            err="unknown error with get_dm function DM("+type_dm+","+alt+") doesnt exists"
+            raise ValueError(err)
+
+        cdef carma_context *context=carma_context.instance()
+        context.set_activeDevice(self.dms.d_dms[inddm].device,1)
+        cdef const long *dims=self.dms.d_dms[inddm].d_comm.getDims()
+        cdef np.ndarray[ndim=1,dtype=np.float32_t] data=np.zeros((dims[1]),dtype=np.float32)
+
+        self.dms.d_dms[inddm].d_comm.device2host(<float*>data.data)
+        return data
+
+
+    cpdef getInflu(self,bytes type_dm,float alt):
+
+        cdef int inddm=self.dms.get_inddm(type_dm,alt)
+        if(inddm<0):
+            err="unknown error with get_dm function DM("+type_dm+","+alt+") doesnt exists"
+            raise ValueError(err)
+
+        cdef carma_context *context=carma_context.instance()
+        context.set_activeDevice(self.dms.d_dms[inddm].device,1)
+
+        cdef const long *dims=self.dms.d_dms[inddm].d_comm.getDims()
+        cdef np.ndarray[ndim=3,dtype=np.float32_t] data_F=np.zeros((dims[3],dims[2],dims[1]),dtype=np.float32)
+        cdef np.ndarray[ndim=3,dtype=np.float32_t] data=np.zeros((dims[1],dims[2],dims[3]),dtype=np.float32)
+
+        self.dms.d_dms[inddm].d_comm.device2host(<float*>data_F.data)
+        data=np.reshape(data_F.flatten("F"),(dims[1],dims[2],dims[3]))
+        return data
+
+
+    cpdef comp_oneactu(self,bytes type_dm, float alt, int nactu, float ampli):
+        
+        cdef int inddm=self.dms.get_inddm(type_dm,alt)
+        if(inddm<0):
+            err="unknown error with get_dm function DM("+type_dm+","+alt+") doesnt exists"
+            raise ValueError(err)
+            
+        cdef carma_context *context=carma_context.instance()
+        context.set_activeDevice(self.dms.d_dms[inddm].device,1)
+        self.dms.d_dms[inddm].comp_oneactu(nactu,ampli) 
+
 
 
     def __str__(self):

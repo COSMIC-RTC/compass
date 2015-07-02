@@ -104,7 +104,7 @@ cdef class Rtc:
         centro_corr.init_corr(sizex,sizey,<float*>interpmat_F.data)
         centro_corr.load_corr(<float*>w_F.data,<float*>corr_norm_F.data,int(w.ndim))
 
-
+    #TODO possible error -> check it
     cdef getcentroids(self,int ncontrol, Sensors g_wfs=None, int nwfs=0):
 
         cdef const long *dims
@@ -132,7 +132,7 @@ cdef class Rtc:
             rtc.d_control[ncontrol].d_centroids.device2host(<float*>data.data)
         return data
 
-    cdef docentroids(self,int ncontrol=-1):
+    cpdef docentroids(self,int ncontrol=-1):
         if(ncontrol>-1):
             self.rtc.do_centroids(ncontrol)
         else:
@@ -261,7 +261,7 @@ cdef class Rtc:
             raise TypeError("Controller needs to be ls or mv")
 
 
-    cdef get_imat(self, int ncontro):
+    cpdef get_imat(self, int ncontro):
         cdef carma_context *context=carma_context.instance()
         context.set_activeDeviceForCpy(self.rtc.device,1)
         
@@ -277,19 +277,19 @@ cdef class Rtc:
         if(type_contro=="ls"):
             controller_ls=dynamic_cast_controller_ls_ptr(self.rtc.d_control[ncontro])
             dims=controller_ls.d_imat.getDims()
-            imat_F=np.zeros((dims[1],dims[2]),dtype=np.float32)
+            imat_F=np.zeros((dims[2],dims[1]),dtype=np.float32)
             controller_ls.d_imat.device2host(<float*>imat_F.data)
 
         elif(type_contro=="mv"):
             controller_mv=dynamic_cast_controller_mv_ptr(self.rtc.d_control[ncontro])
             dims=controller_mv.d_imat.getDims()
-            imat_F=np.zeros((dims[1],dims[2]),dtype=np.float32)
+            imat_F=np.zeros((dims[2],dims[1]),dtype=np.float32)
             controller_mv.d_imat.device2host(<float*>imat_F.data)
 
         elif(type_contro=="cured"):
             controller_cured=dynamic_cast_controller_cured_ptr(self.rtc.d_control[ncontro])
             dims=controller_cured.d_imat.getDims()
-            imat_F=np.zeros((dims[1],dims[2]),dtype=np.float32)
+            imat_F=np.zeros((dims[2],dims[1]),dtype=np.float32)
             controller_cured.d_imat.device2host(<float*>imat_F.data)
 
         imat=np.reshape(imat_F.flatten("F"),(dims[1],dims[2]))
@@ -317,7 +317,42 @@ cdef class Rtc:
             controller_generic=dynamic_cast_controller_generic_ptr(self.rtc.d_control[ncontro])
             controller_generic.d_cmat.host2device(<float*>data_F.data)
         else:
-            raise TypeError("Controller needs to be ls or mv")#TODO or generic?
+            raise TypeError("Controller needs to be ls, mv or generic")
+
+
+    cpdef get_cmat(self,int ncontro):
+        cdef carma_context *context=carma_context.instance()
+        context.set_activeDeviceForCpy(self.rtc.device,1)
+        cdef sutra_controller_ls *controller_ls
+        cdef sutra_controller_mv *controller_mv
+        cdef sutra_controller_generic *controller_generic
+        cdef bytes type_contro = <bytes>self.rtc.d_control[ncontro].get_type()
+        cdef np.ndarray[ndim=2,dtype=np.float32_t] data_F ,cmat
+        cdef const long *cdims
+        if(type_contro=="ls"):
+            controller_ls=dynamic_cast_controller_ls_ptr(self.rtc.d_control[ncontro])
+            cdims=controller_ls.d_cmat.getDims()
+            data_F=np.zeros((cdims[2],cdims[1]),dtype=np.float32)
+            controller_ls.d_cmat.device2host(<float*>data_F.data)
+            cmat=np.reshape(data_F.flatten("F"),(cdims[1],cdims[2]))
+            return cmat
+        elif(type_contro=="mv"):
+            controller_mv=dynamic_cast_controller_mv_ptr(self.rtc.d_control[ncontro])
+            cdims=controller_mv.d_cmat.getDims()
+            data_F=np.zeros((cdims[2],cdims[1]),dtype=np.float32)
+            controller_mv.d_cmat.device2host(<float*>data_F.data)
+            cmat=np.reshape(data_F.flatten("F"),(cdims[1],cdims[2]))
+            return cmat
+        elif(type_contro=="generic"):
+            controller_generic=dynamic_cast_controller_generic_ptr(self.rtc.d_control[ncontro])
+            cdims=controller_generic.d_cmat.getDims()
+            data_F=np.zeros((cdims[2],cdims[1]),dtype=np.float32)
+            controller_generic.d_cmat.device2host(<float*>data_F.data)
+            cmat=np.reshape(data_F.flatten("F"),(cdims[1],cdims[2]))
+            return cmat
+        else:
+            raise TypeError("Controller needs to be ls, mv or generic")
+
 
 
     cdef set_decayFactor(self,int ncontro, np.ndarray[ndim=1,dtype=np.float32_t] decay):
@@ -348,13 +383,105 @@ cdef class Rtc:
             raise TypeError("Controller needs to be generic")
 
 
-    cdef doimat(self, int ncontro, Dms g_dms,int geom=-1):
+    cdef doimat_geom(self, int ncontro, Dms g_dms,int geom):
         cdef carma_context *context=carma_context.instance()
         context.set_activeDeviceForCpy(self.rtc.device,1)
-        if(geom>-1):
-            self.rtc.do_imat_geom(ncontro,g_dms.dms,geom)
-        else:
-            self.rtc.do_imat(ncontro,g_dms.dms)
+        self.rtc.do_imat_geom(ncontro,g_dms.dms,geom)
+        #TODO
+        #call imat_geom
+        #set_imat
+
+    cdef doimat(self, int ncontro, Dms g_dms):
+        cdef carma_context *context=carma_context.instance()
+        context.set_activeDeviceForCpy(self.rtc.device,1)
+
+
+        cdef sutra_controller *control=self.rtc.d_control[ncontro]
+        cdef carma_obj[float] *d_imat
+
+        if(<bytes>control.get_type()==<bytes>"ls"):
+            d_imat=dynamic_cast_controller_ls_ptr(control).d_imat
+        elif(<bytes>control.get_type()==<bytes>"mv"):
+            d_imat=dynamic_cast_controller_mv_ptr(control).d_imat
+
+        cdef int inds1,j,idx_cntr, device
+        cdef float tmp_noise
+        inds1=0
+        cdef sutra_dm *dm
+        cdef sutra_wfs *wfs
+        cdef vector[sutra_dm *].iterator it_dm
+
+        cdef float *d_centroids
+        cdef np.ndarray[ndim=1,dtype=np.float32_t] h_centroids
+
+        it_dm=control.d_dmseen.begin()
+        while(it_dm!=control.d_dmseen.end()):
+            dm=deref(it_dm)
+            for j in range(dm.ninflu):
+                dm.comp_oneactu(j,dm.push4imat)
+                for idx_cntr in range(self.rtc.d_centro.size()):
+                    wfs=self.rtc.d_centro[idx_cntr].wfs
+                    tmp_noise=wfs.noise
+                    wfs.noise=-1
+                    wfs.kernconv=True
+                    wfs.sensor_trace(g_dms.dms,1)
+                    wfs.comp_image()
+                    wfs.noise=tmp_noise
+                    wfs.kernconv=False
+
+                self.rtc.do_centroids(ncontro,True)
+
+                h_centroids=self.getCentroids(ncontro)
+                control.d_centroids.host2device(<float*>h_centroids.data)
+
+                device=control.d_centroids.getDevice()
+                d_centroids=control.d_centroids.getData()
+
+                convert_centro(d_centroids,
+                        d_centroids,0,
+                        (0.5/dm.push4imat),
+                        control.d_centroids.getNbElem(),
+                        context.get_device(device))
+
+                control.d_centroids.copyInto(
+                        &d_imat.getData()[inds1],
+                        control.nslope())
+                dm.reset_shape()
+
+                dm.comp_oneactu(j,-1.*dm.push4imat)
+
+                for idx_cntr in range(self.rtc.d_centro.size()):
+                    wfs=self.rtc.d_centro[idx_cntr].wfs
+                    tmp_noise=wfs.noise
+                    wfs.noise=-1
+                    wfs.kernconv=True
+                    wfs.sensor_trace(g_dms.dms,1)
+                    wfs.comp_image()
+                    wfs.noise=tmp_noise
+                    wfs.kernconv=False
+
+                self.rtc.do_centroids(ncontro,True)
+
+                h_centroids=self.getCentroids(ncontro)
+                control.d_centroids.host2device(<float*>h_centroids.data)
+
+                device=control.d_centroids.getDevice()
+                d_centroids=control.d_centroids.getData()
+                convert_centro(d_centroids,
+                        d_centroids,0,
+                        (0.5/dm.push4imat),
+                        control.d_centroids.getNbElem(),
+                        context.get_device(device))
+
+                carma_axpy[float](context.get_cublasHandle(),
+                    control.d_centroids.getNbElem(), <float>-1.0,
+                    d_centroids,1,
+                    &d_imat.getData()[inds1],1)
+
+                dm.reset_shape()
+                inds1+=control.nslope()
+            inc(it_dm)
+
 
     cdef sensors_compslopes(self, int ncentro, int nmax=-1, float thresh=-1):
         cdef carma_context *context=carma_context.instance()
@@ -376,78 +503,224 @@ cdef class Rtc:
             if(controller_ls.svdec_imat()==1):
                 raise RuntimeError("sutra controller has no SVD implementation")
 
-    #TODO check ndims
-    cdef controller_setdata(self, int ncontro, bytes type_data,
-      np.ndarray[ndim=2,dtype=np.float32_t] data):
+
+    cdef setU(self,int ncontro,np.ndarray[ndim=2,dtype=np.float32_t] U):
         cdef carma_context *context=carma_context.instance()
         context.set_activeDeviceForCpy(self.rtc.device,1)
 
         cdef sutra_controller_ls *controller_ls
         cdef bytes type_contro=<bytes>self.rtc.d_control[ncontro].get_type()
 
-        cdef np.ndarray[dtype=np.float32_t] data_F= data.flatten("F")
-
-        if(type_data=="U"):
-            if(type_contro=="ls"):
-                controller_ls = dynamic_cast_controller_ls_ptr(self.rtc.d_control[ncontro])
-                controller_ls.d_U.host2device(<float*>data_F.data)
-        elif(type_data=="eigenvals"):
-            if(type_contro=="ls"):
-                controller_ls = dynamic_cast_controller_ls_ptr(self.rtc.d_control[ncontro])
-                controller_ls.h_eigenvals.fill_from(<float*>data_F.data)
-                #controller_ls.h_eigenvals.host2device(<float*>data_F.data)
+        cdef np.ndarray[dtype=np.float32_t] data_F= U.flatten("F")
+        if(type_contro=="ls"):
+            controller_ls = dynamic_cast_controller_ls_ptr(self.rtc.d_control[ncontro])
+            controller_ls.d_U.host2device(<float*>data_F.data)
 
 
-    #TODO check ndims
-    cdef controller_getdata(self, int ncontro, bytes type_data):
+    cdef setEigenvals(self, int ncontro, np.ndarray[ndim=1,dtype=np.float32_t] eigenvals):
         cdef carma_context *context=carma_context.instance()
         context.set_activeDeviceForCpy(self.rtc.device,1)
 
+        cdef sutra_controller_ls *controller_ls
+        cdef bytes type_contro=<bytes>self.rtc.d_control[ncontro].get_type()
+
+        if(type_contro=="ls"):
+            controller_ls = dynamic_cast_controller_ls_ptr(self.rtc.d_control[ncontro])
+            controller_ls.h_eigenvals.fill_from(<float*>eigenvals.data)
+
+
+    cdef getU(self, int ncontro):
+        cdef carma_context *context=carma_context.instance()
+        context.set_activeDeviceForCpy(self.rtc.device,1)
+        cdef sutra_controller_ls *controller_ls
         cdef bytes type_contro=<bytes>self.rtc.d_control[ncontro].get_type()
         cdef np.ndarray[ndim=2, dtype=np.float32_t] data_F
         cdef np.ndarray[ndim=2, dtype=np.float32_t] data
         cdef const long *dims
 
-        if(type_data=="U"):
-            if(type_contro=="ls"):
-                controller_ls=dynamic_cast_controller_ls_ptr(self.rtc.d_control[ncontro])
-                dims=controller_ls.d_U.getDims()
-                data_F=np.zeros((dims[1],dims[2]),dtype=np.float32)
-                controller_ls.d_U.device2host(<float*>data_F.data)
-
-        elif(type_data=="eigenvals"):
-            if(type_contro=="ls"):
-                controller_ls=dynamic_cast_controller_ls_ptr(self.rtc.d_control[ncontro])
-                dims=controller_ls.h_eigenvals.getDims()
-                data_F=np.zeros((dims[1],dims[2]),dtype=np.float32)
-                controller_ls.h_eigenvals.fill_into(<float*>data_F.data)
-
-        elif(type_data=="cenbuff"):
-            if(type_contro=="ls"):
-                controller_ls=dynamic_cast_controller_ls_ptr(self.rtc.d_control[ncontro])
-                dims=controller_ls.d_cenbuff.getDims()
-                data_F=np.zeros((dims[1],dims[2]),dtype=np.float32)
-                controller_ls.d_cenbuff.device2host(<float*>data_F.data)
-
-        elif(type_data=="err"):
-            if(type_contro=="ls"):
-                controller_ls=dynamic_cast_controller_ls_ptr(self.rtc.d_control[ncontro])
-                dims=controller_ls.d_err.getDims()
-                data_F=np.zeros((dims[1],dims[2]),dtype=np.float32)
-                controller_ls.d_err.device2host(<float*>data_F.data)
-
-        elif(type_data=="comm"):
-            dims=self.rtc.d_control[ncontro].d_com.getDims()
-            data_F=np.zeros((dims[1],dims[2]),dtype=np.float32)
-            self.rtc.d_control[ncontro].d_com.device2host(<float*>data_F.data)
-
-        elif(type_data=="centroids"):
-            dims=self.rtc.d_control[ncontro].d_centroids.getDims()
-            data_F=np.zeros((dims[1],dims[2]),dtype=np.float32)
-            self.rtc.d_control[ncontro].d_centroids.device2host(<float*>data_F.data)
+        if(type_contro=="ls"):
+            controller_ls=dynamic_cast_controller_ls_ptr(self.rtc.d_control[ncontro])
+            dims=controller_ls.d_U.getDims()
+            data_F=np.zeros((dims[2],dims[1]),dtype=np.float32)
+            controller_ls.d_U.device2host(<float*>data_F.data)
 
         data=np.reshape(data_F.flatten("F"),(dims[1],dims[2]))
         return data
+
+
+    cdef getEigenvals(self,int ncontro):
+        cdef carma_context *context=carma_context.instance()
+        context.set_activeDeviceForCpy(self.rtc.device,1)
+        cdef sutra_controller_ls *controller_ls
+        cdef bytes type_contro=<bytes>self.rtc.d_control[ncontro].get_type()
+        cdef np.ndarray[ndim=1, dtype=np.float32_t] data
+        cdef const long *dims
+        if(type_contro=="ls"):
+            controller_ls=dynamic_cast_controller_ls_ptr(self.rtc.d_control[ncontro])
+            dims=controller_ls.h_eigenvals.getDims()
+            data=np.zeros((dims[1]),dtype=np.float32)
+            controller_ls.h_eigenvals.fill_into(<float*>data.data)
+
+        return data
+
+
+    cpdef getCenbuff(self, int ncontro):
+        cdef carma_context *context=carma_context.instance()
+        context.set_activeDeviceForCpy(self.rtc.device,1)
+        cdef sutra_controller_ls *controller_ls
+        cdef bytes type_contro=<bytes>self.rtc.d_control[ncontro].get_type()
+        cdef np.ndarray[ndim=2, dtype=np.float32_t] data_F
+        cdef np.ndarray[ndim=2, dtype=np.float32_t] data
+        cdef const long *dims
+
+        if(type_contro=="ls"):
+            controller_ls=dynamic_cast_controller_ls_ptr(self.rtc.d_control[ncontro])
+            dims=controller_ls.d_cenbuff.getDims()
+            data_F=np.zeros((dims[2],dims[1]),dtype=np.float32)
+            controller_ls.d_cenbuff.device2host(<float*>data_F.data)
+
+        data=np.reshape(data_F.flatten("F"),(dims[1],dims[2]))
+        return data
+
+
+    cdef getErr(self,int ncontro):
+        cdef carma_context *context=carma_context.instance()
+        context.set_activeDeviceForCpy(self.rtc.device,1)
+        cdef sutra_controller_ls *controller_ls
+        cdef bytes type_contro=<bytes>self.rtc.d_control[ncontro].get_type()
+        cdef np.ndarray[ndim=1, dtype=np.float32_t] data
+        cdef const long *dims
+        if(type_contro=="ls"):
+            controller_ls=dynamic_cast_controller_ls_ptr(self.rtc.d_control[ncontro])
+            dims=controller_ls.d_err.getDims()
+            data=np.zeros((dims[1]),dtype=np.float32)
+            controller_ls.d_err.device2host(<float*>data.data)
+
+        return data
+
+    cpdef getCom(self,int ncontro):
+        cdef carma_context *context=carma_context.instance()
+        context.set_activeDeviceForCpy(self.rtc.device,1)
+        cdef np.ndarray[ndim=1, dtype=np.float32_t] data
+        cdef const long *dims
+        dims=self.rtc.d_control[ncontro].d_com.getDims()
+        data=np.zeros((dims[1]),dtype=np.float32)
+        self.rtc.d_control[ncontro].d_com.device2host(<float*>data.data)
+
+        return data
+
+
+    cpdef getVoltage(self,int ncontro):
+        cdef carma_context *context=carma_context.instance()
+        context.set_activeDeviceForCpy(self.rtc.device,1)
+        cdef np.ndarray[ndim=1, dtype=np.float32_t] data
+        cdef const long *dims
+        dims=self.rtc.d_control[ncontro].d_voltage.getDims()
+        data=np.zeros((dims[1]),dtype=np.float32)
+        self.rtc.d_control[ncontro].d_voltage.device2host(<float*>data.data)
+
+        return data
+
+
+    cpdef getCentroids(self,int ncontro):
+        cdef carma_context *context=carma_context.instance()
+        context.set_activeDeviceForCpy(self.rtc.device,1)
+        cdef np.ndarray[ndim=1, dtype=np.float32_t] data
+        cdef np.ndarray[ndim=1, dtype=np.float32_t] all_centroids
+        cdef const long *dims
+        dims=self.rtc.d_control[ncontro].d_centroids.getDims()
+        data=np.zeros((dims[1]),dtype=np.float32)
+        self.rtc.d_control[ncontro].d_centroids.device2host(<float*>data.data)
+
+        cdef int comm_size, rank
+        mpi.MPI_Comm_size(mpi.MPI_COMM_WORLD,&comm_size)
+        mpi.MPI_Comm_rank(mpi.MPI_COMM_WORLD,&rank)
+
+        cdef int *count=<int*>malloc(comm_size*sizeof(int))
+        cdef int *disp=<int*>malloc((comm_size+1)*sizeof(int))
+        cdef int d=dims[1]/(comm_size*2)
+        cdef int i
+
+        disp[0]=0
+        for i in range(comm_size):
+            if(rank<(dims[1]/2)%comm_size):
+                count[i]=d+1
+            else:
+                count[i]=d
+
+            disp[i+1]=disp[i]+count[i]
+
+        all_centroids=np.zeros(disp[comm_size]*2,dtype=np.float32)
+
+        cdef float *send=<float*>data.data
+        cdef float *recv=<float*>all_centroids.data
+
+        # gather centroids X axis
+        mpi.MPI_Allgatherv(send,count[rank],mpi.MPI_FLOAT,
+                            recv,count,disp, mpi.MPI_FLOAT,
+                            mpi.MPI_COMM_WORLD)
+
+        # gather centroids Y axis
+        mpi.MPI_Allgatherv(&send[count[rank]],count[rank],mpi.MPI_FLOAT,
+                                &recv[disp[comm_size]],count,disp,
+                                mpi.MPI_FLOAT, mpi.MPI_COMM_WORLD)
+
+        free(count)
+        free(disp)
+        return all_centroids
+
+
+    cdef buildcmat(self,int ncontro,int nfilt, int filt_tt=0):
+        cdef carma_context *context=carma_context.instance()
+        context.set_activeDeviceForCpy(self.rtc.device,1)
+        cdef sutra_controller_ls *controller_ls
+        cdef bytes type_contro=<bytes>self.rtc.d_control[ncontro].get_type()
+
+        if(type_contro=="ls"):
+            controller_ls=dynamic_cast_controller_ls_ptr(self.rtc.d_control[ncontro])
+            if(filt_tt>0):
+                controller_ls.build_cmat(nfilt,True)
+            else:
+                controller_ls.build_cmat(nfilt)
+
+
+    cdef buildcmatmv(self,int ncontro,float cond):
+        cdef carma_context *context=carma_context.instance()
+        context.set_activeDeviceForCpy(self.rtc.device,1)
+        cdef sutra_controller_mv *controller_mv
+        cdef bytes type_contro=<bytes>self.rtc.d_control[ncontro].get_type()
+
+        if(type_contro=="mv"):
+            controller_mv=dynamic_cast_controller_mv_ptr(self.rtc.d_control[ncontro])
+            controller_mv.build_cmat(cond)
+
+
+
+    cdef loadnoisemat(self,int ncontro, np.ndarray[ndim=1,dtype=np.float32_t] N):
+        cdef carma_context *context=carma_context.instance()
+        context.set_activeDeviceForCpy(self.rtc.device,1)
+        cdef sutra_controller_mv *controller_mv
+        cdef bytes type_contro=<bytes>self.rtc.d_control[ncontro].get_type()
+
+        if(type_contro=="mv"):
+            controller_mv=dynamic_cast_controller_mv_ptr(self.rtc.d_control[ncontro])
+            controller_mv.load_noisemat(<float*>N.data)
+
+
+
+    cpdef docontrol(self,int ncontro):
+        cdef carma_context *context=carma_context.instance()
+        context.set_activeDevice(self.rtc.device,1)
+        self.rtc.do_control(ncontro)
+
+
+    cpdef applycontrol(self,int ncontro,Dms dms):
+        cdef carma_context *context=carma_context.instance()
+        context.set_activeDevice(self.rtc.device,1)
+
+        self.rtc.apply_control(ncontro,dms.dms)
+
+
 
 
     def __str__(self):
@@ -497,7 +770,7 @@ def rtc_init(Sensors g_wfs, p_wfs, Dms g_dms, p_dms, Param_geom p_geom, Param_rt
     cdef Param_centroider centroider
 
     cdef int i,j,k,ncentro,ncontro
-    cdef int nwfs =0 # TODO check it out
+    cdef int nwfs =0
     cdef float s_offset=0.
     cdef float s_scale=0.
     cdef Param_controller controller
@@ -552,7 +825,6 @@ def rtc_init(Sensors g_wfs, p_wfs, Dms g_dms, p_dms, Param_geom p_geom, Param_rt
                         if(wfs.gsalt>0):
                             if(wfs.proftype=="None"):
                                 wfs.proftype="Gauss1"
-                            #TODO look for file extension
                             if(wfs.proftype=="Gauss1"):
                                 profilename = "allProfileNa_withAltitude_1Gaussian.npy"
                             if(wfs.proftype=="Gauss2"):
@@ -702,6 +974,7 @@ def rtc_init(Sensors g_wfs, p_wfs, Dms g_dms, p_dms, Param_geom p_geom, Param_rt
                                 g_rtc.modalControlOptimization(i)
                             else:
                                 #TODO cmat_init,i,clean=clean;
+                                cmat_init(i,g_rtc,p_rtc,p_wfs,clean=1,simul_name=simul_name)
                                 g_rtc.set_gain(0,controller.gain)
                                 mgain=np.ones(sum([p_dms[j]._ntotact for j in range(len(p_dms))]),dtype=np.float32)
                                 #filtering tilt ...
@@ -777,12 +1050,6 @@ def rtc_init(Sensors g_wfs, p_wfs, Dms g_dms, p_dms, Param_geom p_geom, Param_rt
                         g_rtc.set_cmat(0,cmat)
                         g_rtc.set_matE(0,matE)
             
-
-
-    imat=g_rtc.get_imat(0)
-    pl.matshow(imat,cmap='Blues_r')
-    pl.draw()
-
     return g_rtc
 """
           // Florian features
@@ -908,9 +1175,7 @@ cdef imat_geom(Sensors g_wfs, p_wfs, Param_controller p_control,Dms g_dms, p_dms
     cdef int imat_size1=0
     cdef int imat_size2=0 
 
-
     cdef np.ndarray[ndim=2,dtype=np.float32_t] imat_cpu
-   
 
     for nw in range(nwfs):
         nm=p_control.ndm[nw]-1
@@ -920,10 +1185,8 @@ cdef imat_geom(Sensors g_wfs, p_wfs, Param_controller p_control,Dms g_dms, p_dms
         imat_size2 +=p_dms[nmc]._ntotact
 
     imat_cpu = np.zeros((imat_size1,imat_size2),dtype=np.float32)
-    print "DIMS IMAT:", imat_cpu.shape[0],imat_cpu.shape[1]
     ind=0
 
-    #TODO case multi proc: imat_cpu size, slice size...
     for nmc in range(ndm):
         nm=p_control.ndm[nmc]-1
         g_dms.resetdm(p_dms[nm].type_dm,p_dms[nm].alt)
@@ -940,8 +1203,6 @@ cdef imat_geom(Sensors g_wfs, p_wfs, Param_controller p_control,Dms g_dms, p_dms
             ind=ind+1
             g_dms.resetdm(p_dms[nm].type_dm,p_dms[nm].alt)
 
-    pl.matshow(imat_cpu,cmap='Blues_r')
-    pl.draw()
     return imat_cpu
 
 
@@ -957,29 +1218,29 @@ cdef manual_imat(Rtc g_rtc,Sensors g_wfs, p_wfs, Dms g_dms, p_dms):
     cdef np.ndarray[ndim=2,dtype=np.float32_t] imat_cpu
     cdef np.ndarray[ndim=1,dtype=np.float32_t] com
 
-    for nm in range(p_dms):
-        g_dms.resetdm(p_dms[nm].type_dm,p_dms.alt)
+    for nm in range(len(p_dms)):
+        g_dms.resetdm(p_dms[nm].type_dm,p_dms[nm].alt)
         imat_size2+=p_dms[nm]._ntotact
 
     imat_cpu=np.zeros((nslps,imat_size2),dtype=np.float32)    
 
 
-    #TODO case multi proc: imat_cpu size, slice size...
     ind=0
-    for nm in range(p_dms):
+    for nm in range(len(p_dms)):
         for i in range(p_dms[nm]._ntotact):
             com=np.zeros((p_dms[nm]._ntotact),dtype=np.float32)
-            com[i]=float(p_dms[nm].puh4imat)
+            com[i]=float(p_dms[nm].push4imat)
             g_dms.set_comm(p_dms[nm].type_dm,p_dms[nm].alt,com)
             g_dms.shape_dm(p_dms[nm].type_dm,p_dms[nm].alt)
             g_wfs.sensors_trace(0,"dm", None,dms=g_dms,rst=1)
             g_wfs.sensors_compimg(0)
             g_rtc.docentroids()
-            if(p_wfs[0].type_dm!="pyr"):
+            # TODO 
+            if(p_wfs[0].type_wfs!="pyr"):
                 imat_cpu[:,ind]=g_rtc.getcentroids(0,g_wfs,0)/float(p_dms[0].push4imat)
             else:
                 imat_cpu[:,ind]=g_wfs._get_slopes(0)/float(p_dms[0].push4imat)
-            g_dms.resetdm(p_dms[nm].type_dm,p_dms.alt)
+            g_dms.resetdm(p_dms[nm].type_dm,p_dms[nm].alt)
             ind+=1
     return imat_cpu
 
@@ -1070,7 +1331,6 @@ cdef imat_init(int ncontro, Rtc g_rtc, Param_rtc p_rtc, Dms g_dms, p_wfs,int cle
     cdef int i
     cdef double t0
 
-
     if(simul_name!=""):
         imat_clean=int(not os.path.isfile(filename) or clean)
 
@@ -1089,6 +1349,7 @@ cdef imat_init(int ncontro, Rtc g_rtc, Param_rtc p_rtc, Dms g_dms, p_wfs,int cle
         g_rtc.doimat(ncontro,g_dms)
         print "done in ",time.time()-t0
         p_rtc.controllers[ncontro].set_imat(g_rtc.get_imat(ncontro))
+
         if(simul_name!=""):
             np.save(filename,p_rtc.controllers[ncontro].imat)
 
@@ -1105,13 +1366,21 @@ cdef imat_init(int ncontro, Rtc g_rtc, Param_rtc p_rtc, Dms g_dms, p_wfs,int cle
 
 
 
-cdef cmat_init(int ncontro, Rtc g_rtc, Param_rtc p_rtc, clean=1, bytes simul_name=<bytes>""):
+
+cdef cmat_init(int ncontro, Rtc g_rtc, Param_rtc p_rtc, list p_wfs,
+                clean=1, bytes simul_name=<bytes>""):
 
     cdef bytes dirsave=chakra_ao_savepath+"mat/"
     cdef bytes filename
 
     cdef int cmat_clean
-    cdef float t0
+    cdef double t0
+    cdef np.ndarray[ndim=1,dtype=np.float32_t] eigenv, N
+    cdef np.ndarray[ndim=2,dtype=np.float32_t] U, imat
+    cdef np.ndarray[ndim=1,dtype=np.int64_t] mfilt
+
+    cdef float maxcond
+    cdef int nfilt,ind,i
 
     if(simul_name==""):
         cmat_clean=1
@@ -1123,90 +1392,80 @@ cdef cmat_init(int ncontro, Rtc g_rtc, Param_rtc p_rtc, clean=1, bytes simul_nam
         if(cmat_clean):
             print "doing svd"
             t0=time.time()
-            g_rtc.imatsvd(ncontro)
-            print "svd time",time().time-t0
-            eigenv = g_rtc.controller_getdata(ncontro,<bytes>"eigenvals")
+            g_rtc.imat_svd(ncontro)
+            print "svd time",time.time()-t0
+            #eigenv = g_rtc.controller_getdata(ncontro,<bytes>"eigenvals")
+            eigenv = g_rtc.getEigenvals(ncontro)
             if(simul_name!=""):
-                U=g_rtc.controller_getdata(ncontro,<bytes>"U")
+                U=g_rtc.getU(ncontro)
                 filename=dirsave+"eigenv-"+str(ncontro)+"-"+simul_name
                 np.save(dirsave,eigenv)
                 filename=dirsave+"U-"+str(ncontro)+"-"+simul_name
                 np.save(filename,U)
-            else:
-                filename=dirsave+"eigenv-"+str(ncontro)+"-"+simul_name+".npy"
-                eigenv=np.load(filename)
-                filename=dirsave+"U-"+str(ncontro)+"-"+simul_name+".npy"
-                U=np.load(filename)
+        else:
+            filename=dirsave+"eigenv-"+str(ncontro)+"-"+simul_name+".npy"
+            eigenv=np.load(filename)
+            filename=dirsave+"U-"+str(ncontro)+"-"+simul_name+".npy"
+            U=np.load(filename)
+            g_rtc.seteigenvals(ncontro,eigenv)
+            g_rtc.setU(ncontro,U)
 
-'''
+        imat = g_rtc.get_imat(ncontro)
+        maxcond=p_rtc.controllers[ncontro].maxcond
+        if(eigenv[0]<eigenv[eigenv.shape[0]-1]):
+            mfilt=np.where(eigenv/eigenv[eigenv.shape[0]-3] < 1./maxcond) [0]
+        else:
+            mfilt=np.where( eigenv[2]/eigenv>maxcond)[0]
+        nfilt=mfilt.shape[0]
 
-  if (((*y_rtc.controllers(ncontrol)).type)(1) == "ls"){
-    if (cmat_clean) {
-      write,"doing svd";
-      tic;
-      rtc_imatsvd,g_rtc,ncontrol-1;
-      write,format="svd time %f\n",tac();
-      eigenv = controller_getdata(g_rtc,ncontrol-1,"eigenvals");
-      if (simul_name != [] ) {
-        U = controller_getdata(g_rtc,ncontrol-1,"U");
-        fits_write,swrite(format=dirsave+"eigenv-%d-%s.fits",ncontrol,simul_name),eigenv,overwrite=1;
-        fits_write,swrite(format=dirsave+"U-%d-%s.fits",ncontrol,simul_name),U,overwrite=1;
-      }
-    } else {
-      eigenv  = fits_read(swrite(format=dirsave+"eigenv-%d-%s.fits",ncontrol,simul_name));
-      U = fits_read(swrite(format=dirsave+"U-%d-%s.fits",ncontrol,simul_name));
-      controller_setdata,g_rtc,ncontrol-1,"eigenvals",eigenv;
-      controller_setdata,g_rtc,ncontrol-1,"U",U;
-    }
-
-    imat = rtc_getimat(g_rtc,ncontrol-1);
-
-    maxcond = (*y_rtc.controllers)(ncontrol).maxcond;
-    if (eigenv(1) < eigenv(0)) mfilt = where((eigenv/eigenv(-2)) < 1./maxcond);
-    else mfilt = where(1./(eigenv/eigenv(3)) > maxcond);
-    //nfilt = numberof(mfilt)+2;
-    nfilt = numberof(mfilt);
-    //error;
-    if ( (wfs_disp!=[]) && (numberof(*wfs_disp._winits) > 0)) {
-      if ((*wfs_disp._winits)(5)) {
-        window,(*wfs_disp._wins)(5);fma;logxy,0,1;
-        if (eigenv(1) < eigenv(0)) {
-          plg, eigenv(::-1), marks=0;
-          plmk, eigenv(::-1), msize = 0.3, marker=4;
-        } else {
-          plg, eigenv, marks=0;
-          plmk, eigenv, msize = 0.3, marker=4;
+        #TODO wfs_disp
+        """
+        if ( (wfs_disp!=[]) && (numberof(*wfs_disp._winits) > 0)) {
+            if ((*wfs_disp._winits)(5)) {
+                window,(*wfs_disp._wins)(5);fma;logxy,0,1;
+                if (eigenv(1) < eigenv(0)) {
+                    plg, eigenv(::-1), marks=0;
+                    plmk, eigenv(::-1), msize = 0.3, marker=4;
+                } else {
+                    plg, eigenv, marks=0;
+                    plmk, eigenv, msize = 0.3, marker=4;
+                }
+            x0 = dimsof(imat)(3) - nfilt + 0.5;
+            pldj, x0 ,min(eigenv), x0, max(eigenv), color="red";
+            }
         }
-        x0 = dimsof(imat)(3) - nfilt + 0.5;
-        pldj, x0 ,min(eigenv), x0, max(eigenv), color="red";
-      }
-    }
-    write,"building cmat";
-    write,"filtering ",nfilt," modes";
-    tic;
-    rtc_buildcmat,g_rtc,ncontrol-1,nfilt;
-  
-    write,format="cmat time %f\n",tac();
-  }
-  if (((*y_rtc.controllers(ncontrol)).type)(1) == "mv"){
-    N = array(0.0f,2*sum(y_wfs(*y_controllers(ncontrol).nwfs)._nvalid));
-    ind = 0;
-    for(i=1 ; i<=numberof(*y_controllers(ncontrol).nwfs) ; i++){
-      k = (*y_controllers(ncontrol).nwfs)(i);
-      N(ind+1:ind+2*y_wfs(k)._nvalid) = noise_cov(k);
-      ind += 2*y_wfs(k)._nvalid;
-    }
-    rtc_loadnoisemat,g_rtc,ncontrol-1,N;
-    write,"Building cmat...";
-    rtc_buildcmatmv,g_rtc,ncontrol-1,y_controllers(ncontrol-1).maxcond;
-    if(y_controllers(ncontrol-1).TTcond == 0) y_controllers(ncontrol-1).TTcond = y_controllers(ncontrol-1).maxcond;
-    if(anyof(y_dm.type == "tt"))
-      rtc_filtercmatmv,g_rtc,ncontrol-1,y_controllers(ncontrol-1).TTcond;
-  }
 
-  cmat = rtc_getcmat(g_rtc,ncontrol-1);
+        """
 
-  controllers = *y_rtc.controllers;
-  controllers(ncontrol).cmat = &float(cmat);
-  y_rtc.controllers = &controllers;
-}'''
+        print "building cmat"
+        print "filtering ",nfilt," modes"
+        t0=time.time()
+        g_rtc.buildcmat(ncontro,nfilt)
+        print "cmat time ",time.time()-t0
+
+    if(p_rtc.controllers[ncontro].type_control=="mv"):
+        N=np.zeros((2*np.sum(p_wfs[p_rtc.controllers[ncontro].nwfs]._nvalid)),dtype=np.int32)
+        ind=0
+        for i in range(p_rtc.controllers[ncontro].nwfs.size):
+            k=p_rtc.controllers[ncontro].nwfs[i]
+            #N[]=noise_cov(k)
+            ind+=2*p_wfs[k]._nvalid
+
+        g_rtc.loadnoisemat(ncontro,N)
+        print "Building cmat..."
+        g_rtc.build_cmatmv(ncontro,p_rtc.controllers[ncontro].maxcond)
+
+    '''
+    TODO what is y_controllers(ncontrol-1).TTcond
+
+    if (((*y_rtc.controllers(ncontrol)).type)(1) == "mv"){
+        rtc_buildcmatmv,g_rtc,ncontrol-1,y_controllers(ncontrol-1).maxcond;
+        if(y_controllers(ncontrol-1).TTcond == 0) 
+            y_controllers(ncontrol-1).TTcond = y_controllers(ncontrol-1).maxcond;
+        if(anyof(y_dm.type == "tt"))
+            rtc_filtercmatmv,g_rtc,ncontrol-1,y_controllers(ncontrol-1).TTcond;
+    }
+    '''
+    p_rtc.controllers[ncontro].set_cmat(g_rtc.get_cmat(ncontro))
+
+

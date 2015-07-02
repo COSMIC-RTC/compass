@@ -223,6 +223,7 @@ cdef class Target:
         self.target.d_targets[nTarget].init_strehlmeter()
 
     @cython.profile(True)
+#TODO cpdef
     def atmos_trace(self, int nTarget, Atmos atm):
         """ TODO doc
 
@@ -289,7 +290,7 @@ cdef class Target:
 
         cdef const long *dims
         dims=src.phase_telemetry.getDims()
-        cdef np.ndarray data_F=np.empty((dims[1],dims[2]),dtype=np.float32)
+        cdef np.ndarray data_F=np.empty((dims[2],dims[1]),dtype=np.float32)
         cdef np.ndarray data=np.empty((dims[1],dims[2]),dtype=np.float32)
 
         src.phase_telemetry.fill_into(<float*>data_F.data)
@@ -311,7 +312,7 @@ cdef class Target:
         cdef const long *dims
         dims=src.d_amplipup.getDims()
 
-        cdef np.ndarray data_F=np.empty((dims[1],dims[2]),dtype=np.complex64)
+        cdef np.ndarray data_F=np.empty((dims[2],dims[1]),dtype=np.complex64)
         cdef np.ndarray data=np.empty((dims[1],dims[2]),dtype=np.complex64)
         src.d_amplipup.device2host(<cuFloatComplex*>data_F.data)
 
@@ -338,6 +339,13 @@ cdef class Target:
         strehl[3]=src.phase_var_avg/(src.phase_var_count + 0.00001)
 
         return strehl
+
+
+    cpdef dmtrace(self,int ntar, Dms dms, int reset=0):
+        cdef carma_context *context=carma_context.instance()
+        context.set_activeDevice(self.target.d_targets[ntar].device,1)
+
+        self.target.d_targets[ntar].raytrace(dms.dms,reset)
 
 
     def __str__(self):

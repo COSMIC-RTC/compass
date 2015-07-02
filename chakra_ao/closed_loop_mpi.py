@@ -1,0 +1,158 @@
+import os
+
+import cProfile
+import pstats as ps
+
+import sys
+import numpy as np
+import chakra as ch
+import chakra_ao as ao
+import time
+
+rank=int(os.environ['OMPI_COMM_WORLD_LOCAL_RANK'])
+c=ch.chakra_context()
+c.set_activeDevice(rank%c.get_ndevice())
+
+#Delay import because of cuda_aware
+#mpi_init called during the import
+import mpi4py
+from mpi4py import MPI
+
+
+
+comm=MPI.COMM_WORLD
+comm_size=comm.Get_size()
+rank=comm.Get_rank()
+
+print "TEST CHAKRA_AO\n closed loop with MPI"
+
+if(len(sys.argv)!=2):
+    error= 'command line should be:"python -i test.py parameters_filename"\n with "parameters_filename" the path to the parameters file'
+    raise StandardError(error)
+
+#get parameters from file
+param_file=sys.argv[1]
+execfile(param_file)
+
+#initialisation:
+#    wfs
+print "->wfs"
+wfs=ao.wfs_init(p_wfss,p_atmos,p_tel,p_geom,p_target,p_loop, comm_size,rank,p_dms)
+
+#   atmos
+print "->atmos"
+atm=p_atmos.atmos_init(c,p_tel,p_geom,p_loop,rank=rank)
+
+#   dm 
+print "->dm"
+dms=ao.dm_init(p_dms,p_wfs0,p_geom,p_tel)
+
+#   target
+print "->target"
+tar=p_target.target_init(c,p_atmos,p_geom,p_tel,p_wfss,wfs,p_dms)
+
+#   rtc
+print "->rtc"
+rtc=ao.rtc_init(wfs,p_wfss,dms,p_dms,p_geom,p_rtc,p_atmos,atm,p_loop,p_target)
+
+if(rank==0):
+    print "===================="
+    print "init done"
+    print "===================="
+    print "objects initialzed on GPU:"
+    print "--------------------------------------------------------"
+    print atm
+    print wfs
+    print dms
+    print tar
+    print rtc
+
+    print "----------------------------------------------------";
+    print "iter# | S.E. SR | L.E. SR | Est. Rem. | framerate";
+    print "----------------------------------------------------";
+
+mimg = 0.# initializing average image
+
+import matplotlib.pyplot as pl
+
+def loop( n):
+    if(rank==0):
+        fig,((turbu,image),(shak,defMir))=pl.subplots(2,2, figsize=(15,15))
+        pl.ion()
+        pl.show()
+
+    for i in range(n):
+        if(rank==0):
+            print i
+            atm.move_atmos()
+            
+            for t in range(p_target.ntargets):
+                tar.atmos_trace(t,atm)
+                tar.dmtrace(t,dms)
+
+            for w in range(len(p_wfss)):
+                wfs.sensors_trace(w,"all",atm,dms)
+
+
+        wfs.Bcast_dscreen()
+        for w in range(len(p_wfss)):
+            wfs.sensors_compimg(w)
+            wfs.gather_bincube(comm,w)
+        comm.Barrier()
+
+        rtc.docentroids(0)
+        comm.Barrier()
+        rtc.docontrol(0)
+        comm.Barrier()
+        #rtc.applycontrol(0,dms)
+        comm.Barrier()
+
+        if(True):#(i+1)%50==0):
+            print i+1
+            if(rank==0):
+
+                turbu.clear()
+                image.clear()
+                shak.clear()
+                defMir.clear()
+
+                screen=atm.get_screen(0.)
+                f1=turbu.matshow(screen,cmap='Blues_r')
+
+                im=tar.get_image(0,"se")
+                im=np.roll(im,im.shape[0]/2,axis=0)
+                im=np.roll(im,im.shape[1]/2,axis=1)
+                f2=image.matshow(im,cmap='Blues_r')
+
+                sh=wfs.get_binimg(0)
+                f3=shak.matshow(sh,cmap='Blues_r')
+                
+                dm=dms.get_dm("pzt",0.)
+                f4=defMir.matshow(dm)
+
+                pl.draw()
+
+                sh_file="dbg/shak_"+str(i)+"_np_"+str(comm.Get_size())+".npy"
+                im_file="dbg/imag_"+str(i)+"_np_"+str(comm.Get_size())+".npy"
+                dm_file="dbg/DM"+str(i)+"_np_"+str(comm.Get_size())+".npy"
+                np.save(sh_file,sh)
+                np.save(im_file,im)
+                np.save(dm_file,dm)
+
+                
+
+                
+                """
+                pl.matshow(image)
+                pl.draw()
+                pl.matshow(dm)
+                pl.draw()
+                """
+
+                strehltmp = tar.get_strehl(0)
+                print i+1,"\t",strehltmp[0],"\t",strehltmp[1]
+
+
+
+#loop(p_loop.niter)
+loop(10)

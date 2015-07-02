@@ -402,6 +402,11 @@ cdef extern from "sutra_centroider.h":
         int get_cog()
 
 
+
+    int convert_centro(float *d_odata, float *d_idata, float offset, float scale,
+    int N, carma_device *device)
+
+
 #################################################
 # C-Class sutra_centroider_tcog
 #################################################
@@ -583,7 +588,7 @@ cdef extern from "sutra_controller.h":
         float a # Coefficient for linear interpolation on command buffer to allow non-integer delay
         float b # Coefficient for linear interpolation on command buffer to allow non-integer delay
         float c # Coefficient for linear interpolation on command buffer to allow non-integer delay
-        #TODO vector[sutra_dm *] d_dmseen
+        vector[sutra_dm *] d_dmseen
         carma_obj[float] *d_centroids # current centroids
         carma_obj[float] *d_com # current command
         carma_obj[float] *d_perturb # perturbation command buffer
@@ -930,6 +935,8 @@ cdef class Target:
     cdef int device
     cdef chakra_context context
 
+    cpdef dmtrace(self,int ntar, Dms dms, int reset=?)
+
 
 cdef class Sensors:
     
@@ -951,12 +958,12 @@ cdef class Sensors:
     cdef _get_slopesDims(self,int n)
     cdef _get_slopes(self, int n)
     cdef slopes_geom(self,int nsensors, int t)
-    cdef sensors_trace(self,int n, str type_trace, Atmos atmos=?, Dms dms=?, int rst=?)
-    cdef gather_bincube(self,MPI.Intracomm comm,int n)
-    cdef gather_bincube_cuda_aware(self,MPI.Intracomm comm,int n)
+    cpdef sensors_trace(self,int n, str type_trace, Atmos atmos=?, Dms dms=?, int rst=?)
+    cpdef gather_bincube(self,MPI.Intracomm comm,int n)
+    cpdef gather_bincube_cuda_aware(self,MPI.Intracomm comm,int n)
     cdef _get_rank(self,int n)
-    cdef Bcast_dscreen(self)
-    cdef Bcast_dscreen_cuda_aware(self)
+    cpdef Bcast_dscreen(self)
+    cpdef Bcast_dscreen_cuda_aware(self)
 
     #for profiling purpose
     cdef gather_bincube_prof(self,MPI.Intracomm comm,int n)
@@ -978,7 +985,7 @@ cdef class Rtc:
     cdef int use_brama
     #cdef sensors_initbcube(self,int ncentro)
     cdef getcentroids(self,int ncontrol, Sensors g_wfs=?, int nwfs=?)
-    cdef docentroids(self,int ncontrol=?)
+    cpdef docentroids(self,int ncontrol=?)
     cdef init_proj(self,int i,Dms dms,np.ndarray[ndim=1,dtype=np.int32_t] indx_dm,
             np.ndarray[ndim=1,dtype=np.float32_t] unitpervolt, 
             np.ndarray[ndim=1,dtype=np.int32_t] indx_pup)
@@ -989,12 +996,14 @@ cdef class Rtc:
     cdef set_gain(self,int ncontro, float gain)
     cdef set_mgain(self,int ncontro, np.ndarray[ndim=1,dtype=np.float32_t] mgain)
     cdef set_imat(self,int ncontro, np.ndarray[ndim=2,dtype=np.float32_t] data)
-    cdef get_imat(self, int ncontro)
+    cpdef get_imat(self, int ncontro)
     cdef set_cmat(self,int ncontro, np.ndarray[ndim=2,dtype=np.float32_t] data)
+    cpdef get_cmat(self,int ncontro)
     cdef set_decayFactor(self,int ncontro, np.ndarray[ndim=1,dtype=np.float32_t] decay)
     cdef set_matE(self,int ncontro, np.ndarray[ndim=2,dtype=np.float32_t] matE)
 
-    cdef doimat(self, int ncontro, Dms g_dms,int geom=?)
+    cdef doimat_geom(self, int ncontro, Dms g_dms,int geom)
+    cdef doimat(self, int ncontro, Dms g_dms)
     cdef sensors_compslopes(self, int ncentro, int nmax=?, float thresh=?)
     cdef add_controller(self, int nactu, float delay, bytes type_control, Dms dms,
                  char **type_dmseen, np.ndarray[ndim=1,dtype=np.float32_t] alt,
@@ -1002,8 +1011,20 @@ cdef class Rtc:
 
 
     cdef imat_svd(self,int ncontro)
-    cdef controller_setdata(self, int ncontro, bytes type_data, np.ndarray data)
-    cdef controller_getdata(self, int ncontro, bytes type_data)
+    cdef setU(self,int ncontro,np.ndarray[ndim=2,dtype=np.float32_t] U)
+    cdef setEigenvals(self, int ncontro, np.ndarray[ndim=1,dtype=np.float32_t] eigenvals)
+    cdef getU(self, int ncontro)
+    cdef getEigenvals(self,int ncontro)
+    cpdef getCenbuff(self, int ncontro)
+    cdef getErr(self,int ncontro)
+    cpdef getCom(self,int ncontro)
+    cpdef getVoltage(self,int ncontro)
+    cpdef getCentroids(self,int ncontro)
+    cdef buildcmat(self,int ncontro,int nfilt, int filt_tt=?)
+    cdef buildcmatmv(self,int ncontro,float cond)
+    cdef loadnoisemat(self,int ncontro, np.ndarray[ndim=1,dtype=np.float32_t] N)
+    cpdef docontrol(self,int ncontro)
+    cpdef applycontrol(self,int ncontro,Dms dms)
 
 
 #################################################
@@ -1020,8 +1041,8 @@ cdef class Dms:
     cdef load_pzt(self, float alt,
                     np.ndarray[ndim=3,dtype=np.float32_t] influ,
                     np.ndarray[ndim=1,dtype=np.int32_t] influpos,
-                    np.ndarray[ndim=2,dtype=np.int32_t] npoints,
-                    np.ndarray[ndim=2,dtype=np.int32_t] istart,
+                    np.ndarray[ndim=1,dtype=np.int32_t] npoints,
+                    np.ndarray[ndim=1,dtype=np.int32_t] istart,
                     np.ndarray[ndim=1,dtype=np.int32_t] xoff,
                     np.ndarray[ndim=1,dtype=np.int32_t] yoff)
                     #np.ndarray[dtype=np.float32_t] kern)
@@ -1044,6 +1065,10 @@ cdef class Dms:
         np.ndarray[ndim=1,dtype=np.float32_t] xpos, np.ndarray[ndim=1,dtype=np.float32_t] ypos,
         np.ndarray[ndim=1,dtype=np.int32_t] indx_pup, long dim, float norm, float ampli)
     cdef get_KLbasis(self,bytes type_dm, float alt)
+
+    cpdef getComm(self,bytes type_dm,float alt)
+    cpdef getInflu(self,bytes type_dm,float alt)
+    cpdef comp_oneactu(self,bytes type_dm, float alt, int nactu, float ampli)
 
 #################################################
 # P-Class (parametres) Param_atmos
@@ -1360,8 +1385,8 @@ cdef class Param_controller:
     cdef readonly np.ndarray ndm         # index of dms in controller
     cdef readonly np.ndarray nactu       # number of controled actuator per dm
     cdef readonly np.ndarray imat        # full interaction matrix
-    cdef np.ndarray cmat        # full control matrix
-    cdef float   maxcond        # max condition number
+    cdef readonly np.ndarray cmat        # full control matrix
+    cdef readonly float   maxcond        # max condition number
     cdef float    delay         # 
     cdef float   gain           #
     cdef long    nkl            # Florain features : number of KL modes used for computation of covmat in case of minimum variance controller
@@ -1377,8 +1402,8 @@ cdef class Param_controller:
 # P-Class (parametres) Param_loop
 #################################################
 cdef class Param_loop:
-    cdef long niter     # number of iterations
-    cdef float ittime   # iteration time (in sec)
+    cdef readonly long niter     # number of iterations
+    cdef readonly float ittime   # iteration time (in sec)
 
 
 #################################################

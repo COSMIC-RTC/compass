@@ -226,8 +226,8 @@ cdef class Sensors:
         cdef np.ndarray[ndim=2,dtype=np.float32_t] data_F
         img=self.sensors.d_wfs[n].d_binimg
         cdims=img.getDims()
-        data=np.empty((cdims[2],cdims[1]),dtype=np.float32)
-        data_F=np.empty((cdims[1],cdims[2]),dtype=np.float32)
+        data=np.empty((cdims[1],cdims[2]),dtype=np.float32)
+        data_F=np.empty((cdims[2],cdims[1]),dtype=np.float32)
         dynamic_cast_wfs_sh_ptr(self.sensors.d_wfs[n]).fill_binimage(0)
         cdef uintptr_t ptr=<uintptr_t>img.getData()
         img.device2host(<float*>data_F.data)
@@ -346,7 +346,40 @@ cdef class Sensors:
         cdims=slopes.getDims()
         data=np.empty((cdims[1]),dtype=np.float32)
         slopes.device2host(<float*>data.data)
-        return data
+
+        cdef int comm_size, rank
+        mpi.MPI_Comm_size(mpi.MPI_COMM_WORLD,&comm_size)
+        mpi.MPI_Comm_rank(mpi.MPI_COMM_WORLD,&rank)
+
+        cdef int d=<int>(cdims[1]/2)
+        
+        cdef int *count=<int*>malloc(comm_size*sizeof(int))
+        mpi.MPI_Allgather(&d,1,mpi.MPI_INT,count,1,mpi.MPI_INT,mpi.MPI_COMM_WORLD)
+        
+        cdef int *disp=<int*>malloc((comm_size+1)*sizeof(int))
+        cdef int i, nvalid2
+        disp[0]=0
+        for i in range(comm_size):
+            disp[i+1]=disp[i]+count[i]
+
+        cdef np.ndarray[ndim=1,dtype=np.float32_t] all_slopes=np.zeros(disp[comm_size]*2,
+                                                            dtype=np.float32)
+
+
+
+
+        cdef float *send=<float*>data.data
+        cdef float *recv=<float*>all_slopes.data
+
+        mpi.MPI_Allgatherv(send,count[rank],mpi.MPI_FLOAT,
+                                recv,count,disp,
+                                mpi.MPI_FLOAT, mpi.MPI_COMM_WORLD)
+
+        mpi.MPI_Allgatherv(&send[count[rank]],count[rank],mpi.MPI_FLOAT,
+                                &recv[disp[comm_size]],count,disp,
+                                mpi.MPI_FLOAT, mpi.MPI_COMM_WORLD)
+
+        return all_slopes
 
 
     cdef slopes_geom(self,int nsensor, int t):
@@ -359,7 +392,7 @@ cdef class Sensors:
 
 
 
-    cdef sensors_trace(self,int n, str type_trace, Atmos atmos=None,  Dms dms=None, int rst=0): 
+    cpdef sensors_trace(self,int n, str type_trace, Atmos atmos=None,  Dms dms=None, int rst=0): 
         """ TODO doc
         """
 
@@ -374,7 +407,7 @@ cdef class Sensors:
 
 
 
-    cdef Bcast_dscreen(self):
+    cpdef Bcast_dscreen(self):
         """Broadcast the screen of every wfs on process 0 to all process
 
         """
@@ -395,7 +428,7 @@ cdef class Sensors:
             screen.host2device(ptr)
             free(ptr)
 
-    cdef Bcast_dscreen_cuda_aware(self):
+    cpdef Bcast_dscreen_cuda_aware(self):
         """Broadcast the screen of every wfs on process 0 to all process
 
         using cuda_aware
@@ -412,7 +445,7 @@ cdef class Sensors:
             mpi.MPI_Bcast(ptr,size_i,mpi.MPI_FLOAT,0,mpi.MPI_COMM_WORLD)
 
 
-    cdef gather_bincube(self,MPI.Intracomm comm,int n):
+    cpdef gather_bincube(self,MPI.Intracomm comm,int n):
         """Gather the carma object 'bincube' of a wfs on the process 0
 
         comm    -- MPI.Intracomm : communicator mpi
@@ -432,16 +465,23 @@ cdef class Sensors:
         self.sensors.d_wfs[n].d_bincube.device2host(ptr)
 
         cdef int i,j
-        mpi.MPI_Gatherv(ptr,size,mpi.MPI_FLOAT,
+        
+        if(self._get_rank(n)==0):
+            mpi.MPI_Gatherv(mpi.MPI_IN_PLACE,count_bincube[0],mpi.MPI_FLOAT,
+                    ptr, count_bincube, displ_bincube, mpi.MPI_FLOAT,
+                    0,mpi.MPI_COMM_WORLD)
+            self.sensors.d_wfs[n].d_bincube.host2device(ptr)
+
+        else:
+            mpi.MPI_Gatherv(ptr,count_bincube[self.get_rank(n)],mpi.MPI_FLOAT,
                     ptr, count_bincube, displ_bincube, mpi.MPI_FLOAT,
                     0,mpi.MPI_COMM_WORLD)
 
-        if(self._get_rank(n)==0):
-            self.sensors.d_wfs[n].d_bincube.host2device(ptr)
         free(ptr)
 
 
-    cdef gather_bincube_cuda_aware(self,MPI.Intracomm comm,int n):
+
+    cpdef gather_bincube_cuda_aware(self,MPI.Intracomm comm,int n):
         """Gather the carma object 'bincube' of a wfs on the process 0
 
         using mpi cuda_aware
