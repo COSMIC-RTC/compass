@@ -366,7 +366,7 @@ int sutra_wfs_sh::comp_generic() {
       this->d_validsubsy->getData(), this->nphase,
       this->d_gs->d_phase->d_screen->getDims(1), this->nfft,
       this->nphase * this->nphase * this->nvalid,
-      this->current_context->get_device(device), this->offset);
+		this->current_context->get_device(device),0);//, this->offset);
   // do fft of the cube  
   carma_fft(this->d_camplipup->getData(), this->d_camplifoc->getData(), 1,
       *this->campli_plan);//*this->d_camplipup->getPlan());

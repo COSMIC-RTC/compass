@@ -268,7 +268,7 @@ int sutra_rtc::do_centroids(int ncntrl, bool imat) {
 
     this->d_centro[idx_cntr]->get_cog((*this->d_control[ncntrl]->d_subsum)[indssp],(*this->d_control[ncntrl]->d_centroids)[2*indssp]);
 
-    indssp += this->d_centro[idx_cntr]->wfs->nvalid;
+    indssp += this->d_centro[idx_cntr]->wfs->nvalid_tot;
   }
 
   return EXIT_SUCCESS;

@@ -47,7 +47,7 @@ int sutra_centroider_cog::get_cog(carma_streams *streams, float *cube,
 
 int sutra_centroider_cog::get_cog(float *subsum, float *slopes) {
   return this->get_cog(wfs->streams, *(wfs->d_bincube), subsum,
-      slopes, wfs->nvalid, wfs->npix, wfs->d_bincube->getNbElem());
+      slopes, wfs->nvalid_tot, wfs->npix, wfs->d_bincube->getNbElem());
 }
 
 int sutra_centroider_cog::get_cog() {
