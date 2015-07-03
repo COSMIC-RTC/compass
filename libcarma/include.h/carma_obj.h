@@ -55,6 +55,17 @@ enum MemType {
 };
 //should add texture ?
 
+struct doubleint{
+	int start;
+	int nbInflu;
+};
+
+template<class T>
+struct tuple_t{
+	int pos;
+	T data;
+};
+
 template<class T_data>
 class carma_data {
 

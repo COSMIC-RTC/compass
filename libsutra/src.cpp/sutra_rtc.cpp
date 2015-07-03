@@ -360,6 +360,52 @@ int sutra_rtc::apply_control(int ncntrl, sutra_dms *ydm) {
     }
   }
 
-  return EXIT_SUCCESS;
+
+int sutra_rtc::apply_control2(int ncntrl, sutra_dms *ydm) {
+	current_context->set_activeDevice(device,1);
+
+	this->d_control[ncntrl]->comp_voltage();
+	this->d_control[ncntrl]->command_delay();
+
+
+	vector<sutra_dm *>::iterator p;
+	p = this->d_control[ncntrl]->d_dmseen.begin();
+	int idx = 0;
+	if ((this->d_control[ncntrl]->get_type().compare("ls") == 0)
+			|| (this->d_control[ncntrl]->get_type().compare("mv") == 0)
+			|| (this->d_control[ncntrl]->get_type().compare("geo") == 0)) {
+		// "streamed" controllers case
+
+		while (p != this->d_control[ncntrl]->d_dmseen.end()) {
+			sutra_dm *dm = *p;
+
+			int nstreams = this->d_control[ncntrl]->streams->get_nbStreams();
+			if (nstreams > dm->ninflu) {
+				for (int i = 0; i < nstreams; i++) {
+					int istart = i * dm->ninflu / nstreams;
+					carmaSafeCall(
+							cudaMemcpyAsync((*dm->d_comm)[istart],
+									(*this->d_control[ncntrl]->d_voltage)[idx + istart],
+									sizeof(float) * dm->ninflu / nstreams,
+									cudaMemcpyDeviceToDevice,
+									(*this->d_control[ncntrl]->streams)[i]));
+					dm->comp_shape2();
+				}
+			} else {
+				dm->comp_shape2((*this->d_control[ncntrl]->d_voltage)[idx]);
+			}
+			idx += dm->ninflu;
+			p++;
+		}
+	} else { // "non-streamed" controllers
+		while (p != this->d_control[ncntrl]->d_dmseen.end()) {
+			sutra_dm *dm = *p;
+			dm->comp_shape2((*this->d_control[ncntrl]->d_voltage)[idx]);
+			idx += dm->ninflu;
+			p++;
+		}
+	}
+
+	return EXIT_SUCCESS;
 }
 

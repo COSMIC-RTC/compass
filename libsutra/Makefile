@@ -38,15 +38,15 @@ LIB_DEPLIBS += -Wl,-rpath=$(COMPASS_ROOT_DIR)/libcarma -L$(COMPASS_ROOT_DIR)/lib
 # set compiler (or rarely loader) flags specific to this package
 
 
-LIB_CPPFLAGS = -c -fPIC -Wall -Wno-unused-result -DUNIX
+LIB_CPPFLAGS = -c -fPIC -Wall -Wno-unused-result -DUNIX -std=c++11
 LIB_CPPFLAGS+= -I$(H_DIR) -I$(COMPASS_ROOT_DIR)/libcarma/$(H_DIR) -I$(CUDA_INC_PATH) -I$(CURED_INC_PATH)
 
 ifneq ($(DEBUG),)
   LIB_CPPFLAGS+= -g -DDEBUG
-  NVCCFLAGS+= -g -DDEBUG -G -lineinfo
+  NVCCFLAGS+= -g -DDEBUG -G -lineinfo  -Xptxas -dlcm=ca
 else
   LIB_CPPFLAGS+= -O3
-  NVCCFLAGS+= -O3
+  NVCCFLAGS+= -O3 -Xptxas -dlcm=ca
 endif
 
 MPICXX           = $(shell which mpicxx 2>/dev/null)

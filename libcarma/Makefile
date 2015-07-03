@@ -18,7 +18,7 @@ LIB_DEPLIBS  = -fPIC -shared -Wl,-rpath=$(CUDA_LIB_PATH_64) -L$(CUDA_LIB_PATH_64
 LIB_DEPLIBS += -lcuda -lcudart -lcublas -lcufft -lcurand -lcusparse -lnvToolsExt  -lpthread
 
 # set compiler (or rarely loader) flags specific to this package
-LIB_CPPFLAGS = -c -fPIC -Wall -fno-common -I$(H_DIR) -I$(CUDA_INC_PATH)
+LIB_CPPFLAGS = -c -fPIC -Wall -fno-common -I$(H_DIR) -I$(CUDA_INC_PATH) -std=c++11
 
 # ------------------------------------- targets and rules for this package
 # color for printf
@@ -33,7 +33,7 @@ endif
 GCC := $(CC)
 
 NVCC = $(CUDA_ROOT)/bin/nvcc
-LIB_NVCCFLAGS  = -m64 -Xcompiler -fPIC -c --compiler-options 
+LIB_NVCCFLAGS  = -Xptxas -dlcm=ca -m64 -Xcompiler -fPIC -c --compiler-options
 LIB_NVCCFLAGS += -I$(CUH_DIR)  -I$(H_DIR) -I$(Y_MAKEDIR)/include
 LIB_NVCCFLAGS += -gencode $(GENCODE)
 

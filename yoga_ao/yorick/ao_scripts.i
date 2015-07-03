@@ -101,7 +101,6 @@ func script_system(filename,verbose=,strehl=,r0=,clean=,brama=)
     write,"iter# | S.E. SR | L.E. SR | Est. Rem. | framerate";
     write,"----------------------------------------------------";
   }
-  y_loop.niter=10000;
   for (cc=1;cc<=y_loop.niter;cc++) {
 
     move_atmos,g_atmos;

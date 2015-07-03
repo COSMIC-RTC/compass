@@ -22,6 +22,8 @@ template
 caObjS2::carma_obj(carma_context *current_context, const long *dims_data);
 template
 caObjD2::carma_obj(carma_context *current_context, const long *dims_data);
+template
+carma_obj<struct tuple_t<float> >::carma_obj(carma_context *current_context, const long *dims_data);
 
 template<class T_data>
 carma_obj<T_data>::carma_obj(carma_obj<T_data> *src) {
@@ -256,6 +258,8 @@ template
 caObjD2::~carma_obj();
 template
 caObjS2::~carma_obj();
+template
+carma_obj<struct tuple_t<float> >::~carma_obj();
 
 template<class T_data>
 int carma_obj<T_data>::host2device(T_data *data) {
@@ -283,6 +287,9 @@ template int
 caObjS2::host2device(float2 *data);
 template int
 caObjD2::host2device(double2 *data);
+template int
+carma_obj<struct tuple_t<float> >::host2device(struct tuple_t<float> *data);
+
 
 /*
  template<class T_data>

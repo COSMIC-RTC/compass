@@ -1,7 +1,7 @@
 #!/bin/bash
 
 FILES="scao_16x16_8pix.par scao_40x40_8pix.par scao_64x64_8pix.par scao_80x80_8pix.par"
-#FILES+="scao_16x16_16pix.par scao_40x40_16pix.par scao_64x64_16pix.par scao_80x80_16pix.par"
+FILES+="scao_16x16_16pix.par scao_40x40_16pix.par scao_64x64_16pix.par scao_80x80_16pix.par"
 #FILES+="scao_16x16_8pix_noisy.par scao_40x40_8pix_noisy.par scao_64x64_8pix_noisy.par scao_80x80_8pix_noisy.par 
 #FILES+="scao_16x16_16pix_noisy.par scao_40x40_16pix_noisy.par scao_64x64_16pix_noisy.par scao_80x80_16pix_noisy.par"
 

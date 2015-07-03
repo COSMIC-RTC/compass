@@ -1966,31 +1966,85 @@ extern "C" {
   }
 
   void Y_yoga_loadpzt(int argc) {
-    long ntot;
-    long dims[Y_DIMSIZE];
+      long ntot , ntot_influpos, ntot_istart;
+      long dims[Y_DIMSIZE];
 
-    dms_struct *handler = (dms_struct *) yget_obj(argc - 1, &yDMs);
-    sutra_dms *dms_handler = (sutra_dms *) (handler->sutra_dms);
-    //char *type            = ygets_q(argc-2);
-    float alt = ygets_f(argc - 2);
-    float *influ = ygeta_f(argc - 3, &ntot, dims);
-    int *influpos = ygeta_i(argc - 4, &ntot, dims);
-    int *npoints = ygeta_i(argc - 5, &ntot, dims);
-    int *istart = ygeta_i(argc - 6, &ntot, dims);
-    int *xoff = ygeta_i(argc - 7, &ntot, dims);
-    int *yoff = ygeta_i(argc - 8, &ntot, dims);
-    float *kern = ygeta_f(argc - 9, &ntot, dims);
+      dms_struct *handler = (dms_struct *) yget_obj(argc - 1, &yDMs);
+      sutra_dms *dms_handler = (sutra_dms *) (handler->sutra_dms);
+      //char *type            = ygets_q(argc-2);
+      float alt = ygets_f(argc - 2);
+      float *influ = ygeta_f(argc - 3, &ntot, dims);
+      int *influpos = ygeta_i(argc - 4, &ntot_influpos, dims);
+      int *npoints = ygeta_i(argc - 5, &ntot, dims);
+      int *istart = ygeta_i(argc - 6, &ntot_istart, dims);
+      int *xoff = ygeta_i(argc - 7, &ntot, dims);
+      int *yoff = ygeta_i(argc - 8, &ntot, dims);
+      float *kern = ygeta_f(argc - 9, &ntot, dims);
 
-    int inddm = dms_handler->get_inddm("pzt", alt);
-    if (inddm < 0) {
-      stringstream buf;
-      buf << "unknown error with yoga_loadpzt function in " << __FILE__ << "@"
-          << __LINE__ << " DM(pzt," << alt << ") doesn't exist" << endl;
-      y_error(buf.str().c_str());
+      int inddm = dms_handler->get_inddm("pzt", alt);
+      if (inddm < 0) {
+        stringstream buf;
+        buf << "unknown error with yoga_loadpzt function in " << __FILE__ << "@"
+            << __LINE__ << " DM(pzt," << alt << ") doesn't exist" << endl;
+        y_error(buf.str().c_str());
+      }
+
+      float *influ2 = new float[ntot_influpos];
+      struct tuple_t<float> *influ3 = NULL;
+      int *influpos2 = new int[ntot_influpos];
+      int *istart2 = new int[ntot_istart + 1];
+
+      int n = dms_handler->d_dms[inddm]->influsize * dms_handler->d_dms[inddm]->influsize;
+
+      for(int i = 0; i < ntot_influpos; ++i){
+    	  influ2[i] = influ[ influpos[i] ];
+    	  influpos2[i] = influpos[i] / n;
+      }
+
+      for(int i = 0; i < ntot_istart; i++)
+    	  istart2[i] = istart[i];
+
+      istart2[ntot_istart] = istart2[ntot_istart - 1] + npoints[ntot_istart - 1];
+
+      //Only requiered for for comp shape 2 and 3
+#if(COMPN == 2)
+      influ3 = new struct tuple_t<float>[ntot_influpos];
+
+      for(int  i = 0; i < ntot_influpos; i++)
+    	  influ3[i] = {influpos2[i], influ2[i]};
+
+#elif(COMPN == 3)
+      influ3 = new struct tuple_t<float>[ntot_istart * MAXSPOT];
+
+      //For each pixel of screen
+      int count = 0;
+      for(int  i = 0; i < ntot_istart; i++)
+      {
+    	  int j = 0;
+    	  //For each influence function, cpy the value of postition and influ
+    	  for(; j < npoints[i]; j++){
+    		  influ3[i * MAXSPOT + j] = {influpos2[count], influ2[count]};
+    		  count++;
+    	  }
+    	  //Fill the last element with 0
+    	  for(; j < MAXSPOT; j++)
+    		  influ3[i * MAXSPOT + j] = {0, 0.0};
+      }
+#endif
+
+
+      //for(int i = 0 ; i < ntot_istart; i++)
+    	  //if(istart2[i] == istart2[i + 1])
+    		  //fprintf(stderr, "%d : %d == %d\n", i, istart2[i], istart2[i + 1]);
+
+      dms_handler->d_dms[inddm]->pzt_loadarrays(influ, influ2, influ3, influpos, influpos2, npoints, istart2,
+                                                xoff, yoff, kern);
+
+      delete[] influ3;
+      delete[] influ2;
+      delete[] influpos2;
+      delete[] istart2;
     }
-    dms_handler->d_dms[inddm]->pzt_loadarrays(influ, influpos, npoints, istart,
-                                              xoff, yoff, kern);
-  }
 
   void Y_yoga_addkl(int argc) {
     carma_context *context_handle = _getCurrentContext();
@@ -2132,6 +2186,7 @@ extern "C" {
           << __LINE__ << " DM(tt," << alt << ") doesn't exist" << endl;
       y_error(buf.str().c_str());
     }
+
     dms_handler->d_dms[inddm]->d_influ->host2device(influ);
   }
 
@@ -3452,6 +3507,20 @@ extern "C" {
     rtc_handler->apply_control(ncontrol, dms_handler);
 
   }
+
+  void Y_rtc_applycontrol2(int argc) {
+      rtc_struct *rhandler = (rtc_struct *) yget_obj(argc - 1, &yRTC);
+      sutra_rtc *rtc_handler = (sutra_rtc *) (rhandler->sutra_rtc);
+      long ncontrol = ygets_l(argc - 2);
+      dms_struct *handlera = (dms_struct *) yget_obj(argc - 3, &yDMs);
+      sutra_dms *dms_handler = (sutra_dms *) (handlera->sutra_dms);
+
+      carma_context *context_handle = _getCurrentContext();
+      context_handle->set_activeDevice(rhandler->device,1);
+
+      rtc_handler->apply_control2(ncontrol, dms_handler);
+
+    }
 
   void Y_rtc_docontrol(int argc) {
     rtc_struct *rhandler = (rtc_struct *) yget_obj(argc - 1, &yRTC);

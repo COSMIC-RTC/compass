@@ -31,7 +31,7 @@ cublasStatus_t __carma_checkCublasStatus(cublasStatus_t status, int line,
     cerr << "!CUBLAS error : An internal CUBLAS operation failed.\n";
     break;
 // Define not supported status for pre-6.0 compatibility.
-#if CUDA_VERSION >= 6000
+#if CUDA_VERSION > 6000
   case CUBLAS_STATUS_NOT_SUPPORTED:
     cerr << "CUBLAS error : Unsupported numerical value was passed to function.\n";
     break;
