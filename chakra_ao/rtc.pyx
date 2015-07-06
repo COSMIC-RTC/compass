@@ -105,7 +105,7 @@ cdef class Rtc:
         centro_corr.load_corr(<float*>w_F.data,<float*>corr_norm_F.data,int(w.ndim))
 
     #TODO possible error -> check it
-    cdef getcentroids(self,int ncontrol, Sensors g_wfs=None, int nwfs=0):
+    cpdef getcentroids(self,int ncontrol, Sensors g_wfs=None, int nwfs=0):
 
         cdef const long *dims
         cdef sutra_wfs *wfs
@@ -409,6 +409,7 @@ cdef class Rtc:
         inds1=0
         cdef sutra_dm *dm
         cdef sutra_wfs *wfs
+        cdef carma_obj[float] *screen
         cdef vector[sutra_dm *].iterator it_dm
 
         cdef float *d_centroids
@@ -421,10 +422,12 @@ cdef class Rtc:
                 dm.comp_oneactu(j,dm.push4imat)
                 for idx_cntr in range(self.rtc.d_centro.size()):
                     wfs=self.rtc.d_centro[idx_cntr].wfs
+                    screen=wfs.d_gs.d_phase.d_screen
                     tmp_noise=wfs.noise
                     wfs.noise=-1
                     wfs.kernconv=True
                     wfs.sensor_trace(g_dms.dms,1)
+                    Bcast(screen,0)
                     wfs.comp_image()
                     wfs.noise=tmp_noise
                     wfs.kernconv=False
@@ -503,6 +506,9 @@ cdef class Rtc:
             if(controller_ls.svdec_imat()==1):
                 raise RuntimeError("sutra controller has no SVD implementation")
 
+        else:
+            raise TypeError("Controller needs to be ls")
+
 
     cdef setU(self,int ncontro,np.ndarray[ndim=2,dtype=np.float32_t] U):
         cdef carma_context *context=carma_context.instance()
@@ -527,6 +533,8 @@ cdef class Rtc:
         if(type_contro=="ls"):
             controller_ls = dynamic_cast_controller_ls_ptr(self.rtc.d_control[ncontro])
             controller_ls.h_eigenvals.fill_from(<float*>eigenvals.data)
+        else:
+            raise TypeError("Controller needs to be ls")
 
 
     cdef getU(self, int ncontro):
@@ -643,7 +651,7 @@ cdef class Rtc:
 
         disp[0]=0
         for i in range(comm_size):
-            if(rank<(dims[1]/2)%comm_size):
+            if(i<(dims[1]/2)%comm_size):
                 count[i]=d+1
             else:
                 count[i]=d
@@ -655,15 +663,18 @@ cdef class Rtc:
         cdef float *send=<float*>data.data
         cdef float *recv=<float*>all_centroids.data
 
+        for i in range(comm_size):
+            mpi.MPI_Barrier(mpi.MPI_COMM_WORLD)
+
         # gather centroids X axis
         mpi.MPI_Allgatherv(send,count[rank],mpi.MPI_FLOAT,
                             recv,count,disp, mpi.MPI_FLOAT,
                             mpi.MPI_COMM_WORLD)
 
         # gather centroids Y axis
-        mpi.MPI_Allgatherv(&send[count[rank]],count[rank],mpi.MPI_FLOAT,
-                                &recv[disp[comm_size]],count,disp,
-                                mpi.MPI_FLOAT, mpi.MPI_COMM_WORLD)
+        mpi.MPI_Allgatherv(&send[disp[comm_size]],count[rank],mpi.MPI_FLOAT,
+                            &recv[disp[comm_size]],count,disp,
+                            mpi.MPI_FLOAT, mpi.MPI_COMM_WORLD)
 
         free(count)
         free(disp)
@@ -1349,12 +1360,11 @@ cdef imat_init(int ncontro, Rtc g_rtc, Param_rtc p_rtc, Dms g_dms, p_wfs,int cle
         g_rtc.doimat(ncontro,g_dms)
         print "done in ",time.time()-t0
         p_rtc.controllers[ncontro].set_imat(g_rtc.get_imat(ncontro))
-
         if(simul_name!=""):
             np.save(filename,p_rtc.controllers[ncontro].imat)
 
     else:
-        p_rtc.controllers[ncontro].imat=np.load(filename)
+        p_rtc.controllers[ncontro].set_imat(np.load(filename))
         g_rtc.set_imat(ncontro, p_rtc.controllers[ncontro].imat)
 
 
@@ -1413,10 +1423,11 @@ cdef cmat_init(int ncontro, Rtc g_rtc, Param_rtc p_rtc, list p_wfs,
         imat = g_rtc.get_imat(ncontro)
         maxcond=p_rtc.controllers[ncontro].maxcond
         if(eigenv[0]<eigenv[eigenv.shape[0]-1]):
-            mfilt=np.where(eigenv/eigenv[eigenv.shape[0]-3] < 1./maxcond) [0]
+            mfilt=np.where((eigenv/eigenv[eigenv.shape[0]-3]) < 1./maxcond)[0]
         else:
-            mfilt=np.where( eigenv[2]/eigenv>maxcond)[0]
+            mfilt=np.where( (1./(eigenv/eigenv[2]))>maxcond)[0]
         nfilt=mfilt.shape[0]
+
 
         #TODO wfs_disp
         """

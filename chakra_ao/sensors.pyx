@@ -470,12 +470,14 @@ cdef class Sensors:
             mpi.MPI_Gatherv(mpi.MPI_IN_PLACE,count_bincube[0],mpi.MPI_FLOAT,
                     ptr, count_bincube, displ_bincube, mpi.MPI_FLOAT,
                     0,mpi.MPI_COMM_WORLD)
-            self.sensors.d_wfs[n].d_bincube.host2device(ptr)
 
         else:
             mpi.MPI_Gatherv(ptr,count_bincube[self.get_rank(n)],mpi.MPI_FLOAT,
                     ptr, count_bincube, displ_bincube, mpi.MPI_FLOAT,
                     0,mpi.MPI_COMM_WORLD)
+
+        if(self._get_rank(n)==0):
+            self.sensors.d_wfs[n].d_bincube.host2device(ptr)
 
         free(ptr)
 

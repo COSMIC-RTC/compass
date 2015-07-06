@@ -55,6 +55,7 @@ tar=p_target.target_init(c,p_atmos,p_geom,p_tel,p_wfss,wfs,p_dms)
 print "->rtc"
 rtc=ao.rtc_init(wfs,p_wfss,dms,p_dms,p_geom,p_rtc,p_atmos,atm,p_loop,p_target)
 
+comm.Barrier()
 if(rank==0):
     print "===================="
     print "init done"
@@ -70,10 +71,12 @@ if(rank==0):
     print "----------------------------------------------------";
     print "iter# | S.E. SR | L.E. SR | Est. Rem. | framerate";
     print "----------------------------------------------------";
+comm.Barrier()
 
 mimg = 0.# initializing average image
 
 import matplotlib.pyplot as pl
+
 
 def loop( n):
     if(rank==0):
@@ -83,34 +86,26 @@ def loop( n):
 
     for i in range(n):
         if(rank==0):
-            print i
             atm.move_atmos()
-            
+
             for t in range(p_target.ntargets):
                 tar.atmos_trace(t,atm)
                 tar.dmtrace(t,dms)
-
             for w in range(len(p_wfss)):
                 wfs.sensors_trace(w,"all",atm,dms)
-
 
         wfs.Bcast_dscreen()
         for w in range(len(p_wfss)):
             wfs.sensors_compimg(w)
             wfs.gather_bincube(comm,w)
-        comm.Barrier()
+        if(rank==0):
+            rtc.docentroids(0)
+            rtc.docontrol(0)
+            rtc.applycontrol(0,dms)
 
-        rtc.docentroids(0)
-        comm.Barrier()
-        rtc.docontrol(0)
-        comm.Barrier()
-        #rtc.applycontrol(0,dms)
-        comm.Barrier()
-
-        if(True):#(i+1)%50==0):
-            print i+1
+        if((i+1)%50==0):
+            #s=rtc.getCentroids(0)
             if(rank==0):
-
                 turbu.clear()
                 image.clear()
                 shak.clear()
@@ -132,27 +127,30 @@ def loop( n):
 
                 pl.draw()
 
+                """ FOR DEBUG PURPOSE
+                c=rtc.getCom(0)
+                v=rtc.getVoltage(0)
+
                 sh_file="dbg/shak_"+str(i)+"_np_"+str(comm.Get_size())+".npy"
                 im_file="dbg/imag_"+str(i)+"_np_"+str(comm.Get_size())+".npy"
-                dm_file="dbg/DM"+str(i)+"_np_"+str(comm.Get_size())+".npy"
+                dm_file="dbg/DM_"+str(i)+"_np_"+str(comm.Get_size())+".npy"
+                s_file="dbg/cent_"+str(i)+"_np_"+str(comm.Get_size())+".npy"
+                c_file="dbg/comm_"+str(i)+"_np_"+str(comm.Get_size())+".npy"
+                v_file="dbg/volt_"+str(i)+"_np_"+str(comm.Get_size())+".npy"
+
                 np.save(sh_file,sh)
                 np.save(im_file,im)
                 np.save(dm_file,dm)
-
-                
-
-                
-                """
-                pl.matshow(image)
-                pl.draw()
-                pl.matshow(dm)
-                pl.draw()
+                np.save(s_file,s)
+                np.save(c_file,c)
+                np.save(v_file,v)
                 """
 
+               
                 strehltmp = tar.get_strehl(0)
-                print i+1,"\t",strehltmp[0],"\t",strehltmp[1]
+                print "%5d"%(i+1),"  %1.5f"%strehltmp[0],"  %1.5f"%strehltmp[1]
 
 
 
-#loop(p_loop.niter)
-loop(10)
+
+loop(p_loop.niter)
