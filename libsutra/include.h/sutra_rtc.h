@@ -67,7 +67,7 @@ public:
   int
   	apply_control(int ncntrl, sutra_dms *ydm);
   int
-	apply_control2(int ncntrl, sutra_dms *ydm);
+	  apply_control2(int ncntrl, sutra_dms *ydm);
 };
 
 #endif // _SUTRA_RTC_H_

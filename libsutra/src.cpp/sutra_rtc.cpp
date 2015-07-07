@@ -359,7 +359,7 @@ int sutra_rtc::apply_control(int ncntrl, sutra_dms *ydm) {
       p++;
     }
   }
-
+}
 
 int sutra_rtc::apply_control2(int ncntrl, sutra_dms *ydm) {
 	current_context->set_activeDevice(device,1);
