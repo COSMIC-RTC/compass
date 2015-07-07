@@ -75,6 +75,8 @@ template int
 caObjI::destroy_prng();
 template int
 caObjUI::destroy_prng();
+template int
+carma_obj<tuple_t<float>>::destroy_prng();
 
 template<class T>
 int carma_obj<T>::prng(T *output, char gtype, float alpha, float beta) {
@@ -236,4 +238,6 @@ template int
 caObjI::destroy_prng_host();
 template int
 caObjUI::destroy_prng_host();
+template int
+carma_obj<tuple_t <float>>::destroy_prng_host();
 
