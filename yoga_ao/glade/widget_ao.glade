@@ -87,7 +87,7 @@ https://github.com/yorick-yoga/yorick-yoga/wiki</property>
                         <property name="can_focus">False</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
-                        <signal name="activate" handler="on_imagemenuitem1_activate" swapped="no"/>
+                        <signal name="activate" handler="on_imagemenuitem1_activate"/>
                       </widget>
                     </child>
                     <child>
@@ -97,7 +97,7 @@ https://github.com/yorick-yoga/yorick-yoga/wiki</property>
                         <property name="can_focus">False</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
-                        <signal name="activate" handler="on_imagemenuitem2_activate" swapped="no"/>
+                        <signal name="activate" handler="on_imagemenuitem2_activate"/>
                       </widget>
                     </child>
                     <child>
@@ -129,7 +129,7 @@ https://github.com/yorick-yoga/yorick-yoga/wiki</property>
                         <property name="can_focus">False</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
-                        <signal name="activate" handler="on_item_quit_activate" swapped="no"/>
+                        <signal name="activate" handler="on_item_quit_activate"/>
                       </widget>
                     </child>
                   </widget>
@@ -161,7 +161,7 @@ https://github.com/yorick-yoga/yorick-yoga/wiki</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <property name="use_stock">False</property>
-                        <signal name="activate" handler="on_imagemenuitem7_activate" swapped="no"/>
+                        <signal name="activate" handler="on_imagemenuitem7_activate"/>
                         <child internal-child="image">
                           <widget class="GtkImage" id="image1">
                             <property name="visible">True</property>
@@ -200,7 +200,7 @@ https://github.com/yorick-yoga/yorick-yoga/wiki</property>
                         <property name="can_focus">False</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
-                        <signal name="activate" handler="on_imagemenuitem10_activate" swapped="no"/>
+                        <signal name="activate" handler="on_imagemenuitem10_activate"/>
                       </widget>
                     </child>
                   </widget>
@@ -246,7 +246,7 @@ https://github.com/yorick-yoga/yorick-yoga/wiki</property>
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
                                 <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK | GDK_ENTER_NOTIFY_MASK | GDK_LEAVE_NOTIFY_MASK</property>
-                                <signal name="map" handler="on_drawingarea_ao_map" swapped="no"/>
+                                <signal name="map" handler="on_drawingarea_ao_map"/>
                               </widget>
                               <packing>
                                 <property name="expand">False</property>
@@ -268,7 +268,7 @@ https://github.com/yorick-yoga/yorick-yoga/wiki</property>
                             <property name="can_focus">False</property>
                             <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
                             <property name="items" translatable="yes"/>
-                            <signal name="changed" handler="on_winselect_type_changed" swapped="no"/>
+                            <signal name="changed" handler="on_winselect_type_changed"/>
                           </widget>
                           <packing>
                             <property name="expand">False</property>
@@ -282,7 +282,7 @@ https://github.com/yorick-yoga/yorick-yoga/wiki</property>
                             <property name="can_focus">False</property>
                             <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
                             <property name="items" translatable="yes"/>
-                            <signal name="changed" handler="on_winselect_number_changed" swapped="no"/>
+                            <signal name="changed" handler="on_winselect_number_changed"/>
                           </widget>
                           <packing>
                             <property name="expand">False</property>
@@ -298,7 +298,7 @@ https://github.com/yorick-yoga/yorick-yoga/wiki</property>
                             <property name="receives_default">False</property>
                             <property name="active">True</property>
                             <property name="draw_indicator">True</property>
-                            <signal name="toggled" handler="on_enable_display_toggled" swapped="no"/>
+                            <signal name="toggled" handler="on_enable_display_toggled"/>
                           </widget>
                           <packing>
                             <property name="expand">False</property>
@@ -332,7 +332,7 @@ https://github.com/yorick-yoga/yorick-yoga/wiki</property>
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="receives_default">True</property>
-                            <signal name="clicked" handler="on_initall_clicked" swapped="no"/>
+                            <signal name="clicked" handler="on_initall_clicked"/>
                           </widget>
                           <packing>
                             <property name="expand">True</property>
@@ -358,7 +358,7 @@ https://github.com/yorick-yoga/yorick-yoga/wiki</property>
                             <property name="can_focus">True</property>
                             <property name="receives_default">True</property>
                             <property name="use_stock">True</property>
-                            <signal name="clicked" handler="on_start_ao_clicked" swapped="no"/>
+                            <signal name="clicked" handler="on_start_ao_clicked"/>
                           </widget>
                           <packing>
                             <property name="expand">True</property>
@@ -373,7 +373,7 @@ https://github.com/yorick-yoga/yorick-yoga/wiki</property>
                             <property name="can_focus">True</property>
                             <property name="receives_default">True</property>
                             <property name="use_stock">True</property>
-                            <signal name="clicked" handler="on_ao_stop_clicked" swapped="no"/>
+                            <signal name="clicked" handler="on_ao_stop_clicked"/>
                           </widget>
                           <packing>
                             <property name="expand">True</property>
@@ -388,7 +388,7 @@ https://github.com/yorick-yoga/yorick-yoga/wiki</property>
                             <property name="can_focus">True</property>
                             <property name="receives_default">True</property>
                             <property name="use_stock">True</property>
-                            <signal name="clicked" handler="on_next_clicked" swapped="no"/>
+                            <signal name="clicked" handler="on_next_clicked"/>
                           </widget>
                           <packing>
                             <property name="expand">True</property>
@@ -402,7 +402,7 @@ https://github.com/yorick-yoga/yorick-yoga/wiki</property>
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="receives_default">True</property>
-                            <signal name="clicked" handler="on_unzoom_button_clicked" swapped="no"/>
+                            <signal name="clicked" handler="on_unzoom_button_clicked"/>
                           </widget>
                           <packing>
                             <property name="expand">False</property>
@@ -419,7 +419,7 @@ https://github.com/yorick-yoga/yorick-yoga/wiki</property>
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="receives_default">True</property>
-                            <signal name="clicked" handler="on_reset_strehl_clicked" swapped="no"/>
+                            <signal name="clicked" handler="on_reset_strehl_clicked"/>
                           </widget>
                           <packing>
                             <property name="expand">True</property>
@@ -495,7 +495,7 @@ https://github.com/yorick-yoga/yorick-yoga/wiki</property>
                         <property name="primary_icon_sensitive">True</property>
                         <property name="secondary_icon_sensitive">True</property>
                         <property name="adjustment">0 0 100 1 0 0</property>
-                        <signal name="value_changed" handler="on_device_value_changed" swapped="no"/>
+                        <signal name="value_changed" handler="on_device_value_changed"/>
                       </widget>
                       <packing>
                         <property name="expand">False</property>
@@ -698,7 +698,7 @@ PYR02
 xSH
 SCAO-LGS
 MCAO-NGS</property>
-                                            <signal name="changed" handler="on_type_system_changed" swapped="no"/>
+                                            <signal name="changed" handler="on_type_system_changed"/>
                                           </widget>
                                           <packing>
                                             <property name="expand">True</property>
@@ -816,7 +816,7 @@ MCAO-NGS</property>
 ESO
 Canary
 </property>
-                                                <signal name="changed" handler="on_default_atm_changed" swapped="no"/>
+                                                <signal name="changed" handler="on_default_atm_changed"/>
                                               </widget>
                                               <packing>
                                                 <property name="left_attach">1</property>
@@ -888,7 +888,7 @@ Canary
                                                 <property name="primary_icon_sensitive">True</property>
                                                 <property name="secondary_icon_sensitive">True</property>
                                                 <property name="adjustment">1 1 100 1 0 0</property>
-                                                <signal name="value_changed" handler="on_nlayers_value_changed" swapped="no"/>
+                                                <signal name="value_changed" handler="on_nlayers_value_changed"/>
                                               </widget>
                                               <packing>
                                                 <property name="left_attach">3</property>
@@ -1157,7 +1157,7 @@ Canary
                                                             <property name="visible">True</property>
                                                             <property name="can_focus">True</property>
                                                             <property name="receives_default">True</property>
-                                                            <signal name="clicked" handler="on_set_screen_clicked" swapped="no"/>
+                                                            <signal name="clicked" handler="on_set_screen_clicked"/>
                                                             </widget>
                                                             <packing>
                                                             <property name="expand">True</property>
@@ -1172,7 +1172,7 @@ Canary
                                                             <property name="sensitive">False</property>
                                                             <property name="can_focus">True</property>
                                                             <property name="receives_default">True</property>
-                                                            <signal name="clicked" handler="on_rm_screen_clicked" swapped="no"/>
+                                                            <signal name="clicked" handler="on_rm_screen_clicked"/>
                                                             </widget>
                                                             <packing>
                                                             <property name="expand">True</property>
@@ -1204,7 +1204,7 @@ Canary
                                                             <property name="can_focus">False</property>
                                                             <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
                                                             <property name="items" translatable="yes">Layer # 1</property>
-                                                            <signal name="changed" handler="on_layer_select_changed" swapped="no"/>
+                                                            <signal name="changed" handler="on_layer_select_changed"/>
                                                           </widget>
                                                           <packing>
                                                             <property name="expand">False</property>
@@ -1262,7 +1262,7 @@ Canary
                                                             <property name="visible">True</property>
                                                             <property name="can_focus">False</property>
                                                             <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK | GDK_ENTER_NOTIFY_MASK | GDK_LEAVE_NOTIFY_MASK</property>
-                                                            <signal name="map" handler="on_drawingarea_turbu_map" swapped="no"/>
+                                                            <signal name="map" handler="on_drawingarea_turbu_map"/>
                                                             </widget>
                                                             <packing>
                                                             <property name="expand">False</property>
@@ -1286,7 +1286,7 @@ Canary
                                                             <property name="items" translatable="yes">Cn2
 Wind speed
 Wind dir</property>
-                                                            <signal name="changed" handler="on_layers_plot_changed" swapped="no"/>
+                                                            <signal name="changed" handler="on_layers_plot_changed"/>
                                                           </widget>
                                                           <packing>
                                                             <property name="expand">False</property>
@@ -1480,7 +1480,7 @@ Wind dir</property>
 1 SH LGS
 3 SH05
 </property>
-                                                            <signal name="changed" handler="on_default_wfs_changed" swapped="no"/>
+                                                            <signal name="changed" handler="on_default_wfs_changed"/>
                                                           </widget>
                                                           <packing>
                                                             <property name="expand">True</property>
@@ -1523,7 +1523,7 @@ Wind dir</property>
                                                         <property name="primary_icon_sensitive">True</property>
                                                         <property name="secondary_icon_sensitive">True</property>
                                                         <property name="adjustment">3 1 100 1 0 0</property>
-                                                        <signal name="value_changed" handler="on_nwfs_value_changed" swapped="no"/>
+                                                        <signal name="value_changed" handler="on_nwfs_value_changed"/>
                                                       </widget>
                                                       <packing>
                                                         <property name="expand">False</property>
@@ -2049,7 +2049,7 @@ Wind dir</property>
                                                             <property name="visible">True</property>
                                                             <property name="can_focus">True</property>
                                                             <property name="receives_default">True</property>
-                                                            <signal name="clicked" handler="on_set_wfs_clicked" swapped="no"/>
+                                                            <signal name="clicked" handler="on_set_wfs_clicked"/>
                                                             </widget>
                                                             <packing>
                                                             <property name="expand">False</property>
@@ -2064,7 +2064,7 @@ Wind dir</property>
                                                             <property name="sensitive">False</property>
                                                             <property name="can_focus">True</property>
                                                             <property name="receives_default">True</property>
-                                                            <signal name="clicked" handler="on_rm_wfs_clicked" swapped="no"/>
+                                                            <signal name="clicked" handler="on_rm_wfs_clicked"/>
                                                             </widget>
                                                             <packing>
                                                             <property name="expand">False</property>
@@ -2343,7 +2343,7 @@ Wind dir</property>
                                                             <property name="can_focus">True</property>
                                                             <property name="receives_default">False</property>
                                                             <property name="draw_indicator">True</property>
-                                                            <signal name="toggled" handler="on_checklgs_toggled" swapped="no"/>
+                                                            <signal name="toggled" handler="on_checklgs_toggled"/>
                                                             </widget>
                                                             </child>
                                                             </widget>
@@ -2439,7 +2439,7 @@ Exp</property>
                                                             <property name="visible">True</property>
                                                             <property name="can_focus">False</property>
                                                             <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK | GDK_ENTER_NOTIFY_MASK | GDK_LEAVE_NOTIFY_MASK</property>
-                                                            <signal name="map" handler="on_drawingarea_lgs_map" swapped="no"/>
+                                                            <signal name="map" handler="on_drawingarea_lgs_map"/>
                                                             </widget>
                                                             <packing>
                                                             <property name="expand">False</property>
@@ -2463,7 +2463,7 @@ Exp</property>
                                                             <property name="items" translatable="yes">Profile
 Beam
 Spot</property>
-                                                            <signal name="changed" handler="on_lgs_plot_changed" swapped="no"/>
+                                                            <signal name="changed" handler="on_lgs_plot_changed"/>
                                                             </widget>
                                                             <packing>
                                                             <property name="expand">False</property>
@@ -2526,7 +2526,7 @@ Spot</property>
                                                             <property name="can_focus">False</property>
                                                             <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
                                                             <property name="items" translatable="yes">WFS # 1</property>
-                                                            <signal name="changed" handler="on_wfs_select_changed" swapped="no"/>
+                                                            <signal name="changed" handler="on_wfs_select_changed"/>
                                                           </widget>
                                                           <packing>
                                                             <property name="expand">True</property>
@@ -2556,7 +2556,7 @@ Spot</property>
                                                             <property name="can_focus">False</property>
                                                             <property name="items" translatable="yes">SH
 PYR</property>
-                                                            <signal name="changed" handler="on_wfs_type_changed" swapped="no"/>
+                                                            <signal name="changed" handler="on_wfs_type_changed"/>
                                                             </widget>
                                                             <packing>
                                                             <property name="expand">True</property>
@@ -2724,7 +2724,7 @@ PYR</property>
 2 pzt + tt
 3 pzt + tt
 kl</property>
-                                                <signal name="changed" handler="on_default_dm_changed" swapped="no"/>
+                                                <signal name="changed" handler="on_default_dm_changed"/>
                                               </widget>
                                               <packing>
                                                 <property name="left_attach">1</property>
@@ -2756,7 +2756,7 @@ kl</property>
                                                 <property name="primary_icon_sensitive">True</property>
                                                 <property name="secondary_icon_sensitive">True</property>
                                                 <property name="adjustment">1 1 100 1 0 0</property>
-                                                <signal name="value_changed" handler="on_ndm_value_changed" swapped="no"/>
+                                                <signal name="value_changed" handler="on_ndm_value_changed"/>
                                               </widget>
                                               <packing>
                                                 <property name="left_attach">3</property>
@@ -3084,7 +3084,7 @@ kl
                                                             <property name="visible">True</property>
                                                             <property name="can_focus">True</property>
                                                             <property name="receives_default">True</property>
-                                                            <signal name="clicked" handler="on_set_dm_clicked" swapped="no"/>
+                                                            <signal name="clicked" handler="on_set_dm_clicked"/>
                                                             </widget>
                                                             <packing>
                                                             <property name="expand">True</property>
@@ -3119,7 +3119,7 @@ kl
                                                             <property name="visible">True</property>
                                                             <property name="can_focus">True</property>
                                                             <property name="receives_default">True</property>
-                                                            <signal name="clicked" handler="on_reset_dm_clicked" swapped="no"/>
+                                                            <signal name="clicked" handler="on_reset_dm_clicked"/>
                                                             </widget>
                                                             <packing>
                                                             <property name="expand">True</property>
@@ -3141,7 +3141,7 @@ kl
                                                             <property name="can_focus">False</property>
                                                             <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
                                                             <property name="items" translatable="yes">DM # 1</property>
-                                                            <signal name="changed" handler="on_dm_select_changed" swapped="no"/>
+                                                            <signal name="changed" handler="on_dm_select_changed"/>
                                                           </widget>
                                                           <packing>
                                                             <property name="expand">False</property>
@@ -3286,7 +3286,7 @@ tcog
 bpcog
 wcog
 pyr</property>
-                                                    <signal name="changed" handler="on_default_centro_changed" swapped="no"/>
+                                                    <signal name="changed" handler="on_default_centro_changed"/>
                                                   </widget>
                                                   <packing>
                                                     <property name="expand">False</property>
@@ -3372,7 +3372,7 @@ corr
 mf
 pyr
 </property>
-                                                            <signal name="changed" handler="on_type_centro_changed" swapped="no"/>
+                                                            <signal name="changed" handler="on_type_centro_changed"/>
                                                             </widget>
                                                             <packing>
                                                             <property name="left_attach">1</property>
@@ -3479,7 +3479,7 @@ pyr
                                                             <property name="items" translatable="yes">gauss
 file
 model</property>
-                                                            <signal name="changed" handler="on_type_func_changed" swapped="no"/>
+                                                            <signal name="changed" handler="on_type_func_changed"/>
                                                             </widget>
                                                             <packing>
                                                             <property name="left_attach">1</property>
@@ -3605,7 +3605,7 @@ model</property>
                                                             <property name="can_focus">False</property>
                                                             <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
                                                             <property name="items" translatable="yes">Centro # 1</property>
-                                                            <signal name="changed" handler="on_centro_select_changed" swapped="no"/>
+                                                            <signal name="changed" handler="on_centro_select_changed"/>
                                                             </widget>
                                                             <packing>
                                                             <property name="expand">True</property>
@@ -3639,7 +3639,7 @@ model</property>
                                                             <property name="visible">True</property>
                                                             <property name="can_focus">True</property>
                                                             <property name="receives_default">True</property>
-                                                            <signal name="clicked" handler="on_set_centro_clicked" swapped="no"/>
+                                                            <signal name="clicked" handler="on_set_centro_clicked"/>
                                                             </widget>
                                                             <packing>
                                                             <property name="expand">True</property>
@@ -3771,7 +3771,7 @@ model</property>
 MV
 L&amp;A
 LQG</property>
-                                                    <signal name="changed" handler="on_default_control_changed" swapped="no"/>
+                                                    <signal name="changed" handler="on_default_control_changed"/>
                                                   </widget>
                                                   <packing>
                                                     <property name="expand">False</property>
@@ -3854,7 +3854,7 @@ MV
 L&amp;A
 LQG
 </property>
-                                                            <signal name="changed" handler="on_type_control_changed" swapped="no"/>
+                                                            <signal name="changed" handler="on_type_control_changed"/>
                                                             </widget>
                                                             <packing>
                                                             <property name="left_attach">1</property>
@@ -4059,7 +4059,7 @@ LQG
                                                             <property name="visible">True</property>
                                                             <property name="can_focus">True</property>
                                                             <property name="receives_default">True</property>
-                                                            <signal name="clicked" handler="on_set_control_clicked" swapped="no"/>
+                                                            <signal name="clicked" handler="on_set_control_clicked"/>
                                                             </widget>
                                                             <packing>
                                                             <property name="expand">True</property>
@@ -4073,7 +4073,7 @@ LQG
                                                             <property name="visible">True</property>
                                                             <property name="can_focus">True</property>
                                                             <property name="receives_default">True</property>
-                                                            <signal name="clicked" handler="on_update_cmat_clicked" swapped="no"/>
+                                                            <signal name="clicked" handler="on_update_cmat_clicked"/>
                                                             </widget>
                                                             <packing>
                                                             <property name="expand">True</property>
@@ -4172,7 +4172,7 @@ LQG
                                                     <property name="label" translatable="yes">Filter</property>
                                                     <property name="can_focus">True</property>
                                                     <property name="receives_default">True</property>
-                                                    <signal name="clicked" handler="on_filterTT_clicked" swapped="no"/>
+                                                    <signal name="clicked" handler="on_filterTT_clicked"/>
                                                   </widget>
                                                   <packing>
                                                     <property name="expand">False</property>
@@ -4257,7 +4257,7 @@ LQG
                                                 <property name="visible">True</property>
                                                 <property name="can_focus">False</property>
                                                 <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK | GDK_ENTER_NOTIFY_MASK | GDK_LEAVE_NOTIFY_MASK</property>
-                                                <signal name="map" handler="on_drawingarea_centro_map" swapped="no"/>
+                                                <signal name="map" handler="on_drawingarea_centro_map"/>
                                               </widget>
                                               <packing>
                                                 <property name="expand">False</property>
@@ -4328,7 +4328,7 @@ LQG
                                                 <property name="visible">True</property>
                                                 <property name="can_focus">False</property>
                                                 <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK | GDK_ENTER_NOTIFY_MASK | GDK_LEAVE_NOTIFY_MASK</property>
-                                                <signal name="map" handler="on_drawingarea_control_map" swapped="no"/>
+                                                <signal name="map" handler="on_drawingarea_control_map"/>
                                               </widget>
                                               <packing>
                                                 <property name="expand">False</property>
@@ -4356,7 +4356,7 @@ Cmm eigen
 Cphim
 cmat
 imat</property>
-                                            <signal name="changed" handler="on_control_plot_changed" swapped="no"/>
+                                            <signal name="changed" handler="on_control_plot_changed"/>
                                           </widget>
                                           <packing>
                                             <property name="expand">False</property>
@@ -4370,7 +4370,7 @@ imat</property>
                                             <property name="visible">True</property>
                                             <property name="can_focus">True</property>
                                             <property name="receives_default">True</property>
-                                            <signal name="clicked" handler="on_spydrit_clicked" swapped="no"/>
+                                            <signal name="clicked" handler="on_spydrit_clicked"/>
                                           </widget>
                                           <packing>
                                             <property name="expand">True</property>
@@ -4483,7 +4483,7 @@ imat</property>
                                                 <property name="primary_icon_sensitive">True</property>
                                                 <property name="secondary_icon_sensitive">True</property>
                                                 <property name="adjustment">1 1 100 1 0 0</property>
-                                                <signal name="value_changed" handler="on_ntargets_value_changed" swapped="no"/>
+                                                <signal name="value_changed" handler="on_ntargets_value_changed"/>
                                               </widget>
                                               <packing>
                                                 <property name="left_attach">3</property>
@@ -4519,7 +4519,7 @@ imat</property>
 5 targets
 6 targets
 7 targets</property>
-                                                <signal name="changed" handler="on_default_target_changed" swapped="no"/>
+                                                <signal name="changed" handler="on_default_target_changed"/>
                                               </widget>
                                               <packing>
                                                 <property name="left_attach">1</property>
@@ -4725,7 +4725,7 @@ imat</property>
                                                             <property name="visible">True</property>
                                                             <property name="can_focus">True</property>
                                                             <property name="receives_default">True</property>
-                                                            <signal name="clicked" handler="on_set_source_clicked" swapped="no"/>
+                                                            <signal name="clicked" handler="on_set_source_clicked"/>
                                                             </widget>
                                                             <packing>
                                                             <property name="expand">False</property>
@@ -4794,7 +4794,7 @@ imat</property>
                                                             <property name="can_focus">False</property>
                                                             <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
                                                             <property name="items" translatable="yes">Source # 1</property>
-                                                            <signal name="changed" handler="on_target_select_changed" swapped="no"/>
+                                                            <signal name="changed" handler="on_target_select_changed"/>
                                                           </widget>
                                                           <packing>
                                                             <property name="expand">True</property>
@@ -4852,7 +4852,7 @@ imat</property>
                                                             <property name="visible">True</property>
                                                             <property name="can_focus">False</property>
                                                             <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK | GDK_ENTER_NOTIFY_MASK | GDK_LEAVE_NOTIFY_MASK</property>
-                                                            <signal name="map" handler="on_drawingarea_sky_map" swapped="no"/>
+                                                            <signal name="map" handler="on_drawingarea_sky_map"/>
                                                             </widget>
                                                             <packing>
                                                             <property name="expand">False</property>
@@ -4990,7 +4990,7 @@ imat</property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">True</property>
-                    <signal name="toggled" handler="on_SRmonitor_toggled" swapped="no"/>
+                    <signal name="toggled" handler="on_SRmonitor_toggled"/>
                   </widget>
                   <packing>
                     <property name="expand">False</property>
@@ -5015,7 +5015,7 @@ imat</property>
                             <property name="height_request">150</property>
                             <property name="can_focus">False</property>
                             <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK | GDK_ENTER_NOTIFY_MASK | GDK_LEAVE_NOTIFY_MASK</property>
-                            <signal name="map" handler="on_drawingarea_SR_map" swapped="no"/>
+                            <signal name="map" handler="on_drawingarea_SR_map"/>
                           </widget>
                           <packing>
                             <property name="expand">False</property>
@@ -5546,7 +5546,7 @@ imat</property>
                         <property name="can_focus">False</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
-                        <signal name="activate" handler="on_editor_save_activate" swapped="no"/>
+                        <signal name="activate" handler="on_editor_save_activate"/>
                       </widget>
                     </child>
                     <child>
@@ -5556,7 +5556,7 @@ imat</property>
                         <property name="can_focus">False</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
-                        <signal name="activate" handler="on_save_as_activate" swapped="no"/>
+                        <signal name="activate" handler="on_save_as_activate"/>
                       </widget>
                     </child>
                     <child>
@@ -5572,7 +5572,7 @@ imat</property>
                         <property name="can_focus">False</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
-                        <signal name="activate" handler="on_popup_quit_activate" swapped="no"/>
+                        <signal name="activate" handler="on_popup_quit_activate"/>
                       </widget>
                     </child>
                   </widget>
