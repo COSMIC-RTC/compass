@@ -127,6 +127,10 @@ cdef extern from "carma_streams.h":
 # C-Class carma_obj
 #################################################
 cdef extern from "carma_obj.h":
+
+    cdef cppclass tuple_t[T]:
+        pass
+
     cdef cppclass carma_obj[T]:
         T *d_data
         int ndim
@@ -143,7 +147,7 @@ cdef extern from "carma_obj.h":
         T* getData()                        
         T* getData(int index)                        
         long *getDims()                      #
-        long getDimsi "getDims"(int i)                  
+        long getDims (int i)                  
         int getNbElem()                     #
         carma_context *getContext()         
         int getDevice()                     #
