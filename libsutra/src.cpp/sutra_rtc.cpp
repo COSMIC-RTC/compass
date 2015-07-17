@@ -389,10 +389,10 @@ int sutra_rtc::apply_control2(int ncntrl, sutra_dms *ydm) {
 									sizeof(float) * dm->ninflu / nstreams,
 									cudaMemcpyDeviceToDevice,
 									(*this->d_control[ncntrl]->streams)[i]));
-					dm->comp_shape2();
+					dm->comp_shape();
 				}
 			} else {
-				dm->comp_shape2((*this->d_control[ncntrl]->d_voltage)[idx]);
+				dm->comp_shape((*this->d_control[ncntrl]->d_voltage)[idx]);
 			}
 			idx += dm->ninflu;
 			p++;
@@ -400,7 +400,7 @@ int sutra_rtc::apply_control2(int ncntrl, sutra_dms *ydm) {
 	} else { // "non-streamed" controllers
 		while (p != this->d_control[ncntrl]->d_dmseen.end()) {
 			sutra_dm *dm = *p;
-			dm->comp_shape2((*this->d_control[ncntrl]->d_voltage)[idx]);
+			dm->comp_shape((*this->d_control[ncntrl]->d_voltage)[idx]);
 			idx += dm->ninflu;
 			p++;
 		}

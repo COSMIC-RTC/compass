@@ -18,8 +18,8 @@ from cpython.string cimport PyString_AsString
 #from mpi4py cimport MPI
 cimport mpi4py.MPI as MPI
 # C-level cdef, typed, Python objects
-from mpi4py cimport mpi_c as mpi
-#from mpi4py cimport libmpi as mpi
+#from mpi4py cimport mpi_c as mpi
+from mpi4py cimport libmpi as mpi
 #cimport mpi4py.libmpi as mpi
 
 

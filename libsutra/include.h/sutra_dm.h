@@ -98,10 +98,6 @@ public:
 	int
 	comp_shape(float *comm);
 	int
-	comp_shape2();
-	int
-	comp_shape2(float *comm);
-	int
 	comp_oneactu(int nactu, float ampli);
 	// Florian features
 	int
