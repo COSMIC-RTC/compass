@@ -151,8 +151,8 @@ def loop( n):
                 strehltmp = tar.get_strehl(0)
                 print "%5d"%(i+1),"  %1.5f"%strehltmp[0],"  %1.5f"%strehltmp[1]
 
-        t1=time.time()
-        print rank, "| loop execution time:",t1-t0,"  (",n,"iterations), ",(t1-t0)/n,"(mean)
+    t1=time.time()
+    print rank, "| loop execution time:",t1-t0,"  (",n,"iterations), ",(t1-t0)/n,"(mean)"
 
 
 loop(p_loop.niter)
