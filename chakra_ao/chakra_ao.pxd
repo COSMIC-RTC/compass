@@ -534,7 +534,8 @@ cdef extern from "sutra_dm.h":
 
 
 
-        int pzt_loadarrays(float *influ, int *influpos, int *npoints, int *istart,
+        int pzt_loadarrays(float *influ, float *influ2, tuple_t[float] *influ3,
+                            int *influpos, int *influpos2, int *npoints, int *istart,
                             int *xoff, int *yoff, float *kernconv)
         int kl_loadarrays(float *rabas, float *azbas, int *ord, float *cr, float *cp)
 
@@ -1044,8 +1045,8 @@ cdef class Dms:
                     np.ndarray[ndim=1,dtype=np.int32_t] npoints,
                     np.ndarray[ndim=1,dtype=np.int32_t] istart,
                     np.ndarray[ndim=1,dtype=np.int32_t] xoff,
-                    np.ndarray[ndim=1,dtype=np.int32_t] yoff)
-                    #np.ndarray[dtype=np.float32_t] kern)
+                    np.ndarray[ndim=1,dtype=np.int32_t] yoff,
+                    np.ndarray[ndim=2,dtype=np.float32_t] kern)
 
     #TODO dims of arrays
     cdef load_kl(self,float alt, np.ndarray[ndim=1,dtype=np.float32_t] rabas,

@@ -139,7 +139,7 @@ cdef _dm_init(Dms dms, Param_dm p_dms, Param_wfs p_wfs, Param_geom p_geom, Param
                 dms.add_dm(p_dms.type_dm, p_dms.alt, dim, ninflu, influsize,
                             ninflupos, n_npts,p_dms.push4imat)
                 dms.load_pzt(p_dms.alt, p_dms._influ, p_dms._influpos.astype(np.int32),
-                            p_dms._ninflu, p_dms._influstart, p_dms._i1,p_dms._j1)
+                            p_dms._ninflu, p_dms._influstart, p_dms._i1,p_dms._j1,None)
 
             elif(p_dms.type_dm=="tt"):
                 dim = long(p_dms._n2-p_dms._n1+1)
@@ -289,9 +289,6 @@ cdef make_pzt_dm(Param_dm p_dm,Param_geom geom,disp):
 
     # converting to array coordinates:
     cub += cent
-    # TODO cub      = cub(*,);
-    # cub now has two indices: first one is actuator number
-    # second one is: 1:Xcoord, 2:Ycoord
 
     #filtering actuators outside of a disk radius = rad (see above)
     cdef np.ndarray cubval = cub[inbigcirc]
@@ -585,8 +582,8 @@ cdef class Dms:
         np.ndarray[ndim=1,dtype=np.int32_t] npoints,
         np.ndarray[ndim=1,dtype=np.int32_t] istart,
         np.ndarray[ndim=1,dtype=np.int32_t] xoff,
-        np.ndarray[ndim=1,dtype=np.int32_t] yoff):#,
-        #np.ndarray[dtype=np.float32_t] kern):
+        np.ndarray[ndim=1,dtype=np.int32_t] yoff,
+        np.ndarray[ndim=2,dtype=np.float32_t] kern):
 
         cdef np.ndarray[dtype=np.float32_t] influ_F=influ.flatten("F")
         cdef np.ndarray[dtype=np.int32_t] npoints_F=npoints.flatten("F")
@@ -600,13 +597,69 @@ cdef class Dms:
         cdef carma_context *context=carma_context.instance()
         context.set_activeDevice(self.dms.d_dms[inddm].device,1)
 
+
+        cdef int ntot_influpos=influpos.shape[0]
+        cdef int ntot_istart=istart.shape[0]
+        cdef int n=self.dms.d_dms[inddm].influsize *\
+                   self.dms.d_dms[inddm].influsize
+
+        cdef float *influ2
+        influ2=<float*>malloc(ntot_influpos*sizeof(float))
+        cdef tuple_t[float] *influ3=NULL
+        cdef int *influpos2
+        influpos2=<int*>malloc(ntot_influpos*sizeof(int))
+        cdef int *istart2
+        istart2=<int*>malloc((ntot_istart+1)*sizeof(int))
+
+        cdef int i
+        for i in range(ntot_influpos):
+            influ2[i]=influpos[i]/n
+
+        for i in range(ntot_istart):
+            istart2[i]=istart[i]
+        istart2[ntot_istart]=istart2[ntot_istart-1]+npoints[ntot_istart-1]
+
+        #TODO preprocessing: COMPN==2 or 3
+        """
+#if(COMPN == 2)
+      influ3 = new struct tuple_t<float>[ntot_influpos];
+
+      for(int  i = 0; i < ntot_influpos; i++)
+    	  influ3[i] = {influpos2[i], influ2[i]};
+
+#elif(COMPN == 3)
+      influ3 = new struct tuple_t<float>[ntot_istart * MAXSPOT];
+
+      //For each pixel of screen
+      int count = 0;
+      for(int  i = 0; i < ntot_istart; i++)
+      {
+    	  int j = 0;
+    	  //For each influence function, cpy the value of postition and influ
+    	  for(; j < npoints[i]; j++){
+    		  influ3[i * MAXSPOT + j] = {influpos2[count], influ2[count]};
+    		  count++;
+    	  }
+    	  //Fill the last element with 0
+    	  for(; j < MAXSPOT; j++)
+    		  influ3[i * MAXSPOT + j] = {0, 0.0};
+      }
+#endif
+        """
+
         self.dms.d_dms[inddm].pzt_loadarrays(<float*>influ_F.data,
+                                              influ2,
+                                              influ3,
                                               <int*> influpos.data,
+                                              influpos2,
                                               <int*>npoints_F.data,
-                                              <int*>istart_F.data,
+                                              istart2,
                                               <int*>xoff.data,
                                               <int*>yoff.data,
-                                              NULL) #<float*>kern.data)
+                                              <float*>kern.data)
+        free(influ2)
+        free(influpos2)
+        free(istart2)
 
 
     cdef load_kl(self,float alt,

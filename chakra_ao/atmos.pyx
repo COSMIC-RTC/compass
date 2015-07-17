@@ -190,7 +190,7 @@ cdef class Atmos:
         self.context.set_activeDevice(screen.getDevice(),1)
         cdef const long *dims
         dims=screen.getDims()
-        cdef np.ndarray data_F=np.empty((dims[1],dims[2]),dtype=np.float32)
+        cdef np.ndarray data_F=np.empty((dims[2],dims[1]),dtype=np.float32)
         cdef np.ndarray data  =np.empty((dims[1],dims[2]),dtype=np.float32)
         screen.device2host(<float*>data_F.data)
         data=np.reshape(data_F.flatten("F"),(dims[1],dims[2]))
@@ -360,7 +360,7 @@ cdef atmos_create(chakra_context c, int nscreens,
         tscreen.init_screen(<float*>(A_F.data),<float*>(B_F.data),
                 <unsigned int*>istx.data,<unsigned int*>isty.data,1234)
         for j in range(2*tscreen.screen_size):
-            tscreen.extrude(0)
+            tscreen.extrude(1)
     return atmos_obj
 
 

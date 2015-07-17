@@ -663,9 +663,6 @@ cdef class Rtc:
         cdef float *send=<float*>data.data
         cdef float *recv=<float*>all_centroids.data
 
-        for i in range(comm_size):
-            mpi.MPI_Barrier(mpi.MPI_COMM_WORLD)
-
         # gather centroids X axis
         mpi.MPI_Allgatherv(send,count[rank],mpi.MPI_FLOAT,
                             recv,count,disp, mpi.MPI_FLOAT,
@@ -728,7 +725,6 @@ cdef class Rtc:
     cpdef applycontrol(self,int ncontro,Dms dms):
         cdef carma_context *context=carma_context.instance()
         context.set_activeDevice(self.rtc.device,1)
-
         self.rtc.apply_control(ncontro,dms.dms)
 
 
@@ -1112,6 +1108,10 @@ cdef correct_dm(p_dms, Dms g_dms, Param_controller p_control, Param_geom p_geom,
     resp=np.sqrt(np.sum(imat**2,axis=0))
 
     inds=0
+
+    cdef int rank
+    mpi.MPI_Comm_rank(mpi.MPI_COMM_WORLD,&rank)
+
     for nmc in range(ndm):
         nm=p_control.ndm[nmc]-1
         nactu_nm=p_dms[nm]._ntotact
@@ -1127,8 +1127,8 @@ cdef correct_dm(p_dms, Dms g_dms, Param_controller p_control, Param_geom p_geom,
             else:
                 tmp=resp[inds:inds+p_dms[nm]._ntotact]
                 ok=np.where(tmp.flatten("F")>p_dms[nm].thresh*np.max(tmp))[0]
-                nk=np.where(tmp.flatten("F")<=p_dms[nm].thresh*np.max(tmp))[0]
-                if(simul_name !=""):
+                nok=np.where(tmp.flatten("F")<=p_dms[nm].thresh*np.max(tmp))[0]
+                if(simul_name !="" and rank==0):
                     np.save(filename,ok)
                     filename=dirsave+"pztnok-"+str(nm)+"-"+simul_name+".npy"
                     np.save(filename,nok)
@@ -1152,7 +1152,7 @@ cdef correct_dm(p_dms, Dms g_dms, Param_controller p_control, Param_geom p_geom,
             g_dms.add_dm(<bytes>"pzt",p_dms[nm].alt, dims, ninflu, influsize,
                             ninflupos, n_npts,p_dms[nm].push4imat)
             g_dms.load_pzt(p_dms[nm].alt,p_dms[nm]._influ,p_dms[nm]._influpos.astype(np.int32),
-                p_dms[nm]._ninflu, p_dms[nm]._influstart, p_dms[nm]._i1,p_dms[nm]._j1)
+                p_dms[nm]._ninflu, p_dms[nm]._influstart, p_dms[nm]._i1,p_dms[nm]._j1,p_dms[nm]._influkernel)
 
         elif(p_dms[nm].type_dm=="tt"):
             dim=long(p_dms[nm]._n2-p_dms[nm]._n1+1)
@@ -1342,6 +1342,9 @@ cdef imat_init(int ncontro, Rtc g_rtc, Param_rtc p_rtc, Dms g_dms, p_wfs,int cle
     cdef int i
     cdef double t0
 
+    cdef int rank
+    mpi.MPI_Comm_rank(mpi.MPI_COMM_WORLD,&rank)
+
     if(simul_name!=""):
         imat_clean=int(not os.path.isfile(filename) or clean)
 
@@ -1360,7 +1363,7 @@ cdef imat_init(int ncontro, Rtc g_rtc, Param_rtc p_rtc, Dms g_dms, p_wfs,int cle
         g_rtc.doimat(ncontro,g_dms)
         print "done in ",time.time()-t0
         p_rtc.controllers[ncontro].set_imat(g_rtc.get_imat(ncontro))
-        if(simul_name!=""):
+        if(simul_name!="" and rank==0):
             np.save(filename,p_rtc.controllers[ncontro].imat)
 
     else:
@@ -1395,8 +1398,11 @@ cdef cmat_init(int ncontro, Rtc g_rtc, Param_rtc p_rtc, list p_wfs,
     if(simul_name==""):
         cmat_clean=1
     else:
-        cmat_clean=int(os.path.isfile() or clean)
+        filename=dirsave+"imat-"+str(ncontro)+"-"+simul_name+".npy"
+        cmat_clean=int(os.path.isfile(filename) or clean)
 
+    cdef int rank
+    mpi.MPI_Comm_rank(mpi.MPI_COMM_WORLD,&rank)
 
     if(p_rtc.controllers[ncontro].type_control == "ls"):
         if(cmat_clean):
@@ -1406,10 +1412,10 @@ cdef cmat_init(int ncontro, Rtc g_rtc, Param_rtc p_rtc, list p_wfs,
             print "svd time",time.time()-t0
             #eigenv = g_rtc.controller_getdata(ncontro,<bytes>"eigenvals")
             eigenv = g_rtc.getEigenvals(ncontro)
-            if(simul_name!=""):
+            if(simul_name!="" and rank==0):
                 U=g_rtc.getU(ncontro)
                 filename=dirsave+"eigenv-"+str(ncontro)+"-"+simul_name
-                np.save(dirsave,eigenv)
+                np.save(filename,eigenv)
                 filename=dirsave+"U-"+str(ncontro)+"-"+simul_name
                 np.save(filename,U)
         else:

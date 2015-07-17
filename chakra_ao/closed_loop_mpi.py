@@ -9,7 +9,7 @@ import chakra as ch
 import chakra_ao as ao
 import time
 
-rank=int(os.environ['OMPI_COMM_WORLD_LOCAL_RANK'])
+rank=int(os.environ['OMPI_COMM_WORLD_RANK'])
 c=ch.chakra_context()
 c.set_activeDevice(rank%c.get_ndevice())
 
@@ -53,7 +53,7 @@ tar=p_target.target_init(c,p_atmos,p_geom,p_tel,p_wfss,wfs,p_dms)
 
 #   rtc
 print "->rtc"
-rtc=ao.rtc_init(wfs,p_wfss,dms,p_dms,p_geom,p_rtc,p_atmos,atm,p_loop,p_target)
+rtc=ao.rtc_init(wfs,p_wfss,dms,p_dms,p_geom,p_rtc,p_atmos,atm,p_loop,p_target,simul_name="simName")
 
 comm.Barrier()
 if(rank==0):
@@ -75,15 +75,16 @@ comm.Barrier()
 
 mimg = 0.# initializing average image
 
-import matplotlib.pyplot as pl
+#import matplotlib.pyplot as pl
 
 
 def loop( n):
-    if(rank==0):
-        fig,((turbu,image),(shak,defMir))=pl.subplots(2,2, figsize=(15,15))
-        pl.ion()
-        pl.show()
+    #if(rank==0):
+    #    fig,((turbu,image),(shak,defMir))=pl.subplots(2,2, figsize=(15,15))
+    #    pl.ion()
+    #    pl.show()
 
+    t0=time.time()
     for i in range(n):
         if(rank==0):
             atm.move_atmos()
@@ -106,28 +107,28 @@ def loop( n):
         if((i+1)%50==0):
             #s=rtc.getCentroids(0)
             if(rank==0):
-                turbu.clear()
-                image.clear()
-                shak.clear()
-                defMir.clear()
+                """ FOR DEBUG PURPOSE
+                #turbu.clear()
+                #image.clear()
+                #shak.clear()
+                #defMir.clear()
 
                 screen=atm.get_screen(0.)
-                f1=turbu.matshow(screen,cmap='Blues_r')
 
                 im=tar.get_image(0,"se")
                 im=np.roll(im,im.shape[0]/2,axis=0)
                 im=np.roll(im,im.shape[1]/2,axis=1)
-                f2=image.matshow(im,cmap='Blues_r')
 
                 sh=wfs.get_binimg(0)
-                f3=shak.matshow(sh,cmap='Blues_r')
                 
                 dm=dms.get_dm("pzt",0.)
-                f4=defMir.matshow(dm)
 
-                pl.draw()
+                #f1=turbu.matshow(screen,cmap='Blues_r')
+                #f2=image.matshow(im,cmap='Blues_r')
+                #f3=shak.matshow(sh,cmap='Blues_r')
+                #f4=defMir.matshow(dm)
+                #pl.draw()
 
-                """ FOR DEBUG PURPOSE
                 c=rtc.getCom(0)
                 v=rtc.getVoltage(0)
 
@@ -150,7 +151,8 @@ def loop( n):
                 strehltmp = tar.get_strehl(0)
                 print "%5d"%(i+1),"  %1.5f"%strehltmp[0],"  %1.5f"%strehltmp[1]
 
-
+        t1=time.time()
+        print rank, "| loop execution time:",t1-t0,"  (",n,"iterations), ",(t1-t0)/n,"(mean)
 
 
 loop(p_loop.niter)

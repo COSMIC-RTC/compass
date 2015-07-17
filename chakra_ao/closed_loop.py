@@ -68,12 +68,10 @@ def loop( n):
     pl.show()
     for i in range(n):
         atm.move_atmos()
-        
 
         for t in range(p_target.ntargets):
             tar.atmos_trace(t,atm)
             tar.dmtrace(t,dms)
-
         for w in range(len(p_wfss)):
             wfs.sensors_trace(w,"all",atm,dms)
             wfs.sensors_compimg(w)
@@ -81,7 +79,6 @@ def loop( n):
         rtc.docentroids(0)
         rtc.docontrol(0)
         rtc.applycontrol(0,dms)
-
 
         if((i+1)%50==0):
             turbu.clear()
@@ -99,27 +96,14 @@ def loop( n):
 
             sh=wfs.get_binimg(0)
             f3=shak.matshow(sh,cmap='Blues_r')
-            
+
             dm=dms.get_dm("pzt",0.)
             f4=defMir.matshow(dm)
 
             pl.draw()
-
+            
             strehltmp = tar.get_strehl(0)
             print i+1,"\t",strehltmp[0],"\t",strehltmp[1]
 
-
-
-
-            #strehl ~ 0.7  (best=1)
-
-
-"""
-          strehltmp = target_getstrehl(g_target,0);
-          grow,strehlsp,strehltmp(1);
-          grow,strehllp,strehltmp(2);
-          write,format=" %5i    %5.2f     %5.2f     %5.2f s   %5.2f it./s\n",
-          cc,strehlsp(0),strehllp(0),(y_loop.niter - cc)*time_move, -1/timetmp*subsample;
-"""
 
 loop(p_loop.niter)
