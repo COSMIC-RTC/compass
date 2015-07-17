@@ -51,7 +51,7 @@ int fillcamplipup(cuFloatComplex *amplipup, float *phase, float *offset,
   int nphase2 = nphase * nphase;
 
   camplipup_krnl<<<grid, threads>>>(amplipup, phase, offset, mask, scale,
-      istart, jstart, ivalid, jvalid, nphase, nphase2, npup, Nfft, Ntot, offset_phase);
+      istart, jstart, ivalid, jvalid, nphase, nphase2, npup, Nfft, Ntot, 0);//offset_phase);
   carmaCheckMsg("camplipup_krnl<<<>>> execution failed\n");
 
   return EXIT_SUCCESS;
