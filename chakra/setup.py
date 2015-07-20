@@ -105,10 +105,10 @@ class clean(_clean):
   def run(self):
     module_lib = pjoin('.',module_name+'.so')
     if (os.path.exists(module_lib)): os.remove(module_lib)
-    if (os.path.exists('./wrapper_chakra.cpp')): os.remove('./wrapper_chakra.cpp')
-    if (os.path.exists('./wrapper_chakra_obj.pyx')): os.remove('./wrapper_chakra_obj.pyx')
-    if (os.path.exists('./wrapper_chakra_host_obj.pyx')): os.remove('./wrapper_chakra_host_obj.pyx')
-    if (os.path.exists('./wrapper_magma.pyx')): os.remove('./wrapper_magma.pyx')
+    if (os.path.exists('./src/wrapper_chakra.cpp')): os.remove('./src/wrapper_chakra.cpp')
+    if (os.path.exists('./src/wrapper_chakra_obj.pyx')): os.remove('./src/wrapper_chakra_obj.pyx')
+    if (os.path.exists('./src/wrapper_chakra_host_obj.pyx')): os.remove('./src/wrapper_chakra_host_obj.pyx')
+    if (os.path.exists('./src/wrapper_magma.pyx')): os.remove('./src/wrapper_magma.pyx')
     if (os.path.exists('./build')): remove_tree('./build')
     if (os.path.exists('./dist')):  remove_tree('./dist')
     self.walkAndClean()
@@ -122,7 +122,7 @@ ext = Extension('chakra',
                     #COMPASS['inc']+'/libcarma/src.cpp/carma_fft_conv.cpp',
                     #'wrapper_chakra_obj.pyx',
                     #'wrapper_chakra_host_obj.pyx'
-                    'wrapper_chakra.pyx'
+                    'src/wrapper_chakra.pyx'
                     ],
                 library_dirs=[CUDA['lib64'], COMPASS['lib']+"/libcarma"],
                 libraries=['cudart', 'cufft','cublas','carma'],
@@ -191,7 +191,7 @@ class custom_build_ext(build_ext):
 
 # dal with generated sources files
 if 'build_ext' in sys.argv or 'develop' in sys.argv or 'install' in sys.argv:
-    generator = os.path.join( os.path.abspath('.'), 'process_tmpl.py')
+    generator = os.path.join( os.path.abspath('.'), 'src/process_tmpl.py')
     d = {'__file__': generator }
     execfile(generator, d)
     d['main'](None)
