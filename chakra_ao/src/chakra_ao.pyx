@@ -4,9 +4,8 @@ import numpy as np
 cimport numpy as np
 
 import os
+import sys
 
-import iterkolmo as itK
-import make_pupil as mkP
 import matplotlib.pyplot as pl
 
 from cython.operator cimport dereference as deref, preincrement as inc
@@ -28,6 +27,11 @@ if(chakra_ao_dir is None):
 chakra_ao_savepath=chakra_ao_dir+"/data/"
 print chakra_ao_savepath
 #data="./data/"
+
+sys.path.append(chakra_ao_dir+'/src')
+import iterkolmo as itK
+import make_pupil as mkP
+
 
 include "atmos.pyx"
 include "geom.pyx"

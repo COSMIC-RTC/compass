@@ -1,7 +1,7 @@
 #loop
 p_loop = ao.Param_loop()
 
-p_loop.set_niter(100)
+p_loop.set_niter(1000)
 p_loop.set_ittime(0.002) #=1/500
 
 
@@ -14,7 +14,7 @@ p_geom.set_zenithangle(0.)
 #tel
 p_tel=ao.Param_tel()
 
-p_tel.set_diam(4.)
+p_tel.set_diam(40.)
 p_tel.set_cobs(0.12)
 
 
@@ -46,7 +46,7 @@ p_wfs1= ao.Param_wfs()
 p_wfss=[p_wfs0]#,p_wfs1]
 
 p_wfs0.set_type("sh")
-p_wfs0.set_nxsub(8)#8
+p_wfs0.set_nxsub(80)
 p_wfs0.set_npix(8)#8#20
 p_wfs0.set_pixsize(0.3)#0.3#1.0
 p_wfs0.set_fracsub(0.8)
@@ -103,7 +103,6 @@ p_centroiders=[p_centroider0]
 
 p_centroider0.set_nwfs(0)
 p_centroider0.set_type("cog")
-#p_centroider0.set_type_fct("gauss")
 
 #controllers
 p_controller0=ao.Param_controller()
@@ -112,9 +111,9 @@ p_controllers=[p_controller0]
 p_controller0.set_type("ls")
 p_controller0.set_nwfs([1])
 p_controller0.set_ndm([1,2])
-p_controller0.set_maxcond(150)
+p_controller0.set_maxcond(1500)
 p_controller0.set_delay(1)
-p_controller0.set_gain(0.5)
+p_controller0.set_gain(0.3)
 
 
 #rtc

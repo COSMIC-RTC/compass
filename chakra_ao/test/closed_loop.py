@@ -42,7 +42,7 @@ tar=p_target.target_init(c,p_atmos,p_geom,p_tel,p_wfss,wfs,p_dms)
 
 print "->rtc"
 #   rtc
-rtc=ao.rtc_init(wfs,p_wfss,dms,p_dms,p_geom,p_rtc,p_atmos,atm,p_loop,p_target)
+rtc=ao.rtc_init(wfs,p_wfss,dms,p_dms,p_geom,p_rtc,p_atmos,atm,p_loop,p_target,simul_name="simName")
 
 print "===================="
 print "init done"

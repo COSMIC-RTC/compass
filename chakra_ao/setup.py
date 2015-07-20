@@ -22,6 +22,10 @@ from distutils.extension import Extension
 
 import mpi4py
 
+chakra_ao_path=os.environ.get('CHAKRA_AO')
+if(chakra_ao_path is None):
+    raise EnvironmentError("Environment variable 'CHAKRA_AO' must be define")
+
 def find_in_path(name, path):
     "Find a file in a search path"
     #adapted fom http://code.activestate.com/recipes/52224-find-a-file-given-a-search-path/
@@ -196,7 +200,7 @@ library_dirs=[COMPASS['lib']+"/libsutra"]
 library_dirs.extend(MPI['clibdirs'])
 
 ext=Extension('chakra_ao',
-              sources=['chakra_ao.pyx'],
+              sources=['src/chakra_ao.pyx'],
               library_dirs=library_dirs,
               libraries=[ 'sutra','mpi_cxx'],
               language='c++',

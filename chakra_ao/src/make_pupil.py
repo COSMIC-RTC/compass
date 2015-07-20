@@ -1,8 +1,9 @@
 import numpy as np
+import os
 
 #import matplotlib.pyplot as pl
 
-EELT_data="./EELT_data/"
+EELT_data=os.environ.get('CHAKRA_AO')+"/data/apertures"
 def make_pupil(dim,pupd,tel,xc=-1,
                 yc=-1,real=0,cobs=-1):
 

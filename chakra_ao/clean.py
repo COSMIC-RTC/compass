@@ -8,16 +8,18 @@ kind of make clean
  remove build directory and other generated files. 
 """
 
+SRC='src/'
+
 for dirname in ('build', '__pycache__'):
     if os.path.exists(dirname):
         shutil.rmtree(dirname)
         
-for filepattern in ('*.so', '*.pyc'):
+for filepattern in ('*.so', SRC+'*.pyc'):
     for filename in glob.glob(filepattern):
         
             print("delete {}".format(filename))        
             os.remove(filename)
 
 
-if os.path.exists('chakra_ao.cpp'):
-    os.remove('chakra_ao.cpp')
+if os.path.exists(SRC+'chakra_ao.cpp'):
+    os.remove(SRC+'chakra_ao.cpp')

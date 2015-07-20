@@ -330,10 +330,10 @@ cdef atmos_create(chakra_context c, int nscreens,
     #cdef np.ndarray[ndim=2,dtype=np.float32_t] phase
 
     for i in range(nscreens):
-        file_A=os.path.normpath(chakra_ao_savepath+"/A_"+str(dim_screens[i])+"_L0_"+str(int(L0[i]))+".npy")
-        file_B=os.path.normpath(chakra_ao_savepath+"/B_"+str(dim_screens[i])+"_L0_"+str(int(L0[i]))+".npy")
-        file_istx=os.path.normpath(chakra_ao_savepath+"/istx_"+str(dim_screens[i])+"_L0_"+str(int(L0[i]))+".npy")
-        file_isty=os.path.normpath(chakra_ao_savepath+"/isty_"+str(dim_screens[i])+"_L0_"+str(int(L0[i]))+".npy") 
+        file_A=os.path.normpath(chakra_ao_savepath+"/turbu/A_"+str(dim_screens[i])+"_L0_"+str(int(L0[i]))+".npy")
+        file_B=os.path.normpath(chakra_ao_savepath+"turbu/B_"+str(dim_screens[i])+"_L0_"+str(int(L0[i]))+".npy")
+        file_istx=os.path.normpath(chakra_ao_savepath+"/turbu/istx_"+str(dim_screens[i])+"_L0_"+str(int(L0[i]))+".npy")
+        file_isty=os.path.normpath(chakra_ao_savepath+"/turbu/isty_"+str(dim_screens[i])+"_L0_"+str(int(L0[i]))+".npy") 
 
         if(os.path.isfile(file_A) and os.path.isfile(file_B) and
            os.path.isfile(file_istx) and os.path.isfile(file_isty)):
