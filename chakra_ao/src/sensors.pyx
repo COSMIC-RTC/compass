@@ -121,46 +121,33 @@ cdef class Sensors:
         cdef float* fluxPerSub
         cdef cuFloatComplex *offset
 
-        if(self.sensors.d_wfs[n].type==type_geo or self.sensors.d_wfs[n].type==type_sh):
+        if(self.sensors.d_wfs[n].type==type_geo):
             tmp=wfs._fluxPerSub.T[np.where(wfs._isvalid>0)]
             fluxPerSub=<float*>tmp.data
-
-        if(self.sensors.d_wfs[n].type==type_pyr or self.sensors.d_wfs[n].type==type_roof):
-            tmp=wfs.__pyr_offsets.flatten("F")
-            offset=<cuFloatComplex*>tmp.data
-
-
-        if(self.sensors.d_wfs[n].type==type_geo):
             wfs_geom=dynamic_cast_wfs_geom_ptr(self.sensors.d_wfs[n])
             wfs_geom.wfs_initarrays(phasemap, halfxy, pupil, fluxPerSub,
                     validx, validy)
 
         elif(self.sensors.d_wfs[n].type==type_pyr):
+            tmp=wfs.__pyr_offsets.flatten("F")
+            offset=<cuFloatComplex*>tmp.data
             wfs_pyr = dynamic_cast_wfs_pyr_pyr4_ptr(self.sensors.d_wfs[n])
-            """
-
-  sensors_initarr,g_wfs,i-1,float(tmp),float(tmp2),float(*y_wfs(i)._submask),float(*y_geom._mpupil),
-    int(*y_wfs(i)._isvalid),int(*y_wfs(i)._pyr_cx),int(*y_wfs(i)._pyr_cy),float(*y_wfs(i)._hrmap),
-    int(*y_wfs(i)._phasemap),int((*y_wfs(i)._validsubs)(1,)-1),int((*y_wfs(i)._validsubs)(2,)-1);
-            """
             wfs_pyr.wfs_initarrays(<cuFloatComplex*>halfxy, offset,
                     submask, pupil,cx, cy, 
                     sincar, phasemap, validx,validy)
 
         elif(self.sensors.d_wfs[n].type==type_roof):
+            tmp=wfs.__pyr_offsets.flatten("F")
+            offset=<cuFloatComplex*>tmp.data
             wfs_roof = dynamic_cast_wfs_pyr_roof_ptr(self.sensors.d_wfs[n])
-            """ 
-
-  sensors_initarr,g_wfs,i-1,float(tmp),float(tmp2),float(*y_wfs(i)._submask),float(*y_geom._mpupil),
-    int(*y_wfs(i)._isvalid),int(*y_wfs(i)._pyr_cx),int(*y_wfs(i)._pyr_cy),float(*y_wfs(i)._hrmap),
-    int(*y_wfs(i)._phasemap),int((*y_wfs(i)._validsubs)(1,)-1),int((*y_wfs(i)._validsubs)(2,)-1);
-            """
             wfs_roof.wfs_initarrays(<cuFloatComplex*>halfxy, offset,
                     submask, pupil,cx, cy, 
                     sincar, phasemap, validx,validy)
 
 
         elif(self.sensors.d_wfs[n].type==type_sh):
+            tmp=wfs._fluxPerSub.T[np.where(wfs._isvalid>0)]
+            fluxPerSub=<float*>tmp.data
             wfs_sh=dynamic_cast_wfs_sh_ptr(self.sensors.d_wfs[n])
             wfs_sh.wfs_initarrays(phasemap,hrmap,binmap,halfxy,
                     pupil,fluxPerSub,validy, validx,
@@ -517,7 +504,7 @@ cdef class Sensors:
         info+= "WFS # |  Nsubaps  | Nvalid | Npix | Nphase | Nfft | Nrebin | Ntot | Npup\n"
         cdef int i
         cdef sutra_wfs *wfs
-        for i in range(self.sensors.nsensors()):
+        for i in range(<int>self.sensors.nsensors()):
             wfs=self.sensors.d_wfs.at(i)
             info+= "%5d"%(i+1)+" | "+"%3d"%wfs.nxsub+" x "+"%-3d"%wfs.nxsub+" | "\
                 "%6d"%wfs.nvalid+" | "+"%4d"%wfs.npix+" | "+"%6d"%wfs.nphase+" | "+\

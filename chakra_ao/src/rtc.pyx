@@ -270,7 +270,7 @@ cdef class Rtc:
         cdef sutra_controller_cured *controller_cured
         cdef bytes type_contro = <bytes>self.rtc.d_control[ncontro].get_type()
 
-        cdef const long *dims
+        cdef const long *dims=NULL
         cdef np.ndarray[ndim=2,dtype=np.float32_t] imat_F
         cdef np.ndarray[ndim=2,dtype=np.float32_t] imat
 
@@ -397,7 +397,7 @@ cdef class Rtc:
 
 
         cdef sutra_controller *control=self.rtc.d_control[ncontro]
-        cdef carma_obj[float] *d_imat
+        cdef carma_obj[float] *d_imat=NULL
 
         if(<bytes>control.get_type()==<bytes>"ls"):
             d_imat=dynamic_cast_controller_ls_ptr(control).d_imat
@@ -420,7 +420,7 @@ cdef class Rtc:
             dm=deref(it_dm)
             for j in range(dm.ninflu):
                 dm.comp_oneactu(j,dm.push4imat)
-                for idx_cntr in range(self.rtc.d_centro.size()):
+                for idx_cntr in range(<int>self.rtc.d_centro.size()):
                     wfs=self.rtc.d_centro[idx_cntr].wfs
                     screen=wfs.d_gs.d_phase.d_screen
                     tmp_noise=wfs.noise
@@ -453,7 +453,7 @@ cdef class Rtc:
 
                 dm.comp_oneactu(j,-1.*dm.push4imat)
 
-                for idx_cntr in range(self.rtc.d_centro.size()):
+                for idx_cntr in range(<int>self.rtc.d_centro.size()):
                     wfs=self.rtc.d_centro[idx_cntr].wfs
                     tmp_noise=wfs.noise
                     wfs.noise=-1
@@ -544,7 +544,7 @@ cdef class Rtc:
         cdef bytes type_contro=<bytes>self.rtc.d_control[ncontro].get_type()
         cdef np.ndarray[ndim=2, dtype=np.float32_t] data_F
         cdef np.ndarray[ndim=2, dtype=np.float32_t] data
-        cdef const long *dims
+        cdef const long *dims=NULL
 
         if(type_contro=="ls"):
             controller_ls=dynamic_cast_controller_ls_ptr(self.rtc.d_control[ncontro])
@@ -579,7 +579,7 @@ cdef class Rtc:
         cdef bytes type_contro=<bytes>self.rtc.d_control[ncontro].get_type()
         cdef np.ndarray[ndim=2, dtype=np.float32_t] data_F
         cdef np.ndarray[ndim=2, dtype=np.float32_t] data
-        cdef const long *dims
+        cdef const long *dims=NULL
 
         if(type_contro=="ls"):
             controller_ls=dynamic_cast_controller_ls_ptr(self.rtc.d_control[ncontro])
@@ -740,7 +740,7 @@ cdef class Rtc:
         info = "Contains "+str(self.rtc.d_centro.size())+" Centroider(s)\n"
         info+= "Centro # | Type  | nwfs | Nvalid\n"
 
-        for i in range(self.rtc.d_centro.size()):
+        for i in range(<int>self.rtc.d_centro.size()):
             centro = self.rtc.d_centro[i]
             info+= "%8d"%(i+1)+" | "+"%5s"%centro.get_type()+" | "+"%4d"%(centro.nwfs+1)+\
                     " | "+str(centro.nvalid)+"\n"
@@ -748,7 +748,7 @@ cdef class Rtc:
         info+= "Contains "+str(self.rtc.d_control.size())+" Controller(s):\n"
         info+= "Control # | Type  | Nslope | Nactu\n"
 
-        for i in range(self.rtc.d_control.size()):
+        for i in range(<int>self.rtc.d_control.size()):
             contro=self.rtc.d_control[i]
             info+= "%9d"%(i+1)+" | "+"%5s"%contro.get_type()+" | "+"%6d"%contro.nslope()+\
                     " | "+str(contro.nactu())+"\n"
