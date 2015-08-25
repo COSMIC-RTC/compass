@@ -1404,9 +1404,6 @@ cdef imat_init(int ncontro, Rtc g_rtc, Param_rtc p_rtc, Dms g_dms, Sensors g_wfs
         p_rtc.controllers[ncontro].set_imat(np.load(filename))
         g_rtc.set_imat(ncontro, p_rtc.controllers[ncontro].imat)
 
-
-    np.save("imat_"+str(rank)+"_"+str(world),g_rtc.get_imat(ncontro))
-
     #now restore original profile in lgs spots
     for i in range(len(p_wfs)):
         if(p_wfs[i].gsalt>0):
