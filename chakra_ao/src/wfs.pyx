@@ -431,7 +431,6 @@ cdef class Param_wfs:
         #TODO rotate
             im=rotate3d(im,azimuth*180/np.pi,xcent,ycent)
             max_im=np.max(im,axis=(1,2))
-            print "MAX_IM",max_im
             im=(im.T/max_im).T
         else:
             im=rotate(im,azimuth*180/np.pi,xcent,ycent)
