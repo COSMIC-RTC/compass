@@ -115,6 +115,7 @@ cdef class Rtc:
         cdef carma_context *context=carma_context.instance()
         cdef np.ndarray[ndim=1,dtype=np.float32_t] data
 
+
         if(ncontrol>=abs(rtc.d_control.size())):
             if(g_wfs is None):
                 raise ValueError("Controller not initialized on the GPU, you have to specify the WFS")
@@ -131,6 +132,7 @@ cdef class Rtc:
             data=np.zeros((dims[1]),dtype=np.float32)
             rtc.d_control[ncontrol].d_centroids.device2host(<float*>data.data)
         return data
+
 
     cpdef docentroids(self,int ncontrol=-1):
         if(ncontrol>-1):
@@ -387,9 +389,8 @@ cdef class Rtc:
         cdef carma_context *context=carma_context.instance()
         context.set_activeDeviceForCpy(self.rtc.device,1)
         self.rtc.do_imat_geom(ncontro,g_dms.dms,geom)
-        #TODO
-        #call imat_geom
-        #set_imat
+        print "TODO call imat_geom"
+        print "TODO set_imat"
 
     cdef doimat(self, int ncontro, Dms g_dms):
         cdef carma_context *context=carma_context.instance()
@@ -414,6 +415,9 @@ cdef class Rtc:
 
         cdef float *d_centroids
         cdef np.ndarray[ndim=1,dtype=np.float32_t] h_centroids
+
+        cdef int rank
+        mpi.MPI_Comm_rank(mpi.MPI_COMM_WORLD,&rank)
 
         it_dm=control.d_dmseen.begin()
         while(it_dm!=control.d_dmseen.end()):
@@ -758,14 +762,14 @@ cdef class Rtc:
 
 
 def rtc_init(Sensors g_wfs, p_wfs, Dms g_dms, p_dms, Param_geom p_geom, Param_rtc p_rtc,
-            Param_atmos p_atmos, Atmos g_atmos, Param_loop p_loop, Param_target p_tar=None,
-            clean=None, brama=None, doimat=None,simul_name=""):
+            Param_atmos p_atmos, Atmos g_atmos, Param_tel p_tel, Param_loop p_loop, 
+            Param_target p_tar=None, clean=None, brama=None, doimat=None,simul_name=""):
     """
     """
 
     g_rtc=Rtc()
-    """TODO  
-    if(brama==1) 
+    print "TODO brama" 
+    """if(brama==1) 
      g_rtc = yoga_rtc_brama(g_rtc);
     """
     if(doimat==None):
@@ -776,12 +780,12 @@ def rtc_init(Sensors g_wfs, p_wfs, Dms g_dms, p_dms, Param_geom p_geom, Param_rt
     cdef Param_wfs wfs
     cdef Param_centroider centroider
 
-    cdef int i,j,k,ncentro,ncontro
+    cdef int i,j,offset,ncentro,ncontro
     cdef int nwfs =0
     cdef float s_offset=0.
     cdef float s_scale=0.
     cdef Param_controller controller
-    cdef np.ndarray[ndim=2,dtype=np.float32_t] corrnorm, KL2V
+    cdef np.ndarray[ndim=2,dtype=np.float32_t] imat,corrnorm, KL2V
 
     cdef int nactu,Nphi
     cdef np.ndarray[ndim=1,dtype=np.float32_t] alt
@@ -790,6 +794,10 @@ def rtc_init(Sensors g_wfs, p_wfs, Dms g_dms, p_dms, Param_geom p_geom, Param_rt
     cdef sutra_controller_geo *controller_geo
     cdef np.ndarray[ndim=1,dtype=np.int32_t] indx_pup, indx_dm
     cdef np.ndarray[ndim=1,dtype=np.float32_t] unitpervolt
+
+
+    cdef np.ndarray[ndim=3,dtype=np.float32_t] tmp,tmp3
+    cdef np.ndarray[ndim=2,dtype=np.float32_t] tmp2
 
     ncentro = len(p_rtc.centroiders)
     ncontro = len(p_rtc.controllers)
@@ -803,13 +811,14 @@ def rtc_init(Sensors g_wfs, p_wfs, Dms g_dms, p_dms, Param_geom p_geom, Param_rt
                 if(wfs.type_wfs=="sh"):
                     if( centroider.type_centro!="corr"):
                         s_offset=wfs.npix/2.+0.5
-                    elif(centroider.type_fct=="model"):
-                        if(wfs.npix%2==0):
-                            s_offset=wfs.npix/2+0.5
-                        else:
-                            s_offset=wfs.npix/2 #+0.5
                     else:
-                        s_offset=wfs.npix/2+0.5
+                        if(centroider.type_fct=="model"):
+                            if(wfs.npix%2==0):
+                                s_offset=wfs.npix/2+0.5
+                            else:
+                                s_offset=wfs.npix/2
+                        else:
+                            s_offset=wfs.npix/2+0.5
 
                     s_scale = wfs.pixsize
 
@@ -830,41 +839,44 @@ def rtc_init(Sensors g_wfs, p_wfs, Dms g_dms, p_dms, Param_geom p_geom, Param_rt
                         seeing= RASC*(wfs.Lambda*1.e-6)/r0
                         npix=seeing/wfs.pixsize
                         if(wfs.gsalt>0):
-                            if(wfs.proftype=="None"):
+                            if(wfs.proftype is None or wfs.proftype==""):
                                 wfs.proftype="Gauss1"
                             if(wfs.proftype=="Gauss1"):
                                 profilename = "allProfileNa_withAltitude_1Gaussian.npy"
-                            if(wfs.proftype=="Gauss2"):
+                            elif(wfs.proftype=="Gauss2"):
                                 profilename = "allProfileNa_withAltitude_2Gaussian.npy"
-                            if(wfs.proftype=="Gauss3"):
+                            elif(wfs.proftype=="Gauss3"):
                                 profilename = "allProfileNa_withAltitude_3Gaussian.npy"
-                            if(wfs.proftype=="Exp"):
+                            elif(wfs.proftype=="Exp"):
                                 profilename = "allProfileNa_withAltitude.npy"
-                            prof=np.load(chakra_ao_savepath+profilename)
-                            #TODO what is in prof...
-                            """
-              h    = prof(,1);
-              prof = prof(,2:)(,avg);
-              make_lgs_prof1d,nwfs,prof,h,y_wfs(nwfs).beamsize,center="image";
-              tmp=(*y_wfs(nwfs)._lgskern);
-              tmp2 = makegaussian(dimsof(tmp)(2),npix*y_wfs(nwfs)._nrebin);
-              tmp3=array(float,dimsof(tmp)(2),dimsof(tmp)(2),y_wfs(nwfs)._nvalid);
-              for (ii=1;ii<=y_wfs(nwfs)._nvalid;ii++) {
-		tmp3(,,ii) = roll( (fft(fft(tmp(,,ii))*(fft(tmp2)),-1) ).re);
-              }	      
-              offset = (y_wfs(nwfs)._Ntot-y_wfs(nwfs)._nrebin*y_wfs(nwfs).npix)/2;
-              rr = offset+1 : offset + y_wfs(nwfs)._nrebin*y_wfs(nwfs).npix;
-              
-              centroiders(i).weights = &float(tmp3( rr, rr ,)(cum,cum,)
-                                              (::y_wfs(nwfs)._nrebin,::y_wfs(nwfs)._nrebin,)(dif,dif,));
-              /*
-                nphase = sensors_getdata(g_wfs,nwfs-1,"phase")*0.0f;
-                sensors_setphase,g_wfs,nwfs-1,nphase;
-                sensors_compimg,g_wfs,nwfs-1;
-                ref_fctn = sensors_getdata(g_wfs,nwfs-1,"bincube");
-                //centroiders(i).weights = &float(ref_fctn);
-                */
-                """
+                            else:
+                                error="Param_wfs proftype unknown: got '"+wfs.proftype+"', expect one of: \n''\n'Gauss1'\n'Gauss2'\n'Gauss3'\n'Exp'"
+                                raise ValueError(error)
+                            prof=np.load(chakra_ao_savepath+profilename).astype(np.float32)
+
+                            wfs.make_lgs_prof1d(nwfs,p_tel,np.mean(prof[1:,:],axis=0),prof[0,:],
+                                wfs.beamsize,center=<bytes>"image")
+                            tmp=wfs._lgskern
+                            tmp2=makegaussian(tmp.shape[1],npix*wfs._nrebin).astype(np.float32)
+                            tmp3=np.zeros((tmp.shape[1],tmp.shape[1],wfs._nvalid),dtype=np.float32)
+
+                            for j in range(wfs._nvalid):
+                                tmp3[:,:,j]= np.fft.ifft2(np.fft.fft2(tmp[:,:,j])*np.fft.fft2(tmp2.T)).real 
+                                tmp3[:,:,j]*=tmp3.shape[0]*tmp3.shape[1]
+
+                                tmp3[:,:,j]=np.roll(tmp3[:,:,j],tmp3.shape[0]/2,axis=0)
+                                tmp3[:,:,j]=np.roll(tmp3[:,:,j],tmp3.shape[1]/2,axis=1)
+                            offset= (wfs._Ntot-wfs._nrebin*wfs.npix)/2
+                            j=offset+wfs._nrebin*wfs.npix
+                            tmp=np.zeros((j-offset+1,j-offset+1,tmp3.shape[2]),dtype=np.float32)
+                            tmp3=np.cumsum(tmp3[offset:j,offset:j,:],axis=0)
+                            tmp[1:,1:,:]=np.cumsum(tmp3,axis=1)
+
+                            tmp=np.diff(tmp[::wfs._nrebin,::wfs._nrebin,:],axis=0)
+                            tmp=np.diff(tmp,axis=1)
+
+                            centroider.set_weights(tmp)
+
                         elif(centroider.width==0):
                             centroider.width=npix
                     elif(centroider.type_fct=="gauss"):
@@ -878,15 +890,21 @@ def rtc_init(Sensors g_wfs, p_wfs, Dms g_dms, p_dms, Param_geom p_geom, Param_rt
                             centroider.weights = makegaussian(wfs.npix,
                                 centroider.width,int(wfs.npix/2)+0.5,int(wfs.npix/2)+0.5).astype(np.float32)
 
+                    if(centroider.weights is None):
+                        centroider.weights=np.zeros(0,dtype=np.float32)
+
                     if(centroider.type_centro=="wcog"):
                         g_rtc.sensors_initweights(i,centroider.weights)
                     elif(centroider.type_centro=="corr"):
                         aa=np.zeros((2*wfs.npix,2*wfs.npix),dtype=np.float32)
                         aa[:wfs.npix,:wfs.npix]=1.0
-                        #TODO check type of corrnorm (float/complex?)
-                        corrnorm=np.fft.ifft2(np.abs(np.fft.fft2(aa)**2)).real.astype(np.float32)
+
+                        #TODO replace with corrnorm=np.zeros(( dims ))
+                        corrnorm=np.fft.ifft2(np.abs(np.fft.fft2(aa))**2).real.astype(np.float32)
                         corrnorm=np.roll(corrnorm*corrnorm.shape[0],corrnorm.shape[0]/2,axis=0)
                         corrnorm=np.roll(corrnorm*corrnorm.shape[1],corrnorm.shape[1]/2,axis=1)[1:,1:]
+                        corrnorm=corrnorm*0.+1.
+
                         centroider.sizex=3
                         centroider.sizey=3
                         centroider.interpmat=create_interp_mat(centroider.sizex,
@@ -907,14 +925,14 @@ def rtc_init(Sensors g_wfs, p_wfs, Dms g_dms, p_dms, Param_geom p_geom, Param_rt
                     else:
                         imat=manual_imat(g_rtc,g_wfs,p_wfs,g_dms,p_dms)
                     correct_dm(p_dms,g_dms,controller,p_geom, imat,simul_name)
-                    #add timer
+                    #TODO add timer
                     if(controller.type_control !="geo"):
                         nwfs=controller.nwfs
                         if(len(p_wfs)==1):
                             nwfs=p_rtc.controllers[0].nwfs-1
                             # TODO fixing a bug ... still not understood
                         controller.set_nvalid(p_wfs[nwfs]._nvalid)
-
+                    #parameter for add_controller(_geo)
                     ndms=controller.ndm.tolist()
                     controller.set_nactu([p_dms[n-1]._ntotact for n in ndms])
                     nactu=sum([p_dms[j-1]._ntotact for j in ndms])
@@ -940,8 +958,9 @@ def rtc_init(Sensors g_wfs, p_wfs, Dms g_dms, p_dms, Param_geom p_geom, Param_rt
                             controller.type_control,g_dms.dms, type_dmseen,
                             <float*>alt.data,controller.ndm.size)
 
+
                     if(controller.type_control=="geo"):
-                        indx_pup = np.where(p_geom._spupil.flatten("F"))[0].astype(np.int32)
+                        indx_pup = np.where(p_geom._spupil.flatten())[0].astype(np.int32)
                         cpt = 0
                         indx_dm = np.zeros((controller.ndm.size*indx_pup.size),dtype=np.int32)
                         for dmn in range(controller.ndm.size):
@@ -950,6 +969,7 @@ def rtc_init(Sensors g_wfs, p_wfs, Dms g_dms, p_dms, Param_geom p_geom, Param_rt
                             tmp_e1=p_geom._ipupil.shape[1]-tmp_s
                             pup_dm=p_geom._ipupil[tmp_s:tmp_e0,tmp_s:tmp_e1]
                             cpt+=np.where(pup_dm)[0].size
+                        #convert unitpervolt list to a np.ndarray
                         unitpervolt=np.array([p_dms[j].unitpervolt for j in range(len(p_dms))],
                                     dtype=np.float32)
 
@@ -959,7 +979,7 @@ def rtc_init(Sensors g_wfs, p_wfs, Dms g_dms, p_dms, Param_geom p_geom, Param_rt
 
                     if(controller.type_control=="ls"):
                         if(doimat):
-                            imat_init(i,g_rtc,p_rtc,g_dms,p_wfs,clean=1,simul_name=simul_name)
+                            imat_init(i,g_rtc,p_rtc,g_dms,g_wfs,p_wfs,p_tel,clean=1,simul_name=simul_name)
                             if(controller.modopti == 1):
                                 print "Initializing Modal Optimization : "
                                 if(controller.nrec==0):
@@ -980,7 +1000,6 @@ def rtc_init(Sensors g_wfs, p_wfs, Dms g_dms, p_dms, Param_geom p_geom, Param_rt
                                 g_rtc.loadOpenLoop(i,ol_slopes)
                                 g_rtc.modalControlOptimization(i)
                             else:
-                                #TODO cmat_init,i,clean=clean;
                                 cmat_init(i,g_rtc,p_rtc,p_wfs,clean=1,simul_name=simul_name)
                                 g_rtc.set_gain(0,controller.gain)
                                 mgain=np.ones(sum([p_dms[j]._ntotact for j in range(len(p_dms))]),dtype=np.float32)
@@ -1004,11 +1023,12 @@ def rtc_init(Sensors g_wfs, p_wfs, Dms g_dms, p_dms, Param_geom p_geom, Param_rt
                             tt_flag=1
                         else:
                             tt_flag=0
-                        #TODO controller_initcured,g_rtc,0,int(y_wfs(1).nxsub),int(*y_wfs(1)._isvalid),
+                        print "TODO controller_initcured"
+                        #controller_initcured,g_rtc,0,int(y_wfs(1).nxsub),int(*y_wfs(1)._isvalid),
                                 #int(controllers(i).cured_ndivs),int(tt_flag);
                         g_rtc.set_gain(0,controller.gain)
                     if(controller.type_control=="kalman_CPU" or 
-                        controller.type_control=="kalman_GPU"):
+                       controller.type_control=="kalman_GPU"):
                         env_var=os.environ.get("COMPILATION_LAM")
                         #TODO found_str = strfind("standalone",env_var);
                         #TODO if (found_str(2) != -1)
@@ -1020,6 +1040,7 @@ def rtc_init(Sensors g_wfs, p_wfs, Dms g_dms, p_dms, Param_geom p_geom, Param_rt
 
                         g_rtc.set_gain(0,controller.gain)
 
+                        print "TODO :rtc_init kalman case"
                         #TODO D_Mo = create_dmo(1,1);
 
                         # creation de N_Act (en um/V et non normalise)
@@ -1175,8 +1196,8 @@ cdef correct_dm(p_dms, Dms g_dms, Param_controller p_control, Param_geom p_geom,
 
 
 
-
 cdef imat_geom(Sensors g_wfs, p_wfs, Param_controller p_control,Dms g_dms, p_dms, Rtc g_rtc,int meth=0):
+
 
     cdef int nwfs=p_control.nwfs.size
     cdef int ndm =p_control.ndm.size
@@ -1213,9 +1234,7 @@ cdef imat_geom(Sensors g_wfs, p_wfs, Param_controller p_control,Dms g_dms, p_dms
             imat_cpu[:,ind]=imat_cpu[:,ind]/float(p_dms[nm].push4imat)
             ind=ind+1
             g_dms.resetdm(p_dms[nm].type_dm,p_dms[nm].alt)
-
     return imat_cpu
-
 
 
 cdef manual_imat(Rtc g_rtc,Sensors g_wfs, p_wfs, Dms g_dms, p_dms):
@@ -1223,7 +1242,7 @@ cdef manual_imat(Rtc g_rtc,Sensors g_wfs, p_wfs, Dms g_dms, p_dms):
     cdef int nm,i,ind
 
     cdef np.ndarray[ndim=1, dtype=np.float32_t] slps=g_rtc.getcentroids(0, g_wfs, 0)
-    cdef int nslps = slps.size
+    cdef int nslps = g_wfs._get_slopesDims(0)
     cdef int imat_size2=0
 
     cdef np.ndarray[ndim=2,dtype=np.float32_t] imat_cpu
@@ -1237,22 +1256,29 @@ cdef manual_imat(Rtc g_rtc,Sensors g_wfs, p_wfs, Dms g_dms, p_dms):
 
 
     ind=0
+
     for nm in range(len(p_dms)):
         for i in range(p_dms[nm]._ntotact):
+            influ=g_dms.getInflu(p_dms[nm].type_dm,p_dms[nm].alt)
             com=np.zeros((p_dms[nm]._ntotact),dtype=np.float32)
             com[i]=float(p_dms[nm].push4imat)
             g_dms.set_comm(p_dms[nm].type_dm,p_dms[nm].alt,com)
             g_dms.shape_dm(p_dms[nm].type_dm,p_dms[nm].alt)
             g_wfs.sensors_trace(0,"dm", None,dms=g_dms,rst=1)
+            #equivalent to Bcast(g_wfs.sensors.d_wfs[0].d_gs.d_phase.d_screen)
+            #g_wfs.Bcast_dscreen()
+            Bcast(g_wfs.sensors.d_wfs[0].d_gs.d_phase.d_screen,0)
             g_wfs.sensors_compimg(0)
             g_rtc.docentroids()
-            # TODO 
+
+
             if(p_wfs[0].type_wfs!="pyr"):
                 imat_cpu[:,ind]=g_rtc.getcentroids(0,g_wfs,0)/float(p_dms[0].push4imat)
             else:
                 imat_cpu[:,ind]=g_wfs._get_slopes(0)/float(p_dms[0].push4imat)
             g_dms.resetdm(p_dms[nm].type_dm,p_dms[nm].alt)
             ind+=1
+   
     return imat_cpu
 
 
@@ -1275,7 +1301,7 @@ def create_interp_mat(int dimx, int dimy):
     tmp[:,4]=tmp2.flatten()
     tmp[:,5]=1
 
-    return np.dot(np.linalg.inv(np.dot(tmp.T,tmp)),tmp.T)
+    return np.dot(np.linalg.inv(np.dot(tmp.T,tmp)),tmp.T).T
 
 
 
@@ -1294,7 +1320,7 @@ cdef compute_KL2V(p_dms, Param_controller controller):
     for i in range(controller.ndm.size):
         ndm=controller.ndm[i]
         if(p_dms[ndm].type_dm=="pzt"):
-            print "TODO"
+            print "TODO KL2V"
             #KL2V[indx_act:indx_act+ntotact[ndm],indx_act:indx_act+ntotact[ndm]]=\
                 #TODO compute_klbasis(ndm)
         elif(p_dms[ndm].type_dm=="tt"):
@@ -1333,30 +1359,38 @@ cdef openLoopSlp(Atmos g_atm, Rtc g_rtc,int nrec, int ncontro, Sensors g_wfs=Non
 
     return ol_slopes
 
-
-cdef imat_init(int ncontro, Rtc g_rtc, Param_rtc p_rtc, Dms g_dms, p_wfs,int clean=1, bytes simul_name=<bytes>""):
+cdef imat_init(int ncontro, Rtc g_rtc, Param_rtc p_rtc, Dms g_dms, Sensors g_wfs,
+        p_wfs, Param_tel p_tel, int clean=1, bytes simul_name=<bytes>""):
     cdef bytes dirsave=chakra_ao_savepath+"mat/"
     cdef bytes filename=dirsave+"imat-"+str(ncontro)+"-"+simul_name+".npy"
-    cdef bytes profilename=<bytes>"allProfileNa_withAltitude_1Gaussian.npy"
+    cdef bytes profilename=chakra_ao_savepath+<bytes>"allProfileNa_withAltitude_1Gaussian.npy"
     cdef int imat_clean=1
     cdef int i
     cdef double t0
 
     cdef int rank
     mpi.MPI_Comm_rank(mpi.MPI_COMM_WORLD,&rank)
+    cdef int world
+    mpi.MPI_Comm_size(mpi.MPI_COMM_WORLD,&world)
+
+    cdef sutra_wfs *wfs
+    cdef carma_obj[float] *screen
+
 
     if(simul_name!=""):
         imat_clean=int(not os.path.isfile(filename) or clean)
-
 
     if(imat_clean):
         # first check if wfs is using lgs
         # if so, load new lgs spot, just for imat
         for i in range(len(p_wfs)):
             if(p_wfs[i].gsalt>0):
-                raise NotImplementedError("TODO prep_lgs_prof")
-                #prof=np.load(profilename)
-                #prep_lgs_prof(i,prof(1),prof(2),p_wfs[i].beamsize,imat=1)#TODO
+                prof=np.load(profilename)
+                h=prof[0,:]
+                prof=prof[1:,:]
+                prof=np.mean(prof,axis=0)
+                p_wfs[i].prep_lgs_prof(i,p_tel,prof,h,
+                                        p_wfs[i].beamsize,g_wfs,imat=1)
 
         print "doing imat..."
         t0=time.time()
@@ -1371,11 +1405,13 @@ cdef imat_init(int ncontro, Rtc g_rtc, Param_rtc p_rtc, Dms g_dms, p_wfs,int cle
         g_rtc.set_imat(ncontro, p_rtc.controllers[ncontro].imat)
 
 
+    np.save("imat_"+str(rank)+"_"+str(world),g_rtc.get_imat(ncontro))
+
     #now restore original profile in lgs spots
     for i in range(len(p_wfs)):
         if(p_wfs[i].gsalt>0):
-            raise NotImplementedError("TODO prep_lgs_prof")
-            #prep_lgs_prof(i,p_wfs[i]._profna,p_wfs[i].altna,p_wfs[i].beamsize) #TODO
+            p_wfs[i].prep_lgs_prof(i,p_tel,p_wfs[i]._profna,p_wfs[i]._altna,
+                            p_wfs[i].beamsize,g_wfs)
 
 
 
@@ -1395,6 +1431,7 @@ cdef cmat_init(int ncontro, Rtc g_rtc, Param_rtc p_rtc, list p_wfs,
     cdef float maxcond
     cdef int nfilt,ind,i
 
+
     if(simul_name==""):
         cmat_clean=1
     else:
@@ -1410,7 +1447,6 @@ cdef cmat_init(int ncontro, Rtc g_rtc, Param_rtc p_rtc, list p_wfs,
             t0=time.time()
             g_rtc.imat_svd(ncontro)
             print "svd time",time.time()-t0
-            #eigenv = g_rtc.controller_getdata(ncontro,<bytes>"eigenvals")
             eigenv = g_rtc.getEigenvals(ncontro)
             if(simul_name!="" and rank==0):
                 U=g_rtc.getU(ncontro)
@@ -1434,8 +1470,7 @@ cdef cmat_init(int ncontro, Rtc g_rtc, Param_rtc p_rtc, list p_wfs,
             mfilt=np.where( (1./(eigenv/eigenv[2]))>maxcond)[0]
         nfilt=mfilt.shape[0]
 
-
-        #TODO wfs_disp
+        print "TODO wfs_disp"
         """
         if ( (wfs_disp!=[]) && (numberof(*wfs_disp._winits) > 0)) {
             if ((*wfs_disp._winits)(5)) {

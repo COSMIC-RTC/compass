@@ -14,8 +14,8 @@ p_geom.set_zenithangle(0.)
 #tel
 p_tel=ao.Param_tel()
 
-p_tel.set_diam(4.)
-p_tel.set_cobs(0.12)
+p_tel.set_diam(4.2)
+p_tel.set_cobs(0.29)
 
 
 #atmos
@@ -24,7 +24,7 @@ p_atmos=ao.Param_atmos()
 p_atmos.set_r0(0.16)
 p_atmos.set_nscreens(1)
 p_atmos.set_frac([1.0])
-p_atmos.set_alt([0.0])
+p_atmos.set_alt([45000.0])
 p_atmos.set_windspeed([20.0])
 p_atmos.set_winddir([45])
 p_atmos.set_L0([1.e5])
@@ -45,10 +45,11 @@ p_wfs0= ao.Param_wfs()
 p_wfs1= ao.Param_wfs()
 p_wfss=[p_wfs0]
 
+
 p_wfs0.set_type("sh")
-p_wfs0.set_nxsub(8)
-p_wfs0.set_npix(8)
-p_wfs0.set_pixsize(0.3)
+p_wfs0.set_nxsub(7)
+p_wfs0.set_npix(22)
+p_wfs0.set_pixsize(0.6)
 p_wfs0.set_fracsub(0.8)
 p_wfs0.set_xpos(0.)
 p_wfs0.set_ypos(0.)
@@ -59,6 +60,15 @@ p_wfs0.set_zerop(1.e11)
 p_wfs0.set_noise(-1)
 p_wfs0.set_atmos_seen(1)
 
+
+#lgs parameters
+p_wfs0.set_gsalt(90*1.e3)
+p_wfs0.set_lltx(20)
+p_wfs0.set_llty(0)
+p_wfs0.set_laserpower(10)
+p_wfs0.set_lgsreturnperwatt(1.e3)
+p_wfs0.set_proftype("Exp")
+p_wfs0.set_beamsize(0.8)
 
 #dm
 p_dm0=ao.Param_dm()
@@ -86,7 +96,8 @@ p_centroider0=ao.Param_centroider()
 p_centroiders=[p_centroider0]
 
 p_centroider0.set_nwfs(0)
-p_centroider0.set_type("cog")
+p_centroider0.set_type("corr")
+p_centroider0.set_type_fct("model")
 
 #controllers
 p_controller0=ao.Param_controller()
@@ -95,9 +106,9 @@ p_controllers=[p_controller0]
 p_controller0.set_type("ls")
 p_controller0.set_nwfs([1])
 p_controller0.set_ndm([1,2])
-p_controller0.set_maxcond(150)
+p_controller0.set_maxcond(60)
 p_controller0.set_delay(1)
-p_controller0.set_gain(0.5)
+p_controller0.set_gain(0.6)
 
 
 #rtc

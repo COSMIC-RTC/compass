@@ -35,13 +35,12 @@ def make_pupil(dim,pupd,tel,xc=-1,
 
 
 def make_pupil_generic(dim, pupd, t_spiders=0.01, spiders_type="six",
-                    xc=-1, yc=-1, real=0, cobs=0):
+                    xc=0, yc=0, real=0, cobs=0):
     """
     cdef np.ndarray pup = dist(dim,xc,yc)
     cdef np.ndarray[ndim=2,dtype=np.float32_t] spiders_map
     cdef float angle
     """
-
 
     pup=dist(dim,xc,yc)
     
@@ -176,7 +175,7 @@ def make_EELT(dim,pupd,tel,N_seg):#dim,pupd,type_ap,cobs,N_seg,nbr_miss_seg,std_
 
         pup = pup*spiders_map
 
-        #TODO rotate2
+        print "TODO rotate2"
         """
         yoga_ao/yorick/yoga_ao_utils.i:658
         if (angle != 0) pup=rotate2(pup,angle);
@@ -212,16 +211,16 @@ def pad_array(A,N):
 
 def dist(dim, xc=-1, yc=-1):
     if(xc <0):
-        xc=(dim-1)/2.
+        xc=int(dim/2.)
     else:
         xc-=1.
     if(yc <0):
-        yc=(dim-1)/2.
+        yc=int(dim/2.)
     else:
         yc-=1.
 
     dx=np.tile(np.arange(dim)-xc,(dim,1))
-    dy=dx.T
+    dy=np.tile(np.arange(dim)-yc,(dim,1)).T
 
     d=np.sqrt(dx**2+dy**2)
     return np.asfortranarray(d)

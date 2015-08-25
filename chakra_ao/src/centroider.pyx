@@ -15,3 +15,5 @@ cdef class Param_centroider:
         self.sizex=s
     def set_sizey(self, long s):
         self.sizey=s
+    def set_weights(self,np.ndarray[ndim=3 ,dtype=np.float32_t] w):
+        self.weights=w

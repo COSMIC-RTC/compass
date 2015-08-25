@@ -143,7 +143,303 @@ cdef class Param_wfs:
         """
         self.dms_seen=dms_seen
 
-#cdef type_present(list liste):
+    def set_lgsreturnperwatt(self, float lpw):
+        """Set attribute lgsreturnperwatt to lpw
+        lpw -- float """
+        self.lgsreturnperwatt=lpw
+
+
+    def set_altna(self,np.ndarray[ndim=1,dtype=np.float32_t] a):
+        """Set attribute _altna to a
+        a -- np.ndarray[ndim=1,dtype=np.float32]"""
+        self._altna=a
+
+
+    def set_profna(self,np.ndarray[ndim=1,dtype=np.float32_t] p):
+        """Set attribute _profna to p
+        p -- np.ndarray[ndim=1,dtype=np.float32]"""
+        self._profna=p
+
+
+    cpdef prep_lgs_prof(self,int nsensors, Param_tel p_tel, 
+                        np.ndarray[dtype=np.float32_t] prof,
+                        np.ndarray[dtype=np.float32_t] h,
+                        float beam, Sensors sensors,
+                        bytes center=<bytes>"", int imat=0):
+        """The function returns an image array(double,n,n) of a laser beacon elongated by perpective
+ effect. It is obtaind by convolution of a gaussian of width "lgsWidth" arcseconds, with the
+ line of the sodium profile "prof". The altitude of the profile is the array "h".
+ prof     -- np.ndarray[dtype=np.float32] : Na profile intensity, in arbitrary units
+ h        -- np.ndarray[dtype=np.float32] : altitude, in meters. h MUST be an array with EQUALLY spaced elements.
+ beam     -- float : size in arcsec of the laser beam
+ center   -- string: either "image" or "fourier" depending on where the centre should be.
+ 
+ Computation of LGS spot from the sodium profile:
+ Everything is done here in 1D, because the Na profile is the result of the convolution of a function
+ P(x,y) = profile(x) . dirac(y)
+ by a gaussian function, for which variables x and y can be split :
+ exp(-(x^2+y^2)/2.s^2)  =  exp(-x^2/2.s^2) * exp(-y^2/2.s^2)
+ The convolution is (symbol $ denotes integral)
+ C(X,Y) = $$ exp(-x^2/2.s^2) * exp(-y^2/2.s^2) * profile(x-X) * dirac(y-Y)  dx  dy
+ First one performs the integration along y
+ C(X,Y) = exp(-Y^2/2.s^2)  $ exp(-x^2/2.s^2) * profile(x-X)  dx
+ which shows that the profile can be computed by
+ - convolving the 1-D profile
+ - multiplying it in the 2nd dimension by a gaussian function
+ 
+ If one has to undersample the inital profile, then some structures may be "lost". In this case,
+ it's better to try to "save" those structures by re-sampling the integral of the profile, and
+ then derivating it afterwards.
+ Now, if the initial profile is a coarse one, and that one has to oversample it, then a
+ simple re-sampling of the profile is adequate."""
+
+        self._prof1d=prof
+        self._profcum=np.zeros(prof.size+1,dtype=np.float32)
+        self._profcum[1:]=prof.cumsum()
+        cdef float subapdiam=p_tel.diam/self.nxsub  #diam of subap
+        cdef np.ndarray[dtype=np.float32_t] xsubs, ysubs,dOffAxis,g
+        if(self.nxsub>1):
+            xsubs=np.linspace( (subapdiam-p_tel.diam)/2,(p_tel.diam-subapdiam)/2,
+                                self.nxsub).astype(np.float32)
+        else:
+            xsubs=np.zeros(1,dtype=np.float32)
+        ysubs=xsubs.copy().astype(np.float32)
+
+
+        cdef int nP=prof.shape[0]  #number of points of the profile
+        cdef float hG=np.sum(h*prof)/np.sum(prof) #center of gravity of the profile
+        cdef np.ndarray[dtype=np.float32_t] x=np.arange(self._Ntot).astype(np.float32)\
+                                                -self._Ntot/2
+        #x expressed in pixels. (0,0) is in the fourier-center
+
+        x=x*self._qpixsize #x expressed in arcseconds
+        cdef float dx=x[1]-x[0]
+        cdef float dh=h[1]-h[0]
+
+        if(self.nxsub>1):
+            dOffAxis=np.sqrt((xsubs[self._validsubsx]-self.lltx)**2+
+                             (ysubs[self._validsubsy]-self.llty)**2)
+        else:
+            dOffAxis=np.sqrt((xsubs-self.lltx)**2+(ysubs-self.llty)**2)
+
+        if(imat>0):
+            dOffAxis*=0.
+
+        cdef w=beam/2.35482005
+        if(w==0):
+            #TODO what is n
+            n=1
+            g=np.zeros(n,dtype=np.float32)
+            if(center=="image"):
+                g[n/2-1]=0.5
+                g[n/2]=0.5
+            else:
+                g[n/2]=1
+
+        else:
+            if(center=="image"):
+                g=np.exp(-(x+self._qpixsize/2)**2/(2*w**2.))
+            else:
+                g=np.exp(-x**2/(2*w**2.))
+
+       
+        self._ftbeam=np.fft.fft(g,axis=0).astype(np.complex64)
+        self._beam=g
+        #convolved profile in 1D.
+
+        if(xsubs.size>1):
+            azimuth=np.arctan2(ysubs[self._validsubsy]-self.llty,
+                                xsubs[self._validsubsx]-self.lltx)
+        else:
+            azimuth=np.arctan2(ysubs-self.llty,
+                                xsubs-self.lltx)
+
+        self._azimuth=azimuth
+
+        cdef carma_context *context=carma_context.instance()
+        context.set_activeDevice(sensors.sensors.device,1)
+
+        cdef sutra_lgs *lgs=sensors.sensors.d_wfs[nsensors].d_gs.d_lgs
+
+        lgs.lgs_init( self._prof1d.size,hG,h[0],dh,self._qpixsize,
+            <float*>dOffAxis.data, <float*>self._prof1d.data,
+            <float*>self._profcum.data, <float*>self._beam.data,
+            <cuFloatComplex*>self._ftbeam.data, <float*>self._azimuth.data)
+
+        lgs.lgs_update(context.get_device(sensors.sensors.device))
+        lgs.lgs_makespot(context.get_device(sensors.sensors.device),0)
+
+
+
+    cdef make_lgs_prof1d(self,int nsensors, Param_tel p_tel,
+            np.ndarray[dtype=np.float32_t] prof, np.ndarray[dtype=np.float32_t] h,
+            float beam, bytes center=<bytes>""):
+        """same as prep_lgs_prof but cpu only. original routine from rico"""
+
+        self._prof1d=prof
+        self._profcum=np.zeros(prof.shape[1]+1,dtype=np.float32)
+        self._profcum[1:]=prof.cumsum()
+
+
+        cdef float subapdiam=p_tel.diam/self.nxsub #diam of subap
+        cdef np.ndarray[dtype=np.float32_t] xsubs, ysubs,dOffAxis
+        cdef np.ndarray[dtype=np.float32_t] g
+        if(self.nxsub>1):
+            xsubs=np.linspace( (subapdiam-p_tel.diam)/2,(p_tel.diam-subapdiam)/2,
+                                self.nxsub).astype(np.float32)
+        else:
+            xsubs=np.zeros(1,dtype=np.float32)
+        ysubs=xsubs.copy().astype(np.float32)
+
+
+        cdef int nP=prof.shape[0]
+        cdef float hG=np.sum(h*prof)/np.sum(prof)
+        cdef np.ndarray[dtype=np.float32_t] x=np.arange(self._Ntot).astype(np.float32)-self._Ntot/2
+        # x expressed in pixels. (0,0) is in the fourier-center.
+        x=x*self._qpixsize #x expressed in arcseconds
+        cdef float dx=x[1]-x[0]
+        cdef float dh=h[1]-h[0]
+
+        if(self.nxsub>1):
+            dOffAxis=np.sqrt((xsubs[self._validsubsy]-self.lltx)**2+
+                             (ysubs[self._validsubsx]-self.llty)**2)
+        else:
+            dOffAxis=np.sqrt((xsubs-self.lltx)**2+(ysubs-self.llty)**2)
+
+        cdef np.ndarray[ndim=2,dtype=np.float32_t] profi,
+        cdef np.ndarray[ndim=1,dtype=np.float32_t] zhc, avg_zhc,avg_x
+        profi=np.zeros((self._Ntot,self._nvalid),dtype=np.float32)
+
+        cdef np.ndarray[ndim=1,dtype=np.int32_t] subsdone, dif2do
+        cdef np.ndarray[ndim=1,dtype=np.int64_t] inds
+        subsdone=np.ones(self._nvalid,dtype=np.int32)
+        dif2do =np.zeros(self._nvalid,dtype=np.int32)
+        cdef float tmp,dzhc
+
+        cdef int i
+
+        zhc=(h.astype(np.float32)-hG)*(206265.*tmp/hG**2)
+        dzhc = zhc[1]-zhc[0]
+
+        tmp=dOffAxis[np.where(subsdone)][0]
+        zhc=(h-hG)*(206265.*tmp/hG**2)
+        avg_zhc=np.zeros(zhc.size+1,dtype=np.float32)
+        avg_zhc[0]=zhc[0]
+        avg_zhc[avg_zhc.size-1]=zhc[zhc.size-1]
+        avg_zhc[1:-1]=0.5*(zhc[1:]+zhc[:-1])
+        avg_x=np.zeros(x.size+1,dtype=np.float32)
+        avg_x[0]=x[0]
+        avg_x[avg_x.size-1]=x[x.size-1]
+        avg_x[1:-1]=0.5*(x[1:]+x[:-1])
+
+
+        while(np.any(subsdone)):
+            tmp=dOffAxis[np.where(subsdone)][0]
+            inds=np.where(dOffAxis==tmp)[0]
+            # height, translated in arcsec due to perspective effect
+            zhc=(h-hG)*(206265.*tmp/hG**2)
+            dzhc = zhc[1]-zhc[0]
+
+            if(self._qpixsize>dzhc):
+                avg_zhc=np.zeros(zhc.size+1,dtype=np.float32)
+                avg_zhc[0]=zhc[0]
+                avg_zhc[avg_zhc.size-1]=zhc[zhc.size-1]
+                avg_zhc[1:-1]=0.5*(zhc[1:]+zhc[:-1])
+                avg_x=np.zeros(x.size+1,dtype=np.float32)
+                avg_x[0]=x[0]
+                avg_x[avg_x.size-1]=x[x.size-1]
+                avg_x[1:-1]=0.5*(x[1:]+x[:-1])
+
+                for i in range(inds.size):
+                    profi[:,inds[i]]=np.diff(np.interp(avg_x,avg_zhc,self._profcum)).astype(np.float32)
+
+            else:
+                for i in range(inds.size):
+                    profi[:,inds[i]]=np.interp(x,zhc,prof)
+            subsdone[inds]=0
+
+
+
+        cdef w=beam/2.35482005
+        if(w==0):
+            #TODO what is n
+            n=1
+            g=np.zeros(n,dtype=np.float32)
+            if(center=="image"):
+                g[n/2-1]=0.5
+                g[n/2]=0.5
+            else:
+                g[n/2]=1
+        
+        else:
+            if(center=="image"):
+                if( (self.npix*self._nrebin)%2 != self._Nfft%2):
+                    g=np.exp(-(x+self._qpixsize)**2/(2*w**2.))
+                else:
+                    g=np.exp(-(x+self._qpixsize/2)**2/(2*w**2.))
+
+            else:
+                g=np.exp(-x**2/(2*w**2.))
+
+        
+        self._ftbeam=np.fft.fft(g).astype(np.complex64)
+        self._beam=g.astype(np.float32)
+        #convolved profile in 1D.
+
+        cdef np.ndarray[ndim=2,dtype=np.float32_t] p1d
+        cdef np.ndarray[ndim=2,dtype=np.float32_t] g_extended = np.tile(g,(self._nvalid,1)).T
+
+
+        p1d=np.fft.ifft( np.fft.fft(profi,axis=0)*
+               np.fft.fft(g_extended,axis=0) ,
+              axis=0).real.astype(np.float32)
+        p1d=p1d*p1d.shape[0]
+        p1d=np.roll(p1d,int(self._Ntot/2.+0.5),axis=0)
+        p1d=np.abs(p1d)
+
+
+        cdef np.ndarray[ndim=3,dtype=np.float32_t] im
+        im=np.zeros((p1d.shape[1],p1d.shape[0],p1d.shape[0]),dtype=np.float32)
+
+       
+        cdef int l,c
+        for i in range(p1d.shape[1]):
+            for l in range(p1d.shape[0]):
+                for c in range(p1d.shape[0]):
+                    im[i,l,c]=g[l]*p1d[c,i]
+
+        if(ysubs.size>1):
+            azimuth=np.arctan2(ysubs[self._validsubsy]-self.llty,
+                                xsubs[self._validsubsx]-self.lltx)
+        else:
+            azimuth=np.arctan2(ysubs-self.llty,
+                                xsubs-self.lltx)
+
+        self._azimuth=azimuth
+
+        cdef float xcent,ycent
+
+        if(center=="image"):
+            xcent=self._Ntot/2.+0.5
+            ycent=xcent
+        else:
+            xcent=self._Ntot/2.+1
+            ycent=xcent
+
+        cdef np.ndarray[ndim=1,dtype=np.float32_t] max_im
+        if(ysubs.size>0):
+        #TODO rotate
+            im=rotate3d(im,azimuth*180/np.pi,xcent,ycent)
+            max_im=np.max(im,axis=(1,2))
+            print "MAX_IM",max_im
+            im=(im.T/max_im).T
+        else:
+            im=rotate(im,azimuth*180/np.pi,xcent,ycent)
+            im=im/np.max(im)
+
+        self._lgskern=im.T
+
+
 cdef type_present( liste,int pyr, int roof, int sh, int geo):
     """for each type of wfs,
     return 1 if the wfs type is present (0 else)
@@ -277,7 +573,7 @@ def wfs_init( wfs, Param_atmos p_atmos, Param_tel p_tel, Param_geom p_geom,
         noise=np.array([o.noise    for o in wfs], dtype=np.float32)
         g_wfs.sensors_initgs(xpos,ypos,Lambda,mag,zerop,size,noise,seed)
 
-    elif(wfs[0].type=="pyr" or wfs[0].type_wfs=="roof"):
+    elif(wfs[0].type_wfs=="pyr" or wfs[0].type_wfs=="roof"):
         npup=np.array([wfs[0].pyr_npts])
         g_wfs= Sensors(nsensors,t_wfs,npup,nxsub,nvalid,nphase,pdiam,npix,nrebin,
                 nfft,ntota,nphot,lgs,comm_size=comm_size, rank=rank)
@@ -300,6 +596,31 @@ def wfs_init( wfs, Param_atmos p_atmos, Param_tel p_tel, Param_geom p_geom,
     cdef int *ph=NULL
     for i in range(nsensors):
         g_wfs.sensors_initarr(i,wfs[i],p_geom)
+
+    #lgs case
+    for i in range(nsensors):
+        if(wfs[i].gsalt>0):
+            #lgs mode requested
+            if(wfs[i].proftype is None and wfs[i].proftype==""):
+                wfs[i].set_proftype("Gauss1")
+
+            if(wfs[i].proftype=="Gauss1"):
+                profilename = "allProfileNa_withAltitude_1Gaussian.npy"
+            elif(wfs[i].proftype=="Gauss2"):
+                profilename = "allProfileNa_withAltitude_2Gaussian.npy"
+            elif(wfs[i].proftype=="Gauss3"):
+                profilename = "allProfileNa_withAltitude_3Gaussian.npy"
+            elif(wfs[i].proftype=="Exp"):
+                profilename = "allProfileNa_withAltitude.npy"
+            else:
+                error="Param_wfs proftype unknown: got '"+wfs[i].proftype+"', expect one of: \n''\n'Gauss1'\n'Gauss2'\n'Gauss3'\n'Exp'"
+                raise ValueError(error)
+            prof=np.load(chakra_ao_savepath+profilename)
+            wfs[i].set_altna(prof[0,:].astype(np.float32))
+            wfs[i].set_profna(np.mean(prof[1:,:],axis=0).astype(np.float32))
+            # init sensor gs object with necessary data
+            wfs[i].prep_lgs_prof(i,p_tel,wfs[i]._profna,wfs[i]._altna,
+                                  wfs[i].beamsize,g_wfs)
 
     return g_wfs
 
@@ -375,8 +696,8 @@ cdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
     if(wfs.type_wfs=="pyr" or wfs.type_wfs=="roof"):
         padding=2
         npup  =  wfs._Ntot;
-        n1    = geom.ssize / 2 - geom.pupdiam / 2 - padding * wfs.npix+1;
-        n2    = n1 + geom.pupdiam + 2 * padding * wfs.npix-1;
+        n1    = geom.ssize / 2 - geom.pupdiam / 2 - padding * wfs.npix;
+        n2    = n1 + geom.pupdiam + 2 * padding * wfs.npix;
 
         geom._mpupil = geom._ipupil[n1:n2,n1:n2]
         geom._n1     = n1
@@ -408,22 +729,21 @@ cdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
         
         pup = geom._spupil
         pupreb = bin2d(pup*1.,wfs.npix)/wfs.npix**2.
-        #wsubok = np.where(pupreb.flatten()>=wfs.fracsub)[0]
         wsubok = np.where(pupreb>=wfs.fracsub)
         pupvalid = pupreb * 0.
         pupvalid[wsubok] = 1
         wfs._isvalid    = pupvalid.astype(np.int32)
 
         
-        pup = geom._mpupil;
+        pup = geom._mpupil
+
         pupreb = bin2d(pup*1.,wfs.npix)/wfs.npix**2.
-        #wsubok = np.where(pupreb.flatten()>=wfs.fracsub)[0]
         wsubok = np.where(pupreb>=wfs.fracsub)
         pupvalid = pupreb * 0.
         pupvalid[wsubok] = 1
         wfs._nvalid     = wsubok[0].size
-        validx=np.where(pupvalid)[0].astype(np.int32)
-        validy=np.where(pupvalid)[1].astype(np.int32)
+        validx=np.where(pupvalid)[1].astype(np.int32)
+        validy=np.where(pupvalid)[0].astype(np.int32)
         wfs._validsubsx=validx
         wfs._validsubsy=validy
 
@@ -480,9 +800,8 @@ cdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
                 cy=np.round(wfs.pyr_pos[:,1]/qpixsize)
                 mod_npts=cx.shape[0]
 
-
-        wfs._pyr_cx=cx
-        wfs._pyr_cy=cy
+        wfs._pyr_cx=cx.astype(np.int32)
+        wfs._pyr_cy=cy.astype(np.int32)
 
         wfs._nphotons = wfs.zerop*2.51189**(-wfs.gsmag)*loop.ittime*wfs.optthroughput
     
@@ -492,12 +811,12 @@ cdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
         y=y/(Nfft-1)*2/2
         sincar = np.roll(np.sinc(np.pi*x)*np.sinc(np.pi*y),x.shape[0],axis=0)
         sincar = np.roll(np.pi*x*np.pi*y,x.shape[1],axis=1)
-        wfs._sincar = sincar
+        wfs._sincar = sincar.astype(np.float32)
         #must be set even if unused
         wfs._hrmap=np.array([0],dtype=np.int32)
 
         # this defines how we cut the phase into subaps
-        phasemap=np.zeros((pdiam*pdiam,wfs._nvalid),dtype=np.int32)
+        phasemap=np.zeros((pdiam,pdiam,wfs._nvalid),dtype=np.int32)
         x,y=indices(geom._n) #we need c-like indice
         x-=1
         y-=1
@@ -505,7 +824,7 @@ cdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
         for i in range(wfs._nvalid):
             indi=istart[wfs._validsubsx[i]]+1 #+2-1 (yorick->python
             indj=jstart[wfs._validsubsy[i]]+1
-            phasemap[:,i]=tmp[indi:indi+pdiam, indj:indj+pdiam]
+            phasemap[:,:,i]=tmp[indi:indi+pdiam, indj:indj+pdiam]
 
         
         wfs._phasemap=phasemap
@@ -538,8 +857,8 @@ cdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
             pupvalid2=pupvalid[:,pupvalid.shape[0]/2:]
         else:
             pupvalid2=pupvalid[:,:pupvalid.shape[0]/2]
-        validx=np.where(pupvalid)[0].astype(np.int32)
-        validy=np.where(pupvalid)[1].astype(np.int32)
+        validx=np.where(pupvalid)[1].astype(np.int32)
+        validy=np.where(pupvalid)[0].astype(np.int32)
         wfs._validsubsx=validx
         wfs._validsubsy=validy
 
@@ -600,13 +919,13 @@ cdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
 
             wfs._hrmap=np.copy(tmp.astype(np.int32))
             #must be set even if unused
-            wfs._sincar=np.array([0],dtype=np.int32)
+            wfs._sincar=np.array([0],dtype=np.float32)
 
         else:
             tmp=np.zeros((1))
             wfs._hrmap=np.copy(tmp.astype(np.int32))
             #must be set even if unused
-            wfs._sincar=np.array([0],dtype=np.int32)
+            wfs._sincar=np.array([0],dtype=np.float32)
 
         if(wfs._nrebin*wfs.npix %2 != wfs._Ntot%2):
             indi=long((wfs._Ntot-wfs._nrebin*wfs.npix)/2.)+1 #+2-1 yorick>python
@@ -645,7 +964,8 @@ cdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
         kernelfwhm = np.sqrt(fwhmseeing**2.+wfs.kernel**2.)
 
 
-        tmp=makegaussian(wfs._Ntot,kernelfwhm/wfs._qpixsize,wfs._Ntot/2+1,wfs._Ntot/2+1)
+        tmp=makegaussian(wfs._Ntot,kernelfwhm/wfs._qpixsize,wfs._Ntot/2+1,
+                            wfs._Ntot/2+1).astype(np.float32)
 
         tmp=np.roll(tmp,tmp.shape[0]/2,axis=0)
         tmp=np.roll(tmp,tmp.shape[1]/2,axis=1)
@@ -814,3 +1134,4 @@ cdef init_wfs_size( Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
             if(verbose==0):print "size of HR spot support : ",Ntot[0]
 
 
+    

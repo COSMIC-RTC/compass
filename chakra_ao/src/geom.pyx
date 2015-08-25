@@ -24,11 +24,13 @@ cdef class Param_geom:
         cdef bytes filename = <bytes> chakra_ao_savepath+\
                               <bytes>"apodizer/SP_HARMONI_I4_C6_N1024.npy"
 
+        cdef float cent=self.pupdiam/2.+0.5
+
         #useful pupil
-        self._spupil=mkP.make_pupil(self.pupdiam,self.pupdiam,tel)
+        self._spupil=mkP.make_pupil(self.pupdiam,self.pupdiam,tel,cent,cent)
         
         # large pupil (used for image formation)
-        self._ipupil=mkP.pad_array(self._spupil,self.ssize)
+        self._ipupil=mkP.pad_array(self._spupil,self.ssize).astype(np.float32)
         
         # useful pupil + 4 pixels
         self._mpupil=mkP.pad_array(self._spupil,self._n).astype(np.float32)

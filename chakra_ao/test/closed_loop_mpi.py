@@ -27,12 +27,20 @@ rank=comm.Get_rank()
 print "TEST CHAKRA_AO\n closed loop with MPI"
 
 if(len(sys.argv)!=2):
-    error= 'command line should be:"python -i test.py parameters_filename"\n with "parameters_filename" the path to the parameters file'
+    error= 'command line should be:"python test.py parameters_filename"\n with "parameters_filename" the path to the parameters file'
     raise StandardError(error)
 
 #get parameters from file
 param_file=sys.argv[1]
 execfile(param_file)
+
+start=param_file.rindex("/")
+end=param_file.rindex(".")
+simul_name=param_file[start+1:end]
+if(rank==0):
+    print "param_file is",param_file
+    print "simul name is",simul_name
+
 
 #initialisation:
 #    wfs
@@ -53,7 +61,7 @@ tar=p_target.target_init(c,p_atmos,p_geom,p_tel,p_wfss,wfs,p_dms)
 
 #   rtc
 print "->rtc"
-rtc=ao.rtc_init(wfs,p_wfss,dms,p_dms,p_geom,p_rtc,p_atmos,atm,p_loop,p_target,simul_name="simName")
+rtc=ao.rtc_init(wfs,p_wfss,dms,p_dms,p_geom,p_rtc,p_atmos,atm,p_tel,p_loop,p_target,simul_name=simul_name)
 
 comm.Barrier()
 if(rank==0):
@@ -77,18 +85,16 @@ mimg = 0.# initializing average image
 
 #import matplotlib.pyplot as pl
 
-
 def loop( n):
     #if(rank==0):
-    #    fig,((turbu,image),(shak,defMir))=pl.subplots(2,2, figsize=(15,15))
-    #    pl.ion()
-    #    pl.show()
+        #fig,((turbu,image),(shak,defMir))=pl.subplots(2,2, figsize=(15,15))
+        #pl.ion()
+        #pl.show()
 
     t0=time.time()
     for i in range(n):
         if(rank==0):
             atm.move_atmos()
-
             for t in range(p_target.ntargets):
                 tar.atmos_trace(t,atm)
                 tar.dmtrace(t,dms)
@@ -108,10 +114,10 @@ def loop( n):
             #s=rtc.getCentroids(0)
             if(rank==0):
                 """ FOR DEBUG PURPOSE
-                #turbu.clear()
-                #image.clear()
-                #shak.clear()
-                #defMir.clear()
+                turbu.clear()
+                image.clear()
+                shak.clear()
+                defMir.clear()
 
                 screen=atm.get_screen(0.)
 
@@ -119,19 +125,20 @@ def loop( n):
                 im=np.roll(im,im.shape[0]/2,axis=0)
                 im=np.roll(im,im.shape[1]/2,axis=1)
 
-                sh=wfs.get_binimg(0)
+                #sh=wfs.get_binimg(0)
                 
                 dm=dms.get_dm("pzt",0.)
 
-                #f1=turbu.matshow(screen,cmap='Blues_r')
-                #f2=image.matshow(im,cmap='Blues_r')
+                f1=turbu.matshow(screen,cmap='Blues_r')
+                f2=image.matshow(im,cmap='Blues_r')
                 #f3=shak.matshow(sh,cmap='Blues_r')
-                #f4=defMir.matshow(dm)
-                #pl.draw()
+                f4=defMir.matshow(dm)
+                pl.draw()
 
+                
                 c=rtc.getCom(0)
                 v=rtc.getVoltage(0)
-
+                
                 sh_file="dbg/shak_"+str(i)+"_np_"+str(comm.Get_size())+".npy"
                 im_file="dbg/imag_"+str(i)+"_np_"+str(comm.Get_size())+".npy"
                 dm_file="dbg/DM_"+str(i)+"_np_"+str(comm.Get_size())+".npy"
@@ -147,7 +154,6 @@ def loop( n):
                 np.save(v_file,v)
                 """
 
-               
                 strehltmp = tar.get_strehl(0)
                 print "%5d"%(i+1),"  %1.5f"%strehltmp[0],"  %1.5f"%strehltmp[1]
 

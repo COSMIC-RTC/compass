@@ -42,13 +42,11 @@ p_target.set_mag([10])
 
 #wfs
 p_wfs0= ao.Param_wfs()
-p_wfs1= ao.Param_wfs()
 p_wfss=[p_wfs0]
 
-p_wfs0.set_type("sh")
+p_wfs0.set_type("pyr")
 p_wfs0.set_nxsub(8)
-p_wfs0.set_npix(8)
-p_wfs0.set_pixsize(0.3)
+p_wfs0.set_fssize(1.6)
 p_wfs0.set_fracsub(0.8)
 p_wfs0.set_xpos(0.)
 p_wfs0.set_ypos(0.)
@@ -58,6 +56,10 @@ p_wfs0.set_optthroughput(0.5)
 p_wfs0.set_zerop(1.e11)
 p_wfs0.set_noise(-1)
 p_wfs0.set_atmos_seen(1)
+p_wfs0.set_fstop("round")
+p_wfs0.set_pyr_npts(16)
+p_wfs0.set_pyr_ampl(0.65)
+
 
 
 #dm
@@ -86,7 +88,7 @@ p_centroider0=ao.Param_centroider()
 p_centroiders=[p_centroider0]
 
 p_centroider0.set_nwfs(0)
-p_centroider0.set_type("cog")
+p_centroider0.set_type("pyr")
 
 #controllers
 p_controller0=ao.Param_controller()
@@ -95,9 +97,9 @@ p_controllers=[p_controller0]
 p_controller0.set_type("ls")
 p_controller0.set_nwfs([1])
 p_controller0.set_ndm([1,2])
-p_controller0.set_maxcond(150)
+p_controller0.set_maxcond(300)
 p_controller0.set_delay(1)
-p_controller0.set_gain(0.5)
+p_controller0.set_gain(0.6)
 
 
 #rtc

@@ -78,7 +78,7 @@ cdef _dm_init(Dms dms, Param_dm p_dms, Param_wfs p_wfs, Param_geom p_geom, Param
             """
 
             cdef float patchDiam
-            cdef int extent#, max_extent
+            cdef int extent
             cdef long dim
             cdef float disp=0
             cdef long ninflu,influsize,ninflupos,n_npts
@@ -86,16 +86,13 @@ cdef _dm_init(Dms dms, Param_dm p_dms, Param_wfs p_wfs, Param_geom p_geom, Param
             
             cdef float tmp
 
-    #if(len(p_dms)!=0):
-    #    dms=Dms(len(p_dms))
-    #    for i in range(len(p_dms)):
             if(p_dms.pupoffset is not None):
                 p_dms.puppixoffset=p_dms.pupoffset/p_tel.diam*p_geom.pupdiam
 
             if(p_dms.type_dm=="pzt"):
                 #find out the support dimension for the given mirror.
                 patchDiam = p_geom.pupdiam#+2*np.max(np.abs(p_wfs.xpos,p_wfs.ypos))* \
-                         #4.848e-6*np.abs(p_dms[i].alt)/p_tel.diam*p_geom.pupdiam
+                         #4.848e-6*np.abs(p_dms.alt)/p_tel.diam*p_geom.pupdiam
                 #Patchdiam
                 p_dms._pitch=long(patchDiam/(p_dms.nact-1))
 
@@ -141,6 +138,7 @@ cdef _dm_init(Dms dms, Param_dm p_dms, Param_wfs p_wfs, Param_geom p_geom, Param
                 dms.load_pzt(p_dms.alt, p_dms._influ, p_dms._influpos.astype(np.int32),
                             p_dms._ninflu, p_dms._influstart, p_dms._i1,p_dms._j1,None)
 
+
             elif(p_dms.type_dm=="tt"):
                 dim = long(p_dms._n2-p_dms._n1+1)
                 make_tiptilt_dm(p_dms, p_wfs, p_geom, p_tel)
@@ -151,7 +149,7 @@ cdef _dm_init(Dms dms, Param_dm p_dms, Param_wfs p_wfs, Param_geom p_geom, Param
 
             elif(p_dms.type_dm=="kl"):
                 dim=long(p_dms._n2-p_dms._n1+1)
-                #TODO make_kl_dm, n;
+                print "TODO make_kl_dm, n"
                 ninflu=p_dms.nkl
                 influsize=long(p_dms._klbas.ncp)
                 _nr=long(p_dms._klbas.nr)
@@ -217,7 +215,6 @@ func dm_init(void)
 """
 
 def dm_init(p_dms, Param_wfs p_wfs, Param_geom p_geom, Param_tel p_tel):
-    #max_extent
     cdef int max_extent=0
     if(len(p_dms)!=0):
         dms=Dms(len(p_dms))
@@ -244,7 +241,6 @@ cdef make_pzt_dm(Param_dm p_dm,Param_geom geom,disp):
 
     irc=1.16136+2.97422*coupling+(-13.2381)*coupling**2+20.4395*coupling**3
 
-    #cdef long size=geom.ssize
     cdef long nxact=p_dm.nact
     cdef float cent=geom.cent
     cdef long pitch=p_dm._pitch
@@ -308,8 +304,6 @@ cdef make_pzt_dm(Param_dm p_dm,Param_geom geom,disp):
     if(p_dm._puppixoffset is not None):
         p_dm._xpos +=p_dm._puppixoffset[0]
         p_dm._ypos +=p_dm._puppixoffset[1]
-        #dm._i1
-        #dm._j1
 
         influ=influ*float(p_dm.unitpervolt/np.max(influ))
         p_dm._influ=influ
@@ -344,6 +338,8 @@ cdef make_tiptilt_dm(Param_dm p_dm,Param_wfs p_wfs, Param_geom p_geom, Param_tel
 
     influ=influ*fact
     p_dm._ntotact=influ.shape[2]
+
+    cdef int i
     p_dm._influ=influ
 
     return influ
@@ -356,7 +352,7 @@ cdef make_kl_dm(Param_dm p_dm, Param_wfs p_wfs,Param_geom p_geom, Param_tel p_te
     cdef long patchDiam=long( p_geom.pupdiam+2*max(abs(p_wfs.xpos),abs(p_wfs.ypos))*4.848e-6*\
                             abs(p_dm.alt)/p_geom.pupdiam )
 
-    #TODO klbas
+    print "TODO klbas"
     #p_dm._klbas=make_klbas(p_dm.nkl,p_tel.cobs,patchDiam,"kolmo")
     p_dm._i1=np.zeros((p_dm.nkl),dtype=np.int32)+int((dim-patchDiam)/2.)
     p_dm._j1=np.zeros((p_dm.nkl),dtype=np.int32)+int((dim-patchDiam)/2.)
@@ -375,13 +371,11 @@ cdef make_zernike(int nzer,int size,int diameter, float xc=-1, float yc=-1, int 
         yc=size/2
 
     cdef float radius=(diameter+1.)/2.
-    cdef np.ndarray[ndim=2,dtype=np.float32_t] zr=mkP.dist(size,xc,yc).astype(np.float32)/radius
+    cdef np.ndarray[ndim=2,dtype=np.float32_t] zr=mkP.dist(size,xc,yc).astype(np.float32).T/radius
     cdef np.ndarray[ndim=3,dtype=np.float32_t] zmask=np.zeros((zr.shape[0],zr.shape[1],nzer),
                                                         dtype=np.float32)
-     #(zr<=1).astype(np.float32)
     cdef np.ndarray[ndim=3,dtype=np.float32_t] zmaskmod=np.zeros((zr.shape[0],zr.shape[1],nzer),
                                                         dtype=np.float32)
-    #(zr<=1.2).astype(np.float32)
 
     zmask[:,:,0]=(zr<=1).astype(np.float32)
     zmaskmod[:,:,0]=(zr<=1.2).astype(np.float32)
@@ -395,12 +389,11 @@ cdef make_zernike(int nzer,int size,int diameter, float xc=-1, float yc=-1, int 
     
     zr	= zr*zmask[:,:,0]
 
-    cdef np.ndarray[ndim=2,dtype=np.float32_t] x=np.tile(np.linspace(1,size,size,
-                                                    dtype=np.float32), (size,1))
+    cdef np.ndarray[ndim=2,dtype=np.float32_t] x=np.tile(np.linspace(1,size,size).astype(np.float32),
+                                                    (size,1))
     cdef np.ndarray[ndim=2,dtype=np.float32_t] zteta=np.arctan2(x.T-yc,x-xc).astype(np.float32)
 
     cdef np.ndarray[ndim=3,dtype=np.float32_t] z=np.zeros((size,size,nzer),dtype=np.float32)
-
 
 
     for zn in range(nzer):
@@ -430,10 +423,9 @@ cdef make_zernike(int nzer,int size,int diameter, float xc=-1, float yc=-1, int 
 
 
     if(ext): 
-        return z*zmaskmod#np.tile(zmaskmod,(nzer,1,1))
+        return z*zmaskmod
     else:
-        # nezr?
-        return z*zmask#np.tile(zmask,(nzer,1,1))
+        return z*zmask
 
 
 
@@ -499,10 +491,10 @@ cdef comp_dmgeom(Param_dm dm, Param_geom geom):
     tmp[tmpy<0]=-10
     tmp[tmpx>dims-1]=-10
     tmp[tmpy>dims-1]=-10
-   
+
     cdef np.ndarray[ndim=1,dtype=np.int32_t] itmps= np.argsort(tmp.flatten("F")).astype(np.int32)
     cdef np.ndarray[ndim=1,dtype=np.int32_t] tmps=np.sort(tmp.flatten("F")).astype(np.int32)
-    itmps=itmps[itmps>-1]
+    itmps=itmps[np.where(itmps>-1)]
 
     cdef np.ndarray[ndim=1,dtype=np.int32_t] istart,npts
     istart=np.zeros((dim*dim),dtype=np.int32)
@@ -517,13 +509,13 @@ cdef comp_dmgeom(Param_dm dm, Param_geom geom):
         if( offs!=0 and mapactu.item(i)==0):
             npts[i]=0
         else:
-            while(tmps[cpt]==i and cpt<tmp.size-1 ):
+            while(tmps[cpt]==i and cpt<tmps.size-1 ):
                 cpt+=1
             npts[i]=cpt-ref
             istart[i]=ref
             ref=cpt
 
-    dm._influpos = itmps[:np.sum(npts)].astype(np.int64)
+    dm._influpos = itmps[:np.sum(npts)].astype(np.int32)
     dm._ninflu = npts.astype(np.int32)
     dm._influstart= istart.astype(np.int32)
 
@@ -692,6 +684,7 @@ cdef class Dms:
             err="unknown error whith load_tt\nDM (tt"+str(alt)+") doesn't exist"
             raise ValueError(err)
 
+
         cdef carma_context *context=carma_context.instance()
         context.set_activeDevice(self.dms.d_dms[inddm].device,1)
         cdef const long *dims
@@ -708,7 +701,7 @@ cdef class Dms:
             err="unknown error whith load_kl\nDM (kl"+str(alt)+") doesn't exist"
             raise ValueError(err)
 
-        self.dms.d_dms[inddm].d_influ.host2device(<float*>comm.data)
+        self.dms.d_dms[inddm].d_comm.host2device(<float*>comm.data)
 
     cdef shape_dm(self,bytes type_dm,float alt):
         cdef int inddm=self.dms.get_inddm(type_dm,alt)
@@ -803,11 +796,11 @@ cdef class Dms:
         cdef carma_context *context=carma_context.instance()
         context.set_activeDevice(self.dms.d_dms[inddm].device,1)
 
-        cdef const long *dims=self.dms.d_dms[inddm].d_comm.getDims()
+        cdef const long *dims=self.dms.d_dms[inddm].d_influ.getDims()
         cdef np.ndarray[ndim=3,dtype=np.float32_t] data_F=np.zeros((dims[3],dims[2],dims[1]),dtype=np.float32)
         cdef np.ndarray[ndim=3,dtype=np.float32_t] data=np.zeros((dims[1],dims[2],dims[3]),dtype=np.float32)
 
-        self.dms.d_dms[inddm].d_comm.device2host(<float*>data_F.data)
+        self.dms.d_dms[inddm].d_influ.device2host(<float*>data_F.data)
         data=np.reshape(data_F.flatten("F"),(dims[1],dims[2],dims[3]))
         return data
 
@@ -857,7 +850,7 @@ cdef compute_klbasis(Dms g_dm,Param_dm p_dm, Param_geom p_geom,Param_atmos p_atm
         interactm=p_tel.diam/(p_dm.nact-1)
         p2m=interactm/interactp
         norm=-(p2m*p_tel.diam/(2*p_atmos.r0))**(5./3)
-        # TODO
+        print "TODO computeKLbasis"
         #g_dm.computeKLbasis("pzt",p_dm.alt, p_dm._xpos,p_dm._ypos,indx_valid,indx_valid.size,norm,1.0)
         # KLbasis=get_KLbasis(g_dm,"pzt",y_dm(ndm).alt)[,::-1]
         KLbasis=np.array([])

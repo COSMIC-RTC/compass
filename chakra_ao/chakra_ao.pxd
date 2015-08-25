@@ -18,8 +18,8 @@ from cpython.string cimport PyString_AsString
 #from mpi4py cimport MPI
 cimport mpi4py.MPI as MPI
 # C-level cdef, typed, Python objects
-#from mpi4py cimport mpi_c as mpi
-from mpi4py cimport libmpi as mpi
+from mpi4py cimport mpi_c as mpi
+#from mpi4py cimport libmpi as mpi
 #cimport mpi4py.libmpi as mpi
 
 
@@ -140,7 +140,7 @@ cdef extern from "sutra_target.h":
         #sutra_phase *d_phase_instru;
         #
         carma_host_obj[float] *phase_telemetry #   
-        # LGS unkwon for now   sutra_lgs *d_lgs #   the lgs object
+        sutra_lgs *d_lgs #   the lgs object
         carma_obj[float] *object #   the object intensity map
         carma_obj[float] *d_pupil #   the pupil mask
         carma_obj[float] *d_image #   the resulting image for this target
@@ -899,6 +899,46 @@ cdef extern from "sutra_rtc.h":
         int do_control(int ncntrl)
         int apply_control(int ncntrl, sutra_dms *ydm)
 
+#################################################
+# C-Class sutra_lgs
+#################################################
+cdef extern from "sutra_lgs.h":
+    cdef cppclass sutra_lgs:
+        int device
+        long nvalid
+        long npix
+        long nmaxhr
+        float hg
+        float h0
+        float deltah
+        float pixsize
+        long nprof
+
+        cufftHandle *ftlgskern_plan
+        carma_obj[float] *d_doffaxis
+        carma_obj[float] *d_azimuth
+        carma_obj[float] *d_prof1d
+        carma_obj[float] *d_profcum
+        carma_obj[cuFloatComplex] *d_prof2d
+        carma_obj[float] *d_beam
+        carma_obj[cuFloatComplex] *d_ftbeam
+        carma_obj[float] *d_lgskern
+        carma_obj[cuFloatComplex] *d_ftlgskern
+
+        carma_context *current_context
+
+        sutra_lgs(carma_context *context, sutra_sensors *sensors, long nvalid, long npix, long nmaxhr)
+        sutra_lgs(const sutra_lgs& lgs)
+
+        int lgs_init(int nprof, float hg, float h0, float deltah, float pixsie,
+            float *doffaxis, float *prof1d, float *profcum, float *beam,
+            cuFloatComplex *ftbeam, float* azimuth)
+        int load_prof(float *prof1d, float *profcum, float hg, float h0, float deltah)
+        int lgs_update(carma_device *device)
+        int lgs_makespot(carma_device *device, int nin)
+        int load_kernels(float *lgskern, carma_device *device)
+
+
 
 
 #################################################
@@ -1261,14 +1301,14 @@ cdef class Param_wfs:
 
     cdef readonly np.ndarray _submask       #(float*) fieldstop for each subap
 
-    cdef float* _lgskern      # lgs kernels for each subap
-    cdef float* _profna       # sodium profile
-    cdef float* _altna        # corresponding altitude
-    cdef float* _prof1d       # hr profile
-    cdef float* _profcum      # hr profile cumulated
-    cdef float* _beam         # 1d beam function
-    cdef float* _ftbeam       # 1d beam function fft
-    cdef float* _azimuth      # angles of rotation for each spot
+    cdef readonly np.ndarray _lgskern      # lgs kernels for each subap
+    cdef readonly np.ndarray _profna       # sodium profile
+    cdef readonly np.ndarray _altna        # corresponding altitude
+    cdef readonly np.ndarray _prof1d       # hr profile
+    cdef readonly np.ndarray _profcum      # hr profile cumulated
+    cdef readonly np.ndarray _beam         # 1d beam function
+    cdef readonly np.ndarray _ftbeam       # 1d beam function fft
+    cdef readonly np.ndarray _azimuth      # angles of rotation for each spot
 
 # pyramid-nly kwrds
     cdef readonly float pyr_ampl
@@ -1287,6 +1327,18 @@ cdef class Param_wfs:
     cdef readonly np.ndarray _pyr_cx   #(int*)
     cdef readonly np.ndarray _pyr_cy   #(int*)
 
+
+
+    cpdef prep_lgs_prof(self,int nsensors, Param_tel p_tel, 
+                        np.ndarray[dtype=np.float32_t] prof,
+                        np.ndarray[dtype=np.float32_t] h,
+                        float beam, Sensors sensors,
+                        bytes center=?, int imat=?)
+
+    cdef make_lgs_prof1d(self,int nsensors, Param_tel p_tel,
+            np.ndarray[dtype=np.float32_t] prof, 
+            np.ndarray[dtype=np.float32_t] h,
+            float beam, bytes center=?)
 
 #################################################
 # P-Class (parametres) Param_dm

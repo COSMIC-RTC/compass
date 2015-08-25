@@ -19,22 +19,55 @@ The compilation is done with the command:
 To clean the folder, use the command:
     python clean.py
 
+
+Running test:
+    python (-i) "test_file" "test_par"
+    mpirun -np "nbproc" python "test_file" "test_par"
+
+    ex: from chakra_ao folder
+        "python test/closed_loop.py data/par/1wfs8x8_1layer_rtc_dm.py"
+        "mpirun -np 2 python test/closed_loop_mpi.py data/par/1wfs8x8_1layer_rtc_dm.py"
+
+
+MPI available only with:
+    -wfs_type="sh"
+    -no lgs
+    -centroider_type="cog"
+
+
 Content:
-    * wrapper sources:
-            chakra_ao.pxd
-            chakra_ao.pyx
-            atmos.pyx
-            geom.pyx
-            target.pyx
-            tel.pyx
-            make_pupil.py
-            iterkolmo.py
-            loop.pyx
-            wfs.pyx
-            sensors.pyx
-    * data                        folder containig turbulence matrices and stencils
-    * EELT_data                   folder containing EELT datas (curently not used)
-    * setup.py                    compilation setups
-    * clean.py                    cleaning script
-    * test.py                     python test code
-    * test_mpi.py                 python test code using mpi
+    * src                       folder containing wrapper sources
+        - chakra_ao.pyx
+        - atmos.pyx
+        - geom.pyx
+        - target.pyx
+        - tel.pyx
+        - make_pupil.py
+        - iterkolmo.py
+        - loop.pyx
+        - wfs.pyx
+        - sensors.pyx
+        - dms.pyx
+        - rtc.pyx
+        - centroider.pyx
+        - controller.pyx
+
+    * chakra_ao.pxd             header like file for chakra_ao library
+
+    * data                      folder containig datas 
+        - Na profile
+        - apertures              
+        - mat                   folder containig eigenvalues, imat matrices
+                                    U matrices, pzt ok and nok vectors
+        - par                   folder containig parameters files
+        - turbu                 folder containig turbulence matrices and stencils
+
+    * setup.py                  compilation setups
+
+    * clean.py                  cleaning script
+
+    * test                        testing routines
+            test.py               outdated
+            test_mpi.py           outdated
+            closed_loop.py        closed loop test
+            closed_loop_mpi.py    closed loop test with mpi

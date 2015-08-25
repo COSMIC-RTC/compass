@@ -18,6 +18,13 @@ if(len(sys.argv)!=2):
 #get parameters from file
 param_file=sys.argv[1]
 execfile(param_file)
+start=param_file.rindex("/")
+end=param_file.rindex(".")
+simul_name=param_file[start+1:end]
+print "param_file is",param_file
+print "simul name is",simul_name
+
+
 
 #initialisation:
 #   context
@@ -42,7 +49,7 @@ tar=p_target.target_init(c,p_atmos,p_geom,p_tel,p_wfss,wfs,p_dms)
 
 print "->rtc"
 #   rtc
-rtc=ao.rtc_init(wfs,p_wfss,dms,p_dms,p_geom,p_rtc,p_atmos,atm,p_loop,p_target,simul_name="simName")
+rtc=ao.rtc_init(wfs,p_wfss,dms,p_dms,p_geom,p_rtc,p_atmos,atm,p_tel,p_loop,p_target,simul_name=simul_name)
 
 print "===================="
 print "init done"
@@ -60,12 +67,12 @@ print "----------------------------------------------------";
 print "iter# | S.E. SR | L.E. SR | Est. Rem. | framerate";
 print "----------------------------------------------------";
 
-import matplotlib.pyplot as pl
+#import matplotlib.pyplot as pl
 
 def loop( n):
-    fig,((turbu,image),(shak,defMir))=pl.subplots(2,2, figsize=(15,15))
-    pl.ion()
-    pl.show()
+    #fig,((turbu,image),(shak,defMir))=pl.subplots(2,2, figsize=(15,15))
+    #pl.ion()
+    #pl.show()
     for i in range(n):
         atm.move_atmos()
 
@@ -81,12 +88,13 @@ def loop( n):
         rtc.applycontrol(0,dms)
 
         if((i+1)%50==0):
+            """
             turbu.clear()
             image.clear()
             shak.clear()
             defMir.clear()
 
-            screen=atm.get_screen(0.)
+            screen=atm.get_screen(p_atmos.alt)
             f1=turbu.matshow(screen,cmap='Blues_r')
 
             im=tar.get_image(0,"se")
@@ -101,9 +109,10 @@ def loop( n):
             f4=defMir.matshow(dm)
 
             pl.draw()
-            
+            """
             strehltmp = tar.get_strehl(0)
             print i+1,"\t",strehltmp[0],"\t",strehltmp[1]
+
 
 
 loop(p_loop.niter)

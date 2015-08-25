@@ -140,7 +140,6 @@ cdef class Param_atmos:
         return atmos_create(c,self.nscreens,self.r0,self.L0,self.pupixsize,
             self.dim_screens,self.frac,self.alt,self.windspeed,
             self.winddir,self.deltax,self.deltay,rank)
-            #DELself.winddir,self.deltax,self.deltay,geom._spupil,rank)
 
 
 
@@ -160,7 +159,6 @@ cdef class Atmos:
                 np.ndarray[ndim=1,dtype=np.float32_t] winddir,
                 np.ndarray[ndim=1,dtype=np.float32_t] deltax,
                 np.ndarray[ndim=1,dtype=np.float32_t] deltay,
-                #np.ndarray[ndim=2,dtype=np.float32_t] pupil,
                 int device ):
         
         cdef np.ndarray[ndim=1,dtype=np.int64_t]size2
@@ -175,7 +173,6 @@ cdef class Atmos:
                 <np.float32_t*>winddir.data,
                 <np.float32_t*>deltax.data,
                 <np.float32_t*>deltay.data,
-                #<np.float32_t*>pupil.data,
                 device)
         self.context = ctxt
 
@@ -313,8 +310,8 @@ cdef atmos_create(chakra_context c, int nscreens,
     # get fraction of r0 for corresponding layer
     r0_layers = r0/(frac**(3./5.)*pupixsize)
     # create atmos object on gpu
-
     atmos_obj = Atmos()
+
     cdef carma_context *context=carma_context.instance()
     cdef int device = context.get_activeDevice()
     atmos_obj.realinit(chakra_context(),nscreens, r0_layers, dim_screens,alt,
@@ -327,7 +324,6 @@ cdef atmos_create(chakra_context c, int nscreens,
 
     cdef str file_A,file_B,file_istx,file_isty
 
-    #cdef np.ndarray[ndim=2,dtype=np.float32_t] phase
 
     for i in range(nscreens):
         file_A=os.path.normpath(chakra_ao_savepath+"/turbu/A_"+str(dim_screens[i])+"_L0_"+str(int(L0[i]))+".npy")
