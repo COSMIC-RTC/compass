@@ -149,7 +149,7 @@ cdef class Sensors:
             fluxPerSub=<float*>tmp.data
             wfs_geom=dynamic_cast_wfs_geom_ptr(self.sensors.d_wfs[n])
             wfs_geom.wfs_initarrays(phasemap, halfxy, pupil, fluxPerSub,
-                    validy, validx)
+                    validx, validy)
 
         elif(self.sensors.d_wfs[n].type==type_pyr):
             tmp=wfs._pyr_offsets.flatten("F")
@@ -157,7 +157,7 @@ cdef class Sensors:
             wfs_pyr = dynamic_cast_wfs_pyr_pyr4_ptr(self.sensors.d_wfs[n])
             wfs_pyr.wfs_initarrays(<cuFloatComplex*>halfxy, offset,
                     submask, pupil,cx, cy, 
-                    sincar, phasemap, validy,validx)
+                    sincar, phasemap, validx,validy)
 
         elif(self.sensors.d_wfs[n].type==type_roof):
             tmp=wfs.__pyr_offsets.flatten("F")
@@ -165,7 +165,7 @@ cdef class Sensors:
             wfs_roof = dynamic_cast_wfs_pyr_roof_ptr(self.sensors.d_wfs[n])
             wfs_roof.wfs_initarrays(<cuFloatComplex*>halfxy, offset,
                     submask, pupil,cx, cy, 
-                    sincar, phasemap, validy,validx)
+                    sincar, phasemap, validx,validy)
 
 
         elif(self.sensors.d_wfs[n].type==type_sh):
@@ -173,7 +173,7 @@ cdef class Sensors:
             fluxPerSub=<float*>tmp.data
             wfs_sh=dynamic_cast_wfs_sh_ptr(self.sensors.d_wfs[n])
             wfs_sh.wfs_initarrays(phasemap,hrmap,binmap,halfxy,
-                    pupil,fluxPerSub,validy, validx,
+                    pupil,fluxPerSub,validx, validy,
                     istart, jstart,<cuFloatComplex*>ftkernel)
 
  
