@@ -1456,6 +1456,9 @@ extern "C" {
     if (sensors_handler->d_wfs.at(nsensor)->type == "sh")
       dynamic_cast<sutra_wfs_sh*>(sensors_handler->d_wfs.at(nsensor))->fill_binimage(
           0);
+    else if (sensors_handler->d_wfs.at(nsensor)->type == "pyr")
+      dynamic_cast<sutra_wfs_pyr_pyr4*>(sensors_handler->d_wfs.at(nsensor))->fill_binimage(
+          0);
     sensors_handler->d_wfs.at(nsensor)->d_binimg->device2host(data);
   }
 

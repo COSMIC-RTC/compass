@@ -35,6 +35,7 @@ public:
       float *focmask, float *pupil, int *cx, int *cy,
       float *sincar, int *phasemap, int *validsubsx, int *validsubsy);
 
+  int fill_binimage(int async);
   virtual int
   comp_image()=0;
 

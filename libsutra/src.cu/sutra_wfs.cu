@@ -57,6 +57,7 @@ int fillcamplipup(cuFloatComplex *amplipup, float *phase, float *offset,
   return EXIT_SUCCESS;
 }
 
+
 __global__ void bimg_krnl(float *bimage, float *bcube, int npix, int npix2,
     int nsub, int *ivalid, int *jvalid, float alpha, int N) {
   /*
@@ -1057,6 +1058,72 @@ pyr_fillbin<float>(float *d_odata, float *d_idata, int nrebin, int np, int ns,
 template void
 pyr_fillbin<double>(double *d_odata, double *d_idata, int nrebin, int np,
     int ns, int nim, carma_device *device);
+
+template<class T>
+__global__ void pyr_bimg_krnl(T *bimage, const T *bcube,
+                              const int nxsub, const float alpha, const int N) {
+  /*
+   indx is an array nrebin^2 * npix^2
+   it gives the nrebin x nrebin pixels in the hrimage per npix x npix pixels of the subap
+   Npix = npix x npix
+   */
+  int tid = threadIdx.x + blockIdx.x * blockDim.x;
+  const int nxsub2 = nxsub*nxsub;
+  const int nximg = (2*nxsub+3);
+
+  while (tid < N) {
+    const int nim = tid / nxsub2;
+    const int tidim = tid - nim * nxsub2;
+    const int yim = tidim / nxsub;
+    const int xim = tidim - yim * nxsub;
+
+    int offset;
+    switch(nim){
+      case 0:
+        offset = 1;
+        break;
+      case 1:
+        offset = 2 + nxsub;
+        break;
+      case 2:
+        offset = 1 + (nximg*(1+nxsub));
+        break;
+      default:
+        offset = 1 + (nximg+1)*(1+nxsub);
+        break;
+    }
+    const int idbin = offset + xim + (yim+1) * nximg;
+    bimage[idbin] = alpha * bimage[idbin] + bcube[tid];
+    tid += blockDim.x * gridDim.x;
+  }
+}
+
+template<class T>
+int pyr_fillbinimg(T *bimage, const T *bcube, const int nxsub,
+                   const bool add, carma_device *device) {
+  const int N = 4*nxsub*nxsub;
+  int nthreads = 0, nblocks = 0;
+  getNumBlocksAndThreads(device, N, nblocks, nthreads);
+  dim3 grid(nblocks), threads(nthreads);
+
+  T alpha;
+  if (add)
+    alpha = 1.0;
+  else
+    alpha = 0.0;
+
+  pyr_bimg_krnl<<<grid, threads>>>(bimage, bcube, nxsub, alpha, N);
+
+  carmaCheckMsg("binimg_kernel<<<>>> execution failed\n");
+
+  return EXIT_SUCCESS;
+}
+template
+int pyr_fillbinimg<float>(float *bimage, const float *bcube, const int nxsub,
+                          const bool add, carma_device *device);
+template
+int pyr_fillbinimg<double>(double *bimage, const double *bcube, const int nxsub,
+                           const bool add, carma_device *device);
 
 //////////////////////////////////////////////////////////////
 // ADDING PYR_FILLBIN MODIFIED FOR ROOF-PRISM: ROOF_FILLBIN //

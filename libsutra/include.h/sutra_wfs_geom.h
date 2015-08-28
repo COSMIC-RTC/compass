@@ -32,6 +32,7 @@ public:
   int define_mpi_rank(int rank, int size) {return EXIT_SUCCESS;}
   int allocate_buffers(sutra_sensors *sensors) {return EXIT_SUCCESS;}
 
+  int fill_binimage(int async){return 0;}
   int
   comp_image(){return 0;}
 

@@ -80,6 +80,7 @@ class sutra_wfs {
     int sensor_trace(sutra_atmos *yatmos);
     int sensor_trace(sutra_dms *ydm, int rst);
     int sensor_trace(sutra_atmos *atmos, sutra_dms *ydms);
+    virtual int fill_binimage(int async)=0;
     virtual int comp_image()=0;
 
     virtual int define_mpi_rank(int rank, int size)=0;
@@ -204,6 +205,12 @@ template<class T>
 void
 pyr_fillbin(T *d_odata, T *d_idata, int nrebin, int np, int ns, int nim,
             carma_device *device);
+
+template<class T>
+int
+pyr_fillbinimg(T *bimage, const T *bcube, const int nxsub,
+               const bool add, carma_device *device);
+
 template<class Tin, class Tout>
 void
 pyr_abs2(Tout *d_odata, Tin *d_idata, Tout fact, int ns, int nim,

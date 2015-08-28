@@ -135,7 +135,6 @@ func script_system(filename,verbose=,strehl=,r0=,clean=,brama=)
         sensors_compimg,g_wfs,i-1;
       }
 
-      // do centroiding
     }
 
     if ((y_rtc != []) && (g_rtc != [])

@@ -60,13 +60,6 @@ sutra_wfs_pyr::sutra_wfs_pyr(carma_context *context, sutra_sensors *sensors, lon
   long *dims_data3 = new long[4];
   dims_data3[0] = 3;
 
-  dims_data2[1] = npix * nxsub + 3;
-  dims_data2[2] = npix * nxsub + 3;
-
-  this->d_binimg = new carma_obj<float>(context, dims_data2);
-  // using 1 stream for telemetry
-  this->image_telemetry = new carma_host_obj<float>(dims_data2, MA_PAGELOCK, 1);
-
   dims_data3[1] = nfft;
   dims_data3[2] = nfft;
   dims_data3[3] = 4;
@@ -87,6 +80,14 @@ sutra_wfs_pyr::sutra_wfs_pyr(carma_context *context, sutra_sensors *sensors, lon
   dims_data3[2] = nfft / nrebin;
 
   this->d_bincube = new carma_obj<float>(context, dims_data3);
+
+  dims_data2[1] = nfft / nrebin*2 + 3;
+  dims_data2[2] = nfft / nrebin*2 + 3;
+
+  this->d_binimg = new carma_obj<float>(context, dims_data2);
+  // using 1 stream for telemetry
+  this->image_telemetry = new carma_host_obj<float>(dims_data2, MA_PAGELOCK, 1);
+
 
   this->nstreams = 1;
   while (nvalid % this->nstreams != 0)
@@ -224,3 +225,27 @@ int sutra_wfs_pyr::wfs_initarrays(cuFloatComplex *halfxy, cuFloatComplex *offset
 
   return EXIT_SUCCESS;
 }
+
+int sutra_wfs_pyr::fill_binimage(int async){
+  if(this->d_binimg == NULL) {
+    DEBUG_TRACE("ERROR : d_bincube not initialized, did you do the allocate_buffers?");
+    throw "ERROR : d_bincube not initialized, did you do the allocate_buffers?";
+  }
+  if (noise > 0)
+    this->d_binimg->prng('N', this->noise);
+
+  this->current_context->set_activeDevice(device,1);
+  if(async){
+//    fillbinimg_async(this->image_telemetry, this->d_binimg->getData(),
+//        this->d_bincube->getData(), this->npix, this->nvalid_tot,
+//        this->npix * this->nxsub, this->d_validsubsx->getData(),
+//        this->d_validsubsy->getData(), this->d_binimg->getNbElem(), false,
+//        this->current_context->get_device(device));
+  } else {
+    pyr_fillbinimg(this->d_binimg->getData(), this->d_bincube->getData(),
+                   this->nfft / this->nrebin, false, this->current_context->get_device(device));
+  }
+
+  return EXIT_SUCCESS;
+}
+

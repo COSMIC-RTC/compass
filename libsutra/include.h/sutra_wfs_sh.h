@@ -33,13 +33,12 @@ public:
   wfs_initarrays(int *phasemap, int *hrmap, int *binmap, float *offsets,
       float *pupil, float *fluxPerSub, int *validsubsx,
       int *validsubsy, int *istart, int *jstart, cuFloatComplex *kernel);
-  int
-  fill_binimage(int async);
 
   int
   slopes_geom(int type, float *slopes);
   int
   slopes_geom(int type);
+  int fill_binimage(int async);
   int
   comp_image();
 

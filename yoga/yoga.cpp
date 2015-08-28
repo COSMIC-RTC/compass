@@ -22,16 +22,7 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <carma_host_obj.h>
-#include <carma_obj.h>
-#include <carma_sparse_host_obj.h>
-#include <carma_sparse_obj.h>
-#include <carma_cublas.h>
-#include <carma_cusparse.h>
-#include <carma_utils.h>
-#include <carma_ipcs.h>
-#include <carma_timer.h>
-#include <carma.h>
+
 #include <sstream>
 #include <iomanip>
 #include "yoga_api.h"

@@ -24,13 +24,20 @@ LIB_CPPFLAGS = -c -fPIC -Wall -fno-common -I$(H_DIR) -I$(CUDA_INC_PATH) -std=c++
 # color for printf
 #31=red, 32=green, 33=yellow,34=blue, 35=pink, 36=cyan, 37=white
 
-MPICXX           = $(shell which mpicxx 2>/dev/null)
+#MPICXX           = $(shell which mpicxx 2>/dev/null)
+ICC              = $(shell which icc 2>/dev/null)
+
 ifeq ($(MPICXX),)
+ifeq ($(ICC),)
   GCC ?= $(CC)
+else
+  GCC ?= $(ICC)
+endif
 else
   GCC = $(MPICXX)
 endif
-GCC := $(CC)
+
+#GCC := icc #/usr/local/mpe/bin/mpecc -mpilog
 
 NVCC = $(CUDA_ROOT)/bin/nvcc
 LIB_NVCCFLAGS  = -Xptxas -dlcm=ca -m64 -Xcompiler -fPIC -c --compiler-options

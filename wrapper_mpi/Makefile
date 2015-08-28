@@ -30,7 +30,7 @@ $(OBJ_DIR)/%.opp: %.cpp
 #$(OBJS): $(SRC)
 $(OBJ_DIR)/%.cuo: %.cu
 	nvcc -O0 -c -g -G -line-info -o $@ -I$(SVIPC_DIR) -I$(CUDA_INC_PATH) -I. -I$(COMPASS_ROOT_DIR)/libcarma/include.h -I$(COMPASS_ROOT_DIR)/libsutra/include.h  $(MPI_CFLAGS) $< #-gencode arch=compute_20,code=sm_20
-	
+
 main: $(SVIPC_OBJS) $(SUTRA_MPI_OBJS) $(OBJ) $(OBJ_DIR)/main.opp
 	mpicxx -O0 -g -o main $^ -L$(CUDA_LIB_PATH_64) -lcudart -L$(COMPASS_ROOT_DIR)/libcarma -lcarma -L$(COMPASS_ROOT_DIR)/libsutra -lsutra -lcfitsio
 
