@@ -872,8 +872,8 @@ cdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
         n=wfs._nvalid
         #for i in range(wfs._nvalid):
         for i in range(n):
-            indi=istart[wfs._validsubsx[i]]+1 #+2-1 (yorick->python
-            indj=jstart[wfs._validsubsy[i]]+1
+            indi=istart[wfs._validsubsy[i]]+1 #+2-1 (yorick->python)
+            indj=jstart[wfs._validsubsx[i]]+1
             phasemap[:,i]=tmp[indi:indi+pdiam, indj:indj+pdiam].flatten("C")
         wfs._phasemap=phasemap
 
