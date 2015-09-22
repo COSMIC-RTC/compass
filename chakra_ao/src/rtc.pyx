@@ -8,14 +8,14 @@ cdef class Param_rtc:
     def set_centroiders(self,l):
         """Set the centroiders
 
-        :param l: (list of Param_centroider)
+        :param l: (list of Param_centroider) : centroiders settings
         """
         self.centroiders=l
 
     def set_controllers(self,l):
         """Set the controller
 
-        :param l: (list of Param_controller)
+        :param l: (list of Param_controller) : controllers settings
         """
         self.controllers=l
 
@@ -1078,27 +1078,27 @@ def rtc_init(Sensors g_wfs, p_wfs, Dms g_dms, p_dms, Param_geom p_geom, Param_rt
     :parameters:
         g_wfs: (Sensors) :
 
-        p_wfs: (list of Param_wfs):
+        p_wfs: (list of Param_wfs) : wfs settings
 
         g_dms: (Dms) :
 
-        p_dms: (list of Param_dms) :
+        p_dms: (list of Param_dms) : dms settings
 
-        p_geom: (Param_geom)
+        p_geom: (Param_geom) : geom settings
 
-        p_atmos: (Param_atmos) :
+        p_atmos: (Param_atmos) : atmos settings
 
         g_atmos: (Atmos) :
 
-        p_tel: (Param_tel) :
+        p_tel: (Param_tel) : telescope settings
 
-        p_loop: (Param_loop) :
+        p_loop: (Param_loop) : loop settings
 
-        p_tar: (Param_target) : (optional)
+        p_tar: (Param_target) : (optional) target settings
 
-        clean: (int): (optional) clean datafiles (imat, U, eigenv)
+        clean: (int) : (optional) clean datafiles (imat, U, eigenv)
 
-        brama: (int): (optional) not implemented yet
+        brama: (int) : (optional) not implemented yet
 
         doimat: (int) : (optional) force imat computation
 
@@ -1447,15 +1447,15 @@ cdef correct_dm(p_dms, Dms g_dms, Param_controller p_control, Param_geom p_geom,
     """TODO doc
 
     :parameters:
-        p_dms: (list of Param_dm) :
+        p_dms: (list of Param_dm) : dms settings
 
-        g_dms: (Dms) :
+        g_dms: (Dms) : 
 
-        p_control: (Param_controller) :
+        p_control: (Param_controller) : controller settings
 
-        p_geom: (Param_geom) :
+        p_geom: (Param_geom) : geom settings
 
-        imat: (np.ndarray) :
+        imat: (np.ndarray) : interaction matrix
 
         simul_name: (str) : simulation's name, use for data files' path
     """
@@ -1555,13 +1555,13 @@ cdef imat_geom(Sensors g_wfs, p_wfs, Param_controller p_control,Dms g_dms, p_dms
     :parameters:
         g_wfs: (Sensors) :
 
-        p_wfs: (list of Param_wfs) :
+        p_wfs: (list of Param_wfs) : wfs settings
 
-        p_control: (Param_controller):
+        p_control: (Param_controller) : controller settings
 
         g_dms: (Dms) :
 
-        p_dms: (list of Param_dm) :
+        p_dms: (list of Param_dm) : dms settings
 
         g_rtc: (Rtc) :
 
@@ -1616,7 +1616,7 @@ cdef manual_imat(Rtc g_rtc,Sensors g_wfs, p_wfs, Dms g_dms, p_dms):
 
         g_dms: (Dms) :
 
-        p_dms: (list of Param_dm) :
+        p_dms: (list of Param_dm) : dm settings
     """
 
     cdef int nm,i,ind
@@ -1707,9 +1707,9 @@ cdef compute_KL2V(p_dms, Param_controller controller):
     """TODO doc
 
     :parameters:
-        p_dms: (list of Param_dm) :
+        p_dms: (list of Param_dm) : dms settings
 
-        controller: (Param_controller) :
+        controller: (Param_controller) : controller settings
     """
     cdef int i,nTT,indx_act, ndm
     cdef np.ndarray[ndim=1,dtype=np.int64_t] ntotact=\
@@ -1752,9 +1752,9 @@ cdef openLoopSlp(Atmos g_atm, Rtc g_rtc,int nrec, int ncontro, Sensors g_wfs=Non
 
         g_wfs: (Sensors) :
 
-        p_wfs: (list of Param_wfs) : (optional)
+        p_wfs: (list of Param_wfs) : (optional) wfs settings
 
-        p_tar: (Param_target) : (optional)
+        p_tar: (Param_target) : (optional) target settings
 
         g_tar: (Target) : (optional)
     """
@@ -1790,15 +1790,15 @@ cdef imat_init(int ncontro, Rtc g_rtc, Param_rtc p_rtc, Dms g_dms, Sensors g_wfs
 
         g_rtc: (Rtc) :
 
-        p_rtc: (Param_rtc) :
+        p_rtc: (Param_rtc) : rtc settings
 
         g_dms: (Dms) :
 
         g_wfs: (Sensors) :
 
-        p_wfs: (list of Param_wfs) :
+        p_wfs: (list of Param_wfs) : wfs settings
 
-        p_tel: (Param_tel) :
+        p_tel: (Param_tel) : telescope settings
 
         clean: (int) : (optional) : clean datafiles (imat, U, eigenv)
 
@@ -1863,8 +1863,8 @@ cdef cmat_init(int ncontro, Rtc g_rtc, Param_rtc p_rtc, list p_wfs,
     :parameters:
         ncontro: (int) :
         g_rtc: (Rtc) :
-        p_rtc: (Param_rtc) :
-        p_wfs: (list of Param_wfs)
+        p_rtc: (Param_rtc) : rtc settings
+        p_wfs: (list of Param_wfs) : wfs settings
         clean: (int) : (optional) clean datafiles (imat, U, eigenv)
         simul_name: (str) : (optional) simulation's name, use for data files' path
     """

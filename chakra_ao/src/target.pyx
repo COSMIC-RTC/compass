@@ -59,13 +59,13 @@ cdef class Param_target:
         :parameters:
             ctxt: (chakra_context) :
 
-            atm: (Param_atmos) :
+            atm: (Param_atmos) : atmos settings
 
-            geom: (Param_geom) :
+            geom: (Param_geom) : geom settings
 
-            wfs: (Param_wfs) :
+            wfs: (Param_wfs) : wfs settings
 
-            dm: (Param_dm) :
+            dm: (Param_dm) : dm settings
         """
         cdef bytes type_target=bytes("atmos")
 

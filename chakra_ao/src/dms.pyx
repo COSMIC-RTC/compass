@@ -102,13 +102,13 @@ cdef _dm_init(Dms dms, Param_dm p_dms, Param_wfs p_wfs, Param_geom p_geom, Param
             :parameters:
                 dms: (Dms) :
 
-                p_dms: (Param_dms) :
+                p_dms: (Param_dms) : dm settings
 
-                p_wfs: (Param_wfs) :
+                p_wfs: (Param_wfs) : wfs settings
 
-                p_geom: (Param_geom) :
+                p_geom: (Param_geom) : geom settings
 
-                p_tel: (Param_tel) :
+                p_tel: (Param_tel) : telescope settings
 
                 max_extend: (int*) :
             """
@@ -255,13 +255,13 @@ def dm_init(p_dms, Param_wfs p_wfs, Param_geom p_geom, Param_tel p_tel):
     TODO doc
 
     :parameters:
-        p_dms: (list of Param_dms) :
+        p_dms: (list of Param_dms) : dms settings
 
-        p_wfs: (Param_wfs) :
+        p_wfs: (Param_wfs) : wfs settings
 
-        p_geom: (Param_geom) :
+        p_geom: (Param_geom) : geom settings
 
-        p_tel: (Param_tel) :
+        p_tel: (Param_tel) : telescope settings
     """
     cdef int max_extent=0
     if(len(p_dms)!=0):
@@ -279,9 +279,9 @@ cdef make_pzt_dm(Param_dm p_dm,Param_geom geom):
     """TODO doc
 
     :parameters:
-        p_dm: (Param_dm) :
+        p_dm: (Param_dm) : dm settings
 
-        geom: (Param_geom) :
+        geom: (Param_geom) : geom settings
 
     """
     cdef int i
@@ -381,13 +381,13 @@ cdef make_tiptilt_dm(Param_dm p_dm,Param_wfs p_wfs, Param_geom p_geom, Param_tel
     """TODO doc
 
     :parameters:
-        p_dm: (Param_dm) :
+        p_dm: (Param_dm) : dm settings
 
-        p_wfs: (Param_wfs) :
+        p_wfs: (Param_wfs) : wfs settings
 
-        p_geom: (Param_geom) :
+        p_geom: (Param_geom) : geom settings
 
-        p_tel: (Param_tel) :
+        p_tel: (Param_tel) : telescope settings
 
     """
     cdef int dim = max(p_dm._n2-p_dm._n1+1,p_geom._mpupil.shape[0])
@@ -416,13 +416,13 @@ cdef make_kl_dm(Param_dm p_dm, Param_wfs p_wfs,Param_geom p_geom, Param_tel p_te
     """TODO doc
 
     :parameters:
-        p_dm: (Param_dm) :
+        p_dm: (Param_dm) : dm settings
 
-        p_wfs: (Param_wfs) :
+        p_wfs: (Param_wfs) : wfs settings
 
-        p_geom: (Param_geom) :
+        p_geom: (Param_geom) : geom settings
 
-        p_tel: (Param_tel) :
+        p_tel: (Param_tel) : telescope settings
 
     """
     cdef int dim=p_geom._mpupil.shape[0]
@@ -561,9 +561,9 @@ cdef comp_dmgeom(Param_dm dm, Param_geom geom):
     """TODO doc
 
     :parameters:
-        dm: (Param_dm) :
+        dm: (Param_dm) : dm settings
 
-        geom: (Param_geom) :
+        geom: (Param_geom) : geom settings
     """
     cdef int smallsize = dm._influsize
     cdef int nact=dm._ntotact
@@ -1094,13 +1094,13 @@ cdef compute_klbasis(Dms g_dm,Param_dm p_dm, Param_geom p_geom,Param_atmos p_atm
     :parameters:
         g_dm: (Dms) :
 
-        p_dm: (Param_dm) :
+        p_dm: (Param_dm) : dm settings
 
-        p_geom: (Param_geom) :
+        p_geom: (Param_geom) : geom settings
 
-        p_atmos: (Param_atmos) :
+        p_atmos: (Param_atmos) : atmos settings
 
-        p_tel: (Param_tel) :
+        p_tel: (Param_tel) : telescope settings
     """
 
     cdef int tmp

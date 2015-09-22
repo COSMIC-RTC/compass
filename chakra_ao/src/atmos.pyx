@@ -107,9 +107,9 @@ cdef class Param_atmos:
 
             loop: (Param_loop) : loop settings
 
-            wfs: (Param_wfs) : (optional)
+            wfs: (Param_wfs) : (optional) wfs settings
 
-            target: (Param_target) : (optional)
+            target: (Param_target) : (optional) target_settings
         """
 
         cdef double ittime=loop.ittime

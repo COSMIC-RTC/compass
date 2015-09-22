@@ -10,9 +10,9 @@ cdef class Param_geom:
         """TODO doc
 
         :parameters:
-            tel: (Param_tel) :
+            tel: (Param_tel) : telescope settings
 
-            pupdiam: (long) :
+            pupdiam: (long) : linear size of total pupil 
 
             apod: (int) :
         """
