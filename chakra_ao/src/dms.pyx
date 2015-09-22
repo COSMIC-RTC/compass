@@ -4,77 +4,113 @@
 cdef class Param_dm:
 
     def set_type(self,bytes t):
-        """set attribute type_dm to t
-        t -- string: type of dm
+        """set the dm type
+
+        :param t: (str) : type of dm
         """
         self.type_dm=t
 
     def set_nact(self,long n):
-        """set attribute nact to n
-        n -- long: number of actuators in the diameter
+        """set the number of actuator
+
+        :param n: (long) : number of actuators in the diameter
         """
         self.nact=n
 
     def set_alt(self, float a):
-        """set attribute alt to
-        a -- float :conjugaison altitude (im m)
+        """set the conjugaison altitude
+
+        :param a: (float) : conjugaison altitude (im m)
         """
         self.alt=a
 
     def set_thresh(self, float t):
-        """set attribute thresh to
-        t -- float: threshold on response for selection (<1)
+        """set the threshold on response for selection
+        
+        :param t: (float) : threshold on response for selection (<1)
         """
         self.thresh=t
 
     def set_coupling(self, float c):
-        """set attribute coupling to
-        c -- float: actuators coupling (<0.3)
+        """set the actuators coupling
+
+        :param c: (float) : actuators coupling (<0.3)
         """
         self.coupling=c
 
     def set_unitpervolt(self,float u ):
-        """set attribute unitpervolt to
-        u -- float: Influence function sensitivity in unit/volt
+        """set the Influence function sensitivity
+
+        :param u: (float) : Influence function sensitivity in unit/volt
         """
         self.unitpervolt=u
 
     def set_push4imat(self, p):
-        """set attribute push4imat to
-        p -- float : nominal voltage for imat
+        """set the nominal voltage for imat
+
+        :param p: (float) : nominal voltage for imat
         """
         self.push4imat=p
 
     def set_ntotact(self, long n):
-        """set attribute ntotact to
-        n -- long :
+        """set the total number of actuators
+
+        :param n: (long) : total number of actuators
         """
         self._ntotact=n
 
     def set_xpos(self,np.ndarray[ndim=1,dtype=np.float32_t] xpos):
+        """Set the x positions of influ functions
+
+        :param xpos: (np.ndarray[ndim=1,dtype=np.float32_t]) : x positions of influ functions
+        """
         self._xpos=xpos
 
     def set_ypos(self,np.ndarray[ndim=1,dtype=np.float32_t] ypos):
+        """Set the y positions of influ functions
+
+        :param ypos: (np.ndarray[ndim=1,dtype=np.float32_t]) : y positions of influ functions
+        """
         self._ypos=ypos
 
     def set_i1(self,np.ndarray[ndim=1,dtype=np.int32_t] i1):
+        """TODO doc
+
+        :param i1: (np.ndarray[ndim=1,dtype=np.int32_t]) : 
+        """
         self._i1=i1
 
     def set_j1(self,np.ndarray[ndim=1,dtype=np.int32_t] j1):
+        """TODO doc 
+
+        :param j1: (np.ndarray[ndim=1,dtype=np.int32_t]) : 
+        """
         self._j1=j1
 
     def set_influ(self, np.ndarray[ndim=3,dtype=np.float32_t] influ):
+        """Set the influence function
+
+        :param influ: (np.ndarray[ndim=3,dtype=np.float32_t]) : influence function
+        """
         self._influ=influ
 
 #max_extent signature
 cdef _dm_init(Dms dms, Param_dm p_dms, Param_wfs p_wfs, Param_geom p_geom, Param_tel p_tel,int *max_extent):
             """ inits a Dms object on the gpu
-            p_dms
-            p_wfs
-            p_geom
-            p_tel
+            TODO doc
 
+            :parameters:
+                dms: (Dms) :
 
+                p_dms: (Param_dms) :
+
+                p_wfs: (Param_wfs) :
+
+                p_geom: (Param_geom) :
+
+                p_tel: (Param_tel) :
+
+                max_extend: (int*) :
             """
 
             cdef float patchDiam
@@ -126,7 +162,7 @@ cdef _dm_init(Dms dms, Param_dm p_dms, Param_wfs p_wfs, Param_geom p_geom, Param
                     if( p_dms._n2>p_geom.ssize):p_dms._n2=p_geom.ssize
 
             if( p_dms.type_dm=="pzt"):
-                make_pzt_dm(p_dms,p_geom,disp)
+                make_pzt_dm(p_dms,p_geom)
                 dim = max(p_dms._n2-p_dms._n1+1, p_geom._mpupil.shape[0])
                 ninflu=long(p_dms._ntotact)
                 influsize=long(p_dms._influsize)
@@ -215,6 +251,18 @@ func dm_init(void)
 """
 
 def dm_init(p_dms, Param_wfs p_wfs, Param_geom p_geom, Param_tel p_tel):
+    """Create and initialize a Dms object on the gpu
+    TODO doc
+
+    :parameters:
+        p_dms: (list of Param_dms) :
+
+        p_wfs: (Param_wfs) :
+
+        p_geom: (Param_geom) :
+
+        p_tel: (Param_tel) :
+    """
     cdef int max_extent=0
     if(len(p_dms)!=0):
         dms=Dms(len(p_dms))
@@ -227,8 +275,15 @@ def dm_init(p_dms, Param_wfs p_wfs, Param_geom p_geom, Param_tel p_tel):
 
 
 
-cdef make_pzt_dm(Param_dm p_dm,Param_geom geom,disp):
+cdef make_pzt_dm(Param_dm p_dm,Param_geom geom):
+    """TODO doc
 
+    :parameters:
+        p_dm: (Param_dm) :
+
+        geom: (Param_geom) :
+
+    """
     cdef int i
     #best parameters, as determined by a multi-dimensional fit
     #(see coupling3.i)
@@ -323,6 +378,18 @@ cdef make_pzt_dm(Param_dm p_dm,Param_geom geom,disp):
 
 
 cdef make_tiptilt_dm(Param_dm p_dm,Param_wfs p_wfs, Param_geom p_geom, Param_tel p_tel):
+    """TODO doc
+
+    :parameters:
+        p_dm: (Param_dm) :
+
+        p_wfs: (Param_wfs) :
+
+        p_geom: (Param_geom) :
+
+        p_tel: (Param_tel) :
+
+    """
     cdef int dim = max(p_dm._n2-p_dm._n1+1,p_geom._mpupil.shape[0])
 
     cdef int patchDiam = p_geom.pupdiam+\
@@ -346,6 +413,18 @@ cdef make_tiptilt_dm(Param_dm p_dm,Param_wfs p_wfs, Param_geom p_geom, Param_tel
 
 
 cdef make_kl_dm(Param_dm p_dm, Param_wfs p_wfs,Param_geom p_geom, Param_tel p_tel):
+    """TODO doc
+
+    :parameters:
+        p_dm: (Param_dm) :
+
+        p_wfs: (Param_wfs) :
+
+        p_geom: (Param_geom) :
+
+        p_tel: (Param_tel) :
+
+    """
     cdef int dim=p_geom._mpupil.shape[0]
 
 
@@ -360,7 +439,22 @@ cdef make_kl_dm(Param_dm p_dm, Param_wfs p_wfs,Param_geom p_geom, Param_tel p_te
 
 
 cdef make_zernike(int nzer,int size,int diameter, float xc=-1, float yc=-1, int ext=0):
+    """TODO doc
 
+    :parameters:
+        nzer: (int) :
+
+        size: (int) :
+
+        diameter: (int) :
+
+        xc: (float) : (optional)
+
+
+        yc: (float) : (optional)
+
+        ext: (int) : (optional)
+    """
     cdef int zn,i
     cdef int m=0
     cdef int n=0
@@ -434,6 +528,14 @@ cdef zernumero(int zn, int *rd, int *an):
     """
     Returns the radial degree and the azimuthal number of zernike
     number zn, according to Noll numbering (Noll, JOSA, 1976)
+
+    :parameters:
+        zn: (int) : zernike number
+
+        rd: (int*) : radial degrees
+
+        an: (int*) : azimuthal numbers
+
     """
     cdef int j,m,n
     j=0
@@ -456,6 +558,13 @@ cdef zernumero(int zn, int *rd, int *an):
 
 
 cdef comp_dmgeom(Param_dm dm, Param_geom geom):
+    """TODO doc
+
+    :parameters:
+        dm: (Param_dm) :
+
+        geom: (Param_geom) :
+    """
     cdef int smallsize = dm._influsize
     cdef int nact=dm._ntotact
     cdef int dims = int(dm._n2-dm._n1+1)
@@ -546,9 +655,23 @@ cdef class Dms:
 
 
     cdef remove_dm(self,bytes type_dm,float alt):
+        """TODO doc
+
+        :parameters:
+            type_dm: (str) : dm type
+
+            alt: (float) : dm conjugaison altitude
+        """
         self.dms.remove_dm(type_dm,alt)
 
     def resetdm(self, bytes type_dm, float alt):
+        """TODO doc
+
+        :parameters:
+            type_dm: (str) : dm type
+
+            alt: (float) : dm conjugaison altitude
+        """
         cdef int inddm = self.dms.get_inddm(type_dm,alt)
         if(inddm<0):
             raise StandardError("Unknown error")
@@ -559,6 +682,17 @@ cdef class Dms:
 
 
     def oneactu( self, bytes type_dm, float alt, int nactu, float ampli):
+        """TODO doc
+
+        :parameters:
+            type_dm: (str) : dm type
+
+            alt: (float) : dm conjugaison altitude
+
+            nactu: (int) :
+
+            ampli: (float):
+        """
         cdef int inddm = self.dms.get_inddm(type_dm,alt)
         if(inddm<0):
             raise StandardError("Unknown error")
@@ -576,6 +710,26 @@ cdef class Dms:
         np.ndarray[ndim=1,dtype=np.int32_t] xoff,
         np.ndarray[ndim=1,dtype=np.int32_t] yoff,
         np.ndarray[ndim=2,dtype=np.float32_t] kern):
+        """TODO doc
+
+        :parameters:
+            alt: (float) : dm conjugaison altitude
+
+            influ: (np.ndarray[ndim=3,dtype=np.float32_t]) :
+
+            influpos: (np.ndarray[ndim=1,dtype=np.int32_t]) :
+
+            npoints: (np.ndarray[ndim=1,dtype=np.int32_t]) :
+
+            istart: (np.ndarray[ndim=1,dtype=np.int32_t]) :
+
+            xoff: (np.ndarray[ndim=1,dtype=np.int32_t]) :
+
+            yoff: (np.ndarray[ndim=1,dtype=np.int32_t]) :
+
+            kern: (np.ndarray[ndim=1,dtype=np.float32_t]) :
+
+        """
 
         cdef np.ndarray[dtype=np.float32_t] influ_F=influ.flatten("F")
         cdef np.ndarray[dtype=np.int32_t] npoints_F=npoints.flatten("F")
@@ -660,6 +814,21 @@ cdef class Dms:
         np.ndarray[ndim=1,dtype=np.int32_t] ord,
         np.ndarray[ndim=1,dtype=np.float32_t] cr,
         np.ndarray[ndim=1,dtype=np.float32_t] cp):
+        """TODO doc
+
+        :parameters:
+            alt: (float) : dm conjugaison altitude
+
+            rabas: (np.ndarray[ndim=1,dtype=np.float32_t]) :
+
+            azbas: (np.ndarray[ndim=1,dtype=np.float32_t]) :
+
+            ord: (np.ndarray[ndim=1,dtype=np.int32_t]) :
+
+            cr: (np.ndarray[ndim=1,dtype=np.float32_t]) :
+
+            cp: (np.ndarray[ndim=1,dtype=np.float32_t]) :
+        """
 
         cdef int inddm=self.dms.get_inddm("kl",alt)
         if(inddm<0):
@@ -679,6 +848,13 @@ cdef class Dms:
 
 
     cdef load_tt(self,float alt,np.ndarray[ndim=3,dtype=np.float32_t] influ):
+        """TODO doc
+
+        :parameters:
+            alt: (float) : dm conjugaison altitude
+
+            influ: (np.ndarray[ndim=3,dtype=np.float32_t]) :
+        """
         cdef int inddm=self.dms.get_inddm("tt",alt)
         if(inddm<0):
             err="unknown error whith load_tt\nDM (tt"+str(alt)+") doesn't exist"
@@ -695,6 +871,14 @@ cdef class Dms:
 
     cdef set_comm(self,bytes type_dm,float alt,
                     np.ndarray[ndim=1,dtype=np.float32_t] comm):
+        """TODO doc
+
+            type_dm: (str) : dm type
+
+            alt: (float) : dm conjugaison altitude
+
+            comm: (np.ndarray[ndim=1,dtype=np.float32_t]) :
+        """
 
         cdef int inddm=self.dms.get_inddm(type_dm,alt)
         if(inddm<0):
@@ -704,6 +888,12 @@ cdef class Dms:
         self.dms.d_dms[inddm].d_comm.host2device(<float*>comm.data)
 
     cdef shape_dm(self,bytes type_dm,float alt):
+        """TODO doc
+
+            type_dm: (str) : dm type
+
+            alt: (float) : dm conjugaison altitude
+        """
         cdef int inddm=self.dms.get_inddm(type_dm,alt)
         if(inddm<0):
             err="unknown error whith load_kl\nDM (kl"+str(alt)+") doesn't exist"
@@ -719,6 +909,25 @@ cdef class Dms:
     cdef computeKLbasis(self, bytes type_dm, float alt, 
         np.ndarray[ndim=1,dtype=np.float32_t] xpos, np.ndarray[ndim=1,dtype=np.float32_t] ypos,
         np.ndarray[ndim=1,dtype=np.int32_t] indx_pup, long dim, float norm, float ampli):
+        """TODO doc
+
+        :parameters:
+            type_dm: (str) : dm type
+
+            alt: (float) : dm conjugaison altitude
+
+            xpos: (np.ndarray[ndim=1,dtype=np.float32_t]) :
+
+            ypos: (np.ndarray[ndim=1,dtype=np.float32_t]) :
+
+            indx_pup: (np.ndarray[ndim=1,dtype=np.int32_t]) :
+
+            dim: (long) :
+
+            nom: (float) :
+
+            ampli: (float) :
+        """
 
         cdef int inddm=self.dms.get_inddm(type_dm,alt)
         if(inddm<0):
@@ -734,6 +943,13 @@ cdef class Dms:
 
 
     cdef get_KLbasis(self,bytes type_dm, float alt):
+        """TODO doc
+
+        :parameters:
+            type_dm: (str) : dm type
+
+            alt: (float) : dm conjugaison altitude
+        """
 
         cdef int inddm=self.dms.get_inddm(type_dm,alt)
         if(inddm<0):
@@ -753,6 +969,13 @@ cdef class Dms:
 
 
     def get_dm(self,bytes type_dm,float alt):
+        """TODO doc
+
+        :parameters:
+            type_dm: (str) : dm type
+
+            alt: (float) : dm conjugaison altitude
+        """
 
         cdef int inddm=self.dms.get_inddm(type_dm,alt)
         if(inddm<0):
@@ -771,6 +994,13 @@ cdef class Dms:
 
 
     cpdef getComm(self,bytes type_dm,float alt):
+        """TODO doc
+
+        :parameters:
+            type_dm: (str) : dm type
+
+            alt: (float) : dm conjugaison altitude
+        """
 
         cdef int inddm=self.dms.get_inddm(type_dm,alt)
         if(inddm<0):
@@ -787,6 +1017,14 @@ cdef class Dms:
 
 
     cpdef getInflu(self,bytes type_dm,float alt):
+        """TODO doc
+
+        :parameters:
+            type_dm: (str) : dm type
+
+            alt: (float) : dm conjugaison altitude
+        """
+
 
         cdef int inddm=self.dms.get_inddm(type_dm,alt)
         if(inddm<0):
@@ -806,6 +1044,18 @@ cdef class Dms:
 
 
     cpdef comp_oneactu(self,bytes type_dm, float alt, int nactu, float ampli):
+        """TODO doc
+
+        :parameters:
+            type_dm: (str) : dm type
+
+            alt: (float) : dm conjugaison altitude
+
+            nactu: (int) :
+
+            ampli: (float) :
+        """
+
         
         cdef int inddm=self.dms.get_inddm(type_dm,alt)
         if(inddm<0):
@@ -839,6 +1089,20 @@ cdef class Dms:
 
 
 cdef compute_klbasis(Dms g_dm,Param_dm p_dm, Param_geom p_geom,Param_atmos p_atmos,Param_tel p_tel):
+    """TODO doc
+
+    :parameters:
+        g_dm: (Dms) :
+
+        p_dm: (Param_dm) :
+
+        p_geom: (Param_geom) :
+
+        p_atmos: (Param_atmos) :
+
+        p_tel: (Param_tel) :
+    """
+
     cdef int tmp
     if(p_dm.type_dm=="pzt"):
         tmp=(p_geom._ipupil.shape[0]-(p_dm._n2-p_dm._n1+1))/2

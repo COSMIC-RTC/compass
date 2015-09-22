@@ -7,6 +7,15 @@ cdef class Param_geom:
 
 
     def geom_init(self, Param_tel tel, long pupdiam,apod):
+        """TODO doc
+
+        :parameters:
+            tel: (Param_tel) :
+
+            pupdiam: (long) :
+
+            apod: (int) :
+        """
         self.pupdiam=pupdiam
         #first poxer of 2 greater than pupdiam
         self.ssize=long(2**np.ceil(np.log2(pupdiam)+1))
@@ -39,23 +48,27 @@ cdef class Param_geom:
 
 
     def set_ssize( self,long s):
-        """Set the attribute ssize to s
-         s -- long : linear size of full image (in pixels)."""
+        """Set linear size of full image
+
+         :param s: (long) : linear size of full image (in pixels)."""
         self.ssize= s
 
     def set_zenithangle( self, float z):
-        """Set the attribute zenithangle to z
-         z -- float : observations zenith angle (in deg)."""
+        """Set observations zenith angle 
+
+         :param z: (float) : observations zenith angle (in deg)."""
         self.zenithangle=z
  
     def set_pupdiam( self,long p ):
-        """Set the attribute pupdiam to p
-         p -- long : linear size of total pupil (in pixels)."""
+        """Set the linear size of total pupil
+
+        :param p: (long) : linear size of total pupil (in pixels)."""
         self.pupdiam=p
  
     def set_cent( self, float c ):
-        """Set the attribute cent to c
-         c -- float : central point of the simulation."""
+        """Set the central point of the simulation
+
+         :param c: (float) : central point of the simulation."""
         self.cent=c
 
 
@@ -68,21 +81,26 @@ cdef class Param_geom:
         return self._mpupil
 
     def get_spupil(self):
-        """return the pupil"""
+        """return the small pupil"""
         return self._spupil
 
 
     def get_n(self):
+        """Return the linear size of the medium pupil"""
         return self._n
 
     def get_n1(self):
+        """Return the min(x,y) for valid points for the total pupil"""
         return self._n1
 
     def get_n2(self):
+        """Return the max(x,y) for valid points for the total pupil"""
         return self._n2
 
     def get_p1(self):
+        """Return the min(x,y) for valid points for the medium pupil"""
         return self._p1
 
     def get_p2(self):
+        """Return the max(x,y) for valid points for the medium pupil"""
         return self._p2

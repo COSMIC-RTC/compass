@@ -8,26 +8,47 @@ cdef class Param_target:
 
 
     def set_nTargets(self, int n):
-        """Set the attribute to self.n to n
-        n -- int : number of targets."""
+        """Set the number of targets
+
+        :param n: (int) : number of targets
+        """
         self.ntargets=n
     def set_apod(self, int a):
-        """Set the attribute apod to a
-        a -- int"""
+        """Tells if the apodizer is used
+
+        The apodizer is used if a is not 0
+        :param a: (int) boolean for apodizer
+        """
         self.apod=a
+
     def set_Lambda(self, l):
-        """Set the attribute to
-        l -- list of float""" 
+        """Set the observation wavelength
+
+        :param l: (list of float) : observation wavelength for each target
+        """ 
         self.Lambda=np.array(l,dtype=np.float32)
+
     def set_xpos(self,l):
-        """l -- list of float"""
+        """Set the x positions on sky (in arcsec)
+
+        :param l: (list of float) : x positions on sky for each target
+        """
         self.xpos =np.array(l,dtype=np.float32)
+
     def set_ypos(self,l):
-        """l -- list of float"""
+        """Set the y positions on sky (in arcsec)
+
+        :param l: (list of float) : y positions on sky for each target
+        """
         self.ypos =np.array(l,dtype=np.float32)
+
     def set_mag(self,l):
-        """l -- list of float"""
+        """set the magnitude
+
+        :param l: (list of float) : magnitude for each target
+        """
         self.mag =np.array(l,dtype=np.float32)
+
 
     def target_init(self,chakra_context ctxt, Param_atmos atm,
                     Param_geom geom, Param_tel tel,wfs=None, 
@@ -35,12 +56,16 @@ cdef class Param_target:
                     dm=None):
         """Create a cython target from parametres structures
         
+        :parameters:
+            ctxt: (chakra_context) :
 
-        ctxt    -- chakra_context
-        atm     -- Param_atmos
-        geom    -- Param_geom
-        wfs     -- Param_wfs
-        dm      -- Param_dm
+            atm: (Param_atmos) :
+
+            geom: (Param_geom) :
+
+            wfs: (Param_wfs) :
+
+            dm: (Param_dm) :
         """
         cdef bytes type_target=bytes("atmos")
 
@@ -204,20 +229,24 @@ cdef class Target:
     def add_layer(self, int n, bytes l_type, float alt, float xoff, float yoff):
         """TODO doc
 
-        n       -- int   : 
-        l_type  -- str   :
-        alt     -- float :
-        xoff    -- float :
-        yoff    -- float :
+        :parameters:
+            n: (int) : index of the target 
+            l_type: (str) : 
+
+            alt: (float) :
+
+            xoff: (float) : 
+
+            yoff: (float) : 
         """
         self.context.set_activeDevice(self.device)
         self.target.d_targets[n].add_layer(<char*>l_type, alt, xoff, yoff)
 
 
     def init_strehlmeter(self, int nTarget):
-        """TODO doc
+        """Initialise target's strehl
 
-        nTarget -- int :
+        :param nTarget: (int) : index of the target
         """
         cdef sutra_source *s_s_ptr
         self.target.d_targets[nTarget].init_strehlmeter()
@@ -225,10 +254,12 @@ cdef class Target:
     @cython.profile(True)
 #TODO cpdef
     def atmos_trace(self, int nTarget, Atmos atm):
-        """ TODO doc
+        """Raytracing of the target through the atmosphere 
 
-        int --  nTarget :
-        atm --  atmos
+        :parameters:
+            int: (nTarget) : index of the target
+
+            atm: (atmos) : atmos to get through
         """
 
         self.context.set_activeDevice(self.device)
@@ -236,11 +267,13 @@ cdef class Target:
 
 
     def get_image(self,int nTarget, bytes type_im, long puponly=0):
-        """TODO doc
+        """Return the image from the target (or long exposure image according to the requested type)
+        :parameters:
+            nTarget: (int) : index of the target
 
-        nTarget -- int :
-        type_im -- str :
-        puponly -- int : (default=0)
+            type_im: (str) : type of the image to get ("se" or "le")
+
+            puponly: (int) : TODO (default=0)
         """
         self.context.set_activeDeviceForCpy(self.device)
         cdef sutra_source *src = self.target.d_targets[nTarget]
@@ -261,9 +294,9 @@ cdef class Target:
 
 
     def get_phase(self, int nTarget):
-        """TODO doc
+        """Return the phase's screen of the target
 
-        nTarget -- int :
+        :param nTarget: (int) : index of the target
         """
 
         self.context.set_activeDeviceForCpy(self.device)
@@ -282,7 +315,7 @@ cdef class Target:
     def get_phasetele(self, int nTarget):
         """TODO doc
 
-        nTarget -- int :
+        :param nTarget: (int) : index of the target
         """
 
         self.context.set_activeDeviceForCpy(self.device)
@@ -301,9 +334,9 @@ cdef class Target:
 
 
     def get_amplipup(self, int nTarget):
-        """TODO doc
+        """Return the complex amplitude in the pupil plane of the target.
 
-        nTarget -- int :
+        :param nTarget: (int) : index of the target
         """
 
         self.context.set_activeDeviceForCpy(self.device)
@@ -321,9 +354,9 @@ cdef class Target:
 
 
     def get_strehl(self, int nTarget):
-        """TODO doc
+        """Return the target's strehl
 
-        nTarget -- int :
+        :param nTarget: (int) : index of the target
         """
 
         self.context.set_activeDeviceForCpy(self.device)

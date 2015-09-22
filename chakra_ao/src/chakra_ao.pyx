@@ -51,12 +51,19 @@ def see_atmos_target_disp(int n, Atmos atm, Target tar,Sensors wfs, float alt=0,
     - target.atmos_raytrace
     no mpi involved
 
-    n       -- int      : number of iterations
-    atm     -- Atmos    : Atmos used
-    tar     -- Target   : Target used
-    alt     -- float    : altitude of the turbulence to diplay
-    n_tar   -- int      : number of the target 
-    f       -- float    : fraction of the image to display (centered on the image center)
+    :warning: deprecated
+
+    :parameters:
+        atm: (Atmos) : atmos used
+
+        tar: (Target) : target used
+
+        alt: (float) : altitude of the turbulence to diplay
+
+        n_tar: (int) : number of the target
+
+        f: (float) : fraction of the image to display (centered on the image center)
+
     """
     f=f/2
     fig, (turbu,image,sh)=pl.subplots(1,3, figsize=(15,10))
@@ -113,14 +120,22 @@ def see_atmos_target_disp_mpi(int n, Atmos atm, Target tar,Sensors wfs, MPI.Intr
     - target.atmos_raytrace
     need mpi communicator
 
-    n       -- int      : number of iterations
-    atm     -- Atmos    : Atmos used
-    tar     -- Target   : Target used
-    wfs     -- Sensors  : Sensor used
-    comm    --  MPI.Intracomm : mpi communicator
-    alt     -- float    : altitude of the turbulence to diplay
-    n_tar   -- int      : number of the target 
-    f       -- float    : fraction of the image to display (centered on the image center)
+    :warning: deprecated
+
+    :parameters:
+        n: (int) : number of iterations
+
+        atm: (Atmos) : atmos used
+
+        tar: (Target) : target used
+
+        comm: (MPI.INTRACOMM) : mpi communicator
+
+        alt: (float) : altitude of the turbulence to diplay
+
+        n_tar: (int) : number of the target
+
+        f: (float) : fraction of the image to display (centered on the image center)
     """
     if(wfs.get_rank(0)==0):
         f=f/2
@@ -174,14 +189,24 @@ def see_atmos_target_mpi_cu(int n, Atmos atm, Target tar,Sensors wfs, MPI.Intrac
     need mpi communicator
     use mpi cuda_aware
 
-    n       -- int      : number of iterations
-    atm     -- Atmos    : Atmos used
-    tar     -- Target   : Target used
-    wfs     -- Sensors  : Sensor used
-    comm    --  MPI.Intracomm : mpi communicator
-    alt     -- float    : altitude of the turbulence to diplay
-    n_tar   -- int      : number of the target 
-    f       -- float    : fraction of the image to display (centered on the image center)
+    :warning: deprecated
+
+    :parameters:
+        n: (int) : number of iterations
+
+        atm: (Atmos) : atmos used
+
+        tar: (Target) target used
+
+        wfs: (Sensors) : sensor used
+
+        comm: (MPI.INTRACOMM) : mpi communicator
+
+        alt: (float) : altitude of the turbulence to diplay
+
+        n_tar: (int) : number of the target
+
+        f: (float) : fraction of the image to display (centered on the image center)
     """
 
     cdef double start,end, t1,t2,t3,t4,t5,t6
@@ -204,14 +229,24 @@ def see_atmos_target_mpi(int n, Atmos atm, Target tar,Sensors wfs, MPI.Intracomm
     - target.atmos_raytrace
     need mpi communicator
 
-    n       -- int      : number of iterations
-    atm     -- Atmos    : Atmos used
-    tar     -- Target   : Target used
-    wfs     -- Sensors  : Sensor used
-    comm    --  MPI.Intracomm : mpi communicator
-    alt     -- float    : altitude of the turbulence to diplay
-    n_tar   -- int      : number of the target 
-    f       -- float    : fraction of the image to display (centered on the image center)
+    :warning: deprecated
+
+    :parameters
+        n: (int) : number of iterations
+
+        atm: (Atmos) : atmos used
+
+        tar: (Target) target used
+
+        wfs: (Sensors) : sensor used
+
+        comm: (MPI.INTRACOMM) : mpi communicator
+
+        alt: (float) : altitude of the turbulence to diplay
+
+        n_tar: (int) : number of the target
+
+        f: (float) : fraction of the image to display (centered on the image center)
     """
 
     cdef double start,end, t1,t2,t3,t4,t5,t6
@@ -235,13 +270,24 @@ def see_atmos_target(int n, Atmos atm, Target tar,Sensors wfs, float alt=0, int 
     - target.atmos_raytrace
     no mpi involved
 
-    n       -- int      : number of iterations
-    atm     -- Atmos    : Atmos used
-    tar     -- Target   : Target used
-    wfs     -- Sensors  : Sensor used
-    alt     -- float    : altitude of the turbulence to diplay
-    n_tar   -- int      : number of the target 
-    f       -- float    : fraction of the image to display (centered on the image center)
+    :warning: deprecated
+
+    :parameters
+        n: (int) : number of iterations
+
+        atm: (Atmos) : atmos used
+
+        tar: (Target) target used
+
+        wfs: (Sensors) : sensor used
+
+        comm: (MPI.INTRACOMM) : mpi communicator
+
+        alt: (float) : altitude of the turbulence to diplay
+
+        n_tar: (int) : number of the target
+
+        f: (float) : fraction of the image to display (centered on the image center)
     """
 
     cdef double start,end, t1,t2,t3,t4,t5,t6
@@ -259,15 +305,20 @@ def see_atmos_target(int n, Atmos atm, Target tar,Sensors wfs, float alt=0, int 
 
 cdef bin2d(np.ndarray data_in, int binfact):
     """
-   Returns the input 2D array "array", binned with the binning factor "binfact".
-   The input array X and/or Y dimensions needs not to be a multiple of
-   "binfact"; The final/edge pixels are in effect replicated if needed.
-   This routine prepares the parameters and calls the C routine _bin2d.
-   The input array can be of type long, float or double.
-   Last modified: Dec 15, 2003.
-   Author: F.Rigaut
-   SEE ALSO: _bin2d
- */
+    Returns the input 2D array "array", binned with the binning factor "binfact".
+    The input array X and/or Y dimensions needs not to be a multiple of
+    "binfact"; The final/edge pixels are in effect replicated if needed.
+    This routine prepares the parameters and calls the C routine _bin2d.
+    The input array can be of type long, float or double.
+    Last modified: Dec 15, 2003.
+    Author: F.Rigaut
+    SEE ALSO: _bin2d
+
+    :parmeters:
+        data_in: (np.ndarray) : data to binned
+
+        binfact: (int) : binning factor
+
     """
     if(binfact<1):
         raise ValueError("binfact has to be >= 1")
@@ -302,17 +353,21 @@ cdef bin2d(np.ndarray data_in, int binfact):
 
 def  indices(int dim1, int dim2=-1):
     """DOCUMENT indices(dim)
-  Return a dimxdimx2 array. First plane is the X indices of the pixels
-  in the dimxdim array. Second plane contains the Y indices.
-  Inspired by the Python scipy routine of the same name.
-  New (June 12 2002): dim can either be :
+    Return a dimxdimx2 array. First plane is the X indices of the pixels
+    in the dimxdim array. Second plane contains the Y indices.
+    Inspired by the Python scipy routine of the same name.
+    New (June 12 2002): dim can either be :
     - a single number N (e.g. 128) in which case the returned array are
       square (NxN)
     - a Yorick array size, e.g. [#dimension,N1,N2], in which case
       the returned array are N1xN2
     - a vector [N1,N2], same result as previous case
-  F.Rigaut 2002/04/03
-  SEE ALSO: span
+    F.Rigaut 2002/04/03
+    SEE ALSO: span
+
+    :parameters:
+        dim1: (int) : first dimension
+        dim2: (int) : (optional) second dimension
     """
 
 
@@ -327,8 +382,10 @@ def  indices(int dim1, int dim2=-1):
 
 
 cdef fft_goodsize(long s):
-    """find best size for a fft from size s"
-    long s
+    """find best size for a fft from size s
+
+    :parameters:
+         s: (long) size
     """
     return 2**(long(np.log2(s))+1)
 
@@ -336,8 +393,19 @@ cdef fft_goodsize(long s):
 
 cpdef makegaussian(int size, float fwhm, int xc=-1, int yc=-1, int norm=0):
     """makegaussian(size,fwhm,xc,yc)
-        Returns a centered gaussian of specified size and fwhm.
-        norm returns normalized 2d gaussian
+    Returns a centered gaussian of specified size and fwhm.
+    norm returns normalized 2d gaussian
+
+    :parameters:
+        size: (int) : 
+
+        fwhm: (float) :
+
+        xc: (int) : (optional) center position on x axis
+
+        yc: (int) : (optional) center position on y axis
+
+        norm: (int) : (optional) normalization
     """
     cdef np.ndarray tmp
     tmp = np.exp(-(mkP.dist(size,xc,yc)/(fwhm/1.66))**2.)
@@ -349,6 +417,17 @@ cpdef makegaussian(int size, float fwhm, int xc=-1, int yc=-1, int norm=0):
 
 
 cdef make_apodizer(int dim, int pupd, bytes filename, float angle):
+    """TODO doc
+
+    :parameters:
+        (int) : im:
+
+        (int) : pupd:
+
+        (str) : filename:
+
+        (float) : angle: 
+    """
 
     print "Opening apodizer"
     cdef np.ndarray pup=np.load(filename)
@@ -427,6 +506,13 @@ cdef rotate2(image,angle, xc=-1,yc=-1, splin=0,outside=0):
 
 
 cdef Bcast(carma_obj[float] *obj, int root):
+    """Broadcast the content of a carma_obj<float>
+
+    :parameters:
+        obj: (carma_obj<float>) : carma_obj to broadcast
+
+        root: (int) : root of the MPI broadcast
+    """
     cdef int i
     cdef int size=<int>obj.getNbElem()
     cdef int ndim=<int>obj.getDims(0)
@@ -447,6 +533,15 @@ cdef Bcast(carma_obj[float] *obj, int root):
 
 
 cdef Bcast_cudaAware(carma_obj[float] *obj, int root):
+    """Broadcast the content of a carma_obj<float>
+       Using cuda_aware
+
+    :parameters:
+        obj: (carma_obj<float>) : carma_obj to broadcast
+
+        root: (int) : root of the MPI broadcast
+    """
+
     cdef int i
     cdef int size=<int>obj.getNbElem()
     cdef int ndim=<int>obj.getDims(0)
@@ -465,14 +560,26 @@ cdef rotate3d(np.ndarray[ndim=3,dtype=np.float32_t] im,
               np.ndarray[ndim=1,dtype=np.float32_t] ang,
               float cx=-1, float cy=-1,float zoom=1.0):
     """Rotates an image of an angle "ang" (in DEGREES).
-The center of rotation is cx,cy.
-A zoom factor can be applied.
 
-(cx,cy) can be omitted :one will assume one rotates around the
-center of the image.
-If zoom is not specified, the default value of 1.0 is taken.
+    The center of rotation is cx,cy.
+    A zoom factor can be applied.
 
-modif dg : allow to rotate a cube of images with one angle per image
+    (cx,cy) can be omitted :one will assume one rotates around the
+    center of the image.
+    If zoom is not specified, the default value of 1.0 is taken.
+
+    modif dg : allow to rotate a cube of images with one angle per image
+
+    :parameters:
+        im: (np.ndarray[ndim=3,dtype=np.float32_t]) : array to rotate
+
+        ang: (np.ndarray[ndim=1,dtype=np.float32_t]) : rotation angle  (in degrees)
+
+        cx: (int) : (optional) rotation center on x axis (default: image center)
+
+        cy: (int) : (optional) rotation center on x axis (default: image center)
+
+        zoom: (float) : (opional) zoom factor (default =1.0)
 """
 
 #TODO test it
@@ -547,12 +654,25 @@ modif dg : allow to rotate a cube of images with one angle per image
 cdef rotate(np.ndarray[ndim=3,dtype=np.float32_t] im,
             float ang, float cx=-1, float cy=-1,float zoom=1.0):
     """Rotates an image of an angle "ang" (in DEGREES).
-The center of rotation is cx,cy.
-A zoom factor can be applied.
 
-(cx,cy) can be omitted :one will assume one rotates around the
-center of the image.
-If zoom is not specified, the default value of 1.0 is taken.
+    The center of rotation is cx,cy.
+    A zoom factor can be applied.
+
+    (cx,cy) can be omitted :one will assume one rotates around the
+    center of the image.
+    If zoom is not specified, the default value of 1.0 is taken.
+
+    :parameters:
+        im: (np.ndarray[ndim=3,dtype=np.float32_t]) : array to rotate
+
+        ang: (float) : rotation angle (in degrees)
+
+        cx: (int) : (optional) rotation center on x axis (default: image center)
+
+        cy: (int) : (optional) rotation center on x axis (default: image center)
+
+        zoom: (float) : (opional) zoom factor (default =1.0)
+
     """
 #TODO test it
     if(zoom==0):

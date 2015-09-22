@@ -7,72 +7,87 @@ cdef class Param_atmos:
         self.nscreens=0
 
     def set_nscreens( self, long n):
-        """Set the attribute nscreens to n
-        n -- long : number of screens."""
+        """Set the number of turbulent layers
+
+        :param n: (long) number of screens.
+        """
         self.nscreens=n
 
     def set_r0( self, float r):
-        """Set the attribute r0 to r
-        r -- float : ."""
+        """Set the global r0
+
+        :param r: (float) : global r0
+        """
         self.r0=r
 
     def set_pupixsize(self,float xsize):
-        """Set the attribute pupxsize to xsize
-        xsize -- float."""
+        """Set the pupil pixel size
+
+        :param xsize: (float) : pupil pixel size
+        """
         self.pupixsize= xsize
 
     def set_L0( self, l):
-        """Set the attribute L0 to a np.array of values l
-        
-        l -- list of values (expect float32)."""
+        """Set the L0 per layers 
+
+        :param l: (lit of float) : L0 for each layers
+        """
         self.L0=np.array(l,dtype=np.float32)
 
     def set_dim_screens( self, l):
-        """Set the attribute dim_screens to a np.array of values l
-        
-        l -- list of values."""
+        """Set the size of the phase screens 
+
+        :param l: (lit of float) : phase screens sizes
+        """
         self.dim_screens=np.array(l,dtype=np.float32)
 
     def set_alt( self, l):
-        """Set the attribute alt to a np.array of values l
-        
-        l -- list of values."""
+        """Set the altitudes of each layer
+
+        :param l: (lit of float) : altitudes
+        """
         self.alt=np.array(l,dtype=np.float32)
 
     def set_winddir( self, l):
-        """Set the attribute winddir to a np.array of values l
-        
-        l -- list of values."""
+        """Set the wind direction for each layer
+
+        :param l: (lit of float) : wind directions
+        """
         self.winddir=np.array(l,dtype=np.float32)
 
     def set_windspeed( self, l):
-        """Set the attribute windspeed to a np.array of values l
-        
-        l -- list of values (expect float32)."""
+        """Set the the wind speed for each layer
+
+        :param l: (lit of float) : wind speeds
+        """
         self.windspeed=np.array(l,dtype=np.float32)
 
     def set_frac( self, l):
-        """Set the attribute frac to a np.array of values l
-        
-        l -- list of values."""
+        """Set the fraction of r0 for each layers
+
+        :param l: (lit of float) : fraction of r0
+        """
         self.frac=np.array(l,dtype=np.float32)
 
     def set_deltax( self, l):
-        """Set the attribute deltax to a np.array of values l
-        
-        l -- list of values."""
+        """Set the translation speed on axis x for each layer
+
+        :param l: (lit of float) : translation speed
+        """
         self.deltax=np.array(l,dtype=np.float32)
 
     def set_deltay( self, l):
-        """Set the attribute deltay to a np.array of values l
-        
-        l -- list of values."""
+        """Set the translation speed on axis y for each layer
+
+        :param l: (lit of float) : translation speed
+        """
         self.deltay=np.array(l,dtype=np.float32)
 
     def set_seeds( self, l):
-        """Set the attribute seeds to a np.array of values l
-        
-        l -- list of values."""
+        """Set the seed for each layer
+
+        :param l: (lit of float) : seed
+        """
         self.seeds=np.array(l,dtype=np.float32)
 
 
@@ -82,11 +97,19 @@ cdef class Param_atmos:
                     int rank=0):
         """Create and initialise an atmos object
         TODO doc
-        tel     -- Param_tel    : 
-        geom    -- Param_geom   : 
-        loop    -- Param_loop   :
-        wfs     -- param_wfs    : 
-        target  -- Param_target : 
+
+        :parameters:
+            c: (chakra_context) : context
+
+            tel: (Param_tel) : telescope settings
+
+            geom: (Param_geom) : geometry settings
+
+            loop: (Param_loop) : loop settings
+
+            wfs: (Param_wfs) : (optional)
+
+            target: (Param_target) : (optional)
         """
 
         cdef double ittime=loop.ittime
@@ -160,6 +183,29 @@ cdef class Atmos:
                 np.ndarray[ndim=1,dtype=np.float32_t] deltax,
                 np.ndarray[ndim=1,dtype=np.float32_t] deltay,
                 int device ):
+        """Create a sutra_atmos object
+
+        :parameters:
+            c: (chakra_context): context
+
+            nscreens: (int): number of turbulent layers
+
+            r0: (np.ndarray[ndim=1,dtype=np.float32_t]): global r0
+
+            size: (np.ndarray[ndim=1,dtype=np.int64_t]): screen size of each layer
+
+            altitude: (np.ndarray[ndim=1,dtype=np.float32_t]): altitude of each layer
+
+            windspeed: (np.ndarray[ndim=1,dtype=np.float32_t]): wind speed of each layer
+
+            winddir: (np.ndarray[ndim=1,dtype=np.float32_t]): wind direction of each layer
+
+            deltax: (np.ndarray[ndim=1,dtype=np.float32_t]): x translation speed
+
+            deltay: (np.ndarray[ndim=1,dtype=np.float32_t]): y translation speed
+
+            device: (int): device index
+        """
         
         cdef np.ndarray[ndim=1,dtype=np.int64_t]size2
         size2 = compute_size2(size)
@@ -181,7 +227,7 @@ cdef class Atmos:
     def get_screen(self, float alt):
         """Return a numpy array containing the turbulence at a given altitude
 
-        alt -- float : altitude of the screen to get
+        :param alt: (float) :altitude of the screen to get
         """
         cdef carma_obj[float] *screen=self.s_a.d_screens[alt].d_tscreen.d_screen
         self.context.set_activeDevice(screen.getDevice(),1)
@@ -196,7 +242,7 @@ cdef class Atmos:
     def disp(self,float alt):
         """Display the screen's phase at a given altitude 
         
-        alt -- float: altitude of the screen to display
+        :param alt: (float) : altitude of the screen to display
         """
         cdef carma_obj[float] *c_phase =self.s_a.d_screens[alt].d_tscreen.d_screen
         cdef const long *dims = c_phase.getDims()
@@ -217,14 +263,23 @@ cdef class Atmos:
         float windspeed, float winddir, float deltax, float deltay, int device):
         """Add a screen to the atmos object.
         TODO doc
-        size        -- float :
-        amplitude   -- float :
-        altitude    -- float :
-        windspeed   -- float :
-        winddir     -- float :
-        deltax      -- float :
-        deltay      -- float :
-        device      -- int   :
+
+        :parameters:
+            size: (float) :
+
+            amplitude: (float) :
+
+            altitude: (float) :
+
+            windspeed: (float) :
+
+            winddir: (float) :
+
+            deltax: (float) :
+
+            deltay: (float) :
+
+            device: (int) :
         """
         cdef long size2=compute_size2(np.array([size],dtype=np.int64))[0]
 
@@ -243,7 +298,7 @@ cdef class Atmos:
     def del_screen(self,float alt):
         """Delete a screen from the atmos object
 
-        alt -- float: altitude of the screen to delete 
+        :param alt: (float) : altitude of the screen to delete
         """
         if(self.s_a.d_screens.find(alt)==self.s_a.d_screens.end()):
             print "No screen at this altitude"
@@ -270,6 +325,8 @@ cdef class Atmos:
 
 
     def move_atmos(self):
+        """Generate turbulence"""
+
         self.s_a.move_atmos()
 
 
@@ -305,7 +362,36 @@ cdef atmos_create(chakra_context c, int nscreens,
               np.ndarray[ndim=1,dtype=np.float32_t] deltax,
               np.ndarray[ndim=1,dtype=np.float32_t] deltay,
               int verbose):
-    """Create and initialise an atmos object."""
+    """Create and initialise an atmos object.
+    
+    TODO doc
+    :parameters:
+        c: (chakra_context) : context
+
+        nscreens: (float) : number of turbulent layers 
+
+        r0: (float) : global r0
+
+        L0: (np.ndarray[ndim=1, dtype=np.float32_t]) : L0
+
+        pupixsize: (float) :
+
+        dim_screens: (np.ndarray[ndim=1,dtype=np.int64_t]) :
+
+        frac: (np.ndarray[ndim=1,dtype=np.float32_t]) :
+
+        alt: (np.ndarray[ndim=1,dtype=np.float32_t]) :
+
+        windspeed: (np.ndarray[ndim=1,dtype=np.float32_t]) :
+
+        winddir: (np.ndarray[ndim=1,dtype=np.float32_t]) :
+
+        deltax: (np.ndarray[ndim=1,dtype=np.float32_t]) :
+
+        deltay: (np.ndarray[ndim=1,dtype=np.float32_t]) :
+
+        verbose: (int) :
+    """
 
     # get fraction of r0 for corresponding layer
     r0_layers = r0/(frac**(3./5.)*pupixsize)
@@ -361,7 +447,10 @@ cdef atmos_create(chakra_context c, int nscreens,
 
 
 cdef compute_size2(np.ndarray[ndim=1,dtype=np.int64_t]size):
-    """Compute the size of a stencil, given the screen size"""
+    """Compute the size of a stencil, given the screen size
+    
+    :param size: (np.ndarray[ndim=1,dtype=np.int64_t]) :screen size
+    """
     
     cdef n=size.shape[0]
     cdef np.ndarray[ndim=1,dtype=np.int64_t] size2=np.zeros(n,dtype=np.int64)

@@ -2,162 +2,223 @@
 cdef class Param_wfs:
 
     def set_type(self, str t):
-        """Set the attribute  to t
-        t -- str"""
+        """Set the type of wfs
+
+        :param t: (str) : type of wfs ("sh" or "pyr")
+        """
         self.type_wfs=t
 
     def set_nxsub(self, long n):
-        """Set the attribute nxsub to n
-        n -- long"""
+        """Set the linear number of subaps
+        
+        :param n: (long) : linear number of subaps
+        """
         self.nxsub=n
 
     def set_npix(self,long  n):
-        """Set the attribute npix to n
-        n -- long"""
+        """Set the number of pixels per subap
+        
+        :param n: (long) : number of pixels per subap
+        """
         self.npix=n
 
     def set_pixsize(self,float p):
-        """Set the attribute pixsize to p
-        p -- float"""
+        """Set the pixel size
+        
+        :param p: (float) : pixel size (in arcsec) for a subap
+        """
         self.pixsize=p
 
     def set_Lambda(self,float L):
-        """Set the attribute Lambda to L
-        L -- float"""
+        """Set the observation wavelength
+        
+        :param L: (float) : observation wavelength (in µm) for a subap
+        """
         self.Lambda=L
 
     def set_optthroughput(self,float o):
-        """Set the attribute optthroughput to o
-        o -- float"""
+        """Set the wfs global throughput
+        
+        :param o: (float) : wfs global throughput
+        """
         self.optthroughput=o
 
     def set_fracsub(self,float f):
-        """Set the attribute fracsub to f
-        f -- float"""
+        """Set the minimal illumination fraction for valid subaps
+        
+        :param f: (float) : minimal illumination fraction for valid subaps
+        """
         self.fracsub=f
 
     def set_openloop(self,long o):
-        """Set the attribute openloop to o
-        o -- long"""
+        """Set the loop state (open or closed)
+        
+        :param o: (long) : 1 if in "open-loop" mode (i.e. does not see dm)
+        """
         self.openloop=o
 
     def set_fssize(self,float f):
-        """Set the attribute fssize to f
-        f -- float"""
+        """Set the size of field stop
+        
+        :param f: (float) : size of field stop in arcsec
+        """
         self.fssize=f
 
     def set_fstop(self,str f):
-        """Set the attribute fstop to f
-        f -- str"""
+        """Set the size of field stop
+        
+        :param f: (str) : size of field stop in arcsec
+        """
         self.fstop=f
 
     def set_atmos_seen(self, int i):
-        """Set attribute atmos_seen to i
-        i -- int 
+        """Tells if the wfs sees the atmosphere layers
+        
+        :param i: (int) :1 if the WFS sees the atmosphere layers 
         """
         self.atmos_seen=i
 
     def set_xpos(self,float x):
-        """Set the attribute xpos to x
-        x -- float"""
+        """Set the guide star x position on sky
+        
+        :param x: (float) : guide star x position on sky (in arcsec)
+        """
         self.xpos=x
 
     def set_ypos(self,float y):
-        """Set the attribute ypos to y
-        y -- float"""
+        """Set the guide star y position on sky
+        
+        :param y: (float) : guide star y position on sky (in arcsec)
+        """
         self.ypos=y
 
     def set_gsalt(self,float g):
-        """Set the attribute gsalt to g
-        g -- float"""
+        """Set the altitude of guide star 
+        
+        :param g: (float) : altitude of guide star (in m) 0 if ngs
+        """
         self.gsalt=g
 
     def set_gsmag(self,float g):
-        """Set the attribute gsmag to g
-        g -- float"""
+        """Set the magnitude of guide star
+        
+        :param g: (float) : magnitude of guide star
+        """
         self.gsmag=g
 
     def set_zerop(self,float z):
-        """Set the attribute zerop to 
-        z -- float"""
+        """Set the detector zero point
+        
+        :param z: (float) : detector zero point
+        """
         self.zerop=z
 
     def set_noise(self,float n):
-        """Set the attribute noise to n
-        n -- float"""
+        """Set the desired noise
+        
+        :param n: (float) : desired noise : < 0 = no noise / 0 = photon only / > 0 photon + ron
+        """
         self.noise=n
 
     def set_kernel(self,float k):
-        """Set the attribute kernel to k
-        k -- float"""
+        """Set the attribute kernel
+        
+        :param k: (float) :
+        """
         self.kernel=k
 
     def set_laserpower(self,float l):
-        """Set the attribute laserpower to l
-        l -- float"""
+        """Set the laser power
+        
+        :param l: (float) : laser power in W
+        """
         self.laserpower=l
 
     def set_lltx(self,float l):
-        """Set the attribute lltx to l
-        l -- float"""
+        """Set the x position of llt
+        
+        :param l: (float) : x position (in meters) of llt
+        """
         self.lltx=l
 
     def set_llty(self,float l):
-        """Set the attribute llty to l
-        l -- float"""
+        """Set the y position of llt
+        
+        :param l: (float) : y position (in meters) of llt
+        """
         self.llty=l
 
     def set_proftype(self,str p):
-        """Set the attribute proftype to p
-        p -- str"""
+        """Set the type of sodium profile
+        
+        :param p: (str) : type of sodium profile "gauss", "exp", etc ...
+        """
         self.proftype=p
 
     def set_beamsize(self,float b):
-        """Set the attribute beamsize to b
-        b -- float"""
+        """Set the laser beam fwhm on-sky
+        
+        :param b: (float) : laser beam fwhm on-sky (in arcsec)
+        """
         self.beamsize=b
 
     def set_pyr_ampl(self,float p):
-        """Set the attribute pyr_ampl to p
-        p -- float"""
+        """Set the pyramid wfs modulation amplitude radius
+        
+        :param p: (float) : pyramid wfs modulation amplitude radius (in arsec)
+        """
         self.pyr_ampl=p
 
     def set_pyr_npts(self,long p):
-        """Set the attribute pyr_npts to p
-        p -- long"""
+        """Set the total number of point along modulation circle
+        
+        :param p: (long) : total number of point along modulation circle
+        """
         self.pyr_npts=p
 
     def set_pyr_loc(self,str p):
-        """Set the attribute pyr_loc to p
-        p -- str"""
+        """Set the location of modulation
+        
+        :param p: (str) : location of modulation, before/after the field stop.
+                          valid value are "before" or "after" (default "after")
+        """
         self.pyr_loc=p
 
     def set_pyrtype(self,str p):
-        """Set the attribute pyrtype to p
-        p -- str"""
+        """Set the type of pyramid,
+        
+        :param p: (str) : type of pyramid, either 0 for "Pyramid" or 1 for "RoofPrism"
+        """
         self.pyrtype=p
 
     def set_dms_seen(self, np.ndarray[ndim=1,dtype=np.int32_t] dms_seen):
-        """Set the attribute dms_seen to dms_seen
-        dms_seen -- numpy array
+        """Set the index of dms seen by the WFS
+        
+        :param dms_seen: (np.ndarray[ndim=1,dtype=np.int32_t) : index of dms seen by the WFS
         """
         self.dms_seen=dms_seen
 
     def set_lgsreturnperwatt(self, float lpw):
-        """Set attribute lgsreturnperwatt to lpw
-        lpw -- float """
+        """Set the return per watt factor
+        
+        :param lpw: (float) : return per watt factor (high season : 10 ph/cm2/s/W)
+        """
         self.lgsreturnperwatt=lpw
 
 
     def set_altna(self,np.ndarray[ndim=1,dtype=np.float32_t] a):
-        """Set attribute _altna to a
-        a -- np.ndarray[ndim=1,dtype=np.float32]"""
+        """Set the corresponding altitude
+        
+        :param a: (np.ndarray[ndim=1,dtype=np.float32]) : corresponding altitude
+        """
         self._altna=a
 
 
     def set_profna(self,np.ndarray[ndim=1,dtype=np.float32_t] p):
-        """Set attribute _profna to p
-        p -- np.ndarray[ndim=1,dtype=np.float32]"""
+        """Set the sodium profile
+        
+        :param p: (np.ndarray[ndim=1,dtype=np.float32]) : sodium profile
+        """
         self._profna=p
 
 
@@ -169,10 +230,21 @@ cdef class Param_wfs:
         """The function returns an image array(double,n,n) of a laser beacon elongated by perpective
  effect. It is obtaind by convolution of a gaussian of width "lgsWidth" arcseconds, with the
  line of the sodium profile "prof". The altitude of the profile is the array "h".
- prof     -- np.ndarray[dtype=np.float32] : Na profile intensity, in arbitrary units
- h        -- np.ndarray[dtype=np.float32] : altitude, in meters. h MUST be an array with EQUALLY spaced elements.
- beam     -- float : size in arcsec of the laser beam
- center   -- string: either "image" or "fourier" depending on where the centre should be.
+
+
+
+        :parameters:
+            nsensors: (int) : wfs index
+
+            p_tel: (Param_tel) : telescope settings
+
+            prof: (np.ndarray[dtype=np.float32]) : Na profile intensity, in arbitrary units
+
+            h: (np.ndarray[dtype=np.float32]) : altitude, in meters. h MUST be an array with EQUALLY spaced elements.
+
+            beam: (float) : size in arcsec of the laser beam
+
+            center: (string) : either "image" or "fourier" depending on where the centre should be.
  
  Computation of LGS spot from the sodium profile:
  Everything is done here in 1D, because the Na profile is the result of the convolution of a function
@@ -191,7 +263,8 @@ cdef class Param_wfs:
  it's better to try to "save" those structures by re-sampling the integral of the profile, and
  then derivating it afterwards.
  Now, if the initial profile is a coarse one, and that one has to oversample it, then a
- simple re-sampling of the profile is adequate."""
+ simple re-sampling of the profile is adequate.
+ """
 
         self._prof1d=prof
         self._profcum=np.zeros(prof.size+1,dtype=np.float32)
@@ -274,7 +347,21 @@ cdef class Param_wfs:
     cdef make_lgs_prof1d(self,int nsensors, Param_tel p_tel,
             np.ndarray[dtype=np.float32_t] prof, np.ndarray[dtype=np.float32_t] h,
             float beam, bytes center=<bytes>""):
-        """same as prep_lgs_prof but cpu only. original routine from rico"""
+        """same as prep_lgs_prof but cpu only. original routine from rico
+        
+        :parameters:
+            nsensors: (int) : wfs index
+
+            p_tel: (Param_tel) : telescope settings
+
+            prof: (np.ndarray[dtype=np.float32]) : Na profile intensity, in arbitrary units
+
+            h: (np.ndarray[dtype=np.float32]) : altitude, in meters. h MUST be an array with EQUALLY spaced elements.
+
+            beam: (float) : size in arcsec of the laser beam
+
+            center: (string) : either "image" or "fourier" depending on where the centre should be.
+        """
 
         self._prof1d=prof
         self._profcum=np.zeros(prof.shape[1]+1,dtype=np.float32)
@@ -440,7 +527,19 @@ cdef class Param_wfs:
 
 
 cdef type_present( liste,int pyr, int roof, int sh, int geo):
-    """for each type of wfs,
+    """Check the present types in a list
+
+    :parameters:
+        liste: (list of str) : list of types
+
+        pyr: (int) : set to 1 if the list contains "pyr" (0 else)
+
+        roof: (int): set to 1 if the list contains "roof" (0 else)
+
+        sh: (int) : set to 1 if the list contains "sh" (0 else)
+
+        geo: (int) : set to 1 if the list contains "geo" (0 else)
+
     return 1 if the wfs type is present (0 else)
     """
 
@@ -464,7 +563,7 @@ cdef type_present( liste,int pyr, int roof, int sh, int geo):
 cdef wheremax(liste):
     """return the index of the maximum value of the list
 
-    liste -- list of value
+    :param liste: (list of values) : values to get the index of the maximum from
     """
     cdef int i,j
     cdef int l=len(liste)
@@ -482,15 +581,26 @@ cdef wheremax(liste):
 def wfs_init( wfs, Param_atmos p_atmos, Param_tel p_tel, Param_geom p_geom,
             Param_target p_target, Param_loop p_loop,int comm_size, int rank, dm=None):
     """
-    wfs         : list of Param_wfs
-    p_atmos     : Param_atmos
-    p_tel       : Param_tel
-    p_geom      : Param_geom
-    p_target    : Param_target
-    p_loop      : Param_loop
-    comm_size   : int communicator size
-    rank        : int process rank
-    dm          : list of Param_dm
+    Create and initialise  a Sensors object
+
+    :parameters:
+        wfs: (list of Param_wfs) : wfs settings
+
+        p_atmos: (Param_atmos) : atmos settings
+
+        p_tel: (Param_tel) : telescope settings
+
+        p_geom: (Param_geom) : geom settings
+
+        p_target: (Param_target) : target settings
+
+        p_loop: (Param_loop) : loop settings
+
+        comm_size: (int) : communicator size
+
+        rank: (int) : process rank
+
+        dm: (list of Param_dm) : (optional) dms settings
     """
     cdef int nsensors=len(wfs)
     cdef int i
@@ -627,6 +737,31 @@ cdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
                 Param_tel tel, Param_geom geom, Param_target p_target,
                 Param_loop loop, int init=0, int comm_size=1, int verbose=0):
     """TODO doc
+
+    :parameters:
+        wfs: (Param_wfs) : wfs settings
+
+        wfs0: (Param_wfs) : reference wfs settings
+
+        n: (int) :
+
+        atmos: (Param_atmos) : atmos settings
+
+        tel: (Param_tel) : telescope settings
+
+        geom: (Param_geom) : geom settings
+
+        target: (Param_target) : target settings
+
+        loop: (Param_loop) : loop settings
+
+        init: (int) : (optional)
+
+        comm_size: (int) : (optional)
+
+        verbose: (int) : (optional) display informations if 0
+
+
     """
     if(verbose==0):print "*-----------------------"
     if(verbose==0):print "Doing inits on WFS", n
@@ -1007,19 +1142,34 @@ cdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
 cdef init_wfs_size( Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
                 Param_tel tel, int psize, long *pdiam, int *Nfft, int *Ntot, int *nrebin, 
                 float *pixsize, float *qpixsize,int verbose=0):
-    """   init_wfs_size(wfs,pdiam,Nfft,Ntot,nrebin,pixsize,qpixsize)
+    """TODO doc
 
-    computes the quatum pixel sizes and all useful dimensions for a given wfs
-    requires 2 externals : y_atmos & y_tel
-    y_atmos : a atmos_struct()
-    y_tel   : a tel_struct()
-    wfs     : wfs_struct as input (input)
-    pdiam   : pupil diam for each subap (pixels) (output)
-    Nfft    : fft size for a subap (pixels) (output)
-    Ntot    : hr image size for a subap (pixels) (output)
-    nrebin  : rebin factor for a subap (output)
-    pixsize : simulated pixel size for a subap (arcsec) (output)
-    qpixsize: quantum pixel size for a subap (arcsec) (output)
+    :parameters:
+        wfs: (Param_wfs) : wfs settings
+
+        wfs0: (Param_wfs) : reference wfs settings
+
+        n: (int) :
+
+        atmos: (Param_atmos) : atmos settings
+
+        tel: (Param_tel) : telescope settings
+
+        psize: (int) :
+
+        pdiam: (long) : pupil diam for each subap (pixels) (output)
+
+        Nfft: (int*) : fft size for a subap (pixels) (output)
+
+        Ntot: (int) : hr image size for a subap (pixels) (output)
+
+        nrebin: (int*) : rebin factor for a subap (output)
+
+        pixsize: (float*) : simulated pixel size for a subap (arcsec) (output)
+
+        qpixsize: (float*) : quantum pixel size for a subap (arcsec) (output)
+
+        verbose: (int) : (optional) display informations if 0
 
     Scheme to determine arrays sizes
     sh :

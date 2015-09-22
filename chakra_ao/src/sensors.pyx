@@ -1,4 +1,44 @@
 cdef class Sensors:
+    """
+
+    Constructor:
+    Sensors(nsensors,type_data,npup,nxsub,nvalid,nphase,pdiam,npix,nrebin,nfft,nftota,nphot,lgs,odevice,comm_size,rank)
+
+    :parameters:
+        nsensors: (int) :
+
+        type_data: list of strings) :
+
+        npup: (np.ndarray[ndim=1,dtype=np.int64_t]) :
+
+        nxsub: (np.ndarray[ndim=1,dtype=np.int64_t]) :
+
+        nvalid: (np.ndarray[ndim=1,dtype=np.int64_t]) :
+
+        nphase: (np.ndarray[ndim=1,dtype=np.int64_t]) :
+
+        pdiam: (np.ndarray[ndim=1,dtype=np.float32_t) :
+
+        npix: (np.ndarray[ndim=1,dtype=np.int64_t]) :
+
+        nrebin: (np.ndarray[ndim=1,dtype=np.int64_t]) :
+
+        nfft: (np.ndarray[ndim=1,dtype=np.int64_t]) :
+
+        ntota: (np.ndarray[ndim=1,dtype=np.int64_t]) :
+
+        nphot: (np.ndarray[ndim=1,dtype=np.float32_t]) :
+
+        lgs: (np.ndarray[ndim=1,dtype=np.int32_t]) :
+
+        odevice: (int) : 
+
+        comm_size: (int) : MPI communicator size
+
+        rank: (int) : process rank
+
+
+    """
     def __cinit__(self, int nsensors,
                     type_data,
                     np.ndarray[ndim=1,dtype=np.int64_t] npup,
@@ -62,6 +102,25 @@ cdef class Sensors:
                              np.ndarray[ndim=1,dtype=np.int64_t  ] size,
                              np.ndarray[ndim=1,dtype=np.float32_t] noise,
                              np.ndarray[ndim=1,dtype=np.int64_t  ] seed):
+        """Call the function sensors_initgs 
+
+    :parameters:
+        xpos: (np.ndarray[ndim=1,dtype=np.float32_t]) :
+
+        ypos: (np.ndarray[ndim=1,dtype=np.float32_t]) :
+
+        Lambda: (np.ndarray[ndim=1,dtype=np.float32_t]) :
+
+        mag: (np.ndarray[ndim=1,dtype=np.float32_t]) :
+
+        zerop: (float) :
+
+        size:  (np.ndarray[ndim=1,dtype=np.int64_t  ]) :
+
+        noise: (np.ndarray[ndim=1,dtype=np.float32_t]) :
+
+        seed:  (np.ndarray[ndim=1,dtype=np.int64_t  ]) :
+        """
 
         if(noise.size==0):
             self.sensors.sensors_initgs(<float*>xpos.data, <float*>ypos.data,
@@ -78,6 +137,15 @@ cdef class Sensors:
 
 
     cdef sensors_initarr(self,int n, Param_wfs wfs, Param_geom geom):
+        """Call the function wfs_initarrays from a sutra_wfs of the Sensors
+
+        :parameters:
+        n: (int) : index of the wfs
+
+        wfs: (Param_wfs) :
+
+        geom: (Param_geom) :
+        """
 
         cdef np.ndarray tmp,tmp2,tmp_istart,tmp_jstart
         cdef string type_sh="sh"
@@ -111,7 +179,7 @@ cdef class Sensors:
         cdef int *cy = <int*>wfs._pyr_cy.data
 
         """
-        #type depend on wfs' type
+        #type depend on wfs type
         cdef np.ndarray halfxy_F=wfs._halfxy.flatten("F")
         # [dtype=np.float32_t] halfxy_F=
         cdef float *halfxy=<float*>halfxy_F.data
@@ -180,6 +248,19 @@ cdef class Sensors:
 
     cdef sensors_addlayer(self,int i, bytes type_dm, float alt,
         float xoff, float yoff):
+        """Call function add_layer from the sutra_source of a sutra_wfs of the Sensors
+
+        :parameters:
+            i: (int) :
+
+            type_dm: (string) :
+
+            alt: (float) :
+
+            xoff: (float) :
+
+            yoff: (float) :
+        """
        
         cdef carma_context * context = carma_context.instance()
         context.set_activeDevice(self.sensors.device,1)
@@ -187,6 +268,10 @@ cdef class Sensors:
 
          
     def sensors_compimg(self, int n):
+        """TODO doc
+
+        :param n: (in) : index of the wfs
+        """
         cdef carma_context *context = carma_context.instance()
         context.set_activeDeviceForCpy(self.sensors.device,1)
         self.sensors.d_wfs[n].comp_image()
@@ -195,7 +280,7 @@ cdef class Sensors:
     def get_offsets(self, int n):
         """Return the 'offset' array of a given wfs
 
-        n -- int: number of the wfs to get the 'offset' from
+        :param n: (int) : number of the wfs to get the 'offset' from
         """
         cdef carma_obj[float] *img
         cdef const long *cdims
@@ -211,7 +296,7 @@ cdef class Sensors:
     def get_imgtele(self, int n):
         """Return the 'image_telemetry' array of a given wfs
 
-        n -- int: number of the wfs to get the 'image_telemetry' from
+        :param n: (int) : number of the wfs to get the 'image_telemetry' from
         """
         cdef carma_host_obj[float] *img
         cdef sutra_wfs_sh *wfs=dynamic_cast_wfs_sh_ptr(self.sensors.d_wfs[n])
@@ -228,7 +313,7 @@ cdef class Sensors:
     cdef _get_binimg(self, int n):
         """Return the 'binimg' array of a given wfs
 
-        n -- int: number of the wfs to get the 'binimg' from
+        :param n: (int) :number of the wfs to get the 'binimg' from
         """
         cdef carma_obj[float] *img
         cdef const long *cdims
@@ -248,14 +333,14 @@ cdef class Sensors:
     def get_binimg(self,int n):
         """Return the 'binimg' array of a given wfs
 
-        n -- int: number of the wfs to get the 'binimg' from
+        :param n: (int) :number of the wfs to get the 'binimg' from
         """
         return self._get_binimg(n)
 
     cdef _get_bincube(self, int n):
         """Return the 'bincube' array of a given wfs
 
-        n -- int: number of the wfs to get the 'bincube' from
+        :param n: (int) : number of the wfs to get the 'bincube' from
         """
         cdef carma_obj[float] *cube
         cdef const long *cdims
@@ -272,15 +357,14 @@ cdef class Sensors:
     def get_bincube(self,int n):
         """Return the 'bincube' array of a given wfs
 
-        n -- int: number of the wfs to get the 'bincube' from
+        :param n: (int) : number of the wfs to get the 'bincube' from
         """
         return self._get_bincube(n)
 
     def get_phase(self, int n):
         """Return the phase array of a given wfs
-        (wfs.d_gs.d_phase.d_screen)
 
-        n -- int: number of the wfs to get the phase from
+        :param n: (int) : number of the wfs to get the phase from
         """
         cdef carma_obj[float] *phase
         cdef const long *cdims
@@ -298,7 +382,7 @@ cdef class Sensors:
     def get_camplipup(self, int n):
         """Return the 'camplipup' array of a given wfs
 
-        n -- int: number of the wfs to get the 'camplipup' from
+        :param n: (int) : number of the wfs to get the 'camplipup' from
         """
         cdef carma_obj[cuFloatComplex] *amplipup
         cdef const long *cdims
@@ -315,7 +399,7 @@ cdef class Sensors:
     def get_amplifoc(self, int n):
         """Return the 'amplifoc' array of a given wfs
 
-        n -- int: number of the wfs to get the 'amplifoc' from
+        :param n: (int) : number of the wfs to get the 'amplifoc' from
         """
         cdef carma_obj[cuFloatComplex] *amplifoc
         cdef const long *cdims
@@ -331,7 +415,8 @@ cdef class Sensors:
 
     cdef _get_slopesDims(self,int n):
         """return the dimension of the slopes array of a given wfs
-        n -- int: number of the wfs to get the 'slopes' dimension from
+
+        :param n: (int) : number of the wfs to get the 'slopes' dimension from
         """
         cdef int comm_size, rank
         mpi.MPI_Comm_size(mpi.MPI_COMM_WORLD,&comm_size)
@@ -349,7 +434,7 @@ cdef class Sensors:
     cdef _get_slopes(self, int n):
         """Return the 'slopes' array of a given wfs
 
-        n -- int: number of the wfs to get the 'slopes' from
+        :param n: (int) : number of the wfs to get the 'slopes' from
         """
         cdef carma_obj[float] *slopes
         cdef const long *cdims
@@ -399,7 +484,13 @@ cdef class Sensors:
 
 
     cdef slopes_geom(self,int nsensor, int t):
-        """TODO doc"""
+        """TODO doc 
+        
+        :parameters:
+            nsensor: (int) :
+
+            :param t: (int) :
+        """
         if(<bytes>self.sensors.d_wfs[nsensor].type != "sh"):
             raise TypeError("wfs should be a SH")
         cdef sutra_wfs_sh *wfs_sh = dynamic_cast_wfs_sh_ptr(self.sensors.d_wfs[nsensor])
@@ -410,6 +501,17 @@ cdef class Sensors:
 
     cpdef sensors_trace(self,int n, str type_trace, Atmos atmos=None,  Dms dms=None, int rst=0): 
         """ TODO doc
+
+        :parameters:
+            n: (int) :
+
+            type_trace: (str) :
+
+            atmos: (Atmos) :(optional)
+
+            dms: (Dms) : (optional)
+
+            rst: (int) : (optional)
         """
 
         cdef carma_context *context=carma_context.instance()
@@ -464,9 +566,12 @@ cdef class Sensors:
     cpdef gather_bincube(self,MPI.Intracomm comm,int n):
         """Gather the carma object 'bincube' of a wfs on the process 0
 
-        comm    -- MPI.Intracomm : communicator mpi
-        n       -- int : number of the wfs where the gather will occured
+        :parameters:
+            comm: (MPI.Intracomm) :communicator mpi
+
+            n: (int) : number of the wfs where the gather will occured
         """
+
         cdef int nx=self.sensors.d_wfs[n].npix
         cdef int ny=nx
         cdef int nz=self.sensors.d_wfs[n].nvalid
@@ -503,8 +608,9 @@ cdef class Sensors:
         """Gather the carma object 'bincube' of a wfs on the process 0
 
         using mpi cuda_aware
-        comm    -- MPI.Intracomm : communicator mpi
-        n       -- int : number of the wfs where the gather will occured
+
+            comm: (MPI.Intracomm) : communicator mpi
+            n: (int) : number of the wfs where the gather will occured
         """
         cdef float *recv_bin=self.sensors.d_wfs[n].d_bincube.getData()
         cdef float *send_bin=self.sensors.d_wfs[n].d_bincube.getData()
@@ -520,10 +626,18 @@ cdef class Sensors:
 
 
     cdef _get_rank(self,int n):
+        """Return the rank of one of the sensors wfs
+
+        :param n: (int): index of the wfs to get the rank for 
+        """
         return self.sensors.d_wfs[n].rank
 
 
     def get_rank(self,int n):
+        """Return the rank of one of the sensors wfs
+
+        :param n: (int) : index of the wfs to get the rank for 
+        """
         return self.sensors.d_wfs[n].rank
 
 
@@ -599,7 +713,7 @@ cdef class Sensors:
     cdef _get_hrmap(self, int n):
         """Return the 'bincube' array of a given wfs
 
-        n -- int: number of the wfs to get the 'bincube' from
+        :param n: (int) : number of the wfs to get the 'bincube' from
         """
         cdef carma_obj[int] *cube
         cdef const long *cdims
@@ -610,7 +724,7 @@ cdef class Sensors:
         cube.device2host(<int*>data.data)
         return data
 
-
+"""
     cdef getDims(self):
         cdef const long *dims_ampli
         cdef const long *dims_fttot
@@ -622,4 +736,4 @@ cdef class Sensors:
         d_tot=np.array([dims_fttot[0],dims_fttot[1],dims_fttot[2],dims_fttot[3]])
 
         return d_amp,d_tot
-
+"""

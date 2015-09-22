@@ -1,10 +1,24 @@
 cdef class Param_rtc:
     def set_nwfs( self, n):
+        """Set the number of wfs
+
+        :param n: (int) number of wfs
+        """
         self.nwfs=n
     def set_centroiders(self,l):
+        """Set the centroiders
+
+        :param l: (list of Param_centroider)
+        """
         self.centroiders=l
+
     def set_controllers(self,l):
+        """Set the controller
+
+        :param l: (list of Param_controller)
+        """
         self.controllers=l
+
 
 cdef class Rtc:
     def __cinit__(self, device=-1):
@@ -21,6 +35,22 @@ cdef class Rtc:
     def add_centroider(self,Sensors sensor, long nwfs, long nvalid,
                         bytes type_centro, float offset, float scale):
 
+        """TODO doc
+
+        :parameters:
+            sensor: (Sensors) :
+
+            nwfs : (long) : number of wfs
+
+            nvalid: (long) : number of valid subaps
+
+            type_centro: (str) : centroider's type
+
+            offset: (float) : 
+
+            scale: (float) :
+
+        """
         cdef carma_context *context = carma_context.instance()
         cdef int activeDevice=self.rtc.device
         context.set_activeDeviceForCpy(self.rtc.device,1)
@@ -31,6 +61,25 @@ cdef class Rtc:
     cdef add_controller(self, int nactu, float delay, bytes type_control, Dms dms,
                  char **type_dmseen, np.ndarray[ndim=1,dtype=np.float32_t] alt,
                  int ndm, long Nphi=-1):
+        """TODO doc
+
+        :parameters:
+            nactu: (int) : number of controled actuator
+
+            delay: (float) :
+
+            type_control: (str) : controller's type
+
+            dms: (Dms) : 
+
+            type_dmseen: (char**) : 
+
+            alt: (np.ndarray[ndim=1,dtype=np.float32_t]) : 
+
+            ndm: (int) :
+
+            Nphi: (long) :
+        """
 
         cdef float *ptr_alt    =<float*>alt.data
         cdef char *ptr_dmseen =<char *> type_dmseen
@@ -44,29 +93,57 @@ cdef class Rtc:
 
 
     def rmcontrol(self):
+        """TODO doc"""
         cdef carma_context *context=carma_context.instance()
         context.set_activeDevice(self.device,1)
         self.dms.rm_controller()
 
 
     def setthresh(self, int ncentro, float thresh):
+        """set threshold
+
+        :parameters:
+            ncentro: (int) : centroider's index
+
+            thresh: (float) : threshold
+        """
 
         cdef carma_context *context=carma_context.instance()
         cdef sutra_centroider_tcog *tcog=NULL
         cdef sutra_centroider *centro=NULL
         context.set_activeDeviceForCpy(self.device,1)
-        if(self.dms.d_centro.at(ncentro).is_type("t_cog")):
+        if(self.dms.d_centro.at(ncentro).is_type("tcog")):
             centro=self.rtc.d_centro.at(ncentro)
             tcog=dynamic_cast_centroider_tcog_ptr(centro)
             tcog.set_threshold(thresh)
 
 
     def setnmax(self,int ncentro, int nmax):
+        """TODO doc
+
+        :parameters:
+            ncentro: (int) : centroider's index
+
+            nmax: (int) :
+        """
         cdef carma_context *context=carma_context.instance()
         context.set_activeDevice(self.device,1)
 
+        #TODO add centroider_bpcog, cast to centroiderbpcog
+        #cdef sutra_centroider_bpcog *bpcog=NULL
+        #cdef sutra_centroider *centro=NULL
+
+        #if(self.d_centro.at(ncentro).is_type("bpcog")):
+        #    centro=self.rtc.d_centro.at(ncentro)
+        #    bpcog=dynamic_cast_centroider_tcog_ptr(centro)
+        #    bpcog.setnmax(nmax)
 
     def sensors_initbcube(self,int ncentro):
+        """TODO doc
+
+        :param ncentro: (int) : centroider's index
+        """
+            
         cdef carma_context *context=carma_context.instance()
         context.set_activeDevice(self.device,1)
         cdef sutra_centroider *centro=NULL
@@ -78,7 +155,14 @@ cdef class Rtc:
         return 1
 
 
-    def sensors_initweight(self,int ncentro, np.ndarray w):
+    def sensors_initweight(self,int ncentro, np.ndarray[ndim=1, dtype=np.float32_t] w):
+        """Set weigth of a centroider
+
+        :parameters:
+            ncentro: (int) : centroider's index
+
+            w: (np.ndarray[ndim=1, dtype=np.float32_t]) : weight
+        """
         cdef carma_context *context = carma_context.instance()
         context.set_activeDevice(self.rtc.device,1)
         cdef sutra_centroider_wcog *centro=\
@@ -88,10 +172,26 @@ cdef class Rtc:
         centro.load_weights(<float*>w_F.data,int(w.ndim))
 
 
-    def sensors_initcorr(self,int ncentro, np.ndarray w,
+    def sensors_initcorr(self,int ncentro, np.ndarray[ndim=1,dtype=np.float32_t] w,
                         np.ndarray[ndim=2,dtype=np.float32_t] corr_norm,
                         int sizex, int sizey,
                         np.ndarray[ndim=2,dtype=np.float32_t] interpmat):
+        """TODO doc
+
+        :parameters:
+            ncentro: (int) : centroider's index
+
+            w: (np.ndarray[ndim=1,dtype=np.float32_t]) : weight
+
+            corr_norm: (np.ndarray[ndim=2,dtype=np.float32_t]) :
+
+            sizex: (int) :
+
+            sizey: (int) :
+
+            interpmat: ([ndim=2,dtype=np.float32_t]) :
+
+        """
 
         cdef carma_context *context = carma_context.instance()
         context.set_activeDevice(self.rtc.device,1)
@@ -106,6 +206,15 @@ cdef class Rtc:
 
     #TODO possible error -> check it
     cpdef getcentroids(self,int ncontrol, Sensors g_wfs=None, int nwfs=0):
+        """TODO doc
+
+        :parameters:
+            ncontrol: (int) : controller's index
+
+            g_wfs: (Sensors) : (optional)
+
+            nwfs: (int) : (optional) number of wfs
+        """
 
         cdef const long *dims
         cdef sutra_wfs *wfs
@@ -135,6 +244,10 @@ cdef class Rtc:
 
 
     cpdef docentroids(self,int ncontrol=-1):
+        """TODO doc
+
+        :param ncontrol: (optional)
+        """
         if(ncontrol>-1):
             self.rtc.do_centroids(ncontrol)
         else:
@@ -143,6 +256,19 @@ cdef class Rtc:
 
     cdef init_proj(self,int ncontro,Dms dms,np.ndarray[ndim=1,dtype=np.int32_t] indx_dm,
             np.ndarray[ndim=1,dtype=np.float32_t] unitpervolt, np.ndarray[ndim=1,dtype=np.int32_t] indx_pup):
+        """TODO doc
+
+        :parameters:
+            ncontro: (int) : controller index
+
+            dms: (Dms) :
+
+            indx_dm: (np.ndarray[ndim=1,dtype=np.int32_t]) :
+
+            unitpervolt: (np.ndarray[ndim=1,dtype=np.float32_t]) :
+
+            indx_pup: (np.ndarray[ndim=1,dtype=np.int32_t]) :
+        """
         cdef carma_context *context=carma_context.instance()
         cdef sutra_controller_geo *controller_geo=\
             dynamic_cast_controller_geo_ptr(self.rtc.d_control[ncontro])
@@ -154,6 +280,25 @@ cdef class Rtc:
 
     cdef init_modalOpti(self,int ncontro,int nmodes,int nrec, np.ndarray[ndim=2,dtype=np.float32_t] M2V,
             float gmin, float gmax, int ngain, float Fs):
+        """TODO doc
+
+        :parameters:
+            ncontro: (int) : controller index
+
+            nmodes: (int) : number of modes
+
+            nrec: (int) : number of recorded open slopes measurements
+
+            M2V: (np.ndarray[ndim=2,dtype=np.float32_t]) :
+
+            gmin: (float) : minimum gain for modal optimization
+
+            gmax: (float) : maximum gain for modal optimization
+
+            ngain: (int) : Number of tested gains
+
+            Fs: (float) : sampling frequency
+        """
         cdef carma_context *context=carma_context.instance()
         context.set_activeDeviceForCpy(self.rtc.device,1)
         cdef sutra_controller_ls * controller_ls
@@ -168,6 +313,13 @@ cdef class Rtc:
 
 
     cdef loadOpenLoop(self,int ncontro, np.ndarray[ndim=2, dtype=np.float32_t] ol_slopes):
+        """TODO doc
+
+        :parameters:
+            ncontro: (int) : controller index
+
+            pl_slopes: (np.ndarray[ndim=2, dtype=np.float32_t]) :
+        """
         cdef carma_context *context=carma_context.instance()
         context.set_activeDeviceForCpy(self.rtc.device,1)
         cdef sutra_controller_ls * controller_ls
@@ -181,6 +333,10 @@ cdef class Rtc:
             raise TypeError("Controller type must be ls")
 
     cdef modalControlOptimization(self,int ncontro):
+        """TODO doc
+
+        :param ncontro: controller index
+        """
         cdef carma_context *context=carma_context.instance()
         context.set_activeDeviceForCpy(self.rtc.device,1)
         cdef sutra_controller_ls * controller_ls
@@ -195,6 +351,13 @@ cdef class Rtc:
             raise TypeError("**** ERROR : Modal Optimization only for controller type ls ***")
 
     cdef set_gain(self, int ncontro, float gain):
+        """TODO doc
+        
+        :parameters:
+            ncontro: (int) : controller index
+
+            gain: (float) 
+        """
         cdef carma_context *context=carma_context.instance()
         context.set_activeDeviceForCpy(self.rtc.device,1)
         cdef bytes type_control = <bytes>self.rtc.d_control[ncontro].get_type()
@@ -226,6 +389,13 @@ cdef class Rtc:
 
 
     cdef set_mgain(self,int ncontro, np.ndarray[ndim=1,dtype=np.float32_t] mgain):
+        """TODO doc
+
+        :parameters:
+            ncontro: (int) : controller index
+
+            mgain: (np.ndarray[ndim=1,dtype=np.float32_t]) :
+        """
         cdef carma_context *context=carma_context.instance()
         context.set_activeDeviceForCpy(self.rtc.device,1)
 
@@ -244,6 +414,13 @@ cdef class Rtc:
 
 
     cdef set_imat(self,int ncontro, np.ndarray[ndim=2,dtype=np.float32_t] data):
+        """TODO doc
+
+        :parameters:
+            ncontro: (int) : controller index
+
+            data: (np.ndarray[ndim=2,dtype=np.float32_t]) :
+        """
         cdef carma_context *context=carma_context.instance()
         context.set_activeDeviceForCpy(self.rtc.device,1)
 
@@ -264,6 +441,10 @@ cdef class Rtc:
 
 
     cpdef get_imat(self, int ncontro):
+        """TODO doc
+
+        :param ncontro: (int) : controller index
+        """
         cdef carma_context *context=carma_context.instance()
         context.set_activeDeviceForCpy(self.rtc.device,1)
         
@@ -299,6 +480,13 @@ cdef class Rtc:
 
 
     cdef set_cmat(self,int ncontro, np.ndarray[ndim=2,dtype=np.float32_t] data):
+        """TODO doc
+
+        :parameters:
+            ncontro: (int) : controller index
+
+            data: (np.ndarray[ndim=2,dtype=np.float32_t]) :
+        """
         cdef carma_context *context=carma_context.instance()
         context.set_activeDeviceForCpy(self.rtc.device,1)
 
@@ -323,6 +511,10 @@ cdef class Rtc:
 
 
     cpdef get_cmat(self,int ncontro):
+        """TODO doc
+
+        :param ncontro: (int) : controller index
+        """
         cdef carma_context *context=carma_context.instance()
         context.set_activeDeviceForCpy(self.rtc.device,1)
         cdef sutra_controller_ls *controller_ls
@@ -358,6 +550,13 @@ cdef class Rtc:
 
 
     cdef set_decayFactor(self,int ncontro, np.ndarray[ndim=1,dtype=np.float32_t] decay):
+        """TODO doc
+
+        :parameters:
+            ncontro: (int) : controller index
+
+            decay: (np.ndarray[ndim=1,dtype=np.float32_t]) :
+        """
         cdef carma_context *context=carma_context.instance()
         context.set_activeDeviceForCpy(self.rtc.device,1)
         cdef sutra_controller_generic *controller_generic
@@ -371,6 +570,13 @@ cdef class Rtc:
 
 
     cdef set_matE(self,int ncontro, np.ndarray[ndim=2,dtype=np.float32_t] matE):
+        """TODO doc
+
+        :parameters:
+            ncontro: (int) : controller index
+
+            matE: (np.ndarray[ndim=2,dtype=np.float32_t]) :
+        """
         cdef carma_context *context=carma_context.instance()
         context.set_activeDeviceForCpy(self.rtc.device,1)
         cdef sutra_controller_generic *controller_generic
@@ -386,6 +592,15 @@ cdef class Rtc:
 
 
     cdef doimat_geom(self, int ncontro, Dms g_dms,int geom):
+        """TODO doc
+
+        :parameters:
+            ncontro: (int) : controller index
+
+            g_dms: (Dms) :
+
+            geom: (int) :
+        """
         cdef carma_context *context=carma_context.instance()
         context.set_activeDeviceForCpy(self.rtc.device,1)
         self.rtc.do_imat_geom(ncontro,g_dms.dms,geom)
@@ -393,6 +608,14 @@ cdef class Rtc:
         print "TODO set_imat"
 
     cdef doimat(self, int ncontro, Dms g_dms):
+        """TODO doc
+
+        :parameters:
+            ncontro: (int) : controller index
+
+            g_dms: (Dms) :
+        """
+
         cdef carma_context *context=carma_context.instance()
         context.set_activeDeviceForCpy(self.rtc.device,1)
 
@@ -491,6 +714,15 @@ cdef class Rtc:
 
 
     cdef sensors_compslopes(self, int ncentro, int nmax=-1, float thresh=-1):
+        """TODO doc
+
+        :parameters:
+            ncentro: (int) : centroider index
+
+            nmax: (int) : (optional)
+
+            thresh: (float) : (optional)
+        """
         cdef carma_context *context=carma_context.instance()
         context.set_activeDeviceForCpy(self.rtc.device,1)
 
@@ -498,7 +730,10 @@ cdef class Rtc:
 
 
     cdef imat_svd(self,int ncontro):
+        """TODO doc
 
+        :param ncontro: controller index
+        """
         cdef carma_context *context=carma_context.instance()
         context.set_activeDeviceForCpy(self.rtc.device,1)
 
@@ -515,6 +750,13 @@ cdef class Rtc:
 
 
     cdef setU(self,int ncontro,np.ndarray[ndim=2,dtype=np.float32_t] U):
+        """TODO doc
+
+        :parameters:
+            ncontro: (int) : controller index
+
+            U: (np.ndarray[ndim=2,dtype=np.float32_t]) :
+        """
         cdef carma_context *context=carma_context.instance()
         context.set_activeDeviceForCpy(self.rtc.device,1)
 
@@ -528,6 +770,13 @@ cdef class Rtc:
 
 
     cdef setEigenvals(self, int ncontro, np.ndarray[ndim=1,dtype=np.float32_t] eigenvals):
+        """TODO doc
+
+        :parameters:
+            ncontro: (int) : controller index
+
+            eigenvals: (np.ndarray[ndim=1,dtype=np.float32_t]) :
+        """
         cdef carma_context *context=carma_context.instance()
         context.set_activeDeviceForCpy(self.rtc.device,1)
 
@@ -542,6 +791,10 @@ cdef class Rtc:
 
 
     cdef getU(self, int ncontro):
+        """TODO doc
+
+        :param ncontro: (int) : controller index
+        """
         cdef carma_context *context=carma_context.instance()
         context.set_activeDeviceForCpy(self.rtc.device,1)
         cdef sutra_controller_ls *controller_ls
@@ -561,6 +814,10 @@ cdef class Rtc:
 
 
     cdef getEigenvals(self,int ncontro):
+        """TODO doc
+
+        :param ncontro: (int) : controller index
+        """
         cdef carma_context *context=carma_context.instance()
         context.set_activeDeviceForCpy(self.rtc.device,1)
         cdef sutra_controller_ls *controller_ls
@@ -577,6 +834,10 @@ cdef class Rtc:
 
 
     cpdef getCenbuff(self, int ncontro):
+        """TODO doc
+
+        :param ncontro: (int) : controller index
+        """
         cdef carma_context *context=carma_context.instance()
         context.set_activeDeviceForCpy(self.rtc.device,1)
         cdef sutra_controller_ls *controller_ls
@@ -596,6 +857,10 @@ cdef class Rtc:
 
 
     cdef getErr(self,int ncontro):
+        """TODO doc
+
+        :param ncontro: (int) : controller index
+        """
         cdef carma_context *context=carma_context.instance()
         context.set_activeDeviceForCpy(self.rtc.device,1)
         cdef sutra_controller_ls *controller_ls
@@ -611,6 +876,10 @@ cdef class Rtc:
         return data
 
     cpdef getCom(self,int ncontro):
+        """TODO doc
+
+        :param ncontro: (int) : controller index
+        """
         cdef carma_context *context=carma_context.instance()
         context.set_activeDeviceForCpy(self.rtc.device,1)
         cdef np.ndarray[ndim=1, dtype=np.float32_t] data
@@ -623,6 +892,10 @@ cdef class Rtc:
 
 
     cpdef getVoltage(self,int ncontro):
+        """TODO doc
+
+        :param ncontro: (int) : controller index
+        """
         cdef carma_context *context=carma_context.instance()
         context.set_activeDeviceForCpy(self.rtc.device,1)
         cdef np.ndarray[ndim=1, dtype=np.float32_t] data
@@ -635,6 +908,10 @@ cdef class Rtc:
 
 
     cpdef getCentroids(self,int ncontro):
+        """TODO doc
+
+        :param ncontro: (int) : controller index
+        """
         cdef carma_context *context=carma_context.instance()
         context.set_activeDeviceForCpy(self.rtc.device,1)
         cdef np.ndarray[ndim=1, dtype=np.float32_t] data
@@ -683,6 +960,15 @@ cdef class Rtc:
 
 
     cdef buildcmat(self,int ncontro,int nfilt, int filt_tt=0):
+        """TODO doc
+
+        :parameters:
+            ncontro: (int) : controller index
+
+            nfilt: (int) : 
+
+            filt_tt: (int) : (optional)
+        """
         cdef carma_context *context=carma_context.instance()
         context.set_activeDeviceForCpy(self.rtc.device,1)
         cdef sutra_controller_ls *controller_ls
@@ -697,6 +983,13 @@ cdef class Rtc:
 
 
     cdef buildcmatmv(self,int ncontro,float cond):
+        """TODO doc
+
+        :parameters:
+            ncontro: (int) : controller index
+
+            cond: (float) : 
+        """
         cdef carma_context *context=carma_context.instance()
         context.set_activeDeviceForCpy(self.rtc.device,1)
         cdef sutra_controller_mv *controller_mv
@@ -709,6 +1002,13 @@ cdef class Rtc:
 
 
     cdef loadnoisemat(self,int ncontro, np.ndarray[ndim=1,dtype=np.float32_t] N):
+        """TODO doc
+
+        :parameters:
+            ncontro: (int) : controller index
+
+            N: (np.ndarray[ndim=1,dtype=np.float32_t]) :
+        """
         cdef carma_context *context=carma_context.instance()
         context.set_activeDeviceForCpy(self.rtc.device,1)
         cdef sutra_controller_mv *controller_mv
@@ -721,12 +1021,20 @@ cdef class Rtc:
 
 
     cpdef docontrol(self,int ncontro):
+        """TODO doc
+
+        :param ncontro: (int) : controller index
+        """
         cdef carma_context *context=carma_context.instance()
         context.set_activeDevice(self.rtc.device,1)
         self.rtc.do_control(ncontro)
 
 
     cpdef applycontrol(self,int ncontro,Dms dms):
+        """TODO doc
+
+        :param ncontro: (int) : controller index
+        """
         cdef carma_context *context=carma_context.instance()
         context.set_activeDevice(self.rtc.device,1)
         self.rtc.apply_control(ncontro,dms.dms)
@@ -761,10 +1069,41 @@ cdef class Rtc:
         return info
 
 
+
 def rtc_init(Sensors g_wfs, p_wfs, Dms g_dms, p_dms, Param_geom p_geom, Param_rtc p_rtc,
             Param_atmos p_atmos, Atmos g_atmos, Param_tel p_tel, Param_loop p_loop, 
             Param_target p_tar=None, clean=None, brama=None, doimat=None,simul_name=""):
-    """
+    """TODO doc
+
+    :parameters:
+        g_wfs: (Sensors) :
+
+        p_wfs: (list of Param_wfs):
+
+        g_dms: (Dms) :
+
+        p_dms: (list of Param_dms) :
+
+        p_geom: (Param_geom)
+
+        p_atmos: (Param_atmos) :
+
+        g_atmos: (Atmos) :
+
+        p_tel: (Param_tel) :
+
+        p_loop: (Param_loop) :
+
+        p_tar: (Param_target) : (optional)
+
+        clean: (int): (optional) clean datafiles (imat, U, eigenv)
+
+        brama: (int): (optional) not implemented yet
+
+        doimat: (int) : (optional) force imat computation
+
+        simul_name: (str) : (optional) simulation's name, use for path to save data (imat, U...)
+
     """
 
     g_rtc=Rtc()
@@ -1091,7 +1430,7 @@ def rtc_init(Sensors g_wfs, p_wfs, Dms g_dms, p_dms, Param_geom p_geom, Param_rt
             rtc_setgain,g_rtc,0,controllers(i).gain;
             mgain = array(1.0f,(y_dm._ntotact)(sum));
             rtc_loadmgain,g_rtc,0,mgain;
-	    
+        
             Cphim = mat_cphim_gpu(i-1);
 
             cmat_init,i,clean=clean;
@@ -1105,7 +1444,21 @@ def rtc_init(Sensors g_wfs, p_wfs, Dms g_dms, p_dms, Param_geom p_geom, Param_rt
 
 
 cdef correct_dm(p_dms, Dms g_dms, Param_controller p_control, Param_geom p_geom, np.ndarray imat, bytes simul_name):
-   
+    """TODO doc
+
+    :parameters:
+        p_dms: (list of Param_dm) :
+
+        g_dms: (Dms) :
+
+        p_control: (Param_controller) :
+
+        p_geom: (Param_geom) :
+
+        imat: (np.ndarray) :
+
+        simul_name: (str) : simulation's name, use for data files' path
+    """
     cdef carma_context *context = carma_context.instance()
     
     cdef int i, nm, nmc, inds,ndm,nactu_nm
@@ -1197,7 +1550,23 @@ cdef correct_dm(p_dms, Dms g_dms, Param_controller p_control, Param_geom p_geom,
 
 
 cdef imat_geom(Sensors g_wfs, p_wfs, Param_controller p_control,Dms g_dms, p_dms, Rtc g_rtc,int meth=0):
+    """TODO doc
 
+    :parameters:
+        g_wfs: (Sensors) :
+
+        p_wfs: (list of Param_wfs) :
+
+        p_control: (Param_controller):
+
+        g_dms: (Dms) :
+
+        p_dms: (list of Param_dm) :
+
+        g_rtc: (Rtc) :
+
+        meth: (int) : (optional)
+    """
 
     cdef int nwfs=p_control.nwfs.size
     cdef int ndm =p_control.ndm.size
@@ -1238,6 +1607,17 @@ cdef imat_geom(Sensors g_wfs, p_wfs, Param_controller p_control,Dms g_dms, p_dms
 
 
 cdef manual_imat(Rtc g_rtc,Sensors g_wfs, p_wfs, Dms g_dms, p_dms):
+    """TODO doc
+
+    :parameters:
+        g_rtc: (Rtc) :
+
+        g_wfs: (Sensors) :
+
+        g_dms: (Dms) :
+
+        p_dms: (list of Param_dm) :
+    """
 
     cdef int nm,i,ind
 
@@ -1283,11 +1663,27 @@ cdef manual_imat(Rtc g_rtc,Sensors g_wfs, p_wfs, Dms g_dms, p_dms):
 
 
 cdef get_r0(float r0_at_lambda1, float lambda1, float lambda2):
+    """Compute r0
+
+    :parameters:
+        r0_at_lambda1: (float) :
+
+        lambda1: (float) :
+
+        lambda2: (float) :
+    """
     return (lambda2/lambda1)**(6./5.)*r0_at_lambda1
 
 
 
 def create_interp_mat(int dimx, int dimy):
+    """TODO doc
+
+    :parameters:
+        dimx: (int) :
+
+        dimy: (int) :
+    """
     n=max(dimx,dimy)
     tmp1,tmp2=indices(n)
     tmp1=tmp1[:dimx,:dimy]-(dimx/2+1)
@@ -1308,6 +1704,13 @@ def create_interp_mat(int dimx, int dimy):
     
 
 cdef compute_KL2V(p_dms, Param_controller controller):
+    """TODO doc
+
+    :parameters:
+        p_dms: (list of Param_dm) :
+
+        controller: (Param_controller) :
+    """
     cdef int i,nTT,indx_act, ndm
     cdef np.ndarray[ndim=1,dtype=np.int64_t] ntotact=\
         np.array([p_dms[i]._ntotact for i in range(len(p_dms))],dtype=np.int64)
@@ -1336,6 +1739,25 @@ cdef compute_KL2V(p_dms, Param_controller controller):
 
 cdef openLoopSlp(Atmos g_atm, Rtc g_rtc,int nrec, int ncontro, Sensors g_wfs=None,  
         p_wfs=None, Param_target p_tar=None,Target g_tar=None):
+    """TODO doc
+
+    :parameters:
+        g_atm: (Atmos) :
+
+        g_rtc: (Rtc) :
+
+        nrec: (int) :
+
+        ncontro: (int) :
+
+        g_wfs: (Sensors) :
+
+        p_wfs: (list of Param_wfs) : (optional)
+
+        p_tar: (Param_target) : (optional)
+
+        g_tar: (Target) : (optional)
+    """
     #TEST IT
     cdef int i,j
     cdef np.ndarray[ndim=2,dtype=np.float32_t] ol_slopes=\
@@ -1361,6 +1783,27 @@ cdef openLoopSlp(Atmos g_atm, Rtc g_rtc,int nrec, int ncontro, Sensors g_wfs=Non
 
 cdef imat_init(int ncontro, Rtc g_rtc, Param_rtc p_rtc, Dms g_dms, Sensors g_wfs,
         p_wfs, Param_tel p_tel, int clean=1, bytes simul_name=<bytes>""):
+    """TODO doc
+
+    :parameters:
+        ncontro: (int) :
+
+        g_rtc: (Rtc) :
+
+        p_rtc: (Param_rtc) :
+
+        g_dms: (Dms) :
+
+        g_wfs: (Sensors) :
+
+        p_wfs: (list of Param_wfs) :
+
+        p_tel: (Param_tel) :
+
+        clean: (int) : (optional) : clean datafiles (imat, U, eigenv)
+
+        simul_name: (str) : (optional) simulation's name, use for data files' path
+    """
     cdef bytes dirsave=chakra_ao_savepath+"mat/"
     cdef bytes filename=dirsave+"imat-"+str(ncontro)+"-"+simul_name+".npy"
     cdef bytes profilename=chakra_ao_savepath+<bytes>"allProfileNa_withAltitude_1Gaussian.npy"
@@ -1415,6 +1858,16 @@ cdef imat_init(int ncontro, Rtc g_rtc, Param_rtc p_rtc, Dms g_dms, Sensors g_wfs
 
 cdef cmat_init(int ncontro, Rtc g_rtc, Param_rtc p_rtc, list p_wfs,
                 clean=1, bytes simul_name=<bytes>""):
+    """TODO doc
+
+    :parameters:
+        ncontro: (int) :
+        g_rtc: (Rtc) :
+        p_rtc: (Param_rtc) :
+        p_wfs: (list of Param_wfs)
+        clean: (int) : (optional) clean datafiles (imat, U, eigenv)
+        simul_name: (str) : (optional) simulation's name, use for data files' path
+    """
 
     cdef bytes dirsave=chakra_ao_savepath+"mat/"
     cdef bytes filename
@@ -1467,7 +1920,7 @@ cdef cmat_init(int ncontro, Rtc g_rtc, Param_rtc p_rtc, list p_wfs,
             mfilt=np.where( (1./(eigenv/eigenv[2]))>maxcond)[0]
         nfilt=mfilt.shape[0]
 
-        print "TODO wfs_disp"
+        #print "TODO wfs_disp"
         """
         if ( (wfs_disp!=[]) && (numberof(*wfs_disp._winits) > 0)) {
             if ((*wfs_disp._winits)(5)) {
