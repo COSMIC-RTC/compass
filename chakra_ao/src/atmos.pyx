@@ -455,7 +455,7 @@ cdef compute_size2(np.ndarray[ndim=1,dtype=np.int64_t]size):
     cdef n=size.shape[0]
     cdef np.ndarray[ndim=1,dtype=np.int64_t] size2=np.zeros(n,dtype=np.int64)
 
-    cdef int i,j
+    cdef int i
     for i in range(n):
         size2[i]=itK.stencil_size(size[i])
     return size2

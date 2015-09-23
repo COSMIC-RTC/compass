@@ -279,14 +279,14 @@ cdef class Param_wfs:
         ysubs=xsubs.copy().astype(np.float32)
 
 
-        cdef int nP=prof.shape[0]  #number of points of the profile
+        # cdef int nP=prof.shape[0]  #number of points of the profile #UNUSED
         cdef float hG=np.sum(h*prof)/np.sum(prof) #center of gravity of the profile
         cdef np.ndarray[dtype=np.float32_t] x=np.arange(self._Ntot).astype(np.float32)\
                                                 -self._Ntot/2
         #x expressed in pixels. (0,0) is in the fourier-center
 
         x=x*self._qpixsize #x expressed in arcseconds
-        cdef float dx=x[1]-x[0]
+        #cdef float dx=x[1]-x[0] #UNUSED
         cdef float dh=h[1]-h[0]
 
         if(self.nxsub>1):
@@ -344,14 +344,12 @@ cdef class Param_wfs:
 
 
 
-    cdef make_lgs_prof1d(self,int nsensors, Param_tel p_tel,
+    cdef make_lgs_prof1d(self, Param_tel p_tel,
             np.ndarray[dtype=np.float32_t] prof, np.ndarray[dtype=np.float32_t] h,
             float beam, bytes center=<bytes>""):
         """same as prep_lgs_prof but cpu only. original routine from rico
         
         :parameters:
-            nsensors: (int) : wfs index
-
             p_tel: (Param_tel) : telescope settings
 
             prof: (np.ndarray[dtype=np.float32]) : Na profile intensity, in arbitrary units
@@ -379,13 +377,13 @@ cdef class Param_wfs:
         ysubs=xsubs.copy().astype(np.float32)
 
 
-        cdef int nP=prof.shape[0]
+        #cdef int nP=prof.shape[0] #UNUSED
         cdef float hG=np.sum(h*prof)/np.sum(prof)
         cdef np.ndarray[dtype=np.float32_t] x=np.arange(self._Ntot).astype(np.float32)-self._Ntot/2
         # x expressed in pixels. (0,0) is in the fourier-center.
         x=x*self._qpixsize #x expressed in arcseconds
-        cdef float dx=x[1]-x[0]
-        cdef float dh=h[1]-h[0]
+        #cdef float dx=x[1]-x[0] #UNUSED
+        #cdef float dh=h[1]-h[0] #UNUSED
 
         if(self.nxsub>1):
             dOffAxis=np.sqrt((xsubs[self._validsubsy]-self.lltx)**2+
@@ -397,10 +395,10 @@ cdef class Param_wfs:
         cdef np.ndarray[ndim=1,dtype=np.float32_t] zhc, avg_zhc,avg_x
         profi=np.zeros((self._Ntot,self._nvalid),dtype=np.float32)
 
-        cdef np.ndarray[ndim=1,dtype=np.int32_t] subsdone, dif2do
+        #cdef np.ndarray[ndim=1,dtype=np.int32_t] subsdone, dif2do #UNUSED
         cdef np.ndarray[ndim=1,dtype=np.int64_t] inds
         subsdone=np.ones(self._nvalid,dtype=np.int32)
-        dif2do =np.zeros(self._nvalid,dtype=np.int32)
+        #dif2do =np.zeros(self._nvalid,dtype=np.int32) #UNUSED
         cdef float tmp,dzhc
 
         cdef int i
@@ -630,19 +628,18 @@ def wfs_init( wfs, Param_atmos p_atmos, Param_tel p_tel, Param_geom p_geom,
         indmax=wheremax([o.nxsub for o in wfs])
 
     #init geometry
-    cdef float pixsize0=wfs[0].pixsize
     if(any_geo==0):
         init_wfs_geom(wfs[indmax], wfs[0], indmax, p_atmos, p_tel, p_geom, p_target,
-                      p_loop, init=1,comm_size=comm_size, verbose=rank)
+                      p_loop, init=1, verbose=rank)
     else:
         init_wfs_geom(wfs[indmax], wfs[0], indmax, p_atmos, p_tel, p_geom, p_target,
-                      p_loop, init=0,comm_size=comm_size, verbose=rank)
+                      p_loop, init=0, verbose=rank)
 
     ##do the same for other wfs
     for i in range(nsensors):
         if(i!=indmax):
             init_wfs_geom(wfs[i], wfs[i], i, p_atmos, p_tel, p_geom, p_target,
-                        p_loop, init=0,comm_size=comm_size, verbose=rank)
+                        p_loop, init=0, verbose=rank)
     # create sensor object on gpu
     # and init sensor gs object on gpu
 
@@ -702,7 +699,6 @@ def wfs_init( wfs, Param_atmos p_atmos, Param_tel p_tel, Param_geom p_geom,
         g_wfs.sensors_initgs(xpos,ypos,Lambda,mag,zerop,size,noise,seed)
 
     # fill sensor object with data
-    cdef int *ph=NULL
     for i in range(nsensors):
         g_wfs.sensors_initarr(i,wfs[i],p_geom)
 
@@ -735,7 +731,7 @@ def wfs_init( wfs, Param_atmos p_atmos, Param_tel p_tel, Param_geom p_geom,
 
 cdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
                 Param_tel tel, Param_geom geom, Param_target p_target,
-                Param_loop loop, int init=0, int comm_size=1, int verbose=0):
+                Param_loop loop, int init=0,  int verbose=0):
     """TODO doc
 
     :parameters:
@@ -743,7 +739,7 @@ cdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
 
         wfs0: (Param_wfs) : reference wfs settings
 
-        n: (int) :
+        n: (int) : index of the wfs (diplay information purpose only)
 
         atmos: (Param_atmos) : atmos settings
 
@@ -757,12 +753,11 @@ cdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
 
         init: (int) : (optional)
 
-        comm_size: (int) : (optional)
-
         verbose: (int) : (optional) display informations if 0
 
 
     """
+
     if(verbose==0):print "*-----------------------"
     if(verbose==0):print "Doing inits on WFS", n
 
@@ -807,7 +802,7 @@ cdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
     #   (1): y_geom.pupdiam
     #   (2): y_tel.diam/y_geom.pupdiam
     cdef int psize=0#int(tel.diam/geom.pupdiam)
-    init_wfs_size(wfs,wfs0,n,atmos,tel,psize,&pdiam,&Nfft,&Ntot,&nrebin,&pixsize,&qpixsize,verbose)
+    init_wfs_size(wfs,n,atmos,tel,psize,&pdiam,&Nfft,&Ntot,&nrebin,&pixsize,&qpixsize,verbose)
 
     if(wfs.type_wfs!="geo"):
         wfs.pixsize   = pixsize
@@ -845,17 +840,17 @@ cdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
 
         if (wfs.fstop=="round"):
             focmask = mkP.dist(npup,xc=npup/2.+0.5,yc=npup/2.+0.5)<(fsradius_pixels);
-            fstop_area = np.pi * (wfs.fssize/2.)**2.;
+            #fstop_area = np.pi * (wfs.fssize/2.)**2. #UNUSED
         elif (wfs.fstop=="square"): 
-              x,y = indices(npup) 
-              x-=(npup+1.)/2. 
-              y-=(npup+1.)/2. 
-              focmask = ( np.abs(x) <= (fsradius_pixels) ) *     \
+            x,y = indices(npup) 
+            x-=(npup+1.)/2. 
+            y-=(npup+1.)/2. 
+            focmask = ( np.abs(x) <= (fsradius_pixels) ) *     \
                 ( np.abs(y) <= (fsradius_pixels) )
-              fstop_area = wfs.fssize**2.
+            #fstop_area = wfs.fssize**2. #UNUSED
         else:
-             msg="wfs "+str(n)+". fstop must be round or square"
-             raise ValueError(msg)
+            msg="wfs "+str(n)+". fstop must be round or square"
+            raise ValueError(msg)
     
         pyr_focmask = np.roll(focmask,focmask.shape[0]/2,axis=0)
         pyr_focmask = np.roll(pyr_focmask,focmask.shape[1]/2,axis=1)
@@ -913,26 +908,26 @@ cdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
             if(wfs.pyr_pos == None):
                 cx=np.round(mod_ampl_pixels*np.sin((np.arange(wfs.pyr_npts)+1)*2.*np.pi/wfs.pyr_npts))
                 cy=np.round(mod_ampl_pixels*np.cos((np.arange(wfs.pyr_npts)+1)*2.*np.pi/wfs.pyr_npts))
-                mod_npts = wfs.pyr_npts
+                #mod_npts = wfs.pyr_npts #UNUSED
             else:
                 if(verbose==0):print "Using user-defined positions for the pyramid modulation"
                 cx=np.round(wfs.pyr_pos[:,0]/qpixsize)
                 cy=np.round(wfs.pyr_pos[:,1]/qpixsize)
-                mod_npts=cx.shape[0]
+                #mod_npts=cx.shape[0] #UNUSED
         elif(wfs.pyrtype=="RoofPrism"):
             cx = np.round(2.*mod_ampl_pixels*((np.arange(wfs.pyr_npts)+1)-(wfs.pyr_npts+1)/2.)/wfs.pyr_npts)
             cy = cx
-            mod_npts = wfs.pyr_npts
+            #mod_npts = wfs.pyr_npts #UNUSED
         else:
             if(wfs.pyr_pos==None):
                 cx = np.round(mod_ampl_pixels*np.sin((np.arange(wfs.pyr_npts)+1)*2.*np.pi/wfs.pyr_npts))
                 cy = np.round(mod_ampl_pixels*np.cos((np.arange(wfs.pyr_npts)+1)*2.*np.pi/wfs.pyr_npts))
-                mod_npts = wfs.pyr_npts
+                #mod_npts = wfs.pyr_npts #UNUSED
             else:
                 if(verbose==0):print "Using user-defined positions for the pyramid modulation"
                 cx=np.round(wfs.pyr_pos[:,0]/qpixsize)
                 cy=np.round(wfs.pyr_pos[:,1]/qpixsize)
-                mod_npts=cx.shape[0]
+                #mod_npts=cx.shape[0] #UNUSED
 
         wfs._pyr_cx=cx.astype(np.int32)
         wfs._pyr_cy=cy.astype(np.int32)
@@ -976,9 +971,9 @@ cdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
         fluxPerSub=np.zeros((wfs.nxsub,wfs.nxsub),dtype=np.float32)
         
         for i in range(wfs.nxsub):
-            indi=istart[i]+1 #+2-1 (yorick->python
+            indi=istart[i]+1 #+2-1 (yorick->python)
             for j in range(wfs.nxsub):
-                indj=jstart[j]+1 #+2-1 (yorick->python
+                indj=jstart[j]+1 #+2-1 (yorick->python)
                 fluxPerSub[i,j] = np.sum(geom._mpupil[indi:indi+pdiam,indj:indj+pdiam])
 
         fluxPerSub = fluxPerSub/pdiam**2.
@@ -987,10 +982,6 @@ cdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
         wfs._isvalid= pupvalid.astype(np.int32)
         wfs._nvalid=np.sum(pupvalid)
         wfs._fluxPerSub =fluxPerSub
-        if(verbose==0):
-            pupvalid2=pupvalid[:,pupvalid.shape[0]/2:]
-        else:
-            pupvalid2=pupvalid[:,:pupvalid.shape[0]/2]
         validx=np.where(pupvalid)[1].astype(np.int32)
         validy=np.where(pupvalid)[0].astype(np.int32)
         wfs._validsubsx=validx
@@ -1139,15 +1130,13 @@ cdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
         if(verbose==0):print "nphotons : ", wfs._nphotons
 
 
-cdef init_wfs_size( Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
+cdef init_wfs_size( Param_wfs wfs, int n, Param_atmos atmos,
                 Param_tel tel, int psize, long *pdiam, int *Nfft, int *Ntot, int *nrebin, 
                 float *pixsize, float *qpixsize,int verbose=0):
     """TODO doc
 
     :parameters:
         wfs: (Param_wfs) : wfs settings
-
-        wfs0: (Param_wfs) : reference wfs settings
 
         n: (int) :
 

@@ -324,7 +324,6 @@ cdef class Sensors:
         data=np.empty((cdims[1],cdims[2]),dtype=np.float32)
         data_F=np.empty((cdims[2],cdims[1]),dtype=np.float32)
         dynamic_cast_wfs_sh_ptr(self.sensors.d_wfs[n]).fill_binimage(0)
-        cdef uintptr_t ptr=<uintptr_t>img.getData()
         img.device2host(<float*>data_F.data)
 
         data=np.reshape(data_F.flatten("F"),(cdims[1],cdims[2]))
@@ -563,20 +562,15 @@ cdef class Sensors:
             mpi.MPI_Bcast(ptr,size_i,mpi.MPI_FLOAT,0,mpi.MPI_COMM_WORLD)
 
 
-    cpdef gather_bincube(self,MPI.Intracomm comm,int n):
+    cpdef gather_bincube(self,int n):
         """Gather the carma object 'bincube' of a wfs on the process 0
 
         :parameters:
             comm: (MPI.Intracomm) :communicator mpi
 
-            n: (int) : number of the wfs where the gather will occured
+            :param n: (int) : number of the wfs where the gather will occured
         """
 
-        cdef int nx=self.sensors.d_wfs[n].npix
-        cdef int ny=nx
-        cdef int nz=self.sensors.d_wfs[n].nvalid
-        cdef int nz_t=self.sensors.d_wfs[n].nvalid_tot
-        cdef int size=nx*ny*nz
         cdef int *count_bincube=self.sensors.d_wfs[n].count_bincube
         cdef int *displ_bincube=self.sensors.d_wfs[n].displ_bincube
         cdef const long *cdims=self.sensors.d_wfs[n].d_bincube.getDims()
@@ -604,13 +598,12 @@ cdef class Sensors:
 
 
 
-    cpdef gather_bincube_cuda_aware(self,MPI.Intracomm comm,int n):
+    cpdef gather_bincube_cuda_aware(self,int n):
         """Gather the carma object 'bincube' of a wfs on the process 0
 
         using mpi cuda_aware
 
-            comm: (MPI.Intracomm) : communicator mpi
-            n: (int) : number of the wfs where the gather will occured
+            :param n: (int) : number of the wfs where the gather will occured
         """
         cdef float *recv_bin=self.sensors.d_wfs[n].d_bincube.getData()
         cdef float *send_bin=self.sensors.d_wfs[n].d_bincube.getData()
@@ -658,7 +651,7 @@ cdef class Sensors:
         
     #for profiling purpose
     @cython.profile(True)
-    cdef gather_bincube_prof(self,MPI.Intracomm comm,int n):
+    cdef gather_bincube_prof(self,int n):
         cdef int nx=self.sensors.d_wfs[n].npix
         cdef int ny=nx
         cdef int nz=self.sensors.d_wfs[n].nvalid

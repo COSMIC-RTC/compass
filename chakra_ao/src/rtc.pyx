@@ -1193,7 +1193,7 @@ def rtc_init(Sensors g_wfs, p_wfs, Dms g_dms, p_dms, Param_geom p_geom, Param_rt
                                 raise ValueError(error)
                             prof=np.load(chakra_ao_savepath+profilename).astype(np.float32)
 
-                            wfs.make_lgs_prof1d(nwfs,p_tel,np.mean(prof[1:,:],axis=0),prof[0,:],
+                            wfs.make_lgs_prof1d(p_tel,np.mean(prof[1:,:],axis=0),prof[0,:],
                                 wfs.beamsize,center=<bytes>"image")
                             tmp=wfs._lgskern
                             tmp2=makegaussian(tmp.shape[1],npix*wfs._nrebin).astype(np.float32)
@@ -1260,7 +1260,7 @@ def rtc_init(Sensors g_wfs, p_wfs, Dms g_dms, p_dms, Param_geom p_geom, Param_rt
                     controller=p_rtc.controllers[i]
                     print "filtering unseen actuators... "
                     if(p_wfs[0].type_wfs=="sh"):
-                        imat=imat_geom(g_wfs,p_wfs,controller,g_dms,p_dms,g_rtc,meth=0)
+                        imat=imat_geom(g_wfs,p_wfs,controller,g_dms,p_dms,meth=0)
                     else:
                         imat=manual_imat(g_rtc,g_wfs,p_wfs,g_dms,p_dms)
                     correct_dm(p_dms,g_dms,controller,p_geom, imat,simul_name)
@@ -1459,7 +1459,7 @@ cdef correct_dm(p_dms, Dms g_dms, Param_controller p_control, Param_geom p_geom,
 
         simul_name: (str) : simulation's name, use for data files' path
     """
-    cdef carma_context *context = carma_context.instance()
+    #cdef carma_context *context = carma_context.instance() #UNUSED
     
     cdef int i, nm, nmc, inds,ndm,nactu_nm
     cdef np.ndarray[ndim=1,dtype=np.float32_t] resp
@@ -1549,7 +1549,7 @@ cdef correct_dm(p_dms, Dms g_dms, Param_controller p_control, Param_geom p_geom,
 
 
 
-cdef imat_geom(Sensors g_wfs, p_wfs, Param_controller p_control,Dms g_dms, p_dms, Rtc g_rtc,int meth=0):
+cdef imat_geom(Sensors g_wfs, p_wfs, Param_controller p_control,Dms g_dms, p_dms, int meth=0):
     """TODO doc
 
     :parameters:
@@ -1562,8 +1562,6 @@ cdef imat_geom(Sensors g_wfs, p_wfs, Param_controller p_control,Dms g_dms, p_dms
         g_dms: (Dms) :
 
         p_dms: (list of Param_dm) : dms settings
-
-        g_rtc: (Rtc) :
 
         meth: (int) : (optional)
     """
@@ -1621,7 +1619,7 @@ cdef manual_imat(Rtc g_rtc,Sensors g_wfs, p_wfs, Dms g_dms, p_dms):
 
     cdef int nm,i,ind
 
-    cdef np.ndarray[ndim=1, dtype=np.float32_t] slps=g_rtc.getcentroids(0, g_wfs, 0)
+    #cdef np.ndarray[ndim=1, dtype=np.float32_t] slps=g_rtc.getcentroids(0, g_wfs, 0) #UNUSED
     cdef int nslps = g_wfs._get_slopesDims(0)
     cdef int imat_size2=0
 
@@ -1639,7 +1637,6 @@ cdef manual_imat(Rtc g_rtc,Sensors g_wfs, p_wfs, Dms g_dms, p_dms):
 
     for nm in range(len(p_dms)):
         for i in range(p_dms[nm]._ntotact):
-            influ=g_dms.getInflu(p_dms[nm].type_dm,p_dms[nm].alt)
             com=np.zeros((p_dms[nm]._ntotact),dtype=np.float32)
             com[i]=float(p_dms[nm].push4imat)
             g_dms.set_comm(p_dms[nm].type_dm,p_dms[nm].alt,com)

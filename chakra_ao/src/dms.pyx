@@ -116,7 +116,6 @@ cdef _dm_init(Dms dms, Param_dm p_dms, Param_wfs p_wfs, Param_geom p_geom, Param
             cdef float patchDiam
             cdef int extent
             cdef long dim
-            cdef float disp=0
             cdef long ninflu,influsize,ninflupos,n_npts
             cdef long _nr, _np
             
@@ -638,7 +637,6 @@ cdef comp_dmgeom(Param_dm dm, Param_geom geom):
 #################################################
 cdef class Dms:
     def __cinit__(self,long ndm):
-        cdef carma_context *context=carma_context.instance()
         self.dms= new sutra_dms(ndm)
 
     cdef add_dm(self, bytes type_dm, float alt, long dim, long ninflu, long influsize, long ninflupos, long npts, float push4imat, int device=-1):
@@ -733,7 +731,6 @@ cdef class Dms:
 
         cdef np.ndarray[dtype=np.float32_t] influ_F=influ.flatten("F")
         cdef np.ndarray[dtype=np.int32_t] npoints_F=npoints.flatten("F")
-        cdef np.ndarray[dtype=np.int32_t] istart_F=istart.flatten("F")
 
         cdef int inddm=self.dms.get_inddm("pzt",alt)
         if(inddm<0):
@@ -863,8 +860,6 @@ cdef class Dms:
 
         cdef carma_context *context=carma_context.instance()
         context.set_activeDevice(self.dms.d_dms[inddm].device,1)
-        cdef const long *dims
-        dims= self.dms.d_dms[inddm].d_influ.getDims()
         cdef np.ndarray[dtype=np.float32_t] influ_F=influ.flatten("F")
         self.dms.d_dms[inddm].d_influ.host2device(<float*>influ_F.data)
 

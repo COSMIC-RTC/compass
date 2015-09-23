@@ -87,7 +87,6 @@ cdef class Param_target:
         #sizes = sizes(-::y_target.ntargets-1);
 # ATTEMPT AT MAKING IT POSSIBLE TO WORK WITH NON BINARY PUPILS
 # switching *y_geom._spupil and *y_geom._apodizer with ceil(*y_geom._spupil) and ceil(*y_geom._apodizer)
-        cdef np.ndarray ceiled = np.empty((sizes,sizes),dtype=np.int32)
         ceiled_pupil=np.ceil(geom._spupil)
 
         ceiled_pupil[np.where(ceiled_pupil>1)]=1;
@@ -263,7 +262,7 @@ cdef class Target:
         """
 
         self.context.set_activeDevice(self.device)
-        self.target.d_targets[0].raytrace(atm.s_a)
+        self.target.d_targets[nTarget].raytrace(atm.s_a)
 
 
     def get_image(self,int nTarget, bytes type_im, long puponly=0):

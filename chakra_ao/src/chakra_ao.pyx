@@ -159,7 +159,7 @@ def see_atmos_target_disp_mpi(int n, Atmos atm, Target tar,Sensors wfs, MPI.Intr
             wfs.sensors_trace(0,"atmos",atm)
         wfs.Bcast_dscreen()
         wfs.sensors_compimg(0)
-        wfs.gather_bincube(comm,0)
+        wfs.gather_bincube(0)
         if(wfs.get_rank(0)==0):
             turbu.clear()
             screen=atm.get_screen(alt)
@@ -219,7 +219,7 @@ def see_atmos_target_mpi_cu(int n, Atmos atm, Target tar,Sensors wfs, MPI.Intrac
             wfs.sensors_trace(0,"atmos",atm)
         wfs.Bcast_dscreen_cuda_aware()
         wfs.sensors_compimg(0)
-        wfs.gather_bincube_cuda_aware(comm,0)
+        wfs.gather_bincube_cuda_aware(0)
     end=time.time()
     print comm.Get_rank(),"time:",end-start
 
@@ -259,7 +259,7 @@ def see_atmos_target_mpi(int n, Atmos atm, Target tar,Sensors wfs, MPI.Intracomm
             wfs.sensors_trace(0,"atmos",atm)
         wfs.Bcast_dscreen()
         wfs.sensors_compimg(0)
-        wfs.gather_bincube(comm,0)
+        wfs.gather_bincube(0)
     end=time.time()
     print comm.Get_rank(),"time:",end-start
 
@@ -515,8 +515,6 @@ cdef Bcast(carma_obj[float] *obj, int root):
     """
     cdef int i
     cdef int size=<int>obj.getNbElem()
-    cdef int ndim=<int>obj.getDims(0)
-
 
     cdef float *ptr
     ptr=<float*>malloc(size*sizeof(float))
@@ -544,8 +542,6 @@ cdef Bcast_cudaAware(carma_obj[float] *obj, int root):
 
     cdef int i
     cdef int size=<int>obj.getNbElem()
-    cdef int ndim=<int>obj.getDims(0)
-
 
     cdef float *ptr
     ptr=obj.getData()
