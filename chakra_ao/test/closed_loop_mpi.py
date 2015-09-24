@@ -100,11 +100,10 @@ def loop( n):
                 tar.dmtrace(t,dms)
             for w in range(len(p_wfss)):
                 wfs.sensors_trace(w,"all",atm,dms)
-
         wfs.Bcast_dscreen()
         for w in range(len(p_wfss)):
             wfs.sensors_compimg(w)
-            wfs.gather_bincube(comm,w)
+            wfs.gather_bincube(w)
         if(rank==0):
             rtc.docentroids(0)
             rtc.docontrol(0)
