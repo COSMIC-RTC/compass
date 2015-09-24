@@ -15,8 +15,8 @@ from libc.stdint cimport uintptr_t
 from cpython.string cimport PyString_AsString
 
 #from mpi4py import MPI
-#from mpi4py cimport MPI
-cimport mpi4py.MPI as MPI
+from mpi4py cimport MPI
+#cimport mpi4py.MPI as MPI
 # C-level cdef, typed, Python objects
 from mpi4py cimport mpi_c as mpi
 #from mpi4py cimport libmpi as mpi
@@ -978,7 +978,9 @@ cdef class Target:
 
     cpdef dmtrace(self,int ntar, Dms dms, int reset=?)
 
-
+#################################################
+# P-Class Sensors
+#################################################
 cdef class Sensors:
     
     cdef sutra_sensors *sensors
@@ -1000,14 +1002,14 @@ cdef class Sensors:
     cdef _get_slopes(self, int n)
     cdef slopes_geom(self,int nsensors, int t)
     cpdef sensors_trace(self,int n, str type_trace, Atmos atmos=?, Dms dms=?, int rst=?)
-    cpdef gather_bincube(self,MPI.Intracomm comm,int n)
-    cpdef gather_bincube_cuda_aware(self,MPI.Intracomm comm,int n)
+    cpdef gather_bincube(self,int n)
+    cpdef gather_bincube_cuda_aware(self,int n)
     cdef _get_rank(self,int n)
     cpdef Bcast_dscreen(self)
     cpdef Bcast_dscreen_cuda_aware(self)
 
     #for profiling purpose
-    cdef gather_bincube_prof(self,MPI.Intracomm comm,int n)
+    cdef gather_bincube_prof(self,int n)
     cdef wait1_prof(self)
     cdef wait2_prof(self)
     cdef d2h_prof(self,float *ptr,n)
@@ -1015,7 +1017,7 @@ cdef class Sensors:
     cdef gather_prof(self,float *ptr, int size, int *count, int *disp)
 
     cdef  _get_hrmap(self, int n)
-    cdef getDims(self)
+    #cdef getDims(self)
 
 #################################################
 # P-Class Rtc
@@ -1162,8 +1164,8 @@ cdef class Param_geom:
     cdef long  _p1         # min x,y for valid points in mpupil
     cdef long  _p2         # max x,y for valid points in mpupil
     cdef long  _n          # linear size of mpupil
-    cdef long  _n1         # max x,y for valid points in ipupil
-    cdef long  _n2         # min x,y for valid points in ipupil
+    cdef long  _n1         # min x,y for valid points in ipupil
+    cdef long  _n2         # max x,y for valid points in ipupil
 
 
 #################################################
@@ -1335,7 +1337,7 @@ cdef class Param_wfs:
                         float beam, Sensors sensors,
                         bytes center=?, int imat=?)
 
-    cdef make_lgs_prof1d(self,int nsensors, Param_tel p_tel,
+    cdef make_lgs_prof1d(self, Param_tel p_tel,
             np.ndarray[dtype=np.float32_t] prof, 
             np.ndarray[dtype=np.float32_t] h,
             float beam, bytes center=?)
