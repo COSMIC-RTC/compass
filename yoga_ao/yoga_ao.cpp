@@ -4244,7 +4244,7 @@ extern "C" {
     double *k2 = ygeta_d(argc - 15, &ntot, dims);
     long *NlayerDm = ygeta_l(argc - 16, &ntot, dims);
     long *indLayerDm = ygeta_l(argc - 17, &ntot, dims);
-    double *FoV = ygeta_d(argc - 18, &ntot, dims);
+    double FoV = ygets_d(argc - 18);
     double *pitch = ygeta_d(argc - 19, &ntot, dims);
     double *alt_dm = ygeta_d(argc - 20, &ntot, dims);
 
