@@ -578,6 +578,22 @@ class wao:
       target = self.glade.get_widget('reset_target').get_value_as_int()
       self.py2yo('target_reset_strehlmeter g_target %d'%target)
 
+   def y_disp_SR(self,*args):
+      N = len(args)
+      i = 1
+      target = 1
+      # print "I was called with", len(args), "arguments:", args
+      self.glade.get_widget('progressbar_wfs').set_text('Framerate : %.2f'%args[0])
+      while(i < N):
+         if(target < 10):
+            self.glade.get_widget('targetSR_%d'%target).set_text('%f'%args[i])
+            self.glade.get_widget('targetSR_1%d'%target).set_text('%f'%args[i+1])
+         else:
+            self.glade.get_widget('targetSR_10').set_text('%f'%args[19])
+            self.glade.get_widget('targetSR_20').set_text('%f'%args[20])
+         i += 2
+         target += 1
+      
    def y_win_clear(self,clear):
       cmodel = self.glade.get_widget('winselect_type').get_model()
       cmodel.clear()
@@ -614,6 +630,8 @@ class wao:
       else:
          disp = 0;
       self.py2yo('pyk_set enable_display %d' % disp)
+      self.py2yo('pyk_set aoiter %d' % 0)
+      self.py2yo('pyk_set aotimer %d' % 0)
 
    def on_SRmonitor_toggled(self,wdg):
       val = wdg.get_active()
@@ -765,7 +783,8 @@ class wao:
          try:
             msg = sys.stdin.readline()
             msg = "self."+msg
-            #  self.py2yo('\"%s\"' % msg)
+            # self.py2yo('\"%s\"' % msg)
+            # sys.stderr.write('yo2py exec: '+msg+'\n')
             try:
                exec(msg)
             except Exception, e:

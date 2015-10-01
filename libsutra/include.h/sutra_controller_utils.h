@@ -57,10 +57,10 @@ struct gtomo_struct {
 
 struct cphim_struct{
 	  double DiamTel;
-	  long Ndphi;
+	  long Ndphi; //Useless ?
 	  long Nlayer;
 	  double pasDPHI;
-	  double pasDu;
+	  double pasDu; //Useless
 	  long int_npts;
 	  long Nw;
 	  long Nx;
@@ -119,7 +119,7 @@ struct cphim_struct{
 	  double *v_d;
 	  double *dx_d;
 	  double *sspSizeL_d;
-	  double *FoV_d;
+	  double FoV;
 
 
 	  cudaStream_t cphim_stream;
@@ -134,7 +134,7 @@ void update_tomo_sys_gpu_gb(struct gtomo_struct *tomo_gpu, sutra_sensors *sensor
 void update_cphim_atm(struct cphim_struct *cphim_struct, sutra_sensors *sensors, sutra_atmos *atmos, double *L0, double *cn2, double *alphaX, double *alphaY);
 void update_cphim_sys(struct cphim_struct *cphim_struct, sutra_sensors *sensors,
 		double *alphaX, double *alphaY, double *xactu, double *yactu, double *X,
-		double *Y, long *NlayerDm, long *indLayerDm, double *alt_dm, double *pitch, double *k2, double *FoV);
+		double *Y, long *NlayerDm, long *indLayerDm, double *alt_dm, double *pitch, double *k2, double FoV);
 void matcov_gpu_3(double* data, int nrows, int ncols, int xoffset, int yoffset, int lda, struct tomo_struct tomo, struct gtomo_struct *tomo_gpu);
 void matcov_gpu_4(float* data, int nrows, int ncols, int xoffset, int yoffset, int lda, struct gtomo_struct *tomo_gpu, sutra_atmos *atmos, sutra_sensors *sensors, double *alphaX, double *alphaY);
 void CPHIM(float* data, int nrows, int ncols, int xoffset, int yoffset, int lda, struct cphim_struct *cphim_struct, sutra_atmos *atmos, sutra_sensors *sensors, double* alphaX, double *alphaY, carma_device *device);

@@ -224,7 +224,7 @@ func make_tiptilt_dm(nm,&def,disp=)
   cobs  = y_tel.cobs;
   cent  = y_geom.cent;
   psize = y_tel.diam/y_geom.pupdiam;
-  patchDiam = long(y_geom.pupdiam+2*max(abs([y_wfs.xpos,y_wfs.ypos]))*
+  patchDiam = long(y_geom.pupdiam+2*max(abs(y_wfs.xpos,y_wfs.ypos))*
                    4.848e-6*abs(y_dm(nm).alt)/psize);
 
   influ = make_zernike(nzer+1,dim,patchDiam,
@@ -254,7 +254,7 @@ func make_kl_dm(nm,disp=)
   cobs  = y_tel.cobs;
   cent  = y_geom.cent;
   psize = y_geom.pupdiam;
-  patchDiam = long(y_geom.pupdiam+2*max(abs([y_wfs.xpos,y_wfs.ypos]))*
+  patchDiam = long(y_geom.pupdiam+2*max(abs(y_wfs.xpos,y_wfs.ypos))*
                    4.848e-6*abs(y_dm(nm).alt)/psize);
 
   klbas = make_klbas(y_dm(nm).nkl,cobs,patchDiam,funct="kolmo");
@@ -287,7 +287,7 @@ func make_flo_kl_dm(nm,disp=)
   cobs  = y_tel.cobs;
   cent  = y_geom.cent;
   psize = y_geom.pupdiam;
-  patchDiam = long(y_geom.pupdiam+2*max(abs([y_wfs.xpos,y_wfs.ypos]))*
+  patchDiam = long(y_geom.pupdiam+2*max(abs(y_wfs.xpos,y_wfs.ypos))*
                    4.848e-6*abs(y_dm(nm).alt)/psize);
 
   klbas = make_flo_klbas(y_dm(nm).nkl,cobs);

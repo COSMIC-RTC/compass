@@ -81,9 +81,11 @@ func load_default_system(tconf,teldiam)
     load_default_dm,2,max(y_wfs.nxsub);
     load_default_target,3;
     load_default_centro,"cog",;
-    load_default_control,"ls";
+    load_default_control,"mv";
   }
-  
+  if(tconf == 8) {
+    load_parfile,yoga_ao_top+"/data/par/mcao_test.par","mcao_test.par"
+  }
 }
 
 
@@ -327,7 +329,7 @@ func start_ao_loop
   extern aoiter,aoloop, aotimer;
 
   aoiter = 0;
-  aotimer = array(0., 100);
+  aotimer = 0;//array(0., 100);
   aoloop = 1;
   animate,1;
   ao_loop;
@@ -346,42 +348,57 @@ func ao_loop(one)
     mytime = tic();
 
     move_atmos,g_atmos;
-    
-    if ((y_target != []) && (g_target != [])) {
-      // loop on targets
-      for (i=1;i<=y_target.ntargets;i++) {
-        target_atmostrace,g_target,i-1,g_atmos;
-        if (g_dm != []) {
-          target_dmtrace,g_target,i-1,g_dm;
-        }
-      }
-      //saving average image from target #1
-    }
 
-    if ((y_wfs != []) && (g_wfs != [])) {
-      // loop on wfs
-      for (i=1;i<=numberof(y_wfs);i++) {
-        //sensors_trace,g_wfs,i-1,"all",g_atmos,g_dm;
+    if(y_controllers(1).type != "geo"){
+      if ((y_target != []) && (g_target != [])) {
+	// loop on targets
+	for (i=1;i<=y_target.ntargets;i++) {
+	  target_atmostrace,g_target,i-1,g_atmos;
+	  if (g_dm != []) {
+	    target_dmtrace,g_target,i-1,g_dm;
+	  }
+	}
+	//saving average image from target #1
+      }
+
+      if ((y_wfs != []) && (g_wfs != [])) {
+	// loop on wfs
+	for (i=1;i<=numberof(y_wfs);i++) {
+	  //sensors_trace,g_wfs,i-1,"all",g_atmos,g_dm;
 	
-        sensors_trace,g_wfs,i-1,"atmos",g_atmos;
-        if ((!y_wfs(i).openloop) && (g_dm != [])) {
-          sensors_trace,g_wfs,i-1,"dm",g_dm,0;
-        }
+	  sensors_trace,g_wfs,i-1,"atmos",g_atmos;
+	  if ((!y_wfs(i).openloop) && (g_dm != [])) {
+	    sensors_trace,g_wfs,i-1,"dm",g_dm,0;
+	  }
 	
         
-        sensors_compimg,g_wfs,i-1;      
-      }      
-    }
-    
-    if ((y_wfs != []) && (g_wfs != [])) {
-      // do centroiding
-      if ((y_rtc != []) && (g_rtc != [])) {
-        rtc_docentroids,g_rtc,0;
-        // compute command and apply
-        rtc_docontrol,g_rtc,0;
-        if (g_dm != []) rtc_applycontrol,g_rtc,0,g_dm;
+	  sensors_compimg,g_wfs,i-1;      
+	}      
+      }
+      if ((y_wfs != []) && (g_wfs != [])) {
+	// do centroiding
+	if ((y_rtc != []) && (g_rtc != [])) {
+	  rtc_docentroids,g_rtc,0;
+	  // compute command and apply
+	  rtc_docontrol,g_rtc,0;
+	  if (g_dm != []) rtc_applycontrol,g_rtc,0,g_dm;
+	}
       }
     }
+
+    else{ // Geo controller specific loop
+      for (i=1;i<=y_target.ntargets;i++) {
+	target_atmostrace,g_target,i-1,g_atmos;
+      }
+      if(g_dm != []){
+	rtc_docontrol_geo,g_rtc,0,g_dm,g_target,0;
+	rtc_applycontrol,g_rtc,0,g_dm;
+      }
+      for (i=1;i<=y_target.ntargets;i++) {
+	target_dmtrace,g_target,i-1,g_dm;
+      }
+    }
+
       
     if (enable_display == 1)
       update_main,aodisp_type,aodisp_num;    
@@ -394,9 +411,10 @@ func ao_loop(one)
 */
     time_move = tac(mytime);
     aoiter ++;
-    if(sum(aotimer) == 0) aotimer=array(time_move,1000);
-    else                  aotimer(aoiter)=time_move; 
-    aoiter = aoiter%1000;
+    aotimer += time_move;
+    //if(sum(aotimer) == 0) aotimer=array(time_move,1000);
+    //else                  aotimer(aoiter)=time_move; 
+    //aoiter = aoiter%1000;
 
     pyk,swrite(format=ao_disp._cmd+"glade.get_widget('progressbar_wfs').set_fraction(%f)",float((aoiter%1000)/1000.));
     if(SR_monitor && aoiter%10 == 0){
@@ -405,17 +423,23 @@ func ao_loop(one)
     aostrehl  = roll(aostrehl,[-1,0,0]);
     }
     //mtext = swrite(format="Framerate : %.2f",1./time_move);
+    txt = swrite(format="y_disp_SR(%f",1./(aotimer/aoiter));
     for(i=1;i<=y_target.ntargets;i++){
       strehltmp = target_getstrehl(g_target,i-1);
       if(SR_monitor && aoiter%10 == 0){
         aostrehl(0,i,) = strehltmp(:2);
         plg,aostrehl(,i,1),marks=0,color=-4-i;
       }
-      pyk,swrite(format=atmos_disp._cmd+"glade.get_widget('targetSR_%d').set_text('%f')",i,strehltmp(1));
-      pyk,swrite(format=atmos_disp._cmd+"glade.get_widget('targetSR_1%d').set_text('%f')",i,strehltmp(2));
+      txt += swrite(format=",%f,%f",strehltmp(1),strehltmp(2));
+      
+      //pyk,swrite(format=atmos_disp._cmd+"glade.get_widget('targetSR_%d').set_text('%f')",i,strehltmp(1));
+      //pyk,swrite(format=atmos_disp._cmd+"glade.get_widget('targetSR_1%d').set_text('%f')",i,strehltmp(2));
     }
-    mtext = swrite(format="Framerate : %.2f",1./aotimer(avg));
-    pyk,swrite(format=ao_disp._cmd+"glade.get_widget('progressbar_wfs').set_text('%s')",mtext);
+    txt+=")";
+    //write,ao_disp._cmd+txt;
+    pyk,ao_disp._cmd+txt;
+    //mtext = swrite(format="Framerate : %.2f",1./aotimer(avg));
+    //pyk,swrite(format=ao_disp._cmd+"glade.get_widget('progressbar_wfs').set_text('%s')",mtext);
     
     if (!one) after,0.001,ao_loop;
   } else return;
@@ -477,9 +501,16 @@ func init_all(zenith,teldiam,cobs,r0,freq)
   aostrehl = array(0.f,100,y_target.ntargets,2);
 
   for(i=1;i<=y_target.ntargets;i++){
-    pyk,swrite(format=atmos_disp._cmd+"glade.get_widget('targetSR_%d').set_visible(1)",i);
-    pyk,swrite(format=atmos_disp._cmd+"glade.get_widget('targetSR_1%d').set_visible(1)",i);
+    if(i < 10){
+      pyk,swrite(format=atmos_disp._cmd+"glade.get_widget('targetSR_%d').set_visible(1)",i);
+      pyk,swrite(format=atmos_disp._cmd+"glade.get_widget('targetSR_1%d').set_visible(1)",i);
+    }
   }
+  if(y_target.ntargets > 9){
+    pyk,swrite(format=atmos_disp._cmd+"glade.get_widget('targetSR_1%d').set_visible(1)",0);
+    pyk,swrite(format=atmos_disp._cmd+"glade.get_widget('targetSR_2%d').set_visible(1)",0);
+  }
+
   //y_target = [];
 }
 /*
@@ -696,7 +727,7 @@ func update_main(type,nlayer)
     nx = dimsof(mscreen)(2);
     rho=indgen(1000)/1000.*2*pi;
     psize = y_tel.diam/y_geom.pupdiam;
-    patchDiam = long(y_geom.pupdiam+2*max(abs([y_wfs.xpos,y_wfs.ypos]))*
+    patchDiam = long(y_geom.pupdiam+2*max(abs(y_wfs.xpos,y_wfs.ypos))*
                    4.848e-6*abs(y_dm(nlayer+1).alt)/psize);
 
     //plg,y_geom.pupdiam/2*cos(rho)+nx/2.,y_geom.pupdiam/2*sin(rho)+nx/2.,color="red",marks=0,width=3;
@@ -810,7 +841,7 @@ aodisp_type = "";
 aodisp_num  = 0;
 aoloop      = 0;
 aoiter      = 0;
-aotimer     = array(0., 100);
+aotimer     = 0;//array(0., 100);
 aostrehl    = [];
 
 

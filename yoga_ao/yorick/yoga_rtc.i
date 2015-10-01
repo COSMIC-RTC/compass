@@ -525,8 +525,8 @@ func dopztbasis(g_dm,ndm,Nactu)
   }
   else {
     psize=y_tel.diam/y_geom.pupdiam;
-    patchDiam = long(y_geom.pupdiam+2*max(abs([y_wfs.xpos,y_wfs.ypos]))*4.848e-6*abs(y_dm(ndm).alt)/psize);
-    pup = float(make_pupil(y_geom.ssize,patchDiam,xc=y_geom.cent,yc=y_geom.cent,cobs=y_tel.cobs))(tmp+1:-tmp,tmp+1:-tmp);
+    patchDiam = long(y_geom.pupdiam+2*max(abs(y_wfs.xpos,y_wfs.ypos))*4.848e-6*abs(y_dm(ndm).alt)/psize);
+    pup = float(make_pupil(y_geom.ssize,patchDiam,type_ap=y_tel.type_ap,angle=y_tel.pupangle,spiders_type=y_tel.spiders_type,t_spiders=y_tel.t_spiders,nbr_miss_seg=y_tel.nbrmissing,std_ref_err=y_tel.referr,xc=cent,yc=cent,real=,cobs=y_tel.cobs))(tmp+1:-tmp,tmp+1:-tmp);
   }
   indx_valid = where(pup);
   IFtot = array(float,numberof(indx_valid),Nactu);
@@ -600,7 +600,7 @@ func stat_cov(n,r0)
     x = *y_dm(n)._xpos;
     y = *y_dm(n)._ypos;
     
-    patchDiam = y_tel.diam+2*max(abs([y_wfs(n).xpos,y_wfs(n).ypos]))*4.848e-6*abs(y_dm(n).alt);
+    patchDiam = y_tel.diam+2*max(abs(y_wfs(n).xpos,y_wfs(n).ypos))*4.848e-6*abs(y_dm(n).alt);
     interactp = double(x(2) - x(1));
     interactm = patchDiam/(y_dm(n).nact-1);
     p2m = interactm/interactp;
@@ -623,7 +623,7 @@ func stat_cov(n,r0)
     x = span(-1,1,N)(,-:1:N);
     y = transpose(x)(*)(ind_sub);
     x = x(*)(ind_sub);
-    patchDiam = y_tel.diam+2*max(abs([y_wfs(n).xpos,y_wfs(n).ypos]))*4.848e-6*abs(y_dm(n).alt);
+    patchDiam = y_tel.diam+2*max(abs(y_wfs(n).xpos,y_wfs(n).ypos))*4.848e-6*abs(y_dm(n).alt);
     norm = (patchDiam/(2*r0))^(-5./3) / y_atmos.nscreens;
   }
   // Kolmogorov statistic
@@ -904,7 +904,7 @@ func mat_cphim_gpu(nc){
       Xactu(ind+1 : ind+y_dm(kk)._ntotact) = actu_x;
       Yactu(ind+1 : ind+y_dm(kk)._ntotact) = actu_y;
       ind += y_dm(kk)._ntotact;
-      k2(indk) = y_wfs(1).lambda / 2. / pi / y_dm(kk).unitpervolt / (y_dm(kk)._pitch * p2m);// * 1.058 ; // 1.058 hardcoded for debug... need to find where it comes from
+      k2(indk) = y_wfs(1).lambda / 2. / pi / y_dm(kk).unitpervolt;// / (y_dm(kk)._pitch * p2m);//* 1.058 ; // 1.058 hardcoded for debug... need to find where it comes from
       indk ++;
     }
   }
@@ -913,13 +913,11 @@ func mat_cphim_gpu(nc){
   indlayersDM = array(0,y_atmos.nscreens); // Index of the DM for each layer
   selectDMforLayers,nc+1,NlayersDM,indlayersDM;
   //FoV = y_wfs.pixsize * y_wfs.npix / RASC;
-  FoV = abs(y_wfs.xpos,y_wfs.ypos) / RASC;
-  
-  L0_d = &(double(*y_atmos.L0));
+  FoV = max(abs(y_wfs.xpos,y_wfs.ypos)) / RASC;
+    L0_d = &(double(*y_atmos.L0));
   alphaX = alphaY = array(0.0,numberof(y_wfs.xpos));
   alphaX(:numberof(y_wfs.xpos)) = y_wfs.xpos/RASC;
   alphaY(:numberof(y_wfs.xpos)) = y_wfs.ypos/RASC;
-
   write,"Computing Cphim...";
   rtc_doCphim,g_rtc,nc,g_wfs,g_atmos,g_dm,*L0_d,float(*y_atmos.frac * (y_atmos.r0)^(-5./3)),alphaX,alphaY,X,Y,Xactu,Yactu,y_tel.diam,k2,NlayersDM,indlayersDM,FoV,pitch,y_dm(pztDM).alt;
   write,"Done";
@@ -927,7 +925,6 @@ func mat_cphim_gpu(nc){
   write,"Computing Cmm ...";
   rtc_doCmm,g_rtc,nc,g_wfs,g_atmos,double(y_tel.diam),double(y_tel.cobs),*L0_d, double(*y_atmos.frac * (y_atmos.r0)^(-5./3)),alphaX,alphaY;
   write,"Done";
-
   Nact = F = array(0.0f,numberof(Xactu),numberof(Xactu));
   ind = 0;
   for(k=1 ; k<=numberof(*y_controllers(nc+1).ndm) ; k++){
@@ -1120,7 +1117,7 @@ func create_nact_geom(nm) {
   
   nb_act = y_dm(nm)._ntotact;
   nact = array(0.0f,nb_act,nb_act);
-  coupling = y_dm(1).coupling;
+  coupling = y_dm(nm).coupling;
 
   // Actuators positions
   tmpx = *y_dm(nm)._i1;

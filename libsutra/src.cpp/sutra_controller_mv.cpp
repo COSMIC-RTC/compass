@@ -147,7 +147,7 @@ sutra_controller_mv::compute_Cphim(sutra_atmos *atmos,
 		sutra_sensors *sensors, sutra_dms *dms, double *L0, double *cn2,
 		double *alphaX, double *alphaY, double *X, double *Y, double *xactu,
 		double *yactu, double diamTel, double *k2, long *NlayerDm,
-		long *indLayerDm, double *FoV, double *pitch, double *alt_dm) {
+		long *indLayerDm, double FoV, double *pitch, double *alt_dm) {
 
 	current_context->set_activeDevice(device,1);
 

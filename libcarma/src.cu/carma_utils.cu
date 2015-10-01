@@ -78,7 +78,7 @@ fill_sparse_vect(T_data *dense_data, int *colind_sorted, T_data *values, int *co
 	dim3 grid(nblocks), threads(nthreads);
 
 	fill_sparse_vect_krnl<<<grid, threads>>>(dense_data, colind_sorted, values, colind, rowind, nnz);
-	carmaCheckMsg("find_nnz_krnl<<<>>> execution failed\n");
+	carmaCheckMsg("fill_sparse_vect_krnl<<<>>> execution failed\n");
 	return EXIT_SUCCESS;
 }
 template

@@ -46,6 +46,10 @@ void carma_sparse_obj<T_data>::init_carma_sparse_obj(carma_context *current_cont
 	  int *tmp_colind=NULL;
 	  cudaMalloc((void**) &tmp_colind, dims[2] * sizeof(int));
 	  find_nnz(d_M, tmp_colind, dims[2], nnzPerRow, nnzTotalDevHostPtr,current_context->get_device(device));
+	  if(!nnzTotalDevHostPtr) {
+		  DEBUG_TRACE("Warning : empty carma_obj cannot be sparsed");
+		  return;
+	  }
 	  resize(nnzTotalDevHostPtr, dims[1], dims[2]);
 	  fill_sparse_vect(d_M, tmp_colind, this->d_data, this->d_colind, this->d_rowind, this->nz_elem, current_context->get_device(device));
 	  cudaFree(tmp_colind);

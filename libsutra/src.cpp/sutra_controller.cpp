@@ -64,6 +64,7 @@ sutra_controller::sutra_controller(carma_context* context, int nslope,
 
 }
 int sutra_controller::set_openloop(int open_loop_status) {
+	current_context->set_activeDevice(device,1);
   this->open_loop = open_loop_status;
   if (this->open_loop) {
     carmaSafeCall(
@@ -81,7 +82,7 @@ int sutra_controller::set_openloop(int open_loop_status) {
   return EXIT_SUCCESS;
 }
 int sutra_controller::set_perturbcom(float *perturb, int N) {
-
+	current_context->set_activeDevice(device,1);
   if (this->d_perturb != NULL)
     delete this->d_perturb;
   long dims_data2[3] = { 2, this->nactu(), N };
@@ -102,6 +103,7 @@ int sutra_controller::command_delay() {
   return EXIT_SUCCESS;
 }
 int sutra_controller::comp_voltage() {
+	current_context->set_activeDevice(device,1);
 
   if (this->open_loop)
     carmaSafeCall(

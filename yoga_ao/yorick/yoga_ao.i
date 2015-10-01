@@ -348,10 +348,8 @@ func target_init(brama=)
   type = "atmos";
  
   if (y_target != []) {
-    if(*y_target(1).dms_seen == []){
-    for(i=1 ; i<=y_target.ntargets ; i++){
-      if(y_dm != []) y_target(i).dms_seen = &(indgen(numberof(y_dm)));
-    }
+    if(*y_target.dms_seen == []){
+      if(y_dm != []) y_target.dms_seen = &(indgen(numberof(y_dm)));
   }
     sizes = y_geom.pupdiam;
     sizes = sizes(-::y_target.ntargets-1);
@@ -480,7 +478,7 @@ func dm_init(void)
       
       if (y_dm(n).type == "pzt") {
         // find out the support dimension for the given mirror.
-        patchDiam = long(y_geom.pupdiam+2*max(abs([y_wfs.xpos,y_wfs.ypos]))*
+        patchDiam = long(y_geom.pupdiam+2*max(abs(y_wfs.xpos,y_wfs.ypos))*
                          4.848e-6*abs(y_dm(n).alt)/(y_tel.diam/y_geom.pupdiam));
         //patchDiam;
         y_dm(n)._pitch = patchDiam / (y_dm(n).nact -1);
@@ -512,7 +510,6 @@ func dm_init(void)
         dims       = long(y_dm(n)._n2-y_dm(n)._n1+1);
         dim       = dimsof(*y_geom._mpupil)(2);
         if (dims >= dim) dim = dims;
-        
         ninflu    = long(y_dm(n)._ntotact);
         influsize = long(y_dm(n)._influsize);
         ninflupos = long(numberof(*y_dm(n)._influpos));
@@ -740,6 +737,7 @@ func rtc_init(clean=, brama=, doimat=)
           else
             imat = manual_imat();
           correct_dm,imat,i;
+	  //error;
           write,format = "done in : %f s\n",tac();  
 
           //} 
@@ -757,7 +755,7 @@ func rtc_init(clean=, brama=, doimat=)
             rtc_addcontrol,g_rtc,sum(y_dm(ndms)._ntotact),controllers(i).delay,controllers(i).type,g_dm,y_dm(*y_controllers(i).ndm).type,y_dm(*y_controllers(i).ndm).alt,numberof(*y_controllers(i).ndm);
 
           if (controllers(i).type == "geo") {
-            indx_pup = where(*y_geom._spupil);
+            indx_pup = where(*y_geom._spupil) - 1;
             cpt = 0;
             indx_dm = array(0,numberof(ndms) * numberof(indx_pup));
             for (dmn = 1 ; dmn<= numberof(ndms) ; dmn++){
@@ -767,7 +765,7 @@ func rtc_init(clean=, brama=, doimat=)
               cpt += numberof(where(pup_dm));
             }
 	    //error;
-            rtc_init_proj,g_rtc,i-1,g_dm,indx_dm,y_dm.unitpervolt,indx_pup - 1;
+            rtc_init_proj,g_rtc,i-1,g_dm,indx_dm,y_dm.unitpervolt,indx_pup;
             //rtc_docontrol_geo,g_rtc,0,g_dm,g_target,0;
           }
 
@@ -881,7 +879,24 @@ func rtc_init(clean=, brama=, doimat=)
             Cphim = mat_cphim_gpu(i-1);
 
             cmat_init,i,clean=clean;
+            /*         
+            fits_name = "/home/fferreira/compass/trunk/yoga_ao/data/mat/tomo/1layer_0_1dm_0.fits";
+            fh = fits_open(fits_name);
+            Cmm = fits_read_array(fh);
+            fits_next_hdu,fh;
+            Cmm_mv = fits_read_array(fh);
+            fits_next_hdu,fh;
+            Cphim = fits_read_array(fh);
+            fits_next_hdu,fh;
+            Cphim_mv = fits_read_array(fh);
+            fits_close,fh;
            
+            rtc_setCmm,g_rtc,0,Cmm;
+            rtc_inverseCmm,g_rtc,0,1500.f;
+            Cmm = rtc_getCmm(g_rtc,0);
+            cmat = Cphim(,+) * Cmm(+,);
+            rtc_setcmat,g_rtc,0,cmat;
+            */
           }
         }
       }

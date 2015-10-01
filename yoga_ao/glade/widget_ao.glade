@@ -697,7 +697,8 @@ PYR05
 PYR02
 xSH
 SCAO-LGS
-MCAO-NGS</property>
+MCAO-NGS
+MCAO-10</property>
                                             <signal name="changed" handler="on_type_system_changed"/>
                                           </widget>
                                           <packing>
@@ -2337,6 +2338,9 @@ Wind dir</property>
                                                             <placeholder/>
                                                             </child>
                                                             <child>
+                                                            <placeholder/>
+                                                            </child>
+                                                            <child>
                                                             <widget class="GtkCheckButton" id="checklgs">
                                                             <property name="label" translatable="yes">Use LGS</property>
                                                             <property name="visible">True</property>
@@ -3569,6 +3573,12 @@ model</property>
                                                             <child>
                                                             <placeholder/>
                                                             </child>
+                                                            <child>
+                                                            <placeholder/>
+                                                            </child>
+                                                            <child>
+                                                            <placeholder/>
+                                                            </child>
                                                             </widget>
                                                             <packing>
                                                             <property name="expand">False</property>
@@ -3969,6 +3979,12 @@ LQG
                                                             <property name="x_options"/>
                                                             <property name="y_options"/>
                                                             </packing>
+                                                            </child>
+                                                            <child>
+                                                            <placeholder/>
+                                                            </child>
+                                                            <child>
+                                                            <placeholder/>
                                                             </child>
                                                             <child>
                                                             <placeholder/>
