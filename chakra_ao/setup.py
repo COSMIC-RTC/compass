@@ -20,7 +20,12 @@ import Cython.Compiler.Options
 import numpy
 from distutils.extension import Extension
 
-import mpi4py
+try:
+    import mpi4py
+    MPI4PY=1
+except ImportError:
+    MPI4PY=0
+
 
 chakra_ao_path=os.environ.get('CHAKRA_AO')
 if(chakra_ao_path is None):
@@ -158,7 +163,8 @@ def locate_MPI():
     clibdirs=clibdir.split()
 
     pincdirs=[]
-    pincdirs.extend([mpi4py.get_include(),numpy.get_include()])
+    if MPI4PY==1:
+        pincdirs.extend([mpi4py.get_include(),numpy.get_include()])
 
     #try:
     #    clibdir=os.environ["LIBMPI"]
@@ -172,7 +178,10 @@ def locate_MPI():
     print "clibs ",clibs
     print "clibdirs",clibdirs
 
-    mpi_config = {'mpicxx':mpicxx,'cincdirs':cincdirs, 'pincdirs':pincdirs, 'clibs':clibs,'clibdirs':clibdirs}
+    if MPI4PY==1:
+        mpi_config = {'mpicxx':mpicxx,'cincdirs':cincdirs, 'pincdirs':pincdirs, 'clibs':clibs,'clibdirs':clibdirs}
+    else:
+        mpi_config = {'mpicxx':"g++",'cincdirs':"", 'pincdirs':"", 'clibs':"",'clibdirs':""}
 
     return mpi_config
 
@@ -199,15 +208,26 @@ include_dirs.extend(MPI['pincdirs'])
 library_dirs=[COMPASS['lib']+"/libsutra"]
 library_dirs.extend(MPI['clibdirs'])
 
-ext=Extension('chakra_ao',
-              sources=['src/chakra_ao.pyx'],
-              library_dirs=library_dirs,
-              libraries=[ 'sutra','mpi_cxx'],
-              language='c++',
-              runtime_library_dirs=[],#CUDA['lib64']],
-              extra_compile_args={'g++': []},
-              include_dirs = include_dirs,
-              )
+if MPI4PY==1:
+    ext=Extension('chakra_ao',
+                  sources=['src/chakra_ao.pyx'],
+                  library_dirs=library_dirs,
+                  libraries=[ 'sutra','mpi_cxx'],
+                  language='c++',
+                  runtime_library_dirs=[],#CUDA['lib64']],
+                  extra_compile_args={'g++': []},
+                  include_dirs = include_dirs,
+                  )
+else:
+    ext=Extension('chakra_ao',
+                  sources=['src/chakra_ao.pyx'],
+                  library_dirs=library_dirs,
+                  libraries=[ 'sutra'],
+                  language='c++',
+                  runtime_library_dirs=[],#CUDA['lib64']],
+                  extra_compile_args={'g++': []},
+                  include_dirs = include_dirs,
+                  )
                               #[numpy_include, 
                               #CUDA['include'],
                               #COMPASS['inc']+'/libcarma/include.h',

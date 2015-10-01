@@ -640,7 +640,10 @@ cdef class Rtc:
         cdef np.ndarray[ndim=1,dtype=np.float32_t] h_centroids
 
         cdef int rank
-        mpi.MPI_Comm_rank(mpi.MPI_COMM_WORLD,&rank)
+        IF USE_MPI==1:
+            mpi.MPI_Comm_rank(mpi.MPI_COMM_WORLD,&rank)
+        ELSE:
+            rank=0
 
         it_dm=control.d_dmseen.begin()
         while(it_dm!=control.d_dmseen.end()):
@@ -654,7 +657,8 @@ cdef class Rtc:
                     wfs.noise=-1
                     wfs.kernconv=True
                     wfs.sensor_trace(g_dms.dms,1)
-                    Bcast(screen,0)
+                    IF USE_MPI==1:
+                        Bcast(screen,0)
                     wfs.comp_image()
                     wfs.noise=tmp_noise
                     wfs.kernconv=False
@@ -915,48 +919,52 @@ cdef class Rtc:
         cdef carma_context *context=carma_context.instance()
         context.set_activeDeviceForCpy(self.rtc.device,1)
         cdef np.ndarray[ndim=1, dtype=np.float32_t] data
-        cdef np.ndarray[ndim=1, dtype=np.float32_t] all_centroids
         cdef const long *dims
         dims=self.rtc.d_control[ncontro].d_centroids.getDims()
         data=np.zeros((dims[1]),dtype=np.float32)
         self.rtc.d_control[ncontro].d_centroids.device2host(<float*>data.data)
 
-        cdef int comm_size, rank
-        mpi.MPI_Comm_size(mpi.MPI_COMM_WORLD,&comm_size)
-        mpi.MPI_Comm_rank(mpi.MPI_COMM_WORLD,&rank)
+        IF USE_MPI==1:
+            cdef np.ndarray[ndim=1, dtype=np.float32_t] all_centroids
+            cdef int comm_size, rank
+            mpi.MPI_Comm_size(mpi.MPI_COMM_WORLD,&comm_size)
+            mpi.MPI_Comm_rank(mpi.MPI_COMM_WORLD,&rank)
 
-        cdef int *count=<int*>malloc(comm_size*sizeof(int))
-        cdef int *disp=<int*>malloc((comm_size+1)*sizeof(int))
-        cdef int d=dims[1]/(comm_size*2)
-        cdef int i
+            cdef int *count=<int*>malloc(comm_size*sizeof(int))
+            cdef int *disp=<int*>malloc((comm_size+1)*sizeof(int))
+            cdef int d=dims[1]/(comm_size*2)
+            cdef int i
 
-        disp[0]=0
-        for i in range(comm_size):
-            if(i<(dims[1]/2)%comm_size):
-                count[i]=d+1
-            else:
-                count[i]=d
+            disp[0]=0
+            for i in range(comm_size):
+                if(i<(dims[1]/2)%comm_size):
+                    count[i]=d+1
+                else:
+                    count[i]=d
 
-            disp[i+1]=disp[i]+count[i]
+                disp[i+1]=disp[i]+count[i]
 
-        all_centroids=np.zeros(disp[comm_size]*2,dtype=np.float32)
+            all_centroids=np.zeros(disp[comm_size]*2,dtype=np.float32)
 
-        cdef float *send=<float*>data.data
-        cdef float *recv=<float*>all_centroids.data
+            cdef float *send=<float*>data.data
+            cdef float *recv=<float*>all_centroids.data
 
-        # gather centroids X axis
-        mpi.MPI_Allgatherv(send,count[rank],mpi.MPI_FLOAT,
-                            recv,count,disp, mpi.MPI_FLOAT,
-                            mpi.MPI_COMM_WORLD)
+            # gather centroids X axis
+            mpi.MPI_Allgatherv(send,count[rank],mpi.MPI_FLOAT,
+                                recv,count,disp, mpi.MPI_FLOAT,
+                                mpi.MPI_COMM_WORLD)
 
-        # gather centroids Y axis
-        mpi.MPI_Allgatherv(&send[disp[comm_size]],count[rank],mpi.MPI_FLOAT,
-                            &recv[disp[comm_size]],count,disp,
-                            mpi.MPI_FLOAT, mpi.MPI_COMM_WORLD)
+            # gather centroids Y axis
+            mpi.MPI_Allgatherv(&send[disp[comm_size]],count[rank],mpi.MPI_FLOAT,
+                                &recv[disp[comm_size]],count,disp,
+                                mpi.MPI_FLOAT, mpi.MPI_COMM_WORLD)
 
-        free(count)
-        free(disp)
-        return all_centroids
+            free(count)
+            free(disp)
+            return all_centroids
+
+        ELSE:
+            return data
 
 
     cdef buildcmat(self,int ncontro,int nfilt, int filt_tt=0):
@@ -1484,7 +1492,10 @@ cdef correct_dm(p_dms, Dms g_dms, Param_controller p_control, Param_geom p_geom,
     inds=0
 
     cdef int rank
-    mpi.MPI_Comm_rank(mpi.MPI_COMM_WORLD,&rank)
+    IF USE_MPI==1:
+        mpi.MPI_Comm_rank(mpi.MPI_COMM_WORLD,&rank)
+    ELSE:
+        rank=0
 
     for nmc in range(ndm):
         nm=p_control.ndm[nmc]-1
@@ -1644,7 +1655,8 @@ cdef manual_imat(Rtc g_rtc,Sensors g_wfs, p_wfs, Dms g_dms, p_dms):
             g_wfs.sensors_trace(0,"dm", None,dms=g_dms,rst=1)
             #equivalent to Bcast(g_wfs.sensors.d_wfs[0].d_gs.d_phase.d_screen)
             #g_wfs.Bcast_dscreen()
-            Bcast(g_wfs.sensors.d_wfs[0].d_gs.d_phase.d_screen,0)
+            IF USE_MPI==1:
+                Bcast(g_wfs.sensors.d_wfs[0].d_gs.d_phase.d_screen,0)
             g_wfs.sensors_compimg(0)
             g_rtc.docentroids()
 
@@ -1809,9 +1821,14 @@ cdef imat_init(int ncontro, Rtc g_rtc, Param_rtc p_rtc, Dms g_dms, Sensors g_wfs
     cdef double t0
 
     cdef int rank
-    mpi.MPI_Comm_rank(mpi.MPI_COMM_WORLD,&rank)
     cdef int world
-    mpi.MPI_Comm_size(mpi.MPI_COMM_WORLD,&world)
+
+    IF USE_MPI==1:
+        mpi.MPI_Comm_rank(mpi.MPI_COMM_WORLD,&rank)
+        mpi.MPI_Comm_size(mpi.MPI_COMM_WORLD,&world)
+    ELSE:
+        rank=0
+        world=1
 
     cdef sutra_wfs *wfs
     cdef carma_obj[float] *screen
@@ -1886,7 +1903,10 @@ cdef cmat_init(int ncontro, Rtc g_rtc, Param_rtc p_rtc, list p_wfs,
         cmat_clean=int(os.path.isfile(filename) or clean)
 
     cdef int rank
-    mpi.MPI_Comm_rank(mpi.MPI_COMM_WORLD,&rank)
+    IF USE_MPI:
+        mpi.MPI_Comm_rank(mpi.MPI_COMM_WORLD,&rank)
+    ELSE:
+        rank=0
 
     if(p_rtc.controllers[ncontro].type_control == "ls"):
         if(cmat_clean):

@@ -1,3 +1,5 @@
+include "../par.pxi"
+
 import cython
 # #cython: profile=True
 import numpy as np
@@ -45,6 +47,7 @@ include "centroider.pyx"
 include "controller.pyx"
 include "kl.pyx"
 
+'''
 def see_atmos_target_disp(int n, Atmos atm, Target tar,Sensors wfs, float alt=0, int n_tar=0,float f=1, int log=0):
     """Display the turbulence of the atmos and the image of the target after a call to the function:
     - move_atmos
@@ -301,7 +304,7 @@ def see_atmos_target(int n, Atmos atm, Target tar,Sensors wfs, float alt=0, int 
         wfs.sensors_compimg(0)
     end=time.time()
     print "time:",end-start
-
+'''
 
 cdef bin2d(np.ndarray data_in, int binfact):
     """
@@ -504,49 +507,49 @@ cdef rotate2(image,angle, xc=-1,yc=-1, splin=0,outside=0):
 
 
 
+IF USE_MPI==1:
+    cdef Bcast(carma_obj[float] *obj, int root):
+        """Broadcast the content of a carma_obj<float>
 
-cdef Bcast(carma_obj[float] *obj, int root):
-    """Broadcast the content of a carma_obj<float>
+        :parameters:
+            obj: (carma_obj<float>) : carma_obj to broadcast
 
-    :parameters:
-        obj: (carma_obj<float>) : carma_obj to broadcast
+            root: (int) : root of the MPI broadcast
+        """
+        cdef int i
+        cdef int size=<int>obj.getNbElem()
 
-        root: (int) : root of the MPI broadcast
-    """
-    cdef int i
-    cdef int size=<int>obj.getNbElem()
+        cdef float *ptr
+        ptr=<float*>malloc(size*sizeof(float))
 
-    cdef float *ptr
-    ptr=<float*>malloc(size*sizeof(float))
+        obj.device2host(ptr)
 
-    obj.device2host(ptr)
+        mpi.MPI_Bcast(ptr,size,mpi.MPI_FLOAT,root,mpi.MPI_COMM_WORLD)
 
-    mpi.MPI_Bcast(ptr,size,mpi.MPI_FLOAT,root,mpi.MPI_COMM_WORLD)
-
-    obj.host2device(ptr)
-
-
-    free(ptr)
+        obj.host2device(ptr)
 
 
+        free(ptr)
 
-cdef Bcast_cudaAware(carma_obj[float] *obj, int root):
-    """Broadcast the content of a carma_obj<float>
-       Using cuda_aware
 
-    :parameters:
-        obj: (carma_obj<float>) : carma_obj to broadcast
 
-        root: (int) : root of the MPI broadcast
-    """
+    cdef Bcast_cudaAware(carma_obj[float] *obj, int root):
+        """Broadcast the content of a carma_obj<float>
+           Using cuda_aware
 
-    cdef int i
-    cdef int size=<int>obj.getNbElem()
+        :parameters:
+            obj: (carma_obj<float>) : carma_obj to broadcast
 
-    cdef float *ptr
-    ptr=obj.getData()
+            root: (int) : root of the MPI broadcast
+        """
 
-    mpi.MPI_Bcast(ptr,size,mpi.MPI_FLOAT,root,mpi.MPI_COMM_WORLD)
+        cdef int i
+        cdef int size=<int>obj.getNbElem()
+
+        cdef float *ptr
+        ptr=obj.getData()
+
+        mpi.MPI_Bcast(ptr,size,mpi.MPI_FLOAT,root,mpi.MPI_COMM_WORLD)
 
 
 

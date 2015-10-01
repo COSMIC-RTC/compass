@@ -1,3 +1,5 @@
+include "par.pxi"
+
 from chakra cimport *
 
 import numpy as np
@@ -14,13 +16,15 @@ from libc.stdint cimport uintptr_t
 
 from cpython.string cimport PyString_AsString
 
-#from mpi4py import MPI
-from mpi4py cimport MPI
-#cimport mpi4py.MPI as MPI
-# C-level cdef, typed, Python objects
-from mpi4py cimport mpi_c as mpi
-#from mpi4py cimport libmpi as mpi
-#cimport mpi4py.libmpi as mpi
+IF USE_MPI == 1:
+    print "using mpi"
+    #from mpi4py import MPI
+    from mpi4py cimport MPI
+    #cimport mpi4py.MPI as MPI
+    # C-level cdef, typed, Python objects
+    from mpi4py cimport mpi_c as mpi
+    #from mpi4py cimport libmpi as mpi
+    #cimport mpi4py.libmpi as mpi
 
 
 from libc.math cimport sin
@@ -1002,19 +1006,22 @@ cdef class Sensors:
     cdef _get_slopes(self, int n)
     cdef slopes_geom(self,int nsensors, int t)
     cpdef sensors_trace(self,int n, str type_trace, Atmos atmos=?, Dms dms=?, int rst=?)
-    cpdef gather_bincube(self,int n)
-    cpdef gather_bincube_cuda_aware(self,int n)
+    IF USE_MPI==1:
+        cpdef gather_bincube(self,int n)
+        cpdef gather_bincube_cuda_aware(self,int n)
+        cpdef Bcast_dscreen(self)
+        cpdef Bcast_dscreen_cuda_aware(self)
     cdef _get_rank(self,int n)
-    cpdef Bcast_dscreen(self)
-    cpdef Bcast_dscreen_cuda_aware(self)
 
     #for profiling purpose
+    '''
     cdef gather_bincube_prof(self,int n)
     cdef wait1_prof(self)
     cdef wait2_prof(self)
     cdef d2h_prof(self,float *ptr,n)
     cdef h2d_prof(self,float *ptr,n)
     cdef gather_prof(self,float *ptr, int size, int *count, int *disp)
+    '''
 
     cdef  _get_hrmap(self, int n)
     #cdef getDims(self)

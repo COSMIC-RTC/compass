@@ -1,3 +1,5 @@
+include "../par.pxi"
+
 cdef class Sensors:
     """
 
@@ -418,8 +420,12 @@ cdef class Sensors:
         :param n: (int) : number of the wfs to get the 'slopes' dimension from
         """
         cdef int comm_size, rank
-        mpi.MPI_Comm_size(mpi.MPI_COMM_WORLD,&comm_size)
-        mpi.MPI_Comm_rank(mpi.MPI_COMM_WORLD,&rank)
+        IF USE_MPI==1:
+            mpi.MPI_Comm_size(mpi.MPI_COMM_WORLD,&comm_size)
+            mpi.MPI_Comm_rank(mpi.MPI_COMM_WORLD,&rank)
+        ELSE:
+            comm_size=1
+            rank=0
 
         cdef const long *cdims
         cdef long dim_tot
@@ -427,7 +433,9 @@ cdef class Sensors:
         context.set_activeDevice(self.sensors.device,1)
         cdims=self.sensors.d_wfs[n].d_slopes.getDims()
         dim_tot=cdims[1]
-        mpi.MPI_Allreduce(mpi.MPI_IN_PLACE,&dim_tot,1,mpi.MPI_LONG,mpi.MPI_SUM,mpi.MPI_COMM_WORLD)
+
+        IF USE_MPI==1:
+            mpi.MPI_Allreduce(mpi.MPI_IN_PLACE,&dim_tot,1,mpi.MPI_LONG,mpi.MPI_SUM,mpi.MPI_COMM_WORLD)
         return dim_tot
 
     cdef _get_slopes(self, int n):
@@ -447,39 +455,43 @@ cdef class Sensors:
         data=np.empty((cdims[1]),dtype=np.float32)
         slopes.device2host(<float*>data.data)
 
-        cdef int comm_size, rank
-        mpi.MPI_Comm_size(mpi.MPI_COMM_WORLD,&comm_size)
-        mpi.MPI_Comm_rank(mpi.MPI_COMM_WORLD,&rank)
+        IF USE_MPI==1:
+            cdef int comm_size, rank
+            mpi.MPI_Comm_size(mpi.MPI_COMM_WORLD,&comm_size)
+            mpi.MPI_Comm_rank(mpi.MPI_COMM_WORLD,&rank)
 
-        cdef int d=<int>(cdims[1]/2)
-        
-        cdef int *count=<int*>malloc(comm_size*sizeof(int))
-        mpi.MPI_Allgather(&d,1,mpi.MPI_INT,count,1,mpi.MPI_INT,mpi.MPI_COMM_WORLD)
-        
-        cdef int *disp=<int*>malloc((comm_size+1)*sizeof(int))
-        cdef int i, nvalid2
-        disp[0]=0
-        for i in range(comm_size):
-            disp[i+1]=disp[i]+count[i]
+            cdef int d=<int>(cdims[1]/2)
+            
+            cdef int *count=<int*>malloc(comm_size*sizeof(int))
+            mpi.MPI_Allgather(&d,1,mpi.MPI_INT,count,1,mpi.MPI_INT,mpi.MPI_COMM_WORLD)
+            
+            cdef int *disp=<int*>malloc((comm_size+1)*sizeof(int))
+            cdef int i, nvalid2
+            disp[0]=0
+            for i in range(comm_size):
+                disp[i+1]=disp[i]+count[i]
 
-        cdef np.ndarray[ndim=1,dtype=np.float32_t] all_slopes=np.zeros(disp[comm_size]*2,
-                                                            dtype=np.float32)
-
-
+            cdef np.ndarray[ndim=1,dtype=np.float32_t] all_slopes=np.zeros(disp[comm_size]*2,
+                                                                dtype=np.float32)
 
 
-        cdef float *send=<float*>data.data
-        cdef float *recv=<float*>all_slopes.data
 
-        mpi.MPI_Allgatherv(send,count[rank],mpi.MPI_FLOAT,
-                                recv,count,disp,
-                                mpi.MPI_FLOAT, mpi.MPI_COMM_WORLD)
 
-        mpi.MPI_Allgatherv(&send[count[rank]],count[rank],mpi.MPI_FLOAT,
-                                &recv[disp[comm_size]],count,disp,
-                                mpi.MPI_FLOAT, mpi.MPI_COMM_WORLD)
+            cdef float *send=<float*>data.data
+            cdef float *recv=<float*>all_slopes.data
 
-        return all_slopes
+            mpi.MPI_Allgatherv(send,count[rank],mpi.MPI_FLOAT,
+                                    recv,count,disp,
+                                    mpi.MPI_FLOAT, mpi.MPI_COMM_WORLD)
+
+            mpi.MPI_Allgatherv(&send[count[rank]],count[rank],mpi.MPI_FLOAT,
+                                    &recv[disp[comm_size]],count,disp,
+                                    mpi.MPI_FLOAT, mpi.MPI_COMM_WORLD)
+
+            return all_slopes
+
+        ELSE:
+            return data
 
 
     cdef slopes_geom(self,int nsensor, int t):
@@ -523,98 +535,98 @@ cdef class Sensors:
             self.sensors.d_wfs[n].sensor_trace(dms.dms,rst)
 
 
+    IF USE_MPI==1:
+        cpdef Bcast_dscreen(self):
+            """Broadcast the screen of every wfs on process 0 to all process
 
-    cpdef Bcast_dscreen(self):
-        """Broadcast the screen of every wfs on process 0 to all process
+            """
+            cdef carma_obj[float] *screen
+            cdef float *ptr
+            cdef int i,nsensors, size_i
+            cdef long size
 
-        """
-        cdef carma_obj[float] *screen
-        cdef float *ptr
-        cdef int i,nsensors, size_i
-        cdef long size
+            nsensors=self.sensors.nsensors()
+            for i in range(nsensors):
+                screen=self.sensors.d_wfs[i].d_gs.d_phase.d_screen
+                size=screen.getNbElem()
+                size_i=size*2
+                ptr=<float*>malloc(size_i*sizeof(float))
+                if(self._get_rank(0)==0):
+                    screen.device2host(ptr)
+                mpi.MPI_Bcast(ptr,size_i,mpi.MPI_FLOAT,0,mpi.MPI_COMM_WORLD)
+                screen.host2device(ptr)
+                free(ptr)
 
-        nsensors=self.sensors.nsensors()
-        for i in range(nsensors):
-            screen=self.sensors.d_wfs[i].d_gs.d_phase.d_screen
-            size=screen.getNbElem()
-            size_i=size*2
-            ptr=<float*>malloc(size_i*sizeof(float))
-            if(self._get_rank(0)==0):
-                screen.device2host(ptr)
-            mpi.MPI_Bcast(ptr,size_i,mpi.MPI_FLOAT,0,mpi.MPI_COMM_WORLD)
-            screen.host2device(ptr)
+        cpdef Bcast_dscreen_cuda_aware(self):
+            """Broadcast the screen of every wfs on process 0 to all process
+
+            using cuda_aware
+            """
+            cdef float *ptr
+            cdef int i,nsensors, size_i
+            cdef long size
+
+            nsensors=self.sensors.nsensors()
+            for i in range(nsensors):
+                size=self.sensors.d_wfs[i].d_gs.d_phase.d_screen.getNbElem()
+                size_i=size #convert from long to int
+                ptr=self.sensors.d_wfs[i].d_gs.d_phase.d_screen.getData()
+                mpi.MPI_Bcast(ptr,size_i,mpi.MPI_FLOAT,0,mpi.MPI_COMM_WORLD)
+
+
+        cpdef gather_bincube(self,int n):
+            """Gather the carma object 'bincube' of a wfs on the process 0
+
+            :parameters:
+                comm: (MPI.Intracomm) :communicator mpi
+
+                :param n: (int) : number of the wfs where the gather will occured
+            """
+
+            cdef int *count_bincube=self.sensors.d_wfs[n].count_bincube
+            cdef int *displ_bincube=self.sensors.d_wfs[n].displ_bincube
+            cdef const long *cdims=self.sensors.d_wfs[n].d_bincube.getDims()
+
+            cdef float *ptr
+            ptr=<float*>malloc(cdims[1]*cdims[2]*cdims[3]*sizeof(float))
+            self.sensors.d_wfs[n].d_bincube.device2host(ptr)
+
+            cdef int i,j
+
+            if(self._get_rank(n)==0):
+                mpi.MPI_Gatherv(mpi.MPI_IN_PLACE,count_bincube[0],mpi.MPI_FLOAT,
+                        ptr, count_bincube, displ_bincube, mpi.MPI_FLOAT,
+                        0,mpi.MPI_COMM_WORLD)
+
+            else:
+                mpi.MPI_Gatherv(ptr,count_bincube[self.get_rank(n)],mpi.MPI_FLOAT,
+                        ptr, count_bincube, displ_bincube, mpi.MPI_FLOAT,
+                        0,mpi.MPI_COMM_WORLD)
+
+            if(self._get_rank(n)==0):
+                self.sensors.d_wfs[n].d_bincube.host2device(ptr)
+
             free(ptr)
 
-    cpdef Bcast_dscreen_cuda_aware(self):
-        """Broadcast the screen of every wfs on process 0 to all process
-
-        using cuda_aware
-        """
-        cdef float *ptr
-        cdef int i,nsensors, size_i
-        cdef long size
-
-        nsensors=self.sensors.nsensors()
-        for i in range(nsensors):
-            size=self.sensors.d_wfs[i].d_gs.d_phase.d_screen.getNbElem()
-            size_i=size #convert from long to int
-            ptr=self.sensors.d_wfs[i].d_gs.d_phase.d_screen.getData()
-            mpi.MPI_Bcast(ptr,size_i,mpi.MPI_FLOAT,0,mpi.MPI_COMM_WORLD)
 
 
-    cpdef gather_bincube(self,int n):
-        """Gather the carma object 'bincube' of a wfs on the process 0
+        cpdef gather_bincube_cuda_aware(self,int n):
+            """Gather the carma object 'bincube' of a wfs on the process 0
 
-        :parameters:
-            comm: (MPI.Intracomm) :communicator mpi
+            using mpi cuda_aware
 
-            :param n: (int) : number of the wfs where the gather will occured
-        """
-
-        cdef int *count_bincube=self.sensors.d_wfs[n].count_bincube
-        cdef int *displ_bincube=self.sensors.d_wfs[n].displ_bincube
-        cdef const long *cdims=self.sensors.d_wfs[n].d_bincube.getDims()
-
-        cdef float *ptr
-        ptr=<float*>malloc(cdims[1]*cdims[2]*cdims[3]*sizeof(float))
-        self.sensors.d_wfs[n].d_bincube.device2host(ptr)
-
-        cdef int i,j
-
-        if(self._get_rank(n)==0):
-            mpi.MPI_Gatherv(mpi.MPI_IN_PLACE,count_bincube[0],mpi.MPI_FLOAT,
-                    ptr, count_bincube, displ_bincube, mpi.MPI_FLOAT,
-                    0,mpi.MPI_COMM_WORLD)
-
-        else:
-            mpi.MPI_Gatherv(ptr,count_bincube[self.get_rank(n)],mpi.MPI_FLOAT,
-                    ptr, count_bincube, displ_bincube, mpi.MPI_FLOAT,
-                    0,mpi.MPI_COMM_WORLD)
-
-        if(self._get_rank(n)==0):
-            self.sensors.d_wfs[n].d_bincube.host2device(ptr)
-
-        free(ptr)
-
-
-
-    cpdef gather_bincube_cuda_aware(self,int n):
-        """Gather the carma object 'bincube' of a wfs on the process 0
-
-        using mpi cuda_aware
-
-            :param n: (int) : number of the wfs where the gather will occured
-        """
-        cdef float *recv_bin=self.sensors.d_wfs[n].d_bincube.getData()
-        cdef float *send_bin=self.sensors.d_wfs[n].d_bincube.getData()
-        cdef int nx=self.sensors.d_wfs[n].npix
-        cdef int nz=self.sensors.d_wfs[n].nvalid
-        cdef int *count_bincube=self.sensors.d_wfs[n].count_bincube
-        cdef int *displ_bincube=self.sensors.d_wfs[n].displ_bincube
-        
-        mpi.MPI_Gatherv(send_bin,nx*nx*nz,mpi.MPI_FLOAT,
-                    recv_bin, count_bincube, displ_bincube, mpi.MPI_FLOAT,
-                    0,mpi.MPI_COMM_WORLD)
+                :param n: (int) : number of the wfs where the gather will occured
+            """
+            cdef float *recv_bin=self.sensors.d_wfs[n].d_bincube.getData()
+            cdef float *send_bin=self.sensors.d_wfs[n].d_bincube.getData()
+            cdef int nx=self.sensors.d_wfs[n].npix
+            cdef int nz=self.sensors.d_wfs[n].nvalid
+            cdef int *count_bincube=self.sensors.d_wfs[n].count_bincube
+            cdef int *displ_bincube=self.sensors.d_wfs[n].displ_bincube
+            
+            mpi.MPI_Gatherv(send_bin,nx*nx*nz,mpi.MPI_FLOAT,
+                        recv_bin, count_bincube, displ_bincube, mpi.MPI_FLOAT,
+                        0,mpi.MPI_COMM_WORLD)
 
 
 
@@ -623,7 +635,10 @@ cdef class Sensors:
 
         :param n: (int): index of the wfs to get the rank for 
         """
-        return self.sensors.d_wfs[n].rank
+        IF USE_MPI==1:
+            return self.sensors.d_wfs[n].rank
+        ELSE:
+            return 0
 
 
     def get_rank(self,int n):
@@ -649,6 +664,7 @@ cdef class Sensors:
         info+= "--------------------------------------------------------"
         return info
         
+    '''
     #for profiling purpose
     @cython.profile(True)
     cdef gather_bincube_prof(self,int n):
@@ -697,7 +713,7 @@ cdef class Sensors:
                     ptr, count , displ ,
                     mpi.MPI_FLOAT,0,mpi.MPI_COMM_WORLD)
 
-
+    '''
 
 
 
