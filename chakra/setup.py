@@ -124,8 +124,9 @@ ext = Extension('chakra',
                     #'wrapper_chakra_host_obj.pyx'
                     'src/wrapper_chakra.pyx'
                     ],
-                library_dirs=[CUDA['lib64'], COMPASS['lib']+"/libcarma"],
-                libraries=['cudart', 'cufft','cublas','carma'],
+                library_dirs=[CUDA['lib64'], COMPASS['lib']+"/libcarma", "/usr/local/intel/composer_xe_2013_sp1.1.106/mkl"],
+                libraries=['cudart', 'cufft','cublas','carma',
+					"mkl_mc3","mkl_def"],
                 language='c++',
                 runtime_library_dirs=[CUDA['lib64']],
                 # this syntax is specific to this build system

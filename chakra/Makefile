@@ -1,7 +1,7 @@
 all: install
 
 build:
-	python setup.py build
+	python setup.py build_ext -i
 
 clean:
 	python clean.py
