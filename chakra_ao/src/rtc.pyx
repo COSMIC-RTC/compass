@@ -1276,7 +1276,7 @@ def rtc_init(Sensors g_wfs, p_wfs, Dms g_dms, p_dms, Param_geom p_geom, Param_rt
                     if(controller.type_control !="geo"):
                         nwfs=controller.nwfs
                         if(len(p_wfs)==1):
-                            nwfs=p_rtc.controllers[0].nwfs-1
+                            nwfs=p_rtc.controllers[0].nwfs
                             # TODO fixing a bug ... still not understood
                         controller.set_nvalid(p_wfs[nwfs]._nvalid)
                     #parameter for add_controller(_geo)
@@ -1484,7 +1484,7 @@ cdef correct_dm(p_dms, Dms g_dms, Param_controller p_control, Param_geom p_geom,
 
     ndm=p_control.ndm.size
     for i in range(ndm):
-        nm=p_control.ndm[i]-1
+        nm=p_control.ndm[i]
         g_dms.remove_dm(p_dms[nm].type_dm,p_dms[nm].alt)
 
     resp=np.sqrt(np.sum(imat**2,axis=0))
@@ -1498,7 +1498,7 @@ cdef correct_dm(p_dms, Dms g_dms, Param_controller p_control, Param_geom p_geom,
         rank=0
 
     for nmc in range(ndm):
-        nm=p_control.ndm[nmc]-1
+        nm=p_control.ndm[nmc]
         nactu_nm=p_dms[nm]._ntotact
         # filter actuators only in stackarray mirrors:
 
@@ -1588,7 +1588,7 @@ cdef imat_geom(Sensors g_wfs, p_wfs, Param_controller p_control,Dms g_dms, p_dms
     cdef np.ndarray[ndim=2,dtype=np.float32_t] imat_cpu
 
     for nw in range(nwfs):
-        nm=p_control.ndm[nw]-1
+        nm=p_control.ndm[nw]
         imat_size1+=p_wfs[nw]._nvalid*2
 
     for nmc in range(ndm):
@@ -1598,13 +1598,13 @@ cdef imat_geom(Sensors g_wfs, p_wfs, Param_controller p_control,Dms g_dms, p_dms
     ind=0
 
     for nmc in range(ndm):
-        nm=p_control.ndm[nmc]-1
+        nm=p_control.ndm[nmc]
         g_dms.resetdm(p_dms[nm].type_dm,p_dms[nm].alt)
         for i in range(p_dms[nm]._ntotact):
             g_dms.oneactu(p_dms[nm].type_dm,p_dms[nm].alt,i,p_dms[nm].push4imat)
             nslps=0
             for nw in range(nwfs):
-                wfs=p_control.nwfs[nw]-1
+                wfs=p_control.nwfs[nw]
                 g_wfs.sensors_trace(wfs,"dm",None,dms=g_dms,rst=1)
                 g_wfs.slopes_geom(wfs,meth)
                 imat_cpu[nslps:nslps+p_wfs[wfs]._nvalid*2,ind]=g_wfs._get_slopes(wfs)
