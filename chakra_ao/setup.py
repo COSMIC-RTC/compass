@@ -169,30 +169,12 @@ def locate_MPI():
     clibdirs=[]
     clibdirs=clibdir.split()
 
-    pincdirs=[]
-    if MPI4PY==1:
-        pincdirs.extend([mpi4py.get_include(),numpy.get_include()])
+    pincdirs=[mpi4py.get_include(),numpy.get_include()]
 
-    #try:
-    #    clibdir=os.environ["LIBMPI"]
-    #except KeyError:
-    #    raise KeyError("variable environment 'LIBMPI' must be set")
-        
-    #clibdir='/home/ndoucet/local/openmpi/openmpi-1.8.4/lib'
-    #clibdirs='/usr/local/openmpi-1.8.4_CUDA6.5/lib'
-
-    print "cincdirs",cincdirs
-    print "clibs ",clibs
-    print "clibdirs",clibdirs
-
-    if MPI4PY==1:
-        mpi_config = {'mpicxx':mpicxx,'cincdirs':cincdirs, 'pincdirs':pincdirs, 'clibs':clibs,'clibdirs':clibdirs}
-    else:
-        mpi_config = {'mpicxx':"g++",'cincdirs':"", 'pincdirs':"", 'clibs':"",'clibdirs':""}
+    mpi_config = {'mpicxx':mpicxx,'cincdirs':cincdirs, 'pincdirs':pincdirs, 'clibs':clibs,'clibdirs':clibdirs}
 
     return mpi_config
 
-MPI=locate_MPI()
 
 # run the customize_compiler
 class custom_build_ext(build_ext):
@@ -203,47 +185,32 @@ class custom_build_ext(build_ext):
 
 
 source=['chakra_ao']
-librairies=['sutra'].extend(MPI['clibs'])
+librairies=['sutra']
 include_dirs = [numpy_include, 
                 CUDA['include'],
-                COMPASS['inc_carma'],#COMPASS['inc']+'/libcarma/include.h',
-                COMPASS['inc_sutra'],#COMPASS['inc']+'/libsutra/include.h',
-                COMPASS['inc_chakra']]#'../chakra',
-include_dirs.extend(MPI['cincdirs'])
-include_dirs.extend(MPI['pincdirs'])
+                COMPASS['inc_carma'],
+                COMPASS['inc_sutra'],
+                COMPASS['inc_chakra']]
 
 library_dirs=[COMPASS['lib']+"/libsutra"]
-library_dirs.extend(MPI['clibdirs'])
 
 if MPI4PY==1:
-    ext=Extension('chakra_ao',
-                  sources=['src/chakra_ao.pyx'],
-                  library_dirs=library_dirs,
-                  libraries=[ 'sutra','mpi_cxx'],
-                  language='c++',
-                  runtime_library_dirs=[],#CUDA['lib64']],
-                  extra_compile_args={'g++': []},
-                  include_dirs = include_dirs,
-                  )
-else:
-    ext=Extension('chakra_ao',
-                  sources=['src/chakra_ao.pyx'],
-                  library_dirs=library_dirs,
-                  libraries=[ 'sutra'],
-                  language='c++',
-                  runtime_library_dirs=[],#CUDA['lib64']],
-                  extra_compile_args={'g++': []},
-                  include_dirs = include_dirs,
-                  )
-                              #[numpy_include, 
-                              #CUDA['include'],
-                              #COMPASS['inc']+'/libcarma/include.h',
-                              #COMPASS['inc']+'/libsutra/include.h',
-                              #'../chakra',
-                              #'/usr/local/lib/python2.7/dist-packages/mpi4py-1.3.1-py2.7-linux-x86_64.egg/mpi4py/include',
-                              ##'/usr/lib/openmpi/include'
-                              #MPI['cincdirs']
-                              #])
+    MPI=locate_MPI()
+    librairies.extend(MPI['clibs'])
+    include_dirs.extend(MPI['cincdirs'])
+    include_dirs.extend(MPI['pincdirs'])
+    library_dirs.extend(MPI['clibdirs'])
+
+ext=Extension('chakra_ao',
+              sources=['src/chakra_ao.pyx'],
+              library_dirs=library_dirs,
+              libraries=librairies,
+              language='c++',
+              runtime_library_dirs=[],#CUDA['lib64']],
+              extra_compile_args={'g++': []},
+              include_dirs = include_dirs,
+              )
+
 
 setup(
     name="chakra_ao",
