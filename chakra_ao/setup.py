@@ -27,6 +27,13 @@ except ImportError:
     MPI4PY=0
 
 
+chakra_path=os.environ.get('CHAKRA')
+if(chakra_path is None):
+    raise EnvironmentError("Environment variable 'CHAKRA' must be define")
+sys.path.append(chakra_path+'/src')
+
+
+
 chakra_ao_path=os.environ.get('CHAKRA_AO')
 if(chakra_ao_path is None):
     raise EnvironmentError("Environment variable 'CHAKRA_AO' must be define")

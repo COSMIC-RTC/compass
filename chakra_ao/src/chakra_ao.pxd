@@ -1,4 +1,4 @@
-include "par.pxi"
+include "../par.pxi"
 
 from chakra cimport *
 
