@@ -901,6 +901,13 @@ extern rtc_getCmm;
 
    SEE ALSO:
 */
+extern rtc_getolmeas;
+/* DOCUMENT rtc_getolmeas
+   rtc_getolmeas,yoga_rtc_obj,ncontroller
+   retrieve the reconstructed open-loop measurements  from a yoga_rtc_obj with MV controller
+
+   SEE ALSO:
+*/
 extern rtc_getCmmeigenvals;
 /* DOCUMENT rtc_getCmmeigenvals
    rtc_getCmmeigenvals,yoga_rtc_obj,ncontroller

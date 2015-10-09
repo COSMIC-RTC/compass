@@ -484,7 +484,7 @@ cdef make_zernike(int nzer,int size,int diameter, float xc=-1, float yc=-1, int 
 
     cdef np.ndarray[ndim=2,dtype=np.float32_t] x=np.tile(np.linspace(1,size,size).astype(np.float32),
                                                     (size,1))
-    cdef np.ndarray[ndim=2,dtype=np.float32_t] zteta=np.arctan2(x.T-yc,x-xc).astype(np.float32)
+    cdef np.ndarray[ndim=2,dtype=np.float32_t] zteta=np.arctan2(x-yc,x.T-xc).astype(np.float32)
 
     cdef np.ndarray[ndim=3,dtype=np.float32_t] z=np.zeros((size,size,nzer),dtype=np.float32)
 

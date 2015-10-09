@@ -389,7 +389,7 @@ cdef class Rtc:
 
 
     cdef set_mgain(self,int ncontro, np.ndarray[ndim=1,dtype=np.float32_t] mgain):
-        """TODO doc
+        """Set modal gains
 
         :parameters:
             ncontro: (int) : controller index
@@ -413,7 +413,7 @@ cdef class Rtc:
             raise TypeError("Controller needs to be ls or mv")
 
 
-    cdef set_imat(self,int ncontro, np.ndarray[ndim=2,dtype=np.float32_t] data):
+    cpdef set_imat(self,int ncontro, np.ndarray[ndim=2,dtype=np.float32_t] data):
         """TODO doc
 
         :parameters:
@@ -479,7 +479,7 @@ cdef class Rtc:
         return imat
 
 
-    cdef set_cmat(self,int ncontro, np.ndarray[ndim=2,dtype=np.float32_t] data):
+    cpdef set_cmat(self,int ncontro, np.ndarray[ndim=2,dtype=np.float32_t] data):
         """TODO doc
 
         :parameters:
@@ -509,7 +509,50 @@ cdef class Rtc:
         else:
             raise TypeError("Controller needs to be ls, mv or generic")
 
+    cpdef get_cmm(self, int ncontro):
+        """TODO doc
+        
+        :param ncontro: (int) : controller index
+        """
+        cdef carma_context *context=carma_context.instance()
+        context.set_activeDeviceForCpy(self.rtc.device,1)
+        cdef sutra_controller_mv *controller_mv
+        cdef bytes type_contro = <bytes>self.rtc.d_control[ncontro].get_type()
+        cdef np.ndarray[ndim=2,dtype=np.float32_t] data_F, cmm
+        cdef const long *cdims
+        
+        if(type_contro == "mv"):
+            controller_mv=dynamic_cast_controller_mv_ptr(self.rtc.d_control[ncontro])
+            cdims=controller_mv.d_Cmm.getDims()
+            data_F=np.zeros((cdims[2],cdims[1]),dtype=np.float32)
+            controller_mv.d_Cmm.device2host(<float*>data_F.data)
+            cmm=np.reshape(data_F.flatten("F"),(cdims[1],cdims[2]))
+            return cmm
+        else:
+            raise TypeError("Controller needs to be mv")
 
+    cpdef get_cphim(self, int ncontro):
+        """TODO doc
+        
+        :param ncontro: (int) : controller index
+        """
+        cdef carma_context *context=carma_context.instance()
+        context.set_activeDeviceForCpy(self.rtc.device,1)
+        cdef sutra_controller_mv *controller_mv
+        cdef bytes type_contro = <bytes>self.rtc.d_control[ncontro].get_type()
+        cdef np.ndarray[ndim=2,dtype=np.float32_t] data_F, cphim
+        cdef const long *cdims
+        
+        if(type_contro == "mv"):
+            controller_mv=dynamic_cast_controller_mv_ptr(self.rtc.d_control[ncontro])
+            cdims=controller_mv.d_Cphim.getDims()
+            data_F=np.zeros((cdims[2],cdims[1]),dtype=np.float32)
+            controller_mv.d_Cphim.device2host(<float*>data_F.data)
+            cphim=np.reshape(data_F.flatten("F"),(cdims[1],cdims[2]))
+            return cphim
+        else:
+            raise TypeError("Controller needs to be mv")
+            
     cpdef get_cmat(self,int ncontro):
         """TODO doc
 
@@ -891,6 +934,25 @@ cdef class Rtc:
         dims=self.rtc.d_control[ncontro].d_com.getDims()
         data=np.zeros((dims[1]),dtype=np.float32)
         self.rtc.d_control[ncontro].d_com.device2host(<float*>data.data)
+
+        return data
+
+    cpdef getolmeas(self,int ncontro):
+        """TODO doc
+
+        :param ncontro: (int) : controller index
+        """
+        cdef carma_context *context=carma_context.instance()
+        cdef sutra_controller_mv *controller_mv
+        
+        context.set_activeDeviceForCpy(self.rtc.device,1)
+        cdef np.ndarray[ndim=1, dtype=np.float32_t] data
+        cdef const long *dims
+        
+        controller_mv=dynamic_cast_controller_mv_ptr(self.rtc.d_control[ncontro])
+        dims=controller_mv.d_olmeas.getDims()
+        data=np.zeros((dims[1]),dtype=np.float32)
+        controller_mv.d_olmeas.device2host(<float*>data.data)
 
         return data
 
@@ -1281,17 +1343,17 @@ def rtc_init(Sensors g_wfs, p_wfs, Dms g_dms, p_dms, Param_geom p_geom, Param_rt
                         controller.set_nvalid(p_wfs[nwfs]._nvalid)
                     #parameter for add_controller(_geo)
                     ndms=controller.ndm.tolist()
-                    controller.set_nactu([p_dms[n-1]._ntotact for n in ndms])
-                    nactu=sum([p_dms[j-1]._ntotact for j in ndms])
-                    alt=np.array([p_dms[j-1].alt for j in controller.ndm],
+                    controller.set_nactu([p_dms[n]._ntotact for n in ndms])
+                    nactu=sum([p_dms[j]._ntotact for j in ndms])
+                    alt=np.array([p_dms[j].alt for j in controller.ndm],
                                 dtype=np.float32)
 
-                    list_dmseen=[p_dms[j-1].type_dm for j in controller.ndm]
+                    list_dmseen=[p_dms[j].type_dm for j in controller.ndm]
 
                     type_dmseen=<char**>malloc(controller.ndm.size*sizeof(char*))
-
+                    #TODO : j is not always a range, it has to be index set in controller.ndm
                     for j in range(controller.ndm.size):
-                        type_dmseen[j]= p_dms[controller.ndm[j]-1].type_dm
+                        type_dmseen[j]= p_dms[controller.ndm[j]].type_dm
 
                     context.set_activeDeviceForCpy(device,1)
                     if(controller.type_control=="geo"):
@@ -1348,21 +1410,21 @@ def rtc_init(Sensors g_wfs, p_wfs, Dms g_dms, p_dms, Param_geom p_geom, Param_rt
                                 g_rtc.modalControlOptimization(i)
                             else:
                                 cmat_init(i,g_rtc,p_rtc,p_wfs,clean=1,simul_name=simul_name)
-                                g_rtc.set_gain(0,controller.gain)
+                                g_rtc.set_gain(i,controller.gain)
                                 mgain=np.ones(sum([p_dms[j]._ntotact for j in range(len(p_dms))]),dtype=np.float32)
                                 #filtering tilt ...
                                 #mgain(-1:0) = 0.0f;
-                                g_rtc.set_mgain(0,mgain)
+                                g_rtc.set_mgain(i,mgain)
                         else:
                             nactu=np.sum(controller.nactu)
                             nvalid=np.sum(controller.nvalid)
                             imat=np.zeros((nactu*nvalid*2),dtype=np.float32)
                             g_rtc.set_imat(i,imat)
                             g_rtc.set_cmat(i,imat)
-                            g_rtc.set_gain(0,controller.gain)
+                            g_rtc.set_gain(i,controller.gain)
                             mgain=np.ones(sum([p_dms[j]._ntotact for j in range(len(p_dms))]),dtype=np.float32)
                             # filtering tilt ...
-                            g_rtc.set_mgain(0,mgain)
+                            g_rtc.set_mgain(i,mgain)
 
                     if(controller.type_control=="cured"):
                         print "initializing cured controller"
@@ -1373,7 +1435,7 @@ def rtc_init(Sensors g_wfs, p_wfs, Dms g_dms, p_dms, Param_geom p_geom, Param_rt
                         print "TODO controller_initcured"
                         #controller_initcured,g_rtc,0,int(y_wfs(1).nxsub),int(*y_wfs(1)._isvalid),
                                 #int(controllers(i).cured_ndivs),int(tt_flag);
-                        g_rtc.set_gain(0,controller.gain)
+                        g_rtc.set_gain(i,controller.gain)
                     if(controller.type_control=="kalman_CPU" or 
                        controller.type_control=="kalman_GPU"):
                         env_var=os.environ.get("COMPILATION_LAM")
@@ -1385,7 +1447,7 @@ def rtc_init(Sensors g_wfs, p_wfs, Dms g_dms, p_dms, Param_geom p_geom, Param_rt
                         else:
                             print "initializing kalman_CPU controller"
 
-                        g_rtc.set_gain(0,controller.gain)
+                        g_rtc.set_gain(i,controller.gain)
 
                         print "TODO :rtc_init kalman case"
                         #TODO D_Mo = create_dmo(1,1);
@@ -1411,6 +1473,19 @@ def rtc_init(Sensors g_wfs, p_wfs, Dms g_dms, p_dms, Param_geom p_geom, Param_rt
                         else:
                             print  "TODO rtc_initkalman, g_rtc, 0, avg(noise_cov(1)), D_Mo, N_Act, PROJ, SigmaV, atur, btur, isZonal, isSparse, 1;"
 
+                    if(controller.type_control == "mv"):
+                        print "doing imat_geom..."
+                        imat = imat_geom(g_wfs,p_wfs,controller,g_dms,p_dms,meth=0)
+                        #imat_init(i,g_rtc,p_rtc,g_dms,g_wfs,p_wfs,p_tel,clean=1,simul_name=simul_name)
+                        print "done"
+                        g_rtc.set_imat(i,imat)
+                        g_rtc.set_gain(i,controller.gain)
+                        size=sum([p_dms[j]._ntotact for j in range(len(p_dms))])
+                        mgain = np.ones(size,dtype=np.float32)
+                        g_rtc.set_mgain(i,mgain)
+                        doTomoMatrices(i,g_rtc,p_wfs,g_dms,g_atmos,g_wfs,p_rtc,p_geom,p_dms,p_tel,p_atmos)
+                        cmat_init(i,g_rtc,p_rtc,p_wfs)
+                        
                     elif(controller.type_control=="generic"):
                         size=sum([p_dms[j]._ntotact for j in range(len(p_dms))])
                         decayFactor=np.zeros(size ,dtype=np.float32)
@@ -1420,10 +1495,10 @@ def rtc_init(Sensors g_wfs, p_wfs, Dms g_dms, p_dms, Param_geom p_geom, Param_rt
                                        dtype=np.float32)
                         #TODO ? law = "integrator";
 
-                        g_rtc.set_decayFactor(0,decayFactor)
-                        g_rtc.set_mgain(0,mgain)
-                        g_rtc.set_cmat(0,cmat)
-                        g_rtc.set_matE(0,matE)
+                        g_rtc.set_decayFactor(i,decayFactor)
+                        g_rtc.set_mgain(i,mgain)
+                        g_rtc.set_cmat(i,cmat)
+                        g_rtc.set_matE(i,matE)
             
     return g_rtc
 """
@@ -1588,7 +1663,7 @@ cdef imat_geom(Sensors g_wfs, p_wfs, Param_controller p_control,Dms g_dms, p_dms
     cdef np.ndarray[ndim=2,dtype=np.float32_t] imat_cpu
 
     for nw in range(nwfs):
-        nm=p_control.ndm[nw]
+        nm=p_control.nwfs[nw]
         imat_size1+=p_wfs[nw]._nvalid*2
 
     for nmc in range(ndm):
@@ -1891,6 +1966,9 @@ cdef cmat_init(int ncontro, Rtc g_rtc, Param_rtc p_rtc, list p_wfs,
     cdef np.ndarray[ndim=1,dtype=np.float32_t] eigenv, N
     cdef np.ndarray[ndim=2,dtype=np.float32_t] U, imat
     cdef np.ndarray[ndim=1,dtype=np.int64_t] mfilt
+    
+    cdef sutra_controller_mv *controller_mv
+    
 
     cdef float maxcond
     cdef int nfilt,ind,i
@@ -1963,7 +2041,9 @@ cdef cmat_init(int ncontro, Rtc g_rtc, Param_rtc p_rtc, list p_wfs,
         print "cmat time ",time.time()-t0
 
     if(p_rtc.controllers[ncontro].type_control=="mv"):
-        N=np.zeros((2*np.sum(p_wfs[p_rtc.controllers[ncontro].nwfs]._nvalid)),dtype=np.int32)
+        
+        controller_mv = dynamic_cast_controller_mv_ptr(g_rtc.rtc.d_control[ncontro])
+        N=np.zeros((2*np.sum(p_wfs[p_rtc.controllers[ncontro].nwfs]._nvalid)),dtype=np.float32)
         ind=0
         for i in range(p_rtc.controllers[ncontro].nwfs.size):
             k=p_rtc.controllers[ncontro].nwfs[i]
@@ -1972,7 +2052,9 @@ cdef cmat_init(int ncontro, Rtc g_rtc, Param_rtc p_rtc, list p_wfs,
 
         g_rtc.loadnoisemat(ncontro,N)
         print "Building cmat..."
-        g_rtc.build_cmatmv(ncontro,p_rtc.controllers[ncontro].maxcond)
+        g_rtc.buildcmatmv(ncontro,p_rtc.controllers[ncontro].maxcond)
+        
+        controller_mv.filter_cmat(p_rtc.controllers[ncontro].maxcond)
 
     '''
     TODO what is y_controllers(ncontrol-1).TTcond
@@ -1987,4 +2069,206 @@ cdef cmat_init(int ncontro, Rtc g_rtc, Param_rtc p_rtc, list p_wfs,
     '''
     p_rtc.controllers[ncontro].set_cmat(g_rtc.get_cmat(ncontro))
 
+cdef doTomoMatrices(int ncontro, Rtc g_rtc, list wfs, Dms g_dm, Atmos g_atmos, Sensors g_wfs,  Param_rtc p_rtc, Param_geom geom, list p_dm, Param_tel p_tel, Param_atmos p_atmos):
+    """TODO doc
 
+    :parameters:
+        g_wfs: (Sensors) :
+
+        p_wfs: (list of Param_wfs) : wfs settings
+
+        g_dms: (Dms) :
+
+        p_dms: (list of Param_dms) : dms settings
+
+        p_geom: (Param_geom) : geom settings
+
+        p_atmos: (Param_atmos) : atmos settings
+
+        g_atmos: (Atmos) :
+
+        p_tel: (Param_tel) : telescope settings
+
+    """
+    cdef np.ndarray[ndim=2,dtype=np.float32_t] ipup, spup, F, Nact
+    cdef np.ndarray nvalidperwfs = np.array([o._nvalid   for o in wfs],dtype=np.int64)
+    cdef np.ndarray[ndim=1, dtype=np.float64_t] frac_d, L0_d, X, Y, Xactu, Yactu, k2, pitch, alphaX, alphaY, alt_DM
+    cdef np.ndarray[ndim=1, dtype=np.int64_t] indlayersDM, NlayersDM
+    cdef sutra_controller_mv *controller_mv
+    
+    # Bring bottom left corner of valid subapertures in ipupil
+    ipup = geom.get_ipupil()
+    spup = geom.get_spupil()
+    s2ipup = (ipup.shape[0] - spup.shape[0])/2.
+    nvalid = np.array([nvalidperwfs[j]   for j in p_rtc.controllers[ncontro].nwfs]) # Total number of subapertures
+    ind = 0
+    X = np.zeros(nvalid,dtype=np.float64) # X-position of the bottom left corner of each valid subaperture
+    Y = np.zeros(nvalid,dtype=np.float64) # Y-position of the bottom left corner of each subaperture
+
+    for k in p_rtc.controllers[ncontro].nwfs:
+        posx = wfs[k]._istart + s2ipup 
+        posx = posx * wfs[k]._isvalid # X-position of the bottom left corner of each valid subaperture
+        posx = posx[np.where(posx > 0)] - ipup.shape[0]/2 - 1 #Select the valid ones, bring the origin in the center of ipupil and 0-index it
+        posy = wfs[k]._jstart + s2ipup
+        posy = posy * wfs[k]._isvalid
+        posy = posy.T[np.where(posy > 0)] - ipup.shape[0]/2 - 1
+        sspDiam = posx[1] - posx[0] # Diameter of one ssp in pixels
+        p2m = (p_tel.diam / wfs[k].nxsub) / sspDiam # Size of one pixel in meters
+        posx *= p2m # Positions in meters
+        posy *= p2m
+        X[ind:ind+wfs[k]._nvalid+1] = posx
+        Y[ind:ind+wfs[k]._nvalid+1] = posy
+        ind += wfs[k]._nvalid
+    
+    # Get the total number of pzt DM and actuators to control
+    nactu = 0 
+    npzt = 0
+    for k in p_rtc.controllers[ncontro].ndm:
+        if(p_dm[k].type_dm == "pzt"):
+            nactu += p_dm[k]._ntotact
+            npzt += 1
+        
+    
+    Xactu = np.zeros(nactu,dtype=np.float64) # X-position actuators in ipupil
+    Yactu = np.zeros(nactu,dtype=np.float64) # Y-position actuators in ipupil
+    k2 = np.zeros(npzt,dtype=np.float64) # k2 factors for computation
+    pitch = np.zeros(npzt,dtype=np.float64)
+    alt_DM = np.zeros(npzt,dtype=np.float64)
+    ind = 0
+    indk = 0
+    for k in p_rtc.controllers[ncontro].ndm:
+        if(p_dm[k].type_dm == "pzt"):
+            p2m = p_tel.diam / geom.pupdiam
+            actu_x = (p_dm[k]._xpos - ipup.shape[0]/2)*p2m # Conversion in meters in the center of ipupil
+            actu_y = (p_dm[k]._ypos - ipup.shape[0]/2)*p2m
+            pitch[indk] = actu_x[1] - actu_x[0]
+            k2[indk] = wfs[0].Lambda / 2. / np.pi / p_dm[k].unitpervolt
+            alt_DM[indk] = <double>p_dm[k].alt
+            Xactu[ind:ind+p_dm[k]._ntotact+1] = actu_x
+            Yactu[ind:ind+p_dm[k]._ntotact+1] = actu_y
+            
+            ind += p_dm[k]._ntotact
+            indk += 1
+    
+    # Select a DM for each layer of atmos
+    NlayersDM = np.zeros(npzt,dtype=np.int64) #Useless for now
+    indlayersDM = selectDMforLayers(ncontro, p_atmos, p_rtc, p_dm)
+   # print "indlayer = ",indlayersDM
+    
+    # Get FoV
+    wfs_distance = np.zeros(len(p_rtc.controllers[ncontro].nwfs),dtype = np.float64)
+    ind = 0
+    for k in p_rtc.controllers[ncontro].nwfs:
+        wfs_distance[ind] = np.sqrt(wfs[k].xpos**2 + wfs[k].ypos**2)
+        ind += 1
+    FoV = np.max(wfs_distance)
+    
+    # WFS postions in rad
+    alphaX = np.zeros(len(p_rtc.controllers[ncontro].nwfs))
+    alphaY = np.zeros(len(p_rtc.controllers[ncontro].nwfs))
+    RASC = 180.0/np.pi * 3600.
+    
+    ind = 0
+    for k in p_rtc.controllers[ncontro].nwfs:
+        alphaX[ind] = wfs[k].xpos / RASC
+        alphaY[ind] = wfs[k].ypos / RASC
+        ind +=1
+    
+    controller_mv = dynamic_cast_controller_mv_ptr(g_rtc.rtc.d_control[ncontro])
+    
+    L0_d = np.copy(p_atmos.L0).astype(np.float64)
+    frac_d = np.copy(p_atmos.frac * (p_atmos.r0 ** (-5.0/3.0))).astype(np.float64)
+    
+    print "Computing Cphim..."
+    controller_mv.compute_Cphim(g_atmos.s_a, g_wfs.sensors, g_dm.dms, <double*>L0_d.data, 
+                                <double*>frac_d.data, <double*>alphaX.data, 
+                                <double*>alphaY.data,<double*>X.data,<double*>Y.data,
+                                <double*>Xactu.data,<double*>Yactu.data,<double>p_tel.diam,
+                                <double*>k2.data, <long*>NlayersDM.data,
+                                <long*>indlayersDM.data,<double>FoV,<double*>pitch.data,
+                                <double*>alt_DM.data)
+    print "Done"
+    
+    print "Computing Cmm..."
+    controller_mv.compute_Cmm(g_atmos.s_a, g_wfs.sensors, <double*>L0_d.data, 
+                              <double*>frac_d.data, <double*>alphaX.data, <double*>alphaY.data,
+                              <double>p_tel.diam, <double>p_tel.cobs)
+    print "Done"
+    
+    Nact = np.zeros([nactu,nactu],dtype=np.float32)
+    F = np.zeros([nactu,nactu],dtype=np.float32)
+    ind = 0
+    for k in p_rtc.controllers[ncontro].ndm:
+        if(p_dm[k].type_dm == "pzt"):
+            Nact[ind:ind+p_dm[k]._ntotact+1,ind:ind+p_dm[k]._ntotact+1] = create_nact_geom(p_dm,k)
+            F[ind:ind+p_dm[k]._ntotact+1,ind:ind+p_dm[k]._ntotact+1] = create_piston_filter(p_dm,k)
+            ind += p_dm[k]._ntotact
+    
+    controller_mv.filter_cphim(<float*>F.data,<float*> Nact.data)
+    
+cdef selectDMforLayers(int ncontro, Param_atmos p_atmos, Param_rtc p_rtc, list p_dms):
+    """ TODO Doc
+    :param:
+    """
+    indlayersDM = np.zeros(p_atmos.nscreens,dtype=np.int64)
+    for i in range(p_atmos.nscreens):
+        mindif = 1e6
+        for j in p_rtc.controllers[ncontro].ndm:
+            alt_diff = np.abs(p_dms[j].alt - p_atmos.alt[i])
+            if(alt_diff < mindif):
+                indlayersDM[i] = j
+                mindif = alt_diff
+    
+    return indlayersDM
+
+cdef create_nact_geom(list p_dms, int ndm):
+    """ TODO Doc
+    :param:
+    """
+    nactu = p_dms[ndm]._ntotact
+    Nact = np.zeros([nactu,nactu],dtype=np.float32)
+    coupling = p_dms[ndm].coupling
+    dim = p_dms[ndm]._n2 - p_dms[ndm]._n1 + 1
+    
+    tmpx = p_dms[ndm]._i1
+    tmpy = p_dms[ndm]._j1
+    offs = ((p_dms[ndm]._n2 - p_dms[ndm]._n1 + 1) - (np.max(tmpx) - np.min(tmpx)))/2 - np.min(tmpx)
+    tmpx = tmpx + offs + 1
+    tmpy = tmpy + offs + 1
+    mask = np.zeros([dim,dim],dtype=np.float32)
+    shape = np.zeros([dim,dim],dtype=np.float32)
+    for i in range(len(tmpx)):
+        mask[tmpx[i]][tmpy[i]] = 1
+    
+    mask_act = np.where(mask)
+
+    pitch = mask_act[1][1] - mask_act[1][0]
+    
+    for i in range(nactu):
+        shape *= 0
+        #Diagonal
+        shape[tmpx[i]][tmpy[i]] = 1
+        # Left, right, above and under the current actuator
+        shape[tmpx[i]][tmpy[i]-pitch] = coupling
+        shape[tmpx[i]- pitch][tmpy[i]] = coupling
+        shape[tmpx[i]][tmpy[i]+pitch] = coupling
+        shape[tmpx[i]+pitch][tmpy[i]] = coupling
+        # Diagonals of the current actuators 
+        shape[tmpx[i]-pitch][tmpy[i]-pitch] = coupling**2
+        shape[tmpx[i]- pitch][tmpy[i]+pitch] = coupling**2
+        shape[tmpx[i]+pitch][tmpy[i]+pitch] = coupling**2
+        shape[tmpx[i]+pitch][tmpy[i]-pitch] = coupling **2
+
+        Nact[:,i] = shape.T[mask_act]
+    
+    return Nact
+    
+cdef create_piston_filter(list p_dms, int ndm):
+    nactu = p_dms[ndm]._ntotact    
+    F = np.ones([nactu,nactu],dtype=np.float32)
+    F = F * (-1.0/nactu)
+    for i in range(nactu):
+        F[i][i] = 1 - 1.0/nactu
+    return F
+
+    

@@ -933,7 +933,7 @@ func mat_cphim_gpu(nc){
       Nact(ind+1:ind+y_dm(kk)._ntotact,ind+1:ind+y_dm(kk)._ntotact) = create_nact_geom(kk);
       tmp = array(-1./y_dm(kk)._ntotact,y_dm(kk)._ntotact,y_dm(kk)._ntotact);
       for(j=1 ; j<= y_dm(kk)._ntotact ; j++)
-        tmp(j,j) = 1 - 1/y_dm(kk)._ntotact;
+        tmp(j,j) = 1. - 1./y_dm(kk)._ntotact;
       F(ind+1:ind+y_dm(kk)._ntotact,ind+1:ind+y_dm(kk)._ntotact) = tmp;
       ind += y_dm(kk)._ntotact;
     }

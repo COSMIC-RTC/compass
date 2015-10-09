@@ -3134,6 +3134,18 @@ extern "C" {
     rtc_handler->d_control.at(ncontrol)->d_com->device2host(data);
   }
 
+  void Y_rtc_getolmeas(int argc) {
+    rtc_struct *rhandler = (rtc_struct *) yget_obj(argc - 1, &yRTC);
+    sutra_rtc *rtc_handler = (sutra_rtc *) (rhandler->sutra_rtc);
+    long ncontrol = ygets_l(argc - 2);
+
+    carma_context *context_handle = _getCurrentContext();
+    context_handle->set_activeDeviceForCpy(rhandler->device,1);
+
+    CAST(sutra_controller_mv *, controller, rtc_handler->d_control[ncontrol]);
+    float *data = ypush_f((long*) controller->d_olmeas->getDims());
+    controller->d_olmeas->device2host(data);
+  }
   void Y_rtc_getcmat(int argc) {
     rtc_struct *rhandler = (rtc_struct *) yget_obj(argc - 1, &yRTC);
     sutra_rtc *rtc_handler = (sutra_rtc *) (rhandler->sutra_rtc);

@@ -7,6 +7,7 @@ import numpy as np
 import chakra as ch
 import chakra_ao as ao
 import time
+import matplotlib.pyplot as pl
 
 print "TEST CHAKRA_AO\n closed loop: call loop(int niter)"
 
@@ -66,8 +67,6 @@ mimg = 0.# initializing average image
 print "----------------------------------------------------";
 print "iter# | S.E. SR | L.E. SR | Est. Rem. | framerate";
 print "----------------------------------------------------";
-
-#import matplotlib.pyplot as pl
 
 def loop( n):
     #fig,((turbu,image),(shak,defMir))=pl.subplots(2,2, figsize=(15,15))

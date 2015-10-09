@@ -795,7 +795,7 @@ cdef extern from "sutra_controller_mv.h":
                 sutra_sensors *sensors, sutra_dms *dms, double *L0, double *cn2,
                 double *alphaX, double *alphaY, double *X, double *Y, double *xactu,
                 double *yactu, double diamTel, double *k2, long *NlayerDm,
-                long *indLayerDm, double *FoV, double *pitch, double *alt_dm)
+                long *indLayerDm, double FoV, double *pitch, double *alt_dm)
 
 
 #################################################
@@ -1045,12 +1045,15 @@ cdef class Rtc:
     cdef modalControlOptimization(self,int ncontro)
     cdef set_gain(self,int ncontro, float gain)
     cdef set_mgain(self,int ncontro, np.ndarray[ndim=1,dtype=np.float32_t] mgain)
-    cdef set_imat(self,int ncontro, np.ndarray[ndim=2,dtype=np.float32_t] data)
+    cpdef set_imat(self,int ncontro, np.ndarray[ndim=2,dtype=np.float32_t] data)
     cpdef get_imat(self, int ncontro)
-    cdef set_cmat(self,int ncontro, np.ndarray[ndim=2,dtype=np.float32_t] data)
+    cpdef set_cmat(self,int ncontro, np.ndarray[ndim=2,dtype=np.float32_t] data)
     cpdef get_cmat(self,int ncontro)
+    cpdef get_cphim(self, int ncontro)
+    cpdef get_cmm(self,int ncontro)
     cdef set_decayFactor(self,int ncontro, np.ndarray[ndim=1,dtype=np.float32_t] decay)
     cdef set_matE(self,int ncontro, np.ndarray[ndim=2,dtype=np.float32_t] matE)
+
 
     cdef doimat_geom(self, int ncontro, Dms g_dms,int geom)
     cdef doimat(self, int ncontro, Dms g_dms)
@@ -1068,6 +1071,7 @@ cdef class Rtc:
     cpdef getCenbuff(self, int ncontro)
     cdef getErr(self,int ncontro)
     cpdef getCom(self,int ncontro)
+    cpdef getolmeas(self,int ncontro)
     cpdef getVoltage(self,int ncontro)
     cpdef getCentroids(self,int ncontro)
     cdef buildcmat(self,int ncontro,int nfilt, int filt_tt=?)
