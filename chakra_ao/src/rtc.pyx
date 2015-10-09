@@ -112,7 +112,7 @@ cdef class Rtc:
         cdef sutra_centroider_tcog *tcog=NULL
         cdef sutra_centroider *centro=NULL
         context.set_activeDeviceForCpy(self.device,1)
-        if(self.dms.d_centro.at(ncentro).is_type("tcog")):
+        if(self.rtc.d_centro[ncentro].is_type("tcog")):
             centro=self.rtc.d_centro.at(ncentro)
             tcog=dynamic_cast_centroider_tcog_ptr(centro)
             tcog.set_threshold(thresh)
@@ -155,13 +155,13 @@ cdef class Rtc:
         return 1
 
 
-    def sensors_initweight(self,int ncentro, np.ndarray[ndim=1, dtype=np.float32_t] w):
+    def sensors_initweights(self,int ncentro, np.ndarray[ndim=2, dtype=np.float32_t] w):
         """Set weigth of a centroider
 
         :parameters:
             ncentro: (int) : centroider's index
 
-            w: (np.ndarray[ndim=1, dtype=np.float32_t]) : weight
+            w: (np.ndarray[ndim=2, dtype=np.float32_t]) : weight
         """
         cdef carma_context *context = carma_context.instance()
         context.set_activeDevice(self.rtc.device,1)
@@ -172,7 +172,7 @@ cdef class Rtc:
         centro.load_weights(<float*>w_F.data,int(w.ndim))
 
 
-    def sensors_initcorr(self,int ncentro, np.ndarray[ndim=1,dtype=np.float32_t] w,
+    def sensors_initcorr(self,int ncentro, np.ndarray[ndim=2,dtype=np.float32_t] w,
                         np.ndarray[ndim=2,dtype=np.float32_t] corr_norm,
                         int sizex, int sizey,
                         np.ndarray[ndim=2,dtype=np.float32_t] interpmat):
@@ -252,7 +252,17 @@ cdef class Rtc:
             self.rtc.do_centroids(ncontrol)
         else:
             self.rtc.do_centroids()
-        
+
+    cpdef docentroids_geom(self,int ncontrol=-1):
+        """TODO doc
+
+        :param ncontrol: (optional)
+        """
+        if(ncontrol>-1):
+            self.rtc.do_centroids_geom(ncontrol)
+        else:
+            self.rtc.do_centroids(0)
+
 
     cdef init_proj(self,int ncontro,Dms dms,np.ndarray[ndim=1,dtype=np.int32_t] indx_dm,
             np.ndarray[ndim=1,dtype=np.float32_t] unitpervolt, np.ndarray[ndim=1,dtype=np.int32_t] indx_pup):
@@ -305,7 +315,7 @@ cdef class Rtc:
 
         cdef np.ndarray[dtype=np.float32_t] M2V_F=M2V.flatten("F")
 
-        if(<bytes>self.d_control[ncontro].get_type()=="ls"):
+        if(<bytes>self.rtc.d_control[ncontro].get_type()=="ls"):
             controller_ls=dynamic_cast_controller_ls_ptr(self.rtc.d_control[ncontro])
             controller_ls.init_modalOpti(nmodes, nrec, <float*>M2V_F.data, gmin, gmax, ngain, Fs)
         else:
@@ -1415,12 +1425,12 @@ def rtc_init(Sensors g_wfs, p_wfs, Dms g_dms, p_dms, Param_geom p_geom, Param_rt
                                     #next power of 2 (for fft)
                                     controller.nrec=int(2**np.ceil(np.log2(controller.nrec)))
                                 if(controller.nmodes==0):
-                                    controller.nmodes=np.sum(p_dms[ndms]._ntotact)
+                                    controller.nmodes=sum(p_dms[j]._ntotact for k in ndms)
                                 if(controller.gmax==0):
                                     controller.gmax=1.0
                                 if(controller.ngain==0):
                                     controller.ngain=15
-                                KL2V = compute_KL2V(p_dms,controller)
+                                KL2V = compute_KL2V(controller,g_dms,p_dms,p_geom,p_atmos,p_tel)
                                 g_rtc.init_modalOpti(i,controller.nmodes,controller.nrec,KL2V,
                                     controller.gmin,controller.gmax,controller.ngain,1./p_loop.ittime)
                                 ol_slopes=openLoopSlp(g_atmos,g_rtc,controller.nrec,i,g_wfs,p_wfs,p_tar)
@@ -1782,7 +1792,7 @@ def create_interp_mat(int dimx, int dimy):
 
     
 
-cdef compute_KL2V(p_dms, Param_controller controller):
+cdef compute_KL2V(Param_controller controller, Dms dms, p_dms, Param_geom p_geom, Param_atmos p_atmos, Param_tel p_tel):
     """TODO doc
 
     :parameters:
@@ -1803,15 +1813,18 @@ cdef compute_KL2V(p_dms, Param_controller controller):
         ndm=controller.ndm[i]
         if(p_dms[ndm].type_dm=="pzt"):
             print "TODO KL2V"
-            #KL2V[indx_act:indx_act+ntotact[ndm],indx_act:indx_act+ntotact[ndm]]=\
-                #TODO compute_klbasis(ndm)
+            KL2V[indx_act:indx_act+ntotact[ndm],indx_act:indx_act+ntotact[ndm]]=\
+                compute_klbasis( dms, p_dms[ndm],p_geom,p_atmos,p_tel)
+
+            print "compute klbasis done"
         elif(p_dms[ndm].type_dm=="tt"):
             nTT+=1
 
-    KL2V=KL2V[:,controller.nmodes]
+    KL2V=KL2V[:,:controller.nmodes]
+    
     if(nTT!=0):
         KL2V[:,:controller.nmodes-2]= KL2V[:,2:]
-        KL2V[:,controller.nmodes-2:]= np.zeros((np.sum(ntotact,2)),dtype=np.float32)
+        KL2V[:,controller.nmodes-2:]= np.zeros((np.sum(ntotact),2),dtype=np.float32)
         KL2V[np.sum(ntotact)-2:,controller.nmodes-2:]=np.identity(2,dtype=np.float32)
 
     return KL2V
@@ -1856,7 +1869,7 @@ cdef openLoopSlp(Atmos g_atm, Rtc g_rtc,int nrec, int ncontro, Sensors g_wfs=Non
                 g_wfs.sensors_trace(j,"atmos",g_atm)
                 g_wfs.sensors_compimg(j)
                 g_rtc.sensors_compslopes(ncontro)
-                ol_slopes[j*p_wfs[j]._nvalid*2:j*p_wfs[j]._nvalid*2,i]=g_wfs.get_slopes(j)
+                ol_slopes[j*p_wfs[j]._nvalid*2:j*p_wfs[j]._nvalid*2,i]=g_wfs._get_slopes(j)
 
     return ol_slopes
 

@@ -1036,6 +1036,7 @@ cdef class Rtc:
     #cdef sensors_initbcube(self,int ncentro)
     cpdef getcentroids(self,int ncontrol, Sensors g_wfs=?, int nwfs=?)
     cpdef docentroids(self,int ncontrol=?)
+    cpdef docentroids_geom(self,int ncontrol=?)
     cdef init_proj(self,int i,Dms dms,np.ndarray[ndim=1,dtype=np.int32_t] indx_dm,
             np.ndarray[ndim=1,dtype=np.float32_t] unitpervolt, 
             np.ndarray[ndim=1,dtype=np.int32_t] indx_pup)

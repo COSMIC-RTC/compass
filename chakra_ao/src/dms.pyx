@@ -1104,16 +1104,23 @@ cdef compute_klbasis(Dms g_dm,Param_dm p_dm, Param_geom p_geom,Param_atmos p_atm
         tmp_e0=p_geom._ipupil.shape[0]-tmp
         tmp_e1=p_geom._ipupil.shape[1]-tmp
         pup=p_geom._ipupil[tmp:tmp_e0,tmp:tmp_e1]
-        indx_valid=np.where(pup.flatten("F")>0)
-        interactp=p_dm._xpos1[1]-p_dm._xpos1[2]
+        indx_valid=np.where(pup.flatten("F")>0)[0].astype(np.int32)
+        interactp=p_dm._xpos[1]-p_dm._xpos[0]
         interactm=p_tel.diam/(p_dm.nact-1)
         p2m=interactm/interactp
         norm=-(p2m*p_tel.diam/(2*p_atmos.r0))**(5./3)
         print "TODO computeKLbasis"
-        #g_dm.computeKLbasis("pzt",p_dm.alt, p_dm._xpos,p_dm._ypos,indx_valid,indx_valid.size,norm,1.0)
-        # KLbasis=get_KLbasis(g_dm,"pzt",y_dm(ndm).alt)[,::-1]
-        KLbasis=np.array([])
+        print "DEBUG", p_dm.alt
+        print p_dm._xpos
+        print p_dm._ypos
+        print indx_valid 
+        print indx_valid.size,norm,1.0
+
+
+        g_dm.computeKLbasis(<bytes>"pzt",p_dm.alt, p_dm._xpos,p_dm._ypos,indx_valid,indx_valid.size,norm,1.0)
+        KLbasis=np.fliplr(g_dm.get_KLbasis(<bytes>"pzt",p_dm.alt))
     else:
+        raise TypeError("DM must be pzt type")
         KLbasis=np.array([])
 
     return KLbasis
