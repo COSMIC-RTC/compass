@@ -86,7 +86,7 @@ def loop( n):
         rtc.docontrol(0)
         rtc.applycontrol(0,dms)
 
-        if((i+1)%50==0):
+        if((i+1)%100==0):
             """
             turbu.clear()
             image.clear()

@@ -1272,4 +1272,41 @@ cdef init_wfs_size( Param_wfs wfs, int n, Param_atmos atmos,
             if(verbose==0):print "size of HR spot support : ",Ntot[0]
 
 
-    
+cdef noise_cov(int nw, Param_wfs p_wfs, Param_atmos p_atmos, Param_tel p_tel):
+    """Compute the diagonal of the noise covariance matrix for a SH WFS
+
+    :parameters:
+        nw: wfs number        
+        p_wfs: (Param_wfs) : wfs settings
+        p_atmos: (Param_atmos) : atmos settings
+        p_tel: (Param_tel) : telescope settings
+
+    """ 
+    cov = np.zeros(2*p_wfs._nvalid)    
+    if(p_wfs.noise >= 0):
+        RASC = 180./np.pi * 3600.
+        m = p_wfs._validsubsy
+        n = p_wfs._validsubsx
+        ind = m*p_wfs.nxsub + n
+        flux = np.copy(p_wfs._fluxPerSub)
+        flux = flux.reshape(flux.size,order='F')
+        flux = flux[ind]
+        Nph = flux * p_wfs._nphotons
+        
+        r0 = (p_wfs.Lambda/0.5)**(6.0/5.0) * p_atmos.r0
+        
+        sig = (np.pi ** 2 / 2) * (1 / Nph) * (1. / r0) ** 2 # Photon noise in m⁻²
+        sig /= (2 * np.pi / (p_wfs.Lambda * 1e-6)) ** 2 # Noise variance in rad²
+        sig *= RASC ** 2;
+        
+        Ns = p_wfs.npix # Number of pixel
+        Nd = (p_wfs.Lambda * 1e-6) * RASC / p_wfs.pixsize
+        sigphi = (np.pi ** 2 / 3.0) * (1 / Nph ** 2) * (p_wfs.noise) ** 2 * Ns ** 2 * (Ns / Nd) ** 2 # Phase variance in m⁻²
+        sigsh = sigphi / (2 * np.pi / (p_wfs.Lambda * 1e-6)) ** 2 # Noise variance in rad²
+        sigsh *= RASC ** 2 # Electronic noise variance in arcsec²
+        
+        
+        cov[:len(sig)] = sig + sigsh
+        cov[len(sig):] = sig + sigsh
+        
+    return cov

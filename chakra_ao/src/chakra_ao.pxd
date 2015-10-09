@@ -1292,7 +1292,7 @@ cdef class Param_wfs:
     cdef long  _nrebin         # rebin factor from hr to binned image for a subap 
     cdef readonly long  _nvalid         # number of valid subaps
 
-    cdef float   _nphotons     # number of photons per subap
+    cdef readonly float   _nphotons     # number of photons per subap
     cdef float   _subapd       # subap diameter (m)
     cdef readonly np.ndarray _fluxPerSub   # fraction of nphotons per subap
     cdef float   _qpixsize     # quantum pixel size for the simulation

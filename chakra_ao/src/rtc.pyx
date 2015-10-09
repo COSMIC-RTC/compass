@@ -1409,7 +1409,7 @@ def rtc_init(Sensors g_wfs, p_wfs, Dms g_dms, p_dms, Param_geom p_geom, Param_rt
                                 g_rtc.loadOpenLoop(i,ol_slopes)
                                 g_rtc.modalControlOptimization(i)
                             else:
-                                cmat_init(i,g_rtc,p_rtc,p_wfs,clean=1,simul_name=simul_name)
+                                cmat_init(i,g_rtc,p_rtc,p_wfs,p_atmos,p_tel,clean=1,simul_name=simul_name)
                                 g_rtc.set_gain(i,controller.gain)
                                 mgain=np.ones(sum([p_dms[j]._ntotact for j in range(len(p_dms))]),dtype=np.float32)
                                 #filtering tilt ...
@@ -1484,7 +1484,7 @@ def rtc_init(Sensors g_wfs, p_wfs, Dms g_dms, p_dms, Param_geom p_geom, Param_rt
                         mgain = np.ones(size,dtype=np.float32)
                         g_rtc.set_mgain(i,mgain)
                         doTomoMatrices(i,g_rtc,p_wfs,g_dms,g_atmos,g_wfs,p_rtc,p_geom,p_dms,p_tel,p_atmos)
-                        cmat_init(i,g_rtc,p_rtc,p_wfs)
+                        cmat_init(i,g_rtc,p_rtc,p_wfs,p_atmos,p_tel)
                         
                     elif(controller.type_control=="generic"):
                         size=sum([p_dms[j]._ntotact for j in range(len(p_dms))])
@@ -1501,30 +1501,7 @@ def rtc_init(Sensors g_wfs, p_wfs, Dms g_dms, p_dms, Param_geom p_geom, Param_rt
                         g_rtc.set_matE(i,matE)
             
     return g_rtc
-"""
-          // Florian features
-          if (controllers(i).type == "mv"){   
-            write,format="%s", "doing imat_geom... ";
-            tic;
-            //imat_init,i,clean=clean;
-            imat = imat_geom(i,meth=0);
-            rtc_setimat,g_rtc,i-1,imat;
-            write,format = "done in : %f s\n",tac();  
-            rtc_setgain,g_rtc,0,controllers(i).gain;
-            mgain = array(1.0f,(y_dm._ntotact)(sum));
-            rtc_loadmgain,g_rtc,0,mgain;
-        
-            Cphim = mat_cphim_gpu(i-1);
-
-            cmat_init,i,clean=clean;
-           
-          }
-"""
-
-
-
-
-
+    
 
 cdef correct_dm(p_dms, Dms g_dms, Param_controller p_control, Param_geom p_geom, np.ndarray imat, bytes simul_name):
     """TODO doc
@@ -1945,8 +1922,8 @@ cdef imat_init(int ncontro, Rtc g_rtc, Param_rtc p_rtc, Dms g_dms, Sensors g_wfs
 
 
 
-cdef cmat_init(int ncontro, Rtc g_rtc, Param_rtc p_rtc, list p_wfs,
-                clean=1, bytes simul_name=<bytes>""):
+cdef cmat_init(int ncontro, Rtc g_rtc, Param_rtc p_rtc, list p_wfs, Param_atmos p_atmos,
+               Param_tel p_tel, clean=1, bytes simul_name=<bytes>""):
     """TODO doc
 
     :parameters:
@@ -1954,6 +1931,7 @@ cdef cmat_init(int ncontro, Rtc g_rtc, Param_rtc p_rtc, list p_wfs,
         g_rtc: (Rtc) :
         p_rtc: (Param_rtc) : rtc settings
         p_wfs: (list of Param_wfs) : wfs settings
+        p_tel : (Param_tel) : telescope settings
         clean: (int) : (optional) clean datafiles (imat, U, eigenv)
         simul_name: (str) : (optional) simulation's name, use for data files' path
     """
@@ -2045,9 +2023,8 @@ cdef cmat_init(int ncontro, Rtc g_rtc, Param_rtc p_rtc, list p_wfs,
         controller_mv = dynamic_cast_controller_mv_ptr(g_rtc.rtc.d_control[ncontro])
         N=np.zeros((2*np.sum(p_wfs[p_rtc.controllers[ncontro].nwfs]._nvalid)),dtype=np.float32)
         ind=0
-        for i in range(p_rtc.controllers[ncontro].nwfs.size):
-            k=p_rtc.controllers[ncontro].nwfs[i]
-            #N[]=noise_cov(k)
+        for k in p_rtc.controllers[ncontro].nwfs:
+            N[ind:2*p_wfs[k]._nvalid] = noise_cov(k,p_wfs[k],p_atmos,p_tel)
             ind+=2*p_wfs[k]._nvalid
 
         g_rtc.loadnoisemat(ncontro,N)
@@ -2116,8 +2093,8 @@ cdef doTomoMatrices(int ncontro, Rtc g_rtc, list wfs, Dms g_dm, Atmos g_atmos, S
         p2m = (p_tel.diam / wfs[k].nxsub) / sspDiam # Size of one pixel in meters
         posx *= p2m # Positions in meters
         posy *= p2m
-        X[ind:ind+wfs[k]._nvalid+1] = posx
-        Y[ind:ind+wfs[k]._nvalid+1] = posy
+        X[ind:ind+wfs[k]._nvalid] = posx
+        Y[ind:ind+wfs[k]._nvalid] = posy
         ind += wfs[k]._nvalid
     
     # Get the total number of pzt DM and actuators to control
@@ -2144,8 +2121,8 @@ cdef doTomoMatrices(int ncontro, Rtc g_rtc, list wfs, Dms g_dm, Atmos g_atmos, S
             pitch[indk] = actu_x[1] - actu_x[0]
             k2[indk] = wfs[0].Lambda / 2. / np.pi / p_dm[k].unitpervolt
             alt_DM[indk] = <double>p_dm[k].alt
-            Xactu[ind:ind+p_dm[k]._ntotact+1] = actu_x
-            Yactu[ind:ind+p_dm[k]._ntotact+1] = actu_y
+            Xactu[ind:ind+p_dm[k]._ntotact] = actu_x
+            Yactu[ind:ind+p_dm[k]._ntotact] = actu_y
             
             ind += p_dm[k]._ntotact
             indk += 1
@@ -2200,8 +2177,8 @@ cdef doTomoMatrices(int ncontro, Rtc g_rtc, list wfs, Dms g_dm, Atmos g_atmos, S
     ind = 0
     for k in p_rtc.controllers[ncontro].ndm:
         if(p_dm[k].type_dm == "pzt"):
-            Nact[ind:ind+p_dm[k]._ntotact+1,ind:ind+p_dm[k]._ntotact+1] = create_nact_geom(p_dm,k)
-            F[ind:ind+p_dm[k]._ntotact+1,ind:ind+p_dm[k]._ntotact+1] = create_piston_filter(p_dm,k)
+            Nact[ind:ind+p_dm[k]._ntotact,ind:ind+p_dm[k]._ntotact] = create_nact_geom(p_dm,k)
+            F[ind:ind+p_dm[k]._ntotact,ind:ind+p_dm[k]._ntotact] = create_piston_filter(p_dm,k)
             ind += p_dm[k]._ntotact
     
     controller_mv.filter_cphim(<float*>F.data,<float*> Nact.data)
