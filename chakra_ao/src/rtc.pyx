@@ -1098,7 +1098,24 @@ cdef class Rtc:
         cdef carma_context *context=carma_context.instance()
         context.set_activeDevice(self.rtc.device,1)
         self.rtc.do_control(ncontro)
+        
+    cpdef docontrol_geo(self, int ncontro, Dms dms, Target target, int ntarget):
+        """TODO doc
 
+        :param ncontro: (int) : controller index
+        """
+        cdef carma_context *context=carma_context.instance()
+        cdef sutra_controller_geo *controller_geo
+        cdef bytes type_contro=<bytes>self.rtc.d_control[ncontro].get_type()
+        context.set_activeDevice(self.rtc.device,1)
+        
+        if(type_contro == "geo"):
+            controller_geo = dynamic_cast_controller_geo_ptr(self.rtc.d_control[ncontro])
+            controller_geo.comp_dphi(target.target.d_targets[ntarget])
+            self.rtc.do_control(ncontro)
+        else:
+            raise TypeError("Controller needs to be geo")
+        
 
     cpdef applycontrol(self,int ncontro,Dms dms):
         """TODO doc
@@ -1377,11 +1394,12 @@ def rtc_init(Sensors g_wfs, p_wfs, Dms g_dms, p_dms, Param_geom p_geom, Param_rt
                             tmp_e0=p_geom._ipupil.shape[0]-tmp_s
                             tmp_e1=p_geom._ipupil.shape[1]-tmp_s
                             pup_dm=p_geom._ipupil[tmp_s:tmp_e0,tmp_s:tmp_e1]
+                            indx_dm[cpt:cpt+np.where(pup_dm)[0].size] = np.where(pup_dm.flatten('F'))[0] 
                             cpt+=np.where(pup_dm)[0].size
                         #convert unitpervolt list to a np.ndarray
                         unitpervolt=np.array([p_dms[j].unitpervolt for j in range(len(p_dms))],
                                     dtype=np.float32)
-
+                        
                         g_rtc.init_proj(i, g_dms, indx_dm, unitpervolt, indx_pup)
 
                     free(type_dmseen)

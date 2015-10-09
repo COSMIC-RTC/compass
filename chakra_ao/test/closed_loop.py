@@ -74,17 +74,26 @@ def loop( n):
     #pl.show()
     for i in range(n):
         atm.move_atmos()
+        
+        if(p_controller0.type_control == "geo"):
+            for t in range(p_target.ntargets):
+                tar.atmos_trace(t,atm)
+                rtc.docontrol_geo(0, dms, tar, 0)
+                rtc.applycontrol(0,dms)
+                tar.dmtrace(0,dms)
+        else:
+            for t in range(p_target.ntargets):
+                tar.atmos_trace(t,atm)
+                tar.dmtrace(t,dms)
+            for w in range(len(p_wfss)):
+                wfs.sensors_trace(w,"all",atm,dms)
+                wfs.sensors_compimg(w)
 
-        for t in range(p_target.ntargets):
-            tar.atmos_trace(t,atm)
-            tar.dmtrace(t,dms)
-        for w in range(len(p_wfss)):
-            wfs.sensors_trace(w,"all",atm,dms)
-            wfs.sensors_compimg(w)
-
-        rtc.docentroids(0)
-        rtc.docontrol(0)
-        rtc.applycontrol(0,dms)
+            rtc.docentroids(0)
+            rtc.docontrol(0)
+        
+            rtc.applycontrol(0,dms)
+        
 
         if((i+1)%100==0):
             """

@@ -1078,6 +1078,7 @@ cdef class Rtc:
     cdef buildcmatmv(self,int ncontro,float cond)
     cdef loadnoisemat(self,int ncontro, np.ndarray[ndim=1,dtype=np.float32_t] N)
     cpdef docontrol(self,int ncontro)
+    cpdef docontrol_geo(self, int ncontro, Dms dms, Target target, int ntarget)
     cpdef applycontrol(self,int ncontro,Dms dms)
 
 
