@@ -1169,7 +1169,7 @@ cdef class Rtc:
 
 def rtc_init(Sensors g_wfs, p_wfs, Dms g_dms, p_dms, Param_geom p_geom, Param_rtc p_rtc,
             Param_atmos p_atmos, Atmos g_atmos, Param_tel p_tel, Param_loop p_loop, 
-            Param_target p_tar=None, clean=None, brama=None, doimat=None,simul_name=""):
+            Target g_tar, Param_target p_tar, clean=None, brama=None, doimat=None,simul_name=""):
     """TODO doc
 
     :parameters:
@@ -1433,7 +1433,7 @@ def rtc_init(Sensors g_wfs, p_wfs, Dms g_dms, p_dms, Param_geom p_geom, Param_rt
                                 KL2V = compute_KL2V(controller,g_dms,p_dms,p_geom,p_atmos,p_tel)
                                 g_rtc.init_modalOpti(i,controller.nmodes,controller.nrec,KL2V,
                                     controller.gmin,controller.gmax,controller.ngain,1./p_loop.ittime)
-                                ol_slopes=openLoopSlp(g_atmos,g_rtc,controller.nrec,i,g_wfs,p_wfs,p_tar)
+                                ol_slopes=openLoopSlp(g_atmos,g_rtc,controller.nrec,i,g_wfs,p_wfs,p_tar,g_tar)
                                 g_rtc.loadOpenLoop(i,ol_slopes)
                                 g_rtc.modalControlOptimization(i)
                             else:
@@ -1829,8 +1829,8 @@ cdef compute_KL2V(Param_controller controller, Dms dms, p_dms, Param_geom p_geom
 
     return KL2V
 
-cdef openLoopSlp(Atmos g_atm, Rtc g_rtc,int nrec, int ncontro, Sensors g_wfs=None,  
-        p_wfs=None, Param_target p_tar=None,Target g_tar=None):
+cdef openLoopSlp(Atmos g_atm, Rtc g_rtc,int nrec, int ncontro, Sensors g_wfs,  
+        p_wfs, Param_target p_tar,Target g_tar):
     """TODO doc
 
     :parameters:
@@ -1853,15 +1853,15 @@ cdef openLoopSlp(Atmos g_atm, Rtc g_rtc,int nrec, int ncontro, Sensors g_wfs=Non
     #TEST IT
     cdef int i,j
     cdef np.ndarray[ndim=2,dtype=np.float32_t] ol_slopes=\
-        np.zeros((sum([p_wfs[i]._nvalid for i in range(len(p_wfs))]),nrec),
+        np.zeros((sum([2*p_wfs[i]._nvalid for i in range(len(p_wfs))]),nrec),
         dtype=np.float32)
-
+     
+    print "Recording "+str(nrec)+" open-loop slopes..."
     for i in range(nrec):
-        print "Reconring"+str(nrec)+"open-loop slpoes :"+str(int(i/nrec)*100)
         if(g_tar is not None):
             g_atm.move_atmos()
             if(p_tar is not None):
-                for j in range(p_tar.ntarget):
+                for j in range(p_tar.ntargets):
                     g_tar.atmos_trace(j,g_atm)
 
         if(p_wfs is not None and g_wfs is not None):
@@ -1869,8 +1869,8 @@ cdef openLoopSlp(Atmos g_atm, Rtc g_rtc,int nrec, int ncontro, Sensors g_wfs=Non
                 g_wfs.sensors_trace(j,"atmos",g_atm)
                 g_wfs.sensors_compimg(j)
                 g_rtc.sensors_compslopes(ncontro)
-                ol_slopes[j*p_wfs[j]._nvalid*2:j*p_wfs[j]._nvalid*2,i]=g_wfs._get_slopes(j)
-
+                ol_slopes[j*p_wfs[j]._nvalid*2:(j+1)*p_wfs[j]._nvalid*2,i]=g_wfs._get_slopes(j)
+    print "done"
     return ol_slopes
 
 cdef imat_init(int ncontro, Rtc g_rtc, Param_rtc p_rtc, Dms g_dms, Sensors g_wfs,

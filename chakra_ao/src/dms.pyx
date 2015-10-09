@@ -1109,19 +1109,11 @@ cdef compute_klbasis(Dms g_dm,Param_dm p_dm, Param_geom p_geom,Param_atmos p_atm
         interactm=p_tel.diam/(p_dm.nact-1)
         p2m=interactm/interactp
         norm=-(p2m*p_tel.diam/(2*p_atmos.r0))**(5./3)
-        print "TODO computeKLbasis"
-        print "DEBUG", p_dm.alt
-        print p_dm._xpos
-        print p_dm._ypos
-        print indx_valid 
-        print indx_valid.size,norm,1.0
-
 
         g_dm.computeKLbasis(<bytes>"pzt",p_dm.alt, p_dm._xpos,p_dm._ypos,indx_valid,indx_valid.size,norm,1.0)
         KLbasis=np.fliplr(g_dm.get_KLbasis(<bytes>"pzt",p_dm.alt))
     else:
         raise TypeError("DM must be pzt type")
-        KLbasis=np.array([])
 
     return KLbasis
 
