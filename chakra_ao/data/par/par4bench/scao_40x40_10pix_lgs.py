@@ -112,12 +112,12 @@ p_controller0.set_maxcond(1500)
 p_controller0.set_delay(1)
 p_controller0.set_gain(0.4)
 
-p_controllers0.set_modopti(0)
-p_controllers0.set_nrec(2048)
-p_controllers0.set_nmodes(1286)
-p_controllers0.set_gmin(0.001)
-p_controllers0.set_gmax(0.5)
-p_controllers0.set_ngain(500)
+p_controller0.set_modopti(0)
+p_controller0.set_nrec(2048)
+p_controller0.set_nmodes(1286)
+p_controller0.set_gmin(0.001)
+p_controller0.set_gmax(0.5)
+p_controller0.set_ngain(500)
 
 
 #rtc
