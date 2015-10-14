@@ -25,7 +25,7 @@
     </property>
     <layout class="QHBoxLayout" name="horizontalLayout">
      <item>
-      <widget class="QComboBox" name="comboBox">
+      <widget class="QComboBox" name="wao_selectScreen">
        <property name="minimumSize">
         <size>
          <width>120</width>
@@ -75,7 +75,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QComboBox" name="comboBox_2"/>
+      <widget class="QComboBox" name="wao_selectNumber"/>
      </item>
      <item>
       <widget class="QCheckBox" name="checkBox">
@@ -88,14 +88,14 @@
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="pushButton">
+      <widget class="QPushButton" name="wao_init">
        <property name="text">
         <string>Init</string>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="pushButton_2">
+      <widget class="QPushButton" name="wao_run">
        <property name="text">
         <string>Run</string>
        </property>
@@ -1414,10 +1414,10 @@
         </widget>
        </item>
        <item>
-        <widget class="QComboBox" name="comboBox_3"/>
+        <widget class="QComboBox" name="wao_selectConfig"/>
        </item>
        <item>
-        <widget class="QPushButton" name="pushButton_6">
+        <widget class="QPushButton" name="wao_loadConfig">
          <property name="maximumSize">
           <size>
            <width>50</width>
@@ -1430,7 +1430,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QPushButton" name="pushButton_7">
+        <widget class="QPushButton" name="wao_configFromFile">
          <property name="maximumSize">
           <size>
            <width>30</width>
@@ -1446,7 +1446,7 @@
      </item>
     </layout>
    </widget>
-   <widget class="GraphicsLayoutWidget" name="win">
+   <widget class="GraphicsLayoutWidget" name="wao_pgwindow">
     <property name="geometry">
      <rect>
       <x>9</x>
