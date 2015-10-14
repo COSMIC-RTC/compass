@@ -1046,6 +1046,7 @@ cdef class Rtc:
     cdef modalControlOptimization(self,int ncontro)
     cdef set_gain(self,int ncontro, float gain)
     cdef set_mgain(self,int ncontro, np.ndarray[ndim=1,dtype=np.float32_t] mgain)
+    cpdef get_mgain(self,int ncontro)
     cpdef set_imat(self,int ncontro, np.ndarray[ndim=2,dtype=np.float32_t] data)
     cpdef get_imat(self, int ncontro)
     cpdef set_cmat(self,int ncontro, np.ndarray[ndim=2,dtype=np.float32_t] data)

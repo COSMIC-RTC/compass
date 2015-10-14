@@ -422,6 +422,36 @@ cdef class Rtc:
         else:
             raise TypeError("Controller needs to be ls or mv")
 
+    cpdef get_mgain(self,int ncontro):
+        """Return modal gains
+
+        :parameters:
+            ncontro: (int) : controller index
+        """
+        cdef carma_context *context=carma_context.instance()
+        context.set_activeDeviceForCpy(self.rtc.device,1)
+
+        cdef sutra_controller_ls *controller_ls
+        cdef sutra_controller_mv *controller_mv
+        cdef bytes type_contro = <bytes>self.rtc.d_control[ncontro].get_type()
+        cdef int size
+        cdef np.ndarray[ndim=1,dtype=np.float32_t] mgain
+
+        if(type_contro=="ls"):
+            controller_ls=dynamic_cast_controller_ls_ptr(self.rtc.d_control[ncontro])
+            size=controller_ls.d_gain.getNbElem()
+            mgain=np.zeros(size,dtype=np.float32)
+            controller_ls.d_gain.device2host(<float*>mgain.data)
+            return mgain
+        elif(type_contro=="mv"):
+            controller_mv=dynamic_cast_controller_mv_ptr(self.rtc.d_control[ncontro])
+            size=controller_mv.d_gain.getNbElem()
+            mgain=np.zeros(size,dtype=np.float32)
+            controller_mv.d_gain.device2host(<float*>mgain.data)
+            return mgain
+        else:
+            raise TypeError("Controller needs to be ls or mv")
+
 
     cpdef set_imat(self,int ncontro, np.ndarray[ndim=2,dtype=np.float32_t] data):
         """TODO doc
