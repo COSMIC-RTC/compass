@@ -1001,6 +1001,7 @@ cdef class Sensors:
     cdef sensors_initarr(self,int n, Param_wfs wfs, Param_geom geom)
     cdef sensors_addlayer(self,int i, bytes type, float alt, float xoff, float yoff)
     cdef _get_bincube(self, int n)
+    cdef _get_pyrimg(self,int n)
     cdef _get_binimg(self, int n)
     cdef _get_slopesDims(self,int n)
     cdef _get_slopes(self, int n)

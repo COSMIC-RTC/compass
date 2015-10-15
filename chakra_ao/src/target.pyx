@@ -80,7 +80,7 @@ cdef class Param_target:
             if(self.dms_seen is None):
                 for i in range(self.ntargets):
                     if(dm is not None):
-                        self.dms_seen=np.arange(len(dm))+1
+                        self.dms_seen=np.arange(len(dm))
 
         cdef np.ndarray sizes= np.ones(self.ntargets,dtype=np.int64)*geom.pupdiam
 
@@ -127,7 +127,7 @@ cdef class Param_target:
                 for j in range(self.dms_seen.size):
                     #k=dd
                     #dd = (*y_target(cc).dms_seen)(ddd)
-                    k=self.dms_seen[j]-1
+                    k=self.dms_seen[j]
                     dims=dm[k]._n2-dm[k]._n1+1
                     dim=geom._mpupil[2].size
                     dim_dm = max(dim,dims)
@@ -160,14 +160,14 @@ cdef class Param_target:
                     if(wfs[i].atmos_seen):
                         for j in range(atm.nscreens):
                             xoff=(gsalt * atm.alt[j] * (tel.diam/2.) + wfs[i].xpos*4.848e-6*atm.alt[j])/atm.pupixsize
-                            yoff=(gsalt * atm.alt[j] * (tel.diam/2.) + wfs[i].ypos*4.848e-6**atm.alt[j])/atm.pupixsize
+                            yoff=(gsalt * atm.alt[j] * (tel.diam/2.) + wfs[i].ypos*4.848e-6*atm.alt[j])/atm.pupixsize
                             xoff=xoff+(atm.dim_screens[j]-geom._n)/2
                             yoff=yoff+(atm.dim_screens[j]-geom._n)/2
                             sensors.sensors.d_wfs[i].d_gs.add_layer(type_target, atm.alt[j],xoff,yoff)
 
                     if(dm is not None and not wfs[i].openloop):
                         for j in range(wfs[i].dms_seen.size):
-                            k=wfs[i].dms_seen[j]-1
+                            k=wfs[i].dms_seen[j]
                             dims=dm[k]._n2-dm[k]._n1+1
                             dim=geom._mpupil.shape[0]
                             if(dim<dims):
@@ -289,6 +289,7 @@ cdef class Target:
             src.d_leimage.device2host(<float*>data_F.data)
 
         data=np.reshape(data_F.flatten("F"),(dims[1],dims[2]))
+        data = np.roll(np.roll(data,data.shape[0]/2,axis=0),data.shape[1]/2,axis=1)
         return data
 
 

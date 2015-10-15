@@ -1397,7 +1397,8 @@ def rtc_init(Sensors g_wfs, p_wfs, Dms g_dms, p_dms, Param_geom p_geom, Param_rt
                         if(len(p_wfs)==1):
                             nwfs=p_rtc.controllers[0].nwfs
                             # TODO fixing a bug ... still not understood
-                        controller.set_nvalid(p_wfs[nwfs]._nvalid)
+                        nvalid = sum([p_wfs[k]._nvalid for k in nwfs])
+                        controller.set_nvalid(nvalid)
                     #parameter for add_controller(_geo)
                     ndms=controller.ndm.tolist()
                     controller.set_nactu([p_dms[n]._ntotact for n in ndms])
@@ -2082,10 +2083,11 @@ cdef cmat_init(int ncontro, Rtc g_rtc, Param_rtc p_rtc, list p_wfs, Param_atmos 
     if(p_rtc.controllers[ncontro].type_control=="mv"):
         
         controller_mv = dynamic_cast_controller_mv_ptr(g_rtc.rtc.d_control[ncontro])
-        N=np.zeros((2*np.sum(p_wfs[p_rtc.controllers[ncontro].nwfs]._nvalid)),dtype=np.float32)
+        nvalidperwfs = np.array([o._nvalid   for o in p_wfs],dtype=np.int64)
+        N=np.zeros(2*sum([nvalidperwfs[j]   for j in p_rtc.controllers[ncontro].nwfs]),dtype=np.float32)
         ind=0
         for k in p_rtc.controllers[ncontro].nwfs:
-            N[ind:2*p_wfs[k]._nvalid] = noise_cov(k,p_wfs[k],p_atmos,p_tel)
+            N[ind:ind+2*p_wfs[k]._nvalid] = noise_cov(k,p_wfs[k],p_atmos,p_tel)
             ind+=2*p_wfs[k]._nvalid
 
         g_rtc.loadnoisemat(ncontro,N)
@@ -2138,7 +2140,7 @@ cdef doTomoMatrices(int ncontro, Rtc g_rtc, list wfs, Dms g_dm, Atmos g_atmos, S
     ipup = geom.get_ipupil()
     spup = geom.get_spupil()
     s2ipup = (ipup.shape[0] - spup.shape[0])/2.
-    nvalid = np.array([nvalidperwfs[j]   for j in p_rtc.controllers[ncontro].nwfs]) # Total number of subapertures
+    nvalid = sum([nvalidperwfs[j]   for j in p_rtc.controllers[ncontro].nwfs]) # Total number of subapertures
     ind = 0
     X = np.zeros(nvalid,dtype=np.float64) # X-position of the bottom left corner of each valid subaperture
     Y = np.zeros(nvalid,dtype=np.float64) # Y-position of the bottom left corner of each subaperture

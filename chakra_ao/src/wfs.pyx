@@ -616,7 +616,7 @@ def wfs_init( wfs, Param_atmos p_atmos, Param_tel p_tel, Param_geom p_geom,
     if(wfs[0].dms_seen is None):
         for i in range(nsensors):
             if(not wfs[i].openloop and dm is not None):
-                wfs[i].set_dms_seen(np.arange(len(dm),dtype=np.int32)+1)
+                wfs[i].set_dms_seen(np.arange(len(dm),dtype=np.int32))
 
 
     cdef int indmax

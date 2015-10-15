@@ -59,7 +59,7 @@
        </item>
        <item>
         <property name="text">
-         <string>Phase DM</string>
+         <string>Phase - DM</string>
         </property>
        </item>
        <item>
@@ -102,14 +102,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="pushButton_3">
-       <property name="text">
-        <string>Pause</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="pushButton_4">
+      <widget class="QPushButton" name="wao_next">
        <property name="text">
         <string>Next</string>
        </property>
@@ -143,7 +136,7 @@
      </font>
     </property>
     <property name="currentIndex">
-     <number>0</number>
+     <number>1</number>
     </property>
     <widget class="QWidget" name="tab">
      <attribute name="title">
@@ -175,7 +168,7 @@
             </widget>
            </item>
            <item>
-            <widget class="QDoubleSpinBox" name="doubleSpinBox_4"/>
+            <widget class="QDoubleSpinBox" name="wao_r0"/>
            </item>
            <item>
             <widget class="QLabel" name="label_8">
@@ -188,7 +181,7 @@
             </widget>
            </item>
            <item>
-            <widget class="QSpinBox" name="spinBox_3"/>
+            <widget class="QSpinBox" name="wao_atmosNlayers"/>
            </item>
           </layout>
          </item>
@@ -204,9 +197,19 @@
              </property>
              <layout class="QVBoxLayout" name="verticalLayout_4">
               <item>
-               <layout class="QVBoxLayout" name="verticalLayout_3">
+               <layout class="QVBoxLayout" name="verticalLayout_3"/>
+              </item>
+              <item>
+               <layout class="QHBoxLayout" name="horizontalLayout_2">
                 <item>
-                 <widget class="QComboBox" name="comboBox_5"/>
+                 <widget class="QLabel" name="label">
+                  <property name="text">
+                   <string>Layer</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QComboBox" name="wao_selectAtmosLayer"/>
                 </item>
                </layout>
               </item>
@@ -241,7 +244,7 @@
                  </widget>
                 </item>
                 <item row="0" column="1">
-                 <widget class="QLineEdit" name="lineEdit">
+                 <widget class="QLineEdit" name="wao_atmosDimScreen">
                   <property name="maximumSize">
                    <size>
                     <width>50</width>
@@ -261,7 +264,7 @@
                  </widget>
                 </item>
                 <item row="6" column="1">
-                 <widget class="QDoubleSpinBox" name="doubleSpinBox_8"/>
+                 <widget class="QDoubleSpinBox" name="wao_windSpeed"/>
                 </item>
                 <item row="6" column="0">
                  <widget class="QLabel" name="label_13">
@@ -271,13 +274,27 @@
                  </widget>
                 </item>
                 <item row="2" column="1">
-                 <widget class="QDoubleSpinBox" name="doubleSpinBox_6"/>
+                 <widget class="QDoubleSpinBox" name="wao_atmosFrac">
+                  <property name="maximum">
+                   <double>1.000000000000000</double>
+                  </property>
+                  <property name="singleStep">
+                   <double>0.100000000000000</double>
+                  </property>
+                 </widget>
                 </item>
                 <item row="5" column="1">
-                 <widget class="QDoubleSpinBox" name="doubleSpinBox_7"/>
+                 <widget class="QDoubleSpinBox" name="wao_atmosL0">
+                  <property name="decimals">
+                   <number>1</number>
+                  </property>
+                  <property name="maximum">
+                   <double>100000.000000000000000</double>
+                  </property>
+                 </widget>
                 </item>
                 <item row="1" column="1">
-                 <widget class="QDoubleSpinBox" name="doubleSpinBox_5">
+                 <widget class="QDoubleSpinBox" name="wao_atmosAlt">
                   <property name="maximumSize">
                    <size>
                     <width>100</width>
@@ -287,13 +304,26 @@
                   <property name="buttonSymbols">
                    <enum>QAbstractSpinBox::UpDownArrows</enum>
                   </property>
+                  <property name="decimals">
+                   <number>1</number>
+                  </property>
+                  <property name="maximum">
+                   <double>100000.000000000000000</double>
+                  </property>
                  </widget>
                 </item>
                 <item row="7" column="1">
-                 <widget class="QDoubleSpinBox" name="doubleSpinBox_9"/>
+                 <widget class="QDoubleSpinBox" name="wao_windDirection">
+                  <property name="minimum">
+                   <double>0.000000000000000</double>
+                  </property>
+                  <property name="maximum">
+                   <double>360.000000000000000</double>
+                  </property>
+                 </widget>
                 </item>
                 <item row="8" column="0">
-                 <widget class="QPushButton" name="pushButton_8">
+                 <widget class="QPushButton" name="wao_setAtmos">
                   <property name="text">
                    <string>Set</string>
                   </property>
@@ -1339,7 +1369,7 @@
      <item>
       <layout class="QGridLayout" name="gridLayout">
        <item row="1" column="1">
-        <widget class="QDoubleSpinBox" name="doubleSpinBox_2"/>
+        <widget class="QDoubleSpinBox" name="wao_cobs"/>
        </item>
        <item row="0" column="0">
         <widget class="QLabel" name="label_2">
@@ -1349,7 +1379,7 @@
         </widget>
        </item>
        <item row="0" column="1">
-        <widget class="QDoubleSpinBox" name="doubleSpinBox"/>
+        <widget class="QDoubleSpinBox" name="wao_diamTel"/>
        </item>
        <item row="0" column="2">
         <widget class="QLabel" name="label_4">
@@ -1366,7 +1396,7 @@
         </widget>
        </item>
        <item row="0" column="3">
-        <widget class="QDoubleSpinBox" name="doubleSpinBox_3"/>
+        <widget class="QDoubleSpinBox" name="wao_zenithAngle"/>
        </item>
       </layout>
      </item>
@@ -1491,7 +1521,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QPlainTextEdit" name="plainTextEdit"/>
+        <widget class="QLineEdit" name="wao_strehlSE"/>
        </item>
        <item>
         <widget class="QLabel" name="label_58">
@@ -1501,7 +1531,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QPlainTextEdit" name="plainTextEdit_2"/>
+        <widget class="QLineEdit" name="wao_strehlLE"/>
        </item>
       </layout>
      </item>
