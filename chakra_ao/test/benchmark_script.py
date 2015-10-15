@@ -15,10 +15,8 @@ CHAKRA_AO_SAVEPATH=CHAKRA_AO+"/data/"
 PARPATH=CHAKRA_AO_SAVEPATH+"par/par4bench/"
 BENCH_SAVEPATH=CHAKRA_AO_SAVEPATH+"bench-results/"
 
-c=ch.chakra_context()
 
-
-def script4bench(filename,centroider,controller, fwrite=True):
+def script4bench(filename,centroider,controller, device=0, fwrite=True):
     """
 
     :parameters:
@@ -28,6 +26,9 @@ def script4bench(filename,centroider,controller, fwrite=True):
 
         controller: (str) : controller type
     """
+
+    c=ch.chakra_context()
+    c.set_activeDevice(device)
 
     timer=ch.chakra_timer()
 
@@ -85,6 +86,7 @@ def script4bench(filename,centroider,controller, fwrite=True):
     timer.reset()
 
 
+    print "active dev",c.get_activeDevice()
     #init system
     timer.start()
     wfs=ao.wfs_init(p_wfss,p_atmos,p_tel,p_geom,p_target,p_loop, 1,0,p_dms)
@@ -92,31 +94,37 @@ def script4bench(filename,centroider,controller, fwrite=True):
     wfs_init_time=timer.stop()-synctime
     timer.reset()
 
+    print "active dev",c.get_activeDevice()
     timer.start()
-    atm=p_atmos.atmos_init(c,p_tel,p_geom,p_loop)
+    atm=p_atmos.atmos_init(c,p_tel,p_geom,p_loop,rank=-1)
     ch.threadSync()
     atmos_init_time=timer.stop()-synctime
     timer.reset()
 
+    print "dms"
     timer.start()
     dms=ao.dm_init(p_dms,p_wfss[0],p_geom,p_tel)
     ch.threadSync()
     dm_init_time=timer.stop()-synctime
     timer.reset()
 
+    print "target"
     timer.start()
     target=p_target.target_init(c,p_atmos,p_geom,p_tel,p_wfss,wfs,p_dms)
     ch.threadSync()
     target_init_time=timer.stop()-synctime
     timer.reset
 
+    print "rtc"
     timer.start()
-    rtc=ao.rtc_init(wfs,p_wfss,dms,p_dms,p_geom,p_rtc,p_atmos,atm,p_tel,p_loop,p_target)
+    rtc=ao.rtc_init(wfs,p_wfss,dms,p_dms,p_geom,p_rtc,p_atmos,atm,p_tel,p_loop,target,p_target)
     ch.threadSync()
     rtc_init_time=timer.stop()-synctime
     timer.reset
 
     print "... Done with inits !"
+
+    print c.get_activeDevice()
 
     strehllp=[]
     strehlsp=[]
@@ -210,7 +218,7 @@ def script4bench(filename,centroider,controller, fwrite=True):
 
                     if(dms is not None):
                         timer.start()
-                        rtc.docontrol_geo()
+                        rtc.docontrol_geo(0,dms,target,i)
                         ch.threadSync()
                         docontrol_time+=timer.stop()-synctime
                         timer.reset()
@@ -258,7 +266,7 @@ def script4bench(filename,centroider,controller, fwrite=True):
     else:
         type="ngs "
 
-    if(p_wfss[0]>3):
+    if(p_wfss[0].gsmag>3):
         type+="noisy "
 
     type+=p_wfss[0].type_wfs
@@ -288,7 +296,7 @@ def script4bench(filename,centroider,controller, fwrite=True):
 
 
         if(controller=="modopti"):
-            G=rtc.get_mgain()
+            G=np.mean(rtc.get_mgain(0))
         else:
             G=0.
 
@@ -326,17 +334,21 @@ def script4bench(filename,centroider,controller, fwrite=True):
 
 #DONE function script4bench
 
-if(len(sys.argv)!=4 and len(sys.argv)!=5):
+if(len(sys.argv)<4 or len(sys.argv)>6):
     error="wrong number of argument. Got "+len(sys.argv)+" (expect 4)\ncommande line should be: 'python benchmark_script.py <filename> <centroider> <controller>"
     raise StandardError(error)
 
 filename=PARPATH+sys.argv[1]
 centroider=sys.argv[2]
 controller=sys.argv[3]
-if (len(sys.argv)==5):
-    fwrite=int(sys.argv[4])
-    print "fwrite=",fwrite
-    script4bench(filename,centroider,controller,fwrite)
-else:
-    script4bench(filename,centroider,controller)
+device=0
+fwrite=True
+if(len(sys.argv)>4):
+    device=int(sys.argv[4])
+if (len(sys.argv)==6):
+    fwrite=int(sys.argv[5])
+
+script4bench(filename,centroider,controller,device,fwrite)
+
+
 

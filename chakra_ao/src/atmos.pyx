@@ -419,7 +419,7 @@ cdef atmos_create(chakra_context c, int nscreens,
 
         if(os.path.isfile(file_A) and os.path.isfile(file_B) and
            os.path.isfile(file_istx) and os.path.isfile(file_isty)):
-            if(verbose==0):print "reading files"
+            if(verbose<1):print "reading files"
             A=np.load(file_A)
             B=np.load(file_B)
             A_F=np.reshape(A.flatten("F"),(A.shape[0],A.shape[1]))

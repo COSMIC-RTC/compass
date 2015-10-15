@@ -26,7 +26,6 @@ print "param_file is",param_file
 print "simul name is",simul_name
 
 
-
 #initialisation:
 #   context
 c=ch.chakra_context()
@@ -72,6 +71,7 @@ def loop( n):
     #fig,((turbu,image),(shak,defMir))=pl.subplots(2,2, figsize=(15,15))
     #pl.ion()
     #pl.show()
+    t0=time.time()
     for i in range(n):
         atm.move_atmos()
         
@@ -121,6 +121,8 @@ def loop( n):
             strehltmp = tar.get_strehl(0)
             print i+1,"\t",strehltmp[0],"\t",strehltmp[1]
 
+    t1=time.time()
+    print " loop execution time:",t1-t0,"  (",n,"iterations), ",(t1-t0)/n,"(mean)"
 
 
-loop(p_loop.niter)
+#loop(p_loop.niter)

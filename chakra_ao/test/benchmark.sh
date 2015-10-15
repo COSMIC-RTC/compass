@@ -1,9 +1,7 @@
 #!/bin/bash
 
-FILES="scao_16x16_8pix.py"
-#scao_40x40_8pix.par
-#scao_64x64_8pix.par scao_80x80_8pix.par"
-#FILES+="scao_16x16_16pix.par scao_40x40_16pix.par scao_64x64_16pix.par scao_80x80_16pix.par"
+FILES="scao_16x16_8pix.py  scao_40x40_8pix.py  scao_64x64_8pix.py  scao_80x80_8pix.py "
+FILES+="scao_16x16_16pix.py scao_40x40_16pix.py scao_64x64_16pix.py scao_80x80_16pix.py"
 #FILES+="scao_16x16_8pix_noisy.par scao_40x40_8pix_noisy.par scao_64x64_8pix_noisy.par scao_80x80_8pix_noisy.par 
 #FILES+="scao_16x16_16pix_noisy.par scao_40x40_16pix_noisy.par scao_64x64_16pix_noisy.par scao_80x80_16pix_noisy.par"
 
@@ -29,7 +27,7 @@ script="$CHAKRA_AO/test/benchmark_script.py"
         do
 	        for COG in "cog" "tcog" "bpcog" "geom"
             do
-	            CMD="python $script $f $COG $CTR"
+	            CMD="python $script $f $COG $CTR $1"
 	            echo "execute $CMD" >> $OUTPUT
 	            $CMD 2>> $OUTPUT >> $OUTPUT
             done
@@ -38,9 +36,9 @@ script="$CHAKRA_AO/test/benchmark_script.py"
 #fi
 
 FILES_LGS="scao_16x16_8pix_lgs.py"
-#FILES_LGS+="scao_40x40_10pix_lgs.par" 
-#FILES_LGS+="scao_64x64_16pix_lgs.par"
-#FILES_LGS+="scao_80x80_20pix_lgs.par"
+FILES_LGS+="scao_40x40_10pix_lgs.par" 
+FILES_LGS+="scao_64x64_16pix_lgs.par"
+FILES_LGS+="scao_80x80_20pix_lgs.par"
 
 for f in $FILES_LGS
 do
@@ -48,7 +46,7 @@ do
     do
         for COG in "wcog" "corr"
         do
-            CMD="python $script $f $COG $CTR"
+            CMD="python $script $f $COG $CTR $1"
             echo "execute $CMD" >> $OUTPUT
             $CMD 2>> $OUTPUT >> $OUTPUT
         done
