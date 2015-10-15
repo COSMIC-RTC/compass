@@ -124,7 +124,7 @@ ext = Extension('chakra',
                     #'wrapper_chakra_host_obj.pyx'
                     'src/wrapper_chakra.pyx'
                     ],
-                library_dirs=[CUDA['lib64'], COMPASS['lib']+"/libcarma", "/usr/local/intel/composer_xe_2013_sp1.1.106/mkl"],
+                library_dirs=[CUDA['lib64'], COMPASS['lib']+"/libcarma", os.environ['MKL_LIB_DIR']],
                 libraries=['cudart', 'cufft','cublas','carma',
 					"mkl_mc3","mkl_def"],
                 language='c++',
@@ -132,7 +132,7 @@ ext = Extension('chakra',
                 # this syntax is specific to this build system
                 # we're only going to use certain compiler args with nvcc and not with gcc
                 # the implementation of this trick is in customize_compiler() below
-                extra_compile_args={'gcc': [],},
+                extra_compile_args={'g++': [],},
                                     #nvcc not needed (cuda code alreay compiled)
                                     #'nvcc': ['-gencode '+os.environ['GENCODE'], 
                                     #         '--ptxas-options=-v', 
@@ -172,7 +172,7 @@ def customize_compiler_for_nvcc(self):
             # from the extra_compile_args in the Extension class
             postargs = extra_postargs['nvcc']
         else:
-            postargs = extra_postargs['gcc']
+            postargs = extra_postargs['g++']
 
         super(obj, src, ext, cc_args, postargs, pp_opts)
         # reset the default compiler_so, which we might have changed for cuda

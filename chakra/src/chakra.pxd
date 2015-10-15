@@ -494,3 +494,27 @@ cdef extern from "carma_host_obj.h":
 cdef extern from "carma_cublas.h":
     cublasStatus_t carma_axpy[T](cublasHandle_t cublas_handle, int n, T alpha, T *vectx,
         int incx, T *vecty, int incy)
+
+
+
+#################################################
+# C-Class carma_timer
+#################################################
+cdef extern from "carma_timer.h":
+    cdef cppclass carma_timer:
+        pass
+        void start()
+        void reset()
+        void stop()
+        double elapsed()
+
+#################################################
+# P-Class chakra_timer
+#################################################
+cdef class chakra_timer:
+    cdef carma_timer *timer
+
+
+
+cdef extern from "carma_utils.h":
+    void carmaSafeDeviceSynchronize()
