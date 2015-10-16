@@ -1054,6 +1054,7 @@ cdef class Rtc:
     cpdef get_cmat(self,int ncontro)
     cpdef get_cphim(self, int ncontro)
     cpdef get_cmm(self,int ncontro)
+    cpdef set_cmm(self,int ncontro, np.ndarray[ndim=2,dtype=np.float32_t] data)
     cdef set_decayFactor(self,int ncontro, np.ndarray[ndim=1,dtype=np.float32_t] decay)
     cdef set_matE(self,int ncontro, np.ndarray[ndim=2,dtype=np.float32_t] matE)
 
@@ -1070,7 +1071,8 @@ cdef class Rtc:
     cdef setU(self,int ncontro,np.ndarray[ndim=2,dtype=np.float32_t] U)
     cdef setEigenvals(self, int ncontro, np.ndarray[ndim=1,dtype=np.float32_t] eigenvals)
     cdef getU(self, int ncontro)
-    cdef getEigenvals(self,int ncontro)
+    cpdef getEigenvals(self,int ncontro)
+    cpdef getCmmEigenvals(self,int ncontro)
     cpdef getCenbuff(self, int ncontro)
     cdef getErr(self,int ncontro)
     cpdef getCom(self,int ncontro)
@@ -1078,7 +1080,7 @@ cdef class Rtc:
     cpdef getVoltage(self,int ncontro)
     cpdef getCentroids(self,int ncontro)
     cdef buildcmat(self,int ncontro,int nfilt, int filt_tt=?)
-    cdef buildcmatmv(self,int ncontro,float cond)
+    cpdef buildcmatmv(self,int ncontro,float cond)
     cdef loadnoisemat(self,int ncontro, np.ndarray[ndim=1,dtype=np.float32_t] N)
     cpdef docontrol(self,int ncontro)
     cpdef docontrol_geo(self, int ncontro, Dms dms, Target target, int ntarget)
@@ -1172,15 +1174,15 @@ cdef class Param_geom:
     """linear size of total pupil (in pixels)."""
     cdef readonly float cent
     """central point of the simulation."""
-    cdef np.ndarray _ipupil   # total pupil (include full guard band)
+    cdef readonly np.ndarray _ipupil   # total pupil (include full guard band)
     cdef readonly np.ndarray _mpupil   # medium pupil (part of the guard band)
-    cdef np.ndarray _spupil   # small pupil (without guard band)
-    cdef np.ndarray _apodizer # apodizer (same size as small pupil)
-    cdef long  _p1         # min x,y for valid points in mpupil
-    cdef long  _p2         # max x,y for valid points in mpupil
-    cdef long  _n          # linear size of mpupil
-    cdef long  _n1         # min x,y for valid points in ipupil
-    cdef long  _n2         # max x,y for valid points in ipupil
+    cdef readonly np.ndarray _spupil   # small pupil (without guard band)
+    cdef readonly np.ndarray _apodizer # apodizer (same size as small pupil)
+    cdef readonly long  _p1         # min x,y for valid points in mpupil
+    cdef readonly long  _p2         # max x,y for valid points in mpupil
+    cdef readonly long  _n          # linear size of mpupil
+    cdef readonly long  _n1         # min x,y for valid points in ipupil
+    cdef readonly long  _n2         # max x,y for valid points in ipupil
 
 
 #################################################
@@ -1221,9 +1223,9 @@ cdef class Param_target:
     """y positions on sky (in arcsec) for each target"""
     cdef readonly np.ndarray mag
     """magnitude for each target"""
-    cdef float zerop
+    cdef readonly float zerop
     """target flux for magnitude 0"""
-    cdef np.ndarray  dms_seen
+    cdef readonly np.ndarray  dms_seen
     """index of dms seen by the target"""
 
 
@@ -1290,16 +1292,16 @@ cdef class Param_wfs:
     """laser beam fwhm on-sky (in arcsec)."""
 
 #internal kwrd
-    cdef long  _pdiam          # pupil diam for a subap (in pixel)
-    cdef long  _Nfft           # array size for fft for a subap (in pixel)
-    cdef long  _Ntot           # total size of hr image for a subap (in pixel)
-    cdef long  _nrebin         # rebin factor from hr to binned image for a subap 
+    cdef readonly long  _pdiam          # pupil diam for a subap (in pixel)
+    cdef readonly long  _Nfft           # array size for fft for a subap (in pixel)
+    cdef readonly long  _Ntot           # total size of hr image for a subap (in pixel)
+    cdef readonly long  _nrebin         # rebin factor from hr to binned image for a subap 
     cdef readonly long  _nvalid         # number of valid subaps
 
     cdef readonly float   _nphotons     # number of photons per subap
-    cdef float   _subapd       # subap diameter (m)
+    cdef readonly float   _subapd       # subap diameter (m)
     cdef readonly np.ndarray _fluxPerSub   # fraction of nphotons per subap
-    cdef float   _qpixsize     # quantum pixel size for the simulation
+    cdef readonly float   _qpixsize     # quantum pixel size for the simulation
 
     cdef readonly np.ndarray _istart    # (int*) x start indexes for cutting phase screens 
     cdef readonly np.ndarray _jstart    # (int*) y start indexes for cutting phase screens 
@@ -1424,24 +1426,24 @@ cdef class Param_dm:
 # P-Class (parametres) Param_rtc
 #################################################
 cdef class Param_rtc:
-    cdef long    nwfs           # number of wfs
-    cdef list centroiders     # an array of centroiders
-    cdef list controllers     #an array of controllers
+    cdef readonly long    nwfs           # number of wfs
+    cdef readonly list centroiders     # an array of centroiders
+    cdef readonly list controllers     #an array of controllers
 
 
 #################################################
 # P-Class (parametres) Param_centroider
 #################################################
 cdef class Param_centroider:
-    cdef long    nwfs       # index of wfs in y_wfs structure on which we want to do centroiding
-    cdef bytes  type_centro # type of centroiding "cog", "tcog", "bpcog", "wcog", "corr"
-    cdef bytes  type_fct    # type of ref function "gauss", "file", "model"
-    cdef np.ndarray weights    # optional reference function(s) used for centroiding
-    cdef long    nmax       #
-    cdef float   thresh     #
-    cdef float   width      # width of the Gaussian
-    cdef long    sizex      #
-    cdef long    sizey      #
+    cdef readonly long    nwfs       # index of wfs in y_wfs structure on which we want to do centroiding
+    cdef readonly  bytes  type_centro # type of centroiding "cog", "tcog", "bpcog", "wcog", "corr"
+    cdef readonly bytes  type_fct    # type of ref function "gauss", "file", "model"
+    cdef readonly np.ndarray weights    # optional reference function(s) used for centroiding
+    cdef readonly long    nmax       #
+    cdef readonly float   thresh     #
+    cdef readonly float   width      # width of the Gaussian
+    cdef readonly long    sizex      #
+    cdef readonly long    sizey      #
     cdef np.ndarray interpmat  # optional reference function(s) used for centroiding
 
 
@@ -1457,16 +1459,16 @@ cdef class Param_controller:
     cdef readonly np.ndarray imat        # full interaction matrix
     cdef readonly np.ndarray cmat        # full control matrix
     cdef readonly float   maxcond        # max condition number
-    cdef float    delay         # 
-    cdef float   gain           #
-    cdef long    nkl            # Florain features : number of KL modes used for computation of covmat in case of minimum variance controller
-    cdef long    cured_ndivs    # subdivision levels in cured
-    cdef int     modopti        # Flag for modal optimization
-    cdef int     nrec           # Number of sample of open loop slopes for modal optimization computation
-    cdef int     nmodes         # Number of modes for M2V matrix (modal optimization)
-    cdef float     gmin         # Minimum gain for modal optimization
-    cdef float     gmax         # Maximum gain for modal optimization
-    cdef int     ngain          # Number of tested gains
+    cdef readonly float    delay         # 
+    cdef readonly float   gain           #
+    cdef readonly long    nkl            # Florain features : number of KL modes used for computation of covmat in case of minimum variance controller
+    cdef readonly long    cured_ndivs    # subdivision levels in cured
+    cdef readonly int     modopti        # Flag for modal optimization
+    cdef readonly int     nrec           # Number of sample of open loop slopes for modal optimization computation
+    cdef readonly int     nmodes         # Number of modes for M2V matrix (modal optimization)
+    cdef readonly float     gmin         # Minimum gain for modal optimization
+    cdef readonly float     gmax         # Maximum gain for modal optimization
+    cdef readonly int     ngain          # Number of tested gains
 
 #################################################
 # P-Class (parametres) Param_loop

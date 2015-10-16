@@ -548,6 +548,28 @@ cdef class Rtc:
             controller_generic.d_cmat.host2device(<float*>data_F.data)
         else:
             raise TypeError("Controller needs to be ls, mv or generic")
+            
+    cpdef set_cmm(self,int ncontro, np.ndarray[ndim=2,dtype=np.float32_t] data):
+        """TODO doc
+
+        :parameters:
+            ncontro: (int) : controller index
+
+            data: (np.ndarray[ndim=2,dtype=np.float32_t]) :
+        """
+        cdef carma_context *context=carma_context.instance()
+        context.set_activeDeviceForCpy(self.rtc.device,1)
+
+        cdef np.ndarray[dtype=np.float32_t] data_F=data.flatten("F")
+
+        cdef sutra_controller_mv *controller_mv
+        cdef bytes type_contro = <bytes>self.rtc.d_control[ncontro].get_type()
+
+        if(type_contro=="mv"):
+            controller_mv=dynamic_cast_controller_mv_ptr(self.rtc.d_control[ncontro])
+            controller_mv.d_Cmm.host2device(<float*>data_F.data)
+        else:
+            raise TypeError("Controller needs to be mv")
 
     cpdef get_cmm(self, int ncontro):
         """TODO doc
@@ -900,7 +922,7 @@ cdef class Rtc:
         return data
 
 
-    cdef getEigenvals(self,int ncontro):
+    cpdef getEigenvals(self,int ncontro):
         """TODO doc
 
         :param ncontro: (int) : controller index
@@ -908,6 +930,7 @@ cdef class Rtc:
         cdef carma_context *context=carma_context.instance()
         context.set_activeDeviceForCpy(self.rtc.device,1)
         cdef sutra_controller_ls *controller_ls
+        cdef sutra_controller_mv *controller_mv
         cdef bytes type_contro=<bytes>self.rtc.d_control[ncontro].get_type()
         cdef np.ndarray[ndim=1, dtype=np.float32_t] data
         cdef const long *dims
@@ -916,6 +939,30 @@ cdef class Rtc:
             dims=controller_ls.h_eigenvals.getDims()
             data=np.zeros((dims[1]),dtype=np.float32)
             controller_ls.h_eigenvals.fill_into(<float*>data.data)
+        if(type_contro=="mv"):
+            controller_mv=dynamic_cast_controller_mv_ptr(self.rtc.d_control[ncontro])
+            dims=controller_mv.h_Cmmeigenvals.getDims()
+            data=np.zeros((dims[1]),dtype=np.float32)
+            controller_mv.h_eigenvals.fill_into(<float*>data.data)
+
+        return data
+        
+    cpdef getCmmEigenvals(self,int ncontro):
+        """TODO doc
+
+        :param ncontro: (int) : controller index
+        """
+        cdef carma_context *context=carma_context.instance()
+        context.set_activeDeviceForCpy(self.rtc.device,1)
+        cdef sutra_controller_mv *controller_mv
+        cdef bytes type_contro=<bytes>self.rtc.d_control[ncontro].get_type()
+        cdef np.ndarray[ndim=1, dtype=np.float32_t] data
+        cdef const long *dims
+        if(type_contro=="mv"):
+            controller_mv=dynamic_cast_controller_mv_ptr(self.rtc.d_control[ncontro])
+            dims=controller_mv.h_Cmmeigenvals.getDims()
+            data=np.zeros((dims[1]),dtype=np.float32)
+            controller_mv.h_Cmmeigenvals.fill_into(<float*>data.data)
 
         return data
 
@@ -1092,7 +1139,7 @@ cdef class Rtc:
                 controller_ls.build_cmat(nfilt)
 
 
-    cdef buildcmatmv(self,int ncontro,float cond):
+    cpdef buildcmatmv(self,int ncontro,float cond):
         """TODO doc
 
         :parameters:
@@ -1247,7 +1294,7 @@ def rtc_init(Sensors g_wfs, p_wfs, Dms g_dms, p_dms, Param_geom p_geom, Param_rt
     cdef Param_centroider centroider
 
     cdef int i,j,offset,ncentro,ncontro
-    cdef int nwfs =0
+    #cdef int nwfs =0
     cdef float s_offset=0.
     cdef float s_scale=0.
     cdef Param_controller controller
@@ -2109,7 +2156,7 @@ cdef cmat_init(int ncontro, Rtc g_rtc, Param_rtc p_rtc, list p_wfs, Param_atmos 
     '''
     p_rtc.controllers[ncontro].set_cmat(g_rtc.get_cmat(ncontro))
 
-cdef doTomoMatrices(int ncontro, Rtc g_rtc, list wfs, Dms g_dm, Atmos g_atmos, Sensors g_wfs,  Param_rtc p_rtc, Param_geom geom, list p_dm, Param_tel p_tel, Param_atmos p_atmos):
+cpdef doTomoMatrices(int ncontro, Rtc g_rtc, list wfs, Dms g_dm, Atmos g_atmos, Sensors g_wfs,  Param_rtc p_rtc, Param_geom geom, list p_dm, Param_tel p_tel, Param_atmos p_atmos):
     """TODO doc
 
     :parameters:
