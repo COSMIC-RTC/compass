@@ -613,3 +613,4 @@ if __name__ == '__main__':
     app = QtGui.QApplication(sys.argv)
     wao = widgetAOWindow()
     wao.show()
+    app.setStyle('cleanlooks')
