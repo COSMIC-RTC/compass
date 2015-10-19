@@ -471,6 +471,13 @@ cdef class Sensors:
             mpi.MPI_Allreduce(mpi.MPI_IN_PLACE,&dim_tot,1,mpi.MPI_LONG,mpi.MPI_SUM,mpi.MPI_COMM_WORLD)
         return dim_tot
 
+    def get_slopes(self, int n)
+        """Return the 'slopes' array of a given wfs
+
+        :param n: (int) : number of the wfs to get the 'slopes' from
+        """
+        return _get_slopes(n)
+
     cdef _get_slopes(self, int n):
         """Return the 'slopes' array of a given wfs
 
