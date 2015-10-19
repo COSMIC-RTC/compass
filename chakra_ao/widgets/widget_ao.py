@@ -423,7 +423,6 @@ class widgetAOWindow(TemplateBaseClass):
                 self.ui.wao_rtcWindowMPL.show()
                 self.ui.wao_pgwindow.hide()
                 self.ui.wao_rtcWindowMPL.canvas.axes.clear()
-                #ax = self.ui.wao_rtcWindowMPL.canvas.axes
                 slopes = self.rtc.getCentroids(self.numberSelected) # retrieving slopes
                 x, y, vx, vy = tools.plsh(slopes, self.config.p_wfss[self.numberSelected].npix,self.config.p_tel.cobs , returnquiver=True) # Preparing mesh and vector for display
                 self.ui.wao_rtcWindowMPL.canvas.axes.quiver(x, y, vx, vy, pivot='mid')
@@ -548,6 +547,10 @@ class aoLoopThread(QtCore.QThread):
     
     def updateDisplay(self):
         data = None
+        if((not wao.ui.wao_pgwindow.isVisible()) & (self.imgType != "Slopes - WFS")):
+            wao.ui.wao_rtcWindowMPL.hide()
+            wao.ui.wao_pgwindow.show()
+            
         if(self.atm):
             if(self.imgType == "Phase - Atmos"):
                 data = self.atm.get_screen(self.config.p_atmos.alt[self.numberSelected])
@@ -560,7 +563,15 @@ class aoLoopThread(QtCore.QThread):
                 elif(self.config.p_wfss[self.numberSelected].type_wfs == "pyr"):
                     data =self.wfs.get_pyrimg(self.numberSelected)
             if(self.imgType == "Slopes - WFS"):
-                pass
+                if(not wao.ui.wao_rtcWindowMPL.isVisible()):
+                    wao.ui.wao_rtcWindowMPL.show()
+                    wao.ui.wao_pgwindow.hide()
+                wao.ui.wao_rtcWindowMPL.canvas.axes.clear()
+                slopes = self.rtc.getCentroids(self.numberSelected) # retrieving slopes
+                x, y, vx, vy = tools.plsh(slopes, self.config.p_wfss[self.numberSelected].npix,self.config.p_tel.cobs , returnquiver=True) # Preparing mesh and vector for display
+                wao.ui.wao_rtcWindowMPL.canvas.axes.quiver(x, y, vx, vy, pivot='mid')
+                wao.ui.wao_rtcWindowMPL.canvas.draw()
+
         if(self.dms):
             if(self.imgType == "Phase - DM"):
                 dm_type = self.config.p_dms[self.numberSelected].type_dm
