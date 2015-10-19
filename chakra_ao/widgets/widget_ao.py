@@ -586,7 +586,7 @@ class aoLoopThread(QtCore.QThread):
                 data =self.tar.get_image(self.numberSelected,"le")
         if (data is not None):
             self.img.setImage(data)
-            #self.histo.setLevels(np.min(data),np.max(data))
+            self.histo.setLevels(np.min(data),np.max(data))
 
     def run(self):
         i=0
@@ -630,7 +630,7 @@ class aoLoopThread(QtCore.QThread):
             self.strehlLE.setText("%.2f"%(SR[1]))
         
         self.updateDisplay()
-        time.sleep(0.01)
+        time.sleep(0.05)
         
 if __name__ == '__main__':
     app = QtGui.QApplication(sys.argv)
