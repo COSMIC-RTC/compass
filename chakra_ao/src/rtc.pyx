@@ -2243,17 +2243,17 @@ cpdef doTomoMatrices(int ncontro, Rtc g_rtc, list wfs, Dms g_dm, Atmos g_atmos, 
    # print "indlayer = ",indlayersDM
     
     # Get FoV
+    RASC = 180.0/np.pi * 3600.
     wfs_distance = np.zeros(len(p_rtc.controllers[ncontro].nwfs),dtype = np.float64)
     ind = 0
     for k in p_rtc.controllers[ncontro].nwfs:
         wfs_distance[ind] = np.sqrt(wfs[k].xpos**2 + wfs[k].ypos**2)
         ind += 1
-    FoV = np.max(wfs_distance)
+    FoV = np.max(wfs_distance) / RASC
     
     # WFS postions in rad
     alphaX = np.zeros(len(p_rtc.controllers[ncontro].nwfs))
     alphaY = np.zeros(len(p_rtc.controllers[ncontro].nwfs))
-    RASC = 180.0/np.pi * 3600.
     
     ind = 0
     for k in p_rtc.controllers[ncontro].nwfs:

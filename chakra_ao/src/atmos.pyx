@@ -93,7 +93,7 @@ cdef class Param_atmos:
 
 
     def atmos_init(self, chakra_context c, Param_tel tel,  Param_geom geom,
-                    Param_loop loop, Param_wfs wfs=None, Param_target target=None,
+                    Param_loop loop, list wfss=None, Param_target target=None,
                     int rank=0):
         """Create and initialise an atmos object
         TODO doc
@@ -125,14 +125,18 @@ cdef class Param_atmos:
 
 
         cdef long max_size
+        if (wfss is not None):
+            norms = [np.linalg.norm([wfss[i].xpos,wfss[i].ypos],axis=0) for i in range(len(wfss))]
+            indmax = np.where(norms == np.max(norms))[0][0]
+            wfs = wfss[indmax]
         # compute total fov using targets and wfs gs
         if ((wfs is not None) and (target is not None)):
-            max_size = np.max((np.linalg.norm(target.xpos,target.ypos),
-                            np.linalg.norm(wfs.xpos,wfs.ypos)))
+            max_size = np.max((np.linalg.norm([target.xpos,target.ypos],axis=0),
+                            np.linalg.norm([wfs.xpos,wfs.ypos],axis=0)))
         elif (target is not None):
-                    max_size = np.max(np.linalg.norm(target.xpos,target.ypos))
+                    max_size = np.max(np.linalg.norm([target.xpos,target.ypos],axis=0))
         elif (wfs is not None):
-                max_size = np.max(np.linalg.norm(wfs.xpos,wfs.ypos))
+                max_size = np.max(np.linalg.norm([wfs.xpos,wfs.ypos],axis=0))
         else:
             max_size = 0
 
@@ -440,7 +444,7 @@ cdef atmos_create(chakra_context c, int nscreens,
 
         tscreen=atmos_obj.s_a.d_screens[alt[i]]
         tscreen.init_screen(<float*>(A_F.data),<float*>(B_F.data),
-                <unsigned int*>istx.data,<unsigned int*>isty.data,1234)
+                <unsigned int*>istx.data,<unsigned int*>isty.data,1234*i)
         for j in range(2*tscreen.screen_size):
             tscreen.extrude(1)
     return atmos_obj

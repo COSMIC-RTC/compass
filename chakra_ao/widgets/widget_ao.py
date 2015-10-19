@@ -84,7 +84,7 @@ class widgetAOWindow(TemplateBaseClass):
         self.ui.wao_setControl.clicked.connect(self.setRtcParams)
         self.ui.wao_resetDM.clicked.connect(self.resetDM)
         self.ui.wao_selectRtcMatrix.currentIndexChanged.connect(self.displayRtcMatrix)
- 
+        self.ui.wao_rtcWindowMPL.hide()
         self.aoLoopThread = aoLoopThread(self.mainLoop, self.config, self.img, self.ui.wao_strehlSE, self.ui.wao_strehlLE, 1, self.hist)
         self.connect(self.aoLoopThread,QtCore.SIGNAL("finished()"),self.aoLoopFinished)
 
@@ -405,7 +405,10 @@ class widgetAOWindow(TemplateBaseClass):
     
     def updateDisplay(self):
         data = None
+        self.ui.wao_rtcWindowMPL.hide()
+        self.ui.wao_pgwindow.show()
         if(self.atm):
+            
             if(self.imgType == "Phase - Atmos"):
                 data = self.atm.get_screen(self.config.p_atmos.alt[self.numberSelected])
         if(self.wfs):
@@ -417,7 +420,16 @@ class widgetAOWindow(TemplateBaseClass):
                 elif(self.config.p_wfss[self.numberSelected].type_wfs == "pyr"):
                     data =self.wfs.get_pyrimg(self.numberSelected)
             if(self.imgType == "Slopes - WFS"):
-                pass
+                self.ui.wao_rtcWindowMPL.show()
+                self.ui.wao_pgwindow.hide()
+                self.ui.wao_rtcWindowMPL.canvas.axes.clear()
+                #ax = self.ui.wao_rtcWindowMPL.canvas.axes
+                slopes = self.rtc.getCentroids(self.numberSelected) # retrieving slopes
+                x, y, vx, vy = tools.plsh(slopes, self.config.p_wfss[self.numberSelected].npix,self.config.p_tel.cobs , returnquiver=True) # Preparing mesh and vector for display
+                self.ui.wao_rtcWindowMPL.canvas.axes.quiver(x, y, vx, vy, pivot='mid')
+                self.ui.wao_rtcWindowMPL.canvas.draw()
+                return
+                
         if(self.dms):
             if(self.imgType == "Phase - DM"):
                 dm_type = self.config.p_dms[self.numberSelected].type_dm
