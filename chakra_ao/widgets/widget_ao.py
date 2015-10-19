@@ -13,6 +13,7 @@ import matplotlib.pyplot as pl
 import os
 import pyqtgraph as pg
 import glob
+import tools
 sys.path.insert(0, os.environ["CHAKRA_AO"]+"/data/par/") # for SESAME lib
 
 from PyQt4.uic import loadUiType
@@ -84,7 +85,7 @@ class widgetAOWindow(TemplateBaseClass):
         self.ui.wao_resetDM.clicked.connect(self.resetDM)
         self.ui.wao_selectRtcMatrix.currentIndexChanged.connect(self.displayRtcMatrix)
  
-        self.aoLoopThread = aoLoopThread(self.mainLoop, self.config, self.img, self.ui.wao_strehlSE, self.ui.wao_strehlLE, 1)
+        self.aoLoopThread = aoLoopThread(self.mainLoop, self.config, self.img, self.ui.wao_strehlSE, self.ui.wao_strehlLE, 1, self.hist)
         self.connect(self.aoLoopThread,QtCore.SIGNAL("finished()"),self.aoLoopFinished)
 
         ##############################################################
@@ -151,7 +152,7 @@ class widgetAOWindow(TemplateBaseClass):
         self.ui.wao_atmosL0.setValue(self.config.p_atmos.L0[nscreen])
         self.ui.wao_windSpeed.setValue(self.config.p_atmos.windspeed[nscreen])
         self.ui.wao_windDirection.setValue(self.config.p_atmos.winddir[nscreen])
-        if(self.config.p_atmos.dim_screens):
+        if(self.config.p_atmos.dim_screens is not None):
             self.ui.wao_atmosDimScreen.setText(str(self.config.p_atmos.dim_screens[nscreen]))
             
     def updateRtcPanel(self):
@@ -403,31 +404,35 @@ class widgetAOWindow(TemplateBaseClass):
         self.ui.wao_selectConfig.addItems([parlist[i].split('/')[-1] for i in range(len(parlist))])
     
     def updateDisplay(self):
+        data = None
         if(self.atm):
             if(self.imgType == "Phase - Atmos"):
-                self.img.setImage(self.atm.get_screen(self.config.p_atmos.alt[self.numberSelected]))
+                data = self.atm.get_screen(self.config.p_atmos.alt[self.numberSelected])
         if(self.wfs):
             if(self.imgType == "Phase - WFS"):
-                self.img.setImage(self.wfs.get_phase(self.numberSelected))
+                data =self.wfs.get_phase(self.numberSelected)
             if(self.imgType == "Spots - WFS"):
                 if(self.config.p_wfss[self.numberSelected].type_wfs == "sh"):
-                    self.img.setImage(self.wfs.get_binimg(self.numberSelected))
+                    data =self.wfs.get_binimg(self.numberSelected)
                 elif(self.config.p_wfss[self.numberSelected].type_wfs == "pyr"):
-                    self.img.setImage(self.wfs.get_pyrimg(self.numberSelected))
+                    data =self.wfs.get_pyrimg(self.numberSelected)
             if(self.imgType == "Slopes - WFS"):
                 pass
         if(self.dms):
             if(self.imgType == "Phase - DM"):
                 dm_type = self.config.p_dms[self.numberSelected].type_dm
                 alt = self.config.p_dms[self.numberSelected].alt
-                self.img.setImage(self.dms.get_dm(dm_type,alt))
+                data =self.dms.get_dm(dm_type,alt)
         if(self.tar):
             if(self.imgType == "Phase - Target"):
-                self.img.setImage(self.tar.get_phase(self.numberSelected))
+                data =self.tar.get_phase(self.numberSelected)
             if(self.imgType == "PSF SE"):
-                self.img.setImage(self.tar.get_image(self.numberSelected,"se"))
+                data =self.tar.get_image(self.numberSelected,"se")
             if(self.imgType == "PSF LE"):
-                self.img.setImage(self.tar.get_image(self.numberSelected,"le"))
+                data =self.tar.get_image(self.numberSelected,"le")
+        if (data is not None):
+            self.img.setImage(data)
+            self.hist.setLevels(np.min(data),np.max(data))
                 
             
     def InitConfig(self):
@@ -436,7 +441,8 @@ class widgetAOWindow(TemplateBaseClass):
                              1,0,self.config.p_dms)
 
         self.atm=self.config.p_atmos.atmos_init(self.c,self.config.p_tel,
-                                                self.config.p_geom,self.config.p_loop)
+                                                self.config.p_geom,self.config.p_loop,
+                                                self.config.p_wfss,self.config.p_target)
         self.ui.wao_atmosDimScreen.setText(str(self.config.p_atmos.dim_screens[0]))
 
         self.dms=ao.dm_init(self.config.p_dms,self.config.p_wfs0,self.config.p_geom,self.config.p_tel)
@@ -497,15 +503,17 @@ class widgetAOWindow(TemplateBaseClass):
             
             if(data is not None):
                 self.ui.wao_rtcWindow.canvas.axes.clear()
+                ax = self.ui.wao_rtcWindow.canvas.axes
                 if(len(data.shape) == 2):
-                    self.ui.wao_rtcWindow.canvas.axes.matshow(data)
+                    self.ui.wao_rtcWindow.canvas.axes.matshow(data, aspect="auto", origin="lower")
                 elif(len(data.shape) == 1):
-                    self.ui.wao_rtcWindow.canvas.axes.plot(range(len(data)),data)
+                    self.ui.wao_rtcWindow.canvas.axes.plot(range(len(data)),data) # TODO : plot it properly, interactivity ?
+                    ax.set_yscale('log')
                 self.ui.wao_rtcWindow.canvas.draw()
                 
 
 class aoLoopThread(QtCore.QThread):
-    def __init__(self,LoopParams,config, img, strehlSE, strehlLE, framebyframe, imgType=None, numberSelected=None):
+    def __init__(self,LoopParams,config, img, strehlSE, strehlLE, framebyframe, histo, imgType=None, numberSelected=None):
         QtCore.QThread.__init__(self)
         
         self.wfs = LoopParams[1]
@@ -521,36 +529,41 @@ class aoLoopThread(QtCore.QThread):
         self.framebyframe = framebyframe
         self.strehlSE = strehlSE
         self.strehlLE = strehlLE
+        self.histo = histo
         
     def __del__(self):
         self.wait()
     
     def updateDisplay(self):
+        data = None
         if(self.atm):
             if(self.imgType == "Phase - Atmos"):
-                self.img.setImage(self.atm.get_screen(self.config.p_atmos.alt[self.numberSelected]))
+                data = self.atm.get_screen(self.config.p_atmos.alt[self.numberSelected])
         if(self.wfs):
             if(self.imgType == "Phase - WFS"):
-                self.img.setImage(self.wfs.get_phase(self.numberSelected))
+                data =self.wfs.get_phase(self.numberSelected)
             if(self.imgType == "Spots - WFS"):
                 if(self.config.p_wfss[self.numberSelected].type_wfs == "sh"):
-                    self.img.setImage(self.wfs.get_binimg(self.numberSelected))
+                    data =self.wfs.get_binimg(self.numberSelected)
                 elif(self.config.p_wfss[self.numberSelected].type_wfs == "pyr"):
-                    self.img.setImage(self.wfs.get_pyrimg(self.numberSelected))
+                    data =self.wfs.get_pyrimg(self.numberSelected)
             if(self.imgType == "Slopes - WFS"):
                 pass
         if(self.dms):
             if(self.imgType == "Phase - DM"):
                 dm_type = self.config.p_dms[self.numberSelected].type_dm
                 alt = self.config.p_dms[self.numberSelected].alt
-                self.img.setImage(self.dms.get_dm(dm_type,alt))
+                data =self.dms.get_dm(dm_type,alt)
         if(self.tar):
             if(self.imgType == "Phase - Target"):
-                self.img.setImage(self.tar.get_phase(self.numberSelected))
+                data =self.tar.get_phase(self.numberSelected)
             if(self.imgType == "PSF SE"):
-                self.img.setImage(self.tar.get_image(self.numberSelected,"se"))
+                data =self.tar.get_image(self.numberSelected,"se")
             if(self.imgType == "PSF LE"):
-                self.img.setImage(self.tar.get_image(self.numberSelected,"le"))
+                data =self.tar.get_image(self.numberSelected,"le")
+        if (data is not None):
+            self.img.setImage(data)
+            #self.histo.setLevels(np.min(data),np.max(data))
 
     def run(self):
         i=0
@@ -561,11 +574,7 @@ class aoLoopThread(QtCore.QThread):
             while(self.go):
                 i +=1
                 self.mainLoop()
-#            if(self.imgType == "Phase Atmos"):
-#                self.img.setImage(self.atm.get_screen())
-#            self.img.setImage(self.tar.get_image(0,"se"))
-            
-            #print "SR : ",self.tar.get_strehl(0)[0]
+
             print "Loop stopped"
     
     def mainLoop(self):
