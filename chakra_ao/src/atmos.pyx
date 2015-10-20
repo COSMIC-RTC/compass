@@ -1,99 +1,16 @@
+include "loop.pyx"
 
-#################################################
-# P-Class (parametres) Param_atmos
-#################################################
-cdef class Param_atmos:
-    def __cinit__(self):
-        self.nscreens=0
+import numpy as np
+cimport numpy as np
 
-    def set_nscreens( self, long n):
-        """Set the number of turbulent layers
+import os
+import iterkolmo as itK
 
-        :param n: (long) number of screens.
-        """
-        self.nscreens=n
-
-    def set_r0( self, float r):
-        """Set the global r0
-
-        :param r: (float) : global r0
-        """
-        self.r0=r
-
-    def set_pupixsize(self,float xsize):
-        """Set the pupil pixel size
-
-        :param xsize: (float) : pupil pixel size
-        """
-        self.pupixsize= xsize
-
-    def set_L0( self, l):
-        """Set the L0 per layers 
-
-        :param l: (lit of float) : L0 for each layers
-        """
-        self.L0=np.array(l,dtype=np.float32)
-
-    def set_dim_screens( self, l):
-        """Set the size of the phase screens 
-
-        :param l: (lit of float) : phase screens sizes
-        """
-        self.dim_screens=np.array(l,dtype=np.float32)
-
-    def set_alt( self, l):
-        """Set the altitudes of each layer
-
-        :param l: (lit of float) : altitudes
-        """
-        self.alt=np.array(l,dtype=np.float32)
-
-    def set_winddir( self, l):
-        """Set the wind direction for each layer
-
-        :param l: (lit of float) : wind directions
-        """
-        self.winddir=np.array(l,dtype=np.float32)
-
-    def set_windspeed( self, l):
-        """Set the the wind speed for each layer
-
-        :param l: (lit of float) : wind speeds
-        """
-        self.windspeed=np.array(l,dtype=np.float32)
-
-    def set_frac( self, l):
-        """Set the fraction of r0 for each layers
-
-        :param l: (lit of float) : fraction of r0
-        """
-        self.frac=np.array(l,dtype=np.float32)
-
-    def set_deltax( self, l):
-        """Set the translation speed on axis x for each layer
-
-        :param l: (lit of float) : translation speed
-        """
-        self.deltax=np.array(l,dtype=np.float32)
-
-    def set_deltay( self, l):
-        """Set the translation speed on axis y for each layer
-
-        :param l: (lit of float) : translation speed
-        """
-        self.deltay=np.array(l,dtype=np.float32)
-
-    def set_seeds( self, l):
-        """Set the seed for each layer
-
-        :param l: (lit of float) : seed
-        """
-        self.seeds=np.array(l,dtype=np.float32)
+from cython.operator cimport dereference as deref, preincrement as inc
 
 
-
-    def atmos_init(self, chakra_context c, Param_tel tel,  Param_geom geom,
-                    Param_loop loop, list wfss=None, Param_target target=None,
+def atmos_init(chakra_context c, Param_atmos atm, Param_tel tel,  Param_geom geom,
+                    Param_loop loop, wfss=None, Param_target target=None,
                     int rank=0):
         """Create and initialise an atmos object
         TODO doc
@@ -107,21 +24,21 @@ cdef class Param_atmos:
 
             loop: (Param_loop) : loop settings
 
-            wfs: (Param_wfs) : (optional) wfs settings
+            wfss: (list of Param_wfs) : (optional) wfs settings
 
             target: (Param_target) : (optional) target_settings
         """
 
         cdef double ittime=loop.ittime
-        if(self.r0 is None):
-            self.r0=0
+        if(atm.r0 is None):
+            atm.r0=0
 
         cdef int i
 
         # ajust layers alt using zenith angle
-        self.alt=(self.alt/np.cos(geom.zenithangle*dtor))
+        atm.alt=(atm.alt/np.cos(geom.zenithangle*dtor))
         # pixel size in meter
-        self.pupixsize=tel.diam/geom.pupdiam
+        atm.pupixsize=tel.diam/geom.pupdiam
 
 
         cdef long max_size
@@ -129,6 +46,9 @@ cdef class Param_atmos:
             norms = [np.linalg.norm([wfss[i].xpos,wfss[i].ypos],axis=0) for i in range(len(wfss))]
             indmax = np.where(norms == np.max(norms))[0][0]
             wfs = wfss[indmax]
+        else:
+            wfs = None
+
         # compute total fov using targets and wfs gs
         if ((wfs is not None) and (target is not None)):
             max_size = np.max((np.linalg.norm([target.xpos,target.ypos],axis=0),
@@ -143,30 +63,30 @@ cdef class Param_atmos:
 
         # compute corresponding meta-pupil diameters at each alt
         cdef np.ndarray patch_diam
-        patch_diam = geom._n+2*(max_size*4.84814e-6* self.alt)/ self.pupixsize+4
-        self.dim_screens = (patch_diam+patch_diam % 2).astype(np.int64)
+        patch_diam = geom._n+2*(max_size*4.84814e-6* atm.alt)/ atm.pupixsize+4
+        atm.dim_screens = (patch_diam+patch_diam % 2).astype(np.int64)
 
         #compute phase screens speed in pixels / iteration
-        self.deltax  = geom.pupdiam/tel.diam*self.windspeed*np.cos(dtor*geom.zenithangle)*ittime
-        self.deltay  = self.deltax*np.sin(dtor*(self.winddir))
-        self.deltax  = self.deltax*np.cos(dtor*(self.winddir))
+        atm.deltax  = geom.pupdiam/tel.diam*atm.windspeed*np.cos(dtor*geom.zenithangle)*ittime
+        atm.deltay  = atm.deltax*np.sin(dtor*(atm.winddir))
+        atm.deltax  = atm.deltax*np.cos(dtor*(atm.winddir))
 
-        if(self.frac.size==1):
-            self.frac=np.ones((1),dtype=np.float32)
+        if(atm.frac.size==1):
+            atm.frac=np.ones((1),dtype=np.float32)
         else:
-            self.frac /= sum(self.frac);
+            atm.frac /= sum(atm.frac);
       
-        if (self.L0 is None): 
-            self.L0 = np.ones(self.nscreens,dtype=np.float32)*(1.e5)# infinite L0
+        if (atm.L0 is None): 
+            atm.L0 = np.ones(atm.nscreens,dtype=np.float32)*(1.e5)# infinite L0
         else: 
-            if (self.L0.shape[0] == 1):
-                self.L0 = np.ones(self.nscreens,dtype=np.float32)*self.L0[0]
-            for i in range(self.nscreens):
-                frac_l0=tel.diam/self.L0[i]
-                self.L0[i]=geom.pupdiam/frac_l0
-        return atmos_create(c,self.nscreens,self.r0,self.L0,self.pupixsize,
-            self.dim_screens,self.frac,self.alt,self.windspeed,
-            self.winddir,self.deltax,self.deltay,rank)
+            if (atm.L0.shape[0] == 1):
+                atm.L0 = np.ones(atm.nscreens,dtype=np.float32)*atm.L0[0]
+            for i in range(atm.nscreens):
+                frac_l0=tel.diam/atm.L0[i]
+                atm.L0[i]=geom.pupdiam/frac_l0
+        return atmos_create(c,atm.nscreens,atm.r0,atm.L0,atm.pupixsize,
+            atm.dim_screens,atm.frac,atm.alt,atm.windspeed,
+            atm.winddir,atm.deltax,atm.deltay,rank)
 
 
 

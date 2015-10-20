@@ -96,7 +96,7 @@ def script4bench(filename,centroider,controller, device=0, fwrite=True):
 
     print "active dev",c.get_activeDevice()
     timer.start()
-    atm=p_atmos.atmos_init(c,p_tel,p_geom,p_loop,rank=-1)
+    atm=ao.atmos_init(c,p_atmos,p_tel,p_geom,p_loop,rank=-1)
     ch.threadSync()
     atmos_init_time=timer.stop()-synctime
     timer.reset()
@@ -110,7 +110,7 @@ def script4bench(filename,centroider,controller, device=0, fwrite=True):
 
     print "target"
     timer.start()
-    target=p_target.target_init(c,p_atmos,p_geom,p_tel,p_wfss,wfs,p_dms)
+    target=ao.target_init(c,p_target,p_atmos,p_geom,p_tel,p_wfss,wfs,p_dms)
     ch.threadSync()
     target_init_time=timer.stop()-synctime
     timer.reset

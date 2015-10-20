@@ -1,24 +1,11 @@
-cdef class Param_rtc:
-    def set_nwfs( self, n):
-        """Set the number of wfs
+include "../par.pxi"
 
-        :param n: (int) number of wfs
-        """
-        self.nwfs=n
-    def set_centroiders(self,l):
-        """Set the centroiders
+import numpy as np
+import time
 
-        :param l: (list of Param_centroider) : centroiders settings
-        """
-        self.centroiders=l
+import os
 
-    def set_controllers(self,l):
-        """Set the controller
-
-        :param l: (list of Param_controller) : controllers settings
-        """
-        self.controllers=l
-
+from cython.operator cimport dereference as deref, preincrement as inc
 
 cdef class Rtc:
     def __cinit__(self, device=-1):
@@ -548,15 +535,22 @@ cdef class Rtc:
             controller_generic.d_cmat.host2device(<float*>data_F.data)
         else:
             raise TypeError("Controller needs to be ls, mv or generic")
+
+
             
+
     cpdef set_cmm(self,int ncontro, np.ndarray[ndim=2,dtype=np.float32_t] data):
+
         """TODO doc
 
         :parameters:
+
             ncontro: (int) : controller index
 
             data: (np.ndarray[ndim=2,dtype=np.float32_t]) :
+
         """
+
         cdef carma_context *context=carma_context.instance()
         context.set_activeDeviceForCpy(self.rtc.device,1)
 
@@ -568,8 +562,11 @@ cdef class Rtc:
         if(type_contro=="mv"):
             controller_mv=dynamic_cast_controller_mv_ptr(self.rtc.d_control[ncontro])
             controller_mv.d_Cmm.host2device(<float*>data_F.data)
+
         else:
+
             raise TypeError("Controller needs to be mv")
+
 
     cpdef get_cmm(self, int ncontro):
         """TODO doc
@@ -945,12 +942,16 @@ cdef class Rtc:
             data=np.zeros((dims[1]),dtype=np.float32)
             controller_mv.h_eigenvals.fill_into(<float*>data.data)
 
+
         return data
-        
+
+
     cpdef getCmmEigenvals(self,int ncontro):
+
         """TODO doc
 
         :param ncontro: (int) : controller index
+
         """
         cdef carma_context *context=carma_context.instance()
         context.set_activeDeviceForCpy(self.rtc.device,1)
@@ -1449,7 +1450,7 @@ def rtc_init(Sensors g_wfs, p_wfs, Dms g_dms, p_dms, Param_geom p_geom, Param_rt
                     #parameter for add_controller(_geo)
                     ndms=controller.ndm.tolist()
                     controller.set_nactu([p_dms[n]._ntotact for n in ndms])
-                    nactu=sum([p_dms[j]._ntotact for j in ndms])
+                    nactu=np.sum([p_dms[j]._ntotact for j in ndms])
                     alt=np.array([p_dms[j].alt for j in controller.ndm],
                                 dtype=np.float32)
 
@@ -1631,7 +1632,7 @@ cdef correct_dm(p_dms, Dms g_dms, Param_controller p_control, Param_geom p_geom,
     cdef np.ndarray[ndim=1,dtype=np.float32_t] resp
 
     cdef bytes filename
-    cdef bytes dirsave = chakra_ao_savepath+"mat/"
+    cdef bytes dirsave = chakra_ao_savepath+<bytes>"mat/"
 
     cdef long dims,ninflu,influsize,NR,NP
 
@@ -1974,7 +1975,7 @@ cdef imat_init(int ncontro, Rtc g_rtc, Param_rtc p_rtc, Dms g_dms, Sensors g_wfs
 
         simul_name: (str) : (optional) simulation's name, use for data files' path
     """
-    cdef bytes dirsave=chakra_ao_savepath+"mat/"
+    cdef bytes dirsave=chakra_ao_savepath+<bytes>"mat/"
     cdef bytes filename=dirsave+"imat-"+str(ncontro)+"-"+simul_name+".npy"
     cdef bytes profilename=chakra_ao_savepath+<bytes>"allProfileNa_withAltitude_1Gaussian.npy"
     cdef int imat_clean=1
@@ -2007,8 +2008,8 @@ cdef imat_init(int ncontro, Rtc g_rtc, Param_rtc p_rtc, Dms g_dms, Sensors g_wfs
                 h=prof[0,:]
                 prof=prof[1:,:]
                 prof=np.mean(prof,axis=0)
-                p_wfs[i].prep_lgs_prof(i,p_tel,prof,h,
-                                        p_wfs[i].beamsize,g_wfs,imat=1)
+                prep_lgs_prof(p_wfs[i],i,p_tel,prof,h,
+                                        p_wfs[i].beamsize,g_wfs,<bytes>"",imat=1)
 
         print "doing imat..."
         t0=time.time()
@@ -2025,7 +2026,7 @@ cdef imat_init(int ncontro, Rtc g_rtc, Param_rtc p_rtc, Dms g_dms, Sensors g_wfs
     #now restore original profile in lgs spots
     for i in range(len(p_wfs)):
         if(p_wfs[i].gsalt>0):
-            p_wfs[i].prep_lgs_prof(i,p_tel,p_wfs[i]._profna,p_wfs[i]._altna,
+            prep_lgs_prof(p_wfs[i],i,p_tel,p_wfs[i]._profna,p_wfs[i]._altna,
                             p_wfs[i].beamsize,g_wfs)
 
 
@@ -2045,7 +2046,7 @@ cdef cmat_init(int ncontro, Rtc g_rtc, Param_rtc p_rtc, list p_wfs, Param_atmos 
         simul_name: (str) : (optional) simulation's name, use for data files' path
     """
 
-    cdef bytes dirsave=chakra_ao_savepath+"mat/"
+    cdef bytes dirsave=chakra_ao_savepath+<bytes>"mat/"
     cdef bytes filename
 
     cdef int cmat_clean
@@ -2131,7 +2132,8 @@ cdef cmat_init(int ncontro, Rtc g_rtc, Param_rtc p_rtc, list p_wfs, Param_atmos 
         
         controller_mv = dynamic_cast_controller_mv_ptr(g_rtc.rtc.d_control[ncontro])
         nvalidperwfs = np.array([o._nvalid   for o in p_wfs],dtype=np.int64)
-        N=np.zeros(2*sum([nvalidperwfs[j]   for j in p_rtc.controllers[ncontro].nwfs]),dtype=np.float32)
+        N=np.zeros(2*sum([nvalidperwfs[j]   for j in p_rtc.controllers[ncontro].nwfs]),
+                    dtype=np.float32)
         ind=0
         for k in p_rtc.controllers[ncontro].nwfs:
             N[ind:ind+2*p_wfs[k]._nvalid] = noise_cov(k,p_wfs[k],p_atmos,p_tel)
@@ -2243,7 +2245,7 @@ cpdef doTomoMatrices(int ncontro, Rtc g_rtc, list wfs, Dms g_dm, Atmos g_atmos, 
    # print "indlayer = ",indlayersDM
     
     # Get FoV
-    RASC = 180.0/np.pi * 3600.
+    #RASC = 180.0/np.pi * 3600.
     wfs_distance = np.zeros(len(p_rtc.controllers[ncontro].nwfs),dtype = np.float64)
     ind = 0
     for k in p_rtc.controllers[ncontro].nwfs:

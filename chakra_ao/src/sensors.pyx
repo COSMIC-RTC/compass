@@ -1,5 +1,11 @@
 include "../par.pxi"
 
+import numpy as np
+
+import os
+
+include "wfs.pyx"
+
 cdef class Sensors:
     """
 
@@ -338,24 +344,30 @@ cdef class Sensors:
         """
         return self._get_binimg(n)
 
+
     def get_pyrimg(self,int n):
+
         """Return the image of a pyr wfs
 
         :param n: (int) : number of the wfs to get the image from
+
         """
-        
+
         return self._get_pyrimg(n)
-        
+
+
     cdef _get_pyrimg(self,int n):
+
         """Return the image of a pyr wfs
 
         :param n: (int) : number of the wfs to get the image from
+
         """
         cdef np.ndarray[ndim=3,dtype=np.float32_t] bincube
         cdef np.ndarray[ndim=2,dtype=np.float32_t] pyrimg
         cdef bytes type_wfs=<bytes>self.sensors.d_wfs[n].type
         cdef int npix
-        
+
         if(type_wfs == "pyr"):
             bincube = self.get_bincube(n)
             npix = bincube.shape[1]
@@ -364,13 +376,14 @@ cdef class Sensors:
             pyrimg[npix+2:2*npix+2,1:npix+1] = bincube[:,:,1]
             pyrimg[1:npix+1,npix+2:2*npix+2] = bincube[:,:,2]
             pyrimg[npix+2:2*npix+2,npix+2:2*npix+2] = bincube[:,:,3]
-            
+
             return pyrimg
-            
+
         else:
             raise TypeError("wfs should be a pyr")
-            
-        
+
+
+
     cdef _get_bincube(self, int n):
         """Return the 'bincube' array of a given wfs
 
@@ -385,7 +398,7 @@ cdef class Sensors:
         data=np.empty((cdims[1],cdims[2],cdims[3]),dtype=np.float32)
         data_F=np.empty((cdims[3],cdims[2],cdims[1]),dtype=np.float32)
         cube.device2host(<float*>data_F.data)
-        data=np.reshape(data_F.flatten('F'),(cdims[1],cdims[2],cdims[3]))
+        data=np.reshape(data_F.flatten("F"),(cdims[1],cdims[2],cdims[3]))
         return data
 
     def get_bincube(self,int n):
@@ -470,13 +483,6 @@ cdef class Sensors:
         IF USE_MPI==1:
             mpi.MPI_Allreduce(mpi.MPI_IN_PLACE,&dim_tot,1,mpi.MPI_LONG,mpi.MPI_SUM,mpi.MPI_COMM_WORLD)
         return dim_tot
-
-    def get_slopes(self, int n):
-        """Return the 'slopes' array of a given wfs
-
-        :param n: (int) : number of the wfs to get the 'slopes' from
-        """
-        return self._get_slopes(n)
 
     cdef _get_slopes(self, int n):
         """Return the 'slopes' array of a given wfs
@@ -786,3 +792,4 @@ cdef class Sensors:
 
         return d_amp,d_tot
 """
+

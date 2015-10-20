@@ -16,9 +16,15 @@ from Cython.Distutils import build_ext
 import Cython.Compiler.Options
 #Cython.Compiler.Options.annotate = True
 
+import shutil
 
 import numpy
 from distutils.extension import Extension
+
+
+
+listMod=[ "param", "sensors","atmos","dms","target","rtc","chakra_ao"]
+dependencies={"sensors":["wfs"]}
 
 try:
     import mpi4py
@@ -33,10 +39,16 @@ if(chakra_path is None):
 sys.path.append(chakra_path+'/src')
 
 
-
 chakra_ao_path=os.environ.get('CHAKRA_AO')
 if(chakra_ao_path is None):
     raise EnvironmentError("Environment variable 'CHAKRA_AO' must be define")
+
+
+if not os.path.exists(chakra_ao_path+"/lib"):
+    os.makedirs(chakra_ao_path+"/lib")
+
+sys.path.append(chakra_ao_path+"/lib")
+
 
 def find_in_path(name, path):
     "Find a file in a search path"
@@ -190,7 +202,8 @@ include_dirs = [numpy_include,
                 CUDA['include'],
                 COMPASS['inc_carma'],
                 COMPASS['inc_sutra'],
-                COMPASS['inc_chakra']]
+                COMPASS['inc_chakra']]#,
+                #chakra_ao_path+"/src"]
 
 library_dirs=[COMPASS['lib']+"/libsutra"]
 
@@ -201,6 +214,49 @@ if MPI4PY==1:
     include_dirs.extend(MPI['pincdirs'])
     library_dirs.extend(MPI['clibdirs'])
 
+
+
+
+for name in listMod:
+    if(os.path.exists(chakra_ao_path+"/lib/"+name+".so") and name != "chakra_ao"):
+        shutil.move(chakra_ao_path+"/lib/"+name+".so",chakra_ao_path+"/"+name+".so")
+    print "======================================="
+    print "creating module ",name
+    print "======================================="
+    try:
+        dep=dependencies[name]
+        print "dependencies:",dep
+        if(os.path.exists("src/"+name+".cpp")):
+            for d in dep:
+                if (os.stat("src/"+d+".pyx").st_mtime > 
+                    os.stat("src/"+name+".cpp").st_mtime):
+                    #cpp file outdated
+                    os.remove("src/"+name+".cpp")
+    except KeyError, e:
+        e=0
+
+    ext=Extension(name,
+                  sources=['src/'+name+'.pyx'],
+                  library_dirs=library_dirs,
+                  libraries=librairies,
+                  language='c++',
+                  runtime_library_dirs=[],#CUDA['lib64']],
+                  extra_compile_args={'g++': []},
+                  include_dirs = include_dirs,
+                  )
+
+
+    setup(
+        name=name,
+        ext_modules=[ext],
+        cmdclass={'build_ext': custom_build_ext},
+        zip_safe=False
+    )
+    if(os.path.exists(chakra_ao_path+"/"+name+".so") and name != "chakra_ao"):
+        shutil.move(chakra_ao_path+"/"+name+".so",chakra_ao_path+"/lib/"+name+".so")
+
+
+"""
 ext=Extension('chakra_ao',
               sources=['src/chakra_ao.pyx'],
               library_dirs=library_dirs,
@@ -218,3 +274,4 @@ setup(
     cmdclass={'build_ext': custom_build_ext},
     zip_safe=False
 )
+"""

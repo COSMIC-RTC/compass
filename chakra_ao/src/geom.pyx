@@ -104,3 +104,4 @@ cdef class Param_geom:
     def get_p2(self):
         """Return the max(x,y) for valid points for the medium pupil"""
         return self._p2
+

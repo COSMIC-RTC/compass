@@ -37,7 +37,7 @@ wfs=ao.wfs_init(p_wfss,p_atmos,p_tel,p_geom,p_target,p_loop, 1,0,p_dms)
 
 #   atmos
 print "->atmos"
-atm=p_atmos.atmos_init(c,p_tel,p_geom,p_loop)
+atm=ao.atmos_init(c,p_atmos,p_tel,p_geom,p_loop)
 
 #   dm 
 print "->dm"
@@ -45,7 +45,7 @@ dms=ao.dm_init(p_dms,p_wfs0,p_geom,p_tel)
 
 #   target
 print "->target"
-tar=p_target.target_init(c,p_atmos,p_geom,p_tel,p_wfss,wfs,p_dms)
+tar=ao.target_init(c,p_target,p_atmos,p_geom,p_tel,p_wfss,wfs,p_dms)
 
 print "->rtc"
 #   rtc

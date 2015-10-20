@@ -1,190 +1,4 @@
-
-#################################################
-# P-Class (parametres) Param_target
-#################################################
-cdef class Param_target:
-    def __cinit__(self):
-        self.ntargets=0
-
-
-    def set_nTargets(self, int n):
-        """Set the number of targets
-
-        :param n: (int) : number of targets
-        """
-        self.ntargets=n
-    def set_apod(self, int a):
-        """Tells if the apodizer is used
-
-        The apodizer is used if a is not 0
-        :param a: (int) boolean for apodizer
-        """
-        self.apod=a
-
-    def set_Lambda(self, l):
-        """Set the observation wavelength
-
-        :param l: (list of float) : observation wavelength for each target
-        """ 
-        self.Lambda=np.array(l,dtype=np.float32)
-
-    def set_xpos(self,l):
-        """Set the x positions on sky (in arcsec)
-
-        :param l: (list of float) : x positions on sky for each target
-        """
-        self.xpos =np.array(l,dtype=np.float32)
-
-    def set_ypos(self,l):
-        """Set the y positions on sky (in arcsec)
-
-        :param l: (list of float) : y positions on sky for each target
-        """
-        self.ypos =np.array(l,dtype=np.float32)
-
-    def set_mag(self,l):
-        """set the magnitude
-
-        :param l: (list of float) : magnitude for each target
-        """
-        self.mag =np.array(l,dtype=np.float32)
-
-
-    def target_init(self,chakra_context ctxt, Param_atmos atm,
-                    Param_geom geom, Param_tel tel,wfs=None, 
-                    Sensors sensors=None,
-                    dm=None):
-        """Create a cython target from parametres structures
-        
-        :parameters:
-            ctxt: (chakra_context) :
-
-            atm: (Param_atmos) : atmos settings
-
-            geom: (Param_geom) : geom settings
-
-            wfs: (Param_wfs) : wfs settings
-
-            dm: (Param_dm) : dm settings
-        """
-        cdef bytes type_target=bytes("atmos")
-
-        cdef Target target
-        cdef float xoff
-        cdef float yoff
-        cdef int Npts
-
-        cdef int i, j, k
-
-        if(self.ntargets>0):
-            if(self.dms_seen is None):
-                for i in range(self.ntargets):
-                    if(dm is not None):
-                        self.dms_seen=np.arange(len(dm))
-
-        cdef np.ndarray sizes= np.ones(self.ntargets,dtype=np.int64)*geom.pupdiam
-
-        #sizes = sizes(-::y_target.ntargets-1);
-# ATTEMPT AT MAKING IT POSSIBLE TO WORK WITH NON BINARY PUPILS
-# switching *y_geom._spupil and *y_geom._apodizer with ceil(*y_geom._spupil) and ceil(*y_geom._apodizer)
-        ceiled_pupil=np.ceil(geom._spupil)
-
-        ceiled_pupil[np.where(ceiled_pupil>1)]=1;
-
-        if(self.apod==1):
-                Npts=0
-                #TODO apodizer, Npts=nb element of apodizer>0
-                ceiled_apodizer=np.ceil(geom._apodizer*geom._spupil)
-                ceiled_apodizer[np.where(ceiled_apodizer>1)]=1
-                target = Target(ctxt, self.ntargets,self.xpos,self.ypos,
-                            self.Lambda, self.mag,self.zerop,sizes,ceiled_apodizer,Npts)
-                #TODO if brama ...
-        else:
-                Npts=np.sum(ceiled_pupil)
-                target= Target(ctxt, self.ntargets,self.xpos,self.ypos,
-                                self.Lambda, self.mag,self.zerop,sizes,ceiled_pupil,Npts)
-                #TODO if brama ...
-
-        cdef long dims,dim, dim_dm
-
-        #cc=i
-        for i in range(self.ntargets):
-            if(atm.nscreens>0):
-                for j in range(atm.nscreens):
-                    xoff=self.xpos[i]*4.848e-6*atm.alt[j]/atm.pupixsize
-                    yoff=self.ypos[i]*4.848e-6*atm.alt[j]/atm.pupixsize
-                    xoff+=float((atm.dim_screens[j]-geom._n)/2)
-                    yoff+=float((atm.dim_screens[j]-geom._n)/2)
-                    pupdiff = (geom._n - geom.pupdiam)/2
-                    xoff += pupdiff
-                    yoff += pupdiff
-                    target.add_layer(i,type_target,atm.alt[j],xoff,yoff)
-
-            #if (y_dm != []) {
-            if(dm is not None):
-                #j=ddd
-                #for (ddd=1;ddd<=numberof(*y_target(cc).dms_seen);ddd++) {
-                for j in range(self.dms_seen.size):
-                    #k=dd
-                    #dd = (*y_target(cc).dms_seen)(ddd)
-                    k=self.dms_seen[j]
-                    dims=dm[k]._n2-dm[k]._n1+1
-                    dim=geom._mpupil[2].size
-                    dim_dm = max(dim,dims)
-                    xoff=target.xpos[i]*4.848e-6*dm[k].alt/tel.diam*geom.pupdiam
-                    yoff=target.ypos[i]*4.848e-6*dm[k].alt/tel.diam*geom.pupdiam
-
-
-                    xoff+=float((dim_dm-geom._n)/2)
-                    yoff+=float((dim_dm-geom._n)/2)
-
-                    pupdiff=(geom._n-geom.pupdiam)/2
-                    xoff+=pupdiff
-                    yoff+=pupdiff
-
-                    if(dm[k].type_dm=="kl"):
-                        xoff+=2
-                        yoff+=2
-                    target.add_layer(i,dm[k].type_dm,dm[k].alt,xoff,yoff)
-
-            target.init_strehlmeter(i)
-
-        if(wfs is not None):
-            if(sensors is not None):
-                for i in range(len(wfs)):
-                    if(wfs[i].gsalt!=0):
-                        gsalt=1/wfs[i].gsalt
-                    else:
-                         gsalt=0
-                    
-                    if(wfs[i].atmos_seen):
-                        for j in range(atm.nscreens):
-                            xoff=(gsalt * atm.alt[j] * (tel.diam/2.) + wfs[i].xpos*4.848e-6*atm.alt[j])/atm.pupixsize
-                            yoff=(gsalt * atm.alt[j] * (tel.diam/2.) + wfs[i].ypos*4.848e-6*atm.alt[j])/atm.pupixsize
-                            xoff=xoff+(atm.dim_screens[j]-geom._n)/2
-                            yoff=yoff+(atm.dim_screens[j]-geom._n)/2
-                            sensors.sensors.d_wfs[i].d_gs.add_layer(type_target, atm.alt[j],xoff,yoff)
-
-                    if(dm is not None and not wfs[i].openloop):
-                        for j in range(wfs[i].dms_seen.size):
-                            k=wfs[i].dms_seen[j]
-                            dims=dm[k]._n2-dm[k]._n1+1
-                            dim=geom._mpupil.shape[0]
-                            if(dim<dims):
-                                dim=dims
-                            xoff=wfs[i].xpos*4.848e-6*dm[k].alt/tel.diam*geom.pupdiam
-                            yoff=wfs[i].ypos*4.848e-6*dm[k].alt/tel.diam*geom.pupdiam
-                            xoff=xoff+(dim-geom._n)/2
-                            yoff=yoff+(dim-geom._n)/2
-                            sensors.sensors.d_wfs[i].d_gs.add_layer(dm[k].type_dm, dm[k].alt,xoff,yoff)
-
-
-
-        return target
-
-
-
-
+import numpy as np
 #################################################
 # P-Class target
 #################################################
@@ -250,8 +64,6 @@ cdef class Target:
         cdef sutra_source *s_s_ptr
         self.target.d_targets[nTarget].init_strehlmeter()
 
-    @cython.profile(True)
-#TODO cpdef
     def atmos_trace(self, int nTarget, Atmos atm):
         """Raytracing of the target through the atmosphere 
 
@@ -393,3 +205,137 @@ cdef class Target:
                   " | "+"%5.2f"%target.mag+" | "+"%5.3f"%target.Lambda+"\n"
         info+= "--------------------------------------------------------"
         return info
+
+
+def target_init(chakra_context ctxt,Param_target p_target, Param_atmos atm,
+                Param_geom geom, Param_tel tel,wfs=None, 
+                Sensors sensors=None,
+                dm=None):
+    """Create a cython target from parametres structures
+    
+    :parameters:
+        ctxt: (chakra_context) :
+
+        atm: (Param_atmos) : atmos settings
+
+        geom: (Param_geom) : geom settings
+
+        wfs: (Param_wfs) : wfs settings
+
+        dm: (Param_dm) : dm settings
+    """
+    cdef bytes type_target=bytes("atmos")
+
+    cdef Target target
+    cdef float xoff
+    cdef float yoff
+    cdef int Npts
+
+    cdef int i, j, k
+
+    if(p_target.ntargets>0):
+        if(p_target.dms_seen is None):
+            for i in range(p_target.ntargets):
+                if(dm is not None):
+                    p_target.dms_seen=np.arange(len(dm))
+
+    cdef np.ndarray sizes= np.ones(p_target.ntargets,dtype=np.int64)*geom.pupdiam
+
+    #sizes = sizes(-::y_target.ntargets-1);
+# ATTEMPT AT MAKING IT POSSIBLE TO WORK WITH NON BINARY PUPILS
+# switching *y_geom._spupil and *y_geom._apodizer with ceil(*y_geom._spupil) and ceil(*y_geom._apodizer)
+    ceiled_pupil=np.ceil(geom._spupil)
+
+    ceiled_pupil[np.where(ceiled_pupil>1)]=1;
+
+    if(p_target.apod==1):
+            Npts=0
+            #TODO apodizer, Npts=nb element of apodizer>0
+            ceiled_apodizer=np.ceil(geom._apodizer*geom._spupil)
+            ceiled_apodizer[np.where(ceiled_apodizer>1)]=1
+            target = Target(ctxt, p_target.ntargets,p_target.xpos,p_target.ypos,
+                        p_target.Lambda, p_target.mag,p_target.zerop,sizes,ceiled_apodizer,Npts)
+            #TODO if brama ...
+    else:
+            Npts=np.sum(ceiled_pupil)
+            target= Target(ctxt, p_target.ntargets,p_target.xpos,p_target.ypos,
+                            p_target.Lambda, p_target.mag,p_target.zerop,sizes,ceiled_pupil,Npts)
+            #TODO if brama ...
+
+    cdef long dims,dim, dim_dm
+
+    #cc=i
+    for i in range(p_target.ntargets):
+        if(atm.nscreens>0):
+            for j in range(atm.nscreens):
+                xoff=p_target.xpos[i]*4.848e-6*atm.alt[j]/atm.pupixsize
+                yoff=p_target.ypos[i]*4.848e-6*atm.alt[j]/atm.pupixsize
+                xoff+=float((atm.dim_screens[j]-geom._n)/2)
+                yoff+=float((atm.dim_screens[j]-geom._n)/2)
+                pupdiff = (geom._n - geom.pupdiam)/2
+                xoff += pupdiff
+                yoff += pupdiff
+                target.add_layer(i,type_target,atm.alt[j],xoff,yoff)
+
+        #if (y_dm != []) {
+        if(dm is not None):
+            #j=ddd
+            #for (ddd=1;ddd<=numberof(*y_target(cc).dms_seen);ddd++) {
+            for j in range(p_target.dms_seen.size):
+                #k=dd
+                #dd = (*y_target(cc).dms_seen)(ddd)
+                k=p_target.dms_seen[j]
+                dims=dm[k]._n2-dm[k]._n1+1
+                dim=geom._mpupil[2].size
+                dim_dm = max(dim,dims)
+                xoff=target.xpos[i]*4.848e-6*dm[k].alt/tel.diam*geom.pupdiam
+                yoff=target.ypos[i]*4.848e-6*dm[k].alt/tel.diam*geom.pupdiam
+
+
+                xoff+=float((dim_dm-geom._n)/2)
+                yoff+=float((dim_dm-geom._n)/2)
+
+                pupdiff=(geom._n-geom.pupdiam)/2
+                xoff+=pupdiff
+                yoff+=pupdiff
+
+                if(dm[k].type_dm=="kl"):
+                    xoff+=2
+                    yoff+=2
+                target.add_layer(i,dm[k].type_dm,dm[k].alt,xoff,yoff)
+
+        target.init_strehlmeter(i)
+
+    if(wfs is not None):
+        if(sensors is not None):
+            for i in range(len(wfs)):
+                if(wfs[i].gsalt!=0):
+                    gsalt=1/wfs[i].gsalt
+                else:
+                     gsalt=0
+                
+                if(wfs[i].atmos_seen):
+                    for j in range(atm.nscreens):
+                        xoff=(gsalt * atm.alt[j] * (tel.diam/2.) + wfs[i].xpos*4.848e-6*atm.alt[j])/atm.pupixsize
+                        yoff=(gsalt * atm.alt[j] * (tel.diam/2.) + wfs[i].ypos*4.848e-6*atm.alt[j])/atm.pupixsize
+                        xoff=xoff+(atm.dim_screens[j]-geom._n)/2
+                        yoff=yoff+(atm.dim_screens[j]-geom._n)/2
+                        sensors.sensors.d_wfs[i].d_gs.add_layer(type_target, atm.alt[j],xoff,yoff)
+
+                if(dm is not None and not wfs[i].openloop):
+                    for j in range(wfs[i].dms_seen.size):
+                        k=wfs[i].dms_seen[j]
+                        dims=dm[k]._n2-dm[k]._n1+1
+                        dim=geom._mpupil.shape[0]
+                        if(dim<dims):
+                            dim=dims
+                        xoff=wfs[i].xpos*4.848e-6*dm[k].alt/tel.diam*geom.pupdiam
+                        yoff=wfs[i].ypos*4.848e-6*dm[k].alt/tel.diam*geom.pupdiam
+                        xoff=xoff+(dim-geom._n)/2
+                        yoff=yoff+(dim-geom._n)/2
+                        sensors.sensors.d_wfs[i].d_gs.add_layer(dm[k].type_dm, dm[k].alt,xoff,yoff)
+
+
+
+    return target
+

@@ -1,9 +1,9 @@
-include "../par.pxi"
-
 import cython
 # #cython: profile=True
 import numpy as np
 cimport numpy as np
+
+include "../par.pxi"
 
 import os
 import sys
@@ -15,7 +15,6 @@ from cython.operator cimport dereference as deref, preincrement as inc
 import time
 
 cdef float dtor = np.pi/180
-cdef long RASC = 180.*3600./np.pi
 
 assert sizeof(int) == sizeof(np.int32_t)
 assert sizeof(long) == sizeof(np.int64_t)
@@ -24,16 +23,14 @@ assert sizeof(double) == sizeof(np.float64_t)
 
 
 chakra_ao_dir= os.environ.get('CHAKRA_AO')
-if(chakra_ao_dir is None):
-    raise EnvironmentError("Environment variable 'CHAKRA_AO' must be define")
-chakra_ao_savepath=chakra_ao_dir+"/data/"
-print "chakra_ao_savepath:",chakra_ao_savepath
 
 sys.path.append(chakra_ao_dir+'/src')
+sys.path.append(chakra_ao_dir+"/lib")
+
 import iterkolmo as itK
 import make_pupil as mkP
 
-
+"""
 include "atmos.pyx"
 include "geom.pyx"
 include "target.pyx"
@@ -46,6 +43,16 @@ include "dms.pyx"
 include "centroider.pyx"
 include "controller.pyx"
 include "kl.pyx"
+"""
+
+from param import *
+from sensors import *
+from atmos import *
+from dms import *
+from target import *
+from rtc import *
+
+
 
 '''
 def see_atmos_target_disp(int n, Atmos atm, Target tar,Sensors wfs, float alt=0, int n_tar=0,float f=1, int log=0):
@@ -384,15 +391,6 @@ def  indices(int dim1, int dim2=-1):
         return y,x
 
 
-cdef fft_goodsize(long s):
-    """find best size for a fft from size s
-
-    :parameters:
-         s: (long) size
-    """
-    return 2**(long(np.log2(s))+1)
-
-
 
 cpdef makegaussian(int size, float fwhm, int xc=-1, int yc=-1, int norm=0):
     """makegaussian(size,fwhm,xc,yc)
@@ -418,53 +416,6 @@ cpdef makegaussian(int size, float fwhm, int xc=-1, int yc=-1, int norm=0):
 
 
 
-
-cdef make_apodizer(int dim, int pupd, bytes filename, float angle):
-    """TODO doc
-
-    :parameters:
-        (int) : im:
-
-        (int) : pupd:
-
-        (str) : filename:
-
-        (float) : angle: 
-    """
-
-    print "Opening apodizer"
-    cdef np.ndarray pup=np.load(filename)
-    cdef int A=pup.shape[0]
-
-    if(A>dim):
-        raise ValueError("Apodizer dimensions must be smaller.") 
-    
-    if (A != pupd):
-        #use misc.imresize (with bilinear)
-        print "TODO pup=bilinear(pup,pupd,pupd)"
-    
-    if (angle != 0):
-        #use ndimage.interpolation.rotate
-        print "TODO pup=rotate2(pup,angle)"
-    
-    reg=np.where(mkP.dist(pupd)>pupd/2.)
-    pup[reg]=0.
-    
-    cdef np.ndarray[ndim=2,dtype=np.float32_t] pupf= np.zeros((dim,dim),dtype=np.float32)
-    
-    if (dim != pupd):
-        if ((dim-pupd)%2 != 0):
-            pupf[(dim-pupd+1)/2:(dim+pupd+1)/2,(dim-pupd+1)/2:(dim+pupd+1)/2]=pup
-        
-        else:
-            pupf[(dim-pupd)/2:(dim+pupd)/2,(dim-pupd)/2:(dim+pupd)/2]=pup
-       
-    else:
-        pupf=pup
-    
-    pupf=np.abs(pupf).astype(np.float32)
-    
-    return pupf
 
 
 '''
@@ -551,184 +502,5 @@ IF USE_MPI==1:
 
         mpi.MPI_Bcast(ptr,size,mpi.MPI_FLOAT,root,mpi.MPI_COMM_WORLD)
 
-
-
-
-
-cdef rotate3d(np.ndarray[ndim=3,dtype=np.float32_t] im,
-              np.ndarray[ndim=1,dtype=np.float32_t] ang,
-              float cx=-1, float cy=-1,float zoom=1.0):
-    """Rotates an image of an angle "ang" (in DEGREES).
-
-    The center of rotation is cx,cy.
-    A zoom factor can be applied.
-
-    (cx,cy) can be omitted :one will assume one rotates around the
-    center of the image.
-    If zoom is not specified, the default value of 1.0 is taken.
-
-    modif dg : allow to rotate a cube of images with one angle per image
-
-    :parameters:
-        im: (np.ndarray[ndim=3,dtype=np.float32_t]) : array to rotate
-
-        ang: (np.ndarray[ndim=1,dtype=np.float32_t]) : rotation angle  (in degrees)
-
-        cx: (int) : (optional) rotation center on x axis (default: image center)
-
-        cy: (int) : (optional) rotation center on x axis (default: image center)
-
-        zoom: (float) : (opional) zoom factor (default =1.0)
-"""
-
-#TODO test it
-    if(zoom==0):
-        zoom=1.0
-    if(ang.size==1):
-        if(zoom==1.0 and ang[0]==0.):
-            return im
-
-    ang*=np.pi/180
-
-    cdef int nx =im.shape[1]
-    cdef int ny= im.shape[2]
-    cdef np.ndarray[ndim=2,dtype=np.float32_t] matrot
-
-    cdef int i
-
-    if(cx<0):
-        cx=nx/2+1
-    if(cy<0):
-        cy=ny/2+1
-
-    cdef np.ndarray x=np.tile(np.arange(nx)-cx+1,(ny,1)).T/zoom
-    cdef np.ndarray y=np.tile(np.arange(ny)-cy+1,(nx,1))/zoom
-
-    cdef np.ndarray[ndim=3,dtype=np.int64_t] rx=np.zeros((nx,ny,ang.size)).astype(np.int64)
-    cdef np.ndarray[ndim=3,dtype=np.int64_t] ry=np.zeros((nx,ny,ang.size)).astype(np.int64)
-    cdef np.ndarray[ndim=3,dtype=np.float32_t] wx=np.zeros((nx,ny,ang.size)).astype(np.float32)
-    cdef np.ndarray[ndim=3,dtype=np.float32_t] wy=np.zeros((nx,ny,ang.size)).astype(np.float32)
-
-    cdef np.ndarray[ndim=3,dtype=np.int64_t] ind=np.zeros((nx,ny,ang.size)).astype(np.int64)
-
-    cdef np.ndarray[ndim=3,dtype=np.float32_t] imr=np.zeros((im.shape[0],im.shape[1],im.shape[2])).\
-                                                    astype(np.float32)
-
-    for i in range(ang.size):
-        matrot=np.array([[np.cos(ang[i]),-np.sin(ang[i])],
-                         [np.sin(ang[i]), np.cos(ang[i])]],dtype=np.float32)
-        wx[:,:,i]=x*matrot[0,0]+y*matrot[1,0]+cx
-        wy[:,:,i]=x*matrot[0,1]+y*matrot[1,1]+cy
-
-    nn=np.where(wx<1)
-    wx[nn]=1.
-    nn=np.where(wy<1)
-    wy[nn]=1.
-
-    nn=np.where(wx>(nx-1))
-    wx[nn]=nx-1
-    nn=np.where(wy>(ny-1))
-    wy[nn]=ny-1
-
-    rx = wx.astype(np.int64)   # partie entiere
-    ry = wy.astype(np.int64)
-    wx -= rx                   # partie fractionnaire
-    wy -= ry
-
-    ind=rx+(ry-1)*nx
-    if(ang.size>1):
-        for i in range(ang.size):
-            ind[:,:,i]+=i*nx*ny
-
-    imr.flat=\
-            (im.flatten()[ind.flatten()]*
-                    (1-wx.flatten())+\
-                im.flatten()[ind.flatten()+1]*wx.flatten())\
-             *(1-wy.flatten())+\
-             (im.flatten()[ind.flatten()+nx]*(1-wx.flatten())+im.flatten()[ind.flatten()+nx+1]*wx.flatten())*wy.flatten()
-
-    return imr
-
-
-cdef rotate(np.ndarray[ndim=3,dtype=np.float32_t] im,
-            float ang, float cx=-1, float cy=-1,float zoom=1.0):
-    """Rotates an image of an angle "ang" (in DEGREES).
-
-    The center of rotation is cx,cy.
-    A zoom factor can be applied.
-
-    (cx,cy) can be omitted :one will assume one rotates around the
-    center of the image.
-    If zoom is not specified, the default value of 1.0 is taken.
-
-    :parameters:
-        im: (np.ndarray[ndim=3,dtype=np.float32_t]) : array to rotate
-
-        ang: (float) : rotation angle (in degrees)
-
-        cx: (int) : (optional) rotation center on x axis (default: image center)
-
-        cy: (int) : (optional) rotation center on x axis (default: image center)
-
-        zoom: (float) : (opional) zoom factor (default =1.0)
-
-    """
-#TODO test it
-    if(zoom==0):
-        zoom=1.0
-    if(zoom==1.0 and ang==0.):
-        return im
-
-    ang*=np.pi/180
-    cdef int nx =im.shape[1]
-    cdef int ny= im.shape[2]
-    cdef np.ndarray[ndim=2,dtype=np.float32_t] matrot
-
-    cdef int i
-
-    if(cx<0):
-        cx=nx/2+1
-    if(cy<0):
-        cy=ny/2+1
-
-    cdef np.ndarray x=np.tile(np.arange(nx)-cx+1,(ny,1)).T/zoom
-    cdef np.ndarray y=np.tile(np.arange(ny)-cy+1,(nx,1))/zoom
-
-    cdef np.ndarray[ndim=3,dtype=np.int64_t] rx=np.zeros((nx,ny,ang.size)).astype(np.int64)
-    cdef np.ndarray[ndim=3,dtype=np.int64_t] ry=np.zeros((nx,ny,ang.size)).astype(np.int64)
-    cdef np.ndarray[ndim=3,dtype=np.float32_t] wx=np.zeros((nx,ny,ang.size)).astype(np.float32)
-    cdef np.ndarray[ndim=3,dtype=np.float32_t] wy=np.zeros((nx,ny,ang.size)).astype(np.float32)
-
-    cdef np.ndarray[ndim=3,dtype=np.int32_t] ind=np.zeros((nx,ny,ang.size))
-
-    cdef np.ndarray[ndim=3,dtype=np.float32_t] imr=np.zeros((im.shape[0],im.shape[1],im.shape[2])).\
-                                                    astype(np.float32)
-        
-    matrot=np.array([[np.cos(ang),-np.sin(ang)],
-                     [np.sin(ang), np.cos(ang)]])
-
-    wx[:,:]=x*matrot[0,0]+y*matrot[1,0]+cx
-    wy[:,:]=x*matrot[0,1]+y*matrot[1,1]+cy
-
-    nn=np.where(wx<1)
-    wx[nn]=1.
-    nn=np.where(wy<1)
-    wy[nn]=1.
-
-    nn=np.where(wx>(nx-1))
-    wx[nn]=nx-1
-    nn=np.where(wy>(ny-1))
-    wy[nn]=ny-1
-
-    rx = wx.astype(np.int64)   # partie entiere
-    ry = wy.astype(np.int64)
-    wx -= rx                   # partie fractionnaire
-    wy -= ry
-
-    ind=rx+(ry-1)*nx
-
-    imr=(im[ind]*(1-wx)+im[ind+1]*wx)*(1-wy)+(im[ind+nx]*(1-wx)+im[ind+nx+1]*wx)*wy
-
-    return imr
 
 
