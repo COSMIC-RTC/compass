@@ -84,16 +84,6 @@
            <widget class="QComboBox" name="wao_selectNumber"/>
           </item>
           <item>
-           <widget class="QCheckBox" name="checkBox">
-            <property name="text">
-             <string>Display</string>
-            </property>
-            <property name="checked">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-          <item>
            <widget class="QPushButton" name="wao_init">
             <property name="text">
              <string>Init</string>
@@ -137,6 +127,33 @@
              </size>
             </property>
            </widget>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_13">
+            <item>
+             <widget class="QCheckBox" name="wao_Display">
+              <property name="text">
+               <string>Limit Framerate (Hz)</string>
+              </property>
+              <property name="checked">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QSpinBox" name="wao_frameRate">
+              <property name="minimum">
+               <number>1</number>
+              </property>
+              <property name="maximum">
+               <number>1000</number>
+              </property>
+              <property name="value">
+               <number>30</number>
+              </property>
+             </widget>
+            </item>
+           </layout>
           </item>
           <item>
            <widget class="MatplotlibWidget" name="wao_rtcWindowMPL" native="true">
@@ -305,7 +322,7 @@
            </font>
           </property>
           <property name="currentIndex">
-           <number>1</number>
+           <number>0</number>
           </property>
           <widget class="QWidget" name="tab_2">
            <attribute name="title">
