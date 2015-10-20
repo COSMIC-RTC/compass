@@ -62,7 +62,8 @@ sutra_wfs_sh::sutra_wfs_sh(carma_context *context, sutra_sensors *sensors, long 
 }
 
 int sutra_wfs_sh::define_mpi_rank(int rank, int size){
-  this->device = rank%current_context->get_ndevice();
+  if(this->device==0)
+    this->device = rank%current_context->get_ndevice();
 
   int count=this->nvalid/size;
   int i;
