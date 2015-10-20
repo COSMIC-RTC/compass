@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1349</width>
+    <width>1253</width>
     <height>894</height>
    </rect>
   </property>
@@ -81,7 +81,14 @@
            </widget>
           </item>
           <item>
-           <widget class="QComboBox" name="wao_selectNumber"/>
+           <widget class="QComboBox" name="wao_selectNumber">
+            <property name="maximumSize">
+             <size>
+              <width>50</width>
+              <height>16777215</height>
+             </size>
+            </property>
+           </widget>
           </item>
           <item>
            <widget class="QPushButton" name="wao_init">
@@ -133,7 +140,7 @@
             <item>
              <widget class="QCheckBox" name="wao_Display">
               <property name="text">
-               <string>Limit Framerate (Hz)</string>
+               <string>Use Display + Limit Framerate</string>
               </property>
               <property name="checked">
                <bool>true</bool>
@@ -142,6 +149,12 @@
             </item>
             <item>
              <widget class="QSpinBox" name="wao_frameRate">
+              <property name="maximumSize">
+               <size>
+                <width>60</width>
+                <height>16777215</height>
+               </size>
+              </property>
               <property name="minimum">
                <number>1</number>
               </property>
@@ -149,7 +162,42 @@
                <number>1000</number>
               </property>
               <property name="value">
-               <number>30</number>
+               <number>25</number>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="label_5">
+              <property name="text">
+               <string>Loop Freq (Hz):</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QDoubleSpinBox" name="wao_currentFreq">
+              <property name="maximumSize">
+               <size>
+                <width>100</width>
+                <height>16777215</height>
+               </size>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignCenter</set>
+              </property>
+              <property name="readOnly">
+               <bool>true</bool>
+              </property>
+              <property name="buttonSymbols">
+               <enum>QAbstractSpinBox::NoButtons</enum>
+              </property>
+              <property name="decimals">
+               <number>1</number>
+              </property>
+              <property name="maximum">
+               <double>1000000000.000000000000000</double>
               </property>
              </widget>
             </item>
@@ -192,7 +240,11 @@
               </widget>
              </item>
              <item>
-              <widget class="QLineEdit" name="wao_strehlSE"/>
+              <widget class="QLineEdit" name="wao_strehlSE">
+               <property name="readOnly">
+                <bool>true</bool>
+               </property>
+              </widget>
              </item>
              <item>
               <widget class="QLabel" name="label_58">
@@ -202,7 +254,11 @@
               </widget>
              </item>
              <item>
-              <widget class="QLineEdit" name="wao_strehlLE"/>
+              <widget class="QLineEdit" name="wao_strehlLE">
+               <property name="readOnly">
+                <bool>true</bool>
+               </property>
+              </widget>
              </item>
             </layout>
            </item>
@@ -1621,7 +1677,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1349</width>
+     <width>1253</width>
      <height>26</height>
     </rect>
    </property>

@@ -20,11 +20,15 @@ from PyQt4.uic import loadUiType
 from PyQt4 import QtCore, QtGui
 
 from functools import partial
-
+import time
 WindowTemplate,TemplateBaseClass=loadUiType("widget_ao.ui")
 
 
+"""
+low levels debugs:
+gdb --args python -i widget_ao.py
 
+"""
 class widgetAOWindow(TemplateBaseClass):  
     def __init__(self):
         TemplateBaseClass.__init__(self)
@@ -50,8 +54,11 @@ class widgetAOWindow(TemplateBaseClass):
         #######       PYQTGRAPH WINDOW INIT   #######################
         #############################################################
         
-        self.img = pg.ImageItem() # create image area
-        self.p1 = self.ui.wao_pgwindow.addPlot() # create pyqtgraph plot area
+        self.img = pg.ImageItem(border='w') # create image area
+        #self.p1 = self.ui.wao_pgwindow.addPlot() # create pyqtgraph plot area
+        self.p1 = self.ui.wao_pgwindow.addViewBox()
+        self.p1.setAspectLocked(True)
+        
         self.p1.addItem(self.img) # Put image in plot area
         self.hist = pg.HistogramLUTItem() #Create an histogram
         self.hist.setImageItem(self.img) # Compute histogram from img
@@ -93,9 +100,38 @@ class widgetAOWindow(TemplateBaseClass):
         
         # Create Loop thread
         self.aoLoopThread = aoLoopThread(self.mainLoop, self.config, self.img, self.ui.wao_strehlSE, self.ui.wao_strehlLE, 1, self.hist, self.RTDisplay, self.RTDFreq)
+        self.connect(self.aoLoopThread, QtCore.SIGNAL("currentLoopFrequency(float)"), self.updateCurrentLoopFrequency)
+        self.connect(self.aoLoopThread, QtCore.SIGNAL("currentSRSE(QString)"), self.updateSRSE)
+        self.connect(self.aoLoopThread, QtCore.SIGNAL("currentSRLE(QString)"), self.updateSRLE)
+        
         self.connect(self.aoLoopThread,QtCore.SIGNAL("finished()"),self.aoLoopFinished)
         
+    
+    def updateSRSE(self, SRSE):
+        self.ui.wao_strehlSE.setText(SRSE)
+        
+    def updateSRLE(self, SRLE):
+        self.ui.wao_strehlLE.setText(SRLE)
+        
+    def updateCurrentLoopFrequency(self, freq):
+        self.ui.wao_currentFreq.setValue(freq)
+        
+    def closeEvent(self, event):
+        
+        reply = QtGui.QMessageBox.question(self, 'Message',
+            "Are you sure to quit?", QtGui.QMessageBox.Yes | 
+            QtGui.QMessageBox.No, QtGui.QMessageBox.No)
 
+        if reply == QtGui.QMessageBox.Yes:
+            event.accept()
+            self.aoLoopThread.terminate()
+            self.destroy()
+            
+            #quit()
+            #sys.exit(app.exec_())
+        else:
+            event.ignore()
+            
         ##############################################################
         ##################       METHODS      #######################
         #############################################################
@@ -189,7 +225,7 @@ class widgetAOWindow(TemplateBaseClass):
         
         #Controller panel
         type_contro = self.config.p_controllers[0].type_control
-        if(type_contro == "ls"):          
+        if(type_contro == "ls" and self.config.p_controllers[0].modopti==0):          
             self.ui.wao_controlTypeSelector.setCurrentIndex(0) 
         elif(type_contro == "mv"):
             self.ui.wao_controlTypeSelector.setCurrentIndex(1)
@@ -197,6 +233,9 @@ class widgetAOWindow(TemplateBaseClass):
             self.ui.wao_controlTypeSelector.setCurrentIndex(2)
         elif(type_contro == "ls" and self.config.p_controllers[0].modopti):
             self.ui.wao_controlTypeSelector.setCurrentIndex(3)
+        else:
+            print "pffff...."
+            
             
         self.ui.wao_controlCond.setValue(self.config.p_controllers[0].maxcond)
         self.ui.wao_controlDelay.setValue(self.config.p_controllers[0].delay)
@@ -543,6 +582,8 @@ class widgetAOWindow(TemplateBaseClass):
                 self.ui.wao_rtcWindow.canvas.draw()
                 
 
+                
+                
 class aoLoopThread(QtCore.QThread):
     def __init__(self,LoopParams,config, img, strehlSE, strehlLE, framebyframe, histo, RTDisplay, RTDFreq, imgType=None, numberSelected=None):
         QtCore.QThread.__init__(self)
@@ -570,8 +611,8 @@ class aoLoopThread(QtCore.QThread):
     def updateDisplay(self):
         data = None
         if((not wao.ui.wao_pgwindow.isVisible()) & (self.imgType != "Slopes - WFS")):
-            wao.ui.wao_rtcWindowMPL.hide()
             wao.ui.wao_pgwindow.show()
+            wao.ui.wao_rtcWindowMPL.hide()
             
         if(self.atm):
             if(self.imgType == "Phase - Atmos"):
@@ -607,62 +648,106 @@ class aoLoopThread(QtCore.QThread):
             if(self.imgType == "PSF LE"):
                 data =self.tar.get_image(self.numberSelected,"le")
         if (data is not None):
-            self.img.setImage(data)
-            self.histo.setLevels(np.min(data),np.max(data))
+            self.img.setImage(data, autoLevels=False)
+            #self.histo.setLevels(np.min(data),np.max(data))
 
     def run(self):
         i=0
         if(self.framebyframe):
-            self.mainLoop()
+            self.mainLoop(1)
         else:
             print "Starting loop"
             while(self.go):
                 i +=1
+                #print i
                 self.mainLoop(i)
 
             print "Loop stopped"
     
     def mainLoop(self, itnum):
-        print "Main loop"
+        start = time.time()
         if(self.atm):
+                #print itnum
+                self.printInPlace("") 
+
                 self.atm.move_atmos()
+                for t in range(self.config.p_target.ntargets):
+                    self.printInPlace("") 
+                    #print " ",
+                    self.tar.atmos_trace(t,self.atm)
+                    #print " ",
+                    self.tar.dmtrace(t,self.dms)
+                    #print "",
+                    self.printInPlace("") 
+                    
         if(self.config.p_controllers[0].type_control == "geo"):
             if(self.tar):
                 for t in range(self.config.p_target.ntargets):
+                    #print " ",
+                    self.printInPlace("") 
                     self.tar.atmos_trace(t,self.atm)
+                    #print "",
                     self.rtc.docontrol_geo(0, self.dms, self.tar, 0)
+                    #print "",
                     self.rtc.applycontrol(0,self.dms)
+                    #print "",
+                    self.printInPlace("")                 
                     self.tar.dmtrace(0,self.dms)
         else:
             if(self.tar):
                 for t in range(self.config.p_target.ntargets):
+                    #print ""
+                    self.printInPlace("")
                     self.tar.atmos_trace(t,self.atm)
+                    #print "",
                     self.tar.dmtrace(t,self.dms)
+                    #print "",
             if(self.wfs):
                 for w in range(len(self.config.p_wfss)):
+                    #print "",
+                    self.printInPlace("")
                     self.wfs.sensors_trace(w,"all",self.atm,self.dms)
+                    #print "",
+                    self.printInPlace("")
                     self.wfs.sensors_compimg(w)
+                    #print "",
             if(self.rtc):
+                #print "",
+                self.printInPlace("")
                 self.rtc.docentroids(0)
+                #print "",
                 self.rtc.docontrol(0)
+                #print "",
                 self.rtc.applycontrol(0,self.dms)
-        
+                #print "",
+                self.printInPlace("")
         if(self.tar):
-            SR = self.tar.get_strehl(0)
-            
-        if(self.RTDisplay):
-            self.strehlSE.setText("%.2f"%(SR[0]))
-            self.strehlLE.setText("%.2f"%(SR[1]))
+            SR = self.tar.get_strehl(0)                
+           
 
-            self.updateDisplay()
-            t = 1/float(self.RTDFreq)
-            time.sleep(t)
-        else:
-            if(itnum):
-                print "Iter: %d" % itnum
+        if(self.RTDisplay):
+            self.updateDisplay()# Update GUI plots
+            t = 1/float(self.RTDFreq) # Limit loop frequency
+            time.sleep(t)# Limit loop frequency
+        #self.loopFreq.setValue(CurrentFreq) #
+        CurrentFreq = 1/(time.time() - start)
+        if(self.RTDisplay):
+            self.emit(QtCore.SIGNAL('currentSRSE(QString)'), str(SR[0]))
+            self.emit(QtCore.SIGNAL('currentSRLE(QString)'), str(SR[1]))
+            self.emit(QtCore.SIGNAL('currentLoopFrequency(float)'), CurrentFreq)
+
+        #print CurrentFreq
+        self.printInPlace(str(CurrentFreq))
+        #sys.stdout.flush()
+        
+    def printInPlace(self, text):
+        print text # This seems to trigger the GUI and keep the GUI responsive
+        #sys.stdout.flush()
+        #sys.stdout.write(text)
         
 if __name__ == '__main__':
     app = QtGui.QApplication(sys.argv)
     wao = widgetAOWindow()
     wao.show()
+    #app.connect(wao.ui._quit,QtCore.SIGNAL("clicked()"),app,QtCore.SLOT("quit()")) 
     app.setStyle('cleanlooks')
