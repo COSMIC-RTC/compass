@@ -37,7 +37,7 @@ wfs=ao.wfs_init(p_wfss,p_atmos,p_tel,p_geom,p_target,p_loop, 1,0,p_dms)
 
 #   atmos
 print "->atmos"
-atm=ao.atmos_init(c,p_atmos,p_tel,p_geom,p_loop)
+atm=ao.atmos_init(c,p_atmos,p_tel,p_geom,p_loop,p_wfss,p_target,rank=-1)
 
 #   dm 
 print "->dm"
@@ -94,7 +94,6 @@ def loop( n):
         
             rtc.applycontrol(0,dms)
         
-
         if((i+1)%100==0):
             """
             turbu.clear()
@@ -120,9 +119,8 @@ def loop( n):
             """
             strehltmp = tar.get_strehl(0)
             print i+1,"\t",strehltmp[0],"\t",strehltmp[1]
-
     t1=time.time()
-    print " loop execution time:",t1-t0,"  (",n,"iterations), ",(t1-t0)/n,"(mean)"
+    print " loop execution time:",t1-t0,"  (",n,"iterations), ",(t1-t0)/n,"(mean)  ", n/(t1-t0),"Hz"
 
 
 #loop(p_loop.niter)
