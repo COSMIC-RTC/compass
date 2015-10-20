@@ -9,8 +9,8 @@
 
 #include <cuda.h>
 
-//#define CHEAT_CODE
-#define COMPN 2 //1, 2 or 3
+#define CHEAT_CODE
+#define COMPN 1 //1, 2 or 3
 //#define REDUCTION
 //#define TEXTURE
 #define BLOCKSIZE 512
