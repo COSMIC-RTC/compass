@@ -1522,7 +1522,7 @@ def rtc_init(Sensors g_wfs, p_wfs, Dms g_dms, p_dms, Param_geom p_geom, Param_rt
                                 g_rtc.loadOpenLoop(i,ol_slopes)
                                 g_rtc.modalControlOptimization(i)
                             else:
-                                cmat_init(i,g_rtc,p_rtc,p_wfs,p_atmos,p_tel,clean=clean,simul_name=simul_name)
+                                cmat_init(i,g_rtc,p_rtc,p_wfs,p_atmos,p_tel, p_dms, clean=clean,simul_name=simul_name)
                                 g_rtc.set_gain(i,controller.gain)
                                 mgain=np.ones(sum([p_dms[j]._ntotact for j in range(len(p_dms))]),dtype=np.float32)
                                 #filtering tilt ...
@@ -1595,7 +1595,7 @@ def rtc_init(Sensors g_wfs, p_wfs, Dms g_dms, p_dms, Param_geom p_geom, Param_rt
                         mgain = np.ones(size,dtype=np.float32)
                         g_rtc.set_mgain(i,mgain)
                         doTomoMatrices(i,g_rtc,p_wfs,g_dms,g_atmos,g_wfs,p_rtc,p_geom,p_dms,p_tel,p_atmos)
-                        cmat_init(i,g_rtc,p_rtc,p_wfs,p_atmos,p_tel,clean=1)
+                        cmat_init(i,g_rtc,p_rtc,p_wfs,p_atmos,p_tel,p_dms,clean=1)
                         
                     elif(controller.type_control=="generic"):
                         size=sum([p_dms[j]._ntotact for j in range(len(p_dms))])
@@ -2041,7 +2041,7 @@ cdef imat_init(int ncontro, Rtc g_rtc, Param_rtc p_rtc, Dms g_dms, Sensors g_wfs
 
 
 cdef cmat_init(int ncontro, Rtc g_rtc, Param_rtc p_rtc, list p_wfs, Param_atmos p_atmos,
-               Param_tel p_tel, clean=1, bytes simul_name=<bytes>""):
+               Param_tel p_tel, p_dms, clean=1, bytes simul_name=<bytes>""):
     """TODO doc
 
     :parameters:
@@ -2151,19 +2151,13 @@ cdef cmat_init(int ncontro, Rtc g_rtc, Param_rtc p_rtc, list p_wfs, Param_atmos 
         print "Building cmat..."
         g_rtc.buildcmatmv(ncontro,p_rtc.controllers[ncontro].maxcond)
         
-        controller_mv.filter_cmat(p_rtc.controllers[ncontro].maxcond)
+        if(p_rtc.controllers[ncontro].TTcond==0):
+            p_rtc.controllers[ncontro].set_TTcond(p_rtc.controllers[ncontro].maxcond)
 
-    '''
-    TODO what is y_controllers(ncontrol-1).TTcond
+        if("tt" in [dm.type_dm for dm in p_dms]):
+            controller_mv.filter_cmat(p_rtc.controllers[ncontro].TTcond)
+        
 
-    if (((*y_rtc.controllers(ncontrol)).type)(1) == "mv"){
-        rtc_buildcmatmv,g_rtc,ncontrol-1,y_controllers(ncontrol-1).maxcond;
-        if(y_controllers(ncontrol-1).TTcond == 0) 
-            y_controllers(ncontrol-1).TTcond = y_controllers(ncontrol-1).maxcond;
-        if(anyof(y_dm.type == "tt"))
-            rtc_filtercmatmv,g_rtc,ncontrol-1,y_controllers(ncontrol-1).TTcond;
-    }
-    '''
     p_rtc.controllers[ncontro].set_cmat(g_rtc.get_cmat(ncontro))
 
 cpdef doTomoMatrices(int ncontro, Rtc g_rtc, list wfs, Dms g_dm, Atmos g_atmos, Sensors g_wfs,  Param_rtc p_rtc, Param_geom geom, list p_dm, Param_tel p_tel, Param_atmos p_atmos):

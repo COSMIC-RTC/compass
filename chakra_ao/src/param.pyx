@@ -1002,6 +1002,13 @@ cdef class Param_controller:
         """
         self.maxcond=m
 
+    def set_TTcond(self,float m):
+        """Set the tiptilt condition number for cmat filtering with mv controller
+
+        :param : (float) : tiptilt condition number
+        """
+        self.TTcond=m
+
     def set_delay(self,float d):
         """TODO doc
 

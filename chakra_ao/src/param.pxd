@@ -349,6 +349,7 @@ cdef class Param_controller:
     cdef readonly np.ndarray imat        # full interaction matrix
     cdef readonly np.ndarray cmat        # full control matrix
     cdef readonly float   maxcond        # max condition number
+    cdef readonly float   TTcond         # tiptilt condition number for cmat filtering with mv controller
     cdef readonly float    delay         # 
     cdef readonly float   gain           #
     cdef readonly long    nkl            # Florain features : number of KL modes used for computation of covmat in case of minimum variance controller
