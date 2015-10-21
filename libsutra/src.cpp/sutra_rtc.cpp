@@ -132,7 +132,10 @@ int sutra_rtc::do_imat(int ncntrl, sutra_dms *ydm) {
   vector<sutra_dm *>::iterator p;
   p = this->d_control[ncntrl]->d_dmseen.begin();
   int inds1;
+  int cc;
+  int nactu = d_imat->getDims(2);
   inds1 = 0;
+  cc = 0;
   while (p != this->d_control[ncntrl]->d_dmseen.end()) {
     sutra_dm *dm = *p;
     for (int j = 0; j < dm->ninflu; j++) {
@@ -189,10 +192,12 @@ int sutra_rtc::do_imat(int ncntrl, sutra_dms *ydm) {
 
       dm->reset_shape();
       inds1 += this->d_control[ncntrl]->nslope();
+      cc++;
+      printf("\rDoing imat...%d%%",(cc*100/nactu));
     }
     p++;
   }
-
+  printf("\n");
   return EXIT_SUCCESS;
 }
 
@@ -359,6 +364,7 @@ int sutra_rtc::apply_control(int ncntrl, sutra_dms *ydm) {
       p++;
     }
   }
+  return EXIT_SUCCESS;
 }
 
 int sutra_rtc::apply_control2(int ncntrl, sutra_dms *ydm) {

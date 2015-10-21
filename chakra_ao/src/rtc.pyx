@@ -740,14 +740,17 @@ cdef class Rtc:
 
         cdef float *d_centroids
         cdef np.ndarray[ndim=1,dtype=np.float32_t] h_centroids
+        cdef int nactu
 
         cdef int rank
         IF USE_MPI==1:
             mpi.MPI_Comm_rank(mpi.MPI_COMM_WORLD,&rank)
         ELSE:
             rank=0
-
+        nactu = d_imat.getDims(2)
+        cc = 0
         it_dm=control.d_dmseen.begin()
+        print "Doing imat...%d%%"%cc,
         while(it_dm!=control.d_dmseen.end()):
             dm=deref(it_dm)
             for j in range(dm.ninflu):
@@ -816,7 +819,10 @@ cdef class Rtc:
 
                 dm.reset_shape()
                 inds1+=control.nslope()
+                cc = cc + 1
+                print "\rDoing imat...%d%%"%((cc*100)/nactu),
             inc(it_dm)
+        print "\n"
 
 
     cdef sensors_compslopes(self, int ncentro, int nmax=-1, float thresh=-1):
@@ -1581,10 +1587,8 @@ def rtc_init(Sensors g_wfs, p_wfs, Dms g_dms, p_dms, Param_geom p_geom, Param_rt
                             print  "TODO rtc_initkalman, g_rtc, 0, avg(noise_cov(1)), D_Mo, N_Act, PROJ, SigmaV, atur, btur, isZonal, isSparse, 1;"
 
                     if(controller.type_control == "mv"):
-                        print "doing imat_geom..."
                         imat = imat_geom(g_wfs,p_wfs,controller,g_dms,p_dms,meth=0)
                         #imat_init(i,g_rtc,p_rtc,g_dms,g_wfs,p_wfs,p_tel,clean=1,simul_name=simul_name)
-                        print "done"
                         g_rtc.set_imat(i,imat)
                         g_rtc.set_gain(i,controller.gain)
                         size=sum([p_dms[j]._ntotact for j in range(len(p_dms))])
@@ -1755,7 +1759,8 @@ cdef imat_geom(Sensors g_wfs, p_wfs, Param_controller p_control,Dms g_dms, p_dms
 
     imat_cpu = np.zeros((imat_size1,imat_size2),dtype=np.float32)
     ind=0
-
+    cc = 0
+    print "Doing imat geom...%d%%"%cc,
     for nmc in range(ndm):
         nm=p_control.ndm[nmc]
         g_dms.resetdm(p_dms[nm].type_dm,p_dms[nm].alt)
@@ -1770,7 +1775,11 @@ cdef imat_geom(Sensors g_wfs, p_wfs, Param_controller p_control,Dms g_dms, p_dms
                 nslps+=p_wfs[wfs]._nvalid*2
             imat_cpu[:,ind]=imat_cpu[:,ind]/float(p_dms[nm].push4imat)
             ind=ind+1
+            cc = cc+1
             g_dms.resetdm(p_dms[nm].type_dm,p_dms[nm].alt)
+            
+            print "\r Doing imat geom...%d%%"%((cc*100/imat_size2)),
+    print "\n"
     return imat_cpu
 
 
@@ -2011,7 +2020,6 @@ cdef imat_init(int ncontro, Rtc g_rtc, Param_rtc p_rtc, Dms g_dms, Sensors g_wfs
                 prep_lgs_prof(p_wfs[i],i,p_tel,prof,h,
                                         p_wfs[i].beamsize,g_wfs,<bytes>"",imat=1)
 
-        print "doing imat..."
         t0=time.time()
         g_rtc.doimat(ncontro,g_dms)
         print "done in ",time.time()-t0
