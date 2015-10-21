@@ -517,7 +517,7 @@ class widgetAOWindow(TemplateBaseClass):
         else:
             simul_name=""
         
-        if(simulname==""):
+        if(simul_name==""):
             clean=1
         else:
             clean=0

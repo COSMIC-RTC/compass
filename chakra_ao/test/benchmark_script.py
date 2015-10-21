@@ -60,7 +60,7 @@ def script4bench(param_file,centroider,controller, device=0, fwrite=True):
     else:
         simul_name=""
 
-    if(simulname==""):
+    if(simul_name==""):
         clean=1
     else:
         clean=0
