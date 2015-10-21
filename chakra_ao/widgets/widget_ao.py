@@ -78,6 +78,7 @@ class widgetAOWindow(TemplateBaseClass):
         self.ui.wao_next.clicked.connect(self.nextClicked)
         self.imgType = str(self.ui.wao_selectScreen.currentText())
         self.ui.wao_configFromFile.clicked.connect(self.addConfigFromFile)
+        self.ui.wao_unzoom.clicked.connect(self.p1.autoRange)
         self.ui.wao_selectScreen.currentIndexChanged.connect(partial(self.updateNumberSelector,textType=None))
         self.ui.wao_selectNumber.currentIndexChanged.connect(self.setNumberSelection)
         self.ui.wao_selectAtmosLayer.currentIndexChanged.connect(self.setLayerSelection)
@@ -89,6 +90,7 @@ class widgetAOWindow(TemplateBaseClass):
         self.ui.wao_setWfs.clicked.connect(self.setWfsParams)
         self.ui.wao_setDM.clicked.connect(self.setDmParams)
         self.ui.wao_setControl.clicked.connect(self.setRtcParams)
+        self.ui.wao_setTelescope.clicked.connect(self.setTelescopeParams)
         self.ui.wao_resetDM.clicked.connect(self.resetDM)
         self.ui.wao_selectRtcMatrix.currentIndexChanged.connect(self.displayRtcMatrix)
         self.ui.wao_rtcWindowMPL.hide()
@@ -264,6 +266,11 @@ class widgetAOWindow(TemplateBaseClass):
         self.updateRtcPanel()
         self.updateTargetSelection()
         self.updateTargetPanel()
+        
+    def setTelescopeParams(self):
+        self.config.p_tel.set_diam(self.ui.wao_diamTel.value())
+        self.config.p_tel.set_cobs(self.ui.wao_cobs.value())
+        self.config.p_geom.set_zenithangle(self.ui.wao_zenithAngle.value())
         
     def setAtmosParams(self):
         nscreen = self.ui.wao_selectAtmosLayer.currentIndex()
