@@ -503,6 +503,7 @@ class widgetAOWindow(TemplateBaseClass):
             if (data is not None):
                 self.img.setImage(data)
                 self.hist.setLevels(np.min(data),np.max(data))
+                self.p1.autoRange()
                 
             
     def InitConfig(self):
@@ -732,8 +733,8 @@ class aoLoopThread(QtCore.QThread):
         #self.loopFreq.setValue(CurrentFreq) #
         CurrentFreq = 1/(time.time() - start)
         if(self.RTDisplay):
-            self.emit(QtCore.SIGNAL('currentSRSE(QString)'), str(SR[0]))
-            self.emit(QtCore.SIGNAL('currentSRLE(QString)'), str(SR[1]))
+            self.emit(QtCore.SIGNAL('currentSRSE(QString)'), "%1.2f"%SR[0])#str(SR[0]))
+            self.emit(QtCore.SIGNAL('currentSRLE(QString)'), "%1.2f"%SR[1])#str(SR[1]))
             self.emit(QtCore.SIGNAL('currentLoopFrequency(float)'), CurrentFreq)
 
         #print CurrentFreq
