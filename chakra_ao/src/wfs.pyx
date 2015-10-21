@@ -1097,3 +1097,49 @@ cdef fft_goodsize(long s):
     return 2**(long(np.log2(s))+1)
 
 
+cdef bin2d(np.ndarray data_in, int binfact):
+    """
+    Returns the input 2D array "array", binned with the binning factor "binfact".
+    The input array X and/or Y dimensions needs not to be a multiple of
+    "binfact"; The final/edge pixels are in effect replicated if needed.
+    This routine prepares the parameters and calls the C routine _bin2d.
+    The input array can be of type long, float or double.
+    Last modified: Dec 15, 2003.
+    Author: F.Rigaut
+    SEE ALSO: _bin2d
+
+    :parmeters:
+        data_in: (np.ndarray) : data to binned
+
+        binfact: (int) : binning factor
+
+    """
+    if(binfact<1):
+        raise ValueError("binfact has to be >= 1")
+
+    cdef int nx,ny,fx,fy
+    nx=data_in.shape[0]
+    ny=data_in.shape[1]
+    fx=int(np.ceil(nx/float(binfact)))
+    fy=int(np.ceil(ny/float(binfact)))
+
+    
+
+    cdef np.ndarray data_out=np.zeros((fx,fy),dtype=data_in.dtype) 
+
+    cdef int i,j,i1,i2,j1,j2
+
+    for i1 in range(fx):
+        for j1 in range(fy):
+            for i2 in range(binfact):
+                for j2 in range(binfact):
+                    i = i1*binfact+i2
+                    j = j1*binfact+j2
+                    if(i>=nx):
+                        i=nx-1
+                    if(j>=ny):
+                        j=ny-1
+                    data_out[i1,j1]+=data_in[i,j]
+
+    return data_out
+

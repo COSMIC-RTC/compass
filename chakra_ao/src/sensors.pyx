@@ -1,6 +1,7 @@
 include "../par.pxi"
 
 import numpy as np
+import make_pupil as mkP
 
 import os
 
