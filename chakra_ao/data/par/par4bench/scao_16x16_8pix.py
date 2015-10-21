@@ -1,4 +1,7 @@
 import chakra_ao as ao
+
+simul_name="bench_scao_16x16_8pix"
+
 #loop
 p_loop = ao.Param_loop()
 
@@ -112,7 +115,7 @@ p_controller0.set_delay(1)
 p_controller0.set_gain(0.4)
 
 
-p_controller0.set_modopti(1)
+p_controller0.set_modopti(0)
 p_controller0.set_nrec(2048)
 p_controller0.set_nmodes(216)
 p_controller0.set_gmin(0.001)

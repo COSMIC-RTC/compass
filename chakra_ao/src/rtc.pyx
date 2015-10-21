@@ -1253,7 +1253,7 @@ cdef class Rtc:
 
 def rtc_init(Sensors g_wfs, p_wfs, Dms g_dms, p_dms, Param_geom p_geom, Param_rtc p_rtc,
             Param_atmos p_atmos, Atmos g_atmos, Param_tel p_tel, Param_loop p_loop, 
-            Target g_tar, Param_target p_tar, clean=None, brama=None, doimat=None,simul_name=""):
+            Target g_tar, Param_target p_tar, clean=1, brama=None, doimat=None,simul_name=""):
     """TODO doc
 
     :parameters:
@@ -1501,7 +1501,7 @@ def rtc_init(Sensors g_wfs, p_wfs, Dms g_dms, p_dms, Param_geom p_geom, Param_rt
 
                     if(controller.type_control=="ls"):
                         if(doimat):
-                            imat_init(i,g_rtc,p_rtc,g_dms,g_wfs,p_wfs,p_tel,clean=1,simul_name=simul_name)
+                            imat_init(i,g_rtc,p_rtc,g_dms,g_wfs,p_wfs,p_tel,clean=clean,simul_name=simul_name)
                             if(controller.modopti == 1):
                                 print "Initializing Modal Optimization : "
                                 if(controller.nrec==0):
@@ -1522,7 +1522,7 @@ def rtc_init(Sensors g_wfs, p_wfs, Dms g_dms, p_dms, Param_geom p_geom, Param_rt
                                 g_rtc.loadOpenLoop(i,ol_slopes)
                                 g_rtc.modalControlOptimization(i)
                             else:
-                                cmat_init(i,g_rtc,p_rtc,p_wfs,p_atmos,p_tel,clean=1,simul_name=simul_name)
+                                cmat_init(i,g_rtc,p_rtc,p_wfs,p_atmos,p_tel,clean=clean,simul_name=simul_name)
                                 g_rtc.set_gain(i,controller.gain)
                                 mgain=np.ones(sum([p_dms[j]._ntotact for j in range(len(p_dms))]),dtype=np.float32)
                                 #filtering tilt ...
@@ -1595,7 +1595,7 @@ def rtc_init(Sensors g_wfs, p_wfs, Dms g_dms, p_dms, Param_geom p_geom, Param_rt
                         mgain = np.ones(size,dtype=np.float32)
                         g_rtc.set_mgain(i,mgain)
                         doTomoMatrices(i,g_rtc,p_wfs,g_dms,g_atmos,g_wfs,p_rtc,p_geom,p_dms,p_tel,p_atmos)
-                        cmat_init(i,g_rtc,p_rtc,p_wfs,p_atmos,p_tel)
+                        cmat_init(i,g_rtc,p_rtc,p_wfs,p_atmos,p_tel,clean=1)
                         
                     elif(controller.type_control=="generic"):
                         size=sum([p_dms[j]._ntotact for j in range(len(p_dms))])

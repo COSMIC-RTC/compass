@@ -507,6 +507,21 @@ class widgetAOWindow(TemplateBaseClass):
                 
             
     def InitConfig(self):
+        
+        #set simulation name
+        if(hasattr(self.config,"simul_name")):
+            if(self.config.simul_name is None):
+                simul_name=""
+            else:
+                simul_name=self.config.simul_name
+        else:
+            simul_name=""
+        
+        if(simulname==""):
+            clean=1
+        else:
+            clean=0
+
         self.wfs=ao.wfs_init(self.config.p_wfss,self.config.p_atmos,self.config.p_tel,
                              self.config.p_geom,self.config.p_target,self.config.p_loop,
                              1,0,self.config.p_dms)
@@ -525,7 +540,7 @@ class widgetAOWindow(TemplateBaseClass):
         self.rtc=ao.rtc_init(self.wfs,self.config.p_wfss,self.dms,self.config.p_dms,
                              self.config.p_geom,self.config.p_rtc,self.config.p_atmos,
                              self.atm,self.config.p_tel,self.config.p_loop,self.tar,
-                             self.config.p_target)
+                             self.config.p_target,clean=clean,simul_name=simul_name)
         self.mainLoop = [self.atm,self.wfs,self.rtc,self.tar,self.dms]
         self.aoLoopThread.wfs = self.wfs
         self.aoLoopThread.atm = self.atm

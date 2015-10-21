@@ -1,4 +1,7 @@
 import chakra_ao as ao
+
+simul_name="bench_scao_16x16_8pix_lgs"
+
 #loop
 p_loop = ao.Param_loop()
 

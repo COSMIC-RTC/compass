@@ -18,13 +18,31 @@ if(len(sys.argv)!=2):
 
 #get parameters from file
 param_file=sys.argv[1]
-execfile(param_file)
-start=param_file.rindex("/")
-end=param_file.rindex(".")
-simul_name=param_file[start+1:end]
+filename=param_file.split('/')[-1]
+param_path=param_file.split(filename)[0]
+sys.path.insert(0,param_path)
+exec("import %s as config" % filename.split(".py")[0])
+sys.path.remove(param_path)
+
+
+#start=param_file.rindex("/")
+#end=param_file.rindex(".")
+#simul_name=param_file[start+1:end]
 print "param_file is",param_file
+
+if(hasattr(config,"simul_name")):
+    if(config.simul_name is None):
+        simul_name=""
+    else:
+        simul_name=config.simul_name
+else:
+    simul_name=""
 print "simul name is",simul_name
 
+if(simul_name==""):
+    clean=1
+else:
+    clean=0
 
 #initialisation:
 #   context
@@ -33,23 +51,23 @@ c.set_activeDevice(0)
 
 #    wfs
 print "->wfs"
-wfs=ao.wfs_init(p_wfss,p_atmos,p_tel,p_geom,p_target,p_loop, 1,0,p_dms)
+wfs=ao.wfs_init(config.p_wfss,config.p_atmos,config.p_tel,config.p_geom,config.p_target,config.p_loop, 1,0,config.p_dms)
 
 #   atmos
 print "->atmos"
-atm=ao.atmos_init(c,p_atmos,p_tel,p_geom,p_loop,p_wfss,p_target,rank=-1)
+atm=ao.atmos_init(c,config.p_atmos,config.p_tel,config.p_geom,config.p_loop,config.p_wfss,config.p_target,rank=0)
 
 #   dm 
 print "->dm"
-dms=ao.dm_init(p_dms,p_wfs0,p_geom,p_tel)
+dms=ao.dm_init(config.p_dms,config.p_wfs0,config.p_geom,config.p_tel)
 
 #   target
 print "->target"
-tar=ao.target_init(c,p_target,p_atmos,p_geom,p_tel,p_wfss,wfs,p_dms)
+tar=ao.target_init(c,config.p_target,config.p_atmos,config.p_geom,config.p_tel,config.p_wfss,wfs,config.p_dms)
 
 print "->rtc"
 #   rtc
-rtc=ao.rtc_init(wfs,p_wfss,dms,p_dms,p_geom,p_rtc,p_atmos,atm,p_tel,p_loop,tar,p_target,simul_name=simul_name)
+rtc=ao.rtc_init(wfs,config.p_wfss,dms,config.p_dms,config.p_geom,config.p_rtc,config.p_atmos,atm,config.p_tel,config.p_loop,tar,config.p_target,clean=clean,simul_name=simul_name)
 
 print "===================="
 print "init done"
@@ -75,17 +93,17 @@ def loop( n):
     for i in range(n):
         atm.move_atmos()
         
-        if(p_controller0.type_control == "geo"):
-            for t in range(p_target.ntargets):
+        if(config.p_controller0.type_control == "geo"):
+            for t in range(config.p_target.ntargets):
                 tar.atmos_trace(t,atm)
                 rtc.docontrol_geo(0, dms, tar, 0)
                 rtc.applycontrol(0,dms)
                 tar.dmtrace(0,dms)
         else:
-            for t in range(p_target.ntargets):
+            for t in range(config.p_target.ntargets):
                 tar.atmos_trace(t,atm)
                 tar.dmtrace(t,dms)
-            for w in range(len(p_wfss)):
+            for w in range(len(config.p_wfss)):
                 wfs.sensors_trace(w,"all",atm,dms)
                 wfs.sensors_compimg(w)
 

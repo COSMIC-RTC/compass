@@ -1,4 +1,7 @@
 import chakra_ao as ao
+
+simul_name="bench_scao_16x16_8pix"
+
 #loop
 p_loop = ao.Param_loop()
 
@@ -48,7 +51,7 @@ p_wfss=[p_wfs0]
 
 
 p_wfs0.set_type("sh")
-p_wfs0.set_nxsub(40)
+p_wfs0.set_nxsub(16)
 p_wfs0.set_npix(8)
 p_wfs0.set_pixsize(0.3)
 p_wfs0.set_fracsub(0.8)
@@ -111,6 +114,13 @@ p_controller0.set_maxcond(1500)
 p_controller0.set_delay(1)
 p_controller0.set_gain(0.4)
 
+
+p_controller0.set_modopti(0)
+p_controller0.set_nrec(2048)
+p_controller0.set_nmodes(216)
+p_controller0.set_gmin(0.001)
+p_controller0.set_gmax(0.5)
+p_controller0.set_ngain(500)
 
 #rtc
 p_rtc=ao.Param_rtc()

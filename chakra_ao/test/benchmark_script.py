@@ -16,11 +16,11 @@ PARPATH=CHAKRA_AO_SAVEPATH+"par/par4bench/"
 BENCH_SAVEPATH=CHAKRA_AO_SAVEPATH+"bench-results/"
 
 
-def script4bench(filename,centroider,controller, device=0, fwrite=True):
+def script4bench(param_file,centroider,controller, device=0, fwrite=True):
     """
 
     :parameters:
-        filename: (str) : parameters filename
+        param_file: (str) : parameters filename
 
         centroider: (str) : centroider type
 
@@ -45,39 +45,46 @@ def script4bench(filename,centroider,controller, device=0, fwrite=True):
     applycontrol_time=0.
 
     #reading parfile
-    vessel = {}
-    execfile(filename, vessel)
-    p_centroiders=vessel['p_centroiders']
-    p_controllers=vessel['p_controllers']
-    p_loop=vessel['p_loop']
-    p_wfss=vessel['p_wfss']
-    p_atmos=vessel['p_atmos']
-    p_tel=vessel['p_tel']
-    p_geom=vessel['p_geom']
-    p_target=vessel['p_target']
-    p_dms=vessel['p_dms']
-    p_rtc=vessel['p_rtc']
+    filename=param_file.split('/')[-1]
+    param_path=param_file.split(filename)[0]
+    sys.path.insert(0,param_path)
+    exec("import %s as config" % filename.split(".py")[0])
+    sys.path.remove(param_path)
 
-    p_centroiders[0].set_type(centroider)
+    #set simulation name
+    if(hasattr(config,"simul_name")):
+        if(config.simul_name is None):
+            simul_name=""
+        else:
+            simul_name=config.simul_name
+    else:
+        simul_name=""
 
-    if(centroider=="tcog"): p_centroiders[0].set_thresh(9.)
-    elif(centroider=="bpcog"): p_centroiders[0].set_nmax(16)
-    elif(centroider=="geom"): p_centroiders[0].set_type("cog")
+    if(simulname==""):
+        clean=1
+    else:
+        clean=0
+
+    config.p_centroiders[0].set_type(centroider)
+
+    if(centroider=="tcog"): config.p_centroiders[0].set_thresh(9.)
+    elif(centroider=="bpcog"): config.p_centroiders[0].set_nmax(16)
+    elif(centroider=="geom"): config.p_centroiders[0].set_type("cog")
     elif(centroider=="wcog"):
-        p_centroiders[0].set_type_fct("gauss")
-        p_centroiders[0].set_width(2.0)
+        config.p_centroiders[0].set_type_fct("gauss")
+        config.p_centroiders[0].set_width(2.0)
     elif(centroider=="corr"):
-        p_centroiders[0].set_type_fct("gauss")
-        p_centroiders[0].set_width(2.0)
+        config.p_centroiders[0].set_type_fct("gauss")
+        config.p_centroiders[0].set_width(2.0)
 
 
-    p_controllers[0].set_type(controller)
+    config.p_controllers[0].set_type(controller)
     if(controller=="modopti"):
-        p_controllers[0].set_type("ls")
-        p_controllers[0].set_modopti(1)
+        config.p_controllers[0].set_type("ls")
+        config.p_controllers[0].set_modopti(1)
     
 
-    p_loop.set_niter(2000)
+    config.p_loop.set_niter(2000)
 
     ch.threadSync()
     timer.start()
@@ -86,45 +93,38 @@ def script4bench(filename,centroider,controller, device=0, fwrite=True):
     timer.reset()
 
 
-    print "active dev",c.get_activeDevice()
     #init system
     timer.start()
-    wfs=ao.wfs_init(p_wfss,p_atmos,p_tel,p_geom,p_target,p_loop, 1,0,p_dms)
+    wfs=ao.wfs_init(config.p_wfss,config.p_atmos,config.p_tel,config.p_geom,config.p_target,config.p_loop, 1,0,config.p_dms)
     ch.threadSync()
     wfs_init_time=timer.stop()-synctime
     timer.reset()
 
-    print "active dev",c.get_activeDevice()
     timer.start()
-    atm=ao.atmos_init(c,p_atmos,p_tel,p_geom,p_loop,rank=-1)
+    atm=ao.atmos_init(c,config.p_atmos,config.p_tel,config.p_geom,config.p_loop,rank=0)
     ch.threadSync()
     atmos_init_time=timer.stop()-synctime
     timer.reset()
 
-    print "dms"
     timer.start()
-    dms=ao.dm_init(p_dms,p_wfss[0],p_geom,p_tel)
+    dms=ao.dm_init(config.p_dms,config.p_wfss[0],config.p_geom,config.p_tel)
     ch.threadSync()
     dm_init_time=timer.stop()-synctime
     timer.reset()
 
-    print "target"
     timer.start()
-    target=ao.target_init(c,p_target,p_atmos,p_geom,p_tel,p_wfss,wfs,p_dms)
+    target=ao.target_init(c,config.p_target,config.p_atmos,config.p_geom,config.p_tel,config.p_wfss,wfs,config.p_dms)
     ch.threadSync()
     target_init_time=timer.stop()-synctime
     timer.reset
 
-    print "rtc"
     timer.start()
-    rtc=ao.rtc_init(wfs,p_wfss,dms,p_dms,p_geom,p_rtc,p_atmos,atm,p_tel,p_loop,target,p_target)
+    rtc=ao.rtc_init(wfs,config.p_wfss,dms,config.p_dms,config.p_geom,config.p_rtc,config.p_atmos,atm,config.p_tel,config.p_loop,target,config.p_target,clean=clean,simul_name=simul_name)
     ch.threadSync()
     rtc_init_time=timer.stop()-synctime
     timer.reset
 
     print "... Done with inits !"
-
-    print c.get_activeDevice()
 
     strehllp=[]
     strehlsp=[]
@@ -133,16 +133,17 @@ def script4bench(filename,centroider,controller, device=0, fwrite=True):
         for zz in xrange(2048):
             atm.move_atmos()
 
-    for cc in xrange(p_loop.niter):
+    for cc in xrange(config.p_loop.niter):
         ch.threadSync()
         timer.start()
         atm.move_atmos()
+        ch.threadSync()
         move_atmos_time+=timer.stop()-synctime
         timer.reset()
 
-        if(p_controllers[0].type_control!="geo"):
-            if((p_target is not None) and (rtc is not None)):
-                for i in xrange(p_target.ntargets):
+        if(config.p_controllers[0].type_control!="geo"):
+            if((config.p_target is not None) and (rtc is not None)):
+                for i in xrange(config.p_target.ntargets):
                     timer.start()
                     target.atmos_trace(i,atm)
                     ch.threadSync()
@@ -156,15 +157,15 @@ def script4bench(filename,centroider,controller, device=0, fwrite=True):
                         t_raytrace_dm_time+=timer.stop()-synctime
                         timer.reset()
 
-            if(p_wfss is not None and wfs is not None):
-                for i in xrange(len(p_wfss)):
+            if(config.p_wfss is not None and wfs is not None):
+                for i in xrange(len(config.p_wfss)):
                     timer.start()
                     wfs.sensors_trace(i,"atmos",atm)
                     ch.threadSync()
                     s_raytrace_atmos_time+=timer.stop()-synctime
                     timer.reset()
                     
-                    if(not p_wfss[i].openloop and dms is not None):
+                    if(not config.p_wfss[i].openloop and dms is not None):
                         timer.start()
                         wfs.sensors_trace(i,"dm",dms=dms)
                         ch.threadSync()
@@ -177,9 +178,9 @@ def script4bench(filename,centroider,controller, device=0, fwrite=True):
                     comp_img_time+=timer.stop()-synctime
                     timer.reset()
 
-            if(p_rtc is not None and
+            if(config.p_rtc is not None and
                rtc is not None and 
-               p_wfss is not None and
+               config.p_wfss is not None and
                wfs is not None):
                 if(centroider=="geom"):
                     timer.start()
@@ -208,8 +209,8 @@ def script4bench(filename,centroider,controller, device=0, fwrite=True):
                 timer.reset()
 
         else:
-            if(p_target is not None and target is not None):
-                for i in xrange(p_target.ntargets):
+            if(config.p_target is not None and target is not None):
+                for i in xrange(config.p_target.ntargets):
                     timer.start()
                     target.atmos_trace(i,atm)
                     ch.threadSync()
@@ -244,15 +245,15 @@ def script4bench(filename,centroider,controller, device=0, fwrite=True):
     print "\n done with simulation \n"
     print "\n Final strehl : \n", strehllp[len(strehllp)-1]
 
-    move_atmos_time/=p_loop.niter /1000.
-    t_raytrace_atmos_time/=p_loop.niter /1000.
-    t_raytrace_dm_time/=p_loop.niter /1000.
-    s_raytrace_atmos_time/=p_loop.niter /1000.
-    s_raytrace_dm_time/=p_loop.niter /1000.
-    comp_img_time/=p_loop.niter /1000.
-    docentroids_time/=p_loop.niter /1000.
-    docontrol_time/=p_loop.niter /1000.
-    applycontrol_time/=p_loop.niter /1000.
+    move_atmos_time/=config.p_loop.niter /1000.
+    t_raytrace_atmos_time/=config.p_loop.niter /1000.
+    t_raytrace_dm_time/=config.p_loop.niter /1000.
+    s_raytrace_atmos_time/=config.p_loop.niter /1000.
+    s_raytrace_dm_time/=config.p_loop.niter /1000.
+    comp_img_time/=config.p_loop.niter /1000.
+    docentroids_time/=config.p_loop.niter /1000.
+    docontrol_time/=config.p_loop.niter /1000.
+    applycontrol_time/=config.p_loop.niter /1000.
 
     time_per_iter=move_atmos_time+ t_raytrace_atmos_time+\
                   t_raytrace_dm_time+ s_raytrace_atmos_time+\
@@ -261,15 +262,15 @@ def script4bench(filename,centroider,controller, device=0, fwrite=True):
                   applycontrol_time
 
 
-    if(p_wfss[0].gsalt>0):
+    if(config.p_wfss[0].gsalt>0):
         type="lgs "
     else:
         type="ngs "
 
-    if(p_wfss[0].gsmag>3):
+    if(config.p_wfss[0].gsmag>3):
         type+="noisy "
 
-    type+=p_wfss[0].type_wfs
+    type+=config.p_wfss[0].type_wfs
 
 
 
@@ -300,8 +301,8 @@ def script4bench(filename,centroider,controller, device=0, fwrite=True):
         else:
             G=0.
 
-        f.write("\n"+ type +"\t"+ str(p_wfss[0].nxsub) +"\t"+ str(p_wfss[0].npix) +"\t"+
-                str(p_wfss[0]._nphotons) +"\t"+ controller +"\t"+ centroider +"\t"+
+        f.write("\n"+ type +"\t"+ str(config.p_wfss[0].nxsub) +"\t"+ str(config.p_wfss[0].npix) +"\t"+
+                str(config.p_wfss[0]._nphotons) +"\t"+ controller +"\t"+ centroider +"\t"+
                 str(strehllp[len(strehllp)-1]) +"\t"+ str(np.mean(strehlsp)) +"\t"+
                 str(np.std(strehllp)) +"\t"+ str(wfs_init_time) +"\t"+
                 str(atmos_init_time) +"\t"+ str(dm_init_time) +"\t"+
@@ -326,8 +327,8 @@ def script4bench(filename,centroider,controller, device=0, fwrite=True):
         else:
             f=open(SRfile,"a")
 
-        f.write("\n"+ type +"\t"+ str(p_wfss[0].nxsub) +"\t"+ str(p_wfss[0].npix) +"\t"+
-                str(p_wfss[0]._nphotons) +"\t"+ controller +"\t"+ centroider+"\t"+str(strehllp[len(strehllp)-1]))
+        f.write("\n"+ type +"\t"+ str(config.p_wfss[0].nxsub) +"\t"+ str(config.p_wfss[0].npix) +"\t"+
+                str(config.p_wfss[0]._nphotons) +"\t"+ controller +"\t"+ centroider+"\t"+str(strehllp[len(strehllp)-1]))
 
         f.close()
 
