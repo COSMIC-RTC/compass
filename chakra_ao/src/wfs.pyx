@@ -495,6 +495,7 @@ def wfs_init( wfs, Param_atmos p_atmos, Param_tel p_tel, Param_geom p_geom,
             else:
                 error="Param_wfs proftype unknown: got '"+wfs[i].proftype+"', expect one of: \n''\n'Gauss1'\n'Gauss2'\n'Gauss3'\n'Exp'"
                 raise ValueError(error)
+            print "reading Na profile from",chakra_ao_savepath+profilename
             prof=np.load(chakra_ao_savepath+profilename)
             wfs[i].set_altna(prof[0,:].astype(np.float32))
             wfs[i].set_profna(np.mean(prof[1:,:],axis=0).astype(np.float32))

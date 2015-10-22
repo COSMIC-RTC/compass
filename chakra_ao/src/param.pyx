@@ -1121,6 +1121,7 @@ cdef make_apodizer(int dim, int pupd, bytes filename, float angle):
     """
 
     print "Opening apodizer"
+    print "reading file:",filename
     cdef np.ndarray pup=np.load(filename)
     cdef int A=pup.shape[0]
 

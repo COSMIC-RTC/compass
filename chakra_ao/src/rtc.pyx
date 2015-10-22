@@ -1426,6 +1426,7 @@ def rtc_init(Sensors g_wfs, p_wfs, Dms g_dms, p_dms, Param_geom p_geom, Param_rt
                             else:
                                 error="Param_wfs proftype unknown: got '"+wfs.proftype+"', expect one of: \n''\n'Gauss1'\n'Gauss2'\n'Gauss3'\n'Exp'"
                                 raise ValueError(error)
+                            print "reading Na profile from",chakra_ao_savepath+profilename
                             prof=np.load(chakra_ao_savepath+profilename).astype(np.float32)
 
                             wfs.make_lgs_prof1d(p_tel,np.mean(prof[1:,:],axis=0),prof[0,:],
@@ -1723,8 +1724,10 @@ cdef correct_dm(p_dms, Dms g_dms, Param_controller p_control, Param_geom p_geom,
             filename=dirsave+"pztok-"+str(nm)+"-"+simul_name+".npy"
 
             if(imat_clean<1 and os.path.isfile(filename)):
+                print "reading valid actuator from:",filename
                 ok=np.load(filename)
                 filename=dirsave+"pztnok-"+str(nm)+"-"+simul_name+".npy"
+                print "reading unvalid actuator from:",filename
                 nok=np.load(filename)
             else:
                 tmp=resp[inds:inds+p_dms[nm]._ntotact]
@@ -2068,6 +2071,7 @@ cdef imat_init(int ncontro, Rtc g_rtc, Param_rtc p_rtc, Dms g_dms, Sensors g_wfs
         # if so, load new lgs spot, just for imat
         for i in range(len(p_wfs)):
             if(p_wfs[i].gsalt>0):
+                print "reading Na profile from:", profilename
                 prof=np.load(profilename)
                 h=prof[0,:]
                 prof=prof[1:,:]
@@ -2083,6 +2087,7 @@ cdef imat_init(int ncontro, Rtc g_rtc, Param_rtc p_rtc, Dms g_dms, Sensors g_wfs
             np.save(filename,p_rtc.controllers[ncontro].imat)
 
     else:
+        print "reading imat from:",filename
         p_rtc.controllers[ncontro].set_imat(np.load(filename))
         g_rtc.set_imat(ncontro, p_rtc.controllers[ncontro].imat)
 
