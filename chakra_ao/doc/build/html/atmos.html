@@ -1,0 +1,215 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>API Reference &mdash; CHAKRA_AO 602 documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '602',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="CHAKRA_AO 602 documentation" href="index.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="api-reference">
+<h1>API Reference<a class="headerlink" href="#api-reference" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="atmos-package">
+<h2><a class="reference internal" href="#module-atmos" title="atmos"><code class="xref py py-mod docutils literal"><span class="pre">atmos</span></code></a> Package<a class="headerlink" href="#atmos-package" title="Permalink to this headline">¶</a></h2>
+<div class="custom-index container">
+<blockquote>
+<div><script type="text/javascript" src='_static/atmos.js'></script>
+
+.. rubric:: atmos</div></blockquote>
+<span class="target" id="module-atmos"></span><dl class="class">
+<dt id="atmos.Atmos">
+<em class="property">class </em><code class="descclassname">atmos.</code><code class="descname">Atmos</code><a class="headerlink" href="#atmos.Atmos" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<dl class="method">
+<dt id="atmos.Atmos.add_screen">
+<code class="descname">add_screen</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#atmos.Atmos.add_screen" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a screen to the atmos object.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first">size: (float) : dimension of the screen (size x size)</p>
+<p>amplitude: (float) : frac</p>
+<p>altitude: (float) : altitude of the screen in meters</p>
+<p>windspeed: (float) : windspeed of the screen [m/s]</p>
+<p>winddir: (float) : wind direction (°)</p>
+<p>deltax: (float) : extrude deltax pixels in the x-direction at each iteration</p>
+<p>deltay: (float) : extrude deltay pixels in the y-direction at each iteration</p>
+<p class="last">device: (int) : device number</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="atmos.Atmos.del_screen">
+<code class="descname">del_screen</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#atmos.Atmos.del_screen" title="Permalink to this definition">¶</a></dt>
+<dd><p>Delete a screen from the atmos object</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>alt</strong> &#8211; (float) : altitude of the screen to delete</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="atmos.Atmos.disp">
+<code class="descname">disp</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#atmos.Atmos.disp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Display the screen phase at a given altitude</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>alt</strong> &#8211; (float) : altitude of the screen to display</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="atmos.Atmos.get_screen">
+<code class="descname">get_screen</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#atmos.Atmos.get_screen" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a numpy array containing the turbulence at a given altitude</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>alt</strong> &#8211; (float) :altitude of the screen to get</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="atmos.Atmos.list_alt">
+<code class="descname">list_alt</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#atmos.Atmos.list_alt" title="Permalink to this definition">¶</a></dt>
+<dd><p>Display the list of the screens altitude</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="atmos.Atmos.move_atmos">
+<code class="descname">move_atmos</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#atmos.Atmos.move_atmos" title="Permalink to this definition">¶</a></dt>
+<dd><p>Move the turbulence in the atmos screen following previous loaded 
+paramters such as windspeed and wind direction</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="atmos.atmos_init">
+<code class="descclassname">atmos.</code><code class="descname">atmos_init</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#atmos.atmos_init" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create and initialise an atmos object</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first">c: (chakra_context) : context</p>
+<p>tel: (Param_tel) : telescope settings</p>
+<p>geom: (Param_geom) : geometry settings</p>
+<p>loop: (Param_loop) : loop settings</p>
+<p>wfss: (list of Param_wfs) : (optional) wfs settings</p>
+<p class="last">target: (Param_target) : (optional) target_settings</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">API Reference</a><ul>
+<li><a class="reference internal" href="#atmos-package"><code class="docutils literal"><span class="pre">atmos</span></code> Package</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/atmos.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2015, COMPASS team.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.6</a>
+      
+      |
+      <a href="_sources/atmos.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

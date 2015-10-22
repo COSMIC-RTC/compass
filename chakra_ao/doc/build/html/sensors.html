@@ -1,0 +1,345 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>API Reference &mdash; CHAKRA_AO 602 documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '602',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="CHAKRA_AO 602 documentation" href="index.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="api-reference">
+<h1>API Reference<a class="headerlink" href="#api-reference" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="sensors-package">
+<h2><a class="reference internal" href="#module-sensors" title="sensors"><code class="xref py py-mod docutils literal"><span class="pre">sensors</span></code></a> Package<a class="headerlink" href="#sensors-package" title="Permalink to this headline">¶</a></h2>
+<div class="custom-index container">
+<blockquote>
+<div><script type="text/javascript" src='_static/sensors.js'></script>
+
+.. rubric:: sensors</div></blockquote>
+<span class="target" id="module-sensors"></span><dl class="class">
+<dt id="sensors.Sensors">
+<em class="property">class </em><code class="descclassname">sensors.</code><code class="descname">Sensors</code><a class="headerlink" href="#sensors.Sensors" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>Constructor:
+Sensors(nsensors,type_data,npup,nxsub,nvalid,nphase,pdiam,npix,nrebin,nfft,nftota,nphot,lgs,odevice,comm_size,rank)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first">nsensors: (int) :</p>
+<p>type_data: list of strings) :</p>
+<p>npup: (np.ndarray[ndim=1,dtype=np.int64_t]) :</p>
+<p>nxsub: (np.ndarray[ndim=1,dtype=np.int64_t]) :</p>
+<p>nvalid: (np.ndarray[ndim=1,dtype=np.int64_t]) :</p>
+<p>nphase: (np.ndarray[ndim=1,dtype=np.int64_t]) :</p>
+<p>pdiam: (np.ndarray[ndim=1,dtype=np.float32_t) :</p>
+<p>npix: (np.ndarray[ndim=1,dtype=np.int64_t]) :</p>
+<p>nrebin: (np.ndarray[ndim=1,dtype=np.int64_t]) :</p>
+<p>nfft: (np.ndarray[ndim=1,dtype=np.int64_t]) :</p>
+<p>ntota: (np.ndarray[ndim=1,dtype=np.int64_t]) :</p>
+<p>nphot: (np.ndarray[ndim=1,dtype=np.float32_t]) :</p>
+<p>lgs: (np.ndarray[ndim=1,dtype=np.int32_t]) :</p>
+<p>odevice: (int) :</p>
+<p>comm_size: (int) : MPI communicator size</p>
+<p class="last">rank: (int) : process rank</p>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="sensors.Sensors.get_amplifoc">
+<code class="descname">get_amplifoc</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sensors.Sensors.get_amplifoc" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the &#8216;amplifoc&#8217; array of a given wfs</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>n</strong> &#8211; (int) : number of the wfs to get the &#8216;amplifoc&#8217; from</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sensors.Sensors.get_bincube">
+<code class="descname">get_bincube</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sensors.Sensors.get_bincube" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the &#8216;bincube&#8217; array of a given wfs</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>n</strong> &#8211; (int) : number of the wfs to get the &#8216;bincube&#8217; from</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sensors.Sensors.get_binimg">
+<code class="descname">get_binimg</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sensors.Sensors.get_binimg" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the &#8216;binimg&#8217; array of a given wfs</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>n</strong> &#8211; (int) :number of the wfs to get the &#8216;binimg&#8217; from</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sensors.Sensors.get_camplipup">
+<code class="descname">get_camplipup</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sensors.Sensors.get_camplipup" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the &#8216;camplipup&#8217; array of a given wfs</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>n</strong> &#8211; (int) : number of the wfs to get the &#8216;camplipup&#8217; from</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sensors.Sensors.get_imgtele">
+<code class="descname">get_imgtele</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sensors.Sensors.get_imgtele" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the &#8216;image_telemetry&#8217; array of a given wfs</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>n</strong> &#8211; (int) : number of the wfs to get the &#8216;image_telemetry&#8217; from</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sensors.Sensors.get_offsets">
+<code class="descname">get_offsets</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sensors.Sensors.get_offsets" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the &#8216;offset&#8217; array of a given wfs</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>n</strong> &#8211; (int) : number of the wfs to get the &#8216;offset&#8217; from</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sensors.Sensors.get_phase">
+<code class="descname">get_phase</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sensors.Sensors.get_phase" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the phase array of a given wfs</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>n</strong> &#8211; (int) : number of the wfs to get the phase from</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sensors.Sensors.get_pyrimg">
+<code class="descname">get_pyrimg</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sensors.Sensors.get_pyrimg" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the image of a pyr wfs</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>n</strong> &#8211; (int) : number of the wfs to get the image from</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sensors.Sensors.get_rank">
+<code class="descname">get_rank</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sensors.Sensors.get_rank" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the rank of one of the sensors wfs</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>n</strong> &#8211; (int) : index of the wfs to get the rank for</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sensors.Sensors.get_slopes">
+<code class="descname">get_slopes</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sensors.Sensors.get_slopes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the &#8216;slopes&#8217; array of a given wfs</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>n</strong> &#8211; (int) : number of the wfs to get the &#8216;slopes&#8217; from</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sensors.Sensors.sensors_compimg">
+<code class="descname">sensors_compimg</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sensors.Sensors.sensors_compimg" title="Permalink to this definition">¶</a></dt>
+<dd><p>TODO doc</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>n</strong> &#8211; (in) : index of the wfs</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sensors.Sensors.sensors_trace">
+<code class="descname">sensors_trace</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sensors.Sensors.sensors_trace" title="Permalink to this definition">¶</a></dt>
+<dd><p>Does the raytracing for the wfs phase screen in sutra_wfs</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first">n: (int) :</p>
+<dl class="docutils">
+<dt>type_trace: (str) <span class="classifier-delimiter">:</span> <span class="classifier">&#8220;all&#8221;</span> <span class="classifier-delimiter">:</span> <span class="classifier">raytracing across atmos and dms seen</span></dt>
+<dd><p class="first last">&#8220;dm&#8221;  : raytracing across dms seen only
+&#8220;atmos&#8221; : raytracing across atmos only</p>
+</dd>
+</dl>
+<p>atmos: (Atmos) :(optional) Atmos object</p>
+<p>dms: (Dms) : (optional) Dms object</p>
+<p class="last">rst: (int) : (optional) reset before raytracing if rst = 1</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="sensors.wfs_init">
+<code class="descclassname">sensors.</code><code class="descname">wfs_init</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sensors.wfs_init" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create and initialise  a Sensors object</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first">wfs: (list of Param_wfs) : wfs settings</p>
+<p>p_atmos: (Param_atmos) : atmos settings</p>
+<p>p_tel: (Param_tel) : telescope settings</p>
+<p>p_geom: (Param_geom) : geom settings</p>
+<p>p_target: (Param_target) : target settings</p>
+<p>p_loop: (Param_loop) : loop settings</p>
+<p>comm_size: (int) : communicator size</p>
+<p>rank: (int) : process rank</p>
+<p class="last">dm: (list of Param_dm) : (optional) dms settings</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">API Reference</a><ul>
+<li><a class="reference internal" href="#sensors-package"><code class="docutils literal"><span class="pre">sensors</span></code> Package</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/sensors.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2015, COMPASS team.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.6</a>
+      
+      |
+      <a href="_sources/sensors.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

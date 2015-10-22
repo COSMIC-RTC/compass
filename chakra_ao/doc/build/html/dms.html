@@ -1,0 +1,273 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>API Reference &mdash; CHAKRA_AO 602 documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '602',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="CHAKRA_AO 602 documentation" href="index.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="api-reference">
+<h1>API Reference<a class="headerlink" href="#api-reference" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="dms-package">
+<h2><a class="reference internal" href="#module-dms" title="dms"><code class="xref py py-mod docutils literal"><span class="pre">dms</span></code></a> Package<a class="headerlink" href="#dms-package" title="Permalink to this headline">¶</a></h2>
+<div class="custom-index container">
+<blockquote>
+<div><script type="text/javascript" src='_static/dms.js'></script>
+
+.. rubric:: dms</div></blockquote>
+<span class="target" id="module-dms"></span><dl class="class">
+<dt id="dms.Dms">
+<em class="property">class </em><code class="descclassname">dms.</code><code class="descname">Dms</code><a class="headerlink" href="#dms.Dms" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<dl class="method">
+<dt id="dms.Dms.comp_oneactu">
+<code class="descname">comp_oneactu</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#dms.Dms.comp_oneactu" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the shape of the dm when pushing the nactu actuator</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first">type_dm: (str) : dm type</p>
+<p>alt: (float) : dm conjugaison altitude</p>
+<p>nactu: (int) : actuator number pushed</p>
+<p class="last">ampli: (float) : amplitude</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="dms.Dms.getComm">
+<code class="descname">getComm</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#dms.Dms.getComm" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the voltage command of the sutra_dm</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first">type_dm: (str) : dm type</p>
+<p>alt: (float) : dm conjugaison altitude</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">data : (np.ndarray(dims=1,dtype=np.float32)) : voltage vector</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="dms.Dms.getInflu">
+<code class="descname">getInflu</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#dms.Dms.getInflu" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the influence functions of the DM</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first">type_dm: (str) : dm type</p>
+<p>alt: (float) : dm conjugaison altitude</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">data : (np.ndarray(dims=3,dtype=np.float32)) : influence functions</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="dms.Dms.get_dm">
+<code class="descname">get_dm</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#dms.Dms.get_dm" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the shape of the dm</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first">type_dm: (str) : dm type</p>
+<p>alt: (float) : dm conjugaison altitude</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">data : (np.ndarray(dims=2,dtype=np.float32)) : DM shape</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="dms.Dms.oneactu">
+<code class="descname">oneactu</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#dms.Dms.oneactu" title="Permalink to this definition">¶</a></dt>
+<dd><p>Push on on the nactu actuator of the DM with ampli amplitude and compute
+the corresponding shape</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first">type_dm: (str) : dm type</p>
+<p>alt: (float) : dm conjugaison altitude</p>
+<p>nactu: (int) : actuator number</p>
+<p class="last">ampli: (float): amplitude</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="dms.Dms.resetdm">
+<code class="descname">resetdm</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#dms.Dms.resetdm" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reset the shape of the DM to 0</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first">type_dm: (str) : dm type</p>
+<p class="last">alt: (float) : dm conjugaison altitude</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="dms.compute_klbasis">
+<code class="descclassname">dms.</code><code class="descname">compute_klbasis</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#dms.compute_klbasis" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>Compute a Karhunen-Loeve basis for the dm: </dt>
+<dd><ul class="first last simple">
+<li>compute the phase covariance matrix on the actuators using Kolmogorov</li>
+<li>compute the geometric covariance matrix</li>
+<li>double diagonalisation to obtain KL basis</li>
+</ul>
+</dd>
+</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first">g_dm: (Dms) : Dms object</p>
+<p>p_dm: (Param_dm) : dm settings</p>
+<p>p_geom: (Param_geom) : geom settings</p>
+<p>p_atmos: (Param_atmos) : atmos settings</p>
+<p class="last">p_tel: (Param_tel) : telescope settings</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="dms.dm_init">
+<code class="descclassname">dms.</code><code class="descname">dm_init</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#dms.dm_init" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create and initialize a Dms object on the gpu</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first">p_dms: (list of Param_dms) : dms settings</p>
+<p>p_wfs: (Param_wfs) : wfs settings</p>
+<p>p_geom: (Param_geom) : geom settings</p>
+<p class="last">p_tel: (Param_tel) : telescope settings</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">API Reference</a><ul>
+<li><a class="reference internal" href="#dms-package"><code class="docutils literal"><span class="pre">dms</span></code> Package</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/dms.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2015, COMPASS team.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.6</a>
+      
+      |
+      <a href="_sources/dms.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
