@@ -1,0 +1,297 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>API Reference &mdash; SHESHA 602 documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '602',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="SHESHA 602 documentation" href="index.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="api-reference">
+<h1>API Reference<a class="headerlink" href="#api-reference" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="target-package">
+<h2><a class="reference internal" href="#module-target" title="target"><code class="xref py py-mod docutils literal"><span class="pre">target</span></code></a> Package<a class="headerlink" href="#target-package" title="Permalink to this headline">¶</a></h2>
+<div class="custom-index container">
+<blockquote>
+<div><script type="text/javascript" src='_static/target.js'></script>
+
+.. rubric:: target</div></blockquote>
+<span class="target" id="module-target"></span><dl class="class">
+<dt id="target.Target">
+<em class="property">class </em><code class="descclassname">target.</code><code class="descname">Target</code><a class="headerlink" href="#target.Target" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<dl class="attribute">
+<dt id="target.Target.Lambda">
+<code class="descname">Lambda</code><a class="headerlink" href="#target.Target.Lambda" title="Permalink to this definition">¶</a></dt>
+<dd><p>observation wavelength for each target</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="target.Target.add_layer">
+<code class="descname">add_layer</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#target.Target.add_layer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a phase screen dm or atmos as layers of turbulence</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first">n: (int) : index of the target 
+l_type: (str) : &#8220;atmos&#8221; or &#8220;dm&#8221;</p>
+<p>alt: (float) : altitude</p>
+<p>xoff: (float) : x-offset</p>
+<p class="last">yoff: (float) : y-offset</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="target.Target.apod">
+<code class="descname">apod</code><a class="headerlink" href="#target.Target.apod" title="Permalink to this definition">¶</a></dt>
+<dd><p>boolean for apodizer</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="target.Target.atmos_trace">
+<code class="descname">atmos_trace</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#target.Target.atmos_trace" title="Permalink to this definition">¶</a></dt>
+<dd><p>Raytracing of the target through the atmosphere</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first">int: (nTarget) : index of the target</p>
+<p class="last">atm: (atmos) : atmos to get through</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="target.Target.dmtrace">
+<code class="descname">dmtrace</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#target.Target.dmtrace" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="target.Target.get_amplipup">
+<code class="descname">get_amplipup</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#target.Target.get_amplipup" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the complex amplitude in the pupil plane of the target.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>nTarget</strong> &#8211; (int) : index of the target</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="target.Target.get_image">
+<code class="descname">get_image</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#target.Target.get_image" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the image from the target (or long exposure image according to the requested type)
+:parameters:</p>
+<blockquote>
+<div><p>nTarget: (int) : index of the target</p>
+<p>type_im: (str) : type of the image to get (&#8220;se&#8221; or &#8220;le&#8221;)</p>
+<p>puponly: (int) : if 1, image computed from phase on the pupil only</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="target.Target.get_phase">
+<code class="descname">get_phase</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#target.Target.get_phase" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the phase&#8217;s screen of the target</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>nTarget</strong> &#8211; (int) : index of the target</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="target.Target.get_phasetele">
+<code class="descname">get_phasetele</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#target.Target.get_phasetele" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the telemetry phase of the target</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>nTarget</strong> &#8211; (int) : index of the target</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return data:</th><td class="field-body">(np.ndarray(ndim=2,np.float32)) : phase screen</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="target.Target.get_strehl">
+<code class="descname">get_strehl</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#target.Target.get_strehl" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the target&#8217;s strehl</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>nTarget</strong> &#8211; (int) : index of the target</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="target.Target.init_strehlmeter">
+<code class="descname">init_strehlmeter</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#target.Target.init_strehlmeter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialise target&#8217;s strehl</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>nTarget</strong> &#8211; (int) : index of the target</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="target.Target.mag">
+<code class="descname">mag</code><a class="headerlink" href="#target.Target.mag" title="Permalink to this definition">¶</a></dt>
+<dd><p>magnitude for each target</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="target.Target.ntargets">
+<code class="descname">ntargets</code><a class="headerlink" href="#target.Target.ntargets" title="Permalink to this definition">¶</a></dt>
+<dd><p>number of targets</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="target.Target.xpos">
+<code class="descname">xpos</code><a class="headerlink" href="#target.Target.xpos" title="Permalink to this definition">¶</a></dt>
+<dd><p>x positions on sky (in arcsec) for each target</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="target.Target.ypos">
+<code class="descname">ypos</code><a class="headerlink" href="#target.Target.ypos" title="Permalink to this definition">¶</a></dt>
+<dd><p>y positions on sky (in arcsec) for each target</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="target.target_init">
+<code class="descclassname">target.</code><code class="descname">target_init</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#target.target_init" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a cython target from parametres structures</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first">ctxt: (naga_context) :</p>
+<p>atm: (Param_atmos) : atmos settings</p>
+<p>geom: (Param_geom) : geom settings</p>
+<p>wfs: (Param_wfs) : wfs settings</p>
+<p class="last">dm: (Param_dm) : dm settings</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">API Reference</a><ul>
+<li><a class="reference internal" href="#target-package"><code class="docutils literal"><span class="pre">target</span></code> Package</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/target.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2015, COMPASS team.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.6</a>
+      
+      |
+      <a href="_sources/target.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
