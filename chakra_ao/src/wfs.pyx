@@ -507,7 +507,8 @@ def wfs_init( wfs, Param_atmos p_atmos, Param_tel p_tel, Param_geom p_geom,
 cdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
                 Param_tel tel, Param_geom geom, Param_target p_target,
                 Param_loop loop, int init=0,  int verbose=0):
-    """TODO doc
+    """Compute the geometry of WFSs: valid subaps, positions of the subaps, 
+    flux per subap, etc...
 
     :parameters:
         wfs: (Param_wfs) : wfs settings
@@ -908,18 +909,18 @@ cdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
 cdef init_wfs_size( Param_wfs wfs, int n, Param_atmos atmos,
                 Param_tel tel, int psize, long *pdiam, int *Nfft, int *Ntot, int *nrebin, 
                 float *pixsize, float *qpixsize,int verbose=0):
-    """TODO doc
+    """Compute all the parameters usefull for further WFS image computation (array sizes)
 
     :parameters:
         wfs: (Param_wfs) : wfs settings
 
-        n: (int) :
+        n: (int) : WFS number
 
         atmos: (Param_atmos) : atmos settings
 
         tel: (Param_tel) : telescope settings
 
-        psize: (int) :
+        psize: (int) : unused TODO: remove it
 
         pdiam: (long) : pupil diam for each subap (pixels) (output)
 
@@ -998,8 +999,8 @@ cdef init_wfs_size( Param_wfs wfs, int n, Param_atmos atmos,
             # now we want the quadrant image dim to be > fssize_pixels:
             w = np.where(npix_ok.flatten()>=fssize_pixels)[0]
             if (w.size==0):
-                maxfs = npix_ok[0]*2*psize
-                msg="wfs ",n,". ffsize too large (max=",maxfs,")!"
+                #maxfs = npix_ok[0]*2*psize
+                msg="wfs ",n,". ffsize too large "#(max=",maxfs,")!"
                 raise ValueError(msg)
       
             #npix_ok = npix_ok[w[1]]
@@ -1049,13 +1050,17 @@ cdef init_wfs_size( Param_wfs wfs, int n, Param_atmos atmos,
 
 
 cdef noise_cov(int nw, Param_wfs p_wfs, Param_atmos p_atmos, Param_tel p_tel):
-    """Compute the diagonal of the noise covariance matrix for a SH WFS
+    """Compute the diagonal of the noise covariance matrix for a SH WFS (arcsec²)
+    Photon noise: (pi²/2)*(1/Nphotons)*(d/r0)² / (2*pi*d/lambda)²
+    Electronic noise: (pi²/3)*(wfs.noise²/N²photons)*wfs.npix²*(wfs.npix*wfs.pixsize*d/lambda)² / (2*pi*d/lambda)²
 
     :parameters:
         nw: wfs number        
         p_wfs: (Param_wfs) : wfs settings
         p_atmos: (Param_atmos) : atmos settings
         p_tel: (Param_tel) : telescope settings
+    :return:
+        cov : (np.ndarray(ndim=1,dtype=np.float64)) : noise covariance diagonal
 
     """ 
     cov = np.zeros(2*p_wfs._nvalid)    

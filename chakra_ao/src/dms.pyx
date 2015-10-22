@@ -7,7 +7,6 @@ import make_pupil as mkP
 #max_extent signature
 cdef _dm_init(Dms dms, Param_dm p_dms, Param_wfs p_wfs, Param_geom p_geom, Param_tel p_tel,int *max_extent):
             """ inits a Dms object on the gpu
-            TODO doc
 
             :parameters:
                 dms: (Dms) :
@@ -109,59 +108,8 @@ cdef _dm_init(Dms dms, Param_dm p_dms, Param_wfs p_wfs, Param_geom p_geom, Param
                 #res2 = yoga_getkl(g_dm,0.,1);
 
 
-"""
-func dm_init(void)
-/* DOCUMENT dm_init
-   dm_init
-   inits a yDM object on the gpu
-   no input parameters
-   requires 3 externals : 
-   y_ geom   : a y_struct for the geometry
-   y_ tel    : a y_struct for the telescope
-   y_dm    : a y_struct for the dm
-   creates 1 external :
-   g_dm    : a yDMs object on the gpu
-   SEE ALSO:
-*/
-{
-  extern y_dm,g_dm;
-  if (y_dm != []) {
-    g_dm = yoga_dms(numberof(y_dm));
-    for (n=1;n<=numberof(y_dm);n++) {
-      if (y_dm(n).type == "pzt") {
-      if (y_dm(n).type == "tt") {
-      if (y_dm(n).type == "kl") {
-
-      // Florian features
-      if (y_dm(n).type == "flo_kl") {
-        dim       = long(y_dm(n)._n2-y_dm(n)._n1+1);
-        make_flo_kl_dm, n;
-        //error;
-        
-        dim       = long(y_dm(n)._n2-y_dm(n)._n1+1);
-        ninflu    = long(y_dm(n).nkl);
-        influsize = 0;
-        nr        = 0;
-        np        = 0;
-
-        yoga_addkl,g_dm,float(y_dm(n).alt),dim,ninflu,influsize,nr,np,float(y_dm(n).push4imat);
-
-        yoga_floloadkl,g_dm,*(*y_dm(n)._klbas).covmat,*(*y_dm(n)._klbas).filter,*(*y_dm(n)._klbas).evals,*(*y_dm(n)._klbas).bas,float(y_dm(n).alt) ;
-        //error;
-        /*
-        // verif :
-        res1 = pol2car(*y_dm(n)._klbas,gkl_sfi(*y_dm(n)._klbas, 1));
-        res2 = yoga_getkl(g_dm,0.,1);
-        */
-      }
-    }
-  }
-}
-"""
-
 def dm_init(p_dms, Param_wfs p_wfs, Param_geom p_geom, Param_tel p_tel):
     """Create and initialize a Dms object on the gpu
-    TODO doc
 
     :parameters:
         p_dms: (list of Param_dms) : dms settings
@@ -185,12 +133,14 @@ def dm_init(p_dms, Param_wfs p_wfs, Param_geom p_geom, Param_tel p_tel):
 
 
 cdef make_pzt_dm(Param_dm p_dm,Param_geom geom):
-    """TODO doc
+    """Compute the actuators positions and the influence functions for a pzt DM
 
     :parameters:
         p_dm: (Param_dm) : dm settings
 
         geom: (Param_geom) : geom settings
+    :return:
+        influ: (np.ndarray(dims=3,dtype=np.float64)) : cube of the IF for each actuator
 
     """
     cdef int i
@@ -287,7 +237,7 @@ cdef make_pzt_dm(Param_dm p_dm,Param_geom geom):
 
 
 cdef make_tiptilt_dm(Param_dm p_dm,Param_wfs p_wfs, Param_geom p_geom, Param_tel p_tel):
-    """TODO doc
+    """Compute the influence functions for a tip-tilt DM
 
     :parameters:
         p_dm: (Param_dm) : dm settings
@@ -297,6 +247,8 @@ cdef make_tiptilt_dm(Param_dm p_dm,Param_wfs p_wfs, Param_geom p_geom, Param_tel
         p_geom: (Param_geom) : geom settings
 
         p_tel: (Param_tel) : telescope settings
+    :return:
+        influ: (np.ndarray(dims=3,dtype=np.float64)) : cube of the IF
 
     """
     cdef int dim = max(p_dm._n2-p_dm._n1+1,p_geom._mpupil.shape[0])
@@ -322,7 +274,7 @@ cdef make_tiptilt_dm(Param_dm p_dm,Param_wfs p_wfs, Param_geom p_geom, Param_tel
 
 
 cdef make_kl_dm(Param_dm p_dm, Param_wfs p_wfs,Param_geom p_geom, Param_tel p_tel):
-    """TODO doc
+    """Compute the influence function for a Karhunen-Loeve DM
 
     :parameters:
         p_dm: (Param_dm) : dm settings
@@ -348,21 +300,23 @@ cdef make_kl_dm(Param_dm p_dm, Param_wfs p_wfs,Param_geom p_geom, Param_tel p_te
 
 
 cdef make_zernike(int nzer,int size,int diameter, float xc=-1, float yc=-1, int ext=0):
-    """TODO doc
+    """Compute the zernike modes
 
     :parameters:
-        nzer: (int) :
+        nzer: (int) : number of modes
 
-        size: (int) :
+        size: (int) : size of the screen
 
-        diameter: (int) :
+        diameter: (int) : pupil diameter
 
-        xc: (float) : (optional)
+        xc: (float) : (optional) x-position of the center
 
 
-        yc: (float) : (optional)
+        yc: (float) : (optional) y-position of the center
 
-        ext: (int) : (optional)
+        ext: (int) : (optional) extension
+    :return:
+        z : (np.ndarray(ndims=3,dtype=np.float64)) : zernikes modes
     """
     cdef int zn,i
     cdef int m=0
@@ -467,7 +421,7 @@ cdef zernumero(int zn, int *rd, int *an):
 
 
 cdef comp_dmgeom(Param_dm dm, Param_geom geom):
-    """TODO doc
+    """Compute the geometry of a DM : positions of actuators and influence functions
 
     :parameters:
         dm: (Param_dm) : dm settings
@@ -563,17 +517,17 @@ cdef class Dms:
 
 
     cdef remove_dm(self,bytes type_dm,float alt):
-        """TODO doc
+        """Remove a dm from a Dms object
 
         :parameters:
-            type_dm: (str) : dm type
+            type_dm: (str) : dm type to remove
 
-            alt: (float) : dm conjugaison altitude
+            alt: (float) : dm conjugaison altitude to remove
         """
         self.dms.remove_dm(type_dm,alt)
 
     def resetdm(self, bytes type_dm, float alt):
-        """TODO doc
+        """Reset the shape of the DM to 0
 
         :parameters:
             type_dm: (str) : dm type
@@ -590,16 +544,17 @@ cdef class Dms:
 
 
     def oneactu( self, bytes type_dm, float alt, int nactu, float ampli):
-        """TODO doc
+        """Push on on the nactu actuator of the DM with ampli amplitude and compute
+        the corresponding shape
 
         :parameters:
             type_dm: (str) : dm type
 
             alt: (float) : dm conjugaison altitude
 
-            nactu: (int) :
+            nactu: (int) : actuator number
 
-            ampli: (float):
+            ampli: (float): amplitude
         """
         cdef int inddm = self.dms.get_inddm(type_dm,alt)
         if(inddm<0):
@@ -618,24 +573,26 @@ cdef class Dms:
         np.ndarray[ndim=1,dtype=np.int32_t] xoff,
         np.ndarray[ndim=1,dtype=np.int32_t] yoff,
         np.ndarray[ndim=2,dtype=np.float32_t] kern):
-        """TODO doc
+        """Load all the arrays computed during the initialization 
+        for a pzt DM in a sutra_dms object
 
         :parameters:
             alt: (float) : dm conjugaison altitude
 
-            influ: (np.ndarray[ndim=3,dtype=np.float32_t]) :
+            influ: (np.ndarray[ndim=3,dtype=np.float32_t]) : influence functions
 
-            influpos: (np.ndarray[ndim=1,dtype=np.int32_t]) :
+            influpos: (np.ndarray[ndim=1,dtype=np.int32_t]) : positions of the IF
 
-            npoints: (np.ndarray[ndim=1,dtype=np.int32_t]) :
+            npoints: (np.ndarray[ndim=1,dtype=np.int32_t]) : for each pixel on the DM screen,
+                                                            the number of IF which impact on this pixel
 
-            istart: (np.ndarray[ndim=1,dtype=np.int32_t]) :
+            istart: (np.ndarray[ndim=1,dtype=np.int32_t]) : 
 
-            xoff: (np.ndarray[ndim=1,dtype=np.int32_t]) :
+            xoff: (np.ndarray[ndim=1,dtype=np.int32_t]) : x-offset
 
-            yoff: (np.ndarray[ndim=1,dtype=np.int32_t]) :
+            yoff: (np.ndarray[ndim=1,dtype=np.int32_t]) :y-offset
 
-            kern: (np.ndarray[ndim=1,dtype=np.float32_t]) :
+            kern: (np.ndarray[ndim=1,dtype=np.float32_t]) : convoltuon kernel
 
         """
 
@@ -721,12 +678,13 @@ cdef class Dms:
         np.ndarray[ndim=1,dtype=np.int32_t] ord,
         np.ndarray[ndim=1,dtype=np.float32_t] cr,
         np.ndarray[ndim=1,dtype=np.float32_t] cp):
-        """TODO doc
+        """Load all the arrays computed during the initialization 
+        for a kl DM in a sutra_dms object
 
         :parameters:
             alt: (float) : dm conjugaison altitude
 
-            rabas: (np.ndarray[ndim=1,dtype=np.float32_t]) :
+            rabas: (np.ndarray[ndim=1,dtype=np.float32_t]) : TODO
 
             azbas: (np.ndarray[ndim=1,dtype=np.float32_t]) :
 
@@ -755,12 +713,13 @@ cdef class Dms:
 
 
     cdef load_tt(self,float alt,np.ndarray[ndim=3,dtype=np.float32_t] influ):
-        """TODO doc
+        """Load all the arrays computed during the initialization 
+        for a tt DM in a sutra_dms object
 
         :parameters:
             alt: (float) : dm conjugaison altitude
 
-            influ: (np.ndarray[ndim=3,dtype=np.float32_t]) :
+            influ: (np.ndarray[ndim=3,dtype=np.float32_t]) : influence functions
         """
         cdef int inddm=self.dms.get_inddm("tt",alt)
         if(inddm<0):
@@ -776,13 +735,13 @@ cdef class Dms:
 
     cdef set_comm(self,bytes type_dm,float alt,
                     np.ndarray[ndim=1,dtype=np.float32_t] comm):
-        """TODO doc
+        """Set the voltage command on a sutra_dm
 
             type_dm: (str) : dm type
 
             alt: (float) : dm conjugaison altitude
 
-            comm: (np.ndarray[ndim=1,dtype=np.float32_t]) :
+            comm: (np.ndarray[ndim=1,dtype=np.float32_t]) : voltage vector
         """
 
         cdef int inddm=self.dms.get_inddm(type_dm,alt)
@@ -793,7 +752,7 @@ cdef class Dms:
         self.dms.d_dms[inddm].d_comm.host2device(<float*>comm.data)
 
     cdef shape_dm(self,bytes type_dm,float alt):
-        """TODO doc
+        """Compute the shape of the DM in a sutra_dm object
 
             type_dm: (str) : dm type
 
@@ -814,24 +773,27 @@ cdef class Dms:
     cdef computeKLbasis(self, bytes type_dm, float alt, 
         np.ndarray[ndim=1,dtype=np.float32_t] xpos, np.ndarray[ndim=1,dtype=np.float32_t] ypos,
         np.ndarray[ndim=1,dtype=np.int32_t] indx_pup, long dim, float norm, float ampli):
-        """TODO doc
+        """Compute a Karhunen-Loeve basis for the dm: 
+            - compute the phase covariance matrix on the actuators using Kolmogorov
+            - compute the geometric covariance matrix
+            - double diagonalisation to obtain KL basis
 
         :parameters:
             type_dm: (str) : dm type
 
             alt: (float) : dm conjugaison altitude
 
-            xpos: (np.ndarray[ndim=1,dtype=np.float32_t]) :
+            xpos: (np.ndarray[ndim=1,dtype=np.float32_t]) : x-position of actuators
 
-            ypos: (np.ndarray[ndim=1,dtype=np.float32_t]) :
+            ypos: (np.ndarray[ndim=1,dtype=np.float32_t]) : y-position of actuators
 
-            indx_pup: (np.ndarray[ndim=1,dtype=np.int32_t]) :
+            indx_pup: (np.ndarray[ndim=1,dtype=np.int32_t]) : indices of where(pup)
 
-            dim: (long) :
+            dim: (long) : number of where(pup)
 
-            nom: (float) :
+            norm: (float) : normalization factor
 
-            ampli: (float) :
+            ampli: (float) : amplitude
         """
 
         cdef int inddm=self.dms.get_inddm(type_dm,alt)
@@ -848,12 +810,14 @@ cdef class Dms:
 
 
     cdef get_KLbasis(self,bytes type_dm, float alt):
-        """TODO doc
+        """Return the klbasis computed by computeKLbasis
 
         :parameters:
             type_dm: (str) : dm type
 
             alt: (float) : dm conjugaison altitude
+        :return:
+            KLbasis : (np.ndarray(dims=2,dtype=np.float32)) : the KL basis
         """
 
         cdef int inddm=self.dms.get_inddm(type_dm,alt)
@@ -874,12 +838,14 @@ cdef class Dms:
 
 
     def get_dm(self,bytes type_dm,float alt):
-        """TODO doc
+        """Return the shape of the dm
 
         :parameters:
             type_dm: (str) : dm type
 
             alt: (float) : dm conjugaison altitude
+        :return:
+            data : (np.ndarray(dims=2,dtype=np.float32)) : DM shape
         """
 
         cdef int inddm=self.dms.get_inddm(type_dm,alt)
@@ -899,12 +865,14 @@ cdef class Dms:
 
 
     cpdef getComm(self,bytes type_dm,float alt):
-        """TODO doc
+        """Return the voltage command of the sutra_dm
 
         :parameters:
             type_dm: (str) : dm type
 
             alt: (float) : dm conjugaison altitude
+        :return:
+            data : (np.ndarray(dims=1,dtype=np.float32)) : voltage vector
         """
 
         cdef int inddm=self.dms.get_inddm(type_dm,alt)
@@ -922,12 +890,14 @@ cdef class Dms:
 
 
     cpdef getInflu(self,bytes type_dm,float alt):
-        """TODO doc
+        """Return the influence functions of the DM
 
         :parameters:
             type_dm: (str) : dm type
 
             alt: (float) : dm conjugaison altitude
+        :return:
+            data : (np.ndarray(dims=3,dtype=np.float32)) : influence functions
         """
 
 
@@ -949,16 +919,16 @@ cdef class Dms:
 
 
     cpdef comp_oneactu(self,bytes type_dm, float alt, int nactu, float ampli):
-        """TODO doc
+        """Compute the shape of the dm when pushing the nactu actuator
 
         :parameters:
             type_dm: (str) : dm type
 
             alt: (float) : dm conjugaison altitude
 
-            nactu: (int) :
+            nactu: (int) : actuator number pushed
 
-            ampli: (float) :
+            ampli: (float) : amplitude
         """
 
         
@@ -993,11 +963,14 @@ cdef class Dms:
         return info
 
 
-cdef compute_klbasis(Dms g_dm,Param_dm p_dm, Param_geom p_geom,Param_atmos p_atmos,Param_tel p_tel):
-    """TODO doc
+cpdef compute_klbasis(Dms g_dm,Param_dm p_dm, Param_geom p_geom,Param_atmos p_atmos,Param_tel p_tel):
+    """Compute a Karhunen-Loeve basis for the dm: 
+            - compute the phase covariance matrix on the actuators using Kolmogorov
+            - compute the geometric covariance matrix
+            - double diagonalisation to obtain KL basis
 
     :parameters:
-        g_dm: (Dms) :
+        g_dm: (Dms) : Dms object
 
         p_dm: (Param_dm) : dm settings
 

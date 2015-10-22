@@ -39,7 +39,9 @@ from sensors cimport *
 #################################################
 cdef class Dms:
     cdef sutra_dms *dms
+    """sutra_dms object"""
     cdef int device
+    """ GPU device number"""
     cdef add_dm(self, bytes type_dm, float alt, long dim, long ninflu, 
                 long influsize, long ninflupos, long npts, float puhs4imat,
                 int device=?)
@@ -79,4 +81,4 @@ cdef class Dms:
 
 
 cdef comp_dmgeom(Param_dm dm, Param_geom geom)
-cdef compute_klbasis(Dms g_dm,Param_dm p_dm, Param_geom p_geom,Param_atmos p_atmos,Param_tel p_tel)
+cpdef compute_klbasis(Dms g_dm,Param_dm p_dm, Param_geom p_geom,Param_atmos p_atmos,Param_tel p_tel)

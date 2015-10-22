@@ -22,7 +22,8 @@ cdef class Param_loop:
     def set_niter(self,long n):
         """Set the number of iteration
         
-        :param n: (long) : number of iteration
+        :parameters:
+            n: (long) : number of iteration
         """
         self.niter=n
 
@@ -30,7 +31,8 @@ cdef class Param_loop:
     def set_ittime(self,float t):
         """Set iteration time
 
-        :param t: (float) :iteration time
+        :parameters:
+            t: (float) :iteration time
         """
         self.ittime=t
 
@@ -114,14 +116,14 @@ cdef class Param_geom:
 
 
     def geom_init(self, Param_tel tel, long pupdiam,apod):
-        """TODO doc
+        """Initialize the system geometry
 
         :parameters:
             tel: (Param_tel) : telescope settings
 
             pupdiam: (long) : linear size of total pupil 
 
-            apod: (int) :
+            apod: (int) : apodizer
         """
         self.pupdiam=pupdiam
         #first poxer of 2 greater than pupdiam
@@ -917,16 +919,18 @@ cdef class Param_centroider:
         self.nwfs=n
 
     def set_nmax(self, long n):
-        """TODO doc
+        """Set the number of brightest pixels to use for bpcog
         
-        :param n: (int) :
-        """ 
+        :parameters:
+            n: (int) : number of brightest pixels
+        """  
         self.nmax=n
 
     def set_thresh(self, float t):
-        """TODO doc
+        """Set the threshold for tcog
 
-        :param t: (float) :
+        :parameters:
+            t: (float) : threshold
         """
         self.thresh=t
 
@@ -938,23 +942,26 @@ cdef class Param_centroider:
         self.width=w
 
     def set_sizex(self, long s):
-        """TODO doc
+        """Set sizex parameters for corr centroider (interp_mat size)
 
-        :param s: (long) :
+        :parameters:
+            s: (long) : x size
         """
         self.sizex=s
 
     def set_sizey(self, long s):
-        """TODO doc
+        """Set sizey parameters for corr centroider (interp_mat size)
 
-        :param s: (long) :
+        :parameters:
+            s: (long) : y size
         """
         self.sizey=s
 
     def set_weights(self,np.ndarray[ndim=3 ,dtype=np.float32_t] w):
-        """TODO doc
+        """Set the weights to use with wcog or corr
 
-        :param w: (np.ndarray[ndim=3 ,dtype=np.float32_t]) : 
+        :parameters:
+            w: (np.ndarray[ndim=3 ,dtype=np.float32_t]) : weights
         """
         self.weights=w
 
@@ -1010,16 +1017,18 @@ cdef class Param_controller:
         self.TTcond=m
 
     def set_delay(self,float d):
-        """TODO doc
+        """Set the loop delay expressed in frames
 
-        :param d: (float) : 
+        :parameters:
+            d: (float) :delay [frames]
         """
         self.delay=d
 
     def set_gain(self,float g):
-        """TODO doc 
+        """Set the loop gain 
 
-        :param g: (float) : 
+        :parameters:
+            g: (float) : loop gain
         """
         self.gain=g
 

@@ -550,12 +550,12 @@ cdef class Sensors:
 
 
     cdef slopes_geom(self,int nsensor, int t):
-        """TODO doc 
+        """Compute the geometric slopes in a sutra_wfs object
         
         :parameters:
-            nsensor: (int) :
+            nsensor: (int) : wfs number
 
-            :param t: (int) :
+            :param t: (int) : method (0 or 1)
         """
         if(<bytes>self.sensors.d_wfs[nsensor].type != "sh"):
             raise TypeError("wfs should be a SH")
@@ -566,18 +566,20 @@ cdef class Sensors:
 
 
     cpdef sensors_trace(self,int n, str type_trace, Atmos atmos=None,  Dms dms=None, int rst=0): 
-        """ TODO doc
+        """ Does the raytracing for the wfs phase screen in sutra_wfs
 
         :parameters:
             n: (int) :
 
-            type_trace: (str) :
+            type_trace: (str) : "all" : raytracing across atmos and dms seen
+                                "dm"  : raytracing across dms seen only
+                                "atmos" : raytracing across atmos only
 
-            atmos: (Atmos) :(optional)
+            atmos: (Atmos) :(optional) Atmos object
 
-            dms: (Dms) : (optional)
+            dms: (Dms) : (optional) Dms object
 
-            rst: (int) : (optional)
+            rst: (int) : (optional) reset before raytracing if rst = 1
         """
 
         cdef carma_context *context=carma_context.instance()

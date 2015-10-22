@@ -7,14 +7,14 @@ cdef class Param_geom:
 
 
     def geom_init(self, Param_tel tel, long pupdiam,apod):
-        """TODO doc
+        """Initialize the geometry of the system
 
         :parameters:
             tel: (Param_tel) : telescope settings
 
             pupdiam: (long) : linear size of total pupil 
 
-            apod: (int) :
+            apod: (int) : apodizer
         """
         self.pupdiam=pupdiam
         #first poxer of 2 greater than pupdiam
@@ -50,25 +50,29 @@ cdef class Param_geom:
     def set_ssize( self,long s):
         """Set linear size of full image
 
-         :param s: (long) : linear size of full image (in pixels)."""
+         :parameters:
+             s: (long) : linear size of full image (in pixels)."""
         self.ssize= s
 
     def set_zenithangle( self, float z):
         """Set observations zenith angle 
 
-         :param z: (float) : observations zenith angle (in deg)."""
+         :parameters:
+             z: (float) : observations zenith angle (in deg)."""
         self.zenithangle=z
  
     def set_pupdiam( self,long p ):
         """Set the linear size of total pupil
 
-        :param p: (long) : linear size of total pupil (in pixels)."""
+        :parameters:
+            p: (long) : linear size of total pupil (in pixels)."""
         self.pupdiam=p
  
     def set_cent( self, float c ):
         """Set the central point of the simulation
 
-         :param c: (float) : central point of the simulation."""
+         :parameters:
+             c: (float) : central point of the simulation."""
         self.cent=c
 
 

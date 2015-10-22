@@ -13,7 +13,6 @@ def atmos_init(chakra_context c, Param_atmos atm, Param_tel tel,  Param_geom geo
                     Param_loop loop, wfss=None, Param_target target=None,
                     int rank=0):
         """Create and initialise an atmos object
-        TODO doc
 
         :parameters:
             c: (chakra_context) : context
@@ -164,7 +163,7 @@ cdef class Atmos:
         return data
 
     def disp(self,float alt):
-        """Display the screen's phase at a given altitude 
+        """Display the screen phase at a given altitude 
         
         :param alt: (float) : altitude of the screen to display
         """
@@ -186,24 +185,23 @@ cdef class Atmos:
     def add_screen(self,long size, float amplitude, float altitude, 
         float windspeed, float winddir, float deltax, float deltay, int device):
         """Add a screen to the atmos object.
-        TODO doc
 
         :parameters:
-            size: (float) :
+            size: (float) : dimension of the screen (size x size)
 
-            amplitude: (float) :
+            amplitude: (float) : frac
 
-            altitude: (float) :
+            altitude: (float) : altitude of the screen in meters
 
-            windspeed: (float) :
+            windspeed: (float) : windspeed of the screen [m/s]
 
-            winddir: (float) :
+            winddir: (float) : wind direction (°)
 
-            deltax: (float) :
+            deltax: (float) : extrude deltax pixels in the x-direction at each iteration
 
-            deltay: (float) :
+            deltay: (float) : extrude deltay pixels in the y-direction at each iteration
 
-            device: (int) :
+            device: (int) : device number
         """
         cdef long size2=compute_size2(np.array([size],dtype=np.int64))[0]
 
@@ -249,7 +247,9 @@ cdef class Atmos:
 
 
     def move_atmos(self):
-        """Generate turbulence"""
+        """Move the turbulence in the atmos screen following previous loaded 
+        paramters such as windspeed and wind direction
+        """
 
         self.s_a.move_atmos()
 
@@ -288,7 +288,6 @@ cdef atmos_create(chakra_context c, int nscreens,
               int verbose):
     """Create and initialise an atmos object.
     
-    TODO doc
     :parameters:
         c: (chakra_context) : context
 
@@ -298,23 +297,23 @@ cdef atmos_create(chakra_context c, int nscreens,
 
         L0: (np.ndarray[ndim=1, dtype=np.float32_t]) : L0
 
-        pupixsize: (float) :
+        pupixsize: (float) : pixel size [m]
 
-        dim_screens: (np.ndarray[ndim=1,dtype=np.int64_t]) :
+        dim_screens: (np.ndarray[ndim=1,dtype=np.int64_t]) : screens dimensions
 
-        frac: (np.ndarray[ndim=1,dtype=np.float32_t]) :
+        frac: (np.ndarray[ndim=1,dtype=np.float32_t]) : fraction of r0
 
-        alt: (np.ndarray[ndim=1,dtype=np.float32_t]) :
+        alt: (np.ndarray[ndim=1,dtype=np.float32_t]) : altitudes [m]
 
-        windspeed: (np.ndarray[ndim=1,dtype=np.float32_t]) :
+        windspeed: (np.ndarray[ndim=1,dtype=np.float32_t]) : wind speed [m/s]
 
-        winddir: (np.ndarray[ndim=1,dtype=np.float32_t]) :
+        winddir: (np.ndarray[ndim=1,dtype=np.float32_t]) : wind direction [°]
 
-        deltax: (np.ndarray[ndim=1,dtype=np.float32_t]) :
+        deltax: (np.ndarray[ndim=1,dtype=np.float32_t]) : extrude deltax pixels in the x-direction at each iteration
 
-        deltay: (np.ndarray[ndim=1,dtype=np.float32_t]) :
+        deltay: (np.ndarray[ndim=1,dtype=np.float32_t]) : extrude deltay pixels in the y-direction at each iteration
 
-        verbose: (int) :
+        verbose: (int) : 0 or 1
     """
 
     # get fraction of r0 for corresponding layer
@@ -373,7 +372,8 @@ cdef atmos_create(chakra_context c, int nscreens,
 cdef compute_size2(np.ndarray[ndim=1,dtype=np.int64_t]size):
     """Compute the size of a stencil, given the screen size
     
-    :param size: (np.ndarray[ndim=1,dtype=np.int64_t]) :screen size
+    :parameters:
+        size: (np.ndarray[ndim=1,dtype=np.int64_t]) :screen size
     """
     
     cdef n=size.shape[0]

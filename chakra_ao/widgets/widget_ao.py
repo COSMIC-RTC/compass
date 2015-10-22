@@ -555,7 +555,16 @@ class widgetAOWindow(TemplateBaseClass):
         self.aoLoopThread.rtc = self.rtc
         self.aoLoopThread.dms = self.dms
         self.updateDisplay()
-        print "Inits done"
+        print "===================="
+        print "init done"
+        print "===================="
+        print "objects initialzed on GPU:"
+        print "--------------------------------------------------------"
+        print self.atm
+        print self.wfs
+        print self.dms
+        print self.tar
+        print self.rtc
 
     def resetDM(self):
         if(self.dms):

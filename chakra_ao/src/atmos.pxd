@@ -38,7 +38,9 @@ from param cimport *
 #################################################
 cdef class Atmos:
     cdef sutra_atmos *s_a
+    """ sutra_atmos object"""
     cdef chakra_context context
+    """ context """
     cdef realinit(self,chakra_context ctxt,int nscreens,
                 np.ndarray[ndim=1,dtype=np.float32_t] r0,
                 np.ndarray[ndim=1,dtype=np.int64_t] size,

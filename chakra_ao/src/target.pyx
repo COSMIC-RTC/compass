@@ -40,17 +40,17 @@ cdef class Target:
 
 
     def add_layer(self, int n, bytes l_type, float alt, float xoff, float yoff):
-        """TODO doc
+        """Add a phase screen dm or atmos as layers of turbulence
 
         :parameters:
             n: (int) : index of the target 
-            l_type: (str) : 
+            l_type: (str) : "atmos" or "dm"
 
-            alt: (float) :
+            alt: (float) : altitude
 
-            xoff: (float) : 
+            xoff: (float) : x-offset
 
-            yoff: (float) : 
+            yoff: (float) : y-offset
         """
         self.context.set_activeDevice(self.device)
         self.target.d_targets[n].add_layer(<char*>l_type, alt, xoff, yoff)
@@ -84,7 +84,7 @@ cdef class Target:
 
             type_im: (str) : type of the image to get ("se" or "le")
 
-            puponly: (int) : TODO (default=0)
+            puponly: (int) : if 1, image computed from phase on the pupil only
         """
         self.context.set_activeDeviceForCpy(self.device)
         cdef sutra_source *src = self.target.d_targets[nTarget]
@@ -125,9 +125,10 @@ cdef class Target:
 
 
     def get_phasetele(self, int nTarget):
-        """TODO doc
+        """Return the telemetry phase of the target
 
         :param nTarget: (int) : index of the target
+        :return data: (np.ndarray(ndim=2,np.float32)) : phase screen
         """
 
         self.context.set_activeDeviceForCpy(self.device)

@@ -42,6 +42,7 @@ from dms cimport *
 #################################################
 cdef class Target:
     cdef sutra_target *target
+    """sutra_target object"""
     cdef readonly int ntargets
     """number of targets"""
     cdef readonly int apod
@@ -55,6 +56,7 @@ cdef class Target:
     cdef readonly np.ndarray mag
     """magnitude for each target"""
     cdef int device
+    """device number"""
     cdef chakra_context context
 
     cpdef dmtrace(self,int ntar, Dms dms, int reset=?)
