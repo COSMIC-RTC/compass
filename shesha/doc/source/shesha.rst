@@ -2,7 +2,7 @@
 API Reference
 *************
 
-:mod:`sensors` Package 
+:mod:`shesha` Package 
 ========================
 
 
@@ -10,13 +10,13 @@ API Reference
 
     .. raw:: html
         
-         <script type="text/javascript" src='_static/sensors.js'></script>
+         <script type="text/javascript" src='_static/shesha.js'></script>
             
-         .. rubric:: sensors 
+         .. rubric:: shesha 
 
 
 
-    .. automodule:: sensors
+    .. automodule:: shesha
          :members:
 	 :private-members:
 	 :undoc-members:

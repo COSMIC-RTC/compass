@@ -16,8 +16,9 @@ API Reference
 
 
 
-   .. automodule:: dms
-       :members:
-       :undoc-members:
-       :show-inheritance:
-       :inherited-members:
+    .. automodule:: dms
+	 :members:
+	 :private-members:	   
+         :undoc-members:
+         :show-inheritance:
+         :inherited-members:

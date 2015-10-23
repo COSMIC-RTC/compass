@@ -16,8 +16,9 @@ API Reference
 
 
 
-   .. automodule:: atmos
-       :members:
-       :undoc-members:
-       :show-inheritance:
-       :inherited-members:
+    .. automodule:: atmos
+         :members:
+	 :private-members:
+	 :undoc-members:
+         :show-inheritance:
+         :inherited-members:

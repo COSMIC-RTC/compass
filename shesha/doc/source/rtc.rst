@@ -16,8 +16,9 @@ API Reference
 
 
 
-   .. automodule:: rtc
-       :members:
-       :undoc-members:
-       :show-inheritance:
-       :inherited-members:
+    .. automodule:: rtc
+         :members:
+	 :private-members:
+	 :undoc-members:
+         :show-inheritance:
+         :inherited-members:

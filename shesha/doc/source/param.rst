@@ -16,8 +16,9 @@ API Reference
 
 
 
-   .. automodule:: param
-       :members:
-       :undoc-members:
-       :show-inheritance:
-       :inherited-members:
+    .. automodule:: param
+	 :members:
+	 :private-members:   
+         :undoc-members:
+         :show-inheritance:
+         :inherited-members:

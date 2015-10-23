@@ -11,13 +11,13 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
-    shesha
-    atmos
-    target
-    sensors
-    rtc
-    param
-    dms
+   shesha
+   atmos
+   target
+   sensors
+   rtc
+   param
+   dms
       
 
 Indices and tables
