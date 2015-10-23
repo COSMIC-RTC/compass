@@ -3,7 +3,6 @@ simul_name="test_DM41x41"
 geometry inits
 */
 y_geom.zenithangle = 0.;
-y_geom.pupdiam = 500;
 
 /*
 telescope inits
