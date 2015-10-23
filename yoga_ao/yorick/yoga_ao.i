@@ -729,16 +729,19 @@ func rtc_init(clean=, brama=, doimat=)
       
       if ((y_wfs != []) && (y_dm != [])) {
         for (i=1;i<=numberof(controllers);i++) {
-          write,format="%s", "filtering unseen actuators... ";
-          tic;
-          //if (controllers(i).type  == "cured") {
-          if (y_wfs(1).type == "sh")
-            imat = imat_geom(i,meth=0);
-          else
-            imat = manual_imat();
+          if ( (simul_name != []) && fileExist(swrite(format=YOGA_AO_SAVEPATH+"mat/imat-%d-%s.fits",i,simul_name)) )  {
+            imat = fits_read(swrite(format=YOGA_AO_SAVEPATH+"mat/imat-%d-%s.fits",i,simul_name));
+          } else {
+            write,format="%s", "filtering unseen actuators... ";
+            tic;
+            //if (controllers(i).type  == "cured") {
+            if (y_wfs(1).type == "sh")
+              imat = imat_geom(i,meth=0);
+            else
+              imat = manual_imat();
+            write,format = "done in : %f s\n",tac();  
+          }
           correct_dm,imat,i;
-	  //error;
-          write,format = "done in : %f s\n",tac();  
 
           //} 
           if (controllers(i).type != "geo"){

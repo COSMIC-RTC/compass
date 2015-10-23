@@ -502,7 +502,6 @@ void comp_dmshape2(
 		const dim3 threads, const dim3 blocks, const int shared
 ) {
 
-
 #ifdef REDUCTION
 
 #if(COMPN == 1)

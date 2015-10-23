@@ -60,7 +60,7 @@ func make_pzt_dm(nm,&influ,disp=)
   // relative to the pitchmargin parameter.
   dis      = sqrt(cub(,,1)^2.+cub(,,2)^2.);
   if (y_dm(nm).margin == 0) {
-    pitchMargin = 1.44;
+    pitchMargin = 0; //1.44;
   } else {
     pitchMargin = y_dm(nm).margin;
   }

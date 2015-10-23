@@ -171,7 +171,8 @@ func init_wfs_geom(n,init=)
           long(y_geom.pupdiam / y_wfs(n).nxsub) + 1);
     }
   } else pdiam = [];
-
+  
+  pdiam = (y_geom.pupdiam % y_wfs(n).nxsub == 0 ? long(y_geom.pupdiam / y_wfs(n).nxsub) : long(y_geom.pupdiam / y_wfs(n).nxsub) + 1);
   init_wfs_size,y_wfs(n),pdiam,Nfft,Ntot,nrebin,pixsize,qpixsize;
 
   if (y_wfs(n).type != "geo") {

@@ -1997,16 +1997,19 @@ extern "C" {
       int *influpos2 = new int[ntot_influpos];
       int *istart2 = new int[ntot_istart + 1];
 
-      int n = dms_handler->d_dms[inddm]->influsize * dms_handler->d_dms[inddm]->influsize;
+      //DEBUG_TRACE("influsize: %d", dms_handler->d_dms[inddm]->influsize);
+      const int n = dms_handler->d_dms[inddm]->influsize * dms_handler->d_dms[inddm]->influsize;
 
       for(int i = 0; i < ntot_influpos; ++i){
     	  influ2[i] = influ[ influpos[i] ];
     	  influpos2[i] = influpos[i] / n;
       }
 
-      for(int i = 0; i < ntot_istart; i++)
-    	  istart2[i] = istart[i];
+//      for(int i = 0; i < ntot_istart; i++)
+//    	  istart2[i] = istart[i];
+      copy(istart, istart+ntot_istart, istart2);
 
+      //DEBUG_TRACE("npoints[ntot_istart - 1] %d", npoints[ntot_istart - 1]);
       istart2[ntot_istart] = istart2[ntot_istart - 1] + npoints[ntot_istart - 1];
 
       //Only requiered for for comp shape 2 and 3

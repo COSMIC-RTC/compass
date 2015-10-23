@@ -10,7 +10,7 @@ func imat_init(ncontrol,clean=)
 
   if (simul_name == []) imat_clean = 1;
   else
-    imat_clean = ((!fileExist(swrite(format=dirsave+"imat-%d-%s.fits",ncontrol,simul_name))) || clean);
+    imat_clean = ((!fileExist(swrite(format=dirsave+"imat-%d-%s.fits",ncontrol,simul_name)))); // || clean);
 
   if (imat_clean) {
     // first check if wfs is using lgs
@@ -455,14 +455,18 @@ func correct_dm(imat,ncontrol)
       
       if(!imat_clean && fileExist(swrite(format=dirsave+"pztok-%d-%s.fits",nm,simul_name))){
         ok = fits_read(swrite(format=dirsave+"pztok-%d-%s.fits",nm,simul_name));
-        nok= fits_read(swrite(format=dirsave+"pztnok-%d-%s.fits",nm,simul_name));
+        if(fileExist(swrite(format=dirsave+"pztnok-%d-%s.fits",nm,simul_name))) {
+          nok= fits_read(swrite(format=dirsave+"pztnok-%d-%s.fits",nm,simul_name));
+        }
       } else {
         tmp = resp(inds+1:inds+y_dm(nm)._ntotact);
         ok = where(tmp >  y_dm(nm).thresh*max(tmp));
         nok= where(tmp <= y_dm(nm).thresh*max(tmp));
         if (simul_name != []) {
           fits_write,swrite(format=dirsave+"pztok-%d-%s.fits",nm,simul_name),ok,overwrite=1;
-          fits_write,swrite(format=dirsave+"pztnok-%d-%s.fits",nm,simul_name),nok,overwrite=1;
+          if(numberof(nok)>0){
+            fits_write,swrite(format=dirsave+"pztnok-%d-%s.fits",nm,simul_name),nok,overwrite=1;
+          }
         }
       }
       
