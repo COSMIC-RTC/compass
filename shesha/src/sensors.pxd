@@ -60,7 +60,7 @@ cdef extern from *:
 cdef class Sensors:
     
     cdef sutra_sensors *sensors
-    cdef sensors_initgs(self,np.ndarray[ndim=1,dtype=np.float32_t] xpos,
+    cpdef sensors_initgs(self,np.ndarray[ndim=1,dtype=np.float32_t] xpos,
                              np.ndarray[ndim=1,dtype=np.float32_t] ypos,
                              np.ndarray[ndim=1,dtype=np.float32_t] Lambda,
                              np.ndarray[ndim=1,dtype=np.float32_t] mag,
@@ -70,14 +70,14 @@ cdef class Sensors:
                              np.ndarray[ndim=1,dtype=np.int64_t  ] seed)
 
 
-    cdef sensors_initarr(self,int n, Param_wfs wfs, Param_geom geom)
-    cdef sensors_addlayer(self,int i, bytes type, float alt, float xoff, float yoff)
+    cpdef sensors_initarr(self,int n, Param_wfs wfs, Param_geom geom)
+    cpdef sensors_addlayer(self,int i, bytes type, float alt, float xoff, float yoff)
     cdef _get_bincube(self, int n)
     cdef _get_pyrimg(self,int n)
     cdef _get_binimg(self, int n)
     cdef _get_slopesDims(self,int n)
     cdef _get_slopes(self, int n)
-    cdef slopes_geom(self,int nsensors, int t)
+    cpdef slopes_geom(self,int nsensors, int t)
     cpdef sensors_trace(self,int n, str type_trace, Atmos atmos=?, Dms dms=?, int rst=?)
     IF USE_MPI==1:
         cpdef gather_bincube(self,int n)
@@ -99,9 +99,9 @@ cdef class Sensors:
     cdef  _get_hrmap(self, int n)
     #cdef getDims(self)
 
-cdef noise_cov(int nw, Param_wfs p_wfs, Param_atmos p_atmos, Param_tel p_tel)
+cpdef noise_cov(int nw, Param_wfs p_wfs, Param_atmos p_atmos, Param_tel p_tel)
 
-cdef prep_lgs_prof(Param_wfs p_wfs,int nsensors, Param_tel p_tel, 
+cpdef prep_lgs_prof(Param_wfs p_wfs,int nsensors, Param_tel p_tel, 
                     np.ndarray[dtype=np.float32_t] prof,
                     np.ndarray[dtype=np.float32_t] h,
                     float beam, Sensors sensors,

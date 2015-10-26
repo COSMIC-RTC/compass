@@ -1,4 +1,4 @@
-cdef prep_lgs_prof(Param_wfs p_wfs,int nsensors, Param_tel p_tel, 
+cpdef prep_lgs_prof(Param_wfs p_wfs,int nsensors, Param_tel p_tel, 
                     np.ndarray[dtype=np.float32_t] prof,
                     np.ndarray[dtype=np.float32_t] h,
                     float beam, Sensors sensors,
@@ -119,7 +119,7 @@ simple re-sampling of the profile is adequate.
     lgs.lgs_makespot(context.get_device(sensors.sensors.device),0)
 
 
-cdef make_lgs_prof1d(p_wfs, Param_tel p_tel,
+cpdef make_lgs_prof1d(p_wfs, Param_tel p_tel,
         np.ndarray[dtype=np.float32_t] prof, np.ndarray[dtype=np.float32_t] h,
         float beam, bytes center=<bytes>""):
     """same as prep_lgs_prof but cpu only. original routine from rico
@@ -299,7 +299,7 @@ cdef make_lgs_prof1d(p_wfs, Param_tel p_tel,
     p_wfs._lgskern=im.T
 
 
-cdef type_present( liste,int pyr, int roof, int sh, int geo):
+cpdef type_present( liste,int pyr, int roof, int sh, int geo):
     """Check the present types in a list
 
     :parameters:
@@ -333,7 +333,7 @@ cdef type_present( liste,int pyr, int roof, int sh, int geo):
             geo=1
 
 
-cdef wheremax(liste):
+cpdef wheremax(liste):
     """return the index of the maximum value of the list
 
     :param liste: (list of values) : values to get the index of the maximum from
@@ -505,7 +505,7 @@ def wfs_init( wfs, Param_atmos p_atmos, Param_tel p_tel, Param_geom p_geom,
 
     return g_wfs
 
-cdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
+cpdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
                 Param_tel tel, Param_geom geom, Param_target p_target,
                 Param_loop loop, int init=0,  int verbose=0):
     """Compute the geometry of WFSs: valid subaps, positions of the subaps, 
@@ -1050,7 +1050,7 @@ cdef init_wfs_size( Param_wfs wfs, int n, Param_atmos atmos,
             if(verbose==0):print "size of HR spot support : ",Ntot[0]
 
 
-cdef noise_cov(int nw, Param_wfs p_wfs, Param_atmos p_atmos, Param_tel p_tel):
+cpdef noise_cov(int nw, Param_wfs p_wfs, Param_atmos p_atmos, Param_tel p_tel):
     """Compute the diagonal of the noise covariance matrix for a SH WFS (arcsec²)
     Photon noise: (pi²/2)*(1/Nphotons)*(d/r0)² / (2*pi*d/lambda)²
     Electronic noise: (pi²/3)*(wfs.noise²/N²photons)*wfs.npix²*(wfs.npix*wfs.pixsize*d/lambda)² / (2*pi*d/lambda)²
@@ -1094,7 +1094,7 @@ cdef noise_cov(int nw, Param_wfs p_wfs, Param_atmos p_atmos, Param_tel p_tel):
 
 
 
-cdef fft_goodsize(long s):
+cpdef fft_goodsize(long s):
     """find best size for a fft from size s
 
     :parameters:
@@ -1103,7 +1103,7 @@ cdef fft_goodsize(long s):
     return 2**(long(np.log2(s))+1)
 
 
-cdef bin2d(np.ndarray data_in, int binfact):
+cpdef bin2d(np.ndarray data_in, int binfact):
     """
     Returns the input 2D array "array", binned with the binning factor "binfact".
     The input array X and/or Y dimensions needs not to be a multiple of

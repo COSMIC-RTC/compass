@@ -12,8 +12,10 @@ cpdef bytes shesha_savepath
 # P-Class (parametres) Param_loop
 #################################################
 cdef class Param_loop:
-    cdef readonly long niter     # number of iterations
-    cdef readonly float ittime   # iteration time (in sec)
+    cdef readonly long niter     
+    """ number of iterations"""
+    cdef readonly float ittime   
+    """ iteration time (in sec)"""
 
 
 
@@ -422,9 +424,9 @@ cdef class Param_controller:
 
 
 cpdef  indices(int dim1, int dim2=?)
-cdef rotate3d(np.ndarray[ndim=3,dtype=np.float32_t] im,
+cpdef rotate3d(np.ndarray[ndim=3,dtype=np.float32_t] im,
               np.ndarray[ndim=1,dtype=np.float32_t] ang,
               float cx=?, float cy=?,float zoom=?)
-cdef rotate(np.ndarray[ndim=3,dtype=np.float32_t] im,
+cpdef rotate(np.ndarray[ndim=3,dtype=np.float32_t] im,
             float ang, float cx=?, float cy=?,float zoom=?)
 cpdef makegaussian(int size, float fwhm, int xc=?, int yc=?, int norm=?)

@@ -313,7 +313,7 @@ def see_atmos_target(int n, Atmos atm, Target tar,Sensors wfs, float alt=0, int 
     print "time:",end-start
 '''
 
-cdef bin2d(np.ndarray data_in, int binfact):
+cpdef bin2d(np.ndarray data_in, int binfact):
     """
     Returns the input 2D array "array", binned with the binning factor "binfact".
     The input array X and/or Y dimensions needs not to be a multiple of

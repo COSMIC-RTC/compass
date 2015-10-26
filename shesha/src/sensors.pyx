@@ -103,7 +103,7 @@ cdef class Sensors:
         self.sensors.device=odevice
         free(type_wfs)
 
-    cdef sensors_initgs(self,np.ndarray[ndim=1,dtype=np.float32_t] xpos,
+    cpdef sensors_initgs(self,np.ndarray[ndim=1,dtype=np.float32_t] xpos,
                              np.ndarray[ndim=1,dtype=np.float32_t] ypos,
                              np.ndarray[ndim=1,dtype=np.float32_t] Lambda,
                              np.ndarray[ndim=1,dtype=np.float32_t] mag,
@@ -145,7 +145,7 @@ cdef class Sensors:
                         <float*>noise.data, <long*>seed.data)
 
 
-    cdef sensors_initarr(self,int n, Param_wfs wfs, Param_geom geom):
+    cpdef sensors_initarr(self,int n, Param_wfs wfs, Param_geom geom):
         """Call the function wfs_initarrays from a sutra_wfs of the Sensors
 
         :parameters:
@@ -255,7 +255,7 @@ cdef class Sensors:
 
  
 
-    cdef sensors_addlayer(self,int i, bytes type_dm, float alt,
+    cpdef sensors_addlayer(self,int i, bytes type_dm, float alt,
         float xoff, float yoff):
         """Call function add_layer from the sutra_source of a sutra_wfs of the Sensors
 
@@ -549,7 +549,7 @@ cdef class Sensors:
             return data
 
 
-    cdef slopes_geom(self,int nsensor, int t):
+    cpdef slopes_geom(self,int nsensor, int t):
         """Compute the geometric slopes in a sutra_wfs object
         
         :parameters:

@@ -1107,7 +1107,7 @@ cdef class Param_controller:
 
 
 
-cdef make_apodizer(int dim, int pupd, bytes filename, float angle):
+cpdef make_apodizer(int dim, int pupd, bytes filename, float angle):
     """TODO doc
 
     :parameters:
@@ -1156,7 +1156,7 @@ cdef make_apodizer(int dim, int pupd, bytes filename, float angle):
     return pupf
 
 
-cdef rotate3d(np.ndarray[ndim=3,dtype=np.float32_t] im,
+cpdef rotate3d(np.ndarray[ndim=3,dtype=np.float32_t] im,
               np.ndarray[ndim=1,dtype=np.float32_t] ang,
               float cx=-1, float cy=-1,float zoom=1.0):
     """Rotates an image of an angle "ang" (in DEGREES).
@@ -1251,7 +1251,7 @@ cdef rotate3d(np.ndarray[ndim=3,dtype=np.float32_t] im,
     return imr
 
 
-cdef rotate(np.ndarray[ndim=3,dtype=np.float32_t] im,
+cpdef rotate(np.ndarray[ndim=3,dtype=np.float32_t] im,
             float ang, float cx=-1, float cy=-1,float zoom=1.0):
     """Rotates an image of an angle "ang" (in DEGREES).
 

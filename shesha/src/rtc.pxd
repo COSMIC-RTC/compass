@@ -66,15 +66,16 @@ cdef class Rtc:
     cpdef getcentroids(self,int ncontrol, Sensors g_wfs=?, int nwfs=?)
     cpdef docentroids(self,int ncontrol=?)
     cpdef docentroids_geom(self,int ncontrol=?)
-    cdef init_proj(self,int i,Dms dms,np.ndarray[ndim=1,dtype=np.int32_t] indx_dm,
+    cpdef init_proj(self,int i,Dms dms,np.ndarray[ndim=1,dtype=np.int32_t] indx_dm,
             np.ndarray[ndim=1,dtype=np.float32_t] unitpervolt, 
             np.ndarray[ndim=1,dtype=np.int32_t] indx_pup)
-    cdef init_modalOpti(self,int ncontro,int nmodes,int nrec, np.ndarray[ndim=2,dtype=np.float32_t] M2V,
+    cpdef init_modalOpti(self,int ncontro,int nmodes,int nrec, np.ndarray[ndim=2,dtype=np.float32_t] M2V,
             float gmin, float gmax, int ngain, float Fs)
-    cdef loadOpenLoop(self,int ncontro, np.ndarray[ndim=2, dtype=np.float32_t] ol_slopes)
-    cdef modalControlOptimization(self,int ncontro)
-    cdef set_gain(self,int ncontro, float gain)
-    cdef set_mgain(self,int ncontro, np.ndarray[ndim=1,dtype=np.float32_t] mgain)
+    cpdef loadOpenLoop(self,int ncontro, np.ndarray[ndim=2, dtype=np.float32_t] ol_slopes)
+    cpdef modalControlOptimization(self,int ncontro)
+    cpdef set_gain(self,int ncontro, float gain)
+    cpdef set_mgain(self,int ncontro, np.ndarray[ndim=1,dtype=np.float32_t] mgain)
+    cpdef setCom(self,int ncontro, np.ndarray[ndim=1,dtype=np.float32_t] comvec)
     cpdef get_mgain(self,int ncontro)
     cpdef set_imat(self,int ncontro, np.ndarray[ndim=2,dtype=np.float32_t] data)
     cpdef get_imat(self, int ncontro)
@@ -83,33 +84,33 @@ cdef class Rtc:
     cpdef get_cphim(self, int ncontro)
     cpdef get_cmm(self,int ncontro)
     cpdef set_cmm(self,int ncontro, np.ndarray[ndim=2,dtype=np.float32_t] data)
-    cdef set_decayFactor(self,int ncontro, np.ndarray[ndim=1,dtype=np.float32_t] decay)
-    cdef set_matE(self,int ncontro, np.ndarray[ndim=2,dtype=np.float32_t] matE)
+    cpdef set_decayFactor(self,int ncontro, np.ndarray[ndim=1,dtype=np.float32_t] decay)
+    cpdef set_matE(self,int ncontro, np.ndarray[ndim=2,dtype=np.float32_t] matE)
 
 
-    cdef doimat_geom(self, int ncontro, Dms g_dms,int geom)
-    cdef doimat(self, int ncontro, Dms g_dms)
-    cdef sensors_compslopes(self, int ncentro, int nmax=?, float thresh=?)
+    cpdef doimat_geom(self, int ncontro, Dms g_dms,int geom)
+    cpdef doimat(self, int ncontro, Dms g_dms)
+    cpdef sensors_compslopes(self, int ncentro, int nmax=?, float thresh=?)
     cdef add_controller(self, int nactu, float delay, bytes type_control, Dms dms,
                  char **type_dmseen, np.ndarray[ndim=1,dtype=np.float32_t] alt,
                  int ndm, long Nphi=?)
 
 
-    cdef imat_svd(self,int ncontro)
-    cdef setU(self,int ncontro,np.ndarray[ndim=2,dtype=np.float32_t] U)
-    cdef setEigenvals(self, int ncontro, np.ndarray[ndim=1,dtype=np.float32_t] eigenvals)
-    cdef getU(self, int ncontro)
+    cpdef imat_svd(self,int ncontro)
+    cpdef setU(self,int ncontro,np.ndarray[ndim=2,dtype=np.float32_t] U)
+    cpdef setEigenvals(self, int ncontro, np.ndarray[ndim=1,dtype=np.float32_t] eigenvals)
+    cpdef getU(self, int ncontro)
     cpdef getEigenvals(self,int ncontro)
     cpdef getCmmEigenvals(self,int ncontro)
     cpdef getCenbuff(self, int ncontro)
-    cdef getErr(self,int ncontro)
+    cpdef getErr(self,int ncontro)
     cpdef getCom(self,int ncontro)
     cpdef getolmeas(self,int ncontro)
     cpdef getVoltage(self,int ncontro)
     cpdef getCentroids(self,int ncontro)
-    cdef buildcmat(self,int ncontro,int nfilt, int filt_tt=?)
+    cpdef buildcmat(self,int ncontro,int nfilt, int filt_tt=?)
     cpdef buildcmatmv(self,int ncontro,float cond)
-    cdef loadnoisemat(self,int ncontro, np.ndarray[ndim=1,dtype=np.float32_t] N)
+    cpdef loadnoisemat(self,int ncontro, np.ndarray[ndim=1,dtype=np.float32_t] N)
     cpdef docontrol(self,int ncontro)
     cpdef docontrol_geo(self, int ncontro, Dms dms, Target target, int ntarget)
     cpdef applycontrol(self,int ncontro,Dms dms)

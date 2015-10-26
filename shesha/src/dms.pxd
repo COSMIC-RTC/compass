@@ -42,12 +42,12 @@ cdef class Dms:
     """sutra_dms object"""
     cdef int device
     """ GPU device number"""
-    cdef add_dm(self, bytes type_dm, float alt, long dim, long ninflu, 
+    cpdef add_dm(self, bytes type_dm, float alt, long dim, long ninflu, 
                 long influsize, long ninflupos, long npts, float puhs4imat,
                 int device=?)
-    cdef remove_dm(self,bytes type_dm, float alt)
+    cpdef remove_dm(self,bytes type_dm, float alt)
 
-    cdef load_pzt(self, float alt,
+    cpdef load_pzt(self, float alt,
                     np.ndarray[ndim=3,dtype=np.float32_t] influ,
                     np.ndarray[ndim=1,dtype=np.int32_t] influpos,
                     np.ndarray[ndim=1,dtype=np.int32_t] npoints,
@@ -57,28 +57,28 @@ cdef class Dms:
                     np.ndarray[ndim=2,dtype=np.float32_t] kern)
 
     #TODO dims of arrays
-    cdef load_kl(self,float alt, np.ndarray[ndim=1,dtype=np.float32_t] rabas,
+    cpdef load_kl(self,float alt, np.ndarray[ndim=1,dtype=np.float32_t] rabas,
                     np.ndarray[ndim=1,dtype=np.float32_t] azbas,
                     np.ndarray[ndim=1,dtype=np.int32_t] ord,
                     np.ndarray[ndim=1,dtype=np.float32_t] cr,
                     np.ndarray[ndim=1,dtype=np.float32_t] cp)
 
 
-    cdef load_tt(self,float alt, np.ndarray[ndim=3,dtype=np.float32_t] influ)
+    cpdef load_tt(self,float alt, np.ndarray[ndim=3,dtype=np.float32_t] influ)
 
-    cdef set_comm(self,bytes type_dm,float alt,
+    cpdef set_comm(self,bytes type_dm,float alt,
                     np.ndarray[ndim=1,dtype=np.float32_t] comm)
-    cdef shape_dm(self,bytes type_dm,float alt)
+    cpdef shape_dm(self,bytes type_dm,float alt)
 
-    cdef computeKLbasis(self, bytes type_dm, float alt, 
+    cpdef computeKLbasis(self, bytes type_dm, float alt, 
         np.ndarray[ndim=1,dtype=np.float32_t] xpos, np.ndarray[ndim=1,dtype=np.float32_t] ypos,
         np.ndarray[ndim=1,dtype=np.int32_t] indx_pup, long dim, float norm, float ampli)
-    cdef get_KLbasis(self,bytes type_dm, float alt)
+    cpdef get_KLbasis(self,bytes type_dm, float alt)
 
     cpdef getComm(self,bytes type_dm,float alt)
     cpdef getInflu(self,bytes type_dm,float alt)
     cpdef comp_oneactu(self,bytes type_dm, float alt, int nactu, float ampli)
 
 
-cdef comp_dmgeom(Param_dm dm, Param_geom geom)
+cpdef comp_dmgeom(Param_dm dm, Param_geom geom)
 cpdef compute_klbasis(Dms g_dm,Param_dm p_dm, Param_geom p_geom,Param_atmos p_atmos,Param_tel p_tel)

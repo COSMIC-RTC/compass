@@ -420,7 +420,7 @@ cdef zernumero(int zn, int *rd, int *an):
 
 
 
-cdef comp_dmgeom(Param_dm dm, Param_geom geom):
+cpdef comp_dmgeom(Param_dm dm, Param_geom geom):
     """Compute the geometry of a DM : positions of actuators and influence functions
 
     :parameters:
@@ -503,7 +503,7 @@ cdef class Dms:
     def __cinit__(self,long ndm):
         self.dms= new sutra_dms(ndm)
 
-    cdef add_dm(self, bytes type_dm, float alt, long dim, long ninflu, long influsize, long ninflupos, long npts, float push4imat, int device=-1):
+    cpdef add_dm(self, bytes type_dm, float alt, long dim, long ninflu, long influsize, long ninflupos, long npts, float push4imat, int device=-1):
 
         cdef carma_context *context=carma_context.instance()
 
@@ -516,7 +516,7 @@ cdef class Dms:
                         influsize, ninflupos ,npts ,push4imat, device)
 
 
-    cdef remove_dm(self,bytes type_dm,float alt):
+    cpdef remove_dm(self,bytes type_dm,float alt):
         """Remove a dm from a Dms object
 
         :parameters:
@@ -565,7 +565,7 @@ cdef class Dms:
         self.dms.d_dms[inddm].comp_oneactu(nactu,ampli)
 
 
-    cdef load_pzt(self, float alt,
+    cpdef load_pzt(self, float alt,
         np.ndarray[ndim=3,dtype=np.float32_t] influ,
         np.ndarray[ndim=1,dtype=np.int32_t] influpos,
         np.ndarray[ndim=1,dtype=np.int32_t] npoints,
@@ -672,7 +672,7 @@ cdef class Dms:
         free(istart2)
 
 
-    cdef load_kl(self,float alt,
+    cpdef load_kl(self,float alt,
         np.ndarray[ndim=1,dtype=np.float32_t] rabas,
         np.ndarray[ndim=1,dtype=np.float32_t] azbas,
         np.ndarray[ndim=1,dtype=np.int32_t] ord,
@@ -712,7 +712,7 @@ cdef class Dms:
 
 
 
-    cdef load_tt(self,float alt,np.ndarray[ndim=3,dtype=np.float32_t] influ):
+    cpdef load_tt(self,float alt,np.ndarray[ndim=3,dtype=np.float32_t] influ):
         """Load all the arrays computed during the initialization 
         for a tt DM in a sutra_dms object
 
@@ -733,7 +733,7 @@ cdef class Dms:
         self.dms.d_dms[inddm].d_influ.host2device(<float*>influ_F.data)
 
 
-    cdef set_comm(self,bytes type_dm,float alt,
+    cpdef set_comm(self,bytes type_dm,float alt,
                     np.ndarray[ndim=1,dtype=np.float32_t] comm):
         """Set the voltage command on a sutra_dm
 
@@ -751,7 +751,7 @@ cdef class Dms:
 
         self.dms.d_dms[inddm].d_comm.host2device(<float*>comm.data)
 
-    cdef shape_dm(self,bytes type_dm,float alt):
+    cpdef shape_dm(self,bytes type_dm,float alt):
         """Compute the shape of the DM in a sutra_dm object
 
             type_dm: (str) : dm type
@@ -770,7 +770,7 @@ cdef class Dms:
 
 
 
-    cdef computeKLbasis(self, bytes type_dm, float alt, 
+    cpdef computeKLbasis(self, bytes type_dm, float alt, 
         np.ndarray[ndim=1,dtype=np.float32_t] xpos, np.ndarray[ndim=1,dtype=np.float32_t] ypos,
         np.ndarray[ndim=1,dtype=np.int32_t] indx_pup, long dim, float norm, float ampli):
         """Compute a Karhunen-Loeve basis for the dm: 
@@ -809,7 +809,7 @@ cdef class Dms:
                 <int*>indx_pup.data, dim, norm, ampli)
 
 
-    cdef get_KLbasis(self,bytes type_dm, float alt):
+    cpdef get_KLbasis(self,bytes type_dm, float alt):
         """Return the klbasis computed by computeKLbasis
 
         :parameters:

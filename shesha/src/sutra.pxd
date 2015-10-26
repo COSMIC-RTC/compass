@@ -603,7 +603,7 @@ cdef extern from "sutra_controller.h":
 # C-Class sutra_controller_generic
 #################################################
 cdef extern from "sutra_controller_generic.h":
-    cdef cppclass sutra_controller_generic:
+    cdef cppclass sutra_controller_generic(sutra_controller):
         carma_obj[float] *d_matE
         carma_obj[float] *d_cmat
         carma_obj[float] *d_gain
@@ -629,7 +629,7 @@ cdef extern from "sutra_controller_generic.h":
 # C-Class sutra_controller_geo
 #################################################
 cdef extern from "sutra_controller_geo.h":
-    cdef cppclass sutra_controller_geo:
+    cdef cppclass sutra_controller_geo(sutra_controller):
         float gain
         long Nphi
 
@@ -661,7 +661,7 @@ cdef extern from "sutra_controller_geo.h":
 # C-Class sutra_controller_ls
 #################################################
 cdef extern from "sutra_controller_ls.h":
-    cdef cppclass sutra_controller_ls:
+    cdef cppclass sutra_controller_ls(sutra_controller):
         float gain
 
         carma_obj[float] *d_imat
@@ -721,7 +721,7 @@ cdef extern from "sutra_controller_ls.h":
 # C-Class sutra_controller_mv
 #################################################
 cdef extern from "sutra_controller_mv.h":
-    cdef cppclass sutra_controller_mv:
+    cdef cppclass sutra_controller_mv(sutra_controller):
 
         float gain
 
@@ -793,7 +793,7 @@ cdef extern from "sutra_controller_mv.h":
 # C-Class sutra_controller_cured
 #################################################
 cdef extern from "sutra_controller_cured.h":
-    cdef cppclass sutra_controller_cured:
+    cdef cppclass sutra_controller_cured(sutra_controller):
         float gain
         int   ndivs #number of subdivision levels for cured
         bool  tt_flag #flag for separate tt
@@ -831,7 +831,7 @@ cdef extern from "sutra_controller_cured.h":
 # C-Class sutra_controller_kalman
 #################################################
 cdef extern from "sutra_controller_kalman.h":
-    cdef cppclass sutra_controller_kalman:
+    cdef cppclass sutra_controller_kalman(sutra_controller):
         sutra_controller_kalman(carma_context* context, int nvalid_, int nactu_, sutra_dms *dms, char **type, float *alt, int ndm)
 
         void init_kalman(carma_host_obj[float]& D_Mo, carma_host_obj[float]& N_Act, carma_host_obj[float]& PROJ, bool is_zonal, bool is_sparse, bool is_GPU)
