@@ -116,13 +116,13 @@ def script4bench(param_file,centroider,controller, device=0, fwrite=True):
     target=ao.target_init(c,config.p_target,config.p_atmos,config.p_geom,config.p_tel,config.p_wfss,wfs,config.p_dms)
     ch.threadSync()
     target_init_time=timer.stop()-synctime
-    timer.reset
+    timer.reset()
 
     timer.start()
     rtc=ao.rtc_init(wfs,config.p_wfss,dms,config.p_dms,config.p_geom,config.p_rtc,config.p_atmos,atm,config.p_tel,config.p_loop,target,config.p_target,clean=clean,simul_name=simul_name)
     ch.threadSync()
     rtc_init_time=timer.stop()-synctime
-    timer.reset
+    timer.reset()
 
     print "... Done with inits !"
 
