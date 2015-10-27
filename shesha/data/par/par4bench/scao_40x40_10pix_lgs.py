@@ -102,7 +102,7 @@ p_centroiders=[p_centroider0]
 p_centroider0.set_nwfs(0)
 p_centroider0.set_type("corr")
 p_centroider0.set_type_fct("gauss")
-p_centroidre0.set_width(2.0)
+p_centroider0.set_width(2.0)
 
 #controllers
 p_controller0=ao.Param_controller()
