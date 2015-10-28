@@ -226,7 +226,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-  (master_doc, 'SHESHA.tex', u'NAGA\\_AO Documentation',
+  (master_doc, 'SHESHA.tex', u'SHESHA Documentation',
    u'COMPASS team', 'manual'),
 ]
 
