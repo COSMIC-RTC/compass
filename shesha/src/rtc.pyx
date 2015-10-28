@@ -290,7 +290,7 @@ cdef class Rtc:
     cpdef init_proj(self,int ncontro,Dms dms,np.ndarray[ndim=1,dtype=np.int32_t] indx_dm,
             np.ndarray[ndim=1,dtype=np.float32_t] unitpervolt, np.ndarray[ndim=1,dtype=np.int32_t] indx_pup):
         """Initialize the projection matrix for sutra_controller_geo object. 
-        The projection matrix is (IFt.IF)⁻¹IFt where IF is the DMs influence functions matrix
+        The projection matrix is (IFt.IF)**(-1) * IFt where IF is the DMs influence functions matrix
 
         :parameters:
             ncontro: (int) : controller index
