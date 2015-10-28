@@ -1,8 +1,8 @@
 *************
-API Reference
+Target
 *************
 
-:mod:`target` Package 
+:mod:`target` module 
 ========================
 
 

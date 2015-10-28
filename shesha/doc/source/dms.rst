@@ -1,8 +1,8 @@
 *************
-API Reference
+Dms
 *************
 
-:mod:`dms` Package 
+:mod:`dms` module 
 ========================
 
 

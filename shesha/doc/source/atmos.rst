@@ -1,8 +1,8 @@
 *************
-API Reference
+Atmos
 *************
 
-:mod:`atmos` Package 
+:mod:`atmos` module 
 ========================
 
 

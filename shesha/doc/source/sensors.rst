@@ -1,8 +1,8 @@
 *************
-API Reference
+Sensors
 *************
 
-:mod:`sensors` Package 
+:mod:`sensors` module 
 ========================
 
 

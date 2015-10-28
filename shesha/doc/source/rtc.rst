@@ -1,8 +1,8 @@
 *************
-API Reference
+RTC
 *************
 
-:mod:`rtc` Package 
+:mod:`rtc` module 
 ========================
 
 

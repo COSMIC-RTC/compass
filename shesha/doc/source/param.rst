@@ -1,8 +1,8 @@
 *************
-API Reference
+Param
 *************
 
-:mod:`param` Package 
+:mod:`param` module 
 ========================
 
 
