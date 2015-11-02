@@ -2,26 +2,25 @@
 import cProfile
 import pstats as ps
 
-import sys
-sys.path.insert(0, "./lib") # for SESAME lib
+import sys, os
+sys.path.insert(0, os.environ["SHESHA"]+"/widgets/lib") # for tools lib
 
 import numpy as np
 import naga as ch
 import shesha as ao
 import time
 import matplotlib.pyplot as pl
-import os
 import pyqtgraph as pg
 import glob
 import tools
-sys.path.insert(0, os.environ["SHESHA"]+"/data/par/") # for SESAME lib
+sys.path.insert(0, os.environ["SHESHA"]+"/data/par/") 
 
 from PyQt4.uic import loadUiType
 from PyQt4 import QtCore, QtGui
 
 from functools import partial
 import time
-WindowTemplate,TemplateBaseClass=loadUiType("widget_ao.ui")
+WindowTemplate,TemplateBaseClass=loadUiType(os.environ["SHESHA"]+"/widgets/widget_ao.ui")
 
 
 """
