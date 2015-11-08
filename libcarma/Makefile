@@ -18,7 +18,7 @@ LIB_DEPLIBS  = -fPIC -shared -Wl,-rpath=$(CUDA_LIB_PATH_64) -L$(CUDA_LIB_PATH_64
 LIB_DEPLIBS += -lcuda -lcudart -lcublas -lcufft -lcurand -lcusparse -lnvToolsExt  -lpthread
 
 # set compiler (or rarely loader) flags specific to this package
-LIB_CPPFLAGS = -c -fPIC -Wall -fno-common -I$(H_DIR) -I$(CUDA_INC_PATH) -std=c++11
+LIB_CPPFLAGS = -c -fPIC -Wall -fno-common -I$(H_DIR) -I$(CUDA_INC_PATH) #-std=c++11
 
 # ------------------------------------- targets and rules for this package
 # color for printf
@@ -37,7 +37,8 @@ else
   GCC = $(MPICXX)
 endif
 
-#GCC := icc #/usr/local/mpe/bin/mpecc -mpilog
+#force GCC if needed
+#GCC := gcc
 
 NVCC = $(CUDA_ROOT)/bin/nvcc
 LIB_NVCCFLAGS  = -Xptxas -dlcm=ca -m64 -Xcompiler -fPIC -c --compiler-options
@@ -63,19 +64,21 @@ endif
 # LIB_DEPLIBS   += -L$(CULA_LIB_PATH_64) -lcula_lapack_basic 
 #endif
 
-ifneq ($(MAGMA_ROOT),)
+MAGMA = $(shell pkg-config --exists magma && echo "1" || echo "0")
+#$(info $(MAGMA))
+ifeq ($(MAGMA),1)
  #use the same keyword as in make.inc
- LIB_CPPFLAGS  += -I$(MAGMA_ROOT)/include -DUSE_MAGMA -DADD_ 
- ifneq ($(MKLROOT),)
-  LIB_CPPFLAGS  += -DHAVE_CUBLAS -DMAGMA_SETAFFINITY -DMAGMA_WITH_MKL
-  LIB_CPPFLAGS  += -DUSE_MAGMA_WITH_MKL -DMAGMA_ILP64 -DMKL_ILP64
- endif
+ LIB_CPPFLAGS  += -DUSE_MAGMA $(shell pkg-config --cflags magma)
+
  LIB_NVCCFLAGS += -Xcompiler -fno-strict-aliasing
- LIB_DEPLIBS   += -Wl,-rpath=$(MAGMA_ROOT)/lib -L$(MAGMA_ROOT)/lib -lmagma
+ LIB_DEPLIBS   += -Wl,-rpath=$(MAGMA_ROOT)/lib
+ LIB_DEPLIBS   += $(shell pkg-config --libs magma)
  ifneq ($(USE_MAGMA_SPARSE),)
   LIB_CPPFLAGS  += -DUSE_MAGMA_SPARSE
   LIB_DEPLIBS   += -lmagma_sparse
  endif
+else
+ $(warning "WARNING MAGMA not found, did you add $(MAGMA_ROOT)/lib to PKG_CONFIG_PATH")
 endif
 
 ifneq ($(KSPARSE_ROOT),)
