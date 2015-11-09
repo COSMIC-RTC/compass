@@ -1,8 +1,12 @@
 The shesha folder contain provide a python interface to the sutra of compass project.
 
 In order to compile, environment variable required:
-    path to compass: COMPASS_ROOT_DIR
+    path to compass: COMPASS_ROOT
     path to cuda   : CUDA_ROOT
+    path to naga   : NAGA_ROOT
+    path to shesha : SHESHA_ROOT
+
+Add NAGA_ROOT and SHESHA_ROOT to the PYTHON_PATH
 
 The compilation is done with the command:
     python setup.py build_ext --inplace
@@ -10,11 +14,10 @@ The compilation is done with the command:
     REQUIREMENT:
         * cython 0.22
         * python 2.7
-        * mpi4py 1.3.1
         * carma librairie
         * sutra librairie
         * naga module
-
+        *( optional) mpi4py 1.3.1
 
 To clean the folder, use the command:
     python clean.py
@@ -38,21 +41,18 @@ MPI available only with:
 Content:
     * src                       folder containing wrapper sources
         - shesha.pyx
-        - atmos.pyx
-        - geom.pyx
-        - target.pyx
-        - tel.pyx
+        - param.pyx     , param.pxd
+        - atmos.pyx     , atmos.pxd
+        - dms.pyx       , dms.pxd
+        - target.pyx    , target.pxd
+        - wfs.pyx
+        - sensors.pyx   ,sensors.pxd
+        - rtc.pyx       ,rtc.pxd
+        - sutra.pxd
         - make_pupil.py
         - iterkolmo.py
-        - loop.pyx
-        - wfs.pyx
-        - sensors.pyx
-        - dms.pyx
-        - rtc.pyx
-        - centroider.pyx
-        - controller.pyx
 
-    * shesha.pxd             header like file for shesha library
+    * widgets                   folder for the gui of shesha
 
     * data                      folder containig datas 
         - Na profile
@@ -66,8 +66,10 @@ Content:
 
     * clean.py                  cleaning script
 
-    * test                        testing routines
-            test.py               outdated
-            test_mpi.py           outdated
-            closed_loop.py        closed loop test
-            closed_loop_mpi.py    closed loop test with mpi
+    * test                      testing routines
+            closed_loop.py      closed loop test
+            closed_loop_mpi.py  closed loop test with mpi
+
+    * lib                       folder containig shesha submodules
+
+    * doc                       folder containig documentation (generated with Sphinx)
