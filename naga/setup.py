@@ -58,10 +58,10 @@ def locate_compass():
     """Locate compass library
     """
 
-    if  'COMPASS_ROOT_DIR' in os.environ:
-        root_compass = os.environ['COMPASS_ROOT_DIR']
-        inc_compass  = pjoin(root_compass,)#os.environ['COMPASS_ROOT_DIR']
-        lib_compass  = pjoin(root_compass,)#os.environ['COMPASS_ROOT_DIR']
+    if  'COMPASS_ROOT' in os.environ:
+        root_compass = os.environ['COMPASS_ROOT']
+        inc_compass  = pjoin(root_compass,)
+        lib_compass  = pjoin(root_compass,)
         
     else:
         raise EnvironmentError('You must load compass environment')
@@ -113,20 +113,30 @@ class clean(_clean):
     if (os.path.exists('./dist')):  remove_tree('./dist')
     self.walkAndClean()
 
+
+library_dirs=[CUDA['lib64'], COMPASS['lib']+'/libcarma']
+libraries=['cudart', 'cufft','cublas','carma']
+
+print "library_dirs",library_dirs
+print "libraries",libraries
+
+mkl_root=os.environ.get('MKLROOT')
+if(mkl_root is not None):
+    library_dirs.append(mkl_root+'/mkl/lib/intel64/')
+    libraries.append('mkl_mc3')
+    libraries.append('mkl_def')
+
+print "library_dirs",library_dirs
+print "libraries",libraries
+
 #######################
 #  extension
 #######################
 ext = Extension('naga',
-                sources=[#COMPASS['inc']+'/libcarma/src.cpp/carma_context.cpp',
-                    #COMPASS['inc']+'/libcarma/src.cpp/carma_cublas.cpp',
-                    #COMPASS['inc']+'/libcarma/src.cpp/carma_fft_conv.cpp',
-                    #'naga_obj.pyx',
-                    #'naga_host_obj.pyx'
-                    'src/naga.pyx'
+                sources=['src/naga.pyx'
                     ],
-                library_dirs=[CUDA['lib64'], COMPASS['lib']+"/libcarma"],#, os.environ['MKL_LIB_DIR']],
-                libraries=['cudart', 'cufft','cublas','carma'],
-					#"mkl_mc3","mkl_def"],
+                library_dirs=library_dirs,
+                libraries=libraries,
                 language='c++',
                 runtime_library_dirs=[CUDA['lib64']],
                 # this syntax is specific to this build system
