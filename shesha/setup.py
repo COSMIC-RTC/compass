@@ -33,15 +33,15 @@ except ImportError:
     MPI4PY=0
 
 
-naga_path=os.environ.get('NAGA')
+naga_path=os.environ.get('NAGA_ROOT')
 if(naga_path is None):
-    raise EnvironmentError("Environment variable 'NAGA' must be define")
+    raise EnvironmentError("Environment variable 'NAGA_ROOT' must be define")
 sys.path.append(naga_path+'/src')
 
 
-shesha_path=os.environ.get('SHESHA')
+shesha_path=os.environ.get('SHESHA_ROOT')
 if(shesha_path is None):
-    raise EnvironmentError("Environment variable 'SHESHA' must be define")
+    raise EnvironmentError("Environment variable 'SHESHA_ROOT' must be define")
 
 
 if not os.path.exists(shesha_path+"/lib"):
@@ -98,8 +98,8 @@ def locate_compass():
     """Locate compass library
     """
 
-    if  'COMPASS_ROOT_DIR' in os.environ:
-        root_compass = os.environ['COMPASS_ROOT_DIR']
+    if  'COMPASS_ROOT' in os.environ:
+        root_compass = os.environ['COMPASS_ROOT']
         
     else:
         raise EnvironmentError('You must load compass environment')

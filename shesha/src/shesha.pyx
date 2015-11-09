@@ -22,7 +22,7 @@ assert sizeof(float) == sizeof(np.float32_t)
 assert sizeof(double) == sizeof(np.float64_t)
 
 
-shesha_dir= os.environ.get('SHESHA')
+shesha_dir= os.environ.get('SHESHA_ROOT')
 
 sys.path.append(shesha_dir+'/src')
 sys.path.append(shesha_dir+"/lib")

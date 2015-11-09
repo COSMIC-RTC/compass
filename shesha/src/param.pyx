@@ -4,9 +4,9 @@ import sys
 cimport numpy as np
 import numpy as np
 
-shesha_dir= os.environ.get('SHESHA')
+shesha_dir= os.environ.get('SHESHA_ROOT')
 if(shesha_dir is None):
-    raise EnvironmentError("Environment variable 'SHESHA' must be define")
+    raise EnvironmentError("Environment variable 'SHESHA_ROOT' must be define")
 shesha_savepath=<bytes>(shesha_dir+"/data/")
 print "shesha_savepath:",shesha_savepath
 
