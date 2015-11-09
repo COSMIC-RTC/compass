@@ -219,10 +219,10 @@ cdef make_pzt_dm(Param_dm p_dm,Param_geom geom):
         p_dm._xpos +=p_dm._puppixoffset[0]
         p_dm._ypos +=p_dm._puppixoffset[1]
 
-        influ=influ*float(p_dm.unitpervolt/np.max(influ))
-        p_dm._influ=influ
+    influ=influ*float(p_dm.unitpervolt/np.max(influ))
+    p_dm._influ=influ
 
-        comp_dmgeom(p_dm,geom)
+    comp_dmgeom(p_dm,geom)
 
     cdef long dim=max(geom._mpupil.shape[0],p_dm._n2-p_dm._n1+1)
     cdef float off=(dim-p_dm._influsize)/2
