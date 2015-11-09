@@ -124,9 +124,9 @@ ext = Extension('naga',
                     #'naga_host_obj.pyx'
                     'src/naga.pyx'
                     ],
-                library_dirs=[CUDA['lib64'], COMPASS['lib']+"/libcarma", os.environ['MKL_LIB_DIR']],
-                libraries=['cudart', 'cufft','cublas','carma',
-					"mkl_mc3","mkl_def"],
+                library_dirs=[CUDA['lib64'], COMPASS['lib']+"/libcarma"],#, os.environ['MKL_LIB_DIR']],
+                libraries=['cudart', 'cufft','cublas','carma'],
+					#"mkl_mc3","mkl_def"],
                 language='c++',
                 runtime_library_dirs=[CUDA['lib64']],
                 # this syntax is specific to this build system
