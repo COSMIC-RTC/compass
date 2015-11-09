@@ -1351,7 +1351,7 @@ cdef class Rtc:
 
 def rtc_init(Sensors g_wfs, p_wfs, Dms g_dms, p_dms, Param_geom p_geom, Param_rtc p_rtc,
             Param_atmos p_atmos, Atmos g_atmos, Param_tel p_tel, Param_loop p_loop, 
-            Target g_tar, Param_target p_tar, clean=1, brama=None, doimat=None,simul_name=""):
+            Target g_tar, Param_target p_tar, clean=1, brama=None, doimat=None,simul_name="", int overwrite=1):
     """Initialize all the sutra_rtc objects : centroiders and controllers
 
     :parameters:
@@ -1382,7 +1382,9 @@ def rtc_init(Sensors g_wfs, p_wfs, Dms g_dms, p_dms, Param_geom p_geom, Param_rt
         doimat: (int) : (optional) force imat computation
 
         simul_name: (str) : (optional) simulation's name, use for path to save data (imat, U...)
-        
+       
+        overwrite: (int) : (optional) overwrite data files if overwite=1 (default 1)
+
     :return:
         Rtc : (Rtc) : Rtc object
 
@@ -1546,7 +1548,7 @@ def rtc_init(Sensors g_wfs, p_wfs, Dms g_dms, p_dms, Param_geom p_geom, Param_rt
                         imat=imat_geom(g_wfs,p_wfs,controller,g_dms,p_dms,meth=0)
                     else:
                         imat=manual_imat(g_rtc,g_wfs,p_wfs,g_dms,p_dms)
-                    correct_dm(p_dms,g_dms,controller,p_geom, imat,simul_name)
+                    correct_dm(p_dms,g_dms,controller,p_geom, imat,simul_name,overwrite)
                     #TODO add timer
                     if(controller.type_control !="geo"):
                         nwfs=controller.nwfs
@@ -1603,7 +1605,7 @@ def rtc_init(Sensors g_wfs, p_wfs, Dms g_dms, p_dms, Param_geom p_geom, Param_rt
 
                     if(controller.type_control=="ls"):
                         if(doimat):
-                            imat_init(i,g_rtc,p_rtc,g_dms,g_wfs,p_wfs,p_tel,clean=clean,simul_name=simul_name)
+                            imat_init(i,g_rtc,p_rtc,g_dms,g_wfs,p_wfs,p_tel,clean=clean,simul_name=simul_name,overwrite=overwrite)
                             if(controller.modopti == 1):
                                 print "Initializing Modal Optimization : "
                                 if(controller.nrec==0):
@@ -1624,7 +1626,7 @@ def rtc_init(Sensors g_wfs, p_wfs, Dms g_dms, p_dms, Param_geom p_geom, Param_rt
                                 g_rtc.loadOpenLoop(i,ol_slopes)
                                 g_rtc.modalControlOptimization(i)
                             else:
-                                cmat_init(i,g_rtc,p_rtc,p_wfs,p_atmos,p_tel, p_dms, clean=clean,simul_name=simul_name)
+                                cmat_init(i,g_rtc,p_rtc,p_wfs,p_atmos,p_tel, p_dms, clean=clean,simul_name=simul_name,overwrite=overwrite)
                                 g_rtc.set_gain(i,controller.gain)
                                 mgain=np.ones(sum([p_dms[j]._ntotact for j in range(len(p_dms))]),dtype=np.float32)
                                 #filtering tilt ...
@@ -1697,7 +1699,7 @@ def rtc_init(Sensors g_wfs, p_wfs, Dms g_dms, p_dms, Param_geom p_geom, Param_rt
                         mgain = np.ones(size,dtype=np.float32)
                         g_rtc.set_mgain(i,mgain)
                         doTomoMatrices(i,g_rtc,p_wfs,g_dms,g_atmos,g_wfs,p_rtc,p_geom,p_dms,p_tel,p_atmos)
-                        cmat_init(i,g_rtc,p_rtc,p_wfs,p_atmos,p_tel,p_dms,clean=1)
+                        cmat_init(i,g_rtc,p_rtc,p_wfs,p_atmos,p_tel,p_dms,clean=1,simul_name=simul_name,overwrite=overwrite)
                         
                     elif(controller.type_control=="generic"):
                         size=sum([p_dms[j]._ntotact for j in range(len(p_dms))])
@@ -1716,7 +1718,7 @@ def rtc_init(Sensors g_wfs, p_wfs, Dms g_dms, p_dms, Param_geom p_geom, Param_rt
     return g_rtc
     
 
-cpdef correct_dm(p_dms, Dms g_dms, Param_controller p_control, Param_geom p_geom, np.ndarray imat, bytes simul_name):
+cpdef correct_dm(p_dms, Dms g_dms, Param_controller p_control, Param_geom p_geom, np.ndarray imat, bytes simul_name, int overwrite=1):
     """Correct the geometry of the DMs using the imat (filter unseen actuators)
 
     :parameters:
@@ -1731,6 +1733,8 @@ cpdef correct_dm(p_dms, Dms g_dms, Param_controller p_control, Param_geom p_geom
         imat: (np.ndarray) : interaction matrix
 
         simul_name: (str) : simulation's name, use for data files' path
+
+        overwrite: (int) : (optional) overwrite data files if overwite=1 (default 1)
     """
     #cdef carma_context *context = carma_context.instance() #UNUSED
     
@@ -1780,7 +1784,7 @@ cpdef correct_dm(p_dms, Dms g_dms, Param_controller p_control, Param_geom p_geom
                 tmp=resp[inds:inds+p_dms[nm]._ntotact]
                 ok=np.where(tmp.flatten("F")>p_dms[nm].thresh*np.max(tmp))[0]
                 nok=np.where(tmp.flatten("F")<=p_dms[nm].thresh*np.max(tmp))[0]
-                if(simul_name !="" and rank==0):
+                if(simul_name !="" and rank==0 and overwrite==1):
                     np.save(filename,ok)
                     filename=dirsave+"pztnok-"+str(nm)+"-"+simul_name+".npy"
                     np.save(filename,nok)
@@ -2067,7 +2071,7 @@ cpdef openLoopSlp(Atmos g_atm, Rtc g_rtc,int nrec, int ncontro, Sensors g_wfs,
     return ol_slopes
 
 cpdef imat_init(int ncontro, Rtc g_rtc, Param_rtc p_rtc, Dms g_dms, Sensors g_wfs,
-        p_wfs, Param_tel p_tel, int clean=1, bytes simul_name=<bytes>""):
+        p_wfs, Param_tel p_tel, int clean=1, bytes simul_name=<bytes>"", overwrite=1):
     """Initialize and compute the interaction matrix on the GPU
 
     :parameters:
@@ -2088,6 +2092,8 @@ cpdef imat_init(int ncontro, Rtc g_rtc, Param_rtc p_rtc, Dms g_dms, Sensors g_wf
         clean: (int) : (optional) : clean datafiles (imat, U, eigenv)
 
         simul_name: (str) : (optional) simulation's name, use for data files' path
+
+        overwrite: (int) : (optional
     """
     cdef bytes dirsave=shesha_savepath+<bytes>"mat/"
     cdef bytes filename=dirsave+"imat-"+str(ncontro)+"-"+simul_name+".npy"
@@ -2130,7 +2136,7 @@ cpdef imat_init(int ncontro, Rtc g_rtc, Param_rtc p_rtc, Dms g_dms, Sensors g_wf
         g_rtc.doimat(ncontro,g_dms)
         print "done in ",time.time()-t0
         p_rtc.controllers[ncontro].set_imat(g_rtc.get_imat(ncontro))
-        if(simul_name!="" and rank==0):
+        if(simul_name!="" and rank==0 and overwrite==1):
             np.save(filename,p_rtc.controllers[ncontro].imat)
 
     else:
@@ -2148,17 +2154,25 @@ cpdef imat_init(int ncontro, Rtc g_rtc, Param_rtc p_rtc, Dms g_dms, Sensors g_wf
 
 
 cpdef cmat_init(int ncontro, Rtc g_rtc, Param_rtc p_rtc, list p_wfs, Param_atmos p_atmos,
-               Param_tel p_tel, p_dms, clean=1, bytes simul_name=<bytes>""):
+               Param_tel p_tel, p_dms, clean=1, bytes simul_name=<bytes>"", int overwrite=1):
     """ Compute the command matrix on the GPU
 
     :parameters:
         ncontro: (int) :
+
         g_rtc: (Rtc) :
+
         p_rtc: (Param_rtc) : rtc settings
+
         p_wfs: (list of Param_wfs) : wfs settings
+
         p_tel : (Param_tel) : telescope settings
+
         clean: (int) : (optional) clean datafiles (imat, U, eigenv)
+
         simul_name: (str) : (optional) simulation's name, use for data files' path
+
+        overwrite: (int) : (optional) overwrite data files if overwite=1 (default 1)
         
     """
 
@@ -2197,7 +2211,7 @@ cpdef cmat_init(int ncontro, Rtc g_rtc, Param_rtc p_rtc, list p_wfs, Param_atmos
             g_rtc.imat_svd(ncontro)
             print "svd time",time.time()-t0
             eigenv = g_rtc.getEigenvals(ncontro)
-            if(simul_name!="" and rank==0):
+            if(simul_name!="" and rank==0 and overwrite==1):
                 U=g_rtc.getU(ncontro)
                 filename=dirsave+"eigenv-"+str(ncontro)+"-"+simul_name
                 np.save(filename,eigenv)

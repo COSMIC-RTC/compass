@@ -10,7 +10,7 @@ from cython.operator cimport dereference as deref, preincrement as inc
 
 def atmos_init(naga_context c, Param_atmos atm, Param_tel tel,  Param_geom geom,
                     Param_loop loop, wfss=None, Param_target target=None,
-                    int rank=0):
+                    int overwrite=1, int rank=0):
         """Create and initialise an atmos object
 
         :parameters:
@@ -25,6 +25,10 @@ def atmos_init(naga_context c, Param_atmos atm, Param_tel tel,  Param_geom geom,
             wfss: (list of Param_wfs) : (optional) wfs settings
 
             target: (Param_target) : (optional) target_settings
+
+            overwrite: (int) : (optional) overwrite data files if overwite=1 (default 1)
+
+            rank: (int) : (optional) rank of the process (default=0)
         """
 
         cdef double ittime=loop.ittime
@@ -84,7 +88,7 @@ def atmos_init(naga_context c, Param_atmos atm, Param_tel tel,  Param_geom geom,
                 atm.L0[i]=geom.pupdiam/frac_l0
         return atmos_create(c,atm.nscreens,atm.r0,atm.L0,atm.pupixsize,
             atm.dim_screens,atm.frac,atm.alt,atm.windspeed,
-            atm.winddir,atm.deltax,atm.deltay,rank)
+            atm.winddir,atm.deltax,atm.deltay,rank,overwrite)
 
 
 
@@ -284,7 +288,7 @@ cdef atmos_create(naga_context c, int nscreens,
               np.ndarray[ndim=1,dtype=np.float32_t] winddir,
               np.ndarray[ndim=1,dtype=np.float32_t] deltax,
               np.ndarray[ndim=1,dtype=np.float32_t] deltay,
-              int verbose):
+              int verbose, int overwrite=1):
     """Create and initialise an atmos object.
     
     :parameters:
@@ -354,10 +358,11 @@ cdef atmos_create(naga_context c, int nscreens,
             A,B,istx,isty=itK.AB(dim_screens[i],L0[i],verbose)
             if(verbose==0):
                 print "writing files"
-                np.save(file_A,A)
-                np.save(file_B,B)
-                np.save(file_istx,istx)
-                np.save(file_isty,isty)
+                if(overwrite==1):
+                    np.save(file_A,A)
+                    np.save(file_B,B)
+                    np.save(file_istx,istx)
+                    np.save(file_isty,isty)
             A_F=np.reshape(A.flatten("F"),(A.shape[0],A.shape[1]))
             B_F=np.reshape(B.flatten("F"),(B.shape[0],B.shape[1]))
 

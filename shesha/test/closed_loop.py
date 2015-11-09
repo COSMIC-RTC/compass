@@ -24,11 +24,8 @@ sys.path.insert(0,param_path)
 exec("import %s as config" % filename.split(".py")[0])
 sys.path.remove(param_path)
 
-
-#start=param_file.rindex("/")
-#end=param_file.rindex(".")
-#simul_name=param_file[start+1:end]
 print "param_file is",param_file
+
 
 if(hasattr(config,"simul_name")):
     if(config.simul_name is None):
@@ -55,7 +52,7 @@ wfs=ao.wfs_init(config.p_wfss,config.p_atmos,config.p_tel,config.p_geom,config.p
 
 #   atmos
 print "->atmos"
-atm=ao.atmos_init(c,config.p_atmos,config.p_tel,config.p_geom,config.p_loop,config.p_wfss,config.p_target,rank=0)
+atm=ao.atmos_init(c,config.p_atmos,config.p_tel,config.p_geom,config.p_loop,config.p_wfss,config.p_target,overwrite=1,rank=0)
 
 #   dm 
 print "->dm"
@@ -67,7 +64,7 @@ tar=ao.target_init(c,config.p_target,config.p_atmos,config.p_geom,config.p_tel,c
 
 print "->rtc"
 #   rtc
-rtc=ao.rtc_init(wfs,config.p_wfss,dms,config.p_dms,config.p_geom,config.p_rtc,config.p_atmos,atm,config.p_tel,config.p_loop,tar,config.p_target,clean=clean,simul_name=simul_name)
+rtc=ao.rtc_init(wfs,config.p_wfss,dms,config.p_dms,config.p_geom,config.p_rtc,config.p_atmos,atm,config.p_tel,config.p_loop,tar,config.p_target,clean=clean,simul_name=simul_name,overwrite=1)
 
 print "===================="
 print "init done"
@@ -86,9 +83,6 @@ print "iter# | S.E. SR | L.E. SR | Est. Rem. | framerate";
 print "----------------------------------------------------";
 
 def loop( n):
-    #fig,((turbu,image),(shak,defMir))=pl.subplots(2,2, figsize=(15,15))
-    #pl.ion()
-    #pl.show()
     t0=time.time()
     for i in range(n):
         atm.move_atmos()
@@ -113,32 +107,10 @@ def loop( n):
             rtc.applycontrol(0,dms)
         
         if((i+1)%100==0):
-            """
-            turbu.clear()
-            image.clear()
-            shak.clear()
-            defMir.clear()
-
-            screen=atm.get_screen(p_atmos.alt)
-            f1=turbu.matshow(screen,cmap='Blues_r')
-
-            im=tar.get_image(0,"se")
-            im=np.roll(im,im.shape[0]/2,axis=0)
-            im=np.roll(im,im.shape[1]/2,axis=1)
-            f2=image.matshow(im,cmap='Blues_r')
-
-            sh=wfs.get_binimg(0)
-            f3=shak.matshow(sh,cmap='Blues_r')
-
-            dm=dms.get_dm("pzt",0.)
-            f4=defMir.matshow(dm)
-
-            pl.draw()
-            """
             strehltmp = tar.get_strehl(0)
             print i+1,"\t",strehltmp[0],"\t",strehltmp[1]
     t1=time.time()
     print " loop execution time:",t1-t0,"  (",n,"iterations), ",(t1-t0)/n,"(mean)  ", n/(t1-t0),"Hz"
 
 
-#loop(p_loop.niter)
+loop(config.p_loop.niter)
