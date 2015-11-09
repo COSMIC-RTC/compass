@@ -55,6 +55,11 @@
             </item>
             <item>
              <property name="text">
+              <string>Centroids - WFS</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
               <string>Slopes - WFS</string>
              </property>
             </item>
@@ -172,6 +177,39 @@
                <number>25</number>
               </property>
              </widget>
+            </item>
+            <item>
+             <spacer name="horizontalSpacer_2">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item>
+             <widget class="QCheckBox" name="wao_PSFlogscale">
+              <property name="text">
+               <string>PSF log scale</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <spacer name="horizontalSpacer_3">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
             </item>
             <item>
              <widget class="QLabel" name="label_5">
@@ -606,7 +644,11 @@
                   </widget>
                  </item>
                  <item row="4" column="3">
-                  <widget class="QDoubleSpinBox" name="wao_wfsNoise"/>
+                  <widget class="QDoubleSpinBox" name="wao_wfsNoise">
+                   <property name="minimum">
+                    <double>-1.000000000000000</double>
+                   </property>
+                  </widget>
                  </item>
                 </layout>
                </item>

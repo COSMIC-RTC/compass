@@ -97,6 +97,7 @@ class widgetAOWindow(TemplateBaseClass):
         self.ui.wao_frameRate.valueChanged.connect(self.updateFrameRate)
         self.RTDisplay= self.ui.wao_Display.isChecked()
         self.RTDFreq = self.ui.wao_frameRate.value()
+        self.ui.wao_PSFlogscale.clicked.connect(self.updateDisplay)
         
         
         # Create Loop thread
@@ -451,7 +452,7 @@ class widgetAOWindow(TemplateBaseClass):
         self.ui.wao_selectNumber.clear()
         if(textType == "Phase - Atmos"):
             n = self.config.p_atmos.nscreens
-        if(textType == "Phase - WFS" or textType == "Spots - WFS" or textType == "Slopes - WFS"):
+        if(textType == "Phase - WFS" or textType == "Spots - WFS" or textType == "Centroids - WFS" or textType == "Slopes - WFS"):
             n = len(self.config.p_wfss)
         if(textType == "Phase - Target" or textType == "PSF LE" or textType == "PSF SE"):
             n = self.config.p_target.ntargets
@@ -484,14 +485,28 @@ class widgetAOWindow(TemplateBaseClass):
                         data =self.wfs.get_binimg(self.numberSelected)
                     elif(self.config.p_wfss[self.numberSelected].type_wfs == "pyr"):
                         data =self.wfs.get_pyrimg(self.numberSelected)
-                if(self.imgType == "Slopes - WFS"):
-                    self.ui.wao_rtcWindowMPL.show()
-                    self.ui.wao_pgwindow.hide()
+                if(self.imgType == "Centroids - WFS"):
+                    if(not self.ui.wao_rtcWindowMPL.isVisible()):
+                        self.ui.wao_rtcWindowMPL.show()
+                        self.ui.wao_pgwindow.hide()
                     self.ui.wao_rtcWindowMPL.canvas.axes.clear()
-                    slopes = self.rtc.getCentroids(self.numberSelected) # retrieving slopes
-                    x, y, vx, vy = tools.plsh(slopes, self.config.p_wfss[self.numberSelected].npix,self.config.p_tel.cobs , returnquiver=True) # Preparing mesh and vector for display
+                    centroids = self.rtc.getCentroids(0) # retrieving centroids
+                    nvalid = [2*o._nvalid for o in self.config.p_wfss]
+                    ind = np.sum(nvalid[:self.numberSelected])
+                    x, y, vx, vy = tools.plsh(centroids[ind:ind+nvalid[self.numberSelected]], self.config.p_wfss[self.numberSelected].nxsub,self.config.p_tel.cobs , returnquiver=True) # Preparing mesh and vector for display
                     self.ui.wao_rtcWindowMPL.canvas.axes.quiver(x, y, vx, vy, pivot='mid')
                     self.ui.wao_rtcWindowMPL.canvas.draw()
+                    return
+                if(self.imgType == "Slopes - WFS"):
+                    if(not self.ui.wao_rtcWindowMPL.isVisible()):
+                        self.ui.wao_rtcWindowMPL.show()
+                        self.ui.wao_pgwindow.hide()
+                    self.ui.wao_rtcWindowMPL.canvas.axes.clear()
+                    self.wfs.slopes_geom(self.numberSelected,0)
+                    slopes = self.wfs.get_slopes(self.numberSelected)
+                    x, y, vx, vy = tools.plsh(slopes, self.config.p_wfss[self.numberSelected].nxsub,self.config.p_tel.cobs , returnquiver=True) # Preparing mesh and vector for display
+                    wao.ui.wao_rtcWindowMPL.canvas.axes.quiver(x, y, vx, vy, pivot='mid')
+                    wao.ui.wao_rtcWindowMPL.canvas.draw()
                     return
                     
             if(self.dms):
@@ -504,8 +519,12 @@ class widgetAOWindow(TemplateBaseClass):
                     data =self.tar.get_phase(self.numberSelected)
                 if(self.imgType == "PSF SE"):
                     data =self.tar.get_image(self.numberSelected,"se")
+                    if(self.ui.wao_PSFlogscale.isChecked()):
+                        data = np.log10(data)
                 if(self.imgType == "PSF LE"):
                     data =self.tar.get_image(self.numberSelected,"le")
+                    if(self.ui.wao_PSFlogscale.isChecked()):
+                        data = np.log10(data)
             if (data is not None):
                 self.img.setImage(data)
                 self.hist.setLevels(np.min(data),np.max(data))
@@ -537,7 +556,7 @@ class widgetAOWindow(TemplateBaseClass):
                                                 self.config.p_wfss,self.config.p_target)
         self.ui.wao_atmosDimScreen.setText(str(self.config.p_atmos.dim_screens[0]))
 
-        self.dms=ao.dm_init(self.config.p_dms,self.config.p_wfs0,self.config.p_geom,self.config.p_tel)
+        self.dms=ao.dm_init(self.config.p_dms,self.config.p_wfss[0],self.config.p_geom,self.config.p_tel)
 
         self.tar=ao.target_init(self.c, self.config.p_target,self.config.p_atmos,
                                                   self.config.p_geom,self.config.p_tel,self.config.p_wfss,
@@ -641,7 +660,7 @@ class aoLoopThread(QtCore.QThread):
     
     def updateDisplay(self):
         data = None
-        if((not wao.ui.wao_pgwindow.isVisible()) & (self.imgType != "Slopes - WFS")):
+        if((not wao.ui.wao_pgwindow.isVisible()) & (self.imgType != "Centroids - WFS") & (self.imgType != "Slopes - WFS")):
             wao.ui.wao_pgwindow.show()
             wao.ui.wao_rtcWindowMPL.hide()
             
@@ -656,13 +675,25 @@ class aoLoopThread(QtCore.QThread):
                     data =self.wfs.get_binimg(self.numberSelected)
                 elif(self.config.p_wfss[self.numberSelected].type_wfs == "pyr"):
                     data =self.wfs.get_pyrimg(self.numberSelected)
+            if(self.imgType == "Centroids - WFS"):
+                if(not wao.ui.wao_rtcWindowMPL.isVisible()):
+                    wao.ui.wao_rtcWindowMPL.show()
+                    wao.ui.wao_pgwindow.hide()
+                wao.ui.wao_rtcWindowMPL.canvas.axes.clear()
+                centroids = self.rtc.getCentroids(0) # retrieving centroids
+                nvalid = [2*o._nvalid for o in self.config.p_wfss]
+                ind = np.sum(nvalid[:self.numberSelected])
+                x, y, vx, vy = tools.plsh(centroids[ind:ind+nvalid[self.numberSelected]], self.config.p_wfss[self.numberSelected].nxsub,self.config.p_tel.cobs , returnquiver=True) # Preparing mesh and vector for display
+                wao.ui.wao_rtcWindowMPL.canvas.axes.quiver(x, y, vx, vy, pivot='mid')
+                wao.ui.wao_rtcWindowMPL.canvas.draw()
             if(self.imgType == "Slopes - WFS"):
                 if(not wao.ui.wao_rtcWindowMPL.isVisible()):
                     wao.ui.wao_rtcWindowMPL.show()
                     wao.ui.wao_pgwindow.hide()
                 wao.ui.wao_rtcWindowMPL.canvas.axes.clear()
-                slopes = self.rtc.getCentroids(self.numberSelected) # retrieving slopes
-                x, y, vx, vy = tools.plsh(slopes, self.config.p_wfss[self.numberSelected].npix,self.config.p_tel.cobs , returnquiver=True) # Preparing mesh and vector for display
+                self.wfs.slopes_geom(self.numberSelected,0)
+                slopes = self.wfs.get_slopes(self.numberSelected)
+                x, y, vx, vy = tools.plsh(slopes, self.config.p_wfss[self.numberSelected].nxsub,self.config.p_tel.cobs , returnquiver=True) # Preparing mesh and vector for display
                 wao.ui.wao_rtcWindowMPL.canvas.axes.quiver(x, y, vx, vy, pivot='mid')
                 wao.ui.wao_rtcWindowMPL.canvas.draw()
 
@@ -676,8 +707,12 @@ class aoLoopThread(QtCore.QThread):
                 data =self.tar.get_phase(self.numberSelected)
             if(self.imgType == "PSF SE"):
                 data =self.tar.get_image(self.numberSelected,"se")
+                if(wao.ui.wao_PSFlogscale.isChecked()):
+                    data = np.log10(data)
             if(self.imgType == "PSF LE"):
                 data =self.tar.get_image(self.numberSelected,"le")
+                if(wao.ui.wao_PSFlogscale.isChecked()):
+                    data = np.log10(data)
         if (data is not None):
             self.img.setImage(data, autoLevels=False)
             #self.histo.setLevels(np.min(data),np.max(data))
