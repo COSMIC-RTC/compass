@@ -29,7 +29,7 @@ int sutra_wfs_pyr_pyr4::comp_generic() {
   current_context->set_activeDevice(device,1);
   pyr_getpup(this->d_camplipup->getData(),
       this->d_gs->d_phase->d_screen->getData(), this->d_phalfxy->getData(),
-      this->d_pupil->getData(), this->ntot,
+      this->d_pupil->getData(), this->ntot, this->d_gs->lambda,
       this->current_context->get_device(device));
 
   carma_fft(this->d_camplipup->getData(), this->d_camplifoc->getData(), -1,

@@ -755,11 +755,11 @@ phase_derive<double>(int size, int threads, int blocks, int n, double *d_idata,
 
 template<class Tout, class Tin>
 __global__ void pyrgetpup_krnl(Tout *g_odata, Tin *g_idata, Tout *offsets,
-    Tin *pup, unsigned int n) {
+    Tin *pup, float lambda, unsigned int n) {
   // roll( pup * exp(i*phase) ) * offsets
 
   Tout *sdata = SharedMemory<Tout>();
-
+  const float PI = 3.1415926535897932384626433;
   // load shared mem
   unsigned int tid = threadIdx.x;
   unsigned int i = blockIdx.x * blockDim.x + threadIdx.x;
@@ -773,12 +773,14 @@ __global__ void pyrgetpup_krnl(Tout *g_odata, Tin *g_idata, Tout *offsets,
     xx = (x + n / 2) % n;
     yy = (y + n / 2) % n;
     i2 = xx + yy * n;
+    
+    float mic2rad =(2*PI/lambda);
+        
+    sdata[2 * tid].x = cosf(g_idata[i]*mic2rad) * pup[i];
+    sdata[2 * tid].y = sinf(g_idata[i]*mic2rad) * pup[i];
 
-    sdata[2 * tid].x = cosf(g_idata[i]) * pup[i];
-    sdata[2 * tid].y = sinf(g_idata[i]) * pup[i];
-
-    sdata[2 * tid + 1].x = cosf(g_idata[i2]) * pup[i2];
-    sdata[2 * tid + 1].y = sinf(g_idata[i2]) * pup[i2];
+    sdata[2 * tid + 1].x = cosf(g_idata[i2]*mic2rad) * pup[i2];
+    sdata[2 * tid + 1].y = sinf(g_idata[i2]*mic2rad) * pup[i2];
   }
   __syncthreads();
 
@@ -798,7 +800,7 @@ __global__ void pyrgetpup_krnl(Tout *g_odata, Tin *g_idata, Tout *offsets,
 
 template<class Tout, class Tin>
 void pyr_getpup(Tout *d_odata, Tin *d_idata, Tout *d_offsets, Tin *d_pup,
-    int np, carma_device *device) {
+    int np, float lambda, carma_device *device) {
 
   int nBlocks,nThreads;
   getNumBlocksAndThreads(device, np * np / 2, nBlocks, nThreads);
@@ -806,16 +808,16 @@ void pyr_getpup(Tout *d_odata, Tin *d_idata, Tout *d_offsets, Tin *d_pup,
 
   int smemSize = 2 * nThreads * sizeof(Tout);
   pyrgetpup_krnl<Tout, Tin> <<<grid, threads, smemSize>>>(d_odata, d_idata,
-      d_offsets, d_pup, np);
+      d_offsets, d_pup, lambda, np);
 
   carmaCheckMsg("pyrgetpup_kernel<<<>>> execution failed\n");
 }
 template void
 pyr_getpup<cuFloatComplex, float>(cuFloatComplex *d_odata, float *d_idata,
-    cuFloatComplex *d_offsets, float *d_pup, int np, carma_device *device);
+    cuFloatComplex *d_offsets, float *d_pup, int np, float lambda, carma_device *device);
 template void
 pyr_getpup<cuDoubleComplex, double>(cuDoubleComplex *d_odata, double *d_idata,
-    cuDoubleComplex *d_offsets, double *d_pup, int np, carma_device *device);
+    cuDoubleComplex *d_offsets, double *d_pup, int np, float lambda, carma_device *device);
 
 template<class T>
 __global__ void rollmod_krnl(T *g_odata, T *g_idata, T *g_mask, int cx, int cy,

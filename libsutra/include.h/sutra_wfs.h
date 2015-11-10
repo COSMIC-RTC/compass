@@ -195,7 +195,7 @@ phase_derive(int size, int threads, int blocks, int n, T *d_idata, T *d_odata,
              int *indx, T *mask, T alpha, float *fluxPerSub);
 template<class Tout, class Tin>
 void
-pyr_getpup(Tout *d_odata, Tin *d_idata, Tout *d_offsets, Tin *d_pup, int np,
+pyr_getpup(Tout *d_odata, Tin *d_idata, Tout *d_offsets, Tin *d_pup, int np, float lambda,
            carma_device *device);
 template<class T>
 void
