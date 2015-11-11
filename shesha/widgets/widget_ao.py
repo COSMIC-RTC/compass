@@ -3,8 +3,6 @@ import cProfile
 import pstats as ps
 
 import sys, os
-sys.path.insert(0, os.environ["SHESHA"]+"/widgets/lib") # for tools lib
-
 import numpy as np
 import naga as ch
 import shesha as ao
@@ -13,14 +11,15 @@ import matplotlib.pyplot as pl
 import pyqtgraph as pg
 import glob
 import tools
-sys.path.insert(0, os.environ["SHESHA"]+"/data/par/") 
+shesha_root=os.environ["SHESHA_ROOT"]
+sys.path.insert(0, shesha_root+"/data/par/") 
 
 from PyQt4.uic import loadUiType
 from PyQt4 import QtCore, QtGui
 
 from functools import partial
 import time
-WindowTemplate,TemplateBaseClass=loadUiType(os.environ["SHESHA"]+"/widgets/widget_ao.ui")
+WindowTemplate,TemplateBaseClass=loadUiType(shesha_root+"/widgets/widget_ao.ui")
 
 
 """
@@ -68,7 +67,7 @@ class widgetAOWindow(TemplateBaseClass):
         ##############################################################
         #######       CONNECTED BUTTONS  #######################
         #############################################################
-        self.defaultParPath = os.environ["SHESHA"]+"/data/par/par4bench/" # Default path for config files
+        self.defaultParPath = shesha_root+"/data/par/par4bench/" # Default path for config files
         self.ui.wao_loadConfig.clicked.connect(self.loadConfig)
         self.loadDefaultConfig()
         self.ui.wao_init.clicked.connect(self.InitConfig)

@@ -78,7 +78,7 @@ ifeq ($(MAGMA),1)
   LIB_DEPLIBS   += -lmagma_sparse
  endif
 else
- $(warning "WARNING MAGMA not found, did you add $(MAGMA_ROOT)/lib to PKG_CONFIG_PATH")
+ $(warning "WARNING MAGMA not found, did you add $(MAGMA_ROOT)/lib/pkgconfig to PKG_CONFIG_PATH")
 endif
 
 ifneq ($(KSPARSE_ROOT),)

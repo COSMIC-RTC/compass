@@ -8,3 +8,6 @@ clean:
 
 install: build
 	python setup.py install --user
+
+uninstall:
+	$(error "not handle yet")

@@ -13,15 +13,15 @@ SRC_CU  = $(wildcard $(CU_DIR)/*.cu)
 SRC_CPP = $(wildcard $(CPP_DIR)/*.cpp) 
 
 ifneq ($(COMPILATION_LAM),) 
-  LAM_KALMAN_DIR = $(COMPASS_ROOT_DIR)/lam/kalman_CPU_GPU
-  LAM_KP_CLASSES_DIR =  $(COMPASS_ROOT_DIR)/lam/kp_classes
-  LAM_KP_INTERFACE_DIR =  $(COMPASS_ROOT_DIR)/lam/compass_interface
+  LAM_KALMAN_DIR = $(COMPASS_ROOT)/lam/kalman_CPU_GPU
+  LAM_KP_CLASSES_DIR =  $(COMPASS_ROOT)/lam/kp_classes
+  LAM_KP_INTERFACE_DIR =  $(COMPASS_ROOT)/lam/compass_interface
 #else
 #  SRC_CPP = $(filter-out $(CPP_DIR)/sutra_controller_kalman.cpp, $(wildcard $(CPP_DIR)/*.cpp)) 
 endif
 
 
-CURED_DIR = $(COMPASS_ROOT_DIR)/aao/cured
+CURED_DIR = $(COMPASS_ROOT)/aao/cured
 CURED_INC_PATH = $(CURED_DIR)
 CURED_CPP = $(wildcard $(CURED_DIR)/*.cpp)
 
@@ -32,14 +32,14 @@ OBJS += $(patsubst %.cpp,%.o,$(CURED_CPP))
 
 LIB_DEPLIBS  = -Wl,-rpath=$(CUDA_LIB_PATH_64) -L$(CUDA_LIB_PATH_64)
 LIB_DEPLIBS += -lcudart -lcublas -lcufft -lstdc++ -lcurand
-LIB_DEPLIBS += -Wl,-rpath=$(COMPASS_ROOT_DIR)/libcarma -L$(COMPASS_ROOT_DIR)/libcarma -lcarma
+LIB_DEPLIBS += -Wl,-rpath=$(COMPASS_ROOT)/libcarma -L$(COMPASS_ROOT)/libcarma -lcarma
 
 
 # set compiler (or rarely loader) flags specific to this package
 
 
 LIB_CPPFLAGS = -c -fPIC -Wall -Wno-unused-result -DUNIX -std=c++11
-LIB_CPPFLAGS+= -I$(H_DIR) -I$(COMPASS_ROOT_DIR)/libcarma/$(H_DIR) -I$(CUDA_INC_PATH) -I$(CURED_INC_PATH)
+LIB_CPPFLAGS+= -I$(H_DIR) -I$(COMPASS_ROOT)/libcarma/$(H_DIR) -I$(CUDA_INC_PATH) -I$(CURED_INC_PATH)
 
 ifneq ($(DEBUG),)
   LIB_CPPFLAGS+= -g -DDEBUG
@@ -66,8 +66,8 @@ endif
 
 NVCC = $(CUDA_ROOT)/bin/nvcc
 NVCCFLAGS += -m64 -Xcompiler -fPIC -use_fast_math -c
-NVCCFLAGS += -I$(CUH_DIR)  -I$(H_DIR) -I$(COMPASS_ROOT_DIR)/libcarma/$(CUH_DIR)  
-NVCCFLAGS += -I$(COMPASS_ROOT_DIR)/libcarma/$(H_DIR) -I$(CURED_INC_PATH) -gencode $(GENCODE)
+NVCCFLAGS += -I$(CUH_DIR)  -I$(H_DIR) -I$(COMPASS_ROOT)/libcarma/$(CUH_DIR)  
+NVCCFLAGS += -I$(COMPASS_ROOT)/libcarma/$(H_DIR) -I$(CURED_INC_PATH) -gencode $(GENCODE)
 
 ifneq ($(COMPILATION_LAM),)
   CFLAGS = -DCOMPILATION_LAM -O3 -DHAVE_CUBLAS -I$(MAGMA_ROOT)/include -I$(LAM_KP_CLASSES_DIR) -I$(LAM_KP_INTERFACE_DIR) -I$(LAM_KALMAN_DIR)
