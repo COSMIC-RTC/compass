@@ -437,7 +437,7 @@
            </font>
           </property>
           <property name="currentIndex">
-           <number>0</number>
+           <number>3</number>
           </property>
           <widget class="QWidget" name="tab_2">
            <attribute name="title">
@@ -1469,6 +1469,11 @@
                        <string>OptiMods</string>
                       </property>
                      </item>
+                     <item>
+                      <property name="text">
+                       <string>CuReD</string>
+                      </property>
+                     </item>
                     </widget>
                    </item>
                    <item row="1" column="1">
@@ -1741,7 +1746,7 @@
      <x>0</x>
      <y>0</y>
      <width>1253</width>
-     <height>19</height>
+     <height>29</height>
     </rect>
    </property>
   </widget>

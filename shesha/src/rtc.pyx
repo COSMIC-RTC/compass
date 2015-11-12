@@ -1649,9 +1649,10 @@ def rtc_init(Sensors g_wfs, p_wfs, Dms g_dms, p_dms, Param_geom p_geom, Param_rt
                             tt_flag=1
                         else:
                             tt_flag=0
-                        print "TODO controller_initcured"
-                        #controller_initcured,g_rtc,0,int(y_wfs(1).nxsub),int(*y_wfs(1)._isvalid),
-                                #int(controllers(i).cured_ndivs),int(tt_flag);
+
+                        controller_cured=dynamic_cast_controller_cured_ptr(g_rtc.rtc.d_control[0])
+                        wfs = p_wfs[0]
+                        controller_cured.init_cured(p_wfs[0].nxsub, <int*>wfs._isvalid.data, controller.cured_ndivs, tt_flag);
                         g_rtc.set_gain(i,controller.gain)
                     if(controller.type_control=="kalman_CPU" or 
                        controller.type_control=="kalman_GPU"):

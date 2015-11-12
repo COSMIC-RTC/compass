@@ -23,7 +23,7 @@ from distutils.extension import Extension
 
 
 
-listMod=[ "param", "sensors","atmos","dms","target","rtc","shesha"]
+listMod=[ "param", "sensors","atmos","dms","target","rtc" ]
 dependencies={"sensors":["wfs"]}
 
 try:
@@ -216,8 +216,7 @@ if MPI4PY==1:
 
 
 
-
-for name in listMod:
+def compile_module(name):
     if(os.path.exists(shesha_path+"/lib/"+name+".so") and name != "shesha"):
         shutil.move(shesha_path+"/lib/"+name+".so",shesha_path+"/"+name+".so")
     print "======================================="
@@ -254,6 +253,14 @@ for name in listMod:
     )
     if(os.path.exists(shesha_path+"/"+name+".so") and name != "shesha"):
         shutil.move(shesha_path+"/"+name+".so",shesha_path+"/lib/"+name+".so")
+
+if __name__ == '__main__':
+    from multiprocessing import Pool, cpu_count
+    pool = Pool(maxtasksperchild=1) # process per core
+    pool.map(compile_module, listMod)  # proces data_inputs iterable with poo
+#    for name in listMod:
+#        compile_module(name)
+    compile_module("shesha")
 
 
 """

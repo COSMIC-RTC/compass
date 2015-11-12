@@ -234,6 +234,8 @@ class widgetAOWindow(TemplateBaseClass):
             self.ui.wao_controlTypeSelector.setCurrentIndex(2)
         elif(type_contro == "ls" and self.config.p_controllers[0].modopti):
             self.ui.wao_controlTypeSelector.setCurrentIndex(3)
+        elif(type_contro == "cured"):
+            self.ui.wao_controlTypeSelector.setCurrentIndex(4)
         else:
             print "pffff...."
             
