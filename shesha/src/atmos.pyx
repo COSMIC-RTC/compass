@@ -2,15 +2,21 @@
 import numpy as np
 cimport numpy as np
 
+import h5py
+
+import hdf5_utils as h5u
+
+import pandas
+
 import os
 import iterkolmo as itK
 
 from cython.operator cimport dereference as deref, preincrement as inc
-
+from subprocess import check_output
 
 def atmos_init(naga_context c, Param_atmos atm, Param_tel tel,  Param_geom geom,
                     Param_loop loop, wfss=None, Param_target target=None,
-                    int overwrite=1, int rank=0):
+                    int rank=0, int clean=1, dict load={}):
         """Create and initialise an atmos object
 
         :parameters:
@@ -88,7 +94,7 @@ def atmos_init(naga_context c, Param_atmos atm, Param_tel tel,  Param_geom geom,
                 atm.L0[i]=geom.pupdiam/frac_l0
         return atmos_create(c,atm.nscreens,atm.r0,atm.L0,atm.pupixsize,
             atm.dim_screens,atm.frac,atm.alt,atm.windspeed,
-            atm.winddir,atm.deltax,atm.deltay,rank,overwrite)
+            atm.winddir,atm.deltax,atm.deltay,rank,clean,load)
 
 
 
@@ -288,7 +294,7 @@ cdef atmos_create(naga_context c, int nscreens,
               np.ndarray[ndim=1,dtype=np.float32_t] winddir,
               np.ndarray[ndim=1,dtype=np.float32_t] deltax,
               np.ndarray[ndim=1,dtype=np.float32_t] deltay,
-              int verbose, int overwrite=1):
+              int verbose, int clean, dict load):
     """Create and initialise an atmos object.
     
     :parameters:
@@ -338,33 +344,46 @@ cdef atmos_create(naga_context c, int nscreens,
 
 
     for i in range(nscreens):
-        file_A=os.path.normpath(shesha_savepath+"/turbu/A_"+str(dim_screens[i])+"_L0_"+str(int(L0[i]))+".npy")
-        file_B=os.path.normpath(shesha_savepath+"turbu/B_"+str(dim_screens[i])+"_L0_"+str(int(L0[i]))+".npy")
-        file_istx=os.path.normpath(shesha_savepath+"/turbu/istx_"+str(dim_screens[i])+"_L0_"+str(int(L0[i]))+".npy")
-        file_isty=os.path.normpath(shesha_savepath+"/turbu/isty_"+str(dim_screens[i])+"_L0_"+str(int(L0[i]))+".npy") 
-
-        if(os.path.isfile(file_A) and os.path.isfile(file_B) and
-           os.path.isfile(file_istx) and os.path.isfile(file_isty)):
-            if(verbose<1):
-                print "reading files:","\n\t",file_A,"\n\t", file_B,"\n\t",file_istx, "\n\t",file_isty
-            A=np.load(file_A)
-            B=np.load(file_B)
-            A_F=np.reshape(A.flatten("F"),(A.shape[0],A.shape[1]))
-            B_F=np.reshape(B.flatten("F"),(B.shape[0],B.shape[1]))
-            istx=np.load(file_istx).astype(np.uint32)
-            isty=np.load(file_isty).astype(np.uint32)
+        if(load.has_key("A")):
+            print "loading", load["A"]
+            f = h5py.File(load["A"])
+            A = f["A"][:]
+            f.close()
+            print "loading", load["B"]
+            f = h5py.File(load["B"])
+            B = f["B"][:]
+            f.close()
+            print "loading", load["istx"]
+            f = h5py.File(load["istx"])
+            istx = f["istx"][:]
+            f.close()
+            print "loading", load["isty"]
+            f = h5py.File(load["isty"])
+            isty = f["isty"][:]
+            f.close()
 
         else:
             A,B,istx,isty=itK.AB(dim_screens[i],L0[i],verbose)
-            if(verbose==0):
-                print "writing files"
-                if(overwrite==1):
-                    np.save(file_A,A)
-                    np.save(file_B,B)
-                    np.save(file_istx,istx)
-                    np.save(file_isty,isty)
-            A_F=np.reshape(A.flatten("F"),(A.shape[0],A.shape[1]))
-            B_F=np.reshape(B.flatten("F"),(B.shape[0],B.shape[1]))
+            if not(clean):
+                svnversion = check_output("svnversion").replace("\n","")
+                print "writing files and updating database"
+                df = pandas.read_hdf(shesha_savepath+"/matricesDataBase.h5","A")
+                ind = len(df.index) - 1
+                savename = shesha_savepath+"turbu/A_r"+svnversion+"_"+str(ind)+".h5"
+                h5u.save_hdf5(savename,"A",A)
+
+                savename = shesha_savepath+"turbu/B_r"+svnversion+"_"+str(ind)+".h5"
+                h5u.save_hdf5(savename,"B",B)
+
+                savename = shesha_savepath+"turbu/istx_r"+svnversion+"_"+str(ind)+".h5"
+                h5u.save_hdf5(savename,"istx",istx)
+
+                savename = shesha_savepath+"turbu/isty_r"+svnversion+"_"+str(ind)+".h5"
+                h5u.save_hdf5(savename,"isty",isty)
+
+    
+        A_F=np.reshape(A.flatten("F"),(A.shape[0],A.shape[1]))
+        B_F=np.reshape(B.flatten("F"),(B.shape[0],B.shape[1]))
 
         tscreen=atmos_obj.s_a.d_screens[alt[i]]
         tscreen.init_screen(<float*>(A_F.data),<float*>(B_F.data),

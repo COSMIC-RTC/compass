@@ -5,6 +5,11 @@ import time
 
 import os
 
+import h5py
+import hdf5_utils as h5u
+import pandas
+from subprocess import check_output
+
 from cython.operator cimport dereference as deref, preincrement as inc
 
 cdef class Rtc:
@@ -1351,7 +1356,7 @@ cdef class Rtc:
 
 def rtc_init(Sensors g_wfs, p_wfs, Dms g_dms, p_dms, Param_geom p_geom, Param_rtc p_rtc,
             Param_atmos p_atmos, Atmos g_atmos, Param_tel p_tel, Param_loop p_loop, 
-            Target g_tar, Param_target p_tar, clean=1, brama=None, doimat=None,simul_name="", int overwrite=1):
+            Target g_tar, Param_target p_tar, clean=1, brama=None, doimat=None,simul_name="",load={}):
     """Initialize all the sutra_rtc objects : centroiders and controllers
 
     :parameters:
@@ -1383,7 +1388,7 @@ def rtc_init(Sensors g_wfs, p_wfs, Dms g_dms, p_dms, Param_geom p_geom, Param_rt
 
         simul_name: (str) : (optional) simulation's name, use for path to save data (imat, U...)
        
-        overwrite: (int) : (optional) overwrite data files if overwite=1 (default 1)
+        load: (dict) : (optional) dictionary of matrices to load and their path
 
     :return:
         Rtc : (Rtc) : Rtc object
@@ -1544,11 +1549,14 @@ def rtc_init(Sensors g_wfs, p_wfs, Dms g_dms, p_dms, Param_geom p_geom, Param_rt
                 for i in range(ncontro):
                     controller=p_rtc.controllers[i]
                     print "filtering unseen actuators... "
-                    if(p_wfs[0].type_wfs=="sh"):
-                        imat=imat_geom(g_wfs,p_wfs,controller,g_dms,p_dms,meth=0)
+                    if(clean or not load.has_key("pztok")):
+                        if(p_wfs[0].type_wfs=="sh"):
+                            imat=imat_geom(g_wfs,p_wfs,controller,g_dms,p_dms,meth=0)
+                        else:
+                            imat=manual_imat(g_rtc,g_wfs,p_wfs,g_dms,p_dms)
                     else:
-                        imat=manual_imat(g_rtc,g_wfs,p_wfs,g_dms,p_dms)
-                    correct_dm(p_dms,g_dms,controller,p_geom, imat,simul_name,overwrite)
+                        imat = np.zeros((2,2),dtype=np.float32)
+                    correct_dm(p_dms,g_dms,controller,p_geom, imat,simul_name,load)
                     #TODO add timer
                     if(controller.type_control !="geo"):
                         nwfs=controller.nwfs
@@ -1605,7 +1613,7 @@ def rtc_init(Sensors g_wfs, p_wfs, Dms g_dms, p_dms, Param_geom p_geom, Param_rt
 
                     if(controller.type_control=="ls"):
                         if(doimat):
-                            imat_init(i,g_rtc,p_rtc,g_dms,g_wfs,p_wfs,p_tel,clean=clean,simul_name=simul_name,overwrite=overwrite)
+                            imat_init(i,g_rtc,p_rtc,g_dms,g_wfs,p_wfs,p_tel,clean=clean,simul_name=simul_name,load=load)
                             if(controller.modopti == 1):
                                 print "Initializing Modal Optimization : "
                                 if(controller.nrec==0):
@@ -1626,7 +1634,7 @@ def rtc_init(Sensors g_wfs, p_wfs, Dms g_dms, p_dms, Param_geom p_geom, Param_rt
                                 g_rtc.loadOpenLoop(i,ol_slopes)
                                 g_rtc.modalControlOptimization(i)
                             else:
-                                cmat_init(i,g_rtc,p_rtc,p_wfs,p_atmos,p_tel, p_dms, clean=clean,simul_name=simul_name,overwrite=overwrite)
+                                cmat_init(i,g_rtc,p_rtc,p_wfs,p_atmos,p_tel, p_dms, clean=clean,simul_name=simul_name,load=load)
                                 g_rtc.set_gain(i,controller.gain)
                                 mgain=np.ones(sum([p_dms[j]._ntotact for j in range(len(p_dms))]),dtype=np.float32)
                                 #filtering tilt ...
@@ -1700,7 +1708,7 @@ def rtc_init(Sensors g_wfs, p_wfs, Dms g_dms, p_dms, Param_geom p_geom, Param_rt
                         mgain = np.ones(size,dtype=np.float32)
                         g_rtc.set_mgain(i,mgain)
                         doTomoMatrices(i,g_rtc,p_wfs,g_dms,g_atmos,g_wfs,p_rtc,p_geom,p_dms,p_tel,p_atmos)
-                        cmat_init(i,g_rtc,p_rtc,p_wfs,p_atmos,p_tel,p_dms,clean=1,simul_name=simul_name,overwrite=overwrite)
+                        cmat_init(i,g_rtc,p_rtc,p_wfs,p_atmos,p_tel,p_dms,clean=1,load=load)
                         
                     elif(controller.type_control=="generic"):
                         size=sum([p_dms[j]._ntotact for j in range(len(p_dms))])
@@ -1719,7 +1727,7 @@ def rtc_init(Sensors g_wfs, p_wfs, Dms g_dms, p_dms, Param_geom p_geom, Param_rt
     return g_rtc
     
 
-cpdef correct_dm(p_dms, Dms g_dms, Param_controller p_control, Param_geom p_geom, np.ndarray imat, bytes simul_name, int overwrite=1):
+cpdef correct_dm(p_dms, Dms g_dms, Param_controller p_control, Param_geom p_geom, np.ndarray imat, bytes simul_name, dict load):
     """Correct the geometry of the DMs using the imat (filter unseen actuators)
 
     :parameters:
@@ -1735,7 +1743,7 @@ cpdef correct_dm(p_dms, Dms g_dms, Param_controller p_control, Param_geom p_geom
 
         simul_name: (str) : simulation's name, use for data files' path
 
-        overwrite: (int) : (optional) overwrite data files if overwite=1 (default 1)
+        load: (dict) : (optional) dictionary of matrices to load and their path
     """
     #cdef carma_context *context = carma_context.instance() #UNUSED
     
@@ -1773,23 +1781,34 @@ cpdef correct_dm(p_dms, Dms g_dms, Param_controller p_control, Param_geom p_geom
         # filter actuators only in stackarray mirrors:
 
         if(p_dms[nm].type_dm=="pzt"):
-            filename=dirsave+"pztok-"+str(nm)+"-"+simul_name+".npy"
 
-            if(imat_clean<1 and os.path.isfile(filename)):
-                print "reading valid actuator from:",filename
-                ok=np.load(filename)
-                filename=dirsave+"pztnok-"+str(nm)+"-"+simul_name+".npy"
-                print "reading unvalid actuator from:",filename
-                nok=np.load(filename)
+            if(imat_clean<1 and load.has_key("pztok")):
+                print "reading valid actuator from", load["pztok"]
+
+                f = h5py.File(load["pztok"])
+                ok= f["pztok"+str(nmc)][:]
+                f.close()
+
+                print "reading unvalid actuator from:",load["pztnok"]#filename
+                f = h5py.File(load["pztnok"])
+                nok= f["pztnok"+str(nmc)][:]
+                f.close()
+
             else:
                 tmp=resp[inds:inds+p_dms[nm]._ntotact]
                 ok=np.where(tmp.flatten("F")>p_dms[nm].thresh*np.max(tmp))[0]
                 nok=np.where(tmp.flatten("F")<=p_dms[nm].thresh*np.max(tmp))[0]
-                if(simul_name !="" and rank==0 and overwrite==1):
-                    np.save(filename,ok)
-                    filename=dirsave+"pztnok-"+str(nm)+"-"+simul_name+".npy"
-                    np.save(filename,nok)
+                if(simul_name !="" and rank==0):
+                    print "writing files"
+                    df = pandas.read_hdf(shesha_savepath+"/matricesDataBase.h5","pztok")
+                    ind = len(df.index) - 1
+                    savename = dirsave+"pztok_r"+check_output("svnversion").replace("\n","")+"_"+str(ind)+".h5"
+                    h5u.save_hdf5(savename,"pztok"+str(nmc),ok)
 
+                    savename = dirsave+"pztnok_r"+check_output("svnversion").replace("\n","")+"_"+str(ind)+".h5"
+                    h5u.save_hdf5(savename,"pztnok"+str(nmc),nok)
+
+                    
             p_dms[nm].set_xpos(p_dms[nm]._xpos[ok])
             p_dms[nm].set_ypos(p_dms[nm]._ypos[ok])
             p_dms[nm].set_i1(p_dms[nm]._i1[ok])
@@ -2072,7 +2091,7 @@ cpdef openLoopSlp(Atmos g_atm, Rtc g_rtc,int nrec, int ncontro, Sensors g_wfs,
     return ol_slopes
 
 cpdef imat_init(int ncontro, Rtc g_rtc, Param_rtc p_rtc, Dms g_dms, Sensors g_wfs,
-        p_wfs, Param_tel p_tel, int clean=1, bytes simul_name=<bytes>"", overwrite=1):
+        p_wfs, Param_tel p_tel, int clean=1, bytes simul_name=<bytes>"", dict load={}):
     """Initialize and compute the interaction matrix on the GPU
 
     :parameters:
@@ -2094,7 +2113,7 @@ cpdef imat_init(int ncontro, Rtc g_rtc, Param_rtc p_rtc, Dms g_dms, Sensors g_wf
 
         simul_name: (str) : (optional) simulation's name, use for data files' path
 
-        overwrite: (int) : (optional
+        load: (dict) : (optional) dictionary of matrices to load and their path
     """
     cdef bytes dirsave=shesha_savepath+<bytes>"mat/"
     cdef bytes filename=dirsave+"imat-"+str(ncontro)+"-"+simul_name+".npy"
@@ -2118,7 +2137,7 @@ cpdef imat_init(int ncontro, Rtc g_rtc, Param_rtc p_rtc, Dms g_dms, Sensors g_wf
 
 
     if(simul_name!=""):
-        imat_clean=int(not os.path.isfile(filename) or clean)
+        imat_clean= not load.has_key("imat")#int(not os.path.isfile(filename) or clean)
 
     if(imat_clean):
         # first check if wfs is using lgs
@@ -2137,12 +2156,18 @@ cpdef imat_init(int ncontro, Rtc g_rtc, Param_rtc p_rtc, Dms g_dms, Sensors g_wf
         g_rtc.doimat(ncontro,g_dms)
         print "done in ",time.time()-t0
         p_rtc.controllers[ncontro].set_imat(g_rtc.get_imat(ncontro))
-        if(simul_name!="" and rank==0 and overwrite==1):
-            np.save(filename,p_rtc.controllers[ncontro].imat)
+        if(simul_name!="" and rank==0):
+
+            df = pandas.read_hdf(shesha_savepath+"/matricesDataBase.h5","imat")
+            ind = len(df.index) - 1
+            savename = shesha_savepath+"/mat/imat_r"+check_output("svnversion").replace("\n","")+"_"+str(ind)+".h5"
+            h5u.save_hdf5(savename,"imat",p_rtc.controllers[ncontro].imat)
+
 
     else:
-        print "reading imat from:",filename
-        p_rtc.controllers[ncontro].set_imat(np.load(filename))
+        print "reading imat from:",load["imat"]
+        f = h5py.File(load["imat"])
+        p_rtc.controllers[ncontro].set_imat(f["imat"][:])
         g_rtc.set_imat(ncontro, p_rtc.controllers[ncontro].imat)
 
     #now restore original profile in lgs spots
@@ -2155,7 +2180,7 @@ cpdef imat_init(int ncontro, Rtc g_rtc, Param_rtc p_rtc, Dms g_dms, Sensors g_wf
 
 
 cpdef cmat_init(int ncontro, Rtc g_rtc, Param_rtc p_rtc, list p_wfs, Param_atmos p_atmos,
-               Param_tel p_tel, p_dms, clean=1, bytes simul_name=<bytes>"", int overwrite=1):
+               Param_tel p_tel, p_dms, clean=1, bytes simul_name=<bytes>"", dict load={}):
     """ Compute the command matrix on the GPU
 
     :parameters:
@@ -2173,7 +2198,7 @@ cpdef cmat_init(int ncontro, Rtc g_rtc, Param_rtc p_rtc, list p_wfs, Param_atmos
 
         simul_name: (str) : (optional) simulation's name, use for data files' path
 
-        overwrite: (int) : (optional) overwrite data files if overwite=1 (default 1)
+        load: (dict) : (optional) dictionary of matrices to load and their path
         
     """
 
@@ -2197,7 +2222,7 @@ cpdef cmat_init(int ncontro, Rtc g_rtc, Param_rtc p_rtc, list p_wfs, Param_atmos
         cmat_clean=1
     else:
         filename=dirsave+"imat-"+str(ncontro)+"-"+simul_name+".npy"
-        cmat_clean=int(os.path.isfile(filename) or clean)
+        cmat_clean=not load.has_key("eigenv")
 
     cdef int rank
     IF USE_MPI:
@@ -2212,18 +2237,23 @@ cpdef cmat_init(int ncontro, Rtc g_rtc, Param_rtc p_rtc, list p_wfs, Param_atmos
             g_rtc.imat_svd(ncontro)
             print "svd time",time.time()-t0
             eigenv = g_rtc.getEigenvals(ncontro)
-            if(simul_name!="" and rank==0 and overwrite==1):
+            if(simul_name!="" and rank==0):
                 U=g_rtc.getU(ncontro)
-                filename=dirsave+"eigenv-"+str(ncontro)+"-"+simul_name
-                np.save(filename,eigenv)
-                filename=dirsave+"U-"+str(ncontro)+"-"+simul_name
-                np.save(filename,U)
+                df = pandas.read_hdf(shesha_savepath+"/matricesDataBase.h5","eigenv")
+                ind = len(df.index) - 1
+                savename = dirsave+"eigenv_r"+check_output("svnversion").replace("\n","")+"_"+str(ind)+".h5"
+                h5u.save_hdf5(savename,"eigenv",eigenv)
+
+                savename = dirsave+"U_r"+check_output("svnversion").replace("\n","")+"_"+str(ind)+".h5"
+                h5u.save_hdf5(savename,"U",U)
+
         else:
-            filename=dirsave+"eigenv-"+str(ncontro)+"-"+simul_name+".npy"
-            eigenv=np.load(filename)
-            filename=dirsave+"U-"+str(ncontro)+"-"+simul_name+".npy"
-            U=np.load(filename)
-            g_rtc.seteigenvals(ncontro,eigenv)
+            f = h5py.File(load["eigenv"])
+            eigenv = f["eigenv"][:]
+            g_rtc.setEigenvals(ncontro,eigenv)
+            f.close()
+            f = h5py.File(load["U"])
+            U = f["U"][:]
             g_rtc.setU(ncontro,U)
 
         imat = g_rtc.get_imat(ncontro)

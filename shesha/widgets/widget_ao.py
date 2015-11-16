@@ -11,15 +11,15 @@ import matplotlib.pyplot as pl
 import pyqtgraph as pg
 import glob
 import tools
-shesha_root=os.environ["SHESHA_ROOT"]
-sys.path.insert(0, shesha_root+"/data/par/") 
+import hdf5_utils as h5u
+sys.path.insert(0, os.environ["SHESHA_ROOT"]+"/data/par/") 
 
 from PyQt4.uic import loadUiType
 from PyQt4 import QtCore, QtGui
 
 from functools import partial
 import time
-WindowTemplate,TemplateBaseClass=loadUiType(shesha_root+"/widgets/widget_ao.ui")
+WindowTemplate,TemplateBaseClass=loadUiType(os.environ["SHESHA_ROOT"]+"/widgets/widget_ao.ui")
 
 
 """
@@ -67,7 +67,7 @@ class widgetAOWindow(TemplateBaseClass):
         ##############################################################
         #######       CONNECTED BUTTONS  #######################
         #############################################################
-        self.defaultParPath = shesha_root+"/data/par/par4bench/" # Default path for config files
+        self.defaultParPath = os.environ["SHESHA_ROOT"]+"/data/par/par4bench/" # Default path for config files
         self.ui.wao_loadConfig.clicked.connect(self.loadConfig)
         self.loadDefaultConfig()
         self.ui.wao_init.clicked.connect(self.InitConfig)
@@ -542,19 +542,20 @@ class widgetAOWindow(TemplateBaseClass):
                 simul_name=self.config.simul_name
         else:
             simul_name=""
-        
+        matricesToLoad={}
         if(simul_name==""):
             clean=1
         else:
             clean=0
-
+            param_dict = h5u.params_dictionary(self.config)
+            matricesToLoad = h5u.checkMatricesDataBase(os.environ["SHESHA"]+"/data/",self.config,param_dict)
         self.wfs=ao.wfs_init(self.config.p_wfss,self.config.p_atmos,self.config.p_tel,
                              self.config.p_geom,self.config.p_target,self.config.p_loop,
                              1,0,self.config.p_dms)
 
         self.atm=ao.atmos_init(self.c, self.config.p_atmos, self.config.p_tel,
                                                 self.config.p_geom,self.config.p_loop,
-                                                self.config.p_wfss,self.config.p_target)
+                                                self.config.p_wfss,self.config.p_target,clean=clean,load=matricesToLoad)
         self.ui.wao_atmosDimScreen.setText(str(self.config.p_atmos.dim_screens[0]))
 
         self.dms=ao.dm_init(self.config.p_dms,self.config.p_wfss[0],self.config.p_geom,self.config.p_tel)
@@ -566,7 +567,7 @@ class widgetAOWindow(TemplateBaseClass):
         self.rtc=ao.rtc_init(self.wfs,self.config.p_wfss,self.dms,self.config.p_dms,
                              self.config.p_geom,self.config.p_rtc,self.config.p_atmos,
                              self.atm,self.config.p_tel,self.config.p_loop,self.tar,
-                             self.config.p_target,clean=clean,simul_name=simul_name)
+                             self.config.p_target,clean=clean,simul_name=simul_name, load=matricesToLoad)
         self.mainLoop = [self.atm,self.wfs,self.rtc,self.tar,self.dms]
         self.aoLoopThread.wfs = self.wfs
         self.aoLoopThread.atm = self.atm
