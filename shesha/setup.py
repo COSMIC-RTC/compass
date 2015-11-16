@@ -102,7 +102,7 @@ def locate_compass():
         root_compass = os.environ['COMPASS_ROOT']
         
     else:
-        raise EnvironmentError('You must load compass environment')
+        raise EnvironmentError("Environment variable 'NAGA_ROOT' must be define")
         
     compass_config = {'inc_sutra':root_compass+'/libsutra/include.h','inc_carma':root_compass+'/libcarma/include.h',
                       'inc_naga':root_compass+'/naga', 'lib':root_compass}
