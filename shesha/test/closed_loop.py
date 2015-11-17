@@ -19,11 +19,19 @@ if(len(sys.argv)!=2):
 
 #get parameters from file
 param_file=sys.argv[1]
-filename=param_file.split('/')[-1]
-param_path=param_file.split(filename)[0]
-sys.path.insert(0,param_path)
-exec("import %s as config" % filename.split(".py")[0])
-sys.path.remove(param_path)
+if(param_file.split('.')[-1] == "py"):
+    filename=param_file.split('/')[-1]
+    param_path=param_file.split(filename)[0]
+    sys.path.insert(0,param_path)
+    exec("import %s as config" % filename.split(".py")[0])
+    sys.path.remove(param_path)
+elif(param_file.split('.')[-1] == "h5"):
+    sys.path.insert(0,os.environ["SHESHA_ROOT"]+"/data/par/par4bench/")
+    import scao_16x16_8pix as config
+    sys.path.remove(os.environ["SHESHA_ROOT"]+"/data/par/par4bench/")
+    h5u.configFromH5(param_file,config)
+else:
+    raise ValueError("Parameter file extension must be .py or .h5")
 
 print "param_file is",param_file
 

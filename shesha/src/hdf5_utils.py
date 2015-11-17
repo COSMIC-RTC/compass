@@ -49,13 +49,13 @@ def params_dictionary(config):
             "fracsub":[wfs.fracsub for wfs in config.p_wfss],
             "wfs.xpos":[wfs.xpos for wfs in config.p_wfss],
             "wfs.ypos":[wfs.ypos for wfs in config.p_wfss],
-            "wfs.Lambda":[wfs.ypos for wfs in config.p_wfss],
+            "wfs.Lambda":[wfs.Lambda for wfs in config.p_wfss],
             "gsmag":[wfs.gsmag for wfs in config.p_wfss],
             "optthroughput":[wfs.optthroughput for wfs in config.p_wfss],
             "zerop":[wfs.zerop for wfs in config.p_wfss],
             "noise":[wfs.noise for wfs in config.p_wfss],
             "atmos_seen":[wfs.atmos_seen for wfs in config.p_wfss],
-            "dms_seen":[wfs.dms_seen if(wfs.dms_seen) else np.arange(len(config.p_dms),dtype=np.int16) for wfs in config.p_wfss],
+            "dms_seen":[wfs.dms_seen if(wfs.dms_seen is not None) else np.arange(len(config.p_dms),dtype=np.int32) for wfs in config.p_wfss],
             "beamsize":[wfs.beamsize for wfs in config.p_wfss],
             "fssize":[wfs.fssize for wfs in config.p_wfss],
             "fstop":[wfs.fstop if(wfs.fstop) else "" for wfs in config.p_wfss],
@@ -111,7 +111,7 @@ def params_dictionary(config):
             "sizey":[c.sizey for c in config.p_centroiders],
             "centroider.thresh":[c.thresh for c in config.p_centroiders],
             "type_fct":[c.type_fct if(c.type_fct) else "" for c in config.p_centroiders],
-            "weights":[c.weights if(c.weights) else 0 for c in config.p_centroiders],
+            "weights":[c.weights if(c.weights) else float(0) for c in config.p_centroiders],
             "width":[c.width for c in config.p_centroiders]}
     else:
         centro_dict={"ncentroiders":len(config.p_centroiders),"type_centro":None,
@@ -134,6 +134,9 @@ def params_dictionary(config):
             "ndm":[c.ndm for c in config.p_controllers],
             "nmodes":[c.nmodes for c in config.p_controllers],
             "nrec":[c.nrec for c in config.p_controllers],
+            "gmin":[c.gmin for c in config.p_controllers],
+            "gmax":[c.gmax for c in config.p_controllers],
+            "ngain":[c.ngain for c in config.p_controllers],
             #"nvalid":[c.nvalid for c in config.p_controllers],
             "control.nwfs":[c.nwfs for c in config.p_controllers]}
     else:
@@ -286,7 +289,7 @@ def updateDataBase(h5file,savepath,matrix_type):
     
     
 def save_hdf5(filename, dataname, data):
-    """ save_hdf5(filename,data)
+    """ save_hdf5(filename, dataname, data)
     Create a dataset in an existing hdf5 file filename and store data in it
     
     :param:
@@ -298,6 +301,22 @@ def save_hdf5(filename, dataname, data):
     f.create_dataset(dataname, data=data)
     f.close()
 
+def save_h5(filename, dataname, config,data):
+    """ save_hdf5(filename, dataname, config, data)
+    Create a hdf5 file and store data in it with full header from config parameters
+    Usefull to backtrace data origins
+    
+    :param:
+        filename: (str) : full path to the file
+        dataname : (str) : name of the data (imat, cmat...)
+        config : (module) : config parameters
+        data : np.array : data to save
+    """
+    p_dict = params_dictionary(config)
+    create_file_attributes(filename,p_dict)
+    save_hdf5(filename, dataname, data)
+    print filename,"has been written"
+    
 def checkMatricesDataBase(savepath,config,param_dict):
     """ Check in the database if the current config have been already run. If so,
     return a dictionary containing the matrices to load and their path. Matrices
@@ -386,13 +405,13 @@ def checkControlParams(savepath,config,matricesToLoad):
         load_control &= ((dataBase.loc[i,"fracsub"] == [wfs.fracsub for wfs in config.p_wfss]).all())
         load_control &= ((dataBase.loc[i,"wfs.xpos"] == [wfs.xpos for wfs in config.p_wfss]).all())
         load_control &= ((dataBase.loc[i,"wfs.ypos"] == [wfs.ypos for wfs in config.p_wfss]).all())
-        load_control &= ((dataBase.loc[i,"wfs.Lambda"] == [wfs.ypos for wfs in config.p_wfss]).all())
+        load_control &= ((dataBase.loc[i,"wfs.Lambda"] == [wfs.Lambda for wfs in config.p_wfss]).all())
         load_control &= ((dataBase.loc[i,"gsmag"] == [wfs.gsmag for wfs in config.p_wfss]).all())
         load_control &= ((dataBase.loc[i,"optthroughput"] == [wfs.optthroughput for wfs in config.p_wfss]).all())
         load_control &= ((dataBase.loc[i,"zerop"] == [wfs.zerop for wfs in config.p_wfss]).all())
         load_control &= ((dataBase.loc[i,"noise"] == [wfs.noise for wfs in config.p_wfss]).all())
         load_control &= ((dataBase.loc[i,"atmos_seen"] == [wfs.atmos_seen for wfs in config.p_wfss]).all())
-        load_control &= ((dataBase.loc[i,"dms_seen"] == [wfs.dms_seen if(wfs.dms_seen) else np.arange(len(config.p_dms),dtype=np.int16) for wfs in config.p_wfss]).all())
+        load_control &= ((dataBase.loc[i,"dms_seen"] == [wfs.dms_seen if(wfs.dms_seen is not None) else np.arange(len(config.p_dms),dtype=np.int32) for wfs in config.p_wfss]).all())
         load_control &= ((dataBase.loc[i,"beamsize"] == [wfs.beamsize for wfs in config.p_wfss]).all())
         load_control &= ((dataBase.loc[i,"fssize"] == [wfs.fssize for wfs in config.p_wfss]).all())
         load_control &= ((dataBase.loc[i,"fstop"] == [wfs.fstop if(wfs.fstop) else "" for wfs in config.p_wfss]).all())
@@ -416,7 +435,6 @@ def checkControlParams(savepath,config,matricesToLoad):
         load_control &= ((dataBase.loc[i,"margin"] == [dm.margin for dm in config.p_dms]).all())
         load_control &= ((dataBase.loc[i,"nact"] == [dm.nact for dm in config.p_dms]).all())
         load_control &= ((dataBase.loc[i,"nkl"] == [dm.type_dm for dm in config.p_dms]).all())
-        load_control &= ((dataBase.loc[i,"pupoffset"] == [dm.pupoffset if(dm.pupoffset) else 0 for dm in config.p_dms]).all())
         load_control &= ((dataBase.loc[i,"push4imat"] == [dm.push4imat for dm in config.p_dms]).all())
         load_control &= ((dataBase.loc[i,"dm.thresh"] == [dm.thresh for dm in config.p_dms]).all())
         load_control &= ((dataBase.loc[i,"unitpervolt"] == [dm.unitpervolt for dm in config.p_dms]).all())
@@ -475,13 +493,13 @@ def checkDmsParams(savepath,config,matricesToLoad):
         load_control &= ((dataBase.loc[i,"fracsub"] == [wfs.fracsub for wfs in config.p_wfss]).all())
         load_control &= ((dataBase.loc[i,"wfs.xpos"] == [wfs.xpos for wfs in config.p_wfss]).all())
         load_control &= ((dataBase.loc[i,"wfs.ypos"] == [wfs.ypos for wfs in config.p_wfss]).all())
-        load_control &= ((dataBase.loc[i,"wfs.Lambda"] == [wfs.ypos for wfs in config.p_wfss]).all())
+        load_control &= ((dataBase.loc[i,"wfs.Lambda"] == [wfs.Lambda for wfs in config.p_wfss]).all())
         load_control &= ((dataBase.loc[i,"gsmag"] == [wfs.gsmag for wfs in config.p_wfss]).all())
         load_control &= ((dataBase.loc[i,"optthroughput"] == [wfs.optthroughput for wfs in config.p_wfss]).all())
         load_control &= ((dataBase.loc[i,"zerop"] == [wfs.zerop for wfs in config.p_wfss]).all())
         load_control &= ((dataBase.loc[i,"noise"] == [wfs.noise for wfs in config.p_wfss]).all())
         load_control &= ((dataBase.loc[i,"atmos_seen"] == [wfs.atmos_seen for wfs in config.p_wfss]).all())
-        load_control &= ((dataBase.loc[i,"dms_seen"] == [wfs.dms_seen if(wfs.dms_seen) else np.arange(len(config.p_dms),dtype=np.int16) for wfs in config.p_wfss]).all())
+        load_control &= ((dataBase.loc[i,"dms_seen"] == [wfs.dms_seen if(wfs.dms_seen is not None) else np.arange(len(config.p_dms),dtype=np.int32) for wfs in config.p_wfss]).all())
         load_control &= ((dataBase.loc[i,"beamsize"] == [wfs.beamsize for wfs in config.p_wfss]).all())
         load_control &= ((dataBase.loc[i,"fssize"] == [wfs.fssize for wfs in config.p_wfss]).all())
         load_control &= ((dataBase.loc[i,"fstop"] == [wfs.fstop if(wfs.fstop) else "" for wfs in config.p_wfss]).all())
@@ -505,7 +523,6 @@ def checkDmsParams(savepath,config,matricesToLoad):
         load_control &= ((dataBase.loc[i,"margin"] == [dm.margin for dm in config.p_dms]).all())
         load_control &= ((dataBase.loc[i,"nact"] == [dm.nact for dm in config.p_dms]).all())
         load_control &= ((dataBase.loc[i,"nkl"] == [dm.type_dm for dm in config.p_dms]).all())
-        load_control &= ((dataBase.loc[i,"pupoffset"] == [dm.pupoffset if(dm.pupoffset) else 0 for dm in config.p_dms]).all())
         load_control &= ((dataBase.loc[i,"push4imat"] == [dm.push4imat for dm in config.p_dms]).all())
         load_control &= ((dataBase.loc[i,"dm.thresh"] == [dm.thresh for dm in config.p_dms]).all())
         load_control &= ((dataBase.loc[i,"unitpervolt"] == [dm.unitpervolt for dm in config.p_dms]).all())
@@ -536,4 +553,132 @@ def checkDmsParams(savepath,config,matricesToLoad):
             dataBase = pandas.read_hdf(savepath+"matricesDataBase.h5","pztok")
             matricesToLoad["pztok"] = dataBase.loc[i,"path2file"]             
             return
+
+def configFromH5(filename,config):
+    import shesha as ao
+    
+    f=h5py.File(filename,"r")
+    
+    config.simul_name = str(f.attrs.get("simulname"))
+    #Loop
+    config.p_loop.set_niter(f.attrs.get("niter"))
+    config.p_loop.set_ittime(f.attrs.get("ittime"))
+    
+    #geom
+    config.p_geom.set_zenithangle(f.attrs.get("zenithangle"))
+    config.p_geom.set_pupdiam(f.attrs.get("pupdiam"))
+    
+    # Tel
+    config.p_tel.set_diam(f.attrs.get("tel_diam"))
+    config.p_tel.set_cobs(f.attrs.get("cobs"))
+    
+    # Atmos
+    config.p_atmos.set_r0(f.attrs.get("r0"))
+    config.p_atmos.set_nscreens(f.attrs.get("nscreens"))
+    config.p_atmos.set_frac(f.attrs.get("frac"))
+    config.p_atmos.set_alt(f.attrs.get("atm.alt"))
+    config.p_atmos.set_windspeed(f.attrs.get("windspeed"))
+    config.p_atmos.set_winddir(f.attrs.get("winddir"))
+    config.p_atmos.set_L0(f.attrs.get("L0"))
+    config.p_atmos.set_seeds(f.attrs.get("seeds"))
+    
+    # Target
+    config.p_target.set_nTargets(f.attrs.get("ntargets"))
+    config.p_target.set_xpos(f.attrs.get("target.xpos"))
+    config.p_target.set_ypos(f.attrs.get("target.ypos"))
+    config.p_target.set_Lambda(f.attrs.get("target.Lambda"))
+    config.p_target.set_mag(f.attrs.get("target.mag"))
+    if(f.attrs.get("target.dms_seen") > -1):
+        config.p_target.set_dms_seen(f.attrs.get("target.dms_seen"))
+    
+    # WFS
+    config.p_wfss=[]
+    for i in range(f.attrs.get("nwfs")):
+        config.p_wfss.append(ao.Param_wfs())
+        config.p_wfss[i].set_type(str(f.attrs.get("type_wfs")[i]))
+        config.p_wfss[i].set_nxsub(f.attrs.get("nxsub")[i])
+        config.p_wfss[i].set_npix(f.attrs.get("npix")[i])
+        config.p_wfss[i].set_pixsize(f.attrs.get("pixsize")[i])
+        config.p_wfss[i].set_fracsub(f.attrs.get("fracsub")[i])
+        config.p_wfss[i].set_xpos(f.attrs.get("wfs.xpos")[i])
+        config.p_wfss[i].set_ypos(f.attrs.get("wfs.ypos")[i])
+        config.p_wfss[i].set_Lambda(f.attrs.get("wfs.Lambda")[i])
+        config.p_wfss[i].set_gsmag(f.attrs.get("gsmag")[i])
+        config.p_wfss[i].set_optthroughput(f.attrs.get("optthroughput")[i])
+        config.p_wfss[i].set_zerop(f.attrs.get("zerop")[i])
+        config.p_wfss[i].set_noise(f.attrs.get("noise")[i])
+        config.p_wfss[i].set_atmos_seen(f.attrs.get("atmos_seen")[i])
+        config.p_wfss[i].set_fstop(str(f.attrs.get("fstop")[i]))
+        config.p_wfss[i].set_pyr_npts(f.attrs.get("pyr_npts")[i])
+        config.p_wfss[i].set_pyr_ampl(f.attrs.get("pyr_ampl")[i])
+        config.p_wfss[i].set_pyrtype(str(f.attrs.get("pyrtype")[i]))
+        config.p_wfss[i].set_pyr_loc(str(f.attrs.get("pyr_loc")[i]))
+        config.p_wfss[i].set_fssize(f.attrs.get("fssize")[i])
+        if((f.attrs.get("dms_seen")[i] > -1).all()):
+            config.p_wfss[i].set_dms_seen(f.attrs.get("dms_seen")[i])
+        
+        # LGS
+        config.p_wfss[i].set_gsalt(f.attrs.get("gsalt")[i])
+        config.p_wfss[i].set_lltx(f.attrs.get("lltx")[i])
+        config.p_wfss[i].set_llty(f.attrs.get("llty")[i])
+        config.p_wfss[i].set_laserpower(f.attrs.get("laserpower")[i])
+        config.p_wfss[i].set_lgsreturnperwatt(f.attrs.get("lgsreturnperwatt")[i])
+        config.p_wfss[i].set_proftype(str(f.attrs.get("proftype")[i]))
+        config.p_wfss[i].set_beamsize(f.attrs.get("beamsize")[i])
+    
+    # DMs
+    config.p_dms=[]
+    if(f.attrs.get("ndms")):
+        for i in range(f.attrs.get("ndms")):
+            config.p_dms.append(ao.Param_dm())
+            config.p_dms[i].set_type(str(f.attrs.get("type_dm")[i]))
+            config.p_dms[i].set_nact(f.attrs.get("nact")[i])
+            config.p_dms[i].set_alt(f.attrs.get("dm.alt")[i])
+            config.p_dms[i].set_thresh(f.attrs.get("dm.thresh")[i])
+            config.p_dms[i].set_coupling(f.attrs.get("coupling")[i])
+            config.p_dms[i].set_unitpervolt(f.attrs.get("unitpervolt")[i])
+            config.p_dms[i].set_push4imat(f.attrs.get("push4imat")[i])
+    
+    # Centroiders
+    config.p_centroiders=[]
+    if(f.attrs.get("ncentroiders")):
+        for i in range(f.attrs.get("ncentroiders")):
+            config.p_centroiders.append(ao.Param_centroider())
+            config.p_centroiders[i].set_nwfs(f.attrs.get("centro.nwfs")[i])
+            config.p_centroiders[i].set_type(str(f.attrs.get("type_centro")[i]))
+            config.p_centroiders[i].set_type_fct(str(f.attrs.get("type_fct")[i]))
+            config.p_centroiders[i].set_nmax(f.attrs.get("nmax")[i])
+            config.p_centroiders[i].set_thresh(f.attrs.get("centroider.thresh")[i])
+            if(f.attrs.get("weights")[i]):
+                config.p_centroiders[i].set_weights(f.attrs.get("weights")[i])
+            config.p_centroiders[i].set_width(f.attrs.get("width")[i])
+        config.p_rtc.set_centroiders(config.p_centroiders)
+    
+    # Controllers
+    config.p_controllers=[]
+    if(f.attrs.get("ncontrollers")):
+        for i in range(f.attrs.get("ncontrollers")):
+            config.p_controllers.append(ao.Param_controller())
+            config.p_controllers[i].set_type(str(f.attrs.get("type_control")[i]))
+            config.p_controllers[i].set_nwfs(f.attrs.get("control.nwfs")[i])
+            config.p_controllers[i].set_ndm(f.attrs.get("ndm")[i])
+            config.p_controllers[i].set_maxcond(f.attrs.get("maxcond")[i])
+            config.p_controllers[i].set_delay(f.attrs.get("delay")[i])
+            config.p_controllers[i].set_gain(f.attrs.get("gain")[i])
+            config.p_controllers[i].set_modopti(f.attrs.get("modopti")[i])
+            config.p_controllers[i].set_nrec(f.attrs.get("nrec")[i])
+            config.p_controllers[i].set_nmodes(f.attrs.get("nmodes")[i])
+            config.p_controllers[i].set_gmin(f.attrs.get("gmin")[i])
+            config.p_controllers[i].set_gmax(f.attrs.get("gmax")[i])
+            config.p_controllers[i].set_ngain(f.attrs.get("ngain")[i])
+            config.p_controllers[i].set_TTcond(f.attrs.get("TTcond")[i])
+            config.p_controllers[i].set_cured_ndivs(f.attrs.get("cured_ndivs")[i])
+        config.p_rtc.set_controllers(config.p_controllers)
+    
+    config.p_rtc.set_nwfs(f.attrs.get("nwfs"))
+    
+    print "Parameters have been read from ",filename, "header"
+        
+        
+    
     

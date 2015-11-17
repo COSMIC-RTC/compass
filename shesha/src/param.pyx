@@ -1,5 +1,6 @@
 import os
 import sys
+import inspect
 
 cimport numpy as np
 import numpy as np
@@ -865,6 +866,13 @@ cdef class Param_target:
         :param l: (list of float) : magnitude for each target
         """
         self.mag =np.array(l,dtype=np.float32)
+        
+    def set_dms_seen(self,l):
+        """set the dms seen by the target
+
+        :param l: (list of int) : index for each dm
+        """
+        self.dms_seen =np.array(l,dtype=np.int32)
 
 
 
@@ -1389,5 +1397,17 @@ cpdef makegaussian(int size, float fwhm, int xc=-1, int yc=-1, int norm=0):
         tmp = tmp/(fwhm**2.*1.140075)
     return tmp
 
-
+def get_classAttributes(Param_class):
+    """ get_classAttributes(Param_class)
+    Return all the attribute names of the given Param_class
+    
+    :param Param_class: shesha parameters class
+    :return: list of strings (attributes names)
+    
+    :example: 
+        import shesha as ao
+        get_classAttributes(ao.Param_wfs)
+    """
+    d = inspect.getmembers(Param_class)
+    return [ i[0] for i in d if inspect.isgetsetdescriptor(i[1])]
 

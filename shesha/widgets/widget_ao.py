@@ -389,15 +389,23 @@ class widgetAOWindow(TemplateBaseClass):
         self.updateDmPanel()
         
     def addConfigFromFile(self):
-        filepath = str(QtGui.QFileDialog.getOpenFileName(self,"Select parameter file","","parameters file (*.py);;all files (*)"))
+        filepath = str(QtGui.QFileDialog.getOpenFileName(self,"Select parameter file","","parameters file (*.py);;hdf5 file (*.h5);;all files (*)"))
         self.configpath = filepath
         filename = filepath.split('/')[-1]
-        self.ui.wao_selectConfig.addItem(filename,0)
-        pathfile = filepath.split(filename)[-1]    
-        #if (pathfile not in sys.path):
-        sys.path.insert(0, pathfile)      
-        exec("import %s as config" % filename.split(".py")[0])
-        sys.path.remove(pathfile)
+        if(filepath.split('.')[-1] == "py"):
+            self.ui.wao_selectConfig.addItem(filename,0)
+            pathfile = filepath.split(filename)[-1]    
+            #if (pathfile not in sys.path):
+            sys.path.insert(0, pathfile)      
+            exec("import %s as config" % filename.split(".py")[0])
+            sys.path.remove(pathfile)
+        elif(filepath.split('.')[-1] == "h5"):
+            sys.path.insert(0,os.environ["SHESHA_ROOT"]+"/data/par/par4bench/")
+            import scao_16x16_8pix as config
+            sys.path.remove(os.environ["SHESHA_ROOT"]+"/data/par/par4bench/")
+            h5u.configFromH5(filepath,config)
+        else:
+            raise ValueError("Parameter file extension must be .py or .h5")
         self.config = config
         self.aoLoopThread.config = config
         self.ui.wao_selectConfig.clear()
@@ -548,7 +556,7 @@ class widgetAOWindow(TemplateBaseClass):
         else:
             clean=0
             param_dict = h5u.params_dictionary(self.config)
-            matricesToLoad = h5u.checkMatricesDataBase(os.environ["SHESHA"]+"/data/",self.config,param_dict)
+            matricesToLoad = h5u.checkMatricesDataBase(os.environ["SHESHA_ROOT"]+"/data/",self.config,param_dict)
         self.wfs=ao.wfs_init(self.config.p_wfss,self.config.p_atmos,self.config.p_tel,
                              self.config.p_geom,self.config.p_target,self.config.p_loop,
                              1,0,self.config.p_dms)
