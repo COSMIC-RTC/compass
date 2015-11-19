@@ -67,7 +67,7 @@ atm=ao.atmos_init(c,config.p_atmos,config.p_tel,config.p_geom,config.p_loop,conf
 
 #   dm 
 print "->dm"
-dms=ao.dm_init(config.p_dms,config.p_wfs0,config.p_geom,config.p_tel)
+dms=ao.dm_init(config.p_dms,config.p_wfss[0],config.p_geom,config.p_tel)
 
 #   target
 print "->target"
@@ -76,6 +76,8 @@ tar=ao.target_init(c,config.p_target,config.p_atmos,config.p_geom,config.p_tel,c
 print "->rtc"
 #   rtc
 rtc=ao.rtc_init(wfs,config.p_wfss,dms,config.p_dms,config.p_geom,config.p_rtc,config.p_atmos,atm,config.p_tel,config.p_loop,tar,config.p_target,clean=clean,simul_name=simul_name, load=matricesToLoad)
+
+h5u.validDataBase(os.environ["SHESHA_ROOT"]+"/data/",matricesToLoad)
 
 print "===================="
 print "init done"
@@ -98,7 +100,7 @@ def loop( n):
     for i in range(n):
         atm.move_atmos()
         
-        if(config.p_controller0.type_control == "geo"):
+        if(config.p_controllers[0].type_control == "geo"):
             for t in range(config.p_target.ntargets):
                 tar.atmos_trace(t,atm)
                 rtc.docontrol_geo(0, dms, tar, 0)
