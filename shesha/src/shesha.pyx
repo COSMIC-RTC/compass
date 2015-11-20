@@ -45,12 +45,12 @@ include "controller.pyx"
 include "kl.pyx"
 """
 
-from param import *
-from sensors import *
-from atmos import *
-from dms import *
-from target import *
-from rtc import *
+from shesha_param import *
+from shesha_sensors import *
+from shesha_atmos import *
+from shesha_dms import *
+from shesha_target import *
+from shesha_rtc import *
 
 
 

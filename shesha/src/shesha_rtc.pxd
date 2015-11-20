@@ -17,11 +17,11 @@ from libc.stdint cimport uintptr_t
 
 from cpython.string cimport PyString_AsString
 
-from param import *
-from param cimport *
-from sensors cimport *
-from dms cimport *
-from target cimport *
+from shesha_param import *
+from shesha_param cimport *
+from shesha_sensors cimport *
+from shesha_dms cimport *
+from shesha_target cimport *
 
 
 IF USE_MPI == 1:

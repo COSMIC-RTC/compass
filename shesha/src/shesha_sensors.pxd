@@ -29,11 +29,11 @@ IF USE_MPI == 1:
 
 from libc.math cimport sin
 
-from param import *
-from param cimport *
-from atmos import *
-from atmos cimport *
-from dms cimport *
+from shesha_param import *
+from shesha_param cimport *
+from shesha_atmos import *
+from shesha_atmos cimport *
+from shesha_dms cimport *
 
 cdef np.float32_t dtor = (np.pi/180.)
 

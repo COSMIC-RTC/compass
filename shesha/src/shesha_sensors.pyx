@@ -5,7 +5,7 @@ import make_pupil as mkP
 
 import os
 
-include "wfs.pyx"
+include "shesha_wfs.pyx"
 
 cdef class Sensors:
     """

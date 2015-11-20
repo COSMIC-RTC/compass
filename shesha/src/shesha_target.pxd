@@ -31,11 +31,11 @@ from libc.math cimport sin
 
 cdef np.float32_t dtor = (np.pi/180.)
 
-from param import *
-from param cimport *
-from sensors cimport *
-from atmos cimport *
-from dms cimport *
+from shesha_param import *
+from shesha_param cimport *
+from shesha_sensors cimport *
+from shesha_atmos cimport *
+from shesha_dms cimport *
 
 #################################################
 # P-Class Target

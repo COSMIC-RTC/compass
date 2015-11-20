@@ -26,8 +26,8 @@ IF USE_MPI == 1:
 from libc.math cimport sin
 
 
-from param import *
-from param cimport *
+from shesha_param import *
+from shesha_param cimport *
 
 
 

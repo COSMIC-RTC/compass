@@ -23,8 +23,9 @@ from distutils.extension import Extension
 
 
 
-listMod=[ "param", "sensors","atmos","dms","target","rtc" ]
-dependencies={"sensors":["wfs"]}
+listMod=[ "shesha_param", "shesha_sensors","shesha_atmos",
+          "shesha_dms","shesha_target","shesha_rtc" ]
+dependencies={"shesha_sensors":["shesha_wfs"]}
 
 try:
     import mpi4py
