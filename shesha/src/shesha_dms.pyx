@@ -5,7 +5,7 @@ import numpy as np
 import make_pupil as mkP
 
 #max_extent signature
-cdef _dm_init(Dms dms, Param_dm p_dms, Param_wfs p_wfs, Param_geom p_geom, Param_tel p_tel,int *max_extent):
+cdef _dm_init(Dms dms, Param_dm p_dms, list p_wfs, Param_geom p_geom, Param_tel p_tel,int *max_extent):
             """ inits a Dms object on the gpu
 
             :parameters:
@@ -13,7 +13,7 @@ cdef _dm_init(Dms dms, Param_dm p_dms, Param_wfs p_wfs, Param_geom p_geom, Param
 
                 p_dms: (Param_dms) : dm settings
 
-                p_wfs: (Param_wfs) : wfs settings
+                p_wfs: (list) : list of wfs settings
 
                 p_geom: (Param_geom) : geom settings
 
@@ -35,8 +35,9 @@ cdef _dm_init(Dms dms, Param_dm p_dms, Param_wfs p_wfs, Param_geom p_geom, Param
 
             if(p_dms.type_dm=="pzt"):
                 #find out the support dimension for the given mirror.
-                patchDiam = p_geom.pupdiam#+2*np.max(np.abs(p_wfs.xpos,p_wfs.ypos))* \
-                         #4.848e-6*np.abs(p_dms.alt)/p_tel.diam*p_geom.pupdiam
+                norms = [np.linalg.norm([w.xpos,w.ypos]) for w in p_wfs]
+                patchDiam = p_geom.pupdiam+2*np.max(norms)* \
+                         4.848e-6*np.abs(p_dms.alt)/p_tel.diam*p_geom.pupdiam
                 #Patchdiam
                 p_dms._pitch=long(patchDiam/(p_dms.nact-1))
 
@@ -108,7 +109,7 @@ cdef _dm_init(Dms dms, Param_dm p_dms, Param_wfs p_wfs, Param_geom p_geom, Param
                 #res2 = yoga_getkl(g_dm,0.,1);
 
 
-def dm_init(p_dms, Param_wfs p_wfs, Param_geom p_geom, Param_tel p_tel):
+def dm_init(p_dms, list p_wfs, Param_geom p_geom, Param_tel p_tel):
     """Create and initialize a Dms object on the gpu
 
     :parameters:
@@ -236,13 +237,13 @@ cdef make_pzt_dm(Param_dm p_dm,Param_geom geom):
     return influ
 
 
-cdef make_tiptilt_dm(Param_dm p_dm,Param_wfs p_wfs, Param_geom p_geom, Param_tel p_tel):
+cdef make_tiptilt_dm(Param_dm p_dm,list p_wfs, Param_geom p_geom, Param_tel p_tel):
     """Compute the influence functions for a tip-tilt DM
 
     :parameters:
         p_dm: (Param_dm) : dm settings
 
-        p_wfs: (Param_wfs) : wfs settings
+        p_wfs: (list) : list of wfs settings
 
         p_geom: (Param_geom) : geom settings
 
@@ -252,9 +253,9 @@ cdef make_tiptilt_dm(Param_dm p_dm,Param_wfs p_wfs, Param_geom p_geom, Param_tel
 
     """
     cdef int dim = max(p_dm._n2-p_dm._n1+1,p_geom._mpupil.shape[0])
-
+    norms = [np.linalg.norm([w.xpos,w.ypos]) for w in p_wfs]
     cdef int patchDiam = p_geom.pupdiam+\
-    2*np.max(np.abs([p_wfs.xpos,p_wfs.ypos]))*4.848e-6*abs(p_dm.alt/p_tel.diam*p_geom.pupdiam)
+    2*np.max(norms)*4.848e-6*abs(p_dm.alt/p_tel.diam*p_geom.pupdiam)
 
     cdef nzer=2
     cdef np.ndarray[ndim=3,dtype=np.float32_t] influ =make_zernike(nzer+1, dim,
@@ -287,7 +288,6 @@ cdef make_kl_dm(Param_dm p_dm, Param_wfs p_wfs,Param_geom p_geom, Param_tel p_te
 
     """
     cdef int dim=p_geom._mpupil.shape[0]
-
 
     cdef long patchDiam=long( p_geom.pupdiam+2*max(abs(p_wfs.xpos),abs(p_wfs.ypos))*4.848e-6*\
                             abs(p_dm.alt)/p_geom.pupdiam )

@@ -468,6 +468,18 @@ cdef class Rtc:
         cdef bytes type_contro = <bytes>self.rtc.d_control[ncontro].get_type()
         
         self.rtc.d_control[ncontro].d_com.host2device(<float*>comvec.data)
+    
+    cpdef setCentroids(self,int ncontro, np.ndarray[ndim=1,dtype=np.float32_t] centro):
+        """Set the centroids vector of a sutra_controller object to centro
+        
+        :parameters:
+            ncontro: (int) : controller index
+            centro: (np.ndarray[ndim=1,dtype=np.float32_t]) : centroids vector
+        """
+        cdef carma_context *context=carma_context.instance()
+        context.set_activeDeviceForCpy(self.rtc.device,1)
+        
+        self.rtc.d_control[ncontro].d_centroids.host2device(<float*>centro.data)
 
     cpdef get_mgain(self,int ncontro):
         """Return modal gains from sutra_controller
@@ -2448,7 +2460,7 @@ cpdef doTomoMatrices(int ncontro, Rtc g_rtc, list wfs, Dms g_dm, Atmos g_atmos, 
             F[ind:ind+p_dm[k]._ntotact,ind:ind+p_dm[k]._ntotact] = create_piston_filter(p_dm,k)
             ind += p_dm[k]._ntotact
     
-    controller_mv.filter_cphim(<float*>F.data,<float*> Nact.data)
+    controller_mv.filter_cphim(<float*>F.data,<float*>Nact.data)
     
 cpdef selectDMforLayers(int ncontro, Param_atmos p_atmos, Param_rtc p_rtc, list p_dms):
     """ For each atmos layer, select the DM which have to handle it in the Cphim computation for MV controller
@@ -2493,7 +2505,7 @@ cpdef create_nact_geom(list p_dms, int ndm):
     mask = np.zeros([dim,dim],dtype=np.float32)
     shape = np.zeros([dim,dim],dtype=np.float32)
     for i in range(len(tmpx)):
-        mask[tmpx[i]][tmpy[i]] = 1
+        mask[tmpy[i]][tmpx[i]] = 1
     
     mask_act = np.where(mask)
 

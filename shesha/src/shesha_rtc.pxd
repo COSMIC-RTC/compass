@@ -76,6 +76,7 @@ cdef class Rtc:
     cpdef set_gain(self,int ncontro, float gain)
     cpdef set_mgain(self,int ncontro, np.ndarray[ndim=1,dtype=np.float32_t] mgain)
     cpdef setCom(self,int ncontro, np.ndarray[ndim=1,dtype=np.float32_t] comvec)
+    cpdef setCentroids(self,int ncontro, np.ndarray[ndim=1,dtype=np.float32_t] centro)
     cpdef get_mgain(self,int ncontro)
     cpdef set_imat(self,int ncontro, np.ndarray[ndim=2,dtype=np.float32_t] data)
     cpdef get_imat(self, int ncontro)
