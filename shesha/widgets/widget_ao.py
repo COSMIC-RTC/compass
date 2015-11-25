@@ -255,6 +255,19 @@ class widgetAOWindow(TemplateBaseClass):
         self.ui.wao_targetYpos.setValue(self.config.p_target.ypos[ntarget])
         self.ui.wao_targetLambda.setValue(self.config.p_target.Lambda[ntarget])
         
+        self.ui.wao_targetWindow.canvas.axes.cla()
+        xmax = np.max(np.abs(self.config.p_target.xpos))
+        ymax = np.max(np.abs(self.config.p_target.ypos))       
+        if(self.config.p_wfss):
+            self.ui.wao_targetWindow.canvas.axes.plot([w.xpos for w in self.config.p_wfss],[w.ypos for w in self.config.p_wfss],'o',color="green")           
+            xmax = np.max([xmax,np.max(np.abs([w.xpos for w in self.config.p_wfss]))])            
+            ymax = np.max([ymax,np.max(np.abs([w.ypos for w in self.config.p_wfss]))]) 
+        self.ui.wao_targetWindow.canvas.axes.plot(self.config.p_target.xpos,self.config.p_target.ypos,'*',color="red")
+        self.ui.wao_targetWindow.canvas.axes.set_xlim(-xmax-10,xmax+10)
+        self.ui.wao_targetWindow.canvas.axes.set_ylim(-ymax-10,ymax+10)
+        self.ui.wao_targetWindow.canvas.axes.grid()
+        self.ui.wao_targetWindow.canvas.draw()
+        
     def updatePanels(self):
         self.updateTelescopePanel()
         self.updateLayerSelection()
@@ -799,8 +812,12 @@ class aoLoopThread(QtCore.QThread):
                 #print "",
                 self.printInPlace("")
         if(self.tar):
-            SR = self.tar.get_strehl(0)                
-           
+            signal_le = ""
+            signal_se= ""
+            for t in range(self.config.p_target.ntargets):
+                SR = self.tar.get_strehl(t)                
+                signal_se += "%1.2f   "%SR[0]
+                signal_le += "%1.2f   "%SR[1]
 
         if(self.RTDisplay):
             self.updateDisplay()# Update GUI plots
@@ -809,8 +826,8 @@ class aoLoopThread(QtCore.QThread):
         #self.loopFreq.setValue(CurrentFreq) #
         CurrentFreq = 1/(time.time() - start)
         if(self.RTDisplay):
-            self.emit(QtCore.SIGNAL('currentSRSE(QString)'), "%1.2f"%SR[0])#str(SR[0]))
-            self.emit(QtCore.SIGNAL('currentSRLE(QString)'), "%1.2f"%SR[1])#str(SR[1]))
+            self.emit(QtCore.SIGNAL('currentSRSE(QString)'), signal_se)#"%1.2f"%SR[0])#str(SR[0]))
+            self.emit(QtCore.SIGNAL('currentSRLE(QString)'), signal_le)#"%1.2f"%SR[1])#str(SR[1]))
             self.emit(QtCore.SIGNAL('currentLoopFrequency(float)'), CurrentFreq)
 
         #print CurrentFreq

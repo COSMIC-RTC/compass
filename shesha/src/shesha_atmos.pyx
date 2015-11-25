@@ -59,12 +59,12 @@ def atmos_init(naga_context c, Param_atmos atm, Param_tel tel,  Param_geom geom,
 
         # compute total fov using targets and wfs gs
         if ((wfs is not None) and (target is not None)):
-            max_size = np.max((np.linalg.norm([target.xpos,target.ypos],axis=0),
-                            np.linalg.norm([wfs.xpos,wfs.ypos],axis=0)))
+            max_size = np.max([np.max(np.linalg.norm([target.xpos,target.ypos],axis=0)),
+                            np.max(np.linalg.norm([wfs.xpos,wfs.ypos],axis=0))])
         elif (target is not None):
-                    max_size = np.max(np.linalg.norm([target.xpos,target.ypos],axis=0))
+            max_size = np.max(np.linalg.norm([target.xpos,target.ypos],axis=0))
         elif (wfs is not None):
-                max_size = np.max(np.linalg.norm([wfs.xpos,wfs.ypos],axis=0))
+            max_size = np.max(np.linalg.norm([wfs.xpos,wfs.ypos],axis=0))
         else:
             max_size = 0
 
