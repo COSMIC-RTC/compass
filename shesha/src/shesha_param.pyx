@@ -14,6 +14,8 @@ print "shesha_savepath:",shesha_savepath
 sys.path.append(shesha_dir+'/src')
 import make_pupil as mkP
 
+from scipy.ndimage import interpolation as interp
+
 RASC=180.*3600./np.pi
 
 #################################################
@@ -146,8 +148,7 @@ cdef class Param_geom:
         cdef float cent=self.pupdiam/2.+0.5
 
         #useful pupil
-        self._spupil=mkP.make_pupil(self.pupdiam,self.pupdiam,tel,cent,cent)
-        
+        self._spupil=mkP.make_pupil(self.pupdiam,self.pupdiam,tel,cent,cent).astype(np.float32)
         # large pupil (used for image formation)
         self._ipupil=mkP.pad_array(self._spupil,self.ssize).astype(np.float32)
         
@@ -1143,6 +1144,7 @@ cpdef make_apodizer(int dim, int pupd, bytes filename, float angle):
     if (angle != 0):
         #use ndimage.interpolation.rotate
         print "TODO pup=rotate2(pup,angle)"
+        pup=interp.rotate(pup,angle,reshape=False,order=2)
     
     reg=np.where(mkP.dist(pupd)>pupd/2.)
     pup[reg]=0.

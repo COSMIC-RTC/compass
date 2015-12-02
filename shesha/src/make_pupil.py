@@ -1,9 +1,12 @@
 import numpy as np
 import os
+import scipy.ndimage.interpolation as interp
+import hdf5_utils as h5u
+
 
 #import matplotlib.pyplot as pl
 
-EELT_data=os.environ.get('SHESHA_ROOT')+"/data/apertures"
+EELT_data=os.environ.get('SHESHA_ROOT')+"/data/apertures/"
 def make_pupil(dim,pupd,tel,xc=-1,
                 yc=-1,real=0,cobs=-1):
 
@@ -11,19 +14,19 @@ def make_pupil(dim,pupd,tel,xc=-1,
     if(tel.type_ap=="EELT-Nominal"):
         tel.set_cobs(0.3)
         N_seg=798
-        raise NotImplementedError("make_EELT")
+        return make_EELT(dim,pupd,tel,N_seg)
     elif(tel.type_ap=="EELT-BP1"): 
         tel.set_cobs(0.369)
         N_seg=768
-        raise NotImplementedError("make_EELT")
+        return make_EELT(dim,pupd,tel,N_seg)
     elif(tel.type_ap=="EELT-BP3"):
         tel.set_cobs(0.503)
         N_seg=672
-        raise NotImplementedError("make_EELT")
+        return make_EELT(dim,pupd,tel,N_seg)
     elif(tel.type_ap=="EELT-BP5"): 
         tel.set_cobs(0.632)
         N_seg=558
-        raise NotImplementedError("make_EELT")
+        return make_EELT(dim,pupd,tel,N_seg)
     elif(tel.type_ap=="VLT"): 
         raise NotImplementedError("make_VLT")
     else:
@@ -120,22 +123,24 @@ def make_VLT(dim,pupd,tel):
 
 def make_EELT(dim,pupd,tel,N_seg):#dim,pupd,type_ap,cobs,N_seg,nbr_miss_seg,std_ref_err,t_spiders,angle)
     
-    EELT_file=EELT_data+type_ap+"_N"+str(dim)+"_COBS"+str(100*cobs)+"_CLOCKED"+str(angle)+"_TSPIDERS"+str(100*t_spiders)+"_MS"+str(nbr_miss_seg)+"_REFERR"+str(100*std_ref_err)+".npy"
-
+    EELT_file=EELT_data+tel.type_ap+"_N"+str(dim)+"_COBS"+str(100*tel.cobs)+"_CLOCKED"+str(tel.pupangle)+"_TSPIDERS"+str(100*tel.t_spiders)+"_MS"+str(tel.nbrmissing)+"_REFERR"+str(100*tel.referr)+".h5"
 
     if( os.path.isfile(EELT_file) ):
-        pup=np.load(EELT_file)
+        print "reading EELT pupil from file ", EELT_file
+        pup=h5u.readHdf5SingleDataset(EELT_file)
     else:  
-        file= EELT_data+"Coord_"+type_ap+".npz"
-        data=np.load(file)
-        x_seg=data['x_seg']
-        y_seg=data['y_seg']
+        file= EELT_data+"Coord_"+tel.type_ap+".dat"
+        data=np.fromfile(file,sep="\n")
+        data=np.reshape(data,(data.size/2,2))
+        x_seg=data[:,0]
+        y_seg=data[:,1]
 
-        file= EELT_data+"EELT_MISSING_"+type_ap+".npy"
-        kseg=np.load(file)
 
-        W=1.45*cos(pi/6)
-        tel.diam=40.
+        file= EELT_data+"EELT_MISSING_"+tel.type_ap+".dat"
+        kseg=np.fromfile(file,sep="\n")
+
+        W=1.45*np.cos(np.pi/6)
+        tel.set_diam(40.)
 
         X=MESH(tel.diam*dim/pupd,dim)
 
@@ -143,9 +148,9 @@ def make_EELT(dim,pupd,tel,N_seg):#dim,pupd,type_ap,cobs,N_seg,nbr_miss_seg,std_
                 k_seg=np.sort(k_seg[:tel.nbrmissing])
 
 
-        file= EELT_data+"EELT_REF_ERROR"+".npy"
-        ref_err=np.load(file)
-        mean_ref = np.sum(ref_err)/798
+        file= EELT_data+"EELT_REF_ERROR"+".dat"
+        ref_err=np.fromfile(file,sep="\n")
+        mean_ref = np.sum(ref_err)/798.
 
         std_ref = np.sqrt(1./798.*np.sum((ref_err-mean_ref)**2))
         ref_err = ref_err * tel.referr/ std_ref
@@ -155,14 +160,14 @@ def make_EELT(dim,pupd,tel,N_seg):#dim,pupd,type_ap,cobs,N_seg,nbr_miss_seg,std_
 
         pup=np.zeros((dim,dim))
 
-        t_3=np.tan(np.pi/3)
+        t_3=np.tan(np.pi/3.)
 
         for i in range(N_seg):
             Xt=X+x_seg[i]
             Yt=X.T+y_seg[i]
-            pup+=(1-ref_err[i])*(Yt<0.5*W)*(Yt>=-0.5*W)*(0.5*(Yt+t_3)*Xt<0.5*W) \
-                               *(0.5*(Yt+t_3)*Xt>=-0.5*W)*(0.5*(Yt-t_3)*Xt<0.5*W) \
-                               *(0.5*(Yt-t_3)*Xt>=-0.5*W)
+            pup+=(1-ref_err[i])*(Yt<0.5*W)*(Yt>=-0.5*W)*(0.5*(Yt+t_3*Xt)<0.5*W) \
+                               *(0.5*(Yt+t_3*Xt)>=-0.5*W)*(0.5*(Yt-t_3*Xt)<0.5*W) \
+                               *(0.5*(Yt-t_3*Xt)>=-0.5*W)
 
         t_spiders= tel.t_spiders*tel.diam*dim/pupd
 
@@ -175,15 +180,11 @@ def make_EELT(dim,pupd,tel,N_seg):#dim,pupd,type_ap,cobs,N_seg,nbr_miss_seg,std_
 
         pup = pup*spiders_map
 
-        print "TODO rotate2"
-        """
-        yoga_ao/yorick/yoga_ao_utils.i:658
-        if (angle != 0) pup=rotate2(pup,angle);
-        "EELT pupil has been created.";
-        """
+        if (tel.pupangle != 0):pup=interp.rotate(pup,tel.pupangle,reshape=False,order=2) 
 
 
-        np.save(EELT_file,pup)
+        print "writing EELT pupil to file ", EELT_file
+        h5u.writeHdf5SingleDataset(EELT_file,pup)
 
     print "EELT pupil created"
     return pup
@@ -223,6 +224,6 @@ def dist(dim, xc=-1, yc=-1):
     dy=np.tile(np.arange(dim)-yc,(dim,1)).T
 
     d=np.sqrt(dx**2+dy**2)
-    return np.asfortranarray(d)
+    return d #np.asfortranarray(d)
 
 

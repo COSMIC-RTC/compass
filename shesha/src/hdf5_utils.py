@@ -732,4 +732,34 @@ def configFromH5(filename,config):
         
         
     
-    
+def writeHdf5SingleDataset(filename,data,datasetName="dataset"):
+    """Write a hdf5 file containig a single field
+
+    If the file already exists, it will be overwritten
+    :parametres:
+        filename: (str) : name of the file to write
+
+        data: (np.ndarray) : content of the file
+
+        datasetName: (str) : name of the dataset to write (default="dataset")
+    """
+
+    f=h5py.File(filename,"w")
+    f.create_dataset(datasetName,data=data)
+    f.close()
+
+
+
+def readHdf5SingleDataset(filename, datasetName="dataset"):
+    """Read a single dataset from an hdf5 file
+
+    :parameters:
+        filename: (str) : name of the file to read from
+
+        datasetName: (str) : name of the dataset to read (default="dataset")
+    """
+
+    f=h5py.File(filename,"r")
+    data=f[datasetName][:]
+    f.close()
+    return data
