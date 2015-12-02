@@ -21,7 +21,10 @@ def params_dictionary(config):
         "pupdiam":config.p_geom.pupdiam,        
         # Telescope params
         "tel_diam":config.p_tel.diam,
-        "cobs":config.p_tel.cobs,        
+        "cobs":config.p_tel.cobs,
+        "spiders":config.p_tel.t_spiders,
+        "type_ap":config.p_tel.type_ap,   
+        "nbrmissing":config.p_tel.nbrmissing,
         # Atmos params
         "r0":config.p_atmos.r0,
         "nscreens":config.p_atmos.nscreens,
@@ -399,6 +402,9 @@ def checkControlParams(savepath,config,matricesToLoad):
         if(dataBase.loc[i,"validity"]):
             load_control = (dataBase.loc[i,"revision"] == check_output("svnversion").replace("\n",""))
             load_control &= ((dataBase.loc[i,"tel_diam"] == config.p_tel.diam).all())
+            load_control &= ((dataBase.loc[i,"spiders"] == config.p_tel.t_spiders).all())
+            load_control &= (dataBase.loc[i,"type_ap"] == config.p_tel.type_ap)
+            load_control &= ((dataBase.loc[i,"nbrmissing"] == config.p_tel.nbrmissing).all())
             load_control &= ((dataBase.loc[i,"cobs"] == config.p_tel.cobs).all())
             load_control &= ((dataBase.loc[i,"pupdiam"] == config.p_geom.pupdiam).all())
             # Check WFS params
@@ -491,6 +497,10 @@ def checkDmsParams(savepath,config,matricesToLoad):
             load_control &= ((dataBase.loc[i,"tel_diam"] == config.p_tel.diam).all())
             load_control &= ((dataBase.loc[i,"cobs"] == config.p_tel.cobs).all())
             load_control &= ((dataBase.loc[i,"pupdiam"] == config.p_geom.pupdiam).all())
+            load_control &= ((dataBase.loc[i,"spiders"] == config.p_tel.t_spiders).all())
+            load_control &= (dataBase.loc[i,"type_ap"] == config.p_tel.type_ap)
+            load_control &= ((dataBase.loc[i,"nbrmissing"] == config.p_tel.nbrmissing).all())
+
             # Check WFS params
             load_control &= (dataBase.loc[i,"nwfs"] == len(config.p_wfss))
             load_control &= ((dataBase.loc[i,"type_wfs"] == [wfs.type_wfs for wfs in config.p_wfss]).all())
@@ -609,6 +619,9 @@ def configFromH5(filename,config):
     # Tel
     config.p_tel.set_diam(f.attrs.get("tel_diam"))
     config.p_tel.set_cobs(f.attrs.get("cobs"))
+    config.p_tel.set_nbrmissing(f.attrs.get("nbrmissing"))
+    config.p_tel.set_t_spiders(f.attrs.get("spiders"))
+    config.p_tel.set_type_ap(f.attrs.get("type_ap"))
     
     # Atmos
     config.p_atmos.set_r0(f.attrs.get("r0"))
