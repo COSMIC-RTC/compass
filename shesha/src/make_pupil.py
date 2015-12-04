@@ -130,6 +130,7 @@ def make_EELT(dim,pupd,tel,N_seg):#dim,pupd,type_ap,cobs,N_seg,nbr_miss_seg,std_
         print "reading EELT pupil from file ", EELT_file
         pup=h5u.readHdf5SingleDataset(EELT_file)
     else:  
+        print "creating EELT pupil..."
         file= EELT_data+"Coord_"+tel.type_ap+".dat"
         data=np.fromfile(file,sep="\n")
         data=np.reshape(data,(data.size/2,2))
@@ -157,7 +158,7 @@ def make_EELT(dim,pupd,tel,N_seg):#dim,pupd,type_ap,cobs,N_seg,nbr_miss_seg,std_
 	
         #mean_ref = np.sum(ref_err)/798.
         #std_ref = np.sqrt(1./798.*np.sum((ref_err-mean_ref)**2))
-	mean_ref=np.mean(ref_err)
+        mean_ref=np.mean(ref_err)
         std_ref=np.std(ref_err)
 
         ref_err = ref_err * tel.referr/ std_ref
@@ -205,7 +206,7 @@ def make_phase_ab(dim,pupd,tel,pup):
 
     if(tel.type_ap=="Generic"):
 	return np.zeros((dim,dim)).astype(np.float32)
-
+    print "computing M1 phase aberration..."
     std_piston=tel.std_piston
     std_tt=tel.std_tt
 
@@ -270,6 +271,7 @@ def make_phase_ab(dim,pupd,tel,pup):
     if (tel.pupangle != 0):
         phase_error=interp.rotate(phase_error,tel.pupangle,reshape=False,order=2) 
 
+    print "phase aberration created"
     return phase_error
 
 def MESH(Range,Dim):

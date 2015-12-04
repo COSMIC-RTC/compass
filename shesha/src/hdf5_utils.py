@@ -22,9 +22,14 @@ def params_dictionary(config):
         # Telescope params
         "tel_diam":config.p_tel.diam,
         "cobs":config.p_tel.cobs,
-        "spiders":config.p_tel.t_spiders,
-        "type_ap":config.p_tel.type_ap,   
+        "t_spiders":config.p_tel.t_spiders,
+        "spiders_type":config.p_tel.spiders_type,
+        "type_ap":config.p_tel.type_ap,
+        "referr":config.p_tel.referr,
+        "pupangle":config.p_tel.pupangle,
         "nbrmissing":config.p_tel.nbrmissing,
+        "std_piston":config.p_tel.std_piston,
+        "std_tt":config.p_tel.std_tt,
         # Atmos params
         "r0":config.p_atmos.r0,
         "nscreens":config.p_atmos.nscreens,
@@ -402,7 +407,12 @@ def checkControlParams(savepath,config,matricesToLoad):
         if(dataBase.loc[i,"validity"]):
             load_control = (dataBase.loc[i,"revision"] == check_output("svnversion").replace("\n",""))
             load_control &= ((dataBase.loc[i,"tel_diam"] == config.p_tel.diam).all())
-            load_control &= ((dataBase.loc[i,"spiders"] == config.p_tel.t_spiders).all())
+            load_control &= ((dataBase.loc[i,"t_spiders"] == config.p_tel.t_spiders).all())
+            load_control &= ((dataBase.loc[i,"spiders_type"] == config.p_tel.spiders_type))
+            load_control &= ((dataBase.loc[i,"pupangle"] == config.p_tel.pupangle).all())
+            load_control &= ((dataBase.loc[i,"referr"] == config.p_tel.referr).all())
+            load_control &= ((dataBase.loc[i,"std_piston"] == config.p_tel.std_piston).all())
+            load_control &= ((dataBase.loc[i,"std_tt"] == config.p_tel.std_tt).all())
             load_control &= (dataBase.loc[i,"type_ap"] == config.p_tel.type_ap)
             load_control &= ((dataBase.loc[i,"nbrmissing"] == config.p_tel.nbrmissing).all())
             load_control &= ((dataBase.loc[i,"cobs"] == config.p_tel.cobs).all())
@@ -497,7 +507,12 @@ def checkDmsParams(savepath,config,matricesToLoad):
             load_control &= ((dataBase.loc[i,"tel_diam"] == config.p_tel.diam).all())
             load_control &= ((dataBase.loc[i,"cobs"] == config.p_tel.cobs).all())
             load_control &= ((dataBase.loc[i,"pupdiam"] == config.p_geom.pupdiam).all())
-            load_control &= ((dataBase.loc[i,"spiders"] == config.p_tel.t_spiders).all())
+            load_control &= ((dataBase.loc[i,"t_spiders"] == config.p_tel.t_spiders).all())
+            load_control &= ((dataBase.loc[i,"spiders_type"] == config.p_tel.spiders_type))
+            load_control &= ((dataBase.loc[i,"pupangle"] == config.p_tel.pupangle).all())
+            load_control &= ((dataBase.loc[i,"referr"] == config.p_tel.referr).all())
+            load_control &= ((dataBase.loc[i,"std_piston"] == config.p_tel.std_piston).all())
+            load_control &= ((dataBase.loc[i,"std_tt"] == config.p_tel.std_tt).all())
             load_control &= (dataBase.loc[i,"type_ap"] == config.p_tel.type_ap)
             load_control &= ((dataBase.loc[i,"nbrmissing"] == config.p_tel.nbrmissing).all())
 
@@ -620,8 +635,13 @@ def configFromH5(filename,config):
     config.p_tel.set_diam(f.attrs.get("tel_diam"))
     config.p_tel.set_cobs(f.attrs.get("cobs"))
     config.p_tel.set_nbrmissing(f.attrs.get("nbrmissing"))
-    config.p_tel.set_t_spiders(f.attrs.get("spiders"))
+    config.p_tel.set_t_spiders(f.attrs.get("t_spiders"))
     config.p_tel.set_type_ap(f.attrs.get("type_ap"))
+    config.p_tel.set_spiders_type(f.attrs.get("spiders_type"))
+    config.p_tel.set_pupangle(f.attrs.get("pupangle"))
+    config.p_tel.set_referr(f.attrs.get("referr"))
+    config.p_tel.set_std_piston(f.attrs.get("std_piston"))
+    config.p_tel.set_std_tt(f.attrs.get("std_tt"))
     
     # Atmos
     config.p_atmos.set_r0(f.attrs.get("r0"))
