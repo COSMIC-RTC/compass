@@ -39,7 +39,10 @@ cdef class Param_tel:
   """number of missing segments for EELT pupil (max is 20)."""
   cdef readonly float referr
   """std of reflectivity errors for EELT segments (fraction)."""
-
+  cdef readonly float std_piston
+  """std of piston errors for EELT segments  """
+  cdef readonly float std_tt
+  """ std of tip-tilt errors for EELT segments """
 
 
 #################################################
@@ -56,10 +59,12 @@ cdef class Param_geom:
     """linear size of total pupil (in pixels)."""
     cdef readonly float cent
     """central point of the simulation."""
-    cdef np.ndarray _ipupil   # total pupil (include full guard band)
+    cdef readonly np.ndarray _ipupil   # total pupil (include full guard band)
     cdef readonly np.ndarray _mpupil   # medium pupil (part of the guard band)
-    cdef np.ndarray _spupil   # small pupil (without guard band)
-    cdef np.ndarray _apodizer # apodizer (same size as small pupil)
+    cdef readonly np.ndarray _spupil   # small pupil (without guard band)
+    cdef readonly np.ndarray _phase_ab_M1   # Phase aberration in the pupil (small size)
+    cdef readonly np.ndarray _phase_ab_M1_m   # Phase aberration in the pupil (medium size) 
+    cdef readonly np.ndarray _apodizer # apodizer (same size as small pupil)
     cdef readonly long  _p1         # min x,y for valid points in mpupil
     cdef readonly long  _p2         # max x,y for valid points in mpupil
     cdef readonly long  _n          # linear size of mpupil

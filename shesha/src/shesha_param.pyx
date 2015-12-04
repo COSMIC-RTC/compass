@@ -52,6 +52,8 @@ cdef class Param_tel:
         self.spiders_type=None
         self.nbrmissing=0
         self.referr=0
+        self.std_piston=0
+        self.std_tt=0
 
     def set_diam(self,float d):
         """set the telescope diameter
@@ -109,6 +111,19 @@ cdef class Param_tel:
         """
         self.referr=ref
 
+    def set_std_piston(self, float piston):
+        """set the std of piston errors for EELT segments
+
+        :param piston: (float) : std of piston errors for EELT segments
+        """
+        self.std_piston=piston
+
+    def set_std_tt(self, float tt):
+        """set the std of tip-tilt errors for EELT segments
+
+        :param tt: (float) : std of tip-tilt errors for EELT segments 
+        """
+        self.std_tt=tt
 
 
 #################################################
@@ -149,13 +164,21 @@ cdef class Param_geom:
 
         #useful pupil
         self._spupil=mkP.make_pupil(self.pupdiam,self.pupdiam,tel,cent,cent).astype(np.float32)
+
+        self._phase_ab_M1=mkP.make_phase_ab(self.pupdiam,self.pupdiam,tel,self._spupil).astype(np.float32)
+
         # large pupil (used for image formation)
         self._ipupil=mkP.pad_array(self._spupil,self.ssize).astype(np.float32)
         
         # useful pupil + 4 pixels
         self._mpupil=mkP.pad_array(self._spupil,self._n).astype(np.float32)
+        self._phase_ab_M1_m=mkP.pad_array(self._phase_ab_M1,self._n).astype(np.float32)
+
         if(apod==1):
-            self.apodizer=make_apodizer(self.pupdiam,self.pupdiam,filename,180./12.)
+            self._apodizer=make_apodizer(self.pupdiam,self.pupdiam,filename,180./12.).astype(np.float32)
+        else:
+            self._apodizer=np.ones((self._spupil.shape[0],self._spupil.shape[1])).astype(np.float32)
+
 
 
     def set_ssize( self,long s):

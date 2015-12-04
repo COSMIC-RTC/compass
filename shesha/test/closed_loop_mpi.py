@@ -45,7 +45,7 @@ if(rank==0):
 #initialisation:
 #    wfs
 print "->wfs"
-wfs=ao.wfs_init(p_wfss,p_atmos,p_tel,p_geom,p_target,p_loop, comm_size,rank,p_dms)
+wfs,tel=ao.wfs_init(p_wfss,p_atmos,p_tel,p_geom,p_target,p_loop, comm_size,rank,p_dms)
 
 #   atmos
 print "->atmos"
@@ -61,7 +61,7 @@ tar=p_target.target_init(c,p_atmos,p_geom,p_tel,p_wfss,wfs,p_dms)
 
 #   rtc
 print "->rtc"
-rtc=ao.rtc_init(wfs,p_wfss,dms,p_dms,p_geom,p_rtc,p_atmos,atm,p_tel,p_loop,p_target,simul_name=simul_name)
+rtc=ao.rtc_init(tel,wfs,p_wfss,dms,p_dms,p_geom,p_rtc,p_atmos,atm,p_tel,p_loop,p_target,simul_name=simul_name)
 
 comm.Barrier()
 if(rank==0):
@@ -96,10 +96,10 @@ def loop( n):
         if(rank==0):
             atm.move_atmos()
             for t in range(p_target.ntargets):
-                tar.atmos_trace(t,atm)
+                tar.atmos_trace(t,tel,atm)
                 tar.dmtrace(t,dms)
             for w in range(len(p_wfss)):
-                wfs.sensors_trace(w,"all",atm,dms)
+                wfs.sensors_trace(w,"all",tel,atm,dms)
         wfs.Bcast_dscreen()
         for w in range(len(p_wfss)):
             wfs.sensors_compimg(w)

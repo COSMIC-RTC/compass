@@ -59,7 +59,7 @@ c.set_activeDevice(0)
 
 #    wfs
 print "->wfs"
-wfs=ao.wfs_init(config.p_wfss,config.p_atmos,config.p_tel,config.p_geom,config.p_target,config.p_loop, 1,0,config.p_dms)
+wfs,tel=ao.wfs_init(config.p_wfss,config.p_atmos,config.p_tel,config.p_geom,config.p_target,config.p_loop, 1,0,config.p_dms)
 
 #   atmos
 print "->atmos"
@@ -71,11 +71,11 @@ dms=ao.dm_init(config.p_dms,config.p_wfss,config.p_geom,config.p_tel)
 
 #   target
 print "->target"
-tar=ao.target_init(c,config.p_target,config.p_atmos,config.p_geom,config.p_tel,config.p_wfss,wfs,config.p_dms)
+tar=ao.target_init(c,tel,config.p_target,config.p_atmos,config.p_geom,config.p_tel,config.p_wfss,wfs,config.p_dms)
 
 print "->rtc"
 #   rtc
-rtc=ao.rtc_init(wfs,config.p_wfss,dms,config.p_dms,config.p_geom,config.p_rtc,config.p_atmos,atm,config.p_tel,config.p_loop,tar,config.p_target,clean=clean,simul_name=simul_name, load=matricesToLoad)
+rtc=ao.rtc_init(tel,wfs,config.p_wfss,dms,config.p_dms,config.p_geom,config.p_rtc,config.p_atmos,atm,config.p_tel,config.p_loop,tar,config.p_target,clean=clean,simul_name=simul_name, load=matricesToLoad)
 
 h5u.validDataBase(os.environ["SHESHA_ROOT"]+"/data/",matricesToLoad)
 
@@ -102,16 +102,16 @@ def loop( n):
         
         if(config.p_controllers[0].type_control == "geo"):
             for t in range(config.p_target.ntargets):
-                tar.atmos_trace(t,atm)
+                tar.atmos_trace(t,atm,tel)
                 rtc.docontrol_geo(0, dms, tar, 0)
                 rtc.applycontrol(0,dms)
                 tar.dmtrace(0,dms)
         else:
             for t in range(config.p_target.ntargets):
-                tar.atmos_trace(t,atm)
+                tar.atmos_trace(t,atm,tel)
                 tar.dmtrace(t,dms)
             for w in range(len(config.p_wfss)):
-                wfs.sensors_trace(w,"all",atm,dms)
+                wfs.sensors_trace(w,"all",tel,atm,dms)
                 wfs.sensors_compimg(w)
 
             rtc.docentroids(0)

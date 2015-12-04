@@ -1,6 +1,7 @@
 #include <sutra_ao_utils.h>
 #include <sutra_target.h>
 #include <sutra_phase.h>
+#include <sutra_telescope.h>
 
 int fft_goodsize(long size) {
   int mradix = 2;
@@ -32,15 +33,15 @@ int fft_goodsize(long size) {
 }
 
 sutra_source::sutra_source(carma_context *context, float xpos, float ypos,
-    float lambda, float mag, float zerop, long size, string type, float *pupil, int Npts, int device) {
+    float lambda, float mag, float zerop, long size, string type, carma_obj<float> *pupil, int Npts, int device) {
   this->current_context=context;
   this->device=device;
   current_context->set_activeDevice(device,1);
 
   this->init_source(context, xpos, ypos, lambda, mag, zerop, size, type, device);
-  this->d_pupil = new carma_obj<float>(this->current_context,
-      this->d_phase->d_screen->getDims());
-  this->d_pupil->host2device(pupil);
+  this->d_pupil = pupil;
+  float h_pupil[this->d_pupil->getNbElem()];
+  this->d_pupil->device2host(h_pupil);
 
   long *dims_data1 = new long[2];
   dims_data1[0] = 1;
@@ -51,7 +52,7 @@ sutra_source::sutra_source(carma_context *context, float xpos, float ypos,
   int *wherephase = new int[Npts];
   int cpt = 0;
   for (int cc = 0; cc < this->d_pupil->getNbElem(); cc++) {
-    if (pupil[cc] > 0) {
+    if (h_pupil[cc] > 0) {
       wherephase[cpt] = cc;
       cpt += 1;
     }
@@ -110,7 +111,6 @@ inline int sutra_source::init_source(carma_context *context, float xpos,
       nstreams);
 
   this->d_image = 0L;
-  this->d_pupil = 0L;
   this->d_amplipup = 0L;
   this->d_leimage = 0L;
   this->d_phasepts = 0L;
@@ -154,8 +154,6 @@ sutra_source::~sutra_source() {
 
   if (d_image != 0L)
     delete this->d_image;
-  if (d_pupil != 0L)
-    delete this->d_pupil;
   if (d_leimage != 0L)
     delete this->d_leimage;
   if (d_amplipup != 0L)
@@ -475,8 +473,8 @@ int sutra_source::comp_strehl() {
   return EXIT_SUCCESS;
 }
 
-sutra_target::sutra_target(carma_context *context, int ntargets, float *xpos,
-    float *ypos, float *lambda, float *mag, float zerop, long *sizes, float *pupil, int Npts,
+sutra_target::sutra_target(carma_context *context, sutra_telescope *yTelescope, int ntargets, float *xpos,
+    float *ypos, float *lambda, float *mag, float zerop, long *sizes, int Npts,
     int device) {
 
   this->ntargets = ntargets;
@@ -484,7 +482,7 @@ sutra_target::sutra_target(carma_context *context, int ntargets, float *xpos,
   for (int i = 0; i < ntargets; i++) {
     d_targets.push_back(
         new sutra_source(context, xpos[i], ypos[i], lambda[i], mag[i], zerop, sizes[i],
-            "target", pupil, Npts, device));
+            "target", yTelescope->d_pupil, Npts, device));
   }
 }
 

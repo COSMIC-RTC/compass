@@ -1,13 +1,14 @@
 #ifdef USE_BRAMA
 
 #include<sutra_target_brama.h>
+#include <sutra_telescope.h>
 
 sutra_target_brama::sutra_target_brama(carma_context *context, ACE_TCHAR* name,
                                        int subsample_, int ntargets,
                                        float *xpos, float *ypos, float *lambda,
-                                       float *mag, float zerop, long *sizes, float *pupil,
+                                       float *mag, float zerop, long *sizes, sutra_telescope *yTelescope,
                                        int Npts, int device) :
-    sutra_target(context, ntargets, xpos, ypos, lambda, mag, zerop, sizes, pupil, Npts,
+    sutra_target(context, ntargets, xpos, ypos, lambda, mag, zerop, sizes, yTelescope, Npts,
                  device) {
   brama = new BRAMA_supervisor(name);
   frame_handle = 0;

@@ -9,6 +9,7 @@
 #include <sutra_lgs.h>
 #include <sutra_dm.h>
 #include <sutra_telemetry.h>
+#include <sutra_telescope.h>
 
 using namespace std;
 using std::string;
@@ -55,7 +56,7 @@ public:
 
 public:
   sutra_source(carma_context *context, float xpos, float ypos, float lambda,
-      float mag, float zerop, long size, string type, float *pupil, int Npts, int device);
+      float mag, float zerop, long size, string type, carma_obj<float> *pupil, int Npts, int device);
   sutra_source(carma_context *context, float xpos, float ypos, float lambda,
       float mag, float zerop, long size, string type, int device);
   sutra_source(const sutra_source& source);
@@ -95,8 +96,8 @@ public:
   vector<sutra_source *> d_targets;
 
 public:
-  sutra_target(carma_context *context, int ntargets, float *xpos, float *ypos,
-      float *lambda, float *mag, float zerop, long *sizes, float *pupil, int Npts, int device);
+  sutra_target(carma_context *context, sutra_telescope *d_tel, int ntargets, float *xpos, float *ypos,
+      float *lambda, float *mag, float zerop, long *sizes, int Npts, int device);
   ~sutra_target();
 
   int

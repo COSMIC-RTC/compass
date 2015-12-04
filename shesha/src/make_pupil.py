@@ -7,6 +7,7 @@ import hdf5_utils as h5u
 #import matplotlib.pyplot as pl
 
 EELT_data=os.environ.get('SHESHA_ROOT')+"/data/apertures/"
+
 def make_pupil(dim,pupd,tel,xc=-1,
                 yc=-1,real=0,cobs=-1):
 
@@ -137,22 +138,28 @@ def make_EELT(dim,pupd,tel,N_seg):#dim,pupd,type_ap,cobs,N_seg,nbr_miss_seg,std_
 
 
         file= EELT_data+"EELT_MISSING_"+tel.type_ap+".dat"
-        kseg=np.fromfile(file,sep="\n")
+        k_seg=np.fromfile(file,sep="\n").astype(np.int32)
 
         W=1.45*np.cos(np.pi/6)
         tel.set_diam(40.)
 
         X=MESH(tel.diam*dim/pupd,dim)
 
+        t_spiders=0.014
+        tel.set_t_spiders(t_spiders)
+
         if(tel.nbrmissing>0):
-                k_seg=np.sort(k_seg[:tel.nbrmissing])
+            k_seg=np.sort(k_seg[:tel.nbrmissing])
 
 
         file= EELT_data+"EELT_REF_ERROR"+".dat"
         ref_err=np.fromfile(file,sep="\n")
-        mean_ref = np.sum(ref_err)/798.
+	
+        #mean_ref = np.sum(ref_err)/798.
+        #std_ref = np.sqrt(1./798.*np.sum((ref_err-mean_ref)**2))
+	mean_ref=np.mean(ref_err)
+        std_ref=np.std(ref_err)
 
-        std_ref = np.sqrt(1./798.*np.sum((ref_err-mean_ref)**2))
         ref_err = ref_err * tel.referr/ std_ref
 
         if(tel.nbrmissing > 0):
@@ -180,7 +187,8 @@ def make_EELT(dim,pupd,tel,N_seg):#dim,pupd,type_ap,cobs,N_seg,nbr_miss_seg,std_
 
         pup = pup*spiders_map
 
-        if (tel.pupangle != 0):pup=interp.rotate(pup,tel.pupangle,reshape=False,order=2) 
+        if (tel.pupangle != 0):
+            pup=interp.rotate(pup,tel.pupangle,reshape=False,order=2) 
 
 
         print "writing EELT pupil to file ", EELT_file
@@ -189,8 +197,80 @@ def make_EELT(dim,pupd,tel,N_seg):#dim,pupd,type_ap,cobs,N_seg,nbr_miss_seg,std_
     print "EELT pupil created"
     return pup
 
+def make_phase_ab(dim,pupd,tel,pup):
+    """Compute the EELT M1 phase aberration
+    :parameters:
+	TODO
+    """
+
+    if(tel.type_ap=="Generic"):
+	return np.zeros((dim,dim)).astype(np.float32)
+
+    std_piston=tel.std_piston
+    std_tt=tel.std_tt
+
+    W=1.45*np.cos(np.pi/6)
+
+    file= EELT_data+"EELT_Piston_"+tel.type_ap+".dat"
+    p_seg=np.fromfile(file,sep="\n")
+    mean_pis=np.mean(p_seg)
+    std_pis=np.std(p_seg)
+    p_seg=p_seg*std_piston/std_pis
+    N_seg=p_seg.size
+
+    file= EELT_data+"EELT_TT_"+tel.type_ap+".dat"
+    tt_seg=np.fromfile(file,sep="\n")
+
+    file= EELT_data+"EELT_TT_DIRECTION_"+tel.type_ap+".dat"
+    tt_phi_seg=np.fromfile(file,sep="\n")
+
+    phase_error=np.zeros((dim,dim))
+    phase_tt=np.zeros((dim,dim))
+    phase_defoc=np.zeros((dim,dim))
+
+    file= EELT_data+"Coord_"+tel.type_ap+".dat"
+    data=np.fromfile(file,sep="\n")
+    data=np.reshape(data,(data.size/2,2))
+    x_seg=data[:,0]
+    y_seg=data[:,1]
+
+    X=MESH(tel.diam*dim/pupd,dim)
+
+    t_3=np.tan(np.pi/3.)
+
+    for i in xrange(N_seg):
+        Xt=X+x_seg[i]
+        Yt=X.T+y_seg[i]
+        SEG=(Yt<0.5*W)*(Yt>=-0.5*W)*(0.5*(Yt+t_3*Xt)<0.5*W) \
+                           *(0.5*(Yt+t_3*Xt)>=-0.5*W)*(0.5*(Yt-t_3*Xt)<0.5*W) \
+                           *(0.5*(Yt-t_3*Xt)>=-0.5*W)
+
+        if(i==0):
+            N_in_seg=np.sum(SEG)
+            Hex_diam=2*np.max(np.sqrt(Xt[np.where(SEG)]**2+Yt[np.where(SEG)]**2))
+
+        if(tt_seg[i]!=0):
+            TT=tt_seg[i] * (np.cos(tt_phi_seg[i])*Xt+np.sin(tt_phi_seg[i])*Yt)
+            mean_tt=np.sum(TT[np.where(SEG==1)])/N_in_seg
+            phase_tt+=SEG*(TT-mean_tt)
+
+        #TODO defocus
+
+        phase_error += SEG*p_seg[i]
 
 
+    N_EELT=np.where(pup)[0].size
+    if(np.sum(phase_tt)!=0):
+        phase_tt*=std_tt/np.sqrt(1./N_EELT*np.sum(phase_tt[np.where(pup)]**2))
+
+    #TODO defocus
+
+    phase_error+=phase_tt+phase_defoc
+
+    if (tel.pupangle != 0):
+        phase_error=interp.rotate(phase_error,tel.pupangle,reshape=False,order=2) 
+
+    return phase_error
 
 def MESH(Range,Dim):
     last=(0.5*Range-0.25/Dim)
@@ -225,5 +305,4 @@ def dist(dim, xc=-1, yc=-1):
 
     d=np.sqrt(dx**2+dy**2)
     return d #np.asfortranarray(d)
-
 

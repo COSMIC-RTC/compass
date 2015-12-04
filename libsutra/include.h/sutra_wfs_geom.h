@@ -8,6 +8,7 @@
 #include <sutra_phase.h>
 #include <sutra_lgs.h>
 #include <sutra_wfs.h>
+#include <sutra_telescope.h>
 
 using namespace std;
 class sutra_sensors;
@@ -16,13 +17,13 @@ public:
 
 
 public:
-    sutra_wfs_geom(carma_context *context, long nxsub, long nvalid, long nphase,
+    sutra_wfs_geom(carma_context *context, sutra_telescope *d_tel, long nxsub, long nvalid, long nphase,
       long npup, float pdiam, int device);
     sutra_wfs_geom(const sutra_wfs_geom& wfs);
   ~sutra_wfs_geom();
 
   int
-  wfs_initarrays(int *phasemap, float *offsets, float *pupil, float *fluxPerSub,
+  wfs_initarrays(int *phasemap, float *offsets, float *fluxPerSub,
       int *validsubsx, int *validsubsy);
   int
   slopes_geom(int type, float *slopes);

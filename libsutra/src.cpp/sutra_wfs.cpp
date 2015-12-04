@@ -91,7 +91,7 @@ int sutra_wfs::sensor_trace(sutra_atmos *yatmos, sutra_dms *ydms) {
   return EXIT_SUCCESS;
 }
 
-sutra_sensors::sutra_sensors(carma_context *context, char **type, int nwfs,
+sutra_sensors::sutra_sensors(carma_context *context, sutra_telescope *d_tel, char **type, int nwfs,
                              long *nxsub, long *nvalid, long *npix,
                              long *nphase, long *nrebin, long *nfft, long *ntot,
                              long *npup, float *pdiam, float *nphot, int *lgs,
@@ -151,15 +151,15 @@ sutra_sensors::sutra_sensors(carma_context *context, char **type, int nwfs,
   for (int i = 0; i < nwfs; i++) {
     sutra_wfs *wfs = NULL;
     if (strcmp(type[i],"sh") == 0)
-      wfs = new sutra_wfs_sh(context, this, nxsub[i], nvalid[i], npix[i],
+      wfs = new sutra_wfs_sh(context, d_tel, this, nxsub[i], nvalid[i], npix[i],
                              nphase[i], nrebin[i], nfft[i], ntot[i], npup[i],
                              pdiam[i], nphot[i], lgs[i], device);
     if (strcmp(type[i],"pyr") == 0)
-      wfs = new sutra_wfs_pyr_pyr4(context, this, nxsub[i], nvalid[i], npix[i],
+      wfs = new sutra_wfs_pyr_pyr4(context, d_tel, this, nxsub[i], nvalid[i], npix[i],
                                    nphase[i], nrebin[i], nfft[i], ntot[i], npup[i],
                                    pdiam[i], nphot[i], lgs[i], device);
     if (strcmp(type[i],"roof") == 0)
-      wfs = new sutra_wfs_pyr_roof(context, this, nxsub[i], nvalid[i], npix[i],
+      wfs = new sutra_wfs_pyr_roof(context, d_tel, this, nxsub[i], nvalid[i], npix[i],
                                    nphase[i], nrebin[i], nfft[i], ntot[i], npup[i],
                                    pdiam[i], nphot[i], lgs[i], device);
     d_wfs.push_back(wfs);
@@ -169,7 +169,7 @@ sutra_sensors::sutra_sensors(carma_context *context, char **type, int nwfs,
 //	DEBUG_TRACE("Final sensors : ");printMemInfo();
 }
 
-sutra_sensors::sutra_sensors(carma_context *context, int nwfs, long *nxsub,
+sutra_sensors::sutra_sensors(carma_context *context, sutra_telescope *d_tel, int nwfs, long *nxsub,
                              long *nvalid, long *nphase, long npup,
                              float *pdiam, int device) {
   this->current_context = context;
@@ -179,7 +179,7 @@ sutra_sensors::sutra_sensors(carma_context *context, int nwfs, long *nxsub,
 
   for (int i = 0; i < nwfs; i++) {
     d_wfs.push_back(
-        new sutra_wfs_geom(context, nxsub[i], nvalid[i], nphase[i], npup,
+        new sutra_wfs_geom(context, d_tel, nxsub[i], nvalid[i], nphase[i], npup,
                            pdiam[i], device));
   }
   this->d_camplifoc = 0L;

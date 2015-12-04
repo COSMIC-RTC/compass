@@ -445,9 +445,12 @@ def wfs_init( wfs, Param_atmos p_atmos, Param_tel p_tel, Param_geom p_geom,
 
     cdef np.ndarray tmp
 
+    telescope= Telescope(p_geom._spupil.shape[0],np.where(p_geom._spupil>0)[0].size,
+		     p_geom._spupil*p_geom._apodizer,  p_geom._phase_ab_M1,
+		     p_geom._mpupil.shape[0], p_geom._mpupil,  p_geom._phase_ab_M1_m )
 
     if(wfs[0].type_wfs=="sh"):
-        g_wfs= Sensors(nsensors,t_wfs,npup,nxsub,nvalid,nphase,pdiam,npix,nrebin,
+        g_wfs= Sensors(nsensors,telescope,t_wfs,npup,nxsub,nvalid,nphase,pdiam,npix,nrebin,
                 nfft,ntota,nphot,lgs,comm_size=comm_size, rank=rank)
 
         mag=np.array([o.gsmag    for o in wfs], dtype=np.float32)
@@ -456,7 +459,7 @@ def wfs_init( wfs, Param_atmos p_atmos, Param_tel p_tel, Param_geom p_geom,
 
     elif(wfs[0].type_wfs=="pyr" or wfs[0].type_wfs=="roof"):
         npup=np.array([wfs[0].pyr_npts])
-        g_wfs= Sensors(nsensors,t_wfs,npup,nxsub,nvalid,nphase,pdiam,npix,nrebin,
+        g_wfs= Sensors(nsensors,telescope, t_wfs,npup,nxsub,nvalid,nphase,pdiam,npix,nrebin,
                 nfft,ntota,nphot,lgs,comm_size=comm_size, rank=rank)
 
         mag=np.array([o.gsmag    for o in wfs], dtype=np.float32)
@@ -466,7 +469,7 @@ def wfs_init( wfs, Param_atmos p_atmos, Param_tel p_tel, Param_geom p_geom,
         
     elif(wfs[0].type_wfs=="geo"):
         npup=np.array([wfs[0].p_geom._n])
-        g_wfs= Sensors(nsensors, wfs[0].type_wfs,npup,nxsub,nvalid,nphase,pdiam,
+        g_wfs= Sensors(nsensors, telescope, wfs[0].type_wfs,npup,nxsub,nvalid,nphase,pdiam,
                        comm_size=comm_size, rank=rank)
 
         mag=np.zeros(nsensors-1,dtype=np.float32)
@@ -475,7 +478,7 @@ def wfs_init( wfs, Param_atmos p_atmos, Param_tel p_tel, Param_geom p_geom,
 
     # fill sensor object with data
     for i in range(nsensors):
-        g_wfs.sensors_initarr(i,wfs[i],p_geom)
+        g_wfs.sensors_initarr(i,wfs[i])
 
     #lgs case
     for i in range(nsensors):
@@ -503,7 +506,7 @@ def wfs_init( wfs, Param_atmos p_atmos, Param_tel p_tel, Param_geom p_geom,
             prep_lgs_prof(wfs[i],i,p_tel,wfs[i]._profna,wfs[i]._altna,
                                   wfs[i].beamsize,g_wfs)
 
-    return g_wfs
+    return g_wfs,telescope
 
 cpdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
                 Param_tel tel, Param_geom geom, Param_target p_target,

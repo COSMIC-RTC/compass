@@ -25,6 +25,11 @@ p_tel.set_type_ap("EELT-Nominal")
 p_tel.set_spiders_type("six")
 p_tel.set_pupangle(0)
 
+#p_tel.set_nbrmissing(7)
+p_tel.set_referr(0.01)
+p_tel.set_std_tt(50)
+p_tel.set_std_piston(50)
+
 #atmos
 p_atmos=ao.Param_atmos()
 

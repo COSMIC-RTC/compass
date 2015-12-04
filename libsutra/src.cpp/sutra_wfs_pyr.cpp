@@ -2,14 +2,14 @@
 #include <sutra_ao_utils.h>
 #include <carma_utils.h>
 
-sutra_wfs_pyr::sutra_wfs_pyr(carma_context *context, sutra_sensors *sensors, long nxsub,
+sutra_wfs_pyr::sutra_wfs_pyr(carma_context *context, sutra_telescope *d_tel, sutra_sensors *sensors, long nxsub,
     long nvalid, long npix, long nphase, long nrebin, long nfft, long ntot,
     long npup, float pdiam, float nphotons, int lgs, int device) {
   this->d_camplipup = sensors->d_camplipup;
   this->d_camplifoc = sensors->d_camplifoc;
   this->d_fttotim = sensors->d_fttotim;
   this->d_ftkernel = 0L;
-  this->d_pupil = 0L;
+  this->d_pupil = d_tel->d_pupil_m;
   this->d_hrimg = 0L;
   this->d_bincube = 0L;
   this->d_binimg = 0L;
@@ -152,8 +152,6 @@ sutra_wfs_pyr::~sutra_wfs_pyr() {
   if (this->d_ftkernel != 0L)
     delete this->d_ftkernel;
 
-  if (this->d_pupil != 0L)
-    delete this->d_pupil;
   if (this->d_hrimg != 0L)
     delete this->d_hrimg;
   if (this->d_bincube != 0L)
@@ -209,13 +207,12 @@ sutra_wfs_pyr::~sutra_wfs_pyr() {
 
 
 int sutra_wfs_pyr::wfs_initarrays(cuFloatComplex *halfxy, cuFloatComplex *offsets,
-    float *focmask, float *pupil, int *cx, int *cy, float *sincar,
+    float *focmask, int *cx, int *cy, float *sincar,
     int *phasemap, int *validsubsx, int *validsubsy) {
   current_context->set_activeDevice(device,1);
   this->d_phalfxy->host2device(halfxy);
   this->d_poffsets->host2device(offsets);
   this->d_submask->host2device(focmask);
-  this->d_pupil->host2device(pupil);
   this->pyr_cx->fill_from(cx);
   this->pyr_cy->fill_from(cy);
   this->d_sincar->host2device(sincar);

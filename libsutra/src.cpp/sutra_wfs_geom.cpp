@@ -1,10 +1,10 @@
 #include <sutra_wfs_geom.h>
 #include <sutra_ao_utils.h>
 #include <carma_utils.h>
+#include <sutra_telescope.h>
 
 
-
-sutra_wfs_geom::sutra_wfs_geom(carma_context *context, long nxsub, long nvalid,
+sutra_wfs_geom::sutra_wfs_geom(carma_context *context, sutra_telescope *d_tel, long nxsub, long nvalid,
     long nphase, long npup, float pdiam, int device) {
   this->campli_plan = 0L;
   this->fttotim_plan = 0L;
@@ -12,7 +12,7 @@ sutra_wfs_geom::sutra_wfs_geom(carma_context *context, long nxsub, long nvalid,
   this->d_camplifoc = 0L;
   this->d_fttotim = 0L;
   this->d_ftkernel = 0L;
-  this->d_pupil = 0L;
+  this->d_pupil = d_tel->d_pupil_m;
   this->d_bincube = 0L;
   this->d_binimg = 0L;
   this->d_subsum = 0L;
@@ -63,10 +63,6 @@ sutra_wfs_geom::sutra_wfs_geom(carma_context *context, long nxsub, long nvalid,
   dims_data1[1] = 2 * nvalid;
   this->d_slopes = new carma_obj<float>(context, dims_data1);
 
-  dims_data2[1] = npup;
-  dims_data2[2] = npup;
-  this->d_pupil = new carma_obj<float>(context, dims_data2);
-
   dims_data2[1] = nphase;
   dims_data2[2] = nphase;
   this->d_offsets = new carma_obj<float>(context, dims_data2);
@@ -96,8 +92,6 @@ sutra_wfs_geom::~sutra_wfs_geom() {
   if (this->d_ftkernel != 0L)
     delete this->d_ftkernel;
 
-  if (this->d_pupil != 0L)
-    delete this->d_pupil;
   if (this->d_bincube != 0L)
     delete this->d_bincube;
   if (this->d_binimg != 0L)
@@ -136,12 +130,11 @@ sutra_wfs_geom::~sutra_wfs_geom() {
   //delete this->current_context;
 }
 
-int sutra_wfs_geom::wfs_initarrays(int *phasemap, float *offsets, float *pupil,
+int sutra_wfs_geom::wfs_initarrays(int *phasemap, float *offsets,
     float *fluxPerSub,int *validsubsx, int *validsubsy) {
   current_context->set_activeDevice(device,1);
   this->d_phasemap->host2device(phasemap);
   this->d_offsets->host2device(offsets);
-  this->d_pupil->host2device(pupil);
   this->d_fluxPerSub->host2device(fluxPerSub);
   this->d_validsubsx->host2device(validsubsx);
   this->d_validsubsy->host2device(validsubsy);

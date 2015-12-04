@@ -95,7 +95,7 @@ def script4bench(param_file,centroider,controller, device=0, fwrite=True):
 
     #init system
     timer.start()
-    wfs=ao.wfs_init(config.p_wfss,config.p_atmos,config.p_tel,config.p_geom,config.p_target,config.p_loop, 1,0,config.p_dms)
+    wfs,tel=ao.wfs_init(config.p_wfss,config.p_atmos,config.p_tel,config.p_geom,config.p_target,config.p_loop, 1,0,config.p_dms)
     ch.threadSync()
     wfs_init_time=timer.stop()-synctime
     timer.reset()
@@ -119,7 +119,7 @@ def script4bench(param_file,centroider,controller, device=0, fwrite=True):
     timer.reset()
 
     timer.start()
-    rtc=ao.rtc_init(wfs,config.p_wfss,dms,config.p_dms,config.p_geom,config.p_rtc,config.p_atmos,atm,config.p_tel,config.p_loop,target,config.p_target,clean=clean,simul_name=simul_name)
+    rtc=ao.rtc_init(tel,wfs,config.p_wfss,dms,config.p_dms,config.p_geom,config.p_rtc,config.p_atmos,atm,config.p_tel,config.p_loop,target,config.p_target,clean=clean,simul_name=simul_name)
     ch.threadSync()
     rtc_init_time=timer.stop()-synctime
     timer.reset()
@@ -145,7 +145,7 @@ def script4bench(param_file,centroider,controller, device=0, fwrite=True):
             if((config.p_target is not None) and (rtc is not None)):
                 for i in xrange(config.p_target.ntargets):
                     timer.start()
-                    target.atmos_trace(i,atm)
+                    target.atmos_trace(i,tel,atm)
                     ch.threadSync()
                     t_raytrace_atmos_time+=timer.stop()-synctime
                     timer.reset()
@@ -160,7 +160,7 @@ def script4bench(param_file,centroider,controller, device=0, fwrite=True):
             if(config.p_wfss is not None and wfs is not None):
                 for i in xrange(len(config.p_wfss)):
                     timer.start()
-                    wfs.sensors_trace(i,"atmos",atm)
+                    wfs.sensors_trace(i,"atmos",tel,atm)
                     ch.threadSync()
                     s_raytrace_atmos_time+=timer.stop()-synctime
                     timer.reset()
@@ -212,7 +212,7 @@ def script4bench(param_file,centroider,controller, device=0, fwrite=True):
             if(config.p_target is not None and target is not None):
                 for i in xrange(config.p_target.ntargets):
                     timer.start()
-                    target.atmos_trace(i,atm)
+                    target.atmos_trace(i,tel,atm)
                     ch.threadSync()
                     t_raytrace_atmos_time+=timer.stop()-synctime
                     timer.reset()

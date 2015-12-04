@@ -3,7 +3,7 @@
 #include <carma_utils.h>
 
 
-sutra_wfs_sh::sutra_wfs_sh(carma_context *context, sutra_sensors *sensors, long nxsub,
+sutra_wfs_sh::sutra_wfs_sh(carma_context *context, sutra_telescope *d_tel, sutra_sensors *sensors, long nxsub,
     long nvalid, long npix, long nphase, long nrebin, long nfft, long ntot,
     long npup, float pdiam, float nphotons, int lgs, int device) {
   this->type = "sh";
@@ -11,7 +11,7 @@ sutra_wfs_sh::sutra_wfs_sh(carma_context *context, sutra_sensors *sensors, long 
   this->d_camplifoc = sensors->d_camplifoc;
   this->d_fttotim = sensors->d_fttotim;
   this->d_ftkernel = 0L;
-  this->d_pupil = 0L;
+  this->d_pupil = d_tel->d_pupil_m;
   this->d_bincube = 0L;
   this->d_binimg = 0L;
   this->d_subsum = 0L;
@@ -231,10 +231,6 @@ int sutra_wfs_sh::allocate_buffers(sutra_sensors *sensors) {
   dims_data2[2] = ntot;
   this->d_ftkernel = new carma_obj<cuFloatComplex>(current_context, dims_data2);
 
-  dims_data2[1] = npup;
-  dims_data2[2] = npup;
-  this->d_pupil = new carma_obj<float>(current_context, dims_data2);
-
   dims_data2[1] = nphase;
   dims_data2[2] = nphase;
   this->d_offsets = new carma_obj<float>(current_context, dims_data2);
@@ -267,8 +263,6 @@ sutra_wfs_sh::~sutra_wfs_sh() {
   if (this->d_ftkernel != 0L)
     delete this->d_ftkernel;
 
-  if (this->d_pupil != 0L)
-    delete this->d_pupil;
   if (this->d_bincube != 0L)
     delete this->d_bincube;
   if (this->d_binimg != 0L)
@@ -314,7 +308,7 @@ sutra_wfs_sh::~sutra_wfs_sh() {
 }
 
 int sutra_wfs_sh::wfs_initarrays(int *phasemap, int *hrmap, int *binmap,
-    float *offsets, float *pupil, float *fluxPerSub,
+    float *offsets, float *fluxPerSub,
     int *validsubsx, int *validsubsy, int *istart, int *jstart,
     cuFloatComplex *kernel) {
   if(this->d_bincube == NULL) {
@@ -324,7 +318,6 @@ int sutra_wfs_sh::wfs_initarrays(int *phasemap, int *hrmap, int *binmap,
   current_context->set_activeDevice(device,1);
   this->d_phasemap->host2device(&phasemap[offset*nphase*nphase]);
   this->d_offsets->host2device(offsets);
-  this->d_pupil->host2device(pupil);
   this->d_binmap->host2device(binmap);
   this->d_fluxPerSub->host2device(&fluxPerSub[offset]);
   if (this->ntot != this->nfft)

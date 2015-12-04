@@ -8,6 +8,7 @@
 #include <sutra_phase.h>
 #include <sutra_lgs.h>
 #include <sutra_wfs.h>
+#include <sutra_telescope.h>
 
 using namespace std;
 
@@ -24,7 +25,7 @@ public:
   carma_host_obj<int> *pyr_cy;
 
 public:
-  sutra_wfs_pyr(carma_context *context,sutra_sensors *sensors, long nxsub, long nvalid,
+  sutra_wfs_pyr(carma_context *context, sutra_telescope *d_tel,sutra_sensors *sensors, long nxsub, long nvalid,
       long npix, long nphase, long nrebin, long nfft, long ntot, long npup,
       float pdiam, float nphotons, int lgs, int device);
   sutra_wfs_pyr(const sutra_wfs_pyr& wfs);
@@ -32,7 +33,7 @@ public:
 
   int
   wfs_initarrays(cuFloatComplex *halfxy, cuFloatComplex *offsets,
-      float *focmask, float *pupil, int *cx, int *cy,
+      float *focmask, int *cx, int *cy,
       float *sincar, int *phasemap, int *validsubsx, int *validsubsy);
 
   int fill_binimage(int async);
