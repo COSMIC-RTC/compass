@@ -123,6 +123,7 @@ def make_VLT(dim,pupd,tel):
 
 
 def make_EELT(dim,pupd,tel,N_seg):#dim,pupd,type_ap,cobs,N_seg,nbr_miss_seg,std_ref_err,t_spiders,angle)
+    """TODO"""
     
     EELT_file=EELT_data+tel.type_ap+"_N"+str(dim)+"_COBS"+str(100*tel.cobs)+"_CLOCKED"+str(tel.pupangle)+"_TSPIDERS"+str(100*tel.t_spiders)+"_MS"+str(tel.nbrmissing)+"_REFERR"+str(100*tel.referr)+".h5"
 
@@ -146,7 +147,7 @@ def make_EELT(dim,pupd,tel,N_seg):#dim,pupd,type_ap,cobs,N_seg,nbr_miss_seg,std_
 
         X=MESH(tel.diam*dim/pupd,dim)
 
-        t_spiders=0.014
+        t_spiders=0.014#0.014
         tel.set_t_spiders(t_spiders)
 
         if(tel.nbrmissing>0):
@@ -158,7 +159,7 @@ def make_EELT(dim,pupd,tel,N_seg):#dim,pupd,type_ap,cobs,N_seg,nbr_miss_seg,std_
 	
         #mean_ref = np.sum(ref_err)/798.
         #std_ref = np.sqrt(1./798.*np.sum((ref_err-mean_ref)**2))
-        mean_ref=np.mean(ref_err)
+        #mean_ref=np.mean(ref_err)
         std_ref=np.std(ref_err)
 
         ref_err = ref_err * tel.referr/ std_ref
@@ -206,72 +207,82 @@ def make_phase_ab(dim,pupd,tel,pup):
 
     if(tel.type_ap=="Generic"):
 	return np.zeros((dim,dim)).astype(np.float32)
-    print "computing M1 phase aberration..."
-    std_piston=tel.std_piston
-    std_tt=tel.std_tt
-
-    W=1.45*np.cos(np.pi/6)
-
-    file= EELT_data+"EELT_Piston_"+tel.type_ap+".dat"
-    p_seg=np.fromfile(file,sep="\n")
-    mean_pis=np.mean(p_seg)
-    std_pis=np.std(p_seg)
-    p_seg=p_seg*std_piston/std_pis
-    N_seg=p_seg.size
-
-    file= EELT_data+"EELT_TT_"+tel.type_ap+".dat"
-    tt_seg=np.fromfile(file,sep="\n")
-
-    file= EELT_data+"EELT_TT_DIRECTION_"+tel.type_ap+".dat"
-    tt_phi_seg=np.fromfile(file,sep="\n")
-
-    phase_error=np.zeros((dim,dim))
-    phase_tt=np.zeros((dim,dim))
-    phase_defoc=np.zeros((dim,dim))
-
-    file= EELT_data+"Coord_"+tel.type_ap+".dat"
-    data=np.fromfile(file,sep="\n")
-    data=np.reshape(data,(data.size/2,2))
-    x_seg=data[:,0]
-    y_seg=data[:,1]
-
-    X=MESH(tel.diam*dim/pupd,dim)
-
-    t_3=np.tan(np.pi/3.)
-
-    for i in xrange(N_seg):
-        Xt=X+x_seg[i]
-        Yt=X.T+y_seg[i]
-        SEG=(Yt<0.5*W)*(Yt>=-0.5*W)*(0.5*(Yt+t_3*Xt)<0.5*W) \
-                           *(0.5*(Yt+t_3*Xt)>=-0.5*W)*(0.5*(Yt-t_3*Xt)<0.5*W) \
-                           *(0.5*(Yt-t_3*Xt)>=-0.5*W)
-
-        if(i==0):
-            N_in_seg=np.sum(SEG)
-            Hex_diam=2*np.max(np.sqrt(Xt[np.where(SEG)]**2+Yt[np.where(SEG)]**2))
-
-        if(tt_seg[i]!=0):
-            TT=tt_seg[i] * (np.cos(tt_phi_seg[i])*Xt+np.sin(tt_phi_seg[i])*Yt)
-            mean_tt=np.sum(TT[np.where(SEG==1)])/N_in_seg
-            phase_tt+=SEG*(TT-mean_tt)
-
+ 
+    ab_file=EELT_data+"aberration_"+tel.type_ap+"_N"+str(dim)+"_NPUP"+str(np.where(pup)[0].size)+"_CLOCKED"+str(tel.pupangle)+"_TSPIDERS"+str(100*tel.t_spiders)+"_MS"+str(tel.nbrmissing)+"_REFERR"+str(100*tel.referr)+"_PIS"+str(tel.std_piston)+"_TT"+str(tel.std_tt)+".h5"
+    if( os.path.isfile(ab_file) ):
+        print "reading aberration phase from file ", ab_file
+        phase_error=h5u.readHdf5SingleDataset(ab_file)
+    else:
+        print "computing M1 phase aberration..."
+        
+        std_piston=tel.std_piston
+        std_tt=tel.std_tt
+    
+        W=1.45*np.cos(np.pi/6)
+    
+        file= EELT_data+"EELT_Piston_"+tel.type_ap+".dat"
+        p_seg=np.fromfile(file,sep="\n")
+        #mean_pis=np.mean(p_seg)
+        std_pis=np.std(p_seg)
+        p_seg=p_seg*std_piston/std_pis
+        N_seg=p_seg.size
+    
+        file= EELT_data+"EELT_TT_"+tel.type_ap+".dat"
+        tt_seg=np.fromfile(file,sep="\n")
+    
+        file= EELT_data+"EELT_TT_DIRECTION_"+tel.type_ap+".dat"
+        tt_phi_seg=np.fromfile(file,sep="\n")
+    
+        phase_error=np.zeros((dim,dim))
+        phase_tt=np.zeros((dim,dim))
+        phase_defoc=np.zeros((dim,dim))
+    
+        file= EELT_data+"Coord_"+tel.type_ap+".dat"
+        data=np.fromfile(file,sep="\n")
+        data=np.reshape(data,(data.size/2,2))
+        x_seg=data[:,0]
+        y_seg=data[:,1]
+    
+        X=MESH(tel.diam*dim/pupd,dim)
+    
+        t_3=np.tan(np.pi/3.)
+    
+        for i in xrange(N_seg):
+            Xt=X+x_seg[i]
+            Yt=X.T+y_seg[i]
+            SEG=(Yt<0.5*W)*(Yt>=-0.5*W)*(0.5*(Yt+t_3*Xt)<0.5*W) \
+                               *(0.5*(Yt+t_3*Xt)>=-0.5*W)*(0.5*(Yt-t_3*Xt)<0.5*W) \
+                               *(0.5*(Yt-t_3*Xt)>=-0.5*W)
+    
+            if(i==0):
+                N_in_seg=np.sum(SEG)
+                Hex_diam=2*np.max(np.sqrt(Xt[np.where(SEG)]**2+Yt[np.where(SEG)]**2))
+    
+            if(tt_seg[i]!=0):
+                TT=tt_seg[i] * (np.cos(tt_phi_seg[i])*Xt+np.sin(tt_phi_seg[i])*Yt)
+                mean_tt=np.sum(TT[np.where(SEG==1)])/N_in_seg
+                phase_tt+=SEG*(TT-mean_tt)
+    
+            #TODO defocus
+    
+            phase_error += SEG*p_seg[i]
+    
+    
+        N_EELT=np.where(pup)[0].size
+        if(np.sum(phase_tt)!=0):
+            phase_tt*=std_tt/np.sqrt(1./N_EELT*np.sum(phase_tt[np.where(pup)]**2))
+    
         #TODO defocus
-
-        phase_error += SEG*p_seg[i]
-
-
-    N_EELT=np.where(pup)[0].size
-    if(np.sum(phase_tt)!=0):
-        phase_tt*=std_tt/np.sqrt(1./N_EELT*np.sum(phase_tt[np.where(pup)]**2))
-
-    #TODO defocus
-
-    phase_error+=phase_tt+phase_defoc
-
-    if (tel.pupangle != 0):
-        phase_error=interp.rotate(phase_error,tel.pupangle,reshape=False,order=2) 
-
-    print "phase aberration created"
+    
+        phase_error+=phase_tt+phase_defoc
+    
+        if (tel.pupangle != 0):
+            phase_error=interp.rotate(phase_error,tel.pupangle,reshape=False,order=2) 
+            
+        print "phase aberration created"
+        print "writing aberration filel to file ",ab_file
+        h5u.writeHdf5SingleDataset(ab_file,phase_error)
+        
     return phase_error
 
 def MESH(Range,Dim):

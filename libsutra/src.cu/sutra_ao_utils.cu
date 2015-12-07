@@ -100,7 +100,9 @@ __global__ void subapnorm_krnl(float *odata, float *idata, float *fact,
   int tid = threadIdx.x + blockIdx.x * blockDim.x;
 
   while (tid < N) {
-    odata[tid] = idata[tid] * fact[tid / n] / norm[tid / n] * nphot;
+	if(norm[tid / n] != 0){
+		odata[tid] = idata[tid] * fact[tid / n] / norm[tid / n] * nphot;
+	}
     tid += blockDim.x * gridDim.x;
   }
 }
