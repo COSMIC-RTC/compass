@@ -838,7 +838,7 @@ class aoLoopThread(QtCore.QThread):
         #sys.stdout.flush()
         
     def printInPlace(self, text):
-        print text # This seems to trigger the GUI and keep the GUI responsive
+        print "\r" + text ,;# This seems to trigger the GUI and keep the GUI responsive
         #sys.stdout.flush()
         #sys.stdout.write(text)
         
