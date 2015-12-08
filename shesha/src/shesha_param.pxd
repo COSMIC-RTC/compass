@@ -102,6 +102,8 @@ cdef class Param_wfs:
     """1 if the WFS sees the atmosphere layers"""
     cdef readonly np.ndarray dms_seen
     """index of dms seen by the WFS"""
+    cdef readonly bool error_budget
+    """ If True, enable error budget analysis for the simulation"""
 
 
 #target kwrd

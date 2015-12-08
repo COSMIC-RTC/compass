@@ -64,7 +64,8 @@ cdef class Sensors:
                     np.ndarray[ndim=1,dtype=np.int32_t] lgs=None,
                     int odevice=-1,
                     int comm_size=1,
-                    int rank=0
+                    int rank=0,
+                    bool error_budget=False
                 ):
 
 
@@ -97,7 +98,7 @@ cdef class Sensors:
                         <float*>pdiam.data,
                         <float*>nphot.data,
                         <int*>lgs.data,
-                        odevice)
+                        odevice,error_budget)
 
         self.sensors.define_mpi_rank(rank,comm_size)
         self.sensors.allocate_buffers()
@@ -297,6 +298,19 @@ cdef class Sensors:
         img.device2host(<float*>data.data)
         return data
 
+    def get_subsum(self, int n):
+        """Return the 'subsum' array of a given wfs
+
+        :param n: (int) : number of the wfs to get the 'subsum' from
+        """
+        cdef carma_obj[float] *subsum
+        cdef const long *cdims
+        cdef np.ndarray[ndim=1,dtype=np.float32_t] data
+        subsum=self.sensors.d_wfs[n].d_subsum
+        cdims=subsum.getDims() 
+        data=np.empty((cdims[1]),dtype=np.float32)
+        subsum.device2host(<float*>data.data)
+        return data
 
 
     def get_imgtele(self, int n):
@@ -405,6 +419,41 @@ cdef class Sensors:
         :param n: (int) : number of the wfs to get the 'bincube' from
         """
         return self._get_bincube(n)
+    
+    cpdef set_bincube(self,int n, np.ndarray[ndim=3,dtype=np.float32_t] data):
+        """ Set the bincube of the WFS numner n
+        
+        :parameters:
+            n: (int) : WFS number
+            data: (np.ndarray[ndim=3,dtype=np.float32_t]) : bincube to use
+        """
+        cdef carma_context *context=carma_context.instance()
+        context.set_activeDeviceForCpy(self.sensors.device,1)
+        cdef np.ndarray[dtype=np.float32_t] data_F=data.flatten("F")
+       
+        self.sensors.d_wfs[n].d_bincube.host2device(<float*>data_F.data)
+             
+        
+    cpdef get_bincubeNotNoisy(self, int n):
+        """Return the 'bincube_not_noisy' array of a given wfs. It's the bincube
+        before noise has been added
+
+        :param n: (int) : number of the wfs to get the 'bincube_not_noisy' from
+        """
+        cdef carma_obj[float] *cube
+        cdef const long *cdims
+        cdef np.ndarray[ndim=3,dtype=np.float32_t] data
+        cdef np.ndarray[ndim=3,dtype=np.float32_t] data_F
+        if(self.sensors.error_budget):
+            cube=self.sensors.d_wfs[n].d_bincube_notnoisy
+            cdims=cube.getDims() 
+            data=np.empty((cdims[1],cdims[2],cdims[3]),dtype=np.float32)
+            data_F=np.empty((cdims[3],cdims[2],cdims[1]),dtype=np.float32)
+            cube.device2host(<float*>data_F.data)
+            data=np.reshape(data_F.flatten("F"),(cdims[1],cdims[2],cdims[3]))
+            return data
+        else:
+            raise TypeError("the error budget analysis has to be enabled")
 
     def get_phase(self, int n):
         """Return the phase array of a given wfs
@@ -449,6 +498,7 @@ cdef class Sensors:
         cdef carma_obj[cuFloatComplex] *amplifoc
         cdef const long *cdims
         cdef np.ndarray[ndim=3,dtype=np.complex64_t] data
+        cdef np.ndarray[ndim=3,dtype=np.complex64_t] data_F
         amplifoc=self.sensors.d_wfs[n].d_camplifoc
         cdims=amplifoc.getDims() 
         data=np.zeros((cdims[1],cdims[2],cdims[3]),dtype=np.complex64)

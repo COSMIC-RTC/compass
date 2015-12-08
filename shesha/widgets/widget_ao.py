@@ -590,7 +590,8 @@ class widgetAOWindow(TemplateBaseClass):
                              self.config.p_geom,self.config.p_rtc,self.config.p_atmos,
                              self.atm,self.config.p_tel,self.config.p_loop,self.tar,
                              self.config.p_target,clean=clean,simul_name=simul_name, load=matricesToLoad)
-        h5u.validDataBase(os.environ["SHESHA_ROOT"]+"/data/",matricesToLoad)
+        if(simul_name is not ""):
+            h5u.validDataBase(os.environ["SHESHA_ROOT"]+"/data/",matricesToLoad)
         self.mainLoop = [self.tel,self.atm,self.wfs,self.rtc,self.tar,self.dms]
         self.aoLoopThread.wfs = self.wfs
         self.aoLoopThread.atm = self.atm

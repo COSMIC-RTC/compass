@@ -245,6 +245,9 @@ cdef class Param_geom:
 # P-Class (parametres) Param_wfs
 #################################################
 cdef class Param_wfs:
+    
+    def __cinit__(self, bool error_budget=False):
+        self.error_budget=error_budget
 
     def set_type(self, str t):
         """Set the type of wfs
@@ -465,6 +468,14 @@ cdef class Param_wfs:
         :param p: (np.ndarray[ndim=1,dtype=np.float32]) : sodium profile
         """
         self._profna=p
+    
+    def set_errorBudget(self, bool error_budget):
+        """ Set the error budget flag : if True, enable error budget analysis
+        for this simulation
+        
+        :param error_budget: (bool) : error budget flag
+        """
+        self.error_budget = error_budget
 
 
 

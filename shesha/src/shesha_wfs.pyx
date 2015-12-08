@@ -445,13 +445,19 @@ def wfs_init( wfs, Param_atmos p_atmos, Param_tel p_tel, Param_geom p_geom,
 
     cdef np.ndarray tmp
 
+    error_budget_flag = [w.error_budget for w in wfs]
+    if(True in error_budget_flag):
+        error_budget_flag = True
+    else:
+        error_budget_flag = False
+	
     telescope= Telescope(p_geom._spupil.shape[0],np.where(p_geom._spupil>0)[0].size,
 		     p_geom._spupil*p_geom._apodizer,  p_geom._phase_ab_M1,
 		     p_geom._mpupil.shape[0], p_geom._mpupil,  p_geom._phase_ab_M1_m )
 
     if(wfs[0].type_wfs=="sh"):
         g_wfs= Sensors(nsensors,telescope,t_wfs,npup,nxsub,nvalid,nphase,pdiam,npix,nrebin,
-                nfft,ntota,nphot,lgs,comm_size=comm_size, rank=rank)
+                nfft,ntota,nphot,lgs,comm_size=comm_size, rank=rank, error_budget=error_budget_flag)
 
         mag=np.array([o.gsmag    for o in wfs], dtype=np.float32)
         noise=np.array([o.noise    for o in wfs], dtype=np.float32)
@@ -460,7 +466,7 @@ def wfs_init( wfs, Param_atmos p_atmos, Param_tel p_tel, Param_geom p_geom,
     elif(wfs[0].type_wfs=="pyr" or wfs[0].type_wfs=="roof"):
         npup=np.array([wfs[0].pyr_npts])
         g_wfs= Sensors(nsensors,telescope, t_wfs,npup,nxsub,nvalid,nphase,pdiam,npix,nrebin,
-                nfft,ntota,nphot,lgs,comm_size=comm_size, rank=rank)
+                nfft,ntota,nphot,lgs,comm_size=comm_size, rank=rank, error_budget=error_budget_flag)
 
         mag=np.array([o.gsmag    for o in wfs], dtype=np.float32)
         noise=np.array([o.noise    for o in wfs], dtype=np.float32)
@@ -755,10 +761,12 @@ cpdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
             for j in range(wfs.nxsub):
                 indj=jstart[j]+1 #+2-1 (yorick->python)
                 fluxPerSub[i,j] = np.sum(geom._mpupil[indi:indi+pdiam,indj:indj+pdiam])
+                #fluxPerSub[i,j] = np.where(geom._mpupil[indi:indi+pdiam,indj:indj+pdiam] > 0)[0].size
 
         fluxPerSub = fluxPerSub/pdiam**2.
 
         pupvalid = (fluxPerSub >= wfs.fracsub)*1
+        pupvalid = pupvalid.T
         wfs._isvalid= pupvalid.astype(np.int32)
         wfs._nvalid=np.sum(pupvalid)
         wfs._fluxPerSub =fluxPerSub

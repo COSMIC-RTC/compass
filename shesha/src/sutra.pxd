@@ -215,6 +215,7 @@ cdef extern from "sutra_wfs.h":
 #################################################
     cdef cppclass sutra_sensors:
         int device
+        bool error_budget
         carma_context *current_context
         size_t nsensors() 
         
@@ -231,7 +232,7 @@ cdef extern from "sutra_wfs.h":
 
         sutra_sensors(carma_context *context, sutra_telescope *d_tel, const char** type, int nwfs, long *nxsub,
           long *nvalid, long *npix, long *nphase, long *nrebin, long *nfft,
-          long *ntot, long *npup, float *pdiam, float *nphot, int *lgs, int device)
+          long *ntot, long *npup, float *pdiam, float *nphot, int *lgs, int device, bool error_budget)
         sutra_sensors(carma_context *context, sutra_telescope *d_tel, int nwfs, long *nxsub, long *nvalid,
           long *nphase, long npup, float *pdiam, int device)
 
@@ -267,6 +268,7 @@ cdef extern from "sutra_wfs.h":
         float noise
         bool lgs
         bool kernconv
+        bool error_budget
 
         int rank
         int offset
@@ -283,6 +285,7 @@ cdef extern from "sutra_wfs.h":
 
         carma_obj[float] *d_pupil
         carma_obj[float] *d_bincube
+        carma_obj[float] *d_bincube_notnoisy
         carma_obj[float] *d_binimg
         carma_obj[float] *d_subsum
         carma_obj[float] *d_offsets

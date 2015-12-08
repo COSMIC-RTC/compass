@@ -31,6 +31,7 @@ class sutra_wfs {
     float noise;
     bool lgs;
     bool kernconv;
+    bool error_budget;
 
     cufftHandle *campli_plan;
     cufftHandle *fttotim_plan;
@@ -41,6 +42,7 @@ class sutra_wfs {
 
     carma_obj<float> *d_pupil;
     carma_obj<float> *d_bincube;
+    carma_obj<float> *d_bincube_notnoisy;
     carma_obj<float> *d_binimg;
     carma_obj<float> *d_subsum;
     carma_obj<float> *d_offsets;
@@ -95,6 +97,7 @@ class sutra_wfs {
 class sutra_sensors {
   public:
     int device;
+    bool error_budget;
     carma_context *current_context;
     size_t nsensors() {
       return d_wfs.size();
@@ -114,7 +117,7 @@ class sutra_sensors {
     sutra_sensors(carma_context *context, sutra_telescope *d_tel, char **type, int nwfs, long *nxsub,
                   long *nvalid, long *npix, long *nphase, long *nrebin,
                   long *nfft, long *ntot, long *npup, float *pdiam,
-                  float *nphot, int *lgs, int device);
+                  float *nphot, int *lgs, int device, bool error_budget);
     sutra_sensors(carma_context *context, sutra_telescope *d_tel, int nwfs, long *nxsub, long *nvalid,
                   long *nphase, long npup, float *pdiam, int device);
     ~sutra_sensors();

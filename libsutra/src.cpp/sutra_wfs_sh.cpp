@@ -13,6 +13,7 @@ sutra_wfs_sh::sutra_wfs_sh(carma_context *context, sutra_telescope *d_tel, sutra
   this->d_ftkernel = 0L;
   this->d_pupil = d_tel->d_pupil_m;
   this->d_bincube = 0L;
+  this->d_bincube_notnoisy = 0L;
   this->d_binimg = 0L;
   this->d_subsum = 0L;
   this->d_offsets = 0L;
@@ -52,6 +53,7 @@ sutra_wfs_sh::sutra_wfs_sh(carma_context *context, sutra_telescope *d_tel, sutra
   this->kernconv = false;
 
   this->offset = 0;
+  this->error_budget = sensors->error_budget;
 
   /// MPI stuff
   this->offset = 0;
@@ -150,6 +152,9 @@ int sutra_wfs_sh::allocate_buffers(sutra_sensors *sensors) {
     dims_data3[3] = nvalid_tot;
 
   this->d_bincube = new carma_obj<float>(current_context, dims_data3);
+  if(this->error_budget){
+	  this->d_bincube_notnoisy = new carma_obj<float>(current_context, dims_data3);
+  }
 
   this->nstreams = 1;
   while (nvalid % this->nstreams != 0)
@@ -541,6 +546,10 @@ int sutra_wfs_sh::comp_generic() {
   }
   //fprintf(stderr, "[%s@%d]: I'm here!\n", __FILE__, __LINE__);
 
+  if(this->error_budget){ // Get here the bincube before adding noise, usefull for error budget
+	  this->d_bincube->copyInto(this->d_bincube_notnoisy->getData(),
+			  this->d_bincube->getNbElem());
+  }
   // add noise
   if (this->noise > -1) {
     //cout << "adding poisson noise" << endl;
@@ -580,7 +589,7 @@ int sutra_wfs_sh::fill_binimage(int async=0) {
     fillbinimg(this->d_binimg->getData(), this->d_bincube->getData(),
         this->npix, this->nvalid_tot, this->npix * this->nxsub,
         this->d_validsubsx->getData(), this->d_validsubsy->getData(),
-        0, this->current_context->get_device(device));
+        false, this->current_context->get_device(device));
   }
   return EXIT_SUCCESS;
 }

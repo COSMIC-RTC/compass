@@ -81,6 +81,8 @@ cdef class Sensors:
     cdef _get_slopes(self, int n)
     cpdef slopes_geom(self,int nsensors, int t)
     cpdef sensors_trace(self,int n, str type_trace, Telescope tel=?, Atmos atmos=?, Dms dms=?, int rst=?)
+    cpdef get_bincubeNotNoisy(self, int n)
+    cpdef set_bincube(self,int n, np.ndarray[ndim=3,dtype=np.float32_t] data)
     IF USE_MPI==1:
         cpdef gather_bincube(self,int n)
         cpdef gather_bincube_cuda_aware(self,int n)
