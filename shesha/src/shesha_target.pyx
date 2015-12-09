@@ -4,13 +4,14 @@ import numpy as np
 #################################################
 cdef class Target:
 
-    def __cinit__(self,naga_context ctxt, Telescope telescope, int ntargets, 
+    def __cinit__(self,naga_context ctxt, int ntargets, 
                     np.ndarray[ndim=1,dtype=np.float32_t] xpos,
                     np.ndarray[ndim=1,dtype=np.float32_t] ypos,
                     np.ndarray[ndim=1,dtype=np.float32_t] Lambda,
                     np.ndarray[ndim=1,dtype=np.float32_t] mag,
                     float zerop,
                     np.ndarray[ndim=1,dtype=np.int64_t] size,
+                    np.ndarray[ndim=2, dtype=np.float32_t] pupil,
                     int Npts,
                     int device=-1
                     ):
@@ -28,11 +29,14 @@ cdef class Target:
         self.device=device
         self.context=ctxt
 
-        self.target= new sutra_target(ctxt.c, telescope.telescope, ntargets,
+        cdef np.ndarray[dtype=np.float32_t] pupil_F=pupil.flatten("F")
+
+        self.target= new sutra_target(ctxt.c,ntargets,
                     <float*>xpos.data,<float*>ypos.data,
                     <float*>Lambda.data,<float*>mag.data,
                     zerop, <long*>size.data,
-                    Npts, device)
+                    <float*>pupil_F.data,Npts,
+                    device)
 
 
     def add_layer(self, int n, bytes l_type, float alt, float xoff, float yoff):
@@ -60,23 +64,17 @@ cdef class Target:
         cdef sutra_source *s_s_ptr
         self.target.d_targets[nTarget].init_strehlmeter()
 
-    def atmos_trace(self, int nTarget, Atmos atm, Telescope tel):
+    def atmos_trace(self, int nTarget, Atmos atm):
         """Raytracing of the target through the atmosphere 
 
         :parameters:
-            int: (nTarget)   : index of the target
+            int: (nTarget) : index of the target
 
-            atm: (atmos)     : atmos to get through
-
-            tel: (Telescope) : telescope
+            atm: (atmos) : atmos to get through
         """
 
         self.context.set_activeDevice(self.device)
         self.target.d_targets[nTarget].raytrace(atm.s_a)
-        cdef carma_obj[float] *d_screen=self.target.d_targets[nTarget].d_phase.d_screen
-        cdef carma_obj[float] *d_tel=tel.telescope.d_phase_ab_M1
-
-        d_screen.axpy(1.0,d_tel,1,1)
 
 
     def get_image(self,int nTarget, bytes type_im, long puponly=0):
@@ -210,7 +208,7 @@ cdef class Target:
         return info
 
 
-def target_init(naga_context ctxt, Telescope telescope, Param_target p_target, Param_atmos atm,
+def target_init(naga_context ctxt,Param_target p_target, Param_atmos atm,
                 Param_geom geom, Param_tel tel,wfs=None, 
                 Sensors sensors=None,
                 dm=None):
@@ -256,13 +254,13 @@ def target_init(naga_context ctxt, Telescope telescope, Param_target p_target, P
             #TODO apodizer, Npts=nb element of apodizer>0
             ceiled_apodizer=np.ceil(geom._apodizer*geom._spupil)
             ceiled_apodizer[np.where(ceiled_apodizer>1)]=1
-            target = Target(ctxt, telescope, p_target.ntargets,p_target.xpos,p_target.ypos,
-                        p_target.Lambda, p_target.mag,p_target.zerop,sizes,Npts)
+            target = Target(ctxt, p_target.ntargets,p_target.xpos,p_target.ypos,
+                        p_target.Lambda, p_target.mag,p_target.zerop,sizes,ceiled_apodizer,Npts)
             #TODO if brama ...
     else:
             Npts=np.sum(ceiled_pupil)
-            target= Target(ctxt, telescope, p_target.ntargets,p_target.xpos,p_target.ypos,
-                            p_target.Lambda, p_target.mag,p_target.zerop,sizes,Npts)
+            target= Target(ctxt, p_target.ntargets,p_target.xpos,p_target.ypos,
+                            p_target.Lambda, p_target.mag,p_target.zerop,sizes,ceiled_pupil,Npts)
             #TODO if brama ...
 
     cdef long dims,dim, dim_dm

@@ -39,28 +39,6 @@ cdef extern from "sutra_phase.h":
         carma_obj[float] *zernikes
         carma_obj[float] *mat
 
-#################################################
-# C-Class sutra_telescope
-#################################################
-cdef extern from "sutra_telescope.h":
-    cdef cppclass sutra_telescope:
-
-        carma_context *current_context
-        int device; # device #
-    
-        long pup_size #// size of pupil
-        long num_eleme_pup #// number of points in the pupil
-  
-        carma_obj[float] *d_pupil #// the pupil mask
-        carma_obj[float] *d_phase_ab_M1 #// the phase aberration for M1
-  
-        long pup_size_m #// size of pupil
-    
-        carma_obj[float] *d_pupil_m #// the pupil mask
-        carma_obj[float] *d_phase_ab_M1_m #// the phase aberration for M1
-    
-        sutra_telescope(carma_context *context, long pup_size, long num_eleme_pup, float *pupil, float *phase_ab_M1, long pup_size_m, float *pupil_m, float *phase_ab_m1_m)
-
 
 cdef extern from "sutra_turbu.h":
 #################################################
@@ -181,8 +159,8 @@ cdef extern from "sutra_target.h":
         int ntargets
         vector.vector[sutra_source *] d_targets
 
-        sutra_target(carma_context *context, sutra_telescope *d_tel, int ntargets, float *xpos, float *ypos,
-      float *Lambda, float *mag, float zerop, long *sizes, int Npts, int device)
+        sutra_target(carma_context *context, int ntargets, float *xpos, float *ypos,
+      float *Lambda, float *mag, float zerop, long *sizes, float *pupil, int Npts, int device)
 
         # not implemented
         #int get_phase(int ntarget, float *dest)
@@ -215,7 +193,6 @@ cdef extern from "sutra_wfs.h":
 #################################################
     cdef cppclass sutra_sensors:
         int device
-        bool error_budget
         carma_context *current_context
         size_t nsensors() 
         
@@ -230,10 +207,10 @@ cdef extern from "sutra_wfs.h":
         carma_obj[cuFloatComplex] *d_ftlgskern
         carma_obj[float] *d_lgskern
 
-        sutra_sensors(carma_context *context, sutra_telescope *d_tel, const char** type, int nwfs, long *nxsub,
+        sutra_sensors(carma_context *context, const char** type, int nwfs, long *nxsub,
           long *nvalid, long *npix, long *nphase, long *nrebin, long *nfft,
-          long *ntot, long *npup, float *pdiam, float *nphot, int *lgs, int device, bool error_budget)
-        sutra_sensors(carma_context *context, sutra_telescope *d_tel, int nwfs, long *nxsub, long *nvalid,
+          long *ntot, long *npup, float *pdiam, float *nphot, int *lgs, int device)
+        sutra_sensors(carma_context *context, int nwfs, long *nxsub, long *nvalid,
           long *nphase, long npup, float *pdiam, int device)
 
         int sensors_initgs(float *xpos, float *ypos, float *Lambda, float *mag, float zerop,
@@ -268,7 +245,6 @@ cdef extern from "sutra_wfs.h":
         float noise
         bool lgs
         bool kernconv
-        bool error_budget
 
         int rank
         int offset
@@ -285,7 +261,6 @@ cdef extern from "sutra_wfs.h":
 
         carma_obj[float] *d_pupil
         carma_obj[float] *d_bincube
-        carma_obj[float] *d_bincube_notnoisy
         carma_obj[float] *d_binimg
         carma_obj[float] *d_subsum
         carma_obj[float] *d_offsets
@@ -322,20 +297,20 @@ cdef extern from "sutra_wfs.h":
 
         carma_context *current_context
 
-        sutra_wfs(carma_context *context, sutra_telescope *d_tel, sutra_sensors *sensors,  const char* type, long nxsub, long nvalid,
+        sutra_wfs(carma_context *context,sutra_sensors *sensors,  const char* type, long nxsub, long nvalid,
           long npix, long nphase, long nrebin, long nfft, long ntot, long npup,
           float pdiam, float nphotons, int lgs, int device)
-        sutra_wfs(carma_context *context, sutra_telescope *d_tel, long nxsub, long nvalid, long nphase,
+        sutra_wfs(carma_context *context, long nxsub, long nvalid, long nphase,
           long npup, float pdiam, int device)
         sutra_wfs(const sutra_wfs& wfs)
 
         int wfs_initarrays(int *phasemap, int *hrmap, int *binmap, float *offsets,
-          float *fluxPerSub, int *validsubsx,
+          float *pupil, float *fluxPerSub, int *validsubsx,
           int *validsubsy, int *istart, int *jstart, cuFloatComplex *kernel)
-        int wfs_initarrays(int *phasemap, float *offsets, float *fluxPerSub,
+        int wfs_initarrays(int *phasemap, float *offsets, float *pupil, float *fluxPerSub,
           int *validsubsx, int *validsubsy, int *istart, int *jstart)
         int wfs_initarrays(cuFloatComplex *halfxy, cuFloatComplex *offsets,
-          float *focmask, int *cx, int *cy,
+          float *focmask, float *pupil, int *cx, int *cy,
           float *sincar, int *phasemap, int *validsubsx, int *validsubsy)
         int wfs_initgs(sutra_sensors *sensors, float xpos, float ypos, float Lambda, float mag, long size,
           float noise, long seed)
@@ -355,7 +330,7 @@ cdef extern from "sutra_wfs.h":
 cdef extern from "sutra_wfs_sh.h":
     cdef cppclass sutra_wfs_sh(sutra_wfs):
         int  wfs_initarrays(int *phasemap, int *hrmap, int *binmap, float *offsets,
-            float *fluxPerSub, int *validsubsx,
+            float *pupil, float *fluxPerSub, int *validsubsx,
             int *validsubsy, int *istart, int *jstart, cuFloatComplex *kernel)
         int fill_binimage(int async)
         int slopes_geom(int type, float *slopes)
@@ -368,7 +343,7 @@ cdef extern from "sutra_wfs_sh.h":
 cdef extern from "sutra_wfs_pyr.h":
     cdef cppclass sutra_wfs_pyr(sutra_wfs):
         int wfs_initarrays(cuFloatComplex *halfxy, cuFloatComplex *offsets,
-      float *focmask, int *cx, int *cy,
+      float *focmask, float *pupil, int *cx, int *cy,
       float *sincar, int *phasemap, int *validsubsx, int *validsubsy)
 
 #################################################
@@ -393,7 +368,7 @@ cdef extern from "sutra_wfs_geom.h":
         #sutra_wfs_geom(carma_context *context, long nxsub, long nvalid, long nphase,
         #    long npup, float pdiam, int device)
         sutra_wfs_geom(const sutra_wfs_geom& wfs)
-        int wfs_initarrays(int *phasemap, float *offsets, 
+        int wfs_initarrays(int *phasemap, float *offsets, float *pupil,
             float *fluxPerSub, int *validsubsx, int *validsubsy)
 
 

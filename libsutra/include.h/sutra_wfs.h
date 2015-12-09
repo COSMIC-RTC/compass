@@ -7,7 +7,6 @@
 #include <sutra_target.h>
 #include <sutra_phase.h>
 #include <sutra_lgs.h>
-#include <sutra_telescope.h>
 //#include <sutra_slopes.h>
 
 using namespace std;
@@ -31,7 +30,6 @@ class sutra_wfs {
     float noise;
     bool lgs;
     bool kernconv;
-    bool error_budget;
 
     cufftHandle *campli_plan;
     cufftHandle *fttotim_plan;
@@ -42,7 +40,6 @@ class sutra_wfs {
 
     carma_obj<float> *d_pupil;
     carma_obj<float> *d_bincube;
-    carma_obj<float> *d_bincube_notnoisy;
     carma_obj<float> *d_binimg;
     carma_obj<float> *d_subsum;
     carma_obj<float> *d_offsets;
@@ -97,7 +94,6 @@ class sutra_wfs {
 class sutra_sensors {
   public:
     int device;
-    bool error_budget;
     carma_context *current_context;
     size_t nsensors() {
       return d_wfs.size();
@@ -114,11 +110,11 @@ class sutra_sensors {
     carma_obj<float> *d_lgskern;
 
   public:
-    sutra_sensors(carma_context *context, sutra_telescope *d_tel, char **type, int nwfs, long *nxsub,
+    sutra_sensors(carma_context *context, char **type, int nwfs, long *nxsub,
                   long *nvalid, long *npix, long *nphase, long *nrebin,
                   long *nfft, long *ntot, long *npup, float *pdiam,
-                  float *nphot, int *lgs, int device, bool error_budget);
-    sutra_sensors(carma_context *context, sutra_telescope *d_tel, int nwfs, long *nxsub, long *nvalid,
+                  float *nphot, int *lgs, int device);
+    sutra_sensors(carma_context *context, int nwfs, long *nxsub, long *nvalid,
                   long *nphase, long npup, float *pdiam, int device);
     ~sutra_sensors();
 

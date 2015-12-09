@@ -29,8 +29,6 @@ IF USE_MPI == 1:
 
 from libc.math cimport sin
 
-from shesha_telescope import *
-from shesha_telescope cimport *
 from shesha_param import *
 from shesha_param cimport *
 from shesha_atmos import *
@@ -72,7 +70,7 @@ cdef class Sensors:
                              np.ndarray[ndim=1,dtype=np.int64_t  ] seed)
 
 
-    cpdef sensors_initarr(self,int n, Param_wfs wfs)
+    cpdef sensors_initarr(self,int n, Param_wfs wfs, Param_geom geom)
     cpdef sensors_addlayer(self,int i, bytes type, float alt, float xoff, float yoff)
     cdef _get_bincube(self, int n)
     cdef _get_pyrimg(self,int n)
@@ -80,9 +78,7 @@ cdef class Sensors:
     cdef _get_slopesDims(self,int n)
     cdef _get_slopes(self, int n)
     cpdef slopes_geom(self,int nsensors, int t)
-    cpdef sensors_trace(self,int n, str type_trace, Telescope tel=?, Atmos atmos=?, Dms dms=?, int rst=?)
-    cpdef get_bincubeNotNoisy(self, int n)
-    cpdef set_bincube(self,int n, np.ndarray[ndim=3,dtype=np.float32_t] data)
+    cpdef sensors_trace(self,int n, str type_trace, Atmos atmos=?, Dms dms=?, int rst=?)
     IF USE_MPI==1:
         cpdef gather_bincube(self,int n)
         cpdef gather_bincube_cuda_aware(self,int n)

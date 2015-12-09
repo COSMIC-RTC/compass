@@ -21,15 +21,7 @@ def params_dictionary(config):
         "pupdiam":config.p_geom.pupdiam,        
         # Telescope params
         "tel_diam":config.p_tel.diam,
-        "cobs":config.p_tel.cobs,
-        "t_spiders":config.p_tel.t_spiders,
-        "spiders_type":config.p_tel.spiders_type,
-        "type_ap":config.p_tel.type_ap,
-        "referr":config.p_tel.referr,
-        "pupangle":config.p_tel.pupangle,
-        "nbrmissing":config.p_tel.nbrmissing,
-        "std_piston":config.p_tel.std_piston,
-        "std_tt":config.p_tel.std_tt,
+        "cobs":config.p_tel.cobs,        
         # Atmos params
         "r0":config.p_atmos.r0,
         "nscreens":config.p_atmos.nscreens,
@@ -407,14 +399,6 @@ def checkControlParams(savepath,config,matricesToLoad):
         if(dataBase.loc[i,"validity"]):
             load_control = (dataBase.loc[i,"revision"] == check_output("svnversion").replace("\n",""))
             load_control &= ((dataBase.loc[i,"tel_diam"] == config.p_tel.diam).all())
-            load_control &= ((dataBase.loc[i,"t_spiders"] == config.p_tel.t_spiders).all())
-            load_control &= ((dataBase.loc[i,"spiders_type"] == config.p_tel.spiders_type))
-            load_control &= ((dataBase.loc[i,"pupangle"] == config.p_tel.pupangle).all())
-            load_control &= ((dataBase.loc[i,"referr"] == config.p_tel.referr).all())
-            load_control &= ((dataBase.loc[i,"std_piston"] == config.p_tel.std_piston).all())
-            load_control &= ((dataBase.loc[i,"std_tt"] == config.p_tel.std_tt).all())
-            load_control &= (dataBase.loc[i,"type_ap"] == config.p_tel.type_ap)
-            load_control &= ((dataBase.loc[i,"nbrmissing"] == config.p_tel.nbrmissing).all())
             load_control &= ((dataBase.loc[i,"cobs"] == config.p_tel.cobs).all())
             load_control &= ((dataBase.loc[i,"pupdiam"] == config.p_geom.pupdiam).all())
             # Check WFS params
@@ -507,15 +491,6 @@ def checkDmsParams(savepath,config,matricesToLoad):
             load_control &= ((dataBase.loc[i,"tel_diam"] == config.p_tel.diam).all())
             load_control &= ((dataBase.loc[i,"cobs"] == config.p_tel.cobs).all())
             load_control &= ((dataBase.loc[i,"pupdiam"] == config.p_geom.pupdiam).all())
-            load_control &= ((dataBase.loc[i,"t_spiders"] == config.p_tel.t_spiders).all())
-            load_control &= ((dataBase.loc[i,"spiders_type"] == config.p_tel.spiders_type))
-            load_control &= ((dataBase.loc[i,"pupangle"] == config.p_tel.pupangle).all())
-            load_control &= ((dataBase.loc[i,"referr"] == config.p_tel.referr).all())
-            load_control &= ((dataBase.loc[i,"std_piston"] == config.p_tel.std_piston).all())
-            load_control &= ((dataBase.loc[i,"std_tt"] == config.p_tel.std_tt).all())
-            load_control &= (dataBase.loc[i,"type_ap"] == config.p_tel.type_ap)
-            load_control &= ((dataBase.loc[i,"nbrmissing"] == config.p_tel.nbrmissing).all())
-
             # Check WFS params
             load_control &= (dataBase.loc[i,"nwfs"] == len(config.p_wfss))
             load_control &= ((dataBase.loc[i,"type_wfs"] == [wfs.type_wfs for wfs in config.p_wfss]).all())
@@ -634,14 +609,6 @@ def configFromH5(filename,config):
     # Tel
     config.p_tel.set_diam(f.attrs.get("tel_diam"))
     config.p_tel.set_cobs(f.attrs.get("cobs"))
-    config.p_tel.set_nbrmissing(f.attrs.get("nbrmissing"))
-    config.p_tel.set_t_spiders(f.attrs.get("t_spiders"))
-    config.p_tel.set_type_ap(str(f.attrs.get("type_ap")))
-    config.p_tel.set_spiders_type(str(f.attrs.get("spiders_type")))
-    config.p_tel.set_pupangle(f.attrs.get("pupangle"))
-    config.p_tel.set_referr(f.attrs.get("referr"))
-    config.p_tel.set_std_piston(f.attrs.get("std_piston"))
-    config.p_tel.set_std_tt(f.attrs.get("std_tt"))
     
     # Atmos
     config.p_atmos.set_r0(f.attrs.get("r0"))
@@ -752,34 +719,4 @@ def configFromH5(filename,config):
         
         
     
-def writeHdf5SingleDataset(filename,data,datasetName="dataset"):
-    """Write a hdf5 file containig a single field
-
-    If the file already exists, it will be overwritten
-    :parametres:
-        filename: (str) : name of the file to write
-
-        data: (np.ndarray) : content of the file
-
-        datasetName: (str) : name of the dataset to write (default="dataset")
-    """
-
-    f=h5py.File(filename,"w")
-    f.create_dataset(datasetName,data=data)
-    f.close()
-
-
-
-def readHdf5SingleDataset(filename, datasetName="dataset"):
-    """Read a single dataset from an hdf5 file
-
-    :parameters:
-        filename: (str) : name of the file to read from
-
-        datasetName: (str) : name of the dataset to read (default="dataset")
-    """
-
-    f=h5py.File(filename,"r")
-    data=f[datasetName][:]
-    f.close()
-    return data
+    

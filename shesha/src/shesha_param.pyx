@@ -14,8 +14,6 @@ print "shesha_savepath:",shesha_savepath
 sys.path.append(shesha_dir+'/src')
 import make_pupil as mkP
 
-from scipy.ndimage import interpolation as interp
-
 RASC=180.*3600./np.pi
 
 #################################################
@@ -52,8 +50,6 @@ cdef class Param_tel:
         self.spiders_type=None
         self.nbrmissing=0
         self.referr=0
-        self.std_piston=0
-        self.std_tt=0
 
     def set_diam(self,float d):
         """set the telescope diameter
@@ -111,19 +107,6 @@ cdef class Param_tel:
         """
         self.referr=ref
 
-    def set_std_piston(self, float piston):
-        """set the std of piston errors for EELT segments
-
-        :param piston: (float) : std of piston errors for EELT segments
-        """
-        self.std_piston=piston
-
-    def set_std_tt(self, float tt):
-        """set the std of tip-tilt errors for EELT segments
-
-        :param tt: (float) : std of tip-tilt errors for EELT segments 
-        """
-        self.std_tt=tt
 
 
 #################################################
@@ -163,22 +146,15 @@ cdef class Param_geom:
         cdef float cent=self.pupdiam/2.+0.5
 
         #useful pupil
-        self._spupil=mkP.make_pupil(self.pupdiam,self.pupdiam,tel,cent,cent).astype(np.float32)
-
-        self._phase_ab_M1=mkP.make_phase_ab(self.pupdiam,self.pupdiam,tel,self._spupil).astype(np.float32)
-
+        self._spupil=mkP.make_pupil(self.pupdiam,self.pupdiam,tel,cent,cent)
+        
         # large pupil (used for image formation)
         self._ipupil=mkP.pad_array(self._spupil,self.ssize).astype(np.float32)
         
         # useful pupil + 4 pixels
         self._mpupil=mkP.pad_array(self._spupil,self._n).astype(np.float32)
-        self._phase_ab_M1_m=mkP.pad_array(self._phase_ab_M1,self._n).astype(np.float32)
-
         if(apod==1):
-            self._apodizer=make_apodizer(self.pupdiam,self.pupdiam,filename,180./12.).astype(np.float32)
-        else:
-            self._apodizer=np.ones((self._spupil.shape[0],self._spupil.shape[1])).astype(np.float32)
-
+            self.apodizer=make_apodizer(self.pupdiam,self.pupdiam,filename,180./12.)
 
 
     def set_ssize( self,long s):
@@ -245,9 +221,6 @@ cdef class Param_geom:
 # P-Class (parametres) Param_wfs
 #################################################
 cdef class Param_wfs:
-    
-    def __cinit__(self, bool error_budget=False):
-        self.error_budget=error_budget
 
     def set_type(self, str t):
         """Set the type of wfs
@@ -468,14 +441,6 @@ cdef class Param_wfs:
         :param p: (np.ndarray[ndim=1,dtype=np.float32]) : sodium profile
         """
         self._profna=p
-    
-    def set_errorBudget(self, bool error_budget):
-        """ Set the error budget flag : if True, enable error budget analysis
-        for this simulation
-        
-        :param error_budget: (bool) : error budget flag
-        """
-        self.error_budget = error_budget
 
 
 
@@ -1178,7 +1143,6 @@ cpdef make_apodizer(int dim, int pupd, bytes filename, float angle):
     if (angle != 0):
         #use ndimage.interpolation.rotate
         print "TODO pup=rotate2(pup,angle)"
-        pup=interp.rotate(pup,angle,reshape=False,order=2)
     
     reg=np.where(mkP.dist(pupd)>pupd/2.)
     pup[reg]=0.

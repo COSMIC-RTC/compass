@@ -49,7 +49,6 @@ cdef class Sensors:
 
     """
     def __cinit__(self, int nsensors,
-                    Telescope tel,
                     type_data,
                     np.ndarray[ndim=1,dtype=np.int64_t] npup,
                     np.ndarray[ndim=1,dtype=np.int64_t] nxsub,
@@ -64,8 +63,7 @@ cdef class Sensors:
                     np.ndarray[ndim=1,dtype=np.int32_t] lgs=None,
                     int odevice=-1,
                     int comm_size=1,
-                    int rank=0,
-                    bool error_budget=False
+                    int rank=0
                 ):
 
 
@@ -78,7 +76,7 @@ cdef class Sensors:
             odevice=context.get_activeDevice()
 
         if(type_data=="geo"):
-            self.sensors= new sutra_sensors(context, tel.telescope, nsensors,
+            self.sensors= new sutra_sensors(context, nsensors,
                         <long*>nxsub.data,
                         <long*>nvalid.data,
                         <long*>nphase.data,
@@ -86,7 +84,7 @@ cdef class Sensors:
                         <float*>pdiam.data,
                         odevice)
         else:
-            self.sensors= new sutra_sensors(context, tel.telescope, <char**>type_wfs, nsensors,
+            self.sensors= new sutra_sensors(context, <char**>type_wfs, nsensors,
                         <long*>nxsub.data,
                         <long*>nvalid.data,
                         <long*>npix.data,
@@ -98,7 +96,7 @@ cdef class Sensors:
                         <float*>pdiam.data,
                         <float*>nphot.data,
                         <int*>lgs.data,
-                        odevice,error_budget)
+                        odevice)
 
         self.sensors.define_mpi_rank(rank,comm_size)
         self.sensors.allocate_buffers()
@@ -147,13 +145,15 @@ cdef class Sensors:
                         <float*>noise.data, <long*>seed.data)
 
 
-    cpdef sensors_initarr(self,int n, Param_wfs wfs):
+    cpdef sensors_initarr(self,int n, Param_wfs wfs, Param_geom geom):
         """Call the function wfs_initarrays from a sutra_wfs of the Sensors
 
         :parameters:
         n: (int) : index of the wfs
 
         wfs: (Param_wfs) :
+
+        geom: (Param_geom) :
         """
 
         cdef np.ndarray tmp,tmp2,tmp_istart,tmp_jstart
@@ -202,10 +202,12 @@ cdef class Sensors:
         halfxy=<float*>halfxy_F.data
 
 
+        cdef np.ndarray[dtype=np.float32_t] mpupil_F=geom._mpupil.flatten("F")
         cdef np.ndarray[dtype=np.float32_t] submask_F
         submask_F=wfs._submask.flatten("F").astype(np.float32)
         cdef np.ndarray[dtype=np.float32_t] sincar_F =wfs._sincar.flatten("F")
 
+        cdef float *pupil=<float*>mpupil_F.data
         cdef float *submask=<float*>submask_F.data
         cdef float *sincar=<float*>sincar_F.data
 
@@ -223,7 +225,7 @@ cdef class Sensors:
             tmp=wfs._fluxPerSub.T[np.where(wfs._isvalid>0)]
             fluxPerSub=<float*>tmp.data
             wfs_geom=dynamic_cast_wfs_geom_ptr(self.sensors.d_wfs[n])
-            wfs_geom.wfs_initarrays(phasemap, halfxy, fluxPerSub,
+            wfs_geom.wfs_initarrays(phasemap, halfxy, pupil, fluxPerSub,
                     validx, validy)
 
         elif(self.sensors.d_wfs[n].type==type_pyr):
@@ -231,7 +233,7 @@ cdef class Sensors:
             offset=<cuFloatComplex*>tmp.data
             wfs_pyr = dynamic_cast_wfs_pyr_pyr4_ptr(self.sensors.d_wfs[n])
             wfs_pyr.wfs_initarrays(<cuFloatComplex*>halfxy, offset,
-                    submask, cx, cy, 
+                    submask, pupil,cx, cy, 
                     sincar, phasemap, validx,validy)
 
         elif(self.sensors.d_wfs[n].type==type_roof):
@@ -239,7 +241,7 @@ cdef class Sensors:
             offset=<cuFloatComplex*>tmp.data
             wfs_roof = dynamic_cast_wfs_pyr_roof_ptr(self.sensors.d_wfs[n])
             wfs_roof.wfs_initarrays(<cuFloatComplex*>halfxy, offset,
-                    submask, cx, cy, 
+                    submask, pupil,cx, cy, 
                     sincar, phasemap, validx,validy)
 
 
@@ -248,7 +250,7 @@ cdef class Sensors:
             fluxPerSub=<float*>tmp.data
             wfs_sh=dynamic_cast_wfs_sh_ptr(self.sensors.d_wfs[n])
             wfs_sh.wfs_initarrays(phasemap,hrmap,binmap,halfxy,
-                    fluxPerSub,validx, validy,
+                    pupil,fluxPerSub,validx, validy,
                     istart, jstart,<cuFloatComplex*>ftkernel)
 
  
@@ -298,19 +300,6 @@ cdef class Sensors:
         img.device2host(<float*>data.data)
         return data
 
-    def get_subsum(self, int n):
-        """Return the 'subsum' array of a given wfs
-
-        :param n: (int) : number of the wfs to get the 'subsum' from
-        """
-        cdef carma_obj[float] *subsum
-        cdef const long *cdims
-        cdef np.ndarray[ndim=1,dtype=np.float32_t] data
-        subsum=self.sensors.d_wfs[n].d_subsum
-        cdims=subsum.getDims() 
-        data=np.empty((cdims[1]),dtype=np.float32)
-        subsum.device2host(<float*>data.data)
-        return data
 
 
     def get_imgtele(self, int n):
@@ -419,41 +408,6 @@ cdef class Sensors:
         :param n: (int) : number of the wfs to get the 'bincube' from
         """
         return self._get_bincube(n)
-    
-    cpdef set_bincube(self,int n, np.ndarray[ndim=3,dtype=np.float32_t] data):
-        """ Set the bincube of the WFS numner n
-        
-        :parameters:
-            n: (int) : WFS number
-            data: (np.ndarray[ndim=3,dtype=np.float32_t]) : bincube to use
-        """
-        cdef carma_context *context=carma_context.instance()
-        context.set_activeDeviceForCpy(self.sensors.device,1)
-        cdef np.ndarray[dtype=np.float32_t] data_F=data.flatten("F")
-       
-        self.sensors.d_wfs[n].d_bincube.host2device(<float*>data_F.data)
-             
-        
-    cpdef get_bincubeNotNoisy(self, int n):
-        """Return the 'bincube_not_noisy' array of a given wfs. It's the bincube
-        before noise has been added
-
-        :param n: (int) : number of the wfs to get the 'bincube_not_noisy' from
-        """
-        cdef carma_obj[float] *cube
-        cdef const long *cdims
-        cdef np.ndarray[ndim=3,dtype=np.float32_t] data
-        cdef np.ndarray[ndim=3,dtype=np.float32_t] data_F
-        if(self.sensors.error_budget):
-            cube=self.sensors.d_wfs[n].d_bincube_notnoisy
-            cdims=cube.getDims() 
-            data=np.empty((cdims[1],cdims[2],cdims[3]),dtype=np.float32)
-            data_F=np.empty((cdims[3],cdims[2],cdims[1]),dtype=np.float32)
-            cube.device2host(<float*>data_F.data)
-            data=np.reshape(data_F.flatten("F"),(cdims[1],cdims[2],cdims[3]))
-            return data
-        else:
-            raise TypeError("the error budget analysis has to be enabled")
 
     def get_phase(self, int n):
         """Return the phase array of a given wfs
@@ -498,7 +452,6 @@ cdef class Sensors:
         cdef carma_obj[cuFloatComplex] *amplifoc
         cdef const long *cdims
         cdef np.ndarray[ndim=3,dtype=np.complex64_t] data
-        cdef np.ndarray[ndim=3,dtype=np.complex64_t] data_F
         amplifoc=self.sensors.d_wfs[n].d_camplifoc
         cdims=amplifoc.getDims() 
         data=np.zeros((cdims[1],cdims[2],cdims[3]),dtype=np.complex64)
@@ -612,7 +565,7 @@ cdef class Sensors:
 
 
 
-    cpdef sensors_trace(self,int n, str type_trace, Telescope tel=None, Atmos atmos=None,  Dms dms=None, int rst=0): 
+    cpdef sensors_trace(self,int n, str type_trace, Atmos atmos=None,  Dms dms=None, int rst=0): 
         """ Does the raytracing for the wfs phase screen in sutra_wfs
 
         :parameters:
@@ -622,8 +575,6 @@ cdef class Sensors:
                                 "dm"  : raytracing across dms seen only
                                 "atmos" : raytracing across atmos only
 
-            tel: (Telescope) :(optional) Telescope object
-
             atmos: (Atmos) :(optional) Atmos object
 
             dms: (Dms) : (optional) Dms object
@@ -632,20 +583,13 @@ cdef class Sensors:
         """
 
         cdef carma_context *context=carma_context.instance()
-        cdef carma_obj[float] *d_screen=self.sensors.d_wfs[n].d_gs.d_phase.d_screen
-        cdef carma_obj[float] *d_tel=tel.telescope.d_phase_ab_M1_m
-
         context.set_activeDeviceForce(self.sensors.device,1)
         if(type_trace=="all"):
             self.sensors.d_wfs[n].sensor_trace(atmos.s_a, dms.dms)
-            d_screen.axpy(1.0,d_tel,1,1) 
         elif(type_trace=="atmos"):
             self.sensors.d_wfs[n].sensor_trace(atmos.s_a)
-            d_screen.axpy(1.0,d_tel,1,1) 
         elif(type_trace=="dm"):
             self.sensors.d_wfs[n].sensor_trace(dms.dms,rst)
-
-
 
 
     IF USE_MPI==1:

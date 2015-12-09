@@ -20,7 +20,7 @@ public:
   carma_obj<int> *d_jstart; // nxsub
 
 public:
-  sutra_wfs_sh(carma_context *context, sutra_telescope *d_tel,sutra_sensors *sensors, long nxsub, long nvalid,
+  sutra_wfs_sh(carma_context *context,sutra_sensors *sensors, long nxsub, long nvalid,
       long npix, long nphase, long nrebin, long nfft, long ntot, long npup,
       float pdiam, float nphotons, int lgs, int device);
   sutra_wfs_sh(const sutra_wfs_sh& wfs);
@@ -31,7 +31,7 @@ public:
 
   int
   wfs_initarrays(int *phasemap, int *hrmap, int *binmap, float *offsets,
-      float *fluxPerSub, int *validsubsx,
+      float *pupil, float *fluxPerSub, int *validsubsx,
       int *validsubsy, int *istart, int *jstart, cuFloatComplex *kernel);
 
   int

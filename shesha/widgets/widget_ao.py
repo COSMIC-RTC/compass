@@ -40,14 +40,13 @@ class widgetAOWindow(TemplateBaseClass):
         self.configpath = None
         self.config = None
         self.c = ch.naga_context()
-        self.tel = None
         self.wfs = None
         self.rtc = None
         self.atm = None
         self.tar = None
         self.dms = None
         self.aoLoopThread = None
-        self.mainLoop = [self.tel,self.atm,self.wfs,self.rtc,self.tar,self.dms]
+        self.mainLoop = [self.atm,self.wfs,self.rtc,self.tar,self.dms]
         
         ##############################################################
         #######       PYQTGRAPH WINDOW INIT   #######################
@@ -571,7 +570,7 @@ class widgetAOWindow(TemplateBaseClass):
             clean=0
             param_dict = h5u.params_dictionary(self.config)
             matricesToLoad = h5u.checkMatricesDataBase(os.environ["SHESHA_ROOT"]+"/data/",self.config,param_dict)
-        self.wfs,self.tel=ao.wfs_init(self.config.p_wfss,self.config.p_atmos,self.config.p_tel,
+        self.wfs=ao.wfs_init(self.config.p_wfss,self.config.p_atmos,self.config.p_tel,
                              self.config.p_geom,self.config.p_target,self.config.p_loop,
                              1,0,self.config.p_dms)
 
@@ -582,23 +581,21 @@ class widgetAOWindow(TemplateBaseClass):
 
         self.dms=ao.dm_init(self.config.p_dms,self.config.p_wfss,self.config.p_geom,self.config.p_tel)
 
-        self.tar=ao.target_init(self.c, self.tel, self.config.p_target,self.config.p_atmos,
+        self.tar=ao.target_init(self.c, self.config.p_target,self.config.p_atmos,
                                                   self.config.p_geom,self.config.p_tel,self.config.p_wfss,
                                                   self.wfs,self.config.p_dms)
 
-        self.rtc=ao.rtc_init(self.tel,self.wfs,self.config.p_wfss,self.dms,self.config.p_dms,
+        self.rtc=ao.rtc_init(self.wfs,self.config.p_wfss,self.dms,self.config.p_dms,
                              self.config.p_geom,self.config.p_rtc,self.config.p_atmos,
                              self.atm,self.config.p_tel,self.config.p_loop,self.tar,
                              self.config.p_target,clean=clean,simul_name=simul_name, load=matricesToLoad)
-        if(simul_name is not ""):
-            h5u.validDataBase(os.environ["SHESHA_ROOT"]+"/data/",matricesToLoad)
-        self.mainLoop = [self.tel,self.atm,self.wfs,self.rtc,self.tar,self.dms]
+        h5u.validDataBase(os.environ["SHESHA_ROOT"]+"/data/",matricesToLoad)
+        self.mainLoop = [self.atm,self.wfs,self.rtc,self.tar,self.dms]
         self.aoLoopThread.wfs = self.wfs
         self.aoLoopThread.atm = self.atm
         self.aoLoopThread.tar = self.tar
         self.aoLoopThread.rtc = self.rtc
         self.aoLoopThread.dms = self.dms
-        self.aoLoopThread.tel = self.tel
         self.updateDisplay()
         print "===================="
         print "init done"
@@ -665,12 +662,11 @@ class aoLoopThread(QtCore.QThread):
     def __init__(self,LoopParams,config, img, strehlSE, strehlLE, framebyframe, histo, RTDisplay, RTDFreq, imgType=None, numberSelected=None):
         QtCore.QThread.__init__(self)
         
-        self.tel = LoopParams[0]
-        self.wfs = LoopParams[2]
-        self.atm = LoopParams[1]
-        self.tar = LoopParams[4]
-        self.rtc = LoopParams[3]
-        self.dms = LoopParams[5]
+        self.wfs = LoopParams[1]
+        self.atm = LoopParams[0]
+        self.tar = LoopParams[3]
+        self.rtc = LoopParams[2]
+        self.dms = LoopParams[4]
         self.config = config
         self.go = True
         self.img = img
@@ -768,7 +764,7 @@ class aoLoopThread(QtCore.QThread):
                 for t in range(self.config.p_target.ntargets):
                     self.printInPlace("") 
                     #print " ",
-                    self.tar.atmos_trace(t,self.atm,self.tel)
+                    self.tar.atmos_trace(t,self.atm)
                     #print " ",
                     self.tar.dmtrace(t,self.dms)
                     #print "",
@@ -779,7 +775,7 @@ class aoLoopThread(QtCore.QThread):
                 for t in range(self.config.p_target.ntargets):
                     #print " ",
                     self.printInPlace("") 
-                    self.tar.atmos_trace(t,self.atm,self.tel)
+                    self.tar.atmos_trace(t,self.atm)
                     #print "",
                     self.rtc.docontrol_geo(0, self.dms, self.tar, 0)
                     #print "",
@@ -792,7 +788,7 @@ class aoLoopThread(QtCore.QThread):
                 for t in range(self.config.p_target.ntargets):
                     #print ""
                     self.printInPlace("")
-                    self.tar.atmos_trace(t,self.atm,self.tel)
+                    self.tar.atmos_trace(t,self.atm)
                     #print "",
                     self.tar.dmtrace(t,self.dms)
                     #print "",
@@ -800,7 +796,7 @@ class aoLoopThread(QtCore.QThread):
                 for w in range(len(self.config.p_wfss)):
                     #print "",
                     self.printInPlace("")
-                    self.wfs.sensors_trace(w,"all",self.tel,self.atm,self.dms)
+                    self.wfs.sensors_trace(w,"all",self.atm,self.dms)
                     #print "",
                     self.printInPlace("")
                     self.wfs.sensors_compimg(w)
@@ -839,7 +835,7 @@ class aoLoopThread(QtCore.QThread):
         #sys.stdout.flush()
         
     def printInPlace(self, text):
-        print "\r" + text ,;# This seems to trigger the GUI and keep the GUI responsive
+        print text # This seems to trigger the GUI and keep the GUI responsive
         #sys.stdout.flush()
         #sys.stdout.write(text)
         

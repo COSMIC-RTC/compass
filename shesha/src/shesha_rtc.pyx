@@ -1366,14 +1366,12 @@ cdef class Rtc:
 
 
 
-def rtc_init(Telescope g_tel, Sensors g_wfs, p_wfs, Dms g_dms, p_dms, Param_geom p_geom, Param_rtc p_rtc,
+def rtc_init(Sensors g_wfs, p_wfs, Dms g_dms, p_dms, Param_geom p_geom, Param_rtc p_rtc,
             Param_atmos p_atmos, Atmos g_atmos, Param_tel p_tel, Param_loop p_loop, 
             Target g_tar, Param_target p_tar, clean=1, brama=None, doimat=None,simul_name="",load={}):
     """Initialize all the sutra_rtc objects : centroiders and controllers
 
     :parameters:
-        g_tel: (Telescope) : Telescope object
-
         g_wfs: (Sensors) : Sensors object
 
         p_wfs: (list of Param_wfs) : wfs settings
@@ -1644,7 +1642,7 @@ def rtc_init(Telescope g_tel, Sensors g_wfs, p_wfs, Dms g_dms, p_dms, Param_geom
                                 KL2V = compute_KL2V(controller,g_dms,p_dms,p_geom,p_atmos,p_tel)
                                 g_rtc.init_modalOpti(i,controller.nmodes,controller.nrec,KL2V,
                                     controller.gmin,controller.gmax,controller.ngain,1./p_loop.ittime)
-                                ol_slopes=openLoopSlp(g_tel, g_atmos,g_rtc,controller.nrec,i,g_wfs,p_wfs,p_tar,g_tar)
+                                ol_slopes=openLoopSlp(g_atmos,g_rtc,controller.nrec,i,g_wfs,p_wfs,p_tar,g_tar)
                                 g_rtc.loadOpenLoop(i,ol_slopes)
                                 g_rtc.modalControlOptimization(i)
                             else:
@@ -1911,7 +1909,7 @@ cpdef imat_geom(Sensors g_wfs, p_wfs, Param_controller p_control,Dms g_dms, p_dm
             nslps=0
             for nw in range(nwfs):
                 wfs=p_control.nwfs[nw]
-                g_wfs.sensors_trace(wfs,"dm",tel=None,atmos=None,dms=g_dms,rst=1)
+                g_wfs.sensors_trace(wfs,"dm",None,dms=g_dms,rst=1)
                 g_wfs.slopes_geom(wfs,meth)
                 imat_cpu[nslps:nslps+p_wfs[wfs]._nvalid*2,ind]=g_wfs._get_slopes(wfs)
                 nslps+=p_wfs[wfs]._nvalid*2
@@ -1962,7 +1960,7 @@ cpdef manual_imat(Rtc g_rtc,Sensors g_wfs, p_wfs, Dms g_dms, p_dms):
             com[i]=float(p_dms[nm].push4imat)
             g_dms.set_comm(p_dms[nm].type_dm,p_dms[nm].alt,com)
             g_dms.shape_dm(p_dms[nm].type_dm,p_dms[nm].alt)
-            g_wfs.sensors_trace(0,"dm", tel=None, atmos=None,dms=g_dms,rst=1)
+            g_wfs.sensors_trace(0,"dm", None,dms=g_dms,rst=1)
             #equivalent to Bcast(g_wfs.sensors.d_wfs[0].d_gs.d_phase.d_screen)
             #g_wfs.Bcast_dscreen()
             IF USE_MPI==1:
@@ -2060,13 +2058,11 @@ cpdef compute_KL2V(Param_controller controller, Dms dms, p_dms, Param_geom p_geo
 
     return KL2V
 
-cpdef openLoopSlp(Telescope g_tel,Atmos g_atm, Rtc g_rtc,int nrec, int ncontro, Sensors g_wfs,  
+cpdef openLoopSlp(Atmos g_atm, Rtc g_rtc,int nrec, int ncontro, Sensors g_wfs,  
         p_wfs, Param_target p_tar,Target g_tar):
     """Return a set of recorded open-loop slopes, usefull for modal control optimization
 
     :parameters:
-        g_tel: (Telescope) : Telescope object
-
         g_atm: (Atmos) : Atmos object
 
         g_rtc: (Rtc) : Rtc object
@@ -2095,11 +2091,11 @@ cpdef openLoopSlp(Telescope g_tel,Atmos g_atm, Rtc g_rtc,int nrec, int ncontro, 
             g_atm.move_atmos()
             if(p_tar is not None):
                 for j in range(p_tar.ntargets):
-                    g_tar.atmos_trace(j,g_atm,g_tel)
+                    g_tar.atmos_trace(j,g_atm)
 
         if(p_wfs is not None and g_wfs is not None):
             for j in range(len(p_wfs)):
-                g_wfs.sensors_trace(j,"atmos",g_tel,g_atm)
+                g_wfs.sensors_trace(j,"atmos",g_atm)
                 g_wfs.sensors_compimg(j)
                 g_rtc.sensors_compslopes(ncontro)
                 ol_slopes[j*p_wfs[j]._nvalid*2:(j+1)*p_wfs[j]._nvalid*2,i]=g_wfs._get_slopes(j)

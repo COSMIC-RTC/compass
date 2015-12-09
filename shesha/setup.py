@@ -23,10 +23,9 @@ from distutils.extension import Extension
 
 
 
-listMod=[ "shesha_param","shesha_telescope", "shesha_sensors","shesha_atmos",
+listMod=[ "shesha_param", "shesha_sensors","shesha_atmos",
           "shesha_dms","shesha_target","shesha_rtc" ]
-dependencies={"shesha_sensors":["shesha_telescope","shesha_wfs"],
-              "shesha_target":["shesha_telescope"]}
+dependencies={"shesha_sensors":["shesha_wfs"]}
 
 try:
     import mpi4py
@@ -260,8 +259,8 @@ if __name__ == '__main__':
     from multiprocessing import Pool, cpu_count
     pool = Pool(maxtasksperchild=1) # process per core
     pool.map(compile_module, listMod)  # proces data_inputs iterable with poo
-#for name in listMod:
-#    compile_module(name)
+#    for name in listMod:
+#        compile_module(name)
     compile_module("shesha")
 
 
