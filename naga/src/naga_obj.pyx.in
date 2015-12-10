@@ -39,6 +39,7 @@ assert sizeof(int) == sizeof(np.int32_t)
 assert sizeof(float) == sizeof(np.float32_t)
 assert sizeof(double) == sizeof(np.float64_t)
 
+from libc.stdlib cimport malloc, free
 
 """
 #################################################
@@ -266,6 +267,10 @@ cdef class naga_obj_CLASSNAMEDIMD:
             self.c_o=new carma_obj[C_TYPE](ctxt.c,cdims,<C_TYPE*>data.data)
         else:
             self.c_o=new carma_obj[C_TYPE](ctxt.c,cdims,<C_TYPE*>data_F.data)
+
+    def __dealloc__(self):
+        print "call DEALLOC"
+        del self.c_o
 
 
     def getData_ptr(self):

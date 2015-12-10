@@ -142,7 +142,7 @@ ext = Extension('naga',
                 # this syntax is specific to this build system
                 # we're only going to use certain compiler args with nvcc and not with gcc
                 # the implementation of this trick is in customize_compiler() below
-                extra_compile_args={'g++': [],},
+                #extra_compile_args={'g++': [],},
                                     #nvcc not needed (cuda code alreay compiled)
                                     #'nvcc': ['-gencode '+os.environ['GENCODE'], 
                                     #         '--ptxas-options=-v', 
@@ -209,13 +209,14 @@ if 'build_ext' in sys.argv or 'develop' in sys.argv or 'install' in sys.argv:
                               
 
 
+from Cython.Build import cythonize
 
 setup(name='naga',
 
-      ext_modules = [ext],
+      ext_modules = cythonize([ext]),
 
       # inject our custom trigger
-      cmdclass={'build_ext': custom_build_ext},
+      #cmdclass={'build_ext': custom_build_ext},
 
       # since the package has c code, the egg cannot be zipped
       zip_safe=False)
