@@ -21,6 +21,10 @@ cdef class Telescope:
                          <float*>pupil_m_F.data, <float*>phase_ab_m1_m_F.data)
 
 
+
+    def __dealloc__(self):
+        del self.telescope
+
     cpdef set_pupil(self,np.ndarray[ndim=2,dtype=np.float32_t] pup):
         """ Set the small pupil
 

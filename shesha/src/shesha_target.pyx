@@ -35,6 +35,10 @@ cdef class Target:
                     Npts, device)
 
 
+
+    def __dealloc__(self):
+        del self.target
+
     def add_layer(self, int n, bytes l_type, float alt, float xoff, float yoff):
         """Add a phase screen dm or atmos as layers of turbulence
 

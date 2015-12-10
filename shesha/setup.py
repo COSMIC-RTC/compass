@@ -218,6 +218,7 @@ if MPI4PY==1:
 
 
 
+from Cython.Build import cythonize
 def compile_module(name):
     if(os.path.exists(shesha_path+"/lib/"+name+".so") and name != "shesha"):
         shutil.move(shesha_path+"/lib/"+name+".so",shesha_path+"/"+name+".so")
@@ -242,15 +243,15 @@ def compile_module(name):
                   libraries=librairies,
                   language='c++',
                   runtime_library_dirs=[],#CUDA['lib64']],
-                  extra_compile_args={'g++': []},
+                  #extra_compile_args={'g++': []},
                   include_dirs = include_dirs,
                   )
 
 
     setup(
         name=name,
-        ext_modules=[ext],
-        cmdclass={'build_ext': custom_build_ext},
+        ext_modules=cythonize([ext]),
+        #cmdclass={'build_ext': custom_build_ext},
         zip_safe=False
     )
     if(os.path.exists(shesha_path+"/"+name+".so") and name != "shesha"):

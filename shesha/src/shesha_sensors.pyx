@@ -105,6 +105,9 @@ cdef class Sensors:
         self.sensors.device=odevice
         free(type_wfs)
 
+    def __dealloc__(self):
+        del self.sensors
+
     cpdef sensors_initgs(self,np.ndarray[ndim=1,dtype=np.float32_t] xpos,
                              np.ndarray[ndim=1,dtype=np.float32_t] ypos,
                              np.ndarray[ndim=1,dtype=np.float32_t] Lambda,
