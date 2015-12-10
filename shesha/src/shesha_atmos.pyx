@@ -86,13 +86,15 @@ def atmos_init(naga_context c, Param_atmos atm, Param_tel tel,  Param_geom geom,
       
         if (atm.L0 is None): 
             atm.L0 = np.ones(atm.nscreens,dtype=np.float32)*(1.e5)# infinite L0
+            L0_pix = np.copy(atm.L0)
         else: 
             if (atm.L0.shape[0] == 1):
                 atm.L0 = np.ones(atm.nscreens,dtype=np.float32)*atm.L0[0]
+            L0_pix = np.copy(atm.L0)
             for i in range(atm.nscreens):
                 frac_l0=tel.diam/atm.L0[i]
-                atm.L0[i]=geom.pupdiam/frac_l0
-        return atmos_create(c,atm.nscreens,atm.r0,atm.L0,atm.pupixsize,
+                L0_pix[i]=geom.pupdiam/frac_l0
+        return atmos_create(c,atm.nscreens,atm.r0,L0_pix,atm.pupixsize,
             atm.dim_screens,atm.frac,atm.alt,atm.windspeed,
             atm.winddir,atm.deltax,atm.deltay,rank,clean,load)
 
@@ -105,11 +107,7 @@ def atmos_init(naga_context c, Param_atmos atm, Param_tel tel,  Param_geom geom,
 cdef class Atmos:
     def __cinit__(self):
         self.context = None
-
-    def __dealloc__(self):
-        if(self.s_a!=NULL):
-            del self.s_a
-
+        
     cdef realinit(self,naga_context ctxt,int nscreens,
                 np.ndarray[ndim=1,dtype=np.float32_t] r0,
                 np.ndarray[ndim=1,dtype=np.int64_t] size,

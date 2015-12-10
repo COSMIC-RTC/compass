@@ -27,8 +27,8 @@ p_tel.set_pupangle(0)
 
 p_tel.set_nbrmissing(7)
 p_tel.set_referr(0.01)
-p_tel.set_std_tt(0.050)
-p_tel.set_std_piston(0.050)
+p_tel.set_std_tt(0.050) # microns
+p_tel.set_std_piston(0.050) # microns
 
 #atmos
 p_atmos=ao.Param_atmos()

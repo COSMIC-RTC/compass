@@ -23,8 +23,8 @@ def params_dictionary(config):
         "tel_diam":config.p_tel.diam,
         "cobs":config.p_tel.cobs,
         "t_spiders":config.p_tel.t_spiders,
-        "spiders_type":config.p_tel.spiders_type,
-        "type_ap":config.p_tel.type_ap,
+        "spiders_type":[config.p_tel.spiders_type if(config.p_tel.spiders_type) else ""],
+        "type_ap":[config.p_tel.type_ap if(config.p_tel.type_ap) else ""],
         "referr":config.p_tel.referr,
         "pupangle":config.p_tel.pupangle,
         "nbrmissing":config.p_tel.nbrmissing,
@@ -349,7 +349,7 @@ def checkMatricesDataBase(savepath,config,param_dict):
         checkTurbuParams(savepath,config,matricesToLoad)
         checkDmsParams(savepath,config,matricesToLoad)           
         checkControlParams(savepath,config,matricesToLoad)
-          
+        
     else:
         initDataBase(savepath,param_dict)
     init_hdf5_files(savepath,param_dict,matricesToLoad)
@@ -408,12 +408,12 @@ def checkControlParams(savepath,config,matricesToLoad):
             load_control = (dataBase.loc[i,"revision"] == check_output("svnversion").replace("\n",""))
             load_control &= ((dataBase.loc[i,"tel_diam"] == config.p_tel.diam).all())
             load_control &= ((dataBase.loc[i,"t_spiders"] == config.p_tel.t_spiders).all())
-            load_control &= ((dataBase.loc[i,"spiders_type"] == config.p_tel.spiders_type))
+            load_control &= ((dataBase.loc[i,"spiders_type"] == [config.p_tel.spiders_type if(config.p_tel.spiders_type) else ""]))
             load_control &= ((dataBase.loc[i,"pupangle"] == config.p_tel.pupangle).all())
             load_control &= ((dataBase.loc[i,"referr"] == config.p_tel.referr).all())
             load_control &= ((dataBase.loc[i,"std_piston"] == config.p_tel.std_piston).all())
             load_control &= ((dataBase.loc[i,"std_tt"] == config.p_tel.std_tt).all())
-            load_control &= (dataBase.loc[i,"type_ap"] == config.p_tel.type_ap)
+            load_control &= (dataBase.loc[i,"type_ap"] == [config.p_tel.type_ap if(config.p_tel.type_ap) else ""])
             load_control &= ((dataBase.loc[i,"nbrmissing"] == config.p_tel.nbrmissing).all())
             load_control &= ((dataBase.loc[i,"cobs"] == config.p_tel.cobs).all())
             load_control &= ((dataBase.loc[i,"pupdiam"] == config.p_geom.pupdiam).all())
@@ -508,12 +508,12 @@ def checkDmsParams(savepath,config,matricesToLoad):
             load_control &= ((dataBase.loc[i,"cobs"] == config.p_tel.cobs).all())
             load_control &= ((dataBase.loc[i,"pupdiam"] == config.p_geom.pupdiam).all())
             load_control &= ((dataBase.loc[i,"t_spiders"] == config.p_tel.t_spiders).all())
-            load_control &= ((dataBase.loc[i,"spiders_type"] == config.p_tel.spiders_type))
+            load_control &= ((dataBase.loc[i,"spiders_type"] == [config.p_tel.spiders_type if(config.p_tel.spiders_type) else ""]))
             load_control &= ((dataBase.loc[i,"pupangle"] == config.p_tel.pupangle).all())
             load_control &= ((dataBase.loc[i,"referr"] == config.p_tel.referr).all())
             load_control &= ((dataBase.loc[i,"std_piston"] == config.p_tel.std_piston).all())
             load_control &= ((dataBase.loc[i,"std_tt"] == config.p_tel.std_tt).all())
-            load_control &= (dataBase.loc[i,"type_ap"] == config.p_tel.type_ap)
+            load_control &= (dataBase.loc[i,"type_ap"] == [config.p_tel.type_ap if(config.p_tel.type_ap) else ""])
             load_control &= ((dataBase.loc[i,"nbrmissing"] == config.p_tel.nbrmissing).all())
 
             # Check WFS params

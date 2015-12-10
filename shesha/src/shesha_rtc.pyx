@@ -24,10 +24,6 @@ cdef class Rtc:
         self.rtc=new sutra_rtc(context)
 
 
-    def __dealloc__(self):
-        del self.rtc
-
-
     def add_centroider(self,Sensors sensor, long nwfs, long nvalid,
                         bytes type_centro, float offset, float scale):
 

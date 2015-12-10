@@ -503,10 +503,6 @@ cdef class Dms:
     def __cinit__(self,long ndm):
         self.dms= new sutra_dms(ndm)
 
-
-    def __dealloc__(self):
-        del self.dms
-
     cpdef add_dm(self, bytes type_dm, float alt, long dim, long ninflu, long influsize, long ninflupos, long npts, float push4imat, int device=-1):
 
         cdef carma_context *context=carma_context.instance()

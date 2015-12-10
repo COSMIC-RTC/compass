@@ -20,10 +20,6 @@ cdef class naga_context:
     def __cinit__(self):
         self.c = carma_context.instance()
 
-    def __dealloc__(self):
-        del self.c
-
-
     def get_ndevice(self):
         """Return number of device."""
         return self.c.get_ndevice()

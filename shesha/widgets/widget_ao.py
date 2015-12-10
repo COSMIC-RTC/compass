@@ -603,7 +603,7 @@ class widgetAOWindow(TemplateBaseClass):
         print "===================="
         print "init done"
         print "===================="
-        print "objects initialzed on GPU:"
+        print "objects initialized on GPU:"
         print "--------------------------------------------------------"
         print self.atm
         print self.wfs
@@ -767,53 +767,36 @@ class aoLoopThread(QtCore.QThread):
                 self.atm.move_atmos()
                 for t in range(self.config.p_target.ntargets):
                     self.printInPlace("") 
-                    #print " ",
                     self.tar.atmos_trace(t,self.atm,self.tel)
-                    #print " ",
                     self.tar.dmtrace(t,self.dms)
-                    #print "",
                     self.printInPlace("") 
                     
         if(self.config.p_controllers[0].type_control == "geo"):
             if(self.tar):
                 for t in range(self.config.p_target.ntargets):
-                    #print " ",
-                    self.printInPlace("") 
+                    self.printInPlace("")
                     self.tar.atmos_trace(t,self.atm,self.tel)
-                    #print "",
                     self.rtc.docontrol_geo(0, self.dms, self.tar, 0)
-                    #print "",
                     self.rtc.applycontrol(0,self.dms)
-                    #print "",
                     self.printInPlace("")                 
                     self.tar.dmtrace(0,self.dms)
         else:
             if(self.tar):
                 for t in range(self.config.p_target.ntargets):
-                    #print ""
                     self.printInPlace("")
                     self.tar.atmos_trace(t,self.atm,self.tel)
-                    #print "",
                     self.tar.dmtrace(t,self.dms)
-                    #print "",
             if(self.wfs):
                 for w in range(len(self.config.p_wfss)):
-                    #print "",
                     self.printInPlace("")
                     self.wfs.sensors_trace(w,"all",self.tel,self.atm,self.dms)
-                    #print "",
                     self.printInPlace("")
                     self.wfs.sensors_compimg(w)
-                    #print "",
             if(self.rtc):
-                #print "",
                 self.printInPlace("")
                 self.rtc.docentroids(0)
-                #print "",
                 self.rtc.docontrol(0)
-                #print "",
                 self.rtc.applycontrol(0,self.dms)
-                #print "",
                 self.printInPlace("")
         if(self.tar):
             signal_le = ""
@@ -835,11 +818,11 @@ class aoLoopThread(QtCore.QThread):
             self.emit(QtCore.SIGNAL('currentLoopFrequency(float)'), CurrentFreq)
 
         #print CurrentFreq
-        self.printInPlace(str(CurrentFreq))
+        self.printInPlace("iter #%d SR: (L.E, S.E.)= %s, %srunning at %4.1fHz" % (itnum, signal_le, signal_se, CurrentFreq))
         #sys.stdout.flush()
         
     def printInPlace(self, text):
-        print "\r" + text ,;# This seems to trigger the GUI and keep the GUI responsive
+        print "\r" + text ,;# This seems to trigger the GUI and keep it responsive
         #sys.stdout.flush()
         #sys.stdout.write(text)
         
