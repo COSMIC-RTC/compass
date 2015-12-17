@@ -144,6 +144,7 @@ sutra_controller::~sutra_controller() {
   delete this->d_subsum;
   delete this->d_centroids;
   delete this->d_com;
+  delete this->d_com1;
   delete this->d_voltage;
   if (this->d_perturb != NULL)
     delete this->d_perturb;

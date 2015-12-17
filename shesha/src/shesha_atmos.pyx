@@ -107,7 +107,12 @@ def atmos_init(naga_context c, Param_atmos atm, Param_tel tel,  Param_geom geom,
 cdef class Atmos:
     def __cinit__(self):
         self.context = None
-        
+    
+    def __dealloc__(self):
+        if(self.s_a!=NULL):
+            del self.s_a
+
+
     cdef realinit(self,naga_context ctxt,int nscreens,
                 np.ndarray[ndim=1,dtype=np.float32_t] r0,
                 np.ndarray[ndim=1,dtype=np.int64_t] size,
