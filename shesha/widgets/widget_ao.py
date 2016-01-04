@@ -91,6 +91,7 @@ class widgetAOWindow(TemplateBaseClass):
         self.ui.wao_setControl.clicked.connect(self.setRtcParams)
         self.ui.wao_setTelescope.clicked.connect(self.setTelescopeParams)
         self.ui.wao_resetDM.clicked.connect(self.resetDM)
+        self.ui.wao_setActiveDevice.clicked.connect(self.setDevice)
         self.ui.wao_selectRtcMatrix.currentIndexChanged.connect(self.displayRtcMatrix)
         self.ui.wao_rtcWindowMPL.hide()
         self.ui.wao_Display.clicked.connect(self.updateFrameRate)
@@ -108,7 +109,29 @@ class widgetAOWindow(TemplateBaseClass):
         
         self.connect(self.aoLoopThread,QtCore.SIGNAL("finished()"),self.aoLoopFinished)
         
-    
+    def setDevice(self):
+        self.c.set_activeDevice(self.ui.wao_deviceNumber.value())
+        
+    def manually_destroy(self):
+        if(self.atm):
+            del self.atm
+            del self.aoLoopThread.atm           
+        if(self.tel):
+            del self.tel
+            del self.aoLoopThread.tel
+        if(self.wfs):
+            del self.wfs
+            del self.aoLoopThread.wfs
+        if(self.rtc):
+            del self.rtc
+            del self.aoLoopThread.rtc
+        if(self.tar):
+            del self.tar
+            del self.aoLoopThread.tar
+        if(self.dms):
+            del self.dms
+            del self.aoLoopThread.dms
+            
     def updateSRSE(self, SRSE):
         self.ui.wao_strehlSE.setText(SRSE)
         
@@ -556,6 +579,7 @@ class widgetAOWindow(TemplateBaseClass):
             
     def InitConfig(self):
         
+        self.manually_destroy()
         #set simulation name
         if(hasattr(self.config,"simul_name")):
             if(self.config.simul_name is None):
