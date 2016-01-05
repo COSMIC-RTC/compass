@@ -1032,7 +1032,7 @@ __global__ void fillbinpyr_krnl(T *g_odata, T *g_idata, unsigned int nrebin,
         sdata[tid] += g_idata[tidim2];
       }
     }
-    sdata[tid] /= (nrebin * nrebin);
+//    sdata[tid] /= (nrebin * nrebin);
   }
   __syncthreads();
 

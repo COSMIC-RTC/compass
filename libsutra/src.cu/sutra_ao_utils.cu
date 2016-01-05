@@ -274,16 +274,12 @@ template
 int addai<double>(double *d_odata, double *i_data, int i, int sgn, int N, carma_device *device);
 
 template<class T>
-__global__ void roll_krnl(T *idata, int N, int M, int Ntot) {
+__global__ void roll_krnl(T *idata, int N, int M, int Nim) {
   T tmp;
 
-  int tidt = threadIdx.x + blockIdx.x * blockDim.x;
-  int nim = tidt / Ntot;
+  int tid = threadIdx.x + blockIdx.x * blockDim.x;
 
-  int tid = tidt - nim * Ntot;
-
-  while (tid < Ntot) {
-
+  while (tid < (N * M / 2)) {
     int x = tid % N;
     int y = tid / N;
 
@@ -291,24 +287,26 @@ __global__ void roll_krnl(T *idata, int N, int M, int Ntot) {
     int yy = (y + M / 2) % M;
     int tid2 = xx + yy * N;
 
-    tmp = idata[tid + nim * (N * M)];
-    idata[tid + nim * (N * M)] = idata[tid2 + nim * (N * M)];
-    idata[tid2 + nim * (N * M)] = tmp;
-
+    for (int ii=0;ii<Nim;ii++) {
+      tmp = idata[tid+ii*N*M];
+      idata[tid+ii*N*M] = idata[tid2+ii*N*M];
+      idata[tid2+ii*N*M] = tmp;
+    }
+    
     tid += blockDim.x * gridDim.x;
   }
 }
-
+  
 template<class T>
 int roll(T *idata, int N, int M, int nim, carma_device *device) {
 
-  long Ntot = N * M * nim;
+ long Ntot = N * M;
   int nBlocks, nThreads;
   getNumBlocksAndThreads(device, Ntot / 2, nBlocks, nThreads);
 
   dim3 grid(nBlocks), threads(nThreads);
 
-  roll_krnl<T><<<grid, threads>>>(idata, N, M, Ntot / 2);
+  roll_krnl<T><<<grid, threads>>>(idata, N, M, nim);
 
   carmaCheckMsg("roll_kernel<<<>>> execution failed\n");
   return EXIT_SUCCESS;
