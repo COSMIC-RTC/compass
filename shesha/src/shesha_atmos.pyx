@@ -42,6 +42,7 @@ def atmos_init(naga_context c, Param_atmos atm, Param_tel tel,  Param_geom geom,
             atm.r0=0
 
         cdef int i
+        cdef float dtor = np.pi/180
 
         # ajust layers alt using zenith angle
         atm.alt=(atm.alt/np.cos(geom.zenithangle*dtor))

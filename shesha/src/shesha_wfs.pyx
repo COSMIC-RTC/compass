@@ -983,7 +983,6 @@ cdef init_wfs_size( Param_wfs wfs, int n, Param_atmos atmos,
             pdiam[0] = 16
 
         if(wfs.type_wfs=="sh"):
-            print subapdiam, wfs.pixsize, wfs.Lambda,RASC
             nrebin[0] = long(2 * subapdiam * wfs.pixsize / (wfs.Lambda*1.e-6) / RASC) + 1
             nrebin[0] = max(2,nrebin[0])
             # first atempt on a rebin factor
