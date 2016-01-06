@@ -345,17 +345,17 @@ def checkMatricesDataBase(savepath,config,param_dict):
     
     matricesToLoad= {}
     if(os.path.exists(savepath+"matricesDataBase.h5")):
-        
-        checkTurbuParams(savepath,config,matricesToLoad)
-        checkDmsParams(savepath,config,matricesToLoad)           
-        checkControlParams(savepath,config,matricesToLoad)
+        checkTurbuParams(savepath,config,param_dict,matricesToLoad)
+        checkDmsParams(savepath,config,param_dict,matricesToLoad)
+    if(matricesToLoad.has_key("pztok")):           
+        checkControlParams(savepath,config,param_dict,matricesToLoad)
         
     else:
         initDataBase(savepath,param_dict)
     init_hdf5_files(savepath,param_dict,matricesToLoad)
     return matricesToLoad       
     
-def checkTurbuParams(savepath,config,matricesToLoad):
+def checkTurbuParams(savepath,config,pdict,matricesToLoad):
     """ Compare the current turbulence parameters to the database. If similar parameters
     are found, the matricesToLoad dictionary is completed.
     Since all the turbulence matrices are computed together, we only check the parameters
@@ -366,32 +366,53 @@ def checkTurbuParams(savepath,config,matricesToLoad):
         matricesToLoad : (dictionary) :  matrices that will be load and their path
     """
     dataBase = pandas.read_hdf(savepath+"matricesDataBase.h5","A")
-    for i in dataBase.index:
-        if(dataBase.loc[i,"validity"]):
-            load_turbu = (dataBase.loc[i,"revision"] == check_output("svnversion").replace("\n",""))
-            load_turbu &= ((dataBase.loc[i,"L0"] == config.p_atmos.L0).all())
-            load_turbu &= ((dataBase.loc[i,"atm.alt"] == config.p_atmos.alt).all())
-            load_turbu &= ((dataBase.loc[i,"tel_diam"] == config.p_tel.diam).all())
-            load_turbu &= ((dataBase.loc[i,"cobs"] == config.p_tel.cobs).all())
-            load_turbu &= ((dataBase.loc[i,"pupdiam"] == config.p_geom.pupdiam).all())
-            load_turbu &= ((dataBase.loc[i,"zenithangle"] == config.p_geom.zenithangle).all())
-            load_turbu &= ((dataBase.loc[i,"target.xpos"] == config.p_target.xpos).all())
-            load_turbu &= ((dataBase.loc[i,"target.ypos"] == config.p_target.ypos).all())
-            load_turbu &= ((dataBase.loc[i,"wfs.xpos"] == [wfs.xpos for wfs in config.p_wfss]).all())
-            load_turbu &= ((dataBase.loc[i,"wfs.ypos"] == [wfs.ypos for wfs in config.p_wfss]).all())
-            
-            if(load_turbu):
-                matricesToLoad["index_turbu"] = i
-                matricesToLoad["A"] = dataBase.loc[i,"path2file"]
-                dataBase = pandas.read_hdf(savepath+"matricesDataBase.h5","B")
-                matricesToLoad["B"] = dataBase.loc[i,"path2file"]
-                dataBase = pandas.read_hdf(savepath+"matricesDataBase.h5","istx")
-                matricesToLoad["istx"] = dataBase.loc[i,"path2file"]
-                dataBase = pandas.read_hdf(savepath+"matricesDataBase.h5","isty")
-                matricesToLoad["isty"] = dataBase.loc[i,"path2file"]
-                return
+    param2test = ["L0","atm.alt","tel_diam","cobs","pupdiam","zenithangle","target.xpos","target.ypos","wfs.xpos","wfs.ypos"]
 
-def checkControlParams(savepath,config,matricesToLoad):
+    for i in dataBase.index:
+        cc = 0
+        if(dataBase.loc[i,"validity"] and (dataBase.loc[i,"revision"] == check_output("svnversion").replace("\n",""))):
+            cond = ((dataBase.loc[i,param2test[cc]] == pdict[param2test[cc]]).all())
+            while(cond):
+                if(cc >= len(param2test)):
+                    break
+                else:                
+                    cond = ((dataBase.loc[i,param2test[cc]] == pdict[param2test[cc]]).all())
+                    cc+=1           
+            # For debug
+            #############################
+            if not cond:
+                print param2test[cc]+" has changed from ",dataBase.loc[i,param2test[cc]], " to ",pdict[param2test[cc]]
+            ###############################
+        else:
+            cond = False
+            print "Invalid matrix or new svn version"
+                
+            
+#        if(dataBase.loc[i,"validity"]):
+#            load_turbu = (dataBase.loc[i,"revision"] == check_output("svnversion").replace("\n",""))
+#            load_turbu &= ((dataBase.loc[i,"L0"] == config.p_atmos.L0).all())
+#            load_turbu &= ((dataBase.loc[i,"atm.alt"] == config.p_atmos.alt).all())
+#            load_turbu &= ((dataBase.loc[i,"tel_diam"] == config.p_tel.diam).all())
+#            load_turbu &= ((dataBase.loc[i,"cobs"] == config.p_tel.cobs).all())
+#            load_turbu &= ((dataBase.loc[i,"pupdiam"] == config.p_geom.pupdiam).all())
+#            load_turbu &= ((dataBase.loc[i,"zenithangle"] == config.p_geom.zenithangle).all())
+#            load_turbu &= ((dataBase.loc[i,"target.xpos"] == config.p_target.xpos).all())
+#            load_turbu &= ((dataBase.loc[i,"target.ypos"] == config.p_target.ypos).all())
+#            load_turbu &= ((dataBase.loc[i,"wfs.xpos"] == [wfs.xpos for wfs in config.p_wfss]).all())
+#            load_turbu &= ((dataBase.loc[i,"wfs.ypos"] == [wfs.ypos for wfs in config.p_wfss]).all())
+            
+        if(cond):
+            matricesToLoad["index_turbu"] = i
+            matricesToLoad["A"] = dataBase.loc[i,"path2file"]
+            dataBase = pandas.read_hdf(savepath+"matricesDataBase.h5","B")
+            matricesToLoad["B"] = dataBase.loc[i,"path2file"]
+            dataBase = pandas.read_hdf(savepath+"matricesDataBase.h5","istx")
+            matricesToLoad["istx"] = dataBase.loc[i,"path2file"]
+            dataBase = pandas.read_hdf(savepath+"matricesDataBase.h5","isty")
+            matricesToLoad["isty"] = dataBase.loc[i,"path2file"]
+            return
+
+def checkControlParams(savepath,config,pdict,matricesToLoad):
     """ Compare the current controller parameters to the database. If similar parameters
     are found, matricesToLoad dictionary is completed.
     Since all the controller matrices are computed together, we only check the parameters
@@ -402,95 +423,117 @@ def checkControlParams(savepath,config,matricesToLoad):
         matricesToLoad : (dictionary) :  matrices that will be load and their path
     """
     dataBase = pandas.read_hdf(savepath+"matricesDataBase.h5","imat")
-
+    param2test = ["ncentroiders","type_centro",
+                  "nmax","centro.nwfs","sizex","sizey","centroider.thresh","type_fct",
+                  "weights","width"]
+    print "HELLLLOOOOOOO"
     for i in dataBase.index:
-        if(dataBase.loc[i,"validity"]):
-            load_control = (dataBase.loc[i,"revision"] == check_output("svnversion").replace("\n",""))
-            load_control &= ((dataBase.loc[i,"tel_diam"] == config.p_tel.diam).all())
-            load_control &= ((dataBase.loc[i,"t_spiders"] == config.p_tel.t_spiders).all())
-            load_control &= ((dataBase.loc[i,"spiders_type"] == [config.p_tel.spiders_type if(config.p_tel.spiders_type) else ""]))
-            load_control &= ((dataBase.loc[i,"pupangle"] == config.p_tel.pupangle).all())
-            load_control &= ((dataBase.loc[i,"referr"] == config.p_tel.referr).all())
-            load_control &= ((dataBase.loc[i,"std_piston"] == config.p_tel.std_piston).all())
-            load_control &= ((dataBase.loc[i,"std_tt"] == config.p_tel.std_tt).all())
-            load_control &= (dataBase.loc[i,"type_ap"] == [config.p_tel.type_ap if(config.p_tel.type_ap) else ""])
-            load_control &= ((dataBase.loc[i,"nbrmissing"] == config.p_tel.nbrmissing).all())
-            load_control &= ((dataBase.loc[i,"cobs"] == config.p_tel.cobs).all())
-            load_control &= ((dataBase.loc[i,"pupdiam"] == config.p_geom.pupdiam).all())
-            # Check WFS params
-            load_control &= (dataBase.loc[i,"nwfs"] == len(config.p_wfss))
-            load_control &= ((dataBase.loc[i,"type_wfs"] == [wfs.type_wfs for wfs in config.p_wfss]).all())
-            load_control &= ((dataBase.loc[i,"type_wfs"] == [wfs.type_wfs for wfs in config.p_wfss]).all())
-            load_control &= ((dataBase.loc[i,"nxsub"] == [wfs.nxsub for wfs in config.p_wfss]).all())
-            load_control &= ((dataBase.loc[i,"npix"] == [wfs.npix for wfs in config.p_wfss]).all())
-            load_control &= ((dataBase.loc[i,"pixsize"] == [wfs.pixsize for wfs in config.p_wfss]).all())
-            load_control &= ((dataBase.loc[i,"fracsub"] == [wfs.fracsub for wfs in config.p_wfss]).all())
-            load_control &= ((dataBase.loc[i,"wfs.xpos"] == [wfs.xpos for wfs in config.p_wfss]).all())
-            load_control &= ((dataBase.loc[i,"wfs.ypos"] == [wfs.ypos for wfs in config.p_wfss]).all())
-            load_control &= ((dataBase.loc[i,"wfs.Lambda"] == [wfs.Lambda for wfs in config.p_wfss]).all())
-            load_control &= ((dataBase.loc[i,"gsmag"] == [wfs.gsmag for wfs in config.p_wfss]).all())
-            load_control &= ((dataBase.loc[i,"optthroughput"] == [wfs.optthroughput for wfs in config.p_wfss]).all())
-            load_control &= ((dataBase.loc[i,"zerop"] == [wfs.zerop for wfs in config.p_wfss]).all())
-            load_control &= ((dataBase.loc[i,"noise"] == [wfs.noise for wfs in config.p_wfss]).all())
-            load_control &= ((dataBase.loc[i,"atmos_seen"] == [wfs.atmos_seen for wfs in config.p_wfss]).all())
-            load_control &= ((dataBase.loc[i,"dms_seen"] == [wfs.dms_seen if(wfs.dms_seen is not None) else np.arange(len(config.p_dms),dtype=np.int32) for wfs in config.p_wfss]).all())
-            load_control &= ((dataBase.loc[i,"beamsize"] == [wfs.beamsize for wfs in config.p_wfss]).all())
-            load_control &= ((dataBase.loc[i,"fssize"] == [wfs.fssize for wfs in config.p_wfss]).all())
-            load_control &= ((dataBase.loc[i,"fstop"] == [wfs.fstop if(wfs.fstop) else "" for wfs in config.p_wfss]).all())
-            load_control &= ((dataBase.loc[i,"gsalt"] == [wfs.gsalt for wfs in config.p_wfss]).all())
-            load_control &= ((dataBase.loc[i,"laserpower"] == [wfs.laserpower for wfs in config.p_wfss]).all())
-            load_control &= ((dataBase.loc[i,"lgsreturnperwatt"] == [wfs.lgsreturnperwatt for wfs in config.p_wfss]).all())
-            load_control &= ((dataBase.loc[i,"lltx"] == [wfs.lltx for wfs in config.p_wfss]).all())
-            load_control &= ((dataBase.loc[i,"llty"] == [wfs.llty for wfs in config.p_wfss]).all())
-            load_control &= ((dataBase.loc[i,"openloop"] == [wfs.openloop for wfs in config.p_wfss]).all())
-            load_control &= ((dataBase.loc[i,"proftype"] == [wfs.proftype if(wfs.proftype) else "" for wfs in config.p_wfss]).all())
-            load_control &= ((dataBase.loc[i,"pyr_ampl"] == [wfs.pyr_ampl for wfs in config.p_wfss]).all())
-            load_control &= ((dataBase.loc[i,"pyr_loc"] == [wfs.pyr_loc if(wfs.pyr_loc) else ""  for wfs in config.p_wfss]).all())
-            load_control &= ((dataBase.loc[i,"pyr_npts"] == [wfs.pyr_npts for wfs in config.p_wfss]).all())
-            load_control &= ((dataBase.loc[i,"pyrtype"] == [wfs.pyrtype if(wfs.pyrtype) else "" for wfs in config.p_wfss]).all())
-    # Dms params
-            load_control &= (dataBase.loc[i,"ndms"] == len(config.p_dms))
-            load_control &= ((dataBase.loc[i,"type_dm"] == [dm.type_dm for dm in config.p_dms]).all())
-            load_control &= ((dataBase.loc[i,"dm.alt"] == [dm.alt for dm in config.p_dms]).all())
-            load_control &= ((dataBase.loc[i,"coupling"] == [dm.coupling for dm in config.p_dms]).all())
-            load_control &= ((dataBase.loc[i,"hyst"] == [dm.hyst for dm in config.p_dms]).all())
-            load_control &= ((dataBase.loc[i,"margin"] == [dm.margin for dm in config.p_dms]).all())
-            load_control &= ((dataBase.loc[i,"nact"] == [dm.nact for dm in config.p_dms]).all())
-            load_control &= ((dataBase.loc[i,"nkl"] == [dm.type_dm for dm in config.p_dms]).all())
-            load_control &= ((dataBase.loc[i,"push4imat"] == [dm.push4imat for dm in config.p_dms]).all())
-            load_control &= ((dataBase.loc[i,"dm.thresh"] == [dm.thresh for dm in config.p_dms]).all())
-            load_control &= ((dataBase.loc[i,"unitpervolt"] == [dm.unitpervolt for dm in config.p_dms]).all())
+        cc = 0
+        if(dataBase.loc[i,"validity"] and (dataBase.loc[i,"revision"] == check_output("svnversion").replace("\n",""))):
+            cond = ((dataBase.loc[i,param2test[cc]] == pdict[param2test[cc]]).all())
+            while(cond):
+                if(cc >= len(param2test)):
+                    break
+                else:                
+                    cond = ((dataBase.loc[i,param2test[cc]] == pdict[param2test[cc]]).all())
+                    cc+=1           
+            # For debug
+            #############################
+            if not cond:
+                print param2test[cc]+" has changed from ",dataBase.loc[i,param2test[cc]], " to ",pdict[param2test[cc]]
+            ###############################
+        else:
+            cond = False
+            print "Invalid matrix or new svn version"
+                
+
+#        if(dataBase.loc[i,"validity"]):
+#            load_control = (dataBase.loc[i,"revision"] == check_output("svnversion").replace("\n",""))
+#            load_control &= ((dataBase.loc[i,"tel_diam"] == config.p_tel.diam).all())
+#            load_control &= ((dataBase.loc[i,"t_spiders"] == config.p_tel.t_spiders).all())
+#            load_control &= ((dataBase.loc[i,"spiders_type"] == [config.p_tel.spiders_type if(config.p_tel.spiders_type) else ""]))
+#            load_control &= ((dataBase.loc[i,"pupangle"] == config.p_tel.pupangle).all())
+#            load_control &= ((dataBase.loc[i,"referr"] == config.p_tel.referr).all())
+#            load_control &= ((dataBase.loc[i,"std_piston"] == config.p_tel.std_piston).all())
+#            load_control &= ((dataBase.loc[i,"std_tt"] == config.p_tel.std_tt).all())
+#            load_control &= (dataBase.loc[i,"type_ap"] == [config.p_tel.type_ap if(config.p_tel.type_ap) else ""])
+#            load_control &= ((dataBase.loc[i,"nbrmissing"] == config.p_tel.nbrmissing).all())
+#            load_control &= ((dataBase.loc[i,"cobs"] == config.p_tel.cobs).all())
+#            load_control &= ((dataBase.loc[i,"pupdiam"] == config.p_geom.pupdiam).all())
+#            # Check WFS params
+#            load_control &= (dataBase.loc[i,"nwfs"] == len(config.p_wfss))
+#            load_control &= ((dataBase.loc[i,"type_wfs"] == [wfs.type_wfs for wfs in config.p_wfss]).all())
+#            load_control &= ((dataBase.loc[i,"type_wfs"] == [wfs.type_wfs for wfs in config.p_wfss]).all())
+#            load_control &= ((dataBase.loc[i,"nxsub"] == [wfs.nxsub for wfs in config.p_wfss]).all())
+#            load_control &= ((dataBase.loc[i,"npix"] == [wfs.npix for wfs in config.p_wfss]).all())
+#            load_control &= ((dataBase.loc[i,"pixsize"] == [wfs.pixsize for wfs in config.p_wfss]).all())
+#            load_control &= ((dataBase.loc[i,"fracsub"] == [wfs.fracsub for wfs in config.p_wfss]).all())
+#            load_control &= ((dataBase.loc[i,"wfs.xpos"] == [wfs.xpos for wfs in config.p_wfss]).all())
+#            load_control &= ((dataBase.loc[i,"wfs.ypos"] == [wfs.ypos for wfs in config.p_wfss]).all())
+#            load_control &= ((dataBase.loc[i,"wfs.Lambda"] == [wfs.Lambda for wfs in config.p_wfss]).all())
+#            load_control &= ((dataBase.loc[i,"gsmag"] == [wfs.gsmag for wfs in config.p_wfss]).all())
+#            load_control &= ((dataBase.loc[i,"optthroughput"] == [wfs.optthroughput for wfs in config.p_wfss]).all())
+#            load_control &= ((dataBase.loc[i,"zerop"] == [wfs.zerop for wfs in config.p_wfss]).all())
+#            load_control &= ((dataBase.loc[i,"noise"] == [wfs.noise for wfs in config.p_wfss]).all())
+#            load_control &= ((dataBase.loc[i,"atmos_seen"] == [wfs.atmos_seen for wfs in config.p_wfss]).all())
+#            load_control &= ((dataBase.loc[i,"dms_seen"] == [wfs.dms_seen if(wfs.dms_seen is not None) else np.arange(len(config.p_dms),dtype=np.int32) for wfs in config.p_wfss]).all())
+#            load_control &= ((dataBase.loc[i,"beamsize"] == [wfs.beamsize for wfs in config.p_wfss]).all())
+#            load_control &= ((dataBase.loc[i,"fssize"] == [wfs.fssize for wfs in config.p_wfss]).all())
+#            load_control &= ((dataBase.loc[i,"fstop"] == [wfs.fstop if(wfs.fstop) else "" for wfs in config.p_wfss]).all())
+#            load_control &= ((dataBase.loc[i,"gsalt"] == [wfs.gsalt for wfs in config.p_wfss]).all())
+#            load_control &= ((dataBase.loc[i,"laserpower"] == [wfs.laserpower for wfs in config.p_wfss]).all())
+#            load_control &= ((dataBase.loc[i,"lgsreturnperwatt"] == [wfs.lgsreturnperwatt for wfs in config.p_wfss]).all())
+#            load_control &= ((dataBase.loc[i,"lltx"] == [wfs.lltx for wfs in config.p_wfss]).all())
+#            load_control &= ((dataBase.loc[i,"llty"] == [wfs.llty for wfs in config.p_wfss]).all())
+#            load_control &= ((dataBase.loc[i,"openloop"] == [wfs.openloop for wfs in config.p_wfss]).all())
+#            load_control &= ((dataBase.loc[i,"proftype"] == [wfs.proftype if(wfs.proftype) else "" for wfs in config.p_wfss]).all())
+#            load_control &= ((dataBase.loc[i,"pyr_ampl"] == [wfs.pyr_ampl for wfs in config.p_wfss]).all())
+#            load_control &= ((dataBase.loc[i,"pyr_loc"] == [wfs.pyr_loc if(wfs.pyr_loc) else ""  for wfs in config.p_wfss]).all())
+#            load_control &= ((dataBase.loc[i,"pyr_npts"] == [wfs.pyr_npts for wfs in config.p_wfss]).all())
+#            load_control &= ((dataBase.loc[i,"pyrtype"] == [wfs.pyrtype if(wfs.pyrtype) else "" for wfs in config.p_wfss]).all())
+#    # Dms params
+#            load_control &= (dataBase.loc[i,"ndms"] == len(config.p_dms))
+#            load_control &= ((dataBase.loc[i,"type_dm"] == [dm.type_dm for dm in config.p_dms]).all())
+#            load_control &= ((dataBase.loc[i,"dm.alt"] == [dm.alt for dm in config.p_dms]).all())
+#            load_control &= ((dataBase.loc[i,"coupling"] == [dm.coupling for dm in config.p_dms]).all())
+#            load_control &= ((dataBase.loc[i,"hyst"] == [dm.hyst for dm in config.p_dms]).all())
+#            load_control &= ((dataBase.loc[i,"margin"] == [dm.margin for dm in config.p_dms]).all())
+#            load_control &= ((dataBase.loc[i,"nact"] == [dm.nact for dm in config.p_dms]).all())
+#            load_control &= ((dataBase.loc[i,"nkl"] == [dm.type_dm for dm in config.p_dms]).all())
+#            load_control &= ((dataBase.loc[i,"push4imat"] == [dm.push4imat for dm in config.p_dms]).all())
+#            load_control &= ((dataBase.loc[i,"dm.thresh"] == [dm.thresh for dm in config.p_dms]).all())
+#            load_control &= ((dataBase.loc[i,"unitpervolt"] == [dm.unitpervolt for dm in config.p_dms]).all())
+#        
+#        # Centroider params
+#            load_control &= (dataBase.loc[i,"ncentroiders"] == len(config.p_centroiders))
+#            load_control &= ((dataBase.loc[i,"type_centro"] == [c.type_centro for c in config.p_centroiders]).all())
+#            load_control &= ((dataBase.loc[i,"nmax"] == [c.nmax for c in config.p_centroiders]).all())
+#            load_control &= ((dataBase.loc[i,"centro.nwfs"] == [c.nwfs for c in config.p_centroiders]).all())
+#            load_control &= ((dataBase.loc[i,"sizex"] == [c.sizex for c in config.p_centroiders]).all())
+#            load_control &= ((dataBase.loc[i,"sizey"] == [c.sizey for c in config.p_centroiders]).all())
+#            load_control &= ((dataBase.loc[i,"centroider.thresh"] == [c.thresh for c in config.p_centroiders]).all())
+#            load_control &= ((dataBase.loc[i,"type_fct"] == [c.type_fct if(c.type_fct) else "" for c in config.p_centroiders]).all())
+#            load_control &= ((dataBase.loc[i,"weights"] == [c.weights if(c.weights) else 0 for c in config.p_centroiders]).all())
+#            load_control &= ((dataBase.loc[i,"width"] == [c.width for c in config.p_centroiders]).all())
+#        
+#        # Controller params
+#            load_control &= (dataBase.loc[i,"ncontrollers"] == len(config.p_controllers))
+#            load_control &= ((dataBase.loc[i,"type_control"] == [c.type_control for c in config.p_controllers]).all())
+#            load_control &= ((dataBase.loc[i,"cured_ndivs"] == [c.cured_ndivs for c in config.p_controllers]).all())
+#            load_control &= ((dataBase.loc[i,"ndm"] == [c.ndm for c in config.p_controllers]).all())
+#            load_control &= ((dataBase.loc[i,"nmodes"] == [c.nmodes for c in config.p_controllers]).all())        
+#            load_control &= ((dataBase.loc[i,"control.nwfs"] == [c.nwfs for c in config.p_controllers]).all())
+        print "cond  =  ",cond
+        if(cond):
+            matricesToLoad["index_control"] = i
+            matricesToLoad["imat"] = dataBase.loc[i,"path2file"]
+            dataBase = pandas.read_hdf(savepath+"matricesDataBase.h5","eigenv")
+            matricesToLoad["eigenv"] = dataBase.loc[i,"path2file"]
+            dataBase = pandas.read_hdf(savepath+"matricesDataBase.h5","U")
+            matricesToLoad["U"] = dataBase.loc[i,"path2file"]
+            return
         
-        # Centroider params
-            load_control &= (dataBase.loc[i,"ncentroiders"] == len(config.p_centroiders))
-            load_control &= ((dataBase.loc[i,"type_centro"] == [c.type_centro for c in config.p_centroiders]).all())
-            load_control &= ((dataBase.loc[i,"nmax"] == [c.nmax for c in config.p_centroiders]).all())
-            load_control &= ((dataBase.loc[i,"centro.nwfs"] == [c.nwfs for c in config.p_centroiders]).all())
-            load_control &= ((dataBase.loc[i,"sizex"] == [c.sizex for c in config.p_centroiders]).all())
-            load_control &= ((dataBase.loc[i,"sizey"] == [c.sizey for c in config.p_centroiders]).all())
-            load_control &= ((dataBase.loc[i,"centroider.thresh"] == [c.thresh for c in config.p_centroiders]).all())
-            load_control &= ((dataBase.loc[i,"type_fct"] == [c.type_fct if(c.type_fct) else "" for c in config.p_centroiders]).all())
-            load_control &= ((dataBase.loc[i,"weights"] == [c.weights if(c.weights) else 0 for c in config.p_centroiders]).all())
-            load_control &= ((dataBase.loc[i,"width"] == [c.width for c in config.p_centroiders]).all())
-        
-        # Controller params
-            load_control &= (dataBase.loc[i,"ncontrollers"] == len(config.p_controllers))
-            load_control &= ((dataBase.loc[i,"type_control"] == [c.type_control for c in config.p_controllers]).all())
-            load_control &= ((dataBase.loc[i,"cured_ndivs"] == [c.cured_ndivs for c in config.p_controllers]).all())
-            load_control &= ((dataBase.loc[i,"ndm"] == [c.ndm for c in config.p_controllers]).all())
-            load_control &= ((dataBase.loc[i,"nmodes"] == [c.nmodes for c in config.p_controllers]).all())        
-            load_control &= ((dataBase.loc[i,"control.nwfs"] == [c.nwfs for c in config.p_controllers]).all())
-            
-            if(load_control):
-                matricesToLoad["index_control"] = i
-                matricesToLoad["imat"] = dataBase.loc[i,"path2file"]
-                dataBase = pandas.read_hdf(savepath+"matricesDataBase.h5","eigenv")
-                matricesToLoad["eigenv"] = dataBase.loc[i,"path2file"]
-                dataBase = pandas.read_hdf(savepath+"matricesDataBase.h5","U")
-                matricesToLoad["U"] = dataBase.loc[i,"path2file"]
-                return
-        
-def checkDmsParams(savepath,config,matricesToLoad):
+def checkDmsParams(savepath,config,pdict,matricesToLoad):
     """ Compare the current controller parameters to the database. If similar parameters
     are found, matricesToLoad dictionary is completed.
     Since all the dms matrices are computed together, we only check the parameters
@@ -501,92 +544,112 @@ def checkDmsParams(savepath,config,matricesToLoad):
         matricesToLoad : (dictionary) :  matrices that will be load and their path
     """
     dataBase = pandas.read_hdf(savepath+"matricesDataBase.h5","pztok")
-    for i in dataBase.index:
-        if(dataBase.loc[i,"validity"]):
-            load_control = (dataBase.loc[i,"revision"] == check_output("svnversion").replace("\n",""))
-            load_control &= ((dataBase.loc[i,"tel_diam"] == config.p_tel.diam).all())
-            load_control &= ((dataBase.loc[i,"cobs"] == config.p_tel.cobs).all())
-            load_control &= ((dataBase.loc[i,"pupdiam"] == config.p_geom.pupdiam).all())
-            load_control &= ((dataBase.loc[i,"t_spiders"] == config.p_tel.t_spiders).all())
-            load_control &= ((dataBase.loc[i,"spiders_type"] == [config.p_tel.spiders_type if(config.p_tel.spiders_type) else ""]))
-            load_control &= ((dataBase.loc[i,"pupangle"] == config.p_tel.pupangle).all())
-            load_control &= ((dataBase.loc[i,"referr"] == config.p_tel.referr).all())
-            load_control &= ((dataBase.loc[i,"std_piston"] == config.p_tel.std_piston).all())
-            load_control &= ((dataBase.loc[i,"std_tt"] == config.p_tel.std_tt).all())
-            load_control &= (dataBase.loc[i,"type_ap"] == [config.p_tel.type_ap if(config.p_tel.type_ap) else ""])
-            load_control &= ((dataBase.loc[i,"nbrmissing"] == config.p_tel.nbrmissing).all())
+    param2test = ["tel_diam","t_spiders","spiders_type","pupangle","referr","std_piston","std_tt","type_ap","nbrmissing","cobs","pupdiam","nwfs","type_wfs",                  "nxsub","npix","pixsize","fracsub","wfs.xpos","wfs.ypos","wfs.Lambda",                  "dms_seen","fssize","fstop","pyr_ampl","pyr_loc","pyr_npts","pyrtype",                  "ndms","type_dm","dm.alt","coupling","hyst","margin","nact","nkl",                  "push4imat","dm.thresh","unitpervolt"]
 
-            # Check WFS params
-            load_control &= (dataBase.loc[i,"nwfs"] == len(config.p_wfss))
-            load_control &= ((dataBase.loc[i,"type_wfs"] == [wfs.type_wfs for wfs in config.p_wfss]).all())
-            load_control &= ((dataBase.loc[i,"type_wfs"] == [wfs.type_wfs for wfs in config.p_wfss]).all())
-            load_control &= ((dataBase.loc[i,"nxsub"] == [wfs.nxsub for wfs in config.p_wfss]).all())
-            load_control &= ((dataBase.loc[i,"npix"] == [wfs.npix for wfs in config.p_wfss]).all())
-            load_control &= ((dataBase.loc[i,"pixsize"] == [wfs.pixsize for wfs in config.p_wfss]).all())
-            load_control &= ((dataBase.loc[i,"fracsub"] == [wfs.fracsub for wfs in config.p_wfss]).all())
-            load_control &= ((dataBase.loc[i,"wfs.xpos"] == [wfs.xpos for wfs in config.p_wfss]).all())
-            load_control &= ((dataBase.loc[i,"wfs.ypos"] == [wfs.ypos for wfs in config.p_wfss]).all())
-            load_control &= ((dataBase.loc[i,"wfs.Lambda"] == [wfs.Lambda for wfs in config.p_wfss]).all())
-            load_control &= ((dataBase.loc[i,"gsmag"] == [wfs.gsmag for wfs in config.p_wfss]).all())
-            load_control &= ((dataBase.loc[i,"optthroughput"] == [wfs.optthroughput for wfs in config.p_wfss]).all())
-            load_control &= ((dataBase.loc[i,"zerop"] == [wfs.zerop for wfs in config.p_wfss]).all())
-            load_control &= ((dataBase.loc[i,"noise"] == [wfs.noise for wfs in config.p_wfss]).all())
-            load_control &= ((dataBase.loc[i,"atmos_seen"] == [wfs.atmos_seen for wfs in config.p_wfss]).all())
-            load_control &= ((dataBase.loc[i,"dms_seen"] == [wfs.dms_seen if(wfs.dms_seen is not None) else np.arange(len(config.p_dms),dtype=np.int32) for wfs in config.p_wfss]).all())
-            load_control &= ((dataBase.loc[i,"beamsize"] == [wfs.beamsize for wfs in config.p_wfss]).all())
-            load_control &= ((dataBase.loc[i,"fssize"] == [wfs.fssize for wfs in config.p_wfss]).all())
-            load_control &= ((dataBase.loc[i,"fstop"] == [wfs.fstop if(wfs.fstop) else "" for wfs in config.p_wfss]).all())
-            load_control &= ((dataBase.loc[i,"gsalt"] == [wfs.gsalt for wfs in config.p_wfss]).all())
-            load_control &= ((dataBase.loc[i,"laserpower"] == [wfs.laserpower for wfs in config.p_wfss]).all())
-            load_control &= ((dataBase.loc[i,"lgsreturnperwatt"] == [wfs.lgsreturnperwatt for wfs in config.p_wfss]).all())
-            load_control &= ((dataBase.loc[i,"lltx"] == [wfs.lltx for wfs in config.p_wfss]).all())
-            load_control &= ((dataBase.loc[i,"llty"] == [wfs.llty for wfs in config.p_wfss]).all())
-            load_control &= ((dataBase.loc[i,"openloop"] == [wfs.openloop for wfs in config.p_wfss]).all())
-            load_control &= ((dataBase.loc[i,"proftype"] == [wfs.proftype if(wfs.proftype) else "" for wfs in config.p_wfss]).all())
-            load_control &= ((dataBase.loc[i,"pyr_ampl"] == [wfs.pyr_ampl for wfs in config.p_wfss]).all())
-            load_control &= ((dataBase.loc[i,"pyr_loc"] == [wfs.pyr_loc if(wfs.pyr_loc) else ""  for wfs in config.p_wfss]).all())
-            load_control &= ((dataBase.loc[i,"pyr_npts"] == [wfs.pyr_npts for wfs in config.p_wfss]).all())
-            load_control &= ((dataBase.loc[i,"pyrtype"] == [wfs.pyrtype if(wfs.pyrtype) else "" for wfs in config.p_wfss]).all())
-    # Dms params
-            load_control &= (dataBase.loc[i,"ndms"] == len(config.p_dms))
-            load_control &= ((dataBase.loc[i,"type_dm"] == [dm.type_dm for dm in config.p_dms]).all())
-            load_control &= ((dataBase.loc[i,"dm.alt"] == [dm.alt for dm in config.p_dms]).all())
-            load_control &= ((dataBase.loc[i,"coupling"] == [dm.coupling for dm in config.p_dms]).all())
-            load_control &= ((dataBase.loc[i,"hyst"] == [dm.hyst for dm in config.p_dms]).all())
-            load_control &= ((dataBase.loc[i,"margin"] == [dm.margin for dm in config.p_dms]).all())
-            load_control &= ((dataBase.loc[i,"nact"] == [dm.nact for dm in config.p_dms]).all())
-            load_control &= ((dataBase.loc[i,"nkl"] == [dm.type_dm for dm in config.p_dms]).all())
-            load_control &= ((dataBase.loc[i,"push4imat"] == [dm.push4imat for dm in config.p_dms]).all())
-            load_control &= ((dataBase.loc[i,"dm.thresh"] == [dm.thresh for dm in config.p_dms]).all())
-            load_control &= ((dataBase.loc[i,"unitpervolt"] == [dm.unitpervolt for dm in config.p_dms]).all())
-        
-        # Centroider params
-            load_control &= (dataBase.loc[i,"ncentroiders"] == len(config.p_centroiders))
-            load_control &= ((dataBase.loc[i,"type_centro"] == [c.type_centro for c in config.p_centroiders]).all())
-            load_control &= ((dataBase.loc[i,"nmax"] == [c.nmax for c in config.p_centroiders]).all())
-            load_control &= ((dataBase.loc[i,"centro.nwfs"] == [c.nwfs for c in config.p_centroiders]).all())
-            load_control &= ((dataBase.loc[i,"sizex"] == [c.sizex for c in config.p_centroiders]).all())
-            load_control &= ((dataBase.loc[i,"sizey"] == [c.sizey for c in config.p_centroiders]).all())
-            load_control &= ((dataBase.loc[i,"centroider.thresh"] == [c.thresh for c in config.p_centroiders]).all())
-            load_control &= ((dataBase.loc[i,"type_fct"] == [c.type_fct if(c.type_fct) else "" for c in config.p_centroiders]).all())
-            load_control &= ((dataBase.loc[i,"weights"] == [c.weights if(c.weights) else 0 for c in config.p_centroiders]).all())
-            load_control &= ((dataBase.loc[i,"width"] == [c.width for c in config.p_centroiders]).all())
-        
-        # Controller params
-            load_control &= (dataBase.loc[i,"ncontrollers"] == len(config.p_controllers))
-            load_control &= ((dataBase.loc[i,"type_control"] == [c.type_control for c in config.p_controllers]).all())
-            load_control &= ((dataBase.loc[i,"cured_ndivs"] == [c.cured_ndivs for c in config.p_controllers]).all())
-            load_control &= ((dataBase.loc[i,"ndm"] == [c.ndm for c in config.p_controllers]).all())
-            load_control &= ((dataBase.loc[i,"nmodes"] == [c.nmodes for c in config.p_controllers]).all())        
-            load_control &= ((dataBase.loc[i,"control.nwfs"] == [c.nwfs for c in config.p_controllers]).all())
+    for i in dataBase.index:
+        cc = 0
+        if(dataBase.loc[i,"validity"] and (dataBase.loc[i,"revision"] == check_output("svnversion").replace("\n",""))):
+            cond = ((dataBase.loc[i,param2test[cc]] == pdict[param2test[cc]]).all())
+            while(cond):
+                if(cc >= len(param2test)):
+                    break
+                else:                
+                    cond = ((dataBase.loc[i,param2test[cc]] == pdict[param2test[cc]]).all())
+                    cc+=1           
+            # For debug
+            #############################
+            if not cond:
+                print param2test[cc]+" has changed from ",dataBase.loc[i,param2test[cc]], " to ",pdict[param2test[cc]]
+            ###############################
+        else:
+            cond = False
+            print "Invalid matrix or new svn version"
+
+#        if(dataBase.loc[i,"validity"]):
+#            load_control = (dataBase.loc[i,"revision"] == check_output("svnversion").replace("\n",""))
+#            load_control &= ((dataBase.loc[i,"tel_diam"] == config.p_tel.diam).all())
+#            load_control &= ((dataBase.loc[i,"cobs"] == config.p_tel.cobs).all())
+#            load_control &= ((dataBase.loc[i,"pupdiam"] == config.p_geom.pupdiam).all())
+#            load_control &= ((dataBase.loc[i,"t_spiders"] == config.p_tel.t_spiders).all())
+#            load_control &= ((dataBase.loc[i,"spiders_type"] == [config.p_tel.spiders_type if(config.p_tel.spiders_type) else ""]))
+#            load_control &= ((dataBase.loc[i,"pupangle"] == config.p_tel.pupangle).all())
+#            load_control &= ((dataBase.loc[i,"referr"] == config.p_tel.referr).all())
+#            load_control &= ((dataBase.loc[i,"std_piston"] == config.p_tel.std_piston).all())
+#            load_control &= ((dataBase.loc[i,"std_tt"] == config.p_tel.std_tt).all())
+#            load_control &= (dataBase.loc[i,"type_ap"] == [config.p_tel.type_ap if(config.p_tel.type_ap) else ""])
+#            load_control &= ((dataBase.loc[i,"nbrmissing"] == config.p_tel.nbrmissing).all())
+#
+#            # Check WFS params
+#            load_control &= (dataBase.loc[i,"nwfs"] == len(config.p_wfss))
+#            load_control &= ((dataBase.loc[i,"type_wfs"] == [wfs.type_wfs for wfs in config.p_wfss]).all())
+#            load_control &= ((dataBase.loc[i,"type_wfs"] == [wfs.type_wfs for wfs in config.p_wfss]).all())
+#            load_control &= ((dataBase.loc[i,"nxsub"] == [wfs.nxsub for wfs in config.p_wfss]).all())
+#            load_control &= ((dataBase.loc[i,"npix"] == [wfs.npix for wfs in config.p_wfss]).all())
+#            load_control &= ((dataBase.loc[i,"pixsize"] == [wfs.pixsize for wfs in config.p_wfss]).all())
+#            load_control &= ((dataBase.loc[i,"fracsub"] == [wfs.fracsub for wfs in config.p_wfss]).all())
+#            load_control &= ((dataBase.loc[i,"wfs.xpos"] == [wfs.xpos for wfs in config.p_wfss]).all())
+#            load_control &= ((dataBase.loc[i,"wfs.ypos"] == [wfs.ypos for wfs in config.p_wfss]).all())
+#            load_control &= ((dataBase.loc[i,"wfs.Lambda"] == [wfs.Lambda for wfs in config.p_wfss]).all())
+#            load_control &= ((dataBase.loc[i,"gsmag"] == [wfs.gsmag for wfs in config.p_wfss]).all())
+#            load_control &= ((dataBase.loc[i,"optthroughput"] == [wfs.optthroughput for wfs in config.p_wfss]).all())
+#            load_control &= ((dataBase.loc[i,"zerop"] == [wfs.zerop for wfs in config.p_wfss]).all())
+#            load_control &= ((dataBase.loc[i,"noise"] == [wfs.noise for wfs in config.p_wfss]).all())
+#            load_control &= ((dataBase.loc[i,"atmos_seen"] == [wfs.atmos_seen for wfs in config.p_wfss]).all())
+#            load_control &= ((dataBase.loc[i,"dms_seen"] == [wfs.dms_seen if(wfs.dms_seen is not None) else np.arange(len(config.p_dms),dtype=np.int32) for wfs in config.p_wfss]).all())
+#            load_control &= ((dataBase.loc[i,"beamsize"] == [wfs.beamsize for wfs in config.p_wfss]).all())
+#            load_control &= ((dataBase.loc[i,"fssize"] == [wfs.fssize for wfs in config.p_wfss]).all())
+#            load_control &= ((dataBase.loc[i,"fstop"] == [wfs.fstop if(wfs.fstop) else "" for wfs in config.p_wfss]).all())
+#            load_control &= ((dataBase.loc[i,"gsalt"] == [wfs.gsalt for wfs in config.p_wfss]).all())
+#            load_control &= ((dataBase.loc[i,"laserpower"] == [wfs.laserpower for wfs in config.p_wfss]).all())
+#            load_control &= ((dataBase.loc[i,"lgsreturnperwatt"] == [wfs.lgsreturnperwatt for wfs in config.p_wfss]).all())
+#            load_control &= ((dataBase.loc[i,"lltx"] == [wfs.lltx for wfs in config.p_wfss]).all())
+#            load_control &= ((dataBase.loc[i,"llty"] == [wfs.llty for wfs in config.p_wfss]).all())
+#            load_control &= ((dataBase.loc[i,"openloop"] == [wfs.openloop for wfs in config.p_wfss]).all())
+#            load_control &= ((dataBase.loc[i,"proftype"] == [wfs.proftype if(wfs.proftype) else "" for wfs in config.p_wfss]).all())
+#            load_control &= ((dataBase.loc[i,"pyr_ampl"] == [wfs.pyr_ampl for wfs in config.p_wfss]).all())
+#            load_control &= ((dataBase.loc[i,"pyr_loc"] == [wfs.pyr_loc if(wfs.pyr_loc) else ""  for wfs in config.p_wfss]).all())
+#            load_control &= ((dataBase.loc[i,"pyr_npts"] == [wfs.pyr_npts for wfs in config.p_wfss]).all())
+#            load_control &= ((dataBase.loc[i,"pyrtype"] == [wfs.pyrtype if(wfs.pyrtype) else "" for wfs in config.p_wfss]).all())
+#    # Dms params
+#            load_control &= (dataBase.loc[i,"ndms"] == len(config.p_dms))
+#            load_control &= ((dataBase.loc[i,"type_dm"] == [dm.type_dm for dm in config.p_dms]).all())
+#            load_control &= ((dataBase.loc[i,"dm.alt"] == [dm.alt for dm in config.p_dms]).all())
+#            load_control &= ((dataBase.loc[i,"coupling"] == [dm.coupling for dm in config.p_dms]).all())
+#            load_control &= ((dataBase.loc[i,"hyst"] == [dm.hyst for dm in config.p_dms]).all())
+#            load_control &= ((dataBase.loc[i,"margin"] == [dm.margin for dm in config.p_dms]).all())
+#            load_control &= ((dataBase.loc[i,"nact"] == [dm.nact for dm in config.p_dms]).all())
+#            load_control &= ((dataBase.loc[i,"nkl"] == [dm.type_dm for dm in config.p_dms]).all())
+#            load_control &= ((dataBase.loc[i,"push4imat"] == [dm.push4imat for dm in config.p_dms]).all())
+#            load_control &= ((dataBase.loc[i,"dm.thresh"] == [dm.thresh for dm in config.p_dms]).all())
+#            load_control &= ((dataBase.loc[i,"unitpervolt"] == [dm.unitpervolt for dm in config.p_dms]).all())
+#        
+#        # Centroider params
+#            load_control &= (dataBase.loc[i,"ncentroiders"] == len(config.p_centroiders))
+#            load_control &= ((dataBase.loc[i,"type_centro"] == [c.type_centro for c in config.p_centroiders]).all())
+#            load_control &= ((dataBase.loc[i,"nmax"] == [c.nmax for c in config.p_centroiders]).all())
+#            load_control &= ((dataBase.loc[i,"centro.nwfs"] == [c.nwfs for c in config.p_centroiders]).all())
+#            load_control &= ((dataBase.loc[i,"sizex"] == [c.sizex for c in config.p_centroiders]).all())
+#            load_control &= ((dataBase.loc[i,"sizey"] == [c.sizey for c in config.p_centroiders]).all())
+#            load_control &= ((dataBase.loc[i,"centroider.thresh"] == [c.thresh for c in config.p_centroiders]).all())
+#            load_control &= ((dataBase.loc[i,"type_fct"] == [c.type_fct if(c.type_fct) else "" for c in config.p_centroiders]).all())
+#            load_control &= ((dataBase.loc[i,"weights"] == [c.weights if(c.weights) else 0 for c in config.p_centroiders]).all())
+#            load_control &= ((dataBase.loc[i,"width"] == [c.width for c in config.p_centroiders]).all())
+#        
+#        # Controller params
+#            load_control &= (dataBase.loc[i,"ncontrollers"] == len(config.p_controllers))
+#            load_control &= ((dataBase.loc[i,"type_control"] == [c.type_control for c in config.p_controllers]).all())
+#            load_control &= ((dataBase.loc[i,"cured_ndivs"] == [c.cured_ndivs for c in config.p_controllers]).all())
+#            load_control &= ((dataBase.loc[i,"ndm"] == [c.ndm for c in config.p_controllers]).all())
+#            load_control &= ((dataBase.loc[i,"nmodes"] == [c.nmodes for c in config.p_controllers]).all())        
+#            load_control &= ((dataBase.loc[i,"control.nwfs"] == [c.nwfs for c in config.p_controllers]).all())
             
-            if(load_control):
-                matricesToLoad["index_dms"] = i
-                dataBase = pandas.read_hdf(savepath+"matricesDataBase.h5","pztnok")
-                matricesToLoad["pztnok"] = dataBase.loc[i,"path2file"]
-                dataBase = pandas.read_hdf(savepath+"matricesDataBase.h5","pztok")
-                matricesToLoad["pztok"] = dataBase.loc[i,"path2file"]             
-                return
+        if(cond):
+            matricesToLoad["index_dms"] = i
+            dataBase = pandas.read_hdf(savepath+"matricesDataBase.h5","pztnok")
+            matricesToLoad["pztnok"] = dataBase.loc[i,"path2file"]
+            dataBase = pandas.read_hdf(savepath+"matricesDataBase.h5","pztok")
+            matricesToLoad["pztok"] = dataBase.loc[i,"path2file"]             
+            return
 
 def validDataBase(savepath,matricesToLoad):
     store = pandas.HDFStore(savepath+"matricesDataBase.h5")
