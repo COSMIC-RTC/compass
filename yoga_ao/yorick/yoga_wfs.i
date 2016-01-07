@@ -330,14 +330,14 @@ func init_wfs_geom(n,init=)
 
     if(y_wfs(n).atmos_seen == 0){
       cent = y_geom.pupdiam/2 + 0.5;
-      pup = float(make_pupil(y_geom.pupdiam,y_geom.pupdiam,type_ap=y_tel.type_ap,angle=y_tel.pupangle,spiders_type=y_tel.spiders_type,t_spiders=y_tel.t_spiders,nbr_miss_seg=y_tel.nbrmissing,std_ref_err=y_tel.referr,xc=cent,yc=cent,real=,cobs=));
+      pup = float(make_pupil(y_geom.pupdiam,y_geom.pupdiam,type_ap=y_tel.type_ap,angle=y_tel.pupangle,spiders_type=y_tel.spiders_type,t_spiders=y_tel.t_spiders,nbr_miss_seg=y_tel.nbrmissing,std_ref_err=y_tel.referr,xc=cent,yc=cent,real=,cobs=y_tel.cobs));
       pup = pad_array(pup,y_geom._n);
     }
     else pup = *y_geom._mpupil;
     //pup = *y_geom._mpupil;
     // sorting out valid subaps
     fluxPerSub = array(float,y_wfs(n).nxsub,y_wfs(n).nxsub);
-
+   
     for (i=1;i<=y_wfs(n).nxsub;i++) {
       for (j=1;j<=y_wfs(n).nxsub;j++) {
         indi = istart(i)+2;

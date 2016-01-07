@@ -721,7 +721,7 @@ int sutra_dms::remove_dm(string type, float alt) {
 	int pos = get_inddm(type, alt);
 	if(pos<0)
 		return EXIT_FAILURE;
-
+	delete d_dms[pos];
 	d_dms.erase(d_dms.begin()+pos);
 	d_type.erase(d_type.begin()+pos);
 	return EXIT_SUCCESS;

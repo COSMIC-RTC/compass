@@ -181,12 +181,13 @@ func atmos_init(void)
       // computing the fraction of the telescope diameter
       // translate that into pixels in the pupil for extrude
       frac_l0 = y_tel.diam / ((*y_atmos.L0)(cc));
-      (*y_atmos.L0)(cc) = y_geom.pupdiam / frac_l0;
+      //(*y_atmos.L0)(cc) = y_geom.pupdiam / frac_l0;
+      L0_pix = y_geom.pupdiam / frac_l0;
     }
   }
   
   // create atmos object on the gpu
-  g_atmos = yoga_atmos_create(y_atmos.nscreens,y_atmos.r0,*y_atmos.L0,y_atmos.pupixsize,*y_atmos.dim_screens,
+  g_atmos = yoga_atmos_create(y_atmos.nscreens,y_atmos.r0,L0_pix,y_atmos.pupixsize,*y_atmos.dim_screens,
                               *y_atmos.frac,*y_atmos.alt,*y_atmos.windspeed,*y_atmos.winddir,
                               *y_atmos.deltax,*y_atmos.deltay);
 
