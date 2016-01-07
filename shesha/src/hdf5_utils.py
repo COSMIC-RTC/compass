@@ -380,8 +380,9 @@ def checkTurbuParams(savepath,config,pdict,matricesToLoad):
                     cc+=1           
             # For debug
             #############################
-            if not cond:
-                print param2test[cc]+" has changed from ",dataBase.loc[i,param2test[cc]], " to ",pdict[param2test[cc]]
+            #if not cond:
+            #    cc -= 1
+            #    print param2test[cc]+" has changed from ",dataBase.loc[i,param2test[cc]], " to ",pdict[param2test[cc]]
             ###############################
         else:
             cond = False
@@ -426,7 +427,7 @@ def checkControlParams(savepath,config,pdict,matricesToLoad):
     param2test = ["ncentroiders","type_centro",
                   "nmax","centro.nwfs","sizex","sizey","centroider.thresh","type_fct",
                   "weights","width"]
-    print "HELLLLOOOOOOO"
+
     for i in dataBase.index:
         cc = 0
         if(dataBase.loc[i,"validity"] and (dataBase.loc[i,"revision"] == check_output("svnversion").replace("\n",""))):
@@ -439,9 +440,10 @@ def checkControlParams(savepath,config,pdict,matricesToLoad):
                     cc+=1           
             # For debug
             #############################
-            if not cond:
-                print param2test[cc]+" has changed from ",dataBase.loc[i,param2test[cc]], " to ",pdict[param2test[cc]]
-            ###############################
+            #if not cond:
+            #    cc -= 1
+            #    print param2test[cc]+" has changed from ",dataBase.loc[i,param2test[cc]], " to ",pdict[param2test[cc]]
+           ###############################
         else:
             cond = False
             print "Invalid matrix or new svn version"
@@ -558,8 +560,9 @@ def checkDmsParams(savepath,config,pdict,matricesToLoad):
                     cc+=1           
             # For debug
             #############################
-            if not cond:
-                print param2test[cc]+" has changed from ",dataBase.loc[i,param2test[cc]], " to ",pdict[param2test[cc]]
+            #if not cond:
+            #    cc -= 1
+            #    print param2test[cc]+" has changed from ",dataBase.loc[i,param2test[cc]], " to ",pdict[param2test[cc]]
             ###############################
         else:
             cond = False
