@@ -223,7 +223,7 @@ __global__ void rotate3d_krnl(cuFloatComplex *g_odata, int width, int height,
     {
   int tid = threadIdx.x + blockIdx.x * blockDim.x;
 
-  if (tid < Ntot) {
+  while (tid < Ntot) {
     int nim = tid / N;
     int tidim = tid - nim * N;
 
@@ -241,6 +241,7 @@ __global__ void rotate3d_krnl(cuFloatComplex *g_odata, int width, int height,
 
     g_odata[tid].x = tex3D(tex3, tu + 0.5, tv + 0.5, nim + 0.5);
     g_odata[tid].y = 0.0f;
+    tid += blockDim.x * gridDim.x;
   }
 }
 

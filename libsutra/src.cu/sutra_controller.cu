@@ -76,8 +76,9 @@ __global__ void mult_int_krnl(float *o_data, float *i_data, float *scale,
   int tid = threadIdx.x + blockIdx.x * blockDim.x;
   tid += istart;
 
-  if (tid < N) {
+  while (tid < N) {
     o_data[tid] = gain * (i_data[tid] * scale[tid]) + o_data[tid];
+    tid += blockDim.x * gridDim.x;
   }
 }
 
@@ -85,8 +86,9 @@ __global__ void add_md_krnl(float *o_matrix, float *i_matrix, float *i_vector,
     int N) {
   int tid = threadIdx.x + blockIdx.x * blockDim.x;
 
-  if (tid < N) {
+  while (tid < N) {
     o_matrix[tid * (N + 1)] = i_matrix[tid * (N + 1)] + i_vector[tid];
+    tid += blockDim.x * gridDim.x;
   }
 }
 

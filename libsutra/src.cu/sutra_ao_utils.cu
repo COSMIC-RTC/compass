@@ -52,9 +52,10 @@ __global__ void abs2_krnl(float *odata, cuFloatComplex *idata, int N) {
 
   int tid = threadIdx.x + blockIdx.x * blockDim.x;
 
-  if (tid < N) {
+  while (tid < N) {
     cache = idata[tid];
     odata[tid] = cache.x * cache.x + cache.y * cache.y;
+    tid += blockDim.x * gridDim.x;
   }
 }
 
@@ -75,10 +76,11 @@ __global__ void abs2c_krnl(cuFloatComplex *odata, cuFloatComplex *idata,
   cuFloatComplex cache;
   int tid = threadIdx.x + blockIdx.x * blockDim.x;
 
-  if (tid < N) {
+  while (tid < N) {
     cache = idata[tid];
     odata[tid].x = cache.x * cache.x + cache.y * cache.y;
     odata[tid].y = 0.0;
+    tid += blockDim.x * gridDim.x;
   }
 }
 
@@ -125,8 +127,9 @@ __global__ void subapnormasync_krnl(float *odata, float *idata, float *fact,
 
   int tid = threadIdx.x + blockIdx.x * blockDim.x;
   tid += istart;
-  if (tid < N) {
+  while (tid < N) {
     odata[tid] = idata[tid] * fact[tid / n] / norm[tid / n] * nphot;
+    tid += blockDim.x * gridDim.x;
   }
 }
 

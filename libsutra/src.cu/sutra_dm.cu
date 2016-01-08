@@ -554,7 +554,7 @@ __global__ void dmshape_krnl(T *g_idata, T *g_odata, int *pos, int *istart,
 	// unsigned int tid = threadIdx.x;
 	unsigned int i = blockIdx.x * blockDim.x + threadIdx.x;
 
-	if (i < N) {
+	while (i < N) {
 		int local_istart = istart[i];
 		int local_npts = npts[i];
 
@@ -570,6 +570,7 @@ __global__ void dmshape_krnl(T *g_idata, T *g_odata, int *pos, int *istart,
 			}
 		}
 		g_odata[i] = value;
+		i += blockDim.x * gridDim.x;
 	}
 	/*
   __syncthreads();
@@ -613,7 +614,7 @@ __global__ void oneactu_krnl(T *g_idata, T *g_odata, int nactu, T ampli,
 		int *xoff, int *yoff, int dim_im, int dim_influ, int N) {
 	unsigned int i = blockIdx.x * blockDim.x + threadIdx.x;
 
-	if (i < N) {
+	while (i < N) {
 		int iy = i / dim_im;
 		int ix = i - iy * dim_im;
 		int ixactu = ix - xoff[nactu];
@@ -625,6 +626,7 @@ __global__ void oneactu_krnl(T *g_idata, T *g_odata, int nactu, T ampli,
 			int tid = ixactu + iyactu * dim_influ + nactu * dim_influ * dim_influ;
 			g_odata[i] = ampli * g_idata[tid];
 		}
+		i += blockDim.x * gridDim.x;
 	}
 }
 
@@ -633,7 +635,7 @@ __global__ void oneactu_krnl_fast(T *g_idata, T *g_odata, int nactu, T ampli,
 		int *xoff, int *yoff, int dim_im, int dim_influ, int N) {
 	unsigned int i = blockIdx.x * blockDim.x + threadIdx.x;
 
-	if (i < N) {
+	while (i < N) {
 		int iy = i / dim_influ;
 		int ix = i - iy * dim_influ;
 		int ixactu = ix + xoff[nactu];
@@ -645,6 +647,7 @@ __global__ void oneactu_krnl_fast(T *g_idata, T *g_odata, int nactu, T ampli,
 			int tid = ixactu + iyactu * dim_im;
 			g_odata[tid] = ampli * g_idata[i + nactu * N];
 		}
+		i += blockDim.x * gridDim.x;
 	}
 }
 
@@ -679,7 +682,7 @@ __global__ void oneactu_krnl_fast(T *g_idata, T *g_odata, int nactu, T ampli,
 		int dim_im, int dim_influ, int N) {
 	unsigned int i = blockIdx.x * blockDim.x + threadIdx.x;
 
-	if (i < N) {
+	while (i < N) {
 		int iy = i / dim_influ;
 		int ix = i - iy * dim_influ;
 
@@ -688,6 +691,7 @@ __global__ void oneactu_krnl_fast(T *g_idata, T *g_odata, int nactu, T ampli,
 			int tid = ix + iy * dim_im;
 			g_odata[tid] = ampli * g_idata[i + nactu * dim_influ * dim_influ];
 		}
+		i += blockDim.x * gridDim.x;
 	}
 }
 
@@ -723,7 +727,7 @@ __global__ void fulldmshape_krnl(T *g_idata, T *g_odata, int ninflu,
 	// load shared mem
 	unsigned int tid = threadIdx.x;
 	unsigned int i = blockIdx.x * blockDim.x + threadIdx.x;
-
+	// TODO : replace if by while smartly
 	if (i < N) {
 		sdata[tid] = 0;
 
@@ -872,7 +876,7 @@ multi_vect(float *d_data, float gain, int N, carma_device *device) {
 __global__ void
 fillpos_krnl(int *pos, int *xoff, int *yoff, int size, int nactu, int dim, int N){
 	int tid = threadIdx.x + blockIdx.x * blockDim.x;
-	if(tid < N){
+	while(tid < N){
 		int pix = tid / nactu;
 		int actu = tid - pix * nactu;
 
@@ -880,6 +884,7 @@ fillpos_krnl(int *pos, int *xoff, int *yoff, int size, int nactu, int dim, int N
 		if(pix == 1) pos[tid] = (xoff[actu]-1 + size/2) + (yoff[actu] + size/2) * dim;
 		if(pix == 2) pos[tid] = (xoff[actu] + size/2) + (yoff[actu]-1 + size/2) * dim;
 		if(pix == 3) pos[tid] = (xoff[actu]-1 + size/2) + (yoff[actu]-1 + size/2) * dim;
+		tid += blockDim.x * gridDim.x;
 	}
 }
 
@@ -898,11 +903,12 @@ fillpos(int threads, int blocks, int *pos, int *xoff, int *yoff, int size, int n
 __global__ void
 fillmapactu_krnl(float *mapactu, float *comvec, int *pos, int nactu, int N){
 	int tid = threadIdx.x + blockIdx.x * blockDim.x;
-	if(tid < N){
+	while(tid < N){
 		int pix = tid / nactu;
 		int actu = tid - pix * nactu;
 
 		mapactu[pos[tid]] = comvec[actu]/4.0f;
+		tid += blockDim.x * gridDim.x;
 	}
 
 }

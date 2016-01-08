@@ -318,11 +318,14 @@ __global__ void conv_krnl(cuFloatComplex *odata, cuFloatComplex *idata, int N,
 
   int tid = threadIdx.x + blockIdx.x * blockDim.x;
   cuFloatComplex tmp;
-
-  int nim = tid / n;
-  int tidim = tid - nim * n;
+  int nim;
+  int tidim;
+  //int nim = tid / n;
+  //int tidim = tid - nim * n;
 
   while (tid < N) {
+    nim = tid / n;
+    tidim = tid - nim * n;
     tmp.x = idata[tidim].x * odata[tid].x - idata[tidim].y * odata[tid].y;
     tmp.y = idata[tidim].y * odata[tid].x + idata[tidim].x * odata[tid].y;
     odata[tid] = tmp;
@@ -1486,10 +1489,11 @@ __global__ void pyrfact_krnl(T *g_data, T fact, unsigned int n,
     unsigned int nim) {
   unsigned int i = blockIdx.x * blockDim.x + threadIdx.x;
 
-  if (i < n * n) {
+  while (i < n * n) {
     for (int cpt = 0; cpt < nim; cpt++) {
       g_data[i + cpt * n * n] = g_data[i + cpt * n * n] * fact;
     }
+    i += blockDim.x * gridDim.x;
   }
 }
 
@@ -1497,11 +1501,12 @@ __global__ void pyrfact_krnl(cuFloatComplex *g_data, float fact, unsigned int n,
     unsigned int nim) {
   unsigned int i = blockIdx.x * blockDim.x + threadIdx.x;
 
-  if (i < n * n) {
+  while (i < n * n) {
     for (int cpt = 0; cpt < nim; cpt++) {
       g_data[i + cpt * n * n].x = g_data[i + cpt * n * n].x * fact;
       g_data[i + cpt * n * n].y = g_data[i + cpt * n * n].y * fact;
     }
+    i += blockDim.x * gridDim.x;
   }
 }
 
@@ -1509,10 +1514,11 @@ __global__ void pyrfact_krnl(float *g_data, float fact1, float *fact2,
     unsigned int n, unsigned int nim) {
   unsigned int i = blockIdx.x * blockDim.x + threadIdx.x;
 
-  if (i < n * n) {
+  while (i < n * n) {
     for (int cpt = 0; cpt < nim; cpt++) {
       g_data[i + cpt * n * n] = g_data[i + cpt * n * n] * fact1 / fact2[0];
     }
+    i += blockDim.x * gridDim.x;
   }
 }
 
