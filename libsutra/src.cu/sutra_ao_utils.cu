@@ -52,9 +52,10 @@ __global__ void abs2_krnl(float *odata, cuFloatComplex *idata, int N) {
 
   int tid = threadIdx.x + blockIdx.x * blockDim.x;
 
-  if (tid < N) {
+  while (tid < N) {
     cache = idata[tid];
     odata[tid] = cache.x * cache.x + cache.y * cache.y;
+    tid += blockDim.x * gridDim.x;
   }
 }
 
@@ -75,10 +76,11 @@ __global__ void abs2c_krnl(cuFloatComplex *odata, cuFloatComplex *idata,
   cuFloatComplex cache;
   int tid = threadIdx.x + blockIdx.x * blockDim.x;
 
-  if (tid < N) {
+  while (tid < N) {
     cache = idata[tid];
     odata[tid].x = cache.x * cache.x + cache.y * cache.y;
     odata[tid].y = 0.0;
+    tid += blockDim.x * gridDim.x;
   }
 }
 
@@ -100,7 +102,9 @@ __global__ void subapnorm_krnl(float *odata, float *idata, float *fact,
   int tid = threadIdx.x + blockIdx.x * blockDim.x;
 
   while (tid < N) {
-    odata[tid] = idata[tid] * fact[tid / n] / norm[tid / n] * nphot;
+	if(norm[tid / n] != 0){
+		odata[tid] = idata[tid] * fact[tid / n] / norm[tid / n] * nphot;
+	}
     tid += blockDim.x * gridDim.x;
   }
 }
@@ -123,8 +127,9 @@ __global__ void subapnormasync_krnl(float *odata, float *idata, float *fact,
 
   int tid = threadIdx.x + blockIdx.x * blockDim.x;
   tid += istart;
-  if (tid < N) {
+  while (tid < N) {
     odata[tid] = idata[tid] * fact[tid / n] / norm[tid / n] * nphot;
+    tid += blockDim.x * gridDim.x;
   }
 }
 
@@ -272,16 +277,12 @@ template
 int addai<double>(double *d_odata, double *i_data, int i, int sgn, int N, carma_device *device);
 
 template<class T>
-__global__ void roll_krnl(T *idata, int N, int M, int Ntot) {
+__global__ void roll_krnl(T *idata, int N, int M, int Nim) {
   T tmp;
 
-  int tidt = threadIdx.x + blockIdx.x * blockDim.x;
-  int nim = tidt / Ntot;
+  int tid = threadIdx.x + blockIdx.x * blockDim.x;
 
-  int tid = tidt - nim * Ntot;
-
-  while (tid < Ntot) {
-
+  while (tid < (N * M / 2)) {
     int x = tid % N;
     int y = tid / N;
 
@@ -289,24 +290,26 @@ __global__ void roll_krnl(T *idata, int N, int M, int Ntot) {
     int yy = (y + M / 2) % M;
     int tid2 = xx + yy * N;
 
-    tmp = idata[tid + nim * (N * M)];
-    idata[tid + nim * (N * M)] = idata[tid2 + nim * (N * M)];
-    idata[tid2 + nim * (N * M)] = tmp;
-
+    for (int ii=0;ii<Nim;ii++) {
+      tmp = idata[tid+ii*N*M];
+      idata[tid+ii*N*M] = idata[tid2+ii*N*M];
+      idata[tid2+ii*N*M] = tmp;
+    }
+    
     tid += blockDim.x * gridDim.x;
   }
 }
-
+  
 template<class T>
 int roll(T *idata, int N, int M, int nim, carma_device *device) {
 
-  long Ntot = N * M * nim;
+ long Ntot = N * M;
   int nBlocks, nThreads;
   getNumBlocksAndThreads(device, Ntot / 2, nBlocks, nThreads);
 
   dim3 grid(nBlocks), threads(nThreads);
 
-  roll_krnl<T><<<grid, threads>>>(idata, N, M, Ntot / 2);
+  roll_krnl<T><<<grid, threads>>>(idata, N, M, nim);
 
   carmaCheckMsg("roll_kernel<<<>>> execution failed\n");
   return EXIT_SUCCESS;
