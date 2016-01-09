@@ -363,7 +363,8 @@ class widgetAOWindow(TemplateBaseClass):
         self.config.p_wfss[nwfs].set_fracsub( self.ui.wao_wfsFracsub.value())
         self.config.p_wfss[nwfs].set_Lambda( self.ui.wao_wfsLambda.value())
         self.config.p_wfss[nwfs].set_gsmag( self.ui.wao_wfsMagnitude.value())
-        self.config.p_wfss[nwfs].set_zerop( self.ui.wao_wfsZp.value())
+        #TODO: find a way to correctly set zerop (limited by the maximum value allowed by the double spin box)
+        #self.config.p_wfss[nwfs].set_zerop( self.ui.wao_wfsZp.value())
         self.config.p_wfss[nwfs].set_optthroughput( self.ui.wao_wfsThrough.value())
         self.config.p_wfss[nwfs].set_noise( self.ui.wao_wfsNoise.value())
         

@@ -386,7 +386,7 @@ def checkTurbuParams(savepath,config,pdict,matricesToLoad):
             ###############################
         else:
             cond = False
-            print "Invalid matrix or new svn version"
+           # print "Invalid matrix or new svn version"
                 
             
 #        if(dataBase.loc[i,"validity"]):
@@ -446,7 +446,7 @@ def checkControlParams(savepath,config,pdict,matricesToLoad):
            ###############################
         else:
             cond = False
-            print "Invalid matrix or new svn version"
+           # print "Invalid matrix or new svn version"
                 
 
 #        if(dataBase.loc[i,"validity"]):
@@ -566,7 +566,7 @@ def checkDmsParams(savepath,config,pdict,matricesToLoad):
             ###############################
         else:
             cond = False
-            print "Invalid matrix or new svn version"
+           # print "Invalid matrix or new svn version"
 
 #        if(dataBase.loc[i,"validity"]):
 #            load_control = (dataBase.loc[i,"revision"] == check_output("svnversion").replace("\n",""))
