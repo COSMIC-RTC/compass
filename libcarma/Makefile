@@ -38,7 +38,7 @@ else
 endif
 
 #force GCC if needed
-#GCC := gcc
+GCC := gcc
 
 NVCC = $(CUDA_ROOT)/bin/nvcc
 LIB_NVCCFLAGS  = -Xptxas -dlcm=ca -m64 -Xcompiler -fPIC -c --compiler-options

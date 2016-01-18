@@ -62,7 +62,8 @@ else
   GCC = $(MPICXX)
 endif
 
-#GCC := icc #/usr/local/mpe/bin/mpecc -mpilog
+#force GCC if needed
+GCC := 	gcc
 
 NVCC = $(CUDA_ROOT)/bin/nvcc
 NVCCFLAGS += -m64 -Xcompiler -fPIC -use_fast_math -c

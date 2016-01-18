@@ -599,7 +599,7 @@ func rtc_init(clean=, brama=, doimat=)
   g_rtc = yoga_rtc(activeDevice());
 
   if(brama==1) 
-    g_rtc = yoga_rtc_brama(g_rtc);
+    yoga_rtc_brama(g_rtc, g_wfs, g_target);
 
   if(doimat==[]) 
     doimat = 1;

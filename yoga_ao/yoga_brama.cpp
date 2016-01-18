@@ -7,14 +7,20 @@ extern "C" {
 
   void Y_yoga_rtc_brama(int argc) {
     try {
-      if (argc == 1) {
+      if (argc == 3) {
         rtc_struct* handle = yoga_ao_getyRTC(argc, 1);
         SCAST(sutra_rtc*, handle_rtc, handle->sutra_rtc);
         delete handle_rtc;
 
-        carma_context *context_handle = _getCurrentContext();
+        sensors_struct* handle_ywfs = yoga_ao_getySensors(argc, 2);
+        SCAST(sutra_sensors*, handle_wfs, handle_ywfs->sutra_sensors);
+
+        target_struct* handle_ytarget = yoga_ao_getyTarget(argc, 3);
+        SCAST(sutra_target*, handle_target, handle_ytarget->sutra_target);
+
+       carma_context *context_handle = _getCurrentContext();
         char brama_name[] = "yoga_rtc_brama";
-        handle->sutra_rtc = new sutra_rtc_brama(context_handle, brama_name);
+        handle->sutra_rtc = new sutra_rtc_brama(context_handle, handle_wfs, handle_target, brama_name);
         handle->use_brama = 1;
       }
     } catch (string &msg) {

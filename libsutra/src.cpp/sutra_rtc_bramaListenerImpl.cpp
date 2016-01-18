@@ -1,6 +1,5 @@
 #ifdef USE_BRAMA
 
-#include "libBRAMATypeSupportC.h"
 #include "libBRAMATypeSupportImpl.h"
 #include<sutra_rtc_bramaListenerImpl.h>
 #include "dds/DCPS/Service_Participant.h"
