@@ -7,6 +7,7 @@ sutra_rtc_brama::sutra_rtc_brama(carma_context *context, sutra_sensors *wfs_, su
 sutra_rtc(context), wfs(wfs_), target(target_) {
   brama = new BRAMA_supervisor(name);
   cmd_listener_servant = NULL;
+  superframe_handle = 0;
   megaframe_handle = 0;
   framecounter = 0;
 
@@ -43,11 +44,25 @@ sutra_rtc(context), wfs(wfs_), target(target_) {
     }
     cmd_listener_servant->attach_rtc(this);
 
-    cmd_dr = brama->create_datareader(topics[4], cmd_listener);
+    cmd_dr = brama->create_datareader(topics[CommandType], cmd_listener);
 
-    megaframe_base_dw = brama->create_datawriter(topics[2]);
+    superframe_base_dw = brama->create_datawriter(topics[SuperFrameType]);
+    if (CORBA::is_nil(superframe_base_dw.in())) {
+      cerr << "create_datawriter for " << topics[SuperFrameType] << " failed." << endl;
+      ACE_OS::exit(1);
+    }
+    superframe_dw = BRAMA::SuperFrameDataWriter::_narrow(
+        superframe_base_dw.in());
+    if (CORBA::is_nil(superframe_dw.in())) {
+      throw "SuperFrameDataWriter could not be narrowed";
+    }
+
+    BRAMA::SuperFrame xFrame;
+    superframe_handle = superframe_dw->register_instance(xFrame);
+
+    megaframe_base_dw = brama->create_datawriter(topics[MegaFrameType]);
     if (CORBA::is_nil(megaframe_base_dw.in())) {
-      cerr << "create_datawriter for " << topics[2] << " failed." << endl;
+      cerr << "create_datawriter for " << topics[MegaFrameType] << " failed." << endl;
       ACE_OS::exit(1);
     }
     megaframe_dw = BRAMA::MegaFrameDataWriter::_narrow(
@@ -247,6 +262,14 @@ void sutra_rtc_brama::publish() {
   if (ret != DDS::RETCODE_OK) {
     ACE_ERROR(
         (LM_ERROR, ACE_TEXT("(%P|%t)ERROR: megaframe write returned %d.\n"), ret));
+    return;
+  }
+
+  ret = superframe_dw->write(zFrame.loopData, superframe_handle);
+
+  if (ret != DDS::RETCODE_OK) {
+    ACE_ERROR(
+        (LM_ERROR, ACE_TEXT("(%P|%t)ERROR: superframe write returned %d.\n"), ret));
     return;
   }
 
