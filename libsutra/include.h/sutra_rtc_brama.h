@@ -19,9 +19,15 @@
 class sutra_rtc_brama: public sutra_rtc {
 private:
   BRAMA_supervisor *brama;
+
   DDS::DataReaderListener_var cmd_listener;
   sutra_rtc_bramaListenerImpl* cmd_listener_servant;
   DDS::DataReader_var cmd_dr;
+
+  DDS::DataWriter_var superframe_base_dw;
+  BRAMA::SuperFrameDataWriter_var superframe_dw;
+  DDS::InstanceHandle_t superframe_handle;
+
   DDS::DataWriter_var megaframe_base_dw;
   BRAMA::MegaFrameDataWriter_var megaframe_dw;
   DDS::InstanceHandle_t megaframe_handle;
