@@ -598,6 +598,10 @@ cpdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
         wfs._qpixsize = qpixsize
 
     wfs._subapd   = tel.diam/wfs.nxsub
+    
+    if((pdiam*wfs.nxsub)%2): # Must be even to keep ssp and actuators grids aligned in the pupil
+        pdiam += 1
+    
     wfs._pdiam    = pdiam
 
 

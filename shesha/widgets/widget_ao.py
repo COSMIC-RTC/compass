@@ -309,6 +309,7 @@ class widgetAOWindow(TemplateBaseClass):
         self.config.p_tel.set_diam(self.ui.wao_diamTel.value())
         self.config.p_tel.set_cobs(self.ui.wao_cobs.value())
         self.config.p_geom.set_zenithangle(self.ui.wao_zenithAngle.value())
+        print "New telescope parameters set"
         
     def setAtmosParams(self):
         nscreen = self.ui.wao_selectAtmosLayer.currentIndex()
