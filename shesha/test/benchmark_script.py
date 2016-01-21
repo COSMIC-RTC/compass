@@ -374,7 +374,7 @@ if(len(sys.argv)<4 or len(sys.argv)>6):
 filename=PARPATH+sys.argv[1]
 centroider=sys.argv[2]
 controller=sys.argv[3]
-device=5
+device=0
 fwrite=True
 if(len(sys.argv)>4):
     device=int(sys.argv[4])
