@@ -6,10 +6,12 @@ import shesha as ao
 import time
 import datetime
 from subprocess import check_output
+import pandas
+import hdf5_utils as h5u
 
-SHESHA=os.environ.get('SHESHA')
+SHESHA=os.environ.get('SHESHA_ROOT')
 if(SHESHA is None):
-    raise EnvironmentError("Environment variable 'SHESHA' must be define")
+    raise EnvironmentError("Environment variable 'SHESHA_ROOT' must be define")
 
 SHESHA_SAVEPATH=SHESHA+"/data/"
 PARPATH=SHESHA_SAVEPATH+"par/par4bench/"
@@ -59,12 +61,7 @@ def script4bench(param_file,centroider,controller, device=0, fwrite=True):
             simul_name=config.simul_name
     else:
         simul_name=""
-
-    if(simul_name==""):
-        clean=1
-    else:
-        clean=0
-
+    matricesToLoad={}
     config.p_centroiders[0].set_type(centroider)
 
     if(centroider=="tcog"): config.p_centroiders[0].set_thresh(9.)
@@ -85,6 +82,12 @@ def script4bench(param_file,centroider,controller, device=0, fwrite=True):
     
 
     config.p_loop.set_niter(2000)
+    if(simul_name==""):
+        clean=1
+    else:
+        clean=0
+        param_dict = h5u.params_dictionary(config)
+        matricesToLoad = h5u.checkMatricesDataBase(os.environ["SHESHA_ROOT"]+"/data/",config,param_dict)
 
     ch.threadSync()
     timer.start()
@@ -101,38 +104,49 @@ def script4bench(param_file,centroider,controller, device=0, fwrite=True):
     timer.reset()
 
     timer.start()
-    atm=ao.atmos_init(c,config.p_atmos,config.p_tel,config.p_geom,config.p_loop,rank=0)
+    atm=ao.atmos_init(c,config.p_atmos,config.p_tel,config.p_geom,config.p_loop,config.p_wfss,config.p_target,rank=0, clean=clean, load=matricesToLoad)
     ch.threadSync()
     atmos_init_time=timer.stop()-synctime
     timer.reset()
 
     timer.start()
-    dms=ao.dm_init(config.p_dms,config.p_wfss[0],config.p_geom,config.p_tel)
+    dms=ao.dm_init(config.p_dms,config.p_wfss,config.p_geom,config.p_tel)
     ch.threadSync()
     dm_init_time=timer.stop()-synctime
     timer.reset()
 
     timer.start()
-    target=ao.target_init(c,config.p_target,config.p_atmos,config.p_geom,config.p_tel,config.p_wfss,wfs,config.p_dms)
+    target=ao.target_init(c,tel,config.p_target,config.p_atmos,config.p_geom,config.p_tel,config.p_wfss,wfs,config.p_dms)
     ch.threadSync()
     target_init_time=timer.stop()-synctime
     timer.reset()
 
     timer.start()
-    rtc=ao.rtc_init(tel,wfs,config.p_wfss,dms,config.p_dms,config.p_geom,config.p_rtc,config.p_atmos,atm,config.p_tel,config.p_loop,target,config.p_target,clean=clean,simul_name=simul_name)
+    rtc=ao.rtc_init(tel,wfs,config.p_wfss,dms,config.p_dms,config.p_geom,config.p_rtc,config.p_atmos,atm,config.p_tel,config.p_loop,target,config.p_target,clean=clean,simul_name=simul_name, load=matricesToLoad)
     ch.threadSync()
     rtc_init_time=timer.stop()-synctime
     timer.reset()
 
     print "... Done with inits !"
-
+    h5u.validDataBase(os.environ["SHESHA_ROOT"]+"/data/",matricesToLoad)
+    
     strehllp=[]
     strehlsp=[]
-
+############################################################
+#                  _         _                   
+#                 (_)       | |                  
+#  _ __ ___   __ _ _ _ __   | | ___   ___  _ __  
+# | '_ ` _ \ / _` | | '_ \  | |/ _ \ / _ \| '_ \ 
+# | | | | | | (_| | | | | | | | (_) | (_) | |_) |
+# |_| |_| |_|\__,_|_|_| |_| |_|\___/ \___/| .__/ 
+#                                         | |    
+#                                         |_|    
+########################################################### 
     if(controller=="modopti"):
         for zz in xrange(2048):
             atm.move_atmos()
-
+          
+            
     for cc in xrange(config.p_loop.niter):
         ch.threadSync()
         timer.start()
@@ -145,12 +159,12 @@ def script4bench(param_file,centroider,controller, device=0, fwrite=True):
             if((config.p_target is not None) and (rtc is not None)):
                 for i in xrange(config.p_target.ntargets):
                     timer.start()
-                    target.atmos_trace(i,tel,atm)
+                    target.atmos_trace(i,atm,tel)
                     ch.threadSync()
                     t_raytrace_atmos_time+=timer.stop()-synctime
                     timer.reset()
 
-                    if(dms is not None):
+                    if(dms is not None):                        
                         timer.start()
                         target.dmtrace(i,dms)
                         ch.threadSync()
@@ -212,7 +226,7 @@ def script4bench(param_file,centroider,controller, device=0, fwrite=True):
             if(config.p_target is not None and target is not None):
                 for i in xrange(config.p_target.ntargets):
                     timer.start()
-                    target.atmos_trace(i,tel,atm)
+                    target.atmos_trace(i,atm,tel)
                     ch.threadSync()
                     t_raytrace_atmos_time+=timer.stop()-synctime
                     timer.reset()
@@ -244,6 +258,15 @@ def script4bench(param_file,centroider,controller, device=0, fwrite=True):
 
     print "\n done with simulation \n"
     print "\n Final strehl : \n", strehllp[len(strehllp)-1]
+###################################################################
+#  _   _                         
+# | | (_)                        
+# | |_ _ _ __ ___   ___ _ __ ___ 
+# | __| | '_ ` _ \ / _ \ '__/ __|
+# | |_| | | | | | |  __/ |  \__ \
+#  \__|_|_| |_| |_|\___|_|  |___/
+###################################################################                                
+                                
 
     move_atmos_time/=config.p_loop.niter /1000.
     t_raytrace_atmos_time/=config.p_loop.niter /1000.
@@ -260,80 +283,89 @@ def script4bench(param_file,centroider,controller, device=0, fwrite=True):
                   s_raytrace_dm_time+ comp_img_time+\
                   docentroids_time+ docontrol_time+\
                   applycontrol_time
-
-
+                  
+###########################################################################
+#  _         _  __ _____                       
+# | |       | |/ _| ____|                      
+# | |__   __| | |_| |__    ___  __ ___   _____ 
+# | '_ \ / _` |  _|___ \  / __|/ _` \ \ / / _ \
+# | | | | (_| | |  ___) | \__ \ (_| |\ V /  __/
+# |_| |_|\__,_|_| |____/  |___/\__,_| \_/ \___|
+###############################################################################                  
+                                              
+                                              
     if(config.p_wfss[0].gsalt>0):
-        type="lgs "
+        stype="lgs "
     else:
-        type="ngs "
+        stype="ngs "
 
     if(config.p_wfss[0].gsmag>3):
-        type+="noisy "
+        stype+="noisy "
 
-    type+=config.p_wfss[0].type_wfs
+    stype+=config.p_wfss[0].type_wfs
 
+    if(controller=="modopti"):
+        G=np.mean(rtc.get_mgain(0))
+    else:
+        G=0.
 
-
-    date=datetime.datetime.now().strftime("%a %d. %b %Y %H:%M")
-    svnversion=check_output("svnversion").replace("\n","")
+    date=datetime.datetime.now()
+    date=[date.year,date.month,date.day]
+    svnversion=str(check_output("svnversion").replace("\n",""))
     hostname=check_output("hostname").replace("\n","")
+  
+    keys_dict = {"date":date,
+                 "hostname":hostname,
+                 "sensor_type":config.p_wfss[0].type_wfs,
+                 "LGS":config.p_wfss[0].gsalt>0,
+                    "noisy":config.p_wfss[0].gsmag>3,
+                    "nxsub":config.p_wfss[0].nxsub,
+                    "npix":config.p_wfss[0].npix,
+                    "nphotons":config.p_wfss[0]._nphotons,
+                    "controller":controller,
+                    "centroider":centroider,
+                    "finalSRLE":strehllp[len(strehllp)-1],
+                    "rmsSRLE":np.std(strehllp),
+                    "wfs_init":wfs_init_time,
+                    "atmos_init":atmos_init_time,
+                    "dm_init":dm_init_time,
+                    "target_init":target_init_time,
+                    "rtc_init":rtc_init_time,
+                    "move_atmos":move_atmos_time,
+                    "target_trace_atmos":t_raytrace_atmos_time,
+                    "target_trace_dm":t_raytrace_dm_time,
+                    "sensor_trace_atmos":s_raytrace_atmos_time,
+                    "sensor_trace_dm":s_raytrace_dm_time,
+                    "comp_img":comp_img_time,
+                    "docentroids":docentroids_time,
+                    "docontrol":docontrol_time,
+                    "applycontrol":applycontrol_time,
+                    "iter_time":time_per_iter,
+                    "Avg.gain":G}
 
-    savefile=BENCH_SAVEPATH+"result_"+hostname+"_scao_revision_"+svnversion+".csv"
-    SRfile=BENCH_SAVEPATH + "SR_"+hostname+"_scao_revision_"+svnversion+".csv"
+    store = pandas.HDFStore(BENCH_SAVEPATH+"benchmarks.h5")
+    try:
+        df=store.get(svnversion)
+    except KeyError:
+        df=pandas.DataFrame(columns=keys_dict.keys(),dtype=object)
 
-    print date, svnversion, hostname, savefile, SRfile
+    ix = len(df.index)
 
     if(fwrite):
         print "writing files"
-        if(not os.path.isfile(savefile)):
-            f=open(savefile,"w")
-            f.write("--------------------------------------------------------------------------\n")
-            f.write("Date :"+date+"\t Revision : "+svnversion+"\n")
-            f.write("--------------------------------------------------------------------------\n")
-            f.write("System type\tnxsub\twfs.npix\tNphotons\tController\tCentroider\tFinal SR LE\tAvg. SR SE\trms SR SE\twfs_init\tatmos_init\tdm_init\ttarget_init\trtc_init\tmove_atmos\tt_raytrace_atmos\tt_raytrace_dm\ts_raytrace_atmos\ts_raytrace_dm\tcomp_img\tdocentroids\tdocontrol\tapplycontrol\titer_time\tAvg.gain")
-
-        else:
-            f=open(savefile,'a')
-
-
-        if(controller=="modopti"):
-            G=np.mean(rtc.get_mgain(0))
-        else:
-            G=0.
-
-        f.write("\n"+ type +"\t"+ str(config.p_wfss[0].nxsub) +"\t"+ str(config.p_wfss[0].npix) +"\t"+
-                str(config.p_wfss[0]._nphotons) +"\t"+ controller +"\t"+ centroider +"\t"+
-                str(strehllp[len(strehllp)-1]) +"\t"+ str(np.mean(strehlsp)) +"\t"+
-                str(np.std(strehllp)) +"\t"+ str(wfs_init_time) +"\t"+
-                str(atmos_init_time) +"\t"+ str(dm_init_time) +"\t"+
-                str(target_init_time) +"\t"+ str(rtc_init_time) +"\t"+
-                str(move_atmos_time) +"\t"+ str(t_raytrace_atmos_time) +"\t"+
-                str(t_raytrace_dm_time) +"\t"+ str(s_raytrace_atmos_time) +"\t"+
-                str(s_raytrace_dm_time) +"\t"+ str(comp_img_time) +"\t"+
-                str(docentroids_time) +"\t"+ str(docontrol_time) +"\t"+
-                str(applycontrol_time) +"\t"+str(time_per_iter) +"\t"+str(G))
-        
-        f.close()
-
-
-
-        if(not os.path.isfile(SRfile)):
-            f=open(SRfile,"w")
-            f.write("--------------------------------------------------------------------------\n")
-            f.write("Date :"+date+"\t Revision : "+svnversion+"\n")
-            f.write("--------------------------------------------------------------------------\n")
-            f.write("System type\tnxsub\twfs.npix\tNphotons\tController\tCentroider")
-
-        else:
-            f=open(SRfile,"a")
-
-        f.write("\n"+ type +"\t"+ str(config.p_wfss[0].nxsub) +"\t"+ str(config.p_wfss[0].npix) +"\t"+
-                str(config.p_wfss[0]._nphotons) +"\t"+ controller +"\t"+ centroider+"\t"+str(strehllp[len(strehllp)-1]))
-
-        f.close()
-
-
-#DONE function script4bench
+        for i in keys_dict.keys():
+            df.loc[ix,i] = keys_dict[i]
+        store.put(svnversion,df)
+        store.close()
+#############################################################
+#                 _ 
+#                | |
+#   ___ _ __   __| |
+#  / _ \ '_ \ / _` |
+# |  __/ | | | (_| |
+#  \___|_| |_|\__,_|
+#############################################################                  
+                   
 
 if(len(sys.argv)<4 or len(sys.argv)>6):
     error="wrong number of argument. Got "+len(sys.argv)+" (expect 4)\ncommande line should be: 'python benchmark_script.py <filename> <centroider> <controller>"
@@ -342,7 +374,7 @@ if(len(sys.argv)<4 or len(sys.argv)>6):
 filename=PARPATH+sys.argv[1]
 centroider=sys.argv[2]
 controller=sys.argv[3]
-device=0
+device=5
 fwrite=True
 if(len(sys.argv)>4):
     device=int(sys.argv[4])
