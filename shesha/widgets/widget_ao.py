@@ -428,7 +428,7 @@ class widgetAOWindow(TemplateBaseClass):
         self.updateDmPanel()
         
     def addConfigFromFile(self):
-        filepath = str(QtGui.QFileDialog.getOpenFileName(self,"Select parameter file","","parameters file (*.py);;hdf5 file (*.h5);;all files (*)"))
+        filepath = str(QtGui.QFileDialog(directory=self.defaultParPath).getOpenFileName(self,"Select parameter file","","parameters file (*.py);;hdf5 file (*.h5);;all files (*)"))
         self.configpath = filepath
         filename = filepath.split('/')[-1]
         if(filepath.split('.')[-1] == "py"):
@@ -439,9 +439,9 @@ class widgetAOWindow(TemplateBaseClass):
             exec("import %s as config" % filename.split(".py")[0])
             sys.path.remove(pathfile)
         elif(filepath.split('.')[-1] == "h5"):
-            sys.path.insert(0,os.environ["SHESHA_ROOT"]+"/data/par/par4bench/")
+            sys.path.insert(0,self.defaultParPath)
             import scao_16x16_8pix as config
-            sys.path.remove(os.environ["SHESHA_ROOT"]+"/data/par/par4bench/")
+            sys.path.remove(self.defaultParPath)
             h5u.configFromH5(filepath,config)
         else:
             raise ValueError("Parameter file extension must be .py or .h5")
