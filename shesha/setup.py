@@ -243,6 +243,7 @@ def compile_module(name):
                   libraries=librairies,
                   language='c++',
                   runtime_library_dirs=[],#CUDA['lib64']],
+                  #extra_compile_args=["-O0", "-g"],
                   #extra_compile_args={'g++': []},
                   include_dirs = include_dirs,
                   )

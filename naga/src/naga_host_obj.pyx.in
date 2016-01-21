@@ -231,6 +231,9 @@ cdef class naga_host_obj_CLASSNAMEDIMD:
         self.data_h=self.c_h.getData()
 
 
+    def __dealloc__(self):
+        del self.c_h
+
     def get_Dims(self):
         cdef dims= np.ndarray((DIM),dtype=np.int64)
         cdef const long *cdims

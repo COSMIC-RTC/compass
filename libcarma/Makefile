@@ -42,7 +42,7 @@ endif
 
 NVCC = $(CUDA_ROOT)/bin/nvcc
 LIB_NVCCFLAGS  = -Xptxas -dlcm=ca -m64 -Xcompiler -fPIC -c --compiler-options
-LIB_NVCCFLAGS += -I$(CUH_DIR)  -I$(H_DIR) -I$(Y_MAKEDIR)/include
+LIB_NVCCFLAGS += -I$(CUH_DIR)  -I$(H_DIR)
 LIB_NVCCFLAGS += -gencode $(GENCODE)
 
 #-gencode arch=compute_11,code=sm_11 -gencode arch=compute_13,code=sm_13 

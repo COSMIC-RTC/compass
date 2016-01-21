@@ -267,6 +267,8 @@ cdef class naga_obj_CLASSNAMEDIMD:
         else:
             self.c_o=new carma_obj[C_TYPE](ctxt.c,cdims,<C_TYPE*>data_F.data)
 
+    def __dealloc__(self):
+        del self.c_o
 
     def getData_ptr(self):
         """Return the pointer value to the naga data (as an integer, type:uintptr_t)."""
