@@ -2547,4 +2547,17 @@ cpdef create_piston_filter(list p_dms, int ndm):
         F[i][i] = 1 - 1.0/nactu
     return F
 
+IF USE_BRAMA == 1:
+    cdef class Rtc_brama(Rtc): # child constructor must have the same prototype (same number of non-optional arguments)
+        def __cinit__(self, Sensors sensor=None, Target target=None, device=-1):
+            del self.rtc
+            
+            cdef carma_context *context =carma_context.instance()
+            self.rtc=new sutra_rtc_brama(context, sensor.sensors, target.target, "rtc_brama")
     
+        def __dealloc__(self):
+            pass #del self.rtc
+    
+        cpdef publish(self):
+            cdef sutra_rtc_brama* rtc = <sutra_rtc_brama*>(self.rtc)
+            rtc.publish()

@@ -245,9 +245,6 @@ if  'BRAMA_ROOT' in os.environ:
     librairies.extend(['dl'])
     librairies.extend(['rt'])
     define_macros = [('USE_BRAMA', None), ('_GNU_SOURCE', None), ('__ACE_INLINE__', None), ]
-    listMod.extend([ "shesha_target_brama","shesha_rtc_brama" ])
-    dependencies.extend({"shesha_target_brama":["shesha_target"],
-                         "shesha_rtc_brama":["shesha_rtc","shesha_wfs", "shesha_target"]})
 
 
 

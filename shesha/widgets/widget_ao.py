@@ -150,10 +150,10 @@ class widgetAOWindow(TemplateBaseClass):
         if reply == QtGui.QMessageBox.Yes:
             event.accept()
             self.aoLoopThread.terminate()
-            self.destroy()
+            self.destroy() # TODO: segfault
             
-            #quit()
-            #sys.exit(app.exec_())
+            quit()
+            #sys.exit()
         else:
             event.ignore()
             

@@ -116,4 +116,13 @@ cdef class Rtc:
     cpdef docontrol_geo(self, int ncontro, Dms dms, Target target, int ntarget)
     cpdef applycontrol(self,int ncontro,Dms dms)
 
+IF USE_BRAMA == 1:
+        cdef extern from *:
+            sutra_rtc_brama* dynamic_cast_rtc_brama_ptr "dynamic_cast<sutra_rtc_brama*>" (sutra_rtc*) except NULL
+        
+        #################################################
+        # P-Class Rtc_brama
+        #################################################
+        cdef class Rtc_brama(Rtc):
+            cpdef publish(self)
 

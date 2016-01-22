@@ -958,3 +958,26 @@ cdef extern from "sutra_lgs.h":
         int lgs_makespot(carma_device *device, int nin)
         int load_kernels(float *lgskern, carma_device *device)
 
+IF USE_BRAMA == 1:
+    #################################################
+    # C-Class sutra_rtc_brama
+    #################################################
+    cdef extern from "sutra_rtc_brama.h":
+        cdef cppclass sutra_rtc_brama(sutra_rtc):
+            
+            sutra_rtc_brama(carma_context *context, sutra_sensors *wfs, sutra_target *target, char* name)
+    
+            void publish();
+    
+    #################################################
+    # C-Class sutra_target_brama
+    #################################################
+    cdef extern from "sutra_target_brama.h":
+        cdef cppclass sutra_target_brama(sutra_target):
+            
+            sutra_target_brama(carma_context *context, char* name, sutra_telescope *d_tel, int subsample_, int ntargets, float *xpos, 
+                               float *ypos, float *zlambda, float *mag, float zerop, long *sizes,
+                               int Npts, int device)
+    
+            void publish();
+
