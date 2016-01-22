@@ -38,11 +38,11 @@ sutra_target_brama::sutra_target_brama(carma_context *context, ACE_TCHAR* name,
     }
     cmd_listener_servant->attach_target(this);
 
-    cmd_dr = brama->create_datareader(topics[3], cmd_listener);
+    cmd_dr = brama->create_datareader(topics[CommandType], cmd_listener);
 
-    frame_base_dw = brama->create_datawriter(topics[0]);
+    frame_base_dw = brama->create_datawriter(topics[FrameType]);
     if (CORBA::is_nil(frame_base_dw.in())) {
-      cerr << "create_datawriter for " << topics[0] << " failed." << endl;
+      cerr << "create_datawriter for " << topics[FrameType] << " failed." << endl;
       ACE_OS::exit(1);
     }
     frame_dw = BRAMA::FrameDataWriter::_narrow(frame_base_dw.in());
