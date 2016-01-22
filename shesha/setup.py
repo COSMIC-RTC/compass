@@ -104,7 +104,7 @@ def locate_compass():
         root_compass = os.environ['COMPASS_ROOT']
         
     else:
-        raise EnvironmentError("Environment variable 'NAGA_ROOT' must be define")
+        raise EnvironmentError("Environment variable 'COMPASS_ROOT' must be define")
         
     compass_config = {'inc_sutra':root_compass+'/libsutra/include.h','inc_carma':root_compass+'/libcarma/include.h',
                       'inc_naga':root_compass+'/naga', 'lib':root_compass}
@@ -218,6 +218,40 @@ if MPI4PY==1:
 
 
 
+BRAMA=0
+define_macros = []
+if  'BRAMA_ROOT' in os.environ:
+    brama_root=os.environ.get('BRAMA_ROOT')
+    ace_root=os.environ.get('ACE_ROOT')
+    tao_root=os.environ.get('TAO_ROOT')
+    dds_root=os.environ.get('DDS_ROOT')
+    BRAMA=1
+    include_dirs.extend([brama_root])
+    include_dirs.extend([ace_root])
+    include_dirs.extend([tao_root])
+    include_dirs.extend([tao_root+'/orbsvcs'])
+    include_dirs.extend([dds_root])
+    library_dirs.extend([ace_root+'/lib'])
+    library_dirs.extend([tao_root+'/tao'])
+    library_dirs.extend([dds_root+'/lib'])
+    library_dirs.extend([brama_root])
+    librairies.extend(['BRAMACommon'])
+    librairies.extend(['OpenDDS_InfoRepoDiscovery'])
+    librairies.extend(['OpenDDS_Dcps'])
+    librairies.extend(['TAO_PortableServer'])
+    librairies.extend(['TAO_AnyTypeCode'])
+    librairies.extend(['TAO'])
+    librairies.extend(['ACE'])
+    librairies.extend(['dl'])
+    librairies.extend(['rt'])
+    define_macros = [('USE_BRAMA', None), ('_GNU_SOURCE', None), ('__ACE_INLINE__', None), ]
+    listMod.extend([ "shesha_target_brama","shesha_rtc_brama" ])
+    dependencies.extend({"shesha_target_brama":["shesha_target"],
+                         "shesha_rtc_brama":["shesha_rtc","shesha_wfs", "shesha_target"]})
+
+
+
+
 from Cython.Build import cythonize
 def compile_module(name):
     if(os.path.exists(shesha_path+"/lib/"+name+".so") and name != "shesha"):
@@ -235,7 +269,8 @@ def compile_module(name):
                     #cpp file outdated
                     os.remove("src/"+name+".cpp")
     except KeyError, e:
-        e=0
+        print e
+
 
     ext=Extension(name,
                   sources=['src/'+name+'.pyx'],
@@ -246,6 +281,7 @@ def compile_module(name):
                   #extra_compile_args=["-O0", "-g"],
                   #extra_compile_args={'g++': []},
                   include_dirs = include_dirs,
+                  define_macros = define_macros,
                   )
 
 
@@ -259,12 +295,15 @@ def compile_module(name):
         shutil.move(shesha_path+"/"+name+".so",shesha_path+"/lib/"+name+".so")
 
 if __name__ == '__main__':
-    from multiprocessing import Pool, cpu_count
-    pool = Pool(maxtasksperchild=1) # process per core
-    pool.map(compile_module, listMod)  # proces data_inputs iterable with poo
-#for name in listMod:
-#    compile_module(name)
-    compile_module("shesha")
+    try :
+        from multiprocessing import Pool
+        pool = Pool(maxtasksperchild=1) # process per core
+        pool.map(compile_module, listMod)  # proces data_inputs iterable with poo
+    except ImportError:
+        for name in listMod:
+            compile_module(name)
+    finally:
+        compile_module("shesha")
 
 
 """

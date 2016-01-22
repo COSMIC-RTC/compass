@@ -1,3 +1,5 @@
+include "../par.pxi"
+
 import numpy as np
 #################################################
 # P-Class target
@@ -218,7 +220,7 @@ cdef class Target:
 def target_init(naga_context ctxt, Telescope telescope, Param_target p_target, Param_atmos atm,
                 Param_geom geom, Param_tel tel,wfs=None, 
                 Sensors sensors=None,
-                dm=None):
+                dm=None, brama=0):
     """Create a cython target from parametres structures
     
     :parameters:
@@ -261,14 +263,30 @@ def target_init(naga_context ctxt, Telescope telescope, Param_target p_target, P
             #TODO apodizer, Npts=nb element of apodizer>0
             ceiled_apodizer=np.ceil(geom._apodizer*geom._spupil)
             ceiled_apodizer[np.where(ceiled_apodizer>1)]=1
-            target = Target(ctxt, telescope, p_target.ntargets,p_target.xpos,p_target.ypos,
-                        p_target.Lambda, p_target.mag,p_target.zerop,sizes,Npts)
-            #TODO if brama ...
+            IF USE_BRAMA:
+                if(brama==1) :
+                    print "TODO brama"
+                    target = Target_brama(ctxt, telescope, p_target.ntargets,p_target.xpos,p_target.ypos,
+                                p_target.Lambda, p_target.mag,p_target.zerop,sizes,Npts)
+                else:
+                    target = Target(ctxt, telescope, p_target.ntargets,p_target.xpos,p_target.ypos,
+                                p_target.Lambda, p_target.mag,p_target.zerop,sizes,Npts)
+            ELSE:
+                target = Target(ctxt, telescope, p_target.ntargets,p_target.xpos,p_target.ypos,
+                            p_target.Lambda, p_target.mag,p_target.zerop,sizes,Npts)
     else:
             Npts=np.sum(ceiled_pupil)
-            target= Target(ctxt, telescope, p_target.ntargets,p_target.xpos,p_target.ypos,
-                            p_target.Lambda, p_target.mag,p_target.zerop,sizes,Npts)
-            #TODO if brama ...
+            IF USE_BRAMA:
+                if(brama==1) :
+                    print "TODO brama"
+                    target= Target_brama(ctxt, telescope, p_target.ntargets,p_target.xpos,p_target.ypos,
+                                   p_target.Lambda, p_target.mag,p_target.zerop,sizes,Npts)
+                else:
+                    target= Target(ctxt, telescope, p_target.ntargets,p_target.xpos,p_target.ypos,
+                                   p_target.Lambda, p_target.mag,p_target.zerop,sizes,Npts)
+            ELSE:
+                target= Target(ctxt, telescope, p_target.ntargets,p_target.xpos,p_target.ypos,
+                               p_target.Lambda, p_target.mag,p_target.zerop,sizes,Npts)
 
     cdef long dims,dim, dim_dm
 

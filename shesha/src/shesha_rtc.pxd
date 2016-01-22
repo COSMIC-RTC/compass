@@ -61,7 +61,7 @@ cdef extern from *:
 cdef class Rtc:
     cdef sutra_rtc *rtc
     cdef int device
-    cdef int use_brama
+
     #cdef sensors_initbcube(self,int ncentro)
     cpdef getcentroids(self,int ncontrol, Sensors g_wfs=?, int nwfs=?)
     cpdef docentroids(self,int ncontrol=?)

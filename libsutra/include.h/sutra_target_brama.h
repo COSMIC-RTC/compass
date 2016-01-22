@@ -32,8 +32,8 @@ private:
   ACE_Mutex lock_;
 
 public:
-  sutra_target_brama(carma_context *context, ACE_TCHAR* name, int subsample, int ntargets, float *xpos, float *ypos,
-                     float *lambda, float *mag, float zerop, long *sizes, float *pupil, int Npts, int device);
+  sutra_target_brama(carma_context *context, ACE_TCHAR* name, sutra_telescope *d_tel, int subsample, int ntargets, float *xpos, float *ypos,
+                     float *lambda, float *mag, float zerop, long *sizes, int Npts, int device);
   ~sutra_target_brama();
 
   void set_subsample(int ntarget, int subsample);

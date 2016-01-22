@@ -13,12 +13,11 @@ from subprocess import check_output
 from cython.operator cimport dereference as deref, preincrement as inc
 
 cdef class Rtc:
-    def __cinit__(self, device=-1):
+    def __cinit__(self, Sensors sensor=None, Target target=None, device=-1): # child constructor must have the same prototype (same number of non-optional arguments)
         cdef carma_context *context =carma_context.instance()
         if(device==-1):
             device=context.get_activeDevice()
         context.set_activeDevice(device,1)
-        self.use_brama=0
         self.device=device
 
         self.rtc=new sutra_rtc(context)
@@ -1411,12 +1410,15 @@ def rtc_init(Telescope g_tel, Sensors g_wfs, p_wfs, Dms g_dms, p_dms, Param_geom
         Rtc : (Rtc) : Rtc object
 
     """
-
-    g_rtc=Rtc()
-    print "TODO brama" 
-    """if(brama==1) 
-     g_rtc = yoga_rtc_brama(g_rtc);
-    """
+    IF USE_BRAMA:
+        if(brama==1) :
+            print "TODO brama"
+            g_rtc=Rtc_brama(g_wfs, g_tar)
+        else:
+            g_rtc=Rtc()
+    ELSE:
+        g_rtc=Rtc()
+        
     if(doimat==None):
         doimat=1
 
