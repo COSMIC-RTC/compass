@@ -46,7 +46,8 @@ def depouilleSR(filename,svnversion=None):
                             cevalid = []
                             covalid = []
                             plt.figure()
-                            plt.title("date:{},{} {}, noise:{},nxsub:{},npix:{}".format(dd,w,star,n,nx,N))
+                            plt.title("date:{},{} {}, noise:{},nxsub:{},npix:{}, SR perfs".format(dd,w,star,n,nx,N))
+                            plt.ylabel("Strehl ratio")
                             cc=0
                             colors = ["blue","red","yellow","orange","cyan","purple","magenta"]                           
                             width = 0.9/len(centroiders)
@@ -113,7 +114,7 @@ def depouillePerf(filename,svnversion=None,mode="profile"):
                             pos=[]
                             lab=[]
                             plt.figure()
-                            plt.title("date:{},{} {}, noise:{},nxsub:{},npix:{}".format(dd,w,star,n,nx,N))
+                            plt.title("date:{},{} {}, noise:{},nxsub:{},npix:{}, execution profile".format(dd,w,star,n,nx,N))
                             cc=0
                             colors = ["blue","green","red","yellow","orange","cyan","purple","magenta","darkcyan"]                           
                             width = 0.9/len(centroiders)
@@ -147,6 +148,9 @@ def depouillePerf(filename,svnversion=None,mode="profile"):
                                                     plt.barh(long(cc)+ind*(1./len(centroiders)),df.loc[indx,i]/tottime*100,width,color=colors[ccc],left=timeb)
                                                     timeb+=df.loc[indx,i]/tottime*100
                                                     ccc+=1
+                                            elif(mode == "framerate"):
+                                                plt.barh(long(cc)+ind*(1./len(centroiders)),1./df.loc[indx,"iter_time"]*1000.,width,color=colors[ind])
+                                                ccc+=1
 
                                             pos.append(long(cc)+ind*(1./len(centroiders))+width/2.)
                                             lab.append(ce+" + "+co)
@@ -158,6 +162,13 @@ def depouillePerf(filename,svnversion=None,mode="profile"):
                                 plt.close()
                             else:
                                 plt.yticks(pos,lab)
-                                plt.legend(times)
+                                if(mode =="full"):
+                                    plt.xlabel("Execution time (ms)")
+                                    plt.legend(times)
+                                elif(mode =="profile"):
+                                    plt.xlabel("Occupation time (%)")
+                                    plt.legend(times)
+                                elif(mode =="framerate"):
+                                    plt.xlabel("Framerate (frames/s)")
  
     store.close()
