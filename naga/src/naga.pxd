@@ -165,6 +165,8 @@ cdef extern from "carma_obj.h":
         int copyInto(T *data, int nb_elem)  #
         int copyFrom(T *data, int nb_elem)  #
 
+        int reset()
+
         cufftHandle* getPlan()
         unsigned int * getValues()
         T sum()                   # (float and double only)        

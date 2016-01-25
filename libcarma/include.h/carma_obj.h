@@ -236,6 +236,10 @@ class carma_obj {
     int copyInto(T_data *data, int nb_elem);
     int copyFrom(T_data *data, int nb_elem);
 
+    inline int reset(){
+      return cudaMemset(this->d_data, 0, this->nb_elem*sizeof(T_data));
+    }
+
     cufftHandle* getPlan() {
       return &plan;
     }

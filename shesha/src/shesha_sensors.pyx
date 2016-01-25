@@ -40,7 +40,7 @@ cdef class Sensors:
 
         lgs: (np.ndarray[ndim=1,dtype=np.int32_t]) :
 
-        odevice: (int) : 
+        odevice: (int) :
 
         comm_size: (int) : MPI communicator size
 
@@ -117,7 +117,7 @@ cdef class Sensors:
                              np.ndarray[ndim=1,dtype=np.int64_t  ] size,
                              np.ndarray[ndim=1,dtype=np.float32_t] noise,
                              np.ndarray[ndim=1,dtype=np.int64_t  ] seed):
-        """Call the function sensors_initgs 
+        """Call the function sensors_initgs
 
     :parameters:
         xpos: (np.ndarray[ndim=1,dtype=np.float32_t]) :
@@ -235,7 +235,7 @@ cdef class Sensors:
             offset=<cuFloatComplex*>tmp.data
             wfs_pyr = dynamic_cast_wfs_pyr_pyr4_ptr(self.sensors.d_wfs[n])
             wfs_pyr.wfs_initarrays(<cuFloatComplex*>halfxy, offset,
-                    submask, cx, cy, 
+                    submask, cx, cy,
                     sincar, phasemap, validx,validy)
 
         elif(self.sensors.d_wfs[n].type==type_roof):
@@ -243,7 +243,7 @@ cdef class Sensors:
             offset=<cuFloatComplex*>tmp.data
             wfs_roof = dynamic_cast_wfs_pyr_roof_ptr(self.sensors.d_wfs[n])
             wfs_roof.wfs_initarrays(<cuFloatComplex*>halfxy, offset,
-                    submask, cx, cy, 
+                    submask, cx, cy,
                     sincar, phasemap, validx,validy)
 
 
@@ -255,7 +255,7 @@ cdef class Sensors:
                     fluxPerSub,validx, validy,
                     istart, jstart,<cuFloatComplex*>ftkernel)
 
- 
+
 
     cpdef sensors_addlayer(self,int i, bytes type_dm, float alt,
         float xoff, float yoff):
@@ -272,12 +272,12 @@ cdef class Sensors:
 
             yoff: (float) :
         """
-       
+
         cdef carma_context * context = carma_context.instance()
         context.set_activeDevice(self.sensors.device,1)
         self.sensors.d_wfs[i].d_gs.add_layer(<char*>type_dm, alt, xoff, yoff)
 
-         
+
     def sensors_compimg(self, int n):
         """TODO doc
 
@@ -297,7 +297,7 @@ cdef class Sensors:
         cdef const long *cdims
         cdef np.ndarray[ndim=1,dtype=np.float32_t] data
         img=self.sensors.d_wfs[n].d_offsets
-        cdims=img.getDims() 
+        cdims=img.getDims()
         data=np.empty((cdims[1]),dtype=np.float32)
         img.device2host(<float*>data.data)
         return data
@@ -311,7 +311,7 @@ cdef class Sensors:
         cdef const long *cdims
         cdef np.ndarray[ndim=1,dtype=np.float32_t] data
         subsum=self.sensors.d_wfs[n].d_subsum
-        cdims=subsum.getDims() 
+        cdims=subsum.getDims()
         data=np.empty((cdims[1]),dtype=np.float32)
         subsum.device2host(<float*>data.data)
         return data
@@ -327,13 +327,13 @@ cdef class Sensors:
         cdef const long *cdims
         cdef np.ndarray[ndim=2,dtype=np.float32_t] data
         img=self.sensors.d_wfs[n].image_telemetry
-        cdims=img.getDims() 
+        cdims=img.getDims()
         data=np.empty((cdims[1],cdims[2]),dtype=np.float32)
 
         wfs.fill_binimage(1)
         img.fill_into(<float*>data.data)
         return data
-    
+
     cdef _get_binimg(self, int n):
         """Return the 'binimg' array of a given wfs
 
@@ -410,7 +410,7 @@ cdef class Sensors:
         cdef np.ndarray[ndim=3,dtype=np.float32_t] data
         cdef np.ndarray[ndim=3,dtype=np.float32_t] data_F
         cube=self.sensors.d_wfs[n].d_bincube
-        cdims=cube.getDims() 
+        cdims=cube.getDims()
         data=np.empty((cdims[1],cdims[2],cdims[3]),dtype=np.float32)
         data_F=np.empty((cdims[3],cdims[2],cdims[1]),dtype=np.float32)
         cube.device2host(<float*>data_F.data)
@@ -423,10 +423,10 @@ cdef class Sensors:
         :param n: (int) : number of the wfs to get the 'bincube' from
         """
         return self._get_bincube(n)
-    
+
     cpdef set_bincube(self,int n, np.ndarray[ndim=3,dtype=np.float32_t] data):
         """ Set the bincube of the WFS numner n
-        
+
         :parameters:
             n: (int) : WFS number
             data: (np.ndarray[ndim=3,dtype=np.float32_t]) : bincube to use
@@ -434,10 +434,10 @@ cdef class Sensors:
         cdef carma_context *context=carma_context.instance()
         context.set_activeDeviceForCpy(self.sensors.device,1)
         cdef np.ndarray[dtype=np.float32_t] data_F=data.flatten("F")
-       
+
         self.sensors.d_wfs[n].d_bincube.host2device(<float*>data_F.data)
-             
-        
+
+
     cpdef get_bincubeNotNoisy(self, int n):
         """Return the 'bincube_not_noisy' array of a given wfs. It's the bincube
         before noise has been added
@@ -450,7 +450,7 @@ cdef class Sensors:
         cdef np.ndarray[ndim=3,dtype=np.float32_t] data_F
         if(self.sensors.error_budget):
             cube=self.sensors.d_wfs[n].d_bincube_notnoisy
-            cdims=cube.getDims() 
+            cdims=cube.getDims()
             data=np.empty((cdims[1],cdims[2],cdims[3]),dtype=np.float32)
             data_F=np.empty((cdims[3],cdims[2],cdims[1]),dtype=np.float32)
             cube.device2host(<float*>data_F.data)
@@ -458,6 +458,15 @@ cdef class Sensors:
             return data
         else:
             raise TypeError("the error budget analysis has to be enabled")
+
+    def reset_phase(self, int n):
+        """Reset the phase's array of a given wfs
+
+        :param n: (int) : index of the given wfs
+        """
+        cdef carma_obj[float] *phase
+        phase=self.sensors.d_wfs[n].d_gs.d_phase.d_screen
+        phase.reset()
 
     def get_phase(self, int n):
         """Return the phase array of a given wfs
@@ -469,7 +478,7 @@ cdef class Sensors:
         cdef np.ndarray[ndim=2,dtype=np.float32_t] data
         cdef np.ndarray[ndim=2,dtype=np.float32_t] data_F
         phase=self.sensors.d_wfs[n].d_gs.d_phase.d_screen
-        cdims=phase.getDims() 
+        cdims=phase.getDims()
         data=np.empty((cdims[1],cdims[2]),dtype=np.float32)
         data_F=np.empty((cdims[2],cdims[1]),dtype=np.float32)
         phase.device2host(<float*>data_F.data)
@@ -487,7 +496,7 @@ cdef class Sensors:
         cdef np.ndarray[ndim=3,dtype=np.complex64_t] data
         cdef np.ndarray[ndim=3,dtype=np.complex64_t] data_F
         amplipup=self.sensors.d_wfs[n].d_camplipup
-        cdims=amplipup.getDims() 
+        cdims=amplipup.getDims()
         data=np.empty((cdims[1],cdims[2],cdims[3]),dtype=np.complex64)
         data_F=np.empty((cdims[3],cdims[2],cdims[1]),dtype=np.complex64)
         amplipup.device2host(<cuFloatComplex*>data_F.data)
@@ -504,7 +513,7 @@ cdef class Sensors:
         cdef np.ndarray[ndim=3,dtype=np.complex64_t] data
         cdef np.ndarray[ndim=3,dtype=np.complex64_t] data_F
         amplifoc=self.sensors.d_wfs[n].d_camplifoc
-        cdims=amplifoc.getDims() 
+        cdims=amplifoc.getDims()
         data=np.zeros((cdims[1],cdims[2],cdims[3]),dtype=np.complex64)
         data_F=np.zeros((cdims[3],cdims[2],cdims[1]),dtype=np.complex64)
         amplifoc.device2host(<cuFloatComplex*>data_F.data)
@@ -541,9 +550,9 @@ cdef class Sensors:
 
         :param n: (int) : number of the wfs to get the 'slopes' from
         """
-        
+
         return self._get_slopes(n)
-        
+
     cdef _get_slopes(self, int n):
         """Return the 'slopes' array of a given wfs
 
@@ -567,10 +576,10 @@ cdef class Sensors:
             mpi.MPI_Comm_rank(mpi.MPI_COMM_WORLD,&rank)
 
             cdef int d=<int>(cdims[1]/2)
-            
+
             cdef int *count=<int*>malloc(comm_size*sizeof(int))
             mpi.MPI_Allgather(&d,1,mpi.MPI_INT,count,1,mpi.MPI_INT,mpi.MPI_COMM_WORLD)
-            
+
             cdef int *disp=<int*>malloc((comm_size+1)*sizeof(int))
             cdef int i, nvalid2
             disp[0]=0
@@ -602,7 +611,7 @@ cdef class Sensors:
 
     cpdef slopes_geom(self,int nsensor, int t):
         """Compute the geometric slopes in a sutra_wfs object
-        
+
         :parameters:
             nsensor: (int) : wfs number
 
@@ -616,7 +625,7 @@ cdef class Sensors:
 
 
 
-    cpdef sensors_trace(self,int n, str type_trace, Telescope tel=None, Atmos atmos=None,  Dms dms=None, int rst=0): 
+    cpdef sensors_trace(self,int n, str type_trace, Telescope tel=None, Atmos atmos=None,  Dms dms=None, int rst=0):
         """ Does the raytracing for the wfs phase screen in sutra_wfs
 
         :parameters:
@@ -642,10 +651,10 @@ cdef class Sensors:
         context.set_activeDeviceForce(self.sensors.device,1)
         if(type_trace=="all"):
             self.sensors.d_wfs[n].sensor_trace(atmos.s_a, dms.dms)
-            d_screen.axpy(1.0,d_tel,1,1) 
+            d_screen.axpy(1.0,d_tel,1,1)
         elif(type_trace=="atmos"):
             self.sensors.d_wfs[n].sensor_trace(atmos.s_a)
-            d_screen.axpy(1.0,d_tel,1,1) 
+            d_screen.axpy(1.0,d_tel,1,1)
         elif(type_trace=="dm"):
             self.sensors.d_wfs[n].sensor_trace(dms.dms,rst)
 
@@ -740,7 +749,7 @@ cdef class Sensors:
             cdef int nz=self.sensors.d_wfs[n].nvalid
             cdef int *count_bincube=self.sensors.d_wfs[n].count_bincube
             cdef int *displ_bincube=self.sensors.d_wfs[n].displ_bincube
-            
+
             mpi.MPI_Gatherv(send_bin,nx*nx*nz,mpi.MPI_FLOAT,
                         recv_bin, count_bincube, displ_bincube, mpi.MPI_FLOAT,
                         0,mpi.MPI_COMM_WORLD)
@@ -750,7 +759,7 @@ cdef class Sensors:
     cdef _get_rank(self,int n):
         """Return the rank of one of the sensors wfs
 
-        :param n: (int): index of the wfs to get the rank for 
+        :param n: (int): index of the wfs to get the rank for
         """
         IF USE_MPI==1:
             return self.sensors.d_wfs[n].rank
@@ -761,7 +770,7 @@ cdef class Sensors:
     def get_rank(self,int n):
         """Return the rank of one of the sensors wfs
 
-        :param n: (int) : index of the wfs to get the rank for 
+        :param n: (int) : index of the wfs to get the rank for
         """
         return self.sensors.d_wfs[n].rank
 
@@ -780,7 +789,7 @@ cdef class Sensors:
 
         info+= "--------------------------------------------------------"
         return info
-        
+
     '''
     #for profiling purpose
     @cython.profile(True)

@@ -7,7 +7,7 @@ import numpy as np
 #################################################
 cdef class Target:
 
-    def __cinit__(self,naga_context ctxt, Telescope telescope, int ntargets, 
+    def __cinit__(self,naga_context ctxt, Telescope telescope, int ntargets,
                     np.ndarray[ndim=1,dtype=np.float32_t] xpos,
                     np.ndarray[ndim=1,dtype=np.float32_t] ypos,
                     np.ndarray[ndim=1,dtype=np.float32_t] Lambda,
@@ -47,7 +47,7 @@ cdef class Target:
         """Add a phase screen dm or atmos as layers of turbulence
 
         :parameters:
-            n: (int) : index of the target 
+            n: (int) : index of the target
             l_type: (str) : "atmos" or "dm"
 
             alt: (float) : altitude
@@ -69,7 +69,7 @@ cdef class Target:
         self.target.d_targets[nTarget].init_strehlmeter()
 
     def atmos_trace(self, int nTarget, Atmos atm, Telescope tel):
-        """Raytracing of the target through the atmosphere 
+        """Raytracing of the target through the atmosphere
 
         :parameters:
             int: (nTarget)   : index of the target
@@ -113,6 +113,16 @@ cdef class Target:
         data=np.reshape(data_F.flatten("F"),(dims[1],dims[2]))
         data = np.roll(np.roll(data,data.shape[0]/2,axis=0),data.shape[1]/2,axis=1)
         return data
+
+
+    def reset_phase(self, int nTarget):
+        """Reset the phase's screen of the target
+
+        :param nTarget: (int) : index of the target
+        """
+        self.context.set_activeDeviceForCpy(self.device)
+        cdef sutra_source *src = self.target.d_targets[nTarget]
+        src.d_phase.d_screen.reset()
 
 
     def get_phase(self, int nTarget):
@@ -164,7 +174,7 @@ cdef class Target:
 
         self.context.set_activeDeviceForCpy(self.device)
         cdef sutra_source *src = self.target.d_targets[nTarget]
-        
+
         cdef const long *dims
         dims=src.d_amplipup.getDims()
 
@@ -174,6 +184,17 @@ cdef class Target:
 
         data=np.reshape(data_F.flatten("F"),(dims[1],dims[2]))
         return data
+
+
+    def reset_strehl(self, int nTarget):
+        """Return the target's strehl
+
+        :param nTarget: (int) : index of the target
+        """
+
+        self.context.set_activeDeviceForCpy(self.device)
+        cdef sutra_source *src = self.target.d_targets[nTarget]
+        src.init_strehlmeter()
 
 
     def get_strehl(self, int nTarget):
@@ -219,11 +240,11 @@ cdef class Target:
 
 
 def target_init(naga_context ctxt, Telescope telescope, Param_target p_target, Param_atmos atm,
-                Param_geom geom, Param_tel tel,wfs=None, 
+                Param_geom geom, Param_tel tel,wfs=None,
                 Sensors sensors=None,
                 dm=None, brama=0):
     """Create a cython target from parametres structures
-    
+
     :parameters:
         ctxt: (naga_context) :
 
@@ -340,7 +361,7 @@ def target_init(naga_context ctxt, Telescope telescope, Param_target p_target, P
                     gsalt=1/wfs[i].gsalt
                 else:
                      gsalt=0
-                
+
                 if(wfs[i].atmos_seen):
                     for j in range(atm.nscreens):
                         xoff=(gsalt * atm.alt[j] * (tel.diam/2.) + wfs[i].xpos*4.848e-6*atm.alt[j])/atm.pupixsize
@@ -368,7 +389,7 @@ def target_init(naga_context ctxt, Telescope telescope, Param_target p_target, P
 
 IF USE_BRAMA == 1:
     cdef class Target_brama(Target): # child constructor must have the same prototype (same number of non-optional arguments)
-        def __cinit__(self,naga_context ctxt, Telescope telescope, int ntargets, 
+        def __cinit__(self,naga_context ctxt, Telescope telescope, int ntargets,
                         np.ndarray[ndim=1,dtype=np.float32_t] xpos,
                         np.ndarray[ndim=1,dtype=np.float32_t] ypos,
                         np.ndarray[ndim=1,dtype=np.float32_t] Lambda,
@@ -379,17 +400,17 @@ IF USE_BRAMA == 1:
                         int device=-1
                         ):
             del self.target
-    
+
             cdef carma_context *context =carma_context.instance()
             self.target=new sutra_target_brama(context, "target_brama", telescope.telescope, -1, ntargets,
                         <float*>xpos.data,<float*>ypos.data,
                         <float*>Lambda.data,<float*>mag.data,
                         zerop, <long*>size.data,
                         Npts, context.get_activeDevice())
-    
+
         def __dealloc__(self):
             pass #del self.target
-    
+
         cpdef publish(self):
             cdef sutra_target_brama* target = <sutra_target_brama*>(self.target)
             target.publish()

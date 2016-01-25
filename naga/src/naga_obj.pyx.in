@@ -78,6 +78,8 @@ cdef extern from "carma_obj.h":
 
         int copyInto(T *data, int nb_elem)  #
         int copyFrom(T *data, int nb_elem)  #
+        
+        int reset()
 
         cufftHandle* getPlan()
         unsigned int * getValues()
@@ -383,6 +385,13 @@ cdef class naga_obj_CLASSNAMEDIMD:
         self.context.set_activeDeviceForCpy(self.getDevice())
         self.c_o.copyInto(dest.c_o.getData(), dest.c_o.getNbElem())
 
+    def reset(self):
+        """Set naga_obj to zero.
+
+        """
+        self.context.set_activeDeviceForCpy(self.getDevice())
+        self.c_o.reset()
+        
 
     def getValues(self):
         return <np.int64_t> self.c_o.getValues()

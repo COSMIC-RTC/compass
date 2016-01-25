@@ -67,7 +67,7 @@ cdef class Rtc:
     cpdef docentroids(self,int ncontrol=?)
     cpdef docentroids_geom(self,int ncontrol=?)
     cpdef init_proj(self,int i,Dms dms,np.ndarray[ndim=1,dtype=np.int32_t] indx_dm,
-            np.ndarray[ndim=1,dtype=np.float32_t] unitpervolt, 
+            np.ndarray[ndim=1,dtype=np.float32_t] unitpervolt,
             np.ndarray[ndim=1,dtype=np.int32_t] indx_pup)
     cpdef init_modalOpti(self,int ncontro,int nmodes,int nrec, np.ndarray[ndim=2,dtype=np.float32_t] M2V,
             float gmin, float gmax, int ngain, float Fs)
@@ -87,6 +87,7 @@ cdef class Rtc:
     cpdef set_cmm(self,int ncontro, np.ndarray[ndim=2,dtype=np.float32_t] data)
     cpdef set_decayFactor(self,int ncontro, np.ndarray[ndim=1,dtype=np.float32_t] decay)
     cpdef set_matE(self,int ncontro, np.ndarray[ndim=2,dtype=np.float32_t] matE)
+    cpdef set_openloop(self,int ncontro, int openloop)
 
 
     cpdef doimat_geom(self, int ncontro, Dms g_dms,int geom)
@@ -119,7 +120,7 @@ cdef class Rtc:
 IF USE_BRAMA == 1:
         cdef extern from *:
             sutra_rtc_brama* dynamic_cast_rtc_brama_ptr "dynamic_cast<sutra_rtc_brama*>" (sutra_rtc*) except NULL
-        
+
         #################################################
         # P-Class Rtc_brama
         #################################################

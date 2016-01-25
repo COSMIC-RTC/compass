@@ -142,7 +142,7 @@
           <item>
            <widget class="QPushButton" name="wao_atmosphere">
             <property name="text">
-             <string>Atmmosphere</string>
+             <string>Atmosphere</string>
             </property>
             <property name="checkable">
              <bool>true</bool>

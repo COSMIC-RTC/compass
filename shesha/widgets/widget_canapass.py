@@ -12,7 +12,7 @@ import pyqtgraph as pg
 import glob
 import tools
 import hdf5_utils as h5u
-sys.path.insert(0, os.environ["SHESHA_ROOT"]+"/data/par/") 
+sys.path.insert(0, os.environ["SHESHA_ROOT"]+"/data/par/")
 
 from PyQt4.uic import loadUiType
 from PyQt4 import QtCore, QtGui
@@ -27,13 +27,13 @@ low levels debugs:
 gdb --args python -i widget_ao.py
 
 """
-class widgetAOWindow(TemplateBaseClass):  
+class widgetAOWindow(TemplateBaseClass):
     def __init__(self):
         TemplateBaseClass.__init__(self)
-        
+
         self.ui = WindowTemplate()
         self.ui.setupUi(self)
-        
+
         ##############################################################
         #######       ATTRIBUTES   #######################
         #############################################################
@@ -49,23 +49,24 @@ class widgetAOWindow(TemplateBaseClass):
         self.aoLoopThread = None
         self.mainLoop = [self.tel,self.atm,self.wfs,self.rtc,self.tar,self.dms]
         self.brama_flag=1;
+        self.see_atmos=0;
 
         ##############################################################
         #######       PYQTGRAPH WINDOW INIT   #######################
         #############################################################
-        
+
         self.img = pg.ImageItem(border='w') # create image area
         #self.p1 = self.ui.wao_pgwindow.addPlot() # create pyqtgraph plot area
         self.p1 = self.ui.wao_pgwindow.addViewBox()
         self.p1.setAspectLocked(True)
-        
+
         self.p1.addItem(self.img) # Put image in plot area
         self.hist = pg.HistogramLUTItem() #Create an histogram
         self.hist.setImageItem(self.img) # Compute histogram from img
         self.ui.wao_pgwindow.addItem(self.hist)
         self.hist.autoHistogramRange() # init levels
-        self.hist.setMaximumWidth(100)      
-        
+        self.hist.setMaximumWidth(100)
+
         ##############################################################
         #######       CONNECTED BUTTONS  #######################
         #############################################################
@@ -77,6 +78,7 @@ class widgetAOWindow(TemplateBaseClass):
         self.ui.wao_next.clicked.connect(self.nextClicked)
         self.imgType = str(self.ui.wao_selectScreen.currentText())
         self.ui.wao_unzoom.clicked.connect(self.p1.autoRange)
+        self.ui.wao_resetSR.clicked.connect(self.resetSR)
         self.ui.wao_selectScreen.currentIndexChanged.connect(partial(self.updateNumberSelector,textType=None))
         self.ui.wao_selectNumber.currentIndexChanged.connect(self.setNumberSelection)
         self.ui.wao_Display.clicked.connect(self.updateFrameRate)
@@ -86,23 +88,25 @@ class widgetAOWindow(TemplateBaseClass):
         self.RTDFreq = self.ui.wao_frameRate.value()
         self.ui.wao_PSFlogscale.clicked.connect(self.updateDisplay)
         self.ui.wao_setActiveDevice.clicked.connect(self.setDevice)
-        
-        
+        self.ui.wao_atmosphere.setCheckable(True)
+        self.ui.wao_atmosphere.clicked[bool].connect(self.set_atmos)
+
+
         # Create Loop thread
         self.aoLoopThread = aoLoopThread(self.mainLoop, self.config, self.img, self.ui.wao_strehlSE, self.ui.wao_strehlLE, 1, self.hist, self.RTDisplay, self.RTDFreq)
         self.connect(self.aoLoopThread, QtCore.SIGNAL("currentLoopFrequency(float)"), self.updateCurrentLoopFrequency)
         self.connect(self.aoLoopThread, QtCore.SIGNAL("currentSRSE(QString)"), self.updateSRSE)
         self.connect(self.aoLoopThread, QtCore.SIGNAL("currentSRLE(QString)"), self.updateSRLE)
-        
+
         self.connect(self.aoLoopThread,QtCore.SIGNAL("finished()"),self.aoLoopFinished)
-        
+
     def setDevice(self):
         self.c.set_activeDevice(self.ui.wao_deviceNumber.value())
-        
+
     def manually_destroy(self):
         if(self.atm):
             del self.atm
-            del self.aoLoopThread.atm           
+            del self.aoLoopThread.atm
         if(self.tel):
             del self.tel
             del self.aoLoopThread.tel
@@ -118,38 +122,45 @@ class widgetAOWindow(TemplateBaseClass):
         if(self.dms):
             del self.dms
             del self.aoLoopThread.dms
-            
+
     def updateSRSE(self, SRSE):
         self.ui.wao_strehlSE.setText(SRSE)
-        
+
     def updateSRLE(self, SRLE):
         self.ui.wao_strehlLE.setText(SRLE)
-        
+
     def updateCurrentLoopFrequency(self, freq):
         self.ui.wao_currentFreq.setValue(freq)
-        
+
+    def set_atmos(self, atmos):
+        self.see_atmos = atmos
+
+    def resetSR(self):
+        for t in range(self.config.p_target.ntargets):
+            self.tar.reset_strehl(t)
+
     def closeEvent(self, event):
-        
+
         reply = QtGui.QMessageBox.question(self, 'Message',
-            "Are you sure to quit?", QtGui.QMessageBox.Yes | 
+            "Are you sure to quit?", QtGui.QMessageBox.Yes |
             QtGui.QMessageBox.No, QtGui.QMessageBox.No)
 
         if reply == QtGui.QMessageBox.Yes:
             event.accept()
             self.aoLoopThread.terminate()
             self.destroy()
-            
+
             #quit()
             #sys.exit(app.exec_())
         else:
             event.ignore()
-            
+
         ##############################################################
         ##################       METHODS      #######################
         #############################################################
-        
-        
-    def updateFrameRate(self):  
+
+
+    def updateFrameRate(self):
         if(self.ui.wao_Display.isChecked()):
             self.RTDisplay = True
         else:
@@ -158,16 +169,16 @@ class widgetAOWindow(TemplateBaseClass):
         if(self.aoLoopThread):
             self.aoLoopThread.RTDisplay = self.RTDisplay
             self.aoLoopThread.RTDFreq = self.RTDFreq
-            
-              
+
+
     def addConfigFromFile(self):
         filepath = str(QtGui.QFileDialog(directory=self.defaultParPath).getOpenFileName(self,"Select parameter file","","parameters file (*.py);;hdf5 file (*.h5);;all files (*)"))
         self.configpath = filepath
         filename = filepath.split('/')[-1]
         if(filepath.split('.')[-1] == "py"):
-            pathfile = filepath.split(filename)[-1]    
+            pathfile = filepath.split(filename)[-1]
             #if (pathfile not in sys.path):
-            sys.path.insert(0, pathfile)      
+            sys.path.insert(0, pathfile)
             exec("import %s as config" % filename.split(".py")[0])
             sys.path.remove(pathfile)
         elif(filepath.split('.')[-1] == "h5"):
@@ -180,7 +191,7 @@ class widgetAOWindow(TemplateBaseClass):
         self.config = config
         self.aoLoopThread.config = config
         self.updateNumberSelector(textType=self.imgType)
-        
+
     def nextClicked(self):
 #        self.aoLoopThread = aoLoopThread(self.mainLoop, self.config, self.img, self.ui.wao_strehlSE, self.ui.wao_strehlLE, 1, self.imgType, self.numberSelected)
 #        self.connect(self.aoLoopThread,QtCore.SIGNAL("finished()"),self.aoLoopFinished)
@@ -188,19 +199,19 @@ class widgetAOWindow(TemplateBaseClass):
         self.ui.wao_strehlLE.clear()
         self.aoLoopThread.framebyframe=1
         self.aoLoopThread.start()
-        
+
     def aoLoopClicked(self,pressed):
         if(pressed):
 #            self.aoLoopThread = aoLoopThread(self.mainLoop, self.config, self.img, self.ui.wao_strehlSE, self.ui.wao_strehlLE, 0, self.imgType, self.numberSelected)
 #            self.connect(self.aoLoopThread,QtCore.SIGNAL("finished()"),self.aoLoopFinished)
-            self.aoLoopThread.go = True            
+            self.aoLoopThread.go = True
             self.aoLoopThread.framebyframe=0
             self.ui.wao_strehlSE.clear()
             self.ui.wao_strehlLE.clear()
             self.aoLoopThread.start()
         else:
             self.aoLoopThread.go = False
-        
+
     def aoLoopFinished(self):
         if not self.ui.wao_run.isChecked:
             self.ui.wao_run.click()
@@ -212,7 +223,7 @@ class widgetAOWindow(TemplateBaseClass):
             self.numberSelected = 0
         self.aoLoopThread.numberSelected = self.numberSelected
         self.updateDisplay()
-    
+
     def updateNumberSelector(self,textType=None):
         if(textType == None):
             textType = str(self.ui.wao_selectScreen.currentText())
@@ -230,14 +241,14 @@ class widgetAOWindow(TemplateBaseClass):
         self.updateDisplay()
         if(self.aoLoopThread):
             self.aoLoopThread.imgType = self.imgType
-        
+
     def updateDisplay(self):
         data = None
         if(wao.ui.wao_Display.isChecked()):
             self.ui.wao_rtcWindowMPL.hide()
             self.ui.wao_pgwindow.show()
             if(self.atm):
-                
+
                 if(self.imgType == "Phase - Atmos"):
                     data = self.atm.get_screen(self.config.p_atmos.alt[self.numberSelected])
             if(self.wfs):
@@ -271,7 +282,7 @@ class widgetAOWindow(TemplateBaseClass):
                     wao.ui.wao_rtcWindowMPL.canvas.axes.quiver(x, y, vx, vy, pivot='mid')
                     wao.ui.wao_rtcWindowMPL.canvas.draw()
                     return
-                    
+
             if(self.dms):
                 if(self.imgType == "Phase - DM"):
                     dm_type = self.config.p_dms[self.numberSelected].type_dm
@@ -292,10 +303,10 @@ class widgetAOWindow(TemplateBaseClass):
                 self.img.setImage(data)
                 self.hist.setLevels(np.min(data),np.max(data))
                 self.p1.autoRange()
-                
-            
+
+
     def InitConfig(self):
-        
+
         self.manually_destroy()
         #set simulation name
         if(hasattr(self.config,"simul_name")):
@@ -330,7 +341,8 @@ class widgetAOWindow(TemplateBaseClass):
                              self.config.p_geom,self.config.p_rtc,self.config.p_atmos,
                              self.atm,self.config.p_tel,self.config.p_loop,self.tar,
                              self.config.p_target,clean=clean,simul_name=simul_name, load=matricesToLoad, brama=self.brama_flag)
-                             
+        self.rtc.set_openloop(0,1)
+
         if(simul_name is not ""):
             h5u.validDataBase(os.environ["SHESHA_ROOT"]+"/data/",matricesToLoad)
         self.mainLoop = [self.tel,self.atm,self.wfs,self.rtc,self.tar,self.dms]
@@ -362,11 +374,11 @@ class widgetAOWindow(TemplateBaseClass):
                 print "Invalid DM : please select a DM to reset"
         else:
             print "There is not any dm to reset"
-            
+
 class aoLoopThread(QtCore.QThread):
     def __init__(self,LoopParams,config, img, strehlSE, strehlLE, framebyframe, histo, RTDisplay, RTDFreq, imgType=None, numberSelected=None):
         QtCore.QThread.__init__(self)
-        
+
         self.tel = LoopParams[0]
         self.wfs = LoopParams[2]
         self.atm = LoopParams[1]
@@ -387,13 +399,13 @@ class aoLoopThread(QtCore.QThread):
 
     def __del__(self):
         self.wait()
-    
+
     def updateDisplay(self):
         data = None
         if((not wao.ui.wao_pgwindow.isVisible()) & (self.imgType != "Centroids - WFS") & (self.imgType != "Slopes - WFS")):
             wao.ui.wao_pgwindow.show()
             wao.ui.wao_rtcWindowMPL.hide()
-            
+
         if(self.atm):
             if(self.imgType == "Phase - Atmos"):
                 data = self.atm.get_screen(self.config.p_atmos.alt[self.numberSelected])
@@ -459,39 +471,51 @@ class aoLoopThread(QtCore.QThread):
                 self.mainLoop(i)
 
             print "Loop stopped"
-    
+
     def mainLoop(self, itnum):
         start = time.time()
         if(self.atm):
                 #print itnum
-                self.printInPlace("") 
+                self.printInPlace("")
 
                 self.atm.move_atmos()
                 for t in range(self.config.p_target.ntargets):
-                    self.printInPlace("") 
-                    self.tar.atmos_trace(t,self.atm,self.tel)
+                    self.printInPlace("")
+                    if wao.see_atmos:
+                        self.tar.atmos_trace(t,self.atm,self.tel)
+                    else:
+                        self.tar.reset_phase(t)
                     self.tar.dmtrace(t,self.dms)
-                    self.printInPlace("") 
-                    
+                    self.printInPlace("")
+
         if(self.config.p_controllers[0].type_control == "geo"):
             if(self.tar):
                 for t in range(self.config.p_target.ntargets):
                     self.printInPlace("")
-                    self.tar.atmos_trace(t,self.atm,self.tel)
+                    if wao.see_atmos:
+                        self.tar.atmos_trace(t,self.atm,self.tel)
+                    else:
+                        self.tar.reset_phase(t)
                     self.rtc.docontrol_geo(0, self.dms, self.tar, 0)
                     self.rtc.applycontrol(0,self.dms)
-                    self.printInPlace("")                 
+                    self.printInPlace("")
                     self.tar.dmtrace(0,self.dms)
         else:
             if(self.tar):
                 for t in range(self.config.p_target.ntargets):
                     self.printInPlace("")
-                    self.tar.atmos_trace(t,self.atm,self.tel)
+                    if wao.see_atmos:
+                        self.tar.atmos_trace(t,self.atm,self.tel)
+                    else:
+                        self.tar.reset_phase(t)
                     self.tar.dmtrace(t,self.dms)
             if(self.wfs):
                 for w in range(len(self.config.p_wfss)):
                     self.printInPlace("")
-                    self.wfs.sensors_trace(w,"all",self.tel,self.atm,self.dms)
+                    if wao.see_atmos:
+                        self.wfs.sensors_trace(w,"all",self.tel,self.atm,self.dms)
+                    else:
+                        self.wfs.reset_phase(w)
                     self.printInPlace("")
                     self.wfs.sensors_compimg(w)
             if(self.rtc):
@@ -504,7 +528,7 @@ class aoLoopThread(QtCore.QThread):
             signal_le = ""
             signal_se= ""
             for t in range(self.config.p_target.ntargets):
-                SR = self.tar.get_strehl(t)                
+                SR = self.tar.get_strehl(t)
                 signal_se += "%1.2f   "%SR[0]
                 signal_le += "%1.2f   "%SR[1]
 
@@ -522,20 +546,20 @@ class aoLoopThread(QtCore.QThread):
         if(wao.brama_flag):
             self.rtc.publish() #rtc_publish, g_rtc;
             self.tar.publish()
-            
+
 
         #print CurrentFreq
         self.printInPlace("iter #%d SR: (L.E, S.E.)= %s, %srunning at %4.1fHz" % (itnum, signal_le, signal_se, CurrentFreq))
         #sys.stdout.flush()
-        
+
     def printInPlace(self, text):
         print "\r" + text ,;# This seems to trigger the GUI and keep it responsive
         #sys.stdout.flush()
         #sys.stdout.write(text)
-        
+
 if __name__ == '__main__':
     app = QtGui.QApplication(sys.argv)
     wao = widgetAOWindow()
     wao.show()
-    #app.connect(wao.ui._quit,QtCore.SIGNAL("clicked()"),app,QtCore.SLOT("quit()")) 
+    #app.connect(wao.ui._quit,QtCore.SIGNAL("clicked()"),app,QtCore.SLOT("quit()"))
     app.setStyle('cleanlooks')
