@@ -444,6 +444,7 @@ cdef class Rtc:
 
         cdef sutra_controller_ls *controller_ls
         cdef sutra_controller_mv *controller_mv
+        cdef sutra_controller_generic *controller_generic
         cdef bytes type_contro = <bytes>self.rtc.d_control[ncontro].get_type()
 
         if(type_contro=="ls"):
@@ -452,8 +453,11 @@ cdef class Rtc:
         elif(type_contro=="mv"):
             controller_mv=dynamic_cast_controller_mv_ptr(self.rtc.d_control[ncontro])
             controller_mv.set_mgain(<float*>mgain.data)
+        elif(type_contro=="generic"):
+            controller_generic=dynamic_cast_controller_generic_ptr(self.rtc.d_control[ncontro])
+            controller_generic.set_mgain(<float*>mgain.data)
         else:
-            raise TypeError("Controller needs to be ls or mv")
+            raise TypeError("Controller needs to be ls, mv or generic")
 
     cpdef setCom(self,int ncontro, np.ndarray[ndim=1,dtype=np.float32_t] comvec):
         """Set the command vector of a sutra_controller object to comvec
@@ -496,6 +500,7 @@ cdef class Rtc:
 
         cdef sutra_controller_ls *controller_ls
         cdef sutra_controller_mv *controller_mv
+        cdef sutra_controller_generic *controller_generic
         cdef bytes type_contro = <bytes>self.rtc.d_control[ncontro].get_type()
         cdef int size
         cdef np.ndarray[ndim=1,dtype=np.float32_t] mgain
@@ -511,6 +516,12 @@ cdef class Rtc:
             size=controller_mv.d_gain.getNbElem()
             mgain=np.zeros(size,dtype=np.float32)
             controller_mv.d_gain.device2host(<float*>mgain.data)
+            return mgain
+        elif(type_contro=="generic"):
+            controller_generic=dynamic_cast_controller_generic_ptr(self.rtc.d_control[ncontro])
+            size=controller_generic.d_gain.getNbElem()
+            mgain=np.zeros(size,dtype=np.float32)
+            controller_generic.d_gain.device2host(<float*>mgain.data)
             return mgain
         else:
             raise TypeError("Controller needs to be ls or mv")
