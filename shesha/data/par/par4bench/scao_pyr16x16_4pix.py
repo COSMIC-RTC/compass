@@ -49,7 +49,7 @@ p_wfs0= ao.Param_wfs()
 p_wfss=[p_wfs0]
 
 
-p_wfs0.set_type("sh")
+p_wfs0.set_type("pyr")
 p_wfs0.set_nxsub(16)
 p_wfs0.set_npix(4)
 p_wfs0.set_fssize(1.6)

@@ -51,7 +51,7 @@ p_wfss=[p_wfs0]
 
 
 p_wfs0.set_type("pyr")
-p_wfs0.set_nxsub(4)
+p_wfs0.set_nxsub(8)
 #p_wfs0.set_npix(8) #unused?
 #p_wfs0.set_pixsize(0.3)#unused?
 p_wfs0.set_fssize(1.6)

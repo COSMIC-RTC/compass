@@ -65,7 +65,7 @@ wfs,tel=ao.wfs_init(config.p_wfss,config.p_atmos,config.p_tel,config.p_geom,conf
 print "->atmos"
 atm=ao.atmos_init(c,config.p_atmos,config.p_tel,config.p_geom,config.p_loop,config.p_wfss,config.p_target,rank=0, clean=clean, load=matricesToLoad)
 
-#   dm 
+#   dm
 print "->dm"
 dms=ao.dm_init(config.p_dms,config.p_wfss,config.p_geom,config.p_tel)
 
@@ -77,7 +77,8 @@ print "->rtc"
 #   rtc
 rtc=ao.rtc_init(tel,wfs,config.p_wfss,dms,config.p_dms,config.p_geom,config.p_rtc,config.p_atmos,atm,config.p_tel,config.p_loop,tar,config.p_target,clean=clean,simul_name=simul_name, load=matricesToLoad)
 
-h5u.validDataBase(os.environ["SHESHA_ROOT"]+"/data/",matricesToLoad)
+if not clean:
+    h5u.validDataBase(os.environ["SHESHA_ROOT"]+"/data/",matricesToLoad)
 
 print "===================="
 print "init done"
@@ -99,7 +100,7 @@ def loop( n):
     t0=time.time()
     for i in range(n):
         atm.move_atmos()
-        
+
         if(config.p_controllers[0].type_control == "geo"):
             for t in range(config.p_target.ntargets):
                 tar.atmos_trace(t,atm,tel)
@@ -116,9 +117,9 @@ def loop( n):
 
             rtc.docentroids(0)
             rtc.docontrol(0)
-        
+
             rtc.applycontrol(0,dms)
-        
+
         if((i+1)%100==0):
             strehltmp = tar.get_strehl(0)
             print i+1,"\t",strehltmp[0],"\t",strehltmp[1]

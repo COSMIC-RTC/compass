@@ -1,4 +1,4 @@
-cpdef prep_lgs_prof(Param_wfs p_wfs,int nsensors, Param_tel p_tel, 
+cpdef prep_lgs_prof(Param_wfs p_wfs,int nsensors, Param_tel p_tel,
                     np.ndarray[dtype=np.float32_t] prof,
                     np.ndarray[dtype=np.float32_t] h,
                     float beam, Sensors sensors,
@@ -91,7 +91,7 @@ simple re-sampling of the profile is adequate.
         else:
             g=np.exp(-x**2/(2*w**2.))
 
-   
+
     p_wfs._ftbeam=np.fft.fft(g,axis=0).astype(np.complex64)
     p_wfs._beam=g
     #convolved profile in 1D.
@@ -123,7 +123,7 @@ cpdef make_lgs_prof1d(p_wfs, Param_tel p_tel,
         np.ndarray[dtype=np.float32_t] prof, np.ndarray[dtype=np.float32_t] h,
         float beam, bytes center=<bytes>""):
     """same as prep_lgs_prof but cpu only. original routine from rico
-    
+
     :parameters:
         p_tel: (Param_tel) : telescope settings
 
@@ -230,7 +230,7 @@ cpdef make_lgs_prof1d(p_wfs, Param_tel p_tel,
             g[n/2]=0.5
         else:
             g[n/2]=1
-    
+
     else:
         if(center=="image"):
             if( (p_wfs.npix*p_wfs._nrebin)%2 != p_wfs._Nfft%2):
@@ -241,7 +241,7 @@ cpdef make_lgs_prof1d(p_wfs, Param_tel p_tel,
         else:
             g=np.exp(-x**2/(2*w**2.))
 
-    
+
     p_wfs._ftbeam=np.fft.fft(g).astype(np.complex64)
     p_wfs._beam=g.astype(np.float32)
     #convolved profile in 1D.
@@ -261,7 +261,7 @@ cpdef make_lgs_prof1d(p_wfs, Param_tel p_tel,
     cdef np.ndarray[ndim=3,dtype=np.float32_t] im
     im=np.zeros((p1d.shape[1],p1d.shape[0],p1d.shape[0]),dtype=np.float32)
 
-   
+
     cdef int l,c
     for i in range(p1d.shape[1]):
         for l in range(p1d.shape[0]):
@@ -383,7 +383,7 @@ def wfs_init( wfs, Param_atmos p_atmos, Param_tel p_tel, Param_geom p_geom,
     cdef int any_sh=0
     cdef int any_geo=0
 
-    
+
     liste=[o.type_wfs for o in wfs]
     type_present(liste,any_pyr,any_roof, any_sh,any_geo)
 
@@ -432,7 +432,7 @@ def wfs_init( wfs, Param_atmos p_atmos, Param_tel p_tel, Param_geom p_geom,
     cdef np.ndarray nphot  = np.array([o._nphotons for o in wfs],dtype=np.float32)
     cdef np.ndarray lgs    = np.array([o.gsalt>0   for o in wfs],dtype=np.int32)
 
-    #arrays needed to call sensors_initgs 
+    #arrays needed to call sensors_initgs
     cdef np.ndarray xpos   = np.array([o.xpos   for o in wfs], dtype=np.float32)
     cdef np.ndarray ypos   = np.array([o.ypos   for o in wfs], dtype=np.float32)
     cdef np.ndarray Lambda = np.array([o.Lambda for o in wfs], dtype=np.float32)
@@ -450,7 +450,7 @@ def wfs_init( wfs, Param_atmos p_atmos, Param_tel p_tel, Param_geom p_geom,
         error_budget_flag = True
     else:
         error_budget_flag = False
-	
+
     telescope= Telescope(p_geom._spupil.shape[0],np.where(p_geom._spupil>0)[0].size,
 		     p_geom._spupil*p_geom._apodizer,  p_geom._phase_ab_M1,
 		     p_geom._mpupil.shape[0], p_geom._mpupil,  p_geom._phase_ab_M1_m )
@@ -471,8 +471,8 @@ def wfs_init( wfs, Param_atmos p_atmos, Param_tel p_tel, Param_geom p_geom,
         mag=np.array([o.gsmag    for o in wfs], dtype=np.float32)
         noise=np.array([o.noise    for o in wfs], dtype=np.float32)
         g_wfs.sensors_initgs(xpos,ypos,Lambda,mag,zerop,size,noise,seed)
-    
-        
+
+
     elif(wfs[0].type_wfs=="geo"):
         npup=np.array([wfs[0].p_geom._n])
         g_wfs= Sensors(nsensors, telescope, wfs[0].type_wfs,npup,nxsub,nvalid,nphase,pdiam,
@@ -517,7 +517,7 @@ def wfs_init( wfs, Param_atmos p_atmos, Param_tel p_tel, Param_geom p_geom,
 cpdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
                 Param_tel tel, Param_geom geom, Param_target p_target,
                 Param_loop loop, int init=0,  int verbose=0):
-    """Compute the geometry of WFSs: valid subaps, positions of the subaps, 
+    """Compute the geometry of WFSs: valid subaps, positions of the subaps,
     flux per subap, etc...
 
     :parameters:
@@ -564,8 +564,8 @@ cpdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
     else:
         pdiam=-1
 
-    
-    cdef int Nfft=0 
+
+    cdef int Nfft=0
     cdef int Ntot=0
     cdef int nrebin=0
     cdef float pixsize=0
@@ -584,7 +584,7 @@ cpdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
 
 
     #TODO define psize properly
-    #defined in yoga_rtc.i /and yoga_dm.i as 
+    #defined in yoga_rtc.i /and yoga_dm.i as
     #   (1): y_geom.pupdiam
     #   (2): y_tel.diam/y_geom.pupdiam
     cdef int psize=0#int(tel.diam/geom.pupdiam)
@@ -598,10 +598,7 @@ cpdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
         wfs._qpixsize = qpixsize
 
     wfs._subapd   = tel.diam/wfs.nxsub
-    
-    if((pdiam*wfs.nxsub)%2): # Must be even to keep ssp and actuators grids aligned in the pupil
-        pdiam += 1
-    
+
     wfs._pdiam    = pdiam
 
 
@@ -631,21 +628,21 @@ cpdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
         if (wfs.fstop=="round"):
             focmask = mkP.dist(npup,xc=npup/2.+0.5,yc=npup/2.+0.5)<(fsradius_pixels);
             #fstop_area = np.pi * (wfs.fssize/2.)**2. #UNUSED
-        elif (wfs.fstop=="square"): 
-            x,y = indices(npup) 
-            x-=(npup+1.)/2. 
-            y-=(npup+1.)/2. 
+        elif (wfs.fstop=="square"):
+            x,y = indices(npup)
+            x-=(npup+1.)/2.
+            y-=(npup+1.)/2.
             focmask = ( np.abs(x) <= (fsradius_pixels) ) *     \
                 ( np.abs(y) <= (fsradius_pixels) )
             #fstop_area = wfs.fssize**2. #UNUSED
         else:
             msg="wfs "+str(n)+". fstop must be round or square"
             raise ValueError(msg)
-    
+
         pyr_focmask = np.roll(focmask,focmask.shape[0]/2,axis=0)
         pyr_focmask = np.roll(pyr_focmask,focmask.shape[1]/2,axis=1)
         wfs._submask = pyr_focmask
-        
+
         pup = geom._spupil
         pupreb = bin2d(pup*1.,wfs.npix)/wfs.npix**2.
         wsubok = np.where(pupreb>=wfs.fracsub)
@@ -653,7 +650,7 @@ cpdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
         pupvalid[wsubok] = 1
         wfs._isvalid    = pupvalid.astype(np.int32)
 
-        
+
         pup = geom._mpupil
 
         pupreb = bin2d(pup*1.,wfs.npix)/wfs.npix**2.
@@ -666,9 +663,9 @@ cpdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
         wfs._validsubsx=validx
         wfs._validsubsy=validy
 
-            
+
         istart =(np.linspace(0.5, geom.pupdiam + 2 * padding * wfs.npix + 0.5,wfs.nxsub+2*padding)+1).astype(np.int32)[:-1]
-        jstart=np.copy(istart) 
+        jstart=np.copy(istart)
         wfs._istart= istart.astype(np.int32)
         wfs._jstart= jstart.astype(np.int32)
 
@@ -723,7 +720,7 @@ cpdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
         wfs._pyr_cy=cy.astype(np.int32)
 
         wfs._nphotons = wfs.zerop*2.51189**(-wfs.gsmag)*loop.ittime*wfs.optthroughput
-    
+
         # spatial filtering by the pixel extent:
         # *2/2 intended. min should be 0.40 = sinc(0.5)^2.
         x=x/(Nfft-1)*2/2
@@ -745,21 +742,21 @@ cpdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
             indj=jstart[wfs._validsubsy[i]]+1
             phasemap[:,:,i]=tmp[indi:indi+pdiam, indj:indj+pdiam]
 
-        
+
         wfs._phasemap=phasemap
 
     if(wfs.type_wfs == "sh" or wfs.type_wfs == "geo"):
         # this is the i,j index of lower left pixel of subap
         istart =((np.linspace(0.5, geom.pupdiam + 0.5  ,wfs.nxsub+1)+1)[:-1]).astype(np.int64)
 
-        
+
         jstart=np.copy(istart)
         wfs._istart = istart.astype(np.int32)
         wfs._jstart = jstart.astype(np.int32)
 
         # sorting out valid subaps
         fluxPerSub=np.zeros((wfs.nxsub,wfs.nxsub),dtype=np.float32)
-        
+
         for i in range(wfs.nxsub):
             indi=istart[i]+1 #+2-1 (yorick->python)
             for j in range(wfs.nxsub):
@@ -805,7 +802,7 @@ cpdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
             if(wfs.npix % 2 == 1 and wfs._nrebin %2 == 1):
                 #wfs._halfxy = <float*>(halfxy*0.)
                 halfxy=np.zeros((wfs._pdiam,wfs._pdiam),dtype=np.float32)
-                wfs._halfxy=halfxy.astype(np.float32) 
+                wfs._halfxy=halfxy.astype(np.float32)
             else:
                 wfs._halfxy = halfxy.astype(np.float32)
 
@@ -902,7 +899,7 @@ cpdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
             wfs._nphotons = wfs.zerop*10**(-0.4*wfs.gsmag)*\
                      wfs.optthroughput* \
                     (tel.diam/wfs.nxsub)**2./telSurf* \
-                    loop.ittime                        
+                    loop.ittime
 # include throughput to WFS
 # for unobstructed subaperture
 # per iteration
@@ -923,7 +920,7 @@ cpdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
 
 
 cdef init_wfs_size( Param_wfs wfs, int n, Param_atmos atmos,
-                Param_tel tel, int psize, long *pdiam, int *Nfft, int *Ntot, int *nrebin, 
+                Param_tel tel, int psize, long *pdiam, int *Nfft, int *Ntot, int *nrebin,
                 float *pixsize, float *qpixsize,int verbose=0):
     """Compute all the parameters usefull for further WFS image computation (array sizes)
 
@@ -964,13 +961,13 @@ cdef init_wfs_size( Param_wfs wfs, int n, Param_atmos atmos,
     Nt = v * Npix
 
 
-    """ 
+    """
     cdef float r0 = atmos.r0*(wfs.Lambda*2)**(6./5)
     cdef int k, padding
     cdef long nphase, npix,
     cdef float subapdiam
 
-    cdef np.ndarray w,npix_ok 
+    cdef np.ndarray w,npix_ok
 
     if(r0!=0):
         if(verbose==0):print "r0 for WFS :","%3.2f"%r0," m"
@@ -986,15 +983,18 @@ cdef init_wfs_size( Param_wfs wfs, int n, Param_atmos atmos,
         if (pdiam[0] < 16):
             pdiam[0] = 16
 
+        if((pdiam[0]*wfs.nxsub)%2): # Must be even to keep ssp and actuators grids aligned in the pupil
+            pdiam[0] += 1
+
         if(wfs.type_wfs=="sh"):
             nrebin[0] = long(2 * subapdiam * wfs.pixsize / (wfs.Lambda*1.e-6) / RASC) + 1
             nrebin[0] = max(2,nrebin[0])
             # first atempt on a rebin factor
-    
+
             # since we clipped pdiam we have to be carreful in nfft computation
             Nfft[0] = fft_goodsize(long(pdiam[0]/ subapdiam * nrebin[0] / wfs.pixsize * RASC * (wfs.Lambda*1.e-6)))
             # size of the support in fourier domain
-    
+
             #qpixsize = k * (wfs.Lambda*1.e-6) / r0 * RASC / Nfft
             qpixsize[0] = (pdiam[0] * (wfs.Lambda*1.e-6) / subapdiam  * RASC) / Nfft[0]
 
@@ -1003,10 +1003,10 @@ cdef init_wfs_size( Param_wfs wfs, int n, Param_atmos atmos,
             padding = 2
             nphase  =  pdiam[0] * wfs.nxsub+ 2 * padding * pdiam[0]
             qpixsize[0]   = (pdiam[0] * wfs.nxsub / float(nphase))*wfs.Lambda/tel.diam/4.848
-      
+
             fssize_pixels = long(wfs.fssize / qpixsize[0] / 2.)
             #nrebin  = pdiam / wfs.npix
-      
+
             npix = (wfs.nxsub+2*padding)
             npix_ok = npix*(np.arange(100)+1)
             npix_ok = npix_ok[np.where(npix_ok.flatten()<=(nphase/2.))[0]]
@@ -1017,7 +1017,7 @@ cdef init_wfs_size( Param_wfs wfs, int n, Param_atmos atmos,
                 #maxfs = npix_ok[0]*2*psize
                 msg="wfs ",n,". ffsize too large "#(max=",maxfs,")!"
                 raise ValueError(msg)
-      
+
             #npix_ok = npix_ok[w[1]]
 
             nrebin[0]  = npix_ok[w[0]]/npix
@@ -1032,20 +1032,20 @@ cdef init_wfs_size( Param_wfs wfs, int n, Param_atmos atmos,
         if (wfs.type_wfs != "geo"):
             Nfft[0] = fft_goodsize(2* pdiam[0]);
             # size of the support in fourier domain
-  
+
             qpixsize[0] = pdiam[0] * (wfs.Lambda*1.e-6) / subapdiam * RASC / Nfft[0];
             # quantum pixel size
     if (wfs.type_wfs == "sh"):
         # actual rebin factor
         if(wfs.pixsize/qpixsize[0] - long(wfs.pixsize/qpixsize[0]) > 0.5):
-            nrebin[0] = long(wfs.pixsize/qpixsize[0])+1 
+            nrebin[0] = long(wfs.pixsize/qpixsize[0])+1
         else:
             nrebin[0] = long(wfs.pixsize/qpixsize[0])
 
         # actual pixel size
         pixsize[0] = nrebin[0] * qpixsize[0]
 
-        if (pixsize[0] * wfs.npix > qpixsize[0] * Nfft[0]): 
+        if (pixsize[0] * wfs.npix > qpixsize[0] * Nfft[0]):
             Ntot[0] = fft_goodsize(long(pixsize[0] * wfs.npix / qpixsize[0]) + 1);
         else:
             Ntot[0] = Nfft[0]
@@ -1070,15 +1070,15 @@ cpdef noise_cov(int nw, Param_wfs p_wfs, Param_atmos p_atmos, Param_tel p_tel):
     Electronic noise: (pi²/3)*(wfs.noise²/N²photons)*wfs.npix²*(wfs.npix*wfs.pixsize*d/lambda)² / (2*pi*d/lambda)²
 
     :parameters:
-        nw: wfs number        
+        nw: wfs number
         p_wfs: (Param_wfs) : wfs settings
         p_atmos: (Param_atmos) : atmos settings
         p_tel: (Param_tel) : telescope settings
     :return:
         cov : (np.ndarray(ndim=1,dtype=np.float64)) : noise covariance diagonal
 
-    """ 
-    cov = np.zeros(2*p_wfs._nvalid)    
+    """
+    cov = np.zeros(2*p_wfs._nvalid)
     if(p_wfs.noise >= 0):
         m = p_wfs._validsubsy
         n = p_wfs._validsubsx
@@ -1087,23 +1087,23 @@ cpdef noise_cov(int nw, Param_wfs p_wfs, Param_atmos p_atmos, Param_tel p_tel):
         flux = flux.reshape(flux.size,order='F')
         flux = flux[ind]
         Nph = flux * p_wfs._nphotons
-        
+
         r0 = (p_wfs.Lambda/0.5)**(6.0/5.0) * p_atmos.r0
-        
+
         sig = (np.pi ** 2 / 2) * (1 / Nph) * (1. / r0) ** 2 # Photon noise in m⁻²
         sig /= (2 * np.pi / (p_wfs.Lambda * 1e-6)) ** 2 # Noise variance in rad²
         sig *= RASC ** 2;
-        
+
         Ns = p_wfs.npix # Number of pixel
         Nd = (p_wfs.Lambda * 1e-6) * RASC / p_wfs.pixsize
         sigphi = (np.pi ** 2 / 3.0) * (1 / Nph ** 2) * (p_wfs.noise) ** 2 * Ns ** 2 * (Ns / Nd) ** 2 # Phase variance in m⁻²
         sigsh = sigphi / (2 * np.pi / (p_wfs.Lambda * 1e-6)) ** 2 # Noise variance in rad²
         sigsh *= RASC ** 2 # Electronic noise variance in arcsec²
-        
-        
+
+
         cov[:len(sig)] = sig + sigsh
         cov[len(sig):] = sig + sigsh
-        
+
     return cov
 
 
@@ -1143,9 +1143,9 @@ cpdef bin2d(np.ndarray data_in, int binfact):
     fx=int(np.ceil(nx/float(binfact)))
     fy=int(np.ceil(ny/float(binfact)))
 
-    
 
-    cdef np.ndarray data_out=np.zeros((fx,fy),dtype=data_in.dtype) 
+
+    cdef np.ndarray data_out=np.zeros((fx,fy),dtype=data_in.dtype)
 
     cdef int i,j,i1,i2,j1,j2
 

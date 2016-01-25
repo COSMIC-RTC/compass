@@ -108,9 +108,9 @@ sutra_wfs_pyr::sutra_wfs_pyr(carma_context *context, sutra_telescope *d_tel, sut
   carmafftSafeCall(
       cufftPlanMany(plan, 2 ,mdims,NULL,1,0,NULL,1,0,CUFFT_C2C , (int)dims_data3[3]));
 
-  dims_data2[1] = ntot;
-  dims_data2[2] = ntot;
-  this->d_pupil = new carma_obj<float>(context, dims_data2);
+//  dims_data2[1] = ntot;
+//  dims_data2[2] = ntot;
+//  this->d_pupil = new carma_obj<float>(context, dims_data2);
 
   dims_data1[1] = npup;
   this->pyr_cx = new carma_host_obj<int>(dims_data1, MA_WRICOMB);
