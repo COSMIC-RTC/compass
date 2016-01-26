@@ -1,3 +1,5 @@
+import make_pupil as mkP
+
 cpdef prep_lgs_prof(Param_wfs p_wfs,int nsensors, Param_tel p_tel,
                     np.ndarray[dtype=np.float32_t] prof,
                     np.ndarray[dtype=np.float32_t] h,
@@ -619,6 +621,7 @@ cpdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
         geom._n1     = n1
         geom._n2     = n2
         geom._n      = npup
+        geom._phase_ab_M1_m=mkP.pad_array(geom._phase_ab_M1,geom._n).astype(np.float32)
 
         #pup   = pup(ii,ii);
         #phase = phase(ii,ii);

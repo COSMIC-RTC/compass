@@ -146,10 +146,13 @@ def depouillePerf(filename,svnversion=None,mode="profile"):
                                                 ccc+=1
                                                 for i in times[1:]:
                                                     plt.barh(long(cc)+ind*(1./len(centroiders)),df.loc[indx,i]/tottime*100,width,color=colors[ccc],left=timeb)
+                                                    if(df.loc[indx,i]/tottime*100 > 10.):
+                                                        plt.text(timeb+df.loc[indx,i]/tottime*100/2,long(cc)+ind*(1./len(centroiders))+width/4.,'%d' % int(df.loc[indx,i]/tottime*100) + " %")
                                                     timeb+=df.loc[indx,i]/tottime*100
                                                     ccc+=1
                                             elif(mode == "framerate"):
                                                 plt.barh(long(cc)+ind*(1./len(centroiders)),1./df.loc[indx,"iter_time"]*1000.,width,color=colors[ind])
+                                                plt.text(1./df.loc[indx,"iter_time"]*1000./2.,long(cc)+ind*(1./len(centroiders))+width/4.,'%.1f' % float(1./df.loc[indx,"iter_time"]*1000.))
                                                 ccc+=1
 
                                             pos.append(long(cc)+ind*(1./len(centroiders))+width/2.)

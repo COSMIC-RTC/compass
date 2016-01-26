@@ -791,11 +791,8 @@ class aoLoopThread(QtCore.QThread):
                 self.printInPlace("")
 
                 self.atm.move_atmos()
-                for t in range(self.config.p_target.ntargets):
-                    self.printInPlace("")
-                    self.tar.atmos_trace(t,self.atm,self.tel)
-                    self.tar.dmtrace(t,self.dms)
-                    self.printInPlace("")
+
+                self.printInPlace("")
 
         if(self.config.p_controllers[0].type_control == "geo"):
             if(self.tar):
