@@ -74,6 +74,8 @@ class widgetAOWindow(TemplateBaseClass):
         self.ui.wao_init.clicked.connect(self.InitConfig)
         self.ui.wao_run.setCheckable(True)
         self.ui.wao_run.clicked[bool].connect(self.aoLoopClicked)
+        self.ui.wao_openLoop.setCheckable(True)
+        self.ui.wao_openLoop.clicked[bool].connect(self.aoLoopOpen)
         self.ui.wao_next.clicked.connect(self.nextClicked)
         self.imgType = str(self.ui.wao_selectScreen.currentText())
         self.ui.wao_configFromFile.clicked.connect(self.addConfigFromFile)
@@ -475,6 +477,12 @@ class widgetAOWindow(TemplateBaseClass):
     def aoLoopFinished(self):
         if not self.ui.wao_run.isChecked:
             self.ui.wao_run.click()
+
+    def aoLoopOpen(self,pressed):
+        if(pressed):
+            self.rtc.set_openloop(0,1)
+        else:
+            self.rtc.set_openloop(0,0)
 
     def loadConfig(self):
         self.configpath = self.defaultParPath+str(self.ui.wao_selectConfig.currentText())
