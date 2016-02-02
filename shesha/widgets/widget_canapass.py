@@ -466,7 +466,7 @@ class aoLoopThread(QtCore.QThread):
             if(autoscale):
                 wao.hist.setLevels(data.min(), data.max()) # inits levels
             wao.img.setImage(data, autoLevels=autoscale)
-            wao.p1.autoRange()
+            # wao.p1.autoRange()
 
     def run(self):
         i=0
