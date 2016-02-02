@@ -20,6 +20,11 @@ clean:
 	@(cd shesha && make clean)
 	@(if [ -z "$(COMPILATION_LAM)" ]; then echo "lam has been ignored." ; else cd lam && make clean; fi)
 
+clean_ao: 
+	@(cd libsutra && make clean)
+	@(cd shesha && make clean)
+	@(if [ -z "$(COMPILATION_LAM)" ]; then echo "lam has been ignored." ; else cd lam && make clean; fi)
+
 uninstall: clean
 	@(cd naga && make uninstall)
 	@(cd shesha && make uninstall)

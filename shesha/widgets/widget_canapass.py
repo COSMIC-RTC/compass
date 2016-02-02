@@ -100,6 +100,9 @@ class widgetAOWindow(TemplateBaseClass):
 
         self.connect(self.aoLoopThread,QtCore.SIGNAL("finished()"),self.aoLoopFinished)
 
+        self.addConfigFromFile(filepath=os.environ["SHESHA_ROOT"]+"/data/par/canapass.py")
+        self.InitConfig()
+
     def setDevice(self):
         self.c.set_activeDevice(self.ui.wao_deviceNumber.value())
 
@@ -171,8 +174,9 @@ class widgetAOWindow(TemplateBaseClass):
             self.aoLoopThread.RTDFreq = self.RTDFreq
 
 
-    def addConfigFromFile(self):
-        filepath = str(QtGui.QFileDialog(directory=self.defaultParPath).getOpenFileName(self,"Select parameter file","","parameters file (*.py);;hdf5 file (*.h5);;all files (*)"))
+    def addConfigFromFile(self, filepath=None):
+        if filepath is None:
+            filepath = str(QtGui.QFileDialog(directory=self.defaultParPath).getOpenFileName(self,"Select parameter file","","parameters file (*.py);;hdf5 file (*.h5);;all files (*)"))
         self.configpath = filepath
         filename = filepath.split('/')[-1]
         if(filepath.split('.')[-1] == "py"):
@@ -244,7 +248,7 @@ class widgetAOWindow(TemplateBaseClass):
 
     def updateDisplay(self):
         data = None
-        if(wao.ui.wao_Display.isChecked()):
+        if(self.ui.wao_Display.isChecked()):
             self.ui.wao_rtcWindowMPL.hide()
             self.ui.wao_pgwindow.show()
             if(self.atm):
@@ -300,8 +304,10 @@ class widgetAOWindow(TemplateBaseClass):
                     if(self.ui.wao_PSFlogscale.isChecked()):
                         data = np.log10(data)
             if (data is not None):
-                self.img.setImage(data)
-                self.hist.setLevels(np.min(data),np.max(data))
+                autoscale = self.ui.wao_autoscale.isChecked()
+                if(autoscale):
+                    self.hist.setLevels(data.min(), data.max()) # inits levels
+                self.img.setImage(data, autoLevels=autoscale)
                 self.p1.autoRange()
 
 
@@ -456,8 +462,11 @@ class aoLoopThread(QtCore.QThread):
                 if(wao.ui.wao_PSFlogscale.isChecked()):
                     data = np.log10(data)
         if (data is not None):
-            self.img.setImage(data, autoLevels=False)
-            #self.histo.setLevels(np.min(data),np.max(data))
+            autoscale = wao.ui.wao_autoscale.isChecked()
+            if(autoscale):
+                wao.hist.setLevels(data.min(), data.max()) # inits levels
+            wao.img.setImage(data, autoLevels=autoscale)
+            wao.p1.autoRange()
 
     def run(self):
         i=0
@@ -513,9 +522,11 @@ class aoLoopThread(QtCore.QThread):
                 for w in range(len(self.config.p_wfss)):
                     self.printInPlace("")
                     if wao.see_atmos:
-                        self.wfs.sensors_trace(w,"all",self.tel,self.atm,self.dms)
+                        self.wfs.sensors_trace(w,"atmos",self.tel,self.atm,self.dms)
                     else:
                         self.wfs.reset_phase(w)
+                    if not self.config.p_wfss[w].openloop :
+                        self.wfs.sensors_trace(w,"dm",self.tel,self.atm,self.dms)
                     self.printInPlace("")
                     self.wfs.sensors_compimg(w)
             if(self.rtc):
