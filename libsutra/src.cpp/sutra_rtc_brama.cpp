@@ -191,37 +191,37 @@ void sutra_rtc_brama::publish() {
   }
 
   idx = 0;
-  carma_obj<float> tmp_img(target->d_targets[0]->current_context, target->d_targets[0]->d_leimage->getDims());
-  for (size_t target_i = 0; target_i < target->d_targets.size(); target_i++) {
-    float flux = target->d_targets[target_i]->zp
-        * powf(10, -0.4 * target->d_targets[target_i]->mag);
+  for (size_t i = 0; i < target->d_targets.size(); i++) {
+    carma_obj<float> tmp_img(target->d_targets[i]->current_context, target->d_targets[i]->d_image->getDims());
+    float flux = target->d_targets[i]->zp
+        * powf(10, -0.4 * target->d_targets[i]->mag);
     roll_mult<float>(
         tmp_img.getData(),
-        target->d_targets[target_i]->d_leimage->getData(),
-        target->d_targets[target_i]->d_leimage->getDims(1),
-        target->d_targets[target_i]->d_leimage->getDims(2),
+        target->d_targets[i]->d_image->getData(),
+        target->d_targets[i]->d_image->getDims(1),
+        target->d_targets[i]->d_image->getDims(2),
         flux,
-        target->d_targets[target_i]->current_context->get_device(
-            target->d_targets[target_i]->device));
+        target->d_targets[i]->current_context->get_device(
+            target->d_targets[i]->device));
     tmp_img.device2host(buff_target_servant + idx);
 
-    idx += target->d_targets[target_i]->d_leimage->getNbElem();
+    idx += target->d_targets[i]->d_image->getNbElem();
   }
 
   BRAMA::MegaFrame zFrame;
   zFrame.framecounter = framecounter;
   zFrame.timestamp = get_timestamp();
-  zFrame.from = CORBA::string_dup("BRAMA RTC");
+  zFrame.from = CORBA::string_dup("COMPASS RTC");
 
   zFrame.wfs.framecounter = framecounter;
   zFrame.wfs.timestamp = get_timestamp();
-  zFrame.wfs.from = CORBA::string_dup("BRAMA WFS");
+  zFrame.wfs.from = CORBA::string_dup("COMPASS WFSs");
   zFrame.wfs.dimensions = BRAMA::Dims(2, 2, dims_wfs, 0);
   zFrame.wfs.data = BRAMA::Values(wfs_size * sizeof(float), wfs_size * sizeof(float),
       buff_wfs, 0);
   zFrame.wfs.sizeofelements = sizeof(float);
 
-  zFrame.loopData.ints.from = CORBA::string_dup("BRAMA intensities");
+  zFrame.loopData.ints.from = CORBA::string_dup("COMPASS intensities");
   zFrame.loopData.ints.typeofelements = CORBA::string_dup("intensities");
   zFrame.loopData.ints.sizeofelements = sizeof(float);
   zFrame.loopData.ints.dimensions = BRAMA::Dims(2, 2, dims_intensities, 0);
@@ -230,7 +230,7 @@ void sutra_rtc_brama::publish() {
       nvalid * sizeof(float), buff_intensities, 0);
   zFrame.loopData.ints.timestamp = get_timestamp();
 
-  zFrame.loopData.slps.from = CORBA::string_dup("BRAMA slopes");
+  zFrame.loopData.slps.from = CORBA::string_dup("COMPASS slopes");
   zFrame.loopData.slps.typeofelements = CORBA::string_dup("slopes");
   zFrame.loopData.slps.sizeofelements = sizeof(float);
   zFrame.loopData.slps.dimensions = BRAMA::Dims(2, 2, dims_slopes, 0);
@@ -239,7 +239,7 @@ void sutra_rtc_brama::publish() {
       buff_slopes, 0);
   zFrame.loopData.slps.timestamp = get_timestamp();
 
-  zFrame.loopData.cmds.from = CORBA::string_dup("BRAMA commands");
+  zFrame.loopData.cmds.from = CORBA::string_dup("COMPASS commands");
   zFrame.loopData.cmds.typeofelements = CORBA::string_dup("commands");
   zFrame.loopData.cmds.sizeofelements = sizeof(float);
   zFrame.loopData.cmds.dimensions = BRAMA::Dims(2, 2, dims_commands, 0);
@@ -250,7 +250,7 @@ void sutra_rtc_brama::publish() {
 
   zFrame.target.framecounter = framecounter;
   zFrame.target.timestamp = get_timestamp();
-  zFrame.target.from = CORBA::string_dup("BRAMA TARGET");
+  zFrame.target.from = CORBA::string_dup("COMPASS Targets");
   zFrame.target.dimensions = BRAMA::Dims(2, 2, dims_target, 0);
   zFrame.target.data = BRAMA::Values(target_size * sizeof(float), target_size * sizeof(float),
       buff_target, 0);
