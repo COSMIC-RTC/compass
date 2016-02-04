@@ -192,6 +192,7 @@ void sutra_rtc_brama::publish() {
 
   idx = 0;
   for (size_t i = 0; i < target->d_targets.size(); i++) {
+    target->d_targets[i]->comp_image(0);
     carma_obj<float> tmp_img(target->d_targets[i]->current_context, target->d_targets[i]->d_image->getDims());
     float flux = target->d_targets[i]->zp
         * powf(10, -0.4 * target->d_targets[i]->mag);
