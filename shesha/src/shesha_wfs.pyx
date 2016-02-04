@@ -492,7 +492,7 @@ def wfs_init( wfs, Param_atmos p_atmos, Param_tel p_tel, Param_geom p_geom,
     for i in range(nsensors):
         if(wfs[i].gsalt>0):
             #lgs mode requested
-            if(wfs[i].proftype is None and wfs[i].proftype==""):
+            if(wfs[i].proftype is None or wfs[i].proftype==""):
                 wfs[i].set_proftype("Gauss1")
 
             if(wfs[i].proftype=="Gauss1"):

@@ -28,6 +28,9 @@ ctypedef enum cudaChannelFormatDesc:
     z
 
 
+cdef extern from "sutra_ao_utils.h":
+    int roll_mult[float](float *odata, float *idata, int N, int M, float alpha, carma_device *device)
+
 #################################################
 # C-Class sutra_phase
 #################################################
@@ -47,18 +50,18 @@ cdef extern from "sutra_telescope.h":
 
         carma_context *current_context
         int device; # device #
-    
+
         long pup_size #// size of pupil
         long num_eleme_pup #// number of points in the pupil
-  
+
         carma_obj[float] *d_pupil #// the pupil mask
         carma_obj[float] *d_phase_ab_M1 #// the phase aberration for M1
-  
+
         long pup_size_m #// size of pupil
-    
+
         carma_obj[float] *d_pupil_m #// the pupil mask
         carma_obj[float] *d_phase_ab_M1_m #// the phase aberration for M1
-    
+
         sutra_telescope(carma_context *context, long pup_size, long num_eleme_pup, float *pupil, float *phase_ab_M1, long pup_size_m, float *pupil_m, float *phase_ab_m1_m)
 
 
@@ -67,8 +70,8 @@ cdef extern from "sutra_turbu.h":
 # C-Class sutra_t_screen
 #################################################
     cdef cppclass sutra_tscreen:
-        int device # The device # 
-        sutra_phase *d_tscreen # The phase screen   
+        int device # The device #
+        sutra_phase *d_tscreen # The phase screen
         long screen_size # size of phase screens
         float amplitude # amplitude for extrusion (r0^-5/6)
         float altitude
@@ -128,9 +131,9 @@ cdef extern from "sutra_target.h":
 # C-Class sutra_source
 #################################################
     cdef cppclass sutra_source:
-        
-        int device #   device # 
-        float tposx #   x position of target on the sky  
+
+        int device #   device #
+        float tposx #   x position of target on the sky
         float tposy #   y position of target on the sky
         long npos #   number of points in the pupil
         float mag #   brightness of target
@@ -153,7 +156,7 @@ cdef extern from "sutra_target.h":
         # INTRO PHASE INSTRU
         #sutra_phase *d_phase_instru;
         #
-        carma_host_obj[float] *phase_telemetry #   
+        carma_host_obj[float] *phase_telemetry #
         sutra_lgs *d_lgs #   the lgs object
         carma_obj[float] *object #   the object intensity map
         carma_obj[float] *d_pupil #   the pupil mask
@@ -166,7 +169,7 @@ cdef extern from "sutra_target.h":
         map[pair[string,int], float] xoff #   x reference for raytracing
         map[pair[string,int], float] yoff #   y reference for raytracing
         carma_context *current_context
-        
+
         int add_layer(char* l_type, float alt, float xoff, float yoff)
         int init_strehlmeter()
         int raytrace(sutra_atmos *atmos)
@@ -176,7 +179,7 @@ cdef extern from "sutra_target.h":
 
 #################################################
 # C-Class sutra_target
-#################################################        
+#################################################
     cdef cppclass sutra_target:
         int ntargets
         vector.vector[sutra_source *] d_targets
@@ -217,8 +220,8 @@ cdef extern from "sutra_wfs.h":
         int device
         bool error_budget
         carma_context *current_context
-        size_t nsensors() 
-        
+        size_t nsensors()
+
         vector[sutra_wfs *] d_wfs
         map[vector[int],cufftHandle*] campli_plans
         map[vector[int],cufftHandle*] fttotim_plans
@@ -302,7 +305,7 @@ cdef extern from "sutra_wfs.h":
         carma_obj[int] *d_binmap
         carma_obj[int] *d_validsubsx # nvalid
         carma_obj[int] *d_validsubsy # nvalid
-        carma_obj[int] *d_istart # nxsub 
+        carma_obj[int] *d_istart # nxsub
         carma_obj[int] *d_jstart # nxsub
 
       # pyramid only
@@ -393,7 +396,7 @@ cdef extern from "sutra_wfs_geom.h":
         #sutra_wfs_geom(carma_context *context, long nxsub, long nvalid, long nphase,
         #    long npup, float pdiam, int device)
         sutra_wfs_geom(const sutra_wfs_geom& wfs)
-        int wfs_initarrays(int *phasemap, float *offsets, 
+        int wfs_initarrays(int *phasemap, float *offsets,
             float *fluxPerSub, int *validsubsx, int *validsubsy)
 
 
@@ -434,7 +437,7 @@ cdef extern from "sutra_centroider_tcog.h":
     cdef cppclass sutra_centroider_tcog(sutra_centroider):
         int set_threshold(float threshold)
         bool is_type(string typec)
-        #string get_type() 
+        #string get_type()
 
 #################################################
 # C-Class sutra_centroider_corr
@@ -443,7 +446,7 @@ cdef extern from "sutra_centroider_corr.h":
     cdef cppclass sutra_centroider_corr(sutra_centroider):
         int init_bincube()
         bool is_type(string typec)
-        string get_type() 
+        string get_type()
 
         int init_corr(int isizex, int isizey, float *interpmat)
         int load_corr(float *corr, float *corr_norm, int ndim)
@@ -463,7 +466,7 @@ cdef extern from "sutra_centroider_wcog.h":
         string get_type()
         int init_weights()
         int load_weights(float *weights, int ndim)
-        int get_cog(carma_streams *streams, float *cube, float *subsum, 
+        int get_cog(carma_streams *streams, float *cube, float *subsum,
             float *centroids, int nvalid, int npix, int ntot)
         int get_cog(float *subsum, float *slopes)
         int get_cog()
@@ -528,7 +531,7 @@ cdef extern from "sutra_dm.h":
 
         carma_obj[float] *d_influ # if relevant
 
-        # pzt 
+        # pzt
         carma_obj[int] *d_influpos
         carma_obj[int] *d_npoints
         carma_obj[int] *d_istart
@@ -739,7 +742,7 @@ cdef extern from "sutra_controller_ls.h":
         int init_modalOpti(int nmodes, int nrec, float *M2V, float gmin, float gmax, int ngain, float Fs)
         int loadOpenLoopSlp(float *ol_slopes)
         int modalControlOptimization()
-        int compute_Hcor() 
+        int compute_Hcor()
 
 
 #################################################
@@ -964,20 +967,20 @@ IF USE_BRAMA == 1:
     #################################################
     cdef extern from "sutra_rtc_brama.h":
         cdef cppclass sutra_rtc_brama(sutra_rtc):
-            
+
             sutra_rtc_brama(carma_context *context, sutra_sensors *wfs, sutra_target *target, char* name)
-    
+
             void publish();
-    
+
     #################################################
     # C-Class sutra_target_brama
     #################################################
     cdef extern from "sutra_target_brama.h":
         cdef cppclass sutra_target_brama(sutra_target):
-            
-            sutra_target_brama(carma_context *context, char* name, sutra_telescope *d_tel, int subsample_, int ntargets, float *xpos, 
+
+            sutra_target_brama(carma_context *context, char* name, sutra_telescope *d_tel, int subsample_, int ntargets, float *xpos,
                                float *ypos, float *zlambda, float *mag, float zerop, long *sizes,
                                int Npts, int device)
-    
+
             void publish();
 

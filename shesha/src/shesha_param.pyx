@@ -24,7 +24,7 @@ RASC=180.*3600./np.pi
 cdef class Param_loop:
     def set_niter(self,long n):
         """Set the number of iteration
-        
+
         :parameters:
             n: (long) : number of iteration
         """
@@ -121,7 +121,7 @@ cdef class Param_tel:
     def set_std_tt(self, float tt):
         """set the std of tip-tilt errors for EELT segments
 
-        :param tt: (float) : std of tip-tilt errors for EELT segments 
+        :param tt: (float) : std of tip-tilt errors for EELT segments
         """
         self.std_tt=tt
 
@@ -139,7 +139,7 @@ cdef class Param_geom:
         :parameters:
             tel: (Param_tel) : telescope settings
 
-            pupdiam: (long) : linear size of total pupil 
+            pupdiam: (long) : linear size of total pupil
 
             apod: (int) : apodizer
         """
@@ -155,8 +155,8 @@ cdef class Param_geom:
         self._n = self.pupdiam+4
         self._n1= self._p1-2
         self._n2= self._p2+2
-      
-        #TODO check filename 
+
+        #TODO check filename
         cdef bytes filename = <bytes> shesha_savepath+\
                               <bytes>"apodizer/SP_HARMONI_I4_C6_N1024.npy"
 
@@ -169,7 +169,7 @@ cdef class Param_geom:
 
         # large pupil (used for image formation)
         self._ipupil=mkP.pad_array(self._spupil,self.ssize).astype(np.float32)
-        
+
         # useful pupil + 4 pixels
         self._mpupil=mkP.pad_array(self._spupil,self._n).astype(np.float32)
         self._phase_ab_M1_m=mkP.pad_array(self._phase_ab_M1,self._n).astype(np.float32)
@@ -188,17 +188,17 @@ cdef class Param_geom:
         self.ssize= s
 
     def set_zenithangle( self, float z):
-        """Set observations zenith angle 
+        """Set observations zenith angle
 
          :param z: (float) : observations zenith angle (in deg)."""
         self.zenithangle=z
- 
+
     def set_pupdiam( self,long p ):
         """Set the linear size of total pupil
 
         :param p: (long) : linear size of total pupil (in pixels)."""
         self.pupdiam=p
- 
+
     def set_cent( self, float c ):
         """Set the central point of the simulation
 
@@ -245,7 +245,7 @@ cdef class Param_geom:
 # P-Class (parametres) Param_wfs
 #################################################
 cdef class Param_wfs:
-    
+
     def __cinit__(self, bool error_budget=False):
         self.error_budget=error_budget
 
@@ -258,175 +258,175 @@ cdef class Param_wfs:
 
     def set_nxsub(self, long n):
         """Set the linear number of subaps
-        
+
         :param n: (long) : linear number of subaps
         """
         self.nxsub=n
 
     def set_npix(self,long  n):
         """Set the number of pixels per subap
-        
+
         :param n: (long) : number of pixels per subap
         """
         self.npix=n
 
     def set_pixsize(self,float p):
         """Set the pixel size
-        
+
         :param p: (float) : pixel size (in arcsec) for a subap
         """
         self.pixsize=p
 
     def set_Lambda(self,float L):
         """Set the observation wavelength
-        
+
         :param L: (float) : observation wavelength (in µm) for a subap
         """
         self.Lambda=L
 
     def set_optthroughput(self,float o):
         """Set the wfs global throughput
-        
+
         :param o: (float) : wfs global throughput
         """
         self.optthroughput=o
 
     def set_fracsub(self,float f):
         """Set the minimal illumination fraction for valid subaps
-        
+
         :param f: (float) : minimal illumination fraction for valid subaps
         """
         self.fracsub=f
 
     def set_openloop(self,long o):
         """Set the loop state (open or closed)
-        
+
         :param o: (long) : 1 if in "open-loop" mode (i.e. does not see dm)
         """
         self.openloop=o
 
     def set_fssize(self,float f):
         """Set the size of field stop
-        
+
         :param f: (float) : size of field stop in arcsec
         """
         self.fssize=f
 
     def set_fstop(self,str f):
         """Set the size of field stop
-        
+
         :param f: (str) : size of field stop in arcsec
         """
         self.fstop=f
 
     def set_atmos_seen(self, int i):
         """Tells if the wfs sees the atmosphere layers
-        
-        :param i: (int) :1 if the WFS sees the atmosphere layers 
+
+        :param i: (int) :1 if the WFS sees the atmosphere layers
         """
         self.atmos_seen=i
 
     def set_xpos(self,float x):
         """Set the guide star x position on sky
-        
+
         :param x: (float) : guide star x position on sky (in arcsec)
         """
         self.xpos=x
 
     def set_ypos(self,float y):
         """Set the guide star y position on sky
-        
+
         :param y: (float) : guide star y position on sky (in arcsec)
         """
         self.ypos=y
 
     def set_gsalt(self,float g):
-        """Set the altitude of guide star 
-        
+        """Set the altitude of guide star
+
         :param g: (float) : altitude of guide star (in m) 0 if ngs
         """
         self.gsalt=g
 
     def set_gsmag(self,float g):
         """Set the magnitude of guide star
-        
+
         :param g: (float) : magnitude of guide star
         """
         self.gsmag=g
 
     def set_zerop(self,float z):
         """Set the detector zero point
-        
+
         :param z: (float) : detector zero point
         """
         self.zerop=z
 
     def set_noise(self,float n):
         """Set the desired noise
-        
+
         :param n: (float) : desired noise : < 0 = no noise / 0 = photon only / > 0 photon + ron
         """
         self.noise=n
 
     def set_kernel(self,float k):
         """Set the attribute kernel
-        
+
         :param k: (float) :
         """
         self.kernel=k
 
     def set_laserpower(self,float l):
         """Set the laser power
-        
+
         :param l: (float) : laser power in W
         """
         self.laserpower=l
 
     def set_lltx(self,float l):
         """Set the x position of llt
-        
+
         :param l: (float) : x position (in meters) of llt
         """
         self.lltx=l
 
     def set_llty(self,float l):
         """Set the y position of llt
-        
+
         :param l: (float) : y position (in meters) of llt
         """
         self.llty=l
 
     def set_proftype(self,str p):
         """Set the type of sodium profile
-        
+
         :param p: (str) : type of sodium profile "gauss", "exp", etc ...
         """
         self.proftype=p
 
     def set_beamsize(self,float b):
         """Set the laser beam fwhm on-sky
-        
+
         :param b: (float) : laser beam fwhm on-sky (in arcsec)
         """
         self.beamsize=b
 
     def set_pyr_ampl(self,float p):
         """Set the pyramid wfs modulation amplitude radius
-        
+
         :param p: (float) : pyramid wfs modulation amplitude radius (in arsec)
         """
         self.pyr_ampl=p
 
     def set_pyr_npts(self,long p):
         """Set the total number of point along modulation circle
-        
+
         :param p: (long) : total number of point along modulation circle
         """
         self.pyr_npts=p
 
     def set_pyr_loc(self,str p):
         """Set the location of modulation
-        
+
         :param p: (str) : location of modulation, before/after the field stop.
                           valid value are "before" or "after" (default "after")
         """
@@ -434,21 +434,21 @@ cdef class Param_wfs:
 
     def set_pyrtype(self,str p):
         """Set the type of pyramid,
-        
+
         :param p: (str) : type of pyramid, either 0 for "Pyramid" or 1 for "RoofPrism"
         """
         self.pyrtype=p
 
     def set_dms_seen(self, np.ndarray[ndim=1,dtype=np.int32_t] dms_seen):
         """Set the index of dms seen by the WFS
-        
+
         :param dms_seen: (np.ndarray[ndim=1,dtype=np.int32_t) : index of dms seen by the WFS
         """
         self.dms_seen=dms_seen
 
     def set_lgsreturnperwatt(self, float lpw):
         """Set the return per watt factor
-        
+
         :param lpw: (float) : return per watt factor (high season : 10 ph/cm2/s/W)
         """
         self.lgsreturnperwatt=lpw
@@ -456,7 +456,7 @@ cdef class Param_wfs:
 
     def set_altna(self,np.ndarray[ndim=1,dtype=np.float32_t] a):
         """Set the corresponding altitude
-        
+
         :param a: (np.ndarray[ndim=1,dtype=np.float32]) : corresponding altitude
         """
         self._altna=a
@@ -464,15 +464,15 @@ cdef class Param_wfs:
 
     def set_profna(self,np.ndarray[ndim=1,dtype=np.float32_t] p):
         """Set the sodium profile
-        
+
         :param p: (np.ndarray[ndim=1,dtype=np.float32]) : sodium profile
         """
         self._profna=p
-    
+
     def set_errorBudget(self, bool error_budget):
         """ Set the error budget flag : if True, enable error budget analysis
         for this simulation
-        
+
         :param error_budget: (bool) : error budget flag
         """
         self.error_budget = error_budget
@@ -484,7 +484,7 @@ cdef class Param_wfs:
             np.ndarray[dtype=np.float32_t] prof, np.ndarray[dtype=np.float32_t] h,
             float beam, bytes center=<bytes>""):
         """same as prep_lgs_prof but cpu only. original routine from rico
-        
+
         :parameters:
             p_tel: (Param_tel) : telescope settings
 
@@ -591,7 +591,7 @@ cdef class Param_wfs:
                 g[n/2]=0.5
             else:
                 g[n/2]=1
-        
+
         else:
             if(center=="image"):
                 if( (self.npix*self._nrebin)%2 != self._Nfft%2):
@@ -602,7 +602,7 @@ cdef class Param_wfs:
             else:
                 g=np.exp(-x**2/(2*w**2.))
 
-        
+
         self._ftbeam=np.fft.fft(g).astype(np.complex64)
         self._beam=g.astype(np.float32)
         #convolved profile in 1D.
@@ -622,7 +622,7 @@ cdef class Param_wfs:
         cdef np.ndarray[ndim=3,dtype=np.float32_t] im
         im=np.zeros((p1d.shape[1],p1d.shape[0],p1d.shape[0]),dtype=np.float32)
 
-       
+
         cdef int l,c
         for i in range(p1d.shape[1]):
             for l in range(p1d.shape[0]):
@@ -690,14 +690,14 @@ cdef class Param_atmos:
         self.pupixsize= xsize
 
     def set_L0( self, l):
-        """Set the L0 per layers 
+        """Set the L0 per layers
 
         :param l: (lit of float) : L0 for each layers
         """
         self.L0=np.array(l,dtype=np.float32)
 
     def set_dim_screens( self, l):
-        """Set the size of the phase screens 
+        """Set the size of the phase screens
 
         :param l: (lit of float) : phase screens sizes
         """
@@ -782,7 +782,7 @@ cdef class Param_dm:
 
     def set_thresh(self, float t):
         """set the threshold on response for selection
-        
+
         :param t: (float) : threshold on response for selection (<1)
         """
         self.thresh=t
@@ -832,14 +832,14 @@ cdef class Param_dm:
     def set_i1(self,np.ndarray[ndim=1,dtype=np.int32_t] i1):
         """TODO doc
 
-        :param i1: (np.ndarray[ndim=1,dtype=np.int32_t]) : 
+        :param i1: (np.ndarray[ndim=1,dtype=np.int32_t]) :
         """
         self._i1=i1
 
     def set_j1(self,np.ndarray[ndim=1,dtype=np.int32_t] j1):
-        """TODO doc 
+        """TODO doc
 
-        :param j1: (np.ndarray[ndim=1,dtype=np.int32_t]) : 
+        :param j1: (np.ndarray[ndim=1,dtype=np.int32_t]) :
         """
         self._j1=j1
 
@@ -858,6 +858,7 @@ cdef class Param_dm:
 cdef class Param_target:
     def __cinit__(self):
         self.ntargets=0
+        self.zerop=1.
 
 
     def set_nTargets(self, int n):
@@ -878,7 +879,7 @@ cdef class Param_target:
         """Set the observation wavelength
 
         :param l: (list of float) : observation wavelength for each target
-        """ 
+        """
         self.Lambda=np.array(l,dtype=np.float32)
 
     def set_xpos(self,l):
@@ -901,13 +902,20 @@ cdef class Param_target:
         :param l: (list of float) : magnitude for each target
         """
         self.mag =np.array(l,dtype=np.float32)
-        
+
     def set_dms_seen(self,l):
         """set the dms seen by the target
 
         :param l: (list of int) : index for each dm
         """
         self.dms_seen =np.array(l,dtype=np.int32)
+
+    def set_zerop(self,float z):
+        """Set the detector zero point
+
+        :param z: (float) : detector zero point
+        """
+        self.zerop=z
 
 
 
@@ -963,10 +971,10 @@ cdef class Param_centroider:
 
     def set_nmax(self, long n):
         """Set the number of brightest pixels to use for bpcog
-        
+
         :parameters:
             n: (int) : number of brightest pixels
-        """  
+        """
         self.nmax=n
 
     def set_thresh(self, float t):
@@ -1068,7 +1076,7 @@ cdef class Param_controller:
         self.delay=d
 
     def set_gain(self,float g):
-        """Set the loop gain 
+        """Set the loop gain
 
         :parameters:
             g: (float) : loop gain
@@ -1160,7 +1168,7 @@ cpdef make_apodizer(int dim, int pupd, bytes filename, float angle):
 
         (str) : filename:
 
-        (float) : angle: 
+        (float) : angle:
     """
 
     print "Opening apodizer"
@@ -1169,34 +1177,34 @@ cpdef make_apodizer(int dim, int pupd, bytes filename, float angle):
     cdef int A=pup.shape[0]
 
     if(A>dim):
-        raise ValueError("Apodizer dimensions must be smaller.") 
-    
+        raise ValueError("Apodizer dimensions must be smaller.")
+
     if (A != pupd):
         #use misc.imresize (with bilinear)
         print "TODO pup=bilinear(pup,pupd,pupd)"
-    
+
     if (angle != 0):
         #use ndimage.interpolation.rotate
         print "TODO pup=rotate2(pup,angle)"
         pup=interp.rotate(pup,angle,reshape=False,order=2)
-    
+
     reg=np.where(mkP.dist(pupd)>pupd/2.)
     pup[reg]=0.
-    
+
     cdef np.ndarray[ndim=2,dtype=np.float32_t] pupf= np.zeros((dim,dim),dtype=np.float32)
-    
+
     if (dim != pupd):
         if ((dim-pupd)%2 != 0):
             pupf[(dim-pupd+1)/2:(dim+pupd+1)/2,(dim-pupd+1)/2:(dim+pupd+1)/2]=pup
-        
+
         else:
             pupf[(dim-pupd)/2:(dim+pupd)/2,(dim-pupd)/2:(dim+pupd)/2]=pup
-       
+
     else:
         pupf=pup
-    
+
     pupf=np.abs(pupf).astype(np.float32)
-    
+
     return pupf
 
 
@@ -1348,7 +1356,7 @@ cpdef rotate(np.ndarray[ndim=3,dtype=np.float32_t] im,
 
     cdef np.ndarray[ndim=3,dtype=np.float32_t] imr=np.zeros((im.shape[0],im.shape[1],im.shape[2])).\
                                                     astype(np.float32)
-        
+
     matrot=np.array([[np.cos(ang),-np.sin(ang)],
                      [np.sin(ang), np.cos(ang)]])
 
@@ -1402,7 +1410,7 @@ cpdef  indices(int dim1, int dim2=-1):
 
     if (dim2<0):
         y =np.tile( (np.arange(dim1,dtype=np.float32)+1),(dim1,1))
-        x =np.copy(y.T) 
+        x =np.copy(y.T)
         return y,x
     else :
         x =np.tile( (np.arange(dim1,np.float32)+1),(dim2,1))
@@ -1417,7 +1425,7 @@ cpdef makegaussian(int size, float fwhm, int xc=-1, int yc=-1, int norm=0):
     norm returns normalized 2d gaussian
 
     :parameters:
-        size: (int) : 
+        size: (int) :
 
         fwhm: (float) :
 
@@ -1436,11 +1444,11 @@ cpdef makegaussian(int size, float fwhm, int xc=-1, int yc=-1, int norm=0):
 def get_classAttributes(Param_class):
     """ get_classAttributes(Param_class)
     Return all the attribute names of the given Param_class
-    
+
     :param Param_class: shesha parameters class
     :return: list of strings (attributes names)
-    
-    :example: 
+
+    :example:
         import shesha as ao
         get_classAttributes(ao.Param_wfs)
     """

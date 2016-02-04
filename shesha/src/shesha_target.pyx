@@ -99,19 +99,30 @@ cdef class Target:
         self.context.set_activeDeviceForCpy(self.device)
         cdef sutra_source *src = self.target.d_targets[nTarget]
 
-        cdef const long *dims
-        dims=src.d_image.getDims()
+        cdef const long *dims = src.d_image.getDims()
         cdef np.ndarray data_F=np.empty((dims[2],dims[1]),dtype=np.float32)
         cdef np.ndarray data=np.empty((dims[1],dims[2]),dtype=np.float32)
 
         src.comp_image(puponly)
+        cdef float flux = src.zp * 10**(-0.4 * src.mag);
+        cdef carma_obj[float] *tmp_img = new carma_obj[float](self.context.c, dims)
         if(type_im=="se"):
-            src.d_image.device2host(<float*>data_F.data)
+            roll_mult[float](
+                tmp_img.getData(),
+                src.d_image.getData(),src.d_image.getDims(1),src.d_image.getDims(2),
+                flux,
+                self.context.c.get_device(src.device));
         elif(type_im=="le"):
-            src.d_leimage.device2host(<float*>data_F.data)
+            roll_mult[float](
+                tmp_img.getData(),
+                src.d_leimage.getData(),src.d_leimage.getDims(1),src.d_leimage.getDims(2),
+                flux,
+                self.context.c.get_device(src.device));
+
+        tmp_img.device2host(<float*>data_F.data)
 
         data=np.reshape(data_F.flatten("F"),(dims[1],dims[2]))
-        data = np.roll(np.roll(data,data.shape[0]/2,axis=0),data.shape[1]/2,axis=1)
+        del tmp_img
         return data
 
 
