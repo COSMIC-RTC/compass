@@ -94,7 +94,7 @@ int sutra_wfs::sensor_trace(sutra_atmos *yatmos, sutra_dms *ydms) {
 sutra_sensors::sutra_sensors(carma_context *context, sutra_telescope *d_tel, char **type, int nwfs,
                              long *nxsub, long *nvalid, long *npix,
                              long *nphase, long *nrebin, long *nfft, long *ntot,
-                             long *npup, float *pdiam, float *nphot, int *lgs,
+                             long *npup, float *pdiam, float *nphot, float *nphot4imat, int *lgs,
                              int device, bool error_budget) {
   this->current_context = context;
   this->device = device;
@@ -154,15 +154,15 @@ sutra_sensors::sutra_sensors(carma_context *context, sutra_telescope *d_tel, cha
     if (strcmp(type[i],"sh") == 0)
       wfs = new sutra_wfs_sh(context, d_tel, this, nxsub[i], nvalid[i], npix[i],
                              nphase[i], nrebin[i], nfft[i], ntot[i], npup[i],
-                             pdiam[i], nphot[i], lgs[i], device);
+                             pdiam[i], nphot[i], nphot4imat[i], lgs[i], device);
     if (strcmp(type[i],"pyr") == 0)
       wfs = new sutra_wfs_pyr_pyr4(context, d_tel, this, nxsub[i], nvalid[i], npix[i],
                                    nphase[i], nrebin[i], nfft[i], ntot[i], npup[i],
-                                   pdiam[i], nphot[i], lgs[i], device);
+                                   pdiam[i], nphot[i], nphot4imat[i], lgs[i], device);
     if (strcmp(type[i],"roof") == 0)
       wfs = new sutra_wfs_pyr_roof(context, d_tel, this, nxsub[i], nvalid[i], npix[i],
                                    nphase[i], nrebin[i], nfft[i], ntot[i], npup[i],
-                                   pdiam[i], nphot[i], lgs[i], device);
+                                   pdiam[i], nphot[i], nphot4imat[i], lgs[i], device);
     d_wfs.push_back(wfs);
 
 //		DEBUG_TRACE("After creating wfs #%d : ",i);printMemInfo();

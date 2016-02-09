@@ -844,6 +844,7 @@ cdef class Rtc:
 
         cdef int inds1,j,idx_cntr, device
         cdef float tmp_noise
+        cdef float tmp_nphot
         inds1=0
         cdef sutra_dm *dm
         cdef sutra_wfs *wfs
@@ -871,6 +872,8 @@ cdef class Rtc:
                     wfs=self.rtc.d_centro[idx_cntr].wfs
                     screen=wfs.d_gs.d_phase.d_screen
                     tmp_noise=wfs.noise
+                    tmp_nphot = wfs.nphot
+                    wfs.nphot = wfs.nphot4imat
                     wfs.noise=-1
                     wfs.kernconv=True
                     wfs.sensor_trace(g_dms.dms,1)
@@ -878,6 +881,7 @@ cdef class Rtc:
                         Bcast(screen,0)
                     wfs.comp_image()
                     wfs.noise=tmp_noise
+                    wfs.nphot = tmp_nphot
                     wfs.kernconv=False
 
                 self.rtc.do_centroids(ncontro,True)
@@ -904,11 +908,14 @@ cdef class Rtc:
                 for idx_cntr in range(<int>self.rtc.d_centro.size()):
                     wfs=self.rtc.d_centro[idx_cntr].wfs
                     tmp_noise=wfs.noise
+                    tmp_nphot = wfs.nphot
+                    wfs.nphot = wfs.nphot4imat
                     wfs.noise=-1
                     wfs.kernconv=True
                     wfs.sensor_trace(g_dms.dms,1)
                     wfs.comp_image()
                     wfs.noise=tmp_noise
+                    wfs.nphot = tmp_nphot
                     wfs.kernconv=False
 
                 self.rtc.do_centroids(ncontro,True)

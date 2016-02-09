@@ -146,11 +146,14 @@ int sutra_rtc::do_imat(int ncntrl, sutra_dms *ydm) {
           idx_cntr++) {
         sutra_wfs *wfs = this->d_centro[idx_cntr]->wfs;
         float tmp_noise = wfs->noise;
+        float tmp_nphot = wfs->nphot;
+        wfs->nphot = wfs->nphot4imat;
         wfs->noise = -1;
         wfs->kernconv = true;
         wfs->sensor_trace(ydm, 1);
         wfs->comp_image();
         wfs->noise = tmp_noise;
+        wfs->nphot = tmp_nphot;
         wfs->kernconv = false;
       }
       //DEBUG_TRACE("actu %d", j);
@@ -170,11 +173,14 @@ int sutra_rtc::do_imat(int ncntrl, sutra_dms *ydm) {
           idx_cntr++) {
         sutra_wfs *wfs = this->d_centro[idx_cntr]->wfs;
         float tmp_noise = wfs->noise;
+        float tmp_nphot = wfs->nphot;
+        wfs->nphot = wfs->nphot4imat;
         wfs->noise = -1;
         wfs->kernconv = true;
         wfs->sensor_trace(ydm, 1);
         wfs->comp_image();
         wfs->noise = tmp_noise;
+        wfs->nphot = tmp_nphot;
         wfs->kernconv = false;
       }
       device = this->d_control[ncntrl]->d_centroids->getDevice();

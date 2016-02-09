@@ -235,7 +235,7 @@ cdef extern from "sutra_wfs.h":
 
         sutra_sensors(carma_context *context, sutra_telescope *d_tel, const char** type, int nwfs, long *nxsub,
           long *nvalid, long *npix, long *nphase, long *nrebin, long *nfft,
-          long *ntot, long *npup, float *pdiam, float *nphot, int *lgs, int device, bool error_budget)
+          long *ntot, long *npup, float *pdiam, float *nphot, float *nphot4imat, int *lgs, int device, bool error_budget)
         sutra_sensors(carma_context *context, sutra_telescope *d_tel, int nwfs, long *nxsub, long *nvalid,
           long *nphase, long npup, float *pdiam, int device)
 
@@ -268,6 +268,7 @@ cdef extern from "sutra_wfs.h":
         long nffthr
         float subapd
         float nphot
+        float nphot4imat
         float noise
         bool lgs
         bool kernconv
@@ -327,7 +328,7 @@ cdef extern from "sutra_wfs.h":
 
         sutra_wfs(carma_context *context, sutra_telescope *d_tel, sutra_sensors *sensors,  const char* type, long nxsub, long nvalid,
           long npix, long nphase, long nrebin, long nfft, long ntot, long npup,
-          float pdiam, float nphotons, int lgs, int device)
+          float pdiam, float nphotons, float nphot4imat, int lgs, int device)
         sutra_wfs(carma_context *context, sutra_telescope *d_tel, long nxsub, long nvalid, long nphase,
           long npup, float pdiam, int device)
         sutra_wfs(const sutra_wfs& wfs)

@@ -4,8 +4,8 @@
 
 sutra_wfs_pyr_pyr4::sutra_wfs_pyr_pyr4(carma_context *context, sutra_telescope *d_tel, sutra_sensors *sensors, long nxsub,
     long nvalid, long npix, long nphase, long nrebin, long nfft, long ntot,
-    long npup, float pdiam, float nphotons, int lgs, int device) : sutra_wfs_pyr(context, d_tel, sensors, nxsub,
-    nvalid, npix, nphase, nrebin, nfft, ntot, npup, pdiam, nphotons, lgs, device)
+    long npup, float pdiam, float nphotons, float nphot4imat, int lgs, int device) : sutra_wfs_pyr(context, d_tel, sensors, nxsub,
+    nvalid, npix, nphase, nrebin, nfft, ntot, npup, pdiam, nphotons, nphot4imat, lgs, device)
 {
   this->type = "pyr";
 }

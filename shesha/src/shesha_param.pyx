@@ -248,6 +248,7 @@ cdef class Param_wfs:
 
     def __cinit__(self, bool error_budget=False):
         self.error_budget=error_budget
+        self.nphotons4imat = 1.e5
 
     def set_type(self, str t):
         """Set the type of wfs
@@ -367,6 +368,13 @@ cdef class Param_wfs:
         :param n: (float) : desired noise : < 0 = no noise / 0 = photon only / > 0 photon + ron
         """
         self.noise=n
+    
+    def set_nphotons4imat(self,float nphot):
+        """Set the desired numner of photons used for doing imat
+        
+        :param nphot: (float) : desired number of photons
+        """
+        self.nphotons4imat=nphot
 
     def set_kernel(self,float k):
         """Set the attribute kernel

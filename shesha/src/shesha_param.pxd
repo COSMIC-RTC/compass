@@ -151,6 +151,8 @@ cdef class Param_wfs:
 
     cdef readonly float   _nphotons     
     """ number of photons per subap"""
+    cdef readonly float   nphotons4imat
+    """ number of photons per subap used for doing imat"""
     cdef readonly float   _subapd       
     """ subap diameter (m)"""
     cdef readonly np.ndarray _fluxPerSub   

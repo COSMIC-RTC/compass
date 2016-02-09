@@ -526,7 +526,7 @@ class widgetAOWindow(TemplateBaseClass):
 
     def updateDisplay(self):
         data = None
-        if(wao.ui.wao_Display.isChecked()):
+        if(self.ui.wao_Display.isChecked()):
             self.ui.wao_rtcWindowMPL.hide()
             self.ui.wao_pgwindow.show()
             if(self.atm):
@@ -582,8 +582,10 @@ class widgetAOWindow(TemplateBaseClass):
                     if(self.ui.wao_PSFlogscale.isChecked()):
                         data = np.log10(data)
             if (data is not None):
-                self.img.setImage(data)
-                self.hist.setLevels(np.min(data),np.max(data))
+                autoscale = self.ui.wao_autoscale.isChecked()
+                if(autoscale):
+                    self.hist.setLevels(data.min(), data.max()) # inits levels
+                self.img.setImage(data, autoLevels=autoscale)
                 self.p1.autoRange()
 
 
@@ -776,8 +778,11 @@ class aoLoopThread(QtCore.QThread):
                 if(wao.ui.wao_PSFlogscale.isChecked()):
                     data = np.log10(data)
         if (data is not None):
-            self.img.setImage(data, autoLevels=False)
-            #self.histo.setLevels(np.min(data),np.max(data))
+            autoscale = wao.ui.wao_autoscale.isChecked()
+            if(autoscale):
+                wao.hist.setLevels(data.min(), data.max()) # inits levels
+            wao.img.setImage(data, autoLevels=autoscale)
+            # wao.p1.autoRange()
 
     def run(self):
         i=0

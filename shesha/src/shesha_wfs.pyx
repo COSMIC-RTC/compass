@@ -432,6 +432,7 @@ def wfs_init( wfs, Param_atmos p_atmos, Param_tel p_tel, Param_geom p_geom,
     cdef np.ndarray nfft   = np.array([o._Nfft     for o in wfs],dtype=np.int64)
     cdef np.ndarray ntota  = np.array([o._Ntot     for o in wfs],dtype=np.int64)
     cdef np.ndarray nphot  = np.array([o._nphotons for o in wfs],dtype=np.float32)
+    cdef np.ndarray nphot4imat  = np.array([o.nphotons4imat for o in wfs],dtype=np.float32)
     cdef np.ndarray lgs    = np.array([o.gsalt>0   for o in wfs],dtype=np.int32)
 
     #arrays needed to call sensors_initgs
@@ -459,7 +460,7 @@ def wfs_init( wfs, Param_atmos p_atmos, Param_tel p_tel, Param_geom p_geom,
 
     if(wfs[0].type_wfs=="sh"):
         g_wfs= Sensors(nsensors,telescope,t_wfs,npup,nxsub,nvalid,nphase,pdiam,npix,nrebin,
-                nfft,ntota,nphot,lgs,comm_size=comm_size, rank=rank, error_budget=error_budget_flag)
+                nfft,ntota,nphot,nphot4imat,lgs,comm_size=comm_size, rank=rank, error_budget=error_budget_flag)
 
         mag=np.array([o.gsmag    for o in wfs], dtype=np.float32)
         noise=np.array([o.noise    for o in wfs], dtype=np.float32)
@@ -468,7 +469,7 @@ def wfs_init( wfs, Param_atmos p_atmos, Param_tel p_tel, Param_geom p_geom,
     elif(wfs[0].type_wfs=="pyr" or wfs[0].type_wfs=="roof"):
         npup=np.array([wfs[0].pyr_npts])
         g_wfs= Sensors(nsensors,telescope, t_wfs,npup,nxsub,nvalid,nphase,pdiam,npix,nrebin,
-                nfft,ntota,nphot,lgs,comm_size=comm_size, rank=rank, error_budget=error_budget_flag)
+                nfft,ntota,nphot,nphot4imat,lgs,comm_size=comm_size, rank=rank, error_budget=error_budget_flag)
 
         mag=np.array([o.gsmag    for o in wfs], dtype=np.float32)
         noise=np.array([o.noise    for o in wfs], dtype=np.float32)

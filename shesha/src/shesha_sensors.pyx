@@ -37,6 +37,8 @@ cdef class Sensors:
         ntota: (np.ndarray[ndim=1,dtype=np.int64_t]) :
 
         nphot: (np.ndarray[ndim=1,dtype=np.float32_t]) :
+        
+        nphot4imat: (np.ndarray[ndim=1,dtype=np.float32_t]) :
 
         lgs: (np.ndarray[ndim=1,dtype=np.int32_t]) :
 
@@ -61,6 +63,7 @@ cdef class Sensors:
                     np.ndarray[ndim=1,dtype=np.int64_t] nfft=None,
                     np.ndarray[ndim=1,dtype=np.int64_t] ntota=None,
                     np.ndarray[ndim=1,dtype=np.float32_t] nphot=None,
+                    np.ndarray[ndim=1,dtype=np.float32_t] nphot4imat=None,
                     np.ndarray[ndim=1,dtype=np.int32_t] lgs=None,
                     int odevice=-1,
                     int comm_size=1,
@@ -97,6 +100,7 @@ cdef class Sensors:
                         <long*>npup.data,
                         <float*>pdiam.data,
                         <float*>nphot.data,
+                        <float*>nphot4imat.data,
                         <int*>lgs.data,
                         odevice,error_budget)
 
