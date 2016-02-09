@@ -185,6 +185,7 @@ func init_wfs_geom(n,init=)
     y_wfs(n)._qpixsize = qpixsize;
   }
   y_wfs(n)._subapd = y_tel.diam/y_wfs(n).nxsub;
+  y_wfs(n)._pdiam = pdiam;
 
   if ((y_wfs(n).type == "pyr")||(y_wfs(n).type == "roof")) y_wfs(n).npix = pdiam;
 
