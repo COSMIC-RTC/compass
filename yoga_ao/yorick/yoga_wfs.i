@@ -57,7 +57,10 @@ func init_wfs_size(wfs,&pdiam,&Nfft,&Ntot,&nrebin,&pixsize,&qpixsize)
     pdiam = long(k * subapdiam / r0);// number of phase points per subap
     if (pdiam < 16) pdiam = 16;
     //pdiam = 18;
-
+    if((pdiam*y_wfs(n).nxsub)%2){
+      pdiam += 1;
+    }
+  
     if (wfs.type == "sh") {
       nrebin = long(2 * subapdiam * wfs.pixsize / (wfs.lambda*1.e-6) / RASC) + 1;
       nrebin = max(2,nrebin);
@@ -182,10 +185,6 @@ func init_wfs_geom(n,init=)
     y_wfs(n)._qpixsize = qpixsize;
   }
   y_wfs(n)._subapd = y_tel.diam/y_wfs(n).nxsub;
-  if((pdiam*y_wfs(n).nxsub)%2){
-    pdiam += 1;
-  }
-  y_wfs(n)._pdiam = pdiam;
 
   if ((y_wfs(n).type == "pyr")||(y_wfs(n).type == "roof")) y_wfs(n).npix = pdiam;
 

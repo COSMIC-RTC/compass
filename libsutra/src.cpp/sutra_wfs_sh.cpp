@@ -541,7 +541,13 @@ int sutra_wfs_sh::comp_generic() {
         current_context->get_device(device));
   } else {
     // multiply each subap by nphot*fluxPersub/sumPerSub
-    subap_norm(this->d_bincube->getData(), this->d_bincube->getData(),
+	  if(this->kernconv) // Imat case : High photon flux imposed
+		    subap_norm(this->d_bincube->getData(), this->d_bincube->getData(),
+		        this->d_fluxPerSub->getData(), this->d_subsum->getData(), 10000.f,
+		        this->npix * this->npix, this->d_bincube->getNbElem(),
+		        current_context->get_device(device));
+	  else // Classical case
+		  subap_norm(this->d_bincube->getData(), this->d_bincube->getData(),
         this->d_fluxPerSub->getData(), this->d_subsum->getData(), this->nphot,
         this->npix * this->npix, this->d_bincube->getNbElem(),
         current_context->get_device(device));
