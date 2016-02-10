@@ -403,6 +403,16 @@
              </item>
             </layout>
            </item>
+           <item>
+            <widget class="QCheckBox" name="wao_useDatabase">
+             <property name="text">
+              <string>Use matrices database</string>
+             </property>
+             <property name="checked">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
           </layout>
          </widget>
         </item>

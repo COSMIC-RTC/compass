@@ -601,7 +601,7 @@ class widgetAOWindow(TemplateBaseClass):
         else:
             simul_name=""
         matricesToLoad={}
-        if(simul_name==""):
+        if(simul_name=="" or not self.ui.wao_useDatabase.isChecked()):
             clean=1
         else:
             clean=0

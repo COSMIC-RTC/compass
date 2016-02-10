@@ -1426,7 +1426,7 @@ def rtc_init(Telescope g_tel, Sensors g_wfs, p_wfs, Dms g_dms, p_dms, Param_geom
 
         p_tar: (Param_target) : (optional) target settings
 
-        clean: (int) : (optional) clean datafiles (imat, U, eigenv)
+        clean: (int) : (optional) clean datafiles (imat, U, eigenv, pztok, pztnok)
 
         brama: (int) : (optional) not implemented yet
 
@@ -1605,7 +1605,7 @@ def rtc_init(Telescope g_tel, Sensors g_wfs, p_wfs, Dms g_dms, p_dms, Param_geom
                             imat=manual_imat(g_rtc,g_wfs,p_wfs,g_dms,p_dms)
                     else:
                         imat = np.zeros((2,2),dtype=np.float32)
-                    correct_dm(p_dms,g_dms,controller,p_geom, imat,simul_name,load)
+                    correct_dm(p_dms,g_dms,controller,p_geom, imat,simul_name,load,clean=clean)
                     #TODO add timer
                     if(controller.type_control !="geo"):
                         nwfs=controller.nwfs
@@ -1776,7 +1776,7 @@ def rtc_init(Telescope g_tel, Sensors g_wfs, p_wfs, Dms g_dms, p_dms, Param_geom
     return g_rtc
 
 
-cpdef correct_dm(p_dms, Dms g_dms, Param_controller p_control, Param_geom p_geom, np.ndarray imat, bytes simul_name, dict load):
+cpdef correct_dm(p_dms, Dms g_dms, Param_controller p_control, Param_geom p_geom, np.ndarray imat, bytes simul_name, dict load, int clean=1):
     """Correct the geometry of the DMs using the imat (filter unseen actuators)
 
     :parameters:
@@ -1804,7 +1804,7 @@ cpdef correct_dm(p_dms, Dms g_dms, Param_controller p_control, Param_geom p_geom
 
     cdef long dims,ninflu,influsize,NR,NP
 
-    if (simul_name=="" ):
+    if (simul_name=="" or clean == 1):
         imat_clean = 1
     else:
         imat_clean=0
@@ -1847,7 +1847,7 @@ cpdef correct_dm(p_dms, Dms g_dms, Param_controller p_control, Param_geom p_geom
                 tmp=resp[inds:inds+p_dms[nm]._ntotact]
                 ok=np.where(tmp.flatten("F")>p_dms[nm].thresh*np.max(tmp))[0]
                 nok=np.where(tmp.flatten("F")<=p_dms[nm].thresh*np.max(tmp))[0]
-                if(simul_name !="" and rank==0):
+                if(simul_name !="" and clean == 0 and rank==0):
                     print "writing files"
                     df = pandas.read_hdf(shesha_savepath+"/matricesDataBase.h5","pztok")
                     ind = len(df.index) - 1
@@ -2187,7 +2187,7 @@ cpdef imat_init(int ncontro, Rtc g_rtc, Param_rtc p_rtc, Dms g_dms, Sensors g_wf
     cdef carma_obj[float] *screen
 
 
-    if(simul_name!=""):
+    if(simul_name!="" and clean == 0):
         imat_clean= not load.has_key("imat")#int(not os.path.isfile(filename) or clean)
 
     if(imat_clean):
@@ -2207,7 +2207,7 @@ cpdef imat_init(int ncontro, Rtc g_rtc, Param_rtc p_rtc, Dms g_dms, Sensors g_wf
         g_rtc.doimat(ncontro,g_dms)
         print "done in ",time.time()-t0
         p_rtc.controllers[ncontro].set_imat(g_rtc.get_imat(ncontro))
-        if(simul_name!="" and rank==0):
+        if(simul_name!="" and clean == 0 and rank==0):
 
             df = pandas.read_hdf(shesha_savepath+"/matricesDataBase.h5","imat")
             ind = len(df.index) - 1
@@ -2269,7 +2269,7 @@ cpdef cmat_init(int ncontro, Rtc g_rtc, Param_rtc p_rtc, list p_wfs, Param_atmos
     cdef int nfilt,ind,i
 
 
-    if(simul_name==""):
+    if(simul_name=="" or clean == 1):
         cmat_clean=1
     else:
         filename=dirsave+"imat-"+str(ncontro)+"-"+simul_name+".npy"
@@ -2288,7 +2288,7 @@ cpdef cmat_init(int ncontro, Rtc g_rtc, Param_rtc p_rtc, list p_wfs, Param_atmos
             g_rtc.imat_svd(ncontro)
             print "svd time",time.time()-t0
             eigenv = g_rtc.getEigenvals(ncontro)
-            if(simul_name!="" and rank==0):
+            if(simul_name!="" and clean == 0 and rank==0):
                 U=g_rtc.getU(ncontro)
                 df = pandas.read_hdf(shesha_savepath+"/matricesDataBase.h5","eigenv")
                 ind = len(df.index) - 1
