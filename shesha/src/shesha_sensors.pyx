@@ -7,6 +7,18 @@ import os
 
 include "shesha_wfs.pyx"
 
+IF USE_MPI == 1:
+    #from mpi4py import MPI
+    from mpi4py cimport MPI
+    # C-level cdef, typed, Python objects
+    #from mpi4py cimport mpi_c as mpi
+    from mpi4py cimport libmpi as mpi
+
+IF USE_MPI==2:
+    cimport mpi4py.MPI as MPI
+    cimport mpi4py.libmpi as mpi
+
+
 cdef class Sensors:
     """
 
@@ -531,7 +543,7 @@ cdef class Sensors:
         :param n: (int) : number of the wfs to get the 'slopes' dimension from
         """
         cdef int comm_size, rank
-        IF USE_MPI==1:
+        IF USE_MPI:
             mpi.MPI_Comm_size(mpi.MPI_COMM_WORLD,&comm_size)
             mpi.MPI_Comm_rank(mpi.MPI_COMM_WORLD,&rank)
         ELSE:
@@ -545,7 +557,7 @@ cdef class Sensors:
         cdims=self.sensors.d_wfs[n].d_slopes.getDims()
         dim_tot=cdims[1]
 
-        IF USE_MPI==1:
+        IF USE_MPI:
             mpi.MPI_Allreduce(mpi.MPI_IN_PLACE,&dim_tot,1,mpi.MPI_LONG,mpi.MPI_SUM,mpi.MPI_COMM_WORLD)
         return dim_tot
 
@@ -574,7 +586,7 @@ cdef class Sensors:
         data=np.empty((cdims[1]),dtype=np.float32)
         slopes.device2host(<float*>data.data)
 
-        IF USE_MPI==1:
+        IF USE_MPI:
             cdef int comm_size, rank
             mpi.MPI_Comm_size(mpi.MPI_COMM_WORLD,&comm_size)
             mpi.MPI_Comm_rank(mpi.MPI_COMM_WORLD,&rank)
@@ -665,7 +677,7 @@ cdef class Sensors:
 
 
 
-    IF USE_MPI==1:
+    IF USE_MPI:
         cpdef Bcast_dscreen(self):
             """Broadcast the screen of every wfs on process 0 to all process
 
@@ -765,7 +777,7 @@ cdef class Sensors:
 
         :param n: (int): index of the wfs to get the rank for
         """
-        IF USE_MPI==1:
+        IF USE_MPI:
             return self.sensors.d_wfs[n].rank
         ELSE:
             return 0

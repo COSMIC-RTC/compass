@@ -49,7 +49,7 @@ cdef extern from "sutra_telescope.h":
     cdef cppclass sutra_telescope:
 
         carma_context *current_context
-        int device; # device #
+        int device #// device 
 
         long pup_size #// size of pupil
         long num_eleme_pup #// number of points in the pupil
@@ -984,4 +984,63 @@ IF USE_BRAMA == 1:
                                int Npts, int device)
 
             void publish();
+
+
+IF USE_MPI==1:
+    #from mpi4py import MPI
+    from mpi4py cimport MPI
+    # C-level cdef, typed, Python objects
+    #from mpi4py cimport mpi_c as mpi
+    from mpi4py cimport libmpi as mpi
+
+IF USE_MPI==2:
+    cimport mpi4py.MPI as MPI
+    cimport mpi4py.libmpi as mpi
+    
+    
+IF USE_MPI:
+    cdef inline Bcast(carma_obj[float] *obj, int root):
+        """Broadcast the content of a carma_obj<float>
+
+        :parameters:
+            obj: (carma_obj<float>) : carma_obj to broadcast
+
+            root: (int) : root of the MPI broadcast
+        """
+        cdef int i
+        cdef int size=<int>obj.getNbElem()
+
+        cdef float *ptr
+        ptr=<float*>malloc(size*sizeof(float))
+
+        obj.device2host(ptr)
+
+        mpi.MPI_Bcast(ptr,size,mpi.MPI_FLOAT,root,mpi.MPI_COMM_WORLD)
+
+        obj.host2device(ptr)
+
+
+        free(ptr)
+
+
+
+    cdef inline Bcast_cudaAware(carma_obj[float] *obj, int root):
+        """Broadcast the content of a carma_obj<float>
+           Using cuda_aware
+
+        :parameters:
+            obj: (carma_obj<float>) : carma_obj to broadcast
+
+            root: (int) : root of the MPI broadcast
+        """
+
+        cdef int i
+        cdef int size=<int>obj.getNbElem()
+
+        cdef float *ptr
+        ptr=obj.getData()
+
+        mpi.MPI_Bcast(ptr,size,mpi.MPI_FLOAT,root,mpi.MPI_COMM_WORLD)
+
+
 

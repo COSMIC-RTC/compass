@@ -16,17 +16,6 @@ from libc.stdint cimport uintptr_t
 
 from cpython.string cimport PyString_AsString
 
-IF USE_MPI == 1:
-    print "using mpi"
-    #from mpi4py import MPI
-    from mpi4py cimport MPI
-    #cimport mpi4py.MPI as MPI
-    # C-level cdef, typed, Python objects
-    from mpi4py cimport mpi_c as mpi
-    #from mpi4py cimport libmpi as mpi
-    #cimport mpi4py.libmpi as mpi
-
-
 from libc.math cimport sin
 
 cdef np.float32_t dtor = (np.pi/180.)

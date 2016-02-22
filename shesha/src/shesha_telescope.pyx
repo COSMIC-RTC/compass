@@ -1,5 +1,3 @@
-include "../par.pxi"
-
 import numpy as np
 
 cdef class Telescope:

@@ -3,8 +3,6 @@ import cython
 import numpy as np
 cimport numpy as np
 
-include "../par.pxi"
-
 import os
 import sys
 
@@ -456,52 +454,6 @@ cdef rotate2(image,angle, xc=-1,yc=-1, splin=0,outside=0):
 #    if (splin!=0) return spline2(image,x,y,outside=outside)
 #    return bilinear(image,x,y,outside=outside)
 '''
-
-
-
-IF USE_MPI==1:
-    cdef Bcast(carma_obj[float] *obj, int root):
-        """Broadcast the content of a carma_obj<float>
-
-        :parameters:
-            obj: (carma_obj<float>) : carma_obj to broadcast
-
-            root: (int) : root of the MPI broadcast
-        """
-        cdef int i
-        cdef int size=<int>obj.getNbElem()
-
-        cdef float *ptr
-        ptr=<float*>malloc(size*sizeof(float))
-
-        obj.device2host(ptr)
-
-        mpi.MPI_Bcast(ptr,size,mpi.MPI_FLOAT,root,mpi.MPI_COMM_WORLD)
-
-        obj.host2device(ptr)
-
-
-        free(ptr)
-
-
-
-    cdef Bcast_cudaAware(carma_obj[float] *obj, int root):
-        """Broadcast the content of a carma_obj<float>
-           Using cuda_aware
-
-        :parameters:
-            obj: (carma_obj<float>) : carma_obj to broadcast
-
-            root: (int) : root of the MPI broadcast
-        """
-
-        cdef int i
-        cdef int size=<int>obj.getNbElem()
-
-        cdef float *ptr
-        ptr=obj.getData()
-
-        mpi.MPI_Bcast(ptr,size,mpi.MPI_FLOAT,root,mpi.MPI_COMM_WORLD)
 
 
 

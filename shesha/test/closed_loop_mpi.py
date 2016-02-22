@@ -17,7 +17,7 @@ c.set_activeDevice(rank%c.get_ndevice())
 #mpi_init called during the import
 import mpi4py
 from mpi4py import MPI
-
+import hdf5_utils as h5u
 
 
 comm=MPI.COMM_WORLD
@@ -32,36 +32,63 @@ if(len(sys.argv)!=2):
 
 #get parameters from file
 param_file=sys.argv[1]
-execfile(param_file)
+if(param_file.split('.')[-1] == "py"):
+    filename=param_file.split('/')[-1]
+    param_path=param_file.split(filename)[0]
+    sys.path.insert(0,param_path)
+    exec("import %s as config" % filename.split(".py")[0])
+    sys.path.remove(param_path)
+elif(param_file.split('.')[-1] == "h5"):
+    sys.path.insert(0,os.environ["SHESHA_ROOT"]+"/data/par/par4bench/")
+    import scao_16x16_8pix as config
+    sys.path.remove(os.environ["SHESHA_ROOT"]+"/data/par/par4bench/")
+    h5u.configFromH5(param_file,config)
+else:
+    raise ValueError("Parameter file extension must be .py or .h5")
 
-start=param_file.rindex("/")
-end=param_file.rindex(".")
-simul_name=param_file[start+1:end]
-if(rank==0):
-    print "param_file is",param_file
-    print "simul name is",simul_name
+print "param_file is",param_file
 
+
+if(hasattr(config,"simul_name")):
+    if(config.simul_name is None):
+        simul_name=""
+    else:
+        simul_name=config.simul_name
+else:
+    simul_name=""
+print "simul name is",simul_name
+
+matricesToLoad={}
+if(simul_name==""):
+    clean=1
+else:
+    clean=0
+    param_dict = h5u.params_dictionary(config)
+    matricesToLoad = h5u.checkMatricesDataBase(os.environ["SHESHA_ROOT"]+"/data/",config,param_dict)
 
 #initialisation:
 #    wfs
 print "->wfs"
-wfs,tel=ao.wfs_init(p_wfss,p_atmos,p_tel,p_geom,p_target,p_loop, comm_size,rank,p_dms)
+wfs,tel=ao.wfs_init(config.p_wfss,config.p_atmos,config.p_tel,config.p_geom,config.p_target,config.p_loop, comm_size,rank,config.p_dms)
 
 #   atmos
 print "->atmos"
-atm=p_atmos.atmos_init(c,p_tel,p_geom,p_loop,rank=rank)
+atm=ao.atmos_init(c,config.p_atmos,config.p_tel,config.p_geom,config.p_loop,rank=rank, load=matricesToLoad)
 
 #   dm 
 print "->dm"
-dms=ao.dm_init(p_dms,p_wfs0,p_geom,p_tel)
+dms=ao.dm_init(config.p_dms,config.p_wfss,config.p_geom,config.p_tel)
 
 #   target
 print "->target"
-tar=p_target.target_init(c,p_atmos,p_geom,p_tel,p_wfss,wfs,p_dms)
+tar=ao.target_init(c,tel,config.p_target,config.p_atmos,config.p_geom,config.p_tel,config.p_wfss,wfs,config.p_dms)
 
 #   rtc
 print "->rtc"
-rtc=ao.rtc_init(tel,wfs,p_wfss,dms,p_dms,p_geom,p_rtc,p_atmos,atm,p_tel,p_loop,p_target,simul_name=simul_name)
+rtc=ao.rtc_init(tel,wfs,config.p_wfss,dms,config.p_dms,config.p_geom,config.p_rtc,config.p_atmos,atm,config.p_tel,config.p_loop,tar,config.p_target,clean=clean,simul_name=simul_name, load=matricesToLoad)
+
+if not clean && rank==0:
+    h5u.validDataBase(os.environ["SHESHA_ROOT"]+"/data/",matricesToLoad)
 
 comm.Barrier()
 if(rank==0):
@@ -95,13 +122,13 @@ def loop( n):
     for i in range(n):
         if(rank==0):
             atm.move_atmos()
-            for t in range(p_target.ntargets):
-                tar.atmos_trace(t,tel,atm)
+            for t in range(config.p_target.ntargets):
+                tar.atmos_trace(t,atm,tel)
                 tar.dmtrace(t,dms)
-            for w in range(len(p_wfss)):
+            for w in range(len(config.p_wfss)):
                 wfs.sensors_trace(w,"all",tel,atm,dms)
         wfs.Bcast_dscreen()
-        for w in range(len(p_wfss)):
+        for w in range(len(config.p_wfss)):
             wfs.sensors_compimg(w)
             wfs.gather_bincube(w)
         if(rank==0):
@@ -157,7 +184,7 @@ def loop( n):
                 print "%5d"%(i+1),"  %1.5f"%strehltmp[0],"  %1.5f"%strehltmp[1]
 
     t1=time.time()
-    print rank, "| loop execution time:",t1-t0,"  (",n,"iterations), ",(t1-t0)/n,"(mean)"
+    print rank, "| loop execution time:",t1-t0,"  (",n,"iterations), ",(t1-t0)/n,"(mean)  ", n/(t1-t0),"Hz"
 
 
-loop(p_loop.niter)
+loop(config.p_loop.niter)

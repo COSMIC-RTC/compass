@@ -12,6 +12,18 @@ from subprocess import check_output
 
 from cython.operator cimport dereference as deref, preincrement as inc
 
+IF USE_MPI == 1:
+    #from mpi4py import MPI
+    from mpi4py cimport MPI
+    # C-level cdef, typed, Python objects
+    #from mpi4py cimport mpi_c as mpi
+    from mpi4py cimport libmpi as mpi
+
+IF USE_MPI==2:
+    cimport mpi4py.MPI as MPI
+    cimport mpi4py.libmpi as mpi
+
+
 cdef class Rtc:
     def __cinit__(self, Sensors sensor=None, Target target=None, device=-1): # child constructor must have the same prototype (same number of non-optional arguments)
         cdef carma_context *context =carma_context.instance()
@@ -856,7 +868,7 @@ cdef class Rtc:
         cdef int nactu
 
         cdef int rank
-        IF USE_MPI==1:
+        IF USE_MPI:
             mpi.MPI_Comm_rank(mpi.MPI_COMM_WORLD,&rank)
         ELSE:
             rank=0
@@ -877,7 +889,7 @@ cdef class Rtc:
                     wfs.noise=-1
                     wfs.kernconv=True
                     wfs.sensor_trace(g_dms.dms,1)
-                    IF USE_MPI==1:
+                    IF USE_MPI:
                         Bcast(screen,0)
                     wfs.comp_image()
                     wfs.noise=tmp_noise
@@ -1222,7 +1234,7 @@ cdef class Rtc:
         data=np.zeros((dims[1]),dtype=np.float32)
         self.rtc.d_control[ncontro].d_centroids.device2host(<float*>data.data)
 
-        IF USE_MPI==1:
+        IF USE_MPI:
             cdef np.ndarray[ndim=1, dtype=np.float32_t] all_centroids
             cdef int comm_size, rank
             mpi.MPI_Comm_size(mpi.MPI_COMM_WORLD,&comm_size)
@@ -1819,7 +1831,7 @@ cpdef correct_dm(p_dms, Dms g_dms, Param_controller p_control, Param_geom p_geom
     inds=0
 
     cdef int rank
-    IF USE_MPI==1:
+    IF USE_MPI:
         mpi.MPI_Comm_rank(mpi.MPI_COMM_WORLD,&rank)
     ELSE:
         rank=0
@@ -2000,7 +2012,7 @@ cpdef manual_imat(Rtc g_rtc,Sensors g_wfs, p_wfs, Dms g_dms, p_dms):
             g_wfs.sensors_trace(0,"dm", tel=None, atmos=None,dms=g_dms,rst=1)
             #equivalent to Bcast(g_wfs.sensors.d_wfs[0].d_gs.d_phase.d_screen)
             #g_wfs.Bcast_dscreen()
-            IF USE_MPI==1:
+            IF USE_MPI:
                 Bcast(g_wfs.sensors.d_wfs[0].d_gs.d_phase.d_screen,0)
             g_wfs.sensors_compimg(0)
             g_rtc.docentroids()
@@ -2176,7 +2188,7 @@ cpdef imat_init(int ncontro, Rtc g_rtc, Param_rtc p_rtc, Dms g_dms, Sensors g_wf
     cdef int rank
     cdef int world
 
-    IF USE_MPI==1:
+    IF USE_MPI:
         mpi.MPI_Comm_rank(mpi.MPI_COMM_WORLD,&rank)
         mpi.MPI_Comm_size(mpi.MPI_COMM_WORLD,&world)
     ELSE:

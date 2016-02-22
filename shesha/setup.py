@@ -28,12 +28,6 @@ listMod=[ "shesha_param","shesha_telescope", "shesha_sensors","shesha_atmos",
 dependencies={"shesha_sensors":["shesha_telescope","shesha_wfs"],
               "shesha_target":["shesha_telescope"]}
 
-try:
-    import mpi4py
-    MPI4PY=1
-except ImportError:
-    MPI4PY=0
-
 
 naga_path=os.environ.get('NAGA_ROOT')
 if(naga_path is None):
@@ -209,23 +203,52 @@ include_dirs = [numpy_include,
 
 library_dirs=[COMPASS['lib']+"/libsutra"]
 
-if MPI4PY==1:
-    MPI=locate_MPI()
-    librairies.extend(MPI['clibs'])
-    include_dirs.extend(MPI['cincdirs'])
-    include_dirs.extend(MPI['pincdirs'])
-    library_dirs.extend(MPI['clibdirs'])
+def which(program):
+    import os
+    def is_exe(fpath):
+        return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
 
+    fpath, fname = os.path.split(program)
+    if fpath:
+        if is_exe(program):
+            return program
+    else:
+        for path in os.environ["PATH"].split(os.pathsep):
+            path = path.strip('"')
+            exe_file = os.path.join(path, program)
+            if is_exe(exe_file):
+                return exe_file
 
+    return None
 
-BRAMA=0
+import codecs
+parFile = codecs.open("par.pxi", mode = 'w', encoding = 'utf-8')
+USE_MPI = 0
+
+# if which("mpicxx"):
+#     try:
+#         import mpi4py
+#         MPI=locate_MPI()
+#         librairies.extend(MPI['clibs'])
+#         include_dirs.extend(MPI['cincdirs'])
+#         include_dirs.extend(MPI['pincdirs'])
+#         library_dirs.extend(MPI['clibdirs'])
+#         USE_MPI = 2
+#     except ImportError:
+#         print "mpi4py not found, MPI disabled"
+# else:
+#     print "mpicxx not found, MPI disabled"
+
+parFile.write("DEF USE_MPI=%d # 0/1/2 \n"%USE_MPI)
+
+USE_BRAMA=0
 define_macros = []
 if  'BRAMA_ROOT' in os.environ:
     brama_root=os.environ.get('BRAMA_ROOT')
     ace_root=os.environ.get('ACE_ROOT')
     tao_root=os.environ.get('TAO_ROOT')
     dds_root=os.environ.get('DDS_ROOT')
-    BRAMA=1
+    USE_BRAMA=1
     include_dirs.extend([brama_root])
     include_dirs.extend([ace_root])
     include_dirs.extend([tao_root])
@@ -245,9 +268,10 @@ if  'BRAMA_ROOT' in os.environ:
     librairies.extend(['dl'])
     librairies.extend(['rt'])
     define_macros = [('USE_BRAMA', None), ('_GNU_SOURCE', None), ('__ACE_INLINE__', None), ]
+    
+parFile.write("DEF USE_BRAMA=%d # 0/1 \n"%USE_BRAMA)
 
-
-
+parFile.close()
 
 from Cython.Build import cythonize
 def compile_module(name):
@@ -293,6 +317,9 @@ def compile_module(name):
 
 if __name__ == '__main__':
     try :
+        #uncomment this line to disable the multithreaded compilation
+	    #import step_by_step 
+        
         from multiprocessing import Pool
         pool = Pool(maxtasksperchild=1) # process per core
         pool.map(compile_module, listMod)  # proces data_inputs iterable with poo

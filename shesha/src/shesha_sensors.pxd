@@ -16,17 +16,6 @@ from libc.stdint cimport uintptr_t
 
 from cpython.string cimport PyString_AsString
 
-IF USE_MPI == 1:
-    print "using mpi"
-    #from mpi4py import MPI
-    from mpi4py cimport MPI
-    #cimport mpi4py.MPI as MPI
-    # C-level cdef, typed, Python objects
-    from mpi4py cimport mpi_c as mpi
-    #from mpi4py cimport libmpi as mpi
-    #cimport mpi4py.libmpi as mpi
-
-
 from libc.math cimport sin
 
 from shesha_telescope import *
@@ -83,7 +72,7 @@ cdef class Sensors:
     cpdef sensors_trace(self,int n, str type_trace, Telescope tel=?, Atmos atmos=?, Dms dms=?, int rst=?)
     cpdef get_bincubeNotNoisy(self, int n)
     cpdef set_bincube(self,int n, np.ndarray[ndim=3,dtype=np.float32_t] data)
-    IF USE_MPI==1:
+    IF USE_MPI:
         cpdef gather_bincube(self,int n)
         cpdef gather_bincube_cuda_aware(self,int n)
         cpdef Bcast_dscreen(self)

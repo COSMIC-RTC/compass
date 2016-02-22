@@ -3,7 +3,6 @@ CU_DIR=src.cu
 CPP_DIR=src.cpp
 CUH_DIR=include.cuh
 H_DIR=include.h
-I_DIR=yorick
 OBJ_DIR=obj
 
 LIB_NAME=libsutra.so
