@@ -79,7 +79,7 @@ carma_context::carma_context() {
       gpuid[gpu_count++] = current_device;
     current_device++;
   }
-
+#ifdef USE_UVA
   if (gpu_count > 1) {
     bool has_uva = true;
     for (int i = 0; i < gpu_count - 1; i++) {
@@ -108,6 +108,7 @@ carma_context::carma_context() {
       printf("*** All GPUs listed can support UVA... ***\n");
     }
   }
+#endif
 
   this->activeDevice = set_activeDeviceForce(0, 1); //get_maxGflopsDeviceId(), 1);
 
