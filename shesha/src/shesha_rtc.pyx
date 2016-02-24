@@ -1674,7 +1674,7 @@ def rtc_init(Telescope g_tel, Sensors g_wfs, p_wfs, Dms g_dms, p_dms, Param_geom
 
                     if(controller.type_control=="ls"):
                         if(doimat):
-                            imat_init(i,g_rtc,p_rtc,g_dms,g_wfs,p_wfs,p_tel,clean=clean,simul_name=simul_name,load=load)
+                            imat_init(i,g_rtc,p_rtc,g_dms,g_wfs,p_wfs,p_tel,clean=clean,simul_name=simul_name,load=load)                            
                             if(controller.modopti == 1):
                                 print "Initializing Modal Optimization : "
                                 if(controller.nrec==0):
@@ -1784,7 +1784,37 @@ def rtc_init(Telescope g_tel, Sensors g_wfs, p_wfs, Dms g_dms, p_dms, Param_geom
                         g_rtc.set_mgain(i,mgain)
                         g_rtc.set_cmat(i,cmat)
                         g_rtc.set_matE(i,matE)
+                
+                #add a geometric controller for processing error breakdown
+                error_budget_flag = True in [w.error_budget for w in p_wfs]
+                if(error_budget_flag):
+                    Nphi=np.where(p_geom._spupil)[0].size
+                    type_dmseen=<char**>malloc(controller.ndm.size*sizeof(char*))
 
+                    for j in range(controller.ndm.size):
+                        type_dmseen[j]= p_dms[controller.ndm[j]].type_dm
+                    #list_dmseen,alt,controller.ndm.size
+                    g_rtc.rtc.add_controller_geo( nactu, Nphi, controller.delay,
+                            device,g_dms.dms, type_dmseen,<float*>alt.data,
+                            controller.ndm.size)
+                    indx_pup = np.where(p_geom._spupil.flatten())[0].astype(np.int32)
+                    cpt = 0
+                    indx_dm = np.zeros((controller.ndm.size*indx_pup.size),dtype=np.int32)
+                    for dmn in range(controller.ndm.size):
+                        tmp_s=(p_geom._ipupil.shape[0]-(p_dms[dmn]._n2-p_dms[dmn]._n1+1))/2
+                        tmp_e0=p_geom._ipupil.shape[0]-tmp_s
+                        tmp_e1=p_geom._ipupil.shape[1]-tmp_s
+                        pup_dm=p_geom._ipupil[tmp_s:tmp_e0,tmp_s:tmp_e1]
+                        indx_dm[cpt:cpt+np.where(pup_dm)[0].size] = np.where(pup_dm.flatten('F'))[0]
+                        cpt+=np.where(pup_dm)[0].size
+                    #convert unitpervolt list to a np.ndarray
+                    unitpervolt=np.array([p_dms[j].unitpervolt for j in range(len(p_dms))],
+                                dtype=np.float32)
+
+                    g_rtc.init_proj(i+1, g_dms, indx_dm, unitpervolt, indx_pup)
+                    free(type_dmseen)
+                    
+                    
     return g_rtc
 
 

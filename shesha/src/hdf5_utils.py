@@ -347,8 +347,8 @@ def checkMatricesDataBase(savepath,config,param_dict):
     if(os.path.exists(savepath+"matricesDataBase.h5")):
         checkTurbuParams(savepath,config,param_dict,matricesToLoad)
         checkDmsParams(savepath,config,param_dict,matricesToLoad)
-    if(matricesToLoad.has_key("pztok")):           
-        checkControlParams(savepath,config,param_dict,matricesToLoad)
+        if(matricesToLoad.has_key("pztok")):           
+            checkControlParams(savepath,config,param_dict,matricesToLoad)
         
     else:
         initDataBase(savepath,param_dict)
@@ -424,7 +424,9 @@ def checkControlParams(savepath,config,pdict,matricesToLoad):
         matricesToLoad : (dictionary) :  matrices that will be load and their path
     """
     dataBase = pandas.read_hdf(savepath+"matricesDataBase.h5","imat")
-    param2test = ["ncentroiders","type_centro",
+    param2test = ["tel_diam","t_spiders","spiders_type","pupangle","referr","std_piston","std_tt","type_ap","nbrmissing","cobs","pupdiam","nwfs","type_wfs",                  "nxsub","npix","pixsize","fracsub","wfs.xpos","wfs.ypos","wfs.Lambda",                  "dms_seen","fssize","fstop","pyr_ampl","pyr_loc","pyr_npts","pyrtype",                  "ndms","type_dm","dm.alt","coupling","hyst","margin","nact","nkl",                  "push4imat","dm.thresh","unitpervolt"]
+
+    param2test += ["ncentroiders","type_centro",
                   "nmax","centro.nwfs","sizex","sizey","centroider.thresh","type_fct",
                   "weights","width"]
 

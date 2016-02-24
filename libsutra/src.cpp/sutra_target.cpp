@@ -319,7 +319,7 @@ int sutra_source::raytrace(sutra_atmos *yatmos) {
   return EXIT_SUCCESS;
 }
 
-int sutra_source::raytrace(sutra_dms *ydms, int rst, bool async) {
+int sutra_source::raytrace(sutra_dms *ydms, int rst, bool async, int do_phase_var) {
   current_context->set_activeDevice(device,1);
   if (rst == 1)
     carmaSafeCall(
@@ -359,7 +359,7 @@ int sutra_source::raytrace(sutra_dms *ydms, int rst, bool async) {
       p++;
   }
 
-  if (type != "wfs") {
+  if (type != "wfs" && do_phase_var) {
     // select phase pixels in the valid portion of pupil
     fillindx(this->d_phasepts->getData(), this->d_phase->d_screen->getData(),
         this->d_wherephase->getData(), this->scale,
@@ -387,8 +387,8 @@ int sutra_source::raytrace(sutra_dms *ydms, int rst, bool async) {
   return EXIT_SUCCESS;
 }
 
-int sutra_source::raytrace(sutra_dms *ydms, int rst) {
-  raytrace(ydms, rst, false);
+int sutra_source::raytrace(sutra_dms *ydms, int rst, int phase_var) {
+  raytrace(ydms, rst, false, phase_var);
 
   return EXIT_SUCCESS;
 }

@@ -50,8 +50,6 @@ cdef class Target:
     """device number"""
     cdef naga_context context
 
-    cpdef dmtrace(self,int ntar, Dms dms, int reset=?)
-
 IF USE_BRAMA == 1:
     cdef extern from *:
         sutra_target_brama* dynamic_cast_target_brama_ptr "dynamic_cast<sutra_target_brama*>" (sutra_target*) except NULL

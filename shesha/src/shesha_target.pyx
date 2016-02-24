@@ -154,6 +154,20 @@ cdef class Target:
         data=np.reshape(data_F.flatten("F"),(dims[1],dims[2]))
         return data
 
+    def set_phase(self, int nTarget, np.ndarray[ndim=2,dtype=np.float32_t] data):
+        """Set the phase's screen of the target
+
+        :parameters:
+        nTarget: (int) : index of the target
+        data: (np.ndarray[ndim=2,dtype=np.float32_t]) : phase screen
+        """
+
+        self.context.set_activeDeviceForCpy(self.device)
+        cdef sutra_source *src = self.target.d_targets[nTarget]
+        
+        cdef np.ndarray[dtype=np.float32_t] data_F=data.flatten("F")
+
+        src.d_phase.d_screen.host2device(<float*>data_F.data)
 
     def get_phasetele(self, int nTarget):
         """Return the telemetry phase of the target
@@ -229,11 +243,23 @@ cdef class Target:
         return strehl
 
 
-    cpdef dmtrace(self,int ntar, Dms dms, int reset=0):
+    def dmtrace(self,int ntar, Dms dms, int reset=0, int do_phase_var=1):
+        """Raytracing of the target through thedms
+
+        :parameters:
+            ntar: (int)   : index of the target
+
+            dms: (Dms)     : dms to go through
+
+            reset: (int) : if >0, reset the screen before raytracing
+            
+            do_phase_var: (int) : if >0, doesn't take the screen into account in the phase average (unused)
+        """
+
         cdef carma_context *context=carma_context.instance()
         context.set_activeDevice(self.target.d_targets[ntar].device,1)
 
-        self.target.d_targets[ntar].raytrace(dms.dms,reset)
+        self.target.d_targets[ntar].raytrace(dms.dms,reset,do_phase_var)
 
 
     def __str__(self):

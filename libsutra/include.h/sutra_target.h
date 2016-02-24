@@ -75,9 +75,9 @@ public:
   int
   raytrace(sutra_atmos *atmos);
   int
-  raytrace(sutra_dms *ydms, int rst, bool async);
+  raytrace(sutra_dms *ydms, int rst, bool async, int do_phase_var);
   int
-  raytrace(sutra_dms *ydms, int rst);
+  raytrace(sutra_dms *ydms, int rst, int do_phase_var);
   int
   raytrace_shm(sutra_atmos *atmos);
   int

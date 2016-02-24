@@ -79,14 +79,14 @@ int sutra_wfs::sensor_trace(sutra_atmos *yatmos) {
 int sutra_wfs::sensor_trace(sutra_dms *ydm, int rst) {
   current_context->set_activeDevice(device,1);
   //do raytracing to get the phase
-  this->d_gs->raytrace(ydm, rst);
+  this->d_gs->raytrace(ydm, rst, 0);
 
   return EXIT_SUCCESS;
 }
 
 int sutra_wfs::sensor_trace(sutra_atmos *yatmos, sutra_dms *ydms) {
   this->d_gs->raytrace(yatmos);
-  this->d_gs->raytrace(ydms, 0);
+  this->d_gs->raytrace(ydms, 0, 0);
 
   return EXIT_SUCCESS;
 }

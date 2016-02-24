@@ -173,7 +173,7 @@ cdef extern from "sutra_target.h":
         int add_layer(char* l_type, float alt, float xoff, float yoff)
         int init_strehlmeter()
         int raytrace(sutra_atmos *atmos)
-        int raytrace(sutra_dms *ydms, int rst)
+        int raytrace(sutra_dms *ydms, int rst, int do_phase_var)
         int comp_image(int puponly)
         int comp_strehl()
 

@@ -115,24 +115,33 @@ class widgetAOWindow(TemplateBaseClass):
         self.c.set_activeDevice(self.ui.wao_deviceNumber.value())
 
     def manually_destroy(self):
-        if(self.atm):
+        if(hasattr(self,"mainLoop")):
+            del self.mainLoop
+        if(hasattr(self,"atm")):
             del self.atm
             del self.aoLoopThread.atm
-        if(self.tel):
+        if(hasattr(self,"tel")):
             del self.tel
             del self.aoLoopThread.tel
-        if(self.wfs):
+        if(hasattr(self,"wfs")):
             del self.wfs
             del self.aoLoopThread.wfs
-        if(self.rtc):
+        if(hasattr(self,"rtc")):
             del self.rtc
             del self.aoLoopThread.rtc
-        if(self.tar):
+        if(hasattr(self,"tar")):
             del self.tar
             del self.aoLoopThread.tar
-        if(self.dms):
+        if(hasattr(self,"dms")):
             del self.dms
             del self.aoLoopThread.dms
+        self.atm = None
+        self.tel = None
+        self.wfs = None
+        self.rtc = None
+        self.tar = None
+        self.dms = None
+        self.mainLoop = [self.tel,self.atm,self.wfs,self.rtc,self.tar,self.dms]
 
     def updateSRSE(self, SRSE):
         self.ui.wao_strehlSE.setText(SRSE)
@@ -236,6 +245,10 @@ class widgetAOWindow(TemplateBaseClass):
         self.ui.wao_windDirection.setValue(self.config.p_atmos.winddir[nscreen])
         if(self.config.p_atmos.dim_screens is not None):
             self.ui.wao_atmosDimScreen.setText(str(self.config.p_atmos.dim_screens[nscreen]))
+        self.ui.wao_atmosWindow.canvas.axes.cla()
+        width = (self.config.p_atmos.alt.max()/20.+0.1)/1000.
+        self.ui.wao_atmosWindow.canvas.axes.barh(self.config.p_atmos.alt/1000.-width/2.,self.config.p_atmos.frac,width,color="blue")
+        self.ui.wao_atmosWindow.canvas.draw()
 
     def updateRtcPanel(self):
         # Centroider panel
@@ -621,11 +634,12 @@ class widgetAOWindow(TemplateBaseClass):
         self.tar=ao.target_init(self.c, self.tel, self.config.p_target,self.config.p_atmos,
                                                   self.config.p_geom,self.config.p_tel,self.config.p_wfss,
                                                   self.wfs,self.config.p_dms)
-
+                                  
         self.rtc=ao.rtc_init(self.tel,self.wfs,self.config.p_wfss,self.dms,self.config.p_dms,
                              self.config.p_geom,self.config.p_rtc,self.config.p_atmos,
                              self.atm,self.config.p_tel,self.config.p_loop,self.tar,
                              self.config.p_target,clean=clean,simul_name=simul_name, load=matricesToLoad)
+
         if(simul_name is not ""):
             h5u.validDataBase(os.environ["SHESHA_ROOT"]+"/data/",matricesToLoad)
         self.mainLoop = [self.tel,self.atm,self.wfs,self.rtc,self.tar,self.dms]
@@ -636,6 +650,7 @@ class widgetAOWindow(TemplateBaseClass):
         self.aoLoopThread.dms = self.dms
         self.aoLoopThread.tel = self.tel
         self.updateDisplay()
+        self.displayRtcMatrix()
         print "===================="
         print "init done"
         print "===================="
