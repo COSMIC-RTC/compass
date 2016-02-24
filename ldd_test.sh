@@ -5,31 +5,31 @@ echo "ldd -d libcarma"
 echo "################################################"
 (cd libcarma && ldd -d libcarma.so)
 echo "################################################"
-echo "ldd -u libcarma"
-echo "################################################"
-(cd libcarma && ldd -u libcarma.so)
-echo "################################################"
+#echo "ldd -u libcarma"
+#echo "################################################"
+#(cd libcarma && ldd -u libcarma.so)
+#echo "################################################"
 echo "ldd -d libsutra"
 echo "################################################"
 (cd libsutra && ldd -d libsutra.so)
 echo "################################################"
-echo "ldd -u libsutra"
+#echo "ldd -u libsutra"
+#echo "################################################"
+#(cd libsutra && ldd -u libsutra.so)
+#echo "################################################"
+echo "ldd -d naga"
 echo "################################################"
-(cd libsutra && ldd -u libsutra.so)
+(cd naga/build/lib.linux-x86_64-2.7 && ldd -d naga.so)
 echo "################################################"
-echo "ldd -d yoga"
+#echo "ldd -u naga"
+#echo "################################################"
+#(cd naga/build/lib.linux-x86_64-2.7 && ldd -u naga.so)
+#echo "################################################"
+echo "ldd -d shesha"
 echo "################################################"
-(cd yoga && ldd -d yoga.so)
+(cd shesha/build/lib.linux-x86_64-2.7 && ldd -d shesha.so)
 echo "################################################"
-echo "ldd -u yoga"
-echo "################################################"
-(cd yoga && ldd -u yoga.so)
-echo "################################################"
-echo "ldd -d yoga_ao"
-echo "################################################"
-(cd yoga_ao && ldd -d yoga_ao.so)
-echo "################################################"
-echo "ldd -u yoga_ao"
-echo "################################################"
-(cd yoga_ao && ldd -u yoga_ao.so)
-echo "################################################"
+#echo "ldd -u shesha"
+#echo "################################################"
+#(cd shesha/build/lib.linux-x86_64-2.7 && ldd -u shesha.so)
+#echo "################################################"
