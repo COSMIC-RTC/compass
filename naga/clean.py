@@ -22,8 +22,8 @@ for filepattern in ('*.so', SRC+'*.pyc'):
 
 FILE=['naga_obj', 'naga_host_obj','naga_magma']
 
-if os.path.exists(SRC+'wrapper_naga.cpp'):
-    os.remove(SRC+'wrapper_naga.cpp')
+if os.path.exists(SRC+'naga.cpp'):
+    os.remove(SRC+'naga.cpp')
 for f in FILE:
     if (os.path.exists(SRC+f+'.pyx') and os.path.exists(SRC+f+'.pyx.in') ) :
         os.remove(SRC+f+'.pyx')
