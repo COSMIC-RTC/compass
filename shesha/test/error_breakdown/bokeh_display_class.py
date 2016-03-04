@@ -13,17 +13,20 @@ To launch it :
 """
 
 import numpy as np
+import glob
+import os
 
 import h5py
+import os
+import datetime
 
-from bokeh.plotting import Figure
-from bokeh.models import Range1d,ColumnDataSource, HoverTool, CustomJS
+from bokeh.plotting import Figure, figure
+from bokeh.models import Range1d,ColumnDataSource
 from bokeh.models.widgets import Select, Slider, CheckboxButtonGroup, Panel, Tabs, Button
 from bokeh.io import curdoc
-from bokeh.mpl import to_bokeh
-from bokeh.models.layouts import HBox, VBox, VBoxForm
+from bokeh.models.layouts import HBox, VBox
 
-import matplotlib.pyplot as pl
+import matplotlib.pyplot as plt
 import matplotlib as mpl
 ######################################################################################
 #  _      _ _      
@@ -32,7 +35,14 @@ import matplotlib as mpl
 # |_|_||_|_|\__/__/
 ######################################################################################     
 class html_display:  
+    def __del__(self):
+        files = glob.glob("/home/fferreira/public_html/bokeh_display*")
+        for f in files:
+            os.remove(f)
+            
     def __init__(self):
+
+
         self.datapath = "/home/fferreira/Data/"
         
         self.f = h5py.File(self.datapath+"breakdown_classical.h5")
@@ -46,6 +56,8 @@ class html_display:
         self.meths = ["Classical","Imat geom 0","Imat geom 1","Imat hacked"]
         self.plot_type = ["Commands","Variance"]
         self.coms_list = self.f.keys()
+        self.url = "http://hippo6.obspm.fr/~fferreira/bokeh_display"
+        self.old = None
         
         ######################################################################################
         #         _    _          _      
@@ -73,7 +85,7 @@ class html_display:
         self.source3 = ColumnDataSource(data=dict(x=[], y=[],color=[]))
         self.source4 = ColumnDataSource(data=dict(x=[], y=[],color=[]))
         
-        self.sourceC = ColumnDataSource(data=dict(C=[],x=[],y=[],dw=[],dh=[]))
+        #self.sourceC = ColumnDataSource(data=dict(C=[],x=[],y=[],dw=[],dh=[]))
 
         
         self.sources = {"Classical":self.source1,"Imat geom 0":self.source2,"Imat geom 1":self.source3,"Imat hacked":self.source4}
@@ -88,8 +100,9 @@ class html_display:
         
         self.xdr = Range1d(start=0,end=self.nactus)
         self.ydr = Range1d(start=0,end=self.nactus)
-        self.p2=Figure(x_range=self.xdr, y_range=self.ydr)
-        self.p2.image(image="C",x="x",y="y",dw="dw",dh="dh",source=self.sourceC,palette="RdYlBu11")#"C",source=sourceC)#,x=0,y=0,dw=nactus,dh=nactus)#,source=sourceC)
+        self.p2=figure(x_range=self.xdr, y_range=self.ydr)
+        #self.p2.image(image="C",x="x",y="y",dw="dw",dh="dh",source=self.sourceC,palette="RdYlBu11")#"C",source=sourceC)#,x=0,y=0,dw=nactus,dh=nactus)#,source=sourceC)
+        self.p2.image_url(url=[], x=0, y=self.nactus,w=self.nactus,h=self.nactus)
         
         self.control_plot = [self.plot_select,self.iter_select]
         self.control_matrix = [self.A,self.B,self.imat,self.power]
@@ -110,7 +123,7 @@ class html_display:
         self.tabs = Tabs(tabs=[self.tab1,self.tab2])
         curdoc().clear()
         self.update(None,None,None)
-        self.update_matrix(None,None,None)
+        #self.update_matrix(None,None,None)
 
         curdoc().add_root(self.tabs)#hplot(inputs,p))#, p, p2)
         
@@ -159,7 +172,7 @@ class html_display:
         print "Plots updated"
     
         
-    def update_matrix(self,attrname,old,new): 
+    def update_matrix(self,attrname,old,new):
         A_val = self.A.value
         B_val = self.B.value
         ff = self.imat.value
@@ -167,15 +180,17 @@ class html_display:
         B_cov = self.files[ff][B_val][:]
         print "Values ok"
         covmat = (np.dot(A_cov,B_cov.T)/B_cov.shape[1])
-        
+        mpl.image.imsave("/home/fferreira/public_html/tmp.png",covmat)
         print "dot product ok"
-
-        self.sourceC.data = dict(C=[covmat],x=[0],y=[0],dw=[covmat.shape[0]],dh=[covmat.shape[0]])
+        #self.sourceC.data = dict(url=[self.url],x=0,y=covmat.shape[0],dw=covmat.shape[0],dh=covmat.shape[0])
+        #self.sourceC.data = dict(C=[covmat],x=[0],y=[0],dw=[covmat.shape[0]],dh=[covmat.shape[0]])
         
         print "Matrix updated"  
         
         
     def update_matrix2(self): 
+        if(self.old):
+            os.remove(self.old)
         #self.draw.disabled = True
         A_val = self.A.value
         B_val = self.B.value
@@ -184,16 +199,19 @@ class html_display:
         A_cov = self.files[ff][A_val][:]
         B_cov = self.files[ff][B_val][:]
         print "Values ok"
-        covmat = (np.dot(A_cov,B_cov.T)/B_cov.shape[1])
-        mpl.image.imsave("tmp.png",covmat)
-        
+        covmat = (np.dot(A_cov,B_cov.T)/B_cov.shape[1])                
         print "dot product ok"
         if(powa != 1 and powa != 0):
             covmat = np.abs(covmat)**(1./powa)
             print "scale adjusted"
-        self.sourceC.data = dict(C=[covmat],x=[0],y=[0],dw=[covmat.shape[0]],dh=[covmat.shape[0]])
+        time = str(datetime.datetime.now().strftime('%Y-%m-%d_%H_%M_%f'))
+        self.old = "/home/fferreira/public_html/bokeh_display"+time+".png"
+        mpl.image.imsave(self.old,covmat)
+        self.p2.image_url(url=dict(value=self.url+time+".png"), x=0, y=covmat.shape[0],w=covmat.shape[0],h=covmat.shape[0],retry_attempts=2,retry_timeout=1000)
+
+        #self.sourceC.data = dict(url=[self.url],x=0,y=covmat.shape[0],dw=covmat.shape[0],dh=covmat.shape[0])
         #self.draw.disabled = False
-        print "Matrix updated"
+        print "Matrix updated2"
         
 
 disp = html_display()
