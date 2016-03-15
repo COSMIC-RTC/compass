@@ -104,6 +104,7 @@ cdef class Rtc:
     cpdef docontrol(self,int ncontro)
     cpdef docontrol_geo(self, int ncontro, Dms dms, Target target, int ntarget)
     cpdef applycontrol(self,int ncontro,Dms dms)
+    cpdef get_nfiltered(self,int ncontro,Param_rtc p_rtc)
 
 IF USE_BRAMA == 1:
         cdef extern from *:

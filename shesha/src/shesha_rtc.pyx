@@ -1380,7 +1380,22 @@ cdef class Rtc:
         self.rtc.apply_control(ncontro,dms.dms)
 
 
+    cpdef get_nfiltered(self,int ncontro,Param_rtc p_rtc):
+        """Get the number of filtered modes for cmat computation
 
+        :parameters:
+            ncontro: (int) : controller index
+            p_rtc: (Param_rtc) : rtc parameters
+        """
+        eigenv = self.getEigenvals(ncontro)
+        maxcond=p_rtc.controllers[ncontro].maxcond
+        if(eigenv[0]<eigenv[eigenv.shape[0]-1]):
+            mfilt=np.where((eigenv/eigenv[eigenv.shape[0]-3]) < 1./maxcond)[0]
+        else:
+            mfilt=np.where( (1./(eigenv/eigenv[2]))>maxcond)[0]
+        nfilt=mfilt.shape[0]
+        
+        return nfilt
 
     def __str__(self):
         print "RTC object:"
@@ -2032,6 +2047,8 @@ cpdef manual_imat(Rtc g_rtc,Sensors g_wfs, p_wfs, Dms g_dms, p_dms):
 
 
     ind=0
+    cc = 0
+    print "Doing manual imat...%d%%"%cc,
 
     for nm in range(len(p_dms)):
         for i in range(p_dms[nm]._ntotact):
@@ -2054,7 +2071,8 @@ cpdef manual_imat(Rtc g_rtc,Sensors g_wfs, p_wfs, Dms g_dms, p_dms):
                 imat_cpu[:,ind]=g_wfs._get_slopes(0)/float(p_dms[0].push4imat)
             g_dms.resetdm(p_dms[nm].type_dm,p_dms[nm].alt)
             ind+=1
-
+            cc+=1
+            print "\rDoing manual imat...%d%%"%((cc*100/imat_size2)),
     return imat_cpu
 
 
