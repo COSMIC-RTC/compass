@@ -7,6 +7,8 @@ print "======================================"
 
 import  os, re
 from os.path import join as pjoin
+from os.path import isfile
+
 import subprocess
 from distutils.core import setup
 #from Cython.Build import cythonize
@@ -221,8 +223,15 @@ def which(program):
 
     return None
 
+
 import codecs
-parFile = codecs.open("par.pxi", mode = 'w', encoding = 'utf-8')
+parFile = None
+if not isfile("par.pxi"):
+    parFile = codecs.open("par.pxi", mode = 'w', encoding = 'utf-8')
+else:
+    import warnings
+    warnings.warn("par.pxi found, it will not be updated",Warning)
+    
 USE_MPI = 0
 
 # if which("mpicxx"):
@@ -238,8 +247,8 @@ USE_MPI = 0
 #         print "mpi4py not found, MPI disabled"
 # else:
 #     print "mpicxx not found, MPI disabled"
-
-parFile.write("DEF USE_MPI=%d # 0/1/2 \n"%USE_MPI)
+if parFile:
+    parFile.write("DEF USE_MPI=%d # 0/1/2 \n"%USE_MPI)
 
 USE_BRAMA=0
 define_macros = []
@@ -269,9 +278,9 @@ if  'BRAMA_ROOT' in os.environ:
     librairies.extend(['rt'])
     define_macros = [('USE_BRAMA', None), ('_GNU_SOURCE', None), ('__ACE_INLINE__', None), ]
     
-parFile.write("DEF USE_BRAMA=%d # 0/1 \n"%USE_BRAMA)
-
-parFile.close()
+if parFile:
+    parFile.write("DEF USE_BRAMA=%d # 0/1 \n"%USE_BRAMA)
+    parFile.close()
 
 from Cython.Build import cythonize
 def compile_module(name):
@@ -318,7 +327,7 @@ def compile_module(name):
 if __name__ == '__main__':
     try :
         #uncomment this line to disable the multithreaded compilation
-	    #import step_by_step 
+        import step_by_step 
         
         from multiprocessing import Pool
         pool = Pool(maxtasksperchild=1) # process per core

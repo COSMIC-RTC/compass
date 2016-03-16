@@ -1,6 +1,8 @@
 include "../par.pxi"
 
-from naga cimport *
+from naga cimport carma_context, carma_device, carma_obj, carma_host_obj, carma_streams
+from naga cimport cuFloatComplex, cuDoubleComplex, cufftHandle, tuple_t
+#from naga cimport *
 
 import numpy as np
 cimport numpy as np
@@ -11,6 +13,7 @@ from libcpp.string cimport string
 from libcpp.map cimport map
 from libcpp.vector cimport vector
 from libcpp.pair cimport pair
+from libcpp cimport bool
 
 from libc.stdint cimport uintptr_t
 
