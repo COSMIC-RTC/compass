@@ -56,7 +56,8 @@ cdef class Rtc:
     cpdef docentroids_geom(self,int ncontrol=?)
     cpdef init_proj(self,int i,Dms dms,np.ndarray[ndim=1,dtype=np.int32_t] indx_dm,
             np.ndarray[ndim=1,dtype=np.float32_t] unitpervolt,
-            np.ndarray[ndim=1,dtype=np.int32_t] indx_pup)
+            np.ndarray[ndim=1,dtype=np.int32_t] indx_pup,
+            np.ndarray[ndim=1,dtype=np.int32_t] indx_mpup)
     cpdef init_modalOpti(self,int ncontro,int nmodes,int nrec, np.ndarray[ndim=2,dtype=np.float32_t] M2V,
             float gmin, float gmax, int ngain, float Fs)
     cpdef loadOpenLoop(self,int ncontro, np.ndarray[ndim=2, dtype=np.float32_t] ol_slopes)
@@ -83,7 +84,7 @@ cdef class Rtc:
     cpdef sensors_compslopes(self, int ncentro, int nmax=?, float thresh=?)
     cdef add_controller(self, int nactu, float delay, bytes type_control, Dms dms,
                  char **type_dmseen, np.ndarray[ndim=1,dtype=np.float32_t] alt,
-                 int ndm, long Nphi=?)
+                 int ndm, long Nphi=?, bool wfs_direction=?)
 
 
     cpdef imat_svd(self,int ncontro)
@@ -103,6 +104,7 @@ cdef class Rtc:
     cpdef loadnoisemat(self,int ncontro, np.ndarray[ndim=1,dtype=np.float32_t] N)
     cpdef docontrol(self,int ncontro)
     cpdef docontrol_geo(self, int ncontro, Dms dms, Target target, int ntarget)
+    cpdef docontrol_geo_onwfs(self, int ncontro, Dms dms, Sensors wfs, int nwfs)
     cpdef applycontrol(self,int ncontro,Dms dms)
     cpdef get_nfiltered(self,int ncontro,Param_rtc p_rtc)
 

@@ -95,7 +95,7 @@ cdef class Rtc:
 
     cdef add_controller(self, int nactu, float delay, bytes type_control, Dms dms,
                  char **type_dmseen, np.ndarray[ndim=1,dtype=np.float32_t] alt,
-                 int ndm, long Nphi=-1):
+                 int ndm, long Nphi=-1, bool wfs_direction=False):
         """Add a controller in the sutra_controller vector of the RTC on the GPU
 
         :parameters:
@@ -121,7 +121,7 @@ cdef class Rtc:
         cdef carma_context *context=carma_context.instance()
         context.set_activeDeviceForCpy(self.device,1)
         if(Nphi>-1):
-            self.rtc.add_controller_geo(nactu,Nphi,delay,self.device,dms.dms,&ptr_dmseen,ptr_alt,ndm)
+            self.rtc.add_controller_geo(nactu,Nphi,delay,self.device,dms.dms,&ptr_dmseen,ptr_alt,ndm,wfs_direction)
         else:
             self.rtc.add_controller(nactu,delay,self.device,type_control,dms.dms,&ptr_dmseen,ptr_alt,ndm)
 
@@ -307,7 +307,8 @@ cdef class Rtc:
 
 
     cpdef init_proj(self,int ncontro,Dms dms,np.ndarray[ndim=1,dtype=np.int32_t] indx_dm,
-            np.ndarray[ndim=1,dtype=np.float32_t] unitpervolt, np.ndarray[ndim=1,dtype=np.int32_t] indx_pup):
+            np.ndarray[ndim=1,dtype=np.float32_t] unitpervolt,
+            np.ndarray[ndim=1,dtype=np.int32_t] indx_pup, np.ndarray[ndim=1,dtype=np.int32_t] indx_mpup):
         """Initialize the projection matrix for sutra_controller_geo object.
         The projection matrix is (IFt.IF)**(-1) * IFt where IF is the DMs influence functions matrix
 
@@ -328,7 +329,7 @@ cdef class Rtc:
 
         context.set_activeDeviceForCpy(self.rtc.device,1)
         controller_geo.init_proj_sparse(dms.dms,<int*>indx_dm.data,
-            <float*>unitpervolt.data, <int*>indx_pup.data)
+            <float*>unitpervolt.data, <int*>indx_pup.data, <int*>indx_mpup.data)
 
 
     cpdef init_modalOpti(self,int ncontro,int nmodes,int nrec, np.ndarray[ndim=2,dtype=np.float32_t] M2V,
@@ -1350,6 +1351,7 @@ cdef class Rtc:
 
     cpdef docontrol_geo(self, int ncontro, Dms dms, Target target, int ntarget):
         """Compute the command to apply on the DMs on a sutra_controller_geo object
+        for the target direction
 
         :parameters:
             ncontro: (int) : controller index
@@ -1361,12 +1363,30 @@ cdef class Rtc:
 
         if(type_contro == "geo"):
             controller_geo = dynamic_cast_controller_geo_ptr(self.rtc.d_control[ncontro])
-            controller_geo.comp_dphi(target.target.d_targets[ntarget])
+            controller_geo.comp_dphi(target.target.d_targets[ntarget],False)
             self.rtc.do_control(ncontro)
         else:
             raise TypeError("Controller needs to be geo")
 
+    cpdef docontrol_geo_onwfs(self, int ncontro, Dms dms, Sensors sensors, int nwfs):
+        """Compute the command to apply on the DMs on a sutra_controller_geo object
+        for the wfs direction
 
+        :parameters:
+            ncontro: (int) : controller index
+        """
+        cdef carma_context *context=carma_context.instance()
+        cdef sutra_controller_geo *controller_geo
+        cdef bytes type_contro=<bytes>self.rtc.d_control[ncontro].get_type()
+        context.set_activeDevice(self.rtc.device,1)
+
+        if(type_contro == "geo"):
+            controller_geo = dynamic_cast_controller_geo_ptr(self.rtc.d_control[ncontro])
+            controller_geo.comp_dphi(sensors.sensors.d_wfs[nwfs].d_gs,True)
+            self.rtc.do_control(ncontro)
+        else:
+            raise TypeError("Controller needs to be geo")
+            
     cpdef applycontrol(self,int ncontro,Dms dms):
         """Compute the DMs shapes from the commands computed in a sutra_controller_object.
         From the command vector, it computes the voltage command (adding pertrubation voltages,
@@ -1496,7 +1516,7 @@ def rtc_init(Telescope g_tel, Sensors g_wfs, p_wfs, Dms g_dms, p_dms, Param_geom
     cdef char **type_dmseen
 
     cdef sutra_controller_geo *controller_geo
-    cdef np.ndarray[ndim=1,dtype=np.int32_t] indx_pup, indx_dm
+    cdef np.ndarray[ndim=1,dtype=np.int32_t] indx_pup, indx_dm, indx_mpup
     cdef np.ndarray[ndim=1,dtype=np.float32_t] unitpervolt
 
 
@@ -1661,7 +1681,7 @@ def rtc_init(Telescope g_tel, Sensors g_wfs, p_wfs, Dms g_dms, p_dms, Param_geom
                         #list_dmseen,alt,controller.ndm.size
                         g_rtc.rtc.add_controller_geo( nactu, Nphi, controller.delay,
                             device,g_dms.dms, type_dmseen,<float*>alt.data,
-                            controller.ndm.size)
+                            controller.ndm.size,False)
                     else:
                         g_rtc.rtc.add_controller( nactu, controller.delay,device,
                             controller.type_control,g_dms.dms, type_dmseen,
@@ -1670,6 +1690,7 @@ def rtc_init(Telescope g_tel, Sensors g_wfs, p_wfs, Dms g_dms, p_dms, Param_geom
 
                     if(controller.type_control=="geo"):
                         indx_pup = np.where(p_geom._spupil.flatten())[0].astype(np.int32)
+                        indx_mpup = np.where(p_geom._mpupil.flatten())[0].astype(np.int32)
                         cpt = 0
                         indx_dm = np.zeros((controller.ndm.size*indx_pup.size),dtype=np.int32)
                         for dmn in range(controller.ndm.size):
@@ -1683,13 +1704,13 @@ def rtc_init(Telescope g_tel, Sensors g_wfs, p_wfs, Dms g_dms, p_dms, Param_geom
                         unitpervolt=np.array([p_dms[j].unitpervolt for j in range(len(p_dms))],
                                     dtype=np.float32)
 
-                        g_rtc.init_proj(i, g_dms, indx_dm, unitpervolt, indx_pup)
+                        g_rtc.init_proj(i, g_dms, indx_dm, unitpervolt, indx_pup, indx_mpup)
 
                     free(type_dmseen)
 
                     if(controller.type_control=="ls"):
                         if(doimat):
-                            imat_init(i,g_rtc,p_rtc,g_dms,g_wfs,p_wfs,p_tel,clean=clean,simul_name=simul_name,load=load)                            
+                            imat_init(i,g_rtc,p_rtc,g_dms,g_wfs,p_wfs,p_tel,clean=clean,simul_name=simul_name,load=load)    
                             if(controller.modopti == 1):
                                 print "Initializing Modal Optimization : "
                                 if(controller.nrec==0):
@@ -1811,8 +1832,9 @@ def rtc_init(Telescope g_tel, Sensors g_wfs, p_wfs, Dms g_dms, p_dms, Param_geom
                     #list_dmseen,alt,controller.ndm.size
                     g_rtc.rtc.add_controller_geo( nactu, Nphi, controller.delay,
                             device,g_dms.dms, type_dmseen,<float*>alt.data,
-                            controller.ndm.size)
+                            controller.ndm.size, True)
                     indx_pup = np.where(p_geom._spupil.flatten())[0].astype(np.int32)
+                    indx_mpup = np.where(p_geom._mpupil.flatten())[0].astype(np.int32)
                     cpt = 0
                     indx_dm = np.zeros((controller.ndm.size*indx_pup.size),dtype=np.int32)
                     for dmn in range(controller.ndm.size):
@@ -1826,7 +1848,7 @@ def rtc_init(Telescope g_tel, Sensors g_wfs, p_wfs, Dms g_dms, p_dms, Param_geom
                     unitpervolt=np.array([p_dms[j].unitpervolt for j in range(len(p_dms))],
                                 dtype=np.float32)
 
-                    g_rtc.init_proj(i+1, g_dms, indx_dm, unitpervolt, indx_pup)
+                    g_rtc.init_proj(i+1, g_dms, indx_dm, unitpervolt, indx_pup, indx_mpup)
                     free(type_dmseen)
                     
                     

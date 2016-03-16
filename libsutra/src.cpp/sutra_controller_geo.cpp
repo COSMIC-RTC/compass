@@ -1,7 +1,7 @@
 #include <sutra_controller_geo.h>
 
 sutra_controller_geo::sutra_controller_geo(carma_context *context, long nactu, long Nphi,
-      float delay, sutra_dms *dms, char **type, float *alt, int ndm):
+      float delay, sutra_dms *dms, char **type, float *alt, int ndm, bool wfs_direction):
       sutra_controller(context, 0, nactu, 0.0f, dms, type, alt, ndm){
 
 	this->device = device;
@@ -32,6 +32,12 @@ sutra_controller_geo::sutra_controller_geo(carma_context *context, long nactu, l
 	dims_data1[1] = Nphi;
 	this->d_phi = new carma_obj<double>(this->current_context, dims_data1);
 	this->d_indx_pup = new carma_obj<int>(this->current_context, dims_data1);
+	if(wfs_direction)
+		this->d_indx_mpup = new carma_obj<int>(this->current_context, dims_data1);
+	else
+		this->d_indx_mpup = 0L;
+
+
 
 }
 
@@ -101,7 +107,7 @@ sutra_controller_geo::init_proj(sutra_dms *dms, int *indx_dm, float *unitpervolt
 }
 
 int
-sutra_controller_geo::init_proj_sparse(sutra_dms *dms, int *indx_dm, float *unitpervolt, int *indx_pup){
+sutra_controller_geo::init_proj_sparse(sutra_dms *dms, int *indx_dm, float *unitpervolt, int *indx_pup, int *indx_mpup){
 
   current_context->set_activeDevice(device,1);
   carma_sparse_obj<double> *d_IFi[dms->ndm()];
@@ -109,6 +115,8 @@ sutra_controller_geo::init_proj_sparse(sutra_dms *dms, int *indx_dm, float *unit
 	carma_obj<int> d_indx(current_context,dims_data1, indx_dm);
 
 	this->d_indx_pup->host2device(indx_pup);
+	if(this->d_indx_mpup != 0L)
+		this->d_indx_mpup->host2device(indx_mpup);
 
 	// Get influence functions of the DM #ind in d_IFi
 	int indx_start = 0;
@@ -194,12 +202,20 @@ sutra_controller_geo::init_proj_sparse(sutra_dms *dms, int *indx_dm, float *unit
 }
 
 int
-sutra_controller_geo::comp_dphi(sutra_source *target){
+sutra_controller_geo::comp_dphi(sutra_source *target, bool wfs_direction){
 
   current_context->set_activeDevice(device,1);
 	// Get the target phase in the pupil
-	get_pupphase(this->d_phi->getData(),target->d_phase->d_screen->getData(), this->d_indx_pup->getData(), this->Nphi, this->current_context->get_device(device));
-	remove_avg(this->d_phi->getData(), this->d_phi->getNbElem(), current_context->get_device(device));
+    if(wfs_direction && this->d_indx_mpup == 0L){
+    	DEBUG_TRACE("controller geo has not been initialized for wfs direction");
+    	return EXIT_FAILURE;
+    }
+    if(wfs_direction)
+	    get_pupphase(this->d_phi->getData(),target->d_phase->d_screen->getData(), this->d_indx_mpup->getData(), this->Nphi, this->current_context->get_device(device));
+    else
+	 	get_pupphase(this->d_phi->getData(),target->d_phase->d_screen->getData(), this->d_indx_pup->getData(), this->Nphi, this->current_context->get_device(device));
+
+    remove_avg(this->d_phi->getData(), this->d_phi->getNbElem(), current_context->get_device(device));
 
 	return EXIT_SUCCESS;
 }

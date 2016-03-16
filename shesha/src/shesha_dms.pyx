@@ -811,8 +811,8 @@ cdef class Dms:
 
         self.dms.d_dms[inddm].compute_KLbasis(<float*>xpos.data, <float*>ypos.data, 
                 <int*>indx_pup.data, dim, norm, ampli)
-
-
+                
+        
     cpdef get_KLbasis(self,bytes type_dm, float alt):
         """Return the klbasis computed by computeKLbasis
 
@@ -1004,3 +1004,37 @@ cpdef compute_klbasis(Dms g_dm,Param_dm p_dm, Param_geom p_geom,Param_atmos p_at
 
     return KLbasis
 
+cpdef computeDMbasis(Dms g_dm, Param_dm p_dm, Param_geom p_geom):
+    """Compute a the DM basis : 
+            - push on each actuator
+            - get the corresponding dm shape
+            - apply pupil mask and store in a column
+
+    :parameters:
+        g_dm: (Dms) : Dms object
+
+        p_dm: (Param_dm) : dm settings
+
+        p_geom: (Param_geom) : geom settings
+    :return:
+        IFbasis = (np.ndarray((indx_valid.size,Nactu),dtype=np.float32)) : DM IF basis
+    """
+    cdef int tmp   
+    tmp=(p_geom._ipupil.shape[0]-(p_dm._n2-p_dm._n1+1))/2
+    tmp_e0=p_geom._ipupil.shape[0]-tmp
+    tmp_e1=p_geom._ipupil.shape[1]-tmp
+    pup=p_geom._ipupil[tmp:tmp_e0,tmp:tmp_e1]
+    indx_valid=np.where(pup.flatten("F")>0)[0].astype(np.int32)
+    
+    IFbasis = np.ndarray((indx_valid.size,p_dm._ntotact),dtype=np.float32)
+    for i in range(p_dm._ntotact):
+        g_dm.resetdm(p_dm.type_dm, p_dm.alt)
+        g_dm.comp_oneactu(p_dm.type_dm, p_dm.alt, i, 1.0)
+        shape = g_dm.get_dm(p_dm.type_dm, p_dm.alt)
+        IFbasis[:,i] = shape.flatten("F")[indx_valid]
+        
+    g_dm.resetdm(p_dm.type_dm, p_dm.alt)
+    return IFbasis
+    
+
+    

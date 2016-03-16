@@ -64,10 +64,10 @@ int sutra_rtc::add_centroider(sutra_sensors *sensors, int nwfs, long nvalid, flo
 }
 
 int sutra_rtc::add_controller_geo(int nactu, int Nphi, float delay,
-    long device, sutra_dms *dms, char **type_dmseen, float *alt, int ndm) {
+    long device, sutra_dms *dms, char **type_dmseen, float *alt, int ndm, bool wfs_direction) {
   current_context->set_activeDevice(device,1);
   this->d_control.push_back(
-      new sutra_controller_geo(current_context, nactu, Nphi, delay, dms, type_dmseen, alt, ndm));
+      new sutra_controller_geo(current_context, nactu, Nphi, delay, dms, type_dmseen, alt, ndm, wfs_direction));
   return EXIT_SUCCESS;
 }
 

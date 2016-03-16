@@ -16,6 +16,7 @@ import time
 import matplotlib.pyplot as pl
 import hdf5_utils as h5u
 import pandas
+from scipy.sparse import csr_matrix
 
 if(len(sys.argv) < 2):
     error= 'command line should be at least:"python -i test.py parameters_filename"\n with "parameters_filename" the path to the parameters file'
@@ -121,7 +122,7 @@ error_flag = True in [w.error_budget for w in config.p_wfss]
 # |  _| |_| | | | | (__| |_| | (_) | | | \__ \
 # |_|  \__,_|_| |_|\___|\__|_|\___/|_| |_|___/
 ###################################################################################################
-def error_breakdown(com,noise_com,alias_com,tomo_com,H_com,trunc_com,bp_com,wf_com,i):
+def error_breakdown(com,noise_com,alias_tar_com,alias_wfs_cog_com,alias_wfs_geom_com,tomo_com,H_com,trunc_com,bp_com,wf_com,i):
     """
     Compute the error breakdown of the AO simulation. Returns the error commands of 
     each contributors. Suppose no delay (for now) and only 2 controllers : the main one, controller #0, (specified on the parameter file) 
@@ -154,7 +155,7 @@ def error_breakdown(com,noise_com,alias_com,tomo_com,H_com,trunc_com,bp_com,wf_c
         noise_com : np.array((nactu,niter)) : Noise contribution
             Computed with D-E
             
-        alias_com : np.array((nactu,niter)) : Aliasing contribution
+        alias_tar_com : np.array((nactu,niter)) : Aliasing on target direction contribution
             Computed with A
             
         tomo_com : np.array((nactu,niter)) : Tomographic error contribution
@@ -175,8 +176,8 @@ def error_breakdown(com,noise_com,alias_com,tomo_com,H_com,trunc_com,bp_com,wf_c
     """
     g = config.p_controllers[0].gain
 #    g=1.
-    D = rtc.getCentroids(0) # Classical slopes with all contributions
     Dcom = rtc.getCom(0)
+    Derr = rtc.getErr(0)
     com[:,i] = Dcom
     tarphase = tar.get_phase(0)
     ###########################################################################
@@ -193,22 +194,42 @@ def error_breakdown(com,noise_com,alias_com,tomo_com,H_com,trunc_com,bp_com,wf_c
     if(config.p_centroiders[0].type_centro == "tcog"):
         rtc.setthresh(0,config.p_centroiders[0].thresh)
     
-    E = rtc.getCentroids(0) #Slopes without noise
-    
-    rtc.setCentroids(0,D-E) # D-E = noise on slopes
     rtc.docontrol(0)
+    E = rtc.getErr(0)
     # Apply loop filter to get contribution of noise on commands
-    noise_com[:,i] = noise_com[:,i-1]*(1-g) + g*rtc.getErr(0)
+    #noise_com[:,i] = noise_com[:,i-1]*(1-g) + g*rtc.getErr(0)
+    noise_com[:,i] = noise_com[:,i-1]*(1-g) + g*(Derr-E)
     
     ###########################################################################
     ## Sampling/truncature contribution
     ###########################################################################
     rtc.docentroids_geom(0)
-    F = rtc.getCentroids(0) # Slopes without noise and sampling/truncature error
-    rtc.setCentroids(0,E-F) # E-F = sampling/truncature error on slopes
     rtc.docontrol(0)
+    F = rtc.getErr(0)
     # Apply loop filter to get contribution of sampling/truncature on commands
-    trunc_com[:,i] = trunc_com[:,i-1]*(1-g) + g*rtc.getErr(0)
+    #trunc_com[:,i] = trunc_com[:,i-1]*(1-g) + g*rtc.getErr(0)
+    trunc_com[:,i] = trunc_com[:,i-1]*(1-g) + g*(E-F)
+    
+    ###########################################################################
+    ## Aliasing contribution on WFS direction
+    ###########################################################################
+    rtc.docontrol_geo_onwfs(1,dms,wfs,0)
+    rtc.applycontrol(1,dms)
+    for w in range(len(config.p_wfss)):
+        wfs.sensors_trace(w,"dm",tel,atm,dms)
+        wfs.sensors_compimg(w)
+        ideal_bincube = wfs.get_bincubeNotNoisy(w)
+        wfs.set_bincube(w,ideal_bincube)
+    rtc.docentroids(0)
+    rtc.docontrol(0)
+    Acog = rtc.getErr(0)
+    alias_wfs_cog_com[:,i] = alias_wfs_cog_com[:,i-1]*(1-g) + g*Acog
+    
+    rtc.docentroids_geom(0)
+    rtc.docontrol(0)
+    Ageom = rtc.getErr(0)
+    alias_wfs_geom_com[:,i] = alias_wfs_geom_com[:,i-1]*(1-g) + g*Ageom
+        
 
     ###########################################################################
     ## Wavefront + filtered modes reconstruction
@@ -242,9 +263,8 @@ def error_breakdown(com,noise_com,alias_com,tomo_com,H_com,trunc_com,bp_com,wf_c
     bp_com[:,i] = C - wf_com[:,i-1]
     
     ###########################################################################
-    ## Aliasing error
+    ## Aliasing error on target direction IF TRUTH SENSOR !!!!! ELSE ANISO
     ###########################################################################       
-#    tar.dmtrace(0,dms,do_phase_var=0)
     for w in range(len(config.p_wfss)):
         wfs.sensors_trace(w,"all",tel,atm,dms)
         wfs.sensors_compimg(w)
@@ -253,31 +273,14 @@ def error_breakdown(com,noise_com,alias_com,tomo_com,H_com,trunc_com,bp_com,wf_c
     rtc.docentroids_geom(0)
     rtc.docontrol(0)
     A = rtc.getErr(0)
-    alias_com[:,i] = alias_com[:,i-1]*(1-g) + g*A
+    alias_tar_com[:,i] = alias_tar_com[:,i-1]*(1-g) + g*A
     
     ###########################################################################
     ## Tomographic error
     ###########################################################################
-    rtc.setCentroids(0,F)
-    rtc.docontrol(0)
-    G = rtc.getErr(0) - (C + A - com[:,i-1])
-#    Fc = rtc.getErr(0)
-#    rtc.setCom(0,com[:,i-1].astype(np.float32))
-#    rtc.applycontrol(0,dms)
-#    
-#
-#    for w in range(len(config.p_wfss)):
-#        wfs.sensors_trace(w,"dm",tel,atm,dms,rst=1)
-#        wfs.sensors_compimg(w)
-#    rtc.docentroids_geom(0)
-#    rtc.docontrol(0)
-#    
-#    G = Fc - (A+C+rtc.getErr(0))
+    G = F - (C + Ageom - com[:,i-1])
     
     tomo_com[:,i] = tomo_com[:,i-1]*(1-g) + g*G
-
-#    if(i>0):
-#        raise ValueError
    
     # Without anyone noticing...
     tar.set_phase(0,tarphase)
@@ -295,7 +298,9 @@ def loop(n):
         nactu = rtc.getCom(0).size
         com = np.zeros((nactu,n))
         noise_com = np.zeros((nactu,n))
-        alias_com = np.copy(noise_com)
+        alias_tar_com = np.copy(noise_com)
+        alias_wfs_geom_com = np.copy(noise_com)
+        alias_wfs_cog_com = np.copy(noise_com)
         wf_com = np.copy(noise_com)
         tomo_com = np.copy(noise_com)
         trunc_com = np.copy(noise_com)
@@ -324,7 +329,7 @@ def loop(n):
             
             if(error_flag):
             #compute the error breakdown for this iteration
-                error_breakdown(com,noise_com,alias_com,tomo_com,H_com,trunc_com,bp_com,wf_com,i)
+                error_breakdown(com,noise_com,alias_tar_com,alias_wfs_cog_com,alias_wfs_geom_com,tomo_com,H_com,trunc_com,bp_com,wf_com,i)
             
             rtc.applycontrol(0,dms)
                 
@@ -335,8 +340,32 @@ def loop(n):
     print " loop execution time:",t1-t0,"  (",n,"iterations), ",(t1-t0)/n,"(mean)  ", n/(t1-t0),"Hz"
     if(error_flag):
     #Returns the error breakdown
-        return com,noise_com,alias_com,tomo_com,H_com,trunc_com,bp_com,wf_com
+        return com,noise_com,alias_tar_com,alias_wfs_cog_com,alias_wfs_geom_com,tomo_com,H_com,trunc_com,bp_com,wf_com
 
+def compute_basis():
+    imat = rtc.get_imat(0)
+    D = np.dot(imat.T,imat)
+    U,s,V = np.linalg.svd(D)
+    nfilt = np.where(s<s[2]/config.p_controllers[0].maxcond)[0].size
+    UU = U[:,:U.shape[1]-nfilt]
+    #UU = U[:,nfilt:]
+    UU=U
+    
+    Nphi = np.where(config.p_geom._ipupil)[0].size
+    IF = np.zeros((Nphi,imat.shape[1]))
+    cpt=0
+    for dm in config.p_dms:
+        IFtmp = ao.computeDMbasis(dms,dm,config.p_geom)
+        IF[:,cpt:cpt+dm._ntotact] = IFtmp
+        cpt+=dm._ntotact
+    delta = np.dot(IF.T,IF)
+    MM = np.dot(np.dot(UU.T,delta),UU)
+    B,l,Bt = np.linalg.svd(MM)
+    L = np.identity(l.size)/np.sqrt(l)
+    E = np.dot(np.dot(UU,B),L)
+    P = np.dot(E.T,delta)
+    
+    return P,E,IF
 ###############################################################################################
 #  _            _       
 # | |_ ___  ___| |_ ___ 
@@ -344,28 +373,24 @@ def loop(n):
 # | ||  __/\__ \ |_\__ \
 #  \__\___||___/\__|___/
 ###############################################################################################                       
-G = rtc.get_imat(0)*0.9679
-rtc.set_imat(0,G)
-ao.cmat_init(0,rtc,config.p_rtc,config.p_wfss,config.p_atmos,config.p_tel, config.p_dms, clean=1)
-com,noise_com,alias_com,tomo_com,H_com,trunc_com,bp_com,wf_com = loop(1000)
-filename = "/home/fferreira/Data/breakdown_imat_hack.h5"
-h5u.writeHdf5SingleDataset(filename,com,datasetName="com")
-h5u.save_hdf5(filename,"noise_com",noise_com)
-h5u.save_hdf5(filename,"alias_com",alias_com)
-h5u.save_hdf5(filename,"tomo_com",tomo_com)
-h5u.save_hdf5(filename,"H_com",H_com)
-h5u.save_hdf5(filename,"trunc_com",trunc_com)
-h5u.save_hdf5(filename,"bp_com",bp_com)
-h5u.save_hdf5(filename,"wf_com",wf_com)
 
-pl.ion()
-pl.plot(np.var(noise_com,axis=1))
-pl.plot(np.var(alias_com,axis=1))
-pl.plot(np.var(tomo_com,axis=1))
-pl.plot(np.var(H_com,axis=1))
-pl.plot(np.var(trunc_com,axis=1))
-pl.plot(np.var(bp_com,axis=1))
-pl.plot(np.var(wf_com,axis=1))
-pl.plot(np.var(com,axis=1))
-pl.legend(["noise","aliasing","tomo","H","trunc","BP","wf","com"])
+com,noise_com,alias_tar_com,alias_wfs_cog_com,alias_wfs_geom_com,tomo_com,H_com,trunc_com,bp_com,wf_com = loop(1000)
+P,E,IF = compute_basis()
+tmp=(config.p_geom._ipupil.shape[0]-(config.p_dms[0]._n2-config.p_dms[0]._n1+1))/2
+tmp_e0=config.p_geom._ipupil.shape[0]-tmp
+tmp_e1=config.p_geom._ipupil.shape[1]-tmp
+pup=config.p_geom._ipupil[tmp:tmp_e0,tmp:tmp_e1]
+indx_pup=np.where(pup.flatten()>0)[0].astype(np.int32)
+dm_dim = config.p_dms[0]._n2-config.p_dms[0]._n1+1
+
+filename = "/home/fferreira/Data/breakdown_v7.h5"
+pdict = {"noise_com":noise_com,"alias_tar_com":alias_tar_com,
+         "alias_wfs_cog_com":alias_wfs_cog_com,"alias_wfs_geom_com":alias_wfs_geom_com,
+           "tomo_com":tomo_com,"H_com":H_com,"trunc_com":trunc_com,
+           "bp_com":bp_com,"wf_com":wf_com,"P":P,"E":E,"IF":IF,"dm_dim":dm_dim,"indx_pup":indx_pup}
+           
+h5u.writeHdf5SingleDataset(filename,com,datasetName="com")
+for k in pdict.keys():
+    h5u.save_hdf5(filename,k,pdict[k])
+
                                              

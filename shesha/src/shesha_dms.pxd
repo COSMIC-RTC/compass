@@ -69,3 +69,4 @@ cdef class Dms:
 
 cpdef comp_dmgeom(Param_dm dm, Param_geom geom)
 cpdef compute_klbasis(Dms g_dm,Param_dm p_dm, Param_geom p_geom,Param_atmos p_atmos,Param_tel p_tel)
+cpdef computeDMbasis(Dms g_dm, Param_dm p_dm, Param_geom p_geom)

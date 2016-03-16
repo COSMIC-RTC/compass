@@ -38,7 +38,7 @@ public:
     rm_centroider();
 	int
 	add_controller_geo(int nactu, int Nphi, float delay, long device,
-			sutra_dms *dms, char **type_dmseen, float *alt, int ndm);
+			sutra_dms *dms, char **type_dmseen, float *alt, int ndm, bool wfs_direction);
 	int
 	add_controller(int nactu, float delay, long device, const char *typec,
 			sutra_dms *dms, char **type_dmseen, float *alt, int ndm);
