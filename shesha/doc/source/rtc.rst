@@ -2,7 +2,7 @@
 RTC
 *************
 
-:mod:`rtc` module 
+:mod:`shesha_rtc` module 
 ========================
 
 
@@ -12,11 +12,11 @@ RTC
         
          <script type="text/javascript" src='_static/rtc.js'></script>
             
-         .. rubric:: rtc 
+         .. rubric:: shesha_rtc 
 
 
 
-    .. automodule:: rtc
+    .. automodule:: shesha_rtc
          :members:
 	 :private-members:
 	 :undoc-members:

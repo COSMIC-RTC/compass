@@ -2,7 +2,7 @@
 Target
 *************
 
-:mod:`target` module 
+:mod:`shesha_target` module 
 ========================
 
 
@@ -12,11 +12,11 @@ Target
         
          <script type="text/javascript" src='_static/target.js'></script>
             
-         .. rubric:: target 
+         .. rubric:: shesha_target 
 
 
 
-   .. automodule:: target
+   .. automodule:: shesha_target
        :members:
        :undoc-members:
        :show-inheritance:

@@ -2,7 +2,7 @@
 Param
 *************
 
-:mod:`param` module 
+:mod:`shesha_param` module 
 ========================
 
 
@@ -12,11 +12,11 @@ Param
         
          <script type="text/javascript" src='_static/param.js'></script>
             
-         .. rubric:: param 
+         .. rubric:: shesha_param 
 
 
 
-    .. automodule:: param
+    .. automodule:: shesha_param
 	 :members:
 	 :private-members:   
          :undoc-members:

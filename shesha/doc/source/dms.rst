@@ -2,7 +2,7 @@
 Dms
 *************
 
-:mod:`dms` module 
+:mod:`shesha_dms` module 
 ========================
 
 
@@ -12,11 +12,11 @@ Dms
         
          <script type="text/javascript" src='_static/dms.js'></script>
             
-         .. rubric:: dms 
+         .. rubric:: shesha_dms 
 
 
 
-    .. automodule:: dms
+    .. automodule:: shesha_dms
 	 :members:
 	 :private-members:	   
          :undoc-members:

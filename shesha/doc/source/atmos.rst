@@ -2,7 +2,7 @@
 Atmos
 *************
 
-:mod:`atmos` module 
+:mod:`shesha_atmos` module 
 ========================
 
 
@@ -12,11 +12,11 @@ Atmos
         
          <script type="text/javascript" src='_static/atmos.js'></script>
             
-         .. rubric:: atmos 
+         .. rubric:: shesha_atmos 
 
 
 
-    .. automodule:: atmos
+    .. automodule:: shesha_atmos
          :members:
 	 :private-members:
 	 :undoc-members:

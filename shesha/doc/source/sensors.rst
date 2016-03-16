@@ -2,7 +2,7 @@
 Sensors
 *************
 
-:mod:`sensors` module 
+:mod:`shesha_sensors` module 
 ========================
 
 
@@ -12,11 +12,11 @@ Sensors
         
          <script type="text/javascript" src='_static/sensors.js'></script>
             
-         .. rubric:: sensors 
+         .. rubric:: shesha_sensors 
 
 
 
-    .. automodule:: sensors
+    .. automodule:: shesha_sensors
          :members:
 	 :private-members:
 	 :undoc-members:

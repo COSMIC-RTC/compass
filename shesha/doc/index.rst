@@ -12,12 +12,12 @@ Contents:
    :maxdepth: 2
 
     shesha
-    atmos
-    target
-    sensors
-    rtc
-    param
-    dm
+    shesha_atmos
+    shesha_target
+    shesha_sensors
+    shesha_rtc
+    shesha_param
+    shesha_dm
 
 Indices and tables
 ==================
