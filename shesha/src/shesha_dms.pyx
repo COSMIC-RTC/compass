@@ -33,6 +33,7 @@ cdef _dm_init(Dms dms, Param_dm p_dms, list p_wfs, Param_geom p_geom, Param_tel 
             if(p_dms.pupoffset is not None):
                 p_dms.puppixoffset=p_dms.pupoffset/p_tel.diam*p_geom.pupdiam
 
+            
             if(p_dms.type_dm=="pzt"):
                 #find out the support dimension for the given mirror.
                 norms = [np.linalg.norm([w.xpos,w.ypos]) for w in p_wfs]
@@ -133,7 +134,7 @@ def dm_init(p_dms, list p_wfs, Param_geom p_geom, Param_tel p_tel):
 
 
 
-cdef make_pzt_dm(Param_dm p_dm,Param_geom geom):
+cpdef make_pzt_dm(Param_dm p_dm,Param_geom geom):
     """Compute the actuators positions and the influence functions for a pzt DM
 
     :parameters:
