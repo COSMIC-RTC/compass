@@ -10,7 +10,7 @@ Dms
 
     .. raw:: html
         
-         <script type="text/javascript" src='_static/dms.js'></script>
+         <script type="text/javascript" src='_static/shesha_dms.js'></script>
             
          .. rubric:: shesha_dms 
 

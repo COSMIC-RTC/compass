@@ -6,18 +6,12 @@
 Welcome to SHESHA's documentation!
 =====================================
 
-Please, read the README file to install the Shesha module:
-
-.. toctree::
-   :maxdepth: 1
-
-   readme
 	   
 Contents:
 ------------
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
 
    shesha
    atmos

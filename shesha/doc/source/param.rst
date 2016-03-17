@@ -10,15 +10,15 @@ Param
 
     .. raw:: html
         
-         <script type="text/javascript" src='_static/param.js'></script>
+         <script type="text/javascript" src='_static/shesha_param.js'></script>
             
          .. rubric:: shesha_param 
 
 
 
     .. automodule:: shesha_param
-	 :members:
+         :members:
 	 :private-members:   
-         :undoc-members:
+	 :undoc-members:
          :show-inheritance:
          :inherited-members:
