@@ -10,7 +10,7 @@ Atmos
 
     .. raw:: html
         
-         <script type="text/javascript" src='_static/atmos.js'></script>
+         <script type="text/javascript" src='_static/shesha_atmos.js'></script>
             
          .. rubric:: shesha_atmos 
 
