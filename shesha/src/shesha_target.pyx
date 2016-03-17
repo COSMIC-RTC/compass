@@ -48,6 +48,7 @@ cdef class Target:
 
         :parameters:
             n: (int) : index of the target
+            
             l_type: (str) : "atmos" or "dm"
 
             alt: (float) : altitude
@@ -72,7 +73,7 @@ cdef class Target:
         """Raytracing of the target through the atmosphere
 
         :parameters:
-            int: (nTarget)   : index of the target
+            nTarget: (int)   : index of the target
 
             atm: (atmos)     : atmos to get through
 
@@ -89,11 +90,12 @@ cdef class Target:
 
     def get_image(self,int nTarget, bytes type_im, long puponly=0):
         """Return the image from the target (or long exposure image according to the requested type)
+
         :parameters:
             nTarget: (int) : index of the target
-
+            
             type_im: (str) : type of the image to get ("se" or "le")
-
+            
             puponly: (int) : if 1, image computed from phase on the pupil only
         """
         self.context.set_activeDeviceForCpy(self.device)
