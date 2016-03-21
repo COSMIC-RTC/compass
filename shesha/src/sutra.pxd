@@ -1,6 +1,6 @@
 include "../par.pxi"
 
-from naga cimport carma_context, carma_device, carma_obj, carma_host_obj, carma_streams
+from naga cimport carma_context, carma_device, carma_obj, carma_host_obj, carma_sparse_obj, carma_streams
 from naga cimport cuFloatComplex, cuDoubleComplex, cufftHandle, tuple_t
 #from naga cimport *
 
@@ -669,7 +669,7 @@ cdef extern from "sutra_controller_geo.h":
         carma_obj[float] *d_proj
         carma_obj[double] *d_phi
         carma_obj[int] *d_indx_pup
-        # TODO carma_sparse_obj[double] *d_IFsparse
+        carma_sparse_obj[double] *d_IFsparse
         carma_obj[float] *d_geocov
         carma_obj[double] *d_compdouble
         carma_obj[float] *d_compfloat

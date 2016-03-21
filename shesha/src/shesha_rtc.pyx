@@ -1417,6 +1417,19 @@ cdef class Rtc:
         
         return nfilt
 
+    def get_IFsparse(self, int ncontro):
+        cdef sutra_controller_geo *controller_geo
+        cdef bytes type_contro=<bytes>self.rtc.d_control[ncontro].get_type()
+        sparse=naga_sparse_obj_Double()
+        if(type_contro == "geo"):
+            controller_geo = dynamic_cast_controller_geo_ptr(self.rtc.d_control[ncontro])
+            sparse.copy(controller_geo.d_IFsparse)
+            return sparse.get_sparse()
+
+        else:
+            print "This controller does not have a sparse_obj\n(or this function is not implemented for it yet"
+
+
     def __str__(self):
         print "RTC object:"
 
