@@ -100,6 +100,8 @@ public:
     return device;
   }
 
+  void sparse_to_host(int *h_rowInd, int *h_colInd, T_data *h_data);
+
 private:
   void _create(int nnz_, int dim1_, int dim2_);
   void _clear();

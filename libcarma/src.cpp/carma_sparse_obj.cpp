@@ -72,6 +72,30 @@ void carma_sparse_obj<T_data>::init_carma_sparse_obj(carma_context *current_cont
   }
 }
 
+
+template<class T_data>
+void carma_sparse_obj<T_data>::sparse_to_host(int *h_rowInd, int *h_colInd, T_data *h_data){
+    cudaMemcpy(h_rowInd,this->d_rowind,(this->dims_data[1]+1)*sizeof(int),cudaMemcpyDeviceToHost);
+    cudaMemcpy(h_colInd,this->d_colind,(this->nz_elem)*sizeof(int),cudaMemcpyDeviceToHost);
+    cudaMemcpy(h_data,this->d_data,(this->nz_elem)*sizeof(T_data),cudaMemcpyDeviceToHost);
+}
+
+template<>
+void carma_sparse_obj<double>::sparse_to_host(int *h_rowInd, int *h_colInd, double *h_data){
+    cudaMemcpy(h_rowInd,this->d_rowind,(this->dims_data[1]+1)*sizeof(int),cudaMemcpyDeviceToHost);
+    cudaMemcpy(h_colInd,this->d_colind,(this->nz_elem)*sizeof(int),cudaMemcpyDeviceToHost);
+    cudaMemcpy(h_data,this->d_data,(this->nz_elem)*sizeof(double),cudaMemcpyDeviceToHost);
+}
+
+
+template<>
+void carma_sparse_obj<float>::sparse_to_host(int *h_rowInd, int *h_colInd, float *h_data){
+    cudaMemcpy(h_rowInd,this->d_rowind,(this->dims_data[1]+1)*sizeof(int),cudaMemcpyDeviceToHost);
+    cudaMemcpy(h_colInd,this->d_colind,(this->nz_elem)*sizeof(int),cudaMemcpyDeviceToHost);
+    cudaMemcpy(h_data,this->d_data,(this->nz_elem)*sizeof(float),cudaMemcpyDeviceToHost);
+}
+
+
 template<class T_data>
 carma_sparse_obj<T_data>::carma_sparse_obj(carma_context *current_context, const long *dims, T_data * M, bool loadFromHost){
   _create(0, 0, 0);
