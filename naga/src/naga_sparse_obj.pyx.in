@@ -103,10 +103,6 @@ cdef class naga_sparse_obj_CLASSNAME:
         cdef np.ndarray[ndim=1,dtype=np.int32_t]          colInd=np.zeros(nnz    ,dtype=np.int32)
         cdef np.ndarray[ndim=1,dtype=NUMPY_TYPENAME_T]    data=np.zeros(nnz,dtype=NUMPY_TYPENAME)
 
-        
-        print rowInd
-        print colInd
-        print data
 
         self.c_sparse_obj.sparse_to_host(<int*>rowInd.data,<int*>colInd.data,<C_TYPE*>data.data)
         return csr_matrix((data,colInd,rowInd),shape=(dims[0],dims[1]))
