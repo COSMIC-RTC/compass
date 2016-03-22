@@ -98,14 +98,22 @@ protected:
   static carma_context *s_instance;
 
   carma_context();
+  carma_context(int num_device);
   carma_context(const carma_context& cntxt);
 public:
   ~carma_context();
 
+  static carma_context *instance_1gpu(int num_device)
+  {
+      if (!s_instance)
+        s_instance = new carma_context(num_device);
+      return s_instance;
+  }
+
   static carma_context *instance()
   {
       if (!s_instance)
-        s_instance = new carma_context;
+        s_instance = new carma_context();
       return s_instance;
   }
 

@@ -46,6 +46,51 @@ carma_device::~carma_device() {
   this->id = -1;
 }
 
+carma_context::carma_context(int num_device){
+  //TODO : why seed is initialized here ?
+  srandom(1234);
+  carmaSafeCall(cudaGetDeviceCount(&(this->ndevice)));
+  if (this->ndevice == 0) {
+    fprintf(stderr,
+        "carma_context() CUDA error: no devices supporting CUDA.\n");
+    throw "carma_context() CUDA error: no devices supporting CUDA.\n";
+  }
+
+  if (this->ndevice < num_device) {
+    fprintf(stderr,
+        "carma_context() CUDA error: not enought devices supporting CUDA.\n");
+    throw "carma_context() CUDA error: not enought devices supporting CUDA.\n";
+  }
+
+  carmaSafeCall(cudaSetDevice(num_device));
+  this->activeDevice = num_device;
+  carma_device *current_yd = new carma_device(num_device);
+  devices.push_back(current_yd);
+
+#ifdef USE_CULA
+  // CULA init
+  culaStatus status = culaInitialize();
+  if (status) {
+    char buf[256];
+    culaGetErrorInfoString(status, culaGetErrorInfo(), buf, sizeof(buf));
+    printf("%s\n", buf);
+  }
+#endif
+
+#ifdef USE_MAGMA
+  // MAGMA init
+  magma_init();
+  #if DEBUG
+  //  magma_print_environment();
+  #endif
+#endif
+
+#if DEBUG
+  printf("CARMA Context created @ %p\n", this);
+#endif
+
+}
+
 carma_context::carma_context() {
 
   //TODO : why seed is initialized here ?

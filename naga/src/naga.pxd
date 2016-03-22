@@ -93,6 +93,8 @@ cdef extern from "carma_context.h":
         cublasHandle_t get_cublasHandle()
         @staticmethod
         carma_context* instance()
+        @staticmethod
+        carma_context* instance_1gpu(int num_device)
 
 #################################################
 # P-Class naga_context
