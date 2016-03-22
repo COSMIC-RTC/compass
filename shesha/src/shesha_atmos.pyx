@@ -95,9 +95,15 @@ def atmos_init(naga_context c, Param_atmos atm, Param_tel tel,  Param_geom geom,
             for i in range(atm.nscreens):
                 frac_l0=tel.diam/atm.L0[i]
                 L0_pix[i]=geom.pupdiam/frac_l0
+
+        if(atm.seeds is None):
+            seeds = (np.arange(atm.nscreens,dtype=np.int64)+1)*1234
+        else:
+            seeds = atm.seeds
+            
         return atmos_create(c,atm.nscreens,atm.r0,L0_pix,atm.pupixsize,
             atm.dim_screens,atm.frac,atm.alt,atm.windspeed,
-            atm.winddir,atm.deltax,atm.deltay,rank,clean,load)
+            atm.winddir,atm.deltax,atm.deltay,seeds,rank,clean,load)
 
 
 
@@ -302,6 +308,7 @@ cdef atmos_create(naga_context c, int nscreens,
               np.ndarray[ndim=1,dtype=np.float32_t] winddir,
               np.ndarray[ndim=1,dtype=np.float32_t] deltax,
               np.ndarray[ndim=1,dtype=np.float32_t] deltay,
+              np.ndarray[ndim=1,dtype=np.int64_t] seeds,
               int verbose, int clean, dict load):
     """Create and initialise an atmos object.
     
@@ -330,6 +337,8 @@ cdef atmos_create(naga_context c, int nscreens,
 
         deltay: (np.ndarray[ndim=1,dtype=np.float32_t]) : extrude deltay pixels in the y-direction at each iteration
 
+        seeds: (np.ndarray[ndim=1,dtype=np.float32_t]) : seed for each screen
+       
         verbose: (int) : 0 or 1
     """
 
@@ -395,7 +404,7 @@ cdef atmos_create(naga_context c, int nscreens,
 
         tscreen=atmos_obj.s_a.d_screens[alt[i]]
         tscreen.init_screen(<float*>(A_F.data),<float*>(B_F.data),
-                <unsigned int*>istx.data,<unsigned int*>isty.data,1234*i)
+                <unsigned int*>istx.data,<unsigned int*>isty.data,seeds[i])
         for j in range(2*tscreen.screen_size):
             tscreen.extrude(1)
     return atmos_obj

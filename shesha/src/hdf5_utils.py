@@ -366,7 +366,7 @@ def checkTurbuParams(savepath,config,pdict,matricesToLoad):
         matricesToLoad : (dictionary) :  matrices that will be load and their path
     """
     dataBase = pandas.read_hdf(savepath+"matricesDataBase.h5","A")
-    param2test = ["L0","atm.alt","tel_diam","cobs","pupdiam","zenithangle","target.xpos","target.ypos","wfs.xpos","wfs.ypos"]
+    param2test = ["seeds","L0","atm.alt","tel_diam","cobs","pupdiam","zenithangle","target.xpos","target.ypos","wfs.xpos","wfs.ypos"]
 
     for i in dataBase.index:
         cc = 0

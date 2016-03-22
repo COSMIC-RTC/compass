@@ -28,7 +28,7 @@ gdb --args python -i widget_ao.py
 
 """
 class widgetAOWindow(TemplateBaseClass):
-    def __init__(self):
+    def __init__(self, device=None):
         TemplateBaseClass.__init__(self)
 
         self.ui = WindowTemplate()
@@ -39,7 +39,7 @@ class widgetAOWindow(TemplateBaseClass):
         #############################################################
         self.configpath = None
         self.config = None
-        self.c = ch.naga_context()
+        self.c = None
         self.tel = None
         self.wfs = None
         self.rtc = None
@@ -93,7 +93,6 @@ class widgetAOWindow(TemplateBaseClass):
         self.ui.wao_setControl.clicked.connect(self.setRtcParams)
         self.ui.wao_setTelescope.clicked.connect(self.setTelescopeParams)
         self.ui.wao_resetDM.clicked.connect(self.resetDM)
-        self.ui.wao_setActiveDevice.clicked.connect(self.setDevice)
         self.ui.wao_selectRtcMatrix.currentIndexChanged.connect(self.displayRtcMatrix)
         self.ui.wao_rtcWindowMPL.hide()
         self.ui.wao_Display.clicked.connect(self.updateFrameRate)
@@ -110,9 +109,6 @@ class widgetAOWindow(TemplateBaseClass):
         self.connect(self.aoLoopThread, QtCore.SIGNAL("currentSRLE(QString)"), self.updateSRLE)
 
         self.connect(self.aoLoopThread,QtCore.SIGNAL("finished()"),self.aoLoopFinished)
-
-    def setDevice(self):
-        self.c.set_activeDevice(self.ui.wao_deviceNumber.value())
 
     def manually_destroy(self):
         if(hasattr(self,"mainLoop")):
@@ -620,6 +616,8 @@ class widgetAOWindow(TemplateBaseClass):
             clean=0
             param_dict = h5u.params_dictionary(self.config)
             matricesToLoad = h5u.checkMatricesDataBase(os.environ["SHESHA_ROOT"]+"/data/",self.config,param_dict)
+            
+        self.c = ch.naga_context(self.ui.wao_deviceNumber.value())
         self.wfs,self.tel=ao.wfs_init(self.config.p_wfss,self.config.p_atmos,self.config.p_tel,
                              self.config.p_geom,self.config.p_target,self.config.p_loop,
                              1,0,self.config.p_dms)

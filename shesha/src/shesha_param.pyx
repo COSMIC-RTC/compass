@@ -756,9 +756,9 @@ cdef class Param_atmos:
     def set_seeds( self, l):
         """Set the seed for each layer
 
-        :param l: (lit of float) : seed
+        :param l: (lit of int) : seed
         """
-        self.seeds=np.array(l,dtype=np.float32)
+        self.seeds=np.array(l,dtype=np.int64)
 
 
 
