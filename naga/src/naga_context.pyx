@@ -18,7 +18,7 @@ cdef extern from "carma_context.h":
 cdef class naga_context:
 
     def __cinit__(self, device=None):
-        if device:
+        if device is not None:
             self.c = carma_context.instance_1gpu(device)
         else:
             self.c = carma_context.instance()

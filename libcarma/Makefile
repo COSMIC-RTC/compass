@@ -18,7 +18,7 @@ LIB_DEPLIBS  = -fPIC -shared -Wl,-rpath=$(CUDA_LIB_PATH_64) -L$(CUDA_LIB_PATH_64
 LIB_DEPLIBS += -lcuda -lcudart -lcublas -lcufft -lcurand -lcusparse -lnvToolsExt  -lpthread
 
 # set compiler (or rarely loader) flags specific to this package
-LIB_CPPFLAGS = -c -fPIC -Wall -fno-common -I$(H_DIR) -I$(CUDA_INC_PATH) #-std=c++11 #-DUSE_UVA
+LIB_CPPFLAGS = -c -fPIC -Wall -fno-common -I$(H_DIR) -I$(CUDA_INC_PATH) -std=c++11 #-DUSE_UVA
 
 # ------------------------------------- targets and rules for this package
 # color for printf
@@ -107,5 +107,5 @@ $(OBJ_DIR)/%.o: $(CPP_DIR)/%.cpp
 
 $(LIB_NAME): $(OBJS)
 	@printf '\033[36m%s\033[31m%s\033[m\n' "Linking       " $(LIB_NAME)
-	@$(GCC) $(OBJS) -o $@ $(LIB_DEPLIBS)
+	$(GCC) $(OBJS) -o $@ $(LIB_DEPLIBS)
 

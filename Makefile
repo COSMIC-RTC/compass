@@ -10,8 +10,8 @@ all:
 	@(cd shesha && make)
 
 install: all
-	@(cd naga && make install)
-	@(cd shesha && make install)
+#	@(cd naga && make install)
+#	@(cd shesha && make install)
 
 clean: 
 	@(cd libcarma && make clean)

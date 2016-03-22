@@ -50,6 +50,8 @@ carma_context::carma_context(int num_device){
   //TODO : why seed is initialized here ?
   srandom(1234);
   carmaSafeCall(cudaGetDeviceCount(&(this->ndevice)));
+  can_access_peer=nullptr;
+
   if (this->ndevice == 0) {
     fprintf(stderr,
         "carma_context() CUDA error: no devices supporting CUDA.\n");
@@ -62,8 +64,11 @@ carma_context::carma_context(int num_device){
     throw "carma_context() CUDA error: not enought devices supporting CUDA.\n";
   }
 
-  carmaSafeCall(cudaSetDevice(num_device));
-  this->activeDevice = num_device;
+  can_access_peer = new int*[1];
+  can_access_peer[0] = new int[1];
+  can_access_peer[0][0] = 1;
+
+  this->activeDevice = 0;
   carma_device *current_yd = new carma_device(num_device);
   devices.push_back(current_yd);
 
@@ -79,7 +84,7 @@ carma_context::carma_context(int num_device){
 
 #ifdef USE_MAGMA
   // MAGMA init
-  magma_init();
+  //magma_init();
   #if DEBUG
   //  magma_print_environment();
   #endif
@@ -96,13 +101,14 @@ carma_context::carma_context() {
   //TODO : why seed is initialized here ?
   srandom(1234);
   carmaSafeCall(cudaGetDeviceCount(&(this->ndevice)));
+  can_access_peer=nullptr;
+
   if (this->ndevice == 0) {
     fprintf(stderr,
         "carma_context() CUDA error: no devices supporting CUDA.\n");
     throw "carma_context() CUDA error: no devices supporting CUDA.\n";
   }
 
-  this->activeDevice = -1;
   int const size = ndevice;
   can_access_peer = new int*[size];
   for (int i = 0; i < ndevice; i++) {
@@ -112,6 +118,7 @@ carma_context::carma_context() {
     }
   }
 
+  this->activeDevice = -1;
   int current_device = 0;
   int gpuid[64]; // we want to find the first two GPU's that can support P2P
   int gpu_count = 0; // GPUs that meet the criteria
@@ -196,7 +203,7 @@ carma_context::~carma_context() {
   while (this->devices.size() > 0) {
     delete this->devices.back();
     this->devices.pop_back();
-    delete[] can_access_peer[idx++];
+    if(can_access_peer!=nullptr) delete[] can_access_peer[idx++];
   }
   delete[] can_access_peer;
 
@@ -209,7 +216,7 @@ carma_context::~carma_context() {
 int carma_context::_set_activeDeviceForce(int newDevice, int silent,
     string file, int line) {
   if (newDevice < ndevice) {
-    carmaSafeCall(cudaSetDevice(newDevice));
+    carmaSafeCall(cudaSetDevice(devices[newDevice]->get_id()));
 #ifdef USE_CULA
     culaStatus status = culaSelectDevice(newDevice);
     if(status) {

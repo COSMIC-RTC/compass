@@ -136,6 +136,7 @@ public:
   string get_DeviceMemInfo(int device);
 
   inline int _set_activeDeviceForCpy(int newDevice, int silent, string file, int line) {
+    if(newDevice>ndevice) return -1;
     return (can_access_peer[activeDevice][newDevice] != 1)?_set_activeDevice(newDevice, silent, file, line):activeDevice;
   }
   inline int _set_activeDevice(int newDevice, int silent, string file, int line) {
