@@ -38,7 +38,7 @@ def params_dictionary(config):
         "windspeed":config.p_atmos.windspeed,
         "winddir":config.p_atmos.winddir,
         "L0":config.p_atmos.L0,   
-        "seeds":config.p_atmos.seeds,           
+        "seeds":[config.p_atmos.seeds if(config.p_atmos.seeds is not None) else (np.arange(config.p_atmos.nscreens,dtype=np.int64)+1)*1234],           
         # Target params
         "ntargets":config.p_target.ntargets,
         "target.xpos":config.p_target.xpos,
