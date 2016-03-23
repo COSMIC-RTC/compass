@@ -1418,6 +1418,14 @@ cdef class Rtc:
         return nfilt
 
     def get_IFsparse(self, int ncontro):
+        """Get the influence functions matrix computed by the geo controller
+        Return a scipy.sparse object which shape is (nactus,Npts in the pupil)
+
+        :parameters:
+            ncontro: (int) : controller index
+        :return:
+            IF : (scipy.sparse) : influence functions matrix
+        """
         cdef sutra_controller_geo *controller_geo
         cdef bytes type_contro=<bytes>self.rtc.d_control[ncontro].get_type()
         sparse=naga_sparse_obj_Double()

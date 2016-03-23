@@ -122,7 +122,7 @@ error_flag = True in [w.error_budget for w in config.p_wfss]
 # |  _| |_| | | | | (__| |_| | (_) | | | \__ \
 # |_|  \__,_|_| |_|\___|\__|_|\___/|_| |_|___/
 ###################################################################################################
-def error_breakdown(com,noise_com,alias_tar_com,alias_wfs_cog_com,alias_wfs_geom_com,tomo_com,H_com,trunc_com,bp_com,wf_com,i):
+def error_breakdown(com,noise_com,alias_tar_com,alias_wfs_cog_com,alias_wfs_geom_com,tomo_com,H_com,trunc_com,bp_com,wf_com,fit,i):
     """
     Compute the error breakdown of the AO simulation. Returns the error commands of 
     each contributors. Suppose no delay (for now) and only 2 controllers : the main one, controller #0, (specified on the parameter file) 
@@ -239,9 +239,14 @@ def error_breakdown(com,noise_com,alias_tar_com,alias_wfs_cog_com,alias_wfs_geom
     B = rtc.getCom(1)
 
     ###########################################################################
-    ## Wavefront
-    ###########################################################################  
+    ## Fitting
+    ########################################################################### 
     rtc.applycontrol(1,dms)
+    tar.dmtrace(0,dms)
+    fit[i]= tar.get_strehl(0,comp_strehl=False)[2]
+    ###########################################################################
+    ## Wavefront
+    ########################################################################### 
     for w in range(len(config.p_wfss)):
         wfs.sensors_trace(w,"dm",tel,atm,dms,rst=1)
         wfs.sensors_compimg(w)
@@ -261,9 +266,10 @@ def error_breakdown(com,noise_com,alias_tar_com,alias_wfs_cog_com,alias_wfs_geom
     ###########################################################################
     wf_com[:,i] = wf_com[:,i-1]*(1-g) + g*C
     bp_com[:,i] = C - wf_com[:,i-1]
+    #bp_com[:,i] = bp_com[:,i-1]*(1-g) + g*bp_com[:,i]
     
     ###########################################################################
-    ## Aliasing error on target direction IF TRUTH SENSOR !!!!! ELSE ANISO
+    ## Aliasing error on target direction (IF TRUTH SENSOR !!!!! ELSE ANISO)
     ###########################################################################       
     for w in range(len(config.p_wfss)):
         wfs.sensors_trace(w,"all",tel,atm,dms)
@@ -306,9 +312,10 @@ def loop(n):
         trunc_com = np.copy(noise_com)
         H_com = np.copy(noise_com)
         bp_com = np.copy(noise_com)
+        fit = np.zeros(n)
         
     t0=time.time()
-    for i in range(n):
+    for i in range(-10,n):
         atm.move_atmos()
 
         if(config.p_controllers[0].type_control == "geo"):
@@ -327,20 +334,21 @@ def loop(n):
             rtc.docentroids(0)
             rtc.docontrol(0)
             
-            if(error_flag):
+            if(error_flag and i > -1):
             #compute the error breakdown for this iteration
-                error_breakdown(com,noise_com,alias_tar_com,alias_wfs_cog_com,alias_wfs_geom_com,tomo_com,H_com,trunc_com,bp_com,wf_com,i)
+                error_breakdown(com,noise_com,alias_tar_com,alias_wfs_cog_com,alias_wfs_geom_com,tomo_com,H_com,trunc_com,bp_com,wf_com,fit,i)
             
             rtc.applycontrol(0,dms)
                 
-        if((i+1)%100==0):
+        if((i+1)%100==0 and i>-1):
             strehltmp = tar.get_strehl(0)
             print i+1,"\t",strehltmp[0],"\t",strehltmp[1]
     t1=time.time()
     print " loop execution time:",t1-t0,"  (",n,"iterations), ",(t1-t0)/n,"(mean)  ", n/(t1-t0),"Hz"
     if(error_flag):
     #Returns the error breakdown
-        return com,noise_com,alias_tar_com,alias_wfs_cog_com,alias_wfs_geom_com,tomo_com,H_com,trunc_com,bp_com,wf_com
+        SR = tar.get_strehl(0,comp_strehl=False)[1]
+        return com,noise_com,alias_tar_com,alias_wfs_cog_com,alias_wfs_geom_com,tomo_com,H_com,trunc_com,bp_com,wf_com,np.mean(fit),SR
 
 def compute_basis():
     imat = rtc.get_imat(0)
@@ -351,19 +359,21 @@ def compute_basis():
     #UU = U[:,nfilt:]
     UU=U
     
-    Nphi = np.where(config.p_geom._ipupil)[0].size
-    IF = np.zeros((Nphi,imat.shape[1]))
-    cpt=0
-    for dm in config.p_dms:
-        IFtmp = ao.computeDMbasis(dms,dm,config.p_geom)
-        IF[:,cpt:cpt+dm._ntotact] = IFtmp
-        cpt+=dm._ntotact
-    delta = np.dot(IF.T,IF)
+#    Nphi = np.where(config.p_geom._ipupil)[0].size
+#    IF = np.zeros((Nphi,imat.shape[1]))
+#    cpt=0
+#    for dm in config.p_dms:
+#        IFtmp = ao.computeDMbasis(dms,dm,config.p_geom)
+#        IF[:,cpt:cpt+dm._ntotact] = IFtmp
+#        cpt+=dm._ntotact
+    IF = rtc.get_IFsparse(1)
+    delta = IF.dot(IF.T).toarray()
     MM = np.dot(np.dot(UU.T,delta),UU)
     B,l,Bt = np.linalg.svd(MM)
     L = np.identity(l.size)/np.sqrt(l)
     E = np.dot(np.dot(UU,B),L)
     P = np.dot(E.T,delta)
+#    IF = csr_matrix(IF)
     
     return P,E,IF
 ###############################################################################################
@@ -374,7 +384,7 @@ def compute_basis():
 #  \__\___||___/\__|___/
 ###############################################################################################                       
 
-com,noise_com,alias_tar_com,alias_wfs_cog_com,alias_wfs_geom_com,tomo_com,H_com,trunc_com,bp_com,wf_com = loop(1000)
+com,noise_com,alias_tar_com,alias_wfs_cog_com,alias_wfs_geom_com,tomo_com,H_com,trunc_com,bp_com,wf_com,fit,SR = loop(1000)
 P,E,IF = compute_basis()
 tmp=(config.p_geom._ipupil.shape[0]-(config.p_dms[0]._n2-config.p_dms[0]._n1+1))/2
 tmp_e0=config.p_geom._ipupil.shape[0]-tmp
@@ -383,11 +393,12 @@ pup=config.p_geom._ipupil[tmp:tmp_e0,tmp:tmp_e1]
 indx_pup=np.where(pup.flatten()>0)[0].astype(np.int32)
 dm_dim = config.p_dms[0]._n2-config.p_dms[0]._n1+1
 
-filename = "/home/fferreira/Data/breakdown_v7.h5"
+filename = "/home/fferreira/Data/breakdown_off-axis-m6-m6.h5"
 pdict = {"noise_com":noise_com,"alias_tar_com":alias_tar_com,
          "alias_wfs_cog_com":alias_wfs_cog_com,"alias_wfs_geom_com":alias_wfs_geom_com,
            "tomo_com":tomo_com,"H_com":H_com,"trunc_com":trunc_com,
-           "bp_com":bp_com,"wf_com":wf_com,"P":P,"E":E,"IF":IF,"dm_dim":dm_dim,"indx_pup":indx_pup}
+           "bp_com":bp_com,"wf_com":wf_com,"P":P,"E":E,"IF.data":IF.data,"IF.indices":IF.indices,
+           "IF.indptr":IF.indptr,"dm_dim":dm_dim,"indx_pup":indx_pup,"fit_error":fit,"SR":SR}
            
 h5u.writeHdf5SingleDataset(filename,com,datasetName="com")
 for k in pdict.keys():

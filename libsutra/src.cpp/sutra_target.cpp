@@ -98,7 +98,7 @@ inline int sutra_source::init_source(carma_context *context, float xpos,
   //this->blockSize = (int)sqrt(deviceProperties.maxThreadsPerBlock);
   this->block_size = 8;
   this->phase_var_avg = 0;
-  this->phase_var_count = 0;
+  this->phase_var_count = -10;
 
   long *dims_data2 = new long[3];
   dims_data2[0] = 2;
@@ -180,7 +180,7 @@ sutra_source::~sutra_source() {
 int sutra_source::init_strehlmeter() {
   current_context->set_activeDevice(device,1);
   this->strehl_counter = 0;
-  this->comp_image(1);
+  this->comp_image(1,false);
 
   cudaMemcpy(&(this->ref_strehl),
       &(this->d_image->getData()[this->d_image->imax(1) - 1]), sizeof(float),
@@ -189,10 +189,14 @@ int sutra_source::init_strehlmeter() {
   if (this->d_leimage == 0L)
     this->d_leimage = new carma_obj<float>(this->current_context,
         this->d_image->getDims());
-  else
+  else{ //Reset strehl case
     carmaSafeCall(
         cudaMemset(this->d_leimage->getData(), 0,
             sizeof(float) * this->d_leimage->getNbElem()));
+    this->strehl_counter = 0;
+    this->phase_var_avg = 0.f;
+    this->phase_var_count = 0;
+  }
 
   return EXIT_SUCCESS;
 }
@@ -378,8 +382,8 @@ int sutra_source::raytrace(sutra_dms *ydms, int rst, bool async, int do_phase_va
     // compute instantaneous phase variance and average
     this->phase_var = this->d_phasepts->dot(this->d_phasepts, 1, 1);
     this->phase_var /= this->d_wherephase->getNbElem();
-
-    this->phase_var_avg += this->phase_var;
+    if(this->phase_var_count >= 0)
+    	this->phase_var_avg += this->phase_var;
 
     this->phase_var_count += 1;
   }
@@ -393,7 +397,7 @@ int sutra_source::raytrace(sutra_dms *ydms, int rst, int phase_var) {
   return EXIT_SUCCESS;
 }
 
-int sutra_source::comp_image(int puponly) {
+int sutra_source::comp_image(int puponly, bool comp_le) {
   current_context->set_activeDevice(device,1);
   if (this->d_amplipup == 0)
     return -1;
@@ -434,7 +438,7 @@ int sutra_source::comp_image(int puponly) {
   this->d_image->scale(1.0f / (this->d_wherephase->getDims(1)* this->d_wherephase->getDims(1)), 1);
 
   // if long exposure image is not null
-  if (this->d_leimage != 0L) {
+  if (this->d_leimage != 0L && comp_le) {
     // add new short exposure
     this->d_leimage->axpy(1.0f, this->d_image, 1, 1);
     this->strehl_counter += 1;

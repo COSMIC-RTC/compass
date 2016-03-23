@@ -81,7 +81,7 @@ public:
   int
   raytrace_shm(sutra_atmos *atmos);
   int
-  comp_image(int puponly);
+  comp_image(int puponly, bool comp_le);
   int
   init_strehlmeter();
   int

@@ -88,7 +88,7 @@ cdef class Target:
         d_screen.axpy(1.0,d_tel,1,1)
 
 
-    def get_image(self,int nTarget, bytes type_im, long puponly=0):
+    def get_image(self,int nTarget, bytes type_im, long puponly=0, bool comp_le=False):
         """Return the image from the target (or long exposure image according to the requested type)
 
         :parameters:
@@ -97,6 +97,8 @@ cdef class Target:
             type_im: (str) : type of the image to get ("se" or "le")
             
             puponly: (int) : if 1, image computed from phase on the pupil only
+            
+            comp_le : (bool) : if False (default), the computed image is not taken into account in the LE image
         """
         self.context.set_activeDeviceForCpy(self.device)
         cdef sutra_source *src = self.target.d_targets[nTarget]
@@ -105,7 +107,7 @@ cdef class Target:
         cdef np.ndarray data_F=np.empty((dims[2],dims[1]),dtype=np.float32)
         cdef np.ndarray data=np.empty((dims[1],dims[2]),dtype=np.float32)
 
-        src.comp_image(puponly)
+        src.comp_image(puponly,comp_le)
         cdef float flux = src.zp * 10**(-0.4 * src.mag);
         cdef carma_obj[float] *tmp_img = new carma_obj[float](self.context.c, dims)
         if(type_im=="se"):
@@ -214,7 +216,7 @@ cdef class Target:
 
 
     def reset_strehl(self, int nTarget):
-        """Return the target's strehl
+        """Reset the target's strehl
 
         :param nTarget: (int) : index of the target
         """
@@ -224,18 +226,22 @@ cdef class Target:
         src.init_strehlmeter()
 
 
-    def get_strehl(self, int nTarget):
-        """Return the target's strehl
+    def get_strehl(self, int nTarget, bool comp_strehl=True):
+        """Compute and return the target's strehl
 
         :param nTarget: (int) : index of the target
+        :return strehl: (np.array(4,dtype=np.float32)) : [Strehl SE, Strehl LE, 
+                                                        instantaneous phase variance over the pupil, 
+                                                        average  phase variance over the pupil]
         """
 
         self.context.set_activeDeviceForCpy(self.device)
         cdef sutra_source *src = self.target.d_targets[nTarget]
 
         cdef np.ndarray strehl=np.empty(4,dtype=np.float32)
-        src.comp_image(0)
-        src.comp_strehl()
+        if(comp_strehl):
+            src.comp_image(0,True)
+            src.comp_strehl()
 
         strehl[0]=src.strehl_se
         strehl[1]=src.strehl_le
