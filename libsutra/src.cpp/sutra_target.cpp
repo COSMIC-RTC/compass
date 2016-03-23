@@ -363,7 +363,7 @@ int sutra_source::raytrace(sutra_dms *ydms, int rst, bool async, int do_phase_va
       p++;
   }
 
-  if (type != "wfs" && do_phase_var) {
+  if (type != "wfs") {
     // select phase pixels in the valid portion of pupil
     fillindx(this->d_phasepts->getData(), this->d_phase->d_screen->getData(),
         this->d_wherephase->getData(), this->scale,
@@ -382,10 +382,12 @@ int sutra_source::raytrace(sutra_dms *ydms, int rst, bool async, int do_phase_va
     // compute instantaneous phase variance and average
     this->phase_var = this->d_phasepts->dot(this->d_phasepts, 1, 1);
     this->phase_var /= this->d_wherephase->getNbElem();
-    if(this->phase_var_count >= 0)
-    	this->phase_var_avg += this->phase_var;
+    if(do_phase_var){
+		if(this->phase_var_count >= 0)
+			this->phase_var_avg += this->phase_var;
 
-    this->phase_var_count += 1;
+		this->phase_var_count += 1;
+    }
   }
 
   return EXIT_SUCCESS;
