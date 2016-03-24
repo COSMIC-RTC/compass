@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1253</width>
+    <width>1258</width>
     <height>894</height>
    </rect>
   </property>
@@ -124,14 +124,37 @@
            </widget>
           </item>
           <item>
-           <widget class="QPushButton" name="pushButton_5">
+           <spacer name="horizontalSpacer_5">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeType">
+             <enum>QSizePolicy::Fixed</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item>
+           <widget class="QPushButton" name="wao_resetSR">
             <property name="text">
              <string>Reset strehl</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QSpinBox" name="spinBox"/>
+           <widget class="QLabel" name="label_59">
+            <property name="text">
+             <string>Target #:</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QSpinBox" name="wao_resetSR_tarNum"/>
           </item>
          </layout>
         </item>
@@ -491,7 +514,7 @@
            </font>
           </property>
           <property name="currentIndex">
-           <number>1</number>
+           <number>0</number>
           </property>
           <widget class="QWidget" name="tab_2">
            <attribute name="title">
@@ -565,7 +588,7 @@
                  <item row="2" column="2">
                   <widget class="QLabel" name="label_26">
                    <property name="text">
-                    <string>Zp</string>
+                    <string>log10(Zp)</string>
                    </property>
                   </widget>
                  </item>
@@ -1806,8 +1829,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1253</width>
-     <height>19</height>
+     <width>1258</width>
+     <height>21</height>
     </rect>
    </property>
   </widget>

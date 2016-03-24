@@ -100,7 +100,7 @@ class widgetAOWindow(TemplateBaseClass):
         self.RTDisplay= self.ui.wao_Display.isChecked()
         self.RTDFreq = self.ui.wao_frameRate.value()
         self.ui.wao_PSFlogscale.clicked.connect(self.updateDisplay)
-
+        self.ui.wao_resetSR.clicked.connect(self.resetSR)
 
         # Create Loop thread
         self.aoLoopThread = aoLoopThread(self.mainLoop, self.config, self.img, self.ui.wao_strehlSE, self.ui.wao_strehlLE, 1, self.hist, self.RTDisplay, self.RTDFreq)
@@ -109,6 +109,14 @@ class widgetAOWindow(TemplateBaseClass):
         self.connect(self.aoLoopThread, QtCore.SIGNAL("currentSRLE(QString)"), self.updateSRLE)
 
         self.connect(self.aoLoopThread,QtCore.SIGNAL("finished()"),self.aoLoopFinished)
+
+    def resetSR(self):
+        tarnum = self.ui.wao_resetSR_tarNum.value()
+        print "reset SR on target %d" % tarnum
+        self.tar.reset_strehl(tarnum)
+
+    def setDevice(self):
+        self.c.set_activeDevice(self.ui.wao_deviceNumber.value())
 
     def manually_destroy(self):
         if(hasattr(self,"mainLoop")):
@@ -210,7 +218,7 @@ class widgetAOWindow(TemplateBaseClass):
         self.ui.wao_wfsFracsub.setValue(self.config.p_wfss[nwfs].fracsub)
         self.ui.wao_wfsLambda.setValue(self.config.p_wfss[nwfs].Lambda)
         self.ui.wao_wfsMagnitude.setValue(self.config.p_wfss[nwfs].gsmag)
-        self.ui.wao_wfsZp.setValue(self.config.p_wfss[nwfs].zerop)
+        self.ui.wao_wfsZp.setValue(np.log10(self.config.p_wfss[nwfs].zerop))
         self.ui.wao_wfsThrough.setValue(self.config.p_wfss[nwfs].optthroughput)
         self.ui.wao_wfsNoise.setValue(self.config.p_wfss[nwfs].noise)
 
@@ -376,7 +384,7 @@ class widgetAOWindow(TemplateBaseClass):
         self.config.p_wfss[nwfs].set_Lambda( self.ui.wao_wfsLambda.value())
         self.config.p_wfss[nwfs].set_gsmag( self.ui.wao_wfsMagnitude.value())
         #TODO: find a way to correctly set zerop (limited by the maximum value allowed by the double spin box)
-        #self.config.p_wfss[nwfs].set_zerop( self.ui.wao_wfsZp.value())
+        self.config.p_wfss[nwfs].set_zerop(10**(self.ui.wao_wfsZp.value()))
         self.config.p_wfss[nwfs].set_optthroughput( self.ui.wao_wfsThrough.value())
         self.config.p_wfss[nwfs].set_noise( self.ui.wao_wfsNoise.value())
 
