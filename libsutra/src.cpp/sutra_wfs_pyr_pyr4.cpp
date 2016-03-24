@@ -76,7 +76,6 @@ int sutra_wfs_pyr_pyr4::comp_generic() {
     pyr_abs2(this->d_hrimg->getData(), this->d_fttotim->getData(), fact,
         this->nfft, 4, this->current_context->get_device(device));
   }
-  this->d_fttotim->copyInto(this->d_fttotim_temp->getData(), this->d_fttotim_temp->getNbElem());
      // spatial filtering by the pixel extent:
   roll(this->d_hrimg->getData(),this->d_hrimg->getDims(1),
 	  this->d_hrimg->getDims(2), 4,
@@ -123,15 +122,8 @@ int sutra_wfs_pyr_pyr4::comp_generic() {
   reduce(this->nvalid, threads, blocks, this->d_subsum->getData(),
       this->d_subsum->getData());
 
-  this->d_subsum->copyInto(this->d_subsum_temp->getData(), this->d_subsum_temp->getNbElem());
-  
-//      float subsum;
-//      cudaMemcpy(&subsum,this->d_subsum->getData(0),sizeof(float), cudaMemcpyDeviceToHost);
-//      printf("subsum %f\n",subsum);
-
   pyr_fact(this->d_bincube->getData(), this->nphot, this->d_subsum->getData(),
       this->nfft / this->nrebin, 4, this->current_context->get_device(device));
-  this->d_bincube->copyInto(this->d_bincube_temp->getData(), this->d_bincube_temp->getNbElem());
 
   // add noise
   if (this->noise > -1) {
@@ -151,7 +143,7 @@ int sutra_wfs_pyr_pyr4::comp_generic() {
   //  reduce(this->nvalid, threads, blocks, this->d_subsum->getData(),
   //      this->d_subsum->getData());
   //  */
-  
+
   return EXIT_SUCCESS;
 
 }
