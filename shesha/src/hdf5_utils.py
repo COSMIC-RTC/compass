@@ -527,7 +527,6 @@ def checkControlParams(savepath,config,pdict,matricesToLoad):
 #            load_control &= ((dataBase.loc[i,"ndm"] == [c.ndm for c in config.p_controllers]).all())
 #            load_control &= ((dataBase.loc[i,"nmodes"] == [c.nmodes for c in config.p_controllers]).all())        
 #            load_control &= ((dataBase.loc[i,"control.nwfs"] == [c.nwfs for c in config.p_controllers]).all())
-        print "cond  =  ",cond
         if(cond):
             matricesToLoad["index_control"] = i
             matricesToLoad["imat"] = dataBase.loc[i,"path2file"]
