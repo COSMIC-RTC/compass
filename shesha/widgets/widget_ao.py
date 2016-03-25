@@ -21,6 +21,7 @@ from functools import partial
 import time
 WindowTemplate,TemplateBaseClass=loadUiType(os.environ["SHESHA_ROOT"]+"/widgets/widget_ao.ui")
 
+import threading
 
 """
 low levels debugs:
@@ -33,6 +34,7 @@ class widgetAOWindow(TemplateBaseClass):
 
         self.ui = WindowTemplate()
         self.ui.setupUi(self)
+        self.displayLock = threading.Lock()
 
         ##############################################################
         #######       ATTRIBUTES   #######################
@@ -59,6 +61,8 @@ class widgetAOWindow(TemplateBaseClass):
         self.p1.setAspectLocked(True)
 
         self.p1.addItem(self.img) # Put image in plot area
+
+
         self.hist = pg.HistogramLUTItem() #Create an histogram
         self.hist.setImageItem(self.img) # Compute histogram from img
         self.ui.wao_pgwindow.addItem(self.hist)
@@ -103,7 +107,7 @@ class widgetAOWindow(TemplateBaseClass):
         self.ui.wao_resetSR.clicked.connect(self.resetSR)
 
         # Create Loop thread
-        self.aoLoopThread = aoLoopThread(self.mainLoop, self.config, self.img, self.ui.wao_strehlSE, self.ui.wao_strehlLE, 1, self.hist, self.RTDisplay, self.RTDFreq)
+        self.aoLoopThread = aoLoopThread(self.mainLoop, self.config, self.img, self.ui.wao_strehlSE, self.ui.wao_strehlLE, 1, self.hist, self.RTDisplay, self.RTDFreq, self.updateDisplay)
         self.connect(self.aoLoopThread, QtCore.SIGNAL("currentLoopFrequency(float)"), self.updateCurrentLoopFrequency)
         self.connect(self.aoLoopThread, QtCore.SIGNAL("currentSRSE(QString)"), self.updateSRSE)
         self.connect(self.aoLoopThread, QtCore.SIGNAL("currentSRLE(QString)"), self.updateSRLE)
@@ -463,7 +467,8 @@ class widgetAOWindow(TemplateBaseClass):
             sys.path.remove(self.defaultParPath)
             h5u.configFromH5(filepath,config)
         else:
-            raise ValueError("Parameter file extension must be .py or .h5")
+            print "Parameter file extension must be .py or .h5"
+            return
         self.config = config
         self.aoLoopThread.config = config
         self.ui.wao_selectConfig.clear()
@@ -542,71 +547,149 @@ class widgetAOWindow(TemplateBaseClass):
         self.ui.wao_selectConfig.addItems([parlist[i].split('/')[-1] for i in range(len(parlist))])
 
     def updateDisplay(self):
+
         data = None
-        if(self.ui.wao_Display.isChecked()):
-            self.ui.wao_rtcWindowMPL.hide()
-            self.ui.wao_pgwindow.show()
-            if(self.atm):
+        if not self.displayLock.acquire(False):
+            #print " Display locked"
+            return
+        else:
+            try:
+                if(self.ui.wao_Display.isChecked()):
+                    self.ui.wao_rtcWindowMPL.hide()
+                    self.ui.wao_pgwindow.show()
 
-                if(self.imgType == "Phase - Atmos"):
-                    data = self.atm.get_screen(self.config.p_atmos.alt[self.numberSelected])
-            if(self.wfs):
-                if(self.imgType == "Phase - WFS"):
-                    data =self.wfs.get_phase(self.numberSelected)
-                if(self.imgType == "Spots - WFS"):
-                    if(self.config.p_wfss[self.numberSelected].type_wfs == "sh"):
-                        data =self.wfs.get_binimg(self.numberSelected)
-                    elif(self.config.p_wfss[self.numberSelected].type_wfs == "pyr"):
-                        data =self.wfs.get_pyrimg(self.numberSelected)
-                if(self.imgType == "Centroids - WFS"):
-                    if(not self.ui.wao_rtcWindowMPL.isVisible()):
-                        self.ui.wao_rtcWindowMPL.show()
-                        self.ui.wao_pgwindow.hide()
-                    self.ui.wao_rtcWindowMPL.canvas.axes.clear()
-                    centroids = self.rtc.getCentroids(0) # retrieving centroids
-                    nvalid = [2*o._nvalid for o in self.config.p_wfss]
-                    ind = np.sum(nvalid[:self.numberSelected])
-                    x, y, vx, vy = tools.plsh(centroids[ind:ind+nvalid[self.numberSelected]], self.config.p_wfss[self.numberSelected].nxsub,self.config.p_tel.cobs , returnquiver=True) # Preparing mesh and vector for display
-                    self.ui.wao_rtcWindowMPL.canvas.axes.quiver(x, y, vx, vy, pivot='mid')
-                    self.ui.wao_rtcWindowMPL.canvas.draw()
-                    return
-                if(self.imgType == "Slopes - WFS"):
-                    if(not self.ui.wao_rtcWindowMPL.isVisible()):
-                        self.ui.wao_rtcWindowMPL.show()
-                        self.ui.wao_pgwindow.hide()
-                    self.ui.wao_rtcWindowMPL.canvas.axes.clear()
-                    self.wfs.slopes_geom(self.numberSelected,0)
-                    slopes = self.wfs.get_slopes(self.numberSelected)
-                    x, y, vx, vy = tools.plsh(slopes, self.config.p_wfss[self.numberSelected].nxsub,self.config.p_tel.cobs , returnquiver=True) # Preparing mesh and vector for display
-                    wao.ui.wao_rtcWindowMPL.canvas.axes.quiver(x, y, vx, vy, pivot='mid')
-                    wao.ui.wao_rtcWindowMPL.canvas.draw()
-                    return
 
-            if(self.dms):
-                if(self.imgType == "Phase - DM"):
-                    dm_type = self.config.p_dms[self.numberSelected].type_dm
-                    alt = self.config.p_dms[self.numberSelected].alt
-                    data =self.dms.get_dm(dm_type,alt)
-            if(self.tar):
-                if(self.imgType == "Phase - Target"):
-                    data =self.tar.get_phase(self.numberSelected)
-                if(self.imgType == "PSF SE"):
-                    data =self.tar.get_image(self.numberSelected,"se")
-                    if(self.ui.wao_PSFlogscale.isChecked()):
-                        data = np.log10(data)
-                if(self.imgType == "PSF LE"):
-                    data =self.tar.get_image(self.numberSelected,"le")
-                    if(self.ui.wao_PSFlogscale.isChecked()):
-                        data = np.log10(data)
-            if (data is not None):
-                autoscale = self.ui.wao_autoscale.isChecked()
-                if(autoscale):
-                    self.hist.setLevels(data.min(), data.max()) # inits levels
-                self.img.setImage(data, autoLevels=autoscale)
-                self.p1.autoRange()
 
+
+                    if(self.atm):
+                        if(self.SRCrossX and (self.imgType in ["Phase - Target","Phase - DM","Phase - Atmos","Phase - WFS","Spots - WFS","Centroids - WFS","Slopes - WFS"])):
+                            self.SRCrossX.hide()
+                            self.SRCrossY.hide()
+
+                        if(self.imgType == "Phase - Atmos"):
+                            data = self.atm.get_screen(self.config.p_atmos.alt[self.numberSelected])
+                            if(self.imgType!=self.currentViewSelected):
+                                self.p1.setRange(xRange=(0, data.shape[0]), yRange=(0, data.shape[1]))
+                            self.currentViewSelected = self.imgType
+
+                    if(self.wfs):
+                        if(self.imgType == "Phase - WFS"):
+                            data =self.wfs.get_phase(self.numberSelected)
+                            if(self.imgType!=self.currentViewSelected):
+                                self.p1.setRange(xRange=(0, data.shape[0]), yRange=(0, data.shape[1]))
+                            self.currentViewSelected = self.imgType
+
+                        if(self.imgType == "Spots - WFS"):
+                            if(self.config.p_wfss[self.numberSelected].type_wfs == "sh"):
+                                data =self.wfs.get_binimg(self.numberSelected)
+                            elif(self.config.p_wfss[self.numberSelected].type_wfs == "pyr"):
+                                data =self.wfs.get_pyrimg(self.numberSelected)
+                            if(self.imgType!=self.currentViewSelected):
+                                self.p1.setRange(xRange=(0, data.shape[0]), yRange=(0, data.shape[1]))
+                            self.currentViewSelected = self.imgType
+
+                        if(self.imgType == "Centroids - WFS"):
+                            if(not self.ui.wao_rtcWindowMPL.isVisible()):
+                                self.ui.wao_rtcWindowMPL.show()
+                                self.ui.wao_pgwindow.hide()
+                            self.ui.wao_rtcWindowMPL.canvas.axes.clear()
+                            centroids = self.rtc.getCentroids(0) # retrieving centroids
+                            nvalid = [2*o._nvalid for o in self.config.p_wfss]
+                            ind = np.sum(nvalid[:self.numberSelected])
+                            x, y, vx, vy = tools.plsh(centroids[ind:ind+nvalid[self.numberSelected]], self.config.p_wfss[self.numberSelected].nxsub,self.config.p_tel.cobs , returnquiver=True) # Preparing mesh and vector for display
+                            self.ui.wao_rtcWindowMPL.canvas.axes.quiver(x, y, vx, vy, pivot='mid')
+                            self.ui.wao_rtcWindowMPL.canvas.draw()
+                            self.currentViewSelected = self.imgType
+
+                            return
+                        if(self.imgType == "Slopes - WFS"):
+                            if(not self.ui.wao_rtcWindowMPL.isVisible()):
+                                self.ui.wao_rtcWindowMPL.show()
+                                self.ui.wao_pgwindow.hide()
+                            self.ui.wao_rtcWindowMPL.canvas.axes.clear()
+                            self.wfs.slopes_geom(self.numberSelected,0)
+                            slopes = self.wfs.get_slopes(self.numberSelected)
+                            x, y, vx, vy = tools.plsh(slopes, self.config.p_wfss[self.numberSelected].nxsub,self.config.p_tel.cobs , returnquiver=True) # Preparing mesh and vector for display
+                            wao.ui.wao_rtcWindowMPL.canvas.axes.quiver(x, y, vx, vy, pivot='mid')
+                            wao.ui.wao_rtcWindowMPL.canvas.draw()
+                            self.currentViewSelected = self.imgType
+
+                            return
+
+                    if(self.dms):
+                        if(self.imgType == "Phase - DM"):
+                            dm_type = self.config.p_dms[self.numberSelected].type_dm
+                            alt = self.config.p_dms[self.numberSelected].alt
+                            data =self.dms.get_dm(dm_type,alt)
+                            if(self.imgType!=self.currentViewSelected):
+                                self.p1.setRange(xRange=(0, data.shape[0]), yRange=(0, data.shape[1]))
+                            self.currentViewSelected = self.imgType
+                    if(self.tar):
+                        if(self.imgType == "Phase - Target"):
+                            data =self.tar.get_phase(self.numberSelected)
+                            if(self.imgType!=self.currentViewSelected):
+                                self.p1.setRange(xRange=(0, data.shape[0]), yRange=(0, data.shape[1]))
+                            self.currentViewSelected = self.imgType
+
+                        if(self.imgType == "PSF SE"):
+                            data =self.tar.get_image(self.numberSelected,"se")
+                            if(self.ui.wao_PSFlogscale.isChecked()):
+                                data = np.log10(data)
+
+                            if (not self.SRCrossX):
+                                Delta = 5
+                                self.SRCrossX = pg.PlotCurveItem(np.array([data.shape[0]/2+0.5-Delta, data.shape[0]/2+0.5+Delta]), np.array([data.shape[1]/2+0.5, data.shape[1]/2+0.5]), pen='r')
+                                self.SRCrossY = pg.PlotCurveItem(np.array([data.shape[0]/2+0.5, data.shape[0]/2+0.5]), np.array([data.shape[1]/2+0.5-Delta, data.shape[1]/2+0.5+Delta]), pen='r')
+                                self.p1.addItem(self.SRCrossX) # Put image in plot area
+                                self.p1.addItem(self.SRCrossY) # Put image in plot area
+
+                            if(self.imgType!=self.currentViewSelected):
+                                zoom = 50
+                                self.SRCrossX.show()
+                                self.SRCrossY.show()
+                                self.p1.setRange(xRange=(data.shape[0]/2+0.5-zoom, data.shape[0]/2+0.5+zoom), yRange=(data.shape[1]/2+0.5-zoom, data.shape[1]/2+0.5+zoom),)
+                            self.currentViewSelected = self.imgType
+
+
+
+
+                        if(self.imgType == "PSF LE"):
+                            data =self.tar.get_image(self.numberSelected,"le")
+                            if(self.ui.wao_PSFlogscale.isChecked()):
+                                data = np.log10(data)
+                            if (not self.SRCrossX):
+                                Delta = 5
+                                self.SRCrossX = pg.PlotCurveItem(np.array([data.shape[0]/2+0.5-Delta, data.shape[0]/2+0.5+Delta]), np.array([data.shape[1]/2+0.5, data.shape[1]/2+0.5]), pen='r')
+                                self.SRCrossY = pg.PlotCurveItem(np.array([data.shape[0]/2+0.5, data.shape[0]/2+0.5]), np.array([data.shape[1]/2+0.5-Delta, data.shape[1]/2+0.5+Delta]), pen='r')
+
+                                self.p1.addItem(self.SRCrossX) # Put image in plot area
+                                self.p1.addItem(self.SRCrossY) # Put image in plot area
+                            if(self.imgType!=self.currentViewSelected):
+                                zoom = 50
+                                self.p1.setRange(xRange=(data.shape[0]/2+0.5-zoom, data.shape[0]/2+0.5+zoom), yRange=(data.shape[1]/2+0.5-zoom, data.shape[1]/2+0.5+zoom))
+                                self.SRCrossX.show()
+                                self.SRCrossY.show()
+
+                            self.currentViewSelected = self.imgType
+
+
+
+                    if (data is not None):
+                        autoscale = self.ui.wao_autoscale.isChecked()
+                        if(autoscale):
+                            self.hist.setLevels(data.min(), data.max()) # inits levels
+                        self.img.setImage(data, autoLevels=autoscale)
+                        #self.p1.autoRange()
+
+
+
+            finally:
+                self.displayLock.release()
 
     def InitConfig(self):
+        self.currentViewSelected = None
+        self.SRCrossX = None
+        self.SRCrossY = None
 
         self.manually_destroy()
         #set simulation name
@@ -624,7 +707,7 @@ class widgetAOWindow(TemplateBaseClass):
             clean=0
             param_dict = h5u.params_dictionary(self.config)
             matricesToLoad = h5u.checkMatricesDataBase(os.environ["SHESHA_ROOT"]+"/data/",self.config,param_dict)
-            
+
         self.c = ch.naga_context(self.ui.wao_deviceNumber.value())
         self.wfs,self.tel=ao.wfs_init(self.config.p_wfss,self.config.p_atmos,self.config.p_tel,
                              self.config.p_geom,self.config.p_target,self.config.p_loop,
@@ -640,7 +723,7 @@ class widgetAOWindow(TemplateBaseClass):
         self.tar=ao.target_init(self.c, self.tel, self.config.p_target,self.config.p_atmos,
                                                   self.config.p_geom,self.config.p_tel,self.config.p_wfss,
                                                   self.wfs,self.config.p_dms)
-                                  
+
         self.rtc=ao.rtc_init(self.tel,self.wfs,self.config.p_wfss,self.dms,self.config.p_dms,
                              self.config.p_geom,self.config.p_rtc,self.config.p_atmos,
                              self.atm,self.config.p_tel,self.config.p_loop,self.tar,
@@ -709,17 +792,43 @@ class widgetAOWindow(TemplateBaseClass):
                 self.ui.wao_rtcWindow.canvas.axes.clear()
                 ax = self.ui.wao_rtcWindow.canvas.axes
                 if(len(data.shape) == 2):
-                    self.ui.wao_rtcWindow.canvas.axes.matshow(data, aspect="auto", origin="lower")
+                    self.ui.wao_rtcWindow.canvas.axes.matshow(data, aspect="auto", origin="lower", cmap="gray")
                 elif(len(data.shape) == 1):
-                    self.ui.wao_rtcWindow.canvas.axes.plot(range(len(data)),data) # TODO : plot it properly, interactivity ?
+                    self.ui.wao_rtcWindow.canvas.axes.plot(range(len(data)),data, color="black") # TODO : plot it properly, interactivity ?
                     ax.set_yscale('log')
+                    if(type_matrix == "Eigenvalues"):
+#                        major_ticks = np.arange(0, 101, 20)
+#                        minor_ticks = np.arange(0, 101, 5)
+#
+#                        self.ui.wao_rtcWindow.canvas.axes.set_xticks(major_ticks)
+#                        self.ui.wao_rtcWindow.canvas.axes.set_xticks(minor_ticks, minor=True)
+#                        self.ui.wao_rtcWindow.canvas.axes.set_yticks(major_ticks)
+#                        self.ui.wao_rtcWindow.canvas.axes.set_yticks(minor_ticks, minor=True)
+#
+#                        # and a corresponding grid
+
+                        self.ui.wao_rtcWindow.canvas.axes.grid(which='both')
+
+                        # or if you want differnet settings for the grids:
+                        self.ui.wao_rtcWindow.canvas.axes.grid(which='minor', alpha=0.2)
+                        self.ui.wao_rtcWindow.canvas.axes.grid(which='major', alpha=0.5)
+                        nfilt = self.rtc.get_nfiltered(0, self.config.p_rtc)
+                        self.ui.wao_rtcWindow.canvas.axes.plot([nfilt-0.5,nfilt-0.5],[data.min(), data.max()], color="red", linestyle="dashed")
+                        if(nfilt>0):
+                            self.ui.wao_rtcWindow.canvas.axes.scatter(np.arange(0,nfilt,1),data[0:nfilt], color="red") # TODO : plot it properly, interactivity ?
+                            self.ui.wao_rtcWindow.canvas.axes.scatter(np.arange(nfilt,len(data),1),data[nfilt:], color="blue") # TODO : plot it properly, interactivity ?
+                            tt = "%d modes Filtered" % nfilt
+                            #ax.text(nfilt + 2, data[nfilt-1], tt)
+                            ax.text(0.5, 0.2, tt, horizontalalignment='center',
+     verticalalignment='center', transform = ax.transAxes)
+
                 self.ui.wao_rtcWindow.canvas.draw()
 
 
 
 
 class aoLoopThread(QtCore.QThread):
-    def __init__(self,LoopParams,config, img, strehlSE, strehlLE, framebyframe, histo, RTDisplay, RTDFreq, imgType=None, numberSelected=None):
+    def __init__(self,LoopParams,config, img, strehlSE, strehlLE, framebyframe, histo, RTDisplay, RTDFreq, updateDisplay, imgType=None, numberSelected=None):
         QtCore.QThread.__init__(self)
 
         self.tel = LoopParams[0]
@@ -739,10 +848,12 @@ class aoLoopThread(QtCore.QThread):
         self.histo = histo
         self.RTDFreq = RTDFreq
         self.RTDisplay = RTDisplay
+        self.updateDisplay = updateDisplay
 
     def __del__(self):
         self.wait()
 
+    """
     def updateDisplay(self):
         data = None
         if((not wao.ui.wao_pgwindow.isVisible()) & (self.imgType != "Centroids - WFS") & (self.imgType != "Slopes - WFS")):
@@ -804,7 +915,7 @@ class aoLoopThread(QtCore.QThread):
                 wao.hist.setLevels(data.min(), data.max()) # inits levels
             wao.img.setImage(data, autoLevels=autoscale)
             # wao.p1.autoRange()
-
+    """
     def run(self):
         i=0
         if(self.framebyframe):
