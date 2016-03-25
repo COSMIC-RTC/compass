@@ -69,7 +69,8 @@ int sutra_wfs_pyr_pyr4::comp_generic() {
     carma_fft(this->d_fttotim->getData(), this->d_fttotim->getData(), 1,
         *this->d_fttotim->getPlan());
 
-    float fact = 1.0f / this->nfft / this->nfft / this->nfft / 2.0;
+    //float fact = 1.0f / this->nfft / this->nfft / this->nfft / 2.0;
+    float fact = 1.0f;
     //if (cpt == this->npup-1) fact = fact / this->npup;
 
     pyr_abs2(this->d_hrimg->getData(), this->d_fttotim->getData(), fact,
@@ -106,6 +107,8 @@ int sutra_wfs_pyr_pyr4::comp_generic() {
   int blocks, threads;
   getNumBlocksAndThreads(current_context->get_device(device), this->nvalid,
       blocks, threads);
+  sumGetNumBlocksAndThreads(this->nvalid, device,
+		  	  	  	  	  	  blocks, threads);
   reduce(this->nvalid, threads, blocks, this->d_subsum->getData(),
       this->d_subsum->getData());
 
