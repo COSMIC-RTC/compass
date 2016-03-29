@@ -148,6 +148,14 @@ sutra_sensors::sutra_sensors(carma_context *context, sutra_telescope *d_tel, cha
 			this->d_lgskern = 0L;
 		}
 	}
+	else{ // Pyramid case : shared arrays are not used
+		this->d_camplifoc = 0L;
+		this->d_camplipup = 0L;
+		this->d_fttotim = 0L;
+		this->d_ftlgskern = 0L;
+		this->d_lgskern = 0L;
+
+	}
 	//DEBUG_TRACE("After creating sensors arrays : ");printMemInfo();
   for (int i = 0; i < nwfs; i++) {
     sutra_wfs *wfs = NULL;

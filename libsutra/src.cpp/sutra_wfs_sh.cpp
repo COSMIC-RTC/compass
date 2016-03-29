@@ -306,7 +306,8 @@ sutra_wfs_sh::~sutra_wfs_sh() {
   if (this->lgs)
     delete this->d_gs->d_lgs;
 
-  delete this->d_gs;
+  if(this->d_gs != 0L)
+	  delete this->d_gs;
 
   delete this->streams;
 

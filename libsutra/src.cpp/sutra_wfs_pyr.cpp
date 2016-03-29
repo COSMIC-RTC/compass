@@ -5,9 +5,9 @@
 sutra_wfs_pyr::sutra_wfs_pyr(carma_context *context, sutra_telescope *d_tel, sutra_sensors *sensors, long nxsub,
     long nvalid, long npix, long nphase, long nrebin, long nfft, long ntot,
     long npup, float pdiam, float nphotons, float nphot4imat, int lgs, int device) {
-  this->d_camplipup = sensors->d_camplipup;
-  this->d_camplifoc = sensors->d_camplifoc;
-  this->d_fttotim = sensors->d_fttotim;
+  this->d_camplipup = 0L;//sensors->d_camplipup;
+  this->d_camplifoc = 0L;//sensors->d_camplifoc;
+  this->d_fttotim = 0L;//sensors->d_fttotim;
   this->d_ftkernel = 0L;
   this->d_pupil = d_tel->d_pupil_m;
   this->d_hrimg = 0L;
@@ -199,7 +199,8 @@ sutra_wfs_pyr::~sutra_wfs_pyr() {
   if (this->lgs)
     delete this->d_gs->d_lgs;
 
-  delete this->d_gs;
+  if(this->d_gs != 0L)
+	  delete this->d_gs;
 
   delete this->streams;
 

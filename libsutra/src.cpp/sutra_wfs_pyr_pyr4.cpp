@@ -76,20 +76,20 @@ int sutra_wfs_pyr_pyr4::comp_generic() {
     pyr_abs2(this->d_hrimg->getData(), this->d_fttotim->getData(), fact,
         this->nfft, 4, this->current_context->get_device(device));
   }
-  //  /*
-  //   // spatial filtering by the pixel extent:
-  //   carma_fft(this->d_fttotim->getData(), this->d_fttotim->getData(), -1,
-  //   *this->d_fttotim->getPlan());
-  //
-  //   pyr_submask3d(this->d_fttotim->getData(), this->d_sincar->getData(),this->nfft, 4, this->current_context->get_device(device));
-  //
-  //   carma_fft(this->d_fttotim->getData(), this->d_fttotim->getData(), 1,
-  //   *this->d_fttotim->getPlan());
-  //
-  //   pyr_abs(this->d_hrimg->getData(), this->d_fttotim->getData(),this->nfft, 4, this->current_context->get_device(device));
-  //
-  //  pyr_fact(this->d_hrimg->getData(),1.0f/this->nfft/this->nfft,this->nfft,4,this->current_context->get_device(device));
-  //   */
+    
+     // spatial filtering by the pixel extent:
+     carma_fft(this->d_fttotim->getData(), this->d_fttotim->getData(), -1,
+     *this->d_fttotim->getPlan());
+  
+     pyr_submask3d(this->d_fttotim->getData(), this->d_sincar->getData(),this->nfft, 4, this->current_context->get_device(device));
+  
+     carma_fft(this->d_fttotim->getData(), this->d_fttotim->getData(), 1,
+     *this->d_fttotim->getPlan());
+  
+     pyr_abs(this->d_hrimg->getData(), this->d_fttotim->getData(),this->nfft, 4, this->current_context->get_device(device));
+  
+    pyr_fact(this->d_hrimg->getData(),1.0f/this->nfft/this->nfft,this->nfft,4,this->current_context->get_device(device));
+     
 
   carmaSafeCall(
       cudaMemset(this->d_bincube->getData(), 0,
@@ -105,8 +105,8 @@ int sutra_wfs_pyr_pyr4::comp_generic() {
       this->current_context->get_device(device));
 
   int blocks, threads;
-  getNumBlocksAndThreads(current_context->get_device(device), this->nvalid,
-      blocks, threads);
+//  getNumBlocksAndThreads(current_context->get_device(device), this->nvalid,
+//      blocks, threads);
   sumGetNumBlocksAndThreads(this->nvalid, device,
 		  	  	  	  	  	  blocks, threads);
   reduce(this->nvalid, threads, blocks, this->d_subsum->getData(),
