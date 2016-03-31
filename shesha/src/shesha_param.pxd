@@ -175,7 +175,7 @@ cdef class Param_wfs:
     """(int*) array of pixels transform from phase screen into subaps phase screens"""
     cdef readonly np.ndarray _hrmap        
     """(int*) array of pixels transform from minimal FoV image to (in case type is sh or geo)"""
-    cdef np.ndarray _sincar        
+    cdef readonly np.ndarray _sincar        
     """(float*) array of pixels transform from minimal FoV image to (in case type is "pyr" or "roof")"""
                          # full FoV image (array of 0 if the same)
     cdef readonly np.ndarray _binmap       

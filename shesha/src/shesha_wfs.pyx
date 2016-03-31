@@ -729,8 +729,10 @@ cpdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
         # *2/2 intended. min should be 0.40 = sinc(0.5)^2.
         x=x/(Nfft-1)*2/2
         y=y/(Nfft-1)*2/2
-        sincar = np.roll(np.sinc(np.pi*x)*np.sinc(np.pi*y),x.shape[0],axis=0)
-        sincar = np.roll(np.pi*x*np.pi*y,x.shape[1],axis=1)
+        sincar = np.roll(np.sinc(x)*np.sinc(y),x.shape[0]/2,axis=0)
+        sincar = np.roll(sincar,y.shape[0]/2,axis=1)
+	
+        #sincar = np.roll(np.pi*x*np.pi*y,x.shape[1],axis=1)
         wfs._sincar = sincar.astype(np.float32)
         #must be set even if unused
         wfs._hrmap=np.array([0],dtype=np.int32)

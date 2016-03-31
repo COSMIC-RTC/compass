@@ -261,7 +261,7 @@ cdef class Target:
 
             reset: (int) : if >0, reset the screen before raytracing
             
-            do_phase_var: (int) : if >0, doesn't take the screen into account in the phase average (unused)
+            do_phase_var: (int) : if 0, doesn't take the screen into account in the phase average (unused)
         """
 
         cdef carma_context *context=carma_context.instance()
