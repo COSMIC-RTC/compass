@@ -76,7 +76,7 @@ int sutra_wfs_pyr_pyr4::comp_generic() {
     pyr_abs2(this->d_hrimg->getData(), this->d_fttotim->getData(), fact,
         this->nfft, 4, this->current_context->get_device(device));
   }
-    
+/*
      // spatial filtering by the pixel extent:
      carma_fft(this->d_fttotim->getData(), this->d_fttotim->getData(), -1,
      *this->d_fttotim->getPlan());
@@ -87,8 +87,8 @@ int sutra_wfs_pyr_pyr4::comp_generic() {
      *this->d_fttotim->getPlan());
   
      pyr_abs(this->d_hrimg->getData(), this->d_fttotim->getData(),this->nfft, 4, this->current_context->get_device(device));
-  
-    pyr_fact(this->d_hrimg->getData(),1.0f/this->nfft/this->nfft,this->nfft,4,this->current_context->get_device(device));
+*/
+    //pyr_fact(this->d_hrimg->getData(),1.0f/this->nfft/this->nfft,this->nfft,4,this->current_context->get_device(device));
      
 
   carmaSafeCall(
