@@ -502,6 +502,20 @@ cdef class Sensors:
         return data
 
 
+    def set_phase(self, int n, np.ndarray[ndim=2,dtype=np.float32_t] data):
+        """Set the phase array of a given wfs
+
+        :param n: (int) : number of the wfs to get the phase from
+        :param data: (np.ndarray) : the phase to set
+        """
+        #self.context.set_activeDeviceForCpy(self.device)
+        cdef sutra_source *src = self.sensors.d_wfs[n].d_gs
+        
+        cdef np.ndarray[dtype=np.float32_t] data_F=data.flatten("F")
+
+        src.d_phase.d_screen.host2device(<float*>data_F.data)
+
+
     def get_camplipup(self, int n):
         """Return the 'camplipup' array of a given wfs
 
