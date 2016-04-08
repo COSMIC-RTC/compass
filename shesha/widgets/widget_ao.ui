@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1258</width>
+    <width>1263</width>
     <height>894</height>
    </rect>
   </property>
@@ -357,13 +357,6 @@
           </item>
           <item>
            <widget class="QSpinBox" name="wao_deviceNumber"/>
-          </item>
-          <item>
-           <widget class="QPushButton" name="wao_setActiveDevice">
-            <property name="text">
-             <string>Set</string>
-            </property>
-           </widget>
           </item>
           <item>
            <spacer name="horizontalSpacer_4">
@@ -1832,8 +1825,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1258</width>
-     <height>19</height>
+     <width>1263</width>
+     <height>25</height>
     </rect>
    </property>
   </widget>

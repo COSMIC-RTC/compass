@@ -71,6 +71,7 @@ carma_context::carma_context(int num_device){
   this->activeDevice = 0;
   carma_device *current_yd = new carma_device(num_device);
   devices.push_back(current_yd);
+  this->ndevice = 1;
 
 #ifdef USE_CULA
   // CULA init
@@ -84,7 +85,7 @@ carma_context::carma_context(int num_device){
 
 #ifdef USE_MAGMA
   // MAGMA init
-  //magma_init();
+  magma_init();
   #if DEBUG
   //  magma_print_environment();
   #endif

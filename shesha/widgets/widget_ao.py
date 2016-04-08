@@ -7,7 +7,7 @@ import numpy as np
 import naga as ch
 import shesha as ao
 import time
-import matplotlib.pyplot as pl
+import matplotlib.pyplot as plt
 import pyqtgraph as pg
 import glob
 import tools
@@ -23,13 +23,15 @@ WindowTemplate,TemplateBaseClass=loadUiType(os.environ["SHESHA_ROOT"]+"/widgets/
 
 import threading
 
+plt.ion()
+
 """
 low levels debugs:
 gdb --args python -i widget_ao.py
 
 """
 class widgetAOWindow(TemplateBaseClass):
-    def __init__(self, device=None):
+    def __init__(self):
         TemplateBaseClass.__init__(self)
 
         self.ui = WindowTemplate()
@@ -119,9 +121,6 @@ class widgetAOWindow(TemplateBaseClass):
         tarnum = self.ui.wao_resetSR_tarNum.value()
         print "reset SR on target %d" % tarnum
         self.tar.reset_strehl(tarnum)
-
-    def setDevice(self):
-        self.c.set_activeDevice(self.ui.wao_deviceNumber.value())
 
     def manually_destroy(self):
         if(hasattr(self,"mainLoop")):
@@ -709,7 +708,13 @@ class widgetAOWindow(TemplateBaseClass):
             param_dict = h5u.params_dictionary(self.config)
             matricesToLoad = h5u.checkMatricesDataBase(os.environ["SHESHA_ROOT"]+"/data/",self.config,param_dict)
 
-        self.c = ch.naga_context(self.ui.wao_deviceNumber.value())
+        #self.c = ch.naga_context()
+        #self.c.set_activeDevice(self.ui.wao_deviceNumber.value())
+        print "-> using GPU%d"%self.ui.wao_deviceNumber.value()
+        self.ui.wao_deviceNumber.setDisabled(True)
+        if not self.c:
+            self.c = ch.naga_context(self.ui.wao_deviceNumber.value())
+
         self.wfs,self.tel=ao.wfs_init(self.config.p_wfss,self.config.p_atmos,self.config.p_tel,
                              self.config.p_geom,self.config.p_target,self.config.p_loop,
                              1,0,self.config.p_dms)
