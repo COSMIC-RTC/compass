@@ -708,10 +708,10 @@ class widgetAOWindow(TemplateBaseClass):
             param_dict = h5u.params_dictionary(self.config)
             matricesToLoad = h5u.checkMatricesDataBase(os.environ["SHESHA_ROOT"]+"/data/",self.config,param_dict)
 
-        #self.c = ch.naga_context()
-        #self.c.set_activeDevice(self.ui.wao_deviceNumber.value())
         print "-> using GPU%d"%self.ui.wao_deviceNumber.value()
         self.ui.wao_deviceNumber.setDisabled(True)
+#        self.c = ch.naga_context()
+#        self.c.set_activeDevice(self.ui.wao_deviceNumber.value())
         if not self.c:
             self.c = ch.naga_context(self.ui.wao_deviceNumber.value())
 

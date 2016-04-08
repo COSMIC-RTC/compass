@@ -131,6 +131,9 @@ public:
   int get_activeDevice() {
     return activeDevice;
   }
+  int get_activeRealDevice() {
+    return devices[activeDevice]->get_id();
+  }
   string get_DeviceName(int device);
   string get_DeviceInfo(int device);
   string get_DeviceMemInfo(int device);

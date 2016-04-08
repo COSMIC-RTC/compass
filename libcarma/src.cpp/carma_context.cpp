@@ -16,6 +16,19 @@
 
 carma_context *carma_context::s_instance=NULL;
 
+
+#ifdef USE_MAGMA
+extern int g_magma_devices_cnt;
+extern struct magma_device_info* g_magma_devices;
+extern int g_init;
+extern magma_queue_t* g_null_queues;
+struct magma_device_info
+{
+    size_t memory;
+    magma_int_t cuda_arch;
+};
+#endif
+
 carma_device::carma_device(int devid) {
   carmaSafeCall(cudaSetDevice(devid));
   this->id = devid;
@@ -72,6 +85,7 @@ carma_context::carma_context(int num_device){
   carma_device *current_yd = new carma_device(num_device);
   devices.push_back(current_yd);
   this->ndevice = 1;
+  this->activeDevice = set_activeDeviceForce(0, 1); //get_maxGflopsDeviceId(), 1);
 
 #ifdef USE_CULA
   // CULA init
@@ -84,8 +98,20 @@ carma_context::carma_context(int num_device){
 #endif
 
 #ifdef USE_MAGMA
-  // MAGMA init
-  magma_init();
+  // MAGMA custom init
+  g_magma_devices_cnt=1;
+  magma_malloc_cpu( (void**) &g_magma_devices, g_magma_devices_cnt * sizeof(struct magma_device_info) );
+  cudaDeviceProp prop;
+  cudaGetDeviceProperties( &prop, num_device );
+  g_magma_devices[0].memory    = prop.totalGlobalMem;
+  g_magma_devices[0].cuda_arch = prop.major*100 + prop.minor*10;
+  magma_device_t cdev;
+  magma_getdevice( &cdev );
+  magma_malloc_cpu( (void**) &g_null_queues, g_magma_devices_cnt * sizeof(magma_queue_t) );
+  magma_queue_create_from_cuda( num_device, NULL, NULL, NULL, &g_null_queues[0] );
+  magma_setdevice( cdev );
+  magmablasSetKernelStream( g_null_queues[0] );
+  g_init += 1;  // increment (init - finalize) count
   #if DEBUG
   //  magma_print_environment();
   #endif
@@ -230,7 +256,7 @@ int carma_context::_set_activeDeviceForce(int newDevice, int silent,
     silent=0;
 #endif
     if (!silent) {
-      cout << "Using device " << newDevice << ": \""
+      cout << "Using device " << devices[newDevice]->get_id() << ": \""
           << devices[newDevice]->get_properties().name << "\" with Compute "
           << devices[newDevice]->get_properties().major << "."
           << devices[newDevice]->get_properties().minor << " capability"

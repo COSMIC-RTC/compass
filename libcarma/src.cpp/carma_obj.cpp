@@ -189,7 +189,7 @@ void carma_obj<T_data>::init(carma_context *context, const long *dims_data,
   this->add_stream(nb_streams);
 
 #if DEBUG
-  printf("CARMA Object created @ 0x%p on GPU%d\n", this, current_context->get_activeDevice());
+  printf("CARMA Object created @ 0x%p on GPU%d\n", this, current_context->get_activeRealDevice());
 #endif
 
 }
@@ -241,7 +241,7 @@ carma_obj<T_data>::~carma_obj() {
   //this->d_states = 0;
 
 #if DEBUG
-  printf("CARMA Object deleted @ 0x%p on GPU%d\n", this, this->device);
+  printf("CARMA Object deleted @ 0x%p on GPU%d\n", this, current_context->get_activeRealDevice());
 #endif
   current_context->set_activeDevice(old_device, 1);
 }
