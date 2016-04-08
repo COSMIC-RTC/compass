@@ -65,7 +65,7 @@ cdef class Sensors:
     cpdef sensors_addlayer(self,int i, bytes type, float alt, float xoff, float yoff)
     cdef _get_bincube(self, int n)
     cdef _get_pyrimg(self,int n)
-    cdef _get_binimg(self, int n)
+    cpdef get_binimg(self, int n, Telescope tel=?, Atmos atmos=?,  Dms dms=?)
     cdef _get_slopesDims(self,int n)
     cdef _get_slopes(self, int n)
     cpdef slopes_geom(self,int nsensors, int t)

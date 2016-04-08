@@ -95,6 +95,7 @@ class widgetAOWindow(TemplateBaseClass):
         self.ui.wao_setWfs.clicked.connect(self.setWfsParams)
         self.ui.wao_setDM.clicked.connect(self.setDmParams)
         self.ui.wao_setControl.clicked.connect(self.setRtcParams)
+        self.ui.wao_setCentro.clicked.connect(self.setRtcParams)
         self.ui.wao_setTelescope.clicked.connect(self.setTelescopeParams)
         self.ui.wao_resetDM.clicked.connect(self.resetDM)
         self.ui.wao_selectRtcMatrix.currentIndexChanged.connect(self.displayRtcMatrix)

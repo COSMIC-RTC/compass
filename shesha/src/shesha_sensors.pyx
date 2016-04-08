@@ -333,32 +333,49 @@ cdef class Sensors:
         return data
 
 
-    def get_imgtele(self, int n):
+    def get_imgtele(self, int n, Telescope tel=None, Atmos atmos=None,  Dms dms=None):
         """Return the 'image_telemetry' array of a given wfs
 
         :param n: (int) : number of the wfs to get the 'image_telemetry' from
+        :options for raw image computation
+            tel (Telescope) : shesha telescope
+            atmos (Atmos) : shesha atmos
+            dms (Dms) : shesha dms
         """
         cdef carma_host_obj[float] *img
         cdef sutra_wfs_sh *wfs=dynamic_cast_wfs_sh_ptr(self.sensors.d_wfs[n])
         cdef const long *cdims
         cdef np.ndarray[ndim=2,dtype=np.float32_t] data
+        
+        if (tel and atmos and dms):
+            self.sensor_trace(n, "all", tel , atmos, dms)
+            self.sensor_compimg(n)
         img=self.sensors.d_wfs[n].image_telemetry
         cdims=img.getDims()
         data=np.empty((cdims[1],cdims[2]),dtype=np.float32)
-
+    
         wfs.fill_binimage(1)
         img.fill_into(<float*>data.data)
+        data[np.where(data<0)]=0
         return data
 
-    cdef _get_binimg(self, int n):
+    cpdef get_binimg(self, int n, Telescope tel=None, Atmos atmos=None,  Dms dms=None):
         """Return the 'binimg' array of a given wfs
 
-        :param n: (int) :number of the wfs to get the 'binimg' from
+        :param 
+            n: (int) :number of the wfs to get the 'binimg' from
+        :options for raw image computation
+            tel (Telescope) : shesha telescope
+            atmos (Atmos) : shesha atmos
+            dms (Dms) : shesha dms
         """
         cdef carma_obj[float] *img
         cdef const long *cdims
         cdef np.ndarray[ndim=2,dtype=np.float32_t] data
         cdef np.ndarray[ndim=2,dtype=np.float32_t] data_F
+        if (tel and atmos and dms):
+            self.sensor_trace(n, "all", tel , atmos, dms)
+            self.sensor_compimg(n)
         img=self.sensors.d_wfs[n].d_binimg
         cdims=img.getDims()
         data=np.empty((cdims[1],cdims[2]),dtype=np.float32)
@@ -367,14 +384,8 @@ cdef class Sensors:
         img.device2host(<float*>data_F.data)
 
         data=np.reshape(data_F.flatten("F"),(cdims[1],cdims[2]))
+        data[np.where(data<0)]=0
         return data
-
-    def get_binimg(self,int n):
-        """Return the 'binimg' array of a given wfs
-
-        :param n: (int) :number of the wfs to get the 'binimg' from
-        """
-        return self._get_binimg(n)
 
 
     def get_pyrimg(self,int n):

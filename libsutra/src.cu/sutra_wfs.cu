@@ -437,6 +437,36 @@ __global__ void reduce2(T *g_idata, T *g_odata, T thresh, unsigned int n, unsign
 }
 
 template<class T>
+__global__ void reduce2_new(T *g_idata, T *g_odata, T thresh, unsigned int n, unsigned int nelem_thread =1) {
+  T *sdata = SharedMemory<T>();
+
+  // load shared mem
+  unsigned int tid = threadIdx.x;
+  //unsigned int i = blockIdx.x * blockDim.x + threadIdx.x;
+
+  sdata[tid] = 0;
+  for (int cc=0;cc < nelem_thread; cc++) {
+    int idim = tid * nelem_thread + cc + (blockDim.x * nelem_thread) * blockIdx.x;
+    if (idim < n) {
+      if (g_idata[idim] <= thresh)
+    	  g_idata[idim] = 0;
+	  sdata[tid] += g_idata[idim];
+    } else
+      sdata[tid] += 0;
+  }
+  /*
+  if (i < n)
+    sdata[tid] = (g_idata[i] > thresh) ? g_idata[i] : 0;
+  */
+  __syncthreads();
+
+  red_krnl(sdata, blockDim.x, tid);
+  // write result for this block to global mem
+  if (tid == 0)
+    g_odata[blockIdx.x] = sdata[0];
+}
+
+template<class T>
 __global__ void reduce2(T *g_idata, T *g_odata, T *weights, unsigned int n, unsigned int nelem_thread=1) {
   T *sdata = SharedMemory<T>();
 
@@ -563,6 +593,34 @@ subap_reduce<float>(int size, int threads, int blocks, float *d_idata,
 
 template void
 subap_reduce<double>(int size, int threads, int blocks, double *d_idata,
+    double *d_odata, double thresh, carma_device *device);
+
+template<class T>
+void subap_reduce_new(int size, int threads, int blocks, T *d_idata, T *d_odata,
+    T thresh, carma_device *device) {
+
+  int maxThreads = device->get_properties().maxThreadsPerBlock;
+  unsigned int nelem_thread = 1;
+  while((threads/nelem_thread > maxThreads) || (threads % nelem_thread != 0)){
+		nelem_thread++;
+  }
+
+  dim3 dimBlock(threads / nelem_thread, 1, 1);
+  dim3 dimGrid(blocks, 1, 1);
+
+  // when there is only one warp per block, we need to allocate two warps
+  // worth of shared memory so that we don't index shared memory out of bounds
+  int smemSize =  threads * sizeof(T);
+  reduce2_new<T> <<<dimGrid, dimBlock, smemSize>>>(d_idata, d_odata, thresh,
+      size,nelem_thread);
+  carmaCheckMsg("reduce_kernel<<<>>> execution failed\n");
+}
+template void
+subap_reduce_new<float>(int size, int threads, int blocks, float *d_idata,
+    float *d_odata, float thresh, carma_device *device);
+
+template void
+subap_reduce_new<double>(int size, int threads, int blocks, double *d_idata,
     double *d_odata, double thresh, carma_device *device);
 
 template<class T>

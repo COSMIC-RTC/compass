@@ -185,6 +185,11 @@ template<class T>
 void
 subap_reduce(int size, int threads, int blocks, T *d_idata, T *d_odata,
              T thresh, carma_device *device);
+// this is for tcog_new
+template<class T>
+void
+subap_reduce_new(int size, int threads, int blocks, T *d_idata, T *d_odata,
+             T thresh, carma_device *device);
 // this is for wcog
 template<class T>
 void
