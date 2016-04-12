@@ -853,7 +853,7 @@ class widgetAOWindow(TemplateBaseClass):
 
     def run(self):
 #         print "Loop started"
-        self.mainLoop()
+        self.c.set_activeDeviceForce(0)
         self.stop=False
         self.startTime = time.time()
         while True:
