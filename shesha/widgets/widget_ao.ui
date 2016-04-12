@@ -97,6 +97,9 @@
           </item>
           <item>
            <widget class="QPushButton" name="wao_init">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
             <property name="text">
              <string>Init</string>
             </property>
@@ -104,6 +107,9 @@
           </item>
           <item>
            <widget class="QPushButton" name="wao_run">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
             <property name="text">
              <string>Run</string>
             </property>
@@ -111,6 +117,9 @@
           </item>
           <item>
            <widget class="QPushButton" name="wao_next">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
             <property name="text">
              <string>Next</string>
             </property>
@@ -118,6 +127,9 @@
           </item>
           <item>
            <widget class="QPushButton" name="wao_unzoom">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
             <property name="text">
              <string>Unzoom</string>
             </property>
@@ -141,6 +153,9 @@
           </item>
           <item>
            <widget class="QPushButton" name="wao_resetSR">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
             <property name="text">
              <string>Reset strehl</string>
             </property>
@@ -1826,7 +1841,7 @@
      <x>0</x>
      <y>0</y>
      <width>1263</width>
-     <height>25</height>
+     <height>19</height>
     </rect>
    </property>
   </widget>

@@ -59,11 +59,13 @@ c=ch.naga_context(0)
 
 #    wfs
 print "->wfs"
-wfs,tel=ao.wfs_init(config.p_wfss,config.p_atmos,config.p_tel,config.p_geom,config.p_target,config.p_loop, 1,0,config.p_dms)
+wfs,tel=ao.wfs_init(config.p_wfss,config.p_atmos,config.p_tel,config.p_geom,config.p_target,config.p_loop, 
+                    1,0,config.p_dms)
 
 #   atmos
 print "->atmos"
-atm=ao.atmos_init(c,config.p_atmos,config.p_tel,config.p_geom,config.p_loop,config.p_wfss,config.p_target,rank=0, clean=clean, load=matricesToLoad)
+atm=ao.atmos_init(c,config.p_atmos,config.p_tel,config.p_geom,config.p_loop,config.p_wfss,config.p_target,
+                  rank=0, clean=clean, load=matricesToLoad)
 
 #   dm
 print "->dm"
@@ -71,11 +73,14 @@ dms=ao.dm_init(config.p_dms,config.p_wfss,config.p_geom,config.p_tel)
 
 #   target
 print "->target"
-tar=ao.target_init(c,tel,config.p_target,config.p_atmos,config.p_geom,config.p_tel,config.p_wfss,wfs,config.p_dms)
+tar=ao.target_init(c,tel,config.p_target,config.p_atmos,config.p_geom,config.p_tel,config.p_wfss,wfs,
+                   config.p_dms)
 
 print "->rtc"
 #   rtc
-rtc=ao.rtc_init(tel,wfs,config.p_wfss,dms,config.p_dms,config.p_geom,config.p_rtc,config.p_atmos,atm,config.p_tel,config.p_loop,tar,config.p_target,clean=clean,simul_name=simul_name, load=matricesToLoad)
+rtc=ao.rtc_init(tel,wfs,config.p_wfss,dms,config.p_dms,config.p_geom,config.p_rtc,config.p_atmos,atm,
+                config.p_tel,config.p_loop,tar,config.p_target,clean=clean,simul_name=simul_name, 
+                load=matricesToLoad)
 
 if not clean:
     h5u.validDataBase(os.environ["SHESHA_ROOT"]+"/data/",matricesToLoad)
