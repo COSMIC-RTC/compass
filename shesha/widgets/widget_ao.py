@@ -55,6 +55,7 @@ class widgetAOWindow(TemplateBaseClass):
         self.loaded=False
         self.stop = False
         self.startTime = 0
+        self.loop = None
     
         #############################################################
         #######       PYQTGRAPH WINDOW INIT   #######################
@@ -85,7 +86,7 @@ class widgetAOWindow(TemplateBaseClass):
         self.ui.wao_run.clicked[bool].connect(self.aoLoopClicked)
         self.ui.wao_openLoop.setCheckable(True)
         self.ui.wao_openLoop.clicked[bool].connect(self.aoLoopOpen)
-        self.ui.wao_next.clicked.connect(self.nextClicked)
+        self.ui.wao_next.clicked.connect(self.mainLoop)
         self.imgType = str(self.ui.wao_selectScreen.currentText())
         self.ui.wao_configFromFile.clicked.connect(self.addConfigFromFile)
         self.ui.wao_unzoom.clicked.connect(self.p1.autoRange)
@@ -126,6 +127,7 @@ class widgetAOWindow(TemplateBaseClass):
         if reply == QtGui.QMessageBox.Yes:
             event.accept()
             self.stop=True
+            self.loop.join()
 #             super(widgetAOWindow, self).closeEvent(event)
             quit()
             #sys.exit()
@@ -428,14 +430,13 @@ class widgetAOWindow(TemplateBaseClass):
         self.updateNumberSelector(textType=self.imgType)
         self.updatePanels()
 
-    def nextClicked(self):
-        self.mainLoop()
-
     def aoLoopClicked(self,pressed):
         if(pressed):
-            threading.Thread(target=self.run).start()
+            self.loop = threading.Thread(target=self.run)
+            self.loop.start()
         else:
             self.stop=True
+            self.loop.join()
 
     def aoLoopOpen(self,pressed):
         if(pressed):
@@ -828,8 +829,9 @@ class widgetAOWindow(TemplateBaseClass):
                 time.sleep(t)# Limit loop frequency
             self.updateDisplay()# Update GUI plots
         else:
-            if loopTime<.004:
-                time.sleep(0.004 - loopTime) # Limit loop frequency to 250Hz
+            freqLimit=1/250.
+            if loopTime<freqLimit:
+                time.sleep(freqLimit - loopTime) # Limit loop frequency
         currentFreq = 1/(time.time() - start)
 
         if(self.RTDisplay):
@@ -843,8 +845,8 @@ class widgetAOWindow(TemplateBaseClass):
                 self.ui.wao_strehlLE.setText(signal_le)
                 self.ui.wao_currentFreq.setValue(currentFreq)
                 self.startTime = time.time()
+                time.sleep(.01)
         self.iter += 1
-        #sys.stdout.flush()
 
     def printInPlace(self, text):
         print "\r" + text ,;# This seems to trigger the GUI and keep it responsive
