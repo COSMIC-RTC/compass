@@ -1,12 +1,13 @@
 #contain all naga's code and class'
 
 import numpy as np
-cimport numpy as np
+#cimport numpy as np
 
-include "naga_context.pyx"
-include "naga_streams.pyx"
-include "naga_obj.pyx"
-include "naga_host_obj.pyx"
-include "naga_magma.pyx"
-include "naga_timer.pyx"
-include "naga_sparse_obj.pyx"
+
+from naga_context import *
+from naga_streams import *
+from naga_obj import *
+from naga_host_obj import *
+from naga_magma import *
+from naga_timer import *
+from naga_sparse_obj import *

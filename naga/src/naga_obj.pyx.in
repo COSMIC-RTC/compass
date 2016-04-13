@@ -34,6 +34,7 @@ c_types_info = {
                 }
 ?>
 
+import numpy as np
 
 assert sizeof(int) == sizeof(np.int32_t)
 assert sizeof(float) == sizeof(np.float32_t)

@@ -118,6 +118,7 @@ cdef extern from "carma_host_obj.h":
 
 """    
 
+import numpy as np
 
 cdef dict_MemAlloc={"malloc":(MA_MALLOC),
                     "pagelock":(MA_PAGELOCK),

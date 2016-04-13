@@ -9,6 +9,21 @@ import sys
 from distutils.command.clean import clean as _clean
 from distutils.dir_util import remove_tree
 
+
+listMod=['naga_context','naga_streams','naga_obj','naga_host_obj','naga_magma','naga_timer','naga_sparse_obj']
+dependencies={'naga_streams':['naga_context'],
+              'naga_obj':['naga_context','naga_streams'],
+              'naga_host_obj':['naga_context','naga_streams'],
+              'naga_magma':['naga_obj','naga_host_obj'],
+              'naga_timer':[],
+              'naga_sparse_obj':['naga_context','naga_obj']}
+
+naga_path=os.environ.get('NAGA_ROOT')
+if(naga_path is None):
+    raise EnvironmentError("Environment variable 'NAGA_ROOT' must be define")
+sys.path.append(naga_path+'/src')
+
+
 def find_in_path(name, path):
     "Find a file in a search path"
     #adapted fom http://code.activestate.com/recipes/52224-find-a-file-given-a-search-path/
@@ -19,60 +34,23 @@ def find_in_path(name, path):
     return None
 
     
-
-def locate_cuda():
-    """Locate the CUDA environment on the system
-
-    Returns a dict with keys 'home', 'nvcc', 'include', and 'lib64'
-    and values giving the absolute path to each directory.
-
-    Starts by looking for the CUDAHOME env variable. If not found, everything
-    is based on finding 'nvcc' in the PATH.
-    """
-
-    # first check if the CUDA_ROOT env variable is in use
-    if 'CUDA_ROOT' in os.environ:
-        home = os.environ['CUDA_ROOT']
-        nvcc = pjoin(home, 'bin', 'nvcc')
-    else:
-        # otherwise, search the PATH for NVCC
-        nvcc = find_in_path('nvcc', os.environ['PATH'])
-        if nvcc is None:
-            raise EnvironmentError('The nvcc binary could not be '
-                'located in your $PATH. Either add it to your path, or set $CUDAHOME')
-        home = os.path.dirname(os.path.dirname(nvcc))
-
-    cudaconfig = {'home':home, 
-                  'nvcc':nvcc,
-                  'include': pjoin(home, 'include'),
-                  'lib64': pjoin(home, 'lib64')}
-    for k, v in cudaconfig.iteritems():
-        if not os.path.exists(v):
-            raise EnvironmentError('The CUDA %s path could not be located in %s' % (k, v))
-
-    return cudaconfig
-
-
-
 def locate_compass():
     """Locate compass library
     """
 
     if  'COMPASS_ROOT' in os.environ:
         root_compass = os.environ['COMPASS_ROOT']
-        inc_compass  = pjoin(root_compass,)
-        lib_compass  = pjoin(root_compass,)
         
     else:
-        raise EnvironmentError('You must load compass environment')
+        raise EnvironmentError("Environment variable 'COMPASS_ROOT' must be define")
         
-    compass_config = {'inc':inc_compass, 'lib':lib_compass}
+    compass_config = {'inc_sutra':root_compass+'/libsutra/include.h','inc_carma':root_compass+'/libcarma/include.h',
+                      'inc_naga':root_compass+'/naga', 'lib':root_compass}
     
     return compass_config
 
 
 
-CUDA = locate_cuda()
 COMPASS = locate_compass()
 
 
@@ -114,14 +92,18 @@ class clean(_clean):
     self.walkAndClean()
 
 
-library_dirs=[CUDA['lib64'], COMPASS['lib']+'/libcarma']
-libraries=['cudart', 'cufft','cublas','carma']
+library_dirs=[COMPASS['lib']+'/libcarma']
+libraries=['carma']
 
 print "library_dirs",library_dirs
 print "libraries",libraries
 
 mkl_root=os.environ.get('MKLROOT')
+print "mkl_root:"
+if(mkl_root==""):
+    mkl_root=None
 if(mkl_root is not None):
+    print mkl_root
     library_dirs.append(mkl_root+'/mkl/lib/intel64/')
     libraries.append('mkl_mc3')
     libraries.append('mkl_def')
@@ -129,30 +111,32 @@ if(mkl_root is not None):
 print "library_dirs",library_dirs
 print "libraries",libraries
 
+include_dirs=[numpy_include, 
+                COMPASS['inc_carma']]
+
 #######################
 #  extension
 #######################
-ext = Extension('naga',
-                sources=['src/naga.pyx'
-                    ],
-                library_dirs=library_dirs,
-                libraries=libraries,
-                language='c++',
-                runtime_library_dirs=[CUDA['lib64']],
-                # this syntax is specific to this build system
-                # we're only going to use certain compiler args with nvcc and not with gcc
-                # the implementation of this trick is in customize_compiler() below
-                #extra_compile_args=["-O0", "-g"],
-                #extra_compile_args={'g++': [],},
-                                    #nvcc not needed (cuda code alreay compiled)
-                                    #'nvcc': ['-gencode '+os.environ['GENCODE'], 
-                                    #         '--ptxas-options=-v', 
-                                    #         '-c', '--compiler-options', 
-                                    #         "'-fPIC'"]},
-                include_dirs = [numpy_include, 
-                                CUDA['include'], 
-                                COMPASS['inc']+'/libcarma/include.h'])
-
+#ext = Extension('naga',
+#                sources=['src/naga.pyx'
+#                    ],
+#                library_dirs=library_dirs,
+#                libraries=libraries,
+#                language='c++',
+#                runtime_library_dirs=[],
+#                # this syntax is specific to this build system
+#                # we're only going to use certain compiler args with nvcc and not with gcc
+#                # the implementation of this trick is in customize_compiler() below
+#                #extra_compile_args=["-O0", "-g"],
+#                #extra_compile_args={'g++': [],},
+#                                    #nvcc not needed (cuda code alreay compiled)
+#                                    #'nvcc': ['-gencode '+os.environ['GENCODE'], 
+#                                    #         '--ptxas-options=-v', 
+#                                    #         '-c', '--compiler-options', 
+#                                    #         "'-fPIC'"]},
+#                include_dirs = [numpy_include, 
+#                                COMPASS['inc']+'/libcarma/include.h'])
+#
 
 
 def customize_compiler_for_nvcc(self):
@@ -165,9 +149,6 @@ def customize_compiler_for_nvcc(self):
     the OO route, I have this. Note, it's kindof like a wierd functional
     subclassing going on."""
     
-    # tell the compiler it can processes .cu
-    self.src_extensions.append('.cu')
-
     # save references to the default compiler_so and _comple methods
     default_compiler_so = self.compiler_so
     super = self._compile
@@ -176,14 +157,7 @@ def customize_compiler_for_nvcc(self):
     # object but distutils doesn't have the ability to change compilers
     # based on source extension: we add it.
     def _compile(obj, src, ext, cc_args, extra_postargs, pp_opts):
-        if os.path.splitext(src)[1] == '.cu':
-            # use the cuda for .cu files
-            self.set_executable('compiler_so', CUDA['nvcc'])
-            # use only a subset of the extra_postargs, which are 1-1 translated
-            # from the extra_compile_args in the Extension class
-            postargs = extra_postargs['nvcc']
-        else:
-            postargs = extra_postargs['g++']
+        postargs = extra_postargs['g++']
 
         super(obj, src, ext, cc_args, postargs, pp_opts)
         # reset the default compiler_so, which we might have changed for cuda
@@ -212,12 +186,68 @@ if 'build_ext' in sys.argv or 'develop' in sys.argv or 'install' in sys.argv:
 
 from Cython.Build import cythonize
 
-setup(name='naga',
+def compile_module(name):
+    if(os.path.exists(naga_path+"/lib/"+name+".so") and name != "naga"):
+        shutil.move(naga_path+"/lib/"+name+".so",naga_path+"/"+name+".so")
+    print "======================================="
+    print "creating module ",name
+    print "======================================="
+    try:
+        dep=dependencies[name]
+        print "dependencies:",dep
+        if(os.path.exists("src/"+name+".cpp")):
+            for d in dep:
+                if (os.stat("src/"+d+".pyx").st_mtime > 
+                    os.stat("src/"+name+".cpp").st_mtime):
+                    #cpp file outdated
+                    os.remove("src/"+name+".cpp")
+    except KeyError, e:
+        print e
 
-      ext_modules = cythonize([ext]),
 
-      # inject our custom trigger
-      #cmdclass={'build_ext': custom_build_ext},
+    ext=Extension(name,
+                  sources=['src/'+name+'.pyx'],
+                  library_dirs=library_dirs,
+                  libraries=libraries,
+                  language='c++',
+                  runtime_library_dirs=[],#CUDA['lib64']],
+                  #extra_compile_args=["-O0", "-g"],
+                  #extra_compile_args={'g++': []},
+                  include_dirs = include_dirs,
+                  define_macros = [],
+                  )
 
-      # since the package has c code, the egg cannot be zipped
-      zip_safe=False)
+
+    setup(
+        name=name,
+        ext_modules=cythonize([ext]),
+        #cmdclass={'build_ext': custom_build_ext},
+        zip_safe=False
+    )
+    if(os.path.exists(naga_path+"/"+name+".so") and name != "naga"):
+        shutil.move(naga_path+"/"+name+".so",naga_path+"/lib/"+name+".so")
+
+if __name__ == '__main__':
+    try :
+        #uncomment this line to disable the multithreaded compilation
+        #import step_by_step 
+        
+        from multiprocessing import Pool
+        pool = Pool(maxtasksperchild=1) # process per core
+        pool.map(compile_module, listMod)  # proces data_inputs iterable with poo
+    except ImportError:
+        for name in listMod:
+            compile_module(name)
+    finally:
+        compile_module("naga")
+
+
+#setup(name='naga',
+#
+#      ext_modules = cythonize([ext]),
+#
+#      # inject our custom trigger
+#      #cmdclass={'build_ext': custom_build_ext},
+#
+#      # since the package has c code, the egg cannot be zipped
+#      zip_safe=False)

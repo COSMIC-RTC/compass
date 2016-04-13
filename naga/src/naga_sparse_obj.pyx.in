@@ -11,6 +11,8 @@ c_types_info = {
                 }
 ?>
 
+import numpy as np
+from scipy.sparse import csr_matrix
 
 assert sizeof(int) == sizeof(np.int32_t)
 assert sizeof(float) == sizeof(np.float32_t)
@@ -21,7 +23,6 @@ assert sizeof(double) == sizeof(np.float64_t)
 <?py
 pxd_code_str ='''
 
-from scipy.sparse import csr_matrix
 
 ##########################################################
 #  P-Class `CLASSNAME`
