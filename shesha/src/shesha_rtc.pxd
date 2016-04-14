@@ -1,4 +1,7 @@
-from naga cimport *
+from naga_context cimport *
+from naga_obj cimport *
+from naga_sparse_obj cimport *
+from naga_magma cimport *
 
 import numpy as np
 cimport numpy as np

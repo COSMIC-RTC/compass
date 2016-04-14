@@ -1,4 +1,4 @@
-from naga cimport *
+from naga_context cimport *
 
 import numpy as np
 cimport numpy as np
@@ -37,5 +37,5 @@ cdef class Atmos:
                 np.ndarray[ndim=1,dtype=np.float32_t] deltax,
                 np.ndarray[ndim=1,dtype=np.float32_t] deltay,
                 int device )
-
+s
 
