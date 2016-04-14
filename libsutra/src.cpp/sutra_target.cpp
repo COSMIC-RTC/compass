@@ -40,7 +40,8 @@ sutra_source::sutra_source(carma_context *context, float xpos, float ypos,
 
   this->init_source(context, xpos, ypos, lambda, mag, zerop, size, type, device);
   this->d_pupil = pupil;
-  float h_pupil[this->d_pupil->getNbElem()];
+  //float h_pupil[this->d_pupil->getNbElem()];
+  float *h_pupil = new float[this->d_pupil->getNbElem()];
   this->d_pupil->device2host(h_pupil);
 
   long *dims_data1 = new long[2];
@@ -61,6 +62,7 @@ sutra_source::sutra_source(carma_context *context, float xpos, float ypos,
   this->d_wherephase->host2device(wherephase);
   delete[] wherephase;
   delete[] dims_data1;
+  delete[] h_pupil;
 }
 
 sutra_source::sutra_source(carma_context *context, float xpos, float ypos,

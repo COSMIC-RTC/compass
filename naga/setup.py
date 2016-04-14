@@ -111,8 +111,15 @@ if(mkl_root is not None):
 print "library_dirs",library_dirs
 print "libraries",libraries
 
+if  'CUDA_INC_PATH' in os.environ:
+    cuda_include = os.environ['CUDA_INC_PATH']
+else:
+    raise EnvironmentError("Environment variable 'CUDA_INC_PATH' must be define")
+
 include_dirs=[numpy_include, 
-                COMPASS['inc_carma']]
+                COMPASS['inc_carma'],
+                cuda_include
+            ]
 
 #######################
 #  extension
