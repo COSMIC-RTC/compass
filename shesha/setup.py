@@ -327,7 +327,7 @@ def compile_module(name):
 if __name__ == '__main__':
     try :
         #uncomment this line to disable the multithreaded compilation
-        import step_by_step 
+        #import step_by_step 
         
         from multiprocessing import Pool
         pool = Pool(maxtasksperchild=1) # process per core
