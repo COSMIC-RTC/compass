@@ -1,28 +1,33 @@
-.. shesha documentation master file, created by
-   sphinx-quickstart on Thu Oct 22 09:40:46 2015.
+.. SHESHA documentation master file, created by
+   sphinx-quickstart on Thu Oct 22 11:30:19 2015.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to shesha's documentation!
-=====================================
+Welcome to SHESHA's documentation!
+==================================
+
+Version PDF_
 
 Contents:
+---------
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
 
-    shesha
-    shesha_atmos
-    shesha_target
-    shesha_sensors
-    shesha_rtc
-    shesha_param
-    shesha_dm
+   shesha.rst
+   atmos.rst
+   dms.rst
+   param.rst
+   rtc.rst
+   sensors.rst
+   target.rst
+
 
 Indices and tables
-==================
+------------------
 
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
 
+.. _PDF: ../latex/SHESHA.pdf
