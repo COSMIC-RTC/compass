@@ -1,16 +1,59 @@
-****************************
-:mod:`shesha_sensors` module
-****************************
+*********************
+:mod:`shesha_sensors`
+*********************
 
-.. container:: custom-index
+.. _shesha_sensors module:
 
-    .. raw:: html
+.. currentmodule:: shesha_sensors
 
-        <script type="text/javascript" src='_static/classes.js'></script>
+:class:`Sensors`
+----------------
 
-    .. automodule:: shesha_sensors
-        :members:
-        :private-members:
-        :undoc-members:
-        :show-inheritance:
-        :inherited-members:
+.. autoclass:: Sensors
+    :members:
+    :inherited-members:
+
+:func:`bin2d`
+-------------
+
+.. autofunction:: bin2d
+
+:func:`fft_goodsize`
+--------------------
+
+.. autofunction:: fft_goodsize
+
+:func:`init_wfs_geom`
+---------------------
+
+.. autofunction:: init_wfs_geom
+
+:func:`make_lgs_prof1d`
+-----------------------
+
+.. autofunction:: make_lgs_prof1d
+
+:func:`noise_cov`
+-----------------
+
+.. autofunction:: noise_cov
+
+:func:`prep_lgs_prof`
+---------------------
+
+.. autofunction:: prep_lgs_prof
+
+:func:`type_present`
+--------------------
+
+.. autofunction:: type_present
+
+:func:`wfs_init`
+----------------
+
+.. autofunction:: wfs_init
+
+:func:`wheremax`
+----------------
+
+.. autofunction:: wheremax

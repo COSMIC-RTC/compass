@@ -1,16 +1,19 @@
-***************************
-:mod:`shesha_target` module
-***************************
+********************
+:mod:`shesha_target`
+********************
 
-.. container:: custom-index
+.. _shesha_target module:
 
-    .. raw:: html
+.. currentmodule:: shesha_target
 
-        <script type="text/javascript" src='_static/classes.js'></script>
+:class:`Target`
+---------------
 
-    .. automodule:: shesha_target
-        :members:
-        :private-members:
-        :undoc-members:
-        :show-inheritance:
-        :inherited-members:
+.. autoclass:: Target
+    :members:
+    :inherited-members:
+
+:func:`target_init`
+-------------------
+
+.. autofunction:: target_init

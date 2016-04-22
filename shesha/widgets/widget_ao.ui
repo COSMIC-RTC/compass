@@ -1841,11 +1841,55 @@
      <x>0</x>
      <y>0</y>
      <width>1263</width>
-     <height>19</height>
+     <height>29</height>
     </rect>
    </property>
+   <widget class="QMenu" name="menuFile">
+    <property name="title">
+     <string>File</string>
+    </property>
+    <addaction name="actionOpen_config_file"/>
+    <addaction name="separator"/>
+    <addaction name="actionQuit"/>
+    <addaction name="separator"/>
+   </widget>
+   <widget class="QMenu" name="menuHelp">
+    <property name="title">
+     <string>Help</string>
+    </property>
+    <addaction name="wao_actionHelp_Contents"/>
+    <addaction name="actionAbout_widget_ao"/>
+   </widget>
+   <addaction name="menuFile"/>
+   <addaction name="menuHelp"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
+  <action name="actionOpen_config_file">
+   <property name="text">
+    <string>Open config file</string>
+   </property>
+  </action>
+  <action name="actionQuit">
+   <property name="text">
+    <string>quit</string>
+   </property>
+  </action>
+  <action name="wao_actionHelp_Contents">
+   <property name="checkable">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Help Contents</string>
+   </property>
+   <property name="softKeyRole">
+    <enum>QAction::NoSoftKey</enum>
+   </property>
+  </action>
+  <action name="actionAbout_widget_ao">
+   <property name="text">
+    <string>About widget_ao</string>
+   </property>
+  </action>
  </widget>
  <customwidgets>
   <customwidget>

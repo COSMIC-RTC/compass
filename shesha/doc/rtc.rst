@@ -1,16 +1,79 @@
-************************
-:mod:`shesha_rtc` module
-************************
+*****************
+:mod:`shesha_rtc`
+*****************
 
-.. container:: custom-index
+.. _shesha_rtc module:
 
-    .. raw:: html
+.. currentmodule:: shesha_rtc
 
-        <script type="text/javascript" src='_static/classes.js'></script>
+:class:`Rtc`
+------------
 
-    .. automodule:: shesha_rtc
-        :members:
-        :private-members:
-        :undoc-members:
-        :show-inheritance:
-        :inherited-members:
+.. autoclass:: Rtc
+    :members:
+    :inherited-members:
+
+:func:`cmat_init`
+-----------------
+
+.. autofunction:: cmat_init
+
+:func:`compute_KL2V`
+--------------------
+
+.. autofunction:: compute_KL2V
+
+:func:`correct_dm`
+------------------
+
+.. autofunction:: correct_dm
+
+:func:`create_interp_mat`
+-------------------------
+
+.. autofunction:: create_interp_mat
+
+:func:`create_nact_geom`
+------------------------
+
+.. autofunction:: create_nact_geom
+
+:func:`create_piston_filter`
+----------------------------
+
+.. autofunction:: create_piston_filter
+
+:func:`doTomoMatrices`
+----------------------
+
+.. autofunction:: doTomoMatrices
+
+:func:`get_r0`
+--------------
+
+.. autofunction:: get_r0
+
+:func:`imat_geom`
+-----------------
+
+.. autofunction:: imat_geom
+
+:func:`imat_init`
+-----------------
+
+.. autofunction:: imat_init
+
+:func:`manual_imat`
+-------------------
+
+.. autofunction:: manual_imat
+
+:func:`openLoopSlp`
+-------------------
+
+.. autofunction:: openLoopSlp
+
+:func:`rtc_init`
+----------------
+
+.. autofunction:: rtc_init

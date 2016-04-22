@@ -1,6 +1,7 @@
-include "../par.pxi"
-
 import numpy as np
+
+
+include "../par.pxi"
 
 #################################################
 # P-Class target
@@ -48,7 +49,7 @@ cdef class Target:
 
         :parameters:
             n: (int) : index of the target
-            
+
             l_type: (str) : "atmos" or "dm"
 
             alt: (float) : altitude
@@ -93,12 +94,12 @@ cdef class Target:
 
         :parameters:
             nTarget: (int) : index of the target
-            
+
             type_im: (str) : type of the image to get ("se" or "le")
-            
+
             puponly: (int) : if 1, image computed from phase on the pupil only
-            
-            comp_le : (bool) : if False (default), the computed image is not taken into account in the LE image
+
+            comp_le: (bool) : if False (default), the computed image is not taken into account in the LE image
         """
         self.context.set_activeDeviceForCpy(self.device)
         cdef sutra_source *src = self.target.d_targets[nTarget]
@@ -145,7 +146,6 @@ cdef class Target:
 
         :param nTarget: (int) : index of the target
         """
-
         self.context.set_activeDeviceForCpy(self.device)
         cdef sutra_source *src = self.target.d_targets[nTarget]
 
@@ -161,14 +161,12 @@ cdef class Target:
     def set_phase(self, int nTarget, np.ndarray[ndim=2,dtype=np.float32_t] data):
         """Set the phase's screen of the target
 
-        :parameters:
-        nTarget: (int) : index of the target
-        data: (np.ndarray[ndim=2,dtype=np.float32_t]) : phase screen
+        :param nTarget: (int) : index of the target
+        :param data: (np.ndarray[ndim=2,dtype=np.float32_t]) : phase screen
         """
-
         self.context.set_activeDeviceForCpy(self.device)
         cdef sutra_source *src = self.target.d_targets[nTarget]
-        
+
         cdef np.ndarray[dtype=np.float32_t] data_F=data.flatten("F")
 
         src.d_phase.d_screen.host2device(<float*>data_F.data)
@@ -230,8 +228,8 @@ cdef class Target:
         """Compute and return the target's strehl
 
         :param nTarget: (int) : index of the target
-        :return strehl: (np.array(4,dtype=np.float32)) : [Strehl SE, Strehl LE, 
-                                                        instantaneous phase variance over the pupil, 
+        :return strehl: (np.array(4,dtype=np.float32)) : [Strehl SE, Strehl LE,
+                                                        instantaneous phase variance over the pupil,
                                                         average  phase variance over the pupil]
         """
 
@@ -260,7 +258,7 @@ cdef class Target:
             dms: (Dms)     : dms to go through
 
             reset: (int) : if >0, reset the screen before raytracing
-            
+
             do_phase_var: (int) : if 0, doesn't take the screen into account in the phase average (unused)
         """
 

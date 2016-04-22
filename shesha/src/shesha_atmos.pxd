@@ -38,4 +38,3 @@ cdef class Atmos:
                 np.ndarray[ndim=1,dtype=np.float32_t] deltay,
                 int device )
 s
-

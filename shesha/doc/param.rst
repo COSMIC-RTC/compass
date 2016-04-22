@@ -1,85 +1,107 @@
-**************************
-:mod:`shesha_param` module
-**************************
+*******************
+:mod:`shesha_param`
+*******************
 
-.. container:: custom-index
+.. _shesha_param module:
 
-    .. raw:: html
+.. currentmodule:: shesha_param
 
-        <script type="text/javascript" src='_static/classes.js'></script>
+:class:`Param_loop`
+-------------------
 
-.. automodule:: shesha_param
-    :members:
-    :private-members:
-    :show-inheritance:
-    :inherited-members:
-
-:class:`shesha_param.Param_loop` class
---------------------------------------
-
-.. autoclass:: shesha_param.Param_loop
+.. autoclass:: Param_loop
     :members:
     :inherited-members:
 
-:class:`shesha_param.Param_tel` class
--------------------------------------
+:class:`Param_tel`
+------------------
 
-.. autoclass:: shesha_param.Param_tel
+.. autoclass:: Param_tel
     :members:
     :inherited-members:
 
-:class:`shesha_param.Param_geom` class
---------------------------------------
+:class:`Param_geom`
+-------------------
 
-.. autoclass:: shesha_param.Param_geom
+.. autoclass:: Param_geom
     :members:
     :inherited-members:
 
-:class:`shesha_param.Param_wfs` class
--------------------------------------
+:class:`Param_wfs`
+------------------
 
-.. autoclass:: shesha_param.Param_wfs
+.. autoclass:: Param_wfs
     :members:
     :inherited-members:
 
-:class:`shesha_param.Param_atmos` class
----------------------------------------
+:class:`Param_atmos`
+--------------------
 
-.. autoclass:: shesha_param.Param_atmos
+.. autoclass:: Param_atmos
     :members:
     :inherited-members:
 
-:class:`shesha_param.Param_dm` class
-------------------------------------
+:class:`Param_dm`
+-----------------
 
-.. autoclass:: shesha_param.Param_dm
+.. autoclass:: Param_dm
     :members:
     :inherited-members:
 
-:class:`shesha_param.Param_target` class
-----------------------------------------
+:class:`Param_target`
+---------------------
 
-.. autoclass:: shesha_param.Param_target
+.. autoclass:: Param_target
     :members:
     :inherited-members:
 
-:class:`shesha_param.Param_rtc` class
--------------------------------------
+:class:`Param_rtc`
+------------------
 
-.. autoclass:: shesha_param.Param_rtc
+.. autoclass:: Param_rtc
     :members:
     :inherited-members:
 
-:class:`shesha_param.Param_centroider` class
---------------------------------------------
+:class:`Param_centroider`
+-------------------------
 
-.. autoclass:: shesha_param.Param_centroider
+.. autoclass:: Param_centroider
     :members:
     :inherited-members:
 
-:class:`shesha_param.Param_controller` class
---------------------------------------------
+:class:`Param_controller`
+-------------------------
 
-.. autoclass:: shesha_param.Param_controller
+.. autoclass:: Param_controller
     :members:
     :inherited-members:
+
+:func:`get_classAttributes`
+---------------------------
+
+.. autofunction:: get_classAttributes
+
+:func:`indices`
+---------------
+
+.. autofunction:: indices
+
+:func:`make_apodizer`
+---------------------
+
+.. autofunction:: make_apodizer
+
+:func:`makegaussian`
+--------------------
+
+.. autofunction:: makegaussian
+
+:func:`rotate`
+--------------
+
+.. autofunction:: rotate
+
+:func:`rotate3d`
+----------------
+
+.. autofunction:: rotate3d

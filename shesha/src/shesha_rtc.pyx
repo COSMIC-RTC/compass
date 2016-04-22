@@ -702,6 +702,7 @@ cdef class Rtc:
 
         :parameters;
             ncontro: (int) : controller index
+
         :return:
             cphim : (np.ndarray[ndim=2,dtype=np.float32_t]) : Cphim matrix
         """
@@ -1090,6 +1091,7 @@ cdef class Rtc:
 
     cpdef getCmmEigenvals(self,int ncontro):
         """Return the eigen values of the Cmm decomposition in a sutra_controller_mv object
+
         :parameters:
             ncontro: (int) : controller index
         :return:
@@ -1111,8 +1113,9 @@ cdef class Rtc:
 
 
     cpdef getCenbuff(self, int ncontro):
-        """Return the centroids buffer from a sutra_controller_ls object. This
-        buffer contains centroids from iteration i-delay to current iteration
+        """Return the centroids buffer from a sutra_controller_ls object.
+        This buffer contains centroids from iteration i-delay to current iteration.
+
         :parameters:
             ncontro: (int) : controller index
         :return:
@@ -1386,7 +1389,7 @@ cdef class Rtc:
             self.rtc.do_control(ncontro)
         else:
             raise TypeError("Controller needs to be geo")
-            
+
     cpdef applycontrol(self,int ncontro,Dms dms):
         """Compute the DMs shapes from the commands computed in a sutra_controller_object.
         From the command vector, it computes the voltage command (adding pertrubation voltages,
@@ -1414,7 +1417,7 @@ cdef class Rtc:
         else:
             mfilt=np.where( (1./(eigenv/eigenv[2]))>maxcond)[0]
         nfilt=mfilt.shape[0]
-        
+
         return nfilt
 
     def get_IFsparse(self, int ncontro):
@@ -1731,7 +1734,7 @@ def rtc_init(Telescope g_tel, Sensors g_wfs, p_wfs, Dms g_dms, p_dms, Param_geom
 
                     if(controller.type_control=="ls"):
                         if(doimat):
-                            imat_init(i,g_rtc,p_rtc,g_dms,g_wfs,p_wfs,p_tel,clean=clean,simul_name=simul_name,load=load)    
+                            imat_init(i,g_rtc,p_rtc,g_dms,g_wfs,p_wfs,p_tel,clean=clean,simul_name=simul_name,load=load)
                             if(controller.modopti == 1):
                                 print "Initializing Modal Optimization : "
                                 if(controller.nrec==0):
@@ -1841,7 +1844,7 @@ def rtc_init(Telescope g_tel, Sensors g_wfs, p_wfs, Dms g_dms, p_dms, Param_geom
                         g_rtc.set_mgain(i,mgain)
                         g_rtc.set_cmat(i,cmat)
                         g_rtc.set_matE(i,matE)
-                
+
                 #add a geometric controller for processing error breakdown
                 error_budget_flag = True in [w.error_budget for w in p_wfs]
                 if(error_budget_flag):
@@ -1871,8 +1874,8 @@ def rtc_init(Telescope g_tel, Sensors g_wfs, p_wfs, Dms g_dms, p_dms, Param_geom
 
                     g_rtc.init_proj(i+1, g_dms, indx_dm, unitpervolt, indx_pup, indx_mpup)
                     free(type_dmseen)
-                    
-                    
+
+
     return g_rtc
 
 
@@ -2606,10 +2609,14 @@ cpdef doTomoMatrices(int ncontro, Rtc g_rtc, list wfs, Dms g_dm, Atmos g_atmos, 
 
 cpdef selectDMforLayers(int ncontro, Param_atmos p_atmos, Param_rtc p_rtc, list p_dms):
     """ For each atmos layer, select the DM which have to handle it in the Cphim computation for MV controller
+
     :parameters:
         ncontro : (int) : controller number
+
         p_atmos : (Param_atmos) : atmos parameters
+
         p_rtc : (Param_rtc) : rtc parameters
+        
         p_dms :(list of Param_dm) : dms parameters
 
     :return:
@@ -2628,9 +2635,11 @@ cpdef selectDMforLayers(int ncontro, Param_atmos p_atmos, Param_rtc p_rtc, list 
 
 cpdef create_nact_geom(list p_dms, int ndm):
     """ Compute the DM coupling matrix
+
     :param:
         p_dms : (list of Param_dm) : dms parameters
         ndm : (int) : dm number
+
     :return:
         Nact : (np.array(dtype=np.float64)) : the DM coupling matrix
     """

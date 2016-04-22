@@ -1,16 +1,39 @@
-************************
-:mod:`shesha_dms` module
-************************
+*****************
+:mod:`shesha_dms`
+*****************
 
-.. container:: custom-index
+.. _shesha_dms module:
 
-    .. raw:: html
+.. currentmodule:: shesha_dms
 
-        <script type="text/javascript" src='_static/classes.js'></script>
+:class:`Dms`
+------------
 
-    .. automodule:: shesha_dms
-        :members:
-        :private-members:
-        :undoc-members:
-        :show-inheritance:
-        :inherited-members:
+.. autoclass:: Dms
+    :members:
+    :inherited-members:
+
+:func:`comp_dmgeom`
+-------------------
+
+.. autofunction:: comp_dmgeom
+
+:func:`computeDMbasis`
+----------------------
+
+.. autofunction:: computeDMbasis
+
+:func:`compute_klbasis`
+-----------------------
+
+.. autofunction:: compute_klbasis
+
+:func:`dm_init`
+---------------
+
+.. autofunction:: dm_init
+
+:func:`make_pzt_dm`
+-------------------
+
+.. autofunction:: make_pzt_dm

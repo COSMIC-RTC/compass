@@ -83,7 +83,7 @@ def see_atmos_target_disp(int n, Atmos atm, Target tar,Sensors wfs, float alt=0,
     s1=max(0,ph.shape[1]*0.5-ph.shape[1]*f)
     e1=min(ph.shape[1],ph.shape[1]*0.5+ph.shape[1]*f)
 
-   
+
     pl.ion()
     pl.show()
     cdef double start,end, t1,t2,t3,t4,t5,t6
@@ -155,7 +155,7 @@ def see_atmos_target_disp_mpi(int n, Atmos atm, Target tar,Sensors wfs, MPI.Intr
         e0=min(ph.shape[0],ph.shape[0]*0.5+ph.shape[0]*f)
         s1=max(0,ph.shape[1]*0.5-ph.shape[1]*f)
         e1=min(ph.shape[1],ph.shape[1]*0.5+ph.shape[1]*f)
-  
+
     pl.ion()
     pl.show()
     cdef double start,end, t1,t2,t3,t4,t5,t6
@@ -313,20 +313,19 @@ def see_atmos_target(int n, Atmos atm, Target tar,Sensors wfs, float alt=0, int 
 '''
 
 cpdef bin2d(np.ndarray data_in, int binfact):
-    """
+    """bin2d(np.ndarray data_in, int binfact)
     Returns the input 2D array "array", binned with the binning factor "binfact".
     The input array X and/or Y dimensions needs not to be a multiple of
     "binfact"; The final/edge pixels are in effect replicated if needed.
     This routine prepares the parameters and calls the C routine _bin2d.
     The input array can be of type long, float or double.
+
     Last modified: Dec 15, 2003.
     Author: F.Rigaut
     SEE ALSO: _bin2d
 
-    :parmeters:
-        data_in: (np.ndarray) : data to binned
-
-        binfact: (int) : binning factor
+    :param data_in: (np.ndarray) : data to binned
+    :param binfact: (int) : binning factor
 
     """
     if(binfact<1):
@@ -338,9 +337,9 @@ cpdef bin2d(np.ndarray data_in, int binfact):
     fx=int(np.ceil(nx/float(binfact)))
     fy=int(np.ceil(ny/float(binfact)))
 
-    
 
-    cdef np.ndarray data_out=np.zeros((fx,fy),dtype=data_in.dtype) 
+
+    cdef np.ndarray data_out=np.zeros((fx,fy),dtype=data_in.dtype)
 
     cdef int i,j,i1,i2,j1,j2
 
@@ -361,28 +360,32 @@ cpdef bin2d(np.ndarray data_in, int binfact):
 
 
 def  indices(int dim1, int dim2=-1):
-    """DOCUMENT indices(dim)
+    """indices(int dim1, int dim2=-1)
     Return a dimxdimx2 array. First plane is the X indices of the pixels
     in the dimxdim array. Second plane contains the Y indices.
+
     Inspired by the Python scipy routine of the same name.
+
     New (June 12 2002): dim can either be :
+
     - a single number N (e.g. 128) in which case the returned array are
       square (NxN)
     - a Yorick array size, e.g. [#dimension,N1,N2], in which case
       the returned array are N1xN2
     - a vector [N1,N2], same result as previous case
+
     F.Rigaut 2002/04/03
     SEE ALSO: span
 
-    :parameters:
-        dim1: (int) : first dimension
-        dim2: (int) : (optional) second dimension
+    :param dim1: (int) : first dimension
+    :param dim2: (int) : (optional) second dimension
+
     """
 
 
     if (dim2<0):
         y =np.tile( (np.arange(dim1,dtype=np.float32)+1),(dim1,1))
-        x =np.copy(y.T) 
+        x =np.copy(y.T)
         return y,x
     else :
         x =np.tile( (np.arange(dim1,np.float32)+1),(dim2,1))
@@ -392,20 +395,16 @@ def  indices(int dim1, int dim2=-1):
 
 
 cpdef makegaussian(int size, float fwhm, int xc=-1, int yc=-1, int norm=0):
-    """makegaussian(size,fwhm,xc,yc)
+    """makegaussian(int size, float fwhm, int xc=-1, int yc=-1, int norm=0)
     Returns a centered gaussian of specified size and fwhm.
     norm returns normalized 2d gaussian
 
-    :parameters:
-        size: (int) : 
+    :param size: (int) :
+    :param fwhm: (float) :
+    :param xc: (int) : (optional) center position on x axis
+    :param yc: (int) : (optional) center position on y axis
+    :param norm: (int) : (optional) normalization
 
-        fwhm: (float) :
-
-        xc: (int) : (optional) center position on x axis
-
-        yc: (int) : (optional) center position on y axis
-
-        norm: (int) : (optional) normalization
     """
     cdef np.ndarray tmp
     tmp = np.exp(-(mkP.dist(size,xc,yc)/(fwhm/1.66))**2.)
@@ -454,6 +453,3 @@ cdef rotate2(image,angle, xc=-1,yc=-1, splin=0,outside=0):
 #    if (splin!=0) return spline2(image,x,y,outside=outside)
 #    return bilinear(image,x,y,outside=outside)
 '''
-
-
-

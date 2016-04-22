@@ -1,15 +1,22 @@
-*********************
-:mod:`shesha` Package
-*********************
+*************
+:mod:`shesha`
+*************
 
-.. container:: custom-index
+.. _shesha module:
 
-    .. raw:: html
+.. currentmodule:: shesha
 
-        <script type="text/javascript" src='_static/classes.js'></script>
+:func:`bin2d`
+-------------
 
-    .. automodule:: shesha
-        :members:
-        :undoc-members:
-        :show-inheritance:
-        :inherited-members:
+.. autofunction:: bin2d
+
+:func:`indices`
+-----------------------------
+
+.. autofunction:: indices
+
+:func:`makegaussian`
+----------------------------------
+
+.. autofunction:: makegaussian

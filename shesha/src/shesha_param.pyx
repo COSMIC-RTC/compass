@@ -368,10 +368,10 @@ cdef class Param_wfs:
         :param n: (float) : desired noise : < 0 = no noise / 0 = photon only / > 0 photon + ron
         """
         self.noise=n
-    
+
     def set_nphotons4imat(self,float nphot):
         """Set the desired numner of photons used for doing imat
-        
+
         :param nphot: (float) : desired number of photons
         """
         self.nphotons4imat=nphot
@@ -1398,20 +1398,20 @@ cpdef rotate(np.ndarray[ndim=3,dtype=np.float32_t] im,
 
 cpdef  indices(int dim1, int dim2=-1):
     """DOCUMENT indices(dim)
-    Return a dimxdimx2 array. First plane is the X indices of the pixels
-    in the dimxdim array. Second plane contains the Y indices.
+
+    Return a dimxdimx2 array. First plane is the X indices of the pixels in the dimxdim array. Second plane contains the Y indices.
     Inspired by the Python scipy routine of the same name.
-    New (June 12 2002): dim can either be :
-    - a single number N (e.g. 128) in which case the returned array are
-      square (NxN)
-    - a Yorick array size, e.g. [#dimension,N1,N2], in which case
-      the returned array are N1xN2
-    - a vector [N1,N2], same result as previous case
+    New (June 12 2002), dim can either be:
+
+    * a single number N (e.g. 128) in which case the returned array are square (NxN)
+    * a Yorick array size, e.g. [#dimension,N1,N2], in which case the returned array are N1xN2
+    * a vector [N1,N2], same result as previous case
+
     F.Rigaut 2002/04/03
-    SEE ALSO: span
 
     :parameters:
         dim1: (int) : first dimension
+
         dim2: (int) : (optional) second dimension
     """
 
@@ -1462,4 +1462,3 @@ def get_classAttributes(Param_class):
     """
     d = inspect.getmembers(Param_class)
     return [ i[0] for i in d if inspect.isgetsetdescriptor(i[1])]
-

@@ -49,7 +49,7 @@ cdef class Sensors:
         ntota: (np.ndarray[ndim=1,dtype=np.int64_t]) :
 
         nphot: (np.ndarray[ndim=1,dtype=np.float32_t]) :
-        
+
         nphot4imat: (np.ndarray[ndim=1,dtype=np.float32_t]) :
 
         lgs: (np.ndarray[ndim=1,dtype=np.int32_t]) :
@@ -171,9 +171,9 @@ cdef class Sensors:
         """Call the function wfs_initarrays from a sutra_wfs of the Sensors
 
         :parameters:
-        n: (int) : index of the wfs
+            n: (int) : index of the wfs
 
-        wfs: (Param_wfs) :
+            wfs: (Param_wfs) :
         """
 
         cdef np.ndarray tmp,tmp2,tmp_istart,tmp_jstart
@@ -337,6 +337,7 @@ cdef class Sensors:
         """Return the 'image_telemetry' array of a given wfs
 
         :param n: (int) : number of the wfs to get the 'image_telemetry' from
+
         :options for raw image computation
             tel (Telescope) : shesha telescope
             atmos (Atmos) : shesha atmos
@@ -346,14 +347,14 @@ cdef class Sensors:
         cdef sutra_wfs_sh *wfs=dynamic_cast_wfs_sh_ptr(self.sensors.d_wfs[n])
         cdef const long *cdims
         cdef np.ndarray[ndim=2,dtype=np.float32_t] data
-        
+
         if (tel and atmos and dms):
             self.sensor_trace(n, "all", tel , atmos, dms)
             self.sensor_compimg(n)
         img=self.sensors.d_wfs[n].image_telemetry
         cdims=img.getDims()
         data=np.empty((cdims[1],cdims[2]),dtype=np.float32)
-    
+
         wfs.fill_binimage(1)
         img.fill_into(<float*>data.data)
         data[np.where(data<0)]=0
@@ -362,7 +363,7 @@ cdef class Sensors:
     cpdef get_binimg(self, int n, Telescope tel=None, Atmos atmos=None,  Dms dms=None):
         """Return the 'binimg' array of a given wfs
 
-        :param 
+        :param
             n: (int) :number of the wfs to get the 'binimg' from
         :options for raw image computation
             tel (Telescope) : shesha telescope
@@ -560,7 +561,7 @@ cdef class Sensors:
         """
         #self.context.set_activeDeviceForCpy(self.device)
         cdef sutra_source *src = self.sensors.d_wfs[n].d_gs
-        
+
         cdef np.ndarray[dtype=np.float32_t] data_F=data.flatten("F")
 
         src.d_phase.d_screen.host2device(<float*>data_F.data)
@@ -952,4 +953,3 @@ cdef class Sensors:
 
         return d_amp,d_tot
 """
-

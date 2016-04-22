@@ -1,16 +1,19 @@
-**************************
-:mod:`shesha_atmos` module
-**************************
+*******************
+:mod:`shesha_atmos`
+*******************
 
-.. container:: custom-index
+.. _shesha_atmos module:
 
-    .. raw:: html
+.. currentmodule:: shesha_atmos
 
-        <script type="text/javascript" src='_static/classes.js'></script>
+:class:`Atmos`
+--------------
 
-    .. automodule:: shesha_atmos
-        :members:
-        :private-members:
-        :undoc-members:
-        :show-inheritance:
-        :inherited-members:
+.. autoclass:: Atmos
+    :members:
+    :inherited-members:
+
+:func:`atmos_init`
+------------------
+
+.. autofunction:: atmos_init

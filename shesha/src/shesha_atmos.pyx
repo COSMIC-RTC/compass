@@ -17,7 +17,11 @@ from subprocess import check_output
 def atmos_init(naga_context c, Param_atmos atm, Param_tel tel,  Param_geom geom,
                     Param_loop loop, wfss=None, Param_target target=None,
                     int rank=0, int clean=1, dict load={}):
-        """Create and initialise an atmos object
+        """atmos_init(naga_context c, Param_atmos atm, Param_tel tel,  Param_geom geom,
+                      Param_loop loop, wfss=None, Param_target target=None,
+                      int rank=0, int clean=1, dict load={})
+
+        Create and initialise an atmos object
 
         :parameters:
             c: (naga_context) : context
@@ -84,11 +88,11 @@ def atmos_init(naga_context c, Param_atmos atm, Param_tel tel,  Param_geom geom,
             atm.frac=np.ones((1),dtype=np.float32)
         else:
             atm.frac /= sum(atm.frac);
-      
-        if (atm.L0 is None): 
+
+        if (atm.L0 is None):
             atm.L0 = np.ones(atm.nscreens,dtype=np.float32)*(1.e5)# infinite L0
             L0_pix = np.copy(atm.L0)
-        else: 
+        else:
             if (atm.L0.shape[0] == 1):
                 atm.L0 = np.ones(atm.nscreens,dtype=np.float32)*atm.L0[0]
             L0_pix = np.copy(atm.L0)
@@ -100,7 +104,7 @@ def atmos_init(naga_context c, Param_atmos atm, Param_tel tel,  Param_geom geom,
             seeds = (np.arange(atm.nscreens,dtype=np.int64)+1)*1234
         else:
             seeds = atm.seeds
-            
+
         return atmos_create(c,atm.nscreens,atm.r0,L0_pix,atm.pupixsize,
             atm.dim_screens,atm.frac,atm.alt,atm.windspeed,
             atm.winddir,atm.deltax,atm.deltay,seeds,rank,clean,load)
@@ -114,7 +118,7 @@ def atmos_init(naga_context c, Param_atmos atm, Param_tel tel,  Param_geom geom,
 cdef class Atmos:
     def __cinit__(self):
         self.context = None
-    
+
     def __dealloc__(self):
         if(self.s_a!=NULL):
             del self.s_a
@@ -152,7 +156,7 @@ cdef class Atmos:
 
             device: (int): device index
         """
-        
+
         cdef np.ndarray[ndim=1,dtype=np.int64_t]size2
         size2 = compute_size2(size)
 
@@ -186,8 +190,8 @@ cdef class Atmos:
         return data
 
     def disp(self,float alt):
-        """Display the screen phase at a given altitude 
-        
+        """Display the screen phase at a given altitude
+
         :param alt: (float) : altitude of the screen to display
         """
         cdef carma_obj[float] *c_phase =self.s_a.d_screens[alt].d_tscreen.d_screen
@@ -205,7 +209,7 @@ cdef class Atmos:
         pl.show()
 
 
-    def add_screen(self,long size, float amplitude, float altitude, 
+    def add_screen(self,long size, float amplitude, float altitude,
         float windspeed, float winddir, float deltax, float deltay, int device):
         """Add a screen to the atmos object.
 
@@ -239,7 +243,7 @@ cdef class Atmos:
         p.first,p.second=altitude,screen
         self.s_a.d_screens.insert(p)
         self.s_a.nscreens+=1
-    
+
     def del_screen(self,float alt):
         """Delete a screen from the atmos object
 
@@ -270,7 +274,7 @@ cdef class Atmos:
 
 
     def move_atmos(self):
-        """Move the turbulence in the atmos screen following previous loaded 
+        """Move the turbulence in the atmos screen following previous loaded
         paramters such as windspeed and wind direction
         """
 
@@ -282,7 +286,7 @@ cdef class Atmos:
         cdef sutra_tscreen *screen
         cdef int i=1
         info= "Atmos obect:\n"
-        info+= "Contains "+str(self.s_a.nscreens)+" turbulent screen(s):\n" 
+        info+= "Contains "+str(self.s_a.nscreens)+" turbulent screen(s):\n"
         info+= "Screen # | alt.(m) | speed (m/s) | dir.(deg) | r0 (pix) | deltax | deltay\n"
         while it !=self.s_a.d_screens.end():
             screen=deref(it).second
@@ -296,26 +300,40 @@ cdef class Atmos:
 
         return info
 
- 
+
 cdef atmos_create(naga_context c, int nscreens,
-              float r0,
-              np.ndarray[dtype=np.float32_t] L0,
-              float pupixsize,
-              np.ndarray[ndim=1,dtype=np.int64_t] dim_screens,
-              np.ndarray[ndim=1,dtype=np.float32_t] frac,
-              np.ndarray[ndim=1,dtype=np.float32_t] alt,
-              np.ndarray[ndim=1,dtype=np.float32_t] windspeed,
-              np.ndarray[ndim=1,dtype=np.float32_t] winddir,
-              np.ndarray[ndim=1,dtype=np.float32_t] deltax,
-              np.ndarray[ndim=1,dtype=np.float32_t] deltay,
-              np.ndarray[ndim=1,dtype=np.int64_t] seeds,
-              int verbose, int clean, dict load):
-    """Create and initialise an atmos object.
-    
+                  float r0,
+                  np.ndarray[dtype=np.float32_t] L0,
+                  float pupixsize,
+                  np.ndarray[ndim=1,dtype=np.int64_t] dim_screens,
+                  np.ndarray[ndim=1,dtype=np.float32_t] frac,
+                  np.ndarray[ndim=1,dtype=np.float32_t] alt,
+                  np.ndarray[ndim=1,dtype=np.float32_t] windspeed,
+                  np.ndarray[ndim=1,dtype=np.float32_t] winddir,
+                  np.ndarray[ndim=1,dtype=np.float32_t] deltax,
+                  np.ndarray[ndim=1,dtype=np.float32_t] deltay,
+                  np.ndarray[ndim=1,dtype=np.int64_t] seeds,
+                  int verbose, int clean, dict load):
+    """atmos_create(naga_context c, int nscreens,
+                    float r0,
+                    np.ndarray[dtype=np.float32_t] L0,
+                    float pupixsize,
+                    np.ndarray[ndim=1,dtype=np.int64_t] dim_screens,
+                    np.ndarray[ndim=1,dtype=np.float32_t] frac,
+                    np.ndarray[ndim=1,dtype=np.float32_t] alt,
+                    np.ndarray[ndim=1,dtype=np.float32_t] windspeed,
+                    np.ndarray[ndim=1,dtype=np.float32_t] winddir,
+                    np.ndarray[ndim=1,dtype=np.float32_t] deltax,
+                    np.ndarray[ndim=1,dtype=np.float32_t] deltay,
+                    np.ndarray[ndim=1,dtype=np.int64_t] seeds,
+                    int verbose, int clean, dict load)
+                    
+    Create and initialise an atmos object.
+
     :parameters:
         c: (naga_context) : context
 
-        nscreens: (float) : number of turbulent layers 
+        nscreens: (float) : number of turbulent layers
 
         r0: (float) : global r0
 
@@ -338,7 +356,7 @@ cdef atmos_create(naga_context c, int nscreens,
         deltay: (np.ndarray[ndim=1,dtype=np.float32_t]) : extrude deltay pixels in the y-direction at each iteration
 
         seeds: (np.ndarray[ndim=1,dtype=np.float32_t]) : seed for each screen
-       
+
         verbose: (int) : 0 or 1
     """
 
@@ -398,7 +416,7 @@ cdef atmos_create(naga_context c, int nscreens,
                 savename = shesha_savepath+"turbu/isty_r"+svnversion+"_"+str(ind)+".h5"
                 h5u.save_hdf5(savename,"isty",isty)
 
-    
+
         A_F=np.reshape(A.flatten("F"),(A.shape[0],A.shape[1]))
         B_F=np.reshape(B.flatten("F"),(B.shape[0],B.shape[1]))
 
@@ -410,13 +428,15 @@ cdef atmos_create(naga_context c, int nscreens,
     return atmos_obj
 
 
-cdef compute_size2(np.ndarray[ndim=1,dtype=np.int64_t]size):
-    """Compute the size of a stencil, given the screen size
+cdef compute_size2(np.ndarray[ndim=1, dtype=np.int64_t] size):
+    """compute_size2(np.ndarray[ndim=1, dtype=np.int64_t] size)
     
+    Compute the size of a stencil, given the screen size
+
     :parameters:
         size: (np.ndarray[ndim=1,dtype=np.int64_t]) :screen size
     """
-    
+
     cdef n=size.shape[0]
     cdef np.ndarray[ndim=1,dtype=np.int64_t] size2=np.zeros(n,dtype=np.int64)
 
@@ -424,5 +444,3 @@ cdef compute_size2(np.ndarray[ndim=1,dtype=np.int64_t]size):
     for i in range(n):
         size2[i]=itK.stencil_size(size[i])
     return size2
-
-
