@@ -512,6 +512,45 @@ cdef class Sensors:
         data=np.reshape(data_F.flatten("F"),(cdims[1],cdims[2]))
         return data
 
+    def get_lgskern(self, int n):
+        """Return the lgskern array of a given wfs
+
+        :param n: (int) : number of the wfs to get the phase from
+        """
+        cdef carma_obj[float] *lgs_kern
+        cdef const long *cdims
+        cdef np.ndarray[ndim=3,dtype=np.float32_t] data
+        cdef np.ndarray[ndim=3,dtype=np.float32_t] data_F
+        if(self.sensors.d_wfs[n].lgs):
+            lgs_kern=self.sensors.d_wfs[n].d_gs.d_lgs.d_lgskern
+            cdims=lgs_kern.getDims()
+            data=np.empty((cdims[1],cdims[2],cdims[3]),dtype=np.float32)
+            data_F=np.empty((cdims[3],cdims[2],cdims[1]),dtype=np.float32)
+            lgs_kern.device2host(<float*>data_F.data)
+            data=np.reshape(data_F.flatten("F"),(cdims[1],cdims[2],cdims[3]))
+            return data
+        else:
+            raise TypeError("the WFS should be a LGS")
+
+    def get_ftlgskern(self, int n):
+        """Return the ftlgskern array of a given wfs
+
+        :param n: (int) : number of the wfs to get the phase from
+        """
+        cdef carma_obj[cuFloatComplex] *ftlgs_kern
+        cdef const long *cdims
+        cdef np.ndarray[ndim=3,dtype=np.complex64_t] data
+        cdef np.ndarray[ndim=3,dtype=np.complex64_t] data_F
+        if(self.sensors.d_wfs[n].lgs):
+            ftlgs_kern=self.sensors.d_wfs[n].d_gs.d_lgs.d_ftlgskern
+            cdims=ftlgs_kern.getDims()
+            data=np.empty((cdims[1],cdims[2],cdims[3]),dtype=np.complex64)
+            data_F=np.empty((cdims[3],cdims[2],cdims[1]),dtype=np.complex64)
+            ftlgs_kern.device2host(<cuFloatComplex*>data_F.data)
+            data=np.reshape(data_F.flatten("F"),(cdims[1],cdims[2],cdims[3]))
+            return data
+        else:
+            raise TypeError("the WFS should be a LGS")
 
     def set_phase(self, int n, np.ndarray[ndim=2,dtype=np.float32_t] data):
         """Set the phase array of a given wfs
