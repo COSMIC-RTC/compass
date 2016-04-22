@@ -7,13 +7,13 @@
 .. currentmodule:: shesha_target
 
 :class:`Target`
----------------
+===============
 
 .. autoclass:: Target
     :members:
     :inherited-members:
 
 :func:`target_init`
--------------------
+===================
 
 .. autofunction:: target_init

@@ -20,10 +20,9 @@ import threading
 from PyQt4.uic import loadUiType
 from PyQt4 import QtGui
 from functools import partial
-from PyQt4 import QtHelp
 import subprocess
 
-sys.path.insert(0, os.environ["SHESHA_ROOT"]+"/data/par/")
+sys.path.insert(0, os.environ["SHESHA_ROOT"] + "/data/par/")
 
 
 WindowTemplate, TemplateBaseClass = loadUiType(os.environ["SHESHA_ROOT"] +
@@ -64,14 +63,14 @@ class widgetAOWindow(TemplateBaseClass):
         self.stop = False
         self.startTime = 0
         self.loop = None
-        self.assistant =None
-        
+        self.assistant = None
+
         #############################################################
         #                 PYQTGRAPH WINDOW INIT                     #
         #############################################################
 
         self.img = pg.ImageItem(border='w')  # create image area
-        # self.p1 = self.ui.wao_pgwindow.addPlot() # create pyqtgraph plot area
+        # self.p1 = self.ui.wao_pgwindow.addPlot()  # create pyqtgraph plot area
         self.p1 = self.ui.wao_pgwindow.addViewBox()
         self.p1.setAspectLocked(True)
         self.p1.addItem(self.img)            # Put image in plot area
@@ -85,7 +84,7 @@ class widgetAOWindow(TemplateBaseClass):
         #############################################################
         #                 CONNECTED BUTTONS                         #
         #############################################################
-        self.defaultParPath = os.environ["SHESHA_ROOT"]+"/data/par/par4bench/"  # Default path for config files
+        self.defaultParPath = os.environ["SHESHA_ROOT"] + "/data/par/par4bench/"  # Default path for config files
         self.ui.wao_loadConfig.clicked.connect(self.loadConfig)
         self.loadDefaultConfig()
         self.ui.wao_init.clicked.connect(self.InitConfig)
@@ -122,17 +121,18 @@ class widgetAOWindow(TemplateBaseClass):
         self.ui.wao_actionHelp_Contents.triggered.connect(self.on_help_triggered)
 
     def on_help_triggered(self, i=None):
-        if i==None: return
-    
+        if i is None:
+            return
+
         if not self.assistant or \
-           not self.assistant.poll()==None:
-    
-            helpcoll=os.environ["SHESHA_ROOT"]+"/doc/COMPASSSHESHA.qhc"
-            cmd="assistant -enableRemoteControl -collectionFile %s"%helpcoll
-            self.assistant=subprocess.Popen(cmd,
-                                            shell=True,
-                                            stdin=subprocess.PIPE)
-        self.assistant.stdin.write("SetSource qthelp://org.sphinx.compassshesha.r763/doc/index.html\n")
+           not self.assistant.poll() is None:
+
+            helpcoll = os.environ["SHESHA_ROOT"] + "/doc/COMPASSSHESHA.qhc"
+            cmd = "assistant -enableRemoteControl -collectionFile %s" % helpcoll
+            self.assistant = subprocess.Popen(cmd,
+                                              shell=True,
+                                              stdin=subprocess.PIPE)
+#         self.assistant.stdin.write("SetSource qthelp://org.sphinx.compassshesha.r763/doc/index.html\n")
 
     def resetSR(self):
         tarnum = self.ui.wao_resetSR_tarNum.value()
@@ -230,8 +230,8 @@ class widgetAOWindow(TemplateBaseClass):
         if(self.config.p_atmos.dim_screens is not None):
             self.ui.wao_atmosDimScreen.setText(str(self.config.p_atmos.dim_screens[nscreen]))
         self.ui.wao_atmosWindow.canvas.axes.cla()
-        width = (self.config.p_atmos.alt.max()/20.+0.1)/1000.
-        self.ui.wao_atmosWindow.canvas.axes.barh(self.config.p_atmos.alt/1000.-width/2., self.config.p_atmos.frac, width, color="blue")
+        width = (self.config.p_atmos.alt.max() / 20. + 0.1) / 1000.
+        self.ui.wao_atmosWindow.canvas.axes.barh(self.config.p_atmos.alt / 1000. - width / 2., self.config.p_atmos.frac, width, color="blue")
         self.ui.wao_atmosWindow.canvas.draw()
 
     def updateRtcPanel(self):
@@ -247,7 +247,7 @@ class widgetAOWindow(TemplateBaseClass):
             self.ui.wao_centroFunctionSelector.setCurrentIndex(self.ui.wao_centroFunctionSelector.findText(self.config.p_centroiders[ncentro].type_fct))
         self.ui.wao_centroWidth.setValue(self.config.p_centroiders[ncentro].width)
 
-        #Controller panel
+        # Controller panel
         type_contro = self.config.p_controllers[0].type_control
         if(type_contro == "ls" and self.config.p_controllers[0].modopti == 0):
             self.ui.wao_controlTypeSelector.setCurrentIndex(0)
@@ -262,11 +262,10 @@ class widgetAOWindow(TemplateBaseClass):
         else:
             print "pffff...."
 
-
         self.ui.wao_controlCond.setValue(self.config.p_controllers[0].maxcond)
         self.ui.wao_controlDelay.setValue(self.config.p_controllers[0].delay)
         self.ui.wao_controlGain.setValue(self.config.p_controllers[0].gain)
-        self.ui.wao_controlTTcond.setValue(self.config.p_controllers[0].maxcond) # TODO : TTcond
+        self.ui.wao_controlTTcond.setValue(self.config.p_controllers[0].maxcond)  # TODO : TTcond
 
     def updateTargetPanel(self):
         ntarget = self.ui.wao_selectTarget.currentIndex()
@@ -282,12 +281,12 @@ class widgetAOWindow(TemplateBaseClass):
         xmax = np.max(np.abs(self.config.p_target.xpos))
         ymax = np.max(np.abs(self.config.p_target.ypos))
         if(self.config.p_wfss):
-            self.ui.wao_targetWindow.canvas.axes.plot([w.xpos for w in self.config.p_wfss], [w.ypos for w in self.config.p_wfss],'o',color="green")
+            self.ui.wao_targetWindow.canvas.axes.plot([w.xpos for w in self.config.p_wfss], [w.ypos for w in self.config.p_wfss], 'o', color="green")
             xmax = np.max([xmax, np.max(np.abs([w.xpos for w in self.config.p_wfss]))])
             ymax = np.max([ymax, np.max(np.abs([w.ypos for w in self.config.p_wfss]))])
-        self.ui.wao_targetWindow.canvas.axes.plot(self.config.p_target.xpos, self.config.p_target.ypos,'*',color="red")
-        self.ui.wao_targetWindow.canvas.axes.set_xlim(-xmax-10, xmax+10)
-        self.ui.wao_targetWindow.canvas.axes.set_ylim(-ymax-10, ymax+10)
+        self.ui.wao_targetWindow.canvas.axes.plot(self.config.p_target.xpos, self.config.p_target.ypos, '*', color="red")
+        self.ui.wao_targetWindow.canvas.axes.set_xlim(-xmax - 10, xmax + 10)
+        self.ui.wao_targetWindow.canvas.axes.set_ylim(-ymax - 10, ymax + 10)
         self.ui.wao_targetWindow.canvas.axes.grid()
         self.ui.wao_targetWindow.canvas.draw()
 
@@ -314,11 +313,11 @@ class widgetAOWindow(TemplateBaseClass):
         nscreen = self.ui.wao_selectAtmosLayer.currentIndex()
         if(nscreen < 0):
             nscreen = 0
-        self.config.p_atmos.alt[nscreen]=self.ui.wao_atmosAlt.value()
-        self.config.p_atmos.frac[nscreen]=self.ui.wao_atmosFrac.value()
-        self.config.p_atmos.L0[nscreen]=self.ui.wao_atmosL0.value()
-        self.config.p_atmos.windspeed[nscreen]=self.ui.wao_windSpeed.value()
-        self.config.p_atmos.winddir[nscreen]=self.ui.wao_windDirection.value()
+        self.config.p_atmos.alt[nscreen] = self.ui.wao_atmosAlt.value()
+        self.config.p_atmos.frac[nscreen] = self.ui.wao_atmosFrac.value()
+        self.config.p_atmos.L0[nscreen] = self.ui.wao_atmosL0.value()
+        self.config.p_atmos.windspeed[nscreen] = self.ui.wao_windSpeed.value()
+        self.config.p_atmos.winddir[nscreen] = self.ui.wao_windDirection.value()
         print "New atmos parameters set"
 
     def setRtcParams(self):
@@ -333,7 +332,7 @@ class widgetAOWindow(TemplateBaseClass):
         self.config.p_centroiders[ncentro].set_type_fct(str(self.ui.wao_centroFunctionSelector.currentText()))
         self.config.p_centroiders[ncentro].set_width(self.ui.wao_centroWidth.value())
 
-        #Controller panel
+        # Controller panel
         type_contro = str(self.ui.wao_controlTypeSelector.currentText())
         if(type_contro == "LS"):
             self.config.p_controllers[0].set_type("ls")
@@ -348,7 +347,7 @@ class widgetAOWindow(TemplateBaseClass):
         self.config.p_controllers[0].set_maxcond(self.ui.wao_controlCond.value())
         self.config.p_controllers[0].set_delay(self.ui.wao_controlDelay.value())
         self.config.p_controllers[0].set_gain(self.ui.wao_controlGain.value())
-        #self.config.p_controllers[0].set_TTcond(self.ui.wao_controlTTcond.value()) # TODO : TTcond
+        # self.config.p_controllers[0].set_TTcond(self.ui.wao_controlTTcond.value())  # TODO : TTcond
         print "New rtc parameters set"
 
     def setWfsParams(self):
@@ -363,7 +362,7 @@ class widgetAOWindow(TemplateBaseClass):
         self.config.p_wfss[nwfs].set_fracsub(self.ui.wao_wfsFracsub.value())
         self.config.p_wfss[nwfs].set_Lambda(self.ui.wao_wfsLambda.value())
         self.config.p_wfss[nwfs].set_gsmag(self.ui.wao_wfsMagnitude.value())
-        #TODO: find a way to correctly set zerop (limited by the maximum value allowed by the double spin box)
+        # TODO: find a way to correctly set zerop (limited by the maximum value allowed by the double spin box)
         self.config.p_wfss[nwfs].set_zerop(10**(self.ui.wao_wfsZp.value()))
         self.config.p_wfss[nwfs].set_optthroughput(self.ui.wao_wfsThrough.value())
         self.config.p_wfss[nwfs].set_noise(self.ui.wao_wfsNoise.value())
@@ -427,21 +426,21 @@ class widgetAOWindow(TemplateBaseClass):
         self.updateDmPanel()
 
     def addConfigFromFile(self):
-        filepath = str(QtGui.QFileDialog(directory=self.defaultParPath).getOpenFileName(self,"Select parameter file","","parameters file (*.py);;hdf5 file (*.h5);;all files (*)"))
+        filepath = str(QtGui.QFileDialog(directory=self.defaultParPath).getOpenFileName(self, "Select parameter file", "", "parameters file (*.py);;hdf5 file (*.h5);;all files (*)"))
         self.configpath = filepath
         filename = filepath.split('/')[-1]
         if(filepath.split('.')[-1] == "py"):
-            self.ui.wao_selectConfig.addItem(filename,0)
+            self.ui.wao_selectConfig.addItem(filename, 0)
             pathfile = filepath.split(filename)[0]
             if (pathfile not in sys.path):
                 sys.path.insert(0, pathfile)
             exec("import %s as config" % filename.split(".py")[0])
             sys.path.remove(pathfile)
         elif(filepath.split('.')[-1] == "h5"):
-            sys.path.insert(0,self.defaultParPath)
+            sys.path.insert(0, self.defaultParPath)
             import scao_16x16_8pix as config
             sys.path.remove(self.defaultParPath)
-            h5u.configFromH5(filepath,config)
+            h5u.configFromH5(filepath, config)
         else:
             print "Parameter file extension must be .py or .h5"
             return
@@ -451,15 +450,15 @@ class widgetAOWindow(TemplateBaseClass):
         self.updateNumberSelector(textType=self.imgType)
         self.updatePanels()
 
-    def aoLoopClicked(self,pressed):
+    def aoLoopClicked(self, pressed):
         if(pressed):
             self.loop = threading.Thread(target=self.run)
             self.loop.start()
         else:
-            self.stop=True
+            self.stop = True
             self.loop.join()
 
-    def aoLoopOpen(self,pressed):
+    def aoLoopOpen(self, pressed):
         if(pressed):
             self.rtc.set_openloop(0, 1)
         else:
@@ -472,8 +471,8 @@ class widgetAOWindow(TemplateBaseClass):
             self.numberSelected = 0
         self.updateDisplay()
 
-    def updateNumberSelector(self,textType=None):
-        if(textType == None):
+    def updateNumberSelector(self, textType=None):
+        if(textType is None):
             textType = str(self.ui.wao_selectScreen.currentText())
         self.imgType = textType
         self.ui.wao_selectNumber.clear()
@@ -490,18 +489,18 @@ class widgetAOWindow(TemplateBaseClass):
 
     def loadConfig(self):
         configfile = str(self.ui.wao_selectConfig.currentText())
-        self.configpath = self.defaultParPath+configfile
+        self.configpath = self.defaultParPath + configfile
         sys.path.insert(0, self.defaultParPath)
         exec("import %s as config" % configfile.split(".py")[0])
         self.config = config
-        self.loaded=False
+        self.loaded = False
 
         self.updateNumberSelector(textType=self.imgType)
         self.updatePanels()
         self.ui.wao_init.setDisabled(False)
 
     def loadDefaultConfig(self):
-        parlist = sorted(glob.glob(self.defaultParPath+"*.py"))
+        parlist = sorted(glob.glob(self.defaultParPath + "*.py"))
         self.ui.wao_selectConfig.clear()
         self.ui.wao_selectConfig.addItems([parlist[i].split('/')[-1] for i in range(len(parlist))])
 
@@ -524,8 +523,8 @@ class widgetAOWindow(TemplateBaseClass):
         self.SRCrossX = None
         self.SRCrossY = None
 
-        #set simulation name
-        if(hasattr(self.config,"simul_name")):
+        # set simulation name
+        if(hasattr(self.config, "simul_name")):
             if(self.config.simul_name is None):
                 simul_name = ""
             else:
@@ -556,25 +555,25 @@ class widgetAOWindow(TemplateBaseClass):
                                          self.config.p_geom, self.config.p_target, self.config.p_loop,
                                          1, 0, self.config.p_dms)
 
-        self.atm=ao.atmos_init(self.c, self.config.p_atmos, self.config.p_tel,
-                               self.config.p_geom, self.config.p_loop,
-                               self.config.p_wfss, self.config.p_target,
-                               rank=0, clean=clean, load=matricesToLoad)
+        self.atm = ao.atmos_init(self.c, self.config.p_atmos, self.config.p_tel,
+                                 self.config.p_geom, self.config.p_loop,
+                                 self.config.p_wfss, self.config.p_target,
+                                 rank=0, clean=clean, load=matricesToLoad)
         self.ui.wao_atmosDimScreen.setText(str(self.config.p_atmos.dim_screens[0]))
 
-        self.dms = ao.dm_init(self.config.p_dms,self.config.p_wfss, self.config.p_geom, self.config.p_tel)
+        self.dms = ao.dm_init(self.config.p_dms, self.config.p_wfss, self.config.p_geom, self.config.p_tel)
 
-        self.tar = ao.target_init(self.c, self.tel, self.config.p_target,self.config.p_atmos,
-                                  self.config.p_geom,self.config.p_tel,self.config.p_wfss,
-                                  self.wfs,self.config.p_dms)
+        self.tar = ao.target_init(self.c, self.tel, self.config.p_target, self.config.p_atmos,
+                                  self.config.p_geom, self.config.p_tel, self.config.p_wfss,
+                                  self.wfs, self.config.p_dms)
 
         self.rtc = ao.rtc_init(self.tel, self.wfs, self.config.p_wfss, self.dms, self.config.p_dms,
                                self.config.p_geom, self.config.p_rtc, self.config.p_atmos,
-                               self.atm, self.config.p_tel,self.config.p_loop, self.tar,
+                               self.atm, self.config.p_tel, self.config.p_loop, self.tar,
                                self.config.p_target, clean=clean, simul_name=simul_name, load=matricesToLoad)
 
         if(not clean):
-            h5u.validDataBase(os.environ["SHESHA_ROOT"]+"/data/",matricesToLoad)
+            h5u.validDataBase(os.environ["SHESHA_ROOT"] + "/data/", matricesToLoad)
 
         print "===================="
         print "init done"
@@ -586,7 +585,7 @@ class widgetAOWindow(TemplateBaseClass):
         print self.dms
         print self.tar
         print self.rtc
-        self.loaded=True
+        self.loaded = True
         self.updateDisplay()
         self.displayRtcMatrix()
 
@@ -611,7 +610,7 @@ class widgetAOWindow(TemplateBaseClass):
 
     def displayRtcMatrix(self):
         if not self.loaded:
-            #print " widget not fully initialized"
+            # print " widget not fully initialized"
             return
 
         data = None
@@ -631,7 +630,7 @@ class widgetAOWindow(TemplateBaseClass):
                                   self.config.p_rtc, self.config.p_geom,
                                   self.config.p_dms, self.config.p_tel, self.config.p_atmos)
                 data = self.rtc.get_cmm(0)
-                self.rtc.set_cmm(0,tmp)
+                self.rtc.set_cmm(0, tmp)
             elif(type_matrix == "Cmm inverse" and self.config.p_controllers[0].type_control == "mv"):
                 data = self.rtc.get_cmm(0)
             elif(type_matrix == "Cmm eigen" and self.config.p_controllers[0].type_control == "mv"):
@@ -645,7 +644,7 @@ class widgetAOWindow(TemplateBaseClass):
                 if(len(data.shape) == 2):
                     self.ui.wao_rtcWindow.canvas.axes.matshow(data, aspect="auto", origin="lower", cmap="gray")
                 elif(len(data.shape) == 1):
-                    self.ui.wao_rtcWindow.canvas.axes.plot(range(len(data)),data, color="black") # TODO : plot it properly, interactivity ?
+                    self.ui.wao_rtcWindow.canvas.axes.plot(range(len(data)), data, color="black")  # TODO : plot it properly, interactivity ?
                     ax.set_yscale('log')
                     if(type_matrix == "Eigenvalues"):
                         #    major_ticks = np.arange(0, 101, 20)
@@ -664,25 +663,25 @@ class widgetAOWindow(TemplateBaseClass):
                         self.ui.wao_rtcWindow.canvas.axes.grid(which='minor', alpha=0.2)
                         self.ui.wao_rtcWindow.canvas.axes.grid(which='major', alpha=0.5)
                         nfilt = self.rtc.get_nfiltered(0, self.config.p_rtc)
-                        self.ui.wao_rtcWindow.canvas.axes.plot([nfilt-0.5,nfilt-0.5],[data.min(), data.max()], color="red", linestyle="dashed")
-                        if(nfilt>0):
-                            self.ui.wao_rtcWindow.canvas.axes.scatter(np.arange(0,nfilt,1),data[0:nfilt], color="red") # TODO : plot it properly, interactivity ?
-                            self.ui.wao_rtcWindow.canvas.axes.scatter(np.arange(nfilt,len(data),1),data[nfilt:], color="blue") # TODO : plot it properly, interactivity ?
+                        self.ui.wao_rtcWindow.canvas.axes.plot([nfilt - 0.5, nfilt - 0.5], [data.min(), data.max()], color="red", linestyle="dashed")
+                        if(nfilt > 0):
+                            self.ui.wao_rtcWindow.canvas.axes.scatter(np.arange(0, nfilt, 1), data[0:nfilt], color="red")  # TODO : plot it properly, interactivity ?
+                            self.ui.wao_rtcWindow.canvas.axes.scatter(np.arange(nfilt, len(data), 1), data[nfilt:], color="blue")  # TODO : plot it properly, interactivity ?
                             tt = "%d modes Filtered" % nfilt
-                            #ax.text(nfilt + 2, data[nfilt-1], tt)
+                            # ax.text(nfilt + 2, data[nfilt-1], tt)
                             ax.text(0.5, 0.2, tt, horizontalalignment='center',
-                                    verticalalignment='center', transform = ax.transAxes)
+                                    verticalalignment='center', transform=ax.transAxes)
 
                 self.ui.wao_rtcWindow.canvas.draw()
 
     def updateDisplay(self):
         if not self.loaded:
-            #print " widget not fully initialized"
+            # print " widget not fully initialized"
             return
 
         data = None
         if not self.displayLock.acquire(False):
-            #print " Display locked"
+            # print " Display locked"
             return
         else:
             try:
@@ -691,20 +690,20 @@ class widgetAOWindow(TemplateBaseClass):
                     self.ui.wao_pgwindow.show()
 
                     if(self.atm):
-                        if(self.SRCrossX and (self.imgType in ["Phase - Target","Phase - DM","Phase - Atmos","Phase - WFS","Spots - WFS","Centroids - WFS","Slopes - WFS"])):
+                        if(self.SRCrossX and (self.imgType in ["Phase - Target", "Phase - DM", "Phase - Atmos", "Phase - WFS", "Spots - WFS", "Centroids - WFS", "Slopes - WFS"])):
                             self.SRCrossX.hide()
                             self.SRCrossY.hide()
 
                         if(self.imgType == "Phase - Atmos"):
                             data = self.atm.get_screen(self.config.p_atmos.alt[self.numberSelected])
-                            if(self.imgType!=self.currentViewSelected):
+                            if(self.imgType != self.currentViewSelected):
                                 self.p1.setRange(xRange=(0, data.shape[0]), yRange=(0, data.shape[1]))
                             self.currentViewSelected = self.imgType
 
                     if(self.wfs):
                         if(self.imgType == "Phase - WFS"):
-                            data =self.wfs.get_phase(self.numberSelected)
-                            if(self.imgType!=self.currentViewSelected):
+                            data = self.wfs.get_phase(self.numberSelected)
+                            if(self.imgType != self.currentViewSelected):
                                 self.p1.setRange(xRange=(0, data.shape[0]), yRange=(0, data.shape[1]))
                             self.currentViewSelected = self.imgType
 
@@ -713,7 +712,7 @@ class widgetAOWindow(TemplateBaseClass):
                                 data = self.wfs.get_binimg(self.numberSelected)
                             elif(self.config.p_wfss[self.numberSelected].type_wfs == "pyr"):
                                 data = self.wfs.get_pyrimg(self.numberSelected)
-                            if(self.imgType!=self.currentViewSelected):
+                            if(self.imgType != self.currentViewSelected):
                                 self.p1.setRange(xRange=(0, data.shape[0]), yRange=(0, data.shape[1]))
                             self.currentViewSelected = self.imgType
 
@@ -722,10 +721,10 @@ class widgetAOWindow(TemplateBaseClass):
                                 self.ui.wao_rtcWindowMPL.show()
                                 self.ui.wao_pgwindow.hide()
                             self.ui.wao_rtcWindowMPL.canvas.axes.clear()
-                            centroids = self.rtc.getCentroids(0) # retrieving centroids
-                            nvalid = [2*o._nvalid for o in self.config.p_wfss]
+                            centroids = self.rtc.getCentroids(0)  # retrieving centroids
+                            nvalid = [2 * o._nvalid for o in self.config.p_wfss]
                             ind = np.sum(nvalid[:self.numberSelected])
-                            x, y, vx, vy = tools.plsh(centroids[ind:ind+nvalid[self.numberSelected]], self.config.p_wfss[self.numberSelected].nxsub,self.config.p_tel.cobs , returnquiver=True) # Preparing mesh and vector for display
+                            x, y, vx, vy = tools.plsh(centroids[ind:ind + nvalid[self.numberSelected]], self.config.p_wfss[self.numberSelected].nxsub, self.config.p_tel.cobs, returnquiver=True)  # Preparing mesh and vector for display
                             self.ui.wao_rtcWindowMPL.canvas.axes.quiver(x, y, vx, vy, pivot='mid')
                             self.ui.wao_rtcWindowMPL.canvas.draw()
                             self.currentViewSelected = self.imgType
@@ -736,9 +735,9 @@ class widgetAOWindow(TemplateBaseClass):
                                 self.ui.wao_rtcWindowMPL.show()
                                 self.ui.wao_pgwindow.hide()
                             self.ui.wao_rtcWindowMPL.canvas.axes.clear()
-                            self.wfs.slopes_geom(self.numberSelected,0)
+                            self.wfs.slopes_geom(self.numberSelected, 0)
                             slopes = self.wfs.get_slopes(self.numberSelected)
-                            x, y, vx, vy = tools.plsh(slopes, self.config.p_wfss[self.numberSelected].nxsub,self.config.p_tel.cobs , returnquiver=True) # Preparing mesh and vector for display
+                            x, y, vx, vy = tools.plsh(slopes, self.config.p_wfss[self.numberSelected].nxsub, self.config.p_tel.cobs, returnquiver=True)  # Preparing mesh and vector for display
                             self.ui.wao_rtcWindowMPL.canvas.axes.quiver(x, y, vx, vy, pivot='mid')
                             self.ui.wao_rtcWindowMPL.canvas.draw()
                             self.currentViewSelected = self.imgType
@@ -749,26 +748,34 @@ class widgetAOWindow(TemplateBaseClass):
                         if(self.imgType == "Phase - DM"):
                             dm_type = self.config.p_dms[self.numberSelected].type_dm
                             alt = self.config.p_dms[self.numberSelected].alt
-                            data =self.dms.get_dm(dm_type,alt)
-                            if(self.imgType!=self.currentViewSelected):
+                            data = self.dms.get_dm(dm_type, alt)
+                            if(self.imgType != self.currentViewSelected):
                                 self.p1.setRange(xRange=(0, data.shape[0]), yRange=(0, data.shape[1]))
                             self.currentViewSelected = self.imgType
                     if(self.tar):
                         if(self.imgType == "Phase - Target"):
-                            data =self.tar.get_phase(self.numberSelected)
-                            if(self.imgType!=self.currentViewSelected):
+                            data = self.tar.get_phase(self.numberSelected)
+                            if(self.imgType != self.currentViewSelected):
                                 self.p1.setRange(xRange=(0, data.shape[0]), yRange=(0, data.shape[1]))
                             self.currentViewSelected = self.imgType
 
                         if(self.imgType == "PSF SE"):
-                            data =self.tar.get_image(self.numberSelected,"se")
+                            data = self.tar.get_image(self.numberSelected, "se")
                             if(self.ui.wao_PSFlogscale.isChecked()):
                                 data = np.log10(data)
 
                             if (not self.SRCrossX):
                                 Delta = 5
-                                self.SRCrossX = pg.PlotCurveItem(np.array([data.shape[0]/2+0.5-Delta, data.shape[0]/2+0.5+Delta]), np.array([data.shape[1]/2+0.5, data.shape[1]/2+0.5]), pen='r')
-                                self.SRCrossY = pg.PlotCurveItem(np.array([data.shape[0]/2+0.5, data.shape[0]/2+0.5]), np.array([data.shape[1]/2+0.5-Delta, data.shape[1]/2+0.5+Delta]), pen='r')
+                                self.SRCrossX = pg.PlotCurveItem(np.array([data.shape[0] / 2 + 0.5 - Delta,
+                                                                           data.shape[0] / 2 + 0.5 + Delta]),
+                                                                 np.array([data.shape[1] / 2 + 0.5,
+                                                                           data.shape[1] / 2 + 0.5]),
+                                                                 pen='r')
+                                self.SRCrossY = pg.PlotCurveItem(np.array([data.shape[0] / 2 + 0.5,
+                                                                           data.shape[0] / 2 + 0.5]),
+                                                                 np.array([data.shape[1] / 2 + 0.5 - Delta,
+                                                                           data.shape[1] / 2 + 0.5 + Delta]),
+                                                                 pen='r')
                                 self.p1.addItem(self.SRCrossX)  # Put image in plot area
                                 self.p1.addItem(self.SRCrossY)  # Put image in plot area
 
@@ -776,42 +783,48 @@ class widgetAOWindow(TemplateBaseClass):
                                 zoom = 50
                                 self.SRCrossX.show()
                                 self.SRCrossY.show()
-                                self.p1.setRange(xRange=(data.shape[0]/2+0.5-zoom, data.shape[0]/2+0.5+zoom), yRange=(data.shape[1]/2+0.5-zoom, data.shape[1]/2+0.5+zoom),)
+                                self.p1.setRange(xRange=(data.shape[0] / 2 + 0.5 - zoom,
+                                                         data.shape[0] / 2 + 0.5 + zoom),
+                                                 yRange=(data.shape[1] / 2 + 0.5 - zoom,
+                                                         data.shape[1] / 2 + 0.5 + zoom),)
                             self.currentViewSelected = self.imgType
-
-
-
 
                         if(self.imgType == "PSF LE"):
-                            data =self.tar.get_image(self.numberSelected,"le")
+                            data = self.tar.get_image(self.numberSelected, "le")
                             if(self.ui.wao_PSFlogscale.isChecked()):
                                 data = np.log10(data)
                             if (not self.SRCrossX):
                                 Delta = 5
-                                self.SRCrossX = pg.PlotCurveItem(np.array([data.shape[0]/2+0.5-Delta, data.shape[0]/2+0.5+Delta]), np.array([data.shape[1]/2+0.5, data.shape[1]/2+0.5]), pen='r')
-                                self.SRCrossY = pg.PlotCurveItem(np.array([data.shape[0]/2+0.5, data.shape[0]/2+0.5]), np.array([data.shape[1]/2+0.5-Delta, data.shape[1]/2+0.5+Delta]), pen='r')
+                                self.SRCrossX = pg.PlotCurveItem(np.array([data.shape[0] / 2 + 0.5 - Delta,
+                                                                           data.shape[0] / 2 + 0.5 + Delta]),
+                                                                 np.array([data.shape[1] / 2 + 0.5,
+                                                                           data.shape[1] / 2 + 0.5]),
+                                                                 pen='r')
+                                self.SRCrossY = pg.PlotCurveItem(np.array([data.shape[0] / 2 + 0.5,
+                                                                           data.shape[0] / 2 + 0.5]),
+                                                                 np.array([data.shape[1] / 2 + 0.5 - Delta,
+                                                                           data.shape[1] / 2 + 0.5 + Delta]),
+                                                                 pen='r')
 
                                 self.p1.addItem(self.SRCrossX)  # Put image in plot area
                                 self.p1.addItem(self.SRCrossY)  # Put image in plot area
                             if(self.imgType != self.currentViewSelected):
                                 zoom = 50
-                                self.p1.setRange(xRange=(data.shape[0]/2+0.5-zoom, data.shape[0]/2+0.5+zoom), yRange=(data.shape[1]/2+0.5-zoom, data.shape[1]/2+0.5+zoom))
+                                self.p1.setRange(xRange=(data.shape[0] / 2 + 0.5 - zoom,
+                                                         data.shape[0] / 2 + 0.5 + zoom),
+                                                 yRange=(data.shape[1] / 2 + 0.5 - zoom,
+                                                         data.shape[1] / 2 + 0.5 + zoom))
                                 self.SRCrossX.show()
                                 self.SRCrossY.show()
 
                             self.currentViewSelected = self.imgType
 
-
-
-                    if (data is not None):
+                    if(data is not None):
                         autoscale = self.ui.wao_autoscale.isChecked()
                         if(autoscale):
-                            self.hist.setLevels(data.min(), data.max()) # inits levels
+                            self.hist.setLevels(data.min(), data.max())  # inits levels
                         self.img.setImage(data, autoLevels=autoscale)
-                        #self.p1.autoRange()
-
-
-
+                        # self.p1.autoRange()
             finally:
                 self.displayLock.release()
 
@@ -820,21 +833,21 @@ class widgetAOWindow(TemplateBaseClass):
         self.atm.move_atmos()
         if(self.config.p_controllers[0].type_control == "geo"):
             for t in range(self.config.p_target.ntargets):
-                self.tar.atmos_trace(t,self.atm,self.tel)
+                self.tar.atmos_trace(t, self.atm, self.tel)
                 self.rtc.docontrol_geo(0, self.dms, self.tar, 0)
-                self.rtc.applycontrol(0,self.dms)
-                self.tar.dmtrace(0,self.dms)
+                self.rtc.applycontrol(0, self.dms)
+                self.tar.dmtrace(0, self.dms)
         else:
             for t in range(self.config.p_target.ntargets):
-                self.tar.atmos_trace(t,self.atm,self.tel)
-                self.tar.dmtrace(t,self.dms)
+                self.tar.atmos_trace(t, self.atm, self.tel)
+                self.tar.dmtrace(t, self.dms)
             for w in range(len(self.config.p_wfss)):
-                self.wfs.sensors_trace(w,"all",self.tel,self.atm,self.dms)
+                self.wfs.sensors_trace(w, "all", self.tel, self.atm, self.dms)
                 self.wfs.sensors_compimg(w)
 
             self.rtc.docentroids(0)
             self.rtc.docontrol(0)
-            self.rtc.applycontrol(0,self.dms)
+            self.rtc.applycontrol(0, self.dms)
 
         signal_le = ""
         signal_se = ""
@@ -843,25 +856,25 @@ class widgetAOWindow(TemplateBaseClass):
             signal_se += "%1.2f   " % SR[0]
             signal_le += "%1.2f   " % SR[1]
 
-        loopTime=time.time() - start
+        loopTime = time.time() - start
         if(self.RTDisplay):
-            t = 1/float(self.RTDFreq) - loopTime # Limit loop frequency
-            if t>0:
-                time.sleep(t)# Limit loop frequency
-            self.updateDisplay()# Update GUI plots
+            t = 1 / float(self.RTDFreq) - loopTime  # Limit loop frequency
+            if t > 0:
+                time.sleep(t)     # Limit loop frequency
+            self.updateDisplay()  # Update GUI plots
         else:
-            freqLimit=1/250.
-            if loopTime<freqLimit:
-                time.sleep(freqLimit - loopTime) # Limit loop frequency
-        currentFreq = 1/(time.time() - start)
+            freqLimit = 1 / 250.
+            if loopTime < freqLimit:
+                time.sleep(freqLimit - loopTime)  # Limit loop frequency
+        currentFreq = 1 / (time.time() - start)
 
         if(self.RTDisplay):
             self.ui.wao_strehlSE.setText(signal_se)
             self.ui.wao_strehlLE.setText(signal_le)
             self.ui.wao_currentFreq.setValue(currentFreq)
         else:
-            if(time.time() - self.startTime>1):
-                self.printInPlace("iter #%d SR: (L.E, S.E.)= %s, %srunning at %4.1fHz (real %4.1fHz)" % (self.iter, signal_le, signal_se, currentFreq, 1/loopTime))
+            if(time.time() - self.startTime > 1):
+                self.printInPlace("iter #%d SR: (L.E, S.E.)= %s, %srunning at %4.1fHz (real %4.1fHz)" % (self.iter, signal_le, signal_se, currentFreq, 1 / loopTime))
                 self.ui.wao_strehlSE.setText(signal_se)
                 self.ui.wao_strehlLE.setText(signal_le)
                 self.ui.wao_currentFreq.setValue(currentFreq)
@@ -870,14 +883,14 @@ class widgetAOWindow(TemplateBaseClass):
         self.iter += 1
 
     def printInPlace(self, text):
-        print "\r" + text ,;# This seems to trigger the GUI and keep it responsive
+        print "\r" + text,  # This seems to trigger the GUI and keep it responsive
         sys.stdout.flush()
-        #sys.stdout.write(text)
+        # sys.stdout.write(text)
 
     def run(self):
-#         print "Loop started"
+        # print "Loop started"
         self.c.set_activeDeviceForce(0)
-        self.stop=False
+        self.stop = False
         self.startTime = time.time()
         while True:
             self.mainLoop()
@@ -890,4 +903,4 @@ if __name__ == '__main__':
     wao = widgetAOWindow()
     wao.show()
     app.setStyle('cleanlooks')
-    #app.exec_()
+    # app.exec_()
