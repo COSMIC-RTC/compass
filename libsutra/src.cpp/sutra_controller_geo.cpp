@@ -4,7 +4,6 @@ sutra_controller_geo::sutra_controller_geo(carma_context *context, long nactu, l
       float delay, sutra_dms *dms, char **type, float *alt, int ndm, bool wfs_direction):
       sutra_controller(context, 0, nactu, 0.0f, dms, type, alt, ndm){
 
-	this->device = device;
 	this->gain = 0.0f;
 	this->Nphi = Nphi;
 

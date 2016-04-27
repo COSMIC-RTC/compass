@@ -5,7 +5,6 @@ sutra_controller_ls::sutra_controller_ls(carma_context *context, long nvalid,
     long nactu, float delay, sutra_dms *dms, char **type, float *alt, int ndm) :
     sutra_controller(context, nvalid * 2, nactu, delay, dms, type, alt, ndm) {
 
-  current_context->set_activeDevice(device,1);
   this->d_imat = 0L;
   this->d_cmat = 0L;
   this->d_eigenvals = 0L;
@@ -381,7 +380,7 @@ int sutra_controller_ls::init_modalOpti(int nmodes, int nrec, float *M2V, float 
 	carma_gemm(cublas_handle(), 't', 'n', nmodes, nmodes, nslope(), 1.0f,
 		      d_tmp->getData(), nslope(), d_tmp->getData(), nslope(), 0.0f,
 		      d_tmp2->getData(), nmodes);
-	
+
 	// 3. tmp2 = (tmp2)⁻¹
 	carma_potri(d_tmp2);
 	// 4. S2M = (D*M2V)⁻¹
@@ -394,7 +393,7 @@ int sutra_controller_ls::init_modalOpti(int nmodes, int nrec, float *M2V, float 
 
 	cout <<"Computing transfer functions..."<< endl;
 	compute_Hcor();
-	
+
 	return EXIT_SUCCESS;
 }
 
@@ -458,4 +457,3 @@ int sutra_controller_ls::compute_Hcor(){
 
 	return EXIT_SUCCESS;
 }
-

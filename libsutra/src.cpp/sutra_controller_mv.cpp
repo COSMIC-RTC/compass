@@ -7,7 +7,6 @@ sutra_controller_mv::sutra_controller_mv(carma_context *context, long nvalid,
     sutra_controller(context, nvalid * 2, nactu_, delay, dms, type, alt, ndm) {
 
 
-  this->device = device;
   this->gain = 0.0f;
 
 //  this->nstreams = 1; //nvalid/10;
