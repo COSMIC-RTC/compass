@@ -40,7 +40,7 @@ int sutra_rtc::add_centroider(sutra_sensors *sensors, int nwfs, long nvalid, flo
     d_centro.push_back(
         new sutra_centroider_corr(current_context, sensors, nwfs, nvalid, offset, scale,
             device));
-  else if (strcmp(typec, "pyr") == 0)
+  else if (strcmp(typec, "pyr") == 0) 
     d_centro.push_back(
         new sutra_centroider_pyr(current_context, sensors, nwfs, nvalid, offset, scale,
             device));

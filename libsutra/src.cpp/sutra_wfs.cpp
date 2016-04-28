@@ -2,6 +2,7 @@
 #include <sutra_wfs_geom.h>
 #include <sutra_wfs_pyr_roof.h>
 #include <sutra_wfs_pyr_pyr4.h>
+#include <sutra_wfs_pyr_pyrhr.h>
 #include <sutra_wfs_sh.h>
 #include <sutra_ao_utils.h>
 #include <carma_utils.h>
@@ -163,8 +164,8 @@ sutra_sensors::sutra_sensors(carma_context *context, sutra_telescope *d_tel, cha
       wfs = new sutra_wfs_sh(context, d_tel, this, nxsub[i], nvalid[i], npix[i],
                              nphase[i], nrebin[i], nfft[i], ntot[i], npup[i],
                              pdiam[i], nphot[i], nphot4imat[i], lgs[i], device);
-    if (strcmp(type[i],"pyr") == 0)
-      wfs = new sutra_wfs_pyr_pyr4(context, d_tel, this, nxsub[i], nvalid[i], npix[i],
+    if (strcmp(type[i],"pyr") == 0) 
+      wfs = new sutra_wfs_pyr_pyrhr(context, d_tel, this, nxsub[i], nvalid[i], npix[i],
                                    nphase[i], nrebin[i], nfft[i], ntot[i], npup[i],
                                    pdiam[i], nphot[i], nphot4imat[i], lgs[i], device);
     if (strcmp(type[i],"roof") == 0)

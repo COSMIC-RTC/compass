@@ -176,6 +176,7 @@ template<class T>
 void
 subap_reduce(int size, int threads, int blocks, T *d_idata, T *d_odata,
              carma_device *device);
+
 template<class T>
 void
 subap_reduce_async(int threads, int blocks, carma_streams *streams, T *d_idata,
@@ -195,22 +196,31 @@ template<class T>
 void
 subap_reduce(int size, int threads, int blocks, T *d_idata, T *d_odata,
              T *weights, carma_device *device);
+
 template<class T>
 void
 phase_reduce(int threads, int blocks, T *d_idata, T *d_odata, int *indx,
              T alpha);
+
 template<class T>
 void
 phase_derive(int size, int threads, int blocks, int n, T *d_idata, T *d_odata,
              int *indx, T *mask, T alpha, float *fluxPerSub);
+
 template<class Tout, class Tin>
 void
 pyr_getpup(Tout *d_odata, Tin *d_idata, Tout *d_offsets, Tin *d_pup, int np, float lambda,
            carma_device *device);
+
+template<class Tout, class Tin>
+void pyr_getpup(Tout *d_odata, Tin *d_idata, Tin *d_pup,
+		int np, int N, float lambda, float cx, float cy, carma_device *device);
+
 template<class T>
 void
 pyr_rollmod(T *d_odata, T *d_idata, T *d_mask, float cx, float cy, int np,
             int ns, carma_device *device);
+
 template<class T>
 void
 pyr_fillbin(T *d_odata, T *d_idata, int nrebin, int np, int ns, int nim,
@@ -221,26 +231,44 @@ int
 pyr_fillbinimg(T *bimage, const T *bcube, const int nxsub,
                const bool add, carma_device *device);
 
+template<class T>
+int pyr_fillbinimg(T *oimage, const T *image, const int n, const int N,
+                   const int rebin, const bool add, carma_device *device);
+
 template<class Tin, class Tout>
 void
 pyr_abs2(Tout *d_odata, Tin *d_idata, Tout fact, int ns, int nim,
          carma_device *device);
+
 template<class Tout, class Tin>
 void
 pyr_submask(Tout *d_odata, Tin *d_mask, int n, carma_device *device);
+
+template<class T>
+void
+pyr_submaskpyr(T *d_odata, T *d_mask, int n, carma_device *device);
+
 template<class Tout, class Tin>
 void
 pyr_abs(Tout *d_odata, Tin *d_idata, int ns, int nim, carma_device *device);
+
 template<class Tout, class Tin>
 void
 pyr_submask3d(Tout *d_odata, Tin *d_mask, int n, int nim, carma_device *device);
+
 template<class T>
 void
 pyr_subsum(T *d_odata, T *d_idata, int *subindx, int *subindy, int ns,
            int nvalid, int nim, carma_device *device);
+
+template<class T>
+void pyr_subsum(T *d_odata, T *d_idata, int *subindx, int *subindy, int ns,
+		int nvalid, carma_device *device);
+
 template<class T>
 void
 pyr_fact(T *d_data, T fact, int n, int nim, carma_device *device);
+
 void
 pyr_fact(cuFloatComplex *d_data, float fact, int n, int nim,
          carma_device *device);

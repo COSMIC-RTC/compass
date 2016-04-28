@@ -1494,6 +1494,50 @@ template void
 pyr_slopes<double>(double *d_odata, double *d_idata, int *subindx, int *subindy,
     double *subsum, int ns, int nvalid, int nim, carma_device *device);
 
+template<class T>
+__global__ void pyr2slopes_krnl(T *g_odata, T *g_idata, int *subindx,
+    int *subindy, T *subsum, unsigned int ns, unsigned int nvalid) {
+  unsigned int i = blockIdx.x * blockDim.x + threadIdx.x;
+
+  if (i < nvalid) {
+    int iq1 = subindx[i] + subindy[i] * ns;
+    int iq2 = subindx[i+nvalid] + subindy[i+nvalid] * ns;
+    int iq3 = subindx[i+2*nvalid] + subindy[i+2*nvalid] * ns;
+    int iq4 = subindx[i+3*nvalid] + subindy[i+3*nvalid] * ns;
+    /*
+     g_odata[i] = ((g_idata[i2 + ns * ns] + g_idata[i2 + 3 * ns * ns])
+     - (g_idata[i2] + g_idata[i2 + 2 * ns * ns])) / subsum[0];
+     g_odata[i + nvalid] = ((g_idata[i2 + 2 * ns * ns]
+     + g_idata[i2 + 3 * ns * ns]) - (g_idata[i2] + g_idata[i2 + ns * ns]))
+     / subsum[0];
+     */
+    g_odata[i] = ((g_idata[iq1] + g_idata[iq4]) - (g_idata[iq2] + g_idata[iq3])) / subsum[i];
+    g_odata[i + nvalid] = ((g_idata[iq1] + g_idata[iq3]) - (g_idata[iq2] + g_idata[iq4])) / subsum[i];
+  }
+}
+
+template<class T>
+void pyr2_slopes(T *d_odata, T *d_idata, int *subindx, int *subindy, T *subsum,
+    int ns, int nvalid, carma_device *device) {
+  //cout << "hello cu" << endl;
+
+  int nBlocks,nThreads;
+  getNumBlocksAndThreads(device, nvalid, nBlocks, nThreads);
+  dim3 grid(nBlocks), threads(nThreads);
+
+  pyr2slopes_krnl<T> <<<grid, threads>>>(d_odata, d_idata, subindx, subindy,
+      subsum, ns, nvalid);
+
+  carmaCheckMsg("pyrslopes_kernel<<<>>> execution failed\n");
+}
+
+template void
+pyr2_slopes<float>(float *d_odata, float *d_idata, int *subindx, int *subindy,
+    float *subsum, int ns, int nvalid, carma_device *device);
+template void
+pyr2_slopes<double>(double *d_odata, double *d_idata, int *subindx, int *subindy,
+    double *subsum, int ns, int nvalid, carma_device *device);
+
 ////////////////////////////////////////////////////////////
 // ADDING PYR_SLOPES MODIFIED FOR ROOF-PRISM: ROOF_SLOPES //
 ////////////////////////////////////////////////////////////

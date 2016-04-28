@@ -3,8 +3,8 @@
 #include <carma_utils.h>
 
 sutra_wfs_pyr::sutra_wfs_pyr(carma_context *context, sutra_telescope *d_tel, sutra_sensors *sensors, long nxsub,
-    long nvalid, long npix, long nphase, long nrebin, long nfft, long ntot,
-    long npup, float pdiam, float nphotons, float nphot4imat, int lgs, int device) {
+			     long nvalid, long npix, long nphase, long nrebin, long nfft, long ntot,
+			     long npup, float pdiam, float nphotons, float nphot4imat, int lgs, int device, char* type_pyr) {
   this->d_camplipup = 0L;//sensors->d_camplipup;
   this->d_camplifoc = 0L;//sensors->d_camplifoc;
   this->d_fttotim = 0L;//sensors->d_fttotim;
@@ -61,83 +61,140 @@ sutra_wfs_pyr::sutra_wfs_pyr(carma_context *context, sutra_telescope *d_tel, sut
   long *dims_data3 = new long[4];
   dims_data3[0] = 3;
 
-  dims_data3[1] = nfft;
-  dims_data3[2] = nfft;
-  dims_data3[3] = 4;
+  if (type_pyr == "roof") {
+    dims_data3[1] = nfft;
+    dims_data3[2] = nfft;
+    dims_data3[3] = 4;
 
-  this->d_hrimg = new carma_obj<float>(context, dims_data3); // Useless for SH
+    this->d_hrimg = new carma_obj<float>(context, dims_data3); // Useless for SH
 
-  int mdims[2];
+    int mdims[2];
 
-  dims_data2[1] = ntot;
-  dims_data2[2] = ntot;
-  this->d_submask = new carma_obj<float>(context, dims_data2);
-  this->d_camplipup = new carma_obj<cuFloatComplex>(context, dims_data2);
-  this->d_camplifoc = new carma_obj<cuFloatComplex>(context, dims_data2);
-  cufftHandle *plan = this->d_camplipup->getPlan(); ///< FFT plan
-  carmafftSafeCall(cufftPlan2d(plan, dims_data2[1], dims_data2[2], CUFFT_C2C));
+    dims_data2[1] = ntot;
+    dims_data2[2] = ntot;
+    this->d_submask = new carma_obj<float>(context, dims_data2);
+    this->d_camplipup = new carma_obj<cuFloatComplex>(context, dims_data2);
+    this->d_camplifoc = new carma_obj<cuFloatComplex>(context, dims_data2);
+    cufftHandle *plan = this->d_camplipup->getPlan(); ///< FFT plan
+    carmafftSafeCall(cufftPlan2d(plan, dims_data2[1], dims_data2[2], CUFFT_C2C));
 
-  dims_data3[1] = nfft / nrebin;
-  dims_data3[2] = nfft / nrebin;
+    dims_data3[1] = nfft / nrebin;
+    dims_data3[2] = nfft / nrebin;
 
-  this->d_bincube = new carma_obj<float>(context, dims_data3);
+    this->d_bincube = new carma_obj<float>(context, dims_data3);
 
-  dims_data2[1] = nfft / nrebin*2 + 3;
-  dims_data2[2] = nfft / nrebin*2 + 3;
+    dims_data2[1] = nfft / nrebin*2 + 3;
+    dims_data2[2] = nfft / nrebin*2 + 3;
 
-  this->d_binimg = new carma_obj<float>(context, dims_data2);
-  // using 1 stream for telemetry
-  this->image_telemetry = new carma_host_obj<float>(dims_data2, MA_PAGELOCK, 1);
+    this->d_binimg = new carma_obj<float>(context, dims_data2);
+    // using 1 stream for telemetry
+    this->image_telemetry = new carma_host_obj<float>(dims_data2, MA_PAGELOCK, 1);
 
 
-  this->nstreams = 1;
-  while (nvalid % this->nstreams != 0)
-    nstreams--;
-  cerr << "wfs uses " << nstreams << " streams" << endl;
-  this->streams = new carma_streams(nstreams);
+    this->nstreams = 1;
+    while (nvalid % this->nstreams != 0)
+      nstreams--;
+    cerr << "wfs uses " << nstreams << " streams" << endl;
+    this->streams = new carma_streams(nstreams);
 
-  dims_data1[1] = 2 * nvalid;
-  this->d_slopes = new carma_obj<float>(context, dims_data1);
+    dims_data1[1] = 2 * nvalid;
+    this->d_slopes = new carma_obj<float>(context, dims_data1);
 
-  dims_data3[1] = nfft;
-  dims_data3[2] = nfft;
-  dims_data3[3] = 4;
-  this->d_fttotim = new carma_obj<cuFloatComplex>(context, dims_data3);
-  mdims[0] = (int) dims_data3[1];
-  mdims[1] = (int) dims_data3[2];
-  plan = this->d_fttotim->getPlan(); ///< FFT plan
-  carmafftSafeCall(
-      cufftPlanMany(plan, 2 ,mdims,NULL,1,0,NULL,1,0,CUFFT_C2C , (int)dims_data3[3]));
+    dims_data3[1] = nfft;
+    dims_data3[2] = nfft;
+    dims_data3[3] = 4;
+    this->d_fttotim = new carma_obj<cuFloatComplex>(context, dims_data3);
+    mdims[0] = (int) dims_data3[1];
+    mdims[1] = (int) dims_data3[2];
+    plan = this->d_fttotim->getPlan(); ///< FFT plan
+    carmafftSafeCall(
+		     cufftPlanMany(plan, 2 ,mdims,NULL,1,0,NULL,1,0,CUFFT_C2C , (int)dims_data3[3]));
 
-//  dims_data2[1] = ntot;
-//  dims_data2[2] = ntot;
-//  this->d_pupil = new carma_obj<float>(context, dims_data2);
+    //  dims_data2[1] = ntot;
+    //  dims_data2[2] = ntot;
+    //  this->d_pupil = new carma_obj<float>(context, dims_data2);
 
-  dims_data1[1] = npup;
-  this->pyr_cx = new carma_host_obj<int>(dims_data1, MA_WRICOMB);
-  this->pyr_cy = new carma_host_obj<int>(dims_data1, MA_WRICOMB);
-  dims_data2[1] = nfft;
-  dims_data2[2] = nfft;
-  this->d_poffsets = new carma_obj<cuFloatComplex>(context, dims_data2);
-  dims_data2[1] = ntot;
-  dims_data2[2] = ntot;
-  this->d_phalfxy = new carma_obj<cuFloatComplex>(context, dims_data2);
-  dims_data2[1] = nfft;
-  dims_data2[2] = nfft;
-  this->d_sincar = new carma_obj<float>(context, dims_data2);
+    dims_data1[1] = npup;
+    this->pyr_cx = new carma_host_obj<int>(dims_data1, MA_WRICOMB);
+    this->pyr_cy = new carma_host_obj<int>(dims_data1, MA_WRICOMB);
+    dims_data2[1] = nfft;
+    dims_data2[2] = nfft;
+    this->d_poffsets = new carma_obj<cuFloatComplex>(context, dims_data2);
+    dims_data2[1] = ntot;
+    dims_data2[2] = ntot;
+    this->d_phalfxy = new carma_obj<cuFloatComplex>(context, dims_data2);
+    dims_data2[1] = nfft;
+    dims_data2[2] = nfft;
+    this->d_sincar = new carma_obj<float>(context, dims_data2);
 
-  dims_data1[1] = nvalid;
-  this->d_subsum = new carma_obj<float>(context, dims_data1);
+    dims_data1[1] = nvalid;
+    this->d_subsum = new carma_obj<float>(context, dims_data1);
 
-  this->d_psum = new carma_obj<float>(context, dims_data1);
+    this->d_psum = new carma_obj<float>(context, dims_data1);
 
-  this->d_fluxPerSub = new carma_obj<float>(context, dims_data1);
-  this->d_validsubsx = new carma_obj<int>(context, dims_data1);
-  this->d_validsubsy = new carma_obj<int>(context, dims_data1);
+    this->d_fluxPerSub = new carma_obj<float>(context, dims_data1);
+    this->d_validsubsx = new carma_obj<int>(context, dims_data1);
+    this->d_validsubsy = new carma_obj<int>(context, dims_data1);
 
-  dims_data2[1] = nphase * nphase;
-  dims_data2[2] = nvalid;
-  this->d_phasemap = new carma_obj<int>(context, dims_data2);
+    dims_data2[1] = nphase * nphase;
+    dims_data2[2] = nvalid;
+    this->d_phasemap = new carma_obj<int>(context, dims_data2);
+  }
+
+  if (type_pyr =="pyr") {
+    dims_data2[1] = nfft;
+    dims_data2[2] = nfft;
+
+    this->d_hrimg = new carma_obj<float>(context, dims_data2); // Useless for SH
+    this->d_submask = new carma_obj<float>(context, dims_data2);
+    this->d_camplipup = new carma_obj<cuFloatComplex>(context, dims_data2);
+    this->d_camplifoc = new carma_obj<cuFloatComplex>(context, dims_data2);
+    cufftHandle *plan = this->d_camplipup->getPlan(); ///< FFT plan
+    carmafftSafeCall(cufftPlan2d(plan, dims_data2[1], dims_data2[2], CUFFT_C2C));
+
+    this->d_fttotim = new carma_obj<cuFloatComplex>(context, dims_data2);
+
+    this->d_poffsets = new carma_obj<cuFloatComplex>(context, dims_data2);
+    this->d_phalfxy = new carma_obj<cuFloatComplex>(context, dims_data2);
+    this->d_sincar = new carma_obj<float>(context, dims_data2);
+    this->d_phasemap = new carma_obj<int>(context, dims_data2);
+
+    dims_data2[1] = nfft / nrebin;
+    dims_data2[2] = nfft / nrebin;
+
+    this->d_binimg = new carma_obj<float>(context, dims_data2);
+    // using 1 stream for telemetry
+    this->image_telemetry = new carma_host_obj<float>(dims_data2, MA_PAGELOCK, 1);
+
+
+    this->nstreams = 1;
+    while (nvalid % this->nstreams != 0)
+      nstreams--;
+    //err << "wfs uses " << nstreams << " streams" << endl;
+    this->streams = new carma_streams(nstreams);
+
+    dims_data1[1] = 2 * nvalid;
+    this->d_slopes = new carma_obj<float>(context, dims_data1);
+
+    dims_data2[1] = nfft;
+    dims_data2[2] = nfft;
+    dims_data3[3] = 4;
+
+    dims_data1[1] = npup;
+    this->pyr_cx = new carma_host_obj<int>(dims_data1, MA_WRICOMB);
+    this->pyr_cy = new carma_host_obj<int>(dims_data1, MA_WRICOMB);
+
+    dims_data1[1] = nvalid;
+    this->d_subsum = new carma_obj<float>(context, dims_data1);
+
+    this->d_psum = new carma_obj<float>(context, dims_data1);
+
+    this->d_fluxPerSub = new carma_obj<float>(context, dims_data1);
+    dims_data1[1] = nvalid * 4;
+    this->d_validsubsx = new carma_obj<int>(context, dims_data1);
+    this->d_validsubsy = new carma_obj<int>(context, dims_data1);
+
+  }
 }
 
 sutra_wfs_pyr::~sutra_wfs_pyr() {

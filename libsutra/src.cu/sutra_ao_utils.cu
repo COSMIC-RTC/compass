@@ -71,6 +71,30 @@ int abs2(float *d_odata, cuFloatComplex *d_idata, int N, carma_device *device) {
   return EXIT_SUCCESS;
 }
 
+__global__ void abs2_krnl(float *odata, cuFloatComplex *idata, int N, float fact) {
+  cuFloatComplex cache;
+
+  int tid = threadIdx.x + blockIdx.x * blockDim.x;
+
+  while (tid < N) {
+    cache = idata[tid];
+    odata[tid] = fact * odata[tid] + cache.x * cache.x + cache.y * cache.y;
+    tid += blockDim.x * gridDim.x;
+  }
+}
+
+int abs2(float *d_odata, cuFloatComplex *d_idata, int N, float fact, carma_device *device) {
+  int nthreads = 0, nblocks = 0;
+  getNumBlocksAndThreads(device, N, nblocks, nthreads);
+
+  dim3 grid(nblocks), threads(nthreads);
+
+  abs2_krnl<<<grid, threads>>>(d_odata, d_idata, N, fact);
+  carmaCheckMsg("abs2_kernel<<<>>> execution failed\n");
+
+  return EXIT_SUCCESS;
+}
+
 __global__ void abs2c_krnl(cuFloatComplex *odata, cuFloatComplex *idata,
     int N) {
   cuFloatComplex cache;

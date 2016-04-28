@@ -91,7 +91,6 @@ cdef class Sensors:
         cdef carma_context *context= carma_context.instance()
         if odevice <0:
             odevice=context.get_activeDevice()
-
         if(type_data=="geo"):
             self.sensors= new sutra_sensors(context, tel.telescope, nsensors,
                         <long*>nxsub.data,
@@ -185,7 +184,7 @@ cdef class Sensors:
         cdef sutra_wfs_geom *wfs_geom=NULL
         cdef sutra_wfs_sh *wfs_sh = NULL
         cdef sutra_wfs_pyr_roof *wfs_roof = NULL
-        cdef sutra_wfs_pyr_pyr4 *wfs_pyr = NULL
+        cdef sutra_wfs_pyr_pyrhr *wfs_pyr = NULL
 
         cdef np.ndarray[dtype=np.int32_t] phasemap_F=wfs._phasemap.flatten("F")
         cdef np.ndarray[dtype=np.int32_t] hrmap_F =wfs._hrmap.flatten("F")
@@ -222,6 +221,14 @@ cdef class Sensors:
         halfxy=<float*>halfxy_F.data
 
 
+        cdef np.ndarray[dtype=np.complex64_t] pyr_halfxy_F
+        cdef float *pyr_halfxy=NULL
+        if(self.sensors.d_wfs[n].type==type_pyr):
+            tmp2 = np.copy(wfs._halfxy)
+            tmp = np.exp(1j*tmp2).astype(np.complex64)
+            pyr_halfxy_F=tmp.flatten("F")
+            pyr_halfxy=<float*>pyr_halfxy_F.data
+
         cdef np.ndarray[dtype=np.float32_t] submask_F
         submask_F=wfs._submask.flatten("F").astype(np.float32)
         cdef np.ndarray[dtype=np.float32_t] sincar_F =wfs._sincar.flatten("F")
@@ -249,10 +256,9 @@ cdef class Sensors:
         elif(self.sensors.d_wfs[n].type==type_pyr):
             tmp=wfs._pyr_offsets.flatten("F")
             offset=<cuFloatComplex*>tmp.data
-            wfs_pyr = dynamic_cast_wfs_pyr_pyr4_ptr(self.sensors.d_wfs[n])
-            wfs_pyr.wfs_initarrays(<cuFloatComplex*>halfxy, offset,
-                    submask, cx, cy,
-                    sincar, phasemap, validx,validy)
+            wfs_pyr = dynamic_cast_wfs_pyr_pyrhr_ptr(self.sensors.d_wfs[n])
+            wfs_pyr.wfs_initarrays(<cuFloatComplex*>pyr_halfxy, offset,
+                    submask, cx, cy, sincar, phasemap, validx,validy)
 
         elif(self.sensors.d_wfs[n].type==type_roof):
             tmp=wfs.__pyr_offsets.flatten("F")
@@ -407,21 +413,60 @@ cdef class Sensors:
         :param n: (int) : number of the wfs to get the image from
 
         """
-        cdef np.ndarray[ndim=3,dtype=np.float32_t] bincube
-        cdef np.ndarray[ndim=2,dtype=np.float32_t] pyrimg
+        cdef carma_obj[float] *img
+        cdef const long *cdims
+        cdef np.ndarray[ndim=2,dtype=np.float32_t] data
+        cdef np.ndarray[ndim=2,dtype=np.float32_t] data_F
+
         cdef bytes type_wfs=<bytes>self.sensors.d_wfs[n].type
-        cdef int npix
 
         if(type_wfs == "pyr"):
-            bincube = self.get_bincube(n)
-            npix = bincube.shape[1]
-            pyrimg = np.zeros((2*npix+3,2*npix+3),dtype=np.float32)
-            pyrimg[1:npix+1,1:npix+1] = bincube[:,:,0]
-            pyrimg[npix+2:2*npix+2,1:npix+1] = bincube[:,:,1]
-            pyrimg[1:npix+1,npix+2:2*npix+2] = bincube[:,:,2]
-            pyrimg[npix+2:2*npix+2,npix+2:2*npix+2] = bincube[:,:,3]
+            img=self.sensors.d_wfs[n].d_binimg
+            cdims=img.getDims()
+            data=np.empty((cdims[1],cdims[2]),dtype=np.float32)
+            data_F=np.empty((cdims[2],cdims[1]),dtype=np.float32)
+            img.device2host(<float*>data_F.data)
+            data=np.reshape(data_F.flatten("F"),(cdims[1],cdims[2]))
+            return data
 
-            return pyrimg
+        else:
+            raise TypeError("wfs should be a pyr")
+
+    def get_pyrimghr(self,int n):
+
+        """Return the high res image of a pyr wfs
+
+        :param n: (int) : number of the wfs to get the image from
+
+        """
+
+        return self._get_pyrimghr(n)
+
+
+    cdef _get_pyrimghr(self,int n):
+
+        """Return the high res image of a pyr wfs
+
+        :param n: (int) : number of the wfs to get the image from
+
+        """
+        cdef carma_obj[float] *img
+        cdef const long *cdims
+        cdef np.ndarray[ndim=2,dtype=np.float32_t] data
+        cdef np.ndarray[ndim=2,dtype=np.float32_t] data_F
+
+        cdef bytes type_wfs=<bytes>self.sensors.d_wfs[n].type
+        cdef sutra_wfs_pyr_pyrhr* wfs
+
+        if(type_wfs == "pyr"):
+            wfs=dynamic_cast_wfs_pyr_pyrhr_ptr(self.sensors.d_wfs[n])
+            img=wfs.d_hrimg
+            cdims=img.getDims()
+            data=np.empty((cdims[1],cdims[2]),dtype=np.float32)
+            data_F=np.empty((cdims[2],cdims[1]),dtype=np.float32)
+            img.device2host(<float*>data_F.data)
+            data=np.reshape(data_F.flatten("F"),(cdims[1],cdims[2]))
+            return data
 
         else:
             raise TypeError("wfs should be a pyr")
@@ -571,17 +616,42 @@ cdef class Sensors:
         """Return the 'camplipup' array of a given wfs
 
         :param n: (int) : number of the wfs to get the 'camplipup' from
+        
         """
         cdef carma_obj[cuFloatComplex] *amplipup
         cdef const long *cdims
+
         cdef np.ndarray[ndim=3,dtype=np.complex64_t] data
         cdef np.ndarray[ndim=3,dtype=np.complex64_t] data_F
         amplipup=self.sensors.d_wfs[n].d_camplipup
         cdims=amplipup.getDims()
-        data=np.empty((cdims[1],cdims[2],cdims[3]),dtype=np.complex64)
-        data_F=np.empty((cdims[3],cdims[2],cdims[1]),dtype=np.complex64)
+
+        data=np.zeros((cdims[1],cdims[2],cdims[3]),dtype=np.complex64)
+        data_F=np.zeros((cdims[3],cdims[2],cdims[1]),dtype=np.complex64)
         amplipup.device2host(<cuFloatComplex*>data_F.data)
         data=np.reshape(data_F.flatten("F"),(cdims[1],cdims[2],cdims[3]))
+
+        return data
+
+    def get_camplipup_pyr(self, int n):
+        """Return the 'camplipup' array of a given wfs in the pyr case
+
+        :param n: (int) : number of the wfs to get the 'camplipup' from
+        
+        """
+        cdef carma_obj[cuFloatComplex] *amplipup
+        cdef const long *cdims
+
+        cdef np.ndarray[ndim=2,dtype=np.complex64_t] data
+        cdef np.ndarray[ndim=2,dtype=np.complex64_t] data_F
+        amplipup=self.sensors.d_wfs[n].d_camplipup
+        cdims=amplipup.getDims()
+
+        data=np.zeros((cdims[1],cdims[2]),dtype=np.complex64)
+        data_F=np.zeros((cdims[2],cdims[1]),dtype=np.complex64)
+        amplipup.device2host(<cuFloatComplex*>data_F.data)
+        data=np.reshape(data_F.flatten("F"),(cdims[1],cdims[2]))
+
         return data
 
     def get_amplifoc(self, int n):
@@ -601,6 +671,59 @@ cdef class Sensors:
         data=np.reshape(data_F.flatten("F"),(cdims[1],cdims[2],cdims[3]))
         return data
 
+
+    def get_amplifoc_pyr(self, int n):
+        """Return the 'amplifoc' array of a given wfs
+
+        :param n: (int) : number of the wfs to get the 'amplifoc' from
+        """
+        cdef carma_obj[cuFloatComplex] *amplifoc
+        cdef const long *cdims
+        cdef np.ndarray[ndim=2,dtype=np.complex64_t] data
+        cdef np.ndarray[ndim=2,dtype=np.complex64_t] data_F
+        amplifoc=self.sensors.d_wfs[n].d_camplifoc
+        cdims=amplifoc.getDims()
+        data=np.zeros((cdims[1],cdims[2]),dtype=np.complex64)
+        data_F=np.zeros((cdims[2],cdims[1]),dtype=np.complex64)
+        amplifoc.device2host(<cuFloatComplex*>data_F.data)
+        data=np.reshape(data_F.flatten("F"),(cdims[1],cdims[2]))
+        return data
+
+    def get_fttotim_pyr(self, int n):
+        """Return the 'fttotim' array of a given wfs
+
+        :param n: (int) : number of the wfs to get the 'amplifoc' from
+        """
+        cdef carma_obj[cuFloatComplex] *fttotim
+        cdef const long *cdims
+        cdef np.ndarray[ndim=2,dtype=np.complex64_t] data
+        cdef np.ndarray[ndim=2,dtype=np.complex64_t] data_F
+        fttotim=self.sensors.d_wfs[n].d_fttotim
+        cdims=fttotim.getDims()
+        data=np.zeros((cdims[1],cdims[2]),dtype=np.complex64)
+        data_F=np.zeros((cdims[2],cdims[1]),dtype=np.complex64)
+        fttotim.device2host(<cuFloatComplex*>data_F.data)
+        data=np.reshape(data_F.flatten("F"),(cdims[1],cdims[2]))
+        return data
+
+    def get_hrimg_pyr(self, int n):
+        """Return the phase array of a given wfs
+
+        :param n: (int) : number of the wfs to get the phase from
+        """
+        cdef carma_obj[float] *hrimg
+        cdef const long *cdims
+        cdef np.ndarray[ndim=2,dtype=np.float32_t] data
+        cdef np.ndarray[ndim=2,dtype=np.float32_t] data_F
+        wfs=dynamic_cast_wfs_pyr_pyrhr_ptr(self.sensors.d_wfs[n])
+        hrimg=wfs.d_hrimg
+        #hrimg=self.sensors.d_wfs[n].d_hrimg
+        cdims=hrimg.getDims()
+        data=np.empty((cdims[1],cdims[2]),dtype=np.float32)
+        data_F=np.empty((cdims[2],cdims[1]),dtype=np.float32)
+        hrimg.device2host(<float*>data_F.data)
+        data=np.reshape(data_F.flatten("F"),(cdims[1],cdims[2]))
+        return data
 
     cdef _get_slopesDims(self,int n):
         """return the dimension of the slopes array of a given wfs

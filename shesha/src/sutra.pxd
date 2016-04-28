@@ -397,6 +397,13 @@ cdef extern from "sutra_wfs_pyr_pyr4.h":
         sutra_wfs_pyr_pyr4(const sutra_wfs_pyr_pyr4& wfs)
 
 #################################################
+# C-Class sutra_wfs_pyr_pyrhr
+#################################################
+cdef extern from "sutra_wfs_pyr_pyrhr.h":
+    cdef cppclass sutra_wfs_pyr_pyrhr(sutra_wfs_pyr):
+        sutra_wfs_pyr_pyrhr(const sutra_wfs_pyr_pyrhr& wfs)
+
+#################################################
 # C-Class sutra_wfs_geom
 #################################################
 cdef extern from "sutra_wfs_geom.h":
@@ -488,6 +495,7 @@ cdef extern from *:
     sutra_wfs_geom* dynamic_cast_wfs_geom_ptr "dynamic_cast<sutra_wfs_geom*>" (sutra_wfs*) except NULL
     sutra_wfs_sh* dynamic_cast_wfs_sh_ptr "dynamic_cast<sutra_wfs_sh*>" (sutra_wfs*) except NULL
     sutra_wfs_pyr_pyr4* dynamic_cast_wfs_pyr_pyr4_ptr "dynamic_cast<sutra_wfs_pyr_pyr4*>" (sutra_wfs*) except NULL
+    sutra_wfs_pyr_pyrhr* dynamic_cast_wfs_pyr_pyrhr_ptr "dynamic_cast<sutra_wfs_pyr_pyrhr*>" (sutra_wfs*) except NULL
     sutra_wfs_pyr_roof* dynamic_cast_wfs_pyr_roof_ptr "dynamic_cast<sutra_wfs_pyr_roof*>" (sutra_wfs*) except NULL
     sutra_centroider_tcog* dynamic_cast_centroider_tcog_ptr "dynamic_cast<sutra_centroider_tcog*>" (sutra_centroider*) except NULL
     sutra_centroider_corr* dynamic_cast_centroider_corr_ptr "dynamic_cast<sutra_centroider_corr*>" (sutra_centroider*) except NULL

@@ -880,6 +880,64 @@ template void
 pyr_getpup<cuDoubleComplex, double>(cuDoubleComplex *d_odata, double *d_idata,
     cuDoubleComplex *d_offsets, double *d_pup, int np, float lambda, carma_device *device);
 
+/*
+////////////////////////////////////////////////////////////////////////:
+New version of pyrgetpup for hr version of pyramid model
+////////////////////////////////////////////////////////////////////////
+ */
+
+
+template<class Tout, class Tin>
+__global__ void pyrgetpup_krnl(Tout *g_odata, Tin *g_idata,
+			       Tin *pup, float lambda, float cx, float cy, unsigned int n, unsigned int N) {
+  const float PI = 3.1415926535897932384626433;
+  // load shared mem
+  //const unsigned int tid = threadIdx.x;
+  const unsigned int i = blockIdx.x * blockDim.x + threadIdx.x;
+
+  if (i < n * n) {
+    const float x = i % n;
+    const float y = i / n;
+
+    const float xx = (x - n / 2.0f);
+    const float yy = (y - n / 2.0f);
+        
+    const float mic2rad =(2*PI/lambda);
+
+    const float phi_modu =  cx * xx + cy * yy;
+
+    const float offs =  (N - n)/2.0f;
+
+    const int i2 = x + offs + (y + offs)* N;
+ 
+    g_odata[i2].x = cosf(g_idata[i]*mic2rad + phi_modu) * pup[i];
+    g_odata[i2].y = sinf(g_idata[i]*mic2rad + phi_modu) * pup[i];
+
+  }
+}
+
+template<class Tout, class Tin>
+void pyr_getpup(Tout *d_odata, Tin *d_idata, Tin *d_pup,
+    int np, int N, float lambda, float cx, float cy, carma_device *device) {
+
+  int nBlocks,nThreads;
+  getNumBlocksAndThreads(device, np * np, nBlocks, nThreads);
+  dim3 grid(nBlocks), threads(nThreads);
+
+  pyrgetpup_krnl<Tout, Tin> <<<grid, threads>>>(d_odata, d_idata,
+						d_pup, lambda, cx, cy, np, N);
+
+  carmaCheckMsg("pyrgetpup_kernel<<<>>> execution failed\n");
+}
+template void
+pyr_getpup<cuFloatComplex, float>(cuFloatComplex *d_odata, float *d_idata,
+    float *d_pup, int np, int N, float lambda, float cx, float cy, carma_device *device);
+template void
+pyr_getpup<cuDoubleComplex, double>(cuDoubleComplex *d_odata, double *d_idata,
+    double *d_pup, int np, int N, float lambda, float cx, float cy, carma_device *device);
+
+
+
 template<class T>
 __global__ void rollmod_krnl(T *g_odata, T *g_idata, T *g_mask, int cx, int cy,
     unsigned int n, unsigned int ns, unsigned int nim) {
@@ -1188,6 +1246,62 @@ template
 int pyr_fillbinimg<double>(double *bimage, const double *bcube, const int nxsub,
                            const bool add, carma_device *device);
 
+template<class T>
+__global__ void pyr_bimg_krnl(T *oimage, const T *image, const int n, 
+                              const int rebin, const float alpha, const int N) {
+  /*
+   indx is an array nrebin^2 * npix^2
+   it gives the nrebin x nrebin pixels in the hrimage per npix x npix pixels of the subap
+   Npix = npix x npix
+   */
+  int tid = threadIdx.x + blockIdx.x * blockDim.x;
+
+  while (tid < n * n) {
+    const int x = tid % n;
+    const int y = tid / n;
+    const int xx = x * rebin;
+    const int yy = y * rebin;
+    oimage[tid] *= alpha;
+    for (int ii = 0; ii <  rebin; ii++) {
+      for (int jj = 0; jj <  rebin; jj++) {
+	const int xim = xx + ii;
+	const int yim = yy + jj;
+	const int iim = xim + yim * N;
+	oimage[tid] = oimage[tid] + image[iim];
+      }
+    }
+    oimage[tid] /= (rebin * rebin);
+    tid += blockDim.x * gridDim.x;
+  }
+}
+
+template<class T>
+int pyr_fillbinimg(T *oimage, const T *image, const int n, const int N,
+                   const int rebin, const bool add, carma_device *device) {
+
+  int nthreads = 0, nblocks = 0;
+  getNumBlocksAndThreads(device, n*n, nblocks, nthreads);
+  dim3 grid(nblocks), threads(nthreads);
+
+  T alpha;
+  if (add)
+    alpha = 1.0;
+  else
+    alpha = 0.0;
+
+  pyr_bimg_krnl<<<grid, threads>>>(oimage, image, n, rebin, alpha, N);
+
+  carmaCheckMsg("binimg_kernel<<<>>> execution failed\n");
+
+  return EXIT_SUCCESS;
+}
+template
+int pyr_fillbinimg<float>(float *oimage, const float *image, const int n, const int N,
+			  const int rebin, const bool add, carma_device *device);
+template
+int pyr_fillbinimg<double>(double *oimage, const double *image, const int n, const int N,
+			  const int rebin, const bool add, carma_device *device);
+
 //////////////////////////////////////////////////////////////
 // ADDING PYR_FILLBIN MODIFIED FOR ROOF-PRISM: ROOF_FILLBIN //
 //////////////////////////////////////////////////////////////
@@ -1433,6 +1547,42 @@ template void
 pyr_submask<cuDoubleComplex, double>(cuDoubleComplex *d_odata, double *d_idata,
     int n, carma_device *device);
 
+
+
+template<class T>
+__global__ void submaskpyr_krnl(T *g_odata, T *g_mask, unsigned int n) {
+  unsigned int i = blockIdx.x * blockDim.x + threadIdx.x;
+
+  while (i < n * n) {
+    T tmp;
+    tmp.x = g_odata[i].x * g_mask[i].x - g_odata[i].y* g_mask[i].y;
+    tmp.y = g_odata[i].y * g_mask[i].x + g_odata[i].x *g_mask[i].y;
+
+    g_odata[i].x = tmp.x;
+    g_odata[i].y = tmp.y;
+
+    i  += blockDim.x * gridDim.x;
+  }
+}
+
+template<class T>
+void pyr_submaskpyr(T *d_odata, T *d_mask, int n, carma_device *device) {
+  int nBlocks,nThreads;
+  getNumBlocksAndThreads(device, n * n, nBlocks, nThreads);
+  dim3 grid(nBlocks), threads(nThreads);
+
+  submaskpyr_krnl<T> <<<grid, threads>>>(d_odata, d_mask, n);
+
+  carmaCheckMsg("submask_kernel<<<>>> execution failed\n");
+}
+template void
+pyr_submaskpyr<cuFloatComplex>(cuFloatComplex *d_odata, cuFloatComplex *d_mask, int n,
+    carma_device *device);
+template void
+pyr_submaskpyr<cuDoubleComplex>(cuDoubleComplex *d_odata,cuDoubleComplex  *d_idata,
+    int n, carma_device *device);
+
+
 template<class Tout, class Tin>
 __global__ void submask3d_krnl(Tout *g_odata, Tin *g_mask, unsigned int n,
     unsigned int nim) {
@@ -1498,6 +1648,81 @@ pyr_subsum<float>(float *d_odata, float *d_idata, int *subindx, int *subindy,
 template void
 pyr_subsum<double>(double *d_odata, double *d_idata, int *subindx, int *subindy,
     int ns, int nvalid, int nim, carma_device *device);
+
+
+
+template<class T>
+__global__ void subsum_krnl(T *g_odata, T *g_idata, int *subindx, int *subindy,
+    unsigned int ns, unsigned int nvalid) {
+  unsigned int i = blockIdx.x * blockDim.x + threadIdx.x;
+
+  if (i < nvalid) {
+    int iq1 = subindx[i] + subindy[i] * ns;
+    int iq2 = subindx[i+nvalid] + subindy[i+nvalid] * ns;
+    int iq3 = subindx[i+2*nvalid] + subindy[i+2*nvalid] * ns;
+    int iq4 = subindx[i+3*nvalid] + subindy[i+3*nvalid] * ns;
+    g_odata[i] = g_idata[iq1]+g_idata[iq2]+g_idata[iq3]+g_idata[iq4];
+  }
+}
+
+template<class T>
+void pyr_subsum(T *d_odata, T *d_idata, int *subindx, int *subindy, int ns,
+    int nvalid, carma_device *device) {
+
+  int nBlocks,nThreads;
+  getNumBlocksAndThreads(device, nvalid, nBlocks, nThreads);
+  dim3 grid(nBlocks), threads(nThreads);
+
+  subsum_krnl<T> <<<grid, threads>>>(d_odata, d_idata, subindx, subindy, ns,nvalid);
+
+  carmaCheckMsg("subsum_kernel<<<>>> execution failed\n");
+}
+
+template void
+pyr_subsum<float>(float *d_odata, float *d_idata, int *subindx, int *subindy,
+    int ns, int nvalid, carma_device *device);
+template void
+pyr_subsum<double>(double *d_odata, double *d_idata, int *subindx, int *subindy,
+    int ns, int nvalid, carma_device *device);
+
+////////////////////////////////////////////////////////////
+// ADDING PYR_SUBSUM MODIFIED FOR HR pyramid              //
+////////////////////////////////////////////////////////////
+
+template<class T>
+__global__ void subsum2_krnl(T *g_odata, T *g_idata, int *subindx, int *subindy,
+    unsigned int ns, unsigned int nvalid) {
+  unsigned int i = blockIdx.x * blockDim.x + threadIdx.x;
+
+  if (i < nvalid) {
+    int iq1 = subindx[i] + subindy[i] * ns;
+    int iq2 = subindx[i+nvalid] + subindy[i+nvalid] * ns;
+    int iq3 = subindx[i+2*nvalid] + subindy[i+2*nvalid] * ns;
+    int iq4 = subindx[i+3*nvalid] + subindy[i+3*nvalid] * ns;
+    g_odata[i] = g_idata[iq1] + g_idata[iq2] + g_idata[iq3] + g_idata[iq4];
+  }
+}
+
+template<class T>
+void pyr_subsum2(T *d_odata, T *d_idata, int *subindx, int *subindy, int ns,
+    int nvalid, carma_device *device) {
+
+  int nBlocks,nThreads;
+  getNumBlocksAndThreads(device, nvalid, nBlocks, nThreads);
+  dim3 grid(nBlocks), threads(nThreads);
+
+  subsum2_krnl<T> <<<grid, threads>>>(d_odata, d_idata, subindx, subindy, ns,
+      nvalid);
+
+  carmaCheckMsg("subsum_kernel<<<>>> execution failed\n");
+}
+
+template void
+pyr_subsum2<float>(float *d_odata, float *d_idata, int *subindx, int *subindy,
+    int ns, int nvalid, carma_device *device);
+template void
+pyr_subsum2<double>(double *d_odata, double *d_idata, int *subindx, int *subindy,
+    int ns, int nvalid, carma_device *device);
 
 ////////////////////////////////////////////////////////////
 // ADDING PYR_SUBSUM MODIFIED FOR ROOF-PRISM: ROOF_SUBSUM //

@@ -1,5 +1,9 @@
 import make_pupil as mkP
 
+def rebin(a, shape):
+    sh = shape[0],a.shape[0]//shape[0],shape[1],a.shape[1]//shape[1]
+    return a.reshape(sh).mean(-1).mean(1)
+
 cpdef prep_lgs_prof(Param_wfs p_wfs,int nsensors, Param_tel p_tel,
                     np.ndarray[dtype=np.float32_t] prof,
                     np.ndarray[dtype=np.float32_t] h,
@@ -466,7 +470,16 @@ def wfs_init( wfs, Param_atmos p_atmos, Param_tel p_tel, Param_geom p_geom,
         noise=np.array([o.noise    for o in wfs], dtype=np.float32)
         g_wfs.sensors_initgs(xpos,ypos,Lambda,mag,zerop,size,noise,seed)
 
-    elif(wfs[0].type_wfs=="pyr" or wfs[0].type_wfs=="roof"):
+    elif(wfs[0].type_wfs=="roof"):
+        npup=np.array([wfs[0].pyr_npts])
+        g_wfs= Sensors(nsensors,telescope, t_wfs,npup,nxsub,nvalid,nphase,pdiam,npix,nrebin,
+                nfft,ntota,nphot,nphot4imat,lgs,comm_size=comm_size, rank=rank, error_budget=error_budget_flag)
+
+        mag=np.array([o.gsmag    for o in wfs], dtype=np.float32)
+        noise=np.array([o.noise    for o in wfs], dtype=np.float32)
+        g_wfs.sensors_initgs(xpos,ypos,Lambda,mag,zerop,size,noise,seed)
+
+    elif(wfs[0].type_wfs=="pyr"):
         npup=np.array([wfs[0].pyr_npts])
         g_wfs= Sensors(nsensors,telescope, t_wfs,npup,nxsub,nvalid,nphase,pdiam,npix,nrebin,
                 nfft,ntota,nphot,nphot4imat,lgs,comm_size=comm_size, rank=rank, error_budget=error_budget_flag)
@@ -612,7 +625,8 @@ cpdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
         #this is the wfs with largest # of subaps
         #the overall geometry is deduced from it
         geom.geom_init(tel,pdiam*wfs.nxsub,p_target.apod)
-    if(wfs.type_wfs=="pyr" or wfs.type_wfs=="roof"):
+
+    if(wfs.type_wfs=="roof"):
         padding=2
         npup  =  wfs._Ntot;
         n1    = geom.ssize / 2 - geom.pupdiam / 2 - padding * wfs.npix;
@@ -695,7 +709,7 @@ cpdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
         pshift = np.exp(1j*2*np.pi*(coef1/Nfft+coef2*nrebin/wfs.npix/Nfft)*(x+y))
         wfs._pyr_offsets = pshift
 
-        if(wfs.pyrtype=="Pyramid"):
+        if(wfs.pyrtype=="pyr"):
             if(wfs.pyr_pos == None):
                 cx=np.round(mod_ampl_pixels*np.sin((np.arange(wfs.pyr_npts)+1)*2.*np.pi/wfs.pyr_npts))
                 cy=np.round(mod_ampl_pixels*np.cos((np.arange(wfs.pyr_npts)+1)*2.*np.pi/wfs.pyr_npts))
@@ -705,20 +719,10 @@ cpdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
                 cx=np.round(wfs.pyr_pos[:,0]/qpixsize)
                 cy=np.round(wfs.pyr_pos[:,1]/qpixsize)
                 #mod_npts=cx.shape[0] #UNUSED
-        elif(wfs.pyrtype=="RoofPrism"):
+        elif(wfs.pyrtype=="roof"):
             cx = np.round(2.*mod_ampl_pixels*((np.arange(wfs.pyr_npts)+1)-(wfs.pyr_npts+1)/2.)/wfs.pyr_npts)
             cy = cx
             #mod_npts = wfs.pyr_npts #UNUSED
-        else:
-            if(wfs.pyr_pos==None):
-                cx = np.round(mod_ampl_pixels*np.sin((np.arange(wfs.pyr_npts)+1)*2.*np.pi/wfs.pyr_npts))
-                cy = np.round(mod_ampl_pixels*np.cos((np.arange(wfs.pyr_npts)+1)*2.*np.pi/wfs.pyr_npts))
-                #mod_npts = wfs.pyr_npts #UNUSED
-            else:
-                if(verbose==0):print "Using user-defined positions for the pyramid modulation"
-                cx=np.round(wfs.pyr_pos[:,0]/qpixsize)
-                cy=np.round(wfs.pyr_pos[:,1]/qpixsize)
-                #mod_npts=cx.shape[0] #UNUSED
 
         wfs._pyr_cx=cx.astype(np.int32)
         wfs._pyr_cy=cy.astype(np.int32)
@@ -750,6 +754,210 @@ cpdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
 
 
         wfs._phasemap=phasemap
+
+    if(wfs.type_wfs=="pyr"):
+        #nrebin[0]  = pdiam[0] / wfs.nxsub
+        #Ntot[0]    = Nfft[0] /  pdiam[0] * wfs.nxsub
+        #pixsize[0] = qpixsize[0] * nrebin[0]
+        #pdiam[0]   = pdiam[0] / wfs.nxsub
+        #wfs.npix = pdiam
+
+        #Initialize the intermediate pupil support size
+        padding = 2
+        n1      = geom.ssize / 2 - geom.pupdiam / 2 - padding;
+        n2      = n1 + geom.pupdiam + 2*padding;
+        npup    = geom.pupdiam + 2*padding;
+
+        geom._mpupil = geom._ipupil[n1:n2,n1:n2]
+        geom._n1     = n1
+        geom._n2     = n2
+        geom._n      = npup
+        geom._phase_ab_M1_m=mkP.pad_array(geom._phase_ab_M1,geom._n).astype(np.float32)
+        wfs._Ntot     = npup
+
+        #mod_ampl_pixels = wfs.pyr_ampl / wfs._qpixsize # modulation in pixels
+        
+        #Creating field stop mask
+        fsradius_pixels = long(wfs.fssize / wfs._qpixsize / 2.)
+        if (wfs.fstop=="round"):
+            focmask = mkP.dist(wfs._Nfft,xc=wfs._Nfft/2.+0.5,yc=wfs._Nfft/2.+0.5)<(fsradius_pixels);
+            #fstop_area = np.pi * (wfs.fssize/2.)**2. #UNUSED
+        elif (wfs.fstop=="square"):
+            x,y = indices(wfs._Nfft)
+            x-=(wfs._Nfft+1.)/2.
+            y-=(wfs._Nfft+1.)/2.
+            focmask = ( np.abs(x) <= (fsradius_pixels) ) *     \
+                ( np.abs(y) <= (fsradius_pixels) )
+            #fstop_area = wfs.fssize**2. #UNUSED
+        else:
+            msg="wfs "+str(n)+". fstop must be round or square"
+            raise ValueError(msg)
+
+        #pyr_focmask = np.roll(focmask,focmask.shape[0]/2,axis=0)
+        #pyr_focmask = np.roll(pyr_focmask,focmask.shape[1]/2,axis=1)
+        pyr_focmask = focmask*1.0#np.fft.fftshift(focmask*1.0)
+        wfs._submask = pyr_focmask
+
+        #Creating pyramid mask
+        pyrsize = wfs._Nfft
+        cobs = tel.cobs
+        rpup = geom.pupdiam / 2.0
+        dpup = geom.pupdiam
+        nrebin = wfs._nrebin
+        fracsub = wfs.fracsub
+        pup_sep = int(wfs.nxsub) 
+        #number of pix betw two centers two pupil images
+
+        #pyrsize = 512
+        #cobs = 0.12
+        #rpup = 64.0
+        #dpup = 128.0
+        #nrebin = 4
+        #fracsub = 0.7
+        #pup_sep = 16
+
+        y = np.tile(np.arange(pyrsize) - pyrsize/2, (pyrsize,1))
+        x = y.T
+
+        # Pangle = int(3*dpup/4)+1 #Pyramid angle
+        Pangle =  pup_sep * nrebin #Pyramid angle in HR pixels
+        K = 2*np.pi*Pangle / pyrsize
+        pyr = K*(np.abs(x)+np.abs(y))  #Pyramide
+        pyr = np.fft.fftshift(pyr)
+
+        wfs._halfxy = pyr
+
+        #Valid pixels identification
+        mypup = mkP.dist(pyrsize,xc=pyrsize/2.+0.5,yc=pyrsize/2.+0.5)<(rpup);
+        #mypup = geom._ipupil
+        #mypyr = np.abs(np.fft.ifft2(np.fft.fft2(mypup)*np.exp(1j*pyr)))**2
+
+        xcc = pyrsize/2 - Pangle + 0.5
+        ycc = pyrsize/2 + Pangle + 0.5
+
+        mymsk = mkP.dist(pyrsize,xc=xcc,yc=xcc)
+        #mypup = (mymsk < rpup)
+        mypup = (mymsk < rpup) & (mymsk > cobs*rpup)
+        mskreb = rebin(mypup*1.,[pyrsize/nrebin,pyrsize/nrebin])
+        validx=np.where(mskreb>=fracsub)[1].astype(np.int32)
+        validy=np.where(mskreb>=fracsub)[0].astype(np.int32)
+        nvalid = validx.size
+        mskrebtot = mskreb
+
+        mymsk = mkP.dist(pyrsize,xc=ycc,yc=ycc)
+        #mypup = (mymsk < rpup)
+        mypup = (mymsk < rpup) & (mymsk > cobs*rpup)
+        mskreb = rebin(mypup*1.,[pyrsize/nrebin,pyrsize/nrebin])
+        tmpx=np.where(mskreb>=fracsub)[1].astype(np.int32)
+        tmpy=np.where(mskreb>=fracsub)[0].astype(np.int32)
+        validx = np.concatenate((validx,tmpx))
+        validy = np.concatenate((validy,tmpy))
+        mskrebtot += mskreb
+
+        mymsk = mkP.dist(pyrsize,xc=xcc,yc=ycc)
+        #mypup = (mymsk < rpup)
+        mypup = (mymsk < rpup) & (mymsk > cobs*rpup)
+        mskreb = rebin(mypup*1.,[pyrsize/nrebin,pyrsize/nrebin])
+        tmpx=np.where(mskreb>=fracsub)[1].astype(np.int32)
+        tmpy=np.where(mskreb>=fracsub)[0].astype(np.int32)
+        validx = np.concatenate((validx,tmpx))
+        validy = np.concatenate((validy,tmpy))
+        mskrebtot += mskreb
+
+        mymsk = mkP.dist(pyrsize,xc=ycc,yc=xcc)
+        #mypup = (mymsk < rpup)
+        mypup = (mymsk < rpup) & (mymsk > cobs*rpup)
+        mskreb = rebin(mypup*1.,[pyrsize/nrebin,pyrsize/nrebin])
+        tmpx=np.where(mskreb>=fracsub)[1].astype(np.int32)
+        tmpy=np.where(mskreb>=fracsub)[0].astype(np.int32)
+        validx = np.concatenate((validx,tmpx))
+        validy = np.concatenate((validy,tmpy))
+        mskrebtot += mskreb
+
+        wfs._nvalid     = nvalid
+        wfs._validsubsx = validx
+        wfs._validsubsy = validy
+        wfs._hrmap      = mskrebtot.astype(np.int32)
+
+        if(wfs.pyr_pos == None):
+            pixsize = (np.pi*qpixsize)/(3600*180)
+            scale_fact = 2 * np.pi / npup * (wfs.Lambda / tel.diam / 4.848) / pixsize *  wfs.pyr_ampl
+            cx = scale_fact * np.sin((np.arange(wfs.pyr_npts))*2.*np.pi/wfs.pyr_npts)
+            cy = scale_fact * np.cos((np.arange(wfs.pyr_npts))*2.*np.pi/wfs.pyr_npts)
+            #mod_npts = wfs.pyr_npts #UNUSED
+        else:
+            if(verbose==0):print "Using user-defined positions for the pyramid modulation"
+            cx = wfs.pyr_pos[:,0]/qpixsize
+            cy = wfs.pyr_pos[:,1]/qpixsize
+            #mod_npts=cx.shape[0] #UNUSED
+
+        wfs._pyr_cx=cx.astype(np.int32)
+        wfs._pyr_cy=cy.astype(np.int32)
+
+        wfs._nphotons = wfs.zerop*2.51189**(-wfs.gsmag)*loop.ittime*wfs.optthroughput
+
+        # spatial filtering by the pixel extent:
+        # *2/2 intended. min should be 0.40 = sinc(0.5)^2.
+        y = np.tile(np.arange(pyrsize) - pyrsize/2, (pyrsize,1))
+        x = y.T
+        x=x*1.0/(pyrsize-1)*2/2
+        y=y*1.0/(pyrsize-1)*2/2
+        sincar = np.roll(np.sinc(x)*np.sinc(y),x.shape[0]/2,axis=0)
+        sincar = np.roll(sincar,y.shape[0]/2,axis=1)
+	
+        #sincar = np.roll(np.pi*x*np.pi*y,x.shape[1],axis=1)
+        wfs._sincar = sincar.astype(np.float32)
+
+        pup = geom._spupil
+        pupreb = rebin(pup*1.,[geom.pupdiam/nrebin,geom.pupdiam/nrebin])
+        wsubok = np.where(pupreb>=wfs.fracsub)
+        pupvalid = pupreb * 0.
+        pupvalid[wsubok] = 1
+        wfs._isvalid    = pupvalid.astype(np.int32)
+
+        pupreb = bin2d(pup,nrebin)
+
+        istart =(np.linspace(0.5, geom.pupdiam + + 0.5,wfs.nxsub)+1).astype(np.int32)[:-1]
+        jstart=np.copy(istart)
+        wfs._istart= istart.astype(np.int32)
+        wfs._jstart= jstart.astype(np.int32)
+
+        # this defines how we cut the phase into subaps
+        # defined on mpupil
+        phasemap=np.zeros((wfs.npix,wfs.npix,wfs._nvalid),dtype=np.int32)
+        #x,y=indices(geom._n) #we need c-like indice
+        #x-=1
+        #y-=1
+        #tmp=x+y*geom._n
+        #for i in range(wfs._nvalid):
+        #    indi=istart[wfs._validsubsx[i]]+1 #+2-1 (yorick->python
+        #    indj=jstart[wfs._validsubsy[i]]+1
+        #    phasemap[:,:,i]=tmp[indi:indi+wfs.npix, indj:indj+wfs.npix]
+
+        wfs._phasemap=phasemap
+
+        #x,y= indices(Nfft)
+        #x-=(Nfft+1)/2.
+        #y-=(Nfft+1)/2.
+        #if(wfs.nxsub*nrebin%2==1):
+        #    coef1=0.
+        #else:
+        #    coef1=-0.5
+        #if(wfs.nxsub%2==1 and wfs.npix*nrebin%2==1):
+        #    coef2=1
+        #else:
+        #    coef2=0.5
+
+        #pshift = np.exp(1j*2*np.pi*(coef1/Nfft+coef2*nrebin/wfs.npix/Nfft)*(x+y))
+        wfs._pyr_offsets = np.array([0],dtype=np.int32) #pshift
+        # this defines a phase for half a pixel shift in x and y
+        # defined on mpupil
+        #x,y = indices(geom._n)
+        #x-=(geom._n+1)/2.
+        #y-=(geom._n+1)/2.
+        #phase_shift = np.roll( np.exp(1j*2*np.pi*(0.5*(x+y))/geom._n), x.shape[0]/2, axis=0 )
+        #phase_shift = np.roll( phase_shift, x.shape[1]/2, axis=1 )
+
 
     if(wfs.type_wfs == "sh" or wfs.type_wfs == "geo"):
         # this is the i,j index of lower left pixel of subap
@@ -966,8 +1174,30 @@ cdef init_wfs_size( Param_wfs wfs, int n, Param_atmos atmos,
     v = n * u
     Nt = v * Npix
 
+    pyr :
+    Fs = field stop radius in arcsec
+    N size of big array for FFT in pixels
+    P pupil diameter in pixels
+    D diameter of telescope in m
+    Nssp : number of pyr measurement points in the pupil
 
+    Rf = Fs . N . D / lambda / P
+    ideally we choose : Fs = lambda / D . Nssp / 2
+
+    if we want good sampling of r0 (avoid aliasing of speckles)
+    P > D / r0 . m
+    with m = 2 or 3
+
+    to get reasonable space between pupil images : N > P.(2 + 3S) 
+    with S close to 1
+    N must be a power of 2
+
+    to ease computation lets assume that Nssp is a divider of P
+    scaling factor between high res pupil images in pyramid model
+    and actual pupil size on camera images would be P / Nssp
+ 
     """
+
     cdef float r0 = atmos.r0*(wfs.Lambda*2)**(6./5)
     cdef int k, padding
     cdef long nphase, npix,
@@ -1004,7 +1234,7 @@ cdef init_wfs_size( Param_wfs wfs, int n, Param_atmos atmos,
             #qpixsize = k * (wfs.Lambda*1.e-6) / r0 * RASC / Nfft
             qpixsize[0] = (pdiam[0] * (wfs.Lambda*1.e-6) / subapdiam  * RASC) / Nfft[0]
 
-        if(wfs.type_wfs=="pyr" or wfs.type_wfs=="roof"):
+        if(wfs.type_wfs=="roof"):
             #while (pdiam % wfs.npix != 0) pdiam+=1;
             padding = 2
             nphase  =  pdiam[0] * wfs.nxsub+ 2 * padding * pdiam[0]
@@ -1031,6 +1261,29 @@ cdef init_wfs_size( Param_wfs wfs, int n, Param_atmos atmos,
             Ntot[0]    = nphase
             pixsize[0] = qpixsize[0] * nrebin[0]
 
+        if(wfs.type_wfs=="pyr"):
+            #while (pdiam % wfs.npix != 0) pdiam+=1;
+            k = 5
+            pdiam[0] = long(tel.diam / r0 * k)
+            while (pdiam[0] % wfs.nxsub != 0): 
+                pdiam[0]+=1 #we chosse to have a multiple of wfs.nxsub
+            
+            m = 3
+            Nfft[0] = long(2**np.ceil(np.log2(m * pdiam[0]))) #fft_goodsize( m * pdiam[0])
+
+            qpixsize[0]   = (pdiam[0] * (wfs.Lambda*1.e-6) / tel.diam  * RASC) / Nfft[0]
+
+            padding = 2
+            nphase  =  pdiam[0] + 2 * padding
+
+            fssize_pixels = long(wfs.fssize / qpixsize[0] / 2.)
+            #nrebin  = pdiam / wfs.npix
+
+            nrebin[0]  = pdiam[0] / wfs.nxsub
+            Ntot[0]    = Nfft[0] /  pdiam[0] * wfs.nxsub
+            pixsize[0] = qpixsize[0] * nrebin[0]
+            pdiam[0]   = pdiam[0] / wfs.nxsub
+
         #quantum pixel size
     else:
         #this case is for a wfs with fixed # of phase points
@@ -1041,6 +1294,7 @@ cdef init_wfs_size( Param_wfs wfs, int n, Param_atmos atmos,
 
             qpixsize[0] = pdiam[0] * (wfs.Lambda*1.e-6) / subapdiam * RASC / Nfft[0];
             # quantum pixel size
+
     if (wfs.type_wfs == "sh"):
         # actual rebin factor
         if(wfs.pixsize/qpixsize[0] - long(wfs.pixsize/qpixsize[0]) > 0.5):
@@ -1059,7 +1313,7 @@ cdef init_wfs_size( Param_wfs wfs, int n, Param_atmos atmos,
         if (Ntot[0]%2 != Nfft[0]%2):
             Ntot[0]+=1
 
-    if (wfs.type_wfs != "geo"):
+    if (wfs.type_wfs == "geo"):
         if(verbose==0):print "quantum pixsize : ", "%5.4f"%qpixsize[0],"\""
         if(verbose==0):print "simulated FoV : ","%3.2f"%(Ntot[0] * qpixsize[0]) ,"\" x ","%3.2f"%(Ntot[0] * qpixsize[0]),"\""
         if(verbose==0):print "actual pixsize : ", "%5.4f"%pixsize[0]
@@ -1069,6 +1323,13 @@ cdef init_wfs_size( Param_wfs wfs, int n, Param_atmos atmos,
         if (Ntot[0] > Nfft[0]):
             if(verbose==0):print "size of HR spot support : ",Ntot[0]
 
+    if (wfs.type_wfs == "pyr"):
+        if(verbose==0):print "quantum pixsize in pyr image : ", "%5.4f"%qpixsize[0],"\""
+        if(verbose==0):print "simulated FoV : ","%3.2f"%(Nfft[0] * qpixsize[0]) ,"\" x ","%3.2f"%(Nfft[0] * qpixsize[0]),"\""
+        # if(verbose==0):print "actual pixsize : ", "%5.4f"%pixsize[0]
+        if(verbose==0):print "number of phase points : ",pdiam[0]*wfs.nxsub
+        if(verbose==0):print "size of fft support : ",Nfft[0]
+        # if(verbose==0):print "size of pyramid images : ",Ntot[0]
 
 cpdef noise_cov(int nw, Param_wfs p_wfs, Param_atmos p_atmos, Param_tel p_tel):
     """Compute the diagonal of the noise covariance matrix for a SH WFS (arcsec²)

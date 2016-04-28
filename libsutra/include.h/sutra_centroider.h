@@ -102,6 +102,10 @@ pyr_slopes(T *d_odata, T *d_idata, int *subindx, int *subindy, T *subsum,
     int ns, int nvalid, int nim, carma_device *device);
 
 template<class T>
+void pyr2_slopes(T *d_odata, T *d_idata, int *subindx, int *subindy, T *subsum,
+		 int ns, int nvalid, carma_device *device);
+
+template<class T>
 void 
 roof_slopes(T *d_odata, T *d_idata, int *subindx, int *subindy, T *subsum, int ns, int nvalid, int nim, carma_device *device);
 

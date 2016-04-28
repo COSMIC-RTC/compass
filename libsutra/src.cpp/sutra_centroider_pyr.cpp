@@ -38,12 +38,17 @@ int sutra_centroider_pyr::get_cog(carma_streams *streams, float *cube,
 int sutra_centroider_pyr::get_pyr(float *cube, float *subsum, float *centroids,
     int *subindx, int *subindy, int nvalid, int ns, int nim) {
   current_context->set_activeDevice(device,1);
-  pyr_slopes(centroids, cube, subindx, subindy, subsum, ns, nvalid, nim, this->current_context->get_device(device));
-  return EXIT_SUCCESS;
+  //pyr_slopes(centroids, cube, subindx, subindy, subsum, ns, nvalid, nim, this->current_context->get_device(device));
+  pyr2_slopes(centroids,cube,subindx,subindy,subsum,ns,nvalid,this->current_context->get_device(device));
 }
 
 int sutra_centroider_pyr::get_cog(float *subsum, float *slopes) {
+  /*
   return this->get_pyr(*(wfs->d_bincube), *(wfs->d_subsum), slopes,
+      *(wfs->d_validsubsx), *(wfs->d_validsubsy), wfs->nvalid,
+      wfs->nfft / wfs->nrebin, 4);
+  */
+  return this->get_pyr(*(wfs->d_binimg), *(wfs->d_subsum), slopes,
       *(wfs->d_validsubsx), *(wfs->d_validsubsy), wfs->nvalid,
       wfs->nfft / wfs->nrebin, 4);
 }

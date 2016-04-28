@@ -52,7 +52,7 @@ p_wfss=[p_wfs0]
 p_wfs0.set_type("pyr")
 p_wfs0.set_nxsub(16)
 p_wfs0.set_npix(4)
-p_wfs0.set_fssize(1.6)
+p_wfs0.set_fssize(1.5)
 p_wfs0.set_pixsize(0.3)
 p_wfs0.set_fracsub(1.0)
 p_wfs0.set_xpos(0.)
@@ -64,7 +64,7 @@ p_wfs0.set_zerop(1.e11)
 p_wfs0.set_noise(-1)
 p_wfs0.set_fstop("round")
 p_wfs0.set_pyr_npts(16)
-p_wfs0.set_pyr_ampl(0.45)
+p_wfs0.set_pyr_ampl(3)
 p_wfs0.set_atmos_seen(1)
 
 
@@ -84,7 +84,7 @@ p_dm0.set_push4imat(100.)
 p_dm1.set_type("tt")
 p_dm1.set_alt(0.)
 p_dm1.set_unitpervolt(0.0005)
-p_dm1.set_push4imat(10.)
+p_dm1.set_push4imat(100)
 
 
 
@@ -104,7 +104,7 @@ p_controllers=[p_controller0]
 p_controller0.set_type("ls")
 p_controller0.set_nwfs([0])
 p_controller0.set_ndm([0,1])
-p_controller0.set_maxcond(20.)
+p_controller0.set_maxcond(100.)
 p_controller0.set_delay(1)
 p_controller0.set_gain(0.4)
 
