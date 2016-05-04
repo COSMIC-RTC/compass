@@ -1,63 +1,60 @@
+"""Kind of make."""
 import sys
+import os
+from os.path import join as pjoin
+from os.path import isfile
+
+import subprocess
+from distutils.core import setup
+# from Cython.Build import cythonize
+from Cython.Distutils import build_ext
+
+# enable to dump annotate html for each pyx source file
+# import Cython.Compiler.Options
+# Cython.Compiler.Options.annotate = True
+
+import shutil
+from Cython.Build import cythonize
+
+import numpy
+from distutils.extension import Extension
+
 print sys.prefix
 print "SYS.PATH"
 print "======================================"
 print sys.path
 print "======================================"
 
-import  os, re
-from os.path import join as pjoin
-from os.path import isfile
+listMod = ["shesha_param", "shesha_telescope", "shesha_sensors", "shesha_atmos",
+           "shesha_dms", "shesha_target", "shesha_rtc"]
+dependencies = {"shesha_sensors": ["shesha_telescope", "shesha_wfs"],
+                "shesha_target": ["shesha_telescope"]}
 
-import subprocess
-from distutils.core import setup
-#from Cython.Build import cythonize
-from Cython.Distutils import build_ext
-
-## enable to dump annotate html for each pyx source file
-import Cython.Compiler.Options
-#Cython.Compiler.Options.annotate = True
-
-import shutil
-
-import numpy
-from distutils.extension import Extension
-
-
-
-listMod=[ "shesha_param","shesha_telescope", "shesha_sensors","shesha_atmos",
-          "shesha_dms","shesha_target","shesha_rtc" ]
-dependencies={"shesha_sensors":["shesha_telescope","shesha_wfs"],
-              "shesha_target":["shesha_telescope"]}
-
-
-naga_path=os.environ.get('NAGA_ROOT')
+naga_path = os.environ.get('NAGA_ROOT')
 if(naga_path is None):
     raise EnvironmentError("Environment variable 'NAGA_ROOT' must be define")
-sys.path.append(naga_path+'/src')
+sys.path.append(naga_path + '/src')
 
 
-shesha_path=os.environ.get('SHESHA_ROOT')
+shesha_path = os.environ.get('SHESHA_ROOT')
 if(shesha_path is None):
     raise EnvironmentError("Environment variable 'SHESHA_ROOT' must be define")
 
 
-if not os.path.exists(shesha_path+"/lib"):
-    os.makedirs(shesha_path+"/lib")
+if not os.path.exists(shesha_path + "/lib"):
+    os.makedirs(shesha_path + "/lib")
 
-sys.path.append(shesha_path+"/lib")
+sys.path.append(shesha_path + "/lib")
 
 
 def find_in_path(name, path):
-    "Find a file in a search path"
-    #adapted fom http://code.activestate.com/recipes/52224-find-a-file-given-a-search-path/
+    """Find a file in a search path"""
+    # adapted fom http://code.activestate.com/recipes/52224-find-a-file-given-a-search-path/
     for dir in path.split(os.pathsep):
         binpath = pjoin(dir, name)
         if os.path.exists(binpath):
             return os.path.abspath(binpath)
     return None
-
-
 
 def locate_cuda():
     """Locate the CUDA environment on the system
@@ -78,11 +75,11 @@ def locate_cuda():
         nvcc = find_in_path('nvcc', os.environ['PATH'])
         if nvcc is None:
             raise EnvironmentError('The nvcc binary could not be '
-                'located in your $PATH. Either add it to your path, or set $CUDAHOME')
+                                   'located in your $PATH. Either add it to your path, or set $CUDAHOME')
         home = os.path.dirname(os.path.dirname(nvcc))
 
-    cudaconfig = {'home':home, 
-                  'nvcc':nvcc,
+    cudaconfig = {'home': home,
+                  'nvcc': nvcc,
                   'include': pjoin(home, 'include'),
                   'lib64': pjoin(home, 'lib64')}
     for k, v in cudaconfig.iteritems():
@@ -93,23 +90,22 @@ def locate_cuda():
 
 
 def locate_compass():
-    """Locate compass library
-    """
+    """Locate compass library"""
 
-    if  'COMPASS_ROOT' in os.environ:
+    if 'COMPASS_ROOT' in os.environ:
         root_compass = os.environ['COMPASS_ROOT']
-        
+
     else:
         raise EnvironmentError("Environment variable 'COMPASS_ROOT' must be define")
-        
-    compass_config = {'inc_sutra':root_compass+'/libsutra/include.h','inc_carma':root_compass+'/libcarma/include.h',
-                      'inc_naga':root_compass+'/naga', 'lib':root_compass}
-    
+
+    compass_config = {'inc_sutra': root_compass + '/libsutra/include.h', 'inc_carma': root_compass + '/libcarma/include.h',
+                      'inc_naga': root_compass + '/naga', 'lib': root_compass}
+
     return compass_config
 
 
-CUDA=locate_cuda()
-COMPASS=locate_compass()
+CUDA = locate_cuda()
+COMPASS = locate_compass()
 # Obtain the numpy include directory.  This logic works across numpy versions.
 try:
     numpy_include = numpy.get_include()
@@ -120,13 +116,13 @@ except AttributeError:
 def customize_compiler_for_nvcc(self):
     """inject deep into distutils to customize how the dispatch
     to gcc/nvcc works.
-    
+
     If you subclass UnixCCompiler, it's not trivial to get your subclass
     injected in, and still have the right customizations (i.e.
     distutils.sysconfig.customize_compiler) run on it. So instead of going
     the OO route, I have this. Note, it's kindof like a wierd functional
     subclassing going on."""
-    
+
     # tell the compiler it can processes .cu
     self.src_extensions.append('.cu')
 
@@ -156,7 +152,7 @@ def customize_compiler_for_nvcc(self):
 
 
 def locate_MPI():
-    """return mpi config
+    """return mpi config.
 
     NEED ENVIRONMENT VARIABLE: MPICXX
 
@@ -166,22 +162,22 @@ def locate_MPI():
     mpi_config['pincdirs'] :include directories (mpi4py)
     """
 
-    #add env variable to module
-    #mpicxx=os.environ["MPICXX"]
-    mpicxx='mpicxx'
+    # add env variable to module
+    # mpicxx=os.environ["MPICXX"]
+    mpicxx = 'mpicxx'
 
-    #add env variable to module
-    cincdirs=subprocess.check_output([mpicxx,"--showme:incdirs"])
-    cincdirs=cincdirs.split()
-    clibs=subprocess.check_output([mpicxx,"--showme:libs"])
-    clibs=clibs.split()
-    clibdir=subprocess.check_output([mpicxx,"--showme:libdirs"])
-    clibdirs=[]
-    clibdirs=clibdir.split()
+    # add env variable to module
+    cincdirs = subprocess.check_output([mpicxx, "--showme:incdirs"])
+    cincdirs = cincdirs.split()
+    clibs = subprocess.check_output([mpicxx, "--showme:libs"])
+    clibs = clibs.split()
+    clibdir = subprocess.check_output([mpicxx, "--showme:libdirs"])
+    clibdirs = []
+    clibdirs = clibdir.split()
 
-    pincdirs=[mpi4py.get_include(),numpy.get_include()]
+    pincdirs = [mpi4py.get_include(), numpy.get_include()]
 
-    mpi_config = {'mpicxx':mpicxx,'cincdirs':cincdirs, 'pincdirs':pincdirs, 'clibs':clibs,'clibdirs':clibdirs}
+    mpi_config = {'mpicxx': mpicxx, 'cincdirs': cincdirs, 'pincdirs': pincdirs, 'clibs': clibs, 'clibdirs': clibdirs}
 
     return mpi_config
 
@@ -189,21 +185,21 @@ def locate_MPI():
 # run the customize_compiler
 class custom_build_ext(build_ext):
     def build_extensions(self):
-        if (os.path.exists('./shesha.cpp')): os.remove('./shesha.cpp')
+        if (os.path.exists('./shesha.cpp')):
+            os.remove('./shesha.cpp')
         customize_compiler_for_nvcc(self.compiler)
         build_ext.build_extensions(self)
 
 
-source=['shesha']
-librairies=['sutra']
-include_dirs = [numpy_include, 
+source = ['shesha']
+librairies = ['sutra']
+include_dirs = [numpy_include,
                 CUDA['include'],
                 COMPASS['inc_carma'],
                 COMPASS['inc_sutra'],
-                COMPASS['inc_naga']]#,
-                #shesha_path+"/src"]
+                COMPASS['inc_naga']]  # , shesha_path+"/src"]
 
-library_dirs=[COMPASS['lib']+"/libsutra"]
+library_dirs = [COMPASS['lib'] + "/libsutra"]
 
 def which(program):
     import os
@@ -227,11 +223,11 @@ def which(program):
 import codecs
 parFile = None
 if not isfile("par.pxi"):
-    parFile = codecs.open("par.pxi", mode = 'w', encoding = 'utf-8')
+    parFile = codecs.open("par.pxi", mode='w', encoding='utf-8')
 else:
     import warnings
-    warnings.warn("par.pxi found, it will not be updated",Warning)
-    
+    warnings.warn("par.pxi found, it will not be updated", Warning)
+
 USE_MPI = 0
 
 # if which("mpicxx"):
@@ -248,24 +244,24 @@ USE_MPI = 0
 # else:
 #     print "mpicxx not found, MPI disabled"
 if parFile:
-    parFile.write("DEF USE_MPI=%d # 0/1/2 \n"%USE_MPI)
+    parFile.write("DEF USE_MPI=%d # 0/1/2 \n" % USE_MPI)
 
-USE_BRAMA=0
+USE_BRAMA = 0
 define_macros = []
-if  'BRAMA_ROOT' in os.environ:
-    brama_root=os.environ.get('BRAMA_ROOT')
-    ace_root=os.environ.get('ACE_ROOT')
-    tao_root=os.environ.get('TAO_ROOT')
-    dds_root=os.environ.get('DDS_ROOT')
-    USE_BRAMA=1
+if 'BRAMA_ROOT' in os.environ:
+    brama_root = os.environ.get('BRAMA_ROOT')
+    ace_root = os.environ.get('ACE_ROOT')
+    tao_root = os.environ.get('TAO_ROOT')
+    dds_root = os.environ.get('DDS_ROOT')
+    USE_BRAMA = 1
     include_dirs.extend([brama_root])
     include_dirs.extend([ace_root])
     include_dirs.extend([tao_root])
-    include_dirs.extend([tao_root+'/orbsvcs'])
+    include_dirs.extend([tao_root + '/orbsvcs'])
     include_dirs.extend([dds_root])
-    library_dirs.extend([ace_root+'/lib'])
-    library_dirs.extend([tao_root+'/tao'])
-    library_dirs.extend([dds_root+'/lib'])
+    library_dirs.extend([ace_root + '/lib'])
+    library_dirs.extend([tao_root + '/tao'])
+    library_dirs.extend([dds_root + '/lib'])
     library_dirs.extend([brama_root])
     librairies.extend(['BRAMACommon'])
     librairies.extend(['OpenDDS_InfoRepoDiscovery'])
@@ -277,60 +273,57 @@ if  'BRAMA_ROOT' in os.environ:
     librairies.extend(['dl'])
     librairies.extend(['rt'])
     define_macros = [('USE_BRAMA', None), ('_GNU_SOURCE', None), ('__ACE_INLINE__', None), ]
-    
+
 if parFile:
-    parFile.write("DEF USE_BRAMA=%d # 0/1 \n"%USE_BRAMA)
+    parFile.write("DEF USE_BRAMA=%d # 0/1 \n" % USE_BRAMA)
     parFile.close()
 
-from Cython.Build import cythonize
 def compile_module(name):
-    if(os.path.exists(shesha_path+"/lib/"+name+".so") and name != "shesha"):
-        shutil.move(shesha_path+"/lib/"+name+".so",shesha_path+"/"+name+".so")
+    if(os.path.exists(shesha_path + "/lib/" + name + ".so") and name != "shesha"):
+        shutil.move(shesha_path + "/lib/" + name + ".so", shesha_path + "/" + name + ".so")
     print "======================================="
-    print "creating module ",name
+    print "creating module ", name
     print "======================================="
     try:
-        dep=dependencies[name]
-        print "dependencies:",dep
-        if(os.path.exists("src/"+name+".cpp")):
+        dep = dependencies[name]
+        print "dependencies:", dep
+        if(os.path.exists("src/" + name + ".cpp")):
             for d in dep:
-                if (os.stat("src/"+d+".pyx").st_mtime > 
-                    os.stat("src/"+name+".cpp").st_mtime):
-                    #cpp file outdated
-                    os.remove("src/"+name+".cpp")
+                if (os.stat("src/" + d + ".pyx").st_mtime > 
+                    os.stat("src/" + name + ".cpp").st_mtime):
+                    # cpp file outdated
+                    os.remove("src/" + name + ".cpp")
     except KeyError, e:
         print e
 
-
-    ext=Extension(name,
-                  sources=['src/'+name+'.pyx'],
-                  library_dirs=library_dirs,
-                  libraries=librairies,
-                  language='c++',
-                  runtime_library_dirs=[],#CUDA['lib64']],
-                  #extra_compile_args=["-O0", "-g"],
-                  #extra_compile_args={'g++': []},
-                  include_dirs = include_dirs,
-                  define_macros = define_macros,
-                  )
-
+    ext = Extension(name,
+                    sources=['src/' + name + '.pyx'],
+                    library_dirs=library_dirs,
+                    libraries=librairies,
+                    language='c++',
+                    runtime_library_dirs=[],  # CUDA['lib64']],
+                    # extra_compile_args=["-O0", "-g"],
+                    # extra_compile_args={'g++': []},
+                    include_dirs=include_dirs,
+                    define_macros=define_macros,
+                    )
 
     setup(
         name=name,
         ext_modules=cythonize([ext]),
-        #cmdclass={'build_ext': custom_build_ext},
-        zip_safe=False
+        # cmdclass={'build_ext': custom_build_ext},
+        # zip_safe=False
     )
-    if(os.path.exists(shesha_path+"/"+name+".so") and name != "shesha"):
-        shutil.move(shesha_path+"/"+name+".so",shesha_path+"/lib/"+name+".so")
+    if(os.path.exists(shesha_path + "/" + name + ".so") and name != "shesha"):
+        shutil.move(shesha_path + "/" + name + ".so", shesha_path + "/lib/" + name + ".so")
 
 if __name__ == '__main__':
     try :
-        #uncomment this line to disable the multithreaded compilation
-        #import step_by_step 
-        
+        # uncomment this line to disable the multithreaded compilation
+        # import step_by_step
+
         from multiprocessing import Pool
-        pool = Pool(maxtasksperchild=1) # process per core
+        pool = Pool(maxtasksperchild=1)  # process per core
         pool.map(compile_module, listMod)  # proces data_inputs iterable with poo
     except ImportError:
         for name in listMod:

@@ -59,17 +59,17 @@ cdef class Param_geom:
     """linear size of total pupil (in pixels)."""
     cdef readonly float cent
     """central point of the simulation."""
-    cdef readonly np.ndarray _ipupil   # total pupil (include full guard band)
-    cdef readonly np.ndarray _mpupil   # medium pupil (part of the guard band)
-    cdef readonly np.ndarray _spupil   # small pupil (without guard band)
-    cdef readonly np.ndarray _phase_ab_M1   # Phase aberration in the pupil (small size)
-    cdef readonly np.ndarray _phase_ab_M1_m   # Phase aberration in the pupil (medium size) 
-    cdef readonly np.ndarray _apodizer # apodizer (same size as small pupil)
-    cdef readonly long  _p1         # min x,y for valid points in mpupil
-    cdef readonly long  _p2         # max x,y for valid points in mpupil
-    cdef readonly long  _n          # linear size of mpupil
-    cdef readonly long  _n1         # min x,y for valid points in ipupil
-    cdef readonly long  _n2         # max x,y for valid points in ipupil
+    cdef readonly np.ndarray _ipupil  # total pupil (include full guard band)
+    cdef readonly np.ndarray _mpupil  # medium pupil (part of the guard band)
+    cdef readonly np.ndarray _spupil  # small pupil (without guard band)
+    cdef readonly np.ndarray _phase_ab_M1  # Phase aberration in the pupil (small size)
+    cdef readonly np.ndarray _phase_ab_M1_m  # Phase aberration in the pupil (medium size) 
+    cdef readonly np.ndarray _apodizer  # apodizer (same size as small pupil)
+    cdef readonly long  _p1  # min x,y for valid points in mpupil
+    cdef readonly long  _p2  # max x,y for valid points in mpupil
+    cdef readonly long  _n  # linear size of mpupil
+    cdef readonly long  _n1  # min x,y for valid points in ipupil
+    cdef readonly long  _n2  # max x,y for valid points in ipupil
 
 
 
@@ -106,7 +106,7 @@ cdef class Param_wfs:
     """ If True, enable error budget analysis for the simulation"""
 
 
-#target kwrd
+# target kwrd
     cdef readonly float xpos
     """guide star x position on sky (in arcsec)."""
     cdef readonly float ypos
@@ -120,8 +120,8 @@ cdef class Param_wfs:
     cdef readonly float noise
     """desired noise : < 0 = no noise / 0 = photon only / > 0 photon + ron."""
 
-    cdef readonly float kernel      # 
-    cdef np.ndarray _ftkernel #(float*)
+    cdef readonly float kernel  # 
+    cdef np.ndarray _ftkernel  # (float*)
 
 # lgs only
     cdef readonly float lgsreturnperwatt
@@ -137,7 +137,7 @@ cdef class Param_wfs:
     cdef readonly float beamsize
     """laser beam fwhm on-sky (in arcsec)."""
 
-#internal kwrd
+# internal kwrd
     cdef readonly long  _pdiam          
     """pupil diam for a subap (in pixel)"""
     cdef readonly long  _Nfft           
@@ -164,7 +164,7 @@ cdef class Param_wfs:
     """ (int*) x start indexes for cutting phase screens""" 
     cdef readonly np.ndarray _jstart    
     """ (int*) y start indexes for cutting phase screens""" 
-    #cdef np.ndarray _validsubs    # (i,j) indices of valid subaps
+    # cdef np.ndarray _validsubs    # (i,j) indices of valid subaps
     cdef readonly np.ndarray _validsubsx    
     """(int*) indices of valid subaps along axis x"""
     cdef readonly np.ndarray _validsubsy    
@@ -217,12 +217,12 @@ cdef class Param_wfs:
     """Type of pyramid, either 0 for "Pyramid" or 1 for "RoofPrism"."""
 
 # pyramid internal kwrds
-    cdef readonly np.ndarray _pyr_offsets   #(float*)
-    cdef readonly np.ndarray _pyr_cx   #(int*)
-    cdef readonly np.ndarray _pyr_cy   #(int*)
+    cdef readonly np.ndarray _pyr_offsets  # (float*)
+    cdef readonly np.ndarray _pyr_cx  # (int*)
+    cdef readonly np.ndarray _pyr_cy  # (int*)
 
 
-    #cdef make_lgs_prof1d(self, Param_tel p_tel,
+    # cdef make_lgs_prof1d(self, Param_tel p_tel,
     #        np.ndarray[dtype=np.float32_t] prof, 
     #        np.ndarray[dtype=np.float32_t] h,
     #        float beam, bytes center=?)
@@ -288,7 +288,7 @@ cdef class Param_dm:
   cdef readonly long    nkl
   """ number of kl modes"""
   
-  #internal kwrd
+  # internal kwrd
   cdef readonly long    _pitch
   """ inter-actuator space in pixels"""
   cdef readonly long    _ntotact
@@ -316,13 +316,13 @@ cdef class Param_dm:
   cdef readonly np.ndarray _ninflu
   """Influence functions"""
   cdef readonly np.ndarray _influstart
-  cdef readonly np.ndarray _influkernel # Array to convolution kernel for comp_dmshape
+  cdef readonly np.ndarray _influkernel  # Array to convolution kernel for comp_dmshape
   cdef readonly list _klbas
   """ np.ndarray to a kl struct"""
 
 
-  #cdef set_xpos(self,np.ndarray[ndim=1,dtype=np.float32_t] xpos)
-  #cdef set_ypos(self,np.ndarray[ndim=1,dtype=np.float32_t] ypos)
+  # cdef set_xpos(self,np.ndarray[ndim=1,dtype=np.float32_t] xpos)
+  # cdef set_ypos(self,np.ndarray[ndim=1,dtype=np.float32_t] ypos)
 
 
 
@@ -358,7 +358,7 @@ cdef class Param_rtc:
     cdef readonly list centroiders     
     # an array of centroiders
     cdef readonly list controllers     
-    #an array of controllers
+    # an array of controllers
 
 
 
@@ -433,9 +433,9 @@ cdef class Param_controller:
 
 
 cpdef  indices(int dim1, int dim2=?)
-cpdef rotate3d(np.ndarray[ndim=3,dtype=np.float32_t] im,
-              np.ndarray[ndim=1,dtype=np.float32_t] ang,
-              float cx=?, float cy=?,float zoom=?)
-cpdef rotate(np.ndarray[ndim=3,dtype=np.float32_t] im,
-            float ang, float cx=?, float cy=?,float zoom=?)
+cpdef rotate3d(np.ndarray[ndim=3, dtype=np.float32_t] im,
+              np.ndarray[ndim=1, dtype=np.float32_t] ang,
+              float cx=?, float cy=?, float zoom=?)
+cpdef rotate(np.ndarray[ndim=3, dtype=np.float32_t] im,
+            float ang, float cx=?, float cy=?, float zoom=?)
 cpdef makegaussian(int size, float fwhm, int xc=?, int yc=?, int norm=?)

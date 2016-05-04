@@ -62,8 +62,6 @@ cdef class naga_sparse_obj_CLASSNAME:
             self.c_sparse_obj=new carma_sparse_obj[C_TYPE](obj.c_sparse_obj)
             return
 
-        cdef long cdims[3]
-        cdims[0]=2
         cdef int i
 
         if(data is None):

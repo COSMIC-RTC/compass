@@ -24,10 +24,8 @@ import subprocess
 
 sys.path.insert(0, os.environ["SHESHA_ROOT"] + "/data/par/")
 
-
-WindowTemplate, TemplateBaseClass = loadUiType(os.environ["SHESHA_ROOT"] +
+WindowTemplate, TemplateBaseClass = loadUiType(os.environ["SHESHA_ROOT"] + 
                                                "/widgets/widget_ao.ui")
-
 
 plt.ion()
 
@@ -36,7 +34,6 @@ low levels debugs:
 gdb --args python -i widget_ao.py
 
 """
-
 
 class widgetAOWindow(TemplateBaseClass):
     def __init__(self):
@@ -73,12 +70,12 @@ class widgetAOWindow(TemplateBaseClass):
         # self.p1 = self.ui.wao_pgwindow.addPlot()  # create pyqtgraph plot area
         self.p1 = self.ui.wao_pgwindow.addViewBox()
         self.p1.setAspectLocked(True)
-        self.p1.addItem(self.img)            # Put image in plot area
+        self.p1.addItem(self.img)  # Put image in plot area
 
-        self.hist = pg.HistogramLUTItem()    # Create an histogram
-        self.hist.setImageItem(self.img)     # Compute histogram from img
+        self.hist = pg.HistogramLUTItem()  # Create an histogram
+        self.hist.setImageItem(self.img)  # Compute histogram from img
         self.ui.wao_pgwindow.addItem(self.hist)
-        self.hist.autoHistogramRange()       # init levels
+        self.hist.autoHistogramRange()  # init levels
         self.hist.setMaximumWidth(100)
 
         #############################################################
@@ -142,7 +139,7 @@ class widgetAOWindow(TemplateBaseClass):
     def closeEvent(self, event):
 
         reply = QtGui.QMessageBox.question(self, 'Message',
-                                           "Are you sure to quit?", QtGui.QMessageBox.Yes |
+                                           "Are you sure to quit?", QtGui.QMessageBox.Yes | 
                                            QtGui.QMessageBox.No, QtGui.QMessageBox.No)
 
         if reply == QtGui.QMessageBox.Yes:
@@ -363,7 +360,7 @@ class widgetAOWindow(TemplateBaseClass):
         self.config.p_wfss[nwfs].set_Lambda(self.ui.wao_wfsLambda.value())
         self.config.p_wfss[nwfs].set_gsmag(self.ui.wao_wfsMagnitude.value())
         # TODO: find a way to correctly set zerop (limited by the maximum value allowed by the double spin box)
-        self.config.p_wfss[nwfs].set_zerop(10**(self.ui.wao_wfsZp.value()))
+        self.config.p_wfss[nwfs].set_zerop(10 ** (self.ui.wao_wfsZp.value()))
         self.config.p_wfss[nwfs].set_optthroughput(self.ui.wao_wfsThrough.value())
         self.config.p_wfss[nwfs].set_noise(self.ui.wao_wfsNoise.value())
 
@@ -449,6 +446,7 @@ class widgetAOWindow(TemplateBaseClass):
         self.ui.wao_selectConfig.addItem(filename)
         self.updateNumberSelector(textType=self.imgType)
         self.updatePanels()
+        self.ui.wao_init.setDisabled(False)
 
     def aoLoopClicked(self, pressed):
         if(pressed):
@@ -860,7 +858,7 @@ class widgetAOWindow(TemplateBaseClass):
         if(self.RTDisplay):
             t = 1 / float(self.RTDFreq) - loopTime  # Limit loop frequency
             if t > 0:
-                time.sleep(t)     # Limit loop frequency
+                time.sleep(t)  # Limit loop frequency
             self.updateDisplay()  # Update GUI plots
         else:
             freqLimit = 1 / 250.

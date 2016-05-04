@@ -107,19 +107,15 @@ sutra_sensors::sutra_sensors(carma_context *context, sutra_telescope *d_tel, cha
 		int maxntot = ntot[0];
 		int maxnvalid = 0;
 		int maxnvalid_tot = nvalid[0];
-		int wfs4nfft = 0;
-		int wfs4ntot = 0;
 		int is_lgs = (lgs[0] > 0 ? 1 : 0);
 		for (int i = 1; i < nwfs; i++) {
 		  if(nvalid[i] > maxnvalid_tot)
 		    maxnvalid_tot = nvalid[i];
 			if (ntot[i] > maxntot) {
 				maxntot = ntot[i];
-				wfs4ntot = i;
 			}
 			if (nfft[i] > maxnfft) {
 				maxnfft = nfft[i];
-				wfs4nfft = i;
 			}
 			if (ntot[i] == nfft[i]) {
 				if (nvalid[i] > maxnvalid) {

@@ -55,15 +55,15 @@ enum MemType {
 };
 //should add texture ?
 
-struct doubleint{
-	int start;
-	int nbInflu;
+struct doubleint {
+    int start;
+    int nbInflu;
 };
 
 template<class T>
-struct tuple_t{
-	int pos;
-	T data;
+struct tuple_t {
+    int pos;
+    T data;
 };
 
 template<class T_data>
@@ -236,8 +236,8 @@ class carma_obj {
     int copyInto(T_data *data, int nb_elem);
     int copyFrom(T_data *data, int nb_elem);
 
-    inline int reset(){
-      return cudaMemset(this->d_data, 0, this->nb_elem*sizeof(T_data));
+    inline int reset() {
+      return cudaMemset(this->d_data, 0, this->nb_elem * sizeof(T_data));
     }
 
     cufftHandle* getPlan() {
@@ -311,7 +311,6 @@ class carma_obj {
     int prng_host(char gtype, T_data alpha);
     int destroy_prng_host();
 };
-
 typedef carma_obj<int> caObjI;
 typedef carma_obj<unsigned int> caObjUI;
 typedef carma_obj<float> caObjS;
@@ -320,6 +319,45 @@ typedef carma_obj<float2> caObjS2;
 typedef carma_obj<double2> caObjD2;
 typedef carma_obj<cuFloatComplex> caObjC;
 typedef carma_obj<cuDoubleComplex> caObjZ;
+
+template<class T_data>
+ostream& display_carma_obj(ostream& os, carma_obj<T_data>& obj, string type) {
+    os << "-----------------------" << endl;
+    os << "carma_obj<" << type << "> object on GPU" << obj.getDevice() << endl;
+    long ndims = obj.getDims(0);
+    os << "ndims = " << ndims << endl;
+    for (long dim = 0; dim < ndims; dim++) {
+      os << "dim[" << dim << "] = " << obj.getDims(dim + 1) << endl;
+    }
+    os << "nbElem = " << obj.getNbElem() << endl;
+    os << "-----------------------" << endl;
+  return os;
+}
+
+inline
+ostream& operator<<(ostream& os, caObjS& obj) {
+  return display_carma_obj(os, obj, "float");
+}
+inline
+ostream& operator<<(ostream& os, caObjD& obj) {
+  return display_carma_obj(os, obj, "double");
+}
+inline
+ostream& operator<<(ostream& os, caObjI& obj) {
+  return display_carma_obj(os, obj, "int");
+}
+inline
+ostream& operator<<(ostream& os, caObjUI& obj) {
+  return display_carma_obj(os, obj, "unsigned int");
+}
+inline
+ostream& operator<<(ostream& os, caObjS2& obj) {
+  return display_carma_obj(os, obj, "float2");
+}
+inline
+ostream& operator<<(ostream& os, caObjD2& obj) {
+  return display_carma_obj(os, obj, "double2");
+}
 
 // CU functions sum
 template<class T_data>
@@ -400,7 +438,7 @@ template<class T>
 int carma_syevd_m(long ngpu, char jobz, long N, T *mat, T *eigenvals);
 template<class T>
 int carma_syevd_m(long ngpu, char jobz, carma_host_obj<T> *mat,
-                         carma_host_obj<T> *eigenvals);
+                  carma_host_obj<T> *eigenvals);
 template<class T>
 int carma_syevd_m(long ngpu, char jobz, carma_host_obj<T> *mat,
                   carma_host_obj<T> *eigenvals, carma_host_obj<T> *U);

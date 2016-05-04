@@ -11,14 +11,14 @@ def params_dictionary(config):
     :param config: (module) : simulation parameters
     :return param_dict: (dictionary) : dictionary of parameters
     """
-    param_dict= {"simulname":config.simul_name,
-        "revision":check_output("svnversion").replace("\n",""),
+    param_dict = {"simulname":config.simul_name,
+        "revision":check_output("svnversion").replace("\n", ""),
         # Loop params
         "niter":config.p_loop.niter,
-        "ittime":config.p_loop.ittime,  
+        "ittime":config.p_loop.ittime,
         # Geom params
         "zenithangle":config.p_geom.zenithangle,
-        "pupdiam":config.p_geom.pupdiam,        
+        "pupdiam":config.p_geom.pupdiam,
         # Telescope params
         "tel_diam":config.p_tel.diam,
         "cobs":config.p_tel.cobs,
@@ -37,8 +37,8 @@ def params_dictionary(config):
         "atm.alt":config.p_atmos.alt,
         "windspeed":config.p_atmos.windspeed,
         "winddir":config.p_atmos.winddir,
-        "L0":config.p_atmos.L0,   
-        "seeds":[config.p_atmos.seeds if(config.p_atmos.seeds is not None) else (np.arange(config.p_atmos.nscreens,dtype=np.int64)+1)*1234],           
+        "L0":config.p_atmos.L0,
+        "seeds":[config.p_atmos.seeds if(config.p_atmos.seeds is not None) else (np.arange(config.p_atmos.nscreens, dtype=np.int64) + 1) * 1234],
         # Target params
         "ntargets":config.p_target.ntargets,
         "target.xpos":config.p_target.xpos,
@@ -63,7 +63,7 @@ def params_dictionary(config):
             "zerop":[wfs.zerop for wfs in config.p_wfss],
             "noise":[wfs.noise for wfs in config.p_wfss],
             "atmos_seen":[wfs.atmos_seen for wfs in config.p_wfss],
-            "dms_seen":[wfs.dms_seen if(wfs.dms_seen is not None) else np.arange(len(config.p_dms),dtype=np.int32) for wfs in config.p_wfss],
+            "dms_seen":[wfs.dms_seen if(wfs.dms_seen is not None) else np.arange(len(config.p_dms), dtype=np.int32) for wfs in config.p_wfss],
             "beamsize":[wfs.beamsize for wfs in config.p_wfss],
             "fssize":[wfs.fssize for wfs in config.p_wfss],
             "fstop":[wfs.fstop if(wfs.fstop) else "" for wfs in config.p_wfss],
@@ -79,12 +79,12 @@ def params_dictionary(config):
             "pyr_npts":[wfs.pyr_npts for wfs in config.p_wfss],
             "pyrtype":[wfs.pyrtype if(wfs.pyrtype) else "" for wfs in config.p_wfss]}
     else:
-        wfs_dict = {"nwfs":len(config.p_wfss),"type_wfs":None,"nxsub":None,"npix":None,
-            "pixsize":None,"fracsub":None,"wfs.xpos":None,"wfs.ypos":None,"wfs.Lambda":None,
-            "gsmag":None,"optthroughput":None,"zerop":None,"noise":None,
-            "atmos_seen":None,"dms_seen":None,"beamsize":None,"fssize":None,
-            "fstop":None,"gsalt":None,"laserpower":None,"lgsreturnperwatt":None,"lltx":None,"llty":None,
-            "openloop":None,"proftype":None,"pyr_ampl":None,"pyr_loc":None,"pyr_npts":None,
+        wfs_dict = {"nwfs":len(config.p_wfss), "type_wfs":None, "nxsub":None, "npix":None,
+            "pixsize":None, "fracsub":None, "wfs.xpos":None, "wfs.ypos":None, "wfs.Lambda":None,
+            "gsmag":None, "optthroughput":None, "zerop":None, "noise":None,
+            "atmos_seen":None, "dms_seen":None, "beamsize":None, "fssize":None,
+            "fstop":None, "gsalt":None, "laserpower":None, "lgsreturnperwatt":None, "lltx":None, "llty":None,
+            "openloop":None, "proftype":None, "pyr_ampl":None, "pyr_loc":None, "pyr_npts":None,
             "pyrtype":None}
     param_dict.update(wfs_dict)
         
@@ -103,15 +103,15 @@ def params_dictionary(config):
             "dm.thresh":[dm.thresh for dm in config.p_dms],
             "unitpervolt":[dm.unitpervolt for dm in config.p_dms]}
     else:
-        dms_dict = {"ndms":len(config.p_dms),"type_dm":None,"dm.alt":None,
-            "coupling":None,"hyst":None,"margin":None,"nact":None,"nkl":None,
-            "pupoffset":None,"push4imat":None,"dm.thresh":None,"unitpervolt":None}
+        dms_dict = {"ndms":len(config.p_dms), "type_dm":None, "dm.alt":None,
+            "coupling":None, "hyst":None, "margin":None, "nact":None, "nkl":None,
+            "pupoffset":None, "push4imat":None, "dm.thresh":None, "unitpervolt":None}
         
     param_dict.update(dms_dict)
     
     # Centroider params
     if(config.p_centroiders is not None):
-        centro_dict={"ncentroiders":len(config.p_centroiders),
+        centro_dict = {"ncentroiders":len(config.p_centroiders),
             "type_centro":[c.type_centro for c in config.p_centroiders],
             "nmax":[c.nmax for c in config.p_centroiders],
             "centro.nwfs":[c.nwfs for c in config.p_centroiders],
@@ -122,15 +122,15 @@ def params_dictionary(config):
             "weights":[c.weights if(c.weights) else float(0) for c in config.p_centroiders],
             "width":[c.width for c in config.p_centroiders]}
     else:
-        centro_dict={"ncentroiders":len(config.p_centroiders),"type_centro":None,
-            "nmax":None,"centro.nwfs":None,"sizex":None,"sizey":None,
-            "centroider.thresh":None,"type_fct":None,"weights":None,"width":None}
+        centro_dict = {"ncentroiders":len(config.p_centroiders), "type_centro":None,
+            "nmax":None, "centro.nwfs":None, "sizex":None, "sizey":None,
+            "centroider.thresh":None, "type_fct":None, "weights":None, "width":None}
     param_dict.update(centro_dict)
         
          
     # Controller params
     if(config.p_controllers is not None):
-        control_dict={"ncontrollers":len(config.p_controllers),
+        control_dict = {"ncontrollers":len(config.p_controllers),
             "type_control":[c.type_control for c in config.p_controllers],
             "TTcond":[c.TTcond for c in config.p_controllers],
             "cured_ndivs":[c.cured_ndivs for c in config.p_controllers],
@@ -138,28 +138,28 @@ def params_dictionary(config):
             "gain":[c.gain for c in config.p_controllers],
             "maxcond":[c.maxcond for c in config.p_controllers],
             "modopti":[c.modopti for c in config.p_controllers],
-            #"nactu":[c.nactu for c in config.p_controllers],
+            # "nactu":[c.nactu for c in config.p_controllers],
             "ndm":[c.ndm for c in config.p_controllers],
             "nmodes":[c.nmodes for c in config.p_controllers],
             "nrec":[c.nrec for c in config.p_controllers],
             "gmin":[c.gmin for c in config.p_controllers],
             "gmax":[c.gmax for c in config.p_controllers],
             "ngain":[c.ngain for c in config.p_controllers],
-            #"nvalid":[c.nvalid for c in config.p_controllers],
+            # "nvalid":[c.nvalid for c in config.p_controllers],
             "control.nwfs":[c.nwfs for c in config.p_controllers]}
     else:
-        control_dict={"ncontrollers":len(config.p_controllers),"type_control":None,
-            "TTcond":None,"cured_ndivs":None,"delay":None,"gain":None,
-            "maxcond":None,"modopti":None,#"nactu":None,
-            "ndm":None,"nmodes":None,
-            "nrec":None,#"nvalid":None,
+        control_dict = {"ncontrollers":len(config.p_controllers), "type_control":None,
+            "TTcond":None, "cured_ndivs":None, "delay":None, "gain":None,
+            "maxcond":None, "modopti":None,  # "nactu":None,
+            "ndm":None, "nmodes":None,
+            "nrec":None,  # "nvalid":None,
             "control.nwfs":None}
     
     param_dict.update(control_dict)
          
     return param_dict
     
-def create_file_attributes(filename,param_dict):
+def create_file_attributes(filename, param_dict):
     """ create_file_attributes(filename,config)
     Create an hdf5 file wtih attributes corresponding to all simulation parameters
     
@@ -167,70 +167,70 @@ def create_file_attributes(filename,param_dict):
         filename : (str) : full path + filename to create
         config : () : simulation parameters
     """
-    f = h5py.File(filename,"w")
+    f = h5py.File(filename, "w")
     
     for i in param_dict.keys():
         if(param_dict[i] is not None):
-            f.attrs.create(i,param_dict[i])
+            f.attrs.create(i, param_dict[i])
         else:
-            f.attrs.create(i,-1)
-    f.attrs.create("validity",False)
+            f.attrs.create(i, -1)
+    f.attrs.create("validity", False)
     print filename, "initialized"
     f.close()
 
-def init_hdf5_files(savepath,param_dict,matricesToLoad):
-    svnversion = check_output("svnversion").replace("\n","")
+def init_hdf5_files(savepath, param_dict, matricesToLoad):
+    svnversion = check_output("svnversion").replace("\n", "")
     if not(matricesToLoad.has_key("A")):
-        df=pandas.read_hdf(savepath+"matricesDataBase.h5","A")
+        df = pandas.read_hdf(savepath + "matricesDataBase.h5", "A")
         ind = len(df.index)
-        filename = savepath+"turbu/A_r"+svnversion+"_"+str(ind)+".h5"
-        create_file_attributes(filename,param_dict)
-        updateDataBase(filename,savepath,"A")
-        df=pandas.read_hdf(savepath+"matricesDataBase.h5","B")
+        filename = savepath + "turbu/A_r" + svnversion + "_" + str(ind) + ".h5"
+        create_file_attributes(filename, param_dict)
+        updateDataBase(filename, savepath, "A")
+        df = pandas.read_hdf(savepath + "matricesDataBase.h5", "B")
         ind = len(df.index)
-        filename = savepath+"turbu/B_r"+svnversion+"_"+str(ind)+".h5"
-        create_file_attributes(filename,param_dict)
-        updateDataBase(filename,savepath,"B")
-        df=pandas.read_hdf(savepath+"matricesDataBase.h5","istx")
+        filename = savepath + "turbu/B_r" + svnversion + "_" + str(ind) + ".h5"
+        create_file_attributes(filename, param_dict)
+        updateDataBase(filename, savepath, "B")
+        df = pandas.read_hdf(savepath + "matricesDataBase.h5", "istx")
         ind = len(df.index)
-        filename = savepath+"turbu/istx_r"+svnversion+"_"+str(ind)+".h5"
-        create_file_attributes(filename,param_dict)
-        updateDataBase(filename,savepath,"istx")
-        df=pandas.read_hdf(savepath+"matricesDataBase.h5","isty")
+        filename = savepath + "turbu/istx_r" + svnversion + "_" + str(ind) + ".h5"
+        create_file_attributes(filename, param_dict)
+        updateDataBase(filename, savepath, "istx")
+        df = pandas.read_hdf(savepath + "matricesDataBase.h5", "isty")
         ind = len(df.index)
-        filename = savepath+"turbu/isty_r"+svnversion+"_"+str(ind)+".h5"
-        create_file_attributes(filename,param_dict)
-        updateDataBase(filename,savepath,"isty")
+        filename = savepath + "turbu/isty_r" + svnversion + "_" + str(ind) + ".h5"
+        create_file_attributes(filename, param_dict)
+        updateDataBase(filename, savepath, "isty")
         
     if not(matricesToLoad.has_key("pztok")):
-        df=pandas.read_hdf(savepath+"matricesDataBase.h5","pztok")
+        df = pandas.read_hdf(savepath + "matricesDataBase.h5", "pztok")
         ind = len(df.index)
-        filename = savepath+"mat/pztok_r"+svnversion+"_"+str(ind)+".h5"
-        create_file_attributes(filename,param_dict)
-        updateDataBase(filename,savepath,"pztok")
-        df=pandas.read_hdf(savepath+"matricesDataBase.h5","pztnok")
+        filename = savepath + "mat/pztok_r" + svnversion + "_" + str(ind) + ".h5"
+        create_file_attributes(filename, param_dict)
+        updateDataBase(filename, savepath, "pztok")
+        df = pandas.read_hdf(savepath + "matricesDataBase.h5", "pztnok")
         ind = len(df.index)
-        filename = savepath+"mat/pztnok_r"+svnversion+"_"+str(ind)+".h5"
-        create_file_attributes(filename,param_dict)
-        updateDataBase(filename,savepath,"pztnok")
+        filename = savepath + "mat/pztnok_r" + svnversion + "_" + str(ind) + ".h5"
+        create_file_attributes(filename, param_dict)
+        updateDataBase(filename, savepath, "pztnok")
     if not(matricesToLoad.has_key("imat")):
-        df=pandas.read_hdf(savepath+"matricesDataBase.h5","imat")
+        df = pandas.read_hdf(savepath + "matricesDataBase.h5", "imat")
         ind = len(df.index)
-        filename = savepath+"mat/imat_r"+svnversion+"_"+str(ind)+".h5"
-        create_file_attributes(filename,param_dict)
-        updateDataBase(filename,savepath,"imat")
-        df=pandas.read_hdf(savepath+"matricesDataBase.h5","eigenv")
+        filename = savepath + "mat/imat_r" + svnversion + "_" + str(ind) + ".h5"
+        create_file_attributes(filename, param_dict)
+        updateDataBase(filename, savepath, "imat")
+        df = pandas.read_hdf(savepath + "matricesDataBase.h5", "eigenv")
         ind = len(df.index)
-        filename = savepath+"mat/eigenv_r"+svnversion+"_"+str(ind)+".h5"
-        create_file_attributes(filename,param_dict)
-        updateDataBase(filename,savepath,"eigenv")
-        df=pandas.read_hdf(savepath+"matricesDataBase.h5","U")
+        filename = savepath + "mat/eigenv_r" + svnversion + "_" + str(ind) + ".h5"
+        create_file_attributes(filename, param_dict)
+        updateDataBase(filename, savepath, "eigenv")
+        df = pandas.read_hdf(savepath + "matricesDataBase.h5", "U")
         ind = len(df.index)
-        filename = savepath+"mat/U_r"+svnversion+"_"+str(ind)+".h5"
-        create_file_attributes(filename,param_dict)
-        updateDataBase(filename,savepath,"U")
+        filename = savepath + "mat/U_r" + svnversion + "_" + str(ind) + ".h5"
+        create_file_attributes(filename, param_dict)
+        updateDataBase(filename, savepath, "U")
         
-def initDataBase(savepath,param_dict):
+def initDataBase(savepath, param_dict):
     """ Initialize and create the database for all the saved matrices. This database
     will be placed on the top of the savepath and be named matricesDataBase.h5.
     
@@ -256,22 +256,22 @@ def initDataBase(savepath,param_dict):
     keys = param_dict.keys()
     keys.append("path2file")
     keys.append("validity")
-    df=pandas.DataFrame(columns=keys)
-    store = pandas.HDFStore(savepath+"matricesDataBase.h5")
-    store.put("A",df)
-    store.put("B",df)
-    store.put("istx",df)
-    store.put("isty",df)
-    store.put("eigenv",df)
-    store.put("imat",df)
-    store.put("pztok",df)
-    store.put("pztnok",df)
-    store.put("U",df)
+    df = pandas.DataFrame(columns=keys)
+    store = pandas.HDFStore(savepath + "matricesDataBase.h5")
+    store.put("A", df)
+    store.put("B", df)
+    store.put("istx", df)
+    store.put("isty", df)
+    store.put("eigenv", df)
+    store.put("imat", df)
+    store.put("pztok", df)
+    store.put("pztnok", df)
+    store.put("U", df)
     
     store.close()
     print "Matrices database created"    
 
-def updateDataBase(h5file,savepath,matrix_type):
+def updateDataBase(h5file, savepath, matrix_type):
     """ Update the database adding a new row to the matrix_type database.
     
     :parameters:
@@ -281,18 +281,18 @@ def updateDataBase(h5file,savepath,matrix_type):
                                                          "istx","eigenv","imat","U"
                                                          "pztok" or "pztnok")
     """
-    if(matrix_type =="A" or matrix_type =="B" or matrix_type =="istx"
-        or matrix_type =="isty" or matrix_type =="eigenv" or matrix_type =="imat"
-        or matrix_type =="U" or matrix_type =="pztok" or matrix_type =="pztnok"):
-        f = h5py.File(h5file,"r")
-        store = pandas.HDFStore(savepath+"matricesDataBase.h5")
-        df = pandas.read_hdf(savepath+"matricesDataBase.h5",matrix_type)
+    if(matrix_type == "A" or matrix_type == "B" or matrix_type == "istx"
+        or matrix_type == "isty" or matrix_type == "eigenv" or matrix_type == "imat"
+        or matrix_type == "U" or matrix_type == "pztok" or matrix_type == "pztnok"):
+        f = h5py.File(h5file, "r")
+        store = pandas.HDFStore(savepath + "matricesDataBase.h5")
+        df = pandas.read_hdf(savepath + "matricesDataBase.h5", matrix_type)
         ind = len(df.index)
         for i in f.attrs.keys():
-            df.loc[ind,i] = f.attrs[i]
-        df.loc[ind,"path2file"] = h5file
-        df.loc[ind,"validity"] = False
-        store.put(matrix_type,df)
+            df.loc[ind, i] = f.attrs[i]
+        df.loc[ind, "path2file"] = h5file
+        df.loc[ind, "validity"] = False
+        store.put(matrix_type, df)
         store.close()
         f.close()
     else:
@@ -308,11 +308,11 @@ def save_hdf5(filename, dataname, data):
         dataname : (str) : name of the data (imat, cmat...)
         data : np.array : data to save
     """   
-    f = h5py.File(filename,"r+")
+    f = h5py.File(filename, "r+")
     f.create_dataset(dataname, data=data)
     f.close()
 
-def save_h5(filename, dataname, config,data):
+def save_h5(filename, dataname, config, data):
     """ save_hdf5(filename, dataname, config, data)
     Create a hdf5 file and store data in it with full header from config parameters
     Usefull to backtrace data origins
@@ -324,11 +324,11 @@ def save_h5(filename, dataname, config,data):
         data : np.array : data to save
     """
     p_dict = params_dictionary(config)
-    create_file_attributes(filename,p_dict)
+    create_file_attributes(filename, p_dict)
     save_hdf5(filename, dataname, data)
-    print filename,"has been written"
+    print filename, "has been written"
     
-def checkMatricesDataBase(savepath,config,param_dict):
+def checkMatricesDataBase(savepath, config, param_dict):
     """ Check in the database if the current config have been already run. If so,
     return a dictionary containing the matrices to load and their path. Matrices
     which don't appear in the dictionary will be computed, stored and added
@@ -343,19 +343,19 @@ def checkMatricesDataBase(savepath,config,param_dict):
         matricesToLoad : (dictionary) : matrices that will be load and their path
     """
     
-    matricesToLoad= {}
-    if(os.path.exists(savepath+"matricesDataBase.h5")):
-        checkTurbuParams(savepath,config,param_dict,matricesToLoad)
-        checkDmsParams(savepath,config,param_dict,matricesToLoad)
+    matricesToLoad = {}
+    if(os.path.exists(savepath + "matricesDataBase.h5")):
+        checkTurbuParams(savepath, config, param_dict, matricesToLoad)
+        checkDmsParams(savepath, config, param_dict, matricesToLoad)
         if(matricesToLoad.has_key("pztok")):           
-            checkControlParams(savepath,config,param_dict,matricesToLoad)
+            checkControlParams(savepath, config, param_dict, matricesToLoad)
         
     else:
-        initDataBase(savepath,param_dict)
-    init_hdf5_files(savepath,param_dict,matricesToLoad)
+        initDataBase(savepath, param_dict)
+    init_hdf5_files(savepath, param_dict, matricesToLoad)
     return matricesToLoad       
     
-def checkTurbuParams(savepath,config,pdict,matricesToLoad):
+def checkTurbuParams(savepath, config, pdict, matricesToLoad):
     """ Compare the current turbulence parameters to the database. If similar parameters
     are found, the matricesToLoad dictionary is completed.
     Since all the turbulence matrices are computed together, we only check the parameters
@@ -365,22 +365,22 @@ def checkTurbuParams(savepath,config,pdict,matricesToLoad):
         config : (module) : simulation parameters
         matricesToLoad : (dictionary) :  matrices that will be load and their path
     """
-    dataBase = pandas.read_hdf(savepath+"matricesDataBase.h5","A")
-    param2test = ["seeds","L0","atm.alt","tel_diam","cobs","pupdiam","zenithangle","target.xpos","target.ypos","wfs.xpos","wfs.ypos"]
+    dataBase = pandas.read_hdf(savepath + "matricesDataBase.h5", "A")
+    param2test = ["seeds", "L0", "atm.alt", "tel_diam", "cobs", "pupdiam", "zenithangle", "target.xpos", "target.ypos", "wfs.xpos", "wfs.ypos"]
 
     for i in dataBase.index:
         cc = 0
-        if(dataBase.loc[i,"validity"] and (dataBase.loc[i,"revision"] == check_output("svnversion").replace("\n",""))):
-            cond = ((dataBase.loc[i,param2test[cc]] == pdict[param2test[cc]]).all())
+        if(dataBase.loc[i, "validity"] and (dataBase.loc[i, "revision"] == check_output("svnversion").replace("\n", ""))):
+            cond = ((dataBase.loc[i, param2test[cc]] == pdict[param2test[cc]]).all())
             while(cond):
                 if(cc >= len(param2test)):
                     break
                 else:                
-                    cond = ((dataBase.loc[i,param2test[cc]] == pdict[param2test[cc]]).all())
-                    cc+=1           
+                    cond = ((dataBase.loc[i, param2test[cc]] == pdict[param2test[cc]]).all())
+                    cc += 1           
             # For debug
             #############################
-            #if not cond:
+            # if not cond:
             #    cc -= 1
             #    print param2test[cc]+" has changed from ",dataBase.loc[i,param2test[cc]], " to ",pdict[param2test[cc]]
             ###############################
@@ -404,16 +404,16 @@ def checkTurbuParams(savepath,config,pdict,matricesToLoad):
             
         if(cond):
             matricesToLoad["index_turbu"] = i
-            matricesToLoad["A"] = dataBase.loc[i,"path2file"]
-            dataBase = pandas.read_hdf(savepath+"matricesDataBase.h5","B")
-            matricesToLoad["B"] = dataBase.loc[i,"path2file"]
-            dataBase = pandas.read_hdf(savepath+"matricesDataBase.h5","istx")
-            matricesToLoad["istx"] = dataBase.loc[i,"path2file"]
-            dataBase = pandas.read_hdf(savepath+"matricesDataBase.h5","isty")
-            matricesToLoad["isty"] = dataBase.loc[i,"path2file"]
+            matricesToLoad["A"] = dataBase.loc[i, "path2file"]
+            dataBase = pandas.read_hdf(savepath + "matricesDataBase.h5", "B")
+            matricesToLoad["B"] = dataBase.loc[i, "path2file"]
+            dataBase = pandas.read_hdf(savepath + "matricesDataBase.h5", "istx")
+            matricesToLoad["istx"] = dataBase.loc[i, "path2file"]
+            dataBase = pandas.read_hdf(savepath + "matricesDataBase.h5", "isty")
+            matricesToLoad["isty"] = dataBase.loc[i, "path2file"]
             return
 
-def checkControlParams(savepath,config,pdict,matricesToLoad):
+def checkControlParams(savepath, config, pdict, matricesToLoad):
     """ Compare the current controller parameters to the database. If similar parameters
     are found, matricesToLoad dictionary is completed.
     Since all the controller matrices are computed together, we only check the parameters
@@ -423,26 +423,26 @@ def checkControlParams(savepath,config,pdict,matricesToLoad):
         config : (module) : simulation parameters
         matricesToLoad : (dictionary) :  matrices that will be load and their path
     """
-    dataBase = pandas.read_hdf(savepath+"matricesDataBase.h5","imat")
-    param2test = ["tel_diam","t_spiders","spiders_type","pupangle","referr","std_piston","std_tt","type_ap","nbrmissing","cobs","pupdiam","nwfs","type_wfs",                  "nxsub","npix","pixsize","fracsub","wfs.xpos","wfs.ypos","wfs.Lambda",                  "dms_seen","fssize","fstop","pyr_ampl","pyr_loc","pyr_npts","pyrtype",                  "ndms","type_dm","dm.alt","coupling","hyst","margin","nact","nkl",                  "push4imat","dm.thresh","unitpervolt"]
+    dataBase = pandas.read_hdf(savepath + "matricesDataBase.h5", "imat")
+    param2test = ["tel_diam", "t_spiders", "spiders_type", "pupangle", "referr", "std_piston", "std_tt", "type_ap", "nbrmissing", "cobs", "pupdiam", "nwfs", "type_wfs", "nxsub", "npix", "pixsize", "fracsub", "wfs.xpos", "wfs.ypos", "wfs.Lambda", "dms_seen", "fssize", "fstop", "pyr_ampl", "pyr_loc", "pyr_npts", "pyrtype", "ndms", "type_dm", "dm.alt", "coupling", "hyst", "margin", "nact", "nkl", "push4imat", "dm.thresh", "unitpervolt"]
 
-    param2test += ["ncentroiders","type_centro",
-                  "nmax","centro.nwfs","sizex","sizey","centroider.thresh","type_fct",
-                  "weights","width"]
+    param2test += ["ncentroiders", "type_centro",
+                  "nmax", "centro.nwfs", "sizex", "sizey", "centroider.thresh", "type_fct",
+                  "weights", "width"]
 
     for i in dataBase.index:
         cc = 0
-        if(dataBase.loc[i,"validity"] and (dataBase.loc[i,"revision"] == check_output("svnversion").replace("\n",""))):
-            cond = ((dataBase.loc[i,param2test[cc]] == pdict[param2test[cc]]).all())
+        if(dataBase.loc[i, "validity"] and (dataBase.loc[i, "revision"] == check_output("svnversion").replace("\n", ""))):
+            cond = ((dataBase.loc[i, param2test[cc]] == pdict[param2test[cc]]).all())
             while(cond):
                 if(cc >= len(param2test)):
                     break
                 else:                
-                    cond = ((dataBase.loc[i,param2test[cc]] == pdict[param2test[cc]]).all())
-                    cc+=1           
+                    cond = ((dataBase.loc[i, param2test[cc]] == pdict[param2test[cc]]).all())
+                    cc += 1           
             # For debug
             #############################
-            #if not cond:
+            # if not cond:
             #    cc -= 1
             #    print param2test[cc]+" has changed from ",dataBase.loc[i,param2test[cc]], " to ",pdict[param2test[cc]]
            ###############################
@@ -529,14 +529,14 @@ def checkControlParams(savepath,config,pdict,matricesToLoad):
 #            load_control &= ((dataBase.loc[i,"control.nwfs"] == [c.nwfs for c in config.p_controllers]).all())
         if(cond):
             matricesToLoad["index_control"] = i
-            matricesToLoad["imat"] = dataBase.loc[i,"path2file"]
-            dataBase = pandas.read_hdf(savepath+"matricesDataBase.h5","eigenv")
-            matricesToLoad["eigenv"] = dataBase.loc[i,"path2file"]
-            dataBase = pandas.read_hdf(savepath+"matricesDataBase.h5","U")
-            matricesToLoad["U"] = dataBase.loc[i,"path2file"]
+            matricesToLoad["imat"] = dataBase.loc[i, "path2file"]
+            dataBase = pandas.read_hdf(savepath + "matricesDataBase.h5", "eigenv")
+            matricesToLoad["eigenv"] = dataBase.loc[i, "path2file"]
+            dataBase = pandas.read_hdf(savepath + "matricesDataBase.h5", "U")
+            matricesToLoad["U"] = dataBase.loc[i, "path2file"]
             return
         
-def checkDmsParams(savepath,config,pdict,matricesToLoad):
+def checkDmsParams(savepath, config, pdict, matricesToLoad):
     """ Compare the current controller parameters to the database. If similar parameters
     are found, matricesToLoad dictionary is completed.
     Since all the dms matrices are computed together, we only check the parameters
@@ -546,22 +546,22 @@ def checkDmsParams(savepath,config,pdict,matricesToLoad):
         config : (module) : simulation parameters
         matricesToLoad : (dictionary) :  matrices that will be load and their path
     """
-    dataBase = pandas.read_hdf(savepath+"matricesDataBase.h5","pztok")
-    param2test = ["tel_diam","t_spiders","spiders_type","pupangle","referr","std_piston","std_tt","type_ap","nbrmissing","cobs","pupdiam","nwfs","type_wfs",                  "nxsub","npix","pixsize","fracsub","wfs.xpos","wfs.ypos","wfs.Lambda",                  "dms_seen","fssize","fstop","pyr_ampl","pyr_loc","pyr_npts","pyrtype",                  "ndms","type_dm","dm.alt","coupling","hyst","margin","nact","nkl",                  "push4imat","dm.thresh","unitpervolt"]
+    dataBase = pandas.read_hdf(savepath + "matricesDataBase.h5", "pztok")
+    param2test = ["tel_diam", "t_spiders", "spiders_type", "pupangle", "referr", "std_piston", "std_tt", "type_ap", "nbrmissing", "cobs", "pupdiam", "nwfs", "type_wfs", "nxsub", "npix", "pixsize", "fracsub", "wfs.xpos", "wfs.ypos", "wfs.Lambda", "dms_seen", "fssize", "fstop", "pyr_ampl", "pyr_loc", "pyr_npts", "pyrtype", "ndms", "type_dm", "dm.alt", "coupling", "hyst", "margin", "nact", "nkl", "push4imat", "dm.thresh", "unitpervolt"]
 
     for i in dataBase.index:
         cc = 0
-        if(dataBase.loc[i,"validity"] and (dataBase.loc[i,"revision"] == check_output("svnversion").replace("\n",""))):
-            cond = ((dataBase.loc[i,param2test[cc]] == pdict[param2test[cc]]).all())
+        if(dataBase.loc[i, "validity"] and (dataBase.loc[i, "revision"] == check_output("svnversion").replace("\n", ""))):
+            cond = ((dataBase.loc[i, param2test[cc]] == pdict[param2test[cc]]).all())
             while(cond):
                 if(cc >= len(param2test)):
                     break
                 else:                
-                    cond = ((dataBase.loc[i,param2test[cc]] == pdict[param2test[cc]]).all())
-                    cc+=1           
+                    cond = ((dataBase.loc[i, param2test[cc]] == pdict[param2test[cc]]).all())
+                    cc += 1           
             # For debug
             #############################
-            #if not cond:
+            # if not cond:
             #    cc -= 1
             #    print param2test[cc]+" has changed from ",dataBase.loc[i,param2test[cc]], " to ",pdict[param2test[cc]]
             ###############################
@@ -649,52 +649,52 @@ def checkDmsParams(savepath,config,pdict,matricesToLoad):
             
         if(cond):
             matricesToLoad["index_dms"] = i
-            dataBase = pandas.read_hdf(savepath+"matricesDataBase.h5","pztnok")
-            matricesToLoad["pztnok"] = dataBase.loc[i,"path2file"]
-            dataBase = pandas.read_hdf(savepath+"matricesDataBase.h5","pztok")
-            matricesToLoad["pztok"] = dataBase.loc[i,"path2file"]             
+            dataBase = pandas.read_hdf(savepath + "matricesDataBase.h5", "pztnok")
+            matricesToLoad["pztnok"] = dataBase.loc[i, "path2file"]
+            dataBase = pandas.read_hdf(savepath + "matricesDataBase.h5", "pztok")
+            matricesToLoad["pztok"] = dataBase.loc[i, "path2file"]             
             return
 
-def validDataBase(savepath,matricesToLoad):
-    store = pandas.HDFStore(savepath+"matricesDataBase.h5")
+def validDataBase(savepath, matricesToLoad):
+    store = pandas.HDFStore(savepath + "matricesDataBase.h5")
     if not(matricesToLoad.has_key("A")):
-        validInStore(store,savepath,"A")
-        validInStore(store,savepath,"B")
-        validInStore(store,savepath,"istx")
-        validInStore(store,savepath,"isty")
+        validInStore(store, savepath, "A")
+        validInStore(store, savepath, "B")
+        validInStore(store, savepath, "istx")
+        validInStore(store, savepath, "isty")
     if not(matricesToLoad.has_key("pztok")):
-        validInStore(store,savepath,"pztok")
-        validInStore(store,savepath,"pztnok")
+        validInStore(store, savepath, "pztok")
+        validInStore(store, savepath, "pztnok")
     if not(matricesToLoad.has_key("imat")):
-        validInStore(store,savepath,"imat")
+        validInStore(store, savepath, "imat")
     if not(matricesToLoad.has_key("eigenv")):
-        validInStore(store,savepath,"eigenv")
-        validInStore(store,savepath,"U")
+        validInStore(store, savepath, "eigenv")
+        validInStore(store, savepath, "U")
     store.close()
 
 def validFile(filename):
-    f=h5py.File(filename,"r+")
+    f = h5py.File(filename, "r+")
     f.attrs["validity"] = True
     f.close()
 
-def validInStore(store,savepath,matricetype):
-    df = pandas.read_hdf(savepath+"matricesDataBase.h5",matricetype)
+def validInStore(store, savepath, matricetype):
+    df = pandas.read_hdf(savepath + "matricesDataBase.h5", matricetype)
     ind = len(df.index) - 1
-    df.loc[ind,"validity"] = True
+    df.loc[ind, "validity"] = True
     store[matricetype] = df
-    validFile(df.loc[ind,"path2file"])
+    validFile(df.loc[ind, "path2file"])
     
-def configFromH5(filename,config):
+def configFromH5(filename, config):
     import shesha as ao
     
-    f=h5py.File(filename,"r")
+    f = h5py.File(filename, "r")
     
     config.simul_name = str(f.attrs.get("simulname"))
-    #Loop
+    # Loop
     config.p_loop.set_niter(f.attrs.get("niter"))
     config.p_loop.set_ittime(f.attrs.get("ittime"))
     
-    #geom
+    # geom
     config.p_geom.set_zenithangle(f.attrs.get("zenithangle"))
     config.p_geom.set_pupdiam(f.attrs.get("pupdiam"))
     
@@ -730,7 +730,7 @@ def configFromH5(filename,config):
         config.p_target.set_dms_seen(f.attrs.get("target.dms_seen"))
     
     # WFS
-    config.p_wfss=[]
+    config.p_wfss = []
     for i in range(f.attrs.get("nwfs")):
         config.p_wfss.append(ao.Param_wfs())
         config.p_wfss[i].set_type(str(f.attrs.get("type_wfs")[i]))
@@ -765,7 +765,7 @@ def configFromH5(filename,config):
         config.p_wfss[i].set_beamsize(f.attrs.get("beamsize")[i])
     
     # DMs
-    config.p_dms=[]
+    config.p_dms = []
     if(f.attrs.get("ndms")):
         for i in range(f.attrs.get("ndms")):
             config.p_dms.append(ao.Param_dm())
@@ -778,7 +778,7 @@ def configFromH5(filename,config):
             config.p_dms[i].set_push4imat(f.attrs.get("push4imat")[i])
     
     # Centroiders
-    config.p_centroiders=[]
+    config.p_centroiders = []
     if(f.attrs.get("ncentroiders")):
         for i in range(f.attrs.get("ncentroiders")):
             config.p_centroiders.append(ao.Param_centroider())
@@ -793,7 +793,7 @@ def configFromH5(filename,config):
         config.p_rtc.set_centroiders(config.p_centroiders)
     
     # Controllers
-    config.p_controllers=[]
+    config.p_controllers = []
     if(f.attrs.get("ncontrollers")):
         for i in range(f.attrs.get("ncontrollers")):
             config.p_controllers.append(ao.Param_controller())
@@ -815,11 +815,11 @@ def configFromH5(filename,config):
     
     config.p_rtc.set_nwfs(f.attrs.get("nwfs"))
     
-    print "Parameters have been read from ",filename, "header"
+    print "Parameters have been read from ", filename, "header"
         
         
     
-def writeHdf5SingleDataset(filename,data,datasetName="dataset"):
+def writeHdf5SingleDataset(filename, data, datasetName="dataset"):
     """Write a hdf5 file containig a single field
 
     If the file already exists, it will be overwritten
@@ -831,8 +831,8 @@ def writeHdf5SingleDataset(filename,data,datasetName="dataset"):
         datasetName: (str) : name of the dataset to write (default="dataset")
     """
 
-    f=h5py.File(filename,"w")
-    f.create_dataset(datasetName,data=data)
+    f = h5py.File(filename, "w")
+    f.create_dataset(datasetName, data=data)
     f.close()
 
 
@@ -846,7 +846,7 @@ def readHdf5SingleDataset(filename, datasetName="dataset"):
         datasetName: (str) : name of the dataset to read (default="dataset")
     """
 
-    f=h5py.File(filename,"r")
-    data=f[datasetName][:]
+    f = h5py.File(filename, "r")
+    data = f[datasetName][:]
     f.close()
     return data

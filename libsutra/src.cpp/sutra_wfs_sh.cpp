@@ -2,10 +2,11 @@
 #include <sutra_ao_utils.h>
 #include <carma_utils.h>
 
-
-sutra_wfs_sh::sutra_wfs_sh(carma_context *context, sutra_telescope *d_tel, sutra_sensors *sensors, long nxsub,
-    long nvalid, long npix, long nphase, long nrebin, long nfft, long ntot,
-    long npup, float pdiam, float nphotons, float nphot4imat, int lgs, int device) {
+sutra_wfs_sh::sutra_wfs_sh(carma_context *context, sutra_telescope *d_tel,
+                           sutra_sensors *sensors, long nxsub, long nvalid,
+                           long npix, long nphase, long nrebin, long nfft,
+                           long ntot, long npup, float pdiam, float nphotons,
+                           float nphot4imat, int lgs, int device) {
   this->type = "sh";
   this->d_camplipup = sensors->d_camplipup;
   this->d_camplifoc = sensors->d_camplifoc;
@@ -61,34 +62,33 @@ sutra_wfs_sh::sutra_wfs_sh(carma_context *context, sutra_telescope *d_tel, sutra
   this->nvalid_tot = nvalid;
   this->rank = 0;
 
-
 }
 
-int sutra_wfs_sh::define_mpi_rank(int rank, int size){
-  if(this->device==0)
-    this->device = rank%current_context->get_ndevice();
+int sutra_wfs_sh::define_mpi_rank(int rank, int size) {
+  if (this->device == 0)
+    this->device = rank % current_context->get_ndevice();
 
-  int count=this->nvalid/size;
+  int count = this->nvalid / size;
   int i;
   this->rank = rank;
-  int r = this->nvalid%size;
-  if(rank<r){
-    this->nvalid = this->nvalid/size + 1;
-    this->offset = rank*this->nvalid;
+  int r = this->nvalid % size;
+  if (rank < r) {
+    this->nvalid = this->nvalid / size + 1;
+    this->offset = rank * this->nvalid;
   } else {
-    this->nvalid = this->nvalid/size;
-    this->offset = rank*this->nvalid +r;
+    this->nvalid = this->nvalid / size;
+    this->offset = rank * this->nvalid + r;
   }
 
   displ_bincube = new int[size];
   count_bincube = new int[size];
-  for(i=0;i<r;i++){
-    count_bincube[i]=npix*npix*(count+1);
-    displ_bincube[i]=i*count_bincube[i];
+  for (i = 0; i < r; i++) {
+    count_bincube[i] = npix * npix * (count + 1);
+    displ_bincube[i] = i * count_bincube[i];
   }
-  for(i=r;i<size;i++){
-    count_bincube[i]=npix*npix*count;
-    displ_bincube[i]=i*count_bincube[i]+r*npix*npix;
+  for (i = r; i < size; i++) {
+    count_bincube[i] = npix * npix * count;
+    displ_bincube[i] = i * count_bincube[i] + r * npix * npix;
   }
 
   return EXIT_SUCCESS;
@@ -106,10 +106,11 @@ int sutra_wfs_sh::allocate_buffers(sutra_sensors *sensors) {
   dims_data2[1] = npix * nxsub;
   dims_data2[2] = npix * nxsub;
 
-  if(rank==0) {
+  if (rank == 0) {
     this->d_binimg = new carma_obj<float>(current_context, dims_data2);
     // using 1 stream for telemetry
-    this->image_telemetry = new carma_host_obj<float>(dims_data2, MA_PAGELOCK, 1);
+    this->image_telemetry = new carma_host_obj<float>(dims_data2, MA_PAGELOCK,
+                                                      1);
   }
 
   dims_data3[1] = nfft;
@@ -126,9 +127,9 @@ int sutra_wfs_sh::allocate_buffers(sutra_sensors *sensors) {
   mdims[0] = (int) dims_data3[1];
   mdims[1] = (int) dims_data3[2];
 
-  int vector_dims[3] = {mdims[0],mdims[1],(int)dims_data3[3]};
+  int vector_dims[3] = { mdims[0], mdims[1], (int) dims_data3[3] };
   vector<int> vdims(vector_dims,
-                        vector_dims + sizeof(vector_dims) / sizeof(int));
+                    vector_dims + sizeof(vector_dims) / sizeof(int));
   //vector<int> vdims(dims_data3 + 1, dims_data3 + 4);
 
   if (sensors->campli_plans.find(vdims) == sensors->campli_plans.end()) {
@@ -137,8 +138,7 @@ int sutra_wfs_sh::allocate_buffers(sutra_sensors *sensors) {
     carmafftSafeCall(
         cufftPlanMany(plan, 2 ,mdims,NULL,1,0,NULL,1,0, CUFFT_C2C ,(int)dims_data3[3]));
 
-    sensors->campli_plans.insert(
-        pair<vector<int>, cufftHandle*>(vdims, plan));
+    sensors->campli_plans.insert(pair<vector<int>, cufftHandle*>(vdims, plan));
 
     this->campli_plan = plan;
     //DEBUG_TRACE("FFT plan created");printMemInfo();
@@ -149,12 +149,13 @@ int sutra_wfs_sh::allocate_buffers(sutra_sensors *sensors) {
 
   dims_data3[1] = npix;
   dims_data3[2] = npix;
-  if(rank==0)
+  if (rank == 0)
     dims_data3[3] = nvalid_tot;
 
   this->d_bincube = new carma_obj<float>(current_context, dims_data3);
-  if(this->error_budget){
-	  this->d_bincube_notnoisy = new carma_obj<float>(current_context, dims_data3);
+  if (this->error_budget) {
+    this->d_bincube_notnoisy = new carma_obj<float>(current_context,
+                                                    dims_data3);
   }
 
   this->nstreams = 1;
@@ -306,8 +307,8 @@ sutra_wfs_sh::~sutra_wfs_sh() {
   if (this->lgs)
     delete this->d_gs->d_lgs;
 
-  if(this->d_gs != 0L)
-	  delete this->d_gs;
+  if (this->d_gs != 0L)
+    delete this->d_gs;
 
   delete this->streams;
 
@@ -315,15 +316,16 @@ sutra_wfs_sh::~sutra_wfs_sh() {
 }
 
 int sutra_wfs_sh::wfs_initarrays(int *phasemap, int *hrmap, int *binmap,
-    float *offsets, float *fluxPerSub,
-    int *validsubsx, int *validsubsy, int *istart, int *jstart,
-    cuFloatComplex *kernel) {
-  if(this->d_bincube == NULL) {
-    DEBUG_TRACE("ERROR : d_bincube not initialized, did you do the allocate_buffers?");
+                                 float *offsets, float *fluxPerSub,
+                                 int *validsubsx, int *validsubsy, int *istart,
+                                 int *jstart, cuFloatComplex *kernel) {
+  if (this->d_bincube == NULL) {
+    DEBUG_TRACE(
+        "ERROR : d_bincube not initialized, did you do the allocate_buffers?");
     throw "ERROR : d_bincube not initialized, did you do the allocate_buffers?";
   }
   current_context->set_activeDevice(device,1);
-  this->d_phasemap->host2device(&phasemap[offset*nphase*nphase]);
+  this->d_phasemap->host2device(&phasemap[offset * nphase * nphase]);
   this->d_offsets->host2device(offsets);
   this->d_binmap->host2device(binmap);
   this->d_fluxPerSub->host2device(&fluxPerSub[offset]);
@@ -338,49 +340,51 @@ int sutra_wfs_sh::wfs_initarrays(int *phasemap, int *hrmap, int *binmap,
   return EXIT_SUCCESS;
 }
 
-
 /////////////////////////////////////////////////////////
 // COMPUTATION OF THE SHACK-HARTMANN WAVEFRONT SENSOR  //
 /////////////////////////////////////////////////////////
 
 int sutra_wfs_sh::comp_generic() {
-  if(this->d_bincube == NULL) {
-    DEBUG_TRACE("ERROR : d_bincube not initialized, did you do the allocate_buffers?");
+  if (this->d_bincube == NULL) {
+    DEBUG_TRACE(
+        "ERROR : d_bincube not initialized, did you do the allocate_buffers?");
     throw "ERROR : d_bincube not initialized, did you do the allocate_buffers?";
   }
   current_context->set_activeDevice(device,1);
 
   carmaSafeCall(
-        cudaMemset(this->d_camplipup->getData(), 0,
-            sizeof(cuFloatComplex) * this->d_camplipup->getNbElem()));
-            /*
-  carmaSafeCall(
-        cudaMemset(this->d_camplifoc->getData(), 0,
-            sizeof(cuFloatComplex) * this->d_camplifoc->getNbElem()));
-            */
+      cudaMemset(this->d_camplipup->getData(), 0,
+                 sizeof(cuFloatComplex) * this->d_camplipup->getNbElem()));
+  /*
+   carmaSafeCall(
+   cudaMemset(this->d_camplifoc->getData(), 0,
+   sizeof(cuFloatComplex) * this->d_camplifoc->getNbElem()));
+   */
 
   // segment phase and fill cube of complex ampli with exp(i*phase_seg)
   fillcamplipup(this->d_camplipup->getData(),
-      this->d_gs->d_phase->d_screen->getData(), this->d_offsets->getData(),
-      this->d_pupil->getData(), this->d_gs->scale, this->d_istart->getData(),
-      this->d_jstart->getData(), this->d_validsubsx->getData(),
-      this->d_validsubsy->getData(), this->nphase,
-      this->d_gs->d_phase->d_screen->getDims(1), this->nfft,
-      this->nphase * this->nphase * this->nvalid,
-		this->current_context->get_device(device),0);//, this->offset);
+                this->d_gs->d_phase->d_screen->getData(),
+                this->d_offsets->getData(), this->d_pupil->getData(),
+                this->d_gs->scale, this->d_istart->getData(),
+                this->d_jstart->getData(), this->d_validsubsx->getData(),
+                this->d_validsubsy->getData(), this->nphase,
+                this->d_gs->d_phase->d_screen->getDims(1), this->nfft,
+                this->nphase * this->nphase * this->nvalid,
+                this->current_context->get_device(device), 0); //, this->offset);
   // do fft of the cube  
   carma_fft(this->d_camplipup->getData(), this->d_camplifoc->getData(), 1,
-      *this->campli_plan);//*this->d_camplipup->getPlan());
+            *this->campli_plan);  //*this->d_camplipup->getPlan());
 
   // get the hrimage by taking the | |^2
   // keep it in amplifoc to save mem space
   abs2c(this->d_camplifoc->getData(), this->d_camplifoc->getData(),
-      this->nfft*this->nfft*this->nvalid, current_context->get_device(device));
+        this->nfft * this->nfft * this->nvalid,
+        current_context->get_device(device));
 
   //set bincube to 0 or noise
   carmaSafeCall(
       cudaMemset(this->d_bincube->getData(), 0,
-          sizeof(float) * this->d_bincube->getNbElem()));
+                 sizeof(float) * this->d_bincube->getNbElem()));
   // increase fov if required
   // and fill bincube with data from hrimg
   // we need to do this sequentially if nvalid > nmaxhr to
@@ -391,13 +395,12 @@ int sutra_wfs_sh::comp_generic() {
 
       carmaSafeCall(
           cudaMemset(this->d_fttotim->getData(), 0,
-              sizeof(cuFloatComplex) * this->d_fttotim->getNbElem()));
-
+                     sizeof(cuFloatComplex) * this->d_fttotim->getNbElem()));
 
       int indxstart1, indxstart2 = 0, indxstart3;
 
       if ((cc == this->nffthr - 1) && (this->nvalid % this->nmaxhr != 0)) {
-        indxstart1 = (this->nfft*this->nfft*this->nvalid)
+        indxstart1 = (this->nfft * this->nfft * this->nvalid)
             - this->nfft * this->nfft * this->nmaxhr;
         if (this->lgs)
           indxstart2 = this->ntot * this->nvalid - this->ntot * this->nmaxhr;
@@ -412,9 +415,9 @@ int sutra_wfs_sh::comp_generic() {
 
       cuFloatComplex *data = this->d_camplifoc->getData();
       indexfill(this->d_fttotim->getData(), &(data[indxstart1]),
-          this->d_hrmap->getData(), this->nfft, this->ntot,
-          this->nfft * this->nfft * this->nmaxhr,
-          this->current_context->get_device(device));
+                this->d_hrmap->getData(), this->nfft, this->ntot,
+                this->nfft * this->nfft * this->nmaxhr,
+                this->current_context->get_device(device));
 
       if (this->lgs) {
         // compute lgs spot on the fly from binned profile image
@@ -422,28 +425,29 @@ int sutra_wfs_sh::comp_generic() {
             this->current_context->get_device(device), indxstart2);
         // convolve with psf
         carma_fft(this->d_fttotim->getData(), this->d_fttotim->getData(), 1,
-            *this->fttotim_plan);//*this->d_fttotim->getPlan());
+                  *this->fttotim_plan);  //*this->d_fttotim->getPlan());
 
         convolve(this->d_fttotim->getData(),
-            this->d_gs->d_lgs->d_ftlgskern->getData(),
-            this->ntot*this->ntot*this->nmaxhr,
-            this->current_context->get_device(device));
+                 this->d_gs->d_lgs->d_ftlgskern->getData(),
+                 this->ntot * this->ntot * this->nmaxhr,
+                 this->current_context->get_device(device));
 
         carma_fft(this->d_fttotim->getData(), this->d_fttotim->getData(), -1,
-        		*this->fttotim_plan);//*this->d_fttotim->getPlan());
+                  *this->fttotim_plan);  //*this->d_fttotim->getPlan());
 
       }
 
       if (this->kernconv) {
         carma_fft(this->d_fttotim->getData(), this->d_fttotim->getData(), 1,
-        		*this->fttotim_plan);//*this->d_fttotim->getPlan());
+                  *this->fttotim_plan);  //*this->d_fttotim->getPlan());
 
         convolve_cube(this->d_fttotim->getData(), this->d_ftkernel->getData(),
-        		this->ntot*this->ntot*this->nmaxhr, this->d_ftkernel->getNbElem(),
-            this->current_context->get_device(device));
+                      this->ntot * this->ntot * this->nmaxhr,
+                      this->d_ftkernel->getNbElem(),
+                      this->current_context->get_device(device));
 
         carma_fft(this->d_fttotim->getData(), this->d_fttotim->getData(), -1,
-        		*this->fttotim_plan);//*this->d_fttotim->getPlan());
+                  *this->fttotim_plan);  //*this->d_fttotim->getPlan());
 
       }
 
@@ -451,73 +455,75 @@ int sutra_wfs_sh::comp_generic() {
       //fprintf(stderr, "[%s@%d]: I'm here!\n", __FILE__, __LINE__);
       if (this->nstreams > 1) {
         fillbincube_async(this->streams, &(data2[indxstart3]),
-            this->d_fttotim->getData(), this->d_binmap->getData(),
-            this->ntot * this->ntot, this->npix * this->npix,
-            this->nrebin * this->nrebin, this->nmaxhr,
-            this->current_context->get_device(device));
+                          this->d_fttotim->getData(), this->d_binmap->getData(),
+                          this->ntot * this->ntot, this->npix * this->npix,
+                          this->nrebin * this->nrebin, this->nmaxhr,
+                          this->current_context->get_device(device));
       } else {
         fillbincube(&(data2[indxstart3]), this->d_fttotim->getData(),
-            this->d_binmap->getData(), this->ntot * this->ntot,
-            this->npix * this->npix, this->nrebin * this->nrebin, this->nmaxhr,
-            this->current_context->get_device(device));
+                    this->d_binmap->getData(), this->ntot * this->ntot,
+                    this->npix * this->npix, this->nrebin * this->nrebin,
+                    this->nmaxhr, this->current_context->get_device(device));
         //fprintf(stderr, "[%s@%d]: I'm here!\n", __FILE__, __LINE__);
       }
     }
   } else {
     if (this->lgs) {
-    	  carmaSafeCall(
-    	        cudaMemset(this->d_fttotim->getData(), 0,
-    	            sizeof(cuFloatComplex) * this->d_fttotim->getNbElem()));
+      carmaSafeCall(
+          cudaMemset(this->d_fttotim->getData(), 0,
+                     sizeof(cuFloatComplex) * this->d_fttotim->getNbElem()));
       this->d_gs->d_lgs->lgs_makespot(this->current_context->get_device(device),
-          0);
+                                      0);
 
       carma_fft(this->d_camplifoc->getData(), this->d_fttotim->getData(), 1,
-    		  *this->fttotim_plan);//*this->d_fttotim->getPlan());
+                *this->fttotim_plan);  //*this->d_fttotim->getPlan());
 
       convolve(this->d_fttotim->getData(),
-          this->d_gs->d_lgs->d_ftlgskern->getData(),
-          this->ntot*this->ntot*this->nvalid,
-          this->current_context->get_device(device));
+               this->d_gs->d_lgs->d_ftlgskern->getData(),
+               this->ntot * this->ntot * this->nvalid,
+               this->current_context->get_device(device));
 
       carma_fft(this->d_fttotim->getData(), this->d_fttotim->getData(), -1,
-    		  *this->fttotim_plan);//*this->d_fttotim->getPlan());
+                *this->fttotim_plan);  //*this->d_fttotim->getPlan());
 
       if (this->nstreams > 1) {
         fillbincube_async(this->streams, this->d_bincube->getData(),
-            this->d_fttotim->getData(), this->d_binmap->getData(),
-            this->nfft * this->nfft, this->npix * this->npix,
-            this->nrebin * this->nrebin, this->nvalid,
-            this->current_context->get_device(device));
+                          this->d_fttotim->getData(), this->d_binmap->getData(),
+                          this->nfft * this->nfft, this->npix * this->npix,
+                          this->nrebin * this->nrebin, this->nvalid,
+                          this->current_context->get_device(device));
       } else {
         fillbincube(this->d_bincube->getData(), this->d_fttotim->getData(),
-            this->d_binmap->getData(), this->nfft * this->nfft,
-            this->npix * this->npix, this->nrebin * this->nrebin, this->nvalid,
-            this->current_context->get_device(device));
+                    this->d_binmap->getData(), this->nfft * this->nfft,
+                    this->npix * this->npix, this->nrebin * this->nrebin,
+                    this->nvalid, this->current_context->get_device(device));
       }
     } else {
       if (this->kernconv) {
         carma_fft(this->d_camplifoc->getData(), this->d_camplifoc->getData(), 1,
-        		*this->campli_plan);//*this->d_camplipup->getPlan());
+                  *this->campli_plan);  //*this->d_camplipup->getPlan());
 
         convolve_cube(this->d_camplifoc->getData(), this->d_ftkernel->getData(),
-            this->nfft*this->nfft*this->nvalid, this->d_ftkernel->getNbElem(),
-            this->current_context->get_device(device));
+                      this->nfft * this->nfft * this->nvalid,
+                      this->d_ftkernel->getNbElem(),
+                      this->current_context->get_device(device));
 
         carma_fft(this->d_camplifoc->getData(), this->d_camplifoc->getData(),
-            -1, *this->campli_plan);//*this->d_camplipup->getPlan());
+                  -1, *this->campli_plan);  //*this->d_camplipup->getPlan());
       }
 
       if (this->nstreams > 1) {
         fillbincube_async(this->streams, this->d_bincube->getData(),
-            this->d_camplifoc->getData(), this->d_binmap->getData(),
-            this->nfft * this->nfft, this->npix * this->npix,
-            this->nrebin * this->nrebin, this->nvalid,
-            this->current_context->get_device(device));
+                          this->d_camplifoc->getData(),
+                          this->d_binmap->getData(), this->nfft * this->nfft,
+                          this->npix * this->npix, this->nrebin * this->nrebin,
+                          this->nvalid,
+                          this->current_context->get_device(device));
       } else {
         fillbincube(this->d_bincube->getData(), this->d_camplifoc->getData(),
-            this->d_binmap->getData(), this->nfft * this->nfft,
-            this->npix * this->npix, this->nrebin * this->nrebin, this->nvalid,
-            this->current_context->get_device(device));
+                    this->d_binmap->getData(), this->nfft * this->nfft,
+                    this->npix * this->npix, this->nrebin * this->nrebin,
+                    this->nvalid, this->current_context->get_device(device));
       }
     }
 
@@ -527,30 +533,33 @@ int sutra_wfs_sh::comp_generic() {
 
   if (this->nstreams > 1) {
     subap_reduce_async(this->npix * this->npix, this->nvalid, this->streams,
-        this->d_bincube->getData(), this->d_subsum->getData());
+                       this->d_bincube->getData(), this->d_subsum->getData());
   } else {
     subap_reduce(this->d_bincube->getNbElem(), this->npix * this->npix,
-        this->nvalid, this->d_bincube->getData(), this->d_subsum->getData(),
-        this->current_context->get_device(device));
+                 this->nvalid, this->d_bincube->getData(),
+                 this->d_subsum->getData(),
+                 this->current_context->get_device(device));
   }
 
   if (this->nstreams > 1) {
     subap_norm_async(this->d_bincube->getData(), this->d_bincube->getData(),
-        this->d_fluxPerSub->getData(), this->d_subsum->getData(), this->nphot,
-        this->npix * this->npix, this->d_bincube->getNbElem(), this->streams,
-        current_context->get_device(device));
+                     this->d_fluxPerSub->getData(), this->d_subsum->getData(),
+                     this->nphot, this->npix * this->npix,
+                     this->d_bincube->getNbElem(), this->streams,
+                     current_context->get_device(device));
   } else {
     // multiply each subap by nphot*fluxPersub/sumPerSub
     subap_norm(this->d_bincube->getData(), this->d_bincube->getData(),
-        this->d_fluxPerSub->getData(), this->d_subsum->getData(), this->nphot,
-        this->npix * this->npix, this->d_bincube->getNbElem(),
-        current_context->get_device(device));
+               this->d_fluxPerSub->getData(), this->d_subsum->getData(),
+               this->nphot, this->npix * this->npix,
+               this->d_bincube->getNbElem(),
+               current_context->get_device(device));
   }
   //fprintf(stderr, "[%s@%d]: I'm here!\n", __FILE__, __LINE__);
 
-  if(this->error_budget){ // Get here the bincube before adding noise, usefull for error budget
-	  this->d_bincube->copyInto(this->d_bincube_notnoisy->getData(),
-			  this->d_bincube->getNbElem());
+  if (this->error_budget) { // Get here the bincube before adding noise, usefull for error budget
+    this->d_bincube->copyInto(this->d_bincube_notnoisy->getData(),
+                              this->d_bincube->getNbElem());
   }
   // add noise
   if (this->noise > -1) {
@@ -572,26 +581,27 @@ int sutra_wfs_sh::comp_generic() {
 // a pyramid wfs. The pyramid can also be explicitely asked for, or
 // a roof prism can be asked for as well.
 
-int sutra_wfs_sh::fill_binimage(int async=0) {
-  if(this->d_binimg == NULL) {
-    DEBUG_TRACE("ERROR : d_bincube not initialized, did you do the allocate_buffers?");
+int sutra_wfs_sh::fill_binimage(int async = 0) {
+  if (this->d_binimg == NULL) {
+    DEBUG_TRACE(
+        "ERROR : d_bincube not initialized, did you do the allocate_buffers?");
     throw "ERROR : d_bincube not initialized, did you do the allocate_buffers?";
   }
   if (noise > 0)
     this->d_binimg->prng('N', this->noise);
 
   current_context->set_activeDevice(device,1);
-  if(async){
+  if (async) {
     fillbinimg_async(this->image_telemetry, this->d_binimg->getData(),
-        this->d_bincube->getData(), this->npix, this->nvalid_tot,
-        this->npix * this->nxsub, this->d_validsubsx->getData(),
-        this->d_validsubsy->getData(), this->d_binimg->getNbElem(), false,
-        this->current_context->get_device(device));
+                     this->d_bincube->getData(), this->npix, this->nvalid_tot,
+                     this->npix * this->nxsub, this->d_validsubsx->getData(),
+                     this->d_validsubsy->getData(), this->d_binimg->getNbElem(),
+                     false, this->current_context->get_device(device));
   } else {
     fillbinimg(this->d_binimg->getData(), this->d_bincube->getData(),
-        this->npix, this->nvalid_tot, this->npix * this->nxsub,
-        this->d_validsubsx->getData(), this->d_validsubsy->getData(),
-        false, this->current_context->get_device(device));
+               this->npix, this->nvalid_tot, this->npix * this->nxsub,
+               this->d_validsubsx->getData(), this->d_validsubsy->getData(),
+               false, this->current_context->get_device(device));
   }
   return EXIT_SUCCESS;
 }
@@ -605,8 +615,9 @@ int sutra_wfs_sh::comp_image() {
 }
 
 int sutra_wfs_sh::slopes_geom(int type, float *slopes) {
-  if(this->d_bincube == NULL) {
-    DEBUG_TRACE("ERROR : d_bincube not initialized, did you do the allocate_buffers?");
+  if (this->d_bincube == NULL) {
+    DEBUG_TRACE(
+        "ERROR : d_bincube not initialized, did you do the allocate_buffers?");
     throw "ERROR : d_bincube not initialized, did you do the allocate_buffers?";
   }
   current_context->set_activeDevice(device,1);
@@ -630,8 +641,8 @@ int sutra_wfs_sh::slopes_geom(int type, float *slopes) {
     //float alpha = 0.0328281 * this->d_gs->lambda / this->subapd;
     float alpha = 0.206265 / this->subapd;
     phase_reduce(this->nphase, this->nvalid,
-        this->d_gs->d_phase->d_screen->getData(), slopes,
-        this->d_phasemap->getData(), alpha);
+                 this->d_gs->d_phase->d_screen->getData(), slopes,
+                 this->d_phasemap->getData(), alpha);
   }
 
   if (type == 1) {
@@ -639,10 +650,10 @@ int sutra_wfs_sh::slopes_geom(int type, float *slopes) {
     //float alpha = 0.0328281 * this->d_gs->lambda / this->subapd;
     float alpha = 0.206265 / this->subapd;
     phase_derive(this->nphase * this->nphase * this->nvalid,
-        this->nphase * this->nphase, this->nvalid, this->nphase,
-        this->d_gs->d_phase->d_screen->getData(), slopes,
-        this->d_phasemap->getData(), this->d_pupil->getData(), alpha,
-        this->d_fluxPerSub->getData());
+                 this->nphase * this->nphase, this->nvalid, this->nphase,
+                 this->d_gs->d_phase->d_screen->getData(), slopes,
+                 this->d_phasemap->getData(), this->d_pupil->getData(), alpha,
+                 this->d_fluxPerSub->getData());
 
   }
 

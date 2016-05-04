@@ -2,7 +2,7 @@
 
 template<class T_data>
 carma_obj<T_data>::carma_obj(carma_context *current_context,
-    const long *dims_data) {
+                             const long *dims_data) {
   /** \brief carma_obj creator.
    * \param current_context : the context in which the carma_obj is created
    * \param dims_data : the array size Yorick format : [ndims,dims1,dims2,...]
@@ -23,7 +23,8 @@ caObjS2::carma_obj(carma_context *current_context, const long *dims_data);
 template
 caObjD2::carma_obj(carma_context *current_context, const long *dims_data);
 template
-carma_obj<struct tuple_t<float> >::carma_obj(carma_context *current_context, const long *dims_data);
+carma_obj<struct tuple_t<float> >::carma_obj(carma_context *current_context,
+                                             const long *dims_data);
 
 template<class T_data>
 carma_obj<T_data>::carma_obj(carma_obj<T_data> *src) {
@@ -31,7 +32,7 @@ carma_obj<T_data>::carma_obj(carma_obj<T_data> *src) {
    * \param src : carma_obj to copy
    */
   init(src->current_context, src->dims_data, src->d_data, false,
-      src->get_nbStreams());
+       src->get_nbStreams());
 }
 template
 caObjI::carma_obj(caObjI *src);
@@ -48,7 +49,7 @@ caObjD2::carma_obj(caObjD2 *src);
 
 template<class T_data>
 carma_obj<T_data>::carma_obj(carma_context *current_context,
-    carma_obj<T_data> *src) {
+                             carma_obj<T_data> *src) {
   /** \brief carma_obj creator.
    * \param src : carma_obj to copy
    */
@@ -70,7 +71,7 @@ caObjD2::carma_obj(carma_context *current_context, caObjD2 *src);
 
 template<class T_data>
 carma_obj<T_data>::carma_obj(carma_context *current_context,
-    const long *dims_data, T_data *data) {
+                             const long *dims_data, T_data *data) {
   /** \brief carma_obj creator.
    * \param dims_data : the array size Yorick format : [ndims,dims1,dims2,...]
    * \param data : the array
@@ -80,26 +81,26 @@ carma_obj<T_data>::carma_obj(carma_context *current_context,
 
 template
 caObjS::carma_obj(carma_context *current_context, const long *dims_data,
-    float *data);
+                  float *data);
 template
 caObjD::carma_obj(carma_context *current_context, const long *dims_data,
-    double *data);
+                  double *data);
 template
 caObjI::carma_obj(carma_context *current_context, const long *dims_data,
-    int *data);
+                  int *data);
 template
 caObjUI::carma_obj(carma_context *current_context, const long *dims_data,
-    unsigned int *data);
+                   unsigned int *data);
 template
 caObjS2::carma_obj(carma_context *current_context, const long *dims_data,
-    float2 *data);
+                   float2 *data);
 template
 caObjD2::carma_obj(carma_context *current_context, const long *dims_data,
-    double2 *data);
+                   double2 *data);
 
 template<class T_data>
 carma_obj<T_data>::carma_obj(carma_context *current_context,
-    const long *dims_data, int nb_streams) {
+                             const long *dims_data, int nb_streams) {
   /** \brief carma_obj creator.
    * \param dims_data : the array size Yorick format : [ndims,dims1,dims2,...]
    */
@@ -108,26 +109,27 @@ carma_obj<T_data>::carma_obj(carma_context *current_context,
 
 template
 caObjS::carma_obj(carma_context *current_context, const long *dims_data,
-    int nb_streams);
+                  int nb_streams);
 template
 caObjD::carma_obj(carma_context *current_context, const long *dims_data,
-    int nb_streams);
+                  int nb_streams);
 template
 caObjI::carma_obj(carma_context *current_context, const long *dims_data,
-    int nb_streams);
+                  int nb_streams);
 template
 caObjUI::carma_obj(carma_context *current_context, const long *dims_data,
-    int nb_streams);
+                   int nb_streams);
 template
 caObjS2::carma_obj(carma_context *current_context, const long *dims_data,
-    int nb_streams);
+                   int nb_streams);
 template
 caObjD2::carma_obj(carma_context *current_context, const long *dims_data,
-    int nb_streams);
+                   int nb_streams);
 
 template<class T_data>
 carma_obj<T_data>::carma_obj(carma_context *current_context,
-    const long *dims_data, T_data *data, int nb_streams) {
+                             const long *dims_data, T_data *data,
+                             int nb_streams) {
   /** \brief carma_obj creator.
    * \param dims_data : the array size Yorick format : [ndims,dims1,dims2,...]
    * \param data : the array
@@ -137,26 +139,26 @@ carma_obj<T_data>::carma_obj(carma_context *current_context,
 
 template
 caObjS::carma_obj(carma_context *current_context, const long *dims_data,
-    float *data, int nb_streams);
+                  float *data, int nb_streams);
 template
 caObjD::carma_obj(carma_context *current_context, const long *dims_data,
-    double *data, int nb_streams);
+                  double *data, int nb_streams);
 template
 caObjI::carma_obj(carma_context *current_context, const long *dims_data,
-    int *data, int nb_streams);
+                  int *data, int nb_streams);
 template
 caObjUI::carma_obj(carma_context *current_context, const long *dims_data,
-    unsigned int *data, int nb_streams);
+                   unsigned int *data, int nb_streams);
 template
 caObjS2::carma_obj(carma_context *current_context, const long *dims_data,
-    float2 *data, int nb_streams);
+                   float2 *data, int nb_streams);
 template
 caObjD2::carma_obj(carma_context *current_context, const long *dims_data,
-    double2 *data, int nb_streams);
+                   double2 *data, int nb_streams);
 
 template<class T_data>
 void carma_obj<T_data>::init(carma_context *context, const long *dims_data,
-    T_data *data, bool fromHost, int nb_streams) {
+                             T_data *data, bool fromHost, int nb_streams) {
   this->current_context = context;
   const long size_data = dims_data[0] + 1;
   this->dims_data = new long[size_data];
@@ -236,7 +238,7 @@ carma_obj<T_data>::~carma_obj() {
     this->destroy_prng_host();
 
   if (this->d_states != 0)
-	  this->destroy_prng();
+    this->destroy_prng();
   //  carmaSafeCall(cudaFree(this->d_states));
   //this->d_states = 0;
 
@@ -270,7 +272,7 @@ int carma_obj<T_data>::host2device(T_data *data) {
    */
   carmaSafeCall(
       cudaMemcpy(this->d_data, data, sizeof(T_data) * this->nb_elem,
-          cudaMemcpyHostToDevice));
+                 cudaMemcpyHostToDevice));
 
   return EXIT_SUCCESS;
 }
@@ -289,7 +291,6 @@ template int
 caObjD2::host2device(double2 *data);
 template int
 carma_obj<struct tuple_t<float> >::host2device(struct tuple_t<float> *data);
-
 
 /*
  template<class T_data>
@@ -317,7 +318,7 @@ int carma_obj<T_data>::device2host(T_data *data) {
    */
   carmaSafeCall(
       cudaMemcpy(data, this->d_data, sizeof(T_data) * this->nb_elem,
-          cudaMemcpyDeviceToHost));
+                 cudaMemcpyDeviceToHost));
 
   return EXIT_SUCCESS;
 }
@@ -416,7 +417,7 @@ int carma_obj<T_data>::device2hostOpt(T_data *data) {
 
   carmaSafeCall(
       cudaMemcpy(data, this->o_data, sizeof(T_data) * this->nb_elem,
-          cudaMemcpyDeviceToHost));
+                 cudaMemcpyDeviceToHost));
 
   return EXIT_SUCCESS;
 }
@@ -446,7 +447,7 @@ int carma_obj<T_data>::copyInto(T_data *data, int nb_elem) {
 
   carmaSafeCall(
       cudaMemcpy(data, this->d_data, sizeof(T_data) * nb_elem,
-          cudaMemcpyDeviceToDevice));
+                 cudaMemcpyDeviceToDevice));
 
   return EXIT_SUCCESS;
 }
@@ -475,7 +476,7 @@ int carma_obj<T_data>::copyFrom(T_data *data, int nb_elem) {
 
   carmaSafeCall(
       cudaMemcpy(this->d_data, data, sizeof(T_data) * nb_elem,
-          cudaMemcpyDeviceToDevice));
+                 cudaMemcpyDeviceToDevice));
 
   return EXIT_SUCCESS;
 }
@@ -523,12 +524,12 @@ caObjS::sum();
 template double
 caObjD::sum();
 /*add template cuFloatComplex
-caObjC::sum();*/
+ caObjC::sum();*/
 
 template<class T_data>
 int carma_obj<T_data>::transpose(carma_obj<T_data> *source) {
   transposeCU(source->d_data, this->d_data, this->dims_data[1],
-      this->dims_data[2]);
+              this->dims_data[2]);
   return EXIT_SUCCESS;
 }
 template int
@@ -555,7 +556,8 @@ int _genericCUS(caObjS *dest, caObjS *source) {
    *
    * this function returns the sum of the single-precision array
    */
-  return launch_generic1d((float*) *source, (float*) *dest, source->getNbElem(), dest->getContext()->get_device(dest->getDevice()));
+  return launch_generic1d((float*) *source, (float*) *dest, source->getNbElem(),
+                          dest->getContext()->get_device(dest->getDevice()));
 }
 int _genericCUD(caObjD *dest, caObjD *source) {
   /*! \brief sum wrapper for Yorick (double).
@@ -564,7 +566,8 @@ int _genericCUD(caObjD *dest, caObjD *source) {
    * this function returns the sum of the double-precision array
    */
   return launch_generic1d((double*) *source, (double*) *dest,
-      source->getNbElem(), dest->getContext()->get_device(dest->getDevice()));
+                          source->getNbElem(),
+                          dest->getContext()->get_device(dest->getDevice()));
 }
 
 int _generic2CUS(caObjS *dest, caObjS *source) {
@@ -574,7 +577,7 @@ int _generic2CUS(caObjS *dest, caObjS *source) {
    * this function returns the sum of the single-precision array
    */
   return launch_generic2d((float*) *source, (float*) *dest, source->getDims(1),
-      source->getDims(2));
+                          source->getDims(2));
 }
 int _generic2CUD(caObjD *dest, caObjD *source) {
   /*! \brief sum wrapper for Yorick (double).
@@ -583,6 +586,6 @@ int _generic2CUD(caObjD *dest, caObjD *source) {
    * this function returns the sum of the double-precision array
    */
   return launch_generic2d((double*) *source, (double*) *dest,
-      source->getDims(1), source->getDims(2));
+                          source->getDims(1), source->getDims(2));
 }
 

@@ -40,6 +40,7 @@ int sutra_centroider_pyr::get_pyr(float *cube, float *subsum, float *centroids,
   current_context->set_activeDevice(device,1);
   //pyr_slopes(centroids, cube, subindx, subindy, subsum, ns, nvalid, nim, this->current_context->get_device(device));
   pyr2_slopes(centroids,cube,subindx,subindy,subsum,ns,nvalid,this->current_context->get_device(device));
+  return EXIT_SUCCESS;
 }
 
 int sutra_centroider_pyr::get_cog(float *subsum, float *slopes) {
