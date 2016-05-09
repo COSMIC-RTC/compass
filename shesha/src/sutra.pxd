@@ -571,6 +571,7 @@ cdef extern from "sutra_dm.h":
 
         carma_context * current_context
 
+        int nact()
         int pzt_loadarrays(float * influ, float * influ2, tuple_t[float] * influ3,
                            int * influpos, int * influpos2, int * 
                            npoints, int * istart,

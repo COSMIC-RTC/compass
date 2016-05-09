@@ -176,6 +176,10 @@ sutra_dm::~sutra_dm() {
 	 */
 }
 
+int sutra_dm::nact() {
+	return this->ninflu;
+}
+
 int sutra_dm::prepare_convolve() {
 
 	current_context->set_activeDevice(device,1);
@@ -619,18 +623,18 @@ int sutra_dm::DDiago(carma_obj<float> *d_statcov, carma_obj<float> *d_geocov) {
 	carma_host_obj<float> *h_eigenvals_sqrt = new carma_host_obj<float>(
 			dims_data2, MA_PAGELOCK);
 
-	// 1. SVdec(geocov,U) --> Ut * geocov * U = D��
+	// 1. SVdec(geocov,U) --> Ut * geocov * U = D������
 	carma_syevd<float, 1>('V', d_geocov, h_eigenvals);
 
 	d_eigenvals->host2device(*h_eigenvals);
 	for (int i = 0; i < this->ninflu; i++) {
-		h_eigenvals_sqrt->getData()[i] = sqrt(h_eigenvals->getData()[i]); // D = sqrt(D��)
-		h_eigenvals_inv->getData()[i] = 1. / sqrt(h_eigenvals->getData()[i]); // D����� = 1/sqrt(D��)
+		h_eigenvals_sqrt->getData()[i] = sqrt(h_eigenvals->getData()[i]); // D = sqrt(D������)
+		h_eigenvals_inv->getData()[i] = 1. / sqrt(h_eigenvals->getData()[i]); // D��������������� = 1/sqrt(D������)
 	}
 	d_eigenvals_sqrt->host2device(*h_eigenvals_sqrt);
 	d_eigenvals_inv->host2device(*h_eigenvals_inv);
 
-	// 2. M����� = sqrt(eigenvals) * Ut : here, we have transpose(M�����)
+	// 2. M��������������� = sqrt(eigenvals) * Ut : here, we have transpose(M���������������)
 	/*
    carma_dgmm<float>(cublas_handle(),CUBLAS_SIDE_RIGHT,this->ninflu,this->ninflu,
    d_geocov->getData(), this->ninflu, d_eigenvals_inv->getData(),1,
@@ -641,7 +645,7 @@ int sutra_dm::DDiago(carma_obj<float> *d_statcov, carma_obj<float> *d_geocov) {
 			d_eigenvals_sqrt->getData(), 1, d_M1->getData(),
 			this->ninflu);
 
-	// 3. C' = M����� * statcov * M�����t
+	// 3. C' = M��������������� * statcov * M���������������t
 	carma_gemm<float>(cublas_handle(), 't', 'n', ninflu, ninflu, ninflu, 1.0f,
 			d_M1->getData(), ninflu, d_statcov->getData(), ninflu, 0.0f,
 			d_tmp->getData(), ninflu);
@@ -653,7 +657,7 @@ int sutra_dm::DDiago(carma_obj<float> *d_statcov, carma_obj<float> *d_geocov) {
 	// 4. SVdec(C',A)
 	carma_syevd<float, 1>('V', d_tmp2, h_eigenvals);
 
-	// 5. M = U * D�����
+	// 5. M = U * D���������������
 	carma_dgmm<float>(cublas_handle(), CUBLAS_SIDE_RIGHT, this->ninflu,
 			this->ninflu, d_geocov->getData(), this->ninflu,
 			d_eigenvals_inv->getData(), 1, d_tmp->getData(),

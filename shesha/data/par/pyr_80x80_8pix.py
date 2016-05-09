@@ -1,5 +1,7 @@
 import shesha as ao
 
+simul_name = "pyr_80x80_8pix"
+
 # loop
 p_loop = ao.Param_loop()
 

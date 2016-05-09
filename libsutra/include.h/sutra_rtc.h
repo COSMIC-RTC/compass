@@ -19,55 +19,39 @@ using namespace std;
 
 class sutra_rtc {
 public:
-  int device;
+	int device;
 
-  vector<sutra_centroider *> d_centro;
-  vector<sutra_controller *> d_control;
+	vector<sutra_centroider *> d_centro;
+	vector<sutra_controller *> d_control;
 
-  carma_context *current_context;
+	carma_context *current_context;
 
 public:
-  sutra_rtc(carma_context *context);
-  sutra_rtc(const sutra_rtc& yrtc);
-  ~sutra_rtc();
+	sutra_rtc(carma_context *context);
+	sutra_rtc(const sutra_rtc& yrtc);
+	~sutra_rtc();
 
-  int
-    add_centroider(sutra_sensors *sensors, int nwfs, long nvalid, float offset, float scale, long device,
-		 char *typec);
-  int
-    rm_centroider();
-	int
-	add_controller_geo(int nactu, int Nphi, float delay, long device,
-			sutra_dms *dms, char **type_dmseen, float *alt, int ndm, bool wfs_direction);
-	int
-	add_controller(int nactu, float delay, long device, const char *typec,
+	int add_centroider(sutra_sensors *sensors, int nwfs, long nvalid,
+			float offset, float scale, long device, char *typec);
+	int rm_centroider();
+	int add_controller_geo(int nactu, int Nphi, float delay, long device,
+			sutra_dms *dms, char **type_dmseen, float *alt, int ndm,
+			bool wfs_direction);
+	int add_controller(int nactu, float delay, long device, const char *typec,
 			sutra_dms *dms, char **type_dmseen, float *alt, int ndm);
-	int
-	rm_controller();
+	int rm_controller();
 
-  int
-    do_imat(int ncntrl, sutra_dms *ydms);
-  int
-    do_imatkl(int ncntrl, sutra_dms *ydms);
-  int
-    do_imatkl4pzt(int ncntrl, sutra_dms *ydms);
-  int
-    do_imat_geom(int ncntrl, sutra_dms *ydm, int type);
+	int do_imat(int ncntrl, sutra_dms *ydms);
+	int do_imatkl(int ncntrl, sutra_dms *ydms);
+	int do_imatkl4pzt(int ncntrl, sutra_dms *ydms);
+	int do_imat_geom(int ncntrl, sutra_dms *ydm, int type);
 
-  int
-    do_centroids();
-  int
-    do_centroids(int ncntrl);
-  int
-    do_centroids(int ncntrl, bool imat);
-  int
-    do_centroids_geom(int ncntrl);
-  int
-    do_control(int ncntrl);
-  int
-  	apply_control(int ncntrl, sutra_dms *ydm);
-  int
-	  apply_control2(int ncntrl, sutra_dms *ydm);
+	int do_centroids();
+	int do_centroids(int ncntrl);
+	int do_centroids(int ncntrl, bool imat);
+	int do_centroids_geom(int ncntrl);
+	int do_control(int ncntrl);
+	int apply_control(int ncntrl, sutra_dms *ydm);
 };
 
 #endif // _SUTRA_RTC_H_
