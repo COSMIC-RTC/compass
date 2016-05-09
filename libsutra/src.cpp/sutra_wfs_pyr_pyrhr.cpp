@@ -11,9 +11,7 @@ sutra_wfs_pyr_pyrhr::sutra_wfs_pyr_pyrhr(carma_context *context,
                                          float nphot4imat, int lgs, int device) :
     sutra_wfs_pyr(context, d_tel, sensors, nxsub, nvalid, npix, nphase, nrebin,
                   nfft, ntot, npup, pdiam, nphotons, nphot4imat, lgs, device,
-                  static_cast<char*>("pyr")) {
-  this->type = "pyr";
-
+                  "pyr") {
 }
 
 sutra_wfs_pyr_pyrhr::~sutra_wfs_pyr_pyrhr() {

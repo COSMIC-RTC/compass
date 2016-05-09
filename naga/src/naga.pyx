@@ -1,8 +1,8 @@
-#contain all naga's code and class'
+# contain all naga's code and class'
 
 import numpy as np
-#cimport numpy as np
-
+cimport numpy as np
+np.import_array()
 
 from naga_context import *
 from naga_streams import *

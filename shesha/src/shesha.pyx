@@ -1,7 +1,9 @@
 import cython
 # #cython: profile=True
+
 import numpy as np
 cimport numpy as np
+np.import_array()
 
 import os
 import sys
@@ -12,7 +14,7 @@ from cython.operator cimport dereference as deref, preincrement as inc
 
 import time
 
-cdef float dtor = np.pi/180
+cdef float dtor = np.pi / 180
 
 assert sizeof(int) == sizeof(np.int32_t)
 assert sizeof(long) == sizeof(np.int64_t)
@@ -20,10 +22,10 @@ assert sizeof(float) == sizeof(np.float32_t)
 assert sizeof(double) == sizeof(np.float64_t)
 
 
-shesha_dir= os.environ.get('SHESHA_ROOT')
+shesha_dir = os.environ.get('SHESHA_ROOT')
 
-sys.path.append(shesha_dir+'/src')
-sys.path.append(shesha_dir+"/lib")
+sys.path.append(shesha_dir + '/src')
+sys.path.append(shesha_dir + "/lib")
 
 import iterkolmo as itK
 import make_pupil as mkP
@@ -328,32 +330,32 @@ cpdef bin2d(np.ndarray data_in, int binfact):
     :param binfact: (int) : binning factor
 
     """
-    if(binfact<1):
+    if(binfact < 1):
         raise ValueError("binfact has to be >= 1")
 
-    cdef int nx,ny,fx,fy
-    nx=data_in.shape[0]
-    ny=data_in.shape[1]
-    fx=int(np.ceil(nx/float(binfact)))
-    fy=int(np.ceil(ny/float(binfact)))
+    cdef int nx, ny, fx, fy
+    nx = data_in.shape[0]
+    ny = data_in.shape[1]
+    fx = int(np.ceil(nx / float(binfact)))
+    fy = int(np.ceil(ny / float(binfact)))
 
 
 
-    cdef np.ndarray data_out=np.zeros((fx,fy),dtype=data_in.dtype)
+    cdef np.ndarray data_out = np.zeros((fx, fy), dtype=data_in.dtype)
 
-    cdef int i,j,i1,i2,j1,j2
+    cdef int i, j, i1, i2, j1, j2
 
     for i1 in range(fx):
         for j1 in range(fy):
             for i2 in range(binfact):
                 for j2 in range(binfact):
-                    i = i1*binfact+i2
-                    j = j1*binfact+j2
-                    if(i>=nx):
-                        i=nx-1
-                    if(j>=ny):
-                        j=ny-1
-                    data_out[i1,j1]+=data_in[i,j]
+                    i = i1 * binfact + i2
+                    j = j1 * binfact + j2
+                    if(i >= nx):
+                        i = nx - 1
+                    if(j >= ny):
+                        j = ny - 1
+                    data_out[i1, j1] += data_in[i, j]
 
     return data_out
 
@@ -383,14 +385,14 @@ def  indices(int dim1, int dim2=-1):
     """
 
 
-    if (dim2<0):
-        y =np.tile( (np.arange(dim1,dtype=np.float32)+1),(dim1,1))
-        x =np.copy(y.T)
-        return y,x
+    if (dim2 < 0):
+        y = np.tile((np.arange(dim1, dtype=np.float32) + 1), (dim1, 1))
+        x = np.copy(y.T)
+        return y, x
     else :
-        x =np.tile( (np.arange(dim1,np.float32)+1),(dim2,1))
-        y =np.tile( (np.arange(dim2,np.float32)+1),(dim1,1)).T
-        return y,x
+        x = np.tile((np.arange(dim1, np.float32) + 1), (dim2, 1))
+        y = np.tile((np.arange(dim2, np.float32) + 1), (dim1, 1)).T
+        return y, x
 
 
 
@@ -407,9 +409,9 @@ cpdef makegaussian(int size, float fwhm, int xc=-1, int yc=-1, int norm=0):
 
     """
     cdef np.ndarray tmp
-    tmp = np.exp(-(mkP.dist(size,xc,yc)/(fwhm/1.66))**2.)
-    if (norm>0):
-        tmp = tmp/(fwhm**2.*1.140075)
+    tmp = np.exp(-(mkP.dist(size, xc, yc) / (fwhm / 1.66)) ** 2.)
+    if (norm > 0):
+        tmp = tmp / (fwhm ** 2.*1.140075)
     return tmp
 
 

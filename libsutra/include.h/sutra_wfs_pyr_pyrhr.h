@@ -24,16 +24,13 @@ class sutra_wfs_pyr_pyrhr: public sutra_wfs_pyr {
     sutra_wfs_pyr_pyrhr(const sutra_wfs_pyr_pyrhr& wfs);
     ~sutra_wfs_pyr_pyrhr();
 
-    int
-    wfs_initarrays(cuFloatComplex *halfxy, int *cx, int *cy, float *sincar,
-                   int *validsubsx, int *validsubsy);
+    int wfs_initarrays(cuFloatComplex *halfxy, int *cx, int *cy, float *sincar,
+                       int *validsubsx, int *validsubsy);
 
-    int
-    comp_image();
+    int comp_image();
 
   private:
-    int
-    comp_generic();
+    int comp_generic();
 };
 
 #endif // _SUTRA_WFS_PYR_PYRHR_H_

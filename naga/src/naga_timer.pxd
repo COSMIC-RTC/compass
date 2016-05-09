@@ -16,7 +16,7 @@ cdef extern from "carma_timer.h":
 # P-Class naga_timer
 #################################################
 cdef class naga_timer:
-    cdef carma_timer *timer
+    cdef carma_timer * timer
 
 
 

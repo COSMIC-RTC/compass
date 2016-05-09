@@ -12,6 +12,9 @@ c_types_info = {
 ?>
 
 import numpy as np
+cimport numpy as np
+np.import_array()
+
 from scipy.sparse import csr_matrix
 
 assert sizeof(int) == sizeof(np.int32_t)
@@ -35,7 +38,7 @@ cdef class naga_sparse_obj_CLASSNAME:
                   np.ndarray[ndim=1, dtype=np.int64_t] dims=None,
                   ):
         """naga_obj_CLASSNAME constructor.
-
+        
       carma_sparse_obj(carma_context *current_context)
 
       notimplemented
@@ -52,7 +55,7 @@ cdef class naga_sparse_obj_CLASSNAME:
 
         input data must be a np.ndarray with ndim=DIM
         """
-
+        
         cdef carma_context *ctxt=carma_context.instance()
 
         if(obj is not None):

@@ -1,9 +1,11 @@
 from cython.operator cimport dereference as deref, preincrement as inc
 
-import numpy as np
-
 import make_pupil as mkP
 from blaze.expr.expressions import shape
+
+import numpy as np
+cimport numpy as np
+np.import_array()
 
 # max_extent signature
 cdef _dm_init(Dms dms, Param_dm p_dms, list p_wfs, Param_geom p_geom, Param_tel p_tel, int * max_extent):
@@ -112,7 +114,7 @@ cdef _dm_init(Dms dms, Param_dm p_dms, list p_wfs, Param_geom p_geom, Param_tel 
 
         # Verif
         # res1 = pol2car(*y_dm(n)._klbas,gkl_sfi(*y_dm(n)._klbas, 1));
-        #res2 = yoga_getkl(g_dm,0.,1);
+        # res2 = yoga_getkl(g_dm,0.,1);
 
 
 def dm_init(p_dms, list p_wfs, Param_geom p_geom, Param_tel p_tel):
@@ -149,18 +151,18 @@ cpdef make_pzt_dm(Param_dm p_dm, Param_geom geom):
     """
     cdef int i
     # best parameters, as determined by a multi-dimensional fit
-    #(see coupling3.i)
+    # (see coupling3.i)
     cdef float p1, p2, irc, coupling
     coupling = p_dm.coupling
 
     p1 = 4.49469 + 7.25509 * coupling + \
-        (-32.1948) * coupling**2 + 17.9493 * coupling**3
+        (-32.1948) * coupling ** 2 + 17.9493 * coupling ** 3
 
     p2 = 2.49456 + (-0.65952) * coupling + 8.78886 * \
-        coupling**2 + (-6.23701) * coupling**3
+        coupling ** 2 + (-6.23701) * coupling ** 3
 
     irc = 1.16136 + 2.97422 * coupling + \
-        (-13.2381) * coupling**2 + 20.4395 * coupling**3
+        (-13.2381) * coupling ** 2 + 20.4395 * coupling ** 3
 
     cdef long nxact = p_dm.nact
     cdef float cent = geom.cent
@@ -168,7 +170,7 @@ cpdef make_pzt_dm(Param_dm p_dm, Param_geom geom):
     cdef float ir = irc * pitch
 
     cdef float tmp_c = pitch / np.abs(ir)
-    cdef float c = (coupling - 1. + tmp_c**p1) / (np.log(tmp_c) * tmp_c**p2)
+    cdef float c = (coupling - 1. + tmp_c ** p1) / (np.log(tmp_c) * tmp_c ** p2)
 
     # compute IF on partial (local) support:
     cdef long smallsize = np.ceil(2 * ir + 10)
@@ -183,10 +185,10 @@ cpdef make_pzt_dm(Param_dm p_dm, Param_geom geom):
     # clip
     tmpx[tmpx < 1e-8] = 1e-8
     tmpx[tmpx > 2] = 2.
-    tmp = (1. - tmpx**p1 + c * np.log(tmpx) * tmpx**p2) * \
-        (1. - tmpx.T**p1 + c * np.log(tmpx.T) * tmpx.T**p2)
+    tmp = (1. - tmpx ** p1 + c * np.log(tmpx) * tmpx ** p2) * \
+        (1. - tmpx.T ** p1 + c * np.log(tmpx.T) * tmpx.T ** p2)
 
-    #influ   = tmp*(tmpx <= 1.)*(tmpy <= 1.);
+    # influ   = tmp*(tmpx <= 1.)*(tmpy <= 1.);
     tmp = tmp * (tmpx <= 1.) * (tmpx.T <= 1.)
 
     # compute location (x,y and i,j) of each actuator:
@@ -198,7 +200,7 @@ cpdef make_pzt_dm(Param_dm p_dm, Param_geom geom):
     cub = (cub - 1. - (nxact - 1.) / 2.) * pitch
     # the following determine if an actuator is to be considered or not
     # relative to the pitchmargin parameter.
-    cdef np.ndarray dis = np.sqrt(cub[:, :, 0]**2 + cub[:, :, 1]**2)
+    cdef np.ndarray dis = np.sqrt(cub[:, :, 0] ** 2 + cub[:, :, 1] ** 2)
 
     cdef float pitchMargin = 1.44
     if(p_dm.margin != 0):
@@ -265,7 +267,7 @@ cdef make_tiptilt_dm(Param_dm p_dm, list p_wfs, Param_geom p_geom, Param_tel p_t
     """
     cdef int dim = max(p_dm._n2 - p_dm._n1 + 1, p_geom._mpupil.shape[0])
     norms = [np.linalg.norm([w.xpos, w.ypos]) for w in p_wfs]
-    cdef int patchDiam = p_geom.pupdiam +\
+    cdef int patchDiam = p_geom.pupdiam + \
         2 * np.max(norms) * 4.848e-6 * \
         abs(p_dm.alt / p_tel.diam * p_geom.pupdiam)
 
@@ -301,7 +303,7 @@ cdef make_kl_dm(Param_dm p_dm, Param_wfs p_wfs, Param_geom p_geom, Param_tel p_t
     """
     cdef int dim = p_geom._mpupil.shape[0]
 
-    cdef long patchDiam = long(p_geom.pupdiam + 2 * max(abs(p_wfs.xpos), abs(p_wfs.ypos)) * 4.848e-6 *
+    cdef long patchDiam = long(p_geom.pupdiam + 2 * max(abs(p_wfs.xpos), abs(p_wfs.ypos)) * 4.848e-6 * 
                                abs(p_dm.alt) / p_geom.pupdiam)
 
     print "TODO klbas"
@@ -370,13 +372,13 @@ cdef make_zernike(int nzer, int size, int diameter, float xc=-1, float yc=-1, in
 
         if ext:
             for i in range((n - m) / 2 + 1):
-                z[:, :, zn] = z[:, :, zn] + (-1.)**i * zrmod**(n - 2. * i) * float(np.math.factorial(n - i)) /\
-                    float(np.math.factorial(i) * np.math.factorial((n + m) / 2 - i) *
+                z[:, :, zn] = z[:, :, zn] + (-1.) ** i * zrmod ** (n - 2. * i) * float(np.math.factorial(n - i)) / \
+                    float(np.math.factorial(i) * np.math.factorial((n + m) / 2 - i) * 
                           np.math.factorial((n - m) / 2 - i))
         else:
             for i in range((n - m) / 2 + 1):
-                z[:, :, zn] = z[:, :, zn] + (-1.)**i * zr**(n - 2. * i) * float(np.math.factorial(n - i)) /\
-                    float(np.math.factorial(i) * np.math.factorial((n + m) / 2 - i) *
+                z[:, :, zn] = z[:, :, zn] + (-1.) ** i * zr ** (n - 2. * i) * float(np.math.factorial(n - i)) / \
+                    float(np.math.factorial(i) * np.math.factorial((n + m) / 2 - i) * 
                           np.math.factorial((n - m) / 2 - i))
 
         if((zn + 1) % 2 == 1):
@@ -636,16 +638,16 @@ cdef class Dms:
 
         cdef int ntot_influpos = influpos.shape[0]
         cdef int ntot_istart = istart.shape[0]
-        cdef int n = self.dms.d_dms[inddm].influsize *\
+        cdef int n = self.dms.d_dms[inddm].influsize * \
             self.dms.d_dms[inddm].influsize
 
         cdef float * influ2
-        influ2 = <float * >malloc(ntot_influpos * sizeof(float))
+        influ2 = < float * > malloc(ntot_influpos * sizeof(float))
         cdef tuple_t[float] * influ3 = NULL
         cdef int * influpos2
-        influpos2 = <int * >malloc(ntot_influpos * sizeof(int))
+        influpos2 = < int * > malloc(ntot_influpos * sizeof(int))
         cdef int * istart2
-        istart2 = <int * >malloc((ntot_istart + 1) * sizeof(int))
+        istart2 = < int * > malloc((ntot_istart + 1) * sizeof(int))
 
         cdef int i
         for i in range(ntot_influpos):
@@ -684,16 +686,16 @@ cdef class Dms:
 #endif
         """
 
-        self.dms.d_dms[inddm].pzt_loadarrays(< float*>influ_F.data,
+        self.dms.d_dms[inddm].pzt_loadarrays(< float *> influ_F.data,
                                               influ2,
                                               influ3,
                                               < int * > influpos.data,
                                               influpos2,
-                                              < int * >npoints_F.data,
+                                              < int * > npoints_F.data,
                                               istart2,
-                                              < int * >xoff.data,
-                                              < int * >yoff.data,
-                                              < float * >kern.data)
+                                              < int * > xoff.data,
+                                              < int * > yoff.data,
+                                              < float * > kern.data)
         free(influ2)
         free(influpos2)
         free(istart2)
@@ -731,11 +733,11 @@ cdef class Dms:
         context.set_activeDevice(self.dms.d_dms[inddm].device, 1)
 
 
-        self.dms.d_dms[inddm].kl_loadarrays(< float*> rabas.data,
-                                             < float * >azbas.data,
-                                             < int * >ord.data,
-                                             < float * >cr.data,
-                                             < float * >cp.data)
+        self.dms.d_dms[inddm].kl_loadarrays(< float *> rabas.data,
+                                             < float * > azbas.data,
+                                             < int * > ord.data,
+                                             < float * > cr.data,
+                                             < float * > cp.data)
 
     cpdef load_tt(self, float alt, np.ndarray[ndim=3, dtype=np.float32_t] influ):
         """Load all the arrays computed during the initialization 
@@ -755,7 +757,7 @@ cdef class Dms:
         cdef carma_context * context = carma_context.instance()
         context.set_activeDevice(self.dms.d_dms[inddm].device, 1)
         cdef np.ndarray[dtype = np.float32_t] influ_F = influ.flatten("F")
-        self.dms.d_dms[inddm].d_influ.host2device(< float*>influ_F.data)
+        self.dms.d_dms[inddm].d_influ.host2device(< float *> influ_F.data)
 
     cpdef set_full_comm(self, np.ndarray[ndim=1, dtype=np.float32_t] comm,
                         bool shape_dm=True):
@@ -770,9 +772,9 @@ cdef class Dms:
             raise ValueError("Incorrect size of voltage vector")
 
         cdef int comm_index = 0
-        cdef float * comm_data = <float * >comm.data
+        cdef float * comm_data = < float * > comm.data
         for inddm in range(self.dms.ndm()):
-            self.dms.d_dms[inddm].d_comm.host2device( & comm_data[comm_index])
+            self.dms.d_dms[inddm].d_comm.host2device(& comm_data[comm_index])
             comm_index += self.dms.d_dms[inddm].nact()
             if shape_dm:
                 self.dms.d_dms[inddm].comp_shape()
@@ -797,7 +799,7 @@ cdef class Dms:
                 str(alt) + ") doesn't exist"
             raise ValueError(err)
 
-        self.dms.d_dms[inddm].d_comm.host2device(< float*>comm.data)
+        self.dms.d_dms[inddm].d_comm.host2device(< float *> comm.data)
         if shape_dm:
             self.dms.d_dms[inddm].comp_shape()
 
@@ -847,15 +849,15 @@ cdef class Dms:
 
         cdef int inddm = self.dms.get_inddm(type_dm, alt)
         if(inddm < 0):
-            err = "unknown error with computeKLbasis function\nDM(" + type_dm + "," +\
+            err = "unknown error with computeKLbasis function\nDM(" + type_dm + "," + \
                 str(alt) + ") doesn't exist"
             raise ValueError(err)
 
         cdef carma_context * context = carma_context.instance()
         context.set_activeDevice(self.dms.d_dms[inddm].device, 1)
 
-        self.dms.d_dms[inddm].compute_KLbasis( < float*>xpos.data, < float*>ypos.data, 
-                                              < int * >indx_pup.data, dim, norm, ampli)
+        self.dms.d_dms[inddm].compute_KLbasis(< float *> xpos.data, < float *> ypos.data,
+                                              < int * > indx_pup.data, dim, norm, ampli)
 
     cpdef get_KLbasis(self, bytes type_dm, float alt):
         """Return the klbasis computed by computeKLbasis
@@ -880,7 +882,7 @@ cdef class Dms:
         cdef np.ndarray[ndim = 2, dtype = np.float32_t] data_F = np.zeros((dims[2], dims[1]), dtype=np.float32)
         cdef np.ndarray[ndim = 2, dtype = np.float32_t] data = np.zeros((dims[1], dims[2]), dtype=np.float32)
 
-        self.dms.d_dms[inddm].d_KLbasis.device2host(< float*>data_F.data)
+        self.dms.d_dms[inddm].d_KLbasis.device2host(< float *> data_F.data)
         data = np.reshape(data_F.flatten("F"), (dims[1], dims[2]))
         return data
 
@@ -907,7 +909,7 @@ cdef class Dms:
         cdef np.ndarray[ndim = 2, dtype = np.float32_t] data_F = np.zeros((dims[2], dims[1]), dtype=np.float32)
         cdef np.ndarray[ndim = 2, dtype = np.float32_t] data = np.zeros((dims[1], dims[2]), dtype=np.float32)
 
-        self.dms.d_dms[inddm].d_shape.d_screen.device2host(< float*>data_F.data)
+        self.dms.d_dms[inddm].d_shape.d_screen.device2host(< float *> data_F.data)
         data = np.reshape(data_F.flatten("F"), (dims[1], dims[2]))
         return data
 
@@ -933,7 +935,7 @@ cdef class Dms:
         cdef const long * dims = self.dms.d_dms[inddm].d_comm.getDims()
         cdef np.ndarray[ndim = 1, dtype = np.float32_t] data = np.zeros((dims[1]), dtype=np.float32)
 
-        self.dms.d_dms[inddm].d_comm.device2host(< float*>data.data)
+        self.dms.d_dms[inddm].d_comm.device2host(< float *> data.data)
         return data
 
     cpdef getInflu(self, bytes type_dm, float alt):
@@ -960,7 +962,7 @@ cdef class Dms:
         cdef np.ndarray[ndim = 3, dtype = np.float32_t] data_F = np.zeros((dims[3], dims[2], dims[1]), dtype=np.float32)
         cdef np.ndarray[ndim = 3, dtype = np.float32_t] data = np.zeros((dims[1], dims[2], dims[3]), dtype=np.float32)
 
-        self.dms.d_dms[inddm].d_influ.device2host(< float*>data_F.data)
+        self.dms.d_dms[inddm].d_influ.device2host(< float *> data_F.data)
         data = np.reshape(data_F.flatten("F"), (dims[1], dims[2], dims[3]))
         return data
 
@@ -999,7 +1001,7 @@ cdef class Dms:
         while(it_dms != self.dms.d_dms.end()):
             dm = deref(it_dms)
             ts = deref(it_type)
-            info += "%4d" % i + " | " + "%5s" % <bytes > ts.first + " | " + "%7d" % ts.second + " | " + "%4d" % dm.ninflu + " | " + "%4d" % dm.dim + "\n"
+            info += "%4d" % i + " | " + "%5s" % < bytes > ts.first + " | " + "%7d" % ts.second + " | " + "%4d" % dm.ninflu + " | " + "%4d" % dm.dim + "\n"
             i = i + 1
             inc(it_dms)
             inc(it_type)
@@ -1035,10 +1037,10 @@ cpdef compute_klbasis(Dms g_dm, Param_dm p_dm, Param_geom p_geom, Param_atmos p_
         interactp = p_dm._xpos[1] - p_dm._xpos[0]
         interactm = p_tel.diam / (p_dm.nact - 1)
         p2m = interactm / interactp
-        norm = -(p2m * p_tel.diam / (2 * p_atmos.r0))**(5. / 3)
+        norm = -(p2m * p_tel.diam / (2 * p_atmos.r0)) ** (5. / 3)
 
         g_dm.computeKLbasis(< bytes > "pzt", p_dm.alt, p_dm._xpos, p_dm._ypos, indx_valid, indx_valid.size, norm, 1.0)
-        KLbasis = np.fliplr(g_dm.get_KLbasis( < bytes > "pzt", p_dm.alt))
+        KLbasis = np.fliplr(g_dm.get_KLbasis(< bytes > "pzt", p_dm.alt))
     else:
         raise TypeError("DM must be pzt type")
 

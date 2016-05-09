@@ -7,7 +7,7 @@ sutra_wfs_pyr::sutra_wfs_pyr(carma_context *context, sutra_telescope *d_tel,
                              long npix, long nphase, long nrebin, long nfft,
                              long ntot, long npup, float pdiam, float nphotons,
                              float nphot4imat, int lgs, int device,
-                             char* type_pyr) {
+                             const char* type_pyr) {
   this->d_camplipup = 0L; //sensors->d_camplipup;
   this->d_camplifoc = 0L; //sensors->d_camplifoc;
   this->d_fttotim = 0L; //sensors->d_fttotim;

@@ -91,8 +91,7 @@ class sutra_wfs {
     virtual int allocate_buffers(sutra_sensors *sensors)=0;
 
   private:
-    virtual int
-    comp_generic()=0;
+    virtual int comp_generic()=0;
 };
 
 class sutra_sensors {
@@ -115,26 +114,25 @@ class sutra_sensors {
     carma_obj<float> *d_lgskern;
 
   public:
-    sutra_sensors(carma_context *context, sutra_telescope *d_tel, char **type, int nwfs, long *nxsub,
-                  long *nvalid, long *npix, long *nphase, long *nrebin,
-                  long *nfft, long *ntot, long *npup, float *pdiam,
-                  float *nphot, float *nphot4imat, int *lgs, int device, bool error_budget);
-    sutra_sensors(carma_context *context, sutra_telescope *d_tel, int nwfs, long *nxsub, long *nvalid,
-                  long *nphase, long npup, float *pdiam, int device);
+    sutra_sensors(carma_context *context, sutra_telescope *d_tel, char **type,
+                  int nwfs, long *nxsub, long *nvalid, long *npix, long *nphase,
+                  long *nrebin, long *nfft, long *ntot, long *npup,
+                  float *pdiam, float *nphot, float *nphot4imat, int *lgs,
+                  int device, bool error_budget);
+    sutra_sensors(carma_context *context, sutra_telescope *d_tel, int nwfs,
+                  long *nxsub, long *nvalid, long *nphase, long npup,
+                  float *pdiam, int device);
     ~sutra_sensors();
 
     int allocate_buffers();
     int define_mpi_rank(int rank, int size);
 
-    int
-    sensors_initgs(float *xpos, float *ypos, float *lambda, float *mag, float zerop,
-                   long *size, float *noise, long *seed);
-    int
-    sensors_initgs(float *xpos, float *ypos, float *lambda, float *mag,float zerop,
-                   long *size, float *noise);
-    int
-    sensors_initgs(float *xpos, float *ypos, float *lambda, float *mag,float zerop,
-                   long *size);
+    int sensors_initgs(float *xpos, float *ypos, float *lambda, float *mag,
+                       float zerop, long *size, float *noise, long *seed);
+    int sensors_initgs(float *xpos, float *ypos, float *lambda, float *mag,
+                       float zerop, long *size, float *noise);
+    int sensors_initgs(float *xpos, float *ypos, float *lambda, float *mag,
+                       float zerop, long *size);
 };
 
 // General utilities
@@ -190,7 +188,7 @@ subap_reduce(int size, int threads, int blocks, T *d_idata, T *d_odata,
 template<class T>
 void
 subap_reduce_new(int size, int threads, int blocks, T *d_idata, T *d_odata,
-             T thresh, carma_device *device);
+                 T thresh, carma_device *device);
 // this is for wcog
 template<class T>
 void
@@ -209,12 +207,12 @@ phase_derive(int size, int threads, int blocks, int n, T *d_idata, T *d_odata,
 
 template<class Tout, class Tin>
 void
-pyr_getpup(Tout *d_odata, Tin *d_idata, Tout *d_offsets, Tin *d_pup, int np, float lambda,
-           carma_device *device);
+pyr_getpup(Tout *d_odata, Tin *d_idata, Tout *d_offsets, Tin *d_pup, int np,
+           float lambda, carma_device *device);
 
 template<class Tout, class Tin>
-void pyr_getpup(Tout *d_odata, Tin *d_idata, Tin *d_pup,
-		int np, int N, float lambda, float cx, float cy, carma_device *device);
+void pyr_getpup(Tout *d_odata, Tin *d_idata, Tin *d_pup, int np, int N,
+                float lambda, float cx, float cy, carma_device *device);
 
 template<class T>
 void
@@ -228,8 +226,8 @@ pyr_fillbin(T *d_odata, T *d_idata, int nrebin, int np, int ns, int nim,
 
 template<class T>
 int
-pyr_fillbinimg(T *bimage, const T *bcube, const int nxsub,
-               const bool add, carma_device *device);
+pyr_fillbinimg(T *bimage, const T *bcube, const int nxsub, const bool add,
+               carma_device *device);
 
 template<class T>
 int pyr_fillbinimg(T *oimage, const T *image, const int n, const int N,
@@ -263,7 +261,7 @@ pyr_subsum(T *d_odata, T *d_idata, int *subindx, int *subindy, int ns,
 
 template<class T>
 void pyr_subsum(T *d_odata, T *d_idata, int *subindx, int *subindy, int ns,
-		int nvalid, carma_device *device);
+                int nvalid, carma_device *device);
 
 template<class T>
 void

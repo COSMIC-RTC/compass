@@ -1,4 +1,3 @@
-import numpy as np
 cimport numpy as np
 
 from libc.stdlib cimport malloc, free
@@ -14,9 +13,9 @@ from cpython.string cimport PyString_AsString
 
 from libc.math cimport sin
 
-from shesha_param cimport *
+from shesha_param cimport * 
 from shesha_param import *
-from shesha_sensors cimport *
+from shesha_sensors cimport * 
 
 
 #################################################

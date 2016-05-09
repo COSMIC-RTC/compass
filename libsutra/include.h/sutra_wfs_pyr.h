@@ -29,7 +29,7 @@ class sutra_wfs_pyr: public sutra_wfs {
                   sutra_sensors *sensors, long nxsub, long nvalid, long npix,
                   long nphase, long nrebin, long nfft, long ntot, long npup,
                   float pdiam, float nphotons, float nphot4imat, int lgs,
-                  int device, char* type_pyr);
+                  int device, const char* type_pyr);
     sutra_wfs_pyr(const sutra_wfs_pyr& wfs);
     ~sutra_wfs_pyr();
 

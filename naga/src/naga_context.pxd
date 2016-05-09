@@ -4,16 +4,16 @@ cdef extern from "cublas_v2.h":
 cdef extern from "cublas_api.h":
 
     ctypedef enum cublasStatus_t:
-        CUBLAS_STATUS_SUCCESS         =0
-        CUBLAS_STATUS_NOT_INITIALIZED =1
-        CUBLAS_STATUS_ALLOC_FAILED    =3
-        CUBLAS_STATUS_INVALID_VALUE   =7
-        CUBLAS_STATUS_ARCH_MISMATCH   =8
-        CUBLAS_STATUS_MAPPING_ERROR   =11
-        CUBLAS_STATUS_EXECUTION_FAILED=13
-        CUBLAS_STATUS_INTERNAL_ERROR  =14
-        CUBLAS_STATUS_NOT_SUPPORTED   =15
-        CUBLAS_STATUS_LICENSE_ERROR   =16
+        CUBLAS_STATUS_SUCCESS = 0
+        CUBLAS_STATUS_NOT_INITIALIZED = 1
+        CUBLAS_STATUS_ALLOC_FAILED = 3
+        CUBLAS_STATUS_INVALID_VALUE = 7
+        CUBLAS_STATUS_ARCH_MISMATCH = 8
+        CUBLAS_STATUS_MAPPING_ERROR = 11
+        CUBLAS_STATUS_EXECUTION_FAILED = 13
+        CUBLAS_STATUS_INTERNAL_ERROR = 14
+        CUBLAS_STATUS_NOT_SUPPORTED = 15
+        CUBLAS_STATUS_LICENSE_ERROR = 16
 
 
     ctypedef enum cublasFillMode_t:
@@ -25,7 +25,7 @@ cdef extern from "cublas_api.h":
 
     struct cublasContext:
         pass
-    ctypedef cublasContext *cublasHandle_t
+    ctypedef cublasContext * cublasHandle_t
 
 #################################################
 # C-Class carma_context
@@ -35,23 +35,23 @@ cdef extern from "carma_context.h":
         pass
 
     cdef cppclass carma_context :
-        #carma_context()
+        # carma_context()
         int get_ndevice()
         int set_activeDevice(int newDevice, int silent)
         int set_activeDeviceForce(int newDevice, int silent)
         int set_activeDeviceForCpy(int newDevice, int silent)
         int get_activeDevice()
-        carma_device* get_device(int dev)
+        carma_device * get_device(int dev)
         cublasHandle_t get_cublasHandle()
         @staticmethod
-        carma_context* instance()
+        carma_context * instance()
         @staticmethod
-        carma_context* instance_1gpu(int num_device)
+        carma_context * instance_1gpu(int num_device)
 
 #################################################
 # P-Class naga_context
 #################################################
 cdef class naga_context:
-    cdef carma_context* c
+    cdef carma_context * c
 
 

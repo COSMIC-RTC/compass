@@ -32,11 +32,11 @@ int compute_nmaxhr(long nvalid) {
 }
 
 int sutra_wfs::wfs_initgs(sutra_sensors *sensors, float xpos, float ypos,
-                          float lambda, float mag, float zerop, long size, float noise,
-                          long seed) {
+                          float lambda, float mag, float zerop, long size,
+                          float noise, long seed) {
   current_context->set_activeDevice(device,1);
-  this->d_gs = new sutra_source(current_context, xpos, ypos, lambda, mag, zerop, size,
-                                "wfs", this->device);
+  this->d_gs = new sutra_source(current_context, xpos, ypos, lambda, mag, zerop,
+                                size, "wfs", this->device);
   this->noise = noise;
   if (noise > -1) {
     this->d_bincube->init_prng(seed);
@@ -92,82 +92,84 @@ int sutra_wfs::sensor_trace(sutra_atmos *yatmos, sutra_dms *ydms) {
   return EXIT_SUCCESS;
 }
 
-sutra_sensors::sutra_sensors(carma_context *context, sutra_telescope *d_tel, char **type, int nwfs,
-                             long *nxsub, long *nvalid, long *npix,
-                             long *nphase, long *nrebin, long *nfft, long *ntot,
-                             long *npup, float *pdiam, float *nphot, float *nphot4imat, int *lgs,
-                             int device, bool error_budget) {
+sutra_sensors::sutra_sensors(carma_context *context, sutra_telescope *d_tel,
+                             char **type, int nwfs, long *nxsub, long *nvalid,
+                             long *npix, long *nphase, long *nrebin, long *nfft,
+                             long *ntot, long *npup, float *pdiam, float *nphot,
+                             float *nphot4imat, int *lgs, int device,
+                             bool error_budget) {
   this->current_context = context;
   this->device = device;
   this->error_budget = error_budget;
   current_context->set_activeDevice(device,1);
- // DEBUG_TRACE("Before create sensors : ");printMemInfo();
-	if (strcmp(type[0], "sh") == 0) {
-		int maxnfft = nfft[0];
-		int maxntot = ntot[0];
-		int maxnvalid = 0;
-		int maxnvalid_tot = nvalid[0];
-		int is_lgs = (lgs[0] > 0 ? 1 : 0);
-		for (int i = 1; i < nwfs; i++) {
-		  if(nvalid[i] > maxnvalid_tot)
-		    maxnvalid_tot = nvalid[i];
-			if (ntot[i] > maxntot) {
-				maxntot = ntot[i];
-			}
-			if (nfft[i] > maxnfft) {
-				maxnfft = nfft[i];
-			}
-			if (ntot[i] == nfft[i]) {
-				if (nvalid[i] > maxnvalid) {
-					maxnvalid = nvalid[i];
-				}
-			}
-			if (lgs[i] > 0)
-				is_lgs = 1;
-		}
-		//DEBUG_TRACE("maxntot : %d maxnfft : %d maxnvalid : %d nmaxhr : %d \n ",maxntot,maxnfft,maxnvalid,compute_nmaxhr(nvalid[wfs4ntot]));
-		long dims_data3[4] = { 3, maxnfft, maxnfft, maxnvalid_tot/*nvalid[wfs4nfft]*/ };
-		this->d_camplifoc = new carma_obj<cuFloatComplex>(context, dims_data3);
-		this->d_camplipup = new carma_obj<cuFloatComplex>(context, dims_data3);
+  // DEBUG_TRACE("Before create sensors : ");printMemInfo();
+  if (strcmp(type[0], "sh") == 0) {
+    int maxnfft = nfft[0];
+    int maxntot = ntot[0];
+    int maxnvalid = 0;
+    int maxnvalid_tot = nvalid[0];
+    int is_lgs = (lgs[0] > 0 ? 1 : 0);
+    for (int i = 1; i < nwfs; i++) {
+      if (nvalid[i] > maxnvalid_tot)
+        maxnvalid_tot = nvalid[i];
+      if (ntot[i] > maxntot) {
+        maxntot = ntot[i];
+      }
+      if (nfft[i] > maxnfft) {
+        maxnfft = nfft[i];
+      }
+      if (ntot[i] == nfft[i]) {
+        if (nvalid[i] > maxnvalid) {
+          maxnvalid = nvalid[i];
+        }
+      }
+      if (lgs[i] > 0)
+        is_lgs = 1;
+    }
+    //DEBUG_TRACE("maxntot : %d maxnfft : %d maxnvalid : %d nmaxhr : %d \n ",maxntot,maxnfft,maxnvalid,compute_nmaxhr(nvalid[wfs4ntot]));
+    long dims_data3[4] =
+        { 3, maxnfft, maxnfft, maxnvalid_tot /*nvalid[wfs4nfft]*/};
+    this->d_camplifoc = new carma_obj<cuFloatComplex>(context, dims_data3);
+    this->d_camplipup = new carma_obj<cuFloatComplex>(context, dims_data3);
 
-		dims_data3[1] = maxntot;
-		dims_data3[2] = maxntot;
-		dims_data3[3] = compute_nmaxhr(maxnvalid_tot/*nvalid[wfs4ntot]*/);
-		if (maxnvalid > dims_data3[3])
-			dims_data3[3] = maxnvalid;
-		this->d_fttotim = new carma_obj<cuFloatComplex>(context, dims_data3);
-		if (is_lgs) {
-			this->d_ftlgskern = new carma_obj<cuFloatComplex>(context,
-					dims_data3);
-			this->d_lgskern = new carma_obj<float>(context, dims_data3);
-		} else {
-			this->d_ftlgskern = 0L;
-			this->d_lgskern = 0L;
-		}
-	}
-	else{ // Pyramid case : shared arrays are not used
-		this->d_camplifoc = 0L;
-		this->d_camplipup = 0L;
-		this->d_fttotim = 0L;
-		this->d_ftlgskern = 0L;
-		this->d_lgskern = 0L;
+    dims_data3[1] = maxntot;
+    dims_data3[2] = maxntot;
+    dims_data3[3] = compute_nmaxhr(maxnvalid_tot/*nvalid[wfs4ntot]*/);
+    if (maxnvalid > dims_data3[3])
+      dims_data3[3] = maxnvalid;
+    this->d_fttotim = new carma_obj<cuFloatComplex>(context, dims_data3);
+    if (is_lgs) {
+      this->d_ftlgskern = new carma_obj<cuFloatComplex>(context, dims_data3);
+      this->d_lgskern = new carma_obj<float>(context, dims_data3);
+    } else {
+      this->d_ftlgskern = 0L;
+      this->d_lgskern = 0L;
+    }
+  } else { // Pyramid case : shared arrays are not used
+    this->d_camplifoc = 0L;
+    this->d_camplipup = 0L;
+    this->d_fttotim = 0L;
+    this->d_ftlgskern = 0L;
+    this->d_lgskern = 0L;
 
-	}
-	//DEBUG_TRACE("After creating sensors arrays : ");printMemInfo();
+  }
+  //DEBUG_TRACE("After creating sensors arrays : ");printMemInfo();
   for (int i = 0; i < nwfs; i++) {
     sutra_wfs *wfs = NULL;
-    if (strcmp(type[i],"sh") == 0)
+    if (strcmp(type[i], "sh") == 0)
       wfs = new sutra_wfs_sh(context, d_tel, this, nxsub[i], nvalid[i], npix[i],
                              nphase[i], nrebin[i], nfft[i], ntot[i], npup[i],
                              pdiam[i], nphot[i], nphot4imat[i], lgs[i], device);
-    if (strcmp(type[i],"pyr") == 0) 
-      wfs = new sutra_wfs_pyr_pyrhr(context, d_tel, this, nxsub[i], nvalid[i], npix[i],
-                                   nphase[i], nrebin[i], nfft[i], ntot[i], npup[i],
-                                   pdiam[i], nphot[i], nphot4imat[i], lgs[i], device);
-    if (strcmp(type[i],"roof") == 0)
-      wfs = new sutra_wfs_pyr_roof(context, d_tel, this, nxsub[i], nvalid[i], npix[i],
-                                   nphase[i], nrebin[i], nfft[i], ntot[i], npup[i],
-                                   pdiam[i], nphot[i], nphot4imat[i], lgs[i], device);
+    if (strcmp(type[i], "pyr") == 0)
+      wfs = new sutra_wfs_pyr_pyrhr(context, d_tel, this, nxsub[i], nvalid[i],
+                                    npix[i], nphase[i], nrebin[i], nfft[i],
+                                    ntot[i], npup[i], pdiam[i], nphot[i],
+                                    nphot4imat[i], lgs[i], device);
+    if (strcmp(type[i], "roof") == 0)
+      wfs = new sutra_wfs_pyr_roof(context, d_tel, this, nxsub[i], nvalid[i],
+                                   npix[i], nphase[i], nrebin[i], nfft[i],
+                                   ntot[i], npup[i], pdiam[i], nphot[i],
+                                   nphot4imat[i], lgs[i], device);
     d_wfs.push_back(wfs);
 
 //		DEBUG_TRACE("After creating wfs #%d : ",i);printMemInfo();
@@ -175,9 +177,9 @@ sutra_sensors::sutra_sensors(carma_context *context, sutra_telescope *d_tel, cha
 //	DEBUG_TRACE("Final sensors : ");printMemInfo();
 }
 
-sutra_sensors::sutra_sensors(carma_context *context, sutra_telescope *d_tel, int nwfs, long *nxsub,
-                             long *nvalid, long *nphase, long npup,
-                             float *pdiam, int device) {
+sutra_sensors::sutra_sensors(carma_context *context, sutra_telescope *d_tel,
+                             int nwfs, long *nxsub, long *nvalid, long *nphase,
+                             long npup, float *pdiam, int device) {
   this->current_context = context;
   this->device = device;
   current_context->set_activeDevice(device,1);
@@ -240,27 +242,30 @@ int sutra_sensors::allocate_buffers() {
 int sutra_sensors::define_mpi_rank(int rank, int size) {
   current_context->set_activeDevice(device,1);
   for (size_t idx = 0; idx < (this->d_wfs).size(); idx++) {
-    this->d_wfs[idx]->define_mpi_rank(rank,size);
+    this->d_wfs[idx]->define_mpi_rank(rank, size);
   }
   return EXIT_SUCCESS;
 }
 
 int sutra_sensors::sensors_initgs(float *xpos, float *ypos, float *lambda,
-                                  float *mag, float zerop, long *size, float *noise,
-                                  long *seed) {
+                                  float *mag, float zerop, long *size,
+                                  float *noise, long *seed) {
   current_context->set_activeDevice(device,1);
   for (size_t idx = 0; idx < (this->d_wfs).size(); idx++) {
     (this->d_wfs)[idx]->wfs_initgs(this, xpos[idx], ypos[idx], lambda[idx],
-                                   mag[idx],zerop, size[idx], noise[idx], seed[idx]);
+                                   mag[idx], zerop, size[idx], noise[idx],
+                                   seed[idx]);
   }
   return EXIT_SUCCESS;
 }
 int sutra_sensors::sensors_initgs(float *xpos, float *ypos, float *lambda,
-                                  float *mag, float zerop, long *size, float *noise) {
+                                  float *mag, float zerop, long *size,
+                                  float *noise) {
   current_context->set_activeDevice(device,1);
   for (size_t idx = 0; idx < (this->d_wfs).size(); idx++) {
     (this->d_wfs)[idx]->wfs_initgs(this, xpos[idx], ypos[idx], lambda[idx],
-                                   mag[idx],zerop, size[idx], noise[idx], 1234 * idx);
+                                   mag[idx], zerop, size[idx], noise[idx],
+                                   1234 * idx);
   }
   return EXIT_SUCCESS;
 }
@@ -269,7 +274,7 @@ int sutra_sensors::sensors_initgs(float *xpos, float *ypos, float *lambda,
   current_context->set_activeDevice(device,1);
   for (size_t idx = 0; idx < (this->d_wfs).size(); idx++) {
     (this->d_wfs)[idx]->wfs_initgs(this, xpos[idx], ypos[idx], lambda[idx],
-                                   mag[idx],zerop, size[idx], -1, 1234);
+                                   mag[idx], zerop, size[idx], -1, 1234);
   }
   return EXIT_SUCCESS;
 }

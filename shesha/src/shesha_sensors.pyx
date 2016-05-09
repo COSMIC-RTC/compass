@@ -1,6 +1,9 @@
 include "../par.pxi"
 
 import numpy as np
+cimport numpy as np
+np.import_array()
+
 import make_pupil as mkP
 
 import os
@@ -153,15 +156,15 @@ cdef class Sensors:
         """
 
         if(noise.size == 0):
-            self.sensors.sensors_initgs( < float * > xpos.data, < float * > ypos.data,
+            self.sensors.sensors_initgs(< float * > xpos.data, < float * > ypos.data,
                                         < float * > Lambda.data, < float * > mag.data, zerop, < long * > size.data)
 
         elif(seed.size == 0):
-            self.sensors.sensors_initgs( < float * > xpos.data, < float * > ypos.data,
+            self.sensors.sensors_initgs(< float * > xpos.data, < float * > ypos.data,
                                         < float * > Lambda.data, < float * > mag.data, zerop, < long * > size.data,
                                         < float * > noise.data)
         else:
-            self.sensors.sensors_initgs( < float * > xpos.data, < float * > ypos.data,
+            self.sensors.sensors_initgs(< float * > xpos.data, < float * > ypos.data,
                                         < float * > Lambda.data, < float * > mag.data, zerop, < long * > size.data,
                                         < float * > noise.data, < long * > seed.data)
 
@@ -766,7 +769,7 @@ cdef class Sensors:
             cdef int d = < int > (cdims[1] / 2)
 
             cdef int * count = < int * > malloc(comm_size * sizeof(int))
-            mpi.MPI_Allgather( & d, 1, mpi.MPI_INT, count, 1, mpi.MPI_INT, mpi.MPI_COMM_WORLD)
+            mpi.MPI_Allgather(& d, 1, mpi.MPI_INT, count, 1, mpi.MPI_INT, mpi.MPI_COMM_WORLD)
 
             cdef int * disp = < int * > malloc((comm_size + 1) * sizeof(int))
             cdef int i, nvalid2
@@ -784,7 +787,7 @@ cdef class Sensors:
                                recv, count, disp,
                                mpi.MPI_FLOAT, mpi.MPI_COMM_WORLD)
 
-            mpi.MPI_Allgatherv( & send[count[rank]], count[rank], mpi.MPI_FLOAT,
+            mpi.MPI_Allgatherv(& send[count[rank]], count[rank], mpi.MPI_FLOAT,
                                & recv[disp[comm_size]], count, disp,
                                mpi.MPI_FLOAT, mpi.MPI_COMM_WORLD)
 
@@ -801,7 +804,7 @@ cdef class Sensors:
 
             :param t: (int) : method (0 or 1)
         """
-        if( < bytes > self.sensors.d_wfs[nsensor].type != "sh"):
+        if(< bytes > self.sensors.d_wfs[nsensor].type != "sh"):
             raise TypeError("wfs should be a SH")
         cdef sutra_wfs_sh * wfs_sh = dynamic_cast_wfs_sh_ptr(self.sensors.d_wfs[nsensor])
 
@@ -955,7 +958,7 @@ cdef class Sensors:
         info += "WFS # |  Nsubaps  | Nvalid | Npix | Nphase | Nfft | Nrebin | Ntot | Npup\n"
         cdef int i
         cdef sutra_wfs * wfs
-        for i in range( < int > self.sensors.nsensors()):
+        for i in range(< int > self.sensors.nsensors()):
             wfs = self.sensors.d_wfs.at(i)
             info += "%5d" % (i + 1) + " | " + "%3d" % wfs.nxsub + " x " + "%-3d" % wfs.nxsub + " | "\
                 "%6d" % wfs.nvalid + " | " + "%4d" % wfs.npix + " | " + "%6d" % wfs.nphase + " | " + \

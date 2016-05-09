@@ -1,5 +1,8 @@
 import make_pupil as mkP
 
+import numpy as np
+cimport numpy as np
+np.import_array()
 
 def rebin(a, shape):
     sh = shape[0], a.shape[0] // shape[0], shape[1], a.shape[1] // shape[1]
@@ -9,7 +12,7 @@ cpdef prep_lgs_prof(Param_wfs p_wfs, int nsensors, Param_tel p_tel,
                     np.ndarray[dtype=np.float32_t] prof,
                     np.ndarray[dtype=np.float32_t] h,
                     float beam, Sensors sensors,
-                    bytes center=< bytes > "", int imat=0):
+                    bytes center= < bytes > "", int imat=0):
     """The function returns an image array(double,n,n) of a laser beacon elongated by perpective
 effect. It is obtaind by convolution of a gaussian of width "lgsWidth" arcseconds, with the
 line of the sodium profile "prof". The altitude of the profile is the array "h".
@@ -73,7 +76,7 @@ simple re-sampling of the profile is adequate.
     cdef float dh = h[1] - h[0]
 
     if(p_wfs.nxsub > 1):
-        dOffAxis = np.sqrt((xsubs[p_wfs._validsubsx] - p_wfs.lltx) ** 2 +
+        dOffAxis = np.sqrt((xsubs[p_wfs._validsubsx] - p_wfs.lltx) ** 2 + 
                            (ysubs[p_wfs._validsubsy] - p_wfs.llty) ** 2)
     else:
         dOffAxis = np.sqrt(
@@ -166,7 +169,7 @@ cpdef make_lgs_prof1d(p_wfs, Param_tel p_tel,
     # cdef float dh=h[1]-h[0] #UNUSED
 
     if(p_wfs.nxsub > 1):
-        dOffAxis = np.sqrt((xsubs[p_wfs._validsubsy] - p_wfs.lltx) ** 2 +
+        dOffAxis = np.sqrt((xsubs[p_wfs._validsubsy] - p_wfs.lltx) ** 2 + 
                            (ysubs[p_wfs._validsubsx] - p_wfs.llty) ** 2)
     else:
         dOffAxis = np.sqrt(
@@ -255,7 +258,7 @@ cpdef make_lgs_prof1d(p_wfs, Param_tel p_tel,
     cdef np.ndarray[ndim = 2, dtype = np.float32_t] p1d
     cdef np.ndarray[ndim = 2, dtype = np.float32_t] g_extended = np.tile(g, (p_wfs._nvalid, 1)).T
 
-    p1d = np.fft.ifft(np.fft.fft(profi, axis=0) *
+    p1d = np.fft.ifft(np.fft.fft(profi, axis=0) * 
                       np.fft.fft(g_extended, axis=0),
                       axis=0).real.astype(np.float32)
     p1d = p1d * p1d.shape[0]
@@ -455,7 +458,7 @@ def wfs_init(wfs, Param_atmos p_atmos, Param_tel p_tel, Param_geom p_geom,
         error_budget_flag = False
 
     telescope = Telescope(p_geom._spupil.shape[0], np.where(p_geom._spupil > 0)[0].size,
-                          p_geom._spupil *
+                          p_geom._spupil * 
                           p_geom._apodizer, p_geom._phase_ab_M1,
                           p_geom._mpupil.shape[0], p_geom._mpupil, p_geom._phase_ab_M1_m)
 
@@ -680,7 +683,7 @@ cpdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
         wfs._validsubsx = validx
         wfs._validsubsy = validy
 
-        istart = (np.linspace(0.5, geom.pupdiam + 2 * padding *
+        istart = (np.linspace(0.5, geom.pupdiam + 2 * padding * 
                               wfs.npix + 0.5, wfs.nxsub + 2 * padding) + 1).astype(np.int32)[:-1]
         jstart = np.copy(istart)
         wfs._istart = istart.astype(np.int32)

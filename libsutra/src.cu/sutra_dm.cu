@@ -115,7 +115,7 @@ __device__ inline struct doubleint getInterval(
 		const int pos,
 		const int *iStart_t, const int *nbInflu_t)
 {
-	return {iStart_t[pos], nbInflu_t[pos]};
+  return {iStart_t[pos], nbInflu_t[pos]};
 }
 
 __device__ inline struct  doubleint getInterval(

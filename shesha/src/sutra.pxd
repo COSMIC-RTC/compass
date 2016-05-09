@@ -8,7 +8,6 @@ from naga_streams cimport carma_streams
 from naga_obj cimport cuFloatComplex, cuDoubleComplex, cufftHandle, tuple_t
 # from naga cimport *
 
-import numpy as np
 cimport numpy as np
 
 from libc.stdlib cimport malloc, free

@@ -6,7 +6,7 @@ sutra_wfs_pyr_pyr4::sutra_wfs_pyr_pyr4(carma_context *context, sutra_telescope *
 				       long nvalid, long npix, long nphase, long nrebin, long nfft, long ntot,
 				       long npup, float pdiam, float nphotons, float nphot4imat, int lgs, int device) : 
   sutra_wfs_pyr(context, d_tel, sensors, nxsub,nvalid, npix, nphase, nrebin, nfft, ntot, npup, pdiam, nphotons, 
-		nphot4imat, lgs, device,static_cast<char*>("pyrold"))
+		nphot4imat, lgs, device,"pyrold")
 {
   this->type = "pyr";
 }

@@ -1,5 +1,4 @@
-cimport numpy as np
-from naga_context cimport *
+from naga_context cimport * 
 
 cdef extern from "driver_types.h":
     ctypedef cudaStream_t
@@ -17,7 +16,7 @@ cdef extern from "carma_streams.h":
         int eventflags
         carma_streams()
         carma_streams(unsigned int nbStreams)
-        #~carma_streams()
+        # ~carma_streams()
 
         cudaStream_t get_stream(int stream)
         cudaEvent_t get_event(int stream)

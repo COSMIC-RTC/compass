@@ -3,9 +3,9 @@
 #include <carma_utils.h>
 #include <sutra_telescope.h>
 
-
-sutra_wfs_geom::sutra_wfs_geom(carma_context *context, sutra_telescope *d_tel, long nxsub, long nvalid,
-    long nphase, long npup, float pdiam, int device) {
+sutra_wfs_geom::sutra_wfs_geom(carma_context *context, sutra_telescope *d_tel,
+                               long nxsub, long nvalid, long nphase, long npup,
+                               float pdiam, int device) {
   this->campli_plan = 0L;
   this->fttotim_plan = 0L;
   this->d_camplipup = 0L;
@@ -86,7 +86,7 @@ sutra_wfs_geom::~sutra_wfs_geom() {
   if (this->type != "sh" && this->d_camplifoc != 0L)
     delete this->d_camplifoc;
 
-  if (this->type != "sh" &&this->d_fttotim != 0L)
+  if (this->type != "sh" && this->d_fttotim != 0L)
     delete this->d_fttotim;
 
   if (this->d_ftkernel != 0L)
@@ -131,7 +131,8 @@ sutra_wfs_geom::~sutra_wfs_geom() {
 }
 
 int sutra_wfs_geom::wfs_initarrays(int *phasemap, float *offsets,
-    float *fluxPerSub,int *validsubsx, int *validsubsy) {
+                                   float *fluxPerSub, int *validsubsx,
+                                   int *validsubsy) {
   current_context->set_activeDevice(device,1);
   this->d_phasemap->host2device(phasemap);
   this->d_offsets->host2device(offsets);
@@ -164,8 +165,8 @@ int sutra_wfs_geom::slopes_geom(int type, float *slopes) {
     //float alpha = 0.0328281 * this->d_gs->lambda / this->subapd;
     float alpha = 0.206265 / this->subapd;
     phase_reduce(this->nphase, this->nvalid,
-        this->d_gs->d_phase->d_screen->getData(), slopes,
-        this->d_phasemap->getData(), alpha);
+                 this->d_gs->d_phase->d_screen->getData(), slopes,
+                 this->d_phasemap->getData(), alpha);
   }
 
   if (type == 1) {
@@ -173,10 +174,10 @@ int sutra_wfs_geom::slopes_geom(int type, float *slopes) {
     //float alpha = 0.0328281 * this->d_gs->lambda / this->subapd;
     float alpha = 0.206265 / this->subapd;
     phase_derive(this->nphase * this->nphase * this->nvalid,
-        this->nphase * this->nphase, this->nvalid, this->nphase,
-        this->d_gs->d_phase->d_screen->getData(), slopes,
-        this->d_phasemap->getData(), this->d_pupil->getData(), alpha,
-        this->d_fluxPerSub->getData());
+                 this->nphase * this->nphase, this->nvalid, this->nphase,
+                 this->d_gs->d_phase->d_screen->getData(), slopes,
+                 this->d_phasemap->getData(), this->d_pupil->getData(), alpha,
+                 this->d_fluxPerSub->getData());
 
   }
 

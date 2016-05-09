@@ -1,6 +1,7 @@
 <?py
 import re
 import datetime
+
 now = datetime.datetime.now()
 template_strs = ['CLASSNAME','DIM','C_TYPE','NUMPY_TYPENAME_T','NUMPY_TYPENAME','CAST','C_FFT_TYPE','PY_FFT_TYPE']
 template_type_str = 'ARRAY_TYPE'
@@ -35,6 +36,8 @@ c_types_info = {
 ?>
 
 import numpy as np
+cimport numpy as np
+np.import_array()
 
 assert sizeof(int) == sizeof(np.int32_t)
 assert sizeof(float) == sizeof(np.float32_t)
