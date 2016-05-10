@@ -298,14 +298,14 @@ def compile_module(name):
 
     ext = Extension(name,
                     sources=['src/' + name + '.pyx'],
+                    # extra_compile_args=["-O0", "-g"],
+                    extra_compile_args=["-Wunused-function", "-Wunused-label", "-Wcpp"],
+                    include_dirs=include_dirs,
+                    define_macros=define_macros,
                     library_dirs=library_dirs,
                     libraries=librairies,
                     language='c++',
                     runtime_library_dirs=[],  # CUDA['lib64']],
-                    # extra_compile_args=["-O0", "-g"],
-                    # extra_compile_args={'g++': []},
-                    include_dirs=include_dirs,
-                    define_macros=define_macros,
                     )
 
     setup(

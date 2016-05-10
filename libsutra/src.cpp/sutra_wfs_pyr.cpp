@@ -54,7 +54,7 @@ sutra_wfs_pyr::sutra_wfs_pyr(carma_context *context, sutra_telescope *d_tel,
   context->set_activeDevice(device,1);
   this->nmaxhr = nvalid;
   this->nffthr = 1;
-
+  this->type = string(type_pyr);
   this->kernconv = false;
 
   long dims_data1[2];

@@ -7,7 +7,7 @@ sutra_wfs_sh::sutra_wfs_sh(carma_context *context, sutra_telescope *d_tel,
                            long npix, long nphase, long nrebin, long nfft,
                            long ntot, long npup, float pdiam, float nphotons,
                            float nphot4imat, int lgs, int device) {
-  this->type = "sh";
+  this->type = string("sh");
   this->d_camplipup = sensors->d_camplipup;
   this->d_camplifoc = sensors->d_camplifoc;
   this->d_fttotim = sensors->d_fttotim;
@@ -623,8 +623,8 @@ int sutra_wfs_sh::slopes_geom(int type, float *slopes) {
   current_context->set_activeDevice(device,1);
   /*
    normalization notes :
-   σ² = 0.17 (λ/D)^2 (D/r_0)^(5/3) , σ² en radians d'angle
-   σ = sqrt(0.17 (λ/D)^2 (D/r_0)^(5/3)) * 206265 , σ en secondes
+   ���� = 0.17 (��/D)^2 (D/r_0)^(5/3) , ���� en radians d'angle
+   �� = sqrt(0.17 (��/D)^2 (D/r_0)^(5/3)) * 206265 , �� en secondes
 
    // computing subaperture phase difference at edges
 
