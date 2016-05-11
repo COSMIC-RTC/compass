@@ -9,6 +9,9 @@ FILES="scao_16x16_8pix.py " # scao_40x40_8pix.py  scao_64x64_8pix.py  scao_80x80
 DATE=`date +%F_%Hh%M`
 SVN=`svnversion`
 OUTPUT="$SHESHA_ROOT/data/bench-results/outputfile_$DATE\_$HOSTNAME\_r$SVN"
+DEVICE=$1
+
+echo "writing output in "$OUTPUT
 
 script="$SHESHA_ROOT/test/benchmark_script.py"
 
@@ -16,9 +19,9 @@ for f in $FILES
 do
     for CTR in "ls" "modopti" "mv" "geo"
     do
-        for COG in "cog" "tcog" "bpcog" "geom" #"pyr"
+        for COG in "cog" "tcog" "bpcog" "geom" #"pyr" #
         do
-            CMD="python $script $f $COG $CTR $1"
+            CMD="python $script $f $COG $CTR $DEVICE"
             echo "execute $CMD" >> $OUTPUT
             $CMD 2>> $OUTPUT >> $OUTPUT
         done
@@ -36,7 +39,7 @@ do
     do
         for COG in "wcog" "corr"
         do
-            CMD="python $script $f $COG $CTR $1"
+            CMD="python $script $f $COG $CTR $DEVICE"
             echo "execute $CMD" >> $OUTPUT
             $CMD 2>> $OUTPUT >> $OUTPUT
         done
