@@ -1,6 +1,6 @@
 import shesha as ao
 
-# simul_name="bench_scao_16x16_8pix"
+#simul_name = "scao_pyr_80x80_8pix"
 
 # loop
 p_loop = ao.Param_loop()
@@ -18,12 +18,12 @@ p_geom.set_zenithangle(0.)
 # tel
 p_tel = ao.Param_tel()
 
-p_tel.set_diam(8.0)
+p_tel.set_diam(40.0)
 p_tel.set_cobs(0.12)
-
 
 # atmos
 p_atmos = ao.Param_atmos()
+
 p_atmos.set_r0(0.16)
 p_atmos.set_nscreens(1)
 p_atmos.set_frac([1.0])
@@ -45,18 +45,19 @@ p_target.set_mag([10])
 
 # wfs
 p_wfs0 = ao.Param_wfs()
+p_wfs1 = ao.Param_wfs()
 p_wfss = [p_wfs0]
 
+
 p_wfs0.set_type("pyr")
-p_wfs0.set_nxsub(8)
-# p_wfs0.set_npix(8) #unused?
-# p_wfs0.set_pixsize(0.3)#unused?
-p_wfs0.set_fssize(1.6)
-p_wfs0.set_fracsub(0.8)
+p_wfs0.set_nxsub(80)
+p_wfs0.set_npix(8)
+p_wfs0.set_pixsize(0.3)
+p_wfs0.set_fracsub(0.9)
 p_wfs0.set_xpos(0.)
 p_wfs0.set_ypos(0.)
 p_wfs0.set_Lambda(0.5)
-p_wfs0.set_gsmag(5.)
+p_wfs0.set_gsmag(3.)
 p_wfs0.set_optthroughput(0.5)
 p_wfs0.set_zerop(1.e11)
 p_wfs0.set_noise(-1)
@@ -64,17 +65,8 @@ p_wfs0.set_atmos_seen(1)
 
 p_wfs0.set_fstop("round")
 p_wfs0.set_pyr_npts(16)
-p_wfs0.set_pyr_ampl(0.65)
-
-
-# lgs parameters
-# p_wfs0.set_gsalt(90*1.e3)
-# p_wfs0.set_lltx(0)
-# p_wfs0.set_llty(0)
-# p_wfs0.set_laserpower(10)
-# p_wfs0.set_lgsreturnperwatt(1.e3)
-# p_wfs0.set_proftype("Exp")
-# p_wfs0.set_beamsize(0.8)
+p_wfs0.set_pyr_ampl(3)
+p_wfs0.set_atmos_seen(1)
 
 # dm
 p_dm0 = ao.Param_dm()
@@ -94,7 +86,6 @@ p_dm1.set_alt(0.)
 p_dm1.set_unitpervolt(0.0005)
 p_dm1.set_push4imat(10.)
 
-
 # centroiders
 p_centroider0 = ao.Param_centroider()
 p_centroiders = [p_centroider0]
@@ -111,17 +102,16 @@ p_controllers = [p_controller0]
 p_controller0.set_type("ls")
 p_controller0.set_nwfs([0])
 p_controller0.set_ndm([0, 1])
-p_controller0.set_maxcond(3000)
+p_controller0.set_maxcond(1500)
 p_controller0.set_delay(1)
-p_controller0.set_gain(0.6)
+p_controller0.set_gain(0.4)
 
-
-# p_controller0.set_modopti(0)
-# p_controller0.set_nrec(2048)
-# p_controller0.set_nmodes(216)
-# p_controller0.set_gmin(0.001)
-# p_controller0.set_gmax(0.5)
-# p_controller0.set_ngain(500)
+p_controller0.set_modopti(0)
+p_controller0.set_nrec(2048)
+p_controller0.set_nmodes(5064)
+p_controller0.set_gmin(0.001)
+p_controller0.set_gmax(0.5)
+p_controller0.set_ngain(500)
 
 # rtc
 p_rtc = ao.Param_rtc()

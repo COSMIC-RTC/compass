@@ -87,7 +87,7 @@ cdef class Sensors:
                   bool error_budget=False
                   ):
 
-        cdef char ** type_wfs = < char ** > malloc(len(type_data) * sizeof(char *))
+        cdef char ** type_wfs = < char ** > malloc(len(type_data) * sizeof(char * ))
         cdef int i
         for i in range(nsensors):
             type_wfs[i] = type_data[i]
@@ -156,15 +156,15 @@ cdef class Sensors:
         """
 
         if(noise.size == 0):
-            self.sensors.sensors_initgs(< float * > xpos.data, < float * > ypos.data,
+            self.sensors.sensors_initgs( < float * > xpos.data, < float * > ypos.data,
                                         < float * > Lambda.data, < float * > mag.data, zerop, < long * > size.data)
 
         elif(seed.size == 0):
-            self.sensors.sensors_initgs(< float * > xpos.data, < float * > ypos.data,
+            self.sensors.sensors_initgs( < float * > xpos.data, < float * > ypos.data,
                                         < float * > Lambda.data, < float * > mag.data, zerop, < long * > size.data,
                                         < float * > noise.data)
         else:
-            self.sensors.sensors_initgs(< float * > xpos.data, < float * > ypos.data,
+            self.sensors.sensors_initgs( < float * > xpos.data, < float * > ypos.data,
                                         < float * > Lambda.data, < float * > mag.data, zerop, < long * > size.data,
                                         < float * > noise.data, < long * > seed.data)
 
@@ -255,7 +255,6 @@ cdef class Sensors:
             tmp_halfxy = np.exp(
                 1j * wfs._halfxy).astype(np.complex64).flatten("F")
             pyr_halfxy = < cuFloatComplex * > tmp_halfxy.data
-            print np.array(tmp_halfxy).dtype, np.array(tmp_halfxy).shape
             wfs_pyr = dynamic_cast_wfs_pyr_pyrhr_ptr(self.sensors.d_wfs[n])
             wfs_pyr.wfs_initarrays(pyr_halfxy, cx, cy, sincar, validx, validy)
 
@@ -263,9 +262,9 @@ cdef class Sensors:
             tmp_offset = wfs.__pyr_offsets.flatten("F")
             offset = < cuFloatComplex * > tmp_offset.data
             wfs_roof = dynamic_cast_wfs_pyr_roof_ptr(self.sensors.d_wfs[n])
-            wfs_roof.wfs_initarrays(< cuFloatComplex * > halfxy, offset,
-                                     submask, cx, cy,
-                                     sincar, phasemap, validx, validy)
+            wfs_roof.wfs_initarrays( < cuFloatComplex * > halfxy, offset,
+                                    submask, cx, cy,
+                                    sincar, phasemap, validx, validy)
 
         elif(self.sensors.d_wfs[n].type == type_sh):
             tmp = wfs._fluxPerSub.T[np.where(wfs._isvalid > 0)]
@@ -293,7 +292,7 @@ cdef class Sensors:
 
         cdef carma_context * context = carma_context.instance()
         context.set_activeDevice(self.sensors.device, 1)
-        self.sensors.d_wfs[i].d_gs.add_layer(< char * > type_dm, alt, xoff, yoff)
+        self.sensors.d_wfs[i].d_gs.add_layer( < char * > type_dm, alt, xoff, yoff)
 
     def sensors_compimg(self, int n):
         """TODO doc
@@ -315,7 +314,7 @@ cdef class Sensors:
         img = self.sensors.d_wfs[n].d_offsets
         cdims = img.getDims()
         data = np.empty((cdims[1]), dtype=np.float32)
-        img.device2host(< float * > data.data)
+        img.device2host( < float * > data.data)
         return data
 
     def get_subsum(self, int n):
@@ -329,7 +328,7 @@ cdef class Sensors:
         subsum = self.sensors.d_wfs[n].d_subsum
         cdims = subsum.getDims()
         data = np.empty((cdims[1]), dtype=np.float32)
-        subsum.device2host(< float * > data.data)
+        subsum.device2host( < float * > data.data)
         return data
 
     def get_imgtele(self, int n, Telescope tel=None, Atmos atmos=None, Dms dms=None):
@@ -355,7 +354,7 @@ cdef class Sensors:
         data = np.empty((cdims[1], cdims[2]), dtype=np.float32)
 
         wfs.fill_binimage(1)
-        img.fill_into(< float * > data.data)
+        img.fill_into( < float * > data.data)
         data[np.where(data < 0)] = 0
         return data
 
@@ -381,7 +380,7 @@ cdef class Sensors:
         data = np.empty((cdims[1], cdims[2]), dtype=np.float32)
         data_F = np.empty((cdims[2], cdims[1]), dtype=np.float32)
         dynamic_cast_wfs_sh_ptr(self.sensors.d_wfs[n]).fill_binimage(0)
-        img.device2host(< float * > data_F.data)
+        img.device2host( < float * > data_F.data)
 
         data = np.reshape(data_F.flatten("F"), (cdims[1], cdims[2]))
         data[np.where(data < 0)] = 0
@@ -415,7 +414,7 @@ cdef class Sensors:
             cdims = img.getDims()
             data = np.empty((cdims[1], cdims[2]), dtype=np.float32)
             data_F = np.empty((cdims[2], cdims[1]), dtype=np.float32)
-            img.device2host(< float * > data_F.data)
+            img.device2host( < float * > data_F.data)
             data = np.reshape(data_F.flatten("F"), (cdims[1], cdims[2]))
             return data
 
@@ -452,7 +451,7 @@ cdef class Sensors:
             cdims = img.getDims()
             data = np.empty((cdims[1], cdims[2]), dtype=np.float32)
             data_F = np.empty((cdims[2], cdims[1]), dtype=np.float32)
-            img.device2host(< float * > data_F.data)
+            img.device2host( < float * > data_F.data)
             data = np.reshape(data_F.flatten("F"), (cdims[1], cdims[2]))
             return data
 
@@ -472,7 +471,7 @@ cdef class Sensors:
         cdims = cube.getDims()
         data = np.empty((cdims[1], cdims[2], cdims[3]), dtype=np.float32)
         data_F = np.empty((cdims[3], cdims[2], cdims[1]), dtype=np.float32)
-        cube.device2host(< float * > data_F.data)
+        cube.device2host( < float * > data_F.data)
         data = np.reshape(data_F.flatten("F"), (cdims[1], cdims[2], cdims[3]))
         return data
 
@@ -494,7 +493,7 @@ cdef class Sensors:
         context.set_activeDeviceForCpy(self.sensors.device, 1)
         cdef np.ndarray[dtype = np.float32_t] data_F = data.flatten("F")
 
-        self.sensors.d_wfs[n].d_bincube.host2device(< float * > data_F.data)
+        self.sensors.d_wfs[n].d_bincube.host2device( < float * > data_F.data)
 
     cpdef get_bincubeNotNoisy(self, int n):
         """Return the 'bincube_not_noisy' array of a given wfs. It's the bincube
@@ -511,7 +510,7 @@ cdef class Sensors:
             cdims = cube.getDims()
             data = np.empty((cdims[1], cdims[2], cdims[3]), dtype=np.float32)
             data_F = np.empty((cdims[3], cdims[2], cdims[1]), dtype=np.float32)
-            cube.device2host(< float * > data_F.data)
+            cube.device2host( < float * > data_F.data)
             data = np.reshape(
                 data_F.flatten("F"), (cdims[1], cdims[2], cdims[3]))
             return data
@@ -540,7 +539,7 @@ cdef class Sensors:
         cdims = phase.getDims()
         data = np.empty((cdims[1], cdims[2]), dtype=np.float32)
         data_F = np.empty((cdims[2], cdims[1]), dtype=np.float32)
-        phase.device2host(< float * > data_F.data)
+        phase.device2host( < float * > data_F.data)
         data = np.reshape(data_F.flatten("F"), (cdims[1], cdims[2]))
         return data
 
@@ -558,7 +557,7 @@ cdef class Sensors:
             cdims = lgs_kern.getDims()
             data = np.empty((cdims[1], cdims[2], cdims[3]), dtype=np.float32)
             data_F = np.empty((cdims[3], cdims[2], cdims[1]), dtype=np.float32)
-            lgs_kern.device2host(< float * > data_F.data)
+            lgs_kern.device2host( < float * > data_F.data)
             data = np.reshape(
                 data_F.flatten("F"), (cdims[1], cdims[2], cdims[3]))
             return data
@@ -580,7 +579,7 @@ cdef class Sensors:
             data = np.empty((cdims[1], cdims[2], cdims[3]), dtype=np.complex64)
             data_F = np.empty(
                 (cdims[3], cdims[2], cdims[1]), dtype=np.complex64)
-            ftlgs_kern.device2host(< cuFloatComplex * > data_F.data)
+            ftlgs_kern.device2host( < cuFloatComplex * > data_F.data)
             data = np.reshape(
                 data_F.flatten("F"), (cdims[1], cdims[2], cdims[3]))
             return data
@@ -598,7 +597,7 @@ cdef class Sensors:
 
         cdef np.ndarray[dtype = np.float32_t] data_F = data.flatten("F")
 
-        src.d_phase.d_screen.host2device(< float * > data_F.data)
+        src.d_phase.d_screen.host2device( < float * > data_F.data)
 
     def get_camplipup(self, int n):
         """Return the 'camplipup' array of a given wfs
@@ -616,7 +615,7 @@ cdef class Sensors:
 
         data = np.zeros((cdims[1], cdims[2], cdims[3]), dtype=np.complex64)
         data_F = np.zeros((cdims[3], cdims[2], cdims[1]), dtype=np.complex64)
-        amplipup.device2host(< cuFloatComplex * > data_F.data)
+        amplipup.device2host( < cuFloatComplex * > data_F.data)
         data = np.reshape(data_F.flatten("F"), (cdims[1], cdims[2], cdims[3]))
 
         return data
@@ -637,7 +636,7 @@ cdef class Sensors:
 
         data = np.zeros((cdims[1], cdims[2]), dtype=np.complex64)
         data_F = np.zeros((cdims[2], cdims[1]), dtype=np.complex64)
-        amplipup.device2host(< cuFloatComplex * > data_F.data)
+        amplipup.device2host( < cuFloatComplex * > data_F.data)
         data = np.reshape(data_F.flatten("F"), (cdims[1], cdims[2]))
 
         return data
@@ -655,7 +654,7 @@ cdef class Sensors:
         cdims = amplifoc.getDims()
         data = np.zeros((cdims[1], cdims[2], cdims[3]), dtype=np.complex64)
         data_F = np.zeros((cdims[3], cdims[2], cdims[1]), dtype=np.complex64)
-        amplifoc.device2host(< cuFloatComplex * > data_F.data)
+        amplifoc.device2host( < cuFloatComplex * > data_F.data)
         data = np.reshape(data_F.flatten("F"), (cdims[1], cdims[2], cdims[3]))
         return data
 
@@ -672,7 +671,7 @@ cdef class Sensors:
         cdims = amplifoc.getDims()
         data = np.zeros((cdims[1], cdims[2]), dtype=np.complex64)
         data_F = np.zeros((cdims[2], cdims[1]), dtype=np.complex64)
-        amplifoc.device2host(< cuFloatComplex * > data_F.data)
+        amplifoc.device2host( < cuFloatComplex * > data_F.data)
         data = np.reshape(data_F.flatten("F"), (cdims[1], cdims[2]))
         return data
 
@@ -689,7 +688,7 @@ cdef class Sensors:
         cdims = fttotim.getDims()
         data = np.zeros((cdims[1], cdims[2]), dtype=np.complex64)
         data_F = np.zeros((cdims[2], cdims[1]), dtype=np.complex64)
-        fttotim.device2host(< cuFloatComplex * > data_F.data)
+        fttotim.device2host( < cuFloatComplex * > data_F.data)
         data = np.reshape(data_F.flatten("F"), (cdims[1], cdims[2]))
         return data
 
@@ -708,7 +707,7 @@ cdef class Sensors:
         cdims = hrimg.getDims()
         data = np.empty((cdims[1], cdims[2]), dtype=np.float32)
         data_F = np.empty((cdims[2], cdims[1]), dtype=np.float32)
-        hrimg.device2host(< float * > data_F.data)
+        hrimg.device2host( < float * > data_F.data)
         data = np.reshape(data_F.flatten("F"), (cdims[1], cdims[2]))
         return data
 
@@ -759,7 +758,7 @@ cdef class Sensors:
         slopes = self.sensors.d_wfs[n].d_slopes
         cdims = slopes.getDims()
         data = np.empty((cdims[1]), dtype=np.float32)
-        slopes.device2host(< float * > data.data)
+        slopes.device2host( < float * > data.data)
 
         IF USE_MPI:
             cdef int comm_size, rank
@@ -769,7 +768,7 @@ cdef class Sensors:
             cdef int d = < int > (cdims[1] / 2)
 
             cdef int * count = < int * > malloc(comm_size * sizeof(int))
-            mpi.MPI_Allgather(& d, 1, mpi.MPI_INT, count, 1, mpi.MPI_INT, mpi.MPI_COMM_WORLD)
+            mpi.MPI_Allgather( & d, 1, mpi.MPI_INT, count, 1, mpi.MPI_INT, mpi.MPI_COMM_WORLD)
 
             cdef int * disp = < int * > malloc((comm_size + 1) * sizeof(int))
             cdef int i, nvalid2
@@ -787,7 +786,7 @@ cdef class Sensors:
                                recv, count, disp,
                                mpi.MPI_FLOAT, mpi.MPI_COMM_WORLD)
 
-            mpi.MPI_Allgatherv(& send[count[rank]], count[rank], mpi.MPI_FLOAT,
+            mpi.MPI_Allgatherv( & send[count[rank]], count[rank], mpi.MPI_FLOAT,
                                & recv[disp[comm_size]], count, disp,
                                mpi.MPI_FLOAT, mpi.MPI_COMM_WORLD)
 
@@ -804,7 +803,7 @@ cdef class Sensors:
 
             :param t: (int) : method (0 or 1)
         """
-        if(< bytes > self.sensors.d_wfs[nsensor].type != "sh"):
+        if( < bytes > self.sensors.d_wfs[nsensor].type != "sh"):
             raise TypeError("wfs should be a SH")
         cdef sutra_wfs_sh * wfs_sh = dynamic_cast_wfs_sh_ptr(self.sensors.d_wfs[nsensor])
 
@@ -958,7 +957,7 @@ cdef class Sensors:
         info += "WFS # |  Nsubaps  | Nvalid | Npix | Nphase | Nfft | Nrebin | Ntot | Npup\n"
         cdef int i
         cdef sutra_wfs * wfs
-        for i in range(< int > self.sensors.nsensors()):
+        for i in range( < int > self.sensors.nsensors()):
             wfs = self.sensors.d_wfs.at(i)
             info += "%5d" % (i + 1) + " | " + "%3d" % wfs.nxsub + " x " + "%-3d" % wfs.nxsub + " | "\
                 "%6d" % wfs.nvalid + " | " + "%4d" % wfs.npix + " | " + "%6d" % wfs.nphase + " | " + \
@@ -1030,7 +1029,7 @@ cdef class Sensors:
         cube = self.sensors.d_wfs[n].d_hrmap
         cdims = cube.getDims()
         data = np.empty((cdims[1]), dtype=np.float32)
-        cube.device2host(< int * > data.data)
+        cube.device2host( < int * > data.data)
         return data
 
 """

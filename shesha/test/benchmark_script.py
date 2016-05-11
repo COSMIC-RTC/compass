@@ -29,8 +29,8 @@ def script4bench(param_file,centroider,controller, device=0, fwrite=True):
         controller: (str) : controller type
     """
 
-    c=ch.naga_context()
-    c.set_activeDevice(device)
+    c=ch.naga_context(device)
+#     c.set_activeDevice(device)
 
     timer=ch.naga_timer()
 

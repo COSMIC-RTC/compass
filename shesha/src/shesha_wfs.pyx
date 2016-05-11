@@ -4,6 +4,7 @@ import numpy as np
 cimport numpy as np
 np.import_array()
 
+
 def rebin(a, shape):
     sh = shape[0], a.shape[0] // shape[0], shape[1], a.shape[1] // shape[1]
     return a.reshape(sh).mean(-1).mean(1)
@@ -76,7 +77,7 @@ simple re-sampling of the profile is adequate.
     cdef float dh = h[1] - h[0]
 
     if(p_wfs.nxsub > 1):
-        dOffAxis = np.sqrt((xsubs[p_wfs._validsubsx] - p_wfs.lltx) ** 2 + 
+        dOffAxis = np.sqrt((xsubs[p_wfs._validsubsx] - p_wfs.lltx) ** 2 +
                            (ysubs[p_wfs._validsubsy] - p_wfs.llty) ** 2)
     else:
         dOffAxis = np.sqrt(
@@ -169,7 +170,7 @@ cpdef make_lgs_prof1d(p_wfs, Param_tel p_tel,
     # cdef float dh=h[1]-h[0] #UNUSED
 
     if(p_wfs.nxsub > 1):
-        dOffAxis = np.sqrt((xsubs[p_wfs._validsubsy] - p_wfs.lltx) ** 2 + 
+        dOffAxis = np.sqrt((xsubs[p_wfs._validsubsy] - p_wfs.lltx) ** 2 +
                            (ysubs[p_wfs._validsubsx] - p_wfs.llty) ** 2)
     else:
         dOffAxis = np.sqrt(
@@ -258,7 +259,7 @@ cpdef make_lgs_prof1d(p_wfs, Param_tel p_tel,
     cdef np.ndarray[ndim = 2, dtype = np.float32_t] p1d
     cdef np.ndarray[ndim = 2, dtype = np.float32_t] g_extended = np.tile(g, (p_wfs._nvalid, 1)).T
 
-    p1d = np.fft.ifft(np.fft.fft(profi, axis=0) * 
+    p1d = np.fft.ifft(np.fft.fft(profi, axis=0) *
                       np.fft.fft(g_extended, axis=0),
                       axis=0).real.astype(np.float32)
     p1d = p1d * p1d.shape[0]
@@ -458,7 +459,7 @@ def wfs_init(wfs, Param_atmos p_atmos, Param_tel p_tel, Param_geom p_geom,
         error_budget_flag = False
 
     telescope = Telescope(p_geom._spupil.shape[0], np.where(p_geom._spupil > 0)[0].size,
-                          p_geom._spupil * 
+                          p_geom._spupil *
                           p_geom._apodizer, p_geom._phase_ab_M1,
                           p_geom._mpupil.shape[0], p_geom._mpupil, p_geom._phase_ab_M1_m)
 
@@ -683,7 +684,7 @@ cpdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
         wfs._validsubsx = validx
         wfs._validsubsy = validy
 
-        istart = (np.linspace(0.5, geom.pupdiam + 2 * padding * 
+        istart = (np.linspace(0.5, geom.pupdiam + 2 * padding *
                               wfs.npix + 0.5, wfs.nxsub + 2 * padding) + 1).astype(np.int32)[:-1]
         jstart = np.copy(istart)
         wfs._istart = istart.astype(np.int32)
@@ -849,7 +850,7 @@ cpdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
         mymsk = mkP.dist(pyrsize, xc=xcc, yc=xcc)
         # mypup = (mymsk < rpup)
         mypup = (mymsk < rpup) & (mymsk > cobs * rpup)
-        mskreb = rebin(mypup * 1., [pyrsize / nrebin, pyrsize / nrebin])
+        mskreb = rebin(mypup.copy(), [pyrsize / nrebin, pyrsize / nrebin])
         validx = np.where(mskreb >= fracsub)[1].astype(np.int32)
         validy = np.where(mskreb >= fracsub)[0].astype(np.int32)
         nvalid = validx.size
@@ -1299,11 +1300,18 @@ cdef init_wfs_size(Param_wfs wfs, int n, Param_atmos atmos,
             k = 5
             pdiam[0] = long(tel.diam / r0 * k)
             while (pdiam[0] % wfs.nxsub != 0):
-                pdiam[0] += 1  # we chosse to have a multiple of wfs.nxsub
+                pdiam[0] += 1  # we choose to have a multiple of wfs.nxsub
 
             m = 3
             # fft_goodsize( m * pdiam[0])
             Nfft[0] = long(2 ** np.ceil(np.log2(m * pdiam[0])))
+
+            nrebin[0] = pdiam[0] / wfs.nxsub
+            while(Nfft[0] % nrebin[0] != 0):
+                nrebin[0] += 1  # we choose to have a divisor of Nfft
+                pdiam[0] = nrebin[0] * wfs.nxsub
+                nphase = pdiam[0] + 2 * padding
+                Nfft[0] = long(2 ** np.ceil(np.log2(m * pdiam[0])))
 
             qpixsize[0] = (
                 pdiam[0] * (wfs.Lambda * 1.e-6) / tel.diam * RASC) / Nfft[0]
@@ -1312,9 +1320,7 @@ cdef init_wfs_size(Param_wfs wfs, int n, Param_atmos atmos,
             nphase = pdiam[0] + 2 * padding
 
             fssize_pixels = long(wfs.fssize / qpixsize[0] / 2.)
-            # nrebin  = pdiam / wfs.npix
 
-            nrebin[0] = pdiam[0] / wfs.nxsub
             Ntot[0] = Nfft[0] / pdiam[0] * wfs.nxsub
             pixsize[0] = qpixsize[0] * nrebin[0]
             pdiam[0] = pdiam[0] / wfs.nxsub
@@ -1380,9 +1386,9 @@ cdef init_wfs_size(Param_wfs wfs, int n, Param_atmos atmos,
         # if(verbose==0):print "size of pyramid images : ",Ntot[0]
 
 cpdef noise_cov(int nw, Param_wfs p_wfs, Param_atmos p_atmos, Param_tel p_tel):
-    """Compute the diagonal of the noise covariance matrix for a SH WFS (arcsec²)
-    Photon noise: (pi²/2)*(1/Nphotons)*(d/r0)² / (2*pi*d/lambda)²
-    Electronic noise: (pi²/3)*(wfs.noise²/N²photons)*wfs.npix²*(wfs.npix*wfs.pixsize*d/lambda)² / (2*pi*d/lambda)²
+    """Compute the diagonal of the noise covariance matrix for a SH WFS (arcsec^2)
+    Photon noise: (pi^2/2)*(1/Nphotons)*(d/r0)^2 / (2*pi*d/lambda)^2
+    Electronic noise: (pi^2/3)*(wfs.noise^2/N^2photons)*wfs.npix^2*(wfs.npix*wfs.pixsize*d/lambda)^2 / (2*pi*d/lambda)^2
 
     :parameters:
         nw: wfs number
@@ -1406,18 +1412,18 @@ cpdef noise_cov(int nw, Param_wfs p_wfs, Param_atmos p_atmos, Param_tel p_tel):
         r0 = (p_wfs.Lambda / 0.5) ** (6.0 / 5.0) * p_atmos.r0
 
         sig = (np.pi ** 2 / 2) * (1 / Nph) * \
-            (1. / r0) ** 2  # Photon noise in m⁻²
-        # Noise variance in rad²
+            (1. / r0) ** 2  # Photon noise in m^-2
+        # Noise variance in rad^2
         sig /= (2 * np.pi / (p_wfs.Lambda * 1e-6)) ** 2
         sig *= RASC ** 2
 
         Ns = p_wfs.npix  # Number of pixel
         Nd = (p_wfs.Lambda * 1e-6) * RASC / p_wfs.pixsize
         sigphi = (np.pi ** 2 / 3.0) * (1 / Nph ** 2) * (p_wfs.noise) ** 2 * \
-            Ns ** 2 * (Ns / Nd) ** 2  # Phase variance in m⁻²
-        # Noise variance in rad²
+            Ns ** 2 * (Ns / Nd) ** 2  # Phase variance in m^-2
+        # Noise variance in rad^2
         sigsh = sigphi / (2 * np.pi / (p_wfs.Lambda * 1e-6)) ** 2
-        sigsh *= RASC ** 2  # Electronic noise variance in arcsec²
+        sigsh *= RASC ** 2  # Electronic noise variance in arcsec^2
 
         cov[:len(sig)] = sig + sigsh
         cov[len(sig):] = sig + sigsh
