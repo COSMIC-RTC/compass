@@ -204,7 +204,6 @@ cdef class Sensors:
         cdef int * istart = < int * > tmp_istart.data
         tmp_jstart = np.copy(wfs._jstart + 1)
         cdef int * jstart = < int * > tmp_jstart.data
-        # cdef int *cx = <int*>wfs._pyr_cx.data
         cdef int * cx = < int * > wfs._pyr_cx.data
         cdef int * cy = < int * > wfs._pyr_cy.data
 

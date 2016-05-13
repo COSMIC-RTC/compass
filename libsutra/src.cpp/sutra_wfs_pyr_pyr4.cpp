@@ -120,7 +120,7 @@ int sutra_wfs_pyr_pyr4::comp_generic() {
   int blocks, threads;
 //  getNumBlocksAndThreads(current_context->get_device(device), this->nvalid,
 //      blocks, threads);
-  sumGetNumBlocksAndThreads(this->nvalid, device,
+	sumGetNumBlocksAndThreads(this->nvalid, this->current_context->get_device(device),
 		  	  	  	  	  	  blocks, threads);
   reduce(this->nvalid, threads, blocks, this->d_subsum->getData(),
       this->d_subsum->getData());

@@ -22,6 +22,17 @@ void getNumBlocksAndThreads(carma_device *device, int n, int &blocks, int &threa
   */
 }
 
+void sumGetNumBlocksAndThreads(int n, carma_device *device, int &blocks, int &threads) {
+
+  int maxThreads = device->get_properties().maxThreadsPerBlock;
+  int maxBlocks = device->get_properties().multiProcessorCount;
+
+  threads = (n < maxThreads * 2) ? nextPow2((n + 1) / 2) : maxThreads;
+  blocks = (n + (threads * 2 - 1)) / (threads * 2);
+  blocks = MIN(maxBlocks, blocks);
+
+}
+
 void carma_start_profile() {
   printf("CUDA Profiling started\n");
   cudaProfilerStart();

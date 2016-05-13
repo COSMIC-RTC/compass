@@ -97,11 +97,11 @@ print tar
 print rtc
 
 mimg = 0.# initializing average image
-print "----------------------------------------------------";
-print "iter# | S.E. SR | L.E. SR | Est. Rem. | framerate";
-print "----------------------------------------------------";
 
 def loop( n):
+    print "----------------------------------------------------";
+    print "iter# | S.E. SR | L.E. SR | Est. Rem. | framerate";
+    print "----------------------------------------------------";
     t0=time.time()
     for i in range(n):
         atm.move_atmos()

@@ -498,7 +498,8 @@ T_data carma_obj<T_data>::sum() {
   int nBlocks;
   int nThreads;
 
-  sumGetNumBlocksAndThreads(this->nb_elem, 0, nBlocks, nThreads);
+  this->current_context->set_activeDevice(device,1);
+  sumGetNumBlocksAndThreads(this->nb_elem, this->current_context->get_device(device), nBlocks, nThreads);
 
   reduce<T_data>(this->nb_elem, nThreads, nBlocks, this->d_data, this->d_data);
 
@@ -508,7 +509,8 @@ T_data carma_obj<T_data>::sum() {
   int s = nBlocks;
   while (s > 1) {
     int threads = 0, blocks = 0;
-    sumGetNumBlocksAndThreads(s, 0, blocks, threads);
+    this->current_context->set_activeDevice(device,1);
+    sumGetNumBlocksAndThreads(s, this->current_context->get_device(device), blocks, threads);
 
     reduce<T_data>(s, threads, blocks, this->d_data, this->d_data);
 

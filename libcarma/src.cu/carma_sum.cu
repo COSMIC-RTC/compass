@@ -1,21 +1,6 @@
 #include <carma_obj.h>
 #include "carma_utils.cuh"
 
-void sumGetNumBlocksAndThreads(int n, int device, int &blocks, int &threads) {
-
-  struct cudaDeviceProp deviceProperties;
-
-  cudaGetDeviceProperties(&deviceProperties, device);
-
-  int maxThreads = deviceProperties.maxThreadsPerBlock;
-  int maxBlocks = deviceProperties.multiProcessorCount;
-
-  threads = (n < maxThreads * 2) ? nextPow2((n + 1) / 2) : maxThreads;
-  blocks = (n + (threads * 2 - 1)) / (threads * 2);
-  blocks = MIN(maxBlocks, blocks);
-
-}
-
 /*
  Parallel sum reduction using shared memory
  - takes log(n) steps for n input elements
