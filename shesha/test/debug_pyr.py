@@ -42,9 +42,9 @@ if(hasattr(config, "simul_name")):
         simul_name = ""
     else:
         simul_name = config.simul_name
+        print "simul name is", simul_name
 else:
     simul_name = ""
-print "simul name is", simul_name
 
 matricesToLoad = {}
 if(simul_name == ""):
@@ -58,6 +58,9 @@ else:
 #   context
 c = ch.naga_context(0)
 # c.set_activeDevice(0) #useful only if you use ch.naga_context()
+
+#wfs
+config.p_wfs0.set_atmos_seen(0)
 
 # dm
 config.p_dm1 = ao.Param_dm()
@@ -99,7 +102,7 @@ while npts <= 512:
     print "->rtc"
     #   rtc
     rtc = ao.rtc_init(tel, wfs, config.p_wfss, dms, config.p_dms, config.p_geom, config.p_rtc, config.p_atmos, atm,
-                      config.p_tel, config.p_loop, tar, config.p_target, clean=clean, simul_name=simul_name,
+                      config.p_tel, config.p_loop, clean=clean, simul_name=simul_name,
                       load=matricesToLoad)
 
     if not clean:

@@ -1,5 +1,6 @@
 
 import numpy as np
+from _tkinter import create
 cimport numpy as np
 np.import_array()
 
@@ -15,102 +16,107 @@ import iterkolmo as itK
 from cython.operator cimport dereference as deref, preincrement as inc
 from subprocess import check_output
 
+
 def atmos_init(naga_context c, Param_atmos atm, Param_tel tel, Param_geom geom,
-                    Param_loop loop, wfss=None, Param_target target=None,
-                    int rank=0, int clean=1, dict load={}):
-        """atmos_init(naga_context c, Param_atmos atm, Param_tel tel,  Param_geom geom,
-                      Param_loop loop, wfss=None, Param_target target=None,
-                      int rank=0, int clean=1, dict load={})
+               Param_loop loop, wfss=None, Param_target target=None,
+               int rank=0, int clean=1, dict load={}):
+    """atmos_init(naga_context c, Param_atmos atm, Param_tel tel,  Param_geom geom,
+                  Param_loop loop, wfss=None, Param_target target=None,
+                  int rank=0, int clean=1, dict load={})
 
-        Create and initialise an atmos object
+    Create and initialise an atmos object
 
-        :parameters:
-            c: (naga_context) : context
+    :parameters:
+        c: (naga_context) : context
 
-            tel: (Param_tel) : telescope settings
+        tel: (Param_tel) : telescope settings
 
-            geom: (Param_geom) : geometry settings
+        geom: (Param_geom) : geometry settings
 
-            loop: (Param_loop) : loop settings
+        loop: (Param_loop) : loop settings
 
-            wfss: (list of Param_wfs) : (optional) wfs settings
+        wfss: (list of Param_wfs) : (optional) wfs settings
 
-            target: (Param_target) : (optional) target_settings
+        target: (Param_target) : (optional) target_settings
 
-            overwrite: (int) : (optional) overwrite data files if overwite=1 (default 1)
+        overwrite: (int) : (optional) overwrite data files if overwite=1 (default 1)
 
-            rank: (int) : (optional) rank of the process (default=0)
-        """
+        rank: (int) : (optional) rank of the process (default=0)
 
-        cdef double ittime = loop.ittime
-        if(atm.r0 is None):
-            atm.r0 = 0
+        clean: (clean) : (optional) ? (default=1)
 
-        cdef int i
-        cdef float dtor = np.pi / 180
+        load: (dict) : (optional) ? (default={})
+    """
 
-        # ajust layers alt using zenith angle
-        atm.alt = (atm.alt / np.cos(geom.zenithangle * dtor))
-        # pixel size in meter
-        atm.pupixsize = tel.diam / geom.pupdiam
+    cdef double ittime = loop.ittime
+    if(atm.r0 is None):
+        atm.r0 = 0
 
+    cdef int i
+    cdef float dtor = np.pi / 180
 
-        cdef long max_size
-        if (wfss is not None):
-            norms = [np.linalg.norm([wfss[i].xpos, wfss[i].ypos], axis=0) for i in range(len(wfss))]
-            indmax = np.where(norms == np.max(norms))[0][0]
-            wfs = wfss[indmax]
-        else:
-            wfs = None
+    # ajust layers alt using zenith angle
+    atm.alt = (atm.alt / np.cos(geom.zenithangle * dtor))
+    # pixel size in meter
+    atm.pupixsize = tel.diam / geom.pupdiam
 
-        # compute total fov using targets and wfs gs
-        if ((wfs is not None) and (target is not None)):
-            max_size = np.max([np.max(np.linalg.norm([target.xpos, target.ypos], axis=0)),
-                            np.max(np.linalg.norm([wfs.xpos, wfs.ypos], axis=0))])
-        elif (target is not None):
-            max_size = np.max(np.linalg.norm([target.xpos, target.ypos], axis=0))
-        elif (wfs is not None):
-            max_size = np.max(np.linalg.norm([wfs.xpos, wfs.ypos], axis=0))
-        else:
-            max_size = 0
+    cdef long max_size
+    if (wfss is not None):
+        norms = [
+            np.linalg.norm([wfss[i].xpos, wfss[i].ypos], axis=0) for i in range(len(wfss))]
+        indmax = np.where(norms == np.max(norms))[0][0]
+        wfs = wfss[indmax]
+    else:
+        wfs = None
 
+    # compute total fov using targets and wfs gs
+    if ((wfs is not None) and (target is not None)):
+        max_size = np.max([np.max(np.linalg.norm([target.xpos, target.ypos], axis=0)),
+                           np.max(np.linalg.norm([wfs.xpos, wfs.ypos], axis=0))])
+    elif (target is not None):
+        max_size = np.max(np.linalg.norm([target.xpos, target.ypos], axis=0))
+    elif (wfs is not None):
+        max_size = np.max(np.linalg.norm([wfs.xpos, wfs.ypos], axis=0))
+    else:
+        max_size = 0
 
-        # compute corresponding meta-pupil diameters at each alt
-        cdef np.ndarray patch_diam
-        patch_diam = geom._n + 2 * (max_size * 4.84814e-6 * atm.alt) / atm.pupixsize + 4
-        atm.dim_screens = (patch_diam + patch_diam % 2).astype(np.int64)
+    # compute corresponding meta-pupil diameters at each alt
+    cdef np.ndarray patch_diam
+    patch_diam = geom._n + 2 * \
+        (max_size * 4.84814e-6 * atm.alt) / atm.pupixsize + 4
+    atm.dim_screens = (patch_diam + patch_diam % 2).astype(np.int64)
 
-        # compute phase screens speed in pixels / iteration
-        atm.deltax = geom.pupdiam / tel.diam * atm.windspeed * np.cos(dtor * geom.zenithangle) * ittime
-        atm.deltay = atm.deltax * np.sin(dtor * (atm.winddir))
-        atm.deltax = atm.deltax * np.cos(dtor * (atm.winddir))
+    # compute phase screens speed in pixels / iteration
+    atm.deltax = geom.pupdiam / tel.diam * atm.windspeed * \
+        np.cos(dtor * geom.zenithangle) * ittime
+    atm.deltay = atm.deltax * np.sin(dtor * (atm.winddir))
+    atm.deltax = atm.deltax * np.cos(dtor * (atm.winddir))
 
-        if(atm.frac.size == 1):
-            atm.frac = np.ones((1), dtype=np.float32)
-        else:
-            atm.frac /= sum(atm.frac);
+    if(atm.frac.size == 1):
+        atm.frac = np.ones((1), dtype=np.float32)
+    else:
+        atm.frac /= sum(atm.frac)
 
-        if (atm.L0 is None):
-            atm.L0 = np.ones(atm.nscreens, dtype=np.float32) * (1.e5)  # infinite L0
-            L0_pix = np.copy(atm.L0)
-        else:
-            if (atm.L0.shape[0] == 1):
-                atm.L0 = np.ones(atm.nscreens, dtype=np.float32) * atm.L0[0]
-            L0_pix = np.copy(atm.L0)
-            for i in range(atm.nscreens):
-                frac_l0 = tel.diam / atm.L0[i]
-                L0_pix[i] = geom.pupdiam / frac_l0
+    if (atm.L0 is None):
+        atm.L0 = np.ones(atm.nscreens, dtype=np.float32) * \
+            (1.e5)  # infinite L0
+        L0_pix = np.copy(atm.L0)
+    else:
+        if (atm.L0.shape[0] == 1):
+            atm.L0 = np.ones(atm.nscreens, dtype=np.float32) * atm.L0[0]
+        L0_pix = np.copy(atm.L0)
+        for i in range(atm.nscreens):
+            frac_l0 = tel.diam / atm.L0[i]
+            L0_pix[i] = geom.pupdiam / frac_l0
 
-        if(atm.seeds is None):
-            seeds = (np.arange(atm.nscreens, dtype=np.int64) + 1) * 1234
-        else:
-            seeds = atm.seeds
+    if(atm.seeds is None):
+        seeds = (np.arange(atm.nscreens, dtype=np.int64) + 1) * 1234
+    else:
+        seeds = atm.seeds
 
-        return atmos_create(c, atm.nscreens, atm.r0, L0_pix, atm.pupixsize,
-            atm.dim_screens, atm.frac, atm.alt, atm.windspeed,
-            atm.winddir, atm.deltax, atm.deltay, seeds, rank, clean, load)
-
-
+    return atmos_create(c, atm.nscreens, atm.r0, L0_pix, atm.pupixsize,
+                        atm.dim_screens, atm.frac, atm.alt, atm.windspeed,
+                        atm.winddir, atm.deltax, atm.deltay, seeds, rank, clean, load)
 
 
 #################################################
@@ -124,16 +130,15 @@ cdef class Atmos:
         if(self.s_a != NULL):
             del self.s_a
 
-
     cdef realinit(self, naga_context ctxt, int nscreens,
-                np.ndarray[ndim=1, dtype=np.float32_t] r0,
-                np.ndarray[ndim=1, dtype=np.int64_t] size,
-                np.ndarray[ndim=1, dtype=np.float32_t] altitude,
-                np.ndarray[ndim=1, dtype=np.float32_t] windspeed,
-                np.ndarray[ndim=1, dtype=np.float32_t] winddir,
-                np.ndarray[ndim=1, dtype=np.float32_t] deltax,
-                np.ndarray[ndim=1, dtype=np.float32_t] deltay,
-                int device):
+                  np.ndarray[ndim=1, dtype=np.float32_t] r0,
+                  np.ndarray[ndim=1, dtype=np.int64_t] size,
+                  np.ndarray[ndim=1, dtype=np.float32_t] altitude,
+                  np.ndarray[ndim=1, dtype=np.float32_t] windspeed,
+                  np.ndarray[ndim=1, dtype=np.float32_t] winddir,
+                  np.ndarray[ndim=1, dtype=np.float32_t] deltax,
+                  np.ndarray[ndim=1, dtype=np.float32_t] deltay,
+                  int device):
         """Create a sutra_atmos object
 
         :parameters:
@@ -162,18 +167,16 @@ cdef class Atmos:
         size2 = compute_size2(size)
 
         self.s_a = new sutra_atmos(ctxt.c, nscreens,
-                < np.float32_t *> r0.data,
-                < long *> size.data,
-                < long *> size2.data,
-                < np.float32_t *> altitude.data,
-                < np.float32_t *> windspeed.data,
-                < np.float32_t *> winddir.data,
-                < np.float32_t *> deltax.data,
-                < np.float32_t *> deltay.data,
-                device)
+                                   < np.float32_t * > r0.data,
+                                   < long * > size.data,
+                                   < long * > size2.data,
+                                   < np.float32_t * > altitude.data,
+                                   < np.float32_t * > windspeed.data,
+                                   < np.float32_t * > winddir.data,
+                                   < np.float32_t * > deltax.data,
+                                   < np.float32_t * > deltay.data,
+                                   device)
         self.context = ctxt
-
-
 
     def get_screen(self, float alt):
         """Return a numpy array containing the turbulence at a given altitude
@@ -186,7 +189,7 @@ cdef class Atmos:
         dims = screen.getDims()
         cdef np.ndarray data_F = np.empty((dims[2], dims[1]), dtype=np.float32)
         cdef np.ndarray data = np.empty((dims[1], dims[2]), dtype=np.float32)
-        screen.device2host(< float *> data_F.data)
+        screen.device2host( < float * > data_F.data)
         data = np.reshape(data_F.flatten("F"), (dims[1], dims[2]))
         return data
 
@@ -199,9 +202,9 @@ cdef class Atmos:
         cdef const long * dims = c_phase.getDims()
         cdef np.ndarray[ndim = 2, dtype = np.float32_t] data = np.zeros((dims[2], dims[1]), dtype=np.float32)
         cdef np.ndarray[ndim = 2, dtype = np.float32_t] phase = np.ndarray((dims[1], dims[2]),
-                                                dtype=np.float32)
+                                                                           dtype=np.float32)
 
-        c_phase.device2host(< float *> data.data)
+        c_phase.device2host( < float * > data.data)
         phase = np.reshape(data.flatten("F"), (dims[1], dims[2]))
 
         pl.ion()
@@ -209,9 +212,8 @@ cdef class Atmos:
         pl.imshow(phase, cmap="Blues")
         pl.show()
 
-
     def add_screen(self, long size, float amplitude, float altitude,
-        float windspeed, float winddir, float deltax, float deltay, int device):
+                   float windspeed, float winddir, float deltax, float deltay, int device):
         """Add a screen to the atmos object.
 
         :parameters:
@@ -223,7 +225,7 @@ cdef class Atmos:
 
             windspeed: (float) : windspeed of the screen [m/s]
 
-            winddir: (float) : wind direction (°)
+            winddir: (float) : wind direction (deg)
 
             deltax: (float) : extrude deltax pixels in the x-direction at each iteration
 
@@ -257,8 +259,6 @@ cdef class Atmos:
         self.s_a.nscreens -= 1
         self.s_a.d_screens.erase(alt)
 
-
-
     def list_alt(self):
         """Display the list of the screens altitude"""
 
@@ -273,7 +273,6 @@ cdef class Atmos:
             i += 1
         print alt
 
-
     def move_atmos(self):
         """Move the turbulence in the atmos screen following previous loaded
         paramters such as windspeed and wind direction
@@ -281,19 +280,20 @@ cdef class Atmos:
 
         self.s_a.move_atmos()
 
-
     def __str__(self):
         cdef map[float, sutra_tscreen * ].iterator it = self.s_a.d_screens.begin()
         cdef sutra_tscreen * screen
         cdef int i = 1
         info = "Atmos obect:\n"
-        info += "Contains " + str(self.s_a.nscreens) + " turbulent screen(s):\n"
+        info += "Contains " + \
+            str(self.s_a.nscreens) + " turbulent screen(s):\n"
         info += "Screen # | alt.(m) | speed (m/s) | dir.(deg) | r0 (pix) | deltax | deltay\n"
         while it != self.s_a.d_screens.end():
             screen = deref(it).second
             info += "%8d" % i + " | " + "%7.4f" % screen.altitude + " | " + "%11.4f" % screen.windspeed + \
-                  " | " + "%9.4f" % screen.winddir + " | " + "%8.4f" % screen.amplitude ** -(6. / 5.) + \
-                  " | " + "%6.4f" % screen.deltax + " | " + "%6.4f" % screen.deltay + "\n"
+                " | " + "%9.4f" % screen.winddir + " | " + "%8.4f" % screen.amplitude ** -(6. / 5.) + \
+                " | " + "%6.4f" % screen.deltax + \
+                " | " + "%6.4f" % screen.deltay + "\n"
             i = i + 1
             inc(it)
 
@@ -328,7 +328,7 @@ cdef atmos_create(naga_context c, int nscreens,
                     np.ndarray[ndim=1,dtype=np.float32_t] deltay,
                     np.ndarray[ndim=1,dtype=np.int64_t] seeds,
                     int verbose, int clean, dict load)
-                    
+
     Create and initialise an atmos object.
 
     :parameters:
@@ -350,7 +350,7 @@ cdef atmos_create(naga_context c, int nscreens,
 
         windspeed: (np.ndarray[ndim=1,dtype=np.float32_t]) : wind speed [m/s]
 
-        winddir: (np.ndarray[ndim=1,dtype=np.float32_t]) : wind direction [°]
+        winddir: (np.ndarray[ndim=1,dtype=np.float32_t]) : wind direction [deg]
 
         deltax: (np.ndarray[ndim=1,dtype=np.float32_t]) : extrude deltax pixels in the x-direction at each iteration
 
@@ -369,7 +369,7 @@ cdef atmos_create(naga_context c, int nscreens,
     cdef carma_context * context = carma_context.instance()
     cdef int device = context.get_activeDevice()
     atmos_obj.realinit(naga_context(), nscreens, r0_layers, dim_screens, alt,
-                    windspeed, winddir, deltax, deltay, device)
+                       windspeed, winddir, deltax, deltay, device)
 
     cdef int i, j
     cdef np.ndarray[ndim = 2, dtype = np.float32_t] A, B, A_F, B_F
@@ -377,7 +377,6 @@ cdef atmos_create(naga_context c, int nscreens,
     cdef sutra_tscreen * tscreen
 
     cdef str file_A, file_B, file_istx, file_isty
-
 
     for i in range(nscreens):
         if(load.has_key("A")):
@@ -403,27 +402,31 @@ cdef atmos_create(naga_context c, int nscreens,
             if not(clean):
                 svnversion = check_output("svnversion").replace("\n", "")
                 print "writing files and updating database"
-                df = pandas.read_hdf(shesha_savepath + "/matricesDataBase.h5", "A")
+                df = pandas.read_hdf(
+                    shesha_savepath + "/matricesDataBase.h5", "A")
                 ind = len(df.index) - 1
-                savename = shesha_savepath + "turbu/A_r" + svnversion + "_" + str(ind) + ".h5"
+                savename = shesha_savepath + "turbu/A_r" + \
+                    svnversion + "_" + str(ind) + ".h5"
                 h5u.save_hdf5(savename, "A", A)
 
-                savename = shesha_savepath + "turbu/B_r" + svnversion + "_" + str(ind) + ".h5"
+                savename = shesha_savepath + "turbu/B_r" + \
+                    svnversion + "_" + str(ind) + ".h5"
                 h5u.save_hdf5(savename, "B", B)
 
-                savename = shesha_savepath + "turbu/istx_r" + svnversion + "_" + str(ind) + ".h5"
+                savename = shesha_savepath + "turbu/istx_r" + \
+                    svnversion + "_" + str(ind) + ".h5"
                 h5u.save_hdf5(savename, "istx", istx)
 
-                savename = shesha_savepath + "turbu/isty_r" + svnversion + "_" + str(ind) + ".h5"
+                savename = shesha_savepath + "turbu/isty_r" + \
+                    svnversion + "_" + str(ind) + ".h5"
                 h5u.save_hdf5(savename, "isty", isty)
-
 
         A_F = np.reshape(A.flatten("F"), (A.shape[0], A.shape[1]))
         B_F = np.reshape(B.flatten("F"), (B.shape[0], B.shape[1]))
 
         tscreen = atmos_obj.s_a.d_screens[alt[i]]
-        tscreen.init_screen(< float *> (A_F.data), < float *> (B_F.data),
-                < unsigned int *> istx.data, < unsigned int *> isty.data, seeds[i])
+        tscreen.init_screen(< float * > (A_F.data), < float * > (B_F.data),
+                             < unsigned int * > istx.data, < unsigned int * > isty.data, seeds[i])
         for j in range(2 * tscreen.screen_size):
             tscreen.extrude(1)
     return atmos_obj
@@ -431,7 +434,7 @@ cdef atmos_create(naga_context c, int nscreens,
 
 cdef compute_size2(np.ndarray[ndim=1, dtype=np.int64_t] size):
     """compute_size2(np.ndarray[ndim=1, dtype=np.int64_t] size)
-    
+
     Compute the size of a stencil, given the screen size
 
     :parameters:

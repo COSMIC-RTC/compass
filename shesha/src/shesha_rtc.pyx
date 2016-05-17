@@ -1474,7 +1474,7 @@ cdef class Rtc:
 
 def rtc_init(Telescope g_tel, Sensors g_wfs, p_wfs, Dms g_dms, p_dms, Param_geom p_geom, Param_rtc p_rtc,
             Param_atmos p_atmos, Atmos g_atmos, Param_tel p_tel, Param_loop p_loop,
-            Target g_tar, Param_target p_tar, clean=1, brama=None, doimat=None, simul_name="", load={}):
+            clean=1, brama=None, doimat=None, simul_name="", load={}):
     """Initialize all the sutra_rtc objects : centroiders and controllers
 
     :parameters:
@@ -1754,7 +1754,7 @@ def rtc_init(Telescope g_tel, Sensors g_wfs, p_wfs, Dms g_dms, p_dms, Param_geom
                                 KL2V = compute_KL2V(controller, g_dms, p_dms, p_geom, p_atmos, p_tel)
                                 g_rtc.init_modalOpti(i, controller.nmodes, controller.nrec, KL2V,
                                     controller.gmin, controller.gmax, controller.ngain, 1. / p_loop.ittime)
-                                ol_slopes = openLoopSlp(g_tel, g_atmos, g_rtc, controller.nrec, i, g_wfs, p_wfs, p_tar, g_tar)
+                                ol_slopes = openLoopSlp(g_tel, g_atmos, g_rtc, controller.nrec, i, g_wfs, p_wfs)
                                 g_rtc.loadOpenLoop(i, ol_slopes)
                                 g_rtc.modalControlOptimization(i)
                             else:
@@ -2205,7 +2205,7 @@ cpdef compute_KL2V(Param_controller controller, Dms dms, p_dms, Param_geom p_geo
     return KL2V
 
 cpdef openLoopSlp(Telescope g_tel, Atmos g_atm, Rtc g_rtc, int nrec, int ncontro, Sensors g_wfs,
-        p_wfs, Param_target p_tar, Target g_tar):
+        p_wfs):
     """Return a set of recorded open-loop slopes, usefull for modal control optimization
 
     :parameters:
@@ -2235,11 +2235,7 @@ cpdef openLoopSlp(Telescope g_tel, Atmos g_atm, Rtc g_rtc, int nrec, int ncontro
 
     print "Recording " + str(nrec) + " open-loop slopes..."
     for i in range(nrec):
-        if(g_tar is not None):
-            g_atm.move_atmos()
-            if(p_tar is not None):
-                for j in range(p_tar.ntargets):
-                    g_tar.atmos_trace(j, g_atm, g_tel)
+        g_atm.move_atmos()
 
         if(p_wfs is not None and g_wfs is not None):
             for j in range(len(p_wfs)):
