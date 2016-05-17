@@ -40,14 +40,6 @@ LIB_DEPLIBS += -Wl,-rpath=$(COMPASS_ROOT)/libcarma -L$(COMPASS_ROOT)/libcarma -l
 LIB_CPPFLAGS = -c -fPIC -Wall -Wno-unused-result -DUNIX -std=c++11
 LIB_CPPFLAGS+= -I$(H_DIR) -I$(COMPASS_ROOT)/libcarma/$(H_DIR) -I$(CUDA_INC_PATH) -I$(CURED_INC_PATH)
 
-ifneq ($(DEBUG),)
-  LIB_CPPFLAGS+= -g -DDEBUG
-  NVCCFLAGS+= -g -DDEBUG -G -lineinfo  -Xptxas -dlcm=ca
-else
-  LIB_CPPFLAGS+= -O3
-  NVCCFLAGS+= -O3 -Xptxas -dlcm=ca
-endif
-
 #MPICXX           = $(shell which mpicxx 2>/dev/null)
 ICC              = $(shell which icc 2>/dev/null)
 
@@ -64,9 +56,17 @@ endif
 #GCC := icc #/usr/local/mpe/bin/mpecc -mpilog
 
 NVCC = $(CUDA_ROOT)/bin/nvcc
-NVCCFLAGS += -m64 -Xcompiler -fPIC -use_fast_math -c
+NVCCFLAGS  = -m64 -Xcompiler -fPIC -use_fast_math -c -Xptxas -dlcm=ca --maxrregcount 32 -std=c++11
 NVCCFLAGS += -I$(CUH_DIR)  -I$(H_DIR) -I$(COMPASS_ROOT)/libcarma/$(CUH_DIR)  
 NVCCFLAGS += -I$(COMPASS_ROOT)/libcarma/$(H_DIR) -I$(CURED_INC_PATH) -gencode $(GENCODE)
+
+ifneq ($(DEBUG),)
+  LIB_CPPFLAGS+= -g -DDEBUG
+  NVCCFLAGS+= -g -DDEBUG -G -lineinfo
+else
+  LIB_CPPFLAGS+= -O3
+  NVCCFLAGS+= -O3
+endif
 
 ifneq ($(COMPILATION_LAM),)
   CFLAGS = -DCOMPILATION_LAM -O3 -DHAVE_CUBLAS -I$(MAGMA_ROOT)/include -I$(LAM_KP_CLASSES_DIR) -I$(LAM_KP_INTERFACE_DIR) -I$(LAM_KALMAN_DIR)
