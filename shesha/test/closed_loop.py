@@ -61,17 +61,17 @@ c = ch.naga_context(0)
 
 #    wfs
 print "->wfs"
-wfs, tel = ao.wfs_init(config.p_wfss, config.p_atmos, config.p_tel, config.p_geom, config.p_target, config.p_loop,
-                       1, 0, config.p_dms)
+wfs, tel = ao.wfs_init(config.p_wfss, config.p_atmos, config.p_tel,
+                       config.p_geom, config.p_target, config.p_loop, config.p_dms)
 
 #   atmos
 print "->atmos"
 atm = ao.atmos_init(c, config.p_atmos, config.p_tel, config.p_geom, config.p_loop, config.p_wfss, config.p_target,
-                    rank=0, clean=clean, load=matricesToLoad)
+                    clean=clean, load=matricesToLoad)
 
 #   dm
 print "->dm"
-dms = ao.dm_init(config.p_dms, config.p_wfss, config.p_geom, config.p_tel)
+dms = ao.dm_init(config.p_dms, config.p_wfss, wfs, config.p_geom, config.p_tel)
 
 #   target
 print "->target"

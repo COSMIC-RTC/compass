@@ -59,7 +59,7 @@ else:
 c = ch.naga_context(0)
 # c.set_activeDevice(0) #useful only if you use ch.naga_context()
 
-#wfs
+# wfs
 config.p_wfs0.set_atmos_seen(0)
 
 # dm
@@ -69,7 +69,7 @@ config.p_dm1.set_type("tt")
 config.p_dm1.set_alt(0.)
 config.p_dm1.set_unitpervolt(1.)
 lambda_d = config.p_wfs0.Lambda / config.p_tel.diam * 180 / np.pi * 3600
-config.p_dm1.set_push4imat(2.*lambda_d)
+config.p_dm1.set_push4imat(2. * lambda_d)
 
 # controllers
 config.p_controller0.set_ndm([0])
@@ -82,26 +82,18 @@ while npts <= 512:
     config.p_wfs0.set_pyr_npts(npts)
     #    wfs
     print "->wfs"
-    wfs, tel = ao.wfs_init(config.p_wfss, config.p_atmos, config.p_tel, config.p_geom, config.p_target, config.p_loop,
-                           1, 0, config.p_dms)
-
-    #   atmos
-    print "->atmos"
-    atm = ao.atmos_init(c, config.p_atmos, config.p_tel, config.p_geom, config.p_loop, config.p_wfss, config.p_target,
-                        rank=0, clean=clean, load=matricesToLoad)
+    wfs, tel = ao.wfs_init(config.p_wfss, config.p_atmos,
+                           config.p_tel, config.p_geom, config.p_target, config.p_loop,
+                           config.p_dms)
 
     #   dm
     print "->dm"
-    dms = ao.dm_init(config.p_dms, config.p_wfss, config.p_geom, config.p_tel)
-
-    #   target
-    print "->target"
-    tar = ao.target_init(c, tel, config.p_target, config.p_atmos, config.p_geom, config.p_tel, config.p_wfss, wfs,
-                         config.p_dms)
+    dms = ao.dm_init(
+        config.p_dms, config.p_wfss, wfs, config.p_geom, config.p_tel)
 
     print "->rtc"
     #   rtc
-    rtc = ao.rtc_init(tel, wfs, config.p_wfss, dms, config.p_dms, config.p_geom, config.p_rtc, config.p_atmos, atm,
+    rtc = ao.rtc_init(tel, wfs, config.p_wfss, dms, config.p_dms, config.p_geom, config.p_rtc, config.p_atmos, None,
                       config.p_tel, config.p_loop, clean=clean, simul_name=simul_name,
                       load=matricesToLoad)
 
@@ -113,10 +105,8 @@ while npts <= 512:
     print "===================="
     print "objects initialzed on GPU:"
     print "--------------------------------------------------------"
-    print atm
     print wfs
     print dms
-    print tar
     print rtc
 
     imat = rtc.get_imat(0)

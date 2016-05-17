@@ -8,7 +8,7 @@ cimport numpy as np
 np.import_array()
 
 # max_extent signature
-cdef _dm_init(Dms dms, Param_dm p_dms, list p_wfs, Param_geom p_geom, Param_tel p_tel, int * max_extent):
+cdef _dm_init(Dms dms, Param_dm p_dms, list p_wfs,Param_geom p_geom, Param_tel p_tel, int * max_extent):
     """ inits a Dms object on the gpu
 
     :parameters:
@@ -117,7 +117,7 @@ cdef _dm_init(Dms dms, Param_dm p_dms, list p_wfs, Param_geom p_geom, Param_tel 
         # res2 = yoga_getkl(g_dm,0.,1);
 
 
-def dm_init(p_dms, list p_wfs, Param_geom p_geom, Param_tel p_tel):
+def dm_init(p_dms, list p_wfs, Sensors sensors, Param_geom p_geom, Param_tel p_tel):
     """Create and initialize a Dms object on the gpu
 
     :parameters:
@@ -135,6 +135,22 @@ def dm_init(p_dms, list p_wfs, Param_geom p_geom, Param_tel p_tel):
         for i in range(len(p_dms)):
              # max_extent
             _dm_init(dms, p_dms[i], p_wfs, p_geom, p_tel, & max_extent)
+        
+    if(p_wfs is not None):
+        if(sensors is not None):
+            for i in range(len(p_wfs)):
+                if(not p_wfs[i].openloop):
+                    for j in range(p_wfs[i].dms_seen.size):
+                        k = p_wfs[i].dms_seen[j]
+                        dims = p_dms[k]._n2 - p_dms[k]._n1 + 1
+                        dim = p_geom._mpupil.shape[0]
+                        if(dim < dims):
+                            dim = dims
+                        xoff = p_wfs[i].xpos * 4.848e-6 * p_dms[k].alt / p_tel.diam * p_geom.pupdiam
+                        yoff = p_wfs[i].ypos * 4.848e-6 * p_dms[k].alt / p_tel.diam * p_geom.pupdiam
+                        xoff = xoff + (dim - p_geom._n) / 2
+                        yoff = yoff + (dim - p_geom._n) / 2
+                        sensors.sensors.d_wfs[i].d_gs.add_layer(p_dms[k].type_dm, p_dms[k].alt, xoff, yoff)
     return dms
 
 

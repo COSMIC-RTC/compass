@@ -14,6 +14,7 @@ from libc.math cimport sin
 
 from shesha_param import *
 from shesha_param cimport * 
+from shesha_sensors cimport * 
 
 
 

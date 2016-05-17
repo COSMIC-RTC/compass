@@ -37,6 +37,8 @@ def atmos_init(naga_context c, Param_atmos atm, Param_tel tel, Param_geom geom,
 
         wfss: (list of Param_wfs) : (optional) wfs settings
 
+        sensors: (Sensors) : (optional) Sensors object on GPU
+
         target: (Param_target) : (optional) target_settings
 
         overwrite: (int) : (optional) overwrite data files if overwite=1 (default 1)

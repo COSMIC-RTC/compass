@@ -310,10 +310,9 @@ def target_init(naga_context ctxt, Telescope telescope, Param_target p_target, P
     cdef int i, j, k
 
     if(p_target.ntargets > 0):
-        if(p_target.dms_seen is None):
+        if(p_target.dms_seen is None and dm is not None):
             for i in range(p_target.ntargets):
-                if(dm is not None):
-                    p_target.dms_seen = np.arange(len(dm))
+                p_target.dms_seen = np.arange(len(dm))
 
     cdef np.ndarray sizes = np.ones(p_target.ntargets, dtype=np.int64) * geom.pupdiam
 
@@ -398,37 +397,20 @@ def target_init(naga_context ctxt, Telescope telescope, Param_target p_target, P
 
         target.init_strehlmeter(i)
 
-    if(wfs is not None):
-        if(sensors is not None):
-            for i in range(len(wfs)):
-                if(wfs[i].gsalt != 0):
-                    gsalt = 1 / wfs[i].gsalt
-                else:
-                     gsalt = 0
+    for i in range(len(wfs)):
+        if(wfs[i].gsalt > 0):
+            gsalt = 1 / wfs[i].gsalt
+        else:
+            gsalt = 0
 
-                if(wfs[i].atmos_seen):
-                    for j in range(atm.nscreens):
-                        xoff = (gsalt * atm.alt[j] * (tel.diam / 2.) + wfs[i].xpos * 4.848e-6 * atm.alt[j]) / atm.pupixsize
-                        yoff = (gsalt * atm.alt[j] * (tel.diam / 2.) + wfs[i].ypos * 4.848e-6 * atm.alt[j]) / atm.pupixsize
-                        xoff = xoff + (atm.dim_screens[j] - geom._n) / 2
-                        yoff = yoff + (atm.dim_screens[j] - geom._n) / 2
-                        sensors.sensors.d_wfs[i].d_gs.add_layer(type_target, atm.alt[j], xoff, yoff)
-
-                if(dm is not None and not wfs[i].openloop):
-                    for j in range(wfs[i].dms_seen.size):
-                        k = wfs[i].dms_seen[j]
-                        dims = dm[k]._n2 - dm[k]._n1 + 1
-                        dim = geom._mpupil.shape[0]
-                        if(dim < dims):
-                            dim = dims
-                        xoff = wfs[i].xpos * 4.848e-6 * dm[k].alt / tel.diam * geom.pupdiam
-                        yoff = wfs[i].ypos * 4.848e-6 * dm[k].alt / tel.diam * geom.pupdiam
-                        xoff = xoff + (dim - geom._n) / 2
-                        yoff = yoff + (dim - geom._n) / 2
-                        sensors.sensors.d_wfs[i].d_gs.add_layer(dm[k].type_dm, dm[k].alt, xoff, yoff)
-
-
-
+        if(wfs[i].atmos_seen):
+            for j in range(atm.nscreens):
+                xoff = (gsalt * atm.alt[j] * (tel.diam / 2.) + wfs[i].xpos * 4.848e-6 * atm.alt[j]) / atm.pupixsize
+                yoff = (gsalt * atm.alt[j] * (tel.diam / 2.) + wfs[i].ypos * 4.848e-6 * atm.alt[j]) / atm.pupixsize
+                xoff = xoff + (atm.dim_screens[j] - geom._n) / 2
+                yoff = yoff + (atm.dim_screens[j] - geom._n) / 2
+                sensors.sensors.d_wfs[i].d_gs.add_layer(type_target, atm.alt[j], xoff, yoff)
+                
     return target
 
 IF USE_BRAMA == 1:

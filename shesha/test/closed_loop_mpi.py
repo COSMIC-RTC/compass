@@ -80,7 +80,7 @@ atm = ao.atmos_init(c, config.p_atmos, config.p_tel,
 
 #   dm
 print "->dm"
-dms = ao.dm_init(config.p_dms, config.p_wfss, config.p_geom, config.p_tel)
+dms = ao.dm_init(config.p_dms, config.p_wfss, wfs, config.p_geom, config.p_tel)
 
 #   target
 print "->target"

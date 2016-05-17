@@ -359,7 +359,7 @@ cpdef wheremax(liste):
 
 
 def wfs_init(wfs, Param_atmos p_atmos, Param_tel p_tel, Param_geom p_geom,
-             Param_target p_target, Param_loop p_loop, int comm_size, int rank, dm=None):
+             Param_target p_target, Param_loop p_loop, dm=None, int comm_size=1, int rank=0):
     """
     Create and initialise  a Sensors object
 
@@ -376,11 +376,11 @@ def wfs_init(wfs, Param_atmos p_atmos, Param_tel p_tel, Param_geom p_geom,
 
         p_loop: (Param_loop) : loop settings
 
-        comm_size: (int) : communicator size
+        dm: (list of Param_dm) : (optional) dms settings [=None]
 
-        rank: (int) : process rank
+        comm_size: (int) : (optional) communicator size [=1]
 
-        dm: (list of Param_dm) : (optional) dms settings
+        rank: (int) : (optional) process rank [=0]
     """
     cdef int nsensors = len(wfs)
     cdef int i
@@ -394,9 +394,9 @@ def wfs_init(wfs, Param_atmos p_atmos, Param_tel p_tel, Param_geom p_geom,
     type_present(liste, any_pyr, any_roof, any_sh, any_geo)
 
     # dm = None
-    if(wfs[0].dms_seen is None):
+    if(wfs[0].dms_seen is None and dm is not None):
         for i in range(nsensors):
-            if(not wfs[i].openloop and dm is not None):
+            if(not wfs[i].openloop):
                 wfs[i].set_dms_seen(np.arange(len(dm), dtype=np.int32))
 
     cdef int indmax
