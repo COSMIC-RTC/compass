@@ -110,7 +110,7 @@ print tar
 print rtc
 
 print "----------------------------------------------------";
-print "iter# | SE SR image | LE SR image | Fitting | SE SR phase var";
+print "iter# | SE SR image | LE SR image | Fitting | LE SR phase var";
 print "----------------------------------------------------";
 
 error_flag = True in [w.error_budget for w in config.p_wfss]
@@ -191,7 +191,7 @@ def loop(n):
             
             rtc.applycontrol(0,dms)
                 
-        if((i+1)%100==0 and i>-1):
+        if((i+1)%10==0 and i>-1):
             strehltmp = tar.get_strehl(0)
             print i+1,"\t",strehltmp[0],"\t",strehltmp[1],"\t",np.exp(-strehltmp[2]),"\t",np.exp(-strehltmp[3])
     t1=time.time()
@@ -199,6 +199,7 @@ def loop(n):
     if(error_flag):
     #Returns the error breakdown
         SR = np.exp(-tar.get_strehl(0,comp_strehl=False)[3])
+        SR =tar.get_strehl(0,comp_strehl=False)[1]
         #bp_com[-1,:] = bp_com[-2,:]
         #SR = tar.get_strehl(0,comp_strehl=False)[1]
         return com,noise_com,alias_wfs_com,tomo_com,H_com,trunc_com,bp_com,mod_com,np.mean(fit),SR
@@ -284,7 +285,8 @@ def error_breakdown(com,noise_com,alias_wfs_com,tomo_com,H_com,trunc_com,bp_com,
     rtc.docontrol(0)
     E = rtc.getErr(0)
     # Apply loop filter to get contribution of noise on commands
-    noise_com[i,:] = gRD*noise_com[i-1,:] + g*(Derr-E)
+    if(i+1 < config.p_loop.niter):
+        noise_com[i+1,:] = gRD.dot(noise_com[i,:]) + g*(Derr-E)
     
     ###########################################################################
     ## Sampling/truncature contribution
@@ -293,7 +295,8 @@ def error_breakdown(com,noise_com,alias_wfs_com,tomo_com,H_com,trunc_com,bp_com,
     rtc.docontrol(0)
     F = rtc.getErr(0)
     # Apply loop filter to get contribution of sampling/truncature on commands
-    trunc_com[i,:] = gRD*trunc_com[i-1,:] + g*(E-F)
+    if(i+1 < config.p_loop.niter):
+        trunc_com[i+1,:] = gRD.dot(trunc_com[i,:]) + g*(E-F)
     
     ###########################################################################
     ## Aliasing contribution on WFS direction
@@ -306,7 +309,8 @@ def error_breakdown(com,noise_com,alias_wfs_com,tomo_com,H_com,trunc_com,bp_com,
     rtc.docentroids_geom(0)
     rtc.docontrol(0)
     Ageom = rtc.getErr(0)
-    alias_wfs_com[i,:] = gRD*alias_wfs_com[i-1,:] + g*Ageom
+    if(i+1 < config.p_loop.niter):
+        alias_wfs_com[i+1,:] = gRD.dot(alias_wfs_com[i,:]) + g*Ageom
         
 
     ###########################################################################
@@ -322,10 +326,7 @@ def error_breakdown(com,noise_com,alias_wfs_com,tomo_com,H_com,trunc_com,bp_com,
     rtc.applycontrol(1,dms)
     tar.dmtrace(0,dms,do_phase_var=0)
     fit[i]= tar.get_strehl(0,comp_strehl=False)[2]
-    ###########################################################################
-    ## Wavefront
-    ########################################################################### 
-    C = np.dot(RDgeom,B)    
+  
     ###########################################################################
     ## Filtered modes error & Commanded modes
     ###########################################################################    
@@ -339,23 +340,26 @@ def error_breakdown(com,noise_com,alias_wfs_com,tomo_com,H_com,trunc_com,bp_com,
     ###########################################################################
     ## Bandwidth error
     ###########################################################################
-    C = mod_com[i,:]
-    """
-    if(i>0):
-        wf_com[i,:] = gRD*wf_com[i-1,:] + g*C
-        bp_com[i-1,:] = wf_com[i-1,:] - C
-    else:
-        wf_com[0,:] = C
-    """
-    wf_com[i,:] = gRD*wf_com[i-1,:] + g*C
-    bp_com[i,:] = wf_com[i-1,:] - mod_com[i,:]
+    C = mod_com[i,:] - mod_com[i-1,:]
+
+    bp_com[i,:] = gRD.dot(bp_com[i-1,:]) - C
     
     
     ###########################################################################
     ## Tomographic error
     ###########################################################################
-    G = F - (mod_com[i,:] + Ageom - np.dot(RDgeom,com[i-1,:]))
-    tomo_com[i,:] = gRD*tomo_com[i-1,:] + g*G
+    #G = F - (mod_com[i,:] + Ageom - np.dot(RDgeom,com[i-1,:]))
+    for w in range(len(config.p_wfss)):
+        wfs.sensors_trace(w,"atmos",tel,atm,dms)
+    rtc.docontrol_geo_onwfs(1,dms,wfs,0)
+    G = rtc.getCom(1)
+    modes = P.dot(G)
+    modes[-nfiltered-2:-2]=0
+    wf_com[i,:] = Btt.dot(modes)
+
+    G = mod_com[i,:] - wf_com[i,:]
+    if(i+1 < config.p_loop.niter):
+        tomo_com[i+1,:] = gRD.dot(tomo_com[i,:]) - g*RD.dot(G)
    
     # Without anyone noticing...
     tar.set_phase(0,tarphase)
@@ -498,7 +502,7 @@ def save_it(filename):
 #  \__\___||___/\__|___/
 ###############################################################################################  
 nfiltered = 4      
-niters = 2000             
+niters = 5000             
 Btt,P = compute_Btt()
 rtc.load_Btt(1,Btt.dot(Btt.T))
 Dm,cmat = compute_cmatWithBtt(Btt,nfiltered)
@@ -508,14 +512,14 @@ imat = rtc.get_imat(0)
 RD = np.dot(R,imat)
 
 gRD = np.identity(RD.shape[0])-config.p_controllers[0].gain*RD
-gRD=np.diag(gRD)
+#gRD=np.diag(gRD)
 
 imat_geom = ao.imat_geom(wfs,config.p_wfss,config.p_controllers[0],dms,config.p_dms,meth=0)
 RDgeom = np.dot(R,imat_geom)
 
 com,noise_com,alias_wfs_com,tomo_com,H_com,trunc_com,bp_com,wf_com,fit,SR = loop(niters)
 
-save_it("breakdown_linear_40x40_offaxis-4.h5")
+save_it("breakdown_linear_onaxis.h5")
 
 
 
