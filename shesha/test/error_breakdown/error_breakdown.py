@@ -198,11 +198,11 @@ def loop(n):
     print " loop execution time:",t1-t0,"  (",n,"iterations), ",(t1-t0)/n,"(mean)  ", n/(t1-t0),"Hz"
     if(error_flag):
     #Returns the error breakdown
-        SR = np.exp(-tar.get_strehl(0,comp_strehl=False)[3])
+        SR2 = np.exp(-tar.get_strehl(0,comp_strehl=False)[3])
         SR =tar.get_strehl(0,comp_strehl=False)[1]
         #bp_com[-1,:] = bp_com[-2,:]
         #SR = tar.get_strehl(0,comp_strehl=False)[1]
-        return com,noise_com,alias_wfs_com,tomo_com,H_com,trunc_com,bp_com,mod_com,np.mean(fit),SR
+        return com,noise_com,alias_wfs_com,tomo_com,H_com,trunc_com,bp_com,mod_com,np.mean(fit),SR,SR2
 
 ###################################################################################        
 #  ___                   ___              _      _                 
@@ -331,7 +331,7 @@ def error_breakdown(com,noise_com,alias_wfs_com,tomo_com,H_com,trunc_com,bp_com,
     ## Filtered modes error & Commanded modes
     ###########################################################################    
     modes = P.dot(B)
-    modes_filt = modes*0.
+    modes_filt = modes.copy()*0.
     modes_filt[-nfiltered-2:-2] = modes[-nfiltered-2:-2]
     H_com[i,:] = Btt.dot(modes_filt)
     modes[-nfiltered-2:-2]=0
@@ -487,7 +487,7 @@ def save_it(filename):
              "alias_wfs_com":alias_wfs_com.T,
                "tomo_com":tomo_com.T,"H_com":H_com.T,"trunc_com":trunc_com.T,
                "bp_com":bp_com.T,"wf_com":wf_com.T,"P":P,"Btt":Btt,"IF.data":IF.data,"IF.indices":IF.indices,
-               "IF.indptr":IF.indptr,"dm_dim":dm_dim,"indx_pup":indx_pup,"fit_error":fit,"SR":SR,
+               "IF.indptr":IF.indptr,"dm_dim":dm_dim,"indx_pup":indx_pup,"fit_error":fit,"SR":SR, "SR2":SR2,
                "cov":cov,"cor":cor}
     h5u.save_h5(fname,"com",config,com.T)         
     #h5u.writeHdf5SingleDataset(fname,com.T,datasetName="com")
@@ -501,8 +501,9 @@ def save_it(filename):
 # | ||  __/\__ \ |_\__ \
 #  \__\___||___/\__|___/
 ###############################################################################################  
-nfiltered = 4      
-niters = 5000             
+nfiltered = 4   
+niters = 10000 
+config.p_loop.set_niter(niters)            
 Btt,P = compute_Btt()
 rtc.load_Btt(1,Btt.dot(Btt.T))
 Dm,cmat = compute_cmatWithBtt(Btt,nfiltered)
@@ -512,14 +513,16 @@ imat = rtc.get_imat(0)
 RD = np.dot(R,imat)
 
 gRD = np.identity(RD.shape[0])-config.p_controllers[0].gain*RD
+diagRD = np.diag(gRD)
+gRD = np.diag(diagRD)
 #gRD=np.diag(gRD)
 
 imat_geom = ao.imat_geom(wfs,config.p_wfss,config.p_controllers[0],dms,config.p_dms,meth=0)
 RDgeom = np.dot(R,imat_geom)
 
-com,noise_com,alias_wfs_com,tomo_com,H_com,trunc_com,bp_com,wf_com,fit,SR = loop(niters)
+com,noise_com,alias_wfs_com,tomo_com,H_com,trunc_com,bp_com,wf_com,fit,SR,SR2 = loop(niters)
 
-save_it("breakdown_linear_onaxis.h5")
+save_it("breakdown_offaxis+4.h5")
 
 
 

@@ -87,6 +87,8 @@ class html_display:
             self.coms_list.remove("IF.indptr")
         if(self.f.keys().count("SR")):
             self.coms_list.remove("SR")
+        if(self.f.keys().count("SR2")):
+            self.coms_list.remove("SR2")
         if(self.f.keys().count("fit_error")):
             self.coms_list.remove("fit_error")
         if(self.f.keys().count("cov")):
@@ -183,7 +185,8 @@ class html_display:
               
         self.p.multi_line("x","y",color="color",source=self.source1)
         self.plog.multi_line("x","y",color="color",source=self.source1)
-        self.psum.line(legend="Simulated SR", line_color="red")
+        self.psum.line(legend="Image SR", line_color="red")
+        self.psum.line(legend="Phase SR ", line_color="purple")
         self.psum.line(legend="Var(X+Y)", line_color="blue")
         self.psum.line(legend="Var(X)+var(Y)", line_color="green")
 
@@ -491,11 +494,13 @@ class html_display:
             if(fitm and self.f.keys().count("fit_error")):
                 data /= np.exp(-self.f["fit_error"].value)
                 data2 /= np.exp(-self.f["fit_error"].value)
-                
-        if(self.f.keys().count("SR")):
-            self.source3.data = dict(x=[x,x,x],y=[data,np.ones(len(x))*self.f["SR"].value,data2],color=["blue","red","green"])
+        if(self.f.keys().count("SR2")):
+            self.source3.data = dict(x=[x,x,x,x],y=[data,np.ones(len(x))*self.f["SR"].value,np.ones(len(x))*self.f["SR2"].value,data2],color=["blue","red","purple","green"])            
         else:
-            self.source3.data = dict(x=x,y=data)
+            if(self.f.keys().count("SR")):
+                self.source3.data = dict(x=[x,x,x],y=[data,np.ones(len(x))*self.f["SR"].value,data2],color=["blue","red","green"])
+            else:
+                self.source3.data = dict(x=x,y=data)
         print "Sum plotted"
         self.dialog.visible = False
     
