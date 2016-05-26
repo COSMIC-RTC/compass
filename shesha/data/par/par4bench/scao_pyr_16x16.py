@@ -5,7 +5,7 @@ import shesha as ao
 #loop
 p_loop = ao.Param_loop()
 
-p_loop.set_niter(5000)
+p_loop.set_niter(1000)
 p_loop.set_ittime(0.002) #=1/500
 
 
@@ -51,10 +51,8 @@ p_wfss=[p_wfs0]
 
 p_wfs0.set_type("pyr")
 p_wfs0.set_nxsub(16)
-p_wfs0.set_npix(4)
 p_wfs0.set_fssize(1.5)
-p_wfs0.set_pixsize(0.3)
-p_wfs0.set_fracsub(1.0)
+p_wfs0.set_fracsub(1)
 p_wfs0.set_xpos(0.)
 p_wfs0.set_ypos(0.)
 p_wfs0.set_Lambda(0.5)
@@ -107,13 +105,6 @@ p_controller0.set_ndm([0,1])
 p_controller0.set_maxcond(100.)
 p_controller0.set_delay(1)
 p_controller0.set_gain(0.4)
-
-p_controller0.set_modopti(0)
-p_controller0.set_nrec(2048)
-p_controller0.set_nmodes(1286)
-p_controller0.set_gmin(0.001)
-p_controller0.set_gmax(0.5)
-p_controller0.set_ngain(500)
 
 #rtc
 p_rtc=ao.Param_rtc()

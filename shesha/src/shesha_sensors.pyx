@@ -180,13 +180,15 @@ cdef class Sensors:
         cdef np.ndarray tmp_istart, tmp_jstart
         cdef string type_sh = "sh"
         cdef string type_pyr = "pyr"
+        cdef string type_pyrhr = "pyrhr"
         cdef string type_roof = "roof"
         cdef string type_geo = "geo"
 
         cdef sutra_wfs_geom * wfs_geom = NULL
         cdef sutra_wfs_sh * wfs_sh = NULL
         cdef sutra_wfs_pyr_roof * wfs_roof = NULL
-        cdef sutra_wfs_pyr_pyrhr * wfs_pyr = NULL
+        cdef sutra_wfs_pyr_pyr4 * wfs_pyr = NULL
+        cdef sutra_wfs_pyr_pyrhr * wfs_pyrhr = NULL
 
         cdef np.ndarray[dtype = np.int32_t] phasemap_F = wfs._phasemap.flatten("F")
         cdef np.ndarray[dtype = np.int32_t] hrmap_F = wfs._hrmap.flatten("F")
@@ -244,21 +246,29 @@ cdef class Sensors:
 
         # swap validx and validy due to transposition from yorick to python
         if(self.sensors.d_wfs[n].type == type_geo):
-            tmp = wfs._fluxPerSub.T[np.where(wfs._isvalid > 0)]
+            tmp = wfs._fluxPerSub.T[np.where(wfs._isvalid > 0)].copy()
             fluxPerSub = < float * > tmp.data
             wfs_geom = dynamic_cast_wfs_geom_ptr(self.sensors.d_wfs[n])
             wfs_geom.wfs_initarrays(phasemap, halfxy, fluxPerSub,
                                     validx, validy)
 
-        elif(self.sensors.d_wfs[n].type == type_pyr):
+        elif(self.sensors.d_wfs[n].type==type_pyr):
+            tmp_offset=wfs._pyr_offsets.flatten("F").copy()
+            offset=<cuFloatComplex*>tmp_offset.data
+            wfs_pyr = dynamic_cast_wfs_pyr_pyr4_ptr(self.sensors.d_wfs[n])
+            wfs_pyr.wfs_initarrays(<cuFloatComplex*>halfxy, offset,
+                    submask, cx, cy,
+                    sincar, phasemap, validx,validy)
+
+        elif(self.sensors.d_wfs[n].type == type_pyrhr):
             tmp_halfxy = np.exp(
-                1j * wfs._halfxy).astype(np.complex64).flatten("F")
+                1j * wfs._halfxy).astype(np.complex64).flatten("F").copy()
             pyr_halfxy = < cuFloatComplex * > tmp_halfxy.data
-            wfs_pyr = dynamic_cast_wfs_pyr_pyrhr_ptr(self.sensors.d_wfs[n])
-            wfs_pyr.wfs_initarrays(pyr_halfxy, cx, cy, sincar, validx, validy)
+            wfs_pyrhr = dynamic_cast_wfs_pyr_pyrhr_ptr(self.sensors.d_wfs[n])
+            wfs_pyrhr.wfs_initarrays(pyr_halfxy, cx, cy, sincar, validx, validy)
 
         elif(self.sensors.d_wfs[n].type == type_roof):
-            tmp_offset = wfs.__pyr_offsets.flatten("F")
+            tmp_offset = wfs.__pyr_offsets.flatten("F").copy()
             offset = < cuFloatComplex * > tmp_offset.data
             wfs_roof = dynamic_cast_wfs_pyr_roof_ptr(self.sensors.d_wfs[n])
             wfs_roof.wfs_initarrays( < cuFloatComplex * > halfxy, offset,
@@ -266,7 +276,7 @@ cdef class Sensors:
                                     sincar, phasemap, validx, validy)
 
         elif(self.sensors.d_wfs[n].type == type_sh):
-            tmp = wfs._fluxPerSub.T[np.where(wfs._isvalid > 0)]
+            tmp = wfs._fluxPerSub.T[np.where(wfs._isvalid > 0)].copy()
             fluxPerSub = < float * > tmp.data
             wfs_sh = dynamic_cast_wfs_sh_ptr(self.sensors.d_wfs[n])
             wfs_sh.wfs_initarrays(phasemap, hrmap, binmap, halfxy,
@@ -301,6 +311,9 @@ cdef class Sensors:
         cdef carma_context * context = carma_context.instance()
         context.set_activeDeviceForCpy(self.sensors.device, 1)
         self.sensors.d_wfs[n].comp_image()
+        cdef string type_pyr = "pyr"
+        if(self.sensors.d_wfs[n].type==type_pyr):
+            self.sensors.d_wfs[n].fill_binimage(0)
 
     def get_offsets(self, int n):
         """Return the 'offset' array of a given wfs
@@ -406,9 +419,12 @@ cdef class Sensors:
         cdef np.ndarray[ndim = 2, dtype = np.float32_t] data
         cdef np.ndarray[ndim = 2, dtype = np.float32_t] data_F
 
+        cdef np.ndarray[ndim=3,dtype=np.float32_t] bincube
+        cdef np.ndarray[ndim=2,dtype=np.float32_t] pyrimg
         cdef bytes type_wfs = < bytes > self.sensors.d_wfs[n].type
+        cdef int npix
 
-        if(type_wfs == "pyr"):
+        if(type_wfs == "pyrhr"):
             img = self.sensors.d_wfs[n].d_binimg
             cdims = img.getDims()
             data = np.empty((cdims[1], cdims[2]), dtype=np.float32)
@@ -416,6 +432,17 @@ cdef class Sensors:
             img.device2host( < float * > data_F.data)
             data = np.reshape(data_F.flatten("F"), (cdims[1], cdims[2]))
             return data
+
+        if(type_wfs == "pyr"):
+            bincube = self.get_bincube(n)
+            npix = bincube.shape[1]
+            pyrimg = np.zeros((2*npix+3,2*npix+3),dtype=np.float32)
+            pyrimg[1:npix+1,1:npix+1] = bincube[:,:,0]
+            pyrimg[npix+2:2*npix+2,1:npix+1] = bincube[:,:,1]
+            pyrimg[1:npix+1,npix+2:2*npix+2] = bincube[:,:,2]
+            pyrimg[npix+2:2*npix+2,npix+2:2*npix+2] = bincube[:,:,3]
+
+            return pyrimg
 
         else:
             raise TypeError("wfs should be a pyr")

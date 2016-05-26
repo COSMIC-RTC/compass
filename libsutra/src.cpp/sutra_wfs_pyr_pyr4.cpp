@@ -2,19 +2,21 @@
 #include <sutra_ao_utils.h>
 #include <carma_utils.h>
 
-sutra_wfs_pyr_pyr4::sutra_wfs_pyr_pyr4(carma_context *context, sutra_telescope *d_tel, sutra_sensors *sensors, long nxsub,
-				       long nvalid, long npix, long nphase, long nrebin, long nfft, long ntot,
-				       long npup, float pdiam, float nphotons, float nphot4imat, int lgs, int device) : 
-  sutra_wfs_pyr(context, d_tel, sensors, nxsub,nvalid, npix, nphase, nrebin, nfft, ntot, npup, pdiam, nphotons, 
-		nphot4imat, lgs, device,"pyrold")
-{
-  this->type = string("pyr");
+sutra_wfs_pyr_pyr4::sutra_wfs_pyr_pyr4(carma_context *context,
+                                       sutra_telescope *d_tel,
+                                       sutra_sensors *sensors, long nxsub,
+                                       long nvalid, long npix, long nphase,
+                                       long nrebin, long nfft, long ntot,
+                                       long npup, float pdiam, float nphotons,
+                                       float nphot4imat, int lgs, int device) :
+    sutra_wfs_pyr(context, d_tel, sensors, nxsub, nvalid, npix, nphase, nrebin,
+                  nfft, ntot, npup, pdiam, nphotons, nphot4imat, lgs, device,
+                  "pyr") {
 }
 
-sutra_wfs_pyr_pyr4::~sutra_wfs_pyr_pyr4(){
+sutra_wfs_pyr_pyr4::~sutra_wfs_pyr_pyr4() {
 
 }
-
 
 //////////////////////////////
 // PYRAMID WAVEFRONT SENSOR //
@@ -29,19 +31,19 @@ int sutra_wfs_pyr_pyr4::comp_generic() {
   //  PYRAMID SENSOR
   current_context->set_activeDevice(device,1);
   pyr_getpup(this->d_camplipup->getData(),
-      this->d_gs->d_phase->d_screen->getData(), this->d_phalfxy->getData(),
-      this->d_pupil->getData(), this->ntot, this->d_gs->lambda,
-      this->current_context->get_device(device));
+             this->d_gs->d_phase->d_screen->getData(),
+             this->d_phalfxy->getData(), this->d_pupil->getData(), this->ntot,
+             this->d_gs->lambda, this->current_context->get_device(device));
 
   carma_fft(this->d_camplipup->getData(), this->d_camplifoc->getData(), -1,
-      *this->d_camplipup->getPlan());
+            *this->d_camplipup->getPlan());
   //
   pyr_submask(this->d_camplifoc->getData(), this->d_submask->getData(),
-      this->ntot, this->current_context->get_device(device));
+              this->ntot, this->current_context->get_device(device));
 
   carmaSafeCall(
       cudaMemset(this->d_hrimg->getData(), 0,
-          sizeof(float) * this->d_hrimg->getNbElem()));
+                 sizeof(float) * this->d_hrimg->getNbElem()));
   //
   //this->npup = 1;
   for (int cpt = 0; cpt < this->npup; cpt++) {
@@ -49,13 +51,13 @@ int sutra_wfs_pyr_pyr4::comp_generic() {
     //    // computes the high resolution images
     carmaSafeCall(
         cudaMemset(this->d_fttotim->getData(), 0,
-            sizeof(cuFloatComplex) * this->d_fttotim->getNbElem()));
+                   sizeof(cuFloatComplex) * this->d_fttotim->getNbElem()));
     //
     //    // here we split the image in 4 quadrant and roll them
     pyr_rollmod(this->d_fttotim->getData(), this->d_camplifoc->getData(),
-        this->d_poffsets->getData(), (this->pyr_cx->getData())[cpt],
-        (this->pyr_cy->getData())[cpt], this->ntot, this->nfft,
-        this->current_context->get_device(device));
+                this->d_poffsets->getData(), (this->pyr_cx->getData())[cpt],
+                (this->pyr_cy->getData())[cpt], this->ntot, this->nfft,
+                this->current_context->get_device(device));
     //
     //    // case of diffractive pyramid
     //    // multiply d_camplifoc->getData() by pyramid + modulation phase
@@ -68,65 +70,67 @@ int sutra_wfs_pyr_pyr4::comp_generic() {
     //     */
 
     carma_fft(this->d_fttotim->getData(), this->d_fttotim->getData(), 1,
-        *this->d_fttotim->getPlan());
+              *this->d_fttotim->getPlan());
 
     //float fact = 1.0f / this->nfft / this->nfft / this->nfft / 2.0;
     float fact = 1.0f;
     //if (cpt == this->npup-1) fact = fact / this->npup;
 
     pyr_abs2(this->d_hrimg->getData(), this->d_fttotim->getData(), fact,
-        this->nfft, 4, this->current_context->get_device(device));
+             this->nfft, 4, this->current_context->get_device(device));
   }
 
   // spatial filtering by the pixel extent:
-  roll(this->d_hrimg->getData(),this->d_hrimg->getDims(1),
-	  this->d_hrimg->getDims(2), 4,
-	  this->current_context->get_device(device));
+  roll(this->d_hrimg->getData(), this->d_hrimg->getDims(1),
+       this->d_hrimg->getDims(2), 4, this->current_context->get_device(device));
 
   carmaSafeCall(
-        cudaMemset(this->d_fttotim->getData(), 0,
-            sizeof(cuFloatComplex) * this->d_fttotim->getNbElem()));
+      cudaMemset(this->d_fttotim->getData(), 0,
+                 sizeof(cuFloatComplex) * this->d_fttotim->getNbElem()));
 
-  cfillrealp(this->d_fttotim->getData(),this->d_hrimg->getData(),
-	       this->d_hrimg->getNbElem(),
-	       this->current_context->get_device(device));
+  cfillrealp(this->d_fttotim->getData(), this->d_hrimg->getData(),
+             this->d_hrimg->getNbElem(),
+             this->current_context->get_device(device));
 
-     carma_fft(this->d_fttotim->getData(), this->d_fttotim->getData(), -1,
-     *this->d_fttotim->getPlan());
-  
-     pyr_submask3d(this->d_fttotim->getData(), this->d_sincar->getData(),this->nfft, 4, this->current_context->get_device(device));
-  
-     carma_fft(this->d_fttotim->getData(), this->d_fttotim->getData(), 1,
-     *this->d_fttotim->getPlan());
-  
-     pyr_abs(this->d_hrimg->getData(), this->d_fttotim->getData(),this->nfft, 4, this->current_context->get_device(device));
+  carma_fft(this->d_fttotim->getData(), this->d_fttotim->getData(), -1,
+            *this->d_fttotim->getPlan());
 
-    //pyr_fact(this->d_hrimg->getData(),1.0f/this->nfft/this->nfft,this->nfft,4,this->current_context->get_device(device));
-     
+  pyr_submask3d(this->d_fttotim->getData(), this->d_sincar->getData(),
+                this->nfft, 4, this->current_context->get_device(device));
+
+  carma_fft(this->d_fttotim->getData(), this->d_fttotim->getData(), 1,
+            *this->d_fttotim->getPlan());
+
+  pyr_abs(this->d_hrimg->getData(), this->d_fttotim->getData(), this->nfft, 4,
+          this->current_context->get_device(device));
+
+  //pyr_fact(this->d_hrimg->getData(),1.0f/this->nfft/this->nfft,this->nfft,4,this->current_context->get_device(device));
 
   carmaSafeCall(
       cudaMemset(this->d_bincube->getData(), 0,
-          sizeof(float) * this->d_bincube->getNbElem()));
+                 sizeof(float) * this->d_bincube->getNbElem()));
 
   pyr_fillbin(this->d_bincube->getData(), this->d_hrimg->getData(),
-      this->nrebin, this->nfft, this->nfft / this->nrebin, 4,
-      this->current_context->get_device(device));
+              this->nrebin, this->nfft, this->nfft / this->nrebin, 4,
+              this->current_context->get_device(device));
 
   pyr_subsum(this->d_subsum->getData(), this->d_bincube->getData(),
-      this->d_validsubsx->getData(), this->d_validsubsy->getData(),
-      this->nfft / this->nrebin, this->nvalid, 4,
-      this->current_context->get_device(device));
+             this->d_validsubsx->getData(), this->d_validsubsy->getData(),
+             this->nfft / this->nrebin, this->nvalid, 4,
+             this->current_context->get_device(device));
 
   int blocks, threads;
 //  getNumBlocksAndThreads(current_context->get_device(device), this->nvalid,
 //      blocks, threads);
-	sumGetNumBlocksAndThreads(this->nvalid, this->current_context->get_device(device),
-		  	  	  	  	  	  blocks, threads);
+  sumGetNumBlocksAndThreads(this->nvalid,
+                            this->current_context->get_device(device), blocks,
+                            threads);
   reduce(this->nvalid, threads, blocks, this->d_subsum->getData(),
-      this->d_subsum->getData());
+         this->d_subsum->getData());
 
   pyr_fact(this->d_bincube->getData(), this->nphot, this->d_subsum->getData(),
-      this->nfft / this->nrebin, 4, this->current_context->get_device(device));
+           this->nfft / this->nrebin, 4,
+           this->current_context->get_device(device));
 
   // add noise
   if (this->noise > -1) {
@@ -139,9 +143,9 @@ int sutra_wfs_pyr_pyr4::comp_generic() {
   }
 
   pyr_subsum(this->d_subsum->getData(), this->d_bincube->getData(),
-      this->d_validsubsx->getData(), this->d_validsubsy->getData(),
-      this->nfft / this->nrebin, this->nvalid, 4,
-      this->current_context->get_device(device));
+             this->d_validsubsx->getData(), this->d_validsubsy->getData(),
+             this->nfft / this->nrebin, this->nvalid, 4,
+             this->current_context->get_device(device));
   //  /*
   //  reduce(this->nvalid, threads, blocks, this->d_subsum->getData(),
   //      this->d_subsum->getData());

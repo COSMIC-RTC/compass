@@ -358,6 +358,7 @@ cdef extern from "sutra_wfs.h":
         int comp_generic()
         int define_mpi_rank(int rank, int size)
         int allocate_buffers(sutra_sensors * sensors)
+        int fill_binimage(int async)
 
 
 #################################################
@@ -368,7 +369,6 @@ cdef extern from "sutra_wfs_sh.h":
         int  wfs_initarrays(int * phasemap, int * hrmap, int * binmap, float * offsets,
                             float * fluxPerSub, int * validsubsx,
                             int * validsubsy, int * istart, int * jstart, cuFloatComplex * kernel)
-        int fill_binimage(int async)
         int slopes_geom(int type, float * slopes)
         int slopes_geom(int type)
 

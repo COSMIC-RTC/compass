@@ -64,7 +64,7 @@ sutra_wfs_pyr::sutra_wfs_pyr(carma_context *context, sutra_telescope *d_tel,
   long dims_data3[4];
   dims_data3[0] = 3;
 
-  if (strcmp(type_pyr, "pyr") == 0) {
+  if (strcmp(type_pyr, "pyrhr") == 0) {
     dims_data2[1] = nfft;
     dims_data2[2] = nfft;
 
@@ -117,7 +117,7 @@ sutra_wfs_pyr::sutra_wfs_pyr(carma_context *context, sutra_telescope *d_tel,
     this->d_validsubsx = new carma_obj<int>(context, dims_data1);
     this->d_validsubsy = new carma_obj<int>(context, dims_data1);
 
-  } else if (strcmp(type_pyr, "roof") == 0) {
+  } else { //pyr or roof
     dims_data3[1] = nfft;
     dims_data3[2] = nfft;
     dims_data3[3] = 4;
@@ -180,7 +180,6 @@ sutra_wfs_pyr::sutra_wfs_pyr(carma_context *context, sutra_telescope *d_tel,
     dims_data2[1] = ntot;
     dims_data2[2] = ntot;
     this->d_phalfxy = new carma_obj<cuFloatComplex>(context, dims_data2);
-    cerr << *(this->d_phalfxy);
     dims_data2[1] = nfft;
     dims_data2[2] = nfft;
     this->d_sincar = new carma_obj<float>(context, dims_data2);

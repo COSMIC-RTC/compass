@@ -471,7 +471,7 @@ def wfs_init(wfs, Param_atmos p_atmos, Param_tel p_tel, Param_geom p_geom,
         noise = np.array([o.noise for o in wfs], dtype=np.float32)
         g_wfs.sensors_initgs(xpos, ypos, Lambda, mag, zerop, size, noise, seed)
 
-    elif(wfs[0].type_wfs == "roof"):
+    elif(wfs[0].type_wfs=="pyr" or wfs[0].type_wfs == "roof"):
         npup = np.array([wfs[0].pyr_npts])
         g_wfs = Sensors(nsensors, telescope, t_wfs, npup, nxsub, nvalid, nphase, pdiam, npix, nrebin,
                         nfft, ntota, nphot, nphot4imat, lgs, comm_size=comm_size, rank=rank, error_budget=error_budget_flag)
@@ -480,7 +480,7 @@ def wfs_init(wfs, Param_atmos p_atmos, Param_tel p_tel, Param_geom p_geom,
         noise = np.array([o.noise for o in wfs], dtype=np.float32)
         g_wfs.sensors_initgs(xpos, ypos, Lambda, mag, zerop, size, noise, seed)
 
-    elif(wfs[0].type_wfs == "pyr"):
+    elif(wfs[0].type_wfs == "pyrhr"):
         npup = np.array([wfs[0].pyr_npts])
         g_wfs = Sensors(nsensors, telescope, t_wfs, npup, nxsub, nvalid, nphase, pdiam, npix, nrebin,
                         nfft, ntota, nphot, nphot4imat, lgs, comm_size=comm_size, rank=rank, error_budget=error_budget_flag)
@@ -628,7 +628,7 @@ cpdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
         # the overall geometry is deduced from it
         geom.geom_init(tel, pdiam * wfs.nxsub, p_target.apod)
 
-    if(wfs.type_wfs == "roof"):
+    if(wfs.type_wfs=="pyr" or wfs.type_wfs == "roof"):
         padding = 2
         npup = wfs._Ntot
         n1 = geom.ssize / 2 - geom.pupdiam / 2 - padding * wfs.npix
@@ -714,7 +714,7 @@ cpdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
             1j * 2 * np.pi * (coef1 / Nfft + coef2 * nrebin / wfs.npix / Nfft) * (x + y))
         wfs._pyr_offsets = pshift
 
-        if(wfs.pyrtype == "pyr"):
+        if(wfs.pyrtype == "Pyramid"):
             if(wfs.pyr_pos == None):
                 cx = np.round(
                     mod_ampl_pixels * np.sin((np.arange(wfs.pyr_npts) + 1) * 2. * np.pi / wfs.pyr_npts))
@@ -727,11 +727,21 @@ cpdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
                 cx = np.round(wfs.pyr_pos[:, 0] / qpixsize)
                 cy = np.round(wfs.pyr_pos[:, 1] / qpixsize)
                 # mod_npts=cx.shape[0] #UNUSED
-        elif(wfs.pyrtype == "roof"):
+        elif(wfs.pyrtype == "RoofPrism"):
             cx = np.round(
                 2. * mod_ampl_pixels * ((np.arange(wfs.pyr_npts) + 1) - (wfs.pyr_npts + 1) / 2.) / wfs.pyr_npts)
             cy = cx
             # mod_npts = wfs.pyr_npts #UNUSED
+        else:
+            if(wfs.pyr_pos==None):
+                cx = np.round(mod_ampl_pixels*np.sin((np.arange(wfs.pyr_npts)+1)*2.*np.pi/wfs.pyr_npts))
+                cy = np.round(mod_ampl_pixels*np.cos((np.arange(wfs.pyr_npts)+1)*2.*np.pi/wfs.pyr_npts))
+                #mod_npts = wfs.pyr_npts #UNUSED
+            else:
+                if(verbose==0):print "Using user-defined positions for the pyramid modulation"
+                cx=np.round(wfs.pyr_pos[:,0]/qpixsize)
+                cy=np.round(wfs.pyr_pos[:,1]/qpixsize)
+                #mod_npts=cx.shape[0] #UNUSED
 
         wfs._pyr_cx = cx.astype(np.int32)
         wfs._pyr_cy = cy.astype(np.int32)
@@ -764,7 +774,7 @@ cpdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
 
         wfs._phasemap = phasemap
 
-    if(wfs.type_wfs == "pyr"):
+    if(wfs.type_wfs == "pyrhr"):
         # nrebin[0]  = pdiam[0] / wfs.nxsub
         # Ntot[0]    = Nfft[0] /  pdiam[0] * wfs.nxsub
         # pixsize[0] = qpixsize[0] * nrebin[0]
@@ -895,6 +905,9 @@ cpdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
             pixsize = (np.pi * qpixsize) / (3600 * 180)
             scale_fact = 2 * np.pi / npup * \
                 (wfs.Lambda / tel.diam / 4.848) / pixsize * wfs.pyr_ampl
+#             Proposition de Flo
+#             scale_fact = 2 * np.pi / npup * \
+#                 (wfs.Lambda * 1e-6 / tel.diam) / pixsize * wfs.pyr_ampl
             cx = scale_fact * \
                 np.sin((np.arange(wfs.pyr_npts)) * 2. * np.pi / wfs.pyr_npts)
             cy = scale_fact * \
@@ -1267,7 +1280,7 @@ cdef init_wfs_size(Param_wfs wfs, int n, Param_atmos atmos,
             qpixsize[0] = (
                 pdiam[0] * (wfs.Lambda * 1.e-6) / subapdiam * RASC) / Nfft[0]
 
-        if(wfs.type_wfs == "roof"):
+        if(wfs.type_wfs=="pyr" or wfs.type_wfs == "roof"):
             # while (pdiam % wfs.npix != 0) pdiam+=1;
             padding = 2
             nphase = pdiam[0] * wfs.nxsub + 2 * padding * pdiam[0]
@@ -1295,7 +1308,7 @@ cdef init_wfs_size(Param_wfs wfs, int n, Param_atmos atmos,
             Ntot[0] = nphase
             pixsize[0] = qpixsize[0] * nrebin[0]
 
-        if(wfs.type_wfs == "pyr"):
+        if(wfs.type_wfs == "pyrhr"):
             # while (pdiam % wfs.npix != 0) pdiam+=1;
             k = 5
             pdiam[0] = long(tel.diam / r0 * k)
@@ -1373,7 +1386,7 @@ cdef init_wfs_size(Param_wfs wfs, int n, Param_atmos atmos,
             if(verbose == 0):
                 print "size of HR spot support : ", Ntot[0]
 
-    if (wfs.type_wfs == "pyr"):
+    if (wfs.type_wfs == "pyrhr"):
         if(verbose == 0):
             print "quantum pixsize in pyr image : ", "%5.4f" % qpixsize[0], "\""
         if(verbose == 0):

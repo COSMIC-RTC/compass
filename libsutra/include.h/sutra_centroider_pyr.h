@@ -14,20 +14,14 @@ public:
   sutra_centroider_pyr(const sutra_centroider_pyr& centroider);
   ~sutra_centroider_pyr();
 
-  string
-  get_type();
+  string get_type();
 
-  int
-  get_pyr(float *cube, float *subsum, float *centroids, int *subindx,
+  int get_pyr(float *cube, float *subsum, float *centroids, int *subindx,
       int *subindy, int nvalid, int ns, int nim);
-
-  int
-  get_cog(carma_streams *streams, float *cube, float *subsum, float *centroids,
+  int get_cog(carma_streams *streams, float *cube, float *subsum, float *centroids,
       int nvalid, int npix, int ntot);
-  int
-  get_cog(float *subsum, float *slopes);
-  int
-  get_cog();
+  int get_cog(float *subsum, float *slopes);
+  int get_cog();
 };
 
 #endif // _SUTRA_CENTROIDER_PYR_H_

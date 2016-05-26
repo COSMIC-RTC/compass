@@ -161,6 +161,11 @@ sutra_sensors::sutra_sensors(carma_context *context, sutra_telescope *d_tel,
                              nphase[i], nrebin[i], nfft[i], ntot[i], npup[i],
                              pdiam[i], nphot[i], nphot4imat[i], lgs[i], device);
     if (strcmp(type[i], "pyr") == 0)
+      wfs = new sutra_wfs_pyr_pyr4(context, d_tel, this, nxsub[i], nvalid[i],
+                                   npix[i], nphase[i], nrebin[i], nfft[i],
+                                   ntot[i], npup[i], pdiam[i], nphot[i],
+                                   nphot4imat[i], lgs[i], device);
+    if (strcmp(type[i], "pyrhr") == 0)
       wfs = new sutra_wfs_pyr_pyrhr(context, d_tel, this, nxsub[i], nvalid[i],
                                     npix[i], nphase[i], nrebin[i], nfft[i],
                                     ntot[i], npup[i], pdiam[i], nphot[i],
