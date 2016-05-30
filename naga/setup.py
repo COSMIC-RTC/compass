@@ -215,7 +215,7 @@ def compile_module(name):
     ext = Extension(name,
                   sources=['src/' + name + '.pyx'],
                   # extra_compile_args=["-O0", "-g"],
-                  extra_compile_args=["-Wunused-function", "-Wunused-label", "-Wcpp"],
+                  extra_compile_args=["-Wno-unused-function", "-Wno-unused-label", "-Wno-cpp"],
                   include_dirs=include_dirs,
                   library_dirs=library_dirs,
                   libraries=libraries,
