@@ -136,7 +136,7 @@ class widgetAOWindow(TemplateBaseClass):
         if not self.assistant or \
            not self.assistant.poll() is None:
 
-            helpcoll = os.environ["SHESHA_ROOT"] + "/doc/COMPASSSHESHA.qhc"
+            helpcoll = os.environ["COMPASS_ROOT"] + "/doc/COMPASS.qhc"
             cmd = "assistant -enableRemoteControl -collectionFile %s" % helpcoll
             self.assistant = subprocess.Popen(cmd,
                                               shell=True,
