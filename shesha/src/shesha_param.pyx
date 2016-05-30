@@ -312,7 +312,7 @@ cdef class Param_wfs:
         """
         self.fssize = f
 
-    def set_fstop(self, str f):
+    def set_fstop(self,str f):
         """Set the size of field stop
 
         :param f: (str) : size of field stop in arcsec
@@ -772,13 +772,77 @@ cdef class Param_dm:
         :param t: (str) : type of dm
         """
         self.type_dm = t
+        
+    def set_pattern(self,bytes t):
+        """set the pattern type
 
+        :param t: (str) : type of pattern
+        """
+        self.type_pattern=t
+        
+    def set_file_influ_hdf5(self,bytes f):
+        """set the name of hdf5 influence file 
+
+        :param filename: (str) : Hdf5 file influence name
+        """
+        self.file_influ_hdf5=f
+        
+    def set_center_name(self,bytes f):
+        """set the name of hdf5 influence file 
+
+        :param filename: (str) : Hdf5 file influence name
+        """
+        self.center_name=f
+
+    def set_cube_name(self,bytes cubename):
+        """set the name of influence cube in hdf5 
+
+        :param cubename: (str) : name of influence cube
+        """
+        self.cube_name=cubename
+        
+    def set_x_name(self,bytes xname):
+        """set the name of x coord of influence fonction in file 
+
+        :param t: (str) : name of x coord of influence
+        """
+        self.x_name=xname
+
+    def set_y_name(self,bytes yname):
+        """set the name of y coord of influence fonction in file 
+
+        :param yname: (str) : name of y coord of influence
+        """
+        self.y_name=yname
+    
     def set_nact(self, long n):
+
         """set the number of actuator
 
         :param n: (long) : number of actuators in the diameter
         """
         self.nact = n
+
+    def set_margin(self,float n):
+        """set the margin for outside actuator select
+
+        :param n: (float) : pupille diametre ratio for actuator select 
+        """
+        self.margin=n  
+        
+    def set_margin_out(self,float n):
+        """set the margin for outside actuator select
+
+        :param n: (float) : pupille diametre ratio for actuator select 
+        """
+        self.margin_out=n       
+
+    def set_margin_in(self,float n):
+        """set the margin for inside actuator select (central obstruction)
+
+        :param n: (float) : pupille diametre ratio for actuator select 
+        """
+        self.margin_in=n    
 
     def set_alt(self, float a):
         """set the conjugaison altitude
@@ -823,14 +887,14 @@ cdef class Param_dm:
         self._ntotact = n
 
     def set_xpos(self, np.ndarray[ndim=1, dtype=np.float32_t] xpos):
-        """Set the x positions of influ functions
+        """Set the x positions of influ functions (lower left corner)
 
         :param xpos: (np.ndarray[ndim=1,dtype=np.float32_t]) : x positions of influ functions
         """
         self._xpos = xpos
 
     def set_ypos(self, np.ndarray[ndim=1, dtype=np.float32_t] ypos):
-        """Set the y positions of influ functions
+        """Set the y positions of influ functions (lower left corner)
 
         :param ypos: (np.ndarray[ndim=1,dtype=np.float32_t]) : y positions of influ functions
         """

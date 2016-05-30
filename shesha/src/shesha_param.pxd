@@ -93,7 +93,7 @@ cdef class Param_wfs:
     cdef readonly float fssize
     """size of field stop in arcsec."""
     cdef readonly str fstop
-    """size of field stop in arcsec."""
+    """ Fields of the wfs diaphragm shape : "square" or "none" """
 
     cdef readonly int atmos_seen
     """1 if the WFS sees the atmosphere layers"""
@@ -263,6 +263,23 @@ cdef class Param_atmos:
 cdef class Param_dm:
   cdef readonly bytes  type_dm
   """ type of dm"""
+  cdef readonly bytes  type_pattern
+  """ type of pattern"""
+  cdef readonly bytes  file_influ_hdf5
+  """ filename for influ hdf5 file"""
+  cdef readonly bytes  center_name
+  """ filename for influ hdf5 file"""
+  cdef readonly bytes  cube_name
+  """ name for influence cube in hdf5"""
+  cdef readonly bytes  x_name
+  """ name for x coord of influence"""
+  cdef readonly bytes  y_name
+  """ name for y coord of influence"""
+  #  cdef readonly bytes  i_name
+  #  """ name for i coord of influence"""
+  #  cdef readonly bytes  j_name
+  #  """ name for j coord of influence"""
+  
   cdef readonly long    nact
   """ number of actuators in the diameter """
   cdef readonly float   alt
@@ -274,6 +291,14 @@ cdef class Param_dm:
   cdef readonly float   hyst
   """ actuators hysteresis (<1.)"""
   cdef readonly float   margin
+  """outside margin for actuator select""" 
+  cdef readonly float   margin_out
+  """outside margin for actuator select""" 
+  
+  cdef readonly float   margin_in
+  """inside margin for actuator select""" 
+  
+  
   cdef readonly np.ndarray   pupoffset
   """(2)"""
   """ global offset in pupil of whole actuator pattern [m]"""

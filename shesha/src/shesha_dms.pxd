@@ -13,39 +13,39 @@ from cpython.string cimport PyString_AsString
 
 from libc.math cimport sin
 
-from shesha_param cimport * 
+from shesha_param cimport *
 from shesha_param import *
-from shesha_sensors cimport * 
+from shesha_sensors cimport *
 
 
 #################################################
 # P-Class Dms
 #################################################
 cdef class Dms:
-    cdef sutra_dms * dms
+    cdef sutra_dms *dms
     """sutra_dms object"""
     cdef int device
     """ GPU device number"""
-    cpdef add_dm(self, bytes type_dm, float alt, long dim, long ninflu,
-                 long influsize, long ninflupos, long npts, float puhs4imat,
-                 int device=?)
-    cpdef remove_dm(self, bytes type_dm, float alt)
+    cpdef add_dm(self, bytes type_dm, float alt, long dim, long ninflu, 
+                long influsize, long ninflupos, long npts, float puhs4imat,
+                int device=?)
+    cpdef remove_dm(self,bytes type_dm, float alt)
 
     cpdef load_pzt(self, float alt,
-                   np.ndarray[ndim=3, dtype=np.float32_t] influ,
-                   np.ndarray[ndim=1, dtype=np.int32_t] influpos,
-                   np.ndarray[ndim=1, dtype=np.int32_t] npoints,
-                   np.ndarray[ndim=1, dtype=np.int32_t] istart,
-                   np.ndarray[ndim=1, dtype=np.int32_t] xoff,
-                   np.ndarray[ndim=1, dtype=np.int32_t] yoff,
-                   np.ndarray[ndim=2, dtype=np.float32_t] kern)
+                    np.ndarray[ndim=3,dtype=np.float32_t] influ,
+                    np.ndarray[ndim=1,dtype=np.int32_t] influpos,
+                    np.ndarray[ndim=1,dtype=np.int32_t] npoints,
+                    np.ndarray[ndim=1,dtype=np.int32_t] istart,
+                    np.ndarray[ndim=1,dtype=np.int32_t] xoff,
+                    np.ndarray[ndim=1,dtype=np.int32_t] yoff,
+                    np.ndarray[ndim=2,dtype=np.float32_t] kern)
 
-    # TODO dims of arrays
-    cpdef load_kl(self, float alt, np.ndarray[ndim=1, dtype=np.float32_t] rabas,
-                  np.ndarray[ndim=1, dtype=np.float32_t] azbas,
-                  np.ndarray[ndim=1, dtype=np.int32_t] ord,
-                  np.ndarray[ndim=1, dtype=np.float32_t] cr,
-                  np.ndarray[ndim=1, dtype=np.float32_t] cp)
+    #TODO dims of arrays
+    cpdef load_kl(self,float alt, np.ndarray[ndim=1,dtype=np.float32_t] rabas,
+                    np.ndarray[ndim=1,dtype=np.float32_t] azbas,
+                    np.ndarray[ndim=1,dtype=np.int32_t] ord,
+                    np.ndarray[ndim=1,dtype=np.float32_t] cr,
+                    np.ndarray[ndim=1,dtype=np.float32_t] cp)
 
     cpdef load_tt(self, float alt, np.ndarray[ndim=3, dtype=np.float32_t] influ)
 
@@ -66,6 +66,14 @@ cdef class Dms:
     cpdef comp_oneactu(self, bytes type_dm, float alt, int nactu, float ampli)
 
 
+
+cpdef createSquarePattern(float pitch, int nxact )
+cpdef createHexaPattern(np.float32_t pitch, np.float32_t supportSize)
+cpdef make_pzt_dm(Param_dm p_dm,Param_geom geom,Param_tel p_tel,irc)
+cpdef read_influ_hdf5 (Param_dm p_dm,Param_tel p_tel, Param_geom geom)
+cpdef make_tiptilt_dm(Param_dm p_dm,list p_wfs, Param_geom p_geom, Param_tel p_tel)
+cpdef make_kl_dm(Param_dm p_dm, Param_wfs p_wfs,Param_geom p_geom, Param_tel p_tel)
+cpdef make_zernike(int nzer,int size,int diameter, float xc=?, float yc=?, int ext=?)
 cpdef comp_dmgeom(Param_dm dm, Param_geom geom)
 cpdef compute_klbasis(Dms g_dm, Param_dm p_dm, Param_geom p_geom, Param_atmos p_atmos, Param_tel p_tel)
 cpdef computeDMbasis(Dms g_dm, Param_dm p_dm, Param_geom p_geom)

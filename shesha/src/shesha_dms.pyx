@@ -6,9 +6,16 @@ from blaze.expr.expressions import shape
 import numpy as np
 cimport numpy as np
 np.import_array()
+import hdf5_utils as h5
 
-# max_extent signature
-cdef _dm_init(Dms dms, Param_dm p_dms, list p_wfs,Param_geom p_geom, Param_tel p_tel, int * max_extent):
+#
+#_______________
+import resDataBase as db
+import pandas as pd
+#_______________
+
+#max_extent signature
+cdef _dm_init(Dms dms, Param_dm p_dms, list p_wfs, Param_geom p_geom, Param_tel p_tel,int *max_extent):
     """ inits a Dms object on the gpu
 
     :parameters:
@@ -80,14 +87,43 @@ cdef _dm_init(Dms dms, Param_dm p_dms, list p_wfs,Param_geom p_geom, Param_tel p
             if(p_dms._n2 > p_geom.ssize):
                 p_dms._n2 = p_geom.ssize
 
-    if(p_dms.type_dm == "pzt"):
-        make_pzt_dm(p_dms, p_geom)
-        dim = max(p_dms._n2 - p_dms._n1 + 1, p_geom._mpupil.shape[0])
-        ninflu = long(p_dms._ntotact)
-        influsize = long(p_dms._influsize)
-        ninflupos = long(p_dms._influpos.size)
-        n_npts = long(p_dms._ninflu.size)
+    #________________________________
+    cdef float irc, coupling, ir
+    cdef long pitch, smallsize
+    #________________________________
 
+
+    if( p_dms.type_dm=="pzt"):
+        #calcul influsize ___________________
+        
+         
+        coupling=p_dms.coupling
+        
+        irc=1.16136+2.97422*coupling+(-13.2381)*coupling**2+20.4395*coupling**3
+        pitch=p_dms._pitch                
+        ir=irc*pitch
+        
+        smallsize=np.ceil(2*ir+10)
+        if(smallsize%2!=0):smallsize+=1
+        p_dms._influsize=smallsize                   
+        #______________________________________
+        
+        
+        #calcul defaut influsize
+        if p_dms.file_influ_hdf5 == None:
+            make_pzt_dm(p_dms,p_geom,p_tel,irc)
+        else :
+            read_influ_hdf5 (p_dms,p_tel,p_geom)
+        
+        
+        
+        
+        dim = max(p_dms._n2-p_dms._n1+1, p_geom._mpupil.shape[0])
+        ninflu=long(p_dms._ntotact)
+        influsize=long(p_dms._influsize)
+        ninflupos=long(p_dms._influpos.size)
+        n_npts = long(p_dms._ninflu.size)
+        
         dms.add_dm(p_dms.type_dm, p_dms.alt, dim, ninflu, influsize,
                    ninflupos, n_npts, p_dms.push4imat)
         dms.load_pzt(p_dms.alt, p_dms._influ, p_dms._influpos.astype(np.int32),
@@ -133,9 +169,9 @@ def dm_init(p_dms, list p_wfs, Sensors sensors, Param_geom p_geom, Param_tel p_t
     if(len(p_dms) != 0):
         dms = Dms(len(p_dms))
         for i in range(len(p_dms)):
-             # max_extent
+             #max_extent
             _dm_init(dms, p_dms[i], p_wfs, p_geom, p_tel, & max_extent)
-        
+    
     if(p_wfs is not None):
         if(sensors is not None):
             for i in range(len(p_wfs)):
@@ -154,119 +190,299 @@ def dm_init(p_dms, list p_wfs, Sensors sensors, Param_geom p_geom, Param_tel p_t
     return dms
 
 
-cpdef make_pzt_dm(Param_dm p_dm, Param_geom geom):
+
+
+cpdef createSquarePattern(float pitch, int nxact ):
+    """
+    Creates a list of M=nxact^2 actuator positions spread over an square grid.
+    Coordinates are centred around (0,0).
+
+    :parameters:
+        pitch: (float) : distance in pixels between 2 adjacent actus
+        nxact: (int) : number of actu across the pupil diameter
+    :return:
+        xy: (np.ndarray(dims=2,dtype=np.float32)) : xy[M,2] list of coodinates
+    """
+    cdef np.ndarray[ndim=2, dtype=np.float32_t] xy
+
+    xy = np.tile( np.arange(nxact) - (nxact-1.)/2. , (nxact,1)).astype(np.float32)
+    xy = np.array([xy.flatten(), xy.T.flatten()]) * pitch
+    return xy
+
+
+
+cpdef createHexaPattern(np.float32_t pitch, np.float32_t supportSize):
+    """
+    Creates a list of M actuator positions spread over an hexagonal grid.
+    The number M is the number of points of this grid, it cannot be
+    known before the procedure is called.
+    Coordinates are centred around (0,0).
+    The support that limits the grid is a square [-n/2,n/2].
+
+    :parameters:
+        pitch: (float) : distance in pixels between 2 adjacent actus
+        n: (float) : size in pixels of the support over which the coordinate list
+             should be returned.
+    :return:
+        xy: (np.ndarray(dims=2,dtype=np.float32)) : xy[M,2] list of coodinates
+    """
+    cdef float V3 = np.sqrt(3)
+    cdef int nx = int(np.ceil((supportSize/2.0)/pitch) + 1)
+    cdef np.ndarray[ndim=1, dtype=np.float32_t] x = pitch * (np.arange(2*nx+1, dtype=np.float32)-nx)
+    cdef int Nx = x.shape[0]
+    cdef int ny = int(np.ceil((supportSize/2.0)/pitch/V3) + 1)
+    cdef np.ndarray[ndim=1, dtype=np.float32_t] y = (V3 * pitch) * (np.arange(2*ny+1, dtype=np.float32)-ny)
+    cdef int Ny = y.shape[0]
+    x = np.tile(x,(Ny,1)).flatten()
+    y = np.tile(y,(Nx,1)).T.flatten()
+    x = np.append(x, x + pitch/2.)
+    y = np.append(y, y + pitch*V3/2.)
+    cdef np.ndarray[ndim=2, dtype=np.float32_t] xy = np.array([x,y])
+    return xy
+
+def n_actuator_select(Param_dm p_dm,Param_tel p_tel, xc,yc):
+    """
+    Fonction for select actuator in fonction of Margin_in, margin_out or ntotact.
+    default margin_out=1.44pitch, default for margin_in taking all the actuators.
+    
+    
+    :parameters:
+        p_dm: (Param_dm) : dm settings
+        xc: actuators x positions (origine in center of mirror)
+        yc: actuators y positions (origine in center of mirror)
+    
+    :return:
+        liste_fin: actuator indice selection for xpos/ypos  
+    
+    
+    """
+    # the following determine if an actuator is to be considered or not
+    # relative to the pitchmargin parameter.
+    dis=np.sqrt(xc**2+yc**2)
+    #cdef np.ndarray dis2=np.sqrt(cub[0,:]**2+cub[1,:]**2)
+    #cdef float rad_in, rad_out 
+    
+    
+    #test Margin_in
+
+    if(p_dm.margin_in==0):
+        # 1 if valid actuator, 0 if not:
+
+        rad_in=0.0
+
+    else:
+        pitchMargin_in=p_dm.margin_in
+        rad_in=(((p_dm.nact-1.)/2.)*p_tel.cobs-pitchMargin_in)*p_dm._pitch
+
+    if(p_dm._ntotact==0):
+        if(p_dm.margin_out==0):
+            pitchMargin_out=1.44
+        else:
+            pitchMargin_out=p_dm.margin_out
+        rad_out=((p_dm.nact-1.)/2.+pitchMargin_out)*p_dm._pitch
+
+        liste_fin = np.where((dis < rad_out) * (dis > rad_in))[0]
+        
+    else:
+        liste_i = sorted(range(len(dis)), key=lambda k: dis[k])
+        liste2 = dis[liste_i] > rad_in
+
+    
+        if(sum(liste2)<p_dm._ntotact):
+            print 'ntoact very hight'
+            liste_fin = liste_i[(np.size(liste2)-sum(liste2)):]
+        else:
+            liste_fin = liste_i[(np.size(liste2)-sum(liste2)):p_dm._ntotact+(np.size(liste2)-sum(liste2))]
+            
+
+    return liste_fin
+
+
+cpdef make_pzt_dm(Param_dm p_dm,Param_geom geom,Param_tel p_tel,irc):
+
     """Compute the actuators positions and the influence functions for a pzt DM
 
     :parameters:
         p_dm: (Param_dm) : dm settings
 
         geom: (Param_geom) : geom settings
+        
+        p_tel: (Param_tel) : tel settings
+        
+        irc: factor for influence size
     :return:
         influ: (np.ndarray(dims=3,dtype=np.float64)) : cube of the IF for each actuator
 
     """
     cdef int i
-    # best parameters, as determined by a multi-dimensional fit
-    # (see coupling3.i)
-    cdef float p1, p2, irc, coupling
-    coupling = p_dm.coupling
+    #best parameters, as determined by a multi-dimensional fit
+    #(see coupling3.i)
+    cdef float p1,p2, coupling
+    coupling=p_dm.coupling
 
-    p1 = 4.49469 + 7.25509 * coupling + \
-        (-32.1948) * coupling ** 2 + 17.9493 * coupling ** 3
+    p1=4.49469+(7.25509+(-32.1948+17.9493*coupling)*coupling)*coupling
+    p2=2.49456+(-0.65952+(8.78886-6.23701*coupling)*coupling)*coupling
 
-    p2 = 2.49456 + (-0.65952) * coupling + 8.78886 * \
-        coupling ** 2 + (-6.23701) * coupling ** 3
 
-    irc = 1.16136 + 2.97422 * coupling + \
-        (-13.2381) * coupling ** 2 + 20.4395 * coupling ** 3
+    cdef float tmp_c=1.0/np.abs(irc)
+    cdef float ccc = (coupling - 1.+ tmp_c**p1)/(np.log(tmp_c)*tmp_c**p2)
 
-    cdef long nxact = p_dm.nact
-    cdef float cent = geom.cent
-    cdef long pitch = p_dm._pitch
-    cdef float ir = irc * pitch
+    # prepare to compute IF on partial (local) support of size <smallsize>
+    cdef long pitch=p_dm._pitch
+    cdef long smallsize
 
-    cdef float tmp_c = pitch / np.abs(ir)
-    cdef float c = (coupling - 1. + tmp_c ** p1) / (np.log(tmp_c) * tmp_c ** p2)
+    smallsize=p_dm._influsize
 
-    # compute IF on partial (local) support:
-    cdef long smallsize = np.ceil(2 * ir + 10)
-    if(smallsize % 2 != 0):
-        smallsize += 1
-    p_dm._influsize = smallsize
-
-    cdef np.ndarray[ndim = 2, dtype = np.float32_t] tmpx, tmp
-    tmpx = np.tile(
-        np.arange(smallsize, dtype=np.float32) - smallsize / 2 + 0.5, (smallsize, 1))
-    tmpx = np.abs(tmpx / ir)
-    # clip
-    tmpx[tmpx < 1e-8] = 1e-8
-    tmpx[tmpx > 2] = 2.
-    tmp = (1. - tmpx ** p1 + c * np.log(tmpx) * tmpx ** p2) * \
-        (1. - tmpx.T ** p1 + c * np.log(tmpx.T) * tmpx.T ** p2)
-
-    # influ   = tmp*(tmpx <= 1.)*(tmpy <= 1.);
-    tmp = tmp * (tmpx <= 1.) * (tmpx.T <= 1.)
 
     # compute location (x,y and i,j) of each actuator:
-    cdef np.ndarray[ndim = 3, dtype = np.float32_t] cub = np.zeros((nxact, nxact, 2), dtype=np.float32)
-    # make X and Y indices array:
-    cub[:, :, 0] = np.tile(np.arange(nxact), (nxact, 1)) + 1
-    cub[:, :, 1] = np.tile(np.arange(nxact), (nxact, 1)).T + 1
-    # express "centered" coordinate of actuator in pixels
-    cub = (cub - 1. - (nxact - 1.) / 2.) * pitch
-    # the following determine if an actuator is to be considered or not
-    # relative to the pitchmargin parameter.
-    cdef np.ndarray dis = np.sqrt(cub[:, :, 0] ** 2 + cub[:, :, 1] ** 2)
+    if p_dm.type_pattern == None:    
+        p_dm.type_pattern = <bytes>'square'
+    cdef long nxact=p_dm.nact
+    cdef np.ndarray cub
+    if p_dm.type_pattern == 'square':
+        cub = createSquarePattern( pitch, nxact )
+    if p_dm.type_pattern == 'hexa':
+        cub = createHexaPattern( pitch, geom.pupdiam * 1.1)
 
-    cdef float pitchMargin = 1.44
-    if(p_dm.margin != 0):
-        pitchMargin = p_dm.margin
 
-    cdef rad = ((nxact - 1.) / 2. + pitchMargin) * pitch
-    # 1 if valid actuator, 0 if not:
-    inbigcirc = np.where(dis < rad)
-
+    inbigcirc = n_actuator_select(p_dm,p_tel,cub[0,:],cub[1,:])
+    
+    #print 'inbigcirc',inbigcirc.shape
+    
     # converting to array coordinates:
-    cub += cent
+    cub += geom.cent
 
+    
     # filtering actuators outside of a disk radius = rad (see above)
-    cdef np.ndarray cubval = cub[inbigcirc]
-    p_dm._ntotact = cubval.shape[0]
-    p_dm._xpos = cubval[:, 0]
-    p_dm._ypos = cubval[:, 1]
-    p_dm._i1 = (cubval[:, 0] - smallsize / 2 + 0.5 - p_dm._n1).astype(np.int32)
-    p_dm._j1 = (cubval[:, 1] - smallsize / 2 + 0.5 - p_dm._n1).astype(np.int32)
+    cdef np.ndarray cubval = cub[:,inbigcirc]
+    ntotact = cubval.shape[1]
+    xpos    = cubval[0,:]
+    ypos    = cubval[1,:]
+    i1t      = (cubval[0,:]-smallsize/2+0.5-p_dm._n1).astype(np.int32)
+    j1t      = (cubval[1,:]-smallsize/2+0.5-p_dm._n1).astype(np.int32)
+    
+    
 
-    # influ = influ(,,-)*array(1.f,y_dm(nm)._ntotact)(-,-,);
-    # tmp= tmp*(tmpx <= 1.)*(tmpx.T <= 1.)
-    # influ = tmp(,,-)*array(1.f,y_dm(nm)._ntotact)(-,-,);
-    cdef np.ndarray[ndim = 3, dtype = np.float32_t] influ = np.zeros((tmp.shape[0], tmp.shape[1], p_dm._ntotact), dtype=np.float32)
-    for i in range(p_dm._ntotact):
+    # Allocate array of influence functions
+    cdef np.ndarray[ndim=3,dtype=np.float32_t] influ=np.zeros((smallsize,smallsize,ntotact),dtype=np.float32)
+    # Computation of influence function for each actuator
+    cdef int i1, j1
+    cdef np.ndarray[ndim=2,dtype=np.float32_t] x, y, tmp
+    for i in range(ntotact):
+        i1 = i1t[i]
+        x  = np.tile(np.arange(i1,i1+smallsize,dtype=np.float32),(smallsize,1)) # pixel coords in ref frame "dm support"
+        x += p_dm._n1                                          # pixel coords in ref frame "pupil support"
+        x -= xpos[i]                                     # pixel coords in local ref frame
+        x  = np.abs(x)/(irc*pitch)                             # normalized coordiantes in local ref frame
+
+        j1 = j1t[i]
+        y  = np.tile(np.arange(j1,j1+smallsize,dtype=np.float32),(smallsize,1)) # idem as X, in Y
+        y += p_dm._n1
+        y -= ypos[i]
+        y  = np.abs(y.T)/(irc*pitch)
+        
+        #clip
+        x[x<1e-8]=1e-8
+        x[x>2]=2.
+        y[y<1e-8]=1e-8
+        y[y>2]=2.
+        tmp = (1.-x**p1+ccc*np.log(x)*x**p2)*(1.-y**p1+ccc*np.log(y)*y**p2)
+        tmp = tmp*(x <= 1.0)*(y <= 1.0)
         influ[:, :, i] = tmp
 
     if(p_dm._puppixoffset is not None):
-        p_dm._xpos += p_dm._puppixoffset[0]
-        p_dm._ypos += p_dm._puppixoffset[1]
+        xpos +=p_dm._puppixoffset[0]
+        ypos +=p_dm._puppixoffset[1]
 
-    influ = influ * float(p_dm.unitpervolt / np.max(influ))
+    influ=influ*float(p_dm.unitpervolt/np.max(influ))
+
+    #___________________________
+
     p_dm._influ = influ
 
-    comp_dmgeom(p_dm, geom)
+ 
+    print 'nb = ',np.size(inbigcirc)
+    p_dm._ntotact = np.size(inbigcirc)
+    p_dm._xpos = xpos
+    p_dm._ypos = ypos
+
+
+    p_dm._i1 = (p_dm._xpos - p_dm._influsize/2. +0.5 - p_dm._n1).astype(np.int32)
+    p_dm._j1 = (p_dm._ypos - p_dm._influsize/2. +0.5 - p_dm._n1).astype(np.int32)
+
+
+    comp_dmgeom(p_dm,geom)
 
     cdef long dim = max(geom._mpupil.shape[0], p_dm._n2 - p_dm._n1 + 1)
     cdef float off = (dim - p_dm._influsize) / 2
 
-    cdef np.ndarray[ndim = 2, dtype = np.float32_t] kernconv = np.zeros((dim, dim), dtype=np.float32)
-    kernconv[off:off + p_dm._influsize,
-             off:off + p_dm._influsize] = influ[:, :, 0]
-    kernconv = np.roll(kernconv, kernconv.shape[0] / 2, axis=0)
-    kernconv = np.roll(kernconv, kernconv.shape[1] / 2, axis=1)
-    p_dm._influkernel = kernconv
-
-    return influ
+    cdef np.ndarray[ndim=2, dtype=np.float32_t] kernconv=np.zeros((dim,dim),dtype=np.float32)
+    kernconv [off:off+p_dm._influsize,off:off+p_dm._influsize] = p_dm._influ[:,:,0]
+    kernconv=np.roll(kernconv,kernconv.shape[0]/2,axis=0)
+    kernconv=np.roll(kernconv,kernconv.shape[1]/2,axis=1)
+    p_dm._influkernel= kernconv
 
 
-cdef make_tiptilt_dm(Param_dm p_dm, list p_wfs, Param_geom p_geom, Param_tel p_tel):
+
+
+
+cpdef read_influ_hdf5 (Param_dm p_dm,Param_tel p_tel, Param_geom geom):
+    """Read HDF for influence pzt fonction and form
+    
+    :parameters:
+        p_dm: (Param_dm) : dm settings
+
+        geom: (Param_geom) : geom settings
+
+    """
+    # read hdf5 file for influence fonction
+    
+    h5_tp = db.readDataBase(p_dm.file_influ_hdf5)
+    influtemp = h5_tp.default_pzt_cube[0]
+    xpos = h5_tp.default_pzt_x[0]
+    ypos = h5_tp.default_pzt_y[0]
+    center = h5_tp.default_pzt_center[0]
+   
+    # Calculation of vectors new vector and xpos, ypos
+   
+    inbigcirc = n_actuator_select(p_dm,p_tel,xpos-center[0],ypos-center[1])
+    print 'nb = ',np.size(inbigcirc)
+    p_dm._ntotact = np.size(inbigcirc)
+    p_dm._xpos = xpos[inbigcirc]
+    p_dm._ypos = ypos[inbigcirc]
+    
+
+
+    influ_size_temp = influtemp.shape[0]
+    influ_size = p_dm._influsize
+    
+    #Interpolation for influence fonction
+    if (influ_size_temp != influ_size):
+
+        for i in range(influtemp.shape[2]):
+            print 'toto'
+    else:
+        p_dm._influ = influtemp
+
+    p_dm._i1 = (p_dm._xpos - p_dm._influsize/2. +0.5 - p_dm._n1).astype(np.int32)
+    p_dm._j1 = (p_dm._ypos - p_dm._influsize/2. +0.5 - p_dm._n1).astype(np.int32)
+
+
+    comp_dmgeom(p_dm,geom)
+
+    cdef long dim=max(geom._mpupil.shape[0],p_dm._n2-p_dm._n1+1)
+    cdef float off=(dim-p_dm._influsize)/2
+
+    cdef np.ndarray[ndim=2, dtype=np.float32_t] kernconv=np.zeros((dim,dim),dtype=np.float32)
+    kernconv [off:off+p_dm._influsize,off:off+p_dm._influsize] = p_dm._influ[:,:,0]
+    kernconv=np.roll(kernconv,kernconv.shape[0]/2,axis=0)
+    kernconv=np.roll(kernconv,kernconv.shape[1]/2,axis=1)
+    p_dm._influkernel= kernconv
+
+
+
+
+cpdef make_tiptilt_dm(Param_dm p_dm,list p_wfs, Param_geom p_geom, Param_tel p_tel):
     """Compute the influence functions for a tip-tilt DM
 
     :parameters:
@@ -304,7 +520,7 @@ cdef make_tiptilt_dm(Param_dm p_dm, list p_wfs, Param_geom p_geom, Param_tel p_t
     return influ
 
 
-cdef make_kl_dm(Param_dm p_dm, Param_wfs p_wfs, Param_geom p_geom, Param_tel p_tel):
+cpdef make_kl_dm(Param_dm p_dm, Param_wfs p_wfs,Param_geom p_geom, Param_tel p_tel):
     """Compute the influence function for a Karhunen-Loeve DM
 
     :parameters:
@@ -331,7 +547,7 @@ cdef make_kl_dm(Param_dm p_dm, Param_wfs p_wfs, Param_geom p_geom, Param_tel p_t
     p_dm._ntotact = p_dm.nkl
 
 
-cdef make_zernike(int nzer, int size, int diameter, float xc=-1, float yc=-1, int ext=0):
+cpdef make_zernike(int nzer,int size,int diameter, float xc=-1, float yc=-1, int ext=0):
     """Compute the zernike modes
 
     :parameters:
@@ -775,6 +991,7 @@ cdef class Dms:
         cdef np.ndarray[dtype = np.float32_t] influ_F = influ.flatten("F")
         self.dms.d_dms[inddm].d_influ.host2device(< float *> influ_F.data)
 
+
     cpdef set_full_comm(self, np.ndarray[ndim=1, dtype=np.float32_t] comm,
                         bool shape_dm=True):
         """Set the voltage command 
@@ -795,9 +1012,10 @@ cdef class Dms:
             if shape_dm:
                 self.dms.d_dms[inddm].comp_shape()
 
-    cpdef set_comm(self, bytes type_dm, float alt,
-                   np.ndarray[ndim=1, dtype=np.float32_t] comm,
-                   bool shape_dm=False):
+
+    cpdef set_comm(self,bytes type_dm,float alt,
+                    np.ndarray[ndim=1,dtype=np.float32_t] comm,
+                    bool shape_dm=False):
         """Set the voltage command on a sutra_dm
 
             type_dm: (str) : dm type
@@ -805,7 +1023,7 @@ cdef class Dms:
             alt: (float) : dm conjugaison altitude
 
             comm: (np.ndarray[ndim=1,dtype=np.float32_t]) : voltage vector
-
+            
             shape_dm: (bool) : perform the dm_shape after the load (default=False)
         """
 
@@ -816,6 +1034,8 @@ cdef class Dms:
             raise ValueError(err)
 
         self.dms.d_dms[inddm].d_comm.host2device(< float *> comm.data)
+        if shape_dm:
+            self.dms.d_dms[inddm].comp_shape()
         if shape_dm:
             self.dms.d_dms[inddm].comp_shape()
 
