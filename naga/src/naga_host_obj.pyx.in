@@ -34,90 +34,6 @@ c_types_info = {
                 }
 ?>
 
-
-
-"""    
-cdef extern from "carma_host_obj.h":
-    ctypedef enum MemAlloc:
-        MA_MALLOC
-        MA_PAGELOCK
-        MA_ZEROCPY
-        MA_PORTABLE
-        MA_WRICOMB
-        MA_GENEPIN
-
-#################################################
-# C-Class carma_host_obj
-#################################################
-    cdef cppclass carma_host_obj[T]:
-
-        T *h_data #< Input data
-        T *data_UA #< unpadded input dara for generic pinned mem
-        long *dims_data #< dimensions of the array
-        int nb_elem #< number of elments in the array
-        MemAlloc mallocType #< type of host alloc
-        carma_streams *streams
-
-
-        carma_host_obj(const long *dims_data)
-        carma_host_obj(const long *dims_data, MemAlloc mallocType)
-        carma_host_obj(const carma_host_obj[T] *obj)
-        carma_host_obj(const carma_host_obj[T] *obj, MemAlloc mallocType)
-        carma_host_obj(const long *dims_data, T *data)
-        carma_host_obj(const long *dims_data, T *data, MemAlloc mallocType)
-        carma_host_obj(const long *dims_data, int nb_streams)
-        carma_host_obj(const long *dims_data, MemAlloc mallocType, int nb_streams)
-        carma_host_obj(const carma_host_obj[T] *obj, int nb_streams)
-        carma_host_obj(const carma_host_obj[T] *obj, MemAlloc mallocType,
-            int nb_streams)
-        carma_host_obj(const long *dims_data, T *data, int nb_streams)
-        carma_host_obj(const long *dims_data, T *data, MemAlloc mallocType,
-            int nb_streams)
-        #~carma_host_obj()
-
-        void get_devpntr(void **pntr_dev)
-
-        int get_nbStreams()
-        int add_stream()
-        int add_stream(int nb)
-        int del_stream()
-        int del_stream(int nb)
-        cudaStream_t get_cudaStream_t(int stream)
-        int wait_stream(int stream)
-        int wait_all_streams()
-
-        int cpy_obj(carma_obj[T]* caObj, cudaMemcpyKind flag)
-        int cpy_obj(carma_obj[T]* caObj, cudaMemcpyKind flag, unsigned int stream)
-
-        T* getData()
-        T* getData(int index)
-        const long *getDims()
-        int getNbElem()
-
-        int fill_from(const T *data)
-        int fill_into(T *data)
-
-        #string getMetAlloc()
-
-    #int carma_svd_cpu[T](long N, long M, T *imat, T *eigenvals, T *mod2act,
-    #    T *mes2mod)
-    #int carma_getri_cpu[T](long N, T *h_A)
-    #int carma_potri_cpu[T](long N, T *h_A)
-    #int carma_syevd_cpu[T](char jobz, long N, T *h_A, T *eigenvals)
-    #int carma_axpy_cpu[T](long N, T alpha, T *h_X, long incX, T *h_Y, long incY)
-    #int carma_gemm_cpu[T](char transa, char transb, long m, long n, long k, T alpha,
-    #    T *A, long lda, T *B, long ldb, T beta, T *C, long ldc)
-
-    #int carma_svd_cpu[T](carma_host_obj[T] *imat,
-    #    carma_host_obj[T] *eigenvals, carma_host_obj[T] *mod2act,
-    #    carma_host_obj[T] *mes2mod)
-    #int carma_getri_cpu[T](carma_host_obj[T] *h_A)
-    #int carma_potri_cpu[T](carma_host_obj[T] *h_A)
-    #int carma_syevd_cpu[T](char jobz, carma_host_obj[T] *h_A,
-    #    carma_host_obj[T] *eigenvals)
-
-"""    
-
 import numpy as np
 cimport numpy as np
 np.import_array()
@@ -135,7 +51,7 @@ cdef dict_MemAlloc={"malloc":(MA_MALLOC),
 pxd_code_str='''
 cdef class naga_host_obj_CLASSNAMEDIMD:
 
-    def __cinit__(self, 
+    def __cinit__(self,
             np.ndarray[ndim=1, dtype=np.int64_t] dims=None,
             naga_host_obj_CLASSNAMEDIMD obj=None,
             np.ndarray[ndim=DIM,dtype=NUMPY_TYPENAME_T] data=None,
@@ -146,23 +62,23 @@ cdef class naga_host_obj_CLASSNAMEDIMD:
         """naga_host_obj_CLASSNAMEDIMD constructor.
 
     constructors available:
-        naga_host_obj(np.ndarray dims)
-        naga_host_obj(np.ndarray dims, int nbStreams)
-        naga_host_obj(np.ndarray dims, str mallocType)
-        naga_host_obj(np.ndarray dims, str mallocType, int nbStreams)
-        naga_host_obj(np.ndarray data)
-        naga_host_obj(np.ndarray data, int nbStream)
-        naga_host_obj(np.ndarray data, str mallocType)
-        naga_host_obj(np.ndarray data, str mallocType, int nbStreams)
-        naga_host_obj(naga_host_obj_CLASSNAMEDIMD obj)
-        naga_host_obj(naga_host_obj_CLASSNAMEDIMD obj, int nbStream)
-        naga_host_obj(naga_host_obj_CLASSNAMEDIMD obj, str mallocType)
-        naga_host_obj(naga_host_obj_CLASSNAMEDIMD obj, str mallocType, int nbStreams)
+        naga_host_obj_CLASSNAMEDIMD(np.ndarray dims)
+        naga_host_obj_CLASSNAMEDIMD(np.ndarray dims, int nbStreams)
+        naga_host_obj_CLASSNAMEDIMD(np.ndarray dims, str mallocType)
+        naga_host_obj_CLASSNAMEDIMD(np.ndarray dims, str mallocType, int nbStreams)
+        naga_host_obj_CLASSNAMEDIMD(np.ndarray data)
+        naga_host_obj_CLASSNAMEDIMD(np.ndarray data, int nbStream)
+        naga_host_obj_CLASSNAMEDIMD(np.ndarray data, str mallocType)
+        naga_host_obj_CLASSNAMEDIMD(np.ndarray data, str mallocType, int nbStreams)
+        naga_host_obj_CLASSNAMEDIMD(naga_host_obj_CLASSNAMEDIMD obj)
+        naga_host_obj_CLASSNAMEDIMD(naga_host_obj_CLASSNAMEDIMD obj, int nbStream)
+        naga_host_obj_CLASSNAMEDIMD(naga_host_obj_CLASSNAMEDIMD obj, str mallocType)
+        naga_host_obj_CLASSNAMEDIMD(naga_host_obj_CLASSNAMEDIMD obj, str mallocType, int nbStreams)
 
         input data must be a np.ndarray with ndim=DIM
         dims must be a np array of shape (DIM)
         """
-        
+
         cdef long sh[DIM+1]
         cdef int i
 
@@ -188,14 +104,14 @@ cdef class naga_host_obj_CLASSNAMEDIMD:
                         self.c_h=new carma_host_obj[C_TYPE](sh, MT)
                     else:
                         self.c_h=new carma_host_obj[C_TYPE](sh, MT, nbStreams)
- 
+
             else:
                 if(not data.flags.fortran):
                     data=np.asfortranarray(data)
                 sh[0]=DIM
                 for i in range(DIM):
                      sh[i+1]=data.shape[i]
-                
+
                 if(MT ==-1):
                     if(nbStreams is None):
                         self.c_h=new carma_host_obj[C_TYPE](sh,
@@ -255,7 +171,7 @@ cdef class naga_host_obj_CLASSNAMEDIMD:
 
     def cpy_obj_from(self, naga_obj_CLASSNAMEDIMD src):
         """Copy into naga_host_obj (cpu storage) the data from a naga_obj (gpu storage).
-        
+
         src -- naga_obj_CLASSNAMEDIMD: object to copy from
         """
         cdef uintptr_t src_ptr = <uintptr_t>src.getCarma_ptr()
@@ -263,7 +179,7 @@ cdef class naga_host_obj_CLASSNAMEDIMD:
 
     def cpy_obj_into(self,naga_obj_CLASSNAMEDIMD dest):
         """Copy into naga_host_obj (cpu storage) the data from a naga_obj (gpu storage).
-        
+
         dest -- naga_obj_CLASSNAMEDIMD: object to copy into
         """
         cdef uintptr_t dest_ptr = <uintptr_t>dest.getCarma_ptr()
@@ -298,7 +214,7 @@ cdef class naga_host_obj_CLASSNAMEDIMD:
 
 for ctype,info in c_types_info.items():
 
-#code available for all dimensions (constructor, getters, copy...) 
+#code available for all dimensions (constructor, getters, copy...)
     code = pxd_code_str
 
 
@@ -324,6 +240,5 @@ for ctype,info in c_types_info.items():
     code = code.replace(template_strs[7], info[7])
 
     out.write(code)
-    
-?>
 
+?>

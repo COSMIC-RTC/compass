@@ -1,5 +1,5 @@
 """
-SHESHA documentation build configuration file.
+COMPASS documentation build configuration file.
 
 created by sphinx-quickstart on Thu Oct 22 11:30:19 2015.
 
@@ -19,8 +19,8 @@ import os
 import subprocess
 # import sphinx_bootstrap_theme
 
+sys.path.insert(0, os.environ["NAGA_ROOT"])
 sys.path.insert(0, os.environ["SHESHA_ROOT"])
-sys.path.insert(0, os.environ["SHESHA_ROOT"] + "/lib")
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
@@ -54,7 +54,7 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'COMPASS (SHESHA)'
+project = u'COMPASS'
 copyright = u'2015, COMPASS team'
 author = u'COMPASS team'
 
@@ -219,7 +219,7 @@ html_static_path = ['_static']
 # html_search_scorer = 'scorer.js'
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'SHESHAdoc'
+htmlhelp_basename = 'COMPASSdoc'
 
 # -- Options for LaTeX output ---------------------------------------------
 
@@ -240,7 +240,7 @@ latex_elements = {
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
-latex_documents = [(master_doc, 'SHESHA.tex', u'COMPASS (SHESHA) Documentation',
+latex_documents = [(master_doc, 'COMPASS.tex', u'COMPASS Documentation',
                     author, 'manual'),
                    ]
 
@@ -270,7 +270,7 @@ latex_documents = [(master_doc, 'SHESHA.tex', u'COMPASS (SHESHA) Documentation',
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'shesha', u'COMPASS (SHESHA) Documentation',
+    (master_doc, 'compass', u'COMPASS Documentation',
      [author], 1)
 ]
 
@@ -283,8 +283,8 @@ man_pages = [
 # Grouping the document tree into Texinfo files. List of tuples
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
-texinfo_documents = [(master_doc, 'SHESHA', u'COMPASS (SHESHA) Documentation',
-                      author, 'SHESHA', 'One line description of project.',
+texinfo_documents = [(master_doc, 'COMPASS', u'COMPASS Documentation',
+                      author, 'COMPASS', 'One line description of project.',
                       'Miscellaneous'),
                      ]
 
