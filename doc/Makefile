@@ -19,6 +19,13 @@ ALLSPHINXOPTS   = -d $(BUILDDIR)/doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) .
 # the i18n builder cannot share the environment and doctrees with the others
 I18NSPHINXOPTS  = $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) .
 
+.PHONY: all
+all: html latexpdf qthelp
+	@echo "  doing qcollectiongenerator $(BUILDDIR)/qthelp/COMPASS.qhcp"
+	qcollectiongenerator $(BUILDDIR)/qthelp/COMPASS.qhcp
+	@echo "  mv $(BUILDDIR)/qthelp/COMPASS.qhc $(BUILDDIR)/qthelp/COMPASS.qch ."
+	mv $(BUILDDIR)/qthelp/COMPASS.qhc $(BUILDDIR)/qthelp/COMPASS.qch .
+
 .PHONY: help
 help:
 	@echo "Please use \`make <target>' where <target> is one of"
