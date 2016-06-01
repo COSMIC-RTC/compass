@@ -8,15 +8,15 @@ OBJ_DIR=obj
 LIB_NAME=libsutra.so
 
 
-SRC_CU  = $(wildcard $(CU_DIR)/*.cu) 
-SRC_CPP = $(wildcard $(CPP_DIR)/*.cpp) 
+SRC_CU  = $(wildcard $(CU_DIR)/*.cu)
+SRC_CPP = $(wildcard $(CPP_DIR)/*.cpp)
 
-ifneq ($(COMPILATION_LAM),) 
+ifneq ($(COMPILATION_LAM),)
   LAM_KALMAN_DIR = $(COMPASS_ROOT)/lam/kalman_CPU_GPU
   LAM_KP_CLASSES_DIR =  $(COMPASS_ROOT)/lam/kp_classes
   LAM_KP_INTERFACE_DIR =  $(COMPASS_ROOT)/lam/compass_interface
 #else
-#  SRC_CPP = $(filter-out $(CPP_DIR)/sutra_controller_kalman.cpp, $(wildcard $(CPP_DIR)/*.cpp)) 
+#  SRC_CPP = $(filter-out $(CPP_DIR)/sutra_controller_kalman.cpp, $(wildcard $(CPP_DIR)/*.cpp))
 endif
 
 
@@ -24,9 +24,26 @@ CURED_DIR = $(COMPASS_ROOT)/aao/cured
 CURED_INC_PATH = $(CURED_DIR)
 CURED_CPP = $(wildcard $(CURED_DIR)/*.cpp)
 
-OBJS := $(patsubst $(CPP_DIR)/%.cpp,$(OBJ_DIR)/%.o,$(SRC_CPP)) 
-OBJS += $(patsubst $(CU_DIR)/%.cu,$(OBJ_DIR)/%.cuo,$(SRC_CU)) 
+OBJS := $(patsubst $(CPP_DIR)/%.cpp,$(OBJ_DIR)/%.o,$(SRC_CPP))
+OBJS += $(patsubst $(CU_DIR)/%.cu,$(OBJ_DIR)/%.cuo,$(SRC_CU))
 OBJS += $(patsubst %.cpp,%.o,$(CURED_CPP))
+
+OS_SIZE = $(shell uname -m | sed -e "s/i.86/32/" -e "s/x86_64/64/" -e "s/armv7l/32/")
+OS_ARCH = $(shell uname -m | sed -e "s/i386/i686/")
+
+ifeq ($(OS_ARCH),armv7l)
+  ifeq ($(abi),gnueabi)
+    CCFLAGS += -mfloat-abi=softfp
+  else
+    # default to gnueabihf
+    override abi := gnueabihf
+    #      LDFLAGSS += --dynamic-linker=/lib/ld-linux-armhf.so.3
+    CCFLAGS   += -mfloat-abi=hard
+    NVCCFLAGS := -target-cpu-arch ARM -Xlinker --dynamic-linker=/lib/ld-linux-armhf.so.3 -Xcompiler -mfloat-abi=hard
+  endif
+else
+  CCFLAGS += -m64
+endif
 
 
 LIB_DEPLIBS  = -Wl,-rpath=$(CUDA_LIB_PATH_64) -L$(CUDA_LIB_PATH_64)
@@ -37,7 +54,7 @@ LIB_DEPLIBS += -Wl,-rpath=$(COMPASS_ROOT)/libcarma -L$(COMPASS_ROOT)/libcarma -l
 # set compiler (or rarely loader) flags specific to this package
 
 
-LIB_CPPFLAGS = -c -fPIC -Wall -Wno-unused-result -DUNIX -std=c++11
+LIB_CPPFLAGS = -c -fPIC -Wall -Wno-unused-result -DUNIX -std=c++11 $(CCFLAGS)
 LIB_CPPFLAGS+= -I$(H_DIR) -I$(COMPASS_ROOT)/libcarma/$(H_DIR) -I$(CUDA_INC_PATH) -I$(CURED_INC_PATH)
 
 #MPICXX           = $(shell which mpicxx 2>/dev/null)
@@ -56,16 +73,16 @@ endif
 #GCC := icc #/usr/local/mpe/bin/mpecc -mpilog
 
 NVCC = $(CUDA_ROOT)/bin/nvcc
-NVCCFLAGS  = -m64 -Xcompiler -fPIC -use_fast_math -c -Xptxas -dlcm=ca --maxrregcount 32 -std=c++11
-NVCCFLAGS += -I$(CUH_DIR)  -I$(H_DIR) -I$(COMPASS_ROOT)/libcarma/$(CUH_DIR)  
-NVCCFLAGS += -I$(COMPASS_ROOT)/libcarma/$(H_DIR) -I$(CURED_INC_PATH) -gencode $(GENCODE)
+LIB_NVCCFLAGS  = -Xcompiler -fPIC -use_fast_math -c -Xptxas -dlcm=ca --maxrregcount 32 -std=c++11 $(NVCCFLAGS)
+LIB_NVCCFLAGS += -I$(CUH_DIR)  -I$(H_DIR) -I$(COMPASS_ROOT)/libcarma/$(CUH_DIR)
+LIB_NVCCFLAGS += -I$(COMPASS_ROOT)/libcarma/$(H_DIR) -I$(CURED_INC_PATH) -gencode $(GENCODE)
 
 ifneq ($(DEBUG),)
   LIB_CPPFLAGS+= -g -DDEBUG
-  NVCCFLAGS+= -g -DDEBUG -G -lineinfo
+  LIB_NVCCFLAGS+= -g -DDEBUG -G -lineinfo
 else
   LIB_CPPFLAGS+= -O3
-  NVCCFLAGS+= -O3
+  LIB_NVCCFLAGS+= -O3
 endif
 
 ifneq ($(COMPILATION_LAM),)
@@ -84,9 +101,9 @@ endif
 
 ifneq ($(BRAMA_ROOT),)
 	LIB_CPPFLAGS  += -I$(BRAMA_ROOT) -I$(ACE_ROOT) -I$(TAO_ROOT) -I$(TAO_ROOT)/orbsvcs -I$(DDS_ROOT) -DUSE_BRAMA
-  LIB_DEPLIBS   += -Wl,-rpath=$(ACE_ROOT)/lib,-rpath=$(TAO_ROOT)/tao,-rpath=$(DDS_ROOT)/lib 
-# LIB_DEPLIBS   += -L$(ACE_ROOT)/lib -L$(TAO_ROOT)/tao -L$(DDS_ROOT)/lib 
-	LIB_DEPLIBS   += -Wl,-rpath=$(BRAMA_ROOT) -L$(BRAMA_ROOT) -lBRAMACommon 
+  LIB_DEPLIBS   += -Wl,-rpath=$(ACE_ROOT)/lib,-rpath=$(TAO_ROOT)/tao,-rpath=$(DDS_ROOT)/lib
+# LIB_DEPLIBS   += -L$(ACE_ROOT)/lib -L$(TAO_ROOT)/tao -L$(DDS_ROOT)/lib
+	LIB_DEPLIBS   += -Wl,-rpath=$(BRAMA_ROOT) -L$(BRAMA_ROOT) -lBRAMACommon
 # LIB_DEPLIBS   += -Wl,-rpath=$(ACE_ROOT)/lib -L$(ACE_ROOT)/lib
 #	LIB_DEPLIBS 	+= -lTAO_Svc_Utils -lOpenDDS_InfoRepoDiscovery -lOpenDDS_Dcps -lTAO_PortableServer -lTAO_AnyTypeCode -lTAO -lACE
   LIB_CPPFLAGS  += -fvisibility-inlines-hidden -fno-strict-aliasing -pthread -pipe -D_GNU_SOURCE -D__ACE_INLINE__
@@ -100,19 +117,17 @@ clean:
 	@rm -f	*.so
 
 $(OBJ_DIR)/%.cuo: $(CU_DIR)/%.cu
-	@printf '\033[36m%s\033[31m%s\033[m\n' "Compiling     " $@ 
-	@$(NVCC) $(NVCCFLAGS) -o $@ $< 
+	@printf '\033[36m%s\033[31m%s\033[m\n' "Compiling     " $@
+	@$(NVCC) $(LIB_NVCCFLAGS) -o $@ $<
 
 $(OBJ_DIR)/%.o: $(CPP_DIR)/%.cpp
-	@printf '\033[36m%s\033[31m%s\033[m\n' "Compiling     " $@ 
-	@$(GCC) $(CFLAGS) -DADD_ $(LIB_CPPFLAGS) -c -o $@ $< 
+	@printf '\033[36m%s\033[31m%s\033[m\n' "Compiling     " $@
+	@$(GCC) $(CFLAGS) -DADD_ $(LIB_CPPFLAGS) -c -o $@ $<
 
 $(CURED_DIR)/%.o: $(CURED_DIR)/%.cpp
 	@printf '\033[36m%s\033[31m%s\033[m\n' "Compiling     " $@
-	@$(GCC) $(CFLAGS) -DADD_ $(LIB_CPPFLAGS) -c -o $@ $< 
+	@$(GCC) $(CFLAGS) -DADD_ $(LIB_CPPFLAGS) -c -o $@ $<
 
 $(LIB_NAME): $(OBJS)
 	@printf '\033[36m%s\033[31m%s\033[m\n' "Linking       " $(LIB_NAME)
 	@$(GCC) -shared -o $@ $^ $(LIB_DEPLIBS)
-
-

@@ -1,4 +1,5 @@
-import  os, re
+import os
+import re
 from os.path import join as pjoin
 from distutils.core import setup
 # from setuptools import setup
@@ -11,12 +12,12 @@ from distutils.dir_util import remove_tree
 
 
 listMod = ['naga_context', 'naga_streams', 'naga_obj', 'naga_host_obj', 'naga_magma', 'naga_timer', 'naga_sparse_obj']
-dependencies = {'naga_streams':['naga_context'],
-              'naga_obj':['naga_context', 'naga_streams'],
-              'naga_host_obj':['naga_context', 'naga_streams'],
-              'naga_magma':['naga_obj', 'naga_host_obj'],
-              'naga_timer':[],
-              'naga_sparse_obj':['naga_context', 'naga_obj']}
+dependencies = {'naga_streams': ['naga_context'],
+                'naga_obj': ['naga_context', 'naga_streams'],
+                'naga_host_obj': ['naga_context', 'naga_streams'],
+                'naga_magma': ['naga_obj', 'naga_host_obj'],
+                'naga_timer': [],
+                'naga_sparse_obj': ['naga_context', 'naga_obj']}
 
 naga_path = os.environ.get('NAGA_ROOT')
 if(naga_path is None):
@@ -33,33 +34,30 @@ def find_in_path(name, path):
             return os.path.abspath(binpath)
     return None
 
-    
+
 def locate_compass():
     """Locate compass library
     """
 
-    if  'COMPASS_ROOT' in os.environ:
+    if 'COMPASS_ROOT' in os.environ:
         root_compass = os.environ['COMPASS_ROOT']
-        
     else:
         raise EnvironmentError("Environment variable 'COMPASS_ROOT' must be define")
-        
-    compass_config = {'inc_sutra':root_compass + '/libsutra/include.h', 'inc_carma':root_compass + '/libcarma/include.h',
-                      'inc_naga':root_compass + '/naga', 'lib':root_compass}
-    
+
+    compass_config = {'inc_sutra': root_compass + '/libsutra/include.h',
+                      'inc_carma': root_compass + '/libcarma/include.h',
+                      'inc_naga': root_compass + '/naga',
+                      'lib': root_compass}
+
     return compass_config
 
-
-
 COMPASS = locate_compass()
-
 
 # Obtain the numpy include directory.  This logic works across numpy versions.
 try:
     numpy_include = numpy.get_include()
 except AttributeError:
     numpy_include = numpy.get_numpy_include()
-
 
 # --------------------------------------------------------------------
 # Clean target redefinition - force clean everything
@@ -68,35 +66,46 @@ relist = ['^.*~$', '^core\.*$', '^#.*#$', '^.*\.aux$', '^.*\.pyc$', '^.*\.o$']
 reclean = []
 
 for restring in relist:
-  reclean.append(re.compile(restring))
+    reclean.append(re.compile(restring))
+
 
 def wselect(args, dirname, names):
-  for n in names:
-    for rev in reclean:
-      if (rev.match(n)):
-        os.remove("%s/%s" % (dirname, n))
-        break
+    for n in names:
+        for rev in reclean:
+            if (rev.match(n)):
+                os.remove("%s/%s" % (dirname, n))
+                break
+
 
 class clean(_clean):
-  def walkAndClean(self):
-    os.path.walk("..", wselect, [])
-  def run(self):
-    module_lib = pjoin('.', module_name + '.so')
-    if (os.path.exists(module_lib)): os.remove(module_lib)
-    if (os.path.exists('./src/naga.cpp')): os.remove('./src/naga.cpp')
-    if (os.path.exists('./src/naga_obj.pyx')): os.remove('./src/naga_obj.pyx')
-    if (os.path.exists('./src/naga_host_obj.pyx')): os.remove('./src/naga_host_obj.pyx')
-    if (os.path.exists('./src/naga_magma.pyx')): os.remove('./src/naga_magma.pyx')
-    if (os.path.exists('./build')): remove_tree('./build')
-    if (os.path.exists('./dist')):  remove_tree('./dist')
-    self.walkAndClean()
+    def walkAndClean(self):
+        os.path.walk("..", wselect, [])
+
+    def run(self):
+        module_lib = pjoin('.', 'naga.so')
+        if (os.path.exists(module_lib)):
+            os.remove(module_lib)
+        if (os.path.exists('./src/naga.cpp')):
+            os.remove('./src/naga.cpp')
+        if (os.path.exists('./src/naga_obj.pyx')):
+            os.remove('./src/naga_obj.pyx')
+        if (os.path.exists('./src/naga_host_obj.pyx')):
+            os.remove('./src/naga_host_obj.pyx')
+        if (os.path.exists('./src/naga_magma.pyx')):
+            os.remove('./src/naga_magma.pyx')
+        if (os.path.exists('./build')):
+            remove_tree('./build')
+        if (os.path.exists('./dist')):
+            remove_tree('./dist')
+        self.walkAndClean()
 
 
 library_dirs = [COMPASS['lib'] + '/libcarma']
 libraries = ['carma']
 
-print "library_dirs", library_dirs
-print "libraries", libraries
+include_dirs = [numpy_include,
+                COMPASS['inc_carma']
+                ]
 
 mkl_root = os.environ.get('MKLROOT')
 print "mkl_root:"
@@ -108,18 +117,16 @@ if(mkl_root is not None):
     libraries.append('mkl_mc3')
     libraries.append('mkl_def')
 
-print "library_dirs", library_dirs
-print "libraries", libraries
-
-if  'CUDA_INC_PATH' in os.environ:
-    cuda_include = os.environ['CUDA_INC_PATH']
+if 'CUDA_INC_PATH' in os.environ:
+    include_dirs.append(os.environ['CUDA_INC_PATH'])
+    library_dirs.append(os.environ['CUDA_LIB_PATH_64'])
+    libraries.append('cudart')
 else:
     raise EnvironmentError("Environment variable 'CUDA_INC_PATH' must be define")
 
-include_dirs = [numpy_include,
-                COMPASS['inc_carma'],
-                cuda_include
-            ]
+print "library_dirs", library_dirs
+print "libraries", libraries
+
 
 #######################
 #  extension
@@ -137,11 +144,11 @@ include_dirs = [numpy_include,
 #                #extra_compile_args=["-O0", "-g"],
 #                #extra_compile_args={'g++': [],},
 #                                    #nvcc not needed (cuda code alreay compiled)
-#                                    #'nvcc': ['-gencode '+os.environ['GENCODE'], 
-#                                    #         '--ptxas-options=-v', 
-#                                    #         '-c', '--compiler-options', 
+#                                    #'nvcc': ['-gencode '+os.environ['GENCODE'],
+#                                    #         '--ptxas-options=-v',
+#                                    #         '-c', '--compiler-options',
 #                                    #         "'-fPIC'"]},
-#                include_dirs = [numpy_include, 
+#                include_dirs = [numpy_include,
 #                                COMPASS['inc']+'/libcarma/include.h'])
 #
 
@@ -149,13 +156,13 @@ include_dirs = [numpy_include,
 def customize_compiler_for_nvcc(self):
     """inject deep into distutils to customize how the dispatch
     to gcc/nvcc works.
-    
+
     If you subclass UnixCCompiler, it's not trivial to get your subclass
     injected in, and still have the right customizations (i.e.
     distutils.sysconfig.customize_compiler) run on it. So instead of going
     the OO route, I have this. Note, it's kindof like a wierd functional
     subclassing going on."""
-    
+
     # save references to the default compiler_so and _comple methods
     default_compiler_so = self.compiler_so
     super = self._compile
@@ -177,7 +184,8 @@ def customize_compiler_for_nvcc(self):
 # run the customize_compiler
 class custom_build_ext(build_ext):
     def build_extensions(self):
-        if (os.path.exists('./naga.cpp')): os.remove('./naga.cpp')
+        if (os.path.exists('./naga.cpp')):
+            os.remove('./naga.cpp')
         customize_compiler_for_nvcc(self.compiler)
         build_ext.build_extensions(self)
 
@@ -185,13 +193,13 @@ class custom_build_ext(build_ext):
 # dal with generated sources files
 if 'build_ext' in sys.argv or 'develop' in sys.argv or 'install' in sys.argv:
     generator = os.path.join(os.path.abspath('.'), 'src/process_tmpl.py')
-    d = {'__file__': generator }
+    d = {'__file__': generator}
     execfile(generator, d)
     d['main'](None)
-                              
 
 
 from Cython.Build import cythonize
+
 
 def compile_module(name):
     if(os.path.exists(naga_path + "/lib/" + name + ".so") and name != "naga"):
@@ -204,30 +212,28 @@ def compile_module(name):
         print "dependencies:", dep
         if(os.path.exists("src/" + name + ".cpp")):
             for d in dep:
-                if (os.stat("src/" + d + ".pyx").st_mtime > 
-                    os.stat("src/" + name + ".cpp").st_mtime):
+                if (os.stat("src/" + d + ".pyx").st_mtime >
+                        os.stat("src/" + name + ".cpp").st_mtime):
                     # cpp file outdated
                     os.remove("src/" + name + ".cpp")
     except KeyError, e:
         print e
 
-
     ext = Extension(name,
-                  sources=['src/' + name + '.pyx'],
-                  # extra_compile_args=["-O0", "-g"],
-                  extra_compile_args=["-Wno-unused-function", "-Wno-unused-label", "-Wno-cpp"],
-                  include_dirs=include_dirs,
-                  library_dirs=library_dirs,
-                  libraries=libraries,
-                  language='c++',
-                  runtime_library_dirs=[],  # CUDA['lib64']],
-                  define_macros=[],
-                  )
-
+                    sources=['src/' + name + '.pyx'],
+                    # extra_compile_args=["-O0", "-g"],
+                    extra_compile_args=["-Wno-unused-function", "-Wno-unused-label", "-Wno-cpp"],
+                    include_dirs=include_dirs,
+                    library_dirs=library_dirs,
+                    libraries=libraries,
+                    language='c++',
+                    runtime_library_dirs=[],  # CUDA['lib64']],
+                    define_macros=[],
+                    )
 
     setup(
         name=name,
-        ext_modules=cythonize([ext]), 
+        ext_modules=cythonize([ext]),
         #                     gdb_debug=True,
         # cmdclass={'build_ext': custom_build_ext},
         # zip_safe=False
@@ -236,10 +242,10 @@ def compile_module(name):
         shutil.move(naga_path + "/" + name + ".so", naga_path + "/lib/" + name + ".so")
 
 if __name__ == '__main__':
-    try :
+    try:
         # uncomment this line to disable the multithreaded compilation
-        # import step_by_step 
-        
+        # import step_by_step
+
         from multiprocessing import Pool
         pool = Pool(maxtasksperchild=1)  # process per core
         pool.map(compile_module, listMod)  # proces data_inputs iterable with poo

@@ -18,17 +18,17 @@ print "precision: ",prec
 def test_svd():
 
     a=np.random.rand(m,n).astype(np.float32)
-    
+
     h_mat=ch.naga_host_obj_Float2D(data=a,mallocType="pagelock")
     h_eig=ch.naga_host_obj_Float1D(data=np.zeros([min_mn],dtype=np.float32),mallocType="pagelock")
     h_U  =ch.naga_host_obj_Float2D(data=np.zeros((m,m),dtype=np.float32),mallocType="pagelock")
     h_VT =ch.naga_host_obj_Float2D(data=np.zeros((n,n),dtype=np.float32),mallocType="pagelock")
- 
+
 
     Mat=a
 
     npt.assert_array_equal(a,h_mat.getData())
-    
+
 
     ch.svd_host_Float(h_mat, h_eig, h_U, h_VT)
 
@@ -62,7 +62,7 @@ def test_getri_cpu():
     a=np.dot(a,a.T)
 
     a=+np.identity(m,dtype=np.float32)
-    
+
     h_mat=ch.naga_host_obj_Float2D(data=a,mallocType="pagelock")
     h_mat2=ch.naga_host_obj_Float2D(obj=h_mat,mallocType="pagelock")
 
@@ -86,7 +86,7 @@ def test_potri_cpu():
     a=np.random.rand(m,m).astype(np.float32)
     a=np.dot(a,a.T)
     a=+np.identity(m,dtype=np.float32)
-    
+
     h_mat=ch.naga_host_obj_Float2D(data=a,mallocType="pagelock")
     h_mat2=ch.naga_host_obj_Float2D(obj=h_mat,mallocType="pagelock")
 
@@ -108,7 +108,7 @@ def test_potri_cpu():
 
 def test_getri_gpu():
 
-    d_mat=ch.naga_obj_Float2D(c,dims=np.array([m,m]))
+    d_mat=ch.naga_obj_Float2D(c,dims=np.array([m,m], dtype=np.int64))
     d_mat.random(time.clock()*10**6)
     a=d_mat.device2host()
     a=a.T
@@ -137,7 +137,7 @@ def test_getri_gpu():
 
 def test_potri_gpu():
 
-    d_mat=ch.naga_obj_Float2D(c,dims=np.array([m,m]))
+    d_mat=ch.naga_obj_Float2D(c,dims=np.array([m,m], dtype=np.int64))
     d_mat.random(time.clock()*10**6)
     a=d_mat.device2host()
     a=a.T
@@ -167,8 +167,8 @@ def test_potri_gpu():
 
 def test_syevd():
 
-    d_mat=ch.naga_obj_Float2D(c,dims=np.array([m,m]))
-    d_U=ch.naga_obj_Float2D(c,dims=np.array([m,m]))
+    d_mat=ch.naga_obj_Float2D(c,dims=np.array([m,m], dtype=np.int64))
+    d_U=ch.naga_obj_Float2D(c,dims=np.array([m,m], dtype=np.int64))
     h_EV=np.zeros(m,dtype=np.float32)
     h_EV2=np.zeros(m,dtype=np.float32)
 
@@ -188,8 +188,8 @@ def test_syevd():
     print err
 
     npt.assert_almost_equal(err,0.,dec)
-   
-   
+
+
     d_res=d_mat.gemm(d_mat,opA='n',opB='t')
     ch.syevd_Float(d_res,h_EV2,computeU=False)
 
@@ -198,6 +198,3 @@ def test_syevd():
     print "in place, U not computed"
     print err
     npt.assert_array_equal(h_EV,h_EV2)
-
-
-

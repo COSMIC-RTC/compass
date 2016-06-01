@@ -15,7 +15,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include <cufft.h>
 
 #include <driver_types.h>
 #include <vector_types.h>
@@ -27,28 +26,30 @@
 #include <cuda.h>
 #include <cufft.h>
 
+#ifndef ARMnvcc
 namespace carma_utils {
-template<typename T> inline std::string to_string(const T& n) {
-	std::ostringstream stm;
-	stm << n;
-	return stm.str();
+    template<typename T> inline std::string to_string(const T& n) {
+    	std::ostringstream stm();
+    	stm << n;
+    	return stm.str();
+    }
+    template<typename T> inline T from_string(const std::string& myString) {
+    	std::istringstream buffer(myString);
+    	T value();
+    	buffer >> value;
+    	return value;
+    }
+    void inline split(std::vector<std::string> &tokens, const std::string &text,
+    		char sep) {
+    	std::string::size_type start = 0, end = 0;
+    	while ((end = text.find(sep, start)) != std::string::npos) {
+    		tokens.push_back(text.substr(start, end - start));
+    		start = end + 1;
+    	}
+    	tokens.push_back(text.substr(start));
+    }
 }
-template<typename T> inline T from_string(const std::string& myString) {
-	std::istringstream buffer(myString);
-	T value;
-	buffer >> value;
-	return value;
-}
-void inline split(std::vector<std::string> &tokens, const std::string &text,
-		char sep) {
-	std::string::size_type start = 0, end = 0;
-	while ((end = text.find(sep, start)) != std::string::npos) {
-		tokens.push_back(text.substr(start, end - start));
-		start = end + 1;
-	}
-	tokens.push_back(text.substr(start));
-}
-}
+#endif //ARMnvcc
 
 #ifdef DEBUG
 #define DEBUG_TRACE(fmt, args...) fprintf(stderr, "[%s@%d]: " fmt "\n", __FILE__, __LINE__, ## args)

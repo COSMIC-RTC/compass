@@ -6,27 +6,27 @@
 #ifdef USE_CULA
 // CULA headers
 #include <cula.hpp>
-#endif
+#endif //USE_CULA
 
 #ifdef USE_MAGMA
 // MAGMA headers
 #include "magma.h"
 #include "magma_lapack.h"
-#endif
 
-carma_context *carma_context::s_instance = NULL;
+#ifndef ARM
+struct magma_device_info
+{
+    size_t memory;
+    magma_int_t cuda_arch;
+};
 
-#ifdef USE_MAGMA
 extern int g_magma_devices_cnt;
 extern struct magma_device_info* g_magma_devices;
 extern int g_init;
-extern magma_queue_t* g_null_queues;
-struct magma_device_info
-{
-  size_t memory;
-  magma_int_t cuda_arch;
-};
-#endif
+#endif //ARM
+#endif //USE_MAGMA
+
+carma_context *carma_context::s_instance = NULL;
 
 carma_device::carma_device(int devid) {
   carmaSafeCall(cudaSetDevice(devid));
@@ -95,9 +95,10 @@ carma_context::carma_context(int num_device) {
     culaGetErrorInfoString(status, culaGetErrorInfo(), buf, sizeof(buf));
     printf("%s\n", buf);
   }
-#endif
+#endif //USE_CULA
 
 #ifdef USE_MAGMA
+#ifndef ARM
   // MAGMA custom init
   g_magma_devices_cnt=1;
   magma_malloc_cpu( (void**) &g_magma_devices, g_magma_devices_cnt * sizeof(struct magma_device_info) );
@@ -105,21 +106,19 @@ carma_context::carma_context(int num_device) {
   cudaGetDeviceProperties( &prop, num_device );
   g_magma_devices[0].memory = prop.totalGlobalMem;
   g_magma_devices[0].cuda_arch = prop.major*100 + prop.minor*10;
-  magma_device_t cdev;
-  magma_getdevice( &cdev );
-  magma_malloc_cpu( (void**) &g_null_queues, g_magma_devices_cnt * sizeof(magma_queue_t) );
-  magma_queue_create_from_cuda( num_device, NULL, NULL, NULL, &g_null_queues[0] );
-  magma_setdevice( cdev );
-  magmablasSetKernelStream( g_null_queues[0] );
   g_init += 1;// increment (init - finalize) count
+#else //!ARM
+  magma_init();
+#endif //ARM
+
 #if DEBUG
   //  magma_print_environment();
-#endif
-#endif
+#endif //DEBUG
+#endif //USE_MAGMA
 
 #if DEBUG
   printf("CARMA Context created @ %p\n", this);
-#endif
+#endif //DEBUG
 
 }
 
@@ -190,31 +189,31 @@ carma_context::carma_context() {
       printf("*** All GPUs listed can support UVA... ***\n");
     }
   }
-#endif
+#endif //USE_UVA
 
   this->activeDevice = set_activeDeviceForce(0, 1); //get_maxGflopsDeviceId(), 1);
 
 #ifdef USE_CULA
-  // CULA init 
+  // CULA init
   culaStatus status = culaInitialize();
   if (status) {
     char buf[256];
     culaGetErrorInfoString(status, culaGetErrorInfo(), buf, sizeof(buf));
     printf("%s\n", buf);
   }
-#endif
+#endif //USE_CULA
 
 #ifdef USE_MAGMA
-  // MAGMA init 
+  // MAGMA init
   magma_init();
 #if DEBUG
   //  magma_print_environment();
-#endif
-#endif
+#endif //DEBUG
+#endif //USE_MAGMA
 
 #if DEBUG
   printf("CARMA Context created @ %p\n", this);
-#endif
+#endif //DEBUG
 }
 
 carma_context::~carma_context() {
@@ -222,12 +221,12 @@ carma_context::~carma_context() {
 #ifdef USE_CULA
   // CULA finalize
   culaShutdown();
-#endif
+#endif //USE_CULA
 
 #ifdef USE_MAGMA
 // MAGMA finalize
   magma_finalize();
-#endif
+#endif //USE_MAGMA
 
   size_t idx = 0;
   while (this->devices.size() > 0) {
@@ -241,7 +240,7 @@ carma_context::~carma_context() {
   s_instance = NULL;
 #if DEBUG
   printf("CARMA Context deleted @ %p\n", this);
-#endif
+#endif //DEBUG
 }
 
 int carma_context::_set_activeDeviceForce(int newDevice, int silent,
@@ -255,10 +254,10 @@ int carma_context::_set_activeDeviceForce(int newDevice, int silent,
       culaGetErrorInfoString(status, culaGetErrorInfo(), buf, sizeof(buf));
       printf("%s\n", buf);
     }
-#endif
+#endif //USE_CULA
 #if DEBUG
     silent=0;
-#endif
+#endif //DEBUG
     if (!silent) {
       cout << "Using device " << devices[newDevice]->get_id() << ": \""
       << devices[newDevice]->get_properties().name << "\" with Compute "
