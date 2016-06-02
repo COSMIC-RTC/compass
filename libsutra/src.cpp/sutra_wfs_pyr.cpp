@@ -292,8 +292,8 @@ int sutra_wfs_pyr::fill_binimage(int async) {
         "ERROR : d_bincube not initialized, did you do the allocate_buffers?");
     throw "ERROR : d_bincube not initialized, did you do the allocate_buffers?";
   }
-//  if (noise > 0)
-//    this->d_binimg->prng('N', this->noise);
+  if (noise > 0)
+    this->d_binimg->prng('N', this->noise);
 
   this->current_context->set_activeDevice(device,1);
   if (async) {

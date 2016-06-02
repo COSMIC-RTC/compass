@@ -404,6 +404,7 @@ cdef extern from "sutra_wfs_pyr_pyrhr.h":
         sutra_wfs_pyr_pyrhr(const sutra_wfs_pyr_pyrhr & wfs)
         int wfs_initarrays(cuFloatComplex * halfxy, int * cx, int * cy,
                            float * sincar, int * validsubsx, int * validsubsy)
+        void comp_modulation(int cpt);
 
 #################################################
 # C-Class sutra_wfs_geom

@@ -463,7 +463,7 @@ cdef class Sensors:
         cdef bytes type_wfs = < bytes > self.sensors.d_wfs[n].type
         cdef sutra_wfs_pyr_pyrhr * wfs
 
-        if(type_wfs == "pyr"):
+        if(type_wfs == "pyrhr"):
             wfs = dynamic_cast_wfs_pyr_pyrhr_ptr(self.sensors.d_wfs[n])
             img = wfs.d_hrimg
             cdims = img.getDims()
@@ -474,7 +474,25 @@ cdef class Sensors:
             return data
 
         else:
-            raise TypeError("wfs should be a pyr")
+            raise TypeError("wfs should be a pyrhr")
+
+    cpdef comp_modulation(self, int n, int cpt):
+
+        """Return the high res image of a pyr wfs
+
+        :param n: (int) : number of the wfs to get the image from
+
+        """
+
+        cdef bytes type_wfs = < bytes > self.sensors.d_wfs[n].type
+        cdef sutra_wfs_pyr_pyrhr * wfs
+
+        if(type_wfs == "pyrhr"):
+            wfs = dynamic_cast_wfs_pyr_pyrhr_ptr(self.sensors.d_wfs[n])
+            wfs.comp_modulation(cpt)
+
+        else:
+            raise TypeError("wfs should be a pyrhr")
 
     cdef _get_bincube(self, int n):
         """Return the 'bincube' array of a given wfs

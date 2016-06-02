@@ -55,6 +55,7 @@ cdef class Sensors:
 
     cpdef sensors_initarr(self, int n, Param_wfs wfs)
     cpdef sensors_addlayer(self, int i, bytes type, float alt, float xoff, float yoff)
+    cpdef comp_modulation(self, int n, int cpt)
     cdef _get_bincube(self, int n)
     cdef _get_pyrimg(self, int n)
     cdef _get_pyrimghr(self, int n)

@@ -32,6 +32,28 @@ int sutra_wfs_pyr_pyrhr::wfs_initarrays(cuFloatComplex *halfxy, int *cx,
   return EXIT_SUCCESS;
 }
 
+void sutra_wfs_pyr_pyrhr::comp_modulation(int cpt) {
+  //int cpt = 0;
+  carmaSafeCall(
+      cudaMemset(this->d_camplipup->getData(), 0,
+                 2 * sizeof(float) * this->d_camplipup->getNbElem()));
+  pyr_getpup(this->d_camplipup->getData(),
+             this->d_gs->d_phase->d_screen->getData(), this->d_pupil->getData(),
+             this->ntot, this->nfft, this->d_gs->lambda,
+             (this->pyr_cx->getData())[cpt], (this->pyr_cy->getData())[cpt],
+             this->current_context->get_device(device));
+  carma_fft(this->d_camplipup->getData(), this->d_camplifoc->getData(), -1,
+            *this->d_camplipup->getPlan());
+  /*
+   pyr_submask(this->d_camplifoc->getData(), this->d_submask->getData(),
+   this->nfft, this->current_context->get_device(device));
+   */
+  pyr_submaskpyr(this->d_camplifoc->getData(), this->d_phalfxy->getData(),
+                 this->nfft, this->current_context->get_device(device));
+  carma_fft(this->d_camplifoc->getData(), this->d_fttotim->getData(), 1,
+            *this->d_camplipup->getPlan());
+}
+
 //////////////////////////////
 // PYRAMID WAVEFRONT SENSOR //
 //////////////////////////////
@@ -39,7 +61,6 @@ int sutra_wfs_pyr_pyrhr::wfs_initarrays(cuFloatComplex *halfxy, int *cx,
 // It starts by looking for the type of sensor. By default it assumes
 // a pyramid wfs. The pyramid can also be explicitely asked for, or
 // a roof prism can be asked for as well.
-
 int sutra_wfs_pyr_pyrhr::comp_generic() {
   /*
    //___________________________________________________________________
@@ -70,29 +91,7 @@ int sutra_wfs_pyr_pyrhr::comp_generic() {
   //this->npup = 1;
   for (int cpt = 0; cpt < this->npup; cpt++) {
     //int cpt = 0;
-    carmaSafeCall(
-        cudaMemset(this->d_camplipup->getData(), 0,
-                   2 * sizeof(float) * this->d_camplipup->getNbElem()));
-
-    pyr_getpup(this->d_camplipup->getData(),
-               this->d_gs->d_phase->d_screen->getData(),
-               this->d_pupil->getData(), this->ntot, this->nfft,
-               this->d_gs->lambda, (this->pyr_cx->getData())[cpt],
-               (this->pyr_cy->getData())[cpt],
-               this->current_context->get_device(device));
-
-    carma_fft(this->d_camplipup->getData(), this->d_camplifoc->getData(), -1,
-              *this->d_camplipup->getPlan());
-    /*
-     pyr_submask(this->d_camplifoc->getData(), this->d_submask->getData(),
-     this->nfft, this->current_context->get_device(device));
-     */
-    pyr_submaskpyr(this->d_camplifoc->getData(), this->d_phalfxy->getData(),
-                   this->nfft, this->current_context->get_device(device));
-
-    carma_fft(this->d_camplifoc->getData(), this->d_fttotim->getData(), 1,
-              *this->d_camplipup->getPlan());
-
+    comp_modulation(cpt);
     //float fact = 1.0f / this->nfft / this->nfft / this->nfft / 2.0;
     float fact = 1.0f;
     abs2(this->d_hrimg->getData(), this->d_fttotim->getData(),

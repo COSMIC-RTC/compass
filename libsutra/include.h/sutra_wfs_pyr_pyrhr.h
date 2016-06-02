@@ -28,6 +28,7 @@ class sutra_wfs_pyr_pyrhr: public sutra_wfs_pyr {
                        int *validsubsx, int *validsubsy);
 
     int comp_image();
+    void comp_modulation(int cpt);
 
   private:
     int comp_generic();
