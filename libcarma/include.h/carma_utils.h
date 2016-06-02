@@ -29,7 +29,7 @@
 #ifndef ARMnvcc
 namespace carma_utils {
     template<typename T> inline std::string to_string(const T& n) {
-    	std::ostringstream stm();
+    	std::ostringstream stm;
     	stm << n;
     	return stm.str();
     }
@@ -189,14 +189,14 @@ inline void __carmaCheckMsg(const char *errorMessage, const char *file,
 		fprintf(stderr,
 				"(%s:%i) : carmaCheckMsg() CUTIL CUDA error : %s : %s.\n", file,
 				line, errorMessage, cudaGetErrorString(err));
-		exit (EXIT_FAILURE);
+    throw "carmaCheckMsg() CUFFT error";
 	}
 #ifdef DEBUG
 	err = cudaDeviceSynchronize();
 	if( cudaSuccess != err) {
 		fprintf(stderr, "(%s:%i) : carmaCheckMsg cudaDeviceSynchronize error: %s : %s.\n",
 				file, line, errorMessage, cudaGetErrorString( err) );
-		exit(EXIT_FAILURE);
+    throw "carmaCheckMsg() CUFFT error";
 	}
 #endif
 }
@@ -204,7 +204,7 @@ inline void __carmaSafeMalloc(void *pointer, const char *file, const int line) {
 	if (!(pointer)) {
 		fprintf(stderr, "(%s:%i) : cutilSafeMalloc host malloc failure\n", file,
 				line);
-		exit (EXIT_FAILURE);
+    throw "cutilSafeMalloc() CUFFT error";
 	}
 }
 

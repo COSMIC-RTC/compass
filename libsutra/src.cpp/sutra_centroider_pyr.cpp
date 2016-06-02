@@ -16,7 +16,7 @@ sutra_centroider_pyr::sutra_centroider_pyr(carma_context *context,
   this->nvalid = nvalid;
   this->offset = offset;
   this->scale = scale;
-  //this->pyr_type = pyr_type;
+  this->pyr_type = sensors->d_wfs[nwfs]->type;
 
 }
 
@@ -25,7 +25,7 @@ sutra_centroider_pyr::~sutra_centroider_pyr() {
 }
 
 string sutra_centroider_pyr::get_type() {
-  return "pyr";
+  return this->pyr_type;
 }
 
 int sutra_centroider_pyr::get_cog(carma_streams *streams, float *cube,
@@ -37,34 +37,31 @@ int sutra_centroider_pyr::get_cog(carma_streams *streams, float *cube,
   return EXIT_SUCCESS;
 }
 
-//int sutra_centroider_pyr::get_pyr_old(float *cube, float *subsum, float *centroids,
-//                                  int *subindx, int *subindy, int nvalid,
-//                                  int ns, int nim) {
-//  current_context->set_activeDevice(device,1);
-//  pyr_slopes(centroids, cube, subindx, subindy, subsum, ns, nvalid, nim,
-//             this->current_context->get_device(device));
-//  return EXIT_SUCCESS;
-//}
-
 int sutra_centroider_pyr::get_pyr(float *cube, float *subsum, float *centroids,
                                   int *subindx, int *subindy, int nvalid,
                                   int ns, int nim) {
   current_context->set_activeDevice(device,1);
-  pyr2_slopes(centroids, cube, subindx, subindy, subsum, ns, nvalid,
-              this->current_context->get_device(device));
+  if (this->pyr_type == "pyr")
+    pyr_slopes(centroids, cube, subindx, subindy, subsum, ns, nvalid, nim,
+               this->current_context->get_device(device));
+  else if (this->pyr_type == "pyrhr")
+    pyr2_slopes(centroids, cube, subindx, subindy, subsum, ns, nvalid,
+                this->current_context->get_device(device));
+  else
+    return EXIT_FAILURE;
   return EXIT_SUCCESS;
 }
 
-//int sutra_centroider_pyr::get_cog_old(float *subsum, float *slopes) {
-//  return this->get_pyr(*(wfs->d_bincube), *(wfs->d_subsum), slopes,
-//                       *(wfs->d_validsubsx), *(wfs->d_validsubsy), wfs->nvalid,
-//                       wfs->nfft / wfs->nrebin, 4);
-//}
-
 int sutra_centroider_pyr::get_cog(float *subsum, float *slopes) {
-  return this->get_pyr(*(wfs->d_binimg), *(wfs->d_subsum), slopes,
-                       *(wfs->d_validsubsx), *(wfs->d_validsubsy), wfs->nvalid,
-                       wfs->nfft / wfs->nrebin, 4);
+  if (this->pyr_type == "pyr")
+    return this->get_pyr(*(wfs->d_bincube), *(wfs->d_subsum), slopes,
+                         *(wfs->d_validsubsx), *(wfs->d_validsubsy),
+                         wfs->nvalid, wfs->nfft / wfs->nrebin, 4);
+  else if (this->pyr_type == "pyrhr")
+    return this->get_pyr(*(wfs->d_binimg), *(wfs->d_subsum), slopes,
+                         *(wfs->d_validsubsx), *(wfs->d_validsubsy),
+                         wfs->nvalid, wfs->nfft / wfs->nrebin, 4);
+  return EXIT_FAILURE;
 }
 
 int sutra_centroider_pyr::get_cog() {

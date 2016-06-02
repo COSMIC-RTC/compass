@@ -42,9 +42,9 @@ if(hasattr(config, "simul_name")):
         simul_name = ""
     else:
         simul_name = config.simul_name
+        print "simul name is", simul_name
 else:
     simul_name = ""
-print "simul name is", simul_name
 
 matricesToLoad = {}
 if(simul_name == ""):

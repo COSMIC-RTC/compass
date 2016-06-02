@@ -26,6 +26,11 @@ all: html latexpdf qthelp
 	@echo "  mv $(BUILDDIR)/qthelp/COMPASS.qhc $(BUILDDIR)/qthelp/COMPASS.qch ."
 	mv $(BUILDDIR)/qthelp/COMPASS.qhc $(BUILDDIR)/qthelp/COMPASS.qch .
 
+.PHONY: sync
+sync:
+	@echo "  rsync -PaW --inplace --del compass-doc/* lesia:compass-doc/"
+	rsync -PaW --inplace --del compass-doc/* lesia:compass-doc/
+
 .PHONY: help
 help:
 	@echo "Please use \`make <target>' where <target> is one of"

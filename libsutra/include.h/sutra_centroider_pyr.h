@@ -6,7 +6,8 @@
 using namespace std;
 
 class sutra_centroider_pyr: public sutra_centroider {
-public:
+private:
+  string pyr_type;
 
 public:
   sutra_centroider_pyr(carma_context *context, sutra_sensors *sensors, int nwfs, long nvalid,

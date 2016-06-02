@@ -292,8 +292,8 @@ int sutra_wfs_pyr::fill_binimage(int async) {
         "ERROR : d_bincube not initialized, did you do the allocate_buffers?");
     throw "ERROR : d_bincube not initialized, did you do the allocate_buffers?";
   }
-  if (noise > 0)
-    this->d_binimg->prng('N', this->noise);
+//  if (noise > 0)
+//    this->d_binimg->prng('N', this->noise);
 
   this->current_context->set_activeDevice(device,1);
   if (async) {
@@ -302,6 +302,8 @@ int sutra_wfs_pyr::fill_binimage(int async) {
 //        this->npix * this->nxsub, this->d_validsubsx->getData(),
 //        this->d_validsubsy->getData(), this->d_binimg->getNbElem(), false,
 //        this->current_context->get_device(device));
+    DEBUG_TRACE("ERROR : async version of fill_binimage not implemented...");
+    throw "ERROR : async version of fill_binimage not implemented...";
   } else {
     pyr_fillbinimg(this->d_binimg->getData(), this->d_bincube->getData(),
                    this->nfft / this->nrebin, false,
