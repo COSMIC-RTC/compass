@@ -778,7 +778,8 @@ class widgetAOWindow(TemplateBaseClass):
                         if(self.imgType == "Spots - WFS"):
                             if(self.config.p_wfss[self.numberSelected].type_wfs == "sh"):
                                 data = self.wfs.get_binimg(self.numberSelected)
-                            elif(self.config.p_wfss[self.numberSelected].type_wfs == "pyr"):
+                            elif(self.config.p_wfss[self.numberSelected].type_wfs == "pyr" or
+                                 self.config.p_wfss[self.numberSelected].type_wfs == "pyrhr"):
                                 data = self.wfs.get_pyrimg(self.numberSelected)
                             if(self.imgType != self.currentViewSelected):
                                 self.p1.setRange(
