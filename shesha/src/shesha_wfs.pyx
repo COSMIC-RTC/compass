@@ -665,13 +665,6 @@ cpdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
         pyr_focmask = np.roll(pyr_focmask, focmask.shape[1] / 2, axis=1)
         wfs._submask = pyr_focmask
 
-        pup = geom._spupil
-        pupreb = bin2d(pup * 1., wfs.npix) / wfs.npix ** 2.
-        wsubok = np.where(pupreb >= wfs.fracsub)
-        pupvalid = pupreb * 0.
-        pupvalid[wsubok] = 1
-        wfs._isvalid = pupvalid.astype(np.int32)
-
         pup = geom._mpupil
 
         pupreb = bin2d(pup * 1., wfs.npix) / wfs.npix ** 2.
@@ -946,25 +939,40 @@ cpdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
         pupvalid[wsubok] = 1
         wfs._isvalid = pupvalid.astype(np.int32)
 
-        pupreb = bin2d(pup, nrebin)
+        validx = np.where(pupvalid)[1].astype(np.int32)
+        validy = np.where(pupvalid)[0].astype(np.int32)
 
         istart = (
-            np.linspace(0.5, geom.pupdiam + +0.5, wfs.nxsub) + 1).astype(np.int32)[:-1]
+            (np.linspace(0.5, geom.pupdiam + 0.5, wfs.nxsub + 1) + 1)[:-1]).astype(np.int64)
+
         jstart = np.copy(istart)
         wfs._istart = istart.astype(np.int32)
         wfs._jstart = jstart.astype(np.int32)
 
-        # this defines how we cut the phase into subaps
-        # defined on mpupil
+        # sorting out valid subaps
+        fluxPerSub = np.zeros((wfs.nxsub, wfs.nxsub), dtype=np.float32)
+
+        for i in range(wfs.nxsub):
+            indi = istart[i] + 1  # +2-1 (yorick->python)
+            for j in range(wfs.nxsub):
+                indj = jstart[j] + 1  # +2-1 (yorick->python)
+                fluxPerSub[i, j] = np.sum(
+                    geom._mpupil[indi:indi +  wfs.npix, indj:indj +  wfs.npix])
+                # fluxPerSub[i,j] = np.where(geom._mpupil[indi:indi+pdiam,indj:indj+pdiam] > 0)[0].size
+
+        fluxPerSub = fluxPerSub /  wfs.nxsub** 2.
+
+        wfs._fluxPerSub = fluxPerSub
+ 
         phasemap = np.zeros((wfs.npix, wfs.npix, wfs._nvalid), dtype=np.int32)
-        # x,y=indices(geom._n) #we need c-like indice
-        # x-=1
-        # y-=1
-        # tmp=x+y*geom._n
-        # for i in range(wfs._nvalid):
-        #    indi=istart[wfs._validsubsx[i]]+1 #+2-1 (yorick->python
-        #    indj=jstart[wfs._validsubsy[i]]+1
-        #    phasemap[:,:,i]=tmp[indi:indi+wfs.npix, indj:indj+wfs.npix]
+        x,y=indices(geom._n) #we need c-like indice
+        x-=1
+        y-=1
+        tmp=x+y*geom._n
+        for i in range(wfs._nvalid):
+            indi=istart[wfs._validsubsx[i]]+1 #+2-1 (yorick->python
+            indj=jstart[wfs._validsubsy[i]]+1
+            phasemap[:,:,i]=tmp[indi:indi+wfs.npix, indj:indj+wfs.npix]
 
         wfs._phasemap = phasemap
 
@@ -1310,7 +1318,7 @@ cdef init_wfs_size(Param_wfs wfs, int n, Param_atmos atmos,
 
         if(wfs.type_wfs == "pyrhr"):
             # while (pdiam % wfs.npix != 0) pdiam+=1;
-            k = 5
+            k = 4
             pdiam[0] = long(tel.diam / r0 * k)
             while (pdiam[0] % wfs.nxsub != 0):
                 pdiam[0] += 1  # we choose to have a multiple of wfs.nxsub

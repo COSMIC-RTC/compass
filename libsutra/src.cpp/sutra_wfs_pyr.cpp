@@ -81,8 +81,11 @@ sutra_wfs_pyr::sutra_wfs_pyr(carma_context *context, sutra_telescope *d_tel,
     this->d_poffsets = new carma_obj<cuFloatComplex>(context, dims_data2);
     this->d_phalfxy = new carma_obj<cuFloatComplex>(context, dims_data2);
     this->d_sincar = new carma_obj<float>(context, dims_data2);
-    this->d_phasemap = new carma_obj<int>(context, dims_data2);
-
+ 
+    dims_data2[1] = nphase * nphase;
+    dims_data2[2] = nvalid;
+    this->d_phasemap = new carma_obj<int>(current_context, dims_data2);
+ 
     dims_data2[1] = nfft / nrebin;
     dims_data2[2] = nfft / nrebin;
 

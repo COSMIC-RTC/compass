@@ -1673,7 +1673,8 @@ def rtc_init(Telescope g_tel, Sensors g_wfs, p_wfs, Dms g_dms, p_dms, Param_geom
                     controller = p_rtc.controllers[i]
                     print "filtering unseen actuators... "
                     if(clean or not load.has_key("pztok")):
-                        if(p_wfs[0].type_wfs == "sh"):
+                        if((p_wfs[0].type_wfs == "sh") or (p_wfs[0].type_wfs == "pyrhr")):
+                            #imat = manual_imat(g_rtc, g_wfs, p_wfs, g_dms, p_dms)
                             imat = imat_geom(g_wfs, p_wfs, controller, g_dms, p_dms, meth=0)
                         else:
                             imat = manual_imat(g_rtc, g_wfs, p_wfs, g_dms, p_dms)
@@ -1737,6 +1738,8 @@ def rtc_init(Telescope g_tel, Sensors g_wfs, p_wfs, Dms g_dms, p_dms, Param_geom
 
                     if(controller.type_control == "ls"):
                         if(doimat):
+                            #imat = imat_geom(g_wfs, p_wfs, controller, g_dms, p_dms, meth=0)
+                            #g_rtc.set_imat(i, imat)
                             imat_init(i, g_rtc, p_rtc, g_dms, g_wfs, p_wfs, p_tel, clean=clean, simul_name=simul_name, load=load)
                             if(controller.modopti == 1):
                                 print "Initializing Modal Optimization : "

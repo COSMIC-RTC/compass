@@ -1,6 +1,7 @@
 #include <sutra_rtc.h>
 #include <sutra_wfs_geom.h>
 #include <sutra_wfs_sh.h>
+#include <sutra_wfs_pyr_pyrhr.h>
 
 sutra_rtc::sutra_rtc(carma_context *context) {
   this->current_context = context;
@@ -244,8 +245,11 @@ int sutra_rtc::do_imat_geom(int ncntrl, sutra_dms *ydm,
         } else if(wfs->type != "geo"){
           sutra_wfs_geom *_wfs = dynamic_cast<sutra_wfs_geom *>(wfs);
           _wfs->slopes_geom(type, d_imat[inds1 + inds2]);
+        } else if(wfs->type != "pyrhr"){
+          sutra_wfs_pyr_pyrhr *_wfs = dynamic_cast<sutra_wfs_pyr_pyrhr *>(wfs);
+          _wfs->slopes_geom(type, d_imat[inds1 + inds2]);
         } else {
-          DEBUG_TRACE("wfs should be a SH or a geo");
+          DEBUG_TRACE("wfs should be a SH, a geo or a pyrhr");
           return EXIT_FAILURE;
         }
         inds2 += 2 * wfs->nvalid;
