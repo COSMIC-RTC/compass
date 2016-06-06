@@ -24,7 +24,7 @@ class sutra_wfs_pyr_pyrhr: public sutra_wfs_pyr {
     sutra_wfs_pyr_pyrhr(const sutra_wfs_pyr_pyrhr& wfs);
     ~sutra_wfs_pyr_pyrhr();
 
-    int wfs_initarrays(cuFloatComplex *halfxy, int *cx, int *cy, float *sincar,
+    int wfs_initarrays(cuFloatComplex *halfxy, float *cx, float *cy, float *sincar,
                        int *validsubsx, int *validsubsy, int *phasemap, float *fluxPerSub);
 
     int slopes_geom(int type, float *slopes);

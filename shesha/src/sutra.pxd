@@ -323,8 +323,8 @@ cdef extern from "sutra_wfs.h":
         carma_obj[cuFloatComplex] * d_phalfxy
         carma_obj[cuFloatComplex] * d_poffsets
 
-        carma_host_obj[int] * pyr_cx
-        carma_host_obj[int] * pyr_cy
+        carma_host_obj[float] * pyr_cx
+        carma_host_obj[float] * pyr_cy
 
         sutra_source * d_gs
 
@@ -346,7 +346,7 @@ cdef extern from "sutra_wfs.h":
         int wfs_initarrays(int * phasemap, float * offsets, float * fluxPerSub,
                            int * validsubsx, int * validsubsy, int * istart, int * jstart)
         int wfs_initarrays(cuFloatComplex * halfxy, cuFloatComplex * offsets,
-                           float * focmask, int * cx, int * cy,
+                           float * focmask, float * cx, float * cy,
                            float * sincar, int * phasemap, int * validsubsx, int * validsubsy)
         int wfs_initgs(sutra_sensors * sensors, float xpos, float ypos, float Lambda, float mag, long size,
                        float noise, long seed)
@@ -379,7 +379,7 @@ cdef extern from "sutra_wfs_sh.h":
 cdef extern from "sutra_wfs_pyr.h":
     cdef cppclass sutra_wfs_pyr(sutra_wfs):
         int wfs_initarrays(cuFloatComplex * halfxy, cuFloatComplex * offsets,
-                           float * focmask, int * cx, int * cy,
+                           float * focmask, float * cx, float * cy,
                            float * sincar, int * phasemap, int * validsubsx, int * validsubsy)
 
 #################################################
@@ -402,7 +402,7 @@ cdef extern from "sutra_wfs_pyr_pyr4.h":
 cdef extern from "sutra_wfs_pyr_pyrhr.h":
     cdef cppclass sutra_wfs_pyr_pyrhr(sutra_wfs_pyr):
         sutra_wfs_pyr_pyrhr(const sutra_wfs_pyr_pyrhr & wfs)
-        int wfs_initarrays(cuFloatComplex * halfxy, int * cx, int * cy,
+        int wfs_initarrays(cuFloatComplex * halfxy, float * cx, float * cy,
                            float * sincar, int * validsubsx, int * validsubsy, int *phasemap, float *fluxPerSub)
         void comp_modulation(int cpt);
         int slopes_geom(int type, float * slopes)

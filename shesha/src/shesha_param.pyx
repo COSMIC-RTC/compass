@@ -280,7 +280,7 @@ cdef class Param_wfs:
     def set_Lambda(self, float L):
         """Set the observation wavelength
 
-        :param L: (float) : observation wavelength (in µm) for a subap
+        :param L: (float) : observation wavelength (in ��m) for a subap
         """
         self.Lambda = L
 
@@ -1301,9 +1301,9 @@ cpdef rotate3d(np.ndarray[ndim=3, dtype=np.float32_t] im,
 
         ang: (np.ndarray[ndim=1,dtype=np.float32_t]) : rotation angle  (in degrees)
 
-        cx: (int) : (optional) rotation center on x axis (default: image center)
+        cx: (float) : (optional) rotation center on x axis (default: image center)
 
-        cy: (int) : (optional) rotation center on x axis (default: image center)
+        cy: (float) : (optional) rotation center on x axis (default: image center)
 
         zoom: (float) : (opional) zoom factor (default =1.0)
 """
@@ -1393,9 +1393,9 @@ cpdef rotate(np.ndarray[ndim=3, dtype=np.float32_t] im,
 
         ang: (float) : rotation angle (in degrees)
 
-        cx: (int) : (optional) rotation center on x axis (default: image center)
+        cx: (float) : (optional) rotation center on x axis (default: image center)
 
-        cy: (int) : (optional) rotation center on x axis (default: image center)
+        cy: (float) : (optional) rotation center on x axis (default: image center)
 
         zoom: (float) : (opional) zoom factor (default =1.0)
 

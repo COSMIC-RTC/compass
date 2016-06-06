@@ -107,8 +107,8 @@ sutra_wfs_pyr::sutra_wfs_pyr(carma_context *context, sutra_telescope *d_tel,
     dims_data3[3] = 4;
 
     dims_data1[1] = npup;
-    this->pyr_cx = new carma_host_obj<int>(dims_data1, MA_WRICOMB);
-    this->pyr_cy = new carma_host_obj<int>(dims_data1, MA_WRICOMB);
+    this->pyr_cx = new carma_host_obj<float>(dims_data1, MA_WRICOMB);
+    this->pyr_cy = new carma_host_obj<float>(dims_data1, MA_WRICOMB);
 
     dims_data1[1] = nvalid;
     this->d_subsum = new carma_obj<float>(context, dims_data1);
@@ -175,8 +175,8 @@ sutra_wfs_pyr::sutra_wfs_pyr(carma_context *context, sutra_telescope *d_tel,
     //  this->d_pupil = new carma_obj<float>(context, dims_data2);
 
     dims_data1[1] = npup;
-    this->pyr_cx = new carma_host_obj<int>(dims_data1, MA_WRICOMB);
-    this->pyr_cy = new carma_host_obj<int>(dims_data1, MA_WRICOMB);
+    this->pyr_cx = new carma_host_obj<float>(dims_data1, MA_WRICOMB);
+    this->pyr_cy = new carma_host_obj<float>(dims_data1, MA_WRICOMB);
     dims_data2[1] = nfft;
     dims_data2[2] = nfft;
     this->d_poffsets = new carma_obj<cuFloatComplex>(context, dims_data2);
@@ -272,7 +272,7 @@ sutra_wfs_pyr::~sutra_wfs_pyr() {
 
 int sutra_wfs_pyr::wfs_initarrays(cuFloatComplex *halfxy,
                                   cuFloatComplex *offsets, float *focmask,
-                                  int *cx, int *cy, float *sincar,
+                                  float *cx, float *cy, float *sincar,
                                   int *phasemap, int *validsubsx,
                                   int *validsubsy) {
   current_context->set_activeDevice(device,1);

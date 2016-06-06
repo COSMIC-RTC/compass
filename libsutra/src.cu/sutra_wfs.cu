@@ -939,7 +939,7 @@ pyr_getpup<cuDoubleComplex, double>(cuDoubleComplex *d_odata, double *d_idata,
 
 
 template<class T>
-__global__ void rollmod_krnl(T *g_odata, T *g_idata, T *g_mask, int cx, int cy,
+__global__ void rollmod_krnl(T *g_odata, T *g_idata, T *g_mask, float cx, float cy,
     unsigned int n, unsigned int ns, unsigned int nim) {
   // roll( pup * exp(i*phase) ) * offsets
 
@@ -1031,7 +1031,7 @@ pyr_rollmod<cuDoubleComplex>(cuDoubleComplex *d_odata, cuDoubleComplex *d_idata,
 //////////////////////////////////////////////////////////////
 
 template<class T>
-__global__ void roof_rollmod_krnl(T *g_odata, T *g_idata, T *g_mask, int cx, int cy,
+__global__ void roof_rollmod_krnl(T *g_odata, T *g_idata, T *g_mask, float cx, float cy,
     unsigned int n, unsigned int ns, unsigned int nim) {
   // roll( pup * exp(i*phase) ) * offsets
 

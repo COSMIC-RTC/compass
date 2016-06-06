@@ -83,7 +83,7 @@ cdef class Param_wfs:
     cdef readonly float pixsize
     """pixel size (in arcsec) for a subap."""
     cdef readonly float Lambda
-    """observation wavelength (in µm) for a subap."""
+    """observation wavelength (in ��m) for a subap."""
     cdef readonly float optthroughput
     """wfs global throughput."""
     cdef readonly float fracsub
@@ -215,8 +215,8 @@ cdef class Param_wfs:
 
 # pyramid internal kwrds
     cdef readonly np.ndarray _pyr_offsets  # (float*)
-    cdef readonly np.ndarray _pyr_cx  # (int*)
-    cdef readonly np.ndarray _pyr_cy  # (int*)
+    cdef readonly np.ndarray _pyr_cx  # (float*)
+    cdef readonly np.ndarray _pyr_cy  # (float*)
 
 
     # cdef make_lgs_prof1d(self, Param_tel p_tel,

@@ -709,35 +709,32 @@ cpdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
 
         if(wfs.pyrtype == "Pyramid"):
             if(wfs.pyr_pos == None):
-                cx = np.round(
-                    mod_ampl_pixels * np.sin((np.arange(wfs.pyr_npts) + 1) * 2. * np.pi / wfs.pyr_npts))
-                cy = np.round(
-                    mod_ampl_pixels * np.cos((np.arange(wfs.pyr_npts) + 1) * 2. * np.pi / wfs.pyr_npts))
+                cx = mod_ampl_pixels * np.sin((np.arange(wfs.pyr_npts) + 1) * 2. * np.pi / wfs.pyr_npts))
+                cy = mod_ampl_pixels * np.cos((np.arange(wfs.pyr_npts) + 1) * 2. * np.pi / wfs.pyr_npts))
                 # mod_npts = wfs.pyr_npts #UNUSED
             else:
                 if(verbose == 0):
                     print "Using user-defined positions for the pyramid modulation"
-                cx = np.round(wfs.pyr_pos[:, 0] / qpixsize)
-                cy = np.round(wfs.pyr_pos[:, 1] / qpixsize)
+                cx = wfs.pyr_pos[:, 0] / qpixsize
+                cy = wfs.pyr_pos[:, 1] / qpixsize
                 # mod_npts=cx.shape[0] #UNUSED
         elif(wfs.pyrtype == "RoofPrism"):
-            cx = np.round(
-                2. * mod_ampl_pixels * ((np.arange(wfs.pyr_npts) + 1) - (wfs.pyr_npts + 1) / 2.) / wfs.pyr_npts)
-            cy = cx
+            cx = 2. * mod_ampl_pixels * ((np.arange(wfs.pyr_npts) + 1) - (wfs.pyr_npts + 1) / 2.) / wfs.pyr_npts)
+            cy = cx.copy()
             # mod_npts = wfs.pyr_npts #UNUSED
         else:
             if(wfs.pyr_pos==None):
-                cx = np.round(mod_ampl_pixels*np.sin((np.arange(wfs.pyr_npts)+1)*2.*np.pi/wfs.pyr_npts))
-                cy = np.round(mod_ampl_pixels*np.cos((np.arange(wfs.pyr_npts)+1)*2.*np.pi/wfs.pyr_npts))
+                cx = mod_ampl_pixels*np.sin((np.arange(wfs.pyr_npts)+1)*2.*np.pi/wfs.pyr_npts)
+                cy = mod_ampl_pixels*np.cos((np.arange(wfs.pyr_npts)+1)*2.*np.pi/wfs.pyr_npts)
                 #mod_npts = wfs.pyr_npts #UNUSED
             else:
                 if(verbose==0):print "Using user-defined positions for the pyramid modulation"
-                cx=np.round(wfs.pyr_pos[:,0]/qpixsize)
-                cy=np.round(wfs.pyr_pos[:,1]/qpixsize)
+                cx=wfs.pyr_pos[:,0]/qpixsize
+                cy=wfs.pyr_pos[:,1]/qpixsize
                 #mod_npts=cx.shape[0] #UNUSED
 
-        wfs._pyr_cx = cx.astype(np.int32)
-        wfs._pyr_cy = cy.astype(np.int32)
+        wfs._pyr_cx = cx.copy()
+        wfs._pyr_cy = cy.copy()
 
         wfs._nphotons = wfs.zerop * \
             2.51189 ** (-wfs.gsmag) * loop.ittime * wfs.optthroughput
@@ -913,8 +910,8 @@ cpdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
             cy = wfs.pyr_pos[:, 1] / qpixsize
             # mod_npts=cx.shape[0] #UNUSED
 
-        wfs._pyr_cx = cx.astype(np.int32)
-        wfs._pyr_cy = cy.astype(np.int32)
+        wfs._pyr_cx = cx.copy()
+        wfs._pyr_cy = cy.copy()
 
         wfs._nphotons = wfs.zerop * \
             2.51189 ** (-wfs.gsmag) * loop.ittime * wfs.optthroughput

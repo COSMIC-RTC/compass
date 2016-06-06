@@ -712,35 +712,32 @@ cpdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
 
         if(wfs.pyrtype == "Pyramid"):
             if(wfs.pyr_pos == None):
-                cx = np.round(
-                    mod_ampl_pixels * np.sin((np.arange(wfs.pyr_npts) + 1) * 2. * np.pi / wfs.pyr_npts))
-                cy = np.round(
-                    mod_ampl_pixels * np.cos((np.arange(wfs.pyr_npts) + 1) * 2. * np.pi / wfs.pyr_npts))
+                cx = mod_ampl_pixels * np.sin((np.arange(wfs.pyr_npts) + 1) * 2. * np.pi / wfs.pyr_npts)
+                cy = mod_ampl_pixels * np.cos((np.arange(wfs.pyr_npts) + 1) * 2. * np.pi / wfs.pyr_npts)
                 # mod_npts = wfs.pyr_npts #UNUSED
             else:
                 if(verbose == 0):
                     print "Using user-defined positions for the pyramid modulation"
-                cx = np.round(wfs.pyr_pos[:, 0] / qpixsize)
-                cy = np.round(wfs.pyr_pos[:, 1] / qpixsize)
+                cx = wfs.pyr_pos[:, 0] / qpixsize
+                cy = wfs.pyr_pos[:, 1] / qpixsize
                 # mod_npts=cx.shape[0] #UNUSED
         elif(wfs.pyrtype == "RoofPrism"):
-            cx = np.round(
-                2. * mod_ampl_pixels * ((np.arange(wfs.pyr_npts) + 1) - (wfs.pyr_npts + 1) / 2.) / wfs.pyr_npts)
-            cy = cx
+            cx = 2. * mod_ampl_pixels * ((np.arange(wfs.pyr_npts) + 1) - (wfs.pyr_npts + 1) / 2.) / wfs.pyr_npts
+            cy = cx.copy()
             # mod_npts = wfs.pyr_npts #UNUSED
         else:
             if(wfs.pyr_pos==None):
-                cx = np.round(mod_ampl_pixels*np.sin((np.arange(wfs.pyr_npts)+1)*2.*np.pi/wfs.pyr_npts))
-                cy = np.round(mod_ampl_pixels*np.cos((np.arange(wfs.pyr_npts)+1)*2.*np.pi/wfs.pyr_npts))
+                cx = mod_ampl_pixels*np.sin((np.arange(wfs.pyr_npts)+1)*2.*np.pi/wfs.pyr_npts)
+                cy = mod_ampl_pixels*np.cos((np.arange(wfs.pyr_npts)+1)*2.*np.pi/wfs.pyr_npts)
                 #mod_npts = wfs.pyr_npts #UNUSED
             else:
                 if(verbose==0):print "Using user-defined positions for the pyramid modulation"
-                cx=np.round(wfs.pyr_pos[:,0]/qpixsize)
-                cy=np.round(wfs.pyr_pos[:,1]/qpixsize)
+                cx=wfs.pyr_pos[:,0]/qpixsize
+                cy=wfs.pyr_pos[:,1]/qpixsize
                 #mod_npts=cx.shape[0] #UNUSED
 
-        wfs._pyr_cx = cx.astype(np.int32)
-        wfs._pyr_cy = cy.astype(np.int32)
+        wfs._pyr_cx = cx.copy()
+        wfs._pyr_cy = cy.copy()
 
         wfs._nphotons = wfs.zerop * \
             2.51189 ** (-wfs.gsmag) * loop.ittime * wfs.optthroughput
@@ -899,11 +896,11 @@ cpdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
 
         if(wfs.pyr_pos == None):
             pixsize = (np.pi * qpixsize) / (3600 * 180)
-            scale_fact = 2 * np.pi / npup * \
-                (wfs.Lambda / tel.diam / 4.848) / pixsize * wfs.pyr_ampl
+#            scale_fact = 2 * np.pi / npup * \
+#                (wfs.Lambda / tel.diam / 4.848) / pixsize * wfs.pyr_ampl
 #             Proposition de Flo
-#             scale_fact = 2 * np.pi / npup * \
-#                 (wfs.Lambda * 1e-6 / tel.diam) / pixsize * wfs.pyr_ampl
+            scale_fact = 2 * np.pi / npup * \
+                (wfs.Lambda * 1e-6 / tel.diam) / pixsize * wfs.pyr_ampl
             cx = scale_fact * \
                 np.sin((np.arange(wfs.pyr_npts)) * 2. * np.pi / wfs.pyr_npts)
             cy = scale_fact * \
@@ -916,8 +913,8 @@ cpdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
             cy = wfs.pyr_pos[:, 1] / qpixsize
             # mod_npts=cx.shape[0] #UNUSED
 
-        wfs._pyr_cx = cx.astype(np.int32)
-        wfs._pyr_cy = cy.astype(np.int32)
+        wfs._pyr_cx = cx.copy()
+        wfs._pyr_cy = cy.copy()
 
         wfs._nphotons = wfs.zerop * \
             2.51189 ** (-wfs.gsmag) * loop.ittime * wfs.optthroughput
@@ -1699,8 +1696,8 @@ cdef class Sensors:
         cdef int * istart = < int * > tmp_istart.data
         tmp_jstart = np.copy(wfs._jstart + 1)
         cdef int * jstart = < int * > tmp_jstart.data
-        cdef int * cx = < int * > wfs._pyr_cx.data
-        cdef int * cy = < int * > wfs._pyr_cy.data
+        cdef float * cx = < float * > wfs._pyr_cx.data
+        cdef float * cy = < float * > wfs._pyr_cy.data
 
         """
         #type depend on wfs type

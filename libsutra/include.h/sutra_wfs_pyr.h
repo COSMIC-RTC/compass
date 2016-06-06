@@ -21,8 +21,8 @@ class sutra_wfs_pyr: public sutra_wfs {
     carma_obj<cuFloatComplex> *d_phalfxy;
     carma_obj<cuFloatComplex> *d_poffsets;
 
-    carma_host_obj<int> *pyr_cx;
-    carma_host_obj<int> *pyr_cy;
+    carma_host_obj<float> *pyr_cx;
+    carma_host_obj<float> *pyr_cy;
 
   public:
     sutra_wfs_pyr(carma_context *context, sutra_telescope *d_tel,
@@ -34,7 +34,7 @@ class sutra_wfs_pyr: public sutra_wfs {
     ~sutra_wfs_pyr();
 
     int wfs_initarrays(cuFloatComplex *halfxy, cuFloatComplex *offsets,
-                       float *focmask, int *cx, int *cy, float *sincar,
+                       float *focmask, float *cx, float *cy, float *sincar,
                        int *phasemap, int *validsubsx, int *validsubsy);
 
     int fill_binimage(int async);

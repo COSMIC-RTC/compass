@@ -18,8 +18,8 @@ sutra_wfs_pyr_pyrhr::~sutra_wfs_pyr_pyrhr() {
 
 }
 
-int sutra_wfs_pyr_pyrhr::wfs_initarrays(cuFloatComplex *halfxy, int *cx,
-                                        int *cy, float *sincar, int *validsubsx,
+int sutra_wfs_pyr_pyrhr::wfs_initarrays(cuFloatComplex *halfxy, float *cx,
+		float *cy, float *sincar, int *validsubsx,
                                         int *validsubsy, int *phasemap, float *fluxPerSub) {
   current_context->set_activeDevice(device,1);
   this->d_phalfxy->host2device(halfxy);
