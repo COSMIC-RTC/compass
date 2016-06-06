@@ -1696,10 +1696,15 @@ cdef class Sensors:
         cdef int * istart = < int * > tmp_istart.data
         tmp_jstart = np.copy(wfs._jstart + 1)
         cdef int * jstart = < int * > tmp_jstart.data
-        cdef np.ndarray[dtype = np.float32_t] cx_F = wfs._pyr_cx.astype(np.float32)
-        cdef np.ndarray[dtype = np.float32_t] cy_F = wfs._pyr_cy.astype(np.float32)
-        cdef float * cx = < float * > cx_F.data
-        cdef float * cy = < float * > cy_F.data
+        cdef np.ndarray[dtype = np.float32_t] cx_F 
+        cdef np.ndarray[dtype = np.float32_t] cy_F
+        cdef float * cx = NULL
+        cdef float * cy = NULL
+        if((self.sensors.d_wfs[n].type == < bytes > "pyrhr") or (self.sensors.d_wfs[n].type == < bytes > "pyr") or (self.sensors.d_wfs[n].type == < bytes > "roof")):
+            cx_F = wfs._pyr_cx.astype(np.float32)
+            cy_F = wfs._pyr_cy.astype(np.float32)
+            cx = < float * > cx_F.data
+            cy = < float * > cy_F.data
 
         """
         #type depend on wfs type
