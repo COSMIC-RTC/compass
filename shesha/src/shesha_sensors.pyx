@@ -896,10 +896,10 @@ cpdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
 
         if(wfs.pyr_pos == None):
             pixsize = (np.pi * qpixsize) / (3600 * 180)
-#            scale_fact = 2 * np.pi / npup * \
-#                (wfs.Lambda / tel.diam / 4.848) / pixsize * wfs.pyr_ampl
-#             Proposition de Flo
-            scale_fact = 2 * np.pi / npup * \
+            #            scale_fact = 2 * np.pi / npup * \
+            #                (wfs.Lambda / tel.diam / 4.848) / pixsize * wfs.pyr_ampl
+            #             Proposition de Flo
+            scale_fact = 2 * np.pi / pyrsize * \
                 (wfs.Lambda * 1e-6 / tel.diam) / pixsize * wfs.pyr_ampl
             cx = scale_fact * \
                 np.sin((np.arange(wfs.pyr_npts)) * 2. * np.pi / wfs.pyr_npts)
@@ -963,7 +963,7 @@ cpdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
         fluxPerSub = fluxPerSub /  wfs.nxsub** 2.
 
         wfs._fluxPerSub = fluxPerSub
- 
+
         phasemap = np.zeros((wfs.npix, wfs.npix, wfs._nvalid), dtype=np.int32)
         x,y=indices(geom._n) #we need c-like indice
         x-=1
@@ -1236,7 +1236,7 @@ cdef init_wfs_size(Param_wfs wfs, int n, Param_atmos atmos,
     P > D / r0 . m
     with m = 2 or 3
 
-    to get reasonable space between pupil images : N > P.(2 + 3S) 
+    to get reasonable space between pupil images : N > P.(2 + 3S)
     with S close to 1
     N must be a power of 2
 
@@ -1696,7 +1696,7 @@ cdef class Sensors:
         cdef int * istart = < int * > tmp_istart.data
         tmp_jstart = np.copy(wfs._jstart + 1)
         cdef int * jstart = < int * > tmp_jstart.data
-        cdef np.ndarray[dtype = np.float32_t] cx_F 
+        cdef np.ndarray[dtype = np.float32_t] cx_F
         cdef np.ndarray[dtype = np.float32_t] cy_F
         cdef float * cx = NULL
         cdef float * cy = NULL
@@ -2350,7 +2350,7 @@ cdef class Sensors:
             #raise TypeError("wfs should be a SH")
             wfs_sh = dynamic_cast_wfs_sh_ptr(self.sensors.d_wfs[nsensor])
             wfs_sh.slopes_geom(t)
-        else: 
+        else:
             if( < bytes > self.sensors.d_wfs[nsensor].type == "pyrhr"):
                 wfs_pyrhr = dynamic_cast_wfs_pyr_pyrhr_ptr(self.sensors.d_wfs[nsensor])
                 wfs_pyrhr.slopes_geom(t)
