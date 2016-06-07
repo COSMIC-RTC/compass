@@ -1474,7 +1474,7 @@ cdef class Rtc:
 
 def rtc_init(Telescope g_tel, Sensors g_wfs, p_wfs, Dms g_dms, p_dms, Param_geom p_geom, Param_rtc p_rtc,
             Param_atmos p_atmos, Atmos g_atmos, Param_tel p_tel, Param_loop p_loop,
-            clean=1, bool brama=None, Target brama_tar=None, bool doimat=None, simul_name="", load={}):
+            clean=1, brama=None, Target brama_tar=None, doimat=1, simul_name="", load={}):
     """Initialize all the sutra_rtc objects : centroiders and controllers
 
     :parameters:
@@ -1526,9 +1526,6 @@ def rtc_init(Telescope g_tel, Sensors g_wfs, p_wfs, Dms g_dms, p_dms, Param_geom
             g_rtc = Rtc()
     ELSE:
         g_rtc = Rtc()
-
-    if(doimat == None):
-        doimat = 1
 
     cdef carma_context * context = carma_context.instance()
     cdef int device = g_rtc.rtc.device
