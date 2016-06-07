@@ -129,6 +129,12 @@ class widgetAOWindow(TemplateBaseClass):
         self.ui.wao_actionHelp_Contents.triggered.connect(
             self.on_help_triggered)
 
+        self.SRcircleAtmos = {}
+        self.SRcircleWFS = {}
+        self.SRcircleDM = {}
+        self.SRcircleTarget = {}
+
+
     def on_help_triggered(self, i=None):
         if i is None:
             return
@@ -631,6 +637,40 @@ class widgetAOWindow(TemplateBaseClass):
             h5u.validDataBase(
                 os.environ["SHESHA_ROOT"] + "/data/", matricesToLoad)
 
+        for i in range(len(self.config.p_atmos.alt)):
+            data = self.atm.get_screen(self.config.p_atmos.alt[i])
+            cx, cy = self.circleCoords(self.config.p_geom.pupdiam/2, 100, data.shape[0], data.shape[1])
+            self.SRcircleAtmos[i] = pg.ScatterPlotItem(cx,cy, pen='r')
+            self.p1.addItem(self.SRcircleAtmos[i])
+            self.SRcircleAtmos[i].setPoints(cx, cy)
+            self.SRcircleAtmos[i].hide()
+
+        for i in range(len(self.config.p_wfss)):
+            data = self.wfs.get_phase(i)
+            cx, cy = self.circleCoords(self.config.p_geom.pupdiam/2, 100, data.shape[0], data.shape[1])
+            self.SRcircleWFS[i] = pg.ScatterPlotItem(cx,cy, pen='r')
+            self.p1.addItem(self.SRcircleWFS[i])
+            self.SRcircleWFS[i].setPoints(cx, cy)
+            self.SRcircleWFS[i].hide()
+
+        for i in range(len(self.config.p_dms)):
+            dm_type = self.config.p_dms[i].type_dm
+            alt = self.config.p_dms[i].alt
+            data = self.dms.get_dm(dm_type, alt)
+            cx, cy = self.circleCoords(self.config.p_geom.pupdiam/2, 100, data.shape[0], data.shape[1])
+            self.SRcircleDM[i] = pg.ScatterPlotItem(cx,cy, pen='r')
+            self.p1.addItem(self.SRcircleDM[i])
+            self.SRcircleDM[i].setPoints(cx, cy)
+            self.SRcircleDM[i].hide()
+        
+        for i in range(self.config.p_target.ntargets):
+            data = self.tar.get_phase(i)
+            cx, cy = self.circleCoords(self.config.p_geom.pupdiam/2, 100, data.shape[0], data.shape[1])
+            self.SRcircleTarget[i] = pg.ScatterPlotItem(cx,cy, pen='r')
+            self.p1.addItem(self.SRcircleTarget[i])
+            self.SRcircleTarget[i].setPoints(cx, cy)
+            self.SRcircleTarget[i].show()
+
         print "===================="
         print "init done"
         print "===================="
@@ -644,9 +684,9 @@ class widgetAOWindow(TemplateBaseClass):
         self.loaded = True
         self.updateDisplay()
         self.displayRtcMatrix()
+        self.p1.autoRange()
 
         self.ui.wao_PSFlogscale.clicked.connect(self.updateDisplay)
-
         self.ui.wao_run.setDisabled(False)
         self.ui.wao_next.setDisabled(False)
         self.ui.wao_openLoop.setDisabled(False)
@@ -739,6 +779,13 @@ class widgetAOWindow(TemplateBaseClass):
 
                 self.ui.wao_rtcWindow.canvas.draw()
 
+    def circleCoords(self, ampli, npts, datashape0, datashape1):
+        #ampli = self.config.p_geom.pupdiam/2
+        #npts = 100
+        cx = ampli * np.sin((np.arange(npts) + 1) * 2. * np.pi / npts) + datashape0/2
+        cy = ampli * np.cos((np.arange(npts) + 1) * 2. * np.pi / npts) + datashape1/2
+        return cx ,cy
+
     def updateDisplay(self):
         if not self.loaded:
             # print " widget not fully initialized"
@@ -759,6 +806,16 @@ class widgetAOWindow(TemplateBaseClass):
                             self.SRCrossX.hide()
                             self.SRCrossY.hide()
 
+                        #if(self.SRcircle and (self.imgType in ["Spots - WFS", "Centroids - WFS", "Slopes - WFS","PSF SE","PSF LE"])):
+                        for i in range(len(self.config.p_atmos.alt)):
+                            self.SRcircleAtmos[i].hide()
+                        for i in range(len(self.config.p_wfss)):
+                            self.SRcircleWFS[i].hide()
+                        for i in range(len(self.config.p_dms)):
+                            self.SRcircleDM[i].hide()
+                        for i in range(self.config.p_target.ntargets):
+                            self.SRcircleTarget[i].hide()
+
                         if(self.imgType == "Phase - Atmos"):
                             data = self.atm.get_screen(
                                 self.config.p_atmos.alt[self.numberSelected])
@@ -766,6 +823,7 @@ class widgetAOWindow(TemplateBaseClass):
                                 self.p1.setRange(
                                     xRange=(0, data.shape[0]), yRange=(0, data.shape[1]))
                             self.currentViewSelected = self.imgType
+                            self.SRcircleAtmos[self.numberSelected].show()
 
                     if(self.wfs):
                         if(self.imgType == "Phase - WFS"):
@@ -774,6 +832,7 @@ class widgetAOWindow(TemplateBaseClass):
                                 self.p1.setRange(
                                     xRange=(0, data.shape[0]), yRange=(0, data.shape[1]))
                             self.currentViewSelected = self.imgType
+                            self.SRcircleWFS[self.numberSelected].show()
 
                         if(self.imgType == "Spots - WFS"):
                             if(self.config.p_wfss[self.numberSelected].type_wfs == "sh"):
@@ -826,10 +885,12 @@ class widgetAOWindow(TemplateBaseClass):
                                 self.numberSelected].type_dm
                             alt = self.config.p_dms[self.numberSelected].alt
                             data = self.dms.get_dm(dm_type, alt)
+
                             if(self.imgType != self.currentViewSelected):
                                 self.p1.setRange(
                                     xRange=(0, data.shape[0]), yRange=(0, data.shape[1]))
                             self.currentViewSelected = self.imgType
+                            self.SRcircleDM[self.numberSelected].show()
                     if(self.tar):
                         if(self.imgType == "Phase - Target"):
                             data = self.tar.get_phase(self.numberSelected)
@@ -837,6 +898,9 @@ class widgetAOWindow(TemplateBaseClass):
                                 self.p1.setRange(
                                     xRange=(0, data.shape[0]), yRange=(0, data.shape[1]))
                             self.currentViewSelected = self.imgType
+                            #cx, cy = self.circleCoords(self.config.p_geom.pupdiam/2, 100, data.shape[0], data.shape[1])
+                            #self.SRcircleTarget.setPoints(cx, cy)
+                            self.SRcircleTarget[self.numberSelected].show()
 
                         if(self.imgType == "PSF SE"):
                             data = self.tar.get_image(
