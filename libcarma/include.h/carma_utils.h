@@ -35,7 +35,7 @@ namespace carma_utils {
     }
     template<typename T> inline T from_string(const std::string& myString) {
     	std::istringstream buffer(myString);
-    	T value();
+    	T value;
     	buffer >> value;
     	return value;
     }

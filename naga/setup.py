@@ -221,7 +221,9 @@ def compile_module(name):
 
     ext = Extension(name,
                     sources=['src/' + name + '.pyx'],
-                    extra_compile_args=["-O0", "-g", "-Wno-unused-function", "-Wno-unused-label", "-Wno-cpp"],
+                    extra_compile_args=["-Wno-unused-function", "-Wno-unused-label", "-Wno-cpp",
+                                        #"-O0", "-g",
+                                        ],
                     include_dirs=include_dirs,
                     library_dirs=library_dirs,
                     libraries=libraries,
@@ -233,7 +235,7 @@ def compile_module(name):
     setup(
         name=name,
         ext_modules=cythonize([ext]),
-        #                     gdb_debug=True,
+        gdb_debug=True,
         # cmdclass={'build_ext': custom_build_ext},
         # zip_safe=False
     )

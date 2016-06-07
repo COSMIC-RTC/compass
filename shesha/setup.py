@@ -27,7 +27,7 @@ print "======================================"
 
 listMod = ["shesha_param", "shesha_telescope", "shesha_sensors", "shesha_atmos",
            "shesha_dms", "shesha_target", "shesha_rtc"]
-dependencies = {"shesha_sensors": ["shesha_telescope", "shesha_wfs"],
+dependencies = {"shesha_sensors": ["shesha_telescope"],
                 "shesha_target": ["shesha_telescope"]}
 
 naga_path = os.environ.get('NAGA_ROOT')
@@ -289,7 +289,7 @@ def compile_module(name):
         print "dependencies:", dep
         if(os.path.exists("src/" + name + ".cpp")):
             for d in dep:
-                if (os.stat("src/" + d + ".pyx").st_mtime > 
+                if (os.stat("src/" + d + ".pyx").st_mtime >
                     os.stat("src/" + name + ".cpp").st_mtime):
                     # cpp file outdated
                     os.remove("src/" + name + ".cpp")
@@ -298,7 +298,9 @@ def compile_module(name):
 
     ext = Extension(name,
                     sources=['src/' + name + '.pyx'],
-                    extra_compile_args=["-O0", "-g","-Wno-unused-function", "-Wno-unused-label", "-Wno-cpp"],
+                    extra_compile_args=["-Wno-unused-function", "-Wno-unused-label", "-Wno-cpp",
+                                        #"-O0", "-g",
+                                        ],
                     include_dirs=include_dirs,
                     define_macros=define_macros,
                     library_dirs=library_dirs,
@@ -309,7 +311,7 @@ def compile_module(name):
 
     setup(
         name=name,
-        ext_modules=cythonize([ext], 
+        ext_modules=cythonize([ext],
                               gdb_debug=True),
         # cmdclass={'build_ext': custom_build_ext},
         # zip_safe=False

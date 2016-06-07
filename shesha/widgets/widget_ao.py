@@ -600,10 +600,6 @@ class widgetAOWindow(TemplateBaseClass):
                 os.environ["SHESHA_ROOT"] + "/data/", self.config, param_dict)
 
         gpudevice = self.ui.wao_deviceNumber.value()
-        if gpudevice != 0:
-            print "WARNING : Loop must be launched on GPU0"
-            # return
-
         self.ui.wao_deviceNumber.setDisabled(True)
         print "-> using GPU%d" % gpudevice
 #        self.c = ch.naga_context()
@@ -801,21 +797,21 @@ class widgetAOWindow(TemplateBaseClass):
                     self.ui.wao_rtcWindowMPL.hide()
                     self.ui.wao_pgwindow.show()
 
+                    if(self.SRCrossX and (self.imgType in ["Phase - Target", "Phase - DM", "Phase - Atmos", "Phase - WFS", "Spots - WFS", "Centroids - WFS", "Slopes - WFS"])):
+                        self.SRCrossX.hide()
+                        self.SRCrossY.hide()
+    
+                    #if(self.SRcircle and (self.imgType in ["Spots - WFS", "Centroids - WFS", "Slopes - WFS","PSF SE","PSF LE"])):
+                    for i in range(len(self.config.p_atmos.alt)):
+                        self.SRcircleAtmos[i].hide()
+                    for i in range(len(self.config.p_wfss)):
+                        self.SRcircleWFS[i].hide()
+                    for i in range(len(self.config.p_dms)):
+                        self.SRcircleDM[i].hide()
+                    for i in range(self.config.p_target.ntargets):
+                        self.SRcircleTarget[i].hide()
+
                     if(self.atm):
-                        if(self.SRCrossX and (self.imgType in ["Phase - Target", "Phase - DM", "Phase - Atmos", "Phase - WFS", "Spots - WFS", "Centroids - WFS", "Slopes - WFS"])):
-                            self.SRCrossX.hide()
-                            self.SRCrossY.hide()
-
-                        #if(self.SRcircle and (self.imgType in ["Spots - WFS", "Centroids - WFS", "Slopes - WFS","PSF SE","PSF LE"])):
-                        for i in range(len(self.config.p_atmos.alt)):
-                            self.SRcircleAtmos[i].hide()
-                        for i in range(len(self.config.p_wfss)):
-                            self.SRcircleWFS[i].hide()
-                        for i in range(len(self.config.p_dms)):
-                            self.SRcircleDM[i].hide()
-                        for i in range(self.config.p_target.ntargets):
-                            self.SRcircleTarget[i].hide()
-
                         if(self.imgType == "Phase - Atmos"):
                             data = self.atm.get_screen(
                                 self.config.p_atmos.alt[self.numberSelected])
@@ -898,8 +894,6 @@ class widgetAOWindow(TemplateBaseClass):
                                 self.p1.setRange(
                                     xRange=(0, data.shape[0]), yRange=(0, data.shape[1]))
                             self.currentViewSelected = self.imgType
-                            #cx, cy = self.circleCoords(self.config.p_geom.pupdiam/2, 100, data.shape[0], data.shape[1])
-                            #self.SRcircleTarget.setPoints(cx, cy)
                             self.SRcircleTarget[self.numberSelected].show()
 
                         if(self.imgType == "PSF SE"):

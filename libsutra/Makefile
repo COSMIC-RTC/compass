@@ -106,7 +106,7 @@ ifneq ($(BRAMA_ROOT),)
 	LIB_DEPLIBS   += -Wl,-rpath=$(BRAMA_ROOT) -L$(BRAMA_ROOT) -lBRAMACommon
 # LIB_DEPLIBS   += -Wl,-rpath=$(ACE_ROOT)/lib -L$(ACE_ROOT)/lib
 #	LIB_DEPLIBS 	+= -lTAO_Svc_Utils -lOpenDDS_InfoRepoDiscovery -lOpenDDS_Dcps -lTAO_PortableServer -lTAO_AnyTypeCode -lTAO -lACE
-  LIB_CPPFLAGS  += -fvisibility-inlines-hidden -fno-strict-aliasing -pthread -pipe -D_GNU_SOURCE -D__ACE_INLINE__
+  LIB_CPPFLAGS  += -fvisibility-inlines-hidden -fno-strict-aliasing -Wno-deprecated-declarations -pthread -pipe -D_GNU_SOURCE -D__ACE_INLINE__
   LIB_DEPLIBS   += -Wl,-E -fvisibility-inlines-hidden -fno-strict-aliasing -pthread -pipe -L$(ACE_ROOT)/lib -L$(DDS_ROOT)/lib -L$(TAO_ROOT)/tao -lBRAMACommon -lOpenDDS_InfoRepoDiscovery -lOpenDDS_Dcps -lTAO_PortableServer -lTAO_AnyTypeCode -lTAO -lACE -ldl -lrt
 endif
 

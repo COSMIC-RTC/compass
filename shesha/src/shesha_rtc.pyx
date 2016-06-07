@@ -1474,7 +1474,7 @@ cdef class Rtc:
 
 def rtc_init(Telescope g_tel, Sensors g_wfs, p_wfs, Dms g_dms, p_dms, Param_geom p_geom, Param_rtc p_rtc,
             Param_atmos p_atmos, Atmos g_atmos, Param_tel p_tel, Param_loop p_loop,
-            clean=1, brama=None, doimat=None, simul_name="", load={}):
+            clean=1, bool brama=None, Target_brama brama_tar=None, bool doimat=None, simul_name="", load={}):
     """Initialize all the sutra_rtc objects : centroiders and controllers
 
     :parameters:
@@ -1502,7 +1502,9 @@ def rtc_init(Telescope g_tel, Sensors g_wfs, p_wfs, Dms g_dms, p_dms, Param_geom
 
         clean: (int) : (optional) clean datafiles (imat, U, eigenv, pztok, pztnok)
 
-        brama: (int) : (optional) not implemented yet
+        brama: (int) : (optional) 
+
+        brama_tar: (Target) : (optional) 
 
         doimat: (int) : (optional) force imat computation
 
@@ -1517,7 +1519,9 @@ def rtc_init(Telescope g_tel, Sensors g_wfs, p_wfs, Dms g_dms, p_dms, Param_geom
     IF USE_BRAMA:
         if(brama == 1) :
             print "TODO brama"
-            g_rtc = Rtc_brama(g_wfs, g_tar)
+            if brama_tar is None:
+                raise "g_tar not defined"
+            g_rtc = Rtc_brama(g_wfs, brama_tar)
         else:
             g_rtc = Rtc()
     ELSE:
@@ -1770,7 +1774,7 @@ def rtc_init(Telescope g_tel, Sensors g_wfs, p_wfs, Dms g_dms, p_dms, Param_geom
                         else:
                             nactu = np.sum(controller.nactu)
                             nvalid = np.sum(controller.nvalid)
-                            imat = np.zeros((nactu * nvalid * 2), dtype=np.float32)
+                            imat = np.zeros((nactu, nvalid * 2), dtype=np.float32)
                             g_rtc.set_imat(i, imat)
                             g_rtc.set_cmat(i, imat)
                             g_rtc.set_gain(i, controller.gain)
