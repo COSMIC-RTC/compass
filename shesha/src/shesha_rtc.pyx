@@ -1474,7 +1474,7 @@ cdef class Rtc:
 
 def rtc_init(Telescope g_tel, Sensors g_wfs, p_wfs, Dms g_dms, p_dms, Param_geom p_geom, Param_rtc p_rtc,
             Param_atmos p_atmos, Atmos g_atmos, Param_tel p_tel, Param_loop p_loop,
-            clean=1, bool brama=None, Target_brama brama_tar=None, bool doimat=None, simul_name="", load={}):
+            clean=1, bool brama=None, Target brama_tar=None, bool doimat=None, simul_name="", load={}):
     """Initialize all the sutra_rtc objects : centroiders and controllers
 
     :parameters:
@@ -1502,9 +1502,9 @@ def rtc_init(Telescope g_tel, Sensors g_wfs, p_wfs, Dms g_dms, p_dms, Param_geom
 
         clean: (int) : (optional) clean datafiles (imat, U, eigenv, pztok, pztnok)
 
-        brama: (int) : (optional) 
+        brama: (int) : (optional)
 
-        brama_tar: (Target) : (optional) 
+        brama_tar: (Target) : (optional)
 
         doimat: (int) : (optional) force imat computation
 
@@ -2622,7 +2622,7 @@ cpdef selectDMforLayers(int ncontrol, Param_atmos p_atmos, Param_rtc p_rtc, list
         p_atmos : (Param_atmos) : atmos parameters
 
         p_rtc : (Param_rtc) : rtc parameters
-        
+
         p_dms :(list of Param_dm) : dms parameters
 
     :return:
