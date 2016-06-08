@@ -26,7 +26,6 @@
 #include <cuda.h>
 #include <cufft.h>
 
-#ifndef ARMnvcc
 namespace carma_utils {
     template<typename T> inline std::string to_string(const T& n) {
     	std::ostringstream stm;
@@ -49,7 +48,6 @@ namespace carma_utils {
     	tokens.push_back(text.substr(start));
     }
 }
-#endif //ARMnvcc
 
 #ifdef DEBUG
 #define DEBUG_TRACE(fmt, args...) fprintf(stderr, "[%s@%d]: " fmt "\n", __FILE__, __LINE__, ## args)

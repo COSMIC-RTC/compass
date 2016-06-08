@@ -28,7 +28,6 @@ ifeq ($(OS_ARCH),armv7l)
     NVCCFLAGS := -target-cpu-arch ARM -Xlinker --dynamic-linker=/lib/ld-linux-armhf.so.3 -Xcompiler -mfloat-abi=hard
   endif
   CCFLAGS += -DARM
-  NVCCFLAGS += -DARMnvcc
 else
   CCFLAGS += -m64
 endif
