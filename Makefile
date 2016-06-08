@@ -29,6 +29,10 @@ clean_lib:
 	@(cd libsutra && make clean)
 	@(cd libcarma && make clean)
 
+clean_cython:
+	@(cd naga && make clean)
+	@(cd shesha && make clean)
+
 lib:
 	@(cd libcarma && make -j$(N_CPU))
 	@(cd libsutra && make -j$(N_CPU))

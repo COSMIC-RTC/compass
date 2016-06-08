@@ -538,23 +538,22 @@ class widgetAOWindow(TemplateBaseClass):
     def mainLoop(self):
         start = time.time()
         self.atm.move_atmos()
-        if(self.config.p_controllers[0].type_control == "geo"):
-            for t in range(self.config.p_target.ntargets):
-                self.tar.atmos_trace(t, self.atm, self.tel)
-                self.rtc.docontrol_geo(0, self.dms, self.tar, 0)
-                self.rtc.applycontrol(0, self.dms)
-                self.tar.dmtrace(0, self.dms)
-        else:
-            for t in range(self.config.p_target.ntargets):
-                self.tar.atmos_trace(t, self.atm, self.tel)
-                self.tar.dmtrace(t, self.dms)
-            for w in range(len(self.config.p_wfss)):
-                self.wfs.sensors_trace(w, "all", self.tel, self.atm, self.dms)
-                self.wfs.sensors_compimg(w)
+        for t in range(self.config.p_target.ntargets):
+            if wao.see_atmos:
+                self.tar.atmos_trace(t,self.atm,self.tel)
+            else:
+                self.tar.reset_phase(t)
+            self.tar.dmtrace(t, self.dms)
+        for w in range(len(self.config.p_wfss)):
+            if wao.see_atmos:
+                self.wfs.sensors_trace(w,"atmos",self.tel,self.atm,self.dms)
+            else:
+                self.wfs.reset_phase(w)
+            self.wfs.sensors_compimg(w)
 
-            self.rtc.docentroids(0)
-            self.rtc.docontrol(0)
-            self.rtc.applycontrol(0, self.dms)
+        self.rtc.docentroids(0)
+        self.rtc.docontrol(0)
+        self.rtc.applycontrol(0, self.dms)
 
         signal_le = ""
         signal_se = ""
@@ -574,6 +573,10 @@ class widgetAOWindow(TemplateBaseClass):
             if loopTime < freqLimit:
                 time.sleep(freqLimit - loopTime)  # Limit loop frequency
         currentFreq = 1 / (time.time() - start)
+
+        if(wao.brama_flag):
+            self.rtc.publish() #rtc_publish, g_rtc;
+            self.tar.publish()
 
         if(self.RTDisplay):
             self.ui.wao_strehlSE.setText(signal_se)
