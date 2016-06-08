@@ -275,13 +275,10 @@ cdef class Param_dm:
   """ name for x coord of influence"""
   cdef readonly bytes  y_name
   """ name for y coord of influence"""
-  #  cdef readonly bytes  i_name
-  #  """ name for i coord of influence"""
-  #  cdef readonly bytes  j_name
-  #  """ name for j coord of influence"""
-  
+  cdef readonly bytes influ_res
+  """ name for y coord of influence"""
   cdef readonly long    nact
-  """ number of actuators in the diameter """
+  """ number of actuators in dm """
   cdef readonly float   alt
   """ conjugaison altitude (im m)"""
   cdef readonly float   thresh

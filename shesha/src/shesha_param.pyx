@@ -817,12 +817,19 @@ cdef class Param_dm:
         :param yname: (str) : name of y coord of influence
         """
         self.y_name=yname
+        
+    def set_influ_res(self,bytes res):
+        """set the name of influence fonction resolution in file 
+
+        :param yname: (str) : name of resoltion (meter/pixel) of influence
+        """
+        self.influ_res=res
     
     def set_nact(self, long n):
 
         """set the number of actuator
 
-        :param n: (long) : number of actuators in the diameter
+        :param n: (long) : number of actuators in the dm
         """
         self.nact = n
 

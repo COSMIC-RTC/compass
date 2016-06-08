@@ -12,6 +12,7 @@ import hdf5_utils as h5
 #_______________
 import resDataBase as db
 import pandas as pd
+from scipy import interpolate
 #_______________
 
 #max_extent signature
@@ -43,23 +44,8 @@ cdef _dm_init(Dms dms, Param_dm p_dms, list p_wfs, Param_geom p_geom, Param_tel 
     if(p_dms.pupoffset is not None):
         p_dms.puppixoffset = p_dms.pupoffset / p_tel.diam * p_geom.pupdiam
 
-    if(p_dms.type_dm == "pzt"):
-        # find out the support dimension for the given mirror.
-        norms = [np.linalg.norm([w.xpos, w.ypos]) for w in p_wfs]
-        patchDiam = p_geom.pupdiam + 2 * np.max(norms) * \
-            4.848e-6 * np.abs(p_dms.alt) / p_tel.diam * p_geom.pupdiam
-        # Patchdiam
-        p_dms._pitch = long(patchDiam / (p_dms.nact - 1))
+    if(p_dms.type_dm != "pzt"):
 
-        extent = p_dms._pitch * (p_dms.nact + 3)  # + 1.5 pitch each side
-        p_dms._n1 = np.floor(p_geom.cent - extent / 2)
-        p_dms._n2 = np.ceil(p_geom.cent + extent / 2)
-        if(p_dms._n1 < 1):
-            p_dms._n1 = 1
-        if(p_dms._n2 > p_geom.ssize):
-            p_dms._n2 = p_geom.ssize
-
-    else:
         # we are dealing with a TT, or kl
         extent = p_geom.pupdiam + 16
         p_dms._n1 = np.floor(p_geom.cent - extent / 2)
@@ -68,9 +54,10 @@ cdef _dm_init(Dms dms, Param_dm p_dms, list p_wfs, Param_geom p_geom, Param_tel 
             p_dms._n1 = 1
         if(p_dms._n2 > p_geom.ssize):
             p_dms._n2 = p_geom.ssize
+        # max_extent
+        max_extent[0] = max(max_extent[0], p_dms._n2 - p_dms._n1 + 1)
 
-    # max_extent
-    max_extent[0] = max(max_extent[0], p_dms._n2 - p_dms._n1 + 1)
+
     if(p_dms.alt == 0):
         if(p_dms.type_dm == "tt"):
             # TODO check next line (different max used ?)
@@ -94,28 +81,56 @@ cdef _dm_init(Dms dms, Param_dm p_dms, list p_wfs, Param_geom p_geom, Param_tel 
 
 
     if( p_dms.type_dm=="pzt"):
-        #calcul influsize ___________________
-        
-         
-        coupling=p_dms.coupling
-        
-        irc=1.16136+2.97422*coupling+(-13.2381)*coupling**2+20.4395*coupling**3
-        pitch=p_dms._pitch                
-        ir=irc*pitch
-        
-        smallsize=np.ceil(2*ir+10)
-        if(smallsize%2!=0):smallsize+=1
-        p_dms._influsize=smallsize                   
-        #______________________________________
-        
-        
-        #calcul defaut influsize
         if p_dms.file_influ_hdf5 == None:
+            # calcul pitch ______________________
+    
+    
+            # find out the support dimension for the given mirror.
+            norms = [np.linalg.norm([w.xpos, w.ypos]) for w in p_wfs]
+            patchDiam = p_geom.pupdiam + 2 * np.max(norms) * \
+                4.848e-6 * np.abs(p_dms.alt) / p_tel.diam * p_geom.pupdiam
+            # Patchdiam
+            p_dms._pitch = long(patchDiam / (p_dms.nact - 1))
+    
+            extent = p_dms._pitch * (p_dms.nact + 3)  # + 1.5 pitch each side
+            p_dms._n1 = np.floor(p_geom.cent - extent / 2)
+            p_dms._n2 = np.ceil(p_geom.cent + extent / 2)
+            if(p_dms._n1 < 1):
+                p_dms._n1 = 1
+            if(p_dms._n2 > p_geom.ssize):
+                p_dms._n2 = p_geom.ssize        
+            
+            
+            
+            
+            #calcul influsize ___________________
+            
+             
+            coupling=p_dms.coupling
+            
+            irc=1.16136+2.97422*coupling+(-13.2381)*coupling**2+20.4395*coupling**3
+            pitch=p_dms._pitch                
+            ir=irc*pitch
+            
+            smallsize=np.ceil(2*ir+10)
+            if(smallsize%2!=0):smallsize+=1
+            p_dms._influsize=smallsize                   
+            #______________________________________
+            
+            
+            #calcul defaut influsize
+        
             make_pzt_dm(p_dms,p_geom,p_tel,irc)
         else :
+            
+            # p_dms._influsize
+            # p_dms._n1
+            # p_dms._n2
+            # p_dms.nact
             read_influ_hdf5 (p_dms,p_tel,p_geom)
         
-        
+        # max_extent
+        max_extent[0] = max(max_extent[0], p_dms._n2 - p_dms._n1 + 1)
         
         
         dim = max(p_dms._n2-p_dms._n1+1, p_geom._mpupil.shape[0])
@@ -401,7 +416,7 @@ cpdef make_pzt_dm(Param_dm p_dm,Param_geom geom,Param_tel p_tel,irc):
     p_dm._influ = influ
 
  
-    print 'nb = ',np.size(inbigcirc)
+    print 'DEBUG : nb = ',np.size(inbigcirc)
     p_dm._ntotact = np.size(inbigcirc)
     p_dm._xpos = xpos
     p_dm._ypos = ypos
@@ -433,36 +448,114 @@ cpdef read_influ_hdf5 (Param_dm p_dm,Param_tel p_tel, Param_geom geom):
         p_dm: (Param_dm) : dm settings
 
         geom: (Param_geom) : geom settings
+        
+        p_tel: (Param_tel) : tel settings
 
     """
-    # read hdf5 file for influence fonction
+    # read h5 file for influence fonction
     
-    h5_tp = db.readDataBase(p_dm.file_influ_hdf5)
-    influtemp = h5_tp.default_pzt_cube[0]
-    xpos = h5_tp.default_pzt_x[0]
-    ypos = h5_tp.default_pzt_y[0]
-    center = h5_tp.default_pzt_center[0]
-   
-    # Calculation of vectors new vector and xpos, ypos
-   
-    inbigcirc = n_actuator_select(p_dm,p_tel,xpos-center[0],ypos-center[1])
-    print 'nb = ',np.size(inbigcirc)
-    p_dm._ntotact = np.size(inbigcirc)
-    p_dm._xpos = xpos[inbigcirc]
-    p_dm._ypos = ypos[inbigcirc]
+    h5_tp = pd.read_hdf(p_dm.file_influ_hdf5,'resAll')
+    print 'DEBUG : path = ',p_dm.file_influ_hdf5
     
-
-
-    influ_size_temp = influtemp.shape[0]
-    influ_size = p_dm._influsize
+    # cube_name
+    influ_h5 = h5_tp.m_influ[0]
+    print 'DEBUG : cube_name = ',p_dm.cube_name
     
-    #Interpolation for influence fonction
-    if (influ_size_temp != influ_size):
+    # x_name
+    xpos_h5 = h5_tp.xpos[0]
+    print 'DEBUG : x_name = ',p_dm.x_name
+    
+    # y_name
+    ypos_h5 = h5_tp.ypos[0]
+    print 'DEBUG : y_name = ',p_dm.y_name
+    
+    # center_name
+    center_h5 = h5_tp.center[0]
+    print 'DEBUG : center_name = ',p_dm.center_name
+    
+    # influ_res
+    res_h5 = h5_tp.res[0]
+    res_h5_m = (res_h5[0]+res_h5[1])/2.
+    print 'DEBUG : influ_res = ',p_dm.influ_res
+    print 'DEBUG : influ_res = ',res_h5
+    
+    # a introduire
+    diam_h5 = [2.54,2.54] # metre
+    
+    #soustraction du centre introduit
+    xpos_h5_0 = xpos_h5-center_h5[0]
+    ypos_h5_0 = ypos_h5-center_h5[1]  
+    
+    # interpolation du centre (ajout du nouveau centre)
+    center = geom.cent
+    print 'DEBUG : newcenter = ',center
+    # calcul de la resolution de la pupille
+    res_compass = p_tel.diam/geom.pupdiam
+    print 'DEBUG : res_compass = ',res_compass
+    # interpolation des coordonnées en pixel avec ajout du centre
+    xpos = (xpos_h5_0*(p_tel.diam/diam_h5[0]))/res_compass + center
+    ypos = (ypos_h5_0*(p_tel.diam/diam_h5[1]))/res_compass + center
 
-        for i in range(influtemp.shape[2]):
-            print 'toto'
-    else:
-        p_dm._influ = influtemp
+    # interpolation des fonction d'influence
+    
+    influ_size_h5 = influ_h5.shape[0]
+    print 'DEBUG : h5_influsize = ',influ_h5.shape[0]
+    ninflu = influ_h5.shape[2]
+    print 'DEBUG :h5_ninflu = ',influ_h5.shape[2]
+    
+    x = np.arange(influ_size_h5)*res_h5_m*(p_tel.diam/diam_h5[0])
+    y = np.arange(influ_size_h5)*res_h5_m*(p_tel.diam/diam_h5[1])
+    xmax = max(x)
+    ymax = max(y)
+    xnew = np.arange(0,xmax,res_compass)
+    xnew = xnew+(xmax-max(xnew))/2.
+    ynew = np.arange(0,ymax,res_compass)
+    ynew = ynew+(ymax-max(ynew))/2.
+    influ_size = xnew.shape[0]
+    
+    #creation du ouveaux cube d'influance
+    influ_new = np.zeros((influ_size,influ_size,ninflu))    
+    
+    
+    for i in range(ninflu):
+
+        influ = influ_h5[:,:,i]
+        f = interpolate.interp2d(x,y,influ,kind='cubic')
+        influ_new[:,:,i] = f(xnew, ynew)
+        
+    p_dm._xpos = np.float32(xpos)
+    p_dm._ypos = np.float32(ypos)
+     
+    # number of actuator
+     
+    p_dm._ntotact = np.int(ninflu)
+    print 'DEBUG : nombre influ = ',ninflu
+     
+    # def influente fonction
+    p_dm._influ = np.float32(influ_new)
+     
+    # def influence size
+    p_dm._influsize = np.int(influ_size)
+    print 'DEBUG : influsizenew = ',influ_size
+    # Def dm limite (n1 and n2)
+    
+    extent = (max(xpos) - min(xpos))+(influ_size*2)
+    p_dm._n1 = np.floor(geom.cent - extent / 2)
+    p_dm._n2 = np.ceil(geom.cent + extent / 2)
+    if(p_dm._n1 < 1):
+        p_dm._n1 = 1
+    if(p_dm._n2 > geom.ssize):
+        p_dm._n2 = geom.ssize
+        
+    print 'DEBUG : n1 = ',p_dm._n1
+    print 'DEBUG : n2 = ',p_dm._n2
+    # refaire la definition du pitch pour n_actuator
+    #inbigcirc = n_actuator_select(p_dm,p_tel,xpos-center[0],ypos-center[1])
+    #print 'nb = ',np.size(inbigcirc)
+    #p_dm._ntotact = np.size(inbigcirc)
+
+    
+    # i1, j1 calc :
 
     p_dm._i1 = (p_dm._xpos - p_dm._influsize/2. +0.5 - p_dm._n1).astype(np.int32)
     p_dm._j1 = (p_dm._ypos - p_dm._influsize/2. +0.5 - p_dm._n1).astype(np.int32)
