@@ -1801,14 +1801,21 @@ cdef class Sensors:
         context.set_activeDevice(self.sensors.device, 1)
         self.sensors.d_wfs[i].d_gs.add_layer( < char * > type_dm, alt, xoff, yoff)
 
-    def sensors_compimg(self, int n):
-        """TODO doc
+    def sensors_compimg(self, int n, bool noise=True):
+        """Compute the wfs image
 
         :param n: (in) : index of the wfs
         """
-        cdef carma_context * context = carma_context.instance()
-        context.set_activeDeviceForCpy(self.sensors.device, 1)
-        self.sensors.d_wfs[n].comp_image()
+        cdef carma_context *context = carma_context.instance()
+        cdef float tmp_noise
+        context.set_activeDeviceForCpy(self.sensors.device,1)
+        if(noise):
+            self.sensors.d_wfs[n].comp_image()
+        else:
+            tmp_noise = self.sensors.d_wfs[n].noise
+            self.sensors.d_wfs[n].noise = -1.
+            self.sensors.d_wfs[n].comp_image()
+            self.sensors.d_wfs[n].noise = tmp_noise
 
     def get_offsets(self, int n):
         """Return the 'offset' array of a given wfs

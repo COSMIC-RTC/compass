@@ -698,6 +698,7 @@ cdef extern from "sutra_controller_geo.h":
 
         string get_type()
 
+        int load_Btt(float *Btt)
         int set_gain(float gain)
         int load_mgain(float * mgain)
         int comp_dphi(sutra_source * target, bool wfs_direction)

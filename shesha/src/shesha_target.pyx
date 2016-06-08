@@ -242,10 +242,13 @@ cdef class Target:
             src.comp_image(0, True)
             src.comp_strehl()
 
-        strehl[0] = src.strehl_se
-        strehl[1] = src.strehl_le
-        strehl[2] = src.phase_var
-        strehl[3] = src.phase_var_avg / (src.phase_var_count + 0.00001)
+        strehl[0]=src.strehl_se
+        strehl[1]=src.strehl_le
+        strehl[2]=src.phase_var
+        if(src.phase_var_count > 0):
+            strehl[3]=src.phase_var_avg/float(src.phase_var_count)
+        else:
+            strehl[3]=0.
 
         return strehl
 

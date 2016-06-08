@@ -1114,7 +1114,30 @@ cdef class Rtc:
 
         return data
 
+    cpdef getGeocov(self,int ncontro):
+        """Return the geocov matrix of the sutra_controller_geo object. In case of error_budget computation, this matrix is Btt basis
+        :parameters:
+            ncontro: (int) : controller index
+        :return:
+            geocov : (np.ndarray[ndim=2,dtype=np.float32_t]) : geocov matrix
+        """
+        cdef carma_context *context=carma_context.instance()
+        context.set_activeDeviceForCpy(self.rtc.device,1)
+        cdef sutra_controller_geo *controller_geo
+        cdef bytes type_contro=<bytes>self.rtc.d_control[ncontro].get_type()
+        cdef np.ndarray[ndim=2, dtype=np.float32_t] data
+        cdef np.ndarray[ndim=2, dtype=np.float32_t] data_F
+        cdef const long *dims
+        if(type_contro=="geo"):
+            controller_geo=dynamic_cast_controller_geo_ptr(self.rtc.d_control[ncontro])
+            dims=controller_geo.d_geocov.getDims()
+            data_F=np.zeros((dims[2],dims[1]),dtype=np.float32)
+            controller_geo.d_geocov.device2host(<float*>data_F.data)
+            
+        data=np.reshape(data_F.flatten("F"),(dims[1],dims[2]))
 
+        return data
+        
     cpdef getCenbuff(self, int ncontrol):
         """Return the centroids buffer from a sutra_controller_ls object.
         This buffer contains centroids from iteration i-delay to current iteration.
@@ -1393,7 +1416,26 @@ cdef class Rtc:
         else:
             raise TypeError("Controller needs to be geo")
 
-    cpdef applycontrol(self, int ncontrol, Dms dms):
+    cpdef load_Btt(self,int ncontro, np.ndarray[ndim=2,dtype=np.float32_t] Btt):
+        """Load the Btt basis for sutra_controller_geo projection in case of error_budget
+
+        :parameters:
+            ncontro: (int) : controller index
+            Btt: (np.ndarray[ndim=2,dtype=np.float32_t]) : Btt basis
+        """
+        cdef carma_context *context=carma_context.instance()
+        context.set_activeDeviceForCpy(self.rtc.device,1)
+        cdef sutra_controller_geo *controller_geo
+        cdef bytes type_contro=<bytes>self.rtc.d_control[ncontro].get_type()
+        cdef np.ndarray Btt_F=Btt.flatten('F')
+
+        if(type_contro=="geo"):
+            controller_geo=dynamic_cast_controller_geo_ptr(self.rtc.d_control[ncontro])
+            controller_geo.load_Btt(<float*>Btt_F.data)
+        else:
+            raise TypeError("Controller needs to be geo")
+            
+    cpdef applycontrol(self,int ncontrol,Dms dms):
         """Compute the DMs shapes from the commands computed in a sutra_controller_object.
         From the command vector, it computes the voltage command (adding pertrubation voltages,
         taking delay into account) and then apply it to the dms

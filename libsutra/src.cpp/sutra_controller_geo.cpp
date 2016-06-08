@@ -15,6 +15,7 @@ sutra_controller_geo::sutra_controller_geo(carma_context *context, long nactu, l
 	this->d_proj = 0L;
 	this->d_geocov = 0L;
 	this->d_IFsparse = 0L;
+//	this->d_Btt = 0L;
 	/*
 	if (delay > 0) {
 	    dims_data2[1] = Nphi;
@@ -65,6 +66,17 @@ int sutra_controller_geo::load_mgain(float *mgain) {
   return EXIT_SUCCESS;
 }
 
+int sutra_controller_geo::load_Btt(float *Btt) {
+	// the Btt given is Btt*Btt.transpose because of computation needs
+	/*
+	long dims_data[3] = {2,n,m};
+	if(this->d_geocov != 0L)
+		delete this->d_geocov;
+	this->d_geocov = new carma_obj<float>(this->current_context, dims_data);
+	*/
+	this->d_geocov->host2device(Btt);
+	return EXIT_SUCCESS;
+}
 int
 sutra_controller_geo::init_proj(sutra_dms *dms, int *indx_dm, float *unitpervolt, int *indx_pup){
   current_context->set_activeDevice(device,1);
@@ -128,6 +140,7 @@ sutra_controller_geo::init_proj_sparse(sutra_dms *dms, int *indx_dm, float *unit
 	while (p != dms->d_dms.end()) {
     sutra_dm *dm = *p;
 	  dm->get_IF_sparse<double>(d_IFi[ind], d_indx.getData(this->Nphi * ind), this->Nphi, 1.0f,1);
+	  dm->reset_shape();
 	  NNZ[ind] = d_IFi[ind]->nz_elem;
 	  Nact[ind] = dm->ninflu;
 	  nnz += d_IFi[ind]->nz_elem;
@@ -191,9 +204,9 @@ sutra_controller_geo::init_proj_sparse(sutra_dms *dms, int *indx_dm, float *unit
 	carma_gemm<double>(cusparse_handle(),'n','t',this->d_IFsparse,this->d_IFsparse,d_tmp);
 	carma_csr2dense<double>(d_tmp, d_tmp2->getData());
 	doubletofloat(d_tmp2->getData(),this->d_geocov->getData(),this->d_geocov->getNbElem(),current_context->get_device(device));
-
+	mult_vect(this->d_geocov->getData(), 1.0f/this->Nphi, this->d_geocov->getNbElem(), this->current_context->get_device(device));
 	carma_potri(d_geocov);
-
+	//invgen(d_geocov,2.0f,0);
 	delete d_tmp;
 	delete d_tmp2;
 
@@ -229,8 +242,9 @@ sutra_controller_geo::comp_com(){
 */
   current_context->set_activeDevice(device,1);
 	// Sparse version
-	carma_gemv(cusparse_handle(),'n',1.0,this->d_IFsparse,this->d_phi,0.0,this->d_compdouble);
+	carma_gemv(cusparse_handle(),'n',1.0/this->Nphi,this->d_IFsparse,this->d_phi,0.0,this->d_compdouble);
 	doubletofloat(this->d_compdouble->getData(),this->d_compfloat->getData(),this->nactu(),current_context->get_device(device));
+	// If we are in error budget case, d_geocov is Btt*Btt.transpose
 	carma_gemv(cublas_handle(),'n', nactu(), nactu(), -1.0f, this->d_geocov->getData(),this->d_geocov->getDims()[1],
 				this->d_compfloat->getData(),1, 0.0f, this->d_com->getData(),1);
 

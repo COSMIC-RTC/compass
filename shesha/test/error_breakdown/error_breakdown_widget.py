@@ -53,7 +53,11 @@ class html_display:
             self.f_list.append(f.split('/')[-1])
         
         self.f = h5py.File(self.files[0])  
-
+        if(self.f.attrs.keys().count("target.Lambda")):
+            self.Lambda_tar = self.f.attrs["target.Lambda"][0]
+        else:
+            self.Lambda_tar = 1.65
+            
         self.Btt = self.f["Btt"][:]
         if(self.f.keys().count("IF")): #Dense case
             self.IF = self.f["IF"][:]
@@ -251,6 +255,10 @@ class html_display:
         self.dialog.visible = True
 
         self.f = h5py.File(self.datapath + str(self.DB_select.value))
+        if(self.f.attrs.keys().count("target.Lambda")):
+            self.Lambda_tar = self.f.attrs["target.Lambda"][0]
+        else:
+            self.Lambda_tar = 1.65        
         if(self.f.keys().count("IF")): #Dense case
             self.IF = self.f["IF"][:]
         else: #Sparse case
@@ -486,8 +494,8 @@ class html_display:
             data = np.var(data,axis=1)
             data = np.cumsum(data[self.swap])
             data2 = np.cumsum(data2[self.swap])
-            data2 = np.exp(-data2*(2*np.pi/1.65)**2)
-            data = np.exp(-data*(2*np.pi/1.65)**2)
+            data2 = np.exp(-data2*(2*np.pi/self.Lambda_tar)**2)
+            data = np.exp(-data*(2*np.pi/self.Lambda_tar)**2)
             if(fitp and self.f.keys().count("fit_error")):
                 data *= np.exp(-self.f["fit_error"].value)
                 data2 *= np.exp(-self.f["fit_error"].value)

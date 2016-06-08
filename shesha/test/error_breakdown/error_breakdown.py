@@ -77,7 +77,7 @@ c=ch.naga_context(device)
 
 #    wfs
 print "->wfs"
-wfs,tel=ao.wfs_init(config.p_wfss,config.p_atmos,config.p_tel,config.p_geom,config.p_target,config.p_loop, 1,0,config.p_dms)
+wfs,tel=ao.wfs_init(config.p_wfss,config.p_atmos,config.p_tel,config.p_geom,config.p_target,config.p_loop,config.p_dms)
 
 #   atmos
 print "->atmos"
@@ -85,7 +85,7 @@ atm=ao.atmos_init(c,config.p_atmos,config.p_tel,config.p_geom,config.p_loop,conf
 
 #   dm
 print "->dm"
-dms=ao.dm_init(config.p_dms,config.p_wfss,config.p_geom,config.p_tel)
+dms=ao.dm_init(config.p_dms,config.p_wfss,wfs,config.p_geom,config.p_tel)
 
 #   target
 print "->target"
@@ -93,7 +93,7 @@ tar=ao.target_init(c,tel,config.p_target,config.p_atmos,config.p_geom,config.p_t
 
 print "->rtc"
 #   rtc
-rtc=ao.rtc_init(tel,wfs,config.p_wfss,dms,config.p_dms,config.p_geom,config.p_rtc,config.p_atmos,atm,config.p_tel,config.p_loop,tar,config.p_target,clean=clean,simul_name=simul_name, load=matricesToLoad)
+rtc=ao.rtc_init(tel,wfs,config.p_wfss,dms,config.p_dms,config.p_geom,config.p_rtc,config.p_atmos,atm,config.p_tel,config.p_loop,clean=clean,simul_name=simul_name, load=matricesToLoad)
 
 if not clean:
     h5u.validDataBase(os.environ["SHESHA_ROOT"]+"/data/",matricesToLoad)
@@ -203,6 +203,54 @@ def loop(n):
         #bp_com[-1,:] = bp_com[-2,:]
         #SR = tar.get_strehl(0,comp_strehl=False)[1]
         return com,noise_com,alias_wfs_com,tomo_com,H_com,trunc_com,bp_com,mod_com,np.mean(fit),SR,SR2
+
+def preloop(n):
+    """
+    Performs the main AO loop for n interations. First, initialize buffers
+    for error breakdown computations. Then, at the end of each iteration, just
+    before applying the new DM shape, calls the error_breakdown function.
+    
+    :param n: (int) : number of iterations
+    
+    :return:
+        com : (np.array((n,nactus))) : full command buffer
+        
+        noise_com : (np.array((n,nactus))) : noise contribution for error breakdown
+        
+        alias_wfs_com : (np.array((n,nactus))) : aliasing estimation in the WFS direction
+        
+        tomo_com : (np.array((n,nactus))) : tomography error estimation
+        
+        H_com : (np.array((n,nactus))) : Filtered modes contribution for error breakdown
+        
+        trunc_com : (np.array((n,nactus))) : Truncature and sampling error of WFS
+        
+        bp_com : (np.array((n,nactus))) : Bandwidth error estimation on target
+        
+        mod_com : (np.array((n,nactus))) : Commanded modes expressed on the actuators
+        
+        fit : (float) : fitting (mean variance of the residual target phase after projection)
+        
+        SR : (float) : final strehl ratio returned by the simulation
+    """
+    for i in range(0,n):
+        atm.move_atmos()
+
+        if(config.p_controllers[0].type_control == "geo"):
+            for t in range(config.p_target.ntargets):
+                tar.atmos_trace(t,atm,tel)
+                rtc.docontrol_geo(0, dms, tar, 0)
+                rtc.applycontrol(0,dms)
+        else:
+            for t in range(config.p_target.ntargets):
+                tar.atmos_trace(t,atm,tel)
+            for w in range(len(config.p_wfss)):
+                wfs.sensors_trace(w,"all",tel,atm,dms)
+                wfs.sensors_compimg(w)
+            rtc.docentroids(0)
+            rtc.docontrol(0)
+            
+            rtc.applycontrol(0,dms)
 
 ###################################################################################        
 #  ___                   ___              _      _                 
@@ -420,6 +468,7 @@ def compute_Btt():
 
 def compute_cmatWithBtt(Btt,nfilt):
     D = rtc.get_imat(0)
+    #D = ao.imat_geom(wfs,config.p_wfss,config.p_controllers[0],dms,config.p_dms,meth=0)
     # Filtering on Btt modes
     Btt_filt = np.zeros((Btt.shape[0],Btt.shape[1]-nfilt))
     Btt_filt[:,:Btt_filt.shape[1]-2] = Btt[:,:Btt.shape[1]-(nfilt+2)]
@@ -501,8 +550,8 @@ def save_it(filename):
 # | ||  __/\__ \ |_\__ \
 #  \__\___||___/\__|___/
 ###############################################################################################  
-nfiltered = 4   
-niters = 10000 
+nfiltered = 11
+niters = 2000
 config.p_loop.set_niter(niters)            
 Btt,P = compute_Btt()
 rtc.load_Btt(1,Btt.dot(Btt.T))
@@ -517,12 +566,12 @@ diagRD = np.diag(gRD)
 gRD = np.diag(diagRD)
 #gRD=np.diag(gRD)
 
-imat_geom = ao.imat_geom(wfs,config.p_wfss,config.p_controllers[0],dms,config.p_dms,meth=0)
-RDgeom = np.dot(R,imat_geom)
-
+#imat_geom = ao.imat_geom(wfs,config.p_wfss,config.p_controllers[0],dms,config.p_dms,meth=0)
+#RDgeom = np.dot(R,imat_geom)
+preloop(200)
 com,noise_com,alias_wfs_com,tomo_com,H_com,trunc_com,bp_com,wf_com,fit,SR,SR2 = loop(niters)
 
-save_it("breakdown_offaxis+4.h5")
+save_it("breakdown_micado.h5")
 
 
 

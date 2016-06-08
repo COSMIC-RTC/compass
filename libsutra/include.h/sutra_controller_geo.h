@@ -17,6 +17,7 @@ public:
   carma_obj<float> *d_geocov;
   carma_obj<double> *d_compdouble;
   carma_obj<float> *d_compfloat;
+//  carma_obj<float> *d_Btt;
   //carma_obj<float> *d_cenbuff; // centroids circular buffer
 
 public:
@@ -31,7 +32,8 @@ public:
   cusparseHandle_t cusparse_handle() {
 		return current_context->get_cusparseHandle();
 	}
-
+  int
+  load_Btt(float *Btt);
   int
   set_gain(float gain);
   int
