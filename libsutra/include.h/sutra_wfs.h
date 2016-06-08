@@ -260,8 +260,9 @@ pyr_subsum(T *d_odata, T *d_idata, int *subindx, int *subindy, int ns,
            int nvalid, int nim, carma_device *device);
 
 template<class T>
-void pyr_subsum(T *d_odata, T *d_idata, int *subindx, int *subindy, int ns,
-                int nvalid, carma_device *device);
+void
+pyr_subsum(T *d_odata, T *d_idata, int *subindx, int *subindy, int ns,
+			int nvalid, carma_device *device);
 
 template<class T>
 void

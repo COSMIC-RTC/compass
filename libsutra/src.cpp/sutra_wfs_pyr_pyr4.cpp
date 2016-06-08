@@ -142,10 +142,11 @@ int sutra_wfs_pyr_pyr4::comp_generic() {
     this->d_bincube->prng('N', this->noise, 1.0f);
   }
 
-  pyr_subsum(this->d_subsum->getData(), this->d_bincube->getData(),
-             this->d_validsubsx->getData(), this->d_validsubsy->getData(),
-             this->nfft / this->nrebin, this->nvalid, 4,
-             this->current_context->get_device(device));
+  //Done in getpyr
+//  pyr_subsum(this->d_subsum->getData(), this->d_bincube->getData(),
+//             this->d_validsubsx->getData(), this->d_validsubsy->getData(),
+//             this->nfft / this->nrebin, this->nvalid, 4,
+//             this->current_context->get_device(device));
   //  /*
   //  reduce(this->nvalid, threads, blocks, this->d_subsum->getData(),
   //      this->d_subsum->getData());

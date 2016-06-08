@@ -6,7 +6,7 @@
  | |/ /___ _ __ _ __   ___| |___ 
  | ' // _ \ '__| '_ \ / _ \ / __|
  | . \  __/ |  | | | |  __/ \__ \
-|_|\_\___|_|  |_| |_|\___|_|___/
+ |_|\_\___|_|  |_| |_|\___|_|___/
  
  */
 
@@ -1511,8 +1511,9 @@ __global__ void pyr2slopes_krnl(T *g_odata, T *g_idata, int *subindx,
      + g_idata[i2 + 3 * ns * ns]) - (g_idata[i2] + g_idata[i2 + ns * ns]))
      / subsum[0];
      */
-    g_odata[i] = ((g_idata[iq1] + g_idata[iq4]) - (g_idata[iq2] + g_idata[iq3])) / subsum[i];
-    g_odata[i + nvalid] = ((g_idata[iq1] + g_idata[iq3]) - (g_idata[iq2] + g_idata[iq4])) / subsum[i];
+
+        g_odata[i] = ((g_idata[iq1] + g_idata[iq4]) - (g_idata[iq2] + g_idata[iq3])) / subsum[i];
+        g_odata[i + nvalid] = ((g_idata[iq1] + g_idata[iq3]) - (g_idata[iq2] + g_idata[iq4])) / subsum[i];
   }
 }
 

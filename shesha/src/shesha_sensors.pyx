@@ -952,9 +952,9 @@ cpdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
         fluxPerSub = np.zeros((wfs.nxsub+2, wfs.nxsub+2), dtype=np.float32)
 
         for i in range(wfs.nxsub):
-            indi = istart[i] + 1  # +2-1 (yorick->python)
+            indi = istart[i]  # +2-1 (yorick->python)
             for j in range(wfs.nxsub):
-                indj = jstart[j] + 1  # +2-1 (yorick->python)
+                indj = jstart[j]  # +2-1 (yorick->python)
                 fluxPerSub[i, j] = np.sum(
                     geom._mpupil[indi:indi +  wfs.npix, indj:indj +  wfs.npix])
                 # fluxPerSub[i,j] = np.where(geom._mpupil[indi:indi+pdiam,indj:indj+pdiam] > 0)[0].size
@@ -969,8 +969,8 @@ cpdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
         y-=1
         tmp=x+y*geom._n
         for i in range(wfs._nvalid):
-            indi=istart[validsubsx[i]]+1 #+2-1 (yorick->python
-            indj=jstart[validsubsy[i]]+1
+            indi=istart[validsubsx[i]] #+2-1 (yorick->python
+            indj=jstart[validsubsy[i]]
             phasemap[:,:,i]=tmp[indi:indi+wfs.npix, indj:indj+wfs.npix]
 
         wfs._phasemap = phasemap
@@ -1948,6 +1948,78 @@ cdef class Sensors:
 
         else:
             raise TypeError("wfs should be a pyr")
+            
+        """Return the image of a pyr wfs
+
+        :param n: (int) : number of the wfs to get the image from
+
+        """
+
+        return self._get_pyrimg(n)
+        
+    def set_pyrimg(self, int n, np.ndarray[ndim=2, dtype=np.float32_t] data):
+        """Return the image of a pyr wfs
+
+        :param n: (int) : number of the wfs to get the image from
+
+        """
+
+        return self._set_pyrimg(n, data)
+
+    cdef _set_pyrimg(self, int n, np.ndarray[ndim=2, dtype=np.float32_t] data):
+        """Return the image of a pyr wfs
+
+        :param n: (int) : number of the wfs to get the image from
+
+        """
+        cdef carma_obj[float] * img
+        cdef const long * cdims
+        cdef np.ndarray[ndim = 2, dtype = np.float32_t] data_F
+
+        cdef bytes type_wfs = < bytes > self.sensors.d_wfs[n].type
+
+        if(type_wfs == "pyrhr"):
+            img = self.sensors.d_wfs[n].d_binimg
+            cdims = img.getDims()
+            data_F = np.empty((cdims[2], cdims[1]), dtype=np.float32)
+            data_F = np.reshape(data.flatten("C"), (cdims[2], cdims[1]))
+            img.host2device( < float * > data_F.data)
+        else:
+            raise TypeError("wfs should be a pyr")
+
+#    def set_pyrimghr(self, int n, np.ndarray[ndim=2, dtype=np.float32_t] data):
+#        """Return the image of a pyr wfs
+#
+#        :param n: (int) : number of the wfs to get the image from
+#
+#        """
+#        self._set_pyrimghr(n, data)
+        
+#    cdef _set_pyrimghr(self, int n, np.ndarray[ndim=2, dtype=np.float32_t] data):
+#
+#        """Return the high res image of a pyr wfs
+#
+#        :param n: (int) : number of the wfs to get the image from
+#
+#        """
+#        cdef carma_obj[float] * img
+#        cdef const long * cdims
+##        cdef np.ndarray[ndim = 2, dtype = np.float32_t] data
+#        cdef np.ndarray[ndim = 2, dtype = np.float32_t] data_F
+#
+#        cdef bytes type_wfs = < bytes > self.sensors.d_wfs[n].type
+#        cdef sutra_wfs_pyr_pyrhr * wfs
+#
+#        if(type_wfs == "pyrhr"):
+#            wfs = dynamic_cast_wfs_pyr_pyrhr_ptr(self.sensors.d_wfs[n])
+#            img = wfs.d_hrimg
+#            cdims = img.getDims()
+#            data_F = np.empty((cdims[2], cdims[1]), dtype=np.float32)
+#            data_F = np.reshape(data.flatten("F"), (cdims[2], cdims[1]))
+#            img.host2device( < float * > data_F.data)
+#
+#        else:
+#            raise TypeError("wfs should be a pyrhr")
 
     def get_pyrimghr(self, int n):
         """Return the high res image of a pyr wfs

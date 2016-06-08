@@ -484,6 +484,9 @@ cdef class Param_wfs:
         """
         self.error_budget = error_budget
 
+    def get_validsub(self):
+        return self._validsubsx, self._validsubsy
+
 
 
 '''
