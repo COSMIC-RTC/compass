@@ -83,62 +83,62 @@ cdef _dm_init(Dms dms, Param_dm p_dms, list p_wfs, Param_geom p_geom, Param_tel 
     if( p_dms.type_dm=="pzt"):
         if p_dms.file_influ_hdf5 == None:
             # calcul pitch ______________________
-    
-    
+
+
             # find out the support dimension for the given mirror.
             norms = [np.linalg.norm([w.xpos, w.ypos]) for w in p_wfs]
             patchDiam = p_geom.pupdiam + 2 * np.max(norms) * \
                 4.848e-6 * np.abs(p_dms.alt) / p_tel.diam * p_geom.pupdiam
             # Patchdiam
             p_dms._pitch = long(patchDiam / (p_dms.nact - 1))
-    
+
             extent = p_dms._pitch * (p_dms.nact + 3)  # + 1.5 pitch each side
             p_dms._n1 = np.floor(p_geom.cent - extent / 2)
             p_dms._n2 = np.ceil(p_geom.cent + extent / 2)
             if(p_dms._n1 < 1):
                 p_dms._n1 = 1
             if(p_dms._n2 > p_geom.ssize):
-                p_dms._n2 = p_geom.ssize        
-            
-            
-            
-            
+                p_dms._n2 = p_geom.ssize
+
+
+
+
             #calcul influsize ___________________
-            
-             
+
+
             coupling=p_dms.coupling
-            
+
             irc=1.16136+2.97422*coupling+(-13.2381)*coupling**2+20.4395*coupling**3
-            pitch=p_dms._pitch                
+            pitch=p_dms._pitch
             ir=irc*pitch
-            
+
             smallsize=np.ceil(2*ir+10)
             if(smallsize%2!=0):smallsize+=1
-            p_dms._influsize=smallsize                   
+            p_dms._influsize=smallsize
             #______________________________________
-            
-            
+
+
             #calcul defaut influsize
-        
+
             make_pzt_dm(p_dms,p_geom,p_tel,irc)
         else :
-            
+
             # p_dms._influsize
             # p_dms._n1
             # p_dms._n2
             # p_dms.nact
             read_influ_hdf5 (p_dms,p_tel,p_geom)
-        
+
         # max_extent
         max_extent[0] = max(max_extent[0], p_dms._n2 - p_dms._n1 + 1)
-        
-        
+
+
         dim = max(p_dms._n2-p_dms._n1+1, p_geom._mpupil.shape[0])
         ninflu=long(p_dms._ntotact)
         influsize=long(p_dms._influsize)
         ninflupos=long(p_dms._influpos.size)
         n_npts = long(p_dms._ninflu.size)
-        
+
         dms.add_dm(p_dms.type_dm, p_dms.alt, dim, ninflu, influsize,
                    ninflupos, n_npts, p_dms.push4imat)
         dms.load_pzt(p_dms.alt, p_dms._influ, p_dms._influpos.astype(np.int32),
@@ -186,7 +186,7 @@ def dm_init(p_dms, list p_wfs, Sensors sensors, Param_geom p_geom, Param_tel p_t
         for i in range(len(p_dms)):
              #max_extent
             _dm_init(dms, p_dms[i], p_wfs, p_geom, p_tel, & max_extent)
-    
+
     if(p_wfs is not None):
         if(sensors is not None):
             for i in range(len(p_wfs)):
@@ -259,25 +259,25 @@ def n_actuator_select(Param_dm p_dm,Param_tel p_tel, xc,yc):
     """
     Fonction for select actuator in fonction of Margin_in, margin_out or ntotact.
     default margin_out=1.44pitch, default for margin_in taking all the actuators.
-    
-    
+
+
     :parameters:
         p_dm: (Param_dm) : dm settings
         xc: actuators x positions (origine in center of mirror)
         yc: actuators y positions (origine in center of mirror)
-    
+
     :return:
-        liste_fin: actuator indice selection for xpos/ypos  
-    
-    
+        liste_fin: actuator indice selection for xpos/ypos
+
+
     """
     # the following determine if an actuator is to be considered or not
     # relative to the pitchmargin parameter.
     dis=np.sqrt(xc**2+yc**2)
     #cdef np.ndarray dis2=np.sqrt(cub[0,:]**2+cub[1,:]**2)
-    #cdef float rad_in, rad_out 
-    
-    
+    #cdef float rad_in, rad_out
+
+
     #test Margin_in
 
     if(p_dm.margin_in==0):
@@ -297,18 +297,18 @@ def n_actuator_select(Param_dm p_dm,Param_tel p_tel, xc,yc):
         rad_out=((p_dm.nact-1.)/2.+pitchMargin_out)*p_dm._pitch
 
         liste_fin = np.where((dis < rad_out) * (dis > rad_in))[0]
-        
+
     else:
         liste_i = sorted(range(len(dis)), key=lambda k: dis[k])
         liste2 = dis[liste_i] > rad_in
 
-    
+
         if(sum(liste2)<p_dm._ntotact):
             print 'ntoact very hight'
             liste_fin = liste_i[(np.size(liste2)-sum(liste2)):]
         else:
             liste_fin = liste_i[(np.size(liste2)-sum(liste2)):p_dm._ntotact+(np.size(liste2)-sum(liste2))]
-            
+
 
     return liste_fin
 
@@ -321,9 +321,9 @@ cpdef make_pzt_dm(Param_dm p_dm,Param_geom geom,Param_tel p_tel,irc):
         p_dm: (Param_dm) : dm settings
 
         geom: (Param_geom) : geom settings
-        
+
         p_tel: (Param_tel) : tel settings
-        
+
         irc: factor for influence size
     :return:
         influ: (np.ndarray(dims=3,dtype=np.float64)) : cube of the IF for each actuator
@@ -350,7 +350,7 @@ cpdef make_pzt_dm(Param_dm p_dm,Param_geom geom,Param_tel p_tel,irc):
 
 
     # compute location (x,y and i,j) of each actuator:
-    if p_dm.type_pattern == None:    
+    if p_dm.type_pattern == None:
         p_dm.type_pattern = <bytes>'square'
     cdef long nxact=p_dm.nact
     cdef np.ndarray cub
@@ -361,13 +361,13 @@ cpdef make_pzt_dm(Param_dm p_dm,Param_geom geom,Param_tel p_tel,irc):
 
 
     inbigcirc = n_actuator_select(p_dm,p_tel,cub[0,:],cub[1,:])
-    
+
     #print 'inbigcirc',inbigcirc.shape
-    
+
     # converting to array coordinates:
     cub += geom.cent
 
-    
+
     # filtering actuators outside of a disk radius = rad (see above)
     cdef np.ndarray cubval = cub[:,inbigcirc]
     ntotact = cubval.shape[1]
@@ -375,8 +375,8 @@ cpdef make_pzt_dm(Param_dm p_dm,Param_geom geom,Param_tel p_tel,irc):
     ypos    = cubval[1,:]
     i1t      = (cubval[0,:]-smallsize/2+0.5-p_dm._n1).astype(np.int32)
     j1t      = (cubval[1,:]-smallsize/2+0.5-p_dm._n1).astype(np.int32)
-    
-    
+
+
 
     # Allocate array of influence functions
     cdef np.ndarray[ndim=3,dtype=np.float32_t] influ=np.zeros((smallsize,smallsize,ntotact),dtype=np.float32)
@@ -395,7 +395,7 @@ cpdef make_pzt_dm(Param_dm p_dm,Param_geom geom,Param_tel p_tel,irc):
         y += p_dm._n1
         y -= ypos[i]
         y  = np.abs(y.T)/(irc*pitch)
-        
+
         #clip
         x[x<1e-8]=1e-8
         x[x>2]=2.
@@ -415,7 +415,7 @@ cpdef make_pzt_dm(Param_dm p_dm,Param_geom geom,Param_tel p_tel,irc):
 
     p_dm._influ = influ
 
- 
+
     print 'DEBUG : nb = ',np.size(inbigcirc)
     p_dm._ntotact = np.size(inbigcirc)
     p_dm._xpos = xpos
@@ -443,49 +443,49 @@ cpdef make_pzt_dm(Param_dm p_dm,Param_geom geom,Param_tel p_tel,irc):
 
 cpdef read_influ_hdf5 (Param_dm p_dm,Param_tel p_tel, Param_geom geom):
     """Read HDF for influence pzt fonction and form
-    
+
     :parameters:
         p_dm: (Param_dm) : dm settings
 
         geom: (Param_geom) : geom settings
-        
+
         p_tel: (Param_tel) : tel settings
 
     """
     # read h5 file for influence fonction
-    
+
     h5_tp = pd.read_hdf(p_dm.file_influ_hdf5,'resAll')
     print 'DEBUG : path = ',p_dm.file_influ_hdf5
-    
+
     # cube_name
     influ_h5 = h5_tp.m_influ[0]
     print 'DEBUG : cube_name = ',p_dm.cube_name
-    
+
     # x_name
     xpos_h5 = h5_tp.xpos[0]
     print 'DEBUG : x_name = ',p_dm.x_name
-    
+
     # y_name
     ypos_h5 = h5_tp.ypos[0]
     print 'DEBUG : y_name = ',p_dm.y_name
-    
+
     # center_name
     center_h5 = h5_tp.center[0]
     print 'DEBUG : center_name = ',p_dm.center_name
-    
+
     # influ_res
     res_h5 = h5_tp.res[0]
     res_h5_m = (res_h5[0]+res_h5[1])/2.
     print 'DEBUG : influ_res = ',p_dm.influ_res
     print 'DEBUG : influ_res = ',res_h5
-    
+
     # a introduire
     diam_h5 = [2.54,2.54] # metre
-    
+
     #soustraction du centre introduit
     xpos_h5_0 = xpos_h5-center_h5[0]
-    ypos_h5_0 = ypos_h5-center_h5[1]  
-    
+    ypos_h5_0 = ypos_h5-center_h5[1]
+
     # interpolation du centre (ajout du nouveau centre)
     center = geom.cent
     print 'DEBUG : newcenter = ',center
@@ -493,16 +493,16 @@ cpdef read_influ_hdf5 (Param_dm p_dm,Param_tel p_tel, Param_geom geom):
     res_compass = p_tel.diam/geom.pupdiam
     print 'DEBUG : res_compass = ',res_compass
     # interpolation des coordonnées en pixel avec ajout du centre
-    xpos = (xpos_h5_0*(p_tel.diam/diam_h5[0]))/res_compass + center
-    ypos = (ypos_h5_0*(p_tel.diam/diam_h5[1]))/res_compass + center
+    xpos = (xpos_h5_0*(p_tel.diam*1.11/diam_h5[0]))/res_compass + center
+    ypos = (ypos_h5_0*(p_tel.diam*1.11/diam_h5[1]))/res_compass + center
 
     # interpolation des fonction d'influence
-    
+
     influ_size_h5 = influ_h5.shape[0]
     print 'DEBUG : h5_influsize = ',influ_h5.shape[0]
     ninflu = influ_h5.shape[2]
     print 'DEBUG :h5_ninflu = ',influ_h5.shape[2]
-    
+
     x = np.arange(influ_size_h5)*res_h5_m*(p_tel.diam/diam_h5[0])
     y = np.arange(influ_size_h5)*res_h5_m*(p_tel.diam/diam_h5[1])
     xmax = max(x)
@@ -512,33 +512,33 @@ cpdef read_influ_hdf5 (Param_dm p_dm,Param_tel p_tel, Param_geom geom):
     ynew = np.arange(0,ymax,res_compass)
     ynew = ynew+(ymax-max(ynew))/2.
     influ_size = xnew.shape[0]
-    
+
     #creation du ouveaux cube d'influance
-    influ_new = np.zeros((influ_size,influ_size,ninflu))    
-    
-    
+    influ_new = np.zeros((influ_size,influ_size,ninflu))
+
+
     for i in range(ninflu):
 
         influ = influ_h5[:,:,i]
         f = interpolate.interp2d(x,y,influ,kind='cubic')
         influ_new[:,:,i] = f(xnew, ynew)
-        
+
     p_dm._xpos = np.float32(xpos)
     p_dm._ypos = np.float32(ypos)
-     
+
     # number of actuator
-     
+
     p_dm._ntotact = np.int(ninflu)
     print 'DEBUG : nombre influ = ',ninflu
-     
+
     # def influente fonction
     p_dm._influ = np.float32(influ_new)
-     
+
     # def influence size
     p_dm._influsize = np.int(influ_size)
     print 'DEBUG : influsizenew = ',influ_size
     # Def dm limite (n1 and n2)
-    
+
     extent = (max(xpos) - min(xpos))+(influ_size*2)
     p_dm._n1 = np.floor(geom.cent - extent / 2)
     p_dm._n2 = np.ceil(geom.cent + extent / 2)
@@ -546,7 +546,7 @@ cpdef read_influ_hdf5 (Param_dm p_dm,Param_tel p_tel, Param_geom geom):
         p_dm._n1 = 1
     if(p_dm._n2 > geom.ssize):
         p_dm._n2 = geom.ssize
-        
+
     print 'DEBUG : n1 = ',p_dm._n1
     print 'DEBUG : n2 = ',p_dm._n2
     # refaire la definition du pitch pour n_actuator
@@ -554,7 +554,7 @@ cpdef read_influ_hdf5 (Param_dm p_dm,Param_tel p_tel, Param_geom geom):
     #print 'nb = ',np.size(inbigcirc)
     #p_dm._ntotact = np.size(inbigcirc)
 
-    
+
     # i1, j1 calc :
 
     p_dm._i1 = (p_dm._xpos - p_dm._influsize/2. +0.5 - p_dm._n1).astype(np.int32)
@@ -628,7 +628,7 @@ cpdef make_kl_dm(Param_dm p_dm, Param_wfs p_wfs,Param_geom p_geom, Param_tel p_t
     """
     cdef int dim = p_geom._mpupil.shape[0]
 
-    cdef long patchDiam = long(p_geom.pupdiam + 2 * max(abs(p_wfs.xpos), abs(p_wfs.ypos)) * 4.848e-6 * 
+    cdef long patchDiam = long(p_geom.pupdiam + 2 * max(abs(p_wfs.xpos), abs(p_wfs.ypos)) * 4.848e-6 *
                                abs(p_dm.alt) / p_geom.pupdiam)
 
     print "TODO klbas"
@@ -698,12 +698,12 @@ cpdef make_zernike(int nzer,int size,int diameter, float xc=-1, float yc=-1, int
         if ext:
             for i in range((n - m) / 2 + 1):
                 z[:, :, zn] = z[:, :, zn] + (-1.) ** i * zrmod ** (n - 2. * i) * float(np.math.factorial(n - i)) / \
-                    float(np.math.factorial(i) * np.math.factorial((n + m) / 2 - i) * 
+                    float(np.math.factorial(i) * np.math.factorial((n + m) / 2 - i) *
                           np.math.factorial((n - m) / 2 - i))
         else:
             for i in range((n - m) / 2 + 1):
                 z[:, :, zn] = z[:, :, zn] + (-1.) ** i * zr ** (n - 2. * i) * float(np.math.factorial(n - i)) / \
-                    float(np.math.factorial(i) * np.math.factorial((n + m) / 2 - i) * 
+                    float(np.math.factorial(i) * np.math.factorial((n + m) / 2 - i) *
                           np.math.factorial((n - m) / 2 - i))
 
         if((zn + 1) % 2 == 1):
@@ -847,15 +847,15 @@ cdef class Dms:
 
             alt: (float) : dm conjugaison altitude to remove,
 
-            ninflu: (long) : , 
+            ninflu: (long) : ,
 
-            influsize: (long) : , 
+            influsize: (long) : ,
 
-            ninflupos: (long) : , 
+            ninflupos: (long) : ,
 
-            npts: (long) : , 
+            npts: (long) : ,
 
-            push4imat: (float) : , 
+            push4imat: (float) : ,
 
             device: (int) : device where the DM will be create (default=-1):
 
@@ -926,7 +926,7 @@ cdef class Dms:
                    np.ndarray[ndim=1, dtype=np.int32_t] xoff,
                    np.ndarray[ndim=1, dtype=np.int32_t] yoff,
                    np.ndarray[ndim=2, dtype=np.float32_t] kern):
-        """Load all the arrays computed during the initialization 
+        """Load all the arrays computed during the initialization
         for a pzt DM in a sutra_dms object
 
         :parameters:
@@ -939,7 +939,7 @@ cdef class Dms:
             npoints: (np.ndarray[ndim=1,dtype=np.int32_t]) : for each pixel on the DM screen,
                                                             the number of IF which impact on this pixel
 
-            istart: (np.ndarray[ndim=1,dtype=np.int32_t]) : 
+            istart: (np.ndarray[ndim=1,dtype=np.int32_t]) :
 
             xoff: (np.ndarray[ndim=1,dtype=np.int32_t]) : x-offset
 
@@ -1031,7 +1031,7 @@ cdef class Dms:
                   np.ndarray[ndim=1, dtype=np.int32_t] ord,
                   np.ndarray[ndim=1, dtype=np.float32_t] cr,
                   np.ndarray[ndim=1, dtype=np.float32_t] cp):
-        """Load all the arrays computed during the initialization 
+        """Load all the arrays computed during the initialization
         for a kl DM in a sutra_dms object
 
         :parameters:
@@ -1065,7 +1065,7 @@ cdef class Dms:
                                              < float * > cp.data)
 
     cpdef load_tt(self, float alt, np.ndarray[ndim=3, dtype=np.float32_t] influ):
-        """Load all the arrays computed during the initialization 
+        """Load all the arrays computed during the initialization
         for a tt DM in a sutra_dms object
 
         :parameters:
@@ -1087,7 +1087,7 @@ cdef class Dms:
 
     cpdef set_full_comm(self, np.ndarray[ndim=1, dtype=np.float32_t] comm,
                         bool shape_dm=True):
-        """Set the voltage command 
+        """Set the voltage command
 
             comm: (np.ndarray[ndim=1,dtype=np.float32_t]) : voltage vector
 
@@ -1116,7 +1116,7 @@ cdef class Dms:
             alt: (float) : dm conjugaison altitude
 
             comm: (np.ndarray[ndim=1,dtype=np.float32_t]) : voltage vector
-            
+
             shape_dm: (bool) : perform the dm_shape after the load (default=False)
         """
 
@@ -1153,7 +1153,7 @@ cdef class Dms:
     cpdef computeKLbasis(self, bytes type_dm, float alt,
                          np.ndarray[ndim=1, dtype=np.float32_t] xpos, np.ndarray[ndim=1, dtype=np.float32_t] ypos,
                          np.ndarray[ndim=1, dtype=np.int32_t] indx_pup, long dim, float norm, float ampli):
-        """Compute a Karhunen-Loeve basis for the dm: 
+        """Compute a Karhunen-Loeve basis for the dm:
             - compute the phase covariance matrix on the actuators using Kolmogorov
             - compute the geometric covariance matrix
             - double diagonalisation to obtain KL basis
@@ -1339,7 +1339,7 @@ cdef class Dms:
 
 
 cpdef compute_klbasis(Dms g_dm, Param_dm p_dm, Param_geom p_geom, Param_atmos p_atmos, Param_tel p_tel):
-    """Compute a Karhunen-Loeve basis for the dm: 
+    """Compute a Karhunen-Loeve basis for the dm:
             - compute the phase covariance matrix on the actuators using Kolmogorov
             - compute the geometric covariance matrix
             - double diagonalisation to obtain KL basis
@@ -1376,7 +1376,7 @@ cpdef compute_klbasis(Dms g_dm, Param_dm p_dm, Param_geom p_geom, Param_atmos p_
     return KLbasis
 
 cpdef computeDMbasis(Dms g_dm, Param_dm p_dm, Param_geom p_geom):
-    """Compute a the DM basis : 
+    """Compute a the DM basis :
             - push on each actuator
             - get the corresponding dm shape
             - apply pupil mask and store in a column
