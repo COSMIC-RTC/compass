@@ -56,7 +56,7 @@ else:
         os.environ["SHESHA_ROOT"] + "/data/", config, param_dict)
 # initialisation:
 #   context
-c=ch.naga_context(2)
+c=ch.naga_context(0)
 #c.set_activeDevice(0) #useful only if you use ch.naga_context()
 
 #    wfs

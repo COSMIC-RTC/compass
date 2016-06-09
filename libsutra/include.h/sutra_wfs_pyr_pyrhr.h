@@ -21,6 +21,11 @@ class sutra_wfs_pyr_pyrhr: public sutra_wfs_pyr {
                         long npix, long nphase, long nrebin, long nfft,
                         long ntot, long npup, float pdiam, float nphotons,
                         float nphot4imat, int lgs, int device);
+    sutra_wfs_pyr_pyrhr(carma_context *context, sutra_telescope *d_tel,
+                        sutra_sensors *sensors, long nxsub, long nvalid,
+                        long npix, long nphase, long nrebin, long nfft,
+                        long ntot, long npup, float pdiam, float nphotons,
+                        float nphot4imat, int lgs, int nbdevices, int* devices);
     sutra_wfs_pyr_pyrhr(const sutra_wfs_pyr_pyrhr& wfs);
     ~sutra_wfs_pyr_pyrhr();
 
@@ -35,6 +40,14 @@ class sutra_wfs_pyr_pyrhr: public sutra_wfs_pyr {
 
   private:
     int comp_generic();
+    std::vector<carma_obj<cuFloatComplex>*> d_camplipup_ngpu;
+    std::vector<carma_obj<cuFloatComplex>*> d_camplifoc_ngpu;
+    std::vector<carma_obj<cuFloatComplex>*> d_phalfxy_ngpu;
+    std::vector<carma_obj<cuFloatComplex>*> d_fttotim_ngpu;
+    std::vector<carma_obj<float>*> d_pupil_ngpu;
+    std::vector<carma_obj<float>*> d_screen_ngpu;
+    std::vector<carma_obj<float>*> d_hrimg_ngpu;
+
 };
 
 #endif // _SUTRA_WFS_PYR_PYRHR_H_

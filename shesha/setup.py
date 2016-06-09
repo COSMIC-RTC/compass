@@ -312,7 +312,8 @@ def compile_module(name):
     setup(
         name=name,
         ext_modules=cythonize([ext],
-                              gdb_debug=True),
+                              gdb_debug=True,
+                              ),
         # cmdclass={'build_ext': custom_build_ext},
         # zip_safe=False
     )

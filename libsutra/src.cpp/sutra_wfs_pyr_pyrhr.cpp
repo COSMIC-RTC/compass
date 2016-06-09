@@ -14,15 +14,141 @@ sutra_wfs_pyr_pyrhr::sutra_wfs_pyr_pyrhr(carma_context *context,
                   "pyrhr") {
 }
 
+sutra_wfs_pyr_pyrhr::sutra_wfs_pyr_pyrhr(carma_context *context,
+                                         sutra_telescope *d_tel,
+                                         sutra_sensors *sensors, long nxsub,
+                                         long nvalid, long npix, long nphase,
+                                         long nrebin, long nfft, long ntot,
+                                         long npup, float pdiam, float nphotons,
+                                         float nphot4imat, int lgs,
+                                         int nbdevices, int* devices) :
+    sutra_wfs_pyr(context, d_tel, sensors, nxsub, nvalid, npix, nphase, nrebin,
+                  nfft, ntot, npup, pdiam, nphotons, nphot4imat, lgs,
+                  devices[0], "pyrhr") {
+  long dims_data2[3];
+  dims_data2[0] = 2;
+
+  d_hrimg_ngpu.push_back(this->d_hrimg);
+  d_camplipup_ngpu.push_back(this->d_camplipup);
+  d_camplifoc_ngpu.push_back(this->d_camplifoc);
+  d_phalfxy_ngpu.push_back(this->d_phalfxy);
+  d_fttotim_ngpu.push_back(this->d_fttotim);
+  d_screen_ngpu.push_back(this->d_gs->d_phase->d_screen);
+  d_pupil_ngpu.push_back(this->d_pupil);
+
+  for (int device = 1; device < nbdevices; devices++) {
+    current_context->set_activeDevice(device,1);
+    dims_data2[1] = nfft;
+    dims_data2[2] = nfft;
+    d_hrimg_ngpu.push_back(new carma_obj<float>(context, dims_data2)); // Useless for SH
+    d_camplipup_ngpu.push_back(
+        new carma_obj<cuFloatComplex>(context, dims_data2));
+    d_camplifoc_ngpu.push_back(
+        new carma_obj<cuFloatComplex>(context, dims_data2));
+    cufftHandle *plan = this->d_camplipup_ngpu[device]->getPlan(); ///< FFT plan
+    carmafftSafeCall(
+        cufftPlan2d(plan, dims_data2[1], dims_data2[2], CUFFT_C2C));
+    d_phalfxy_ngpu.push_back(
+        new carma_obj<cuFloatComplex>(context, dims_data2));
+    d_fttotim_ngpu.push_back(
+        new carma_obj<cuFloatComplex>(context, dims_data2));
+
+    dims_data2[1] = ntot;
+    dims_data2[2] = ntot;
+    d_pupil_ngpu.push_back(new carma_obj<float>(context, dims_data2));
+    d_screen_ngpu.push_back(new carma_obj<float>(context, dims_data2));
+  }
+}
+
 sutra_wfs_pyr_pyrhr::~sutra_wfs_pyr_pyrhr() {
+  for (std::vector<carma_obj<cuFloatComplex> *>::iterator it =
+      this->d_camplipup_ngpu.begin(); this->d_camplipup_ngpu.end() != it;
+      it++) {
+    if (*it != this->d_camplipup) {
+      current_context->set_activeDevice((*it)->getDevice(),1);
+      delete *it;
+    }
+  }
+  this->d_camplipup_ngpu.clear();
+
+  for (std::vector<carma_obj<cuFloatComplex> *>::iterator it =
+      this->d_camplifoc_ngpu.begin(); this->d_camplifoc_ngpu.end() != it;
+      it++) {
+    if (*it != this->d_camplifoc) {
+      current_context->set_activeDevice((*it)->getDevice(),1);
+      delete *it;
+    }
+  }
+  this->d_camplifoc_ngpu.clear();
+
+  for (std::vector<carma_obj<cuFloatComplex> *>::iterator it =
+      this->d_phalfxy_ngpu.begin(); this->d_phalfxy_ngpu.end() != it; it++) {
+    if (*it != this->d_phalfxy) {
+      current_context->set_activeDevice((*it)->getDevice(),1);
+      delete *it;
+    }
+  }
+  this->d_phalfxy_ngpu.clear();
+
+  for (std::vector<carma_obj<cuFloatComplex> *>::iterator it =
+      this->d_fttotim_ngpu.begin(); this->d_fttotim_ngpu.end() != it; it++) {
+    if (*it != this->d_fttotim) {
+      current_context->set_activeDevice((*it)->getDevice(),1);
+      delete *it;
+    }
+  }
+  this->d_fttotim_ngpu.clear();
+
+  for (std::vector<carma_obj<float> *>::iterator it =
+      this->d_pupil_ngpu.begin(); this->d_pupil_ngpu.end() != it; it++) {
+    if (*it != this->d_pupil) {
+      current_context->set_activeDevice((*it)->getDevice(),1);
+      delete *it;
+    }
+  }
+  this->d_pupil_ngpu.clear();
+
+  for (std::vector<carma_obj<float> *>::iterator it =
+      this->d_screen_ngpu.begin(); this->d_screen_ngpu.end() != it; it++) {
+    if (*it != this->d_gs->d_phase->d_screen) {
+      current_context->set_activeDevice((*it)->getDevice(),1);
+      delete *it;
+    }
+  }
+  this->d_screen_ngpu.clear();
+
+  for (std::vector<carma_obj<float> *>::iterator it =
+      this->d_hrimg_ngpu.begin(); this->d_hrimg_ngpu.end() != it; it++) {
+    if (*it != this->d_hrimg) {
+      current_context->set_activeDevice((*it)->getDevice(),1);
+      delete *it;
+    }
+  }
+  this->d_hrimg_ngpu.clear();
 
 }
 
 int sutra_wfs_pyr_pyrhr::wfs_initarrays(cuFloatComplex *halfxy, float *cx,
-		float *cy, float *sincar, int *validsubsx,
-                                        int *validsubsy, int *phasemap, float *fluxPerSub) {
+                                        float *cy, float *sincar,
+                                        int *validsubsx, int *validsubsy,
+                                        int *phasemap, float *fluxPerSub) {
   current_context->set_activeDevice(device,1);
   this->d_phalfxy->host2device(halfxy);
+  for (std::vector<carma_obj<cuFloatComplex> *>::iterator it =
+      this->d_phalfxy_ngpu.begin(); this->d_phalfxy_ngpu.end() != it; it++) {
+    if (*it != this->d_phalfxy) {
+      current_context->set_activeDevice((*it)->getDevice(),1);
+      (*it)->host2device(halfxy);
+    }
+  }
+  for (std::vector<carma_obj<float> *>::iterator it =
+      this->d_pupil_ngpu.begin(); this->d_pupil_ngpu.end() != it; it++) {
+    if (*it != this->d_pupil) {
+      current_context->set_activeDevice((*it)->getDevice(),1);
+      (*it)->copyFrom(d_pupil->getData(), d_pupil->getNbElem());
+    }
+  }
+  current_context->set_activeDevice(device,1);
   this->pyr_cx->fill_from(cx);
   this->pyr_cy->fill_from(cy);
   this->d_sincar->host2device(sincar);
@@ -36,24 +162,69 @@ int sutra_wfs_pyr_pyrhr::wfs_initarrays(cuFloatComplex *halfxy, float *cx,
 
 void sutra_wfs_pyr_pyrhr::comp_modulation(int cpt) {
   //int cpt = 0;
-  carmaSafeCall(
-      cudaMemset(this->d_camplipup->getData(), 0,
-                 2 * sizeof(float) * this->d_camplipup->getNbElem()));
-  pyr_getpup(this->d_camplipup->getData(),
-             this->d_gs->d_phase->d_screen->getData(), this->d_pupil->getData(),
-             this->ntot, this->nfft, this->d_gs->lambda,
-             (this->pyr_cx->getData())[cpt], (this->pyr_cy->getData())[cpt],
-             this->current_context->get_device(device));
-  carma_fft(this->d_camplipup->getData(), this->d_camplifoc->getData(), -1,
-            *this->d_camplipup->getPlan());
-  /*
-   pyr_submask(this->d_camplifoc->getData(), this->d_submask->getData(),
-   this->nfft, this->current_context->get_device(device));
-   */
-  pyr_submaskpyr(this->d_camplifoc->getData(), this->d_phalfxy->getData(),
-                 this->nfft, this->current_context->get_device(device));
-  carma_fft(this->d_camplifoc->getData(), this->d_fttotim->getData(), 1,
-            *this->d_camplipup->getPlan());
+  int ngpu = d_screen_ngpu.size();
+  if (ngpu < 2) {
+    carmaSafeCall(
+        cudaMemset(this->d_camplipup->getData(), 0,
+                   2 * sizeof(float) * this->d_camplipup->getNbElem()));
+    pyr_getpup(this->d_camplipup->getData(),
+               this->d_gs->d_phase->d_screen->getData(),
+               this->d_pupil->getData(), this->ntot, this->nfft,
+               this->d_gs->lambda, (this->pyr_cx->getData())[cpt],
+               (this->pyr_cy->getData())[cpt],
+               this->current_context->get_device(device));
+    carma_fft(this->d_camplipup->getData(), this->d_camplifoc->getData(), -1,
+              *this->d_camplipup->getPlan());
+    /*
+     pyr_submask(this->d_camplifoc->getData(), this->d_submask->getData(),
+     this->nfft, this->current_context->get_device(device));
+     */
+    pyr_submaskpyr(this->d_camplifoc->getData(), this->d_phalfxy->getData(),
+                   this->nfft, this->current_context->get_device(device));
+    carma_fft(this->d_camplifoc->getData(), this->d_fttotim->getData(), 1,
+              *this->d_camplipup->getPlan());
+
+    //float fact = 1.0f / this->nfft / this->nfft / this->nfft / 2.0;
+    float fact = 1.0f;
+    abs2(this->d_hrimg->getData(), this->d_fttotim->getData(),
+         this->nfft * this->nfft, fact,
+         this->current_context->get_device(device));
+  } else {
+    int cur_device = cpt % ngpu;
+    current_context->set_activeDevice(cur_device,1);
+
+    carmaSafeCall(
+        cudaMemset(
+            this->d_camplipup_ngpu[cur_device]->getData(),
+            0,
+            2 * sizeof(float)
+            * this->d_camplipup_ngpu[cur_device]->getNbElem()));
+    pyr_getpup(this->d_camplipup_ngpu[cur_device]->getData(),
+               this->d_screen_ngpu[cur_device]->getData(),
+               this->d_pupil_ngpu[cur_device]->getData(), this->ntot,
+               this->nfft, this->d_gs->lambda, (this->pyr_cx->getData())[cpt],
+               (this->pyr_cy->getData())[cpt],
+               this->current_context->get_device(cur_device));
+    carma_fft(this->d_camplipup_ngpu[cur_device]->getData(),
+              this->d_camplifoc_ngpu[cur_device]->getData(), -1,
+              *this->d_camplipup_ngpu[cur_device]->getPlan());
+    /*
+     pyr_submask(this->d_camplifoc->getData(), this->d_submask->getData(),
+     this->nfft, this->current_context->get_device(device));
+     */
+    pyr_submaskpyr(this->d_camplifoc_ngpu[cur_device]->getData(),
+                   this->d_phalfxy_ngpu[cur_device]->getData(), this->nfft,
+                   this->current_context->get_device(cur_device));
+    carma_fft(this->d_camplifoc_ngpu[cur_device]->getData(),
+              this->d_fttotim_ngpu[cur_device]->getData(), 1,
+              *this->d_camplipup_ngpu[cur_device]->getPlan());
+    //float fact = 1.0f / this->nfft / this->nfft / this->nfft / 2.0;
+    float fact = 1.0f;
+    abs2(this->d_hrimg_ngpu[cur_device]->getData(),
+         this->d_fttotim_ngpu[cur_device]->getData(), this->nfft * this->nfft,
+         fact, this->current_context->get_device(cur_device));
+
+  }
 }
 
 //////////////////////////////
@@ -91,15 +262,36 @@ int sutra_wfs_pyr_pyrhr::comp_generic() {
       cudaMemset(this->d_hrimg->getData(), 0,
                  sizeof(float) * this->d_hrimg->getNbElem()));
   //this->npup = 1;
+
+  for (std::vector<carma_obj<float> *>::iterator it =
+      this->d_screen_ngpu.begin(); this->d_screen_ngpu.end() != it; it++) {
+    carma_obj<float> *tmp_screen = this->d_gs->d_phase->d_screen;
+    if (*it != tmp_screen) {
+      current_context->set_activeDevice((*it)->getDevice(),1);
+      (*it)->copyFrom(tmp_screen->getData(), tmp_screen->getNbElem());
+    }
+  }
+
+  for (std::vector<carma_obj<float> *>::iterator it =
+      this->d_hrimg_ngpu.begin(); this->d_hrimg_ngpu.end() != it; it++) {
+    if (*it != d_hrimg) {
+      current_context->set_activeDevice((*it)->getDevice(),1);
+      carmaSafeCall(
+          cudaMemset((*it)->getData(), 0, sizeof(float) * (*it)->getNbElem()));
+    }
+  }
+
   for (int cpt = 0; cpt < this->npup; cpt++) {
     //int cpt = 0;
     comp_modulation(cpt);
-    //float fact = 1.0f / this->nfft / this->nfft / this->nfft / 2.0;
-    float fact = 1.0f;
-    abs2(this->d_hrimg->getData(), this->d_fttotim->getData(),
-         this->nfft * this->nfft, fact,
-         this->current_context->get_device(device));
 
+  }
+  current_context->set_activeDevice(device,1);
+  for (std::vector<carma_obj<float> *>::iterator it =
+      this->d_hrimg_ngpu.begin(); this->d_hrimg_ngpu.end() != it; it++) {
+    if (*it != d_hrimg) {
+      d_hrimg->axpy(1.0f, *it, 1, 1);
+    }
   }
 
   cfillrealp(this->d_fttotim->getData(), this->d_hrimg->getData(),
