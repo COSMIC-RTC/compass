@@ -153,6 +153,14 @@ sutra_sensors::sutra_sensors(carma_context *context, sutra_telescope *d_tel,
     this->d_lgskern = 0L;
 
   }
+  /*
+   *[src.cpp/sutra_wfs.cpp@170]: using pyrhr with 1 GPUs
+   * loop execution time: 25.9299578667   ( 1000 iterations),  0.0259299578667 (mean)   38.5654309638 Hz
+   *
+   *[src.cpp/sutra_wfs.cpp@177]: using pyrhr with 2 GPUs
+   * loop execution time: 31.6750388145   ( 1000 iterations),  0.0316750388145 (mean)   31.5706006188 Hz
+   *
+   */
   //DEBUG_TRACE("After creating sensors arrays : ");printMemInfo();
   for (int i = 0; i < nwfs; i++) {
     sutra_wfs *wfs = NULL;
@@ -165,11 +173,23 @@ sutra_sensors::sutra_sensors(carma_context *context, sutra_telescope *d_tel,
                                    npix[i], nphase[i], nrebin[i], nfft[i],
                                    ntot[i], npup[i], pdiam[i], nphot[i],
                                    nphot4imat[i], lgs[i], device);
-    if (strcmp(type[i], "pyrhr") == 0)
-      wfs = new sutra_wfs_pyr_pyrhr(context, d_tel, this, nxsub[i], nvalid[i],
-                                    npix[i], nphase[i], nrebin[i], nfft[i],
-                                    ntot[i], npup[i], pdiam[i], nphot[i],
-                                    nphot4imat[i], lgs[i], device);
+    if (strcmp(type[i], "pyrhr") == 0){
+      const int ngpu=context->get_ndevice();
+      DEBUG_TRACE("using pyrhr with %d GPUs", ngpu);
+      if(ngpu==1) {
+        wfs = new sutra_wfs_pyr_pyrhr(context, d_tel, this, nxsub[i], nvalid[i],
+            npix[i], nphase[i], nrebin[i], nfft[i],
+            ntot[i], npup[i], pdiam[i], nphot[i],nphot4imat[i], lgs[i], device);
+      } else {
+        int devices[ngpu];
+        for(int i=0; i<ngpu; i++){
+          devices[i]=i;
+        }
+        wfs = new sutra_wfs_pyr_pyrhr(context, d_tel, this, nxsub[i], nvalid[i],
+            npix[i], nphase[i], nrebin[i], nfft[i],
+            ntot[i], npup[i], pdiam[i], nphot[i],nphot4imat[i], lgs[i], ngpu, devices);
+      }
+    }
     if (strcmp(type[i], "roof") == 0)
       wfs = new sutra_wfs_pyr_roof(context, d_tel, this, nxsub[i], nvalid[i],
                                    npix[i], nphase[i], nrebin[i], nfft[i],

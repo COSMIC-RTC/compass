@@ -33,10 +33,10 @@ sutra_wfs_pyr_pyrhr::sutra_wfs_pyr_pyrhr(carma_context *context,
   d_camplifoc_ngpu.push_back(this->d_camplifoc);
   d_phalfxy_ngpu.push_back(this->d_phalfxy);
   d_fttotim_ngpu.push_back(this->d_fttotim);
-  d_screen_ngpu.push_back(this->d_gs->d_phase->d_screen);
+  d_screen_ngpu.push_back(nullptr); // init in the sutra_wfs_pyr_pyrhr::wfs_initarrays
   d_pupil_ngpu.push_back(this->d_pupil);
 
-  for (int device = 1; device < nbdevices; devices++) {
+  for (int device = 1; device < nbdevices; device++) {
     current_context->set_activeDevice(device,1);
     dims_data2[1] = nfft;
     dims_data2[2] = nfft;
@@ -132,8 +132,6 @@ int sutra_wfs_pyr_pyrhr::wfs_initarrays(cuFloatComplex *halfxy, float *cx,
                                         float *cy, float *sincar,
                                         int *validsubsx, int *validsubsy,
                                         int *phasemap, float *fluxPerSub) {
-  current_context->set_activeDevice(device,1);
-  this->d_phalfxy->host2device(halfxy);
   for (std::vector<carma_obj<cuFloatComplex> *>::iterator it =
       this->d_phalfxy_ngpu.begin(); this->d_phalfxy_ngpu.end() != it; it++) {
     if (*it != this->d_phalfxy) {
@@ -148,7 +146,10 @@ int sutra_wfs_pyr_pyrhr::wfs_initarrays(cuFloatComplex *halfxy, float *cx,
       (*it)->copyFrom(d_pupil->getData(), d_pupil->getNbElem());
     }
   }
+  if(d_screen_ngpu.size()>0)
+    d_screen_ngpu[0] = this->d_gs->d_phase->d_screen;
   current_context->set_activeDevice(device,1);
+  this->d_phalfxy->host2device(halfxy);
   this->pyr_cx->fill_from(cx);
   this->pyr_cy->fill_from(cy);
   this->d_sincar->host2device(sincar);
@@ -284,15 +285,24 @@ int sutra_wfs_pyr_pyrhr::comp_generic() {
   for (int cpt = 0; cpt < this->npup; cpt++) {
     //int cpt = 0;
     comp_modulation(cpt);
-
   }
+
   current_context->set_activeDevice(device,1);
+
+  long dims_data2[3];
+  dims_data2[0] = 2;
+  dims_data2[1] = nfft;
+  dims_data2[2] = nfft;
+  carma_obj<float> *tmp_vector=new carma_obj<float>(current_context, dims_data2);
+
   for (std::vector<carma_obj<float> *>::iterator it =
       this->d_hrimg_ngpu.begin(); this->d_hrimg_ngpu.end() != it; it++) {
     if (*it != d_hrimg) {
-      d_hrimg->axpy(1.0f, *it, 1, 1);
+      tmp_vector->copyFrom((*it)->getData(), (*it)->getNbElem());
+      d_hrimg->axpy(1.0f, tmp_vector, 1, 1);
     }
   }
+  delete tmp_vector;
 
   cfillrealp(this->d_fttotim->getData(), this->d_hrimg->getData(),
              this->d_hrimg->getNbElem(),

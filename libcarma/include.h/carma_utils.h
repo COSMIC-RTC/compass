@@ -176,7 +176,7 @@ inline void __carmaCheckError(CUTBoolean err, const char *file,
 		const int line) {
 	if (CUTTrue != err) {
 		fprintf(stderr, "(%s:%i) : CUTIL CUDA error.\n", file, line);
-		exit (EXIT_FAILURE);
+    throw "carmafftSafeCall() CUTIL CUDA error";
 	}
 }
 
@@ -187,14 +187,14 @@ inline void __carmaCheckMsg(const char *errorMessage, const char *file,
 		fprintf(stderr,
 				"(%s:%i) : carmaCheckMsg() CUTIL CUDA error : %s : %s.\n", file,
 				line, errorMessage, cudaGetErrorString(err));
-    throw "carmaCheckMsg() CUFFT error";
+    throw cudaGetErrorString(err);
 	}
 #ifdef DEBUG
 	err = cudaDeviceSynchronize();
 	if( cudaSuccess != err) {
 		fprintf(stderr, "(%s:%i) : carmaCheckMsg cudaDeviceSynchronize error: %s : %s.\n",
 				file, line, errorMessage, cudaGetErrorString( err) );
-    throw "carmaCheckMsg() CUFFT error";
+    throw cudaGetErrorString(err);
 	}
 #endif
 }
@@ -202,7 +202,7 @@ inline void __carmaSafeMalloc(void *pointer, const char *file, const int line) {
 	if (!(pointer)) {
 		fprintf(stderr, "(%s:%i) : cutilSafeMalloc host malloc failure\n", file,
 				line);
-    throw "cutilSafeMalloc() CUFFT error";
+    throw "cutilSafeMalloc() cutilSafeMalloc host malloc failure";
 	}
 }
 
