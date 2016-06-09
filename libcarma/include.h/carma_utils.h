@@ -67,23 +67,23 @@ enum CUTBoolean {
 
 // We define these calls here, so the user doesn't need to include __FILE__ and __LINE__
 // The advantage is the developers gets to use the inline function so they can debug
-//#ifdef DEBUG
+#ifdef DEBUG
 #define carmaSafeCallNoSync(err)     __carmaSafeCallNoSync(err, __FILE__, __LINE__)
 #define carmaSafeCall(err)           __carmaSafeCall      (err, __FILE__, __LINE__)
-#define carmaSafeDeviceSynchronize()        __carmaSafeDeviceSynchronize(__FILE__, __LINE__)
+#define carmaSafeDeviceSynchronize() __carmaSafeDeviceSynchronize(__FILE__, __LINE__)
 #define carmafftSafeCall(err)        __carmafftSafeCall     (err, __FILE__, __LINE__)
 #define carmaCheckError(err)         __carmaCheckError   (err, __FILE__, __LINE__)
 #define carmaCheckMsg(msg)           __carmaCheckMsg     (msg, __FILE__, __LINE__)
 #define carmaSafeMalloc(mallocCall)  __carmaSafeMalloc   ((mallocCall), __FILE__, __LINE__)
-//#else
-//#define carmaSafeCallNoSync(err)     err
-//#define carmaSafeCall(err)           err
-//#define cutilSafeThreadSync()        cudaDeviceSynchronize()
-//#define carmafftSafeCall(err)           err
-//#define cutilCheckError(err)         err
-//#define carmaCheckMsg(msg)
-//#define cutilSafeMalloc(mallocCall)  (mallocCall)
-//#endif
+#else
+#define carmaSafeCallNoSync(err)     err
+#define carmaSafeCall(err)           err
+#define carmaSafeDeviceSynchronize() cudaDeviceSynchronize()
+#define carmafftSafeCall(err)        err
+#define cutilCheckError(err)         err
+#define carmaCheckMsg(msg)
+#define cutilSafeMalloc(mallocCall)  (mallocCall)
+#endif
 
 #ifndef MIN
 #define MIN(a,b) ((a < b) ? a : b)

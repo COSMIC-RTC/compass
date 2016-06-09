@@ -153,14 +153,7 @@ sutra_sensors::sutra_sensors(carma_context *context, sutra_telescope *d_tel,
     this->d_lgskern = 0L;
 
   }
-  /*
-   *[src.cpp/sutra_wfs.cpp@170]: using pyrhr with 1 GPUs
-   * loop execution time: 25.9299578667   ( 1000 iterations),  0.0259299578667 (mean)   38.5654309638 Hz
-   *
-   *[src.cpp/sutra_wfs.cpp@177]: using pyrhr with 2 GPUs
-   * loop execution time: 31.6750388145   ( 1000 iterations),  0.0316750388145 (mean)   31.5706006188 Hz
-   *
-   */
+
   //DEBUG_TRACE("After creating sensors arrays : ");printMemInfo();
   for (int i = 0; i < nwfs; i++) {
     sutra_wfs *wfs = NULL;
