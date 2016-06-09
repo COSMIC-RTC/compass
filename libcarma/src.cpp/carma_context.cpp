@@ -156,9 +156,10 @@ carma_context::carma_context() {
 #ifdef USE_UVA
   int gpuid[this->ndevice]; // we want to find the first two GPU's that can support P2P
   int gpu_count = 0;// GPUs that meet the criteria
+  current_device = 0;
   while (current_device < this->ndevice) {
-    if (current_yd->isGPUCapableP2P())
-    gpuid[gpu_count++] = current_device;
+   if (current_yd->isGPUCapableP2P())
+      gpuid[gpu_count++] = current_device;
     current_device++;
   }
   if (gpu_count > 1) {

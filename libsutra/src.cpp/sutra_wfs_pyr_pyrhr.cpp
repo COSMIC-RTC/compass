@@ -36,7 +36,7 @@ sutra_wfs_pyr_pyrhr::sutra_wfs_pyr_pyrhr(carma_context *context,
   d_screen_ngpu.push_back(nullptr); // init in the sutra_wfs_pyr_pyrhr::wfs_initarrays
   d_pupil_ngpu.push_back(this->d_pupil);
 
-  for (int device = 1; device < nbdevices; device++) {
+  for (int device = 1; device < nbdevices/2; device++) {
     current_context->set_activeDevice(device,1);
     dims_data2[1] = nfft;
     dims_data2[2] = nfft;
@@ -298,7 +298,7 @@ int sutra_wfs_pyr_pyrhr::comp_generic() {
   for (std::vector<carma_obj<float> *>::iterator it =
       this->d_hrimg_ngpu.begin(); this->d_hrimg_ngpu.end() != it; it++) {
     if (*it != d_hrimg) {
-      tmp_vector->copyFrom((*it)->getData(), (*it)->getNbElem());
+      //tmp_vector->copyFrom((*it)->getData(), (*it)->getNbElem());
       d_hrimg->axpy(1.0f, tmp_vector, 1, 1);
     }
   }
