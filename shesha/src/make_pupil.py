@@ -143,7 +143,7 @@ def make_EELT(dim,pupd,tel,N_seg):#dim,pupd,type_ap,cobs,N_seg,nbr_miss_seg,std_
         k_seg=np.fromfile(file,sep="\n").astype(np.int32)
 
         W=1.45*np.cos(np.pi/6)
-        tel.set_diam(40.)
+        tel.set_diam(39.146)
 
         X=MESH(tel.diam*dim/pupd,dim)
 
