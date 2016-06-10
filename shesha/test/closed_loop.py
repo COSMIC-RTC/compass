@@ -57,6 +57,7 @@ else:
 # initialisation:
 #   context
 c=ch.naga_context(0)
+#c=ch.naga_context(devices=np.array([0,1], dtype=np.int32))
 #c.set_activeDevice(0) #useful only if you use ch.naga_context()
 
 #    wfs

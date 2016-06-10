@@ -99,7 +99,9 @@ protected:
 
   carma_context();
   carma_context(int num_device);
+  carma_context(int nb_devices, int32_t *devices);
   carma_context(const carma_context& cntxt);
+  void init_context(const int nb_devices, int32_t *devices_id);
 public:
   ~carma_context();
 
@@ -107,6 +109,13 @@ public:
   {
       if (!s_instance)
         s_instance = new carma_context(num_device);
+      return s_instance;
+  }
+
+  static carma_context *instance_ngpu(int nb_devices, int32_t *devices_id)
+  {
+      if (!s_instance)
+        s_instance = new carma_context(nb_devices, devices_id);
       return s_instance;
   }
 
@@ -159,6 +168,9 @@ public:
   }
   cusparseHandle_t get_cusparseHandle(int device) {
     return devices[device]->get_cusparseHandle();
+  }
+  bool canP2P(int dev1, int dev2){
+	  return can_access_peer[dev1][dev2];
   }
 
 };

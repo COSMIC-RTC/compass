@@ -20,10 +20,12 @@ cdef extern from "carma_context.h":
 #################################################
 cdef class naga_context:
 
-    def __cinit__(self, device=None):
-        if device is not None:
+    def __cinit__(self, device=None, np.ndarray[ndim=1, dtype=np.int32_t] devices=None):
+        if device is not None :
             self.c = carma_context.instance_1gpu(device)
-        else:
+        elif devices is not None :
+            self.c = carma_context.instance_ngpu(devices.size, <np.int32_t*>devices.data)
+        else :
             self.c = carma_context.instance()
 
     def get_ndevice(self):
