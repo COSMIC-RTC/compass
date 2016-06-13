@@ -45,6 +45,7 @@ class sutra_wfs {
     carma_obj<float> *d_bincube;
     carma_obj<float> *d_bincube_notnoisy;
     carma_obj<float> *d_binimg;
+    carma_obj<float> *d_binimg_notnoisy;
     carma_obj<float> *d_subsum;
     carma_obj<float> *d_offsets;
     carma_obj<float> *d_fluxPerSub;

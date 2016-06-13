@@ -38,13 +38,20 @@ int sutra_wfs::wfs_initgs(sutra_sensors *sensors, float xpos, float ypos,
   this->d_gs = new sutra_source(current_context, xpos, ypos, lambda, mag, zerop,
                                 size, "wfs", this->device);
   this->noise = noise;
-  if (noise > -1) {
-    this->d_bincube->init_prng(seed);
-    //this->d_bincube->prng('N', noise, 0.0f);
+  if(this->type != "pyrhr"){
+	  if (noise > -1) {
+		this->d_bincube->init_prng(seed);
+		//this->d_bincube->prng('N', noise, 0.0f);
+	  }
+	  if (noise > 0) {
+		this->d_binimg->init_prng(seed);
+		//this->d_binimg->prng('N', noise, 0.0f);
+	  }
   }
-  if (noise > 0) {
-    this->d_binimg->init_prng(seed);
-    //this->d_binimg->prng('N', noise, 0.0f);
+  else{
+	  if(noise > -1){
+		  this->d_binimg->init_prng(seed);
+	  }
   }
 
   if (this->lgs) {

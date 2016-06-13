@@ -124,7 +124,7 @@ cdef extern from "sutra_turbu.h":
         carma_context * current_context
 
         sutra_atmos(carma_context * context, int nscreens, float * r0, long * size,
-                    long * size2, float * altitude, float * 
+                    long * size2, float * altitude, float *
                     windspeed, float * winddir,
                     float * deltax, float * deltay, int device)
         init_screen(float alt, float * h_A, float * h_B, unsigned int * h_istencilx,
@@ -240,7 +240,7 @@ cdef extern from "sutra_wfs.h":
         carma_obj[float] * d_lgskern
 
         sutra_sensors(carma_context * context, sutra_telescope * d_tel, const char ** type, int nwfs, long * nxsub,
-                      long * nvalid, long * npix, long * 
+                      long * nvalid, long * npix, long *
                       nphase, long * nrebin, long * nfft,
                       long * ntot, long * npup, float * pdiam, float * nphot, float * nphot4imat, int * lgs, int device, bool error_budget)
         sutra_sensors(carma_context * context, sutra_telescope * d_tel, int nwfs, long * nxsub, long * nvalid,
@@ -298,6 +298,7 @@ cdef extern from "sutra_wfs.h":
         carma_obj[float] * d_bincube
         carma_obj[float] * d_bincube_notnoisy
         carma_obj[float] * d_binimg
+        carma_obj[float] * d_binimg_notnoisy
         carma_obj[float] * d_subsum
         carma_obj[float] * d_offsets
         carma_obj[float] * d_fluxPerSub
@@ -575,7 +576,7 @@ cdef extern from "sutra_dm.h":
 
         int nact()
         int pzt_loadarrays(float * influ, float * influ2, tuple_t[float] * influ3,
-                           int * influpos, int * influpos2, int * 
+                           int * influpos, int * influpos2, int *
                            npoints, int * istart,
                            int * xoff, int * yoff, float * kernconv)
         int kl_loadarrays(float * rabas, float * azbas, int * ord, float * cr, float * cp)
@@ -835,9 +836,9 @@ cdef extern from "sutra_controller_mv.h":
         int load_klbasis(float * klbasis)
         int compute_Cmm(sutra_atmos * atmos, sutra_sensors * sensors, double * L0, double * cn2, double * alphaX, double * alphaY, double diamTel, double cobs)
         int compute_Cphim(sutra_atmos * atmos,
-                          sutra_sensors * sensors, sutra_dms * 
+                          sutra_sensors * sensors, sutra_dms *
                           dms, double * L0, double * cn2,
-                          double * alphaX, double * alphaY, double * 
+                          double * alphaX, double * alphaY, double *
                           X, double * Y, double * xactu,
                           double * yactu, double diamTel, double * k2, long * NlayerDm,
                           long * indLayerDm, double FoV, double * pitch, double * alt_dm)
@@ -979,7 +980,7 @@ cdef extern from "sutra_lgs.h":
         sutra_lgs(const sutra_lgs & lgs)
 
         int lgs_init(int nprof, float hg, float h0, float deltah, float pixsie,
-                     float * doffaxis, float * 
+                     float * doffaxis, float *
                      prof1d, float * profcum, float * beam,
                      cuFloatComplex * ftbeam, float * azimuth)
         int load_prof(float * prof1d, float * profcum, float hg, float h0, float deltah)

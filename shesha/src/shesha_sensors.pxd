@@ -16,12 +16,12 @@ from cpython.string cimport PyString_AsString
 from libc.math cimport sin
 
 from shesha_telescope import *
-from shesha_telescope cimport * 
+from shesha_telescope cimport *
 from shesha_param import *
-from shesha_param cimport * 
+from shesha_param cimport *
 from shesha_atmos import *
-from shesha_atmos cimport * 
-from shesha_dms cimport * 
+from shesha_atmos cimport *
+from shesha_dms cimport *
 
 cdef np.float32_t dtor = (np.pi / 180.)
 
@@ -41,7 +41,7 @@ cdef extern from * :
 # P-Class Sensors
 #################################################
 cdef class Sensors:
-    
+
     cdef sutra_sensors * sensors
     cpdef sensors_initgs(self, np.ndarray[ndim=1, dtype=np.float32_t] xpos,
                              np.ndarray[ndim=1, dtype=np.float32_t] ypos,
@@ -67,6 +67,7 @@ cdef class Sensors:
     cpdef slopes_geom(self, int nsensors, int t)
     cpdef sensors_trace(self, int n, str type_trace, Telescope tel=?, Atmos atmos=?, Dms dms=?, int rst=?)
     cpdef get_bincubeNotNoisy(self, int n)
+    cpdef get_binimg_notnoisy(self, int n)
     cpdef set_bincube(self, int n, np.ndarray[ndim=3, dtype=np.float32_t] data)
     IF USE_MPI:
         cpdef gather_bincube(self, int n)

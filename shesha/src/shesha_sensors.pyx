@@ -1900,6 +1900,30 @@ cdef class Sensors:
         data[np.where(data < 0)] = 0
         return data
 
+    cpdef get_binimg_notnoisy(self, int n):
+        """Return the 'binimg_notnoisy' array of a given pyrhr wfs
+
+        :param
+            n: (int) :number of the wfs to get the 'binimg_notnoisy' from
+        """
+        cdef carma_obj[float] * img
+        cdef const long * cdims
+        cdef np.ndarray[ndim = 2, dtype = np.float32_t] data
+        cdef np.ndarray[ndim = 2, dtype = np.float32_t] data_F
+
+        if(self.sensors.error_budget):
+            img = self.sensors.d_wfs[n].d_binimg_notnoisy
+            cdims = img.getDims()
+            data = np.empty((cdims[1], cdims[2]), dtype=np.float32)
+            data_F = np.empty((cdims[2], cdims[1]), dtype=np.float32)
+            img.device2host( < float * > data_F.data)
+            data = np.reshape(
+                data_F.flatten("F"), (cdims[1], cdims[2]))
+            return data
+        else:
+            raise TypeError("the error budget analysis has to be enabled")
+
+
     def get_pyrimg(self, int n):
         """Return the image of a pyr wfs
 
@@ -1948,7 +1972,7 @@ cdef class Sensors:
 
         else:
             raise TypeError("wfs should be a pyr")
-            
+
         """Return the image of a pyr wfs
 
         :param n: (int) : number of the wfs to get the image from
@@ -1956,9 +1980,9 @@ cdef class Sensors:
         """
 
         return self._get_pyrimg(n)
-        
+
     def set_pyrimg(self, int n, np.ndarray[ndim=2, dtype=np.float32_t] data):
-        """Return the image of a pyr wfs
+        """Set the image of a pyr wfs
 
         :param n: (int) : number of the wfs to get the image from
 
@@ -1967,7 +1991,7 @@ cdef class Sensors:
         return self._set_pyrimg(n, data)
 
     cdef _set_pyrimg(self, int n, np.ndarray[ndim=2, dtype=np.float32_t] data):
-        """Return the image of a pyr wfs
+        """Set the image of a pyr wfs
 
         :param n: (int) : number of the wfs to get the image from
 
@@ -1994,7 +2018,7 @@ cdef class Sensors:
 #
 #        """
 #        self._set_pyrimghr(n, data)
-        
+
 #    cdef _set_pyrimghr(self, int n, np.ndarray[ndim=2, dtype=np.float32_t] data):
 #
 #        """Return the high res image of a pyr wfs

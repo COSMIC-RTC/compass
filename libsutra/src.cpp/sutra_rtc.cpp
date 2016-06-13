@@ -304,8 +304,11 @@ int sutra_rtc::do_centroids_geom(int ncntrl) {
       sutra_wfs_geom *_wfs = dynamic_cast<sutra_wfs_geom *>(wfs);
       _wfs->slopes_geom(0,(*this->d_control[ncntrl]->d_centroids)[inds2]);
 
+    } else if(wfs->type == "pyrhr"){
+          sutra_wfs_pyr_pyrhr *_wfs = dynamic_cast<sutra_wfs_pyr_pyrhr *>(wfs);
+          _wfs->slopes_geom(0,(*this->d_control[ncntrl]->d_centroids)[inds2]);
     } else {
-      DEBUG_TRACE("wfs could be a SH or a geo");
+      DEBUG_TRACE("wfs could be a SH, geo or pyrhr");
       return EXIT_FAILURE;
     }
     /*

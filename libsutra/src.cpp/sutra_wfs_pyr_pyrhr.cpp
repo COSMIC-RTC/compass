@@ -347,15 +347,19 @@ int sutra_wfs_pyr_pyrhr::comp_generic() {
 			this->nfft / this->nrebin, 1,
 			this->current_context->get_device(device));
 
-	// add noise
-	if (this->noise > -1) {
-		//cout << "adding poisson noise" << endl;
-		this->d_bincube->prng('P');
-	}
-	if (this->noise > 0) {
-		//cout << "adding detector noise" << endl;
-		this->d_bincube->prng('N', this->noise, 1.0f);
-	}
+  if (this->error_budget) { // Get here the binimg before adding noise, usefull for error budget
+    this->d_binimg->copyInto(this->d_binimg_notnoisy->getData(),
+                              this->d_binimg->getNbElem());
+  }
+  // add noise
+  if (this->noise > -1) {
+    //cout << "adding poisson noise" << endl;
+    this->d_binimg->prng('P');
+  }
+  if (this->noise > 0) {
+    //cout << "adding detector noise" << endl;
+    this->d_binimg->prng('N', this->noise, 1.0f);
+  }
 
 	//Done in getpyr
 //  pyr_subsum(this->d_subsum->getData(), this->d_binimg->getData(),

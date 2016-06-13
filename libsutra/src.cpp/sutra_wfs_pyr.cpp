@@ -16,6 +16,7 @@ sutra_wfs_pyr::sutra_wfs_pyr(carma_context *context, sutra_telescope *d_tel,
   this->d_hrimg = 0L;
   this->d_bincube = 0L;
   this->d_binimg = 0L;
+  this->d_binimg_notnoisy = 0L;
   this->d_subsum = 0L;
   this->d_offsets = 0L;
   this->d_fluxPerSub = 0L;
@@ -56,6 +57,7 @@ sutra_wfs_pyr::sutra_wfs_pyr(carma_context *context, sutra_telescope *d_tel,
   this->nffthr = 1;
   this->type = string(type_pyr);
   this->kernconv = false;
+  this->error_budget = sensors->error_budget;
 
   long dims_data1[2];
   dims_data1[0] = 1;
@@ -90,6 +92,9 @@ sutra_wfs_pyr::sutra_wfs_pyr(carma_context *context, sutra_telescope *d_tel,
     dims_data2[2] = nfft / nrebin;
 
     this->d_binimg = new carma_obj<float>(context, dims_data2);
+    if(this->error_budget){
+    	this->d_binimg_notnoisy = new carma_obj<float>(context, dims_data2);
+    }
     // using 1 stream for telemetry
     this->image_telemetry = new carma_host_obj<float>(dims_data2, MA_PAGELOCK,
                                                       1);
