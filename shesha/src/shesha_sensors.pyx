@@ -819,7 +819,7 @@ cpdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
         dpup = geom.pupdiam
         nrebin = wfs._nrebin
         fracsub = wfs.fracsub
-        pup_sep = int(wfs.nxsub)
+        pup_sep = int(2.0*wfs.nxsub/3.0)
         # number of pix betw two centers two pupil images
 
         # pyrsize = 512
@@ -850,44 +850,43 @@ cpdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
         xcc = pyrsize / 2 - Pangle + 0.5
         ycc = pyrsize / 2 + Pangle + 0.5
 
-        mymsk = mkP.dist(pyrsize, xc=xcc, yc=xcc)
-        # mypup = (mymsk < rpup)
-        mypup = (mymsk < rpup) & (mymsk > cobs * rpup)
-        mskreb = rebin(mypup.copy(), [pyrsize / nrebin, pyrsize / nrebin])
+        pyrtmp = np.zeros((pyrsize, pyrsize), dtype=np.int32)
+
+        pyrtmp[pyrsize/2-geom._n/2:pyrsize/2+geom._n/2,pyrsize/2-geom._n/2:pyrsize/2+geom._n/2] =  geom._mpupil
+        pyrtmp2 = np.roll(pyrtmp.copy(),-Pangle,axis=0)
+        pyrtmp2 = np.roll(pyrtmp2.copy(),-Pangle,axis=1)
+        mskreb = rebin(pyrtmp2.copy(), [pyrsize / nrebin, pyrsize / nrebin])
         validx = np.where(mskreb >= fracsub)[1].astype(np.int32)
         validy = np.where(mskreb >= fracsub)[0].astype(np.int32)
         nvalid = validx.size
-        mskrebtot = mskreb
+        mskrebtot = mskreb 
 
-        mymsk = mkP.dist(pyrsize, xc=ycc, yc=ycc)
-        # mypup = (mymsk < rpup)
-        mypup = (mymsk < rpup) & (mymsk > cobs * rpup)
-        mskreb = rebin(mypup * 1., [pyrsize / nrebin, pyrsize / nrebin])
+        pyrtmp2 = np.roll(pyrtmp.copy(),Pangle,axis=0)
+        pyrtmp2 = np.roll(pyrtmp2.copy(),Pangle,axis=1)
+        mskreb = rebin(pyrtmp2.copy(), [pyrsize / nrebin, pyrsize / nrebin])
         tmpx = np.where(mskreb >= fracsub)[1].astype(np.int32)
         tmpy = np.where(mskreb >= fracsub)[0].astype(np.int32)
         validx = np.concatenate((validx, tmpx))
         validy = np.concatenate((validy, tmpy))
-        mskrebtot += mskreb
+        mskrebtot += mskreb * 2
 
-        mymsk = mkP.dist(pyrsize, xc=xcc, yc=ycc)
-        # mypup = (mymsk < rpup)
-        mypup = (mymsk < rpup) & (mymsk > cobs * rpup)
-        mskreb = rebin(mypup * 1., [pyrsize / nrebin, pyrsize / nrebin])
+        pyrtmp2 = np.roll(pyrtmp.copy(),Pangle,axis=0)
+        pyrtmp2 = np.roll(pyrtmp2.copy(),-Pangle,axis=1)
+        mskreb = rebin(pyrtmp2.copy(), [pyrsize / nrebin, pyrsize / nrebin])
         tmpx = np.where(mskreb >= fracsub)[1].astype(np.int32)
         tmpy = np.where(mskreb >= fracsub)[0].astype(np.int32)
         validx = np.concatenate((validx, tmpx))
         validy = np.concatenate((validy, tmpy))
-        mskrebtot += mskreb
+        mskrebtot += mskreb *3
 
-        mymsk = mkP.dist(pyrsize, xc=ycc, yc=xcc)
-        # mypup = (mymsk < rpup)
-        mypup = (mymsk < rpup) & (mymsk > cobs * rpup)
-        mskreb = rebin(mypup * 1., [pyrsize / nrebin, pyrsize / nrebin])
+        pyrtmp2 = np.roll(pyrtmp.copy(),-Pangle,axis=0)
+        pyrtmp2 = np.roll(pyrtmp2.copy(),Pangle,axis=1)
+        mskreb = rebin(pyrtmp2.copy(), [pyrsize / nrebin, pyrsize / nrebin])
         tmpx = np.where(mskreb >= fracsub)[1].astype(np.int32)
         tmpy = np.where(mskreb >= fracsub)[0].astype(np.int32)
         validx = np.concatenate((validx, tmpx))
         validy = np.concatenate((validy, tmpy))
-        mskrebtot += mskreb
+        mskrebtot += mskreb *4
 
         wfs._nvalid = nvalid
         wfs._validsubsx = validx
@@ -942,7 +941,7 @@ cpdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
         validsubsy = np.where(pupvalid)[0].astype(np.int32)
 
         istart = (
-            (np.linspace(0.5, geom._n + 0.5, wfs.nxsub + 2))[:-1]).astype(np.int64)
+            (np.linspace(0.5, geom._n + 0.5, wfs.nxsub + 3))).astype(np.int64)
 
         jstart = np.copy(istart)
         wfs._istart = istart.astype(np.int32)
@@ -951,9 +950,9 @@ cpdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
         # sorting out valid subaps
         fluxPerSub = np.zeros((wfs.nxsub+2, wfs.nxsub+2), dtype=np.float32)
 
-        for i in range(wfs.nxsub):
+        for i in range(wfs.nxsub+2):
             indi = istart[i]  # +2-1 (yorick->python)
-            for j in range(wfs.nxsub):
+            for j in range(wfs.nxsub+2):
                 indj = jstart[j]  # +2-1 (yorick->python)
                 fluxPerSub[i, j] = np.sum(
                     geom._mpupil[indi:indi +  wfs.npix, indj:indj +  wfs.npix])
@@ -968,10 +967,14 @@ cpdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
         x-=1
         y-=1
         tmp=x+y*geom._n
+
+        pyrtmp = np.zeros((geom._n,geom._n), dtype=np.int32)
+
         for i in range(wfs._nvalid):
             indi=istart[validsubsx[i]] #+2-1 (yorick->python
             indj=jstart[validsubsy[i]]
             phasemap[:,:,i]=tmp[indi:indi+wfs.npix, indj:indj+wfs.npix]
+            pyrtmp[indi:indi+wfs.npix, indj:indj+wfs.npix] = i*2
 
         wfs._phasemap = phasemap
 
@@ -988,7 +991,7 @@ cpdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
         #    coef2=0.5
 
         # pshift = np.exp(1j*2*np.pi*(coef1/Nfft+coef2*nrebin/wfs.npix/Nfft)*(x+y))
-        wfs._pyr_offsets = np.array([0], dtype=np.int32)  # pshift
+        wfs._pyr_offsets = pyrtmp # pshift
         # this defines a phase for half a pixel shift in x and y
         # defined on mpupil
         # x,y = indices(geom._n)
