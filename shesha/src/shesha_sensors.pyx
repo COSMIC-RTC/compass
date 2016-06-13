@@ -819,7 +819,10 @@ cpdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
         dpup = geom.pupdiam
         nrebin = wfs._nrebin
         fracsub = wfs.fracsub
-        pup_sep = int(2.0*wfs.nxsub/3.0)
+        if wfs.pyr_pup_sep == -1:
+            pup_sep = int(wfs.nxsub)
+        else:
+            pup_sep = wfs.pyr_pup_sep
         # number of pix betw two centers two pupil images
 
         # pyrsize = 512

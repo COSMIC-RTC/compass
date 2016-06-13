@@ -63,6 +63,7 @@ p_wfs0.set_noise(-1)
 p_wfs0.set_fstop("round")
 p_wfs0.set_pyr_npts(16)
 p_wfs0.set_pyr_ampl(3)
+p_wfs0.set_pyr_pup_sep(p_wfs0.nxsub)
 p_wfs0.set_atmos_seen(1)
 
 

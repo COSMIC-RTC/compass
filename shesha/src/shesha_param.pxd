@@ -83,7 +83,7 @@ cdef class Param_wfs:
     cdef readonly float pixsize
     """pixel size (in arcsec) for a subap."""
     cdef readonly float Lambda
-    """observation wavelength (in ��m) for a subap."""
+    """observation wavelength (in um) for a subap."""
     cdef readonly float optthroughput
     """wfs global throughput."""
     cdef readonly float fracsub
@@ -212,6 +212,8 @@ cdef class Param_wfs:
     valid value are "before" or "after" (default "after")."""
     cdef readonly str pyrtype
     """Type of pyramid, either 0 for "Pyramid" or 1 for "RoofPrism"."""
+    cdef readonly long pyr_pup_sep
+    """Pyramid pupil separation. (default: long(wfs.nxsub))"""
 
 # pyramid internal kwrds
     cdef readonly np.ndarray _pyr_offsets  # (float*)

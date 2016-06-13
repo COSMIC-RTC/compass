@@ -1,6 +1,6 @@
 import shesha as ao
 
-simul_name="bench_scao_16x16_16pix"
+#simul_name="bench_scao_16x16_16pix"
 
 #loop
 p_loop = ao.Param_loop()
@@ -86,6 +86,7 @@ p_dm0.set_thresh(0.3)
 p_dm0.set_coupling(0.2)
 p_dm0.set_unitpervolt(0.01)
 p_dm0.set_push4imat(100.)
+#p_dm0.set_pattern("hexa")
 
 p_dm1.set_type("tt")
 p_dm1.set_alt(0.)

@@ -248,6 +248,7 @@ cdef class Param_wfs:
     def __cinit__(self, bool error_budget=False):
         self.error_budget = error_budget
         self.nphotons4imat = 1.e5
+        self.pyr_pup_sep = -1
 
     def set_type(self, str t):
         """Set the type of wfs
@@ -280,7 +281,7 @@ cdef class Param_wfs:
     def set_Lambda(self, float L):
         """Set the observation wavelength
 
-        :param L: (float) : observation wavelength (in ��m) for a subap
+        :param L: (float) : observation wavelength (in um) for a subap
         """
         self.Lambda = L
 
@@ -487,6 +488,12 @@ cdef class Param_wfs:
     def get_validsub(self):
         return self._validsubsx, self._validsubsy
 
+    def set_pyr_pup_sep(self, pyr_pup_sep):
+        """Set the pyramid pupil separation. (default: long(wfs.nxsub))
+
+        :param pyr_pup_sep: (long) : pyramid pupil separation wanted
+        """
+        self.pyr_pup_sep = pyr_pup_sep
 
 
 '''
