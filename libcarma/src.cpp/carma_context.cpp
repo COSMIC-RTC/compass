@@ -12,17 +12,6 @@
 // MAGMA headers
 #include "magma.h"
 #include "magma_lapack.h"
-
-#ifndef ARM
-struct magma_device_info {
-	size_t memory;
-	magma_int_t cuda_arch;
-};
-
-extern int g_magma_devices_cnt;
-extern struct magma_device_info* g_magma_devices;
-extern int g_init;
-#endif //ARM
 #endif //USE_MAGMA
 
 carma_context *carma_context::s_instance = NULL;
@@ -186,23 +175,11 @@ void carma_context::init_context(const int nb_devices, int32_t *devices_id) {
 
 #ifdef USE_MAGMA
 	// MAGMA init
-#ifndef ARM
-	// MAGMA custom init
-	g_magma_devices_cnt = this->ndevice;
-	magma_malloc_cpu((void**) &g_magma_devices,
-			g_magma_devices_cnt * sizeof(struct magma_device_info));
-	cudaDeviceProp prop;
-	for (int magma_device = 0; magma_device < g_magma_devices_cnt;
-			magma_device++) {
-		cudaGetDeviceProperties(&prop, devices_id[magma_device]);
-		g_magma_devices[magma_device].memory = prop.totalGlobalMem;
-		g_magma_devices[magma_device].cuda_arch = prop.major * 100
-				+ prop.minor * 10;
-	}
-	g_init += 1; // increment (init - finalize) count
-#else //!ARM
-			magma_init();
-#endif //ARM
+    #ifdef USE_MAGMA_PATCHED
+    magma_init(nb_devices, devices_id);
+    #else
+    magma_init();
+    #endif //USE_MAGMA_PATCHED
 
 #if DEBUG
 	//  magma_print_environment();

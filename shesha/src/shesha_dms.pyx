@@ -6,14 +6,11 @@ from blaze.expr.expressions import shape
 import numpy as np
 cimport numpy as np
 np.import_array()
-import hdf5_utils as h5
 
-#
-#_______________
+import hdf5_utils as h5
 import resDataBase as db
 import pandas as pd
 from scipy import interpolate
-#_______________
 
 #max_extent signature
 cdef _dm_init(Dms dms, Param_dm p_dms, list p_wfs, Param_geom p_geom, Param_tel p_tel,int *max_extent):
@@ -74,16 +71,12 @@ cdef _dm_init(Dms dms, Param_dm p_dms, list p_wfs, Param_geom p_geom, Param_tel 
             if(p_dms._n2 > p_geom.ssize):
                 p_dms._n2 = p_geom.ssize
 
-    #________________________________
     cdef float irc, coupling, ir
     cdef long pitch, smallsize
-    #________________________________
-
 
     if( p_dms.type_dm=="pzt"):
         if p_dms.file_influ_hdf5 == None:
             # calcul pitch ______________________
-
 
             # find out the support dimension for the given mirror.
             norms = [np.linalg.norm([w.xpos, w.ypos]) for w in p_wfs]
@@ -100,11 +93,7 @@ cdef _dm_init(Dms dms, Param_dm p_dms, list p_wfs, Param_geom p_geom, Param_tel 
             if(p_dms._n2 > p_geom.ssize):
                 p_dms._n2 = p_geom.ssize
 
-
-
-
             #calcul influsize ___________________
-
 
             coupling=p_dms.coupling
 
@@ -117,12 +106,9 @@ cdef _dm_init(Dms dms, Param_dm p_dms, list p_wfs, Param_geom p_geom, Param_tel 
             p_dms._influsize=smallsize
             #______________________________________
 
-
             #calcul defaut influsize
-
             make_pzt_dm(p_dms,p_geom,p_tel,irc)
         else :
-
             # p_dms._influsize
             # p_dms._n1
             # p_dms._n2
@@ -131,7 +117,6 @@ cdef _dm_init(Dms dms, Param_dm p_dms, list p_wfs, Param_geom p_geom, Param_tel 
 
         # max_extent
         max_extent[0] = max(max_extent[0], p_dms._n2 - p_dms._n1 + 1)
-
 
         dim = max(p_dms._n2-p_dms._n1+1, p_geom._mpupil.shape[0])
         ninflu=long(p_dms._ntotact)
@@ -205,8 +190,6 @@ def dm_init(p_dms, list p_wfs, Sensors sensors, Param_geom p_geom, Param_tel p_t
     return dms
 
 
-
-
 cpdef createSquarePattern(float pitch, int nxact ):
     """
     Creates a list of M=nxact^2 actuator positions spread over an square grid.
@@ -223,7 +206,6 @@ cpdef createSquarePattern(float pitch, int nxact ):
     xy = np.tile( np.arange(nxact) - (nxact-1.)/2. , (nxact,1)).astype(np.float32)
     xy = np.array([xy.flatten(), xy.T.flatten()]) * pitch
     return xy
-
 
 
 cpdef createHexaPattern(np.float32_t pitch, np.float32_t supportSize):
@@ -255,6 +237,7 @@ cpdef createHexaPattern(np.float32_t pitch, np.float32_t supportSize):
     cdef np.ndarray[ndim=2, dtype=np.float32_t] xy = np.array([x,y])
     return xy
 
+
 def n_actuator_select(Param_dm p_dm,Param_tel p_tel, xc,yc):
     """
     Fonction for select actuator in fonction of Margin_in, margin_out or ntotact.
@@ -276,7 +259,6 @@ def n_actuator_select(Param_dm p_dm,Param_tel p_tel, xc,yc):
     dis=np.sqrt(xc**2+yc**2)
     #cdef np.ndarray dis2=np.sqrt(cub[0,:]**2+cub[1,:]**2)
     #cdef float rad_in, rad_out
-
 
     #test Margin_in
 
@@ -338,7 +320,6 @@ cpdef make_pzt_dm(Param_dm p_dm,Param_geom geom,Param_tel p_tel,irc):
     p1=4.49469+(7.25509+(-32.1948+17.9493*coupling)*coupling)*coupling
     p2=2.49456+(-0.65952+(8.78886-6.23701*coupling)*coupling)*coupling
 
-
     cdef float tmp_c=1.0/np.abs(irc)
     cdef float ccc = (coupling - 1.+ tmp_c**p1)/(np.log(tmp_c)*tmp_c**p2)
 
@@ -347,7 +328,6 @@ cpdef make_pzt_dm(Param_dm p_dm,Param_geom geom,Param_tel p_tel,irc):
     cdef long smallsize
 
     smallsize=p_dm._influsize
-
 
     # compute location (x,y and i,j) of each actuator:
     if p_dm.type_pattern == None:
@@ -359,14 +339,12 @@ cpdef make_pzt_dm(Param_dm p_dm,Param_geom geom,Param_tel p_tel,irc):
     if p_dm.type_pattern == 'hexa':
         cub = createHexaPattern( pitch, geom.pupdiam * 1.1)
 
-
     inbigcirc = n_actuator_select(p_dm,p_tel,cub[0,:],cub[1,:])
 
     #print 'inbigcirc',inbigcirc.shape
 
     # converting to array coordinates:
     cub += geom.cent
-
 
     # filtering actuators outside of a disk radius = rad (see above)
     cdef np.ndarray cubval = cub[:,inbigcirc]
@@ -375,8 +353,6 @@ cpdef make_pzt_dm(Param_dm p_dm,Param_geom geom,Param_tel p_tel,irc):
     ypos    = cubval[1,:]
     i1t      = (cubval[0,:]-smallsize/2+0.5-p_dm._n1).astype(np.int32)
     j1t      = (cubval[1,:]-smallsize/2+0.5-p_dm._n1).astype(np.int32)
-
-
 
     # Allocate array of influence functions
     cdef np.ndarray[ndim=3,dtype=np.float32_t] influ=np.zeros((smallsize,smallsize,ntotact),dtype=np.float32)
@@ -411,20 +387,15 @@ cpdef make_pzt_dm(Param_dm p_dm,Param_geom geom,Param_tel p_tel,irc):
 
     influ=influ*float(p_dm.unitpervolt/np.max(influ))
 
-    #___________________________
-
     p_dm._influ = influ
-
 
     print 'DEBUG : nb = ',np.size(inbigcirc)
     p_dm._ntotact = np.size(inbigcirc)
     p_dm._xpos = xpos
     p_dm._ypos = ypos
 
-
     p_dm._i1 = (p_dm._xpos - p_dm._influsize/2. +0.5 - p_dm._n1).astype(np.int32)
     p_dm._j1 = (p_dm._ypos - p_dm._influsize/2. +0.5 - p_dm._n1).astype(np.int32)
-
 
     comp_dmgeom(p_dm,geom)
 
@@ -436,9 +407,6 @@ cpdef make_pzt_dm(Param_dm p_dm,Param_geom geom,Param_tel p_tel,irc):
     kernconv=np.roll(kernconv,kernconv.shape[0]/2,axis=0)
     kernconv=np.roll(kernconv,kernconv.shape[1]/2,axis=1)
     p_dm._influkernel= kernconv
-
-
-
 
 
 cpdef read_influ_hdf5 (Param_dm p_dm,Param_tel p_tel, Param_geom geom):
@@ -571,8 +539,6 @@ cpdef read_influ_hdf5 (Param_dm p_dm,Param_tel p_tel, Param_geom geom):
     kernconv=np.roll(kernconv,kernconv.shape[0]/2,axis=0)
     kernconv=np.roll(kernconv,kernconv.shape[1]/2,axis=1)
     p_dm._influkernel= kernconv
-
-
 
 
 cpdef make_tiptilt_dm(Param_dm p_dm,list p_wfs, Param_geom p_geom, Param_tel p_tel):

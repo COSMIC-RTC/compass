@@ -100,10 +100,11 @@ int sutra_wfs_pyr_roof::comp_generic() {
            this->nfft / this->nrebin, 4,
            this->current_context->get_device(device));
 
-  pyr_subsum(this->d_subsum->getData(), this->d_bincube->getData(),
-             this->d_validsubsx->getData(), this->d_validsubsy->getData(),
-             this->nfft / this->nrebin, this->nvalid, 4,
-             this->current_context->get_device(device));
+  // Done in getpyr
+//  pyr_subsum(this->d_subsum->getData(), this->d_bincube->getData(),
+//             this->d_validsubsx->getData(), this->d_validsubsy->getData(),
+//             this->nfft / this->nrebin, this->nvalid, 4,
+//             this->current_context->get_device(device));
 
   return EXIT_SUCCESS;
 

@@ -103,6 +103,33 @@ int fillbinimg(float *bimage, float *bcube, int npix, int nsub, int Nsub,
 
   return EXIT_SUCCESS;
 }
+//
+//__global__ void pyradd_krnl(pyradd(float *idata, float *odata, int nelem) {
+//  /*
+//   indx is an array nrebin^2 * npix^2
+//   it gives the nrebin x nrebin pixels in the hrimage per npix x npix pixels of the subap
+//   Npix = npix x npix
+//   */
+//  int tid = threadIdx.x + blockIdx.x * blockDim.x;
+//
+//  while (tid < nelem) {
+//	atomicAdd(odata+tid, idata[tid]);
+//    tid += blockDim.x * gridDim.x;
+//  }
+//}
+//
+//int pyradd(float *idata, float *odata, int nelem, carma_device *device) {
+//  int nthreads = 0, nblocks = 0;
+//  getNumBlocksAndThreads(device, nelem, nblocks, nthreads);
+//
+//  dim3 grid(nblocks), threads(nthreads);
+//
+//  pyradd_krnl<<<grid, threads>>>(idata, odata, nelem);
+//
+//  carmaCheckMsg("pyradd_krnl<<<>>> execution failed\n");
+//
+//  return EXIT_SUCCESS;
+//}
 
 __global__ void bimg_krnl_async(float *bimage, float *bcube, int npix,
     int npix2, int nsub, int *ivalid, int *jvalid, float alpha, int N,
@@ -893,9 +920,9 @@ __global__ void pyrgetpup_krnl(Tout *g_odata, Tin *g_idata,
   const float PI = 3.1415926535897932384626433;
   // load shared mem
   //const unsigned int tid = threadIdx.x;
-  const unsigned int i = blockIdx.x * blockDim.x + threadIdx.x;
+  unsigned int i = blockIdx.x * blockDim.x + threadIdx.x;
 
-  if (i < n * n) {
+  while (i < n * n) {
     const float x = i % n;
     const float y = i / n;
 
@@ -913,6 +940,7 @@ __global__ void pyrgetpup_krnl(Tout *g_odata, Tin *g_idata,
     g_odata[i2].x = cosf(g_idata[i]*mic2rad + phi_modu) * pup[i];
     g_odata[i2].y = sinf(g_idata[i]*mic2rad + phi_modu) * pup[i];
 
+    i += blockDim.x * gridDim.x;
   }
 }
 
