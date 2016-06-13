@@ -738,9 +738,10 @@ cpdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
 
         wfs._pyr_cx = cx.copy()
         wfs._pyr_cy = cy.copy()
-
+        # Number of photons over the telescope pupil for one frame
+        telSurf = np.pi / 4. * (1 - tel.cobs ** 2.) * tel.diam ** 2.
         wfs._nphotons = wfs.zerop * \
-            2.51189 ** (-wfs.gsmag) * loop.ittime * wfs.optthroughput
+            2.51189 ** (-wfs.gsmag) * loop.ittime * wfs.optthroughput * telSurf
 
         # spatial filtering by the pixel extent:
         # *2/2 intended. min should be 0.40 = sinc(0.5)^2.
@@ -917,9 +918,9 @@ cpdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
 
         wfs._pyr_cx = cx.copy()
         wfs._pyr_cy = cy.copy()
-
+        telSurf = np.pi / 4. * (1 - tel.cobs ** 2.) * tel.diam ** 2.
         wfs._nphotons = wfs.zerop * \
-            2.51189 ** (-wfs.gsmag) * loop.ittime * wfs.optthroughput
+            2.51189 ** (-wfs.gsmag) * loop.ittime * wfs.optthroughput * telSurf
 
         # spatial filtering by the pixel extent:
         # *2/2 intended. min should be 0.40 = sinc(0.5)^2.
@@ -1164,8 +1165,7 @@ cpdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
                 wfs.zerop = 1e11
             wfs._nphotons = wfs.zerop * 10 ** (-0.4 * wfs.gsmag) * \
                 wfs.optthroughput * \
-                (tel.diam / wfs.nxsub) ** 2. / telSurf * \
-                loop.ittime
+                (tel.diam / wfs.nxsub) ** 2.* loop.ittime
 # include throughput to WFS
 # for unobstructed subaperture
 # per iteration

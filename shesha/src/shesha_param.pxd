@@ -113,7 +113,7 @@ cdef class Param_wfs:
     cdef readonly float gsmag
     """magnitude of guide star."""
     cdef readonly float zerop
-    """detector zero point."""
+    """detector zero point expressed in ph/m**2/s in the bandwidth of the WFS"""
     cdef readonly float noise
     """desired noise : < 0 = no noise / 0 = photon only / > 0 photon + ron."""
 

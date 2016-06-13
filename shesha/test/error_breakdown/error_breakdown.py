@@ -571,7 +571,7 @@ def save_it(filename):
 # | ||  __/\__ \ |_\__ \
 #  \__\___||___/\__|___/
 ###############################################################################################
-nfiltered = 80
+nfiltered = 450
 niters = 2000
 config.p_loop.set_niter(niters)
 Btt,P = compute_Btt()
@@ -589,7 +589,7 @@ gRD = np.identity(RD.shape[0])-config.p_controllers[0].gain*RD
 
 #imat_geom = ao.imat_geom(wfs,config.p_wfss,config.p_controllers[0],dms,config.p_dms,meth=0)
 #RDgeom = np.dot(R,imat_geom)
-preloop(200)
-com,noise_com,alias_wfs_com,tomo_com,H_com,trunc_com,bp_com,wf_com,fit,SR,SR2 = loop(niters)
+#preloop(200)
+#com,noise_com,alias_wfs_com,tomo_com,H_com,trunc_com,bp_com,wf_com,fit,SR,SR2 = loop(niters)
 
-save_it("breakdown_pyrhr.h5")
+#save_it("breakdown_pyrhr.h5")
