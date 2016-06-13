@@ -515,6 +515,7 @@ class widgetAOWindow(TemplateBaseClass):
         else:
             self.stop = True
             self.loop.join()
+            self.loop = None
 
     def aoLoopOpen(self, pressed):
         if(pressed):
