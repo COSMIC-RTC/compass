@@ -863,7 +863,7 @@ cpdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
         validx = np.where(mskreb >= fracsub)[1].astype(np.int32)
         validy = np.where(mskreb >= fracsub)[0].astype(np.int32)
         nvalid = validx.size
-        mskrebtot = mskreb 
+        mskrebtot = mskreb
 
         pyrtmp2 = np.roll(pyrtmp.copy(),Pangle,axis=0)
         pyrtmp2 = np.roll(pyrtmp2.copy(),Pangle,axis=1)
@@ -941,8 +941,8 @@ cpdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
         pupvalid[wsubok] = 1
         wfs._isvalid = pupvalid.astype(np.int32)
 
-        validsubsx = np.where(pupvalid)[1].astype(np.int32)
-        validsubsy = np.where(pupvalid)[0].astype(np.int32)
+        validsubsx = np.where(pupvalid)[0].astype(np.int32)
+        validsubsy = np.where(pupvalid)[1].astype(np.int32)
 
         istart = (
             (np.linspace(0.5, geom._n + 0.5, wfs.nxsub + 3))).astype(np.int64)

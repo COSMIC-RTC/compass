@@ -1133,13 +1133,13 @@ cdef class Rtc:
             dims=controller_geo.d_geocov.getDims()
             data_F=np.zeros((dims[2],dims[1]),dtype=np.float32)
             controller_geo.d_geocov.device2host(<float*>data_F.data)
-            
+
             data=np.reshape(data_F.flatten("F"),(dims[1],dims[2]))
         else:
             raise ValueError("Controller must be geo not %s"%type_contro)
 
         return data
-        
+
     cpdef getCenbuff(self, int ncontrol):
         """Return the centroids buffer from a sutra_controller_ls object.
         This buffer contains centroids from iteration i-delay to current iteration.
@@ -1436,7 +1436,7 @@ cdef class Rtc:
             controller_geo.load_Btt(<float*>Btt_F.data)
         else:
             raise TypeError("Controller needs to be geo")
-            
+
     cpdef applycontrol(self,int ncontrol,Dms dms):
         """Compute the DMs shapes from the commands computed in a sutra_controller_object.
         From the command vector, it computes the voltage command (adding pertrubation voltages,
@@ -1621,6 +1621,8 @@ def rtc_init(Telescope g_tel, Sensors g_wfs, p_wfs, Dms g_dms, p_dms, Param_geom
                 elif(wfs.type_wfs == "pyr" or wfs.type_wfs == "roof"):
                     s_offset = 0
                     s_scale = 0
+                elif(wfs.type_wfs == "pyrhr"):
+                    s_scale = (wfs.Lambda*1e-6/p_tel.diam)*wfs.pyr_ampl*RASC
 
                 g_rtc.add_centroider(g_wfs, nwfs, wfs._nvalid, centroider.type_centro, s_offset, s_scale)
                 g_rtc.sensors_initbcube(i)

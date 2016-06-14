@@ -52,7 +52,7 @@ int sutra_centroider_pyr::get_pyr(float *cube, float *subsum, float *centroids,
 		pyr_subsum(subsum, cube, subindx, subindy, ns, nvalid,
 				this->current_context->get_device(device));
 
-		pyr2_slopes(centroids, cube, subindx, subindy, subsum, ns, nvalid,
+		pyr2_slopes(centroids, cube, subindx, subindy, subsum, ns, nvalid,this->scale,
 				this->current_context->get_device(device));
 	} else {
 		return EXIT_FAILURE;

@@ -1496,9 +1496,10 @@ pyr_slopes<double>(double *d_odata, double *d_idata, int *subindx, int *subindy,
 
 template<class T>
 __global__ void pyr2slopes_krnl(T *g_odata, T *g_idata, int *subindx,
-    int *subindy, T *subsum, unsigned int ns, unsigned int nvalid) {
+    int *subindy, T *subsum, unsigned int ns, unsigned int nvalid, T scale) {
+	const double pi = 3.1415926535897932384626433;
   unsigned int i = blockIdx.x * blockDim.x + threadIdx.x;
-
+  T tmp;
   if (i < nvalid) {
     int iq1 = subindx[i] + subindy[i] * ns;
     int iq2 = subindx[i+nvalid] + subindy[i+nvalid] * ns;
@@ -1511,15 +1512,16 @@ __global__ void pyr2slopes_krnl(T *g_odata, T *g_idata, int *subindx,
      + g_idata[i2 + 3 * ns * ns]) - (g_idata[i2] + g_idata[i2 + ns * ns]))
      / subsum[0];
      */
-
-        g_odata[i] = ((g_idata[iq1] + g_idata[iq4]) - (g_idata[iq2] + g_idata[iq3])) / subsum[i];
-        g_odata[i + nvalid] = ((g_idata[iq1] + g_idata[iq3]) - (g_idata[iq2] + g_idata[iq4])) / subsum[i];
+    	tmp = ((g_idata[iq1] + g_idata[iq4]) - (g_idata[iq2] + g_idata[iq3])) / subsum[i];
+    	g_odata[i] = scale*sin(pi/2.*tmp);
+        tmp = ((g_idata[iq1] + g_idata[iq3]) - (g_idata[iq2] + g_idata[iq4])) / subsum[i];
+        g_odata[i + nvalid] = scale*sin(pi/2.*tmp);
   }
 }
 
 template<class T>
 void pyr2_slopes(T *d_odata, T *d_idata, int *subindx, int *subindy, T *subsum,
-    int ns, int nvalid, carma_device *device) {
+    int ns, int nvalid, T scale, carma_device *device) {
   //cout << "hello cu" << endl;
 
   int nBlocks,nThreads;
@@ -1527,17 +1529,17 @@ void pyr2_slopes(T *d_odata, T *d_idata, int *subindx, int *subindy, T *subsum,
   dim3 grid(nBlocks), threads(nThreads);
 
   pyr2slopes_krnl<T> <<<grid, threads>>>(d_odata, d_idata, subindx, subindy,
-      subsum, ns, nvalid);
+      subsum, ns, nvalid,scale);
 
   carmaCheckMsg("pyrslopes_kernel<<<>>> execution failed\n");
 }
 
 template void
 pyr2_slopes<float>(float *d_odata, float *d_idata, int *subindx, int *subindy,
-    float *subsum, int ns, int nvalid, carma_device *device);
+    float *subsum, int ns, int nvalid, float scale, carma_device *device);
 template void
 pyr2_slopes<double>(double *d_odata, double *d_idata, int *subindx, int *subindy,
-    double *subsum, int ns, int nvalid, carma_device *device);
+    double *subsum, int ns, int nvalid, double scale, carma_device *device);
 
 ////////////////////////////////////////////////////////////
 // ADDING PYR_SLOPES MODIFIED FOR ROOF-PRISM: ROOF_SLOPES //
