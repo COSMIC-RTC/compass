@@ -1135,8 +1135,8 @@ cdef class Rtc:
             controller_geo.d_geocov.device2host(<float*>data_F.data)
             
             data=np.reshape(data_F.flatten("F"),(dims[1],dims[2]))
-	else:
-	    raise ValueError("Controller must be geo not %s"%type_contro)
+        else:
+            raise ValueError("Controller must be geo not %s"%type_contro)
 
         return data
         
