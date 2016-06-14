@@ -77,6 +77,7 @@ def params_dictionary(config):
             "pyr_ampl":[wfs.pyr_ampl for wfs in config.p_wfss],
             "pyr_loc":[wfs.pyr_loc if(wfs.pyr_loc) else ""  for wfs in config.p_wfss],
             "pyr_npts":[wfs.pyr_npts for wfs in config.p_wfss],
+            "pyr_pup_sep":[wfs.pyr_pup_sep for wfs in config.p_wfss],
             "pyrtype":[wfs.pyrtype if(wfs.pyrtype) else "" for wfs in config.p_wfss]}
     else:
         wfs_dict = {"nwfs":len(config.p_wfss), "type_wfs":None, "nxsub":None, "npix":None,
@@ -424,7 +425,7 @@ def checkControlParams(savepath, config, pdict, matricesToLoad):
         matricesToLoad : (dictionary) :  matrices that will be load and their path
     """
     dataBase = pandas.read_hdf(savepath + "matricesDataBase.h5", "imat")
-    param2test = ["tel_diam", "t_spiders", "spiders_type", "pupangle", "referr", "std_piston", "std_tt", "type_ap", "nbrmissing", "cobs", "pupdiam", "nwfs", "type_wfs", "nxsub", "npix", "pixsize", "fracsub", "wfs.xpos", "wfs.ypos", "wfs.Lambda", "dms_seen", "fssize", "fstop", "pyr_ampl", "pyr_loc", "pyr_npts", "pyrtype", "ndms", "type_dm", "dm.alt", "coupling", "hyst", "margin", "nact", "nkl", "push4imat", "dm.thresh", "unitpervolt"]
+    param2test = ["tel_diam", "t_spiders", "spiders_type", "pupangle", "referr", "std_piston", "std_tt", "type_ap", "nbrmissing", "cobs", "pupdiam", "nwfs", "type_wfs", "nxsub", "npix", "pixsize", "fracsub", "wfs.xpos", "wfs.ypos", "wfs.Lambda", "dms_seen", "fssize", "fstop", "pyr_ampl", "pyr_loc", "pyr_npts", "pyr_pup_sep","pyrtype", "ndms", "type_dm", "dm.alt", "coupling", "hyst", "margin", "nact", "nkl", "push4imat", "dm.thresh", "unitpervolt"]
 
     param2test += ["ncentroiders", "type_centro",
                   "nmax", "centro.nwfs", "sizex", "sizey", "centroider.thresh", "type_fct",
@@ -547,7 +548,7 @@ def checkDmsParams(savepath, config, pdict, matricesToLoad):
         matricesToLoad : (dictionary) :  matrices that will be load and their path
     """
     dataBase = pandas.read_hdf(savepath + "matricesDataBase.h5", "pztok")
-    param2test = ["tel_diam", "t_spiders", "spiders_type", "pupangle", "referr", "std_piston", "std_tt", "type_ap", "nbrmissing", "cobs", "pupdiam", "nwfs", "type_wfs", "nxsub", "npix", "pixsize", "fracsub", "wfs.xpos", "wfs.ypos", "wfs.Lambda", "dms_seen", "fssize", "fstop", "pyr_ampl", "pyr_loc", "pyr_npts", "pyrtype", "ndms", "type_dm", "dm.alt", "coupling", "hyst", "margin", "nact", "nkl", "push4imat", "dm.thresh", "unitpervolt"]
+    param2test = ["tel_diam", "t_spiders", "spiders_type", "pupangle", "referr", "std_piston", "std_tt", "type_ap", "nbrmissing", "cobs", "pupdiam", "nwfs", "type_wfs", "nxsub", "npix", "pixsize", "fracsub", "wfs.xpos", "wfs.ypos", "wfs.Lambda", "dms_seen", "fssize", "fstop", "pyr_ampl", "pyr_loc", "pyr_npts", "pyrtype", "pyr_pup_sep","ndms", "type_dm", "dm.alt", "coupling", "hyst", "margin", "nact", "nkl", "push4imat", "dm.thresh", "unitpervolt"]
 
     for i in dataBase.index:
         cc = 0
