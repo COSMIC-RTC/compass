@@ -330,13 +330,12 @@ cpdef make_pzt_dm(Param_dm p_dm,Param_geom geom,Param_tel p_tel,irc):
         p_dm.type_pattern = <bytes>'square'
     cdef long nxact=p_dm.nact
     cdef np.ndarray cub
-    if p_dm.type_pattern == 'square':
-        cub = createSquarePattern( pitch, nxact )
-        #h5.writeHdf5SingleDataset('/home/sdurand/compass/test_square.h5', cub)
     if p_dm.type_pattern == 'hexa':
-        print "DEBUG : Hexa"
+        print "Patter type : Hexa"
         cub = createHexaPattern( pitch, geom.pupdiam * 1.1)
-        #h5.writeHdf5SingleDataset('/home/sdurand/compass/test_hexa.h5', cub)
+    else :
+        print "Patter default type : Square"
+        cub = createSquarePattern( pitch, nxact )
 
     inbigcirc = n_actuator_select(p_dm,p_tel,cub[0,:],cub[1,:])
 
@@ -348,7 +347,7 @@ cpdef make_pzt_dm(Param_dm p_dm,Param_geom geom,Param_tel p_tel,irc):
     # filtering actuators outside of a disk radius = rad (see above)
     cdef np.ndarray cubval = cub[:,inbigcirc]
     ntotact = cubval.shape[1]
-    print "DEBUG : ntact =",ntotact
+    print "ntact =",ntotact
     xpos    = cubval[0,:]
     ypos    = cubval[1,:]
     i1t      = (cubval[0,:]-smallsize/2+0.5-p_dm._n1).astype(np.int32)
@@ -389,7 +388,7 @@ cpdef make_pzt_dm(Param_dm p_dm,Param_geom geom,Param_tel p_tel,irc):
 
     p_dm._influ = influ
 
-    print 'DEBUG : nb = ',np.size(inbigcirc)
+    print  'number of actuator after filter = ',np.size(inbigcirc)
     p_dm._ntotact = np.size(inbigcirc)
     p_dm._xpos = xpos
     p_dm._ypos = ypos
@@ -423,31 +422,27 @@ cpdef read_influ_hdf5 (Param_dm p_dm,Param_tel p_tel, Param_geom geom):
 
     """
     # read h5 file for influence fonction
-
     h5_tp = pd.read_hdf(p_dm.file_influ_hdf5,'resAll')
-    print 'DEBUG : path = ',p_dm.file_influ_hdf5
 
     # cube_name
     influ_h5 = h5_tp[p_dm.cube_name][0]
-    print 'DEBUG : cube_name = ',p_dm.cube_name
 
     # x_name
     xpos_h5 = h5_tp[p_dm.x_name][0]
-    print 'DEBUG : x_name = ',p_dm.x_name
+
 
     # y_name
     ypos_h5 = h5_tp[p_dm.y_name][0]
-    print 'DEBUG : y_name = ',p_dm.y_name
+
 
     # center_name
     center_h5 = h5_tp[p_dm.center_name][0]
-    print 'DEBUG : center_name = ',p_dm.center_name
+
 
     # influ_res
     res_h5 = h5_tp[p_dm.influ_res][0]
     res_h5_m = (res_h5[0]+res_h5[1])/2.
-    print 'DEBUG : influ_res = ',p_dm.influ_res
-    print 'DEBUG : influ_res = ',res_h5
+
 
     # a introduire
     diam_h5 = [2.54,2.54] # metre
@@ -458,10 +453,12 @@ cpdef read_influ_hdf5 (Param_dm p_dm,Param_tel p_tel, Param_geom geom):
 
     # interpolation du centre (ajout du nouveau centre)
     center = geom.cent
-    print 'DEBUG : newcenter = ',center
+
+
     # calcul de la resolution de la pupille
     res_compass = p_tel.diam/geom.pupdiam
-    print 'DEBUG : res_compass = ',res_compass
+
+
     # interpolation des coordonnées en pixel avec ajout du centre
     xpos = (xpos_h5_0*(p_tel.diam*1.11/diam_h5[0]))/res_compass + center
     ypos = (ypos_h5_0*(p_tel.diam*1.11/diam_h5[1]))/res_compass + center
@@ -469,9 +466,8 @@ cpdef read_influ_hdf5 (Param_dm p_dm,Param_tel p_tel, Param_geom geom):
     # interpolation des fonction d'influence
 
     influ_size_h5 = influ_h5.shape[0]
-    print 'DEBUG : h5_influsize = ',influ_h5.shape[0]
     ninflu = influ_h5.shape[2]
-    print 'DEBUG :h5_ninflu = ',influ_h5.shape[2]
+
 
     x = np.arange(influ_size_h5)*res_h5_m*(p_tel.diam/diam_h5[0])
     y = np.arange(influ_size_h5)*res_h5_m*(p_tel.diam/diam_h5[1])
@@ -493,22 +489,21 @@ cpdef read_influ_hdf5 (Param_dm p_dm,Param_tel p_tel, Param_geom geom):
         f = interpolate.interp2d(x,y,influ,kind='cubic')
         influ_new[:,:,i] = f(xnew, ynew)
 
+
     p_dm._xpos = np.float32(xpos)
     p_dm._ypos = np.float32(ypos)
 
     # number of actuator
-
     p_dm._ntotact = np.int(ninflu)
-    print 'DEBUG : nombre influ = ',ninflu
 
     # def influente fonction
     p_dm._influ = np.float32(influ_new)
 
     # def influence size
     p_dm._influsize = np.int(influ_size)
-    print 'DEBUG : influsizenew = ',influ_size
-    # Def dm limite (n1 and n2)
 
+
+    # Def dm limite (n1 and n2)
     extent = (max(xpos) - min(xpos))+(influ_size*2)
     p_dm._n1 = np.floor(geom.cent - extent / 2)
     p_dm._n2 = np.ceil(geom.cent + extent / 2)
@@ -517,8 +512,6 @@ cpdef read_influ_hdf5 (Param_dm p_dm,Param_tel p_tel, Param_geom geom):
     if(p_dm._n2 > geom.ssize):
         p_dm._n2 = geom.ssize
 
-    print 'DEBUG : n1 = ',p_dm._n1
-    print 'DEBUG : n2 = ',p_dm._n2
     # refaire la definition du pitch pour n_actuator
     #inbigcirc = n_actuator_select(p_dm,p_tel,xpos-center[0],ypos-center[1])
     #print 'nb = ',np.size(inbigcirc)
@@ -761,18 +754,17 @@ cpdef comp_dmgeom(Param_dm dm, Param_geom geom):
     tmpy += offs + np.tile(dm._j1, (smallsize, smallsize, 1))
 
     cdef np.ndarray[ndim = 3, dtype = np.int32_t] tmp = tmpx + dim * tmpy
-    print "DEBUG : tmp = ",tmp
+
+    # bug in limit of def zone -10 destoe influpos for all actuator
     tmp[tmpx < 0] = -10
     tmp[tmpy < 0] = -10
     tmp[tmpx > dims - 1] = -10
     tmp[tmpy > dims - 1] = -10
-    print "DEBUG : tmp.flatten = ",tmp.flatten("F")
     cdef np.ndarray[ndim = 1, dtype = np.int32_t] itmps = np.argsort(tmp.flatten("F")).astype(np.int32)
     cdef np.ndarray[ndim = 1, dtype = np.int32_t] tmps = np.sort(tmp.flatten("F")).astype(np.int32)
     itmps = itmps[np.where(itmps > -1)]
-    #tmps = tmps[np.where(tmps > -1)]
-    #tmps = tmps-min(tmps)
-    print "DEBUG : tmps = ", tmps
+
+
     cdef np.ndarray[ndim = 1, dtype = np.int32_t] istart, npts
     istart = np.zeros((dim * dim), dtype=np.int32)
     npts = np.zeros((dim * dim), dtype=np.int32)
@@ -780,7 +772,7 @@ cpdef comp_dmgeom(Param_dm dm, Param_geom geom):
     cdef int cpt, ref
     cpt = 0
     ref = 0
-    print "DEBUG : offs", offs
+
     for i in range(dim * dim):
         if(offs != 0 and mapactu.item(i) == 0):
             npts[i] = 0
@@ -792,10 +784,7 @@ cpdef comp_dmgeom(Param_dm dm, Param_geom geom):
             npts[i] = cpt - ref
             istart[i] = ref
             ref = cpt
-    print "DEBUG : npts",npts
-    print "DEBUG : sum npts",np.sum(npts)
-    print "DEBUG : itmps", itmps
-    print "DEBUG : influpos",itmps[:np.sum(npts)].astype(np.int32)
+
     dm._influpos = itmps[:np.sum(npts)].astype(np.int32)
     dm._ninflu = npts.astype(np.int32)
     dm._influstart = istart.astype(np.int32)
