@@ -332,11 +332,11 @@ cpdef make_pzt_dm(Param_dm p_dm,Param_geom geom,Param_tel p_tel,irc):
     cdef np.ndarray cub
     if p_dm.type_pattern == 'square':
         cub = createSquarePattern( pitch, nxact )
-        h5.writeHdf5SingleDataset('/home/sdurand/compass/test_square.h5', cub)
+        #h5.writeHdf5SingleDataset('/home/sdurand/compass/test_square.h5', cub)
     if p_dm.type_pattern == 'hexa':
         print "DEBUG : Hexa"
         cub = createHexaPattern( pitch, geom.pupdiam * 1.1)
-        h5.writeHdf5SingleDataset('/home/sdurand/compass/test_hexa.h5', cub)
+        #h5.writeHdf5SingleDataset('/home/sdurand/compass/test_hexa.h5', cub)
 
     inbigcirc = n_actuator_select(p_dm,p_tel,cub[0,:],cub[1,:])
 
@@ -1224,7 +1224,7 @@ cdef class Dms:
             type_dm: (str) : dm type
 
             alt: (float) : dm conjugaison altitude
-        :return:
+g        :return:
             data : (np.ndarray(dims=1,dtype=np.float32)) : voltage vector
         """
 
