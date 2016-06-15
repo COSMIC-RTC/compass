@@ -117,6 +117,8 @@ class widgetAOWindow(TemplateBaseClass):
         self.ui.wao_setCentro.clicked.connect(self.setRtcParams)
         self.ui.wao_setTelescope.clicked.connect(self.setTelescopeParams)
         self.ui.wao_resetDM.clicked.connect(self.resetDM)
+        self.ui.wao_update_gain.clicked.connect(self.updateGain)
+        self.ui.wao_update_pyr_ampl.clicked.connect(self.updatePyrAmpl)
         self.ui.wao_selectRtcMatrix.currentIndexChanged.connect(
             self.displayRtcMatrix)
         self.ui.wao_rtcWindowMPL.hide()
@@ -174,6 +176,15 @@ class widgetAOWindow(TemplateBaseClass):
         #############################################################
         #                       METHODS                             #
         #############################################################
+    def updateGain(self):
+        if(self.rtc):
+            self.rtc.set_gain(0,float(self.ui.wao_controlGain.value()))
+            print "Loop gain updated on GPU"
+
+    def updatePyrAmpl(self):
+        if(self.rtc):
+            self.rtc.set_pyr_ampl(0,self.ui.wao_pyr_ampl.value(),self.config.p_wfss,self.config.p_tel)
+            print "Pyramid modulation updated on GPU"
 
     def updateFrameRate(self):
         if(self.ui.wao_Display.isChecked()):
@@ -217,6 +228,7 @@ class widgetAOWindow(TemplateBaseClass):
         self.ui.wao_wfsZp.setValue(np.log10(self.config.p_wfss[nwfs].zerop))
         self.ui.wao_wfsThrough.setValue(self.config.p_wfss[nwfs].optthroughput)
         self.ui.wao_wfsNoise.setValue(self.config.p_wfss[nwfs].noise)
+        self.ui.wao_pyr_ampl.setValue(self.config.p_wfss[nwfs].pyr_ampl)
 
         # LGS panel
         if(self.config.p_wfss[nwfs].gsalt > 0):
@@ -659,7 +671,7 @@ class widgetAOWindow(TemplateBaseClass):
             self.p1.addItem(self.SRcircleDM[i])
             self.SRcircleDM[i].setPoints(cx, cy)
             self.SRcircleDM[i].hide()
-        
+
         for i in range(self.config.p_target.ntargets):
             data = self.tar.get_phase(i)
             cx, cy = self.circleCoords(self.config.p_geom.pupdiam/2, 1000, data.shape[0], data.shape[1])
@@ -801,7 +813,7 @@ class widgetAOWindow(TemplateBaseClass):
                     if(self.SRCrossX and (self.imgType in ["Phase - Target", "Phase - DM", "Phase - Atmos", "Phase - WFS", "Spots - WFS", "Centroids - WFS", "Slopes - WFS"])):
                         self.SRCrossX.hide()
                         self.SRCrossY.hide()
-    
+
                     #if(self.SRcircle and (self.imgType in ["Spots - WFS", "Centroids - WFS", "Slopes - WFS","PSF SE","PSF LE"])):
                     for i in range(len(self.config.p_atmos.alt)):
                         self.SRcircleAtmos[i].hide()

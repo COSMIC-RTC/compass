@@ -738,6 +738,23 @@
                    </property>
                   </widget>
                  </item>
+                 <item row="5" column="3">
+                  <widget class="QDoubleSpinBox" name="wao_pyr_ampl"/>
+                 </item>
+                 <item row="5" column="2">
+                  <widget class="QLabel" name="label_60">
+                   <property name="text">
+                    <string>Pyr. mod. ampl.</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="6" column="3">
+                  <widget class="QPushButton" name="wao_update_pyr_ampl">
+                   <property name="text">
+                    <string>Update ampl.</string>
+                   </property>
+                  </widget>
+                 </item>
                 </layout>
                </item>
                <item>
@@ -1633,6 +1650,13 @@
                      </property>
                     </widget>
                    </item>
+                   <item row="6" column="1">
+                    <widget class="QPushButton" name="wao_update_gain">
+                     <property name="text">
+                      <string>Update gain</string>
+                     </property>
+                    </widget>
+                   </item>
                   </layout>
                  </item>
                 </layout>
@@ -1841,7 +1865,7 @@
      <x>0</x>
      <y>0</y>
      <width>1263</width>
-     <height>29</height>
+     <height>19</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
