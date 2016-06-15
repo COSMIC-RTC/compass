@@ -85,7 +85,7 @@ cdef _dm_init(Dms dms, Param_dm p_dms, list p_wfs, Param_geom p_geom, Param_tel 
             # Patchdiam
             p_dms._pitch = long(patchDiam / (p_dms.nact - 1))
 
-            extent = p_dms._pitch * (p_dms.nact + 3)  # + 1.5 pitch each side
+            extent = p_dms._pitch * (p_dms.nact + 5)  # + 2.5 pitch each side
             p_dms._n1 = np.floor(p_geom.cent - extent / 2)
             p_dms._n2 = np.ceil(p_geom.cent + extent / 2)
             if(p_dms._n1 < 1):
@@ -109,10 +109,6 @@ cdef _dm_init(Dms dms, Param_dm p_dms, list p_wfs, Param_geom p_geom, Param_tel 
             #calcul defaut influsize
             make_pzt_dm(p_dms,p_geom,p_tel,irc)
         else :
-            # p_dms._influsize
-            # p_dms._n1
-            # p_dms._n2
-            # p_dms.nact
             read_influ_hdf5 (p_dms,p_tel,p_geom)
 
         # max_extent
@@ -201,14 +197,14 @@ cpdef createSquarePattern(float pitch, int nxact ):
     :return:
         xy: (np.ndarray(dims=2,dtype=np.float32)) : xy[M,2] list of coodinates
     """
-    cdef np.ndarray[ndim=2, dtype=np.float32_t] xy
 
     xy = np.tile( np.arange(nxact) - (nxact-1.)/2. , (nxact,1)).astype(np.float32)
     xy = np.array([xy.flatten(), xy.T.flatten()]) * pitch
+    xy = np.float32(xy)
     return xy
 
 
-cpdef createHexaPattern(np.float32_t pitch, np.float32_t supportSize):
+cpdef createHexaPattern(float pitch, float supportSize):
     """
     Creates a list of M actuator positions spread over an hexagonal grid.
     The number M is the number of points of this grid, it cannot be
@@ -223,18 +219,18 @@ cpdef createHexaPattern(np.float32_t pitch, np.float32_t supportSize):
     :return:
         xy: (np.ndarray(dims=2,dtype=np.float32)) : xy[M,2] list of coodinates
     """
-    cdef float V3 = np.sqrt(3)
-    cdef int nx = int(np.ceil((supportSize/2.0)/pitch) + 1)
-    cdef np.ndarray[ndim=1, dtype=np.float32_t] x = pitch * (np.arange(2*nx+1, dtype=np.float32)-nx)
-    cdef int Nx = x.shape[0]
-    cdef int ny = int(np.ceil((supportSize/2.0)/pitch/V3) + 1)
-    cdef np.ndarray[ndim=1, dtype=np.float32_t] y = (V3 * pitch) * (np.arange(2*ny+1, dtype=np.float32)-ny)
-    cdef int Ny = y.shape[0]
+    V3 = np.sqrt(3)
+    nx = int(np.ceil((supportSize/2.0)/pitch) + 1)
+    x = pitch * (np.arange(2*nx+1, dtype=np.float32)-nx)
+    Nx = x.shape[0]
+    ny = int(np.ceil((supportSize/2.0)/pitch/V3) + 1)
+    y = (V3 * pitch) * (np.arange(2*ny+1, dtype=np.float32)-ny)
+    Ny = y.shape[0]
     x = np.tile(x,(Ny,1)).flatten()
     y = np.tile(y,(Nx,1)).T.flatten()
     x = np.append(x, x + pitch/2.)
     y = np.append(y, y + pitch*V3/2.)
-    cdef np.ndarray[ndim=2, dtype=np.float32_t] xy = np.array([x,y])
+    xy = np.float32(np.array([x,y]))
     return xy
 
 
@@ -336,8 +332,11 @@ cpdef make_pzt_dm(Param_dm p_dm,Param_geom geom,Param_tel p_tel,irc):
     cdef np.ndarray cub
     if p_dm.type_pattern == 'square':
         cub = createSquarePattern( pitch, nxact )
+        h5.writeHdf5SingleDataset('/home/sdurand/compass/test_square.h5', cub)
     if p_dm.type_pattern == 'hexa':
+        print "DEBUG : Hexa"
         cub = createHexaPattern( pitch, geom.pupdiam * 1.1)
+        h5.writeHdf5SingleDataset('/home/sdurand/compass/test_hexa.h5', cub)
 
     inbigcirc = n_actuator_select(p_dm,p_tel,cub[0,:],cub[1,:])
 
@@ -349,6 +348,7 @@ cpdef make_pzt_dm(Param_dm p_dm,Param_geom geom,Param_tel p_tel,irc):
     # filtering actuators outside of a disk radius = rad (see above)
     cdef np.ndarray cubval = cub[:,inbigcirc]
     ntotact = cubval.shape[1]
+    print "DEBUG : ntact =",ntotact
     xpos    = cubval[0,:]
     ypos    = cubval[1,:]
     i1t      = (cubval[0,:]-smallsize/2+0.5-p_dm._n1).astype(np.int32)
@@ -394,13 +394,15 @@ cpdef make_pzt_dm(Param_dm p_dm,Param_geom geom,Param_tel p_tel,irc):
     p_dm._xpos = xpos
     p_dm._ypos = ypos
 
+    # i1, j1 calc :
+
     p_dm._i1 = (p_dm._xpos - p_dm._influsize/2. +0.5 - p_dm._n1).astype(np.int32)
     p_dm._j1 = (p_dm._ypos - p_dm._influsize/2. +0.5 - p_dm._n1).astype(np.int32)
 
     comp_dmgeom(p_dm,geom)
 
-    cdef long dim = max(geom._mpupil.shape[0], p_dm._n2 - p_dm._n1 + 1)
-    cdef float off = (dim - p_dm._influsize) / 2
+    cdef long dim=max(geom._mpupil.shape[0],p_dm._n2-p_dm._n1+1)
+    cdef float off=(dim-p_dm._influsize)/2
 
     cdef np.ndarray[ndim=2, dtype=np.float32_t] kernconv=np.zeros((dim,dim),dtype=np.float32)
     kernconv [off:off+p_dm._influsize,off:off+p_dm._influsize] = p_dm._influ[:,:,0]
@@ -426,23 +428,23 @@ cpdef read_influ_hdf5 (Param_dm p_dm,Param_tel p_tel, Param_geom geom):
     print 'DEBUG : path = ',p_dm.file_influ_hdf5
 
     # cube_name
-    influ_h5 = h5_tp.m_influ[0]
+    influ_h5 = h5_tp[p_dm.cube_name][0]
     print 'DEBUG : cube_name = ',p_dm.cube_name
 
     # x_name
-    xpos_h5 = h5_tp.xpos[0]
+    xpos_h5 = h5_tp[p_dm.x_name][0]
     print 'DEBUG : x_name = ',p_dm.x_name
 
     # y_name
-    ypos_h5 = h5_tp.ypos[0]
+    ypos_h5 = h5_tp[p_dm.y_name][0]
     print 'DEBUG : y_name = ',p_dm.y_name
 
     # center_name
-    center_h5 = h5_tp.center[0]
+    center_h5 = h5_tp[p_dm.center_name][0]
     print 'DEBUG : center_name = ',p_dm.center_name
 
     # influ_res
-    res_h5 = h5_tp.res[0]
+    res_h5 = h5_tp[p_dm.influ_res][0]
     res_h5_m = (res_h5[0]+res_h5[1])/2.
     print 'DEBUG : influ_res = ',p_dm.influ_res
     print 'DEBUG : influ_res = ',res_h5
@@ -759,16 +761,18 @@ cpdef comp_dmgeom(Param_dm dm, Param_geom geom):
     tmpy += offs + np.tile(dm._j1, (smallsize, smallsize, 1))
 
     cdef np.ndarray[ndim = 3, dtype = np.int32_t] tmp = tmpx + dim * tmpy
-
+    print "DEBUG : tmp = ",tmp
     tmp[tmpx < 0] = -10
     tmp[tmpy < 0] = -10
     tmp[tmpx > dims - 1] = -10
     tmp[tmpy > dims - 1] = -10
-
+    print "DEBUG : tmp.flatten = ",tmp.flatten("F")
     cdef np.ndarray[ndim = 1, dtype = np.int32_t] itmps = np.argsort(tmp.flatten("F")).astype(np.int32)
     cdef np.ndarray[ndim = 1, dtype = np.int32_t] tmps = np.sort(tmp.flatten("F")).astype(np.int32)
     itmps = itmps[np.where(itmps > -1)]
-
+    #tmps = tmps[np.where(tmps > -1)]
+    #tmps = tmps-min(tmps)
+    print "DEBUG : tmps = ", tmps
     cdef np.ndarray[ndim = 1, dtype = np.int32_t] istart, npts
     istart = np.zeros((dim * dim), dtype=np.int32)
     npts = np.zeros((dim * dim), dtype=np.int32)
@@ -776,17 +780,22 @@ cpdef comp_dmgeom(Param_dm dm, Param_geom geom):
     cdef int cpt, ref
     cpt = 0
     ref = 0
-
+    print "DEBUG : offs", offs
     for i in range(dim * dim):
         if(offs != 0 and mapactu.item(i) == 0):
             npts[i] = 0
         else:
+            #print "DEBUG : tmps[cpt], i tmps.size-1 = ",tmps[cpt], i, tmps.size-1
             while(tmps[cpt] == i and cpt < tmps.size - 1):
                 cpt += 1
+            #print "DEBUG : cpt, ref", cpt, ref
             npts[i] = cpt - ref
             istart[i] = ref
             ref = cpt
-
+    print "DEBUG : npts",npts
+    print "DEBUG : sum npts",np.sum(npts)
+    print "DEBUG : itmps", itmps
+    print "DEBUG : influpos",itmps[:np.sum(npts)].astype(np.int32)
     dm._influpos = itmps[:np.sum(npts)].astype(np.int32)
     dm._ninflu = npts.astype(np.int32)
     dm._influstart = istart.astype(np.int32)

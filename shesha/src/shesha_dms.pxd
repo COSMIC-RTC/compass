@@ -26,7 +26,7 @@ cdef class Dms:
     """sutra_dms object"""
     cdef int device
     """ GPU device number"""
-    cpdef add_dm(self, bytes type_dm, float alt, long dim, long ninflu, 
+    cpdef add_dm(self, bytes type_dm, float alt, long dim, long ninflu,
                 long influsize, long ninflupos, long npts, float puhs4imat,
                 int device=?)
     cpdef remove_dm(self,bytes type_dm, float alt)
@@ -68,7 +68,7 @@ cdef class Dms:
 
 
 cpdef createSquarePattern(float pitch, int nxact )
-cpdef createHexaPattern(np.float32_t pitch, np.float32_t supportSize)
+cpdef createHexaPattern(float pitch, float supportSize)
 cpdef make_pzt_dm(Param_dm p_dm,Param_geom geom,Param_tel p_tel,irc)
 cpdef read_influ_hdf5 (Param_dm p_dm,Param_tel p_tel, Param_geom geom)
 cpdef make_tiptilt_dm(Param_dm p_dm,list p_wfs, Param_geom p_geom, Param_tel p_tel)
