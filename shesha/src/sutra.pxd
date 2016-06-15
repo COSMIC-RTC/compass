@@ -281,11 +281,13 @@ cdef extern from "sutra_wfs.h":
         bool kernconv
         bool error_budget
 
+        # MPI STUFF
         int rank
         int offset
         int nvalid_tot
         int * displ_bincube
         int * count_bincube
+        #
 
         cufftHandle * campli_plan
         cufftHandle * fttotim_plan
@@ -309,28 +311,14 @@ cdef extern from "sutra_wfs.h":
 
         carma_host_obj[float] * image_telemetry
 
-      # sh only
-        carma_obj[int] * d_phasemap
-        carma_obj[int] * d_binmap
-        carma_obj[int] * d_validsubsx  # nvalid
-        carma_obj[int] * d_validsubsy  # nvalid
-        carma_obj[int] * d_istart  # nxsub
-        carma_obj[int] * d_jstart  # nxsub
-
-      # pyramid only
-        carma_obj[float] * d_hrimg
-        carma_obj[float] * d_submask
-        carma_obj[float] * d_psum
-        carma_obj[cuFloatComplex] * d_phalfxy
-        carma_obj[cuFloatComplex] * d_poffsets
-
-        carma_host_obj[float] * pyr_cx
-        carma_host_obj[float] * pyr_cy
-
         sutra_source * d_gs
 
         carma_streams * streams
         int nstreams
+
+        carma_obj[int] * d_phasemap
+        carma_obj[int] * d_validsubsx  # nvalid
+        carma_obj[int] * d_validsubsy  # nvalid
 
         carma_context * current_context
 
@@ -367,6 +355,11 @@ cdef extern from "sutra_wfs.h":
 #################################################
 cdef extern from "sutra_wfs_sh.h":
     cdef cppclass sutra_wfs_sh(sutra_wfs):
+
+        carma_obj[int] * d_binmap
+        carma_obj[int] * d_istart  # nxsub
+        carma_obj[int] * d_jstart  # nxsub
+
         int  wfs_initarrays(int * phasemap, int * hrmap, int * binmap, float * offsets,
                             float * fluxPerSub, int * validsubsx,
                             int * validsubsy, int * istart, int * jstart, cuFloatComplex * kernel)
@@ -379,6 +372,14 @@ cdef extern from "sutra_wfs_sh.h":
 #################################################
 cdef extern from "sutra_wfs_pyr.h":
     cdef cppclass sutra_wfs_pyr(sutra_wfs):
+        carma_obj[float] * d_hrimg
+        carma_obj[float] * d_submask
+        carma_obj[float] * d_psum
+        carma_obj[cuFloatComplex] * d_phalfxy
+        carma_obj[cuFloatComplex] * d_poffsets
+        carma_host_obj[float] * pyr_cx
+        carma_host_obj[float] * pyr_cy
+
         int wfs_initarrays(cuFloatComplex * halfxy, cuFloatComplex * offsets,
                            float * focmask, float * cx, float * cy,
                            float * sincar, int * phasemap, int * validsubsx, int * validsubsy)

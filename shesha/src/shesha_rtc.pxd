@@ -1,7 +1,7 @@
-from naga_context cimport * 
-from naga_obj cimport * 
-from naga_sparse_obj cimport * 
-from naga_magma cimport * 
+from naga_context cimport *
+from naga_obj cimport *
+from naga_sparse_obj cimport *
+from naga_magma cimport *
 
 cimport numpy as np
 
@@ -20,10 +20,10 @@ from libc.stdint cimport uintptr_t
 from cpython.string cimport PyString_AsString
 
 from shesha_param import *
-from shesha_param cimport * 
-from shesha_sensors cimport * 
-from shesha_dms cimport * 
-from shesha_target cimport * 
+from shesha_param cimport *
+from shesha_sensors cimport *
+from shesha_dms cimport *
+from shesha_target cimport *
 
 from libc.math cimport sin
 
@@ -81,8 +81,7 @@ cdef class Rtc:
     cpdef set_openloop(self, int ncontro, int openloop)
     cpdef load_Btt(self,int ncontro, np.ndarray[ndim=2,dtype=np.float32_t] Btt)
     cpdef getGeocov(self,int ncontro)
-
-
+    cpdef set_pyr_ampl(self, int n, float ampli, list p_wfss, Param_tel p_tel)
     cpdef doimat_geom(self, int ncontro, Dms g_dms, int geom)
     cpdef doimat(self, int ncontro, Dms g_dms)
     cpdef sensors_compslopes(self, int ncentro, int nmax=?, float thresh=?)
@@ -121,4 +120,3 @@ IF USE_BRAMA == 1:
         #################################################
         cdef class Rtc_brama(Rtc):
             cpdef publish(self)
-

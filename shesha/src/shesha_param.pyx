@@ -447,12 +447,26 @@ cdef class Param_wfs:
         """
         self.pyrtype = p
 
+    def set_pyr_cx(self, np.ndarray[ndim=1,dtype=np.float32_t] cx):
+        """Set the x position of modulation points for pyramid sensor
+
+        :param cx: (np.ndarray[ndim=1,dtype=np.floatt32_t) : x positions
+        """
+        self._pyr_cx = cx.copy()
+
+    def set_pyr_cy(self, np.ndarray[ndim=1,dtype=np.float32_t] cy):
+        """Set the y position of modulation points for pyramid sensor
+
+        :param cy: (np.ndarray[ndim=1,dtype=np.floatt32_t) : y positions
+        """
+        self._pyr_cy = cy.copy()
+
     def set_dms_seen(self, np.ndarray[ndim=1, dtype=np.int32_t] dms_seen):
         """Set the index of dms seen by the WFS
 
         :param dms_seen: (np.ndarray[ndim=1,dtype=np.int32_t) : index of dms seen by the WFS
         """
-        self.dms_seen = dms_seen
+        self.dms_seen = dms_seen.copy()
 
     def set_lgsreturnperwatt(self, float lpw):
         """Set the return per watt factor
@@ -467,7 +481,7 @@ cdef class Param_wfs:
 
         :param a: (np.ndarray[ndim=1,dtype=np.float32]) : corresponding altitude
         """
-        self._altna = a
+        self._altna = a.copy()
 
 
     def set_profna(self, np.ndarray[ndim=1, dtype=np.float32_t] p):
@@ -475,7 +489,7 @@ cdef class Param_wfs:
 
         :param p: (np.ndarray[ndim=1,dtype=np.float32]) : sodium profile
         """
-        self._profna = p
+        self._profna = p.copy()
 
     def set_errorBudget(self, bool error_budget):
         """ Set the error budget flag : if True, enable error budget analysis
@@ -782,56 +796,56 @@ cdef class Param_dm:
         :param t: (str) : type of dm
         """
         self.type_dm = t
-        
+
     def set_pattern(self,bytes t):
         """set the pattern type
 
         :param t: (str) : type of pattern
         """
         self.type_pattern=t
-        
+
     def set_file_influ_hdf5(self,bytes f):
-        """set the name of hdf5 influence file 
+        """set the name of hdf5 influence file
 
         :param filename: (str) : Hdf5 file influence name
         """
         self.file_influ_hdf5=f
-        
+
     def set_center_name(self,bytes f):
-        """set the name of hdf5 influence file 
+        """set the name of hdf5 influence file
 
         :param filename: (str) : Hdf5 file influence name
         """
         self.center_name=f
 
     def set_cube_name(self,bytes cubename):
-        """set the name of influence cube in hdf5 
+        """set the name of influence cube in hdf5
 
         :param cubename: (str) : name of influence cube
         """
         self.cube_name=cubename
-        
+
     def set_x_name(self,bytes xname):
-        """set the name of x coord of influence fonction in file 
+        """set the name of x coord of influence fonction in file
 
         :param t: (str) : name of x coord of influence
         """
         self.x_name=xname
 
     def set_y_name(self,bytes yname):
-        """set the name of y coord of influence fonction in file 
+        """set the name of y coord of influence fonction in file
 
         :param yname: (str) : name of y coord of influence
         """
         self.y_name=yname
-        
+
     def set_influ_res(self,bytes res):
-        """set the name of influence fonction resolution in file 
+        """set the name of influence fonction resolution in file
 
         :param yname: (str) : name of resoltion (meter/pixel) of influence
         """
         self.influ_res=res
-    
+
     def set_nact(self, long n):
 
         """set the number of actuator
@@ -843,23 +857,23 @@ cdef class Param_dm:
     def set_margin(self,float n):
         """set the margin for outside actuator select
 
-        :param n: (float) : pupille diametre ratio for actuator select 
+        :param n: (float) : pupille diametre ratio for actuator select
         """
-        self.margin=n  
-        
+        self.margin=n
+
     def set_margin_out(self,float n):
         """set the margin for outside actuator select
 
-        :param n: (float) : pupille diametre ratio for actuator select 
+        :param n: (float) : pupille diametre ratio for actuator select
         """
-        self.margin_out=n       
+        self.margin_out=n
 
     def set_margin_in(self,float n):
         """set the margin for inside actuator select (central obstruction)
 
-        :param n: (float) : pupille diametre ratio for actuator select 
+        :param n: (float) : pupille diametre ratio for actuator select
         """
-        self.margin_in=n    
+        self.margin_in=n
 
     def set_alt(self, float a):
         """set the conjugaison altitude
@@ -908,35 +922,35 @@ cdef class Param_dm:
 
         :param xpos: (np.ndarray[ndim=1,dtype=np.float32_t]) : x positions of influ functions
         """
-        self._xpos = xpos
+        self._xpos = xpos.copy()
 
     def set_ypos(self, np.ndarray[ndim=1, dtype=np.float32_t] ypos):
         """Set the y positions of influ functions (lower left corner)
 
         :param ypos: (np.ndarray[ndim=1,dtype=np.float32_t]) : y positions of influ functions
         """
-        self._ypos = ypos
+        self._ypos = ypos.copy()
 
     def set_i1(self, np.ndarray[ndim=1, dtype=np.int32_t] i1):
         """TODO doc
 
         :param i1: (np.ndarray[ndim=1,dtype=np.int32_t]) :
         """
-        self._i1 = i1
+        self._i1 = i1.copy()
 
     def set_j1(self, np.ndarray[ndim=1, dtype=np.int32_t] j1):
         """TODO doc
 
         :param j1: (np.ndarray[ndim=1,dtype=np.int32_t]) :
         """
-        self._j1 = j1
+        self._j1 = j1.copy()
 
     def set_influ(self, np.ndarray[ndim=3, dtype=np.float32_t] influ):
         """Set the influence function
 
         :param influ: (np.ndarray[ndim=3,dtype=np.float32_t]) : influence function
         """
-        self._influ = influ
+        self._influ = influ.copy()
 
 
 
@@ -1104,7 +1118,7 @@ cdef class Param_centroider:
         :parameters:
             w: (np.ndarray[ndim=3 ,dtype=np.float32_t]) : weights
         """
-        self.weights = w
+        self.weights = w.copy()
 
 
 
@@ -1235,14 +1249,14 @@ cdef class Param_controller:
 
         :param imat: (np.ndarray[ndim=2,dtype=np.float32_t]) : full interaction matrix
         """
-        self.imat = imat
+        self.imat = imat.copy()
 
     def set_cmat(self, np.ndarray[ndim=2, dtype=np.float32_t] cmat):
         """Set the full control matrix
 
         :param cmat: (np.ndarray[ndim=2,dtype=np.float32_t]) : full control matrix
         """
-        self.cmat = cmat
+        self.cmat = cmat.copy()
 
 
 
@@ -1385,7 +1399,7 @@ cpdef rotate3d(np.ndarray[ndim=3, dtype=np.float32_t] im,
             ind[:, :, i] += i * nx * ny
 
     imr.flat = \
-            (im.flatten()[ind.flatten()] * 
+            (im.flatten()[ind.flatten()] *
                     (1 - wx.flatten()) + \
                 im.flatten()[ind.flatten() + 1] * wx.flatten())\
              *(1 - wy.flatten()) + \

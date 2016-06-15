@@ -1497,7 +1497,7 @@ pyr_slopes<double>(double *d_odata, double *d_idata, int *subindx, int *subindy,
 template<class T>
 __global__ void pyr2slopes_krnl(T *g_odata, T *g_idata, int *subindx,
     int *subindy, T *subsum, unsigned int ns, unsigned int nvalid, T scale) {
-	const double pi = 3.1415926535897932384626433;
+	const T pi = 3.1415926535897932384626433;
   unsigned int i = blockIdx.x * blockDim.x + threadIdx.x;
   T tmp;
   if (i < nvalid) {

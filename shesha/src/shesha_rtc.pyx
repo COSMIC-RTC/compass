@@ -128,6 +128,47 @@ cdef class Rtc:
         else:
             self.rtc.add_controller(nactu, delay, self.device, type_control, dms.dms, & ptr_dmseen, ptr_alt, ndm)
 
+    cpdef set_pyr_ampl(self, int n, float ampli, list p_wfss, Param_tel p_tel):
+        """Set the pyramid modulation amplitude
+        :parameters:
+        n : (int) : pyr centroider number
+        ampli : (float) : new amplitude in units of lambda/D
+        p_wfss : (list of Param_wfs) : list of wfs parameters
+        p_tel : (Param_tel) : Telescope parameters
+        """
+        cdef np.ndarray[ndim=1,dtype=np.float32_t] cx
+        cdef np.ndarray[ndim=1,dtype=np.float32_t] cy
+        cdef sutra_centroider * centro = NULL
+        cdef sutra_wfs_pyr * pyr = NULL
+        cdef carma_context * context = carma_context.instance()
+        context.set_activeDevice(self.device, 1)
+
+        if(self.rtc.d_centro[n].is_type("pyrhr")):
+            centro = self.rtc.d_centro.at(n)
+
+            nwfs = centro.nwfs
+            pwfs = p_wfss[nwfs]
+            pwfs.set_pyr_ampl(ampli)
+            pyr = dynamic_cast_wfs_pyr_ptr(centro.wfs)
+
+            pixsize = (np.pi * pwfs._qpixsize) / (3600 * 180)
+            scale_fact = 2 * np.pi / pwfs._Nfft * \
+                (pwfs.Lambda * 1e-6 / p_tel.diam) / pixsize * ampli
+            cx = scale_fact * \
+                np.sin((np.arange(pwfs.pyr_npts,dtype=np.float32)) * 2. * np.pi / pwfs.pyr_npts)
+            cy = scale_fact * \
+                np.cos((np.arange(pwfs.pyr_npts,dtype=np.float32)) * 2. * np.pi / pwfs.pyr_npts)
+            pwfs.set_pyr_cx(cx)
+            pwfs.set_pyr_cy(cy)
+            pyr.pyr_cx.fill_from(<float *>cx.data)
+            pyr.pyr_cy.fill_from(<float *>cy.data)
+
+            centro.scale = pwfs.Lambda*1e-6/p_tel.diam * ampli * 180./np.pi * 3600.
+
+        else:
+            e="Centroider should be pyrhr, got "+self.rtc.d_centro[n].get_type()
+            raise ValueError(e)
+
 
 
     def rmcontrol(self):
@@ -1134,9 +1175,7 @@ cdef class Rtc:
             data_F=np.zeros((dims[2],dims[1]),dtype=np.float32)
             controller_geo.d_geocov.device2host(<float*>data_F.data)
 
-            data=np.reshape(data_F.flatten("F"),(dims[1],dims[2]))
-        else:
-            raise ValueError("Controller must be geo not %s"%type_contro)
+        data=np.reshape(data_F.flatten("F"),(dims[1],dims[2]))
 
         return data
 
