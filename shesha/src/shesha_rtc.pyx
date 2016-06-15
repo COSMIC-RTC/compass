@@ -1634,8 +1634,16 @@ def rtc_init(Telescope g_tel, Sensors g_wfs, p_wfs, Dms g_dms, p_dms, Param_geom
     cdef np.ndarray[ndim = 3, dtype = np.float32_t] tmp, tmp3
     cdef np.ndarray[ndim = 2, dtype = np.float32_t] tmp2
 
-    ncentro = len(p_rtc.centroiders)
-    ncontrol = len(p_rtc.controllers)
+    if p_rtc.centroiders:
+        ncentro = len(p_rtc.centroiders)
+    else:
+        ncentro = 0
+
+    if p_rtc.controllers:
+        ncontrol = len(p_rtc.controllers)
+    else:
+        ncontrol = 0
+
     if(p_rtc is not None):
         if(p_wfs is not None):
             for i in range(ncentro):
