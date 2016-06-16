@@ -2825,6 +2825,75 @@ cpdef create_piston_filter(list p_dms, int ndm):
         F[i][i] = 1 - 1.0 / nactu
     return F
 
+def command_on_Btt(Rtc rtc, nfilt):
+    """Compute a command matrix in Btt modal basis (see error breakdown) and set
+    it on the sutra_rtc
+    :parameters:
+    rtc : (Rtc) : Shesha_rtc object
+    nfilt : (int) : number of modes to filter
+    """
+
+    IFs = rtc.get_IFsparse(1).T
+    N = IFs.shape[0]
+    n = IFs.shape[1]
+    T = IFs[:,-2:].copy()
+    IFs = IFs[:,:n-2]
+    n = IFs.shape[1]
+
+    delta = IFs.T.dot(IFs).toarray()/N
+
+    # Tip-tilt + piston
+    Tp = np.ones((T.shape[0],T.shape[1]+1))
+    Tp[:,:2] = T.toarray()
+    deltaT = IFs.T.dot(Tp)/N
+    # Tip tilt projection on the pzt dm
+    tau = np.linalg.inv(delta).dot(deltaT)
+
+    # Famille génératrice sans tip tilt
+    G = np.identity(n)
+    tdt = tau.T.dot(delta).dot(tau)
+    subTT = tau.dot(np.linalg.inv(tdt)).dot(tau.T).dot(delta)
+    G -= subTT
+
+    # Base orthonormée sans TT
+    gdg = G.T.dot(delta).dot(G)
+    U,s,V = np.linalg.svd(gdg)
+    U=U[:,:U.shape[1]-3]
+    s = s[:s.size-3]
+    L = np.identity(s.size)/np.sqrt(s)
+    B = G.dot(U).dot(L)
+
+    # Rajout du TT
+    TT = T.T.dot(T).toarray()/N
+    Btt = np.zeros((n+2,n-1))
+    Btt[:B.shape[0],:B.shape[1]] = B
+    mini = 1./np.sqrt(TT)
+    mini[0,1] = 0
+    mini[1,0] = 0
+    Btt[n:,n-3:]=mini
+
+    compute_cmatWithBtt(rtc, Btt, nfilt)
+
+
+
+def compute_cmatWithBtt(Rtc rtc, Btt, nfilt):
+    D = rtc.get_imat(0)
+    #D = ao.imat_geom(wfs,config.p_wfss,config.p_controllers[0],dms,config.p_dms,meth=0)
+    # Filtering on Btt modes
+    Btt_filt = np.zeros((Btt.shape[0],Btt.shape[1]-nfilt))
+    Btt_filt[:,:Btt_filt.shape[1]-2] = Btt[:,:Btt.shape[1]-(nfilt+2)]
+    Btt_filt[:,Btt_filt.shape[1]-2:] = Btt[:,Btt.shape[1]-2:]
+
+    # Modal interaction basis
+    Dm = D.dot(Btt_filt)
+    # Direct inversion
+    Dmp = np.linalg.inv(Dm.T.dot(Dm)).dot(Dm.T)
+    # Command matrix
+    cmat = Btt_filt.dot(Dmp)
+    rtc.set_cmat(0,cmat.astype(np.float32))
+
+    return cmat.astype(np.float32)
+
 IF USE_BRAMA == 1:
     cdef class Rtc_brama(Rtc):  # child constructor must have the same prototype (same number of non-optional arguments)
         def __cinit__(self, Sensors sensor=None, Target target=None, device=-1):
