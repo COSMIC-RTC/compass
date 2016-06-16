@@ -2488,18 +2488,16 @@ cdef class Sensors:
 
         cdef carma_context * context = carma_context.instance()
         cdef carma_obj[float] * d_screen = self.sensors.d_wfs[n].d_gs.d_phase.d_screen
-        cdef carma_obj[float] * d_tel = tel.telescope.d_phase_ab_M1_m
-
         context.set_activeDeviceForce(self.sensors.device, 1)
         if(type_trace == "all"):
             self.sensors.d_wfs[n].sensor_trace(atmos.s_a, dms.dms)
-            d_screen.axpy(1.0, d_tel, 1, 1)
         elif(type_trace == "atmos"):
             self.sensors.d_wfs[n].sensor_trace(atmos.s_a)
-            d_screen.axpy(1.0, d_tel, 1, 1)
         elif(type_trace == "dm"):
             self.sensors.d_wfs[n].sensor_trace(dms.dms, rst)
-
+        if tel is not None:
+            d_screen.axpy(1.0, tel.telescope.d_phase_ab_M1_m, 1, 1)
+ 
     IF USE_MPI:
         cpdef Bcast_dscreen(self):
             """Broadcast the screen of every wfs on process 0 to all process

@@ -2208,7 +2208,7 @@ cpdef manual_imat(Rtc g_rtc, Sensors g_wfs, p_wfs, Dms g_dms, p_dms):
             IF USE_MPI:
                 Bcast(g_wfs.sensors.d_wfs[0].d_gs.d_phase.d_screen, 0)
             g_wfs.sensors_compimg(0)
-            g_rtc.docentroids()
+            g_rtc.docentroids(0)
 
 
             if(p_wfs[0].type_wfs != "pyr"):
@@ -2221,6 +2221,46 @@ cpdef manual_imat(Rtc g_rtc, Sensors g_wfs, p_wfs, Dms g_dms, p_dms):
             print "\rDoing manual imat...%d%%" % ((cc * 100 / imat_size2)),
     return imat_cpu
 
+
+
+cpdef manual_imat2(Rtc g_rtc, Sensors g_wfs, Dms g_dms, push4imat=1):
+    """Compute the interaction matrix 'manually', ie without sutra_rtc doimat method
+
+    :parameters:
+        g_rtc: (Rtc) : Rtc object
+
+        g_wfs: (Sensors) : Sensors object
+
+        g_dms: (Dms) : Dms object
+
+        p_dms: (list of Param_dm) : dm settings
+    """
+
+    cdef int nm, i, ind
+
+    # cdef np.ndarray[ndim=1, dtype=np.float32_t] slps=g_rtc.getcentroids(0, g_wfs, 0) #UNUSED
+    cdef int nslps = g_wfs._get_slopesDims(0)
+    cdef int nactu_tot = g_rtc.getCom(0).shape[0]
+    
+    imat_cpu = np.zeros((nactu_tot, nslps), dtype=np.float32)
+    com = np.zeros((nactu_tot), dtype=np.float32)
+
+    comcom = np.zeros((nactu_tot, nactu_tot), dtype=np.float32)
+
+    print "Doing manual imat...",
+
+    for i in range(nactu_tot):
+        com = np.zeros((nactu_tot), dtype=np.float32)
+        com[i] = float(push4imat)
+        comcom[i,:] = com.copy()
+        g_dms.set_full_comm(com)
+        g_wfs.sensors_trace(0, "dm", tel=None, atmos=None, dms=g_dms, rst=1)
+        g_wfs.sensors_compimg(0)
+        g_rtc.docentroids(0)
+
+        imat_cpu[i,:] = g_rtc.getcentroids(0) / float(push4imat)
+        print "\rDoing manual imat...%d%%" % (i * 100 / nactu_tot),
+    return imat_cpu,comcom
 
 cpdef get_r0(float r0_at_lambda1, float lambda1, float lambda2):
     """Compute r0 at lambda2 from r0 value at lambda1
