@@ -1163,9 +1163,8 @@ cpdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
         if(wfs.gsalt == 0):
             if(wfs.zerop == 0):
                 wfs.zerop = 1e11
-            wfs._nphotons = wfs.zerop * 10 ** (-0.4 * wfs.gsmag) * \
-                wfs.optthroughput * \
-                (tel.diam / wfs.nxsub) ** 2.* loop.ittime
+            wfs._nphotons = wfs.zerop * 10 ** (-0.4 * wfs.gsmag +3) * \
+                wfs.optthroughput * (tel.diam / wfs.nxsub) ** 2.* loop.ittime
 # include throughput to WFS
 # for unobstructed subaperture
 # per iteration
@@ -1701,6 +1700,7 @@ cdef class Sensors:
         cdef int * istart = < int * > tmp_istart.data
         tmp_jstart = np.copy(wfs._jstart + 1)
         cdef int * jstart = < int * > tmp_jstart.data
+
         cdef np.ndarray[dtype = np.float32_t] cx_F
         cdef np.ndarray[dtype = np.float32_t] cy_F
         cdef float * cx = NULL
