@@ -63,6 +63,8 @@ class widgetAOWindow(TemplateBaseClass):
         self.startTime = 0
         self.loop = None
         self.assistant = None
+        self.selector_init = None
+
 
         #############################################################
         #                 PYQTGRAPH WINDOW INIT                     #
@@ -102,6 +104,8 @@ class widgetAOWindow(TemplateBaseClass):
             partial(self.updateNumberSelector, textType=None))
         self.ui.wao_selectNumber.currentIndexChanged.connect(
             self.setNumberSelection)
+        self.ui.wao_wfs_plotSelector.currentIndexChanged.connect(
+            self.updatePlotWfs)
         self.ui.wao_selectAtmosLayer.currentIndexChanged.connect(
             self.setLayerSelection)
         self.ui.wao_selectWfs.currentIndexChanged.connect(self.setWfsSelection)
@@ -185,6 +189,7 @@ class widgetAOWindow(TemplateBaseClass):
         if(self.rtc):
             self.rtc.set_pyr_ampl(0,self.ui.wao_pyr_ampl.value(),self.config.p_wfss,self.config.p_tel)
             print "Pyramid modulation updated on GPU"
+            self.updatePlotWfs()
 
     def updateFrameRate(self):
         if(self.ui.wao_Display.isChecked()):
@@ -246,6 +251,10 @@ class widgetAOWindow(TemplateBaseClass):
 
         else:
             self.ui.wao_wfsIsLGS.setChecked(False)
+
+        if(self.config.p_wfss[nwfs].type_wfs == "pyrhr" or self.config.p_wfss[nwfs].type_wfs == "pyr"):
+            self.ui.wao_wfs_plotSelector.setCurrentIndex(3)
+        self.updatePlotWfs()
 
     def updateAtmosPanel(self):
         nscreen = self.ui.wao_selectAtmosLayer.currentIndex()
@@ -516,6 +525,18 @@ class widgetAOWindow(TemplateBaseClass):
         self.config = config
         self.ui.wao_selectConfig.clear()
         self.ui.wao_selectConfig.addItem(filename)
+        if(self.config.p_wfss[0].type_wfs == "pyrhr"):
+            self.selector_init = ["Phase - Atmos", "Phase - WFS", "Pyrimg - LR",
+                                  "Pyrimg - HR", "Centroids - WFS", "Slopes - WFS",
+                                  "Phase - Target", "Phase - DM",
+                                  "PSF LE", "PSF SE"]
+        else:
+            self.selector_init = ["Phase - Atmos", "Phase - WFS", "Spots - WFS",
+                                  "Centroids - WFS", "Slopes - WFS",
+                                  "Phase - Target", "Phase - DM",
+                                  "PSF LE", "PSF SE"]
+        self.ui.wao_selectScreen.addItems(self.selector_init)
+        self.ui.wao_selectScreen.setCurrentIndex(0)
         self.updateNumberSelector(textType=self.imgType)
         self.updatePanels()
         self.ui.wao_init.setDisabled(False)
@@ -549,7 +570,9 @@ class widgetAOWindow(TemplateBaseClass):
         self.ui.wao_selectNumber.clear()
         if(textType == "Phase - Atmos"):
             n = self.config.p_atmos.nscreens
-        if(textType == "Phase - WFS" or textType == "Spots - WFS" or textType == "Centroids - WFS" or textType == "Slopes - WFS"):
+        if(textType == "Phase - WFS" or textType == "Spots - WFS"
+            or textType == "Centroids - WFS" or textType == "Slopes - WFS"
+            or textType == "Pyrimg - HR" or textType == "Pyrimg - LR"):
             n = len(self.config.p_wfss)
         if(textType == "Phase - Target" or textType == "PSF LE" or textType == "PSF SE"):
             n = self.config.p_target.ntargets
@@ -565,7 +588,19 @@ class widgetAOWindow(TemplateBaseClass):
         exec("import %s as config" % configfile.split(".py")[0])
         self.config = config
         self.loaded = False
-
+        self.ui.wao_selectScreen.clear()
+        if(self.config.p_wfss[0].type_wfs == "pyrhr"):
+            self.selector_init = ["Phase - Atmos", "Phase - WFS", "Pyrimg - LR",
+                                  "Pyrimg - HR", "Centroids - WFS", "Slopes - WFS",
+                                  "Phase - Target", "Phase - DM",
+                                  "PSF LE", "PSF SE"]
+        else:
+            self.selector_init = ["Phase - Atmos", "Phase - WFS", "Spots - WFS",
+                                  "Centroids - WFS", "Slopes - WFS",
+                                  "Phase - Target", "Phase - DM",
+                                  "PSF LE", "PSF SE"]
+        self.ui.wao_selectScreen.addItems(self.selector_init)
+        self.ui.wao_selectScreen.setCurrentIndex(0)
         self.updateNumberSelector(textType=self.imgType)
         self.updatePanels()
         self.ui.wao_init.setDisabled(False)
@@ -618,7 +653,8 @@ class widgetAOWindow(TemplateBaseClass):
 #        self.c = ch.naga_context()
 #        self.c.set_activeDevice(device)
         if not self.c:
-            self.c = ch.naga_context(gpudevice)
+            #self.c = ch.naga_context(gpudevice)
+            self.c=ch.naga_context(devices=np.array([4,5,6,7], dtype=np.int32))
 
         self.wfs, self.tel = ao.wfs_init(self.config.p_wfss, self.config.p_atmos, self.config.p_tel,
                                          self.config.p_geom, self.config.p_target, self.config.p_loop,
@@ -693,6 +729,7 @@ class widgetAOWindow(TemplateBaseClass):
         self.loaded = True
         self.updateDisplay()
         self.displayRtcMatrix()
+        self.updatePlotWfs()
         self.p1.autoRange()
 
         self.ui.wao_PSFlogscale.clicked.connect(self.updateDisplay)
@@ -709,10 +746,23 @@ class widgetAOWindow(TemplateBaseClass):
                 self.dms.resetdm(
                     str(self.ui.wao_dmTypeSelector.currentText()), self.ui.wao_dmAlt.value())
                 self.updateDisplay()
+                print "DM "+str(ndm)+" reset"
             else:
                 print "Invalid DM : please select a DM to reset"
         else:
             print "There is not any dm to reset"
+
+    def updatePlotWfs(self):
+        RASC = 180./np.pi * 3600.
+        typeText = str(self.ui.wao_wfs_plotSelector.currentText())
+        n = self.ui.wao_selectWfs.currentIndex()
+        self.ui.wao_wfsWindow.canvas.axes.clear()
+        ax = self.ui.wao_wfsWindow.canvas.axes
+        if(self.config.p_wfss[n].type_wfs == "pyrhr" and typeText == "Pyramid mod. pts" and self.loaded):
+            scale_fact = 2*np.pi/self.config.p_wfss[n]._Nfft * \
+                         self.config.p_wfss[n].Lambda*1e-6 / self.config.p_tel.diam / self.config.p_wfss[n]._qpixsize * RASC
+            ax.scatter(self.config.p_wfss[n]._pyr_cx/scale_fact, self.config.p_wfss[n]._pyr_cy/scale_fact)
+
 
     def displayRtcMatrix(self):
         if not self.loaded:
@@ -809,7 +859,6 @@ class widgetAOWindow(TemplateBaseClass):
                 if(self.ui.wao_Display.isChecked()):
                     self.ui.wao_rtcWindowMPL.hide()
                     self.ui.wao_pgwindow.show()
-
                     if(self.SRCrossX and (self.imgType in ["Phase - Target", "Phase - DM", "Phase - Atmos", "Phase - WFS", "Spots - WFS", "Centroids - WFS", "Slopes - WFS"])):
                         self.SRCrossX.hide()
                         self.SRCrossY.hide()
@@ -846,9 +895,24 @@ class widgetAOWindow(TemplateBaseClass):
                         if(self.imgType == "Spots - WFS"):
                             if(self.config.p_wfss[self.numberSelected].type_wfs == "sh"):
                                 data = self.wfs.get_binimg(self.numberSelected)
-                            elif(self.config.p_wfss[self.numberSelected].type_wfs == "pyr" or
-                                 self.config.p_wfss[self.numberSelected].type_wfs == "pyrhr"):
+                            elif(self.config.p_wfss[self.numberSelected].type_wfs == "pyr"):
                                 data = self.wfs.get_pyrimg(self.numberSelected)
+                            if(self.imgType != self.currentViewSelected):
+                                self.p1.setRange(
+                                    xRange=(0, data.shape[0]), yRange=(0, data.shape[1]))
+                            self.currentViewSelected = self.imgType
+
+                        if(self.imgType == "Pyrimg - LR"):
+                            if(self.config.p_wfss[self.numberSelected].type_wfs == "pyrhr"):
+                                data = self.wfs.get_pyrimg(self.numberSelected)
+                            if(self.imgType != self.currentViewSelected):
+                                self.p1.setRange(
+                                    xRange=(0, data.shape[0]), yRange=(0, data.shape[1]))
+                            self.currentViewSelected = self.imgType
+
+                        if(self.imgType == "Pyrimg - HR"):
+                            if(self.config.p_wfss[self.numberSelected].type_wfs == "pyrhr"):
+                                data = self.wfs.get_pyrimghr(self.numberSelected)
                             if(self.imgType != self.currentViewSelected):
                                 self.p1.setRange(
                                     xRange=(0, data.shape[0]), yRange=(0, data.shape[1]))

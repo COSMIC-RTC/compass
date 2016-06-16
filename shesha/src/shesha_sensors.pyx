@@ -2004,15 +2004,16 @@ cdef class Sensors:
         """
         cdef carma_obj[float] * img
         cdef const long * cdims
-        cdef np.ndarray[ndim = 2, dtype = np.float32_t] data_F
+        #cdef np.ndarray[ndim = 2, dtype = np.float32_t] data_F
+        cdef np.ndarray[dtype = np.float32_t] data_F = data.flatten("F")
 
         cdef bytes type_wfs = < bytes > self.sensors.d_wfs[n].type
 
         if(type_wfs == "pyrhr"):
             img = self.sensors.d_wfs[n].d_binimg
-            cdims = img.getDims()
-            data_F = np.empty((cdims[2], cdims[1]), dtype=np.float32)
-            data_F = np.reshape(data.flatten("C"), (cdims[2], cdims[1]))
+            #cdims = img.getDims()
+            #data_F = np.empty((cdims[2], cdims[1]), dtype=np.float32)
+            #data_F = np.reshape(data.flatten("C"), (cdims[2], cdims[1]))
             img.host2device( < float * > data_F.data)
         else:
             raise TypeError("wfs should be a pyr")

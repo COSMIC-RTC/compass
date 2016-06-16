@@ -38,51 +38,6 @@
               <height>0</height>
              </size>
             </property>
-            <item>
-             <property name="text">
-              <string>Phase - Atmos</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>Phase - WFS</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>Spots - WFS</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>Centroids - WFS</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>Slopes - WFS</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>Phase - Target</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>Phase - DM</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>PSF LE</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>PSF SE</string>
-             </property>
-            </item>
            </widget>
           </item>
           <item>
@@ -894,7 +849,7 @@
                  <item>
                   <layout class="QVBoxLayout" name="verticalLayout_9">
                    <item>
-                    <widget class="QComboBox" name="comboBox_9">
+                    <widget class="QComboBox" name="wao_wfs_plotSelector">
                      <item>
                       <property name="text">
                        <string>Profile</string>
@@ -908,6 +863,11 @@
                      <item>
                       <property name="text">
                        <string>Spot</string>
+                      </property>
+                     </item>
+                     <item>
+                      <property name="text">
+                       <string>Pyramid mod. pts</string>
                       </property>
                      </item>
                     </widget>

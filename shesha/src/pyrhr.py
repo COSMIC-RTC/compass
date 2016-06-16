@@ -252,7 +252,7 @@ def compPyrCOMPASS(wao):
         ncompass = phasehrCOMPASS.shape[0]
         n = wao.wfs.get_pyrimghr(0).shape[0]
         nrebin = wao.config.p_wfs0._nrebin
-        pup_sep = wao.config.p_wfs0.nxsub
+        pup_sep = wao.config.p_wfs0.pyr_pup_sep
         mod = wao.config.p_wfs0.pyr_ampl
         N = wao.config.p_wfs0.pyr_npts
         Dtel = wao.config.p_tel.diam
