@@ -143,12 +143,14 @@ def make_EELT(dim,pupd,tel,N_seg):#dim,pupd,type_ap,cobs,N_seg,nbr_miss_seg,std_
         k_seg=np.fromfile(file,sep="\n").astype(np.int32)
 
         W=1.45*np.cos(np.pi/6)
-        tel.set_diam(39.146)
+
+        #tel.set_diam(39.146)
+        tel.set_diam(37.)
 
         X=MESH(tel.diam*dim/pupd,dim)
 
-        t_spiders=0.014
-        #t_spiders=0.06
+        #t_spiders=0.014
+        t_spiders=0.06
         tel.set_t_spiders(t_spiders)
 
         if(tel.nbrmissing>0):

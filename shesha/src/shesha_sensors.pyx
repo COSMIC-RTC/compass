@@ -2360,7 +2360,7 @@ cdef class Sensors:
         data = np.reshape(data_F.flatten("F"), (cdims[1], cdims[2]))
         return data
 
-    cdef _get_slopesDims(self, int n):
+    cpdef _get_slopesDims(self, int n):
         """return the dimension of the slopes array of a given wfs
 
         :param n: (int) : number of the wfs to get the 'slopes' dimension from

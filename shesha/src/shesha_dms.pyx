@@ -423,6 +423,7 @@ cpdef read_influ_hdf5 (Param_dm p_dm,Param_tel p_tel, Param_geom geom):
     """
     # read h5 file for influence fonction
     h5_tp = pd.read_hdf(p_dm.file_influ_hdf5,'resAll')
+    print "Read Ifluence fonction in h5 : ",p_dm.file_influ_hdf5
 
     # cube_name
     influ_h5 = h5_tp[p_dm.cube_name][0]
@@ -460,8 +461,8 @@ cpdef read_influ_hdf5 (Param_dm p_dm,Param_tel p_tel, Param_geom geom):
 
 
     # interpolation des coordonnées en pixel avec ajout du centre
-    xpos = (xpos_h5_0*(p_tel.diam*1.11/diam_h5[0]))/res_compass + center
-    ypos = (ypos_h5_0*(p_tel.diam*1.11/diam_h5[1]))/res_compass + center
+    xpos = (xpos_h5_0*(43.45/diam_h5[0]))/res_compass + center
+    ypos = (ypos_h5_0*(43.45/diam_h5[1]))/res_compass + center
 
     # interpolation des fonction d'influence
 
@@ -494,12 +495,14 @@ cpdef read_influ_hdf5 (Param_dm p_dm,Param_tel p_tel, Param_geom geom):
     p_dm._ypos = np.float32(ypos)
 
     # number of actuator
+    print "Actuator number in H5 data : ",ninflu
     p_dm._ntotact = np.int(ninflu)
 
-    # def influente fonction
-    p_dm._influ = np.float32(influ_new)
+    # def influente fonction normalize by unitpervolt
+    p_dm._influ = np.float32(influ_new)*p_dm.unitpervolt
 
     # def influence size
+    print "influence size in pupil : ",np.int(influ_size),"pixel"
     p_dm._influsize = np.int(influ_size)
 
 
