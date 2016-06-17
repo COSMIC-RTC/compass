@@ -81,13 +81,14 @@ def make_pupil_generic(dim, pupd, t_spiders=0.01, spiders_type="six",
 
             elif (spiders_type=="six"):
 
-                angle = 180/15.
-                s2ma_2=2*np.sin(np.pi/2-np.pi/angle)
-                s6pa_2=2*np.sin(np.pi/6+np.pi/angle)
-                s6ma_2=2*np.sin(np.pi/6-np.pi/angle)
-                t2ma=np.tan(np.pi/2-np.pi/angle)
-                t6pa=np.tan(np.pi/6+np.pi/angle)
-                t6ma=np.tan(np.pi/6-np.pi/angle)
+                #angle = np.pi/(180/15.)
+                angle = 0
+                s2ma_2=2*np.sin(np.pi/2-angle)
+                s6pa_2=2*np.sin(np.pi/6+angle)
+                s6ma_2=2*np.sin(np.pi/6-angle)
+                t2ma=np.tan(np.pi/2-angle)
+                t6pa=np.tan(np.pi/6+angle)
+                t6ma=np.tan(np.pi/6-angle)
 
                 spiders_map = ((X.T > (-X+t_spiders/s2ma_2)*t2ma)+ (X.T < (-X-t_spiders/s2ma_2)*t2ma ))
                 spiders_map*= ((X.T > ( X+t_spiders/s6pa_2)*t6pa)+ (X.T < ( X-t_spiders/s6pa_2)*t6pa ))
