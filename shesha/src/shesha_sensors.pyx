@@ -944,9 +944,9 @@ cpdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
         validsubsx = np.where(pupvalid)[0].astype(np.int32)
         validsubsy = np.where(pupvalid)[1].astype(np.int32)
 
-        istart = (
-            (np.linspace(0.5, geom._n + 0.5, wfs.nxsub + 2))).astype(np.int64)
-
+        #istart = (
+        #    (np.linspace(0.5, geom._n + 0.5, wfs.nxsub + 2))).astype(np.int64)
+        istart = np.arange(wfs.nxsub + 2) * wfs.npix
         jstart = np.copy(istart)
         wfs._istart = istart.astype(np.int32)
         wfs._jstart = jstart.astype(np.int32)
@@ -978,7 +978,7 @@ cpdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
             indi=istart[validsubsx[i]] #+2-1 (yorick->python
             indj=jstart[validsubsy[i]]
             phasemap[:,:,i]=tmp[indi:indi+wfs.npix, indj:indj+wfs.npix]
-            pyrtmp[indi:indi+wfs.npix, indj:indj+wfs.npix] = i*2
+            pyrtmp[indi:indi+wfs.npix, indj:indj+wfs.npix] = i
 
         wfs._phasemap = phasemap
 
@@ -2497,7 +2497,7 @@ cdef class Sensors:
             self.sensors.d_wfs[n].sensor_trace(dms.dms, rst)
         if tel is not None:
             d_screen.axpy(1.0, tel.telescope.d_phase_ab_M1_m, 1, 1)
- 
+
     IF USE_MPI:
         cpdef Bcast_dscreen(self):
             """Broadcast the screen of every wfs on process 0 to all process
