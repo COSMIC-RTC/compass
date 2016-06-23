@@ -61,6 +61,7 @@ c = ch.naga_context(0)
 
 # wfs
 config.p_wfs0.set_atmos_seen(0)
+config.p_wfs0.set_pyr_ampl(3)
 
 # dm
 config.p_dm1 = ao.Param_dm()
@@ -68,7 +69,7 @@ config.p_dms = [config.p_dm1]
 config.p_dm1.set_type("tt")
 config.p_dm1.set_alt(0.)
 config.p_dm1.set_unitpervolt(1.)
-lambda_d = config.p_wfs0.Lambda / config.p_tel.diam * 180 / np.pi * 3600
+lambda_d = 1. #config.p_wfs0.Lambda / config.p_tel.diam * 180 / np.pi * 3600
 config.p_dm1.set_push4imat(2. * lambda_d)
 
 # controllers
@@ -93,7 +94,7 @@ while npts <= 512:
 
     print "->rtc"
     #   rtc
-    rtc = ao.rtc_init(tel, wfs, config.p_wfss, dms, config.p_dms, config.p_geom, config.p_rtc, config.p_atmos, None,
+    rtc = ao.rtc_init(tel, wfs, config.p_wfss, dms, config.p_dms, config.p_geom, config.p_rtc, None, None,
                       config.p_tel, config.p_loop, clean=clean, simul_name=simul_name,
                       load=matricesToLoad)
 

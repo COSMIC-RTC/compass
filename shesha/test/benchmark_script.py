@@ -98,19 +98,19 @@ def script4bench(param_file,centroider,controller, device=0, fwrite=True):
 
     #init system
     timer.start()
-    wfs,tel=ao.wfs_init(config.p_wfss,config.p_atmos,config.p_tel,config.p_geom,config.p_target,config.p_loop, 1,0,config.p_dms)
+    wfs,tel=ao.wfs_init(config.p_wfss,config.p_atmos,config.p_tel,config.p_geom,config.p_target,config.p_loop,config.p_dms)
     ch.threadSync()
     wfs_init_time=timer.stop()-synctime
     timer.reset()
 
     timer.start()
-    atm=ao.atmos_init(c,config.p_atmos,config.p_tel,config.p_geom,config.p_loop,config.p_wfss,config.p_target,rank=0, clean=clean, load=matricesToLoad)
+    atm=ao.atmos_init(c,config.p_atmos,config.p_tel,config.p_geom,config.p_loop,config.p_wfss,config.p_target, clean=clean, load=matricesToLoad)
     ch.threadSync()
     atmos_init_time=timer.stop()-synctime
     timer.reset()
 
     timer.start()
-    dms=ao.dm_init(config.p_dms,config.p_wfss,config.p_geom,config.p_tel)
+    dms=ao.dm_init(config.p_dms,config.p_wfss, wfs,config.p_geom,config.p_tel)
     ch.threadSync()
     dm_init_time=timer.stop()-synctime
     timer.reset()
@@ -122,7 +122,7 @@ def script4bench(param_file,centroider,controller, device=0, fwrite=True):
     timer.reset()
 
     timer.start()
-    rtc=ao.rtc_init(tel,wfs,config.p_wfss,dms,config.p_dms,config.p_geom,config.p_rtc,config.p_atmos,atm,config.p_tel,config.p_loop,target,config.p_target,clean=clean,simul_name=simul_name, load=matricesToLoad)
+    rtc=ao.rtc_init(tel,wfs,config.p_wfss,dms,config.p_dms,config.p_geom,config.p_rtc,config.p_atmos,atm,config.p_tel,config.p_loop,clean=clean,simul_name=simul_name, load=matricesToLoad)
     ch.threadSync()
     rtc_init_time=timer.stop()-synctime
     timer.reset()
@@ -368,7 +368,7 @@ def script4bench(param_file,centroider,controller, device=0, fwrite=True):
                    
 
 if(len(sys.argv)<4 or len(sys.argv)>6):
-    error="wrong number of argument. Got "+len(sys.argv)+" (expect 4)\ncommande line should be: 'python benchmark_script.py <filename> <centroider> <controller>"
+    error="wrong number of argument. Got %d (expect 4)\ncommande line should be: 'python benchmark_script.py <filename> <centroider> <controller>"%len(sys.argv)
     raise StandardError(error)
 
 filename=PARPATH+sys.argv[1]

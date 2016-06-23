@@ -2189,7 +2189,7 @@ cpdef manual_imat(Rtc g_rtc, Sensors g_wfs, p_wfs, Dms g_dms, p_dms):
         g_dms.resetdm(p_dms[nm].type_dm, p_dms[nm].alt)
         imat_size2 += p_dms[nm]._ntotact
 
-    imat_cpu = np.zeros((nslps, imat_size2), dtype=np.float32)
+    imat_cpu = np.zeros((imat_size2, nslps), dtype=np.float32)
 
 
     ind = 0
@@ -2212,9 +2212,9 @@ cpdef manual_imat(Rtc g_rtc, Sensors g_wfs, p_wfs, Dms g_dms, p_dms):
 
 
             if(p_wfs[0].type_wfs != "pyr"):
-                imat_cpu[:, ind] = g_rtc.getcentroids(0, g_wfs, 0) / float(p_dms[0].push4imat)
+                imat_cpu[ind] = g_rtc.getcentroids(0, g_wfs, 0) / float(p_dms[0].push4imat)
             else:
-                imat_cpu[:, ind] = g_wfs._get_slopes(0) / float(p_dms[0].push4imat)
+                imat_cpu[ind] = g_wfs._get_slopes(0) / float(p_dms[0].push4imat)
             g_dms.resetdm(p_dms[nm].type_dm, p_dms[nm].alt)
             ind += 1
             cc += 1

@@ -52,7 +52,7 @@ p_wfss=[p_wfs0]
 p_wfs0.set_type("pyrhr")
 p_wfs0.set_nxsub(16)
 p_wfs0.set_fssize(1.5)
-p_wfs0.set_fracsub(1)
+p_wfs0.set_fracsub(0.8)
 p_wfs0.set_xpos(0.)
 p_wfs0.set_ypos(0.)
 p_wfs0.set_Lambda(0.5)
