@@ -2219,7 +2219,7 @@ cpdef manual_imat(Rtc g_rtc, Sensors g_wfs, p_wfs, Dms g_dms, p_dms):
             ind += 1
             cc += 1
             print "\rDoing manual imat...%d%%" % ((cc * 100 / imat_size2)),
-    return imat_cpu
+    return imat_cpu.T.copy()
 
 
 
