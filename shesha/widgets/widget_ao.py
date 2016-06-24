@@ -57,9 +57,11 @@ class widgetAOWindow(TemplateBaseClass):
 
         self.config = None
         self.displayLock = threading.Lock()
+        self.loopLock = threading.Lock()
         self.iter = 0
         self.loaded = False
         self.stop = False
+        self.nbiters = 1000
         self.startTime = 0
         self.loop = None
         self.assistant = None
@@ -136,11 +138,19 @@ class widgetAOWindow(TemplateBaseClass):
         self.ui.wao_actionHelp_Contents.triggered.connect(
             self.on_help_triggered)
 
+        self.ui.wao_dmUnitPerVolt.valueChanged.connect(self.updateDMrangeGUI)
+        self.ui.wao_dmpush4iMat.valueChanged.connect(self.updateDMrangeGUI)
+        self.ui.wao_pyr_ampl.valueChanged.connect(self.updateAmpliCompGUI)
+        self.ui.wao_dmActuPushArcSecNumWFS.currentIndexChanged.connect(self.updateDMrange)
+        self.ui.wao_nbiters.valueChanged.connect(self.updateNBiters)
         self.SRcircleAtmos = {}
         self.SRcircleWFS = {}
         self.SRcircleDM = {}
         self.SRcircleTarget = {}
+        self.ui.splitter.setSizes([2000, 10])
 
+    def updateNBiters(self):
+        self.nbiters = int(self.ui.wao_nbiters.value())
 
     def on_help_triggered(self, i=None):
         if i is None:
@@ -186,6 +196,14 @@ class widgetAOWindow(TemplateBaseClass):
             self.rtc.set_gain(0,float(self.ui.wao_controlGain.value()))
             print "Loop gain updated on GPU"
 
+    def updateAmpliCompGUI(self):
+        diffract = self.config.p_wfss[0].Lambda*1e-6 / self.config.p_tel.diam*206265.
+        self.ui.wao_pyr_ampl_arcsec.setValue(self.ui.wao_pyr_ampl.value()*diffract)
+
+    def updateAmpliComp(self):
+        diffract = self.config.p_wfss[0].Lambda*1e-6 / self.config.p_tel.diam*206265.
+        self.ui.wao_pyr_ampl_arcsec.setValue(self.config.p_wfss[0].pyr_ampl*diffract)
+
     def updatePyrAmpl(self):
         if(self.rtc):
             self.rtc.set_pyr_ampl(0,self.ui.wao_pyr_ampl.value(),self.config.p_wfss,self.config.p_tel)
@@ -199,6 +217,18 @@ class widgetAOWindow(TemplateBaseClass):
             self.RTDisplay = False
         self.RTDFreq = self.ui.wao_frameRate.value()
 
+    def updateDMrangeGUI(self):
+        push4imat=self.ui.wao_dmpush4iMat.value()
+        unitpervolt=self.ui.wao_dmUnitPerVolt.value()
+        self.updateDMrange(push4imat=push4imat, unitpervolt=unitpervolt)
+
+    def updateDMrange(self, push4imat=None, unitpervolt=None):
+        numdm = str(self.ui.wao_selectDM.currentText())
+        numwfs = str(self.ui.wao_dmActuPushArcSecNumWFS.currentText())
+        if((numdm is not "") and (numwfs is not "") and (push4imat!=0) and (unitpervolt!=0)):
+            arcsecDMrange = self.computeDMrange(int(numdm) ,int(numwfs), push4imat=push4imat, unitpervolt=unitpervolt)
+            self.ui.wao_dmActPushArcsec.setValue(arcsecDMrange)
+
     def updateTelescopePanel(self):
         self.ui.wao_zenithAngle.setValue(self.config.p_geom.zenithangle)
         self.ui.wao_diamTel.setValue(self.config.p_tel.diam)
@@ -208,14 +238,18 @@ class widgetAOWindow(TemplateBaseClass):
         ndm = self.ui.wao_selectDM.currentIndex()
         if(ndm < 0):
             ndm = 0
+        self.ui.wao_dmActuPushArcSecNumWFS.clear()
+        self.ui.wao_dmActuPushArcSecNumWFS.addItems([str(i) for i in range(len(self.config.p_wfss))])
         self.ui.wao_numberofDMs.setText(str(len(self.config.p_dms)))
         self.ui.wao_dmTypeSelector.setCurrentIndex(
             self.ui.wao_dmTypeSelector.findText(self.config.p_dms[ndm].type_dm))
         self.ui.wao_dmAlt.setValue(self.config.p_dms[ndm].alt)
         self.ui.wao_dmNactu.setValue(self.config.p_dms[ndm].nact)
         self.ui.wao_dmUnitPerVolt.setValue(self.config.p_dms[ndm].unitpervolt)
+        self.ui.wao_dmpush4iMat.setValue(self.config.p_dms[ndm].push4imat)
         self.ui.wao_dmCoupling.setValue(self.config.p_dms[ndm].coupling)
         self.ui.wao_dmThresh.setValue(self.config.p_dms[ndm].thresh)
+        self.updateDMrange()
 
     def updateWfsPanel(self):
         nwfs = self.ui.wao_selectWfs.currentIndex()
@@ -256,6 +290,7 @@ class widgetAOWindow(TemplateBaseClass):
         if(self.config.p_wfss[nwfs].type_wfs == "pyrhr" or self.config.p_wfss[nwfs].type_wfs == "pyr"):
             self.ui.wao_wfs_plotSelector.setCurrentIndex(3)
         self.updatePlotWfs()
+
 
     def updateAtmosPanel(self):
         nscreen = self.ui.wao_selectAtmosLayer.currentIndex()
@@ -571,9 +606,7 @@ class widgetAOWindow(TemplateBaseClass):
         self.ui.wao_selectNumber.clear()
         if(textType == "Phase - Atmos"):
             n = self.config.p_atmos.nscreens
-        if(textType == "Phase - WFS" or textType == "Spots - WFS"
-            or textType == "Centroids - WFS" or textType == "Slopes - WFS"
-            or textType == "Pyrimg - HR" or textType == "Pyrimg - LR"):
+        if(textType == "Phase - WFS" or textType == "Spots - WFS" or textType == "Centroids - WFS" or textType == "Slopes - WFS" or textType == "Pyrimg - HR" or textType == "Pyrimg - LR"):
             n = len(self.config.p_wfss)
         if(textType == "Phase - Target" or textType == "PSF LE" or textType == "PSF SE"):
             n = self.config.p_target.ntargets
@@ -595,11 +628,21 @@ class widgetAOWindow(TemplateBaseClass):
                                   "Pyrimg - HR", "Centroids - WFS", "Slopes - WFS",
                                   "Phase - Target", "Phase - DM",
                                   "PSF LE", "PSF SE"]
+            self.ui.ui_modradiusPanel.show()
+            self.ui.ui_modradiusPanelarcesec.show()
+            self.ui.wao_pyr_ampl.show()
+            self.ui.wao_pyr_ampl_arcsec.show()
+            self.ui.wao_update_pyr_ampl.show()
         else:
             self.selector_init = ["Phase - Atmos", "Phase - WFS", "Spots - WFS",
                                   "Centroids - WFS", "Slopes - WFS",
                                   "Phase - Target", "Phase - DM",
                                   "PSF LE", "PSF SE"]
+            self.ui.ui_modradiusPanel.hide()
+            self.ui.ui_modradiusPanelarcesec.hide()
+            self.ui.wao_pyr_ampl.hide()
+            self.ui.wao_pyr_ampl_arcsec.hide()
+            self.ui.wao_update_pyr_ampl.hide()
         self.ui.wao_selectScreen.addItems(self.selector_init)
         self.ui.wao_selectScreen.setCurrentIndex(0)
         self.updateNumberSelector(textType=self.imgType)
@@ -654,8 +697,8 @@ class widgetAOWindow(TemplateBaseClass):
 #        self.c = ch.naga_context()
 #        self.c.set_activeDevice(device)
         if not self.c:
-            self.c = ch.naga_context(gpudevice)
-            #self.c=ch.naga_context(devices=np.array([4,5,6,7], dtype=np.int32))
+            #self.c = ch.naga_context(gpudevice)
+            self.c=ch.naga_context(devices=np.array([4,5,6,7], dtype=np.int32))
 
         self.wfs, self.tel = ao.wfs_init(self.config.p_wfss, self.config.p_atmos, self.config.p_tel,
                                          self.config.p_geom, self.config.p_target, self.config.p_loop,
@@ -853,6 +896,27 @@ class widgetAOWindow(TemplateBaseClass):
         cx = ampli * np.sin((np.arange(npts) + 1) * 2. * np.pi / npts) + datashape0/2
         cy = ampli * np.cos((np.arange(npts) + 1) * 2. * np.pi / npts) + datashape1/2
         return cx ,cy
+
+    def computeDMrange(self, numdm, numwfs, push4imat=None, unitpervolt=None):
+        i = numdm
+        if(push4imat is None or push4imat==0):
+            push4imat = self.config.p_dms[i].push4imat
+        if(unitpervolt is None or unitpervolt==0):
+            unitpervolt = self.config.p_dms[i].unitpervolt
+
+        actuPushInMicrons = push4imat*unitpervolt
+        coupling = self.config.p_dms[i].coupling
+        a = coupling*actuPushInMicrons
+        b = 0
+        c = actuPushInMicrons
+        d = coupling*actuPushInMicrons
+        if(self.config.p_dms[i].type_dm is not "tt"):
+            dist = self.config.p_tel.diam
+        else:
+            dist = self.config.p_tel.diam/self.config.p_wfss[numwfs].nxsub
+        Delta = (1e-6*( ((c+d)/2) - ((a+b)/2)))
+        actuPushInArcsecs = 206265.*Delta/dist
+        return actuPushInArcsecs
 
     def updateDisplay(self):
         if not self.loaded:
@@ -1059,59 +1123,63 @@ class widgetAOWindow(TemplateBaseClass):
                 self.displayLock.release()
 
     def mainLoop(self):
-        start = time.time()
-        self.atm.move_atmos()
-        if(self.config.p_controllers[0].type_control == "geo"):
-            for t in range(self.config.p_target.ntargets):
-                self.tar.atmos_trace(t, self.atm, self.tel)
-                self.rtc.docontrol_geo(0, self.dms, self.tar, 0)
-                self.rtc.applycontrol(0, self.dms)
-                self.tar.dmtrace(0, self.dms)
+        if not self.loopLock.acquire(False):
+            # print " Display locked"
+            return
         else:
-            for t in range(self.config.p_target.ntargets):
-                self.tar.atmos_trace(t, self.atm, self.tel)
-                self.tar.dmtrace(t, self.dms)
-            for w in range(len(self.config.p_wfss)):
-                self.wfs.sensors_trace(w, "all", self.tel, self.atm, self.dms)
-                self.wfs.sensors_compimg(w)
+            try:
+                start = time.time()
+                self.atm.move_atmos()
+                if(self.config.p_controllers[0].type_control == "geo"):
+                    for t in range(self.config.p_target.ntargets):
+                        self.tar.atmos_trace(t, self.atm, self.tel)
+                        self.rtc.docontrol_geo(0, self.dms, self.tar, 0)
+                        self.rtc.applycontrol(0, self.dms)
+                        self.tar.dmtrace(0, self.dms)
+                else:
+                    for t in range(self.config.p_target.ntargets):
+                        self.tar.atmos_trace(t, self.atm, self.tel)
+                        self.tar.dmtrace(t, self.dms)
+                    for w in range(len(self.config.p_wfss)):
+                        self.wfs.sensors_trace(w, "all", self.tel, self.atm, self.dms)
+                        self.wfs.sensors_compimg(w)
 
-            self.rtc.docentroids(0)
-            self.rtc.docontrol(0)
-            self.rtc.applycontrol(0, self.dms)
+                    self.rtc.docentroids(0)
+                    self.rtc.docontrol(0)
+                    self.rtc.applycontrol(0, self.dms)
 
-        signal_le = ""
-        signal_se = ""
-        for t in range(self.config.p_target.ntargets):
-            SR = self.tar.get_strehl(t)
-            signal_se += "%1.2f   " % SR[0]
-            signal_le += "%1.2f   " % SR[1]
+                signal_le = ""
+                signal_se = ""
+                for t in range(self.config.p_target.ntargets):
+                    SR = self.tar.get_strehl(t)
+                    signal_se += "%1.2f   " % SR[0]
+                    signal_le += "%1.2f   " % SR[1]
 
-        loopTime = time.time() - start
-        if(self.RTDisplay):
-            t = 1 / float(self.RTDFreq) - loopTime  # Limit loop frequency
-            if t > 0:
-                time.sleep(t)  # Limit loop frequency
-            self.updateDisplay()  # Update GUI plots
-        else:
-            freqLimit = 1 / 250.
-            if loopTime < freqLimit:
-                time.sleep(freqLimit - loopTime)  # Limit loop frequency
-        currentFreq = 1 / (time.time() - start)
+                loopTime = time.time() - start
+                if(self.RTDisplay):
+                    t = 1 / float(self.RTDFreq) - loopTime  # Limit loop frequency
+                    if t > 0:
+                        time.sleep(t)  # Limit loop frequency
+                    self.updateDisplay()  # Update GUI plots
+                else:
+                    freqLimit = 1 / 250.
+                    if loopTime < freqLimit:
+                        time.sleep(freqLimit - loopTime)  # Limit loop frequency
+                currentFreq = 1 / (time.time() - start)
 
-        if(self.RTDisplay):
-            self.ui.wao_strehlSE.setText(signal_se)
-            self.ui.wao_strehlLE.setText(signal_le)
-            self.ui.wao_currentFreq.setValue(currentFreq)
-        else:
-            if(time.time() - self.startTime > 1):
-                self.printInPlace("iter #%d SR: (L.E, S.E.)= %s, %srunning at %4.1fHz (real %4.1fHz)" % (
-                    self.iter, signal_le, signal_se, currentFreq, 1 / loopTime))
-                self.ui.wao_strehlSE.setText(signal_se)
-                self.ui.wao_strehlLE.setText(signal_le)
-                self.ui.wao_currentFreq.setValue(currentFreq)
-                self.startTime = time.time()
-                time.sleep(.01)
-        self.iter += 1
+                if(self.RTDisplay):
+                    self.ui.wao_strehlSE.setText(signal_se)
+                    self.ui.wao_strehlLE.setText(signal_le)
+                    self.ui.wao_currentFreq.setValue(currentFreq)
+                if(time.time() - self.startTime > 1):
+                    self.printInPlace("iter #%d SR: (L.E, S.E.)= %s, %srunning at %4.1fHz (real %4.1fHz)" % (
+                        self.iter, signal_le, signal_se, currentFreq, 1 / loopTime))
+                    self.startTime = time.time()
+                    # This seems to trigger the GUI and keep it responsive
+                    time.sleep(.01)
+                self.iter += 1
+            finally:
+                self.loopLock.release()
 
     def printInPlace(self, text):
         # This seems to trigger the GUI and keep it responsive
@@ -1124,10 +1192,14 @@ class widgetAOWindow(TemplateBaseClass):
         self.c.set_activeDeviceForce(0)
         self.stop = False
         self.startTime = time.time()
-        while True:
+        i = 0
+        print "LOOP STARTED FOR %d iterations" % self.nbiters
+        while i<=self.nbiters:
             self.mainLoop()
+            i+=1
             if(self.stop):
                 break
+        self.ui.wao_run.setChecked(False)
 #         print "Loop stopped"
 
 if __name__ == '__main__':
@@ -1135,4 +1207,5 @@ if __name__ == '__main__':
     wao = widgetAOWindow()
     wao.show()
     app.setStyle('cleanlooks')
+    # ao.imat_init(0, wao.rtc, wao.config.p_rtc, wao.dms, wao.wfs, wao.config.p_wfss, wao.config.p_tel)
     # app.exec_()
