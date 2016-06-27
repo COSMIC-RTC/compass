@@ -91,8 +91,13 @@ class sutra_wfs {
     virtual int define_mpi_rank(int rank, int size)=0;
     virtual int allocate_buffers(sutra_sensors *sensors)=0;
 
-  private:
+  protected:
     virtual int comp_generic()=0;
+    sutra_wfs(carma_context *context, sutra_telescope *d_tel, sutra_sensors *sensors, string type, long nxsub,
+              long nvalid, long npix, long nphase, long nrebin, long nfft,
+              long ntot, long npup, float pdiam, float nphotons,
+              float nphot4imat, int lgs, int device);
+
 };
 
 class sutra_sensors {
@@ -263,7 +268,7 @@ pyr_subsum(T *d_odata, T *d_idata, int *subindx, int *subindy, int ns,
 template<class T>
 void
 pyr_subsum(T *d_odata, T *d_idata, int *subindx, int *subindy, int ns,
-			int nvalid, carma_device *device);
+           int nvalid, carma_device *device);
 
 template<class T>
 void

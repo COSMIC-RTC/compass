@@ -92,7 +92,7 @@ class carma_device {
 #define set_activeDeviceForCpy(newDevice, silent) _set_activeDeviceForCpy(newDevice, silent, __FILE__, __LINE__)
 
 class carma_context {
-  protected:
+  private:
     int ndevice;
     vector<carma_device *> devices;
     int activeDevice;
@@ -106,9 +106,12 @@ class carma_context {
     carma_context(int num_device);
     carma_context(int nb_devices, int32_t *devices);
 
+    carma_context& operator= (const carma_context&){ return *s_instance;}
+    carma_context (const carma_context&){}
+    ~carma_context();
+
     void init_context(const int nb_devices, int32_t *devices_id);
   public:
-    ~carma_context();
 
     static carma_context *instance_1gpu(int num_device);
     static carma_context *instance_ngpu(int nb_devices, int32_t *devices_id);

@@ -309,6 +309,12 @@ void carma_sparse_host_obj<T_data>::resize2rowMajor() {
     cerr
         << "Erreur | carma_sparse_host_obj<T_data>::resize2rowMajor | erreur lors de la conversion."
         << endl;
+    delete[] rowind2;
+    delete[] colind2;
+    delete[] values2;
+    rowind2 = nullptr;
+    colind2 = nullptr;
+    values2 = nullptr;
     throw "Erreur | carma_sparse_host_obj<T_data>::resize2rowMajor | erreur lors de la conversion.";
     //exit(EXIT_FAILURE);
   }
@@ -353,6 +359,12 @@ void carma_sparse_host_obj<T_data>::resize2colMajor() {
     cerr
         << "Erreur | carma_sparse_host_obj<T_data>::resize2colMajor | erreur lors de la conversion."
         << endl;
+    delete[] rowind2;
+    delete[] colind2;
+    delete[] values2;
+    rowind2 = nullptr;
+    colind2 = nullptr;
+    values2 = nullptr;
     throw "Erreur | carma_sparse_host_obj<T_data>::resize2colMajor | erreur lors de la conversion.";
     //exit(EXIT_FAILURE);
   }

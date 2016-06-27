@@ -23,12 +23,14 @@
 #define magma_uplo_const(var) var
 #endif
 
-#define CHECK_MAGMA(fct, info) fct; \
-    if (info != 0){							\
-      printf("%s@%d magma returned error %d: %s.\n", __FILE__, __LINE__,	\
-       (int) info, magma_strerror(info));				\
-      return EXIT_FAILURE;						\
+#define CHECK_MAGMA(fct, info, dealloc) fct; \
+    if (info){              \
+      printf("%s@%d magma returned error %d: %s.\n", __FILE__, __LINE__,  \
+       (int) info, magma_strerror(info));       \
+      dealloc;            \
+      return EXIT_FAILURE;            \
     }
+
 
 #ifndef max
 #define max(a,b)  (((a)<(b))?(b):(a))
@@ -85,7 +87,7 @@ int carma_syevd_gen(magma_vec_t jobz, magma_int_t N, magma_int_t ldda, T *d_mat,
   /* Query for workspace sizes */
   CHECK_MAGMA(
       ptr_syevd_gpu(jobz, magma_uplo_const('L'), N, NULL, ldda, NULL, NULL, lda, aux_work, -1, aux_iwork, -1, &info),
-      info);
+      info, info=0);
 
   lwork = (magma_int_t) aux_work[0];
   liwork = aux_iwork[0];
@@ -97,7 +99,7 @@ int carma_syevd_gen(magma_vec_t jobz, magma_int_t N, magma_int_t ldda, T *d_mat,
   CHECK_MAGMA(
       ptr_syevd_gpu(jobz, magma_uplo_const('L'), N, d_mat, ldda, h_eigenvals,
                     h_R, lda, h_work, lwork, iwork, liwork, &info),
-      info);
+      info, info=0);
 
   magma_free_pinned(h_R);
   magma_free_pinned(h_work);
@@ -124,7 +126,7 @@ int carma_syevd_m_gen(magma_int_t ngpu, magma_vec_t jobz, magma_int_t N,
   /* Query for workspace sizes */
   CHECK_MAGMA(
       ptr_syevd_m(ngpu, jobz, magma_uplo_const('L'), N, NULL, lda, NULL, aux_work, -1, aux_iwork, -1, &info),
-      info);
+      info, info=0);
 
   //fprintf(stderr, "%s@%d : I'm here\n", __FILE__, __LINE__);
   lwork = (magma_int_t) aux_work[0];
@@ -137,7 +139,7 @@ int carma_syevd_m_gen(magma_int_t ngpu, magma_vec_t jobz, magma_int_t N,
   CHECK_MAGMA(
       ptr_syevd_m(ngpu, jobz, magma_uplo_const('L'), N, mat,
                   lda, eigenvals, h_work, lwork, iwork, liwork, &info),
-      info);
+      info, info=0);
 
   //magma_free_pinned(h_R);
   magma_free_pinned(h_work);
@@ -173,10 +175,11 @@ int carma_svd_cpu_gen(carma_host_obj<T> *mat, carma_host_obj<T> *eigenvals,
   CHECK_MAGMA(
       ptr_gesvd(magma_vec_const('A'), magma_vec_const('A'), m, n, *tmp, m,
                 *eigenvals, *mes2mod, m, *mod2act, n, *h_work, lwork, &info),
-      info);
+      info, delete h_work;delete tmp;delete[] dims_data);
 
   delete h_work;
   delete tmp;
+  delete[] dims_data;
 
   return EXIT_SUCCESS;
 }
@@ -190,8 +193,8 @@ int carma_potri_gen(magma_int_t N, magma_int_t ldda, T *d_iA,
                     carma_device *device) {
 
   magma_int_t info = 0;
-  CHECK_MAGMA(ptr_potrf(magma_uplo_const('L'), N, d_iA, ldda, &info), info);
-  CHECK_MAGMA(ptr_potri(magma_uplo_const('L'), N, d_iA, ldda, &info), info);
+  CHECK_MAGMA(ptr_potrf(magma_uplo_const('L'), N, d_iA, ldda, &info), info, info=0);
+  CHECK_MAGMA(ptr_potri(magma_uplo_const('L'), N, d_iA, ldda, &info), info, info=0);
 
   fill_sym_matrix<T>('L', d_iA, N, N * ldda, device);
   return EXIT_SUCCESS;
@@ -216,7 +219,7 @@ int carma_syevd_cpu_gen(magma_vec_t jobz, magma_int_t N, magma_int_t lda,
   char job2 = lapacke_vec_const(jobz);
   CHECK_MAGMA(
       ptr_syevd_cpu(&job2, &uplo, &N, NULL, &lda, NULL, NULL, &lda, aux_iwork, &liwork, &info),
-      info);
+      info, info=0);
 
   liwork = aux_iwork[0];
   magma_malloc_cpu((void**) &iwork, (liwork) * sizeof(magma_int_t));
@@ -226,7 +229,7 @@ int carma_syevd_cpu_gen(magma_vec_t jobz, magma_int_t N, magma_int_t lda,
   CHECK_MAGMA(
       ptr_syevd_cpu(&job2, &uplo, &N, h_mat, &lda, h_eigenvals, h_R, &lda,
                     iwork, &liwork, &info),
-      info);
+      info, cudaFreeHost(h_R);magma_free_cpu(iwork););
 
   cudaFreeHost(h_R);
   magma_free_cpu(iwork);
@@ -254,12 +257,11 @@ int carma_getri_gen(long N, T *d_iA) {
 
   magma_int_t info = 0;
   cudaMalloc((void**) &dwork, ldwork * sizeof(T));
-  CHECK_MAGMA(ptr_getrf(N, N, d_iA, ldda, ipiv, &info), info);
-  CHECK_MAGMA(ptr_getri(N, d_iA, ldda, ipiv, dwork, ldwork, &info), info);
+  CHECK_MAGMA(ptr_getrf(N, N, d_iA, ldda, ipiv, &info), info, cudaFree(dwork);magma_free_cpu(ipiv));
+  CHECK_MAGMA(ptr_getri(N, d_iA, ldda, ipiv, dwork, ldwork, &info), info, cudaFree(dwork);magma_free_cpu(ipiv));
 
   cudaFree(dwork);
   magma_free_cpu(ipiv);
-
   return EXIT_SUCCESS;
 }
 
@@ -280,8 +282,8 @@ int carma_getri_cpu_gen(magma_int_t N, T *h_A) {
   magma_malloc_cpu((void**) &work, lwork * sizeof(T));
 
   magma_int_t info = 0;
-  CHECK_MAGMA(ptr_getrf(&N, &N, h_A, &lda, ipiv, &info), info);
-  CHECK_MAGMA(ptr_getri(&N, h_A, &lda, ipiv, work, &lwork, &info), info);
+  CHECK_MAGMA(ptr_getrf(&N, &N, h_A, &lda, ipiv, &info), info, magma_free_cpu(work);magma_free_cpu(ipiv));
+  CHECK_MAGMA(ptr_getri(&N, h_A, &lda, ipiv, work, &lwork, &info), info, magma_free_cpu(work);magma_free_cpu(ipiv));
 
   magma_free_cpu(work);
   magma_free_cpu(ipiv);
@@ -335,14 +337,18 @@ int carma_potri_m_gen(long num_gpus, T *h_A, T *d_iA, long N,
 
   magma_int_t info = 0;
   CHECK_MAGMA(ptr_potrf(num_gpus, magma_uplo_const('L'), N, d_lA, N, &info),
-              info);
+              info, for (long dev = 0; dev < num_gpus; dev++) {magma_setdevice(dev);cudaFree(d_lA[dev]);});
   CHECK_MAGMA(
       ptr_getmatrix_1D_col_bcyclic(N, N, d_lA, ldda, h_A, lda, num_gpus, nb),
-      info);
+      info, for (long dev = 0; dev < num_gpus; dev++) {magma_setdevice(dev);cudaFree(d_lA[dev]);});
 
   cudaMemcpy(h_A, d_iA, N * N * sizeof(T), cudaMemcpyHostToDevice);
   //d_iA->host2device(h_A);
-  CHECK_MAGMA(ptr_potri(magma_uplo_const('L'), N, d_iA, N, &info), info);
+  CHECK_MAGMA(ptr_potri(magma_uplo_const('L'), N, d_iA, N, &info), info, for (long dev = 0; dev < num_gpus; dev++) {magma_setdevice(dev);cudaFree(d_lA[dev]);});
+  for (long dev = 0; dev < num_gpus; dev++) {
+    magma_setdevice(dev);
+    cudaFree(d_lA[dev]);
+  }
 
   fill_sym_matrix<T>('L', d_iA, N, N * N, device);
   return EXIT_SUCCESS;
@@ -359,8 +365,8 @@ int carma_potri_cpu_gen(magma_int_t N, T *h_A) {
   magma_int_t info = 0;
   char uplo = 'L';
   magma_int_t one = 1;
-  CHECK_MAGMA(ptr_potrf(&uplo, &N, h_A, &N, &info), info)
-  CHECK_MAGMA(ptr_potri(&uplo, &N, h_A, &N, &info), info)
+  CHECK_MAGMA(ptr_potrf(&uplo, &N, h_A, &N, &info), info, info=0)
+  CHECK_MAGMA(ptr_potri(&uplo, &N, h_A, &N, &info), info, info=0)
   // Copy lower part to the upper
   for (magma_int_t row = 1; row < N; row++) {
     ptr_copy(&row, h_A + row, &N, h_A + row * N, &one);

@@ -31,6 +31,32 @@ int compute_nmaxhr(long nvalid) {
   return nvalid;
 }
 
+sutra_wfs::sutra_wfs(carma_context *context, sutra_telescope *d_tel,
+                     sutra_sensors *sensors, string type, long nxsub,
+                     long nvalid, long npix, long nphase, long nrebin,
+                     long nfft, long ntot, long npup, float pdiam,
+                     float nphotons, float nphot4imat, int lgs, int device) :
+    device(device), type(type), nxsub(nxsub), nvalid(nvalid), npix(npix),
+    nrebin(nrebin), nfft(nfft), ntot(ntot), npup(npup), nphase(nphase),
+    nmaxhr(nvalid), nffthr(1), subapd(pdiam), nphot(nphotons),
+    nphot4imat(nphot4imat), noise(0), lgs(lgs), kernconv(false),
+    error_budget(false), campli_plan(nullptr), fttotim_plan(nullptr),
+    d_ftkernel(nullptr), d_camplipup(nullptr), d_camplifoc(nullptr),
+    d_fttotim(nullptr), d_pupil(d_tel->d_pupil_m), d_bincube(nullptr),
+    d_bincube_notnoisy(nullptr), d_binimg(nullptr), d_binimg_notnoisy(nullptr),
+    d_subsum(nullptr), d_offsets(nullptr), d_fluxPerSub(nullptr),
+    d_sincar(nullptr), d_hrmap(nullptr), d_slopes(nullptr),
+    image_telemetry(nullptr), d_gs(nullptr), streams(nullptr), nstreams(0),
+    d_phasemap(nullptr), d_validsubsx(nullptr), d_validsubsy(nullptr),
+    current_context(context), offset(0), nvalid_tot(nvalid), rank(0),
+    displ_bincube(nullptr), count_bincube(nullptr) {
+  if (sensors != nullptr) {
+    this->d_camplipup = sensors->d_camplipup;
+    this->d_camplifoc = sensors->d_camplifoc;
+    this->d_fttotim = sensors->d_fttotim;
+  }
+}
+
 int sutra_wfs::wfs_initgs(sutra_sensors *sensors, float xpos, float ypos,
                           float lambda, float mag, float zerop, long size,
                           float noise, long seed) {
@@ -38,20 +64,19 @@ int sutra_wfs::wfs_initgs(sutra_sensors *sensors, float xpos, float ypos,
   this->d_gs = new sutra_source(current_context, xpos, ypos, lambda, mag, zerop,
                                 size, "wfs", this->device);
   this->noise = noise;
-  if(this->type != "pyrhr"){
-	  if (noise > -1) {
-		this->d_bincube->init_prng(seed);
-		//this->d_bincube->prng('N', noise, 0.0f);
-	  }
-	  if (noise > 0) {
-		this->d_binimg->init_prng(seed);
-		//this->d_binimg->prng('N', noise, 0.0f);
-	  }
-  }
-  else{
-	  if(noise > -1){
-		  this->d_binimg->init_prng(seed);
-	  }
+  if (this->type != "pyrhr") {
+    if (noise > -1) {
+      this->d_bincube->init_prng(seed);
+      //this->d_bincube->prng('N', noise, 0.0f);
+    }
+    if (noise > 0) {
+      this->d_binimg->init_prng(seed);
+      //this->d_binimg->prng('N', noise, 0.0f);
+    }
+  } else {
+    if (noise > -1) {
+      this->d_binimg->init_prng(seed);
+    }
   }
 
   if (this->lgs) {
@@ -104,10 +129,10 @@ sutra_sensors::sutra_sensors(carma_context *context, sutra_telescope *d_tel,
                              long *npix, long *nphase, long *nrebin, long *nfft,
                              long *ntot, long *npup, float *pdiam, float *nphot,
                              float *nphot4imat, int *lgs, int device,
-                             bool error_budget) {
-  this->current_context = context;
-  this->device = device;
-  this->error_budget = error_budget;
+                             bool error_budget) :
+    device(device), error_budget(error_budget), current_context(context),
+    d_camplipup(nullptr), d_camplifoc(nullptr), d_fttotim(nullptr),
+    d_ftlgskern(nullptr), d_lgskern(nullptr) {
   current_context->set_activeDevice(device,1);
   // DEBUG_TRACE("Before create sensors : ");printMemInfo();
   if (strcmp(type[0], "sh") == 0) {
@@ -173,21 +198,23 @@ sutra_sensors::sutra_sensors(carma_context *context, sutra_telescope *d_tel,
                                    npix[i], nphase[i], nrebin[i], nfft[i],
                                    ntot[i], npup[i], pdiam[i], nphot[i],
                                    nphot4imat[i], lgs[i], device);
-    if (strcmp(type[i], "pyrhr") == 0){
-      const int ngpu=context->get_ndevice();
+    if (strcmp(type[i], "pyrhr") == 0) {
+      const int ngpu = context->get_ndevice();
       DEBUG_TRACE("using pyrhr with %d GPUs", ngpu);
-      if(ngpu==1) {
+      if (ngpu == 1) {
         wfs = new sutra_wfs_pyr_pyrhr(context, d_tel, this, nxsub[i], nvalid[i],
-            npix[i], nphase[i], nrebin[i], nfft[i],
-            ntot[i], npup[i], pdiam[i], nphot[i],nphot4imat[i], lgs[i], device);
+                                      npix[i], nphase[i], nrebin[i], nfft[i],
+                                      ntot[i], npup[i], pdiam[i], nphot[i],
+                                      nphot4imat[i], lgs[i], device);
       } else {
         int devices[ngpu];
-        for(int i=0; i<ngpu; i++){
-          devices[i]=i;
+        for (int i = 0; i < ngpu; i++) {
+          devices[i] = i;
         }
         wfs = new sutra_wfs_pyr_pyrhr(context, d_tel, this, nxsub[i], nvalid[i],
-            npix[i], nphase[i], nrebin[i], nfft[i],
-            ntot[i], npup[i], pdiam[i], nphot[i],nphot4imat[i], lgs[i], ngpu, devices);
+                                      npix[i], nphase[i], nrebin[i], nfft[i],
+                                      ntot[i], npup[i], pdiam[i], nphot[i],
+                                      nphot4imat[i], lgs[i], ngpu, devices);
       }
     }
     if (strcmp(type[i], "roof") == 0)
@@ -204,7 +231,10 @@ sutra_sensors::sutra_sensors(carma_context *context, sutra_telescope *d_tel,
 
 sutra_sensors::sutra_sensors(carma_context *context, sutra_telescope *d_tel,
                              int nwfs, long *nxsub, long *nvalid, long *nphase,
-                             long npup, float *pdiam, int device) {
+                             long npup, float *pdiam, int device) :
+    device(device), error_budget(false), current_context(context),
+    d_camplipup(nullptr), d_camplifoc(nullptr), d_fttotim(nullptr),
+    d_ftlgskern(nullptr), d_lgskern(nullptr) {
   this->current_context = context;
   this->device = device;
   current_context->set_activeDevice(device,1);
@@ -215,12 +245,6 @@ sutra_sensors::sutra_sensors(carma_context *context, sutra_telescope *d_tel,
         new sutra_wfs_geom(context, d_tel, nxsub[i], nvalid[i], nphase[i], npup,
                            pdiam[i], device));
   }
-  this->d_camplifoc = 0L;
-  this->d_camplipup = 0L;
-  this->d_fttotim = 0L;
-  this->d_lgskern = 0L;
-  this->d_ftlgskern = 0L;
-
 }
 
 sutra_sensors::~sutra_sensors() {
@@ -244,15 +268,15 @@ sutra_sensors::~sutra_sensors() {
     free(it->second);
   }
 
-  if (this->d_camplifoc != 0L)
+  if (this->d_camplifoc != nullptr)
     delete this->d_camplifoc;
-  if (this->d_camplipup != 0L)
+  if (this->d_camplipup != nullptr)
     delete this->d_camplipup;
-  if (this->d_fttotim != 0L)
+  if (this->d_fttotim != nullptr)
     delete this->d_fttotim;
-  if (this->d_lgskern != 0L)
+  if (this->d_lgskern != nullptr)
     delete this->d_lgskern;
-  if (this->d_ftlgskern != 0L)
+  if (this->d_ftlgskern != nullptr)
     delete this->d_ftlgskern;
 }
 

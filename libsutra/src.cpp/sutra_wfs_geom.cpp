@@ -5,50 +5,10 @@
 
 sutra_wfs_geom::sutra_wfs_geom(carma_context *context, sutra_telescope *d_tel,
                                long nxsub, long nvalid, long nphase, long npup,
-                               float pdiam, int device) {
-  this->campli_plan = 0L;
-  this->fttotim_plan = 0L;
-  this->d_camplipup = 0L;
-  this->d_camplifoc = 0L;
-  this->d_fttotim = 0L;
-  this->d_ftkernel = 0L;
-  this->d_pupil = d_tel->d_pupil_m;
-  this->d_bincube = 0L;
-  this->d_binimg = 0L;
-  this->d_subsum = 0L;
-  this->d_offsets = 0L;
-  this->d_fluxPerSub = 0L;
-  this->d_sincar = 0L;
-  this->d_hrmap = 0L;
-  this->d_slopes = 0L;
-  this->image_telemetry = 0L;
-  this->d_phasemap = 0L;
-  this->d_validsubsx = 0L;
-  this->d_validsubsy = 0L;
-
-  this->current_context = context;
-
-  this->type = "geo";
-
-  this->kernconv = false;
-  this->d_gs = 0L;
-  this->noise = 0;
-  this->nxsub = nxsub;
-  this->nvalid = nvalid;
-  this->nphase = nphase;
-  this->npup = npup;
-  this->subapd = pdiam;
-  this->device = device;
+                               float pdiam, int device) :
+    sutra_wfs(context, d_tel, nullptr, "geo", nxsub, nvalid, 0, nphase, 0, 0, 0, npup,
+              pdiam, 0, 0, false, device) {
   context->set_activeDevice(device,1);
-
-  this->npix = 0;
-  this->nrebin = 0;
-  this->nfft = 0;
-  this->ntot = 0;
-  this->nphot = 0;
-  this->lgs = false;
-  this->nmaxhr = 0;
-  this->nffthr = 0;
 
   this->nstreams = 1; //nvalid/10;
   this->streams = new carma_streams(nstreams);
@@ -77,6 +37,9 @@ sutra_wfs_geom::sutra_wfs_geom(carma_context *context, sutra_telescope *d_tel,
   dims_data2[1] = nphase * nphase;
   dims_data2[2] = nvalid;
   this->d_phasemap = new carma_obj<int>(context, dims_data2);
+  delete[] dims_data1;
+  delete[] dims_data2;
+  delete[] dims_data3;
 }
 
 sutra_wfs_geom::~sutra_wfs_geom() {

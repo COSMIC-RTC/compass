@@ -11,8 +11,9 @@
  */
 
 sutra_tscreen::sutra_tscreen(carma_context *context, long size, long size2,
-    float r0, float altitude, float windspeed, float winddir, float deltax,
-    float deltay, int device) {
+                             float r0, float altitude, float windspeed,
+                             float winddir, float deltax, float deltay,
+                             int device) {
   this->current_context = context;
   this->screen_size = size;
   this->amplitude = powf(r0, -5.0f / 6.0f);
@@ -38,7 +39,7 @@ sutra_tscreen::sutra_tscreen(carma_context *context, long size, long size2,
 
   this->d_tscreen = new sutra_phase(current_context, this->screen_size);
   this->channelDesc = cudaCreateChannelDesc(32, 0, 0, 0,
-      cudaChannelFormatKindFloat);
+                                            cudaChannelFormatKindFloat);
 
   long *dims_data2 = new long[3];
   dims_data2[0] = 2;
@@ -62,6 +63,8 @@ sutra_tscreen::sutra_tscreen(carma_context *context, long size, long size2,
   this->d_ytmp = new carma_obj<float>(current_context, dims_data);
 
   this->vk_on = false;
+  delete[] dims_data;
+  delete[] dims_data2;
 }
 
 sutra_tscreen::~sutra_tscreen() {
@@ -80,7 +83,8 @@ sutra_tscreen::~sutra_tscreen() {
 }
 
 int sutra_tscreen::init_screen(float *h_A, float *h_B,
-    unsigned int *h_istencilx, unsigned int *h_istencily, int seed) {
+                               unsigned int *h_istencilx,
+                               unsigned int *h_istencily, int seed) {
   this->current_context->set_activeDevice(device,1);
   // initial memcopies
   this->d_A->host2device(h_A);
@@ -103,7 +107,7 @@ int sutra_tscreen::init_vk(int seed, int pupd) {
   dims_data2[1] = this->screen_size;
   dims_data2[2] = this->screen_size;
   this->d_tscreen_c = new carma_obj<cuFloatComplex>(current_context,
-      dims_data2);
+                                                    dims_data2);
   cufftHandle *plan = this->d_tscreen_c->getPlan();
   carmafftSafeCall(
       cufftPlan2d(plan, this->screen_size, this->screen_size, CUFFT_C2C));
@@ -112,10 +116,12 @@ int sutra_tscreen::init_vk(int seed, int pupd) {
     this->d_tscreen_o->init_prng_host(seed);
 
   this->norm_vk = pow(pupd * pow(this->amplitude, 6.0f / 5.0f), 5.0f / 6.0f)
-      * 0.5f / (2.0f * 3.14159);
+      * 0.5f
+                  / (2.0f * 3.14159);
 
   this->vk_on = true;
 
+  delete[] dims_data2;
   return EXIT_SUCCESS;
 }
 
@@ -125,7 +131,8 @@ int sutra_tscreen::generate_vk(float l0, int nalias) {
 
   cuFloatComplex *data = this->d_tscreen_c->getData();
   carmaSafeCall(
-      cudaMemset(data, 0,
+      cudaMemset(
+          data, 0,
           this->screen_size * this->screen_size * sizeof(cuFloatComplex)));
 
   float k0 = (l0 == 0. ? 0.0f : this->screen_size / l0);
@@ -133,25 +140,28 @@ int sutra_tscreen::generate_vk(float l0, int nalias) {
 
   float *data_o = this->d_tscreen_o->getData();
   gene_vonkarman(data, data_o, k0, nalias, this->screen_size, this->screen_size,
-      block_size);
+                 block_size);
 
-  roll<cuFloatComplex>(data, this->screen_size, this->screen_size, current_context->get_device(device));
+  roll<cuFloatComplex>(data, this->screen_size, this->screen_size,
+                       current_context->get_device(device));
 
   carma_fft(data, data, 1, *this->d_tscreen_c->getPlan());
 
   cgetrealp(this->d_tscreen->d_screen->getData(), this->d_tscreen_c->getData(),
-      this->d_tscreen->d_screen->getNbElem(), current_context->get_device(device));
+            this->d_tscreen->d_screen->getNbElem(),
+            current_context->get_device(device));
 
   norm_pscreen(data_o, this->d_tscreen->d_screen->getData(), this->screen_size,
-      this->screen_size, this->norm_vk, this->current_context->get_device(device));
+               this->screen_size, this->norm_vk,
+               this->current_context->get_device(device));
 
   this->d_tscreen->d_screen->copyFrom(data_o,
-      this->d_tscreen->d_screen->getNbElem());
+                                      this->d_tscreen->d_screen->getNbElem());
 
   return EXIT_SUCCESS;
 }
 
-int sutra_tscreen::extrude(int dir){
+int sutra_tscreen::extrude(int dir) {
 // dir =1 moving in x
 
   this->current_context->set_activeDevice(device,1);
@@ -160,29 +170,31 @@ int sutra_tscreen::extrude(int dir){
 
   if (dir == 1) { // adding a column to the left
     fillindx(this->d_z->getData(), this->d_tscreen->d_screen->getData(),
-        (int *) this->d_istencilx->getData(), this->d_z->getNbElem(),
-        current_context->get_device(device));
+             (int *) this->d_istencilx->getData(), this->d_z->getNbElem(),
+             current_context->get_device(device));
     x0 = this->screen_size - 1; //not in stencil
   } else {
     fillindx(this->d_z->getData(), this->d_tscreen->d_screen->getData(),
-        (int *) this->d_istencily->getData(), this->d_z->getNbElem(),
-        current_context->get_device(device));
+             (int *) this->d_istencily->getData(), this->d_z->getNbElem(),
+             current_context->get_device(device));
     x0 = this->screen_size * (this->screen_size - 1);
   }
 
-  addai<float>(this->d_z->getData(), this->d_tscreen->d_screen->getData(), x0, -1.0f,
-      this->d_z->getNbElem(), current_context->get_device(device));
+  addai<float>(this->d_z->getData(), this->d_tscreen->d_screen->getData(), x0,
+               -1.0f, this->d_z->getNbElem(),
+               current_context->get_device(device));
 
   this->d_ytmp->gemv('n', 1.0f, this->d_A, this->d_A->getDims(1), this->d_z, 1,
-      0.0f, 1);
+                     0.0f, 1);
 
   this->d_noise->prng_host('N');
 
   this->d_ytmp->gemv('n', this->amplitude, this->d_B, this->d_B->getDims(1),
-      this->d_noise, 1, 1.0f, 1);
+                     this->d_noise, 1, 1.0f, 1);
 
-  addai<float>(this->d_ytmp->getData(), this->d_tscreen->d_screen->getData(), x0, 1.0f,
-      this->d_ytmp->getNbElem(), current_context->get_device(device));
+  addai<float>(this->d_ytmp->getData(), this->d_tscreen->d_screen->getData(),
+               x0, 1.0f, this->d_ytmp->getNbElem(),
+               current_context->get_device(device));
 
   if (dir == 1) {
     x0 = 1;
@@ -195,7 +207,7 @@ int sutra_tscreen::extrude(int dir){
   }
 
   getarr2d(this->d_tscreen_o->getData(), this->d_tscreen->d_screen->getData(),
-      x0, Ncol, NC, N, current_context->get_device(device));
+           x0, Ncol, NC, N, current_context->get_device(device));
 
   if (dir == 1)
     x0 = 0;
@@ -203,7 +215,7 @@ int sutra_tscreen::extrude(int dir){
     x0 = 0;
 
   fillarr2d(this->d_tscreen->d_screen->getData(), this->d_tscreen_o->getData(),
-      x0, Ncol, NC, N, current_context->get_device(device));
+            x0, Ncol, NC, N, current_context->get_device(device));
 
   if (dir == 1) {
     x0 = this->screen_size - 1;
@@ -216,7 +228,7 @@ int sutra_tscreen::extrude(int dir){
   }
 
   fillarr2d(this->d_tscreen->d_screen->getData(), this->d_ytmp->getData(), x0,
-      Ncol, NC, N, current_context->get_device(device));
+            Ncol, NC, N, current_context->get_device(device));
 
   return EXIT_SUCCESS;
 }
@@ -229,8 +241,9 @@ int sutra_tscreen::extrude(int dir){
  */
 
 sutra_atmos::sutra_atmos(carma_context *context, int nscreens, float *r0,
-    long *size, long *size2, float *altitude, float *windspeed, float *winddir,
-    float *deltax, float *deltay, int device) {
+                         long *size, long *size2, float *altitude,
+                         float *windspeed, float *winddir, float *deltax,
+                         float *deltay, int device) {
   this->nscreens = nscreens;
   //this->r0       = r0;
   this->current_context = context;
@@ -238,9 +251,11 @@ sutra_atmos::sutra_atmos(carma_context *context, int nscreens, float *r0,
 
   for (int i = 0; i < nscreens; i++) {
     d_screens.insert(
-        pair<float, sutra_tscreen *>(altitude[i],
+        pair<float, sutra_tscreen *>(
+            altitude[i],
             new sutra_tscreen(context, size[i], size2[i], r0[i], altitude[i],
-                windspeed[i], winddir[i], deltax[i], deltay[i], device)));
+                              windspeed[i], winddir[i], deltax[i], deltay[i],
+                              device)));
   }
 
 }
@@ -256,7 +271,8 @@ sutra_atmos::~sutra_atmos() {
 }
 
 int sutra_atmos::init_screen(float altitude, float *h_A, float *h_B,
-    unsigned int *h_istencilx, unsigned int *h_istencily, int seed) {
+                             unsigned int *h_istencilx,
+                             unsigned int *h_istencily, int seed) {
   d_screens[altitude]->init_screen(h_A, h_B, h_istencilx, h_istencily, seed);
 
   return EXIT_SUCCESS;

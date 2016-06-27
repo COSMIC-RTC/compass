@@ -207,6 +207,8 @@ int sutra_controller_ls::build_cmat(int nfilt, bool filt_tt) {
   delete d_tmp2;
   delete d_eigenvals_inv;
   delete h_eigenvals_inv;
+  delete[] dims_data1;
+  delete[] dims_data2;
 
   return EXIT_SUCCESS;
 }

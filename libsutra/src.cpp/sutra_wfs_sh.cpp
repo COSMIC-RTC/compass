@@ -6,62 +6,11 @@ sutra_wfs_sh::sutra_wfs_sh(carma_context *context, sutra_telescope *d_tel,
                            sutra_sensors *sensors, long nxsub, long nvalid,
                            long npix, long nphase, long nrebin, long nfft,
                            long ntot, long npup, float pdiam, float nphotons,
-                           float nphot4imat, int lgs, int device) {
-  this->type = string("sh");
-  this->d_camplipup = sensors->d_camplipup;
-  this->d_camplifoc = sensors->d_camplifoc;
-  this->d_fttotim = sensors->d_fttotim;
-  this->d_ftkernel = 0L;
-  this->d_pupil = d_tel->d_pupil_m;
-  this->d_bincube = 0L;
-  this->d_bincube_notnoisy = 0L;
-  this->d_binimg = 0L;
-  this->d_subsum = 0L;
-  this->d_offsets = 0L;
-  this->d_fluxPerSub = 0L;
-  this->d_sincar = 0L;
-  this->d_hrmap = 0L;
-  this->d_slopes = 0L;
-  this->image_telemetry = 0L;
-  this->d_phasemap = 0L;
-  this->d_binmap = 0L;
-  this->d_validsubsx = 0L;
-  this->d_validsubsy = 0L;
-  this->d_istart = 0L;
-  this->d_jstart = 0L;
-
-  this->d_gs = 0L;
-
-  this->current_context = context;
-
-  this->noise = 0;
-  this->nxsub = nxsub;
-  this->nvalid = nvalid;
-  this->npix = npix;
-  this->nphase = nphase;
-  this->nrebin = nrebin;
-  this->nfft = nfft;
-  this->ntot = ntot;
-  this->npup = npup;
-  this->subapd = pdiam;
-  this->nphot = nphotons;
-  this->nphot4imat = nphot4imat;
-  this->lgs = (lgs == 1 ? true : false);
-  this->device = device;
-  context->set_activeDevice(device,1);
-  this->nmaxhr = nvalid;
-  this->nffthr = 1;
-
-  this->kernconv = false;
-
-  this->offset = 0;
-  this->error_budget = sensors->error_budget;
-
-  /// MPI stuff
-  this->offset = 0;
-  this->nvalid_tot = nvalid;
-  this->rank = 0;
-
+                           float nphot4imat, int lgs, int device) :
+    sutra_wfs(context, d_tel, sensors, "sh", nxsub, nvalid, npix, nphase, nrebin, nfft,
+              ntot, npup, pdiam, nphotons, nphot4imat, lgs, device),
+    d_binmap(nullptr), d_istart(nullptr),
+    d_jstart(nullptr) {
 }
 
 int sutra_wfs_sh::define_mpi_rank(int rank, int size) {
@@ -120,17 +69,17 @@ int sutra_wfs_sh::allocate_buffers(sutra_sensors *sensors) {
 
   int mdims[2];
 
-  //this->d_submask = new carma_obj<float>(current_context, dims_data3); // Useless for SH
+//this->d_submask = new carma_obj<float>(current_context, dims_data3); // Useless for SH
 
-  //this->d_camplipup = new carma_obj<cuFloatComplex>(current_context, dims_data3);
-  //this->d_camplifoc = new carma_obj<cuFloatComplex>(current_context, dims_data3);
+//this->d_camplipup = new carma_obj<cuFloatComplex>(current_context, dims_data3);
+//this->d_camplifoc = new carma_obj<cuFloatComplex>(current_context, dims_data3);
   mdims[0] = (int) dims_data3[1];
   mdims[1] = (int) dims_data3[2];
 
   int vector_dims[3] = { mdims[0], mdims[1], (int) dims_data3[3] };
   vector<int> vdims(vector_dims,
                     vector_dims + sizeof(vector_dims) / sizeof(int));
-  //vector<int> vdims(dims_data3 + 1, dims_data3 + 4);
+//vector<int> vdims(dims_data3 + 1, dims_data3 + 4);
 
   if (sensors->campli_plans.find(vdims) == sensors->campli_plans.end()) {
     //DEBUG_TRACE("Creating FFT plan : %d %d %d",mdims[0],mdims[1],dims_data3[3]);printMemInfo();
@@ -261,6 +210,9 @@ int sutra_wfs_sh::allocate_buffers(sutra_sensors *sensors) {
   dims_data2[2] = nvalid;
   this->d_phasemap = new carma_obj<int>(current_context, dims_data2);
 
+  delete[] dims_data1;
+  delete[] dims_data2;
+  delete[] dims_data3;
   return EXIT_SUCCESS;
 }
 
@@ -312,7 +264,7 @@ sutra_wfs_sh::~sutra_wfs_sh() {
 
   delete this->streams;
 
-  //delete this->current_context;
+//delete this->current_context;
 }
 
 int sutra_wfs_sh::wfs_initarrays(int *phasemap, int *hrmap, int *binmap,
@@ -361,7 +313,7 @@ int sutra_wfs_sh::comp_generic() {
    sizeof(cuFloatComplex) * this->d_camplifoc->getNbElem()));
    */
 
-  // segment phase and fill cube of complex ampli with exp(i*phase_seg)
+// segment phase and fill cube of complex ampli with exp(i*phase_seg)
   fillcamplipup(this->d_camplipup->getData(),
                 this->d_gs->d_phase->d_screen->getData(),
                 this->d_offsets->getData(), this->d_pupil->getData(),
@@ -371,24 +323,24 @@ int sutra_wfs_sh::comp_generic() {
                 this->d_gs->d_phase->d_screen->getDims(1), this->nfft,
                 this->nphase * this->nphase * this->nvalid,
                 this->current_context->get_device(device), 0); //, this->offset);
-  // do fft of the cube  
+// do fft of the cube
   carma_fft(this->d_camplipup->getData(), this->d_camplifoc->getData(), 1,
             *this->campli_plan);  //*this->d_camplipup->getPlan());
 
-  // get the hrimage by taking the | |^2
-  // keep it in amplifoc to save mem space
+// get the hrimage by taking the | |^2
+// keep it in amplifoc to save mem space
   abs2c(this->d_camplifoc->getData(), this->d_camplifoc->getData(),
         this->nfft * this->nfft * this->nvalid,
         current_context->get_device(device));
 
-  //set bincube to 0 or noise
+//set bincube to 0 or noise
   carmaSafeCall(
       cudaMemset(this->d_bincube->getData(), 0,
                  sizeof(float) * this->d_bincube->getNbElem()));
-  // increase fov if required
-  // and fill bincube with data from hrimg
-  // we need to do this sequentially if nvalid > nmaxhr to
-  // keep raesonable mem occupancy
+// increase fov if required
+// and fill bincube with data from hrimg
+// we need to do this sequentially if nvalid > nmaxhr to
+// keep raesonable mem occupancy
   if (this->ntot != this->nfft) {
 
     for (int cc = 0; cc < this->nffthr; cc++) {
@@ -528,8 +480,8 @@ int sutra_wfs_sh::comp_generic() {
     }
 
   }
-  // normalize images :
-  // get the sum value per subap
+// normalize images :
+// get the sum value per subap
 
   if (this->nstreams > 1) {
     subap_reduce_async(this->npix * this->npix, this->nvalid, this->streams,
@@ -555,13 +507,13 @@ int sutra_wfs_sh::comp_generic() {
                this->d_bincube->getNbElem(),
                current_context->get_device(device));
   }
-  //fprintf(stderr, "[%s@%d]: I'm here!\n", __FILE__, __LINE__);
+//fprintf(stderr, "[%s@%d]: I'm here!\n", __FILE__, __LINE__);
 
   if (this->error_budget) { // Get here the bincube before adding noise, usefull for error budget
     this->d_bincube->copyInto(this->d_bincube_notnoisy->getData(),
                               this->d_bincube->getNbElem());
   }
-  // add noise
+// add noise
   if (this->noise > -1) {
     //cout << "adding poisson noise" << endl;
     this->d_bincube->prng('P');

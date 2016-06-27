@@ -4,8 +4,8 @@
 texture<float, 2, cudaReadModeElementType> tex2d;
 
 // declare shared memory arrays
-extern __shared__ cuFloatComplex cachec[];
-extern __shared__ float cache[];
+//extern __shared__ cuFloatComplex cachec[];
+//extern __shared__ float cache[];
 
 __global__ void texraytrace_krnl(float* g_odata, int nx, int ny, float xoff,
     float yoff) {

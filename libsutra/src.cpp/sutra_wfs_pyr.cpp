@@ -7,57 +7,11 @@ sutra_wfs_pyr::sutra_wfs_pyr(carma_context *context, sutra_telescope *d_tel,
                              long npix, long nphase, long nrebin, long nfft,
                              long ntot, long npup, float pdiam, float nphotons,
                              float nphot4imat, int lgs, int device,
-                             const char* type_pyr) {
-  this->d_camplipup = 0L; //sensors->d_camplipup;
-  this->d_camplifoc = 0L; //sensors->d_camplifoc;
-  this->d_fttotim = 0L; //sensors->d_fttotim;
-  this->d_ftkernel = 0L;
-  this->d_pupil = d_tel->d_pupil_m;
-  this->d_hrimg = 0L;
-  this->d_bincube = 0L;
-  this->d_binimg = 0L;
-  this->d_binimg_notnoisy = 0L;
-  this->d_subsum = 0L;
-  this->d_offsets = 0L;
-  this->d_fluxPerSub = 0L;
-  this->d_sincar = 0L;
-  this->d_submask = 0L;
-  this->d_hrmap = 0L;
-  this->d_slopes = 0L;
-  this->image_telemetry = 0L;
-  this->d_phasemap = 0L;
-  this->d_validsubsx = 0L;
-  this->d_validsubsy = 0L;
-  this->d_psum = 0L;
-  this->d_phalfxy = 0L;
-  this->d_poffsets = 0L;
-  this->pyr_cx = 0L;
-  this->pyr_cy = 0L;
-
-  this->d_gs = 0L;
-
-  this->current_context = context;
-
-  this->noise = 0;
-  this->nxsub = nxsub;
-  this->nvalid = nvalid;
-  this->npix = npix;
-  this->nphase = nphase;
-  this->nrebin = nrebin;
-  this->nfft = nfft;
-  this->ntot = ntot;
-  this->npup = npup;
-  this->subapd = pdiam;
-  this->nphot = nphotons;
-  this->nphot4imat = nphot4imat;
-  this->lgs = (lgs == 1 ? true : false);
-  this->device = device;
+                             const char* type_pyr) :
+    sutra_wfs(context, d_tel, sensors, type_pyr, nxsub, nvalid, npix, nphase,
+              nrebin, nfft, ntot, npup, pdiam, nphotons, nphot4imat, lgs,
+              device) {
   context->set_activeDevice(device,1);
-  this->nmaxhr = nvalid;
-  this->nffthr = 1;
-  this->type = string(type_pyr);
-  this->kernconv = false;
-  this->error_budget = sensors->error_budget;
 
   long dims_data1[2];
   dims_data1[0] = 1;
@@ -83,17 +37,17 @@ sutra_wfs_pyr::sutra_wfs_pyr(carma_context *context, sutra_telescope *d_tel,
     this->d_poffsets = new carma_obj<cuFloatComplex>(context, dims_data2);
     this->d_phalfxy = new carma_obj<cuFloatComplex>(context, dims_data2);
     this->d_sincar = new carma_obj<float>(context, dims_data2);
- 
+
     dims_data2[1] = nphase * nphase;
     dims_data2[2] = nvalid;
     this->d_phasemap = new carma_obj<int>(current_context, dims_data2);
- 
+
     dims_data2[1] = nfft / nrebin;
     dims_data2[2] = nfft / nrebin;
 
     this->d_binimg = new carma_obj<float>(context, dims_data2);
-    if(this->error_budget){
-    	this->d_binimg_notnoisy = new carma_obj<float>(context, dims_data2);
+    if (this->error_budget) {
+      this->d_binimg_notnoisy = new carma_obj<float>(context, dims_data2);
     }
     // using 1 stream for telemetry
     this->image_telemetry = new carma_host_obj<float>(dims_data2, MA_PAGELOCK,
