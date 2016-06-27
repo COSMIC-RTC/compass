@@ -10,7 +10,7 @@ sizex = 256
 sizey = 512
 sizez = 10
 
-dec = 10
+dec = 5
 prec = 10 ** -dec
 
 
@@ -64,8 +64,8 @@ def test_fft_C2C():
     print "Python: ", t2 - t1
     print "Carma : ", t3 - t2
 
-    npt.assert_almost_equal(data.item(MR).real / dR, data_gpu.item(MR).real / dR, dec)
-    npt.assert_almost_equal(data.item(MI).imag / dI, data_gpu.item(MI).imag / dI, dec)
+    npt.assert_almost_equal(data.item(MR).real / dR, data_gpu.item(MR).real / dR, decimal=dec)
+    npt.assert_almost_equal(data.item(MI).imag / dI, data_gpu.item(MI).imag / dI, decimal=dec)
 
     #IFFT
     t1 = time.clock()
@@ -99,10 +99,10 @@ def test_fft_C2C():
     print "Python: ", t2 - t1
     print "Carma : ", t3 - t2
 
-    npt.assert_almost_equal(data.item(MR).real / dR, data_gpu.item(MR).real / dR, dec)
-    npt.assert_almost_equal(data.item(MI).imag / dI, data_gpu.item(MI).imag / dI, dec)
+    npt.assert_almost_equal(data.item(MR).real / dR, data_gpu.item(MR).real / dR, decimal=dec)
+    npt.assert_almost_equal(data.item(MI).imag / dI, data_gpu.item(MI).imag / dI, decimal=dec)
 
-    npt.assert_array_almost_equal(C1_data, cpu_B, dec)
+    npt.assert_array_almost_equal(C1_data, cpu_B, decimal=dec)
 
 
 def test_fft_R2C_C2R():
@@ -157,8 +157,8 @@ def test_fft_R2C_C2R():
     print "Python: ", t2 - t1
     print "Carma : ", t3 - t2
 
-    npt.assert_almost_equal(data.item(MR).real / dR, data_gpu.item(MR).real / dR, dec)
-    npt.assert_almost_equal(data.item(MI).imag / dI, data_gpu.item(MI).imag / dI, dec)
+    npt.assert_almost_equal(data.item(MR).real / dR, data_gpu.item(MR).real / dR, decimal=dec)
+    npt.assert_almost_equal(data.item(MI).imag / dI, data_gpu.item(MI).imag / dI, decimal=dec)
 
     #IFFT
     t1 = time.clock()
@@ -188,8 +188,8 @@ def test_fft_R2C_C2R():
     print "Python: ", t2 - t1
     print "Carma : ", t3 - t2
 
-    npt.assert_almost_equal(data.item(MR).real / dR, data_gpu.item(MR).real / dR, dec)
-    npt.assert_array_almost_equal(R2_data, cpu_C2R, dec)
+    npt.assert_almost_equal(data.item(MR).real / dR, data_gpu.item(MR).real / dR, decimal=dec)
+    npt.assert_array_almost_equal(R2_data, cpu_C2R, decimal=dec)
 
 
 #this test fails:
@@ -243,7 +243,7 @@ def Ntest_fft_multi():
         gpu_F[:, :, i] = gpu_plan[(m * n * i):(m * n * (i + 1))].reshape((m, n))
 
     for i in range(l):
-        npt.assert_almost_equal(gpu_F[:, :, i], cpu_F[:, :, i], dec)
+        npt.assert_almost_equal(gpu_F[:, :, i], cpu_F[:, :, i], decimal=dec)
 
     t1 = time.clock()
     for i in range(l):
@@ -261,5 +261,5 @@ def Ntest_fft_multi():
 
     gpu_B = C3.device2host() / nElem
 
-    npt.assert_almost_equal(gpu_B, C1.device2host(), dec)
-    npt.assert_almost_equal(cpu_B, R1_data, dec)
+    npt.assert_almost_equal(gpu_B, C1.device2host(), decimal=dec)
+    npt.assert_almost_equal(cpu_B, R1_data, decimal=dec)

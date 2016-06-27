@@ -3,7 +3,7 @@ import naga as ch
 import numpy.testing as npt
 import time
 
-dec=6
+dec=4
 prec=10**-dec
 
 sizem=64
@@ -46,14 +46,14 @@ def test_gemm():
     res=matC.device2host()
     
     M=np.argmax(np.abs(res-C))
-    d=1
+    d=5
     if(0<np.abs(C.item(M))):
         d=10**np.ceil(np.log10(np.abs(C.item(M))))
   
     print res.item(M)
     print C.item(M)
   
-    npt.assert_almost_equal(C.item(M)/d,res.item(M)/d,dec)
+    npt.assert_almost_equal(C.item(M)/d,res.item(M)/d,decimal=dec)
 
 
 def test_symm():
@@ -95,14 +95,14 @@ def test_symm():
 
     
     M=np.argmax(np.abs(res-C))
-    d=1
+    d=5
     if(0<np.abs(C.item(M))):
         d=10**np.ceil(np.log10(np.abs(C.item(M))))
 
     print res.item(M)
     print C.item(M)
   
-    npt.assert_almost_equal(C.item(M)/d,res.item(M)/d,dec)
+    npt.assert_almost_equal(C.item(M)/d,res.item(M)/d,decimal=dec)
 
 
 def test_dgmm():
@@ -135,14 +135,14 @@ def test_dgmm():
     res=matC.device2host()
 
     M=np.argmax(np.abs(res-C))
-    d=1
+    d=5
     if(0<np.abs(C.item(M))):
         d=10**np.ceil(np.log10(np.abs(C.item(M))))
 
     print res.item(M)
     print C.item(M)
   
-    npt.assert_almost_equal(C.item(M)/d,res.item(M)/d,dec)
+    npt.assert_almost_equal(C.item(M)/d,res.item(M)/d,decimal=dec)
 
 
 def test_syrk():
@@ -186,14 +186,14 @@ def test_syrk():
     res=np.triu(res).flatten()
 
     M=np.argmax(np.abs(res-C))
-    d=1
+    d=5
     if(0<np.abs(C.item(M))):
         d=10**np.ceil(np.log10(np.abs(C.item(M))))
 
     print res.item(M)
     print C.item(M)
   
-    npt.assert_almost_equal(C.item(M)/d,res.item(M)/d,dec)
+    npt.assert_almost_equal(C.item(M)/d,res.item(M)/d,decimal=dec)
 
 def test_syrkx():
     #function syrkx
@@ -239,14 +239,14 @@ def test_syrkx():
     C=np.triu(C).flatten()
 
     M=np.argmax(np.abs(res-C))
-    d=1
+    d=5
     if(0<np.abs(C.item(M))):
         d=10**np.ceil(np.log10(np.abs(C.item(M))))
 
     print res.item(M)
     print C.item(M)
   
-    npt.assert_almost_equal(C.item(M)/d,res.item(M)/d,dec)
+    npt.assert_almost_equal(C.item(M)/d,res.item(M)/d,decimal=dec)
 
 def test_geam():
 

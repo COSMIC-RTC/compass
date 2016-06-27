@@ -47,13 +47,12 @@ def test_svd():
     if(Mat.item(iErr)!=0):
         err=err/Mat.item(iErr)
 
-    if(err>prec):
-        npt.assert_almost_equal(err,0.,dec)
+    npt.assert_almost_equal(err,0.,decimal=dec)
     print ""
     print err
 
     p_U,p_S,p_V=np.linalg.svd(a)
-    npt.assert_array_almost_equal(S.diagonal(),p_S,dec)
+    npt.assert_array_almost_equal(S.diagonal(),p_S,decimal=dec)
 
 
 def test_getri_cpu():
@@ -78,7 +77,7 @@ def test_getri_cpu():
     print ""
     print err
 
-    npt.assert_almost_equal(err,0.,dec)
+    npt.assert_almost_equal(err,0.,decimal=dec)
 
 
 def test_potri_cpu():
@@ -101,7 +100,7 @@ def test_potri_cpu():
     print ""
     print err
 
-    npt.assert_almost_equal(err,0.,dec)
+    npt.assert_almost_equal(err,0.,decimal=dec)
 
 
 
@@ -132,7 +131,7 @@ def test_getri_gpu():
     print ""
     print err
 
-    npt.assert_almost_equal(err,0.,dec)
+    npt.assert_almost_equal(err,0.,decimal=dec)
 
 
 def test_potri_gpu():
@@ -162,7 +161,7 @@ def test_potri_gpu():
     print ""
     print err
 
-    npt.assert_almost_equal(err,0,dec)
+    npt.assert_almost_equal(err,0,decimal=dec)
 
 
 def test_syevd():
@@ -187,7 +186,7 @@ def test_syevd():
     print "out of place, compute U"
     print err
 
-    npt.assert_almost_equal(err,0.,dec)
+    npt.assert_almost_equal(err,0.,decimal=dec)
 
 
     d_res=d_mat.gemm(d_mat,opA='n',opB='t')

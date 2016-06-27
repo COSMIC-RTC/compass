@@ -4,7 +4,7 @@ import numpy.testing as npt
 import time
 
 size=128
-dec=5
+dec=4
 prec=10**-dec
 
 print "Test cublas 1"
@@ -49,7 +49,7 @@ def test_asum():
     d=1
     if(0<np.abs(sumC.item(M))):
          d=10**np.ceil(np.log10(np.abs(sumC.item(M))))
-    npt.assert_almost_equal(sumG/d,sumC/d, dec)
+    npt.assert_almost_equal(sumG/d,sumC/d, decimal=dec)
 
 def test_nrm2():
     nC=np.linalg.norm(caF2D.device2host())
@@ -58,7 +58,7 @@ def test_nrm2():
     d=1
     if(0<np.abs(nC)):
          d=10**np.ceil(np.log10(np.abs(nC)))
-    npt.assert_almost_equal(nG/d,nC/d, dec)
+    npt.assert_almost_equal(nG/d,nC/d, decimal=dec)
 
 def test_scale():
     sC=caF2D.device2host()*10.0

@@ -67,8 +67,8 @@ def test_gemv():
     d=1
     if(0<np.abs(y.item(M))):
         d=10**np.ceil(np.log10(np.abs(y.item(M))))
-    npt.assert_almost_equal(y.item(M)/d,yG.item(M)/d,dec)
-    npt.assert_array_almost_equal(yG,Vecty_2.device2host(),dec)
+    npt.assert_almost_equal(y.item(M)/d,yG.item(M)/d,decimal=dec)
+    npt.assert_array_almost_equal(yG,Vecty_2.device2host(),decimal=dec)
 
 def test_ger():
 
@@ -102,8 +102,8 @@ def test_ger():
     if(0<np.abs(B.item(Mb))): 
         dB=10**np.ceil(np.log10(np.abs(B.item(Mb))))
 
-    npt.assert_array_almost_equal(A/d,res/d,dec)
-    npt.assert_array_almost_equal(B/d,resB/d,dec)
+    npt.assert_array_almost_equal(A/d,res/d,decimal=dec)
+    npt.assert_array_almost_equal(B/d,resB/d,decimal=dec)
 
 
 def test_symv():
@@ -128,5 +128,5 @@ def test_symv():
     if(0<np.abs(y.item(M))):
         d=10**np.ceil(np.log10(np.abs(y.item(M))))
 
-    npt.assert_array_almost_equal(y/d,yG/d,dec)
+    npt.assert_array_almost_equal(y/d,yG/d,decimal=dec)
 

@@ -29,8 +29,6 @@
 #include <carma_cublas.h>
 #include <carma_cusparse.h>
 
-using namespace std;
-
 class carma_device {
   protected:
     int id;
@@ -69,7 +67,7 @@ class carma_device {
       return p2p_activate;
     }
 
-    string getName() {
+    std::string getName() {
       return properties.name;
     }
 
@@ -107,17 +105,14 @@ class carma_context {
     carma_context();
     carma_context(int num_device);
     carma_context(int nb_devices, int32_t *devices);
-    carma_context(const carma_context& cntxt);
+
     void init_context(const int nb_devices, int32_t *devices_id);
   public:
     ~carma_context();
 
     static carma_context *instance_1gpu(int num_device);
-
     static carma_context *instance_ngpu(int nb_devices, int32_t *devices_id);
-
     static carma_context *instance();
-
     void kill();
 
     int get_ndevice() {
@@ -132,11 +127,11 @@ class carma_context {
     int get_activeRealDevice() {
       return devices[activeDevice]->get_id();
     }
-    string get_DeviceName(int device);
-    string get_DeviceInfo(int device);
-    string get_DeviceMemInfo(int device);
+    std::string get_DeviceName(int device);
+    std::string get_DeviceInfo(int device);
+    std::string get_DeviceMemInfo(int device);
 
-    inline int _set_activeDeviceForCpy(int newDevice, int silent, string file,
+    inline int _set_activeDeviceForCpy(int newDevice, int silent, std::string file,
                                        int line) {
       if (newDevice > ndevice)
         return -1;
@@ -144,14 +139,14 @@ class carma_context {
           (can_access_peer[activeDevice][newDevice] != 1) ?
               _set_activeDevice(newDevice, silent, file, line) : activeDevice;
     }
-    inline int _set_activeDevice(int newDevice, int silent, string file,
+    inline int _set_activeDevice(int newDevice, int silent, std::string file,
                                  int line) {
       return
           (this->activeDevice != newDevice) ?
               _set_activeDeviceForce(newDevice, silent, file, line) :
               activeDevice;
     }
-    int _set_activeDeviceForce(int newDevice, int silent, string file,
+    int _set_activeDeviceForce(int newDevice, int silent, std::string file,
                                int line);
     int get_maxGflopsDeviceId();
     cublasHandle_t get_cublasHandle() {
