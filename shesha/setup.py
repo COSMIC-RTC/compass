@@ -298,7 +298,7 @@ def compile_module(name):
 
     ext = Extension(name,
                     sources=['src/' + name + '.pyx'],
-                    extra_compile_args=["-Wno-unused-function", "-Wno-unused-label", "-Wno-cpp",
+                    extra_compile_args=["-Wno-unused-function", "-Wno-unused-label", "-Wno-cpp", "-std=c++11",
                                         #"-O0", "-g",
                                         ],
                     include_dirs=include_dirs,

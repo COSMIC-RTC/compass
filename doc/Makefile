@@ -21,8 +21,8 @@ I18NSPHINXOPTS  = $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) .
 
 .PHONY: all
 all: html latexpdf qthelp
-	@echo "  doing qcollectiongenerator $(BUILDDIR)/qthelp/COMPASS.qhcp"
-	qcollectiongenerator $(BUILDDIR)/qthelp/COMPASS.qhcp
+	@echo "  doing qcollectiongenerator-qt4 $(BUILDDIR)/qthelp/COMPASS.qhcp"
+	qcollectiongenerator-qt4 $(BUILDDIR)/qthelp/COMPASS.qhcp
 	@echo "  mv $(BUILDDIR)/qthelp/COMPASS.qhc $(BUILDDIR)/qthelp/COMPASS.qch ."
 	mv $(BUILDDIR)/qthelp/COMPASS.qhc $(BUILDDIR)/qthelp/COMPASS.qch .
 

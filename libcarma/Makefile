@@ -27,7 +27,6 @@ ifeq ($(OS_ARCH),armv7l)
     CCFLAGS   += -mfloat-abi=hard
     NVCCFLAGS := -target-cpu-arch ARM -Xlinker --dynamic-linker=/lib/ld-linux-armhf.so.3 -Xcompiler -mfloat-abi=hard
   endif
-  CCFLAGS += -DARM
 else
   CCFLAGS += -m64
 endif
@@ -87,7 +86,7 @@ MAGMA = $(shell pkg-config --exists magma && echo "1" || echo "0")
 #$(info $(MAGMA))
 ifeq ($(MAGMA),1)
  #use the same keyword as in make.inc
- LIB_CPPFLAGS  += -DUSE_MAGMA $(shell pkg-config --cflags magma)
+ LIB_CPPFLAGS  += -DUSE_MAGMA -DUSE_MAGMA_PATCHED $(shell pkg-config --cflags magma)
 
  LIB_NVCCFLAGS += -Xcompiler -fno-strict-aliasing
  LIB_DEPLIBS   += -Wl,-rpath=$(MAGMA_ROOT)/lib
