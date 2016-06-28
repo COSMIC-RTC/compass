@@ -22,11 +22,11 @@ cdef class naga_context:
 
     def __cinit__(self, device=None, np.ndarray[ndim=1, dtype=np.int32_t] devices=None):
         if device is not None :
-            self.c = carma_context.instance_1gpu(device)
+            self.c = &carma_context.instance_1gpu(device)
         elif devices is not None :
-            self.c = carma_context.instance_ngpu(devices.size, <np.int32_t*>devices.data)
+            self.c = &carma_context.instance_ngpu(devices.size, <np.int32_t*>devices.data)
         else :
-            self.c = carma_context.instance()
+            self.c = &carma_context.instance()
 
     def get_ndevice(self):
         """Return number of device."""

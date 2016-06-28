@@ -119,7 +119,7 @@ simple re-sampling of the profile is adequate.
 
     p_wfs._azimuth = azimuth
 
-    cdef carma_context * context = carma_context.instance()
+    cdef carma_context * context = &carma_context.instance()
     context.set_activeDevice(sensors.sensors.device, 1)
 
     cdef sutra_lgs * lgs = sensors.sensors.d_wfs[nsensors].d_gs.d_lgs
@@ -1591,7 +1591,7 @@ cdef class Sensors:
         cdef int i
         for i in range(nsensors):
             type_wfs[i] = type_data[i]
-        cdef carma_context * context = carma_context.instance()
+        cdef carma_context * context = &carma_context.instance()
         if odevice < 0:
             odevice = context.get_activeDevice()
         if(type_data == "geo"):
@@ -1803,7 +1803,7 @@ cdef class Sensors:
             yoff: (float) :
         """
 
-        cdef carma_context * context = carma_context.instance()
+        cdef carma_context * context = &carma_context.instance()
         context.set_activeDevice(self.sensors.device, 1)
         self.sensors.d_wfs[i].d_gs.add_layer( < char * > type_dm, alt, xoff, yoff)
 
@@ -1812,7 +1812,7 @@ cdef class Sensors:
 
         :param n: (in) : index of the wfs
         """
-        cdef carma_context *context = carma_context.instance()
+        cdef carma_context *context = &carma_context.instance()
         cdef float tmp_noise
         context.set_activeDeviceForCpy(self.sensors.device,1)
         if(noise):
@@ -2138,7 +2138,7 @@ cdef class Sensors:
             n: (int) : WFS number
             data: (np.ndarray[ndim=3,dtype=np.float32_t]) : bincube to use
         """
-        cdef carma_context * context = carma_context.instance()
+        cdef carma_context * context = &carma_context.instance()
         context.set_activeDeviceForCpy(self.sensors.device, 1)
         cdef np.ndarray[dtype = np.float32_t] data_F = data.flatten("F")
 
@@ -2375,7 +2375,7 @@ cdef class Sensors:
 
         cdef const long * cdims
         cdef long dim_tot
-        cdef carma_context * context = carma_context.instance()
+        cdef carma_context * context = &carma_context.instance()
         context.set_activeDevice(self.sensors.device, 1)
         cdims = self.sensors.d_wfs[n].d_slopes.getDims()
         dim_tot = cdims[1]
@@ -2401,7 +2401,7 @@ cdef class Sensors:
         cdef const long * cdims
         cdef np.ndarray[ndim = 1, dtype = np.float32_t] data
 
-        cdef carma_context * context = carma_context.instance()
+        cdef carma_context * context = &carma_context.instance()
         context.set_activeDevice(self.sensors.device, 1)
 
         slopes = self.sensors.d_wfs[n].d_slopes
@@ -2486,7 +2486,7 @@ cdef class Sensors:
             rst: (int) : (optional) reset before raytracing if rst = 1
         """
 
-        cdef carma_context * context = carma_context.instance()
+        cdef carma_context * context = &carma_context.instance()
         cdef carma_obj[float] * d_screen = self.sensors.d_wfs[n].d_gs.d_phase.d_screen
         context.set_activeDeviceForce(self.sensors.device, 1)
         if(type_trace == "all"):

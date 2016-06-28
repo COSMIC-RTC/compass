@@ -828,7 +828,7 @@ cdef class Dms:
 
         """
 
-        cdef carma_context * context = carma_context.instance()
+        cdef carma_context * context = &carma_context.instance()
 
         if(device > -1):
             context.set_activeDevice(device, 1)
@@ -860,7 +860,7 @@ cdef class Dms:
         if(inddm < 0):
             raise StandardError("Unknown error")
 
-        cdef carma_context * context = carma_context.instance()
+        cdef carma_context * context = &carma_context.instance()
         context.set_activeDevice(self.dms.d_dms[inddm].device, 1)
         self.dms.d_dms[inddm].reset_shape()
 
@@ -881,7 +881,7 @@ cdef class Dms:
         if(inddm < 0):
             raise StandardError("Unknown error")
 
-        cdef carma_context * context = carma_context.instance()
+        cdef carma_context * context = &carma_context.instance()
         context.set_activeDevice(self.dms.d_dms[inddm].device, 1)
         self.dms.d_dms[inddm].comp_oneactu(nactu, ampli)
 
@@ -925,7 +925,7 @@ cdef class Dms:
                 alt) + ") doesn't exist"
             raise ValueError(err)
 
-        cdef carma_context * context = carma_context.instance()
+        cdef carma_context * context = &carma_context.instance()
         context.set_activeDevice(self.dms.d_dms[inddm].device, 1)
 
         cdef int ntot_influpos = influpos.shape[0]
@@ -1021,7 +1021,7 @@ cdef class Dms:
                 str(alt) + ") doesn't exist"
             raise ValueError(err)
 
-        cdef carma_context * context = carma_context.instance()
+        cdef carma_context * context = &carma_context.instance()
         context.set_activeDevice(self.dms.d_dms[inddm].device, 1)
 
 
@@ -1046,7 +1046,7 @@ cdef class Dms:
                 str(alt) + ") doesn't exist"
             raise ValueError(err)
 
-        cdef carma_context * context = carma_context.instance()
+        cdef carma_context * context = &carma_context.instance()
         context.set_activeDevice(self.dms.d_dms[inddm].device, 1)
         cdef np.ndarray[dtype = np.float32_t] influ_F = influ.flatten("F")
         self.dms.d_dms[inddm].d_influ.host2device(< float *> influ_F.data)
@@ -1112,7 +1112,7 @@ cdef class Dms:
                 str(alt) + ") doesn't exist"
             raise ValueError(err)
 
-        cdef carma_context * context = carma_context.instance()
+        cdef carma_context * context = &carma_context.instance()
         context.set_activeDevice(self.dms.d_dms[inddm].device, 1)
 
         self.dms.d_dms[inddm].comp_shape()
@@ -1149,7 +1149,7 @@ cdef class Dms:
                 str(alt) + ") doesn't exist"
             raise ValueError(err)
 
-        cdef carma_context * context = carma_context.instance()
+        cdef carma_context * context = &carma_context.instance()
         context.set_activeDevice(self.dms.d_dms[inddm].device, 1)
 
         self.dms.d_dms[inddm].compute_KLbasis(< float *> xpos.data, < float *> ypos.data,
@@ -1172,7 +1172,7 @@ cdef class Dms:
                 type_dm + "," + alt + ") doesnt exists"
             raise ValueError(err)
 
-        cdef carma_context * context = carma_context.instance()
+        cdef carma_context * context = &carma_context.instance()
         context.set_activeDevice(self.dms.d_dms[inddm].device, 1)
         cdef const long * dims = self.dms.d_dms[inddm].d_KLbasis.getDims()
         cdef np.ndarray[ndim = 2, dtype = np.float32_t] data_F = np.zeros((dims[2], dims[1]), dtype=np.float32)
@@ -1199,7 +1199,7 @@ cdef class Dms:
                 type_dm + "," + alt + ") doesnt exists"
             raise ValueError(err)
 
-        cdef carma_context * context = carma_context.instance()
+        cdef carma_context * context = &carma_context.instance()
         context.set_activeDevice(self.dms.d_dms[inddm].device, 1)
         cdef const long * dims = self.dms.d_dms[inddm].d_shape.d_screen.getDims()
         cdef np.ndarray[ndim = 2, dtype = np.float32_t] data_F = np.zeros((dims[2], dims[1]), dtype=np.float32)
@@ -1226,7 +1226,7 @@ g        :return:
                 type_dm + "," + alt + ") doesnt exists"
             raise ValueError(err)
 
-        cdef carma_context * context = carma_context.instance()
+        cdef carma_context * context = &carma_context.instance()
         context.set_activeDevice(self.dms.d_dms[inddm].device, 1)
         cdef const long * dims = self.dms.d_dms[inddm].d_comm.getDims()
         cdef np.ndarray[ndim = 1, dtype = np.float32_t] data = np.zeros((dims[1]), dtype=np.float32)
@@ -1251,7 +1251,7 @@ g        :return:
                 type_dm + "," + alt + ") doesnt exists"
             raise ValueError(err)
 
-        cdef carma_context * context = carma_context.instance()
+        cdef carma_context * context = &carma_context.instance()
         context.set_activeDevice(self.dms.d_dms[inddm].device, 1)
 
         cdef const long * dims = self.dms.d_dms[inddm].d_influ.getDims()
@@ -1281,7 +1281,7 @@ g        :return:
                 type_dm + "," + alt + ") doesnt exists"
             raise ValueError(err)
 
-        cdef carma_context * context = carma_context.instance()
+        cdef carma_context * context = &carma_context.instance()
         context.set_activeDevice(self.dms.d_dms[inddm].device, 1)
         self.dms.d_dms[inddm].comp_oneactu(nactu, ampli)
 

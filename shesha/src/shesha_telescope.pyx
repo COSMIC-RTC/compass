@@ -9,7 +9,7 @@ cdef class Telescope:
                   long pup_size_m,
                   np.ndarray[ndim=2, dtype=np.float32_t] pupil_m,
                   np.ndarray[ndim=2, dtype=np.float32_t] phase_ab_m1_m):
-        cdef carma_context * context = carma_context.instance()
+        cdef carma_context * context = &carma_context.instance()
 
         cdef np.ndarray[dtype = np.float32_t] pupil_F = pupil.flatten("F")
         cdef np.ndarray[dtype = np.float32_t] phase_ab_M1_F = phase_ab_M1.flatten("F")
@@ -71,7 +71,7 @@ cdef class Telescope:
            pup : (np.ndarray[ndim=2,dtype=np.float32_t]) :pupil
         
         """
-        cdef carma_context * context = carma_context.instance()
+        cdef carma_context * context = &carma_context.instance()
         context.set_activeDeviceForCpy(self.telescope.device, 1)       
 
         cdef const long * dims = NULL
@@ -93,7 +93,7 @@ cdef class Telescope:
            mpup : (np.ndarray[ndim=2,dtype=np.float32_t]) : pupil (medium size)
         
         """
-        cdef carma_context * context = carma_context.instance()
+        cdef carma_context * context = &carma_context.instance()
         context.set_activeDeviceForCpy(self.telescope.device, 1)       
 
         cdef const long * dims = NULL
@@ -115,7 +115,7 @@ cdef class Telescope:
            phase_ab : (np.ndarray[ndim=2,dtype=np.float32_t]) : M1 phase aberration
         
         """
-        cdef carma_context * context = carma_context.instance()
+        cdef carma_context * context = &carma_context.instance()
         context.set_activeDeviceForCpy(self.telescope.device, 1)       
 
         cdef const long * dims = NULL
@@ -137,7 +137,7 @@ cdef class Telescope:
            phase_ab : (np.ndarray[ndim=2,dtype=np.float32_t]) : M1 phase aberration (medium size)
         
         """
-        cdef carma_context * context = carma_context.instance()
+        cdef carma_context * context = &carma_context.instance()
         context.set_activeDeviceForCpy(self.telescope.device, 1)       
 
         cdef const long * dims = NULL

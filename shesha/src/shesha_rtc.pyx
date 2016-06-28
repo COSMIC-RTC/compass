@@ -29,7 +29,7 @@ IF USE_MPI == 2:
 
 cdef class Rtc:
     def __cinit__(self, Sensors sensor=None, Target target=None, device=-1):  # child constructor must have the same prototype (same number of non-optional arguments)
-        cdef carma_context * context = carma_context.instance()
+        cdef carma_context * context = &carma_context.instance()
         if(device == -1):
             device = context.get_activeDevice()
         context.set_activeDevice(device, 1)
@@ -60,7 +60,7 @@ cdef class Rtc:
             scale: (float) :
 
         """
-        cdef carma_context * context = carma_context.instance()
+        cdef carma_context * context = &carma_context.instance()
         cdef int activeDevice = self.rtc.device
         context.set_activeDeviceForCpy(self.rtc.device, 1)
         self.rtc.add_centroider(sensor.sensors, nwfs, nvalid, offset, scale, activeDevice, type_centro)
@@ -121,7 +121,7 @@ cdef class Rtc:
 
         cdef float * ptr_alt = < float *> alt.data
         cdef char * ptr_dmseen = < char *> type_dmseen
-        cdef carma_context * context = carma_context.instance()
+        cdef carma_context * context = &carma_context.instance()
         context.set_activeDeviceForCpy(self.device, 1)
         if(Nphi > -1):
             self.rtc.add_controller_geo(nactu, Nphi, delay, self.device, dms.dms, & ptr_dmseen, ptr_alt, ndm, wfs_direction)
@@ -140,7 +140,7 @@ cdef class Rtc:
         cdef np.ndarray[ndim=1,dtype=np.float32_t] cy
         cdef sutra_centroider * centro = NULL
         cdef sutra_wfs_pyr * pyr = NULL
-        cdef carma_context * context = carma_context.instance()
+        cdef carma_context * context = &carma_context.instance()
         context.set_activeDevice(self.device, 1)
 
         if(self.rtc.d_centro[n].is_type("pyrhr")):
@@ -173,7 +173,7 @@ cdef class Rtc:
 
     def rmcontrol(self):
         """Remove a controller"""
-        cdef carma_context * context = carma_context.instance()
+        cdef carma_context * context = &carma_context.instance()
         context.set_activeDevice(self.device, 1)
         self.dms.rm_controller()
 
@@ -187,7 +187,7 @@ cdef class Rtc:
             thresh: (float) : threshold
         """
 
-        cdef carma_context * context = carma_context.instance()
+        cdef carma_context * context = &carma_context.instance()
         cdef sutra_centroider_tcog * tcog = NULL
         cdef sutra_centroider * centro = NULL
         context.set_activeDeviceForCpy(self.device, 1)
@@ -205,7 +205,7 @@ cdef class Rtc:
 
             nmax: (int) : number of brightest pixels
         """
-        cdef carma_context * context = carma_context.instance()
+        cdef carma_context * context = &carma_context.instance()
         context.set_activeDevice(self.device, 1)
 
         # TODO add centroider_bpcog, cast to centroiderbpcog
@@ -224,7 +224,7 @@ cdef class Rtc:
             ncentro: (int) : centroider's index
         """
 
-        cdef carma_context * context = carma_context.instance()
+        cdef carma_context * context = &carma_context.instance()
         context.set_activeDevice(self.device, 1)
         cdef sutra_centroider * centro = NULL
         centro = self.rtc.d_centro.at(ncentro)
@@ -243,7 +243,7 @@ cdef class Rtc:
 
             w: (np.ndarray[ndim=2, dtype=np.float32_t]) : weight
         """
-        cdef carma_context * context = carma_context.instance()
+        cdef carma_context * context = &carma_context.instance()
         context.set_activeDevice(self.rtc.device, 1)
         cdef sutra_centroider_wcog * centro = \
             dynamic_cast_centroider_wcog_ptr(self.rtc.d_centro[ncentro])
@@ -273,7 +273,7 @@ cdef class Rtc:
 
         """
 
-        cdef carma_context * context = carma_context.instance()
+        cdef carma_context * context = &carma_context.instance()
         context.set_activeDevice(self.rtc.device, 1)
 
         cdef sutra_centroider_corr * centro_corr = dynamic_cast_centroider_corr_ptr(\
@@ -305,7 +305,7 @@ cdef class Rtc:
         cdef sutra_rtc * rtc = self.rtc
         cdef carma_obj[float] * d_tmp
         cdef carma_obj[float] * d_data
-        cdef carma_context * context = carma_context.instance()
+        cdef carma_context * context = &carma_context.instance()
         cdef np.ndarray[ndim = 1, dtype = np.float32_t] data
 
 
@@ -367,7 +367,7 @@ cdef class Rtc:
 
             indx_pup: (np.ndarray[ndim=1,dtype=np.int32_t]) : indices of where(pup) on ipupil screen
         """
-        cdef carma_context * context = carma_context.instance()
+        cdef carma_context * context = &carma_context.instance()
         cdef sutra_controller_geo * controller_geo = \
             dynamic_cast_controller_geo_ptr(self.rtc.d_control[ncontrol])
 
@@ -398,7 +398,7 @@ cdef class Rtc:
 
             Fs: (float) : sampling frequency
         """
-        cdef carma_context * context = carma_context.instance()
+        cdef carma_context * context = &carma_context.instance()
         context.set_activeDeviceForCpy(self.rtc.device, 1)
         cdef sutra_controller_ls * controller_ls
 
@@ -419,7 +419,7 @@ cdef class Rtc:
 
             ol_slopes: (np.ndarray[ndim=2, dtype=np.float32_t]) : open-loop slopes
         """
-        cdef carma_context * context = carma_context.instance()
+        cdef carma_context * context = &carma_context.instance()
         context.set_activeDeviceForCpy(self.rtc.device, 1)
         cdef sutra_controller_ls * controller_ls
 
@@ -437,7 +437,7 @@ cdef class Rtc:
         :parameter:
             ncontrol: controller index
         """
-        cdef carma_context * context = carma_context.instance()
+        cdef carma_context * context = &carma_context.instance()
         context.set_activeDeviceForCpy(self.rtc.device, 1)
         cdef sutra_controller_ls * controller_ls
 
@@ -458,7 +458,7 @@ cdef class Rtc:
 
             gain: (float) : loop gain
         """
-        cdef carma_context * context = carma_context.instance()
+        cdef carma_context * context = &carma_context.instance()
         context.set_activeDeviceForCpy(self.rtc.device, 1)
         cdef bytes type_control = < bytes > self.rtc.d_control[ncontrol].get_type()
         cdef sutra_controller_ls * controller_ls
@@ -496,7 +496,7 @@ cdef class Rtc:
 
             mgain: (np.ndarray[ndim=1,dtype=np.float32_t]) : modal gains
         """
-        cdef carma_context * context = carma_context.instance()
+        cdef carma_context * context = &carma_context.instance()
         context.set_activeDeviceForCpy(self.rtc.device, 1)
 
         cdef sutra_controller_ls * controller_ls
@@ -522,7 +522,7 @@ cdef class Rtc:
         :parameters:
             ncontrol: (int) : controller index
         """
-        cdef carma_context * context = carma_context.instance()
+        cdef carma_context * context = &carma_context.instance()
         context.set_activeDeviceForCpy(self.rtc.device, 1)
 
         cdef sutra_controller_ls * controller_ls
@@ -539,7 +539,7 @@ cdef class Rtc:
             ncontrol: (int) : controller index
             centro: (np.ndarray[ndim=1,dtype=np.float32_t]) : centroids vector
         """
-        cdef carma_context * context = carma_context.instance()
+        cdef carma_context * context = &carma_context.instance()
         context.set_activeDeviceForCpy(self.rtc.device, 1)
 
         self.rtc.d_control[ncontrol].d_centroids.host2device(< float *> centro.data)
@@ -552,7 +552,7 @@ cdef class Rtc:
         :return:
             mgain : (np.ndarray[ndim=1,dtype=np.float32_t]) : modal gains
         """
-        cdef carma_context * context = carma_context.instance()
+        cdef carma_context * context = &carma_context.instance()
         context.set_activeDeviceForCpy(self.rtc.device, 1)
 
         cdef sutra_controller_ls * controller_ls
@@ -592,7 +592,7 @@ cdef class Rtc:
 
             data: (np.ndarray[ndim=2,dtype=np.float32_t]) : interaction matrix to use
         """
-        cdef carma_context * context = carma_context.instance()
+        cdef carma_context * context = &carma_context.instance()
         context.set_activeDeviceForCpy(self.rtc.device, 1)
 
         cdef np.ndarray[dtype = np.float32_t] data_F = data.flatten("F")
@@ -620,7 +620,7 @@ cdef class Rtc:
             imat : (np.ndarray[ndim=2,dtype=np.float32_t]) : interaction matrix
 
         """
-        cdef carma_context * context = carma_context.instance()
+        cdef carma_context * context = &carma_context.instance()
         context.set_activeDeviceForCpy(self.rtc.device, 1)
 
         cdef sutra_controller_ls * controller_ls
@@ -662,7 +662,7 @@ cdef class Rtc:
 
             data: (np.ndarray[ndim=2,dtype=np.float32_t]) : command matrix to use
         """
-        cdef carma_context * context = carma_context.instance()
+        cdef carma_context * context = &carma_context.instance()
         context.set_activeDeviceForCpy(self.rtc.device, 1)
 
         cdef np.ndarray[dtype = np.float32_t] data_F = data.flatten("F")
@@ -699,7 +699,7 @@ cdef class Rtc:
 
         """
 
-        cdef carma_context * context = carma_context.instance()
+        cdef carma_context * context = &carma_context.instance()
         context.set_activeDeviceForCpy(self.rtc.device, 1)
 
         cdef np.ndarray[dtype = np.float32_t] data_F = data.flatten("F")
@@ -724,7 +724,7 @@ cdef class Rtc:
         :return:
             cmm : (np.ndarray[ndim=2,dtype=np.float32_t]) : Cmm matrix
         """
-        cdef carma_context * context = carma_context.instance()
+        cdef carma_context * context = &carma_context.instance()
         context.set_activeDeviceForCpy(self.rtc.device, 1)
         cdef sutra_controller_mv * controller_mv
         cdef bytes type_control = < bytes > self.rtc.d_control[ncontrol].get_type()
@@ -750,7 +750,7 @@ cdef class Rtc:
         :return:
             cphim : (np.ndarray[ndim=2,dtype=np.float32_t]) : Cphim matrix
         """
-        cdef carma_context * context = carma_context.instance()
+        cdef carma_context * context = &carma_context.instance()
         context.set_activeDeviceForCpy(self.rtc.device, 1)
         cdef sutra_controller_mv * controller_mv
         cdef bytes type_control = < bytes > self.rtc.d_control[ncontrol].get_type()
@@ -775,7 +775,7 @@ cdef class Rtc:
         :return:
             cmat : (np.ndarray[ndim=2,dtype=np.float32_t]) : command matrix
         """
-        cdef carma_context * context = carma_context.instance()
+        cdef carma_context * context = &carma_context.instance()
         context.set_activeDeviceForCpy(self.rtc.device, 1)
         cdef sutra_controller_ls * controller_ls
         cdef sutra_controller_mv * controller_mv
@@ -817,7 +817,7 @@ cdef class Rtc:
 
             decay: (np.ndarray[ndim=1,dtype=np.float32_t]) : ask to Rico
         """
-        cdef carma_context * context = carma_context.instance()
+        cdef carma_context * context = &carma_context.instance()
         context.set_activeDeviceForCpy(self.rtc.device, 1)
         cdef sutra_controller_generic * controller_generic
         cdef bytes type_control = < bytes > self.rtc.d_control[ncontrol].get_type()
@@ -837,7 +837,7 @@ cdef class Rtc:
 
             matE: (np.ndarray[ndim=2,dtype=np.float32_t]) : ask to Rico
         """
-        cdef carma_context * context = carma_context.instance()
+        cdef carma_context * context = &carma_context.instance()
         context.set_activeDeviceForCpy(self.rtc.device, 1)
         cdef sutra_controller_generic * controller_generic
         cdef bytes type_control = < bytes > self.rtc.d_control[ncontrol].get_type()
@@ -858,7 +858,7 @@ cdef class Rtc:
 
             openloop: state of the controller
         """
-        cdef carma_context * context = carma_context.instance()
+        cdef carma_context * context = &carma_context.instance()
         context.set_activeDeviceForCpy(self.rtc.device, 1)
         cdef sutra_controller * controller = self.rtc.d_control[ncontrol]
         controller.set_openloop(openloop)
@@ -873,7 +873,7 @@ cdef class Rtc:
 
             geom: (int) : type of geometric method (0 or 1)
         """
-        cdef carma_context * context = carma_context.instance()
+        cdef carma_context * context = &carma_context.instance()
         context.set_activeDeviceForCpy(self.rtc.device, 1)
         self.rtc.do_imat_geom(ncontrol, g_dms.dms, geom)
         print "TODO call imat_geom"
@@ -888,7 +888,7 @@ cdef class Rtc:
             g_dms: (Dms) : Dms object
         """
 
-        cdef carma_context * context = carma_context.instance()
+        cdef carma_context * context = &carma_context.instance()
         context.set_activeDeviceForCpy(self.rtc.device, 1)
 
 
@@ -1010,7 +1010,7 @@ cdef class Rtc:
         :parameters:
             ncentro: (int) : centroider index
         """
-        cdef carma_context * context = carma_context.instance()
+        cdef carma_context * context = &carma_context.instance()
         context.set_activeDeviceForCpy(self.rtc.device, 1)
 
         self.rtc.d_centro[ncentro].get_cog()
@@ -1021,7 +1021,7 @@ cdef class Rtc:
 
         :param ncontrol: controller index
         """
-        cdef carma_context * context = carma_context.instance()
+        cdef carma_context * context = &carma_context.instance()
         context.set_activeDeviceForCpy(self.rtc.device, 1)
 
         cdef bytes type_control = < bytes > self.rtc.d_control[ncontrol].get_type()
@@ -1044,7 +1044,7 @@ cdef class Rtc:
 
             U: (np.ndarray[ndim=2,dtype=np.float32_t]) : eigen modes matrix
         """
-        cdef carma_context * context = carma_context.instance()
+        cdef carma_context * context = &carma_context.instance()
         context.set_activeDeviceForCpy(self.rtc.device, 1)
 
         cdef sutra_controller_ls * controller_ls
@@ -1064,7 +1064,7 @@ cdef class Rtc:
 
             eigenvals: (np.ndarray[ndim=1,dtype=np.float32_t]) : eigen values
         """
-        cdef carma_context * context = carma_context.instance()
+        cdef carma_context * context = &carma_context.instance()
         context.set_activeDeviceForCpy(self.rtc.device, 1)
 
         cdef sutra_controller_ls * controller_ls
@@ -1085,7 +1085,7 @@ cdef class Rtc:
         :return:
             U : (np.ndarray[ndim=2,dtype=np.float32_t]) : eigen modes matrix
         """
-        cdef carma_context * context = carma_context.instance()
+        cdef carma_context * context = &carma_context.instance()
         context.set_activeDeviceForCpy(self.rtc.device, 1)
         cdef sutra_controller_ls * controller_ls
         cdef bytes type_control = < bytes > self.rtc.d_control[ncontrol].get_type()
@@ -1111,7 +1111,7 @@ cdef class Rtc:
         :return:
             eigenvals : (np.ndarray[ndim=1,dtype=np.float32_t]) : eigenvalues
         """
-        cdef carma_context * context = carma_context.instance()
+        cdef carma_context * context = &carma_context.instance()
         context.set_activeDeviceForCpy(self.rtc.device, 1)
         cdef sutra_controller_ls * controller_ls
         cdef sutra_controller_mv * controller_mv
@@ -1141,7 +1141,7 @@ cdef class Rtc:
         :return:
             eigenvals : (np.ndarray[ndim=1,dtype=np.float32_t]) : eigenvalues
         """
-        cdef carma_context * context = carma_context.instance()
+        cdef carma_context * context = &carma_context.instance()
         context.set_activeDeviceForCpy(self.rtc.device, 1)
         cdef sutra_controller_mv * controller_mv
         cdef bytes type_control = < bytes > self.rtc.d_control[ncontrol].get_type()
@@ -1162,7 +1162,7 @@ cdef class Rtc:
         :return:
             geocov : (np.ndarray[ndim=2,dtype=np.float32_t]) : geocov matrix
         """
-        cdef carma_context *context=carma_context.instance()
+        cdef carma_context *context=&carma_context.instance()
         context.set_activeDeviceForCpy(self.rtc.device,1)
         cdef sutra_controller_geo *controller_geo
         cdef bytes type_contro=<bytes>self.rtc.d_control[ncontro].get_type()
@@ -1188,7 +1188,7 @@ cdef class Rtc:
         :return:
             data : (np.ndarray[ndim=2,dtype=np.float32_t]) : centroids buffer
         """
-        cdef carma_context * context = carma_context.instance()
+        cdef carma_context * context = &carma_context.instance()
         context.set_activeDeviceForCpy(self.rtc.device, 1)
         cdef sutra_controller_ls * controller_ls
         cdef bytes type_control = < bytes > self.rtc.d_control[ncontrol].get_type()
@@ -1214,7 +1214,7 @@ cdef class Rtc:
         :return:
             data : (np.ndarray[ndim=1,dtype=np.float32_t]) : command increment
         """
-        cdef carma_context * context = carma_context.instance()
+        cdef carma_context * context = &carma_context.instance()
         context.set_activeDeviceForCpy(self.rtc.device, 1)
         cdef sutra_controller_ls * controller_ls
         cdef bytes type_control = < bytes > self.rtc.d_control[ncontrol].get_type()
@@ -1236,7 +1236,7 @@ cdef class Rtc:
         :return:
             data : (np.ndarray[ndim=1,dtype=np.float32_t]) : command vector
         """
-        cdef carma_context * context = carma_context.instance()
+        cdef carma_context * context = &carma_context.instance()
         context.set_activeDeviceForCpy(self.rtc.device, 1)
         cdef np.ndarray[ndim = 1, dtype = np.float32_t] data
         cdef const long * dims
@@ -1254,7 +1254,7 @@ cdef class Rtc:
         :return:
             data : (np.ndarray[ndim=1,dtype=np.float32_t]) : reconstructed open-loop
         """
-        cdef carma_context * context = carma_context.instance()
+        cdef carma_context * context = &carma_context.instance()
         cdef sutra_controller_mv * controller_mv
 
         context.set_activeDeviceForCpy(self.rtc.device, 1)
@@ -1277,7 +1277,7 @@ cdef class Rtc:
         :return:
             data : (np.ndarray[ndim=1,dtype=np.float32_t]) : voltage vector
         """
-        cdef carma_context * context = carma_context.instance()
+        cdef carma_context * context = &carma_context.instance()
         context.set_activeDeviceForCpy(self.rtc.device, 1)
         cdef np.ndarray[ndim = 1, dtype = np.float32_t] data
         cdef const long * dims
@@ -1297,7 +1297,7 @@ cdef class Rtc:
         :return:
             data : (np.ndarray[ndim=1,dtype=np.float32_t]) : centroids (arcsec)
         """
-        cdef carma_context * context = carma_context.instance()
+        cdef carma_context * context = &carma_context.instance()
         context.set_activeDeviceForCpy(self.rtc.device, 1)
         cdef np.ndarray[ndim = 1, dtype = np.float32_t] data
         cdef const long * dims
@@ -1358,7 +1358,7 @@ cdef class Rtc:
 
             filt_tt: (int) : (optional) flag to filter TT
         """
-        cdef carma_context * context = carma_context.instance()
+        cdef carma_context * context = &carma_context.instance()
         context.set_activeDeviceForCpy(self.rtc.device, 1)
         cdef sutra_controller_ls * controller_ls
         cdef bytes type_control = < bytes > self.rtc.d_control[ncontrol].get_type()
@@ -1379,7 +1379,7 @@ cdef class Rtc:
 
             cond: (float) : conditioning factor for the Cmm inversion
         """
-        cdef carma_context * context = carma_context.instance()
+        cdef carma_context * context = &carma_context.instance()
         context.set_activeDeviceForCpy(self.rtc.device, 1)
         cdef sutra_controller_mv * controller_mv
         cdef bytes type_control = < bytes > self.rtc.d_control[ncontrol].get_type()
@@ -1398,7 +1398,7 @@ cdef class Rtc:
 
             N: (np.ndarray[ndim=1,dtype=np.float32_t]) : noise vector
         """
-        cdef carma_context * context = carma_context.instance()
+        cdef carma_context * context = &carma_context.instance()
         context.set_activeDeviceForCpy(self.rtc.device, 1)
         cdef sutra_controller_mv * controller_mv
         cdef bytes type_control = < bytes > self.rtc.d_control[ncontrol].get_type()
@@ -1415,7 +1415,7 @@ cdef class Rtc:
         :parameters:
             ncontrol: (int) : controller index
         """
-        cdef carma_context * context = carma_context.instance()
+        cdef carma_context * context = &carma_context.instance()
         context.set_activeDevice(self.rtc.device, 1)
         self.rtc.do_control(ncontrol)
 
@@ -1426,7 +1426,7 @@ cdef class Rtc:
         :parameters:
             ncontrol: (int) : controller index
         """
-        cdef carma_context * context = carma_context.instance()
+        cdef carma_context * context = &carma_context.instance()
         cdef sutra_controller_geo * controller_geo
         cdef bytes type_control = < bytes > self.rtc.d_control[ncontrol].get_type()
         context.set_activeDevice(self.rtc.device, 1)
@@ -1445,7 +1445,7 @@ cdef class Rtc:
         :parameters:
             ncontrol: (int) : controller index
         """
-        cdef carma_context * context = carma_context.instance()
+        cdef carma_context * context = &carma_context.instance()
         cdef sutra_controller_geo * controller_geo
         cdef bytes type_control = < bytes > self.rtc.d_control[ncontrol].get_type()
         context.set_activeDevice(self.rtc.device, 1)
@@ -1464,7 +1464,7 @@ cdef class Rtc:
             ncontro: (int) : controller index
             Btt: (np.ndarray[ndim=2,dtype=np.float32_t]) : Btt basis
         """
-        cdef carma_context *context=carma_context.instance()
+        cdef carma_context *context=&carma_context.instance()
         context.set_activeDeviceForCpy(self.rtc.device,1)
         cdef sutra_controller_geo *controller_geo
         cdef bytes type_contro=<bytes>self.rtc.d_control[ncontro].get_type()
@@ -1484,7 +1484,7 @@ cdef class Rtc:
         :parameters:
             ncontrol: (int) : controller index
         """
-        cdef carma_context * context = carma_context.instance()
+        cdef carma_context * context = &carma_context.instance()
         context.set_activeDevice(self.rtc.device, 1)
         self.rtc.apply_control(ncontrol, dms.dms)
 
@@ -1610,7 +1610,7 @@ def rtc_init(Telescope g_tel, Sensors g_wfs, p_wfs, Dms g_dms, p_dms, Param_geom
     ELSE:
         g_rtc = Rtc()
 
-    cdef carma_context * context = carma_context.instance()
+    cdef carma_context * context = &carma_context.instance()
     cdef int device = g_rtc.rtc.device
     cdef Param_wfs wfs
     cdef Param_centroider centroider
@@ -1997,7 +1997,7 @@ cpdef correct_dm(p_dms, Dms g_dms, Param_controller p_control, Param_geom p_geom
 
         load: (dict) : (optional) dictionary of matrices to load and their path
     """
-    # cdef carma_context *context = carma_context.instance() #UNUSED
+    # cdef carma_context *context = &carma_context.instance() #UNUSED
 
     cdef int i, nm, nmc, inds, ndm, nactu_nm
     cdef np.ndarray[ndim = 1, dtype = np.float32_t] resp
@@ -2899,7 +2899,7 @@ IF USE_BRAMA == 1:
         def __cinit__(self, Sensors sensor=None, Target target=None, device=-1):
             del self.rtc
 
-            cdef carma_context * context = carma_context.instance()
+            cdef carma_context * context = &carma_context.instance()
             self.rtc = new sutra_rtc_brama(context, sensor.sensors, target.target, "rtc_brama")
 
         def __dealloc__(self):

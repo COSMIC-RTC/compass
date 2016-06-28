@@ -46,16 +46,15 @@ cdef extern from "carma_context.h":
         carma_device * get_device(int dev)
         cublasHandle_t get_cublasHandle()
         @staticmethod
-        carma_context * instance()
+        carma_context& instance()
         @staticmethod
-        carma_context * instance_1gpu(int num_device)
+        carma_context& instance_1gpu(int num_device)
         @staticmethod
-        carma_context * instance_ngpu(int nb_devices, np.int32_t * devices_id)
+        carma_context& instance_ngpu(int nb_devices, np.int32_t * devices_id)
 
 #################################################
 # P-Class naga_context
 #################################################
 cdef class naga_context:
-    cdef carma_context * c
-
+    cdef carma_context *c
 

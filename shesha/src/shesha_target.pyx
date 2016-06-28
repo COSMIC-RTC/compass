@@ -266,7 +266,7 @@ cdef class Target:
             do_phase_var: (int) : if 0, doesn't take the screen into account in the phase average (unused)
         """
 
-        cdef carma_context * context = carma_context.instance()
+        cdef carma_context * context = &carma_context.instance()
         context.set_activeDevice(self.target.d_targets[ntar].device, 1)
 
         self.target.d_targets[ntar].raytrace(dms.dms, reset, do_phase_var)
@@ -430,7 +430,7 @@ IF USE_BRAMA == 1:
                         ):
             del self.target
 
-            cdef carma_context * context = carma_context.instance()
+            cdef carma_context * context = &carma_context.instance()
             self.target = new sutra_target_brama(context, "target_brama", telescope.telescope, -1, ntargets,
                         < float *> xpos.data, < float *> ypos.data,
                         < float *> Lambda.data, < float *> mag.data,

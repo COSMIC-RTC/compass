@@ -56,7 +56,7 @@ cdef class naga_sparse_obj_CLASSNAME:
         input data must be a np.ndarray with ndim=DIM
         """
         
-        cdef carma_context *ctxt=carma_context.instance()
+        cdef carma_context *ctxt=&carma_context.instance()
 
         if(obj is not None):
             #copy constructor

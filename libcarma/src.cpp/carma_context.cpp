@@ -44,45 +44,29 @@ carma_device::~carma_device() {
 	this->id = -1;
 }
 
+shared_ptr<carma_context> carma_context::s_instance;
 
-atomic<carma_context*> carma_context::s_instance { nullptr };
-std::mutex carma_context::m_;
-
-carma_context *carma_context::instance_1gpu(int num_device) {
-  if (s_instance == nullptr) {
-    lock_guard<mutex> lock(m_);
-    if (s_instance == nullptr) {
-      s_instance = new carma_context(num_device);
-    }
-  }
-  return s_instance;
+carma_context& carma_context::instance_1gpu(int num_device) {
+	if (!carma_context::s_instance) {
+		carma_context::s_instance = shared_ptr<carma_context>(new carma_context(num_device));
+	}
+	return *carma_context::s_instance;
 }
 
-carma_context *carma_context::instance_ngpu(int nb_devices, int32_t *devices_id) {
-  if (s_instance == nullptr) {
-    lock_guard<mutex> lock(m_);
-    if (!s_instance) {
-      s_instance = new carma_context(nb_devices, devices_id);
-    }
-  }
-  return s_instance;
+carma_context& carma_context::instance_ngpu(int nb_devices,
+		int32_t *devices_id) {
+	if (!carma_context::s_instance) {
+		carma_context::s_instance = shared_ptr<carma_context>(new carma_context(nb_devices, devices_id));
+	}
+	return *carma_context::s_instance;
 }
 
-carma_context *carma_context::instance() {
-  if (s_instance == nullptr) {
-    lock_guard<mutex> lock(m_);
-    if (!s_instance) {
-      s_instance = new carma_context();
-    }
-  }
-  return s_instance;
+carma_context& carma_context::instance() {
+	if (!carma_context::s_instance) {
+		carma_context::s_instance = shared_ptr<carma_context>(new carma_context());
+	}
+	return *carma_context::s_instance;
 }
-
-void carma_context::kill() {
-  delete s_instance;
-}
-
-
 
 carma_context::carma_context(int num_device) {
 	can_access_peer = nullptr;
@@ -143,10 +127,8 @@ void carma_context::init_context(const int nb_devices, int32_t *devices_id) {
 
 	this->ndevice = nb_devices;
 	int current_device = 0;
-	carma_device *current_yd = NULL;
 	while (current_device < this->ndevice) {
-		current_yd = new carma_device(devices_id[current_device]);
-		devices.push_back(current_yd);
+		devices.push_back(new carma_device(devices_id[current_device]));
 		current_device++;
 	}
 
@@ -154,19 +136,18 @@ void carma_context::init_context(const int nb_devices, int32_t *devices_id) {
 	for (int i = 0; i < ndevice; i++) {
 		can_access_peer[i] = new int[nb_devices];
 		for (int j = 0; j < ndevice; j++) {
-			can_access_peer[i][j] = (i==j);
+			can_access_peer[i][j] = (i == j);
 		}
 	}
 
 #ifdef USE_UVA
 
 	int gpuid[this->ndevice]; // we want to find the first two GPU's that can support P2P
-	int gpu_count = 0;// GPUs that meet the criteria
+	int gpu_count = 0; // GPUs that meet the criteria
 	current_device = 0;
 	while (current_device < this->ndevice) {
-		current_yd=devices[current_device];
-		if (current_yd->isGPUCapableP2P())
-		gpuid[gpu_count++] = current_device;
+		if (devices[current_device]->isGPUCapableP2P())
+			gpuid[gpu_count++] = current_device;
 		current_device++;
 	}
 	if (gpu_count > 1) {
@@ -175,24 +156,31 @@ void carma_context::init_context(const int nb_devices, int32_t *devices_id) {
 			has_uva &= devices[gpuid[i]]->get_properties().unifiedAddressing;
 			for (int j = i + 1; j < gpu_count; j++) {
 				carmaSafeCall(
-						cudaDeviceCanAccessPeer(&can_access_peer[gpuid[i]][gpuid[j]],
+						cudaDeviceCanAccessPeer(
+								&can_access_peer[gpuid[i]][gpuid[j]],
 								devices_id[gpuid[i]], devices_id[gpuid[j]]));
 				carmaSafeCall(
-						cudaDeviceCanAccessPeer(&can_access_peer[gpuid[j]][gpuid[i]],
+						cudaDeviceCanAccessPeer(
+								&can_access_peer[gpuid[j]][gpuid[i]],
 								devices_id[gpuid[j]], devices_id[gpuid[i]]));
 				if ((can_access_peer[gpuid[i]][gpuid[j]] == 1)
 						&& (can_access_peer[gpuid[j]][gpuid[i]] == 1)) {
-					printf("*** Enabling peer access between GPU%d and GPU%d... ***\n",
+					printf(
+							"*** Enabling peer access between GPU%d and GPU%d... ***\n",
 							devices_id[gpuid[i]], devices_id[gpuid[j]]);
 					carmaSafeCall(cudaSetDevice(devices_id[gpuid[i]]));
-					carmaSafeCall(cudaDeviceEnablePeerAccess(devices_id[gpuid[j]], 0));
+					carmaSafeCall(
+							cudaDeviceEnablePeerAccess(devices_id[gpuid[j]],
+									0));
 					carmaSafeCall(cudaSetDevice(devices_id[gpuid[j]]));
-					carmaSafeCall(cudaDeviceEnablePeerAccess(devices_id[gpuid[i]], 0));
+					carmaSafeCall(
+							cudaDeviceEnablePeerAccess(devices_id[gpuid[i]],
+									0));
 				}
 			}
 		}
 		has_uva &=
-		devices[gpuid[gpu_count - 1]]->get_properties().unifiedAddressing;
+				devices[gpuid[gpu_count - 1]]->get_properties().unifiedAddressing;
 		if (has_uva) {
 			printf("*** All GPUs listed can support UVA... ***\n");
 		}
@@ -213,11 +201,11 @@ void carma_context::init_context(const int nb_devices, int32_t *devices_id) {
 
 #ifdef USE_MAGMA
 	// MAGMA init
-    #ifdef USE_MAGMA_PATCHED
-    magma_init(nb_devices, devices_id);
-    #else
-    magma_init();
-    #endif //USE_MAGMA_PATCHED
+#ifdef USE_MAGMA_PATCHED
+	magma_init(nb_devices, devices_id);
+#else
+	magma_init();
+#endif //USE_MAGMA_PATCHED
 
 #if DEBUG
 	//  magma_print_environment();
@@ -245,13 +233,13 @@ carma_context::~carma_context() {
 	while (this->devices.size() > 0) {
 		delete this->devices.back();
 		this->devices.pop_back();
-		if (can_access_peer != nullptr)
-			delete[] can_access_peer[idx++];
+		if (can_access_peer[idx] != nullptr)
+			delete[] can_access_peer[idx];
+		++idx;
 	}
 	if (can_access_peer != nullptr)
 		delete[] can_access_peer;
 
-	s_instance = NULL;
 #if DEBUG
 	printf("CARMA Context deleted @ %p\n", this);
 #endif //DEBUG

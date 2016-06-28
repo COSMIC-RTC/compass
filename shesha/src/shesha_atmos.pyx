@@ -368,7 +368,7 @@ cdef atmos_create(naga_context c, int nscreens,
     # create atmos object on gpu
     atmos_obj = Atmos()
 
-    cdef carma_context * context = carma_context.instance()
+    cdef carma_context * context = &carma_context.instance()
     cdef int device = context.get_activeDevice()
     atmos_obj.realinit(naga_context(), nscreens, r0_layers, dim_screens, alt,
                        windspeed, winddir, deltax, deltay, device)
