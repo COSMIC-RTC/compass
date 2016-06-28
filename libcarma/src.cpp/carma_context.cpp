@@ -45,8 +45,16 @@ carma_device::~carma_device() {
 }
 
 
-atomic<carma_context*> carma_context::s_instance { nullptr };
-std::mutex carma_context::m_;
+carma_context carma_context::m_instance=carma_context();
+
+carma_context::carma_context() :
+    ndevice(0), activeDevice(0), can_access_peer(nullptr) {
+}
+
+
+carma_context::carma_context(const char *type, ...){
+
+}
 
 carma_context *carma_context::instance_1gpu(int num_device) {
   if (s_instance == nullptr) {
@@ -61,7 +69,7 @@ carma_context *carma_context::instance_1gpu(int num_device) {
 carma_context *carma_context::instance_ngpu(int nb_devices, int32_t *devices_id) {
   if (s_instance == nullptr) {
     lock_guard<mutex> lock(m_);
-    if (!s_instance) {
+    if (s_instance == nullptr) {
       s_instance = new carma_context(nb_devices, devices_id);
     }
   }
@@ -71,7 +79,7 @@ carma_context *carma_context::instance_ngpu(int nb_devices, int32_t *devices_id)
 carma_context *carma_context::instance() {
   if (s_instance == nullptr) {
     lock_guard<mutex> lock(m_);
-    if (!s_instance) {
+    if (s_instance == nullptr) {
       s_instance = new carma_context();
     }
   }

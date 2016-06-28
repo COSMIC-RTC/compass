@@ -77,8 +77,10 @@ config.p_controller0.set_ndm([0])
 
 import matplotlib.pyplot as plt
 plt.ion()
-npts = 16
-index = 1
+npts = 4
+index = 0
+mes = np.zeros((8,320))
+
 while npts <= 512:
     config.p_wfs0.set_pyr_npts(npts)
     #    wfs
@@ -111,12 +113,21 @@ while npts <= 512:
     print rtc
 
     imat = rtc.get_imat(0)
-
-    plt.subplot(2, 3, index)
-    plt.plot(imat[:, -1], label="Tip")
-    plt.plot(imat[:, -2], label="Tilt")
-    plt.legend()
-    plt.title("%s_npts%d_ampl%.2f" %
-              (param_file, config.p_wfs0.pyr_npts, config.p_wfs0.pyr_ampl))
+    mes[index]=np.sum(imat, axis=1)
+    #plt.subplot(2, 3, index)
+    #plt.plot(imat[:, -1], label="Tip")
+    #plt.plot(imat[:, -2], label="Tilt")
+    #plt.legend()
+    #plt.title("%s_npts%d_ampl%.2f" %
+    #          (param_file, config.p_wfs0.pyr_npts, config.p_wfs0.pyr_ampl))
     npts <<= 1
     index += 1
+
+for index in range(8):
+    mes[index]-=mes[7]
+
+stdmes = np.std(mes,axis=1)
+
+xxx = 2**np.arange(2,10)
+plt.loglog(xxx,stdmes)
+plt.title("Erreur commise par rapport a 512 pts de mod")
