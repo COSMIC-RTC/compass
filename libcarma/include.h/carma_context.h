@@ -20,6 +20,8 @@
 #include <stdlib.h>
 #include <string>
 #include <vector>
+#include <atomic>
+#include <mutex>
 #include <vector_types.h>
 #include <cuda_runtime_api.h>
 
@@ -97,22 +99,23 @@ class carma_context {
     int** can_access_peer;
 
     /// singleton context
-    static carma_context& m_instance;
+    static atomic<carma_context*> s_instance;
+    static mutex m_;
 
-    carma_context(const char *type, ...);
     carma_context();
+    carma_context(int num_device);
+    carma_context(int nb_devices, int32_t *devices);
 
-    carma_context& operator=(const carma_context&) {
-      return *s_instance;
-    }
-    carma_context(const carma_context&) {
-    }
+    carma_context& operator= (const carma_context&){ return *s_instance;}
+    carma_context (const carma_context&){}
     ~carma_context();
 
     void init_context(const int nb_devices, int32_t *devices_id);
   public:
 
-    static carma_context& instance(const char *type, ...);
+    static carma_context *instance_1gpu(int num_device);
+    static carma_context *instance_ngpu(int nb_devices, int32_t *devices_id);
+    static carma_context *instance();
     void kill();
 
     int get_ndevice() {
@@ -131,8 +134,8 @@ class carma_context {
     std::string get_DeviceInfo(int device);
     std::string get_DeviceMemInfo(int device);
 
-    inline int _set_activeDeviceForCpy(int newDevice, int silent,
-                                       std::string file, int line) {
+    inline int _set_activeDeviceForCpy(int newDevice, int silent, std::string file,
+                                       int line) {
       if (newDevice > ndevice)
         return -1;
       return
