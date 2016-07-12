@@ -9,8 +9,6 @@
 #include <sutra_lgs.h>
 #include <sutra_wfs.h>
 
-using namespace std;
-
 class sutra_wfs_sh: public sutra_wfs {
   public:
 

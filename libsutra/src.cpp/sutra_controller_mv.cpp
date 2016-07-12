@@ -13,7 +13,7 @@ sutra_controller_mv::sutra_controller_mv(carma_context *context, long nvalid,
 //  this->nstreams = 1; //nvalid/10;
 //  while (nactu() % this->nstreams != 0)
 //    nstreams--;
-//  cerr << "controller uses " << nstreams << " streams" << endl;
+//  std::cerr << "controller uses " << nstreams << " streams" << std::endl;
 //  streams = new carma_streams(nstreams);
   long dims_data2[3];
   dims_data2[0] = 2;
@@ -376,9 +376,7 @@ int sutra_controller_mv::do_covmat(sutra_dm *ydm, char *method, int *indx_pup,
       delete h_U;
       delete h_Vt;
       delete h_eigenvals_inv;
-    }
-
-    else if (strcmp(method, "n") == 0) {
+    } else if (strcmp(method, "n") == 0) {
       dims_data[1] = this->nactu();
       dims_data[2] = this->nactu();
       carma_obj<float> *d_tmp = new carma_obj<float>(current_context,
@@ -386,7 +384,7 @@ int sutra_controller_mv::do_covmat(sutra_dm *ydm, char *method, int *indx_pup,
       for (int i = 0; i < this->nactu(); i++) {
         // Valeurs propres négatives.... A voir et inverser ordre si valeurs propres positives
         h_eigenvals->getData()[i] = -h_eigenvals->getData()[i];
-        cout << h_eigenvals->getData()[i] << endl;
+        std::cout << h_eigenvals->getData()[i] << std::endl;
       }
       h_eigenvals->getData()[this->nactu() - 1] = 0.;
       d_KLcov->host2device(*h_eigenvals);
@@ -415,7 +413,7 @@ int sutra_controller_mv::do_covmat(sutra_dm *ydm, char *method, int *indx_pup,
 int sutra_controller_mv::do_geomat(carma_obj<float> *d_geocov,
                                    carma_obj<float> *d_IF, long n_pts,
                                    float ampli) {
-  current_context->set_activeDevice(device,1);
+  current_context->set_activeDevice(device, 1);
   carma_gemm(cublas_handle, 't', 'n', nactu(), nactu(), n_pts, 1.0f,
              d_IF->getData(), n_pts, d_IF->getData(), n_pts, 0.0f,
              d_geocov->getData(), nactu());
@@ -426,7 +424,7 @@ int sutra_controller_mv::do_geomat(carma_obj<float> *d_geocov,
 }
 
 int sutra_controller_mv::piston_filt(carma_obj<float> *d_statcov) {
-  current_context->set_activeDevice(device,1);
+  current_context->set_activeDevice(device, 1);
   long Nmod = d_statcov->getDims()[1];
   long dims_data[3];
   dims_data[0] = 2;
@@ -452,7 +450,7 @@ int sutra_controller_mv::piston_filt(carma_obj<float> *d_statcov) {
 int sutra_controller_mv::piston_filt_cphim(carma_obj<float> *d_cphim,
                                            float *F) {
 
-  current_context->set_activeDevice(device,1);
+  current_context->set_activeDevice(device, 1);
 
   long Nmod = d_cphim->getDims()[1];
   long dims_data[3];
@@ -478,7 +476,7 @@ int sutra_controller_mv::piston_filt_cphim(carma_obj<float> *d_cphim,
 
 int sutra_controller_mv::invgen(carma_obj<float> *d_mat, float cond, int job) {
 
-  current_context->set_activeDevice(device,1);
+  current_context->set_activeDevice(device, 1);
   const long dims_data[3] = { 2, d_mat->getDims()[1], d_mat->getDims()[2] };
   carma_obj<float> *d_U = new carma_obj<float>(current_context, dims_data);
   carma_obj<float> *d_tmp = new carma_obj<float>(current_context, dims_data);
@@ -576,7 +574,7 @@ int sutra_controller_mv::invgen(carma_obj<float> *d_mat,
                     d_mat->getDims()[1], 0.0f, d_mat->getData(),
                     d_mat->getDims()[1]);
 
-  cout << "Inversion done with " << cpt << " modes filtered" << endl;
+  std::cout << "Inversion done with " << cpt << " modes filtered" << std::endl;
 
   delete d_U;
   delete d_tmp;
@@ -634,7 +632,7 @@ int sutra_controller_mv::invgen_cpu(carma_obj<float> *d_mat,
                     d_mat->getDims()[1], 0.0f, d_mat->getData(),
                     d_mat->getDims()[1]);
 
-  cout << "Inversion done with " << cpt << " modes filtered" << endl;
+  std::cout << "Inversion done with " << cpt << " modes filtered" << std::endl;
 
   delete d_U;
   delete d_tmp;

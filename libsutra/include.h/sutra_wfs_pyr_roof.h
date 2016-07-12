@@ -10,7 +10,6 @@
 #include <sutra_wfs_pyr.h>
 #include <sutra_telescope.h>
 
-using namespace std;
 class sutra_sensors;
 class sutra_wfs_pyr_roof: public sutra_wfs_pyr {
   public:

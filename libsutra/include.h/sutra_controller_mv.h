@@ -9,8 +9,6 @@
 #include <sutra_controller.h>
 #include <sutra_ao_utils.h>
 
-using namespace std;
-
 class sutra_controller_mv: public sutra_controller {
 public:
   float gain;

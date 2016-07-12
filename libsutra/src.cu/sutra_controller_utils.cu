@@ -1121,7 +1121,7 @@ void sub_pos_gpu_gb(struct gtomo_struct *tomo_gpu, long Nlayer)
   	  printf("%5.5d \n",tmp[ii]);
     }
 */
-  	  //cout << "Nsubap : " << Nsubap << endl;
+  	  //std::cout << "Nsubap : " << Nsubap << std::endl;
   subposition_gpu_gb_kernel<<<dimGrid, dimBlock, 0, tomo_gpu->matcov_stream>>>
 		  (tomo_gpu->Nw, tomo_gpu->Nx, tomo_gpu->Nsubap_d, Nlayer, tomo_gpu->alphaX_d,
 				  tomo_gpu->alphaY_d,tomo_gpu->h_d, tomo_gpu->GsAlt_d,
@@ -1333,10 +1333,10 @@ void update_tomo_sys_gpu_gb(struct gtomo_struct *tomo_gpu, sutra_sensors *sensor
   }
 /*
   for (int ii = 0; ii<tomo_gpu->Nx ; ii++){
-	  cout << "X : " << X[ii] << endl;
+	  std::cout << "X : " << X[ii] << std::endl;
   }
   for (int jj = 0; jj<tomo_gpu->Nx ; jj++){
-	  cout << "Y : " << Y[jj] << endl;
+	  std::cout << "Y : " << Y[jj] << std::endl;
   }
 */
   //generateXY(tomo_gpu,sensors);
@@ -1431,7 +1431,7 @@ void generateXY(struct gtomo_struct *tomo, sutra_sensors *sensors)
 
   double *X;
   double *Y;
-  cout << "sizeX = " << cNsubapTot-cpt << endl;
+  std::cout << "sizeX = " << cNsubapTot-cpt << std::endl;
   X=(double*)malloc((cNsubapTot-cpt)*sizeof(double));
   Y=(double*)malloc((cNsubapTot-cpt)*sizeof(double));
   tomo->Nx = cNsubapTot-cpt;
@@ -1696,7 +1696,7 @@ __device__ double compute_element_4(int ipos, int jpos, double convert, double *
         double noiseLongAxis = noise_var * ratio * ratio;
 	if (type == 0) covar += noiseLongAxis * cosf(lgsTheta) * cosf(lgsTheta) +
 			 noise_var * sinf(lgsTheta) * sinf(lgsTheta);
-	else if (type == 3) covar += noiseLongAxis * sinf(lgsTheta) * sinf(lgsTheta) +
+	else if (type == 3) covar += noiseLongAxis *sinf(lgsTheta) * sinf(lgsTheta) +
 			      noise_var * cosf(lgsTheta) * cosf(lgsTheta);
 	else covar += (noiseLongAxis-noise_var) * sinf(lgsTheta) * cosf(lgsTheta);
       }
@@ -2061,7 +2061,7 @@ void matcov_gpu_4(float* data, int nrows, int ncols, int xoffset, int yoffset, i
     carmaSafeCall(cudaMemcpy(tmp, data, sizeof(double) * nb,
     	            cudaMemcpyDeviceToHost));
     for (int ii = 0 ; ii < nb ; ii++)
-    	cout << tmp[ii] << endl;
+    	std::cout << tmp[ii] << std::endl;
     	*/
   //if (type_mat == 1)
   // matcov_kernel_copy<<<dimGrid, dimBlock>>>(data, nrows, ncols, xoffset, yoffset, lda);
@@ -2208,7 +2208,7 @@ void sub_pos_cphim(struct cphim_struct *cphim_struct, long Nlayer)
     	  printf("%5.5f \n",tmpp[ii]);
       }
       */
-  	  //cout << "Nsubap : " << Nsubap << endl;
+  	  //std::cout << "Nsubap : " << Nsubap << std::endl;
 
   subposition_gpu_gb_kernel<<<dimGrid, dimBlock, 0, cphim_struct->cphim_stream>>>
 		  (cphim_struct->Nw, cphim_struct->Nx, cphim_struct->Nsubap_d, Nlayer, cphim_struct->alphaX_d,
@@ -2724,10 +2724,10 @@ void update_cphim_sys(struct cphim_struct *cphim_struct, sutra_sensors *sensors,
   }
   /*
   for (int ii = 0; ii<cphim_struct->Nx ; ii++){
-	  cout << "X : " << X[ii] << endl;
+	  std::cout << "X : " << X[ii] << std::endl;
   }
   for (int jj = 0; jj<cphim_struct->Nx ; jj++){
-	  cout << "Y : " << Y[jj] << endl;
+	  std::cout << "Y : " << Y[jj] << std::endl;
   }
   */
   //generateXY(cphim_struct,sensors);
@@ -2744,9 +2744,9 @@ void update_cphim_sys(struct cphim_struct *cphim_struct, sutra_sensors *sensors,
   e = cudaMemcpyAsync(cphim_struct->dx_d, pitch, cphim_struct->Ndm*sizeof(double), cudaMemcpyHostToDevice, cphim_struct->cphim_stream);
   process_err(e, "copy gpu dx_d");
 
-  cout << "   computing tabulated integral...";
+  std::cout << "   computing tabulated integral...";
   tab_u831J0(cphim_struct->tab_int_x,cphim_struct->tab_int_y,cphim_struct->int_npts);
-  cout << " done" << endl;
+  std::cout << " done" << std::endl;
   cphim_struct->x0 = xactu[cphim_struct->Nactu/2 + 1];
   cphim_struct->y0 = yactu[cphim_struct->Nactu/2 + 1];
   //cphim_struct->dx = (xactu[1] - xactu[0]) * 0.5;

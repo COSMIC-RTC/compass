@@ -121,7 +121,7 @@ void carma_sparse_host_obj<T_data>::init_from_matrix(
 
   if(majorDim=='C'){
     //sort rows
-    vector<pair<int, pair<int, T_data> > > sM(nz_elem);
+    std::vector<std::pair<int, std::pair<int, T_data> > > sM(nz_elem);
     //sM[i].first         -> rowind
     //sM[i].second.first  -> colind
     //sM[i].second.second -> value
@@ -208,8 +208,8 @@ void carma_sparse_host_obj<T_data>::_create(int nnz_, int dim1_, int dim2_) {
 template<class T_data>
 void carma_sparse_host_obj<T_data>::_clear() {
   if (h_data == NULL || rowind == NULL || colind == NULL) {
-    cerr << "Error | carma_sparse_host_obj<T_data>::_clear | double clear"
-        << endl;
+    std::cerr << "Error | carma_sparse_host_obj<T_data>::_clear | double clear"
+        << std::endl;
     throw "Error | carma_sparse_host_obj<T_data>::_clear | double clear";
     //exit(EXIT_FAILURE);
   }
@@ -233,7 +233,7 @@ void carma_gemv(T_data alpha, carma_sparse_host_obj<T_data>* A,
         char *matdescra, T_data *val, int *rowind, int *colind, int *nnz,
         T_data *x, T_data *beta, T_data *y)) {
   if (A->getDims(2) != x->getDims(1) || A->getDims(1) != y->getDims(1)) {
-    cerr << "Error | kp_cscmv | diminsion problem" << endl;
+    std::cerr << "Error | kp_cscmv | diminsion problem" << std::endl;
     throw "Error | kp_cscmv | diminsion problem";
     //exit(EXIT_FAILURE);
   }
@@ -278,8 +278,8 @@ template<class T_data>
 void carma_sparse_host_obj<T_data>::resize2rowMajor() {
   int i;
   int indice;
-  vector<vector<pair<int, int> > > position(dims_data[1],
-      vector<pair<int, int> >());
+  std::vector<std::vector<std::pair<int, int> > > position(dims_data[1],
+      std::vector<std::pair<int, int> >());
   int* rowind2 = new int[nz_elem];
   int* colind2 = new int[nz_elem];
   T_data* values2 = new T_data[nz_elem];
@@ -289,7 +289,7 @@ void carma_sparse_host_obj<T_data>::resize2rowMajor() {
 
   for (i = 0; i < nz_elem; i++) {
     //cout<<"i="<<i<<" rowind[i]="<<rowind[i]-1<<" colind[i]="<<colind[i]-1<<endl;
-    position[rowind[i]].push_back(make_pair(colind[i], i));
+    position[rowind[i]].push_back(std::make_pair(colind[i], i));
 
   }
 
@@ -306,9 +306,9 @@ void carma_sparse_host_obj<T_data>::resize2rowMajor() {
     }
   }
   if (indice != nz_elem) {
-    cerr
+    std::cerr
         << "Erreur | carma_sparse_host_obj<T_data>::resize2rowMajor | erreur lors de la conversion."
-        << endl;
+        << std::endl;
     delete[] rowind2;
     delete[] colind2;
     delete[] values2;
@@ -333,14 +333,14 @@ template<class T_data>
 void carma_sparse_host_obj<T_data>::resize2colMajor() {
   int i;
   int indice;
-  vector<vector<pair<int, int> > > position(dims_data[2],
-      vector<pair<int, int> >());
+  std::vector<std::vector<std::pair<int, int> > > position(dims_data[2],
+      std::vector<std::pair<int, int> >());
   int* rowind2 = new int[nz_elem];
   int* colind2 = new int[nz_elem];
   T_data* values2 = new T_data[nz_elem];
 
   for (i = 0; i < nz_elem; i++) {
-    position[colind[i]].push_back(make_pair(rowind[i], i));
+    position[colind[i]].push_back(std::make_pair(rowind[i], i));
   }
 
   indice = 0;
@@ -356,9 +356,9 @@ void carma_sparse_host_obj<T_data>::resize2colMajor() {
     }
   }
   if (indice != nz_elem) {
-    cerr
+    std::cerr
         << "Erreur | carma_sparse_host_obj<T_data>::resize2colMajor | erreur lors de la conversion."
-        << endl;
+        << std::endl;
     delete[] rowind2;
     delete[] colind2;
     delete[] values2;

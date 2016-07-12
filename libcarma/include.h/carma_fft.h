@@ -18,8 +18,6 @@
 #include <cufft.h>
 #include <carma_obj.h>
 
-using namespace std;
-
 template<class T_in, class T_out>
 class carma_fft {
 

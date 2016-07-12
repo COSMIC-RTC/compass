@@ -29,8 +29,6 @@ enum MemAlloc {
 #define MEMORY_ALIGNMENT  4096
 #define ALIGN_UP(x,size) ( ((size_t)x+(size-1))&(~(size-1)) )
 
-using namespace std;
-
 template<class T_data>
 class carma_obj;
 
@@ -84,13 +82,13 @@ public:
 	operator T_data*() {
 		return h_data;
 	}
-	operator string() {
+	operator std::string() {
 		std::ostringstream stream;
 		stream << *this;
 		return stream.str();
 	}
 	inline char const* c_str(){
-		return string(*this).c_str();
+		return std::string(*this).c_str();
 	}
 	T_data* operator[](int index) {
 		return &h_data[index];
@@ -115,7 +113,7 @@ public:
 	int fill_from(const T_data *data);
 	int fill_into(T_data *data);
 
-	string getMetAlloc() {
+	std::string getMetAlloc() {
 		switch (mallocType) {
 		case MA_MALLOC:
 			return "MA_MALLOC";
@@ -137,17 +135,17 @@ public:
 };
 
 template<class T_data>
-ostream& operator<<(ostream& os, carma_host_obj<T_data>& obj) {
-	os << "-----------------------" << endl;
-	os << "carma_host_obj<" << typeid(T_data).name() << "> object" << endl;
+std::ostream& operator<<(std::ostream& os, carma_host_obj<T_data>& obj) {
+	os << "-----------------------" << std::endl;
+	os << "carma_host_obj<" << typeid(T_data).name() << "> object" << std::endl;
 	long ndims = obj.getDims(0);
-	os << "ndims = " << ndims << endl;
+	os << "ndims = " << ndims << std::endl;
 	for (long dim = 0; dim < ndims; dim++) {
-		os << "dim[" << dim << "] = " << obj.getDims(dim + 1) << endl;
+		os << "dim[" << dim << "] = " << obj.getDims(dim + 1) << std::endl;
 	}
-	os << "nbElem = " << obj.getNbElem() << endl;
-	os << "sizeof(" << typeid(T_data).name() << ") = " << sizeof(T_data) << endl;
-	os << "-----------------------" << endl;
+	os << "nbElem = " << obj.getNbElem() << std::endl;
+	os << "sizeof(" << typeid(T_data).name() << ") = " << sizeof(T_data) << std::endl;
+	os << "-----------------------" << std::endl;
 	return os;
 }
 
@@ -185,7 +183,7 @@ template<class T_data>
 int carma_cula_svd(carma_host_obj<T_data> *imat,
 		carma_host_obj<T_data> *eigenvals, carma_host_obj<T_data> *mod2act,
 		carma_host_obj<T_data> *mes2mod);
-/* 
+/*
  extern "C" {
 
  }

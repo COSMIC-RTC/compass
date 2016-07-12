@@ -76,7 +76,7 @@ int carma_syevd_gen(magma_vec_t jobz, magma_int_t N, magma_int_t ldda, T *d_mat,
                     T *h_eigenvals) {
   magma_int_t *iwork;
   //  if (ldda & 31) {
-  //    cerr << "Leading dimension of the matrix must be a multiple of 32\n";
+  //    cerr << "Leading dimension of the matrix must be a multiple of 32" << std::endl;
   //    return EXIT_FAILURE;
   //  }
 
@@ -253,7 +253,7 @@ int carma_getri_gen(long N, T *d_iA) {
   magma_int_t ldda = ((N + 31) / 32) * 32;
   magma_int_t ldwork = N * ptr_get_getri_nb(N);
   if (lda * ldda != N * N)
-    cerr << "Please provide arrays of proper size\n";
+    std::cerr << "Please provide arrays of proper size" << std::endl;;
 
   magma_int_t info = 0;
   cudaMalloc((void**) &dwork, ldwork * sizeof(T));
@@ -496,7 +496,7 @@ int carma_syevd<float, 1>(char jobz, caObjS *mat,
                           carma_host_obj<float> *eigenvals) {
   long N = mat->getDims(1);
   if (N != mat->getDims(2)) {
-    cerr << "Matrix must be symmetric\n";
+    std::cerr << "Matrix must be symmetric" << std::endl;
     return EXIT_FAILURE;
   }
   TEST_USE_MAGMA(
@@ -508,7 +508,7 @@ int carma_syevd<double, 1>(char jobz, caObjD *mat,
                            carma_host_obj<double> *eigenvals) {
   long N = mat->getDims(1);
   if (N != mat->getDims(2)) {
-    cerr << "Matrix must be symmetric\n";
+    std::cerr << "Matrix must be symmetric" << std::endl;
     return EXIT_FAILURE;
   }
   TEST_USE_MAGMA(
@@ -556,7 +556,7 @@ int carma_syevd_m<float>(long ngpu, char jobz, carma_host_obj<float> *mat,
                          carma_host_obj<float> *eigenvals) {
   long N = mat->getDims(1);
   if (N != mat->getDims(2)) {
-    cerr << "Matrix must be symmetric\n";
+    std::cerr << "Matrix must be symmetric" << std::endl;
     return EXIT_FAILURE;
   }
   TEST_USE_MAGMA(
@@ -568,7 +568,7 @@ int carma_syevd_m<double>(long ngpu, char jobz, carma_host_obj<double> *mat,
                           carma_host_obj<double> *eigenvals) {
   long N = mat->getDims(1);
   if (N != mat->getDims(2)) {
-    cerr << "Matrix must be symmetric\n";
+    std::cerr << "Matrix must be symmetric" << std::endl;
     return EXIT_FAILURE;
   }
   TEST_USE_MAGMA(
@@ -582,7 +582,7 @@ int carma_syevd_m<float>(long ngpu, char jobz, carma_host_obj<float> *mat,
                          carma_host_obj<float> *U) {
   TEST_USE_MAGMA(
       /* Initialize the matrix */
-      magma_int_t N = mat->getDims(1); if (N != mat->getDims(2)) { cerr << "Matrix must be symmetric\n"; return EXIT_FAILURE; }
+      magma_int_t N = mat->getDims(1); if (N != mat->getDims(2)) { std::cerr << "Matrix must be symmetric" << std::endl; return EXIT_FAILURE; }
 
       magma_int_t lda = N; lapackf77_slacpy(MagmaUpperLowerStr, &N, &N, *mat, &lda, *U, &lda);
       return carma_syevd_m_gen<float, magma_ssyevd_m>(ngpu, magma_vec_const(jobz), N, *U, *eigenvals));
@@ -593,7 +593,7 @@ int carma_syevd_m<double>(long ngpu, char jobz, carma_host_obj<double> *mat,
                           carma_host_obj<double> *U) {
   TEST_USE_MAGMA(
       /* Initialize the matrix */
-      magma_int_t N = mat->getDims(1); if (N != mat->getDims(2)) { cerr << "Matrix must be symmetric\n"; return EXIT_FAILURE; }
+      magma_int_t N = mat->getDims(1); if (N != mat->getDims(2)) { std::cerr << "Matrix must be symmetric" << std::endl; return EXIT_FAILURE; }
       magma_int_t lda = N; lapackf77_dlacpy(MagmaUpperLowerStr, &N, &N, *mat, &lda, *U, &lda);
       return carma_syevd_m_gen<double,magma_dsyevd_m>(ngpu, magma_vec_const(jobz), N, *U, *eigenvals));
 }
@@ -664,7 +664,7 @@ int carma_potri_m<float>(long num_gpus, carma_host_obj<float> *h_A,
                          carma_obj<float> *d_iA) {
   long N = h_A->getDims(1);
   if (N != h_A->getDims(2)) {
-    cerr << "Matrix must be square and positive-definite\n";
+    std::cerr << "Matrix must be square and positive-definite" << std::endl;
     return EXIT_FAILURE;
   }
   TEST_USE_MAGMA(
@@ -680,7 +680,7 @@ int carma_potri_m<double>(long num_gpus, carma_host_obj<double> *h_A,
                           carma_obj<double> *d_iA) {
   long N = h_A->getDims(1);
   if (N != h_A->getDims(2)) {
-    cerr << "Matrix must be square and positive-definite\n";
+    std::cerr << "Matrix must be square and positive-definite" << std::endl;
     return EXIT_FAILURE;
   }
 
@@ -697,7 +697,7 @@ template<>
 int carma_getri<float>(carma_obj<float> *d_iA) {
   long N = d_iA->getDims(1);
   if (N != d_iA->getDims(2)) {
-    cerr << "Matrix must be square\n";
+    std::cerr << "Matrix must be square" << std::endl;
     return EXIT_FAILURE;
   }
 
@@ -708,7 +708,7 @@ template<>
 int carma_getri<double>(carma_obj<double> *d_iA) {
   long N = d_iA->getDims(1);
   if (N != d_iA->getDims(2)) {
-    cerr << "Matrix must be square\n";
+    std::cerr << "Matrix must be square" << std::endl;
     return EXIT_FAILURE;
   }
   TEST_USE_MAGMA(return carma_getri_gen<double, magma_dgetrf_gpu,
@@ -719,7 +719,7 @@ template<>
 int carma_potri_cpu<float>(carma_host_obj<float> *h_A) {
   long N = h_A->getDims(1);
   if (N != h_A->getDims(2)) {
-    cerr << "Matrix must be symmetric\n";
+    std::cerr << "Matrix must be symmetric" << std::endl;
     return EXIT_FAILURE;
   }
   TEST_USE_MAGMA(return carma_potri_cpu_gen<float, lapackf77_spotrf,
@@ -729,7 +729,7 @@ template<>
 int carma_potri_cpu<double>(carma_host_obj<double> *h_A) {
   long N = h_A->getDims(1);
   if (N != h_A->getDims(2)) {
-    cerr << "Matrix must be symmetric\n";
+    std::cerr << "Matrix must be symmetric" << std::endl;
     return EXIT_FAILURE;
   }
   TEST_USE_MAGMA(return carma_potri_cpu_gen<double, lapackf77_dpotrf,
@@ -752,7 +752,7 @@ template<>
 int carma_getri_cpu<float>(carma_host_obj<float> *h_A) {
   long N = h_A->getDims(1);
   if (N != h_A->getDims(2)) {
-    cerr << "Matrix must be symmetric\n";
+    std::cerr << "Matrix must be symmetric" << std::endl;
     return EXIT_FAILURE;
   }
 
@@ -763,7 +763,7 @@ template<>
 int carma_getri_cpu<double>(carma_host_obj<double> *h_A) {
   long N = h_A->getDims(1);
   if (N != h_A->getDims(2)) {
-    cerr << "Matrix must be symmetric\n";
+    std::cerr << "Matrix must be symmetric" << std::endl;
     return EXIT_FAILURE;
   }
   TEST_USE_MAGMA(return carma_getri_cpu_gen<double, lapackf77_dgetrf,
@@ -787,7 +787,7 @@ int carma_syevd_cpu<float>(char jobz, carma_host_obj<float> *h_A,
                            carma_host_obj<float> *eigenvals) {
   long N = h_A->getDims(1);
   if (N != h_A->getDims(2)) {
-    cerr << "Matrix must be symmetric\n";
+    std::cerr << "Matrix must be symmetric" << std::endl;
     return EXIT_FAILURE;
   }
   TEST_USE_MAGMA(
@@ -799,7 +799,7 @@ int carma_syevd_cpu<double>(char jobz, carma_host_obj<double> *h_A,
                             carma_host_obj<double> *eigenvals) {
   long N = h_A->getDims(1);
   if (N != h_A->getDims(2)) {
-    cerr << "Matrix must be symmetric\n";
+    std::cerr << "Matrix must be symmetric" << std::endl;
     return EXIT_FAILURE;
   }
   TEST_USE_MAGMA(
@@ -941,6 +941,3 @@ int carma_sparse_magma_free<double>(carma_sparse_obj<double> *dA){
       return ret;
   );
 }
-
-
-

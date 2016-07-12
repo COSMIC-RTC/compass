@@ -3,50 +3,49 @@
 #include <carma_sparse_obj.h>
 
 cublasStatus_t __carma_checkCublasStatus(cublasStatus_t status, int line,
-                                         string file)
+                                         std::string file)
                                          /**< Generic CUBLAS check status routine */
                                          {
   switch (status) {
     case CUBLAS_STATUS_SUCCESS:
       return status;
     case CUBLAS_STATUS_NOT_INITIALIZED:
-      cerr
-          << "CUBLAS error : Unsupported numerical value was passed to function.\n";
+      std::cerr
+          << "CUBLAS error : Unsupported numerical value was passed to function." << std::endl;
       break;
     case CUBLAS_STATUS_ALLOC_FAILED:
-      cerr << "CUBLAS error : Resource allocation failed.\n";
+      std::cerr << "CUBLAS error : Resource allocation failed." << std::endl;
       break;
     case CUBLAS_STATUS_INVALID_VALUE:
-      cerr << "CUBLAS error : CUBLAS_STATUS_ALLOC_FAILED !!!!!\n";
+      std::cerr << "CUBLAS error : CUBLAS_STATUS_ALLOC_FAILED !!!!!" << std::endl;
       break;
     case CUBLAS_STATUS_ARCH_MISMATCH:
-      cerr << "CUBLAS error : Resource allocation failed.\n";
+      std::cerr << "CUBLAS error : Resource allocation failed." << std::endl;
       break;
     case CUBLAS_STATUS_MAPPING_ERROR:
-      cerr
-          << "CUBLAS error : Unsupported numerical value was passed to function.\n";
+      std::cerr
+          << "CUBLAS error : Unsupported numerical value was passed to function." << std::endl;
       break;
     case CUBLAS_STATUS_EXECUTION_FAILED:
-      cerr << "CUBLAS error : Resource allocation failed.\n";
+      std::cerr << "CUBLAS error : Resource allocation failed." << std::endl;
       break;
     case CUBLAS_STATUS_INTERNAL_ERROR:
-      cerr << "!CUBLAS error : An internal CUBLAS operation failed.\n";
+      std::cerr << "!CUBLAS error : An internal CUBLAS operation failed." << std::endl;
       break;
 // Define not supported status for pre-6.0 compatibility.
 #if CUDA_VERSION > 6000
     case CUBLAS_STATUS_NOT_SUPPORTED:
-      cerr
-          << "CUBLAS error : Unsupported numerical value was passed to function.\n";
+      std::cerr
+          << "CUBLAS error : Unsupported numerical value was passed to function." << std::endl;
       break;
 #endif
 #if CUDA_VERSION > 6000
     case CUBLAS_STATUS_LICENSE_ERROR:
-      cerr
-          << "CUBLAS error : The functionnality requested requires some license and an error was detected when trying to check the current licensing. This error can happen if the license is not present or is expired or if the environment variable NVIDIA_LICENSE_FILE is not set properly.\n";
-      break;
+      std::cerr
+          << "CUBLAS error : The functionnality requested requires some license and an error was detected when trying to check the current licensing. This error can happen if the license is not present or is expired or if the environment variable NVIDIA_LICENSE_FILE is not set properly." << std::endl;
 #endif
   }
-  cerr << "CUBLAS error in " << file << "@" << line << endl;
+  std::cerr << "CUBLAS error in " << file << "@" << line << std::endl;
   return status;
 }
 
@@ -76,7 +75,7 @@ cublasOperation_t carma_char2cublasOperation(char operation) {
 }
 
 /*
- * _____ _____ __  __ ____  _        _  _____ _____ ____  
+ * _____ _____ __  __ ____  _        _  _____ _____ ____
  *|_   _| ____|  \/  |  _ \| |      / \|_   _| ____/ ___|
  *  | | |  _| | |\/| | |_) | |     / _ \ | | |  _| \___ \
  *  | | | |___| |  | |  __/| |___ / ___ \| | | |___ ___) |
@@ -840,7 +839,7 @@ cublasStatus_t carma_dgmm<cuDoubleComplex>(cublasHandle_t cublas_handle,
 
 /*
  ____ _        _    ____ ____        _       __ _       _ _   _
- / ___| |      / \  / ___/ ___|    __| | ___ / _(_)_ __ (_) |_(_) ___  _ __  
+ / ___| |      / \  / ___/ ___|    __| | ___ / _(_)_ __ (_) |_(_) ___  _ __
  | |   | |     / _ \ \___ \___ \   / _` |/ _ \ |_| | '_ \| | __| |/ _ \| '_ \
  | |___| |___ / ___ \ ___) |__) | | (_| |  __/  _| | | | | | |_| | (_) | | | |
  \____|_____/_/   \_\____/____/   \__,_|\___|_| |_|_| |_|_|\__|_|\___/|_| |_|
@@ -921,7 +920,7 @@ int carma_obj<T_data>::device2hostMat(T_data *data, int lda, int ldb) {
 }
 
 /*
- ____  _        _    ____  _ 
+ ____  _        _    ____  _
  | __ )| |      / \  / ___|/ |
  |  _ \| |     / _ \ \___ \| |
  | |_) | |___ / ___ \ ___) | |
@@ -1143,7 +1142,7 @@ carma_obj<double>::rot(caObjD *source, int incx, int incy, double sc,
                        double ss);
 
 /*
- ____  _        _    ____ ____  
+ ____  _        _    ____ ____
  | __ )| |      / \  / ___|___ \
  |  _ \| |     / _ \ \___ \ __) |
  | |_) | |___ / ___ \ ___) / __/
@@ -1244,7 +1243,7 @@ carma_obj<cuDoubleComplex>::symv(cublasFillMode_t, cuDoubleComplex, caObjZ *,
                                  int, caObjZ *, int, cuDoubleComplex, int);
 
 /*
- ____  _        _    ____ _____ 
+ ____  _        _    ____ _____
  | __ )| |      / \  / ___|___ /
  |  _ \| |     / _ \ \___ \ |_ \
  | |_) | |___ / ___ \ ___) |__) |

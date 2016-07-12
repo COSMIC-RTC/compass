@@ -12,8 +12,6 @@
 #include <carma.h>
 #include <carma_obj.h>
 
-using namespace std;
-
 class sutra_phase {
 public:
 

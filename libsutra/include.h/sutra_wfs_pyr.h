@@ -10,7 +10,7 @@
 #include <sutra_wfs.h>
 #include <sutra_telescope.h>
 
-using namespace std;
+using std::string;
 
 class sutra_wfs_pyr: public sutra_wfs {
   public:

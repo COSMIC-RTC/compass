@@ -445,7 +445,7 @@ __global__ void reduce2(T *g_idata, T *g_odata, T thresh, unsigned int n, unsign
   sdata[tid] = 0;
   for (int cc=0;cc < nelem_thread; cc++) {
     int idim = tid * nelem_thread + cc + (blockDim.x * nelem_thread) * blockIdx.x;
-    if (idim < n) { 
+    if (idim < n) {
       if (g_idata[idim] > thresh)  sdata[tid] += g_idata[idim];
       else sdata[tid] += 0;
     } else
@@ -504,7 +504,7 @@ __global__ void reduce2(T *g_idata, T *g_odata, T *weights, unsigned int n, unsi
   sdata[tid] = 0;
   for (int cc=0;cc < nelem_thread; cc++) {
     int idim = tid * nelem_thread + cc + (blockDim.x * nelem_thread) * blockIdx.x;
-    if (idim < n) 
+    if (idim < n)
       sdata[tid] +=g_idata[idim] * weights[idim];
     else
       sdata[tid] += 0;
@@ -534,7 +534,7 @@ void subap_reduce(int size, int threads, int blocks, T *d_idata, T *d_odata, car
   dim3 dimBlock(threads, 1, 1);
   dim3 dimGrid(blocks, 1, 1);
 
-  // when there is only one warp per block, we need to allocate two warps 
+  // when there is only one warp per block, we need to allocate two warps
   // worth of shared memory so that we don't index shared memory out of bounds
   int smemSize = threads * sizeof(T);
   reduce2<T> <<<dimGrid, dimBlock, smemSize>>>(d_idata, d_odata, (unsigned int)size,nelem_thread);
@@ -607,7 +607,7 @@ void subap_reduce(int size, int threads, int blocks, T *d_idata, T *d_odata,
   dim3 dimBlock(threads / nelem_thread, 1, 1);
   dim3 dimGrid(blocks, 1, 1);
 
-  // when there is only one warp per block, we need to allocate two warps 
+  // when there is only one warp per block, we need to allocate two warps
   // worth of shared memory so that we don't index shared memory out of bounds
   int smemSize =  threads * sizeof(T);
   reduce2<T> <<<dimGrid, dimBlock, smemSize>>>(d_idata, d_odata, thresh,
@@ -662,7 +662,7 @@ void subap_reduce(int size, int threads, int blocks, T *d_idata, T *d_odata,
 
   dim3 dimBlock(threads / nelem_thread, 1, 1);
   dim3 dimGrid(blocks, 1, 1);
-  // when there is only one warp per block, we need to allocate two warps 
+  // when there is only one warp per block, we need to allocate two warps
   // worth of shared memory so that we don't index shared memory out of bounds
   int smemSize = threads * sizeof(T);
   reduce2<T> <<<dimGrid, dimBlock, smemSize>>>(d_idata, d_odata, weights,
@@ -789,7 +789,7 @@ void phase_reduce(int threads, int blocks, T *d_idata, T *d_odata, int *indx,
   dim3 dimBlock(threads, 1, 1);
   dim3 dimGrid(blocks, 1, 1);
 
-  // when there is only one warp per block, we need to allocate two warps 
+  // when there is only one warp per block, we need to allocate two warps
   // worth of shared memory so that we don't index shared memory out of bounds
   int smemSize =
       (threads <= 32) ? 2 * threads * sizeof(T) : threads * sizeof(T);
@@ -818,7 +818,7 @@ void phase_derive(int size, int threads, int blocks, int n, T *d_idata,
   dim3 dimBlock(threads, 1, 1);
   dim3 dimGrid(blocks, 1, 1);
 
-  // when there is only one warp per block, we need to allocate two warps 
+  // when there is only one warp per block, we need to allocate two warps
   // worth of shared memory so that we don't index shared memory out of bounds
   int smemSize =
       (threads <= 32) ? 2 * threads * sizeof(T) : threads * sizeof(T);
@@ -861,9 +861,9 @@ __global__ void pyrgetpup_krnl(Tout *g_odata, Tin *g_idata, Tout *offsets,
     xx = (x + n / 2) % n;
     yy = (y + n / 2) % n;
     i2 = xx + yy * n;
-    
+
     float mic2rad =(2*PI/lambda);
-        
+
     sdata[2 * tid].x = cosf(g_idata[i]*mic2rad) * pup[i];
     sdata[2 * tid].y = sinf(g_idata[i]*mic2rad) * pup[i];
 
@@ -928,7 +928,7 @@ __global__ void pyrgetpup_krnl(Tout *g_odata, Tin *g_idata,
 
     const float xx = (x - n / 2.0f);
     const float yy = (y - n / 2.0f);
-        
+
     const float mic2rad =(2*PI/lambda);
 
     const float phi_modu =  cx * xx + cy * yy;
@@ -936,7 +936,7 @@ __global__ void pyrgetpup_krnl(Tout *g_odata, Tin *g_idata,
     const float offs =  (N - n)/2.0f;
 
     const int i2 = x + offs + (y + offs)* N;
- 
+
     g_odata[i2].x = cosf(g_idata[i]*mic2rad + phi_modu) * pup[i];
     g_odata[i2].y = sinf(g_idata[i]*mic2rad + phi_modu) * pup[i];
 
@@ -1096,7 +1096,7 @@ __global__ void roof_rollmod_krnl(T *g_odata, T *g_idata, T *g_mask, float cx, f
     if (n_im == 2) {
       // third image : left
       xx2 = (xx + (n - ns) - cx);
-      yy2 = (yy + (n - ns/2)); 
+      yy2 = (yy + (n - ns/2));
     }
     if (n_im == 3) {
       // fourth image : right
@@ -1275,7 +1275,7 @@ int pyr_fillbinimg<double>(double *bimage, const double *bcube, const int nxsub,
                            const bool add, carma_device *device);
 
 template<class T>
-__global__ void pyr_bimg_krnl(T *oimage, const T *image, const int n, 
+__global__ void pyr_bimg_krnl(T *oimage, const T *image, const int n,
                               const int rebin, const float alpha, const int N) {
   /*
    indx is an array nrebin^2 * npix^2
@@ -1518,7 +1518,7 @@ __global__ void abs2roof_krnl(Tout *g_odata, Tin *g_idata, Tout fact,
 
       g_odata[i + cpt * ns * ns] += (tmp2.x * tmp2.x + tmp2.y * tmp2.y) * fact;
       g_odata[i2 + cpt * ns * ns] += (tmp1.x * tmp1.x + tmp1.y * tmp1.y) * fact;
-      
+
     }
   }
 }
@@ -1873,7 +1873,7 @@ void pyr_fact(float *d_data, float fact1, float *fact2, int n, int nim,
 }
 
 /*
- __global__ void fillcamplipup_krnl(cuFloatComplex *amplipup, float *phase,float *offset, float *mask, int *indx, int Nfft, 
+ __global__ void fillcamplipup_krnl(cuFloatComplex *amplipup, float *phase,float *offset, float *mask, int *indx, int Nfft,
  int Npup, int npup, int N)
  {
  int nim,idim,idimx,idimy,idx;
@@ -1891,7 +1891,7 @@ void pyr_fact(float *d_data, float fact1, float *fact2, int n, int nim,
  }
  }
 
- int fillcamplipup(cuFloatComplex *amplipup, float *phase, float *offset, float *mask, int *indx, int Nfft, int Npup, int Nsub, 
+ int fillcamplipup(cuFloatComplex *amplipup, float *phase, float *offset, float *mask, int *indx, int Nfft, int Npup, int Nsub,
  int npup, carma_device *device)
  // here amplipup is a cube of data of size nfft x nfft x nsubap
  // phase is an array of size pupdiam x pupdiam
@@ -1904,7 +1904,7 @@ void pyr_fact(float *d_data, float fact1, float *fact2, int n, int nim,
 
  struct cudaDeviceProp deviceProperties;
  cudaGetDeviceProperties(&deviceProperties, device);
- 
+
   int nBlocks,nThreads;
   getNumBlocksAndThreads(device, Npup * Nsub, nBlocks, nThreads);
  dim3 grid(nBlocks), threads(nThreads);

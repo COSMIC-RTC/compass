@@ -10,7 +10,9 @@
 #include <sutra_telescope.h>
 //#include <sutra_slopes.h>
 
-using namespace std;
+using std::string;
+using std::map;
+
 class sutra_sensors;
 class sutra_wfs {
   public:

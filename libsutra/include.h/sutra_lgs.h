@@ -5,7 +5,7 @@
 #include <carma_obj.h>
 #include <sutra_ao_utils.h>
 
-using namespace std;
+using std::pair;
 
 class sutra_sensors;
 class sutra_lgs {

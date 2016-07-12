@@ -153,7 +153,7 @@ int sutra_centroider_corr::load_corr(float *corr, float *corr_norm, int ndim) {
 int sutra_centroider_corr::get_cog(carma_streams *streams, float *cube,
     float *subsum, float *centroids, int nvalid, int npix, int ntot) {
   //TODO: Implement sutra_centroider_corr::get_cog
-  cerr << "get_cog not implemented\n";
+  std::cerr << "get_cog not implemented" << std::endl;
 
   return EXIT_SUCCESS;
 }
@@ -189,8 +189,8 @@ int sutra_centroider_corr::get_cog(float *subsum,float *slopes) {
   // need to find max for each subap
   // if the corr array for one subap is greater than 20x20
   // it won't fit in shared mem
-  // so we window around the center of the array, 
-  // the max is expected to be found inside the npix x npix central part anyway  
+  // so we window around the center of the array,
+  // the max is expected to be found inside the npix x npix central part anyway
   int nbmax = (2 * this->npix - 1 > 20) ? this->npix : 2 * this->npix - 1;
   int xoff = this->d_corr->getDims(1) / 2 - nbmax / 2;
   int yoff = this->d_corr->getDims(2) / 2 - nbmax / 2;

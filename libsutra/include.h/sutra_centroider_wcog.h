@@ -3,8 +3,6 @@
 
 #include <sutra_centroider.h>
 
-using namespace std;
-
 class sutra_centroider_wcog: public sutra_centroider {
 public:
   int npix;

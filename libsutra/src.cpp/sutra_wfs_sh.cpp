@@ -110,7 +110,7 @@ int sutra_wfs_sh::allocate_buffers(sutra_sensors *sensors) {
   this->nstreams = 1;
   while (nvalid % this->nstreams != 0)
     nstreams--;
-  cerr << "wfs uses " << nstreams << " streams" << endl;
+  std::cerr << "wfs uses " << nstreams << " streams" << std::endl;
   this->streams = new carma_streams(nstreams);
 
   dims_data1[1] = 2 * nvalid;

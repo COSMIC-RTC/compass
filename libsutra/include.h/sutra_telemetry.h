@@ -23,12 +23,10 @@
 
 typedef std::pair<std::string, int> type_telemetry_pair;
 
-using namespace std;
-
 class sutra_telemetry {
 protected:
   carma_streams *streams;
-  map<type_telemetry_pair, carma_host_obj<float>*> objs;
+  std::map<type_telemetry_pair, carma_host_obj<float>*> objs;
 
 public:
   sutra_telemetry();

@@ -15,8 +15,6 @@
 #include <sutra_centroider_tcog.h>
 #include <sutra_centroider_wcog.h>
 
-using namespace std;
-
 class sutra_rtc {
 public:
 	int device;

@@ -3,7 +3,7 @@
  *
  * \ingroup libcarma
  *
- * \brief this class 
+ * \brief this class
  *
  * \author $Author: dg, as $
  *
@@ -19,12 +19,10 @@
 #include <driver_types.h>
 #include <vector>
 
-using namespace std;
-
 class carma_streams {
 protected:
-  vector<cudaStream_t> streams;
-  vector<cudaEvent_t> events;
+  std::vector<cudaStream_t> streams;
+  std::vector<cudaEvent_t> events;
   int eventflags;
 
 public:

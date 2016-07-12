@@ -12,8 +12,6 @@
 /* Using updated (v2) interfaces to cublas */
 #include <cusparse_v2.h>
 
-using namespace std;
-
 cusparseStatus_t carma_checkCusparseStatus(cusparseStatus_t status);
 
 cusparseStatus_t carma_initCusparse(cusparseHandle_t *cusparse_handle);

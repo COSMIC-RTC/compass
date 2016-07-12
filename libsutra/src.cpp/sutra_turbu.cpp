@@ -35,7 +35,7 @@ sutra_tscreen::sutra_tscreen(carma_context *context, long size, long size2,
   this->norm_vk = 0;
   this->d_tscreen_c = 0;
 
-  cout << "r0^-5/6 :" << this->amplitude << endl;
+  std::cout << "r0^-5/6 :" << this->amplitude << std::endl;
 
   this->d_tscreen = new sutra_phase(current_context, this->screen_size);
   this->channelDesc = cudaCreateChannelDesc(32, 0, 0, 0,
@@ -361,24 +361,24 @@ int sutra_atmos::move_atmos() {
  checkCulaStatus(status);
 
  //s = s1 = SVdec(zz,uuu,vt);
- mmLar1->host2device(0,h_zz);  
+ mmLar1->host2device(0,h_zz);
 
- status = culaDeviceSgesvd(jobu,jobvt,2*size,2*size,(float *)mmLar1->data[0],2*size, S, 
+ status = culaDeviceSgesvd(jobu,jobvt,2*size,2*size,(float *)mmLar1->data[0],2*size, S,
  UU, 2*size,(float *)mmLar1->data[0],2*size);
 
  checkCulaStatus(status);
  cudaFree(UU);
 
- //in this case h_zz is a symmetric matrix. so u = v. 
- //apparently in this case the lapack lib returns 2 different versions of u and v. 
- //indeed in the svd problem, the solution is not unique. here we can use both, 
+ //in this case h_zz is a symmetric matrix. so u = v.
+ //apparently in this case the lapack lib returns 2 different versions of u and v.
+ //indeed in the svd problem, the solution is not unique. here we can use both,
  // we chose vt which seems to give the best results.
- // however : the single precision is not enough to get good estimation of bbt 
- // (see below). so this code is not working. need to buy the premium version of 
+ // however : the single precision is not enough to get good estimation of bbt
+ // (see below). so this code is not working. need to buy the premium version of
  // cula to get double precision on the svd
 
 
- carmaSafeCall(cudaMemcpy(mmLar2->data[1], mmLar1->data[0], 2*size*2*size*sizeof(float), 
+ carmaSafeCall(cudaMemcpy(mmLar2->data[1], mmLar1->data[0], 2*size*2*size*sizeof(float),
  cudaMemcpyDeviceToDevice));
  // s1(0)=1;s1 = 1./s1;s1(0)=0; // the null eignevalue is not inverted
  carmaSafeCall(cudaMemset((float *)mmLar1->data[1],0,2*size*2*size * sizeof(float)));
@@ -388,33 +388,33 @@ int sutra_atmos::move_atmos() {
  cudaFree(S);
 
  //zz_1 =  (uuu*s1(-,))(,+) * vt(+,);   // inversion, with the null eigenvalue left to 0
- mmLar1->compute('t','n',1.0f,0.0f,mmLar2->data[0]);  
+ mmLar1->compute('t','n',1.0f,0.0f,mmLar2->data[0]);
 
- mmLar2->compute('n','n',1.0f,0.0f,mmMed1->data[1]);  
+ mmLar2->compute('n','n',1.0f,0.0f,mmMed1->data[1]);
 
  //A = xz(,+) * zz_1(+,);
- mmMed1->host2device(0,h_xz);  
+ mmMed1->host2device(0,h_xz);
 
- mmMed1->compute('n','n',1.0f,0.0f,mmMed2->data[0]);  
+ mmMed1->compute('n','n',1.0f,0.0f,mmMed2->data[0]);
 
 
- carmaSafeCall(cudaMemcpy(d_A, mmMed2->data[0], size*2*size*sizeof(float), 
+ carmaSafeCall(cudaMemcpy(d_A, mmMed2->data[0], size*2*size*sizeof(float),
  cudaMemcpyDeviceToDevice));
 
  //bbt = xx - A(,+)*xz(,+);
- mmMed2->host2device(2,h_xx);  
- mmMed2->host2device(1,h_txz);  
+ mmMed2->host2device(2,h_xx);
+ mmMed2->host2device(1,h_txz);
 
- mmMed2->compute('n','n',-1.0f,1.0f,mmMed2->data[2]);  
+ mmMed2->compute('n','n',-1.0f,1.0f,mmMed2->data[2]);
 
- carmaSafeCall(cudaMemcpy(tmpout, mmMed2->data[2], size*size*sizeof(float), 
+ carmaSafeCall(cudaMemcpy(tmpout, mmMed2->data[2], size*size*sizeof(float),
  cudaMemcpyDeviceToHost));
  float* VT = NULL;
  cudaMalloc((void**)&S, size*sizeof(float));
  cudaMalloc((void**)&VT, size*size*sizeof(float));
 
  //l = SVdec(bbt,uu);
- status = culaDeviceSgesvd(jobu, jobvt, size, size,(float *)mmMed2->data[2] , size, S, 
+ status = culaDeviceSgesvd(jobu, jobvt, size, size,(float *)mmMed2->data[2] , size, S,
  (float *)mmSma->data[0], size, VT, size);
 
  checkCulaStatus(status);
@@ -425,9 +425,9 @@ int sutra_atmos::move_atmos() {
  //B = uu*sqrt(l)(-,);
  getsqrtCU((float *)mmSma->data[1],S,size);
 
- mmSma->compute('n','n',1.0f,0.0f,mmSma->data[2]);  
+ mmSma->compute('n','n',1.0f,0.0f,mmSma->data[2]);
 
- carmaSafeCall(cudaMemcpy(d_B, mmSma->data[2], size*size*sizeof(float), 
+ carmaSafeCall(cudaMemcpy(d_B, mmSma->data[2], size*size*sizeof(float),
  cudaMemcpyDeviceToDevice));
 
  cudaFree(VT);
@@ -472,7 +472,7 @@ int sutra_atmos::move_atmos() {
  //delete mmSma;
 
  culaShutdown();
- 
+
  return EXIT_SUCCESS;
  }
 

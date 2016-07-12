@@ -12,8 +12,6 @@
 
 #define Carma_Error(s) CarmaException(s,__FILE__,__LINE__)
 
-using namespace std;
-
 //! Carma exception throw by libcarma
 /*!
  * \class CarmaException
@@ -25,8 +23,8 @@ using namespace std;
 
 class CarmaException {
 private:
-  string aReason; //!< a detailed description of the error
-  string aFile; //!< in which file this exception has been created
+  std::string aReason; //!< a detailed description of the error
+  std::string aFile; //!< in which file this exception has been created
   unsigned int aLine; //!< on which line this exception has been created
 public:
 
@@ -62,8 +60,8 @@ public:
    */
 
   const char* showReason() const {
-    stringstream buf;
-    buf << aReason << " in " << aFile << "@" << aLine << endl;
+    std::stringstream buf;
+    buf << aReason << " in " << aFile << "@" << aLine << std::endl;
     return buf.str().c_str();
   }
 
@@ -75,9 +73,9 @@ public:
    *  \return Formated exception
    */
 
-  string showReasonStr() const {
-    stringstream buf;
-    buf << aReason << " in " << aFile << "@" << aLine << endl;
+  std::string showReasonStr() const {
+    std::stringstream buf;
+    buf << aReason << " in " << aFile << "@" << aLine << std::endl;
     return buf.str();
   }
 };

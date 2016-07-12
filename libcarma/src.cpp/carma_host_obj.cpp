@@ -2,7 +2,8 @@
 #include <carma_obj.h>
 
 #include <cuda_runtime.h>
-#include <sys/mman.h> // for mmap() / munmap()
+#include <sys/mman.h>  // for mmap() / munmap()
+
 template<class T_data>
 carma_host_obj<T_data>::carma_host_obj(const long *dims_data) {
   /** \brief carma_host_obj creator.
@@ -320,7 +321,7 @@ void carma_host_obj<T_data>::init(const long *dims_data,const T_data *data,
     MemAlloc mallocType, int nb_streams) {
   const long size_data = dims_data[0] + 1;
   this->dims_data = new long[size_data];
-  copy(dims_data, dims_data + size_data, this->dims_data);
+  std::copy(dims_data, dims_data + size_data, this->dims_data);
 
   this->nb_elem = dims_data[1];
   for (int i = 2; i < size_data; i++)
@@ -364,7 +365,7 @@ void carma_host_obj<T_data>::init(const long *dims_data,const T_data *data,
     this->add_stream(nb_streams);
   }
 
-#if DEBUG  
+#if DEBUG
   printf("CARMA Host Object created @ 0x%p with %s memory\n", this, getMetAlloc().c_str());
 #endif
   if (data == 0L) {
@@ -457,7 +458,7 @@ int carma_host_obj<T_data>::add_stream() {
   if (this->mallocType != MA_MALLOC)
     this->streams->add_stream();
   else
-    cerr << "malloc Carma Host Object can not be streamed\n";
+    std::cerr << "malloc Carma Host Object can not be streamed" << std::endl;
   return this->streams->get_nbStreams();
 }
 
@@ -466,7 +467,7 @@ int carma_host_obj<T_data>::add_stream(int nb) {
   if (this->mallocType != MA_MALLOC)
     this->streams->add_stream(nb);
   else
-    cerr << "malloc Carma Host Object can not be streamed\n";
+    std::cerr << "malloc Carma Host Object can not be streamed" << std::endl;
   return this->streams->get_nbStreams();
 }
 
@@ -546,7 +547,7 @@ int carma_host_obj<T_data>::fill_from(const T_data *data) {
             cudaMemcpyHostToHost, get_cudaStream_t(0)));
   } else {
     if (mallocType == MA_MALLOC) {
-      copy(data, data + nb_elem, h_data);
+      std::copy(data, data + nb_elem, h_data);
     } else {
       carmaSafeCall(
           cudaMemcpy(h_data, data, nb_elem * sizeof(T_data),
@@ -585,7 +586,7 @@ int carma_host_obj<T_data>::fill_into(T_data *data) {
             cudaMemcpyHostToHost, get_cudaStream_t(0)));
   } else {
     if (mallocType == MA_MALLOC) {
-      copy(h_data, h_data + nb_elem, data);
+      std::copy(h_data, h_data + nb_elem, data);
     } else {
       carmaSafeCall(
           cudaMemcpy(data, h_data, nb_elem * sizeof(T_data),
@@ -611,8 +612,8 @@ template<class T_data>
 int carma_host_obj<T_data>::cpy_obj(carma_obj<T_data> *caObj,
     cudaMemcpyKind flag) {
   if (nb_elem != caObj->getNbElem()) {
-    cerr << "***** ERROR (" << __FILE__ << "@" << __LINE__
-        << ") : two objects do not have the same size *****\n";
+    std::cerr << "***** ERROR (" << __FILE__ << "@" << __LINE__
+        << ") : two objects do not have the same size *****" << std::endl;
     return EXIT_FAILURE;
   }
 
@@ -624,8 +625,8 @@ int carma_host_obj<T_data>::cpy_obj(carma_obj<T_data> *caObj,
     data_dst = h_data;
     data_src = *caObj;
   } else {
-    cerr << "***** ERROR (" << __FILE__ << "@" << __LINE__
-        << ") : wrong flag *****\n";
+    std::cerr << "***** ERROR (" << __FILE__ << "@" << __LINE__
+        << ") : wrong flag *****" << std::endl;
     return EXIT_FAILURE;
   }
 
@@ -701,4 +702,3 @@ carma_host_obj<cuFloatComplex>::cpy_obj(carma_obj<cuFloatComplex> *data,
 template int
 carma_host_obj<cuDoubleComplex>::cpy_obj(carma_obj<cuDoubleComplex> *data,
     cudaMemcpyKind flag, unsigned int stream);
-

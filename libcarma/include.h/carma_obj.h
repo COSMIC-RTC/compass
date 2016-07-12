@@ -49,7 +49,6 @@
 
 #define BLOCK_SZ 16
 
-using namespace std;
 enum MemType {
 	MT_DEVICE,
 	MT_DARRAY,
@@ -196,7 +195,7 @@ public:
 	operator T_data*() {
 		return d_data;
 	}
-	operator string() {
+	operator std::string() {
 		std::ostringstream stream;
 		stream << *this;
 		return stream.str();
@@ -335,19 +334,19 @@ typedef carma_obj<cuFloatComplex> caObjC;
 typedef carma_obj<cuDoubleComplex> caObjZ;
 
 template<class T_data>
-ostream& operator<<(ostream& os, carma_obj<T_data>& obj) {
-	os << "-----------------------" << endl;
+std::ostream& operator<<(std::ostream& os, carma_obj<T_data>& obj) {
+	os << "-----------------------" << std::endl;
 	os << "carma_obj<" << typeid(T_data).name() << "> object on GPU"
-			<< obj.getDevice() << endl;
+			<< obj.getDevice() << std::endl;
 	long ndims = obj.getDims(0);
-	os << "ndims = " << ndims << endl;
+	os << "ndims = " << ndims << std::endl;
 	for (long dim = 0; dim < ndims; dim++) {
-		os << "dim[" << dim << "] = " << obj.getDims(dim + 1) << endl;
+		os << "dim[" << dim << "] = " << obj.getDims(dim + 1) << std::endl;
 	}
-	os << "nbElem = " << obj.getNbElem() << endl;
+	os << "nbElem = " << obj.getNbElem() << std::endl;
 	os << "sizeof(" << typeid(T_data).name() << ") = " << sizeof(T_data)
-			<< endl;
-	os << "-----------------------" << endl;
+			<< std::endl;
+	os << "-----------------------" << std::endl;
 	return os;
 }
 

@@ -116,8 +116,8 @@ int sutra_kl::do_combi(float *com, float *odata, int size, int xoff, int yoff) {
 
 // Florian features
 int sutra_kl::get_flokl() {
-  current_context->set_activeDevice(device,1);
-  cout << "flag in function" << endl;
+  current_context->set_activeDevice(device, 1);
+  std::cout << "flag in function" << std::endl;
   cget_flokl(this->nkl, this->dim, this->d_covmat->getData(),
       this->d_filter->getData(), this->d_bas->getData());
   return EXIT_SUCCESS;

@@ -1,18 +1,18 @@
 #include <carma_obj.h>
 
 /*
- short	2 bytes	
- int	4 bytes	
- long	4 bytes	
- float	4 bytes	
- double	8 bytes	
+ short	2 bytes
+ int	4 bytes
+ long	4 bytes
+ float	4 bytes
+ double	8 bytes
  */
-// for shmem : 1 float = 4 bytes => shmem can contain 
+// for shmem : 1 float = 4 bytes => shmem can contain
 // nb_elem = deviceProperties.sharedMemPerBlock/4 floats
 // seems not to work on my laptop ... maybe my x server is already asking a lot ...
 // worth a try on blast asap
 // on my laptop, have to divide by 4 ...
-// 
+//
 //
 template<class T>
 __device__ T
@@ -380,4 +380,3 @@ fill_sym_matrix<float>(char uplo, float *d_data, int Ncol, int N, carma_device *
 
 template int
 fill_sym_matrix<double>(char uplo, double *d_data, int Ncol, int N, carma_device *device);
-

@@ -29,7 +29,7 @@ string sutra_centroider_roof::get_type() {
 int sutra_centroider_roof::get_cog(carma_streams *streams, float *cube,
     float *subsum, float *centroids, int nvalid, int npix, int ntot) {
   //TODO: Implement sutra_centroider_roof::get_cog
-  cerr << "get_cog not implemented\n";
+  std::cerr << "get_cog not implemented" << std::endl;
 
   return EXIT_SUCCESS;
 }
@@ -51,4 +51,3 @@ int sutra_centroider_roof::get_cog(float *subsum, float *slopes) {
 int sutra_centroider_roof::get_cog() {
   return this->get_cog(*(wfs->d_subsum),*(wfs->d_slopes));
 }
-

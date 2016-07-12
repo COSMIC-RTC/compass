@@ -3,18 +3,16 @@
 
 #include <sutra_wfs.h>
 
-using namespace std;
-
 class sutra_aotemplate {
 public:
   int device; // # device
-  string type; // a name for your data
+  std::string type; // a name for your data
   long dim; // # of elements
 
   carma_obj<float> *d_data; // the data
   carma_obj<float> *d_res; // the result
 
-  carma_context *current_context; // the context in which it has been created 
+  carma_context *current_context; // the context in which it has been created
 
 public:
   sutra_aotemplate(carma_context *context, const char* type, long dim,

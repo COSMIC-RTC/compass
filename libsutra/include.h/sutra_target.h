@@ -11,14 +11,15 @@
 #include <sutra_telemetry.h>
 #include <sutra_telescope.h>
 
-using namespace std;
 using std::string;
+using std::vector;
+using std::map;
 
 class sutra_source {
 public:
 
-  int device; // device # 
-  float tposx; // x position of target on the sky  
+  int device; // device #
+  float tposx; // x position of target on the sky
   float tposy; // y position of target on the sky
   long npos; // number of points in the pupil
   float mag; // brightness of target
@@ -41,7 +42,7 @@ public:
   // INTRO PHASE INSTRU
   //sutra_phase *d_phase_instru;
   //
-  carma_host_obj<float> *phase_telemetry; // 
+  carma_host_obj<float> *phase_telemetry; //
   sutra_lgs *d_lgs; // the lgs object
   carma_obj<float> *object; // the object intensity map
   carma_obj<float> *d_pupil; // the pupil mask

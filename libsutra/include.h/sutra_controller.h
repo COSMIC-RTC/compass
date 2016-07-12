@@ -8,8 +8,6 @@
 #include <sutra_centroider.h>
 #include <sutra_ao_utils.h>
 
-using namespace std;
-
 class sutra_controller {
 public:
 

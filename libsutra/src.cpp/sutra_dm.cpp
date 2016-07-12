@@ -397,7 +397,7 @@ int sutra_dm::get_IF_sparse(carma_sparse_obj<T> *&d_IFsparse, int *indx_pup,
 	carma_obj<T> d_IF(current_context, dims_data2);
 	carma_sparse_obj<T> *d_IFsparse_vec;
 
-	cout << "Computing IF sparse..." << endl;
+	std::cout << "Computing IF sparse..." << std::endl;
 	for (int i = 0; i < this->ninflu; i++) {
 		//Compute and store IF for actu i in d_IF
 		this->comp_oneactu(i, ampli);
@@ -588,7 +588,7 @@ int sutra_dm::piston_filt(carma_obj<float> *d_statcov) {
 int sutra_dm::set_comkl(float *comvec) {
 	current_context->set_activeDevice(device,1);
 	if (this->d_KLbasis == NULL) {
-		cerr << "KLbasis has to be computed before calling this function" << endl;
+		std::cerr << "KLbasis has to be computed before calling this function" << std::endl;
 		return EXIT_FAILURE;
 	} else {
 		long dims_data[2] = { 1, this->ninflu };
@@ -700,7 +700,7 @@ int sutra_dms::add_dm(carma_context *context, const char* type, float alt,
 	d_dms.push_back(
 			new sutra_dm(context, type, dim, ninflu, influsize, ninflupos, n_npoints,
 					push4imat, device));
-	d_type.push_back(make_pair(type, alt));
+	d_type.push_back(std::make_pair(type, alt));
 
 	return EXIT_SUCCESS;
 }

@@ -18,9 +18,10 @@
 #define MAXSPOT 16
 #define PIXELPERBLOCK 10
 
-typedef std::pair<std::string, float> type_screen;
+using std::string;
+using std::vector;
 
-using namespace std;
+typedef std::pair<std::string, float> type_screen;
 
 class sutra_dm {
 public:

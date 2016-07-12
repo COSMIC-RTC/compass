@@ -93,12 +93,12 @@ public:
 class carma_context {
 private:
 	int ndevice;
-	vector<carma_device *> devices;
+	std::vector<carma_device *> devices;
 	int activeDevice;
 	int** can_access_peer;
 
 	/// singleton context
-	static shared_ptr<carma_context> s_instance;
+	static std::shared_ptr<carma_context> s_instance;
 
 	carma_context();
 	carma_context(int num_device);

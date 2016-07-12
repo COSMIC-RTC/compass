@@ -6,13 +6,15 @@
 #include <sutra_ao_utils.h>
 #include <sutra_phase.h>
 
-using namespace std;
+using std::string;
+using std::pair;
+using std::map;
 
 class sutra_tscreen {
 public:
 
-  int device; // The device # 
-  sutra_phase *d_tscreen; // The phase screen   
+  int device; // The device #
+  sutra_phase *d_tscreen; // The phase screen
   carma_obj<float> *d_tscreen_o; // Additional space of the same size as the phase screen
   carma_obj<float> *d_A; // A matrix for extrusion
   carma_obj<float> *d_B; // B matrix for extrusion

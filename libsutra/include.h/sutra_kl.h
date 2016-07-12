@@ -5,8 +5,6 @@
 #include <carma_obj.h>
 #include <carma_host_obj.h>
 
-using namespace std;
-
 class sutra_kl {
 public:
   int device; // # device
@@ -28,7 +26,7 @@ public:
   carma_obj<float> *d_bas;
   carma_obj<float> *d_evals;
 
-  carma_context *current_context; // the context in which it has been created 
+  carma_context *current_context; // the context in which it has been created
 public:
   sutra_kl(carma_context *context, long dim, long nr, long np, long nkl,
       int device);

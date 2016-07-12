@@ -87,7 +87,7 @@ inline int sutra_source::init_source(carma_context *context, float xpos,
   this->npos = size;
 
   this->d_phase = new sutra_phase(context, size);
-    
+
   // ADDING INSTRUMENTAL PHASE
   // this->d_phase_instru = new sutra_phase(context, size);
   //
@@ -147,11 +147,11 @@ sutra_source::~sutra_source() {
   current_context->set_activeDevice(device,1);
 
   delete this->d_phase;
-    
+
   // REMOVING PHASE INSTRU
   // delete this->d_phase_instru;
   //
-    
+
   delete this->phase_telemetry;
 
   if (d_image != 0L)
@@ -250,7 +250,7 @@ int sutra_source::raytrace_shm(sutra_atmos *yatmos) {
             (int) d_phase->d_screen->getDims(2),
             (int) ps->second->d_tscreen->d_screen->getDims(1),
             (int) ps->second->d_tscreen->d_screen->getDims(2),
-            xoff[make_pair("atmos", alt)], yoff[make_pair("atmos", alt)],
+            xoff[std::make_pair("atmos", alt)], yoff[std::make_pair("atmos", alt)],
             ps->second->d_tscreen->d_screen->getNbElem(),
             ps->second->channelDesc, current_context->get_device(device));
       }
@@ -288,7 +288,7 @@ int sutra_source::raytrace(sutra_atmos *yatmos, bool async) {
             (int) d_phase->d_screen->getDims(1),
             (int) d_phase->d_screen->getDims(2),
             (int) ps->d_tscreen->d_screen->getDims(1),
-            xoff[make_pair("atmos", alt)], yoff[make_pair("atmos", alt)],
+            xoff[std::make_pair("atmos", alt)], yoff[std::make_pair("atmos", alt)],
             this->block_size);
       } else {
     	  if (this->lgs){
@@ -309,7 +309,7 @@ int sutra_source::raytrace(sutra_atmos *yatmos, bool async) {
     				  (int) d_phase->d_screen->getDims(1),
     				  (int) d_phase->d_screen->getDims(2),
     				  (int) ps->d_tscreen->d_screen->getDims(1),
-    				  xoff[make_pair("atmos", alt)], yoff[make_pair("atmos", alt)],
+    				  xoff[std::make_pair("atmos", alt)], yoff[std::make_pair("atmos", alt)],
     				  this->block_size);
       }
     } else
@@ -358,7 +358,7 @@ int sutra_source::raytrace(sutra_dms *ydms, int rst, bool async, int do_phase_va
     				  (int) d_phase->d_screen->getDims(1),
     				  (int) d_phase->d_screen->getDims(2),
     				  (int) ps->d_shape->d_screen->getDims(1),
-    				  xoff[make_pair(types, alt)], yoff[make_pair(types, alt)],
+    				  xoff[std::make_pair(types, alt)], yoff[std::make_pair(types, alt)],
     				  this->block_size);
       }
     } else
@@ -402,7 +402,7 @@ int sutra_source::raytrace(sutra_dms *ydms, int rst, int phase_var) {
 }
 
 int sutra_source::comp_image(int puponly, bool comp_le) {
-  current_context->set_activeDevice(device,1);
+  current_context->set_activeDevice(device, 1);
   if (this->d_amplipup == 0)
     return -1;
 
@@ -422,7 +422,7 @@ int sutra_source::comp_image(int puponly, bool comp_le) {
       this->d_pupil->getData(), this->scale, puponly,
       this->d_phase->d_screen->getDims(1), this->d_phase->d_screen->getDims(2),
       this->d_amplipup->getDims(1), current_context->get_device(device));
-    
+
 //  // fill complex amplitude in the pupil with phase @ lambda
 //  fill_amplipup(this->d_amplipup->getData(), this->d_phase->d_screen->getData(),
 //              this->d_phase_instru->d_screen_instru->getData(),
@@ -453,8 +453,8 @@ int sutra_source::comp_image(int puponly, bool comp_le) {
 int sutra_source::comp_strehl() {
   //this->strehl_se = expf(-this->phase_var);
   //this->strehl_le = expf(-this->phase_var_avg/this->phase_var_count);
-  
-  current_context->set_activeDevice(device,1);
+
+  current_context->set_activeDevice(device, 1);
   cudaMemcpy(&(this->strehl_se),
         &(this->d_image->getData()[this->d_image->imax(1) - 1]), sizeof(float),
         cudaMemcpyDeviceToHost);
@@ -466,7 +466,7 @@ int sutra_source::comp_strehl() {
 	  this->strehl_le /=  this->strehl_counter ;
   else
 	  this->strehl_le = this->strehl_se;
-  
+
   /*
   cudaMemcpy(&(this->strehl_se),
       &(this->d_image->getData()[this->d_image->imax(1) - 1]), sizeof(float),
@@ -501,4 +501,3 @@ sutra_target::~sutra_target() {
     d_targets.pop_back();
   }
 }
-

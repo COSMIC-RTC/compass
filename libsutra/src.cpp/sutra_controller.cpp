@@ -14,7 +14,7 @@ sutra_controller::sutra_controller(carma_context* context, int nslope,
   while (nactu % nstreams != 0)
     nstreams--;
 
-  cerr << "controller uses " << nstreams << " streams" << endl;
+  std::cerr << "controller uses " << nstreams << " streams" << std::endl;
   streams = new carma_streams(nstreams);
 
   this->open_loop = 0;
@@ -55,7 +55,7 @@ sutra_controller::sutra_controller(carma_context* context, int nslope,
   if (this->delay > 1) {
       this->d_com2 = new carma_obj<float>(context, dims_data1);
   }
-    
+
   this->d_voltage = new carma_obj<float>(context, dims_data1);
 
   for (int i = 0; i < ndm; i++) {

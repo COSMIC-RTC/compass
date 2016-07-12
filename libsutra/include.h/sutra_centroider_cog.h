@@ -3,8 +3,6 @@
 
 #include <sutra_centroider.h>
 
-using namespace std;
-
 class sutra_centroider_cog: public sutra_centroider {
 public:
 

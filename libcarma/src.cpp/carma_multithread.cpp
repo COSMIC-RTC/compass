@@ -1,8 +1,6 @@
 #include <carma_multithread.h>
 #include <iostream>
 
-using namespace std;
-
 carma_thread carma_start_thread(CARMAT_routine func, void *data) {
   pthread_t thread;
   pthread_create(&thread, NULL, func, data);
@@ -67,4 +65,3 @@ void carma_destroy_barrier(carma_thread_barrier *barrier) {
   pthread_mutex_destroy(&barrier->mutex);
   pthread_cond_destroy(&barrier->conditionVariable);
 }
-
