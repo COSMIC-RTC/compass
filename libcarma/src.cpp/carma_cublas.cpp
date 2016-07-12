@@ -1,11 +1,11 @@
 #include <carma_cublas.h>
 #include <carma_obj.h>
 #include <carma_sparse_obj.h>
+#include <string>
 
 cublasStatus_t __carma_checkCublasStatus(cublasStatus_t status, int line,
-                                         std::string file)
-                                         /**< Generic CUBLAS check status routine */
-                                         {
+                                         std::string file) {
+  /**< Generic CUBLAS check status routine */
   switch (status) {
     case CUBLAS_STATUS_SUCCESS:
       return status;
@@ -49,15 +49,13 @@ cublasStatus_t __carma_checkCublasStatus(cublasStatus_t status, int line,
   return status;
 }
 
-cublasStatus_t carma_initCublas(cublasHandle_t *cublas_handle)
-/**< Generic CUBLAS init routine */
-{
+cublasStatus_t carma_initCublas(cublasHandle_t *cublas_handle) {
+  /**< Generic CUBLAS init routine */
   return carma_checkCublasStatus(cublasCreate(cublas_handle));
 }
 
-cublasStatus_t carma_shutdownCublas(cublasHandle_t cublas_handle)
-/**< Generic CUBLAS shutdown routine */
-{
+cublasStatus_t carma_shutdownCublas(cublasHandle_t cublas_handle) {
+  /**< Generic CUBLAS shutdown routine */
   return carma_checkCublasStatus(cublasDestroy(cublas_handle));
 }
 
@@ -92,41 +90,48 @@ int carma_where_gen(cublasHandle_t cublas_handle, int n, const T_data *vect,
   int result = 0;
   carma_checkCublasStatus(afunc(cublas_handle, n, vect, incx, &result));
   return result;
-
 }
 
+template<>
 int carma_wheremax(cublasHandle_t cublas_handle, int n, const float *vect,
                    int incx) {
   return carma_where_gen<float, cublasIsamax>(cublas_handle, n, vect, incx);
 }
+template<>
 int carma_wheremax(cublasHandle_t cublas_handle, int n, const double *vect,
                    int incx) {
   return carma_where_gen<double, cublasIdamax>(cublas_handle, n, vect, incx);
 }
+template<>
 int carma_wheremax(cublasHandle_t cublas_handle, int n,
                    const cuFloatComplex *vect, int incx) {
   return carma_where_gen<cuFloatComplex, cublasIcamax>(cublas_handle, n, vect,
                                                        incx);
 }
+template<>
 int carma_wheremax(cublasHandle_t cublas_handle, int n,
                    const cuDoubleComplex *vect, int incx) {
   return carma_where_gen<cuDoubleComplex, cublasIzamax>(cublas_handle, n, vect,
                                                         incx);
 }
 
+template<>
 int carma_wheremin(cublasHandle_t cublas_handle, int n, const float *vect,
                    int incx) {
   return carma_where_gen<float, cublasIsamin>(cublas_handle, n, vect, incx);
 }
+template<>
 int carma_wheremin(cublasHandle_t cublas_handle, int n, const double *vect,
                    int incx) {
   return carma_where_gen<double, cublasIdamin>(cublas_handle, n, vect, incx);
 }
+template<>
 int carma_wheremin(cublasHandle_t cublas_handle, int n,
                    const cuFloatComplex *vect, int incx) {
   return carma_where_gen<cuFloatComplex, cublasIcamin>(cublas_handle, n, vect,
                                                        incx);
 }
+template<>
 int carma_wheremin(cublasHandle_t cublas_handle, int n,
                    const cuDoubleComplex *vect, int incx) {
   return carma_where_gen<cuDoubleComplex, cublasIzamin>(cublas_handle, n, vect,
@@ -141,13 +146,14 @@ int carma_sum_gen(cublasHandle_t cublas_handle, int n, const T_data *vect, int i
   T_data result = 0;
   carma_checkCublasStatus(afunc(cublas_handle, n, vect, incx, &result));
   return result;
-
 }
 
+template<>
 float carma_getasum(cublasHandle_t cublas_handle, int n, const float *vect,
                     int incx) {
   return carma_sum_gen<float, cublasSasum>(cublas_handle, n, vect, incx);
 }
+template<>
 double carma_getasum(cublasHandle_t cublas_handle, int n, const double *vect,
                      int incx) {
   return carma_sum_gen<double, cublasDasum>(cublas_handle, n, vect, incx);
@@ -1316,7 +1322,6 @@ void carma_obj<T_data>::symm(cublasSideMode_t side, cublasFillMode_t uplo,
   carma_symm(current_context->get_cublasHandle(), side, uplo,
              this->dims_data[1], this->dims_data[2], alpha, matA->d_data, lda,
              matB->d_data, ldb, beta, this->d_data, ldc);
-
 }
 template void
 carma_obj<float>::symm(cublasSideMode_t, cublasFillMode_t, float, caObjS *, int,

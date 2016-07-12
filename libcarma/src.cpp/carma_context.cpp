@@ -1,18 +1,18 @@
 #include <carma_context.h>
 #include <iostream>
 #include <sstream>
-#include <sys/time.h>
+#include <string>
 
 #ifdef USE_CULA
 // CULA headers
 #include <cula.hpp>
-#endif //USE_CULA
+#endif  // USE_CULA
 
 #ifdef USE_MAGMA
 // MAGMA headers
 #include "magma.h"
 #include "magma_lapack.h"
-#endif //USE_MAGMA
+#endif  // USE_MAGMA
 
 carma_device::carma_device(int devid) {
     carmaSafeCall(cudaSetDevice(devid));
@@ -34,7 +34,7 @@ carma_device::carma_device(int devid) {
     //  cusparseGetPointerMode(cusparseHandle, &mode);
     //  DEBUG_TRACE("%d\n", mode);
 
-    //DEBUG_TRACE("done\n");
+    // DEBUG_TRACE("done\n");
 }
 
 carma_device::~carma_device() {
@@ -105,7 +105,7 @@ carma_context::carma_context(int nb_devices, int32_t *devices_id) {
 }
 
 void carma_context::init_context(const int nb_devices, int32_t *devices_id) {
-    //TODO : why seed is initialized here ?
+    // TODO(all) : why seed is initialized here ?
     srandom(1234);
     this->activeDevice = -1;
 
@@ -142,8 +142,8 @@ void carma_context::init_context(const int nb_devices, int32_t *devices_id) {
 
 #ifdef USE_UVA
 
-    int gpuid[this->ndevice]; // we want to find the first two GPU's that can support P2P
-    int gpu_count = 0; // GPUs that meet the criteria
+    int gpuid[this->ndevice];  // we want to find the first two GPU's that can support P2P
+    int gpu_count = 0;  // GPUs that meet the criteria
     current_device = 0;
     while (current_device < this->ndevice) {
         if (devices[current_device]->isGPUCapableP2P())
@@ -185,9 +185,9 @@ void carma_context::init_context(const int nb_devices, int32_t *devices_id) {
             printf("*** All GPUs listed can support UVA... ***\n");
         }
     }
-#endif //USE_UVA
+#endif  // USE_UVA
 
-    this->activeDevice = set_activeDeviceForce(0, 1); //get_maxGflopsDeviceId(), 1);
+    this->activeDevice = set_activeDeviceForce(0, 1);  // get_maxGflopsDeviceId(), 1);
 
 #ifdef USE_CULA
     // CULA init
@@ -197,7 +197,7 @@ void carma_context::init_context(const int nb_devices, int32_t *devices_id) {
         culaGetErrorInfoString(status, culaGetErrorInfo(), buf, sizeof(buf));
         printf("%s\n", buf);
     }
-#endif //USE_CULA
+#endif  // USE_CULA
 
 #ifdef USE_MAGMA
     // MAGMA init
@@ -205,29 +205,28 @@ void carma_context::init_context(const int nb_devices, int32_t *devices_id) {
     magma_init(nb_devices, devices_id);
 #else
     magma_init();
-#endif //USE_MAGMA_PATCHED
+#endif  // USE_MAGMA_PATCHED
 
 #if DEBUG
     //  magma_print_environment();
-#endif //DEBUG
-#endif //USE_MAGMA
+#endif  // DEBUG
+#endif  // USE_MAGMA
 
 #if DEBUG
     printf("CARMA Context created @ %p\n", this);
-#endif //DEBUG
+#endif  // DEBUG
 }
 
 carma_context::~carma_context() {
-
 #ifdef USE_CULA
     // CULA finalize
     culaShutdown();
-#endif //USE_CULA
+#endif  // USE_CULA
 
 #ifdef USE_MAGMA
 // MAGMA finalize
     magma_finalize();
-#endif //USE_MAGMA
+#endif  // USE_MAGMA
 
     size_t idx = 0;
     while (this->devices.size() > 0) {
@@ -242,7 +241,7 @@ carma_context::~carma_context() {
 
 #if DEBUG
     printf("CARMA Context deleted @ %p\n", this);
-#endif //DEBUG
+#endif  // DEBUG
 }
 
 int carma_context::_set_activeDeviceForce(int newDevice, int silent,
@@ -251,15 +250,15 @@ int carma_context::_set_activeDeviceForce(int newDevice, int silent,
         carmaSafeCall(cudaSetDevice(devices[newDevice]->get_id()));
 #ifdef USE_CULA
         culaStatus status = culaSelectDevice(newDevice);
-        if(status) {
+        if (status) {
             char buf[256];
             culaGetErrorInfoString(status, culaGetErrorInfo(), buf, sizeof(buf));
             printf("%s\n", buf);
         }
-#endif //USE_CULA
+#endif  // USE_CULA
 #if DEBUG
-        silent=0;
-#endif //DEBUG
+        silent = 0;
+#endif  // DEBUG
         if (!silent) {
             std::cout << "Using device " << devices[newDevice]->get_id() << ": \""
                     << devices[newDevice]->get_properties().name
@@ -281,7 +280,6 @@ int carma_context::_set_activeDeviceForce(int newDevice, int silent,
 }
 
 std::string carma_context::get_DeviceName(int device) {
-    std::stringstream buf;
     return devices[device]->get_properties().name;
 }
 
@@ -305,12 +303,11 @@ std::string carma_context::get_DeviceMemInfo(int device) {
     return buf.str();
 }
 
-int carma_context::get_maxGflopsDeviceId()
+int carma_context::get_maxGflopsDeviceId() {
 /*! \brief Get the fastest device on the machine (with maximum GFLOPS).
  *
  * This function returns the identifier of the best available GPU (with maximum GFLOPS)
  */
-{
     int current_device = 0, cores_per_sm = 0;
     int max_compute_perf = 0, max_perf_device = 0;
     int device_count = 0, best_SM_arch = 0;

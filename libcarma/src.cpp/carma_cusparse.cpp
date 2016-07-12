@@ -97,14 +97,13 @@ cusparseStatus_t carma_gemv(cusparseHandle_t handle, char op_A, T_data alpha,
 
   return carma_checkCusparseStatus(csrmv(handle, trans, A->getDims(1), A->getDims(2), A->nz_elem, &alpha,
           A->descr, A->d_data, A->d_rowind, A->d_colind, *x, &beta, *y));
-
 }
 
 template<>
 cusparseStatus_t carma_gemv<double>(cusparseHandle_t handle, char op_A,
     double alpha, carma_sparse_obj<double>* A, carma_obj<double>* x,
     double beta, carma_obj<double>* y) {
-  if(A->format != "CSR") {
+  if (A->format != "CSR") {
     DEBUG_TRACE("carma_gemv needs a CSR matrix as input");
   }
   return carma_gemv<double, cusparseDcsrmv>(handle, op_A, alpha, A, x, beta, y);
@@ -113,7 +112,7 @@ template<>
 cusparseStatus_t carma_gemv<float>(cusparseHandle_t handle, char op_A,
     float alpha, carma_sparse_obj<float>* A, carma_obj<float>* x, float beta,
     carma_obj<float>* y) {
-  if(A->format != "CSR") {
+  if (A->format != "CSR") {
     DEBUG_TRACE("carma_gemv needs a CSR matrix as input");
   }
   return carma_gemv<float, cusparseScsrmv>(handle, op_A, alpha, A, x, beta, y);
@@ -139,7 +138,7 @@ cusparseStatus_t carma_gemm(cusparseHandle_t handle, char op_A, T_data alpha,
     std::cerr << "Error | carma_gemm (sparse) | Matrix-matrix multiplication failed"
         << std::endl;
     throw "Error | carma_gemm (sparse) | Matrix-matrix multiplication failed";
-    //exit(EXIT_FAILURE);
+    // exit(EXIT_FAILURE);
   }
   return status;
 }
@@ -148,7 +147,7 @@ template<>
 cusparseStatus_t carma_gemm<float>(cusparseHandle_t handle, char op_A,
     float alpha, carma_sparse_obj<float>* A, carma_obj<float>* B, float beta,
     carma_obj<float>* C) {
-  if(A->format != "CSR") {
+  if (A->format != "CSR") {
     DEBUG_TRACE("carma_gemm needs a CSR matrix as input");
   }
   return carma_gemm<float, cusparseScsrmm>(handle, op_A, alpha, A, B, beta, C);
@@ -158,7 +157,7 @@ template<>
 cusparseStatus_t carma_gemm<double>(cusparseHandle_t handle, char op_A,
     double alpha, carma_sparse_obj<double>* A, carma_obj<double>* B,
     double beta, carma_obj<double>* C) {
-  if(A->format != "CSR") {
+  if (A->format != "CSR") {
     DEBUG_TRACE("carma_gemm needs a CSR matrix as input");
   }
   return carma_gemm<double, cusparseDcsrmm>(handle, op_A, alpha, A, B, beta, C);
@@ -188,17 +187,17 @@ cusparseStatus_t carma_gemm(cusparseHandle_t handle, char op_A, char op_B,
   int *nnzTotalDevHostPtr = &nnzC;
   cusparseSetPointerMode(handle, CUSPARSE_POINTER_MODE_HOST);
   int *csrRowPtrC;
-  cudaMalloc((void**) &csrRowPtrC, sizeof(int) * (m + 1));
+  cudaMalloc(reinterpret_cast<void**>(&csrRowPtrC), sizeof(int) * (m + 1));
   status =
-      carma_checkCusparseStatus(cusparseXcsrgemmNnz( handle, transA, transB, m, n, k,
+      carma_checkCusparseStatus(cusparseXcsrgemmNnz(handle, transA, transB, m, n, k,
               A->descr, A->nz_elem, A->d_rowind, A->d_colind,
               B->descr, B->nz_elem, B->d_rowind, B->d_colind,
-              C->descr, csrRowPtrC, nnzTotalDevHostPtr ) );
+              C->descr, csrRowPtrC, nnzTotalDevHostPtr));
 // if (status != CUSPARSE_STATUS_SUCCESS) {
 //    cerr << "Error | carma_gemm (sparse) | Matrix-matrix multiplication failed"
 //        << endl;
 //    throw "Error | carma_gemm (sparse) | Matrix-matrix multiplication failed";
-  //exit(EXIT_FAILURE);
+//    exit(EXIT_FAILURE);
 //  }
   if (NULL != nnzTotalDevHostPtr) {
     nnzC = *nnzTotalDevHostPtr;
@@ -221,7 +220,7 @@ cusparseStatus_t carma_gemm(cusparseHandle_t handle, char op_A, char op_B,
           << "Error | carma_gemm (sparse) | Matrix-matrix multiplication failed"
           << std::endl;
       throw "Error | carma_gemm (sparse) | Matrix-matrix multiplication failed";
-      //exit(EXIT_FAILURE);
+      // exit(EXIT_FAILURE);
     }
   }
   cudaFree(csrRowPtrC);
@@ -290,7 +289,7 @@ cusparseStatus_t carma_csr2bsr_gen(carma_sparse_obj<T_data> *A, int blockDim,
 
   // Given CSR format (csrRowPtrA, csrcolIndA, csrValA) and
   // blocks of BSR format are stored in column-major order.
-  if (B->nz_elem > 0){
+  if (B->nz_elem > 0) {
     cudaFree(B->d_rowind);
     cudaFree(B->d_colind);
     cudaFree(B->d_data);
@@ -301,7 +300,7 @@ cusparseStatus_t carma_csr2bsr_gen(carma_sparse_obj<T_data> *A, int blockDim,
   int m = A->dims_data[1];
   int n = A->dims_data[2];
   int mb = (m + blockDim - 1) / blockDim;
-  cudaMalloc((void**) &(B->d_rowind), sizeof(int) * (mb + 1));
+  cudaMalloc(reinterpret_cast<void**>(&B->d_rowind), sizeof(int) * (mb + 1));
 
   int nnzb;
   // nnzTotalDevHostPtr points to host memory
@@ -313,8 +312,8 @@ cusparseStatus_t carma_csr2bsr_gen(carma_sparse_obj<T_data> *A, int blockDim,
   B->nz_elem = nnzb;
   B->format = "BSR";
   B->blockDim = blockDim;
-  cudaMalloc((void**) &(B->d_colind), sizeof(int) * B->nz_elem);
-  cudaMalloc((void**) &(B->d_data),
+  cudaMalloc(reinterpret_cast<void**>(&B->d_colind), sizeof(int) * B->nz_elem);
+  cudaMalloc(reinterpret_cast<void**>(&B->d_data),
       sizeof(T_data) * (B->blockDim * B->blockDim) * B->nz_elem);
   return csr2bsr(handle, dir, m, n, A->descr, A->d_data, A->d_rowind,
       A->d_colind, B->blockDim, B->descr, B->d_data, B->d_rowind, B->d_colind);
@@ -348,7 +347,7 @@ cusparseStatus_t carma_bsr2csr_gen(carma_sparse_obj<T_data> *A,
 
   // Given BSR format (bsrRowPtrA, bsrcolIndA, bsrValA) and
   // blocks of BSR format are stored in column-major order.
-  if (B->nz_elem > 0){
+  if (B->nz_elem > 0) {
     cudaFree(B->d_rowind);
     cudaFree(B->d_colind);
     cudaFree(B->d_data);
@@ -368,12 +367,11 @@ cusparseStatus_t carma_bsr2csr_gen(carma_sparse_obj<T_data> *A,
   B->dims_data[2] = n;
   B->nz_elem = nnz;
   B->format = "CSR";
-  cudaMalloc((void**) &B->d_rowind, sizeof(int) * (m + 1));
-  cudaMalloc((void**) &B->d_colind, sizeof(int) * nnz);
-  cudaMalloc((void**) &B->d_data, sizeof(T_data) * nnz);
+  cudaMalloc(reinterpret_cast<void**>(&B->d_rowind), sizeof(int) * (m + 1));
+  cudaMalloc(reinterpret_cast<void**>(&B->d_colind), sizeof(int) * nnz);
+  cudaMalloc(reinterpret_cast<void**>(&B->d_data), sizeof(T_data) * nnz);
   return bsr2csr(handle, dir, mb, nb, A->descr, A->d_data, A->d_rowind,
       A->d_colind, A->blockDim, B->descr, B->d_data, B->d_rowind, B->d_colind);
-
 }
 
 template<>
