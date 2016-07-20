@@ -46,7 +46,7 @@ public:
 
 	int do_centroids();
 	int do_centroids(int ncntrl);
-	int do_centroids(int ncntrl, bool imat);
+	int do_centroids(int ncntrl, bool noise);
 	int do_centroids_geom(int ncntrl);
 	int do_control(int ncntrl);
 	int apply_control(int ncntrl, sutra_dms *ydm);

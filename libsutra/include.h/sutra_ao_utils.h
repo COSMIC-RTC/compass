@@ -10,9 +10,9 @@ int
 cgetrealp(float *d_odata, cuFloatComplex *d_idata, int N, carma_device *device);
 int
 abs2(float *d_odata, cuFloatComplex *d_idata, int N, carma_device *device);
-int 
+int
 abs2(float *d_odata, cuFloatComplex *d_idata, int N, float fact, carma_device *device);
-int 
+int
 abs2c(cuFloatComplex *d_odata, cuFloatComplex *d_idata, int N, carma_device *device);
 int
 convolve(cuFloatComplex *d_odata, cuFloatComplex *d_idata, int N,carma_device *device);
@@ -59,6 +59,7 @@ sutra_invgene(carma_obj<T> *imat, carma_obj<T> *cmat, carma_obj<T> *eigenvals,
 template<class T>
 int
 remove_avg(T *data, int N, carma_device *device);
-
+int
+separate_modes(float *modes, float *filtmodes, int nmodes, int nfilt, carma_device *device);
 
 #endif // _SUTRA_AO_UTILS_H_

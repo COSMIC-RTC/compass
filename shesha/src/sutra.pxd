@@ -443,7 +443,7 @@ cdef extern from "sutra_centroider.h":
 
         int get_cog(carma_streams * streams, float * cube, float * subsum, float * centroids,
                     int nvalid, int npix, int ntot)
-        int get_cog(float * subsum, float * slopes)
+        int get_cog(float * subsum, float * slopes, bool noise)
         int get_cog()
 
     int convert_centro(float * d_odata, float * d_idata, float offset, float scale,
@@ -488,7 +488,7 @@ cdef extern from "sutra_centroider_wcog.h":
         int load_weights(float * weights, int ndim)
         int get_cog(carma_streams * streams, float * cube, float * subsum,
                     float * centroids, int nvalid, int npix, int ntot)
-        int get_cog(float * subsum, float * slopes)
+        int get_cog(float * subsum, float * slopes, bool noise)
         int get_cog()
 
 
@@ -988,6 +988,65 @@ cdef extern from "sutra_lgs.h":
         int lgs_update(carma_device * device)
         int lgs_makespot(carma_device * device, int nin)
         int load_kernels(float * lgskern, carma_device * device)
+
+
+#################################################
+# C-Class sutra_roket
+#################################################
+cdef extern from "sutra_roket.h":
+    cdef cppclass sutra_roket:
+        carma_context *current_context
+        int device
+        float gain
+        int nfilt
+        int nactus
+        int nmodes
+        int iterk
+        int niter
+        int loopcontroller
+        int geocontroller
+
+        sutra_rtc *rtc
+        sutra_sensors *sensors
+        sutra_target *target
+        sutra_telescope *tel
+        sutra_atmos *atm
+        sutra_dms *dms
+        sutra_controller_ls *loopcontrol
+        sutra_controller_geo *geocontrol
+
+        carma_obj[float] *d_P
+        carma_obj[float] *d_Btt
+        carma_obj[float] *d_noise
+        carma_obj[float] *d_nonlinear
+        carma_obj[float] *d_tomo
+        carma_obj[float] *d_filtered
+        carma_obj[float] *d_alias
+        carma_obj[float] *d_bandwidth
+        float fitting
+        carma_obj[float] *d_fullErr
+        carma_obj[float] *d_err1
+        carma_obj[float] *d_err2
+        carma_obj[float] *d_bkup_com
+        carma_obj[float] * d_bkup_screen
+        carma_obj[float] *d_commanded
+        carma_obj[float] *d_modes
+        carma_obj[float] *d_filtmodes
+        carma_obj[float] *d_tmpdiff
+        carma_obj[float] *d_gRD
+        carma_obj[float] *d_RD
+
+        sutra_roket(carma_context *context, int device, sutra_rtc *rtc, sutra_sensors *sensors,
+                        sutra_target *target, sutra_dms *dms, sutra_telescope *tel, sutra_atmos *atm, int loopcontroller, int geocontroller,
+                        int nactus, int nmodes, int nfilt, int niter, float *Btt, float *P, float *gRD, float *RD)
+
+        int compute_breakdown()
+        int save_loop_state()
+        int restore_loop_state()
+        int apply_loop_filter(carma_obj[float] *d_odata, carma_obj[float] *d_idata1,
+                        carma_obj[float] *d_idata2, float gain, int k)
+
+
 
 IF USE_BRAMA == 1:
     #################################################

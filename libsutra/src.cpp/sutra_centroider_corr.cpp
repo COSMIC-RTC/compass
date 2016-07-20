@@ -158,15 +158,20 @@ int sutra_centroider_corr::get_cog(carma_streams *streams, float *cube,
   return EXIT_SUCCESS;
 }
 
-int sutra_centroider_corr::get_cog(float *subsum,float *slopes) {
+int sutra_centroider_corr::get_cog(float *subsum,float *slopes,bool noise) {
   current_context->set_activeDevice(device,1);
   //set corrspot to 0
   carmaSafeCall(
       cudaMemset(*(this->d_corrspot), 0,
           sizeof(cuFloatComplex) * this->d_corrspot->getNbElem()));
   // correlation algorithm
-  fillcorr(*(this->d_corrspot), *(wfs->d_bincube), this->npix, 2 * this->npix,
+  if(noise || wfs->error_budget == false){
+    fillcorr(*(this->d_corrspot), *(wfs->d_bincube), this->npix, 2 * this->npix,
       this->npix * this->npix * this->nvalid, 1, this->current_context->get_device(device));
+  }
+  else
+    fillcorr(*(this->d_corrspot), *(wfs->d_bincube_notnoisy), this->npix, 2 * this->npix,
+    this->npix * this->npix * this->nvalid, 1, this->current_context->get_device(device));
 
   carma_fft<cuFloatComplex, cuFloatComplex>(*(this->d_corrspot),
       *(this->d_corrspot), 1, *this->d_corrfnct->getPlan());
@@ -207,5 +212,5 @@ int sutra_centroider_corr::get_cog(float *subsum,float *slopes) {
 }
 
 int sutra_centroider_corr::get_cog() {
-  return this->get_cog(*(wfs->d_subsum),*(wfs->d_slopes));
+  return this->get_cog(*(wfs->d_subsum),*(wfs->d_slopes),true);
 }

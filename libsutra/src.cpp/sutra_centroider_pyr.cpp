@@ -56,18 +56,25 @@ int sutra_centroider_pyr::get_pyr(float *cube, float *subsum, float *centroids,
     return EXIT_SUCCESS;
 }
 
-int sutra_centroider_pyr::get_cog(float *subsum, float *slopes) {
-    if (this->pyr_type == "pyr" || this->pyr_type == "roof")
-        return this->get_pyr(*(wfs->d_bincube), subsum, slopes,
-                *(wfs->d_validsubsx), *(wfs->d_validsubsy), wfs->nvalid,
-                wfs->nfft / wfs->nrebin, 4);
-    else if (this->pyr_type == "pyrhr")
-        return this->get_pyr(*(wfs->d_binimg), subsum, slopes,
-                *(wfs->d_validsubsx), *(wfs->d_validsubsy), wfs->nvalid,
-                wfs->nfft / wfs->nrebin, 4);
-    return EXIT_FAILURE;
+int sutra_centroider_pyr::get_cog(float *subsum, float *slopes, bool noise) {
+	if (this->pyr_type == "pyr" || this->pyr_type == "roof")
+		return this->get_pyr(*(wfs->d_bincube), subsum, slopes,
+				*(wfs->d_validsubsx), *(wfs->d_validsubsy), wfs->nvalid,
+				wfs->nfft / wfs->nrebin, 4);
+	else if (this->pyr_type == "pyrhr"){
+		if(noise || wfs->error_budget == false){
+			return this->get_pyr(*(wfs->d_binimg), subsum, slopes,
+				*(wfs->d_validsubsx), *(wfs->d_validsubsy), wfs->nvalid,
+				wfs->nfft / wfs->nrebin, 4);
+		}
+		else
+			return this->get_pyr(*(wfs->d_binimg_notnoisy), subsum, slopes,
+			*(wfs->d_validsubsx), *(wfs->d_validsubsy), wfs->nvalid,
+			wfs->nfft / wfs->nrebin, 4);
+	}
+	return EXIT_FAILURE;
 }
 
 int sutra_centroider_pyr::get_cog() {
-    return this->get_cog(*(wfs->d_subsum), *(wfs->d_slopes));
+	return this->get_cog(*(wfs->d_subsum), *(wfs->d_slopes),true);
 }

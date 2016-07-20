@@ -52,6 +52,7 @@ from shesha_dms import *
 from shesha_target import *
 from shesha_rtc import *
 from shesha_telescope import *
+from shesha_roket import *
 
 
 

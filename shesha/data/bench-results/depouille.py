@@ -21,7 +21,9 @@ def depouilleSR(filename,svnversion=None):
     try:
         df=store.get(svnversion)
     except KeyError:
-        raise ValueError("No results for svn version : ",svnversion)
+        print "No results for svn version : "+svnversion+", taking "+store.keys()[-1]+" version"
+        svnversion = store.keys()[-1]
+        df=store.get(svnversion)
     
     dates = np.unique(df["date"].values)
     wfs_type = np.unique(df["sensor_type"].values)
@@ -84,7 +86,9 @@ def depouillePerf(filename,svnversion=None,mode="profile"):
     try:
         df=store.get(svnversion)
     except KeyError:
-        raise ValueError("No results for svn version : ",svnversion)
+        print "No results for svn version : "+svnversion+", taking "+store.keys()[-1]+" version"
+        svnversion = store.keys()[-1]
+        df=store.get(svnversion)
     
     dates = np.unique(df["date"].values)
     wfs_type = np.unique(df["sensor_type"].values)

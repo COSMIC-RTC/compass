@@ -51,12 +51,15 @@ int sutra_centroider_tcog::get_cog(carma_streams *streams, float *cube,
   return EXIT_SUCCESS;
 }
 
-int sutra_centroider_tcog::get_cog(float *subsum, float *slopes) {
-  return this->get_cog(wfs->streams, *(wfs->d_bincube), subsum,
+int sutra_centroider_tcog::get_cog(float *subsum, float *slopes,bool noise) {
+  if(noise || wfs->error_budget == false)
+    return this->get_cog(wfs->streams, *(wfs->d_bincube), subsum,
+      slopes, wfs->nvalid, wfs->npix, wfs->d_bincube->getNbElem());
+  else
+    return this->get_cog(wfs->streams, *(wfs->d_bincube_notnoisy), subsum,
       slopes, wfs->nvalid, wfs->npix, wfs->d_bincube->getNbElem());
 }
 
 int sutra_centroider_tcog::get_cog() {
-  return this->get_cog(*(wfs->d_subsum),*(wfs->d_slopes));
+  return this->get_cog(*(wfs->d_subsum),*(wfs->d_slopes),true);
 }
-

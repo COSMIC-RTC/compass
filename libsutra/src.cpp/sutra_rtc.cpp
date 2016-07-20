@@ -272,16 +272,16 @@ int sutra_rtc::do_centroids() {
 }
 
 int sutra_rtc::do_centroids(int ncntrl) {
-  return do_centroids(ncntrl, false);
+  return do_centroids(ncntrl, true);
 }
 
-int sutra_rtc::do_centroids(int ncntrl, bool imat) {
+int sutra_rtc::do_centroids(int ncntrl, bool noise) {
   current_context->set_activeDevice(device,1);
   int indssp = 0;
 
   for (size_t idx_cntr = 0; idx_cntr < (this->d_centro).size(); idx_cntr++) {
 
-    this->d_centro[idx_cntr]->get_cog((*this->d_control[ncntrl]->d_subsum)[indssp],(*this->d_control[ncntrl]->d_centroids)[2*indssp]);
+    this->d_centro[idx_cntr]->get_cog((*this->d_control[ncntrl]->d_subsum)[indssp],(*this->d_control[ncntrl]->d_centroids)[2*indssp],noise);
 
     indssp += this->d_centro[idx_cntr]->wfs->nvalid_tot;
   }

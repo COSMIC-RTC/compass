@@ -317,7 +317,7 @@ cdef class Rtc:
             data = np.zeros((dims[1]), dtype=np.float32)
             d_tmp = new carma_obj[float](context, wfs.d_subsum.getDims())
             d_data = new carma_obj[float](context, dims)
-            rtc.d_centro[ncontrol].get_cog(d_tmp.getData(), d_data.getData())
+            rtc.d_centro[ncontrol].get_cog(d_tmp.getData(), d_data.getData(), True)
             d_data.device2host(< float *> data.data)
 
         else:

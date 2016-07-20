@@ -40,7 +40,7 @@ sutra_wfs::sutra_wfs(carma_context *context, sutra_telescope *d_tel,
     nrebin(nrebin), nfft(nfft), ntot(ntot), npup(npup), nphase(nphase),
     nmaxhr(nvalid), nffthr(1), subapd(pdiam), nphot(nphotons),
     nphot4imat(nphot4imat), noise(0), lgs(lgs), kernconv(false),
-    error_budget(false), campli_plan(nullptr), fttotim_plan(nullptr),
+    error_budget(sensors->error_budget), campli_plan(nullptr), fttotim_plan(nullptr),
     d_ftkernel(nullptr), d_camplipup(nullptr), d_camplifoc(nullptr),
     d_fttotim(nullptr), d_pupil(d_tel->d_pupil_m), d_bincube(nullptr),
     d_bincube_notnoisy(nullptr), d_binimg(nullptr), d_binimg_notnoisy(nullptr),
@@ -327,4 +327,3 @@ int sutra_sensors::sensors_initgs(float *xpos, float *ypos, float *lambda,
   }
   return EXIT_SUCCESS;
 }
-
