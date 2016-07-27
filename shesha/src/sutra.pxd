@@ -1046,6 +1046,44 @@ cdef extern from "sutra_roket.h":
         int apply_loop_filter(carma_obj[float] *d_odata, carma_obj[float] *d_idata1,
                         carma_obj[float] *d_idata2, float gain, int k)
 
+#################################################
+# C-Class sutra_psfrecs
+#################################################
+cdef extern from "sutra_psfrecs.h":
+    cdef cppclass sutra_psfrecs:
+        carma_context *current_context
+        int device
+        int nactus
+        int niter
+        int nmodes
+        carma_obj[float] *d_err
+        carma_obj[cuFloatComplex] *d_amplipup
+        carma_obj[float] *d_psf
+        carma_obj[float] *d_phase
+        carma_obj[int] *d_wherephase
+        carma_sparse_obj[float] *d_IF
+        float scale
+        int size
+        int Npts
+        carma_obj[float] *d_term1;
+        carma_obj[float] *d_term2;
+        carma_obj[float] *d_otftel;
+        carma_obj[float] *d_otfVii;
+        carma_obj[float] *d_mask;
+        carma_obj[float] *d_eigenvals;
+        carma_obj[float] *d_Btt;
+        carma_obj[float] *d_covmodes;
+        carma_host_obj[float] *h_eigenvals;
+        carma_obj[cuFloatComplex] *d_newmodek;
+        carma_obj[cuFloatComplex] *d_Dphi;
+        carma_obj[cuFloatComplex] *d_pupfft;
+
+        sutra_psfrecs(carma_context *context, int device, char *type, int nactus,
+                    int nmodes, int niter, float *IFvalue, int *IFrowind, int *IFcolind, int IFnz,
+                    float *pupil, int size, int Npts, float scale, float *Btt, float *covmodes);
+
+        int psf_rec_roket(float *err)
+        int psf_rec_Vii()
 
 
 IF USE_BRAMA == 1:

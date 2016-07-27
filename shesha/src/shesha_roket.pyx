@@ -38,7 +38,9 @@ cdef class Roket:
                                       < float *> RD_F.data)
 
 
-
+    def __dealloc__(self):
+        del self.roket
+        
     cpdef getContributor(self, bytes type):
         """Return the error buffer define by "type" from a sutra_roket object.
         :parameters:

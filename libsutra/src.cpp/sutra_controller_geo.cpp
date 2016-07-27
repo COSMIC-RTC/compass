@@ -242,7 +242,7 @@ sutra_controller_geo::comp_com(){
 */
   current_context->set_activeDevice(device,1);
 	// Sparse version
-	carma_gemv(cusparse_handle(),'n',1.0/this->Nphi,this->d_IFsparse,this->d_phi,0.0,this->d_compdouble);
+	carma_gemv(cusparse_handle(),'n',1.0/this->Nphi,this->d_IFsparse,this->d_phi->getData(),0.0,this->d_compdouble->getData());
 	doubletofloat(this->d_compdouble->getData(),this->d_compfloat->getData(),this->nactu(),current_context->get_device(device));
 	// If we are in error budget case, d_geocov is Btt*Btt.transpose
 	carma_gemv(cublas_handle(),'n', nactu(), nactu(), -1.0f, this->d_geocov->getData(),this->d_geocov->getDims()[1],

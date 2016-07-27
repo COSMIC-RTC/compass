@@ -59,7 +59,5 @@ sutra_invgene(carma_obj<T> *imat, carma_obj<T> *cmat, carma_obj<T> *eigenvals,
 template<class T>
 int
 remove_avg(T *data, int N, carma_device *device);
-int
-separate_modes(float *modes, float *filtmodes, int nmodes, int nfilt, carma_device *device);
 
 #endif // _SUTRA_AO_UTILS_H_
