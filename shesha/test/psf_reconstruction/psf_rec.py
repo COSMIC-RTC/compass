@@ -134,6 +134,7 @@ def psf_rec_Vii(filename):
 
     otftel /= otftel.max()
     psf = np.fft.fftshift(np.real(np.fft.ifft2(otftel*otf2)))
+    psf *= (psf.shape[0]*psf.shape[0]/float(np.where(spup)[0].shape[0]))
     f.close()
     return otftel, otf2, psf, precs
 
@@ -187,6 +188,7 @@ def psf_rec_vii_cpu(filename):
     otf2 = otf2/otf2.max()
 
     psf = np.fft.fftshift(np.real(np.fft.ifft2(otftel*otf2)))
+    psf *= (fft_size*fft_size/float(np.where(pup)[0].shape[0]))
 
     return otftel, otf2, psf
 

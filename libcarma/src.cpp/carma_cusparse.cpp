@@ -91,18 +91,17 @@ template<class T_data, cusparseStatus_t CUSPARSEAPI (*csrmv)(
     const int *csrRowPtrA, const int *csrColIndA, const T_data *x,
     const T_data *beta, T_data *y)>
 cusparseStatus_t carma_gemv(cusparseHandle_t handle, char op_A, T_data alpha,
-    carma_sparse_obj<T_data>* A, carma_obj<T_data>* x, T_data beta,
-    carma_obj<T_data>* y) {
+    carma_sparse_obj<T_data>* A, T_data *x, T_data beta,T_data *y) {
   cusparseOperation_t trans = carma_char2cusparseOperation(op_A);
 
   return carma_checkCusparseStatus(csrmv(handle, trans, A->getDims(1), A->getDims(2), A->nz_elem, &alpha,
-          A->descr, A->d_data, A->d_rowind, A->d_colind, *x, &beta, *y));
+          A->descr, A->d_data, A->d_rowind, A->d_colind, x, &beta, y));
 }
 
 template<>
 cusparseStatus_t carma_gemv<double>(cusparseHandle_t handle, char op_A,
-    double alpha, carma_sparse_obj<double>* A, carma_obj<double>* x,
-    double beta, carma_obj<double>* y) {
+    double alpha, carma_sparse_obj<double>* A, double* x,
+    double beta, double* y) {
   if (A->format != "CSR") {
     DEBUG_TRACE("carma_gemv needs a CSR matrix as input");
   }
@@ -110,8 +109,8 @@ cusparseStatus_t carma_gemv<double>(cusparseHandle_t handle, char op_A,
 }
 template<>
 cusparseStatus_t carma_gemv<float>(cusparseHandle_t handle, char op_A,
-    float alpha, carma_sparse_obj<float>* A, carma_obj<float>* x, float beta,
-    carma_obj<float>* y) {
+    float alpha, carma_sparse_obj<float>* A, float* x, float beta,
+    float* y) {
   if (A->format != "CSR") {
     DEBUG_TRACE("carma_gemv needs a CSR matrix as input");
   }

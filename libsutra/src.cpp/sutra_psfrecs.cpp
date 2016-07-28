@@ -144,8 +144,6 @@ sutra_psfrecs::~sutra_psfrecs(){
         delete this->h_eigenvals;
         delete this->d_Dphi;
     }
-    if(this->d_IF)
-        delete this->d_IF;
 }
 
 int sutra_psfrecs::psf_rec_roket(float *err){

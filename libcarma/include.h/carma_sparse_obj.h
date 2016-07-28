@@ -119,8 +119,8 @@ private:
 
 template<class T_data>
 cusparseStatus_t carma_gemv(cusparseHandle_t handle, char op_A, T_data alpha,
-    carma_sparse_obj<T_data>* A, carma_obj<T_data>* x, T_data beta,
-    carma_obj<T_data>* y);
+    carma_sparse_obj<T_data>* A, T_data *x, T_data beta,
+    T_data *y);
 
 template<class T_data>
 cusparseStatus_t carma_gemm(cusparseHandle_t handle, char op_A, T_data alpha,
