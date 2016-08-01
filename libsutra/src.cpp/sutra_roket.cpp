@@ -194,7 +194,7 @@ int sutra_roket::compute_breakdown(){
   this->fitting += this->target->d_targets[0]->phase_var / this->niter;
   this->target->d_targets[0]->comp_image(1,false);
   //this->d_psfse->copyFrom(this->target->d_targets[0]->d_image->getData(),this->d_psfse->getNbElem());
-  this->d_psfortho->axpy(1.0f/this->niter,this->d_psfse,1,1);
+  this->d_psfortho->axpy(1.0f/this->niter,this->target->d_targets[0]->d_image,1,1);
   // Filtered modes
   carma_gemv<float>(this->current_context->get_cublasHandle(), 'n', this->nmodes,
                     this->nactus, 1.0f, this->d_P->getData(),this->nmodes,
