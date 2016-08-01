@@ -51,7 +51,7 @@ sutra_roket::sutra_roket(carma_context *context, int device, sutra_rtc *rtc, sut
     this->d_gRD = new carma_obj<float>(this->current_context,dims_data2,gRD);
     this->d_RD = new carma_obj<float>(this->current_context,dims_data2,RD);
     dims_data2[2] = this->nmodes;
-    this->d_Btt = new carma_obj<float>(this->current_context,dims_data2,P);
+    this->d_Btt = new carma_obj<float>(this->current_context,dims_data2,Btt);
 
     // Residual error buffer initialsations
     long dims_data1[2] = {1,this->nactus};
@@ -68,7 +68,10 @@ sutra_roket::sutra_roket(carma_context *context, int device, sutra_rtc *rtc, sut
 
     // Target screen backup
     this->d_bkup_screen = new carma_obj<float>(this->current_context, this->target->d_targets[0]->d_phase->d_screen->getDims());
-
+    // PSF fitting
+    this->d_psfortho = new carma_obj<float>(this->current_context,this->target->d_targets[0]->d_image->getDims());
+    //this->d_psfse = new carma_obj<float>(this->current_context,this->target->d_targets[0]->d_image->getDims());
+    //carmaSafeCall(cudaMemset(this->d_psfse->getData(), 0, sizeof(float) * this->d_psfse->getNbElem()));
 }
 
 sutra_roket::~sutra_roket(){
@@ -111,6 +114,11 @@ sutra_roket::~sutra_roket(){
         delete this->d_RD;
     if(this->d_tmpdiff)
         delete this->d_tmpdiff;
+    if(this->d_psfortho)
+        delete this->d_psfortho;
+//    if(this->d_psfse)
+//        delete this->d_psfse;
+
 }
 
 int sutra_roket::save_loop_state(){
@@ -184,6 +192,9 @@ int sutra_roket::compute_breakdown(){
 
   this->target->d_targets[0]->raytrace(this->dms,0,0);
   this->fitting += this->target->d_targets[0]->phase_var / this->niter;
+  this->target->d_targets[0]->comp_image(1,false);
+  //this->d_psfse->copyFrom(this->target->d_targets[0]->d_image->getData(),this->d_psfse->getNbElem());
+  this->d_psfortho->axpy(1.0f/this->niter,this->d_psfse,1,1);
   // Filtered modes
   carma_gemv<float>(this->current_context->get_cublasHandle(), 'n', this->nmodes,
                     this->nactus, 1.0f, this->d_P->getData(),this->nmodes,
@@ -202,8 +213,8 @@ int sutra_roket::compute_breakdown(){
   // Bandwidth
   if(this->iterk > 0){
     this->d_err1->copyFrom(this->d_commanded->getData(this->iterk*this->nactus),this->nactus);
-    this->d_err1->copyFrom(this->d_commanded->getData((this->iterk-1)*this->nactus),this->nactus);
-    apply_loop_filter(this->d_bandwidth,this->d_err1,this->d_err2,1.0f,this->iterk-1);
+    this->d_err2->copyFrom(this->d_commanded->getData((this->iterk-1)*this->nactus),this->nactus);
+    apply_loop_filter(this->d_bandwidth,this->d_err1,this->d_err2,-1.0f,this->iterk-1);
   }
   // tomography
   this->sensors->d_wfs[0]->sensor_trace(this->atm);
@@ -225,7 +236,7 @@ int sutra_roket::compute_breakdown(){
                     this->nactus, 1.0f, this->d_RD->getData(),this->nactus,
                     this->d_err1->getData() , 1,
                     0.f, this->d_err2->getData(), 1);
-  carmaSafeCall(cudaMemset(this->d_err1, 0, sizeof(float) * this->nactus));
+  carmaSafeCall(cudaMemset(this->d_err1->getData(), 0, sizeof(float) * this->nactus));
   apply_loop_filter(this->d_tomo,this->d_err2,this->d_err1,this->gain,this->iterk);
 
   restore_loop_state();

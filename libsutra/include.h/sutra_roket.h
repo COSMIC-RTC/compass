@@ -63,6 +63,10 @@ class sutra_roket {
     carma_obj<float> *d_gRD;
     // R*D matrix
     carma_obj<float> *d_RD;
+    // PSF ortho
+    carma_obj<float> *d_psfortho;
+    //carma_obj<float> *d_psfse;
+
 
   public:
     sutra_roket(carma_context *context, int device, sutra_rtc *rtc, sutra_sensors *sensors,

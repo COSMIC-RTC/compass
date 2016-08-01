@@ -12,8 +12,8 @@ import numpy as np
 import naga as ch
 import shesha as ao
 import time
-import matplotlib.pyplot as pl
-pl.ion()
+import matplotlib.pyplot as plt
+plt.ion()
 import hdf5_utils as h5u
 import pandas
 from scipy.sparse import csr_matrix
@@ -202,6 +202,7 @@ def loop(n):
         SR =tar.get_strehl(0,comp_strehl=False)[1]
         #bp_com[-1,:] = bp_com[-2,:]
         #SR = tar.get_strehl(0,comp_strehl=False)[1]
+    return SR, SR2
 
 def preloop(n):
     """
@@ -261,26 +262,27 @@ def compute_Btt():
     IF = rtc.get_IFsparse(1).T
     N = IF.shape[0]
     n = IF.shape[1]
-    T = IF[:,-2:].copy()
-    IF = IF[:,:n-2]
+    #T = IF[:,-2:].copy()
+    T = rtc.get_IFtt(1)
+    #IF = IF[:,:n-2]
     n = IF.shape[1]
 
     delta = IF.T.dot(IF).toarray()/N
 
     # Tip-tilt + piston
     Tp = np.ones((T.shape[0],T.shape[1]+1))
-    Tp[:,:2] = T.toarray()
+    Tp[:,:2] = T.copy()#.toarray()
     deltaT = IF.T.dot(Tp)/N
     # Tip tilt projection on the pzt dm
     tau = np.linalg.inv(delta).dot(deltaT)
 
-    # Famille génératrice sans tip tilt
+    # Famille generatrice sans tip tilt
     G = np.identity(n)
     tdt = tau.T.dot(delta).dot(tau)
     subTT = tau.dot(np.linalg.inv(tdt)).dot(tau.T).dot(delta)
     G -= subTT
 
-    # Base orthonormée sans TT
+    # Base orthonormee sans TT
     gdg = G.T.dot(delta).dot(G)
     U,s,V = np.linalg.svd(gdg)
     U=U[:,:U.shape[1]-3]
@@ -289,7 +291,7 @@ def compute_Btt():
     B = G.dot(U).dot(L)
 
     # Rajout du TT
-    TT = T.T.dot(T).toarray()/N
+    TT = T.T.dot(T)/N#.toarray()/N
     Btt = np.zeros((n+2,n-1))
     Btt[:B.shape[0],:B.shape[1]] = B
     mini = 1./np.sqrt(TT)
@@ -298,8 +300,10 @@ def compute_Btt():
     Btt[n:,n-3:]=mini
 
     # Calcul du projecteur actus-->modes
-    IF = rtc.get_IFsparse(1).T
-    delta = IF.T.dot(IF).toarray()/N
+    delta = np.zeros((n+T.shape[1],n+T.shape[1]))
+    #IF = rtc.get_IFsparse(1).T
+    delta[:-2,:-2] = IF.T.dot(IF).toarray()/N
+    delta[-2:,-2:] = T.T.dot(T)/N
     P = Btt.T.dot(delta)
 
     return Btt.astype(np.float32),P.astype(np.float32)
@@ -377,6 +381,7 @@ def cov_cor(P,noise,trunc,alias,H,bp,tomo):
 
 def save_it(filename):
     IF = rtc.get_IFsparse(1)
+    TT = rtc.get_IFtt(1)
     noise_com = roket.getContributor("noise")
     trunc_com = roket.getContributor("nonlinear")
     alias_wfs_com = roket.getContributor("aliasing")
@@ -393,15 +398,16 @@ def save_it(filename):
     dm_dim = config.p_dms[0]._n2-config.p_dms[0]._n1+1
     cov, cor = cov_cor(P,noise_com,trunc_com,alias_wfs_com,H_com,bp_com,tomo_com)
     psf = tar.get_image(0,"le")
+    psfortho = roket.get_psfortho()
 
     fname = "/home/fferreira/Data/"+filename
     pdict = {"noise_com":noise_com.T,
              "alias_wfs_com":alias_wfs_com.T,
                "tomo_com":tomo_com.T,"H_com":H_com.T,"trunc_com":trunc_com.T,
-               "bp_com":bp_com.T,"wf_com":wf_com.T,"P":P,"Btt":Btt,"IF.data":IF.data,"IF.indices":IF.indices,
-               "IF.indptr":IF.indptr,"dm_dim":dm_dim,"indx_pup":indx_pup,"fit_error":fit,"SR":SR, "SR2":SR2,
-               "cov":cov,"cor":cor,"PSF":psf}
-    h5u.save_h5(fname,"com",config,com.T)
+               "bp_com":bp_com.T,"P":P,"Btt":Btt,"IF.data":IF.data,"IF.indices":IF.indices,
+               "IF.indptr":IF.indptr,"TT":TT,"dm_dim":dm_dim,"indx_pup":indx_pup,"fit_error":fit,"SR":SR, "SR2":SR2,
+               "cov":cov,"cor":cor, "psfortho":psfortho}
+    h5u.save_h5(fname,"psf",config,psf)
     #h5u.writeHdf5SingleDataset(fname,com.T,datasetName="com")
     for k in pdict.keys():
         h5u.save_hdf5(fname,k,pdict[k])
@@ -414,7 +420,7 @@ def save_it(filename):
 #  \__\___||___/\__|___/
 ###############################################################################################
 nfiltered = 4
-niters = 100
+niters = 10000
 config.p_loop.set_niter(niters)
 Btt,P = compute_Btt()
 rtc.load_Btt(1,Btt.dot(Btt.T))
@@ -433,7 +439,7 @@ roket = ao.roket_init(rtc, wfs, tar, dms, tel, atm, 0, 1,
 
 #imat_geom = ao.imat_geom(wfs,config.p_wfss,config.p_controllers[0],dms,config.p_dms,meth=0)
 #RDgeom = np.dot(R,imat_geom)
-#preloop(1000)
-loop(niters)
+preloop(1000)
+SR, SR2 = loop(niters)
 
-#save_it("breakdown_test.h5")
+save_it("roket_test.h5")

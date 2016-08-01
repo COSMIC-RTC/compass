@@ -924,4 +924,3 @@ fill_mapactu(int threads, int blocks, float *mapactu, int *pos, float *comvec, i
 
 	return EXIT_SUCCESS;
 }
-

@@ -73,6 +73,7 @@ else:
 #initialisation:
 #   context
 c=ch.naga_context(device)
+#c=ch.naga_context(devices=np.array([4,5,6,7], dtype=np.int32))
 #c.set_activeDevice(device)
 
 #    wfs
@@ -358,12 +359,24 @@ def error_breakdown(com,noise_com,alias_wfs_com,tomo_com,H_com,trunc_com,bp_com,
     rtc.applycontrol(1,dms)
     for w in range(len(config.p_wfss)):
         wfs.sensors_trace(w,"dm",tel,atm,dms)
+        wfs.sensors_compimg(0)
+    if(config.p_wfss[0].type_wfs == "sh"):
+        ideal_bincube = wfs.get_bincubeNotNoisy(0)
+        bincube = wfs.get_bincube(0)
+        if(config.p_centroiders[0].type_centro == "tcog"): # Select the same pixels with or without noise
+            invalidpix = np.where(bincube <= config.p_centroiders[0].thresh)
+            ideal_bincube[invalidpix] = 0
+            rtc.setthresh(0,-1e16)
+        wfs.set_bincube(0,ideal_bincube)
+    elif(config.p_wfss[0].type_wfs == "pyrhr"):
+        ideal_pyrimg = wfs.get_binimg_notnoisy(0)
+        wfs.set_pyrimg(0,ideal_pyrimg)
 
-    rtc.docentroids_geom(0)
+    rtc.docentroids(0)
     rtc.docontrol(0)
     Ageom = rtc.getErr(0)
     if(i+1 < config.p_loop.niter):
-        alias_wfs_com[i+1,:] = gRD.dot(alias_wfs_com[i,:]) + g*Ageom
+        alias_wfs_com[i+1,:] = gRD.dot(alias_wfs_com[i,:]) + g*(Ageom - (E-F))
 
 
     ###########################################################################
@@ -424,6 +437,56 @@ def error_breakdown(com,noise_com,alias_wfs_com,tomo_com,H_com,trunc_com,bp_com,
 # | _ \/ _` (_-< (_-<
 # |___/\__,_/__/_/__/
 ################################################################################
+def compute_Btt2():
+    IF = rtc.get_IFsparse(1).T
+    N = IF.shape[0]
+    n = IF.shape[1]
+    #T = IF[:,-2:].copy()
+    T = rtc.get_IFtt(1)
+    #IF = IF[:,:n-2]
+    n = IF.shape[1]
+
+    delta = IF.T.dot(IF).toarray()/N
+
+    # Tip-tilt + piston
+    Tp = np.ones((T.shape[0],T.shape[1]+1))
+    Tp[:,:2] = T.copy()#.toarray()
+    deltaT = IF.T.dot(Tp)/N
+    # Tip tilt projection on the pzt dm
+    tau = np.linalg.inv(delta).dot(deltaT)
+
+    # Famille generatrice sans tip tilt
+    G = np.identity(n)
+    tdt = tau.T.dot(delta).dot(tau)
+    subTT = tau.dot(np.linalg.inv(tdt)).dot(tau.T).dot(delta)
+    G -= subTT
+
+    # Base orthonormee sans TT
+    gdg = G.T.dot(delta).dot(G)
+    U,s,V = np.linalg.svd(gdg)
+    U=U[:,:U.shape[1]-3]
+    s = s[:s.size-3]
+    L = np.identity(s.size)/np.sqrt(s)
+    B = G.dot(U).dot(L)
+
+    # Rajout du TT
+    TT = T.T.dot(T)/N#.toarray()/N
+    Btt = np.zeros((n+2,n-1))
+    Btt[:B.shape[0],:B.shape[1]] = B
+    mini = 1./np.sqrt(TT)
+    mini[0,1] = 0
+    mini[1,0] = 0
+    Btt[n:,n-3:]=mini
+
+    # Calcul du projecteur actus-->modes
+    delta = np.zeros((n+T.shape[1],n+T.shape[1]))
+    #IF = rtc.get_IFsparse(1).T
+    delta[:-2,:-2] = IF.T.dot(IF).toarray()/N
+    delta[-2:,-2:] = T.T.dot(T)/N
+    P = Btt.T.dot(delta)
+
+    return Btt.astype(np.float32),P.astype(np.float32)
+
 def compute_Btt():
     IF = rtc.get_IFsparse(1).T
     N = IF.shape[0]
@@ -571,10 +634,10 @@ def save_it(filename):
 # | ||  __/\__ \ |_\__ \
 #  \__\___||___/\__|___/
 ###############################################################################################
-nfiltered = 450
-niters = 2000
+nfiltered = 4
+niters = 10000
 config.p_loop.set_niter(niters)
-Btt,P = compute_Btt()
+Btt,P = compute_Btt2()
 rtc.load_Btt(1,Btt.dot(Btt.T))
 Dm,cmat = compute_cmatWithBtt(Btt,nfiltered)
 rtc.set_cmat(0,cmat)
@@ -589,7 +652,7 @@ gRD = np.identity(RD.shape[0])-config.p_controllers[0].gain*RD
 
 #imat_geom = ao.imat_geom(wfs,config.p_wfss,config.p_controllers[0],dms,config.p_dms,meth=0)
 #RDgeom = np.dot(R,imat_geom)
-#preloop(200)
-#com,noise_com,alias_wfs_com,tomo_com,H_com,trunc_com,bp_com,wf_com,fit,SR,SR2 = loop(niters)
+preloop(1000)
+com,noise_com,alias_wfs_com,tomo_com,H_com,trunc_com,bp_com,wf_com,fit,SR,SR2 = loop(niters)
 
-#save_it("breakdown_pyrhr.h5")
+save_it("roket_compare.h5")

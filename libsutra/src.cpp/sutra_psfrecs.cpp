@@ -2,7 +2,7 @@
 
 sutra_psfrecs::sutra_psfrecs(carma_context *context, int device, char *type, int nactus,
             int nmodes, int niter, float *IFvalue, int *IFrowind, int *IFcolind, int IFnz,
-            float *pupil, int size, int Npts, float scale, float *Btt, float *covmodes){
+            float *TT, float *pupil, int size, int Npts, float scale, float *Btt, float *covmodes){
 
     this->current_context = context;
     this->device = device;
@@ -76,12 +76,15 @@ sutra_psfrecs::sutra_psfrecs(carma_context *context, int device, char *type, int
 
         carma_obj<float> d_val(this->current_context, dims_data1, IFvalue);
         carma_obj<int> d_row(this->current_context, dims_data1, IFrowind);
-        dims_data1[1] = this->nactus + 1;
+        dims_data1[1] = this->nactus-2 + 1;
         carma_obj<int> d_col(this->current_context, dims_data1, IFcolind);
-        dims_data2[1] = nactus;
+        dims_data2[1] = nactus-2;
         dims_data2[2] = Npts;
         this->d_IF = new carma_sparse_obj<float>(this->current_context, dims_data2,
                                             d_val.getData(), d_row.getData(), d_col.getData(), IFnz, false);
+        dims_data2[1] = Npts;
+        dims_data2[2] = 2;
+        this->d_TT = new carma_obj<float>(this->current_context, dims_data2, TT);
     }
 
     if(strcmp(type,"Vii") == 0){
@@ -162,6 +165,10 @@ int sutra_psfrecs::psf_rec_roket(float *err){
                 sizeof(cuFloatComplex) * this->d_amplipup->getNbElem()));
         // Apply iter #cc on the DM to get residual phase
         carma_gemv(this->current_context->get_cusparseHandle(),'t',1.0f,this->d_IF,this->d_err->getData(cc*this->nactus),0.0f,this->d_phase->getData());
+        carma_gemv(this->current_context->get_cublasHandle(),'n',this->d_TT->getDims(1),this->d_TT->getDims(2),
+                    1.0f,this->d_TT->getData(),this->d_TT->getDims(1),
+                    this->d_err->getData(cc*this->nactus+(this->nactus-2)),1,1.0f,this->d_phase->getData(),1);
+
         // complex amplitude in the pupil put in the fft support
         fill_amplipup(this->d_amplipup->getData(), this->d_phase->getData(), this->d_wherephase->getData(),
                         this->scale * (-1), this->Npts,  this->size, this->d_amplipup->getDims()[1], 0, this->current_context->get_device(this->device));
@@ -236,6 +243,10 @@ int sutra_psfrecs::psf_rec_Vii(){
         carma_gemv(this->current_context->get_cusparseHandle(),'t',1.0f,
                     this->d_IF,this->d_term1->getData(),0.0f,
                     this->d_phase->getData());
+
+        carma_gemv(this->current_context->get_cublasHandle(),'n',this->d_TT->getDims(1),this->d_TT->getDims(2),
+                    1.0f,this->d_TT->getData(),this->d_TT->getDims(1),
+                    this->d_term1->getData(this->nactus-2),1,1.0f,this->d_phase->getData(),1);
         fill_amplipup(this->d_newmodek->getData(), this->d_phase->getData(), this->d_wherephase->getData(),
                 1.0f, this->Npts,  this->size, this->d_pupfft->getDims(1), 2, this->current_context->get_device(this->device));
         // Compute term2 = abs(fft(newmode))**2

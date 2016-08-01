@@ -352,7 +352,7 @@ cdef class Rtc:
 
     cpdef init_proj(self, int ncontrol, Dms dms, np.ndarray[ndim=1, dtype=np.int32_t] indx_dm,
             np.ndarray[ndim=1, dtype=np.float32_t] unitpervolt,
-            np.ndarray[ndim=1, dtype=np.int32_t] indx_pup, np.ndarray[ndim=1, dtype=np.int32_t] indx_mpup):
+            np.ndarray[ndim=1, dtype=np.int32_t] indx_pup, np.ndarray[ndim=1, dtype=np.int32_t] indx_mpup, int roket=0):
         """Initialize the projection matrix for sutra_controller_geo object.
         The projection matrix is (IFt.IF)**(-1) * IFt where IF is the DMs influence functions matrix
 
@@ -366,6 +366,8 @@ cdef class Rtc:
             unitpervolt: (np.ndarray[ndim=1,dtype=np.float32_t]) : unitpervolt DM parameter
 
             indx_pup: (np.ndarray[ndim=1,dtype=np.int32_t]) : indices of where(pup) on ipupil screen
+
+            roket : (int) : optimisation flag for ROKET
         """
         cdef carma_context * context = &carma_context.instance()
         cdef sutra_controller_geo * controller_geo = \
@@ -373,7 +375,7 @@ cdef class Rtc:
 
         context.set_activeDeviceForCpy(self.rtc.device, 1)
         controller_geo.init_proj_sparse(dms.dms, < int *> indx_dm.data,
-            < float *> unitpervolt.data, < int *> indx_pup.data, < int *> indx_mpup.data)
+            < float *> unitpervolt.data, < int *> indx_pup.data, < int *> indx_mpup.data, roket)
 
 
     cpdef init_modalOpti(self, int ncontrol, int nmodes, int nrec, np.ndarray[ndim=2, dtype=np.float32_t] M2V,
@@ -1179,6 +1181,33 @@ cdef class Rtc:
 
         return data
 
+    cpdef get_IFtt(self,int ncontro):
+        """Return the TT IF matrix of the sutra_controller_geo object (in case of error_budget computation)
+        :parameters:
+            ncontro: (int) : controller index
+        :return:
+            geocov : (np.ndarray[ndim=2,dtype=np.float32_t]) : IF TT matrix
+        """
+        cdef carma_context *context=&carma_context.instance()
+        context.set_activeDeviceForCpy(self.rtc.device,1)
+        cdef sutra_controller_geo *controller_geo
+        cdef bytes type_contro=<bytes>self.rtc.d_control[ncontro].get_type()
+        cdef np.ndarray[ndim=2, dtype=np.float32_t] data
+        cdef np.ndarray[ndim=2, dtype=np.float32_t] data_F
+        cdef const long *dims
+        if(type_contro=="geo"):
+            controller_geo=dynamic_cast_controller_geo_ptr(self.rtc.d_control[ncontro])
+            if(controller_geo.Ntt):
+                dims=controller_geo.d_TT.getDims()
+                data_F=np.zeros((dims[2],dims[1]),dtype=np.float32)
+                controller_geo.d_TT.device2host(<float*>data_F.data)
+
+                data=np.reshape(data_F.flatten("F"),(dims[1],dims[2]))
+
+                return data
+            else:
+                raise ValueError("TT not initialized : only with roket")
+
     cpdef getCenbuff(self, int ncontrol):
         """Return the centroids buffer from a sutra_controller_ls object.
         This buffer contains centroids from iteration i-delay to current iteration.
@@ -1468,11 +1497,13 @@ cdef class Rtc:
         context.set_activeDeviceForCpy(self.rtc.device,1)
         cdef sutra_controller_geo *controller_geo
         cdef bytes type_contro=<bytes>self.rtc.d_control[ncontro].get_type()
-        cdef np.ndarray Btt_F=Btt.flatten('F')
+        cdef np.ndarray TT = Btt[-2:,-2:].copy()
+        cdef np.ndarray Btt_F=Btt[:-2,:-2].copy().flatten('F')
+        cdef np.ndarray TT_F=TT.flatten('F')
 
         if(type_contro=="geo"):
             controller_geo=dynamic_cast_controller_geo_ptr(self.rtc.d_control[ncontro])
-            controller_geo.load_Btt(<float*>Btt_F.data)
+            controller_geo.load_Btt(<float*>Btt_F.data, <float*>TT_F.data)
         else:
             raise TypeError("Controller needs to be geo")
 
@@ -1972,7 +2003,7 @@ def rtc_init(Telescope g_tel, Sensors g_wfs, p_wfs, Dms g_dms, p_dms, Param_geom
                     unitpervolt = np.array([p_dms[j].unitpervolt for j in range(len(p_dms))],
                                 dtype=np.float32)
 
-                    g_rtc.init_proj(i + 1, g_dms, indx_dm, unitpervolt, indx_pup, indx_mpup)
+                    g_rtc.init_proj(i + 1, g_dms, indx_dm, unitpervolt, indx_pup, indx_mpup, 1)
                     free(type_dmseen)
 
 
@@ -2241,7 +2272,7 @@ cpdef manual_imat2(Rtc g_rtc, Sensors g_wfs, Dms g_dms, push4imat=1):
     # cdef np.ndarray[ndim=1, dtype=np.float32_t] slps=g_rtc.getcentroids(0, g_wfs, 0) #UNUSED
     cdef int nslps = g_wfs._get_slopesDims(0)
     cdef int nactu_tot = g_rtc.getCom(0).shape[0]
-    
+
     imat_cpu = np.zeros((nactu_tot, nslps), dtype=np.float32)
     com = np.zeros((nactu_tot), dtype=np.float32)
 

@@ -40,7 +40,7 @@ cdef class Roket:
 
     def __dealloc__(self):
         del self.roket
-        
+
     cpdef getContributor(self, bytes type):
         """Return the error buffer define by "type" from a sutra_roket object.
         :parameters:
@@ -96,6 +96,59 @@ cdef class Roket:
         data_F = np.zeros((dims[2], dims[1]), dtype=np.float32)
         self.roket.d_Btt.device2host(< float *> data_F.data)
         data = np.reshape(data_F.flatten("F"), (dims[1], dims[2]))
+
+        return data
+
+    def get_psfortho(self):
+        """Return the PSF orthogonal from a sutra_roket object.
+
+        :return:
+            data : (np.ndarray[ndim=2,dtype=np.float32_t]) : psf
+        """
+        cdef carma_context * context = &carma_context.instance()
+        context.set_activeDeviceForCpy(self.roket.device, 1)
+        cdef np.ndarray[ndim = 2, dtype = np.float32_t] data_F
+        cdef np.ndarray[ndim = 2, dtype = np.float32_t] data
+        cdef const long * dims = NULL
+
+        dims = self.roket.d_psfortho.getDims()
+        data_F = np.zeros((dims[2], dims[1]), dtype=np.float32)
+        self.roket.d_psfortho.device2host(< float *> data_F.data)
+        data = np.reshape(data_F.flatten("F"), (dims[1], dims[2]))
+
+        return data
+
+    def get_filtmodes(self):
+        """Return the filt modes from a sutra_roket object.
+
+        :return:
+            data : (np.ndarray[ndim=2,dtype=np.float32_t]) : filtmodes
+        """
+        cdef carma_context * context = &carma_context.instance()
+        context.set_activeDeviceForCpy(self.roket.device, 1)
+        cdef np.ndarray[ndim = 1, dtype = np.float32_t] data
+        cdef const long * dims = NULL
+
+        dims = self.roket.d_filtmodes.getDims()
+        data = np.zeros(dims[1], dtype=np.float32)
+        self.roket.d_filtmodes.device2host(< float *> data.data)
+
+        return data
+
+    def get_modes(self):
+        """Return the modes from a sutra_roket object.
+
+        :return:
+            data : (np.ndarray[ndim=2,dtype=np.float32_t]) :modes
+        """
+        cdef carma_context * context = &carma_context.instance()
+        context.set_activeDeviceForCpy(self.roket.device, 1)
+        cdef np.ndarray[ndim = 1, dtype = np.float32_t] data
+        cdef const long * dims = NULL
+
+        dims = self.roket.d_modes.getDims()
+        data = np.zeros(dims[1], dtype=np.float32)
+        self.roket.d_modes.device2host(< float *> data.data)
 
         return data
 

@@ -684,6 +684,7 @@ cdef extern from "sutra_controller_geo.h":
     cdef cppclass sutra_controller_geo(sutra_controller):
         float gain
         long Nphi
+        int Ntt
 
         carma_obj[float] * d_gain
         carma_obj[float] * d_proj
@@ -693,6 +694,8 @@ cdef extern from "sutra_controller_geo.h":
         carma_obj[float] * d_geocov
         carma_obj[double] * d_compdouble
         carma_obj[float] * d_compfloat
+        carma_obj[float] * d_TT
+        carma_obj[float] * d_geocovTT
 
         sutra_controller_geo(carma_context * context, long nactu, long Nphi,
                              float delay, sutra_dms * dms, char ** type, float * alt, int ndm, bool wfs_direction)
@@ -700,13 +703,13 @@ cdef extern from "sutra_controller_geo.h":
 
         string get_type()
 
-        int load_Btt(float *Btt)
+        int load_Btt(float *Btt_pzt, float *Btt_TT)
         int set_gain(float gain)
         int load_mgain(float * mgain)
         int comp_dphi(sutra_source * target, bool wfs_direction)
         int comp_com()
         int init_proj(sutra_dms * dms, int * indx_dm, float * unitpervolt, int * indx_pup)
-        int init_proj_sparse(sutra_dms * dms, int * indx_dm, float * unitpervolt, int * indx_pup, int * indx_mpup)
+        int init_proj_sparse(sutra_dms * dms, int * indx_dm, float * unitpervolt, int * indx_pup, int * indx_mpup, int roket)
 
 
 #################################################
@@ -1035,6 +1038,7 @@ cdef extern from "sutra_roket.h":
         carma_obj[float] *d_tmpdiff
         carma_obj[float] *d_gRD
         carma_obj[float] *d_RD
+        carma_obj[float] *d_psfortho
 
         sutra_roket(carma_context *context, int device, sutra_rtc *rtc, sutra_sensors *sensors,
                         sutra_target *target, sutra_dms *dms, sutra_telescope *tel, sutra_atmos *atm, int loopcontroller, int geocontroller,
@@ -1062,6 +1066,7 @@ cdef extern from "sutra_psfrecs.h":
         carma_obj[float] *d_phase
         carma_obj[int] *d_wherephase
         carma_sparse_obj[float] *d_IF
+        carma_obj[float] *d_TT
         float scale
         int size
         int Npts
@@ -1080,7 +1085,7 @@ cdef extern from "sutra_psfrecs.h":
 
         sutra_psfrecs(carma_context *context, int device, char *type, int nactus,
                     int nmodes, int niter, float *IFvalue, int *IFrowind, int *IFcolind, int IFnz,
-                    float *pupil, int size, int Npts, float scale, float *Btt, float *covmodes);
+                    float *TT, float *pupil, int size, int Npts, float scale, float *Btt, float *covmodes);
 
         int psf_rec_roket(float *err)
         int psf_rec_Vii()

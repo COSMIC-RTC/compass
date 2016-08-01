@@ -6,6 +6,7 @@ def psfrecs_init( bytes type, int nactus, int niter,
                   np.ndarray[ndim=1, dtype=np.float32_t] IFvalue,
                   np.ndarray[ndim=1, dtype=np.int32_t] IFrowind,
                   np.ndarray[ndim=1, dtype=np.int32_t] IFcolind,
+                  np.ndarray[ndim=2, dtype=np.float32_t] TT,
                   np.ndarray[ndim=2, dtype=np.float32_t] spupil,
                   float scale, int nmodes=2,
                   np.ndarray[ndim=2, dtype=np.float32_t] Btt=None,
@@ -15,16 +16,17 @@ def psfrecs_init( bytes type, int nactus, int niter,
         type : (str) : reconstruction method used ("roket" or "Vii")
         nactus : (int) : number of actuators
         niter : (int) : number of iterations performed with roket
-        IFvalue : (np.ndarray[ndim=1,dtype=float32_t]) : Non zeros values of influence function matrix
+        IFvalue : (np.ndarray[ndim=1,dtype=float32_t]) : Non zeros values of pzt influence function matrix
         IFrowind : (np.ndarray[ndim=1,dtype=int32_t]) : Row indices of nnz values (csr sparse format)
         IFcolind : (np.ndarray[ndim=1,dtype=int32_t]) : Column indices of nnz values (csr sparse format)
+        TT : (np.ndarray[ndim=1,dtype=float32_t])np.ndarray[ndim=1,dtype=float32_t]) : Tip-tilt influence functions
         spupil : (np.ndarray[ndim=2,dtype=float32_t]) : Small pupil
         scale : (float) : 2*pi/lambda_target with lambda_target expressed in microns
     """
     if Btt is None:
-        return Psfrecs(type,nactus, niter, IFvalue, IFrowind, IFcolind, spupil, scale)
+        return Psfrecs(type,nactus, niter, IFvalue, IFrowind, IFcolind, TT, spupil, scale)
     else:
-        return Psfrecs(type,nactus, niter, IFvalue, IFrowind, IFcolind, spupil, scale, nmodes, Btt, covmodes)
+        return Psfrecs(type,nactus, niter, IFvalue, IFrowind, IFcolind, TT, spupil, scale, nmodes, Btt, covmodes)
 
 cdef class Psfrecs:
 
@@ -32,6 +34,7 @@ cdef class Psfrecs:
                   np.ndarray[ndim=1, dtype=np.float32_t] IFvalue,
                   np.ndarray[ndim=1, dtype=np.int32_t] IFrowind,
                   np.ndarray[ndim=1, dtype=np.int32_t] IFcolind,
+                  np.ndarray[ndim=2, dtype=np.float32_t] TT,
                   np.ndarray[ndim=2, dtype=np.float32_t] spupil,
                   float scale, int nmodes=2,
                   np.ndarray[ndim=2, dtype=np.float32_t] Btt=None,
@@ -45,6 +48,7 @@ cdef class Psfrecs:
         cdef int Npts = np.where(spupil)[0].shape[0]
         cdef int IFnz = IFvalue.shape[0]
         cdef np.ndarray[dtype = np.float32_t] pup_F = spupil.flatten("F")
+        cdef np.ndarray[dtype = np.float32_t] TT_F = TT.flatten("F")
         if Btt is None:
             Btt = np.zeros((2,2),dtype=np.float32)
             covmodes = np.zeros((2,2),dtype=np.float32)
@@ -54,7 +58,7 @@ cdef class Psfrecs:
         self.psfrecs = new sutra_psfrecs(context, device, type, nactus, nmodes,
                                       niter,< float *> IFvalue.data,
                                       < int *> IFrowind.data, < int *> IFcolind.data,
-                                      IFvalue.shape[0],< float *> pup_F.data,
+                                      IFvalue.shape[0],<float *> TT_F.data, < float *> pup_F.data,
                                       size, Npts, scale, <float*> Btt_F.data, <float*> cov_F.data)
 
     def __dealloc__(self):
@@ -293,6 +297,22 @@ cdef class Psfrecs:
         cdef np.ndarray data_F = np.empty((dims[2], dims[1]), dtype=np.float32)
         cdef np.ndarray data = np.empty((dims[1], dims[2]), dtype=np.float32)
         self.psfrecs.d_covmodes.device2host(< float *> data_F.data)
+
+        data = np.reshape(data_F.flatten("F"), (dims[1], dims[2]))
+        return data
+
+    def get_TT(self):
+        """Return the Tip-Tilt influence functions object of a sutra_psfrecs
+        """
+        cdef carma_context * context = &carma_context.instance()
+        context.set_activeDeviceForCpy(self.psfrecs.device, 1)
+
+        cdef const long * dims
+        dims = self.psfrecs.d_TT.getDims()
+
+        cdef np.ndarray data_F = np.empty((dims[2], dims[1]), dtype=np.float32)
+        cdef np.ndarray data = np.empty((dims[1], dims[2]), dtype=np.float32)
+        self.psfrecs.d_TT.device2host(< float *> data_F.data)
 
         data = np.reshape(data_F.flatten("F"), (dims[1], dims[2]))
         return data

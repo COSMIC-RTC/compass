@@ -7,9 +7,9 @@ __global__ void separate_modes_krnl(float *modes, float *filtmodes, int nmodes, 
   while(tid < nmodes){
     if(tid >= bornemin && tid < bornemax){
       filtmodes[tid] = modes[tid];
-      modes[tid] = 0;
+      modes[tid] = 0.0f;
     }
-    else filtmodes[tid] = 0;
+    else filtmodes[tid] = 0.0f;
 
     tid += blockDim.x * gridDim.x;
   }

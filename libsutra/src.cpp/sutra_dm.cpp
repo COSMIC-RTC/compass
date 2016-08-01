@@ -371,8 +371,8 @@ int sutra_dm::get_IF(T *IF, int *indx_pup, long nb_pts, float ampli) {
 
 	for (int i = 0; i < this->ninflu; i++) {
 		this->comp_oneactu(i, ampli);
-		getIF<T>(IF, this->d_shape->d_screen->getData(), indx_pup, nb_pts, i, 1,
-				this->ninflu, current_context->get_device(device));
+		getIF<T>(IF, this->d_shape->d_screen->getData(), indx_pup, nb_pts, i,
+				this->ninflu, 1, current_context->get_device(device));
 	}
 
 	this->reset_shape();

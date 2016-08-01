@@ -59,7 +59,7 @@ cdef class Rtc:
     cpdef init_proj(self, int i, Dms dms, np.ndarray[ndim=1, dtype=np.int32_t] indx_dm,
             np.ndarray[ndim=1, dtype=np.float32_t] unitpervolt,
             np.ndarray[ndim=1, dtype=np.int32_t] indx_pup,
-            np.ndarray[ndim=1, dtype=np.int32_t] indx_mpup)
+            np.ndarray[ndim=1, dtype=np.int32_t] indx_mpup, int roket=?)
     cpdef init_modalOpti(self, int ncontro, int nmodes, int nrec, np.ndarray[ndim=2, dtype=np.float32_t] M2V,
             float gmin, float gmax, int ngain, float Fs)
     cpdef loadOpenLoop(self, int ncontro, np.ndarray[ndim=2, dtype=np.float32_t] ol_slopes)
@@ -81,6 +81,7 @@ cdef class Rtc:
     cpdef set_openloop(self, int ncontro, int openloop)
     cpdef load_Btt(self,int ncontro, np.ndarray[ndim=2,dtype=np.float32_t] Btt)
     cpdef getGeocov(self,int ncontro)
+    cpdef get_IFtt(self,int ncontro)
     cpdef set_pyr_ampl(self, int n, float ampli, list p_wfss, Param_tel p_tel)
     cpdef doimat_geom(self, int ncontro, Dms g_dms, int geom)
     cpdef doimat(self, int ncontro, Dms g_dms)

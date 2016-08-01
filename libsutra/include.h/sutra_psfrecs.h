@@ -21,6 +21,7 @@ class sutra_psfrecs {
     carma_obj<float> *d_phase;
     carma_obj<int> *d_wherephase;
     carma_sparse_obj<float> *d_IF;
+    carma_obj<float> *d_TT;
     float scale;
     int size;
     int Npts;
@@ -42,7 +43,7 @@ class sutra_psfrecs {
   public:
     sutra_psfrecs(carma_context *context, int device, char *type, int nactus,
                 int nmodes, int niter, float *IFvalue, int *IFrowind, int *IFcolind, int IFnz,
-                float *pupil, int size, int Npts, float scale, float *Btt, float *covmodes);
+                float *d_TT, float *pupil, int size, int Npts, float scale, float *Btt, float *covmodes);
     ~sutra_psfrecs();
 
     int

@@ -15,7 +15,7 @@ import time
 plt.ion()
 c = ch.naga_context(0)
 
-filename = "/home/fferreira/Data/breakdown_offaxis-4_2.h5"
+#filename = "/home/fferreira/Data/breakdown_offaxis-4_2.h5"
 
 def get_err(filename):
     f = h5py.File(filename)
@@ -50,8 +50,13 @@ def get_pup(filename):
 def get_IF(filename):
     f = h5py.File(filename)
     IF = csr_matrix((f["IF.data"][:], f["IF.indices"][:], f["IF.indptr"][:]))
+    if(f.keys().count("T")):
+        T = f["T"][:]
+    else:
+        T = IF[-2:,:].toarray()
+        IF = IF[:-2,:]
     f.close()
-    return IF
+    return IF, T.T.astype(np.float32)
 
 
 def psf_rec_roket_file(filename):
@@ -59,12 +64,12 @@ def psf_rec_roket_file(filename):
     err = get_err(filename)
     spup = get_pup(filename)
     # Sparse IF matrix
-    IF = get_IF(filename)
+    IF, T = get_IF(filename)
     # Scale factor
     scale = float(2*np.pi/f.attrs["target.Lambda"][0])
     # Init GPU
     precs = ao.psfrecs_init("roket", err.shape[0], err.shape[1],
-                            IF.data.astype(np.float32), IF.indices, IF.indptr,
+                            IF.data.astype(np.float32), IF.indices, IF.indptr, T,
                             spup.astype(np.float32), scale)
     # Launch computation
     precs.psf_rec_roket(err)
@@ -94,13 +99,14 @@ def psf_rec_roket_file_cpu(filename):
     psf = psf.astype(np.float32)
 
     # Sparse IF matrix
-    IF = csr_matrix((f["IF.data"][:], f["IF.indices"][:], f["IF.indptr"][:]))
+    IF, T = get_IF(filename)
     # Scale factor
     scale = float(2*np.pi/f.attrs["target.Lambda"][0])
 
     for k in range(err.shape[1]):
         amplipup = np.zeros((fft_size,fft_size),dtype=np.complex)
-        phase[np.where(spup)] = IF.T.dot(err[:,k])
+        phase[np.where(spup)] = IF.T.dot(err[:-2,k])
+        phase[np.where(spup)] += T.dot(err[-2:,k])
         amplipup[:phase.shape[0],:phase.shape[1]] = np.exp(-1j*phase*scale)
         amplipup = np.fft.fft2(amplipup)
         psf += np.fft.fftshift(np.abs(amplipup)**2) / IF.shape[1] / IF.shape[1] / err.shape[1]
@@ -113,7 +119,7 @@ def psf_rec_Vii(filename):
     err = get_err(filename)
     spup = get_pup(filename)
     # Sparse IF matrix
-    IF = get_IF(filename)
+    IF, T = get_IF(filename)
     # Covariance matrix
     P = f["P"][:]
     err = P.dot(err)
@@ -124,7 +130,7 @@ def psf_rec_Vii(filename):
     scale = float(2*np.pi/f.attrs["target.Lambda"][0])
     # Init GPU
     precs = ao.psfrecs_init("Vii", Btt.shape[0], err.shape[1],
-                            IF.data.astype(np.float32), IF.indices, IF.indptr,
+                            IF.data.astype(np.float32), IF.indices, IF.indptr, T,
                             spup.astype(np.float32), scale,
                             covmodes.shape[0], Btt, covmodes)
     # Launch computation
@@ -140,7 +146,7 @@ def psf_rec_Vii(filename):
 
 def psf_rec_vii_cpu(filename):
     f = h5py.File(filename)
-    IF = get_IF(filename)
+    IF,T = get_IF(filename)
     ratio_lambda = 2*np.pi/f.attrs["target.Lambda"][0]
     # Telescope OTF
     print "Computing telescope OTF..."
@@ -164,7 +170,7 @@ def psf_rec_vii_cpu(filename):
     P = f["P"][:]
     err = P.dot(err)
     Btt = f["Btt"][:]
-    modes = IF.T.dot(Btt)
+    #modes = IF.T.dot(Btt)
     covmodes = err.dot(err.T) / err.shape[1]
     print "Done"
     # Vii algorithm
@@ -176,7 +182,10 @@ def psf_rec_vii_cpu(filename):
     ind = np.where(pup)
     for k in range(err.shape[0]):
         #newmodek[ind] = IF.T.dot(V[:,k])
-        newmodek[ind] = modes.dot(V[:,k])
+        #newmodek[ind] = modes.dot(V[:,k])
+        tmp2 = Btt.dot(V[:,k])
+        newmodek[ind] = IF.T.dot(tmp2[:-2])
+        newmodek[ind] += T.dot(tmp2[-2:])
         term1 = np.real(np.fft.fft2(newmodek**2) * conjpupfft)
         term2 = np.abs(np.fft.fft2(newmodek))**2
         tmp += ((term1 - term2) * e[k])
