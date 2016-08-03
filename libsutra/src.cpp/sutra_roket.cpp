@@ -192,7 +192,7 @@ int sutra_roket::compute_breakdown(){
 
   this->target->d_targets[0]->raytrace(this->dms,0,0);
   this->fitting += this->target->d_targets[0]->phase_var / this->niter;
-  this->target->d_targets[0]->comp_image(1,false);
+  this->target->d_targets[0]->comp_image(0,false);
   //this->d_psfse->copyFrom(this->target->d_targets[0]->d_image->getData(),this->d_psfse->getNbElem());
   this->d_psfortho->axpy(1.0f/this->niter,this->target->d_targets[0]->d_image,1,1);
   // Filtered modes

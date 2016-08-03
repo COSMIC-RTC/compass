@@ -62,7 +62,7 @@ abs2complex(cuFloatComplex *d_odata, cuFloatComplex *d_idata, int N, carma_devic
 int
 real(float *d_odata, cuFloatComplex *d_idata, int N, carma_device *device);
 int
-fill_mask(float *d_odata, float *d_idata, int N, carma_device *device);
+fill_mask(float *d_odata, float *d_idata, int N, int norm, carma_device *device);
 int
 modulus2(float *d_odata, cuFloatComplex *d_idata, int N, carma_device *device);
 int

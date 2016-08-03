@@ -50,8 +50,8 @@ def get_pup(filename):
 def get_IF(filename):
     f = h5py.File(filename)
     IF = csr_matrix((f["IF.data"][:], f["IF.indices"][:], f["IF.indptr"][:]))
-    if(f.keys().count("T")):
-        T = f["T"][:]
+    if(f.keys().count("TT")):
+        T = f["TT"][:]
     else:
         T = IF[-2:,:].toarray()
         IF = IF[:-2,:]
@@ -123,7 +123,9 @@ def psf_rec_Vii(filename):
     # Covariance matrix
     P = f["P"][:]
     err = P.dot(err)
+    print "Computing covariance matrix..."
     covmodes = err.dot(err.T) / err.shape[1]
+    print "Done"
     Btt = f["Btt"][:]
 
     # Scale factor
@@ -134,14 +136,27 @@ def psf_rec_Vii(filename):
                             spup.astype(np.float32), scale,
                             covmodes.shape[0], Btt, covmodes)
     # Launch computation
+    tic = time.time()
     precs.psf_rec_Vii()
+
     otftel = precs.get_otftel()
     otf2 = precs.get_otfVii()
 
     otftel /= otftel.max()
-    psf = np.fft.fftshift(np.real(np.fft.ifft2(otftel*otf2)))
+    if(f.keys().count("psfortho")):
+        print "\nAdding fitting to PSF..."
+        psfortho = f["psfortho"][:]
+        otffit = np.real(np.fft.fft2(psfortho))
+        otffit /= otffit.max()
+        psf = np.fft.fftshift(np.real(np.fft.ifft2(otffit*otf2)))
+    else:
+        psf = np.fft.fftshift(np.real(np.fft.ifft2(otftel*otf2)))
+
     psf *= (psf.shape[0]*psf.shape[0]/float(np.where(spup)[0].shape[0]))
     f.close()
+    tac = time.time()
+    print " "
+    print "PSF renconstruction took ",tac-tic," seconds"
     return otftel, otf2, psf, precs
 
 def psf_rec_vii_cpu(filename):

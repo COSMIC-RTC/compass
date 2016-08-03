@@ -217,7 +217,7 @@ int sutra_psfrecs::psf_rec_Vii(){
             this->d_amplipup->getNbElem(),this->current_context->get_device(this->device));
     // Deduce the mask from telescope OTF
     fill_mask(this->d_mask->getData(),this->d_otftel->getData(),
-                this->d_mask->getNbElem(),this->current_context->get_device(this->device));
+                this->d_mask->getNbElem(), this->Npts, this->current_context->get_device(this->device));
     printf("Done\n");
 
 // OTF|| computation with Vii algorithm

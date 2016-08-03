@@ -132,21 +132,21 @@ int real(float *d_odata, cuFloatComplex *d_idata, int N, carma_device *device){
     return EXIT_SUCCESS;
 }
 
-__global__ void fillmask_krnl(float *d_odata, float *d_idata, int N){
+__global__ void fillmask_krnl(float *d_odata, float *d_idata, int N, int norm){
     int tid = threadIdx.x + blockIdx.x * blockDim.x;
 
     while(tid < N){
-        d_odata[tid] = d_idata[tid] < 1e-1 ? 0.0f : 1.0f;
+        d_odata[tid] = d_idata[tid] < (1e-5*norm) ? 0.0f : 1.0f;
         tid += blockDim.x * gridDim.x;
     }
 }
 
-int fill_mask(float *d_odata, float *d_idata, int N, carma_device *device){
+int fill_mask(float *d_odata, float *d_idata, int N, int norm, carma_device *device){
     int nthreads = 0, nblocks = 0;
     getNumBlocksAndThreads(device, N, nblocks, nthreads);
     dim3 grid(nblocks), threads(nthreads);
 
-    fillmask_krnl<<<grid, threads>>>(d_odata, d_idata, N);
+    fillmask_krnl<<<grid, threads>>>(d_odata, d_idata, N, norm);
     carmaCheckMsg("fillmask_krnl<<<>>> execution failed\n");
 
     return EXIT_SUCCESS;

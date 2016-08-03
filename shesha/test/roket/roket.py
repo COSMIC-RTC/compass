@@ -191,7 +191,7 @@ def loop(n):
                 roket.computeBreakdown()
             rtc.applycontrol(0,dms)
 
-        if((i+1)%10==0 and i>-1):
+        if((i+1)%100==0 and i>-1):
             strehltmp = tar.get_strehl(0)
             print i+1,"\t",strehltmp[0],"\t",strehltmp[1],"\t",np.exp(-strehltmp[2]),"\t",np.exp(-strehltmp[3])
     t1=time.time()
@@ -397,7 +397,7 @@ def save_it(filename):
     indx_pup=np.where(pup.flatten()>0)[0].astype(np.int32)
     dm_dim = config.p_dms[0]._n2-config.p_dms[0]._n1+1
     cov, cor = cov_cor(P,noise_com,trunc_com,alias_wfs_com,H_com,bp_com,tomo_com)
-    psf = tar.get_image(0,"le")
+    psf = tar.get_image(0,"le",fluxNorm=False)
     psfortho = roket.get_psfortho()
 
     fname = "/home/fferreira/Data/"+filename
@@ -442,4 +442,4 @@ roket = ao.roket_init(rtc, wfs, tar, dms, tel, atm, 0, 1,
 preloop(1000)
 SR, SR2 = loop(niters)
 
-save_it("roket_test.h5")
+save_it("roket_8m.h5")
