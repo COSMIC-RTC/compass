@@ -146,7 +146,7 @@ def make_EELT(dim,pupd,tel,N_seg):#dim,pupd,type_ap,cobs,N_seg,nbr_miss_seg,std_
         W=1.45*np.cos(np.pi/6)
 
         #tel.set_diam(39.146)
-        tel.set_diam(37.)
+        #tel.set_diam(37.)
 
         X=MESH(tel.diam*dim/pupd,dim)
 
@@ -322,4 +322,3 @@ def dist(dim, xc=-1, yc=-1):
 
     d=np.sqrt(dx**2+dy**2)
     return d #np.asfortranarray(d)
-

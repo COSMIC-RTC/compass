@@ -1842,8 +1842,8 @@ def rtc_init(Telescope g_tel, Sensors g_wfs, p_wfs, Dms g_dms, p_dms, Param_geom
 
 
                     if(controller.type_control == "geo"):
-                        indx_pup = np.where(p_geom._spupil.flatten())[0].astype(np.int32)
-                        indx_mpup = np.where(p_geom._mpupil.flatten())[0].astype(np.int32)
+                        indx_pup = np.where(p_geom._spupil.flatten('F'))[0].astype(np.int32)
+                        indx_mpup = np.where(p_geom._mpupil.flatten('F'))[0].astype(np.int32)
                         cpt = 0
                         indx_dm = np.zeros((controller.ndm.size * indx_pup.size), dtype=np.int32)
                         for dmn in range(controller.ndm.size):

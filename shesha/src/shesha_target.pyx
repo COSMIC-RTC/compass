@@ -90,7 +90,7 @@ cdef class Target:
         d_screen.axpy(1.0, d_tel, 1, 1)
 
 
-    def get_image(self, int nTarget, bytes type_im, long puponly=0, bool comp_le=False):
+    def get_image(self, int nTarget, bytes type_im, long puponly=0, bool comp_le=False, bool fluxNorm=True):
         """Return the image from the target (or long exposure image according to the requested type)
 
         :parameters:
@@ -108,27 +108,35 @@ cdef class Target:
         cdef const long * dims = src.d_image.getDims()
         cdef np.ndarray data_F = np.empty((dims[2], dims[1]), dtype=np.float32)
         cdef np.ndarray data = np.empty((dims[1], dims[2]), dtype=np.float32)
+        cdef float flux
+        cdef carma_obj[float] * tmp_img
+        if(fluxNorm):
+            src.comp_image(puponly, comp_le)
+            flux = src.zp * 10 ** (-0.4 * src.mag);
+            tmp_img = new carma_obj[float](self.context.c, dims)
+            if(type_im == "se"):
+                roll_mult[float](
+                    tmp_img.getData(),
+                    src.d_image.getData(), src.d_image.getDims(1), src.d_image.getDims(2),
+                    flux,
+                    self.context.c.get_device(src.device));
+            elif(type_im == "le"):
+                roll_mult[float](
+                    tmp_img.getData(),
+                    src.d_leimage.getData(), src.d_leimage.getDims(1), src.d_leimage.getDims(2),
+                    flux,
+                    self.context.c.get_device(src.device));
 
-        src.comp_image(puponly, comp_le)
-        cdef float flux = src.zp * 10 ** (-0.4 * src.mag);
-        cdef carma_obj[float] * tmp_img = new carma_obj[float](self.context.c, dims)
-        if(type_im == "se"):
-            roll_mult[float](
-                tmp_img.getData(),
-                src.d_image.getData(), src.d_image.getDims(1), src.d_image.getDims(2),
-                flux,
-                self.context.c.get_device(src.device));
-        elif(type_im == "le"):
-            roll_mult[float](
-                tmp_img.getData(),
-                src.d_leimage.getData(), src.d_leimage.getDims(1), src.d_leimage.getDims(2),
-                flux,
-                self.context.c.get_device(src.device));
-
-        tmp_img.device2host(< float *> data_F.data)
+            tmp_img.device2host(< float *> data_F.data)
+            del tmp_img
+        else:
+            if(type_im == "se"):
+                src.d_image.device2host(<float*> data_F.data)
+            if(type_im == "le"):
+                src.d_leimage.device2host(<float*> data_F.data)
+                data_F /= src.strehl_counter
 
         data = np.reshape(data_F.flatten("F"), (dims[1], dims[2]))
-        del tmp_img
         return data
 
 
@@ -413,7 +421,7 @@ def target_init(naga_context ctxt, Telescope telescope, Param_target p_target, P
                 xoff = xoff + (atm.dim_screens[j] - geom._n) / 2
                 yoff = yoff + (atm.dim_screens[j] - geom._n) / 2
                 sensors.sensors.d_wfs[i].d_gs.add_layer(type_target, atm.alt[j], xoff, yoff)
-                
+
     return target
 
 IF USE_BRAMA == 1:
