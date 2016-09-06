@@ -11,6 +11,7 @@ import hdf5_utils as h5
 import resDataBase as db
 import pandas as pd
 from scipy import interpolate
+from scipy.sparse import csr_matrix
 
 #max_extent signature
 cdef _dm_init(Dms dms, Param_dm p_dms, list p_wfs, Param_geom p_geom, Param_tel p_tel,int *max_extent):
@@ -1343,7 +1344,7 @@ cpdef compute_klbasis(Dms g_dm, Param_dm p_dm, Param_geom p_geom, Param_atmos p_
     return KLbasis
 
 cpdef computeDMbasis(Dms g_dm, Param_dm p_dm, Param_geom p_geom):
-    """Compute a the DM basis :
+    """Compute a the DM basis as a sparse matrix :
             - push on each actuator
             - get the corresponding dm shape
             - apply pupil mask and store in a column
@@ -1355,7 +1356,7 @@ cpdef computeDMbasis(Dms g_dm, Param_dm p_dm, Param_geom p_geom):
 
         p_geom: (Param_geom) : geom settings
     :return:
-        IFbasis = (np.ndarray((indx_valid.size,Nactu),dtype=np.float32)) : DM IF basis
+        IFbasis = (csr_matrix) : DM IF basis
     """
     cdef int tmp
     tmp = (p_geom._ipupil.shape[0] - (p_dm._n2 - p_dm._n1 + 1)) / 2
@@ -1364,12 +1365,49 @@ cpdef computeDMbasis(Dms g_dm, Param_dm p_dm, Param_geom p_geom):
     pup = p_geom._ipupil[tmp:tmp_e0, tmp:tmp_e1]
     indx_valid = np.where(pup.flatten("F") > 0)[0].astype(np.int32)
 
-    IFbasis = np.ndarray((indx_valid.size, p_dm._ntotact), dtype=np.float32)
+    #IFbasis = np.ndarray((indx_valid.size, p_dm._ntotact), dtype=np.float32)
     for i in range(p_dm._ntotact):
         g_dm.resetdm(p_dm.type_dm, p_dm.alt)
         g_dm.comp_oneactu(p_dm.type_dm, p_dm.alt, i, 1.0)
         shape = g_dm.get_dm(p_dm.type_dm, p_dm.alt)
-        IFbasis[:, i] = shape.flatten("F")[indx_valid]
-
+        IFvec = csr_matrix(shape.flatten("F")[indx_valid])
+        if(i==0):
+            val = IFvec.data
+            col = IFvec.indices
+            row = np.append(0,IFvec.getnnz())
+        else:
+            val = np.append(val,IFvec.data)
+            col = np.append(col,IFvec.indices)
+            row = np.append(row,row[-1]+IFvec.getnnz())
     g_dm.resetdm(p_dm.type_dm, p_dm.alt)
+    IFbasis = csr_matrix((val,col,row))
     return IFbasis
+
+cpdef computeIFsparse(Dms g_dm, list p_dms, Param_geom p_geom):
+    """Compute the influence functions of all DMs as a sparse matrix :
+            - push on each actuator
+            - get the corresponding dm shape
+            - apply pupil mask and store in a column
+
+    :parameters:
+        g_dm: (Dms) : Dms object
+
+        p_dms: (Param_dms) : dms settings
+
+        p_geom: (Param_geom) : geom settings
+    :return:
+        IFbasis = (csr_matrix) : DM IF basis
+    """
+    ndm = len(p_dms)
+    for i in range(ndm):
+        IFi = computeDMbasis(g_dm,p_dms[i],p_geom)
+        if(i==0):
+            val = IFi.data
+            col = IFi.indices
+            row = IFi.indptr
+        else:
+            val = np.append(val,IFi.data)
+            col = np.append(col,IFi.indices)
+            row = np.append(row,row[-1]+IFi.indptr[1:])
+    IFsparse = csr_matrix((val,col,row))
+    return IFsparse

@@ -1988,8 +1988,8 @@ def rtc_init(Telescope g_tel, Sensors g_wfs, p_wfs, Dms g_dms, p_dms, Param_geom
                     g_rtc.rtc.add_controller_geo(nactu, Nphi, controller.delay,
                             device, g_dms.dms, type_dmseen, < float *> alt.data,
                             controller.ndm.size, True)
-                    indx_pup = np.where(p_geom._spupil.flatten())[0].astype(np.int32)
-                    indx_mpup = np.where(p_geom._mpupil.flatten())[0].astype(np.int32)
+                    indx_pup = np.where(p_geom._spupil.flatten('F'))[0].astype(np.int32)
+                    indx_mpup = np.where(p_geom._mpupil.flatten('F'))[0].astype(np.int32)
                     cpt = 0
                     indx_dm = np.zeros((controller.ndm.size * indx_pup.size), dtype=np.int32)
                     for dmn in range(controller.ndm.size):
@@ -2856,7 +2856,7 @@ cpdef create_piston_filter(list p_dms, int ndm):
         F[i][i] = 1 - 1.0 / nactu
     return F
 
-def command_on_Btt(Rtc rtc, nfilt):
+def command_on_Btt(Rtc rtc, Dms dms, list p_dms, Param_geom p_geom, nfilt):
     """Compute a command matrix in Btt modal basis (see error breakdown) and set
     it on the sutra_rtc
     :parameters:
@@ -2864,7 +2864,7 @@ def command_on_Btt(Rtc rtc, nfilt):
     nfilt : (int) : number of modes to filter
     """
 
-    IFs = rtc.get_IFsparse(1).T
+    IFs = computeIFsparse(dms,p_dms,p_geom).T
     N = IFs.shape[0]
     n = IFs.shape[1]
     T = IFs[:,-2:].copy()

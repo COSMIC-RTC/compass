@@ -267,19 +267,6 @@ sutra_controller_geo::init_proj_sparse(sutra_dms *dms, int *indx_dm, float *unit
                     this->d_TT->getData(),2*this->Nphi,this->d_TT->getData(),2*this->Nphi,
                     0.0f,this->d_geocovTT->getData(),2*this->Ntt);
 
-        //carma_potri(d_geocovTT);
-        float *tmp;
-        tmp = (float*)malloc(this->d_geocovTT->getNbElem()*sizeof(float));
-        this->d_geocovTT->device2host(tmp);
-        for(int kk = 0; kk<this->d_geocovTT->getNbElem() ; kk++){
-            DEBUG_TRACE("%f ",tmp[kk]);
-        }
-        tmp[0] = 1.0f/tmp[0];
-        tmp[3] = 1.0f/tmp[3];
-        tmp[1] = 0.0f;
-        tmp[2] = 0.0f;
-        this->d_geocovTT->host2device(tmp);
-        delete tmp;
     }
 
 	return EXIT_SUCCESS;

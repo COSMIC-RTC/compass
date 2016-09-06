@@ -77,3 +77,4 @@ cpdef make_zernike(int nzer,int size,int diameter, float xc=?, float yc=?, int e
 cpdef comp_dmgeom(Param_dm dm, Param_geom geom)
 cpdef compute_klbasis(Dms g_dm, Param_dm p_dm, Param_geom p_geom, Param_atmos p_atmos, Param_tel p_tel)
 cpdef computeDMbasis(Dms g_dm, Param_dm p_dm, Param_geom p_geom)
+cpdef computeIFsparse(Dms g_dm, list p_dms, Param_geom p_geom)
