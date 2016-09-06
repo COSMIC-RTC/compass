@@ -697,8 +697,8 @@ class widgetAOWindow(TemplateBaseClass):
 #        self.c = ch.naga_context()
 #        self.c.set_activeDevice(device)
         if not self.c:
-            #self.c = ch.naga_context(gpudevice)
-            self.c=ch.naga_context(devices=np.array([4,5,6,7], dtype=np.int32))
+            self.c = ch.naga_context(gpudevice)
+            #self.c=ch.naga_context(devices=np.array([4,5,6,7], dtype=np.int32))
 
         self.wfs, self.tel = ao.wfs_init(self.config.p_wfss, self.config.p_atmos, self.config.p_tel,
                                          self.config.p_geom, self.config.p_target, self.config.p_loop,
