@@ -209,7 +209,7 @@ int fillindx(float *d_odata, float *d_idata, int *indx, float alpha, int N,
 
 }
 __global__ void fillarr2d_krnl(float *odata, float *idata, int tidx0, int Ncol,
-    int NC, int N) {
+    int NC, int N, int dir) {
 
   int tid = threadIdx.x + blockIdx.x * blockDim.x;
   int tidB;
@@ -219,25 +219,32 @@ __global__ void fillarr2d_krnl(float *odata, float *idata, int tidx0, int Ncol,
       tidB = tidx0 + (tid / Ncol) * NC + (tid % Ncol);
     else
       tidB = tidx0 + tid * NC;
-    odata[tidB] = idata[tid];
+    if(dir > 0)
+        odata[tidB] = idata[tid];
+    else
+        odata[tidB] = idata[N-1-tid];
     tid += blockDim.x * gridDim.x;
   }
 }
 
-int fillarr2d(float *d_odata, float *d_idata, int x0, int Ncol, int NC, int N,
+int fillarr2d(float *d_odata, float *d_idata, int x0, int Ncol, int NC, int N, int dir,
     carma_device *device) {
   int nthreads = 0, nblocks = 0;
   getNumBlocksAndThreads(device, N, nblocks, nthreads);
 
   dim3 grid(nblocks), threads(nthreads);
 
-  fillarr2d_krnl<<<grid, threads>>>(d_odata, d_idata, x0, Ncol, NC, N);
+  fillarr2d_krnl<<<grid, threads>>>(d_odata, d_idata, x0, Ncol, NC, N, dir);
 
   carmaCheckMsg("fillarr2d_kernel<<<>>> execution failed\n");
 
   return EXIT_SUCCESS;
 }
+int fillarr2d(float *d_odata, float *d_idata, int x0, int Ncol, int NC, int N,
+    carma_device *device) {
 
+    return fillarr2d(d_odata,d_idata,x0,Ncol,NC,N,1,device);
+}
 __global__ void getarr2d_krnl(float *odata, float *idata, int tidx0, int Ncol,
     int NC, int N) {
 

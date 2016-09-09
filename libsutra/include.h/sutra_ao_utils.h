@@ -34,6 +34,9 @@ int
 fillarr2d(float *d_odata, float *d_idata, int x0, int Ncol, int NC, int N,
     carma_device *device);
 int
+fillarr2d(float *d_odata, float *d_idata, int x0, int Ncol, int NC, int N, int dir,
+    carma_device *device);
+int
 getarr2d(float *d_odata, float *d_idata, int x0, int Ncol, int NC, int N,
     carma_device *device);
 template<class T>

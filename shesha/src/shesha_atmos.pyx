@@ -400,7 +400,7 @@ cdef atmos_create(naga_context c, int nscreens,
             f.close()
 
         else:
-            A, B, istx, isty = itK.AB(dim_screens[i], L0[i], verbose)
+            A, B, istx, isty = itK.AB(dim_screens[i], L0[i], deltax[i], deltay[i], verbose)
             if not(clean):
                 svnversion = check_output("svnversion").replace("\n", "")
                 print "writing files and updating database"
@@ -430,7 +430,7 @@ cdef atmos_create(naga_context c, int nscreens,
         tscreen.init_screen(< float * > (A_F.data), < float * > (B_F.data),
                              < unsigned int * > istx.data, < unsigned int * > isty.data, seeds[i])
         for j in range(2 * tscreen.screen_size):
-            tscreen.extrude(1)
+            tscreen.extrude(1 * np.sign(deltax[i]))
     return atmos_obj
 
 

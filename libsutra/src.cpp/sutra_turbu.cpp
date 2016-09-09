@@ -168,16 +168,22 @@ int sutra_tscreen::extrude(int dir) {
   int x0, Ncol, NC, N;
   NC = screen_size;
 
-  if (dir == 1) { // adding a column to the left
+  if (dir == 1 || dir == -1) { // adding a column to the left
     fillindx(this->d_z->getData(), this->d_tscreen->d_screen->getData(),
              (int *) this->d_istencilx->getData(), this->d_z->getNbElem(),
              current_context->get_device(device));
-    x0 = this->screen_size - 1; //not in stencil
+    if(dir == 1)
+        x0 = this->screen_size - 1; //not in stencil
+    else
+        x0 = this->screen_size * (this->screen_size - 1);
   } else {
     fillindx(this->d_z->getData(), this->d_tscreen->d_screen->getData(),
              (int *) this->d_istencily->getData(), this->d_z->getNbElem(),
              current_context->get_device(device));
-    x0 = this->screen_size * (this->screen_size - 1);
+    if(dir == 2)
+        x0 = this->screen_size * (this->screen_size - 1);
+    if(dir == -2)
+        x0 = this->screen_size - 1;
   }
 
   addai<float>(this->d_z->getData(), this->d_tscreen->d_screen->getData(), x0,
@@ -196,12 +202,18 @@ int sutra_tscreen::extrude(int dir) {
                x0, 1.0f, this->d_ytmp->getNbElem(),
                current_context->get_device(device));
 
-  if (dir == 1) {
-    x0 = 1;
+  if (dir == 1 || dir == -1) {
+    if(dir == 1)
+        x0 = 1;
+    else
+        x0 = 0;
     Ncol = this->screen_size - 1;
     N = this->screen_size * (this->screen_size - 1);
   } else {
-    x0 = this->screen_size;
+    if(dir == 2)
+        x0 = this->screen_size;
+    if(dir == -2)
+        x0 = 0;
     Ncol = this->screen_size;
     N = this->screen_size * (this->screen_size - 1);
   }
@@ -209,26 +221,34 @@ int sutra_tscreen::extrude(int dir) {
   getarr2d(this->d_tscreen_o->getData(), this->d_tscreen->d_screen->getData(),
            x0, Ncol, NC, N, current_context->get_device(device));
 
-  if (dir == 1)
+  if (dir > 0)
     x0 = 0;
-  else
-    x0 = 0;
+  if (dir == -1)
+    x0 = 1;
+  if (dir == -2)
+    x0 = this->screen_size;
 
   fillarr2d(this->d_tscreen->d_screen->getData(), this->d_tscreen_o->getData(),
             x0, Ncol, NC, N, current_context->get_device(device));
 
-  if (dir == 1) {
-    x0 = this->screen_size - 1;
+  if (dir == 1 || dir == -1) {
+    if(dir == 1)
+        x0 = this->screen_size - 1;
+    else
+        x0 = 0;
     Ncol = 1;
     N = this->screen_size;
   } else {
-    x0 = this->screen_size * (this->screen_size - 1);
+    if(dir == 2)
+        x0 = this->screen_size * (this->screen_size - 1);
+    if(dir == -2)
+        x0 = 0;
     Ncol = this->screen_size;
     N = this->screen_size;
   }
 
   fillarr2d(this->d_tscreen->d_screen->getData(), this->d_ytmp->getData(), x0,
-            Ncol, NC, N, current_context->get_device(device));
+            Ncol, NC, N, dir, current_context->get_device(device));
 
   return EXIT_SUCCESS;
 }
@@ -289,11 +309,13 @@ int sutra_atmos::move_atmos() {
 
     int deltax = (int) p->second->accumx;
     int deltay = (int) p->second->accumy;
-    for (int cc = 0; cc < deltax; cc++)
-      p->second->extrude(1);
+    int cx = deltax>0 ? 1 : -1;
+    int cy = deltay>0 ? 1 : -1;
+    for (int cc = 0; cc < cx*deltax; cc++)
+      p->second->extrude(1*cx);
     p->second->accumx -= deltax;
-    for (int cc = 0; cc < deltay; cc++)
-      p->second->extrude(0);
+    for (int cc = 0; cc < cy*deltay; cc++)
+      p->second->extrude(2*cy);
     p->second->accumy -= deltay;
     p++;
   }

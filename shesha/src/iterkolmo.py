@@ -21,7 +21,7 @@ def create_stencil(n):
         stencil.itemset(2**(i-1)-1,1)
         #stencil[0,2**(i-1)-1]=1
 
-    
+
     #i=ns
     stencil.itemset(2**(ns-1)-1,1)
     for i in range(0,n,2**(ns-1)):
@@ -48,7 +48,7 @@ def stencil_size( n):
     for i in range(2,ns):
         stencil[::2**(i-1),2**(i-2)]=1
         stencil.itemset(2**(i-1)-1,1)
-    
+
     #i=ns
     stencil.itemset(2**(ns-1)-1,1)
     for i in range(0,n,2**(ns-1)):
@@ -59,7 +59,7 @@ def stencil_size( n):
         stencil.itemset(2**(ns-1)+i*n, 1)
 
     return np.sum(stencil)
-    
+
 
 def Cxz(n, Zx, Zy, Xx, Xy,istencil, L0):
     """Cxz computes the covariance matrix between the new phase vector x (new
@@ -68,7 +68,7 @@ def Cxz(n, Zx, Zy, Xx, Xy,istencil, L0):
     The known values z are the values of the phase screen that are pointed by
     the stencil indexes (istencil)
     """
-    
+
     size=Xx.shape[0]
     size2=istencil.shape[0]
 
@@ -82,7 +82,7 @@ def Cxz(n, Zx, Zy, Xx, Xy,istencil, L0):
     tmp= phase_struct( (Zx[0,size-1]-Xx)**2+ (Zy[0,size-1]-Xy)**2 ,L0)
     tmp2=phase_struct( (Zx[0,size-1]-Zx_s)**2+ (Zy[0,size-1]-Zy_s)**2 ,L0)
 
-    xz=-phase_struct( (Xx_r.T-Zx_r)**2 + (Xy_r.T-Zy_r)**2 ,L0) 
+    xz=-phase_struct( (Xx_r.T-Zx_r)**2 + (Xy_r.T-Zy_r)**2 ,L0)
 
 
     xz+=np.resize(tmp,(size2,size)).T+np.resize(tmp2,(size,size2))
@@ -134,7 +134,7 @@ def Czz(n,Zx,Zy,ist,L0):
     return zz
 
 
-def AB(n,L0,rank=0):
+def AB(n,L0,deltax,deltay,rank=0):
     if(rank==0):print "create stencil and Z,X matrices"
     Zx,Zy,Xx,Xy,istencil = create_stencil(n)
     if(rank==0):print "create zz"
@@ -147,7 +147,7 @@ def AB(n,L0,rank=0):
     U,s,V = np.linalg.svd(zz)
     s1 = s
     s1[s.size-1]=1
-    s1 = 1./s1    
+    s1 = 1./s1
     s1[s.size-1]=0
     zz1 = np.dot(np.dot(U,np.diag(s1)),V)
     if(rank==0):print "compute zz pseudo_inverse"
@@ -167,6 +167,11 @@ def AB(n,L0,rank=0):
     test[istencil]=np.arange(A.shape[1])+1
     test=np.reshape(test,(n,n),"C")
     isty=np.argsort(test.T.flatten("C")).astype(np.uint32)[n*n-A.shape[1]:]
+    
+    if(deltay<0):
+        isty = (n*n-1)- isty
+    if(deltax<0):
+        istencil = (n*n-1) - istencil
 
 
     return np.asfortranarray(A.astype(np.float32)),np.asfortranarray(B.astype(np.float32)),istencil.astype(np.uint32), isty.astype(np.uint32)
@@ -318,5 +323,3 @@ def main(n,L0):
         pl.clf()
         pl.imshow(phase,cmap='Blues')
         pl.draw()
-
-
