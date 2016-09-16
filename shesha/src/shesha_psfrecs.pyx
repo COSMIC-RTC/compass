@@ -348,3 +348,51 @@ cdef class Psfrecs:
 
         data = np.reshape(data_F.flatten("F"), (dims[1], dims[2]))
         return data
+
+    def get_eigenvals(self):
+        """Return the eigen values of the covariance matrix
+        """
+        cdef carma_context * context = &carma_context.instance()
+        context.set_activeDeviceForCpy(self.psfrecs.device, 1)
+
+        cdef np.ndarray[ndim = 1, dtype = np.float32_t] data
+        cdef const long * dims
+
+        dims = self.psfrecs.h_eigenvals.getDims()
+        data = np.zeros((dims[1]), dtype=np.float32)
+        self.psfrecs.h_eigenvals.fill_into(< float *> data.data)
+
+        return data
+
+    def get_Dphi(self):
+        """Return the Dphi
+        """
+        cdef carma_context * context = &carma_context.instance()
+        context.set_activeDeviceForCpy(self.psfrecs.device, 1)
+
+        cdef const long * dims
+        dims = self.psfrecs.d_Dphi.getDims()
+
+        cdef np.ndarray data_F = np.empty((dims[2], dims[1]), dtype=np.complex64)
+        cdef np.ndarray data = np.empty((dims[1], dims[2]), dtype=np.complex64)
+        self.psfrecs.d_Dphi.device2host(< cuFloatComplex *> data_F.data)
+
+        data = np.reshape(data_F.flatten("F"), (dims[1], dims[2]))
+        return data
+
+    def set_covmodes(self, np.ndarray[ndim=2, dtype=np.float32_t] data):
+        """Set the covariance matrix
+        """
+        cdef carma_context * context = &carma_context.instance()
+        context.set_activeDeviceForCpy(self.psfrecs.device, 1)
+
+        cdef np.ndarray[dtype = np.float32_t] data_F = data.flatten("F")
+        self.psfrecs.d_covmodes.host2device(< float *> data_F.data)
+
+    def set_eigenvals(self, np.ndarray[ndim=1, dtype=np.float32_t] eigenvals):
+        """Set the eigen values
+        """
+        cdef carma_context * context = &carma_context.instance()
+        context.set_activeDeviceForCpy(self.psfrecs.device, 1)
+
+        self.psfrecs.h_eigenvals.fill_from(< float *> eigenvals.data)

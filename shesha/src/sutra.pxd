@@ -1008,6 +1008,7 @@ cdef extern from "sutra_roket.h":
         int niter
         int loopcontroller
         int geocontroller
+        int nslopes
 
         sutra_rtc *rtc
         sutra_sensors *sensors
@@ -1039,6 +1040,8 @@ cdef extern from "sutra_roket.h":
         carma_obj[float] *d_gRD
         carma_obj[float] *d_RD
         carma_obj[float] *d_psfortho
+        carma_obj[float] *d_covv
+        carma_obj[float] *d_covm
 
         sutra_roket(carma_context *context, int device, sutra_rtc *rtc, sutra_sensors *sensors,
                         sutra_target *target, sutra_dms *dms, sutra_telescope *tel, sutra_atmos *atm, int loopcontroller, int geocontroller,

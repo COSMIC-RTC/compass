@@ -23,6 +23,7 @@ class sutra_roket {
     int niter;
     int loopcontroller; // index of the loop controller
     int geocontroller; // index of the geo controller
+    int nslopes;
     // sutra objects to supervise
     sutra_rtc *rtc;
     sutra_sensors *sensors;
@@ -65,8 +66,9 @@ class sutra_roket {
     carma_obj<float> *d_RD;
     // PSF ortho
     carma_obj<float> *d_psfortho;
-    //carma_obj<float> *d_psfse;
-
+    // Loop output covariance matrices
+    carma_obj<float> *d_covv;
+    carma_obj<float> *d_covm;
 
   public:
     sutra_roket(carma_context *context, int device, sutra_rtc *rtc, sutra_sensors *sensors,

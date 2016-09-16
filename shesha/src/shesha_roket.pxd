@@ -23,4 +23,6 @@ cdef class Roket:
     cpdef get_P(self)
     cpdef get_RD(self)
     cpdef get_gRD(self)
+    cpdef get_covv(self)
+    cpdef get_covm(self)
     cpdef computeBreakdown(self)

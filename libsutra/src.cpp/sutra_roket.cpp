@@ -33,7 +33,7 @@ sutra_roket::sutra_roket(carma_context *context, int device, sutra_rtc *rtc, sut
     }
     this->gain = loopcontrol->gain;
     this->fitting = 0.;
-
+    this->nslopes = this->loopcontrol->d_centroids->getDims(1);
     // contributors buffers initialsations
     long dims_data2[3] = {2,this->niter,this->nactus};
     this->d_noise = new carma_obj<float>(this->current_context, dims_data2);
@@ -52,6 +52,15 @@ sutra_roket::sutra_roket(carma_context *context, int device, sutra_rtc *rtc, sut
     this->d_RD = new carma_obj<float>(this->current_context,dims_data2,RD);
     dims_data2[2] = this->nmodes;
     this->d_Btt = new carma_obj<float>(this->current_context,dims_data2,Btt);
+    dims_data2[1] = this->nactus;
+    dims_data2[2] = this->nactus;
+    this->d_covv = new carma_obj<float>(this->current_context,dims_data2);
+    dims_data2[1] = this->nslopes;
+    dims_data2[2] = this->nslopes;
+    this->d_covm = new carma_obj<float>(this->current_context,dims_data2);
+
+    carmaSafeCall(cudaMemset(this->d_covv->getData(), 0, sizeof(float) * this->d_covv->getNbElem()));
+    carmaSafeCall(cudaMemset(this->d_covm->getData(), 0, sizeof(float) * this->d_covm->getNbElem()));
 
     // Residual error buffer initialsations
     long dims_data1[2] = {1,this->nactus};
@@ -76,6 +85,10 @@ sutra_roket::sutra_roket(carma_context *context, int device, sutra_rtc *rtc, sut
 
 sutra_roket::~sutra_roket(){
     this->current_context->set_activeDevice(this->device,1);
+    if(this->d_covv)
+        delete this->d_covv;
+    if(this->d_covm)
+        delete this->d_covm;
     if(this->d_P)
         delete this->d_P;
     if(this->d_Btt)
@@ -127,6 +140,15 @@ int sutra_roket::save_loop_state(){
   this->d_bkup_com->copyFrom(this->loopcontrol->d_com->getData(),this->nactus);
   this->d_bkup_screen->copyFrom(this->target->d_targets[0]->d_phase->d_screen->getData(),
                                 this->target->d_targets[0]->d_phase->d_screen->getNbElem());
+  // Stack covariance matrices
+  carma_ger(this->current_context->get_cublasHandle(), this->nactus, this->nactus,
+                         1.0f/this->niter,this->loopcontrol->d_com->getData(),1,
+                         this->loopcontrol->d_com->getData(),1,
+                         this->d_covv->getData(), this->nactus);
+  carma_ger(this->current_context->get_cublasHandle(), this->nslopes, this->nslopes,
+                         1.0f/this->niter,this->loopcontrol->d_centroids->getData(),1,
+                         this->loopcontrol->d_centroids->getData(),1,
+                         this->d_covm->getData(), this->nslopes);
 
   return EXIT_SUCCESS;
 }

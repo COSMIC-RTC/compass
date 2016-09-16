@@ -41,11 +41,16 @@ else:
 
 print "param_file is",param_file
 
+#if(len(sys.argv) > 2):
+#    device=int(sys.argv[2])
+#else:
+#    device = 0
 if(len(sys.argv) > 2):
-    device=int(sys.argv[2])
+    savename = sys.argv[2]
 else:
-    device = 0
+    savename = "roket_default.h5"
 
+print "save file is ", savename
 ############################################################################
 #  _       _ _
 # (_)_ __ (_) |_ ___
@@ -155,6 +160,7 @@ def loop(n):
     if(error_flag):
     # Initialize buffers for error breakdown
         nactu = rtc.getCom(0).size
+        nslopes = rtc.getCentroids(0).size
         com = np.zeros((n,nactu),dtype=np.float32)
         noise_com = np.zeros((n,nactu),dtype=np.float32)
         alias_wfs_com = np.copy(noise_com)
@@ -165,6 +171,8 @@ def loop(n):
         mod_com = np.copy(noise_com)
         bp_com = np.copy(noise_com)
         fit = np.zeros(n)
+    #    covm = np.zeros((nslopes,nslopes))
+    #    covv = np.zeros((nactu,nactu))
 
     t0=time.time()
     for i in range(-10,n):
@@ -185,9 +193,12 @@ def loop(n):
                 wfs.sensors_compimg(w)
             rtc.docentroids(0)
             rtc.docontrol(0)
-
+            #m = np.reshape(rtc.getCentroids(0),(nslopes,1))
+            #v = np.reshape(rtc.getCom(0),(nactu,1))
             if(error_flag and i > -1):
             #compute the error breakdown for this iteration
+                #covm += m.dot(m.T)
+                #covv += v.dot(v.T)
                 roket.computeBreakdown()
             rtc.applycontrol(0,dms)
 
@@ -399,14 +410,16 @@ def save_it(filename):
     cov, cor = cov_cor(P,noise_com,trunc_com,alias_wfs_com,H_com,bp_com,tomo_com)
     psf = tar.get_image(0,"le",fluxNorm=False)
     psfortho = roket.get_psfortho()
+    covv = roket.get_covv()
+    covm = roket.get_covm()
 
     fname = "/home/fferreira/Data/"+filename
-    pdict = {"noise_com":noise_com.T,
-             "alias_wfs_com":alias_wfs_com.T,
-               "tomo_com":tomo_com.T,"H_com":H_com.T,"trunc_com":trunc_com.T,
-               "bp_com":bp_com.T,"P":P,"Btt":Btt,"IF.data":IF.data,"IF.indices":IF.indices,
-               "IF.indptr":IF.indptr,"TT":TT,"dm_dim":dm_dim,"indx_pup":indx_pup,"fit_error":fit,"SR":SR, "SR2":SR2,
-               "cov":cov,"cor":cor, "psfortho":psfortho}
+    pdict = {"noise":noise_com.T,
+             "aliasing":alias_wfs_com.T,
+               "tomography":tomo_com.T,"filtered modes":H_com.T,"non linearity":trunc_com.T,
+               "bandwidth":bp_com.T,"P":P,"Btt":Btt,"IF.data":IF.data,"IF.indices":IF.indices,
+               "IF.indptr":IF.indptr,"TT":TT,"dm_dim":dm_dim,"indx_pup":indx_pup,"fitting":fit,"SR":SR, "SR2":SR2,
+               "cov":cov,"cor":cor, "psfortho":psfortho, "covm":covm, "covv":covv}
     h5u.save_h5(fname,"psf",config,psf)
     #h5u.writeHdf5SingleDataset(fname,com.T,datasetName="com")
     for k in pdict.keys():
@@ -419,7 +432,7 @@ def save_it(filename):
 # | ||  __/\__ \ |_\__ \
 #  \__\___||___/\__|___/
 ###############################################################################################
-nfiltered = 4
+nfiltered = 20
 niters = 10000
 config.p_loop.set_niter(niters)
 Btt,P = compute_Btt()
@@ -442,4 +455,4 @@ roket = ao.roket_init(rtc, wfs, tar, dms, tel, atm, 0, 1,
 preloop(1000)
 SR, SR2 = loop(niters)
 
-save_it("roket_8m.h5")
+save_it(savename)

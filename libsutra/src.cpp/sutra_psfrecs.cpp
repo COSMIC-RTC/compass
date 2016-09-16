@@ -28,6 +28,7 @@ sutra_psfrecs::sutra_psfrecs(carma_context *context, int device, char *type, int
     this->d_phase = NULL;
     this->d_psf = NULL;
     this->d_IF = NULL;
+    this->d_TT = NULL;
 
     int mradix = 2;
     int fft_size = pow(mradix, (long) (logf(2 * size) / logf(mradix)) + 1);
@@ -82,8 +83,8 @@ sutra_psfrecs::sutra_psfrecs(carma_context *context, int device, char *type, int
         dims_data2[2] = Npts;
         this->d_IF = new carma_sparse_obj<float>(this->current_context, dims_data2,
                                             d_val.getData(), d_row.getData(), d_col.getData(), IFnz, false);
-        dims_data2[1] = Npts;
-        dims_data2[2] = 2;
+        dims_data2[1] = 2;
+        dims_data2[2] = Npts;
         this->d_TT = new carma_obj<float>(this->current_context, dims_data2, TT);
     }
 
@@ -165,7 +166,7 @@ int sutra_psfrecs::psf_rec_roket(float *err){
                 sizeof(cuFloatComplex) * this->d_amplipup->getNbElem()));
         // Apply iter #cc on the DM to get residual phase
         carma_gemv(this->current_context->get_cusparseHandle(),'t',1.0f,this->d_IF,this->d_err->getData(cc*this->nactus),0.0f,this->d_phase->getData());
-        carma_gemv(this->current_context->get_cublasHandle(),'n',this->d_TT->getDims(1),this->d_TT->getDims(2),
+        carma_gemv(this->current_context->get_cublasHandle(),'t',this->d_TT->getDims(1),this->d_TT->getDims(2),
                     1.0f,this->d_TT->getData(),this->d_TT->getDims(1),
                     this->d_err->getData(cc*this->nactus+(this->nactus-2)),1,1.0f,this->d_phase->getData(),1);
 
@@ -238,17 +239,17 @@ int sutra_psfrecs::psf_rec_Vii(){
         // Get the new mode shape from d_U, IF and Btt
         carma_gemv<float>(this->current_context->get_cublasHandle(), 'n', this->nactus, this->nmodes, 1.0f,
                             this->d_Btt->getData(), this->nactus,
-                            this->d_covmodes->getData(k*this->nmodes), 1, 0.0f,
+                            this->d_covmodes->getData(k*this->nmodes),1, 0.0f,
                             this->d_term1->getData(), 1);
         carma_gemv(this->current_context->get_cusparseHandle(),'t',1.0f,
                     this->d_IF,this->d_term1->getData(),0.0f,
                     this->d_phase->getData());
 
-        carma_gemv(this->current_context->get_cublasHandle(),'n',this->d_TT->getDims(1),this->d_TT->getDims(2),
+        carma_gemv(this->current_context->get_cublasHandle(),'t',this->d_TT->getDims(1),this->d_TT->getDims(2),
                     1.0f,this->d_TT->getData(),this->d_TT->getDims(1),
                     this->d_term1->getData(this->nactus-2),1,1.0f,this->d_phase->getData(),1);
         fill_amplipup(this->d_newmodek->getData(), this->d_phase->getData(), this->d_wherephase->getData(),
-                1.0f, this->Npts,  this->size, this->d_pupfft->getDims(1), 2, this->current_context->get_device(this->device));
+                1.0f, this->Npts,  this->size, this->d_newmodek->getDims(1), 2, this->current_context->get_device(this->device));
         // Compute term2 = abs(fft(newmode))**2
 
         carma_fft(this->d_newmodek->getData(), this->d_amplipup->getData(), 1,

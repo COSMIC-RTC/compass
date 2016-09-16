@@ -99,6 +99,44 @@ cdef class Roket:
 
         return data
 
+    cpdef get_covv(self):
+        """Return the command covariance matrix from a sutra_roket object.
+
+        :return:
+            data : (np.ndarray[ndim=2,dtype=np.float32_t]) : covv
+        """
+        cdef carma_context * context = &carma_context.instance()
+        context.set_activeDeviceForCpy(self.roket.device, 1)
+        cdef np.ndarray[ndim = 2, dtype = np.float32_t] data_F
+        cdef np.ndarray[ndim = 2, dtype = np.float32_t] data
+        cdef const long * dims = NULL
+
+        dims = self.roket.d_covv.getDims()
+        data_F = np.zeros((dims[2], dims[1]), dtype=np.float32)
+        self.roket.d_covv.device2host(< float *> data_F.data)
+        data = np.reshape(data_F.flatten("F"), (dims[1], dims[2]))
+
+        return data
+
+    cpdef get_covm(self):
+        """Return the slopes covariance matrix from a sutra_roket object.
+
+        :return:
+            data : (np.ndarray[ndim=2,dtype=np.float32_t]) : Btt
+        """
+        cdef carma_context * context = &carma_context.instance()
+        context.set_activeDeviceForCpy(self.roket.device, 1)
+        cdef np.ndarray[ndim = 2, dtype = np.float32_t] data_F
+        cdef np.ndarray[ndim = 2, dtype = np.float32_t] data
+        cdef const long * dims = NULL
+
+        dims = self.roket.d_covm.getDims()
+        data_F = np.zeros((dims[2], dims[1]), dtype=np.float32)
+        self.roket.d_covm.device2host(< float *> data_F.data)
+        data = np.reshape(data_F.flatten("F"), (dims[1], dims[2]))
+
+        return data
+
     def get_psfortho(self):
         """Return the PSF orthogonal from a sutra_roket object.
 

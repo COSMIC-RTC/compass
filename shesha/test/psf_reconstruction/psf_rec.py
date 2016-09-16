@@ -20,12 +20,12 @@ c = ch.naga_context(0)
 def get_err(filename):
     f = h5py.File(filename)
     # Get the sum of error contributors
-    err = f["noise_com"][:]
-    err += f["alias_wfs_com"][:]
-    err += f["tomo_com"][:]
-    err += f["H_com"][:]
-    err += f["trunc_com"][:]
-    err += f["bp_com"][:]
+    err = f["noise"][:]
+    err += f["aliasing"][:]
+    err += f["tomography"][:]
+    err += f["filtered modes"][:]
+    err += f["non linearity"][:]
+    err += f["bandwidth"][:]
     f.close()
 
     return err
@@ -59,9 +59,10 @@ def get_IF(filename):
     return IF, T.T.astype(np.float32)
 
 
-def psf_rec_roket_file(filename):
+def psf_rec_roket_file(filename,err=None):
     f = h5py.File(filename)
-    err = get_err(filename)
+    if(err is None):
+        err = get_err(filename)
     spup = get_pup(filename)
     # Sparse IF matrix
     IF, T = get_IF(filename)
@@ -114,17 +115,20 @@ def psf_rec_roket_file_cpu(filename):
     f.close()
     return psf
 
-def psf_rec_Vii(filename):
+def psf_rec_Vii(filename,err=None,fitting=True):
     f = h5py.File(filename)
-    err = get_err(filename)
+    if(err is None):
+        err = get_err(filename)
     spup = get_pup(filename)
     # Sparse IF matrix
     IF, T = get_IF(filename)
     # Covariance matrix
     P = f["P"][:]
+    print "Projecting error buffer into modal space..."
     err = P.dot(err)
     print "Computing covariance matrix..."
     covmodes = err.dot(err.T) / err.shape[1]
+    e,V = np.linalg.eig(covmodes)
     print "Done"
     Btt = f["Btt"][:]
 
@@ -136,6 +140,8 @@ def psf_rec_Vii(filename):
                             spup.astype(np.float32), scale,
                             covmodes.shape[0], Btt, covmodes)
     # Launch computation
+    #precs.set_eigenvals(e.astype(np.float32))
+    #precs.set_covmodes(V.astype(np.float32))
     tic = time.time()
     precs.psf_rec_Vii()
 
@@ -143,7 +149,7 @@ def psf_rec_Vii(filename):
     otf2 = precs.get_otfVii()
 
     otftel /= otftel.max()
-    if(f.keys().count("psfortho")):
+    if(f.keys().count("psfortho") and fitting):
         print "\nAdding fitting to PSF..."
         psfortho = f["psfortho"][:]
         otffit = np.real(np.fft.fft2(psfortho))
@@ -200,7 +206,7 @@ def psf_rec_vii_cpu(filename):
         #newmodek[ind] = modes.dot(V[:,k])
         tmp2 = Btt.dot(V[:,k])
         newmodek[ind] = IF.T.dot(tmp2[:-2])
-        newmodek[ind] += T.dot(tmp2[-2:])
+        newmodek[ind] += T.T.dot(tmp2[-2:])
         term1 = np.real(np.fft.fft2(newmodek**2) * conjpupfft)
         term2 = np.abs(np.fft.fft2(newmodek))**2
         tmp += ((term1 - term2) * e[k])
