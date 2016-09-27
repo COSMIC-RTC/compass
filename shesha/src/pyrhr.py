@@ -146,7 +146,7 @@ def pyr_analysis(n, mod, N, Dtel, obs, nrebin, l, _pix, Amp, mv, Pangle, p, pup=
     PUPYR = 0
     # Coeff multiplicatif des fonctions x et y pour etre en unites lam/D
     magic = larg * (2*np.pi/n)
-
+    print "lambda/D=%f pixels" % larg
     x = x * magic
     y = y * magic
     if(disp):
@@ -169,7 +169,9 @@ def pyr_analysis(n, mod, N, Dtel, obs, nrebin, l, _pix, Amp, mv, Pangle, p, pup=
         PSF += np.abs( EPSF )**2 #PSF
         PUPYR = np.abs(np.fft.ifft2((EPSF*np.exp(1j*pyr))))**2
         PUPIM += PUPYR
+
         if(disp):
+            axes1[1, 1].scatter(a[i]*larg+PSF0.shape[0]/2, b[i]*larg+PSF0.shape[1]/2, color="red", marker='x', s=20) # Modulation points
             axes1[1, 0].scatter(a[i], b[i], color="red", marker='x', s=20) # Modulation points
             diffractionCircle = pylab.Circle((a[i],b[i]), radius=0.5, alpha=0.5)
             axes1[1, 0].add_patch(diffractionCircle)
@@ -187,7 +189,9 @@ def pyr_analysis(n, mod, N, Dtel, obs, nrebin, l, _pix, Amp, mv, Pangle, p, pup=
     PUPIM /= S
     PUPIM *= Nph
     #n = nrebin
-    #PUPIM0=np.copy(PUPIM)
+    PUPIM0=np.copy(PUPIM)
+    PUPIM = rebin(PUPIM0, (PUPIM0.shape[0]/nrebin, PUPIM0.shape[1]/nrebin))
+
     if(noise):
         PUPIM = np.random.poisson(PUPIM) #Bruit de photons
         PUPIM = PUPIM*1.0 + np.random.normal(0,0.5,(n,n)) #Bruit lecture gaussien e- rms/pix
@@ -202,23 +206,19 @@ def pyr_analysis(n, mod, N, Dtel, obs, nrebin, l, _pix, Amp, mv, Pangle, p, pup=
     Sy = ppup*(IC+ID -(IA+IB))/(Itot)
     dwx = mod*np.sin(0.5*np.pi*Sx)
     dwy = mod*np.sin(0.5*np.pi*Sy) # en unite lam/D
-    PUPIM_LR = rebin(PUPIM, (PUPIM.shape[0]/nrebin, PUPIM.shape[1]/nrebin))
-
-    dwx_lr = rebin(dwx, (dwx.shape[0]/nrebin, dwx.shape[1]/nrebin))
-    dwy_lr = rebin(dwy, (dwy.shape[0]/nrebin, dwy.shape[1]/nrebin))
 
     if(disp):
-        axes2[0].matshow(PUPIM, cmap="gist_earth")
+        axes2[0].matshow(PUPIM0, cmap="gist_earth")
         axes2[0].set_title("PYRAMID image High Resolution")
-        axes2[1].matshow(PUPIM_LR, cmap="gist_earth")
+        axes2[1].matshow(PUPIM, cmap="gist_earth")
         axes2[1].set_title("PYRAMID image Low Resolution")
 
         axes3[0, 0].matshow(dwx, cmap="gist_earth")
         axes3[0, 1].matshow(dwy, cmap="gist_earth")
         axes3[0, 0].set_title("GRAD (x) High Resolution")
         axes3[0, 1].set_title("GRAD (y) High Resolution")
-        axes3[1, 0].matshow(dwx_lr, cmap="gist_earth")
-        axes3[1, 1].matshow(dwy_lr, cmap="gist_earth")
+        #axes3[1, 0].matshow(dwx_lr, cmap="gist_earth")
+        #axes3[1, 1].matshow(dwy_lr, cmap="gist_earth")
         axes3[1, 0].set_title("GRAD (x) Low Resolution")
         axes3[1, 1].set_title("GRAD (y) Low Resolution")
 

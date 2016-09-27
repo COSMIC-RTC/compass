@@ -606,12 +606,14 @@ class widgetAOWindow(TemplateBaseClass):
         self.ui.wao_selectNumber.clear()
         if(textType == "Phase - Atmos"):
             n = self.config.p_atmos.nscreens
-        if(textType == "Phase - WFS" or textType == "Spots - WFS" or textType == "Centroids - WFS" or textType == "Slopes - WFS" or textType == "Pyrimg - HR" or textType == "Pyrimg - LR"):
+        elif(textType == "Phase - WFS" or textType == "Spots - WFS" or textType == "Centroids - WFS" or textType == "Slopes - WFS" or textType == "Pyrimg - HR" or textType == "Pyrimg - LR"):
             n = len(self.config.p_wfss)
-        if(textType == "Phase - Target" or textType == "PSF LE" or textType == "PSF SE"):
+        elif(textType == "Phase - Target" or textType == "PSF LE" or textType == "PSF SE"):
             n = self.config.p_target.ntargets
-        if(textType == "Phase - DM"):
+        elif(textType == "Phase - DM"):
             n = len(self.config.p_dms)
+        else:
+            n = 0
         self.ui.wao_selectNumber.addItems([str(i) for i in range(n)])
         self.updateDisplay()
 
@@ -619,7 +621,10 @@ class widgetAOWindow(TemplateBaseClass):
         configfile = str(self.ui.wao_selectConfig.currentText())
         self.configpath = self.defaultParPath + configfile
         sys.path.insert(0, self.defaultParPath)
-        exec("import %s as config" % configfile.split(".py")[0])
+        if (self.config is None):
+            exec("import %s as config" % configfile.split(".py")[0])
+        else:
+            config = reload(self.config)
         self.config = config
         self.loaded = False
         self.ui.wao_selectScreen.clear()
