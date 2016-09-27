@@ -129,6 +129,7 @@ class widgetAOWindow(TemplateBaseClass):
             self.displayRtcMatrix)
         self.ui.wao_rtcWindowMPL.hide()
         self.ui.wao_commandBtt.clicked.connect(self.BttCommand)
+        self.ui.wao_commandKL.clicked.connect(self.KLCommand)
         self.ui.wao_Display.clicked.connect(self.updateFrameRate)
         self.ui.wao_frameRate.valueChanged.connect(self.updateFrameRate)
         self.RTDisplay = self.ui.wao_Display.isChecked()
@@ -702,8 +703,8 @@ class widgetAOWindow(TemplateBaseClass):
 #        self.c = ch.naga_context()
 #        self.c.set_activeDevice(device)
         if not self.c:
-            self.c = ch.naga_context(gpudevice)
-            #self.c=ch.naga_context(devices=np.array([4,5,6,7], dtype=np.int32))
+            #self.c = ch.naga_context(gpudevice)
+            self.c=ch.naga_context(devices=np.array([4,5,6,7], dtype=np.int32))
 
         self.wfs, self.tel = ao.wfs_init(self.config.p_wfss, self.config.p_atmos, self.config.p_tel,
                                          self.config.p_geom, self.config.p_target, self.config.p_loop,
@@ -804,8 +805,15 @@ class widgetAOWindow(TemplateBaseClass):
     def BttCommand(self):
         if(self.rtc):
             nfilt = int(self.ui.wao_filterBtt.value())
-            ao.command_on_Btt(self.rtc, nfilt)
+            ao.command_on_Btt(self.rtc,self.dms,self.config.p_dms,self.config.p_geom, nfilt)
             print "Loop is commanded from Btt basis now"
+
+    def KLCommand(self):
+        if(self.rtc):
+            nfilt = int(self.ui.wao_filterBtt.value())
+            cmat = ao.compute_cmatWithKL(self.rtc, self.config.p_controllers[0], self.dms, self.config.p_dms, self.config.p_geom, self.config.p_atmos, self.config.p_tel, nfilt)
+            self.rtc.set_cmat(0,cmat.astype(np.float32))
+            print "Loop is commanded from KL basis now"
 
     def updatePlotWfs(self):
         RASC = 180./np.pi * 3600.

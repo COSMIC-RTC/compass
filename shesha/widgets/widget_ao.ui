@@ -499,7 +499,7 @@
            </font>
           </property>
           <property name="currentIndex">
-           <number>0</number>
+           <number>3</number>
           </property>
           <widget class="QWidget" name="tab_2">
            <attribute name="title">
@@ -1681,6 +1681,9 @@
                      </property>
                     </widget>
                    </item>
+                   <item row="2" column="1">
+                    <widget class="QDoubleSpinBox" name="wao_controlDelay"/>
+                   </item>
                    <item row="3" column="0">
                     <widget class="QLabel" name="label_48">
                      <property name="text">
@@ -1717,8 +1720,12 @@
                      </item>
                     </widget>
                    </item>
-                   <item row="2" column="1">
-                    <widget class="QDoubleSpinBox" name="wao_controlDelay"/>
+                   <item row="8" column="1">
+                    <widget class="QSpinBox" name="wao_filterBtt">
+                     <property name="maximum">
+                      <number>9999</number>
+                     </property>
+                    </widget>
                    </item>
                    <item row="8" column="0">
                     <widget class="QLabel" name="label_61">
@@ -1727,17 +1734,17 @@
                      </property>
                     </widget>
                    </item>
-                   <item row="8" column="1">
-                    <widget class="QSpinBox" name="wao_filterBtt">
-                     <property name="maximum">
-                      <number>9999</number>
-                     </property>
-                    </widget>
-                   </item>
                    <item row="9" column="1">
                     <widget class="QPushButton" name="wao_commandBtt">
                      <property name="text">
                       <string>Command on Btt</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="10" column="1">
+                    <widget class="QPushButton" name="wao_commandKL">
+                     <property name="text">
+                      <string>Command on KL</string>
                      </property>
                     </widget>
                    </item>
@@ -1949,7 +1956,7 @@
      <x>0</x>
      <y>0</y>
      <width>1734</width>
-     <height>33</height>
+     <height>19</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">

@@ -128,6 +128,7 @@ class html_display:
         self.XY = RadioButtonGroup(labels=["X","Y"],active=0)
         self.DataTableItems = ["Type","Noise","Truncature","Aliasing","FilteredModes","Bandwidth","Tomography"]
         self.ParamTableItems = self.f.attrs.keys()
+
         self.table_cov_source = ColumnDataSource(data=dict(Type=[],
                                                        Noise=[],
                                                         Truncature=[],
@@ -146,6 +147,15 @@ class html_display:
         self.table_param_source = ColumnDataSource(data=dict(Parameter=[],Value=[]))
 
         self.cov_table, self.cor_table, self.param_table = self.createDataTables()
+        self.pcov_source = ColumnDataSource(data=dict(image=[], x=[], y=[], dw=[], dh=[]))
+        self.pcor_source = ColumnDataSource(data=dict(image=[], x=[], y=[], dw=[], dh=[]))
+        self.xdr4 = Range1d(start=0,end=6)
+        self.ydr4 = Range1d(start=0,end=6)
+        self.pcov = figure(x_range=self.xdr4, y_range=self.ydr4,  x_axis_location="above")
+        self.pcov.image("image", "x", "y","dw","dh",palette="Spectral11",source=self.pcov_source)
+        self.pcor = figure(x_range=self.xdr4, y_range=self.ydr4,  x_axis_location="above")
+        self.pcor.image("image", "x", "y","dw","dh",palette="Spectral11",source=self.pcor_source)
+
         self.updateDataTables()
         # Tab 3
         self.basis_select3 = Select(title="Basis",value=self.basis[0],options=self.basis)
@@ -155,6 +165,7 @@ class html_display:
         self.inc_mode = Button(label="+",type="primary")
         self.desinc_mode = Button(label="-",type="primary")
         # Tab 4
+        self.independence = CheckboxButtonGroup(labels=["Independence"],active=[])
         self.psf_display_select = Select(title="PSF display",value="COMPASS",options=["COMPASS","ROKET","Vii","Fitting","OTF Telescope","OTF res"])
         self.psf_rec_methods_select = Select(title="Reconstruction method", value="Vii",options=["Vii","ROKET"])
         self.precs_tag = Paragraph(text="PSF reconstruction :", height=25)
@@ -199,16 +210,16 @@ class html_display:
 
         self.xdr2 = Range1d(start=0,end=self.pup.shape[0])
         self.ydr2 = Range1d(start=self.pup.shape[1],end=0)
-        self.pmodes=figure(x_range=self.xdr2, y_range=self.ydr2, x_axis_location="above")
+        self.pmodes = figure(x_range=self.xdr2, y_range=self.ydr2, x_axis_location="above")
         self.pmodes.image_url(url=[], x=0, y=0,w=self.pup.shape[0],h=self.pup.shape[1])
 
         self.control_plot = [self.plot_select,self.iter_select,self.basis_select1]
 
         self.xdr3 = Range1d(start=0,end=self.psf_compass.shape[0])
         self.ydr3 = Range1d(start=self.psf_compass.shape[1],end=0)
-        self.ppsf=figure(x_range=self.xdr3, y_range=self.ydr3, x_axis_location="above")
+        self.ppsf = figure(x_range=self.xdr3, y_range=self.ydr3, x_axis_location="above")
         self.ppsf.image_url(url=[], x=0, y=0,w=self.psf_compass.shape[0],h=self.psf_compass.shape[1])
-        self.pcutpsf=Figure(plot_height=600, plot_width=800, y_range=[1e-9,1], y_axis_type="log")
+        self.pcutpsf = Figure(plot_height=600, plot_width=800, y_range=[1e-9,1], y_axis_type="log")
         self.pcutpsf.line(legend="COMPASS", line_color="blue")
         self.pcutpsf.line(legend="PSF rec", line_color="red")
         self.pcutpsf.multi_line("x","y",color="color",source=self.sourcepsf)
@@ -235,12 +246,12 @@ class html_display:
         self.inputs = HBox(VBox(self.DB_select,self.DB_button,self.comsTags,self.coms,self.plot_select,self.basis_select1,self.iter_select,self.plusTag,self.plus_select,self.moinsTag,self.moins_select,self.diff_button), width=350)
         self.inputs2 = HBox(VBox(self.DB_select,self.DB_button,self.basis_select2,self.A,self.B,self.power, self.draw,self.cmax,self.cmin,self.rescale,self.axiscut,self.XY,self.cut,self.diag))#, width=350)
         self.inputs3 = HBox(VBox(self.DB_select,self.DB_button,self.basis_select3,VBox(VBox(HBox(self.modes_select,HBox(self.desinc_mode,self.inc_mode,height=40))),self.draw_mode)))
-        self.inputs4 = HBox(VBox(self.DB_select,self.precs_tag,self.psf_rec_methods_select,self.error_select,self.precs_comp,self.psf_display_tag,self.psf_display_select,self.psf_display), width=350)
+        self.inputs4 = HBox(VBox(HBox(self.DB_select,self.DB_button),self.precs_tag,self.psf_rec_methods_select,self.error_select,self.independence,self.precs_comp,self.psf_display_tag,self.psf_display_select,self.psf_display), width=350)
         self.tab1 = Panel(child=HBox(self.inputs,VBox(self.plog,self.psum)), title="Breakdown")
-        self.tab2 = Panel(child=HBox(VBox(HBox(self.inputs2,self.p2,self.p3),self.cov_table,self.cor_table)), title="Cov/cor")
+        self.tab2 = Panel(child=HBox(VBox(HBox(self.inputs2,self.p2,self.p3),HBox(self.cov_table,self.pcov),HBox(self.cor_table,self.pcor))), title="Cov/cor")
         self.tab3 = Panel(child=HBox(self.inputs3,self.pmodes), title="Basis")
         self.tab4 = Panel(child=HBox(self.inputs4,VBox(self.ppsf,self.pcutpsf)), title="PSF")
-        self.tab5 = Panel(child=HBox(VBox(self.DB_select,self.param_table)), title="Parameters")
+        self.tab5 = Panel(child=HBox(VBox(HBox(self.DB_select,self.DB_button),self.param_table)), title="Parameters")
         self.tabs = Tabs(tabs=[self.tab1,self.tab2,self.tab4,self.tab3,self.tab5])
 
         curdoc().clear()
@@ -346,17 +357,28 @@ class html_display:
         psf_type = self.psf_rec_methods_select.value
         err_active = self.error_select.active
         err = self.f["noise"][:]*0.
+        covmodes = err.dot(err.T)
+        independence = self.independence.active
         fiterr = False
+        self.dialog.content = "Computing covariance matrix..."
+        self.dialog.visible = True
         for k in err_active:
             if(self.error_select.labels[k] == "fitting"):
                 fiterr = True
             else:
-                err += self.f[self.error_select.labels[k]][:]
+                if(independence):
+                    data = self.f[self.error_select.labels[k]][:]
+                    covmodes += data.dot(data.T) / err.shape[1]
+                else:
+                    err += self.f[self.error_select.labels[k]][:]
 
         if(psf_type == "Vii"):
             self.dialog.content = "Reconstructing PSF with Vii (may take a while)..."
-            self.dialog.visible = True
-            self.otftel, self.otf2, self.psf, self.precs = psf_rec.psf_rec_Vii(self.datapath + str(self.DB_select.value),err=err,fitting=fiterr)
+
+            if(independence):
+                self.otftel, self.otf2, self.psf, self.precs = psf_rec.psf_rec_Vii(self.datapath + str(self.DB_select.value),fitting=fiterr,covmodes=covmodes)
+            else:
+                self.otftel, self.otf2, self.psf, self.precs = psf_rec.psf_rec_Vii(self.datapath + str(self.DB_select.value),err=err,fitting=fiterr)
         if(psf_type == "ROKET"):
             self.dialog.content = "Reconstructing PSF from ROKET file (may take a while)..."
             self.dialog.visible = True
@@ -639,6 +661,9 @@ class html_display:
             values.append(self.f.attrs[k])
         self.table_param_source.data = dict(Parameter=params,
                                             Value=values)
+
+        self.pcov_source.data = dict(image=[self.cov], x=[0], y=[0], dw=[6], dh=[6], palette="Spectral11")
+        self.pcor_source.data = dict(image=[self.cor], x=[0], y=[0], dw=[6], dh=[6], palette="Spectral11")
 
 
 

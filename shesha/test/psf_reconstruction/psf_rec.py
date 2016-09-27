@@ -115,7 +115,7 @@ def psf_rec_roket_file_cpu(filename):
     f.close()
     return psf
 
-def psf_rec_Vii(filename,err=None,fitting=True):
+def psf_rec_Vii(filename,err=None,fitting=True,covmodes=None):
     f = h5py.File(filename)
     if(err is None):
         err = get_err(filename)
@@ -127,7 +127,10 @@ def psf_rec_Vii(filename,err=None,fitting=True):
     print "Projecting error buffer into modal space..."
     err = P.dot(err)
     print "Computing covariance matrix..."
-    covmodes = err.dot(err.T) / err.shape[1]
+    if(covmodes is None):
+        covmodes = err.dot(err.T) / err.shape[1]
+    else:
+        covmodes = (P.dot(covmodes)).dot(P.T)
     e,V = np.linalg.eig(covmodes)
     print "Done"
     Btt = f["Btt"][:]

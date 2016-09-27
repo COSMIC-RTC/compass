@@ -2363,7 +2363,7 @@ cpdef compute_KL2V(Param_controller controller, Dms dms, p_dms, Param_geom p_geo
         elif(p_dms[ndm].type_dm == "tt"):
             nTT += 1
 
-    KL2V = KL2V[:, :controller.nmodes]
+    #KL2V = KL2V[:, :controller.nmodes]
 
     if(nTT != 0):
         KL2V[:, :controller.nmodes - 2] = KL2V[:, 2:]
@@ -2921,6 +2921,25 @@ def compute_cmatWithBtt(Rtc rtc, Btt, nfilt):
     Dmp = np.linalg.inv(Dm.T.dot(Dm)).dot(Dm.T)
     # Command matrix
     cmat = Btt_filt.dot(Dmp)
+    rtc.set_cmat(0,cmat.astype(np.float32))
+
+    return cmat.astype(np.float32)
+
+def compute_cmatWithKL(Rtc rtc, Param_controller p_control, Dms dms, list p_dms, Param_geom p_geom, Param_atmos p_atmos, Param_tel p_tel, nfilt):
+    D = rtc.get_imat(0)
+    KL2V = compute_KL2V(p_control, dms, p_dms, p_geom, p_atmos, p_tel)
+    #D = ao.imat_geom(wfs,config.p_wfss,config.p_controllers[0],dms,config.p_dms,meth=0)
+    # Filtering on Btt modes
+    KL2V_filt = np.zeros((KL2V.shape[0],KL2V.shape[1]-nfilt))
+    KL2V_filt[:,:KL2V_filt.shape[1]-2] = KL2V[:,:KL2V.shape[1]-(nfilt+2)]
+    KL2V_filt[:,KL2V_filt.shape[1]-2:] = KL2V[:,KL2V.shape[1]-2:]
+
+    # Modal interaction basis
+    Dm = D.dot(KL2V_filt)
+    # Direct inversion
+    Dmp = np.linalg.inv(Dm.T.dot(Dm)).dot(Dm.T)
+    # Command matrix
+    cmat = KL2V_filt.dot(Dmp)
     rtc.set_cmat(0,cmat.astype(np.float32))
 
     return cmat.astype(np.float32)
