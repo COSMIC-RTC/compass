@@ -933,9 +933,12 @@ cpdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
         # sincar = np.roll(np.pi*x*np.pi*y,x.shape[1],axis=1)
         wfs._sincar = sincar.astype(np.float32)
 
-        pup = geom._mpupil
+        pup = geom._ipupil
         pupreb = rebin(
-            pup * 1., [geom._n / nrebin, geom._n / nrebin])
+            pup * 1., [pyrsize / nrebin, pyrsize / nrebin])
+        a = pyrsize / nrebin
+        b = geom._n / nrebin
+        pupreb = pupreb[a/2-b/2:a/2+b/2,a/2-b/2:a/2+b/2]
         wsubok = np.where(pupreb >= wfs.fracsub)
         pupvalid = pupreb * 0.
         pupvalid[wsubok] = 1
