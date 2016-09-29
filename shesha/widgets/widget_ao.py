@@ -345,6 +345,8 @@ class widgetAOWindow(TemplateBaseClass):
             self.ui.wao_controlTypeSelector.setCurrentIndex(3)
         elif(type_contro == "cured"):
             self.ui.wao_controlTypeSelector.setCurrentIndex(4)
+        elif(type_contro == "generic"):
+            self.ui.wao_controlTypeSelector.setCurrentIndex(5)
         else:
             print "pffff...."
 
@@ -704,7 +706,7 @@ class widgetAOWindow(TemplateBaseClass):
 #        self.c.set_activeDevice(device)
         if not self.c:
             #self.c = ch.naga_context(gpudevice)
-            self.c=ch.naga_context(devices=np.array([4,5,6,7], dtype=np.int32))
+            self.c=ch.naga_context(devices=np.array([0,1,2,3], dtype=np.int32))
 
         self.wfs, self.tel = ao.wfs_init(self.config.p_wfss, self.config.p_atmos, self.config.p_tel,
                                          self.config.p_geom, self.config.p_target, self.config.p_loop,
@@ -837,7 +839,7 @@ class widgetAOWindow(TemplateBaseClass):
         data = None
         if(self.rtc):
             type_matrix = str(self.ui.wao_selectRtcMatrix.currentText())
-            if(type_matrix == "imat"):
+            if(type_matrix == "imat" and self.config.p_controllers[0].type_control != "generic"):
                 data = self.rtc.get_imat(0)
             elif(type_matrix == "cmat"):
                 data = self.rtc.get_cmat(0)

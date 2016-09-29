@@ -634,6 +634,9 @@ cdef class Rtc:
         cdef np.ndarray[ndim = 2, dtype = np.float32_t] imat_F
         cdef np.ndarray[ndim = 2, dtype = np.float32_t] imat
 
+        if(type_control == "generic"):
+            raise TypeError("Generic controller doesn't have imat")
+            
         if(type_control == "ls"):
             controller_ls = dynamic_cast_controller_ls_ptr(self.rtc.d_control[ncontrol])
             dims = controller_ls.d_imat.getDims()
