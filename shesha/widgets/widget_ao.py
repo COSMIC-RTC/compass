@@ -67,12 +67,12 @@ class widgetAOWindow(TemplateBaseClass):
         self.assistant = None
         self.selector_init = None
 
-
         #############################################################
         #                 PYQTGRAPH WINDOW INIT                     #
         #############################################################
 
         self.img = pg.ImageItem(border='w')  # create image area
+        self.img.setTransform(QtGui.QTransform(0, 1, 1, 0, 0, 0))  # flip X and Y
         # self.p1 = self.ui.wao_pgwindow.addPlot()  # create pyqtgraph plot
         # area
         self.p1 = self.ui.wao_pgwindow.addViewBox()
@@ -142,7 +142,8 @@ class widgetAOWindow(TemplateBaseClass):
         self.ui.wao_dmUnitPerVolt.valueChanged.connect(self.updateDMrangeGUI)
         self.ui.wao_dmpush4iMat.valueChanged.connect(self.updateDMrangeGUI)
         self.ui.wao_pyr_ampl.valueChanged.connect(self.updateAmpliCompGUI)
-        self.ui.wao_dmActuPushArcSecNumWFS.currentIndexChanged.connect(self.updateDMrange)
+        self.ui.wao_dmActuPushArcSecNumWFS.currentIndexChanged.connect(
+            self.updateDMrange)
         self.ui.wao_nbiters.valueChanged.connect(self.updateNBiters)
         self.SRcircleAtmos = {}
         self.SRcircleWFS = {}
@@ -194,20 +195,25 @@ class widgetAOWindow(TemplateBaseClass):
         #############################################################
     def updateGain(self):
         if(self.rtc):
-            self.rtc.set_gain(0,float(self.ui.wao_controlGain.value()))
+            self.rtc.set_gain(0, float(self.ui.wao_controlGain.value()))
             print "Loop gain updated on GPU"
 
     def updateAmpliCompGUI(self):
-        diffract = self.config.p_wfss[0].Lambda*1e-6 / self.config.p_tel.diam*206265.
-        self.ui.wao_pyr_ampl_arcsec.setValue(self.ui.wao_pyr_ampl.value()*diffract)
+        diffract = self.config.p_wfss[0].Lambda * \
+            1e-6 / self.config.p_tel.diam * 206265.
+        self.ui.wao_pyr_ampl_arcsec.setValue(
+            self.ui.wao_pyr_ampl.value() * diffract)
 
     def updateAmpliComp(self):
-        diffract = self.config.p_wfss[0].Lambda*1e-6 / self.config.p_tel.diam*206265.
-        self.ui.wao_pyr_ampl_arcsec.setValue(self.config.p_wfss[0].pyr_ampl*diffract)
+        diffract = self.config.p_wfss[0].Lambda * \
+            1e-6 / self.config.p_tel.diam * 206265.
+        self.ui.wao_pyr_ampl_arcsec.setValue(
+            self.config.p_wfss[0].pyr_ampl * diffract)
 
     def updatePyrAmpl(self):
         if(self.rtc):
-            self.rtc.set_pyr_ampl(0,self.ui.wao_pyr_ampl.value(),self.config.p_wfss,self.config.p_tel)
+            self.rtc.set_pyr_ampl(0, self.ui.wao_pyr_ampl.value(
+            ), self.config.p_wfss, self.config.p_tel)
             print "Pyramid modulation updated on GPU"
             self.updatePlotWfs()
 
@@ -219,15 +225,16 @@ class widgetAOWindow(TemplateBaseClass):
         self.RTDFreq = self.ui.wao_frameRate.value()
 
     def updateDMrangeGUI(self):
-        push4imat=self.ui.wao_dmpush4iMat.value()
-        unitpervolt=self.ui.wao_dmUnitPerVolt.value()
+        push4imat = self.ui.wao_dmpush4iMat.value()
+        unitpervolt = self.ui.wao_dmUnitPerVolt.value()
         self.updateDMrange(push4imat=push4imat, unitpervolt=unitpervolt)
 
     def updateDMrange(self, push4imat=None, unitpervolt=None):
         numdm = str(self.ui.wao_selectDM.currentText())
         numwfs = str(self.ui.wao_dmActuPushArcSecNumWFS.currentText())
-        if((numdm is not "") and (numwfs is not "") and (push4imat!=0) and (unitpervolt!=0)):
-            arcsecDMrange = self.computeDMrange(int(numdm) ,int(numwfs), push4imat=push4imat, unitpervolt=unitpervolt)
+        if((numdm is not "") and (numwfs is not "") and (push4imat != 0) and (unitpervolt != 0)):
+            arcsecDMrange = self.computeDMrange(int(numdm), int(
+                numwfs), push4imat=push4imat, unitpervolt=unitpervolt)
             self.ui.wao_dmActPushArcsec.setValue(arcsecDMrange)
 
     def updateTelescopePanel(self):
@@ -240,7 +247,8 @@ class widgetAOWindow(TemplateBaseClass):
         if(ndm < 0):
             ndm = 0
         self.ui.wao_dmActuPushArcSecNumWFS.clear()
-        self.ui.wao_dmActuPushArcSecNumWFS.addItems([str(i) for i in range(len(self.config.p_wfss))])
+        self.ui.wao_dmActuPushArcSecNumWFS.addItems(
+            [str(i) for i in range(len(self.config.p_wfss))])
         self.ui.wao_numberofDMs.setText(str(len(self.config.p_dms)))
         self.ui.wao_dmTypeSelector.setCurrentIndex(
             self.ui.wao_dmTypeSelector.findText(self.config.p_dms[ndm].type_dm))
@@ -291,7 +299,6 @@ class widgetAOWindow(TemplateBaseClass):
         if(self.config.p_wfss[nwfs].type_wfs == "pyrhr" or self.config.p_wfss[nwfs].type_wfs == "pyr"):
             self.ui.wao_wfs_plotSelector.setCurrentIndex(3)
         self.updatePlotWfs()
-
 
     def updateAtmosPanel(self):
         nscreen = self.ui.wao_selectAtmosLayer.currentIndex()
@@ -702,11 +709,12 @@ class widgetAOWindow(TemplateBaseClass):
         gpudevice = self.ui.wao_deviceNumber.value()
         self.ui.wao_deviceNumber.setDisabled(True)
         print "-> using GPU%d" % gpudevice
-#        self.c = ch.naga_context()
-#        self.c.set_activeDevice(device)
+        # self.c = ch.naga_context()
+        # self.c.set_activeDevice(device)
         if not self.c:
-            #self.c = ch.naga_context(gpudevice)
-            self.c=ch.naga_context(devices=np.array([0,1,2,3], dtype=np.int32))
+            # self.c = ch.naga_context(gpudevice)
+            self.c = ch.naga_context(
+                devices=np.array([4, 5, 6, 7], dtype=np.int32))
 
         self.wfs, self.tel = ao.wfs_init(self.config.p_wfss, self.config.p_atmos, self.config.p_tel,
                                          self.config.p_geom, self.config.p_target, self.config.p_loop,
@@ -736,16 +744,18 @@ class widgetAOWindow(TemplateBaseClass):
 
         for i in range(len(self.config.p_atmos.alt)):
             data = self.atm.get_screen(self.config.p_atmos.alt[i])
-            cx, cy = self.circleCoords(self.config.p_geom.pupdiam/2, 1000, data.shape[0], data.shape[1])
-            self.SRcircleAtmos[i] = pg.ScatterPlotItem(cx,cy, pen='r',size=1)
+            cx, cy = self.circleCoords(
+                self.config.p_geom.pupdiam / 2, 1000, data.shape[0], data.shape[1])
+            self.SRcircleAtmos[i] = pg.ScatterPlotItem(cx, cy, pen='r', size=1)
             self.p1.addItem(self.SRcircleAtmos[i])
             self.SRcircleAtmos[i].setPoints(cx, cy)
             self.SRcircleAtmos[i].hide()
 
         for i in range(len(self.config.p_wfss)):
             data = self.wfs.get_phase(i)
-            cx, cy = self.circleCoords(self.config.p_geom.pupdiam/2, 1000, data.shape[0], data.shape[1])
-            self.SRcircleWFS[i] = pg.ScatterPlotItem(cx,cy, pen='r',size=1)
+            cx, cy = self.circleCoords(
+                self.config.p_geom.pupdiam / 2, 1000, data.shape[0], data.shape[1])
+            self.SRcircleWFS[i] = pg.ScatterPlotItem(cx, cy, pen='r', size=1)
             self.p1.addItem(self.SRcircleWFS[i])
             self.SRcircleWFS[i].setPoints(cx, cy)
             self.SRcircleWFS[i].hide()
@@ -754,16 +764,19 @@ class widgetAOWindow(TemplateBaseClass):
             dm_type = self.config.p_dms[i].type_dm
             alt = self.config.p_dms[i].alt
             data = self.dms.get_dm(dm_type, alt)
-            cx, cy = self.circleCoords(self.config.p_geom.pupdiam/2, 1000, data.shape[0], data.shape[1])
-            self.SRcircleDM[i] = pg.ScatterPlotItem(cx,cy, pen='r',size=1)
+            cx, cy = self.circleCoords(
+                self.config.p_geom.pupdiam / 2, 1000, data.shape[0], data.shape[1])
+            self.SRcircleDM[i] = pg.ScatterPlotItem(cx, cy, pen='r', size=1)
             self.p1.addItem(self.SRcircleDM[i])
             self.SRcircleDM[i].setPoints(cx, cy)
             self.SRcircleDM[i].hide()
 
         for i in range(self.config.p_target.ntargets):
             data = self.tar.get_phase(i)
-            cx, cy = self.circleCoords(self.config.p_geom.pupdiam/2, 1000, data.shape[0], data.shape[1])
-            self.SRcircleTarget[i] = pg.ScatterPlotItem(cx,cy, pen='r',size=1)
+            cx, cy = self.circleCoords(
+                self.config.p_geom.pupdiam / 2, 1000, data.shape[0], data.shape[1])
+            self.SRcircleTarget[i] = pg.ScatterPlotItem(
+                cx, cy, pen='r', size=1)
             self.p1.addItem(self.SRcircleTarget[i])
             self.SRcircleTarget[i].setPoints(cx, cy)
             self.SRcircleTarget[i].show()
@@ -798,7 +811,7 @@ class widgetAOWindow(TemplateBaseClass):
                 self.dms.resetdm(
                     str(self.ui.wao_dmTypeSelector.currentText()), self.ui.wao_dmAlt.value())
                 self.updateDisplay()
-                print "DM "+str(ndm)+" reset"
+                print "DM " + str(ndm) + " reset"
             else:
                 print "Invalid DM : please select a DM to reset"
         else:
@@ -807,29 +820,31 @@ class widgetAOWindow(TemplateBaseClass):
     def BttCommand(self):
         if(self.rtc):
             nfilt = int(self.ui.wao_filterBtt.value())
-            ao.command_on_Btt(self.rtc,self.dms,self.config.p_dms,self.config.p_geom, nfilt)
+            ao.command_on_Btt(self.rtc, self.dms,
+                              self.config.p_dms, self.config.p_geom, nfilt)
             print "Loop is commanded from Btt basis now"
 
     def KLCommand(self):
         if(self.rtc):
             nfilt = int(self.ui.wao_filterBtt.value())
-            cmat = ao.compute_cmatWithKL(self.rtc, self.config.p_controllers[0], self.dms, self.config.p_dms, self.config.p_geom, self.config.p_atmos, self.config.p_tel, nfilt)
-            self.rtc.set_cmat(0,cmat.astype(np.float32))
+            cmat = ao.compute_cmatWithKL(self.rtc, self.config.p_controllers[
+                                         0], self.dms, self.config.p_dms, self.config.p_geom, self.config.p_atmos, self.config.p_tel, nfilt)
+            self.rtc.set_cmat(0, cmat.astype(np.float32))
             print "Loop is commanded from KL basis now"
 
     def updatePlotWfs(self):
-        RASC = 180./np.pi * 3600.
+        RASC = 180. / np.pi * 3600.
         typeText = str(self.ui.wao_wfs_plotSelector.currentText())
         n = self.ui.wao_selectWfs.currentIndex()
         self.ui.wao_wfsWindow.canvas.axes.clear()
         ax = self.ui.wao_wfsWindow.canvas.axes
         if(self.config.p_wfss[n].type_wfs == "pyrhr" and typeText == "Pyramid mod. pts" and self.loaded):
-            scale_fact = 2*np.pi/self.config.p_wfss[n]._Nfft * \
-                         self.config.p_wfss[n].Lambda*1e-6 / self.config.p_tel.diam / self.config.p_wfss[n]._qpixsize * RASC
-            cx = self.config.p_wfss[n]._pyr_cx/scale_fact
-            cy = self.config.p_wfss[n]._pyr_cy/scale_fact
+            scale_fact = 2 * np.pi / self.config.p_wfss[n]._Nfft * \
+                self.config.p_wfss[
+                    n].Lambda * 1e-6 / self.config.p_tel.diam / self.config.p_wfss[n]._qpixsize * RASC
+            cx = self.config.p_wfss[n]._pyr_cx / scale_fact
+            cy = self.config.p_wfss[n]._pyr_cy / scale_fact
             ax.scatter(cx, cy)
-
 
     def displayRtcMatrix(self):
         if not self.loaded:
@@ -906,31 +921,33 @@ class widgetAOWindow(TemplateBaseClass):
                 self.ui.wao_rtcWindow.canvas.draw()
 
     def circleCoords(self, ampli, npts, datashape0, datashape1):
-        #ampli = self.config.p_geom.pupdiam/2
-        #npts = 100
-        cx = ampli * np.sin((np.arange(npts) + 1) * 2. * np.pi / npts) + datashape0/2
-        cy = ampli * np.cos((np.arange(npts) + 1) * 2. * np.pi / npts) + datashape1/2
-        return cx ,cy
+        # ampli = self.config.p_geom.pupdiam/2
+        # npts = 100
+        cx = ampli * np.sin((np.arange(npts) + 1) * 2. *
+                            np.pi / npts) + datashape0 / 2
+        cy = ampli * np.cos((np.arange(npts) + 1) * 2. *
+                            np.pi / npts) + datashape1 / 2
+        return cx, cy
 
     def computeDMrange(self, numdm, numwfs, push4imat=None, unitpervolt=None):
         i = numdm
-        if(push4imat is None or push4imat==0):
+        if(push4imat is None or push4imat == 0):
             push4imat = self.config.p_dms[i].push4imat
-        if(unitpervolt is None or unitpervolt==0):
+        if(unitpervolt is None or unitpervolt == 0):
             unitpervolt = self.config.p_dms[i].unitpervolt
 
-        actuPushInMicrons = push4imat*unitpervolt
+        actuPushInMicrons = push4imat * unitpervolt
         coupling = self.config.p_dms[i].coupling
-        a = coupling*actuPushInMicrons
+        a = coupling * actuPushInMicrons
         b = 0
         c = actuPushInMicrons
-        d = coupling*actuPushInMicrons
+        d = coupling * actuPushInMicrons
         if(self.config.p_dms[i].type_dm is not "tt"):
             dist = self.config.p_tel.diam
         else:
-            dist = self.config.p_tel.diam/self.config.p_wfss[numwfs].nxsub
-        Delta = (1e-6*( ((c+d)/2) - ((a+b)/2)))
-        actuPushInArcsecs = 206265.*Delta/dist
+            dist = self.config.p_tel.diam / self.config.p_wfss[numwfs].nxsub
+        Delta = (1e-6 * (((c + d) / 2) - ((a + b) / 2)))
+        actuPushInArcsecs = 206265. * Delta / dist
         return actuPushInArcsecs
 
     def updateDisplay(self):
@@ -951,7 +968,8 @@ class widgetAOWindow(TemplateBaseClass):
                         self.SRCrossX.hide()
                         self.SRCrossY.hide()
 
-                    #if(self.SRcircle and (self.imgType in ["Spots - WFS", "Centroids - WFS", "Slopes - WFS","PSF SE","PSF LE"])):
+                    # if(self.SRcircle and (self.imgType in ["Spots - WFS",
+                    # "Centroids - WFS", "Slopes - WFS","PSF SE","PSF LE"])):
                     for i in range(len(self.config.p_atmos.alt)):
                         self.SRcircleAtmos[i].hide()
                     for i in range(len(self.config.p_wfss)):
@@ -1000,7 +1018,8 @@ class widgetAOWindow(TemplateBaseClass):
 
                         if(self.imgType == "Pyrimg - HR"):
                             if(self.config.p_wfss[self.numberSelected].type_wfs == "pyrhr"):
-                                data = self.wfs.get_pyrimghr(self.numberSelected)
+                                data = self.wfs.get_pyrimghr(
+                                    self.numberSelected)
                             if(self.imgType != self.currentViewSelected):
                                 self.p1.setRange(
                                     xRange=(0, data.shape[0]), yRange=(0, data.shape[1]))
@@ -1156,7 +1175,8 @@ class widgetAOWindow(TemplateBaseClass):
                         self.tar.atmos_trace(t, self.atm, self.tel)
                         self.tar.dmtrace(t, self.dms)
                     for w in range(len(self.config.p_wfss)):
-                        self.wfs.sensors_trace(w, "all", self.tel, self.atm, self.dms)
+                        self.wfs.sensors_trace(
+                            w, "all", self.tel, self.atm, self.dms)
                         self.wfs.sensors_compimg(w)
 
                     self.rtc.docentroids(0)
@@ -1172,14 +1192,16 @@ class widgetAOWindow(TemplateBaseClass):
 
                 loopTime = time.time() - start
                 if(self.RTDisplay):
-                    t = 1 / float(self.RTDFreq) - loopTime  # Limit loop frequency
+                    # Limit loop frequency
+                    t = 1 / float(self.RTDFreq) - loopTime
                     if t > 0:
                         time.sleep(t)  # Limit loop frequency
                     self.updateDisplay()  # Update GUI plots
                 else:
                     freqLimit = 1 / 250.
                     if loopTime < freqLimit:
-                        time.sleep(freqLimit - loopTime)  # Limit loop frequency
+                        # Limit loop frequency
+                        time.sleep(freqLimit - loopTime)
                 currentFreq = 1 / (time.time() - start)
 
                 if(self.RTDisplay):
@@ -1204,18 +1226,18 @@ class widgetAOWindow(TemplateBaseClass):
 
     def run(self):
         # print "Loop started"
-        self.c.set_activeDeviceForce(0)
+        self.c.set_activeDeviceForce(0, 1)
         self.stop = False
         self.startTime = time.time()
         i = 0
         print "LOOP STARTED FOR %d iterations" % self.nbiters
-        while i<=self.nbiters:
+        while i <= self.nbiters:
             self.mainLoop()
-            i+=1
+            i += 1
             if(self.stop):
                 break
         self.ui.wao_run.setChecked(False)
-#         print "Loop stopped"
+        # print "Loop stopped"
 
 if __name__ == '__main__':
     app = QtGui.QApplication(sys.argv)
