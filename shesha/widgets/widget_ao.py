@@ -708,9 +708,9 @@ class widgetAOWindow(TemplateBaseClass):
 
         gpudevice = self.ui.wao_deviceNumber.value()
         # gpudevice = np.array([4, 5, 6, 7], dtype=np.int32)
-        
+
         self.ui.wao_deviceNumber.setDisabled(True)
-        print "-> using GPU",  gpudevice
+        print "-> using GPU", gpudevice
         # self.c = ch.naga_context()
 
         if not self.c:
@@ -955,12 +955,12 @@ class widgetAOWindow(TemplateBaseClass):
 
     def updateDisplay(self):
         if not self.loaded:
-            # print " widget not fully initialized"
+            print " widget not fully initialized"
             return
 
         data = None
         if not self.displayLock.acquire(False):
-            # print " Display locked"
+            print " Display locked"
             return
         else:
             try:
@@ -1161,7 +1161,7 @@ class widgetAOWindow(TemplateBaseClass):
 
     def mainLoop(self):
         if not self.loopLock.acquire(False):
-            # print " Display locked"
+            print " Loop locked"
             return
         else:
             try:
@@ -1169,17 +1169,26 @@ class widgetAOWindow(TemplateBaseClass):
                 self.atm.move_atmos()
                 if(self.config.p_controllers[0].type_control == "geo"):
                     for t in range(self.config.p_target.ntargets):
-                        self.tar.atmos_trace(t, self.atm, self.tel)
+                        if wao.see_atmos:
+                            self.tar.atmos_trace(t, self.atm, self.tel)
+                        else:
+                            self.tar.reset_phase(t)
                         self.rtc.docontrol_geo(0, self.dms, self.tar, 0)
                         self.rtc.applycontrol(0, self.dms)
                         self.tar.dmtrace(0, self.dms)
                 else:
                     for t in range(self.config.p_target.ntargets):
-                        self.tar.atmos_trace(t, self.atm, self.tel)
+                        if wao.see_atmos:
+                            self.tar.atmos_trace(t, self.atm, self.tel)
+                        else:
+                            self.tar.reset_phase(t)
                         self.tar.dmtrace(t, self.dms)
                     for w in range(len(self.config.p_wfss)):
-                        self.wfs.sensors_trace(
-                            w, "all", self.tel, self.atm, self.dms)
+                        if wao.see_atmos:
+                            self.wfs.sensors_trace(
+                                w, "all", self.tel, self.atm, self.dms)
+                        else:
+                            self.wfs.reset_phase(w)
                         self.wfs.sensors_compimg(w)
 
                     self.rtc.docentroids(0)

@@ -59,7 +59,6 @@ class widgetAOWindow(TemplateBaseClass):
         self.iter = 0
         self.loaded = False
         self.stop = False
-        self.nbiters = 1000
         self.startTime = 0
         self.loop = None
         self.assistant = None
@@ -670,11 +669,8 @@ class widgetAOWindow(TemplateBaseClass):
         self.c.set_activeDeviceForce(0,1)
         self.stop = False
         self.startTime = time.time()
-        i = 0
-        print "LOOP STARTED FOR %d iterations" % self.nbiters
-        while i <= self.nbiters:
+        while True:
             self.mainLoop()
-            i += 1
             if(self.stop):
                 break
         self.ui.wao_run.setChecked(False)

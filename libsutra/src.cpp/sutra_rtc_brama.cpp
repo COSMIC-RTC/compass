@@ -172,7 +172,8 @@ void sutra_rtc_brama::publish() {
 
   long idx = 0;
   for (size_t wfs_i = 0; wfs_i < wfs->d_wfs.size(); wfs_i++) {
-    wfs->d_wfs[wfs_i]->fill_binimage(0);
+    if(wfs->d_wfs[wfs_i]->type == "sh")
+      wfs->d_wfs[wfs_i]->fill_binimage(0);
     wfs->d_wfs[wfs_i]->d_binimg->device2host(buff_wfs_servant + idx);
     idx += wfs->d_wfs[wfs_i]->d_binimg->getNbElem();
   }
