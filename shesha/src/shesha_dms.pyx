@@ -11,7 +11,9 @@ import hdf5_utils as h5
 import resDataBase as db
 import pandas as pd
 from scipy import interpolate
+import copy as copy
 from scipy.sparse import csr_matrix
+import kl_dm as klfunc
 
 #max_extent signature
 cdef _dm_init(Dms dms, Param_dm p_dms, list p_wfs, Param_geom p_geom, Param_tel p_tel,int *max_extent):
@@ -135,15 +137,23 @@ cdef _dm_init(Dms dms, Param_dm p_dms, list p_wfs, Param_geom p_geom, Param_tel 
 
     elif(p_dms.type_dm == "kl"):
         dim = long(p_dms._n2 - p_dms._n1 + 1)
-        print "TODO make_kl_dm, n"
+        
+        make_kl_dm(p_dms,p_wfs,p_geom,p_tel)
+            
         ninflu = p_dms.nkl
         influsize = long(p_dms._klbas.ncp)
         _nr = long(p_dms._klbas.nr)
-        _np = long(p_dms._klbas.np)
+        _npp = long(p_dms._klbas.npp)
+        ord_L = copy.copy(p_dms._klbas.ordd)
+        rabas_L = copy.copy(p_dms._klbas.rabas.flatten('F'))
+        azbas_L = copy.copy(p_dms._klbas.azbas.flatten('F'))
+        cr_L = copy.copy(p_dms._klbas.cr.flatten('F'))
+        cp_L = copy.copy(p_dms._klbas.cp.flatten('F'))
+        
         dms.add_dm(p_dms.type_dm, p_dms.alt, dim, ninflu, influsize,
-                   _nr, _np, p_dms.push4imat)
-        dms.load_kl(p_dms.alt, p_dms._klbas.rabas, p_dms._klbasazbas,
-                    p_dms._klbas.ord, p_dms._klbas.cr, p_dms._klbas.cp)
+                   _nr, _npp, p_dms.push4imat)                           
+        dms.load_kl(p_dms.alt, np.float32(rabas_L), np.float32(azbas_L),
+                    np.int32(ord_L), np.float32(cr_L), np.float32(cp_L))
 
         # Verif
         # res1 = pol2car(*y_dm(n)._klbas,gkl_sfi(*y_dm(n)._klbas, 1));
@@ -429,6 +439,7 @@ cpdef read_influ_hdf5 (Param_dm p_dm,Param_tel p_tel, Param_geom geom):
     # cube_name
     influ_h5 = h5_tp[p_dm.cube_name][0]
 
+
     # x_name
     xpos_h5 = h5_tp[p_dm.x_name][0]
 
@@ -577,14 +588,59 @@ cpdef make_tiptilt_dm(Param_dm p_dm,list p_wfs, Param_geom p_geom, Param_tel p_t
 
     return influ
 
+cpdef make_klbas(Param_dm p_dm, int nkl,float cobs, long dim,funct,float outscl=3):
+    #DOCUMENT make_klbas(nfunc,cobs,nr=,np=,funct=,outscl=)
 
-cpdef make_kl_dm(Param_dm p_dm, Param_wfs p_wfs,Param_geom p_geom, Param_tel p_tel):
+    print(funct)
+    nr = np.long(5.0*np.sqrt(nkl))
+    npp = np.long(5*nr)      
+    radp = klfunc.make_radii(cobs,nr)
+
+    kers = klfunc.make_kernels(cobs,nr,radp,funct,outscl)
+
+    evals,nord,npo,ordd,rabas = klfunc.gkl_fcom(kers,cobs,nkl)
+
+    azbas = klfunc.make_azimuth(nord,npp)
+
+    ncp,ncmar,px,py,cr,cp,pincx,pincy,pincw,ap = klfunc.set_pctr(dim,nr,npp,nkl,cobs,nord)
+
+    #make klbas
+    p_dm._klbas.nr = nr # number of radial points
+    p_dm._klbas.npp = npp # number of elements
+    p_dm._klbas.nfunc = nkl# number of KL
+    p_dm._klbas.nord = nord
+    p_dm._klbas.radp = radp
+    p_dm._klbas.evals = evals # veriance of kl number
+    p_dm._klbas.npo = npo
+    p_dm._klbas.ordd = ordd  #the radial orders of the basis
+    p_dm._klbas.rabas = rabas # the radial array of the basis
+    p_dm._klbas.azbas = np.transpose(azbas) #the azimuthal array of the basis
+    p_dm._klbas.kers = kers
+    
+
+    #pcgeom
+    p_dm._klbas.ncp = ncp # dim of grid
+    p_dm._klbas.ncmar = ncmar # marge
+    p_dm._klbas.px = px # x coord in polar array
+    p_dm._klbas.py = py # y coord in polar array
+    p_dm._klbas.cr = cr # radial coord in cartesien grid
+    p_dm._klbas.cp = cp # phi coord in cartesien grid
+    p_dm._klbas.pincx = pincx
+    p_dm._klbas.pincy = pincy
+    p_dm._klbas.pincw = pincw
+    p_dm._klbas.ap = ap
+    
+
+    
+        
+
+cpdef make_kl_dm(Param_dm p_dm, list p_wfs,Param_geom p_geom, Param_tel p_tel):
     """Compute the influence function for a Karhunen-Loeve DM
 
     :parameters:
         p_dm: (Param_dm) : dm settings
 
-        p_wfs: (Param_wfs) : wfs settings
+        p_wfs: (list) : wfs settings
 
         p_geom: (Param_geom) : geom settings
 
@@ -592,12 +648,13 @@ cpdef make_kl_dm(Param_dm p_dm, Param_wfs p_wfs,Param_geom p_geom, Param_tel p_t
 
     """
     cdef int dim = p_geom._mpupil.shape[0]
-
-    cdef long patchDiam = long(p_geom.pupdiam + 2 * max(abs(p_wfs.xpos), abs(p_wfs.ypos)) * 4.848e-6 *
+    norms = [np.linalg.norm([w.xpos, w.ypos]) for w in p_wfs]
+    cdef long patchDiam = long(p_geom.pupdiam + 2 * np.max(norms) * 4.848e-6 *
                                abs(p_dm.alt) / p_geom.pupdiam)
+                               
+    print "dimkl = %d" %patchDiam
 
-    print "TODO klbas"
-    # p_dm._klbas=make_klbas(p_dm.nkl,p_tel.cobs,patchDiam,"kolmo")
+    make_klbas(p_dm,p_dm.nkl,p_tel.cobs,patchDiam,p_dm.kl_type)
     p_dm._i1 = np.zeros((p_dm.nkl), dtype=np.int32) + \
         int((dim - patchDiam) / 2.)
     p_dm._j1 = np.zeros((p_dm.nkl), dtype=np.int32) + \
@@ -1016,6 +1073,7 @@ cdef class Dms:
             cp: (np.ndarray[ndim=1,dtype=np.float32_t]) :
         """
 
+        
         cdef int inddm = self.dms.get_inddm("kl", alt)
         if(inddm < 0):
             err = "unknown error whith load_kl\nDM (kl" + \

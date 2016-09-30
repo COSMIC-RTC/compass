@@ -12,6 +12,7 @@ import h5py
 import hdf5_utils as h5u
 import pandas
 from subprocess import check_output
+import copy as copy
 
 from cython.operator cimport dereference as deref, preincrement as inc
 
@@ -2127,11 +2128,17 @@ cpdef correct_dm(p_dms, Dms g_dms, Param_controller p_control, Param_geom p_geom
             ninflu = long(p_dms[nm].nkl)
             influsize = long(p_dms[nm]._klbas.ncp)
             _nr = long(p_dms[nm]._klbas.nr)
-            _np = long(p_dms[nm]._klbas.np)
+            _np = long(p_dms[nm]._klbas.npp)
+            ord_L = copy.copy(p_dms[nm]._klbas.ordd)
+            rabas_L = copy.copy(p_dms[nm]._klbas.rabas.flatten('F'))
+            azbas_L = copy.copy(p_dms[nm]._klbas.azbas.flatten('F'))
+            cr_L = copy.copy(p_dms[nm]._klbas.cr.flatten('F'))
+            cp_L = copy.copy(p_dms[nm]._klbas.cp.flatten('F'))            
+            
             g_dms.add_dm(< bytes > "kl", p_dms[nm].alt, dim, ninflu, influsize,
                             _nr, _np, p_dms[nm].push4imat)
-            g_dms.load_kl(p_dms[nm].alt, p_dms[nm]._klbas.rabas, p_dms[nm]._klbasazbas,
-                            p_dms[nm]._klbas.ord, p_dms[nm]._klbas.cr, p_dms[nm]._klbas.cp)
+            g_dms.load_kl(p_dms[nm].alt, np.float32(rabas_L), np.float32(azbas_L),
+                            np.int32(ord_L), np.float32(cr_L), np.float32(cp_L))
 
         inds += nactu_nm
 

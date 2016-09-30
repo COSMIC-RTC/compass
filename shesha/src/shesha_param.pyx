@@ -19,6 +19,9 @@ from scipy.ndimage import interpolation as interp
 
 RASC = 180.*3600. / np.pi
 
+
+
+
 #################################################
 # P-Class (parametres) Param_loop
 #################################################
@@ -784,12 +787,56 @@ cdef class Param_atmos:
         self.seeds = np.array(l, dtype=np.int64)
 
 
+cdef class Klbas:
+    """ structure for kl dm parameter
+    :param kl: (obj) : kl dm parameter
+    """
+    
+    def __cinit__(self):
+        self.nr = 0
+        self.npp = 0
+        self.nfunc = 0
+        self.nord = 0
+        self.radp = None
+        self.evals = None
+        self.npo = None
+        self.ordd = None
+        self.rabas = None
+        self.azbas = None
+        self.ncp = 0
+        self.ncmar = 0
+        self.px = None
+        self.py = None
+        self.cr = None
+        self.cp = None
+        self.pincx = None
+        self.pincy = None
+        self.pincw = None
+        self.ap = None
+        self.kers = None
+
 
 #################################################
 # P-Class (parametres) Param_dm
 #################################################
 cdef class Param_dm:
+    
+    def __cinit__(self, debug = False):
+        self._klbas = Klbas()
+        pass
+        
+    def set_nkl(self, long n):
+        """Set the number of KL modes used for computation of covmat in case of minimum variance controller
 
+        :param n: (long) : number of KL modes
+        """
+        self.nkl = n
+        
+    def set_kl_type(self, bytes t):
+        """Set the type of KL used for computation
+        :param t: (string) : KL types : kolmo or karman
+        """
+        self.kl_type = t     
     def set_type(self, bytes t):
         """set the dm type
 

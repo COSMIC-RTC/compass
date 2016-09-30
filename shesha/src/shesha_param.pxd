@@ -258,6 +258,34 @@ cdef class Param_atmos:
     cdef readonly np.ndarray seeds
 
 
+#
+
+cdef class Klbas:
+    """ structure for kl dm parameter
+    :param kl: (obj) : kl dm parameter
+    """
+
+    cdef readonly long nr
+    cdef readonly long npp
+    cdef readonly long nfunc
+    cdef readonly long nord
+    cdef readonly np.ndarray radp
+    cdef readonly np.ndarray evals
+    cdef readonly np.ndarray npo
+    cdef readonly np.ndarray ordd
+    cdef readonly np.ndarray rabas
+    cdef readonly np.ndarray azbas
+    cdef readonly long ncp
+    cdef readonly long ncmar
+    cdef readonly np.ndarray px
+    cdef readonly np.ndarray py
+    cdef readonly np.ndarray cr
+    cdef readonly np.ndarray cp
+    cdef readonly np.ndarray pincx
+    cdef readonly np.ndarray pincy
+    cdef readonly np.ndarray pincw
+    cdef readonly np.ndarray ap
+    cdef readonly np.ndarray kers
 
 #################################################
 # P-Class (parametres) Param_dm
@@ -308,6 +336,8 @@ cdef class Param_dm:
   """ nominal voltage for imat""" 
   cdef readonly long    nkl
   """ number of kl modes"""
+  cdef readonly bytes   kl_type
+  """ kl_type : kolmo or karman""" 
   
   # internal kwrd
   cdef readonly long    _pitch
@@ -338,7 +368,8 @@ cdef class Param_dm:
   """Influence functions"""
   cdef readonly np.ndarray _influstart
   cdef readonly np.ndarray _influkernel  # Array to convolution kernel for comp_dmshape
-  cdef readonly list _klbas
+  
+  cdef readonly Klbas _klbas
   """ np.ndarray to a kl struct"""
 
 
