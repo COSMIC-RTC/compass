@@ -72,7 +72,8 @@ class widgetAOWindow(TemplateBaseClass):
         #############################################################
 
         self.img = pg.ImageItem(border='w')  # create image area
-        self.img.setTransform(QtGui.QTransform(0, 1, 1, 0, 0, 0))  # flip X and Y
+        self.img.setTransform(QtGui.QTransform(
+            0, 1, 1, 0, 0, 0))  # flip X and Y
         # self.p1 = self.ui.wao_pgwindow.addPlot() # create pyqtgraph plot area
         self.p1 = self.ui.wao_pgwindow.addViewBox()
         self.p1.setAspectLocked(True)
@@ -602,17 +603,26 @@ class widgetAOWindow(TemplateBaseClass):
                 self.atm.move_atmos()
                 if(self.config.p_controllers[0].type_control == "geo"):
                     for t in range(self.config.p_target.ntargets):
-                        self.tar.atmos_trace(t, self.atm, self.tel)
+                        if wao.see_atmos:
+                            self.tar.atmos_trace(t, self.atm, self.tel)
+                        else:
+                            self.tar.reset_phase(t)
                         self.rtc.docontrol_geo(0, self.dms, self.tar, 0)
                         self.rtc.applycontrol(0, self.dms)
                         self.tar.dmtrace(0, self.dms)
                 else:
                     for t in range(self.config.p_target.ntargets):
-                        self.tar.atmos_trace(t, self.atm, self.tel)
+                        if wao.see_atmos:
+                            self.tar.atmos_trace(t, self.atm, self.tel)
+                        else:
+                            self.tar.reset_phase(t)
                         self.tar.dmtrace(t, self.dms)
                     for w in range(len(self.config.p_wfss)):
-                        self.wfs.sensors_trace(
-                            w, "all", self.tel, self.atm, self.dms)
+                        if wao.see_atmos:
+                            self.wfs.sensors_trace(
+                                w, "all", self.tel, self.atm, self.dms)
+                        else:
+                            self.wfs.reset_phase(w)
                         self.wfs.sensors_compimg(w)
 
                     self.rtc.docentroids(0)
@@ -666,7 +676,7 @@ class widgetAOWindow(TemplateBaseClass):
 
     def run(self):
         # print "Loop started"
-        self.c.set_activeDeviceForce(0,1)
+        self.c.set_activeDeviceForce(0, 1)
         self.stop = False
         self.startTime = time.time()
         while True:

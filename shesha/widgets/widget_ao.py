@@ -66,6 +66,7 @@ class widgetAOWindow(TemplateBaseClass):
         self.loop = None
         self.assistant = None
         self.selector_init = None
+        self.see_atmos = 1
 
         #############################################################
         #                 PYQTGRAPH WINDOW INIT                     #
