@@ -429,8 +429,8 @@ def pol2car(pol,_klbas,mask=0):
     newy = np.linspace(-1,1,ncp)
     tx, ty = np.meshgrid(newx,newy)
     
-    cd = interpolate.griddata((tab_r.flatten(),tab_phi.flatten()),pol.flatten(),(cr+1,cp+1),method='cubic')
-    cdf = interpolate.griddata((tab_r.flatten("F"),tab_phi.flatten("F")),pol.flatten("F"),(cr+1,cp+1),method='cubic')
+    cd = interpolate.griddata((tab_r.flatten(),tab_phi.flatten()),pol.flatten(),(cr,cp),method='cubic')
+    cdf = interpolate.griddata((tab_r.flatten("F"),tab_phi.flatten("F")),pol.flatten("F"),(cr,cp),method='cubic')
     cdxy = interpolate.griddata((tab_y.flatten(),tab_x.flatten()),pol.flatten(),(tx,ty),method='cubic')
     
     if(mask == 1):
