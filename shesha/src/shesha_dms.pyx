@@ -44,35 +44,6 @@ cdef _dm_init(Dms dms, Param_dm p_dms, list p_wfs, Param_geom p_geom, Param_tel 
     if(p_dms.pupoffset is not None):
         p_dms.puppixoffset = p_dms.pupoffset / p_tel.diam * p_geom.pupdiam
 
-    if(p_dms.type_dm != "pzt"):
-
-        # we are dealing with a TT, or kl
-        extent = p_geom.pupdiam + 16
-        p_dms._n1 = np.floor(p_geom.cent - extent / 2)
-        p_dms._n2 = np.ceil(p_geom.cent + extent / 2)
-        if(p_dms._n1 < 1):
-            p_dms._n1 = 1
-        if(p_dms._n2 > p_geom.ssize):
-            p_dms._n2 = p_geom.ssize
-        # max_extent
-        max_extent[0] = max(max_extent[0], p_dms._n2 - p_dms._n1 + 1)
-
-
-    if(p_dms.alt == 0):
-        if(p_dms.type_dm == "tt"):
-            # TODO check next line (different max used ?)
-            # (max among all the p_dms, previous p_dms._n modified)
-            # adapted: #max_extent
-            # max_extent=max(p_dms._n2-p_dms._n1+1)
-            extent = int(max_extent[0] * 1.05)
-            if (extent % 2 != 0):
-                extent += 1
-            p_dms._n1 = np.floor(p_geom.cent - extent / 2)
-            p_dms._n2 = np.ceil(p_geom.cent + extent / 2)
-            if(p_dms._n1 < 1):
-                p_dms._n1 = 1
-            if(p_dms._n2 > p_geom.ssize):
-                p_dms._n2 = p_geom.ssize
 
     cdef float irc, coupling, ir
     cdef long pitch, smallsize
@@ -129,6 +100,36 @@ cdef _dm_init(Dms dms, Param_dm p_dms, list p_wfs, Param_geom p_geom, Param_tel 
                      p_dms._ninflu, p_dms._influstart, p_dms._i1, p_dms._j1, None)
 
     elif(p_dms.type_dm == "tt"):
+
+
+        if(p_dms.alt == 0):
+            # TODO check next line (different max used ?)
+            # (max among all the p_dms, previous p_dms._n modified)
+            # adapted: #max_extent
+            # max_extent=max(p_dms._n2-p_dms._n1+1)
+            extent = int(max_extent[0] * 1.05)
+            if (extent % 2 != 0):
+                extent += 1
+            p_dms._n1 = np.floor(p_geom.cent - extent / 2)
+            p_dms._n2 = np.ceil(p_geom.cent + extent / 2)
+            if(p_dms._n1 < 1):
+                p_dms._n1 = 1
+            if(p_dms._n2 > p_geom.ssize):
+                p_dms._n2 = p_geom.ssize
+        else :
+            extent = p_geom.pupdiam + 16
+            p_dms._n1 = np.floor(p_geom.cent - extent / 2)
+            p_dms._n2 = np.ceil(p_geom.cent + extent / 2)
+            if(p_dms._n1 < 1):
+                p_dms._n1 = 1
+            if(p_dms._n2 > p_geom.ssize):
+                p_dms._n2 = p_geom.ssize
+            # max_extent
+            max_extent[0] = max(max_extent[0], p_dms._n2 - p_dms._n1 + 1)
+
+
+
+
         dim = long(p_dms._n2 - p_dms._n1 + 1)
         make_tiptilt_dm(p_dms, p_wfs, p_geom, p_tel)
         dms.add_dm(p_dms.type_dm, p_dms.alt, dim, 2, dim,
@@ -136,6 +137,18 @@ cdef _dm_init(Dms dms, Param_dm p_dms, list p_wfs, Param_geom p_geom, Param_tel 
         dms.load_tt(p_dms.alt, p_dms._influ)
 
     elif(p_dms.type_dm == "kl"):
+
+        extent = p_geom.pupdiam + 16
+        p_dms._n1 = np.floor(p_geom.cent - extent / 2)
+        p_dms._n2 = np.ceil(p_geom.cent + extent / 2)
+        if(p_dms._n1 < 1):
+            p_dms._n1 = 1
+        if(p_dms._n2 > p_geom.ssize):
+            p_dms._n2 = p_geom.ssize
+        # max_extent
+        max_extent[0] = max(max_extent[0], p_dms._n2 - p_dms._n1 + 1)
+
+
         dim = long(p_dms._n2 - p_dms._n1 + 1)
         
         make_kl_dm(p_dms,p_wfs,p_geom,p_tel)
@@ -155,6 +168,10 @@ cdef _dm_init(Dms dms, Param_dm p_dms, list p_wfs, Param_geom p_geom, Param_tel 
         dms.load_kl(p_dms.alt, np.float32(rabas_L), np.float32(azbas_L),
                     np.int32(ord_L), np.float32(cr_L), np.float32(cp_L))
 
+
+    else :
+
+        raise StandardError("This type of DM doesn't exist ")
         # Verif
         # res1 = pol2car(*y_dm(n)._klbas,gkl_sfi(*y_dm(n)._klbas, 1));
         # res2 = yoga_getkl(g_dm,0.,1);
@@ -337,16 +354,20 @@ cpdef make_pzt_dm(Param_dm p_dm,Param_geom geom,Param_tel p_tel,irc):
     smallsize=p_dm._influsize
 
     # compute location (x,y and i,j) of each actuator:
-    if p_dm.type_pattern == None:
-        p_dm.type_pattern = <bytes>'square'
     cdef long nxact=p_dm.nact
     cdef np.ndarray cub
+
+    if p_dm.type_pattern == None:
+        p_dm.type_pattern = <bytes>'square'
+
     if p_dm.type_pattern == 'hexa':
         print "Patter type : Hexa"
         cub = createHexaPattern( pitch, geom.pupdiam * 1.1)
-    else :
+    elif p_dm.type_pattern == 'square':
         print "Patter default type : Square"
         cub = createSquarePattern( pitch, nxact )
+    else :
+        raise StandardError("This pattern does not exist for pzt dm")
 
     inbigcirc = n_actuator_select(p_dm,p_tel,cub[0,:],cub[1,:])
 
@@ -473,8 +494,8 @@ cpdef read_influ_hdf5 (Param_dm p_dm,Param_tel p_tel, Param_geom geom):
 
 
     # interpolation des coordonnées en pixel avec ajout du centre
-    xpos = (xpos_h5_0*(43.45/diam_h5[0]))/res_compass + center
-    ypos = (ypos_h5_0*(43.45/diam_h5[1]))/res_compass + center
+    xpos = (xpos_h5_0*(43.68/diam_h5[0]))/res_compass + center
+    ypos = (ypos_h5_0*(43.68/diam_h5[1]))/res_compass + center
 
     # interpolation des fonction d'influence
 
@@ -916,7 +937,7 @@ cdef class Dms:
         """
         cdef int inddm = self.dms.get_inddm(type_dm, alt)
         if(inddm < 0):
-            raise StandardError("Unknown error")
+            raise StandardError("Error in reset dm ")
 
         cdef carma_context * context = &carma_context.instance()
         context.set_activeDevice(self.dms.d_dms[inddm].device, 1)
@@ -937,7 +958,7 @@ cdef class Dms:
         """
         cdef int inddm = self.dms.get_inddm(type_dm, alt)
         if(inddm < 0):
-            raise StandardError("Unknown error")
+            raise StandardError("One actuator error")
 
         cdef carma_context * context = &carma_context.instance()
         context.set_activeDevice(self.dms.d_dms[inddm].device, 1)
