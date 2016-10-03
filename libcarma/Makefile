@@ -86,7 +86,7 @@ MAGMA = $(shell pkg-config --exists magma && echo "1" || echo "0")
 #$(info $(MAGMA))
 ifeq ($(MAGMA),1)
  #use the same keyword as in make.inc
- LIB_CPPFLAGS  += -DUSE_MAGMA $(shell pkg-config --cflags magma)
+ LIB_CPPFLAGS  += -DUSE_MAGMA -DUSE_MAGMA_PATCHED $(shell pkg-config --cflags magma)#$(shell pkg-config --cflags magma)
  #-DUSE_MAGMA_PATCHED $(shell pkg-config --cflags magma)
 
  LIB_NVCCFLAGS += -Xcompiler -fno-strict-aliasing
