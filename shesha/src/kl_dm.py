@@ -436,7 +436,9 @@ def pol2car(pol,_klbas,mask=0):
     if(mask == 1):
         ap = _klbas.ap       
         cd = cd*(ap)
-
+        cdf = cdf*(ap)
+        cdxy = cdxy*(ap)
+        
     return cd,cdf,cdxy
     
 def kl_view(_klbas,mask=1):
