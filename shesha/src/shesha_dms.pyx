@@ -13,7 +13,7 @@ import pandas as pd
 from scipy import interpolate
 import copy as copy
 from scipy.sparse import csr_matrix
-import kl_dm as klfunc
+import shesha_kl as klfunc
 
 #max_extent signature
 cdef _dm_init(Dms dms, Param_dm p_dms, list p_wfs, Param_geom p_geom, Param_tel p_tel,int *max_extent):

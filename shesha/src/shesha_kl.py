@@ -87,9 +87,9 @@ def make_azimuth(nord,npp):
 
     azbas [0,:] = 1.0
     for i in np.arange(1,nord,2):
-        azbas [np.int32(i),:] = np.cos (((i)/2+1) * th)
+        azbas [np.int32(i),:] = np.cos ((np.int32(i)/2+1) * th)
     for i in np.arange(2,nord,2):
-        azbas [np.int32(i),:] = np.sin (((i)/2) * th)
+        azbas [np.int32(i),:] = np.sin ((np.int32(i)/2) * th)
         
     return azbas
     
@@ -296,7 +296,7 @@ def gkl_fcom(kers,cobs,nf):
     
     vs = s.dot(v1)
     newev = np.concatenate((newev,[0]))
-    print np.size(newev)
+    #print np.size(newev)
     evs[:,nxt] = np.float32(newev)
     kers [nxt,:,:] = np.sqrt(nr)*vs
     
