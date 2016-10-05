@@ -379,20 +379,22 @@ def gkl_sfi(_klbas,i):
     #basis bas. bas must be generated first with gkl_bas.
     nr = _klbas.nr
     npp = _klbas.npp
-    ordd = _klbas.ordd
-    rabas = _klbas.rabas
-    azbas = _klbas.azbas
+    ordp = _klbas.ordd
+    rabasp = _klbas.rabas
+    azbasp = _klbas.azbas
     nfunc = _klbas.nfunc
 
     if (i>nfunc-1):
         raise TypeError("kl funct order it's so big")
         
     else:    
-    
-        ordi = np.int32(ordd[i])
-        rabasi=rabas[:,i]
-        azbasi=np.transpose(azbas)
-        azbasi = azbasi[ordi,:]
+        
+        
+        ordi = np.int32(ordp[i])
+        rabasi=rabasp[:,i]
+        
+        azbasp=np.transpose(azbasp)
+        azbasi = azbasp[ordi-1,:]
     
         sf1 = np.zeros((nr,npp),dtype=np.float64)
         for j in range(npp):
@@ -406,7 +408,7 @@ def gkl_sfi(_klbas,i):
         
         return sf
         
-def pol2car(pol,_klbas,mask=0):
+def pol2car(pol,_klbas,mask=1):
     # DOCUMENT cart=pol2car(cpgeom, pol, mask=)
     # This routine is used for polar to cartesian conversion.
     # pol is built with gkl_bas and cpgeom with pcgeom.
@@ -414,7 +416,7 @@ def pol2car(pol,_klbas,mask=0):
     # as though they were at the first or last radial polar value
     # -- a small fudge, but not serious  ?*******
     #cd = interpolate.interp2d(cr, cp,pol)
-    ncp = _klbas.ncp
+#    ncp = _klbas.ncp
     cr = _klbas.cr
     cp = _klbas.cp    
     nr = _klbas.nr
@@ -423,41 +425,68 @@ def pol2car(pol,_klbas,mask=0):
     r = np.arange(nr,dtype=np.float64)
     phi = np.arange(npp,dtype=np.float64)
     tab_phi,tab_r = np.meshgrid(phi,r)
-    tab_x = (tab_r/(nr))*np.cos((tab_phi/(npp))*2*np.pi)
-    tab_y = (tab_r/(nr))*np.sin((tab_phi/(npp))*2*np.pi)
+#    tab_x = (tab_r/(nr+1))*np.cos((tab_phi/(npp))*2*np.pi)
+#    tab_y = (tab_r/(nr+1))*np.sin((tab_phi/(npp))*2*np.pi)
     
-    newx = np.linspace(-1,1,ncp)
-    newy = np.linspace(-1,1,ncp)
-    tx, ty = np.meshgrid(newx,newy)
+#    newx = np.linspace(-1,1,ncp)
+#    newy = np.linspace(-1,1,ncp)
+#    tx, ty = np.meshgrid(newx,newy)
     
-    cd = interpolate.griddata((tab_r.flatten(),tab_phi.flatten()),pol.flatten(),(cr,cp),method='cubic')
-    cdf = interpolate.griddata((tab_r.flatten("F"),tab_phi.flatten("F")),pol.flatten("F"),(cr,cp),method='cubic')
-    cdxy = interpolate.griddata((tab_y.flatten(),tab_x.flatten()),pol.flatten(),(tx,ty),method='cubic')
+    cdc = interpolate.griddata((tab_r.flatten(),tab_phi.flatten()),pol.flatten(),(cr,cp),method='cubic')
+    cdl = interpolate.griddata((tab_r.flatten(),tab_phi.flatten()),pol.flatten(),(cr,cp),method='linear')
+    #cdxy = interpolate.griddata((tab_y.flatten(),tab_x.flatten()),pol.flatten(),(tx,ty),method='cubic')
     
     if(mask == 1):
         ap = _klbas.ap       
-        cd = cd*(ap)
-        cdf = cdf*(ap)
-        cdxy = cdxy*(ap)
+        cdc = cdc*(ap)
+        cdl = cdl*(ap)
+        #cdxy = cdxy*(ap)
         
-    return cd,cdf,cdxy
+    return cdc,cdl#,cdxy
     
 def kl_view(_klbas,mask=1):
     
     nfunc = _klbas.nfunc
     ncp = _klbas.ncp
     
-    tab_kl = np.zeros((nfunc,ncp,ncp),dtype=np.float64)
-    tab_klf = np.zeros((nfunc,ncp,ncp),dtype=np.float64)
-    tab_klxy = np.zeros((nfunc,ncp,ncp),dtype=np.float64)
+    tab_kl_c = np.zeros((nfunc,ncp,ncp),dtype=np.float64)
+    tab_kl_l = np.zeros((nfunc,ncp,ncp),dtype=np.float64)
+#    tab_klxy = np.zeros((nfunc,ncp,ncp),dtype=np.float64)
     
     for i in range(nfunc):
         
-        tab_kl[i,:,:],tab_klf[i,:,:],tab_klxy[i,:,:] = pol2car(gkl_sfi(_klbas,i),_klbas,mask)
+        #tab_kl_c[i,:,:],tab_kl_l[i,:,:],tab_klxy[i,:,:] = pol2car(gkl_sfi(_klbas,i),_klbas,mask)
+        tab_kl_c[i,:,:],tab_kl_l[i,:,:] = pol2car(gkl_sfi(_klbas,i),_klbas,mask)
 
     
-    return tab_kl,tab_klf,tab_klxy
+    return tab_kl_c,tab_kl_l#,tab_klxy
     
+
+def kl_view_onepic (_klbas,imax,mask=1):
+    
+    #tab_kl_c,tab_kl_l,tab_klxy = kl_view(_klbas,mask)
+    tab_kl_c,tab_kl_l = kl_view(_klbas,mask)
+    
+    imax = (np.floor(np.sqrt(imax)))**2
+    
+    print "number of kl view :",imax
+    
+    part_c = tab_kl_c[0:imax,:,:]
+    part_l = tab_kl_l[0:imax,:,:]
+    #part_xy = tab_klxy[0:imax,:,:]
+    
+    part_r_c = np.zeros((np.sqrt(part_c.shape[0])*part_c.shape[1],np.sqrt(part_c.shape[0])*part_c.shape[2]))
+    part_r_l = np.zeros((np.sqrt(part_l.shape[0])*part_l.shape[1],np.sqrt(part_l.shape[0])*part_l.shape[2]))
+    #part_r_xy = np.zeros((np.sqrt(part_xy.shape[0])*part_xy.shape[1],np.sqrt(part_xy.shape[0])*part_xy.shape[2]))
+    
+    for i in range(np.int32(np.sqrt(imax))):
+        for j in range(np.int32(np.sqrt(imax))):
+            
+            part_r_c[i*part_c.shape[1]:(i+1)*part_c.shape[1],j*part_c.shape[1]:(j+1)*part_c.shape[1]]= part_c[i*np.sqrt(imax)+j,:,:]
+            part_r_l[i*part_l.shape[1]:(i+1)*part_l.shape[1],j*part_l.shape[1]:(j+1)*part_l.shape[1]]= part_l[i*np.sqrt(imax)+j,:,:]
+            #part_r_xy[i*part_xy.shape[1]:(i+1)*part_xy.shape[1],j*part_xy.shape[1]:(j+1)*part_xy.shape[1]]= part_xy[i*3+j,:,:]
+            
+    return part_r_c,part_r_l#,part_r_xy
     
 
 # --------------------------------------- 

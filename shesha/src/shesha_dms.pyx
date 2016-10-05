@@ -613,8 +613,14 @@ cpdef make_klbas(Param_dm p_dm, int nkl,float cobs, long dim,funct,float outscl=
     #DOCUMENT make_klbas(nfunc,cobs,nr=,np=,funct=,outscl=)
 
     print(funct)
-    nr = np.long(5.0*np.sqrt(nkl))
-    npp = np.long(5*nr)      
+    
+    if(nkl < 13):
+        nr = np.long(10.0*np.sqrt(52)) # one point per degree
+        npp = np.long(5.0*nr)
+    else:
+        nr = np.long(10.0*np.sqrt(nkl))
+        npp = np.long(5.0*nr)
+        
     radp = klfunc.make_radii(cobs,nr)
 
     kers = klfunc.make_kernels(cobs,nr,radp,funct,outscl)
@@ -624,6 +630,16 @@ cpdef make_klbas(Param_dm p_dm, int nkl,float cobs, long dim,funct,float outscl=
     azbas = klfunc.make_azimuth(nord,npp)
 
     ncp,ncmar,px,py,cr,cp,pincx,pincy,pincw,ap = klfunc.set_pctr(dim,nr,npp,nkl,cobs,nord)
+    
+    azbas = np.transpose(azbas)
+    
+    new_ordd = np.arange(ordd.shape[0])+1
+    new_azbas = np.zeros((azbas.shape[0],azbas.shape[1]))
+    for i in range(nkl):
+        new_azbas[:,i] = azbas[:,ordd[i]-1]
+        
+    new_azbas[:,nkl] =   azbas[:,nkl]
+    
 
     #make klbas
     p_dm._klbas.nr = nr # number of radial points
@@ -633,9 +649,9 @@ cpdef make_klbas(Param_dm p_dm, int nkl,float cobs, long dim,funct,float outscl=
     p_dm._klbas.radp = radp
     p_dm._klbas.evals = evals # veriance of kl number
     p_dm._klbas.npo = npo
-    p_dm._klbas.ordd = ordd  #the radial orders of the basis
+    p_dm._klbas.ordd = new_ordd #the radial orders of the basis
     p_dm._klbas.rabas = rabas # the radial array of the basis
-    p_dm._klbas.azbas = np.transpose(azbas) #the azimuthal array of the basis
+    p_dm._klbas.azbas = new_azbas #the azimuthal array of the basis
     p_dm._klbas.kers = kers
     
 
