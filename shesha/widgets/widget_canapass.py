@@ -90,7 +90,7 @@ class widgetAOWindow(TemplateBaseClass):
         #############################################################
         # Default path for config files
         self.defaultParPath = os.environ[
-            "SHESHA_ROOT"] + "/data/par/par4bench/"
+            "SHESHA_ROOT"] + "/data/par/MICADO/"
         self.ui.wao_loadConfig.clicked.connect(self.addConfigFromFile)
         self.ui.wao_init.clicked.connect(self.InitConfig)
         self.ui.wao_run.setCheckable(True)
@@ -117,9 +117,9 @@ class widgetAOWindow(TemplateBaseClass):
         self.SRcircleDM = {}
         self.SRcircleTarget = {}
 
-        self.addConfigFromFile(
-            filepath=os.environ["SHESHA_ROOT"] + "/data/par/canapass.py")
-        self.InitConfig()
+        # self.addConfigFromFile(
+        #     filepath=os.environ["SHESHA_ROOT"] + "/data/par/canapass.py")
+        # self.InitConfig()
 
     def updateSRSE(self, SRSE):
         self.ui.wao_strehlSE.setText(SRSE)
@@ -165,17 +165,20 @@ class widgetAOWindow(TemplateBaseClass):
             self.RTDisplay = False
         self.RTDFreq = self.ui.wao_frameRate.value()
 
-    def addConfigFromFile(self, filepath=None):
-        if filepath is None:
+    def addConfigFromFile(self, filepath=False):
+        if filepath is False:
             filepath = str(QtGui.QFileDialog(directory=self.defaultParPath).getOpenFileName(
                 self, "Select parameter file", "", "parameters file (*.py);;hdf5 file (*.h5);;all files (*)"))
         self.configpath = filepath
         filename = filepath.split('/')[-1]
         if(filepath.split('.')[-1] == "py"):
-            pathfile = filepath.split(filename)[-1]
+            pathfile = filepath.split(filename)[0]
             # if (pathfile not in sys.path):
             sys.path.insert(0, pathfile)
+
+            print "loading ", filename.split(".py")[0]
             exec("import %s as config" % filename.split(".py")[0])
+
             sys.path.remove(pathfile)
         elif(filepath.split('.')[-1] == "h5"):
             sys.path.insert(0, self.defaultParPath)
@@ -184,6 +187,10 @@ class widgetAOWindow(TemplateBaseClass):
             h5u.configFromH5(filepath, config)
         else:
             raise ValueError("Parameter file extension must be .py or .h5")
+
+        print "switching to generic Controller"
+        config.p_controller0.set_type("generic")
+
         self.config = config
         self.ui.wao_selectScreen.clear()
         if(self.config.p_wfss[0].type_wfs == "pyrhr"):
@@ -255,7 +262,9 @@ class widgetAOWindow(TemplateBaseClass):
         self.SRCrossX = None
         self.SRCrossY = None
 
-        gpudevice = np.array([4, 5, 6, 7], dtype=np.int32)
+        #gpudevice = np.array([0, 1, 2, 3], dtype=np.int32)
+        gpudevice = np.array([0], dtype=np.int32)
+
         # self.ui.wao_deviceNumber.value()
         self.ui.wao_deviceNumber.setDisabled(True)
         print "-> using GPU", gpudevice
@@ -620,9 +629,12 @@ class widgetAOWindow(TemplateBaseClass):
                     for w in range(len(self.config.p_wfss)):
                         if wao.see_atmos:
                             self.wfs.sensors_trace(
-                                w, "all", self.tel, self.atm, self.dms)
+                                w, "atmos", self.tel, self.atm, self.dms)
                         else:
                             self.wfs.reset_phase(w)
+                        if not self.config.p_wfss[w].openloop:
+                            self.wfs.sensors_trace(
+                                w, "dm", self.tel, self.atm, self.dms)
                         self.wfs.sensors_compimg(w)
 
                     self.rtc.docentroids(0)
@@ -690,5 +702,6 @@ if __name__ == '__main__':
     app = QtGui.QApplication(sys.argv)
     wao = widgetAOWindow()
     wao.show()
+
     # app.connect(wao.ui._quit,QtCore.SIGNAL("clicked()"),app,QtCore.SLOT("quit()"))
     app.setStyle('cleanlooks')

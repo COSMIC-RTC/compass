@@ -791,7 +791,7 @@ cdef class Klbas:
     """ structure for kl dm parameter
     :param kl: (obj) : kl dm parameter
     """
-    
+
     def __cinit__(self):
         self.nr = 0
         self.npp = 0
@@ -820,23 +820,23 @@ cdef class Klbas:
 # P-Class (parametres) Param_dm
 #################################################
 cdef class Param_dm:
-    
+
     def __cinit__(self, debug = False):
         self._klbas = Klbas()
         pass
-        
+
     def set_nkl(self, long n):
         """Set the number of KL modes used for computation of covmat in case of minimum variance controller
 
         :param n: (long) : number of KL modes
         """
         self.nkl = n
-        
+
     def set_kl_type(self, bytes t):
         """Set the type of KL used for computation
         :param t: (string) : KL types : kolmo or karman
         """
-        self.kl_type = t     
+        self.kl_type = t
     def set_type(self, bytes t):
         """set the dm type
 

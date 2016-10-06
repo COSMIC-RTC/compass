@@ -933,9 +933,10 @@ cpdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
         # sincar = np.roll(np.pi*x*np.pi*y,x.shape[1],axis=1)
         wfs._sincar = sincar.astype(np.float32)
 
-        pup = geom._ipupil
+        pup = pyrtmp.copy()  # geom._ipupil
+        #pup = geom._mpupil
         pupreb = rebin(
-            pup * 1., [pyrsize / nrebin, pyrsize / nrebin])
+            pup * 1., [pyrsize/ nrebin, pyrsize / nrebin])
         a = pyrsize / nrebin
         b = geom._n / nrebin
         pupreb = pupreb[a/2-b/2:a/2+b/2,a/2-b/2:a/2+b/2]
