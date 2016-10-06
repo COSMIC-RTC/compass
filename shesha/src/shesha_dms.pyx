@@ -615,11 +615,11 @@ cpdef make_klbas(Param_dm p_dm, int nkl,float cobs, long dim,funct,float outscl=
     print(funct)
     
     if(nkl < 13):
-        nr = np.long(10.0*np.sqrt(52)) # one point per degree
-        npp = np.long(5.0*nr)
+        nr = np.long(5.0*np.sqrt(52)) # one point per degree
+        npp = np.long(10.0*nr)
     else:
-        nr = np.long(10.0*np.sqrt(nkl))
-        npp = np.long(5.0*nr)
+        nr = np.long(5.0*np.sqrt(nkl))
+        npp = np.long(10.0*nr)
         
     radp = klfunc.make_radii(cobs,nr)
 
@@ -631,14 +631,18 @@ cpdef make_klbas(Param_dm p_dm, int nkl,float cobs, long dim,funct,float outscl=
 
     ncp,ncmar,px,py,cr,cp,pincx,pincy,pincw,ap = klfunc.set_pctr(dim,nr,npp,nkl,cobs,nord)
     
-    azbas = np.transpose(azbas)
-    
-    new_ordd = np.arange(ordd.shape[0])+1
-    new_azbas = np.zeros((azbas.shape[0],azbas.shape[1]))
-    for i in range(nkl):
-        new_azbas[:,i] = azbas[:,ordd[i]-1]
+#    azbas = np.transpose(azbas)
+#    
+#    new_ordd = np.zeros(ordd.shape[0])
+#    new_azbas = np.zeros((azbas.shape[0],azbas.shape[1]))
+#    for i in range(np.max(ordd)):
+#        new_azbas[:,i] = azbas[:,ordd[i]-1]
+#        new_ordd[i] = ordd[i]
+#    if (np.max(ordd)<azbas.shape[1])
+#        new_azbas[:,i+1] = azbas[:,azbas.shape[1]-1]
         
-    new_azbas[:,nkl] =   azbas[:,nkl]
+        
+
     
 
     #make klbas
@@ -649,9 +653,11 @@ cpdef make_klbas(Param_dm p_dm, int nkl,float cobs, long dim,funct,float outscl=
     p_dm._klbas.radp = radp
     p_dm._klbas.evals = evals # veriance of kl number
     p_dm._klbas.npo = npo
-    p_dm._klbas.ordd = new_ordd #the radial orders of the basis
+    #p_dm._klbas.ordd = new_ordd #the radial orders of the basis
+    p_dm._klbas.ordd = ordd #the radial orders of the basis
     p_dm._klbas.rabas = rabas # the radial array of the basis
-    p_dm._klbas.azbas = new_azbas #the azimuthal array of the basis
+    #p_dm._klbas.azbas = new_azbas #the azimuthal array of the basis
+    p_dm._klbas.azbas = np.transpose(azbas) #the azimuthal array of the basis
     p_dm._klbas.kers = kers
     
 
