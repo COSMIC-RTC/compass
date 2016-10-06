@@ -60,6 +60,16 @@ public:
   sutra_rtc_brama(carma_context *context, sutra_sensors *wfs, sutra_target *target, ACE_TCHAR* name);
   ~sutra_rtc_brama();
 
+  void lockWFS(){
+	  for (unsigned int i = 0; i < this->wfs->d_wfs.size(); i++) {
+		  this->wfs->d_wfs[i]->compute_mutex.lock();
+	  }
+  }
+  void unlockWFS(){
+	  for (unsigned int i = 0; i < this->wfs->d_wfs.size(); i++) {
+		  this->wfs->d_wfs[i]->compute_mutex.lock();
+	  }
+  }
   void publish();
 private:
   void allocateBuffers();

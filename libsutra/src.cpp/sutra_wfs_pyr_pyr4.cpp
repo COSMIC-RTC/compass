@@ -157,7 +157,9 @@ int sutra_wfs_pyr_pyr4::comp_generic() {
 
 int sutra_wfs_pyr_pyr4::comp_image() {
 
+  this->compute_mutex.lock();
   current_context->set_activeDevice(device,1);
   int result = comp_generic();
+  this->compute_mutex.unlock();
   return result;
 }
