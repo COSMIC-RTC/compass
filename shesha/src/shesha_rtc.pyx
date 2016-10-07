@@ -637,7 +637,7 @@ cdef class Rtc:
 
         if(type_control == "generic"):
             raise TypeError("Generic controller doesn't have imat")
-            
+
         if(type_control == "ls"):
             controller_ls = dynamic_cast_controller_ls_ptr(self.rtc.d_control[ncontrol])
             dims = controller_ls.d_imat.getDims()
@@ -2133,8 +2133,8 @@ cpdef correct_dm(p_dms, Dms g_dms, Param_controller p_control, Param_geom p_geom
             rabas_L = copy.copy(p_dms[nm]._klbas.rabas.flatten('F'))
             azbas_L = copy.copy(p_dms[nm]._klbas.azbas.flatten('F'))
             cr_L = copy.copy(p_dms[nm]._klbas.cr.flatten('F'))
-            cp_L = copy.copy(p_dms[nm]._klbas.cp.flatten('F'))            
-            
+            cp_L = copy.copy(p_dms[nm]._klbas.cp.flatten('F'))
+
             g_dms.add_dm(< bytes > "kl", p_dms[nm].alt, dim, ninflu, influsize,
                             _nr, _np, p_dms[nm].push4imat)
             g_dms.load_kl(p_dms[nm].alt, np.float32(rabas_L), np.float32(azbas_L),
@@ -2375,6 +2375,8 @@ cpdef compute_KL2V(Param_controller controller, Dms dms, p_dms, Param_geom p_geo
 
     #KL2V = KL2V[:, :controller.nmodes]
 
+    if(nTT > 1):
+      raise "More than 1 TipTilt found! Stupid"
     if(nTT != 0):
         KL2V[:, :controller.nmodes - 2] = KL2V[:, 2:]
         KL2V[:, controller.nmodes - 2:] = np.zeros((np.sum(ntotact), 2), dtype=np.float32)

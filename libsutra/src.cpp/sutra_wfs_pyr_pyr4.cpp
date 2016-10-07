@@ -45,6 +45,7 @@ int sutra_wfs_pyr_pyr4::comp_generic() {
       cudaMemset(this->d_hrimg->getData(), 0,
                  sizeof(float) * this->d_hrimg->getNbElem()));
   //
+  this->compute_mutex.lock();
   //this->npup = 1;
   for (int cpt = 0; cpt < this->npup; cpt++) {
     //    // modulation loop
@@ -79,6 +80,7 @@ int sutra_wfs_pyr_pyr4::comp_generic() {
     pyr_abs2(this->d_hrimg->getData(), this->d_fttotim->getData(), fact,
              this->nfft, 4, this->current_context->get_device(device));
   }
+  this->compute_mutex.unlock();
 
   // spatial filtering by the pixel extent:
   roll(this->d_hrimg->getData(), this->d_hrimg->getDims(1),
@@ -157,9 +159,7 @@ int sutra_wfs_pyr_pyr4::comp_generic() {
 
 int sutra_wfs_pyr_pyr4::comp_image() {
 
-  this->compute_mutex.lock();
   current_context->set_activeDevice(device,1);
   int result = comp_generic();
-  this->compute_mutex.unlock();
   return result;
 }

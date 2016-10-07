@@ -67,7 +67,7 @@ public:
   }
   void unlockWFS(){
 	  for (unsigned int i = 0; i < this->wfs->d_wfs.size(); i++) {
-		  this->wfs->d_wfs[i]->compute_mutex.lock();
+		  this->wfs->d_wfs[i]->compute_mutex.unlock();
 	  }
   }
   void publish();
@@ -77,4 +77,3 @@ private:
 };
 
 #endif /* SUTRA_RTC_BRAMA_H_ */
-
