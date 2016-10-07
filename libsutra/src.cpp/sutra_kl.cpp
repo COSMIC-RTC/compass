@@ -29,7 +29,13 @@ sutra_kl::sutra_kl(carma_context *context, long dim, long nr, long np, long nkl,
   this->d_rabas = new carma_obj<float>(context, dims_data2);
 
   dims_data2[1] = np;
-  dims_data2[2] = nkl;
+  if(nkl==2){
+  	dims_data2[2] = 3;
+  }else if(nkl==3 || nkl==4){
+  	dims_data2[2] = 5;
+  }else{
+  	dims_data2[2] = nkl;
+  }
   this->d_azbas = new carma_obj<float>(context, dims_data2);
 
   // delete[] dims_data1;
