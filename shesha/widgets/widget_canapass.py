@@ -21,6 +21,7 @@ from PyQt4.uic import loadUiType
 from PyQt4 import QtGui
 from functools import partial
 import subprocess
+import Pyro4
 
 sys.path.insert(0, os.environ["SHESHA_ROOT"] + "/data/par/")
 WindowTemplate, TemplateBaseClass = loadUiType(
@@ -33,7 +34,7 @@ gdb --args python -i widget_canapass.py
 
 """
 
-
+@Pyro4.expose
 class widgetAOWindow(TemplateBaseClass):
 
     def __init__(self):
@@ -263,7 +264,7 @@ class widgetAOWindow(TemplateBaseClass):
         self.SRCrossY = None
 
         #gpudevice = np.array([0, 1, 2, 3], dtype=np.int32)
-        gpudevice = np.array([0], dtype=np.int32)
+        gpudevice = 0  # np.array([0, 1, 2, 3], dtype=np.int32)
 
         # self.ui.wao_deviceNumber.value()
         self.ui.wao_deviceNumber.setDisabled(True)
@@ -271,8 +272,10 @@ class widgetAOWindow(TemplateBaseClass):
 #        self.c = ch.naga_context()
 #        self.c.set_activeDevice(device)
         if not self.c:
-            # self.c = ch.naga_context(gpudevice)
-            self.c = ch.naga_context(devices=gpudevice)
+            if type(gpudevice) is int:
+                self.c = ch.naga_context(gpudevice)
+            else:
+                self.c = ch.naga_context(devices=gpudevice)
 
         self.wfs, self.tel = ao.wfs_init(self.config.p_wfss, self.config.p_atmos, self.config.p_tel,
                                          self.config.p_geom, self.config.p_target, self.config.p_loop,
@@ -698,10 +701,19 @@ class widgetAOWindow(TemplateBaseClass):
         self.ui.wao_run.setChecked(False)
         # print "Loop stopped"
 
+
+
 if __name__ == '__main__':
     app = QtGui.QApplication(sys.argv)
     wao = widgetAOWindow()
     wao.show()
 
+    daemon = Pyro4.Daemon()                # make a Pyro daemon
+    ns = Pyro4.locateNS()                  # find the name server
+    uri = daemon.register(wao)   # register the greeting maker as a Pyro object
+    ns.register("example.greeting", uri)   # register the object with a name in the name server
+
+    print("Ready.")
+    daemon.requestLoop()
     # app.connect(wao.ui._quit,QtCore.SIGNAL("clicked()"),app,QtCore.SLOT("quit()"))
     app.setStyle('cleanlooks')

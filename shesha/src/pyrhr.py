@@ -176,7 +176,7 @@ def pyr_analysis(n, mod, N, Dtel, obs, nrebin, l, _pix, Amp, mv, Pangle, p, pup=
             diffractionCircle = pylab.Circle((a[i],b[i]), radius=0.5, alpha=0.5)
             axes1[1, 0].add_patch(diffractionCircle)
             axes1[1, 0].set_title("Modulation points (in lambda/D)")
-        print "Modulation iter=", i
+        print "Modulation iter=", i, "/", N
         print "min=", np.min(PSF), " max=", np.max(PSF)
 
     PSF = np.fft.fftshift(PSF)
@@ -190,7 +190,6 @@ def pyr_analysis(n, mod, N, Dtel, obs, nrebin, l, _pix, Amp, mv, Pangle, p, pup=
     PUPIM *= Nph
     #n = nrebin
     PUPIM0=np.copy(PUPIM)
-    PUPIM = rebin(PUPIM0, (PUPIM0.shape[0]/nrebin, PUPIM0.shape[1]/nrebin))
 
     if(noise):
         PUPIM = np.random.poisson(PUPIM) #Bruit de photons
@@ -201,11 +200,15 @@ def pyr_analysis(n, mod, N, Dtel, obs, nrebin, l, _pix, Amp, mv, Pangle, p, pup=
     IC = PUPIM[int(n/2-D/2-Pangle)+1 : int(n/2+D/2-Pangle)+1 , int(n/2-D/2+Pangle)+1 : int(n/2+D/2+Pangle)+1]
     ID = PUPIM[int(n/2-D/2+Pangle)+1 : int(n/2+D/2+Pangle)+1 , int(n/2-D/2+Pangle)+1 : int(n/2+D/2+Pangle)+1]
 
+    PUPIM = rebin(PUPIM0, (PUPIM0.shape[0]/nrebin, PUPIM0.shape[1]/nrebin))
+
+
     Itot = IA + IB + IC + ID
     Sx = ppup*(IB+ID -(IA+IC))/(Itot)
     Sy = ppup*(IC+ID -(IA+IB))/(Itot)
     dwx = mod*np.sin(0.5*np.pi*Sx)
     dwy = mod*np.sin(0.5*np.pi*Sy) # en unite lam/D
+
 
     if(disp):
         axes2[0].matshow(PUPIM0, cmap="gist_earth")
@@ -241,7 +244,7 @@ def pyr_analysis(n, mod, N, Dtel, obs, nrebin, l, _pix, Amp, mv, Pangle, p, pup=
     grady /= z  # radians d'angle  (note: z=Dtel/D)
     grady /= l/Dtel   #   unites lam/D
     """
-    return PSF, PUPIM , PUPIM_LR, dwx, dwy, IA, IB, IC, ID, ppup, pyr
+    return PSF, PUPIM0, PUPIM, dwx, dwy, IA, IB, IC, ID, ppup, pyr
 
 
 def compPyrCOMPASS(wao):
@@ -268,7 +271,7 @@ def compPyrCOMPASS(wao):
         pup[(n-ncompass)/2:(n+ncompass)/2, (n-ncompass)/2:(n+ncompass)/2] = pupCOMPASS
 
         PSF, PUPIM_HR, PUPIM_LR, dwx, dwy, IA, IB, IC, ID, ppup, pyr = pyr_analysis(n,mod,N,Dtel,obs, nrebin, l,_pix,Amp, mv, Pangle, p, pup=pup)
-
+        return PUPIM_HR,  PUPIM_LR
 """
 from iterkolmo import *
 n=1024
