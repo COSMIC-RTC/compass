@@ -708,7 +708,7 @@ class widgetAOWindow(TemplateBaseClass):
                 os.environ["SHESHA_ROOT"] + "/data/", self.config, param_dict)
 
         gpudevice = self.ui.wao_deviceNumber.value()
-        gpudevice = np.array([4, 5, 6, 7], dtype=np.int32)
+        #gpudevice = np.array([4, 5, 6, 7], dtype=np.int32)
         #gpudevice = np.array([0, 1, 2, 3], dtype=np.int32)
 
         self.ui.wao_deviceNumber.setDisabled(True)
