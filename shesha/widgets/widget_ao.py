@@ -712,11 +712,13 @@ class widgetAOWindow(TemplateBaseClass):
         # gpudevice = np.array([0, 1, 2, 3], dtype=np.int32)
 
         self.ui.wao_deviceNumber.setDisabled(True)
+
         print "-> using GPU", gpudevice
-        # self.c = ch.naga_context()
 
         if not self.c:
-            if type(gpudevice) == int:
+            if type(gpudevice) is None:
+                self.c = ch.naga_context()
+            elif type(gpudevice) == int:
                 self.c = ch.naga_context(gpudevice)
             else:
                 self.c = ch.naga_context(devices=gpudevice)

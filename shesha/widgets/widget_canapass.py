@@ -263,16 +263,15 @@ class widgetAOWindow(TemplateBaseClass):
         self.SRCrossX = None
         self.SRCrossY = None
 
-        #gpudevice = np.array([0, 1, 2, 3], dtype=np.int32)
-        gpudevice = 0  # np.array([0, 1, 2, 3], dtype=np.int32)
-
-        # self.ui.wao_deviceNumber.value()
+        gpudevice =self.ui.wao_deviceNumber.value()   # np.array([4, 5, 6, 7], dtype=np.int32)
         self.ui.wao_deviceNumber.setDisabled(True)
+
         print "-> using GPU", gpudevice
-#        self.c = ch.naga_context()
-#        self.c.set_activeDevice(device)
+
         if not self.c:
-            if type(gpudevice) is int:
+            if type(gpudevice) is None:
+                self.c = ch.naga_context()
+            elif type(gpudevice) is int:
                 self.c = ch.naga_context(gpudevice)
             else:
                 self.c = ch.naga_context(devices=gpudevice)
