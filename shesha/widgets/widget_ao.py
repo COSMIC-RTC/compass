@@ -10,7 +10,7 @@ import os
 import numpy as np
 import naga as ch
 import shesha as ao
-import time
+from time import time, sleep
 import matplotlib.pyplot as plt
 import pyqtgraph as pg
 import glob
@@ -62,7 +62,8 @@ class widgetAOWindow(TemplateBaseClass):
         self.loaded = False
         self.stop = False
         self.nbiters = 1000
-        self.startTime = 0
+        self.refreshTime = 0
+        self.refreshDisplayTime = 0
         self.loop = None
         self.assistant = None
         self.selector_init = None
@@ -710,9 +711,7 @@ class widgetAOWindow(TemplateBaseClass):
         gpudevice = self.ui.wao_deviceNumber.value()
         # gpudevice = np.array([4, 5, 6, 7], dtype=np.int32)
         # gpudevice = np.array([0, 1, 2, 3], dtype=np.int32)
-
         self.ui.wao_deviceNumber.setDisabled(True)
-
         print "-> using GPU", gpudevice
 
         if not self.c:
@@ -1169,7 +1168,7 @@ class widgetAOWindow(TemplateBaseClass):
             return
         else:
             try:
-                start = time.time()
+                start = time()
                 self.atm.move_atmos()
                 if(self.config.p_controllers[0].type_control == "geo"):
                     for t in range(self.config.p_target.ntargets):
@@ -1199,7 +1198,7 @@ class widgetAOWindow(TemplateBaseClass):
                     self.rtc.docontrol(0)
                     self.rtc.applycontrol(0, self.dms)
 
-                if(time.time() - self.startTime > 0.05):
+                if(time() - self.refreshTime > 0.05):
                     signal_le = ""
                     signal_se = ""
                     for t in range(self.config.p_target.ntargets):
@@ -1207,31 +1206,36 @@ class widgetAOWindow(TemplateBaseClass):
                         signal_se += "%1.2f   " % SR[0]
                         signal_le += "%1.2f   " % SR[1]
 
-                    loopTime = time.time() - start
+                    loopTime = time() - start
                     if(self.RTDisplay):
                         # Limit loop frequency
                         t = 1 / float(self.RTDFreq) - loopTime
                         if t > 0:
-                            time.sleep(t)  # Limit loop frequency
+                            sleep(t)  # Limit loop frequency
                         self.updateDisplay()  # Update GUI plots
                     else:
                         freqLimit = 1 / 250.
                         if loopTime < freqLimit:
                             # Limit loop frequency
-                            time.sleep(freqLimit - loopTime)
-                    currentFreq = 1 / (time.time() - start)
+                            sleep(freqLimit - loopTime)
+                    currentFreq = 1 / (time() - start)
+                    displayFreq = 1 / (time() - self.refreshDisplayTime)
 
                     if(self.RTDisplay):
+                        if self.RTDFreq > displayFreq:
+                            self.updateDisplay()  # Update GUI plots
+                            self.refreshDisplayTime = time()
+
                         self.ui.wao_strehlSE.setText(signal_se)
                         self.ui.wao_strehlLE.setText(signal_le)
-                        self.ui.wao_currentFreq.setValue(currentFreq)
+                        self.ui.wao_currentFreq.setValue(1 / loopTime)
                     else:
                         # This seems to trigger the GUI and keep it responsive
-                        time.sleep(.01)
+                        sleep(.01)
 
                     self.printInPlace("iter #%d SR: (L.E, S.E.)= %s, %srunning at %4.1fHz (real %4.1fHz)" % (
                         self.iter, signal_le, signal_se, currentFreq, 1 / loopTime))
-                    self.startTime = time.time()
+                    self.refreshTime = time()
                 self.iter += 1
             finally:
                 self.loopLock.release()
@@ -1246,7 +1250,8 @@ class widgetAOWindow(TemplateBaseClass):
         # print "Loop started"
         self.c.set_activeDeviceForce(0, 1)
         self.stop = False
-        self.startTime = time.time()
+        self.refreshTime = time()
+        self.refreshDisplayTime = time()
         i = 0
         print "LOOP STARTED FOR %d iterations" % self.nbiters
         while i <= self.nbiters:

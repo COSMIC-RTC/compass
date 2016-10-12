@@ -10,7 +10,7 @@ import os
 import numpy as np
 import naga as ch
 import shesha as ao
-import time
+from time import time, sleep
 import matplotlib.pyplot as plt
 import pyqtgraph as pg
 import glob
@@ -263,9 +263,10 @@ class widgetAOWindow(TemplateBaseClass):
         self.SRCrossX = None
         self.SRCrossY = None
 
-        gpudevice =self.ui.wao_deviceNumber.value()   # np.array([4, 5, 6, 7], dtype=np.int32)
+        gpudevice = self.ui.wao_deviceNumber.value()
+        # gpudevice = np.array([0, 1, 2, 3], dtype=np.int32)
+        # gpudevice = 0  # np.array([0, 1, 2, 3], dtype=np.int32)
         self.ui.wao_deviceNumber.setDisabled(True)
-
         print "-> using GPU", gpudevice
 
         if not self.c:
@@ -610,7 +611,7 @@ class widgetAOWindow(TemplateBaseClass):
             return
         else:
             try:
-                start = time.time()
+                start = time()
                 self.atm.move_atmos()
                 if(self.config.p_controllers[0].type_control == "geo"):
                     for t in range(self.config.p_target.ntargets):
@@ -647,7 +648,7 @@ class widgetAOWindow(TemplateBaseClass):
                     self.rtc.publish()  # rtc_publish, g_rtc;
                     self.tar.publish()
 
-                if(time.time() - self.startTime > 0.05):
+                if(time() - self.startTime > 0.05):
                     signal_le = ""
                     signal_se = ""
                     for t in range(self.config.p_target.ntargets):
@@ -655,32 +656,25 @@ class widgetAOWindow(TemplateBaseClass):
                         signal_se += "%1.2f   " % SR[0]
                         signal_le += "%1.2f   " % SR[1]
 
-                    loopTime = time.time() - start
-                    if(self.RTDisplay):
-                        # Limit loop frequency
-                        t = 1 / float(self.RTDFreq) - loopTime
-                        if t > 0:
-                            time.sleep(t)  # Limit loop frequency
-                        self.updateDisplay()  # Update GUI plots
-                    else:
-                        freqLimit = 1 / 250.
-                        if loopTime < freqLimit:
-                            # Limit loop frequency
-                            time.sleep(freqLimit - loopTime)
-                    currentFreq = 1 / (time.time() - start)
+                    loopTime = time() - start
+                    currentFreq = 1 / loopTime
+                    displayFreq = 1 / (time() - self.refreshDisplayTime)
 
                     if(self.RTDisplay):
+                        if self.RTDFreq > displayFreq:
+                            self.updateDisplay()  # Update GUI plots
+                            self.refreshDisplayTime = time()
+
                         self.ui.wao_strehlSE.setText(signal_se)
                         self.ui.wao_strehlLE.setText(signal_le)
                         self.ui.wao_currentFreq.setValue(currentFreq)
                     else:
                         # This seems to trigger the GUI and keep it responsive
-                        time.sleep(.01)
+                        sleep(.01)
 
                     self.printInPlace("iter #%d SR: (L.E, S.E.)= %s, %srunning at %4.1fHz (real %4.1fHz)" % (
                         self.iter, signal_le, signal_se, currentFreq, 1 / loopTime))
-                    self.startTime = time.time()
-
+                    self.startTime = time()
                 self.iter += 1
             finally:
                 self.loopLock.release()
@@ -695,14 +689,13 @@ class widgetAOWindow(TemplateBaseClass):
         # print "Loop started"
         self.c.set_activeDeviceForce(0, 1)
         self.stop = False
-        self.startTime = time.time()
+        self.startTime = time()
         while True:
             self.mainLoop()
             if(self.stop):
                 break
         self.ui.wao_run.setChecked(False)
         # print "Loop stopped"
-
 
 
 if __name__ == '__main__':
