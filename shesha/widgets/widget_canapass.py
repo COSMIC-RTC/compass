@@ -644,41 +644,44 @@ class widgetAOWindow(TemplateBaseClass):
                     self.rtc.docontrol(0)
                     self.rtc.applycontrol(0, self.dms)
 
-                signal_le = ""
-                signal_se = ""
-                for t in range(self.config.p_target.ntargets):
-                    SR = self.tar.get_strehl(t)
-                    signal_se += "%1.2f   " % SR[0]
-                    signal_le += "%1.2f   " % SR[1]
-
-                loopTime = time.time() - start
-                if(self.RTDisplay):
-                    # Limit loop frequency
-                    t = 1 / float(self.RTDFreq) - loopTime
-                    if t > 0:
-                        time.sleep(t)  # Limit loop frequency
-                    self.updateDisplay()  # Update GUI plots
-                else:
-                    freqLimit = 1 / 250.
-                    if loopTime < freqLimit:
-                        # Limit loop frequency
-                        time.sleep(freqLimit - loopTime)
-                currentFreq = 1 / (time.time() - start)
-
                 if(wao.brama_flag):
                     self.rtc.publish()  # rtc_publish, g_rtc;
                     self.tar.publish()
 
-                if(self.RTDisplay):
-                    self.ui.wao_strehlSE.setText(signal_se)
-                    self.ui.wao_strehlLE.setText(signal_le)
-                    self.ui.wao_currentFreq.setValue(currentFreq)
-                if(time.time() - self.startTime > 1):
+                if(time.time() - self.startTime > 0.05):
+                    signal_le = ""
+                    signal_se = ""
+                    for t in range(self.config.p_target.ntargets):
+                        SR = self.tar.get_strehl(t)
+                        signal_se += "%1.2f   " % SR[0]
+                        signal_le += "%1.2f   " % SR[1]
+
+                    loopTime = time.time() - start
+                    if(self.RTDisplay):
+                        # Limit loop frequency
+                        t = 1 / float(self.RTDFreq) - loopTime
+                        if t > 0:
+                            time.sleep(t)  # Limit loop frequency
+                        self.updateDisplay()  # Update GUI plots
+                    else:
+                        freqLimit = 1 / 250.
+                        if loopTime < freqLimit:
+                            # Limit loop frequency
+                            time.sleep(freqLimit - loopTime)
+                    currentFreq = 1 / (time.time() - start)
+
+                    if(self.RTDisplay):
+                        self.ui.wao_strehlSE.setText(signal_se)
+                        self.ui.wao_strehlLE.setText(signal_le)
+                        self.ui.wao_currentFreq.setValue(currentFreq)
+                    else:
+                        # This seems to trigger the GUI and keep it responsive
+                        time.sleep(.01)
+
                     self.printInPlace("iter #%d SR: (L.E, S.E.)= %s, %srunning at %4.1fHz (real %4.1fHz)" % (
                         self.iter, signal_le, signal_se, currentFreq, 1 / loopTime))
                     self.startTime = time.time()
-                    # This seems to trigger the GUI and keep it responsive
-                    time.sleep(.01)
+
                 self.iter += 1
             finally:
                 self.loopLock.release()
