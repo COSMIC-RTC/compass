@@ -1164,7 +1164,7 @@ class widgetAOWindow(TemplateBaseClass):
 
     def mainLoop(self):
         if not self.loopLock.acquire(False):
-            print " Loop locked"
+            # print " Display locked"
             return
         else:
             try:
@@ -1207,18 +1207,8 @@ class widgetAOWindow(TemplateBaseClass):
                         signal_le += "%1.2f   " % SR[1]
 
                     loopTime = time() - start
-                    if(self.RTDisplay):
-                        # Limit loop frequency
-                        t = 1 / float(self.RTDFreq) - loopTime
-                        if t > 0:
-                            sleep(t)  # Limit loop frequency
-                        self.updateDisplay()  # Update GUI plots
-                    else:
-                        freqLimit = 1 / 250.
-                        if loopTime < freqLimit:
-                            # Limit loop frequency
-                            sleep(freqLimit - loopTime)
-                    currentFreq = 1 / (time() - start)
+                    currentFreq = 1 / loopTime
+                    refreshFreq = 1 / (time() - self.refreshTime)
                     displayFreq = 1 / (time() - self.refreshDisplayTime)
 
                     if(self.RTDisplay):
@@ -1234,7 +1224,7 @@ class widgetAOWindow(TemplateBaseClass):
                         sleep(.01)
 
                     self.printInPlace("iter #%d SR: (L.E, S.E.)= %s, %srunning at %4.1fHz (real %4.1fHz)" % (
-                        self.iter, signal_le, signal_se, currentFreq, 1 / loopTime))
+                        self.iter, signal_le, signal_se, refreshFreq, currentFreq))
                     self.refreshTime = time()
                 self.iter += 1
             finally:

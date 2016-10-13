@@ -13,14 +13,12 @@ import shesha as ao
 from time import time, sleep
 import matplotlib.pyplot as plt
 import pyqtgraph as pg
-import glob
 import tools
 import hdf5_utils as h5u
 import threading
 from PyQt4.uic import loadUiType
 from PyQt4 import QtGui
 from functools import partial
-import subprocess
 import Pyro4
 
 sys.path.insert(0, os.environ["SHESHA_ROOT"] + "/data/par/")
@@ -33,6 +31,7 @@ low levels debugs:
 gdb --args python -i widget_canapass.py
 
 """
+
 
 @Pyro4.expose
 class widgetAOWindow(TemplateBaseClass):
@@ -60,7 +59,10 @@ class widgetAOWindow(TemplateBaseClass):
         self.iter = 0
         self.loaded = False
         self.stop = False
-        self.startTime = 0
+
+        self.refreshTime = time()
+        self.refreshDisplayTime = time()
+
         self.loop = None
         self.assistant = None
         self.selector_init = None
@@ -244,7 +246,6 @@ class widgetAOWindow(TemplateBaseClass):
         self.updateDisplay()
 
     def InitConfig(self):
-
         if(hasattr(self, "atm")):
             del self.atm
         if(hasattr(self, "tel")):
@@ -336,10 +337,6 @@ class widgetAOWindow(TemplateBaseClass):
             self.SRcircleTarget[i].setPoints(cx, cy)
             self.SRcircleTarget[i].show()
 
-        self.loaded = True
-        self.updateDisplay()
-        self.p1.autoRange()
-
         print "===================="
         print "init done"
         print "===================="
@@ -350,6 +347,9 @@ class widgetAOWindow(TemplateBaseClass):
         print self.dms
         print self.tar
         print self.rtc
+        self.loaded = True
+        self.updateDisplay()
+        self.p1.autoRange()
 
         self.ui.wao_PSFlogscale.clicked.connect(self.updateDisplay)
         self.ui.wao_run.setDisabled(False)
@@ -647,8 +647,7 @@ class widgetAOWindow(TemplateBaseClass):
                 if(wao.brama_flag):
                     self.rtc.publish()  # rtc_publish, g_rtc;
                     self.tar.publish()
-
-                if(time() - self.startTime > 0.05):
+                if(time() - self.refreshTime > 0.05):
                     signal_le = ""
                     signal_se = ""
                     for t in range(self.config.p_target.ntargets):
@@ -658,6 +657,7 @@ class widgetAOWindow(TemplateBaseClass):
 
                     loopTime = time() - start
                     currentFreq = 1 / loopTime
+                    refreshFreq = 1 / (time() - self.refreshTime)
                     displayFreq = 1 / (time() - self.refreshDisplayTime)
 
                     if(self.RTDisplay):
@@ -667,14 +667,14 @@ class widgetAOWindow(TemplateBaseClass):
 
                         self.ui.wao_strehlSE.setText(signal_se)
                         self.ui.wao_strehlLE.setText(signal_le)
-                        self.ui.wao_currentFreq.setValue(currentFreq)
+                        self.ui.wao_currentFreq.setValue(1 / loopTime)
                     else:
                         # This seems to trigger the GUI and keep it responsive
                         sleep(.01)
 
                     self.printInPlace("iter #%d SR: (L.E, S.E.)= %s, %srunning at %4.1fHz (real %4.1fHz)" % (
-                        self.iter, signal_le, signal_se, currentFreq, 1 / loopTime))
-                    self.startTime = time()
+                        self.iter, signal_le, signal_se, refreshFreq, currentFreq))
+                    self.refreshTime = time()
                 self.iter += 1
             finally:
                 self.loopLock.release()
@@ -689,7 +689,8 @@ class widgetAOWindow(TemplateBaseClass):
         # print "Loop started"
         self.c.set_activeDeviceForce(0, 1)
         self.stop = False
-        self.startTime = time()
+        self.refreshTime = time()
+        self.refreshDisplayTime = time()
         while True:
             self.mainLoop()
             if(self.stop):
@@ -703,12 +704,18 @@ if __name__ == '__main__':
     wao = widgetAOWindow()
     wao.show()
 
-    daemon = Pyro4.Daemon()                # make a Pyro daemon
-    ns = Pyro4.locateNS()                  # find the name server
-    uri = daemon.register(wao)   # register the greeting maker as a Pyro object
-    ns.register("example.greeting", uri)   # register the object with a name in the name server
+    try:
+        daemon = Pyro4.Daemon()                # make a Pyro daemon
+        ns = Pyro4.locateNS()                  # find the name server
+        # register the greeting maker as a Pyro object
+        uri = daemon.register(wao)
+        # register the object with a name in the name server
+        ns.register("example.greeting", uri)
 
-    print("Ready.")
-    daemon.requestLoop()
+        print("Ready.")
+        daemon.requestLoop()
+    except:
+        from warnings import warn
+        warn("pyro4 not found", RuntimeWarning)
     # app.connect(wao.ui._quit,QtCore.SIGNAL("clicked()"),app,QtCore.SLOT("quit()"))
     app.setStyle('cleanlooks')
