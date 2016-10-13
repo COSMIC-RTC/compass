@@ -699,19 +699,20 @@ class widgetAOWindow(TemplateBaseClass):
             matricesToLoad = h5u.checkMatricesDataBase(
                 os.environ["SHESHA_ROOT"] + "/data/", self.config, param_dict)
 
-        gpudevice = self.ui.wao_deviceNumber.value()
-        # gpudevice = np.array([4, 5, 6, 7], dtype=np.int32)
-        # gpudevice = np.array([0, 1, 2, 3], dtype=np.int32)
+        gpudevice = self.ui.wao_deviceNumber.value()  # using GUI value
+        # gpudevice = "ALL"  # using all GPU avalaible
+        # gpudevice = np.array([0, 1, 2, 3], dtype=np.int32)  # using 4 GPUs: 0-3
+        # gpudevice = 0  # using 1 GPU : 0
         self.ui.wao_deviceNumber.setDisabled(True)
         print "-> using GPU", gpudevice
 
         if not self.c:
-            if type(gpudevice) is None:
-                self.c = ch.naga_context()
-            elif type(gpudevice) == int:
+            if type(gpudevice) is np.ndarray:
+                self.c = ch.naga_context(devices=gpudevice)
+            elif type(gpudevice) is int:
                 self.c = ch.naga_context(gpudevice)
             else:
-                self.c = ch.naga_context(devices=gpudevice)
+                self.c = ch.naga_context()
 
         self.wfs, self.tel = ao.wfs_init(self.config.p_wfss, self.config.p_atmos, self.config.p_tel,
                                          self.config.p_geom, self.config.p_target, self.config.p_loop,

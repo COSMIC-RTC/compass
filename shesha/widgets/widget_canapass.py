@@ -253,8 +253,8 @@ class widgetAOWindow(TemplateBaseClass):
         self.SRCrossX = None
         self.SRCrossY = None
 
-        # gpudevice = self.ui.wao_deviceNumber.value()
-        gpudevice = "ALL"  # using all GPU avalaible
+        gpudevice = self.ui.wao_deviceNumber.value()  # using GUI value
+        # gpudevice = "ALL"  # using all GPU avalaible
         # gpudevice = np.array([0, 1, 2, 3], dtype=np.int32)  # using 4 GPUs: 0-3
         # gpudevice = 0  # using 1 GPU : 0
         self.ui.wao_deviceNumber.setDisabled(True)
