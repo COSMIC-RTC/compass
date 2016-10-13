@@ -2378,9 +2378,9 @@ cpdef compute_KL2V(Param_controller controller, Dms dms, p_dms, Param_geom p_geo
     if(nTT > 1):
       raise "More than 1 TipTilt found! Stupid"
     if(nTT != 0):
-        KL2V[:, :controller.nmodes - 2] = KL2V[:, 2:]
-        KL2V[:, controller.nmodes - 2:] = np.zeros((np.sum(ntotact), 2), dtype=np.float32)
-        KL2V[np.sum(ntotact) - 2:, controller.nmodes - 2:] = np.identity(2, dtype=np.float32)
+        KL2V[:, :KL2V.shape[1] - 2] = KL2V[:, 2:]
+        KL2V[:, KL2V.shape[1]  - 2:] = np.zeros((np.sum(ntotact), 2), dtype=np.float32)
+        KL2V[np.sum(ntotact) - 2:, KL2V.shape[1] - 2:] = np.identity(2, dtype=np.float32)
 
     return KL2V
 
