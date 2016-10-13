@@ -61,7 +61,6 @@ class widgetAOWindow(TemplateBaseClass):
         self.stop = False
 
         self.refreshTime = time()
-        self.refreshDisplayTime = time()
 
         self.loop = None
         self.assistant = None
@@ -106,11 +105,8 @@ class widgetAOWindow(TemplateBaseClass):
             partial(self.updateNumberSelector, textType=None))
         self.ui.wao_selectNumber.currentIndexChanged.connect(
             self.setNumberSelection)
-        self.ui.wao_Display.clicked.connect(self.updateFrameRate)
-        self.ui.wao_frameRate.valueChanged.connect(self.updateFrameRate)
         self.ui.wao_rtcWindowMPL.hide()
-        self.RTDisplay = self.ui.wao_Display.isChecked()
-        self.RTDFreq = self.ui.wao_frameRate.value()
+        self.ui.wao_frameRate.setValue(2)
         self.ui.wao_PSFlogscale.clicked.connect(self.updateDisplay)
         self.ui.wao_atmosphere.setCheckable(True)
         self.ui.wao_atmosphere.clicked[bool].connect(self.set_atmos)
@@ -160,13 +156,6 @@ class widgetAOWindow(TemplateBaseClass):
         #############################################################
         #                        METHODS                            #
         #############################################################
-
-    def updateFrameRate(self):
-        if(self.ui.wao_Display.isChecked()):
-            self.RTDisplay = True
-        else:
-            self.RTDisplay = False
-        self.RTDFreq = self.ui.wao_frameRate.value()
 
     def addConfigFromFile(self, filepath=False):
         if filepath is False:
@@ -665,7 +654,9 @@ class widgetAOWindow(TemplateBaseClass):
                 if(wao.brama_flag):
                     self.rtc.publish()  # rtc_publish, g_rtc;
                     self.tar.publish()
-                if(time() - self.refreshTime > 0.5):
+
+                refreshDisplayTime = 1. / self.ui.wao_frameRate.value()
+                if(time() - self.refreshTime > refreshDisplayTime):
                     signal_le = ""
                     signal_se = ""
                     for t in range(self.config.p_target.ntargets):
@@ -676,16 +667,13 @@ class widgetAOWindow(TemplateBaseClass):
                     loopTime = time() - start
                     currentFreq = 1 / loopTime
                     refreshFreq = 1 / (time() - self.refreshTime)
-                    displayFreq = 1 / (time() - self.refreshDisplayTime)
 
-                    if(self.RTDisplay):
-                        if self.RTDFreq > displayFreq:
-                            self.updateDisplay()  # Update GUI plots
-                            self.refreshDisplayTime = time()
+                    if(self.ui.wao_Display.isChecked()):
+                        self.updateDisplay()  # Update GUI plots
 
-                        self.ui.wao_strehlSE.setText(signal_se)
-                        self.ui.wao_strehlLE.setText(signal_le)
-                        self.ui.wao_currentFreq.setValue(1 / loopTime)
+                    self.ui.wao_strehlSE.setText(signal_se)
+                    self.ui.wao_strehlLE.setText(signal_le)
+                    self.ui.wao_currentFreq.setValue(1 / loopTime)
 
                     self.printInPlace("iter #%d SR: (L.E, S.E.)= %s, %srunning at %4.1fHz (real %4.1fHz)" % (
                         self.iter, signal_le, signal_se, refreshFreq, currentFreq))
@@ -707,7 +695,6 @@ class widgetAOWindow(TemplateBaseClass):
         self.c.set_activeDeviceForce(0, 1)
         self.stop = False
         self.refreshTime = time()
-        self.refreshDisplayTime = time()
         while True:
             self.mainLoop()
             if(self.stop):

@@ -63,7 +63,6 @@ class widgetAOWindow(TemplateBaseClass):
         self.stop = False
         self.nbiters = 1000
         self.refreshTime = 0
-        self.refreshDisplayTime = 0
         self.loop = None
         self.assistant = None
         self.selector_init = None
@@ -134,8 +133,7 @@ class widgetAOWindow(TemplateBaseClass):
         self.ui.wao_commandKL.clicked.connect(self.KLCommand)
         self.ui.wao_Display.clicked.connect(self.updateFrameRate)
         self.ui.wao_frameRate.valueChanged.connect(self.updateFrameRate)
-        self.RTDisplay = self.ui.wao_Display.isChecked()
-        self.RTDFreq = self.ui.wao_frameRate.value()
+        self.ui.wao_frameRate.setValue(2)
         self.ui.wao_PSFlogscale.clicked.connect(self.updateDisplay)
         self.ui.wao_resetSR.clicked.connect(self.resetSR)
         self.ui.wao_actionHelp_Contents.triggered.connect(
@@ -218,13 +216,6 @@ class widgetAOWindow(TemplateBaseClass):
             ), self.config.p_wfss, self.config.p_tel)
             print "Pyramid modulation updated on GPU"
             self.updatePlotWfs()
-
-    def updateFrameRate(self):
-        if(self.ui.wao_Display.isChecked()):
-            self.RTDisplay = True
-        else:
-            self.RTDisplay = False
-        self.RTDFreq = self.ui.wao_frameRate.value()
 
     def updateDMrangeGUI(self):
         push4imat = self.ui.wao_dmpush4iMat.value()
@@ -803,7 +794,6 @@ class widgetAOWindow(TemplateBaseClass):
         self.updatePlotWfs()
         self.p1.autoRange()
 
-        self.ui.wao_PSFlogscale.clicked.connect(self.updateDisplay)
         self.ui.wao_run.setDisabled(False)
         self.ui.wao_next.setDisabled(False)
         self.ui.wao_openLoop.setDisabled(False)
@@ -1218,7 +1208,8 @@ class widgetAOWindow(TemplateBaseClass):
                     self.rtc.docontrol(0)
                     self.rtc.applycontrol(0, self.dms)
 
-                if(time() - self.refreshTime > 0.5):
+                refreshDisplayTime = 1. / self.ui.wao_frameRate.value()
+                if(time() - self.refreshTime > refreshDisplayTime):
                     signal_le = ""
                     signal_se = ""
                     for t in range(self.config.p_target.ntargets):
@@ -1229,16 +1220,13 @@ class widgetAOWindow(TemplateBaseClass):
                     loopTime = time() - start
                     currentFreq = 1 / loopTime
                     refreshFreq = 1 / (time() - self.refreshTime)
-                    displayFreq = 1 / (time() - self.refreshDisplayTime)
 
-                    if(self.RTDisplay):
-                        if self.RTDFreq > displayFreq:
-                            self.updateDisplay()  # Update GUI plots
-                            self.refreshDisplayTime = time()
+                    if(self.ui.wao_Display.isChecked()):
+                        self.updateDisplay()  # Update GUI plots
 
-                        self.ui.wao_strehlSE.setText(signal_se)
-                        self.ui.wao_strehlLE.setText(signal_le)
-                        self.ui.wao_currentFreq.setValue(1 / loopTime)
+                    self.ui.wao_strehlSE.setText(signal_se)
+                    self.ui.wao_strehlLE.setText(signal_le)
+                    self.ui.wao_currentFreq.setValue(1 / loopTime)
 
                     self.printInPlace("iter #%d SR: (L.E, S.E.)= %s, %srunning at %4.1fHz (real %4.1fHz)" % (
                         self.iter, signal_le, signal_se, refreshFreq, currentFreq))
@@ -1260,7 +1248,6 @@ class widgetAOWindow(TemplateBaseClass):
         self.c.set_activeDeviceForce(0, 1)
         self.stop = False
         self.refreshTime = time()
-        self.refreshDisplayTime = time()
         i = 0
         print "LOOP STARTED FOR %d iterations" % self.nbiters
         while i <= self.nbiters:
