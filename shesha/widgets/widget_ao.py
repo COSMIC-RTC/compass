@@ -1105,7 +1105,11 @@ class widgetAOWindow(TemplateBaseClass):
                         data = self.tar.get_image(
                             self.numberSelected, "se")
                         if(self.ui.wao_PSFlogscale.isChecked()):
-                            data = np.log10(data)
+                            if np.any(data <= 0):
+                                print("\nzero founds, log display disabled\n", RuntimeWarning)
+                                self.ui.wao_PSFlogscale.setCheckState(False)
+                            else:
+                                data = np.log10(data)
 
                         if (not self.SRCrossX):
                             Delta = 5
