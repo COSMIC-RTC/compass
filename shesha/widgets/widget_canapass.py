@@ -292,8 +292,8 @@ class widgetAOWindow(TemplateBaseClass):
         for i in range(len(self.config.p_atmos.alt)):
             data = self.atm.get_screen(self.config.p_atmos.alt[i])
             cx, cy = self.circleCoords(
-                self.config.p_geom.pupdiam / 2, 100, data.shape[0], data.shape[1])
-            self.SRcircleAtmos[i] = pg.ScatterPlotItem(cx, cy, pen='r')
+                self.config.p_geom.pupdiam / 2, 1000, data.shape[0], data.shape[1])
+            self.SRcircleAtmos[i] = pg.ScatterPlotItem(cx, cy, pen='r', size=1)
             self.p1.addItem(self.SRcircleAtmos[i])
             self.SRcircleAtmos[i].setPoints(cx, cy)
             self.SRcircleAtmos[i].hide()
@@ -301,8 +301,8 @@ class widgetAOWindow(TemplateBaseClass):
         for i in range(len(self.config.p_wfss)):
             data = self.wfs.get_phase(i)
             cx, cy = self.circleCoords(
-                self.config.p_geom.pupdiam / 2, 100, data.shape[0], data.shape[1])
-            self.SRcircleWFS[i] = pg.ScatterPlotItem(cx, cy, pen='r')
+                self.config.p_geom.pupdiam / 2, 1000, data.shape[0], data.shape[1])
+            self.SRcircleWFS[i] = pg.ScatterPlotItem(cx, cy, pen='r', size=1)
             self.p1.addItem(self.SRcircleWFS[i])
             self.SRcircleWFS[i].setPoints(cx, cy)
             self.SRcircleWFS[i].hide()
@@ -312,8 +312,8 @@ class widgetAOWindow(TemplateBaseClass):
             alt = self.config.p_dms[i].alt
             data = self.dms.get_dm(dm_type, alt)
             cx, cy = self.circleCoords(
-                self.config.p_geom.pupdiam / 2, 100, data.shape[0], data.shape[1])
-            self.SRcircleDM[i] = pg.ScatterPlotItem(cx, cy, pen='r')
+                self.config.p_geom.pupdiam / 2, 1000, data.shape[0], data.shape[1])
+            self.SRcircleDM[i] = pg.ScatterPlotItem(cx, cy, pen='r', size=1)
             self.p1.addItem(self.SRcircleDM[i])
             self.SRcircleDM[i].setPoints(cx, cy)
             self.SRcircleDM[i].hide()
@@ -321,8 +321,9 @@ class widgetAOWindow(TemplateBaseClass):
         for i in range(self.config.p_target.ntargets):
             data = self.tar.get_phase(i)
             cx, cy = self.circleCoords(
-                self.config.p_geom.pupdiam / 2, 100, data.shape[0], data.shape[1])
-            self.SRcircleTarget[i] = pg.ScatterPlotItem(cx, cy, pen='r')
+                self.config.p_geom.pupdiam / 2, 1000, data.shape[0], data.shape[1])
+            self.SRcircleTarget[i] = pg.ScatterPlotItem(
+                cx, cy, pen='r', size=1)
             self.p1.addItem(self.SRcircleTarget[i])
             self.SRcircleTarget[i].setPoints(cx, cy)
             self.SRcircleTarget[i].show()
@@ -362,6 +363,7 @@ class widgetAOWindow(TemplateBaseClass):
                 self.dms.resetdm(
                     str(self.ui.wao_dmTypeSelector.currentText()), self.ui.wao_dmAlt.value())
                 self.updateDisplay()
+                print "DM " + str(ndm) + " reset"
             else:
                 print "Invalid DM : please select a DM to reset"
         else:
@@ -409,7 +411,7 @@ class widgetAOWindow(TemplateBaseClass):
 
         data = None
         if not self.displayLock.acquire(False):
-            # print " Display locked"
+            print " Display locked"
             return
         else:
             try:
@@ -538,11 +540,11 @@ class widgetAOWindow(TemplateBaseClass):
                             self.numberSelected, "se")
                         if(self.ui.wao_PSFlogscale.isChecked()):
                             if np.any(data <= 0):
-                                print(
-                                    "\nzero founds, log display disabled\n", RuntimeWarning)
+                                print("\nzero founds, log display disabled\n", RuntimeWarning)
                                 self.ui.wao_PSFlogscale.setCheckState(False)
                             else:
                                 data = np.log10(data)
+
                         if (not self.SRCrossX):
                             Delta = 5
                             self.SRCrossX = pg.PlotCurveItem(np.array([data.shape[0] / 2 + 0.5 - Delta,

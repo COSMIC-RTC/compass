@@ -13,14 +13,12 @@ import shesha as ao
 from time import time, sleep
 import matplotlib.pyplot as plt
 import pyqtgraph as pg
-import glob
 import tools
 import hdf5_utils as h5u
 import threading
 from PyQt4.uic import loadUiType
 from PyQt4 import QtGui
 from functools import partial
-import subprocess
 
 sys.path.insert(0, os.environ["SHESHA_ROOT"] + "/data/par/")
 
@@ -142,15 +140,12 @@ class widgetAOWindow(TemplateBaseClass):
         self.ui.wao_pyr_ampl.valueChanged.connect(self.updateAmpliCompGUI)
         self.ui.wao_dmActuPushArcSecNumWFS.currentIndexChanged.connect(
             self.updateDMrange)
-        self.ui.wao_nbiters.valueChanged.connect(self.updateNBiters)
+
         self.SRcircleAtmos = {}
         self.SRcircleWFS = {}
         self.SRcircleDM = {}
         self.SRcircleTarget = {}
         self.ui.splitter.setSizes([2000, 10])
-
-    def updateNBiters(self):
-        self.nbiters = int(self.ui.wao_nbiters.value())
 
     def on_help_triggered(self, i=None):
         if i is None:
@@ -549,6 +544,7 @@ class widgetAOWindow(TemplateBaseClass):
             pathfile = filepath.split(filename)[0]
             if (pathfile not in sys.path):
                 sys.path.insert(0, pathfile)
+            print "loading ", filename.split(".py")[0]
             exec("import %s as config" % filename.split(".py")[0])
             sys.path.remove(pathfile)
         elif(filepath.split('.')[-1] == "h5"):
@@ -799,6 +795,15 @@ class widgetAOWindow(TemplateBaseClass):
         self.ui.wao_unzoom.setDisabled(False)
         self.ui.wao_resetSR.setDisabled(False)
 
+    def circleCoords(self, ampli, npts, datashape0, datashape1):
+        # ampli = self.config.p_geom.pupdiam/2
+        # npts = 100
+        cx = ampli * np.sin((np.arange(npts) + 1) * 2. *
+                            np.pi / npts) + datashape0 / 2
+        cy = ampli * np.cos((np.arange(npts) + 1) * 2. *
+                            np.pi / npts) + datashape1 / 2
+        return cx, cy
+
     def resetDM(self):
         if(self.dms):
             ndm = self.ui.wao_selectDM.currentIndex()
@@ -914,15 +919,6 @@ class widgetAOWindow(TemplateBaseClass):
                                     verticalalignment='center', transform=ax.transAxes)
 
                 self.ui.wao_rtcWindow.canvas.draw()
-
-    def circleCoords(self, ampli, npts, datashape0, datashape1):
-        # ampli = self.config.p_geom.pupdiam/2
-        # npts = 100
-        cx = ampli * np.sin((np.arange(npts) + 1) * 2. *
-                            np.pi / npts) + datashape0 / 2
-        cy = ampli * np.cos((np.arange(npts) + 1) * 2. *
-                            np.pi / npts) + datashape1 / 2
-        return cx, cy
 
     def computeDMrange(self, numdm, numwfs, push4imat=None, unitpervolt=None):
         i = numdm
@@ -1256,6 +1252,7 @@ class widgetAOWindow(TemplateBaseClass):
                 break
         self.ui.wao_run.setChecked(False)
         # print "Loop stopped"
+
 
 if __name__ == '__main__':
     app = QtGui.QApplication(sys.argv)
