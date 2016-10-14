@@ -131,8 +131,6 @@ class widgetAOWindow(TemplateBaseClass):
         self.ui.wao_rtcWindowMPL.hide()
         self.ui.wao_commandBtt.clicked.connect(self.BttCommand)
         self.ui.wao_commandKL.clicked.connect(self.KLCommand)
-        self.ui.wao_Display.clicked.connect(self.updateFrameRate)
-        self.ui.wao_frameRate.valueChanged.connect(self.updateFrameRate)
         self.ui.wao_frameRate.setValue(2)
         self.ui.wao_PSFlogscale.clicked.connect(self.updateDisplay)
         self.ui.wao_resetSR.clicked.connect(self.resetSR)
