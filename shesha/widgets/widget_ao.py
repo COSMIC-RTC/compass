@@ -139,7 +139,7 @@ class widgetAOWindow(TemplateBaseClass):
         self.ui.wao_actionHelp_Contents.triggered.connect(
             self.on_help_triggered)
 
-        self.ui.wao_Display.setCheckState(False)
+        self.ui.wao_Display.setCheckState(True)
         self.ui.wao_Display.stateChanged.connect(self.updateDisplay)
 
         self.ui.wao_dmUnitPerVolt.valueChanged.connect(self.updateDMrangeGUI)
@@ -153,6 +153,13 @@ class widgetAOWindow(TemplateBaseClass):
         self.SRcircleDM = {}
         self.SRcircleTarget = {}
         self.ui.splitter.setSizes([2000, 10])
+
+        self.ui.wao_loadConfig.setDisabled(False)
+        self.ui.wao_init.setDisabled(True)
+        self.ui.wao_run.setDisabled(True)
+        self.ui.wao_next.setDisabled(True)
+        self.ui.wao_unzoom.setDisabled(True)
+        self.ui.wao_resetSR.setDisabled(True)
 
     def on_help_triggered(self, i=None):
         if i is None:
@@ -660,7 +667,12 @@ class widgetAOWindow(TemplateBaseClass):
         self.ui.wao_selectScreen.setCurrentIndex(0)
         self.updateNumberSelector(textType=self.imgType)
         self.updatePanels()
+
         self.ui.wao_init.setDisabled(False)
+        self.ui.wao_run.setDisabled(True)
+        self.ui.wao_next.setDisabled(True)
+        self.ui.wao_unzoom.setDisabled(True)
+        self.ui.wao_resetSR.setDisabled(True)
 
     def loadDefaultConfig(self):
         parlist = sorted(glob(self.defaultParPath + "*.py"))

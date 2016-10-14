@@ -55,7 +55,7 @@ class widgetAOWindow(TemplateBaseClass):
         self.dms = None
 
         self.config = None
-        self.displayLock = threading.Lock()
+        # self.displayLock = threading.Lock()
         self.loopLock = threading.Lock()
         self.iter = 0
         self.loaded = False
@@ -112,12 +112,20 @@ class widgetAOWindow(TemplateBaseClass):
         self.ui.wao_atmosphere.setCheckable(True)
         self.ui.wao_atmosphere.clicked[bool].connect(self.set_atmos)
 
+        self.ui.wao_Display.setCheckState(True)
         self.ui.wao_Display.stateChanged.connect(self.updateDisplay)
 
         self.SRcircleAtmos = {}
         self.SRcircleWFS = {}
         self.SRcircleDM = {}
         self.SRcircleTarget = {}
+
+        self.ui.wao_loadConfig.setDisabled(False)
+        self.ui.wao_init.setDisabled(True)
+        self.ui.wao_run.setDisabled(True)
+        self.ui.wao_next.setDisabled(True)
+        self.ui.wao_unzoom.setDisabled(True)
+        self.ui.wao_resetSR.setDisabled(True)
 
         # self.addConfigFromFile(
         #     filepath=os.environ["SHESHA_ROOT"] + "/data/par/canapass.py")
@@ -201,7 +209,13 @@ class widgetAOWindow(TemplateBaseClass):
         self.ui.wao_selectScreen.addItems(self.selector_init)
         self.ui.wao_selectScreen.setCurrentIndex(0)
         self.updateNumberSelector(textType=self.imgType)
+
+        self.ui.wao_loadConfig.setDisabled(True)
         self.ui.wao_init.setDisabled(False)
+        self.ui.wao_run.setDisabled(True)
+        self.ui.wao_next.setDisabled(True)
+        self.ui.wao_unzoom.setDisabled(True)
+        self.ui.wao_resetSR.setDisabled(True)
 
     def aoLoopClicked(self, pressed):
         if(pressed):
@@ -349,6 +363,8 @@ class widgetAOWindow(TemplateBaseClass):
         self.updateDisplay()
         self.p1.autoRange()
 
+        self.ui.wao_loadConfig.setDisabled(True)
+        self.ui.wao_init.setDisabled(True)
         self.ui.wao_run.setDisabled(False)
         self.ui.wao_next.setDisabled(False)
         self.ui.wao_unzoom.setDisabled(False)
