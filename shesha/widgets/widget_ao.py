@@ -549,6 +549,7 @@ class widgetAOWindow(TemplateBaseClass):
     def addConfigFromFile(self):
         filepath = str(QtGui.QFileDialog(directory=self.defaultParPath).getOpenFileName(
             self, "Select parameter file", "", "parameters file (*.py);;hdf5 file (*.h5);;all files (*)"))
+        self.loaded = False
         filename = filepath.split('/')[-1]
         if(filepath.split('.')[-1] == "py"):
             self.ui.wao_selectConfig.addItem(filename, 0)
@@ -708,6 +709,12 @@ class widgetAOWindow(TemplateBaseClass):
         self.currentViewSelected = None
         self.SRCrossX = None
         self.SRCrossY = None
+
+        # remove previous pupil materialisation
+        vb = self.p1.getViewBox()
+        for it in vb.items():
+            if type(it) is pg.ScatterPlotItem:
+                self.p1.removeItem(it)
 
         # set simulation name
         if(hasattr(self.config, "simul_name")):

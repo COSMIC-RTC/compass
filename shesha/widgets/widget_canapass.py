@@ -272,6 +272,12 @@ class widgetAOWindow(TemplateBaseClass):
         self.SRCrossX = None
         self.SRCrossY = None
 
+        # remove previous pupil materialisation
+        vb = self.p1.getViewBox()
+        for it in vb.items():
+            if type(it) is pg.ScatterPlotItem:
+                self.p1.removeItem(it)
+
         gpudevice = self.ui.wao_deviceNumber.value()  # using GUI value
         # gpudevice = "ALL"  # using all GPU avalaible
         # gpudevice = np.array([0, 1, 2, 3], dtype=np.int32)  # using 4 GPUs: 0-3
