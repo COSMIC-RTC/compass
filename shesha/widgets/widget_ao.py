@@ -10,7 +10,7 @@ import os
 import numpy as np
 import naga as ch
 import shesha as ao
-from time import time, sleep
+from time import time
 import matplotlib.pyplot as plt
 import pyqtgraph as pg
 import tools
@@ -19,7 +19,9 @@ import hdf5_utils as h5u
 import threading
 from PyQt4.uic import loadUiType
 from PyQt4 import QtGui
+from PyQt4.QtCore import QTimer
 from functools import partial
+from subprocess import Popen, PIPE
 
 sys.path.insert(0, os.environ["SHESHA_ROOT"] + "/data/par/")
 
@@ -60,7 +62,7 @@ class widgetAOWindow(TemplateBaseClass):
         self.iter = 0
         self.loaded = False
         self.stop = False
-        self.nbiters = 1000
+        self.ui.wao_nbiters.setValue(1000)
         self.refreshTime = 0
         self.loop = None
         self.assistant = None
@@ -72,7 +74,8 @@ class widgetAOWindow(TemplateBaseClass):
         #############################################################
 
         self.img = pg.ImageItem(border='w')  # create image area
-        self.img.setTransform(QtGui.QTransform(0, 1, 1, 0, 0, 0))  # flip X and Y
+        self.img.setTransform(QtGui.QTransform(
+            0, 1, 1, 0, 0, 0))  # flip X and Y
         # self.p1 = self.ui.wao_pgwindow.addPlot()  # create pyqtgraph plot
         # area
         self.p1 = self.ui.wao_pgwindow.addViewBox()
@@ -136,6 +139,9 @@ class widgetAOWindow(TemplateBaseClass):
         self.ui.wao_actionHelp_Contents.triggered.connect(
             self.on_help_triggered)
 
+        self.ui.wao_Display.setCheckState(False)
+        self.ui.wao_Display.stateChanged.connect(self.updateDisplay)
+
         self.ui.wao_dmUnitPerVolt.valueChanged.connect(self.updateDMrangeGUI)
         self.ui.wao_dmpush4iMat.valueChanged.connect(self.updateDMrangeGUI)
         self.ui.wao_pyr_ampl.valueChanged.connect(self.updateAmpliCompGUI)
@@ -157,9 +163,7 @@ class widgetAOWindow(TemplateBaseClass):
 
             helpcoll = os.environ["COMPASS_ROOT"] + "/doc/COMPASS.qhc"
             cmd = "assistant -enableRemoteControl -collectionFile %s" % helpcoll
-            self.assistant = subprocess.Popen(cmd,
-                                              shell=True,
-                                              stdin=subprocess.PIPE)
+            self.assistant = Popen(cmd, shell=True, stdin=PIPE)
 #         self.assistant.stdin.write("SetSource qthelp://org.sphinx.compassshesha.r763/doc/index.html\n")
 
     def resetSR(self):
@@ -577,12 +581,18 @@ class widgetAOWindow(TemplateBaseClass):
 
     def aoLoopClicked(self, pressed):
         if(pressed):
-            self.loop = threading.Thread(target=self.run)
-            self.loop.start()
+            self.c.set_activeDeviceForce(0, 1)
+            self.stop = False
+            self.refreshTime = time()
+            self.nbiter = self.ui.wao_nbiters.value()
+            print "LOOP STARTED FOR %d iterations" % self.nbiter
+            self.run()
+            # self.loop = threading.Thread(target=self.run)
+            # self.loop.start()
         else:
             self.stop = True
-            self.loop.join()
-            self.loop = None
+            # self.loop.join()
+            # self.loop = None
 
     def aoLoopOpen(self, pressed):
         if(pressed):
@@ -957,13 +967,13 @@ class widgetAOWindow(TemplateBaseClass):
             widToHide.hide()
 
     def updateDisplay(self):
-        if not self.loaded:
+        if (not self.loaded) or (not self.ui.wao_Display.isChecked()):
             # print " widget not fully initialized"
             return
 
         data = None
-        if not self.displayLock.acquire(False):
-            print " Display locked"
+        if not self.loopLock.acquire(False):
+            # print "Loop locked"
             return
         else:
             try:
@@ -1092,7 +1102,8 @@ class widgetAOWindow(TemplateBaseClass):
                             self.numberSelected, "se")
                         if(self.ui.wao_PSFlogscale.isChecked()):
                             if np.any(data <= 0):
-                                print("\nzero founds, log display disabled\n", RuntimeWarning)
+                                print(
+                                    "\nzero founds, log display disabled\n", RuntimeWarning)
                                 self.ui.wao_PSFlogscale.setCheckState(False)
                             else:
                                 data = np.log10(data)
@@ -1166,7 +1177,12 @@ class widgetAOWindow(TemplateBaseClass):
                     self.img.setImage(data, autoLevels=autoscale)
                     # self.p1.autoRange()
             finally:
-                self.displayLock.release()
+                self.loopLock.release()
+
+            refreshDisplayTime = 1000. / self.ui.wao_frameRate.value()
+            if(self.ui.wao_Display.isChecked()):
+                # Update GUI plots
+                QTimer.singleShot(refreshDisplayTime, self.updateDisplay)
 
     def mainLoop(self):
         if not self.loopLock.acquire(False):
@@ -1218,9 +1234,6 @@ class widgetAOWindow(TemplateBaseClass):
                     currentFreq = 1 / loopTime
                     refreshFreq = 1 / (time() - self.refreshTime)
 
-                    if(self.ui.wao_Display.isChecked()):
-                        self.updateDisplay()  # Update GUI plots
-
                     self.ui.wao_strehlSE.setText(signal_se)
                     self.ui.wao_strehlLE.setText(signal_le)
                     self.ui.wao_currentFreq.setValue(1 / loopTime)
@@ -1229,8 +1242,6 @@ class widgetAOWindow(TemplateBaseClass):
                         self.iter, signal_le, signal_se, refreshFreq, currentFreq))
                     self.refreshTime = time()
                 self.iter += 1
-                # This seems to trigger the GUI and keep it responsive
-                sleep(.01)
             finally:
                 self.loopLock.release()
 
@@ -1241,19 +1252,15 @@ class widgetAOWindow(TemplateBaseClass):
         # sys.stdout.write(text)
 
     def run(self):
-        # print "Loop started"
-        self.c.set_activeDeviceForce(0, 1)
-        self.stop = False
-        self.refreshTime = time()
-        i = 0
-        print "LOOP STARTED FOR %d iterations" % self.nbiters
-        while i <= self.nbiters:
-            self.mainLoop()
-            i += 1
-            if(self.stop):
-                break
-        self.ui.wao_run.setChecked(False)
-        # print "Loop stopped"
+        self.mainLoop()
+        self.nbiter -= 1
+        if(self.stop):
+            self.nbiter = 0
+
+        if self.nbiter > 0:
+            QTimer.singleShot(0, self.run)  # Update loop
+        else:
+            self.ui.wao_run.setChecked(False)
 
 
 if __name__ == '__main__':

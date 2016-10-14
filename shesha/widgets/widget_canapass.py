@@ -10,7 +10,7 @@ import os
 import numpy as np
 import naga as ch
 import shesha as ao
-from time import time, sleep
+from time import time
 import matplotlib.pyplot as plt
 import pyqtgraph as pg
 import tools
@@ -18,6 +18,7 @@ import hdf5_utils as h5u
 import threading
 from PyQt4.uic import loadUiType
 from PyQt4 import QtGui
+from PyQt4.QtCore import QTimer
 from functools import partial
 import Pyro4
 
@@ -111,6 +112,8 @@ class widgetAOWindow(TemplateBaseClass):
         self.ui.wao_atmosphere.setCheckable(True)
         self.ui.wao_atmosphere.clicked[bool].connect(self.set_atmos)
 
+        self.ui.wao_Display.stateChanged.connect(self.updateDisplay)
+
         self.SRcircleAtmos = {}
         self.SRcircleWFS = {}
         self.SRcircleDM = {}
@@ -202,12 +205,16 @@ class widgetAOWindow(TemplateBaseClass):
 
     def aoLoopClicked(self, pressed):
         if(pressed):
-            self.loop = threading.Thread(target=self.run)
-            self.loop.start()
+            self.c.set_activeDeviceForce(0, 1)
+            self.stop = False
+            self.refreshTime = time()
+            self.run()
+            # self.loop = threading.Thread(target=self.run)
+            # self.loop.start()
         else:
             self.stop = True
-            self.loop.join()
-            self.loop = None
+            # self.loop.join()
+            # self.loop = None
 
     def setNumberSelection(self):
         if(self.ui.wao_selectNumber.currentIndex() > -1):
@@ -405,13 +412,13 @@ class widgetAOWindow(TemplateBaseClass):
             widToHide.hide()
 
     def updateDisplay(self):
-        if not self.loaded:
+        if (not self.loaded) and (self.ui.wao_Display.isChecked()):
             # print " widget not fully initialized"
             return
 
         data = None
-        if not self.displayLock.acquire(False):
-            print " Display locked"
+        if not self.loopLock.acquire(False):
+            # print "Loop locked"
             return
         else:
             try:
@@ -614,11 +621,16 @@ class widgetAOWindow(TemplateBaseClass):
                     self.img.setImage(data, autoLevels=autoscale)
                     # self.p1.autoRange()
             finally:
-                self.displayLock.release()
+                self.loopLock.release()
+
+            refreshDisplayTime = 1000. / self.ui.wao_frameRate.value()
+            if(self.ui.wao_Display.isChecked()):
+                # Update GUI plots
+                QTimer.singleShot(refreshDisplayTime, self.updateDisplay)
 
     def mainLoop(self):
         if not self.loopLock.acquire(False):
-            # print " Display locked"
+            # print " Loop locked"
             return
         else:
             try:
@@ -673,9 +685,6 @@ class widgetAOWindow(TemplateBaseClass):
                     currentFreq = 1 / loopTime
                     refreshFreq = 1 / (time() - self.refreshTime)
 
-                    if(self.ui.wao_Display.isChecked()):
-                        self.updateDisplay()  # Update GUI plots
-
                     self.ui.wao_strehlSE.setText(signal_se)
                     self.ui.wao_strehlLE.setText(signal_le)
                     self.ui.wao_currentFreq.setValue(1 / loopTime)
@@ -684,8 +693,6 @@ class widgetAOWindow(TemplateBaseClass):
                         self.iter, signal_le, signal_se, refreshFreq, currentFreq))
                     self.refreshTime = time()
                 self.iter += 1
-                # This seems to trigger the GUI and keep it responsive
-                sleep(.01)
             finally:
                 self.loopLock.release()
 
@@ -697,15 +704,20 @@ class widgetAOWindow(TemplateBaseClass):
 
     def run(self):
         # print "Loop started"
-        self.c.set_activeDeviceForce(0, 1)
-        self.stop = False
-        self.refreshTime = time()
-        while True:
-            self.mainLoop()
-            if(self.stop):
-                break
-        self.ui.wao_run.setChecked(False)
+        # self.c.set_activeDeviceForce(0, 1)
+        # self.stop = False
+        # self.refreshTime = time()
+        # while True:
+        #     self.mainLoop()
+        #     if(self.stop):
+        #         break
+        # self.ui.wao_run.setChecked(False)
         # print "Loop stopped"
+        self.mainLoop()
+        if(not self.stop):
+            QTimer.singleShot(0, self.run)  # Update loop
+        else:
+            self.ui.wao_run.setChecked(False)
 
 
 if __name__ == '__main__':
