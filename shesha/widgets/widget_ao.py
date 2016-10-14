@@ -549,13 +549,18 @@ class widgetAOWindow(TemplateBaseClass):
     def addConfigFromFile(self):
         filepath = str(QtGui.QFileDialog(directory=self.defaultParPath).getOpenFileName(
             self, "Select parameter file", "", "parameters file (*.py);;hdf5 file (*.h5);;all files (*)"))
-        self.configpath = filepath
         filename = filepath.split('/')[-1]
         if(filepath.split('.')[-1] == "py"):
             self.ui.wao_selectConfig.addItem(filename, 0)
             pathfile = filepath.split(filename)[0]
             if (pathfile not in sys.path):
                 sys.path.insert(0, pathfile)
+
+            if self.config is not None:
+                print "Removing previous config"
+                self.config = None
+                config = None
+
             print "loading ", filename.split(".py")[0]
             exec("import %s as config" % filename.split(".py")[0])
             sys.path.remove(pathfile)
@@ -634,13 +639,18 @@ class widgetAOWindow(TemplateBaseClass):
 
     def loadConfig(self):
         configfile = str(self.ui.wao_selectConfig.currentText())
-        self.configpath = self.defaultParPath + configfile
         sys.path.insert(0, self.defaultParPath)
-        if (self.config is None):
-            exec("import %s as config" % configfile.split(".py")[0])
-        else:
-            config = reload(self.config)
+
+        if self.config is not None:
+            print "Removing previous config"
+            self.config = None
+            config = None
+
+        print "loading ", configfile.split(".py")[0]
+        exec("import %s as config" % configfile.split(".py")[0])
         self.config = config
+        sys.path.remove(self.defaultParPath)
+
         self.loaded = False
         self.ui.wao_selectScreen.clear()
         if(self.config.p_wfss[0].type_wfs == "pyrhr"):

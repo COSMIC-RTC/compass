@@ -172,22 +172,21 @@ class widgetAOWindow(TemplateBaseClass):
         if filepath is False:
             filepath = str(QtGui.QFileDialog(directory=self.defaultParPath).getOpenFileName(
                 self, "Select parameter file", "", "parameters file (*.py);;hdf5 file (*.h5);;all files (*)"))
-        self.configpath = filepath
         filename = filepath.split('/')[-1]
         if(filepath.split('.')[-1] == "py"):
             pathfile = filepath.split(filename)[0]
             # if (pathfile not in sys.path):
             sys.path.insert(0, pathfile)
 
+            if self.config is not None:
+                print "Removing previous config"
+                self.config = None
+                config = None
+
             print "loading ", filename.split(".py")[0]
             exec("import %s as config" % filename.split(".py")[0])
 
             sys.path.remove(pathfile)
-        elif(filepath.split('.')[-1] == "h5"):
-            sys.path.insert(0, self.defaultParPath)
-            import scao_16x16_8pix as config
-            sys.path.remove(self.defaultParPath)
-            h5u.configFromH5(filepath, config)
         else:
             raise ValueError("Parameter file extension must be .py or .h5")
 
@@ -210,7 +209,6 @@ class widgetAOWindow(TemplateBaseClass):
         self.ui.wao_selectScreen.setCurrentIndex(0)
         self.updateNumberSelector(textType=self.imgType)
 
-        self.ui.wao_loadConfig.setDisabled(True)
         self.ui.wao_init.setDisabled(False)
         self.ui.wao_run.setDisabled(True)
         self.ui.wao_next.setDisabled(True)
@@ -363,7 +361,6 @@ class widgetAOWindow(TemplateBaseClass):
         self.updateDisplay()
         self.p1.autoRange()
 
-        self.ui.wao_loadConfig.setDisabled(True)
         self.ui.wao_init.setDisabled(True)
         self.ui.wao_run.setDisabled(False)
         self.ui.wao_next.setDisabled(False)
