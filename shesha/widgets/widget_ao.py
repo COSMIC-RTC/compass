@@ -1202,6 +1202,7 @@ class widgetAOWindow(TemplateBaseClass):
 
                     self.rtc.docentroids(0)
                     self.rtc.docontrol(0)
+                    self.rtc.doclipping(0, -1e5, 1e5)
                     self.rtc.applycontrol(0, self.dms)
 
                 refreshDisplayTime = 1. / self.ui.wao_frameRate.value()

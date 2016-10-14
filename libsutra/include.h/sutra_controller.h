@@ -43,6 +43,8 @@ public:
   set_perturbcom(float *perturb, int N);
   int
   set_openloop(int open_loop_status);
+  void
+  clip_voltage(float min, float max);
   int
   comp_voltage();
   int

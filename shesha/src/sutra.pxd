@@ -617,6 +617,7 @@ cdef extern from "sutra_controller.h":
 
         int set_perturbcom(float * perturb, int N)
         int set_openloop(int open_loop_status)
+        void clip_voltage(float min, float max);
         int comp_voltage()
         int syevd_f(char meth, carma_obj[float] * d_U, carma_host_obj[float] * h_eingenvals)
         int invgen(carma_obj[float] * d_mat, float cond, int job)
@@ -950,6 +951,7 @@ cdef extern from "sutra_rtc.h":
         int do_centroids(int ncntrl, bool imat)
         int do_centroids_geom(int ncntrl)
         int do_control(int ncntrl)
+        int do_clipping(int ncntrl, float min, float max);
         int apply_control(int ncntrl, sutra_dms * ydm)
 
 #################################################

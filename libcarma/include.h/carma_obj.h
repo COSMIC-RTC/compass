@@ -270,6 +270,7 @@ public:
 
 	/**< sum */
 	T_data sum();
+	void clip(T_data min, T_data max);
 
 	/**< transpose */
 	int transpose(carma_obj<T_data> *source);
@@ -349,6 +350,10 @@ std::ostream& operator<<(std::ostream& os, carma_obj<T_data>& obj) {
 	os << "-----------------------" << std::endl;
 	return os;
 }
+
+// CU functions clip
+template<class T_data>
+void clip_array(T_data *d_data, T_data min, T_data max, int N, carma_device *device);
 
 // CU functions sum
 template<class T_data>

@@ -529,6 +529,18 @@ caObjD::sum();
  caObjC::sum();*/
 
 template<class T_data>
+void carma_obj<T_data>::clip(T_data min, T_data max) {
+
+	clip_array<T_data>(this->d_data, min, max, this->nb_elem, this->current_context->get_device(device));
+
+}
+template void
+caObjS::clip(float min, float max);
+template void
+caObjD::clip(double min, double max);
+
+
+template<class T_data>
 int carma_obj<T_data>::transpose(carma_obj<T_data> *source) {
   transposeCU(source->d_data, this->d_data, this->dims_data[1],
               this->dims_data[2]);

@@ -106,6 +106,7 @@ cdef class Rtc:
     cpdef buildcmat(self, int ncontro, int nfilt, int filt_tt=?)
     cpdef buildcmatmv(self, int ncontro, float cond)
     cpdef loadnoisemat(self, int ncontro, np.ndarray[ndim=1, dtype=np.float32_t] N)
+    cpdef doclipping(self, int ncontro, float min, float max)
     cpdef docontrol(self, int ncontro)
     cpdef docontrol_geo(self, int ncontro, Dms dms, Target target, int ntarget)
     cpdef docontrol_geo_onwfs(self, int ncontro, Dms dms, Sensors wfs, int nwfs)

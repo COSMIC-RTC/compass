@@ -333,6 +333,13 @@ int sutra_rtc::do_control(int ncntrl) {
   return EXIT_SUCCESS;
 }
 
+int sutra_rtc::do_clipping(int ncntrl, float min, float max) {
+  current_context->set_activeDevice(device,1);
+  this->d_control[ncntrl]->clip_voltage(min, max);
+
+  return EXIT_SUCCESS;
+}
+
 int sutra_rtc::apply_control(int ncntrl, sutra_dms *ydm) {
   current_context->set_activeDevice(device,1);
 

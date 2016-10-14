@@ -1442,6 +1442,19 @@ cdef class Rtc:
 
 
 
+    cpdef doclipping(self, int ncontrol, float min, float max):
+        """Clip the command to apply on the DMs on a sutra_controller object
+
+        :parameters:
+            ncontrol: (int) : controller index
+            min: (float) : minimum value for the command
+            max: (float) : maximum value for the command
+        """
+        cdef carma_context * context = &carma_context.instance()
+        context.set_activeDevice(self.rtc.device, 1)
+        self.rtc.do_clipping(ncontrol, min, max)
+        
+
     cpdef docontrol(self, int ncontrol):
         """Compute the command to apply on the DMs on a sutra_controller object
 

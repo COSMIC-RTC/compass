@@ -90,6 +90,43 @@ launch_generic2d<float>(float *d_odata, float *d_idata, int N1, int N2);
 template int
 launch_generic2d<double>(double *d_odata, double *d_idata, int N1, int N2);
 
+
+template<class T_data>
+__device__ T_data d_clip(T_data n, T_data min, T_data max) {
+	return n > max ? max : (n < min ? min : n);
+}
+
+template<class T_data>
+__global__ void krnl_clip(T_data *data, T_data min, T_data max, int N) {
+
+  int tid = threadIdx.x + blockIdx.x * blockDim.x;
+
+  while (tid < N) {
+    data[tid] = d_clip(data[tid], min, max);
+    tid += blockDim.x * gridDim.x;
+  }
+}
+
+template<class T_data>
+void clip_array(T_data *d_data, T_data min, T_data max, int N, carma_device *device){
+	  int nBlocks, nThreads;
+	  getNumBlocksAndThreads(device, N, nBlocks, nThreads);
+
+	  dim3 grid(nBlocks), threads(nThreads);
+	  //  dim3 grid(128), threads(128);
+
+	  krnl_clip<<<grid, threads>>>(d_data, min, max, N);
+	  carmaCheckMsg("krnl_clip<<<>>> execution failed\n");
+
+}
+
+template void
+clip_array<float>(float *d_data, float min, float max, int N, carma_device *device);
+
+template void
+clip_array<double>(double *d_data, double min, double max, int N, carma_device *device);
+
+
 template<class T>
 __global__ void krnl_fillindex(T *odata, T *idata, int *indx, int N) {
 
@@ -110,15 +147,18 @@ int fillindex(T *d_odata, T *d_idata, int *indx, int N, carma_device *device) {
   //  dim3 grid(128), threads(128);
 
   krnl_fillindex<<<grid, threads>>>(d_odata, d_idata, indx, N);
+  carmaCheckMsg("krnl_fillindex<<<>>> execution failed\n");
 
   return EXIT_SUCCESS;
 }
+
 
 template int
 fillindex<float>(float *d_odata, float *d_idata, int *indx, int N, carma_device *device);
 
 template int
 fillindex<double>(double *d_odata, double *d_idata, int *indx, int N, carma_device *device);
+
 
 template<class T>
 __global__ void krnl_fillvalues(T *odata, unsigned int *indx, int N) {
@@ -140,6 +180,7 @@ int fillvalues(T *d_odata, unsigned int *indx, int N, carma_device *device) {
   //  dim3 grid(128), threads(128);
 
   krnl_fillvalues<<<grid, threads>>>(d_odata, indx, N);
+  carmaCheckMsg("krnl_fillvalues<<<>>> execution failed\n");
 
   return EXIT_SUCCESS;
 }

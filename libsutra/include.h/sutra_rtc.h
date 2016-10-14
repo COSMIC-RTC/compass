@@ -49,6 +49,7 @@ public:
 	int do_centroids(int ncntrl, bool noise);
 	int do_centroids_geom(int ncntrl);
 	int do_control(int ncntrl);
+	int do_clipping(int ncntrl, float min, float max);
 	int apply_control(int ncntrl, sutra_dms *ydm);
 };
 

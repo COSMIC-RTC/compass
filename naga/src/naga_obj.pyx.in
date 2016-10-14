@@ -659,8 +659,8 @@ ENDCOMPLEX
         else:
             dimC=C.get_Dims()
        
-        if(self.getDevice()!=B.getDevice() or
-           self.getDevice()!=C.getDevice() ):
+        if(device!=B.getDevice() or
+           device!=C.getDevice() ):
             raise ValueError("gemm only on the same device")
         
         cdef C_TYPE a

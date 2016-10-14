@@ -20,7 +20,7 @@ for filepattern in ('*.so', SRC+'*.pyc'):
             print("delete {}".format(filename))        
             os.remove(filename)
 
-FILE=['naga_obj', 'naga_host_obj','naga_magma']
+FILE=['naga_obj', 'naga_host_obj', 'naga_sparse_obj', 'naga_magma']
 
 if os.path.exists(SRC+'naga.cpp'):
     os.remove(SRC+'naga.cpp')
