@@ -14,6 +14,7 @@ from time import time, sleep
 import matplotlib.pyplot as plt
 import pyqtgraph as pg
 import tools
+from glob import glob
 import hdf5_utils as h5u
 import threading
 from PyQt4.uic import loadUiType
@@ -652,7 +653,7 @@ class widgetAOWindow(TemplateBaseClass):
         self.ui.wao_init.setDisabled(False)
 
     def loadDefaultConfig(self):
-        parlist = sorted(glob.glob(self.defaultParPath + "*.py"))
+        parlist = sorted(glob(self.defaultParPath + "*.py"))
         self.ui.wao_selectConfig.clear()
         self.ui.wao_selectConfig.addItems(
             [parlist[i].split('/')[-1] for i in range(len(parlist))])
