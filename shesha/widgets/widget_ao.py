@@ -711,10 +711,19 @@ class widgetAOWindow(TemplateBaseClass):
         self.SRCrossY = None
 
         # remove previous pupil materialisation
-        vb = self.p1.getViewBox()
-        for it in vb.items():
-            if type(it) is pg.ScatterPlotItem:
-                self.p1.removeItem(it)
+#        vb = self.p1.getViewBox()
+#        for it in vb.items():
+#            if type(it) is pg.ScatterPlotItem:
+#                self.p1.removeItem(it)
+        for i in self.SRcircleAtmos:
+            self.p1.removeItem(self.SRcircleAtmos[i])
+        for i in self.SRcircleWFS:
+            self.p1.removeItem(self.SRcircleWFS[i])
+        for i in self.SRcircleDM:
+            self.p1.removeItem(self.SRcircleDM[i])
+        for i in self.SRcircleTarget:
+            self.p1.removeItem(self.SRcircleTarget[i])
+
 
         # set simulation name
         if(hasattr(self.config, "simul_name")):
