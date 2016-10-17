@@ -7,6 +7,19 @@ __global__ void initPRNG(curandState *s, int n, int *seed, int offset) {
     curand_init(seed[id], threadIdx.x, offset, &s[id]);
 }
 
+int carma_prng_init(int *seed, const int nThreads, const int nBlocks,
+    curandState *state) {
+
+  dim3 grid(nBlocks);
+  dim3 threads(nThreads);
+
+  // Initialise RNG
+  initPRNG<<<grid, threads>>>(state, nThreads * nBlocks, seed, nThreads);
+  carmaCheckMsg("initRNG<<<>>> execution failed\n");
+
+  return EXIT_SUCCESS;
+}
+
 template<class T>
 __global__ void
 carma_curand_uniform(curandState *state, T *res, int n, float beta);
@@ -118,8 +131,55 @@ __global__ void carma_curand_poisson(curandState *s, double *d, int n) {
 
 /*
 
+template< class T_data, T_data (*ptr_sqrt)(T_data val),
+    T_data (*ptr_log)(T_data val), T_data (*ptr_lgamma)(T_data val),
+    T_data (*ptr_tan)(T_data val), T_data (*ptr_floor)(T_data val),
+    T_data (*ptr_exp)(T_data val)>
+__global__ void carma_curand_montagn(curandState *state, T_data *res, int n) {
+  T_data xm;
+  T_data tmp, sq, alxm, g, oldm = (-1.0);
+  T_data em, t, y;
+
+  const int tidx = blockIdx.x * blockDim.x + threadIdx.x;
+  const int delta = blockDim.x * gridDim.x;
+  for (int idx = tidx; idx < n; idx += delta) {
+    xm = res[idx];
+    //xm = (T_data)results[idx];
+    if (xm > 0.0f) {
+      if (xm != oldm) {
+        oldm = xm;
+        sq = ptr_sqrt(2.0f * xm);
+        alxm = ptr_log(xm);
+        g = xm * alxm - ptr_lgamma(xm + 1.0f);
+      }
+      do {
+        do {
+          tmp = curand_uniform(&state[tidx]);
+          y = ptr_tan(3.1415926535897932384626433832f * tmp);
+          em = sq * y + xm;
+        } while (em < 0.0f);
+        em = ptr_floor(em);
+        t = 0.9f * (1.0 + y * y) * ptr_exp(em * alxm - ptr_lgamma(em + 1.0f) - g);
+        tmp = curand_uniform(&state[tidx]);
+      } while (tmp > t);
+    } else
+      em = 0.0f;
+    res[idx] = xm;
+  }
+}
+
+template<float, sqrtf, logf, lgammaf, tanf, floorf, expf>
+__global__ void carma_curand_montagn(curandState *state, float *res, int n);
+template<double, sqrt, log, lgamma, tan, floor, exp>
+__global__ void carma_curand_montagn(curandState *state, double *res, int n);
+
+*/
+template<class T>
+__global__ void
+carma_curand_montagn_krn(curandState *state, T *res, int n);
+
 template<>
-__global__ void carma_curand_poisson(curandState *state, float *res, int n) {
+__global__ void carma_curand_montagn_krn(curandState *state, float *res, int n) {
   float xm;
   float tmp, sq, alxm, g, oldm = (-1.0);
   float em, t, y;
@@ -153,51 +213,36 @@ __global__ void carma_curand_poisson(curandState *state, float *res, int n) {
 }
 
 template<>
-__global__ void carma_curand_poisson(curandState *state, double *res, int n) {
-  double xm;
-
-  double tmp, sq, alxm, g, oldm = (-1.0);
-  double em, t, y;
+__global__ void carma_curand_montagn_krn(curandState *state, double *res, int n) {
+  double tmp;
   const int tidx = blockIdx.x * blockDim.x + threadIdx.x;
   const int delta = blockDim.x * gridDim.x;
   for (int idx = tidx; idx < n; idx += delta) {
-    //xm = (float)results[idx];
-    if (xm > 0.0) {
-      if (xm != oldm) {
-        oldm = xm;
-        sq = sqrt(2.0 * xm);
-        alxm = log(xm);
-        g = xm * alxm - lgamma(xm + 1.0);
-      }
-      do {
-        do {
-          tmp = curand_uniform(&state[tidx]);
-          y = tan(3.1415926535897932384626433832f * tmp);
-          em = sq * y + xm;
-        } while (em < 0.0f);
-        em = floor(em);
-        t = 0.9 * (1.0 + y * y) * exp(em * alxm - lgamma(em + 1.0) - g);
-        tmp = curand_uniform(&state[tidx]);
-      } while (tmp > t);
-    } else
-      em = 0.0;
-    res[idx] = xm;
+    tmp = curand_uniform(&state[tidx]);
+    res[idx] = tmp;
   }
 }
-*/
 
-int carma_prng_init(int *seed, const int nThreads, const int nBlocks,
-    curandState *state) {
+template<class T>
+int carma_curand_montagn(curandState *state, T *d_odata, int N, carma_device *device) {
 
-  dim3 grid(nBlocks);
-  dim3 threads(nThreads);
+  int nBlocks, nThreads;
+  getNumBlocksAndThreads(device, N, nBlocks, nThreads);
 
-  // Initialise RNG  
-  initPRNG<<<grid, threads>>>(state, nThreads * nBlocks, seed, nThreads);
-  carmaCheckMsg("initRNG<<<>>> execution failed\n");
+  dim3 grid(nBlocks), threads(nThreads);
+  //  dim3 grid(128), threads(128);
+
+  carma_curand_montagn_krn<<<grid, threads>>>(state, d_odata, N);
 
   return EXIT_SUCCESS;
 }
+
+template int
+carma_curand_montagn<float>(curandState *state, float *d_odata, int N, carma_device *device);
+
+template int
+carma_curand_montagn<double>(curandState *state, double *d_odata, int N, carma_device *device);
+
 
 template<class T>
 int

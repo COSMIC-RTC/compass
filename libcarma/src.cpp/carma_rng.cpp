@@ -96,6 +96,19 @@ template int
 caObjZ::prng(cuDoubleComplex *output, char gtype, float alpha, float beta);
 
 template<class T>
+int carma_obj<T>::prng_montagn(float init_montagn) {
+  carma_curand_montagn( this->d_states, this->d_data, this->nb_elem,
+                        this->current_context->get_device(this->device));
+
+  return EXIT_SUCCESS;
+}
+
+template int
+caObjS::prng_montagn(float init_montagn);
+template int
+caObjD::prng_montagn(float init_montagn);
+
+template<class T>
 int carma_obj<T>::prng(T *output, char gtype, float alpha) {
   carma_prng_cu(output, this->nThreads, this->nBlocks, this->d_states, gtype,
       this->nb_elem, alpha, 0.0f);

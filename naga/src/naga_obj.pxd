@@ -3,9 +3,9 @@ cimport numpy as np
 from libc.stdint cimport uintptr_t
 from libcpp cimport bool
 
-from naga_context cimport * 
+from naga_context cimport *
 from naga_context import *
-from naga_streams cimport * 
+from naga_streams cimport *
 from naga_streams import *
 
 cdef extern from "vector_types.h":
@@ -84,12 +84,12 @@ cdef extern from "carma_obj.h":
         carma_obj(carma_context * context, const long * dims)
         carma_obj(carma_context * context, long * dims, T * data)
 
-        T * getData()                        
-        T * getData(int index)                        
+        T * getData()
+        T * getData(int index)
         long * getDims()  #
-        long getDims (int i)                  
+        long getDims (int i)
         int getNbElem()  #
-        carma_context * getContext()         
+        carma_context * getContext()
         int getDevice()  #
         bool is_rng_init()  #
 
@@ -109,7 +109,7 @@ cdef extern from "carma_obj.h":
 
         cufftHandle * getPlan()
         unsigned int * getValues()
-        T sum()  # (float and double only)        
+        T sum()  # (float and double only)
 
         int transpose(carma_obj[T] * source)  #
 
@@ -164,6 +164,8 @@ cdef extern from "carma_obj.h":
         int prng_host(char gtype)
 #        int prng_host(char gtype, T alpha)
 #        int destroy_prng_host()
+
+        int prng_montagn( float init_montagn )
 
 
 
@@ -259,5 +261,3 @@ cdef class naga_obj_ComplexD3D:
 cdef class naga_obj_ComplexD4D:
     cdef carma_obj[double2] * c_o
     cdef naga_context context
-
-

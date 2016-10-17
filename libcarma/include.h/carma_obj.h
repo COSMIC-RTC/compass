@@ -320,6 +320,9 @@ public:
 	int prng(char gtype, float alpha, float beta);
 	int prng(char gtype, float alpha);
 	int prng(char gtype);
+
+    int prng_montagn( float init_montagn );
+
 	int init_prng_host(int seed);
 	int prng_host(char gtype);
 	int prng_host(char gtype, T_data alpha);
@@ -377,6 +380,8 @@ int carma_prng_init(int *seed, const int nThreads, const int nBlocks,
 template<class T>
 int carma_prng_cu(T *results, const int nThreads, const int nBlocks,
 		curandState *state, char gtype, int n, float alpha, float beta);
+template<class T>
+int carma_curand_montagn(curandState *state, T *d_odata, int N, carma_device *device);
 
 // CU functions fft
 template<class T_in, class T_out>

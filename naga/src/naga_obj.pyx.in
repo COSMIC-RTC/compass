@@ -62,12 +62,12 @@ cdef extern from "carma_obj.h":
         carma_obj(carma_context *context,carma_obj[T] *obj)
         carma_obj(carma_context *context,long *dims, T *data)
 
-        T* getData()                        
-        T* getData(int index)                        
+        T* getData()
+        T* getData(int index)
         long *getDims()                      #
-        long getDimsi "getDims"(int i)                  
+        long getDimsi "getDims"(int i)
         int getNbElem()                     #
-        carma_context *getContext()         
+        carma_context *getContext()
         int getDevice()                     #
         bool is_rng_init()                  #
 
@@ -82,12 +82,12 @@ cdef extern from "carma_obj.h":
 
         int copyInto(T *data, int nb_elem)  #
         int copyFrom(T *data, int nb_elem)  #
-        
+
         int reset()
 
         cufftHandle* getPlan()
         unsigned int * getValues()
-        T sum()                   # (float and double only)        
+        T sum()                   # (float and double only)
 
         int transpose(carma_obj[T] *source) #
 
@@ -149,7 +149,7 @@ cdef extern from "carma_obj.h":
     cdef int carma_fft[T_in, T_out](T_in *input, T_out *output, int dir, cufftHandle plan)
 
     cdef int snapTransformSize(unsigned int dataSize)
-    cdef int carma_initfftconv(carma_obj[float] *data_in, carma_obj[float] *kernel_in, 
+    cdef int carma_initfftconv(carma_obj[float] *data_in, carma_obj[float] *kernel_in,
         carma_obj[float] *padded_data, carma_obj[cuFloatComplex] *padded_spectrum, int kernelY, int kernelX)
     cdef int carma_fftconv(carma_obj[float] *data_out, carma_obj[float] *padded_data,
         carma_obj[cuFloatComplex] *padded_spectrum, int kernelY, int kernelX)
@@ -283,7 +283,7 @@ cdef class naga_obj_CLASSNAMEDIMD:
 
 
     def getCarma_ptr(self):
-        """Return the pointer value to the carma object of the naga (as an integer, type:uintptr_t)."""    
+        """Return the pointer value to the carma object of the naga (as an integer, type:uintptr_t)."""
         cdef uintptr_t carma_ptr=<uintptr_t>self.c_o
         return carma_ptr
 
@@ -296,7 +296,7 @@ cdef class naga_obj_CLASSNAMEDIMD:
         cdef int i
         cdims=self.c_o.getDims()
         for i in range(DIM+1):
-            dims[i]=cdims[i] 
+            dims[i]=cdims[i]
         return dims[1:DIM+1]
 
 
@@ -327,7 +327,7 @@ cdef class naga_obj_CLASSNAMEDIMD:
 
     def host2device(self,np.ndarray[ndim=DIM, dtype=NUMPY_TYPENAME_T] data):
         """Copy data from host to device.
-        
+
         host2device(np.ndarray[ndim=DIM, dtype=NUMPY_TYPENAME_T] data):
         data -- NUMPY_TYPENAME: data to copy from host to device
         """
@@ -337,7 +337,7 @@ cdef class naga_obj_CLASSNAMEDIMD:
             return
         cdef np.ndarray data_F=data.flatten(order="F")
         self.c_o.host2device(<C_TYPE*>data_F.data)
-       
+
 
     def device2host(self):
         """Copy data from device to host.
@@ -372,7 +372,7 @@ cdef class naga_obj_CLASSNAMEDIMD:
         """Copy the data from src to the current naga_obj.
 
         src -- naga_obj_CLASSNAMEDIMD: object to copy the data from.
-        """ 
+        """
         if(self.getDevice()!=src.getDevice()):
             raise ValueError("copy only on the same device")
         self.context.set_activeDeviceForCpy(self.getDevice())
@@ -395,11 +395,11 @@ cdef class naga_obj_CLASSNAMEDIMD:
         """
         self.context.set_activeDeviceForCpy(self.getDevice())
         self.c_o.reset()
-        
+
 
     def getValues(self):
         return <np.int64_t> self.c_o.getValues()
- 
+
 
 '''
 pxd_code_str2='''
@@ -413,7 +413,7 @@ pxd_code_str2='''
 
     def imin (self):
         """Cublas amin
-        
+
         Return the smallest index of the minimum absolute magnitude element."""
         self.context.set_activeDevice(self.getDevice())
         return self.c_o.imin(1)
@@ -421,7 +421,7 @@ pxd_code_str2='''
 
     def dot(self,naga_obj_CLASSNAMEDIMD src):
         """Cublas dot
-        
+
         src -- naga_obj_CLASSNAMEDIMD
         return the dot product of src and self.
         """
@@ -432,7 +432,7 @@ pxd_code_str2='''
 
     def scale(self, NUMPY_TYPENAME_T alpha):
         """Cublas scal
-        
+
         alpha -- NUMPY_TYPENAME: caling factor
         self = alpha.self
         """
@@ -450,7 +450,7 @@ ENDCOMPLEX
 
     def swap(self, naga_obj_CLASSNAMEDIMD src):
         """Cublas swap
-        
+
         src -- naga_obj_CLASSNAMEDIMD
         Swap data contents of naga objects self and src.
         """
@@ -462,7 +462,7 @@ ENDCOMPLEX
 
     def copy(self, naga_obj_CLASSNAMEDIMD src):
         """Cublas copy
-        
+
         src -- naga_obj_CLASSNAMEDIMD
         Copy data from src into self
         """
@@ -471,6 +471,15 @@ ENDCOMPLEX
         self.context.set_activeDeviceForCpy(self.getDevice())
         self.c_o.copy(src.c_o,1,1)
 
+
+CASTSIMPLE
+    def init_prng(self,int seed=1234):
+        """Generate random values for this naga datas.
+
+        seed -- integer: seed for random function (default:1234)
+        """
+        self.c_o.init_prng(seed)
+ENDSIMPLE
 
     def random(self,int seed=1234):
         """Generate random values for this naga datas.
@@ -483,10 +492,18 @@ CASTSIMPLE
         self.c_o.prng_host('U')
 ENDSIMPLE
 CASTCOMPLEX
-            self.c_o.init_prng(seed)           
+            self.c_o.init_prng(seed)
         self.c_o.prng('U')
 ENDCOMPLEX
 
+CASTSIMPLE
+    def montagn(self, float ta_jolie_maman,int seed=1234):
+        """Generate random values for this naga datas.
+
+        seed -- integer: seed for random function (default:1234)
+        """
+        self.c_o.prng_montagn(ta_jolie_maman)
+ENDSIMPLE
 
 '''
 pxd_code_str_1D='''
@@ -519,7 +536,7 @@ ENDCOMPLEX
     def ger(self, naga_obj_CLASSNAME1D Y, NUMPY_TYPENAME_T alpha=1.0,
             naga_obj_CLASSNAME2D A=None):
         """Cublas ger
-        
+
         Y -- naga_obj_CLASSNAME1D
         alpha -- NUMPY_TYPENAME (default = 1)
         A -- naga_obj_CLASSNAME2D (default = None)
@@ -554,7 +571,7 @@ ENDCOMPLEX
 '''
 
 pxd_code_str_2D='''
-    def gemv(self, naga_obj_CLASSNAME1D Vx, NUMPY_TYPENAME_T alpha=1, 
+    def gemv(self, naga_obj_CLASSNAME1D Vx, NUMPY_TYPENAME_T alpha=1,
              naga_obj_CLASSNAME1D Vy=None, NUMPY_TYPENAME_T beta=0 ):
         """Cublas gemv
 
@@ -570,11 +587,11 @@ pxd_code_str_2D='''
         if(Vy is None):
             Vy=naga_obj_CLASSNAME1D(ctxt=self.getContext(),dims=dimM[0:1])
 
-        if( (self.getDevice()!=Vx.getDevice()) or 
+        if( (self.getDevice()!=Vx.getDevice()) or
              self.getDevice()!= Vy.getDevice()):
             raise ValueError("gemv only on the same device")
-        cdef C_TYPE a 
-        cdef C_TYPE b 
+        cdef C_TYPE a
+        cdef C_TYPE b
 CASTSIMPLE
         a=alpha
         b=beta
@@ -645,7 +662,7 @@ ENDCOMPLEX
         opA (opB): transposition on matrix self (B),
         'n': no transposition
         't':transpose matrix
-        Return C=alpha opA(self)*opB(B)+beta*C 
+        Return C=alpha opA(self)*opB(B)+beta*C
         """
         cdef device=self.getDevice()
         self.context.set_activeDevice(device)
@@ -658,11 +675,11 @@ ENDCOMPLEX
             C=naga_obj_CLASSNAMEDIMD(ctxt=self.getContext(), dims=dimC)
         else:
             dimC=C.get_Dims()
-       
+
         if(device!=B.getDevice() or
            device!=C.getDevice() ):
             raise ValueError("gemm only on the same device")
-        
+
         cdef C_TYPE a
         cdef C_TYPE b
 CASTSIMPLE
@@ -712,11 +729,11 @@ ENDCOMPLEX
             C=naga_obj_CLASSNAMEDIMD(ctxt=self.getContext(), dims=dimC)
         else:
             dimC=C.get_Dims()
-        
+
         if(device != B.getDevice() or
            device != C.getDevice() ):
             raise ValueError("symm only on the same device")
-        
+
         cdef C_TYPE a
         cdef C_TYPE b
 CASTSIMPLE
@@ -785,7 +802,7 @@ ENDCOMPLEX
         return C
 
 
-    def syrkx(self, naga_obj_CLASSNAME2D B, str opA='n', 
+    def syrkx(self, naga_obj_CLASSNAME2D B, str opA='n',
               NUMPY_TYPENAME_T alpha=1, naga_obj_CLASSNAME2D C=None, NUMPY_TYPENAME_T beta=0):
         """Cublas syrkx
 
@@ -819,7 +836,7 @@ ENDCOMPLEX
         if(device != B.getDevice() or
            device != C.getDevice() ):
             raise ValueError("syrkx only on the same device")
-        
+
         cdef C_TYPE a
         cdef C_TYPE b
 CASTSIMPLE
@@ -838,7 +855,7 @@ ENDCOMPLEX
         return C
 
 
-    def geam(self, naga_obj_CLASSNAME2D B, NUMPY_TYPENAME_T alpha=1, NUMPY_TYPENAME_T beta=0, 
+    def geam(self, naga_obj_CLASSNAME2D B, NUMPY_TYPENAME_T alpha=1, NUMPY_TYPENAME_T beta=0,
              str opA='n', str opB='n', naga_obj_CLASSNAME2D C=None):
         """Cublas geam
 
@@ -874,7 +891,7 @@ ENDCOMPLEX
            device != C.getDevice() ):
             raise ValueError("geam only on the same device")
 
-        
+
         cdef C_TYPE a
         cdef C_TYPE b
 CASTSIMPLE
@@ -890,7 +907,7 @@ ENDCOMPLEX
         C.c_o.geam(ord(opA), ord(opB), a, self.c_o, dimA[0],
                    b, B.c_o, dimB[0], dimC[0])
         return C
-        
+
 
     def dgmm(self, naga_obj_CLASSNAME1D X, str sidec='l',
              naga_obj_CLASSNAME2D C=None):
@@ -1089,9 +1106,9 @@ pxd_code_str_fftconv='''
         for i in range(3,DIM+1):
             dims_data[i]=dimsIm[i]
         print dims_data
-       
+
         self.activateDevice()
-        
+
         if(type=="real"):
             dest=naga_obj_FloatDIMD(self.getContext(),dims=dims_data)
         elif(type=="complex"):
@@ -1120,7 +1137,7 @@ pxd_code_str_fftconv='''
 
 for ctype,info in c_types_info.items():
 
-#code available for all dimensions (constructor, getters, copy...) 
+#code available for all dimensions (constructor, getters, copy...)
     code = pxd_code_str
 
     if(info[0]!='Int' and info[0]!='UInt'):
@@ -1169,6 +1186,5 @@ for ctype,info in c_types_info.items():
     code = code.replace(template_strs[7], info[7])
 
     out.write(code)
-    
+
 ?>
-    
