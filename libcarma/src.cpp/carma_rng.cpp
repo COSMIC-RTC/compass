@@ -3,12 +3,15 @@
 
 template<class T>
 int carma_obj<T>::init_prng(long seed) {
+/*
   cudaDeviceProp deviceProperties = current_context->get_device(device)->get_properties();
   const int maxThreads = deviceProperties.maxThreadsPerBlock;
   const int maxBlockDim = (deviceProperties.maxThreadsDim)[0];
   int genPerBlock = std::min(maxThreads, maxBlockDim) / 2;
   int blockCount = deviceProperties.multiProcessorCount * 2;
-
+*/
+  int genPerBlock, blockCount;
+  getNumBlocksAndThreads(current_context->get_device(device), nb_elem, blockCount, genPerBlock);
   // Allocate memory for RNG states
   carmaSafeCall(
       cudaMalloc((void ** )&(this->d_states),
