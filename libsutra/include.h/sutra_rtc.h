@@ -23,6 +23,7 @@ public:
 	vector<sutra_controller *> d_control;
 
 	carma_context *current_context;
+	mutex apply_control_mutex;
 
 public:
 	sutra_rtc(carma_context *context);

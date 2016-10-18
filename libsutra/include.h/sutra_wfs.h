@@ -37,7 +37,6 @@ class sutra_wfs {
     bool lgs;
     bool kernconv;
     bool error_budget;
-    mutex compute_mutex;
 
     cufftHandle *campli_plan;
     cufftHandle *fttotim_plan;
