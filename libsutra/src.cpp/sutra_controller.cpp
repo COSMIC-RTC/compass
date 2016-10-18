@@ -24,7 +24,7 @@ sutra_controller::sutra_controller(carma_context *context,
   streams = new carma_streams(nstreams);
 
   this->open_loop = 0;
-  this->d_perturb = NULL;
+  this->d_perturb = nullptr;
   this->cpt_pertu = 0;
 
   if (delay < 2) this->delay = delay;
@@ -92,16 +92,21 @@ int sutra_controller::set_openloop(int open_loop_status) {
 }
 
 int sutra_controller::set_perturbcom(float *perturb, int N) {
-  carma_obj<float> *tmp = nullptr;
-  if (this->d_perturb != NULL) tmp = this->d_perturb;
-  long dims_data2[3] = { 2, this->nactu(), N };
+  std::lock_guard<std::mutex> lock(this->apply_control_mutex);
 
-  current_context->set_activeDevice(device, 1);
-  this->d_perturb = new carma_obj<float>(current_context, dims_data2);
-  this->d_perturb->host2device(perturb);
+  carma_obj<float> *tmp = this->d_perturb;
 
-  this->cpt_pertu = 0;
+  if(N>0){
+    long dims_data2[3] = { 2, this->nactu(), N };
 
+    current_context->set_activeDevice(device, 1);
+    this->d_perturb = new carma_obj<float>(current_context, dims_data2);
+    this->d_perturb->host2device(perturb);
+
+    this->cpt_pertu = 0;
+  } else {
+	this->d_perturb = nullptr;
+  }
   if (tmp != nullptr) delete tmp;
 
   return EXIT_SUCCESS;
@@ -145,12 +150,12 @@ int sutra_controller::comp_voltage() {
                  this->d_com2->getData(), 1, this->d_voltage->getData(), 1);
   } else this->d_com->copyInto(this->d_voltage->getData(), this->nactu());
 
-  if (this->d_perturb != NULL) { // Apply volt perturbations (circular buffer)
+  if (this->d_perturb != nullptr) { // Apply volt perturbations (circular buffer)
     carma_axpy(cublas_handle(), this->nactu(), 1.0f,
                this->d_perturb->getData(this->cpt_pertu * this->nactu()), 1,
                this->d_voltage->getData(), 1);
 
-    if (this->cpt_pertu < this->d_perturb->getDims()[2] - 1) this->cpt_pertu += 1;
+    if (this->cpt_pertu < this->d_perturb->getDims(2) - 1) this->cpt_pertu += 1;
     else this->cpt_pertu = 0;
   }
 
@@ -166,7 +171,7 @@ sutra_controller::~sutra_controller() {
   delete this->d_com1;
   delete this->d_voltage;
 
-  if (this->d_perturb != NULL) delete this->d_perturb;
+  if (this->d_perturb != nullptr) delete this->d_perturb;
 }
 
 int sutra_controller::syevd_f(char meth, carma_obj<float> *d_U,
