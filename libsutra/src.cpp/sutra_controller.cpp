@@ -92,7 +92,6 @@ int sutra_controller::set_openloop(int open_loop_status) {
 }
 
 int sutra_controller::set_perturbcom(float *perturb, int N) {
-  std::lock_guard<std::mutex> lock(this->apply_control_mutex);
 
   carma_obj<float> *tmp = this->d_perturb;
 

@@ -231,6 +231,8 @@ void sutra_rtc_bramaListenerImpl::on_data_available(DDS::DataReader_ptr reader)
 
                 if (cmd.dimensions[0] == 1) {
                   if (cmd.dimensions[1] == ncmd) {
+                	std::lock_guard<std::mutex> lock(this->rtc->apply_control_mutex);
+
                     rtc->d_control[ncontrol]->set_perturbcom(data, 1);
                     return;
                   } else {
@@ -241,6 +243,7 @@ void sutra_rtc_bramaListenerImpl::on_data_available(DDS::DataReader_ptr reader)
                   }
                 } else if (cmd.dimensions[0] == 2) {
                   if (cmd.dimensions[1] == ncmd) {
+                  	std::lock_guard<std::mutex> lock(this->rtc->apply_control_mutex);
                     rtc->d_control[ncontrol]->set_perturbcom(data,
                                                              cmd.dimensions[2]);
                     return;
