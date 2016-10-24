@@ -69,3 +69,15 @@ cdef class naga_context:
     def get_activeDevice(self):
         """Return the index of actual activated device"""
         return self.c.get_activeDevice()
+
+    def get_cudaRuntimeGetVersion(self):
+        """Return the version number of the installed CUDA Runtime"""
+        return self.c.get_cudaRuntimeGetVersion() / 1000.
+
+    def get_cudaDriverGetVersion(self):
+        """Return the version number of the installed CUDA driver"""
+        return self.c.get_cudaDriverGetVersion() / 1000.
+
+    def get_magma_info(self):
+        """Return the information of the installed MAGMA"""
+        return self.c.magma_info()

@@ -132,6 +132,19 @@ public:
 	int get_activeRealDevice() {
 		return devices[activeDevice]->get_id();
 	}
+
+    int get_cudaRuntimeGetVersion(){
+        int runtimeVersion;
+        cudaRuntimeGetVersion(&runtimeVersion);
+        return runtimeVersion;
+    }
+
+    int get_cudaDriverGetVersion(){
+        int driverVersion;
+        cudaRuntimeGetVersion(&driverVersion);
+        return driverVersion;
+    }
+
 	std::string get_DeviceName(int device);
 	std::string get_DeviceInfo(int device);
 	std::string get_DeviceMemInfo(int device);
@@ -169,6 +182,7 @@ public:
 		return can_access_peer[dev1][dev2];
 	}
 
+    std::string magma_info();
 };
 
 /// from /usr/local/cuda/samples/common/inc/helper_cuda.h

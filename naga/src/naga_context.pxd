@@ -52,6 +52,10 @@ cdef extern from "carma_context.h":
         carma_context& instance_1gpu(int num_device)
         @staticmethod
         carma_context& instance_ngpu(int nb_devices, np.int32_t * devices_id)
+        int get_cudaRuntimeGetVersion()
+        int get_cudaDriverGetVersion()
+        string magma_info()
+
 
 #################################################
 # P-Class naga_context
