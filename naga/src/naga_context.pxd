@@ -1,4 +1,5 @@
 cimport numpy as np
+from libcpp.string cimport string
 
 cdef extern from "cublas_v2.h":
     pass
@@ -34,7 +35,7 @@ cdef extern from "cublas_api.h":
 #################################################
 cdef extern from "carma_context.h":
     cdef cppclass carma_device:
-        pass
+        string getName()
 
     cdef cppclass carma_context :
         # carma_context()
@@ -57,4 +58,3 @@ cdef extern from "carma_context.h":
 #################################################
 cdef class naga_context:
     cdef carma_context *c
-

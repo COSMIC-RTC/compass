@@ -2,6 +2,8 @@ import numpy as np
 cimport numpy as np
 np.import_array()
 
+from libcpp.string cimport string
+
 """
 #################################################
 # C-Class carma_context
@@ -32,9 +34,17 @@ cdef class naga_context:
         """Return number of device."""
         return self.c.get_ndevice()
 
+    def get_device_names(self):
+        """Return names of devices."""
+        cdef int nb_dev = self.c.get_ndevice()
+        names = ['']*nb_dev
+        for num_dev in range(nb_dev):
+            names[num_dev]=self.c.get_device(num_dev).getName()
+        return names
+
     def set_activeDevice(self, int newDevice, int silent=1):
         """Activate a device.
-        
+
         newDevice -- int device to activate
         silent    -- int (default=1)
         """
@@ -42,22 +52,20 @@ cdef class naga_context:
 
     def set_activeDeviceForce(self, newDevice, int silent=1):
         """Activate a device.
-        
+
         newDevice -- int device to activate
         silent    -- int (default=1)
         """
         return self.c.set_activeDeviceForce(newDevice, silent)
-        
+
     def set_activeDeviceForCpy(self, int newDevice, int silent=1):
         """Activate a device.
-        
+
         newDevice -- int device to activate
         silent    -- int (default=1)
         """
         return self.c.set_activeDeviceForCpy(newDevice, silent)
- 
+
     def get_activeDevice(self):
         """Return the index of actual activated device"""
         return self.c.get_activeDevice()
-
-
