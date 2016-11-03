@@ -49,15 +49,15 @@ class html_display:
 
     def __init__(self):
 
-        self.datapath = "/home/fferreira/Data/"
+        self.datapath = "/home/fferreira/Data/correlation/"
         self.covmat = None
-        self.files = glob.glob("/home/fferreira/Data/roket_*.h5")
+        self.files = glob.glob(self.datapath+"roket_*.h5")
         self.files.sort()
         self.f_list = []
         for f in self.files:
             self.f_list.append(f.split('/')[-1])
 
-        self.f = h5py.File(self.files[0])
+        self.f = h5py.File(self.files[0],mode='r+')
 
         self.Lambda_tar = self.f.attrs["target.Lambda"][0]
         self.Btt = self.f["Btt"][:]
@@ -109,7 +109,7 @@ class html_display:
         self.basis_select1 = Select(title="Basis",value=self.basis[0],options=self.basis)
         self.iter_select = Slider(title="Iteration number",start=1,end=self.niter,step=1)
         self.plusTag = Paragraph(text="Add :", height=25)
-        self.plus_select = CheckboxButtonGroup(labels=self.coms_list+["fitting"],active=[0,1,2,3,4,5,6])
+        self.plus_select = CheckboxButtonGroup(labels=self.coms_list+["fitting","CORRECT"],active=[0,1,2,3,4,5,6])
         self.moinsTag = Paragraph(text="Substract :", height=25)
         self.moins_select = CheckboxButtonGroup(labels=self.coms_list+["fitting"],active=[])
         self.diff_button = Button(label="Sum !",type="success")
@@ -273,7 +273,7 @@ class html_display:
         self.dialog.content="Loading database..."
         self.dialog.visible = True
 
-        self.f = h5py.File(self.datapath + str(self.DB_select.value))
+        self.f = h5py.File(self.datapath + str(self.DB_select.value), mode='r+')
         self.Lambda_tar = self.f.attrs["target.Lambda"][0]
         self.Btt = self.f["Btt"][:]
 
@@ -303,6 +303,7 @@ class html_display:
 
         #self.cov_table, self.cor_table = self.createDataTables()
         self.updateDataTables()
+        self.update(None,None,None)
 
 
         print "DB loaded"
@@ -558,14 +559,37 @@ class html_display:
         fitm = False
         for i in plus:
             self.dialog.content = "Computing "+self.plus_select.labels[i]
-            if(self.plus_select.labels[i] == "fitting"):
-                fitp=True
+            if(self.plus_select.labels[i] != "CORRECT"):
+                if(self.plus_select.labels[i] == "fitting"):
+                    fitp=True
+                else:
+                    if(plot_val == "Commands"):
+                        data += np.dot(self.P,self.f[self.coms_list[i]][:][:,iteration])
+                    elif(plot_val == "Variance"):
+                        data += np.dot(self.P,self.f[self.coms_list[i]][:])
+                        data2 += np.var(np.dot(self.P,self.f[self.coms_list[i]][:]),axis=1)
             else:
-                if(plot_val == "Commands"):
-                    data += np.dot(self.P,self.f[self.coms_list[i]][:][:,iteration])
-                elif(plot_val == "Variance"):
-                    data += np.dot(self.P,self.f[self.coms_list[i]][:])
-                    data2 += np.var(np.dot(self.P,self.f[self.coms_list[i]][:]),axis=1)
+                theta = np.arctan(self.f.attrs["wfs.ypos"][0]/self.f.attrs["wfs.xpos"][0])
+                theta -= (self.f.attrs["winddir"][0] * np.pi/180.)
+                r0 = self.f.attrs["r0"] * (self.f.attrs["target.Lambda"][0]/self.f.attrs["wfs.Lambda"][0])**(6./5.)
+                RASC = 180/np.pi * 3600.
+                Dtomo = 0
+                Dbp = 0
+                Dcov = 0
+                dt = self.f.attrs["ittime"]
+                g = self.f.attrs["gain"][0]
+                for k in range(self.f.attrs["nscreens"]):
+                    H = self.f.attrs["atm.alt"][k]
+                    v = self.f.attrs["windspeed"][k]
+                    htheta = np.sqrt(self.f.attrs["wfs.xpos"][0]**2 + self.f.attrs["wfs.ypos"][0]**2)/RASC * H
+                    Dtomo += 6.88 * (htheta/r0)**(5./3.)
+                    Dbp += 6.88 * (v*dt/g/r0)**(5./3.)
+                    rho = np.sqrt(htheta**2 + (v*dt/g)**2 - 2*htheta*v*dt/g*np.cos(np.pi-theta))
+                    Dcov += 6.88 * (rho/r0)**(5./3.)
+                covar = (Dbp + Dtomo - Dcov)*0.5
+
+                data2 -= 2*covar/(2*np.pi/self.Lambda_tar)**2/self.nmodes
+                #data2 += 2*np.sqrt(np.var(np.dot(self.P,self.f["tomography"]),axis=1))*np.sqrt(np.var(np.dot(self.P,self.f["bandwidth"]),axis=1))*np.cos(theta)
         for i in moins:
             if(self.plus_select.labels[i] == "fitting"):
                 fitm=True
@@ -581,12 +605,19 @@ class html_display:
         if(plot_val == "Variance"):
             data = np.var(data,axis=1)
             data = np.cumsum(data[self.swap])
+            # theta = np.arctan(self.f.attrs["wfs.ypos"][0]/self.f.attrs["wfs.xpos"][0])
+            # if(np.sign(self.f.attrs["wfs.ypos"][0])<0):
+            #     theta += np.pi*0.
+            # theta -= (self.f.attrs["winddir"][0] * np.pi/180.)
+            # data2 += 2*np.sqrt(np.var(np.dot(self.P,self.f["tomography"]),axis=1))*np.sqrt(np.var(np.dot(self.P,self.f["bandwidth"]),axis=1))*np.cos(theta)
             data2 = np.cumsum(data2[self.swap])
             data2 = np.exp(-data2*(2*np.pi/self.Lambda_tar)**2)
+            print "data2 : ",data2
             data = np.exp(-data*(2*np.pi/self.Lambda_tar)**2)
             if(fitp and self.f.keys().count("fitting")):
                 data *= np.exp(-self.f["fitting"].value)
                 data2 *= np.exp(-self.f["fitting"].value)
+                print "data2 : ",data2
             if(fitm and self.f.keys().count("fitting")):
                 data /= np.exp(-self.f["fitting"].value)
                 data2 /= np.exp(-self.f["fitting"].value)
