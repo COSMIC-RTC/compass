@@ -68,13 +68,14 @@ def script4bench(param_file,centroider,controller, devices, fwrite=True):
     sys.path.remove(param_path)
 
     #set simulation name
-    if(hasattr(config,"simul_name")):
-        if(config.simul_name is None):
-            simul_name=""
-        else:
-            simul_name=config.simul_name
-    else:
-        simul_name=""
+    # if(hasattr(config,"simul_name")):
+    #     if(config.simul_name is None):
+    #         simul_name=""
+    #     else:
+    #         simul_name=config.simul_name
+    # else:
+    #     simul_name=""
+    simul_name = ""
     matricesToLoad={}
     config.p_centroiders[0].set_type(centroider)
 
