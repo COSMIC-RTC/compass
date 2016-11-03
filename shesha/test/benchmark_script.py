@@ -143,7 +143,7 @@ def script4bench(param_file,centroider,controller, devices, fwrite=True):
     timer.reset()
 
     print "... Done with inits !"
-    h5u.validDataBase(os.environ["SHESHA_ROOT"]+"/data/",matricesToLoad)
+    #h5u.validDataBase(os.environ["SHESHA_ROOT"]+"/data/",matricesToLoad)
 
     strehllp=[]
     strehlsp=[]
