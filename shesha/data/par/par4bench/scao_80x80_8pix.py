@@ -1,6 +1,6 @@
 import shesha as ao
 
-simul_name="bench_scao_80x80_8pix"
+simul_name="scao_40m_80_8pix"
 
 #loop
 p_loop = ao.Param_loop()
@@ -118,5 +118,3 @@ p_rtc=ao.Param_rtc()
 p_rtc.set_nwfs(1)
 p_rtc.set_centroiders(p_centroiders)
 p_rtc.set_controllers(p_controllers)
-
-

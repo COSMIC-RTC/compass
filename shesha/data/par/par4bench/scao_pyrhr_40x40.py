@@ -1,6 +1,6 @@
 import shesha as ao
 
-#simul_name="bench_scao_pyr40_8pix"
+simul_name="scao_8m_pyr40"
 
 #loop
 p_loop = ao.Param_loop()
@@ -61,8 +61,8 @@ p_wfs0.set_optthroughput(0.5)
 p_wfs0.set_zerop(1.e11)
 p_wfs0.set_noise(-1)
 p_wfs0.set_fstop("round")
-p_wfs0.set_pyr_npts(16)
-p_wfs0.set_pyr_ampl(3)
+p_wfs0.set_pyr_npts(32)
+p_wfs0.set_pyr_ampl(6)
 p_wfs0.set_atmos_seen(1)
 
 
@@ -78,6 +78,7 @@ p_dm0.set_thresh(0.3)
 p_dm0.set_coupling(0.2)
 p_dm0.set_unitpervolt(0.01)
 p_dm0.set_push4imat(100.)
+#p_dm0.set_pattern("hexa")
 
 p_dm1.set_type("tt")
 p_dm1.set_alt(0.)
@@ -112,5 +113,3 @@ p_rtc=ao.Param_rtc()
 p_rtc.set_nwfs(1)
 p_rtc.set_centroiders(p_centroiders)
 p_rtc.set_controllers(p_controllers)
-
-
