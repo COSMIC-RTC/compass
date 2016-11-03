@@ -24,7 +24,7 @@ def depouilleSR(filename,svnversion=None):
         print "No results for svn version : "+svnversion+", taking "+store.keys()[-1]+" version"
         svnversion = store.keys()[-1]
         df=store.get(svnversion)
-    
+
     dates = np.unique(df["date"].values)
     wfs_type = np.unique(df["sensor_type"].values)
     LGS = np.unique(df["LGS"].values)
@@ -33,7 +33,7 @@ def depouilleSR(filename,svnversion=None):
     npix = np.unique(df["npix"].values)
     controllers = np.unique(df["controller"].values)
     centroiders = np.unique(df["centroider"].values)
-    
+
     for d in dates:
         dd = str(d[2])+"/"+str(d[1])+"/"+str(d[0])+"/"
         for w in wfs_type:
@@ -51,7 +51,7 @@ def depouilleSR(filename,svnversion=None):
                             plt.title("date:{},{} {}, noise:{},nxsub:{},npix:{}, SR perfs".format(dd,w,star,n,nx,N))
                             plt.ylabel("Strehl ratio")
                             cc=0
-                            colors = ["blue","red","yellow","orange","cyan","purple","magenta"]                           
+                            colors = ["blue","red","yellow","orange","cyan","purple","magenta"]
                             width = 0.9/len(centroiders)
                             for ce in centroiders:
                                 ind=0
@@ -75,9 +75,9 @@ def depouilleSR(filename,svnversion=None):
                             else:
                                 plt.xticks(np.arange(len(cevalid))+0.5,cevalid)
                                 plt.legend(covalid)
- 
+
     store.close()
-    
+
 def depouillePerf(filename,svnversion=None,mode="profile"):
 
     store = pandas.HDFStore(filename)
@@ -89,7 +89,7 @@ def depouillePerf(filename,svnversion=None,mode="profile"):
         print "No results for svn version : "+svnversion+", taking "+store.keys()[-1]+" version"
         svnversion = store.keys()[-1]
         df=store.get(svnversion)
-    
+
     dates = np.unique(df["date"].values)
     wfs_type = np.unique(df["sensor_type"].values)
     LGS = np.unique(df["LGS"].values)
@@ -98,10 +98,10 @@ def depouillePerf(filename,svnversion=None,mode="profile"):
     npix = np.unique(df["npix"].values)
     controllers = np.unique(df["controller"].values)
     centroiders = np.unique(df["centroider"].values)
-    
+
     times = ["move_atmos","target_trace_atmos","target_trace_dm","sensor_trace_atmos",
-             "sensor_trace_dm","comp_img","docentroids","docontrol","applycontrol"]    
-    
+             "sensor_trace_dm","comp_img","docentroids","docontrol","applycontrol"]
+
     for d in dates:
         dd = str(d[2])+"/"+str(d[1])+"/"+str(d[0])+"/"
         for w in wfs_type:
@@ -120,7 +120,7 @@ def depouillePerf(filename,svnversion=None,mode="profile"):
                             plt.figure()
                             plt.title("date:{},{} {}, noise:{},nxsub:{},npix:{}, execution profile".format(dd,w,star,n,nx,N))
                             cc=0
-                            colors = ["blue","green","red","yellow","orange","cyan","purple","magenta","darkcyan"]                           
+                            colors = ["blue","green","red","yellow","orange","cyan","purple","magenta","darkcyan"]
                             width = 0.9/len(centroiders)
                             for ce in centroiders:
                                 ind=0
@@ -177,5 +177,5 @@ def depouillePerf(filename,svnversion=None,mode="profile"):
                                     plt.legend(times)
                                 elif(mode =="framerate"):
                                     plt.xlabel("Framerate (frames/s)")
- 
+
     store.close()

@@ -2362,9 +2362,14 @@ cpdef compute_KL2V(Param_controller controller, Dms dms, p_dms, Param_geom p_geo
     (transfer matrix between the KL space and volt space for a pzt dm)
 
     :parameters:
-        p_dms: (list of Param_dm) : dms settings
-
         controller: (Param_controller) : controller settings
+        dms : (shesha_dms) : Dms object
+        p_dms: (list of Param_dm) : dms settings
+        p_geom : (Param_geom) : geometry parameters
+        p_atmos : (Param_atmos) : atmos parameters
+        p_tel : (Param_tel) : telescope parameters
+    :return:
+        KL2V : (np.array(np.float32,dim=2)) : KL to Volt matrix
     """
     cdef int i, nTT, indx_act, ndm
     cdef np.ndarray[ndim = 1, dtype = np.int64_t] ntotact = \
@@ -2378,7 +2383,6 @@ cpdef compute_KL2V(Param_controller controller, Dms dms, p_dms, Param_geom p_geo
     for i in range(controller.ndm.size):
         ndm = controller.ndm[i]
         if(p_dms[ndm].type_dm == "pzt"):
-            print "TODO KL2V"
             KL2V[indx_act:indx_act + ntotact[ndm], indx_act:indx_act + ntotact[ndm]] = \
                 compute_klbasis(dms, p_dms[ndm], p_geom, p_atmos, p_tel)
 

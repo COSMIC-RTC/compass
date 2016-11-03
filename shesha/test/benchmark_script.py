@@ -8,6 +8,9 @@ import datetime
 from subprocess import check_output
 import pandas
 import hdf5_utils as h5u
+import platform
+import re
+
 
 SHESHA=os.environ.get('SHESHA_ROOT')
 if(SHESHA is None):
@@ -17,8 +20,19 @@ SHESHA_SAVEPATH=SHESHA+"/data/"
 PARPATH=SHESHA_SAVEPATH+"par/par4bench/"
 BENCH_SAVEPATH=SHESHA_SAVEPATH+"bench-results/"
 
+def get_processor_name():
+    command = "cat /proc/cpuinfo"
+    all_info = check_output(command, shell=True).strip()
+    nb_cpu = 0
+    cpu = []
+    for line in all_info.split("\n"):
+        if "model name" in line:
+            cpu.append(re.sub( ".*model name.*:", "", line,1))
+            nb_cpu += 1
+    return nb_cpu, cpu
 
-def script4bench(param_file,centroider,controller, device=0, fwrite=True):
+
+def script4bench(param_file,centroider,controller, devices, fwrite=True):
     """
 
     :parameters:
@@ -29,7 +43,7 @@ def script4bench(param_file,centroider,controller, device=0, fwrite=True):
         controller: (str) : controller type
     """
 
-    c=ch.naga_context(device)
+    c=ch.naga_context(devices=np.array(devices,dtype=np.int32))
 #     c.set_activeDevice(device)
 
     timer=ch.naga_timer()
@@ -79,7 +93,7 @@ def script4bench(param_file,centroider,controller, device=0, fwrite=True):
     if(controller=="modopti"):
         config.p_controllers[0].set_type("ls")
         config.p_controllers[0].set_modopti(1)
-    
+
 
     config.p_loop.set_niter(2000)
     if(simul_name==""):
@@ -129,24 +143,24 @@ def script4bench(param_file,centroider,controller, device=0, fwrite=True):
 
     print "... Done with inits !"
     h5u.validDataBase(os.environ["SHESHA_ROOT"]+"/data/",matricesToLoad)
-    
+
     strehllp=[]
     strehlsp=[]
 ############################################################
-#                  _         _                   
-#                 (_)       | |                  
-#  _ __ ___   __ _ _ _ __   | | ___   ___  _ __  
-# | '_ ` _ \ / _` | | '_ \  | |/ _ \ / _ \| '_ \ 
+#                  _         _
+#                 (_)       | |
+#  _ __ ___   __ _ _ _ __   | | ___   ___  _ __
+# | '_ ` _ \ / _` | | '_ \  | |/ _ \ / _ \| '_ \
 # | | | | | | (_| | | | | | | | (_) | (_) | |_) |
-# |_| |_| |_|\__,_|_|_| |_| |_|\___/ \___/| .__/ 
-#                                         | |    
-#                                         |_|    
-########################################################### 
+# |_| |_| |_|\__,_|_|_| |_| |_|\___/ \___/| .__/
+#                                         | |
+#                                         |_|
+###########################################################
     if(controller=="modopti"):
         for zz in xrange(2048):
             atm.move_atmos()
-          
-            
+
+
     for cc in xrange(config.p_loop.niter):
         ch.threadSync()
         timer.start()
@@ -164,7 +178,7 @@ def script4bench(param_file,centroider,controller, device=0, fwrite=True):
                     t_raytrace_atmos_time+=timer.stop()-synctime
                     timer.reset()
 
-                    if(dms is not None):                        
+                    if(dms is not None):
                         timer.start()
                         target.dmtrace(i,dms)
                         ch.threadSync()
@@ -178,7 +192,7 @@ def script4bench(param_file,centroider,controller, device=0, fwrite=True):
                     ch.threadSync()
                     s_raytrace_atmos_time+=timer.stop()-synctime
                     timer.reset()
-                    
+
                     if(not config.p_wfss[i].openloop and dms is not None):
                         timer.start()
                         wfs.sensors_trace(i,"dm",dms=dms)
@@ -193,7 +207,7 @@ def script4bench(param_file,centroider,controller, device=0, fwrite=True):
                     timer.reset()
 
             if(config.p_rtc is not None and
-               rtc is not None and 
+               rtc is not None and
                config.p_wfss is not None and
                wfs is not None):
                 if(centroider=="geom"):
@@ -259,14 +273,14 @@ def script4bench(param_file,centroider,controller, device=0, fwrite=True):
     print "\n done with simulation \n"
     print "\n Final strehl : \n", strehllp[len(strehllp)-1]
 ###################################################################
-#  _   _                         
-# | | (_)                        
-# | |_ _ _ __ ___   ___ _ __ ___ 
+#  _   _
+# | | (_)
+# | |_ _ _ __ ___   ___ _ __ ___
 # | __| | '_ ` _ \ / _ \ '__/ __|
 # | |_| | | | | | |  __/ |  \__ \
 #  \__|_|_| |_| |_|\___|_|  |___/
-###################################################################                                
-                                
+###################################################################
+
 
     move_atmos_time/=config.p_loop.niter /1000.
     t_raytrace_atmos_time/=config.p_loop.niter /1000.
@@ -283,17 +297,17 @@ def script4bench(param_file,centroider,controller, device=0, fwrite=True):
                   s_raytrace_dm_time+ comp_img_time+\
                   docentroids_time+ docontrol_time+\
                   applycontrol_time
-                  
+
 ###########################################################################
-#  _         _  __ _____                       
-# | |       | |/ _| ____|                      
-# | |__   __| | |_| |__    ___  __ ___   _____ 
+#  _         _  __ _____
+# | |       | |/ _| ____|
+# | |__   __| | |_| |__    ___  __ ___   _____
 # | '_ \ / _` |  _|___ \  / __|/ _` \ \ / / _ \
 # | | | | (_| | |  ___) | \__ \ (_| |\ V /  __/
 # |_| |_|\__,_|_| |____/  |___/\__,_| \_/ \___|
-###############################################################################                  
-                                              
-                                              
+###############################################################################
+
+
     if(config.p_wfss[0].gsalt>0):
         stype="lgs "
     else:
@@ -313,10 +327,22 @@ def script4bench(param_file,centroider,controller, device=0, fwrite=True):
     date=[date.year,date.month,date.day]
     svnversion=str(check_output("svnversion").replace("\n",""))
     hostname=check_output("hostname").replace("\n","")
-  
+    nb_cpu,cpu = get_processor_name()
+    imat = rtc.get_imat(0)
     keys_dict = {"date":date,
+                 "simulname":config.simul_name,
                  "hostname":hostname,
+                 "ndevices":c.get_ndevice(),
+                 "device":c.get_device_names()[0],
+                 "cuda_version":c.get_cudaRuntimeGetVersion(),
+                 "magma_version":c.get_magma_info(),
+                 "platform":platform.platform(),
+                 "ncpu":nb_cpu,
+                 "processor":cpu[0],
+                 "tel.diam":config.p_tel.diam,
                  "sensor_type":config.p_wfss[0].type_wfs,
+                 "nslopes":imat.shape[0],
+                 "nactus":imat.shape[1],
                  "LGS":config.p_wfss[0].gsalt>0,
                     "noisy":config.p_wfss[0].gsmag>3,
                     "nxsub":config.p_wfss[0].nxsub,
@@ -358,14 +384,14 @@ def script4bench(param_file,centroider,controller, device=0, fwrite=True):
         store.put(svnversion,df)
         store.close()
 #############################################################
-#                 _ 
+#                 _
 #                | |
 #   ___ _ __   __| |
 #  / _ \ '_ \ / _` |
 # |  __/ | | | (_| |
 #  \___|_| |_|\__,_|
-#############################################################                  
-                   
+#############################################################
+
 
 if(len(sys.argv)<4 or len(sys.argv)>6):
     error="wrong number of argument. Got %d (expect 4)\ncommande line should be: 'python benchmark_script.py <filename> <centroider> <controller>"%len(sys.argv)
@@ -374,14 +400,16 @@ if(len(sys.argv)<4 or len(sys.argv)>6):
 filename=PARPATH+sys.argv[1]
 centroider=sys.argv[2]
 controller=sys.argv[3]
-device=0
+device=5
 fwrite=True
 if(len(sys.argv)>4):
-    device=int(sys.argv[4])
+    devices = []
+    if(len(sys.argv[4])>1):
+        for k in range(len(sys.argv[4])):
+            devices.append(int(sys.argv[4][k]))
+    else:
+        devices.append(int(sys.argv[4]))
 if (len(sys.argv)==6):
     fwrite=int(sys.argv[5])
 
-script4bench(filename,centroider,controller,device,fwrite)
-
-
-
+script4bench(filename,centroider,controller,devices,fwrite)
