@@ -76,8 +76,8 @@ p_wfs0.set_atmos_seen(1)
 
 #dm
 p_dm0=ao.Param_dm()
-p_dm1=ao.Param_dm()
-p_dms=[p_dm0,p_dm1]
+#p_dm1=ao.Param_dm()
+p_dms=[p_dm0]
 p_dm0.set_type("kl")
 p_dm0.set_alt(0.)
 
@@ -86,13 +86,13 @@ p_dm0.set_kl_type("kolmo")
 p_dm0.set_nkl(50)
 
 
-p_dm0.set_unitpervolt(0.01)
-p_dm0.set_push4imat(100.)
+#p_dm0.set_unitpervolt(0.01)
+#p_dm0.set_push4imat(100.)
 
-p_dm1.set_type("tt")
-p_dm1.set_alt(0.)
-p_dm1.set_unitpervolt(0.0005)
-p_dm1.set_push4imat(10.)
+#p_dm1.set_type("tt")
+#p_dm1.set_alt(0.)
+#p_dm1.set_unitpervolt(0.0005)
+#p_dm1.set_push4imat(10.)
 
 
 
@@ -111,8 +111,8 @@ p_controllers=[p_controller0]
 
 p_controller0.set_type("ls")
 p_controller0.set_nwfs([0])
-p_controller0.set_ndm([0,1])
-p_controller0.set_maxcond(1500)
+p_controller0.set_ndm([0])
+p_controller0.set_maxcond(1e9)
 p_controller0.set_delay(1)
 p_controller0.set_gain(0.4)
 
