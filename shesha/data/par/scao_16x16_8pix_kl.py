@@ -87,7 +87,7 @@ p_dm0.set_nkl(50)
 
 
 #p_dm0.set_unitpervolt(0.01)
-#p_dm0.set_push4imat(100.)
+p_dm0.set_push4imat(1.)
 
 #p_dm1.set_type("tt")
 #p_dm1.set_alt(0.)
