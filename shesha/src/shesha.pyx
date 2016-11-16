@@ -21,8 +21,10 @@ assert sizeof(long) == sizeof(np.int64_t)
 assert sizeof(float) == sizeof(np.float32_t)
 assert sizeof(double) == sizeof(np.float64_t)
 
-
-shesha_dir = os.environ.get('SHESHA_ROOT')
+try:
+    shesha_dir = os.environ['SHESHA_ROOT']
+except:
+    raise EnvironmentError("Environment variable 'SHESHA_ROOT' must be define")
 
 sys.path.append(shesha_dir + '/src')
 sys.path.append(shesha_dir + "/lib")

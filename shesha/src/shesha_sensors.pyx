@@ -525,8 +525,10 @@ def wfs_init(wfs, Param_atmos p_atmos, Param_tel p_tel, Param_geom p_geom,
                     wfs[i].proftype + \
                     "', expect one of: \n''\n'Gauss1'\n'Gauss2'\n'Gauss3'\n'Exp'"
                 raise ValueError(error)
-            print "reading Na profile from", shesha_savepath + profilename
-            prof = np.load(shesha_savepath + profilename)
+
+            profile_path = shesha_savepath + "/" + profilename
+            print "reading Na profile from", profile_path
+            prof = np.load(profile_path)
             wfs[i].set_altna(prof[0, :].astype(np.float32))
             wfs[i].set_profna(np.mean(prof[1:, :], axis=0).astype(np.float32))
             # init sensor gs object with necessary data

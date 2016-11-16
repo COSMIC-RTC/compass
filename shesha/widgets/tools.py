@@ -5,8 +5,8 @@ Created on Sat Jul 12 21:00:56 2014
 @author: canary
 """
 
-from numpy import *
-from matplotlib.pylab import *
+import numpy as np
+#from matplotlib.pylab import *
 
 import shlex
 from subprocess import Popen, PIPE, call
@@ -31,10 +31,10 @@ def clr(*figs):
     if(figs):
         for fig in figs:
             #fig = fig[i]
-            figure(num=fig);
-            clf()
+            plt.figure(num=fig);
+            plt.clf()
     else:
-        clf()
+        plt.clf()
 
 
 
@@ -96,7 +96,7 @@ def pli(data, color='gist_earth', cmin=9998, cmax=9998, win=1, origin=None, aspe
     else:
         aspect = "\'auto\'"
 
-    exec('matshow(data, aspect='+aspect+', fignum=win, cmap=color'+options+origin + ")")
+    exec('plt.matshow(data, aspect='+aspect+', fignum=win, cmap=color'+options+origin + ")")
 
 
 
@@ -117,7 +117,7 @@ def binning(w,footprint):
 
 def minmax(tab):
     tabVect = np.reshape(im, im.size)
-    return [min(tabVect), max(tabVect)]
+    return [np.min(tabVect), np.max(tabVect)]
 
 def plg(data, x="", win=1, xlog=0, ylog=0, color="black", ):
     """
@@ -250,12 +250,12 @@ def plsh(slopesvector, nssp, validint, sparta=False, invertxy=False, returnquive
    # outer one will be computed so that it will match the number of subapertures in slopesvector
    rorder = np.sort(r.reshape(nssp*nssp))
    # number of subapertures not valid due to central obscuration
-   ncentral = nssp*nssp - np.sum(r>validint)
+   ncentral = nssp*nssp - np.sum(r>=validint)
    # determine value of external radius so that the test (validint < r < validext)
    # leads to the correct number of subapertures
    validext = rorder[ncentral + nsub]
    # get the indexes of valid subapertures in the nsspxnssp map
-   valid = (r<validext) & (r>validint)
+   valid = (r<validext) & (r>=validint)
    ivalid = np.where(valid)
    # feeding data <slopesvector> into <vv>
    vx = np.zeros([nssp,nssp])
@@ -284,13 +284,15 @@ def pl3d(im):
     """
     ir = pyfits.getdata("/home/fvidal/data/Run2015/June2015_27_onsky/ir/ir_2015-06-28_06h27m40s_script44_gain.fits")
 
+    JAMAIS TESTEE !!!!!!!!!!!!!!
+
     """
-    X = arange(-5, 5, 0.25)
-    Y = arange(-5, 5, 0.25)
-    X, Y = meshgrid(X, Y)
+    X = np.arange(-5, 5, 0.25)
+    Y = np.arange(-5, 5, 0.25)
+    X, Y = np.meshgrid(X, Y)
     Z = im
     ax.plot_surface(X, Y, Z, rstride=1, cstride=1, cmap=cm.jet)
-    show()
+    plt.show()
 
 
 
@@ -305,14 +307,14 @@ def FFThz(signal,fe,freq=0):
        return d[1:]
     else:
        n = signal.size
-       d = abs(fft(signal))[0:n/2+1]
+       d = np.abs(np.fft.fft(signal))[0:n/2+1]
        d = d**2/(fe*n/2)
        d[n/2]/=2
        return d[1:]
 
 
 def computePSD(zerall,fe, izerNum, wfsNum):
-    if isscalar(wfsNum):
+    if np.isscalar(wfsNum):
         wfsNum = [wfsNum]
 
     for ii in wfsNum:

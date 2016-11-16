@@ -6,10 +6,20 @@ import numpy as np
 cimport numpy as np
 np.import_array()
 
-shesha_dir = os.environ.get('SHESHA_ROOT')
-if(shesha_dir is None):
+try:
+    shesha_dir = os.environ['SHESHA_ROOT']
+except:
     raise EnvironmentError("Environment variable 'SHESHA_ROOT' must be define")
-shesha_savepath = < bytes > (shesha_dir + "/data/")
+
+try:
+    shesha_db = os.environ['SHESHA_DB_ROOT']
+except:
+    import warnings
+    shesha_db = shesha_dir + "/data/"
+    warnings.warn("'SHESHA_ROOT' not defined, using default one: "+shesha_db)
+finally:
+    shesha_savepath = < bytes >shesha_db
+
 print "shesha_savepath:", shesha_savepath
 
 sys.path.append(shesha_dir + '/src')

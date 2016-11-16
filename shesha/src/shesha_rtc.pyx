@@ -1745,8 +1745,9 @@ def rtc_init(Telescope g_tel, Sensors g_wfs, p_wfs, Dms g_dms, p_dms, Param_geom
                             else:
                                 error = "Param_wfs proftype unknown: got '" + wfs.proftype + "', expect one of: \n''\n'Gauss1'\n'Gauss2'\n'Gauss3'\n'Exp'"
                                 raise ValueError(error)
-                            print "reading Na profile from", shesha_savepath + profilename
-                            prof = np.load(shesha_savepath + profilename).astype(np.float32)
+                            profile_path = shesha_savepath + "/" + profilename
+                            print "reading Na profile from", profile_path
+                            prof = np.load(profile_path).astype(np.float32)
 
                             wfs.make_lgs_prof1d(p_tel, np.mean(prof[1:, :], axis=0), prof[0, :],
                                 wfs.beamsize, center= < bytes > "image")
@@ -2059,7 +2060,7 @@ cpdef correct_dm(p_dms, Dms g_dms, Param_controller p_control, Param_geom p_geom
     cdef np.ndarray[ndim = 1, dtype = np.float32_t] resp
 
     cdef bytes filename
-    cdef bytes dirsave = shesha_savepath +< bytes > "mat/"
+    cdef bytes dirsave = shesha_savepath +< bytes > "/mat/"
 
     cdef long dims, ninflu, influsize, NR, NP
 
@@ -2476,9 +2477,9 @@ cpdef imat_init(int ncontrol, Rtc g_rtc, Param_rtc p_rtc, Dms g_dms, Sensors g_w
 
         load: (dict) : (optional) dictionary of matrices to load and their path
     """
-    cdef bytes dirsave = shesha_savepath +< bytes > "mat/"
+    cdef bytes dirsave = shesha_savepath +< bytes > "/mat/"
     cdef bytes filename = dirsave + "imat-" + str(ncontrol) + "-" + simul_name + ".npy"
-    cdef bytes profilename = shesha_savepath +< bytes > "allProfileNa_withAltitude_1Gaussian.npy"
+    cdef bytes profilename = shesha_savepath +< bytes > "/allProfileNa_withAltitude_1Gaussian.npy"
     cdef int imat_clean = 1
     cdef int i
     cdef double t0
@@ -2563,7 +2564,7 @@ cpdef cmat_init(int ncontrol, Rtc g_rtc, Param_rtc p_rtc, list p_wfs, Param_atmo
 
     """
 
-    cdef bytes dirsave = shesha_savepath +< bytes > "mat/"
+    cdef bytes dirsave = shesha_savepath +< bytes > "/mat/"
     cdef bytes filename
 
     cdef int cmat_clean
