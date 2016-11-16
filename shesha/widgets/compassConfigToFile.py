@@ -1,5 +1,8 @@
 from collections import OrderedDict
 import os
+import astropy.io.fits as pfits
+import numpy as np
+
 def returnConfigfromWao(wao, filepath=os.environ["SHESHA_ROOT"] + "/widgets/canapass.conf"):
     aodict = OrderedDict()
 
@@ -48,7 +51,11 @@ def returnConfigfromWao(wao, filepath=os.environ["SHESHA_ROOT"] + "/widgets/cana
     nysubList = []
     lambdaList = []
     dms_seen = []
+    colTmpList = []
+    new_hduwfsl = pfits.HDUList()
     for i in range(aodict["nbWfs"]):
+        new_hduwfsl.append(pfits.ImageHDU(wao.config.p_wfss[i]._isvalid))  # Valid subap array
+        new_hduwfsl[i].header["DATATYPE"] = "valid_wfs%d" % i
         pixsize.append(wao.config.p_wfss[i].pixsize)
         NslopesList.append(wao.config.p_wfss[i]._nvalid * 2)  # slopes per wfs
         NsubapList.append(wao.config.p_wfss[i]._nvalid)  # subap per wfs
@@ -72,6 +79,8 @@ def returnConfigfromWao(wao, filepath=os.environ["SHESHA_ROOT"] + "/widgets/cana
             pyr_npts.append(0)
             pyr_pupsep.append(0)
             npixPerSub.append(wao.config.p_wfss[i].npix)
+    confname = filepath.split("/")[-1].split('.conf')[0]
+    new_hduwfsl.writeto(filepath.split(".conf")[0]+'_wfsConfig.fits', clobber=True)
     aodict.update({"listWFS_NslopesList": NslopesList})
     aodict.update({"listWFS_NsubapList": NsubapList})
     aodict.update({"listWFS_WfsType": listWfsType})
@@ -95,6 +104,8 @@ def returnConfigfromWao(wao, filepath=os.environ["SHESHA_ROOT"] + "/widgets/cana
     push4imat = []
     coupling = []
     push4iMatArcSec = []
+    new_hdudmsl = pfits.HDUList()
+
     for j in range(aodict["Ndm"]):
         listDmsType.append(wao.config.p_dms[j].type_dm)
         NactuX.append(wao.config.p_dms[j].nact)
@@ -102,9 +113,17 @@ def returnConfigfromWao(wao, filepath=os.environ["SHESHA_ROOT"] + "/widgets/cana
         push4imat.append(wao.config.p_dms[j].push4imat)
         coupling.append(wao.config.p_dms[j].coupling)
         tmp = []
+        if(wao.config.p_dms[j].type_dm!='tt'):
+            tmpdata = np.zeros((2, len(wao.config.p_dm0._i1)))
+            tmpdata[0,:] = wao.config.p_dm0._j1
+            tmpdata[1,:] = wao.config.p_dm0._i1
+            new_hdudmsl.append(pfits.ImageHDU(tmpdata))  # Valid subap array
+            new_hdudmsl[j].header["DATATYPE"] = "valid_dm%d" % j
         for k in range(aodict["nbWfs"]):
             tmp.append(wao.computeDMrange(j, k))
+
         push4iMatArcSec.append(tmp)
+    new_hdudmsl.writeto(filepath.split(".conf")[0]+'_dmsConfig.fits', clobber=True)
     aodict.update({"listDMS_push4iMatArcSec": push4iMatArcSec})
     aodict.update({"listDMS_push4iMat": push4imat})
     aodict.update({"listDMS_unitPerVolt": unitPerVolt})
