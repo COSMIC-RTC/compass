@@ -251,7 +251,10 @@ class widgetAOWindow(TemplateBaseClass):
         self.ui.wao_dmTypeSelector.setCurrentIndex(
             self.ui.wao_dmTypeSelector.findText(self.config.p_dms[ndm].type_dm))
         self.ui.wao_dmAlt.setValue(self.config.p_dms[ndm].alt)
-        self.ui.wao_dmNactu.setValue(self.config.p_dms[ndm].nact)
+        if(self.config.p_dms[ndm]self.config.p_dms[ndm].type_dm == "kl"):
+            self.ui.wao_dmNactu.setValue(self.config.p_dms[ndm].nkl)
+        else:
+            self.ui.wao_dmNactu.setValue(self.config.p_dms[ndm].nact)
         self.ui.wao_dmUnitPerVolt.setValue(self.config.p_dms[ndm].unitpervolt)
         self.ui.wao_dmpush4iMat.setValue(self.config.p_dms[ndm].push4imat)
         self.ui.wao_dmCoupling.setValue(self.config.p_dms[ndm].coupling)
@@ -742,10 +745,9 @@ class widgetAOWindow(TemplateBaseClass):
             matricesToLoad = h5u.checkMatricesDataBase(
                 os.environ["SHESHA_ROOT"] + "/data/", self.config, param_dict)
 
-        gpudevice = self.ui.wao_deviceNumber.value()  # using GUI value
-        # gpudevice = "ALL"  # using all GPU avalaible
-        # gpudevice = np.array([0, 1, 2, 3], dtype=np.int32)  # using 4 GPUs: 0-3
-        # gpudevice = 0  # using 1 GPU : 0
+        gpudevice = self.ui.wao_deviceNumber.value()
+        #gpudevice = np.array([6, 7], dtype=np.int32)
+
         self.ui.wao_deviceNumber.setDisabled(True)
         print "-> using GPU", gpudevice
 
