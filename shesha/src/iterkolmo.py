@@ -167,7 +167,7 @@ def AB(n,L0,deltax,deltay,rank=0):
     test[istencil]=np.arange(A.shape[1])+1
     test=np.reshape(test,(n,n),"C")
     isty=np.argsort(test.T.flatten("C")).astype(np.uint32)[n*n-A.shape[1]:]
-    
+
     if(deltay<0):
         isty = (n*n-1)- isty
     if(deltax<0):
@@ -221,10 +221,11 @@ def rodconan(r,L0):
     res = r
     #TODO  those lines have been changed (cf trunk/yoga_ao/yorick/yoga_turbu.i l 258->264)
     if( ilarge[0].size > 0):
-        res[ilarge] = asymp_macdo(dprf0(ilarge))
+        res[ilarge] = asymp_macdo(dprf0[ilarge])
     elif( ismall[0].size>0):
         res[ismall] = -macdo_x56(dprf0[ismall])
-
+    else:
+        print "prout"
     return k1*L0**(5./3.)*r
 
 def asymp_macdo(x):
