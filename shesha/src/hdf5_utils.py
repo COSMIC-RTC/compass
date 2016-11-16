@@ -7,7 +7,7 @@ from subprocess import check_output
 def params_dictionary(config):
     """ Create and returns a dictionary of all the config parameters with the
     corresponding keys for further creation of database and save files
-    
+
     :param config: (module) : simulation parameters
     :return param_dict: (dictionary) : dictionary of parameters
     """
@@ -88,7 +88,8 @@ def params_dictionary(config):
             "openloop":None, "proftype":None, "pyr_ampl":None, "pyr_loc":None, "pyr_npts":None,
             "pyrtype":None}
     param_dict.update(wfs_dict)
-        
+    #
+    #type_kk
     # Dms params
     if(config.p_dms is not None):
         dms_dict = {"ndms":len(config.p_dms),
@@ -98,7 +99,8 @@ def params_dictionary(config):
             "hyst":[dm.hyst for dm in config.p_dms],
             "margin":[dm.margin for dm in config.p_dms],
             "nact":[dm.nact for dm in config.p_dms],
-            "nkl":[dm.type_dm for dm in config.p_dms],
+            "nkl":[dm.nkl for dm in config.p_dms],
+            "kl_type":[dm.kl_type for dm in config.p_dms],
             "pupoffset":[dm.pupoffset if(dm.pupoffset) else 0 for dm in config.p_dms],
             "push4imat":[dm.push4imat for dm in config.p_dms],
             "dm.thresh":[dm.thresh for dm in config.p_dms],
@@ -107,9 +109,9 @@ def params_dictionary(config):
         dms_dict = {"ndms":len(config.p_dms), "type_dm":None, "dm.alt":None,
             "coupling":None, "hyst":None, "margin":None, "nact":None, "nkl":None,
             "pupoffset":None, "push4imat":None, "dm.thresh":None, "unitpervolt":None}
-        
+
     param_dict.update(dms_dict)
-    
+
     # Centroider params
     if(config.p_centroiders is not None):
         centro_dict = {"ncentroiders":len(config.p_centroiders),
@@ -127,8 +129,8 @@ def params_dictionary(config):
             "nmax":None, "centro.nwfs":None, "sizex":None, "sizey":None,
             "centroider.thresh":None, "type_fct":None, "weights":None, "width":None}
     param_dict.update(centro_dict)
-        
-         
+
+
     # Controller params
     if(config.p_controllers is not None):
         control_dict = {"ncontrollers":len(config.p_controllers),
@@ -155,21 +157,21 @@ def params_dictionary(config):
             "ndm":None, "nmodes":None,
             "nrec":None,  # "nvalid":None,
             "control.nwfs":None}
-    
+
     param_dict.update(control_dict)
-         
+
     return param_dict
-    
+
 def create_file_attributes(filename, param_dict):
     """ create_file_attributes(filename,config)
     Create an hdf5 file wtih attributes corresponding to all simulation parameters
-    
+
     :param:
         filename : (str) : full path + filename to create
         config : () : simulation parameters
     """
     f = h5py.File(filename, "w")
-    
+
     for i in param_dict.keys():
         if(param_dict[i] is not None):
             f.attrs.create(i, param_dict[i])
@@ -202,7 +204,7 @@ def init_hdf5_files(savepath, param_dict, matricesToLoad):
         filename = savepath + "turbu/isty_r" + svnversion + "_" + str(ind) + ".h5"
         create_file_attributes(filename, param_dict)
         updateDataBase(filename, savepath, "isty")
-        
+
     if not(matricesToLoad.has_key("pztok")):
         df = pandas.read_hdf(savepath + "matricesDataBase.h5", "pztok")
         ind = len(df.index)
@@ -230,11 +232,11 @@ def init_hdf5_files(savepath, param_dict, matricesToLoad):
         filename = savepath + "mat/U_r" + svnversion + "_" + str(ind) + ".h5"
         create_file_attributes(filename, param_dict)
         updateDataBase(filename, savepath, "U")
-        
+
 def initDataBase(savepath, param_dict):
     """ Initialize and create the database for all the saved matrices. This database
     will be placed on the top of the savepath and be named matricesDataBase.h5.
-    
+
     :parameters:
         savepath : (str) : path to the data repertory
         param_dict : (dictionary) : parameters dictionary
@@ -253,7 +255,7 @@ def initDataBase(savepath, param_dict):
 #            "centro.nwfs","sizex","sizey","centroider.thresh","type_fct",
 #            "weights","width","ncontrollers","type_control","TTcond",
 #            "cured_ndivs","delay","gain","maxcond","modopti","nactu","ndm",
-#            "nmodes","nrec","nvalid","control.nwfs","path2file"] 
+#            "nmodes","nrec","nvalid","control.nwfs","path2file"]
     keys = param_dict.keys()
     keys.append("path2file")
     keys.append("validity")
@@ -268,13 +270,13 @@ def initDataBase(savepath, param_dict):
     store.put("pztok", df)
     store.put("pztnok", df)
     store.put("U", df)
-    
+
     store.close()
-    print "Matrices database created"    
+    print "Matrices database created"
 
 def updateDataBase(h5file, savepath, matrix_type):
     """ Update the database adding a new row to the matrix_type database.
-    
+
     :parameters:
         h5file : (str) : path to the new h5 file to add
         savepath : (str) : path to the data directory
@@ -298,17 +300,17 @@ def updateDataBase(h5file, savepath, matrix_type):
         f.close()
     else:
         raise ValueError("Wrong matrix_type specified. See documentation")
-    
-    
+
+
 def save_hdf5(filename, dataname, data):
     """ save_hdf5(filename, dataname, data)
     Create a dataset in an existing hdf5 file filename and store data in it
-    
+
     :param:
         filename: (str) : full path to the file
         dataname : (str) : name of the data (imat, cmat...)
         data : np.array : data to save
-    """   
+    """
     f = h5py.File(filename, "r+")
     f.create_dataset(dataname, data=data)
     f.close()
@@ -317,7 +319,7 @@ def save_h5(filename, dataname, config, data):
     """ save_hdf5(filename, dataname, config, data)
     Create a hdf5 file and store data in it with full header from config parameters
     Usefull to backtrace data origins
-    
+
     :param:
         filename: (str) : full path to the file
         dataname : (str) : name of the data (imat, cmat...)
@@ -328,14 +330,14 @@ def save_h5(filename, dataname, config, data):
     create_file_attributes(filename, p_dict)
     save_hdf5(filename, dataname, data)
     print filename, "has been written"
-    
+
 def checkMatricesDataBase(savepath, config, param_dict):
     """ Check in the database if the current config have been already run. If so,
     return a dictionary containing the matrices to load and their path. Matrices
     which don't appear in the dictionary will be computed, stored and added
     to the database during the simulation.
     If the database doesn't exist, this function creates it.
-    
+
     :parameters:
         savepath : (str) : path to the data repertory
         config : (module) : simulation parameters
@@ -343,25 +345,25 @@ def checkMatricesDataBase(savepath, config, param_dict):
     :return:
         matricesToLoad : (dictionary) : matrices that will be load and their path
     """
-    
+
     matricesToLoad = {}
     if(os.path.exists(savepath + "matricesDataBase.h5")):
         checkTurbuParams(savepath, config, param_dict, matricesToLoad)
         checkDmsParams(savepath, config, param_dict, matricesToLoad)
-        if(matricesToLoad.has_key("pztok")):           
+        if(matricesToLoad.has_key("pztok")):
             checkControlParams(savepath, config, param_dict, matricesToLoad)
-        
+
     else:
         initDataBase(savepath, param_dict)
     init_hdf5_files(savepath, param_dict, matricesToLoad)
-    return matricesToLoad       
-    
+    return matricesToLoad
+
 def checkTurbuParams(savepath, config, pdict, matricesToLoad):
     """ Compare the current turbulence parameters to the database. If similar parameters
     are found, the matricesToLoad dictionary is completed.
     Since all the turbulence matrices are computed together, we only check the parameters
     for the A matrix : if we load A, we load B, istx and isty too.
-    
+
     :parameters:
         config : (module) : simulation parameters
         matricesToLoad : (dictionary) :  matrices that will be load and their path
@@ -376,9 +378,9 @@ def checkTurbuParams(savepath, config, pdict, matricesToLoad):
             while(cond):
                 if(cc >= len(param2test)):
                     break
-                else:                
+                else:
                     cond = ((dataBase.loc[i, param2test[cc]] == pdict[param2test[cc]]).all())
-                    cc += 1           
+                    cc += 1
             # For debug
             #############################
             # if not cond:
@@ -388,8 +390,8 @@ def checkTurbuParams(savepath, config, pdict, matricesToLoad):
         else:
             cond = False
            # print "Invalid matrix or new svn version"
-                
-            
+
+
 #        if(dataBase.loc[i,"validity"]):
 #            load_turbu = (dataBase.loc[i,"revision"] == check_output("svnversion").replace("\n",""))
 #            load_turbu &= ((dataBase.loc[i,"L0"] == config.p_atmos.L0).all())
@@ -402,7 +404,7 @@ def checkTurbuParams(savepath, config, pdict, matricesToLoad):
 #            load_turbu &= ((dataBase.loc[i,"target.ypos"] == config.p_target.ypos).all())
 #            load_turbu &= ((dataBase.loc[i,"wfs.xpos"] == [wfs.xpos for wfs in config.p_wfss]).all())
 #            load_turbu &= ((dataBase.loc[i,"wfs.ypos"] == [wfs.ypos for wfs in config.p_wfss]).all())
-            
+
         if(cond):
             matricesToLoad["index_turbu"] = i
             matricesToLoad["A"] = dataBase.loc[i, "path2file"]
@@ -419,7 +421,7 @@ def checkControlParams(savepath, config, pdict, matricesToLoad):
     are found, matricesToLoad dictionary is completed.
     Since all the controller matrices are computed together, we only check the parameters
     for the imat matrix : if we load imat, we load eigenv and U too.
-    
+
     :parameters:
         config : (module) : simulation parameters
         matricesToLoad : (dictionary) :  matrices that will be load and their path
@@ -438,9 +440,9 @@ def checkControlParams(savepath, config, pdict, matricesToLoad):
             while(cond):
                 if(cc >= len(param2test)):
                     break
-                else:                
+                else:
                     cond = ((dataBase.loc[i, param2test[cc]] == pdict[param2test[cc]]).all())
-                    cc += 1           
+                    cc += 1
             # For debug
             #############################
             # if not cond:
@@ -450,7 +452,7 @@ def checkControlParams(savepath, config, pdict, matricesToLoad):
         else:
             cond = False
            # print "Invalid matrix or new svn version"
-                
+
 
 #        if(dataBase.loc[i,"validity"]):
 #            load_control = (dataBase.loc[i,"revision"] == check_output("svnversion").replace("\n",""))
@@ -508,7 +510,7 @@ def checkControlParams(savepath, config, pdict, matricesToLoad):
 #            load_control &= ((dataBase.loc[i,"push4imat"] == [dm.push4imat for dm in config.p_dms]).all())
 #            load_control &= ((dataBase.loc[i,"dm.thresh"] == [dm.thresh for dm in config.p_dms]).all())
 #            load_control &= ((dataBase.loc[i,"unitpervolt"] == [dm.unitpervolt for dm in config.p_dms]).all())
-#        
+#
 #        # Centroider params
 #            load_control &= (dataBase.loc[i,"ncentroiders"] == len(config.p_centroiders))
 #            load_control &= ((dataBase.loc[i,"type_centro"] == [c.type_centro for c in config.p_centroiders]).all())
@@ -520,13 +522,13 @@ def checkControlParams(savepath, config, pdict, matricesToLoad):
 #            load_control &= ((dataBase.loc[i,"type_fct"] == [c.type_fct if(c.type_fct) else "" for c in config.p_centroiders]).all())
 #            load_control &= ((dataBase.loc[i,"weights"] == [c.weights if(c.weights) else 0 for c in config.p_centroiders]).all())
 #            load_control &= ((dataBase.loc[i,"width"] == [c.width for c in config.p_centroiders]).all())
-#        
+#
 #        # Controller params
 #            load_control &= (dataBase.loc[i,"ncontrollers"] == len(config.p_controllers))
 #            load_control &= ((dataBase.loc[i,"type_control"] == [c.type_control for c in config.p_controllers]).all())
 #            load_control &= ((dataBase.loc[i,"cured_ndivs"] == [c.cured_ndivs for c in config.p_controllers]).all())
 #            load_control &= ((dataBase.loc[i,"ndm"] == [c.ndm for c in config.p_controllers]).all())
-#            load_control &= ((dataBase.loc[i,"nmodes"] == [c.nmodes for c in config.p_controllers]).all())        
+#            load_control &= ((dataBase.loc[i,"nmodes"] == [c.nmodes for c in config.p_controllers]).all())
 #            load_control &= ((dataBase.loc[i,"control.nwfs"] == [c.nwfs for c in config.p_controllers]).all())
         if(cond):
             matricesToLoad["index_control"] = i
@@ -536,13 +538,13 @@ def checkControlParams(savepath, config, pdict, matricesToLoad):
             dataBase = pandas.read_hdf(savepath + "matricesDataBase.h5", "U")
             matricesToLoad["U"] = dataBase.loc[i, "path2file"]
             return
-        
+
 def checkDmsParams(savepath, config, pdict, matricesToLoad):
     """ Compare the current controller parameters to the database. If similar parameters
     are found, matricesToLoad dictionary is completed.
     Since all the dms matrices are computed together, we only check the parameters
     for the pztok matrix : if we load pztok, we load pztnok too.
-    
+
     :parameters:
         config : (module) : simulation parameters
         matricesToLoad : (dictionary) :  matrices that will be load and their path
@@ -557,9 +559,9 @@ def checkDmsParams(savepath, config, pdict, matricesToLoad):
             while(cond):
                 if(cc >= len(param2test)):
                     break
-                else:                
+                else:
                     cond = ((dataBase.loc[i, param2test[cc]] == pdict[param2test[cc]]).all())
-                    cc += 1           
+                    cc += 1
             # For debug
             #############################
             # if not cond:
@@ -627,7 +629,7 @@ def checkDmsParams(savepath, config, pdict, matricesToLoad):
 #            load_control &= ((dataBase.loc[i,"push4imat"] == [dm.push4imat for dm in config.p_dms]).all())
 #            load_control &= ((dataBase.loc[i,"dm.thresh"] == [dm.thresh for dm in config.p_dms]).all())
 #            load_control &= ((dataBase.loc[i,"unitpervolt"] == [dm.unitpervolt for dm in config.p_dms]).all())
-#        
+#
 #        # Centroider params
 #            load_control &= (dataBase.loc[i,"ncentroiders"] == len(config.p_centroiders))
 #            load_control &= ((dataBase.loc[i,"type_centro"] == [c.type_centro for c in config.p_centroiders]).all())
@@ -639,21 +641,21 @@ def checkDmsParams(savepath, config, pdict, matricesToLoad):
 #            load_control &= ((dataBase.loc[i,"type_fct"] == [c.type_fct if(c.type_fct) else "" for c in config.p_centroiders]).all())
 #            load_control &= ((dataBase.loc[i,"weights"] == [c.weights if(c.weights) else 0 for c in config.p_centroiders]).all())
 #            load_control &= ((dataBase.loc[i,"width"] == [c.width for c in config.p_centroiders]).all())
-#        
+#
 #        # Controller params
 #            load_control &= (dataBase.loc[i,"ncontrollers"] == len(config.p_controllers))
 #            load_control &= ((dataBase.loc[i,"type_control"] == [c.type_control for c in config.p_controllers]).all())
 #            load_control &= ((dataBase.loc[i,"cured_ndivs"] == [c.cured_ndivs for c in config.p_controllers]).all())
 #            load_control &= ((dataBase.loc[i,"ndm"] == [c.ndm for c in config.p_controllers]).all())
-#            load_control &= ((dataBase.loc[i,"nmodes"] == [c.nmodes for c in config.p_controllers]).all())        
+#            load_control &= ((dataBase.loc[i,"nmodes"] == [c.nmodes for c in config.p_controllers]).all())
 #            load_control &= ((dataBase.loc[i,"control.nwfs"] == [c.nwfs for c in config.p_controllers]).all())
-            
+
         if(cond):
             matricesToLoad["index_dms"] = i
             dataBase = pandas.read_hdf(savepath + "matricesDataBase.h5", "pztnok")
             matricesToLoad["pztnok"] = dataBase.loc[i, "path2file"]
             dataBase = pandas.read_hdf(savepath + "matricesDataBase.h5", "pztok")
-            matricesToLoad["pztok"] = dataBase.loc[i, "path2file"]             
+            matricesToLoad["pztok"] = dataBase.loc[i, "path2file"]
             return
 
 def validDataBase(savepath, matricesToLoad):
@@ -684,21 +686,21 @@ def validInStore(store, savepath, matricetype):
     df.loc[ind, "validity"] = True
     store[matricetype] = df
     validFile(df.loc[ind, "path2file"])
-    
+
 def configFromH5(filename, config):
     import shesha as ao
-    
+
     f = h5py.File(filename, "r")
-    
+
     config.simul_name = str(f.attrs.get("simulname"))
     # Loop
     config.p_loop.set_niter(f.attrs.get("niter"))
     config.p_loop.set_ittime(f.attrs.get("ittime"))
-    
+
     # geom
     config.p_geom.set_zenithangle(f.attrs.get("zenithangle"))
     config.p_geom.set_pupdiam(f.attrs.get("pupdiam"))
-    
+
     # Tel
     config.p_tel.set_diam(f.attrs.get("tel_diam"))
     config.p_tel.set_cobs(f.attrs.get("cobs"))
@@ -710,7 +712,7 @@ def configFromH5(filename, config):
     config.p_tel.set_referr(f.attrs.get("referr"))
     config.p_tel.set_std_piston(f.attrs.get("std_piston"))
     config.p_tel.set_std_tt(f.attrs.get("std_tt"))
-    
+
     # Atmos
     config.p_atmos.set_r0(f.attrs.get("r0"))
     config.p_atmos.set_nscreens(f.attrs.get("nscreens"))
@@ -720,7 +722,7 @@ def configFromH5(filename, config):
     config.p_atmos.set_winddir(f.attrs.get("winddir"))
     config.p_atmos.set_L0(f.attrs.get("L0"))
     config.p_atmos.set_seeds(f.attrs.get("seeds"))
-    
+
     # Target
     config.p_target.set_nTargets(f.attrs.get("ntargets"))
     config.p_target.set_xpos(f.attrs.get("target.xpos"))
@@ -729,7 +731,7 @@ def configFromH5(filename, config):
     config.p_target.set_mag(f.attrs.get("target.mag"))
     if(f.attrs.get("target.dms_seen") > -1):
         config.p_target.set_dms_seen(f.attrs.get("target.dms_seen"))
-    
+
     # WFS
     config.p_wfss = []
     for i in range(f.attrs.get("nwfs")):
@@ -755,7 +757,7 @@ def configFromH5(filename, config):
         config.p_wfss[i].set_fssize(f.attrs.get("fssize")[i])
         if((f.attrs.get("dms_seen")[i] > -1).all()):
             config.p_wfss[i].set_dms_seen(f.attrs.get("dms_seen")[i])
-        
+
         # LGS
         config.p_wfss[i].set_gsalt(f.attrs.get("gsalt")[i])
         config.p_wfss[i].set_lltx(f.attrs.get("lltx")[i])
@@ -764,7 +766,7 @@ def configFromH5(filename, config):
         config.p_wfss[i].set_lgsreturnperwatt(f.attrs.get("lgsreturnperwatt")[i])
         config.p_wfss[i].set_proftype(str(f.attrs.get("proftype")[i]))
         config.p_wfss[i].set_beamsize(f.attrs.get("beamsize")[i])
-    
+
     # DMs
     config.p_dms = []
     if(f.attrs.get("ndms")):
@@ -777,7 +779,7 @@ def configFromH5(filename, config):
             config.p_dms[i].set_coupling(f.attrs.get("coupling")[i])
             config.p_dms[i].set_unitpervolt(f.attrs.get("unitpervolt")[i])
             config.p_dms[i].set_push4imat(f.attrs.get("push4imat")[i])
-    
+
     # Centroiders
     config.p_centroiders = []
     if(f.attrs.get("ncentroiders")):
@@ -792,7 +794,7 @@ def configFromH5(filename, config):
                 config.p_centroiders[i].set_weights(f.attrs.get("weights")[i])
             config.p_centroiders[i].set_width(f.attrs.get("width")[i])
         config.p_rtc.set_centroiders(config.p_centroiders)
-    
+
     # Controllers
     config.p_controllers = []
     if(f.attrs.get("ncontrollers")):
@@ -813,13 +815,13 @@ def configFromH5(filename, config):
             config.p_controllers[i].set_TTcond(f.attrs.get("TTcond")[i])
             config.p_controllers[i].set_cured_ndivs(f.attrs.get("cured_ndivs")[i])
         config.p_rtc.set_controllers(config.p_controllers)
-    
+
     config.p_rtc.set_nwfs(f.attrs.get("nwfs"))
-    
+
     print "Parameters have been read from ", filename, "header"
-        
-        
-    
+
+
+
 def writeHdf5SingleDataset(filename, data, datasetName="dataset"):
     """Write a hdf5 file containig a single field
 
