@@ -251,7 +251,7 @@ class widgetAOWindow(TemplateBaseClass):
         self.ui.wao_dmTypeSelector.setCurrentIndex(
             self.ui.wao_dmTypeSelector.findText(self.config.p_dms[ndm].type_dm))
         self.ui.wao_dmAlt.setValue(self.config.p_dms[ndm].alt)
-        if(self.config.p_dms[ndm]self.config.p_dms[ndm].type_dm == "kl"):
+        if(self.config.p_dms[ndm].type_dm == "kl"):
             self.ui.wao_dmNactu.setValue(self.config.p_dms[ndm].nkl)
         else:
             self.ui.wao_dmNactu.setValue(self.config.p_dms[ndm].nact)
