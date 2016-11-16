@@ -16,6 +16,8 @@ import copy as copy
 
 from cython.operator cimport dereference as deref, preincrement as inc
 
+from sys import stdout
+
 IF USE_MPI == 1:
     # from mpi4py import MPI
     from mpi4py cimport MPI
@@ -1004,6 +1006,7 @@ cdef class Rtc:
                 inds1 += control.nslope()
                 cc = cc + 1
                 print "\rDoing imat...%d%%" % ((cc * 100) / nactu),
+                stdout.flush()
             inc(it_dm)
         print "\n"
 
@@ -2222,6 +2225,7 @@ cpdef imat_geom(Sensors g_wfs, p_wfs, Param_controller p_control, Dms g_dms, p_d
             g_dms.resetdm(p_dms[nm].type_dm, p_dms[nm].alt)
 
             print "\r Doing imat geom...%d%%" % ((cc * 100 / imat_size2)),
+            stdout.flush()
     print "\n"
     return imat_cpu
 
@@ -2282,6 +2286,7 @@ cpdef manual_imat(Rtc g_rtc, Sensors g_wfs, p_wfs, Dms g_dms, p_dms):
             ind += 1
             cc += 1
             print "\rDoing manual imat...%d%%" % ((cc * 100 / imat_size2)),
+            stdout.flush()
     return imat_cpu.T.copy()
 
 
@@ -2323,6 +2328,7 @@ cpdef manual_imat2(Rtc g_rtc, Sensors g_wfs, Dms g_dms, push4imat=1):
 
         imat_cpu[i,:] = g_rtc.getcentroids(0) / float(push4imat)
         print "\rDoing manual imat...%d%%" % (i * 100 / nactu_tot),
+        stdout.flush()
     return imat_cpu,comcom
 
 cpdef get_r0(float r0_at_lambda1, float lambda1, float lambda2):
