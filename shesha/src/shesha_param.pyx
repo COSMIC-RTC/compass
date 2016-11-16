@@ -816,6 +816,7 @@ cdef class Klbas:
         self.kers = None
 
 
+
 #################################################
 # P-Class (parametres) Param_dm
 #################################################
@@ -823,7 +824,15 @@ cdef class Param_dm:
 
     def __cinit__(self, debug = False):
         self._klbas = Klbas()
+        self.gain = 1.0
         pass
+
+    def set_gain(self, float g):
+        """Set the gain to apply to the actuators of the dm
+
+        :param g: (float) : gain
+        """
+        self.gain = g
 
     def set_nkl(self, long n):
         """Set the number of KL modes used for computation of covmat in case of minimum variance controller

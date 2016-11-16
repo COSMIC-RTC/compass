@@ -1453,7 +1453,7 @@ cdef class Rtc:
         cdef carma_context * context = &carma_context.instance()
         context.set_activeDevice(self.rtc.device, 1)
         self.rtc.do_clipping(ncontrol, min, max)
-        
+
 
     cpdef docontrol(self, int ncontrol):
         """Compute the command to apply on the DMs on a sutra_controller object
@@ -1906,6 +1906,10 @@ def rtc_init(Telescope g_tel, Sensors g_wfs, p_wfs, Dms g_dms, p_dms, Param_geom
                                 cmat_init(i, g_rtc, p_rtc, p_wfs, p_atmos, p_tel, p_dms, clean=clean, simul_name=simul_name, load=load)
                                 g_rtc.set_gain(i, controller.gain)
                                 mgain = np.ones(sum([p_dms[j]._ntotact for j in range(len(p_dms))]), dtype=np.float32)
+                                cc = 0
+                                for ndm in p_dms:
+                                    mgain[cc:cc+ndm._ntotact] = ndm.gain
+                                    cc += ndm._ntotact
                                 # filtering tilt ...
                                 # mgain(-1:0) = 0.0f;
                                 g_rtc.set_mgain(i, mgain)
@@ -1917,6 +1921,10 @@ def rtc_init(Telescope g_tel, Sensors g_wfs, p_wfs, Dms g_dms, p_dms, Param_geom
                             g_rtc.set_cmat(i, imat)
                             g_rtc.set_gain(i, controller.gain)
                             mgain = np.ones(sum([p_dms[j]._ntotact for j in range(len(p_dms))]), dtype=np.float32)
+                            cc = 0
+                            for ndm in p_dms:
+                                mgain[cc:cc+ndm._ntotact] = ndm.gain
+                                cc += ndm._ntota
                             # filtering tilt ...
                             g_rtc.set_mgain(i, mgain)
 

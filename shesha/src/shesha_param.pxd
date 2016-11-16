@@ -9,9 +9,9 @@ cpdef bytes shesha_savepath
 # P-Class (parametres) Param_loop
 #################################################
 cdef class Param_loop:
-    cdef readonly long niter     
+    cdef readonly long niter
     """ number of iterations"""
-    cdef readonly float ittime   
+    cdef readonly float ittime
     """ iteration time (in sec)"""
 
 
@@ -50,7 +50,7 @@ cdef class Param_geom:
     """linear size of full image (in pixels)."""
     cdef readonly float zenithangle
     """observations zenith angle (in deg)."""
-  
+
     # internal keywords
     cdef readonly long  pupdiam
     """linear size of total pupil (in pixels)."""
@@ -60,7 +60,7 @@ cdef class Param_geom:
     cdef readonly np.ndarray _mpupil  # medium pupil (part of the guard band)
     cdef readonly np.ndarray _spupil  # small pupil (without guard band)
     cdef readonly np.ndarray _phase_ab_M1  # Phase aberration in the pupil (small size)
-    cdef readonly np.ndarray _phase_ab_M1_m  # Phase aberration in the pupil (medium size) 
+    cdef readonly np.ndarray _phase_ab_M1_m  # Phase aberration in the pupil (medium size)
     cdef readonly np.ndarray _apodizer  # apodizer (same size as small pupil)
     cdef readonly long  _p1  # min x,y for valid points in mpupil
     cdef readonly long  _p2  # max x,y for valid points in mpupil
@@ -117,7 +117,7 @@ cdef class Param_wfs:
     cdef readonly float noise
     """desired noise : < 0 = no noise / 0 = photon only / > 0 photon + ron."""
 
-    cdef readonly float kernel  # 
+    cdef readonly float kernel  #
     cdef np.ndarray _ftkernel  # (float*)
 
 # lgs only
@@ -135,69 +135,69 @@ cdef class Param_wfs:
     """laser beam fwhm on-sky (in arcsec)."""
 
 # internal kwrd
-    cdef readonly long  _pdiam          
+    cdef readonly long  _pdiam
     """pupil diam for a subap (in pixel)"""
-    cdef readonly long  _Nfft           
+    cdef readonly long  _Nfft
     """ array size for fft for a subap (in pixel)"""
-    cdef readonly long  _Ntot           
+    cdef readonly long  _Ntot
     """ total size of hr image for a subap (in pixel)"""
-    cdef readonly long  _nrebin        
-    """ rebin factor from hr to binned image for a subap""" 
-    cdef readonly long  _nvalid         
+    cdef readonly long  _nrebin
+    """ rebin factor from hr to binned image for a subap"""
+    cdef readonly long  _nvalid
     """ number of valid subaps"""
 
-    cdef readonly float   _nphotons     
+    cdef readonly float   _nphotons
     """ number of photons per subap"""
     cdef readonly float   nphotons4imat
     """ number of photons per subap used for doing imat"""
-    cdef readonly float   _subapd       
+    cdef readonly float   _subapd
     """ subap diameter (m)"""
-    cdef readonly np.ndarray _fluxPerSub   
+    cdef readonly np.ndarray _fluxPerSub
     """ fraction of nphotons per subap"""
-    cdef readonly float   _qpixsize     
+    cdef readonly float   _qpixsize
     """ quantum pixel size for the simulation"""
 
-    cdef readonly np.ndarray _istart    
-    """ (int*) x start indexes for cutting phase screens""" 
-    cdef readonly np.ndarray _jstart    
-    """ (int*) y start indexes for cutting phase screens""" 
+    cdef readonly np.ndarray _istart
+    """ (int*) x start indexes for cutting phase screens"""
+    cdef readonly np.ndarray _jstart
+    """ (int*) y start indexes for cutting phase screens"""
     # cdef np.ndarray _validsubs    # (i,j) indices of valid subaps
-    cdef readonly np.ndarray _validsubsx    
+    cdef readonly np.ndarray _validsubsx
     """(int*) indices of valid subaps along axis x"""
-    cdef readonly np.ndarray _validsubsy    
+    cdef readonly np.ndarray _validsubsy
     """(int*) indices of valid subaps along axis y"""
-    cdef readonly np.ndarray _isvalid      
+    cdef readonly np.ndarray _isvalid
     """(int*) array of 0/1 for valid subaps"""
-    cdef readonly np.ndarray _phasemap     
+    cdef readonly np.ndarray _phasemap
     """(int*) array of pixels transform from phase screen into subaps phase screens"""
-    cdef readonly np.ndarray _hrmap        
+    cdef readonly np.ndarray _hrmap
     """(int*) array of pixels transform from minimal FoV image to (in case type is sh or geo)"""
-    cdef readonly np.ndarray _sincar        
+    cdef readonly np.ndarray _sincar
     """(float*) array of pixels transform from minimal FoV image to (in case type is "pyr" or "roof")"""
                          # full FoV image (array of 0 if the same)
-    cdef readonly np.ndarray _binmap       
+    cdef readonly np.ndarray _binmap
     """(int*) array of pixels transform from full FoV hr images to binned images"""
-    cdef readonly np.ndarray _halfxy       
+    cdef readonly np.ndarray _halfxy
     """(float*) phase offset for 1/2 pixel shift in (x,y)"""
 
-    cdef readonly np.ndarray _submask       
+    cdef readonly np.ndarray _submask
     """(float*) fieldstop for each subap"""
 
-    cdef readonly np.ndarray _lgskern      
+    cdef readonly np.ndarray _lgskern
     """ lgs kernels for each subap"""
-    cdef readonly np.ndarray _profna       
+    cdef readonly np.ndarray _profna
     """ sodium profile"""
-    cdef readonly np.ndarray _altna        
+    cdef readonly np.ndarray _altna
     """ corresponding altitude"""
-    cdef readonly np.ndarray _prof1d       
+    cdef readonly np.ndarray _prof1d
     """ hr profile"""
-    cdef readonly np.ndarray _profcum     
+    cdef readonly np.ndarray _profcum
     """ hr profile cumulated"""
-    cdef readonly np.ndarray _beam         
+    cdef readonly np.ndarray _beam
     """ 1d beam function"""
-    cdef readonly np.ndarray _ftbeam       
+    cdef readonly np.ndarray _ftbeam
     """ 1d beam function fft"""
-    cdef readonly np.ndarray _azimuth      
+    cdef readonly np.ndarray _azimuth
     """ angles of rotation for each spot"""
 
 # pyramid-nly kwrds
@@ -205,7 +205,7 @@ cdef class Param_wfs:
     """pyramid wfs modulation amplitude radius [arcsec]."""
     cdef readonly long pyr_npts
     """total number of point along modulation circle [unitless]."""
-    cdef np.ndarray pyr_pos    
+    cdef np.ndarray pyr_pos
     """positions for modulation, overwrites ampl and npts [arcsec]"""
     cdef readonly str pyr_loc
     """Location of modulation, before/after the field stop.
@@ -222,7 +222,7 @@ cdef class Param_wfs:
 
 
     # cdef make_lgs_prof1d(self, Param_tel p_tel,
-    #        np.ndarray[dtype=np.float32_t] prof, 
+    #        np.ndarray[dtype=np.float32_t] prof,
     #        np.ndarray[dtype=np.float32_t] h,
     #        float beam, bytes center=?)
 
@@ -233,7 +233,7 @@ cdef class Param_wfs:
 #################################################
 cdef class Param_atmos:
 
-    cdef readonly long nscreens           
+    cdef readonly long nscreens
     """number of turbulent layers."""
     cdef readonly float r0
     """global r0."""
@@ -318,14 +318,15 @@ cdef class Param_dm:
   cdef readonly float   hyst
   """ actuators hysteresis (<1.)"""
   cdef readonly float   margin
-  """outside margin for actuator select""" 
+  """outside margin for actuator select"""
   cdef readonly float   margin_out
-  """outside margin for actuator select""" 
-  
+  """outside margin for actuator select"""
+
   cdef readonly float   margin_in
-  """inside margin for actuator select""" 
-  
-  
+  """inside margin for actuator select"""
+  cdef readonly float   gain
+  """gain to apply to the actuator of the dm""" 
+
   cdef readonly np.ndarray   pupoffset
   """(2)"""
   """ global offset in pupil of whole actuator pattern [m]"""
@@ -333,12 +334,12 @@ cdef class Param_dm:
   """ Influence function sensitivity in unit/volt. Optional [0.01]
       Stackarray: mic/volt, Tip-tilt: arcsec/volt."""
   cdef readonly float   push4imat
-  """ nominal voltage for imat""" 
+  """ nominal voltage for imat"""
   cdef readonly long    nkl
   """ number of kl modes"""
   cdef readonly bytes   kl_type
-  """ kl_type : kolmo or karman""" 
-  
+  """ kl_type : kolmo or karman"""
+
   # internal kwrd
   cdef readonly long    _pitch
   """ inter-actuator space in pixels"""
@@ -368,7 +369,7 @@ cdef class Param_dm:
   """Influence functions"""
   cdef readonly np.ndarray _influstart
   cdef readonly np.ndarray _influkernel  # Array to convolution kernel for comp_dmshape
-  
+
   cdef readonly Klbas _klbas
   """ np.ndarray to a kl struct"""
 
@@ -405,11 +406,11 @@ cdef class Param_target:
 # P-Class (parametres) Param_rtc
 #################################################
 cdef class Param_rtc:
-    cdef readonly long    nwfs           
+    cdef readonly long    nwfs
     # number of wfs
-    cdef readonly list centroiders     
+    cdef readonly list centroiders
     # an array of centroiders
-    cdef readonly list controllers     
+    cdef readonly list controllers
     # an array of controllers
 
 
@@ -418,25 +419,25 @@ cdef class Param_rtc:
 # P-Class (parametres) Param_centroider
 #################################################
 cdef class Param_centroider:
-    cdef readonly long    nwfs       
+    cdef readonly long    nwfs
     """ index of wfs in y_wfs structure on which we want to do centroiding"""
-    cdef readonly bytes  type_centro 
+    cdef readonly bytes  type_centro
     """ type of centroiding cog, tcog, bpcog, wcog, corr"""
-    cdef readonly bytes  type_fct    
+    cdef readonly bytes  type_fct
     """ type of ref function gauss, file, model"""
-    cdef readonly np.ndarray weights    
+    cdef readonly np.ndarray weights
     """ optional reference function(s) used for centroiding"""
-    cdef readonly long    nmax      
+    cdef readonly long    nmax
     """ number of brightest pixels"""
-    cdef readonly float   thresh     
+    cdef readonly float   thresh
     """Threshold"""
-    cdef readonly float   width      
+    cdef readonly float   width
     """ width of the Gaussian"""
-    cdef readonly long    sizex      
+    cdef readonly long    sizex
     """ x-size for inter mat (corr)"""
-    cdef readonly long    sizey      
+    cdef readonly long    sizey
     """ x-size for inter mat (corr)"""
-    cdef readonly np.ndarray interpmat  
+    cdef readonly np.ndarray interpmat
     """ optional reference function(s) used for corr centroiding"""
 
 
@@ -445,42 +446,42 @@ cdef class Param_centroider:
 # P-Class (parametres) Param_controller
 #################################################
 cdef class Param_controller:
-    cdef readonly bytes  type_control   
+    cdef readonly bytes  type_control
     """ type of controller"""
-    cdef readonly np.ndarray nwfs        
+    cdef readonly np.ndarray nwfs
     """ index of wfss in controller"""
-    cdef readonly np.ndarray nvalid      
+    cdef readonly np.ndarray nvalid
     """ number of valid subaps per wfs"""
-    cdef readonly np.ndarray ndm         
+    cdef readonly np.ndarray ndm
     """ index of dms in controller"""
-    cdef readonly np.ndarray nactu       
+    cdef readonly np.ndarray nactu
     """ number of controled actuator per dm"""
-    cdef readonly np.ndarray imat        
+    cdef readonly np.ndarray imat
     """ full interaction matrix"""
-    cdef readonly np.ndarray cmat        
+    cdef readonly np.ndarray cmat
     """ full control matrix"""
-    cdef readonly float   maxcond        
+    cdef readonly float   maxcond
     """ max condition number"""
-    cdef readonly float   TTcond         
+    cdef readonly float   TTcond
     """ tiptilt condition number for cmat filtering with mv controller"""
-    cdef readonly float    delay         
+    cdef readonly float    delay
     """ loop delay [frames]"""
-    cdef readonly float   gain           
+    cdef readonly float   gain
     """ loop gain """
-    cdef readonly long    nkl            
-    cdef readonly long    cured_ndivs    
+    cdef readonly long    nkl
+    cdef readonly long    cured_ndivs
     """ subdivision levels in cured"""
-    cdef readonly int     modopti        
+    cdef readonly int     modopti
     """ Flag for modal optimization"""
-    cdef readonly int     nrec           
+    cdef readonly int     nrec
     """ Number of sample of open loop slopes for modal optimization computation"""
-    cdef readonly int     nmodes         
+    cdef readonly int     nmodes
     """ Number of modes for M2V matrix (modal optimization)"""
-    cdef readonly float     gmin         
+    cdef readonly float     gmin
     """ Minimum gain for modal optimization"""
-    cdef readonly float     gmax         
+    cdef readonly float     gmax
     """ Maximum gain for modal optimization"""
-    cdef readonly int     ngain          
+    cdef readonly int     ngain
     """ Number of tested gains"""
 
 
