@@ -20,12 +20,19 @@ from PyQt4.uic import loadUiType
 from PyQt4 import QtGui
 from PyQt4.QtCore import QTimer
 from functools import partial
-import Pyro4
+from pandas import HDFStore, read_hdf
+from threading import Thread
 
+import Pyro.core
+import Pyro.naming
+import Pyro.configuration
+import Pyro.util
+sys.path.insert(0, os.environ["SHESHA_ROOT"] + "/widgets/")
 sys.path.insert(0, os.environ["SHESHA_ROOT"] + "/data/par/")
 WindowTemplate, TemplateBaseClass = loadUiType(
     os.environ["SHESHA_ROOT"] + "/widgets/widget_canapass.ui")
 
+import compassConfigToFile as cf
 
 """
 low levels debugs:
@@ -33,12 +40,15 @@ gdb --args python -i widget_canapass.py
 
 """
 
-
-@Pyro4.expose
-class widgetAOWindow(TemplateBaseClass):
+#class widgetAOWindow(TemplateBaseClass):
+class widgetAOWindow(TemplateBaseClass, Pyro.core.ObjBase):
 
     def __init__(self):
         TemplateBaseClass.__init__(self)
+        try:
+            Pyro.core.ObjBase.__init__(self)
+        except:
+            print "Could not initialize Pyro..."
 
         self.ui = WindowTemplate()
         self.ui.setupUi(self)
@@ -130,6 +140,15 @@ class widgetAOWindow(TemplateBaseClass):
         # self.addConfigFromFile(
         #     filepath=os.environ["SHESHA_ROOT"] + "/data/par/canapass.py")
         # self.InitConfig()
+
+    def returnkl2V(self):
+        KL2V = ao.compute_KL2V(wao.config.p_controllers[0], wao.dms,wao.config.p_dms,wao.config.p_geom,wao.config.p_atmos,wao.config.p_tel)
+        return KL2V
+
+    def getConfig(self, path):
+        return cf.returnConfigfromWao(self, filepath=path)
+        #print self.config.p_wfs0.fssize
+        #return self.config.p_wfs0.fssize
 
     def updateSRSE(self, SRSE):
         self.ui.wao_strehlSE.setText(SRSE)
@@ -288,8 +307,8 @@ class widgetAOWindow(TemplateBaseClass):
 
         gpudevice = self.ui.wao_deviceNumber.value()  # using GUI value
         # gpudevice = "ALL"  # using all GPU avalaible
-        # gpudevice = np.array([0, 1, 2, 3], dtype=np.int32)  # using 4 GPUs: 0-3
-        # gpudevice = 0  # using 1 GPU : 0
+        gpudevice = np.arange(4, dtype=np.int32)  # using 4 GPUs: 0-3
+        #gpudevice = np.array([0, 1], dtype=np.int32)  # using 4 GPUs: 4-7
         self.ui.wao_deviceNumber.setDisabled(True)
         print "-> using GPU", gpudevice
 
@@ -380,6 +399,11 @@ class widgetAOWindow(TemplateBaseClass):
         self.ui.wao_next.setDisabled(False)
         self.ui.wao_unzoom.setDisabled(False)
         self.ui.wao_resetSR.setDisabled(False)
+        try:
+            ps = PyroServer(wao)
+            ps.start()
+        except:
+            print "Warning: Error while starting Pyro server"
 
     def circleCoords(self, ampli, npts, datashape0, datashape1):
         # ampli = self.config.p_geom.pupdiam/2
@@ -731,39 +755,78 @@ class widgetAOWindow(TemplateBaseClass):
 
     def run(self):
         # print "Loop started"
-        # self.c.set_activeDeviceForce(0, 1)
-        # self.stop = False
-        # self.refreshTime = time()
-        # while True:
-        #     self.mainLoop()
-        #     if(self.stop):
-        #         break
-        # self.ui.wao_run.setChecked(False)
-        # print "Loop stopped"
+        '''
+        while True:
+            self.mainLoop()
+            if(self.stop):
+                break
+        '''
         self.mainLoop()
-        if(not self.stop):
-            QTimer.singleShot(0, self.run)  # Update loop
-        else:
-            self.ui.wao_run.setChecked(False)
+        if not self.stop:
+            QTimer.singleShot(0, self.run)
+
+        # print "Loop stopped"
+
+
+class PyroServer(Thread):
+    """
+    Main Geometry Server Thread
+
+    """
+    def __init__(self, obj):
+        Thread.__init__(self)
+        self.setDaemon(1)
+        self.ready = False
+        self.object = obj
+        print "initThread"
+
+    def run(self):
+        print "Starting Pyro Server..."
+        self.locator = Pyro.naming.NameServerLocator()
+        ns = self.locator.getNS()
+        Pyro.core.initServer()
+        daemon = Pyro.core.Daemon()
+        #ns=Pyro.naming.NameServerLocator(host=self.nsip, port=self.port).
+        daemon.useNameServer(ns)  # use current ns
+        self.ready=True
+        try:
+            ns.unregister("waoconfig")
+        except:
+            #ns.deleteGroup(':GS')
+            #ns.createGroup(":GS")
+            pass
+        #print self.object.getVar()
+        daemon.connect(self.object, "waoconfig")
+        print "starting daemon"
+        daemon.requestLoop()
+        print "daemon started"
 
 
 if __name__ == '__main__':
     app = QtGui.QApplication(sys.argv)
     wao = widgetAOWindow()
     wao.show()
+    """
+    locator = Pyro.naming.NameServerLocator()
+    ns = locator.getNS()
+    Pyro.core.initServer()
+    daemon = Pyro.core.Daemon()
+    daemon.useNameServer(ns)  # use current ns
+    daemon.connect(test, ":waoCanapass")
+    daemon.requestLoop()
+    """
 
-    try:
-        daemon = Pyro4.Daemon()                # make a Pyro daemon
-        ns = Pyro4.locateNS()                  # find the name server
-        # register the greeting maker as a Pyro object
-        uri = daemon.register(wao)
-        # register the object with a name in the name server
-        ns.register("example.greeting", uri)
+    """
+    daemon = Pyro4.Daemon()                # make a Pyro daemon
+    ns = Pyro4.locateNS()                  # find the name server
+    uri = daemon.register(wao)   # register the greeting maker as a Pyro object
+    ns.register("example.greeting", uri)   # register the object with a name in the name server
 
         print("Ready.")
         daemon.requestLoop()
     except:
         from warnings import warn
         warn("pyro4 not found", RuntimeWarning)
+    """
     # app.connect(wao.ui._quit,QtCore.SIGNAL("clicked()"),app,QtCore.SLOT("quit()"))
     app.setStyle('cleanlooks')
