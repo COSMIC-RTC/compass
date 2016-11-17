@@ -826,7 +826,6 @@ cdef class Klbas:
         self.kers = None
 
 
-
 #################################################
 # P-Class (parametres) Param_dm
 #################################################
@@ -834,8 +833,14 @@ cdef class Param_dm:
 
     def __cinit__(self, debug = False):
         self._klbas = Klbas()
+        self.influType = <bytes> ("default")
         self.gain = 1.0
-        pass
+
+    def set_influType(self, bytes t):
+        """Set the influence function type for pzt DM
+        :param t: (str) : centroider type
+        """
+        self.influType = t
 
     def set_gain(self, float g):
         """Set the gain to apply to the actuators of the dm

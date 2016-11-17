@@ -14,7 +14,7 @@ from scipy import interpolate
 import copy as copy
 from scipy.sparse import csr_matrix
 import shesha_kl as klfunc
-
+import astropy.io.fits as pfits
 #max_extent signature
 cdef _dm_init(Dms dms, Param_dm p_dms, list p_wfs, Param_geom p_geom, Param_tel p_tel,int *max_extent):
     """ inits a Dms object on the gpu
@@ -150,9 +150,9 @@ cdef _dm_init(Dms dms, Param_dm p_dms, list p_wfs, Param_geom p_geom, Param_tel 
 
 
         dim = long(p_dms._n2 - p_dms._n1 + 1)
-        
+
         make_kl_dm(p_dms,p_wfs,p_geom,p_tel)
-            
+
         ninflu = p_dms.nkl
         influsize = long(p_dms._klbas.ncp)
         _nr = long(p_dms._klbas.nr)
@@ -162,9 +162,9 @@ cdef _dm_init(Dms dms, Param_dm p_dms, list p_wfs, Param_geom p_geom, Param_tel 
         azbas_L = copy.copy(p_dms._klbas.azbas.flatten('F'))
         cr_L = copy.copy(p_dms._klbas.cr.flatten('F'))
         cp_L = copy.copy(p_dms._klbas.cp.flatten('F'))
-        
+
         dms.add_dm(p_dms.type_dm, p_dms.alt, dim, ninflu, influsize,
-                   _nr, _npp, p_dms.push4imat)                           
+                   _nr, _npp, p_dms.push4imat)
         dms.load_kl(p_dms.alt, np.float32(rabas_L), np.float32(azbas_L),
                     np.int32(ord_L), np.float32(cr_L), np.float32(cp_L))
 
@@ -379,7 +379,7 @@ cpdef make_pzt_dm(Param_dm p_dm,Param_geom geom,Param_tel p_tel,irc):
     # filtering actuators outside of a disk radius = rad (see above)
     cdef np.ndarray cubval = cub[:,inbigcirc]
     ntotact = cubval.shape[1]
-    print "ntact =",ntotact
+    #pfits.writeto("cubeval.fits", cubval)
     xpos    = cubval[0,:]
     ypos    = cubval[1,:]
     i1t      = (cubval[0,:]-smallsize/2+0.5-p_dm._n1).astype(np.int32)
@@ -391,6 +391,7 @@ cpdef make_pzt_dm(Param_dm p_dm,Param_geom geom,Param_tel p_tel,irc):
     cdef int i1, j1
     cdef np.ndarray[ndim=2,dtype=np.float32_t] x, y, tmp
     for i in range(ntotact):
+
         i1 = i1t[i]
         x  = np.tile(np.arange(i1,i1+smallsize,dtype=np.float32),(smallsize,1)) # pixel coords in ref frame "dm support"
         x += p_dm._n1                                          # pixel coords in ref frame "pupil support"
@@ -410,17 +411,31 @@ cpdef make_pzt_dm(Param_dm p_dm,Param_geom geom,Param_tel p_tel,irc):
         y[y>2]=2.
         tmp = (1.-x**p1+ccc*np.log(x)*x**p2)*(1.-y**p1+ccc*np.log(y)*y**p2)
         tmp = tmp*(x <= 1.0)*(y <= 1.0)
-        influ[:, :, i] = tmp
+        fabModif=True
+        if(p_dm.influType=="gaussian"):
+            xdg= np.linspace(-1, 1, tmp.shape[0],dtype=np.float32)
+            x = np.tile(xdg, (tmp.shape[0],1))
+            y = x.T
+            sig=0.8
+            gauss = 1/np.cos(np.exp(-(x**2/sig+y**2/sig))**2);
+            gauss-=gauss[gauss.shape[0]/2.].min(); # Force value at zero on array limits
+            gauss[gauss<0.] = 0
+            gauss/=gauss.max(); # Normalize
+            influ[:, :, i] = gauss
+        elif(p_dm.influType=="default"):
+            influ[:, :, i] = tmp
+        else:
+          print "ERROR influtype not recognized (defaut or gaussian)"
+
 
     if(p_dm._puppixoffset is not None):
         xpos +=p_dm._puppixoffset[0]
         ypos +=p_dm._puppixoffset[1]
-
     influ=influ*float(p_dm.unitpervolt/np.max(influ))
 
     p_dm._influ = influ
 
-    print  'number of actuator after filter = ',np.size(inbigcirc)
+    print  'number of actuator after filtering = ',np.size(inbigcirc)
     p_dm._ntotact = np.size(inbigcirc)
     p_dm._xpos = xpos
     p_dm._ypos = ypos
@@ -613,14 +628,14 @@ cpdef make_klbas(Param_dm p_dm, int nkl,float cobs, long dim,funct,float outscl=
     #DOCUMENT make_klbas(nfunc,cobs,nr=,np=,funct=,outscl=)
 
     print(funct)
-    
+
     if(nkl < 13):
         nr = np.long(5.0*np.sqrt(52)) # one point per degree
         npp = np.long(10.0*nr)
     else:
         nr = np.long(5.0*np.sqrt(nkl))
         npp = np.long(10.0*nr)
-        
+
     radp = klfunc.make_radii(cobs,nr)
 
     kers = klfunc.make_kernels(cobs,nr,radp,funct,outscl)
@@ -630,9 +645,9 @@ cpdef make_klbas(Param_dm p_dm, int nkl,float cobs, long dim,funct,float outscl=
     azbas = klfunc.make_azimuth(nord,npp)
 
     ncp,ncmar,px,py,cr,cp,pincx,pincy,pincw,ap = klfunc.set_pctr(dim,nr,npp,nkl,cobs,nord)
-    
+
 #    azbas = np.transpose(azbas)
-#    
+#
 #    new_ordd = np.zeros(ordd.shape[0])
 #    new_azbas = np.zeros((azbas.shape[0],azbas.shape[1]))
 #    for i in range(np.max(ordd)):
@@ -640,10 +655,10 @@ cpdef make_klbas(Param_dm p_dm, int nkl,float cobs, long dim,funct,float outscl=
 #        new_ordd[i] = ordd[i]
 #    if (np.max(ordd)<azbas.shape[1])
 #        new_azbas[:,i+1] = azbas[:,azbas.shape[1]-1]
-        
-        
 
-    
+
+
+
 
     #make klbas
     p_dm._klbas.nr = nr # number of radial points
@@ -659,7 +674,7 @@ cpdef make_klbas(Param_dm p_dm, int nkl,float cobs, long dim,funct,float outscl=
     #p_dm._klbas.azbas = new_azbas #the azimuthal array of the basis
     p_dm._klbas.azbas = np.transpose(azbas) #the azimuthal array of the basis
     p_dm._klbas.kers = kers
-    
+
 
     #pcgeom
     p_dm._klbas.ncp = ncp # dim of grid
@@ -672,10 +687,10 @@ cpdef make_klbas(Param_dm p_dm, int nkl,float cobs, long dim,funct,float outscl=
     p_dm._klbas.pincy = pincy
     p_dm._klbas.pincw = pincw
     p_dm._klbas.ap = ap
-    
 
-    
-        
+
+
+
 
 cpdef make_kl_dm(Param_dm p_dm, list p_wfs,Param_geom p_geom, Param_tel p_tel):
     """Compute the influence function for a Karhunen-Loeve DM
@@ -694,7 +709,7 @@ cpdef make_kl_dm(Param_dm p_dm, list p_wfs,Param_geom p_geom, Param_tel p_tel):
     norms = [np.linalg.norm([w.xpos, w.ypos]) for w in p_wfs]
     cdef long patchDiam = long(p_geom.pupdiam + 2 * np.max(norms) * 4.848e-6 *
                                abs(p_dm.alt) / p_geom.pupdiam)
-                               
+
     print "dimkl = %d" %patchDiam
 
     make_klbas(p_dm,p_dm.nkl,p_tel.cobs,patchDiam,p_dm.kl_type)
@@ -1116,7 +1131,7 @@ cdef class Dms:
             cp: (np.ndarray[ndim=1,dtype=np.float32_t]) :
         """
 
-        
+
         cdef int inddm = self.dms.get_inddm("kl", alt)
         if(inddm < 0):
             err = "unknown error whith load_kl\nDM (kl" + \

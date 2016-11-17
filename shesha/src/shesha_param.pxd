@@ -291,6 +291,8 @@ cdef class Klbas:
 # P-Class (parametres) Param_dm
 #################################################
 cdef class Param_dm:
+  cdef readonly bytes  influType
+  """ type of influence function for pzt dms"""
   cdef readonly bytes  type_dm
   """ type of dm"""
   cdef readonly bytes  type_pattern
