@@ -92,19 +92,31 @@ def params_dictionary(config):
     #type_kk
     # Dms params
     if(config.p_dms is not None):
-        dms_dict = {"ndms":len(config.p_dms),
-            "type_dm":[dm.type_dm for dm in config.p_dms],
-            "dm.alt":[dm.alt for dm in config.p_dms],
-            "coupling":[dm.coupling for dm in config.p_dms],
-            "hyst":[dm.hyst for dm in config.p_dms],
-            "margin":[dm.margin for dm in config.p_dms],
-            "nact":[dm.nact for dm in config.p_dms],
-            "nkl":[dm.nkl for dm in config.p_dms],
-            "kl_type":[dm.kl_type for dm in config.p_dms],
-            "pupoffset":[dm.pupoffset if(dm.pupoffset) else 0 for dm in config.p_dms],
-            "push4imat":[dm.push4imat for dm in config.p_dms],
-            "dm.thresh":[dm.thresh for dm in config.p_dms],
-            "unitpervolt":[dm.unitpervolt for dm in config.p_dms]}
+        if(config.p_dm0.type_dm =="kl"):
+            
+            dms_dict = {"ndms":len(config.p_dms),
+                "type_dm":[dm.type_dm for dm in config.p_dms],
+                "dm.alt":[dm.alt for dm in config.p_dms],
+                "hyst":[dm.hyst for dm in config.p_dms],
+                "margin":[dm.margin for dm in config.p_dms],
+                "nkl":[dm.nkl for dm in config.p_dms],
+                "kl_type":[dm.kl_type for dm in config.p_dms],
+                "pupoffset":[dm.pupoffset if(dm.pupoffset) else 0 for dm in config.p_dms],
+                "push4imat":[dm.push4imat for dm in config.p_dms],
+                "dm.thresh":[dm.thresh for dm in config.p_dms]}
+        else:
+            dms_dict = {"ndms":len(config.p_dms),
+                "type_dm":[dm.type_dm for dm in config.p_dms],
+                "dm.alt":[dm.alt for dm in config.p_dms],
+                "coupling":[dm.coupling for dm in config.p_dms],
+                "hyst":[dm.hyst for dm in config.p_dms],
+                "margin":[dm.margin for dm in config.p_dms],
+                "nact":[dm.nact for dm in config.p_dms],
+                "pupoffset":[dm.pupoffset if(dm.pupoffset) else 0 for dm in config.p_dms],
+                "push4imat":[dm.push4imat for dm in config.p_dms],
+                "dm.thresh":[dm.thresh for dm in config.p_dms],
+                "unitpervolt":[dm.unitpervolt for dm in config.p_dms]}
+            
     else:
         dms_dict = {"ndms":len(config.p_dms), "type_dm":None, "dm.alt":None,
             "coupling":None, "hyst":None, "margin":None, "nact":None, "nkl":None,
