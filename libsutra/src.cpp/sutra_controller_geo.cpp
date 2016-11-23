@@ -300,6 +300,8 @@ sutra_controller_geo::comp_com(){
 			this->d_phi->getData(),1, 0.0f, this->d_com->getData(),1);
 */
   current_context->set_activeDevice(device,1);
+  this->remove_ref();
+
 	// Sparse version
 	carma_gemv(cusparse_handle(),'n',1.0/this->Nphi,this->d_IFsparse,this->d_phi->getData(),0.0,this->d_compdouble->getData());
 	doubletofloat(this->d_compdouble->getData(),this->d_compfloat->getData(),this->nactu(),current_context->get_device(device));

@@ -615,6 +615,8 @@ cdef extern from "sutra_controller.h":
 
         # TODO cublasHandle_t cublas_handle()
 
+        int set_centroids_ref(float *centroids_ref);
+        int get_centroids_ref(float *centroids_ref);
         int set_perturbcom(float * perturb, int N)
         int set_openloop(int open_loop_status)
         void clip_voltage(float min, float max);
@@ -953,6 +955,8 @@ cdef extern from "sutra_rtc.h":
         int do_control(int ncntrl)
         int do_clipping(int ncntrl, float min, float max);
         int apply_control(int ncntrl, sutra_dms * ydm)
+        int set_centroids_ref(int ncntrl, float *centroids_ref);
+        int get_centroids_ref(int ncntrl, float *centroids_ref);
 
 #################################################
 # C-Class sutra_lgs

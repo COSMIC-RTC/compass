@@ -887,7 +887,27 @@ cdef class Rtc:
         print "TODO call imat_geom"
         print "TODO set_imat"
 
-    cpdef doimat(self, int ncontrol, Dms g_dms):
+    cpdef set_centroids_ref(self, int ncontrol, np.ndarray[ndim = 1, dtype = np.float32_t] centroids_ref):
+      """
+      :parameters:
+      ncontrol: (int) : controller index
+      """
+      cdef sutra_controller * control = self.rtc.d_control[ncontrol]
+      control.set_centroids_ref( <float *> centroids_ref.data)
+
+    cpdef get_centroids_ref(self, int ncontrol):
+      """
+      :parameters:
+      ncontrol: (int) : controller index
+      """
+      cdef sutra_controller * control = self.rtc.d_control[ncontrol]
+      cdef int nslope = control.nslope()
+      cdef np.ndarray[ndim = 1, dtype = np.float32_t] centroids_ref
+      centroids_ref = np.zeros(nslope, dtype = np.float32)
+      control.get_centroids_ref( <float *> centroids_ref.data)
+      return centroids_ref
+
+    cpdef doimat(self, int ncontrol, Dms g_dms, int refslp=1):
         """Compute the interaction matrix
 
         :parameters:
@@ -919,6 +939,8 @@ cdef class Rtc:
 
         cdef float * d_centroids
         cdef np.ndarray[ndim = 1, dtype = np.float32_t] h_centroids
+        cdef np.ndarray[ndim = 1, dtype = np.float32_t] h_ref
+        cdef np.ndarray[ndim = 1, dtype = np.float32_t] h_rawslp
         cdef int nactu
 
         cdef int rank
@@ -927,6 +949,24 @@ cdef class Rtc:
         ELSE:
             rank = 0
         nactu = d_imat.getDims(2)
+
+        cdef carma_obj[float] * phase
+        cdef int nslope = control.nslope()
+        if refslp:
+          print "Doing refslp..."
+          for idx_cntr in range(< int > self.rtc.d_centro.size()):
+            wfs = self.rtc.d_centro[idx_cntr].wfs
+            phase = wfs.d_gs.d_phase.d_screen
+            phase.reset()
+            wfs.comp_image()
+          self.rtc.do_centroids(ncontrol)
+          h_ref = np.zeros(nslope, dtype=np.float32)
+          self.rtc.get_centroids_ref(ncontrol,< float *> h_ref.data)
+          h_rawslp = self.getCentroids(ncontrol) + h_ref
+          self.rtc.set_centroids_ref(ncontrol,< float *> h_rawslp.data)
+        else:
+          h_rawslp = np.zeros(nslope, dtype=np.float32)
+
         cc = 0
         it_dm = control.d_dmseen.begin()
         print "Doing imat...%d%%" % cc,
@@ -952,7 +992,7 @@ cdef class Rtc:
 
                 self.rtc.do_centroids(ncontrol, True)
 
-                h_centroids = self.getCentroids(ncontrol)
+                h_centroids = self.getCentroids(ncontrol) - h_rawslp
                 control.d_centroids.host2device(< float *> h_centroids.data)
 
                 device = control.d_centroids.getDevice()
@@ -986,7 +1026,7 @@ cdef class Rtc:
 
                 self.rtc.do_centroids(ncontrol, True)
 
-                h_centroids = self.getCentroids(ncontrol)
+                h_centroids = self.getCentroids(ncontrol) - h_rawslp
                 control.d_centroids.host2device(< float *> h_centroids.data)
 
                 device = control.d_centroids.getDevice()

@@ -68,6 +68,8 @@ int sutra_controller_generic::set_commandlaw(string law) {
 int
 sutra_controller_generic::comp_com() {
 	current_context->set_activeDevice(device,1);
+  this->remove_ref();
+
 	// CMAT*s(k)
 	carma_gemv(cublas_handle(), 'n', nactu(), nslope(), 1.0f,
 			this->d_cmat->getData(), nactu(), this->d_centroids->getData(), 1,

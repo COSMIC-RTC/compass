@@ -411,7 +411,6 @@ cpdef make_pzt_dm(Param_dm p_dm,Param_geom geom,Param_tel p_tel,irc):
         y[y>2]=2.
         tmp = (1.-x**p1+ccc*np.log(x)*x**p2)*(1.-y**p1+ccc*np.log(y)*y**p2)
         tmp = tmp*(x <= 1.0)*(y <= 1.0)
-        fabModif=True
         if(p_dm.influType=="gaussian"):
             xdg= np.linspace(-1, 1, tmp.shape[0],dtype=np.float32)
             x = np.tile(xdg, (tmp.shape[0],1))

@@ -52,6 +52,12 @@ public:
 	int do_control(int ncntrl);
 	int do_clipping(int ncntrl, float min, float max);
 	int apply_control(int ncntrl, sutra_dms *ydm);
+
+	int
+  set_centroids_ref(int ncntrl, float *centroids_ref);
+	int
+  get_centroids_ref(int ncntrl, float *centroids_ref);
+
 };
 
 #endif // _SUTRA_RTC_H_

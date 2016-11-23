@@ -24,6 +24,8 @@ public:
   virtual int
   comp_com()=0;
 
+	int remove_ref();
+
   //It is better to have something like this (+protected d_centroids):
   //virtual int comp_com (carma_obj<float> *new_centroids)=0;
   //it would imply copy, but would be much safer
@@ -39,7 +41,11 @@ public:
     return current_context->get_cublasHandle();
   }
 
-  int
+	int
+  set_centroids_ref(float *centroids_ref);
+	int
+  get_centroids_ref(float *centroids_ref);
+	int
   set_perturbcom(float *perturb, int N);
   int
   set_openloop(int open_loop_status);
@@ -66,7 +72,8 @@ public:
   float c; // Coefficient for linear interpolation on command buffer to allow non-integer delay
   vector<sutra_dm *> d_dmseen;
   carma_obj<float> *d_subsum; // current flux
-  carma_obj<float> *d_centroids; // current centroids
+	carma_obj<float> *d_centroids; // current centroids
+	carma_obj<float> *d_centroids_ref; // ref centroids
   carma_obj<float> *d_com; // current command
   carma_obj<float> *d_perturb; // perturbation command buffer
   carma_obj<float> *d_voltage; // commands sent to mirror

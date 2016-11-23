@@ -321,6 +321,18 @@ int sutra_rtc::do_centroids_geom(int ncntrl) {
   return EXIT_SUCCESS;
 }
 
+int sutra_rtc::set_centroids_ref(int ncntrl, float *centroids_ref) {
+  current_context->set_activeDevice(device,1);
+  this->d_control[ncntrl]->set_centroids_ref(centroids_ref);
+  return EXIT_SUCCESS;
+}
+
+int sutra_rtc::get_centroids_ref(int ncntrl, float *centroids_ref) {
+  current_context->set_activeDevice(device,1);
+  this->d_control[ncntrl]->get_centroids_ref(centroids_ref);
+  return EXIT_SUCCESS;
+}
+
 int sutra_rtc::do_control(int ncntrl) {
   current_context->set_activeDevice(device,1);
 

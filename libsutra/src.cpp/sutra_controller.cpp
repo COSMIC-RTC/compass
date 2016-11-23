@@ -53,8 +53,14 @@ sutra_controller::sutra_controller(carma_context *context,
 
   dims_data1[1]     = nslope / 2;
   this->d_subsum    = new carma_obj<float>(context, dims_data1);
+
   dims_data1[1]     = nslope;
   this->d_centroids = new carma_obj<float>(context, dims_data1);
+  this->d_centroids_ref = new carma_obj<float>(context, dims_data1);
+  this->d_centroids_ref->reset();
+  // cudaMemset(this->d_centroids_ref->getData(), 0.0f,
+  //            nslope * sizeof(float));
+
   dims_data1[1]     = nactu;
   this->d_com       = new carma_obj<float>(context, dims_data1);
   this->d_com1      = new carma_obj<float>(context, dims_data1);
@@ -91,12 +97,31 @@ int sutra_controller::set_openloop(int open_loop_status) {
   return EXIT_SUCCESS;
 }
 
-int sutra_controller::set_perturbcom(float *perturb, int N) {
+int sutra_controller::set_centroids_ref(float *centroids_ref) {
+  this->d_centroids_ref->host2device(centroids_ref);
+  return EXIT_SUCCESS;
+}
 
+int sutra_controller::get_centroids_ref(float *centroids_ref) {
+  this->d_centroids_ref->device2host(centroids_ref);
+  return EXIT_SUCCESS;
+}
+
+int sutra_controller::remove_ref() {
+  carma_axpy<float>(this->current_context->get_cublasHandle(),
+      this->d_centroids->getNbElem(),
+      -1.0f,
+      this->d_centroids_ref->getData(), 1,
+      this->d_centroids->getData(), 1);
+  return EXIT_SUCCESS;
+}
+
+
+int sutra_controller::set_perturbcom(float *perturb, int N) {
   carma_obj<float> *tmp = this->d_perturb;
 
-  if(N>0){
-    long dims_data2[3] = { 2, this->nactu(), N };
+  if(N > 0){
+    long dims_data2[3] = {2, this->nactu(), N};
 
     current_context->set_activeDevice(device, 1);
     this->d_perturb = new carma_obj<float>(current_context, dims_data2);

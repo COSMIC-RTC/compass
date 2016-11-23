@@ -84,7 +84,7 @@ cdef class Rtc:
     cpdef get_IFtt(self,int ncontro)
     cpdef set_pyr_ampl(self, int n, float ampli, list p_wfss, Param_tel p_tel)
     cpdef doimat_geom(self, int ncontro, Dms g_dms, int geom)
-    cpdef doimat(self, int ncontro, Dms g_dms)
+    cpdef doimat(self, int ncontro, Dms g_dms, int refslp=?)
     cpdef sensors_compslopes(self, int ncentro, int nmax=?, float thresh=?)
     cdef add_controller(self, int nactu, float delay, bytes type_control, Dms dms,
                  char ** type_dmseen, np.ndarray[ndim=1, dtype=np.float32_t] alt,
@@ -112,6 +112,8 @@ cdef class Rtc:
     cpdef docontrol_geo_onwfs(self, int ncontro, Dms dms, Sensors wfs, int nwfs)
     cpdef applycontrol(self, int ncontro, Dms dms)
     cpdef get_nfiltered(self, int ncontro, Param_rtc p_rtc)
+    cpdef set_centroids_ref(self, int ncontrol, np.ndarray[ndim = 1, dtype = np.float32_t] centroids_ref)
+    cpdef get_centroids_ref(self, int ncontrol)
 
 IF USE_BRAMA == 1:
         cdef extern from * :
