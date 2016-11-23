@@ -745,9 +745,11 @@ class widgetAOWindow(TemplateBaseClass):
             matricesToLoad = h5u.checkMatricesDataBase(
                 os.environ["SHESHA_ROOT"] + "/data/", self.config, param_dict)
 
-        gpudevice = self.ui.wao_deviceNumber.value()
-        #gpudevice = np.array([6, 7], dtype=np.int32)
-
+        gpudevice = self.ui.wao_deviceNumber.value()  # using GUI value
+        # gpudevice = "ALL"  # using all GPU avalaible
+        # gpudevice = np.array([2, 3], dtype=np.int32)
+        gpudevice = np.arange(4, dtype=np.int32) # using 4 GPUs: 0-3
+        # gpudevice = 0  # using 1 GPU : 0
         self.ui.wao_deviceNumber.setDisabled(True)
         print "-> using GPU", gpudevice
 

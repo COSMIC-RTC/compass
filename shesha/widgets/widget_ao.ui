@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1734</width>
-    <height>1149</height>
+    <width>2141</width>
+    <height>1159</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -499,7 +499,7 @@
            </font>
           </property>
           <property name="currentIndex">
-           <number>2</number>
+           <number>3</number>
           </property>
           <widget class="QWidget" name="tab_2">
            <attribute name="title">
@@ -1679,7 +1679,7 @@
                    <item row="3" column="1">
                     <widget class="QDoubleSpinBox" name="wao_controlGain">
                      <property name="maximum">
-                      <double>1.000000000000000</double>
+                      <double>10.000000000000000</double>
                      </property>
                      <property name="singleStep">
                       <double>0.100000000000000</double>
@@ -1965,8 +1965,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1734</width>
-     <height>19</height>
+     <width>2141</width>
+     <height>33</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
