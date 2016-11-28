@@ -781,7 +781,7 @@ class widgetAOWindow(TemplateBaseClass):
 
         self.rtc = ao.rtc_init(self.tel, self.wfs, self.config.p_wfss, self.dms, self.config.p_dms,
                                self.config.p_geom, self.config.p_rtc, self.config.p_atmos,
-                               self.atm, self.config.p_tel, self.config.p_loop, clean=clean, simul_name=simul_name, load=matricesToLoad)
+                               self.atm, self.config.p_tel, self.config.p_loop, do_refslp=False, clean=clean, simul_name=simul_name, load=matricesToLoad)
 
         if(not clean):
             h5u.validDataBase(

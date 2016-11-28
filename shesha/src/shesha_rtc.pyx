@@ -907,7 +907,27 @@ cdef class Rtc:
       control.get_centroids_ref( <float *> centroids_ref.data)
       return centroids_ref
 
-    cpdef doimat(self, int ncontrol, Dms g_dms, int refslp=1):
+    cpdef do_centroids_ref(self, int ncontrol):
+        cdef carma_obj[float] * phase
+        cdef sutra_wfs * wfs
+        cdef np.ndarray[ndim = 1, dtype = np.float32_t] h_ref
+        cdef np.ndarray[ndim = 1, dtype = np.float32_t] h_rawslp
+        cdef sutra_controller * control = self.rtc.d_control[ncontrol]
+        cdef int nslope = control.nslope()
+
+        print "Doing refslp..."
+        for idx_cntr in range(< int > self.rtc.d_centro.size()):
+          wfs = self.rtc.d_centro[idx_cntr].wfs
+          phase = wfs.d_gs.d_phase.d_screen
+          phase.reset()
+          wfs.comp_image()
+        self.rtc.do_centroids(ncontrol)
+        h_ref = np.zeros(nslope, dtype=np.float32)
+        self.rtc.get_centroids_ref(ncontrol,< float *> h_ref.data)
+        h_rawslp = self.getCentroids(ncontrol) + h_ref
+        self.rtc.set_centroids_ref(ncontrol,< float *> h_rawslp.data)
+
+    cpdef doimat(self, int ncontrol, Dms g_dms):
         """Compute the interaction matrix
 
         :parameters:
@@ -922,11 +942,23 @@ cdef class Rtc:
 
         cdef sutra_controller * control = self.rtc.d_control[ncontrol]
         cdef carma_obj[float] * d_imat = NULL
+        cdef carma_obj[float] * d_imat_ret = NULL
+        cdef long dims[3]
+        cdef int nactu = control.nactu()
+        cdef int nslope = control.nslope()
 
         if(< bytes > control.get_type() == < bytes > "ls"):
             d_imat = dynamic_cast_controller_ls_ptr(control).d_imat
         elif(< bytes > control.get_type() == < bytes > "mv"):
             d_imat = dynamic_cast_controller_mv_ptr(control).d_imat
+        else:
+          # Create a temporary imat to return
+          dims[0]=2
+          dims[1]=nactu
+          dims[2]=nslope
+          d_imat_ret = new carma_obj[float](context, dims)
+          d_imat = d_imat_ret
+          print "WARNING: the controller is NOT a LS or MV, the imat computed will be returned"
 
         cdef int inds1, j, idx_cntr, device
         cdef float tmp_noise
@@ -939,33 +971,14 @@ cdef class Rtc:
 
         cdef float * d_centroids
         cdef np.ndarray[ndim = 1, dtype = np.float32_t] h_centroids
-        cdef np.ndarray[ndim = 1, dtype = np.float32_t] h_ref
-        cdef np.ndarray[ndim = 1, dtype = np.float32_t] h_rawslp
-        cdef int nactu
 
         cdef int rank
         IF USE_MPI:
             mpi.MPI_Comm_rank(mpi.MPI_COMM_WORLD, & rank)
         ELSE:
             rank = 0
-        nactu = d_imat.getDims(2)
 
         cdef carma_obj[float] * phase
-        cdef int nslope = control.nslope()
-        if refslp:
-          print "Doing refslp..."
-          for idx_cntr in range(< int > self.rtc.d_centro.size()):
-            wfs = self.rtc.d_centro[idx_cntr].wfs
-            phase = wfs.d_gs.d_phase.d_screen
-            phase.reset()
-            wfs.comp_image()
-          self.rtc.do_centroids(ncontrol)
-          h_ref = np.zeros(nslope, dtype=np.float32)
-          self.rtc.get_centroids_ref(ncontrol,< float *> h_ref.data)
-          h_rawslp = self.getCentroids(ncontrol) + h_ref
-          self.rtc.set_centroids_ref(ncontrol,< float *> h_rawslp.data)
-        else:
-          h_rawslp = np.zeros(nslope, dtype=np.float32)
 
         cc = 0
         it_dm = control.d_dmseen.begin()
@@ -992,7 +1005,7 @@ cdef class Rtc:
 
                 self.rtc.do_centroids(ncontrol, True)
 
-                h_centroids = self.getCentroids(ncontrol) - h_rawslp
+                h_centroids = self.getCentroids(ncontrol)
                 control.d_centroids.host2device(< float *> h_centroids.data)
 
                 device = control.d_centroids.getDevice()
@@ -1026,7 +1039,7 @@ cdef class Rtc:
 
                 self.rtc.do_centroids(ncontrol, True)
 
-                h_centroids = self.getCentroids(ncontrol) - h_rawslp
+                h_centroids = self.getCentroids(ncontrol)
                 control.d_centroids.host2device(< float *> h_centroids.data)
 
                 device = control.d_centroids.getDevice()
@@ -1049,6 +1062,14 @@ cdef class Rtc:
                 stdout.flush()
             inc(it_dm)
         print "\n"
+
+        cdef np.ndarray[ndim = 2, dtype = np.float32_t] h_imat_ret
+        if d_imat_ret != NULL:
+          h_imat_ret = np.zeros((nactu, nslope), dtype = np.float32)
+          d_imat_ret.device2host( <float *> h_imat_ret.data)
+          del d_imat_ret
+          return h_imat_ret
+
 
 
     cpdef sensors_compslopes(self, int ncentro, int nmax=-1, float thresh=-1):
@@ -1506,6 +1527,7 @@ cdef class Rtc:
         """
         cdef carma_context * context = &carma_context.instance()
         context.set_activeDevice(self.rtc.device, 1)
+
         self.rtc.do_control(ncontrol)
 
     cpdef docontrol_geo(self, int ncontrol, Dms dms, Target target, int ntarget):
@@ -1647,7 +1669,7 @@ cdef class Rtc:
 
 
 def rtc_init(Telescope g_tel, Sensors g_wfs, p_wfs, Dms g_dms, p_dms, Param_geom p_geom, Param_rtc p_rtc,
-            Param_atmos p_atmos, Atmos g_atmos, Param_tel p_tel, Param_loop p_loop,
+            Param_atmos p_atmos, Atmos g_atmos, Param_tel p_tel, Param_loop p_loop, do_refslp=False,
             clean=1, brama=None, Target brama_tar=None, doimat=1, simul_name="", load={}):
     """Initialize all the sutra_rtc objects : centroiders and controllers
 
@@ -1692,7 +1714,6 @@ def rtc_init(Telescope g_tel, Sensors g_wfs, p_wfs, Dms g_dms, p_dms, Param_geom
     """
     IF USE_BRAMA:
         if(brama == 1) :
-            print "TODO brama"
             if brama_tar is None:
                 raise "g_tar not defined"
             g_rtc = Rtc_brama(g_wfs, brama_tar)
@@ -1901,6 +1922,8 @@ def rtc_init(Telescope g_tel, Sensors g_wfs, p_wfs, Dms g_dms, p_dms, Param_geom
                             controller.type_control, g_dms.dms, type_dmseen,
                             < float *> alt.data, controller.ndm.size)
 
+                    if(p_wfs is not None and do_refslp):
+                      g_rtc.do_centroids_ref(i)
 
                     if(controller.type_control == "geo"):
                         indx_pup = np.where(p_geom._spupil.flatten('F'))[0].astype(np.int32)

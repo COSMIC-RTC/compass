@@ -1019,7 +1019,6 @@ int sutra_controller_mv::frame_delay() {
 int sutra_controller_mv::comp_com() {
 
   current_context->set_activeDevice(device,1);
-  this->remove_ref();
 
   //this->frame_delay();
   this->d_com2->copy(this->d_com1, 1, 1);

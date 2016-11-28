@@ -107,8 +107,11 @@ def pyr_analysis(n, mod, N, Dtel, obs, nrebin, l, _pix, Amp, mv, Pangle, p, pup=
 
     """
     if(disp):
+        plt.figure(11)
         fig1, axes1 = plt.subplots(2, 2) # fig and 2 x 2 nparray of axes
+        plt.figure(12)
         fig2, axes2 = plt.subplots(1, 2) # fig and 2 x 2 nparray of axes
+        plt.figure(13)
         fig3, axes3 = plt.subplots(2, 2) # fig and 2 x 2 nparray of axes
 
     pix = (np.pi*_pix)/(3600*180) #Conversion en rad
@@ -195,12 +198,29 @@ def pyr_analysis(n, mod, N, Dtel, obs, nrebin, l, _pix, Amp, mv, Pangle, p, pup=
         PUPIM = np.random.poisson(PUPIM) #Bruit de photons
         PUPIM = PUPIM*1.0 + np.random.normal(0,0.5,(n,n)) #Bruit lecture gaussien e- rms/pix
 
-    IA = PUPIM[int(n/2-D/2-Pangle)+1 : int(n/2+D/2-Pangle)+1 , int(n/2-D/2-Pangle)+1 : int(n/2+D/2-Pangle)+1]
-    IB = PUPIM[int(n/2-D/2+Pangle)+1 : int(n/2+D/2+Pangle)+1 , int(n/2-D/2-Pangle)+1 : int(n/2+D/2-Pangle)+1]
-    IC = PUPIM[int(n/2-D/2-Pangle)+1 : int(n/2+D/2-Pangle)+1 , int(n/2-D/2+Pangle)+1 : int(n/2+D/2+Pangle)+1]
-    ID = PUPIM[int(n/2-D/2+Pangle)+1 : int(n/2+D/2+Pangle)+1 , int(n/2-D/2+Pangle)+1 : int(n/2+D/2+Pangle)+1]
 
-    PUPIM = rebin(PUPIM0, (PUPIM0.shape[0]/nrebin, PUPIM0.shape[1]/nrebin))
+    IA1 = PUPIM[int(n/2-D/2-Pangle)+1 : int(n/2+D/2-Pangle)+1 , int(n/2-D/2-Pangle)+1 : int(n/2+D/2-Pangle)+1]
+    IB1 = PUPIM[int(n/2-D/2+Pangle)+1 : int(n/2+D/2+Pangle)+1 , int(n/2-D/2-Pangle)+1 : int(n/2+D/2-Pangle)+1]
+    IC1 = PUPIM[int(n/2-D/2-Pangle)+1 : int(n/2+D/2-Pangle)+1 , int(n/2-D/2+Pangle)+1 : int(n/2+D/2+Pangle)+1]
+    ID1 = PUPIM[int(n/2-D/2+Pangle)+1 : int(n/2+D/2+Pangle)+1 , int(n/2-D/2+Pangle)+1 : int(n/2+D/2+Pangle)+1]
+
+    # nouvelle version (corrected by Fab)
+    x1 = int(n/2-D/2-Pangle)
+    y1 = x1 + int(D)
+    x2 = n - y1
+    y2 = n - x1
+    IA = PUPIM[x1:y1, x1:y1]
+    IB = PUPIM[x2:y2, x1:y1]
+    IC = PUPIM[x1:y1, x2:y2]
+    ID = PUPIM[x2:y2, x2:y2]
+    """
+    IA = PUPIM_compass[int(n/2-D/2-Pangle)+1 : int(n/2+D/2-Pangle)+1 , int(n/2-D/2-Pangle)+1 : int(n/2+D/2-Pangle)+1]
+    IB = PUPIM_compass[int(n/2-D/2+Pangle)+1 : int(n/2+D/2+Pangle)+1 , int(n/2-D/2-Pangle)+1 : int(n/2+D/2-Pangle)+1]
+    IC = PUPIM_compass[int(n/2-D/2-Pangle)+1 : int(n/2+D/2-Pangle)+1 , int(n/2-D/2+Pangle)+1 : int(n/2+D/2+Pangle)+1]
+    ID = PUPIM_compass[int(n/2-D/2+Pangle)+1 : int(n/2+D/2+Pangle)+1 , int(n/2-D/2+Pangle)+1 : int(n/2+D/2+Pangle)+1]
+    """
+
+    PUPIM_LR = rebin(PUPIM0, (PUPIM0.shape[0]/nrebin, PUPIM0.shape[1]/nrebin))
 
 
     Itot = IA + IB + IC + ID
@@ -213,13 +233,14 @@ def pyr_analysis(n, mod, N, Dtel, obs, nrebin, l, _pix, Amp, mv, Pangle, p, pup=
     if(disp):
         axes2[0].matshow(PUPIM0, cmap="gist_earth")
         axes2[0].set_title("PYRAMID image High Resolution")
-        axes2[1].matshow(PUPIM, cmap="gist_earth")
+        axes2[1].matshow(PUPIM_LR, cmap="gist_earth")
         axes2[1].set_title("PYRAMID image Low Resolution")
 
         axes3[0, 0].matshow(dwx, cmap="gist_earth")
         axes3[0, 1].matshow(dwy, cmap="gist_earth")
         axes3[0, 0].set_title("GRAD (x) High Resolution")
         axes3[0, 1].set_title("GRAD (y) High Resolution")
+
         #axes3[1, 0].matshow(dwx_lr, cmap="gist_earth")
         #axes3[1, 1].matshow(dwy_lr, cmap="gist_earth")
         axes3[1, 0].set_title("GRAD (x) Low Resolution")
@@ -244,7 +265,7 @@ def pyr_analysis(n, mod, N, Dtel, obs, nrebin, l, _pix, Amp, mv, Pangle, p, pup=
     grady /= z  # radians d'angle  (note: z=Dtel/D)
     grady /= l/Dtel   #   unites lam/D
     """
-    return PSF, PUPIM0, PUPIM, dwx, dwy, IA, IB, IC, ID, ppup, pyr
+    return PUPIM0, PUPIM, dwx, dwy, IA, IB, IC, ID, IA1, IB1, IC1, ID1
 
 
 def compPyrCOMPASS(wao):
@@ -260,7 +281,7 @@ def compPyrCOMPASS(wao):
         N = wao.config.p_wfs0.pyr_npts
         Dtel = wao.config.p_tel.diam
         obs = wao.config.p_tel.cobs
-        l = 500e-9  # wao.config.p_wfs0.Lambda*1e-6
+        l = wao.config.p_wfs0.Lambda*1e-6
         _pix = wao.config.p_wfs0._qpixsize
         Amp = 1.
         mv = 10.
@@ -270,8 +291,8 @@ def compPyrCOMPASS(wao):
         p[(n-ncompass)/2:(n+ncompass)/2, (n-ncompass)/2:(n+ncompass)/2] = phasehrCOMPASS*2*np.pi/l*1e-6
         pup[(n-ncompass)/2:(n+ncompass)/2, (n-ncompass)/2:(n+ncompass)/2] = pupCOMPASS
 
-        PSF, PUPIM_HR, PUPIM_LR, dwx, dwy, IA, IB, IC, ID, ppup, pyr = pyr_analysis(n,mod,N,Dtel,obs, nrebin, l,_pix,Amp, mv, Pangle, p, pup=pup)
-        return PUPIM_HR,  PUPIM_LR
+        PUPIM_HR, PUPIM_LR, dwx, dwy, IA, IB, IC, ID, IA1, IB1, IC1, ID1 = pyr_analysis(n,mod,N,Dtel,obs, nrebin, l,_pix,Amp, mv, Pangle, p, pup=pup)
+        return PUPIM_HR, PUPIM_LR, dwx, dwy, IA, IB, IC, ID, IA1, IB1, IC1, ID1
 """
 from iterkolmo import *
 n=1024

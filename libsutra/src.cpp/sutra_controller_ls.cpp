@@ -244,7 +244,6 @@ int sutra_controller_ls::frame_delay() {
 int sutra_controller_ls::comp_com() {
 
   current_context->set_activeDevice(device,1);
-  this->remove_ref();
 
   //this->frame_delay();
   int nstreams = streams->get_nbStreams();

@@ -50,6 +50,11 @@ class widgetAOWindow(TemplateBaseClass, Pyro.core.ObjBase):
         except:
             print "Could not initialize Pyro..."
 
+
+        self.SRLE = []
+        self.SRSE = []
+        self.numiter = []
+
         self.ui = WindowTemplate()
         self.ui.setupUi(self)
 
@@ -121,9 +126,11 @@ class widgetAOWindow(TemplateBaseClass, Pyro.core.ObjBase):
         self.ui.wao_PSFlogscale.clicked.connect(self.updateDisplay)
         self.ui.wao_atmosphere.setCheckable(True)
         self.ui.wao_atmosphere.clicked[bool].connect(self.set_atmos)
-
+        self.dispStatsInTerminal = False
+        self.ui.wao_clearSR.clicked.connect(self.clearSR)
         self.ui.wao_Display.setCheckState(True)
         self.ui.wao_Display.stateChanged.connect(self.updateDisplay)
+        self.ui.StatsInTerminal.stateChanged.connect(self.updateStatsInTerminal)
 
         self.SRcircleAtmos = {}
         self.SRcircleWFS = {}
@@ -149,6 +156,12 @@ class widgetAOWindow(TemplateBaseClass, Pyro.core.ObjBase):
         return cf.returnConfigfromWao(self, filepath=path)
         #print self.config.p_wfs0.fssize
         #return self.config.p_wfs0.fssize
+
+    def updateStatsInTerminal(self):
+        if(self.ui.StatsInTerminal.isChecked()):
+            self.dispStatsInTerminal = True
+        else:
+            self.dispStatsInTerminal = False
 
     def updateSRSE(self, SRSE):
         self.ui.wao_strehlSE.setText(SRSE)
@@ -337,7 +350,7 @@ class widgetAOWindow(TemplateBaseClass, Pyro.core.ObjBase):
 
         self.rtc = ao.rtc_init(self.tel, self.wfs, self.config.p_wfss, self.dms, self.config.p_dms,
                                self.config.p_geom, self.config.p_rtc, self.config.p_atmos,
-                               self.atm, self.config.p_tel, self.config.p_loop, clean=1, simul_name="",
+                               self.atm, self.config.p_tel, self.config.p_loop, do_refslp=False, clean=1, simul_name="",
                                load={}, brama=self.brama_flag, brama_tar=self.tar)
         self.rtc.set_openloop(0, 1)
 
@@ -461,6 +474,27 @@ class widgetAOWindow(TemplateBaseClass, Pyro.core.ObjBase):
         if(not widToShow.isVisible()):
             widToShow.show()
             widToHide.hide()
+
+    def clearSR(self):
+        self.SRLE = [self.SRLE[-1]]
+        self.SRSE = [self.SRSE[-1]]
+        self.numiter = [self.numiter[-1]]
+
+    def updateSRDisplay(self, SRLE, SRSE, numiter):
+        self.SRLE.append(SRLE)
+        self.SRSE.append(SRSE)
+        self.numiter.append(numiter)
+        if(len(self.SRSE) > 100):  # Clipping last 100 points...
+            self.SRLE = self.SRLE[-100:]
+            self.SRSE = self.SRSE[-100:]
+            self.numiter = self.numiter[-100:]
+        self.ui.wao_SRPlotWindow.canvas.axes.clear()
+        self.ui.wao_SRPlotWindow.canvas.axes.yaxis.set_label("SR")
+        self.ui.wao_SRPlotWindow.canvas.axes.xaxis.set_label("num iter")
+        self.ui.wao_SRPlotWindow.canvas.axes.plot(self.numiter, self.SRSE, linestyle="--", color="red", marker="o", label="SR SE")
+        self.ui.wao_SRPlotWindow.canvas.axes.plot(self.numiter, self.SRLE, linestyle="--", color="blue", marker="o", label="SR LE")
+        #self.ui.wao_SRPlotWindow.canvas.axes.grid()
+        self.ui.wao_SRPlotWindow.canvas.draw()
 
     def updateDisplay(self):
         if (not self.loaded) and (self.ui.wao_Display.isChecked()):
@@ -739,10 +773,10 @@ class widgetAOWindow(TemplateBaseClass, Pyro.core.ObjBase):
                     self.ui.wao_strehlSE.setText(signal_se)
                     self.ui.wao_strehlLE.setText(signal_le)
                     self.ui.wao_currentFreq.setValue(1 / loopTime)
-
-                    self.printInPlace("iter #%d SR: (L.E, S.E.)= %s, %srunning at %4.1fHz (real %4.1fHz)" % (
-                        self.iter, signal_le, signal_se, refreshFreq, currentFreq))
+                    if(self.dispStatsInTerminal):
+                        self.printInPlace("iter #%d SR: (L.E, S.E.)= %s, %srunning at %4.1fHz (real %4.1fHz)" % (self.iter, signal_le, signal_se, refreshFreq, currentFreq))
                     self.refreshTime = time()
+                    self.updateSRDisplay(SR[1], SR[0], self.iter)
                 self.iter += 1
             finally:
                 self.loopLock.release()

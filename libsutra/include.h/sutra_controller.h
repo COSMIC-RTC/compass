@@ -24,8 +24,6 @@ public:
   virtual int
   comp_com()=0;
 
-	int remove_ref();
-
   //It is better to have something like this (+protected d_centroids):
   //virtual int comp_com (carma_obj<float> *new_centroids)=0;
   //it would imply copy, but would be much safer

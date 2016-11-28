@@ -53,10 +53,9 @@ public:
 	int do_clipping(int ncntrl, float min, float max);
 	int apply_control(int ncntrl, sutra_dms *ydm);
 
-	int
-  set_centroids_ref(int ncntrl, float *centroids_ref);
-	int
-  get_centroids_ref(int ncntrl, float *centroids_ref);
+	int remove_ref(int ncntrl);
+	int set_centroids_ref(int ncntrl, float *centroids_ref);
+	int get_centroids_ref(int ncntrl, float *centroids_ref);
 
 };
 

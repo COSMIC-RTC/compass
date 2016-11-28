@@ -341,7 +341,6 @@ def target_init(naga_context ctxt, Telescope telescope, Param_target p_target, P
             ceiled_apodizer[np.where(ceiled_apodizer > 1)] = 1
             IF USE_BRAMA:
                 if(brama == 1) :
-                    print "TODO brama"
                     target = Target_brama(ctxt, telescope, p_target.ntargets, p_target.xpos, p_target.ypos,
                                 p_target.Lambda, p_target.mag, p_target.zerop, sizes, Npts)
                 else:
@@ -354,7 +353,6 @@ def target_init(naga_context ctxt, Telescope telescope, Param_target p_target, P
             Npts = np.sum(ceiled_pupil)
             IF USE_BRAMA:
                 if(brama == 1) :
-                    print "TODO brama"
                     target = Target_brama(ctxt, telescope, p_target.ntargets, p_target.xpos, p_target.ypos,
                                    p_target.Lambda, p_target.mag, p_target.zerop, sizes, Npts)
                 else:

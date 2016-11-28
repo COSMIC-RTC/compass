@@ -7,11 +7,11 @@ Created on Tue Jun 24 00:27:01 2014
 """
 from PyQt4 import QtGui
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
- 
+
 from matplotlib.figure import Figure
- 
+
 class MplCanvas(FigureCanvas):
- 
+
     def __init__(self):
         self.fig = Figure(facecolor='white')
         self.axes = self.fig.add_subplot(111)
@@ -20,10 +20,10 @@ class MplCanvas(FigureCanvas):
         FigureCanvas.__init__(self, self.fig)
         FigureCanvas.setSizePolicy(self, QtGui.QSizePolicy.Expanding,QtGui.QSizePolicy.Expanding)
         FigureCanvas.updateGeometry(self)
- 
- 
+
+
 class MatplotlibWidget(QtGui.QWidget):
- 
+
     def __init__(self, parent = None):
         QtGui.QWidget.__init__(self, parent)
         self.canvas = MplCanvas()
@@ -32,40 +32,41 @@ class MatplotlibWidget(QtGui.QWidget):
         self.setLayout(self.vbl)
 """
 
-       
+
 #!/usr/bin/python
 import sys
 import platform
 from PyQt4 import QtCore, QtGui
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
- 
-from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas 
+
+from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt4agg import NavigationToolbar2QT as Navigationtoolbar
 from matplotlib.figure import Figure
 import matplotlib.gridspec as gridspec
 import matplotlib
 #matplotlib.use('Qt4Agg')
 #matplotlib.rcParams['backend.qt4']='PySide'
- 
+#matplotlib.style.use('ggplot')
+matplotlib.style.use('seaborn-muted')
 #Embeddable matplotlib figure/canvas
-class MplCanvas(FigureCanvas): 
+class MplCanvas(FigureCanvas):
     def __init__(self):
         self.fig = Figure(frameon=True)
         self.gs1 = gridspec.GridSpec(1, 1)
-        self.axes = self.fig.add_subplot(self.gs1[0])
- 
+        self.axes = self.fig.add_subplot(self.gs1[0], aspect="auto")
+
         FigureCanvas.__init__(self, self.fig)
         FigureCanvas.setSizePolicy(self, QtGui.QSizePolicy.Expanding,QtGui.QSizePolicy.Expanding)
         FigureCanvas.updateGeometry(self)
- 
+
 #creates embeddable matplotlib figure/canvas with toolbar
 class MatplotlibWidget(QtGui.QWidget):
- 
+
     def __init__(self, parent = None):
         QtGui.QWidget.__init__(self, parent)
         self.create_framentoolbar()
- 
+
     def create_framentoolbar(self):
         self.frame = QWidget()
         self.canvas = MplCanvas()
@@ -74,5 +75,4 @@ class MatplotlibWidget(QtGui.QWidget):
         self.vbl = QtGui.QVBoxLayout()
         self.vbl.addWidget(self.canvas)
         self.vbl.addWidget(self.mpltoolbar)
-        self.setLayout(self.vbl)        
-        
+        self.setLayout(self.vbl)

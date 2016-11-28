@@ -107,16 +107,6 @@ int sutra_controller::get_centroids_ref(float *centroids_ref) {
   return EXIT_SUCCESS;
 }
 
-int sutra_controller::remove_ref() {
-  carma_axpy<float>(this->current_context->get_cublasHandle(),
-      this->d_centroids->getNbElem(),
-      -1.0f,
-      this->d_centroids_ref->getData(), 1,
-      this->d_centroids->getData(), 1);
-  return EXIT_SUCCESS;
-}
-
-
 int sutra_controller::set_perturbcom(float *perturb, int N) {
   carma_obj<float> *tmp = this->d_perturb;
 

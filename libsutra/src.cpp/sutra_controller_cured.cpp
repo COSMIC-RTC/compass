@@ -57,7 +57,6 @@ int sutra_controller_cured::set_gain(float gain) {
 
 int sutra_controller_cured::comp_com() {
   current_context->set_activeDevice(device,1);
-  this->remove_ref();
 
   //this->frame_delay();
   h_centroids->cpy_obj(this->d_centroids, cudaMemcpyDeviceToHost);

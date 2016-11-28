@@ -262,6 +262,15 @@ int sutra_rtc::do_imat_geom(int ncntrl, sutra_dms *ydm,
   return EXIT_SUCCESS;
 }
 
+int sutra_rtc::remove_ref(int ncntrl) {
+  carma_axpy<float>(this->current_context->get_cublasHandle(),
+      this->d_control[ncntrl]->d_centroids->getNbElem(),
+      -1.0f,
+      this->d_control[ncntrl]->d_centroids_ref->getData(), 1,
+      this->d_control[ncntrl]->d_centroids->getData(), 1);
+  return EXIT_SUCCESS;
+}
+
 int sutra_rtc::do_centroids() {
   current_context->set_activeDevice(device,1);
   for (size_t idx_cntr = 0; idx_cntr < (this->d_centro).size(); idx_cntr++) {
@@ -285,6 +294,7 @@ int sutra_rtc::do_centroids(int ncntrl, bool noise) {
 
     indssp += this->d_centro[idx_cntr]->wfs->nvalid_tot;
   }
+  remove_ref(ncntrl);
 
   return EXIT_SUCCESS;
 }
