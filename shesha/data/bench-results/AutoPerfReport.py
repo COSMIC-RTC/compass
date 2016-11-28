@@ -84,7 +84,16 @@ def depouillePerf(filename,svnversion=None,mode="profile"):
             ccc+=1
 
         pos.append(cc+width/2.)
-        lab.append("%s + %s\n %s "%(ce,co,df.loc[indx,"simulname"]))
+        infos = df.loc[indx,"simulname"].split('_')
+        pyr = df.loc[indx,"simulname"].split('pyr')
+        if(len(pyr) > 1):
+            ssp = pyr[1]
+            wfs = 'pyramid'
+        else:
+            ssp = infos[2]
+            wfs = 'sh '+infos[3]
+
+        lab.append("%s %s \n %s \n %s ssp "%(infos[0],infos[1],wfs,ssp))
         ind+=1
         cc+=1./len(simulnames)
 
