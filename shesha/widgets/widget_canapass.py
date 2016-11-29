@@ -40,7 +40,9 @@ gdb --args python -i widget_canapass.py
 
 """
 
-#class widgetAOWindow(TemplateBaseClass):
+# class widgetAOWindow(TemplateBaseClass):
+
+
 class widgetAOWindow(TemplateBaseClass, Pyro.core.ObjBase):
 
     def __init__(self):
@@ -49,7 +51,6 @@ class widgetAOWindow(TemplateBaseClass, Pyro.core.ObjBase):
             Pyro.core.ObjBase.__init__(self)
         except:
             print "Could not initialize Pyro..."
-
 
         self.SRLE = []
         self.SRSE = []
@@ -130,7 +131,8 @@ class widgetAOWindow(TemplateBaseClass, Pyro.core.ObjBase):
         self.ui.wao_clearSR.clicked.connect(self.clearSR)
         self.ui.wao_Display.setCheckState(True)
         self.ui.wao_Display.stateChanged.connect(self.updateDisplay)
-        self.ui.StatsInTerminal.stateChanged.connect(self.updateStatsInTerminal)
+        self.ui.StatsInTerminal.stateChanged.connect(
+            self.updateStatsInTerminal)
 
         self.SRcircleAtmos = {}
         self.SRcircleWFS = {}
@@ -149,13 +151,14 @@ class widgetAOWindow(TemplateBaseClass, Pyro.core.ObjBase):
         # self.InitConfig()
 
     def returnkl2V(self):
-        KL2V = ao.compute_KL2V(wao.config.p_controllers[0], wao.dms,wao.config.p_dms,wao.config.p_geom,wao.config.p_atmos,wao.config.p_tel)
+        KL2V = ao.compute_KL2V(wao.config.p_controllers[
+                               0], wao.dms, wao.config.p_dms, wao.config.p_geom, wao.config.p_atmos, wao.config.p_tel)
         return KL2V
 
     def getConfig(self, path):
         return cf.returnConfigfromWao(self, filepath=path)
-        #print self.config.p_wfs0.fssize
-        #return self.config.p_wfs0.fssize
+        # print self.config.p_wfs0.fssize
+        # return self.config.p_wfs0.fssize
 
     def updateStatsInTerminal(self):
         if(self.ui.StatsInTerminal.isChecked()):
@@ -319,10 +322,12 @@ class widgetAOWindow(TemplateBaseClass, Pyro.core.ObjBase):
             self.p1.removeItem(self.SRcircleTarget[i])
 
         gpudevice = self.ui.wao_deviceNumber.value()  # using GUI value
+        gpudevice = self.config.p_loop.devices
         # gpudevice = "ALL"  # using all GPU avalaible
-        gpudevice = np.arange(4, dtype=np.int32)  # using 4 GPUs: 0-3
-        #gpudevice = np.array([0, 1], dtype=np.int32)  # using 4 GPUs: 4-7
+        # gpudevice = np.arange(4, dtype=np.int32)  # using 4 GPUs: 0-3
+        # gpudevice = np.array([0, 1], dtype=np.int32)  # using 4 GPUs: 4-7
         self.ui.wao_deviceNumber.setDisabled(True)
+
         print "-> using GPU", gpudevice
 
         if not self.c:
@@ -491,9 +496,11 @@ class widgetAOWindow(TemplateBaseClass, Pyro.core.ObjBase):
         self.ui.wao_SRPlotWindow.canvas.axes.clear()
         self.ui.wao_SRPlotWindow.canvas.axes.yaxis.set_label("SR")
         self.ui.wao_SRPlotWindow.canvas.axes.xaxis.set_label("num iter")
-        self.ui.wao_SRPlotWindow.canvas.axes.plot(self.numiter, self.SRSE, linestyle="--", color="red", marker="o", label="SR SE")
-        self.ui.wao_SRPlotWindow.canvas.axes.plot(self.numiter, self.SRLE, linestyle="--", color="blue", marker="o", label="SR LE")
-        #self.ui.wao_SRPlotWindow.canvas.axes.grid()
+        self.ui.wao_SRPlotWindow.canvas.axes.plot(
+            self.numiter, self.SRSE, linestyle="--", color="red", marker="o", label="SR SE")
+        self.ui.wao_SRPlotWindow.canvas.axes.plot(
+            self.numiter, self.SRLE, linestyle="--", color="blue", marker="o", label="SR LE")
+        # self.ui.wao_SRPlotWindow.canvas.axes.grid()
         self.ui.wao_SRPlotWindow.canvas.draw()
 
     def updateDisplay(self):
@@ -632,7 +639,8 @@ class widgetAOWindow(TemplateBaseClass, Pyro.core.ObjBase):
                             self.numberSelected, "se")
                         if(self.ui.wao_PSFlogscale.isChecked()):
                             if np.any(data <= 0):
-                                print("\nzero founds, log display disabled\n", RuntimeWarning)
+                                print(
+                                    "\nzero founds, log display disabled\n", RuntimeWarning)
                                 self.ui.wao_PSFlogscale.setCheckState(False)
                             else:
                                 data = np.log10(data)
@@ -774,7 +782,8 @@ class widgetAOWindow(TemplateBaseClass, Pyro.core.ObjBase):
                     self.ui.wao_strehlLE.setText(signal_le)
                     self.ui.wao_currentFreq.setValue(1 / loopTime)
                     if(self.dispStatsInTerminal):
-                        self.printInPlace("iter #%d SR: (L.E, S.E.)= %s, %srunning at %4.1fHz (real %4.1fHz)" % (self.iter, signal_le, signal_se, refreshFreq, currentFreq))
+                        self.printInPlace("iter #%d SR: (L.E, S.E.)= %s, %srunning at %4.1fHz (real %4.1fHz)" % (
+                            self.iter, signal_le, signal_se, refreshFreq, currentFreq))
                     self.refreshTime = time()
                     self.updateSRDisplay(SR[1], SR[0], self.iter)
                 self.iter += 1
@@ -807,6 +816,7 @@ class PyroServer(Thread):
     Main Geometry Server Thread
 
     """
+
     def __init__(self, obj):
         Thread.__init__(self)
         self.setDaemon(1)
@@ -820,16 +830,16 @@ class PyroServer(Thread):
         ns = self.locator.getNS()
         Pyro.core.initServer()
         daemon = Pyro.core.Daemon()
-        #ns=Pyro.naming.NameServerLocator(host=self.nsip, port=self.port).
+        # ns=Pyro.naming.NameServerLocator(host=self.nsip, port=self.port).
         daemon.useNameServer(ns)  # use current ns
-        self.ready=True
+        self.ready = True
         try:
             ns.unregister("waoconfig")
         except:
-            #ns.deleteGroup(':GS')
-            #ns.createGroup(":GS")
+            # ns.deleteGroup(':GS')
+            # ns.createGroup(":GS")
             pass
-        #print self.object.getVar()
+        # print self.object.getVar()
         daemon.connect(self.object, "waoconfig")
         print "starting daemon"
         daemon.requestLoop()

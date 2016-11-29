@@ -1,15 +1,16 @@
 
-import cProfile
-import pstats as ps
+# import cProfile
+# import pstats as ps
 
 import sys
 import os
-import numpy as np
+# import numpy as np
 import naga as ch
 import shesha as ao
 import time
-import matplotlib.pyplot as pl
+import matplotlib.pyplot as plt
 import hdf5_utils as h5u
+plt.ion()
 
 print "TEST SHESHA\n closed loop: call loop(int niter)"
 
@@ -46,19 +47,21 @@ if(hasattr(config, "simul_name")):
 else:
     simul_name = ""
 
+clean = 1
 matricesToLoad = {}
-if(simul_name == ""):
-    clean = 1
-else:
+if(simul_name != ""):
     clean = 0
     param_dict = h5u.params_dictionary(config)
     matricesToLoad = h5u.checkMatricesDataBase(
         os.environ["SHESHA_ROOT"] + "/data/", config, param_dict)
+
 # initialisation:
+
 #   context
-c=ch.naga_context(0)
-#c=ch.naga_context(devices=np.array([0,1], dtype=np.int32))
-#c.set_activeDevice(0) #useful only if you use ch.naga_context()
+# c = ch.naga_context(0)
+# c = ch.naga_context(devices=np.array([0,1], dtype=np.int32))
+# c.set_activeDevice(0) #useful only if you use ch.naga_context()
+c = ch.naga_context(devices=config.p_loop.devices)
 
 #    wfs
 print "->wfs"

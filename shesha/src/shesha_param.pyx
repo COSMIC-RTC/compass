@@ -36,6 +36,22 @@ RASC = 180.*3600. / np.pi
 # P-Class (parametres) Param_loop
 #################################################
 cdef class Param_loop:
+    def __cinit__(self):
+        self.niter = 0
+        self.ittime = 0
+        self.devices = np.zeros(1, dtype=np.int32)
+
+    def set_devices(self, devices):
+        """Set the list of GPU devices used
+
+        :parameters:
+            devices: (np.ndarray[ndim=1, dtype=np.int32_t]) : list of GPU devices
+        """
+        if type(devices) is list:
+            self.devices = np.asarray(devices, dtype=np.int32)
+        else:
+            self.devices = devices
+
     def set_niter(self, long n):
         """Set the number of iteration
 
@@ -43,7 +59,6 @@ cdef class Param_loop:
             n: (long) : number of iteration
         """
         self.niter = n
-
 
     def set_ittime(self, float t):
         """Set iteration time

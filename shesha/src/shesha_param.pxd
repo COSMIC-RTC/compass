@@ -9,6 +9,8 @@ cpdef bytes shesha_savepath
 # P-Class (parametres) Param_loop
 #################################################
 cdef class Param_loop:
+    cdef readonly np.ndarray devices
+    """ list of GPU devices """
     cdef readonly long niter
     """ number of iterations"""
     cdef readonly float ittime
@@ -327,7 +329,7 @@ cdef class Param_dm:
   cdef readonly float   margin_in
   """inside margin for actuator select"""
   cdef readonly float   gain
-  """gain to apply to the actuator of the dm""" 
+  """gain to apply to the actuator of the dm"""
 
   cdef readonly np.ndarray   pupoffset
   """(2)"""

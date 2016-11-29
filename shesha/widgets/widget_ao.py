@@ -746,9 +746,11 @@ class widgetAOWindow(TemplateBaseClass):
                 os.environ["SHESHA_ROOT"] + "/data/", self.config, param_dict)
 
         gpudevice = self.ui.wao_deviceNumber.value()  # using GUI value
+        gpudevice = self.config.p_loop.devices
+
         # gpudevice = "ALL"  # using all GPU avalaible
         # gpudevice = np.array([2, 3], dtype=np.int32)
-        gpudevice = np.arange(4, dtype=np.int32) # using 4 GPUs: 0-3
+        # gpudevice = np.arange(4, dtype=np.int32) # using 4 GPUs: 0-3
         # gpudevice = 0  # using 1 GPU : 0
         self.ui.wao_deviceNumber.setDisabled(True)
         print "-> using GPU", gpudevice
