@@ -92,30 +92,21 @@ def params_dictionary(config):
     #type_kk
     # Dms params
     if(config.p_dms is not None):
-        if(config.p_dm0.type_dm =="kl"):
             
-            dms_dict = {"ndms":len(config.p_dms),
-                "type_dm":[dm.type_dm for dm in config.p_dms],
-                "dm.alt":[dm.alt for dm in config.p_dms],
-                "hyst":[dm.hyst for dm in config.p_dms],
-                "margin":[dm.margin for dm in config.p_dms],
-                "nkl":[dm.nkl for dm in config.p_dms],
-                "kl_type":[dm.kl_type for dm in config.p_dms],
-                "pupoffset":[dm.pupoffset if(dm.pupoffset) else 0 for dm in config.p_dms],
-                "push4imat":[dm.push4imat for dm in config.p_dms],
-                "dm.thresh":[dm.thresh for dm in config.p_dms]}
-        else:
-            dms_dict = {"ndms":len(config.p_dms),
-                "type_dm":[dm.type_dm for dm in config.p_dms],
-                "dm.alt":[dm.alt for dm in config.p_dms],
-                "coupling":[dm.coupling for dm in config.p_dms],
-                "hyst":[dm.hyst for dm in config.p_dms],
-                "margin":[dm.margin for dm in config.p_dms],
-                "nact":[dm.nact for dm in config.p_dms],
-                "pupoffset":[dm.pupoffset if(dm.pupoffset) else 0 for dm in config.p_dms],
-                "push4imat":[dm.push4imat for dm in config.p_dms],
-                "dm.thresh":[dm.thresh for dm in config.p_dms],
-                "unitpervolt":[dm.unitpervolt for dm in config.p_dms]}
+        dms_dict = {"ndms":len(config.p_dms),
+            "type_dm":[dm.type_dm for dm in config.p_dms],
+            "dm.alt":[dm.alt for dm in config.p_dms],
+            "coupling":[dm.coupling if(dm.coupling) else 0 for dm in config.p_dms],
+            "hyst":[dm.hyst for dm in config.p_dms],
+            "margin":[dm.margin for dm in config.p_dms],
+            "nkl":[dm.nkl if(dm.nkl) else 0 for dm in config.p_dms],
+            "kl_type":[dm.kl_type if(dm.kl_type) else "" for dm in config.p_dms],
+            "pupoffset":[dm.pupoffset if(dm.pupoffset) else 0 for dm in config.p_dms],
+            "nact":[dm.nact if(dm.nact) else 0 for dm in config.p_dms],
+            "push4imat":[dm.push4imat for dm in config.p_dms],
+            "dm.thresh":[dm.thresh for dm in config.p_dms],
+            "unitpervolt":[dm.unitpervolt if(dm.unitpervolt) else 0 for dm in config.p_dms]}
+
             
     else:
         dms_dict = {"ndms":len(config.p_dms), "type_dm":None, "dm.alt":None,
@@ -439,24 +430,15 @@ def checkControlParams(savepath, config, pdict, matricesToLoad):
         matricesToLoad : (dictionary) :  matrices that will be load and their path
     """
     dataBase = pandas.read_hdf(savepath + "matricesDataBase.h5", "imat")
-    if(config.p_dm0.type_dm =="kl"):
-        param2test = ["tel_diam", "t_spiders", "spiders_type", "pupangle", "referr", "std_piston",
-                      "std_tt", "type_ap", "nbrmissing", "cobs", "pupdiam", "nwfs", "type_wfs",
-                      "nxsub", "npix", "pixsize", "fracsub", "wfs.xpos", "wfs.ypos", "wfs.Lambda",
-                      "dms_seen", "fssize", "fstop", "pyr_ampl", "pyr_loc", "pyr_npts", "pyr_pup_sep",
-                      "pyrtype", "ndms", "type_dm", "dm.alt", "hyst", "margin",
-                      "nkl","kl_type", "push4imat", "dm.thresh","ncentroiders", "type_centro",
-                      "nmax", "centro.nwfs", "sizex", "sizey", "centroider.thresh", "type_fct",
-                      "weights", "width"]
-    else:
-        param2test = ["tel_diam", "t_spiders", "spiders_type", "pupangle", "referr", "std_piston",
-                      "std_tt", "type_ap", "nbrmissing", "cobs", "pupdiam", "nwfs", "type_wfs",
-                      "nxsub", "npix", "pixsize", "fracsub", "wfs.xpos", "wfs.ypos", "wfs.Lambda",
-                      "dms_seen", "fssize", "fstop", "pyr_ampl", "pyr_loc", "pyr_npts", "pyr_pup_sep",
-                      "pyrtype", "ndms", "type_dm", "dm.alt", "coupling", "hyst", "margin", "nact",
-                      "push4imat", "dm.thresh", "unitpervolt","ncentroiders", "type_centro",
-                      "nmax", "centro.nwfs", "sizex", "sizey", "centroider.thresh", "type_fct",
-                      "weights", "width"]
+    
+    param2test = ["tel_diam", "t_spiders", "spiders_type", "pupangle", "referr", "std_piston",
+                  "std_tt", "type_ap", "nbrmissing", "cobs", "pupdiam", "nwfs", "type_wfs",
+                  "nxsub", "npix", "pixsize", "fracsub", "wfs.xpos", "wfs.ypos", "wfs.Lambda",
+                  "dms_seen", "fssize", "fstop", "pyr_ampl", "pyr_loc", "pyr_npts", "pyr_pup_sep",
+                  "pyrtype", "ndms", "type_dm", "dm.alt","coupling", "hyst", "margin","nact",
+                  "nkl","kl_type", "push4imat", "dm.thresh","unitpervolt","ncentroiders", "type_centro",
+                  "nmax", "centro.nwfs", "sizex", "sizey", "centroider.thresh", "type_fct",
+                  "weights", "width"]
 
 
     for i in dataBase.index:
@@ -576,22 +558,15 @@ def checkDmsParams(savepath, config, pdict, matricesToLoad):
         matricesToLoad : (dictionary) :  matrices that will be load and their path
     """
     dataBase = pandas.read_hdf(savepath + "matricesDataBase.h5", "pztok")
-    if(config.p_dm0.type_dm =="kl"):
-        param2test = ["tel_diam", "t_spiders", "spiders_type", "pupangle", "referr",
-                      "std_piston", "std_tt", "type_ap", "nbrmissing", "cobs", "pupdiam",
-                      "nwfs", "type_wfs", "nxsub", "npix", "pixsize", "fracsub", "wfs.xpos",
-                      "wfs.ypos", "wfs.Lambda", "dms_seen", "fssize", "fstop", "pyr_ampl",
-                      "pyr_loc", "pyr_npts", "pyrtype", "pyr_pup_sep","ndms", "type_dm",
-                      "dm.alt", "hyst", "margin", "nkl","kl_type", "push4imat",
-                      "dm.thresh"]
-    else:
-        param2test = ["tel_diam", "t_spiders", "spiders_type", "pupangle", "referr",
-                      "std_piston", "std_tt", "type_ap", "nbrmissing", "cobs", "pupdiam",
-                      "nwfs", "type_wfs", "nxsub", "npix", "pixsize", "fracsub", "wfs.xpos",
-                      "wfs.ypos", "wfs.Lambda", "dms_seen", "fssize", "fstop", "pyr_ampl",
-                      "pyr_loc", "pyr_npts", "pyrtype", "pyr_pup_sep","ndms", "type_dm",
-                      "dm.alt", "coupling", "hyst", "margin", "nact", "push4imat",
-                      "dm.thresh", "unitpervolt"]
+
+    param2test = ["tel_diam", "t_spiders", "spiders_type", "pupangle", "referr",
+                  "std_piston", "std_tt", "type_ap", "nbrmissing", "cobs", "pupdiam",
+                  "nwfs", "type_wfs", "nxsub", "npix", "pixsize", "fracsub", "wfs.xpos",
+                  "wfs.ypos", "wfs.Lambda", "dms_seen", "fssize", "fstop", "pyr_ampl",
+                  "pyr_loc", "pyr_npts", "pyrtype", "pyr_pup_sep","ndms", "type_dm",
+                  "dm.alt","coupling", "hyst", "margin", "nkl", "nact", "kl_type", "push4imat",
+                  "dm.thresh", "unitpervolt"]
+
     
     for i in dataBase.index:
         cc = 0
