@@ -1,4 +1,5 @@
 import shesha as ao
+import numpy as np
 
 simul_name="micado_8m_SH"
 
@@ -63,13 +64,13 @@ p_wfs0.set_Lambda(0.5)
 p_wfs0.set_gsmag(11)
 p_wfs0.set_optthroughput(0.5)
 p_wfs0.set_zerop(1.e11)
-p_wfs0.set_noise(10) # in electrons units
+p_wfs0.set_noise(-1) # in electrons units
 p_wfs0.set_atmos_seen(1)
 p_wfs0.set_fstop("square")
 p_wfs0.set_fssize(1.6)
 rMod = 5
 #rMod = 10
-p_wfs0.set_pyr_npts(int(rMod*2* 3.141592653589793))
+p_wfs0.set_pyr_npts(int(np.ceil(int(rMod*2* 3.141592653589793)/4.)*4))
 p_wfs0.set_pyr_ampl(rMod)
 p_wfs0.set_pyr_pup_sep(int(2/3.*p_wfs0.nxsub))
 p_wfs0.set_pyr_pup_sep(8*2)
@@ -86,14 +87,17 @@ p_dm0.set_nact(nact)
 p_dm0.set_alt(0.)
 p_dm0.set_thresh(0.3) # fraction units
 p_dm0.set_coupling(0.2) # !!!!!!!!!!!!!!!!!!!!!!!!! attention pas autre chose que 0.2 !!!!!!!!!
-p_dm0.set_unitpervolt(0.01)
-p_dm0.set_push4imat(100.)
+#p_dm0.set_unitpervolt(0.01)
+#p_dm0.set_push4imat(100.)
+p_dm0.set_unitpervolt(1)
+p_dm0.set_push4imat(0.05)
 
 p_dm1.set_type("tt")
 p_dm1.set_alt(0.)
-p_dm1.set_unitpervolt(0.0005)
-p_dm1.set_push4imat(10.)
-
+p_dm1.set_unitpervolt(1)
+p_dm1.set_push4imat(0.02)
+#p_dm0.set_unitpervolt(0.01)
+#p_dm0.set_push4imat(100.)
 #centroiders
 p_centroider0=ao.Param_centroider()
 p_centroiders=[p_centroider0]
@@ -117,7 +121,7 @@ p_controller0.set_nwfs([0])
 p_controller0.set_ndm([0,1])
 p_controller0.set_maxcond(150.)
 p_controller0.set_delay(2)
-p_controller0.set_gain(0.2)
+p_controller0.set_gain(0.7)
 
 #p_controller0.set_modopti(0)
 #p_controller0.set_nrec(2048)

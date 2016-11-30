@@ -1,4 +1,5 @@
 import shesha as ao
+import numpy as np
 
 simul_name="micado_25m_PYR"
 
@@ -69,7 +70,7 @@ p_wfs0.set_atmos_seen(1)
 p_wfs0.set_fstop("square")
 p_wfs0.set_fssize(1.6)
 rMod = 5
-p_wfs0.set_pyr_npts(int(rMod*2* 3.141592653589793))
+p_wfs0.set_pyr_npts(int(np.ceil(int(rMod*2* 3.141592653589793)/4.)*4))
 p_wfs0.set_pyr_ampl(rMod)
 p_wfs0.set_pyr_pup_sep(int(2/3.*p_wfs0.nxsub))
 
@@ -82,7 +83,7 @@ p_dm0.set_type("pzt")
 nact=p_wfs0.nxsub+1
 #nact = 9
 
-p_dm0.set_nact(4)
+p_dm0.set_nact(nact)
 p_dm0.set_alt(0.)
 p_dm0.set_thresh(0.3) # fraction units
 p_dm0.set_coupling(0.2) # !!!!!!!!!!!!!!!!!!!!!!!!! attention pas autre chose que 0.2 !!!!!!!!!
