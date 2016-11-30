@@ -22,7 +22,11 @@ from PyQt4.QtCore import QTimer
 from functools import partial
 from pandas import HDFStore, read_hdf
 from threading import Thread
-
+try:
+    import qdarkstyle
+    darkStyle=True
+except:
+    darkStyle=False
 import Pyro.core
 import Pyro.naming
 import Pyro.configuration
@@ -848,6 +852,8 @@ class PyroServer(Thread):
 
 if __name__ == '__main__':
     app = QtGui.QApplication(sys.argv)
+    #app.setStyleSheet(qdarkstyle.load_stylesheet(pyside=False))
+    app.setStyle('cleanlooks')
     wao = widgetAOWindow()
     wao.show()
     """
@@ -873,4 +879,3 @@ if __name__ == '__main__':
         warn("pyro4 not found", RuntimeWarning)
     """
     # app.connect(wao.ui._quit,QtCore.SIGNAL("clicked()"),app,QtCore.SLOT("quit()"))
-    app.setStyle('cleanlooks')
