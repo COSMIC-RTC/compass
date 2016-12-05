@@ -27,10 +27,7 @@ try:
     darkStyle=True
 except:
     darkStyle=False
-import Pyro.core
-import Pyro.naming
-import Pyro.configuration
-import Pyro.util
+
 sys.path.insert(0, os.environ["SHESHA_ROOT"] + "/widgets/")
 sys.path.insert(0, os.environ["SHESHA_ROOT"] + "/data/par/")
 WindowTemplate, TemplateBaseClass = loadUiType(
@@ -44,17 +41,32 @@ gdb --args python -i widget_canapass.py
 
 """
 
-# class widgetAOWindow(TemplateBaseClass):
+try:
+    import Pyro.core
+    import Pyro.naming
+    import Pyro.configuration
+    import Pyro.util
+    class widgetAOWindowPyro(widgetAOWindow, Pyro.core.ObjBase):
+        def __init__(self):
+            widgetAOWindow.__init__(self)
+            Pyro.core.ObjBase.__init__(self)
 
+	def InitConfig(self):
+	    widgetAOWindow.InitConfig(self)
+        try:
+            ps = PyroServer(wao)
+            ps.start()
+        except:
+            print "Warning: Error while starting Pyro server"
+    USE_PYRO=True
 
-class widgetAOWindow(TemplateBaseClass, Pyro.core.ObjBase):
+except:
+    print "Could not initialize Pyro..."
+    USE_PYRO=False
 
+class widgetAOWindow(TemplateBaseClass):
     def __init__(self):
         TemplateBaseClass.__init__(self)
-        try:
-            Pyro.core.ObjBase.__init__(self)
-        except:
-            print "Could not initialize Pyro..."
 
         self.SRLE = []
         self.SRSE = []
@@ -421,11 +433,6 @@ class widgetAOWindow(TemplateBaseClass, Pyro.core.ObjBase):
         self.ui.wao_next.setDisabled(False)
         self.ui.wao_unzoom.setDisabled(False)
         self.ui.wao_resetSR.setDisabled(False)
-        try:
-            ps = PyroServer(wao)
-            ps.start()
-        except:
-            print "Warning: Error while starting Pyro server"
 
     def circleCoords(self, ampli, npts, datashape0, datashape1):
         # ampli = self.config.p_geom.pupdiam/2
@@ -854,7 +861,10 @@ if __name__ == '__main__':
     app = QtGui.QApplication(sys.argv)
     #app.setStyleSheet(qdarkstyle.load_stylesheet(pyside=False))
     app.setStyle('cleanlooks')
-    wao = widgetAOWindow()
+    if USE_PYRO:
+        wao = widgetAOWindowPyro()
+    else: 
+        wao = widgetAOWindow()
     wao.show()
     """
     locator = Pyro.naming.NameServerLocator()
