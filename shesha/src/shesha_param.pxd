@@ -136,6 +136,16 @@ cdef class Param_wfs:
     cdef readonly float beamsize
     """laser beam fwhm on-sky (in arcsec)."""
 
+# misalignment
+
+    cdef readonly float G
+    """Magnifying factor"""
+    cdef readonly float thetaML
+    """ WFS rotation angle in the pupil"""
+    cdef readonly float dx
+    """ X axis misalignment in pixels"""
+    cdef readonly float dy
+    """ Y axis misalignment in pixels"""
 # internal kwrd
     cdef readonly long  _pdiam
     """pupil diam for a subap (in pixel)"""

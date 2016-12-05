@@ -135,6 +135,10 @@ inline int sutra_source::init_source(carma_context *context, float xpos,
   }
 
   this->lgs = false;
+  this->G = 1.0f;
+  this->thetaML = 0.0f;
+  this->dx = 0.0f;
+  this->dy = 0.0f;
 
   delete[] dims_data2;
 
@@ -310,7 +314,7 @@ int sutra_source::raytrace(sutra_atmos *yatmos, bool async) {
     				  (int) d_phase->d_screen->getDims(2),
     				  (int) ps->d_tscreen->d_screen->getDims(1),
     				  xoff[std::make_pair("atmos", alt)], yoff[std::make_pair("atmos", alt)],
-    				  this->block_size);
+    				  this->G, this->thetaML, this->dx, this->dy, this->block_size);
       }
     } else
       p++;
@@ -359,7 +363,7 @@ int sutra_source::raytrace(sutra_dms *ydms, int rst, bool async, int do_phase_va
     				  (int) d_phase->d_screen->getDims(2),
     				  (int) ps->d_shape->d_screen->getDims(1),
     				  xoff[std::make_pair(types, alt)], yoff[std::make_pair(types, alt)],
-    				  this->block_size);
+    				  this->G, this->thetaML, this->dx, this->dy, this->block_size);
       }
     } else
       p++;

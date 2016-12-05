@@ -51,7 +51,12 @@ cdef class Sensors:
                              float zerop,
                              np.ndarray[ndim=1, dtype=np.int64_t  ] size,
                              np.ndarray[ndim=1, dtype=np.float32_t] noise,
-                             np.ndarray[ndim=1, dtype=np.int64_t  ] seed)
+                             np.ndarray[ndim=1, dtype=np.int64_t  ] seed,
+                             np.ndarray[ndim=1, dtype=np.float32_t] G,
+                             np.ndarray[ndim=1, dtype=np.float32_t] thetaML,
+                             np.ndarray[ndim=1, dtype=np.float32_t] dx,
+                             np.ndarray[ndim=1, dtype=np.float32_t] dy)
+
 
 
     cpdef sensors_initarr(self, int n, Param_wfs wfs)

@@ -27,6 +27,10 @@ public:
   float zp; // imaging zero point
   float scale; // phase scale
   bool lgs; // flag for lgs
+  float G; // Magnifying factor for WFS misalignment
+  float thetaML; // Pupil rotation angle
+  float dx; // WFS misalignment
+  float dy; // WFS misalignment
   string type; // type of source : target / wfs
   int block_size; // optimum block size of device
 
@@ -112,7 +116,7 @@ target_texraytrace(float *d_odata, float *d_idata, int nx, int ny, int Nx,
     carma_device *device);
 int
 target_raytrace(float *d_odata, float *d_idata, int nx, int ny, int Nx,
-    float xoff, float yoff, int block_size);
+    float xoff, float yoff, float G, float thetaML, float dx, float dy, int block_size);
 int
 target_lgs_raytrace(float *d_odata, float *d_idata, int nx, int ny, int Nx,
     float xoff, float yoff, float delta, int block_size);

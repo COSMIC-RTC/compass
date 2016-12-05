@@ -59,10 +59,15 @@ sutra_wfs::sutra_wfs(carma_context *context, sutra_telescope *d_tel,
 
 int sutra_wfs::wfs_initgs(sutra_sensors *sensors, float xpos, float ypos,
                           float lambda, float mag, float zerop, long size,
-                          float noise, long seed) {
+                          float noise, long seed, float G, float thetaML, float dx, float dy) {
   current_context->set_activeDevice(device,1);
   this->d_gs = new sutra_source(current_context, xpos, ypos, lambda, mag, zerop,
                                 size, "wfs", this->device);
+  this->d_gs->G = G;
+  this->d_gs->thetaML = thetaML;
+  this->d_gs->dx = dx;
+  this->d_gs->dy = dy;
+
   this->noise = noise;
   if (this->type != "pyrhr") {
     if (noise > -1) {
@@ -298,32 +303,32 @@ int sutra_sensors::define_mpi_rank(int rank, int size) {
 
 int sutra_sensors::sensors_initgs(float *xpos, float *ypos, float *lambda,
                                   float *mag, float zerop, long *size,
-                                  float *noise, long *seed) {
+                                  float *noise, long *seed, float *G, float * thetaML, float *dx, float *dy) {
   current_context->set_activeDevice(device,1);
   for (size_t idx = 0; idx < (this->d_wfs).size(); idx++) {
     (this->d_wfs)[idx]->wfs_initgs(this, xpos[idx], ypos[idx], lambda[idx],
                                    mag[idx], zerop, size[idx], noise[idx],
-                                   seed[idx]);
+                                   seed[idx], G[idx], thetaML[idx], dx[idx], dy[idx]);
   }
   return EXIT_SUCCESS;
 }
 int sutra_sensors::sensors_initgs(float *xpos, float *ypos, float *lambda,
                                   float *mag, float zerop, long *size,
-                                  float *noise) {
+                                  float *noise, float *G, float * thetaML, float *dx, float *dy) {
   current_context->set_activeDevice(device,1);
   for (size_t idx = 0; idx < (this->d_wfs).size(); idx++) {
     (this->d_wfs)[idx]->wfs_initgs(this, xpos[idx], ypos[idx], lambda[idx],
                                    mag[idx], zerop, size[idx], noise[idx],
-                                   1234 * idx);
+                                   1234 * idx, G[idx], thetaML[idx], dx[idx], dy[idx]);
   }
   return EXIT_SUCCESS;
 }
 int sutra_sensors::sensors_initgs(float *xpos, float *ypos, float *lambda,
-                                  float *mag, float zerop, long *size) {
+                                  float *mag, float zerop, long *size, float *G, float * thetaML, float *dx, float *dy) {
   current_context->set_activeDevice(device,1);
   for (size_t idx = 0; idx < (this->d_wfs).size(); idx++) {
     (this->d_wfs)[idx]->wfs_initgs(this, xpos[idx], ypos[idx], lambda[idx],
-                                   mag[idx], zerop, size[idx], -1, 1234);
+                                   mag[idx], zerop, size[idx], -1, 1234, G[idx], thetaML[idx], dx[idx], dy[idx]);
   }
   return EXIT_SUCCESS;
 }

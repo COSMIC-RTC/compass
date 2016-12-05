@@ -147,6 +147,10 @@ cdef extern from "sutra_target.h":
         float zp  # imaging zero point
         float scale  # phase scale
         bool lgs  # flag for lgs
+        float G # Magnifying factor
+        float thetaML # Pupil rotation
+        float dx
+        float dy
         char * type  # type of source : target / wfs
         int block_size  # optimum block size of device
 
@@ -204,7 +208,7 @@ cdef extern from "sutra_target.h":
                                 carma_device * device)
 
     cdef int target_raytrace(float * d_odata, float * d_idata, int nx, int ny, int Nx,
-                             float xoff, float yoff, int block_size)
+                             float xoff, float yoff, float G, float thetaML, float dx, float dy, int block_size)
 
     cdef int target_lgs_raytrace(float * d_odata, float * d_idata, int nx, int ny, int Nx,
                                  float xoff, float yoff, float delta, int block_size)
@@ -247,11 +251,11 @@ cdef extern from "sutra_wfs.h":
                       long * nphase, long npup, float * pdiam, int device)
 
         int sensors_initgs(float * xpos, float * ypos, float * Lambda, float * mag, float zerop,
-                           long * size, float * noise, long * seed)
+                           long * size, float * noise, long * seed, float *G, float *thetaML, float *dx, float *dy)
         int sensors_initgs(float * xpos, float * ypos, float * Lambda, float * mag, float zerop,
-                           long * size, float * noise)
+                           long * size, float * noise, float *G, float *thetaML, float *dx, float *dy)
         int sensors_initgs(float * xpos, float * ypos, float * Lambda, float * mag, float zerop,
-                           long * size)
+                           long * size, float *G, float *thetaML, float *dx, float *dy)
         int allocate_buffers()
         int define_mpi_rank(int rank, int size)
 
@@ -338,7 +342,7 @@ cdef extern from "sutra_wfs.h":
                            float * focmask, float * cx, float * cy,
                            float * sincar, int * phasemap, int * validsubsx, int * validsubsy)
         int wfs_initgs(sutra_sensors * sensors, float xpos, float ypos, float Lambda, float mag, long size,
-                       float noise, long seed)
+                       float noise, long seed, float G, float thetaML, float dx, float dy)
         int load_kernels(float * lgskern)
         int sensor_trace(sutra_atmos * yatmos)
         int sensor_trace(sutra_atmos * atmos, sutra_dms * ydms)

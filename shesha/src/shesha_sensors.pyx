@@ -447,6 +447,10 @@ def wfs_init(wfs, Param_atmos p_atmos, Param_tel p_tel, Param_geom p_geom,
     cdef np.ndarray ypos = np.array([o.ypos for o in wfs], dtype=np.float32)
     cdef np.ndarray Lambda = np.array([o.Lambda for o in wfs], dtype=np.float32)
     cdef np.ndarray mag
+    cdef np.ndarray G
+    cdef np.ndarray thetaML
+    cdef np.ndarray dx
+    cdef np.ndarray dy
     cdef float zerop = wfs[0].zerop
     cdef np.ndarray size = np.zeros(nsensors, dtype=np.int64) + p_geom._n
     cdef np.ndarray noise
@@ -454,6 +458,11 @@ def wfs_init(wfs, Param_atmos p_atmos, Param_tel p_tel, Param_geom p_geom,
     cdef np.ndarray npup = (np.zeros((nsensors)) + p_geom._n).astype(np.int64)
 
     cdef np.ndarray tmp
+
+    G = np.array([o.G for o in wfs], dtype=np.float32)
+    thetaML = np.array([o.thetaML for o in wfs], dtype=np.float32)
+    dx = np.array([o.dx for o in wfs], dtype=np.float32)
+    dy = np.array([o.dy for o in wfs], dtype=np.float32)
 
     error_budget_flag = [w.error_budget for w in wfs]
     if(True in error_budget_flag):
@@ -472,7 +481,8 @@ def wfs_init(wfs, Param_atmos p_atmos, Param_tel p_tel, Param_geom p_geom,
 
         mag = np.array([o.gsmag for o in wfs], dtype=np.float32)
         noise = np.array([o.noise for o in wfs], dtype=np.float32)
-        g_wfs.sensors_initgs(xpos, ypos, Lambda, mag, zerop, size, noise, seed)
+
+        g_wfs.sensors_initgs(xpos, ypos, Lambda, mag, zerop, size, noise, seed, G, thetaML, dx, dy)
 
     elif(wfs[0].type_wfs=="pyr" or wfs[0].type_wfs == "roof"):
         npup = np.array([wfs[0].pyr_npts])
@@ -481,16 +491,20 @@ def wfs_init(wfs, Param_atmos p_atmos, Param_tel p_tel, Param_geom p_geom,
 
         mag = np.array([o.gsmag for o in wfs], dtype=np.float32)
         noise = np.array([o.noise for o in wfs], dtype=np.float32)
-        g_wfs.sensors_initgs(xpos, ypos, Lambda, mag, zerop, size, noise, seed)
+        g_wfs.sensors_initgs(xpos, ypos, Lambda, mag, zerop, size, noise, seed, G, thetaML, dx, dy)
 
     elif(wfs[0].type_wfs == "pyrhr"):
         npup = np.array([wfs[0].pyr_npts])
+        G = np.array([o.G for o in wfs], dtype=np.float32)
+        thetaML = np.array([o.thetaML for o in wfs], dtype=np.float32)
+        dx = np.array([o.dx for o in wfs], dtype=np.float32)
+        dy = np.array([o.dy for o in wfs], dtype=np.float32)
         g_wfs = Sensors(nsensors, telescope, t_wfs, npup, nxsub, nvalid, nphase, pdiam, npix, nrebin,
                         nfft, ntota, nphot, nphot4imat, lgs, comm_size=comm_size, rank=rank, error_budget=error_budget_flag)
 
         mag = np.array([o.gsmag for o in wfs], dtype=np.float32)
         noise = np.array([o.noise for o in wfs], dtype=np.float32)
-        g_wfs.sensors_initgs(xpos, ypos, Lambda, mag, zerop, size, noise, seed)
+        g_wfs.sensors_initgs(xpos, ypos, Lambda, mag, zerop, size, noise, seed, G, thetaML, dx, dy)
 
     elif(wfs[0].type_wfs == "geo"):
         npup = np.array([wfs[0].p_geom._n])
@@ -499,7 +513,7 @@ def wfs_init(wfs, Param_atmos p_atmos, Param_tel p_tel, Param_geom p_geom,
 
         mag = np.zeros(nsensors - 1, dtype=np.float32)
         noise = np.zeros(nsensors - 1, dtype=np.float32) - 1
-        g_wfs.sensors_initgs(xpos, ypos, Lambda, mag, zerop, size, noise, seed)
+        g_wfs.sensors_initgs(xpos, ypos, Lambda, mag, zerop, size, noise, seed, G, thetaML, dx, dy)
 
     # fill sensor object with data
     for i in range(nsensors):
@@ -1640,7 +1654,11 @@ cdef class Sensors:
                          float zerop,
                          np.ndarray[ndim=1, dtype=np.int64_t] size,
                          np.ndarray[ndim=1, dtype=np.float32_t] noise,
-                         np.ndarray[ndim=1, dtype=np.int64_t] seed):
+                         np.ndarray[ndim=1, dtype=np.int64_t] seed,
+                         np.ndarray[ndim=1, dtype=np.float32_t] G,
+                         np.ndarray[ndim=1, dtype=np.float32_t] thetaML,
+                         np.ndarray[ndim=1, dtype=np.float32_t] dx,
+                         np.ndarray[ndim=1, dtype=np.float32_t] dy):
         """Call the function sensors_initgs
 
     :parameters:
@@ -1659,20 +1677,27 @@ cdef class Sensors:
         noise: (np.ndarray[ndim=1,dtype=np.float32_t]) :
 
         seed:  (np.ndarray[ndim=1,dtype=np.int64_t  ]) :
+
+        G:  (np.ndarray[ndim=1,dtype=np.float32_t  ]) :
+        thetaML:  (np.ndarray[ndim=1,dtype=np.float32_t  ]) :
+        dx:  (np.ndarray[ndim=1,dtype=np.float32_t  ]) :
+        dy:  (np.ndarray[ndim=1,dtype=np.float32_t  ]) :
         """
 
         if(noise.size == 0):
             self.sensors.sensors_initgs( < float * > xpos.data, < float * > ypos.data,
-                                        < float * > Lambda.data, < float * > mag.data, zerop, < long * > size.data)
+                                        < float * > Lambda.data, < float * > mag.data, zerop, < long * > size.data,
+                                        < float * > G.data, < float *> thetaML.data, < float * > dx.data, < float * > dy.data)
 
         elif(seed.size == 0):
             self.sensors.sensors_initgs( < float * > xpos.data, < float * > ypos.data,
                                         < float * > Lambda.data, < float * > mag.data, zerop, < long * > size.data,
-                                        < float * > noise.data)
+                                        < float * > noise.data, < float * > G.data, < float *> thetaML.data, < float * > dx.data, < float * > dy.data)
         else:
             self.sensors.sensors_initgs( < float * > xpos.data, < float * > ypos.data,
                                         < float * > Lambda.data, < float * > mag.data, zerop, < long * > size.data,
-                                        < float * > noise.data, < long * > seed.data)
+                                        < float * > noise.data, < long * > seed.data,
+                                        < float * > G.data, < float *> thetaML.data, < float * > dx.data, < float * > dy.data)
 
     cpdef sensors_initarr(self, int n, Param_wfs wfs):
         """Call the function wfs_initarrays from a sutra_wfs of the Sensors

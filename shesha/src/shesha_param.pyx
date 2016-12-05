@@ -277,6 +277,10 @@ cdef class Param_wfs:
         self.error_budget = error_budget
         self.nphotons4imat = 1.e5
         self.pyr_pup_sep = -1
+        self.G = 1.0
+        self.thetaML = 0.0
+        self.dx = 0.0
+        self.dy = 0.0
 
     def set_type(self, str t):
         """Set the type of wfs
@@ -368,6 +372,34 @@ cdef class Param_wfs:
         :param y: (float) : guide star y position on sky (in arcsec)
         """
         self.ypos = y
+
+    def set_G(self, float G):
+        """ Set the magnifying factor
+
+        :param G: (float) : magnifying factor
+        """
+        self.G = G
+
+    def set_thetaML(self, float thetaML):
+        """ Set the rotation angle in the pupil
+
+        :param thetaML: (float) : rotation angle (rad)
+        """
+        self.thetaML = thetaML
+
+    def set_dx(self, float dx):
+        """ Set the X axis misalignment
+
+        :param dx: (float) : dx (pix)
+        """
+        self.dx = dx
+
+    def set_dy(self, float dy):
+        """ Set the Y axis misalignment
+
+        :param dy: (float) : dy (pix)
+        """
+        self.dy = dy
 
     def set_gsalt(self, float g):
         """Set the altitude of guide star
