@@ -34,6 +34,7 @@ WindowTemplate, TemplateBaseClass = loadUiType(
     os.environ["SHESHA_ROOT"] + "/widgets/widget_canapass.ui")
 
 import compassConfigToFile as cf
+plt.rcParams['image.cmap'] = 'viridis'
 
 """
 low levels debugs:
@@ -46,23 +47,11 @@ try:
     import Pyro.naming
     import Pyro.configuration
     import Pyro.util
-    class widgetAOWindowPyro(widgetAOWindow, Pyro.core.ObjBase):
-        def __init__(self):
-            widgetAOWindow.__init__(self)
-            Pyro.core.ObjBase.__init__(self)
-
-	def InitConfig(self):
-	    widgetAOWindow.InitConfig(self)
-        try:
-            ps = PyroServer(wao)
-            ps.start()
-        except:
-            print "Warning: Error while starting Pyro server"
-    USE_PYRO=True
-
+    USE_PYRO = True
 except:
     print "Could not initialize Pyro..."
-    USE_PYRO=False
+    USE_PYRO = False
+
 
 class widgetAOWindow(TemplateBaseClass):
     def __init__(self):
@@ -822,48 +811,65 @@ class widgetAOWindow(TemplateBaseClass):
         # print "Loop stopped"
 
 
-class PyroServer(Thread):
-    """
-    Main Geometry Server Thread
+try:
+    class widgetAOWindowPyro(widgetAOWindow, Pyro.core.ObjBase):
+        def __init__(self):
+            widgetAOWindow.__init__(self)
+            Pyro.core.ObjBase.__init__(self)
 
-    """
+        def InitConfig(self):
+            widgetAOWindow.InitConfig(self)
+            try:
+                ps = PyroServer(wao)
+                ps.start()
+            except:
+                print "Warning: Error while starting Pyro server"
 
-    def __init__(self, obj):
-        Thread.__init__(self)
-        self.setDaemon(1)
-        self.ready = False
-        self.object = obj
-        print "initThread"
+    class PyroServer(Thread):
+        """
+        Main Geometry Server Thread
 
-    def run(self):
-        print "Starting Pyro Server..."
-        self.locator = Pyro.naming.NameServerLocator()
-        ns = self.locator.getNS()
-        Pyro.core.initServer()
-        daemon = Pyro.core.Daemon()
-        # ns=Pyro.naming.NameServerLocator(host=self.nsip, port=self.port).
-        daemon.useNameServer(ns)  # use current ns
-        self.ready = True
-        try:
-            ns.unregister("waoconfig")
-        except:
-            # ns.deleteGroup(':GS')
-            # ns.createGroup(":GS")
-            pass
-        # print self.object.getVar()
-        daemon.connect(self.object, "waoconfig")
-        print "starting daemon"
-        daemon.requestLoop()
-        print "daemon started"
+        """
+
+        def __init__(self, obj):
+            Thread.__init__(self)
+            self.setDaemon(1)
+            self.ready = False
+            self.object = obj
+            print "initThread"
+
+        def run(self):
+            print "Starting Pyro Server..."
+            self.locator = Pyro.naming.NameServerLocator()
+            ns = self.locator.getNS()
+            Pyro.core.initServer()
+            daemon = Pyro.core.Daemon()
+            # ns=Pyro.naming.NameServerLocator(host=self.nsip, port=self.port).
+            daemon.useNameServer(ns)  # use current ns
+            self.ready = True
+            try:
+                ns.unregister("waoconfig")
+            except:
+                # ns.deleteGroup(':GS')
+                # ns.createGroup(":GS")
+                pass
+            # print self.object.getVar()
+            daemon.connect(self.object, "waoconfig")
+            print "starting daemon"
+            daemon.requestLoop()
+            print "daemon started"
+
+except:
+    pass
 
 
 if __name__ == '__main__':
     app = QtGui.QApplication(sys.argv)
-    #app.setStyleSheet(qdarkstyle.load_stylesheet(pyside=False))
+    # app.setStyleSheet(qdarkstyle.load_stylesheet(pyside=False))
     app.setStyle('cleanlooks')
     if USE_PYRO:
         wao = widgetAOWindowPyro()
-    else: 
+    else:
         wao = widgetAOWindow()
     wao.show()
     """
