@@ -2,12 +2,12 @@
 #include "carma_utils.cuh"
 
 /*
- _  __                    _     
- | |/ /___ _ __ _ __   ___| |___ 
+ _  __                    _
+ | |/ /___ _ __ _ __   ___| |___
  | ' // _ \ '__| '_ \ / _ \ / __|
  | . \  __/ |  | | | |  __/ \__ \
  |_|\_\___|_|  |_| |_|\___|_|___/
- 
+
  */
 
 template<class T>
@@ -276,7 +276,7 @@ __global__ void centroid_max(T *g_idata, T *g_odata, int n, int nmax, int nsub,
   // at this point the nmax first elements of sdata are the nmax brightest
   // pixels and the nmax first elements of svalues are their positions
 
-  // first copy the brightest values out for reduction  
+  // first copy the brightest values out for reduction
   //__syncthreads();
   // if(tid == 0)
   const T minim = sdata[nmax - 1];
@@ -302,7 +302,7 @@ __global__ void centroid_max(T *g_idata, T *g_odata, int n, int nmax, int nsub,
   reduce_krnl(sdata, nmax, tid); // BIG BUG le retour
 
   //__syncthreads();
-  // get the sum per subap  
+  // get the sum per subap
   if (tid == 0)
     subsum = (abs(sdata[tid]) > 1.e-6 ? sdata[tid] : 0.0f);
 
@@ -311,7 +311,7 @@ __global__ void centroid_max(T *g_idata, T *g_odata, int n, int nmax, int nsub,
   // if (tid == 0)
 //	  g_odata[blockIdx.x] = subsum;
 
-  // put back the brightest pixels values 
+  // put back the brightest pixels values
   if ((tid >= nmax) && (tid < 2 * nmax))
     sdata[tid - nmax] = sdata[tid];
 
@@ -328,7 +328,7 @@ __global__ void centroid_max(T *g_idata, T *g_odata, int n, int nmax, int nsub,
     g_odata[blockIdx.x] = (
         subsum != 0.0f ? ((sdata[tid] / subsum) - offset) * scale : 0.0f);
   __syncthreads();
-  // put back the brightest pixels values 
+  // put back the brightest pixels values
   if ((tid >= nmax) && (tid < 2 * nmax))
     sdata[tid - nmax] = sdata[tid];
 
@@ -1054,12 +1054,12 @@ __global__ void convert_krnl(float *odata, float *idata, float offset,
 }
 
 /*
- _                           _                   
- | |    __ _ _   _ _ __   ___| |__   ___ _ __ ___ 
+ _                           _
+ | |    __ _ _   _ _ __   ___| |__   ___ _ __ ___
  | |   / _` | | | | '_ \ / __| '_ \ / _ \ '__/ __|
  | |__| (_| | |_| | | | | (__| | | |  __/ |  \__ \
 |_____\__,_|\__,_|_| |_|\___|_| |_|\___|_|  |___/
- 
+
  */
 template<class T>
 void subap_bpcentro(int threads, int blocks, int npix, T *d_idata,
@@ -1096,7 +1096,7 @@ void subap_sortmax(int threads, int blocks, T *d_idata, T *d_odata,
   dim3 dimBlock(threads / nelem_thread, 1, 1);
   dim3 dimGrid(blocks, 1, 1);
 
-  // when there is only one warp per block, we need to allocate two warps 
+  // when there is only one warp per block, we need to allocate two warps
   // worth of shared memory so that we don't index shared memory out of bounds
   size_t smemSize = threads * (sizeof(T) + sizeof(uint));
   sortmax<T> <<<dimGrid, dimBlock, smemSize>>>(d_idata, d_odata, values, nmax, threads, threads*blocks, nelem_thread);
@@ -1116,7 +1116,7 @@ void subap_centromax(int threads, int blocks, T *d_idata, T *d_odata, int npix,
   dim3 dimBlock(threads, 1, 1);
   dim3 dimGrid(blocks, 1, 1);
 
-  // when there is only one warp per block, we need to allocate two warps 
+  // when there is only one warp per block, we need to allocate two warps
   // worth of shared memory so that we don't index shared memory out of bounds
   /*  int smemSize =
    (threads <= 32) ?
@@ -1177,7 +1177,7 @@ void get_centroids(int size, int threads, int blocks, int n, T *d_idata,
   dim3 dimBlock(threads, 1, 1);
   dim3 dimGrid(blocks, 1, 1);
 
-  // when there is only one warp per block, we need to allocate two warps 
+  // when there is only one warp per block, we need to allocate two warps
   // worth of shared memory so that we don't index shared memory out of bounds
   int smemSize =
       (threads <= 32) ? 2 * threads * sizeof(T) : threads * sizeof(T);
@@ -1215,7 +1215,7 @@ void get_centroids(int size, int threads, int blocks, int n, T *d_idata,
   dim3 dimBlock(threads, 1, 1);
   dim3 dimGrid(blocks, 1, 1);
 
-  // when there is only one warp per block, we need to allocate two warps 
+  // when there is only one warp per block, we need to allocate two warps
   // worth of shared memory so that we don't index shared memory out of bounds
   int smemSize =
       (threads <= 32) ? 2 * threads * sizeof(T) : threads * sizeof(T);
@@ -1254,7 +1254,7 @@ void get_centroids(int size, int threads, int blocks, int n, T *d_idata,
   dim3 dimBlock(threads, 1, 1);
   dim3 dimGrid(blocks, 1, 1);
 
-  // when there is only one warp per block, we need to allocate two warps 
+  // when there is only one warp per block, we need to allocate two warps
   // worth of shared memory so that we don't index shared memory out of bounds
   int smemSize =
       (threads <= 32) ? 2 * threads * sizeof(T) : threads * sizeof(T);
@@ -1376,7 +1376,7 @@ void subap_sortmaxi(int threads, int blocks, T *d_idata, int *values, int nmax,
   dim3 dimBlock(threads, 1, 1);
   dim3 dimGrid(blocks, 1, 1);
 
-  // when there is only one warp per block, we need to allocate two warps 
+  // when there is only one warp per block, we need to allocate two warps
   // worth of shared memory so that we don't index shared memory out of bounds
   int smemSize =
       (threads <= 32) ?
@@ -1415,7 +1415,7 @@ void subap_pinterp(int threads, int blocks, T *d_idata, int *values,
   dim3 dimGrid(blocks, 1, 1);
 
   int shsize = (threads + threads * 6 + 6);
-  // when there is only one warp per block, we need to allocate two warps 
+  // when there is only one warp per block, we need to allocate two warps
   // worth of shared memory so that we don't index shared memory out of bounds
 
   int smemSize = (shsize <= 32) ? 2 * shsize * sizeof(T) : shsize * sizeof(T);
@@ -1500,7 +1500,7 @@ __global__ void pyr2slopes_krnl(T *g_odata, T *g_idata, int *subindx,
 	const T pi = 3.1415926535897932384626433;
   unsigned int i = blockIdx.x * blockDim.x + threadIdx.x;
   T tmp;
-  if (i < nvalid) {
+  while (i < nvalid) {
     int iq1 = subindx[i] + subindy[i] * ns;
     int iq2 = subindx[i+nvalid] + subindy[i+nvalid] * ns;
     int iq3 = subindx[i+2*nvalid] + subindy[i+2*nvalid] * ns;
@@ -1516,6 +1516,7 @@ __global__ void pyr2slopes_krnl(T *g_odata, T *g_idata, int *subindx,
     	g_odata[i] = scale*sin(pi/2.*tmp);
         tmp = ((g_idata[iq1] + g_idata[iq3]) - (g_idata[iq2] + g_idata[iq4])) / subsum[i];
         g_odata[i + nvalid] = scale*sin(pi/2.*tmp);
+    i += blockDim.x * gridDim.x;
   }
 }
 
