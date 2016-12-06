@@ -12,7 +12,7 @@ def params_dictionary(config):
     :return param_dict: (dictionary) : dictionary of parameters
     """
     param_dict = {"simulname":config.simul_name,
-        "revision":check_output("svnversion").replace("\n", ""),
+        "revision":check_output(["svnversion",os.getenv("COMPASS_ROOT")]).replace("\n", ""),
         # Loop params
         "niter":config.p_loop.niter,
         "ittime":config.p_loop.ittime,
@@ -92,7 +92,7 @@ def params_dictionary(config):
     #type_kk
     # Dms params
     if(config.p_dms is not None):
-            
+
         dms_dict = {"ndms":len(config.p_dms),
             "type_dm":[dm.type_dm for dm in config.p_dms],
             "dm.alt":[dm.alt for dm in config.p_dms],
@@ -107,7 +107,7 @@ def params_dictionary(config):
             "dm.thresh":[dm.thresh for dm in config.p_dms],
             "unitpervolt":[dm.unitpervolt if(dm.unitpervolt) else 0 for dm in config.p_dms]}
 
-            
+
     else:
         dms_dict = {"ndms":len(config.p_dms), "type_dm":None, "dm.alt":None,
             "coupling":None, "hyst":None, "margin":None, "nact":None,
@@ -185,7 +185,7 @@ def create_file_attributes(filename, param_dict):
     f.close()
 
 def init_hdf5_files(savepath, param_dict, matricesToLoad):
-    svnversion = check_output("svnversion").replace("\n", "")
+    svnversion = check_output(["svnversion",os.getenv("COMPASS_ROOT")]).replace("\n", "")
     if not(matricesToLoad.has_key("A")):
         df = pandas.read_hdf(savepath + "matricesDataBase.h5", "A")
         ind = len(df.index)
@@ -376,7 +376,7 @@ def checkTurbuParams(savepath, config, pdict, matricesToLoad):
 
     for i in dataBase.index:
         cc = 0
-        if(dataBase.loc[i, "validity"] and (dataBase.loc[i, "revision"] == check_output("svnversion").replace("\n", ""))):
+        if(dataBase.loc[i, "validity"] and (dataBase.loc[i, "revision"] == check_output(["svnversion",os.getenv("COMPASS_ROOT")]).replace("\n", ""))):
             cond = ((dataBase.loc[i, param2test[cc]] == pdict[param2test[cc]]).all())
             while(cond):
                 if(cc >= len(param2test)):
@@ -430,7 +430,7 @@ def checkControlParams(savepath, config, pdict, matricesToLoad):
         matricesToLoad : (dictionary) :  matrices that will be load and their path
     """
     dataBase = pandas.read_hdf(savepath + "matricesDataBase.h5", "imat")
-    
+
     param2test = ["tel_diam", "t_spiders", "spiders_type", "pupangle", "referr", "std_piston",
                   "std_tt", "type_ap", "nbrmissing", "cobs", "pupdiam", "nwfs", "type_wfs",
                   "nxsub", "npix", "pixsize", "fracsub", "wfs.xpos", "wfs.ypos", "wfs.Lambda",
@@ -443,7 +443,7 @@ def checkControlParams(savepath, config, pdict, matricesToLoad):
 
     for i in dataBase.index:
         cc = 0
-        if(dataBase.loc[i, "validity"] and (dataBase.loc[i, "revision"] == check_output("svnversion").replace("\n", ""))):
+        if(dataBase.loc[i, "validity"] and (dataBase.loc[i, "revision"] == check_output(["svnversion",os.getenv("COMPASS_ROOT")]).replace("\n", ""))):
             cond = ((dataBase.loc[i, param2test[cc]] == pdict[param2test[cc]]).all())
             while(cond):
                 if(cc >= len(param2test)):
@@ -567,10 +567,10 @@ def checkDmsParams(savepath, config, pdict, matricesToLoad):
                   "dm.alt","coupling", "hyst", "margin", "nkl", "nact", "kl_type", "push4imat",
                   "dm.thresh", "unitpervolt"]
 
-    
+
     for i in dataBase.index:
         cc = 0
-        if(dataBase.loc[i, "validity"] and (dataBase.loc[i, "revision"] == check_output("svnversion").replace("\n", ""))):
+        if(dataBase.loc[i, "validity"] and (dataBase.loc[i, "revision"] == check_output(["svnversion",os.getenv("COMPASS_ROOT")]).replace("\n", ""))):
             cond = ((dataBase.loc[i, param2test[cc]] == pdict[param2test[cc]]).all())
             while(cond):
                 if(cc >= len(param2test)):

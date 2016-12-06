@@ -2177,10 +2177,10 @@ cpdef correct_dm(p_dms, Dms g_dms, Param_controller p_control, Param_geom p_geom
                     print "writing files"
                     df = pandas.read_hdf(shesha_savepath + "/matricesDataBase.h5", "pztok")
                     ind = len(df.index) - 1
-                    savename = dirsave + "pztok_r" + check_output("svnversion").replace("\n", "") + "_" + str(ind) + ".h5"
+                    savename = dirsave + "pztok_r" + check_output(["svnversion",os.getenv("COMPASS_ROOT")]).replace("\n", "") + "_" + str(ind) + ".h5"
                     h5u.save_hdf5(savename, "pztok" + str(nmc), ok)
 
-                    savename = dirsave + "pztnok_r" + check_output("svnversion").replace("\n", "") + "_" + str(ind) + ".h5"
+                    savename = dirsave + "pztnok_r" + check_output(["svnversion",os.getenv("COMPASS_ROOT")]).replace("\n", "") + "_" + str(ind) + ".h5"
                     h5u.save_hdf5(savename, "pztnok" + str(nmc), nok)
 
 
@@ -2591,7 +2591,7 @@ cpdef imat_init(int ncontrol, Rtc g_rtc, Param_rtc p_rtc, Dms g_dms, Sensors g_w
 
             df = pandas.read_hdf(shesha_savepath + "/matricesDataBase.h5", "imat")
             ind = len(df.index) - 1
-            savename = shesha_savepath + "/mat/imat_r" + check_output("svnversion").replace("\n", "") + "_" + str(ind) + ".h5"
+            savename = shesha_savepath + "/mat/imat_r" + check_output(["svnversion",os.getenv("COMPASS_ROOT")]).replace("\n", "") + "_" + str(ind) + ".h5"
             h5u.save_hdf5(savename, "imat", p_rtc.controllers[ncontrol].imat)
 
 
@@ -2672,10 +2672,10 @@ cpdef cmat_init(int ncontrol, Rtc g_rtc, Param_rtc p_rtc, list p_wfs, Param_atmo
                 U = g_rtc.getU(ncontrol)
                 df = pandas.read_hdf(shesha_savepath + "/matricesDataBase.h5", "eigenv")
                 ind = len(df.index) - 1
-                savename = dirsave + "eigenv_r" + check_output("svnversion").replace("\n", "") + "_" + str(ind) + ".h5"
+                savename = dirsave + "eigenv_r" + check_output(["svnversion",os.getenv("COMPASS_ROOT")]).replace("\n", "") + "_" + str(ind) + ".h5"
                 h5u.save_hdf5(savename, "eigenv", eigenv)
 
-                savename = dirsave + "U_r" + check_output("svnversion").replace("\n", "") + "_" + str(ind) + ".h5"
+                savename = dirsave + "U_r" + check_output(["svnversion",os.getenv("COMPASS_ROOT")]).replace("\n", "") + "_" + str(ind) + ".h5"
                 h5u.save_hdf5(savename, "U", U)
 
         else:

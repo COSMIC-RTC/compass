@@ -402,7 +402,7 @@ cdef atmos_create(naga_context c, int nscreens,
         else:
             A, B, istx, isty = itK.AB(dim_screens[i], L0[i], deltax[i], deltay[i], verbose)
             if not(clean):
-                svnversion = check_output("svnversion").replace("\n", "")
+                svnversion = check_output(["svnversion",os.getenv("COMPASS_ROOT")]).replace("\n", "")
                 print "writing files and updating database"
                 df = pandas.read_hdf(
                     shesha_savepath + "/matricesDataBase.h5", "A")

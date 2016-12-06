@@ -326,7 +326,7 @@ def script4bench(param_file,centroider,controller, devices, fwrite=True):
 
     date=datetime.datetime.now()
     date=[date.year,date.month,date.day]
-    svnversion=str(check_output("svnversion").replace("\n",""))
+    svnversion=str(check_output(["svnversion",os.getenv("COMPASS_ROOT")]).replace("\n",""))
     hostname=check_output("hostname").replace("\n","")
     nb_cpu,cpu = get_processor_name()
     imat = rtc.get_imat(0)
