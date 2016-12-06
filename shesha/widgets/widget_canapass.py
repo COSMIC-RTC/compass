@@ -88,7 +88,8 @@ class widgetAOWindow(TemplateBaseClass):
         self.assistant = None
         self.selector_init = None
 
-        self.brama_flag = 1
+        self.brama_rtc_flag = 1
+        self.brama_tar_flag = 1
         self.see_atmos = 0
 
         #############################################################
@@ -356,12 +357,12 @@ class widgetAOWindow(TemplateBaseClass):
 
         self.tar = ao.target_init(self.c, self.tel, self.config.p_target, self.config.p_atmos,
                                   self.config.p_geom, self.config.p_tel, self.config.p_wfss,
-                                  self.wfs, self.config.p_dms, brama=self.brama_flag)
+                                  self.wfs, self.config.p_dms, brama=self.brama_tar_flag)
 
         self.rtc = ao.rtc_init(self.tel, self.wfs, self.config.p_wfss, self.dms, self.config.p_dms,
                                self.config.p_geom, self.config.p_rtc, self.config.p_atmos,
                                self.atm, self.config.p_tel, self.config.p_loop, do_refslp=False, clean=1, simul_name="",
-                               load={}, brama=self.brama_flag, brama_tar=self.tar)
+                               load={}, brama=self.brama_rtc_flag, g_tar=self.tar)
         self.rtc.set_openloop(0, 1)
 
         for i in range(len(self.config.p_atmos.alt)):
@@ -504,7 +505,7 @@ class widgetAOWindow(TemplateBaseClass):
         self.ui.wao_SRPlotWindow.canvas.draw()
 
     def updateDisplay(self):
-        if (not self.loaded) and (self.ui.wao_Display.isChecked()):
+        if (not self.loaded) or (not self.ui.wao_Display.isChecked()):
             # print " widget not fully initialized"
             return
 
@@ -761,8 +762,9 @@ class widgetAOWindow(TemplateBaseClass):
                     self.rtc.doclipping(0, -1e5, 1e5)
                     self.rtc.applycontrol(0, self.dms)
 
-                if(wao.brama_flag):
-                    self.rtc.publish()  # rtc_publish, g_rtc;
+                if(wao.brama_rtc_flag):
+                    self.rtc.publish()
+                if(wao.brama_tar_flag):
                     self.tar.publish()
 
                 refreshDisplayTime = 1. / self.ui.wao_frameRate.value()

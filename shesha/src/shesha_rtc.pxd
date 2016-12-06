@@ -79,6 +79,7 @@ cdef class Rtc:
     cpdef set_decayFactor(self, int ncontro, np.ndarray[ndim=1, dtype=np.float32_t] decay)
     cpdef set_matE(self, int ncontro, np.ndarray[ndim=2, dtype=np.float32_t] matE)
     cpdef set_openloop(self, int ncontro, int openloop)
+    cpdef set_commandlaw(self, int ncontro, bytes law)
     cpdef load_Btt(self,int ncontro, np.ndarray[ndim=2,dtype=np.float32_t] Btt)
     cpdef getGeocov(self,int ncontro)
     cpdef get_IFtt(self,int ncontro)

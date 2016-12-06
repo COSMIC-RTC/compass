@@ -871,6 +871,26 @@ cdef class Rtc:
         cdef sutra_controller * controller = self.rtc.d_control[ncontrol]
         controller.set_openloop(openloop)
 
+    cpdef set_commandlaw(self, int ncontrol, bytes law):
+        """Set the law to a sutra_controller_generic object
+
+        :parameters:
+            ncontrol: (int) : controller index
+
+            law: law of the controller
+        """
+        cdef carma_context * context = &carma_context.instance()
+        context.set_activeDeviceForCpy(self.rtc.device, 1)
+
+        cdef sutra_controller_generic * controller_generic
+        cdef bytes type_control = < bytes > self.rtc.d_control[ncontrol].get_type()
+
+        if(type_control == "generic"):
+            controller_generic = dynamic_cast_controller_generic_ptr(self.rtc.d_control[ncontrol])
+            controller_generic.set_commandlaw(law)
+        else:
+            raise TypeError("Controller needs to be ls, mv or generic")
+
     cpdef doimat_geom(self, int ncontrol, Dms g_dms, int geom):
         """Compute the interaction matrix by using a geometric centroiding method
 
@@ -1225,22 +1245,22 @@ cdef class Rtc:
 
         return data
 
-    cpdef getGeocov(self,int ncontro):
+    cpdef getGeocov(self,int ncontrol):
         """Return the geocov matrix of the sutra_controller_geo object. In case of error_budget computation, this matrix is Btt basis
         :parameters:
-            ncontro: (int) : controller index
+            ncontrol: (int) : controller index
         :return:
             geocov : (np.ndarray[ndim=2,dtype=np.float32_t]) : geocov matrix
         """
         cdef carma_context *context=&carma_context.instance()
         context.set_activeDeviceForCpy(self.rtc.device,1)
         cdef sutra_controller_geo *controller_geo
-        cdef bytes type_contro=<bytes>self.rtc.d_control[ncontro].get_type()
+        cdef bytes type_contro=<bytes>self.rtc.d_control[ncontrol].get_type()
         cdef np.ndarray[ndim=2, dtype=np.float32_t] data
         cdef np.ndarray[ndim=2, dtype=np.float32_t] data_F
         cdef const long *dims
         if(type_contro=="geo"):
-            controller_geo=dynamic_cast_controller_geo_ptr(self.rtc.d_control[ncontro])
+            controller_geo=dynamic_cast_controller_geo_ptr(self.rtc.d_control[ncontrol])
             dims=controller_geo.d_geocov.getDims()
             data_F=np.zeros((dims[2],dims[1]),dtype=np.float32)
             controller_geo.d_geocov.device2host(<float*>data_F.data)
@@ -1249,22 +1269,22 @@ cdef class Rtc:
 
         return data
 
-    cpdef get_IFtt(self,int ncontro):
+    cpdef get_IFtt(self,int ncontrol):
         """Return the TT IF matrix of the sutra_controller_geo object (in case of error_budget computation)
         :parameters:
-            ncontro: (int) : controller index
+            ncontrol: (int) : controller index
         :return:
             geocov : (np.ndarray[ndim=2,dtype=np.float32_t]) : IF TT matrix
         """
         cdef carma_context *context=&carma_context.instance()
         context.set_activeDeviceForCpy(self.rtc.device,1)
         cdef sutra_controller_geo *controller_geo
-        cdef bytes type_contro=<bytes>self.rtc.d_control[ncontro].get_type()
+        cdef bytes type_contro=<bytes>self.rtc.d_control[ncontrol].get_type()
         cdef np.ndarray[ndim=2, dtype=np.float32_t] data
         cdef np.ndarray[ndim=2, dtype=np.float32_t] data_F
         cdef const long *dims
         if(type_contro=="geo"):
-            controller_geo=dynamic_cast_controller_geo_ptr(self.rtc.d_control[ncontro])
+            controller_geo=dynamic_cast_controller_geo_ptr(self.rtc.d_control[ncontrol])
             if(controller_geo.Ntt):
                 dims=controller_geo.d_TT.getDims()
                 data_F=np.zeros((dims[2],dims[1]),dtype=np.float32)
@@ -1568,23 +1588,23 @@ cdef class Rtc:
         else:
             raise TypeError("Controller needs to be geo")
 
-    cpdef load_Btt(self,int ncontro, np.ndarray[ndim=2,dtype=np.float32_t] Btt):
+    cpdef load_Btt(self,int ncontrol, np.ndarray[ndim=2,dtype=np.float32_t] Btt):
         """Load the Btt basis for sutra_controller_geo projection in case of error_budget
 
         :parameters:
-            ncontro: (int) : controller index
+            ncontrol: (int) : controller index
             Btt: (np.ndarray[ndim=2,dtype=np.float32_t]) : Btt basis
         """
         cdef carma_context *context=&carma_context.instance()
         context.set_activeDeviceForCpy(self.rtc.device,1)
         cdef sutra_controller_geo *controller_geo
-        cdef bytes type_contro=<bytes>self.rtc.d_control[ncontro].get_type()
+        cdef bytes type_contro=<bytes>self.rtc.d_control[ncontrol].get_type()
         cdef np.ndarray TT = Btt[-2:,-2:].copy()
         cdef np.ndarray Btt_F=Btt[:-2,:-2].copy().flatten('F')
         cdef np.ndarray TT_F=TT.flatten('F')
 
         if(type_contro=="geo"):
-            controller_geo=dynamic_cast_controller_geo_ptr(self.rtc.d_control[ncontro])
+            controller_geo=dynamic_cast_controller_geo_ptr(self.rtc.d_control[ncontrol])
             controller_geo.load_Btt(<float*>Btt_F.data, <float*>TT_F.data)
         else:
             raise TypeError("Controller needs to be geo")
@@ -1670,7 +1690,7 @@ cdef class Rtc:
 
 def rtc_init(Telescope g_tel, Sensors g_wfs, p_wfs, Dms g_dms, p_dms, Param_geom p_geom, Param_rtc p_rtc,
             Param_atmos p_atmos, Atmos g_atmos, Param_tel p_tel, Param_loop p_loop, do_refslp=False,
-            clean=1, brama=None, Target brama_tar=None, doimat=1, simul_name="", load={}):
+            clean=1, brama=None, Target g_tar=None, doimat=1, simul_name="", load={}):
     """Initialize all the sutra_rtc objects : centroiders and controllers
 
     :parameters:
@@ -1700,7 +1720,7 @@ def rtc_init(Telescope g_tel, Sensors g_wfs, p_wfs, Dms g_dms, p_dms, Param_geom
 
         brama: (int) : (optional)
 
-        brama_tar: (Target) : (optional)
+        g_tar: (Target) : (optional)
 
         doimat: (int) : (optional) force imat computation
 
@@ -1714,9 +1734,9 @@ def rtc_init(Telescope g_tel, Sensors g_wfs, p_wfs, Dms g_dms, p_dms, Param_geom
     """
     IF USE_BRAMA:
         if(brama == 1) :
-            if brama_tar is None:
-                raise "g_tar not defined"
-            g_rtc = Rtc_brama(g_wfs, brama_tar)
+            if g_tar is None:
+                raise "Target not defined"
+            g_rtc = Rtc_brama(g_wfs, g_tar)
         else:
             g_rtc = Rtc()
     ELSE:
