@@ -99,7 +99,7 @@ void carma_initfft(const long *dims_data, cufftHandle *plan, cufftType tPlan) {
 
   tPlan = carma_select_plan<T_in, T_out>();
   if (tPlan == -1) {
-    fprintf(stderr, "Wrong data type\n");
+    DEBUG_TRACE("Wrong data type");
     throw "Wrong data type\n";
   }
   if (dims_data[0] == 1)

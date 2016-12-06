@@ -86,9 +86,8 @@ carma_context::carma_context() {
   this->activeDevice = -1;
 
   if (this->ndevice == 0) {
-    fprintf(stderr,
-            "carma_context() CUDA error: no devices supporting CUDA.\n");
-    throw "carma_context() CUDA error: no devices supporting CUDA.\n";
+    DEBUG_TRACE("carma_context() CUDA error: no devices supporting CUDA.");
+    throw "carma_context() CUDA error: no devices supporting CUDA.";
   }
 
   int const size = this->ndevice;
@@ -116,18 +115,15 @@ void carma_context::init_context(const int nb_devices, int32_t *devices_id) {
   carmaSafeCall(cudaGetDeviceCount(&n_cuda_devices));
 
   if (!n_cuda_devices) {
-    fprintf(stderr,
-            "carma_context() CUDA error: no devices supporting CUDA.\n");
-    throw "carma_context() CUDA error: no devices supporting CUDA.\n";
+    DEBUG_TRACE("carma_context() CUDA error: no devices supporting CUDA.");
+    throw "carma_context() CUDA error: no devices supporting CUDA.";
   }
 
   if (nb_devices > n_cuda_devices) {
-    fprintf(
-      stderr,
-      "carma_context() CUDA error: not enougth devices supporting CUDA. ask %d, available %d\n",
+    DEBUG_TRACE("carma_context() CUDA error: not enougth devices supporting CUDA. ask %d, available %d",
       nb_devices,
       n_cuda_devices);
-    throw "carma_context() CUDA error: not enougth devices supporting CUDA.\n";
+    throw "carma_context() CUDA error: not enougth devices supporting CUDA.";
   }
 
   this->ndevice = nb_devices;

@@ -139,7 +139,6 @@ int carma_syevd_m_gen(magma_int_t ngpu, magma_vec_t jobz, magma_int_t N,
                 &info),
     info, info = 0);
 
-  // fprintf(stderr, "%s@%d : I'm here\n", __FILE__, __LINE__);
   lwork  = (magma_int_t)aux_work[0];
   liwork = aux_iwork[0];
 
