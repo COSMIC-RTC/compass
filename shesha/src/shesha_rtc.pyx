@@ -1734,8 +1734,6 @@ def rtc_init(Telescope g_tel, Sensors g_wfs, p_wfs, Dms g_dms, p_dms, Param_geom
     """
     IF USE_BRAMA:
         if(brama == 1) :
-            if g_tar is None:
-                raise "Target not defined"
             g_rtc = Rtc_brama(g_wfs, g_tar)
         else:
             g_rtc = Rtc()
@@ -3073,12 +3071,14 @@ def compute_cmatWithKL(Rtc rtc, Param_controller p_control, Dms dms, list p_dms,
 
 IF USE_BRAMA == 1:
     cdef class Rtc_brama(Rtc):  # child constructor must have the same prototype (same number of non-optional arguments)
-        def __cinit__(self, Sensors sensor=None, Target target=None, device=-1):
+        def __cinit__(self, Sensors sensor, Target target=None, device=-1):
             del self.rtc
 
             cdef carma_context * context = &carma_context.instance()
-            self.rtc = new sutra_rtc_brama(context, sensor.sensors, target.target, "rtc_brama")
-
+            if target is not None:
+                self.rtc = new sutra_rtc_brama(context, sensor.sensors, target.target, "rtc_brama")
+            else:
+                self.rtc = new sutra_rtc_brama(context, sensor.sensors, NULL, "rtc_brama")
         def __dealloc__(self):
             pass  # del self.rtc
 

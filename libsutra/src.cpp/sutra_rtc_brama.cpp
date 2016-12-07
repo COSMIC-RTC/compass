@@ -32,7 +32,12 @@ sutra_rtc(context), wfs(wfs_), target(target_) {
     brama->create_publisher();
 
     // Register the BRAMA types
-    brama->register_all_data_types();
+//    brama->register_all_data_types();
+    brama->register_command_type("Commands");
+    brama->register_superframe_type("Super Frames");
+    if(target != NULL)
+      brama->register_megaframe_type("Mega Frames");
+
 
     // Create an BRAMA Command listener
     cmd_listener = (new sutra_rtc_bramaListenerImpl);
@@ -60,19 +65,21 @@ sutra_rtc(context), wfs(wfs_), target(target_) {
     BRAMA::SuperFrame xFrame;
     superframe_handle = superframe_dw->register_instance(xFrame);
 
-    megaframe_base_dw = brama->create_datawriter(topics[MegaFrameType]);
-    if (CORBA::is_nil(megaframe_base_dw.in())) {
-      cerr << "create_datawriter for " << topics[MegaFrameType] << " failed." << endl;
-      ACE_OS::exit(1);
-    }
-    megaframe_dw = BRAMA::MegaFrameDataWriter::_narrow(
-        megaframe_base_dw.in());
-    if (CORBA::is_nil(megaframe_dw.in())) {
-      throw "MegaFrameDataWriter could not be narrowed";
-    }
+    if(target != NULL) {
+      megaframe_base_dw = brama->create_datawriter(topics[MegaFrameType]);
+      if (CORBA::is_nil(megaframe_base_dw.in())) {
+        cerr << "create_datawriter for " << topics[MegaFrameType] << " failed." << endl;
+        ACE_OS::exit(1);
+      }
+      megaframe_dw = BRAMA::MegaFrameDataWriter::_narrow(
+          megaframe_base_dw.in());
+      if (CORBA::is_nil(megaframe_dw.in())) {
+        throw "MegaFrameDataWriter could not be narrowed";
+      }
 
-    BRAMA::MegaFrame zFrame;
-    megaframe_handle = megaframe_dw->register_instance(zFrame);
+      BRAMA::MegaFrame zFrame;
+      megaframe_handle = megaframe_dw->register_instance(zFrame);
+    }
 
   } catch (CORBA::Exception& e) {
     cerr << "Exception caught in main.cpp:" << endl << e << endl;
@@ -115,8 +122,10 @@ void sutra_rtc_brama::allocateBuffers() {
     }
 
     target_size = 0;
-    for (unsigned int i = 0; i < target->d_targets.size(); i++) {
-      target_size += target->d_targets[i]->d_image->getNbElem();
+    if(target != 0L) {
+      for (unsigned int i = 0; i < target->d_targets.size(); i++) {
+        target_size += target->d_targets[i]->d_image->getNbElem();
+      }
     }
 
     nslp = 0;
@@ -131,8 +140,11 @@ void sutra_rtc_brama::allocateBuffers() {
     buff_intensities = BRAMA::Values::allocbuf(nvalid * sizeof(float));
     buff_slopes = BRAMA::Values::allocbuf(nslp * sizeof(float));
     buff_commands = BRAMA::Values::allocbuf(ncmd * sizeof(float));
-    buff_target = BRAMA::Values::allocbuf(target_size * sizeof(float));
-
+    if(target != NULL) {
+      buff_target = BRAMA::Values::allocbuf(target_size * sizeof(float));
+    } else {
+      buff_target = NULL;
+    }
     dims_wfs = BRAMA::Dims::allocbuf(2);
     dims_wfs[0] = 1;
     dims_wfs[1] = wfs_size;
@@ -191,22 +203,24 @@ void sutra_rtc_brama::publish() {
     ncmd_current += d_control[i]->nactu();
   }
 
-  idx = 0;
-  for (size_t i = 0; i < target->d_targets.size(); i++) {
-    carma_obj<float> tmp_img(target->d_targets[i]->current_context, target->d_targets[i]->d_image->getDims());
-    float flux = target->d_targets[i]->zp
-        * powf(10, -0.4 * target->d_targets[i]->mag);
-    roll_mult<float>(
-        tmp_img.getData(),
-        target->d_targets[i]->d_image->getData(),
-        target->d_targets[i]->d_image->getDims(1),
-        target->d_targets[i]->d_image->getDims(2),
-        flux,
-        target->d_targets[i]->current_context->get_device(
-            target->d_targets[i]->device));
-    tmp_img.device2host(buff_target_servant + idx);
+  if(target != NULL) {
+    idx = 0;
+    for (size_t i = 0; i < target->d_targets.size(); i++) {
+      carma_obj<float> tmp_img(target->d_targets[i]->current_context, target->d_targets[i]->d_image->getDims());
+      float flux = target->d_targets[i]->zp
+          * powf(10, -0.4 * target->d_targets[i]->mag);
+      roll_mult<float>(
+          tmp_img.getData(),
+          target->d_targets[i]->d_image->getData(),
+          target->d_targets[i]->d_image->getDims(1),
+          target->d_targets[i]->d_image->getDims(2),
+          flux,
+          target->d_targets[i]->current_context->get_device(
+              target->d_targets[i]->device));
+      tmp_img.device2host(buff_target_servant + idx);
 
-    idx += target->d_targets[i]->d_image->getNbElem();
+      idx += target->d_targets[i]->d_image->getNbElem();
+    }
   }
 
   BRAMA::MegaFrame zFrame;
@@ -258,15 +272,16 @@ void sutra_rtc_brama::publish() {
   zFrame.target.sizeofelements = sizeof(float);
 
 //cout << "Publishing zFrame: " << zFrame.framecounter << endl;
-  DDS::ReturnCode_t ret = megaframe_dw->write(zFrame, megaframe_handle);
-
-  if (ret != DDS::RETCODE_OK) {
-    ACE_ERROR(
-        (LM_ERROR, ACE_TEXT("(%P|%t)ERROR: megaframe write returned %d.\n"), ret));
-    return;
+  if(target != NULL) {
+    DDS::ReturnCode_t ret = megaframe_dw->write(zFrame, megaframe_handle);
+    if (ret != DDS::RETCODE_OK) {
+      ACE_ERROR(
+          (LM_ERROR, ACE_TEXT("(%P|%t)ERROR: megaframe write returned %d.\n"), ret));
+      return;
+    }
   }
 
-  ret = superframe_dw->write(zFrame.loopData, superframe_handle);
+  DDS::ReturnCode_t ret = superframe_dw->write(zFrame.loopData, superframe_handle);
 
   if (ret != DDS::RETCODE_OK) {
     ACE_ERROR(

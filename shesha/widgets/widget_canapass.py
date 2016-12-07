@@ -89,7 +89,7 @@ class widgetAOWindow(TemplateBaseClass):
         self.selector_init = None
 
         self.brama_rtc_flag = 1
-        self.brama_tar_flag = 1
+        self.brama_tar_flag = 0
         self.see_atmos = 0
 
         #############################################################
@@ -362,7 +362,7 @@ class widgetAOWindow(TemplateBaseClass):
         self.rtc = ao.rtc_init(self.tel, self.wfs, self.config.p_wfss, self.dms, self.config.p_dms,
                                self.config.p_geom, self.config.p_rtc, self.config.p_atmos,
                                self.atm, self.config.p_tel, self.config.p_loop, do_refslp=False, clean=1, simul_name="",
-                               load={}, brama=self.brama_rtc_flag, g_tar=self.tar)
+                               load={}, brama=self.brama_rtc_flag, g_tar=None)
         self.rtc.set_openloop(0, 1)
 
         for i in range(len(self.config.p_atmos.alt)):
