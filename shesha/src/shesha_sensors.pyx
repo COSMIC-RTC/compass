@@ -959,7 +959,7 @@ cpdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
         wsubok = np.where(pupreb >= wfs.fracsub)
         pupvalid = pupreb * 0.
         pupvalid[wsubok] = 1
-        wfs._isvalid = pupvalid.astype(np.int32)
+        wfs._isvalid = pupvalid.T.astype(np.int32)
 
         validsubsx = np.where(pupvalid)[0].astype(np.int32)
         validsubsy = np.where(pupvalid)[1].astype(np.int32)
@@ -986,7 +986,7 @@ cpdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
 
         wfs._fluxPerSub = fluxPerSub
 
-        phasemap = np.zeros((wfs.npix, wfs.npix, wfs._nvalid), dtype=np.int32)
+        phasemap = np.zeros((wfs.npix * wfs.npix, wfs._nvalid), dtype=np.int32)
         x,y=indices(geom._n) #we need c-like indice
         x-=1
         y-=1
@@ -995,9 +995,9 @@ cpdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
         pyrtmp = np.zeros((geom._n,geom._n), dtype=np.int32)
 
         for i in range(wfs._nvalid):
-            indi=istart[validsubsx[i]] #+2-1 (yorick->python
-            indj=jstart[validsubsy[i]]
-            phasemap[:,:,i]=tmp[indi:indi+wfs.npix, indj:indj+wfs.npix]
+            indi=istart[validsubsy[i]] #+2-1 (yorick->python
+            indj=jstart[validsubsx[i]]
+            phasemap[:,i]=tmp[indi:indi+wfs.npix, indj:indj+wfs.npix].flatten("C")
             pyrtmp[indi:indi+wfs.npix, indj:indj+wfs.npix] = i
 
         wfs._phasemap = phasemap
@@ -1800,7 +1800,7 @@ cdef class Sensors:
                 1j * wfs._halfxy).astype(np.complex64).flatten("F").copy()
             pyr_halfxy = < cuFloatComplex * > tmp_halfxy.data
             wfs_pyrhr = dynamic_cast_wfs_pyr_pyrhr_ptr(self.sensors.d_wfs[n])
-            wfs_pyrhr.wfs_initarrays(pyr_halfxy, cx, cy, sincar, validx, validy, phasemap, fluxPerSub)
+            wfs_pyrhr.wfs_initarrays(pyr_halfxy, cx, cy, sincar, validy, validx, phasemap, fluxPerSub)
 
         elif(self.sensors.d_wfs[n].type == < bytes > "roof"):
             tmp_offset = wfs.__pyr_offsets.flatten("F").copy()
