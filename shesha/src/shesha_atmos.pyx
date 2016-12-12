@@ -91,8 +91,8 @@ def atmos_init(naga_context c, Param_atmos atm, Param_tel tel, Param_geom geom,
     # compute phase screens speed in pixels / iteration
     atm.deltax = geom.pupdiam / tel.diam * atm.windspeed * \
         np.cos(dtor * geom.zenithangle) * ittime
-    atm.deltay = atm.deltax * np.sin(dtor * (atm.winddir))
-    atm.deltax = atm.deltax * np.cos(dtor * (atm.winddir))
+    atm.deltay = atm.deltax * np.sin(dtor * (atm.winddir) + np.pi)
+    atm.deltax = atm.deltax * np.cos(dtor * (atm.winddir) + np.pi)
 
     if(atm.frac.size == 1):
         atm.frac = np.ones((1), dtype=np.float32)
