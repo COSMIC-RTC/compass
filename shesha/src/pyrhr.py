@@ -11,7 +11,12 @@ plt.ion()
 #from iterkolmo import *
 import iterkolmo
 import pylab
-
+import sys
+import os
+sys.path.insert(0, os.environ["SHESHA_ROOT"] + "/src/")
+from tools import plsh
+from mpl_toolkits.axes_grid1 import make_axes_locatable
+plt.rcParams['image.cmap'] = 'viridis'
 """
 DOCUMENT
 Generate Koolmogorov Phase Screen;
@@ -49,7 +54,7 @@ def rebin(a, shape):
     return a.reshape(sh).mean(-1).mean(1)
 
 
-def pyr_analysis(n, mod, N, Dtel, obs, nrebin, l, _pix, Amp, mv, Pangle, p, pup=False, noise=False, disp=True):
+def pyr_analysis(n, mod, N, Dtel, obs, nrebin, l, _pix, Amp, mv, Pangle, p, pupsub, pup=False, noise=False, disp=True):
     """
     DOCUMENT
     Simulate perfect pyramid wavefront sensor analysis without noise;
@@ -198,13 +203,13 @@ def pyr_analysis(n, mod, N, Dtel, obs, nrebin, l, _pix, Amp, mv, Pangle, p, pup=
         PUPIM = np.random.poisson(PUPIM) #Bruit de photons
         PUPIM = PUPIM*1.0 + np.random.normal(0,0.5,(n,n)) #Bruit lecture gaussien e- rms/pix
 
-
+    """
     IA1 = PUPIM[int(n/2-D/2-Pangle)+1 : int(n/2+D/2-Pangle)+1 , int(n/2-D/2-Pangle)+1 : int(n/2+D/2-Pangle)+1]
     IB1 = PUPIM[int(n/2-D/2+Pangle)+1 : int(n/2+D/2+Pangle)+1 , int(n/2-D/2-Pangle)+1 : int(n/2+D/2-Pangle)+1]
     IC1 = PUPIM[int(n/2-D/2-Pangle)+1 : int(n/2+D/2-Pangle)+1 , int(n/2-D/2+Pangle)+1 : int(n/2+D/2+Pangle)+1]
     ID1 = PUPIM[int(n/2-D/2+Pangle)+1 : int(n/2+D/2+Pangle)+1 , int(n/2-D/2+Pangle)+1 : int(n/2+D/2+Pangle)+1]
-
-    # nouvelle version (corrected by Fab)
+    """
+    # nouvelle version (corrected by Rico & Fab)
     x1 = int(n/2-D/2-Pangle)
     y1 = x1 + int(D)
     x2 = n - y1
@@ -224,31 +229,79 @@ def pyr_analysis(n, mod, N, Dtel, obs, nrebin, l, _pix, Amp, mv, Pangle, p, pup=
 
 
     Itot = IA + IB + IC + ID
-    Sx = ppup*(IB+ID -(IA+IC))/(Itot)
-    Sy = ppup*(IC+ID -(IA+IB))/(Itot)
+    Sx = ppup*((IA+IC) - (IB+ID))/(Itot)
+    Sy = ppup*((IA+IB) - (IC+ID))/(Itot)
     dwx = mod*np.sin(0.5*np.pi*Sx)
     dwy = mod*np.sin(0.5*np.pi*Sy) # en unite lam/D
 
+
+    # Low resolution:
+    #ppup_LR = rebin(ppup, (ppup.shape[0]/nrebin, ppup.shape[1]/nrebin))
+    xx1 = int(n/2-D/2-Pangle)/nrebin
+    yy1 = xx1 + int(D)/nrebin
+    xx2 = n/nrebin - yy1
+    yy2 = n/nrebin - xx1
+    IA_LR = PUPIM_LR[xx1:yy1, xx1:yy1]
+    IB_LR = PUPIM_LR[xx2:yy2, xx1:yy1]
+    IC_LR = PUPIM_LR[xx1:yy1, xx2:yy2]
+    ID_LR = PUPIM_LR[xx2:yy2, xx2:yy2]
+    Itot_LR = IA_LR + IB_LR + IC_LR + ID_LR
+    Sx_LR = pupsub*((IA_LR+IC_LR) - (IB_LR+ID_LR))/(Itot_LR)
+    Sy_LR = pupsub*((IA_LR+IB_LR) - (IC_LR+ID_LR))/(Itot_LR)
+    dwx_LR = mod*np.sin(0.5*np.pi*Sx_LR)
+    dwy_LR = mod*np.sin(0.5*np.pi*Sy_LR) # en unite lam/D
+
+
+    ind = np.where(pupsub.flatten())[0]
+    slopesx = dwx_LR.flatten()[ind]
+    slopesy = dwy_LR.flatten()[ind]
+
+    slopes = np.zeros(slopesx.shape[0]*2)
+    slopes[:len(ind)] = slopesx
+    slopes[len(ind):] = slopesy
 
     if(disp):
         axes2[0].matshow(PUPIM0, cmap="gist_earth")
         axes2[0].set_title("PYRAMID image High Resolution")
         axes2[1].matshow(PUPIM_LR, cmap="gist_earth")
         axes2[1].set_title("PYRAMID image Low Resolution")
+        #divider1 = make_axes_locatable(axes2[0])
+        #cax1 = divider1.append_axes("right", size="20%", pad=0.05)
+        #cbar1 = plt.colorbar(PUPIM0, cax=cax1)
+        #divider2 = make_axes_locatable(axes2[1])
+        #cax2 = divider2.append_axes("right", size="20%", pad=0.05)
+        #cbar2 = plt.colorbar(PUPIM_LR, cax=cax2)
 
         axes3[0, 0].matshow(dwx, cmap="gist_earth")
+        #divider3 = make_axes_locatable(axes3[0, 0])
+        #cax3 = divider3.append_axes("right", size="20%", pad=0.05)
+        #cbar3 = plt.colorbar(dwx, cax=cax3)
         axes3[0, 1].matshow(dwy, cmap="gist_earth")
+        #divider4 = make_axes_locatable(axes3[0, 1])
+        #cax4 = divider4.append_axes("right", size="20%", pad=0.05)
+        #cbar4 = plt.colorbar(dwy, cax=cax4)
         axes3[0, 0].set_title("GRAD (x) High Resolution")
         axes3[0, 1].set_title("GRAD (y) High Resolution")
 
-        #axes3[1, 0].matshow(dwx_lr, cmap="gist_earth")
-        #axes3[1, 1].matshow(dwy_lr, cmap="gist_earth")
+
+
+
+        axes3[1, 0].matshow(dwx_LR, cmap="gist_earth")
+        #divider5 = make_axes_locatable(axes3[1, 0])
+        #cax5 = divider5.append_axes("right", size="20%", pad=0.05)
+        #cbar5 = plt.colorbar(dwx_LR, cax=cax5)
+        axes3[1, 1].matshow(dwy_LR, cmap="gist_earth")
+        #divider6 = make_axes_locatable(axes3[1, 1])
+        #cax6 = divider6.append_axes("right", size="20%", pad=0.05)
+        #cbar6 = plt.colorbar(dwy_LR, cax=cax5)
         axes3[1, 0].set_title("GRAD (x) Low Resolution")
         axes3[1, 1].set_title("GRAD (y) Low Resolution")
 
         fig1.tight_layout(pad=0.1, h_pad=0.5, w_pad=0.5,rect=None)
         fig2.tight_layout(pad=0.1, h_pad=0.5, w_pad=0.5,rect=None)
         fig3.tight_layout(pad=0.1, h_pad=0.5, w_pad=0.5,rect=None)
+        plt.figure(15)
+        plsh(slopes, pupsub.shape[0], obs)
 
     """
     gradx=np.zeros((n,n)) #Gradient theorique du front d'onde
@@ -265,7 +318,7 @@ def pyr_analysis(n, mod, N, Dtel, obs, nrebin, l, _pix, Amp, mv, Pangle, p, pup=
     grady /= z  # radians d'angle  (note: z=Dtel/D)
     grady /= l/Dtel   #   unites lam/D
     """
-    return PUPIM0, PUPIM, dwx, dwy, IA, IB, IC, ID, IA1, IB1, IC1, ID1
+    return PUPIM0, PUPIM, dwx, dwy, IA, IB, IC, ID, slopes
 
 
 def compPyrCOMPASS(wao):
@@ -290,9 +343,9 @@ def compPyrCOMPASS(wao):
         pup = p.copy()
         p[(n-ncompass)/2:(n+ncompass)/2, (n-ncompass)/2:(n+ncompass)/2] = phasehrCOMPASS*2*np.pi/l*1e-6
         pup[(n-ncompass)/2:(n+ncompass)/2, (n-ncompass)/2:(n+ncompass)/2] = pupCOMPASS
-
-        PUPIM_HR, PUPIM_LR, dwx, dwy, IA, IB, IC, ID, IA1, IB1, IC1, ID1 = pyr_analysis(n,mod,N,Dtel,obs, nrebin, l,_pix,Amp, mv, Pangle, p, pup=pup)
-        return PUPIM_HR, PUPIM_LR, dwx, dwy, IA, IB, IC, ID, IA1, IB1, IC1, ID1
+        pupsub = wao.config.p_wfs0._isvalid[1:-1,1:-1]
+        PUPIM0, PUPIM, dwx, dwy, IA, IB, IC, ID, slopes = pyr_analysis(n,mod,N,Dtel,obs, nrebin, l,_pix,Amp, mv, Pangle, p, pupsub, pup=pup)
+        return PUPIM0, PUPIM, dwx, dwy, IA, IB, IC, ID, slopes
 """
 from iterkolmo import *
 n=1024
