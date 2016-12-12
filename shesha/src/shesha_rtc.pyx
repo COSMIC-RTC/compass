@@ -2485,8 +2485,10 @@ cpdef compute_KL2V(Param_controller controller, Dms dms, p_dms, Param_geom p_geo
             print "compute klbasis done"
         elif(p_dms[ndm].type_dm == "tt"):
             nTT += 1
-
-    #KL2V = KL2V[:, :controller.nmodes]
+    if(controller.nmodes != 0 and controller.nmodes < KL2V.shape[1]-2*nTT):
+        KL2V = KL2V[:, :controller.nmodes]
+    else:
+        KL2V = KL2V[:, :KL2V.shape[1]-2*nTT]
 
     if(nTT > 1):
       raise "More than 1 TipTilt found! Stupid"
