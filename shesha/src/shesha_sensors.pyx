@@ -827,7 +827,7 @@ cpdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
         # pyr_focmask = np.roll(focmask,focmask.shape[0]/2,axis=0)
         # pyr_focmask = np.roll(pyr_focmask,focmask.shape[1]/2,axis=1)
         pyr_focmask = focmask * 1.0  # np.fft.fftshift(focmask*1.0)
-        wfs._submask = pyr_focmask
+        wfs._submask = np.fft.fftshift(pyr_focmask)
 
         # Creating pyramid mask
         pyrsize = wfs._Nfft
@@ -1800,7 +1800,7 @@ cdef class Sensors:
                 1j * wfs._halfxy).astype(np.complex64).flatten("F").copy()
             pyr_halfxy = < cuFloatComplex * > tmp_halfxy.data
             wfs_pyrhr = dynamic_cast_wfs_pyr_pyrhr_ptr(self.sensors.d_wfs[n])
-            wfs_pyrhr.wfs_initarrays(pyr_halfxy, cx, cy, sincar, validy, validx, phasemap, fluxPerSub)
+            wfs_pyrhr.wfs_initarrays(pyr_halfxy, cx, cy, sincar, submask, validy, validx, phasemap, fluxPerSub)
 
         elif(self.sensors.d_wfs[n].type == < bytes > "roof"):
             tmp_offset = wfs.__pyr_offsets.flatten("F").copy()
@@ -2049,6 +2049,55 @@ cdef class Sensors:
         else:
             raise TypeError("wfs should be a pyr")
 
+    def set_submask(self, int n, np.ndarray[ndim=2, dtype=np.float32_t] data):
+        """ Set the field stop of a pyrhr wfs
+
+        :parameters:
+            n: (int) : WFS index
+            data: (np.ndarray[ndim=2, dtype=np.float32_t]) : field stop
+        """
+        return self._set_submask(n,data)
+
+    cdef _set_submask(self, int n, np.ndarray[ndim=2, dtype=np.float32_t] data):
+
+        cdef bytes type_wfs = < bytes > self.sensors.d_wfs[n].type
+        cdef np.ndarray[dtype = np.float32_t] data_F = data.flatten("F")
+        cdef sutra_wfs_pyr_pyrhr * wfs
+
+        if(type_wfs == "pyrhr"):
+            wfs = dynamic_cast_wfs_pyr_pyrhr_ptr(self.sensors.d_wfs[n])
+            wfs.set_submask(<float*> data_F.data)
+        else:
+            raise TypeError("WFS should be a pyrhr for using this function")
+
+    def get_submask(self, int n):
+        """ Get the field stop of a pyrhr wfs
+
+        :parameters:
+            n: (int) : WFS index
+        """
+        return self._get_submask(n)
+
+    cdef _get_submask(self, int n):
+        cdef carma_obj[float] * submask
+        cdef const long * cdims
+        cdef np.ndarray[ndim = 2, dtype = np.float32_t] data
+        cdef np.ndarray[ndim = 2, dtype = np.float32_t] data_F
+        cdef sutra_wfs_pyr_pyrhr * wfs
+        cdef bytes type_wfs = < bytes > self.sensors.d_wfs[n].type
+
+        if(type_wfs == "pyrhr"):
+            wfs = dynamic_cast_wfs_pyr_pyrhr_ptr(self.sensors.d_wfs[n])
+            submask = wfs.d_submask
+            cdims = submask.getDims()
+            data = np.empty((cdims[1], cdims[2]), dtype=np.float32)
+            data_F = np.empty((cdims[2], cdims[1]), dtype=np.float32)
+            submask.device2host( < float * > data_F.data)
+            data = np.reshape(data_F.flatten("F"), (cdims[1], cdims[2]))
+            return data
+
+        else:
+            raise TypeError("WFS should be a pyrhr for using this function")
 #    def set_pyrimghr(self, int n, np.ndarray[ndim=2, dtype=np.float32_t] data):
 #        """Return the image of a pyr wfs
 #
@@ -2278,6 +2327,40 @@ cdef class Sensors:
         cdef np.ndarray[dtype = np.float32_t] data_F = data.flatten("F")
 
         src.d_phase.d_screen.host2device( < float * > data_F.data)
+
+    def comp_new_fstop(self, int n, Param_wfs wfs, float fssize, bytes fstop):
+        """ Compute a new field stop for pyrhr WFS
+        :parameters:
+            n : (int) : WFS index
+            wfs : (Param_wfs) : WFS parameters
+            fssize : (float) : field stop size [arcsec]
+            fstop : (string) : "square" or "round" (field stop shape)
+        """
+        fsradius_pixels = long(fssize / wfs._qpixsize / 2.)
+        if (fstop == "round"):
+            wfs.fstop = str(fstop)
+            focmask = mkP.dist(
+                wfs._Nfft, xc=wfs._Nfft / 2. + 0.5, yc=wfs._Nfft / 2. + 0.5) < (fsradius_pixels)
+            # fstop_area = np.pi * (wfs.fssize/2.)**2. #UNUSED
+        elif (wfs.fstop == "square"):
+            wfs.fstop = str(fstop)
+            x, y = indices(wfs._Nfft)
+            x -= (wfs._Nfft + 1.) / 2.
+            y -= (wfs._Nfft + 1.) / 2.
+            focmask = (np.abs(x) <= (fsradius_pixels)) * \
+                (np.abs(y) <= (fsradius_pixels))
+            # fstop_area = wfs.fssize**2. #UNUSED
+        else:
+            msg = "wfs " + str(n) + ". fstop must be round or square"
+            raise ValueError(msg)
+
+        # pyr_focmask = np.roll(focmask,focmask.shape[0]/2,axis=0)
+        # pyr_focmask = np.roll(pyr_focmask,focmask.shape[1]/2,axis=1)
+        pyr_focmask = focmask * 1.0  # np.fft.fftshift(focmask*1.0)
+        wfs._submask = np.fft.fftshift(pyr_focmask).astype(np.float32)
+        wfs_fssize = fssize
+        self._set_submask(n,wfs._submask)
+
 
     def get_camplipup(self, int n):
         """Return the 'camplipup' array of a given wfs

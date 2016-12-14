@@ -1830,9 +1830,10 @@ template<class Tout, class Tin>
 __global__ void submask_krnl(Tout *g_odata, Tin *g_mask, unsigned int n) {
   unsigned int i = blockIdx.x * blockDim.x + threadIdx.x;
 
-  if (i < n * n) {
+  while (i < n * n) {
     g_odata[i].x = g_odata[i].x * g_mask[i];
     g_odata[i].y = g_odata[i].y * g_mask[i];
+    i += blockDim.x * gridDim.x;
   }
 }
 
@@ -1896,6 +1897,46 @@ pyr_submaskpyr<cuFloatComplex>(cuFloatComplex *d_odata,
 template void
 pyr_submaskpyr<cuDoubleComplex>(cuDoubleComplex *d_odata,
                                 cuDoubleComplex *d_idata,
+                                int              n,
+                                carma_device    *device);
+
+
+template<class T>
+__global__ void submaskpyr_krnl(T *g_odata, float *g_mask, unsigned int n) {
+  unsigned int i = blockIdx.x * blockDim.x + threadIdx.x;
+
+  while (i < n * n) {
+    T tmp;
+    tmp.x = g_odata[i].x * g_mask[i] - g_odata[i].y * g_mask[i];
+    tmp.y = g_odata[i].y * g_mask[i] + g_odata[i].x * g_mask[i];
+
+    g_odata[i].x = tmp.x;
+    g_odata[i].y = tmp.y;
+
+    i += blockDim.x * gridDim.x;
+  }
+}
+
+template<class T>
+void pyr_submaskpyr(T *d_odata, float *d_mask, int n, carma_device *device) {
+  int nBlocks, nThreads;
+
+  getNumBlocksAndThreads(device, n * n, nBlocks, nThreads);
+  dim3 grid(nBlocks), threads(nThreads);
+
+  submaskpyr_krnl<T><< < grid, threads >> > (d_odata, d_mask, n);
+
+  carmaCheckMsg("submask_kernel<<<>>> execution failed\n");
+}
+
+template void
+pyr_submaskpyr<cuFloatComplex>(cuFloatComplex *d_odata,
+                               float *d_mask,
+                               int             n,
+                               carma_device   *device);
+template void
+pyr_submaskpyr<cuDoubleComplex>(cuDoubleComplex *d_odata,
+                                float *d_idata,
                                 int              n,
                                 carma_device    *device);
 

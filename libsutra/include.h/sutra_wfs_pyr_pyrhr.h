@@ -29,8 +29,9 @@ class sutra_wfs_pyr_pyrhr: public sutra_wfs_pyr {
     sutra_wfs_pyr_pyrhr(const sutra_wfs_pyr_pyrhr& wfs);
     ~sutra_wfs_pyr_pyrhr();
 
-    int wfs_initarrays(cuFloatComplex *halfxy, float *cx, float *cy, float *sincar,
+    int wfs_initarrays(cuFloatComplex *halfxy, float *cx, float *cy, float *sincar, float *submask,
                        int *validsubsx, int *validsubsy, int *phasemap, float *fluxPerSub);
+    int set_submask(float *submask);
 
     int slopes_geom(int type, float *slopes);
     int slopes_geom(int type);
@@ -47,6 +48,7 @@ class sutra_wfs_pyr_pyrhr: public sutra_wfs_pyr {
     std::vector<carma_obj<float>*> d_pupil_ngpu;
     std::vector<carma_obj<float>*> d_screen_ngpu;
     std::vector<carma_obj<float>*> d_hrimg_ngpu;
+    std::vector<carma_obj<float>*> d_submask_ngpu;
 
 };
 

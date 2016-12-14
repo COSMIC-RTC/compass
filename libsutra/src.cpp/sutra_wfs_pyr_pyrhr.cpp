@@ -29,6 +29,7 @@ sutra_wfs_pyr_pyrhr::sutra_wfs_pyr_pyrhr(carma_context *context,
 	d_fttotim_ngpu.push_back(this->d_fttotim);
 	d_screen_ngpu.push_back(nullptr); // init in the sutra_wfs_pyr_pyrhr::wfs_initarrays
 	d_pupil_ngpu.push_back(this->d_pupil);
+	d_submask_ngpu.push_back(this->d_submask);
 
 	for (int device = 1; device < nbdevices; device++) {
 		current_context->set_activeDevice(device,1);
@@ -44,6 +45,8 @@ sutra_wfs_pyr_pyrhr::sutra_wfs_pyr_pyrhr(carma_context *context,
 				cufftPlan2d(plan, dims_data2[1], dims_data2[2], CUFFT_C2C));
 		d_phalfxy_ngpu.push_back(
 				new carma_obj<cuFloatComplex>(context, dims_data2));
+		d_submask_ngpu.push_back(
+				new carma_obj<float>(context, dims_data2));
 		d_fttotim_ngpu.push_back(
 				new carma_obj<cuFloatComplex>(context, dims_data2));
 
@@ -105,6 +108,15 @@ sutra_wfs_pyr_pyrhr::~sutra_wfs_pyr_pyrhr() {
 	this->d_pupil_ngpu.clear();
 
 	for (std::vector<carma_obj<float> *>::iterator it =
+			this->d_submask_ngpu.begin(); this->d_submask_ngpu.end() != it; it++) {
+		if (*it != this->d_submask) {
+			current_context->set_activeDevice((*it)->getDevice(),1);
+			delete *it;
+		}
+	}
+	this->d_submask_ngpu.clear();
+
+	for (std::vector<carma_obj<float> *>::iterator it =
 			this->d_screen_ngpu.begin(); this->d_screen_ngpu.end() != it;
 			it++) {
 		if (*it != this->d_gs->d_phase->d_screen) {
@@ -126,7 +138,7 @@ sutra_wfs_pyr_pyrhr::~sutra_wfs_pyr_pyrhr() {
 }
 
 int sutra_wfs_pyr_pyrhr::wfs_initarrays(cuFloatComplex *halfxy, float *cx,
-		float *cy, float *sincar, int *validsubsx, int *validsubsy,
+		float *cy, float *sincar, float *submask, int *validsubsx, int *validsubsy,
 		int *phasemap, float *fluxPerSub) {
 	for (std::vector<carma_obj<cuFloatComplex> *>::iterator it =
 			this->d_phalfxy_ngpu.begin(); this->d_phalfxy_ngpu.end() != it;
@@ -134,6 +146,14 @@ int sutra_wfs_pyr_pyrhr::wfs_initarrays(cuFloatComplex *halfxy, float *cx,
 		if (*it != this->d_phalfxy) {
 			current_context->set_activeDevice((*it)->getDevice(),1);
 			(*it)->host2device(halfxy);
+		}
+	}
+	for (std::vector<carma_obj<float> *>::iterator it =
+			this->d_submask_ngpu.begin(); this->d_submask_ngpu.end() != it;
+			it++) {
+		if (*it != this->d_submask) {
+			current_context->set_activeDevice((*it)->getDevice(),1);
+			(*it)->host2device(submask);
 		}
 	}
 	for (std::vector<carma_obj<float> *>::iterator it =
@@ -147,6 +167,7 @@ int sutra_wfs_pyr_pyrhr::wfs_initarrays(cuFloatComplex *halfxy, float *cx,
 		d_screen_ngpu[0] = this->d_gs->d_phase->d_screen;
 	current_context->set_activeDevice(device,1);
 	this->d_phalfxy->host2device(halfxy);
+	this->d_submask->host2device(submask);
 	this->pyr_cx->fill_from(cx);
 	this->pyr_cy->fill_from(cy);
 	this->d_sincar->host2device(sincar);
@@ -157,6 +178,26 @@ int sutra_wfs_pyr_pyrhr::wfs_initarrays(cuFloatComplex *halfxy, float *cx,
 
 	return EXIT_SUCCESS;
 }
+
+int sutra_wfs_pyr_pyrhr::set_submask(float *submask) {
+	int ngpu = d_screen_ngpu.size();
+	if(ngpu < 2){
+		this->d_submask->host2device(submask);
+	}
+	else{
+		for (std::vector<carma_obj<float> *>::iterator it =
+				this->d_submask_ngpu.begin(); this->d_submask_ngpu.end() != it;
+				it++) {
+			if (*it != this->d_submask) {
+				current_context->set_activeDevice((*it)->getDevice(),1);
+				(*it)->host2device(submask);
+			}
+		}
+		this->d_submask->host2device(submask);
+	}
+	return EXIT_SUCCESS;
+}
+
 
 void sutra_wfs_pyr_pyrhr::comp_modulation(int cpt) {
 	//int cpt = 0;
@@ -173,10 +214,10 @@ void sutra_wfs_pyr_pyrhr::comp_modulation(int cpt) {
 				this->current_context->get_device(device));
 		carma_fft(this->d_camplipup->getData(), this->d_camplifoc->getData(),
 				-1, *this->d_camplipup->getPlan());
-		/*
-		 pyr_submask(this->d_camplifoc->getData(), this->d_submask->getData(),
-		 this->nfft, this->current_context->get_device(device));
-		 */
+
+		pyr_submask(this->d_camplifoc->getData(), this->d_submask->getData(),
+		this->nfft, this->current_context->get_device(device));
+
 		pyr_submaskpyr(this->d_camplifoc->getData(), this->d_phalfxy->getData(),
 				this->nfft, this->current_context->get_device(device));
 		carma_fft(this->d_camplifoc->getData(), this->d_fttotim->getData(), 1,
@@ -204,10 +245,10 @@ void sutra_wfs_pyr_pyrhr::comp_modulation(int cpt) {
 		carma_fft(this->d_camplipup_ngpu[cur_device]->getData(),
 				this->d_camplifoc_ngpu[cur_device]->getData(), -1,
 				*this->d_camplipup_ngpu[cur_device]->getPlan());
-		/*
-		 pyr_submask(this->d_camplifoc->getData(), this->d_submask->getData(),
-		 this->nfft, this->current_context->get_device(device));
-		 */
+
+		 pyr_submask(this->d_camplifoc_ngpu[cur_device]->getData(), this->d_submask_ngpu[cur_device]->getData(),
+		 this->nfft, this->current_context->get_device(cur_device));
+
 		pyr_submaskpyr(this->d_camplifoc_ngpu[cur_device]->getData(),
 				this->d_phalfxy_ngpu[cur_device]->getData(), this->nfft,
 				this->current_context->get_device(cur_device));

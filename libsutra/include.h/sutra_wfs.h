@@ -256,6 +256,10 @@ template<class T>
 void
 pyr_submaskpyr(T *d_odata, T *d_mask, int n, carma_device *device);
 
+template<class T>
+void
+pyr_submaskpyr(T *d_odata, float *d_mask, int n, carma_device *device);
+
 template<class Tout, class Tin>
 void
 pyr_abs(Tout *d_odata, Tin *d_idata, int ns, int nim, carma_device *device);

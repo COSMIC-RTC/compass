@@ -65,6 +65,8 @@ cdef class Sensors:
     cdef _get_bincube(self, int n)
     cdef _get_pyrimg(self, int n)
     cdef _set_pyrimg(self, int n, np.ndarray[ndim=2, dtype=np.float32_t] data)
+    cdef _set_submask(self, int n, np.ndarray[ndim=2, dtype=np.float32_t] data)
+    cdef _get_submask(self, int n)
     cdef _get_pyrimghr(self, int n)
 #    cdef _set_pyrimghr(self, int n, np.ndarray[ndim=2, dtype=np.float32_t] data)
     cpdef get_binimg(self, int n, Telescope tel=?, Atmos atmos=?, Dms dms=?)

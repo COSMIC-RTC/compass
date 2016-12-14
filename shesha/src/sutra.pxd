@@ -409,10 +409,11 @@ cdef extern from "sutra_wfs_pyr_pyrhr.h":
     cdef cppclass sutra_wfs_pyr_pyrhr(sutra_wfs_pyr):
         sutra_wfs_pyr_pyrhr(const sutra_wfs_pyr_pyrhr & wfs)
         int wfs_initarrays(cuFloatComplex * halfxy, float * cx, float * cy,
-                           float * sincar, int * validsubsx, int * validsubsy, int *phasemap, float *fluxPerSub)
+                           float * sincar, float *submask, int * validsubsx, int * validsubsy, int *phasemap, float *fluxPerSub)
         void comp_modulation(int cpt);
         int slopes_geom(int type, float * slopes)
         int slopes_geom(int type)
+        int set_submask(float *submask)
 
 #################################################
 # C-Class sutra_wfs_geom
