@@ -10,7 +10,7 @@ import os
 import numpy as np
 import naga as ch
 import shesha as ao
-from time import time
+import time
 import matplotlib.pyplot as plt
 import pyqtgraph as pg
 import tools
@@ -82,14 +82,14 @@ class widgetAOWindow(TemplateBaseClass):
         self.loaded = False
         self.stop = False
 
-        self.refreshTime = time()
+        self.refreshTime = time.time()
 
         self.loop = None
         self.assistant = None
         self.selector_init = None
 
         self.brama_rtc_flag = 1
-        self.brama_tar_flag = 0
+        self.brama_tar_flag = 1
         self.see_atmos = 0
 
         #############################################################
@@ -156,15 +156,45 @@ class widgetAOWindow(TemplateBaseClass):
         #     filepath=os.environ["SHESHA_ROOT"] + "/data/par/canapass.py")
         # self.InitConfig()
 
+
     def returnkl2V(self):
         KL2V = ao.compute_KL2V(wao.config.p_controllers[
                                0], wao.dms, wao.config.p_dms, wao.config.p_geom, wao.config.p_atmos, wao.config.p_tel)
         return KL2V
 
+    def setCommandMatrix(self, cMat):
+        return self.rtc.set_cmat(0, cMat)
+
+    def setPertuVoltages(self, actusVolts):
+        # self.dms.set_full_comm(actusVolts.astype(np.float32).copy())
+        self.rtc.setPertuVoltages(0, actusVolts.astype(np.float32).copy())
+
+    def getVolts(self):
+        return self.rtc.getVoltage(0)
+
+    def getSlopes(self):
+        return self.rtc.getVoltage(0)
+
+    def setIntegratorLaw(self):
+        self.rtc.set_commandlaw(0, "integrator")
+
+    def setGain(self, gain):
+        self.rtc.set_gain(0, gain)
+
     def getConfig(self, path):
         return cf.returnConfigfromWao(self, filepath=path)
-        # print self.config.p_wfs0.fssize
-        # return self.config.p_wfs0.fssize
+
+    def setDecayFactor(self, decay):
+        self.rtc.set_decayFactor(0, decay.astype(np.float32).copy())
+
+    def setEMatrix(self, eMat):
+        self.rtc.set_matE(0, eMat.astype(np.float32).copy())
+
+    def closeLoop(self):
+        self.rtc.set_openloop(0, 0)
+
+    def openLoop(self):
+        self.rtc.set_openloop(0, 1)
 
     def updateStatsInTerminal(self):
         if(self.ui.StatsInTerminal.isChecked()):
@@ -260,12 +290,14 @@ class widgetAOWindow(TemplateBaseClass):
         if(pressed):
             self.c.set_activeDeviceForce(0, 1)
             self.stop = False
-            self.refreshTime = time()
+            self.refreshTime = time.time()
             self.run()
+            self.ui.wao_Display.setCheckState(True)
             # self.loop = threading.Thread(target=self.run)
             # self.loop.start()
         else:
             self.stop = True
+            self.ui.wao_Display.setCheckState(False)
             # self.loop.join()
             # self.loop = None
 
@@ -362,7 +394,7 @@ class widgetAOWindow(TemplateBaseClass):
         self.rtc = ao.rtc_init(self.tel, self.wfs, self.config.p_wfss, self.dms, self.config.p_dms,
                                self.config.p_geom, self.config.p_rtc, self.config.p_atmos,
                                self.atm, self.config.p_tel, self.config.p_loop, do_refslp=False, clean=1, simul_name="",
-                               load={}, brama=self.brama_rtc_flag, g_tar=None)
+                               load={}, brama=self.brama_rtc_flag, g_tar=self.tar)
         self.rtc.set_openloop(0, 1)
 
         for i in range(len(self.config.p_atmos.alt)):
@@ -589,7 +621,10 @@ class widgetAOWindow(TemplateBaseClass):
                         nvalid = [
                             2 * o._nvalid for o in self.config.p_wfss]
                         ind = np.sum(nvalid[:self.numberSelected])
-                        x, y, vx, vy = tools.plsh(centroids[ind:ind + nvalid[self.numberSelected]], self.config.p_wfss[
+                        if(self.config.p_wfss[self.numberSelected].type_wfs == "pyrhr"):
+                            tools.plpyr(centroids[ind:ind + nvalid[self.numberSelected]], self.config.p_wfs0._isvalid)
+                        else:
+                            x, y, vx, vy = tools.plsh(centroids[ind:ind + nvalid[self.numberSelected]], self.config.p_wfss[
                                                   self.numberSelected].nxsub, self.config.p_tel.cobs, returnquiver=True)  # Preparing mesh and vector for display
                         self.ui.wao_rtcWindowMPL.canvas.axes.quiver(
                             x, y, vx, vy, pivot='mid')
@@ -728,7 +763,7 @@ class widgetAOWindow(TemplateBaseClass):
             return
         else:
             try:
-                start = time()
+                start = time.time()
                 self.atm.move_atmos()
                 if(self.config.p_controllers[0].type_control == "geo"):
                     for t in range(self.config.p_target.ntargets):
@@ -768,7 +803,7 @@ class widgetAOWindow(TemplateBaseClass):
                     self.tar.publish()
 
                 refreshDisplayTime = 1. / self.ui.wao_frameRate.value()
-                if(time() - self.refreshTime > refreshDisplayTime):
+                if(time.time() - self.refreshTime > refreshDisplayTime):
                     signal_le = ""
                     signal_se = ""
                     for t in range(self.config.p_target.ntargets):
@@ -776,9 +811,9 @@ class widgetAOWindow(TemplateBaseClass):
                         signal_se += "%1.2f   " % SR[0]
                         signal_le += "%1.2f   " % SR[1]
 
-                    loopTime = time() - start
+                    loopTime = time.time() - start
                     currentFreq = 1 / loopTime
-                    refreshFreq = 1 / (time() - self.refreshTime)
+                    refreshFreq = 1 / (time.time() - self.refreshTime)
 
                     self.ui.wao_strehlSE.setText(signal_se)
                     self.ui.wao_strehlLE.setText(signal_le)
@@ -786,7 +821,7 @@ class widgetAOWindow(TemplateBaseClass):
                     if(self.dispStatsInTerminal):
                         self.printInPlace("iter #%d SR: (L.E, S.E.)= %s, %srunning at %4.1fHz (real %4.1fHz)" % (
                             self.iter, signal_le, signal_se, refreshFreq, currentFreq))
-                    self.refreshTime = time()
+                    self.refreshTime = time.time()
                     self.updateSRDisplay(SR[1], SR[0], self.iter)
                 self.iter += 1
             finally:
@@ -814,6 +849,7 @@ class widgetAOWindow(TemplateBaseClass):
 
 
 try:
+
     class widgetAOWindowPyro(widgetAOWindow, Pyro.core.ObjBase):
         def __init__(self):
             widgetAOWindow.__init__(self)
