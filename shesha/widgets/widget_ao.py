@@ -1095,7 +1095,10 @@ class widgetAOWindow(TemplateBaseClass):
                         nvalid = [
                             2 * o._nvalid for o in self.config.p_wfss]
                         ind = np.sum(nvalid[:self.numberSelected])
-                        x, y, vx, vy = tools.plsh(centroids[ind:ind + nvalid[self.numberSelected]], self.config.p_wfss[
+                        if(self.config.p_wfss.type_wfs[self.numberSelected] == "pyrhr"):
+                            tools.plpyr(centroids[ind:ind + nvalid[self.numberSelected]], self.config.p_wfs0._isvalid)
+                        else:
+                            x, y, vx, vy = tools.plsh(centroids[ind:ind + nvalid[self.numberSelected]], self.config.p_wfss[
                                                   self.numberSelected].nxsub, self.config.p_tel.cobs, returnquiver=True)  # Preparing mesh and vector for display
                         self.ui.wao_rtcWindowMPL.canvas.axes.quiver(
                             x, y, vx, vy, pivot='mid')
