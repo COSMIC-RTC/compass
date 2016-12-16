@@ -907,6 +907,16 @@ cdef class Rtc:
         print "TODO call imat_geom"
         print "TODO set_imat"
 
+    cpdef set_perturbcom(self, int ncontrol, np.ndarray[ndim = 2, dtype = np.float32_t] perturb):
+      """
+      :parameters:
+      ncontrol: (int) : controller index
+      perturb: (np.ndarray[ndim = 2, dtype = np.float32_t]) : perturb voltages
+
+      """
+      cdef sutra_controller * control = self.rtc.d_control[ncontrol]
+      control.set_perturbcom( <float *> perturb.data, perturb.shape[0])
+
     cpdef set_centroids_ref(self, int ncontrol, np.ndarray[ndim = 1, dtype = np.float32_t] centroids_ref):
       """
       :parameters:

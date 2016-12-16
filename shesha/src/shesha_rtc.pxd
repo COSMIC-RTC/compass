@@ -116,6 +116,7 @@ cdef class Rtc:
     cpdef set_centroids_ref(self, int ncontrol, np.ndarray[ndim = 1, dtype = np.float32_t] centroids_ref)
     cpdef get_centroids_ref(self, int ncontrol)
     cpdef do_centroids_ref(self, int ncontrol)
+    cpdef set_perturbcom(self, int ncontrol, np.ndarray[ndim = 2, dtype = np.float32_t] perturb)
 
 IF USE_BRAMA == 1:
         cdef extern from * :
