@@ -432,9 +432,9 @@ def save_it(filename):
 # | ||  __/\__ \ |_\__ \
 #  \__\___||___/\__|___/
 ###############################################################################################
-nfiltered = 20
-niters = 10000
-config.p_loop.set_niter(niters)
+nfiltered = config.p_controllers[0].maxcond
+niters = config.p_loop.niter
+#config.p_loop.set_niter(niters)
 Btt,P = compute_Btt()
 rtc.load_Btt(1,Btt.dot(Btt.T))
 Dm,cmat = compute_cmatWithBtt(Btt,nfiltered)

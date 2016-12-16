@@ -49,7 +49,7 @@ class html_display:
 
     def __init__(self):
 
-        self.datapath = "/home/fferreira/Data/correlation/"
+        self.datapath = "/home/fferreira/Data/"
         self.covmat = None
         self.files = glob.glob(self.datapath+"roket_*.h5")
         self.files.sort()
@@ -581,14 +581,15 @@ class html_display:
                 for k in range(self.f.attrs["nscreens"]):
                     H = self.f.attrs["atm.alt"][k]
                     v = self.f.attrs["windspeed"][k]
+                    frac = self.f.attrs["frac"][k]
                     htheta = np.sqrt(self.f.attrs["wfs.xpos"][0]**2 + self.f.attrs["wfs.ypos"][0]**2)/RASC * H
                     Dtomo += 6.88 * (htheta/r0)**(5./3.)
                     Dbp += 6.88 * (v*dt/g/r0)**(5./3.)
                     rho = np.sqrt(htheta**2 + (v*dt/g)**2 - 2*htheta*v*dt/g*np.cos(np.pi-theta))
                     Dcov += 6.88 * (rho/r0)**(5./3.)
-                covar = (Dbp + Dtomo - Dcov)*0.5
+                covar = (Dbp + Dtomo - Dcov)*0.5*frac
 
-                data2 -= 2*covar/(2*np.pi/self.Lambda_tar)**2/self.nmodes
+                data2 += 2*covar/(2*np.pi/self.Lambda_tar)**2/self.nmodes
                 #data2 += 2*np.sqrt(np.var(np.dot(self.P,self.f["tomography"]),axis=1))*np.sqrt(np.var(np.dot(self.P,self.f["bandwidth"]),axis=1))*np.cos(theta)
         for i in moins:
             if(self.plus_select.labels[i] == "fitting"):

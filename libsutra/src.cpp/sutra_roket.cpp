@@ -61,7 +61,13 @@ sutra_roket::sutra_roket(carma_context *context, int device, sutra_rtc *rtc, sut
 
     carmaSafeCall(cudaMemset(this->d_covv->getData(), 0, sizeof(float) * this->d_covv->getNbElem()));
     carmaSafeCall(cudaMemset(this->d_covm->getData(), 0, sizeof(float) * this->d_covm->getNbElem()));
-
+    carmaSafeCall(cudaMemset(this->d_noise->getData(), 0, sizeof(float) * this->d_noise->getNbElem()));
+    carmaSafeCall(cudaMemset(this->d_nonlinear->getData(), 0, sizeof(float) * this->d_nonlinear->getNbElem()));
+    carmaSafeCall(cudaMemset(this->d_tomo->getData(), 0, sizeof(float) * this->d_tomo->getNbElem()));
+    carmaSafeCall(cudaMemset(this->d_filtered->getData(), 0, sizeof(float) * this->d_filtered->getNbElem()));
+    carmaSafeCall(cudaMemset(this->d_alias->getData(), 0, sizeof(float) * this->d_alias->getNbElem()));
+    carmaSafeCall(cudaMemset(this->d_bandwidth->getData(), 0, sizeof(float) * this->d_bandwidth->getNbElem()));
+    carmaSafeCall(cudaMemset(this->d_commanded->getData(), 0, sizeof(float) * this->d_commanded->getNbElem()));
     // Residual error buffer initialsations
     long dims_data1[2] = {1,this->nactus};
     this->d_fullErr = new carma_obj<float>(this->current_context,dims_data1);
@@ -237,6 +243,11 @@ int sutra_roket::compute_breakdown(){
     this->d_err1->copyFrom(this->d_commanded->getData(this->iterk*this->nactus),this->nactus);
     this->d_err2->copyFrom(this->d_commanded->getData((this->iterk-1)*this->nactus),this->nactus);
     apply_loop_filter(this->d_bandwidth,this->d_err1,this->d_err2,-1.0f,this->iterk-1);
+  }
+  else{
+    carmaSafeCall(cudaMemset(this->d_err2->getData(), 0, sizeof(float) * this->nactus));
+    this->d_err2->axpy(-1.0f,this->d_err1,1,1);
+    this->d_err2->copyInto(this->d_bandwidth->getData(),this->nactus);
   }
   // tomography
   this->sensors->d_wfs[0]->sensor_trace(this->atm);
