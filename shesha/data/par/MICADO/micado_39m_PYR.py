@@ -1,14 +1,14 @@
 import shesha as ao
 import numpy as np
 
-simul_name = "micado_8m_SH"
+simul_name = "micado_39m_PYR"
 
 # loop
 p_loop = ao.Param_loop()
 
 p_loop.set_niter(1000)
 p_loop.set_ittime(1 / 500.)  # =1/500
-
+p_loop.set_devices([0, 1, 2, 3])
 # geom
 p_geom = ao.Param_geom()
 p_geom.set_zenithangle(0.)
@@ -73,8 +73,9 @@ rMod = 5
 p_wfs0.set_pyr_npts(int(np.ceil(int(rMod*2* 3.141592653589793)/4.)*4))
 #p_wfs0.set_pyr_npts(31)
 p_wfs0.set_pyr_ampl(rMod)
-p_wfs0.set_pyr_pup_sep(int(2 / 3. * p_wfs0.nxsub))
-
+#p_wfs0.set_pyr_pup_sep(int(2 / 3. * p_wfs0.nxsub)) # diffraction effect
+#p_wfs0.set_pyr_pup_sep((p_wfs0.nxsub))
+p_wfs0.set_pyr_pup_sep((64))
 
 # dm
 p_dm0 = ao.Param_dm()
