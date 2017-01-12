@@ -89,51 +89,34 @@ def computeCmatKL(DKL, KL2V, nfilt, gains, gainTT):
     cmat = KL2V2Filt.dot(Dmp).astype(np.float32)
     return cmat
 
+if __name__ == "__main__":
+    ampli = 1
+    Nactu = sum(wao.config.p_rtc.controllers[0].nactu)
+    Nslopes = wao.rtc.getCentroids(0).shape[0]
+    wao.setIntegratorLaw()
+    gain = 0.8
+    wao.rtc.set_openloop(0, 1)  # openLoop
+    wao.rtc.set_gain(0, gain)
+    decay = np.ones(Nslopes, dtype=(np.float32))
+    wao.rtc.set_decayFactor(0, decay)
+    mgain = np.ones(Nactu, dtype=(np.float32))
+    wao.rtc.set_mgain(0, mgain)
+    #mcCompass = pfits.getdata("/home/fvidal/ADOPT/data/cmat39mCompass3500KL.fits").byteswap().newbyteorder()
+    #wao.rtc.set_cmat(0, mcCompass.copy())
 
-ampli = 1
-Nactu = 4372
-Nslopes = 7944
-wao.setIntegratorLaw()
-gain = 0.8
-wao.rtc.set_openloop(0, 1)  # openLoop
-wao.rtc.set_gain(0, gain)
-decay = np.ones(Nslopes, dtype=(np.float32))
-wao.rtc.set_decayFactor(0, decay)
-mgain = np.ones(Nactu, dtype=(np.float32))
-wao.rtc.set_mgain(0, mgain)
-#mcCompass = pfits.getdata("/home/fvidal/ADOPT/data/cmat39mCompass3500KL.fits").byteswap().newbyteorder()
-#wao.rtc.set_cmat(0, mcCompass.copy())
+    wao.rtc.set_openloop(0, 0)  # closeLoop
+    KL2V = wao.returnkl2V()
+    KL2V2 = cropKL2V(KL2V).astype(np.float32)
+    pushDMMic = 0.01  # 10nm
+    pushTTArcsec = 0.005  # 5 mas
+    wao.rtc.do_centroids_ref(0)
+    miKL, KL2VN =computeKLModesImat(pushDMMic, pushTTArcsec, KL2V2, Nslopes)
+    #KL2VN = normalizeKL2V(KL2V2)
+    nfilt = 450
+    cmat = computeCmatKL(miKL, KL2VN, nfilt, np.linspace(3.2,0.3,Nactu-2-nfilt), 3); wao.rtc.set_cmat(0, cmat.astype(np.float32).copy())
 
-wao.rtc.set_openloop(0, 0)  # closeLoop
-KL2V = wao.returnkl2V()
-KL2V2 = cropKL2V(KL2V).astype(np.float32)
-pushDMMic = 0.01  # 10nm
-pushTTArcsec = 0.005  # 5 mas
-wao.rtc.do_centroids_ref(0)
-miKL, KL2VN =computeKLModesImat(pushDMMic, pushTTArcsec, KL2V2, Nslopes)
-#KL2VN = normalizeKL2V(KL2V2)
-nfilt = 1000
-cmat = computeCmatKL(miKL, KL2VN, nfilt, np.linspace(2,0.2,4506-2-nfilt), 3); wao.rtc.set_cmat(0, cmat.astype(np.float32).copy())
-
-gDM = 1; gTT=1.;
-gains = np.ones(4506,dtype=np.float32)*gDM;
-gains[-2:]=gTT;
-wao.rtc.set_mgain(0, gains)
-wao.rtc.set_openloop(0, 0)  # openLoop
-"""
-plt.plot(np.max(KL2V[:,:-3], axis=0)) # KL Gain in matrix
-plt.clf(); plt.plot(np.max(imat, axis=1)) # valeur max des pentes
-nfilt = 100
-KL2V_filt = np.zeros((KL2V.shape[0], KL2V.shape[1] - nfilt))
-KL2V_filt[:, :KL2V_filt.shape[1] -2] = KL2V[:, :KL2V.shape[1] - (nfilt + 2)]
-KL2V_filt[:, KL2V_filt.shape[1] - 2:] = KL2V[:, KL2V.shape[1] - 2:]
-
-
-#miCOMPASS push pull:
-miPPCompass = pfits.getdata("/home/fvidal/ADOPT/data/mi39mPushPull.fits")
-mcCompass = np.linalg.pinv(miPPCompass, 1e-3)
-
-
-
-mcCompass =  pfits.getdata("/home/fvidal/ADOPT/data/cmat39mCompass3500KL.fits")
-"""
+    gDM = 1; gTT=1.;
+    gains = np.ones(Nactu,dtype=np.float32)*gDM;
+    gains[-2:]=gTT;
+    wao.rtc.set_mgain(0, gains)
+    wao.rtc.set_openloop(0, 0)  # openLoop
