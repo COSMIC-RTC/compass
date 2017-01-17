@@ -1,0 +1,785 @@
+execute python /home/fvidal/compass/shesha/test/scripts/script_PYR39m.py /home/fvidal/compass/shesha/data/par/MICADO/micado_39m_PYR.py 500 5 1 11 500
+/home/fvidal/compass/shesha/test/scripts/script_PYR39m.py:12: UserWarning: 'SHESHA_ROOT' not defined, using default one: /home/fvidal/compass/shesha/data/
+  import shesha as ao
+/home/fvidal/anaconda2/lib/python2.7/site-packages/flask/exthook.py:71: ExtDeprecationWarning: Importing flask.ext.cors is deprecated, use flask_cors instead.
+  .format(x=modname), ExtDeprecationWarning
+[src.cpp/sutra_wfs.cpp@208]: using pyrhr with 4 GPUs
+shesha_savepath: /home/fvidal/compass/shesha/data/
+TEST SHESHA
+ closed loop: call loop(int niter)
+DETECTED BASH SCRIPT
+['/home/fvidal/compass/shesha/test/scripts/script_PYR39m.py', '/home/fvidal/compass/shesha/data/par/MICADO/micado_39m_PYR.py', '500', '5', '1', '11', '500']
+Results folder not found. Creating it now:
+PSFs folder not found. Creating it now:
+param_file is /home/fvidal/compass/shesha/data/par/MICADO/micado_39m_PYR.py
+simul name is micado_39m_PYR
+*** Enabling peer access between GPU0 and GPU1... ***
+*** Enabling peer access between GPU0 and GPU2... ***
+*** Enabling peer access between GPU0 and GPU3... ***
+*** Enabling peer access between GPU1 and GPU2... ***
+*** Enabling peer access between GPU1 and GPU3... ***
+*** Enabling peer access between GPU2 and GPU3... ***
+*** All GPUs listed can support UVA... ***
+Cannot find database /opt/public/fvidal/data/RunPYR39m/PYR39m.h5
+Creating compass database
+Simu #1/1
+Freq = 500.00 Hz
+Magnitude = 11.00
+Gain = 1.00
+->wfs
+*-----------------------
+Doing inits on WFS 0
+r0 for WFS : 0.13  m
+seeing for WFS :  0.80 "
+quantum pixsize in pyr image :  0.0008 "
+simulated FoV :  3.30 " x  3.30 "
+number of phase points :  1248
+size of fft support :  4096
+generic pupil created
+->atmos
+r0^-5/6 :0.024416
+/home/fvidal/compass/shesha/test/scripts/script_PYR39m.py:118: VisibleDeprecationWarning: using a non-integer number instead of an integer will result in an error in the future
+  dms = ao.dm_init(config.p_dms, config.p_wfss, wfs, config.p_geom, config.p_tel)
+loading /home/fvidal/compass/shesha/data/turbu/A_r978:987M_8.h5
+loading /home/fvidal/compass/shesha/data/turbu/B_r978:987M_8.h5
+loading /home/fvidal/compass/shesha/data/turbu/istx_r978:987M_8.h5
+loading /home/fvidal/compass/shesha/data/turbu/isty_r978:987M_8.h5
+->dm
+Patter default type : Square
+number of actuator after filtering =  5092
+->target
+->rtc
+filtering unseen actuators... 
+reading valid actuator from /home/fvidal/compass/shesha/data/mat/pztok_r978:987M_277.h5
+reading unvalid actuator from: /home/fvidal/compass/shesha/data/mat/pztnok_r978:987M_277.h5
+controller uses 1 streams
+/home/fvidal/anaconda2/lib/python2.7/site-packages/pandas/core/generic.py:1101: PerformanceWarning: 
+your performance may suffer as PyTables will pickle object types that it cannot
+map directly to c-types [inferred_type->mixed-integer,key->block1_values] [items->['nmax', 'wfs.ypos', 'type_centro', 'L0', 'openloop', 'wfs.xpos', 'fssize', 'wfs.Lambda', 'nact', 'pyr_npts', 'hyst', 'nmodes', 'type_control', 'width', 'pyr_pup_sep', 'dms_seen', 'simulname', 'zerop', 'type_ap', 'pixsize', 'nrec', 'dm.thresh', 'target.mag', 'centro.nwfs', 'modopti', 'nkl', 'proftype', 'windspeed', 'gain', 'lltx', 'llty', 'centroider.thresh', 'TTcond', 'type_fct', 'atm.alt', 'pyrtype', 'kl_type', 'npix', 'sizex', 'sizey', 'gsalt', 'fracsub', 'beamsize', 'margin', 'atmos_seen', 'pyr_loc', 'spiders_type', 'maxcond', 'push4imat', 'control.nwfs', 'target.xpos', 'dm.alt', 'fstop', 'delay', 'cured_ndivs', 'seeds', 'ndm', 'lgsreturnperwatt', 'revision', 'noise', 'frac', 'gmax', 'gmin', 'type_wfs', 'pyr_ampl', 'winddir', 'optthroughput', 'laserpower', 'unitpervolt', 'target.ypos', 'coupling', 'target.dms_seen', 'type_dm', 'target.Lambda', 'weights', 'gsmag', 'nxsub', 'ngain', 'pupoffset', 'sr_le', 'Nphotons', 'srir', 'PSFFilenames', 'eigenvals', 'threshold', 'sr_se', 'NklTot', 'Nactu', 'Nslopes', 'Nkl', 'NklFilt', 'lambdaTarget', 'numiter']]
+
+  return pytables.to_hdf(path_or_buf, key, self, **kwargs)
+====================
+init done
+====================
+objects initialzed on GPU:
+--------------------------------------------------------
+Atmos obect:
+Contains 1 turbulent screen(s):
+Screen # | alt.(m) | speed (m/s) | dir.(deg) | r0 (pix) | deltax | deltay
+       1 |  0.0000 |     10.0000 |   45.0000 |  86.0580 | -0.4525 | -0.4525
+--------------------------------------------------------
+Sensors object:
+Contains 1 WFS(s):
+WFS # |  Nsubaps  | Nvalid | Npix | Nphase | Nfft | Nrebin | Ntot | Npup
+    1 |  78 x 78  |   4300 |   16 |     16 | 4096 |     16 | 1280 |   32
+--------------------------------------------------------
+DMs object:
+Contains 2 DMs:
+DM # | Type  |   Alt   | Nact | Dim
+   1 |   pzt |       0 | 4504 | 1346
+   2 |    tt |       0 |    2 | 1416
+--------------------------------------------------------
+Target objects:
+Contains 1 Target(s):
+Source # | position(") |  Mag  | Lambda (mic.)
+       1 |    0 , 0    |  4.00 | 1.650
+--------------------------------------------------------
+RTC object:
+Contains 1 Centroider(s)
+Centro # | Type  | nwfs | Nvalid
+       1 | pyrhr |    1 | 4300
+Contains 1 Controller(s):
+Control # | Type  | Nslope | Nactu
+        1 |    ls |   8600 | 4506
+--------------------------------------------------------
+----------------------------------------------------
+iter# | S.E. SR | L.E. SR | Est. Rem. | framerate
+----------------------------------------------------
+Iter#: 100
+Tar 1 at 1.65Microns:
+SR S.E: 0.57   SR L.E: 0.57   
+Iter#: 200
+Tar 1 at 1.65Microns:
+SR S.E: 0.61   SR L.E: 0.59   
+Iter#: 300
+Tar 1 at 1.65Microns:
+SR S.E: 0.61   SR L.E: 0.60   
+Iter#: 400
+Tar 1 at 1.65Microns:
+SR S.E: 0.60   SR L.E: 0.54   
+Iter#: 500
+Tar 1 at 1.65Microns:
+SR S.E: 0.64   SR L.E: 0.56   
+Iter#: 600
+Tar 1 at 1.65Microns:
+SR S.E: 0.63   SR L.E: 0.57   
+Iter#: 700
+Tar 1 at 1.65Microns:
+SR S.E: 0.63   SR L.E: 0.58   
+Iter#: 800
+Tar 1 at 1.65Microns:
+SR S.E: 0.60   SR L.E: 0.57   
+Iter#: 900
+Tar 1 at 1.65Microns:
+SR S.E: 0.62   SR L.E: 0.58   
+Iter#: 1000
+Tar 1 at 1.65Microns:
+SR S.E: 0.60   SR L.E: 0.58   
+ loop execution time: 87.976621151   ( 1000 iterations),  0.087976621151 (mean)   11.3666561288 Hz
+Saving PSFs...
+Done
+Simulation Done...
+execute python /home/fvidal/compass/shesha/test/scripts/script_PYR39m.py /home/fvidal/compass/shesha/data/par/MICADO/micado_39m_PYR.py 500 5 1 12 500
+/home/fvidal/compass/shesha/test/scripts/script_PYR39m.py:12: UserWarning: 'SHESHA_ROOT' not defined, using default one: /home/fvidal/compass/shesha/data/
+  import shesha as ao
+/home/fvidal/anaconda2/lib/python2.7/site-packages/flask/exthook.py:71: ExtDeprecationWarning: Importing flask.ext.cors is deprecated, use flask_cors instead.
+  .format(x=modname), ExtDeprecationWarning
+[src.cpp/sutra_wfs.cpp@208]: using pyrhr with 4 GPUs
+shesha_savepath: /home/fvidal/compass/shesha/data/
+TEST SHESHA
+ closed loop: call loop(int niter)
+DETECTED BASH SCRIPT
+['/home/fvidal/compass/shesha/test/scripts/script_PYR39m.py', '/home/fvidal/compass/shesha/data/par/MICADO/micado_39m_PYR.py', '500', '5', '1', '12', '500']
+param_file is /home/fvidal/compass/shesha/data/par/MICADO/micado_39m_PYR.py
+simul name is micado_39m_PYR
+*** Enabling peer access between GPU0 and GPU1... ***
+*** Enabling peer access between GPU0 and GPU2... ***
+*** Enabling peer access between GPU0 and GPU3... ***
+*** Enabling peer access between GPU1 and GPU2... ***
+*** Enabling peer access between GPU1 and GPU3... ***
+*** Enabling peer access between GPU2 and GPU3... ***
+*** All GPUs listed can support UVA... ***
+reloading database from: /opt/public/fvidal/data/RunPYR39m/PYR39m.h5
+Simu #1/1
+Freq = 500.00 Hz
+Magnitude = 12.00
+Gain = 1.00
+->wfs
+*-----------------------
+Doing inits on WFS 0
+r0 for WFS : 0.13  m
+seeing for WFS :  0.80 "
+quantum pixsize in pyr image :  0.0008 "
+simulated FoV :  3.30 " x  3.30 "
+number of phase points :  1248
+size of fft support :  4096
+generic pupil created
+->atmos
+r0^-5/6 :0.024416
+/home/fvidal/compass/shesha/test/scripts/script_PYR39m.py:118: VisibleDeprecationWarning: using a non-integer number instead of an integer will result in an error in the future
+  dms = ao.dm_init(config.p_dms, config.p_wfss, wfs, config.p_geom, config.p_tel)
+loading /home/fvidal/compass/shesha/data/turbu/A_r978:987M_8.h5
+loading /home/fvidal/compass/shesha/data/turbu/B_r978:987M_8.h5
+loading /home/fvidal/compass/shesha/data/turbu/istx_r978:987M_8.h5
+loading /home/fvidal/compass/shesha/data/turbu/isty_r978:987M_8.h5
+->dm
+Patter default type : Square
+number of actuator after filtering =  5092
+->target
+->rtc
+filtering unseen actuators... 
+reading valid actuator from /home/fvidal/compass/shesha/data/mat/pztok_r978:987M_277.h5
+reading unvalid actuator from: /home/fvidal/compass/shesha/data/mat/pztnok_r978:987M_277.h5
+controller uses 1 streams
+/home/fvidal/anaconda2/lib/python2.7/site-packages/pandas/core/generic.py:1101: PerformanceWarning: 
+your performance may suffer as PyTables will pickle object types that it cannot
+map directly to c-types [inferred_type->mixed-integer,key->block1_values] [items->['nmax', 'wfs.ypos', 'type_centro', 'L0', 'openloop', 'wfs.xpos', 'fssize', 'wfs.Lambda', 'nact', 'pyr_npts', 'hyst', 'nmodes', 'type_control', 'width', 'pyr_pup_sep', 'dms_seen', 'simulname', 'zerop', 'type_ap', 'pixsize', 'nrec', 'dm.thresh', 'target.mag', 'centro.nwfs', 'modopti', 'nkl', 'proftype', 'windspeed', 'gain', 'lltx', 'llty', 'centroider.thresh', 'TTcond', 'type_fct', 'atm.alt', 'pyrtype', 'kl_type', 'npix', 'sizex', 'sizey', 'gsalt', 'fracsub', 'beamsize', 'margin', 'atmos_seen', 'pyr_loc', 'spiders_type', 'maxcond', 'push4imat', 'control.nwfs', 'target.xpos', 'dm.alt', 'fstop', 'delay', 'cured_ndivs', 'seeds', 'ndm', 'lgsreturnperwatt', 'revision', 'noise', 'frac', 'gmax', 'gmin', 'type_wfs', 'pyr_ampl', 'winddir', 'optthroughput', 'laserpower', 'unitpervolt', 'target.ypos', 'coupling', 'target.dms_seen', 'type_dm', 'target.Lambda', 'weights', 'gsmag', 'nxsub', 'ngain', 'pupoffset', 'sr_le', 'Nphotons', 'srir', 'PSFFilenames', 'eigenvals', 'threshold', 'sr_se', 'NklTot', 'Nactu', 'Nslopes', 'Nkl', 'NklFilt', 'lambdaTarget', 'numiter']]
+
+  return pytables.to_hdf(path_or_buf, key, self, **kwargs)
+====================
+init done
+====================
+objects initialzed on GPU:
+--------------------------------------------------------
+Atmos obect:
+Contains 1 turbulent screen(s):
+Screen # | alt.(m) | speed (m/s) | dir.(deg) | r0 (pix) | deltax | deltay
+       1 |  0.0000 |     10.0000 |   45.0000 |  86.0580 | -0.4525 | -0.4525
+--------------------------------------------------------
+Sensors object:
+Contains 1 WFS(s):
+WFS # |  Nsubaps  | Nvalid | Npix | Nphase | Nfft | Nrebin | Ntot | Npup
+    1 |  78 x 78  |   4300 |   16 |     16 | 4096 |     16 | 1280 |   32
+--------------------------------------------------------
+DMs object:
+Contains 2 DMs:
+DM # | Type  |   Alt   | Nact | Dim
+   1 |   pzt |       0 | 4504 | 1346
+   2 |    tt |       0 |    2 | 1416
+--------------------------------------------------------
+Target objects:
+Contains 1 Target(s):
+Source # | position(") |  Mag  | Lambda (mic.)
+       1 |    0 , 0    |  4.00 | 1.650
+--------------------------------------------------------
+RTC object:
+Contains 1 Centroider(s)
+Centro # | Type  | nwfs | Nvalid
+       1 | pyrhr |    1 | 4300
+Contains 1 Controller(s):
+Control # | Type  | Nslope | Nactu
+        1 |    ls |   8600 | 4506
+--------------------------------------------------------
+----------------------------------------------------
+iter# | S.E. SR | L.E. SR | Est. Rem. | framerate
+----------------------------------------------------
+Iter#: 100
+Tar 1 at 1.65Microns:
+SR S.E: 0.57   SR L.E: 0.57   
+Iter#: 200
+Tar 1 at 1.65Microns:
+SR S.E: 0.61   SR L.E: 0.59   
+Iter#: 300
+Tar 1 at 1.65Microns:
+SR S.E: 0.61   SR L.E: 0.60   
+Iter#: 400
+Tar 1 at 1.65Microns:
+SR S.E: 0.60   SR L.E: 0.54   
+Iter#: 500
+Tar 1 at 1.65Microns:
+SR S.E: 0.64   SR L.E: 0.56   
+Iter#: 600
+Tar 1 at 1.65Microns:
+SR S.E: 0.62   SR L.E: 0.57   
+Iter#: 700
+Tar 1 at 1.65Microns:
+SR S.E: 0.63   SR L.E: 0.58   
+Iter#: 800
+Tar 1 at 1.65Microns:
+SR S.E: 0.60   SR L.E: 0.58   
+Iter#: 900
+Tar 1 at 1.65Microns:
+SR S.E: 0.62   SR L.E: 0.58   
+Iter#: 1000
+Tar 1 at 1.65Microns:
+SR S.E: 0.60   SR L.E: 0.58   
+ loop execution time: 87.9788939953   ( 1000 iterations),  0.0879788939953 (mean)   11.366362483 Hz
+Saving PSFs...
+Done
+Simulation Done...
+execute python /home/fvidal/compass/shesha/test/scripts/script_PYR39m.py /home/fvidal/compass/shesha/data/par/MICADO/micado_39m_PYR.py 500 5 1 13 500
+/home/fvidal/compass/shesha/test/scripts/script_PYR39m.py:12: UserWarning: 'SHESHA_ROOT' not defined, using default one: /home/fvidal/compass/shesha/data/
+  import shesha as ao
+/home/fvidal/anaconda2/lib/python2.7/site-packages/flask/exthook.py:71: ExtDeprecationWarning: Importing flask.ext.cors is deprecated, use flask_cors instead.
+  .format(x=modname), ExtDeprecationWarning
+[src.cpp/sutra_wfs.cpp@208]: using pyrhr with 4 GPUs
+shesha_savepath: /home/fvidal/compass/shesha/data/
+TEST SHESHA
+ closed loop: call loop(int niter)
+DETECTED BASH SCRIPT
+['/home/fvidal/compass/shesha/test/scripts/script_PYR39m.py', '/home/fvidal/compass/shesha/data/par/MICADO/micado_39m_PYR.py', '500', '5', '1', '13', '500']
+param_file is /home/fvidal/compass/shesha/data/par/MICADO/micado_39m_PYR.py
+simul name is micado_39m_PYR
+*** Enabling peer access between GPU0 and GPU1... ***
+*** Enabling peer access between GPU0 and GPU2... ***
+*** Enabling peer access between GPU0 and GPU3... ***
+*** Enabling peer access between GPU1 and GPU2... ***
+*** Enabling peer access between GPU1 and GPU3... ***
+*** Enabling peer access between GPU2 and GPU3... ***
+*** All GPUs listed can support UVA... ***
+reloading database from: /opt/public/fvidal/data/RunPYR39m/PYR39m.h5
+Simu #1/1
+Freq = 500.00 Hz
+Magnitude = 13.00
+Gain = 1.00
+->wfs
+*-----------------------
+Doing inits on WFS 0
+r0 for WFS : 0.13  m
+seeing for WFS :  0.80 "
+quantum pixsize in pyr image :  0.0008 "
+simulated FoV :  3.30 " x  3.30 "
+number of phase points :  1248
+size of fft support :  4096
+generic pupil created
+->atmos
+r0^-5/6 :0.024416
+/home/fvidal/compass/shesha/test/scripts/script_PYR39m.py:118: VisibleDeprecationWarning: using a non-integer number instead of an integer will result in an error in the future
+  dms = ao.dm_init(config.p_dms, config.p_wfss, wfs, config.p_geom, config.p_tel)
+loading /home/fvidal/compass/shesha/data/turbu/A_r978:987M_8.h5
+loading /home/fvidal/compass/shesha/data/turbu/B_r978:987M_8.h5
+loading /home/fvidal/compass/shesha/data/turbu/istx_r978:987M_8.h5
+loading /home/fvidal/compass/shesha/data/turbu/isty_r978:987M_8.h5
+->dm
+Patter default type : Square
+number of actuator after filtering =  5092
+->target
+->rtc
+filtering unseen actuators... 
+reading valid actuator from /home/fvidal/compass/shesha/data/mat/pztok_r978:987M_277.h5
+reading unvalid actuator from: /home/fvidal/compass/shesha/data/mat/pztnok_r978:987M_277.h5
+controller uses 1 streams
+/home/fvidal/anaconda2/lib/python2.7/site-packages/pandas/core/generic.py:1101: PerformanceWarning: 
+your performance may suffer as PyTables will pickle object types that it cannot
+map directly to c-types [inferred_type->mixed-integer,key->block1_values] [items->['nmax', 'wfs.ypos', 'type_centro', 'L0', 'openloop', 'wfs.xpos', 'fssize', 'wfs.Lambda', 'nact', 'pyr_npts', 'hyst', 'nmodes', 'type_control', 'width', 'pyr_pup_sep', 'dms_seen', 'simulname', 'zerop', 'type_ap', 'pixsize', 'nrec', 'dm.thresh', 'target.mag', 'centro.nwfs', 'modopti', 'nkl', 'proftype', 'windspeed', 'gain', 'lltx', 'llty', 'centroider.thresh', 'TTcond', 'type_fct', 'atm.alt', 'pyrtype', 'kl_type', 'npix', 'sizex', 'sizey', 'gsalt', 'fracsub', 'beamsize', 'margin', 'atmos_seen', 'pyr_loc', 'spiders_type', 'maxcond', 'push4imat', 'control.nwfs', 'target.xpos', 'dm.alt', 'fstop', 'delay', 'cured_ndivs', 'seeds', 'ndm', 'lgsreturnperwatt', 'revision', 'noise', 'frac', 'gmax', 'gmin', 'type_wfs', 'pyr_ampl', 'winddir', 'optthroughput', 'laserpower', 'unitpervolt', 'target.ypos', 'coupling', 'target.dms_seen', 'type_dm', 'target.Lambda', 'weights', 'gsmag', 'nxsub', 'ngain', 'pupoffset', 'sr_le', 'Nphotons', 'srir', 'PSFFilenames', 'eigenvals', 'threshold', 'sr_se', 'NklTot', 'Nactu', 'Nslopes', 'Nkl', 'NklFilt', 'lambdaTarget', 'numiter']]
+
+  return pytables.to_hdf(path_or_buf, key, self, **kwargs)
+====================
+init done
+====================
+objects initialzed on GPU:
+--------------------------------------------------------
+Atmos obect:
+Contains 1 turbulent screen(s):
+Screen # | alt.(m) | speed (m/s) | dir.(deg) | r0 (pix) | deltax | deltay
+       1 |  0.0000 |     10.0000 |   45.0000 |  86.0580 | -0.4525 | -0.4525
+--------------------------------------------------------
+Sensors object:
+Contains 1 WFS(s):
+WFS # |  Nsubaps  | Nvalid | Npix | Nphase | Nfft | Nrebin | Ntot | Npup
+    1 |  78 x 78  |   4300 |   16 |     16 | 4096 |     16 | 1280 |   32
+--------------------------------------------------------
+DMs object:
+Contains 2 DMs:
+DM # | Type  |   Alt   | Nact | Dim
+   1 |   pzt |       0 | 4504 | 1346
+   2 |    tt |       0 |    2 | 1416
+--------------------------------------------------------
+Target objects:
+Contains 1 Target(s):
+Source # | position(") |  Mag  | Lambda (mic.)
+       1 |    0 , 0    |  4.00 | 1.650
+--------------------------------------------------------
+RTC object:
+Contains 1 Centroider(s)
+Centro # | Type  | nwfs | Nvalid
+       1 | pyrhr |    1 | 4300
+Contains 1 Controller(s):
+Control # | Type  | Nslope | Nactu
+        1 |    ls |   8600 | 4506
+--------------------------------------------------------
+----------------------------------------------------
+iter# | S.E. SR | L.E. SR | Est. Rem. | framerate
+----------------------------------------------------
+Iter#: 100
+Tar 1 at 1.65Microns:
+SR S.E: 0.57   SR L.E: 0.57   
+Iter#: 200
+Tar 1 at 1.65Microns:
+SR S.E: 0.60   SR L.E: 0.59   
+Iter#: 300
+Tar 1 at 1.65Microns:
+SR S.E: 0.62   SR L.E: 0.60   
+Iter#: 400
+Tar 1 at 1.65Microns:
+SR S.E: 0.59   SR L.E: 0.54   
+Iter#: 500
+Tar 1 at 1.65Microns:
+SR S.E: 0.64   SR L.E: 0.55   
+Iter#: 600
+Tar 1 at 1.65Microns:
+SR S.E: 0.62   SR L.E: 0.56   
+Iter#: 700
+Tar 1 at 1.65Microns:
+SR S.E: 0.63   SR L.E: 0.57   
+Iter#: 800
+Tar 1 at 1.65Microns:
+SR S.E: 0.59   SR L.E: 0.57   
+Iter#: 900
+Tar 1 at 1.65Microns:
+SR S.E: 0.62   SR L.E: 0.57   
+Iter#: 1000
+Tar 1 at 1.65Microns:
+SR S.E: 0.61   SR L.E: 0.58   
+ loop execution time: 87.9795229435   ( 1000 iterations),  0.0879795229435 (mean)   11.3662812271 Hz
+Saving PSFs...
+Done
+Simulation Done...
+execute python /home/fvidal/compass/shesha/test/scripts/script_PYR39m.py /home/fvidal/compass/shesha/data/par/MICADO/micado_39m_PYR.py 500 5 1 14 500
+/home/fvidal/compass/shesha/test/scripts/script_PYR39m.py:12: UserWarning: 'SHESHA_ROOT' not defined, using default one: /home/fvidal/compass/shesha/data/
+  import shesha as ao
+/home/fvidal/anaconda2/lib/python2.7/site-packages/flask/exthook.py:71: ExtDeprecationWarning: Importing flask.ext.cors is deprecated, use flask_cors instead.
+  .format(x=modname), ExtDeprecationWarning
+[src.cpp/sutra_wfs.cpp@208]: using pyrhr with 4 GPUs
+shesha_savepath: /home/fvidal/compass/shesha/data/
+TEST SHESHA
+ closed loop: call loop(int niter)
+DETECTED BASH SCRIPT
+['/home/fvidal/compass/shesha/test/scripts/script_PYR39m.py', '/home/fvidal/compass/shesha/data/par/MICADO/micado_39m_PYR.py', '500', '5', '1', '14', '500']
+param_file is /home/fvidal/compass/shesha/data/par/MICADO/micado_39m_PYR.py
+simul name is micado_39m_PYR
+*** Enabling peer access between GPU0 and GPU1... ***
+*** Enabling peer access between GPU0 and GPU2... ***
+*** Enabling peer access between GPU0 and GPU3... ***
+*** Enabling peer access between GPU1 and GPU2... ***
+*** Enabling peer access between GPU1 and GPU3... ***
+*** Enabling peer access between GPU2 and GPU3... ***
+*** All GPUs listed can support UVA... ***
+reloading database from: /opt/public/fvidal/data/RunPYR39m/PYR39m.h5
+Simu #1/1
+Freq = 500.00 Hz
+Magnitude = 14.00
+Gain = 1.00
+->wfs
+*-----------------------
+Doing inits on WFS 0
+r0 for WFS : 0.13  m
+seeing for WFS :  0.80 "
+quantum pixsize in pyr image :  0.0008 "
+simulated FoV :  3.30 " x  3.30 "
+number of phase points :  1248
+size of fft support :  4096
+generic pupil created
+->atmos
+r0^-5/6 :0.024416
+/home/fvidal/compass/shesha/test/scripts/script_PYR39m.py:118: VisibleDeprecationWarning: using a non-integer number instead of an integer will result in an error in the future
+  dms = ao.dm_init(config.p_dms, config.p_wfss, wfs, config.p_geom, config.p_tel)
+loading /home/fvidal/compass/shesha/data/turbu/A_r978:987M_8.h5
+loading /home/fvidal/compass/shesha/data/turbu/B_r978:987M_8.h5
+loading /home/fvidal/compass/shesha/data/turbu/istx_r978:987M_8.h5
+loading /home/fvidal/compass/shesha/data/turbu/isty_r978:987M_8.h5
+->dm
+Patter default type : Square
+number of actuator after filtering =  5092
+->target
+->rtc
+filtering unseen actuators... 
+reading valid actuator from /home/fvidal/compass/shesha/data/mat/pztok_r978:987M_277.h5
+reading unvalid actuator from: /home/fvidal/compass/shesha/data/mat/pztnok_r978:987M_277.h5
+controller uses 1 streams
+/home/fvidal/anaconda2/lib/python2.7/site-packages/pandas/core/generic.py:1101: PerformanceWarning: 
+your performance may suffer as PyTables will pickle object types that it cannot
+map directly to c-types [inferred_type->mixed-integer,key->block1_values] [items->['nmax', 'wfs.ypos', 'type_centro', 'L0', 'openloop', 'wfs.xpos', 'fssize', 'wfs.Lambda', 'nact', 'pyr_npts', 'hyst', 'nmodes', 'type_control', 'width', 'pyr_pup_sep', 'dms_seen', 'simulname', 'zerop', 'type_ap', 'pixsize', 'nrec', 'dm.thresh', 'target.mag', 'centro.nwfs', 'modopti', 'nkl', 'proftype', 'windspeed', 'gain', 'lltx', 'llty', 'centroider.thresh', 'TTcond', 'type_fct', 'atm.alt', 'pyrtype', 'kl_type', 'npix', 'sizex', 'sizey', 'gsalt', 'fracsub', 'beamsize', 'margin', 'atmos_seen', 'pyr_loc', 'spiders_type', 'maxcond', 'push4imat', 'control.nwfs', 'target.xpos', 'dm.alt', 'fstop', 'delay', 'cured_ndivs', 'seeds', 'ndm', 'lgsreturnperwatt', 'revision', 'noise', 'frac', 'gmax', 'gmin', 'type_wfs', 'pyr_ampl', 'winddir', 'optthroughput', 'laserpower', 'unitpervolt', 'target.ypos', 'coupling', 'target.dms_seen', 'type_dm', 'target.Lambda', 'weights', 'gsmag', 'nxsub', 'ngain', 'pupoffset', 'sr_le', 'Nphotons', 'srir', 'PSFFilenames', 'eigenvals', 'threshold', 'sr_se', 'NklTot', 'Nactu', 'Nslopes', 'Nkl', 'NklFilt', 'lambdaTarget', 'numiter']]
+
+  return pytables.to_hdf(path_or_buf, key, self, **kwargs)
+====================
+init done
+====================
+objects initialzed on GPU:
+--------------------------------------------------------
+Atmos obect:
+Contains 1 turbulent screen(s):
+Screen # | alt.(m) | speed (m/s) | dir.(deg) | r0 (pix) | deltax | deltay
+       1 |  0.0000 |     10.0000 |   45.0000 |  86.0580 | -0.4525 | -0.4525
+--------------------------------------------------------
+Sensors object:
+Contains 1 WFS(s):
+WFS # |  Nsubaps  | Nvalid | Npix | Nphase | Nfft | Nrebin | Ntot | Npup
+    1 |  78 x 78  |   4300 |   16 |     16 | 4096 |     16 | 1280 |   32
+--------------------------------------------------------
+DMs object:
+Contains 2 DMs:
+DM # | Type  |   Alt   | Nact | Dim
+   1 |   pzt |       0 | 4504 | 1346
+   2 |    tt |       0 |    2 | 1416
+--------------------------------------------------------
+Target objects:
+Contains 1 Target(s):
+Source # | position(") |  Mag  | Lambda (mic.)
+       1 |    0 , 0    |  4.00 | 1.650
+--------------------------------------------------------
+RTC object:
+Contains 1 Centroider(s)
+Centro # | Type  | nwfs | Nvalid
+       1 | pyrhr |    1 | 4300
+Contains 1 Controller(s):
+Control # | Type  | Nslope | Nactu
+        1 |    ls |   8600 | 4506
+--------------------------------------------------------
+----------------------------------------------------
+iter# | S.E. SR | L.E. SR | Est. Rem. | framerate
+----------------------------------------------------
+Iter#: 100
+Tar 1 at 1.65Microns:
+SR S.E: 0.55   SR L.E: 0.55   
+Iter#: 200
+Tar 1 at 1.65Microns:
+SR S.E: 0.61   SR L.E: 0.58   
+Iter#: 300
+Tar 1 at 1.65Microns:
+SR S.E: 0.58   SR L.E: 0.58   
+Iter#: 400
+Tar 1 at 1.65Microns:
+SR S.E: 0.59   SR L.E: 0.52   
+Iter#: 500
+Tar 1 at 1.65Microns:
+SR S.E: 0.63   SR L.E: 0.53   
+Iter#: 600
+Tar 1 at 1.65Microns:
+SR S.E: 0.63   SR L.E: 0.55   
+Iter#: 700
+Tar 1 at 1.65Microns:
+SR S.E: 0.62   SR L.E: 0.56   
+Iter#: 800
+Tar 1 at 1.65Microns:
+SR S.E: 0.58   SR L.E: 0.56   
+Iter#: 900
+Tar 1 at 1.65Microns:
+SR S.E: 0.61   SR L.E: 0.56   
+Iter#: 1000
+Tar 1 at 1.65Microns:
+SR S.E: 0.57   SR L.E: 0.56   
+ loop execution time: 87.966823101   ( 1000 iterations),  0.087966823101 (mean)   11.3679221864 Hz
+Saving PSFs...
+Done
+Simulation Done...
+execute python /home/fvidal/compass/shesha/test/scripts/script_PYR39m.py /home/fvidal/compass/shesha/data/par/MICADO/micado_39m_PYR.py 500 5 1 15 500
+/home/fvidal/compass/shesha/test/scripts/script_PYR39m.py:12: UserWarning: 'SHESHA_ROOT' not defined, using default one: /home/fvidal/compass/shesha/data/
+  import shesha as ao
+/home/fvidal/anaconda2/lib/python2.7/site-packages/flask/exthook.py:71: ExtDeprecationWarning: Importing flask.ext.cors is deprecated, use flask_cors instead.
+  .format(x=modname), ExtDeprecationWarning
+[src.cpp/sutra_wfs.cpp@208]: using pyrhr with 4 GPUs
+shesha_savepath: /home/fvidal/compass/shesha/data/
+TEST SHESHA
+ closed loop: call loop(int niter)
+DETECTED BASH SCRIPT
+['/home/fvidal/compass/shesha/test/scripts/script_PYR39m.py', '/home/fvidal/compass/shesha/data/par/MICADO/micado_39m_PYR.py', '500', '5', '1', '15', '500']
+param_file is /home/fvidal/compass/shesha/data/par/MICADO/micado_39m_PYR.py
+simul name is micado_39m_PYR
+*** Enabling peer access between GPU0 and GPU1... ***
+*** Enabling peer access between GPU0 and GPU2... ***
+*** Enabling peer access between GPU0 and GPU3... ***
+*** Enabling peer access between GPU1 and GPU2... ***
+*** Enabling peer access between GPU1 and GPU3... ***
+*** Enabling peer access between GPU2 and GPU3... ***
+*** All GPUs listed can support UVA... ***
+reloading database from: /opt/public/fvidal/data/RunPYR39m/PYR39m.h5
+Simu #1/1
+Freq = 500.00 Hz
+Magnitude = 15.00
+Gain = 1.00
+->wfs
+*-----------------------
+Doing inits on WFS 0
+r0 for WFS : 0.13  m
+seeing for WFS :  0.80 "
+quantum pixsize in pyr image :  0.0008 "
+simulated FoV :  3.30 " x  3.30 "
+number of phase points :  1248
+size of fft support :  4096
+generic pupil created
+->atmos
+r0^-5/6 :0.024416
+/home/fvidal/compass/shesha/test/scripts/script_PYR39m.py:118: VisibleDeprecationWarning: using a non-integer number instead of an integer will result in an error in the future
+  dms = ao.dm_init(config.p_dms, config.p_wfss, wfs, config.p_geom, config.p_tel)
+loading /home/fvidal/compass/shesha/data/turbu/A_r978:987M_8.h5
+loading /home/fvidal/compass/shesha/data/turbu/B_r978:987M_8.h5
+loading /home/fvidal/compass/shesha/data/turbu/istx_r978:987M_8.h5
+loading /home/fvidal/compass/shesha/data/turbu/isty_r978:987M_8.h5
+->dm
+Patter default type : Square
+number of actuator after filtering =  5092
+->target
+->rtc
+filtering unseen actuators... 
+reading valid actuator from /home/fvidal/compass/shesha/data/mat/pztok_r978:987M_277.h5
+reading unvalid actuator from: /home/fvidal/compass/shesha/data/mat/pztnok_r978:987M_277.h5
+controller uses 1 streams
+/home/fvidal/anaconda2/lib/python2.7/site-packages/pandas/core/generic.py:1101: PerformanceWarning: 
+your performance may suffer as PyTables will pickle object types that it cannot
+map directly to c-types [inferred_type->mixed-integer,key->block1_values] [items->['nmax', 'wfs.ypos', 'type_centro', 'L0', 'openloop', 'wfs.xpos', 'fssize', 'wfs.Lambda', 'nact', 'pyr_npts', 'hyst', 'nmodes', 'type_control', 'width', 'pyr_pup_sep', 'dms_seen', 'simulname', 'zerop', 'type_ap', 'pixsize', 'nrec', 'dm.thresh', 'target.mag', 'centro.nwfs', 'modopti', 'nkl', 'proftype', 'windspeed', 'gain', 'lltx', 'llty', 'centroider.thresh', 'TTcond', 'type_fct', 'atm.alt', 'pyrtype', 'kl_type', 'npix', 'sizex', 'sizey', 'gsalt', 'fracsub', 'beamsize', 'margin', 'atmos_seen', 'pyr_loc', 'spiders_type', 'maxcond', 'push4imat', 'control.nwfs', 'target.xpos', 'dm.alt', 'fstop', 'delay', 'cured_ndivs', 'seeds', 'ndm', 'lgsreturnperwatt', 'revision', 'noise', 'frac', 'gmax', 'gmin', 'type_wfs', 'pyr_ampl', 'winddir', 'optthroughput', 'laserpower', 'unitpervolt', 'target.ypos', 'coupling', 'target.dms_seen', 'type_dm', 'target.Lambda', 'weights', 'gsmag', 'nxsub', 'ngain', 'pupoffset', 'sr_le', 'Nphotons', 'srir', 'PSFFilenames', 'eigenvals', 'threshold', 'sr_se', 'NklTot', 'Nactu', 'Nslopes', 'Nkl', 'NklFilt', 'lambdaTarget', 'numiter']]
+
+  return pytables.to_hdf(path_or_buf, key, self, **kwargs)
+====================
+init done
+====================
+objects initialzed on GPU:
+--------------------------------------------------------
+Atmos obect:
+Contains 1 turbulent screen(s):
+Screen # | alt.(m) | speed (m/s) | dir.(deg) | r0 (pix) | deltax | deltay
+       1 |  0.0000 |     10.0000 |   45.0000 |  86.0580 | -0.4525 | -0.4525
+--------------------------------------------------------
+Sensors object:
+Contains 1 WFS(s):
+WFS # |  Nsubaps  | Nvalid | Npix | Nphase | Nfft | Nrebin | Ntot | Npup
+    1 |  78 x 78  |   4300 |   16 |     16 | 4096 |     16 | 1280 |   32
+--------------------------------------------------------
+DMs object:
+Contains 2 DMs:
+DM # | Type  |   Alt   | Nact | Dim
+   1 |   pzt |       0 | 4504 | 1346
+   2 |    tt |       0 |    2 | 1416
+--------------------------------------------------------
+Target objects:
+Contains 1 Target(s):
+Source # | position(") |  Mag  | Lambda (mic.)
+       1 |    0 , 0    |  4.00 | 1.650
+--------------------------------------------------------
+RTC object:
+Contains 1 Centroider(s)
+Centro # | Type  | nwfs | Nvalid
+       1 | pyrhr |    1 | 4300
+Contains 1 Controller(s):
+Control # | Type  | Nslope | Nactu
+        1 |    ls |   8600 | 4506
+--------------------------------------------------------
+----------------------------------------------------
+iter# | S.E. SR | L.E. SR | Est. Rem. | framerate
+----------------------------------------------------
+Iter#: 100
+Tar 1 at 1.65Microns:
+SR S.E: 0.53   SR L.E: 0.53   
+Iter#: 200
+Tar 1 at 1.65Microns:
+SR S.E: 0.61   SR L.E: 0.57   
+Iter#: 300
+Tar 1 at 1.65Microns:
+SR S.E: 0.58   SR L.E: 0.56   
+Iter#: 400
+Tar 1 at 1.65Microns:
+SR S.E: 0.58   SR L.E: 0.57   
+Iter#: 500
+Tar 1 at 1.65Microns:
+SR S.E: 0.61   SR L.E: 0.57   
+Iter#: 600
+Tar 1 at 1.65Microns:
+SR S.E: 0.59   SR L.E: 0.58   
+Iter#: 700
+Tar 1 at 1.65Microns:
+SR S.E: 0.62   SR L.E: 0.58   
+Iter#: 800
+Tar 1 at 1.65Microns:
+SR S.E: 0.58   SR L.E: 0.58   
+Iter#: 900
+Tar 1 at 1.65Microns:
+SR S.E: 0.58   SR L.E: 0.58   
+Iter#: 1000
+Tar 1 at 1.65Microns:
+SR S.E: 0.59   SR L.E: 0.58   
+ loop execution time: 87.9694900513   ( 1000 iterations),  0.0879694900513 (mean)   11.3675775478 Hz
+Saving PSFs...
+Done
+Simulation Done...
+execute python /home/fvidal/compass/shesha/test/scripts/script_PYR39m.py /home/fvidal/compass/shesha/data/par/MICADO/micado_39m_PYR.py 500 5 1 16 500
+/home/fvidal/compass/shesha/test/scripts/script_PYR39m.py:12: UserWarning: 'SHESHA_ROOT' not defined, using default one: /home/fvidal/compass/shesha/data/
+  import shesha as ao
+/home/fvidal/anaconda2/lib/python2.7/site-packages/flask/exthook.py:71: ExtDeprecationWarning: Importing flask.ext.cors is deprecated, use flask_cors instead.
+  .format(x=modname), ExtDeprecationWarning
+[src.cpp/sutra_wfs.cpp@208]: using pyrhr with 4 GPUs
+shesha_savepath: /home/fvidal/compass/shesha/data/
+TEST SHESHA
+ closed loop: call loop(int niter)
+DETECTED BASH SCRIPT
+['/home/fvidal/compass/shesha/test/scripts/script_PYR39m.py', '/home/fvidal/compass/shesha/data/par/MICADO/micado_39m_PYR.py', '500', '5', '1', '16', '500']
+param_file is /home/fvidal/compass/shesha/data/par/MICADO/micado_39m_PYR.py
+simul name is micado_39m_PYR
+*** Enabling peer access between GPU0 and GPU1... ***
+*** Enabling peer access between GPU0 and GPU2... ***
+*** Enabling peer access between GPU0 and GPU3... ***
+*** Enabling peer access between GPU1 and GPU2... ***
+*** Enabling peer access between GPU1 and GPU3... ***
+*** Enabling peer access between GPU2 and GPU3... ***
+*** All GPUs listed can support UVA... ***
+reloading database from: /opt/public/fvidal/data/RunPYR39m/PYR39m.h5
+Simu #1/1
+Freq = 500.00 Hz
+Magnitude = 16.00
+Gain = 1.00
+->wfs
+*-----------------------
+Doing inits on WFS 0
+r0 for WFS : 0.13  m
+seeing for WFS :  0.80 "
+quantum pixsize in pyr image :  0.0008 "
+simulated FoV :  3.30 " x  3.30 "
+number of phase points :  1248
+size of fft support :  4096
+generic pupil created
+->atmos
+r0^-5/6 :0.024416
+/home/fvidal/compass/shesha/test/scripts/script_PYR39m.py:118: VisibleDeprecationWarning: using a non-integer number instead of an integer will result in an error in the future
+  dms = ao.dm_init(config.p_dms, config.p_wfss, wfs, config.p_geom, config.p_tel)
+loading /home/fvidal/compass/shesha/data/turbu/A_r978:987M_8.h5
+loading /home/fvidal/compass/shesha/data/turbu/B_r978:987M_8.h5
+loading /home/fvidal/compass/shesha/data/turbu/istx_r978:987M_8.h5
+loading /home/fvidal/compass/shesha/data/turbu/isty_r978:987M_8.h5
+->dm
+Patter default type : Square
+number of actuator after filtering =  5092
+->target
+->rtc
+filtering unseen actuators... 
+reading valid actuator from /home/fvidal/compass/shesha/data/mat/pztok_r978:987M_277.h5
+reading unvalid actuator from: /home/fvidal/compass/shesha/data/mat/pztnok_r978:987M_277.h5
+controller uses 1 streams
+/home/fvidal/anaconda2/lib/python2.7/site-packages/pandas/core/generic.py:1101: PerformanceWarning: 
+your performance may suffer as PyTables will pickle object types that it cannot
+map directly to c-types [inferred_type->mixed-integer,key->block1_values] [items->['nmax', 'wfs.ypos', 'type_centro', 'L0', 'openloop', 'wfs.xpos', 'fssize', 'wfs.Lambda', 'nact', 'pyr_npts', 'hyst', 'nmodes', 'type_control', 'width', 'pyr_pup_sep', 'dms_seen', 'simulname', 'zerop', 'type_ap', 'pixsize', 'nrec', 'dm.thresh', 'target.mag', 'centro.nwfs', 'modopti', 'nkl', 'proftype', 'windspeed', 'gain', 'lltx', 'llty', 'centroider.thresh', 'TTcond', 'type_fct', 'atm.alt', 'pyrtype', 'kl_type', 'npix', 'sizex', 'sizey', 'gsalt', 'fracsub', 'beamsize', 'margin', 'atmos_seen', 'pyr_loc', 'spiders_type', 'maxcond', 'push4imat', 'control.nwfs', 'target.xpos', 'dm.alt', 'fstop', 'delay', 'cured_ndivs', 'seeds', 'ndm', 'lgsreturnperwatt', 'revision', 'noise', 'frac', 'gmax', 'gmin', 'type_wfs', 'pyr_ampl', 'winddir', 'optthroughput', 'laserpower', 'unitpervolt', 'target.ypos', 'coupling', 'target.dms_seen', 'type_dm', 'target.Lambda', 'weights', 'gsmag', 'nxsub', 'ngain', 'pupoffset', 'sr_le', 'Nphotons', 'srir', 'PSFFilenames', 'eigenvals', 'threshold', 'sr_se', 'NklTot', 'Nactu', 'Nslopes', 'Nkl', 'NklFilt', 'lambdaTarget', 'numiter']]
+
+  return pytables.to_hdf(path_or_buf, key, self, **kwargs)
+====================
+init done
+====================
+objects initialzed on GPU:
+--------------------------------------------------------
+Atmos obect:
+Contains 1 turbulent screen(s):
+Screen # | alt.(m) | speed (m/s) | dir.(deg) | r0 (pix) | deltax | deltay
+       1 |  0.0000 |     10.0000 |   45.0000 |  86.0580 | -0.4525 | -0.4525
+--------------------------------------------------------
+Sensors object:
+Contains 1 WFS(s):
+WFS # |  Nsubaps  | Nvalid | Npix | Nphase | Nfft | Nrebin | Ntot | Npup
+    1 |  78 x 78  |   4300 |   16 |     16 | 4096 |     16 | 1280 |   32
+--------------------------------------------------------
+DMs object:
+Contains 2 DMs:
+DM # | Type  |   Alt   | Nact | Dim
+   1 |   pzt |       0 | 4504 | 1346
+   2 |    tt |       0 |    2 | 1416
+--------------------------------------------------------
+Target objects:
+Contains 1 Target(s):
+Source # | position(") |  Mag  | Lambda (mic.)
+       1 |    0 , 0    |  4.00 | 1.650
+--------------------------------------------------------
+RTC object:
+Contains 1 Centroider(s)
+Centro # | Type  | nwfs | Nvalid
+       1 | pyrhr |    1 | 4300
+Contains 1 Controller(s):
+Control # | Type  | Nslope | Nactu
+        1 |    ls |   8600 | 4506
+--------------------------------------------------------
+----------------------------------------------------
+iter# | S.E. SR | L.E. SR | Est. Rem. | framerate
+----------------------------------------------------
+Iter#: 100
+Tar 1 at 1.65Microns:
+SR S.E: 0.48   SR L.E: 0.48   
+Iter#: 200
+Tar 1 at 1.65Microns:
+SR S.E: 0.52   SR L.E: 0.50   
+Iter#: 300
+Tar 1 at 1.65Microns:
+SR S.E: 0.52   SR L.E: 0.50   
+Iter#: 400
+Tar 1 at 1.65Microns:
+SR S.E: 0.51   SR L.E: 0.47   
+Iter#: 500
+Tar 1 at 1.65Microns:
+SR S.E: 0.52   SR L.E: 0.46   
+Iter#: 600
+Tar 1 at 1.65Microns:
+SR S.E: 0.50   SR L.E: 0.46   
+Iter#: 700
+Tar 1 at 1.65Microns:
+SR S.E: 0.53   SR L.E: 0.47   
+Iter#: 800
+Tar 1 at 1.65Microns:
+SR S.E: 0.51   SR L.E: 0.48   
+Iter#: 900
+Tar 1 at 1.65Microns:
+SR S.E: 0.51   SR L.E: 0.48   
+Iter#: 1000
+Tar 1 at 1.65Microns:
+SR S.E: 0.53   SR L.E: 0.48   
+ loop execution time: 87.9712660313   ( 1000 iterations),  0.0879712660313 (mean)   11.3673480571 Hz
+Saving PSFs...
+Done
+Simulation Done...
+execute python /home/fvidal/compass/shesha/test/scripts/script_PYR39m.py /home/fvidal/compass/shesha/data/par/MICADO/micado_39m_PYR.py 500 5 1 17#pyr 500
+/home/fvidal/compass/shesha/test/scripts/script_PYR39m.py:12: UserWarning: 'SHESHA_ROOT' not defined, using default one: /home/fvidal/compass/shesha/data/
+  import shesha as ao
+/home/fvidal/anaconda2/lib/python2.7/site-packages/flask/exthook.py:71: ExtDeprecationWarning: Importing flask.ext.cors is deprecated, use flask_cors instead.
+  .format(x=modname), ExtDeprecationWarning
+shesha_savepath: /home/fvidal/compass/shesha/data/
+TEST SHESHA
+ closed loop: call loop(int niter)
+DETECTED BASH SCRIPT
+['/home/fvidal/compass/shesha/test/scripts/script_PYR39m.py', '/home/fvidal/compass/shesha/data/par/MICADO/micado_39m_PYR.py', '500', '5', '1', '17#pyr', '500']
+Traceback (most recent call last):
+  File "/home/fvidal/compass/shesha/test/scripts/script_PYR39m.py", line 50, in <module>
+    magnitudes=[float(sys.argv[5])] # frequency
+ValueError: invalid literal for float(): 17#pyr
