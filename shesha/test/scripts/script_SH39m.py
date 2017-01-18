@@ -106,6 +106,26 @@ c=ch.naga_context(devices=np.array([0,1,2,3], dtype=np.int32))
 #c.set_activeDevice(6)
 
 
+
+def makeFITSHeader(filepath, df):
+    hdulist = pf.open(filepath) # read file
+    header = hdulist[0].header
+    names = np.sort(list(set(df))).tolist()
+    for name in names:
+        val = df[name][0]
+        if(type(val) is list):
+            value = ""
+            for v in val:
+                value+=(str(v)+" ")
+        elif(type(val) is np.ndarray):
+            value = ""
+            for v in val:
+                value+=(str(v)+" ")
+        else:
+            value = val
+        header.set(name, value,'??')
+    hdulist.writeto(filepath, clobber=True) # Save changes to file
+
 def initSimu(config,c):
     #    wfs
     param_dict = h5u.params_dictionary(config)
@@ -305,10 +325,20 @@ for freq in freqs:
                                 lam = lam.replace(".","_")
                                 PSFName = "SH_"+lam+"_"+date+".fits"
                                 PSFNameList.append(PSFName)
-                                PSFNameList.append("NOT SAVED")
+                                #PSFNameList.append("NOT SAVED")
                                 pf.writeto(pathResults+"PSFs/"+PSFName, PSFtarget.copy(), clobber=True)
                                 lam2 = "%3.2f" % tar.Lambda.tolist()[t]
-                                res.loc[0, "srir_%s"%lam2] = SR[t]
+                                res.loc[0, "SR_%s"%lam2] = SR[t]
+                                filepath = pathResults+"PSFs/"+PSFName
+
+                                #"Add the SR and wavelegth value at the top of the PSF header file"
+                                hdulist = pf.open(filepath) # read file
+                                header = hdulist[0].header
+                                header["SR"] = SR[t]
+                                header["wavelength"] = tar.Lambda.tolist()[t]
+                                hdulist.writeto(filepath, clobber=True) # Save changes to file
+                                # Adding all the parameters to the header
+                                makeFITSHeader(filepath, res)
                             print "Done"
                             res.PSFFilenames.values[0] = PSFNameList
                             resAll = db.fillDf(resAll, res) # Saving res in global resAll DB
