@@ -1,12 +1,13 @@
 import shesha as ao
 
-simul_name="micado_8m_SH"
+simul_name="micado_39m_SH"
 
 #loop
 p_loop = ao.Param_loop()
 
-p_loop.set_niter(1000)
+p_loop.set_niter(30000) #500Hz: 1mn = 30000, 1kH = 60000
 p_loop.set_ittime(1/500.) #=1/500
+p_loop.set_devices([0, 1, 2, 3])
 
 #geom
 p_geom=ao.Param_geom()
@@ -38,16 +39,26 @@ p_atmos.set_frac([1.0])
 p_atmos.set_alt([0.0])
 p_atmos.set_windspeed([10.])
 p_atmos.set_winddir([45.])
-p_atmos.set_L0([1.e5]) # Not simulated in Yorick?
+p_atmos.set_L0([1e6]) # Not simulated in Yorick?
 
-#target
+
+"""
+# 1 target
 p_target=ao.Param_target()
 p_target.set_nTargets(1)
 p_target.set_xpos([0])
 p_target.set_ypos([0.])
 p_target.set_Lambda([1.65])
 p_target.set_mag([4.])
+"""
 
+# 3 targets
+p_target=ao.Param_target()
+p_target.set_nTargets(3)
+p_target.set_xpos([0, 0, 0])
+p_target.set_ypos([0, 0, 0])
+p_target.set_Lambda([1.2, 1.65, 2.2])
+p_target.set_mag([4, 4., 4])
 #wfs
 #p_wfs0= ao.Param_wfs(error_budget=True)
 p_wfs0= ao.Param_wfs()
@@ -65,9 +76,9 @@ p_wfs0.set_Lambda(0.5)
 p_wfs0.set_gsmag(11.)
 p_wfs0.set_optthroughput(0.5)
 p_wfs0.set_zerop(1.e11)
-p_wfs0.set_noise(10) # in electrons units
+p_wfs0.set_noise(3) # in electrons units
 p_wfs0.set_atmos_seen(1)
-p_wfs0.set_fstop("square")
+p_wfs0.set_fstop("round")
 p_wfs0.set_fssize(1.6)
 
 
@@ -83,24 +94,24 @@ p_dm0.set_nact(nact)
 p_dm0.set_alt(0.)
 p_dm0.set_thresh(0.3) # fraction units
 p_dm0.set_coupling(0.2) # !!!!!!!!!!!!!!!!!!!!!!!!! attention pas autre chose que 0.2 !!!!!!!!!
-p_dm0.set_unitpervolt(0.01)
-p_dm0.set_push4imat(100.)
+p_dm0.set_unitpervolt(1)
+p_dm0.set_push4imat(1.)
 
 p_dm1.set_type("tt")
 p_dm1.set_alt(0.)
-p_dm1.set_unitpervolt(0.0005)
-p_dm1.set_push4imat(10.)
+p_dm1.set_unitpervolt(1)
+p_dm1.set_push4imat(0.05)
 
 #centroiders
 p_centroider0=ao.Param_centroider()
 p_centroiders=[p_centroider0]
 
 p_centroider0.set_nwfs(0)
-p_centroider0.set_type("cog")
+#p_centroider0.set_type("cog")
 #sp_centroider0.set_thresh(0.)
 
-#p_centroider0.set_type("bpcog")
-#p_centroider0.set_nmax(10)
+p_centroider0.set_type("bpcog")
+p_centroider0.set_nmax(10)
 
 #p_centroider0.set_type("corr")
 #p_centroider0.set_type_fct("model")
@@ -111,10 +122,10 @@ p_controllers=[p_controller0]
 
 p_controller0.set_type("ls")
 p_controller0.set_nwfs([0])
-p_controller0.set_ndm([0,1])
+p_controller0.set_ndm([0, 1])
 p_controller0.set_maxcond(150.)
-p_controller0.set_delay(2)
-p_controller0.set_gain(0.2)
+p_controller0.set_delay(1)
+p_controller0.set_gain(0.3)
 
 #p_controller0.set_modopti(0)
 #p_controller0.set_nrec(2048)
