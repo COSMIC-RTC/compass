@@ -2019,7 +2019,7 @@ def rtc_init(Telescope g_tel, Sensors g_wfs, p_wfs, Dms g_dms, p_dms, Param_geom
                             cc = 0
                             for ndm in p_dms:
                                 mgain[cc:cc+ndm._ntotact] = ndm.gain
-                                cc += ndm._ntota
+                                cc += ndm._ntotact
                             # filtering tilt ...
                             g_rtc.set_mgain(i, mgain)
 
