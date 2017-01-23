@@ -299,6 +299,10 @@ int sutra_wfs_pyr_pyrhr::comp_generic() {
 	carmaSafeCall(
 			cudaMemset(this->d_hrimg->getData(), 0,
 					sizeof(float) * this->d_hrimg->getNbElem()));
+	carmaSafeCall(
+			cudaMemset(this->d_binimg->getData(), 0,
+					sizeof(float) * this->d_binimg->getNbElem()));
+
 	//this->npup = 1;
 
 	for (std::vector<carma_obj<float> *>::iterator it =
@@ -368,23 +372,25 @@ int sutra_wfs_pyr_pyrhr::comp_generic() {
 	pyr_fillbinimg(this->d_binimg->getData(), this->d_hrimg->getData(),
 			this->nfft / this->nrebin, this->nfft, this->nrebin, false,
 			this->current_context->get_device(device));
-
+/*
 	pyr_subsum(this->d_subsum->getData(), this->d_binimg->getData(),
 			this->d_validsubsx->getData(), this->d_validsubsy->getData(),
 			this->nfft / this->nrebin, this->nvalid,
 			this->current_context->get_device(device));
-
+*/
 	int blocks, threads;
-//  getNumBlocksAndThreads(current_context->get_device(device), this->nvalid,
+//  getNumBlocksAndThreads(current_context->get_device(device), this->d_binimg->getNbElem(),
 //      blocks, threads);
 	this->current_context->set_activeDevice(device,1);
-	sumGetNumBlocksAndThreads(this->nvalid,
+	sumGetNumBlocksAndThreads(this->d_binimg->getNbElem(),
 			this->current_context->get_device(device), blocks, threads);
 
-	reduce(this->nvalid, threads, blocks, this->d_subsum->getData(),
-			this->d_subsum->getData());
+	this->d_psum->reset();
+	DEBUG_TRACE("threads %d blocks %d",threads,blocks);
+	reduce(this->d_binimg->getNbElem(), threads, blocks, this->d_binimg->getData(),
+			this->d_psum->getData());
 
-	pyr_fact(this->d_binimg->getData(), this->nphot, this->d_subsum->getData(),
+	pyr_fact(this->d_binimg->getData(), this->nphot, this->d_psum->getData(),
 			this->nfft / this->nrebin, 1,
 			this->current_context->get_device(device));
 

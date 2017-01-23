@@ -46,6 +46,10 @@ sutra_wfs_pyr::sutra_wfs_pyr(carma_context *context, sutra_telescope *d_tel,
     dims_data2[2] = nfft / nrebin;
 
     this->d_binimg = new carma_obj<float>(context, dims_data2);
+
+    dims_data1[1] = 1;
+    this->d_psum = new carma_obj<float>(context, dims_data1);
+
     if (this->error_budget) {
       this->d_binimg_notnoisy = new carma_obj<float>(context, dims_data2);
     }
@@ -71,8 +75,6 @@ sutra_wfs_pyr::sutra_wfs_pyr(carma_context *context, sutra_telescope *d_tel,
 
     dims_data1[1] = nvalid;
     this->d_subsum = new carma_obj<float>(context, dims_data1);
-
-    this->d_psum = new carma_obj<float>(context, dims_data1);
 
     this->d_fluxPerSub = new carma_obj<float>(context, dims_data1);
     dims_data1[1] = nvalid * 4;
@@ -106,6 +108,7 @@ sutra_wfs_pyr::sutra_wfs_pyr(carma_context *context, sutra_telescope *d_tel,
     dims_data2[2] = nfft / nrebin * 2 + 3;
 
     this->d_binimg = new carma_obj<float>(context, dims_data2);
+
     // using 1 stream for telemetry
     this->image_telemetry = new carma_host_obj<float>(dims_data2, MA_PAGELOCK,
                                                       1);
@@ -146,8 +149,8 @@ sutra_wfs_pyr::sutra_wfs_pyr(carma_context *context, sutra_telescope *d_tel,
     dims_data2[2] = nfft;
     this->d_sincar = new carma_obj<float>(context, dims_data2);
 
-    dims_data1[1] = nvalid;
-    this->d_subsum = new carma_obj<float>(context, dims_data1);
+    //dims_data1[1] = nvalid;
+    //this->d_subsum = new carma_obj<float>(context, dims_data1);
 
     this->d_psum = new carma_obj<float>(context, dims_data1);
 
