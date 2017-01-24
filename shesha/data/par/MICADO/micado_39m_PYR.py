@@ -16,7 +16,7 @@ p_geom.set_zenithangle(0.)
 # tel
 p_tel = ao.Param_tel()
 p_tel.set_diam(39.)
-p_tel.set_cobs(0.29)
+p_tel.set_cobs(0.28)
 
 """
 E_ELT PUPIL
@@ -43,12 +43,20 @@ p_atmos.set_winddir([45.])
 p_atmos.set_L0([1.e5])  # Not simulated in Yorick?
 
 # target
-p_target = ao.Param_target()
-p_target.set_nTargets(1)
-p_target.set_xpos([0])
-p_target.set_ypos([0.])
-p_target.set_Lambda([1.65])
-p_target.set_mag([4.])
+#p_target = ao.Param_target()
+#p_target.set_nTargets(1)
+#p_target.set_xpos([0])
+#p_target.set_ypos([0.])
+#p_target.set_Lambda([1.65])
+#p_target.set_mag([4.])
+
+# 3 Lambda targets
+p_target=ao.Param_target()
+p_target.set_nTargets(3)
+p_target.set_xpos([0, 0, 0])
+p_target.set_ypos([0, 0, 0])
+p_target.set_Lambda([1.2, 1.65, 2.2])
+p_target.set_mag([4, 4., 4])
 
 # wfs
 #p_wfs0 = ao.Param_wfs(error_budget=True)
@@ -94,7 +102,6 @@ p_dm0.set_unitpervolt(1)
 p_dm0.set_push4imat(0.01)
 #p_dm0.set_gain(0.2)
 
-
 p_dm1.set_type("tt")
 p_dm1.set_alt(0.)
 p_dm1.set_unitpervolt(1)
@@ -123,7 +130,7 @@ p_controller0.set_type("ls")
 p_controller0.set_nwfs([0])
 p_controller0.set_ndm([0, 1])
 p_controller0.set_maxcond(150.)
-p_controller0.set_delay(2)
+p_controller0.set_delay(1)
 p_controller0.set_gain(0.2)
 
 # p_controller0.set_modopti(0)
