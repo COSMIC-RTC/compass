@@ -20,8 +20,8 @@ import pandas as pd
 
 print "TEST SHESHA\n closed loop: call loop(int niter)"
 simulName = "PYR_39m"
-pathResults="/opt/public/fvidal/data/RunPYR39m/"
-dBResult = "PYR39m.h5"
+pathResults="/volumes/hra/micado/RunPYR39m_RoundPupil/"
+dBResult = "PYR39m_RoundPupil.h5"
 #GPUS = np.array([0, 1, 2, 3])
 
 if(len(sys.argv)==1):
@@ -37,20 +37,23 @@ if(len(sys.argv)==2):
     freqs = [500.]
     gainslist = [1]
     #magnitudes=[11, 12, 13, 14, 15, 16]
-    magnitudes=[11, 12, 13, 14, 15, 16]
-    nKL_Filt = 450
+    magnitudes=[11, 15]
+    nKL_Filt = 1000
     MODU = [5]
+    RONS = [0.5]
 else:
     print "DETECTED BASH SCRIPT"
     #python $script $PARFILE $FREQ $MODU $GAIN $MAG $KLFILT
     print sys.argv
     freqs=[float(sys.argv[2])] # frequency
-    MODU=[float(sys.argv[3])] # MODU
-    gainslist=[float(sys.argv[4])] # frequency
-    magnitudes=[float(sys.argv[5])] # frequency
-    nKL_Filt=float(sys.argv[6]) # frequency
+    RONS=[float(sys.argv[3])] # RONS
+    MODU=[float(sys.argv[4])] # MODU
+    gainslist=[float(sys.argv[5])] # frequency
+    magnitudes=[float(sys.argv[6])] # frequency
+    nKL_Filt=float(sys.argv[7]) # frequency
+
 #$FREQ $NPIX $PIXSIZE $GAIN $TH $MAG $KLFILT
-Nsimutot = len(gainslist) * len(freqs) * len(MODU) * len(magnitudes)
+Nsimutot = len(gainslist) * len(freqs) * len(RONS)* len(MODU) * len(magnitudes)
 
 
 if(not glob.glob(pathResults)):
@@ -103,6 +106,26 @@ c=ch.naga_context(devices=np.array([0,1,2,3], dtype=np.int32))
 #c.set_activeDevice(6)
 
 
+def makeFITSHeader(filepath, df):
+    hdulist = pf.open(filepath) # read file
+    header = hdulist[0].header
+    names = np.sort(list(set(df))).tolist()
+    for name in names:
+        val = df[name][0]
+        if(type(val) is list):
+            value = ""
+            for v in val:
+                value+=(str(v)+" ")
+        elif(type(val) is np.ndarray):
+            value = ""
+            for v in val:
+                value+=(str(v)+" ")
+        else:
+            value = val
+        header.set(name, value,'')
+    hdulist.writeto(filepath, clobber=True) # Save changes to file
+
+
 def initSimu(config,c):
     #    wfs
     param_dict = h5u.params_dictionary(config)
@@ -148,6 +171,7 @@ def loop( n,wfs,tel,atm,dms,tar,rtc):
     sr_le = []
     numiter = []
     for i in range(n):
+        print i
         atm.move_atmos()
 
         if(config.p_controllers[0].type_control == "geo"):
@@ -170,13 +194,14 @@ def loop( n,wfs,tel,atm,dms,tar,rtc):
 
         if((i+1)%100==0):
             print "Iter#:", i+1
-            for t in range(config.p_target.ntargets):
-                SR = tar.get_strehl(t)
-                print "Tar %d at %3.2fMicrons:" % (t+1, tar.Lambda[t])
-                signal_se = "SR S.E: %1.2f   " % SR[0]
-                signal_le = "SR L.E: %1.2f   " % SR[1]
+            #for t in range(config.p_target.ntargets):
+            t=1
+            SR = tar.get_strehl(t)
+            print "Tar %d at %3.2fMicrons:" % (t+1, tar.Lambda[t])
+            signal_se = "SR S.E: %1.2f   " % SR[0]
+            signal_le = "SR L.E: %1.2f   " % SR[1]
 
-                print signal_se + signal_le
+            print signal_se + signal_le
             #print i+1,"\t",,SR[0],"\t",SR[1]
             sr_le.append(SR[1])
             sr_se.append(SR[0])
@@ -213,7 +238,8 @@ resAll.srir = None
 
 
 colnames = h5u.params_dictionary(config) # config values internal to compass
-simunames = {"PSFFilenames":None, "srir":None, "lambdaTarget":None, "threshold":None, "sr_le":None, "sr_se":None, "numiter":None, "NklFilt":None, "NklTot":None, "Nkl":None, "eigenvals":None, "Nphotons":None, "Nactu":None, "Nslopes":None}# Added values computed by the simu..
+#simunames = {"PSFFilenames":None, "srir":None, "lambdaTarget":None, "threshold":None, "sr_le":None, "sr_se":None, "numiter":None, "NklFilt":None, "NklTot":None, "Nkl":None, "eigenvals":None, "Nphotons":None, "Nactu":None, "Nslopes":None}# Added values computed by the simu..
+simunames = {"PSFFilenames":None, "srir":None, "lambdaTarget":None, "nbBrightest":None, "sr_le":None, "sr_se":None, "numiter":None, "NklFilt":None, "NklTot":None, "Nkl":None, "eigenvals":None, "Nphotons":None, "Nactu":None, "RON":None, "Nslopes":None}# Added values computed by the simu..
 
 
 resAll = db.readDataBase(fullpath=pathResults+dBResult) # Reads all the database if exists
@@ -242,65 +268,84 @@ NCurrSim = 0
 
 for freq in freqs:
     config.p_loop.set_ittime(1/freq)
-    for modulation in MODU:
-        rMod = modulation
-        config.p_wfs0.set_pyr_npts(int(np.ceil(int(rMod*2* 3.141592653589793)/4.)*4))
-        config.p_wfs0.set_pyr_ampl(rMod)
-        for gain in gainslist:
-            config.p_controller0.set_gain(gain) # Change Gain
-            for magnitude in magnitudes:
-                NCurrSim+=1
-                config.p_wfs0.set_gsmag(magnitude)
-                res = pd.DataFrame( columns=colnames.keys()+simunames.keys()) # Create Db for last result
-                print "Simu #%d/%d" % (NCurrSim, Nsimutot)
-                print "Freq = %3.2f Hz" % (1./config.p_loop.ittime)
-                print "Magnitude = %3.2f" % config.p_wfs0.gsmag
-                print "Gain = %3.2f" % config.p_controller0.gain
+    for RON in RONS:
+        config.p_wfs0.set_noise(RON)
+        for modulation in MODU:
+            rMod = modulation
+            config.p_wfs0.set_pyr_npts(int(np.ceil(int(rMod*2* 3.141592653589793)/4.)*4))
+            config.p_wfs0.set_pyr_ampl(rMod)
+            for gain in gainslist:
+                config.p_controller0.set_gain(gain) # Change Gain
+                for magnitude in magnitudes:
+                    NCurrSim+=1
+                    config.p_wfs0.set_gsmag(magnitude)
+                    res = pd.DataFrame( columns=colnames.keys()+simunames.keys()) # Create Db for last result
+                    print "Freq = %3.2f Hz" % (1./config.p_loop.ittime)
+                    print "Magnitude = %3.2f" % config.p_wfs0.gsmag
+                    print "Gain = %3.2f" % config.p_controller0.gain
 
-                wfs,tel,atm,dms,tar,rtc = initSimu(config, c) # Init Simu
-                nfilt = nKL_Filt
-                #cmat = ao.compute_cmatWithKL(rtc, config.p_controllers[0], dms, config.p_dms, config.p_geom, config.p_atmos, config.p_tel, nfilt)
-                cmat = pf.getdata("/home/fvidal/compass/shesha/test/scripts/cmatKLGood.fits")
-                rtc.set_cmat(0, cmat.copy().astype(np.float32))
+                    wfs,tel,atm,dms,tar,rtc = initSimu(config, c) # Init Simu
+                    nfilt = nKL_Filt
+                    #cmat = ao.compute_cmatWithKL(rtc, config.p_controllers[0], dms, config.p_dms, config.p_geom, config.p_atmos, config.p_tel, nfilt)
+                    print "Reading cMat"
+                    cmat = pf.getdata(os.environ["SHESHA_ROOT"]+"/test/scripts/cmatKLGood.fits")
+                    print "Setting cMat"
+                    rtc.set_cmat(0, cmat.copy().astype(np.float32))
+                    print "Starting Loop"
+                    SR, lambdaTargetList, sr_le, sr_se, numiter = loop(config.p_loop.niter,wfs,tel,atm,dms,tar,rtc )
+                    dfparams = h5u.params_dictionary(config) # get the current compass config
+                    dfparams.update(simunames) # Add the simunames params
 
-                SR, lambdaTargetList, sr_le, sr_se, numiter = loop(config.p_loop.niter,wfs,tel,atm,dms,tar,rtc )
-                dfparams = h5u.params_dictionary(config) # get the current compass config
-                dfparams.update(simunames) # Add the simunames params
+                    res = db.fillDf(res, dfparams) # Saving dictionnary config
+                    res.loc[0, "NklFilt"] = nKL_Filt
+                    res.loc[0, "Nkl"] = cmat.shape[0]-2 - nKL_Filt
+                    res.loc[0, "NklTot"] = cmat.shape[0]-2
+                    res.loc[0, "Nactu"] = cmat.shape[0]
+                    res.loc[0, "Nslopes"] = cmat.shape[1]
+                    res.loc[0, "Nphotons"] = config.p_wfs0._nphotons
+                    res.loc[0, "RON"] = RON
+                    res.loc[0, "Nphotons"] = config.p_wfs0._nphotons
+                    #res.eigenvals.values[0] = rtc.getEigenvals(0)
+                    res.srir.values[0]= SR  # Saving computed values
+                    res.lambdaTarget.values[0]= lambdaTargetList
+                    res.loc[0, "gsmag"] = config.p_wfs0.gsmag
+                    res.loc[0, "gain"] = config.p_controller0.gain
+                    #res.sr_le.values[0] = sr_le
+                    #res.sr_se.values[0] = sr_se
+                    #res.numiter.values[0] = numiter
+                    res.loc[0, "simulname"] = simulName
+                    print "Saving PSFs..."
+                    PSFNameList = []
+                    for t in range(config.p_target.ntargets):
+                        PSFtarget = tar.get_image(t, "le")
+                        date = time.strftime("_%d-%m-%Y_%H:%M:%S_")
+                        lam = "%3.2f" % tar.Lambda.tolist()[t]
+                        lam = lam.replace(".","_")
+                        PSFName = "PYR_"+lam+"_"+date+".fits"
+                        PSFNameList.append(PSFName)
+                        #PSFNameList.append("NOT SAVED")
+                        pf.writeto(pathResults+"PSFs/"+PSFName, PSFtarget.copy(), clobber=True)
+                        lam2 = "%3.2f" % tar.Lambda.tolist()[t]
+                        res.loc[0, "SR_%s"%lam2] = SR[t]
+                        filepath = pathResults+"PSFs/"+PSFName
 
-                res = db.fillDf(res, dfparams) # Saving dictionnary config
-                res.loc[0, "NklFilt"] = nKL_Filt
-                res.loc[0, "Nkl"] = cmat.shape[0]-2 - nKL_Filt
-                res.loc[0, "NklTot"] = cmat.shape[0]-2
-                res.loc[0, "Nactu"] = cmat.shape[0]
-                res.loc[0, "Nslopes"] = cmat.shape[1]
-
-                res.loc[0, "Nphotons"] = config.p_wfs0._nphotons
-                #res.eigenvals.values[0] = rtc.getEigenvals(0)
-                res.srir.values[0]= SR  # Saving computed values
-                res.lambdaTarget.values[0]= lambdaTargetList
-                res.loc[0, "gsmag"] = config.p_wfs0.gsmag
-                res.loc[0, "gain"] = config.p_controller0.gain
-                #res.sr_le.values[0] = sr_le
-                #res.sr_se.values[0] = sr_se
-                #res.numiter.values[0] = numiter
-                res.loc[0, "simulname"] = simulName
-                print "Saving PSFs..."
-                PSFNameList = []
-                for t in range(config.p_target.ntargets):
-                    PSFtarget = tar.get_image(t, "le")
-                    date = time.strftime("_%d-%m-%Y_%H:%M:%S_")
-                    lam = "%3.2f" % tar.Lambda.tolist()[t]
-                    lam = lam.replace(".","_")
-                    PSFName = "PYR_"+lam+"_"+date+".fits"
-                    PSFNameList.append(PSFName)
-                    PSFNameList.append("NOT SAVED")
-                    #pf.writeto(pathResults+"PSFs/"+PSFName, PSFtarget.copy(), clobber=True)
-                print "Done"
-                res.PSFFilenames.values[0] = PSFNameList
-                resAll = db.fillDf(resAll, res) # Saving in global DB
-                #resAll.to_hdf("/home/fvidal/compass/trunk/shesha/test/scripts/resultatsScripts/SH39m.h5", "resAll", complevel=9,complib='blosc')
-                resAll.to_hdf(pathResults+dBResult, "resAll", complevel=9,complib='blosc')
-                #db.saveDataBase(resAll)
+                        #"Add the SR and wavelegth value at the top of the PSF header file"
+                        hdulist = pf.open(filepath) # read file
+                        header = hdulist[0].header
+                        header["SR"] = SR[t]
+                        header["wavelength"] = tar.Lambda.tolist()[t]
+                        hdulist.writeto(filepath, clobber=True) # Save changes to file
+                        # Adding all the parameters to the header
+                        makeFITSHeader(filepath, res)
+                    print "Done"
+                    res.loc[0, "type_ap"] = str(res.loc[0, "type_ap"][0])
+                    res.loc[0, "type_wfs"] = str(res.loc[0, "type_wfs"][0])
+                    res.loc[0, "type_dm"] = "pzt, tt"
+                    res.PSFFilenames.values[0] = PSFNameList
+                    resAll = db.fillDf(resAll, res) # Saving in global DB
+                    #resAll.to_hdf("/home/fvidal/compass/trunk/shesha/test/scripts/resultatsScripts/SH39m.h5", "resAll", complevel=9,complib='blosc')
+                    resAll.to_hdf(pathResults+dBResult, "resAll", complevel=9,complib='blosc')
+                    #db.saveDataBase(resAll)
 
 print "Simulation Done..."
 """

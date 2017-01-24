@@ -124,7 +124,7 @@ def makeFITSHeader(filepath, df):
                 value+=(str(v)+" ")
         else:
             value = val
-        header.set(name, value,'??')
+        header.set(name, value,'')
     hdulist.writeto(filepath, clobber=True) # Save changes to file
 
 def initSimu(config,c):
@@ -342,6 +342,9 @@ for freq in freqs:
                                 # Adding all the parameters to the header
                                 makeFITSHeader(filepath, res)
                             print "Done"
+                            res.loc[0, "type_ap"] = str(res.loc[0, "type_ap"][0])
+                            res.loc[0, "type_wfs"] = str(res.loc[0, "type_wfs"][0])
+                            res.loc[0, "type_dm"] = "pzt, tt"
                             res.PSFFilenames.values[0] = PSFNameList
                             resAll = db.fillDf(resAll, res) # Saving res in global resAll DB
                             #resAll.to_hdf("/home/fvidal/compass/trunk/shesha/test/scripts/resultatsScripts/SH39m.h5", "resAll", complevel=9,complib='blosc')

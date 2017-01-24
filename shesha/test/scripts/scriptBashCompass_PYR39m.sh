@@ -1,6 +1,7 @@
 #!/bin/bash
 
 PARFILE="/home/fvidal/compass/shesha/data/par/MICADO/micado_39m_PYR.py" # scao_40x40_8pix.py  scao_64x64_8pix.py  scao_80x80_8pix.py "
+PARFILE="$SHESHA_ROOT/data/par/MICADO/micado_39m_PYR.py" # scao_40x40_8pix.py  scao_64x64_8pix.py  scao_80x80_8pix.py "
 
 DATE=`date +%F_%Hh%M`
 OUTPUT="$SHESHA_ROOT/test/scripts/resultatsScripts/script39mPYRLog.txt"
@@ -15,18 +16,20 @@ script="$SHESHA_ROOT/test/scripts/script_PYR39m.py"
 
 for FREQ in "500"
 do
-    for MODU in "5"
+    for RONS in "0.5"
     do
-        for GAIN in "1" #"pyr" #
+        for MODU in "5"
         do
-            #for MAG in "11" "12" "13" "14" "15" "16" #"pyr" #
-            for MAG in "11" "12" "13" "14" "15" "16" "17"
+            for GAIN in "1" #"pyr" #
             do
-                for KLFILT in "500"
+                for MAG in "11" "12" "13" "13.5" "14" "14.5" "15" "15.5" "16" #"pyr" #
                 do
-                    CMD="python $script $PARFILE $FREQ $MODU $GAIN $MAG $KLFILT"
-                    echo "execute $CMD" >> $OUTPUT
-                    $CMD 2>> $OUTPUT >> $OUTPUT
+                    for KLFILT in "1000"
+                    do
+                        CMD="python $script $PARFILE $FREQ $RONS $MODU $GAIN $MAG $KLFILT"
+                        echo "execute $CMD" >> $OUTPUT
+                        $CMD 2>> $OUTPUT >> $OUTPUT
+                    done
                 done
             done
         done
