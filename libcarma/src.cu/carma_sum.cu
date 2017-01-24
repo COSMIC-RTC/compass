@@ -226,11 +226,13 @@ reduce<int>(int size, int threads, int blocks, int *d_idata, int *d_odata);
 template void
 reduce<float>(int size, int threads, int blocks, float *d_idata,
     float *d_odata);
+/*
 
 template void
 reduce<double>(int size, int threads, int blocks, double *d_idata,
     double *d_odata);
-/*
+
 template void
 reduce<cuFloatComplex>(int size, int threads, int blocks, cuFloatComplex *d_idata,
-    cuFloatComplex *d_odata);*/
+    cuFloatComplex *d_odata);
+*/
