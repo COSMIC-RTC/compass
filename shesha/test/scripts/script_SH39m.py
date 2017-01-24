@@ -18,9 +18,10 @@ import pandas as pd
 
 print "TEST SHESHA\n closed loop: call loop(int niter)"
 simulName = "SH_39m"
-pathResults="/home/fvidal/compass/shesha/test/scripts/resultatsScripts/RunSH39m/"
-pathResults="/opt/public/fvidal/data/RunSH39m/"
-dBResult = "SH39m.h5"
+#pathResults="/home/fvidal/compass/shesha/test/scripts/resultatsScripts/RunSH39m/"
+#pathResults="/opt/public/fvidal/data/RunSH39m/"
+pathResults="/volumes/hra/micado/RunSH39m_RoundPupil/"
+dBResult = "SH39m_RoundPupil.h5"
 #GPUS = np.array([0, 1, 2, 3])
 
 
@@ -193,13 +194,14 @@ def loop( n,wfs,tel,atm,dms,tar,rtc):
 
         if((i+1)%100==0):
             print "Iter#:", i+1
-            for t in range(config.p_target.ntargets):
-                SR = tar.get_strehl(t)
-                print "Tar %d at %3.2fMicrons:" % (t+1, tar.Lambda[t])
-                signal_se = "SR S.E: %1.2f   " % SR[0]
-                signal_le = "SR L.E: %1.2f   " % SR[1]
+            #for t in range(config.p_target.ntargets):
+            t = 1
+            SR = tar.get_strehl(t)
+            print "Tar %d at %3.2fMicrons:" % (t+1, tar.Lambda[t])
+            signal_se = "SR S.E: %1.2f   " % SR[0]
+            signal_le = "SR L.E: %1.2f   " % SR[1]
 
-                print signal_se + signal_le
+            print signal_se + signal_le
             #print i+1,"\t",,SR[0],"\t",SR[1]
             sr_le.append(SR[1])
             sr_se.append(SR[0])
