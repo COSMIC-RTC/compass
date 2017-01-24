@@ -10,12 +10,12 @@
 
 /*
  This version adds multiple elements per thread sequentially.  This reduces the overall
- cost of the algorithm while keeping the work complexity O(n) and the step complexity 
+ cost of the algorithm while keeping the work complexity O(n) and the step complexity
  O(log n).
  (Brent's Theorem optimization)
 
- Note, this kernel needs a minimum of 64*sizeof(T) bytes of shared memory. 
- In other words if blockSize <= 32, allocate 64*sizeof(T) bytes.  
+ Note, this kernel needs a minimum of 64*sizeof(T) bytes of shared memory.
+ In other words if blockSize <= 32, allocate 64*sizeof(T) bytes.
  If blockSize > 32, allocate blockSize*sizeof(T) bytes.
  */
 // Utility class used to avoid linker errors with extern
@@ -32,7 +32,7 @@ __global__ void reduce6(T *g_idata, T *g_odata, unsigned int n) {
 
   T mySum = 0;
 
-  // we reduce multiple elements per thread.  The number is determined by the 
+  // we reduce multiple elements per thread.  The number is determined by the
   // number of active thread blocks (via gridDim).  More blocks will result
   // in a larger gridSize and therefore fewer elements per thread
   while (i < n) {
@@ -43,7 +43,7 @@ __global__ void reduce6(T *g_idata, T *g_odata, unsigned int n) {
     i += gridSize;
   }
 
-  // each thread puts its local sum into shared memory 
+  // each thread puts its local sum into shared memory
   sdata[tid] = mySum;
   __syncthreads();
 
@@ -107,7 +107,7 @@ __global__ void reduce6(T *g_idata, T *g_odata, unsigned int n) {
     }
   }
 
-  // write result for this block to global mem 
+  // write result for this block to global mem
   if (tid == 0)
     atomicAdd(g_odata, sdata[0]);
 }
@@ -117,7 +117,7 @@ void reduce(int size, int threads, int blocks, T *d_idata, T *d_odata) {
   dim3 dimBlock(threads, 1, 1);
   dim3 dimGrid(blocks, 1, 1);
 
-  // when there is only one warp per block, we need to allocate two warps 
+  // when there is only one warp per block, we need to allocate two warps
   // worth of shared memory so that we don't index shared memory out of bounds
   int smemSize =
       (threads <= 32) ? 2 * threads * sizeof(T) : threads * sizeof(T);
@@ -226,13 +226,16 @@ reduce<int>(int size, int threads, int blocks, int *d_idata, int *d_odata);
 template void
 reduce<float>(int size, int threads, int blocks, float *d_idata,
     float *d_odata);
-/*
 
-template void
+
+template<> void
 reduce<double>(int size, int threads, int blocks, double *d_idata,
-    double *d_odata);
+    double *d_odata){
+      DEBUG_TRACE("Not implemented");
+    }
 
-template void
+template<> void
 reduce<cuFloatComplex>(int size, int threads, int blocks, cuFloatComplex *d_idata,
-    cuFloatComplex *d_odata);
-*/
+    cuFloatComplex *d_odata){
+      DEBUG_TRACE("Not implemented");
+    }
