@@ -109,7 +109,7 @@ __global__ void reduce6(T *g_idata, T *g_odata, unsigned int n) {
 
   // write result for this block to global mem 
   if (tid == 0)
-    g_odata[blockIdx.x] = sdata[0];
+    atomicAdd(g_odata, sdata[0]);
 }
 
 template<class T>
