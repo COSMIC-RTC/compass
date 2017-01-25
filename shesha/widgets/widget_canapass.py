@@ -173,7 +173,7 @@ class widgetAOWindow(TemplateBaseClass):
         return self.rtc.getVoltage(0)
 
     def getSlopes(self):
-        return self.rtc.getVoltage(0)
+        return self.rtc.getCentroids(0)
 
     def setIntegratorLaw(self):
         self.rtc.set_commandlaw(0, "integrator")
