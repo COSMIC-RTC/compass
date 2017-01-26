@@ -182,7 +182,7 @@ int sutra_tscreen::extrude(int dir) {
              current_context->get_device(device));
     if(dir == 2)
         x0 = this->screen_size * (this->screen_size - 1);
-    if(dir == -2)
+    else
         x0 = this->screen_size - 1;
   }
 
