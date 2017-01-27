@@ -69,6 +69,7 @@ cdef class Rtc:
     cpdef setCom(self, int ncontro, np.ndarray[ndim=1, dtype=np.float32_t] comvec)
     cpdef setCentroids(self, int ncontro, np.ndarray[ndim=1, dtype=np.float32_t] centro)
     cpdef get_mgain(self, int ncontro)
+    cpdef get_gain(self, int ncontro)
     cpdef set_imat(self, int ncontro, np.ndarray[ndim=2, dtype=np.float32_t] data)
     cpdef get_imat(self, int ncontro)
     cpdef set_cmat(self, int ncontro, np.ndarray[ndim=2, dtype=np.float32_t] data)
@@ -86,6 +87,7 @@ cdef class Rtc:
     cpdef set_pyr_ampl(self, int n, float ampli, list p_wfss, Param_tel p_tel)
     cpdef doimat_geom(self, int ncontro, Dms g_dms, int geom)
     cpdef doimat(self, int ncontro, Dms g_dms)
+    cpdef doimat_kl(self, int ncontro,Param_controller controller, Dms g_dms, p_dms, np.ndarray[ndim=2, dtype=np.float32_t] kl)
     cpdef sensors_compslopes(self, int ncentro, int nmax=?, float thresh=?)
     cdef add_controller(self, int nactu, float delay, bytes type_control, Dms dms,
                  char ** type_dmseen, np.ndarray[ndim=1, dtype=np.float32_t] alt,

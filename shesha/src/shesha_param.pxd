@@ -305,6 +305,7 @@ cdef class Klbas:
 cdef class Param_dm:
   cdef readonly bytes  influType
   """ type of influence function for pzt dms"""
+
   cdef readonly bytes  type_dm
   """ type of dm"""
   cdef readonly bytes  type_pattern
@@ -462,6 +463,8 @@ cdef class Param_centroider:
 cdef class Param_controller:
     cdef readonly bytes  type_control
     """ type of controller"""
+    cdef readonly int kl_imat
+    """ imat kl"""
     cdef readonly np.ndarray nwfs
     """ index of wfss in controller"""
     cdef readonly np.ndarray nvalid

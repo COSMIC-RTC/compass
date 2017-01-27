@@ -218,15 +218,17 @@ def rodconan(r,L0):
     ilarge = np.where(dprf0>Xlim)
     ismall = np.where(dprf0<=Xlim)
 
-    res = r
+    res = r*0.
     #TODO  those lines have been changed (cf trunk/yoga_ao/yorick/yoga_turbu.i l 258->264)
     if( ilarge[0].size > 0):
         res[ilarge] = asymp_macdo(dprf0[ilarge])
-    elif( ismall[0].size>0):
+    else:
+        print "prout"
+    if( ismall[0].size>0):
         res[ismall] = -macdo_x56(dprf0[ismall])
     else:
         print "prout"
-    return k1*L0**(5./3.)*r
+    return k1*L0**(5./3.)*res
 
 def asymp_macdo(x):
     """

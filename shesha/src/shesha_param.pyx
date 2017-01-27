@@ -882,7 +882,7 @@ cdef class Param_dm:
         self._klbas = Klbas()
         self.influType = <bytes> ("default")
         self.gain = 1.0
-
+        
     def set_influType(self, bytes t):
         """Set the influence function type for pzt DM
         :param t: (str) : centroider type
@@ -982,14 +982,14 @@ cdef class Param_dm:
     def set_margin_out(self,float n):
         """set the margin for outside actuator select
 
-        :param n: (float) : pupille diametre ratio for actuator select
+        :param n: (float) : unit is actuator pitch (+) for extra (-) for intra
         """
         self.margin_out=n
 
     def set_margin_in(self,float n):
         """set the margin for inside actuator select (central obstruction)
 
-        :param n: (float) : pupille diametre ratio for actuator select
+        :param n: (float) : unit is actuator pitch (+) for extra (-) for intra
         """
         self.margin_in=n
 
@@ -1247,8 +1247,15 @@ cdef class Param_controller:
 
     def set_type(self, bytes b):
         self.type_control = b
+        
+    def set_kl_imat(self, int k):
+        """Set type imate
 
+        :param k: (int) : imat kl
+        """
+        self.kl_imat = k
     def set_nwfs(self, l):
+        
         """Set the indices of wfs
 
         :param l: (list of int) : indices of wfs

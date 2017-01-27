@@ -281,8 +281,6 @@ def n_actuator_select(Param_dm p_dm,Param_tel p_tel, xc,yc):
     # the following determine if an actuator is to be considered or not
     # relative to the pitchmargin parameter.
     dis=np.sqrt(xc**2+yc**2)
-    #cdef np.ndarray dis2=np.sqrt(cub[0,:]**2+cub[1,:]**2)
-    #cdef float rad_in, rad_out
 
     #test Margin_in
 
@@ -292,6 +290,7 @@ def n_actuator_select(Param_dm p_dm,Param_tel p_tel, xc,yc):
         rad_in=0.0
 
     else:
+        
         pitchMargin_in=p_dm.margin_in
         rad_in=(((p_dm.nact-1.)/2.)*p_tel.cobs-pitchMargin_in)*p_dm._pitch
 
