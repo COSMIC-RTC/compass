@@ -359,7 +359,7 @@ var carma_csr2ell_gen(Fn_mtransfert const &mtransfer, Fn_mconver const &mconvert
 
 	A.storage_type = Magma_CSR;
 	A.memory_location = Magma_DEV;
-	// A.fill_mode = Magma_FULL;
+	A.fill_mode = MagmaFull;
 	A.num_rows = dA->dims_data[1];
 	A.num_cols = dA->dims_data[2];
 	A.nnz = dA->nz_elem;
