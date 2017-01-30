@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as pl
 #import matplotlib.animation as animation
-import time
+#import time
 
 #import pyfits as pf
 
@@ -135,6 +135,22 @@ def Czz(n,Zx,Zy,ist,L0):
 
 
 def AB(n,L0,deltax,deltay,rank=0):
+    
+    """DOCUMENT AB, n, A, B, istencil
+    This function initializes some matrices A, B and a list of stencil indexes
+    istencil for iterative extrusion of a phase screen.
+
+    The method used is described by Fried & Clark in JOSA A, vol 25, no 2, p463, Feb 2008.
+    The iteration is :
+    x = A(z-zRef) + B.noise + zRef
+    with z a vector containing "old" phase values from the initial screen, that are listed
+    thanks to the indexes in istencil.
+     
+    SEE ALSO: extrude createStencil Cxx Cxz Czz
+    """
+    
+    
+    
     if(rank==0):print "create stencil and Z,X matrices"
     Zx,Zy,Xx,Xy,istencil = create_stencil(n)
     if(rank==0):print "create zz"
@@ -179,6 +195,30 @@ def AB(n,L0,deltax,deltay,rank=0):
 
 
 def extrude(p,r0,A,B,istencil):
+    
+
+    """DOCUMENT p1 = extrude(p,r0,A,B,istencil)
+    
+    Extrudes a phase screen p1 from initial phase screen p.
+    p1 prolongates p by 1 column on the right end.
+    r0 is expressed in pixels
+         
+    The method used is described by Fried & Clark in JOSA A, vol 25, no 2, p463, Feb 2008.
+    The iteration is :
+    x = A(z-zRef) + B.noise + zRef
+    with z a vector containing "old" phase values from the initial screen, that are listed
+    thanks to the indexes in istencil.
+    
+    Examples
+    n = 32;
+    AB, n, A, B, istencil;
+    p = array(0.0,n,n);
+    p1 = extrude(p,r0,A,B,istencil);
+    pli, p1
+         
+    SEE ALSO: AB() createStencil() Cxx() Cxz() Czz()
+    """   
+    
     amplitude = r0**(-5./6)
     n = p.shape[0]
     z = p.flatten()[istencil]
@@ -188,6 +228,7 @@ def extrude(p,r0,A,B,istencil):
     p1 = np.zeros((n,n),dtype=np.float32)
     p1[:,0:n-1] = p[:,1:]
     p1[:,n-1] = newColumn
+    
     return p1
 
 
@@ -214,7 +255,6 @@ def rodconan(r,L0):
     dprf0 = (2*np.pi/L0)*r
 
     Xlim=0.75*2*np.pi
-    largeX=dprf0>Xlim
     ilarge = np.where(dprf0>Xlim)
     ismall = np.where(dprf0<=Xlim)
 
@@ -310,19 +350,51 @@ def macdo_x56(x,k=10):
 
 
 
-def main(n,L0):
-    A,B,istx, isty = AB(n,L0)
-    phase = np.zeros((n,n))
+def create_screen_assist(screen_size,L0,r0):
+    
+    """
+    screen_size : screen size (in pixels)
+    L0 : L0 in pixel
+    r0 : total r0 @ 0.5µm
+    """
+    A,B,istx, isty = AB(screen_size,L0)
+    phase = np.zeros((screen_size,screen_size))
 
-    print stencil_size(n)
+    print stencil_size(screen_size)
 
     pl.ion()
     pl.imshow(phase,animated=True)
     pl.show()
 
 
-    for i in range(2*n):
-        phase=extrude(phase,2,A,B,istx)
+    for i in range(2*screen_size):
+        phase=extrude(phase,r0,A,B,istx)
         pl.clf()
         pl.imshow(phase,cmap='Blues')
         pl.draw()
+        
+    return phase
+
+def create_screen(r0,pupixsize,screen_size,L0,A,B,ist):
+    
+
+    """ DOCUMENT create_screen
+        screen = create_screen(r0,pupixsize,screen_size,&A,&B,&ist)
+    
+        creates a phase screen and fill it with turbulence
+        r0          : total r0 @ 0.5µm
+        pupixsize   : pupil pixel size (in meters)
+        screen_size : screen size (in pixels)
+        A           : A array for future extrude
+        B           : B array for future extrude
+        ist         : istencil array for future extrude
+       
+     """
+
+    #AB, screen_size, A, B, ist,L0   # initialisation for A and B matrices for phase extrusion
+    screen = np.zeros((screen_size,screen_size),dtype=np.float32)   # init of first phase screen
+    for i in range(2*screen_size):
+      
+      screen = extrude(screen, r0/pupixsize, A, B, ist)
+      
+    return screen
