@@ -465,6 +465,8 @@ cdef class Param_controller:
     """ type of controller"""
     cdef readonly int kl_imat
     """ imat kl"""
+    cdef readonly np.ndarray klgain
+    """ gain for imat kl """
     cdef readonly np.ndarray nwfs
     """ index of wfss in controller"""
     cdef readonly np.ndarray nvalid

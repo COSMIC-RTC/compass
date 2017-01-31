@@ -571,7 +571,6 @@ cdef class Rtc:
 
         cdef sutra_controller_ls * controller_ls
         cdef sutra_controller_mv * controller_mv
-        cdef sutra_controller_generic * controller_generic
         cdef sutra_controller_cured * controller_cured
         cdef sutra_controller_geo * controller_geo
         
@@ -591,7 +590,6 @@ cdef class Rtc:
             return gain
 
         elif(type_control == "generic"):
-            controller_generic = dynamic_cast_controller_generic_ptr(self.rtc.d_control[ncontrol])
             gain = np.float32(1.0)
             return gain
             
@@ -1707,7 +1705,7 @@ cdef class Rtc:
 
         ELSE:
             return data
-    def buildcmat_kl(self,ncontrol, KL2V, imat):
+    def buildcmat_kl(self,ncontrol, KL2V, imat, gains):
         """Compute the command matrix in a sutra_controller_ls object
 
         :parameters:
@@ -1735,6 +1733,17 @@ cdef class Rtc:
 
             # Direct inversion
             Dp_filt = np.linalg.inv(D_filt.T.dot(D_filt)).dot(D_filt.T)
+            if (gains != None):
+                print "shape gains :"
+                print gains.shape[0]
+                if (gains.shape[0]==KL2V.shape[1]):
+                    for i in range(KL2V.shape[1]):
+                        Dp_filt[:, i] *= gains[i]
+                else:
+                    print "Need size :"
+                    print KL2V.shape[1]
+                    raise TypeError("incorect size for klgain vector")
+      
             # Command matrix
             cmat_filt = KL2VN.dot(Dp_filt)
             
@@ -3061,7 +3070,7 @@ cpdef cmat_init_kl(int ncontrol, Rtc g_rtc, Param_rtc p_rtc, list p_wfs, Param_a
         if ((nmode==0)&(ppz!=0)):
             nmode=p_dms[pii]._ntotact
         if (ppz==1):
-            g_rtc.buildcmat_kl(ncontrol, KL2V,imat)
+            g_rtc.buildcmat_kl(ncontrol, KL2V,imat,p_rtc.controllers[ncontrol].klgain)
         else:
             raise ValueError("no pzt_dm or multi_pzt")
         print "cmat time ", time.time() - t0

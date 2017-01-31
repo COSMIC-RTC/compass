@@ -1249,11 +1249,19 @@ cdef class Param_controller:
         self.type_control = b
         
     def set_kl_imat(self, int k):
-        """Set type imate
+        """Set type imat
 
         :param k: (int) : imat kl
         """
         self.kl_imat = k
+        
+    def set_klgain(self, gkl):
+        """Set klgain
+
+        :param klgain: (list of float32) : klgain
+        """
+        self.klgain = np.array(gkl, dtype=np.float32)
+        
     def set_nwfs(self, l):
         
         """Set the indices of wfs
