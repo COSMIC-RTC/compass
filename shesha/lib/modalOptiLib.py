@@ -7,52 +7,78 @@ Created on 23 janv. 2017
 import numpy as np
 import time
 import matplotlib.pyplot as plt
+import os
 
 
-
-def applyVoltGetSlopes(wao):
+def applyVoltGetSlopes(wao, withAtm):
+    '''
+        Applies buffered voltages (previous use of wao.rtc.set_perturbcom)
+        on the dms and reads out wfs slopes
+    :param wao: AO Widget
+    :param withAtm: Show atmosphere to wfs or only DM phase
+    '''
     wao.rtc.applycontrol(0, wao.dms)
     for w in range(len(wao.config.p_wfss)):
         wao.wfs.reset_phase(w)
-        wao.wfs.sensors_trace(w, "dm", wao.tel, wao.atm, wao.dms)
+        if withAtm:
+            wao.wfs.sensors_trace(w, "all", wao.tel, wao.atm, wao.dms)
+        else:
+            wao.wfs.sensors_trace(w, "dm", wao.tel, wao.atm, wao.dms)
         wao.wfs.sensors_compimg(w)
     wao.rtc.docentroids(0)
     return wao.rtc.getCentroids(0)
 
 
-def measureIMatKL(wao, ampliVec, KL2V, Nslopes):
-    iMatKL = np.zeros((KL2V.shape[1], Nslopes))
-    wao.openLoop()
+def measureIMatKLPP(wao, ampliVec, KL2V, nSlopes, withAtm):
+    '''
+        Make modal interaction matrix using push-pull normalized difference
+    :param wao: AO Widget
+    :param ampliVec: nActu vector of push for imat values
+    :param KL2V: Matrix of modes in the DM space
+    :param nSlopes: WFS output dimension
+    :param withAtm: Make interaction matrix around currently shown atmosphere (True) or around null phase (False)
+    '''
+    if withAtm:
+        currentVolts = wao.rtc.getVoltage(0)
+    else:
+        currentVolts = 0
+
+    iMatKL = np.zeros((nSlopes, KL2V.shape[1]))
+
     st = time.time()
     for kl in range(KL2V.shape[1]):
-        v = ampliVec[kl] * KL2V[:, kl:kl + 1].T.copy()
-        wao.rtc.set_perturbcom(0, v)
-        iMatKL[kl, :] = applyVoltGetSlopes(wao)
+        v = ampliVec[kl] * KL2V[:, kl:(kl + 1)].T.copy()
+        wao.rtc.set_perturbcom(0, v + currentVolts)
+        iMatKL[:, kl] = applyVoltGetSlopes(wao, withAtm)
+        wao.rtc.set_perturbcom(0, -v + currentVolts)
+        iMatKL[:, kl] = (iMatKL[:, kl] - applyVoltGetSlopes(wao, withAtm)
+                         ) / (2. * ampliVec[kl])
         print "Doing KL interaction matrix on mode: #%d\r" % kl,
+        os.sys.stdout.flush()
+
     print "Modal interaction matrix done in %3.1f seconds" % (time.time() - st)
     return iMatKL
 
 
 def normalizeKL2V(KL2V):
-    KL2VNorm = KL2V * 0.
-    for kl in range(KL2V.shape[1]):
-        klmaxVal = np.abs(KL2V[:, kl]).max()
-        # Norm du max des modes a 1
-        KL2VNorm[:, kl] = KL2V[:, kl] / klmaxVal
-    return KL2VNorm
+    '''
+        L-Inf normalization of mirror modes
+    :param KL2V: Matrix of modes in the DM Space
+    '''
+    return KL2V / np.amax(np.abs(KL2V), axis = 0)[np.newaxis, ...]
 
 
 def cropKL2V(KL2V):
-    nkl = KL2V.shape[1]
-    KL2Vmod = np.zeros((KL2V.shape[0], KL2V.shape[1] - 2))
-    KL2Vmod[:, 0:-2] = KL2V[:, 0:-4]
-    KL2Vmod[:, -2:] = KL2V[:, -2:]
-    return KL2Vmod
+    '''
+        Remove the least 2 KL modes of the pzt mirror (columns -4:-2) to remove Tip-Tilt redundancy
+    :param KL2V: Matrix of modes in the DM Space
+    '''
+    return KL2V[:, range(KL2V.shape[1] - 4) + [-2, -1]]
 
 
 def plotVDm(wao, numdm, V, size = 16, fignum = False):
     """
-    plotVDm(wao, 0, KL2V[:,0][:-2], size=25, fignum=15)
+        plotVDm(wao, 0, KL2V[:,0][:-2], size=25, fignum=15)
     """
     if(wao.config.p_dms[numdm]._j1.shape[0] != V.shape[0]):
         print "Error V should have %d dimension not %d " % (wao.config.p_dms[numdm]._j1.shape[0], V.shape[0])
@@ -65,97 +91,149 @@ def plotVDm(wao, numdm, V, size = 16, fignum = False):
         plt.colorbar()
 
 
-def computeKLModesImat(wao, pushDMMic, pushTTArcsec, KL2V, Nslopes):
-    modesAmpli = np.ones(KL2V.shape[0])
-    # normalisation de la valeur max des KL:
-    # Amplitude des modes DM en microns et arc sec pour le TT
-    KL2VNorm = normalizeKL2V(KL2V)
-    NKL = KL2VNorm.shape[1]
-    modesAmpli[0:NKL - 2] = pushDMMic  # DM en microns DM en microns
-    modesAmpli[NKL - 2:] = pushTTArcsec  # arc sec pour le TT
-    imat = measureIMatKL(wao, modesAmpli, KL2VNorm, Nslopes)
-    imat[:-2, :] /= pushDMMic
-    imat[-2:, :] /= pushTTArcsec
-    return imat, KL2VNorm
+def computeImatKL(wao, pushPZT, pushTT, KL2V, nSlopes, withAtm):
+    '''
+        Compute the modal interaction matrix with given input parameters
+    :param wao: AO Widget
+    :param pushPZT: push for Imat value for PZT DM -- MICRON --
+    :param pushTT: push for Imat value for TT mirror -- ARCSEC --
+    :param KL2V: Matrix of modes in the DM space
+    :param nSlopes: Dimension of WFS slope space
+    :param withAtm: Make interaction matrix around currently shown atmosphere (True) or around null phase (False)
+    '''
+    NKL = KL2V.shape[1]
+    modesAmpli = np.array([pushPZT] * (NKL - 2) + [pushTT] * 2)
+    iMat = measureIMatKLPP(wao, modesAmpli, KL2V, nSlopes, withAtm)
+    return iMat
 
 
-def computeCmatKL(DKL, KL2V, nfilt, gains, gainTT):
-    nmodes = (DKL.shape[0] - nfilt)
-    KL2V2Filt = np.zeros((KL2V.shape[0], KL2V.shape[1] - nfilt))
-    DKLfilt = np.zeros((nmodes, DKL.shape[1]))
-    # Filter the nfilt modes
-    DKLfilt[0:nmodes, :] = DKL[0:nmodes, :]
-    DKLfilt[-2:, :] = DKL[-2:, :]  # Concatenating the TT (last 2 columns)
-    KL2V2Filt[:, 0:nmodes] = KL2V[:, 0:nmodes]
-    KL2V2Filt[:, -2:] = KL2V[:, -2:]
-    # Direct inversion
-    Dmp = np.linalg.inv(DKLfilt.dot(DKLfilt.T)).dot(DKLfilt)
-    S2M = Dmp
-    for i in range(nmodes - 2):
-        Dmp[i, :] *= gains[i]
-    Dmp[-2:, :] *= gainTT
-    # Command matrix
-    cmat = KL2V2Filt.dot(Dmp).astype(np.float32)
-    return (cmat, S2M)  # Dmp : slopes -> modes
+def computeCmatKL(iMatKL, nFilt):
+    '''
+        Invert the interaction matrix into a mode filtered control matrix
+    :param iMatKL: interaction matrix nSlopes x nModes
+    :param nFilt: number of modes to filter before inversion
+    '''
+    nModes = (iMatKL.shape[1] - nFilt)
+    iMatKLFilt = iMatKL[:, range(0, nModes - 2) + [-2, -1]]
 
-"""
-ENTRY POINT
-"""
+    cMatKL = np.linalg.inv(iMatKLFilt.T.dot(iMatKLFilt)).dot(iMatKLFilt.T)
 
-def setupStandardCmat(wao):
-
-    Nactu = sum(wao.config.p_rtc.controllers[0].nactu)
-    Nslopes = wao.rtc.getCentroids(0).shape[0]
-    wao.setIntegratorLaw()
-    gain = 0.7  # FIXME
-
-    wao.openLoop()  # openLoop
-
-    # wao.rtc.set_gain(0, gain) # Useless for generic controller
-
-    decay = np.ones(Nslopes, dtype = (np.float32))
-    wao.rtc.set_decayFactor(0, decay)
-
-    mgain = gain * np.ones(Nactu, dtype = (np.float32))
-    wao.rtc.set_mgain(0, mgain)
-
-    wao.closeLoop()  # closeLoop
-
-    KL2V = wao.returnkl2V()
-
-    pushDMMic = 0.01  # 10nm
-    pushTTArcsec = 0.005  # 5 mas
-    wao.rtc.do_centroids_ref(0)
-    miKL, KL2VN = computeKLModesImat(wao, pushDMMic, pushTTArcsec, KL2V, Nslopes)
-    nfilt = 0  # 450
-
-#     magicModalGain = np.linspace(1, 0.3, Nactu - 2 - nfilt)
-    magicModalGain = np.ones((Nactu - 2 - nfilt))
-    (cmat, S2KL) = computeCmatKL(miKL, KL2VN, nfilt, magicModalGain, 1)
-
-    wao.rtc.set_cmat(0, cmat.astype(np.float32).copy())
-
-    gDM = 1.
-    gTT = 1.
-    gains = np.ones(Nactu, dtype = np.float32) * gDM
-    gains[-2:] = gTT
-    wao.rtc.set_mgain(0, gains)
-    wao.closeLoop()
-
-    return miKL.T, S2KL, KL2VN
+    return cMatKL
 
 
-def updateToOptimalCmat(wao, slopes, volts, miKL, S2KL, M2V):
+def cMatFromcMatKL(cMatKL, KL2V, gainVector = None):
+    '''
+        Compute the slope -> volts control matrix from the slope -> KL modal control matrix
+    :param cMatKL: Modal control matrix (nModes - filtered) x nSlopes
+    :param KL2V: Matrix of modes in the DM space
+    :param gainVector: Vector of modal gains to apply on the modal control matrix rows
+    '''
+    if gainVector is None:
+        gainVector = np.ones((cMatKL.shape[0]))
 
-    nfilt = 0
+    cMat = np.dot(KL2V, gainVector[..., np.newaxis] * cMatKL)
+
+    return cMat
+
+
+class ModalGainOptimizer:
+    '''
+        ModalGainOptimizer class
+        Utility class to compute custom iMat/cMat around zero point or around current atmosphere
+        within a Compass/Canapass instance
+    '''
+
+
+    def __init__(self, wao):
+        '''
+            ModalGainOptimizer constructor.
+            Resets AO session's RTC to some defaults.
+            Gets modal basis and sets up some storage
+        :param wao: Handle to Compass/Canapass session
+        '''
+        self.wao = wao
+
+        self.nActu = sum(wao.config.p_rtc.controllers[0].nactu)
+        self.nSlopes = wao.rtc.getCentroids(0).shape[0]
+        self.pushPzt = 0.01  # 10 nm
+        self.pushTT = 0.005  # 5 mas
+
+        self.gain = 0.7
+        self.nFilter = 10
+
+        # Clear WAO and do some controller setup
+        self.wao.aoLoopClicked(False)
+        self.wao.set_atmos(False)
+        self.wao.openLoop()
+
+        self.wao.setIntegratorLaw()
+        self.wao.rtc.set_decayFactor(0, np.ones(self.nSlopes, dtype = (np.float32)))
+        self.wao.rtc.set_mgain(0, self.gain * np.ones(self.nActu, dtype = (np.float32)))
+
+        self.KL2V = normalizeKL2V(wao.returnkl2V())
+        self.KL2VFilt = \
+            self.KL2V[:, range(0, self.KL2V.shape[1] - self.nFilter - 2) + [-2, -1]]
+
+        self.iMatKLRef = None
+        self.cMatKLRef = None
+
+
+    def computeRef(self):
+        '''
+            Compute modal interaction and control matrices around 0 atmosphere point.
+            Store them within ModalGainOptimizer instance
+        '''
+        self.wao.closeLoop()
+        self.iMatKLRef = computeImatKL(self.wao, self.pushPzt, self.pushTT,
+                                       self.KL2V, self.nSlopes, False)
+        self.cMatKLRef = computeCmatKL(self.iMatKLRef, self.nFilter)
+
+
+    def setRef(self):
+        '''
+            Sets the reference control matrix into the AO session RTC.
+        '''
+        cMat = cMatFromcMatKL(self.cMatKLRef, self.KL2VFilt)
+        self.wao.rtc.set_cmat(0, cMat.astype(np.float32).copy())
+
+
+    def computeAtmAndUpdate(self):
+        '''
+            Compute a new modal interaction matrix around the current residual atmosphere setpoint.
+            Apply the sensitivity compensation coefficients found to the zero-point modal control matrix
+            Set the updated control matrix to the AO session.
+        '''
+        self.wao.closeLoop()
+        iMatKL = computeImatKL(self.wao, self.pushPzt, self.pushTT,
+                               self.KL2V, self.nSlopes, True)
+        ksiVal = np.sqrt(np.diag(np.dot(iMatKL.T, iMatKL)) /
+                         np.diag(np.dot(self.iMatKLRef.T, self.iMatKLRef)))
+        ksiFilter = ksiVal[range(iMatKL.shape[1] - self.nFilter - 2) + [-2, -1]]
+
+        cMat = cMatFromcMatKL(self.cMatKLRef, self.KL2VFilt, gainVector = 1. / ksiFilter)
+        self.wao.rtc.set_cmat(0, cMat.astype(np.float32).copy())
+        return cMat, ksiVal
+
+
+
+
+
+
+
+def updateToOptimalCmat(wao, slopes, volts, miKL, S2KL, M2V, offset):
+
+    nfilt = 20
 
     mia = np.dot(miKL, np.linalg.pinv(M2V))
 
     gainVector = modalControlOptimizationClosedLoopData(
-            slopes, volts, mia, S2KL, M2V)
+        slopes, volts, mia, S2KL, M2V, offset, gmax = 0.5)
 
-
-    optiCmat = computeSystemOptimizedControlMatrix(S2KL, gainVector, M2V)
+    if nfilt == 0:
+        optiCmat = computeSystemOptimizedControlMatrix(S2KL, gainVector, M2V)
+    else:
+        optiCmat = computeSystemOptimizedControlMatrix(
+            S2KL, gainVector, M2V[:, range(0, (M2V.shape[1] - nfilt - 2)) + [-2, -1]])
 
     wao.openLoop()
     wao.rtc.set_cmat(0, optiCmat.astype(np.float32).copy())
@@ -164,29 +242,35 @@ def updateToOptimalCmat(wao, slopes, volts, miKL, S2KL, M2V):
 
     return gainVector
 
-def main(wao, nFrames):
-    (miKL, S2KL, KL2VN) = setupStandardCmat(wao)
-    
-    nSlopes = S2KL.shape[1]
-    nActu = KL2VN.shape[0]
-    
-    wao.closeLoop()
-    wao.set_atmos(True)
+
+def main(wao, withAtm, nFrames):
 
     wao.aoLoopClicked(False)
+    wao.set_atmos(False)
 
-    slopes = np.zeros((nSlopes, nFrames + 1), dtype=np.float32)
-    volts = np.zeros((nActu, nFrames + 1), dtype=np.float32)
+    (miKL, S2KL, KL2VN) = setupRef(wao, withAtm)
+
+    nSlopes = S2KL.shape[1]
+    nActu = KL2VN.shape[0]
+
+    wao.closeLoop()
+    wao.set_atmos(False)
+
+    return miKL, np.dot(miKL, np.linalg.pinv(KL2VN))
+
+    offset = 2
+    slopes = np.zeros((nSlopes, nFrames + offset), dtype = np.float32)
+    volts = np.zeros((nActu, nFrames + offset), dtype = np.float32)
 
     for i in range(nFrames + 1):
         wao.mainLoop()
         slopes[:, i] = wao.getSlopes()
         volts[:, i] = wao.getVolts()
 
-    gainVector = updateToOptimalCmat(wao, slopes, volts, miKL, S2KL, KL2VN)
-        
-    return gainVector
+    gainVector = updateToOptimalCmat(
+        wao, slopes, volts, miKL, S2KL, KL2VN, offset)
 
+    return gainVector
 
 
 def hcor(freq, Fs, latency, G, BP):
@@ -205,25 +289,21 @@ def hcor(freq, Fs, latency, G, BP):
     Te = 1. / Fs  # sampling period
     p = 1j * 2 * np.pi * freq  # Laplace variable
     Hint = 1. / (1 - np.exp(-p * Te))  # numeric integrator
-    Hccd = (1. - np.exp(-p * Te)) / (p * Te)  # zero-order hold with 1/2 frame delay
+    # zero-order hold with 1/2 frame delay
+    Hccd = (1. - np.exp(-p * Te)) / (p * Te)
     Hdac = Hccd  # well, same.
-    tdelay = latency - Te  # time between END of the integratino and start of command
+    tdelay = latency - Te  # time between END of the integration and start of command
     Hret = np.exp(-p * tdelay)  # latency transfer function
     # transfer func of the DM, as a 1st order filter
     Hmir = 1. / (1. + 1j * freq / BP)
     # open-loop transfer function
     Hbo = Hint * Hccd * Hdac * Hret * Hmir
     # correction transfer function
-    Hcor = 1. / np.abs(1 + Hbo * G) ** 2
+    Hcor = 1. / np.abs(1 + G * Hbo) ** 2
     return Hcor
 
 
-
-
-
-
-
-def modalControlOptimizationOpenLoopData(slopes, S2M, M2V, gmax = 1, Fs = 500, latency = 1, BP = 1e12):
+def modalControlOptimizationOpenLoopData(slopes, S2M, M2V, gmax = 0.5, Fs = 500, latency = 1, BP = 1e12):
     """
     Input arguments :
     <slopes>     : set of N frames of slopes (i.e. centroids), (nSlopes x N)
@@ -249,12 +329,16 @@ def modalControlOptimizationOpenLoopData(slopes, S2M, M2V, gmax = 1, Fs = 500, l
 
     # Produces an array of gains
     ngain = 100  # value to be adjusted during AITs
-    gmin = 0.01  # TBC, maybe we'll keep gmin=0.001 to allow for static aberration compensation, if any. TBC during AIT.
-    G = np.linspace(np.sqrt(gmin), np.sqrt(gmax), ngain) ** 2  # 1D array from gmin to gmax in ngain points
+    # TBC, maybe we'll keep gmin=0.001 to allow for static aberration
+    # compensation, if any. TBC during AIT.
+    gmin = 0.0001
+    # 1D array from gmin to gmax in ngain points
+    G = np.exp(np.linspace(np.log(gmin), np.log(gmax), ngain))
 
     npfft = nrec // 2  # number of useful points in the FFT
-    # create a 1D array of frequency ranging from Fs/nrec to Fs/2.0 in npfft points
-    freq = np.linspace(Fs / nrec, Fs / 2.0, npfft)
+    # create a 1D array of frequency ranging from Fs/nrec to Fs/2.0 in npfft
+    # points
+    freq = np.linspace(Fs * 1.0 / nrec, Fs / 2.0, npfft)
     optimumGain = np.zeros(nmod)  # memory alloc for 1D array of optimum gains
 
     # Initialization of all transfer functions computed for all the gains
@@ -285,13 +369,12 @@ def modalControlOptimizationOpenLoopData(slopes, S2M, M2V, gmax = 1, Fs = 500, l
                 minPhaseError = phaseError
                 jmin = j
 
-
         optimumGain[i] = G[jmin]
-
+    # STOP
     return optimumGain
 
 
-def modalControlOptimizationClosedLoopData(slopesClosed, voltsData, mia, S2M, M2V,
+def modalControlOptimizationClosedLoopData(slopesClosed, voltsData, mia, S2M, M2V, offset,
                                            gmax = 0.5, Fs = 500, latency = 1, BP = 1e12):
     """
     Input arguments :
@@ -315,32 +398,7 @@ def modalControlOptimizationClosedLoopData(slopesClosed, voltsData, mia, S2M, M2
     (nrec, ns) = slopesClosed.shape
 
     # Reconstruction of pseudo open-loop slopes
-    slopesOpen = slopesClosed[:, 1:] - np.dot(mia, voltsData[:, :-1])
+    slopesOpen = slopesClosed[:, offset:] - np.dot(mia, voltsData[:, :-offset])
 
     return modalControlOptimizationOpenLoopData(slopesOpen, S2M, M2V,
                                                 gmax = gmax, Fs = Fs, latency = latency, BP = BP)
-
-
-
-def computeSystemOptimizedControlMatrix(S2M, gainVector, M2V):
-    """
-
-    Input parameters :
-    <S2M>        is the modal control matrix as computed by function computeModalControlMatrix()
-    <gainVector> a 1D vector of modal gains, supposed to be provided by function modalControlOptimization()
-    <M2V>        is the matrix of the modes computed by the function createModalBasis()
-
-    Returned parameter : the command matrix of the system.
-    """
-    # let's allocate memory space
-    tmp = np.zeros(S2M.shape)
-    # let's multiply by the gains (dimensions of gainVector
-    # and S2M must comply)
-    ngain = gainVector.shape[0]
-    for i in range(ngain):
-        tmp[i, :] = S2M[i, :] * gainVector[i]
-
-    # matrix multiply  M2V * (gains*S2M)
-    mc = np.dot(M2V, tmp)
-
-    return mc

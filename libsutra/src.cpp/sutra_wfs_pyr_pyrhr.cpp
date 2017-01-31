@@ -386,7 +386,7 @@ int sutra_wfs_pyr_pyrhr::comp_generic() {
 			this->current_context->get_device(device), blocks, threads);
 
 	this->d_psum->reset();
-	DEBUG_TRACE("threads %d blocks %d",threads,blocks);
+	//DEBUG_TRACE("threads %d blocks %d",threads,blocks);
 	reduce(this->d_binimg->getNbElem(), threads, blocks, this->d_binimg->getData(),
 			this->d_psum->getData());
 

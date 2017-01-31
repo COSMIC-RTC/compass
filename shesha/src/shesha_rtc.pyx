@@ -522,6 +522,13 @@ cdef class Rtc:
             controller_generic.set_mgain(< float *> mgain.data)
         else:
             raise TypeError("Controller needs to be ls, mv or generic")
+        
+
+    def set_scalar_mgain(self, ncontrol, g):
+        x = self.get_mgain(ncontrol)
+        x[:] = g
+        self.set_mgain(ncontrol, x.copy())
+
 
     cpdef setCom(self, int ncontrol, np.ndarray[ndim=1, dtype=np.float32_t] comvec):
         """Set the command vector of a sutra_controller object to comvec
