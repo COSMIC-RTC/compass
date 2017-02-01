@@ -1145,13 +1145,13 @@ cdef class Rtc:
             if ((ntt!=0)and(j>=kl.shape[1]-2)):
                 convert_centro(d_centroids,
                         d_centroids, 0,
-                        (0.5 / p_dms[ttz].push4imat),
+                        (1. / p_dms[ttz].push4imat),
                         control.d_centroids.getNbElem(),
                         context.get_device(device))
             else:
                 convert_centro(d_centroids,
                         d_centroids, 0,
-                        (0.5 / dm.push4imat),
+                        (1. / dm.push4imat),
                         control.d_centroids.getNbElem(),
                         context.get_device(device))
 

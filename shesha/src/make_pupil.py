@@ -29,7 +29,8 @@ def make_pupil(dim,pupd,tel,xc=-1,
         N_seg=558
         return make_EELT(dim,pupd,tel,N_seg)
     elif(tel.type_ap=="VLT"):
-        raise NotImplementedError("make_VLT")
+        tel.set_cobs(0.14)
+        return make_VLT(dim, pupd,tel)
     else:
         tel.set_type_ap("Generic")
         return make_pupil_generic(dim,pupd,tel.t_spiders,tel.spiders_type,
@@ -100,26 +101,25 @@ def make_pupil_generic(dim, pupd, t_spiders=0.01, spiders_type="six",
 
 
 def make_VLT(dim,pupd,tel):
-    tel.diam=8.0
-    tel.cobs=0.14
-    tel.t_spiders=0.005
-    angle= 50.5*np.pi/180
+
+    tel.set_t_spiders(0.09/18.)
+    angle= 50.5*np.pi/180. # --> 50.5 degre *2 d'angle entre les spiders
 
 
-    X=MESH(1.,dim);
+    X=MESH(1.,dim)
     R=np.sqrt(X**2+(X.T)**2)
 
     pup=((R<0.5) & (R>(tel.cobs/2)) ).astype(np.float32)
 
-
-    spiders_map= ((X.T>(X-tel.cobs/2+tel.t_spiders/np.sin(angle))*np.tan(angle))+ (X.T<(X-tel.cobs/2)*np.tan(tel.pupangle))) *(X>0)*(X.T>0)
+    spiders_map= ((X.T>(X-tel.cobs/2.+tel.t_spiders/np.sin(angle))*np.tan(angle))+ (X.T<(X-tel.cobs/2.)*np.tan(angle))) *(X>0)*(X.T>0)
     spiders_map+= np.fliplr(spiders_map)
     spiders_map+= np.flipud(spiders_map)
-
-    pup = pup*spiders_map;
+    spiders_map = interp.rotate(spiders_map,tel.pupangle, order =0, reshape=False)
+    
+    pup = pup*spiders_map
 
     print "VLT pupil created"
-    return pup;
+    return pup
 
 
 
@@ -209,7 +209,7 @@ def make_phase_ab(dim,pupd,tel,pup):
 	TODO
     """
 
-    if(tel.type_ap=="Generic"):
+    if((tel.type_ap=="Generic") or (tel.type_ap=="VLT")):
 	return np.zeros((dim,dim)).astype(np.float32)
 
     ab_file=EELT_data+"aberration_"+tel.type_ap+"_N"+str(dim)+"_NPUP"+str(np.where(pup)[0].size)+"_CLOCKED"+str(tel.pupangle)+"_TSPIDERS"+str(100*tel.t_spiders)+"_MS"+str(tel.nbrmissing)+"_REFERR"+str(100*tel.referr)+"_PIS"+str(tel.std_piston)+"_TT"+str(tel.std_tt)+".h5"
