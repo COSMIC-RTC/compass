@@ -737,7 +737,6 @@ class widgetAOWindow(TemplateBaseClass):
         for i in self.SRcircleTarget:
             self.p1.removeItem(self.SRcircleTarget[i])
 
-
         # set simulation name
         if(hasattr(self.config, "simul_name")):
             if(self.config.simul_name is None):
@@ -1106,10 +1105,11 @@ class widgetAOWindow(TemplateBaseClass):
                             2 * o._nvalid for o in self.config.p_wfss]
                         ind = np.sum(nvalid[:self.numberSelected])
                         if(self.config.p_wfss.type_wfs[self.numberSelected] == "pyrhr"):
-                            tools.plpyr(centroids[ind:ind + nvalid[self.numberSelected]], self.config.p_wfs0._isvalid)
+                            tools.plpyr(
+                                centroids[ind:ind + nvalid[self.numberSelected]], self.config.p_wfs0._isvalid)
                         else:
                             x, y, vx, vy = tools.plsh(centroids[ind:ind + nvalid[self.numberSelected]], self.config.p_wfss[
-                                                  self.numberSelected].nxsub, self.config.p_tel.cobs, returnquiver=True)  # Preparing mesh and vector for display
+                                self.numberSelected].nxsub, self.config.p_tel.cobs, returnquiver=True)  # Preparing mesh and vector for display
                         self.ui.wao_rtcWindowMPL.canvas.axes.quiver(
                             x, y, vx, vy, pivot='mid')
                         self.ui.wao_rtcWindowMPL.canvas.draw()
