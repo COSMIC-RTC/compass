@@ -183,30 +183,13 @@ cpdef make_lgs_prof1d(p_wfs, Param_tel p_tel,
     cdef np.ndarray[ndim = 1, dtype = np.float32_t] zhc, avg_zhc, avg_x
     profi = np.zeros((p_wfs._Ntot, p_wfs._nvalid), dtype=np.float32)
 
-    # cdef np.ndarray[ndim=1,dtype=np.int32_t] subsdone, dif2do #UNUSED
+    cdef np.ndarray[ndim=1,dtype=np.int32_t] subsdone, dif2do
     cdef np.ndarray[ndim = 1, dtype = np.int64_t] inds
     subsdone = np.ones(p_wfs._nvalid, dtype=np.int32)
-    # dif2do =np.zeros(p_wfs._nvalid,dtype=np.int32) #UNUSED
-    cdef float tmp, dzhc
+    dif2do =np.zeros(p_wfs._nvalid,dtype=np.int32)
+    cdef float dzhc
 
     cdef int i
-
-    # BUG put a correct value to tmp
-    raise "tmp not initialized... in yorick, it was: ...\
-           tmp = array(float,[3,y_wfs(numwfs)._Ntot,y_wfs(numwfs)._Ntot,y_wfs(numwfs)._nvalid])"
-    zhc = (h.astype(np.float32) - hG) * (206265. * tmp / hG ** 2)
-    dzhc = zhc[1] - zhc[0]
-
-    tmp = dOffAxis[np.where(subsdone)][0]
-    zhc = (h - hG) * (206265. * tmp / hG ** 2)
-    avg_zhc = np.zeros(zhc.size + 1, dtype=np.float32)
-    avg_zhc[0] = zhc[0]
-    avg_zhc[avg_zhc.size - 1] = zhc[zhc.size - 1]
-    avg_zhc[1:-1] = 0.5 * (zhc[1:] + zhc[:-1])
-    avg_x = np.zeros(x.size + 1, dtype=np.float32)
-    avg_x[0] = x[0]
-    avg_x[avg_x.size - 1] = x[x.size - 1]
-    avg_x[1:-1] = 0.5 * (x[1:] + x[:-1])
 
     while(np.any(subsdone)):
         tmp = dOffAxis[np.where(subsdone)][0]
@@ -2008,18 +1991,10 @@ cdef class Sensors:
             return pyrimg
 
         else:
-            raise TypeError("wfs should be a pyr")
-
-        """Return the image of a pyr wfs
-
-        :param n: (int) : number of the wfs to get the image from
-
-        """
-
-        return self._get_pyrimg(n)
+            raise TypeError("wfs should be a pyr or pyrhr")
 
     def set_pyrimg(self, int n, np.ndarray[ndim=2, dtype=np.float32_t] data):
-        """Set the image of a pyr wfs
+        """Set the image of a pyr wfsr
 
         :param n: (int) : number of the wfs to get the image from
 

@@ -10,6 +10,16 @@ import sys
 from distutils.command.clean import clean as _clean
 from distutils.dir_util import remove_tree
 
+from Cython.Build import cythonize
+import shutil
+
+# Remove the "-Wstrict-prototypes" compiler option, which isn't valid for C++.
+import distutils.sysconfig
+cfg_vars = distutils.sysconfig.get_config_vars()
+for key, value in cfg_vars.items():
+    if type(value) == str:
+        cfg_vars[key] = value.replace("-Wstrict-prototypes", "")
+# ==================================
 
 listMod = ['naga_context', 'naga_streams', 'naga_obj', 'naga_host_obj', 'naga_magma', 'naga_timer', 'naga_sparse_obj']
 dependencies = {'naga_streams': ['naga_context'],
@@ -107,12 +117,9 @@ include_dirs = [numpy_include,
                 COMPASS['inc_carma']
                 ]
 
-mkl_root = os.environ.get('MKLROOT')
-print "mkl_root:"
-if(mkl_root == ""):
-    mkl_root = None
-if(mkl_root is not None):
-    print mkl_root
+if 'MKLROOT' in os.environ:
+    mkl_root = os.environ.get('MKLROOT')
+    print "mkl_root: ", mkl_root
     library_dirs.append(mkl_root + '/mkl/lib/intel64/')
     libraries.append('mkl_mc3')
     libraries.append('mkl_def')
@@ -124,8 +131,8 @@ if 'CUDA_INC_PATH' in os.environ:
 else:
     raise EnvironmentError("Environment variable 'CUDA_INC_PATH' must be define")
 
-print "library_dirs", library_dirs
-print "libraries", libraries
+# print "library_dirs", library_dirs
+# print "libraries", libraries
 
 
 #######################
@@ -198,9 +205,6 @@ if 'build_ext' in sys.argv or 'develop' in sys.argv or 'install' in sys.argv:
     d['main'](None)
 
 
-from Cython.Build import cythonize
-
-
 def compile_module(name):
     if(os.path.exists(naga_path + "/lib/" + name + ".so") and name != "naga"):
         shutil.move(naga_path + "/lib/" + name + ".so", naga_path + "/" + name + ".so")
@@ -215,14 +219,16 @@ def compile_module(name):
                 if (os.stat("src/" + d + ".pyx").st_mtime >
                         os.stat("src/" + name + ".cpp").st_mtime):
                     # cpp file outdated
-                    os.remove("src/" + name + ".cpp")
+                    # cpp file outdated if exists
+                    if (os.path.exists("src/" + name + ".cpp")):
+                        os.remove("src/" + name + ".cpp")
     except KeyError, e:
         print e
 
     ext = Extension(name,
                     sources=['src/' + name + '.pyx'],
                     extra_compile_args=["-Wno-unused-function", "-Wno-unused-label", "-Wno-cpp", "-std=c++11",
-                                        #"-O0", "-g",
+                                        # "-O0", "-g",
                                         ],
                     include_dirs=include_dirs,
                     library_dirs=library_dirs,

@@ -72,6 +72,8 @@ cdef class Roket:
             buffer = self.roket.d_alias
         elif(type == "bandwidth"):
             buffer = self.roket.d_bandwidth
+        else:
+            raise "type unknown"
 
         dims = buffer.getDims()
         data_F = np.zeros((dims[1], dims[2]), dtype=np.float32)

@@ -9,6 +9,8 @@ from distutils.core import setup
 # from Cython.Build import cythonize
 from Cython.Distutils import build_ext
 
+import codecs
+
 # enable to dump annotate html for each pyx source file
 # import Cython.Compiler.Options
 # Cython.Compiler.Options.annotate = True
@@ -19,6 +21,14 @@ from Cython.Build import cythonize
 import numpy
 from distutils.extension import Extension
 
+# Remove the "-Wstrict-prototypes" compiler option, which isn't valid for C++.
+import distutils.sysconfig
+cfg_vars = distutils.sysconfig.get_config_vars()
+for key, value in cfg_vars.items():
+    if type(value) == str:
+        cfg_vars[key] = value.replace("-Wstrict-prototypes", "")
+# ==================================
+
 print sys.prefix
 print "SYS.PATH"
 print "======================================"
@@ -26,7 +36,7 @@ print sys.path
 print "======================================"
 
 listMod = ["shesha_param", "shesha_telescope", "shesha_sensors", "shesha_atmos",
-           "shesha_dms", "shesha_target", "shesha_rtc", "shesha_roket","shesha_psfrecs"]
+           "shesha_dms", "shesha_target", "shesha_rtc", "shesha_roket", "shesha_psfrecs"]
 dependencies = {"shesha_sensors": ["shesha_telescope"],
                 "shesha_target": ["shesha_telescope"],
                 "shesha_roket": listMod[:-2]}
@@ -50,12 +60,14 @@ sys.path.append(shesha_path + "/lib")
 
 def find_in_path(name, path):
     """Find a file in a search path"""
-    # adapted fom http://code.activestate.com/recipes/52224-find-a-file-given-a-search-path/
+    # adapted fom
+    # http://code.activestate.com/recipes/52224-find-a-file-given-a-search-path/
     for dir in path.split(os.pathsep):
         binpath = pjoin(dir, name)
         if os.path.exists(binpath):
             return os.path.abspath(binpath)
     return None
+
 
 def locate_cuda():
     """Locate the CUDA environment on the system
@@ -85,7 +97,8 @@ def locate_cuda():
                   'lib64': pjoin(home, 'lib64')}
     for k, v in cudaconfig.iteritems():
         if not os.path.exists(v):
-            raise EnvironmentError('The CUDA %s path could not be located in %s' % (k, v))
+            raise EnvironmentError(
+                'The CUDA %s path could not be located in %s' % (k, v))
 
     return cudaconfig
 
@@ -97,7 +110,8 @@ def locate_compass():
         root_compass = os.environ['COMPASS_ROOT']
 
     else:
-        raise EnvironmentError("Environment variable 'COMPASS_ROOT' must be define")
+        raise EnvironmentError(
+            "Environment variable 'COMPASS_ROOT' must be define")
 
     compass_config = {'inc_sutra': root_compass + '/libsutra/include.h', 'inc_carma': root_compass + '/libcarma/include.h',
                       'inc_naga': root_compass + '/naga', 'lib': root_compass}
@@ -162,6 +176,7 @@ def locate_MPI():
     mpi_config['clibs']    :librairies (mpi)
     mpi_config['pincdirs'] :include directories (mpi4py)
     """
+    import mpi4py
 
     # add env variable to module
     # mpicxx=os.environ["MPICXX"]
@@ -178,13 +193,15 @@ def locate_MPI():
 
     pincdirs = [mpi4py.get_include(), numpy.get_include()]
 
-    mpi_config = {'mpicxx': mpicxx, 'cincdirs': cincdirs, 'pincdirs': pincdirs, 'clibs': clibs, 'clibdirs': clibdirs}
+    mpi_config = {'mpicxx': mpicxx, 'cincdirs': cincdirs,
+                  'pincdirs': pincdirs, 'clibs': clibs, 'clibdirs': clibdirs}
 
     return mpi_config
 
 
 # run the customize_compiler
 class custom_build_ext(build_ext):
+
     def build_extensions(self):
         if (os.path.exists('./shesha.cpp')):
             os.remove('./shesha.cpp')
@@ -202,8 +219,10 @@ include_dirs = [numpy_include,
 
 library_dirs = [COMPASS['lib'] + "/libsutra"]
 
+
 def which(program):
     import os
+
     def is_exe(fpath):
         return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
 
@@ -221,7 +240,6 @@ def which(program):
     return None
 
 
-import codecs
 parFile = None
 if not isfile("par.pxi"):
     parFile = codecs.open("par.pxi", mode='w', encoding='utf-8')
@@ -273,15 +291,18 @@ if 'BRAMA_ROOT' in os.environ:
     librairies.extend(['ACE'])
     librairies.extend(['dl'])
     librairies.extend(['rt'])
-    define_macros = [('USE_BRAMA', None), ('_GNU_SOURCE', None), ('__ACE_INLINE__', None), ]
+    define_macros = [('USE_BRAMA', None), ('_GNU_SOURCE',
+                                           None), ('__ACE_INLINE__', None), ]
 
 if parFile:
     parFile.write("DEF USE_BRAMA=%d # 0/1 \n" % USE_BRAMA)
     parFile.close()
 
+
 def compile_module(name):
     if(os.path.exists(shesha_path + "/lib/" + name + ".so") and name != "shesha"):
-        shutil.move(shesha_path + "/lib/" + name + ".so", shesha_path + "/" + name + ".so")
+        shutil.move(shesha_path + "/lib/" + name + ".so",
+                    shesha_path + "/" + name + ".so")
     print "======================================="
     print "creating module ", name
     print "======================================="
@@ -291,16 +312,17 @@ def compile_module(name):
         if(os.path.exists("src/" + name + ".cpp")):
             for d in dep:
                 if (os.stat("src/" + d + ".pyx").st_mtime >
-                    os.stat("src/" + name + ".cpp").st_mtime):
-                    # cpp file outdated
-                    os.remove("src/" + name + ".cpp")
+                        os.stat("src/" + name + ".cpp").st_mtime):
+                    # cpp file outdated if exists
+                    if (os.path.exists("src/" + name + ".cpp")):
+                        os.remove("src/" + name + ".cpp")
     except KeyError, e:
         print e
 
     ext = Extension(name,
                     sources=['src/' + name + '.pyx'],
                     extra_compile_args=["-Wno-unused-function", "-Wno-unused-label", "-Wno-cpp", "-std=c++11",
-                                        #"-O0", "-g",
+                                        # "-O0", "-g",
                                         ],
                     include_dirs=include_dirs,
                     define_macros=define_macros,
@@ -319,16 +341,18 @@ def compile_module(name):
         # zip_safe=False
     )
     if(os.path.exists(shesha_path + "/" + name + ".so") and name != "shesha"):
-        shutil.move(shesha_path + "/" + name + ".so", shesha_path + "/lib/" + name + ".so")
+        shutil.move(shesha_path + "/" + name + ".so",
+                    shesha_path + "/lib/" + name + ".so")
 
 if __name__ == '__main__':
-    try :
+    try:
         # uncomment this line to disable the multithreaded compilation
         # import step_by_step
 
         from multiprocessing import Pool
         pool = Pool(maxtasksperchild=1)  # process per core
-        pool.map(compile_module, listMod)  # proces data_inputs iterable with poo
+        # proces data_inputs iterable with poo
+        pool.map(compile_module, listMod)
     except ImportError:
         for name in listMod:
             compile_module(name)

@@ -522,7 +522,7 @@ cdef class Rtc:
             controller_generic.set_mgain(< float *> mgain.data)
         else:
             raise TypeError("Controller needs to be ls, mv or generic")
-        
+
 
     def set_scalar_mgain(self, ncontrol, g):
         x = self.get_mgain(ncontrol)
@@ -557,7 +557,7 @@ cdef class Rtc:
         context.set_activeDeviceForCpy(self.rtc.device, 1)
 
         self.rtc.d_control[ncontrol].d_centroids.host2device(< float *> centro.data)
-        
+
     cpdef get_gain(self, int ncontrol):
         """Return modal gains from sutra_controller
 
@@ -573,7 +573,7 @@ cdef class Rtc:
         cdef sutra_controller_mv * controller_mv
         cdef sutra_controller_cured * controller_cured
         cdef sutra_controller_geo * controller_geo
-        
+
         cdef bytes type_control = < bytes > self.rtc.d_control[ncontrol].get_type()
         cdef float gain
 
@@ -592,19 +592,19 @@ cdef class Rtc:
         elif(type_control == "generic"):
             gain = np.float32(1.0)
             return gain
-            
+
         elif(type_control == "cured"):
             controller_cured = dynamic_cast_controller_cured_ptr(self.rtc.d_control[ncontrol])
             gain = np.float32(0)
             controller_cured.gain.device2host(gain)
             return gain
-            
+
         elif(type_control == "geo"):
             controller_geo = dynamic_cast_controller_geo_ptr(self.rtc.d_control[ncontrol])
             gain = np.float32(0)
             controller_geo.gain.device2host(gain)
             return gain
-            
+
         else:
             raise TypeError("Controller needs to be ls, generic, mv, cured or geo")
 
@@ -1015,16 +1015,16 @@ cdef class Rtc:
         self.rtc.get_centroids_ref(ncontrol,< float *> h_ref.data)
         h_rawslp = self.getCentroids(ncontrol) + h_ref
         self.rtc.set_centroids_ref(ncontrol,< float *> h_rawslp.data)
-        
-        
-        
+
+
+
     cpdef doimat_kl(self, int ncontrol,Param_controller controller, Dms g_dms, p_dms,  np.ndarray[ndim = 2, dtype = np.float32_t] kl):
-        
+
         # changer de strategie, on enregister l'imat sur python puis self.set_imat()
         # puis appelle d'un fonction set Cmat modifdans le rtc_init à la place de la fonction set normal
-        
-        
-        
+
+
+
         cdef carma_context * context = &carma_context.instance()
         context.set_activeDeviceForCpy(self.rtc.device, 1)
 
@@ -1044,7 +1044,7 @@ cdef class Rtc:
         #_________________________________________________________________________
         else:
             # Create a temporary imat to return
-            
+
             dims[0]=2
             dims[1]=nactu
             dims[2]=nslope
@@ -1073,8 +1073,8 @@ cdef class Rtc:
         cdef carma_obj[float] * phase
 #        kl_crop = np.zeros((kl.shape[0], kl.shape[1] - 2))
 #        kl_crop[:, 0:-2] = kl[:, 0:-4]
-#        kl_crop[:, -2:] = kl[:, -2:]        
-        
+#        kl_crop[:, -2:] = kl[:, -2:]
+
 # _________ normaliser
         klNorm = kl * 0.
         for k in range(kl.shape[1]):
@@ -1087,7 +1087,7 @@ cdef class Rtc:
         ntt=0
         ttz=0 # tt dm position
         na = np.zeros(np.size(p_dms),dtype=np.int32) #number actu for pzt_dm
-        
+
         for i in range(np.size(p_dms)):
             if (p_dms[i].type_dm=="pzt"):
                 ppz[i] = 1
@@ -1103,7 +1103,7 @@ cdef class Rtc:
         it_dm = control.d_dmseen.begin() #---> a changer
         print "Doing imat_kl...%d%%" % cc,
         dm = deref(it_dm)
-        
+
         pushkl = np.ones(kl.shape[0])
         a=0
         for i in range(np.sum(ppz)):
@@ -1113,10 +1113,10 @@ cdef class Rtc:
             pushkl[-1]=p_dms[ttz].push4imat
             pushkl[-2]=p_dms[ttz].push4imat
 
-        
+
         for j in range(kl.shape[1]):
             # push actu __________________________________________________
-            
+
             g_dms.set_full_comm(np.float32(klNorm[:,j].copy()*pushkl))
 
             for idx_cntr in range(< int > self.rtc.d_centro.size()):
@@ -1160,13 +1160,13 @@ cdef class Rtc:
                     control.nslope())
             for i in range(np.size(p_dms)):
                 g_dms.resetdm(p_dms[i].type_dm,p_dms[i].alt)
-            
+
             inds1 += control.nslope()
             cc = cc + 1
             print "\rDoing imat...%d%%" % ((cc * 100) / kl.shape[1]),
             stdout.flush()
-            
-            #cont +=1    
+
+            #cont +=1
             #inc(it_dm)
         print "\n"
 
@@ -1175,11 +1175,11 @@ cdef class Rtc:
           h_imat_ret = np.zeros((nactu, nslope), dtype = np.float32)
           d_imat_ret.device2host( <float *> h_imat_ret.data)
           del d_imat_ret
-          return h_imat_ret  
-          
-          
-          
-          
+          return h_imat_ret
+
+
+
+
     cpdef doimat(self, int ncontrol, Dms g_dms):
         """Compute the interaction matrix
 
@@ -1239,7 +1239,7 @@ cdef class Rtc:
         while(it_dm != control.d_dmseen.end()):
             dm = deref(it_dm)
             for j in range(dm.ninflu):
-                
+
                 # push actu __________________________________________________
 
                 dm.comp_oneactu(j, dm.push4imat)
@@ -1277,7 +1277,7 @@ cdef class Rtc:
                         & d_imat.getData()[inds1],
                         control.nslope())
                 dm.reset_shape()
-                
+
                 # pul actu __________________________________________________
                 dm.comp_oneactu(j, -1.*dm.push4imat)
 
@@ -1301,7 +1301,7 @@ cdef class Rtc:
 
                 device = control.d_centroids.getDevice()
                 d_centroids = control.d_centroids.getData()
-                
+
                 convert_centro(d_centroids,
                         d_centroids, 0,
                         (0.5 / dm.push4imat),
@@ -1314,14 +1314,14 @@ cdef class Rtc:
                     & d_imat.getData()[inds1], 1)
 
                 dm.reset_shape()
-                    
-                    
+
+
                 inds1 += control.nslope()
                 cc = cc + 1
                 print "\rDoing imat...%d%%" % ((cc * 100) / nactu),
                 stdout.flush()
-                
-                
+
+
             inc(it_dm)
         print "\n"
 
@@ -1507,7 +1507,9 @@ cdef class Rtc:
             data_F=np.zeros((dims[2],dims[1]),dtype=np.float32)
             controller_geo.d_geocov.device2host(<float*>data_F.data)
 
-        data=np.reshape(data_F.flatten("F"),(dims[1],dims[2]))
+            data=np.reshape(data_F.flatten("F"),(dims[1],dims[2]))
+        else:
+            raise 'controller must be geo'
 
         return data
 
@@ -1714,14 +1716,14 @@ cdef class Rtc:
             nmode: (int) : number of modes to filter
         """
         type_control = self.rtc.d_control[ncontrol].get_type()
-        
-        print " nmode:" 
+
+        print " nmode:"
         print KL2V.shape[1]
         print "imat size:"
         print imat.shape
         print "KL2V size :"
         print KL2V.shape
-        
+
         if(type_control == "ls"):
 
             KL2VN = KL2V * 0.
@@ -1746,11 +1748,11 @@ cdef class Rtc:
       
             # Command matrix
             cmat_filt = KL2VN.dot(Dp_filt)
-            
-            
+
+
             self.set_cmat(0,cmat_filt.astype(np.float32).copy())
             print "cmat kl end processing"
-        
+
         else:
             raise TypeError("Controller needs to be ls for kl imat")
 
@@ -2404,6 +2406,9 @@ def rtc_init(Telescope g_tel, Sensors g_wfs, p_wfs, Dms g_dms, p_dms, Param_geom
 
                     for j in range(controller.ndm.size):
                         type_dmseen[j] = p_dms[controller.ndm[j]].type_dm
+
+                    nactu = np.sum([p_dms[j]._ntotact for j in ndms])
+
                     # list_dmseen,alt,controller.ndm.size
                     g_rtc.rtc.add_controller_geo(nactu, Nphi, controller.delay,
                             device, g_dms.dms, type_dmseen, < float *> alt.data,
@@ -2423,7 +2428,7 @@ def rtc_init(Telescope g_tel, Sensors g_wfs, p_wfs, Dms g_dms, p_dms, Param_geom
                     unitpervolt = np.array([p_dms[j].unitpervolt for j in range(len(p_dms))],
                                 dtype=np.float32)
 
-                    g_rtc.init_proj(i + 1, g_dms, indx_dm, unitpervolt, indx_pup, indx_mpup, 1)
+                    g_rtc.init_proj(ncontrol, g_dms, indx_dm, unitpervolt, indx_pup, indx_mpup, 1)
                     free(type_dmseen)
 
 
@@ -2798,7 +2803,7 @@ cpdef compute_KL2V(Param_controller controller, Dms dms, p_dms, Param_geom p_geo
     if(controller.nmodes != 0 and controller.nmodes < KL2V.shape[1]-2*nTT):
         KL2V = KL2V[:, :controller.nmodes]
     else:
-        KL2V = KL2V[:, :KL2V.shape[1]-2*nTT]             
+        KL2V = KL2V[:, :KL2V.shape[1]-2*nTT]
     if(nTT > 1):
       raise "More than 1 TipTilt found! Stupid"
     if(nTT != 0):
@@ -2862,7 +2867,7 @@ cpdef imat_init(int ncontrol, Rtc g_rtc, Param_rtc p_rtc, Dms g_dms, p_dms, Sens
         p_rtc: (Param_rtc) : rtc settings
 
         g_dms: (Dms) : Dms object
-        
+
         p_dms: (Param_dms) : dms settings
 
         g_wfs: (Sensors) : Sensors object
@@ -2870,7 +2875,7 @@ cpdef imat_init(int ncontrol, Rtc g_rtc, Param_rtc p_rtc, Dms g_dms, p_dms, Sens
         p_wfs: (list of Param_wfs) : wfs settings
 
         p_tel: (Param_tel) : telescope settings
-        
+
         kl:(np.array) :  KL_matric
 
         clean: (int) : (optional) : clean datafiles (imat, U, eigenv)
@@ -2878,9 +2883,9 @@ cpdef imat_init(int ncontrol, Rtc g_rtc, Param_rtc p_rtc, Dms g_dms, p_dms, Sens
         simul_name: (str) : (optional) simulation's name, use for data files' path
 
         load: (dict) : (optional) dictionary of matrices to load and their path
-        
+
         kl_imat (int) : 0 = false, 1 = True for imat kl
-        
+
 
     """
     cdef bytes dirsave = shesha_savepath +< bytes > "/mat/"
@@ -2921,14 +2926,14 @@ cpdef imat_init(int ncontrol, Rtc g_rtc, Param_rtc p_rtc, Dms g_dms, p_dms, Sens
                                         p_wfs[i].beamsize, g_wfs, < bytes > "", imat=1)
 
         t0 = time.time()
-        print "imat_init :%d" % kl_imat 
+        print "imat_init :%d" % kl_imat
         print "/n"
         if (kl_imat == 1):
 
             g_rtc.doimat_kl(ncontrol,p_control, g_dms, p_dms, kl=kl)
         else:
             g_rtc.doimat(ncontrol, g_dms)
-            
+
         print "done in ", time.time() - t0
         p_rtc.controllers[ncontrol].set_imat(g_rtc.get_imat(ncontrol))
         if(simul_name != "" and clean == 0 and rank == 0):
@@ -2973,11 +2978,11 @@ cpdef cmat_init_kl(int ncontrol, Rtc g_rtc, Param_rtc p_rtc, list p_wfs, Param_a
         simul_name: (str) : (optional) simulation's name, use for data files' path
 
         load: (dict) : (optional) dictionary of matrices to load and their path
-        
-        imat_kl: (int) : (optional) 
-        
+
+        imat_kl: (int) : (optional)
+
         nmode: (int) : (optional) number of kl mod
-        
+
 
     """
     # initialisation
@@ -2996,7 +3001,7 @@ cpdef cmat_init_kl(int ncontrol, Rtc g_rtc, Param_rtc p_rtc, list p_wfs, Param_a
     cdef float maxcond
     cdef int nfilt, ind, i
 
-    # database verification 
+    # database verification
     if(simul_name == "" or clean == 1):
         cmat_clean = 1
     else:
@@ -3009,11 +3014,11 @@ cpdef cmat_init_kl(int ncontrol, Rtc g_rtc, Param_rtc p_rtc, list p_wfs, Param_a
     ELSE:
         rank = 0
     # creation de la cmat
-        
+
     if(p_rtc.controllers[ncontrol].type_control == "ls"):
         #calcul des valeurs propre
         if(cmat_clean):
-            
+
             print "doing svd"
             t0 = time.time()
             # calcul de la svd
@@ -3031,9 +3036,9 @@ cpdef cmat_init_kl(int ncontrol, Rtc g_rtc, Param_rtc p_rtc, list p_wfs, Param_a
 
                 savename = dirsave + "U_r" + check_output(["svnversion",os.getenv("COMPASS_ROOT")]).replace("\n", "") + "_" + str(ind) + ".h5"
                 h5u.save_hdf5(savename, "U", U)
-        
+
         #lecture des valeurs propre dans la database
-                
+
         else:
             f = h5py.File(load["eigenv"])
             eigenv = f["eigenv"][:]
@@ -3042,7 +3047,7 @@ cpdef cmat_init_kl(int ncontrol, Rtc g_rtc, Param_rtc p_rtc, list p_wfs, Param_a
             f = h5py.File(load["U"])
             U = f["U"][:]
             g_rtc.setU(ncontrol, U)
-        
+
         # calcul de la cmat
         # recuperation de l'imat
         imat = g_rtc.get_imat(ncontrol)
