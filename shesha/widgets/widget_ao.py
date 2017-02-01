@@ -8,23 +8,33 @@ import pstats as ps
 import sys
 import os
 import numpy as np
-import naga as ch
-import shesha as ao
 from time import time
 import matplotlib.pyplot as plt
 import pyqtgraph as pg
 import tools
 from glob import glob
-import hdf5_utils as h5u
 import threading
 from PyQt4.uic import loadUiType
 from PyQt4 import QtGui
 from PyQt4.QtCore import QTimer
 from functools import partial
 from subprocess import Popen, PIPE
+try:
+    import naga as ch
+    import shesha as ao
+except ImportError as error:
+    import warnings
+    warnings.warn("GPU not accessible", RuntimeWarning)
+    print "due to: ", error
+
+try:
+    import hdf5_utils as h5u
+except ImportError:
+    sys.path.insert(0, os.environ["SHESHA_ROOT"] + "/src/")
+finally:
+    import hdf5_utils as h5u
 
 sys.path.insert(0, os.environ["SHESHA_ROOT"] + "/data/par/")
-
 WindowTemplate, TemplateBaseClass = loadUiType(os.environ["SHESHA_ROOT"] +
                                                "/widgets/widget_ao.ui")
 
