@@ -10,14 +10,14 @@ import matplotlib.pyplot as plt
 import os
 
 
-def applyVoltGetSlopes(wao, withAtm):
+def applyVoltGetSlopes(wao, volts, withAtm):
     '''
         Applies buffered voltages (previous use of wao.rtc.set_perturbcom)
         on the dms and reads out wfs slopes
     :param wao: AO Widget
     :param withAtm: Show atmosphere to wfs or only DM phase
     '''
-    wao.rtc.applycontrol(0, wao.dms)
+    wao.dms.set_full_comm(volts.astype(np.float32).copy())
     for w in range(len(wao.config.p_wfss)):
         wao.wfs.reset_phase(w)
         if withAtm:
@@ -25,8 +25,12 @@ def applyVoltGetSlopes(wao, withAtm):
         else:
             wao.wfs.sensors_trace(w, "dm", wao.tel, wao.atm, wao.dms)
         wao.wfs.sensors_compimg(w)
+
     wao.rtc.docentroids(0)
-    return wao.rtc.getCentroids(0)
+    cen = wao.rtc.getCentroids(0)
+    wao.rtc.docentroids_geom(0)
+    ceng = wao.rtc.getcentroids(0)
+    return cen, ceng
 
 
 def measureIMatKLPP(wao, ampliVec, KL2V, nSlopes, withAtm):
@@ -41,32 +45,84 @@ def measureIMatKLPP(wao, ampliVec, KL2V, nSlopes, withAtm):
     if withAtm:
         currentVolts = wao.rtc.getVoltage(0)
     else:
-        currentVolts = 0
+        currentVolts = 0.0
 
     iMatKL = np.zeros((nSlopes, KL2V.shape[1]))
+    iMatKLGeom = np.zeros((nSlopes, KL2V.shape[1]))
 
     st = time.time()
     for kl in range(KL2V.shape[1]):
-        v = ampliVec[kl] * KL2V[:, kl:(kl + 1)].T.copy()
-        wao.rtc.set_perturbcom(0, v + currentVolts)
-        iMatKL[:, kl] = applyVoltGetSlopes(wao, withAtm)
-        wao.rtc.set_perturbcom(0, -v + currentVolts)
-        iMatKL[:, kl] = (iMatKL[:, kl] - applyVoltGetSlopes(wao, withAtm)
-                         ) / (2. * ampliVec[kl])
+        v = ampliVec[kl] * KL2V[:, kl]
+        iMatKL[:, kl], iMatKLGeom[:, kl] = applyVoltGetSlopes(wao, v + currentVolts, withAtm)
+        iMatKL[:, kl], iMatKLGeom[:, kl] = (iMatKL[:, kl] - applyVoltGetSlopes(wao, -v + currentVolts, withAtm)
+                        ) / (2. * ampliVec[kl])
         print "Doing KL interaction matrix on mode: #%d\r" % kl,
         os.sys.stdout.flush()
 
     print "Modal interaction matrix done in %3.1f seconds" % (time.time() - st)
-    return iMatKL
+    return iMatKL, iMatKLGeom
 
+def measureIMatKLSine(wao, ampliVec, KL2V, nSlopes, withAtm):
 
-def normalizeKL2V(KL2V):
+    if withAtm:
+        currentVolts = wao.rtc.getVoltage(0)
+    else:
+        currentVolts = 0.0
+
+    primeFreq = nPrimes(KL2V.shape[1])
+    primeFreq = np.array(primeFreq[2:] + primeFreq[:2])  # Assign low frequencies to tip-tilt
+    nFrames = 2 * (np.max(primeFreq) + 1)
+    freqArr = 1.0 * primeFreq * np.pi / (np.max(primeFreq) + 1)
+
+    frames = np.zeros((nSlopes, nFrames))
+    framesGeom = np.zeros((nSlopes, nFrames))
+
+    ampliKL = ampliVec * KL2V
+    voltsToSet = np.dot(KL2V, np.cos(np.dot(freqArr[..., np.newaxis], np.arange(nFrames)[np.newaxis, ...])))
+
+    st = time.time()
+    for f in range(nFrames):
+        v = voltsToSet[:, f]
+        frames[:, f], framesGeom[:, f] = applyVoltGetSlopes(wao, v + currentVolts, withAtm)
+        print "Doing sine KL interaction matrix on frame: #%d / %d\r" % (f + 1, nFrames),
+        os.sys.stdout.flush()
+
+    print "\nModal sine interaction recording done in %3.1f seconds" % (time.time() - st)
+
+    FTImat = np.fft.fft(frames, axis = 1)
+    # imatKL = np.real(FTImat[:, primeFreq]) / (np.max(primeFreq) * ampliVec)
+
+    return FTImat
+
+def nPrimes(n):
+    def prime(i, primes):
+        for prime in primes:
+            if not (i == prime or i % prime):
+                return False
+        primes.append(i)
+        return i
+
+    primes = []
+    i, p = 2, 0
+    while True:
+        if prime(i, primes):
+            p += 1
+            if p == n:
+                return primes
+        i += 1
+
+def normalizeKL2V(KL2V, mode = 'linf'):
     '''
         L-Inf normalization of mirror modes
     :param KL2V: Matrix of modes in the DM Space
     '''
-    return KL2V / np.amax(np.abs(KL2V), axis = 0)[np.newaxis, ...]
-
+    if mode == 'linf':
+        return KL2V / np.amax(np.abs(KL2V), axis = 0)[np.newaxis, ...]
+    elif mode == 'l2':
+        return KL2V / np.sqrt(np.sum(KL2V ** 2, axis = 0))[np.newaxis, ...]
+    else:
+        print "Invalid normalize KL2V mode - required optional mode = 'l2' or 'linf'"
+        return None
 
 def cropKL2V(KL2V):
     '''
@@ -77,9 +133,6 @@ def cropKL2V(KL2V):
 
 
 def plotVDm(wao, numdm, V, size = 16, fignum = False):
-    """
-        plotVDm(wao, 0, KL2V[:,0][:-2], size=25, fignum=15)
-    """
     if(wao.config.p_dms[numdm]._j1.shape[0] != V.shape[0]):
         print "Error V should have %d dimension not %d " % (wao.config.p_dms[numdm]._j1.shape[0], V.shape[0])
     else:
@@ -103,8 +156,8 @@ def computeImatKL(wao, pushPZT, pushTT, KL2V, nSlopes, withAtm):
     '''
     NKL = KL2V.shape[1]
     modesAmpli = np.array([pushPZT] * (NKL - 2) + [pushTT] * 2)
-    iMat = measureIMatKLPP(wao, modesAmpli, KL2V, nSlopes, withAtm)
-    return iMat
+    iMat, iMatGeom = measureIMatKLPP(wao, modesAmpli, KL2V, nSlopes, withAtm)
+    return iMat, iMatGeom
 
 
 def computeCmatKL(iMatKL, nFilt):
@@ -169,14 +222,26 @@ class ModalGainOptimizer:
         self.wao.setIntegratorLaw()
         self.wao.rtc.set_decayFactor(0, np.ones(self.nSlopes, dtype = (np.float32)))
         self.wao.rtc.set_mgain(0, self.gain * np.ones(self.nActu, dtype = (np.float32)))
+        
+        self.initBasis(wao.returnkl2V())
 
-        self.KL2V = normalizeKL2V(wao.returnkl2V())
+
+    
+    def initBasis(self, rawKL2V):
+        '''
+            Sets and normalizes a DM basis
+        :param rawKL2V: Self-explanatory. Pass wao.returnkl2V() for defaulting
+        '''
+        self.KL2V = normalizeKL2V(rawKL2V, mode = 'l2')
         self.KL2VFilt = \
             self.KL2V[:, range(0, self.KL2V.shape[1] - self.nFilter - 2) + [-2, -1]]
 
         self.iMatKLRef = None
         self.cMatKLRef = None
+        self.iMatKLGeom = None
+        self.cMatKLGeom = None
 
+        self.gainValues = None
 
     def computeRef(self):
         '''
@@ -184,10 +249,12 @@ class ModalGainOptimizer:
             Store them within ModalGainOptimizer instance
         '''
         self.wao.closeLoop()
-        self.iMatKLRef = computeImatKL(self.wao, self.pushPzt, self.pushTT,
+        self.iMatKLRef, self.iMatKLGeom = computeImatKL(self.wao, self.pushPzt, self.pushTT,
                                        self.KL2V, self.nSlopes, False)
         self.cMatKLRef = computeCmatKL(self.iMatKLRef, self.nFilter)
+        self.cMatKLGeom = computeCmatKL(self.iMatKLGeom, self.nFilter)
 
+        self.gainValues = np.ones(self.cMatKLRef.shape[0])
 
     def setRef(self):
         '''
@@ -196,23 +263,79 @@ class ModalGainOptimizer:
         cMat = cMatFromcMatKL(self.cMatKLRef, self.KL2VFilt)
         self.wao.rtc.set_cmat(0, cMat.astype(np.float32).copy())
 
+    def setGeomRef(self):
+        '''
+            Sets the geom control matrix into the AO session RTC
+        '''
+        cMat = cMatFromcMatKL(self.cMatKLGeom, self.KL2VFilt)
+        self.wao.rtc.set_cmat(0, cMat.astype(np.float32).copy())
 
-    def computeAtmAndUpdate(self):
+
+    def computeAtmGains(self):
         '''
             Compute a new modal interaction matrix around the current residual atmosphere setpoint.
             Apply the sensitivity compensation coefficients found to the zero-point modal control matrix
             Set the updated control matrix to the AO session.
         '''
         self.wao.closeLoop()
-        iMatKL = computeImatKL(self.wao, self.pushPzt, self.pushTT,
+        iMatKL, _ = computeImatKL(self.wao, self.pushPzt, self.pushTT,
                                self.KL2V, self.nSlopes, True)
-        ksiVal = np.sqrt(np.diag(np.dot(iMatKL.T, iMatKL)) /
-                         np.diag(np.dot(self.iMatKLRef.T, self.iMatKLRef)))
-        ksiFilter = ksiVal[range(iMatKL.shape[1] - self.nFilter - 2) + [-2, -1]]
+        ksiVal = np.sqrt(np.diag(np.dot(self.iMatKLRef.T, self.iMatKLRef)) /
+                         np.diag(np.dot(iMatKL.T, iMatKL)))
 
-        cMat = cMatFromcMatKL(self.cMatKLRef, self.KL2VFilt, gainVector = 1. / ksiFilter)
+        ksiFilter = ksiVal[range(iMatKL.shape[1] - self.nFilter - 2) + [-2, -1]]
+#         ksiFilter = ksiFilter * np.sqrt(np.shape(ksiFilter)[0] / np.sum(ksiFilter ** 2))
+
+        return ksiFilter, iMatKL
+
+    def setCmat(self, ksis = None):
+        if ksis is None:
+            ksis = self.gainValues
+        else:
+            self.gainValues = ksis
+
+        cMat = cMatFromcMatKL(self.cMatKLRef, self.KL2VFilt, gainVector = ksis)
         self.wao.rtc.set_cmat(0, cMat.astype(np.float32).copy())
-        return cMat, ksiVal
+
+
+
+
+
+
+def simuAndRecord(wao, nIter):
+    
+    nSlopes = wao.rtc.getCentroids(0).shape[0]
+    
+    slopesG = np.zeros((nSlopes, nIter))
+    slopesP = np.zeros((nSlopes, nIter))
+
+    for i in range(nIter):
+        slopesG[:, i], slopesP[:, i] = doubleWFSLoop(wao)
+    
+    return slopesG, slopesP
+
+def doubleWFSLoop(wao):
+    wao.atm.move_atmos()
+
+    for t in range(wao.config.p_target.ntargets):
+        wao.tar.atmos_trace(t, wao.atm, wao.tel)
+        wao.tar.dmtrace(t, wao.dms)
+    for w in range(len(wao.config.p_wfss)):
+        wao.wfs.sensors_trace(w, "all", wao.tel, wao.atm, wao.dms)
+        wao.wfs.sensors_compimg(w)
+
+    # Pyramid slopes
+    wao.rtc.docentroids_geom(0)
+    slopesGeom = wao.rtc.getCentroids(0)
+
+    wao.rtc.docentroids(0)
+    slopes = wao.rtc.getCentroids(0)
+
+    wao.rtc.docontrol(0)
+    wao.rtc.applycontrol(0, wao.dms)
+#     wao.tar.get_strehl(0)[0]
+
+    return slopesGeom, slopes
 
 
 
@@ -230,10 +353,10 @@ def updateToOptimalCmat(wao, slopes, volts, miKL, S2KL, M2V, offset):
         slopes, volts, mia, S2KL, M2V, offset, gmax = 0.5)
 
     if nfilt == 0:
-        optiCmat = computeSystemOptimizedControlMatrix(S2KL, gainVector, M2V)
+        optiCmat = cMatFromcMatKL(S2KL, M2V, gainVector = gainVector)
     else:
-        optiCmat = computeSystemOptimizedControlMatrix(
-            S2KL, gainVector, M2V[:, range(0, (M2V.shape[1] - nfilt - 2)) + [-2, -1]])
+        optiCmat = cMatFromcMatKL(
+            S2KL, M2V[:, range(0, (M2V.shape[1] - nfilt - 2)) + [-2, -1]], gainVector = gainVector)
 
     wao.openLoop()
     wao.rtc.set_cmat(0, optiCmat.astype(np.float32).copy())
@@ -402,3 +525,28 @@ def modalControlOptimizationClosedLoopData(slopesClosed, voltsData, mia, S2M, M2
 
     return modalControlOptimizationOpenLoopData(slopesOpen, S2M, M2V,
                                                 gmax = gmax, Fs = Fs, latency = latency, BP = BP)
+
+'''
+import modalOptiLib as mol
+plt.ion()
+mod = mol.ModalGainOptimizer(wao)
+mod.computeRef()
+mod.setRef()
+'''
+
+'''
+import modalOptiLib as mol
+plt.ion()
+mod = mol.ModalGainOptimizer(wao)
+ampliVec = np.array([mod.pushPzt] * (mod.nActu-4) + [mod.pushTT] * 2)
+FtimatKL = mol.measureIMatKLSine(wao, ampliVec, mod.KL2V, mod.nSlopes, False)
+# cmatKL = mol.computeCmatKL(imatKL, 20)
+'''
+
+'''as
+plt.ion()
+import modalOptiLib as mol
+import tools
+mod = mol.ModalGainOptimizer(wao)
+mod.computeRef(); tools.plpyr(mod.iMatKLRef[:,0],wao.config.p_wfs0._isvalid)
+'''

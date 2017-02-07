@@ -1903,7 +1903,7 @@ cdef class Rtc:
 
     cpdef applycontrol(self,int ncontrol,Dms dms):
         """Compute the DMs shapes from the commands computed in a sutra_controller_object.
-        From the command vector, it computes the voltage command (adding pertrubation voltages,
+        From the command vector, it computes the voltage command (adding perturbation voltages,
         taking delay into account) and then apply it to the dms
 
         :parameters:

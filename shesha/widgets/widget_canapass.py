@@ -292,12 +292,12 @@ class widgetAOWindow(TemplateBaseClass):
             self.stop = False
             self.refreshTime = time.time()
             self.run()
-            self.ui.wao_Display.setCheckState(True)
+            # self.ui.wao_Display.setCheckState(True)
             # self.loop = threading.Thread(target=self.run)
             # self.loop.start()
         else:
             self.stop = True
-            self.ui.wao_Display.setCheckState(False)
+            # self.ui.wao_Display.setCheckState(False)
             # self.loop.join()
             # self.loop = None
 
