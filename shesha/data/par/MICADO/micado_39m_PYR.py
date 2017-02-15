@@ -6,7 +6,7 @@ simul_name = "micado_39m_PYR"
 # loop
 p_loop = ao.Param_loop()
 
-p_loop.set_niter(1000)
+p_loop.set_niter(10000)
 p_loop.set_ittime(1 / 500.)  # =1/500
 p_loop.set_devices([0, 1, 2, 3])
 # geom
@@ -69,11 +69,11 @@ p_wfs0.set_nxsub(78)
 p_wfs0.set_fracsub(0.8)
 p_wfs0.set_xpos(0.)
 p_wfs0.set_ypos(0.)
-p_wfs0.set_Lambda(0.5)
+p_wfs0.set_Lambda(0.7)
 p_wfs0.set_gsmag(11)
 p_wfs0.set_optthroughput(0.5)
 p_wfs0.set_zerop(1.e11)
-p_wfs0.set_noise(-1)  # in electrons units
+p_wfs0.set_noise(0.1)  # in electrons units
 p_wfs0.set_atmos_seen(1)
 p_wfs0.set_fstop("square")
 p_wfs0.set_fssize(1.6)
