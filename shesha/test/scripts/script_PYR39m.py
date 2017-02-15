@@ -20,8 +20,8 @@ import pandas as pd
 
 print "TEST SHESHA\n closed loop: call loop(int niter)"
 simulName = "PYR_39m"
-pathResults="/volumes/hra/micado/RunPYR39m_RoundPupil/"
-dBResult = "PYR39m_RoundPupil.h5"
+pathResults="/volumes/hra/micado/PYR39m_RoundPupil_RUN2/"
+dBResult = "/volumes/hra/micado/PYR_39m_RoundPupil_RUN2.h5"
 #GPUS = np.array([0, 1, 2, 3])
 
 if(len(sys.argv)==1):
@@ -171,7 +171,6 @@ def loop( n,wfs,tel,atm,dms,tar,rtc):
     sr_le = []
     numiter = []
     for i in range(n):
-        print i
         atm.move_atmos()
 
         if(config.p_controllers[0].type_control == "geo"):
@@ -242,7 +241,7 @@ colnames = h5u.params_dictionary(config) # config values internal to compass
 simunames = {"PSFFilenames":None, "srir":None, "lambdaTarget":None, "nbBrightest":None, "sr_le":None, "sr_se":None, "numiter":None, "NklFilt":None, "NklTot":None, "Nkl":None, "eigenvals":None, "Nphotons":None, "Nactu":None, "RON":None, "Nslopes":None}# Added values computed by the simu..
 
 
-resAll = db.readDataBase(fullpath=pathResults+dBResult) # Reads all the database if exists
+resAll = db.readDataBase(fullpath=dBResult) # Reads all the database if exists
 if(not (type(resAll) == pd.core.frame.DataFrame)):
     print "Creating compass database"
     resAll = db.createDf(colnames.keys()+simunames.keys()) # Creates the global compass Db
@@ -288,9 +287,10 @@ for freq in freqs:
                     nfilt = nKL_Filt
                     #cmat = ao.compute_cmatWithKL(rtc, config.p_controllers[0], dms, config.p_dms, config.p_geom, config.p_atmos, config.p_tel, nfilt)
                     print "Reading cMat"
-                    cmat = pf.getdata(os.environ["SHESHA_ROOT"]+"/test/scripts/cmatKLGood.fits")
+                    cmat = pf.getdata(os.environ["SHESHA_ROOT"]+"/test/scripts/cmatKLGood.fits").byteswap().newbyteorder()
                     print "Setting cMat"
-                    rtc.set_cmat(0, cmat.copy().astype(np.float32))
+                    #rtc.set_cmat(0, cmat.copy().astype(np.float32))
+                    rtc.set_cmat(0, cmat.copy())
                     print "Starting Loop"
                     SR, lambdaTargetList, sr_le, sr_se, numiter = loop(config.p_loop.niter,wfs,tel,atm,dms,tar,rtc )
                     dfparams = h5u.params_dictionary(config) # get the current compass config
@@ -341,10 +341,13 @@ for freq in freqs:
                     res.loc[0, "type_ap"] = str(res.loc[0, "type_ap"][0])
                     res.loc[0, "type_wfs"] = str(res.loc[0, "type_wfs"][0])
                     res.loc[0, "type_dm"] = "pzt, tt"
+                    res.loc[0, "npix"] = res.loc[0, "npix"][0]
+                    #res.loc[0, "nbBrightest"] = res.loc[0, "nbBrightest"][0]
+                    res.loc[0, "pixsize"] = res.loc[0, "pixsize"][0]
                     res.PSFFilenames.values[0] = PSFNameList
                     resAll = db.fillDf(resAll, res) # Saving in global DB
                     #resAll.to_hdf("/home/fvidal/compass/trunk/shesha/test/scripts/resultatsScripts/SH39m.h5", "resAll", complevel=9,complib='blosc')
-                    resAll.to_hdf(pathResults+dBResult, "resAll", complevel=9,complib='blosc')
+                    resAll.to_hdf(dBResult, "resAll", complevel=9,complib='blosc')
                     #db.saveDataBase(resAll)
 
 print "Simulation Done..."
