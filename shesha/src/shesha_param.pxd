@@ -42,7 +42,8 @@ cdef class Param_tel:
   """std of piston errors for EELT segments  """
   cdef readonly float std_tt
   """ std of tip-tilt errors for EELT segments """
-
+  cdef readonly np.ndarray vect_seg
+  """vector for define segments numbers need"""
 
 #################################################
 # P-Class (parametres) Param_geom
@@ -321,7 +322,11 @@ cdef class Param_dm:
   cdef readonly bytes  y_name
   """ name for y coord of influence"""
   cdef readonly bytes influ_res
-  """ name for y coord of influence"""
+  """ name for influence resolution"""
+  cdef readonly bytes diam_dm
+  """ name for diameter dm"""
+  cdef readonly bytes diam_dm_proj
+  """ name for diameter dm in pupil plan"""
   cdef readonly long    nact
   """ number of actuators in dm """
   cdef readonly float   alt
@@ -464,9 +469,9 @@ cdef class Param_controller:
     cdef readonly bytes  type_control
     """ type of controller"""
     cdef readonly int kl_imat
-    """ imat kl"""
+    """ set imat kl on-off"""
     cdef readonly np.ndarray klgain
-    """ gain for imat kl """
+    """ gain for kl mod in imat kl """
     cdef readonly np.ndarray nwfs
     """ index of wfss in controller"""
     cdef readonly np.ndarray nvalid

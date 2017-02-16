@@ -153,6 +153,13 @@ cdef class Param_tel:
         :param tt: (float) : std of tip-tilt errors for EELT segments
         """
         self.std_tt = tt
+        
+    def set_vect_seg(self, vect):
+        """Set the segment number for construct ELT pupil"
+
+        :param vect: (list of int32) : segment numbers
+        """
+        self.vect_seg = np.array(vect, dtype=np.int32)        
 
 
 #################################################
@@ -960,10 +967,22 @@ cdef class Param_dm:
     def set_influ_res(self,bytes res):
         """set the name of influence fonction resolution in file
 
-        :param yname: (str) : name of resoltion (meter/pixel) of influence
+        :param res: (str) : name of resoltion (meter/pixel) of influence
         """
         self.influ_res=res
+    def set_diam_dm(self,bytes di):
+        """set the name of dm diameter in file
 
+        :param di: (str) : name of diameter (meter) dm
+        """
+        self.diam_dm=di
+    def set_diam_dm_proj(self,bytes dp):
+        """set the name of dm diameter projet on puille in file
+
+        :param dp: (str) : name of diameter (meter in pupil plan) dm
+        """
+        self.diam_dm_proj=dp
+        
     def set_nact(self, long n):
 
         """set the number of actuator
@@ -1249,14 +1268,14 @@ cdef class Param_controller:
         self.type_control = b
         
     def set_kl_imat(self, int k):
-        """Set type imat
+        """Set type imat, for imat on kl set at 1
 
         :param k: (int) : imat kl
         """
         self.kl_imat = k
         
     def set_klgain(self, gkl):
-        """Set klgain
+        """Set klgain for imatkl size = number of kl mode
 
         :param klgain: (list of float32) : klgain
         """
@@ -1322,7 +1341,7 @@ cdef class Param_controller:
         self.gain = g
 
     def set_nkl(self, long n):
-        """Set the number of KL modes used for computation of covmat in case of minimum variance controller
+        """Set the number of KL modes used in imat_kl and used for computation of covmat in case of minimum variance controller
 
         :param n: (long) : number of KL modes
         """

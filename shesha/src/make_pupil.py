@@ -13,23 +13,32 @@ def make_pupil(dim,pupd,tel,xc=-1,
 
     #TODO ohter types
     if(tel.type_ap=="EELT-Nominal"):
-        tel.set_cobs(0.3)
+        #tel.set_cobs(0.3)
+        print "ELT_pup_cobs = %5.3f" %0.3
         N_seg=798
         return make_EELT(dim,pupd,tel,N_seg)
     elif(tel.type_ap=="EELT-BP1"):
-        tel.set_cobs(0.369)
+        #tel.set_cobs(0.369)
+        print "ELT_pup_cobs = %5.3f" %0.339
         N_seg=768
         return make_EELT(dim,pupd,tel,N_seg)
     elif(tel.type_ap=="EELT-BP3"):
-        tel.set_cobs(0.503)
+        #tel.set_cobs(0.503)
+        print "ELT_pup_cobs = %5.3f" %0.503
         N_seg=672
         return make_EELT(dim,pupd,tel,N_seg)
     elif(tel.type_ap=="EELT-BP5"):
-        tel.set_cobs(0.632)
+        #tel.set_cobs(0.632)
+        print "ELT_pup_cobs = %5.3f" %0.632
         N_seg=558
+        return make_EELT(dim,pupd,tel,N_seg)
+    elif(tel.type_ap=="EELT-Custom"):
+        print "todo"
+        tel.set_type_ap=="EELT-Nominal"
         return make_EELT(dim,pupd,tel,N_seg)
     elif(tel.type_ap=="VLT"):
         tel.set_cobs(0.14)
+        print "force_VLT_pup_cobs = %5.3f" %0.14
         return make_VLT(dim, pupd,tel)
     else:
         tel.set_type_ap("Generic")
@@ -101,8 +110,10 @@ def make_pupil_generic(dim, pupd, t_spiders=0.01, spiders_type="six",
 
 
 def make_VLT(dim,pupd,tel):
-
-    tel.set_t_spiders(0.09/18.)
+    
+    if (tel.set_t_spiders==-1):
+        print "force t_spider =%5.3f" %(0.09/18.)
+        tel.set_t_spiders(0.09/18.)
     angle= 50.5*np.pi/180. # --> 50.5 degre *2 d'angle entre les spiders
 
 
@@ -123,12 +134,16 @@ def make_VLT(dim,pupd,tel):
 
 
 
-def make_EELT(dim,pupd,tel,N_seg):#dim,pupd,type_ap,cobs,N_seg,nbr_miss_seg,std_ref_err,t_spiders,angle)
-    """TODO"""
-
-    EELT_file=EELT_data+tel.type_ap+"_N"+str(dim)+"_COBS"+str(100*tel.cobs)+"_CLOCKED"+str(tel.pupangle)+"_TSPIDERS"+str(100*tel.t_spiders)+"_MS"+str(tel.nbrmissing)+"_REFERR"+str(100*tel.referr)+".h5"
-
-    if( os.path.isfile(EELT_file) ):
+def make_EELT(dim,pupd,tel,N_seg=-1):
+    """TODO 
+    add force rescal pup elt
+    """
+    if (N_seg==-1):
+        EELT_file=EELT_data+"EELT-Custom_N"+str(dim)+"_COBS"+str(100*tel.cobs)+"_CLOCKED"+str(tel.pupangle)+"_TSPIDERS"+str(100*tel.t_spiders)+"_MS"+str(tel.nbrmissing)+"_REFERR"+str(100*tel.referr)+".h5"
+    else:
+        EELT_file=EELT_data+tel.type_ap+"_N"+str(dim)+"_COBS"+str(100*tel.cobs)+"_CLOCKED"+str(tel.pupangle)+"_TSPIDERS"+str(100*tel.t_spiders)+"_MS"+str(tel.nbrmissing)+"_REFERR"+str(100*tel.referr)+".h5"
+        
+    if( os.path.isfile(EELT_file) & (N_seg==-1)):
         print "reading EELT pupil from file ", EELT_file
         pup=h5u.readHdf5SingleDataset(EELT_file)
     else:
@@ -149,8 +164,9 @@ def make_EELT(dim,pupd,tel,N_seg):#dim,pupd,type_ap,cobs,N_seg,nbr_miss_seg,std_
         #tel.set_diam(37.)
 
         X=MESH(tel.diam*dim/pupd,dim)
-
-        t_spiders=0.014
+        if (tel.t_spiders==-1):
+            print "force t_spider =%5.3f" %(0.014)
+            tel.set_t_spiders=0.014
         #t_spiders=0.06
         #tel.set_t_spiders(t_spiders)
 
@@ -174,15 +190,25 @@ def make_EELT(dim,pupd,tel,N_seg):#dim,pupd,type_ap,cobs,N_seg,nbr_miss_seg,std_
         pup=np.zeros((dim,dim))
 
         t_3=np.tan(np.pi/3.)
+        if N_seg==-1:
 
-        for i in range(N_seg):
-            Xt=X+x_seg[i]
-            Yt=X.T+y_seg[i]
-            pup+=(1-ref_err[i])*(Yt<0.5*W)*(Yt>=-0.5*W)*(0.5*(Yt+t_3*Xt)<0.5*W) \
-                               *(0.5*(Yt+t_3*Xt)>=-0.5*W)*(0.5*(Yt-t_3*Xt)<0.5*W) \
-                               *(0.5*(Yt-t_3*Xt)>=-0.5*W)
+            vect_seg = tel.vect_seg
+            for i in vect_seg:
+                Xt=X+x_seg[i]
+                Yt=X.T+y_seg[i]
+                pup+=(1-ref_err[i])*(Yt<0.5*W)*(Yt>=-0.5*W)*(0.5*(Yt+t_3*Xt)<0.5*W) \
+                                   *(0.5*(Yt+t_3*Xt)>=-0.5*W)*(0.5*(Yt-t_3*Xt)<0.5*W) \
+                                   *(0.5*(Yt-t_3*Xt)>=-0.5*W)
 
-        t_spiders= tel.t_spiders*tel.diam*dim/pupd
+        else:
+            for i in range(N_seg):
+                Xt=X+x_seg[i]
+                Yt=X.T+y_seg[i]
+                pup+=(1-ref_err[i])*(Yt<0.5*W)*(Yt>=-0.5*W)*(0.5*(Yt+t_3*Xt)<0.5*W) \
+                                   *(0.5*(Yt+t_3*Xt)>=-0.5*W)*(0.5*(Yt-t_3*Xt)<0.5*W) \
+                                   *(0.5*(Yt-t_3*Xt)>=-0.5*W)
+
+        t_spiders= tel.t_spiders*(tel.diam*dim/pupd)
 
         s2_6=2*np.sin(np.pi/6)
         t_6 =np.tan(np.pi/6)
@@ -194,7 +220,7 @@ def make_EELT(dim,pupd,tel,N_seg):#dim,pupd,type_ap,cobs,N_seg,nbr_miss_seg,std_
         pup = pup*spiders_map
 
         if (tel.pupangle != 0):
-            pup=interp.rotate(pup,tel.pupangle,reshape=False,order=2)
+            pup=interp.rotate(pup,tel.pupangle,reshape=False,order=0)
 
 
         print "writing EELT pupil to file ", EELT_file
