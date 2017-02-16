@@ -18,12 +18,12 @@ from libc.math cimport sin
 cdef np.float32_t dtor = (np.pi / 180.)
 
 from shesha_telescope import *
-from shesha_telescope cimport * 
+from shesha_telescope cimport *
 from shesha_param import *
-from shesha_param cimport * 
-from shesha_sensors cimport * 
-from shesha_atmos cimport * 
-from shesha_dms cimport * 
+from shesha_param cimport *
+from shesha_sensors cimport *
+from shesha_atmos cimport *
+from shesha_dms cimport *
 
 #################################################
 # P-Class Target
@@ -50,7 +50,7 @@ cdef class Target:
 IF USE_BRAMA == 1:
     cdef extern from * :
         sutra_target_brama * dynamic_cast_target_brama_ptr "dynamic_cast<sutra_target_brama*>" (sutra_target *) except NULL
-    
+
     #################################################
     # P-Class Target_brama
     #################################################

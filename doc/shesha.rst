@@ -8,3 +8,4 @@
    shesha_rtc.rst
    shesha_sensors.rst
    shesha_target.rst
+   shesha_telescope.rst
