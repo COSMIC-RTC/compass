@@ -152,7 +152,7 @@ def make_EELT(dim,pupd,tel,N_seg):#dim,pupd,type_ap,cobs,N_seg,nbr_miss_seg,std_
 
         t_spiders=0.014
         #t_spiders=0.06
-        tel.set_t_spiders(t_spiders)
+        #tel.set_t_spiders(t_spiders)
 
         if(tel.nbrmissing>0):
             k_seg=np.sort(k_seg[:tel.nbrmissing])

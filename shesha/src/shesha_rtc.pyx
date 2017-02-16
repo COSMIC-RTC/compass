@@ -575,8 +575,10 @@ cdef class Rtc:
         cdef sutra_controller_geo * controller_geo
 
         cdef bytes type_control = < bytes > self.rtc.d_control[ncontrol].get_type()
+#        cdef float gain =  self.rtc.d_control[ncontrol].get_gain()
+#        return gain
         cdef float gain
-
+        raise TypeError("get_gain are not implemented")
         if(type_control == "ls"):
             controller_ls = dynamic_cast_controller_ls_ptr(self.rtc.d_control[ncontrol])
             gain = np.float32(0)
