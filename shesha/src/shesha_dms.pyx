@@ -491,7 +491,7 @@ cpdef read_influ_hdf5 (Param_dm p_dm,Param_tel p_tel, Param_geom geom):
     res_h5_m = (res_h5[0]+res_h5[1])/2.
 
     # a introduire dm diameter
-    diam_dm_h5 = h5_tp[p_dm.diam_dm][0]
+    diam_dm_h5 = h5_tp[p_dm.diam_dm][0]*2
     #diam_dm_h5 = [2.54,2.54] # metre
     diam_dm_pup_h5 = h5_tp[p_dm.diam_dm_proj][0]
     #diam_dm_pup_h5 = [43.73,43.73] #metre
@@ -509,8 +509,8 @@ cpdef read_influ_hdf5 (Param_dm p_dm,Param_tel p_tel, Param_geom geom):
 
 
     # interpolation des coordonnées en pixel avec ajout du centre
-    xpos = (xpos_h5_0*(diam_dm_pup_h5[0]/diam_h5[0]))/res_compass + center
-    ypos = (ypos_h5_0*(diam_dm_pup_h5[1]/diam_h5[1]))/res_compass + center
+    xpos = (xpos_h5_0*(diam_dm_pup_h5[0]/diam_dm_h5[0]))/res_compass + center
+    ypos = (ypos_h5_0*(diam_dm_pup_h5[1]/diam_dm_h5[1]))/res_compass + center
 
     # interpolation des fonction d'influence
 
@@ -518,8 +518,8 @@ cpdef read_influ_hdf5 (Param_dm p_dm,Param_tel p_tel, Param_geom geom):
     ninflu = influ_h5.shape[2]
 
 
-    x = np.arange(influ_size_h5)*res_h5_m*(p_tel.diam/diam_h5[0])
-    y = np.arange(influ_size_h5)*res_h5_m*(p_tel.diam/diam_h5[1])
+    x = np.arange(influ_size_h5)*res_h5_m*(p_tel.diam/diam_dm_h5[0])
+    y = np.arange(influ_size_h5)*res_h5_m*(p_tel.diam/diam_dm_h5[1])
     xmax = max(x)
     ymax = max(y)
     xnew = np.arange(0,xmax,res_compass)
