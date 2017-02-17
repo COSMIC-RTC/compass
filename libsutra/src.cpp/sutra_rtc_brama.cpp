@@ -5,7 +5,7 @@
 
 sutra_rtc_brama::sutra_rtc_brama(carma_context *context, sutra_sensors *wfs_, sutra_target *target_, ACE_TCHAR* name) :
 sutra_rtc(context), wfs(wfs_), target(target_) {
-  brama = new BRAMA_supervisor(name);
+  brama = new BRAMA::BRAMA_context(name);
   cmd_listener_servant = NULL;
   superframe_handle = 0;
   megaframe_handle = 0;
@@ -25,21 +25,20 @@ sutra_rtc(context), wfs(wfs_), target(target_) {
 
   string topics[] = BRAMA_TOPICS;
 
+  if(!brama->is_initialised()){
+    cerr << "brama initialisation failed!" << endl;
+//    throw "brama initialisation failed!";
+    return;
+  }
+
   try {
     // Create a subscriber for the command topic
-    brama->create_subscriber();
+    sub = brama->create_subscriber();
     // Create a publisher for the megaframe topic
-    brama->create_publisher();
-
-    // Register the BRAMA types
-//    brama->register_all_data_types();
-    brama->register_command_type("Commands");
-    brama->register_superframe_type("Super Frames");
-    if(target != NULL)
-      brama->register_megaframe_type("Mega Frames");
-
+    pub = brama->create_publisher();
 
     // Create an BRAMA Command listener
+    brama->register_command_type(topics[BRAMA::CommandType]);
     cmd_listener = (new sutra_rtc_bramaListenerImpl);
     cmd_listener_servant =
     dynamic_cast<sutra_rtc_bramaListenerImpl*>(cmd_listener.in());
@@ -49,12 +48,16 @@ sutra_rtc(context), wfs(wfs_), target(target_) {
     }
     cmd_listener_servant->attach_rtc(this);
 
-    cmd_dr = brama->create_datareader(topics[CommandType], cmd_listener);
+    cmd_dr = brama->create_datareader(sub, topics[BRAMA::CommandType], cmd_listener);
 
-    superframe_base_dw = brama->create_datawriter(topics[SuperFrameType]);
+    // Create an BRAMA SuperFrame writer
+    brama->register_superframe_type(topics[BRAMA::SuperFrameType]);
+    superframe_base_dw = brama->create_datawriter(pub, topics[BRAMA::SuperFrameType]);
     if (CORBA::is_nil(superframe_base_dw.in())) {
-      cerr << "create_datawriter for " << topics[SuperFrameType] << " failed." << endl;
-      ACE_OS::exit(1);
+      cerr << "create_datawriter for " << topics[BRAMA::SuperFrameType] << " failed." << endl;
+      delete brama;
+      brama = nullptr;
+      return;
     }
     superframe_dw = BRAMA::SuperFrameDataWriter::_narrow(
         superframe_base_dw.in());
@@ -66,10 +69,14 @@ sutra_rtc(context), wfs(wfs_), target(target_) {
     superframe_handle = superframe_dw->register_instance(xFrame);
 
     if(target != NULL) {
-      megaframe_base_dw = brama->create_datawriter(topics[MegaFrameType]);
+      // Create an BRAMA MegaFrame writer
+      brama->register_megaframe_type(topics[BRAMA::MegaFrameType]);
+      megaframe_base_dw = brama->create_datawriter(pub, topics[BRAMA::MegaFrameType]);
       if (CORBA::is_nil(megaframe_base_dw.in())) {
-        cerr << "create_datawriter for " << topics[MegaFrameType] << " failed." << endl;
-        ACE_OS::exit(1);
+        cerr << "create_datawriter for " << topics[BRAMA::MegaFrameType] << " failed." << endl;
+        delete brama;
+        brama = nullptr;
+        return;
       }
       megaframe_dw = BRAMA::MegaFrameDataWriter::_narrow(
           megaframe_base_dw.in());
@@ -88,6 +95,9 @@ sutra_rtc(context), wfs(wfs_), target(target_) {
 }
 
 sutra_rtc_brama::~sutra_rtc_brama() {
+  if(brama == nullptr || !brama->is_initialised()){
+    return;
+  }
 
   if (buff_wfs)
   BRAMA::Values::freebuf(buff_wfs);
@@ -115,6 +125,10 @@ sutra_rtc_brama::~sutra_rtc_brama() {
 }
 
 void sutra_rtc_brama::allocateBuffers() {
+  if(brama == nullptr || !brama->is_initialised()){
+    return;
+  }
+
   try {
     wfs_size = 0;
     for (unsigned int i = 0; i < wfs->d_wfs.size(); i++) {
@@ -172,6 +186,11 @@ void sutra_rtc_brama::allocateBuffers() {
 }
 
 void sutra_rtc_brama::publish() {
+  if(brama == nullptr || !brama->is_initialised()){
+    cerr << "brama not initialised!" << endl;
+    return;
+  }
+
   if(buff_intensities == NULL)
   allocateBuffers();
   current_context->set_activeDevice(device,1);
@@ -225,50 +244,55 @@ void sutra_rtc_brama::publish() {
 
   BRAMA::MegaFrame zFrame;
   zFrame.framecounter = framecounter;
-  zFrame.timestamp = get_timestamp();
-  zFrame.from = CORBA::string_dup("COMPASS RTC");
+  zFrame.timestamp = BRAMA::get_timestamp();
+  zFrame.source = CORBA::string_dup("COMPASS RTC");
 
   zFrame.wfs.framecounter = framecounter;
-  zFrame.wfs.timestamp = get_timestamp();
-  zFrame.wfs.from = CORBA::string_dup("COMPASS WFSs");
+  zFrame.wfs.timestamp = BRAMA::get_timestamp();
+  zFrame.wfs.source = CORBA::string_dup("COMPASS WFSs");
   zFrame.wfs.dimensions = BRAMA::Dims(2, 2, dims_wfs, 0);
   zFrame.wfs.data = BRAMA::Values(wfs_size * sizeof(float), wfs_size * sizeof(float),
       buff_wfs, 0);
+  zFrame.wfs.datatype = 0;
   zFrame.wfs.sizeofelements = sizeof(float);
 
-  zFrame.loopData.ints.from = CORBA::string_dup("COMPASS intensities");
+  zFrame.loopData.ints.source = CORBA::string_dup("COMPASS intensities");
   zFrame.loopData.ints.typeofelements = CORBA::string_dup("intensities");
+  zFrame.loopData.ints.datatype = 0;
   zFrame.loopData.ints.sizeofelements = sizeof(float);
   zFrame.loopData.ints.dimensions = BRAMA::Dims(2, 2, dims_intensities, 0);
   zFrame.loopData.ints.framecounter = framecounter;
   zFrame.loopData.ints.data = BRAMA::Values(nvalid * sizeof(float),
       nvalid * sizeof(float), buff_intensities, 0);
-  zFrame.loopData.ints.timestamp = get_timestamp();
+  zFrame.loopData.ints.timestamp = BRAMA::get_timestamp();
 
-  zFrame.loopData.slps.from = CORBA::string_dup("COMPASS slopes");
+  zFrame.loopData.slps.source = CORBA::string_dup("COMPASS slopes");
   zFrame.loopData.slps.typeofelements = CORBA::string_dup("slopes");
+  zFrame.loopData.slps.datatype = 0;
   zFrame.loopData.slps.sizeofelements = sizeof(float);
   zFrame.loopData.slps.dimensions = BRAMA::Dims(2, 2, dims_slopes, 0);
   zFrame.loopData.slps.framecounter = framecounter;
   zFrame.loopData.slps.data = BRAMA::Values(nslp * sizeof(float), nslp * sizeof(float),
       buff_slopes, 0);
-  zFrame.loopData.slps.timestamp = get_timestamp();
+  zFrame.loopData.slps.timestamp = BRAMA::get_timestamp();
 
-  zFrame.loopData.cmds.from = CORBA::string_dup("COMPASS commands");
+  zFrame.loopData.cmds.source = CORBA::string_dup("COMPASS commands");
   zFrame.loopData.cmds.typeofelements = CORBA::string_dup("commands");
+  zFrame.loopData.cmds.datatype = 0;
   zFrame.loopData.cmds.sizeofelements = sizeof(float);
   zFrame.loopData.cmds.dimensions = BRAMA::Dims(2, 2, dims_commands, 0);
   zFrame.loopData.cmds.framecounter = framecounter;
   zFrame.loopData.cmds.data = BRAMA::Values(ncmd * sizeof(float), ncmd * sizeof(float),
       buff_commands, 0);
-  zFrame.loopData.cmds.timestamp = get_timestamp();
+  zFrame.loopData.cmds.timestamp = BRAMA::get_timestamp();
 
   zFrame.target.framecounter = framecounter;
-  zFrame.target.timestamp = get_timestamp();
-  zFrame.target.from = CORBA::string_dup("COMPASS Targets");
+  zFrame.target.timestamp = BRAMA::get_timestamp();
+  zFrame.target.source = CORBA::string_dup("COMPASS Targets");
   zFrame.target.dimensions = BRAMA::Dims(2, 2, dims_target, 0);
   zFrame.target.data = BRAMA::Values(target_size * sizeof(float), target_size * sizeof(float),
       buff_target, 0);
+  zFrame.target.datatype = 0;
   zFrame.target.sizeofelements = sizeof(float);
 
 //cout << "Publishing zFrame: " << zFrame.framecounter << endl;

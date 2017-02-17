@@ -10,7 +10,7 @@ sutra_target_brama::sutra_target_brama(carma_context *context, ACE_TCHAR* name, 
                                        int Npts, int device) :
     sutra_target(context, d_tel, ntargets, xpos, ypos, lambda, mag, zerop, sizes, Npts,
                  device) {
-  brama = new BRAMA_supervisor(name);
+  brama = new BRAMA::BRAMA_context(name);
   frame_handle = 0;
   framecounter = 0;
   subsample = subsample_;
@@ -20,16 +20,20 @@ sutra_target_brama::sutra_target_brama(carma_context *context, ACE_TCHAR* name, 
 
   string topics[] = BRAMA_TOPICS;
 
+  if(!brama->is_initialised()){
+    cerr << "brama initialisation failed!" << endl;
+//    throw "brama initialisation failed!";
+    return;
+  }
+
   try {
     // Create a subscriber for the command topic
-    brama->create_subscriber();
+	sub = brama->create_subscriber();
     // Create a publisher for the frame topic
-    brama->create_publisher();
-
-    // Register the BRAMA types
-    brama->register_all_data_types();
+    pub = brama->create_publisher();
 
     // Create an BRAMA Command listener
+    brama->register_command_type(topics[BRAMA::CommandType]);
     cmd_listener = (new sutra_target_bramaListenerImpl);
     cmd_listener_servant =
         dynamic_cast<sutra_target_bramaListenerImpl*>(cmd_listener.in());
@@ -39,12 +43,16 @@ sutra_target_brama::sutra_target_brama(carma_context *context, ACE_TCHAR* name, 
     }
     cmd_listener_servant->attach_target(this);
 
-    cmd_dr = brama->create_datareader(topics[CommandType], cmd_listener);
+    cmd_dr = brama->create_datareader(sub, topics[BRAMA::CommandType], cmd_listener);
 
-    frame_base_dw = brama->create_datawriter(topics[FrameType]);
+    // Create an BRAMA Frame writer
+    brama->register_frame_type(topics[BRAMA::FrameType]);
+    frame_base_dw = brama->create_datawriter(pub, topics[BRAMA::FrameType]);
     if (CORBA::is_nil(frame_base_dw.in())) {
-      cerr << "create_datawriter for " << topics[FrameType] << " failed." << endl;
-      ACE_OS::exit(1);
+      cerr << "create_datawriter for " << topics[BRAMA::FrameType] << " failed." << endl;
+      delete brama;
+      brama = nullptr;
+      return;
     }
     frame_dw = BRAMA::FrameDataWriter::_narrow(frame_base_dw.in());
     if (CORBA::is_nil(frame_dw.in())) {
@@ -61,6 +69,9 @@ sutra_target_brama::sutra_target_brama(carma_context *context, ACE_TCHAR* name, 
 }
 
 sutra_target_brama::~sutra_target_brama() {
+  if(brama == nullptr || !brama->is_initialised()){
+    return;
+  }
 
   if (buff_pixels)
     BRAMA::Values::freebuf(buff_pixels);
@@ -71,6 +82,10 @@ sutra_target_brama::~sutra_target_brama() {
 }
 
 void sutra_target_brama::allocateBuffers() {
+  if(brama == nullptr || !brama->is_initialised()){
+    return;
+  }
+
   try {
     //TODO : handle targets with different supports...
     dims_pixels = BRAMA::Dims::allocbuf(4);
@@ -89,6 +104,10 @@ void sutra_target_brama::allocateBuffers() {
 }
 
 void sutra_target_brama::set_subsample(int ntarget, int subsample_){
+  if(brama == nullptr || !brama->is_initialised()){
+    return;
+  }
+
   ACE_Guard<ACE_Mutex> guard(this->lock_);
   this->d_targets[ntarget]->reset_strehlmeter();
   this->framecounter=1;
@@ -96,6 +115,11 @@ void sutra_target_brama::set_subsample(int ntarget, int subsample_){
 }
 
 void sutra_target_brama::publish() {
+  if(brama == nullptr || !brama->is_initialised()){
+    cerr << "brama not initialised!" << endl;
+    return;
+  }
+
   ACE_Guard<ACE_Mutex> guard(this->lock_);
   if (framecounter%subsample!=0 || subsample<=0) {
     framecounter++;
@@ -127,11 +151,12 @@ void sutra_target_brama::publish() {
 
   BRAMA::Frame zFrame;
   zFrame.framecounter = framecounter;
-  zFrame.timestamp = get_timestamp();
-  zFrame.from = CORBA::string_dup("BRAMA TARGET");
+  zFrame.timestamp = BRAMA::get_timestamp();
+  zFrame.source = CORBA::string_dup("BRAMA TARGET");
   zFrame.dimensions = BRAMA::Dims(4, 4, dims_pixels, 0);
   zFrame.data = BRAMA::Values(idx * sizeof(float), idx * sizeof(float),
                               buff_pixels, 0);
+  zFrame.datatype = 0;
   zFrame.sizeofelements = sizeof(float);
 
 //cout << "Publishing zFrame: " << zFrame.framecounter << endl;

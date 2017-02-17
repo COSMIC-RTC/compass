@@ -112,10 +112,13 @@ void sutra_rtc_bramaListenerImpl::on_data_available(DDS::DataReader_ptr reader)
             unsigned int nslope = rtc->d_control[ncontrol]->nslope();
             unsigned int ncmd = rtc->d_control[ncontrol]->nactu();
 
-            if (cmd.dimensions[0] != 2 || cmd.dimensions[1] != ncmd
+
+           if (cmd.dimensions[0] != 2 || cmd.dimensions[1] != ncmd
                 || cmd.dimensions[2] != nslope) {
-              BRAMA_DEBUG_TRACE("wrong dimensions : %d %d %d",
-                  cmd.dimensions[0], cmd.dimensions[1], cmd.dimensions[2]);
+              std::stringstream ss;
+              ss<<"wrong dimensions :";
+              for(unsigned int i=0; i<=cmd.dimensions[0]; i++) ss<<" "<< cmd.dimensions[i];
+              BRAMA_DEBUG_TRACE("%s", ss.str().c_str());
               BRAMA_DEBUG_TRACE("it should be : 2 %d %d", ncmd, nslope);
               throw CORBA::BAD_PARAM();
             }
