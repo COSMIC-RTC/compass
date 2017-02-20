@@ -35,7 +35,7 @@ LIB_DEPLIBS  = -fPIC -shared -Wl,-rpath=$(CUDA_LIB_PATH_64) -L$(CUDA_LIB_PATH_64
 LIB_DEPLIBS += -lcuda -lcudart -lcublas -lcufft -lcurand -lcusparse -lnvToolsExt  -lpthread
 
 # set compiler (or rarely loader) flags specific to this package
-LIB_CPPFLAGS = -c -fPIC -Wall -fno-common -std=c++11 $(CCFLAGS) -DUSE_UVA
+LIB_CPPFLAGS = -c -fPIC -Wall -fno-common -std=c++11 $(CCFLAGS) # -DUSE_UVA
 LIB_CPPFLAGS+= -I$(H_DIR) -I$(CUDA_INC_PATH)
 
 # ------------------------------------- targets and rules for this package
