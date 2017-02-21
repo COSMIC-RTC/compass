@@ -1005,13 +1005,17 @@ cdef class Rtc:
         cdef np.ndarray[ndim = 1, dtype = np.float32_t] h_rawslp
         cdef sutra_controller * control = self.rtc.d_control[ncontrol]
         cdef int nslope = control.nslope()
+        cdef float tmp
 
         print "Doing refslp..."
         for idx_cntr in range(< int > self.rtc.d_centro.size()):
           wfs = self.rtc.d_centro[idx_cntr].wfs
           phase = wfs.d_gs.d_phase.d_screen
           phase.reset()
+          tmp = wfs.noise
+          wfs.noise = -1
           wfs.comp_image()
+          wfs.noise = tmp
         self.rtc.do_centroids(ncontrol)
         h_ref = np.zeros(nslope, dtype=np.float32)
         self.rtc.get_centroids_ref(ncontrol,< float *> h_ref.data)
@@ -1747,7 +1751,7 @@ cdef class Rtc:
                     print "Need size :"
                     print KL2V.shape[1]
                     raise TypeError("incorect size for klgain vector")
-      
+
             # Command matrix
             cmat_filt = KL2VN.dot(Dp_filt)
 
