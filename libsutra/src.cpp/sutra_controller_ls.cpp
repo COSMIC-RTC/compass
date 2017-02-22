@@ -180,14 +180,14 @@ int sutra_controller_ls::build_cmat(int nfilt, bool filt_tt) {
   */
   if (!carma_disabled()) {
     for (int cc = nfilt; cc < nb_elem; cc++) {
-      float eigenval = h_eigenvals->getData()[cc];
-      h_eigenvals_inv->getData()[cc] = //1.0f / eigenval;
+      float eigenval = (*h_eigenvals)[cc];
+      (*h_eigenvals_inv)[cc] = //1.0f / eigenval;
         (fabs(eigenval) > 1.e-9) ? 1.0f / eigenval : 0.f;
     }
   } else {
      for (int cc =  0; cc < nb_elem-nfilt ; cc++) {
-      float eigenval = h_eigenvals->getData()[cc];
-      h_eigenvals_inv->getData()[cc] =
+      float eigenval = (*h_eigenvals)[cc];
+      (*h_eigenvals_inv)[cc] =
         (fabs(eigenval) > 1.e-9) ? 1.0f / eigenval : 0.f;
     }
   }
@@ -225,11 +225,11 @@ int sutra_controller_ls::frame_delay() {
   current_context->set_activeDevice(device,1);
   if (delay > 0) {
     for (int cc = 0; cc < delay; cc++)
-      shift_buf(&((this->d_cenbuff->getData())[cc * this->nslope()]), 1,
+      shift_buf(this->d_cenbuff->getDataAt(cc * this->nslope()), 1,
           this->nslope(), this->current_context->get_device(device));
 
     carmaSafeCall(
-        cudaMemcpy(&(this->d_cenbuff->getData()[(int)delay * this->nslope()]),
+        cudaMemcpy(this->d_cenbuff->getDataAt((int)delay * this->nslope()),
             this->d_centroids->getData(), sizeof(float) * this->nslope(),
             cudaMemcpyDeviceToDevice));
 

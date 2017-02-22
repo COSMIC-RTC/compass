@@ -74,7 +74,7 @@ cdef extern from "carma_host_obj.h":
         int cpy_obj(carma_obj[T] * caObj, cudaMemcpyKind flag, unsigned int stream)
 
         T * getData()
-        T * getData(int index)
+        T * getDataAt(int index)
         const long * getDims()
         int getNbElem()
 

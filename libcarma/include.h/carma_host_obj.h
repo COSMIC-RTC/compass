@@ -90,7 +90,7 @@ public:
 	inline char const* c_str(){
 		return std::string(*this).c_str();
 	}
-	T_data operator[](int index) {
+	T_data &operator[](int index) {
 		return h_data[index];
 	}
 	T_data* getData() {

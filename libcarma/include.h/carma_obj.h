@@ -203,7 +203,7 @@ public:
 	inline char const* c_str(){
 		return string(*this).c_str();
 	}
-	T_data operator[](int index) {
+	const T_data &operator[](int index) const{
 		T_data tmp_float;
 		 carmaSafeCall(
 		      cudaMemcpy(&tmp_float, &d_data[index], sizeof(T_data),

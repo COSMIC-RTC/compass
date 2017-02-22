@@ -85,7 +85,7 @@ cdef extern from "carma_obj.h":
         carma_obj(carma_context * context, long * dims, T * data)
 
         T * getData()
-        T * getData(int index)
+        T * getDataAt(int index)
         long * getDims()  #
         long getDims (int i)
         int getNbElem()  #

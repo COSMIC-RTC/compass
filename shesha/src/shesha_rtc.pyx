@@ -579,6 +579,7 @@ cdef class Rtc:
 #        return gain
         cdef float gain
         raise TypeError("get_gain are not implemented")
+    '''
         if(type_control == "ls"):
             controller_ls = dynamic_cast_controller_ls_ptr(self.rtc.d_control[ncontrol])
             gain = np.float32(0)
@@ -609,7 +610,7 @@ cdef class Rtc:
 
         else:
             raise TypeError("Controller needs to be ls, generic, mv, cured or geo")
-
+    '''
     cpdef get_mgain(self, int ncontrol):
         """Return modal gains from sutra_controller
 
@@ -1162,7 +1163,7 @@ cdef class Rtc:
                         context.get_device(device))
 
             control.d_centroids.copyInto(
-                    & d_imat.getData()[inds1],
+                    d_imat.getDataAt(inds1),
                     control.nslope())
             for i in range(np.size(p_dms)):
                 g_dms.resetdm(p_dms[i].type_dm,p_dms[i].alt)
@@ -1280,7 +1281,7 @@ cdef class Rtc:
                         context.get_device(device))
 
                 control.d_centroids.copyInto(
-                        & d_imat.getData()[inds1],
+                        d_imat.getDataAt(inds1),
                         control.nslope())
                 dm.reset_shape()
 
@@ -1317,7 +1318,7 @@ cdef class Rtc:
                 carma_axpy[float](context.get_cublasHandle(),
                     control.d_centroids.getNbElem(), < float > -1.0,
                     d_centroids, 1,
-                    & d_imat.getData()[inds1], 1)
+                    d_imat.getDataAt(inds1), 1)
 
                 dm.reset_shape()
 

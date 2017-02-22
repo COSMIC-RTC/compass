@@ -106,7 +106,7 @@ int sutra_controller_cured::frame_delay() {
                 this->nslope(), this->current_context->get_device(device));
 
     carmaSafeCall(
-        cudaMemcpy(&(this->d_cenbuff->getData()[(int )delay * this->nslope()]),
+        cudaMemcpy(this->d_cenbuff->getDataAt((int )delay * this->nslope()),
                    this->d_centroids->getData(), sizeof(float) * this->nslope(),
                    cudaMemcpyDeviceToDevice));
 

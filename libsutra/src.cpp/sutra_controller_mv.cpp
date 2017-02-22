@@ -281,25 +281,24 @@ int sutra_controller_mv::do_covmat(sutra_dm *ydm, char *method, int *indx_pup,
 
   if (ydm->type == "kl") {
     dims_data2[1] = this->nactu();
-    carma_host_obj<float> *h_KLcov = new carma_host_obj<float>(dims_data2,
-                                                               MA_PAGELOCK);
+    carma_host_obj<float> h_KLcov(dims_data2,MA_PAGELOCK);
     if (strcmp(method, "inv") == 0) {
       for (int i = 0; i < this->nactu(); i++) {
-        h_KLcov->getData()[i] = -1. / h_eigenvals->getData()[i];
+        h_KLcov[i] = -1. / (*h_eigenvals)[i];
       }
       if (Nkl == this->nactu()) {
-        h_KLcov->getData()[this->nactu() - 1] = 0.;
+        h_KLcov[this->nactu() - 1] = 0.;
       }
-      d_KLcov->host2device(*h_KLcov);
+      d_KLcov->host2device(h_KLcov);
       add_md(this->d_covmat->getData(), this->d_covmat->getData(),
              d_KLcov->getData(), this->nactu(),
              this->current_context->get_device(device));
     }
     if (strcmp(method, "n") == 0) {
       for (int i = 0; i < this->nactu(); i++) {
-        h_KLcov->getData()[i] = -h_eigenvals->getData()[i];
+        h_KLcov[i] = -(*h_eigenvals)[i];
       }
-      d_KLcov->host2device(*h_KLcov);
+      d_KLcov->host2device(h_KLcov);
       add_md(this->d_covmat->getData(), this->d_covmat->getData(),
              d_KLcov->getData(), this->nactu(),
              this->current_context->get_device(device));

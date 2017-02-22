@@ -126,7 +126,7 @@ int fillbincube_async(carma_host_obj<T> *image_telemetry, T *bimage, T *bcube,
   // asynchronously launch nstreams kernels, each operating on its own portion of data
   for (int i = 0; i < nstreams; i++) {
     cudaMemcpyAsync(&(bimage[i * nim / nstreams]),
-        (*image_telemetry)[i * nim / nstreams], sizeof(float) * nim / nstreams,
+        image_telemetry->getDataAt(i * nim / nstreams), sizeof(float) * nim / nstreams,
         cudaMemcpyHostToDevice, image_telemetry->get_cudaStream_t(i));
     bcube_krnl_async<T> <<<grid, threads, 0,
         image_telemetry->get_cudaStream_t(i)>>>(bimage, bcube, npix, Npix, Nsub,
