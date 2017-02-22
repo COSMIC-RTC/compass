@@ -151,9 +151,6 @@ int sutra_controller_ls::set_delay(float delay) {
 
 int sutra_controller_ls::build_cmat(int nfilt, bool filt_tt) {
   current_context->set_activeDevice(device,1);
-  carma_obj<float> *d_eigenvals_inv;
-  carma_host_obj<float> *h_eigenvals_inv;
-  carma_obj<float> *d_tmp, *d_tmp2;
 
   long *dims_data1 = new long[2];
   dims_data1[0] = 1;
@@ -161,17 +158,16 @@ int sutra_controller_ls::build_cmat(int nfilt, bool filt_tt) {
   dims_data2[0] = 2;
 
   dims_data2[1] = dims_data2[2] = nactu();
-  d_tmp = new carma_obj<float>(current_context, dims_data2);
-  d_tmp2 = new carma_obj<float>(current_context, dims_data2);
+  carma_obj<float> d_tmp(current_context, dims_data2), d_tmp2(current_context, dims_data2);
 
   dims_data1[1] = nactu();
-  d_eigenvals_inv = new carma_obj<float>(current_context, dims_data1);
-  h_eigenvals_inv = new carma_host_obj<float>(dims_data1, MA_PAGELOCK);
+  carma_obj<float> d_eigenvals_inv(current_context, dims_data1);
+  carma_host_obj<float> h_eigenvals_inv(dims_data1, MA_PAGELOCK);
 
   float one = 1., zero = 0.;
 
   int nb_elem = this->h_eigenvals->getNbElem();
-  memset(h_eigenvals_inv->getData(), 0, sizeof(float) * nb_elem);
+  memset(h_eigenvals_inv.getData(), 0, sizeof(float) * nb_elem);
 
   // filtering modes
   /*
@@ -180,33 +176,29 @@ int sutra_controller_ls::build_cmat(int nfilt, bool filt_tt) {
   */
   if (!carma_disabled()) {
     for (int cc = nfilt; cc < nb_elem; cc++) {
-      float eigenval = (*h_eigenvals)[cc];
-      (*h_eigenvals_inv)[cc] = //1.0f / eigenval;
+      float eigenval = (*this->h_eigenvals)[cc];
+      h_eigenvals_inv[cc] = //1.0f / eigenval;
         (fabs(eigenval) > 1.e-9) ? 1.0f / eigenval : 0.f;
     }
   } else {
      for (int cc =  0; cc < nb_elem-nfilt ; cc++) {
-      float eigenval = (*h_eigenvals)[cc];
-      (*h_eigenvals_inv)[cc] =
+      float eigenval = (*this->h_eigenvals)[cc];
+      h_eigenvals_inv[cc] =
         (fabs(eigenval) > 1.e-9) ? 1.0f / eigenval : 0.f;
     }
   }
-  d_eigenvals_inv->host2device(h_eigenvals_inv->getData());
+  d_eigenvals_inv.host2device(h_eigenvals_inv.getData());
 
   carma_dgmm(cublas_handle(), CUBLAS_SIDE_RIGHT, nactu(), nactu(),
-      d_U->getData(), nactu(), d_eigenvals_inv->getData(), one,
-      d_tmp->getData(), nactu());
+      d_U->getData(), nactu(), d_eigenvals_inv.getData(), one,
+      d_tmp.getData(), nactu());
   carma_gemm(cublas_handle(), 'n', 't', nactu(), nactu(), nactu(), one,
-      d_tmp->getData(), nactu(), d_U->getData(), nactu(), zero,
-      d_tmp2->getData(), nactu());
+      d_tmp.getData(), nactu(), d_U->getData(), nactu(), zero,
+      d_tmp2.getData(), nactu());
   carma_gemm(cublas_handle(), 'n', 't', nactu(), nslope(), nactu(), one,
-      d_tmp2->getData(), nactu(), d_imat->getData(), nslope(), zero,
+      d_tmp2.getData(), nactu(), d_imat->getData(), nslope(), zero,
       d_cmat->getData(), nactu());
 
-  delete d_tmp;
-  delete d_tmp2;
-  delete d_eigenvals_inv;
-  delete h_eigenvals_inv;
   delete[] dims_data1;
   delete[] dims_data2;
 
