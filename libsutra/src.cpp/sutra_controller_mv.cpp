@@ -825,7 +825,7 @@ int sutra_controller_mv::filter_cmat(float cond) {
 
     // TT2ho = Dm⁻¹ * Dtt
     carma_gemm(cublas_handle, 'n', 'n', Nactu, 2, nslope(), 1.0f,
-               d_Dm1->getData(), Nactu, d_imat->getData(nslope() * (Nactu)),
+               d_Dm1->getData(), Nactu, d_imat->getDataAt(nslope() * (Nactu)),
                nslope(), 0.0f, d_TT2ho->getData(), Nactu);
 
     delete d_Dm1;

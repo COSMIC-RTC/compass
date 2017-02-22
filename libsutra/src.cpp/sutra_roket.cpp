@@ -173,11 +173,11 @@ int sutra_roket::apply_loop_filter(carma_obj<float> *d_odata, carma_obj<float> *
   this->current_context->set_activeDevice(this->device,1);
   this->d_tmpdiff->copyFrom(d_idata1->getData(),this->nactus);
   this->d_tmpdiff->axpy(-1.0f,d_idata2,1,1); // err1-err2
-  this->d_tmpdiff->copyInto(d_odata->getData((k+1)*this->nactus),this->nactus); //odata[k+1,:] = err1 - err2
+  this->d_tmpdiff->copyInto(d_odata->getDataAt((k+1)*this->nactus),this->nactus); //odata[k+1,:] = err1 - err2
   carma_gemv<float>(this->current_context->get_cublasHandle(), 'n', this->nactus,
                     this->nactus, 1.0f, this->d_gRD->getData(),this->nactus,
-                    d_odata->getData(k*this->nactus) , 1,
-                    gain, d_odata->getData((k+1)*this->nactus), 1); // odata[k+1,:] = gRD*odata[k,:] + g*(err1-err2)
+                    d_odata->getDataAt(k*this->nactus) , 1,
+                    gain, d_odata->getDataAt((k+1)*this->nactus), 1); // odata[k+1,:] = gRD*odata[k,:] + g*(err1-err2)
 
   return EXIT_SUCCESS;
 }
@@ -232,16 +232,16 @@ int sutra_roket::compute_breakdown(){
   carma_gemv<float>(this->current_context->get_cublasHandle(), 'n', this->nactus,
                     this->nmodes, 1.0f, this->d_Btt->getData(),this->nactus,
                     this->d_filtmodes->getData() , 1,
-                    0.f, this->d_filtered->getData(this->iterk*this->nactus), 1);
+                    0.f, this->d_filtered->getDataAt(this->iterk*this->nactus), 1);
   // Commanded modes
   carma_gemv<float>(this->current_context->get_cublasHandle(), 'n', this->nactus,
                     this->nmodes, 1.0f, this->d_Btt->getData(),this->nactus,
                     this->d_modes->getData() , 1,
-                    0.f, this->d_commanded->getData(this->iterk*this->nactus), 1);
+                    0.f, this->d_commanded->getDataAt(this->iterk*this->nactus), 1);
   // Bandwidth
   if(this->iterk > 0){
-    this->d_err1->copyFrom(this->d_commanded->getData(this->iterk*this->nactus),this->nactus);
-    this->d_err2->copyFrom(this->d_commanded->getData((this->iterk-1)*this->nactus),this->nactus);
+    this->d_err1->copyFrom(this->d_commanded->getDataAt(this->iterk*this->nactus),this->nactus);
+    this->d_err2->copyFrom(this->d_commanded->getDataAt((this->iterk-1)*this->nactus),this->nactus);
     apply_loop_filter(this->d_bandwidth,this->d_err1,this->d_err2,-1.0f,this->iterk-1);
   }
   else{
@@ -263,7 +263,7 @@ int sutra_roket::compute_breakdown(){
                     this->nmodes, 1.0f, this->d_Btt->getData(),this->nactus,
                     this->d_modes->getData() , 1,
                     0.f, this->d_err2->getData(), 1);
-  this->d_err1->copyFrom(this->d_commanded->getData(this->iterk*this->nactus),this->nactus);
+  this->d_err1->copyFrom(this->d_commanded->getDataAt(this->iterk*this->nactus),this->nactus);
   this->d_err1->axpy(-1.0f,this->d_err2,1,1);
   carma_gemv<float>(this->current_context->get_cublasHandle(), 'n', this->nactus,
                     this->nactus, 1.0f, this->d_RD->getData(),this->nactus,

@@ -266,7 +266,7 @@ int sutra_controller_ls::comp_com() {
         carma_gemv<float>(cublas_handle(), 'n', nslope(), nactu(), 1.0f, *d_imat, nslope(),
             *d_compbuff, 1, 0.0f, *d_compbuff2, 1);
         carma_geam<float>(cublas_handle(), 'n', 'n', nslope(), 1, 1.0f, *d_centroids,
-            nslope(), -1.0f, *d_compbuff2, nslope(), this->d_slpol->getData((this->cpt_rec-(int)this->delay)*nslope()), nslope());
+            nslope(), -1.0f, *d_compbuff2, nslope(), this->d_slpol->getDataAt((this->cpt_rec-(int)this->delay)*nslope()), nslope());
     }
     this->cpt_rec++;
   }
@@ -423,7 +423,7 @@ int sutra_controller_ls::modalControlOptimization(){
     dims_data[1] = this->nrec;
     carma_initfft<float,cuFloatComplex>(dims_data,d_modes.getPlan(),CUFFT_R2C);
     for(int i=0; i < this->nmodes ; i++){
-        carma_fft<float,cuFloatComplex>(d_modes.getData(i*this->nrec),d_FFT.getData(),1,*d_modes.getPlan());
+        carma_fft<float,cuFloatComplex>(d_modes.getDataAt(i*this->nrec),d_FFT.getData(),1,*d_modes.getPlan());
         absnormfft(d_FFT.getData(),d_fftmodes.getData(),this->nrec/2,2.0f/(float)this->nrec,this->current_context->get_device(device));
         carma_gemv(cublas_handle(),'n',this->ngain,this->nrec/2,1.0f,
             this->d_Hcor->getData(),this->ngain,

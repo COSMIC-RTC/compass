@@ -435,10 +435,10 @@ int sutra_dm::get_IF_sparse(carma_sparse_obj<T> *&d_IFsparse, int *indx_pup,
 
 	for (int i = 0; i < this->ninflu; i++) {
 		carmaSafeCall(
-				cudaMemcpyAsync(d_val.getData(cpt[i]), values[i], sizeof(T) * NZ[i],
+				cudaMemcpyAsync(d_val.getDataAt(cpt[i]), values[i], sizeof(T) * NZ[i],
 						cudaMemcpyHostToDevice));
 		carmaSafeCall(
-				cudaMemcpyAsync(d_col.getData(cpt[i]), colind[i], sizeof(int) * NZ[i],
+				cudaMemcpyAsync(d_col.getDataAt(cpt[i]), colind[i], sizeof(int) * NZ[i],
 						cudaMemcpyHostToDevice));
 		cpt[i + 1] = cpt[i] + NZ[i];
 	}

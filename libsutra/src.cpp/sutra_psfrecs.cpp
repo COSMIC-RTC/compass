@@ -165,10 +165,10 @@ int sutra_psfrecs::psf_rec_roket(float *err){
             cudaMemset(this->d_amplipup->getData(), 0,
                 sizeof(cuFloatComplex) * this->d_amplipup->getNbElem()));
         // Apply iter #cc on the DM to get residual phase
-        carma_gemv(this->current_context->get_cusparseHandle(),'t',1.0f,this->d_IF,this->d_err->getData(cc*this->nactus),0.0f,this->d_phase->getData());
+        carma_gemv(this->current_context->get_cusparseHandle(),'t',1.0f,this->d_IF,this->d_err->getDataAt(cc*this->nactus),0.0f,this->d_phase->getData());
         carma_gemv(this->current_context->get_cublasHandle(),'t',this->d_TT->getDims(1),this->d_TT->getDims(2),
                     1.0f,this->d_TT->getData(),this->d_TT->getDims(1),
-                    this->d_err->getData(cc*this->nactus+(this->nactus-2)),1,1.0f,this->d_phase->getData(),1);
+                    this->d_err->getDataAt(cc*this->nactus+(this->nactus-2)),1,1.0f,this->d_phase->getData(),1);
 
         // complex amplitude in the pupil put in the fft support
         fill_amplipup(this->d_amplipup->getData(), this->d_phase->getData(), this->d_wherephase->getData(),
@@ -239,7 +239,7 @@ int sutra_psfrecs::psf_rec_Vii(){
         // Get the new mode shape from d_U, IF and Btt
         carma_gemv<float>(this->current_context->get_cublasHandle(), 'n', this->nactus, this->nmodes, 1.0f,
                             this->d_Btt->getData(), this->nactus,
-                            this->d_covmodes->getData(k*this->nmodes),1, 0.0f,
+                            this->d_covmodes->getDataAt(k*this->nmodes),1, 0.0f,
                             this->d_term1->getData(), 1);
         carma_gemv(this->current_context->get_cusparseHandle(),'t',1.0f,
                     this->d_IF,this->d_term1->getData(),0.0f,
@@ -247,7 +247,7 @@ int sutra_psfrecs::psf_rec_Vii(){
 
         carma_gemv(this->current_context->get_cublasHandle(),'t',this->d_TT->getDims(1),this->d_TT->getDims(2),
                     1.0f,this->d_TT->getData(),this->d_TT->getDims(1),
-                    this->d_term1->getData(this->nactus-2),1,1.0f,this->d_phase->getData(),1);
+                    this->d_term1->getDataAt(this->nactus-2),1,1.0f,this->d_phase->getData(),1);
         fill_amplipup(this->d_newmodek->getData(), this->d_phase->getData(), this->d_wherephase->getData(),
                 1.0f, this->Npts,  this->size, this->d_newmodek->getDims(1), 2, this->current_context->get_device(this->device));
         // Compute term2 = abs(fft(newmode))**2

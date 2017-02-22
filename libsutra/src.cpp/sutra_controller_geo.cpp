@@ -108,7 +108,7 @@ sutra_controller_geo::init_proj(sutra_dms *dms, int *indx_dm, float *unitpervolt
 	p = dms->d_dms.begin();
 	while (p != dms->d_dms.end()) {
 	  sutra_dm *dm = *p;
-	  dm->get_IF<float>(d_IF.getData(indx_start * this->Nphi), d_indx.getData(this->Nphi * ind), this->Nphi, 1.0f/*unitpervolt[ind]*/);
+	  dm->get_IF<float>(d_IF.getDataAt(indx_start * this->Nphi), d_indx.getDataAt(this->Nphi * ind), this->Nphi, 1.0f/*unitpervolt[ind]*/);
 	  indx_start += dm->ninflu;
 	  ind++;
 	  p++;
@@ -164,7 +164,7 @@ sutra_controller_geo::init_proj_sparse(sutra_dms *dms, int *indx_dm, float *unit
 	p = dms->d_dms.begin();
 	while (p != dms->d_dms.end()-this->Ntt) {
     sutra_dm *dm = *p;
-	  dm->get_IF_sparse<double>(d_IFi[ind], d_indx.getData(this->Nphi * ind), this->Nphi, 1.0f,1);
+	  dm->get_IF_sparse<double>(d_IFi[ind], d_indx.getDataAt(this->Nphi * ind), this->Nphi, 1.0f,1);
 	  dm->reset_shape();
 	  NNZ[ind] = d_IFi[ind]->nz_elem;
 	  Nact[ind] = dm->ninflu;
@@ -187,10 +187,10 @@ sutra_controller_geo::init_proj_sparse(sutra_dms *dms, int *indx_dm, float *unit
 	for (int i = 0; i < Npzt; i++) {
     sutra_dm *dm = *p;
 		carmaSafeCall(
-				cudaMemcpyAsync(d_val.getData(cpt[i]), d_IFi[i]->d_data,
+				cudaMemcpyAsync(d_val.getDataAt(cpt[i]), d_IFi[i]->d_data,
 						sizeof(double) * d_IFi[i]->nz_elem, cudaMemcpyDeviceToDevice));
 		carmaSafeCall(
-				cudaMemcpyAsync(d_col.getData(cpt[i]), d_IFi[i]->d_colind,
+				cudaMemcpyAsync(d_col.getDataAt(cpt[i]), d_IFi[i]->d_colind,
 						sizeof(int) * d_IFi[i]->nz_elem, cudaMemcpyDeviceToDevice));
 		if(i == 0)
 			carmaSafeCall(
@@ -198,7 +198,7 @@ sutra_controller_geo::init_proj_sparse(sutra_dms *dms, int *indx_dm, float *unit
 							cudaMemcpyDeviceToDevice));
 		else
 			carmaSafeCall(
-						cudaMemcpyAsync(d_row.getData(nact+1), &(d_IFi[i]->d_rowind[1]), sizeof(int) * (dm->ninflu),
+						cudaMemcpyAsync(d_row.getDataAt(nact+1), &(d_IFi[i]->d_rowind[1]), sizeof(int) * (dm->ninflu),
 							cudaMemcpyDeviceToDevice));
 		cpt[i+1] = cpt[i] + d_IFi[i]->nz_elem;
 		nact += dm->ninflu;
@@ -213,7 +213,7 @@ sutra_controller_geo::init_proj_sparse(sutra_dms *dms, int *indx_dm, float *unit
 		d_NNZ.host2device(NNZ);
 		d_nact.host2device(Nact);
 
-		adjust_csr_index(d_row.getData(1),d_NNZ.getData(),d_nact.getData(),this->nactu()-2*this->Ntt,Nact[0],current_context->get_device(device));
+		adjust_csr_index(d_row.getDataAt(1),d_NNZ.getData(),d_nact.getData(),this->nactu()-2*this->Ntt,Nact[0],current_context->get_device(device));
 	}
 
 	long dims_data2[3] = {2,(dms->nact_total() - 2*this->Ntt),this->Nphi};
@@ -249,12 +249,12 @@ sutra_controller_geo::init_proj_sparse(sutra_dms *dms, int *indx_dm, float *unit
         while(p != dms->d_dms.end()){
             sutra_dm *dm = *p;
             if(dm->type == "tt"){
-                //dm->get_IF(this->d_TT->getData(ind*Nphi), d_indx.getData(this->Nphi * ind2), this->Nphi, 1.0f);
+                //dm->get_IF(this->d_TT->getDataAt(ind*Nphi), d_indx.getDataAt(this->Nphi * ind2), this->Nphi, 1.0f);
                 for(int i=0 ; i<=dm->ninflu ; i++){
                     dm->reset_shape();
         		    dm->comp_oneactu(i, 1.0f);
-        		    getIF<float>(this->d_TT->getData(ind*this->Nphi), dm->d_shape->d_screen->getData(),
-                                    d_indx.getData(ind2*this->Nphi), this->Nphi, 0,
+        		    getIF<float>(this->d_TT->getDataAt(ind*this->Nphi), dm->d_shape->d_screen->getData(),
+                                    d_indx.getDataAt(ind2*this->Nphi), this->Nphi, 0,
     			                             dm->ninflu, 1, this->current_context->get_device(device));
                     ind++;
                 }
@@ -312,7 +312,7 @@ sutra_controller_geo::comp_com(){
         carma_gemv(cublas_handle(),'t',this->d_TT->getDims(1),this->d_TT->getDims(2),
                     1.0f/this->Nphi,this->d_TT->getData(),this->d_TT->getDims(1),this->d_phif->getData(),1,0.0f,this->d_compfloat->getData(),1);
         carma_gemv(cublas_handle(),'n',2*this->Ntt,2*this->Ntt,
-                    -1.0f,this->d_geocovTT->getData(),2*this->Ntt,this->d_compfloat->getData(),1,0.0f,this->d_com->getData(this->d_IFsparse->getDims(1)),1);
+                    -1.0f,this->d_geocovTT->getData(),2*this->Ntt,this->d_compfloat->getData(),1,0.0f,this->d_com->getDataAt(this->d_IFsparse->getDims(1)),1);
 
     }
 

@@ -203,13 +203,17 @@ public:
 	inline char const* c_str(){
 		return string(*this).c_str();
 	}
-	T_data* operator[](int index) {
-		return &d_data[index];
+	T_data operator[](int index) {
+		T_data tmp_float;
+		 carmaSafeCall(
+		      cudaMemcpy(&tmp_float, &d_data[index], sizeof(T_data),
+		                 cudaMemcpyDeviceToHost));
+		return tmp_float;
 	}
 	T_data* getData() {
 		return d_data;
 	}
-	T_data* getData(int index) {
+	T_data* getDataAt(int index) {
 		return &d_data[index];
 	}
 	T_data* getOData() {

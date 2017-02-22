@@ -90,13 +90,13 @@ public:
 	inline char const* c_str(){
 		return std::string(*this).c_str();
 	}
-	T_data* operator[](int index) {
-		return &h_data[index];
+	T_data operator[](int index) {
+		return h_data[index];
 	}
 	T_data* getData() {
 		return h_data;
 	}
-	T_data* getData(int index) {
+	T_data* getDataAt(int index) {
 		return &h_data[index];
 	}
 	const long *getDims() {
