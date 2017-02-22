@@ -152,10 +152,8 @@ int sutra_controller_ls::set_delay(float delay) {
 int sutra_controller_ls::build_cmat(int nfilt, bool filt_tt) {
   current_context->set_activeDevice(device,1);
 
-  long *dims_data1 = new long[2];
-  dims_data1[0] = 1;
-  long *dims_data2 = new long[3];
-  dims_data2[0] = 2;
+  long dims_data1[2] = { 1, 0 };
+  long dims_data2[3] = { 2, 0, 0 };
 
   dims_data2[1] = dims_data2[2] = nactu();
   carma_obj<float> d_tmp(current_context, dims_data2), d_tmp2(current_context, dims_data2);
@@ -198,9 +196,6 @@ int sutra_controller_ls::build_cmat(int nfilt, bool filt_tt) {
   carma_gemm(cublas_handle(), 'n', 't', nactu(), nslope(), nactu(), one,
       d_tmp2.getData(), nactu(), d_imat->getData(), nslope(), zero,
       d_cmat->getData(), nactu());
-
-  delete[] dims_data1;
-  delete[] dims_data2;
 
   return EXIT_SUCCESS;
 }
