@@ -166,7 +166,7 @@ def make_EELT(dim,pupd,tel,N_seg=-1):
         X=MESH(tel.diam*dim/pupd,dim)
         if (tel.t_spiders==-1):
             print "force t_spider =%5.3f" %(0.014)
-            tel.set_t_spiders=0.014
+            tel.set_t_spiders(0.014)
         #t_spiders=0.06
         #tel.set_t_spiders(t_spiders)
 
