@@ -12,7 +12,7 @@ import os
 
 def applyVoltGetSlopes(wao, volts, withAtm):
     '''
-        Applies buffered voltages (previous use of wao.rtc.set_perturbcom)
+        Applies voltages
         on the dms and reads out wfs slopes
     :param wao: AO Widget
     :param withAtm: Show atmosphere to wfs or only DM phase
@@ -24,7 +24,7 @@ def applyVoltGetSlopes(wao, volts, withAtm):
             wao.wfs.sensors_trace(w, "all", wao.tel, wao.atm, wao.dms)
         else:
             wao.wfs.sensors_trace(w, "dm", wao.tel, wao.atm, wao.dms)
-        wao.wfs.sensors_compimg(w)
+        wao.wfs.sensors_compimg(w, noise = False)
 
     wao.rtc.docentroids(0)
     cen = wao.rtc.getCentroids(0)
@@ -78,7 +78,7 @@ def measureIMatKLSine(wao, ampliVec, KL2V, nSlopes, withAtm):
     framesGeom = np.zeros((nSlopes, nFrames))
 
     ampliKL = ampliVec * KL2V
-    voltsToSet = np.dot(KL2V, np.cos(np.dot(freqArr[..., np.newaxis], np.arange(nFrames)[np.newaxis, ...])))
+    voltsToSet = np.dot(ampliKL, np.cos(np.dot(freqArr[..., np.newaxis], np.arange(nFrames)[np.newaxis, ...])))
 
     st = time.time()
     for f in range(nFrames):
@@ -90,9 +90,9 @@ def measureIMatKLSine(wao, ampliVec, KL2V, nSlopes, withAtm):
     print "\nModal sine interaction recording done in %3.1f seconds" % (time.time() - st)
 
     FTImat = np.fft.fft(frames, axis = 1)
-    # imatKL = np.real(FTImat[:, primeFreq]) / (np.max(primeFreq) * ampliVec)
+    imatKL = np.real(FTImat[:, primeFreq]) / ((np.max(primeFreq) + 1) * ampliVec)
 
-    return FTImat
+    return imatKL
 
 def nPrimes(n):
     def prime(i, primes):
