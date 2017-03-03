@@ -1,15 +1,14 @@
 import astropy.io.fits as pfits
 import time
+import tools
 
-
-def applyVoltGetSlopes(wao):
+def applyVoltGetSlopes(wao, noise=False):
     wao.rtc.applycontrol(0, wao.dms)
     for w in range(len(wao.config.p_wfss)):
-        wao.wfs.reset_phase(w)
-        wao.wfs.sensors_trace(w, "dm", wao.tel, wao.atm, wao.dms)
-        wao.wfs.sensors_compimg(w)
+        wao.wfs.sensors_trace(w, "dm", wao.tel, wao.atm, wao.dms, rst=1)
+        wao.wfs.sensors_compimg(w, noise=noise)
     wao.rtc.docentroids(0)
-    return wao.rtc.getCentroids(0)
+    return wao.rtc.getcentroids(0)
 
 
 def measureIMatKL(ampliVec, KL2V, Nslopes):
@@ -89,34 +88,60 @@ def computeCmatKL(DKL, KL2V, nfilt, gains, gainTT):
     cmat = KL2V2Filt.dot(Dmp).astype(np.float32)
     return cmat
 
-if __name__ == "__main__":
-    ampli = 1
-    Nactu = sum(wao.config.p_rtc.controllers[0].nactu)
-    Nslopes = wao.rtc.getCentroids(0).shape[0]
-    wao.setIntegratorLaw()
-    gain = 0.8
-    wao.rtc.set_openloop(0, 1)  # openLoop
-    wao.rtc.set_gain(0, gain)
-    decay = np.ones(Nslopes, dtype=(np.float32))
-    wao.rtc.set_decayFactor(0, decay)
-    mgain = np.ones(Nactu, dtype=(np.float32))
-    wao.rtc.set_mgain(0, mgain)
-    #mcCompass = pfits.getdata("/home/fvidal/ADOPT/data/cmat39mCompass3500KL.fits").byteswap().newbyteorder()
-    #wao.rtc.set_cmat(0, mcCompass.copy())
-
-    wao.rtc.set_openloop(0, 0)  # closeLoop
-    KL2V = wao.returnkl2V()
-    KL2V2 = cropKL2V(KL2V).astype(np.float32)
-    pushDMMic = 0.01  # 10nm
-    pushTTArcsec = 0.005  # 5 mas
-    wao.rtc.do_centroids_ref(0)
-    miKL, KL2VN =computeKLModesImat(pushDMMic, pushTTArcsec, KL2V2, Nslopes)
-    #KL2VN = normalizeKL2V(KL2V2)
-    nfilt = 450
-    cmat = computeCmatKL(miKL, KL2VN, nfilt, np.linspace(3.2,0.3,Nactu-2-nfilt), 3); wao.rtc.set_cmat(0, cmat.astype(np.float32).copy())
-
-    gDM = 1; gTT=1.;
-    gains = np.ones(Nactu,dtype=np.float32)*gDM;
-    gains[-2:]=gTT;
-    wao.rtc.set_mgain(0, gains)
+def testDM(KL2VN, nmode, Nslopes, pushDMMic, pushTTArcsec, wao, disp=False):
+    ampliVec = np.ones(KL2VN.shape[0])
+    NKL = KL2VN.shape[1]
+    ampliVec[0:NKL - 2] = pushDMMic  # DM en microns DM en microns
+    ampliVec[NKL - 2:] = pushTTArcsec
+    iMatKL = np.zeros((KL2V.shape[1], Nslopes))
     wao.rtc.set_openloop(0, 0)  # openLoop
+    v = ampliVec[nmode] * KL2VN[:, nmode:nmode + 1].T.copy()
+    wao.rtc.set_perturbcom(0, v)
+    s = applyVoltGetSlopes(wao)
+    if(disp):
+        plt.figure(10)
+        plt.clf()
+        plotVDm(0, v[0][:-2], fignum=10)
+        plt.figure(11)
+        plt.clf()
+        tools.plpyr(s, wao.config.p_wfs0._isvalid)
+    return s, v
+
+
+ampli = 1
+Nactu = sum(wao.config.p_rtc.controllers[0].nactu)
+Nslopes = wao.rtc.getCentroids(0).shape[0]
+wao.setIntegratorLaw()
+gain = 0.8
+wao.rtc.set_openloop(0, 1)  # openLoop
+decay = np.ones(Nslopes, dtype=(np.float32))
+wao.rtc.set_decayFactor(0, decay)
+mgain = np.ones(Nactu, dtype=(np.float32))
+wao.rtc.set_mgain(0, mgain)
+#mcCompass = pfits.getdata("/home/fvidal/ADOPT/data/cmat39mCompass3500KL.fits").byteswap().newbyteorder()
+#wao.rtc.set_cmat(0, mcCompass.copy())
+
+wao.rtc.set_openloop(0, 0)  # closeLoop
+KL2V = wao.returnkl2V()
+KL2V2 = KL2V.copy()
+pushDMMic = 0.01  # 10nm
+pushTTArcsec = 0.005  # 5 mas
+wao.rtc.do_centroids_ref(0)
+miKL, KL2VN =computeKLModesImat(pushDMMic, pushTTArcsec, KL2V2, Nslopes)
+#KL2VN = normalizeKL2V(KL2V2)
+nfilt = 450
+cmat = computeCmatKL(miKL, KL2VN, nfilt, np.linspace(2.2,0.1,Nactu-2-nfilt), 2.); wao.rtc.set_cmat(0, cmat.astype(np.float32).copy())
+
+gDM = 1; gTT=1.;
+gains = np.ones(Nactu,dtype=np.float32)*gDM;
+gains[-2:]=gTT;
+wao.rtc.set_mgain(0, gains)
+wao.rtc.set_openloop(0, 0)  # openLoop
+
+
+"""
+KL2VN = normalizeKL2V(KL2V)
+plt.ion()
+plt.show()
+s, v = testDM(KL2VN, 4538, Nslopes, 1., 0.1, wao, disp=True)
+"""

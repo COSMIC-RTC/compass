@@ -162,6 +162,10 @@ class widgetAOWindow(TemplateBaseClass):
                                0], wao.dms, wao.config.p_dms, wao.config.p_geom, wao.config.p_atmos, wao.config.p_tel)
         return KL2V
 
+    def doRefslopes(self):
+        wao.rtc.do_centroids_ref(0)
+        print "refslopes done"
+
     def setCommandMatrix(self, cMat):
         return self.rtc.set_cmat(0, cMat)
 
@@ -513,6 +517,38 @@ class widgetAOWindow(TemplateBaseClass):
             widToShow.show()
             widToHide.hide()
 
+    def measureIMatKL(self, ampliVec, KL2V, Nslopes, nmodesMax=0):
+        iMatKL = np.zeros((KL2V.shape[1], Nslopes))
+        self.rtc.set_openloop(0, 1)  # openLoop
+        self.aoLoopClicked(False)
+        self.ui.wao_run.setChecked(False)
+        time.sleep(1)
+        st = time.time()
+        if(nmodesMax):
+            KLMax = nmodesMax
+        else:
+            KLMax = KL2V.shape[1]
+        for kl in range(KLMax):
+            v = ampliVec[kl] * KL2V[:, kl:kl + 1].T.copy()
+            self.rtc.set_perturbcom(0, v)
+            iMatKL[kl, :] = self.applyVoltGetSlopes()
+            print "Doing KL interaction matrix on mode: #%d\r" % kl,
+        print "Modal interaction matrix done in %3.0f seconds" % (time.time() - st)
+        self.aoLoopClicked(True)
+        self.ui.wao_run.setChecked(True)
+
+        return iMatKL
+
+
+    def applyVoltGetSlopes(self, noise=False):
+        self.rtc.applycontrol(0, self.dms)
+        for w in range(len(self.config.p_wfss)):
+            self.wfs.sensors_trace(w, "dm", self.tel, self.atm, self.dms, rst=1)
+            self.wfs.sensors_compimg(w, noise=noise)
+        self.rtc.docentroids(0)
+        return self.rtc.getcentroids(0)
+
+
     def clearSR(self):
         self.SRLE = [self.SRLE[-1]]
         self.SRSE = [self.SRSE[-1]]
@@ -806,10 +842,11 @@ class widgetAOWindow(TemplateBaseClass):
                 if(time.time() - self.refreshTime > refreshDisplayTime):
                     signal_le = ""
                     signal_se = ""
-                    for t in range(self.config.p_target.ntargets):
-                        SR = self.tar.get_strehl(t)
-                        signal_se += "%1.2f   " % SR[0]
-                        signal_le += "%1.2f   " % SR[1]
+                    #for t in range(self.config.p_target.ntargets):
+                    t = 0
+                    SR = self.tar.get_strehl(t)
+                    signal_se += "%1.2f   " % SR[0]
+                    signal_le += "%1.2f   " % SR[1]
 
                     loopTime = time.time() - start
                     currentFreq = 1 / loopTime
