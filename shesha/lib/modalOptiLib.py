@@ -28,9 +28,8 @@ def applyVoltGetSlopes(wao, volts, withAtm):
 
     wao.rtc.docentroids(0)
     cen = wao.rtc.getCentroids(0)
-    wao.rtc.docentroids_geom(0)
-    ceng = wao.rtc.getcentroids(0)
-    return cen, ceng
+
+    return cen
 
 
 def measureIMatKLPP(wao, ampliVec, KL2V, nSlopes, withAtm):
@@ -46,21 +45,28 @@ def measureIMatKLPP(wao, ampliVec, KL2V, nSlopes, withAtm):
         currentVolts = wao.rtc.getVoltage(0)
     else:
         currentVolts = 0.0
+        print "Warning: Disabling push-pull for zero-phase interaction matrix."
 
     iMatKL = np.zeros((nSlopes, KL2V.shape[1]))
-    iMatKLGeom = np.zeros((nSlopes, KL2V.shape[1]))
 
     st = time.time()
     for kl in range(KL2V.shape[1]):
         v = ampliVec[kl] * KL2V[:, kl]
-        iMatKL[:, kl], iMatKLGeom[:, kl] = applyVoltGetSlopes(wao, v + currentVolts, withAtm)
-        iMatKL[:, kl], iMatKLGeom[:, kl] = (iMatKL[:, kl] - applyVoltGetSlopes(wao, -v + currentVolts, withAtm)
-                        ) / (2. * ampliVec[kl])
+
+        # Push
+        iMatKL[:, kl] = applyVoltGetSlopes(wao, v + currentVolts, withAtm)
+        # Pull
+        if withAtm:
+            pull = applyVoltGetSlopes(wao, -v + currentVolts, withAtm)
+            iMatKL[:, kl] = (iMatKL[:, kl] - pull) / (2. * ampliVec[kl])
+        else:
+            iMatKL[:, kl] /= ampliVec[kl]
+
         print "Doing KL interaction matrix on mode: #%d\r" % kl,
         os.sys.stdout.flush()
 
     print "Modal interaction matrix done in %3.1f seconds" % (time.time() - st)
-    return iMatKL, iMatKLGeom
+    return iMatKL
 
 def measureIMatKLSine(wao, ampliVec, KL2V, nSlopes, withAtm):
 
@@ -75,7 +81,6 @@ def measureIMatKLSine(wao, ampliVec, KL2V, nSlopes, withAtm):
     freqArr = 1.0 * primeFreq * np.pi / (np.max(primeFreq) + 1)
 
     frames = np.zeros((nSlopes, nFrames))
-    framesGeom = np.zeros((nSlopes, nFrames))
 
     ampliKL = ampliVec * KL2V
     voltsToSet = np.dot(ampliKL, np.cos(np.dot(freqArr[..., np.newaxis], np.arange(nFrames)[np.newaxis, ...])))
@@ -83,7 +88,7 @@ def measureIMatKLSine(wao, ampliVec, KL2V, nSlopes, withAtm):
     st = time.time()
     for f in range(nFrames):
         v = voltsToSet[:, f]
-        frames[:, f], framesGeom[:, f] = applyVoltGetSlopes(wao, v + currentVolts, withAtm)
+        frames[:, f] = applyVoltGetSlopes(wao, v + currentVolts, withAtm)
         print "Doing sine KL interaction matrix on frame: #%d / %d\r" % (f + 1, nFrames),
         os.sys.stdout.flush()
 
@@ -156,8 +161,8 @@ def computeImatKL(wao, pushPZT, pushTT, KL2V, nSlopes, withAtm):
     '''
     NKL = KL2V.shape[1]
     modesAmpli = np.array([pushPZT] * (NKL - 2) + [pushTT] * 2)
-    iMat, iMatGeom = measureIMatKLPP(wao, modesAmpli, KL2V, nSlopes, withAtm)
-    return iMat, iMatGeom
+    iMat = measureIMatKLPP(wao, modesAmpli, KL2V, nSlopes, withAtm)
+    return iMat
 
 
 def computeCmatKL(iMatKL, nFilt):
@@ -238,8 +243,6 @@ class ModalGainOptimizer:
 
         self.iMatKLRef = None
         self.cMatKLRef = None
-        self.iMatKLGeom = None
-        self.cMatKLGeom = None
 
         self.gainValues = None
 
@@ -249,10 +252,9 @@ class ModalGainOptimizer:
             Store them within ModalGainOptimizer instance
         '''
         self.wao.closeLoop()
-        self.iMatKLRef, self.iMatKLGeom = computeImatKL(self.wao, self.pushPzt, self.pushTT,
+        self.iMatKLRef = computeImatKL(self.wao, self.pushPzt, self.pushTT,
                                        self.KL2V, self.nSlopes, False)
         self.cMatKLRef = computeCmatKL(self.iMatKLRef, self.nFilter)
-        self.cMatKLGeom = computeCmatKL(self.iMatKLGeom, self.nFilter)
 
         self.gainValues = np.ones(self.cMatKLRef.shape[0])
 
@@ -278,7 +280,7 @@ class ModalGainOptimizer:
             Set the updated control matrix to the AO session.
         '''
         self.wao.closeLoop()
-        iMatKL, _ = computeImatKL(self.wao, self.pushPzt, self.pushTT,
+        iMatKL = computeImatKL(self.wao, self.pushPzt, self.pushTT,
                                self.KL2V, self.nSlopes, True)
         ksiVal = np.sqrt(np.diag(np.dot(self.iMatKLRef.T, self.iMatKLRef)) /
                          np.diag(np.dot(iMatKL.T, iMatKL)))
@@ -306,13 +308,12 @@ def simuAndRecord(wao, nIter):
     
     nSlopes = wao.rtc.getCentroids(0).shape[0]
     
-    slopesG = np.zeros((nSlopes, nIter))
-    slopesP = np.zeros((nSlopes, nIter))
+    slopes = np.zeros((nSlopes, nIter))
 
     for i in range(nIter):
-        slopesG[:, i], slopesP[:, i] = doubleWFSLoop(wao)
+        slopes[:, i] = doubleWFSLoop(wao)
     
-    return slopesG, slopesP
+    return slopes
 
 def doubleWFSLoop(wao):
     wao.atm.move_atmos()
@@ -325,8 +326,6 @@ def doubleWFSLoop(wao):
         wao.wfs.sensors_compimg(w)
 
     # Pyramid slopes
-    wao.rtc.docentroids_geom(0)
-    slopesGeom = wao.rtc.getCentroids(0)
 
     wao.rtc.docentroids(0)
     slopes = wao.rtc.getCentroids(0)
@@ -335,7 +334,7 @@ def doubleWFSLoop(wao):
     wao.rtc.applycontrol(0, wao.dms)
 #     wao.tar.get_strehl(0)[0]
 
-    return slopesGeom, slopes
+    return slopes
 
 
 
