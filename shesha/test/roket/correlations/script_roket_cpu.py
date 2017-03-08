@@ -18,33 +18,8 @@ import hdf5_utils as h5u
 import pandas
 from scipy.sparse import csr_matrix
 
-if(len(sys.argv) < 2):
-    error= 'command line should be at least:"python -i test.py parameters_filename"\n with "parameters_filename" the path to the parameters file'
-    raise StandardError(error)
+c=ch.naga_context(devices=np.array([6], dtype=np.int32))
 
-
-#get parameters from file
-param_file=sys.argv[1]
-if(param_file.split('.')[-1] == "py"):
-    filename=param_file.split('/')[-1]
-    param_path=param_file.split(filename)[0]
-    sys.path.insert(0,param_path)
-    exec("import %s as config" % filename.split(".py")[0])
-    sys.path.remove(param_path)
-elif(param_file.split('.')[-1] == "h5"):
-    sys.path.insert(0,os.environ["SHESHA_ROOT"]+"/data/par/par4bench/")
-    import scao_16x16_8pix as config
-    sys.path.remove(os.environ["SHESHA_ROOT"]+"/data/par/par4bench/")
-    h5u.configFromH5(param_file,config)
-else:
-    raise ValueError("Parameter file extension must be .py or .h5")
-
-print "param_file is",param_file
-
-if(len(sys.argv) > 2):
-    savename = sys.argv[2]
-else:
-    savename = "roket_default.h5"
 
 ############################################################################
 #  _       _ _
@@ -54,67 +29,70 @@ else:
 # |_|_| |_|_|\__|___/
 ############################################################################
 
-if(hasattr(config,"simul_name")):
-    if(config.simul_name is None):
-        simul_name=""
+def InitConfig(config):
+    if(hasattr(config,"simul_name")):
+        if(config.simul_name is None):
+            simul_name=""
+        else:
+            simul_name=config.simul_name
     else:
-        simul_name=config.simul_name
-else:
-    simul_name=""
-print "simul name is",simul_name
+        simul_name=""
+    print "simul name is",simul_name
 
-matricesToLoad={}
-if(simul_name==""):
-    clean=1
-else:
-    clean=0
-    param_dict = h5u.params_dictionary(config)
-    matricesToLoad = h5u.checkMatricesDataBase(os.environ["SHESHA_ROOT"]+"/data/",config,param_dict)
-#initialisation:
-#   context
-c=ch.naga_context(device)
-#c=ch.naga_context(devices=np.array([4,5,6,7], dtype=np.int32))
-#c.set_activeDevice(device)
+    matricesToLoad={}
+    if(simul_name==""):
+        clean=1
+    else:
+        clean=0
+        param_dict = h5u.params_dictionary(config)
+        matricesToLoad = h5u.checkMatricesDataBase(os.environ["SHESHA_ROOT"]+"/data/",config,param_dict)
+    #initialisation:
+    #   context
 
-#    wfs
-print "->wfs"
-wfs,tel=ao.wfs_init(config.p_wfss,config.p_atmos,config.p_tel,config.p_geom,config.p_target,config.p_loop,config.p_dms)
+    #c=ch.naga_context(devices=np.array([4,5,6,7], dtype=np.int32))
+    #c.set_activeDevice(device)
 
-#   atmos
-print "->atmos"
-atm=ao.atmos_init(c,config.p_atmos,config.p_tel,config.p_geom,config.p_loop,config.p_wfss,config.p_target,rank=0, clean=clean, load=matricesToLoad)
+    #    wfs
+    print "->wfs"
+    wfs,tel=ao.wfs_init(config.p_wfss,config.p_atmos,config.p_tel,config.p_geom,config.p_target,config.p_loop,config.p_dms)
 
-#   dm
-print "->dm"
-dms=ao.dm_init(config.p_dms,config.p_wfss,wfs,config.p_geom,config.p_tel)
+    #   atmos
+    print "->atmos"
+    atm=ao.atmos_init(c,config.p_atmos,config.p_tel,config.p_geom,config.p_loop,config.p_wfss,config.p_target,rank=0, clean=clean, load=matricesToLoad)
 
-#   target
-print "->target"
-tar=ao.target_init(c,tel,config.p_target,config.p_atmos,config.p_geom,config.p_tel,config.p_wfss,wfs,config.p_dms)
+    #   dm
+    print "->dm"
+    dms=ao.dm_init(config.p_dms,config.p_wfss,wfs,config.p_geom,config.p_tel)
 
-print "->rtc"
-#   rtc
-rtc=ao.rtc_init(tel,wfs,config.p_wfss,dms,config.p_dms,config.p_geom,config.p_rtc,config.p_atmos,atm,config.p_tel,config.p_loop,clean=clean,simul_name=simul_name, load=matricesToLoad)
+    #   target
+    print "->target"
+    tar=ao.target_init(c,tel,config.p_target,config.p_atmos,config.p_geom,config.p_tel,config.p_wfss,wfs,config.p_dms)
 
-if not clean:
-    h5u.validDataBase(os.environ["SHESHA_ROOT"]+"/data/",matricesToLoad)
+    print "->rtc"
+    #   rtc
+    rtc=ao.rtc_init(tel,wfs,config.p_wfss,dms,config.p_dms,config.p_geom,config.p_rtc,config.p_atmos,atm,config.p_tel,config.p_loop,clean=clean,simul_name=simul_name, load=matricesToLoad)
 
-print "===================="
-print "init done"
-print "===================="
-print "objects initialzed on GPU:"
-print "--------------------------------------------------------"
-print atm
-print wfs
-print dms
-print tar
-print rtc
+    if not clean:
+        h5u.validDataBase(os.environ["SHESHA_ROOT"]+"/data/",matricesToLoad)
 
-print "----------------------------------------------------";
-print "iter# | SE SR image | LE SR image | Fitting | LE SR phase var";
-print "----------------------------------------------------";
+    print "===================="
+    print "init done"
+    print "===================="
+    print "objects initialzed on GPU:"
+    print "--------------------------------------------------------"
+    print atm
+    print wfs
+    print dms
+    print tar
+    print rtc
 
-error_flag = True in [w.error_budget for w in config.p_wfss]
+    print "----------------------------------------------------";
+    print "iter# | SE SR image | LE SR image | Fitting | LE SR phase var";
+    print "----------------------------------------------------";
+
+    error_flag = True in [w.error_budget for w in config.p_wfss]
+
+    return atm, wfs, tel, dms, tar, rtc
 
 ##############################################################################
 #    _   ___    _
@@ -168,7 +146,7 @@ def loop(n):
         psf_ortho = tar.get_image(0,'se')*0.
 
     t0=time.time()
-    for i in range(-10,n):
+    for i in range(n):
         atm.move_atmos()
 
         if(config.p_controllers[0].type_control == "geo"):
@@ -187,7 +165,7 @@ def loop(n):
             rtc.docentroids(0)
             rtc.docontrol(0)
 
-            if(error_flag and i > -1):
+            if(error_flag):
             #compute the error breakdown for this iteration
                 error_breakdown(com,noise_com,alias_wfs_com,tomo_com,H_com,trunc_com,bp_com,wf_com,mod_com,fit, psf_ortho, i)
 
@@ -204,7 +182,7 @@ def loop(n):
         SR =tar.get_strehl(0,comp_strehl=False)[1]
         #bp_com[-1,:] = bp_com[-2,:]
         #SR = tar.get_strehl(0,comp_strehl=False)[1]
-        return com,noise_com,alias_wfs_com,tomo_com,H_com,trunc_com,bp_com,mod_com,np.mean(fit),SR,SR2, psf_ortho
+        return com,noise_com,alias_wfs_com,tomo_com,H_com,trunc_com,bp_com,mod_com,np.mean(fit[N_preloop:]),SR,SR2, psf_ortho
 
 def preloop(n):
     """
@@ -360,6 +338,7 @@ def error_breakdown(com,noise_com,alias_wfs_com,tomo_com,H_com,trunc_com,bp_com,
     rtc.applycontrol(1,dms)
     for w in range(len(config.p_wfss)):
         wfs.sensors_trace(w,"dm",tel,atm,dms)
+    """
         wfs.sensors_compimg(0)
     if(config.p_wfss[0].type_wfs == "sh"):
         ideal_bincube = wfs.get_bincubeNotNoisy(0)
@@ -372,12 +351,12 @@ def error_breakdown(com,noise_com,alias_wfs_com,tomo_com,H_com,trunc_com,bp_com,
     elif(config.p_wfss[0].type_wfs == "pyrhr"):
         ideal_pyrimg = wfs.get_binimg_notnoisy(0)
         wfs.set_pyrimg(0,ideal_pyrimg)
-
-    rtc.docentroids(0)
+    """
+    rtc.docentroids_geom(0)
     rtc.docontrol(0)
     Ageom = rtc.getErr(0)
     if(i+1 < config.p_loop.niter):
-        alias_wfs_com[i+1,:] = gRD.dot(alias_wfs_com[i,:]) + g*(Ageom - (E-F))
+        alias_wfs_com[i+1,:] = gRD.dot(alias_wfs_com[i,:]) + g*(Ageom)
 
 
     ###########################################################################
@@ -393,7 +372,8 @@ def error_breakdown(com,noise_com,alias_wfs_com,tomo_com,H_com,trunc_com,bp_com,
     rtc.applycontrol(1,dms)
     tar.dmtrace(0,dms,do_phase_var=0)
     fit[i]= tar.get_strehl(0,comp_strehl=False)[2]
-    psf_ortho += tar.get_image(0,'se')/niters
+    if(i>=N_preloop):
+        psf_ortho += tar.get_image(0,'se')/niters
 
     ###########################################################################
     ## Filtered modes error & Commanded modes
@@ -609,6 +589,8 @@ def cov_cor(P,noise,trunc,alias,H,bp,tomo):
 
 def save_it(filename):
     IF = rtc.get_IFsparse(1)
+    TT = rtc.get_IFtt(1)
+
     tmp=(config.p_geom._ipupil.shape[0]-(config.p_dms[0]._n2-config.p_dms[0]._n1+1))/2
     tmp_e0=config.p_geom._ipupil.shape[0]-tmp
     tmp_e1=config.p_geom._ipupil.shape[1]-tmp
@@ -616,15 +598,16 @@ def save_it(filename):
     indx_pup=np.where(pup.flatten()>0)[0].astype(np.int32)
     dm_dim = config.p_dms[0]._n2-config.p_dms[0]._n1+1
     cov, cor = cov_cor(P,noise_com,trunc_com,alias_wfs_com,H_com,bp_com,tomo_com)
+    psf = tar.get_image(0,"le",fluxNorm=False)
 
     fname = "/home/fferreira/Data/"+filename
     pdict = {"noise":noise_com.T,
              "aliasing":alias_wfs_com.T,
                "tomography":tomo_com.T,"filtered modes":H_com.T,"non linearity":trunc_com.T,
                "bandwidth":bp_com.T,"wf_com":wf_com.T,"P":P,"Btt":Btt,"IF.data":IF.data,"IF.indices":IF.indices,
-               "IF.indptr":IF.indptr,"dm_dim":dm_dim,"indx_pup":indx_pup,"fitting":fit,"SR":SR, "SR2":SR2,
-               "cov":cov,"cor":cor, "psf_ortho":psf_ortho}
-    h5u.save_h5(fname,"com",config,com.T)
+               "IF.indptr":IF.indptr,"TT":TT,"dm_dim":dm_dim,"indx_pup":indx_pup,"fitting":fit,"SR":SR, "SR2":SR2,
+               "cov":cov,"cor":cor, "psfortho":np.fft.fftshift(psf_ortho), "dm.xpos":config.p_dms[0]._xpos, "dm.ypos":config.p_dms[0]._ypos}
+    h5u.save_h5(fname,"psf",config,psf)
     #h5u.writeHdf5SingleDataset(fname,com.T,datasetName="com")
     for k in pdict.keys():
         h5u.save_hdf5(fname,k,pdict[k])
@@ -636,25 +619,47 @@ def save_it(filename):
 # | ||  __/\__ \ |_\__ \
 #  \__\___||___/\__|___/
 ###############################################################################################
-nfiltered = config.p_controllers[0].maxcond
+param_file = "/home/fferreira/compass/trunk/shesha/data/par/par4roket/correlation_study/roket_8m_1layer.py"
+error_flag = True
+if(param_file.split('.')[-1] == "py"):
+    filename=param_file.split('/')[-1]
+    param_path=param_file.split(filename)[0]
+    sys.path.insert(0,param_path)
+    exec("import %s as config" % filename.split(".py")[0])
+    #sys.path.remove(param_path)
+nfiltered = 20
+N_preloop = 1000
 niters = config.p_loop.niter
-config.p_loop.set_niter(niters)
+config.p_loop.set_niter(niters+N_preloop)
+winddirs = [0,45,90,135,180]
+windspeeds = [5.,10.,15.,20.]
+
+d = float(sys.argv[1])
+s = float(sys.argv[2])
+g = float(sys.argv[3])
+
+
+savename = "roket_8m_1layer_dir%d_speed%d_g%d_cpu.h5" % (d,s,g*10)
+config.p_atmos.set_winddir([d])
+config.p_atmos.set_windspeed([s])
+config.p_controllers[0].set_gain(g)
+
+atm, wfs, tel, dms, tar, rtc = InitConfig(config)
+#config.p_loop.set_niter(niters)
 Btt,P = compute_Btt2()
 rtc.load_Btt(1,Btt.dot(Btt.T))
 Dm,cmat = compute_cmatWithBtt(Btt,nfiltered)
 rtc.set_cmat(0,cmat)
 R = rtc.get_cmat(0)
 imat = rtc.get_imat(0)
-RD = np.dot(R,imat)
+RD = np.dot(R,imat).astype(np.float32)
+gRD = (np.identity(RD.shape[0])-config.p_controllers[0].gain*RD).astype(np.float32)
 
-gRD = np.identity(RD.shape[0])-config.p_controllers[0].gain*RD
-#diagRD = np.diag(gRD)
-#gRD = np.diag(diagRD)
-#gRD=np.diag(gRD)
-
-#imat_geom = ao.imat_geom(wfs,config.p_wfss,config.p_controllers[0],dms,config.p_dms,meth=0)
-#RDgeom = np.dot(R,imat_geom)
-preloop(1000)
-com,noise_com,alias_wfs_com,tomo_com,H_com,trunc_com,bp_com,wf_com,fit,SR,SR2 ,psf_ortho = loop(niters)
-
-save_it("roket_compare.h5")
+com,noise_com,alias_wfs_com,tomo_com,H_com,trunc_com,bp_com,wf_com,fit,SR,SR2 ,psf_ortho = loop(niters+N_preloop)
+noise_com = noise_com[N_preloop:,:]
+trunc_com = trunc_com[N_preloop:,:]
+alias_wfs_com = alias_wfs_com[N_preloop:,:]
+H_com = H_com[N_preloop:,:]
+bp_com = bp_com[N_preloop:,:]
+tomo_com = tomo_com[N_preloop:,:]
+save_it(savename)

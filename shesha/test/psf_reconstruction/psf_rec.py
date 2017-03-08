@@ -13,7 +13,7 @@ from sys import stdout
 import time
 
 plt.ion()
-c = ch.naga_context(0)
+c = ch.naga_context(7)
 
 #filename = "/home/fferreira/Data/breakdown_offaxis-4_2.h5"
 
@@ -115,7 +115,7 @@ def psf_rec_roket_file_cpu(filename):
     f.close()
     return psf
 
-def psf_rec_Vii(filename,err=None,fitting=True,covmodes=None):
+def psf_rec_Vii(filename,err=None,fitting=True,covmodes=None,cov=None):
     f = h5py.File(filename)
     if(err is None):
         err = get_err(filename)
@@ -127,10 +127,13 @@ def psf_rec_Vii(filename,err=None,fitting=True,covmodes=None):
     print "Projecting error buffer into modal space..."
     err = P.dot(err)
     print "Computing covariance matrix..."
-    if(covmodes is None):
-        covmodes = err.dot(err.T) / err.shape[1]
+    if(cov is None):
+        if(covmodes is None):
+            covmodes = err.dot(err.T) / err.shape[1]
+        else:
+            covmodes = (P.dot(covmodes)).dot(P.T)
     else:
-        covmodes = (P.dot(covmodes)).dot(P.T)
+        covmodes = cov
     e,V = np.linalg.eig(covmodes)
     print "Done"
     Btt = f["Btt"][:]
@@ -213,7 +216,7 @@ def psf_rec_vii_cpu(filename):
         term1 = np.real(np.fft.fft2(newmodek**2) * conjpupfft)
         term2 = np.abs(np.fft.fft2(newmodek))**2
         tmp += ((term1 - term2) * e[k])
-        stdout.write("\rComputing Vii : %d%%" % (k*100/err.shape[0]))
+        stdout.write("\rComputing Vii : %d%%" % (k*100/covmodes.shape[0]))
         stdout.flush()
 
     dphi = np.real(np.fft.ifft2(2*tmp)) * den * mask * ratio_lambda**2

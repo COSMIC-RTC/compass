@@ -9,24 +9,24 @@ from scipy.special import jv # Bessel function
 
 def dphi_highpass(r,x0, tabx, taby):
     """
-    Fonction de structure de phase "haute fréquence"
-    A renormalisé en fonction du r0
+    Fonction de structure de phase "haute frequence"
+    A renormalise en fonction du r0
     :params:
         r : distance [m]
         x0 : distance interactionneur [m]
-        tabx, taby : integrale tabulée obtenue avec la fonction tabulateIj0
+        tabx, taby : integrale tabulee obtenue avec la fonction tabulateIj0
     """
     return (r**(5./3.)) * (1.1183343328701949 - Ij0t83(r*(np.pi/x0), tabx, taby)) * (2*(2*np.pi)**(8/3.)*0.0228956)
 
 
 def dphi_lowpass(r,x0,L0, tabx, taby):
     """
-    Fonction de structure de phase "basse fréquence"
-    A renormalisé en fonction du r0
+    Fonction de structure de phase "basse frequence"
+    A renormalise en fonction du r0
     :params:
         r : distance [m]
         x0 : distance interactionneur [m]
-        tabx, taby : integrale tabulée obtenue avec la fonction tabulateIj0
+        tabx, taby : integrale tabulee obtenue avec la fonction tabulateIj0
     """
     return rodconan(r,L0) - dphi_highpass(r,x0, tabx, taby)
 
@@ -40,16 +40,21 @@ def Ij0t83(x,tabx,taby):
 
     Pres de 0, le resultat s'approxime par (3/4.)*x^(1./3)*(1-x^2/112.+...)
     """
-    if(x < np.exp(-3.0)):
-        return 0.75*x**(1./3)*(1-x**2/112.)
-    else:
-        return np.interp(x,tabx,taby)
+    res = x.copy()
+    ismall = np.where(res < np.exp(-3.0))
+    ilarge = np.where(res >= np.exp(-3.0))
+    if(ismall[0].size >0):
+        res[ismall] = 0.75*x[ismall]**(1./3)*(1-x[ismall]**2/112.)
+    if(ilarge[0].size >0):
+        res[ilarge] = np.interp(x[ilarge],tabx,taby)
+
+    return res
 
 
 def tabulateIj0():
     """
-    Tabulation de l'intégrale
-    Nécessaire avant utilisation des fonction dphi_lowpass et dphi_highpass
+    Tabulation de l'intesgrale
+    Necessaire avant utilisation des fonction dphi_lowpass et dphi_highpass
     """
     n = 10000
     t = np.linspace(-4,10,n)
@@ -110,16 +115,18 @@ def macdo(x):
 
 def rodconan(r,L0):
     """
-    Fonction de structure de phase avec prise en compte de l'échelle externe
-    A renormalisé en fonction du r0
+    Fonction de structure de phase avec prise en compte de l'echelle externe
+    A renormalise en fonction du r0
     """
-    res = 0
+    res = r*0.
     k1 = 0.1716613621245709486
     dprf0 = (2 * np.pi / L0) * r
-    if (dprf0 > 4.71239):
-    	res = asymp_macdo(dprf0)
-    else:
-    	res = -macdo(dprf0)
+    ilarge = np.where(dprf0 > 4.71239)
+    ismall = np.where(dprf0 <= 4.71239)
+    if (ilarge[0].size > 0):
+    	res[ilarge] = asymp_macdo(dprf0[ilarge])
+    if(ismall[0].size > 0):
+    	res[ismall] = -macdo(dprf0[ismall])
 
     res *= k1 * L0**(5./3.)
 

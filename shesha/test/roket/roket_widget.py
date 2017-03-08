@@ -64,7 +64,7 @@ class html_display:
 
         self.IF = csr_matrix((self.f["IF.data"][:],self.f["IF.indices"][:],self.f["IF.indptr"][:]))
         self.IF = self.IF.T
-        self.TT = self.f["TT"][:]
+        #self.TT = self.f["TT"][:]
         self.P = self.f["P"][:]#/np.sqrt(self.IF.shape[0])
 
         self.indx_pup = self.f["indx_pup"][:]
@@ -279,7 +279,7 @@ class html_display:
 
         self.IF = csr_matrix((self.f["IF.data"][:],self.f["IF.indices"][:],self.f["IF.indptr"][:]))
         self.IF = self.IF.T
-        self.TT = self.f["TT"][:]
+        #self.TT = self.f["TT"][:]
         self.P = self.f["P"][:]#/np.sqrt(self.IF.shape[0])
         #self.modes = self.IF.dot(self.Btt)#np.dot(self.f["IF"][:],self.Btt)
 #        self.modes = self.modes[:,self.swap]

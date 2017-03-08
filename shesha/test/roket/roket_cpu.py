@@ -72,8 +72,8 @@ else:
     matricesToLoad = h5u.checkMatricesDataBase(os.environ["SHESHA_ROOT"]+"/data/",config,param_dict)
 #initialisation:
 #   context
-c=ch.naga_context(device)
-#c=ch.naga_context(devices=np.array([4,5,6,7], dtype=np.int32))
+#c=ch.naga_context(7)
+c=ch.naga_context(devices=np.array([6], dtype=np.int32))
 #c.set_activeDevice(device)
 
 #    wfs
@@ -166,9 +166,12 @@ def loop(n):
         bp_com = np.copy(noise_com)
         fit = np.zeros(n)
         psf_ortho = tar.get_image(0,'se')*0.
-
+        Ee = np.copy(noise_com)
+        Ff = np.copy(Ee)
+        gamma = 1.0
+        gRD = np.identity(RD.shape[0])-config.p_controllers[0].gain*gamma*RD
     t0=time.time()
-    for i in range(-10,n):
+    for i in range(n):
         atm.move_atmos()
 
         if(config.p_controllers[0].type_control == "geo"):
@@ -186,14 +189,16 @@ def loop(n):
                 wfs.sensors_compimg(w)
             rtc.docentroids(0)
             rtc.docontrol(0)
-
+            if( i%500==0 and i>0):
+                #gamma = centroid_gain(Ff[i-500:i,:],Ee[i-500:i,:])
+                gRD = np.identity(RD.shape[0])-config.p_controllers[0].gain*gamma*RD
             if(error_flag and i > -1):
             #compute the error breakdown for this iteration
-                error_breakdown(com,noise_com,alias_wfs_com,tomo_com,H_com,trunc_com,bp_com,wf_com,mod_com,fit, psf_ortho, i)
+                error_breakdown(com,noise_com,alias_wfs_com,tomo_com,H_com,trunc_com,bp_com,wf_com,mod_com,fit, psf_ortho, i, Ee, Ff,gamma, gRD)
 
             rtc.applycontrol(0,dms)
 
-        if((i+1)%10==0 and i>-1):
+        if((i+1)%100==0 and i>-1):
             strehltmp = tar.get_strehl(0)
             print i+1,"\t",strehltmp[0],"\t",strehltmp[1],"\t",np.exp(-strehltmp[2]),"\t",np.exp(-strehltmp[3])
     t1=time.time()
@@ -204,7 +209,7 @@ def loop(n):
         SR =tar.get_strehl(0,comp_strehl=False)[1]
         #bp_com[-1,:] = bp_com[-2,:]
         #SR = tar.get_strehl(0,comp_strehl=False)[1]
-        return com,noise_com,alias_wfs_com,tomo_com,H_com,trunc_com,bp_com,mod_com,np.mean(fit),SR,SR2, psf_ortho
+        return com,noise_com,alias_wfs_com,tomo_com,H_com,trunc_com,bp_com,mod_com,np.mean(fit[N_preloop:]),SR,SR2, psf_ortho, Ee, Ff
 
 def preloop(n):
     """
@@ -260,7 +265,7 @@ def preloop(n):
 # | _|| '_| '_/ _ \ '_| | _ \ '_/ -_) _` | / / _` / _ \ V  V / ' \
 # |___|_| |_| \___/_|   |___/_| \___\__,_|_\_\__,_\___/\_/\_/|_||_|
 ###################################################################################
-def error_breakdown(com,noise_com,alias_wfs_com,tomo_com,H_com,trunc_com,bp_com,wf_com,mod_com,fit, psf_ortho, i):
+def error_breakdown(com,noise_com,alias_wfs_com,tomo_com,H_com,trunc_com,bp_com,wf_com,mod_com,fit, psf_ortho, i, Ee, Ff, gamma, gRD):
     """
     Compute the error breakdown of the AO simulation. Returns the error commands of
     each contributors. Suppose no delay (for now) and only 2 controllers : the main one, controller #0, (specified on the parameter file)
@@ -339,6 +344,7 @@ def error_breakdown(com,noise_com,alias_wfs_com,tomo_com,H_com,trunc_com,bp_com,
 
     rtc.docontrol(0)
     E = rtc.getErr(0)
+    Ee[i,:] = E
     # Apply loop filter to get contribution of noise on commands
     if(i+1 < config.p_loop.niter):
         noise_com[i+1,:] = gRD.dot(noise_com[i,:]) + g*(Derr-E)
@@ -349,9 +355,10 @@ def error_breakdown(com,noise_com,alias_wfs_com,tomo_com,H_com,trunc_com,bp_com,
     rtc.docentroids_geom(0)
     rtc.docontrol(0)
     F = rtc.getErr(0)
+    Ff[i,:] = F
     # Apply loop filter to get contribution of sampling/truncature on commands
     if(i+1 < config.p_loop.niter):
-        trunc_com[i+1,:] = gRD.dot(trunc_com[i,:]) + g*(E-F)
+        trunc_com[i+1,:] = gRD.dot(trunc_com[i,:]) + g*(E-gamma*F)
 
     ###########################################################################
     ## Aliasing contribution on WFS direction
@@ -360,6 +367,7 @@ def error_breakdown(com,noise_com,alias_wfs_com,tomo_com,H_com,trunc_com,bp_com,
     rtc.applycontrol(1,dms)
     for w in range(len(config.p_wfss)):
         wfs.sensors_trace(w,"dm",tel,atm,dms)
+    """
         wfs.sensors_compimg(0)
     if(config.p_wfss[0].type_wfs == "sh"):
         ideal_bincube = wfs.get_bincubeNotNoisy(0)
@@ -372,12 +380,12 @@ def error_breakdown(com,noise_com,alias_wfs_com,tomo_com,H_com,trunc_com,bp_com,
     elif(config.p_wfss[0].type_wfs == "pyrhr"):
         ideal_pyrimg = wfs.get_binimg_notnoisy(0)
         wfs.set_pyrimg(0,ideal_pyrimg)
-
-    rtc.docentroids(0)
+    """
+    rtc.docentroids_geom(0)
     rtc.docontrol(0)
     Ageom = rtc.getErr(0)
     if(i+1 < config.p_loop.niter):
-        alias_wfs_com[i+1,:] = gRD.dot(alias_wfs_com[i,:]) + g*(Ageom - (E-F))
+        alias_wfs_com[i+1,:] = gRD.dot(alias_wfs_com[i,:]) + gamma*g*(Ageom)# - (E-F))
 
 
     ###########################################################################
@@ -393,7 +401,8 @@ def error_breakdown(com,noise_com,alias_wfs_com,tomo_com,H_com,trunc_com,bp_com,
     rtc.applycontrol(1,dms)
     tar.dmtrace(0,dms,do_phase_var=0)
     fit[i]= tar.get_strehl(0,comp_strehl=False)[2]
-    psf_ortho += tar.get_image(0,'se')/niters
+    if(i>=N_preloop):
+        psf_ortho += tar.get_image(0,'se')/niters
 
     ###########################################################################
     ## Filtered modes error & Commanded modes
@@ -433,6 +442,14 @@ def error_breakdown(com,noise_com,alias_wfs_com,tomo_com,H_com,trunc_com,bp_com,
     tar.set_phase(0,tarphase)
     rtc.setCom(0,Dcom)
 
+
+def centroid_gain(E,F):
+
+    cgains = np.zeros(E.shape[1])
+    for k in range(E.shape[1]):
+        cgains[k] = np.polyfit(E[:,k],F[:,k],1)[0]
+
+    return np.mean(cgains)
 ################################################################################
 #  ___          _
 # | _ ) __ _ __(_)___
@@ -609,6 +626,8 @@ def cov_cor(P,noise,trunc,alias,H,bp,tomo):
 
 def save_it(filename):
     IF = rtc.get_IFsparse(1)
+    TT = rtc.get_IFtt(1)
+
     tmp=(config.p_geom._ipupil.shape[0]-(config.p_dms[0]._n2-config.p_dms[0]._n1+1))/2
     tmp_e0=config.p_geom._ipupil.shape[0]-tmp
     tmp_e1=config.p_geom._ipupil.shape[1]-tmp
@@ -616,15 +635,16 @@ def save_it(filename):
     indx_pup=np.where(pup.flatten()>0)[0].astype(np.int32)
     dm_dim = config.p_dms[0]._n2-config.p_dms[0]._n1+1
     cov, cor = cov_cor(P,noise_com,trunc_com,alias_wfs_com,H_com,bp_com,tomo_com)
+    psf = tar.get_image(0,"le",fluxNorm=False)
 
     fname = "/home/fferreira/Data/"+filename
     pdict = {"noise":noise_com.T,
              "aliasing":alias_wfs_com.T,
                "tomography":tomo_com.T,"filtered modes":H_com.T,"non linearity":trunc_com.T,
                "bandwidth":bp_com.T,"wf_com":wf_com.T,"P":P,"Btt":Btt,"IF.data":IF.data,"IF.indices":IF.indices,
-               "IF.indptr":IF.indptr,"dm_dim":dm_dim,"indx_pup":indx_pup,"fitting":fit,"SR":SR, "SR2":SR2,
-               "cov":cov,"cor":cor, "psf_ortho":psf_ortho}
-    h5u.save_h5(fname,"com",config,com.T)
+               "IF.indptr":IF.indptr,"TT":TT,"dm_dim":dm_dim,"indx_pup":indx_pup,"fitting":fit,"SR":SR, "SR2":SR2,
+               "cov":cov,"cor":cor, "psfortho":np.fft.fftshift(psf_ortho), "E":E, "F":F, "dm.xpos":config.p_dms[0]._xpos, "dm.ypos":config.p_dms[0]._ypos}
+    h5u.save_h5(fname,"psf",config,psf)
     #h5u.writeHdf5SingleDataset(fname,com.T,datasetName="com")
     for k in pdict.keys():
         h5u.save_hdf5(fname,k,pdict[k])
@@ -638,7 +658,8 @@ def save_it(filename):
 ###############################################################################################
 nfiltered = config.p_controllers[0].maxcond
 niters = config.p_loop.niter
-config.p_loop.set_niter(niters)
+N_preloop=1000
+config.p_loop.set_niter(niters+N_preloop)
 Btt,P = compute_Btt2()
 rtc.load_Btt(1,Btt.dot(Btt.T))
 Dm,cmat = compute_cmatWithBtt(Btt,nfiltered)
@@ -646,15 +667,26 @@ rtc.set_cmat(0,cmat)
 R = rtc.get_cmat(0)
 imat = rtc.get_imat(0)
 RD = np.dot(R,imat)
+#gamma = 1./0.52
+#gamma = centroid_gain(100)
+#print "gamma = ",gamma
 
-gRD = np.identity(RD.shape[0])-config.p_controllers[0].gain*RD
+#gRD = np.identity(RD.shape[0])-config.p_controllers[0].gain*gamma*RD
 #diagRD = np.diag(gRD)
 #gRD = np.diag(diagRD)
 #gRD=np.diag(gRD)
 
 #imat_geom = ao.imat_geom(wfs,config.p_wfss,config.p_controllers[0],dms,config.p_dms,meth=0)
 #RDgeom = np.dot(R,imat_geom)
-preloop(1000)
-com,noise_com,alias_wfs_com,tomo_com,H_com,trunc_com,bp_com,wf_com,fit,SR,SR2 ,psf_ortho = loop(niters)
+#preloop(1000)
 
-save_it("roket_compare.h5")
+com,noise_com,alias_wfs_com,tomo_com,H_com,trunc_com,bp_com,wf_com,fit,SR,SR2 ,psf_ortho, E, F = loop(niters+N_preloop)
+noise_com = noise_com[N_preloop:,:]
+trunc_com = trunc_com[N_preloop:,:]
+alias_wfs_com = alias_wfs_com[N_preloop:,:]
+H_com = H_com[N_preloop:,:]
+bp_com = bp_com[N_preloop:,:]
+tomo_com = tomo_com[N_preloop:,:]
+E = E[N_preloop:,:]
+F = F[N_preloop:,:]
+save_it(savename)

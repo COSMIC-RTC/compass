@@ -5,9 +5,9 @@ Created on Tue Feb  2 09:39:35 2016
 
 To launch it :
 
-    - locally : 
+    - locally :
         bokeh serve --show bokeh_display.py
-    - as a server : 
+    - as a server :
         bokeh serve --port 8081 --host hippo6.obspm.fr:8081 bokeh_display.py
         then, open a web browser and connect to http://hippo6.obspm.fr:8081/bokeh_display.py
 """
@@ -31,17 +31,17 @@ import matplotlib.pyplot as plt
 import matplotlib as mpl
 from scipy.sparse import csr_matrix
 ######################################################################################
-#  _      _ _      
+#  _      _ _
 # (_)_ _ (_) |_ ___
 # | | ' \| |  _(_-<
 # |_|_||_|_|\__/__/
-######################################################################################     
-class html_display:  
+######################################################################################
+class html_display:
     def __del__(self):
         files = glob.glob("/home/fferreira/public_html/breakdown_display*")
         for f in files:
             os.remove(f)
-            
+
     def __init__(self):
 
         self.datapath = "/home/fferreira/Data/"
@@ -51,13 +51,13 @@ class html_display:
         self.f_list = []
         for f in self.files:
             self.f_list.append(f.split('/')[-1])
-        
-        self.f = h5py.File(self.files[0])  
+
+        self.f = h5py.File(self.files[0])
         if(self.f.attrs.keys().count("target.Lambda")):
             self.Lambda_tar = self.f.attrs["target.Lambda"][0]
         else:
             self.Lambda_tar = 1.65
-            
+
         self.Btt = self.f["Btt"][:]
         if(self.f.keys().count("IF")): #Dense case
             self.IF = self.f["IF"][:]
@@ -102,19 +102,19 @@ class html_display:
             self.coms_list.remove("cor")
         else:
             self.cov, self.cor = self.cov_cor()
-        
+
         self.basis = ["Actuators","Btt"]
         self.url = "http://hippo6.obspm.fr/~fferreira/breakdown_display"
         self.old = None
-        
+
         ######################################################################################
-        #         _    _          _      
+        #         _    _          _
         # __ __ _(_)__| |__ _ ___| |_ ___
         # \ V  V / / _` / _` / -_)  _(_-<
         #  \_/\_/|_\__,_\__, \___|\__/__/
-        #               |___/            
+        #               |___/
         ######################################################################################
-        self.dialog = Dialog(closable=False, visible= False, title="Dialog Box", content= "")   
+        self.dialog = Dialog(closable=False, visible= False, title="Dialog Box", content= "")
 
         # Tab 1
         self.comsTags = Paragraph(text="Commands type", height=25)
@@ -149,15 +149,15 @@ class html_display:
                                                         Aliasing=[],
                                                         FilteredModes=[],
                                                         Bandwidth=[],
-                                                        Tomography=[]))  
+                                                        Tomography=[]))
         self.table_cor_source = ColumnDataSource(data=dict(Type=[],
                                                       Noise=[],
                                                         Truncature=[],
                                                         Aliasing=[],
                                                         FilteredModes=[],
                                                         Bandwidth=[],
-                                                        Tomography=[]))                                                
-        self.cov_table, self.cor_table = self.createDataTables() 
+                                                        Tomography=[]))
+        self.cov_table, self.cor_table = self.createDataTables()
         self.updateDataTables()
         # Tab 3
         self.basis_select3 = Select(title="Basis",value=self.basis[0],options=self.basis)
@@ -166,27 +166,27 @@ class html_display:
         self.draw_mode = Button(label="Draw !",type="success")
         self.inc_mode = Button(label="+",type="primary")
         self.desinc_mode = Button(label="-",type="primary")
-        
+
         self.colors = {"H_com":"green","bp_com":"orange",
                        "com":"black","noise_com":"red","tomo_com":"purple",
                        "trunc_com":"cyan","wf_com":"magenta",
                        "alias_wfs_com":"blue"}
-        
+
         self.source1 = ColumnDataSource(data=dict(x=[], y=[],color=[],typec=[]))
         self.source2 = ColumnDataSource(data=dict(x=[], y=[],color=[]))
         self.source3 = ColumnDataSource(data=dict(x=[], y=[],color=[]))
-        
+
         self.hover = HoverTool(tooltips=[("x","@x"),("y","@y"),("type","@typec")])
         self.hoverlog = HoverTool(tooltips=[("x","@x"),("y","@y"),("type","@typec")])
         TOOLS = "resize,save,pan,box_zoom,tap, box_select, wheel_zoom, lasso_select,reset"
-        
+
         self.p=Figure(plot_height=600, plot_width=800,tools=[TOOLS,self.hover])
         self.plog=Figure(plot_height=600, plot_width=800,y_range=[1e-6,10],y_axis_type="log",tools=[TOOLS,self.hoverlog])
         self.psum=Figure(plot_height=600, plot_width=800)
-        for c in self.colors:            
+        for c in self.colors:
             self.p.line(legend=c,line_color=self.colors[c])
             self.plog.line(legend=c,line_color=self.colors[c])
-              
+
         self.p.multi_line("x","y",color="color",source=self.source1)
         self.plog.multi_line("x","y",color="color",source=self.source1)
         self.psum.line(legend="Image SR", line_color="red")
@@ -196,19 +196,19 @@ class html_display:
 
         self.psum.multi_line("x","y",color="color",source=self.source3)
         self.psum.yaxis.axis_label = "Strehl Ratio"
-        
+
         self.xdr = Range1d(start=0,end=self.nactus)
         self.ydr = Range1d(start=self.nactus,end=0)
         self.p2=figure(x_range=self.xdr, y_range=self.ydr, x_axis_location="above")
         self.p2.image_url(url=[], x=0, y=0,w=self.nactus,h=self.nactus)
         self.p3=Figure(plot_height=600, plot_width=800)
         self.p3.line(x="x",y="y",source=self.source2)
-        
+
         self.xdr2 = Range1d(start=0,end=self.pup.shape[0])
         self.ydr2 = Range1d(start=self.pup.shape[1],end=0)
         self.pmodes=figure(x_range=self.xdr2, y_range=self.ydr2, x_axis_location="above")
         self.pmodes.image_url(url=[], x=0, y=0,w=self.pup.shape[0],h=self.pup.shape[1])
-        
+
         self.control_plot = [self.plot_select,self.iter_select,self.basis_select1]
 
         self.buttons = [self.coms]
@@ -226,7 +226,7 @@ class html_display:
         self.desinc_mode.on_click(self.mode_desincrement)
         self.diff_button.on_click(self.plot_sum)
         self.DB_button.on_click(self.loadDB)
-        
+
 
         self.inputs = HBox(VBox(self.DB_select,self.DB_button,self.comsTags,self.coms,self.plot_select,self.basis_select1,self.iter_select,self.plusTag,self.plus_select,self.moinsTag,self.moins_select,self.diff_button), width=650)
         self.inputs2 = HBox(VBox(self.DB_select,self.DB_button,self.basis_select2,self.A,self.B,self.power, self.draw,self.cmax,self.cmin,self.rescale,self.axiscut,self.XY,self.cut,self.diag))#, width=350)
@@ -240,17 +240,17 @@ class html_display:
 
         curdoc().add_root(self.tabs)#hplot(inputs,p))#, p, p2)
         curdoc().add_root(self.dialog)
-        
-    
+
+
     ######################################################################################
-    #   ___      _ _ _             _       
+    #   ___      _ _ _             _
     #  / __|__ _| | | |__  __ _ __| |__ ___
     # | (__/ _` | | | '_ \/ _` / _| / /(_-<
     #  \___\__,_|_|_|_.__/\__,_\__|_\_\/__/
-    #                                      
+    #
     ######################################################################################
     def loadDB(self):
-        self.dialog.visible=False               
+        self.dialog.visible=False
         self.dialog.content="Loading database..."
         self.dialog.visible = True
 
@@ -258,7 +258,7 @@ class html_display:
         if(self.f.attrs.keys().count("target.Lambda")):
             self.Lambda_tar = self.f.attrs["target.Lambda"][0]
         else:
-            self.Lambda_tar = 1.65        
+            self.Lambda_tar = 1.65
         if(self.f.keys().count("IF")): #Dense case
             self.IF = self.f["IF"][:]
         else: #Sparse case
@@ -281,23 +281,23 @@ class html_display:
             self.cor = self.f["cor"][:]
         else:
             self.cov, self.cor = self.cov_cor()
-                                                
-        #self.cov_table, self.cor_table = self.createDataTables()  
+
+        #self.cov_table, self.cor_table = self.createDataTables()
         self.updateDataTables()
 
-    
+
         print "DB loaded"
         self.dialog.visible=False
 
     def update(self,attrname,old,new):
        # plot_val = plot_type.value
         self.source1.data = dict(x=[],y=[],color=[],typec=[])
-    
+
         coms_active = self.coms.active
         plot_val = self.plot_select.value
         basis_val = self.basis_select1.value
         iteration = int(self.iter_select.value)
-        
+
         yi=[]
         xi=[]
         typec=[]
@@ -316,7 +316,7 @@ class html_display:
                 typec.append([j]*len(data[:,iteration]))
                 coloris.append(self.colors[j])
                 self.p.yaxis.axis_label = "Volts"
-                
+
             elif(plot_val == "Variance"):
                 if(basis_val == "Actuators"):
                     yi.append(np.var(data,axis=1).tolist())
@@ -330,10 +330,10 @@ class html_display:
                 self.p.yaxis.axis_label = "Variance"
 
         self.source1.data = dict(x=xi,y=yi,color=coloris,typec=typec)
-            
+
         print "Plots updated"
 
-        
+
     def rescale_matrix(self):
         self.dialog.visible = False
         vmin = self.cmin.value
@@ -347,12 +347,12 @@ class html_display:
         mpl.image.imsave(self.old,self.covmat,vmin=vmin,vmax=vmax)
         self.p2.image_url(url=dict(value=self.url+time+".png"), x=0, y=0,w=self.covmat.shape[0],h=self.covmat.shape[0])
         self.dialog.visible = False
-   
+
     def get_diag(self):
         x=np.arange(self.covmat.shape[0])
         y=np.diag(self.covmat)
         self.source2.data = dict(x=x,y=y)
-    
+
     def cut_matrix(self):
         XorY=self.XY.labels[self.XY.active]
         ax = self.axiscut.value
@@ -362,8 +362,8 @@ class html_display:
             data = self.covmat[:,ax]
         x=np.arange(data.size)
         self.source2.data = dict(x=x,y=data)
-        
-    def update_matrix2(self): 
+
+    def update_matrix2(self):
         self.dialog.visible = False
         if(self.old):
             os.remove(self.old)
@@ -374,7 +374,7 @@ class html_display:
         powa = self.power.value
         self.dialog.content="Computing and loading matrix..."
         self.dialog.visible = True
-        
+
         A_cov = self.f[A_val][:]
         B_cov = self.f[B_val][:]
         A_cov -= np.tile(np.mean(A_cov,axis=1),(A_cov.shape[1],1)).T
@@ -383,7 +383,7 @@ class html_display:
             A_cov = np.dot(self.P,A_cov)
             B_cov = np.dot(self.P,B_cov)
         print "Values ok"
-        self.covmat = (np.dot(A_cov,B_cov.T)/B_cov.shape[1])                
+        self.covmat = (np.dot(A_cov,B_cov.T)/B_cov.shape[1])
         print "dot product ok"
         if(powa != 1):
             self.covmat = np.abs(self.covmat)**powa * np.sign(self.covmat)
@@ -394,7 +394,7 @@ class html_display:
         self.cmin.step = (self.cmin.end - self.cmin.start)/100.
         self.cmax.start = self.covmat.min()
         self.cmax.end = self.covmat.max()
-        self.cmax.value = self.cmax.end     
+        self.cmax.value = self.cmax.end
         self.cmax.step = self.cmin.step
         self.axiscut.end = self.covmat.shape[0]
         time = str(datetime.datetime.now().strftime('%Y-%m-%d_%H_%M_%f'))
@@ -406,8 +406,8 @@ class html_display:
         #self.draw.disabled = False
         print "Matrix updated2"
         self.dialog.visible = False
-        
-    def update_mode(self): 
+
+    def update_mode(self):
         self.dialog.visible = False
         if(self.old):
             os.remove(self.old)
@@ -418,8 +418,8 @@ class html_display:
         basis = self.basis_select3.value
         self.dialog.content="Loading..."
         self.dialog.visible = True
-        
-        if(basis == "Actuators"):  
+
+        if(basis == "Actuators"):
             pup = self.pup.flatten()
             pup[self.indx_pup] = self.IF[:,N].toarray()#self.f["IF"][:][:,N]
             self.pup = pup.reshape(self.pup.shape)
@@ -436,7 +436,7 @@ class html_display:
         #self.draw.disabled = False
         print "Mode updated"
         self.dialog.visible = False
-    
+
     def mode_increment(self):
         if(self.modes_select.value < self.modes.shape[1]-1):
             self.modes_select.value = self.modes_select.value+1
@@ -447,9 +447,9 @@ class html_display:
             self.modes_select.value = self.modes_select.value-1
         else:
             self.modes_select.value = 0
-    
+
     def plot_sum(self):
-        
+
         self.dialog.visible = False
         self.dialog.content="Computing..."
         self.dialog.visible = True
@@ -459,7 +459,7 @@ class html_display:
         basis_val = self.basis_select1.value
         plot_val = self.plot_select.value
         iteration = int(self.iter_select.value)
-        
+
         if(plot_val == "Commands"):
             data = np.zeros(self.nactus)
             x = range(self.nactus)
@@ -503,7 +503,7 @@ class html_display:
                 data /= np.exp(-self.f["fit_error"].value)
                 data2 /= np.exp(-self.f["fit_error"].value)
         if(self.f.keys().count("SR2")):
-            self.source3.data = dict(x=[x,x,x,x],y=[data,np.ones(len(x))*self.f["SR"].value,np.ones(len(x))*self.f["SR2"].value,data2],color=["blue","red","purple","green"])            
+            self.source3.data = dict(x=[x,x,x,x],y=[data,np.ones(len(x))*self.f["SR"].value,np.ones(len(x))*self.f["SR2"].value,data2],color=["blue","red","purple","green"])
         else:
             if(self.f.keys().count("SR")):
                 self.source3.data = dict(x=[x,x,x],y=[data,np.ones(len(x))*self.f["SR"].value,data2],color=["blue","red","green"])
@@ -511,7 +511,7 @@ class html_display:
                 self.source3.data = dict(x=x,y=data)
         print "Sum plotted"
         self.dialog.visible = False
-    
+
     def cov_cor(self):
         cov = np.zeros((6,6))
         bufdict = {"0":self.f["noise_com"][:],
@@ -528,26 +528,26 @@ class html_display:
                     cov[i,j] = np.sum(np.mean(tmpi*tmpj,axis=1)-np.mean(tmpi,axis=1)*np.mean(tmpj,axis=1))
                 else:
                     cov[i,j] = cov[j,i]
-        
+
         s = np.reshape(np.diag(cov),(cov.shape[0],1))
         sst = np.dot(s,s.T)
         cor = cov/np.sqrt(sst)
-        
+
         return cov, cor
-    
+
     def createDataTables(self):
 
         tmp = [TableColumn(field="Type", title="Covariance")]
         for item in self.DataTableItems[1:]:
             tmp.append(TableColumn(field=item, title=item))
         columns = tmp
-        
+
         cov_table = DataTable(source=self.table_cov_source, columns=columns, width=1200, height=280)
         tmp[0] = TableColumn(field="Type", title="Correlation")
         cor_table = DataTable(source=self.table_cor_source, columns=columns, width=1200, height=280)
 
         return cov_table, cor_table
-    
+
     def updateDataTables(self):
         self.table_cov_source.data = dict(Type=self.DataTableItems[1:],
                                            Noise=self.cov[:,0],
@@ -563,18 +563,18 @@ class html_display:
                                             FilteredModes=self.cor[:,3],
                                             Bandwidth=self.cor[:,4],
                                             Tomography=self.cor[:,5])
-        
 
 
-       
+
+
 files = glob.glob("/home/fferreira/public_html/breakdown_display*")
 for f in files:
     os.remove(f)
 
 disp = html_display()
-        
 
-    
+
+
      # initial load of the data
-    
+
     
