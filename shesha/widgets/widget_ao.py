@@ -16,7 +16,8 @@ from glob import glob
 import threading
 from PyQt4.uic import loadUiType
 from PyQt4 import QtGui
-from PyQt4.QtCore import QTimer
+from PyQt4.Qt import QThread, QObject
+from PyQt4.QtCore import QTimer, SIGNAL
 from functools import partial
 from subprocess import Popen, PIPE
 try:
@@ -697,6 +698,7 @@ class widgetAOWindow(TemplateBaseClass):
         self.ui.wao_next.setDisabled(True)
         self.ui.wao_unzoom.setDisabled(True)
         self.ui.wao_resetSR.setDisabled(True)
+        self.loaded = False
 
     def loadDefaultConfig(self):
         parlist = sorted(glob(self.defaultParPath + "*.py"))
@@ -705,6 +707,15 @@ class widgetAOWindow(TemplateBaseClass):
             [parlist[i].split('/')[-1] for i in range(len(parlist))])
 
     def InitConfig(self):
+        self.loaded = False
+        self.ui.wao_loadConfig.setDisabled(True)
+        self.ui.wao_init.setDisabled(True)
+        thread = WorkerThread(self, self.InitConfigThread)
+        QObject.connect(thread, SIGNAL(
+            "jobFinished( PyQt_PyObject )"), self.InitConfigFinished)
+        thread.start()
+     
+    def InitConfigThread(self):
         if(hasattr(self, "atm")):
             del self.atm
         if(hasattr(self, "tel")):
@@ -719,23 +730,6 @@ class widgetAOWindow(TemplateBaseClass):
             del self.dms
 
         self.iter = 0
-        self.currentViewSelected = None
-        self.SRCrossX = None
-        self.SRCrossY = None
-
-        # remove previous pupil materialisation
-#        vb = self.p1.getViewBox()
-#        for it in vb.items():
-#            if type(it) is pg.ScatterPlotItem:
-#                self.p1.removeItem(it)
-        for i in self.SRcircleAtmos:
-            self.p1.removeItem(self.SRcircleAtmos[i])
-        for i in self.SRcircleWFS:
-            self.p1.removeItem(self.SRcircleWFS[i])
-        for i in self.SRcircleDM:
-            self.p1.removeItem(self.SRcircleDM[i])
-        for i in self.SRcircleTarget:
-            self.p1.removeItem(self.SRcircleTarget[i])
 
         # set simulation name
         if(hasattr(self.config, "simul_name")):
@@ -797,6 +791,28 @@ class widgetAOWindow(TemplateBaseClass):
         if(not clean):
             h5u.validDataBase(
                 os.environ["SHESHA_ROOT"] + "/data/", matricesToLoad)
+        self.loaded = True
+
+    def InitConfigFinished(self):
+        self.ui.wao_loadConfig.setDisabled(False)
+
+        self.currentViewSelected = None
+        self.SRCrossX = None
+        self.SRCrossY = None
+
+        # remove previous pupil materialisation
+#        vb = self.p1.getViewBox()
+#        for it in vb.items():
+#            if type(it) is pg.ScatterPlotItem:
+#                self.p1.removeItem(it)
+        for i in self.SRcircleAtmos:
+            self.p1.removeItem(self.SRcircleAtmos[i])
+        for i in self.SRcircleWFS:
+            self.p1.removeItem(self.SRcircleWFS[i])
+        for i in self.SRcircleDM:
+            self.p1.removeItem(self.SRcircleDM[i])
+        for i in self.SRcircleTarget:
+            self.p1.removeItem(self.SRcircleTarget[i])
 
         for i in range(len(self.config.p_atmos.alt)):
             data = self.atm.get_screen(self.config.p_atmos.alt[i])
@@ -847,12 +863,12 @@ class widgetAOWindow(TemplateBaseClass):
         print self.dms
         print self.tar
         print self.rtc
-        self.loaded = True
         self.updateDisplay()
         self.displayRtcMatrix()
         self.updatePlotWfs()
         self.p1.autoRange()
 
+        self.ui.wao_init.setDisabled(False)
         self.ui.wao_run.setDisabled(False)
         self.ui.wao_next.setDisabled(False)
         self.ui.wao_openLoop.setDisabled(False)
@@ -1320,10 +1336,26 @@ class widgetAOWindow(TemplateBaseClass):
             self.ui.wao_run.setChecked(False)
 
 
+class WorkerThread( QThread ):
+    def __init__( self, parentThread, parentLoop):
+        QThread.__init__( self, parentThread)
+        self.loop = parentLoop
+    def run( self ):
+        self.running = True
+        self.loop()
+        success = True
+        self.emit( SIGNAL( "jobFinished( PyQt_PyObject )" ), success )
+    def stop( self ):
+        self.running = False
+        pass
+    def cleanUp( self):
+        pass
+
+
 if __name__ == '__main__':
     app = QtGui.QApplication(sys.argv)
+    app.setStyle('cleanlooks')
     wao = widgetAOWindow()
     wao.show()
-    app.setStyle('cleanlooks')
     # ao.imat_init(0, wao.rtc, wao.config.p_rtc, wao.dms, wao.wfs, wao.config.p_wfss, wao.config.p_tel)
     # app.exec_()

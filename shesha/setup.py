@@ -113,7 +113,8 @@ def locate_compass():
         raise EnvironmentError(
             "Environment variable 'COMPASS_ROOT' must be define")
 
-    compass_config = {'inc_sutra': root_compass + '/libsutra/include.h', 'inc_carma': root_compass + '/libcarma/include.h',
+    compass_config = {'inc_sutra': root_compass + '/libsutra/include.h', 
+                      'inc_carma': root_compass + '/libcarma/include.h',
                       'inc_naga': root_compass + '/naga', 'lib': root_compass}
 
     return compass_config
@@ -321,7 +322,8 @@ def compile_module(name):
 
     ext = Extension(name,
                     sources=['src/' + name + '.pyx'],
-                    extra_compile_args=["-Wno-unused-function", "-Wno-unused-label", "-Wno-cpp", "-std=c++11",
+                    extra_compile_args=["-Wno-unused-function", "-Wno-unused-label", "-Wno-cpp", 
+                                        "-Wno-deprecated-declarations", "-std=c++11",
                                         # "-O0", "-g",
                                         ],
                     include_dirs=include_dirs,

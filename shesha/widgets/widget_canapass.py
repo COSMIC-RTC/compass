@@ -18,7 +18,8 @@ import hdf5_utils as h5u
 import threading
 from PyQt4.uic import loadUiType
 from PyQt4 import QtGui
-from PyQt4.QtCore import QTimer
+from PyQt4.Qt import QThread, QObject
+from PyQt4.QtCore import QTimer, SIGNAL
 from functools import partial
 from pandas import HDFStore, read_hdf
 from threading import Thread
@@ -63,7 +64,7 @@ class widgetAOWindow(TemplateBaseClass):
 
         self.ui = WindowTemplate()
         self.ui.setupUi(self)
-
+    
         #############################################################
         #                   ATTRIBUTES                              #
         #############################################################
@@ -247,6 +248,7 @@ class widgetAOWindow(TemplateBaseClass):
         if filepath is False:
             filepath = str(QtGui.QFileDialog(directory=self.defaultParPath).getOpenFileName(
                 self, "Select parameter file", "", "parameters file (*.py);;hdf5 file (*.h5);;all files (*)"))
+        self.loaded = False
         filename = filepath.split('/')[-1]
         if(filepath.split('.')[-1] == "py"):
             pathfile = filepath.split(filename)[0]
@@ -331,6 +333,15 @@ class widgetAOWindow(TemplateBaseClass):
         self.updateDisplay()
 
     def InitConfig(self):
+        self.loaded = False
+        self.ui.wao_loadConfig.setDisabled(True)
+        self.ui.wao_init.setDisabled(True)
+        thread = WorkerThread(self, self.InitConfigThread)
+        QObject.connect(thread, SIGNAL(
+            "jobFinished( PyQt_PyObject )"), self.InitConfigFinished)
+        thread.start()
+     
+    def InitConfigThread(self):
         if(hasattr(self, "atm")):
             del self.atm
         if(hasattr(self, "tel")):
@@ -345,23 +356,6 @@ class widgetAOWindow(TemplateBaseClass):
             del self.dms
 
         self.iter = 0
-        self.currentViewSelected = None
-        self.SRCrossX = None
-        self.SRCrossY = None
-
-        # remove previous pupil materialisation
-#        vb = self.p1.getViewBox()
-#        for it in vb.items():
-#            if type(it) is pg.ScatterPlotItem:
-#                self.p1.removeItem(it)
-        for i in self.SRcircleAtmos:
-            self.p1.removeItem(self.SRcircleAtmos[i])
-        for i in self.SRcircleWFS:
-            self.p1.removeItem(self.SRcircleWFS[i])
-        for i in self.SRcircleDM:
-            self.p1.removeItem(self.SRcircleDM[i])
-        for i in self.SRcircleTarget:
-            self.p1.removeItem(self.SRcircleTarget[i])
 
         gpudevice = self.ui.wao_deviceNumber.value()  # using GUI value
         gpudevice = self.config.p_loop.devices
@@ -400,6 +394,28 @@ class widgetAOWindow(TemplateBaseClass):
                                self.atm, self.config.p_tel, self.config.p_loop, do_refslp=False, clean=1, simul_name="",
                                load={}, brama=self.brama_rtc_flag, g_tar=self.tar)
         self.rtc.set_openloop(0, 1)
+        self.loaded = True
+
+    def InitConfigFinished(self):
+        self.ui.wao_loadConfig.setDisabled(False)
+
+        self.currentViewSelected = None
+        self.SRCrossX = None
+        self.SRCrossY = None
+
+        # remove previous pupil materialisation
+#        vb = self.p1.getViewBox()
+#        for it in vb.items():
+#            if type(it) is pg.ScatterPlotItem:
+#                self.p1.removeItem(it)
+        for i in self.SRcircleAtmos:
+            self.p1.removeItem(self.SRcircleAtmos[i])
+        for i in self.SRcircleWFS:
+            self.p1.removeItem(self.SRcircleWFS[i])
+        for i in self.SRcircleDM:
+            self.p1.removeItem(self.SRcircleDM[i])
+        for i in self.SRcircleTarget:
+            self.p1.removeItem(self.SRcircleTarget[i])
 
         for i in range(len(self.config.p_atmos.alt)):
             data = self.atm.get_screen(self.config.p_atmos.alt[i])
@@ -450,7 +466,7 @@ class widgetAOWindow(TemplateBaseClass):
         print self.dms
         print self.tar
         print self.rtc
-        self.loaded = True
+        
         self.updateDisplay()
         self.p1.autoRange()
 
@@ -872,12 +888,6 @@ class widgetAOWindow(TemplateBaseClass):
 
     def run(self):
         # print "Loop started"
-        '''
-        while True:
-            self.mainLoop()
-            if(self.stop):
-                break
-        '''
         self.mainLoop()
         if not self.stop:
             QTimer.singleShot(0, self.run)
@@ -885,8 +895,23 @@ class widgetAOWindow(TemplateBaseClass):
         # print "Loop stopped"
 
 
-try:
+class WorkerThread( QThread ):
+    def __init__( self, parentThread, parentLoop):
+        QThread.__init__( self, parentThread)
+        self.loop = parentLoop
+    def run( self ):
+        self.running = True
+        self.loop()
+        success = True
+        self.emit( SIGNAL( "jobFinished( PyQt_PyObject )" ), success )
+    def stop( self ):
+        self.running = False
+        pass
+    def cleanUp( self):
+        pass
 
+
+try:
     class widgetAOWindowPyro(widgetAOWindow, Pyro.core.ObjBase):
         def __init__(self):
             widgetAOWindow.__init__(self)
@@ -933,7 +958,6 @@ try:
             print "starting daemon"
             daemon.requestLoop()
             print "daemon started"
-
 except:
     pass
 

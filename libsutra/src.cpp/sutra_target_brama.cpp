@@ -6,7 +6,7 @@
 sutra_target_brama::sutra_target_brama(carma_context *context, ACE_TCHAR* name, sutra_telescope *d_tel,
                                        int subsample_, int ntargets,
                                        float *xpos, float *ypos, float *lambda,
-                                       float *mag, float zerop, long *sizes, 
+                                       float *mag, float zerop, long *sizes,
                                        int Npts, int device) :
     sutra_target(context, d_tel, ntargets, xpos, ypos, lambda, mag, zerop, sizes, Npts,
                  device) {

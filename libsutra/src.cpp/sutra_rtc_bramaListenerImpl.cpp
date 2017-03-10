@@ -42,7 +42,7 @@ void sutra_rtc_bramaListenerImpl::on_data_available(DDS::DataReader_ptr reader)
 //        ACE_Guard < ACE_Mutex > guard(this->lock_);
         try {
           const string type(cmd.name.in());
-          DEBUG_TRACE("get command type %s", type.c_str());
+//          DEBUG_TRACE("get command type %s", type.c_str());
 
           std::vector < string > cmd_splited;
           carma_utils::split(cmd_splited, type, '_');
