@@ -1,0 +1,20 @@
+# cpp objects
+obj
+*.o
+*.so
+
+# cython generated files
+build
+cython_debug
+naga/src/*.cpp
+naga/src/naga_host_obj.pyx
+naga/src/naga_magma.pyx
+naga/src/naga_obj.pyx
+naga/src/naga_sparse_obj.pyx
+shesha/src/*.cpp
+
+# python bytecodes
+*.pyc
+
+# specific param files
+shesha/par.pxi
