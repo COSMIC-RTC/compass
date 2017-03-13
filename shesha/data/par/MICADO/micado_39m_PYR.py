@@ -51,13 +51,20 @@ p_atmos.set_L0([1.e5])  # Not simulated in Yorick?
 #p_target.set_mag([4.])
 
 # 3 Lambda targets
-p_target=ao.Param_target()
-p_target.set_nTargets(3)
-p_target.set_xpos([0, 0, 0])
-p_target.set_ypos([0, 0, 0])
-p_target.set_Lambda([1.2, 1.65, 2.2])
-p_target.set_mag([4, 4., 4])
+#p_target=ao.Param_target()
+#p_target.set_nTargets(3)
+#p_target.set_xpos([0, 0, 0])
+#p_target.set_ypos([0, 0, 0])
+#p_target.set_Lambda([1.2, 1.65, 2.2])
+#p_target.set_mag([4, 4., 4])
 
+# 2 Lambda targets
+p_target=ao.Param_target()
+p_target.set_nTargets(2)
+p_target.set_xpos([0, 0])
+p_target.set_ypos([0, 0])
+p_target.set_Lambda([1.65, 0.7])
+p_target.set_mag([4, 4.])
 # wfs
 #p_wfs0 = ao.Param_wfs(error_budget=True)
 p_wfs0= ao.Param_wfs()
@@ -70,7 +77,7 @@ p_wfs0.set_fracsub(0.8)
 p_wfs0.set_xpos(0.)
 p_wfs0.set_ypos(0.)
 p_wfs0.set_Lambda(0.7)
-p_wfs0.set_gsmag(11)
+p_wfs0.set_gsmag(18)
 p_wfs0.set_optthroughput(0.5)
 p_wfs0.set_zerop(1.e11)
 p_wfs0.set_noise(0.1)  # in electrons units
@@ -126,7 +133,9 @@ p_centroider0.set_type("pyr")
 p_controller0 = ao.Param_controller()
 p_controllers = [p_controller0]
 
-p_controller0.set_type("ls")
+#p_controller0.set_type("ls")
+p_controller0.set_type("generic")
+
 p_controller0.set_nwfs([0])
 p_controller0.set_ndm([0, 1])
 p_controller0.set_maxcond(150.)

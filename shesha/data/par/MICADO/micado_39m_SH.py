@@ -67,19 +67,19 @@ p_wfss=[p_wfs0]
 
 p_wfs0.set_type("sh")
 p_wfs0.set_nxsub(78)
-p_wfs0.set_npix(8)
+p_wfs0.set_npix(4)
 p_wfs0.set_pixsize(0.3)
 p_wfs0.set_fracsub(0.8)
 p_wfs0.set_xpos(0.)
 p_wfs0.set_ypos(0.)
 p_wfs0.set_Lambda(0.5)
-p_wfs0.set_gsmag(11.)
+p_wfs0.set_gsmag(15.5)
 p_wfs0.set_optthroughput(0.5)
 p_wfs0.set_zerop(1.e11)
 p_wfs0.set_noise(3) # in electrons units
 p_wfs0.set_atmos_seen(1)
 p_wfs0.set_fstop("round")
-p_wfs0.set_fssize(1.6)
+p_wfs0.set_fssize(2.4)
 
 
 #dm
@@ -111,7 +111,7 @@ p_centroider0.set_nwfs(0)
 #sp_centroider0.set_thresh(0.)
 
 p_centroider0.set_type("bpcog")
-p_centroider0.set_nmax(10)
+p_centroider0.set_nmax(6)
 
 #p_centroider0.set_type("corr")
 #p_centroider0.set_type_fct("model")
@@ -127,12 +127,12 @@ p_controller0.set_maxcond(150.)
 p_controller0.set_delay(1)
 p_controller0.set_gain(0.3)
 
-#p_controller0.set_modopti(0)
-#p_controller0.set_nrec(2048)
-#p_controller0.set_nmodes(5064)
-#p_controller0.set_gmin(0.001)
-#p_controller0.set_gmax(0.5)
-#p_controller0.set_ngain(500)
+p_controller0.set_modopti(1)
+p_controller0.set_nrec(2048)
+p_controller0.set_nmodes(3532)
+p_controller0.set_gmin(0.001)
+p_controller0.set_gmax(0.5)
+p_controller0.set_ngain(500)
 
 #rtc
 p_rtc=ao.Param_rtc()
