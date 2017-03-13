@@ -108,35 +108,35 @@ def testDM(KL2VN, nmode, Nslopes, pushDMMic, pushTTArcsec, wao, disp=False):
     return s, v
 
 
-ampli = 1
-Nactu = sum(wao.config.p_rtc.controllers[0].nactu)
-Nslopes = wao.rtc.getCentroids(0).shape[0]
-wao.setIntegratorLaw()
-gain = 0.8
-wao.rtc.set_openloop(0, 1)  # openLoop
-decay = np.ones(Nslopes, dtype=(np.float32))
-wao.rtc.set_decayFactor(0, decay)
-mgain = np.ones(Nactu, dtype=(np.float32))
-wao.rtc.set_mgain(0, mgain)
-#mcCompass = pfits.getdata("/home/fvidal/ADOPT/data/cmat39mCompass3500KL.fits").byteswap().newbyteorder()
-#wao.rtc.set_cmat(0, mcCompass.copy())
+#ampli = 1
+#Nactu = sum(wao.config.p_rtc.controllers[0].nactu)
+#Nslopes = wao.rtc.getCentroids(0).shape[0]
+#wao.setIntegratorLaw()
+#gain = 0.8
+#wao.rtc.set_openloop(0, 1)  # openLoop
+#decay = np.ones(Nslopes, dtype=(np.float32))
+#wao.rtc.set_decayFactor(0, decay)
+#mgain = np.ones(Nactu, dtype=(np.float32))
+#wao.rtc.set_mgain(0, mgain)
+##mcCompass = pfits.getdata("/home/fvidal/ADOPT/data/cmat39mCompass3500KL.fits").byteswap().newbyteorder()
+##wao.rtc.set_cmat(0, mcCompass.copy())
 
-wao.rtc.set_openloop(0, 0)  # closeLoop
-KL2V = wao.returnkl2V()
-KL2V2 = KL2V.copy()
-pushDMMic = 0.01  # 10nm
-pushTTArcsec = 0.005  # 5 mas
-wao.rtc.do_centroids_ref(0)
-miKL, KL2VN =computeKLModesImat(pushDMMic, pushTTArcsec, KL2V2, Nslopes)
-#KL2VN = normalizeKL2V(KL2V2)
-nfilt = 450
-cmat = computeCmatKL(miKL, KL2VN, nfilt, np.linspace(2.2,0.1,Nactu-2-nfilt), 2.); wao.rtc.set_cmat(0, cmat.astype(np.float32).copy())
+#wao.rtc.set_openloop(0, 0)  # closeLoop
+#KL2V = wao.returnkl2V()
+#KL2V2 = KL2V.copy()
+#pushDMMic = 0.01  # 10nm
+#pushTTArcsec = 0.005  # 5 mas
+#wao.rtc.do_centroids_ref(0)
+#miKL, KL2VN =computeKLModesImat(pushDMMic, pushTTArcsec, KL2V2, Nslopes)
+##KL2VN = normalizeKL2V(KL2V2)
+#nfilt = 450
+#cmat = computeCmatKL(miKL, KL2VN, nfilt, np.linspace(2.2,0.1,Nactu-2-nfilt), 2.); wao.rtc.set_cmat(0, cmat.astype(np.float32).copy())
 
-gDM = 1; gTT=1.;
-gains = np.ones(Nactu,dtype=np.float32)*gDM;
-gains[-2:]=gTT;
-wao.rtc.set_mgain(0, gains)
-wao.rtc.set_openloop(0, 0)  # openLoop
+#gDM = 1; gTT=1.;
+#gains = np.ones(Nactu,dtype=np.float32)*gDM;
+#gains[-2:]=gTT;
+#wao.rtc.set_mgain(0, gains)
+#wao.rtc.set_openloop(0, 0)  # openLoop
 
 
 """
