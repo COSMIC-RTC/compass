@@ -131,15 +131,17 @@ class widgetAOWindow(TemplateBaseClass):
             self.setNumberSelection)
         self.ui.wao_rtcWindowMPL.hide()
         self.ui.wao_frameRate.setValue(2)
-        self.ui.wao_PSFlogscale.clicked.connect(self.updateDisplay)
+        #self.ui.wao_PSFlogscale.clicked.connect(self.updateDisplay)
+        self.ui.wao_PSFlogscale.toggled.connect(self.updateDisplay)
         self.ui.wao_atmosphere.setCheckable(True)
         self.ui.wao_atmosphere.clicked[bool].connect(self.set_atmos)
         self.dispStatsInTerminal = False
         self.ui.wao_clearSR.clicked.connect(self.clearSR)
         self.ui.wao_Display.setCheckState(True)
         self.ui.wao_Display.stateChanged.connect(self.updateDisplay)
-        self.ui.StatsInTerminal.stateChanged.connect(
-            self.updateStatsInTerminal)
+        #self.ui.StatsInTerminal.stateChanged.connect(self.updateStatsInTerminal)
+        self.ui.StatsInTerminal.toggled.connect(self.updateStatsInTerminal)
+        self.ui.actionQuit.toggled.connect(self.quitGUI)
 
         self.SRcircleAtmos = {}
         self.SRcircleWFS = {}
@@ -223,8 +225,22 @@ class widgetAOWindow(TemplateBaseClass):
         for t in range(self.config.p_target.ntargets):
             self.tar.reset_strehl(t)
 
-    def closeEvent(self, event):
+    def quitGUI(self):
+        reply = QtGui.QMessageBox.question(self, 'Message',
+                                           "Are you sure to quit?", QtGui.QMessageBox.Yes |
+                                           QtGui.QMessageBox.No, QtGui.QMessageBox.No)
 
+        if reply == QtGui.QMessageBox.Yes:
+            self.stop = True
+            if self.loop is not None:
+                self.loop.join()
+            # super(widgetAOWindow, self).closeEvent(event)
+            quit()
+            # sys.exit()
+        else:
+            print "Exit aborted"
+
+    def closeEvent(self, event):
         reply = QtGui.QMessageBox.question(self, 'Message',
                                            "Are you sure to quit?", QtGui.QMessageBox.Yes |
                                            QtGui.QMessageBox.No, QtGui.QMessageBox.No)
@@ -533,22 +549,36 @@ class widgetAOWindow(TemplateBaseClass):
             widToShow.show()
             widToHide.hide()
 
-    def measureIMatKL(self, ampliVec, KL2V, Nslopes, nmodesMax=0):
+    def measureIMatKL(self, ampliVec, KL2V, Nslopes, noise=False, nmodesMax=0, withTurbu=False):
         iMatKL = np.zeros((KL2V.shape[1], Nslopes))
-        self.rtc.set_openloop(0, 1)  # openLoop
         self.aoLoopClicked(False)
         self.ui.wao_run.setChecked(False)
         time.sleep(1)
         st = time.time()
+        currentVolts = wao.rtc.getVoltage(0)*0.
+
         if(nmodesMax):
             KLMax = nmodesMax
         else:
             KLMax = KL2V.shape[1]
         for kl in range(KLMax):
             v = ampliVec[kl] * KL2V[:, kl:kl + 1].T.copy()
-            self.rtc.set_perturbcom(0, v)
-            iMatKL[kl, :] = self.applyVoltGetSlopes()
+            if(withTurbu): # with turbulence/aberrations => push/pull
+                self.rtc.set_perturbcom(0, v + currentVolts)
+                devpos = self.applyVoltGetSlopes(turbu=withTurbu, noise=noise)
+                self.rtc.set_perturbcom(0, -v + currentVolts)
+                devmin = self.applyVoltGetSlopes(turbu=withTurbu, noise=noise)
+                iMatKL[kl, :] = (devpos - devmin) / (2. * ampliVec[kl])
+                #imat[:-2, :] /= pushDMMic
+                #if(nmodesMax == 0):# i.e we measured all modes including TT
+                #imat[-2:, :] /= pushTTArcsec
+            else: # No turbulence => push only
+                self.rtc.set_openloop(0, 1)  # openLoop
+                self.rtc.set_perturbcom(0, v)
+                iMatKL[kl, :] = self.applyVoltGetSlopes(noise=noise) / ampliVec[kl]
             print "Doing KL interaction matrix on mode: #%d\r" % kl,
+            os.sys.stdout.flush()
+
         print "Modal interaction matrix done in %3.0f seconds" % (time.time() - st)
         self.aoLoopClicked(True)
         self.ui.wao_run.setChecked(True)
@@ -556,10 +586,13 @@ class widgetAOWindow(TemplateBaseClass):
         return iMatKL
 
 
-    def applyVoltGetSlopes(self, noise=False):
+    def applyVoltGetSlopes(self, noise=False, turbu=False):
         self.rtc.applycontrol(0, self.dms)
         for w in range(len(self.config.p_wfss)):
-            self.wfs.sensors_trace(w, "dm", self.tel, self.atm, self.dms, rst=1)
+            if(turbu):
+                self.wfs.sensors_trace(w, "all", self.tel, self.atm, self.dms, rst=1)
+            else:
+                self.wfs.sensors_trace(w, "dm", self.tel, self.atm, self.dms, rst=1)
             self.wfs.sensors_compimg(w, noise=noise)
         self.rtc.docentroids(0)
         return self.rtc.getcentroids(0)
