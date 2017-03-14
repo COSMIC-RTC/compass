@@ -29,8 +29,13 @@ try:
 except:
     darkStyle=False
 
+
 sys.path.insert(0, os.environ["SHESHA_ROOT"] + "/widgets/")
 sys.path.insert(0, os.environ["SHESHA_ROOT"] + "/data/par/")
+sys.path.insert(0, os.environ["SHESHA_ROOT"] + "/lib/")
+import compassConfigToFile as cf
+from aoCalib import adoptCalib_class
+
 WindowTemplate, TemplateBaseClass = loadUiType(
     os.environ["SHESHA_ROOT"] + "/widgets/widget_canapass.ui")
 
@@ -64,7 +69,7 @@ class widgetAOWindow(TemplateBaseClass):
 
         self.ui = WindowTemplate()
         self.ui.setupUi(self)
-    
+
         #############################################################
         #                   ATTRIBUTES                              #
         #############################################################
@@ -92,7 +97,7 @@ class widgetAOWindow(TemplateBaseClass):
         self.brama_rtc_flag = 1
         self.brama_tar_flag = 1
         self.see_atmos = 0
-
+        self.aoCalib = None
         #############################################################
         #             PYQTGRAPH WINDOW INIT                         #
         #############################################################
@@ -159,14 +164,17 @@ class widgetAOWindow(TemplateBaseClass):
         #     filepath=os.environ["SHESHA_ROOT"] + "/data/par/canapass.py")
         # self.InitConfig()
 
+    def getConfig(self, path):
+        return self.aoCalib.getConfig(self, path)
+        #return cf.returnConfigfromWao(self, filepath=path)
 
     def returnkl2V(self):
-        KL2V = ao.compute_KL2V(wao.config.p_controllers[
-                               0], wao.dms, wao.config.p_dms, wao.config.p_geom, wao.config.p_atmos, wao.config.p_tel)
+        KL2V = ao.compute_KL2V(self.config.p_controllers[
+                               0], self.dms, self.config.p_dms, self.config.p_geom, self.config.p_atmos, self.config.p_tel)
         return KL2V
 
     def doRefslopes(self):
-        wao.rtc.do_centroids_ref(0)
+        self.rtc.do_centroids_ref(0)
         print "refslopes done"
 
     def setCommandMatrix(self, cMat):
@@ -187,9 +195,6 @@ class widgetAOWindow(TemplateBaseClass):
 
     def setGain(self, gain):
         self.rtc.set_gain(0, gain)
-
-    def getConfig(self, path):
-        return cf.returnConfigfromWao(self, filepath=path)
 
     def setDecayFactor(self, decay):
         self.rtc.set_decayFactor(0, decay.astype(np.float32).copy())
@@ -356,7 +361,7 @@ class widgetAOWindow(TemplateBaseClass):
         QObject.connect(thread, SIGNAL(
             "jobFinished( PyQt_PyObject )"), self.InitConfigFinished)
         thread.start()
-     
+
     def InitConfigThread(self):
         if(hasattr(self, "atm")):
             del self.atm
@@ -411,6 +416,7 @@ class widgetAOWindow(TemplateBaseClass):
                                load={}, brama=self.brama_rtc_flag, g_tar=self.tar)
         self.rtc.set_openloop(0, 1)
         self.loaded = True
+        self.aoCalib = adoptCalib_class(self.config, self.wfs, self.tel, self.atm, self.dms, self.tar, self.rtc, ao)
 
     def InitConfigFinished(self):
         self.ui.wao_loadConfig.setDisabled(False)
@@ -482,7 +488,7 @@ class widgetAOWindow(TemplateBaseClass):
         print self.dms
         print self.tar
         print self.rtc
-        
+
         self.updateDisplay()
         self.p1.autoRange()
 
@@ -891,11 +897,10 @@ class widgetAOWindow(TemplateBaseClass):
                 if(time.time() - self.refreshTime > refreshDisplayTime):
                     signal_le = ""
                     signal_se = ""
-                    #for t in range(self.config.p_target.ntargets):
-                    t = 0
-                    SR = self.tar.get_strehl(t)
-                    signal_se += "%1.2f   " % SR[0]
-                    signal_le += "%1.2f   " % SR[1]
+                    for t in range(self.config.p_target.ntargets):
+                        SR = self.tar.get_strehl(t)
+                        signal_se += "%1.2f   " % SR[0]
+                        signal_le += "%1.2f   " % SR[1]
 
                     loopTime = time.time() - start
                     currentFreq = 1 / loopTime
@@ -1003,6 +1008,7 @@ if __name__ == '__main__':
         wao = widgetAOWindowPyro()
     else:
         wao = widgetAOWindow()
+
     wao.show()
     """
     locator = Pyro.naming.NameServerLocator()
