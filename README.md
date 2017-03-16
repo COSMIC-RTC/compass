@@ -306,13 +306,14 @@ Additionally, to benefit from the user-oriented features of the platform, Anacon
 First check out the latest version from the svn repository :
 
 ```bash
-svn co https://version-lesia.obspm.fr/repos/compass/trunk compass
+git clone https://gitlab.obspm.fr/compass/compass
 ```
 
-then go in the newly created directory and then trunk:
+then go in the newly created directory and then go into the branch "develop":
 
 ```bash
 cd compass
+git checkout develop
 ```
 
 once there, you need to modify system variables in our .bashrc :
