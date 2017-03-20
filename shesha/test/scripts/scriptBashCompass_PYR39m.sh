@@ -18,14 +18,14 @@ for FREQ in "250" "500" "1000"
 do
     for RONS in "0.1"
     do
-        for MODU in "3" "7" "15" "20"
+        for MODU in "5" "8" "15" "20"
         do
             for GAIN in "1" #"pyr" #
             do
                 #for MAG in "11" "12" "13" "13.5" "14" "14.5" "15" "15.5" "16" "16.5" "17" #"pyr" #
                 for MAG in "11" "12" "13" "13.5" "14" "14.5" "15" "15.5" "16" "16.5" "17" "17.5" "18" "18.5" "19" "19.5" "20" #"pyr" #
                 do
-                    for KLFILT in "1000"
+                    for KLFILT in "450"
                     do
                         CMD="python $script $PARFILE $FREQ $RONS $MODU $GAIN $MAG $KLFILT"
                         echo "execute $CMD" >> $OUTPUT

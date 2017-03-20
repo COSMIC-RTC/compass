@@ -18,12 +18,14 @@ p_tel = ao.Param_tel()
 p_tel.set_diam(39.)
 p_tel.set_cobs(0.28)
 
+#E_ELT PUPIL
+
 """
-E_ELT PUPIL
 p_tel.set_type_ap("EELT-Nominal")
 p_tel.set_spiders_type("six")
 p_tel.set_pupangle(0)
-
+"""
+"""
 p_tel.set_nbrmissing(7)
 p_tel.set_referr(0.01)
 p_tel.set_std_tt(0.050) # microns
@@ -77,10 +79,10 @@ p_wfs0.set_fracsub(0.8)
 p_wfs0.set_xpos(0.)
 p_wfs0.set_ypos(0.)
 p_wfs0.set_Lambda(0.7)
-p_wfs0.set_gsmag(18)
+p_wfs0.set_gsmag(11)
 p_wfs0.set_optthroughput(0.5)
 p_wfs0.set_zerop(1.e11)
-p_wfs0.set_noise(0.1)  # in electrons units
+p_wfs0.set_noise(-1)  # in electrons units
 p_wfs0.set_atmos_seen(1)
 p_wfs0.set_fstop("square")
 p_wfs0.set_fssize(1.6)
@@ -140,7 +142,7 @@ p_controller0.set_nwfs([0])
 p_controller0.set_ndm([0, 1])
 p_controller0.set_maxcond(150.)
 p_controller0.set_delay(1)
-p_controller0.set_gain(0.2)
+p_controller0.set_gain(1)
 
 # p_controller0.set_modopti(0)
 # p_controller0.set_nrec(2048)

@@ -5,7 +5,7 @@ import sys,os
 sys.path.insert(0, os.environ["SHESHA_ROOT"]+"/widgets/")
 sys.path.insert(0, os.environ["SHESHA_ROOT"]+"/lib/")
 
-from adoptLib import computeKLModesImat, computeCmatKL
+#from adoptLib import computeKLModesImat, computeCmatKL
 import tools
 import numpy as np
 import naga as ch
@@ -287,7 +287,9 @@ for freq in freqs:
                     nfilt = nKL_Filt
                     #cmat = ao.compute_cmatWithKL(rtc, config.p_controllers[0], dms, config.p_dms, config.p_geom, config.p_atmos, config.p_tel, nfilt)
                     print "Reading cMat"
-                    cmat = pf.getdata(os.environ["SHESHA_ROOT"]+"/test/scripts/cmatKLGood.fits").byteswap().newbyteorder()
+                    print 1/0.
+
+                    #cmat = pf.getdata(os.environ["SHESHA_ROOT"]+"/test/scripts/cmatKLGood.fits").byteswap().newbyteorder()
                     print "Setting cMat"
                     #rtc.set_cmat(0, cmat.copy().astype(np.float32))
                     rtc.set_cmat(0, cmat.copy())

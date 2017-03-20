@@ -899,6 +899,9 @@ class widgetAOWindow(TemplateBaseClass):
                     signal_se = ""
                     for t in range(self.config.p_target.ntargets):
                         SR = self.tar.get_strehl(t)
+                        if(t==self.numberSelected): # Plot on the wfs selected
+                            self.updateSRDisplay(SR[1], SR[0], self.iter)
+
                         signal_se += "%1.2f   " % SR[0]
                         signal_le += "%1.2f   " % SR[1]
 
@@ -913,7 +916,6 @@ class widgetAOWindow(TemplateBaseClass):
                         self.printInPlace("iter #%d SR: (L.E, S.E.)= %s, %srunning at %4.1fHz (real %4.1fHz)" % (
                             self.iter, signal_le, signal_se, refreshFreq, currentFreq))
                     self.refreshTime = time.time()
-                    self.updateSRDisplay(SR[1], SR[0], self.iter)
                 self.iter += 1
             finally:
                 self.loopLock.release()

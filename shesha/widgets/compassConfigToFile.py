@@ -119,8 +119,8 @@ def returnConfigfromWao(wao, filepath=os.environ["SHESHA_ROOT"] + "/widgets/cana
             tmpdata[1,:] = wao.config.p_dm0._i1
             new_hdudmsl.append(pfits.ImageHDU(tmpdata))  # Valid subap array
             new_hdudmsl[j].header["DATATYPE"] = "valid_dm%d" % j
-        for k in range(aodict["nbWfs"]):
-            tmp.append(wao.computeDMrange(j, k))
+        #for k in range(aodict["nbWfs"]):
+        #    tmp.append(wao.computeDMrange(j, k))
 
         push4iMatArcSec.append(tmp)
     new_hdudmsl.writeto(filepath.split(".conf")[0]+'_dmsConfig.fits', clobber=True)

@@ -41,13 +41,21 @@ p_atmos.set_windspeed([10.])
 p_atmos.set_winddir([45.])
 p_atmos.set_L0([1.e5]) # Not simulated in Yorick?
 
-#target
+
 p_target=ao.Param_target()
-p_target.set_nTargets(1)
-p_target.set_xpos([0])
-p_target.set_ypos([0.])
-p_target.set_Lambda([1.65])
-p_target.set_mag([4.])
+p_target.set_nTargets(2)
+p_target.set_xpos([0, 0])
+p_target.set_ypos([0, 0])
+p_target.set_Lambda([1.65, 0.5])
+p_target.set_mag([4, 4.])
+
+#target
+#p_target=ao.Param_target()
+#p_target.set_nTargets(1)
+#p_target.set_xpos([0])
+#p_target.set_ypos([0.])
+#p_target.set_Lambda([1.65])
+#p_target.set_mag([4.])
 
 #wfs
 #p_wfs0= ao.Param_wfs(error_budget=True)
@@ -116,12 +124,12 @@ p_centroider0.set_type("pyr")
 p_controller0=ao.Param_controller()
 p_controllers=[p_controller0]
 
-p_controller0.set_type("ls")
+p_controller0.set_type("generic")
 p_controller0.set_nwfs([0])
 p_controller0.set_ndm([0,1])
 p_controller0.set_maxcond(150.)
 p_controller0.set_delay(1)
-p_controller0.set_gain(0.7)
+p_controller0.set_gain(1)
 
 #p_controller0.set_modopti(0)
 #p_controller0.set_nrec(2048)
