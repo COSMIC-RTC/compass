@@ -1,4 +1,3 @@
-
 CU_DIR=src.cu
 CPP_DIR=src.cpp
 CUH_DIR=include.cuh
@@ -110,7 +109,12 @@ ifneq ($(BRAMA_ROOT),)
   LIB_DEPLIBS   += -Wl,-E -fvisibility-inlines-hidden -fno-strict-aliasing -pthread -pipe -L$(ACE_ROOT)/lib -L$(DDS_ROOT)/lib -L$(TAO_ROOT)/tao -lBRAMACommon -lOpenDDS_InfoRepoDiscovery -lOpenDDS_Dcps -lTAO_PortableServer -lTAO_AnyTypeCode -lTAO -lACE -ldl -lrt
 endif
 
-all: $(LIB_NAME)
+.PHONY: ${OBJ_DIR}
+
+all: ${OBJ_DIR} $(LIB_NAME)
+
+${OBJ_DIR}:
+	mkdir -p ${OBJ_DIR}
 
 clean:
 	@rm -rf $(OBJS)
@@ -129,5 +133,5 @@ $(CURED_DIR)/%.o: $(CURED_DIR)/%.cpp
 	@$(GCC) $(CFLAGS) -DADD_ $(LIB_CPPFLAGS) -c -o $@ $<
 
 $(LIB_NAME): $(OBJS)
-	@printf '\033[36m%s\033[31m%s\033[m\n' "Linking       " $(LIB_NAME)
+	@printf '\033[36m%s\033[31m%s\033[m\n' "Linking       " $@
 	@$(GCC) -shared -o $@ $^ $(LIB_DEPLIBS)
