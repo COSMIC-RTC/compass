@@ -12,7 +12,7 @@ def params_dictionary(config):
     :return param_dict: (dictionary) : dictionary of parameters
     """
     param_dict = {"simulname":config.simul_name,
-        "revision":check_output(["svnversion",os.getenv("COMPASS_ROOT")]).replace("\n", ""),
+        "revision":check_output(["git", "rev-parse", "HEAD"]).replace("\n", ""),
         # Loop params
         "niter":config.p_loop.niter,
         "ittime":config.p_loop.ittime,
@@ -185,54 +185,54 @@ def create_file_attributes(filename, param_dict):
     f.close()
 
 def init_hdf5_files(savepath, param_dict, matricesToLoad):
-    svnversion = check_output(["svnversion",os.getenv("COMPASS_ROOT")]).replace("\n", "")
+    version = check_output(["git", "rev-parse", "HEAD"]).replace("\n", "")
     if not(matricesToLoad.has_key("A")):
         df = pandas.read_hdf(savepath + "matricesDataBase.h5", "A")
         ind = len(df.index)
-        filename = savepath + "turbu/A_r" + svnversion + "_" + str(ind) + ".h5"
+        filename = savepath + "turbu/A_" + version + "_" + str(ind) + ".h5"
         create_file_attributes(filename, param_dict)
         updateDataBase(filename, savepath, "A")
         df = pandas.read_hdf(savepath + "matricesDataBase.h5", "B")
         ind = len(df.index)
-        filename = savepath + "turbu/B_r" + svnversion + "_" + str(ind) + ".h5"
+        filename = savepath + "turbu/B_" + version + "_" + str(ind) + ".h5"
         create_file_attributes(filename, param_dict)
         updateDataBase(filename, savepath, "B")
         df = pandas.read_hdf(savepath + "matricesDataBase.h5", "istx")
         ind = len(df.index)
-        filename = savepath + "turbu/istx_r" + svnversion + "_" + str(ind) + ".h5"
+        filename = savepath + "turbu/istx_" + version + "_" + str(ind) + ".h5"
         create_file_attributes(filename, param_dict)
         updateDataBase(filename, savepath, "istx")
         df = pandas.read_hdf(savepath + "matricesDataBase.h5", "isty")
         ind = len(df.index)
-        filename = savepath + "turbu/isty_r" + svnversion + "_" + str(ind) + ".h5"
+        filename = savepath + "turbu/isty_" + version + "_" + str(ind) + ".h5"
         create_file_attributes(filename, param_dict)
         updateDataBase(filename, savepath, "isty")
 
     if not(matricesToLoad.has_key("pztok")):
         df = pandas.read_hdf(savepath + "matricesDataBase.h5", "pztok")
         ind = len(df.index)
-        filename = savepath + "mat/pztok_r" + svnversion + "_" + str(ind) + ".h5"
+        filename = savepath + "mat/pztok_" + version + "_" + str(ind) + ".h5"
         create_file_attributes(filename, param_dict)
         updateDataBase(filename, savepath, "pztok")
         df = pandas.read_hdf(savepath + "matricesDataBase.h5", "pztnok")
         ind = len(df.index)
-        filename = savepath + "mat/pztnok_r" + svnversion + "_" + str(ind) + ".h5"
+        filename = savepath + "mat/pztnok_" + version + "_" + str(ind) + ".h5"
         create_file_attributes(filename, param_dict)
         updateDataBase(filename, savepath, "pztnok")
     if not(matricesToLoad.has_key("imat")):
         df = pandas.read_hdf(savepath + "matricesDataBase.h5", "imat")
         ind = len(df.index)
-        filename = savepath + "mat/imat_r" + svnversion + "_" + str(ind) + ".h5"
+        filename = savepath + "mat/imat_" + version + "_" + str(ind) + ".h5"
         create_file_attributes(filename, param_dict)
         updateDataBase(filename, savepath, "imat")
         df = pandas.read_hdf(savepath + "matricesDataBase.h5", "eigenv")
         ind = len(df.index)
-        filename = savepath + "mat/eigenv_r" + svnversion + "_" + str(ind) + ".h5"
+        filename = savepath + "mat/eigenv_" + version + "_" + str(ind) + ".h5"
         create_file_attributes(filename, param_dict)
         updateDataBase(filename, savepath, "eigenv")
         df = pandas.read_hdf(savepath + "matricesDataBase.h5", "U")
         ind = len(df.index)
-        filename = savepath + "mat/U_r" + svnversion + "_" + str(ind) + ".h5"
+        filename = savepath + "mat/U_" + version + "_" + str(ind) + ".h5"
         create_file_attributes(filename, param_dict)
         updateDataBase(filename, savepath, "U")
 
@@ -376,7 +376,7 @@ def checkTurbuParams(savepath, config, pdict, matricesToLoad):
 
     for i in dataBase.index:
         cc = 0
-        if(dataBase.loc[i, "validity"] and (dataBase.loc[i, "revision"] == check_output(["svnversion",os.getenv("COMPASS_ROOT")]).replace("\n", ""))):
+        if(dataBase.loc[i, "validity"] and (dataBase.loc[i, "revision"] == check_output(["git", "rev-parse", "HEAD"]).replace("\n", ""))):
             cond = ((dataBase.loc[i, param2test[cc]] == pdict[param2test[cc]]).all())
             while(cond):
                 if(cc >= len(param2test)):
@@ -396,7 +396,7 @@ def checkTurbuParams(savepath, config, pdict, matricesToLoad):
 
 
 #        if(dataBase.loc[i,"validity"]):
-#            load_turbu = (dataBase.loc[i,"revision"] == check_output("svnversion").replace("\n",""))
+#            load_turbu = (dataBase.loc[i,"revision"] == check_output(["git", "rev-parse", "HEAD"]).replace("\n",""))
 #            load_turbu &= ((dataBase.loc[i,"L0"] == config.p_atmos.L0).all())
 #            load_turbu &= ((dataBase.loc[i,"atm.alt"] == config.p_atmos.alt).all())
 #            load_turbu &= ((dataBase.loc[i,"tel_diam"] == config.p_tel.diam).all())
@@ -443,7 +443,7 @@ def checkControlParams(savepath, config, pdict, matricesToLoad):
 
     for i in dataBase.index:
         cc = 0
-        if(dataBase.loc[i, "validity"] and (dataBase.loc[i, "revision"] == check_output(["svnversion",os.getenv("COMPASS_ROOT")]).replace("\n", ""))):
+        if(dataBase.loc[i, "validity"] and (dataBase.loc[i, "revision"] == check_output(["git", "rev-parse", "HEAD"]).replace("\n", ""))):
             cond = ((dataBase.loc[i, param2test[cc]] == pdict[param2test[cc]]).all())
             while(cond):
                 if(cc >= len(param2test)):
@@ -463,7 +463,7 @@ def checkControlParams(savepath, config, pdict, matricesToLoad):
 
 
 #        if(dataBase.loc[i,"validity"]):
-#            load_control = (dataBase.loc[i,"revision"] == check_output("svnversion").replace("\n",""))
+#            load_control = (dataBase.loc[i,"revision"] == check_output(["git", "rev-parse", "HEAD"]).replace("\n",""))
 #            load_control &= ((dataBase.loc[i,"tel_diam"] == config.p_tel.diam).all())
 #            load_control &= ((dataBase.loc[i,"t_spiders"] == config.p_tel.t_spiders).all())
 #            load_control &= ((dataBase.loc[i,"spiders_type"] == [config.p_tel.spiders_type if(config.p_tel.spiders_type) else ""]))
@@ -570,7 +570,7 @@ def checkDmsParams(savepath, config, pdict, matricesToLoad):
 
     for i in dataBase.index:
         cc = 0
-        if(dataBase.loc[i, "validity"] and (dataBase.loc[i, "revision"] == check_output(["svnversion",os.getenv("COMPASS_ROOT")]).replace("\n", ""))):
+        if(dataBase.loc[i, "validity"] and (dataBase.loc[i, "revision"] == check_output(["git", "rev-parse", "HEAD"]).replace("\n", ""))):
             cond = ((dataBase.loc[i, param2test[cc]] == pdict[param2test[cc]]).all())
             while(cond):
                 if(cc >= len(param2test)):
@@ -589,7 +589,7 @@ def checkDmsParams(savepath, config, pdict, matricesToLoad):
            # print "Invalid matrix or new svn version"
 
 #        if(dataBase.loc[i,"validity"]):
-#            load_control = (dataBase.loc[i,"revision"] == check_output("svnversion").replace("\n",""))
+#            load_control = (dataBase.loc[i,"revision"] == check_output(["git", "rev-parse", "HEAD"]).replace("\n",""))
 #            load_control &= ((dataBase.loc[i,"tel_diam"] == config.p_tel.diam).all())
 #            load_control &= ((dataBase.loc[i,"cobs"] == config.p_tel.cobs).all())
 #            load_control &= ((dataBase.loc[i,"pupdiam"] == config.p_geom.pupdiam).all())
