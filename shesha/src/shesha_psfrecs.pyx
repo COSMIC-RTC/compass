@@ -1,6 +1,6 @@
 import numpy as np
 cimport numpy as np
-np.import_array()
+# np.import_array()
 
 def psfrecs_init( bytes type, int nactus, int niter,
                   np.ndarray[ndim=1, dtype=np.float32_t] IFvalue,

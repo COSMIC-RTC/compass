@@ -1,6 +1,6 @@
 import numpy as np
 cimport numpy as np
-np.import_array()
+# np.import_array()
 
 include "../par.pxi"
 

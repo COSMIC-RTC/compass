@@ -2,7 +2,7 @@
 
 import numpy as np
 cimport numpy as np
-np.import_array()
+# np.import_array()
 
 from naga_context import *
 from naga_streams import *

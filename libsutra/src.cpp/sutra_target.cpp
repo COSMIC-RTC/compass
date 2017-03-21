@@ -443,7 +443,8 @@ int sutra_source::comp_image(int puponly, bool comp_le) {
       this->d_image->getDims(1) * this->d_image->getDims(2), current_context->get_device(device));
 
   // scale image because of fft
-  this->d_image->scale(1.0f / (this->d_wherephase->getDims(1)* this->d_wherephase->getDims(1)), 1);
+  this->d_image->scale(1.0f / this->d_wherephase->getDims(1), 1);
+  this->d_image->scale(1.0f / this->d_wherephase->getDims(1), 1);
 
   // if long exposure image is not null
   if (this->d_leimage != 0L && comp_le) {

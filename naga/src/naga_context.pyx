@@ -1,5 +1,6 @@
 import numpy as np
 cimport numpy as np
+# np.import_array()
 
 from libcpp.string cimport string
 from libc.stdint cimport int32_t
