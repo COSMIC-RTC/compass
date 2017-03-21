@@ -1,8 +1,8 @@
 import numpy as np
 cimport numpy as np
-np.import_array()
 
 from libcpp.string cimport string
+from libc.stdint cimport int32_t
 
 """
 #################################################
@@ -22,11 +22,11 @@ cdef extern from "carma_context.h":
 #################################################
 cdef class naga_context:
 
-    def __cinit__(self, device=None, np.ndarray[ndim=1, dtype=np.int32_t] devices=None):
+    def __cinit__(self, device=None, np.ndarray[ndim=1, dtype=int32_t] devices=None):
         if device is not None :
             self.c = &carma_context.instance_1gpu(device)
         elif devices is not None :
-            self.c = &carma_context.instance_ngpu(devices.size, <np.int32_t*>devices.data)
+            self.c = &carma_context.instance_ngpu(devices.size, <int32_t*>devices.data)
         else :
             self.c = &carma_context.instance()
 

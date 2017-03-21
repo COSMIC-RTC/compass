@@ -1,11 +1,11 @@
 #include <sutra_controller.h>
 #include <math_constants.h>
 /*
- _  __                    _     
+  _  __                    _     
  | |/ /___ _ __ _ __   ___| |___ 
  | ' // _ \ '__| '_ \ / _ \ / __|
  | . \  __/ |  | | | |  __/ \__ \
-|_|\_\___|_|  |_| |_|\___|_|___/
+ |_|\_\___|_|  |_| |_|\___|_|___/
  
  */
 
@@ -130,7 +130,7 @@ do_statcov_krnl(float *statcov, float *xpos, float *ypos, float norm, long dim, 
 	while (tid < N) {
 		i = tid/dim;
 		j = tid - i*dim;
-		statcov[i*dim + j] = (float)(6.88 * pow(sqrt(pow((double)(xpos[i]-xpos[j]),2) + pow((double)(ypos[i]-ypos[j]),2)),5./3.) * norm);
+		statcov[i*dim + j] = 6.88 * powf(sqrtf((xpos[i]-xpos[j])*(xpos[i]-xpos[j]) + (ypos[i]-ypos[j])*(ypos[i]-ypos[j])),5./3.) * norm;
 		tid += blockDim.x * gridDim.x;
 	}
 }

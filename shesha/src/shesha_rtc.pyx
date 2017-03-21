@@ -3120,7 +3120,7 @@ cpdef cmat_init(int ncontrol, Rtc g_rtc, Param_rtc p_rtc, list p_wfs, Param_atmo
     cdef double t0
     cdef np.ndarray[ndim = 1, dtype = np.float32_t] eigenv, N
     cdef np.ndarray[ndim = 2, dtype = np.float32_t] U, imat
-    cdef np.ndarray[ndim = 1, dtype = np.int64_t] mfilt
+    # cdef np.ndarray[ndim = 1, dtype = np.int32_t] mfilt
 
     cdef sutra_controller_mv * controller_mv
 

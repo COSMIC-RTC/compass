@@ -1,6 +1,5 @@
 
 import numpy as np
-from _tkinter import create
 cimport numpy as np
 np.import_array()
 

@@ -446,7 +446,7 @@ cpdef make_pzt_dm(Param_dm p_dm,Param_geom geom,Param_tel p_tel,irc):
     comp_dmgeom(p_dm,geom)
 
     cdef long dim=max(geom._mpupil.shape[0],p_dm._n2-p_dm._n1+1)
-    cdef float off=(dim-p_dm._influsize)/2
+    cdef long off=(dim-p_dm._influsize)/2
 
     cdef np.ndarray[ndim=2, dtype=np.float32_t] kernconv=np.zeros((dim,dim),dtype=np.float32)
     kernconv [off:off+p_dm._influsize,off:off+p_dm._influsize] = p_dm._influ[:,:,0]
@@ -577,8 +577,8 @@ cpdef read_influ_hdf5 (Param_dm p_dm,Param_tel p_tel, Param_geom geom):
 
     comp_dmgeom(p_dm,geom)
 
-    cdef long dim=max(geom._mpupil.shape[0],p_dm._n2-p_dm._n1+1)
-    cdef float off=(dim-p_dm._influsize)/2
+    cdef long dim = max(geom._mpupil.shape[0],p_dm._n2-p_dm._n1+1)
+    cdef long off = (dim-p_dm._influsize)/2
 
     cdef np.ndarray[ndim=2, dtype=np.float32_t] kernconv=np.zeros((dim,dim),dtype=np.float32)
     kernconv [off:off+p_dm._influsize,off:off+p_dm._influsize] = p_dm._influ[:,:,0]
