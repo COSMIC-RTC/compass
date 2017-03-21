@@ -2,7 +2,7 @@ include "../par.pxi"
 
 import numpy as np
 cimport numpy as np
-np.import_array()
+# np.import_array()
 
 import make_pupil as mkP
 
@@ -477,7 +477,7 @@ def wfs_init(wfs, Param_atmos p_atmos, Param_tel p_tel, Param_geom p_geom,
         g_wfs.sensors_initgs(xpos, ypos, Lambda, mag, zerop, size, noise, seed, G, thetaML, dx, dy)
 
     elif(wfs[0].type_wfs == "pyrhr"):
-        npup = np.array([wfs[0].pyr_npts])
+        npup = np.array([wfs[0].pyr_npts], dtype=np.int64)
         G = np.array([o.G for o in wfs], dtype=np.float32)
         thetaML = np.array([o.thetaML for o in wfs], dtype=np.float32)
         dx = np.array([o.dx for o in wfs], dtype=np.float32)

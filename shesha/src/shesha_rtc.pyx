@@ -2,7 +2,7 @@ include "../par.pxi"
 
 import numpy as np
 cimport numpy as np
-np.import_array()
+# np.import_array()
 
 import time
 
@@ -2277,11 +2277,9 @@ def rtc_init(Telescope g_tel, Sensors g_wfs, p_wfs, Dms g_dms, p_dms, Param_geom
                             #   KL2V = compute_KL2V(p_control, dms, p_dms, p_geom, p_atmos, p_tel)
                             type_dm = np.array([p_dms[j].type_dm for j in range(len(p_dms))])
                             if((controller.kl_imat==1)): #&(p_dms[j].type_dm=="pzt")):
-                                print "imat_kl:"
                                 KL2V = compute_KL2V(controller, g_dms, p_dms, p_geom, p_atmos, p_tel)
                                 imat_init(i, g_rtc, p_rtc, g_dms, p_dms, g_wfs, p_wfs, p_tel,controller,KL2V.copy(), clean=clean, simul_name=simul_name, load=load,  kl_imat=1)
                             else:
-                                print "imat normal:"
                                 imat_init(i, g_rtc, p_rtc, g_dms, p_dms, g_wfs, p_wfs, p_tel,controller, kl = np.zeros((2,2),dtype=np.float32), clean=clean, simul_name=simul_name, load=load)
                             #----------------------------
                             if(controller.modopti == 1):
@@ -2933,15 +2931,12 @@ cpdef imat_init(int ncontrol, Rtc g_rtc, Param_rtc p_rtc, Dms g_dms, p_dms, Sens
                                         p_wfs[i].beamsize, g_wfs, < bytes > "", imat=1)
 
         t0 = time.time()
-        print "imat_init :%d" % kl_imat
-        print "/n"
         if (kl_imat == 1):
-
             g_rtc.doimat_kl(ncontrol,p_control, g_dms, p_dms, kl=kl)
         else:
             g_rtc.doimat(ncontrol, g_dms)
 
-        print "done in ", time.time() - t0
+        print "done in %f s"%(time.time() - t0)
         p_rtc.controllers[ncontrol].set_imat(g_rtc.get_imat(ncontrol))
         if(simul_name != "" and clean == 0 and rank == 0):
 
@@ -3030,7 +3025,7 @@ cpdef cmat_init_kl(int ncontrol, Rtc g_rtc, Param_rtc p_rtc, list p_wfs, Param_a
             t0 = time.time()
             # calcul de la svd
             g_rtc.imat_svd(ncontrol)
-            print "svd time", time.time() - t0
+            print "svd done in %f s"%(time.time() - t0)
             # recuperation des valeurs propre
             eigenv = g_rtc.getEigenvals(ncontrol)
             #enregistrement des valeurs propre
@@ -3085,7 +3080,7 @@ cpdef cmat_init_kl(int ncontrol, Rtc g_rtc, Param_rtc p_rtc, list p_wfs, Param_a
             g_rtc.buildcmat_kl(ncontrol, KL2V,imat,p_rtc.controllers[ncontrol].klgain)
         else:
             raise ValueError("no pzt_dm or multi_pzt")
-        print "cmat time ", time.time() - t0
+        print "cmat done in %f s"%(time.time() - t0)
 
 
     p_rtc.controllers[ncontrol].set_cmat(g_rtc.get_cmat(ncontrol))
@@ -3120,7 +3115,7 @@ cpdef cmat_init(int ncontrol, Rtc g_rtc, Param_rtc p_rtc, list p_wfs, Param_atmo
     cdef double t0
     cdef np.ndarray[ndim = 1, dtype = np.float32_t] eigenv, N
     cdef np.ndarray[ndim = 2, dtype = np.float32_t] U, imat
-    cdef np.ndarray[ndim = 1, dtype = np.int64_t] mfilt
+    # cdef np.ndarray[ndim = 1, dtype = np.int32_t] mfilt
 
     cdef sutra_controller_mv * controller_mv
 
@@ -3146,7 +3141,7 @@ cpdef cmat_init(int ncontrol, Rtc g_rtc, Param_rtc p_rtc, list p_wfs, Param_atmo
             print "doing svd"
             t0 = time.time()
             g_rtc.imat_svd(ncontrol)
-            print "svd time", time.time() - t0
+            print "svd done in %f s"%(time.time() - t0)
             eigenv = g_rtc.getEigenvals(ncontrol)
             if(simul_name != "" and clean == 0 and rank == 0):
                 U = g_rtc.getU(ncontrol)
@@ -3198,7 +3193,7 @@ cpdef cmat_init(int ncontrol, Rtc g_rtc, Param_rtc p_rtc, list p_wfs, Param_atmo
         print "filtering ", nfilt, " modes"
         t0 = time.time()
         g_rtc.buildcmat(ncontrol, nfilt)
-        print "cmat time ", time.time() - t0
+        print "cmat done in %f s"%(time.time() - t0)
 
     if(p_rtc.controllers[ncontrol].type_control == "mv"):
 

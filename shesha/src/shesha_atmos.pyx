@@ -1,8 +1,7 @@
 
 import numpy as np
-from _tkinter import create
 cimport numpy as np
-np.import_array()
+# np.import_array()
 
 import h5py
 

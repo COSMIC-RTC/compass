@@ -17,6 +17,11 @@
 
 carma_device::carma_device(int devid) {
   carmaSafeCall(cudaSetDevice(devid));
+
+  // Instruct CUDA to yield its thread when waiting for results from the device. This can increase latency when waiting for the device, but can increase the performance of CPU threads performing work in parallel with the device.
+  // see also: cudaDeviceScheduleAuto, cudaDeviceScheduleSpin, cudaDeviceScheduleYield
+  // carmaSafeCall(cudaSetDeviceFlags(cudaDeviceScheduleYield));
+
   this->id = devid;
   cudaGetDeviceProperties(&(this->properties), devid);
   this->cores_per_sm = ConvertSMVer2Cores(this->properties.major,

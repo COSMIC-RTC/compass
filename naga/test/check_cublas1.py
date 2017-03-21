@@ -29,8 +29,7 @@ def test_imax():
     imaxC=caF2D.device2host().flatten("F").argmax()+1 
     imaxG=caF2D.imax()
 
-    print caF2D.device2host()
-    print caF2D.device2host().flatten()
+    print imaxG-imaxC
 
     npt.assert_equal(imaxG,imaxC)
 
