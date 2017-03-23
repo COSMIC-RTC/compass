@@ -37,8 +37,8 @@ ifeq ($(OS_ARCH),armv7l)
     # default to gnueabihf
     override abi := gnueabihf
     #      LDFLAGSS += --dynamic-linker=/lib/ld-linux-armhf.so.3
-    CCFLAGS   += -mfloat-abi=hard
-    NVCCFLAGS := -target-cpu-arch ARM -Xlinker --dynamic-linker=/lib/ld-linux-armhf.so.3 -Xcompiler -mfloat-abi=hard
+    CCFLAGS   += -marm -mfpu=vfpv3  -mfloat-abi=hard -march=armv7-a
+    NVCCFLAGS := -target-cpu-arch ARM -Xlinker --dynamic-linker=/lib/ld-linux-armhf.so.3 -Xcompiler "$(CCFLAGS)"
   endif
 else
   CCFLAGS += -m64
