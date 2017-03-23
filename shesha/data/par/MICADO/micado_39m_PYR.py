@@ -1,12 +1,12 @@
 import shesha as ao
 import numpy as np
 
-simul_name = "micado_39m_PYR"
+simul_name = ""
 
 # loop
 p_loop = ao.Param_loop()
 
-p_loop.set_niter(10000)
+p_loop.set_niter(1000)
 p_loop.set_ittime(1 / 500.)  # =1/500
 p_loop.set_devices([0, 1, 2, 3])
 # geom
@@ -22,7 +22,7 @@ p_tel.set_cobs(0.28)
 
 """
 p_tel.set_type_ap("EELT-Nominal")
-p_tel.set_spiders_type("six")
+#p_tel.set_spiders_type("six")
 p_tel.set_pupangle(0)
 """
 """
@@ -42,7 +42,7 @@ p_atmos.set_frac([1.0])
 p_atmos.set_alt([0.0])
 p_atmos.set_windspeed([10.])
 p_atmos.set_winddir([45.])
-p_atmos.set_L0([1.e5])  # Not simulated in Yorick?
+p_atmos.set_L0([25.])  # Not simulated in Yorick?
 
 # target
 #p_target = ao.Param_target()
@@ -53,20 +53,20 @@ p_atmos.set_L0([1.e5])  # Not simulated in Yorick?
 #p_target.set_mag([4.])
 
 # 3 Lambda targets
-#p_target=ao.Param_target()
-#p_target.set_nTargets(3)
-#p_target.set_xpos([0, 0, 0])
-#p_target.set_ypos([0, 0, 0])
-#p_target.set_Lambda([1.2, 1.65, 2.2])
-#p_target.set_mag([4, 4., 4])
+p_target=ao.Param_target()
+p_target.set_nTargets(3)
+p_target.set_xpos([0, 0, 0])
+p_target.set_ypos([0, 0, 0])
+p_target.set_Lambda([1.2, 1.65, 2.2])
+p_target.set_mag([4, 4., 4])
 
 # 2 Lambda targets
-p_target=ao.Param_target()
-p_target.set_nTargets(2)
-p_target.set_xpos([0, 0])
-p_target.set_ypos([0, 0])
-p_target.set_Lambda([1.65, 0.7])
-p_target.set_mag([4, 4.])
+#p_target=ao.Param_target()
+#p_target.set_nTargets(2)
+#p_target.set_xpos([0, 0])
+#p_target.set_ypos([0, 0])
+#p_target.set_Lambda([1.2, 1.65, 2.2])
+#p_target.set_mag([4, 4.])
 # wfs
 #p_wfs0 = ao.Param_wfs(error_budget=True)
 p_wfs0= ao.Param_wfs()
@@ -81,8 +81,8 @@ p_wfs0.set_ypos(0.)
 p_wfs0.set_Lambda(0.7)
 p_wfs0.set_gsmag(11)
 p_wfs0.set_optthroughput(0.5)
-p_wfs0.set_zerop(1.e11)
-p_wfs0.set_noise(-1)  # in electrons units
+p_wfs0.set_zerop(2.6e10) # 2.6e10 ph/s/m**2 computed by Rico in R band for MOSAIC
+p_wfs0.set_noise(0.1)  # in electrons units
 p_wfs0.set_atmos_seen(1)
 p_wfs0.set_fstop("square")
 p_wfs0.set_fssize(1.6)
