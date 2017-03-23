@@ -17,6 +17,7 @@ def applyVoltGetSlopes(wao, volts, withAtm):
     :param wao: AO Widget
     :param withAtm: Show atmosphere to wfs or only DM phase
     '''
+    # FIXME add a refSlopes somewhere ?
     wao.dms.set_full_comm(volts.astype(np.float32).copy())
     for w in range(len(wao.config.p_wfss)):
         wao.wfs.reset_phase(w)
@@ -41,26 +42,21 @@ def measureIMatKLPP(wao, ampliVec, KL2V, nSlopes, withAtm):
     :param nSlopes: WFS output dimension
     :param withAtm: Make interaction matrix around currently shown atmosphere (True) or around null phase (False)
     '''
-    if withAtm:
-        currentVolts = wao.rtc.getVoltage(0)
-    else:
-        currentVolts = 0.0
-        print "Warning: Disabling push-pull for zero-phase interaction matrix."
+    currentVolts = wao.rtc.getVoltage(0)
+    if not withAtm:
+        currentVolts[:] = 0.
 
     iMatKL = np.zeros((nSlopes, KL2V.shape[1]))
 
     st = time.time()
+
+    ref = applyVoltGetSlopes(wao, currentVolts, withAtm)
+    
+
     for kl in range(KL2V.shape[1]):
         v = ampliVec[kl] * KL2V[:, kl]
 
-        # Push
-        iMatKL[:, kl] = applyVoltGetSlopes(wao, v + currentVolts, withAtm)
-        # Pull
-        if withAtm:
-            pull = applyVoltGetSlopes(wao, -v + currentVolts, withAtm)
-            iMatKL[:, kl] = (iMatKL[:, kl] - pull) / (2. * ampliVec[kl])
-        else:
-            iMatKL[:, kl] /= ampliVec[kl]
+        iMatKL[:, kl] = (applyVoltGetSlopes(wao, v + currentVolts, withAtm) - ref) / ampliVec[kl]
 
         print "Doing KL interaction matrix on mode: #%d\r" % kl,
         os.sys.stdout.flush()
@@ -265,6 +261,7 @@ class ModalGainOptimizer:
         cMat = cMatFromcMatKL(self.cMatKLRef, self.KL2VFilt)
         self.wao.rtc.set_cmat(0, cMat.astype(np.float32).copy())
 
+
     def setGeomRef(self):
         '''
             Sets the geom control matrix into the AO session RTC
@@ -300,9 +297,23 @@ class ModalGainOptimizer:
         self.wao.rtc.set_cmat(0, cMat.astype(np.float32).copy())
 
 
+def refreshAtmos(wao, nSteps = 10000):
+    for i in range(nSteps):
+        wao.atm.move_atmos()
 
+def loopStaticAtmos(wao, nIter):
+    for i in range(nIter):
+        for w in range(len(wao.config.p_wfss)):
+            wao.wfs.sensors_trace(w, "all", wao.tel, wao.atm, wao.dms)
+            wao.wfs.sensors_compimg(w)
 
+        wao.rtc.docentroids(0)
+        wao.rtc.docontrol(0)
+        wao.rtc.applycontrol(0, wao.dms)
 
+    for t in range(wao.config.p_target.ntargets):
+        wao.tar.atmos_trace(t, wao.atm, wao.tel)
+        wao.tar.dmtrace(t, wao.dms)
 
 def simuAndRecord(wao, nIter):
     
@@ -525,27 +536,3 @@ def modalControlOptimizationClosedLoopData(slopesClosed, voltsData, mia, S2M, M2
     return modalControlOptimizationOpenLoopData(slopesOpen, S2M, M2V,
                                                 gmax = gmax, Fs = Fs, latency = latency, BP = BP)
 
-'''
-import modalOptiLib as mol
-plt.ion()
-mod = mol.ModalGainOptimizer(wao)
-mod.computeRef()
-mod.setRef()
-'''
-
-'''
-import modalOptiLib as mol
-plt.ion()
-mod = mol.ModalGainOptimizer(wao)
-ampliVec = np.array([mod.pushPzt] * (mod.nActu-4) + [mod.pushTT] * 2)
-FtimatKL = mol.measureIMatKLSine(wao, ampliVec, mod.KL2V, mod.nSlopes, False)
-# cmatKL = mol.computeCmatKL(imatKL, 20)
-'''
-
-'''as
-plt.ion()
-import modalOptiLib as mol
-import tools
-mod = mol.ModalGainOptimizer(wao)
-mod.computeRef(); tools.plpyr(mod.iMatKLRef[:,0],wao.config.p_wfs0._isvalid)
-'''
