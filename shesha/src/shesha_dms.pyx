@@ -5,7 +5,7 @@ from blaze.expr.expressions import shape
 
 import numpy as np
 cimport numpy as np
-np.import_array()
+# np.import_array()
 
 import hdf5_utils as h5
 import resDataBase as db

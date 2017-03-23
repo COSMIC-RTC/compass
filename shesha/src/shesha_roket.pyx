@@ -1,6 +1,6 @@
 import numpy as np
 cimport numpy as np
-np.import_array()
+# np.import_array()
 
 def roket_init(Rtc rtc, Sensors sensors, Target target, Dms dms, Telescope tel,
                   Atmos atm, int loopcontroller, int geocontroller, int nactus, int nmodes,

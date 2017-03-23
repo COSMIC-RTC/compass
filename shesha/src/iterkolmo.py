@@ -262,14 +262,14 @@ def rodconan(r, L0):
     # TODO  those lines have been changed (cf trunk/yoga_ao/yorick/yoga_turbu.i l 258->264)
     if((ilarge[0].size > 0)and(ismall[0].size == 0)):
         res[ilarge] = asymp_macdo(dprf0[ilarge])
-        print "simulation atmos with asymptotic MacDonald function"
+        # print "simulation atmos with asymptotic MacDonald function"
     elif((ismall[0].size > 0)and(ilarge[0].size == 0)):
         res[ismall] = -macdo_x56(dprf0[ismall])
-        print "simulation atmos with x56 MacDonald function"
+        # print "simulation atmos with x56 MacDonald function"
     elif((ismall[0].size > 0)and(ilarge[0].size > 0)):
         res[ismall] = -macdo_x56(dprf0[ismall])
         res[ilarge] = asymp_macdo(dprf0[ilarge])
-        print "simulation atmos with x56 MacDonald function and asymptotic MacDonald function"
+        # print "simulation atmos with x56 MacDonald function and asymptotic MacDonald function"
     else:
         print "prout"
     return k1 * L0 ** (5. / 3.) * res

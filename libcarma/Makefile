@@ -110,7 +110,12 @@ endif
 #  LIB_DEPLIBS += -L$(NVIDIA_CURRENT_LIB_PATH_64)
 #endif
 
-all: $(LIB_NAME)
+.PHONY: ${OBJ_DIR}
+
+all: ${OBJ_DIR} $(LIB_NAME)
+
+${OBJ_DIR}:
+	mkdir -p ${OBJ_DIR}
 
 clean:
 	@rm -f $(OBJS)
@@ -125,5 +130,5 @@ $(OBJ_DIR)/%.o: $(CPP_DIR)/%.cpp
 	@$(GCC) $(CFLAGS) $(LIB_CPPFLAGS) -c -o $@ $<
 
 $(LIB_NAME): $(OBJS)
-	@printf '\033[36m%s\033[31m%s\033[m\n' "Linking       " $(LIB_NAME)
-	@$(GCC) $(OBJS) -o $@ $(LIB_DEPLIBS)
+	@printf '\033[36m%s\033[31m%s\033[m\n' "Linking       " $@
+	@$(GCC) -o $@ $^ $(LIB_DEPLIBS)
