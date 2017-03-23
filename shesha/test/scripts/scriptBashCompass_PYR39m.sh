@@ -1,6 +1,6 @@
 #!/bin/bash
 
-PARFILE="/home/fvidal/compass/shesha/data/par/MICADO/micado_39m_PYR.py" # scao_40x40_8pix.py  scao_64x64_8pix.py  scao_80x80_8pix.py "
+#PARFILE="$SHESHA_ROOT/data/par/MICADO/micado_39m_PYR.py" # scao_40x40_8pix.py  scao_64x64_8pix.py  scao_80x80_8pix.py "
 PARFILE="$SHESHA_ROOT/data/par/MICADO/micado_39m_PYR.py" # scao_40x40_8pix.py  scao_64x64_8pix.py  scao_80x80_8pix.py "
 
 DATE=`date +%F_%Hh%M`
@@ -8,22 +8,21 @@ OUTPUT="$SHESHA_ROOT/test/scripts/resultatsScripts/script39mPYRLog.txt"
 rm $OUTPUT
 echo "writing output in "$OUTPUT
 echo "To monitor process: tail -f" $OUTPUT
-script="$SHESHA_ROOT/test/scripts/script_PYR39m.py"
-
+#script="$SHESHA_ROOT/test/scripts/script_PYR39m.py"
+script="$SHESHA_ROOT/test/scripts/script_PYR39m_optimGain.py"
 # Relevant parameters for pyramid:
 # REQ, MODU, GAIN, MAG, NKL
 
 
-for FREQ in "250" "500" "1000"
+for FREQ in "500"
 do
     for RONS in "0.1"
     do
-        for MODU in "5" "8" "15" "20"
+        for MODU in "5" "10" "20"
         do
-            for GAIN in "1" #"pyr" #
+            for MAG in "11" "12" "13" "14" "15" "16" "17" "18" "19" "20"
             do
-                #for MAG in "11" "12" "13" "13.5" "14" "14.5" "15" "15.5" "16" "16.5" "17" #"pyr" #
-                for MAG in "11" "12" "13" "13.5" "14" "14.5" "15" "15.5" "16" "16.5" "17" "17.5" "18" "18.5" "19" "19.5" "20" #"pyr" #
+               for GAIN in "0.2" "0.4" "0.6" "0.8" "1.0"
                 do
                     for KLFILT in "450"
                     do
