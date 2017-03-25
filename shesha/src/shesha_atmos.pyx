@@ -401,25 +401,25 @@ cdef atmos_create(naga_context c, int nscreens,
         else:
             A, B, istx, isty = itK.AB(dim_screens[i], L0[i], deltax[i], deltay[i], verbose)
             if not(clean):
-                svnversion = check_output(["svnversion",os.getenv("COMPASS_ROOT")]).replace("\n", "")
+                version = check_output(["git", "rev-parse", "HEAD"]).replace("\n", "")
                 print "writing files and updating database"
                 df = pandas.read_hdf(
                     shesha_savepath + "/matricesDataBase.h5", "A")
                 ind = len(df.index) - 1
                 savename = shesha_savepath + "/turbu/A_r" + \
-                    svnversion + "_" + str(ind) + ".h5"
+                    version + "_" + str(ind) + ".h5"
                 h5u.save_hdf5(savename, "A", A)
 
                 savename = shesha_savepath + "/turbu/B_r" + \
-                    svnversion + "_" + str(ind) + ".h5"
+                    version + "_" + str(ind) + ".h5"
                 h5u.save_hdf5(savename, "B", B)
 
                 savename = shesha_savepath + "/turbu/istx_r" + \
-                    svnversion + "_" + str(ind) + ".h5"
+                    version + "_" + str(ind) + ".h5"
                 h5u.save_hdf5(savename, "istx", istx)
 
                 savename = shesha_savepath + "/turbu/isty_r" + \
-                    svnversion + "_" + str(ind) + ".h5"
+                    version + "_" + str(ind) + ".h5"
                 h5u.save_hdf5(savename, "isty", isty)
 
         A_F = np.reshape(A.flatten("F"), (A.shape[0], A.shape[1]))
