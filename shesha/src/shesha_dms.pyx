@@ -1,7 +1,6 @@
 from cython.operator cimport dereference as deref, preincrement as inc
 
 import make_pupil as mkP
-from blaze.expr.expressions import shape
 
 import numpy as np
 cimport numpy as np

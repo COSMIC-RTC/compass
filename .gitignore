@@ -18,3 +18,18 @@ shesha/src/*.cpp
 
 # specific param files
 shesha/par.pxi
+
+# Data files -- you can still git add them manually
+*.h5
+*.fits
+
+# Pyro and DDS namebases
+repo.ior
+Pyro_NS_URI
+
+# Eclipse/NSight project files
+.cproject
+.project
+.pydevproject
+.settings
+

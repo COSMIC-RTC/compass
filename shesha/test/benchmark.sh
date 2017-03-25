@@ -11,8 +11,8 @@ FILES_MCAO="mcao_8m.py mcao_40m.py"
 #FILES="scao_pyr_80x80_8pix.py"
 
 DATE=`date +%F_%Hh%M`
-SVN=`svnversion`
-OUTPUT="$SHESHA_ROOT/data/bench-results/outputfile_$DATE\_$HOSTNAME\_r$SVN"
+VERSION=`git rev-parse HEAD`
+OUTPUT="$SHESHA_ROOT/data/bench-results/outputfile_$DATE\_$HOSTNAME\_r$VERSION"
 DEVICE=$1
 
 echo "writing output in "$OUTPUT

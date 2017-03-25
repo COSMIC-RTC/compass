@@ -23,17 +23,17 @@ SHESHA=os.environ.get('SHESHA_ROOT')
 BENCH_SAVEPATH=SHESHA+"data/bench-results/"
 plt.ion()
 
-def depouillePerf(filename,svnversion=None,mode="profile"):
+def depouillePerf(filename,version=None,mode="profile"):
 
     store = pandas.HDFStore(filename)
-    if(svnversion is None):
-        svnversion=str(check_output("svnversion").replace("\n",""))
+    if(version is None):
+        version=str(check_output(["git", "rev-parse", "HEAD"]).replace("\n",""))
     try:
-        df=store.get(svnversion)
+        df=store.get(version)
     except KeyError:
-        print "No results for svn version : "+svnversion+", taking "+store.keys()[-1]+" version"
-        svnversion = store.keys()[-1]
-        df=store.get(svnversion)
+        print "No results for svn version : "+version+", taking "+store.keys()[-1]+" version"
+        version = store.keys()[-1]
+        df=store.get(version)
 
     simulnames = df["simulname"].values
     wfs_type = np.unique(df["sensor_type"].values)
@@ -115,8 +115,8 @@ def depouillePerf(filename,svnversion=None,mode="profile"):
 
 
 store = pandas.HDFStore("benchmarks.h5")
-svnversion = store.keys()[-1]
-df=store.get(svnversion)
+version = store.keys()[-1]
+df=store.get(version)
 simulnames = df["simulname"].values
 date = df["date"].values[0]
 
