@@ -207,17 +207,19 @@ def make_EELT(dim,pupd,tel,N_seg=-1):
                 pup+=(1-ref_err[i])*(Yt<0.5*W)*(Yt>=-0.5*W)*(0.5*(Yt+t_3*Xt)<0.5*W) \
                                    *(0.5*(Yt+t_3*Xt)>=-0.5*W)*(0.5*(Yt-t_3*Xt)<0.5*W) \
                                    *(0.5*(Yt-t_3*Xt)>=-0.5*W)
-
-        t_spiders= tel.t_spiders*(tel.diam*dim/pupd)
-
-        s2_6=2*np.sin(np.pi/6)
-        t_6 =np.tan(np.pi/6)
-
-        spiders_map = np.abs(X) > t_spiders/2
-        spiders_map*= ((X.T>(X+t_spiders/s2_6)*t_6) + (X.T<(X-t_spiders/s2_6)*t_6))
-        spiders_map*= ((X.T>(-X+t_spiders/s2_6)*t_6)+(X.T<(-X-t_spiders/s2_6)*t_6))
-
-        pup = pup*spiders_map
+        if (tel.t_spiders==0):
+            print('No spider')
+        else:
+            t_spiders= tel.t_spiders*(tel.diam*dim/pupd)
+    
+            s2_6=2*np.sin(np.pi/6)
+            t_6 =np.tan(np.pi/6)
+    
+            spiders_map = np.abs(X) > t_spiders/2
+            spiders_map*= ((X.T>(X+t_spiders/s2_6)*t_6) + (X.T<(X-t_spiders/s2_6)*t_6))
+            spiders_map*= ((X.T>(-X+t_spiders/s2_6)*t_6)+(X.T<(-X-t_spiders/s2_6)*t_6))
+    
+            pup = pup*spiders_map
 
         if (tel.pupangle != 0):
             pup=interp.rotate(pup,tel.pupangle,reshape=False,order=0)
