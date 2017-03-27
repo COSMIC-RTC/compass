@@ -41,6 +41,7 @@ elif(len(sys.argv)==2):
     nKL_Filt = 450
     MODU = 5
     RON = 0.1
+    simulName = "PYR_39m_RoundPupil"
 else:
     print "-------------------------------------"
     print "DETECTED BASH SCRIPT with parameters:"
@@ -53,14 +54,13 @@ else:
     gain=float(sys.argv[5]) # global loop gain
     magnitude=float(sys.argv[6]) # gs magnitude
     nKL_Filt=int(float(sys.argv[7])) # Nb KL filtered
+    simulName=sys.argv[8] # Nb KL filtered
 
 
 
 
-
-simulName = "PYR_39m_RoundPupil"
-pathResults="/volumes/hra/micado/PYR39m_test4"
-dBResult = pathResults + "/PYR39m_test4.h5"
+pathResults="/volumes/hra/micado/"+simulName
+dBResult = pathResults + "/"+simulName+".h5"
 imat0_PATH = "/home/fvidal/compass/shesha/test/scripts"
 savePSFs = True
 GPUs = np.array([0,1,2,3], dtype=np.int32)
