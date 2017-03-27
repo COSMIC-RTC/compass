@@ -122,12 +122,15 @@ def make_VLT(dim,pupd,tel):
 
     pup=((R<0.5) & (R>(tel.cobs/2)) ).astype(np.float32)
 
-    spiders_map= ((X.T>(X-tel.cobs/2.+tel.t_spiders/np.sin(angle))*np.tan(angle))+ (X.T<(X-tel.cobs/2.)*np.tan(angle))) *(X>0)*(X.T>0)
-    spiders_map+= np.fliplr(spiders_map)
-    spiders_map+= np.flipud(spiders_map)
-    spiders_map = interp.rotate(spiders_map,tel.pupangle, order =0, reshape=False)
-    
-    pup = pup*spiders_map
+    if(tel.set_t_spiders==-1):
+        print('No spider')
+    else:
+        spiders_map= ((X.T>(X-tel.cobs/2.+tel.t_spiders/np.sin(angle))*np.tan(angle))+ (X.T<(X-tel.cobs/2.)*np.tan(angle))) *(X>0)*(X.T>0)
+        spiders_map+= np.fliplr(spiders_map)
+        spiders_map+= np.flipud(spiders_map)
+        spiders_map = interp.rotate(spiders_map,tel.pupangle, order =0, reshape=False)
+        
+        pup = pup*spiders_map
 
     print "VLT pupil created"
     return pup
