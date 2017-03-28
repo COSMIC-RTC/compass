@@ -326,7 +326,8 @@ def script4bench(param_file,centroider,controller, devices, fwrite=True):
 
     date=datetime.datetime.now()
     date=[date.year,date.month,date.day]
-    svnversion=str(check_output(["svnversion",os.getenv("COMPASS_ROOT")]).replace("\n",""))
+    version=str(check_output(["git", "rev-parse", "HEAD"]).replace("\n",""))
+    # version=str(check_output(["svnversion",os.getenv("COMPASS_ROOT")]).replace("\n",""))
     hostname=check_output("hostname").replace("\n","")
     nb_cpu,cpu = get_processor_name()
     imat = rtc.get_imat(0)
@@ -372,7 +373,7 @@ def script4bench(param_file,centroider,controller, devices, fwrite=True):
 
     store = pandas.HDFStore(BENCH_SAVEPATH+"benchmarks.h5")
     try:
-        df=store.get(svnversion)
+        df=store.get(version)
     except KeyError:
         df=pandas.DataFrame(columns=keys_dict.keys(),dtype=object)
 
@@ -382,7 +383,7 @@ def script4bench(param_file,centroider,controller, devices, fwrite=True):
         print "writing files"
         for i in keys_dict.keys():
             df.loc[ix,i] = keys_dict[i]
-        store.put(svnversion,df)
+        store.put(version,df)
         store.close()
 #############################################################
 #                 _
