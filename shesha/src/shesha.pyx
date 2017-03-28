@@ -8,8 +8,6 @@ cimport numpy as np
 import os
 import sys
 
-import matplotlib.pyplot as pl
-
 from cython.operator cimport dereference as deref, preincrement as inc
 
 import time
@@ -17,7 +15,7 @@ import time
 cdef float dtor = np.pi / 180
 
 assert sizeof(int) == sizeof(np.int32_t)
-assert sizeof(long) == sizeof(np.int64_t)
+#assert sizeof(long) == sizeof(np.int64_t)
 assert sizeof(float) == sizeof(np.float32_t)
 assert sizeof(double) == sizeof(np.float64_t)
 

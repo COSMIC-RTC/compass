@@ -86,7 +86,7 @@ def depouillePerf(filename,version=None,mode="profile"):
     try:
         df=store.get(version)
     except KeyError:
-        print "No results for svn version : "+version+", taking "+store.keys()[-1]+" version"
+        print "No results for git version : "+version+", taking "+store.keys()[-1]+" version"
         version = store.keys()[-1]
         df=store.get(version)
 
