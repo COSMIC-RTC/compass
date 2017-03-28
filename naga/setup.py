@@ -4,14 +4,14 @@ from os.path import join as pjoin
 from distutils.core import setup
 # from setuptools import setup
 from distutils.extension import Extension
-from Cython.Distutils import build_ext
+# from Cython.Distutils import build_ext
 import numpy
 import sys
 from distutils.command.clean import clean as _clean
 from distutils.dir_util import remove_tree
 
 from Cython.Build import cythonize
-import shutil
+# import shutil
 
 # Remove the "-Wstrict-prototypes" compiler option, which isn't valid for C++.
 import distutils.sysconfig
@@ -26,7 +26,7 @@ dependencies = {'naga_streams': ['naga_context'],
                 'naga_obj': ['naga_context', 'naga_streams'],
                 'naga_host_obj': ['naga_context', 'naga_streams'],
                 'naga_magma': ['naga_obj', 'naga_host_obj'],
-                'naga_timer': [],
+                'naga_timer': ['naga_context'],
                 'naga_sparse_obj': ['naga_context', 'naga_obj']}
 
 naga_path = os.environ.get('NAGA_ROOT')
@@ -34,15 +34,15 @@ if(naga_path is None):
     raise EnvironmentError("Environment variable 'NAGA_ROOT' must be define")
 sys.path.append(naga_path + '/src')
 
-
-def find_in_path(name, path):
-    "Find a file in a search path"
-    # adapted fom http://code.activestate.com/recipes/52224-find-a-file-given-a-search-path/
-    for dir in path.split(os.pathsep):
-        binpath = pjoin(dir, name)
-        if os.path.exists(binpath):
-            return os.path.abspath(binpath)
-    return None
+# deprecated
+# def find_in_path(name, path):
+#     "Find a file in a search path"
+#     # adapted fom http://code.activestate.com/recipes/52224-find-a-file-given-a-search-path/
+#     for dir in path.split(os.pathsep):
+#         binpath = pjoin(dir, name)
+#         if os.path.exists(binpath):
+#             return os.path.abspath(binpath)
+#     return None
 
 
 def locate_compass():
@@ -60,6 +60,7 @@ def locate_compass():
                       'lib': root_compass}
 
     return compass_config
+
 
 COMPASS = locate_compass()
 
@@ -138,6 +139,7 @@ else:
 #######################
 #  extension
 #######################
+# deprecated
 # ext = Extension('naga',
 #                sources=['src/naga.pyx'
 #                    ],
@@ -160,41 +162,43 @@ else:
 #
 
 
-def customize_compiler_for_nvcc(self):
-    """inject deep into distutils to customize how the dispatch
-    to gcc/nvcc works.
+# deprecated
+# def customize_compiler_for_nvcc(self):
+#     """inject deep into distutils to customize how the dispatch
+#     to gcc/nvcc works.
+#
+#     If you subclass UnixCCompiler, it's not trivial to get your subclass
+#     injected in, and still have the right customizations (i.e.
+#     distutils.sysconfig.customize_compiler) run on it. So instead of going
+#     the OO route, I have this. Note, it's kindof like a wierd functional
+#     subclassing going on."""
+#
+#     # save references to the default compiler_so and _comple methods
+#     default_compiler_so = self.compiler_so
+#     super = self._compile
+#
+#     # now redefine the _compile method. This gets executed for each
+#     # object but distutils doesn't have the ability to change compilers
+#     # based on source extension: we add it.
+#     def _compile(obj, src, ext, cc_args, extra_postargs, pp_opts):
+#         postargs = extra_postargs['g++']
+#
+#         super(obj, src, ext, cc_args, postargs, pp_opts)
+#         # reset the default compiler_so, which we might have changed for cuda
+#         self.compiler_so = default_compiler_so
+#
+#     # inject our redefined _compile method into the class
+#     self._compile = _compile
 
-    If you subclass UnixCCompiler, it's not trivial to get your subclass
-    injected in, and still have the right customizations (i.e.
-    distutils.sysconfig.customize_compiler) run on it. So instead of going
-    the OO route, I have this. Note, it's kindof like a wierd functional
-    subclassing going on."""
 
-    # save references to the default compiler_so and _comple methods
-    default_compiler_so = self.compiler_so
-    super = self._compile
-
-    # now redefine the _compile method. This gets executed for each
-    # object but distutils doesn't have the ability to change compilers
-    # based on source extension: we add it.
-    def _compile(obj, src, ext, cc_args, extra_postargs, pp_opts):
-        postargs = extra_postargs['g++']
-
-        super(obj, src, ext, cc_args, postargs, pp_opts)
-        # reset the default compiler_so, which we might have changed for cuda
-        self.compiler_so = default_compiler_so
-
-    # inject our redefined _compile method into the class
-    self._compile = _compile
-
-
+# deprecated
 # run the customize_compiler
-class custom_build_ext(build_ext):
-    def build_extensions(self):
-        if (os.path.exists('./naga.cpp')):
-            os.remove('./naga.cpp')
-        customize_compiler_for_nvcc(self.compiler)
-        build_ext.build_extensions(self)
+# class custom_build_ext(build_ext):
+#     def build_extensions(self):
+#         if (os.path.exists('./naga.cpp')):
+#             os.remove('./naga.cpp')
+#         customize_compiler_for_nvcc(self.compiler)
+#         build_ext.build_extensions(self)
 
 
 # dal with generated sources files
@@ -205,11 +209,9 @@ if 'build_ext' in sys.argv or 'develop' in sys.argv or 'install' in sys.argv:
     d['main'](None)
 
 
-def compile_module(name):
-    if(os.path.exists(naga_path + "/lib/" + name + ".so") and name != "naga"):
-        shutil.move(naga_path + "/lib/" + name + ".so", naga_path + "/" + name + ".so")
+def dependencies_module(name):
     print "======================================="
-    print "creating module ", name
+    print "resolving dependencies for", name
     print "======================================="
     try:
         dep = dependencies[name]
@@ -225,6 +227,11 @@ def compile_module(name):
     except KeyError, e:
         print e
 
+
+def compile_module(name):
+    print "======================================="
+    print "creating module ", name
+    print "======================================="
     ext = Extension(name,
                     sources=['src/' + name + '.pyx'],
                     extra_compile_args=["-Wno-unused-function", "-Wno-unused-label", "-Wno-cpp", "-std=c++11",
@@ -241,13 +248,12 @@ def compile_module(name):
     setup(
         name=name,
         ext_modules=cythonize([ext],
-                              gdb_debug=True,
+                              # gdb_debug=True,
                               )
         # cmdclass={'build_ext': custom_build_ext},
         # zip_safe=False
     )
-    if(os.path.exists(naga_path + "/" + name + ".so") and name != "naga"):
-        shutil.move(naga_path + "/" + name + ".so", naga_path + "/lib/" + name + ".so")
+
 
 if __name__ == '__main__':
     try:
@@ -256,9 +262,11 @@ if __name__ == '__main__':
 
         from multiprocessing import Pool
         pool = Pool(maxtasksperchild=1)  # process per core
-        pool.map(compile_module, listMod)  # proces data_inputs iterable with poo
+        pool.map(dependencies_module, listMod)  # proces data_inputs iterable with pool
+        pool.map(compile_module, listMod)  # proces data_inputs iterable with pool
     except ImportError:
         for name in listMod:
+            dependencies_module(name)
             compile_module(name)
     finally:
         compile_module("naga")
