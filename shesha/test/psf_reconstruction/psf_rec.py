@@ -18,7 +18,7 @@ c = ch.naga_context(7)
 #filename = "/home/fferreira/Data/breakdown_offaxis-4_2.h5"
 
 def get_err(filename):
-    f = h5py.File(filename)
+    f = h5py.File(filename,'r')
     # Get the sum of error contributors
     err = f["noise"][:]
     err += f["aliasing"][:]
@@ -31,11 +31,21 @@ def get_err(filename):
     return err
 
 
+def get_err_contributors(filename,contributors):
+    f = h5py.File(filename,'r')
+    # Get the sum of error contributors
+    err = f["noise"][:]*0.
+    for c in contributors:
+        err += f[c][:]
+    f.close()
+
+    return err
+
+
 def get_pup(filename):
-    f = h5py.File(filename)
+    f = h5py.File(filename,'r')
     if(f.keys().count("spup")):
         spup = f["spup"][:]
-        f.close()
     else:
         indx_pup = f["indx_pup"][:]
         pup = np.zeros((f["dm_dim"].value, f["dm_dim"].value))
@@ -44,11 +54,12 @@ def get_pup(filename):
         pup = pup_F.reshape(pup.shape)
         spup = pup[np.where(pup)[0].min():np.where(pup)[0].max()+1, np.where(pup)[1].min():np.where(pup)[1].max()+1]
 
+    f.close()
     return spup
 
 
 def get_IF(filename):
-    f = h5py.File(filename)
+    f = h5py.File(filename,'r')
     IF = csr_matrix((f["IF.data"][:], f["IF.indices"][:], f["IF.indptr"][:]))
     if(f.keys().count("TT")):
         T = f["TT"][:]
@@ -60,7 +71,7 @@ def get_IF(filename):
 
 
 def psf_rec_roket_file(filename,err=None):
-    f = h5py.File(filename)
+    f = h5py.File(filename,'r')
     if(err is None):
         err = get_err(filename)
     spup = get_pup(filename)
@@ -81,7 +92,7 @@ def psf_rec_roket_file(filename,err=None):
 
 
 def psf_rec_roket_file_cpu(filename):
-    f = h5py.File(filename)
+    f = h5py.File(filename,'r')
     # Get the sum of error contributors
     err = get_err(filename)
 
@@ -116,7 +127,7 @@ def psf_rec_roket_file_cpu(filename):
     return psf
 
 def psf_rec_Vii(filename,err=None,fitting=True,covmodes=None,cov=None):
-    f = h5py.File(filename)
+    f = h5py.File(filename,'r')
     if(err is None):
         err = get_err(filename)
     spup = get_pup(filename)
@@ -172,7 +183,7 @@ def psf_rec_Vii(filename,err=None,fitting=True,covmodes=None,cov=None):
     return otftel, otf2, psf, precs
 
 def psf_rec_vii_cpu(filename):
-    f = h5py.File(filename)
+    f = h5py.File(filename,'r')
     IF,T = get_IF(filename)
     ratio_lambda = 2*np.pi/f.attrs["target.Lambda"][0]
     # Telescope OTF
@@ -226,6 +237,7 @@ def psf_rec_vii_cpu(filename):
     psf = np.fft.fftshift(np.real(np.fft.ifft2(otftel*otf2)))
     psf *= (fft_size*fft_size/float(np.where(pup)[0].shape[0]))
 
+    f.close()
     return otftel, otf2, psf
 
 
