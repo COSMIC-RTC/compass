@@ -12,17 +12,19 @@ echo "To monitor process: tail -f" $OUTPUT
 script="$SHESHA_ROOT/test/scripts/script_PYR39m_optimGain.py"
 # Relevant parameters for pyramid:
 # REQ, MODU, GAIN, MAG, NKL
-SIMULNAME="PYR_39m_RoundPupil500"
+SIMULNAME="PYR_39m_RoundPupil500_FromHippo6"
 
 for FREQ in "500"
 do
     for RONS in "0.1"
     do
-        for MODU in "5" "10" "20"
+        for MODU in "5"
         do
-            for MAG in "13" "14" "15" "16" "17" "18" "19" "20"
+           #for MAG in "11" "12" "13" "14" "15" "16" "17" "18" "19" "20"
+           for MAG in "18"
             do
                for GAIN in "0.2" "0.4" "0.6" "0.8" "1.0"
+               #for GAIN in "1.0"
                 do
                     for KLFILT in "450"
                     do

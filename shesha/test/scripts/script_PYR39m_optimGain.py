@@ -1,6 +1,6 @@
 #
 """
-ipython -i script_PYR39m_optimGain.py /home/fvidal/compass/shesha/data/par/MICADO/micado_39m_PYR.py 500 0 5 1 11 450
+ipython -i script_PYR39m_optimGain.py /home/fvidal/compass/shesha/data/par/MICADO/micado_39m_PYR.py 500 0 5 1 11 450 PYR_39m_RoundPupil_FromHippo6
 ipython -i script_PYR39m_optimGain.py /home/fvidal/compass/shesha/data/par/MICADO/micado_8m_PYR.py 500 0 5 1 11 10
 
 """
@@ -41,7 +41,7 @@ elif(len(sys.argv)==2):
     nKL_Filt = 450
     MODU = 5
     RON = 0.1
-    simulName = "PYR_39m_RoundPupil"
+    simulName = "PYR_39m_RoundPupil_FromHippo6"
 else:
     print "-------------------------------------"
     print "DETECTED BASH SCRIPT with parameters:"
@@ -61,7 +61,8 @@ else:
 
 pathResults="/volumes/hra/micado/"+simulName
 dBResult = pathResults + "/"+simulName+".h5"
-imat0_PATH = "/home/fvidal/compass/shesha/test/scripts"
+imat0_PATH = "/obs/fvidal/compass/shesha/test/scripts"
+imat0_PATH = "/volumes/hra/micado/scriptdata"
 savePSFs = True
 GPUs = np.array([0,1,2,3], dtype=np.int32)
 imatFromFile = True
@@ -414,6 +415,7 @@ res.loc[0, "slopesCBName"] = slopesCBName
 res.loc[0, "voltsCBName"] = voltsCBName
 res.loc[0, "SRHistoryLEName"] = SRHistorySEName
 res.loc[0, "SRHistorySEName"] = SRHistoryLEName
+res.loc[0, "PYRIMAGEName"] = PYRIMAGEName
 
 res.loc[0, "NklFilt"] = nKL_Filt
 res.loc[0, "Nkl"] = imat.shape[0]-nfilt-2
