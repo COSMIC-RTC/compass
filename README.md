@@ -19,7 +19,8 @@ add anaconda2/bin into the $PATH
 To avoid any incompatibility this python modules, it's highly recommended to use the gcc provided with anaconda:
 
 ```bash
-conda install -c compass compass
+conda config --add channels compass
+conda install compass
 ```
 
 # Install MAGMA
