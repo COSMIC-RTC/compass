@@ -49,7 +49,7 @@ class html_display:
 
     def __init__(self):
 
-        self.datapath = "/home/fferreira/Data/"
+        self.datapath = "/home/fferreira/Data/correlation/"
         self.covmat = None
         self.files = glob.glob(self.datapath+"roket_*.h5")
         self.files.sort()
