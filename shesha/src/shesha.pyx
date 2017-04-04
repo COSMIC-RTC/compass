@@ -1,12 +1,11 @@
-version = "Develop"
-pading1 = "_______"
-pading2 = "       "
+# __version__ = "V0.1"
+__version__ = "Develop"
 
-if version is not "Develop":
-    print("   _____________________________________" + pading1 + "_")
-    print("  /                                     " + pading2 + " \\")
-    print("  | Initialization of COMPASS, version: " + version + " |")
-    print("  \\_____________________________________" + pading1 + "_/")
+if __version__ is not "Develop":
+    print("   __________________________________________")
+    print("  /                                          \\")
+    print("  | Initialization of COMPASS, version: " + __version__ + " |")
+    print("  \\__________________________________________/")
 
 import cython
 # #cython: profile=True
