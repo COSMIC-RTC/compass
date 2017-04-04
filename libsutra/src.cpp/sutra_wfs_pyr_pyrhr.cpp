@@ -60,7 +60,7 @@ sutra_wfs_pyr_pyrhr::sutra_wfs_pyr_pyrhr(carma_context *context,
 sutra_wfs_pyr_pyrhr::~sutra_wfs_pyr_pyrhr() {
 	for (std::vector<carma_obj<cuFloatComplex> *>::iterator it =
 			this->d_camplipup_ngpu.begin(); this->d_camplipup_ngpu.end() != it;
-			it++) {
+			++it) {
 		if (*it != this->d_camplipup) {
 			current_context->set_activeDevice((*it)->getDevice(),1);
 			delete *it;
@@ -70,7 +70,7 @@ sutra_wfs_pyr_pyrhr::~sutra_wfs_pyr_pyrhr() {
 
 	for (std::vector<carma_obj<cuFloatComplex> *>::iterator it =
 			this->d_camplifoc_ngpu.begin(); this->d_camplifoc_ngpu.end() != it;
-			it++) {
+			++it) {
 		if (*it != this->d_camplifoc) {
 			current_context->set_activeDevice((*it)->getDevice(),1);
 			delete *it;
@@ -80,7 +80,7 @@ sutra_wfs_pyr_pyrhr::~sutra_wfs_pyr_pyrhr() {
 
 	for (std::vector<carma_obj<cuFloatComplex> *>::iterator it =
 			this->d_phalfxy_ngpu.begin(); this->d_phalfxy_ngpu.end() != it;
-			it++) {
+			++it) {
 		if (*it != this->d_phalfxy) {
 			current_context->set_activeDevice((*it)->getDevice(),1);
 			delete *it;
@@ -90,7 +90,7 @@ sutra_wfs_pyr_pyrhr::~sutra_wfs_pyr_pyrhr() {
 
 	for (std::vector<carma_obj<cuFloatComplex> *>::iterator it =
 			this->d_fttotim_ngpu.begin(); this->d_fttotim_ngpu.end() != it;
-			it++) {
+			++it) {
 		if (*it != this->d_fttotim) {
 			current_context->set_activeDevice((*it)->getDevice(),1);
 			delete *it;
@@ -99,7 +99,7 @@ sutra_wfs_pyr_pyrhr::~sutra_wfs_pyr_pyrhr() {
 	this->d_fttotim_ngpu.clear();
 
 	for (std::vector<carma_obj<float> *>::iterator it =
-			this->d_pupil_ngpu.begin(); this->d_pupil_ngpu.end() != it; it++) {
+			this->d_pupil_ngpu.begin(); this->d_pupil_ngpu.end() != it; ++it) {
 		if (*it != this->d_pupil) {
 			current_context->set_activeDevice((*it)->getDevice(),1);
 			delete *it;
@@ -108,7 +108,7 @@ sutra_wfs_pyr_pyrhr::~sutra_wfs_pyr_pyrhr() {
 	this->d_pupil_ngpu.clear();
 
 	for (std::vector<carma_obj<float> *>::iterator it =
-			this->d_submask_ngpu.begin(); this->d_submask_ngpu.end() != it; it++) {
+			this->d_submask_ngpu.begin(); this->d_submask_ngpu.end() != it; ++it) {
 		if (*it != this->d_submask) {
 			current_context->set_activeDevice((*it)->getDevice(),1);
 			delete *it;
@@ -118,7 +118,7 @@ sutra_wfs_pyr_pyrhr::~sutra_wfs_pyr_pyrhr() {
 
 	for (std::vector<carma_obj<float> *>::iterator it =
 			this->d_screen_ngpu.begin(); this->d_screen_ngpu.end() != it;
-			it++) {
+			++it) {
 		if (*it != this->d_gs->d_phase->d_screen) {
 			current_context->set_activeDevice((*it)->getDevice(),1);
 			delete *it;
@@ -127,7 +127,7 @@ sutra_wfs_pyr_pyrhr::~sutra_wfs_pyr_pyrhr() {
 	this->d_screen_ngpu.clear();
 
 	for (std::vector<carma_obj<float> *>::iterator it =
-			this->d_hrimg_ngpu.begin(); this->d_hrimg_ngpu.end() != it; it++) {
+			this->d_hrimg_ngpu.begin(); this->d_hrimg_ngpu.end() != it; ++it) {
 		if (*it != this->d_hrimg) {
 			current_context->set_activeDevice((*it)->getDevice(),1);
 			delete *it;
@@ -142,7 +142,7 @@ int sutra_wfs_pyr_pyrhr::wfs_initarrays(cuFloatComplex *halfxy, float *cx,
 		int *phasemap, float *fluxPerSub) {
 	for (std::vector<carma_obj<cuFloatComplex> *>::iterator it =
 			this->d_phalfxy_ngpu.begin(); this->d_phalfxy_ngpu.end() != it;
-			it++) {
+			++it) {
 		if (*it != this->d_phalfxy) {
 			current_context->set_activeDevice((*it)->getDevice(),1);
 			(*it)->host2device(halfxy);
@@ -150,14 +150,14 @@ int sutra_wfs_pyr_pyrhr::wfs_initarrays(cuFloatComplex *halfxy, float *cx,
 	}
 	for (std::vector<carma_obj<float> *>::iterator it =
 			this->d_submask_ngpu.begin(); this->d_submask_ngpu.end() != it;
-			it++) {
+			++it) {
 		if (*it != this->d_submask) {
 			current_context->set_activeDevice((*it)->getDevice(),1);
 			(*it)->host2device(submask);
 		}
 	}
 	for (std::vector<carma_obj<float> *>::iterator it =
-			this->d_pupil_ngpu.begin(); this->d_pupil_ngpu.end() != it; it++) {
+			this->d_pupil_ngpu.begin(); this->d_pupil_ngpu.end() != it; ++it) {
 		if (*it != this->d_pupil) {
 			current_context->set_activeDevice((*it)->getDevice(),1);
 			(*it)->copyFrom(d_pupil->getData(), d_pupil->getNbElem());
@@ -165,6 +165,7 @@ int sutra_wfs_pyr_pyrhr::wfs_initarrays(cuFloatComplex *halfxy, float *cx,
 	}
 	if (d_screen_ngpu.size() > 0)
 		d_screen_ngpu[0] = this->d_gs->d_phase->d_screen;
+
 	current_context->set_activeDevice(device,1);
 	this->d_phalfxy->host2device(halfxy);
 	this->d_submask->host2device(submask);
@@ -187,7 +188,7 @@ int sutra_wfs_pyr_pyrhr::set_submask(float *submask) {
 	else{
 		for (std::vector<carma_obj<float> *>::iterator it =
 				this->d_submask_ngpu.begin(); this->d_submask_ngpu.end() != it;
-				it++) {
+				++it) {
 			if (*it != this->d_submask) {
 				current_context->set_activeDevice((*it)->getDevice(),1);
 				(*it)->host2device(submask);
@@ -307,7 +308,7 @@ int sutra_wfs_pyr_pyrhr::comp_generic() {
 
 	for (std::vector<carma_obj<float> *>::iterator it =
 			this->d_screen_ngpu.begin(); this->d_screen_ngpu.end() != it;
-			it++) {
+			++it) {
 		carma_obj<float> *tmp_screen = this->d_gs->d_phase->d_screen;
 		if (*it != tmp_screen) {
 			current_context->set_activeDevice((*it)->getDevice(),1);
@@ -316,7 +317,7 @@ int sutra_wfs_pyr_pyrhr::comp_generic() {
 	}
 
 	for (std::vector<carma_obj<float> *>::iterator it =
-			this->d_hrimg_ngpu.begin(); this->d_hrimg_ngpu.end() != it; it++) {
+			this->d_hrimg_ngpu.begin(); this->d_hrimg_ngpu.end() != it; ++it) {
 		if (*it != d_hrimg) {
 			current_context->set_activeDevice((*it)->getDevice(),1);
 			carmaSafeCall(
@@ -339,7 +340,7 @@ int sutra_wfs_pyr_pyrhr::comp_generic() {
 			dims_data2);
 
 	for (std::vector<carma_obj<float> *>::iterator it =
-			this->d_hrimg_ngpu.begin(); this->d_hrimg_ngpu.end() != it; it++) {
+			this->d_hrimg_ngpu.begin(); this->d_hrimg_ngpu.end() != it; ++it) {
 		if (*it != d_hrimg) {
 			if (current_context->canP2P(d_hrimg->getDevice(),
 					(*it)->getDevice())) {

@@ -1,3 +1,13 @@
+version = "Develop"
+pading1 = "_______"
+pading2 = "       "
+
+if version is not "Develop":
+    print("   _____________________________________" + pading1 + "_")
+    print("  /                                     " + pading2 + " \\")
+    print("  | Initialization of COMPASS, version: " + version + " |")
+    print("  \\_____________________________________" + pading1 + "_/")
+
 import cython
 # #cython: profile=True
 
@@ -52,10 +62,8 @@ from shesha_dms import *
 from shesha_target import *
 from shesha_rtc import *
 from shesha_telescope import *
-from shesha_roket import *
-from shesha_psfrecs import *
-
-
+# from shesha_roket import *
+# from shesha_psfrecs import *
 
 '''
 def see_atmos_target_disp(int n, Atmos atm, Target tar,Sensors wfs, float alt=0, int n_tar=0,float f=1, int log=0):
