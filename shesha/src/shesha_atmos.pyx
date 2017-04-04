@@ -15,6 +15,7 @@ import iterkolmo as itK
 from cython.operator cimport dereference as deref, preincrement as inc
 from subprocess import check_output
 
+import shesha
 
 def atmos_init(naga_context c, Param_atmos atm, Param_tel tel, Param_geom geom,
                Param_loop loop, wfss=None, Param_target target=None,
@@ -401,7 +402,11 @@ cdef atmos_create(naga_context c, int nscreens,
         else:
             A, B, istx, isty = itK.AB(dim_screens[i], L0[i], deltax[i], deltay[i], verbose)
             if not(clean):
-                version = check_output(["git", "rev-parse", "HEAD"]).replace("\n", "")
+                if shesha.__version__ is not "Develop":
+                    version = shesha.__version__
+                else:
+                    version = str(check_output(
+                        ["git", "rev-parse", "HEAD"]).replace("\n", ""))
                 print "writing files and updating database"
                 df = pandas.read_hdf(
                     shesha_savepath + "/matricesDataBase.h5", "A")
