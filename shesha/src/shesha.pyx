@@ -1,6 +1,6 @@
-version = "Develop"
-pading1 = "_______"
-pading2 = "       "
+version = "V0.1"
+pading1 = "____"
+pading2 = "    "
 
 if version is not "Develop":
     print("   _____________________________________" + pading1 + "_")
