@@ -43,14 +43,14 @@ def compute_and_compare_PSFs(filename,correction=False,synth=False):
     psfs = 0
     if(correction or synth):
         Caniso, Cbp, Cmodel = compute_covariance_model(filename)
-    if(correction):
-        Cmodel_filtered = filter_piston_TT(filename,Cmodel)
-        Ctt = add_TT_model(filename,Cmodel)
-        Ctt[:-2,:-2] = Cmodel_filtered
-        cov_err = rexp.get_coverr_independence(filename)
-        P = f["P"][:]
-        cov_err = P.dot(cov_err).dot(P.T) + P.dot(Ctt+Ctt.T).dot(P.T)
-        otftelc, otf2c, psfc, gpu = precs.psf_rec_Vii(filename,cov=cov_err.astype(np.float32))
+#    if(correction):
+        # Cmodel_filtered = filter_piston_TT(filename,Cmodel)
+        # Ctt = add_TT_model(filename,Cmodel)
+        # Ctt[:-2,:-2] = Cmodel_filtered
+        # cov_err = rexp.get_coverr_independence(filename)
+        # P = f["P"][:]
+        # cov_err = P.dot(cov_err).dot(P.T) + P.dot(Ctt+Ctt.T).dot(P.T)
+        # otftelc, otf2c, psfc, gpu = precs.psf_rec_Vii(filename,cov=cov_err.astype(np.float32))
     if(synth):
         Cmodel_filtered = filter_piston_TT(filename,Cmodel)
         Ctt = add_TT_model(filename,Cmodel)
@@ -79,10 +79,11 @@ def compute_and_compare_PSFs(filename,correction=False,synth=False):
     plt.semilogy(x,psfi[psf.shape[0]/2,:],color="green")
     plt.semilogy(x,psf_compass[psf.shape[0]/2,:],color="red")
     if(correction):
-        plt.semilogy(x,psfc[psf.shape[0]/2,:],color="purple")
+        #plt.semilogy(x,psfc[psf.shape[0]/2,:],color="purple")
         if(synth):
             plt.semilogy(x,psfs[psf.shape[0]/2,:],color="black")
-            plt.legend(["PSF rec","PSF ind. assumption", "PSF COMPASS", "PSF corrected", "PSF synth"])
+            #plt.legend(["PSF rec","PSF ind. assumption", "PSF COMPASS", "PSF corrected", "PSF synth"])
+            plt.legend(["PSF rec","PSF ind. assumption", "PSF COMPASS", "PSF synth"])
         else:
             plt.legend(["PSF rec","PSF ind. assumption", "PSF COMPASS", "PSF corrected"])
     elif(synth):
@@ -178,20 +179,22 @@ def compute_covariance_model(filename):
     Mhvdt = M.copy()
     angleht = np.arctan2(wypos,wxpos)
     anglehvdt = gamma/2. - theta
+    fc = xactu[1] - xactu[0]
+    #fc = 0.05
 
     for i in range(xpos.size):
         for j in range(xpos.size):
-            Mvdt[i,j] = (np.sqrt((xactu[i]-(xactu[j]+vdt*np.cos(theta)))**2 + (yactu[i]-(yactu[j]+vdt*np.sin(theta)))**2))
+            Mvdt[i,j] = (np.sqrt((xactu[i]-(xactu[j]-vdt*np.cos(theta)))**2 + (yactu[i]-(yactu[j]-vdt*np.sin(theta)))**2))
             M[i,j] = (np.sqrt((xactu[i]-xactu[j])**2 + (yactu[i]-yactu[j])**2))
-            Mht[i,j] = (np.sqrt((xactu[i]-(xactu[j]+Htheta*np.cos(angleht)))**2 + (yactu[i]-(yactu[j]+Htheta*np.sin(angleht)))**2))
+            Mht[i,j] = (np.sqrt((xactu[i]-(xactu[j]-Htheta*np.cos(angleht)))**2 + (yactu[i]-(yactu[j]-Htheta*np.sin(angleht)))**2))
             #Mhvdt[i,j] = (np.sqrt((xactu[i]-(xactu[j]+rho*np.cos(anglehvdt)))**2 + (yactu[i]-(yactu[j]+rho*np.sin(anglehvdt)))**2))
-            Mhvdt[i,j] = (np.sqrt(((xactu[i]-vdt*np.cos(theta))-(xactu[j]+Htheta*np.cos(angleht)))**2 + ((yactu[i]-vdt*np.sin(theta))-(yactu[j]+Htheta*np.sin(angleht)))**2))
+            Mhvdt[i,j] = (np.sqrt(((xactu[i]+vdt*np.cos(theta))-(xactu[j]-Htheta*np.cos(angleht)))**2 + ((yactu[i]+vdt*np.sin(theta))-(yactu[j]-Htheta*np.sin(angleht)))**2))
 
-    Ccov =  0.5 * (Dphi.dphi_lowpass(Mhvdt,0.2,L0,tabx,taby) - Dphi.dphi_lowpass(Mht,0.2,L0,tabx,taby) \
-            - Dphi.dphi_lowpass(Mvdt,0.2,L0,tabx,taby) + Dphi.dphi_lowpass(M,0.2,L0,tabx,taby)) * (1./r0)**(5./3.)
+    Ccov =  0.5 * (Dphi.dphi_lowpass(Mhvdt,fc,L0,tabx,taby) - Dphi.dphi_lowpass(Mht,fc,L0,tabx,taby) \
+            - Dphi.dphi_lowpass(Mvdt,fc,L0,tabx,taby) + Dphi.dphi_lowpass(M,fc,L0,tabx,taby)) * (1./r0)**(5./3.)
 
-    Caniso = 0.5*(Dphi.dphi_lowpass(Mht,0.2,L0,tabx,taby) - Dphi.dphi_lowpass(M,0.2,L0,tabx,taby)) * (1./r0)**(5./3.)
-    Cbp = 0.5*(Dphi.dphi_lowpass(Mvdt,0.2,L0,tabx,taby) - Dphi.dphi_lowpass(M,0.2,L0,tabx,taby)) * (1./r0)**(5./3.)
+    Caniso = 0.5*(Dphi.dphi_lowpass(Mht,fc,L0,tabx,taby) - Dphi.dphi_lowpass(M,fc,L0,tabx,taby)) * (1./r0)**(5./3.)
+    Cbp = 0.5*(Dphi.dphi_lowpass(Mvdt,fc,L0,tabx,taby) - Dphi.dphi_lowpass(M,fc,L0,tabx,taby)) * (1./r0)**(5./3.)
 
     Sp = (f.attrs["tel_diam"]/f.attrs["nxsub"])**2/2.
     f.close()
@@ -267,7 +270,10 @@ filenames = glob.glob(datapath + 'roket_8m_1layer_dir*_cpu.h5')
 
 tabx, taby = Dphi.tabulateIj0()
 # Illustration du probleme
-psf_compass, psf, psfi, psfc, psfs = compute_and_compare_PSFs(filenames[11],correction=True, synth=True)
+#psf_compass, psf, psfi, psfc, psfs = compute_and_compare_PSFs(filenames[11],correction=True, synth=True)
+
+
+
 '''
 files = []
 for f in filenames:

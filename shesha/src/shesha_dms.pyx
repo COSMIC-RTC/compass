@@ -289,7 +289,7 @@ def n_actuator_select(Param_dm p_dm,Param_tel p_tel, xc,yc):
         rad_in=0.0
 
     else:
-        
+
         pitchMargin_in=p_dm.margin_in
         rad_in=(((p_dm.nact-1.)/2.)*p_tel.cobs-pitchMargin_in)*p_dm._pitch
 
@@ -388,19 +388,20 @@ cpdef make_pzt_dm(Param_dm p_dm,Param_geom geom,Param_tel p_tel,irc):
     # Computation of influence function for each actuator
     cdef int i1, j1
     cdef np.ndarray[ndim=2,dtype=np.float32_t] x, y, tmp
+    print "Computing influence function type : ", p_dm.influType
     for i in range(ntotact):
 
         i1 = i1t[i]
         x  = np.tile(np.arange(i1,i1+smallsize,dtype=np.float32),(smallsize,1)) # pixel coords in ref frame "dm support"
         x += p_dm._n1                                          # pixel coords in ref frame "pupil support"
         x -= xpos[i]                                     # pixel coords in local ref frame
-        x  = np.abs(x)/(irc*pitch)                             # normalized coordiantes in local ref frame
+        x  = np.abs(x.T)/(irc*pitch)                             # normalized coordiantes in local ref frame
 
         j1 = j1t[i]
         y  = np.tile(np.arange(j1,j1+smallsize,dtype=np.float32),(smallsize,1)) # idem as X, in Y
         y += p_dm._n1
         y -= ypos[i]
-        y  = np.abs(y.T)/(irc*pitch)
+        y  = np.abs(y)/(irc*pitch)
 
         #clip
         x[x<1e-8]=1e-8
@@ -419,6 +420,26 @@ cpdef make_pzt_dm(Param_dm p_dm,Param_geom geom,Param_tel p_tel,irc):
             gauss[gauss<0.] = 0
             gauss/=gauss.max(); # Normalize
             influ[:, :, i] = gauss
+        elif(p_dm.influType == "radialSchwartz"):
+            xdg= np.linspace(-1, 1, tmp.shape[0],dtype=np.float32)
+            x = np.tile(xdg, (tmp.shape[0],1))
+            y = x.T
+            k = 6
+            r = np.sqrt(x*x + y*y)
+            ok = np.where(r<1)
+            a = 2*(pitch/float(tmp.shape[0]))/np.sqrt(k/(np.log(coupling)-k)+1.)
+            sc = np.zeros(r.shape)
+            sc[ok] = np.exp((k/((r[ok]/a)**2-1))+k)
+            influ[:,:,i] = sc
+        elif(p_dm.influType == "squareSchwartz"):
+            xdg= np.linspace(-0.99, 0.99, tmp.shape[0],dtype=np.float32)
+            x = np.tile(xdg, (tmp.shape[0],1))
+            y = x.T
+            k = 6
+            a = 2*(pitch/float(tmp.shape[0]))/np.sqrt(k/(np.log(coupling)-k)+1.)
+            sc = np.exp((k/((x/a)**2-1))+k) * np.exp((k/((y/a)**2-1))+k)
+            influ[:,:,i] = sc
+
         elif(p_dm.influType=="default"):
             influ[:, :, i] = tmp
         else:
@@ -535,7 +556,7 @@ cpdef read_influ_hdf5 (Param_dm p_dm,Param_tel p_tel, Param_geom geom):
 
         influ = influ_h5[:,:,i]
         f = interpolate.interp2d(x,y,influ,kind='cubic')
-        influ_new[:,:,i] = f(xnew, ynew)
+        influ_new[:,:,i] = f(xnew, ynew).T
 
 
     p_dm._xpos = np.float32(xpos)
