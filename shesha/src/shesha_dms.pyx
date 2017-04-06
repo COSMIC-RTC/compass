@@ -384,6 +384,10 @@ cpdef make_pzt_dm(Param_dm p_dm,Param_geom geom,Param_tel p_tel,irc):
     j1t      = (cubval[1,:]-smallsize/2+0.5-p_dm._n1).astype(np.int32)
 
     # Allocate array of influence functions
+    if(p_dm.influType == "blacknutt"):
+        p_dm._influsize = 4 * p_dm._pitch + 1
+        smallsize = p_dm._influsize
+        
     cdef np.ndarray[ndim=3,dtype=np.float32_t] influ=np.zeros((smallsize,smallsize,ntotact),dtype=np.float32)
     # Computation of influence function for each actuator
     cdef int i1, j1
@@ -420,6 +424,7 @@ cpdef make_pzt_dm(Param_dm p_dm,Param_geom geom,Param_tel p_tel,irc):
             gauss[gauss<0.] = 0
             gauss/=gauss.max(); # Normalize
             influ[:, :, i] = gauss
+        
         elif(p_dm.influType == "radialSchwartz"):
             xdg= np.linspace(-1, 1, tmp.shape[0],dtype=np.float32)
             x = np.tile(xdg, (tmp.shape[0],1))
@@ -431,6 +436,7 @@ cpdef make_pzt_dm(Param_dm p_dm,Param_geom geom,Param_tel p_tel,irc):
             sc = np.zeros(r.shape)
             sc[ok] = np.exp((k/((r[ok]/a)**2-1))+k)
             influ[:,:,i] = sc
+        
         elif(p_dm.influType == "squareSchwartz"):
             xdg= np.linspace(-0.99, 0.99, tmp.shape[0],dtype=np.float32)
             x = np.tile(xdg, (tmp.shape[0],1))
@@ -439,7 +445,20 @@ cpdef make_pzt_dm(Param_dm p_dm,Param_geom geom,Param_tel p_tel,irc):
             a = 2*(pitch/float(tmp.shape[0]))/np.sqrt(k/(np.log(coupling)-k)+1.)
             sc = np.exp((k/((x/a)**2-1))+k) * np.exp((k/((y/a)**2-1))+k)
             influ[:,:,i] = sc
-
+            
+        elif(p_dm.influType == "blacknutt"):
+            cg = tmp.shape[0] // 2
+            xdg = np.arange(- cg, cg + 1, dtype = np.float32)
+            x = np.tile(xdg, (tmp.shape[0],1))
+            y = x.T
+            a = np.array([0.3635819, 0.4891775, 0.1365995, 0.0106411], dtype = np.float32)
+            influ[:,:,i] = (a[0] + a[1] * np.cos(np.pi*(x) / cg) +\
+                             a[2] * np.cos(2*np.pi*(x) / cg) + a[3] * np.cos(3*np.pi*(x) / cg)) *\
+                             (a[0] + a[1] * np.cos(np.pi*(y) / cg) +\
+                             a[2] * np.cos(2*np.pi*(y) / cg) + a[3] * np.cos(3*np.pi*(y) / cg))
+            
+            
+        
         elif(p_dm.influType=="default"):
             influ[:, :, i] = tmp
         else:
