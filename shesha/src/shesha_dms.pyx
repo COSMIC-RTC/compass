@@ -12,6 +12,7 @@ import pandas as pd
 from scipy import interpolate
 import copy as copy
 from scipy.sparse import csr_matrix
+import scipy.special as sp
 import shesha_kl as klfunc
 import astropy.io.fits as pfits
 #max_extent signature
@@ -315,7 +316,68 @@ def n_actuator_select(Param_dm p_dm,Param_tel p_tel, xc,yc):
 
 
     return liste_fin
+    
 
+def besel_orth(m,n,phi,r):
+    # fonction de bessel fourier orthogonale (BFOFS)
+    if (m == 0):
+        B = sp.jn(0,sp.jn_zeros(0,n)[n-1]*r)
+    elif (m>0):
+        B = sp.jn(m,sp.jn_zeros(m,n)[n-1]*r)*np.sin(m*phi)
+    else:
+        B = sp.jn(np.abs(m),sp.jn_zeros(np.abs(m),n)[n-1]*r)*np.cos(np.abs(m)*phi)
+    return B
+    
+    
+def bessel_influence(xx,yy,size,type_i='square'):
+    
+    influ = np.zeros((size,size),dtype=np.float32)
+    
+    # construction des tableaux :
+
+    middle = (size-1)/2.
+    #construction des coordonnée cartesienne
+    #x = np.arange(size)-middle # -->
+    #y = (np.arange(size)-middle)*-1 # -->
+    #xx,yy = np.meshgrid(x,y)
+    #passage en coordonnée polaire
+    r = np.sqrt(xx**2+yy**2)/(middle)
+    phi = np.arctan2(yy,xx)#+(np.pi/8.) #petite correction de rotation
+    
+    #coef for square IF
+    a0= [0.3826,0.5207,0.2841,-0.0146,-0.1103,-0.0818,-0.0141,0.0123,0.0196,0.0037]
+    am = [-0.0454,-0.1114,-0.1125,-0.0397,0.0146,0.0217,0.0085,-0.0012,-0.0040]
+    a = [-0.0002,-0.0004,-0.0001,0.0004,0.0005,0.0003,0.0001,0,0]
+    
+    # search coef for hexagonal IF (m =0, 6, -6 --> 28 term)
+    #a0 ->10
+    #a6 ->9
+    #am6 ->9    
+    
+    if type_i=='hexa':
+        sym = 6
+
+    else:
+        sym = 4
+        
+    # calcul pour m = 0
+    for i in range(len(a0)):
+        btemp = (a0[i]*besel_orth(0,i+1,phi,r))
+
+        influ = influ+btemp
+    print "fin cas m=",0
+    
+    #calcul pour m=6
+    for i in range(len(a)):
+        influ = influ+(a[i]*besel_orth(sym,i+1,phi,r))
+    print "fin cas m=",sym
+    
+    #calcul pour m=-6   
+    for i in range(len(am)):
+        influ = influ+(am[i]*besel_orth(-sym,i+1,phi,r))
+    print "fin cas m=",-sym
+
+    return influ
 
 cpdef make_pzt_dm(Param_dm p_dm,Param_geom geom,Param_tel p_tel,irc):
 
@@ -461,6 +523,8 @@ cpdef make_pzt_dm(Param_dm p_dm,Param_geom geom,Param_tel p_tel,irc):
         
         elif(p_dm.influType=="default"):
             influ[:, :, i] = tmp
+        elif(p_dm.influType=="bessel"):
+            influ[:, :, i]= bessel_influence(x,y,smallsize,type_i='square')
         else:
           print "ERROR influtype not recognized (defaut or gaussian)"
 
