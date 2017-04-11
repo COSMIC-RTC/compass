@@ -331,17 +331,19 @@ def besel_orth(m,n,phi,r):
     
 def bessel_influence(xx,yy,size,type_i='square'):
     
+    # base sur l article numerical model of the influence function of deformable mirrors based on bessel Fourier orthogonal functions
+    # corespond a 3.2pitch    
+    
     influ = np.zeros((size,size),dtype=np.float32)
     
     # construction des tableaux :
 
-    middle = (size-1)/2.
     #construction des coordonnée cartesienne
     #x = np.arange(size)-middle # -->
     #y = (np.arange(size)-middle)*-1 # -->
     #xx,yy = np.meshgrid(x,y)
     #passage en coordonnée polaire
-    r = np.sqrt(xx**2+yy**2)/(middle)
+    r = np.sqrt(xx**2+yy**2)
     phi = np.arctan2(yy,xx)#+(np.pi/8.) #petite correction de rotation
     
     #coef for square IF
@@ -365,17 +367,17 @@ def bessel_influence(xx,yy,size,type_i='square'):
         btemp = (a0[i]*besel_orth(0,i+1,phi,r))
 
         influ = influ+btemp
-    print "fin cas m=",0
+    #print "fin cas m=",0
     
     #calcul pour m=6
     for i in range(len(a)):
         influ = influ+(a[i]*besel_orth(sym,i+1,phi,r))
-    print "fin cas m=",sym
+    #print "fin cas m=",sym
     
     #calcul pour m=-6   
     for i in range(len(am)):
         influ = influ+(am[i]*besel_orth(-sym,i+1,phi,r))
-    print "fin cas m=",-sym
+    #print "fin cas m=",-sym
 
     return influ
 
@@ -454,80 +456,88 @@ cpdef make_pzt_dm(Param_dm p_dm,Param_geom geom,Param_tel p_tel,irc):
     # Computation of influence function for each actuator
     cdef int i1, j1
     cdef np.ndarray[ndim=2,dtype=np.float32_t] x, y, tmp
+    
     print "Computing influence function type : ", p_dm.influType
-    for i in range(ntotact):
 
-        i1 = i1t[i]
-        x  = np.tile(np.arange(i1,i1+smallsize,dtype=np.float32),(smallsize,1)) # pixel coords in ref frame "dm support"
-        x += p_dm._n1                                          # pixel coords in ref frame "pupil support"
-        x -= xpos[i]                                     # pixel coords in local ref frame
-        x  = np.abs(x.T)/(irc*pitch)                             # normalized coordiantes in local ref frame
-
-        j1 = j1t[i]
-        y  = np.tile(np.arange(j1,j1+smallsize,dtype=np.float32),(smallsize,1)) # idem as X, in Y
-        y += p_dm._n1
-        y -= ypos[i]
-        y  = np.abs(y)/(irc*pitch)
-
-        #clip
-        x[x<1e-8]=1e-8
-        x[x>2]=2.
-        y[y<1e-8]=1e-8
-        y[y>2]=2.
-        tmp = (1.-x**p1+ccc*np.log(x)*x**p2)*(1.-y**p1+ccc*np.log(y)*y**p2)
-        tmp = tmp*(x <= 1.0)*(y <= 1.0)
-        if(p_dm.influType=="gaussian"):
-            xdg= np.linspace(-1, 1, tmp.shape[0],dtype=np.float32)
-            x = np.tile(xdg, (tmp.shape[0],1))
-            y = x.T
-            sig=0.8
-            gauss = 1/np.cos(np.exp(-(x**2/sig+y**2/sig))**2);
-            gauss-=gauss[gauss.shape[0]/2.].min(); # Force value at zero on array limits
-            gauss[gauss<0.] = 0
-            gauss/=gauss.max(); # Normalize
-            influ[:, :, i] = gauss
+    if(p_dm.influType == "radialSchwartz"):
+        xdg= np.linspace(-1, 1, smallsize,dtype=np.float32)
+        x = np.tile(xdg, (smallsize,1))
+        y = x.T
+        k = 6
+        r = np.sqrt(x*x + y*y)
+        ok = np.where(r<1)
+        a = 2*(pitch/float(smallsize))/np.sqrt(k/(np.log(coupling)-k)+1.)
+        sc = np.zeros(r.shape)
+        sc[ok] = np.exp((k/((r[ok]/a)**2-1))+k)
+        influ[:,:,:] = sc[:,:,None] * np.ones(ntotact)[None,None,:]
+    
+    elif(p_dm.influType == "squareSchwartz"):
+        xdg= np.linspace(-0.99, 0.99, smallsize,dtype=np.float32)
+        x = np.tile(xdg, (smallsize,1))
+        y = x.T
+        k = 6
+        a = 2*(pitch/float(smallsize))/np.sqrt(k/(np.log(coupling)-k)+1.)
+        sc = np.exp((k/((x/a)**2-1))+k) * np.exp((k/((y/a)**2-1))+k)
+        influ[:,:,:] = sc[:,:,None] * np.ones(ntotact)[None,None,:]
         
-        elif(p_dm.influType == "radialSchwartz"):
-            xdg= np.linspace(-1, 1, tmp.shape[0],dtype=np.float32)
-            x = np.tile(xdg, (tmp.shape[0],1))
-            y = x.T
-            k = 6
-            r = np.sqrt(x*x + y*y)
-            ok = np.where(r<1)
-            a = 2*(pitch/float(tmp.shape[0]))/np.sqrt(k/(np.log(coupling)-k)+1.)
-            sc = np.zeros(r.shape)
-            sc[ok] = np.exp((k/((r[ok]/a)**2-1))+k)
-            influ[:,:,i] = sc
+    elif(p_dm.influType == "blacknutt"):
+        cg = smallsize // 2
+        xdg = np.arange(- cg, cg + 1, dtype = np.float32)
+        x = np.tile(xdg, (smallsize,1))
+        y = x.T
+        a = np.array([0.3635819, 0.4891775, 0.1365995, 0.0106411], dtype = np.float32)
+        sc = (a[0] + a[1] * np.cos(np.pi*(x) / cg) +\
+            a[2] * np.cos(2*np.pi*(x) / cg) + a[3] * np.cos(3*np.pi*(x) / cg)) *\
+            (a[0] + a[1] * np.cos(np.pi*(y) / cg) +\
+            a[2] * np.cos(2*np.pi*(y) / cg) + a[3] * np.cos(3*np.pi*(y) / cg))
+        influ[:,:,:] = sc[:,:,None] * np.ones(ntotact)[None,None,:]
+    
+    elif(p_dm.influType=="gaussian"):
+        xdg= np.linspace(-1, 1, smallsize,dtype=np.float32)
+        x = np.tile(xdg, (smallsize,1))
+        y = x.T
+        sig=0.8
+        gauss = 1/np.cos(np.exp(-(x**2/sig+y**2/sig))**2);
+        gauss-=gauss[gauss.shape[0]/2.].min(); # Force value at zero on array limits
+        gauss[gauss<0.] = 0
+        gauss/=gauss.max(); # Normalize
+        influ[:,:,:] = gauss[:,:,None] * np.ones(ntotact)[None,None,:]
         
-        elif(p_dm.influType == "squareSchwartz"):
-            xdg= np.linspace(-0.99, 0.99, tmp.shape[0],dtype=np.float32)
-            x = np.tile(xdg, (tmp.shape[0],1))
-            y = x.T
-            k = 6
-            a = 2*(pitch/float(tmp.shape[0]))/np.sqrt(k/(np.log(coupling)-k)+1.)
-            sc = np.exp((k/((x/a)**2-1))+k) * np.exp((k/((y/a)**2-1))+k)
-            influ[:,:,i] = sc
-            
-        elif(p_dm.influType == "blacknutt"):
-            cg = tmp.shape[0] // 2
-            xdg = np.arange(- cg, cg + 1, dtype = np.float32)
-            x = np.tile(xdg, (tmp.shape[0],1))
-            y = x.T
-            a = np.array([0.3635819, 0.4891775, 0.1365995, 0.0106411], dtype = np.float32)
-            influ[:,:,i] = (a[0] + a[1] * np.cos(np.pi*(x) / cg) +\
-                             a[2] * np.cos(2*np.pi*(x) / cg) + a[3] * np.cos(3*np.pi*(x) / cg)) *\
-                             (a[0] + a[1] * np.cos(np.pi*(y) / cg) +\
-                             a[2] * np.cos(2*np.pi*(y) / cg) + a[3] * np.cos(3*np.pi*(y) / cg))
-            
-            
+    elif(p_dm.influType=="bessel"):
+        size_pitch = smallsize/np.float32(p_dm._pitch) # size of influence fonction in pitch
+        xdg= np.linspace(-1*(size_pitch/3.2),size_pitch/3.2, smallsize,dtype=np.float32)
+        x = np.tile(xdg, (smallsize,1))
+        y = x.T
+        influ_u = bessel_influence(x,y,smallsize,p_dm.type_pattern)
+        influ_u = influ_u*(influ_u>=0)
+        influ[:,:,:] = influ_u[:,:,None] * np.ones(ntotact)[None,None,:]
         
-        elif(p_dm.influType=="default"):
-            influ[:, :, i] = tmp
-        elif(p_dm.influType=="bessel"):
-            influ[:, :, i]= bessel_influence(x,y,smallsize,type_i='square')
-        else:
-          print "ERROR influtype not recognized (defaut or gaussian)"
+    elif(p_dm.influType=="default"):
+        
+        for i in range(ntotact):
+    
+            i1 = i1t[i]
+            x  = np.tile(np.arange(i1,i1+smallsize,dtype=np.float32),(smallsize,1)) # pixel coords in ref frame "dm support"
+            x += p_dm._n1                                          # pixel coords in ref frame "pupil support"
+            x -= xpos[i]                                     # pixel coords in local ref frame
+            x  = np.abs(x)/(irc*pitch)                             # normalized coordiantes in local ref frame
+    
+            j1 = j1t[i]
+            y  = np.tile(np.arange(j1,j1+smallsize,dtype=np.float32),(smallsize,1)) # idem as X, in Y
+            y += p_dm._n1
+            y -= ypos[i]
+            y  = np.abs(y.T)/(irc*pitch)
+    
+            #clip
+            x[x<1e-8]=1e-8
+            x[x>2]=2.
+            y[y<1e-8]=1e-8
+            y[y>2]=2.
+            tmp = (1.-x**p1+ccc*np.log(x)*x**p2)*(1.-y**p1+ccc*np.log(y)*y**p2)
+            tmp = tmp*(x <= 1.0)*(y <= 1.0)
 
+    else:
+        print "ERROR influtype not recognized (defaut or gaussian or bessel)"
 
     if(p_dm._puppixoffset is not None):
         xpos +=p_dm._puppixoffset[0]
