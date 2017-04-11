@@ -485,7 +485,7 @@ cpdef make_pzt_dm(Param_dm p_dm,Param_geom geom,Param_tel p_tel,irc):
         xdg = np.arange(- cg, cg + 1, dtype = np.float32)
         x = np.tile(xdg, (smallsize,1))
         y = x.T
-        a = np.array([0.3635819, 0.4891775, 0.1365995, 0.0106411], dtype = np.float32)
+        a = np.array([0.355768, 0.487396, 0.144232, 0.012604], dtype = np.float32)
         sc = (a[0] + a[1] * np.cos(np.pi*(x) / cg) +\
             a[2] * np.cos(2*np.pi*(x) / cg) + a[3] * np.cos(3*np.pi*(x) / cg)) *\
             (a[0] + a[1] * np.cos(np.pi*(y) / cg) +\
