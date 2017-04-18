@@ -535,6 +535,7 @@ cpdef make_pzt_dm(Param_dm p_dm,Param_geom geom,Param_tel p_tel,irc):
             y[y>2]=2.
             tmp = (1.-x**p1+ccc*np.log(x)*x**p2)*(1.-y**p1+ccc*np.log(y)*y**p2)
             tmp = tmp*(x <= 1.0)*(y <= 1.0)
+            influ[:, :, i] = tmp
 
     else:
         print "ERROR influtype not recognized (defaut or gaussian or bessel)"
