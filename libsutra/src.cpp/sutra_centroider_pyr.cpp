@@ -19,6 +19,7 @@ sutra_centroider_pyr::sutra_centroider_pyr(carma_context *context,
     this->scale = scale;
     this->valid_thresh = 1e-4;
     this->pyr_type = sensors->d_wfs[nwfs]->type;
+    this->method = global;
 }
 
 sutra_centroider_pyr::~sutra_centroider_pyr() {
@@ -36,6 +37,15 @@ float sutra_centroider_pyr::get_valid_thresh() {
     return this->valid_thresh;
 }
 
+int sutra_centroider_pyr::set_cog_type(int type){
+    switch (type) {
+        case 0: this->method = local ; break;
+        case 1: this->method = global; break;
+        default: return EXIT_FAILURE;
+    }
+    return EXIT_SUCCESS;
+}
+
 
 int sutra_centroider_pyr::get_cog(carma_streams *streams, float *cube,
         float *subsum, float *centroids, int nvalid, int npix, int ntot) {
@@ -49,14 +59,29 @@ int sutra_centroider_pyr::get_pyr(float *cube, float *subsum, float *centroids,
         int *subindx, int *subindy, int nvalid, int ns, int nim) {
     current_context->set_activeDevice(device, 1);
     if (this->pyr_type == "pyr" || this->pyr_type == "roof") {
-        pyr_subsum(subsum, cube, subindx, subindy, ns, nvalid, nim,
-                this->current_context->get_device(device));
-
-        pyr_slopes(centroids, cube, subindx, subindy, subsum, ns, nvalid, nim,
-                this->current_context->get_device(device));
+        DEBUG_TRACE("Not working anymore");
+        throw "Not working anymore";
+        // pyr_subsum(subsum, cube, subindx, subindy, ns, nvalid, nim,
+        //         this->current_context->get_device(device));
+        //
+        // pyr_slopes(centroids, cube, subindx, subindy, subsum, ns, nvalid, nim,
+        //         this->current_context->get_device(device));
     } else if (this->pyr_type == "pyrhr") {
         pyr_subsum(subsum, cube, subindx, subindy, ns, nvalid,
                 this->current_context->get_device(device));
+
+        if(this->method == global){
+            int blocks, threads;
+        //  getNumBlocksAndThreads(current_context->get_device(device), this->d_binimg->getNbElem(),
+        //      blocks, threads);
+        	this->current_context->set_activeDevice(device,1);
+        	sumGetNumBlocksAndThreads(nvalid,
+        			this->current_context->get_device(device), blocks, threads);
+            reduce(nvalid, threads, blocks, subsum, centroids);
+            
+            fillvalues(subsum, &centroids[0], nvalid,
+                this->current_context->get_device(device));
+        }
 
         pyr2_slopes(centroids, cube, subindx, subindy, subsum, ns, nvalid, this->scale,
                 this->valid_thresh, this->current_context->get_device(device));

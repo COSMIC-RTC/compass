@@ -157,38 +157,38 @@ fillindex<double>(double *d_odata, double *d_idata, int *indx, int N, carma_devi
 
 
 template<class T>
-__global__ void krnl_fillvalues(T *odata, unsigned int *indx, int N) {
+__global__ void krnl_fillvalues(T *odata, T *val, int N) {
 
   int tid = threadIdx.x + blockIdx.x * blockDim.x;
 
   while (tid < N) {
-    odata[indx[tid]] = 1;
+    odata[tid] = *val / N;
     tid += blockDim.x * gridDim.x;
   }
 }
 
 template<class T>
-int fillvalues(T *d_odata, unsigned int *indx, int N, carma_device *device) {
+int fillvalues(T *d_odata, T *val, int N, carma_device *device) {
 
   int nBlocks, nThreads;
   getNumBlocksAndThreads(device, N, nBlocks, nThreads);
   dim3 grid(nBlocks), threads(nThreads);
   //  dim3 grid(128), threads(128);
 
-  krnl_fillvalues<<<grid, threads>>>(d_odata, indx, N);
+  krnl_fillvalues<<<grid, threads>>>(d_odata, val, N);
   carmaCheckMsg("krnl_fillvalues<<<>>> execution failed\n");
 
   return EXIT_SUCCESS;
 }
 
 template int
-fillvalues<float>(float *d_odata, unsigned int *indx, int N, carma_device *device);
+fillvalues<float>(float *d_odata, float *val, int N, carma_device *device);
 
 template int
-fillvalues<double>(double *d_odata, unsigned int *indx, int N, carma_device *device);
+fillvalues<double>(double *d_odata, double *val, int N, carma_device *device);
 
 template int
-fillvalues<unsigned int>(unsigned int *d_odata, unsigned int *indx, int N, carma_device *device);
+fillvalues<unsigned int>(unsigned int *d_odata, unsigned int *val, int N, carma_device *device);
 
 template<class T>
 __global__ void getarray2d_krnl(T *odata, T *idata, int tidx0, int Ncol, int NC,

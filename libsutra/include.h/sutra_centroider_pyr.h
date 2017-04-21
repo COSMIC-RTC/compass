@@ -3,6 +3,8 @@
 
 #include <sutra_centroider.h>
 
+enum type_CoG {local=0, global};
+
 class sutra_centroider_pyr: public sutra_centroider {
 private:
   string pyr_type;
@@ -28,6 +30,7 @@ public:
 
 private:
   float valid_thresh;
+  type_CoG method;
 };
 
 #endif // _SUTRA_CENTROIDER_PYR_H_
