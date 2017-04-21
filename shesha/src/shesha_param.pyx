@@ -153,13 +153,13 @@ cdef class Param_tel:
         :param tt: (float) : std of tip-tilt errors for EELT segments
         """
         self.std_tt = tt
-        
+
     def set_vect_seg(self, vect):
         """Set the segment number for construct ELT pupil"
 
         :param vect: (list of int32) : segment numbers
         """
-        self.vect_seg = np.array(vect, dtype=np.int32)        
+        self.vect_seg = np.array(vect, dtype=np.int32)
 
 
 #################################################
@@ -889,7 +889,7 @@ cdef class Param_dm:
         self._klbas = Klbas()
         self.influType = <bytes> ("default")
         self.gain = 1.0
-        
+
     def set_influType(self, bytes t):
         """Set the influence function type for pzt DM
         :param t: (str) : centroider type
@@ -982,7 +982,7 @@ cdef class Param_dm:
         :param dp: (str) : name of diameter (meter in pupil plan) dm
         """
         self.diam_dm_proj=dp
-        
+
     def set_nact(self, long n):
 
         """set the number of actuator
@@ -1189,6 +1189,9 @@ cdef class Param_rtc:
 # P-Class (parametres) Param_centroider
 #################################################
 cdef class Param_centroider:
+    def __cinit__(self):
+        self.method = 1
+        self.thresh = 1e-4
 
     def set_type(self, bytes t):
         """Set the centroider type
@@ -1225,6 +1228,14 @@ cdef class Param_centroider:
             t: (float) : threshold
         """
         self.thresh = t
+
+    def set_method(self, long method):
+        """Set the method for pyrhr
+
+        :parameters:
+            method : (int) : new method (0:local, 1:global)
+        """
+        self.method = method
 
     def set_width(self, float w):
         """Set the width of the Gaussian
@@ -1266,23 +1277,23 @@ cdef class Param_controller:
 
     def set_type(self, bytes b):
         self.type_control = b
-        
+
     def set_kl_imat(self, int k):
         """Set type imat, for imat on kl set at 1
 
         :param k: (int) : imat kl
         """
         self.kl_imat = k
-        
+
     def set_klgain(self, gkl):
         """Set klgain for imatkl size = number of kl mode
 
         :param klgain: (list of float32) : klgain
         """
         self.klgain = np.array(gkl, dtype=np.float32)
-        
+
     def set_nwfs(self, l):
-        
+
         """Set the indices of wfs
 
         :param l: (list of int) : indices of wfs

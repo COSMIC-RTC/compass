@@ -37,7 +37,7 @@ float sutra_centroider_pyr::get_valid_thresh() {
     return this->valid_thresh;
 }
 
-int sutra_centroider_pyr::set_cog_type(int type){
+int sutra_centroider_pyr::set_method(int type){
     switch (type) {
         case 0: this->method = local ; break;
         case 1: this->method = global; break;
@@ -78,7 +78,7 @@ int sutra_centroider_pyr::get_pyr(float *cube, float *subsum, float *centroids,
         	sumGetNumBlocksAndThreads(nvalid,
         			this->current_context->get_device(device), blocks, threads);
             reduce(nvalid, threads, blocks, subsum, centroids);
-            
+
             fillvalues(subsum, &centroids[0], nvalid,
                 this->current_context->get_device(device));
         }

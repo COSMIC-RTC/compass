@@ -505,6 +505,7 @@ cdef extern from "sutra_centroider_pyr.h":
         # string get_type()
         int set_valid_thresh(float valid_thresh)
         float get_valid_thresh()
+        int set_method(int type)
 
 '''
 #################################################

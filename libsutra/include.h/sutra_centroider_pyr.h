@@ -3,7 +3,7 @@
 
 #include <sutra_centroider.h>
 
-enum type_CoG {local=0, global};
+enum method_CoG {local=0, global};
 
 class sutra_centroider_pyr: public sutra_centroider {
 private:
@@ -19,7 +19,7 @@ public:
   int set_valid_thresh(float valid_thresh);
   float get_valid_thresh();
 
-  int set_cog_type(int type);
+  int set_method(int type);
 
   int get_pyr(float *cube, float *subsum, float *centroids, int *subindx,
       int *subindy, int nvalid, int ns, int nim);
@@ -30,7 +30,7 @@ public:
 
 private:
   float valid_thresh;
-  type_CoG method;
+  method_CoG method;
 };
 
 #endif // _SUTRA_CENTROIDER_PYR_H_

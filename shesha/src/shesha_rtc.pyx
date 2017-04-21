@@ -133,13 +133,31 @@ cdef class Rtc:
         else:
             self.rtc.add_controller(nactu, delay, self.device, type_control, dms.dms, & ptr_dmseen, ptr_alt, ndm)
 
-    cpdef set_pyr_thresh(self, int n, float threshold, list p_wfss):
+    cpdef set_pyr_method(self, int n, int method, list p_centroiders):
+        """Set the pyramid threshold
+        :parameters:
+        n : (int) : pyr centroider number
+        method : (int) : new method (0:local, 1:global)
+        p_centroiders : (list of Param_centroider) : list of centroider parameters
+        """
+        cdef sutra_centroider_pyr * centro = NULL
+        cdef carma_context * context = &carma_context.instance()
+        context.set_activeDevice(self.device, 1)
+
+        if(self.rtc.d_centro[n].is_type("pyrhr")):
+            centro = dynamic_cast_centroider_pyr_ptr(self.rtc.d_centro[n])
+            centro.set_method(threshold)
+            p_centroiders[n].set_method(threshold)
+        else:
+            e="Centroider should be pyrhr, got "+self.rtc.d_centro[n].get_type()
+            raise ValueError(e)
+
+    cpdef set_pyr_thresh(self, int n, float threshold, list p_centroiders):
         """Set the pyramid threshold
         :parameters:
         n : (int) : pyr centroider number
         threshold : (float) : new threshold in photons
-        p_wfss : (list of Param_wfs) : list of wfs parameters
-        p_tel : (Param_tel) : Telescope parameters
+        p_centroiders : (list of Param_centroider) : list of centroider parameters
         """
         cdef sutra_centroider_pyr * centro = NULL
         cdef carma_context * context = &carma_context.instance()
@@ -149,9 +167,7 @@ cdef class Rtc:
             centro = dynamic_cast_centroider_pyr_ptr(self.rtc.d_centro[n])
             centro.set_valid_thresh(threshold)
 
-            nwfs = centro.nwfs
-            pwfs = p_wfss[nwfs]
-            pwfs.set_thresh(threshold)
+            p_centroiders[n].set_thresh(threshold)
         else:
             e="Centroider should be pyrhr, got "+self.rtc.d_centro[n].get_type()
             raise ValueError(e)
@@ -2131,6 +2147,10 @@ def rtc_init(Telescope g_tel, Sensors g_wfs, p_wfs, Dms g_dms, p_dms, Param_geom
 
                 g_rtc.add_centroider(g_wfs, nwfs, wfs._nvalid, centroider.type_centro, s_offset, s_scale)
                 g_rtc.sensors_initbcube(i)
+
+                if(wfs.type_wfs == "pyrhr"):
+                    g_rtc.set_pyr_method(i, centroider.method, p_rtc.centroiders)
+                    g_rtc.set_pyr_thresh(i, centroider.thresh, p_rtc.centroiders)
 
                 if(wfs.type_wfs == "sh"):
                     if(centroider.type_centro == "tcog"):
