@@ -1530,7 +1530,7 @@ __global__ void pyr2slopes_krnl(T *g_odata, T *g_idata, int *subindx,
 }
 
 template<class T, T fct_sin(T)>
-void pyr2_slopes(T *d_odata, T *d_idata, int *subindx, int *subindy, T *subsum,
+void pyr2_slopes_full(T *d_odata, T *d_idata, int *subindx, int *subindy, T *subsum,
     int ns, int nvalid, T scale, T valid_thresh, carma_device *device) {
   //cout << "hello cu" << endl;
 
@@ -1544,12 +1544,17 @@ void pyr2_slopes(T *d_odata, T *d_idata, int *subindx, int *subindy, T *subsum,
   carmaCheckMsg("pyrslopes_kernel<<<>>> execution failed\n");
 }
 
-template void
-pyr2_slopes<float, sinpif>(float *d_odata, float *d_idata, int *subindx, int *subindy,
-    float *subsum, int ns, int nvalid, float scale, float valid_thresh, carma_device *device);
-template void
-pyr2_slopes<double, sinpi>(double *d_odata, double *d_idata, int *subindx, int *subindy,
-    double *subsum, int ns, int nvalid, double scale, double valid_thresh, carma_device *device);
+template<>
+void pyr2_slopes<float>(float *d_odata, float *d_idata, int *subindx, int *subindy,
+                        float *subsum, int ns, int nvalid, float scale,
+                        float valid_thresh, carma_device *device){
+    pyr2_slopes_full<float, sinpif>(d_odata, d_idata, subindx, subindy, subsum, ns, nvalid, scale, valid_thresh, device);
+}
+template <>
+void pyr2_slopes<double>(double *d_odata, double *d_idata, int *subindx, int *subindy,
+                         double *subsum, int ns, int nvalid, double scale, double valid_thresh, carma_device *device){
+    pyr2_slopes_full<double, sinpi>(d_odata, d_idata, subindx, subindy, subsum, ns, nvalid, scale, valid_thresh, device);
+}
 
 ////////////////////////////////////////////////////////////
 // ADDING PYR_SLOPES MODIFIED FOR ROOF-PRISM: ROOF_SLOPES //
