@@ -146,8 +146,8 @@ cdef class Rtc:
 
         if(self.rtc.d_centro[n].is_type("pyrhr")):
             centro = dynamic_cast_centroider_pyr_ptr(self.rtc.d_centro[n])
-            centro.set_method(threshold)
-            p_centroiders[n].set_method(threshold)
+            centro.set_method(method)
+            p_centroiders[n].set_method(method)
         else:
             e="Centroider should be pyrhr, got "+self.rtc.d_centro[n].get_type()
             raise ValueError(e)
