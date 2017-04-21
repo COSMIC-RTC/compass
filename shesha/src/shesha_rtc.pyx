@@ -133,6 +133,29 @@ cdef class Rtc:
         else:
             self.rtc.add_controller(nactu, delay, self.device, type_control, dms.dms, & ptr_dmseen, ptr_alt, ndm)
 
+    cpdef set_pyr_thresh(self, int n, float threshold, list p_wfss):
+        """Set the pyramid threshold
+        :parameters:
+        n : (int) : pyr centroider number
+        threshold : (float) : new threshold in photons
+        p_wfss : (list of Param_wfs) : list of wfs parameters
+        p_tel : (Param_tel) : Telescope parameters
+        """
+        cdef sutra_centroider_pyr * centro = NULL
+        cdef carma_context * context = &carma_context.instance()
+        context.set_activeDevice(self.device, 1)
+
+        if(self.rtc.d_centro[n].is_type("pyrhr")):
+            centro = dynamic_cast_centroider_pyr_ptr(self.rtc.d_centro[n])
+            centro.set_valid_thresh(threshold)
+
+            nwfs = centro.nwfs
+            pwfs = p_wfss[nwfs]
+            pwfs.set_thresh(threshold)
+        else:
+            e="Centroider should be pyrhr, got "+self.rtc.d_centro[n].get_type()
+            raise ValueError(e)
+
     cpdef set_pyr_ampl(self, int n, float ampli, list p_wfss, Param_tel p_tel):
         """Set the pyramid modulation amplitude
         :parameters:

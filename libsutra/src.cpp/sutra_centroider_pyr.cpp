@@ -17,6 +17,7 @@ sutra_centroider_pyr::sutra_centroider_pyr(carma_context *context,
     this->nvalid = nvalid;
     this->offset = offset;
     this->scale = scale;
+    this->valid_thresh = 1e-4;
     this->pyr_type = sensors->d_wfs[nwfs]->type;
 }
 
@@ -26,6 +27,15 @@ sutra_centroider_pyr::~sutra_centroider_pyr() {
 string sutra_centroider_pyr::get_type() {
     return this->pyr_type;
 }
+
+int sutra_centroider_pyr::set_valid_thresh(float valid_thresh) {
+    this->valid_thresh = valid_thresh;
+    return EXIT_SUCCESS;
+}
+float sutra_centroider_pyr::get_valid_thresh() {
+    return this->valid_thresh;
+}
+
 
 int sutra_centroider_pyr::get_cog(carma_streams *streams, float *cube,
         float *subsum, float *centroids, int nvalid, int npix, int ntot) {
@@ -48,8 +58,8 @@ int sutra_centroider_pyr::get_pyr(float *cube, float *subsum, float *centroids,
         pyr_subsum(subsum, cube, subindx, subindy, ns, nvalid,
                 this->current_context->get_device(device));
 
-        pyr2_slopes(centroids, cube, subindx, subindy, subsum, ns, nvalid,this->scale,
-                this->current_context->get_device(device));
+        pyr2_slopes(centroids, cube, subindx, subindy, subsum, ns, nvalid, this->scale,
+                this->valid_thresh, this->current_context->get_device(device));
     } else {
         return EXIT_FAILURE;
     }

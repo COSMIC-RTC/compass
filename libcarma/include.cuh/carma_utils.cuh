@@ -100,4 +100,9 @@ __inline__ __device__ void reduce_krnl( T *sdata, int size, int n) {
   }
 }
 
+template<class T_data>
+__inline__ __device__ T_data carma_clip(T_data n, T_data min, T_data max) {
+	return n > max ? max : (n < min ? min : n);
+}
+
 #endif //_CARMA_UTILS_CUH_

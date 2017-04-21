@@ -1,4 +1,5 @@
 #include <carma_obj.h>
+#include <carma_utils.cuh>
 
 /*
  short	2 bytes
@@ -92,17 +93,12 @@ launch_generic2d<double>(double *d_odata, double *d_idata, int N1, int N2);
 
 
 template<class T_data>
-__device__ T_data d_clip(T_data n, T_data min, T_data max) {
-	return n > max ? max : (n < min ? min : n);
-}
-
-template<class T_data>
 __global__ void krnl_clip(T_data *data, T_data min, T_data max, int N) {
 
   int tid = threadIdx.x + blockIdx.x * blockDim.x;
 
   while (tid < N) {
-    data[tid] = d_clip(data[tid], min, max);
+    data[tid] = carma_clip<T_data>(data[tid], min, max);
     tid += blockDim.x * gridDim.x;
   }
 }

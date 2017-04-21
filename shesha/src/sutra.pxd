@@ -496,6 +496,15 @@ cdef extern from "sutra_centroider_wcog.h":
         int get_cog(float * subsum, float * slopes, bool noise)
         int get_cog()
 
+#################################################
+# C-Class sutra_centroider_pyr
+#################################################
+cdef extern from "sutra_centroider_pyr.h":
+    cdef cppclass sutra_centroider_pyr(sutra_centroider):
+        bool is_type(string typec)
+        # string get_type()
+        int set_valid_thresh(float valid_thresh)
+        float get_valid_thresh()
 
 '''
 #################################################
