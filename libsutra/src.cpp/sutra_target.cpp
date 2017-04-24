@@ -47,8 +47,9 @@ sutra_source::sutra_source(carma_context *context, float xpos, float ypos,
   long *dims_data1 = new long[2];
   dims_data1[0] = 1;
   dims_data1[1] = pow(2, (long) (logf(Npts) / logf(2)) + 1);
-  this->d_phasepts = new carma_obj<float>(this->current_context, dims_data1);
+  //this->d_phasepts = new carma_obj<float>(this->current_context, dims_data1);
   dims_data1[1] = Npts;
+  this->d_phasepts = new carma_obj<float>(this->current_context, dims_data1);
   this->d_wherephase = new carma_obj<int>(this->current_context, dims_data1);
   int *wherephase = new int[Npts];
   int cpt = 0;

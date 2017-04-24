@@ -506,6 +506,7 @@ T_data carma_obj<T_data>::sum() {
   carmaCheckMsg("Kernel execution failed");
 
   // sum partial block sums on GPU
+  /*
   int s = nBlocks;
   while (s > 1) {
     int threads = 0, blocks = 0;
@@ -517,6 +518,7 @@ T_data carma_obj<T_data>::sum() {
     s = (s + (threads * 2 - 1)) / (threads * 2);
 
   }
+  */
   T_data* h_odata = new T_data[nBlocks];
   cudaMemcpy(h_odata, this->d_data, sizeof(T_data), cudaMemcpyDeviceToHost);
   return h_odata[0];
@@ -602,4 +604,3 @@ int _generic2CUD(caObjD *dest, caObjD *source) {
   return launch_generic2d((double*) *source, (double*) *dest,
                           source->getDims(1), source->getDims(2));
 }
-
