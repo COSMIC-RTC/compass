@@ -16,7 +16,7 @@ import scipy.special as sp
 import shesha_kl as klfunc
 import astropy.io.fits as pfits
 #max_extent signature
-cdef _dm_init(Dms dms, Param_dm p_dms, list p_wfs, Param_geom p_geom, Param_tel p_tel,int *max_extent):
+cdef _dm_init(Dms dms, Param_dm p_dms, list xpos_wfs,list ypos_wfs,Param_geom p_geom , diam, cobs,int *max_extent):
     """ inits a Dms object on the gpu
 
     :parameters:
@@ -24,10 +24,14 @@ cdef _dm_init(Dms dms, Param_dm p_dms, list p_wfs, Param_geom p_geom, Param_tel 
 
         p_dms: (Param_dms) : dm settings
 
-        p_wfs: (list) : list of wfs settings
+        xpos_wfs: (list) : list of wfs xpos
+        
+        ypos_wfs: (list) : list of wfs ypos
 
+        diam: (float) : diameter of telescope
+        
         p_geom: (Param_geom) : geom settings
-
+        
         p_tel: (Param_tel) : telescope settings
 
         max_extend: (int*) :
@@ -42,7 +46,7 @@ cdef _dm_init(Dms dms, Param_dm p_dms, list p_wfs, Param_geom p_geom, Param_tel 
     cdef float tmp
 
     if(p_dms.pupoffset is not None):
-        p_dms.puppixoffset = p_dms.pupoffset / p_tel.diam * p_geom.pupdiam
+        p_dms.puppixoffset = p_dms.pupoffset / diam * p_geom.pupdiam
 
 
     cdef float irc, coupling, ir
@@ -53,9 +57,13 @@ cdef _dm_init(Dms dms, Param_dm p_dms, list p_wfs, Param_geom p_geom, Param_tel 
             # calcul pitch ______________________
 
             # find out the support dimension for the given mirror.
-            norms = [np.linalg.norm([w.xpos, w.ypos]) for w in p_wfs]
+            #norms = [np.linalg.norm([w.xpos, w.ypos]) for w in p_wfs]
+            norms = [np.linalg.norm([xpos_wfs[w], ypos_wfs[w]]) for w in range(len(xpos_wfs))]
+            
             patchDiam = p_geom.pupdiam + 2 * np.max(norms) * \
-                4.848e-6 * np.abs(p_dms.alt) / p_tel.diam * p_geom.pupdiam
+                4.848e-6 * np.abs(p_dms.alt) / diam * p_geom.pupdiam
+                
+            
             # Patchdiam
             p_dms._pitch = long(patchDiam / (p_dms.nact - 1))
 
@@ -81,9 +89,9 @@ cdef _dm_init(Dms dms, Param_dm p_dms, list p_wfs, Param_geom p_geom, Param_tel 
             #______________________________________
 
             #calcul defaut influsize
-            make_pzt_dm(p_dms,p_geom,p_tel,irc)
+            make_pzt_dm(p_dms,p_geom,diam,cobs,irc)
         else :
-            read_influ_hdf5 (p_dms,p_tel,p_geom)
+            read_influ_hdf5 (p_dms,p_geom,diam,cobs)
 
         # max_extent
         max_extent[0] = max(max_extent[0], p_dms._n2 - p_dms._n1 + 1)
@@ -131,7 +139,7 @@ cdef _dm_init(Dms dms, Param_dm p_dms, list p_wfs, Param_geom p_geom, Param_tel 
 
 
         dim = long(p_dms._n2 - p_dms._n1 + 1)
-        make_tiptilt_dm(p_dms, p_wfs, p_geom, p_tel)
+        make_tiptilt_dm(p_dms, xpos_wfs, ypos_wfs, p_geom, diam,cobs)
         dms.add_dm(p_dms.type_dm, p_dms.alt, dim, 2, dim,
                    1, 1, p_dms.push4imat)
         dms.load_tt(p_dms.alt, p_dms._influ)
@@ -151,7 +159,7 @@ cdef _dm_init(Dms dms, Param_dm p_dms, list p_wfs, Param_geom p_geom, Param_tel 
 
         dim = long(p_dms._n2 - p_dms._n1 + 1)
 
-        make_kl_dm(p_dms,p_wfs,p_geom,p_tel)
+        make_kl_dm(p_dms,xpos_wfs, ypos_wfs,p_geom,diam,cobs)
 
         ninflu = p_dms.nkl
         influsize = long(p_dms._klbas.ncp)
@@ -176,10 +184,10 @@ cdef _dm_init(Dms dms, Param_dm p_dms, list p_wfs, Param_geom p_geom, Param_tel 
         # res1 = pol2car(*y_dm(n)._klbas,gkl_sfi(*y_dm(n)._klbas, 1));
         # res2 = yoga_getkl(g_dm,0.,1);
 
-
-def dm_init(p_dms, list p_wfs, Sensors sensors, Param_geom p_geom, Param_tel p_tel):
+def dm_init_2(p_dms, list xpos_wfs, list ypos_wfs, Param_geom p_geom, diam, cobs):
     """Create and initialize a Dms object on the gpu
 
+    
     :parameters:
         p_dms: (list of Param_dms) : dms settings
 
@@ -193,8 +201,36 @@ def dm_init(p_dms, list p_wfs, Sensors sensors, Param_geom p_geom, Param_tel p_t
     if(len(p_dms) != 0):
         dms = Dms(len(p_dms))
         for i in range(len(p_dms)):
-             #max_extent
-            _dm_init(dms, p_dms[i], p_wfs, p_geom, p_tel, & max_extent)
+            #max_extent
+            #_dm_init(dms, p_dms[i], p_wfs, p_geom, p_tel, & max_extent)
+            _dm_init(dms, p_dms[i], xpos_wfs, ypos_wfs, p_geom , diam, cobs, & max_extent)
+    return dms
+    
+def dm_init(p_dms, list p_wfs, Sensors sensors, Param_geom p_geom, Param_tel p_tel):
+    """Create and initialize a Dms object on the gpu
+
+    :parameters:
+        p_dms: (list of Param_dms) : dms settings
+
+        p_wfs: (Param_wfs) : wfs settings
+
+        p_geom: (Param_geom) : geom settings
+
+        p_tel: (Param_tel) : telescope settings
+    """
+    cdef int max_extent = 0
+    xpos_wfs = []
+    ypos_wfs = []
+    for i in range(len(p_wfs)):
+        xpos_wfs.append(p_wfs[i].xpos)
+        ypos_wfs.append(p_wfs[i].ypos)
+    
+    if(len(p_dms) != 0):
+        dms = Dms(len(p_dms))
+        for i in range(len(p_dms)):
+            #max_extent
+            #_dm_init(dms, p_dms[i], p_wfs, p_geom, p_tel, & max_extent)
+            _dm_init(dms, p_dms[i], xpos_wfs, ypos_wfs, p_geom , p_tel.diam, p_tel.cobs, & max_extent)
 
     if(p_wfs is not None):
         if(sensors is not None):
@@ -207,7 +243,7 @@ def dm_init(p_dms, list p_wfs, Sensors sensors, Param_geom p_geom, Param_tel p_t
                         if(dim < dims):
                             dim = dims
                         xoff = p_wfs[i].xpos * 4.848e-6 * p_dms[k].alt / p_tel.diam * p_geom.pupdiam
-                        yoff = p_wfs[i].ypos * 4.848e-6 * p_dms[k].alt / p_tel.diam * p_geom.pupdiam
+                        yoff = p_wfs[i].ypos * 4.848e-6 * p_dms[k].alt /p_tel.diam * p_geom.pupdiam
                         xoff = xoff + (dim - p_geom._n) / 2
                         yoff = yoff + (dim - p_geom._n) / 2
                         sensors.sensors.d_wfs[i].d_gs.add_layer(p_dms[k].type_dm, p_dms[k].alt, xoff, yoff)
@@ -262,7 +298,7 @@ cpdef createHexaPattern(float pitch, float supportSize):
     return xy
 
 
-def n_actuator_select(Param_dm p_dm,Param_tel p_tel, xc,yc):
+def n_actuator_select(Param_dm p_dm,diam,cobs, xc,yc):
     """
     Fonction for select actuator in fonction of Margin_in, margin_out or ntotact.
     default margin_out=1.44pitch, default for margin_in taking all the actuators.
@@ -292,7 +328,7 @@ def n_actuator_select(Param_dm p_dm,Param_tel p_tel, xc,yc):
     else:
 
         pitchMargin_in=p_dm.margin_in
-        rad_in=(((p_dm.nact-1.)/2.)*p_tel.cobs-pitchMargin_in)*p_dm._pitch
+        rad_in=(((p_dm.nact-1.)/2.)*cobs-pitchMargin_in)*p_dm._pitch
 
     if(p_dm._ntotact==0):
         if(p_dm.margin_out==0):
@@ -381,7 +417,7 @@ def bessel_influence(xx,yy,size,type_i='square'):
 
     return influ
 
-cpdef make_pzt_dm(Param_dm p_dm,Param_geom geom,Param_tel p_tel,irc):
+cpdef make_pzt_dm(Param_dm p_dm,Param_geom geom,diam,cobs,irc):
 
     """Compute the actuators positions and the influence functions for a pzt DM
 
@@ -431,7 +467,7 @@ cpdef make_pzt_dm(Param_dm p_dm,Param_geom geom,Param_tel p_tel,irc):
     else :
         raise StandardError("This pattern does not exist for pzt dm")
 
-    inbigcirc = n_actuator_select(p_dm,p_tel,cub[0,:],cub[1,:])
+    inbigcirc = n_actuator_select(p_dm,diam,cobs,cub[0,:],cub[1,:])
 
     #print 'inbigcirc',inbigcirc.shape
 
@@ -569,7 +605,7 @@ cpdef make_pzt_dm(Param_dm p_dm,Param_geom geom,Param_tel p_tel,irc):
     p_dm._influkernel= kernconv
 
 
-cpdef read_influ_hdf5 (Param_dm p_dm,Param_tel p_tel, Param_geom geom):
+cpdef read_influ_hdf5 (Param_dm p_dm, Param_geom geom,diam,cobs):
     """Read HDF for influence pzt fonction and form
 
     :parameters:
@@ -619,7 +655,7 @@ cpdef read_influ_hdf5 (Param_dm p_dm,Param_tel p_tel, Param_geom geom):
 
 
     # calcul de la resolution de la pupille
-    res_compass = p_tel.diam/geom.pupdiam
+    res_compass = diam/geom.pupdiam
 
 
     # interpolation des coordonnées en pixel avec ajout du centre
@@ -632,8 +668,8 @@ cpdef read_influ_hdf5 (Param_dm p_dm,Param_tel p_tel, Param_geom geom):
     ninflu = influ_h5.shape[2]
 
 
-    x = np.arange(influ_size_h5)*res_h5_m*(p_tel.diam/diam_dm_h5[0])
-    y = np.arange(influ_size_h5)*res_h5_m*(p_tel.diam/diam_dm_h5[1])
+    x = np.arange(influ_size_h5)*res_h5_m*(diam/diam_dm_h5[0])
+    y = np.arange(influ_size_h5)*res_h5_m*(diam/diam_dm_h5[1])
     xmax = max(x)
     ymax = max(y)
     xnew = np.arange(0,xmax,res_compass)
@@ -701,7 +737,7 @@ cpdef read_influ_hdf5 (Param_dm p_dm,Param_tel p_tel, Param_geom geom):
     p_dm._influkernel= kernconv
 
 
-cpdef make_tiptilt_dm(Param_dm p_dm,list p_wfs, Param_geom p_geom, Param_tel p_tel):
+cpdef make_tiptilt_dm(Param_dm p_dm,list xpos_wfs,list ypos_wfs, Param_geom p_geom, diam, cobs):
     """Compute the influence functions for a tip-tilt DM
 
     :parameters:
@@ -717,10 +753,11 @@ cpdef make_tiptilt_dm(Param_dm p_dm,list p_wfs, Param_geom p_geom, Param_tel p_t
 
     """
     cdef int dim = max(p_dm._n2 - p_dm._n1 + 1, p_geom._mpupil.shape[0])
-    norms = [np.linalg.norm([w.xpos, w.ypos]) for w in p_wfs]
+    norms = [np.linalg.norm([xpos_wfs[w], ypos_wfs[w]]) for w in range(len(xpos_wfs))]
+    #norms = [np.linalg.norm([w.xpos, w.ypos]) for w in p_wfs]
     cdef int patchDiam = p_geom.pupdiam + \
         2 * np.max(norms) * 4.848e-6 * \
-        abs(p_dm.alt / p_tel.diam * p_geom.pupdiam)
+        abs(p_dm.alt / diam * p_geom.pupdiam)
 
     cdef nzer = 2
     cdef np.ndarray[ndim = 3, dtype = np.float32_t] influ = make_zernike(nzer + 1, dim,
@@ -728,7 +765,7 @@ cpdef make_tiptilt_dm(Param_dm p_dm,list p_wfs, Param_geom p_geom, Param_tel p_t
 
     # normalization factor: one unit of tilt gives 1 arcsec:
     cdef float current = influ[dim / 2 - 1, dim / 2 - 1, 0] - influ[dim / 2 - 2, dim / 2 - 2, 0]
-    cdef float fact = p_dm.unitpervolt * p_tel.diam / p_geom.pupdiam * 4.848 / current
+    cdef float fact = p_dm.unitpervolt * diam / p_geom.pupdiam * 4.848 / current
 
     influ = influ * fact
     p_dm._ntotact = influ.shape[2]
@@ -806,7 +843,7 @@ cpdef make_klbas(Param_dm p_dm, int nkl,float cobs, long dim,funct,float outscl=
 
 
 
-cpdef make_kl_dm(Param_dm p_dm, list p_wfs,Param_geom p_geom, Param_tel p_tel):
+cpdef make_kl_dm(Param_dm p_dm, list xpos_wfs, list ypos_wfs, Param_geom p_geom, diam,cobs):
     """Compute the influence function for a Karhunen-Loeve DM
 
     :parameters:
@@ -820,13 +857,14 @@ cpdef make_kl_dm(Param_dm p_dm, list p_wfs,Param_geom p_geom, Param_tel p_tel):
 
     """
     cdef int dim = p_geom._mpupil.shape[0]
-    norms = [np.linalg.norm([w.xpos, w.ypos]) for w in p_wfs]
+    norms = [np.linalg.norm([xpos_wfs[w], ypos_wfs[w]]) for w in range(len(xpos_wfs))]
+    #norms = [np.linalg.norm([w.xpos, w.ypos]) for w in p_wfs]
     cdef long patchDiam = long(p_geom.pupdiam + 2 * np.max(norms) * 4.848e-6 *
                                abs(p_dm.alt) / p_geom.pupdiam)
 
     print "dimkl = %d" %patchDiam
 
-    make_klbas(p_dm,p_dm.nkl,p_tel.cobs,patchDiam,p_dm.kl_type)
+    make_klbas(p_dm,p_dm.nkl,cobs,patchDiam,p_dm.kl_type)
     p_dm._i1 = np.zeros((p_dm.nkl), dtype=np.int32) + \
         int((dim - patchDiam) / 2.)
     p_dm._j1 = np.zeros((p_dm.nkl), dtype=np.int32) + \
@@ -1536,7 +1574,7 @@ g        :return:
         return info
 
 
-cpdef compute_klbasis(Dms g_dm, Param_dm p_dm, Param_geom p_geom, Param_atmos p_atmos, Param_tel p_tel):
+cpdef compute_klbasis(Dms g_dm, Param_dm p_dm, Param_geom p_geom, r0, diam,cobs):
     """Compute a Karhunen-Loeve basis for the dm:
             - compute the phase covariance matrix on the actuators using Kolmogorov
             - compute the geometric covariance matrix
@@ -1561,8 +1599,8 @@ cpdef compute_klbasis(Dms g_dm, Param_dm p_dm, Param_geom p_geom, Param_atmos p_
         tmp_e1 = p_geom._ipupil.shape[1] - tmp
         pup = p_geom._ipupil[tmp:tmp_e0, tmp:tmp_e1]
         indx_valid = np.where(pup.flatten("F") > 0)[0].astype(np.int32)
-        p2m = p_tel.diam/p_geom.pupdiam
-        norm = -(p2m * p_tel.diam / (2 * p_atmos.r0)) ** (5. / 3)
+        p2m = diam/p_geom.pupdiam
+        norm = -(p2m * diam / (2 * r0)) ** (5. / 3)
 
         g_dm.computeKLbasis(< bytes > "pzt", p_dm.alt, p_dm._xpos, p_dm._ypos, indx_valid, indx_valid.size, norm, 1.0)
         KLbasis = np.fliplr(g_dm.get_KLbasis(< bytes > "pzt", p_dm.alt))

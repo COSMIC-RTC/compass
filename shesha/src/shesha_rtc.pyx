@@ -2807,7 +2807,7 @@ cpdef compute_KL2V(Param_controller controller, Dms dms, p_dms, Param_geom p_geo
         ndm = controller.ndm[i]
         if(p_dms[ndm].type_dm == "pzt"):
             KL2V[indx_act:indx_act + ntotact[ndm], indx_act:indx_act + ntotact[ndm]] = \
-                compute_klbasis(dms, p_dms[ndm], p_geom, p_atmos, p_tel)
+                compute_klbasis(dms, p_dms[ndm], p_geom, p_atmos.ro, p_tel.diam,p_tel.cobs)
             indx_act += ntotact[ndm]
             print "compute klbasis done"
         elif(p_dms[ndm].type_dm == "tt"):

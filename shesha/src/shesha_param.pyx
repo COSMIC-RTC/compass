@@ -238,7 +238,13 @@ cdef class Param_geom:
 
          :param c: (float) : central point of the simulation."""
         self.cent = c
+    def set_apod(self, int a):
+        """Tells if the apodizer is used
 
+        The apodizer is used if a is not 0
+        :param a: (int) boolean for apodizer
+        """
+        self.apod = a
 
     def get_ipupil(self):
         """return the full pupil support"""

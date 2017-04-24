@@ -53,7 +53,8 @@ cdef class Param_geom:
     """linear size of full image (in pixels)."""
     cdef readonly float zenithangle
     """observations zenith angle (in deg)."""
-
+    cdef readonly int apod
+    """boolean for apodizer"""
     # internal keywords
     cdef readonly long  pupdiam
     """linear size of total pupil (in pixels)."""
