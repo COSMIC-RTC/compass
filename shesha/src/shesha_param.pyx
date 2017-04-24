@@ -1230,10 +1230,10 @@ cdef class Param_centroider:
         self.thresh = t
 
     def set_method(self, long method):
-        """Set the method for pyrhr
+        """Set the centroiding method for pyrhr
 
         :parameters:
-            method : (int) : new method (0:local, 1:global)
+            method : (int) : new centroiding method (0:local, 1:global)
         """
         self.method = method
 
