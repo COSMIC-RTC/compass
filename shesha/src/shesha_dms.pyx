@@ -16,6 +16,20 @@ import scipy.special as sp
 import shesha_kl as klfunc
 import astropy.io.fits as pfits
 #max_extent signature
+
+def dim_dm_patch(pupdiam,diam,type_dm,alt,xpos_wfs,ypos_wfs):
+    norms = [np.linalg.norm([xpos_wfs[w], ypos_wfs[w]]) for w in range(len(xpos_wfs))]
+    if( (type_dm=="pzt") or (type_dm=="tt")):
+        pp = (diam * pupdiam)
+    elif(type_dm=="kl"):
+        pp = (pupdiam)
+    else:
+        raise StandardError("This type of DM doesn't exist ")
+    patchDiam = long(pupdiam + 2 * np.max(norms) * \
+                4.848e-6 * np.abs(alt) / (pp))
+    return patchDiam
+    
+    
 cdef _dm_init(Dms dms, Param_dm p_dms, list xpos_wfs,list ypos_wfs,Param_geom p_geom , diam, cobs,int *max_extent):
     """ inits a Dms object on the gpu
 
@@ -53,16 +67,8 @@ cdef _dm_init(Dms dms, Param_dm p_dms, list xpos_wfs,list ypos_wfs,Param_geom p_
     cdef long pitch, smallsize, patchDiam
     
     #For patchDiam
-    norms = [np.linalg.norm([xpos_wfs[w], ypos_wfs[w]]) for w in range(len(xpos_wfs))]
-    if( p_dms.type_dm=="pzt"or p_dms.type_dm=="tt"):
-        patchDiam = long(p_geom.pupdiam + 2 * np.max(norms) * \
-                4.848e-6 * np.abs(p_dms.alt) / (diam * p_geom.pupdiam))
-    elif(p_dms.type_dm=="kl"):
-        patchDiam = long(p_geom.pupdiam + 2 * np.max(norms) * \
-                4.848e-6 * np.abs(p_dms.alt) / (p_geom.pupdiam))
-    else:
-        raise StandardError("This type of DM doesn't exist ")
-        
+    patchDiam = dim_dm_patch(p_geom.pupdiam,diam,p_dms.type_dm,p_dms.alt,xpos_wfs,ypos_wfs)
+
 
     if( p_dms.type_dm=="pzt"):
         if p_dms.file_influ_hdf5 == None:
