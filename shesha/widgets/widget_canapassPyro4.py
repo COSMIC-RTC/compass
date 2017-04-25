@@ -28,8 +28,8 @@ try:
     darkStyle=True
 except:
     darkStyle=False
+import astropy.io.fits as pfits
 
-plt.ion()
 sys.path.insert(0, os.environ["SHESHA_ROOT"] + "/widgets/")
 sys.path.insert(0, os.environ["SHESHA_ROOT"] + "/data/par/")
 sys.path.insert(0, os.environ["SHESHA_ROOT"] + "/lib/")
@@ -48,18 +48,29 @@ gdb --args python -i widget_canapass.py
 
 """
 
-try:
-    import Pyro.core
-    import Pyro.naming
-    import Pyro.configuration
-    import Pyro.util
+PYROVERSION = int(os.getenv("PYROVERSION"))
+if PYROVERSION == None:
+    raise Exception('PYROVERSION environment variable is unset!')
 
-    USE_PYRO = True
-except:
-    print "Could not initialize Pyro..."
-    USE_PYRO = False
+if(PYROVERSION == 4):
+    try:
+        import Pyro4
+        USE_PYRO = True
+    except:
+        USE_PYRO = False
+        raise Exception("ERROR could not import Pyro4 (is it installed?)!!!!")
+
+if(PYROVERSION == 3):
+    try:
+        import Pyro.core
+        USE_PYRO = True
+
+    except:
+        USE_PYRO = False
+        raise Exception("ERROR could not import Pyro (v3) (is it installed?)!!!!")
 
 
+@Pyro4.expose
 class widgetAOWindow(TemplateBaseClass):
     def __init__(self):
         TemplateBaseClass.__init__(self)
@@ -70,7 +81,7 @@ class widgetAOWindow(TemplateBaseClass):
 
         self.ui = WindowTemplate()
         self.ui.setupUi(self)
-
+        self.pyroVersion = PYROVERSION
         #############################################################
         #                   ATTRIBUTES                              #
         #############################################################
@@ -165,42 +176,32 @@ class widgetAOWindow(TemplateBaseClass):
         #     filepath=os.environ["SHESHA_ROOT"] + "/data/par/canapass.py")
         # self.InitConfig()
 
-    def getSlopesGeom(self, nb):
-        self.rtc.docentroids_geom(0)
-        slopesGeom = self.rtc.getcentroids(0)
-        self.rtc.docentroids(0)
-        return slopesGeom
-
+    def writefits(self, data, path):
+        pfits.writeto(path, data, clobber=True)
 
     def getConfig(self, path):
         return self.aoCalib.getConfig(self, path)
         #return cf.returnConfigfromWao(self, filepath=path)
-
-    def getIpupil(self):
-        return self.config.p_geom.get_ipupil()
-
-    def getSpupil(self):
-        return self.config.p_geom.get_spupil()
-
-    def getImage2(tarnum, tartype):
-        return self.tar.get_image(tarnum, tartype)
-
-    def getMpupil(self):
-        return self.config.p_geom.get_mpupil()
-
-    def getAmplipup(self, tarnum):
-        return self.config.tar.get_amplipup(tarnum)
-
-    def getPhase(self, tarnum):
-        return self.tar.get_phase(tarnum)
+    def returnkl2V(self, path):
+        print "computing KL2V..."
+        KL2V = self._returnkl2V()
+        print "KL2V done"
+        print path
+        if(self.pyroVersion == 4):
+            print "using V4 ..."
+            self.writefits(KL2V, path)
+        elif(self.pyroVersion == 3):
+            print "using V3 ..."
+            return KL2V
+        else:
+            raise Exception("ERROR pyro version not set")
 
 
-    def returnkl2V(self):
-        """
-        KL2V = ao.compute_KL2V(wao.config.p_controllers[
-                               0], wao.dms, wao.config.p_dms, wao.config.p_geom, wao.config.p_atmos, wao.config.p_tel)
-        """
-        KL2V = ao.compute_KL2V(self.config.p_controllers[0], self.dms, self.config.p_dms, self.config.p_geom, self.config.p_atmos, self.config.p_tel)
+    def _returnkl2V(self):
+
+        #KL2V = ao.compute_KL2V(self.config.p_controllers[0], self.dms, self.config.p_dms, self.config.p_geom, self.config.p_atmos, self.config.p_tel)
+        KL2V = np.ones(256)
+        time.sleep(10)
         return KL2V
 
     def doRefslopes(self):
@@ -412,7 +413,7 @@ class widgetAOWindow(TemplateBaseClass):
         gpudevice = self.config.p_loop.devices
         # gpudevice = "ALL"  # using all GPU avalaible
         # gpudevice = np.arange(4, dtype=np.int32)  # using 4 GPUs: 0-3
-        #gpudevice = np.array([4, 5, 6, 7], dtype=np.int32)  # using 4 GPUs: 4-7
+        gpudevice = np.array([4, 5, 6, 7], dtype=np.int32)  # using 4 GPUs: 4-7
         self.ui.wao_deviceNumber.setDisabled(True)
 
         print "-> using GPU", gpudevice
@@ -982,10 +983,10 @@ class WorkerThread( QThread ):
 
 
 try:
-    class widgetAOWindowPyro(widgetAOWindow, Pyro.core.ObjBase):
+    class widgetAOWindowPyro(widgetAOWindow):
         def __init__(self):
             widgetAOWindow.__init__(self)
-            Pyro.core.ObjBase.__init__(self)
+            #Pyro.core.ObjBase.__init__(self)
 
         def InitConfig(self):
             widgetAOWindow.InitConfig(self)
@@ -1010,12 +1011,8 @@ try:
 
         def run(self):
             print "Starting Pyro Server..."
-            self.locator = Pyro.naming.NameServerLocator()
-            ns = self.locator.getNS()
-            Pyro.core.initServer()
-            daemon = Pyro.core.Daemon()
-            # ns=Pyro.naming.NameServerLocator(host=self.nsip, port=self.port).
-            daemon.useNameServer(ns)  # use current ns
+            daemon = Pyro4.Daemon()
+            ns = Pyro4.locateNS()
             self.ready = True
             try:
                 ns.unregister("waoconfig")
@@ -1024,11 +1021,13 @@ try:
                 # ns.createGroup(":GS")
                 pass
             # print self.object.getVar()
-            daemon.connect(self.object, "waoconfig")
+            uri = daemon.register(self.object)
+            ns.register("waoconfig", uri)
             print "starting daemon"
             daemon.requestLoop()
             print "daemon started"
 except:
+    print "Error while initializing Pyro object"
     pass
 
 

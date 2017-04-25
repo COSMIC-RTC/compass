@@ -357,4 +357,13 @@ print "Simulation Done..."
 Sauver PSF dans le bon nom + directory
  ranger... + params dans le header
 
+ SR = np.zeros((3, len(set(resAll.gsmag))))
+ i=0
+ for mag in list(set(resAll.gsmag)):
+     SR[0,i] = resAll[resAll.gsmag == mag]["SR_1.20"].max()
+     SR[1,i] = resAll[resAll.gsmag == mag]["SR_1.65"].max()
+     SR[2,i] = resAll[resAll.gsmag == mag]["SR_2.20"].max()
+     i+=1
+
+
 """

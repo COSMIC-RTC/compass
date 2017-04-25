@@ -14,7 +14,6 @@ import pylab
 import sys
 import os
 sys.path.insert(0, os.environ["SHESHA_ROOT"] + "/src/")
-from tools import plsh
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 plt.rcParams['image.cmap'] = 'viridis'
 """
@@ -300,8 +299,6 @@ def pyr_analysis(n, mod, N, Dtel, obs, nrebin, l, _pix, Amp, mv, Pangle, p, pups
         fig1.tight_layout(pad=0.1, h_pad=0.5, w_pad=0.5,rect=None)
         fig2.tight_layout(pad=0.1, h_pad=0.5, w_pad=0.5,rect=None)
         fig3.tight_layout(pad=0.1, h_pad=0.5, w_pad=0.5,rect=None)
-        plt.figure(15)
-        plsh(slopes, pupsub.shape[0], obs)
 
     """
     gradx=np.zeros((n,n)) #Gradient theorique du front d'onde
