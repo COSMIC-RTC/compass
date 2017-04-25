@@ -110,7 +110,6 @@ def make_pupil_generic(dim, pupd, t_spiders=0.01, spiders_type="six",
 
 
 def make_VLT(dim,pupd,tel):
-    
     if (tel.set_t_spiders==-1):
         print "force t_spider =%5.3f" %(0.09/18.)
         tel.set_t_spiders(0.09/18.)
@@ -138,15 +137,14 @@ def make_VLT(dim,pupd,tel):
 
 
 def make_EELT(dim,pupd,tel,N_seg=-1):
-    """TODO 
+    """TODO
     add force rescal pup elt
     """
     if (N_seg==-1):
         EELT_file=EELT_data+"EELT-Custom_N"+str(dim)+"_COBS"+str(100*tel.cobs)+"_CLOCKED"+str(tel.pupangle)+"_TSPIDERS"+str(100*tel.t_spiders)+"_MS"+str(tel.nbrmissing)+"_REFERR"+str(100*tel.referr)+".h5"
     else:
         EELT_file=EELT_data+tel.type_ap+"_N"+str(dim)+"_COBS"+str(100*tel.cobs)+"_CLOCKED"+str(tel.pupangle)+"_TSPIDERS"+str(100*tel.t_spiders)+"_MS"+str(tel.nbrmissing)+"_REFERR"+str(100*tel.referr)+".h5"
-        
-    if( os.path.isfile(EELT_file) & (N_seg==-1)):
+    if( os.path.isfile(EELT_file) ):
         print "reading EELT pupil from file ", EELT_file
         pup=h5u.readHdf5SingleDataset(EELT_file)
     else:
