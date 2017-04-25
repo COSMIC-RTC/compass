@@ -895,6 +895,8 @@ cdef class Param_dm:
         self._klbas = Klbas()
         self.influType = <bytes> ("default")
         self.gain = 1.0
+        self.margin_out = -1
+        self.margin_in = -1
         
     def set_influType(self, bytes t):
         """Set the influence function type for pzt DM

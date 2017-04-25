@@ -37,7 +37,7 @@ cdef _dm_init(Dms dms, Param_dm p_dms, list xpos_wfs,list ypos_wfs,Param_geom p_
         max_extend: (int*) :
     """
 
-    cdef float patchDiam
+    #cdef float patchDiam
     cdef int extent
     cdef long dim
     cdef long ninflu, influsize, ninflupos, n_npts
@@ -50,7 +50,19 @@ cdef _dm_init(Dms dms, Param_dm p_dms, list xpos_wfs,list ypos_wfs,Param_geom p_
 
 
     cdef float irc, coupling, ir
-    cdef long pitch, smallsize
+    cdef long pitch, smallsize, patchDiam
+    
+    #For patchDiam
+    norms = [np.linalg.norm([xpos_wfs[w], ypos_wfs[w]]) for w in range(len(xpos_wfs))]
+    if( p_dms.type_dm=="pzt"or p_dms.type_dm=="tt"):
+        patchDiam = long(p_geom.pupdiam + 2 * np.max(norms) * \
+                4.848e-6 * np.abs(p_dms.alt) / (diam * p_geom.pupdiam))
+    elif(p_dms.type_dm=="kl"):
+        patchDiam = long(p_geom.pupdiam + 2 * np.max(norms) * \
+                4.848e-6 * np.abs(p_dms.alt) / (p_geom.pupdiam))
+    else:
+        raise StandardError("This type of DM doesn't exist ")
+        
 
     if( p_dms.type_dm=="pzt"):
         if p_dms.file_influ_hdf5 == None:
@@ -58,10 +70,6 @@ cdef _dm_init(Dms dms, Param_dm p_dms, list xpos_wfs,list ypos_wfs,Param_geom p_
 
             # find out the support dimension for the given mirror.
             #norms = [np.linalg.norm([w.xpos, w.ypos]) for w in p_wfs]
-            norms = [np.linalg.norm([xpos_wfs[w], ypos_wfs[w]]) for w in range(len(xpos_wfs))]
-            
-            patchDiam = p_geom.pupdiam + 2 * np.max(norms) * \
-                4.848e-6 * np.abs(p_dms.alt) / diam * p_geom.pupdiam
                 
             
             # Patchdiam
@@ -89,9 +97,9 @@ cdef _dm_init(Dms dms, Param_dm p_dms, list xpos_wfs,list ypos_wfs,Param_geom p_
             #______________________________________
 
             #calcul defaut influsize
-            make_pzt_dm(p_dms,p_geom,diam,cobs,irc)
+            make_pzt_dm(p_dms,p_geom,cobs,irc)
         else :
-            read_influ_hdf5 (p_dms,p_geom,diam,cobs)
+            read_influ_hdf5 (p_dms,p_geom,diam)
 
         # max_extent
         max_extent[0] = max(max_extent[0], p_dms._n2 - p_dms._n1 + 1)
@@ -139,7 +147,7 @@ cdef _dm_init(Dms dms, Param_dm p_dms, list xpos_wfs,list ypos_wfs,Param_geom p_
 
 
         dim = long(p_dms._n2 - p_dms._n1 + 1)
-        make_tiptilt_dm(p_dms, xpos_wfs, ypos_wfs, p_geom, diam,cobs)
+        make_tiptilt_dm(p_dms, patchDiam, p_geom, diam)
         dms.add_dm(p_dms.type_dm, p_dms.alt, dim, 2, dim,
                    1, 1, p_dms.push4imat)
         dms.load_tt(p_dms.alt, p_dms._influ)
@@ -159,7 +167,7 @@ cdef _dm_init(Dms dms, Param_dm p_dms, list xpos_wfs,list ypos_wfs,Param_geom p_
 
         dim = long(p_dms._n2 - p_dms._n1 + 1)
 
-        make_kl_dm(p_dms,xpos_wfs, ypos_wfs,p_geom,diam,cobs)
+        make_kl_dm(p_dms,patchDiam,p_geom,cobs)
 
         ninflu = p_dms.nkl
         influsize = long(p_dms._klbas.ncp)
@@ -184,7 +192,7 @@ cdef _dm_init(Dms dms, Param_dm p_dms, list xpos_wfs,list ypos_wfs,Param_geom p_
         # res1 = pol2car(*y_dm(n)._klbas,gkl_sfi(*y_dm(n)._klbas, 1));
         # res2 = yoga_getkl(g_dm,0.,1);
 
-def dm_init_2(p_dms, list xpos_wfs, list ypos_wfs, Param_geom p_geom, diam, cobs):
+def dm_init_2(p_dms, Param_geom p_geom, diam, cobs):
     """Create and initialize a Dms object on the gpu
 
     
@@ -203,7 +211,7 @@ def dm_init_2(p_dms, list xpos_wfs, list ypos_wfs, Param_geom p_geom, diam, cobs
         for i in range(len(p_dms)):
             #max_extent
             #_dm_init(dms, p_dms[i], p_wfs, p_geom, p_tel, & max_extent)
-            _dm_init(dms, p_dms[i], xpos_wfs, ypos_wfs, p_geom , diam, cobs, & max_extent)
+            _dm_init(dms, p_dms[i], [0], [0], p_geom , diam, cobs, & max_extent)
     return dms
     
 def dm_init(p_dms, list p_wfs, Sensors sensors, Param_geom p_geom, Param_tel p_tel):
@@ -298,7 +306,7 @@ cpdef createHexaPattern(float pitch, float supportSize):
     return xy
 
 
-def n_actuator_select(Param_dm p_dm,diam,cobs, xc,yc):
+def n_actuator_select(Param_dm p_dm,cobs, xc,yc):
     """
     Fonction for select actuator in fonction of Margin_in, margin_out or ntotact.
     default margin_out=1.44pitch, default for margin_in taking all the actuators.
@@ -320,7 +328,7 @@ def n_actuator_select(Param_dm p_dm,diam,cobs, xc,yc):
 
     #test Margin_in
 
-    if(p_dm.margin_in==0):
+    if(p_dm.margin_in<0):
         # 1 if valid actuator, 0 if not:
 
         rad_in=0.0
@@ -331,7 +339,7 @@ def n_actuator_select(Param_dm p_dm,diam,cobs, xc,yc):
         rad_in=(((p_dm.nact-1.)/2.)*cobs-pitchMargin_in)*p_dm._pitch
 
     if(p_dm._ntotact==0):
-        if(p_dm.margin_out==0):
+        if(p_dm.margin_out<0):
             pitchMargin_out=1.44
         else:
             pitchMargin_out=p_dm.margin_out
@@ -417,7 +425,7 @@ def bessel_influence(xx,yy,size,type_i='square'):
 
     return influ
 
-cpdef make_pzt_dm(Param_dm p_dm,Param_geom geom,diam,cobs,irc):
+cpdef make_pzt_dm(Param_dm p_dm,Param_geom geom,cobs,irc):
 
     """Compute the actuators positions and the influence functions for a pzt DM
 
@@ -467,7 +475,7 @@ cpdef make_pzt_dm(Param_dm p_dm,Param_geom geom,diam,cobs,irc):
     else :
         raise StandardError("This pattern does not exist for pzt dm")
 
-    inbigcirc = n_actuator_select(p_dm,diam,cobs,cub[0,:],cub[1,:])
+    inbigcirc = n_actuator_select(p_dm,cobs,cub[0,:],cub[1,:])
 
     #print 'inbigcirc',inbigcirc.shape
 
@@ -605,7 +613,7 @@ cpdef make_pzt_dm(Param_dm p_dm,Param_geom geom,diam,cobs,irc):
     p_dm._influkernel= kernconv
 
 
-cpdef read_influ_hdf5 (Param_dm p_dm, Param_geom geom,diam,cobs):
+cpdef read_influ_hdf5 (Param_dm p_dm, Param_geom geom,diam):
     """Read HDF for influence pzt fonction and form
 
     :parameters:
@@ -737,7 +745,7 @@ cpdef read_influ_hdf5 (Param_dm p_dm, Param_geom geom,diam,cobs):
     p_dm._influkernel= kernconv
 
 
-cpdef make_tiptilt_dm(Param_dm p_dm,list xpos_wfs,list ypos_wfs, Param_geom p_geom, diam, cobs):
+cpdef make_tiptilt_dm(Param_dm p_dm,patchDiam, Param_geom p_geom, diam):
     """Compute the influence functions for a tip-tilt DM
 
     :parameters:
@@ -753,11 +761,7 @@ cpdef make_tiptilt_dm(Param_dm p_dm,list xpos_wfs,list ypos_wfs, Param_geom p_ge
 
     """
     cdef int dim = max(p_dm._n2 - p_dm._n1 + 1, p_geom._mpupil.shape[0])
-    norms = [np.linalg.norm([xpos_wfs[w], ypos_wfs[w]]) for w in range(len(xpos_wfs))]
     #norms = [np.linalg.norm([w.xpos, w.ypos]) for w in p_wfs]
-    cdef int patchDiam = p_geom.pupdiam + \
-        2 * np.max(norms) * 4.848e-6 * \
-        abs(p_dm.alt / diam * p_geom.pupdiam)
 
     cdef nzer = 2
     cdef np.ndarray[ndim = 3, dtype = np.float32_t] influ = make_zernike(nzer + 1, dim,
@@ -843,7 +847,7 @@ cpdef make_klbas(Param_dm p_dm, int nkl,float cobs, long dim,funct,float outscl=
 
 
 
-cpdef make_kl_dm(Param_dm p_dm, list xpos_wfs, list ypos_wfs, Param_geom p_geom, diam,cobs):
+cpdef make_kl_dm(Param_dm p_dm, patchDiam, Param_geom p_geom,cobs):
     """Compute the influence function for a Karhunen-Loeve DM
 
     :parameters:
@@ -857,11 +861,6 @@ cpdef make_kl_dm(Param_dm p_dm, list xpos_wfs, list ypos_wfs, Param_geom p_geom,
 
     """
     cdef int dim = p_geom._mpupil.shape[0]
-    norms = [np.linalg.norm([xpos_wfs[w], ypos_wfs[w]]) for w in range(len(xpos_wfs))]
-    #norms = [np.linalg.norm([w.xpos, w.ypos]) for w in p_wfs]
-    cdef long patchDiam = long(p_geom.pupdiam + 2 * np.max(norms) * 4.848e-6 *
-                               abs(p_dm.alt) / p_geom.pupdiam)
-
     print "dimkl = %d" %patchDiam
 
     make_klbas(p_dm,p_dm.nkl,cobs,patchDiam,p_dm.kl_type)
@@ -1574,7 +1573,7 @@ g        :return:
         return info
 
 
-cpdef compute_klbasis(Dms g_dm, Param_dm p_dm, Param_geom p_geom, r0, diam,cobs):
+cpdef compute_klbasis(Dms g_dm, Param_dm p_dm, Param_geom p_geom, r0, diam):
     """Compute a Karhunen-Loeve basis for the dm:
             - compute the phase covariance matrix on the actuators using Kolmogorov
             - compute the geometric covariance matrix
