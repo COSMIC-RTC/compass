@@ -133,18 +133,36 @@ cdef class Rtc:
         else:
             self.rtc.add_controller(nactu, delay, self.device, type_control, dms.dms, & ptr_dmseen, ptr_alt, ndm)
 
-    cpdef set_pyr_method(self, int n, int method, list p_centroiders):
-        """Set the pyramid threshold
+    cpdef get_pyr_method(self, int n):
+        """Get the pyramid centroiding method
         :parameters:
         n : (int) : pyr centroider number
-        method : (int) : new method (0:local, 1:global)
+        """
+        cdef sutra_centroider_pyr * centro = NULL
+
+        if(self.rtc.d_centro[n].is_type("pyrhr")):
+            centro = dynamic_cast_centroider_pyr_ptr(self.rtc.d_centro[n])
+            return centro.get_method_str()
+        else:
+            e="Centroider should be pyrhr, got "+self.rtc.d_centro[n].get_type()
+            raise ValueError(e)
+
+    cpdef set_pyr_method(self, int n, int method, list p_centroiders):
+        """Set the pyramid centroiding method
+        :parameters:
+        n : (int) : pyr centroider number
+        method : (int) : new centroiding method (0: nosinus global
+                                                 1: sinus global
+                                                 2: nosinus local
+                                                 3: sinus local)
         p_centroiders : (list of Param_centroider) : list of centroider parameters
         """
         cdef sutra_centroider_pyr * centro = NULL
-        cdef carma_context * context = &carma_context.instance()
-        context.set_activeDevice(self.device, 1)
 
         if(self.rtc.d_centro[n].is_type("pyrhr")):
+            if method>=Other:
+                raise ValueError("method unknown")
+
             centro = dynamic_cast_centroider_pyr_ptr(self.rtc.d_centro[n])
             centro.set_method(method)
             p_centroiders[n].set_method(method)

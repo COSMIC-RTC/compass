@@ -19,7 +19,8 @@ sutra_centroider_pyr::sutra_centroider_pyr(carma_context *context,
     this->scale = scale;
     this->valid_thresh = 1e-4;
     this->pyr_type = sensors->d_wfs[nwfs]->type;
-    this->method = global;
+    // centroider method by default sin_global
+    this->method = Method_CoG::Sinus & ~Method_CoG::Local;
 }
 
 sutra_centroider_pyr::~sutra_centroider_pyr() {
@@ -37,15 +38,23 @@ float sutra_centroider_pyr::get_valid_thresh() {
     return this->valid_thresh;
 }
 
-int sutra_centroider_pyr::set_method(int type){
-    switch (type) {
-        case 0: this->method = local ; break;
-        case 1: this->method = global; break;
-        default: return EXIT_FAILURE;
+int sutra_centroider_pyr::set_method(int method){
+    if (method>=Method_CoG::Other) {
+        DEBUG_TRACE("method unknown");
+        return EXIT_FAILURE;
     }
+
+    this->method = method;
     return EXIT_SUCCESS;
 }
 
+int sutra_centroider_pyr::get_method(){
+    return this->method;
+}
+
+string sutra_centroider_pyr::get_method_str(){
+    return Method_CoG::str(this->method);
+}
 
 int sutra_centroider_pyr::get_cog(carma_streams *streams, float *cube,
         float *subsum, float *centroids, int nvalid, int npix, int ntot) {
@@ -70,10 +79,10 @@ int sutra_centroider_pyr::get_pyr(float *cube, float *subsum, float *centroids,
         pyr_subsum(subsum, cube, subindx, subindy, ns, nvalid,
                 this->current_context->get_device(device));
 
-        if(this->method == global){
+        if( (this->method&Method_CoG::Local) != Method_CoG::Local){
+            // if we are using a global method
+            // DEBUG_TRACE("Global : %s", Method_CoG::str(this->method));
             int blocks, threads;
-        //  getNumBlocksAndThreads(current_context->get_device(device), this->d_binimg->getNbElem(),
-        //      blocks, threads);
         	this->current_context->set_activeDevice(device,1);
         	sumGetNumBlocksAndThreads(nvalid,
         			this->current_context->get_device(device), blocks, threads);
@@ -81,10 +90,19 @@ int sutra_centroider_pyr::get_pyr(float *cube, float *subsum, float *centroids,
 
             fillvalues(subsum, &centroids[0], nvalid,
                 this->current_context->get_device(device));
+        // } else {
+        //     DEBUG_TRACE("Local : %s", Method_CoG::str(this->method));
         }
 
+        // if(this->method&Method_CoG::Sinus){  // if we are using a global method
+        //     DEBUG_TRACE("Sinus : %s", Method_CoG::str(this->method));
+        // } else {
+        //     DEBUG_TRACE("NoSinus : %s", Method_CoG::str(this->method));
+        // }
+
         pyr2_slopes(centroids, cube, subindx, subindy, subsum, ns, nvalid, this->scale,
-                this->valid_thresh, this->current_context->get_device(device));
+                this->valid_thresh, this->method&Method_CoG::Sinus,  // if we are using a sin method
+                this->current_context->get_device(device));
     } else {
         return EXIT_FAILURE;
     }

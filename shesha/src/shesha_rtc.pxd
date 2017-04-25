@@ -85,6 +85,7 @@ cdef class Rtc:
     cpdef load_Btt(self,int ncontro, np.ndarray[ndim=2,dtype=np.float32_t] Btt)
     cpdef getGeocov(self,int ncontro)
     cpdef get_IFtt(self,int ncontro)
+    cpdef get_pyr_method(self, int n)
     cpdef set_pyr_method(self, int n, int method, list p_centroiders)
     cpdef set_pyr_thresh(self, int n, float threshold, list p_wfss)
     cpdef set_pyr_ampl(self, int n, float ampli, list p_wfss, Param_tel p_centroiders)

@@ -499,6 +499,12 @@ cdef extern from "sutra_centroider_wcog.h":
 #################################################
 # C-Class sutra_centroider_pyr
 #################################################
+cdef extern from "sutra_centroider_pyr.h" namespace "Method_CoG":
+    enum Flags :
+        Sinus=0x01
+        Local=0x02
+        Other=0x04
+
 cdef extern from "sutra_centroider_pyr.h":
     cdef cppclass sutra_centroider_pyr(sutra_centroider):
         bool is_type(string typec)
@@ -506,6 +512,8 @@ cdef extern from "sutra_centroider_pyr.h":
         int set_valid_thresh(float valid_thresh)
         float get_valid_thresh()
         int set_method(int type)
+        string get_method_str()
+        int get_method()
 
 '''
 #################################################
