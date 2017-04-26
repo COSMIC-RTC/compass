@@ -33,3 +33,7 @@ Pyro_NS_URI
 .pydevproject
 .settings
 
+
+shesha/data/M4data/
+
+shesha/test/scripts/resultatsScripts/
