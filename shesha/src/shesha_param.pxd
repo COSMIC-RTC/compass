@@ -459,7 +459,7 @@ cdef class Param_centroider:
     """ x-size for inter mat (corr)"""
     cdef readonly np.ndarray interpmat
     """ optional reference function(s) used for corr centroiding"""
-    cdef readonly int method
+    cdef readonly np.uint8_t method
     """ optional method used in the pyrhr centroider (0:local, 1:global)"""
 
 

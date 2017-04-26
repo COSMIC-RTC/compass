@@ -38,7 +38,7 @@ float sutra_centroider_pyr::get_valid_thresh() {
     return this->valid_thresh;
 }
 
-int sutra_centroider_pyr::set_method(int method){
+int sutra_centroider_pyr::set_method(uint8_t method){
     if (method>=Method_CoG::Other) {
         DEBUG_TRACE("method unknown");
         return EXIT_FAILURE;
@@ -48,7 +48,7 @@ int sutra_centroider_pyr::set_method(int method){
     return EXIT_SUCCESS;
 }
 
-int sutra_centroider_pyr::get_method(){
+uint8_t sutra_centroider_pyr::get_method(){
     return this->method;
 }
 
@@ -79,7 +79,7 @@ int sutra_centroider_pyr::get_pyr(float *cube, float *subsum, float *centroids,
         pyr_subsum(subsum, cube, subindx, subindy, ns, nvalid,
                 this->current_context->get_device(device));
 
-        if( (this->method&Method_CoG::Local) != Method_CoG::Local){
+        if( !(this->method&Method_CoG::Local) ){
             // if we are using a global method
             // DEBUG_TRACE("Global : %s", Method_CoG::str(this->method));
             int blocks, threads;

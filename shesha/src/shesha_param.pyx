@@ -1230,14 +1230,14 @@ cdef class Param_centroider:
         """
         self.thresh = t
 
-    def set_method(self, int method):
+    def set_method(self, np.uint8_t method):
         """Set the centroiding method for pyrhr
 
         :parameters:
-            method : (int) : new centroiding method (0: nosinus global
-                                                     1: sinus global
-                                                     2: nosinus local
-                                                     3: sinus local)
+            method : (np.uint8) : new centroiding method (0: nosinus global
+                                                         1: sinus global
+                                                         2: nosinus local
+                                                         3: sinus local)
         """
         if method>=Other:
             raise ValueError("method unknown")

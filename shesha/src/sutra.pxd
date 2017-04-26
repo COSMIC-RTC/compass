@@ -18,7 +18,7 @@ from libcpp.vector cimport vector
 from libcpp.pair cimport pair
 from libcpp cimport bool
 
-from libc.stdint cimport uintptr_t
+from libc.stdint cimport uintptr_t, uint8_t
 
 from cpython.string cimport PyString_AsString
 from libc.math cimport sin
@@ -511,9 +511,9 @@ cdef extern from "sutra_centroider_pyr.h":
         # string get_type()
         int set_valid_thresh(float valid_thresh)
         float get_valid_thresh()
-        int set_method(int type)
+        int set_method(uint8_t type)
         string get_method_str()
-        int get_method()
+        uint8_t get_method()
 
 '''
 #################################################
