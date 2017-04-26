@@ -258,7 +258,7 @@ cpdef createHexaPattern(float pitch, float supportSize):
     y = np.tile(y,(Nx,1)).T.flatten()
     x = np.append(x, x + pitch/2.)
     y = np.append(y, y + pitch*V3/2.)
-    xy = np.float32(np.array([x,y]))
+    xy = np.float32(np.array([y,x]))
     return xy
 
 
@@ -553,9 +553,8 @@ cpdef make_pzt_dm(Param_dm p_dm,Param_geom geom,Param_tel p_tel,irc):
     p_dm._ypos = ypos
 
     # i1, j1 calc :
-
-    p_dm._i1 = (p_dm._xpos - p_dm._influsize/2. +0.5 - p_dm._n1).astype(np.int32)
-    p_dm._j1 = (p_dm._ypos - p_dm._influsize/2. +0.5 - p_dm._n1).astype(np.int32)
+    p_dm._i1 = i1t
+    p_dm._j1 = j1t
 
     comp_dmgeom(p_dm,geom)
 
