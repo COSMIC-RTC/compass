@@ -3,6 +3,10 @@ obj
 *.o
 *.so
 
+#Ignore folder mac
+.DS_Store
+._.DS_Store
+
 # cython generated files
 build
 cython_debug
