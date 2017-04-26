@@ -1520,14 +1520,18 @@ __global__ void pyr2slopes_krnl(T *g_odata, T *g_idata, int *subindx,
         g_odata[i + nvalid] = 0;
     } else {
     	tmp = ((g_idata[iq1] + g_idata[iq4]) - (g_idata[iq2] + g_idata[iq3])) / subsum[i];
-        g_odata[i + nvalid] = tmp = carma_clip(tmp, cmin, cmax);  // clip unexpected values
+        tmp = carma_clip(tmp, cmin, cmax);  // clip unexpected values
         if(do_sin){
     	    g_odata[i] = scale*fct_sin(tmp/2.);  // fct_sin calculates the sine of the input argument × π .
+        } else {
+          g_odata[i] = scale*tmp;
         }
         tmp = ((g_idata[iq1] + g_idata[iq3]) - (g_idata[iq2] + g_idata[iq4])) / subsum[i];
-        g_odata[i + nvalid] = tmp = carma_clip(tmp, cmin, cmax);  // clip unexpected values
+        tmp = carma_clip(tmp, cmin, cmax);  // clip unexpected values
         if(do_sin){
             g_odata[i + nvalid] = scale*fct_sin(tmp/2.);  // fct_sin calculates the sine of the input argument × π .
+        } else {
+          g_odata[i + nvalid] = scale*tmp;
         }
     }
     i += blockDim.x * gridDim.x;

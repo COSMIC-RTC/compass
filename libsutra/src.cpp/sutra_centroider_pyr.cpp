@@ -86,10 +86,12 @@ int sutra_centroider_pyr::get_pyr(float *cube, float *subsum, float *centroids,
         	this->current_context->set_activeDevice(device,1);
         	sumGetNumBlocksAndThreads(nvalid,
         			this->current_context->get_device(device), blocks, threads);
-            reduce(nvalid, threads, blocks, subsum, centroids);
+          long dims[2] = {1, nvalid};
+          carma_obj<float> tmp_obj(current_context, dims);
+          reduce(nvalid, threads, blocks, subsum, tmp_obj.getData());
 
-            fillvalues(subsum, &centroids[0], nvalid,
-                this->current_context->get_device(device));
+          fillvalues(subsum, tmp_obj.getData(), nvalid,
+              this->current_context->get_device(device));
         // } else {
         //     DEBUG_TRACE("Local : %s", Method_CoG::str(this->method));
         }
