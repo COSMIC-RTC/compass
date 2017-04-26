@@ -55,21 +55,38 @@ else:
     magnitude=float(sys.argv[6]) # gs magnitude
     nKL_Filt=int(float(sys.argv[7])) # Nb KL filtered
     simulName=sys.argv[8] # Nb KL filtered
+    GPU=int(sys.argv[9]) # GPU number
 
 
 
 
 pathResults="/volumes/hra/micado/"+simulName
+
 dBResult = pathResults + "/"+simulName+".h5"
-imat0_PATH = "/obs/fvidal/compass/shesha/test/scripts"
-imat0_PATH = "/volumes/hra/micado/scriptdata"
+imat0_PATH = "/home/fvidal/dataSimus"
 savePSFs = True
-GPUs = np.array([0,1,2,3], dtype=np.int32)
+if(GPU==1):
+    GPUs = np.array([4,5,6,7], dtype=np.int32)
+else:
+    GPUs = np.array([GPU], dtype=np.int32)
+print "Using GPUs: ", GPUs
 imatFromFile = True
-iMatName = "iMat39mPYR_MODU_"+str(int(MODU))+".fits"
-KL2VName = "KL2VNorm39mPYR_MODU_"+str(int(MODU))+".fits"
-gainModalName = "gains4K_MODU_"+str(int(MODU))+".fits"
-niter = 10000
+#iMatName = "iMat39mPYR_MODU_"+str(int(MODU))+".fits"
+#KL2VName = "KL2VNorm39mPYR_MODU_"+str(int(MODU))+".fits"
+#gainModalName = "gains4K_MODU_"+str(int(MODU))+".fits"
+
+iMatName = "iMat_MODU_5_ELTPUPIL.fits"
+KL2VName = "KL2VNorm_MODU_5_ELTPUPIL.fits"
+gainModalName = "gains4K_MODU_5_ELTPUPIL.fits"
+
+"""
+iMatName = "iMat_MODU_2_ELTPUPIL.fits"
+KL2VName = "KL2VNorm_MODU_2_ELTPUPIL.fits"
+gainModalName = "gains4K_MODU_2_ELTPUPIL.fits"
+"""
+
+
+niter = 4000
 saveCBData = True
 nbLoopData = 1024
 
@@ -79,10 +96,11 @@ pathResults="/home/fvidal/dataSimus/PYR_39m_RoundPupil_RUN1/"
 dBResult = "/home/fvidal/dataSimus/PYR_39m_RoundPupil_RUN1.h5"
 imat0_PATH = "/home/fvidal/compass/shesha/test/scripts"
 savePSFs = False
-GPUs = np.array([0,1,2,3], dtype=np.int32)
 imatFromFile = False
 """
 
+GPUs = np.array([4,5,6,7], dtype=np.int32)
+#GPUs = np.array([0,1,2,3], dtype=np.int32)
 
 
 if(not glob.glob(pathResults)):
@@ -236,6 +254,7 @@ def loop(n,wfs,tel,atm,dms,tar,rtc, moveAtmos=True, noise=True, loopData=0):
                 slopes[ii,:] = s.copy()
                 ii+=1
         rtc.docontrol(0)
+        rtc.doclipping(0, -1e5, 1e5)
         rtc.applycontrol(0,dms)
 
         signal_le = ""

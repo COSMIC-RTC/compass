@@ -400,7 +400,6 @@ def wfs_init(wfs, Param_atmos p_atmos, Param_tel p_tel, Param_geom p_geom,
     else:
         init_wfs_geom(wfs[indmax], wfs[0], indmax, p_atmos, p_tel, p_geom, p_target,
                       p_loop, init=0, verbose=rank)
-
     # #do the same for other wfs
     for i in range(nsensors):
         if(i != indmax):
@@ -477,7 +476,7 @@ def wfs_init(wfs, Param_atmos p_atmos, Param_tel p_tel, Param_geom p_geom,
         g_wfs.sensors_initgs(xpos, ypos, Lambda, mag, zerop, size, noise, seed, G, thetaML, dx, dy)
 
     elif(wfs[0].type_wfs == "pyrhr"):
-        npup = np.array([wfs[0].pyr_npts], dtype=np.int64)
+        npup = np.array([o.pyr_npts for o in wfs])
         G = np.array([o.G for o in wfs], dtype=np.float32)
         thetaML = np.array([o.thetaML for o in wfs], dtype=np.float32)
         dx = np.array([o.dx for o in wfs], dtype=np.float32)
