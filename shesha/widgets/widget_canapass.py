@@ -165,6 +165,13 @@ class widgetAOWindow(TemplateBaseClass):
         #     filepath=os.environ["SHESHA_ROOT"] + "/data/par/canapass.py")
         # self.InitConfig()
 
+
+
+    def setPyrMethod(self, pyrmethod):
+        mess = self.rtc.set_pyr_method(0, pyrmethod, self.config.p_centroiders) # Sets the pyr method
+        print "PYR method set to: ", mess
+        self.rtc.docentroids(0) # To be ready for the next getSlopes
+
     def getSlopesGeom(self, nb):
         self.rtc.docentroids_geom(0)
         slopesGeom = self.rtc.getcentroids(0)
@@ -211,7 +218,6 @@ class widgetAOWindow(TemplateBaseClass):
         return self.rtc.set_cmat(0, cMat)
 
     def setPertuVoltages(self, actusVolts):
-        # self.dms.set_full_comm(actusVolts.astype(np.float32).copy())
         self.rtc.setPertuVoltages(0, actusVolts.astype(np.float32).copy())
 
     def getVolts(self):
@@ -659,12 +665,10 @@ class widgetAOWindow(TemplateBaseClass):
 
     def updateDisplay(self):
         if (not self.loaded) or (not self.ui.wao_Display.isChecked()):
-            # print " widget not fully initialized"
             return
 
         data = None
         if not self.loopLock.acquire(False):
-            # print "Loop locked"
             return
         else:
             try:
@@ -739,16 +743,26 @@ class widgetAOWindow(TemplateBaseClass):
                         self.ui.wao_rtcWindowMPL.canvas.axes.clear()
                         # retrieving centroids
                         centroids = self.rtc.getCentroids(0)
+
+                        if((wao.rtc.getCentroids(0)==0).all() is True):
+                            print "Warning all slopes = 0"
+                            return
+
                         nvalid = [
                             2 * o._nvalid for o in self.config.p_wfss]
                         ind = np.sum(nvalid[:self.numberSelected])
+                        self.ui.wao_rtcWindowMPL.canvas.draw()
                         if(self.config.p_wfss[self.numberSelected].type_wfs == "pyrhr"):
-                            tools.plpyr(centroids[ind:ind + nvalid[self.numberSelected]], self.config.p_wfs0._isvalid)
+                            slopesvector = centroids[ind:ind + nvalid[self.numberSelected]]
+                            nslopes = slopesvector.shape[0] / 2
+                            validArray = self.config.p_wfs0._isvalid
+                            x, y = np.where(validArray.T)
+                            self.ui.wao_rtcWindowMPL.canvas.axes.quiver(x, y, slopesvector[0:nslopes], slopesvector[nslopes:], pivot='mid')
                         else:
                             x, y, vx, vy = tools.plsh(centroids[ind:ind + nvalid[self.numberSelected]], self.config.p_wfss[
                                                   self.numberSelected].nxsub, self.config.p_tel.cobs, returnquiver=True)  # Preparing mesh and vector for display
-                        self.ui.wao_rtcWindowMPL.canvas.axes.quiver(
-                            x, y, vx, vy, pivot='mid')
+                            self.ui.wao_rtcWindowMPL.canvas.axes.quiver(
+                                x, y, vx, vy, pivot='mid')
                         self.ui.wao_rtcWindowMPL.canvas.draw()
                         self.currentViewSelected = self.imgType
 
@@ -758,10 +772,16 @@ class widgetAOWindow(TemplateBaseClass):
                         self.ui.wao_rtcWindowMPL.canvas.axes.clear()
                         self.wfs.slopes_geom(self.numberSelected, 0)
                         slopes = self.wfs.get_slopes(self.numberSelected)
-                        x, y, vx, vy = tools.plsh(slopes, self.config.p_wfss[
-                                                  self.numberSelected].nxsub, self.config.p_tel.cobs, returnquiver=True)  # Preparing mesh and vector for display
-                        self.ui.wao_rtcWindowMPL.canvas.axes.quiver(
-                            x, y, vx, vy, pivot='mid')
+                        if(self.config.p_wfss[self.numberSelected].type_wfs == "pyrhr"):
+                            nslopes = slopes.shape[0] / 2
+                            validArray = self.config.p_wfs0._isvalid
+                            x, y = np.where(validArray.T)
+                            self.ui.wao_rtcWindowMPL.canvas.axes.quiver(x, y, slopes[0:nslopes], slopes[nslopes:], pivot='mid')
+                        else:
+                            x, y, vx, vy = tools.plsh(slopes, self.config.p_wfss[
+                                                      self.numberSelected].nxsub, self.config.p_tel.cobs, returnquiver=True)  # Preparing mesh and vector for display
+                            self.ui.wao_rtcWindowMPL.canvas.axes.quiver(
+                                x, y, vx, vy, pivot='mid')
                         self.ui.wao_rtcWindowMPL.canvas.draw()
                         self.currentViewSelected = self.imgType
 
@@ -931,7 +951,6 @@ class widgetAOWindow(TemplateBaseClass):
                         SR = self.tar.get_strehl(t)
                         if(t==self.numberSelected): # Plot on the wfs selected
                             self.updateSRDisplay(SR[1], SR[0], self.iter)
-
                         signal_se += "%1.2f   " % SR[0]
                         signal_le += "%1.2f   " % SR[1]
 
@@ -949,6 +968,7 @@ class widgetAOWindow(TemplateBaseClass):
                 self.iter += 1
             finally:
                 self.loopLock.release()
+                self.updateDisplay()
 
     def printInPlace(self, text):
         # This seems to trigger the GUI and keep it responsive
