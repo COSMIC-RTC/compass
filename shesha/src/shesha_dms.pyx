@@ -24,16 +24,16 @@ def dim_dm_patch(pupdiam,diam,type_dm,alt,xpos_wfs,ypos_wfs):
         pupdiam: (int) : pupil diameter
 
         diam: (float) : telescope diameter
-        
+
         type_dm: (str) : type of dm
-        
+
         alt: (float) : altitude of dm
 
         xpos_wfs: (list) : list of wfs xpos
-        
+
         ypos_wfs: (list) : list of wfs ypos
     """
-    
+
     norms = [np.linalg.norm([xpos_wfs[w], ypos_wfs[w]]) for w in range(len(xpos_wfs))]
     if( (type_dm=="pzt") or (type_dm=="tt")):
         pp = (diam * pupdiam)
@@ -44,8 +44,8 @@ def dim_dm_patch(pupdiam,diam,type_dm,alt,xpos_wfs,ypos_wfs):
     patchDiam = long(pupdiam + 2 * np.max(norms) * \
                 4.848e-6 * np.abs(alt) / (pp))
     return patchDiam
-    
-    
+
+
 cdef _dm_init(Dms dms, Param_dm p_dms, list xpos_wfs,list ypos_wfs,Param_geom p_geom , diam, cobs,int *max_extent):
     """ inits a Dms object on the gpu
 
@@ -55,13 +55,13 @@ cdef _dm_init(Dms dms, Param_dm p_dms, list xpos_wfs,list ypos_wfs,Param_geom p_
         p_dms: (Param_dms) : dm settings
 
         xpos_wfs: (list) : list of wfs xpos
-        
+
         ypos_wfs: (list) : list of wfs ypos
-        
+
         p_geom: (Param_geom) : geom settings
-        
+
         diam: (float) : diameter of telescope
-        
+
         cobs: (float) : cobs of telescope
 
         max_extend: (int*) :
@@ -81,10 +81,10 @@ cdef _dm_init(Dms dms, Param_dm p_dms, list xpos_wfs,list ypos_wfs,Param_geom p_
 
     cdef float irc, coupling, ir
     cdef long pitch, smallsize, patchDiam
-    
+
     #For patchDiam
     patchDiam = dim_dm_patch(p_geom.pupdiam,diam,p_dms.type_dm,p_dms.alt,xpos_wfs,ypos_wfs)
-
+    print "patchDiam=%f"%patchDiam
 
     if( p_dms.type_dm=="pzt"):
         if p_dms.file_influ_hdf5 == None:
@@ -92,10 +92,11 @@ cdef _dm_init(Dms dms, Param_dm p_dms, list xpos_wfs,list ypos_wfs,Param_geom p_
 
             # find out the support dimension for the given mirror.
             #norms = [np.linalg.norm([w.xpos, w.ypos]) for w in p_wfs]
-                
-            
+
+
             # Patchdiam
             p_dms._pitch = long(patchDiam / (p_dms.nact - 1))
+            print "p_dms._pitch=%f"%p_dms._pitch
 
             extent = p_dms._pitch * (p_dms.nact + p_dms.pzt_extent)  # + 2.5 pitch each side
             p_dms._n1 = np.floor(p_geom.cent - extent / 2)
@@ -214,18 +215,16 @@ cdef _dm_init(Dms dms, Param_dm p_dms, list xpos_wfs,list ypos_wfs,Param_geom p_
         # res1 = pol2car(*y_dm(n)._klbas,gkl_sfi(*y_dm(n)._klbas, 1));
         # res2 = yoga_getkl(g_dm,0.,1);
 
-def dm_init_2(p_dms, Param_geom p_geom, diam, cobs):
+def dm_init_2(p_dms, Param_geom p_geom, float cobs=0.):
     """Create and initialize a Dms object on the gpu
 
-    
+
     :parameters:
         p_dms: (list of Param_dms) : dms settings
 
-        diam: (float) : diameter of telescope
-        
-        cobs: (float) : cobs of telescope
-        
         p_geom: (Param_geom) : geom settings
+
+        cobs: (float) : cobs of telescope
     """
     cdef int max_extent = 0
     if(len(p_dms) != 0):
@@ -233,9 +232,9 @@ def dm_init_2(p_dms, Param_geom p_geom, diam, cobs):
         for i in range(len(p_dms)):
             #max_extent
             #_dm_init(dms, p_dms[i], p_wfs, p_geom, p_tel, & max_extent)
-            _dm_init(dms, p_dms[i], [0], [0], p_geom , diam, cobs, & max_extent)
+            _dm_init(dms, p_dms[i], [0], [0], p_geom , 1., cobs, & max_extent)
     return dms
-    
+
 def dm_init(p_dms, list p_wfs, Sensors sensors, Param_geom p_geom, Param_tel p_tel):
     """Create and initialize a Dms object on the gpu
 
@@ -243,7 +242,7 @@ def dm_init(p_dms, list p_wfs, Sensors sensors, Param_geom p_geom, Param_tel p_t
         p_dms: (list of Param_dms) : dms settings
 
         p_wfs: (Param_wfs(list)) : wfs settings
-        
+
         sensors: (wfs) : wfs objet
 
         p_geom: (Param_geom) : geom settings
@@ -256,7 +255,7 @@ def dm_init(p_dms, list p_wfs, Sensors sensors, Param_geom p_geom, Param_tel p_t
     for i in range(len(p_wfs)):
         xpos_wfs.append(p_wfs[i].xpos)
         ypos_wfs.append(p_wfs[i].ypos)
-    
+
     if(len(p_dms) != 0):
         dms = Dms(len(p_dms))
         for i in range(len(p_dms)):
@@ -385,7 +384,7 @@ def n_actuator_select(Param_dm p_dm,cobs, xc,yc):
 
 
     return liste_fin
-    
+
 
 def besel_orth(m,n,phi,r):
     # fonction de bessel fourier orthogonale (BFOFS)
@@ -396,15 +395,15 @@ def besel_orth(m,n,phi,r):
     else:
         B = sp.jn(np.abs(m),sp.jn_zeros(np.abs(m),n)[n-1]*r)*np.cos(np.abs(m)*phi)
     return B
-    
-    
+
+
 def bessel_influence(xx,yy,size,type_i='square'):
-    
+
     # base sur l article numerical model of the influence function of deformable mirrors based on bessel Fourier orthogonal functions
-    # corespond a 3.2pitch    
-    
+    # corespond a 3.2pitch
+
     influ = np.zeros((size,size),dtype=np.float32)
-    
+
     # construction des tableaux :
 
     #construction des coordonnée cartesienne
@@ -414,36 +413,36 @@ def bessel_influence(xx,yy,size,type_i='square'):
     #passage en coordonnée polaire
     r = np.sqrt(xx**2+yy**2)
     phi = np.arctan2(yy,xx)#+(np.pi/8.) #petite correction de rotation
-    
+
     #coef for square IF
     a0= [0.3826,0.5207,0.2841,-0.0146,-0.1103,-0.0818,-0.0141,0.0123,0.0196,0.0037]
     am = [-0.0454,-0.1114,-0.1125,-0.0397,0.0146,0.0217,0.0085,-0.0012,-0.0040]
     a = [-0.0002,-0.0004,-0.0001,0.0004,0.0005,0.0003,0.0001,0,0]
-    
+
     # search coef for hexagonal IF (m =0, 6, -6 --> 28 term)
     #a0 ->10
     #a6 ->9
-    #am6 ->9    
-    
+    #am6 ->9
+
     if type_i=='hexa':
         sym = 6
 
     else:
         sym = 4
-        
+
     # calcul pour m = 0
     for i in range(len(a0)):
         btemp = (a0[i]*besel_orth(0,i+1,phi,r))
 
         influ = influ+btemp
     #print "fin cas m=",0
-    
+
     #calcul pour m=6
     for i in range(len(a)):
         influ = influ+(a[i]*besel_orth(sym,i+1,phi,r))
     #print "fin cas m=",sym
-    
-    #calcul pour m=-6   
+
+    #calcul pour m=-6
     for i in range(len(am)):
         influ = influ+(am[i]*besel_orth(-sym,i+1,phi,r))
     #print "fin cas m=",-sym
@@ -520,12 +519,12 @@ cpdef make_pzt_dm(Param_dm p_dm,Param_geom geom,cobs,irc):
     if(p_dm.influType == "blacknutt"):
         p_dm._influsize = 4 * p_dm._pitch + 1
         smallsize = p_dm._influsize
-        
+
     cdef np.ndarray[ndim=3,dtype=np.float32_t] influ=np.zeros((smallsize,smallsize,ntotact),dtype=np.float32)
     # Computation of influence function for each actuator
     cdef int i1, j1
     cdef np.ndarray[ndim=2,dtype=np.float32_t] x, y, tmp
-    
+
     print "Computing influence function type : ", p_dm.influType
 
     if(p_dm.influType == "radialSchwartz"):
@@ -539,7 +538,7 @@ cpdef make_pzt_dm(Param_dm p_dm,Param_geom geom,cobs,irc):
         sc = np.zeros(r.shape)
         sc[ok] = np.exp((k/((r[ok]/a)**2-1))+k)
         influ[:,:,:] = sc[:,:,None] * np.ones(ntotact)[None,None,:]
-    
+
     elif(p_dm.influType == "squareSchwartz"):
         xdg= np.linspace(-0.99, 0.99, smallsize,dtype=np.float32)
         x = np.tile(xdg, (smallsize,1))
@@ -548,7 +547,7 @@ cpdef make_pzt_dm(Param_dm p_dm,Param_geom geom,cobs,irc):
         a = 2*(pitch/float(smallsize))/np.sqrt(k/(np.log(coupling)-k)+1.)
         sc = np.exp((k/((x/a)**2-1))+k) * np.exp((k/((y/a)**2-1))+k)
         influ[:,:,:] = sc[:,:,None] * np.ones(ntotact)[None,None,:]
-        
+
     elif(p_dm.influType == "blacknutt"):
         cg = smallsize // 2
         xdg = np.arange(- cg, cg + 1, dtype = np.float32)
@@ -560,7 +559,7 @@ cpdef make_pzt_dm(Param_dm p_dm,Param_geom geom,cobs,irc):
             (a[0] + a[1] * np.cos(np.pi*(y) / cg) +\
             a[2] * np.cos(2*np.pi*(y) / cg) + a[3] * np.cos(3*np.pi*(y) / cg))
         influ[:,:,:] = sc[:,:,None] * np.ones(ntotact)[None,None,:]
-    
+
     elif(p_dm.influType=="gaussian"):
         xdg= np.linspace(-1, 1, smallsize,dtype=np.float32)
         x = np.tile(xdg, (smallsize,1))
@@ -571,7 +570,7 @@ cpdef make_pzt_dm(Param_dm p_dm,Param_geom geom,cobs,irc):
         gauss[gauss<0.] = 0
         gauss/=gauss.max(); # Normalize
         influ[:,:,:] = gauss[:,:,None] * np.ones(ntotact)[None,None,:]
-        
+
     elif(p_dm.influType=="bessel"):
         size_pitch = smallsize/np.float32(p_dm._pitch) # size of influence fonction in pitch
         xdg= np.linspace(-1*(size_pitch/3.2),size_pitch/3.2, smallsize,dtype=np.float32)
@@ -580,23 +579,23 @@ cpdef make_pzt_dm(Param_dm p_dm,Param_geom geom,cobs,irc):
         influ_u = bessel_influence(x,y,smallsize,p_dm.type_pattern)
         influ_u = influ_u*(influ_u>=0)
         influ[:,:,:] = influ_u[:,:,None] * np.ones(ntotact)[None,None,:]
-        
+
     elif(p_dm.influType=="default"):
-        
+
         for i in range(ntotact):
-    
+
             i1 = i1t[i]
             x  = np.tile(np.arange(i1,i1+smallsize,dtype=np.float32),(smallsize,1)) # pixel coords in ref frame "dm support"
             x += p_dm._n1                                          # pixel coords in ref frame "pupil support"
             x -= xpos[i]                                     # pixel coords in local ref frame
             x  = np.abs(x)/(irc*pitch)                             # normalized coordiantes in local ref frame
-    
+
             j1 = j1t[i]
             y  = np.tile(np.arange(j1,j1+smallsize,dtype=np.float32),(smallsize,1)) # idem as X, in Y
             y += p_dm._n1
             y -= ypos[i]
             y  = np.abs(y.T)/(irc*pitch)
-    
+
             #clip
             x[x<1e-8]=1e-8
             x[x>2]=2.
@@ -876,7 +875,7 @@ cpdef make_kl_dm(Param_dm p_dm, patchDiam, Param_geom p_geom,cobs):
 
     :parameters:
         p_dm: (Param_dm) : dm settings
-        
+
         patchDiam: (int) : patchDiam for dm size
 
         p_geom: (Param_geom) : geom settings

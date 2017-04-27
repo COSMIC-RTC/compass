@@ -167,7 +167,7 @@ cdef class Param_tel:
 #################################################
 cdef class Param_geom:
 
-    def geom_init(self, Param_tel tel, long pupdiam, apod):
+    def geom_init(self, Param_tel tel, long pupdiam, int apod=0):
         """Initialize the system geometry
 
         :parameters:
