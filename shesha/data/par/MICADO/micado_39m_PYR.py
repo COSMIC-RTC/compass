@@ -82,7 +82,7 @@ p_wfs0.set_Lambda(0.7)
 p_wfs0.set_gsmag(11)
 p_wfs0.set_optthroughput(0.5)
 p_wfs0.set_zerop(2.6e10) # 2.6e10 ph/s/m**2 computed by Rico in R band for MOSAIC
-p_wfs0.set_noise(0.1)  # in electrons units
+p_wfs0.set_noise(-1)  # in electrons units
 p_wfs0.set_atmos_seen(1)
 p_wfs0.set_fstop("square")
 p_wfs0.set_fssize(1.6)
