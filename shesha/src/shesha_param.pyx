@@ -239,6 +239,12 @@ cdef class Param_geom:
          :param c: (float) : central point of the simulation."""
         self.cent = c
 
+    def set_apod(self, int a):
+        """Tells if the apodizer is used
+        The apodizer is used if a is not 0
+        :param a: (int) boolean for apodizer
+        """
+        self.apod = a
 
     def get_ipupil(self):
         """return the full pupil support"""
@@ -889,6 +895,15 @@ cdef class Param_dm:
         self._klbas = Klbas()
         self.influType = <bytes> ("default")
         self.gain = 1.0
+        self.margin_out = -1
+        self.margin_in = -1
+        self.pzt_extent = 5
+
+    def set_pzt_extent(self,int p):
+        """Set extent of pzt dm in pich unit default = 5
+        :param p: (int) : extent pzt dm
+        """
+        self.pzt_extent = p
 
     def set_influType(self, bytes t):
         """Set the influence function type for pzt DM
