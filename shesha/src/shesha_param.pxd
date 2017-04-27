@@ -307,7 +307,8 @@ cdef class Klbas:
 cdef class Param_dm:
   cdef readonly bytes  influType
   """ type of influence function for pzt dms"""
-
+  cdef readonly int pzt_extent
+  """ extent of pzt dm in pich unit"""
   cdef readonly bytes  type_dm
   """ type of dm"""
   cdef readonly bytes  type_pattern

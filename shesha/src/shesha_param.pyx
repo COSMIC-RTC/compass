@@ -897,7 +897,12 @@ cdef class Param_dm:
         self.gain = 1.0
         self.margin_out = -1
         self.margin_in = -1
-        
+        self.pzt_extent = 5
+    def set_pzt_extent(self,int p):
+        """Set extent of pzt dm in pich unit default = 5
+        :param p: (int) : extent pzt dm
+        """
+        self.pzt_extent = p
     def set_influType(self, bytes t):
         """Set the influence function type for pzt DM
         :param t: (str) : centroider type

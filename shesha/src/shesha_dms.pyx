@@ -81,7 +81,7 @@ cdef _dm_init(Dms dms, Param_dm p_dms, list xpos_wfs,list ypos_wfs,Param_geom p_
             # Patchdiam
             p_dms._pitch = long(patchDiam / (p_dms.nact - 1))
 
-            extent = p_dms._pitch * (p_dms.nact + 5)  # + 2.5 pitch each side
+            extent = p_dms._pitch * (p_dms.nact + p_dms.pzt_extent)  # + 2.5 pitch each side
             p_dms._n1 = np.floor(p_geom.cent - extent / 2)
             p_dms._n2 = np.ceil(p_geom.cent + extent / 2)
             if(p_dms._n1 < 1):
