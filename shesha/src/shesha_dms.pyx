@@ -18,6 +18,22 @@ import astropy.io.fits as pfits
 #max_extent signature
 
 def dim_dm_patch(pupdiam,diam,type_dm,alt,xpos_wfs,ypos_wfs):
+    """ calcul patchDiam for DM
+
+    :parameters:
+        pupdiam: (int) : pupil diameter
+
+        diam: (float) : telescope diameter
+        
+        type_dm: (str) : type of dm
+        
+        alt: (float) : altitude of dm
+
+        xpos_wfs: (list) : list of wfs xpos
+        
+        ypos_wfs: (list) : list of wfs ypos
+    """
+    
     norms = [np.linalg.norm([xpos_wfs[w], ypos_wfs[w]]) for w in range(len(xpos_wfs))]
     if( (type_dm=="pzt") or (type_dm=="tt")):
         pp = (diam * pupdiam)
@@ -34,19 +50,19 @@ cdef _dm_init(Dms dms, Param_dm p_dms, list xpos_wfs,list ypos_wfs,Param_geom p_
     """ inits a Dms object on the gpu
 
     :parameters:
-        dms: (Dms) :
+        dms: (Dms) : dm object
 
         p_dms: (Param_dms) : dm settings
 
         xpos_wfs: (list) : list of wfs xpos
         
         ypos_wfs: (list) : list of wfs ypos
-
-        diam: (float) : diameter of telescope
         
         p_geom: (Param_geom) : geom settings
         
-        p_tel: (Param_tel) : telescope settings
+        diam: (float) : diameter of telescope
+        
+        cobs: (float) : cobs of telescope
 
         max_extend: (int*) :
     """
@@ -205,11 +221,11 @@ def dm_init_2(p_dms, Param_geom p_geom, diam, cobs):
     :parameters:
         p_dms: (list of Param_dms) : dms settings
 
-        p_wfs: (Param_wfs) : wfs settings
-
+        diam: (float) : diameter of telescope
+        
+        cobs: (float) : cobs of telescope
+        
         p_geom: (Param_geom) : geom settings
-
-        p_tel: (Param_tel) : telescope settings
     """
     cdef int max_extent = 0
     if(len(p_dms) != 0):
@@ -226,7 +242,9 @@ def dm_init(p_dms, list p_wfs, Sensors sensors, Param_geom p_geom, Param_tel p_t
     :parameters:
         p_dms: (list of Param_dms) : dms settings
 
-        p_wfs: (Param_wfs) : wfs settings
+        p_wfs: (Param_wfs(list)) : wfs settings
+        
+        sensors: (wfs) : wfs objet
 
         p_geom: (Param_geom) : geom settings
 
@@ -320,6 +338,7 @@ def n_actuator_select(Param_dm p_dm,cobs, xc,yc):
 
     :parameters:
         p_dm: (Param_dm) : dm settings
+        cobs: telescope cobs
         xc: actuators x positions (origine in center of mirror)
         yc: actuators y positions (origine in center of mirror)
 
@@ -440,7 +459,7 @@ cpdef make_pzt_dm(Param_dm p_dm,Param_geom geom,cobs,irc):
 
         geom: (Param_geom) : geom settings
 
-        p_tel: (Param_tel) : tel settings
+        cobs: (float) : tel cobs
 
         irc: factor for influence size
     :return:
@@ -626,7 +645,7 @@ cpdef read_influ_hdf5 (Param_dm p_dm, Param_geom geom,diam):
 
         geom: (Param_geom) : geom settings
 
-        p_tel: (Param_tel) : tel settings
+        diam: (float) : tel diameter
 
     """
     # read h5 file for influence fonction
@@ -756,11 +775,11 @@ cpdef make_tiptilt_dm(Param_dm p_dm,patchDiam, Param_geom p_geom, diam):
     :parameters:
         p_dm: (Param_dm) : dm settings
 
-        p_wfs: (list) : list of wfs settings
+        patchDiam: (int) : patchDiam for dm size
 
         p_geom: (Param_geom) : geom settings
 
-        p_tel: (Param_tel) : telescope settings
+        diam: (float) : telescope diameter
     :return:
         influ: (np.ndarray(dims=3,dtype=np.float64)) : cube of the IF
 
@@ -857,12 +876,12 @@ cpdef make_kl_dm(Param_dm p_dm, patchDiam, Param_geom p_geom,cobs):
 
     :parameters:
         p_dm: (Param_dm) : dm settings
-
-        p_wfs: (list) : wfs settings
+        
+        patchDiam: (int) : patchDiam for dm size
 
         p_geom: (Param_geom) : geom settings
 
-        p_tel: (Param_tel) : telescope settings
+        cobs: (float) : telescope cobs
 
     """
     cdef int dim = p_geom._mpupil.shape[0]
@@ -1591,9 +1610,9 @@ cpdef compute_klbasis(Dms g_dm, Param_dm p_dm, Param_geom p_geom, r0, diam):
 
         p_geom: (Param_geom) : geom settings
 
-        p_atmos: (Param_atmos) : atmos settings
+        r0: (float) : atmos r0 in meter
 
-        p_tel: (Param_tel) : telescope settings
+        diam: (float) : telescope diameter
     """
 
     cdef int tmp
