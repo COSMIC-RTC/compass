@@ -168,8 +168,8 @@ class widgetAOWindow(TemplateBaseClass):
 
 
     def setPyrMethod(self, pyrmethod):
-        mess = self.rtc.set_pyr_method(0, pyrmethod, self.config.p_centroiders) # Sets the pyr method
-        print "PYR method set to: ", mess
+        self.rtc.set_pyr_method(0, pyrmethod, self.config.p_centroiders) # Sets the pyr method
+        print "PYR method set to: ", self.rtc.get_pyr_method(0)
         self.rtc.docentroids(0) # To be ready for the next getSlopes
 
     def getSlopesGeom(self, nb):
@@ -213,6 +213,9 @@ class widgetAOWindow(TemplateBaseClass):
     def doRefslopes(self):
         self.rtc.do_centroids_ref(0)
         print "refslopes done"
+
+    def resetRefslopes(self):
+        self.rtc.set_centroids_ref(0, self.getSlopes()*0.)
 
     def setCommandMatrix(self, cMat):
         return self.rtc.set_cmat(0, cMat)
@@ -894,9 +897,11 @@ class widgetAOWindow(TemplateBaseClass):
                 self.loopLock.release()
 
             refreshDisplayTime = 1000. / self.ui.wao_frameRate.value()
+            """
             if(self.ui.wao_Display.isChecked()):
                 # Update GUI plots
                 QTimer.singleShot(refreshDisplayTime, self.updateDisplay)
+            """
 
     def mainLoop(self):
         if not self.loopLock.acquire(False):
