@@ -225,6 +225,9 @@ def dm_init_2(p_dms, Param_geom p_geom, float cobs=0.):
         p_geom: (Param_geom) : geom settings
 
         cobs: (float) : cobs of telescope
+        
+        Warning : force xpos_wfs and ypos_wfs = 0 and number of wfs = 1
+        add script and par for dm init
     """
     cdef int max_extent = 0
     if(len(p_dms) != 0):
