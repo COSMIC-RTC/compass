@@ -80,8 +80,6 @@ p_dm0=ao.Param_dm()
 p_dms=[p_dm0]
 p_dm0.set_type("kl")
 p_dm0.set_alt(0.)
-
-
 p_dm0.set_kl_type("kolmo")
 p_dm0.set_nkl(50)
 
@@ -130,5 +128,3 @@ p_rtc=ao.Param_rtc()
 p_rtc.set_nwfs(1)
 p_rtc.set_centroiders(p_centroiders)
 p_rtc.set_controllers(p_controllers)
-
-

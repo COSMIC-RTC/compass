@@ -3,7 +3,6 @@
 
 #include <vector>
 #include <map>
-#include <mutex>
 #include <sutra_telemetry.h>
 #include <sutra_target.h>
 #include <sutra_phase.h>
@@ -13,7 +12,6 @@
 
 using std::string;
 using std::map;
-using std::mutex;
 
 class sutra_sensors;
 class sutra_wfs {

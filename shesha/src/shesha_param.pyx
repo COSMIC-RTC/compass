@@ -177,7 +177,6 @@ cdef class Param_geom:
 
             apod: (int) : apodizer
         """
-        self.pupdiam = pupdiam
         # first poxer of 2 greater than pupdiam
         self.ssize = long(2 ** np.ceil(np.log2(pupdiam) + 1))
         # using images centered on 1/2 pixels

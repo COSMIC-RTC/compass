@@ -364,8 +364,6 @@ int sutra_rtc::do_clipping(int ncntrl, float min, float max) {
 }
 
 int sutra_rtc::apply_control(int ncntrl, sutra_dms *ydm) {
-  std::lock_guard<std::mutex> lock(this->apply_control_mutex);
-
   current_context->set_activeDevice(device,1);
 
   this->d_control[ncntrl]->comp_voltage();

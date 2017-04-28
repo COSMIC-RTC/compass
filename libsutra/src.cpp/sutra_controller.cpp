@@ -108,7 +108,8 @@ int sutra_controller::get_centroids_ref(float *centroids_ref) {
 }
 
 int sutra_controller::set_perturbcom(float *perturb, int N) {
-  carma_obj<float> *tmp = this->d_perturb;
+  std::lock_guard<std::mutex> lock(this->comp_voltage_mutex);
+  if (this->d_perturb != nullptr) delete this->d_perturb;
 
   if(N > 0){
     long dims_data2[3] = {2, this->nactu(), N};
@@ -116,12 +117,11 @@ int sutra_controller::set_perturbcom(float *perturb, int N) {
     current_context->set_activeDevice(device, 1);
     this->d_perturb = new carma_obj<float>(current_context, dims_data2);
     this->d_perturb->host2device(perturb);
-
+    carmaSafeCall(cudaDeviceSynchronize());
     this->cpt_pertu = 0;
   } else {
 	this->d_perturb = nullptr;
   }
-  if (tmp != nullptr) delete tmp;
 
   return EXIT_SUCCESS;
 }
@@ -165,6 +165,7 @@ int sutra_controller::comp_voltage() {
   } else this->d_com->copyInto(this->d_voltage->getData(), this->nactu());
 
   if (this->d_perturb != nullptr) { // Apply volt perturbations (circular buffer)
+    std::lock_guard<std::mutex> lock(this->comp_voltage_mutex);
     carma_axpy(cublas_handle(), this->nactu(), 1.0f,
                this->d_perturb->getDataAt(this->cpt_pertu * this->nactu()), 1,
                this->d_voltage->getData(), 1);

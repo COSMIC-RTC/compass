@@ -11,7 +11,9 @@ struct Method_CoG {
         if (  method&Sinus  &&   method&Local)  return "sinus local";
         if (~(method&Sinus) &&   method&Local)  return "nosinus local";
         if (  method&Sinus  && ~(method&Local)) return "sinus global";
-        if (~(method&Sinus) && ~(method&Local)) return "nosinus global";    };
+        if (~(method&Sinus) && ~(method&Local)) return "nosinus global";
+        throw "method unknown";
+    };
 };
 
 class sutra_centroider_pyr: public sutra_centroider {
