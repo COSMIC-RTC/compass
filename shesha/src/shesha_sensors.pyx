@@ -570,7 +570,7 @@ cpdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
 
     cdef long pdiam = 0
 
-    if(init == 0):
+    if(init == 0 or geom.pupdiam):
         if(wfs.type_wfs == "sh"):
             pdiam = geom.pupdiam / wfs.nxsub
             if(geom.pupdiam % wfs.nxsub > 0):
@@ -627,7 +627,10 @@ cpdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
     if(init == 1 or (wfs.type_wfs == "geo" and n == 1)):
         # this is the wfs with largest # of subaps
         # the overall geometry is deduced from it
-        geom.geom_init(tel, pdiam * wfs.nxsub, p_target.apod)
+        if(geom.pupdiam):
+            geom.geom_init(tel, geom.pupdiam, p_target.apod)
+        else:
+            geom.geom_init(tel, pdiam * wfs.nxsub, p_target.apod)
 
     if(wfs.type_wfs=="pyr" or wfs.type_wfs == "roof"):
         padding = 2

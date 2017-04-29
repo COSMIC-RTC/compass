@@ -84,7 +84,6 @@ cdef _dm_init(Dms dms, Param_dm p_dms, list xpos_wfs,list ypos_wfs,Param_geom p_
 
     #For patchDiam
     patchDiam = dim_dm_patch(p_geom.pupdiam,diam,p_dms.type_dm,p_dms.alt,xpos_wfs,ypos_wfs)
-    print "patchDiam=%f"%patchDiam
 
     if( p_dms.type_dm=="pzt"):
         if p_dms.file_influ_hdf5 == None:
@@ -96,7 +95,6 @@ cdef _dm_init(Dms dms, Param_dm p_dms, list xpos_wfs,list ypos_wfs,Param_geom p_
 
             # Patchdiam
             p_dms._pitch = long(patchDiam / (p_dms.nact - 1))
-            print "p_dms._pitch=%f"%p_dms._pitch
 
             extent = p_dms._pitch * (p_dms.nact + p_dms.pzt_extent)  # + 2.5 pitch each side
             p_dms._n1 = np.floor(p_geom.cent - extent / 2)
@@ -225,7 +223,7 @@ def dm_init_2(p_dms, Param_geom p_geom, float cobs=0.):
         p_geom: (Param_geom) : geom settings
 
         cobs: (float) : cobs of telescope
-        
+
         Warning : force xpos_wfs and ypos_wfs = 0 and number of wfs = 1
         add script and par for dm init
     """
@@ -380,7 +378,7 @@ def n_actuator_select(Param_dm p_dm,cobs, xc,yc):
 
 
         if(sum(liste2)<p_dm._ntotact):
-            print 'ntoact very hight'
+            print 'ntotact very high'
             liste_fin = liste_i[(np.size(liste2)-sum(liste2)):]
         else:
             liste_fin = liste_i[(np.size(liste2)-sum(liste2)):p_dm._ntotact+(np.size(liste2)-sum(liste2))]
@@ -494,10 +492,10 @@ cpdef make_pzt_dm(Param_dm p_dm,Param_geom geom,cobs,irc):
         p_dm.type_pattern = <bytes>'square'
 
     if p_dm.type_pattern == 'hexa':
-        print "Patter type : Hexa"
+        print "Pattern type : Hexa"
         cub = createHexaPattern( pitch, geom.pupdiam * 1.1)
     elif p_dm.type_pattern == 'square':
-        print "Patter default type : Square"
+        print "Pattern type : Square"
         cub = createSquarePattern( pitch, nxact )
     else :
         raise StandardError("This pattern does not exist for pzt dm")
