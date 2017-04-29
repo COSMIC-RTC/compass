@@ -213,27 +213,28 @@ cdef _dm_init(Dms dms, Param_dm p_dms, list xpos_wfs,list ypos_wfs,Param_geom p_
         # res1 = pol2car(*y_dm(n)._klbas,gkl_sfi(*y_dm(n)._klbas, 1));
         # res2 = yoga_getkl(g_dm,0.,1);
 
-def dm_init_2(p_dms, Param_geom p_geom, float cobs=0.):
+def dm_init_standalone(p_dms, Param_geom p_geom, float diam=1., float cobs=0., wfs_xpos=[0],  wfs_ypos=[0]):
     """Create and initialize a Dms object on the gpu
-
 
     :parameters:
         p_dms: (list of Param_dms) : dms settings
 
         p_geom: (Param_geom) : geom settings
 
-        cobs: (float) : cobs of telescope
+        diam: (float) : diameter of telescope (default 1.)
 
-        Warning : force xpos_wfs and ypos_wfs = 0 and number of wfs = 1
-        add script and par for dm init
+        cobs: (float) : cobs of telescope (default 0.)
+
+        wfs_xpos: (array) : guide star x position on sky (in arcsec).
+
+        wfs_ypos: (array) : guide star y position on sky (in arcsec).
+
     """
     cdef int max_extent = 0
     if(len(p_dms) != 0):
         dms = Dms(len(p_dms))
         for i in range(len(p_dms)):
-            #max_extent
-            #_dm_init(dms, p_dms[i], p_wfs, p_geom, p_tel, & max_extent)
-            _dm_init(dms, p_dms[i], [0], [0], p_geom , 1., cobs, & max_extent)
+            _dm_init(dms, p_dms[i], wfs_xpos, wfs_ypos, p_geom , diam, cobs, & max_extent)
     return dms
 
 def dm_init(p_dms, list p_wfs, Sensors sensors, Param_geom p_geom, Param_tel p_tel):
@@ -355,13 +356,10 @@ def n_actuator_select(Param_dm p_dm,cobs, xc,yc):
 
     if(p_dm.margin_in<0):
         # 1 if valid actuator, 0 if not:
+        p_dm.margin_in=0.0
 
-        rad_in=0.0
-
-    else:
-
-        pitchMargin_in=p_dm.margin_in
-        rad_in=(((p_dm.nact-1.)/2.)*cobs-pitchMargin_in)*p_dm._pitch
+    pitchMargin_in=p_dm.margin_in
+    rad_in= (((p_dm.nact - 1.) / 2.) * cobs - pitchMargin_in) * p_dm._pitch
 
     if(p_dm._ntotact==0):
         if(p_dm.margin_out<0):
@@ -370,11 +368,11 @@ def n_actuator_select(Param_dm p_dm,cobs, xc,yc):
             pitchMargin_out=p_dm.margin_out
         rad_out=((p_dm.nact-1.)/2.+pitchMargin_out)*p_dm._pitch
 
-        liste_fin = np.where((dis < rad_out) * (dis > rad_in))[0]
+        liste_fin = np.where((dis < rad_out) * (dis >= rad_in))[0]
 
     else:
         liste_i = sorted(range(len(dis)), key=lambda k: dis[k])
-        liste2 = dis[liste_i] > rad_in
+        liste2 = dis[liste_i] >= rad_in
 
 
         if(sum(liste2)<p_dm._ntotact):
