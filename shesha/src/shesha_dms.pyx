@@ -496,7 +496,7 @@ cpdef make_pzt_dm(Param_dm p_dm,Param_geom geom,cobs,irc):
         cub = createHexaPattern( pitch, geom.pupdiam * 1.1)
     elif p_dm.type_pattern == 'square':
         print "Pattern type : Square"
-        cub = createSquarePattern( pitch, nxact )
+        cub = createSquarePattern( pitch, nxact+4 )
     else :
         raise StandardError("This pattern does not exist for pzt dm")
 
