@@ -30,3 +30,6 @@ git config --global color.ui true
 git config --global branch.autosetuprebase always
 
 git config --global alias.laststat '!f() { git diff --stat $1@{1}..$1 --dirstat=cumulative,files; }; f'
+
+git config --global alias.assume-unchanged 'update-index --assume-unchanged'
+git config --global alias.no-assume-unchanged 'update-index --no-assume-unchanged'
