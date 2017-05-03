@@ -16,6 +16,7 @@ import psf_rec as precs
 import matplotlib.pyplot as plt
 plt.ion()
 import matplotlib
+import time
 font = {'family' : 'normal',
         'weight' : 'bold',
         'size'   : 22}
@@ -34,50 +35,73 @@ def compute_psf_independence(filename):
     return psfi
 
 
-def compute_and_compare_PSFs(filename,correction=False,synth=False):
+def compute_and_compare_PSFs(filename, plot=False):
     f = h5py.File(filename,'r')
     psf_compass = np.fft.fftshift(f["psf"][:])
-    psf = compute_psf(filename)
-    psfi = compute_psf_independence(filename)
+    #psf = compute_psf(filename)
+    #psfi = compute_psf_independence(filename)
     psfc = 0
     psfs = 0
-    if(correction or synth):
-        Caniso, Cbp, Cmodel = compute_covariance_model(filename)
-#    if(correction):
-        # Cmodel_filtered = filter_piston_TT(filename,Cmodel)
-        # Ctt = add_TT_model(filename,Cmodel)
-        # Ctt[:-2,:-2] = Cmodel_filtered
-        # cov_err = rexp.get_coverr_independence(filename)
-        # P = f["P"][:]
-        # cov_err = P.dot(cov_err).dot(P.T) + P.dot(Ctt+Ctt.T).dot(P.T)
-        # otftelc, otf2c, psfc, gpu = precs.psf_rec_Vii(filename,cov=cov_err.astype(np.float32))
-    if(synth):
-        Cmodel_filtered = filter_piston_TT(filename,Cmodel)
-        Ctt = add_TT_model(filename,Cmodel)
-        Ctt[:-2,:-2] = Cmodel_filtered
-        Ctt = Ctt + Ctt.T
-        Caniso_filtered = filter_piston_TT(filename,Caniso)
-        tmp = add_TT_model(filename,Caniso)
-        tmp[:-2,:-2] = Caniso_filtered
-        Ctt += tmp
-        Cbp_filtered = filter_piston_TT(filename,Cbp)
-        tmp = add_TT_model(filename,Cbp)
-        tmp[:-2,:-2] = Cbp_filtered
-        Ctt += tmp
-        contributors = ["noise","aliasing","non linearity","filtered modes"]
-        cov_err = rexp.get_coverr_independence_contributors(filename,contributors)
-        P = f["P"][:]
-        cov_err = P.dot(cov_err).dot(P.T) + P.dot(Ctt).dot(P.T)
-        otftels, otf2s, psfs, gpu = precs.psf_rec_Vii(filename,cov=cov_err.astype(np.float32))
+    tic = time.time()
+    Caniso, Cbp, Ccov = compute_covariance_model(filename)
 
-    Lambda_tar = f.attrs["target.Lambda"][0]
-    RASC = 180/np.pi*3600.
-    pixsize = Lambda_tar*1e-6  / (psf.shape[0] * f.attrs["tel_diam"]/f.attrs["pupdiam"]) * RASC
-    x = (np.arange(psf.shape[0]) - psf.shape[0]/2) * pixsize / (Lambda_tar*1e-6/f.attrs["tel_diam"] * RASC)
-    plt.figure()
-    plt.semilogy(x,psf[psf.shape[0]/2,:])
-    plt.semilogy(x,psfi[psf.shape[0]/2,:],color="green")
-    plt.semilogy(x,psf_compass[psf.shape[0]/2,:],color="red")
+    Nact = f["Nact"][:]
+    N1 = np.linalg.inv(Nact)
+    Caniso = N1.dot(Caniso).dot(N1)
+    Cbp = N1.dot(Cbp).dot(N1)
+    Ccov = N1.dot(Ccov).dot(N1)
+
+
+    Ccov_filtered = filter_piston_TT(filename,Ccov)
+    Ctt = add_TT_model(filename,Ccov)
+    Ctt[:-2,:-2] = Ccov_filtered
+    Ctt = Ctt + Ctt.T
+    Caniso_filtered = filter_piston_TT(filename,Caniso)
+    tmp = add_TT_model(filename,Caniso)
+    tmp[:-2,:-2] = Caniso_filtered
+    Ctt += tmp
+    Cbp_filtered = filter_piston_TT(filename,Cbp)
+    tmp = add_TT_model(filename,Cbp)
+    tmp[:-2,:-2] = Cbp_filtered
+    Ctt += tmp
+    #contributors = ["noise","aliasing","non linearity","filtered modes"]
+    #cov_err = rexp.get_coverr_independence_contributors(filename,contributors)
+    P = f["P"][:]
+    cov_err = P.dot(Ctt).dot(P.T)
+    otftels, otf2s, psfs, gpu = precs.psf_rec_Vii(filename,fitting=False,cov=cov_err.astype(np.float32))
+    tac = time.time()
+    print "PSF estimated in ",tac-tic, " seconds"
+    t = f["tomography"][:]
+    b = f["bandwidth"][:]
+    tb = t+b
+    tb = tb.dot(tb.T)/float(tb.shape[1])
+    cov_err = P.dot(tb).dot(P.T)
+    otftel, otf2, psf, gpu = precs.psf_rec_Vii(filename,fitting=False,cov=cov_err.astype(np.float32))
+    if(plot):
+        Lambda_tar = f.attrs["target.Lambda"][0]
+        RASC = 180/np.pi*3600.
+        pixsize = Lambda_tar*1e-6  / (psf.shape[0] * f.attrs["tel_diam"]/f.attrs["pupdiam"]) * RASC
+        x = (np.arange(psf.shape[0]) - psf.shape[0]/2) * pixsize / (Lambda_tar*1e-6/f.attrs["tel_diam"] * RASC)
+        plt.figure()
+        plt.subplot(2,1,1)
+        plt.semilogy(x,psf[psf.shape[0]/2,:],color="blue")
+        plt.semilogy(x,psfs[psf.shape[0]/2,:],color="red")
+        plt.xlabel("X-axis angular distance [units of lambda/D]")
+        plt.ylabel("Normalized intensity")
+        plt.legend(["PSF exp", "PSF model"])
+
+        #plt.semilogy(x,psf_compass[psf.shape[0]/2,:],color="red")
+        plt.legend(["PSF exp", "PSF model"])
+        plt.subplot(2,1,2)
+        plt.semilogy(x,psf[:,psf.shape[0]/2],color="blue")
+        plt.semilogy(x,psfs[:,psf.shape[0]/2],color="red")
+        plt.xlabel("Y-axis angular distance [units of lambda/D]")
+        plt.ylabel("Normalized intensity")
+
+        #plt.semilogy(x,psf_compass[psf.shape[0]/2,:],color="red")
+        plt.legend(["PSF exp", "PSF model"])
+
+    '''
     if(correction):
         #plt.semilogy(x,psfc[psf.shape[0]/2,:],color="purple")
         if(synth):
@@ -92,12 +116,10 @@ def compute_and_compare_PSFs(filename,correction=False,synth=False):
 
     else:
         plt.legend(["PSF rec","PSF ind. assumption", "PSF COMPASS"])
-    plt.xlabel("Angular distance [units of lambda/D]")
-    plt.ylabel("Normalized intensity")
-    plt.title(filename.split('/')[-1])
+    '''
 
     f.close()
-    return psf_compass, psf, psfi, psfc, psfs
+    return psf_compass, psf, psfs
 
 
 def filter_piston_TT(filename,C):
@@ -149,60 +171,72 @@ def filter_TT(filename,C):
 
 def compute_covariance_model(filename):
     f = h5py.File(filename,'r')
-    L0 = f.attrs["L0"][0]
     Lambda_tar = f.attrs["target.Lambda"][0]
     Lambda_wfs = f.attrs["wfs.Lambda"]
-    speed = f.attrs["windspeed"][0]
     dt = f.attrs["ittime"]
     gain = f.attrs["gain"]
-    H = f.attrs["atm.alt"][0]
-    theta = f.attrs["winddir"][0]*np.pi/180.
     wxpos = f.attrs["wfs.xpos"][0]
     wypos = f.attrs["wfs.ypos"][0]
     r0 = f.attrs["r0"] * (Lambda_tar/Lambda_wfs)**(6./5.)
     RASC = 180./np.pi * 3600.
-
-    Htheta = np.linalg.norm([wxpos,wypos])/RASC*H
-    vdt = speed*dt/gain
-    gamma = np.arctan2(wypos,wxpos) - theta
-    rho =  np.sqrt(Htheta**2 + (vdt)**2 - 2*Htheta*vdt*np.cos(np.pi-gamma))
-    # Covariance matrices models on actuators space
     xpos = f["dm.xpos"][:]
     ypos = f["dm.ypos"][:]
     p2m = f.attrs["tel_diam"] / f.attrs["pupdiam"]
     pupshape = long(2 ** np.ceil(np.log2(f.attrs["pupdiam"]) + 1))
     xactu = (xpos - pupshape/2) * p2m
     yactu = (ypos - pupshape/2) * p2m
-    M = np.zeros((xpos.size,xpos.size))
-    Mvdt = M.copy()
-    Mht = M.copy()
-    Mhvdt = M.copy()
-    angleht = np.arctan2(wypos,wxpos)
-    anglehvdt = gamma/2. - theta
-    fc = xactu[1] - xactu[0]
-    #fc = 0.05
+    Ccov = np.zeros((xpos.size,xpos.size))
+    Caniso = np.zeros((xpos.size,xpos.size))
+    Cbp = np.zeros((xpos.size,xpos.size))
+    xx = np.tile(xactu,(xactu.shape[0],1))
+    yy = np.tile(yactu,(yactu.shape[0],1))
+    xij = xx - xx.T
+    yij = yy - yy.T
 
-    for i in range(xpos.size):
-        for j in range(xpos.size):
-            Mvdt[i,j] = (np.sqrt((xactu[i]-(xactu[j]-vdt*np.cos(theta)))**2 + (yactu[i]-(yactu[j]-vdt*np.sin(theta)))**2))
-            M[i,j] = (np.sqrt((xactu[i]-xactu[j])**2 + (yactu[i]-yactu[j])**2))
-            Mht[i,j] = (np.sqrt((xactu[i]-(xactu[j]-Htheta*np.cos(angleht)))**2 + (yactu[i]-(yactu[j]-Htheta*np.sin(angleht)))**2))
-            #Mhvdt[i,j] = (np.sqrt((xactu[i]-(xactu[j]+rho*np.cos(anglehvdt)))**2 + (yactu[i]-(yactu[j]+rho*np.sin(anglehvdt)))**2))
-            Mhvdt[i,j] = (np.sqrt(((xactu[i]+vdt*np.cos(theta))-(xactu[j]-Htheta*np.cos(angleht)))**2 + ((yactu[i]+vdt*np.sin(theta))-(yactu[j]-Htheta*np.sin(angleht)))**2))
+    for l in range(f.attrs["nscreens"]):
+        H = f.attrs["atm.alt"][l]
+        L0 = f.attrs["L0"][l]
+        speed = f.attrs["windspeed"][l]
+        theta = f.attrs["winddir"][l]*np.pi/180.
+        frac = f.attrs["frac"][l]
 
-    Ccov =  0.5 * (Dphi.dphi_lowpass(Mhvdt,fc,L0,tabx,taby) - Dphi.dphi_lowpass(Mht,fc,L0,tabx,taby) \
-            - Dphi.dphi_lowpass(Mvdt,fc,L0,tabx,taby) + Dphi.dphi_lowpass(M,fc,L0,tabx,taby)) * (1./r0)**(5./3.)
+        Htheta = np.linalg.norm([wxpos,wypos])/RASC*H
+        vdt = speed*dt/gain
+        # Covariance matrices models on actuators space
+        M = np.zeros((xpos.size,xpos.size))
+        Mvdt = M.copy()
+        Mht = M.copy()
+        Mhvdt = M.copy()
+        angleht = np.arctan2(wypos,wxpos)
+        fc = xactu[1] - xactu[0]
+        #fc = 0.05
 
-    Caniso = 0.5*(Dphi.dphi_lowpass(Mht,fc,L0,tabx,taby) - Dphi.dphi_lowpass(M,fc,L0,tabx,taby)) * (1./r0)**(5./3.)
-    Cbp = 0.5*(Dphi.dphi_lowpass(Mvdt,fc,L0,tabx,taby) - Dphi.dphi_lowpass(M,fc,L0,tabx,taby)) * (1./r0)**(5./3.)
+        M = np.linalg.norm([xij,yij],axis=0)
+        Mvdt = np.linalg.norm([xij - vdt*np.cos(theta), yij - vdt*np.sin(theta)],axis=0)
+        Mht = np.linalg.norm([xij - Htheta*np.cos(angleht), yij - Htheta*np.sin(angleht)],axis=0)
+        Mhvdt = np.linalg.norm([xij - vdt*np.cos(theta) - Htheta*np.cos(angleht), yij - vdt*np.sin(theta) - Htheta*np.sin(angleht)],axis=0)
+        # for i in range(xpos.size):
+        #     for j in range(xpos.size):
+        #         Mvdt[i,j] = (np.sqrt((xactu[i]-(xactu[j]-vdt*np.cos(theta)))**2 + (yactu[i]-(yactu[j]-vdt*np.sin(theta)))**2))
+        #         M[i,j] = (np.sqrt((xactu[i]-xactu[j])**2 + (yactu[i]-yactu[j])**2))
+        #         Mht[i,j] = (np.sqrt((xactu[i]-(xactu[j]-Htheta*np.cos(angleht)))**2 + (yactu[i]-(yactu[j]-Htheta*np.sin(angleht)))**2))
+        #         #Mhvdt[i,j] = (np.sqrt((xactu[i]-(xactu[j]+rho*np.cos(anglehvdt)))**2 + (yactu[i]-(yactu[j]+rho*np.sin(anglehvdt)))**2))
+        #         Mhvdt[i,j] = (np.sqrt(((xactu[i]+vdt*np.cos(theta))-(xactu[j]-Htheta*np.cos(angleht)))**2 + ((yactu[i]+vdt*np.sin(theta))-(yactu[j]-Htheta*np.sin(angleht)))**2))
 
-    Sp = (f.attrs["tel_diam"]/f.attrs["nxsub"])**2/2.
+        Ccov +=  0.5 * (Dphi.dphi_lowpass(Mhvdt,fc,L0,tabx,taby) - Dphi.dphi_lowpass(Mht,fc,L0,tabx,taby) \
+                - Dphi.dphi_lowpass(Mvdt,fc,L0,tabx,taby) + Dphi.dphi_lowpass(M,fc,L0,tabx,taby)) * (1./r0)**(5./3.) * frac
+
+        Caniso += 0.5*(Dphi.dphi_lowpass(Mht,fc,L0,tabx,taby) - Dphi.dphi_lowpass(M,fc,L0,tabx,taby)) * (1./r0)**(5./3.) * frac
+        Cbp += 0.5*(Dphi.dphi_lowpass(Mvdt,fc,L0,tabx,taby) - Dphi.dphi_lowpass(M,fc,L0,tabx,taby)) * (1./r0)**(5./3.) * frac
+
+    #Sp = (f.attrs["tel_diam"]/f.attrs["nxsub"])**2/2.
+    Sp = (Lambda_tar/(2*np.pi))**2#/3.45
     f.close()
     return (Caniso+Caniso.T)*Sp, (Cbp+Cbp.T)*Sp, Ccov*Sp
 
 
-def add_TT_model(filename,Cmodel):
-    C = np.zeros((Cmodel.shape[0]+2,Cmodel.shape[0]+2))
+def add_TT_model(filename,Ccov):
+    C = np.zeros((Ccov.shape[0]+2,Ccov.shape[0]+2))
     IF, T = rexp.get_IF(filename)
     IF = IF.T
     T = T.T
@@ -211,9 +245,9 @@ def add_TT_model(filename,Cmodel):
     deltaF = IF.T.dot(T)/N
     pzt2tt = np.linalg.inv(deltaTT).dot(deltaF.T)
 
-    CTT = Cmodel - filter_TT(filename,Cmodel)
+    CTT = Ccov - filter_TT(filename,Ccov)
     C[-2:,-2:] = pzt2tt.dot(CTT).dot(pzt2tt.T)
-    C[:-2,:-2] = Cmodel
+    C[:-2,:-2] = Ccov
 
     return C
 
@@ -265,12 +299,135 @@ def load_datas(files):
     return stot, sbp, stomo, scov, covar
 
 
+def ensquare_PSF(filename, psf, N, display=False):
+    f = h5py.File(filename,'r')
+    Lambda_tar = f.attrs["target.Lambda"][0]
+    RASC = 180/np.pi*3600.
+    pixsize = Lambda_tar*1e-6  / (psf.shape[0] * f.attrs["tel_diam"]/f.attrs["pupdiam"]) * RASC
+    x = (np.arange(psf.shape[0]) - psf.shape[0]/2) * pixsize / (Lambda_tar*1e-6/f.attrs["tel_diam"] * RASC)
+    w = int(N*(Lambda_tar*1e-6/f.attrs["tel_diam"] * RASC)/pixsize)
+    mid = psf.shape[0]/2
+    psfe = psf[mid-w:mid+w,mid-w:mid+w]
+    if(display):
+        plt.matshow(np.log10(psfe))
+        xt = np.linspace(0,psfe.shape[0]-1,6).astype(np.int32)
+        yt = np.linspace(-N,N,6).astype(np.int32)
+        plt.xticks(xt,yt)
+        plt.yticks(xt,yt)
+
+    f.close()
+    return psf[mid-w:mid+w,mid-w:mid+w]
+
+
+def cutsPSF(filename,psf,psfs):
+    f=h5py.File(filename,'r')
+    Lambda_tar = f.attrs["target.Lambda"][0]
+    RASC = 180/np.pi*3600.
+    pixsize = Lambda_tar*1e-6  / (psf.shape[0] * f.attrs["tel_diam"]/f.attrs["pupdiam"]) * RASC
+    x = (np.arange(psf.shape[0]) - psf.shape[0]/2) * pixsize / (Lambda_tar*1e-6/f.attrs["tel_diam"] * RASC)
+    plt.figure()
+    plt.subplot(2,1,1)
+    plt.semilogy(x,psf[psf.shape[0]/2,:],color="blue")
+    plt.semilogy(x,psfs[psf.shape[0]/2,:],color="red")
+    plt.xlabel("X-axis angular distance [units of lambda/D]")
+    plt.ylabel("Normalized intensity")
+    plt.legend(["PSF exp", "PSF model"])
+    plt.xlim(-20,20)
+    plt.ylim(1e-5,1)
+    plt.subplot(2,1,2)
+    plt.semilogy(x,psf[:,psf.shape[0]/2],color="blue")
+    plt.semilogy(x,psfs[:,psf.shape[0]/2],color="red")
+    plt.xlabel("Y-axis angular distance [units of lambda/D]")
+    plt.ylabel("Normalized intensity")
+    plt.legend(["PSF exp", "PSF model"])
+    plt.xlim(-20,20)
+    plt.ylim(1e-5,1)
+    f.close()
+
+def Hcor(f,Fe,g,dt):
+    p = 1j*2*np.pi*f
+    return np.abs(1/(1+g*Fe/p*np.exp(-dt*p)))**2
+
+def Hretard(f,Fe,g,dt):
+    p = 1j*2*np.pi*f
+    return np.abs(1-np.exp(-p*dt/g))**2
+
+def compareTransferFunctions(filename):
+    rfile = h5py.File(filename,'r')
+    v = rfile.attrs["windspeed"][0]
+    dt = rfile.attrs["ittime"]
+    Fe = 1/dt
+    g = rfile.attrs["gain"]
+    Lambda_tar = rfile.attrs["target.Lambda"][0]
+    Lambda_wfs = rfile.attrs["wfs.Lambda"][0]
+    r0 = rfile.attrs["r0"] * (Lambda_tar/Lambda_wfs)**(6./5.)
+    d = rfile.attrs["tel_diam"]/rfile.attrs["nxsub"]
+    fc = 0.314*v/d
+    f = np.linspace(0.1,fc*1.5,1000)
+    H = Hcor(f,Fe,g,dt)
+    Hr = Hretard(f,Fe,g,dt)
+    plt.figure()
+    plt.plot(f,H)
+    plt.plot(f,Hr,color="red")
+    plt.plot([fc,fc],[H.min(),Hr.max()])
+    rfile.close()
+
+
 datapath = '/home/fferreira/Data/correlation/'
 filenames = glob.glob(datapath + 'roket_8m_1layer_dir*_cpu.h5')
 
 tabx, taby = Dphi.tabulateIj0()
-# Illustration du probleme
-#psf_compass, psf, psfi, psfc, psfs = compute_and_compare_PSFs(filenames[11],correction=True, synth=True)
+
+co# Illustration du probleme
+#psf_compass, psf, psfs = compute_and_compare_PSFs(filenames[13],plot=True)
+# psf_compass = np.zeros((2048,2048,len(filenames)))
+# psf = np.zeros((2048,2048,len(filenames)))
+# psfi = np.zeros((2048,2048,len(filenames)))
+# SR = np.zeros(len(filenames))
+# SRi = np.zeros(len(filenames))
+# SRcompass = np.zeros(len(filenames))
+# nrj20 = np.zeros(len(filenames))
+# nrj20s = np.zeros(len(filenames))
+# nrj5 = np.zeros(len(filenames))
+# nrj5i = np.zeros(len(filenames))
+# nrj5compass = np.zeros(len(filenames))
+#
+# cc = 0
+# for f in filenames:
+#     ff = h5py.File(f,'r')
+#     psf_compass[:,:,cc] = np.fft.fftshift(ff["psf"][:])
+#     psf[:,:,cc] = compute_psf(f)
+#     psfi[:,:,cc] = compute_psf_independence(f)
+#     #psf_compass, psf[:,:,cc], psfs[:,:,cc] = compute_and_compare_PSFs(f)
+#     SR[cc] = psf[:,:,cc].max()
+#     SRi[cc] = psfi[:,:,cc].max()
+#     SRcompass[cc] = psf_compass[:,:,cc].max()
+# #    nrj20[cc] = ensquare_PSF(f,psf[:,:,cc],20).sum()/psf[:,:,cc].sum()
+# #    nrj20s[cc] = ensquare_PSF(f,psfs[:,:,cc],20).sum()/psfs[:,:,cc].sum()
+#     nrj5[cc] = ensquare_PSF(f,psf[:,:,cc],5).sum()/psf[:,:,cc].sum()
+#     nrj5i[cc] = ensquare_PSF(f,psfi[:,:,cc],5).sum()/psfi[:,:,cc].sum()
+#     nrj5compass[cc] = ensquare_PSF(f,psf_compass[:,:,cc],5).sum()/psf_compass[:,:,cc].sum()
+#
+#     cc +=1
+#     ff.close()
+#     print cc
+#
+# f = h5py.File("ROKETStudy.h5")
+# f["psf"] = psf
+# f["filenames"] = filenames
+# f["psfi"] = psfi
+# f["psf_compass"] = psf_compass
+# f["SR"] = SR
+# f["SRi"] = SRi
+# f["SRcompass"] = SRcompass
+# #f["nrj20"] = nrj20
+# #f["nrj20s"] = nrj20s
+# f["nrj5"] = nrj5
+# f["nrj5i"] = nrj5i
+# f["nrj5compass"] = nrj5compass
+# f.close()
+
+
 
 
 
@@ -372,7 +529,7 @@ for i in range(1304):
         #Mhvdt[i,j] = (np.sqrt((xactu[i]-(xactu[j]+rho[11]*np.cos(anglehvdt[11])))**2 + (yactu[i]-(yactu[j]+rho[11]*np.sin(anglehvdt[11])))**2))
         Mhvdt[i,j] = (np.sqrt(((xactu[i]-vdt[11]*np.cos(thetar[11]))-(xactu[j]+Htheta[11]*np.cos(angleht)))**2 + ((yactu[i]-vdt[11]*np.sin(thetar[11]))-(yactu[j]+Htheta[11]*np.sin(angleht)))**2))
 
-Cmodel =  (Dphi.dphi_lowpass(Mhvdt,0.2,L0,tabx,taby) - Dphi.dphi_lowpass(Mht,0.2,L0,tabx,taby) \
+Ccov =  (Dphi.dphi_lowpass(Mhvdt,0.2,L0,tabx,taby) - Dphi.dphi_lowpass(Mht,0.2,L0,tabx,taby) \
         - Dphi.dphi_lowpass(Mvdt,0.2,L0,tabx,taby) + Dphi.dphi_lowpass(M,0.2,L0,tabx,taby)) * (1/r0)**(5./3.)
 '''
 '''
