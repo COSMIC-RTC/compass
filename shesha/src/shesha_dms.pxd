@@ -69,7 +69,7 @@ cdef class Dms:
 
 cpdef createSquarePattern(float pitch, int nxact )
 cpdef createHexaPattern(float pitch, float supportSize)
-cpdef make_pzt_dm(Param_dm p_dm,Param_geom geom,cobs ,irc)
+cpdef make_pzt_dm(Param_dm p_dm,Param_geom geom,cobs)
 cpdef read_influ_hdf5 (Param_dm p_dm, Param_geom geom,diam)
 cpdef make_tiptilt_dm(Param_dm p_dm,patchDiam, Param_geom p_geom, diam)
 
