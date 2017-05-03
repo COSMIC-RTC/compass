@@ -68,7 +68,7 @@ cdef _dm_init(Dms dms, Param_dm p_dms, list xpos_wfs,list ypos_wfs,Param_geom p_
     """
 
     #cdef float patchDiam
-    cdef int extent
+    cdef float extent
     cdef long dim
     cdef long ninflu, influsize, ninflupos, n_npts
     cdef long _nr, _np
@@ -80,7 +80,8 @@ cdef _dm_init(Dms dms, Param_dm p_dms, list xpos_wfs,list ypos_wfs,Param_geom p_
 
 
     cdef float irc, coupling, ir
-    cdef long pitch, smallsize, patchDiam
+    cdef long smallsize, patchDiam
+    cdef float pitch
 
     #For patchDiam
     patchDiam = dim_dm_patch(p_geom.pupdiam,diam,p_dms.type_dm,p_dms.alt,xpos_wfs,ypos_wfs)
@@ -94,7 +95,7 @@ cdef _dm_init(Dms dms, Param_dm p_dms, list xpos_wfs,list ypos_wfs,Param_geom p_
 
 
             # Patchdiam
-            p_dms._pitch = long(patchDiam / (p_dms.nact - 1))
+            p_dms._pitch = patchDiam / float(p_dms.nact - 1)
 
             extent = p_dms._pitch * (p_dms.nact + p_dms.pzt_extent)  # + 2.5 pitch each side
             p_dms._n1 = np.floor(p_geom.cent - extent / 2)
@@ -356,12 +357,11 @@ def n_actuator_select(Param_dm p_dm,cobs, xc,yc):
     if(p_dm.margin_in<0):
         # 1 if valid actuator, 0 if not:
 
-        rad_in=0.0
+        p_dm.margin_in=0.0
 
-    else:
 
-        pitchMargin_in=p_dm.margin_in
-        rad_in=(((p_dm.nact-1.)/2.)*cobs-pitchMargin_in)*p_dm._pitch
+    pitchMargin_in=p_dm.margin_in
+    rad_in=(((p_dm.nact-1.)/2.)*cobs-pitchMargin_in)*p_dm._pitch
 
     if(p_dm._ntotact==0):
         if(p_dm.margin_out<0):
@@ -370,11 +370,11 @@ def n_actuator_select(Param_dm p_dm,cobs, xc,yc):
             pitchMargin_out=p_dm.margin_out
         rad_out=((p_dm.nact-1.)/2.+pitchMargin_out)*p_dm._pitch
 
-        liste_fin = np.where((dis < rad_out) * (dis > rad_in))[0]
+        liste_fin = np.where((dis <= rad_out) * (dis >= rad_in))[0]
 
     else:
         liste_i = sorted(range(len(dis)), key=lambda k: dis[k])
-        liste2 = dis[liste_i] > rad_in
+        liste2 = dis[liste_i] >= rad_in
 
 
         if(sum(liste2)<p_dm._ntotact):
@@ -479,7 +479,7 @@ cpdef make_pzt_dm(Param_dm p_dm,Param_geom geom,cobs,irc):
     cdef float ccc = (coupling - 1.+ tmp_c**p1)/(np.log(tmp_c)*tmp_c**p2)
 
     # prepare to compute IF on partial (local) support of size <smallsize>
-    cdef long pitch=p_dm._pitch
+    cdef float pitch=p_dm._pitch
     cdef long smallsize
 
     smallsize=p_dm._influsize
@@ -496,7 +496,7 @@ cpdef make_pzt_dm(Param_dm p_dm,Param_geom geom,cobs,irc):
         cub = createHexaPattern( pitch, geom.pupdiam * 1.1)
     elif p_dm.type_pattern == 'square':
         print "Pattern type : Square"
-        cub = createSquarePattern( pitch, nxact+4 )
+        cub = createSquarePattern( pitch, nxact + 4 )
     else :
         raise StandardError("This pattern does not exist for pzt dm")
 
@@ -518,7 +518,7 @@ cpdef make_pzt_dm(Param_dm p_dm,Param_geom geom,cobs,irc):
 
     # Allocate array of influence functions
     if(p_dm.influType == "blacknutt"):
-        p_dm._influsize = 4 * p_dm._pitch + 1
+        p_dm._influsize = np.ceil(4 * p_dm._pitch + 1)
         smallsize = p_dm._influsize
 
     cdef np.ndarray[ndim=3,dtype=np.float32_t] influ=np.zeros((smallsize,smallsize,ntotact),dtype=np.float32)
@@ -589,13 +589,13 @@ cpdef make_pzt_dm(Param_dm p_dm,Param_geom geom,cobs,irc):
             x  = np.tile(np.arange(i1,i1+smallsize,dtype=np.float32),(smallsize,1)) # pixel coords in ref frame "dm support"
             x += p_dm._n1                                          # pixel coords in ref frame "pupil support"
             x -= xpos[i]                                     # pixel coords in local ref frame
-            x  = np.abs(x)/(irc*pitch)                             # normalized coordiantes in local ref frame
+            x  = np.abs(x.T)/(irc*pitch)                             # normalized coordiantes in local ref frame
 
             j1 = j1t[i]
             y  = np.tile(np.arange(j1,j1+smallsize,dtype=np.float32),(smallsize,1)) # idem as X, in Y
             y += p_dm._n1
             y -= ypos[i]
-            y  = np.abs(y.T)/(irc*pitch)
+            y  = np.abs(y)/(irc*pitch)
 
             #clip
             x[x<1e-8]=1e-8
@@ -1050,10 +1050,10 @@ cpdef comp_dmgeom(Param_dm dm, Param_geom geom):
     cdef np.ndarray[ndim = 3, dtype = np.int32_t] tmp = tmpx + dim * tmpy
 
     # bug in limit of def zone -10 destoe influpos for all actuator
-    tmp[tmpx < 0] = -10
-    tmp[tmpy < 0] = -10
-    tmp[tmpx > dims - 1] = -10
-    tmp[tmpy > dims - 1] = -10
+    tmp[tmpx < 0] = dim*dim+10 #-10
+    tmp[tmpy < 0] = dim*dim+10#-10
+    tmp[tmpx > dims - 1] = dim*dim+10#-10
+    tmp[tmpy > dims - 1] = dim*dim+10#-10
     cdef np.ndarray[ndim = 1, dtype = np.int32_t] itmps = np.argsort(tmp.flatten("F")).astype(np.int32)
     cdef np.ndarray[ndim = 1, dtype = np.int32_t] tmps = np.sort(tmp.flatten("F")).astype(np.int32)
     itmps = itmps[np.where(itmps > -1)]

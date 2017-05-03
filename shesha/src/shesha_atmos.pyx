@@ -402,11 +402,7 @@ cdef atmos_create(naga_context c, int nscreens,
         else:
             A, B, istx, isty = itK.AB(dim_screens[i], L0[i], deltax[i], deltay[i], verbose)
             if not(clean):
-                if shesha.__version__ is not "Develop":
-                    version = shesha.__version__
-                else:
-                    version = str(check_output(
-                        ["git", "rev-parse", "HEAD"]).replace("\n", ""))
+                version = shesha.__version__
                 print "writing files and updating database"
                 df = pandas.read_hdf(
                     shesha_savepath + "/matricesDataBase.h5", "A")

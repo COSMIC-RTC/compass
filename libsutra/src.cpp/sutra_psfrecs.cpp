@@ -196,6 +196,9 @@ int sutra_psfrecs::psf_rec_Vii(){
     carmaSafeCall(
         cudaMemset(this->d_pupfft->getData(), 0,
             sizeof(cuFloatComplex) * this->d_pupfft->getNbElem()));
+    carmaSafeCall(
+        cudaMemset(this->d_otftel->getData(), 0,
+            sizeof(float) * this->d_otftel->getNbElem()));
 
     fill_amplipup(this->d_pupfft->getData(), this->d_term1->getData(), this->d_wherephase->getData(),
                     1.0f, this->Npts,  this->size, this->d_pupfft->getDims(1), 1, this->current_context->get_device(this->device));
@@ -225,6 +228,9 @@ int sutra_psfrecs::psf_rec_Vii(){
     carmaSafeCall(
         cudaMemset(this->d_Dphi->getData(), 0,
             sizeof(cuFloatComplex) * this->d_Dphi->getNbElem()));
+    carmaSafeCall(
+        cudaMemset(this->d_otfVii->getData(), 0,
+            sizeof(float) * this->d_otfVii->getNbElem()));
 
     // Diagonalisation of covmodes
     carma_syevd<float,1>('V', this->d_covmodes, this->h_eigenvals);

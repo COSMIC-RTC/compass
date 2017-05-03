@@ -363,7 +363,7 @@ cdef class Param_dm:
   """ kl_type : kolmo or karman"""
 
   # internal kwrd
-  cdef readonly long    _pitch
+  cdef readonly float    _pitch
   """ inter-actuator space in pixels"""
   cdef readonly long    _ntotact
   """ total number of actuators"""

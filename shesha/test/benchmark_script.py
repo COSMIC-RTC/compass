@@ -330,11 +330,7 @@ def script4bench(param_file, centroider, controller, devices, fwrite=True):
     date = datetime.datetime.now()
     date = [date.year, date.month, date.day]
 
-    if ao.__version__ is not "Develop":
-        version = ao.__version__
-    else:
-        version = str(check_output(
-            ["git", "rev-parse", "HEAD"]).replace("\n", ""))
+    version = ao.__version__
 
     # version=str(check_output(["svnversion",os.getenv("COMPASS_ROOT")]).replace("\n",""))
     hostname = check_output("hostname").replace("\n", "")

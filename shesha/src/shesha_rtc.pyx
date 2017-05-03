@@ -2575,11 +2575,7 @@ cpdef correct_dm(p_dms, Dms g_dms, Param_controller p_control, Param_geom p_geom
                 ok = np.where(tmp.flatten("F") > p_dms[nm].thresh * np.max(tmp))[0]
                 nok = np.where(tmp.flatten("F") <= p_dms[nm].thresh * np.max(tmp))[0]
                 if(simul_name != "" and clean == 0 and rank == 0):
-                    if shesha.__version__ is not "Develop":
-                        version = shesha.__version__
-                    else:
-                        version = str(check_output(
-                            ["git", "rev-parse", "HEAD"]).replace("\n", ""))
+                    version = shesha.__version__
                     print "writing files"
                     df = pandas.read_hdf(shesha_savepath + "/matricesDataBase.h5", "pztok")
                     ind = len(df.index) - 1
@@ -3007,11 +3003,7 @@ cpdef imat_init(int ncontrol, Rtc g_rtc, Param_rtc p_rtc, Dms g_dms, p_dms, Sens
         print "done in %f s"%(time.time() - t0)
         p_rtc.controllers[ncontrol].set_imat(g_rtc.get_imat(ncontrol))
         if(simul_name != "" and clean == 0 and rank == 0):
-            if shesha.__version__ is not "Develop":
-                version = shesha.__version__
-            else:
-                version = str(check_output(
-                    ["git", "rev-parse", "HEAD"]).replace("\n", ""))
+            version = shesha.__version__
 
             df = pandas.read_hdf(shesha_savepath + "/matricesDataBase.h5", "imat")
             ind = len(df.index) - 1
@@ -3103,11 +3095,7 @@ cpdef cmat_init_kl(int ncontrol, Rtc g_rtc, Param_rtc p_rtc, list p_wfs, Param_a
             eigenv = g_rtc.getEigenvals(ncontrol)
             #enregistrement des valeurs propre
             if(simul_name != "" and clean == 0 and rank == 0):
-                if shesha.__version__ is not "Develop":
-                    version = shesha.__version__
-                else:
-                    version = str(check_output(
-                        ["git", "rev-parse", "HEAD"]).replace("\n", ""))
+                version = shesha.__version__
                 U = g_rtc.getU(ncontrol)
                 df = pandas.read_hdf(shesha_savepath + "/matricesDataBase.h5", "eigenv")
                 ind = len(df.index) - 1
@@ -3222,11 +3210,7 @@ cpdef cmat_init(int ncontrol, Rtc g_rtc, Param_rtc p_rtc, list p_wfs, Param_atmo
             print "svd done in %f s"%(time.time() - t0)
             eigenv = g_rtc.getEigenvals(ncontrol)
             if(simul_name != "" and clean == 0 and rank == 0):
-                if shesha.__version__ is not "Develop":
-                    version = shesha.__version__
-                else:
-                    version = str(check_output(
-                        ["git", "rev-parse", "HEAD"]).replace("\n", ""))
+                version = shesha.__version__
                 U = g_rtc.getU(ncontrol)
                 df = pandas.read_hdf(shesha_savepath + "/matricesDataBase.h5", "eigenv")
                 ind = len(df.index) - 1
