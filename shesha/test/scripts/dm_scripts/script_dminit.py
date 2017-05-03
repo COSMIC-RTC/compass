@@ -43,7 +43,7 @@ def initSimuDM(config):
     ao.Param_geom.geom_init(config.p_geom,config.p_tel, config.p_geom.pupdiam, config.p_geom.apod) #apod = apodizer
     # init dm
     print "->dm"
-    dms=ao.dm_init_2(config.p_dms,config.p_geom,config.p_tel.diam,config.p_tel.cobs)
+    dms=ao.dm_init_standalone(config.p_dms,config.p_geom,config.p_tel.diam,config.p_tel.cobs)
 
 
     # Print DM information

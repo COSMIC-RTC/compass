@@ -167,7 +167,28 @@ cdef class Param_tel:
 #################################################
 cdef class Param_geom:
 
-    def geom_init(self, Param_tel tel, long pupdiam, int apod=0):
+    def init_pup(self, pupdiam):
+        """Initialize the system pupil
+
+        :parameters:
+            pupdiam: (long) : linear size of total pupil
+
+            extent: (float) : apodizer
+        """
+        # first poxer of 2 greater than pupdiam
+        self.ssize = long(2 ** np.ceil(np.log2(pupdiam) + 1))
+        # using images centered on 1/2 pixels
+        self.cent = self.ssize / 2 + 0.5
+        # valid pupil geometry
+        pupdiam = long(pupdiam)
+        self._p1 = long(np.ceil(self.cent - pupdiam / 2.))
+        self._p2 = long(np.floor(self.cent + pupdiam / 2.))
+        self.pupdiam = self._p2 - self._p1 + 1
+        self._n = self.pupdiam + 4
+        self._n1 = self._p1 - 2
+        self._n2 = self._p2 + 2
+
+    def geom_init(self, Param_tel tel, long pupdiam, int apod=0, str apod_filename=None):
         """Initialize the system geometry
 
         :parameters:
@@ -176,22 +197,10 @@ cdef class Param_geom:
             pupdiam: (long) : linear size of total pupil
 
             apod: (int) : apodizer
-        """
-        # first poxer of 2 greater than pupdiam
-        self.ssize = long(2 ** np.ceil(np.log2(pupdiam) + 1))
-        # using images centered on 1/2 pixels
-        self.cent = self.ssize / 2 + 0.5
-        # valid pupil geometry
-        self._p1 = long(np.ceil(self.cent - pupdiam / 2.))
-        self._p2 = long(np.floor(self.cent + pupdiam / 2.))
-        self.pupdiam = self._p2 - self._p1 + 1
-        self._n = self.pupdiam + 4
-        self._n1 = self._p1 - 2
-        self._n2 = self._p2 + 2
 
-        # TODO check filename
-        cdef bytes filename = < bytes > shesha_savepath + \
-                              < bytes > "apodizer/SP_HARMONI_I4_C6_N1024.npy"
+            apod_filename: (str) : apodizer filename
+        """
+        self.init_pup(pupdiam)
 
         cdef float cent = self.pupdiam / 2. + 0.5
 
@@ -208,11 +217,44 @@ cdef class Param_geom:
         self._phase_ab_M1_m = mkP.pad_array(self._phase_ab_M1, self._n).astype(np.float32)
 
         if(apod == 1):
-            self._apodizer = make_apodizer(self.pupdiam, self.pupdiam, filename, 180. / 12.).astype(np.float32)
+            if apod_filename == None:
+                apod_filename = shesha_savepath + "apodizer/SP_HARMONI_I4_C6_N1024.npy"
+            self._apodizer = make_apodizer(self.pupdiam, self.pupdiam, apod_filename.encode(), 180. / 12.).astype(np.float32)
         else:
             self._apodizer = np.ones((self._spupil.shape[0], self._spupil.shape[1])).astype(np.float32)
 
 
+    def geom_init_generic(self, long pupdiam, t_spiders=0.01, spiders_type="six",
+                          xc=0, yc=0, real=0, cobs=0):
+        """Initialize the system geometry
+
+        :parameters:
+            pupdiam: (long) : linear size of total pupil
+
+            t_spiders: (float) : secondary supports ratio.
+
+            spiders_type: (str) :  secondary supports type: "four" or "six".
+
+            xc: (int)
+
+            yc: (int)
+
+            real: (int)
+
+            cobs: (float) : central obstruction ratio.
+        """
+        self.init_pup(pupdiam)
+
+        cdef float cent = self.pupdiam / 2. + 0.5
+
+        # useful pupil
+        self._spupil = mkP.make_pupil_generic(pupdiam,pupdiam,t_spiders,spiders_type, xc, yc,real, cobs)
+
+        # large pupil (used for image formation)
+        self._ipupil = mkP.pad_array(self._spupil, self.ssize).astype(np.float32)
+
+        # useful pupil + 4 pixels
+        self._mpupil = mkP.pad_array(self._spupil, self._n).astype(np.float32)
 
     def set_ssize(self, long s):
         """Set linear size of full image
