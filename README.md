@@ -320,7 +320,7 @@ once there, you need to modify system variables in our .bashrc :
 
 ```bash
 # CUDA default definitions
-export CUDA_ROOT=$CUDA_ROOT #/usr/local/cuda
+export CUDA_ROOT=/usr/local/cuda
 export CUDA_INC_PATH=$CUDA_ROOT/include
 export CUDA_LIB_PATH=$CUDA_ROOT/lib
 export CUDA_LIB_PATH_64=$CUDA_ROOT/lib64
@@ -373,6 +373,7 @@ export CONDA_ROOT=/your/path/anaconda2
 export PATH=$CONDA_ROOT/bin:$PATH
 
 # CUDA default definitions
+export CUDA_ROOT=/usr/local/cuda
 export CUDA_INC_PATH=$CUDA_ROOT/include
 export CUDA_LIB_PATH=$CUDA_ROOT/lib
 export CUDA_LIB_PATH_64=$CUDA_ROOT/lib64
