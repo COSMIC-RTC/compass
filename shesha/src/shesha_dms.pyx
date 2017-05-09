@@ -656,7 +656,7 @@ cpdef make_pzt_dm(Param_dm p_dm,Param_geom geom,cobs):
     cdef int i
     #best parameters, as determined by a multi-dimensional fit
     #(see coupling3.i)
-    cdef float p1,p2, coupling
+    cdef float coupling
     coupling=p_dm.coupling
 
 
