@@ -16,7 +16,7 @@ try:
 except:
     import warnings
     shesha_db = shesha_dir + "/data/"
-    warnings.warn("'SHESHA_ROOT' not defined, using default one: "+shesha_db)
+    warnings.warn("'SHESHA_DB_ROOT' not defined, using default one: "+shesha_db)
 finally:
     shesha_savepath = < bytes >shesha_db
 
