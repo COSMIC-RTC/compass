@@ -10,6 +10,7 @@ import shesha as ao
 import time
 import matplotlib.pyplot as plt
 import hdf5_utils as h5u
+import numpy as np
 plt.ion()
 
 print "TEST SHESHA\n closed loop: call loop(int niter)"
@@ -49,12 +50,6 @@ else:
 
 clean = 1
 matricesToLoad = {}
-if(simul_name != ""):
-    clean = 0
-    param_dict = h5u.params_dictionary(config)
-    matricesToLoad = h5u.checkMatricesDataBase(
-        os.environ["SHESHA_ROOT"] + "/data/", config, param_dict)
-
 
 config.p_geom.set_pupdiam(500)
 
@@ -69,16 +64,20 @@ c = ch.naga_context(devices=config.p_loop.devices)
 #    wfs
 print "->wfs"
 wfs, tel = ao.wfs_init(config.p_wfss, config.p_atmos, config.p_tel,
-                       config.p_geom, config.p_target, config.p_loop, config.p_dms)
+                       config.p_geom, None, config.p_loop, config.p_dms)
 
 #   atmos
 print "->atmos"
-atm = ao.atmos_init(c, config.p_atmos, config.p_tel, config.p_geom, config.p_loop, config.p_wfss, wfs, config.p_target,
+atm = ao.atmos_init(c, config.p_atmos, config.p_tel, config.p_geom,
+                    config.p_loop, config.p_wfss, wfs, None,
                     clean=clean, load=matricesToLoad)
 
 #   dm
 print "->dm"
 dms = ao.dm_init(config.p_dms, config.p_wfss, wfs, config.p_geom, config.p_tel)
+ao.correct_dm(config.p_dms, dms, config.p_controller0, config.p_geom,
+              np.ones((config.p_wfs0._nvalid, config.p_dm0._ntotact), dtype = np.float32),
+              '', {}, 1)
 
 
 if not clean:

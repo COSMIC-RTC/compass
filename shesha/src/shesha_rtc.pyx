@@ -2308,7 +2308,7 @@ def rtc_init(Telescope g_tel, Sensors g_wfs, p_wfs, Dms g_dms, p_dms, Param_geom
                             < float *> alt.data, controller.ndm.size)
 
                     if(p_wfs is not None and do_refslp):
-                      g_rtc.do_centroids_ref(i)
+                        g_rtc.do_centroids_ref(i)
 
                     if(controller.type_control == "geo"):
                         indx_pup = np.where(p_geom._spupil.flatten('F'))[0].astype(np.int32)
@@ -2602,10 +2602,12 @@ cpdef correct_dm(p_dms, Dms g_dms, Param_controller p_control, Param_geom p_geom
 
             dims = long(p_dms[nm]._n2 - p_dms[nm]._n1 + 1)
             dims = max(dims, p_geom._mpupil.shape[1])
+             
             g_dms.add_dm(< bytes > "pzt", p_dms[nm].alt, dims, ninflu, influsize,
                             ninflupos, n_npts, p_dms[nm].push4imat)
             g_dms.load_pzt(p_dms[nm].alt, p_dms[nm]._influ, p_dms[nm]._influpos.astype(np.int32),
-                p_dms[nm]._ninflu, p_dms[nm]._influstart, p_dms[nm]._i1, p_dms[nm]._j1, p_dms[nm]._influkernel)
+                p_dms[nm]._ninflu, p_dms[nm]._influstart, p_dms[nm]._i1, p_dms[nm]._j1,
+                p_dms[nm]._influkernel)
 
         elif(p_dms[nm].type_dm == "tt"):
             dim = long(p_dms[nm]._n2 - p_dms[nm]._n1 + 1)

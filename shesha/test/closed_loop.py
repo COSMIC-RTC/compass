@@ -49,12 +49,13 @@ else:
 
 clean = 1
 matricesToLoad = {}
+'''
 if(simul_name != ""):
     clean = 0
     param_dict = h5u.params_dictionary(config)
     matricesToLoad = h5u.checkMatricesDataBase(
         os.environ["SHESHA_ROOT"] + "/data/", config, param_dict)
-
+'''
 # initialisation:
 
 #   context
@@ -70,7 +71,7 @@ wfs, tel = ao.wfs_init(config.p_wfss, config.p_atmos, config.p_tel,
 
 #   atmos
 print "->atmos"
-atm = ao.atmos_init(c, config.p_atmos, config.p_tel, config.p_geom, config.p_loop, config.p_wfss, config.p_target,
+atm = ao.atmos_init(c, config.p_atmos, config.p_tel, config.p_geom, config.p_loop, config.p_wfss, wfs, config.p_target,
                     clean=clean, load=matricesToLoad)
 
 #   dm
@@ -79,8 +80,7 @@ dms = ao.dm_init(config.p_dms, config.p_wfss, wfs, config.p_geom, config.p_tel)
 
 #   target
 print "->target"
-tar = ao.target_init(c, tel, config.p_target, config.p_atmos, config.p_geom, config.p_tel, config.p_wfss, wfs,
-                     config.p_dms)
+tar = ao.target_init(c, tel, config.p_target, config.p_atmos, config.p_geom, config.p_tel, config.p_dms, config.p_wfss)
 
 print "->rtc"
 #   rtc

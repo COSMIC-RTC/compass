@@ -768,7 +768,7 @@ cpdef make_pzt_dm(Param_dm p_dm,Param_geom geom,cobs):
     p_dm._i1 = i1t
     p_dm._j1 = j1t
 
-    comp_dmgeom(p_dm,geom)
+    comp_dmgeom(p_dm, geom)
 
     cdef long dim=max(geom._mpupil.shape[0],p_dm._n2-p_dm._n1+1)
     cdef long off=(dim-p_dm._influsize)/2
@@ -1154,6 +1154,10 @@ cdef zernumero(int zn, int * rd, int * an):
                         return
 
 
+
+    
+
+
 cpdef comp_dmgeom(Param_dm dm, Param_geom geom):
     """Compute the geometry of a DM : positions of actuators and influence functions
 
@@ -1184,11 +1188,11 @@ cpdef comp_dmgeom(Param_dm dm, Param_geom geom):
 
     cdef np.ndarray[ndim = 2, dtype = np.int32_t] indgen = np.tile(np.arange(smallsize, dtype=np.int32), (smallsize, 1))
 
-    cdef np.ndarray[ndim = 3, dtype = np.int32_t] tmpx = np.tile(indgen, (nact, 1, 1)).T
-    cdef np.ndarray[ndim = 3, dtype = np.int32_t] tmpy = np.tile(indgen.T, (nact, 1, 1)).T
+    cdef np.ndarray[ndim = 3, dtype = np.int32_t] tmpx = np.tile(indgen, (nact, 1, 1))
+    cdef np.ndarray[ndim = 3, dtype = np.int32_t] tmpy = np.tile(indgen.T, (nact, 1, 1))
 
-    tmpx += offs + np.tile(dm._i1, (smallsize, smallsize, 1))
-    tmpy += offs + np.tile(dm._j1, (smallsize, smallsize, 1))
+    tmpx += offs + dm._i1[:, None, None]
+    tmpy += offs + dm._j1[:, None, None]
 
     cdef np.ndarray[ndim = 3, dtype = np.int32_t] tmp = tmpx + dim * tmpy
 
@@ -1197,8 +1201,8 @@ cpdef comp_dmgeom(Param_dm dm, Param_geom geom):
     tmp[tmpy < 0] = dim*dim+10#-10
     tmp[tmpx > dims - 1] = dim*dim+10#-10
     tmp[tmpy > dims - 1] = dim*dim+10#-10
-    cdef np.ndarray[ndim = 1, dtype = np.int32_t] itmps = np.argsort(tmp.flatten("F")).astype(np.int32)
-    cdef np.ndarray[ndim = 1, dtype = np.int32_t] tmps = np.sort(tmp.flatten("F")).astype(np.int32)
+    cdef np.ndarray[ndim = 1, dtype = np.int32_t] itmps = np.argsort(tmp.flatten()).astype(np.int32)
+    cdef np.ndarray[ndim = 1, dtype = np.int32_t] tmps = tmp.flatten()[itmps].astype(np.int32)
     itmps = itmps[np.where(itmps > -1)]
 
 
