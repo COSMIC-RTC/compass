@@ -316,9 +316,14 @@ class widgetAOWindow(TemplateBaseClass):
             sys.path.insert(0, pathfile)
 
             if self.config is not None:
+                name = self.config.__name__
                 print "Removing previous config"
                 self.config = None
                 config = None
+                try:
+                    del sys.modules[name]
+                except:
+                    pass
 
             print "loading ", filename.split(".py")[0]
             exec("import %s as config" % filename.split(".py")[0])

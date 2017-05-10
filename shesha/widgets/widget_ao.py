@@ -20,6 +20,7 @@ except ImportError as error:
     warnings.warn("GPU not accessible", RuntimeWarning)
     print "due to: ", error
 
+import sys
 from sys import path, stdout, argv
 from os import environ
 import numpy as np
@@ -665,9 +666,14 @@ class widgetAOWindow(TemplateBaseClass):
         path.insert(0, self.defaultParPath)
 
         if self.config is not None:
+            name = self.config.__name__
             print "Removing previous config"
             self.config = None
             config = None
+            try:
+                del sys.modules[name]
+            except:
+                pass
 
         print "loading ", configfile.split(".py")[0]
         exec("import %s as config" % configfile.split(".py")[0])
