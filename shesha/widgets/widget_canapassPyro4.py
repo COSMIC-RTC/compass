@@ -432,14 +432,13 @@ class widgetAOWindow(TemplateBaseClass):
 
         self.atm = ao.atmos_init(self.c, self.config.p_atmos, self.config.p_tel,
                                  self.config.p_geom, self.config.p_loop,
-                                 self.config.p_wfss, self.config.p_target, clean=1, load={})
+                                 self.config.p_wfss, self.wfs, self.config.p_target, clean=1, load={})
 
         self.dms = ao.dm_init(
             self.config.p_dms, self.config.p_wfss, self.wfs, self.config.p_geom, self.config.p_tel)
 
         self.tar = ao.target_init(self.c, self.tel, self.config.p_target, self.config.p_atmos,
-                                  self.config.p_geom, self.config.p_tel, self.config.p_wfss,
-                                  self.wfs, self.config.p_dms, brama=self.brama_tar_flag)
+                                  self.config.p_geom, self.config.p_tel, self.config.p_dms, brama=self.brama_tar_flag)
 
         self.rtc = ao.rtc_init(self.tel, self.wfs, self.config.p_wfss, self.dms, self.config.p_dms,
                                self.config.p_geom, self.config.p_rtc, self.config.p_atmos,

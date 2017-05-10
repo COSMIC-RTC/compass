@@ -191,11 +191,11 @@ def initSimu(config,c):
     print "->wfs"
     wfs, tel = ao.wfs_init(config.p_wfss, config.p_atmos, config.p_tel,config.p_geom, config.p_target, config.p_loop, config.p_dms)
     print "->atmos"
-    atm=ao.atmos_init(c,config.p_atmos,config.p_tel,config.p_geom,config.p_loop,config.p_wfss,config.p_target,rank=0)
+    atm=ao.atmos_init(c,config.p_atmos,config.p_tel,config.p_geom,config.p_loop,config.p_wfss,wfs,config.p_target,rank=0)
     print "->dm"
     dms = ao.dm_init(config.p_dms, config.p_wfss, wfs, config.p_geom, config.p_tel)
     print "->target"
-    tar=ao.target_init(c,tel,config.p_target,config.p_atmos,config.p_geom,config.p_tel,config.p_wfss,wfs,config.p_dms)
+    tar=ao.target_init(c,tel,config.p_target,config.p_atmos,config.p_geom,config.p_tel,config.p_dms)
     print "->rtc"
     rtc = ao.rtc_init(tel, wfs, config.p_wfss, dms, config.p_dms,config.p_geom, config.p_rtc, config.p_atmos, atm, config.p_tel, config.p_loop, do_refslp=False, clean=clean, simul_name=simul_name, load=matricesToLoad, doimat=0)
 

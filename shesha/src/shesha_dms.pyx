@@ -662,9 +662,7 @@ cpdef make_pzt_dm(Param_dm p_dm,Param_geom geom,cobs):
 
     # prepare to compute IF on partial (local) support of size <smallsize>
     cdef float pitch=p_dm._pitch
-    cdef long smallsize
-
-
+    cdef long smallsize=0
 
     if(p_dm.influType == "radialSchwartz"):
       smallsize = makeRadialSchwartz(pitch, coupling)

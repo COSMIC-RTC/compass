@@ -37,7 +37,7 @@ else:
         p_dm0=ao.Param_dm()
         p_dms=[p_dm0]
         p_dm0.set_type("pzt")
-        p_dm0.set_pattern("hexa")
+        # p_dm0.set_pattern("hexa")
         p_dm0.set_nact(80)
         p_dm0.set_alt(0.)
         p_dm0.set_thresh(0.3)
@@ -50,7 +50,7 @@ c = ch.naga_context(0)
 # c.set_activeDevice(0) #useful only if you use ch.naga_context()
 # c = ch.naga_context(devices=config.p_loop.devices)
 
-config.p_dm0.set_pzt_extent(5)
+config.p_dm0.set_pzt_extent(0)
 #   dm
 print "->dm"
 if config.p_tel:

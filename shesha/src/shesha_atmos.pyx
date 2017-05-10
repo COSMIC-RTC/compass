@@ -18,7 +18,7 @@ from subprocess import check_output
 import shesha
 
 def atmos_init(naga_context c, Param_atmos atm, Param_tel tel, Param_geom geom,
-               Param_loop loop, wfss=None, Param_target target=None,
+               Param_loop loop, wfss=None, Sensors sensors=None, Param_target target=None,
                int rank=0, int clean=1, dict load={}):
     """atmos_init(naga_context c, Param_atmos atm, Param_tel tel,  Param_geom geom,
                   Param_loop loop, wfss=None, Param_target target=None,
@@ -28,6 +28,8 @@ def atmos_init(naga_context c, Param_atmos atm, Param_tel tel, Param_geom geom,
 
     :parameters:
         c: (naga_context) : context
+
+        atm: (Param_atmos) : atmos settings
 
         tel: (Param_tel) : telescope settings
 
@@ -115,6 +117,22 @@ def atmos_init(naga_context c, Param_atmos atm, Param_tel tel, Param_geom geom,
         seeds = (np.arange(atm.nscreens, dtype=np.int64) + 1) * 1234
     else:
         seeds = atm.seeds
+
+    cdef bytes type_target = bytes("atmos")
+    for i in range(len(wfss)):
+        if(wfss[i].gsalt > 0):
+            gsalt = 1 / wfss[i].gsalt
+        else:
+            gsalt = 0
+
+        if(wfss[i].atmos_seen):
+            for j in range(atm.nscreens):
+                xoff = (gsalt * atm.alt[j] * (tel.diam / 2.) + wfss[i].xpos * 4.848e-6 * atm.alt[j]) / atm.pupixsize
+                yoff = (gsalt * atm.alt[j] * (tel.diam / 2.) + wfss[i].ypos * 4.848e-6 * atm.alt[j]) / atm.pupixsize
+                xoff = xoff + (atm.dim_screens[j] - geom._n) / 2
+                yoff = yoff + (atm.dim_screens[j] - geom._n) / 2
+                sensors.sensors.d_wfs[i].d_gs.add_layer(type_target, atm.alt[j], xoff, yoff)
+
 
     return atmos_create(c, atm.nscreens, atm.r0, L0_pix, atm.pupixsize,
                         atm.dim_screens, atm.frac, atm.alt, atm.windspeed,

@@ -784,7 +784,7 @@ class widgetAOWindow(TemplateBaseClass):
 
         self.atm = ao.atmos_init(self.c, self.config.p_atmos, self.config.p_tel,
                                  self.config.p_geom, self.config.p_loop,
-                                 self.config.p_wfss, self.config.p_target,
+                                 self.config.p_wfss, self.wfs, self.config.p_target,
                                  clean=clean, load=matricesToLoad)
         self.ui.wao_atmosDimScreen.setText(
             str(self.config.p_atmos.dim_screens[0]))
@@ -793,8 +793,7 @@ class widgetAOWindow(TemplateBaseClass):
             self.config.p_dms, self.config.p_wfss, self.wfs, self.config.p_geom, self.config.p_tel)
 
         self.tar = ao.target_init(self.c, self.tel, self.config.p_target, self.config.p_atmos,
-                                  self.config.p_geom, self.config.p_tel, self.config.p_wfss,
-                                  self.wfs, self.config.p_dms)
+                                  self.config.p_geom, self.config.p_tel, self.config.p_dms)
 
         self.rtc = ao.rtc_init(self.tel, self.wfs, self.config.p_wfss, self.dms, self.config.p_dms,
                                self.config.p_geom, self.config.p_rtc, self.config.p_atmos,

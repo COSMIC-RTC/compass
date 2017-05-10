@@ -85,7 +85,7 @@ dms = ao.dm_init(config.p_dms, config.p_wfss, wfs, config.p_geom, config.p_tel)
 #   target
 print "->target"
 tar = ao.target_init(c, tel, config.p_target, config.p_atmos,
-                     config.p_geom, config.p_tel, config.p_wfss, wfs, config.p_dms)
+                     config.p_geom, config.p_tel, config.p_dms)
 
 #   rtc
 print "->rtc"
