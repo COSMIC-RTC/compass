@@ -2779,6 +2779,22 @@ cdef class Sensors:
         cube.device2host( < int * > data.data)
         return data
 
+    cpdef set_noise(self, int nwfs, np.float32_t noise, np.int64_t seed=-1):
+        """Set the noise of a given wfs
+
+        :param nwfs: (int) : number of the wfs wanted
+        
+        :param noise: (np.float32_t) : desired noise : < 0 = no noise
+                                                         0 = photon only
+                                                       > 0 = photon + ron in ?
+        :param seed: (long) : seed of the new noise
+        
+        TODO: fill the noise unit
+        """
+        if seed<0:
+            seed = 1234 * nwfs
+        self.sensors.set_noise(nwfs, noise, seed)
+
 """
     cdef getDims(self):
         cdef const long *dims_ampli

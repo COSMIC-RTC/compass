@@ -258,6 +258,7 @@ cdef extern from "sutra_wfs.h":
                            long * size, float *G, float *thetaML, float *dx, float *dy)
         int allocate_buffers()
         int define_mpi_rank(int rank, int size)
+        int set_noise(int nwfs, float noise, long seed)
 
 
 #################################################

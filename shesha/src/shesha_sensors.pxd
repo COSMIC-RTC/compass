@@ -83,6 +83,7 @@ cdef class Sensors:
         cpdef Bcast_dscreen(self)
         cpdef Bcast_dscreen_cuda_aware(self)
     cdef _get_rank(self, int n)
+    cpdef set_noise(self, int nwfs, np.float32_t noise, np.int64_t seed=?)
 
     # for profiling purpose
     '''
