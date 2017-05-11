@@ -828,11 +828,10 @@ class widgetAOWindow(TemplateBaseClass):
                             self.numberSelected, "se")
                         if(self.ui.wao_PSFlogscale.isChecked()):
                             if np.any(data <= 0):
-                                print(
-                                    "\nzero founds, log display disabled\n", RuntimeWarning)
-                                self.ui.wao_PSFlogscale.setCheckState(False)
-                            else:
-                                data = np.log10(data)
+                                data[data==0]=1e-12
+                                #print("\nzero founds, log display disabled\n", RuntimeWarning)
+                                #self.ui.wao_PSFlogscale.setChecked(False)
+                            data = np.log(data)
 
                         if (not self.SRCrossX):
                             Delta = 5
@@ -866,7 +865,9 @@ class widgetAOWindow(TemplateBaseClass):
                         data = self.tar.get_image(
                             self.numberSelected, "le")
                         if(self.ui.wao_PSFlogscale.isChecked()):
-                            data = np.log10(data)
+                            if np.any(data <= 0):
+                                data[data<=0]=1e-12
+                            data = np.log(data)
                         if (not self.SRCrossX):
                             Delta = 5
                             self.SRCrossX = pg.PlotCurveItem(np.array([data.shape[0] / 2 + 0.5 - Delta,
