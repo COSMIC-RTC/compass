@@ -1328,7 +1328,7 @@ cdef init_wfs_size(Param_wfs wfs, int n, Param_atmos atmos,
 
         if(wfs.type_wfs == "pyrhr"):
             # while (pdiam % wfs.npix != 0) pdiam+=1;
-            k = 4
+            k = 3
             pdiam[0] = long(tel.diam / r0 * k)
             while (pdiam[0] % wfs.nxsub != 0):
                 pdiam[0] += 1  # we choose to have a multiple of wfs.nxsub

@@ -351,13 +351,17 @@ if(imatFromFile):
 else:
     KL2V = com.getKL2V()
     KL2VNorm = cal.normalizeKL2V(KL2V)
+    print "Computing Imat Diffraction Limited"
     imat = cal.computeImatKL(com, KL2VNorm, aoAd.dm0.push4iMat, aoAd.dm1.push4iMat,  withTurbu=False, noise=False)
     gains = np.linspace(1.,1.,aoAd.Nactu-2-nfilt); gains[-2:] = 1.0;
     cmat0, cmatKL0 = cal.computeCmatKL(imat, KL2VNorm, nfilt, gains);
     com.setCommandMatrix(cmat0)
     com.closeLoop()
+    print "Closing Loop with Imat Diffraction Limited"
+
     # Closing loop until we reach the fitting error for the given ao config + turbulence conditions (seeing ect...) but without noise and bandwidth (screen is frozen)
     SR, lambdaTargetList, sr_se, numiter, _, _ = loop(200,wfs,tel,atm,dms,tar,rtc, moveAtmos=True, noise=False)
+    print "SR After 200 iterations of closed loop:"
 
     # Computing 2nd imat on with this best conditions (no noise + limited by fitting)
     imatTurbu = cal.computeImatKL(com, KL2VNorm, aoAd.dm0.push4iMat, aoAd.dm1.push4iMat,  withTurbu=True, noise=False)

@@ -172,6 +172,11 @@ class widgetAOWindow(TemplateBaseClass):
         print "PYR method set to: ", self.rtc.get_pyr_method(0)
         self.rtc.docentroids(0) # To be ready for the next getSlopes
 
+    def setNoise(self, noise, numwfs=0):
+        self.wfs.set_noise(numwfs, noise)
+        print "Noise set to: ", noise
+
+
     def getSlopesGeom(self, nb):
         self.rtc.docentroids_geom(0)
         slopesGeom = self.rtc.getcentroids(0)
