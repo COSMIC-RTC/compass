@@ -5,7 +5,7 @@ import sys,os
 sys.path.insert(0, os.environ["SHESHA_ROOT"]+"/widgets/")
 sys.path.insert(0, os.environ["SHESHA_ROOT"]+"/lib/")
 
-from adoptLib import computeKLModesImat, computeCmatKL
+#from adoptLib import computeKLModesImat, computeCmatKL
 import tools
 import numpy as np
 import naga as ch
@@ -134,7 +134,7 @@ def initSimu(config,c):
     wfs, tel = ao.wfs_init(config.p_wfss, config.p_atmos, config.p_tel,config.p_geom, config.p_target, config.p_loop, config.p_dms)
     #   atmos
     print "->atmos"
-    atm=ao.atmos_init(c,config.p_atmos,config.p_tel,config.p_geom,config.p_loop,config.p_wfss,config.p_target,rank=0, clean=clean, load=matricesToLoad)
+    atm=ao.atmos_init(c,config.p_atmos,config.p_tel,config.p_geom,config.p_loop,config.p_wfss,wfs,config.p_target,rank=0, clean=clean, load=matricesToLoad)
 
     #   dm
     print "->dm"
@@ -142,7 +142,7 @@ def initSimu(config,c):
 
     #   target
     print "->target"
-    tar=ao.target_init(c,tel,config.p_target,config.p_atmos,config.p_geom,config.p_tel,config.p_wfss,wfs,config.p_dms)
+    tar=ao.target_init(c,tel,config.p_target,config.p_atmos,config.p_geom,config.p_tel,config.p_dms)
 
     print "->rtc"
     #   rtc
@@ -287,7 +287,9 @@ for freq in freqs:
                     nfilt = nKL_Filt
                     #cmat = ao.compute_cmatWithKL(rtc, config.p_controllers[0], dms, config.p_dms, config.p_geom, config.p_atmos, config.p_tel, nfilt)
                     print "Reading cMat"
-                    cmat = pf.getdata(os.environ["SHESHA_ROOT"]+"/test/scripts/cmatKLGood.fits").byteswap().newbyteorder()
+                    print 1/0.
+
+                    #cmat = pf.getdata(os.environ["SHESHA_ROOT"]+"/test/scripts/cmatKLGood.fits").byteswap().newbyteorder()
                     print "Setting cMat"
                     #rtc.set_cmat(0, cmat.copy().astype(np.float32))
                     rtc.set_cmat(0, cmat.copy())
@@ -354,5 +356,14 @@ print "Simulation Done..."
 """
 Sauver PSF dans le bon nom + directory
  ranger... + params dans le header
+
+ SR = np.zeros((3, len(set(resAll.gsmag))))
+ i=0
+ for mag in list(set(resAll.gsmag)):
+     SR[0,i] = resAll[resAll.gsmag == mag]["SR_1.20"].max()
+     SR[1,i] = resAll[resAll.gsmag == mag]["SR_1.65"].max()
+     SR[2,i] = resAll[resAll.gsmag == mag]["SR_2.20"].max()
+     i+=1
+
 
 """

@@ -3,7 +3,6 @@
 
 #include <vector>
 #include <map>
-#include <mutex>
 #include <sutra_telemetry.h>
 #include <sutra_target.h>
 #include <sutra_phase.h>
@@ -13,7 +12,6 @@
 
 using std::string;
 using std::map;
-using std::mutex;
 
 class sutra_sensors;
 class sutra_wfs {
@@ -94,6 +92,7 @@ class sutra_wfs {
 
     virtual int define_mpi_rank(int rank, int size)=0;
     virtual int allocate_buffers(sutra_sensors *sensors)=0;
+    int set_noise(float noise, long seed);
 
   protected:
     virtual int comp_generic()=0;
@@ -136,6 +135,7 @@ class sutra_sensors {
 
     int allocate_buffers();
     int define_mpi_rank(int rank, int size);
+    int set_noise(int nwfs, float noise, long seed);
 
     int sensors_initgs(float *xpos, float *ypos, float *lambda, float *mag,
                        float zerop, long *size, float *noise, long *seed, float *G, float *thetaML, float *dx, float *dy);

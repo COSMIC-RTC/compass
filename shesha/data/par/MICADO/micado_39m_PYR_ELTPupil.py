@@ -21,11 +21,10 @@ p_tel.set_cobs(0.28)
 #E_ELT PUPIL
 
 
-"""
 p_tel.set_type_ap("EELT-Nominal")
 #p_tel.set_spiders_type("six")
 p_tel.set_pupangle(0)
-"""
+p_tel.set_t_spiders(0.)
 """
 p_tel.set_nbrmissing(7)
 p_tel.set_referr(0.01)
@@ -75,7 +74,8 @@ p_wfss = [p_wfs0]
 
 
 p_wfs0.set_type("pyrhr")
-p_wfs0.set_nxsub(78)
+
+p_wfs0.set_nxsub(92) # 92 sub aps for hexagonal grid of actuators eq. 78 subaps square grid. (pitch = 0.5m)
 p_wfs0.set_fracsub(0.8)
 p_wfs0.set_xpos(0.)
 p_wfs0.set_ypos(0.)
@@ -103,13 +103,27 @@ p_dm0.set_type("pzt")
 nact = p_wfs0.nxsub + 1
 #nact = 9
 
-p_dm0.set_nact(nact)
+#p_dm0.set_nact(nact)
+p_dm0.set_nact(73) #73 actuators for a projected M4 pitch of 53cm
 p_dm0.set_alt(0.)
-p_dm0.set_thresh(0.3)  # fraction units
+p_dm0.set_thresh(0.1)  # fraction units
 # !!!!!!!!!!!!!!!!!!!!!!!!! attention pas autre chose que 0.2 !!!!!!!!!
 p_dm0.set_coupling(0.2)
 p_dm0.set_unitpervolt(1)
 p_dm0.set_push4imat(0.01)
+p_dm0.set_pattern("hexa")
+#p_dm0.set_influType("gaussian")
+"""
+p_dm0.set_file_influ_hdf5("/home/fvidal/compass/shesha/data/M4data/elt_influ_spider.h5")
+p_dm0.set_center_name("center")
+p_dm0.set_cube_name("m_influ")
+p_dm0.set_x_name("xpos")
+p_dm0.set_y_name("ypos")
+p_dm0.set_influ_res("res")
+p_dm0.set_diam_dm("diam")
+p_dm0.set_diam_dm_proj("diam_projet")
+"""
+
 #p_dm0.set_gain(0.2)
 
 p_dm1.set_type("tt")

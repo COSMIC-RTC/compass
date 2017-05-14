@@ -1,16 +1,17 @@
 import numpy as np
-import matplotlib.pyplot as pl
+# import matplotlib.pyplot as pl
 # import matplotlib.animation as animation
 # import time
 
 # import pyfits as pf
 
+
 def create_stencil(n):
-    Zx = np.array(np.tile(np.arange(n), (n, 1)), dtype = np.float64) + 1
+    Zx = np.array(np.tile(np.arange(n), (n, 1)), dtype=np.float64) + 1
     Zy = Zx.T
 
-    Xx = np.array(np.zeros(n) + n + 1, dtype = np.float64)
-    Xy = np.array(np.arange(n) + 1, dtype = np.float64)
+    Xx = np.array(np.zeros(n) + n + 1, dtype=np.float64)
+    Xy = np.array(np.arange(n) + 1, dtype=np.float64)
 
     ns = long(np.log2(n + 1) + 1)
     stencil = np.zeros((n, n))
@@ -21,7 +22,6 @@ def create_stencil(n):
         stencil.itemset(2 ** (i - 1) - 1, 1)
         # stencil[0,2**(i-1)-1]=1
 
-
     # i=ns
     stencil.itemset(2 ** (ns - 1) - 1, 1)
     for i in range(0, n, 2 ** (ns - 1)):
@@ -31,8 +31,7 @@ def create_stencil(n):
     for i in range(0, n, 2 ** (ns)):
         stencil.itemset(2 ** (ns - 1) + i * n, 1)
 
-
-    stencil = np.roll(stencil, n / 2, axis = 0)
+    stencil = np.roll(stencil, n / 2, axis=0)
     stencil = np.fliplr(stencil)
 
     istencil = np.where(stencil.flatten() != 0)[0]
@@ -79,17 +78,17 @@ def Cxz(n, Zx, Zy, Xx, Xy, istencil, L0):
     Zx_r = np.resize(Zx_s, (size, size2))
     Zy_r = np.resize(Zy_s, (size, size2))
 
-    tmp = phase_struct((Zx[0, size - 1] - Xx) ** 2 + (Zy[0, size - 1] - Xy) ** 2 , L0)
-    tmp2 = phase_struct((Zx[0, size - 1] - Zx_s) ** 2 + (Zy[0, size - 1] - Zy_s) ** 2 , L0)
+    tmp = phase_struct((Zx[0, size - 1] - Xx) ** 2 + (Zy[0, size - 1] - Xy) ** 2, L0)
+    tmp2 = phase_struct((Zx[0, size - 1] - Zx_s) ** 2 + (Zy[0, size - 1] - Zy_s) ** 2, L0)
 
-    xz = -phase_struct((Xx_r.T - Zx_r) ** 2 + (Xy_r.T - Zy_r) ** 2 , L0)
-
+    xz = -phase_struct((Xx_r.T - Zx_r) ** 2 + (Xy_r.T - Zy_r) ** 2, L0)
 
     xz += np.resize(tmp, (size2, size)).T + np.resize(tmp2, (size, size2))
 
     xz *= 0.5
 
     return xz
+
 
 def Cxx(n, Zxn, Zyn, Xx, Xy, L0):
     """Cxx computes the covariance matrix of the new phase vector x (new
@@ -99,9 +98,9 @@ def Cxx(n, Zxn, Zyn, Xx, Xy, L0):
     Xx_r = np.resize(Xx, (size, size))
     Xy_r = np.resize(Xy, (size, size))
 
-    tmp = np.resize(phase_struct((Zxn - Xx) ** 2 + (Zyn - Xy) ** 2 , L0), (size, size))
+    tmp = np.resize(phase_struct((Zxn - Xx) ** 2 + (Zyn - Xy) ** 2, L0), (size, size))
 
-    xx = -phase_struct((Xx_r - Xx_r.T) ** 2 + (Xy_r - Xy_r.T) ** 2 , L0)  # + \
+    xx = -phase_struct((Xx_r - Xx_r.T) ** 2 + (Xy_r - Xy_r.T) ** 2, L0)  # + \
     #    tmp+tmp.T
 
     xx += tmp + tmp.T
@@ -124,7 +123,7 @@ def Czz(n, Zx, Zy, ist, L0):
     Zy_s = Zy.flatten()[ist]
     Zy_r = np.resize(Zy_s, (size, size))
 
-    tmp = np.resize(phase_struct ((Zx[0, n - 1] - Zx_s) ** 2 + (Zy[0, n - 1] - Zy_s) ** 2, L0), (size, size))
+    tmp = np.resize(phase_struct((Zx[0, n - 1] - Zx_s) ** 2 + (Zy[0, n - 1] - Zy_s) ** 2, L0), (size, size))
 
     zz = -phase_struct((Zx_r - Zx_r.T) ** 2 + (Zy_r - Zy_r.T) ** 2, L0) + \
         tmp + tmp.T
@@ -134,7 +133,7 @@ def Czz(n, Zx, Zy, ist, L0):
     return zz
 
 
-def AB(n, L0, deltax, deltay, rank = 0):
+def AB(n, L0, deltax, deltay, rank=0):
 
     """DOCUMENT AB, n, A, B, istencil
     This function initializes some matrices A, B and a list of stencil indexes
@@ -149,15 +148,17 @@ def AB(n, L0, deltax, deltay, rank = 0):
     SEE ALSO: extrude createStencil Cxx Cxz Czz
     """
 
-
-
-    if(rank == 0):print "create stencil and Z,X matrices"
+    if(rank == 0):
+        print "create stencil and Z,X matrices"
     Zx, Zy, Xx, Xy, istencil = create_stencil(n)
-    if(rank == 0):print "create zz"
+    if(rank == 0):
+        print "create zz"
     zz = Czz(n, Zx, Zy, istencil, L0)
-    if(rank == 0):print "create xz"
+    if(rank == 0):
+        print "create xz"
     xz = Cxz(n, Zx, Zy, Xx, Xy, istencil, L0)
-    if(rank == 0):print "create xx"
+    if(rank == 0):
+        print "create xx"
     xx = Cxx(n, Zx[0, n - 1], Zy[0, n - 1], Xx, Xy, L0)
 
     U, s, V = np.linalg.svd(zz)
@@ -166,17 +167,22 @@ def AB(n, L0, deltax, deltay, rank = 0):
     s1 = 1. / s1
     s1[s.size - 1] = 0
     zz1 = np.dot(np.dot(U, np.diag(s1)), V)
-    if(rank == 0):print "compute zz pseudo_inverse"
+    if(rank == 0):
+        print "compute zz pseudo_inverse"
     # zz1=np.linalg.pinv(zz)
 
-    if(rank == 0):print "compute A"
+    if(rank == 0):
+        print "compute A"
     A = np.dot(xz, zz1)
 
-    if(rank == 0):print "compute bbt"
+    if(rank == 0):
+        print "compute bbt"
     bbt = xx - np.dot(A, xz.T)
-    if(rank == 0):print "svd of bbt"
+    if(rank == 0):
+        print "svd of bbt"
     U1, l, V1 = np.linalg.svd(bbt)
-    if(rank == 0):print "compute B"
+    if(rank == 0):
+        print "compute B"
     B = np.dot(U1, np.sqrt(np.diag(l)))
 
     test = np.zeros((n * n), np.float32)
@@ -189,13 +195,10 @@ def AB(n, L0, deltax, deltay, rank = 0):
     if(deltax < 0):
         istencil = (n * n - 1) - istencil
 
-
     return np.asfortranarray(A.astype(np.float32)), np.asfortranarray(B.astype(np.float32)), istencil.astype(np.uint32), isty.astype(np.uint32)
 
 
-
 def extrude(p, r0, A, B, istencil):
-
 
     """DOCUMENT p1 = extrude(p,r0,A,B,istencil)
 
@@ -225,18 +228,19 @@ def extrude(p, r0, A, B, istencil):
     zref = p[0, n - 1]
     z -= zref
     newColumn = np.dot(A, z) + np.dot(B, np.random.normal(0, 1, n) * amplitude) + zref
-    p1 = np.zeros((n, n), dtype = np.float32)
+    p1 = np.zeros((n, n), dtype=np.float32)
     p1[:, 0:n - 1] = p[:, 1:]
     p1[:, n - 1] = newColumn
 
     return p1
 
 
-def phase_struct(r, L0 = None):
+def phase_struct(r, L0=None):
     if L0 is None:
         return 6.88 * r ** (5. / 6.)
     else:
         return rodconan(np.sqrt(r), L0)
+
 
 def rodconan(r, L0):
     """
@@ -259,6 +263,7 @@ def rodconan(r, L0):
     ismall = np.where(dprf0 <= Xlim)
 
     res = r * 0.
+    """
     # TODO  those lines have been changed (cf trunk/yoga_ao/yorick/yoga_turbu.i l 258->264)
     if((ilarge[0].size > 0)and(ismall[0].size == 0)):
         res[ilarge] = asymp_macdo(dprf0[ilarge])
@@ -269,11 +274,14 @@ def rodconan(r, L0):
     elif((ismall[0].size > 0)and(ilarge[0].size > 0)):
         res[ismall] = -macdo_x56(dprf0[ismall])
         res[ilarge] = asymp_macdo(dprf0[ilarge])
-        # print "simulation atmos with x56 MacDonald function and asymptotic MacDonald function"
-    else:
-        print "prout"
+    """
+    if( ilarge[0].size > 0):
+        res[ilarge] = asymp_macdo(dprf0[ilarge])
+    if( ismall[0].size > 0):
+        res[ismall] = -macdo_x56(dprf0[ismall])
+
     return k1 * L0 ** (5. / 3.) * res
-    
+
 
 def asymp_macdo(x):
     """
@@ -290,16 +298,16 @@ def asymp_macdo(x):
     # k2 is the value for
     # gamma_R(5./6)*2^(-1./6)
     k2 = 1.00563491799858928388289314170833
-    k3 = 1.25331413731550012081;  #  sqrt(pi/2)
-    a1 = 0.22222222222222222222;  #  2/9
-    a2 = -0.08641975308641974829;  #  -7/89
-    a3 = 0.08001828989483310284;  # 175/2187
-    x_1 = 1. / x;
-    res = k2 - k3 * np.exp(-x) * x ** (1 / 3.) * (1.0 + x_1 * (a1 + x_1 * (a2 + x_1 * a3)));
+    k3 = 1.25331413731550012081  # sqrt(pi/2)
+    a1 = 0.22222222222222222222  # 2/9
+    a2 = -0.08641975308641974829  # -7/89
+    a3 = 0.08001828989483310284  # 175/2187
+    x_1 = 1. / x
+    res = k2 - k3 * np.exp(-x) * x ** (1 / 3.) * (1.0 + x_1 * (a1 + x_1 * (a2 + x_1 * a3)))
     return res
 
 
-def macdo_x56(x, k = 10):
+def macdo_x56(x, k=10):
     """
         Computation of the function
     f(x) = x^(5/6)*K_{5/6}(x)
@@ -324,16 +332,16 @@ def macdo_x56(x, k = 10):
     """
 
     a = 5. / 6.
-    fn = 1.;  # initialisation factorielle 0!=1
-    x2a = x ** (2.*a);
-    x22 = x * x / 4.;  #  (x/2)^2
-    x2n = 0.5;  # init (1/2) * x^0
-    Ga = 2.01126983599717856777;  # Gamma(a) / (1/2)^a
-    Gma = -3.74878707653729348337;  # Gamma(-a) * (1/2.)^a
+    fn = 1.  # initialisation factorielle 0!=1
+    x2a = x ** (2. * a)
+    x22 = x * x / 4.  # (x/2)^2
+    x2n = 0.5  # init (1/2) * x^0
+    Ga = 2.01126983599717856777  # Gamma(a) / (1/2)^a
+    Gma = -3.74878707653729348337  # Gamma(-a) * (1/2.)^a
     s = np.zeros(x.shape)  # array(0.0, dimsof(x));
     for n in range(k + 1):  # (n=0; n<=k; n++) {
         dd = Gma * x2a
-        if n :
+        if n:
             dd += Ga
         dd *= x2n
         dd /= fn
@@ -343,16 +351,13 @@ def macdo_x56(x, k = 10):
         else:
             s += dd
         # prepare recurrence iteration for next step
-        if(n < k) :
+        if(n < k):
             fn *= n + 1  # factorial
             Gma /= -a - n - 1  # gamma function
             Ga /= a - n - 1  # idem
             x2n *= x22  # x^n
 
-    return s;
-
-
-
+    return s
 
 
 def create_screen_assist(screen_size, L0, r0):
@@ -367,21 +372,20 @@ def create_screen_assist(screen_size, L0, r0):
 
     print stencil_size(screen_size)
 
-    pl.ion()
-    pl.imshow(phase, animated = True)
-    pl.show()
-
+    # pl.ion()
+    # pl.imshow(phase, animated=True)
+    # pl.show()
 
     for i in range(2 * screen_size):
         phase = extrude(phase, r0, A, B, istx)
-        pl.clf()
-        pl.imshow(phase, cmap = 'Blues')
-        pl.draw()
+        # pl.clf()
+        # pl.imshow(phase, cmap='Blues')
+        # pl.draw()
 
     return phase
 
-def create_screen(r0, pupixsize, screen_size, L0, A, B, ist):
 
+def create_screen(r0, pupixsize, screen_size, L0, A, B, ist):
 
     """ DOCUMENT create_screen
         screen = create_screen(r0,pupixsize,screen_size,&A,&B,&ist)
@@ -397,7 +401,7 @@ def create_screen(r0, pupixsize, screen_size, L0, A, B, ist):
      """
 
     # AB, screen_size, A, B, ist,L0   # initialisation for A and B matrices for phase extrusion
-    screen = np.zeros((screen_size, screen_size), dtype = np.float32)  # init of first phase screen
+    screen = np.zeros((screen_size, screen_size), dtype=np.float32)  # init of first phase screen
     for i in range(2 * screen_size):
         screen = extrude(screen, r0 / pupixsize, A, B, ist)
 

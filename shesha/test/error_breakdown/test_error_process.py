@@ -63,7 +63,7 @@ def Init(config,device=0):
     
     #   atmos
     print "->atmos"
-    atm=ao.atmos_init(c,config.p_atmos,config.p_tel,config.p_geom,config.p_loop,config.p_wfss,config.p_target,clean=clean,load=matricesToLoad,rank=0)
+    atm=ao.atmos_init(c,config.p_atmos,config.p_tel,config.p_geom,config.p_loop,config.p_wfss,wfs,config.p_target,clean=clean,load=matricesToLoad,rank=0)
     
     #   dm 
     print "->dm"
@@ -71,7 +71,7 @@ def Init(config,device=0):
     
     #   target
     print "->target"
-    tar=ao.target_init(c,tel,config.p_target,config.p_atmos,config.p_geom,config.p_tel,config.p_wfss,wfs,config.p_dms)
+    tar=ao.target_init(c,tel,config.p_target,config.p_atmos,config.p_geom,config.p_tel,config.p_dms)
     
     print "->rtc"
     #   rtc

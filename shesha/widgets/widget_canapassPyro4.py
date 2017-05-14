@@ -28,8 +28,8 @@ try:
     darkStyle=True
 except:
     darkStyle=False
+import astropy.io.fits as pfits
 
-plt.ion()
 sys.path.insert(0, os.environ["SHESHA_ROOT"] + "/widgets/")
 sys.path.insert(0, os.environ["SHESHA_ROOT"] + "/data/par/")
 sys.path.insert(0, os.environ["SHESHA_ROOT"] + "/lib/")
@@ -48,18 +48,29 @@ gdb --args python -i widget_canapass.py
 
 """
 
-try:
-    import Pyro.core
-    import Pyro.naming
-    import Pyro.configuration
-    import Pyro.util
+PYROVERSION = int(os.getenv("PYROVERSION"))
+if PYROVERSION == None:
+    raise Exception('PYROVERSION environment variable is unset!')
 
-    USE_PYRO = True
-except:
-    print "Could not initialize Pyro..."
-    USE_PYRO = False
+if(PYROVERSION == 4):
+    try:
+        import Pyro4
+        USE_PYRO = True
+    except:
+        USE_PYRO = False
+        raise Exception("ERROR could not import Pyro4 (is it installed?)!!!!")
+
+if(PYROVERSION == 3):
+    try:
+        import Pyro.core
+        USE_PYRO = True
+
+    except:
+        USE_PYRO = False
+        raise Exception("ERROR could not import Pyro (v3) (is it installed?)!!!!")
 
 
+@Pyro4.expose
 class widgetAOWindow(TemplateBaseClass):
     def __init__(self):
         TemplateBaseClass.__init__(self)
@@ -70,7 +81,7 @@ class widgetAOWindow(TemplateBaseClass):
 
         self.ui = WindowTemplate()
         self.ui.setupUi(self)
-
+        self.pyroVersion = PYROVERSION
         #############################################################
         #                   ATTRIBUTES                              #
         #############################################################
@@ -165,67 +176,43 @@ class widgetAOWindow(TemplateBaseClass):
         #     filepath=os.environ["SHESHA_ROOT"] + "/data/par/canapass.py")
         # self.InitConfig()
 
-
-
-    def setPyrMethod(self, pyrmethod):
-        self.rtc.set_pyr_method(0, pyrmethod, self.config.p_centroiders) # Sets the pyr method
-        print "PYR method set to: ", self.rtc.get_pyr_method(0)
-        self.rtc.docentroids(0) # To be ready for the next getSlopes
-
-    def setNoise(self, noise, numwfs=0):
-        self.wfs.set_noise(numwfs, noise)
-        print "Noise set to: ", noise
-
-
-    def getSlopesGeom(self, nb):
-        self.rtc.docentroids_geom(0)
-        slopesGeom = self.rtc.getcentroids(0)
-        self.rtc.docentroids(0)
-        return slopesGeom
-
+    def writefits(self, data, path):
+        pfits.writeto(path, data, clobber=True)
 
     def getConfig(self, path):
         return self.aoCalib.getConfig(self, path)
         #return cf.returnConfigfromWao(self, filepath=path)
-
-    def getIpupil(self):
-        return self.config.p_geom.get_ipupil()
-
-    def getSpupil(self):
-        return self.config.p_geom.get_spupil()
-
-    def getImage2(tarnum, tartype):
-        return self.tar.get_image(tarnum, tartype)
-
-    def getMpupil(self):
-        return self.config.p_geom.get_mpupil()
-
-    def getAmplipup(self, tarnum):
-        return self.config.tar.get_amplipup(tarnum)
-
-    def getPhase(self, tarnum):
-        return self.tar.get_phase(tarnum)
+    def returnkl2V(self, path):
+        print "computing KL2V..."
+        KL2V = self._returnkl2V()
+        print "KL2V done"
+        print path
+        if(self.pyroVersion == 4):
+            print "using V4 ..."
+            self.writefits(KL2V, path)
+        elif(self.pyroVersion == 3):
+            print "using V3 ..."
+            return KL2V
+        else:
+            raise Exception("ERROR pyro version not set")
 
 
-    def returnkl2V(self):
-        """
-        KL2V = ao.compute_KL2V(wao.config.p_controllers[
-                               0], wao.dms, wao.config.p_dms, wao.config.p_geom, wao.config.p_atmos, wao.config.p_tel)
-        """
-        KL2V = ao.compute_KL2V(self.config.p_controllers[0], self.dms, self.config.p_dms, self.config.p_geom, self.config.p_atmos, self.config.p_tel)
+    def _returnkl2V(self):
+
+        #KL2V = ao.compute_KL2V(self.config.p_controllers[0], self.dms, self.config.p_dms, self.config.p_geom, self.config.p_atmos, self.config.p_tel)
+        KL2V = np.ones(256)
+        time.sleep(10)
         return KL2V
 
     def doRefslopes(self):
         self.rtc.do_centroids_ref(0)
         print "refslopes done"
 
-    def resetRefslopes(self):
-        self.rtc.set_centroids_ref(0, self.getSlopes()*0.)
-
     def setCommandMatrix(self, cMat):
         return self.rtc.set_cmat(0, cMat)
 
     def setPertuVoltages(self, actusVolts):
+        # self.dms.set_full_comm(actusVolts.astype(np.float32).copy())
         self.rtc.setPertuVoltages(0, actusVolts.astype(np.float32).copy())
 
     def getVolts(self):
@@ -321,14 +308,9 @@ class widgetAOWindow(TemplateBaseClass):
             sys.path.insert(0, pathfile)
 
             if self.config is not None:
-                name = self.config.__name__
                 print "Removing previous config"
                 self.config = None
                 config = None
-                try:
-                    del sys.modules[name]
-                except:
-                    pass
 
             print "loading ", filename.split(".py")[0]
             exec("import %s as config" % filename.split(".py")[0])
@@ -431,7 +413,7 @@ class widgetAOWindow(TemplateBaseClass):
         gpudevice = self.config.p_loop.devices
         # gpudevice = "ALL"  # using all GPU avalaible
         # gpudevice = np.arange(4, dtype=np.int32)  # using 4 GPUs: 0-3
-        #gpudevice = np.array([4, 5, 6, 7], dtype=np.int32)  # using 4 GPUs: 4-7
+        gpudevice = np.array([4, 5, 6, 7], dtype=np.int32)  # using 4 GPUs: 4-7
         self.ui.wao_deviceNumber.setDisabled(True)
 
         print "-> using GPU", gpudevice
@@ -677,10 +659,12 @@ class widgetAOWindow(TemplateBaseClass):
 
     def updateDisplay(self):
         if (not self.loaded) or (not self.ui.wao_Display.isChecked()):
+            # print " widget not fully initialized"
             return
 
         data = None
         if not self.loopLock.acquire(False):
+            # print "Loop locked"
             return
         else:
             try:
@@ -755,26 +739,16 @@ class widgetAOWindow(TemplateBaseClass):
                         self.ui.wao_rtcWindowMPL.canvas.axes.clear()
                         # retrieving centroids
                         centroids = self.rtc.getCentroids(0)
-
-                        if((wao.rtc.getCentroids(0)==0).all() is True):
-                            print "Warning all slopes = 0"
-                            return
-
                         nvalid = [
                             2 * o._nvalid for o in self.config.p_wfss]
                         ind = np.sum(nvalid[:self.numberSelected])
-                        self.ui.wao_rtcWindowMPL.canvas.draw()
                         if(self.config.p_wfss[self.numberSelected].type_wfs == "pyrhr"):
-                            slopesvector = centroids[ind:ind + nvalid[self.numberSelected]]
-                            nslopes = slopesvector.shape[0] / 2
-                            validArray = self.config.p_wfs0._isvalid
-                            x, y = np.where(validArray.T)
-                            self.ui.wao_rtcWindowMPL.canvas.axes.quiver(x, y, slopesvector[0:nslopes], slopesvector[nslopes:], pivot='mid')
+                            tools.plpyr(centroids[ind:ind + nvalid[self.numberSelected]], self.config.p_wfs0._isvalid)
                         else:
                             x, y, vx, vy = tools.plsh(centroids[ind:ind + nvalid[self.numberSelected]], self.config.p_wfss[
                                                   self.numberSelected].nxsub, self.config.p_tel.cobs, returnquiver=True)  # Preparing mesh and vector for display
-                            self.ui.wao_rtcWindowMPL.canvas.axes.quiver(
-                                x, y, vx, vy, pivot='mid')
+                        self.ui.wao_rtcWindowMPL.canvas.axes.quiver(
+                            x, y, vx, vy, pivot='mid')
                         self.ui.wao_rtcWindowMPL.canvas.draw()
                         self.currentViewSelected = self.imgType
 
@@ -784,16 +758,10 @@ class widgetAOWindow(TemplateBaseClass):
                         self.ui.wao_rtcWindowMPL.canvas.axes.clear()
                         self.wfs.slopes_geom(self.numberSelected, 0)
                         slopes = self.wfs.get_slopes(self.numberSelected)
-                        if(self.config.p_wfss[self.numberSelected].type_wfs == "pyrhr"):
-                            nslopes = slopes.shape[0] / 2
-                            validArray = self.config.p_wfs0._isvalid
-                            x, y = np.where(validArray.T)
-                            self.ui.wao_rtcWindowMPL.canvas.axes.quiver(x, y, slopes[0:nslopes], slopes[nslopes:], pivot='mid')
-                        else:
-                            x, y, vx, vy = tools.plsh(slopes, self.config.p_wfss[
-                                                      self.numberSelected].nxsub, self.config.p_tel.cobs, returnquiver=True)  # Preparing mesh and vector for display
-                            self.ui.wao_rtcWindowMPL.canvas.axes.quiver(
-                                x, y, vx, vy, pivot='mid')
+                        x, y, vx, vy = tools.plsh(slopes, self.config.p_wfss[
+                                                  self.numberSelected].nxsub, self.config.p_tel.cobs, returnquiver=True)  # Preparing mesh and vector for display
+                        self.ui.wao_rtcWindowMPL.canvas.axes.quiver(
+                            x, y, vx, vy, pivot='mid')
                         self.ui.wao_rtcWindowMPL.canvas.draw()
                         self.currentViewSelected = self.imgType
 
@@ -828,10 +796,11 @@ class widgetAOWindow(TemplateBaseClass):
                             self.numberSelected, "se")
                         if(self.ui.wao_PSFlogscale.isChecked()):
                             if np.any(data <= 0):
-                                data[data==0]=1e-12
-                                #print("\nzero founds, log display disabled\n", RuntimeWarning)
-                                #self.ui.wao_PSFlogscale.setChecked(False)
-                            data = np.log(data)
+                                print(
+                                    "\nzero founds, log display disabled\n", RuntimeWarning)
+                                self.ui.wao_PSFlogscale.setCheckState(False)
+                            else:
+                                data = np.log10(data)
 
                         if (not self.SRCrossX):
                             Delta = 5
@@ -865,9 +834,7 @@ class widgetAOWindow(TemplateBaseClass):
                         data = self.tar.get_image(
                             self.numberSelected, "le")
                         if(self.ui.wao_PSFlogscale.isChecked()):
-                            if np.any(data <= 0):
-                                data[data<=0]=1e-12
-                            data = np.log(data)
+                            data = np.log10(data)
                         if (not self.SRCrossX):
                             Delta = 5
                             self.SRCrossX = pg.PlotCurveItem(np.array([data.shape[0] / 2 + 0.5 - Delta,
@@ -907,11 +874,9 @@ class widgetAOWindow(TemplateBaseClass):
                 self.loopLock.release()
 
             refreshDisplayTime = 1000. / self.ui.wao_frameRate.value()
-            """
             if(self.ui.wao_Display.isChecked()):
                 # Update GUI plots
                 QTimer.singleShot(refreshDisplayTime, self.updateDisplay)
-            """
 
     def mainLoop(self):
         if not self.loopLock.acquire(False):
@@ -966,6 +931,7 @@ class widgetAOWindow(TemplateBaseClass):
                         SR = self.tar.get_strehl(t)
                         if(t==self.numberSelected): # Plot on the wfs selected
                             self.updateSRDisplay(SR[1], SR[0], self.iter)
+
                         signal_se += "%1.2f   " % SR[0]
                         signal_le += "%1.2f   " % SR[1]
 
@@ -983,7 +949,6 @@ class widgetAOWindow(TemplateBaseClass):
                 self.iter += 1
             finally:
                 self.loopLock.release()
-                self.updateDisplay()
 
     def printInPlace(self, text):
         # This seems to trigger the GUI and keep it responsive
@@ -1017,10 +982,10 @@ class WorkerThread( QThread ):
 
 
 try:
-    class widgetAOWindowPyro(widgetAOWindow, Pyro.core.ObjBase):
+    class widgetAOWindowPyro(widgetAOWindow):
         def __init__(self):
             widgetAOWindow.__init__(self)
-            Pyro.core.ObjBase.__init__(self)
+            #Pyro.core.ObjBase.__init__(self)
 
         def InitConfig(self):
             widgetAOWindow.InitConfig(self)
@@ -1045,12 +1010,8 @@ try:
 
         def run(self):
             print "Starting Pyro Server..."
-            self.locator = Pyro.naming.NameServerLocator()
-            ns = self.locator.getNS()
-            Pyro.core.initServer()
-            daemon = Pyro.core.Daemon()
-            # ns=Pyro.naming.NameServerLocator(host=self.nsip, port=self.port).
-            daemon.useNameServer(ns)  # use current ns
+            daemon = Pyro4.Daemon()
+            ns = Pyro4.locateNS()
             self.ready = True
             try:
                 ns.unregister("waoconfig")
@@ -1059,11 +1020,13 @@ try:
                 # ns.createGroup(":GS")
                 pass
             # print self.object.getVar()
-            daemon.connect(self.object, "waoconfig")
+            uri = daemon.register(self.object)
+            ns.register("waoconfig", uri)
             print "starting daemon"
             daemon.requestLoop()
             print "daemon started"
 except:
+    print "Error while initializing Pyro object"
     pass
 
 

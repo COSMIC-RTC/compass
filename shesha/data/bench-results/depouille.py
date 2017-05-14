@@ -21,11 +21,7 @@ def depouilleSR(filename, version=None):
 
     store = pandas.HDFStore(filename)
     if(version is None):
-        if shesha.__version__ is not "Develop":
-            version = shesha.__version__
-        else:
-            version = str(check_output(
-                ["git", "rev-parse", "HEAD"]).replace("\n", ""))
+        version = shesha.__version__
     try:
         df = store.get(version)
     except KeyError:
@@ -97,11 +93,7 @@ def depouillePerf(filename, version=None, mode="profile"):
 
     store = pandas.HDFStore(filename)
     if(version is None):
-        if shesha.__version__ is not "Develop":
-            version = shesha.__version__
-        else:
-            version = str(check_output(
-                ["git", "rev-parse", "HEAD"]).replace("\n", ""))
+        version = shesha.__version__
     try:
         df = store.get(version)
     except KeyError:

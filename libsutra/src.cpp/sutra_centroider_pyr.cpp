@@ -17,7 +17,10 @@ sutra_centroider_pyr::sutra_centroider_pyr(carma_context *context,
     this->nvalid = nvalid;
     this->offset = offset;
     this->scale = scale;
+    this->valid_thresh = 1e-4;
     this->pyr_type = sensors->d_wfs[nwfs]->type;
+    // centroider method by default sin_global
+    this->method = Method_CoG::Sinus & ~Method_CoG::Local;
 }
 
 sutra_centroider_pyr::~sutra_centroider_pyr() {
@@ -25,6 +28,32 @@ sutra_centroider_pyr::~sutra_centroider_pyr() {
 
 string sutra_centroider_pyr::get_type() {
     return this->pyr_type;
+}
+
+int sutra_centroider_pyr::set_valid_thresh(float valid_thresh) {
+    this->valid_thresh = valid_thresh;
+    return EXIT_SUCCESS;
+}
+float sutra_centroider_pyr::get_valid_thresh() {
+    return this->valid_thresh;
+}
+
+int sutra_centroider_pyr::set_method(uint8_t method){
+    if (method>=Method_CoG::Other) {
+        DEBUG_TRACE("method unknown");
+        return EXIT_FAILURE;
+    }
+
+    this->method = method;
+    return EXIT_SUCCESS;
+}
+
+uint8_t sutra_centroider_pyr::get_method(){
+    return this->method;
+}
+
+string sutra_centroider_pyr::get_method_str(){
+    return Method_CoG::str(this->method);
 }
 
 int sutra_centroider_pyr::get_cog(carma_streams *streams, float *cube,
@@ -39,16 +68,42 @@ int sutra_centroider_pyr::get_pyr(float *cube, float *subsum, float *centroids,
         int *subindx, int *subindy, int nvalid, int ns, int nim) {
     current_context->set_activeDevice(device, 1);
     if (this->pyr_type == "pyr" || this->pyr_type == "roof") {
-        pyr_subsum(subsum, cube, subindx, subindy, ns, nvalid, nim,
-                this->current_context->get_device(device));
-
-        pyr_slopes(centroids, cube, subindx, subindy, subsum, ns, nvalid, nim,
-                this->current_context->get_device(device));
+        DEBUG_TRACE("Not working anymore");
+        throw "Not working anymore";
+        // pyr_subsum(subsum, cube, subindx, subindy, ns, nvalid, nim,
+        //         this->current_context->get_device(device));
+        //
+        // pyr_slopes(centroids, cube, subindx, subindy, subsum, ns, nvalid, nim,
+        //         this->current_context->get_device(device));
     } else if (this->pyr_type == "pyrhr") {
         pyr_subsum(subsum, cube, subindx, subindy, ns, nvalid,
                 this->current_context->get_device(device));
 
-        pyr2_slopes(centroids, cube, subindx, subindy, subsum, ns, nvalid,this->scale,
+        if( !(this->method&Method_CoG::Local) ){
+            // if we are using a global method
+            // DEBUG_TRACE("Global : %s", Method_CoG::str(this->method));
+            int blocks, threads;
+        	this->current_context->set_activeDevice(device,1);
+        	sumGetNumBlocksAndThreads(nvalid,
+        			this->current_context->get_device(device), blocks, threads);
+          long dims[2] = {1, nvalid};
+          carma_obj<float> tmp_obj(current_context, dims);
+          reduce(nvalid, threads, blocks, subsum, tmp_obj.getData());
+
+          fillvalues(subsum, tmp_obj.getData(), nvalid,
+              this->current_context->get_device(device));
+        // } else {
+        //     DEBUG_TRACE("Local : %s", Method_CoG::str(this->method));
+        }
+
+        // if(this->method&Method_CoG::Sinus){  // if we are using a global method
+        //     DEBUG_TRACE("Sinus : %s", Method_CoG::str(this->method));
+        // } else {
+        //     DEBUG_TRACE("NoSinus : %s", Method_CoG::str(this->method));
+        // }
+
+        pyr2_slopes(centroids, cube, subindx, subindy, subsum, ns, nvalid, this->scale,
+                this->valid_thresh, this->method&Method_CoG::Sinus,  // if we are using a sin method
                 this->current_context->get_device(device));
     } else {
         return EXIT_FAILURE;

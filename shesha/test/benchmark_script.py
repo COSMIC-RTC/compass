@@ -123,7 +123,7 @@ def script4bench(param_file, centroider, controller, devices, fwrite=True):
 
     timer.start()
     atm = ao.atmos_init(c, config.p_atmos, config.p_tel, config.p_geom, config.p_loop,
-                        config.p_wfss, config.p_target, clean=clean, load=matricesToLoad)
+                        config.p_wfss, wfs, config.p_target, clean=clean, load=matricesToLoad)
     ch.threadSync()
     atmos_init_time = timer.stop() - synctime
     timer.reset()
@@ -137,7 +137,7 @@ def script4bench(param_file, centroider, controller, devices, fwrite=True):
 
     timer.start()
     target = ao.target_init(c, tel, config.p_target, config.p_atmos,
-                            config.p_geom, config.p_tel, config.p_wfss, wfs, config.p_dms)
+                            config.p_geom, config.p_tel, config.p_dms)
     ch.threadSync()
     target_init_time = timer.stop() - synctime
     timer.reset()
@@ -330,11 +330,7 @@ def script4bench(param_file, centroider, controller, devices, fwrite=True):
     date = datetime.datetime.now()
     date = [date.year, date.month, date.day]
 
-    if ao.__version__ is not "Develop":
-        version = ao.__version__
-    else:
-        version = str(check_output(
-            ["git", "rev-parse", "HEAD"]).replace("\n", ""))
+    version = ao.__version__
 
     # version=str(check_output(["svnversion",os.getenv("COMPASS_ROOT")]).replace("\n",""))
     hostname = check_output("hostname").replace("\n", "")

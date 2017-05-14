@@ -18,7 +18,7 @@ from libcpp.vector cimport vector
 from libcpp.pair cimport pair
 from libcpp cimport bool
 
-from libc.stdint cimport uintptr_t
+from libc.stdint cimport uintptr_t, uint8_t
 
 from cpython.string cimport PyString_AsString
 from libc.math cimport sin
@@ -258,6 +258,7 @@ cdef extern from "sutra_wfs.h":
                            long * size, float *G, float *thetaML, float *dx, float *dy)
         int allocate_buffers()
         int define_mpi_rank(int rank, int size)
+        int set_noise(int nwfs, float noise, long seed)
 
 
 #################################################
@@ -496,6 +497,24 @@ cdef extern from "sutra_centroider_wcog.h":
         int get_cog(float * subsum, float * slopes, bool noise)
         int get_cog()
 
+#################################################
+# C-Class sutra_centroider_pyr
+#################################################
+cdef extern from "sutra_centroider_pyr.h" namespace "Method_CoG":
+    enum Flags :
+        Sinus=0x01
+        Local=0x02
+        Other=0x04
+
+cdef extern from "sutra_centroider_pyr.h":
+    cdef cppclass sutra_centroider_pyr(sutra_centroider):
+        bool is_type(string typec)
+        # string get_type()
+        int set_valid_thresh(float valid_thresh)
+        float get_valid_thresh()
+        int set_method(uint8_t type)
+        string get_method_str()
+        uint8_t get_method()
 
 '''
 #################################################

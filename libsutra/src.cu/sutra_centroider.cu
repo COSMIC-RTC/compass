@@ -1,14 +1,15 @@
 #include <sutra_centroider.h>
 #include "carma_utils.cuh"
 
-/*
- _  __                    _
- | |/ /___ _ __ _ __   ___| |___
- | ' // _ \ '__| '_ \ / _ \ / __|
- | . \  __/ |  | | | |  __/ \__ \
- |_|\_\___|_|  |_| |_|\___|_|___/
+/**********************************
+  _  __                    _      *
+ | |/ /___ _ __ _ __   ___| |___  *
+ | ' // _ \ '__| '_ \ / _ \ / __| *
+ | . \  __/ |  | | | |  __/ \__ \ *
+ |_|\_\___|_|  |_| |_|\___|_|___/ *
+                                  *
+ **********************************/
 
- */
 
 template<class T>
 __device__ void scanmax_krnl(T *sdata, int *values, int size, int n) {
@@ -1494,53 +1495,78 @@ template void
 pyr_slopes<double>(double *d_odata, double *d_idata, int *subindx, int *subindy,
     double *subsum, int ns, int nvalid, int nim, carma_device *device);
 
-template<class T>
+template<class T, T fct_sin(T)>
 __global__ void pyr2slopes_krnl(T *g_odata, T *g_idata, int *subindx,
-    int *subindy, T *subsum, unsigned int ns, unsigned int nvalid, T scale) {
-	const T pi = 3.1415926535897932384626433;
+    int *subindy, T *subsum, unsigned int ns, unsigned int nvalid, T scale,
+    T valid_thresh, int do_sin) {
   unsigned int i = blockIdx.x * blockDim.x + threadIdx.x;
   T tmp;
+  const T cmin(-1);
+  const T cmax(1);
   while (i < nvalid) {
-    int iq1 = subindx[i] + subindy[i] * ns;
-    int iq2 = subindx[i+nvalid] + subindy[i+nvalid] * ns;
-    int iq3 = subindx[i+2*nvalid] + subindy[i+2*nvalid] * ns;
-    int iq4 = subindx[i+3*nvalid] + subindy[i+3*nvalid] * ns;
+    const int iq1 = subindx[i] + subindy[i] * ns;
+    const int iq2 = subindx[i+nvalid] + subindy[i+nvalid] * ns;
+    const int iq3 = subindx[i+2*nvalid] + subindy[i+2*nvalid] * ns;
+    const int iq4 = subindx[i+3*nvalid] + subindy[i+3*nvalid] * ns;
     /*
-     g_odata[i] = ((g_idata[i2 + ns * ns] + g_idata[i2 + 3 * ns * ns])
-     - (g_idata[i2] + g_idata[i2 + 2 * ns * ns])) / subsum[0];
-     g_odata[i + nvalid] = ((g_idata[i2 + 2 * ns * ns]
-     + g_idata[i2 + 3 * ns * ns]) - (g_idata[i2] + g_idata[i2 + ns * ns]))
-     / subsum[0];
+     * g_odata[i] = ((g_idata[i2 + ns * ns] + g_idata[i2 + 3 * ns * ns])
+     * - (g_idata[i2] + g_idata[i2 + 2 * ns * ns])) / subsum[0];
+     * g_odata[i + nvalid] = ((g_idata[i2 + 2 * ns * ns]
+     * + g_idata[i2 + 3 * ns * ns]) - (g_idata[i2] + g_idata[i2 + ns * ns]))
+     * / subsum[0];
      */
+    if (subsum[i]<valid_thresh) { // flux too low -> set slopes to 9
+        g_odata[i] = 0;
+        g_odata[i + nvalid] = 0;
+    } else {
     	tmp = ((g_idata[iq1] + g_idata[iq4]) - (g_idata[iq2] + g_idata[iq3])) / subsum[i];
-    	g_odata[i] = scale*sin(pi/2.*tmp);
+        tmp = carma_clip(tmp, cmin, cmax);  // clip unexpected values
+        if(do_sin){
+    	    g_odata[i] = scale*fct_sin(tmp/2.);  // fct_sin calculates the sine of the input argument × π .
+        } else {
+          g_odata[i] = scale*tmp;
+        }
         tmp = ((g_idata[iq1] + g_idata[iq3]) - (g_idata[iq2] + g_idata[iq4])) / subsum[i];
-        g_odata[i + nvalid] = scale*sin(pi/2.*tmp);
+        tmp = carma_clip(tmp, cmin, cmax);  // clip unexpected values
+        if(do_sin){
+            g_odata[i + nvalid] = scale*fct_sin(tmp/2.);  // fct_sin calculates the sine of the input argument × π .
+        } else {
+          g_odata[i + nvalid] = scale*tmp;
+        }
+    }
     i += blockDim.x * gridDim.x;
   }
 }
 
-template<class T>
-void pyr2_slopes(T *d_odata, T *d_idata, int *subindx, int *subindy, T *subsum,
-    int ns, int nvalid, T scale, carma_device *device) {
+template<class T, T fct_sin(T)>
+void pyr2_slopes_full(T *d_odata, T *d_idata, int *subindx, int *subindy, T *subsum,
+    int ns, int nvalid, T scale, T valid_thresh, int do_sin, carma_device *device) {
   //cout << "hello cu" << endl;
 
   int nBlocks,nThreads;
   getNumBlocksAndThreads(device, nvalid, nBlocks, nThreads);
   dim3 grid(nBlocks), threads(nThreads);
 
-  pyr2slopes_krnl<T> <<<grid, threads>>>(d_odata, d_idata, subindx, subindy,
-      subsum, ns, nvalid,scale);
+  pyr2slopes_krnl<T, fct_sin> <<<grid, threads>>>(d_odata, d_idata, subindx, subindy,
+      subsum, ns, nvalid,scale, valid_thresh, do_sin);
 
   carmaCheckMsg("pyrslopes_kernel<<<>>> execution failed\n");
 }
 
-template void
-pyr2_slopes<float>(float *d_odata, float *d_idata, int *subindx, int *subindy,
-    float *subsum, int ns, int nvalid, float scale, carma_device *device);
-template void
-pyr2_slopes<double>(double *d_odata, double *d_idata, int *subindx, int *subindy,
-    double *subsum, int ns, int nvalid, double scale, carma_device *device);
+template<>
+void pyr2_slopes<float>(float *d_odata, float *d_idata, int *subindx, int *subindy,
+                        float *subsum, int ns, int nvalid, float scale,
+                        float valid_thresh, int do_sin, carma_device *device){
+    pyr2_slopes_full<float, sinpif>(d_odata, d_idata, subindx, subindy, subsum,
+        ns, nvalid, scale, valid_thresh, do_sin, device);
+}
+template <>
+void pyr2_slopes<double>(double *d_odata, double *d_idata, int *subindx, int *subindy,
+                         double *subsum, int ns, int nvalid, double scale,
+                         double valid_thresh, int do_sin, carma_device *device){
+    pyr2_slopes_full<double, sinpi>(d_odata, d_idata, subindx, subindy, subsum,
+        ns, nvalid, scale, valid_thresh, do_sin, device);
+}
 
 ////////////////////////////////////////////////////////////
 // ADDING PYR_SLOPES MODIFIED FOR ROOF-PRISM: ROOF_SLOPES //

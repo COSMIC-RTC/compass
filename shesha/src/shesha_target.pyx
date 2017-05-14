@@ -295,19 +295,20 @@ cdef class Target:
 
 
 def target_init(naga_context ctxt, Telescope telescope, Param_target p_target, Param_atmos atm,
-                Param_geom geom, Param_tel tel, wfs=None,
-                Sensors sensors=None,
+                Param_geom geom, Param_tel tel,
                 dm=None, brama=0):
     """Create a cython target from parametres structures
 
     :parameters:
         ctxt: (naga_context) :
 
+        tel: (Param_tel) : telescope settings
+
+        target: (Param_target) : (optional) target_settings
+
         atm: (Param_atmos) : atmos settings
 
         geom: (Param_geom) : geom settings
-
-        wfs: (Param_wfs) : wfs settings
 
         dm: (Param_dm) : dm settings
     """
@@ -405,20 +406,6 @@ def target_init(naga_context ctxt, Telescope telescope, Param_target p_target, P
                 target.add_layer(i, dm[k].type_dm, dm[k].alt, xoff, yoff)
 
         target.init_strehlmeter(i)
-
-    for i in range(len(wfs)):
-        if(wfs[i].gsalt > 0):
-            gsalt = 1 / wfs[i].gsalt
-        else:
-            gsalt = 0
-
-        if(wfs[i].atmos_seen):
-            for j in range(atm.nscreens):
-                xoff = (gsalt * atm.alt[j] * (tel.diam / 2.) + wfs[i].xpos * 4.848e-6 * atm.alt[j]) / atm.pupixsize
-                yoff = (gsalt * atm.alt[j] * (tel.diam / 2.) + wfs[i].ypos * 4.848e-6 * atm.alt[j]) / atm.pupixsize
-                xoff = xoff + (atm.dim_screens[j] - geom._n) / 2
-                yoff = yoff + (atm.dim_screens[j] - geom._n) / 2
-                sensors.sensors.d_wfs[i].d_gs.add_layer(type_target, atm.alt[j], xoff, yoff)
 
     return target
 

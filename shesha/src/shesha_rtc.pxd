@@ -34,6 +34,7 @@ cdef extern from * :
     sutra_centroider_tcog * dynamic_cast_centroider_tcog_ptr "dynamic_cast<sutra_centroider_tcog*>" (sutra_centroider *) except NULL
     sutra_centroider_corr * dynamic_cast_centroider_corr_ptr "dynamic_cast<sutra_centroider_corr*>" (sutra_centroider *) except NULL
     sutra_centroider_wcog * dynamic_cast_centroider_wcog_ptr "dynamic_cast<sutra_centroider_wcog*>" (sutra_centroider *) except NULL
+    sutra_centroider_pyr * dynamic_cast_centroider_pyr_ptr "dynamic_cast<sutra_centroider_pyr*>" (sutra_centroider *) except NULL
     sutra_controller_generic * dynamic_cast_controller_generic_ptr "dynamic_cast<sutra_controller_generic*>" (sutra_controller *) except NULL
     sutra_controller_geo * dynamic_cast_controller_geo_ptr "dynamic_cast<sutra_controller_geo*>" (sutra_controller *) except NULL
     sutra_controller_ls * dynamic_cast_controller_ls_ptr "dynamic_cast<sutra_controller_ls*>" (sutra_controller *) except NULL
@@ -84,7 +85,10 @@ cdef class Rtc:
     cpdef load_Btt(self,int ncontro, np.ndarray[ndim=2,dtype=np.float32_t] Btt)
     cpdef getGeocov(self,int ncontro)
     cpdef get_IFtt(self,int ncontro)
-    cpdef set_pyr_ampl(self, int n, float ampli, list p_wfss, Param_tel p_tel)
+    cpdef get_pyr_method(self, int n)
+    cpdef set_pyr_method(self, int n, int method, list p_centroiders)
+    cpdef set_pyr_thresh(self, int n, float threshold, list p_wfss)
+    cpdef set_pyr_ampl(self, int n, float ampli, list p_wfss, Param_tel p_centroiders)
     cpdef doimat_geom(self, int ncontro, Dms g_dms, int geom)
     cpdef doimat(self, int ncontro, Dms g_dms)
     cpdef doimat_kl(self, int ncontro,Param_controller controller, Dms g_dms, p_dms, np.ndarray[ndim=2, dtype=np.float32_t] kl)

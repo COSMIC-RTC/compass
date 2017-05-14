@@ -11,7 +11,25 @@ EELT_data=os.environ.get('SHESHA_ROOT')+"/data/apertures/"
 def make_pupil(dim,pupd,tel,xc=-1,
                 yc=-1,real=0,cobs=-1):
 
-    #TODO ohter types
+    """Initialize the system pupil
+
+    :parameters:
+        dim: (long) : linear size of ???
+
+        pupd: (long) : linear size of total pupil
+
+        tel: (Param_tel) : Telescope structure
+
+        xc: (int)
+
+        yc: (int)
+
+        real: (int)
+
+        cobs: (float) : central obstruction ratio.
+    TODO: complete
+    """
+    #TODO other types
     if(tel.type_ap=="EELT-Nominal"):
         #tel.set_cobs(0.3)
         print "ELT_pup_cobs = %5.3f" %0.3
@@ -50,10 +68,25 @@ def make_pupil(dim,pupd,tel,xc=-1,
 
 def make_pupil_generic(dim, pupd, t_spiders=0.01, spiders_type="six",
                     xc=0, yc=0, real=0, cobs=0):
-    """
-    cdef np.ndarray pup = dist(dim,xc,yc)
-    cdef np.ndarray[ndim=2,dtype=np.float32_t] spiders_map
-    cdef float angle
+    """Initialize the system pupil
+
+    :parameters:
+        dim: (long) : linear size of ???
+
+        pupd: (long) : linear size of total pupil
+
+        t_spiders: (float) : secondary supports ratio.
+
+        spiders_type: (str) :  secondary supports type: "four" or "six".
+
+        xc: (int)
+
+        yc: (int)
+
+        real: (int)
+
+        cobs: (float) : central obstruction ratio.
+    TODO: complete
     """
 
     pup=dist(dim,xc,yc)
@@ -110,7 +143,15 @@ def make_pupil_generic(dim, pupd, t_spiders=0.01, spiders_type="six",
 
 
 def make_VLT(dim,pupd,tel):
-    
+    """Initialize the VLT pupil
+
+    :parameters:
+        dim: (long) : linear size of ???
+
+        pupd: (long) : linear size of total pupil
+
+        tel: (Param_tel) : Telescope structure
+    """
     if (tel.set_t_spiders==-1):
         print "force t_spider =%5.3f" %(0.09/18.)
         tel.set_t_spiders(0.09/18.)
@@ -122,12 +163,15 @@ def make_VLT(dim,pupd,tel):
 
     pup=((R<0.5) & (R>(tel.cobs/2)) ).astype(np.float32)
 
-    spiders_map= ((X.T>(X-tel.cobs/2.+tel.t_spiders/np.sin(angle))*np.tan(angle))+ (X.T<(X-tel.cobs/2.)*np.tan(angle))) *(X>0)*(X.T>0)
-    spiders_map+= np.fliplr(spiders_map)
-    spiders_map+= np.flipud(spiders_map)
-    spiders_map = interp.rotate(spiders_map,tel.pupangle, order =0, reshape=False)
-    
-    pup = pup*spiders_map
+    if(tel.set_t_spiders==-1):
+        print('No spider')
+    else:
+        spiders_map= ((X.T>(X-tel.cobs/2.+tel.t_spiders/np.sin(angle))*np.tan(angle))+ (X.T<(X-tel.cobs/2.)*np.tan(angle))) *(X>0)*(X.T>0)
+        spiders_map+= np.fliplr(spiders_map)
+        spiders_map+= np.flipud(spiders_map)
+        spiders_map = interp.rotate(spiders_map,tel.pupangle, order =0, reshape=False)
+
+        pup = pup*spiders_map
 
     print "VLT pupil created"
     return pup
@@ -135,15 +179,25 @@ def make_VLT(dim,pupd,tel):
 
 
 def make_EELT(dim,pupd,tel,N_seg=-1):
-    """TODO 
-    add force rescal pup elt
+    """Initialize the EELT pupil
+
+    :parameters:
+        dim: (long) : linear size of ???
+
+        pupd: (long) : linear size of total pupil
+
+        tel: (Param_tel) : Telescope structure
+
+        N_seg: (int)
+
+    TODO: complete
+    TODO : add force rescal pup elt
     """
     if (N_seg==-1):
         EELT_file=EELT_data+"EELT-Custom_N"+str(dim)+"_COBS"+str(100*tel.cobs)+"_CLOCKED"+str(tel.pupangle)+"_TSPIDERS"+str(100*tel.t_spiders)+"_MS"+str(tel.nbrmissing)+"_REFERR"+str(100*tel.referr)+".h5"
     else:
         EELT_file=EELT_data+tel.type_ap+"_N"+str(dim)+"_COBS"+str(100*tel.cobs)+"_CLOCKED"+str(tel.pupangle)+"_TSPIDERS"+str(100*tel.t_spiders)+"_MS"+str(tel.nbrmissing)+"_REFERR"+str(100*tel.referr)+".h5"
-        
-    if( os.path.isfile(EELT_file) & (N_seg==-1)):
+    if( os.path.isfile(EELT_file) ):
         print "reading EELT pupil from file ", EELT_file
         pup=h5u.readHdf5SingleDataset(EELT_file)
     else:
@@ -207,17 +261,19 @@ def make_EELT(dim,pupd,tel,N_seg=-1):
                 pup+=(1-ref_err[i])*(Yt<0.5*W)*(Yt>=-0.5*W)*(0.5*(Yt+t_3*Xt)<0.5*W) \
                                    *(0.5*(Yt+t_3*Xt)>=-0.5*W)*(0.5*(Yt-t_3*Xt)<0.5*W) \
                                    *(0.5*(Yt-t_3*Xt)>=-0.5*W)
+        if (tel.t_spiders==0):
+            print('No spider')
+        else:
+            t_spiders= tel.t_spiders*(tel.diam*dim/pupd)
 
-        t_spiders= tel.t_spiders*(tel.diam*dim/pupd)
+            s2_6=2*np.sin(np.pi/6)
+            t_6 =np.tan(np.pi/6)
 
-        s2_6=2*np.sin(np.pi/6)
-        t_6 =np.tan(np.pi/6)
+            spiders_map = np.abs(X) > t_spiders/2
+            spiders_map*= ((X.T>(X+t_spiders/s2_6)*t_6) + (X.T<(X-t_spiders/s2_6)*t_6))
+            spiders_map*= ((X.T>(-X+t_spiders/s2_6)*t_6)+(X.T<(-X-t_spiders/s2_6)*t_6))
 
-        spiders_map = np.abs(X) > t_spiders/2
-        spiders_map*= ((X.T>(X+t_spiders/s2_6)*t_6) + (X.T<(X-t_spiders/s2_6)*t_6))
-        spiders_map*= ((X.T>(-X+t_spiders/s2_6)*t_6)+(X.T<(-X-t_spiders/s2_6)*t_6))
-
-        pup = pup*spiders_map
+            pup = pup*spiders_map
 
         if (tel.pupangle != 0):
             pup=interp.rotate(pup,tel.pupangle,reshape=False,order=0)
@@ -231,8 +287,17 @@ def make_EELT(dim,pupd,tel,N_seg=-1):
 
 def make_phase_ab(dim,pupd,tel,pup):
     """Compute the EELT M1 phase aberration
+
     :parameters:
-	TODO
+        dim: (long) : linear size of ???
+
+        pupd: (long) : linear size of total pupil
+
+        tel: (Param_tel) : Telescope structure
+
+        pup: (?)
+
+    TODO: complete
     """
 
     if((tel.type_ap=="Generic") or (tel.type_ap=="VLT")):

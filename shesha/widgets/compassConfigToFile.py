@@ -53,9 +53,18 @@ def returnConfigfromWao(wao, filepath=os.environ["SHESHA_ROOT"] + "/widgets/cana
     dms_seen = []
     colTmpList = []
     new_hduwfsl = pfits.HDUList()
+    new_hduwfsSubapXY = pfits.HDUList()
     for i in range(aodict["nbWfs"]):
         new_hduwfsl.append(pfits.ImageHDU(wao.config.p_wfss[i]._isvalid))  # Valid subap array
         new_hduwfsl[i].header["DATATYPE"] = "valid_wfs%d" % i
+
+        xytab = np.zeros((wao.config.p_wfss[i]._validsubsx.shape[0], wao.config.p_wfss[i]._validsubsy.shape[0]))
+        xytab[0] =  wao.config.p_wfss[i]._validsubsx
+        xytab[1] =  wao.config.p_wfss[i]._validsubsy
+
+        new_hduwfsSubapXY.append(pfits.ImageHDU(xytab))  # Valid subap array inXx Y on the detector
+        new_hduwfsSubapXY[i].header["DATATYPE"] = "validXY_wfs%d" % i
+
         pixsize.append(wao.config.p_wfss[i].pixsize)
         NslopesList.append(wao.config.p_wfss[i]._nvalid * 2)  # slopes per wfs
         NsubapList.append(wao.config.p_wfss[i]._nvalid)  # subap per wfs
@@ -81,6 +90,7 @@ def returnConfigfromWao(wao, filepath=os.environ["SHESHA_ROOT"] + "/widgets/cana
             npixPerSub.append(wao.config.p_wfss[i].npix)
     confname = filepath.split("/")[-1].split('.conf')[0]
     new_hduwfsl.writeto(filepath.split(".conf")[0]+'_wfsConfig.fits', clobber=True)
+    new_hduwfsSubapXY.writeto(filepath.split(".conf")[0]+'_wfsValidXYConfig.fits', clobber=True)
     aodict.update({"listWFS_NslopesList": NslopesList})
     aodict.update({"listWFS_NsubapList": NsubapList})
     aodict.update({"listWFS_WfsType": listWfsType})
@@ -119,8 +129,8 @@ def returnConfigfromWao(wao, filepath=os.environ["SHESHA_ROOT"] + "/widgets/cana
             tmpdata[1,:] = wao.config.p_dm0._i1
             new_hdudmsl.append(pfits.ImageHDU(tmpdata))  # Valid subap array
             new_hdudmsl[j].header["DATATYPE"] = "valid_dm%d" % j
-        for k in range(aodict["nbWfs"]):
-            tmp.append(wao.computeDMrange(j, k))
+        #for k in range(aodict["nbWfs"]):
+        #    tmp.append(wao.computeDMrange(j, k))
 
         push4iMatArcSec.append(tmp)
     new_hdudmsl.writeto(filepath.split(".conf")[0]+'_dmsConfig.fits', clobber=True)

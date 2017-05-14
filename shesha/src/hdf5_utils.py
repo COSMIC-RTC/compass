@@ -13,11 +13,10 @@ def params_dictionary(config):
     :param config: (module) : simulation parameters
     :return param_dict: (dictionary) : dictionary of parameters
     """
-    if shesha.__version__ is not "Develop":
-        version = shesha.__version__
-    else:
-        version = str(check_output(
-            ["git", "rev-parse", "HEAD"]).replace("\n", ""))
+
+
+    version = shesha.__version__
+
     param_dict = {"simulname": config.simul_name,
                   "revision": version,
                   # Loop params
@@ -192,11 +191,7 @@ def create_file_attributes(filename, param_dict):
 
 
 def init_hdf5_files(savepath, param_dict, matricesToLoad):
-    if shesha.__version__ is not "Develop":
-        version = shesha.__version__
-    else:
-        version = str(check_output(
-            ["git", "rev-parse", "HEAD"]).replace("\n", ""))
+    version = shesha.__version__
     # if not(matricesToLoad.has_key("A")):
     if "A" not in matricesToLoad:
         df = pandas.read_hdf(savepath + "matricesDataBase.h5", "A")
@@ -395,11 +390,7 @@ def checkTurbuParams(savepath, config, pdict, matricesToLoad):
 
     for i in dataBase.index:
         cc = 0
-        if shesha.__version__ is not "Develop":
-            version = shesha.__version__
-        else:
-            version = str(check_output(
-                ["git", "rev-parse", "HEAD"]).replace("\n", ""))
+        version = shesha.__version__
         if(dataBase.loc[i, "validity"] and (dataBase.loc[i, "revision"] == version)):
             cond = ((dataBase.loc[i, param2test[cc]] == pdict[param2test[cc]]).all())
             while(cond):
@@ -469,11 +460,7 @@ def checkControlParams(savepath, config, pdict, matricesToLoad):
 
     for i in dataBase.index:
         cc = 0
-        if shesha.__version__ is not "Develop":
-            version = shesha.__version__
-        else:
-            version = str(check_output(
-                ["git", "rev-parse", "HEAD"]).replace("\n", ""))
+        version = shesha.__version__
         if(dataBase.loc[i, "validity"] and (dataBase.loc[i, "revision"] == version)):
             cond = ((dataBase.loc[i, param2test[cc]] == pdict[param2test[cc]]).all())
             while(cond):
@@ -603,11 +590,7 @@ def checkDmsParams(savepath, config, pdict, matricesToLoad):
 
     for i in dataBase.index:
         cc = 0
-        if shesha.__version__ is not "Develop":
-            version = shesha.__version__
-        else:
-            version = str(check_output(
-                ["git", "rev-parse", "HEAD"]).replace("\n", ""))
+        version = shesha.__version__
         if(dataBase.loc[i, "validity"] and (dataBase.loc[i, "revision"] == version)):
             cond = ((dataBase.loc[i, param2test[cc]]
                      == pdict[param2test[cc]]).all())

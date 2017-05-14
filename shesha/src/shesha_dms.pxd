@@ -69,15 +69,15 @@ cdef class Dms:
 
 cpdef createSquarePattern(float pitch, int nxact )
 cpdef createHexaPattern(float pitch, float supportSize)
-cpdef make_pzt_dm(Param_dm p_dm,Param_geom geom,Param_tel p_tel,irc)
-cpdef read_influ_hdf5 (Param_dm p_dm,Param_tel p_tel, Param_geom geom)
-cpdef make_tiptilt_dm(Param_dm p_dm,list p_wfs, Param_geom p_geom, Param_tel p_tel)
+cpdef make_pzt_dm(Param_dm p_dm,Param_geom geom,cobs)
+cpdef read_influ_hdf5 (Param_dm p_dm, Param_geom geom,diam)
+cpdef make_tiptilt_dm(Param_dm p_dm,patchDiam, Param_geom p_geom, diam)
 
 cpdef make_klbas(Param_dm p_dm,int nkl,float cobs, long dim,funct, float outscl=?)
-cpdef make_kl_dm(Param_dm p_dm, list p_wfs,Param_geom p_geom, Param_tel p_tel)
+cpdef make_kl_dm(Param_dm p_dm, patchDiam, Param_geom p_geom, cobs)
 
 cpdef make_zernike(int nzer,int size,int diameter, float xc=?, float yc=?, int ext=?)
 cpdef comp_dmgeom(Param_dm dm, Param_geom geom)
-cpdef compute_klbasis(Dms g_dm, Param_dm p_dm, Param_geom p_geom, Param_atmos p_atmos, Param_tel p_tel)
+cpdef compute_klbasis(Dms g_dm, Param_dm p_dm, Param_geom p_geom, r0, diam)
 cpdef computeDMbasis(Dms g_dm, Param_dm p_dm, Param_geom p_geom)
 cpdef computeIFsparse(Dms g_dm, list p_dms, Param_geom p_geom)

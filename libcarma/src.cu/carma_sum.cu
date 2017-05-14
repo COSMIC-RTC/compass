@@ -227,12 +227,16 @@ template void
 reduce<float>(int size, int threads, int blocks, float *d_idata,
     float *d_odata);
 
-
+#if (__CUDA_ARCH__ < 600)
 template<> void
 reduce<double>(int size, int threads, int blocks, double *d_idata,
     double *d_odata){
-      DEBUG_TRACE("Not implemented");
+      DEBUG_TRACE("Not implemented, only supported by devices of compute capability 6.x and higher.");
     }
+#else
+template void
+reduce<double>(int size, int threads, int blocks, double *d_idata, double *d_odata);
+#endif
 
 template<> void
 reduce<cuFloatComplex>(int size, int threads, int blocks, cuFloatComplex *d_idata,

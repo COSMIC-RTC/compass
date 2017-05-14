@@ -16,7 +16,7 @@ try:
 except:
     import warnings
     shesha_db = shesha_dir + "/data/"
-    warnings.warn("'SHESHA_ROOT' not defined, using default one: "+shesha_db)
+    warnings.warn("'SHESHA_DB_ROOT' not defined, using default one: "+shesha_db)
 finally:
     shesha_savepath = < bytes >shesha_db
 
@@ -153,13 +153,13 @@ cdef class Param_tel:
         :param tt: (float) : std of tip-tilt errors for EELT segments
         """
         self.std_tt = tt
-        
+
     def set_vect_seg(self, vect):
         """Set the segment number for construct ELT pupil"
 
         :param vect: (list of int32) : segment numbers
         """
-        self.vect_seg = np.array(vect, dtype=np.int32)        
+        self.vect_seg = np.array(vect, dtype=np.int32)
 
 
 #################################################
@@ -167,7 +167,28 @@ cdef class Param_tel:
 #################################################
 cdef class Param_geom:
 
-    def geom_init(self, Param_tel tel, long pupdiam, apod):
+    def init_pup(self, pupdiam):
+        """Initialize the system pupil
+
+        :parameters:
+            pupdiam: (long) : linear size of total pupil
+
+            extent: (float) : apodizer
+        """
+        # first poxer of 2 greater than pupdiam
+        self.ssize = long(2 ** np.ceil(np.log2(pupdiam) + 1))
+        # using images centered on 1/2 pixels
+        self.cent = self.ssize / 2 + 0.5
+        # valid pupil geometry
+        pupdiam = long(pupdiam)
+        self._p1 = long(np.ceil(self.cent - pupdiam / 2.))
+        self._p2 = long(np.floor(self.cent + pupdiam / 2.))
+        self.pupdiam = self._p2 - self._p1 + 1
+        self._n = self.pupdiam + 4
+        self._n1 = self._p1 - 2
+        self._n2 = self._p2 + 2
+
+    def geom_init(self, Param_tel tel, long pupdiam, int apod=0, str apod_filename=None):
         """Initialize the system geometry
 
         :parameters:
@@ -176,23 +197,10 @@ cdef class Param_geom:
             pupdiam: (long) : linear size of total pupil
 
             apod: (int) : apodizer
-        """
-        self.pupdiam = pupdiam
-        # first poxer of 2 greater than pupdiam
-        self.ssize = long(2 ** np.ceil(np.log2(pupdiam) + 1))
-        # using images centered on 1/2 pixels
-        self.cent = self.ssize / 2 + 0.5
-        # valid pupil geometry
-        self._p1 = long(np.ceil(self.cent - pupdiam / 2.))
-        self._p2 = long(np.floor(self.cent + pupdiam / 2.))
-        self.pupdiam = self._p2 - self._p1 + 1
-        self._n = self.pupdiam + 4
-        self._n1 = self._p1 - 2
-        self._n2 = self._p2 + 2
 
-        # TODO check filename
-        cdef bytes filename = < bytes > shesha_savepath + \
-                              < bytes > "apodizer/SP_HARMONI_I4_C6_N1024.npy"
+            apod_filename: (str) : apodizer filename
+        """
+        self.init_pup(pupdiam)
 
         cdef float cent = self.pupdiam / 2. + 0.5
 
@@ -209,11 +217,44 @@ cdef class Param_geom:
         self._phase_ab_M1_m = mkP.pad_array(self._phase_ab_M1, self._n).astype(np.float32)
 
         if(apod == 1):
-            self._apodizer = make_apodizer(self.pupdiam, self.pupdiam, filename, 180. / 12.).astype(np.float32)
+            if apod_filename == None:
+                apod_filename = shesha_savepath + "apodizer/SP_HARMONI_I4_C6_N1024.npy"
+            self._apodizer = make_apodizer(self.pupdiam, self.pupdiam, apod_filename.encode(), 180. / 12.).astype(np.float32)
         else:
             self._apodizer = np.ones((self._spupil.shape[0], self._spupil.shape[1])).astype(np.float32)
 
 
+    def geom_init_generic(self, long pupdiam, t_spiders=0.01, spiders_type="six",
+                          xc=0, yc=0, real=0, cobs=0):
+        """Initialize the system geometry
+
+        :parameters:
+            pupdiam: (long) : linear size of total pupil
+
+            t_spiders: (float) : secondary supports ratio.
+
+            spiders_type: (str) :  secondary supports type: "four" or "six".
+
+            xc: (int)
+
+            yc: (int)
+
+            real: (int)
+
+            cobs: (float) : central obstruction ratio.
+        """
+        self.init_pup(pupdiam)
+
+        cdef float cent = self.pupdiam / 2. + 0.5
+
+        # useful pupil
+        self._spupil = mkP.make_pupil_generic(pupdiam,pupdiam,t_spiders,spiders_type, xc, yc,real, cobs)
+
+        # large pupil (used for image formation)
+        self._ipupil = mkP.pad_array(self._spupil, self.ssize).astype(np.float32)
+
+        # useful pupil + 4 pixels
+        self._mpupil = mkP.pad_array(self._spupil, self._n).astype(np.float32)
 
     def set_ssize(self, long s):
         """Set linear size of full image
@@ -239,6 +280,12 @@ cdef class Param_geom:
          :param c: (float) : central point of the simulation."""
         self.cent = c
 
+    def set_apod(self, int a):
+        """Tells if the apodizer is used
+        The apodizer is used if a is not 0
+        :param a: (int) boolean for apodizer
+        """
+        self.apod = a
 
     def get_ipupil(self):
         """return the full pupil support"""
@@ -889,7 +936,16 @@ cdef class Param_dm:
         self._klbas = Klbas()
         self.influType = <bytes> ("default")
         self.gain = 1.0
-        
+        self.margin_out = -1
+        self.margin_in = -1
+        self.pzt_extent = 5
+
+    def set_pzt_extent(self,int p):
+        """Set extent of pzt dm in pich unit default = 5
+        :param p: (int) : extent pzt dm
+        """
+        self.pzt_extent = p
+
     def set_influType(self, bytes t):
         """Set the influence function type for pzt DM
         :param t: (str) : centroider type
@@ -982,7 +1038,7 @@ cdef class Param_dm:
         :param dp: (str) : name of diameter (meter in pupil plan) dm
         """
         self.diam_dm_proj=dp
-        
+
     def set_nact(self, long n):
 
         """set the number of actuator
@@ -1189,6 +1245,10 @@ cdef class Param_rtc:
 # P-Class (parametres) Param_centroider
 #################################################
 cdef class Param_centroider:
+    def __cinit__(self):
+        # centroider method by default sin_global
+        self.method = Sinus & ~Local
+        self.thresh = 1e-4
 
     def set_type(self, bytes t):
         """Set the centroider type
@@ -1225,6 +1285,20 @@ cdef class Param_centroider:
             t: (float) : threshold
         """
         self.thresh = t
+
+    def set_method(self, np.uint8_t method):
+        """Set the centroiding method for pyrhr
+
+        :parameters:
+            method : (np.uint8) : new centroiding method (0: nosinus global
+                                                         1: sinus global
+                                                         2: nosinus local
+                                                         3: sinus local)
+        """
+        if method>=Other:
+            raise ValueError("method unknown")
+
+        self.method = method
 
     def set_width(self, float w):
         """Set the width of the Gaussian
@@ -1266,23 +1340,23 @@ cdef class Param_controller:
 
     def set_type(self, bytes b):
         self.type_control = b
-        
+
     def set_kl_imat(self, int k):
         """Set type imat, for imat on kl set at 1
 
         :param k: (int) : imat kl
         """
         self.kl_imat = k
-        
+
     def set_klgain(self, gkl):
         """Set klgain for imatkl size = number of kl mode
 
         :param klgain: (list of float32) : klgain
         """
         self.klgain = np.array(gkl, dtype=np.float32)
-        
+
     def set_nwfs(self, l):
-        
+
         """Set the indices of wfs
 
         :param l: (list of int) : indices of wfs

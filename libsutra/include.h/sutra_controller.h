@@ -7,6 +7,9 @@
 #include <sutra_dm.h>
 #include <sutra_centroider.h>
 #include <sutra_ao_utils.h>
+#include <mutex>
+
+using std::mutex;
 
 class sutra_controller {
 public:
@@ -83,6 +86,7 @@ public:
 protected:
   int device;
   carma_context *current_context;
+  mutex comp_voltage_mutex;
 
 };
 

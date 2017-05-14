@@ -400,7 +400,6 @@ def wfs_init(wfs, Param_atmos p_atmos, Param_tel p_tel, Param_geom p_geom,
     else:
         init_wfs_geom(wfs[indmax], wfs[0], indmax, p_atmos, p_tel, p_geom, p_target,
                       p_loop, init=0, verbose=rank)
-
     # #do the same for other wfs
     for i in range(nsensors):
         if(i != indmax):
@@ -477,7 +476,7 @@ def wfs_init(wfs, Param_atmos p_atmos, Param_tel p_tel, Param_geom p_geom,
         g_wfs.sensors_initgs(xpos, ypos, Lambda, mag, zerop, size, noise, seed, G, thetaML, dx, dy)
 
     elif(wfs[0].type_wfs == "pyrhr"):
-        npup = np.array([wfs[0].pyr_npts], dtype=np.int64)
+        npup = np.array([o.pyr_npts for o in wfs])
         G = np.array([o.G for o in wfs], dtype=np.float32)
         thetaML = np.array([o.thetaML for o in wfs], dtype=np.float32)
         dx = np.array([o.dx for o in wfs], dtype=np.float32)
@@ -571,7 +570,7 @@ cpdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
 
     cdef long pdiam = 0
 
-    if(init == 0):
+    if(init == 0 or geom.pupdiam):
         if(wfs.type_wfs == "sh"):
             pdiam = geom.pupdiam / wfs.nxsub
             if(geom.pupdiam % wfs.nxsub > 0):
@@ -628,7 +627,10 @@ cpdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
     if(init == 1 or (wfs.type_wfs == "geo" and n == 1)):
         # this is the wfs with largest # of subaps
         # the overall geometry is deduced from it
-        geom.geom_init(tel, pdiam * wfs.nxsub, p_target.apod)
+        if(geom.pupdiam):
+            geom.geom_init(tel, geom.pupdiam, p_target.apod)
+        else:
+            geom.geom_init(tel, pdiam * wfs.nxsub, p_target.apod)
 
     if(wfs.type_wfs=="pyr" or wfs.type_wfs == "roof"):
         padding = 2
@@ -1326,7 +1328,7 @@ cdef init_wfs_size(Param_wfs wfs, int n, Param_atmos atmos,
 
         if(wfs.type_wfs == "pyrhr"):
             # while (pdiam % wfs.npix != 0) pdiam+=1;
-            k = 4
+            k = 3
             pdiam[0] = long(tel.diam / r0 * k)
             while (pdiam[0] % wfs.nxsub != 0):
                 pdiam[0] += 1  # we choose to have a multiple of wfs.nxsub
@@ -2776,6 +2778,22 @@ cdef class Sensors:
         data = np.empty((cdims[1]), dtype=np.float32)
         cube.device2host( < int * > data.data)
         return data
+
+    cpdef set_noise(self, int nwfs, np.float32_t noise, np.int64_t seed=-1):
+        """Set the noise of a given wfs
+
+        :param nwfs: (int) : number of the wfs wanted
+        
+        :param noise: (np.float32_t) : desired noise : < 0 = no noise
+                                                         0 = photon only
+                                                       > 0 = photon + ron in ?
+        :param seed: (long) : seed of the new noise
+        
+        TODO: fill the noise unit
+        """
+        if seed<0:
+            seed = 1234 * nwfs
+        self.sensors.set_noise(nwfs, noise, seed)
 
 """
     cdef getDims(self):

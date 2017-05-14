@@ -5,38 +5,47 @@ import cProfile
 import pstats as ps
 """
 
+try:
+    # BB_FIX, aka "Bumblebee fix", is a global variable to:
+    #   * create the naga_context at the start of the execution
+    #   * remove threaded initialization
+    global BB_FIX
+    BB_FIX = 0
+    import naga as ch
+    import shesha as ao
+    if BB_FIX:
+        c = ch.naga_context()
+except ImportError as error:
+    import warnings
+    warnings.warn("GPU not accessible", RuntimeWarning)
+    print "due to: ", error
+
 import sys
-import os
+from sys import path, stdout, argv
+from os import environ
 import numpy as np
 from time import time
 import matplotlib.pyplot as plt
 import pyqtgraph as pg
-import tools
+from tools import plsh, plpyr
 from glob import glob
-import threading
+from threading import Lock
 from PyQt4.uic import loadUiType
 from PyQt4 import QtGui
 from PyQt4.Qt import QThread, QObject
 from PyQt4.QtCore import QTimer, SIGNAL
 from functools import partial
 from subprocess import Popen, PIPE
-try:
-    import naga as ch
-    import shesha as ao
-except ImportError as error:
-    import warnings
-    warnings.warn("GPU not accessible", RuntimeWarning)
-    print "due to: ", error
 
 try:
     import hdf5_utils as h5u
 except ImportError:
-    sys.path.insert(0, os.environ["SHESHA_ROOT"] + "/src/")
+    path.insert(0, environ["SHESHA_ROOT"] + "/src/")
 finally:
     import hdf5_utils as h5u
 
-sys.path.insert(0, os.environ["SHESHA_ROOT"] + "/data/par/")
-WindowTemplate, TemplateBaseClass = loadUiType(os.environ["SHESHA_ROOT"] +
+path.insert(0, environ["SHESHA_ROOT"] + "/data/par/")
+WindowTemplate, TemplateBaseClass = loadUiType(environ["SHESHA_ROOT"] +
                                                "/widgets/widget_ao.ui")
 
 plt.ion()
@@ -68,8 +77,8 @@ class widgetAOWindow(TemplateBaseClass):
         self.dms = None
 
         self.config = None
-        self.displayLock = threading.Lock()
-        self.loopLock = threading.Lock()
+        self.displayLock = Lock()
+        self.loopLock = Lock()
         self.iter = 0
         self.loaded = False
         self.stop = False
@@ -103,7 +112,7 @@ class widgetAOWindow(TemplateBaseClass):
         #                 CONNECTED BUTTONS                         #
         #############################################################
         # Default path for config files
-        self.defaultParPath = os.environ[
+        self.defaultParPath = environ[
             "SHESHA_ROOT"] + "/data/par/par4bench/"
         self.ui.wao_loadConfig.clicked.connect(self.loadConfig)
         self.loadDefaultConfig()
@@ -179,7 +188,7 @@ class widgetAOWindow(TemplateBaseClass):
         if not self.assistant or \
            not self.assistant.poll() is None:
 
-            helpcoll = os.environ["COMPASS_ROOT"] + "/doc/COMPASS.qhc"
+            helpcoll = environ["COMPASS_ROOT"] + "/doc/COMPASS.qhc"
             cmd = "assistant -enableRemoteControl -collectionFile %s" % helpcoll
             self.assistant = Popen(cmd, shell=True, stdin=PIPE)
 #         self.assistant.stdin.write("SetSource qthelp://org.sphinx.compassshesha.r763/doc/index.html\n")
@@ -202,7 +211,7 @@ class widgetAOWindow(TemplateBaseClass):
                 self.loop.join()
             # super(widgetAOWindow, self).closeEvent(event)
             quit()
-            # sys.exit()
+            # exit()
         else:
             event.ignore()
 
@@ -568,8 +577,8 @@ class widgetAOWindow(TemplateBaseClass):
         if(filepath.split('.')[-1] == "py"):
             self.ui.wao_selectConfig.addItem(filename, 0)
             pathfile = filepath.split(filename)[0]
-            if (pathfile not in sys.path):
-                sys.path.insert(0, pathfile)
+            if (pathfile not in path):
+                path.insert(0, pathfile)
 
             if self.config is not None:
                 print "Removing previous config"
@@ -578,11 +587,11 @@ class widgetAOWindow(TemplateBaseClass):
 
             print "loading ", filename.split(".py")[0]
             exec("import %s as config" % filename.split(".py")[0])
-            sys.path.remove(pathfile)
+            path.remove(pathfile)
         elif(filepath.split('.')[-1] == "h5"):
-            sys.path.insert(0, self.defaultParPath)
+            path.insert(0, self.defaultParPath)
             import scao_16x16_8pix as config
-            sys.path.remove(self.defaultParPath)
+            path.remove(self.defaultParPath)
             h5u.configFromH5(filepath, config)
         else:
             print "Parameter file extension must be .py or .h5"
@@ -654,17 +663,22 @@ class widgetAOWindow(TemplateBaseClass):
 
     def loadConfig(self):
         configfile = str(self.ui.wao_selectConfig.currentText())
-        sys.path.insert(0, self.defaultParPath)
+        path.insert(0, self.defaultParPath)
 
         if self.config is not None:
+            name = self.config.__name__
             print "Removing previous config"
             self.config = None
             config = None
+            try:
+                del sys.modules[name]
+            except:
+                pass
 
         print "loading ", configfile.split(".py")[0]
         exec("import %s as config" % configfile.split(".py")[0])
         self.config = config
-        sys.path.remove(self.defaultParPath)
+        path.remove(self.defaultParPath)
 
         self.loaded = False
         self.ui.wao_selectScreen.clear()
@@ -710,11 +724,15 @@ class widgetAOWindow(TemplateBaseClass):
         self.loaded = False
         self.ui.wao_loadConfig.setDisabled(True)
         self.ui.wao_init.setDisabled(True)
-        thread = WorkerThread(self, self.InitConfigThread)
-        QObject.connect(thread, SIGNAL(
-            "jobFinished( PyQt_PyObject )"), self.InitConfigFinished)
-        thread.start()
-     
+        if BB_FIX:
+            self.InitConfigThread()
+            self.InitConfigFinished()
+        else:
+            thread = WorkerThread(self, self.InitConfigThread)
+            QObject.connect(thread, SIGNAL(
+                "jobFinished( PyQt_PyObject )"), self.InitConfigFinished)
+            thread.start()
+
     def InitConfigThread(self):
         if(hasattr(self, "atm")):
             del self.atm
@@ -746,7 +764,7 @@ class widgetAOWindow(TemplateBaseClass):
             clean = 0
             param_dict = h5u.params_dictionary(self.config)
             matricesToLoad = h5u.checkMatricesDataBase(
-                os.environ["SHESHA_ROOT"] + "/data/", self.config, param_dict)
+                environ["SHESHA_ROOT"] + "/data/", self.config, param_dict)
 
         gpudevice = self.ui.wao_deviceNumber.value()  # using GUI value
         gpudevice = self.config.p_loop.devices
@@ -772,7 +790,7 @@ class widgetAOWindow(TemplateBaseClass):
 
         self.atm = ao.atmos_init(self.c, self.config.p_atmos, self.config.p_tel,
                                  self.config.p_geom, self.config.p_loop,
-                                 self.config.p_wfss, self.config.p_target,
+                                 self.config.p_wfss, self.wfs, self.config.p_target,
                                  clean=clean, load=matricesToLoad)
         self.ui.wao_atmosDimScreen.setText(
             str(self.config.p_atmos.dim_screens[0]))
@@ -781,8 +799,7 @@ class widgetAOWindow(TemplateBaseClass):
             self.config.p_dms, self.config.p_wfss, self.wfs, self.config.p_geom, self.config.p_tel)
 
         self.tar = ao.target_init(self.c, self.tel, self.config.p_target, self.config.p_atmos,
-                                  self.config.p_geom, self.config.p_tel, self.config.p_wfss,
-                                  self.wfs, self.config.p_dms)
+                                  self.config.p_geom, self.config.p_tel, self.config.p_dms)
 
         self.rtc = ao.rtc_init(self.tel, self.wfs, self.config.p_wfss, self.dms, self.config.p_dms,
                                self.config.p_geom, self.config.p_rtc, self.config.p_atmos,
@@ -790,7 +807,7 @@ class widgetAOWindow(TemplateBaseClass):
 
         if(not clean):
             h5u.validDataBase(
-                os.environ["SHESHA_ROOT"] + "/data/", matricesToLoad)
+                environ["SHESHA_ROOT"] + "/data/", matricesToLoad)
         self.loaded = True
 
     def InitConfigFinished(self):
@@ -1121,10 +1138,10 @@ class widgetAOWindow(TemplateBaseClass):
                             2 * o._nvalid for o in self.config.p_wfss]
                         ind = np.sum(nvalid[:self.numberSelected])
                         if(self.config.p_wfss.type_wfs[self.numberSelected] == "pyrhr"):
-                            tools.plpyr(
+                            plpyr(
                                 centroids[ind:ind + nvalid[self.numberSelected]], self.config.p_wfs0._isvalid)
                         else:
-                            x, y, vx, vy = tools.plsh(centroids[ind:ind + nvalid[self.numberSelected]], self.config.p_wfss[
+                            x, y, vx, vy = plsh(centroids[ind:ind + nvalid[self.numberSelected]], self.config.p_wfss[
                                 self.numberSelected].nxsub, self.config.p_tel.cobs, returnquiver=True)  # Preparing mesh and vector for display
                         self.ui.wao_rtcWindowMPL.canvas.axes.quiver(
                             x, y, vx, vy, pivot='mid')
@@ -1137,8 +1154,8 @@ class widgetAOWindow(TemplateBaseClass):
                         self.ui.wao_rtcWindowMPL.canvas.axes.clear()
                         self.wfs.slopes_geom(self.numberSelected, 0)
                         slopes = self.wfs.get_slopes(self.numberSelected)
-                        x, y, vx, vy = tools.plsh(slopes, self.config.p_wfss[
-                                                  self.numberSelected].nxsub, self.config.p_tel.cobs, returnquiver=True)  # Preparing mesh and vector for display
+                        x, y, vx, vy = plsh(slopes, self.config.p_wfss[
+                                            self.numberSelected].nxsub, self.config.p_tel.cobs, returnquiver=True)  # Preparing mesh and vector for display
                         self.ui.wao_rtcWindowMPL.canvas.axes.quiver(
                             x, y, vx, vy, pivot='mid')
                         self.ui.wao_rtcWindowMPL.canvas.draw()
@@ -1321,8 +1338,8 @@ class widgetAOWindow(TemplateBaseClass):
     def printInPlace(self, text):
         # This seems to trigger the GUI and keep it responsive
         print "\r" + text,
-        sys.stdout.flush()
-        # sys.stdout.write(text)
+        stdout.flush()
+        # stdout.write(text)
 
     def run(self):
         self.mainLoop()
@@ -1336,24 +1353,27 @@ class widgetAOWindow(TemplateBaseClass):
             self.ui.wao_run.setChecked(False)
 
 
-class WorkerThread( QThread ):
-    def __init__( self, parentThread, parentLoop):
-        QThread.__init__( self, parentThread)
+class WorkerThread(QThread):
+    def __init__(self, parentThread, parentLoop):
+        QThread.__init__(self, parentThread)
         self.loop = parentLoop
-    def run( self ):
+
+    def run(self):
         self.running = True
         self.loop()
         success = True
-        self.emit( SIGNAL( "jobFinished( PyQt_PyObject )" ), success )
-    def stop( self ):
+        self.emit(SIGNAL("jobFinished( PyQt_PyObject )"), success)
+
+    def stop(self):
         self.running = False
         pass
-    def cleanUp( self):
+
+    def cleanUp(self):
         pass
 
 
 if __name__ == '__main__':
-    app = QtGui.QApplication(sys.argv)
+    app = QtGui.QApplication(argv)
     app.setStyle('cleanlooks')
     wao = widgetAOWindow()
     wao.show()

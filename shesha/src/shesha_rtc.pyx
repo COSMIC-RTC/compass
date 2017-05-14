@@ -133,6 +133,63 @@ cdef class Rtc:
         else:
             self.rtc.add_controller(nactu, delay, self.device, type_control, dms.dms, & ptr_dmseen, ptr_alt, ndm)
 
+    cpdef get_pyr_method(self, int n):
+        """Get the pyramid centroiding method
+        :parameters:
+        n : (int) : pyr centroider number
+        """
+        cdef sutra_centroider_pyr * centro = NULL
+
+        if(self.rtc.d_centro[n].is_type("pyrhr")):
+            centro = dynamic_cast_centroider_pyr_ptr(self.rtc.d_centro[n])
+            return centro.get_method_str()
+        else:
+            e="Centroider should be pyrhr, got "+self.rtc.d_centro[n].get_type()
+            raise ValueError(e)
+
+    cpdef set_pyr_method(self, int n, int method, list p_centroiders):
+        """Set the pyramid centroiding method
+        :parameters:
+        n : (int) : pyr centroider number
+        method : (int) : new centroiding method (0: nosinus global
+                                                 1: sinus global
+                                                 2: nosinus local
+                                                 3: sinus local)
+        p_centroiders : (list of Param_centroider) : list of centroider parameters
+        """
+        cdef sutra_centroider_pyr * centro = NULL
+
+        if(self.rtc.d_centro[n].is_type("pyrhr")):
+            if method>=Other:
+                raise ValueError("method unknown")
+
+            centro = dynamic_cast_centroider_pyr_ptr(self.rtc.d_centro[n])
+            centro.set_method(method)
+            p_centroiders[n].set_method(method)
+        else:
+            e="Centroider should be pyrhr, got "+self.rtc.d_centro[n].get_type()
+            raise ValueError(e)
+
+    cpdef set_pyr_thresh(self, int n, float threshold, list p_centroiders):
+        """Set the pyramid threshold
+        :parameters:
+        n : (int) : pyr centroider number
+        threshold : (float) : new threshold in photons
+        p_centroiders : (list of Param_centroider) : list of centroider parameters
+        """
+        cdef sutra_centroider_pyr * centro = NULL
+        cdef carma_context * context = &carma_context.instance()
+        context.set_activeDevice(self.device, 1)
+
+        if(self.rtc.d_centro[n].is_type("pyrhr")):
+            centro = dynamic_cast_centroider_pyr_ptr(self.rtc.d_centro[n])
+            centro.set_valid_thresh(threshold)
+
+            p_centroiders[n].set_thresh(threshold)
+        else:
+            e="Centroider should be pyrhr, got "+self.rtc.d_centro[n].get_type()
+            raise ValueError(e)
+
     cpdef set_pyr_ampl(self, int n, float ampli, list p_wfss, Param_tel p_tel):
         """Set the pyramid modulation amplitude
         :parameters:
@@ -2109,6 +2166,10 @@ def rtc_init(Telescope g_tel, Sensors g_wfs, p_wfs, Dms g_dms, p_dms, Param_geom
                 g_rtc.add_centroider(g_wfs, nwfs, wfs._nvalid, centroider.type_centro, s_offset, s_scale)
                 g_rtc.sensors_initbcube(i)
 
+                if(wfs.type_wfs == "pyrhr"):
+                    g_rtc.set_pyr_method(i, centroider.method, p_rtc.centroiders)
+                    g_rtc.set_pyr_thresh(i, centroider.thresh, p_rtc.centroiders)
+
                 if(wfs.type_wfs == "sh"):
                     if(centroider.type_centro == "tcog"):
                         g_rtc.setthresh(i, centroider.thresh)
@@ -2247,7 +2308,7 @@ def rtc_init(Telescope g_tel, Sensors g_wfs, p_wfs, Dms g_dms, p_dms, Param_geom
                             < float *> alt.data, controller.ndm.size)
 
                     if(p_wfs is not None and do_refslp):
-                      g_rtc.do_centroids_ref(i)
+                        g_rtc.do_centroids_ref(i)
 
                     if(controller.type_control == "geo"):
                         indx_pup = np.where(p_geom._spupil.flatten('F'))[0].astype(np.int32)
@@ -2514,11 +2575,7 @@ cpdef correct_dm(p_dms, Dms g_dms, Param_controller p_control, Param_geom p_geom
                 ok = np.where(tmp.flatten("F") > p_dms[nm].thresh * np.max(tmp))[0]
                 nok = np.where(tmp.flatten("F") <= p_dms[nm].thresh * np.max(tmp))[0]
                 if(simul_name != "" and clean == 0 and rank == 0):
-                    if shesha.__version__ is not "Develop":
-                        version = shesha.__version__
-                    else:
-                        version = str(check_output(
-                            ["git", "rev-parse", "HEAD"]).replace("\n", ""))
+                    version = shesha.__version__
                     print "writing files"
                     df = pandas.read_hdf(shesha_savepath + "/matricesDataBase.h5", "pztok")
                     ind = len(df.index) - 1
@@ -2545,10 +2602,12 @@ cpdef correct_dm(p_dms, Dms g_dms, Param_controller p_control, Param_geom p_geom
 
             dims = long(p_dms[nm]._n2 - p_dms[nm]._n1 + 1)
             dims = max(dims, p_geom._mpupil.shape[1])
+             
             g_dms.add_dm(< bytes > "pzt", p_dms[nm].alt, dims, ninflu, influsize,
                             ninflupos, n_npts, p_dms[nm].push4imat)
             g_dms.load_pzt(p_dms[nm].alt, p_dms[nm]._influ, p_dms[nm]._influpos.astype(np.int32),
-                p_dms[nm]._ninflu, p_dms[nm]._influstart, p_dms[nm]._i1, p_dms[nm]._j1, p_dms[nm]._influkernel)
+                p_dms[nm]._ninflu, p_dms[nm]._influstart, p_dms[nm]._i1, p_dms[nm]._j1,
+                p_dms[nm]._influkernel)
 
         elif(p_dms[nm].type_dm == "tt"):
             dim = long(p_dms[nm]._n2 - p_dms[nm]._n1 + 1)
@@ -2807,7 +2866,7 @@ cpdef compute_KL2V(Param_controller controller, Dms dms, p_dms, Param_geom p_geo
         ndm = controller.ndm[i]
         if(p_dms[ndm].type_dm == "pzt"):
             KL2V[indx_act:indx_act + ntotact[ndm], indx_act:indx_act + ntotact[ndm]] = \
-                compute_klbasis(dms, p_dms[ndm], p_geom, p_atmos, p_tel)
+                compute_klbasis(dms, p_dms[ndm], p_geom, p_atmos.r0, p_tel.diam)
             indx_act += ntotact[ndm]
             print "compute klbasis done"
         elif(p_dms[ndm].type_dm == "tt"):
@@ -2946,11 +3005,7 @@ cpdef imat_init(int ncontrol, Rtc g_rtc, Param_rtc p_rtc, Dms g_dms, p_dms, Sens
         print "done in %f s"%(time.time() - t0)
         p_rtc.controllers[ncontrol].set_imat(g_rtc.get_imat(ncontrol))
         if(simul_name != "" and clean == 0 and rank == 0):
-            if shesha.__version__ is not "Develop":
-                version = shesha.__version__
-            else:
-                version = str(check_output(
-                    ["git", "rev-parse", "HEAD"]).replace("\n", ""))
+            version = shesha.__version__
 
             df = pandas.read_hdf(shesha_savepath + "/matricesDataBase.h5", "imat")
             ind = len(df.index) - 1
@@ -3042,11 +3097,7 @@ cpdef cmat_init_kl(int ncontrol, Rtc g_rtc, Param_rtc p_rtc, list p_wfs, Param_a
             eigenv = g_rtc.getEigenvals(ncontrol)
             #enregistrement des valeurs propre
             if(simul_name != "" and clean == 0 and rank == 0):
-                if shesha.__version__ is not "Develop":
-                    version = shesha.__version__
-                else:
-                    version = str(check_output(
-                        ["git", "rev-parse", "HEAD"]).replace("\n", ""))
+                version = shesha.__version__
                 U = g_rtc.getU(ncontrol)
                 df = pandas.read_hdf(shesha_savepath + "/matricesDataBase.h5", "eigenv")
                 ind = len(df.index) - 1
@@ -3161,11 +3212,7 @@ cpdef cmat_init(int ncontrol, Rtc g_rtc, Param_rtc p_rtc, list p_wfs, Param_atmo
             print "svd done in %f s"%(time.time() - t0)
             eigenv = g_rtc.getEigenvals(ncontrol)
             if(simul_name != "" and clean == 0 and rank == 0):
-                if shesha.__version__ is not "Develop":
-                    version = shesha.__version__
-                else:
-                    version = str(check_output(
-                        ["git", "rev-parse", "HEAD"]).replace("\n", ""))
+                version = shesha.__version__
                 U = g_rtc.getU(ncontrol)
                 df = pandas.read_hdf(shesha_savepath + "/matricesDataBase.h5", "eigenv")
                 ind = len(df.index) - 1

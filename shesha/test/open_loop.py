@@ -10,6 +10,7 @@ import shesha as ao
 import time
 import matplotlib.pyplot as plt
 import hdf5_utils as h5u
+import numpy as np
 plt.ion()
 
 print "TEST SHESHA\n closed loop: call loop(int niter)"
@@ -49,13 +50,9 @@ else:
 
 clean = 1
 matricesToLoad = {}
-'''
-if(simul_name != ""):
-    clean = 0
-    param_dict = h5u.params_dictionary(config)
-    matricesToLoad = h5u.checkMatricesDataBase(
-        os.environ["SHESHA_ROOT"] + "/data/", config, param_dict)
-'''
+
+config.p_geom.set_pupdiam(500)
+
 # initialisation:
 
 #   context
@@ -67,26 +64,21 @@ c = ch.naga_context(devices=config.p_loop.devices)
 #    wfs
 print "->wfs"
 wfs, tel = ao.wfs_init(config.p_wfss, config.p_atmos, config.p_tel,
-                       config.p_geom, config.p_target, config.p_loop, config.p_dms)
+                       config.p_geom, None, config.p_loop, config.p_dms)
 
 #   atmos
 print "->atmos"
-atm = ao.atmos_init(c, config.p_atmos, config.p_tel, config.p_geom, config.p_loop, config.p_wfss, wfs, config.p_target,
+atm = ao.atmos_init(c, config.p_atmos, config.p_tel, config.p_geom,
+                    config.p_loop, config.p_wfss, wfs, None,
                     clean=clean, load=matricesToLoad)
 
 #   dm
 print "->dm"
 dms = ao.dm_init(config.p_dms, config.p_wfss, wfs, config.p_geom, config.p_tel)
+ao.correct_dm(config.p_dms, dms, config.p_controller0, config.p_geom,
+              np.ones((config.p_wfs0._nvalid, config.p_dm0._ntotact), dtype = np.float32),
+              '', {}, 1)
 
-#   target
-print "->target"
-tar = ao.target_init(c, tel, config.p_target, config.p_atmos, config.p_geom, config.p_tel, config.p_dms, config.p_wfss)
-
-print "->rtc"
-#   rtc
-rtc = ao.rtc_init(tel, wfs, config.p_wfss, dms, config.p_dms, config.p_geom, config.p_rtc, config.p_atmos, atm,
-                  config.p_tel, config.p_loop, clean=clean, simul_name=simul_name,
-                  load=matricesToLoad)
 
 if not clean:
     h5u.validDataBase(os.environ["SHESHA_ROOT"] + "/data/", matricesToLoad)
@@ -99,8 +91,6 @@ print "--------------------------------------------------------"
 print atm
 print wfs
 print dms
-print tar
-print rtc
 
 mimg = 0.  # initializing average image
 
@@ -113,30 +103,11 @@ def loop(n):
     for i in range(n):
         atm.move_atmos()
 
-        if(config.p_controllers[0].type_control == "geo"):
-            for t in range(config.p_target.ntargets):
-                tar.atmos_trace(t, atm, tel)
-                rtc.docontrol_geo(0, dms, tar, 0)
-                rtc.applycontrol(0, dms)
-                tar.dmtrace(0, dms)
-        else:
-            for t in range(config.p_target.ntargets):
-                tar.atmos_trace(t, atm, tel)
-                tar.dmtrace(t, dms)
-            for w in range(len(config.p_wfss)):
-                wfs.sensors_trace(w, "all", tel, atm, dms)
-                wfs.sensors_compimg(w)
-
-            rtc.docentroids(0)
-            rtc.docontrol(0)
-
-            rtc.applycontrol(0, dms)
-
-        if((i + 1) % 100 == 0):
-            strehltmp = tar.get_strehl(0)
-            print i + 1, "\t", strehltmp[0], "\t", strehltmp[1]
+        for w in range(len(config.p_wfss)):
+            wfs.sensors_trace(w, "all", tel, atm, dms)
+            
     t1 = time.time()
     print " loop execution time:", t1 - t0, "  (", n, "iterations), ", (t1 - t0) / n, "(mean)  ", n / (t1 - t0), "Hz"
 
 
-loop(config.p_loop.niter)
+# loop(config.p_loop.niter)

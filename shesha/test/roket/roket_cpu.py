@@ -82,7 +82,7 @@ wfs,tel=ao.wfs_init(config.p_wfss,config.p_atmos,config.p_tel,config.p_geom,conf
 
 #   atmos
 print "->atmos"
-atm=ao.atmos_init(c,config.p_atmos,config.p_tel,config.p_geom,config.p_loop,config.p_wfss,config.p_target,rank=0, clean=clean, load=matricesToLoad)
+atm=ao.atmos_init(c,config.p_atmos,config.p_tel,config.p_geom,config.p_loop,config.p_wfss,wfs,config.p_target,rank=0, clean=clean, load=matricesToLoad)
 
 #   dm
 print "->dm"
@@ -90,7 +90,7 @@ dms=ao.dm_init(config.p_dms,config.p_wfss,wfs,config.p_geom,config.p_tel)
 
 #   target
 print "->target"
-tar=ao.target_init(c,tel,config.p_target,config.p_atmos,config.p_geom,config.p_tel,config.p_wfss,wfs,config.p_dms)
+tar=ao.target_init(c,tel,config.p_target,config.p_atmos,config.p_geom,config.p_tel,config.p_dms)
 
 print "->rtc"
 #   rtc
@@ -643,7 +643,8 @@ def save_it(filename):
                "tomography":tomo_com.T,"filtered modes":H_com.T,"non linearity":trunc_com.T,
                "bandwidth":bp_com.T,"wf_com":wf_com.T,"P":P,"Btt":Btt,"IF.data":IF.data,"IF.indices":IF.indices,
                "IF.indptr":IF.indptr,"TT":TT,"dm_dim":dm_dim,"indx_pup":indx_pup,"fitting":fit,"SR":SR, "SR2":SR2,
-               "cov":cov,"cor":cor, "psfortho":np.fft.fftshift(psf_ortho), "E":E, "F":F, "dm.xpos":config.p_dms[0]._xpos, "dm.ypos":config.p_dms[0]._ypos}
+               "cov":cov,"cor":cor, "psfortho":np.fft.fftshift(psf_ortho), "E":E, "F":F, "dm.xpos":config.p_dms[0]._xpos,
+               "dm.ypos":config.p_dms[0]._ypos, "R":cmat, "Nact":Nact}
     h5u.save_h5(fname,"psf",config,psf)
     #h5u.writeHdf5SingleDataset(fname,com.T,datasetName="com")
     for k in pdict.keys():
@@ -667,6 +668,7 @@ rtc.set_cmat(0,cmat)
 R = rtc.get_cmat(0)
 imat = rtc.get_imat(0)
 RD = np.dot(R,imat)
+Nact = ao.create_nact_geom(config.p_dms,0)
 #gamma = 1./0.52
 #gamma = centroid_gain(100)
 #print "gamma = ",gamma
