@@ -5,6 +5,23 @@ import cProfile
 import pstats as ps
 """
 
+
+try:
+    # BB_FIX, aka "Bumblebee fix", is a global variable to:
+    #   * create the naga_context at the start of the execution
+    #   * remove threaded initialization
+    global BB_FIX
+    BB_FIX = 0
+    import naga as ch
+    import shesha as ao
+    if BB_FIX:
+        c = ch.naga_context()
+except ImportError as error:
+    import warnings
+    warnings.warn("GPU not accessible", RuntimeWarning)
+    print "due to: ", error
+
+
 import sys
 import os
 import numpy as np
@@ -406,10 +423,14 @@ class widgetAOWindow(TemplateBaseClass):
         self.loaded = False
         self.ui.wao_loadConfig.setDisabled(True)
         self.ui.wao_init.setDisabled(True)
-        thread = WorkerThread(self, self.InitConfigThread)
-        QObject.connect(thread, SIGNAL(
-            "jobFinished( PyQt_PyObject )"), self.InitConfigFinished)
-        thread.start()
+        if BB_FIX:
+            self.InitConfigThread()
+            self.InitConfigFinished()
+        else:
+            thread = WorkerThread(self, self.InitConfigThread)
+            QObject.connect(thread, SIGNAL(
+                "jobFinished( PyQt_PyObject )"), self.InitConfigFinished)
+            thread.start()
 
     def InitConfigThread(self):
         if(hasattr(self, "atm")):
