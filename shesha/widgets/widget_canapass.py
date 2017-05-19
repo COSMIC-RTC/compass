@@ -87,7 +87,7 @@ class widgetAOWindow(TemplateBaseClass):
 
         self.ui = WindowTemplate()
         self.ui.setupUi(self)
-
+        self.wpyr = None
         #############################################################
         #                   ATTRIBUTES                              #
         #############################################################
@@ -156,6 +156,9 @@ class widgetAOWindow(TemplateBaseClass):
         self.ui.wao_frameRate.setValue(2)
         #self.ui.wao_PSFlogscale.clicked.connect(self.updateDisplay)
         self.ui.wao_PSFlogscale.toggled.connect(self.updateDisplay)
+
+        self.ui.actionShow_Pyramid_Tools.toggled.connect(self.showPyrTools)
+
         self.ui.wao_atmosphere.setCheckable(True)
         self.ui.wao_atmosphere.clicked[bool].connect(self.set_atmos)
         self.dispStatsInTerminal = False
@@ -177,11 +180,36 @@ class widgetAOWindow(TemplateBaseClass):
         self.ui.wao_next.setDisabled(True)
         self.ui.wao_unzoom.setDisabled(True)
         self.ui.wao_resetSR.setDisabled(True)
-
+        self.ph2KL = None
+        self.KL2V = None
         # self.addConfigFromFile(
         #     filepath=os.environ["SHESHA_ROOT"] + "/data/par/canapass.py")
         # self.InitConfig()
 
+    def initPyrTools(self):
+        ADOPTPATH = os.getenv("ADOPTPATH")
+        sys.path.append(ADOPTPATH+"/widgets")
+        from pyrStats import widget_pyrStats
+        print "OK Pyramid Tools Widget initialized"
+        self.wpyr = widget_pyrStats()
+        self.wpyr.show()
+
+    def showPyrTools(self):
+        if(self.wpyr is None):
+            try:
+                self.initPyrTools()
+            except:
+                raise ValueError("ERROR: ADOPT  not found. Cannot launch Pyramid tools")
+        else:
+            if(self.ui.actionShow_Pyramid_Tools.isChecked()):
+                self.wpyr.show()
+            else:
+                self.wpyr.hide()
+
+    def setPyrModulation(self, pyrmod):
+        self.rtc.set_pyr_ampl(0, pyrmod, self.config.p_wfss, self.config.p_tel)
+        print "PYR modulation set to: ",pyrmod, "L/D"
+        self.rtc.docentroids(0) # To be ready for the next getSlopes
 
 
     def setPyrMethod(self, pyrmethod):
@@ -223,18 +251,55 @@ class widgetAOWindow(TemplateBaseClass):
     def getPhase(self, tarnum):
         return self.tar.get_phase(tarnum)
 
+    def getWFSPhase(self, wfsnum):
+        return self.wfs.get_phase(wfsnum)
+
+
+
+    def computePh2KL(self):
+        if(self.KL2V is None):
+            self.KL2V = self.returnkl2V()
+        nbmode = self.KL2V.shape[1]
+        pup = self.getSpupil()
+        ph = self.tar.get_phase(0)
+        ph2KL = np.zeros((nbmode, ph.shape[0], ph.shape[1]))
+        S = np.sum(pup)
+        for i in range(nbmode):
+            self.tar.reset_phase(0)
+            self.dms.set_full_comm((self.KL2V[:,i]).astype(np.float32).copy())
+            self.tar.dmtrace(0, self.dms)
+            ph = self.tar.get_phase(0)*pup
+            # Normalisation pour les unités rms en microns !!!
+            norm = np.sqrt( np.sum( (ph)**2)/S )
+            ph2KL[i,:,:] = ph/norm
+            print str(i)+"/"+str(nbmode) + "\r",
+            self.ph2KL = ph2KL
+        return ph2KL
+
+    def getTargetPhase(self, tarnum):
+        pup = self.getSpupil()
+        ph = self.tar.get_phase(tarnum)*pup
+        return ph
 
     def returnkl2V(self):
         """
         KL2V = ao.compute_KL2V(wao.config.p_controllers[
                                0], wao.dms, wao.config.p_dms, wao.config.p_geom, wao.config.p_atmos, wao.config.p_tel)
         """
-        KL2V = ao.compute_KL2V(self.config.p_controllers[0], self.dms, self.config.p_dms, self.config.p_geom, self.config.p_atmos, self.config.p_tel)
-        return KL2V
+        if(self.KL2V is None):
+            KL2V = ao.compute_KL2V(self.config.p_controllers[0], self.dms, self.config.p_dms, self.config.p_geom, self.config.p_atmos, self.config.p_tel)
+            self.KL2V = KL2V
+            return KL2V
+        else:
+            return self.KL2V
+
 
     def doRefslopes(self):
         self.rtc.do_centroids_ref(0)
         print "refslopes done"
+
+    def loadRefSlopes(self, ref):
+        self.rtc.set_centroids_ref(0, ref)
 
     def resetRefslopes(self):
         self.rtc.set_centroids_ref(0, self.getSlopes()*0.)
@@ -280,6 +345,12 @@ class widgetAOWindow(TemplateBaseClass):
 
     def updateSRLE(self, SRLE):
         self.ui.wao_strehlLE.setText(SRLE)
+
+
+    def set_phaseWFS(self, numwfs, phase):
+        pph = phase.astype(np.float32)
+        self.wfs.set_phase(0, pph)
+        _ = self.computeSlopes()
 
     def updateCurrentLoopFrequency(self, freq):
         self.ui.wao_currentFreq.setValue(freq)
@@ -659,6 +730,12 @@ class widgetAOWindow(TemplateBaseClass):
         self.ui.wao_run.setChecked(True)
 
         return iMatKL
+
+    def computeSlopes(self):
+        for w in range(len(self.config.p_wfss)):
+            self.wfs.sensors_compimg(w)
+        self.rtc.docentroids(0)
+        return self.rtc.getcentroids(0)
 
 
     def applyVoltGetSlopes(self, noise=False, turbu=False):

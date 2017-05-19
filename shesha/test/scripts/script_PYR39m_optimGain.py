@@ -2,7 +2,8 @@
 """
 ipython -i script_PYR39m_optimGain.py /home/fvidal/compass/shesha/data/par/MICADO/micado_39m_PYR.py 500 0 5 1 11 450 PYR_39m_RoundPupil_FromHippo6
 ipython -i script_PYR39m_optimGain.py /home/fvidal/compass/shesha/data/par/MICADO/micado_8m_PYR.py 500 0 5 1 11 10
-
+ipython -i script_PYR39m_optimGain.py /home/fvidal/compass/shesha/data/par/MICADO/micado_39m_PYR_ELTPupil_35Layers.py 500 0.1 5 0.6 14.7 500 PYR_39m_ELTPupil_Mag14_Offaxis 1
+ipython -i script_PYR39m_optimGain.py /home/fvidal/compass/shesha/data/par/MICADO/micado_39m_PYR_ELTPupil_35Layers.py 500 0.1 5 0.6 14.7 500 PYR_39m_ELTPupil_Mag14_7_Offaxis_0_50_KBand_Normalized 1ipython -i script_PYR39m_optimGain.py /home/fvidal/compass/shesha/data/par/MICADO/micado_39m_PYR_ELTPupil_35Layers.py 500 0.1 5 0.6 14.7 500 PYR_39m_ELTPupil_Mag14_7_Offaxis_0_50_KBand_Normalized 1
 """
 import cProfile
 import pstats as ps
@@ -58,26 +59,35 @@ else:
     GPU=int(sys.argv[9]) # GPU number
 
 
+print "Freq=", freq
+print "RON=", RON
+print "MODU=", MODU
+print "gain=", gain
+print "magnitude=", magnitude
+print "nKL_Filt=", nKL_Filt
+print "GPU=", GPU
+print "simulName=", simulName
 
 
 pathResults="/volumes/hra/micado/"+simulName
 
 dBResult = pathResults + "/"+simulName+".h5"
-imat0_PATH = "/home/fvidal/dataSimus"
 savePSFs = True
-if(GPU==1):
-    GPUs = np.array([4,5,6,7], dtype=np.int32)
-else:
-    GPUs = np.array([GPU], dtype=np.int32)
-print "Using GPUs: ", GPUs
+
+
 imatFromFile = True
 #iMatName = "iMat39mPYR_MODU_"+str(int(MODU))+".fits"
 #KL2VName = "KL2VNorm39mPYR_MODU_"+str(int(MODU))+".fits"
 #gainModalName = "gains4K_MODU_"+str(int(MODU))+".fits"
 
-iMatName = "iMat_MODU_5_ELTPUPIL.fits"
-KL2VName = "KL2VNorm_MODU_5_ELTPUPIL.fits"
-gainModalName = "gains4K_MODU_5_ELTPUPIL.fits"
+#iMatName = "iMat_MODU_5_ELTPUPIL.fits"
+#KL2VName = "KL2VNorm_MODU_5_ELTPUPIL.fits"
+#gainModalName = "gains4K_MODU_5_ELTPUPIL.fits"
+
+imat0_PATH = "/home/fvidal/dataSimus"
+iMatName = "imatDiffraction_ELTPYR_35Layers.fits"
+gainModalName = "gains4K_ELTPYR_35Layers.fits"
+KL2VName = "KL2VNorm_ELTPYR_35Layers.fits"
 
 """
 iMatName = "iMat_MODU_2_ELTPUPIL.fits"
@@ -85,10 +95,13 @@ KL2VName = "KL2VNorm_MODU_2_ELTPUPIL.fits"
 gainModalName = "gains4K_MODU_2_ELTPUPIL.fits"
 """
 
+PSFWithOtherPupil = True
+PUPILPATH = "/home/fvidal/dataSimus/pupELTwithSpiders.fits"
 
-niter = 4000
+niter = 2048
 saveCBData = True
 nbLoopData = 1024
+
 
 """
 simulName = "PYR_39m"
@@ -98,6 +111,12 @@ imat0_PATH = "/home/fvidal/compass/shesha/test/scripts"
 savePSFs = False
 imatFromFile = False
 """
+
+if(GPU==1):
+    GPUs = np.array([4,5,6,7], dtype=np.int32)
+else:
+    GPUs = np.array([GPU], dtype=np.int32)
+print "Using GPUs: ", GPUs
 
 GPUs = np.array([4,5,6,7], dtype=np.int32)
 #GPUs = np.array([0,1,2,3], dtype=np.int32)
@@ -169,19 +188,33 @@ def makeFITSHeader(filepath, df):
     hdulist = pf.open(filepath) # read file
     header = hdulist[0].header
     names = np.sort(list(set(df))).tolist()
+
     for name in names:
         val = df[name][0]
         if(type(val) is list):
             value = ""
             for v in val:
                 value+=(str(v)+" ")
+            value = value.replace("\n","")
         elif(type(val) is np.ndarray):
             value = ""
             for v in val:
                 value+=(str(v)+" ")
+            value = value.replace("\n","")
+
         else:
             value = val
-        header.set(name, value,'')
+
+        if((type(value) is str)):
+            if(len(value)>50):
+                print "warning", name, "keyword has been cut to 100 characters"
+                #header.set(name, value[:50],'')
+            else:
+                header.set(name, value,'')
+            #header.set(name+"_"+str(i), str(v),'')
+        else:
+            header.set(name, value,'')
+
     hdulist.writeto(filepath, clobber=True) # Save changes to file
 
 
@@ -220,6 +253,18 @@ def loop(n,wfs,tel,atm,dms,tar,rtc, moveAtmos=True, noise=True, loopData=0):
     print "----------------------------------------------------";
 
 
+    if(PSFWithOtherPupil):
+        pup = pf.getdata(PUPILPATH)
+        ph = tar.get_image(0, "se")
+        pupBig = ph*0.
+
+        phsize = pup.shape[0]
+        npup = pupBig.shape[0] # wao.wfs.get_pyrimghr(0).shape
+
+        pupBig[(npup-phsize)/2:(npup+phsize)/2, (npup-phsize)/2:(npup+phsize)/2] = pup
+        PSFLEArray = np.zeros((config.p_target.ntargets, ph.shape[0],ph.shape[1]))
+        PSFSEArray = np.zeros((config.p_target.ntargets, ph.shape[0],ph.shape[1]))
+    PSFtarget = np.zeros((config.p_target.ntargets, ph.shape[0],ph.shape[1]))
 
     sr_se = []
     numiter = []
@@ -259,6 +304,18 @@ def loop(n,wfs,tel,atm,dms,tar,rtc, moveAtmos=True, noise=True, loopData=0):
 
         signal_le = ""
         signal_se = ""
+        if(PSFWithOtherPupil):
+            SRTmp = np.zeros(config.p_target.ntargets)
+            SRTmp2 = np.zeros(config.p_target.ntargets)
+            for t in range(config.p_target.ntargets):
+                phase = tar.get_phase(t).copy()
+                phaseBig = pupBig*0.
+                phaseBig[(npup-phsize)/2:(npup+phsize)/2, (npup-phsize)/2:(npup+phsize)/2] = phase
+
+                PSFSE = np.fft.fftshift(np.abs( np.fft.fft2( pupBig*np.exp(1j*phaseBig*2*np.pi/tar.Lambda[t]) ))**2 / (np.sum(pupBig)**2))
+                PSFSEArray[t,:,:] = PSFSE.copy()
+                PSFLEArray[t,:,:] += PSFSE.copy()
+
 
         if((i+1)%10==0):
             print "Iter#:", i+1, "/",n
@@ -267,7 +324,12 @@ def loop(n,wfs,tel,atm,dms,tar,rtc, moveAtmos=True, noise=True, loopData=0):
             SRTmp2 = np.zeros(config.p_target.ntargets)
 
             for t in range(config.p_target.ntargets):
-                SR = tar.get_strehl(t)
+                if(PSFWithOtherPupil):
+                    SR = list([0,0])
+                    SR[0] = PSFSEArray[t,:,:].max() # SE SR
+                    SR[1] = (PSFLEArray[t,:,:]/(i+1)).max() # LE SR
+                else:
+                    SR = tar.get_strehl(t)
                 #print "Tar %d at %3.2fMicrons:" % (t+1, tar.Lambda[t])
                 signal_se += "SR S.E %3.2fMicrons:: %1.2f   " % (tar.Lambda[t], SR[0])
                 signal_le += "SR L.E %3.2fMicrons:: %1.2f   " % (tar.Lambda[t],SR[1])
@@ -286,9 +348,18 @@ def loop(n,wfs,tel,atm,dms,tar,rtc, moveAtmos=True, noise=True, loopData=0):
     print " loop execution time:",t1-t0,"  (",n,"iterations), ",(t1-t0)/n,"(mean)  ", n/(t1-t0),"Hz"
     SRList = []
     for t in range(config.p_target.ntargets):
-        SR = tar.get_strehl(t)
-        SRList.append(SR[1]) # Saving Long Exp SR
-    return SRList, tar.Lambda.tolist(), sr_se.astype(int), sr_le.astype(int),numiter, slopes, volts
+        if(PSFWithOtherPupil):
+            SR = list([0,0])
+            SR[0] = PSFSEArray[t,:,:].max() # SE SR # SE SR
+            SR[1] = (PSFLEArray[t,:,:]/(i+1)).max() # LE SR
+            PSFtarget[t,:,:] = PSFLEArray[t,:,:]/(i+1)
+        else:
+            SR = tar.get_strehl(t)
+            PSFtarget[t,:,:] = tar.get_image(t, "le")
+
+        SRList.append(SR[1]) # Saving Last Long Exp SR
+
+    return SRList, tar.Lambda.tolist(), sr_se.astype(int), sr_le.astype(int),numiter, slopes, volts, PSFtarget
 
 
 
@@ -319,6 +390,9 @@ config.p_wfs0.set_gsmag(magnitude)
 res = pd.DataFrame(columns=colnames.keys()+simunames.keys()) # Create Db
 wfs,tel,atm,dms,tar,rtc = initSimu(config, c) # Init COMPASS Simu!
 
+
+
+
 # ------------ ADOPT ----------------
 ADOPTPATH = os.getenv("ADOPTPATH")
 sys.path.insert(0, ADOPTPATH)
@@ -331,6 +405,7 @@ cf.returnConfigfromWao(wao, filepath=configFileName)
 com = adoptComm.command_class(wao, ao)
 aoAd = adoptVar.ao_class(adoptVar.ao_attributes, adoptVar.wfs_attributes,adoptVar.dm_attributes, configFileName)
 com.initComm(aoAd)
+com.doRefslopes()
 
 #KL2V = com.getKL2V()
 #
@@ -360,11 +435,11 @@ else:
     print "Closing Loop with Imat Diffraction Limited"
 
     # Closing loop until we reach the fitting error for the given ao config + turbulence conditions (seeing ect...) but without noise and bandwidth (screen is frozen)
-    SR, lambdaTargetList, sr_se, numiter, _, _ = loop(200,wfs,tel,atm,dms,tar,rtc, moveAtmos=True, noise=False)
+    SR, lambdaTargetList, sr_se, numiter, _, _, _= loop(200,wfs,tel,atm,dms,tar,rtc, moveAtmos=True, noise=True)
     print "SR After 200 iterations of closed loop:"
 
     # Computing 2nd imat on with this best conditions (no noise + limited by fitting)
-    imatTurbu = cal.computeImatKL(com, KL2VNorm, aoAd.dm0.push4iMat, aoAd.dm1.push4iMat,  withTurbu=True, noise=False)
+    imatTurbu = cal.computeImatKL(com, KL2VNorm, aoAd.dm0.push4iMat, aoAd.dm1.push4iMat,  withTurbu=True, noise=True)
     gains4K = cal.computeOptimGainK(imat, imatTurbu, nfilt)
     gainopt = gains4K.copy()
 
@@ -406,7 +481,7 @@ com.closeLoop()
 
 print "Starting Real Loop"
 com.resetSR()
-SR, lambdaTargetList, sr_se, sr_le, numiter, slopesCB, voltsCB = loop(config.p_loop.niter,wfs,tel,atm,dms,tar,rtc, loopData=nbLoopData)
+SR, lambdaTargetList, sr_se, sr_le, numiter, slopesCB, voltsCB, PSFtarget = loop(config.p_loop.niter,wfs,tel,atm,dms,tar,rtc, loopData=nbLoopData)
 
 if(saveCBData):
     PYRImage = wfs.get_pyrimg(0)
@@ -426,6 +501,9 @@ else:
     slopesCBName = ""
     voltsCBName = ""
     PYRIMAGEName = ""
+    SRHistorySEName = ""
+    SRHistoryLEName = ""
+
 # ------------- Saving config and results in data frame -----
 dfparams = h5u.params_dictionary(config) # get the current compass config
 dfparams.update(simunames) # Add the simunames params
@@ -473,12 +551,11 @@ for t in range(config.p_target.ntargets):
     date = time.strftime("_%d-%m-%Y_%H:%M:%S_")
     lam = "%3.2f" % tar.Lambda.tolist()[t]
     lam = lam.replace(".","_")
-    PSFName = "PYR_"+lam+"_"+date+".fits"
+    PSFName = "PYR_TARGET_"+str(t+1)+"_Lambda_"+lam+"_"+date+".fits"
     PSFNameList.append(PSFName)
     #PSFNameList.append("NOT SAVED")
     if(savePSFs):
-        PSFtarget = tar.get_image(t, "le")
-        pf.writeto(pathResults+"/PSFs/"+PSFName, PSFtarget.copy(), clobber=True)
+        pf.writeto(pathResults+"/PSFs/"+PSFName, PSFtarget[t,:,:].copy(), clobber=True)
     lam2 = "%3.2f" % tar.Lambda.tolist()[t]
     res.loc[0, "SR_%s"%lam2] = SR[t]
     PSFPixsize = (tar.Lambda.tolist()[t]*1e-6)/(wao.config.p_tel.diam/wao.config.p_geom.get_spupil().shape[0]*wao.config.p_geom.get_ipupil().shape[0])*206265.
