@@ -164,7 +164,7 @@ cdef extern from "sutra_target.h":
 
         sutra_phase * d_phase  # phase for this target
         # INTRO PHASE INSTRU
-        # sutra_phase *d_phase_instru;
+        # sutra_phase *d_phase_instru
         #
         carma_host_obj[float] * phase_telemetry  #
         sutra_lgs * d_lgs  # the lgs object
@@ -184,7 +184,10 @@ cdef extern from "sutra_target.h":
         carma_context * current_context
 
         int add_layer(char * l_type, float alt, float xoff, float yoff)
+        int get_ncpa_phase(float *h_src, size_t size)
+        int set_ncpa_phase(float *h_dest, size_t size)
         int init_strehlmeter()
+        int raytrace(int rst)
         int raytrace(sutra_atmos * atmos)
         int raytrace(sutra_dms * ydms, int rst, int do_phase_var)
         int comp_image(int puponly, bool comp_le)
@@ -345,9 +348,12 @@ cdef extern from "sutra_wfs.h":
         int wfs_initgs(sutra_sensors * sensors, float xpos, float ypos, float Lambda, float mag, long size,
                        float noise, long seed, float G, float thetaML, float dx, float dy)
         int load_kernels(float * lgskern)
+        int get_ncpa_phase(float *h_src, size_t size)
+        int set_ncpa_phase(float *h_dest, size_t size)
         int sensor_trace(sutra_atmos * yatmos)
         int sensor_trace(sutra_atmos * atmos, sutra_dms * ydms)
         int sensor_trace(sutra_dms * ydm, int rst)
+        int sensor_trace(int rst)
         int comp_image()
         int comp_generic()
         int define_mpi_rank(int rank, int size)
@@ -411,7 +417,7 @@ cdef extern from "sutra_wfs_pyr_pyrhr.h":
         sutra_wfs_pyr_pyrhr(const sutra_wfs_pyr_pyrhr & wfs)
         int wfs_initarrays(cuFloatComplex * halfxy, float * cx, float * cy,
                            float * sincar, float *submask, int * validsubsx, int * validsubsy, int *phasemap, float *fluxPerSub)
-        void comp_modulation(int cpt);
+        void comp_modulation(int cpt)
         int slopes_geom(int type, float * slopes)
         int slopes_geom(int type)
         int set_submask(float *submask)
@@ -642,11 +648,11 @@ cdef extern from "sutra_controller.h":
 
         # TODO cublasHandle_t cublas_handle()
 
-        int set_centroids_ref(float *centroids_ref);
-        int get_centroids_ref(float *centroids_ref);
+        int set_centroids_ref(float *centroids_ref)
+        int get_centroids_ref(float *centroids_ref)
         int set_perturbcom(float * perturb, int N)
         int set_openloop(int open_loop_status)
-        void clip_voltage(float min, float max);
+        void clip_voltage(float min, float max)
         int comp_voltage()
         int syevd_f(char meth, carma_obj[float] * d_U, carma_host_obj[float] * h_eingenvals)
         int invgen(carma_obj[float] * d_mat, float cond, int job)
@@ -980,10 +986,10 @@ cdef extern from "sutra_rtc.h":
         int do_centroids(int ncntrl, bool imat)
         int do_centroids_geom(int ncntrl)
         int do_control(int ncntrl)
-        int do_clipping(int ncntrl, float min, float max);
+        int do_clipping(int ncntrl, float min, float max)
         int apply_control(int ncntrl, sutra_dms * ydm)
-        int set_centroids_ref(int ncntrl, float *centroids_ref);
-        int get_centroids_ref(int ncntrl, float *centroids_ref);
+        int set_centroids_ref(int ncntrl, float *centroids_ref)
+        int get_centroids_ref(int ncntrl, float *centroids_ref)
 
 #################################################
 # C-Class sutra_lgs
@@ -1106,22 +1112,22 @@ cdef extern from "sutra_psfrecs.h":
         float scale
         int size
         int Npts
-        carma_obj[float] *d_term1;
-        carma_obj[float] *d_term2;
-        carma_obj[float] *d_otftel;
-        carma_obj[float] *d_otfVii;
-        carma_obj[float] *d_mask;
-        carma_obj[float] *d_eigenvals;
-        carma_obj[float] *d_Btt;
-        carma_obj[float] *d_covmodes;
-        carma_host_obj[float] *h_eigenvals;
-        carma_obj[cuFloatComplex] *d_newmodek;
-        carma_obj[cuFloatComplex] *d_Dphi;
-        carma_obj[cuFloatComplex] *d_pupfft;
+        carma_obj[float] *d_term1
+        carma_obj[float] *d_term2
+        carma_obj[float] *d_otftel
+        carma_obj[float] *d_otfVii
+        carma_obj[float] *d_mask
+        carma_obj[float] *d_eigenvals
+        carma_obj[float] *d_Btt
+        carma_obj[float] *d_covmodes
+        carma_host_obj[float] *h_eigenvals
+        carma_obj[cuFloatComplex] *d_newmodek
+        carma_obj[cuFloatComplex] *d_Dphi
+        carma_obj[cuFloatComplex] *d_pupfft
 
         sutra_psfrecs(carma_context *context, int device, char *type, int nactus,
                     int nmodes, int niter, float *IFvalue, int *IFrowind, int *IFcolind, int IFnz,
-                    float *TT, float *pupil, int size, int Npts, float scale, float *Btt, float *covmodes);
+                    float *TT, float *pupil, int size, int Npts, float scale, float *Btt, float *covmodes)
 
         int psf_rec_roket(float *err)
         int psf_rec_Vii()

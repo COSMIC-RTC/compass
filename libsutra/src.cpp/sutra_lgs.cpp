@@ -1,9 +1,9 @@
 #include <sutra_ao_utils.h>
 #include <sutra_lgs.h>
-#include<sutra_wfs.h>
+#include <sutra_wfs.h>
 
-sutra_lgs::sutra_lgs(carma_context *context, sutra_sensors *sensors, long nvalid, long npix,
-    long nmaxhr) {
+sutra_lgs::sutra_lgs(carma_context *context, sutra_sensors *sensors,
+                     long nvalid, long npix, long nmaxhr) {
   this->current_context = context;
   this->device = current_context->get_activeDevice();
 
@@ -33,53 +33,61 @@ sutra_lgs::sutra_lgs(carma_context *context, sutra_sensors *sensors, long nvalid
   this->d_prof2d = new carma_obj<cuFloatComplex>(context, dims_data2);
 
   int mdims[2];
-  mdims[0] = (int) dims_data2[1];
+  mdims[0] = (int)dims_data2[1];
 
   cufftHandle *plan = this->d_prof2d->getPlan(); ///< FFT plan
-  carmafftSafeCall(
-      cufftPlanMany(plan, 1 ,mdims,NULL,1,0,NULL,1,0, CUFFT_C2C ,(int)dims_data2[2]));
+  carmafftSafeCall(cufftPlanMany(plan, 1, mdims, NULL, 1, 0, NULL, 1, 0,
+                                 CUFFT_C2C, (int)dims_data2[2]));
 
   dims_data3[1] = npix;
   dims_data3[2] = npix;
   dims_data3[3] = nmaxhr;
-  //this->d_lgskern = new carma_obj<float>(context, dims_data3);
-  //this->d_ftlgskern = new carma_obj<cuFloatComplex>(context, dims_data3);
+  // this->d_lgskern = new carma_obj<float>(context, dims_data3);
+  // this->d_ftlgskern = new carma_obj<cuFloatComplex>(context, dims_data3);
   this->d_lgskern = sensors->d_lgskern;
   this->d_ftlgskern = sensors->d_ftlgskern;
 
-  mdims[0] = (int) dims_data3[1];
-  mdims[1] = (int) dims_data3[2];
+  mdims[0] = (int)dims_data3[1];
+  mdims[1] = (int)dims_data3[2];
 
-  vector<int> vdims (dims_data3+1,dims_data3 + 4);
+  vector<int> vdims(dims_data3 + 1, dims_data3 + 4);
 
   if (sensors->ftlgskern_plans.find(vdims) == sensors->ftlgskern_plans.end()) {
-	  //DEBUG_TRACE("Creating FFT plan : %d %d %d",mdims[0],mdims[1],dims_data3[3]);printMemInfo();
-	  cufftHandle *plan = (cufftHandle*)malloc(sizeof(cufftHandle));// = this->d_camplipup->getPlan(); ///< FFT plan
-	  carmafftSafeCall(
-			cufftPlanMany(plan, 2 ,mdims,NULL,1,0,NULL,1,0, CUFFT_C2C ,(int)dims_data3[3]));
+    // DEBUG_TRACE("Creating FFT plan : %d %d
+    // %d",mdims[0],mdims[1],dims_data3[3]);printMemInfo();
+    cufftHandle *plan = (cufftHandle *)malloc(
+        sizeof(cufftHandle)); // = this->d_camplipup->getPlan(); ///< FFT plan
+    carmafftSafeCall(cufftPlanMany(plan, 2, mdims, NULL, 1, 0, NULL, 1, 0,
+                                   CUFFT_C2C, (int)dims_data3[3]));
 
-	  sensors->ftlgskern_plans.insert(pair<vector<int>, cufftHandle*>(vdims, plan));
+    sensors->ftlgskern_plans.insert(
+        pair<vector<int>, cufftHandle *>(vdims, plan));
 
-	  this->ftlgskern_plan = plan;
-	  //DEBUG_TRACE("FFT plan created");printMemInfo();
+    this->ftlgskern_plan = plan;
+    // DEBUG_TRACE("FFT plan created");printMemInfo();
+  } else {
+    this->ftlgskern_plan = sensors->ftlgskern_plans.at(vdims);
+    // DEBUG_TRACE("FFT plan already exists : %d %d
+    // %d",mdims[0],mdims[1],dims_data3[3]);
   }
-  else{
-	  this->ftlgskern_plan = sensors->ftlgskern_plans.at(vdims);
-	  //DEBUG_TRACE("FFT plan already exists : %d %d %d",mdims[0],mdims[1],dims_data3[3]);
-  }
 
- // plan = this->d_ftlgskern->getPlan();
- // carmafftSafeCall(
- //     cufftPlanMany(plan, 2 ,mdims,NULL,1,0,NULL,1,0,CUFFT_C2C , (int)dims_data3[3]));
+  // plan = this->d_ftlgskern->getPlan();
+  // carmafftSafeCall(
+  //     cufftPlanMany(plan, 2 ,mdims,NULL,1,0,NULL,1,0,CUFFT_C2C ,
+  //     (int)dims_data3[3]));
 
   /*
    cudaExtent volumeSize = make_cudaExtent(npix,npix,nvalid);
 
-   this->channelDesc = cudaCreateChannelDesc(32, 0, 0, 0, cudaChannelFormatKindFloat);
-   carmaSafeCall( cudaMalloc3DArray(&(this->d_spotarray), &(this->channelDesc), volumeSize) );
+   this->channelDesc = cudaCreateChannelDesc(32, 0, 0, 0,
+   cudaChannelFormatKindFloat);
+   carmaSafeCall( cudaMalloc3DArray(&(this->d_spotarray), &(this->channelDesc),
+   volumeSize) );
 
    // prepare 3d cppy
-   this->copyParams.srcPtr = make_cudaPitchedPtr((void*)(this->d_lgskern->getData()), volumeSize.width*sizeof(float),
+   this->copyParams.srcPtr =
+   make_cudaPitchedPtr((void*)(this->d_lgskern->getData()),
+   volumeSize.width*sizeof(float),
    volumeSize.width, volumeSize.height);
    copyParams.dstArray = this->d_spotarray;
    copyParams.extent   = volumeSize;
@@ -91,7 +99,7 @@ sutra_lgs::sutra_lgs(carma_context *context, sutra_sensors *sensors, long nvalid
 }
 
 sutra_lgs::~sutra_lgs() {
-  current_context->set_activeDevice(device,1);
+  current_context->set_activeDevice(device, 1);
   delete this->d_doffaxis;
   delete this->d_azimuth;
   delete this->d_prof1d;
@@ -99,18 +107,19 @@ sutra_lgs::~sutra_lgs() {
   delete this->d_prof2d;
   delete this->d_beam;
   delete this->d_ftbeam;
-  //delete this->d_lgskern;
-  //delete this->d_ftlgskern;
+  // delete this->d_lgskern;
+  // delete this->d_ftlgskern;
 
-  //delete this->current_context;
+  // delete this->current_context;
 
-  //carmaSafeCall(cudaFreeArray(this->d_spotarray));
+  // carmaSafeCall(cudaFreeArray(this->d_spotarray));
 }
 
 int sutra_lgs::lgs_init(int nprof, float hg, float h0, float deltah,
-    float pixsize, float *doffaxis, float *prof1d, float *profcum, float *beam,
-    cuFloatComplex *ftbeam, float *azimuth) {
-  current_context->set_activeDevice(device,1);
+                        float pixsize, float *doffaxis, float *prof1d,
+                        float *profcum, float *beam, cuFloatComplex *ftbeam,
+                        float *azimuth) {
+  current_context->set_activeDevice(device, 1);
   this->nprof = nprof;
   this->hg = hg;
   this->h0 = h0;
@@ -139,8 +148,8 @@ int sutra_lgs::lgs_init(int nprof, float hg, float h0, float deltah,
 }
 
 int sutra_lgs::load_prof(float *prof1d, float *profcum, float hg, float h0,
-    float deltah) {
-  current_context->set_activeDevice(device,1);
+                         float deltah) {
+  current_context->set_activeDevice(device, 1);
   this->d_prof1d->host2device(prof1d);
   this->d_profcum->host2device(profcum);
   this->hg = hg;
@@ -152,62 +161,65 @@ int sutra_lgs::load_prof(float *prof1d, float *profcum, float hg, float h0,
 
 int sutra_lgs::lgs_update(carma_device *device) {
   interp_prof(this->d_prof2d->getData(), this->d_prof1d->getData(),
-      this->d_profcum->getData(), this->npix, this->d_doffaxis->getData(),
-      this->hg, this->pixsize, this->h0, this->deltah, this->nprof,
-      this->d_prof2d->getNbElem(), device);
+              this->d_profcum->getData(), this->npix,
+              this->d_doffaxis->getData(), this->hg, this->pixsize, this->h0,
+              this->deltah, this->nprof, this->d_prof2d->getNbElem(), device);
 
   // convolution by beam
   // do fft on prof2d
   carma_fft(this->d_prof2d->getData(), this->d_prof2d->getData(), 1,
-      *this->d_prof2d->getPlan());
+            *this->d_prof2d->getPlan());
 
   // mult by beamft
   times_ftbeam(this->d_prof2d->getData(), this->d_ftbeam->getData(), this->npix,
-      this->d_prof2d->getNbElem(), device);
+               this->d_prof2d->getNbElem(), device);
 
   // fft back
   carma_fft(this->d_prof2d->getData(), this->d_prof2d->getData(), -1,
-      *this->d_prof2d->getPlan());
+            *this->d_prof2d->getPlan());
 
   return EXIT_SUCCESS;
 }
 
 int sutra_lgs::lgs_makespot(carma_device *device, int nin) {
-  carmaSafeCall(
-      cudaMemset(this->d_lgskern->getData(), 0,
-          sizeof(float) * this->d_lgskern->getNbElem()));
+  carmaSafeCall(cudaMemset(this->d_lgskern->getData(), 0,
+                           sizeof(float) * this->d_lgskern->getNbElem()));
   // build final image
   // get abs of real and roll
   cuFloatComplex *data = this->d_prof2d->getData();
   rollbeamexp(this->d_lgskern->getData(), &(data[nin]), this->d_beam->getData(),
-      this->npix, this->npix*this->npix*this->nmaxhr/*this->d_lgskern->getNbElem()*/, device);
+              this->npix,
+              this->npix * this->npix *
+                  this->nmaxhr /*this->d_lgskern->getNbElem()*/,
+              device);
 
   // rotate image and fill kernels ft
   float *data2 = this->d_azimuth->getData();
   lgs_rotate(this->d_ftlgskern->getData(), this->d_lgskern->getData(),
-      this->npix, this->npix, &(data2[nin / this->npix]), 0.0f,
-      this->npix * this->npix * this->nmaxhr, device);
+             this->npix, this->npix, &(data2[nin / this->npix]), 0.0f,
+             this->npix * this->npix * this->nmaxhr, device);
 
-  //same with textures
+  // same with textures
   /*
    rotate3d(this->d_ftlgskern->getData(),this->copyParams,this->d_spotarray,this->channelDesc,
    this->npix,this->npix,this->d_azimuth->getData(),0.0f,this->npix*this->npix*this->nvalid,device);
    */
 
-  //prepare for wfs code
+  // prepare for wfs code
   carma_fft(this->d_ftlgskern->getData(), this->d_ftlgskern->getData(), 1,
-      *this->ftlgskern_plan);
+            *this->ftlgskern_plan);
 
   return EXIT_SUCCESS;
 }
 
-int sutra_lgs::load_kernels(float *lgskern, carma_device *device) {
-  this->d_lgskern->host2device(lgskern);
+int sutra_lgs::load_kernels(float *h_lgskern, carma_device *device) {
+  this->d_lgskern->host2device(h_lgskern);
   cfillrealp(this->d_ftlgskern->getData(), this->d_lgskern->getData(),
-      /*this->d_ftlgskern->getNbElem()*/this->npix*this->npix*this->nmaxhr, device);
+             /*this->d_ftlgskern->getNbElem()*/ this->npix * this->npix *
+                 this->nmaxhr,
+             device);
   carma_fft(this->d_ftlgskern->getData(), this->d_ftlgskern->getData(), 1,
-      *this->ftlgskern_plan);
+            *this->ftlgskern_plan);
 
   return EXIT_SUCCESS;
 }
-

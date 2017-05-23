@@ -140,6 +140,23 @@ cdef class Target:
         return data
 
 
+    cpdef set_ncpa_phase(self, int n, np.ndarray[ndim=2, dtype=np.float32_t] data):
+        cdef np.ndarray[ndim = 1, dtype = np.float32_t] data_F = data.flatten("F")
+        self.target.d_targets[n].set_ncpa_phase(<float*>data_F.data, data.size)
+
+
+    cpdef get_ncpa_phase(self, int n):
+        cdef carma_obj[float] * ph
+        cdef const long * cdims
+        cdef np.ndarray[ndim = 2, dtype = np.float32_t] data
+
+        ph = self.target.d_targets[n].d_phase.d_screen
+        cdims = ph.getDims()
+        data = np.empty((cdims[2], cdims[1]), dtype=np.float32)
+        self.target.d_targets[n].get_ncpa_phase(<float*>data.data, data.size)
+        return np.reshape(data.flatten("F"), (cdims[1], cdims[2]))
+
+
     def reset_phase(self, int nTarget):
         """Reset the phase's screen of the target
 
@@ -293,7 +310,7 @@ cdef class Target:
 
 
     def dmtrace(self, int ntar, Dms dms, int reset=0, int do_phase_var=1):
-        """Raytracing of the target through thedms
+        """Raytracing of the target through the dms
 
         :parameters:
             ntar: (int)   : index of the target
@@ -309,6 +326,21 @@ cdef class Target:
         context.set_activeDevice(self.target.d_targets[ntar].device, 1)
 
         self.target.d_targets[ntar].raytrace(dms.dms, reset, do_phase_var)
+
+
+    def ncpatrace(self, int ntar, int reset=0):
+        """Raytracing of the target through NCPA
+
+        :parameters:
+            ntar: (int)   : index of the target
+
+            reset: (int) : if >0, reset the screen before raytracing
+        """
+
+        cdef carma_context * context = &carma_context.instance()
+        context.set_activeDevice(self.target.d_targets[ntar].device, 1)
+
+        self.target.d_targets[ntar].raytrace(reset)
 
 
     def __str__(self):
