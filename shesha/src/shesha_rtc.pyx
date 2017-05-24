@@ -758,7 +758,7 @@ cdef class Rtc:
         cdef np.ndarray[ndim = 2, dtype = np.float32_t] imat_F
         cdef np.ndarray[ndim = 2, dtype = np.float32_t] imat
 
-        if(type_control == "generic"):
+        if(type_control == "generic" or type_control == "geo"):
             raise TypeError("Generic controller doesn't have imat")
 
         if(type_control == "ls"):
@@ -1914,6 +1914,9 @@ cdef class Rtc:
 
         :parameters:
             ncontrol: (int) : controller index
+            dms: (shesha_dm object) : shesha_dm
+            target : (shesha_target) : shesha_target
+            ntarget : (int) : target number
         """
         cdef carma_context * context = &carma_context.instance()
         cdef sutra_controller_geo * controller_geo
@@ -1933,6 +1936,10 @@ cdef class Rtc:
 
         :parameters:
             ncontrol: (int) : controller index
+            dms: (shesha_dm object) : shesha_dm
+            sensors : (shesha_sensor) : shesha_sensor
+            nwfs : (int) : wfs number
+
         """
         cdef carma_context * context = &carma_context.instance()
         cdef sutra_controller_geo * controller_geo
@@ -2602,7 +2609,7 @@ cpdef correct_dm(p_dms, Dms g_dms, Param_controller p_control, Param_geom p_geom
 
             dims = long(p_dms[nm]._n2 - p_dms[nm]._n1 + 1)
             dims = max(dims, p_geom._mpupil.shape[1])
-             
+
             g_dms.add_dm(< bytes > "pzt", p_dms[nm].alt, dims, ninflu, influsize,
                             ninflupos, n_npts, p_dms[nm].push4imat)
             g_dms.load_pzt(p_dms[nm].alt, p_dms[nm]._influ, p_dms[nm]._influpos.astype(np.int32),
