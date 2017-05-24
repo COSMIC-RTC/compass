@@ -196,6 +196,7 @@ cdef class Target:
         dims = src.d_pupil.getDims()
         if((dims[2],dims[1]) == np.shape(data)):
             data_F = data.flatten("F")
+            src.d_pupil = new carma_obj[float](src.current_context, dims)
             src.d_pupil.host2device(<float *> data_F.data)
             wherephase = np.where(data_F)[0].astype(np.int32)
             Npts = wherephase.size
