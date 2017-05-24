@@ -180,6 +180,36 @@ cdef class Target:
 
         src.d_phase.d_screen.host2device(< float *> data_F.data)
 
+    def set_pupil(self, int nTarget, np.ndarray[ndim=2, dtype=np.float32_t] data):
+        """Set the pupil used for PSF computation
+
+        :param nTarget: (int) : index of the target
+        :param data: (np.ndarray[ndim=2,dtype=np.float32_t]) : pupil
+        """
+        self.context.set_activeDeviceForCpy(self.device)
+        cdef sutra_source * src = self.target.d_targets[nTarget]
+        cdef np.ndarray[dtype = np.float32_t] data_F
+        cdef np.ndarray[dtype = np.int32_t] wherephase
+        cdef long Npts
+        cdef const long * dims
+        cdef long dims1[2]
+        dims = src.d_pupil.getDims()
+        if((dims[2],dims[1]) == np.shape(data)):
+            data_F = data.flatten("F")
+            src.d_pupil.host2device(<float *> data_F.data)
+            wherephase = np.where(data_F)[0].astype(np.int32)
+            Npts = wherephase.size
+            dims1[0] = 1
+            dims1[1] = Npts
+            del src.d_phasepts
+            del src.d_wherephase
+            src.d_phasepts = new carma_obj[float](src.current_context, dims1)
+            src.d_wherephase = new carma_obj[int](src.current_context, dims1)
+            src.d_wherephase.host2device(<int *> wherephase.data)
+        else:
+            raise IndexError("Pupil dimension mismatch")
+
+
     def get_phasetele(self, int nTarget):
         """Return the telemetry phase of the target
 

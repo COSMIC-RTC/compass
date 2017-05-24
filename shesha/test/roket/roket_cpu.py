@@ -492,7 +492,7 @@ def compute_Btt2():
     TT = T.T.dot(T)/N#.toarray()/N
     Btt = np.zeros((n+2,n-1))
     Btt[:B.shape[0],:B.shape[1]] = B
-    mini = 1./np.sqrt(TT)
+    mini = 1./np.sqrt(np.abs(TT))
     mini[0,1] = 0
     mini[1,0] = 0
     Btt[n:,n-3:]=mini
@@ -506,52 +506,6 @@ def compute_Btt2():
 
     return Btt.astype(np.float32),P.astype(np.float32)
 
-def compute_Btt():
-    IF = rtc.get_IFsparse(1).T
-    N = IF.shape[0]
-    n = IF.shape[1]
-    T = IF[:,-2:].copy()
-    IF = IF[:,:n-2]
-    n = IF.shape[1]
-
-    delta = IF.T.dot(IF).toarray()/N
-
-    # Tip-tilt + piston
-    Tp = np.ones((T.shape[0],T.shape[1]+1))
-    Tp[:,:2] = T.toarray()
-    deltaT = IF.T.dot(Tp)/N
-    # Tip tilt projection on the pzt dm
-    tau = np.linalg.inv(delta).dot(deltaT)
-
-    # Famille génératrice sans tip tilt
-    G = np.identity(n)
-    tdt = tau.T.dot(delta).dot(tau)
-    subTT = tau.dot(np.linalg.inv(tdt)).dot(tau.T).dot(delta)
-    G -= subTT
-
-    # Base orthonormée sans TT
-    gdg = G.T.dot(delta).dot(G)
-    U,s,V = np.linalg.svd(gdg)
-    U=U[:,:U.shape[1]-3]
-    s = s[:s.size-3]
-    L = np.identity(s.size)/np.sqrt(s)
-    B = G.dot(U).dot(L)
-
-    # Rajout du TT
-    TT = T.T.dot(T).toarray()/N
-    Btt = np.zeros((n+2,n-1))
-    Btt[:B.shape[0],:B.shape[1]] = B
-    mini = 1./np.sqrt(TT)
-    mini[0,1] = 0
-    mini[1,0] = 0
-    Btt[n:,n-3:]=mini
-
-    # Calcul du projecteur actus-->modes
-    IF = rtc.get_IFsparse(1).T
-    delta = IF.T.dot(IF).toarray()/N
-    P = Btt.T.dot(delta)
-
-    return Btt.astype(np.float32),P.astype(np.float32)
 
 def compute_cmatWithBtt(Btt,nfilt):
     D = rtc.get_imat(0)
