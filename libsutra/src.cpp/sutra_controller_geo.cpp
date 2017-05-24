@@ -250,12 +250,14 @@ sutra_controller_geo::init_proj_sparse(sutra_dms *dms, int *indx_dm, float *unit
             sutra_dm *dm = *p;
             if(dm->type == "tt"){
                 //dm->get_IF(this->d_TT->getDataAt(ind*Nphi), d_indx.getDataAt(this->Nphi * ind2), this->Nphi, 1.0f);
-                for(int i=0 ; i<=dm->ninflu ; i++){
-                    dm->reset_shape();
-        		    dm->comp_oneactu(i, 1.0f);
-        		    getIF<float>(this->d_TT->getDataAt(ind*this->Nphi), dm->d_shape->d_screen->getData(),
+                for(int i=0 ; i<dm->ninflu ; i++){
+        		        dm->comp_oneactu(i, 1.0f);
+
+        		        getIF<float>(this->d_TT->getDataAt(ind*this->Nphi), dm->d_shape->d_screen->getData(),
                                     d_indx.getDataAt(ind2*this->Nphi), this->Nphi, 0,
     			                             dm->ninflu, 1, this->current_context->get_device(device));
+                    dm->reset_shape();
+
                     ind++;
                 }
             }
@@ -264,8 +266,18 @@ sutra_controller_geo::init_proj_sparse(sutra_dms *dms, int *indx_dm, float *unit
         }
 
         carma_gemm(cublas_handle(),'t','n',2*this->Ntt,2*this->Ntt,this->Nphi,1.0f/this->Nphi,
-                    this->d_TT->getData(),2*this->Nphi,this->d_TT->getData(),2*this->Nphi,
+                    this->d_TT->getData(),this->Nphi,this->d_TT->getData(),this->Nphi,
                     0.0f,this->d_geocovTT->getData(),2*this->Ntt);
+
+       float *tmp;
+       tmp = (float*)malloc(this->d_geocovTT->getNbElem()*sizeof(float));
+       this->d_geocovTT->device2host(tmp);
+       tmp[0] = 1.0f/tmp[0];
+       tmp[3] = 1.0f/tmp[3];
+       tmp[1] = 0.0f;
+       tmp[2] = 0.0f;
+       this->d_geocovTT->host2device(tmp);
+       delete tmp;
 
     }
 
