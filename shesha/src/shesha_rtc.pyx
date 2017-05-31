@@ -3602,6 +3602,62 @@ def compute_cmatWithKL(Rtc rtc, Param_controller p_control, Dms dms, list p_dms,
 
     return cmat.astype(np.float32)
 
+def compute_Btt(IFpzt, IFtt):
+    """ Returns Btt to Volts and Volts to Btt matrices
+    :parameters:
+        IFpzt : (csr_matrix) : influence function matrix of pzt DM, sparse and arrange as (Npts in pup x nactus)
+        IFtt : (np.ndarray(ndim=2,dtype=np.float32)) : Influence function matrix of the TT mirror arrange as (Npts in pup x 2)
+    :returns:
+        Btt : (np.ndarray(ndim=2,dtype=np.float32)) : Btt to Volts matrix
+        P : (np.ndarray(ndim=2,dtype=np.float32)) : Volts to Btt matrix
+    """
+    N = IFpzt.shape[0]
+    n = IFpzt.shape[1]
+    if(n > N):
+        raise StandardError("Influence functions must be arrange as (Npts_pup x nactus)")
+
+    delta = IFpzt.T.dot(IFpzt).toarray()/N
+
+    # Tip-tilt + piston
+    Tp = np.ones((IFtt.shape[0],IFtt.shape[1]+1))
+    Tp[:,:2] = IFtt.copy()#.toarray()
+    deltaT = IFpzt.T.dot(Tp)/N
+    # Tip tilt projection on the pzt dm
+    tau = np.linalg.inv(delta).dot(deltaT)
+
+    # Famille generatrice sans tip tilt
+    G = np.identity(n)
+    tdt = tau.T.dot(delta).dot(tau)
+    subTT = tau.dot(np.linalg.inv(tdt)).dot(tau.T).dot(delta)
+    G -= subTT
+
+    # Base orthonormee sans TT
+    gdg = G.T.dot(delta).dot(G)
+    U,s,V = np.linalg.svd(gdg)
+    U=U[:,:U.shape[1]-3]
+    s = s[:s.size-3]
+    L = np.identity(s.size)/np.sqrt(s)
+    B = G.dot(U).dot(L)
+
+    # Rajout du TT
+    TT = IFtt.T.dot(IFtt)/N
+    Btt = np.zeros((n+2,n-1))
+    Btt[:B.shape[0],:B.shape[1]] = B
+    mini = 1./np.sqrt(np.abs(TT))
+    mini[0,1] = 0
+    mini[1,0] = 0
+    Btt[n:,n-3:]=mini
+
+    # Calcul du projecteur actus-->modes
+    delta = np.zeros((n+IFtt.shape[1],n+IFtt.shape[1]))
+    #IFpzt = rtc.get_IFpztsparse(1).T
+    delta[:-2,:-2] = IFpzt.T.dot(IFpzt).toarray()/N
+    delta[-2:,-2:] = IFtt.T.dot(IFtt)/N
+    P = Btt.T.dot(delta)
+
+    return Btt.astype(np.float32),P.astype(np.float32)
+
+
 IF USE_BRAMA == 1:
     cdef class Rtc_brama(Rtc):  # child constructor must have the same prototype (same number of non-optional arguments)
         def __cinit__(self, Sensors sensor, Target target=None, device=-1):

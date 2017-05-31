@@ -614,6 +614,9 @@ cdef extern from "sutra_dm.h":
         int comp_shape(float * comm)
         int compute_KLbasis(float * xpos, float * ypos, int * indx, long dim,
                             float norm, float ampli)
+        int get_IF_sparse(carma_sparse_obj[double] *&d_IFsparse, int *indx_pup,
+      			long nb_pts, float ampli, int puponly)
+        int get_IF(float * IFtt, int * indx_pup, long nb_pts, float ampli)
 
 #################################################
 # C-Class sutra_controller

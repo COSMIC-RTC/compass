@@ -1155,7 +1155,7 @@ cdef zernumero(int zn, int * rd, int * an):
 
 
 
-    
+
 
 
 cpdef comp_dmgeom(Param_dm dm, Param_geom geom):
@@ -1700,6 +1700,81 @@ g        :return:
         self.dms.d_dms[inddm].d_influ.device2host(< float *> data_F.data)
         data = np.reshape(data_F.flatten("F"), (dims[1], dims[2], dims[3]))
         return data
+
+    cpdef get_IFsparse(self, bytes type_dm, float alt, np.ndarray[ndim=1, dtype=np.int32_t] indx_pup):
+        """Returns the influence functions matrix of a pzt DM as a sparse matrix
+        Return a scipy.sparse object which shape is (nactus,Npts in the pupil)
+
+        :parameters:
+            type_dm: (bytes) : DM type
+            alt: (float) : DM altitude
+            indx_pup: (np.ndarray[ndim=1, dtype=np.int32_t]) : valid indices of the pupil in the DM support
+        :return:
+            IF : (scipy.sparse) : influence functions matrix
+        """
+
+        cdef int inddm = self.dms.get_inddm(type_dm, alt)
+        cdef carma_context * context = &carma_context.instance()
+        context.set_activeDeviceForCpy(self.dms.d_dms[inddm].device, 1)
+
+        cdef carma_sparse_obj[double] * d_IFsparse
+        cdef carma_obj[int] * d_indx
+        cdef long dims[2]
+        dims[0] = 1
+        dims[1] = indx_pup.size
+
+        if(type_dm == "pzt"):
+            d_indx = new carma_obj[int](context, dims, <int *> indx_pup.data)
+            sparse = naga_sparse_obj_Double()
+            self.dms.d_dms[inddm].get_IF_sparse(d_IFsparse, d_indx.getData(), indx_pup.size, float(1.0), 1)
+            sparse.copy(d_IFsparse)
+            del d_indx
+            del d_IFsparse
+            return sparse.get_sparse()
+        else:
+            raise ValueError("This function only works with pzt DM (tt influence functions are not sparse)")
+
+    cpdef get_IFtt(self, bytes type_dm, float alt, np.ndarray[ndim=1, dtype=np.int32_t] indx_pup):
+        """Returns the influence functions matrix of a tt DM
+
+        :parameters:
+            type_dm: (bytes) : DM type
+            alt: (float) : DM altitude
+            indx_pup: (np.ndarray[ndim=1, dtype=np.int32_t]) : valid indices of the pupil in the DM support
+        :return:
+            IFtt : (np.ndarray[ndim=2, dtype=np.float32_t]) : influence functions matrix
+        """
+
+        cdef int inddm = self.dms.get_inddm(type_dm, alt)
+        cdef carma_context * context = &carma_context.instance()
+        context.set_activeDeviceForCpy(self.dms.d_dms[inddm].device, 1)
+
+        cdef carma_obj[int] * d_indx
+        cdef carma_obj[float] * d_IFtt
+        cdef long dims[2]
+        dims[0] = 1
+        dims[1] = indx_pup.size
+        cdef long dims2[3]
+        dims2[0] = 2
+        dims2[1] = indx_pup.size
+        dims2[2] = 2
+        cdef np.ndarray[ndim=2, dtype=np.float32_t] data
+        cdef np.ndarray[ndim=2, dtype=np.float32_t] data_F
+
+        if(type_dm == "tt"):
+            d_indx = new carma_obj[int](context, dims, <int *> indx_pup.data)
+            d_IFtt = new carma_obj[float](context, dims2)
+            self.dms.d_dms[inddm].get_IF(d_IFtt.getData(), d_indx.getData(), indx_pup.size, float(1.0))
+            data_F=np.zeros((dims2[2],dims2[1]),dtype=np.float32)
+            d_IFtt.device2host(< float *> data_F.data)
+            data=np.reshape(data_F.flatten("F"),(dims2[1],dims2[2]))
+
+            del d_indx
+            del d_IFtt
+            return data
+        else:
+            raise ValueError("This function only works with tt DM (for pzt, use get_IFsparse)")
+
 
     cpdef comp_oneactu(self, bytes type_dm, float alt, int nactu, float ampli):
         """Compute the shape of the dm when pushing the nactu actuator
