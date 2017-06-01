@@ -451,7 +451,7 @@ int sutra_source::raytrace(sutra_dms *ydms, int rst, int phase_var) {
 
 int sutra_source::raytrace(int rst) {
   if (this->d_ncpa_phase == nullptr) {
-    DEBUG_TRACE("ERROR: no NCPA has been loaded");
+    // DEBUG_TRACE("ERROR: no NCPA has been loaded");
     return EXIT_FAILURE;
   }
 

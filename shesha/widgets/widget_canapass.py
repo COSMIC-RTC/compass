@@ -742,9 +742,9 @@ class widgetAOWindow(TemplateBaseClass):
         self.rtc.applycontrol(0, self.dms)
         for w in range(len(self.config.p_wfss)):
             if(turbu):
-                self.wfs.sensors_trace(w, "all", self.tel, self.atm, self.dms, rst=1)
+                self.wfs.sensors_trace(w, "all", self.tel, self.atm, self.dms, rst=1, ncpa=1)
             else:
-                self.wfs.sensors_trace(w, "dm", self.tel, self.atm, self.dms, rst=1)
+                self.wfs.sensors_trace(w, "dm", self.tel, self.atm, self.dms, rst=1, ncpa=1)
             self.wfs.sensors_compimg(w, noise=noise)
         self.rtc.docentroids(0)
         return self.rtc.getcentroids(0)
@@ -1035,15 +1035,16 @@ class widgetAOWindow(TemplateBaseClass):
                         else:
                             self.tar.reset_phase(t)
                         self.tar.dmtrace(t, self.dms)
+                        self.tar.ncpatrace(t)
                     for w in range(len(self.config.p_wfss)):
                         if wao.see_atmos:
                             self.wfs.sensors_trace(
-                                w, "atmos", self.tel, self.atm, self.dms)
+                                w, "atmos", self.tel, self.atm, self.dms, ncpa=1)
                         else:
                             self.wfs.reset_phase(w)
                         if not self.config.p_wfss[w].openloop:
                             self.wfs.sensors_trace(
-                                w, "dm", self.tel, self.atm, self.dms)
+                                w, "dm", self.tel, self.atm, self.dms, ncpa=1)
                         self.wfs.sensors_compimg(w)
 
                     self.rtc.docentroids(0)
