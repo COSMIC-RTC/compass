@@ -47,6 +47,9 @@ cdef class Target:
     """device number"""
     cdef naga_context context
 
+    cpdef set_ncpa_phase(self, int n, np.ndarray[ndim=2, dtype=np.float32_t] data)
+    cpdef get_ncpa_phase(self, int n)
+
 IF USE_BRAMA == 1:
     cdef extern from * :
         sutra_target_brama * dynamic_cast_target_brama_ptr "dynamic_cast<sutra_target_brama*>" (sutra_target *) except NULL
