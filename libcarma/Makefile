@@ -28,7 +28,12 @@ ifeq ($(OS_ARCH),armv7l)
     NVCCFLAGS := -target-cpu-arch ARM -Xlinker --dynamic-linker=/lib/ld-linux-armhf.so.3 -Xcompiler "$(CCFLAGS)"
   endif
 else
-  CCFLAGS += -m64
+  ifeq ($(OS_ARCH),aarch64)
+    # CCFLAGS += -march=armv8-a+crc -mtune=cortex-a50  # Armageddon
+    CCFLAGS += -march=armv8-a+crc+crypto+fp+simd -mtune=cortex-a57  # TX2
+  else
+    CCFLAGS += -m64
+  endif
 endif
 
 LIB_DEPLIBS  = -fPIC -shared -Wl,-rpath=$(CUDA_LIB_PATH_64) -L$(CUDA_LIB_PATH_64)
