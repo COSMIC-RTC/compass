@@ -1,5 +1,29 @@
 source: <https://projets-lesia.obspm.fr/projects/compass/wiki/Install_the_platform>
 
+Table of Contents
+=================
+
+   * [Install Anaconda with python2](#install-anaconda-with-python2)
+      * [Download and installation](#download-and-installation)
+      * [Add more packets](#add-more-packets)
+   * [Install MAGMA](#install-magma)
+      * [Why MAGMA ?](#why-magma-)
+      * [Configure MAGMA with openBLAS](#configure-magma-with-openblas)
+         * [Dependencies : openblas (<a href="http://www.openblas.net">http://www.openblas.net</a>)](#dependencies--openblas-httpwwwopenblasnet)
+         * [extraction](#extraction)
+         * [configuration](#configuration)
+      * [Configure MAGMA with MKL](#configure-magma-with-mkl)
+         * [extraction](#extraction-1)
+      * [compilation and installation](#compilation-and-installation)
+         * [compilation](#compilation)
+         * [installation](#installation)
+   * [Install the platform](#install-the-platform)
+      * [Hardware requirements](#hardware-requirements)
+      * [Environment requirements](#environment-requirements)
+      * [Installation process](#installation-process)
+
+Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc)
+
 # Install Anaconda with python2
 
 more info: <https://www.continuum.io/downloads#linux>
