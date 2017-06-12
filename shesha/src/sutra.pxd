@@ -411,7 +411,7 @@ cdef extern from "sutra_wfs_pyr_pyrhr.h":
         sutra_wfs_pyr_pyrhr(const sutra_wfs_pyr_pyrhr & wfs)
         int wfs_initarrays(cuFloatComplex * halfxy, float * cx, float * cy,
                            float * sincar, float *submask, int * validsubsx, int * validsubsy, int *phasemap, float *fluxPerSub)
-        void comp_modulation(int cpt);
+        void comp_modulation(int cpt)
         int slopes_geom(int type, float * slopes)
         int slopes_geom(int type)
         int set_submask(float *submask)
@@ -642,11 +642,11 @@ cdef extern from "sutra_controller.h":
 
         # TODO cublasHandle_t cublas_handle()
 
-        int set_centroids_ref(float *centroids_ref);
-        int get_centroids_ref(float *centroids_ref);
+        int set_centroids_ref(float *centroids_ref)
+        int get_centroids_ref(float *centroids_ref)
         int set_perturbcom(float * perturb, int N)
         int set_openloop(int open_loop_status)
-        void clip_voltage(float min, float max);
+        void clip_voltage(float min, float max)
         int comp_voltage()
         int syevd_f(char meth, carma_obj[float] * d_U, carma_host_obj[float] * h_eingenvals)
         int invgen(carma_obj[float] * d_mat, float cond, int job)
@@ -980,10 +980,10 @@ cdef extern from "sutra_rtc.h":
         int do_centroids(int ncntrl, bool imat)
         int do_centroids_geom(int ncntrl)
         int do_control(int ncntrl)
-        int do_clipping(int ncntrl, float min, float max);
+        int do_clipping(int ncntrl, float min, float max)
         int apply_control(int ncntrl, sutra_dms * ydm)
-        int set_centroids_ref(int ncntrl, float *centroids_ref);
-        int get_centroids_ref(int ncntrl, float *centroids_ref);
+        int set_centroids_ref(int ncntrl, float *centroids_ref)
+        int get_centroids_ref(int ncntrl, float *centroids_ref)
 
 #################################################
 # C-Class sutra_lgs
@@ -1106,26 +1106,67 @@ cdef extern from "sutra_psfrecs.h":
         float scale
         int size
         int Npts
-        carma_obj[float] *d_term1;
-        carma_obj[float] *d_term2;
-        carma_obj[float] *d_otftel;
-        carma_obj[float] *d_otfVii;
-        carma_obj[float] *d_mask;
-        carma_obj[float] *d_eigenvals;
-        carma_obj[float] *d_Btt;
-        carma_obj[float] *d_covmodes;
-        carma_host_obj[float] *h_eigenvals;
-        carma_obj[cuFloatComplex] *d_newmodek;
-        carma_obj[cuFloatComplex] *d_Dphi;
-        carma_obj[cuFloatComplex] *d_pupfft;
+        carma_obj[float] *d_term1
+        carma_obj[float] *d_term2
+        carma_obj[float] *d_otftel
+        carma_obj[float] *d_otfVii
+        carma_obj[float] *d_mask
+        carma_obj[float] *d_eigenvals
+        carma_obj[float] *d_Btt
+        carma_obj[float] *d_covmodes
+        carma_host_obj[float] *h_eigenvals
+        carma_obj[cuFloatComplex] *d_newmodek
+        carma_obj[cuFloatComplex] *d_Dphi
+        carma_obj[cuFloatComplex] *d_pupfft
 
         sutra_psfrecs(carma_context *context, int device, char *type, int nactus,
                     int nmodes, int niter, float *IFvalue, int *IFrowind, int *IFcolind, int IFnz,
-                    float *TT, float *pupil, int size, int Npts, float scale, float *Btt, float *covmodes);
+                    float *TT, float *pupil, int size, int Npts, float scale, float *Btt, float *covmodes)
 
         int psf_rec_roket(float *err)
         int psf_rec_Vii()
 
+
+#################################################
+# C-Class sutra_groot
+#################################################
+cdef extern from "sutra_groot.h":
+    cdef cppclass sutra_groot:
+        carma_context *current_context
+        int device
+
+        int nactus # number of actuators
+        int nlayers # number of atmos layers
+        float gsangle # Guide star angle [rad]
+        float fc # DM cut-off frequency [m]
+
+        carma_host_obj[float] *h_vdt # v*dt/g [m/s]
+        carma_host_obj[float] *h_Htheta # H*theta (theta = GS radial distance) [rad]
+        carma_host_obj[float] *h_L0 # L0 [m]
+        carma_host_obj[float] *h_winddir # wind directions [rad]
+        carma_host_obj[float] *h_scale # r0**(-5/3) * frac * (lambda/2pi)**2
+
+        #Covariance matrix estimation
+        carma_obj[float] *d_Cerr # Residual error covariance matrix on DM actuators
+        carma_obj[float] *d_TT # TT component of the residual error covariance matrix
+
+        carma_obj[float] *d_TTPfilter # Tip-tilt and piston filter matrix (= Btt.dot(P))
+        carma_obj[float] *d_pzt2tt # pzt to TT matrix
+        carma_obj[float] *d_Nact # Coupling matrix
+        carma_obj[float] *d_xpos # X-positions of DM actuators [m]
+        carma_obj[float] *d_ypos # Y-positions of DM actuators [m]
+
+        # Dphi lowpass
+        carma_obj[float] *d_tab_int_x # Tabulated integral
+        carma_obj[float] *d_tab_int_y
+
+        sutra_groot(carma_context *context, int device, int nactus,
+                    int nlayers, float gsangle, float *vdt,
+                    float *Htheta, float *L0, float *winddir, float *scale,
+                    float *pzt2tt, float *TTPfilter,float *Nact,
+                    float *xpos, float *ypos, float fc)
+
+        int compute_Cerr()
 
 IF USE_BRAMA == 1:
     #################################################

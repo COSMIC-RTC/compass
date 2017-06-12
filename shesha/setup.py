@@ -32,10 +32,10 @@ print sys.path
 print "======================================"
 
 listMod = ["shesha_param", "shesha_telescope", "shesha_sensors", "shesha_atmos",
-           "shesha_dms", "shesha_target", "shesha_rtc"]  # , "shesha_roket", "shesha_psfrecs"]
+           "shesha_dms", "shesha_target", "shesha_rtc", "shesha_psfrecs", "shesha_groot"]  # , "shesha_roket", "shesha_psfrecs"]
 dependencies = {"shesha_sensors": ["shesha_telescope"],
                 "shesha_target": ["shesha_telescope"],
-                "shesha_roket": listMod[:-2],
+                # "shesha_roket": listMod[:-2],
                 }
 
 naga_path = os.environ.get('NAGA_ROOT')
