@@ -21,7 +21,7 @@ p_tel.set_diam(39.)
 # atmos
 p_atmos = ao.Param_atmos()
 
-p_atmos.set_r0(0.129)
+p_atmos.set_r0(0.15)
 p_atmos.set_nscreens(1)
 p_atmos.set_frac([1.0])
 p_atmos.set_alt([0.0])
@@ -43,10 +43,10 @@ p_wfss = [p_wfs0]
 
 p_wfs0.set_type("pyrhr")
 p_wfs0.set_nxsub(78)
-p_wfs0.set_fracsub(0.8)
+p_wfs0.set_fracsub(0.01)
 p_wfs0.set_xpos(0.)
 p_wfs0.set_ypos(0.)
-p_wfs0.set_Lambda(0.7)
+p_wfs0.set_Lambda(0.658)
 p_wfs0.set_gsmag(13)
 p_wfs0.set_optthroughput(0.5)
 p_wfs0.set_zerop(2.6e10) # 2.6e10 ph/s/m**2 computed by Rico in R band for MOSAIC
