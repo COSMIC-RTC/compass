@@ -98,14 +98,14 @@ int sutra_groot<T_data>::compute_Cerr(){
     printf("Computing Cerr...\n");
 
     for(int l = 0; l < this->nlayers; l++){
-        compute_Cerr_layer(this->d_Cerr->getData(), this->nactus, this->d_tab_int_x->getData(),
+        compute_Cerr_layer<T_data>(this->d_Cerr->getData(), this->nactus, this->d_tab_int_x->getData(),
                             this->d_tab_int_y->getData(), this->d_xpos->getData(),
                             this->d_ypos->getData(), (*this->h_vdt)[l],
                             (*this->h_Htheta)[l], (*this->h_L0)[l], this->fc, (*this->h_winddir)[l],
                             this->gsangle, (*this->h_scale)[l], this->d_tab_int_y->getNbElem(),
                             this->current_context->get_device(device));
     }
-    add_transpose(this->d_Cerr->getData(), this->nactus, this->current_context->get_device(device));
+    add_transpose<T_data>(this->d_Cerr->getData(), this->nactus, this->current_context->get_device(device));
     printf("Done\n");
 
     printf("Applying coupling matrix...\n");

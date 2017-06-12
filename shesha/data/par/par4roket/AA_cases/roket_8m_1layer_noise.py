@@ -60,7 +60,7 @@ for i in range(len(p_wfss)):
     p_wfss[i].set_Lambda(0.5)
     p_wfss[i].set_gsmag(10.)
     p_wfss[i].set_optthroughput(0.5)
-    p_wfss[i].set_zerop(2.5e10)
+    p_wfss[i].set_zerop(2.8e10)
     p_wfss[i].set_noise(3)
     p_wfss[i].set_atmos_seen(1)
 
@@ -112,7 +112,7 @@ p_controllers=[p_controller1]
 p_controller1.set_type("ls")
 p_controller1.set_nwfs([0])
 p_controller1.set_ndm([0,1])
-p_controller1.set_maxcond(600)
+p_controller1.set_maxcond(100)
 p_controller1.set_delay(0)
 p_controller1.set_gain(0.3)
 

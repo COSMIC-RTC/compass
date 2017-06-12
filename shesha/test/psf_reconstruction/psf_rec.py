@@ -16,6 +16,30 @@ plt.ion()
 c = ch.naga_context(7)
 
 #filename = "/home/fferreira/Data/breakdown_offaxis-4_2.h5"
+def cutsPSF(filename,psf,psfs):
+    f=h5py.File(filename,'r')
+    Lambda_tar = f.attrs["target.Lambda"][0]
+    RASC = 180/np.pi*3600.
+    pixsize = Lambda_tar*1e-6  / (psf.shape[0] * f.attrs["tel_diam"]/f.attrs["pupdiam"]) * RASC
+    x = (np.arange(psf.shape[0]) - psf.shape[0]/2) * pixsize / (Lambda_tar*1e-6/f.attrs["tel_diam"] * RASC)
+    plt.figure()
+    plt.subplot(2,1,1)
+    plt.semilogy(x,psf[psf.shape[0]/2,:],color="blue")
+    plt.semilogy(x,psfs[psf.shape[0]/2,:],color="red")
+    plt.xlabel("X-axis angular distance [units of lambda/D]")
+    plt.ylabel("Normalized intensity")
+    plt.legend(["PSF 1", "PSF 2"])
+    plt.xlim(-20,20)
+    plt.ylim(1e-5,1)
+    plt.subplot(2,1,2)
+    plt.semilogy(x,psf[:,psf.shape[0]/2],color="blue")
+    plt.semilogy(x,psfs[:,psf.shape[0]/2],color="red")
+    plt.xlabel("Y-axis angular distance [units of lambda/D]")
+    plt.ylabel("Normalized intensity")
+    plt.legend(["PSF 1", "PSF 2"])
+    plt.xlim(-20,20)
+    plt.ylim(1e-5,1)
+    f.close()
 
 def get_err(filename):
     f = h5py.File(filename,'r')

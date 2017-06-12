@@ -1,4 +1,5 @@
 #include <sutra_groot.h>
+
 template<class T_data, typename Fn>
 __device__ T_data macdo_x56_gpu_gb(Fn const &ptr_pow, T_data x, int k)
 /* DOCUMENT  macdo_x56_gpu_gb(x)
@@ -63,13 +64,12 @@ __device__ T_data macdo_x56_gpu_gb(Fn const &ptr_pow, T_data x, int k)
 }
 
 
-
 __device__ float macdo_x56_gpu(float x, int k){
 	return macdo_x56_gpu_gb<float>(powf, x, k);
 }
 
 __device__ double macdo_x56_gpu(double x, int k){
-	return macdo_x56_gpu_gb<double>(pow, x, k);
+	return macdo_x56_gpu_gb<double,  double(*)(double, double)>(pow, x, k);
 }
 
 
@@ -108,13 +108,12 @@ __device__ T_data asymp_macdo_gpu_gb(Fn const &ptr_pow, Fne const &ptr_exp, T_da
 	return res;
 }
 
-template<>
-__device__ float asymp_macdo_gpu<float>(float x){
-	return asymp_macdo_gpu_gb(powf, expf, x);
+__device__ float asymp_macdo_gpu(float x){
+	return asymp_macdo_gpu_gb<float>(powf, expf, x);
 }
-template<>
-__device__ double asymp_macdo_gpu<double>(double x){
-	return asymp_macdo_gpu_gb(pow, exp, x);
+
+__device__ double asymp_macdo_gpu(double x){
+	return asymp_macdo_gpu_gb<double, double(*)(double, double), double(*)(double)> (pow, exp, x);
 }
 
 //------------------------------------------------------------------------------------
@@ -154,13 +153,13 @@ __device__ T_data rodconan_gpu_gb(Fn const &ptr_pow, T_data r, T_data L0, int k)
 	return res;
 }
 
-template<>
-__device__ float rodconan_gpu<float>(float r, float L0, int k){
-	return rodconan_gpu_gb(powf, r, L0, k);
+
+__device__ float rodconan_gpu(float r, float L0, int k){
+	return rodconan_gpu_gb<float>(powf, r, L0, k);
 }
-template<>
-__device__ double rodconan_gpu<double>(double r, double L0, int k){
-	return rodconan_gpu_gb(pow, r, L0, k);
+
+__device__ double rodconan_gpu(double r, double L0, int k){
+	return rodconan_gpu_gb<double,  double(*)(double, double)>(pow, r, L0, k);
 }
 
 template<class T_data>
@@ -182,7 +181,8 @@ __device__ double unMoinsJ0<double>(double x);
 
 
 template<class T_data, typename Fn>
-__global__ void compute_u831J0_gen(Fn const &ptr_exp, T_data* x, T_data* y, int npts, T_data tmin, T_data tmax, T_data dt){
+__device__ void compute_u831J0_gen(Fn const &ptr_exp, T_data* x, T_data* y,
+									int npts, T_data tmin, T_data tmax, T_data dt){
 
 	int tid = threadIdx.x + blockIdx.x * blockDim.x;
 	T_data t;
@@ -194,13 +194,20 @@ __global__ void compute_u831J0_gen(Fn const &ptr_exp, T_data* x, T_data* y, int 
 	}
 }
 
+template<class T_data>
+__global__ void compute_u831J0(T_data * x, T_data * y, int npts, T_data  tmin, T_data  tmax,
+								T_data  dt, carma_device *device);
 template<>
-__global__ void compute_u831J0<float>(float* x, float* y, int npts, float tmin, float tmax, float dt){
-	return compute_u831J0_gen(expf, x, y, npts, tmin, tmax, dt);
+__global__ void compute_u831J0<float>(float * x, float * y, int npts, float  tmin, float  tmax,
+								float  dt, carma_device *device){
+
+	compute_u831J0_gen<float>(expf, x, y, npts, tmin, tmax, dt);
 }
 template<>
-__global__ void compute_u831J0<double>(double* x, double* y, int npts, double tmin, double tmax, double dt){
-	return compute_u831J0_gen(exp, x, y, npts, tmin, tmax, dt);
+__global__ void compute_u831J0<double>(double * x, double * y, int npts, double  tmin, double  tmax,
+								double  dt, carma_device *device){
+
+	compute_u831J0_gen<double,  double(*)(double)>(exp, x, y, npts, tmin, tmax, dt);
 }
 
 
@@ -250,9 +257,8 @@ void cumsum<double>(double *odata, double *idata, int N);
 
 
 
-template<class T_data, typename Fn, typename Fne>
-int tab_u831J0_gen(Fn const &ptr_pow, Fne const &ptr_exp, T_data *tab_int_x,
-				T_data *tab_int_y, int npts, carma_device *device){
+template<class T_data>
+int tab_u831J0(T_data *tab_int_x, T_data *tab_int_y, int npts, carma_device *device){
 
 	T_data tmin = -4.;
 	T_data tmax = 10.;
@@ -267,11 +273,11 @@ int tab_u831J0_gen(Fn const &ptr_pow, Fne const &ptr_exp, T_data *tab_int_x,
 	T_data *temp_d;
 	T_data dt = (tmax - tmin)/(npts-1);
 
-    int nthreads = 0, nblocks = 0;
+	int nthreads = 0, nblocks = 0;
 	getNumBlocksAndThreads(device, npts, nblocks, nthreads);
 	dim3 grid(nblocks), threads(nthreads);
 
-	compute_u831J0<<<grid,threads>>>(tab_int_x, tab_int_y, npts, tmin, tmax, dt);
+	compute_u831J0<<< grid, threads >>>(tab_int_x, tab_int_y, npts, tmin, tmax, dt, device);
 	carmaCheckMsg("compute_u831J0<<<>>> execution failed\n");
 	// DEBUG_TRACE("tab_int !\n");
 	cudaMalloc((void**)&(temp_d), (npts-1) * sizeof(T_data));
@@ -291,24 +297,21 @@ int tab_u831J0_gen(Fn const &ptr_pow, Fne const &ptr_exp, T_data *tab_int_x,
 	cudaMemcpy(tab_int_y, tab, (npts)*sizeof(T_data), cudaMemcpyHostToDevice);
 	carmaCheckMsg("copy gpu tab");
 	// DEBUG_TRACE("tab_int !\n");
-	T_data smallx = ptr_exp(tmin);
-	T_data smallInt = (0.75 * ptr_pow(smallx,(T_data)(1/3.)) * (1 - smallx * smallx / 112.));
+	T_data smallx = exp(tmin);
+	T_data smallInt = (0.75 * pow(smallx,(T_data)(1/3.)) * (1 - smallx * smallx / 112.));
 	// DEBUG_TRACE("tab_int !\n");
+
 	intfrominftomin<<<grid,threads>>>(tab_int_y, smallInt, npts);
 	carmaCheckMsg("intfrominftomin<<<>>> execution failed\n");
 
     return EXIT_SUCCESS;
 
 }
+template
+int tab_u831J0(float *tab_int_x, float *tab_int_y, int npts, carma_device *device);
 
-template<>
-int tab_u831J0<float>(float *tab_int_x, float *tab_int_y, int npts, carma_device *device){
-	return tab_u831J0_gen<float>(powf, expf, tab_int_x, tab_int_y, npts, device);
-}
-template<>
-int tab_u831J0<double>(double *tab_int_x, double *tab_int_y, int npts, carma_device *device){
-	return tab_u831J0_gen<double>(pow, exp, tab_int_x, tab_int_y, npts, device);
-}
+template
+int tab_u831J0(double *tab_int_x, double *tab_int_y, int npts, carma_device *device);
 
 
 template<class T_data, typename Fn, typename Fne, typename Fnl>
@@ -327,13 +330,11 @@ __device__ T_data Ij0t83_gen(Fn const &ptr_pow,Fne const &ptr_exp,Fnl const &ptr
 	}
 }
 
-template<>
-__device__ float Ij0t83<float>(float x, float *tab_x, float *tab_y, long npts){
+__device__ float Ij0t83(float x, float *tab_x, float *tab_y, long npts){
 	return Ij0t83_gen<float>(powf, expf, logf, x, tab_x, tab_y, npts);
 }
-template<>
-__device__ double Ij0t83<double>(double x, double *tab_x, double *tab_y, long npts){
-	return Ij0t83_gen<double>(pow, exp, log, x, tab_x, tab_y, npts);
+__device__ double Ij0t83(double x, double *tab_x, double *tab_y, long npts){
+	return Ij0t83_gen<double, double(*)(double, double), double(*)(double), double(*)(double)>(pow, exp, log, x, tab_x, tab_y, npts);
 }
 
 
@@ -346,15 +347,13 @@ __device__ T_data DPHI_highpass_gen(Fn const &ptr_pow, T_data r, T_data fc, T_da
 	return ptr_pow(r,5/3.) * (1.1183343328701949 - Ij0t83(2*pi*fc*r,tab_x,tab_y,npts)) * ptr_pow(2*pi,8/3.) * 2 *0.0228956;
 }
 
-template<>
-__device__ float DPHI_highpass<float>(float r, float fc, float *tab_x,
+__device__ float DPHI_highpass(float r, float fc, float *tab_x,
 								float *tab_y, long npts){
 	return DPHI_highpass_gen<float>(powf, r, fc, tab_x, tab_y, npts);
 }
-template<>
-__device__ double DPHI_highpass<double>(double r, double fc, double *tab_x,
+__device__ double DPHI_highpass(double r, double fc, double *tab_x,
 								double *tab_y, long npts){
-	return DPHI_highpass_gen<double>(pow, r, fc, tab_x, tab_y, npts);
+	return DPHI_highpass_gen<double, double(*)(double, double)>(pow, r, fc, tab_x, tab_y, npts);
 }
 
 
@@ -367,21 +366,19 @@ __device__ T_data DPHI_lowpass_gen(Fn const &ptr_sqrt, T_data x, T_data y, T_dat
 	return rodconan_gpu(r,L0,10) - DPHI_highpass(r,fc,tab_int_x,tab_int_y,npts);
 }
 
-template<>
-__device__ float DPHI_lowpass<float>(Fn const &ptr_sqrt, float x, float y, float L0,
+__device__ float DPHI_lowpass(float x, float y, float L0,
 								float fc, float *tab_int_x, float *tab_int_y,
 								long npts){
-	return DPHI_lowpass_gen<float>(sqrtf, x, y, L0, fc, tab_int_x, tab_int_y,npts);
+	return DPHI_lowpass_gen<float>(sqrtf, x, y, L0, fc, tab_int_x, tab_int_y, npts);
 }
-template<>
-__device__ double DPHI_lowpass<double>(Fn const &ptr_sqrt, double x, double y, double L0,
+__device__ double DPHI_lowpass(double x, double y, double L0,
 								double fc, double *tab_int_x, double *tab_int_y,
 								long npts){
-	return DPHI_lowpass_gen<double>(sqrt, x, y, L0, fc, tab_int_x, tab_int_y,npts);
+	return DPHI_lowpass_gen<double, double(*)(double)>(sqrt, x, y, L0, fc, tab_int_x, tab_int_y, npts);
 }
 
-template<class T_data, typename Fn, typename Fn>
-__global__ void compute_Cerr_element_gen(Fn const &ptr_cos, Fn const &ptr_sin,
+template<class T_data, typename Fnc, typename Fns>
+__device__ void compute_Cerr_element_gen(Fnc const &ptr_cos, Fns const &ptr_sin,
 										T_data *Cerr, int N, T_data *tab_int_x,
                                         T_data *tab_int_y, T_data *xpos, T_data *ypos,
                                         T_data vdt, T_data Htheta, T_data L0, T_data fc,
@@ -415,27 +412,41 @@ __global__ void compute_Cerr_element_gen(Fn const &ptr_cos, Fn const &ptr_sin,
     }
 
 }
+template<class T_data>
+__global__ void compute_Cerr_element(T_data *Cerr, int N, T_data *tab_int_x,
+                                        T_data *tab_int_y, T_data *xpos, T_data *ypos,
+                                        T_data vdt, T_data Htheta, T_data L0, T_data fc,
+                                        T_data winddir, T_data gsangle, T_data scale, int Ntab,
+									carma_device *device);
 
 template<>
-__global__ void compute_Cerr_element<float>(float *Cerr, int N, float *tab_int_x,
+__global__ void compute_Cerr_element(float *Cerr, int N, float *tab_int_x,
                                         float *tab_int_y, float *xpos, float *ypos,
                                         float vdt, float Htheta, float L0, float fc,
-                                        float winddir, float gsangle, float scale, int Ntab){
-	return compute_Cerr_element_gen<float>(cosf, sinf, Cerr, int N, tab_int_x,
+                                        float winddir, float gsangle, float scale, int Ntab,
+									carma_device *device){
+
+	return compute_Cerr_element_gen<float>(cosf, sinf, Cerr, N, tab_int_x,
 	                                        tab_int_y, xpos, ypos,
 	                                        vdt, Htheta, L0, fc,
 	                                        winddir, gsangle, scale, Ntab);
+
 }
 template<>
-__global__ void compute_Cerr_element<double>(double *Cerr, int N, double *tab_int_x,
+__global__ void compute_Cerr_element(double *Cerr, int N, double *tab_int_x,
                                         double *tab_int_y, double *xpos, double *ypos,
                                         double vdt, double Htheta, double L0, double fc,
-                                        double winddir, double gsangle, double scale, int Ntab){
-	return compute_Cerr_element_gen<double>(cos, sin, Cerr, int N, tab_int_x,
+                                        double winddir, double gsangle, double scale, int Ntab,
+									carma_device *device){
+
+	return compute_Cerr_element_gen<double, double(*)(double), double(*)(double)>
+											(cos, sin, Cerr, N, tab_int_x,
 	                                        tab_int_y, xpos, ypos,
 	                                        vdt, Htheta, L0, fc,
 	                                        winddir, gsangle, scale, Ntab);
+
 }
+
 
 
 
@@ -471,14 +482,14 @@ int compute_Cerr_layer(T_data *Cerr, int N, T_data *tab_int_x, T_data *tab_int_y
                             T_data Htheta, T_data L0, T_data fc, T_data winddir, T_data gsangle,
                             T_data scale, int Ntab, carma_device *device){
 
-    int nthreads = 0, nblocks = 0;
+	int nthreads = 0, nblocks = 0;
 	getNumBlocksAndThreads(device, N * N, nblocks, nthreads);
 	dim3 grid(nblocks), threads(nthreads);
 
-    compute_Cerr_element<<< grid, threads >>>(Cerr, N, tab_int_x, tab_int_y,
+    compute_Cerr_element<<< grid, threads>>>(Cerr, N, tab_int_x, tab_int_y,
                                                 xpos, ypos, vdt,
                                                 Htheta, L0, fc, winddir,
-                                                gsangle, scale, Ntab);
+                                                gsangle, scale, Ntab, device);
     carmaCheckMsg("compute_Cerr_element<<<>>> execution failed\n");
 
 	return EXIT_SUCCESS;

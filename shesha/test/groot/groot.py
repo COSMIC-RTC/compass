@@ -7,13 +7,16 @@ sys.path.append(os.environ.get('SHESHA_ROOT')+'/test/roket/tools/')
 sys.path.append(os.environ.get('SHESHA_ROOT')+'/test/psf_reconstruction/')
 import psf_rec as precs
 import Dphi
+import matplotlib.pyplot as plt
+plt.ion()
 
-def compute_Cerr(filename, modal=True):
+def compute_Cerr(filename, modal=True, ctype="float"):
     """ Returns the residual error covariance matrix using GROOT from a ROKET file
     :parameter:
         filename : (string) : full path to the ROKET file
         modal : (bool) : if True (default), Cerr is returned in the Btt modal basis,
                          in the actuator basis if False
+        ctype : (string) : "float" or "double"
     :return:
         Cerr : (np.ndarray(dim=2, dtype=np.float32)) : residual error covariance matrix
     """
@@ -57,11 +60,21 @@ def compute_Cerr(filename, modal=True):
     deltaF = IF.T.dot(T)/N
     pzt2tt = np.linalg.inv(deltaTT).dot(deltaF.T)
 
-    groot = ao.groot_init(Nact.shape[0], int(f.attrs["nscreens"]), angleht, fc, vdt.astype(np.float32),\
-                            Htheta.astype(np.float32), f.attrs["L0"], theta,
-                            scale.astype(np.float32), xactu.astype(np.float32),
-                            yactu.astype(np.float32), pzt2tt.astype(np.float32),
-                            Tf.astype(np.float32), Nact.astype(np.float32))
+    if(ctype == "float"):
+        groot = ao.groot_init(Nact.shape[0], int(f.attrs["nscreens"]), angleht, fc, vdt.astype(np.float32),\
+                                Htheta.astype(np.float32), f.attrs["L0"], theta,
+                                scale.astype(np.float32), xactu.astype(np.float32),
+                                yactu.astype(np.float32), pzt2tt.astype(np.float32),
+                                Tf.astype(np.float32), Nact.astype(np.float32))
+    elif(ctype == "double"):
+        groot = ao.groot_initD(Nact.shape[0], int(f.attrs["nscreens"]), angleht, fc, vdt.astype(np.float64),\
+                                Htheta.astype(np.float64), f.attrs["L0"].astype(np.float64), theta.astype(np.float64),
+                                scale.astype(np.float64), xactu.astype(np.float64),
+                                yactu.astype(np.float64), pzt2tt.astype(np.float64),
+                                Tf.astype(np.float64), Nact.astype(np.float64))
+    else:
+        raise TypeError("Unknown ctype : must be float or double")
+
     groot.compute_Cerr()
     Cerr = groot.get_Cerr()
     cov_err_groot = np.zeros((Nact.shape[0]+2,Nact.shape[0]+2))
@@ -175,9 +188,15 @@ def compare_GPU_vs_CPU(filename):
 
     """
     tic = time.time()
-    cov_err_gpu = compute_Cerr(filename)
+    cov_err_gpu_s = compute_Cerr(filename)
     tac = time.time()
-    gpu_time = tac - tic
+    gpu_time_s = tac - tic
+
+    tic = time.time()
+    cov_err_gpu_d = compute_Cerr(filename, ctype="double")
+    tac = time.time()
+    gpu_time_d = tac - tic
+
 
     tic = time.time()
     cov_err_cpu = compute_Cerr_cpu(filename)
@@ -186,11 +205,16 @@ def compare_GPU_vs_CPU(filename):
 
     otftel, otf2, psf_cpu, gpu = precs.psf_rec_Vii(filename,fitting=False,\
                                                 cov=cov_err_cpu.astype(np.float32))
-    otftel, otf2, psf_gpu, gpu = precs.psf_rec_Vii(filename,fitting=False,\
-                                                cov=cov_err_gpu.astype(np.float32))
+    otftel, otf2, psf_gpu_s, gpu = precs.psf_rec_Vii(filename,fitting=False,\
+                                                cov=cov_err_gpu_s.astype(np.float32))
+    otftel, otf2, psf_gpu_d, gpu = precs.psf_rec_Vii(filename,fitting=False,\
+                                                cov=cov_err_gpu_d.astype(np.float32))
 
     print "-----------------------------------------"
     print "CPU time : ", cpu_time, " s "
-    print "GPU time : ", gpu_time, " s "
-    print "Max absolute difference in PSFs : ", np.abs(psf_cpu-psf_gpu).max()
-    precs.cutsPSF(filename, psf_cpu, psf_gpu)
+    print "GPU time simple precision : ", gpu_time_s, " s "
+    print "GPU time double precision : ", gpu_time_d, " s "
+    print "Max absolute difference in PSFs simple precision : ", np.abs(psf_cpu-psf_gpu_s).max()
+    print "Max absolute difference in PSFs double precision : ", np.abs(psf_cpu-psf_gpu_d).max()
+    precs.cutsPSF(filename, psf_cpu, psf_gpu_s)
+    precs.cutsPSF(filename, psf_cpu, psf_gpu_d)

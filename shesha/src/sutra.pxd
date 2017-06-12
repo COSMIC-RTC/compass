@@ -1131,40 +1131,42 @@ cdef extern from "sutra_psfrecs.h":
 # C-Class sutra_groot
 #################################################
 cdef extern from "sutra_groot.h":
-    cdef cppclass sutra_groot:
+
+
+    cdef cppclass sutra_groot[T]:
         carma_context *current_context
         int device
 
         int nactus # number of actuators
         int nlayers # number of atmos layers
-        float gsangle # Guide star angle [rad]
-        float fc # DM cut-off frequency [m]
+        T gsangle # Guide star angle [rad]
+        T fc # DM cut-off frequency [m]
 
-        carma_host_obj[float] *h_vdt # v*dt/g [m/s]
-        carma_host_obj[float] *h_Htheta # H*theta (theta = GS radial distance) [rad]
-        carma_host_obj[float] *h_L0 # L0 [m]
-        carma_host_obj[float] *h_winddir # wind directions [rad]
-        carma_host_obj[float] *h_scale # r0**(-5/3) * frac * (lambda/2pi)**2
+        carma_host_obj[T] *h_vdt # v*dt/g [m/s]
+        carma_host_obj[T] *h_Htheta # H*theta (theta = GS radial distance) [rad]
+        carma_host_obj[T] *h_L0 # L0 [m]
+        carma_host_obj[T] *h_winddir # wind directions [rad]
+        carma_host_obj[T] *h_scale # r0**(-5/3) * frac * (lambda/2pi)**2
 
         #Covariance matrix estimation
-        carma_obj[float] *d_Cerr # Residual error covariance matrix on DM actuators
-        carma_obj[float] *d_TT # TT component of the residual error covariance matrix
+        carma_obj[T] *d_Cerr # Residual error covariance matrix on DM actuators
+        carma_obj[T] *d_TT # TT component of the residual error covariance matrix
 
-        carma_obj[float] *d_TTPfilter # Tip-tilt and piston filter matrix (= Btt.dot(P))
-        carma_obj[float] *d_pzt2tt # pzt to TT matrix
-        carma_obj[float] *d_Nact # Coupling matrix
-        carma_obj[float] *d_xpos # X-positions of DM actuators [m]
-        carma_obj[float] *d_ypos # Y-positions of DM actuators [m]
+        carma_obj[T] *d_TTPfilter # Tip-tilt and piston filter matrix (= Btt.dot(P))
+        carma_obj[T] *d_pzt2tt # pzt to TT matrix
+        carma_obj[T] *d_Nact # Coupling matrix
+        carma_obj[T] *d_xpos # X-positions of DM actuators [m]
+        carma_obj[T] *d_ypos # Y-positions of DM actuators [m]
 
         # Dphi lowpass
-        carma_obj[float] *d_tab_int_x # Tabulated integral
-        carma_obj[float] *d_tab_int_y
+        carma_obj[T] *d_tab_int_x # Tabulated integral
+        carma_obj[T] *d_tab_int_y
 
         sutra_groot(carma_context *context, int device, int nactus,
-                    int nlayers, float gsangle, float *vdt,
-                    float *Htheta, float *L0, float *winddir, float *scale,
-                    float *pzt2tt, float *TTPfilter,float *Nact,
-                    float *xpos, float *ypos, float fc)
+                    int nlayers, T gsangle, T *vdt,
+                    T *Htheta, T *L0, T *winddir, T *scale,
+                    T *pzt2tt, T *TTPfilter,T *Nact,
+                    T *xpos, T *ypos, T fc)
 
         int compute_Cerr()
 

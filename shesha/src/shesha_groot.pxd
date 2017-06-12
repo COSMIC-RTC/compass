@@ -4,9 +4,16 @@ from naga_obj cimport *
 
 include "sutra.pxd"
 
-cdef class Groot:
+cdef class GrootS:
 
-    cdef sutra_groot *groot
+    cdef sutra_groot[float] *groot
+    cdef int device
+
+    cpdef compute_Cerr(self)
+
+cdef class GrootD:
+
+    cdef sutra_groot[double] *groot
     cdef int device
 
     cpdef compute_Cerr(self)

@@ -168,7 +168,7 @@ def loop(n):
         psf_ortho = tar.get_image(0,'se')*0.
         Ee = np.copy(noise_com)
         Ff = np.copy(Ee)
-        gamma = 1.0
+        #gamma = 1.0
         gRD = np.identity(RD.shape[0])-config.p_controllers[0].gain*gamma*RD
     t0=time.time()
     for i in range(n):
@@ -189,9 +189,9 @@ def loop(n):
                 wfs.sensors_compimg(w)
             rtc.docentroids(0)
             rtc.docontrol(0)
-            if( i%500==0 and i>0):
-                #gamma = centroid_gain(Ff[i-500:i,:],Ee[i-500:i,:])
-                gRD = np.identity(RD.shape[0])-config.p_controllers[0].gain*gamma*RD
+            # if( i%500==0 and i>0):
+            #     #gamma = centroid_gain(Ff[i-500:i,:],Ee[i-500:i,:])
+            #     gRD = np.identity(RD.shape[0])-config.p_controllers[0].gain*gamma*RD
             if(error_flag and i > -1):
             #compute the error breakdown for this iteration
                 error_breakdown(com,noise_com,alias_wfs_com,tomo_com,H_com,trunc_com,bp_com,wf_com,mod_com,fit, psf_ortho, i, Ee, Ff,gamma, gRD)
@@ -550,6 +550,7 @@ def compute_cmatWithBtt2(Btt,nfilt):
 
 def cov_cor(P,noise,trunc,alias,H,bp,tomo):
     cov = np.zeros((6,6))
+    cor = np.zeros((6,6))
     bufdict = {"0":noise.T,
                "1":trunc.T,
                "2":alias.T,
@@ -567,7 +568,8 @@ def cov_cor(P,noise,trunc,alias,H,bp,tomo):
 
     s = np.reshape(np.diag(cov),(cov.shape[0],1))
     sst = np.dot(s,s.T)
-    cor = cov/np.sqrt(sst)
+    ok = np.where(sst)
+    cor[ok] = cov[ok]/np.sqrt(sst[ok])
 
     return cov, cor
 
@@ -611,7 +613,7 @@ def save_it(filename):
 # | ||  __/\__ \ |_\__ \
 #  \__\___||___/\__|___/
 ###############################################################################################
-nfiltered = config.p_controllers[0].maxcond
+nfiltered = int(config.p_controllers[0].maxcond)
 niters = config.p_loop.niter
 N_preloop=1000
 config.p_loop.set_niter(niters+N_preloop)
@@ -623,7 +625,7 @@ R = rtc.get_cmat(0)
 imat = rtc.get_imat(0)
 RD = np.dot(R,imat)
 Nact = ao.create_nact_geom(config.p_dms,0)
-#gamma = 1./0.52
+gamma = 1./0.51495
 #gamma = centroid_gain(100)
 #print "gamma = ",gamma
 

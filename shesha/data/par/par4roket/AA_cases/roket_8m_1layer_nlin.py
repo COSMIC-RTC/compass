@@ -53,7 +53,7 @@ for i in range(len(p_wfss)):
     p_wfss[i].set_type("sh")
     p_wfss[i].set_nxsub(40)
     p_wfss[i].set_npix(4)
-    p_wfss[i].set_pixsize(0.2)
+    p_wfss[i].set_pixsize(1.)
     p_wfss[i].set_fracsub(0.8)
     p_wfss[i].set_xpos(0.)
     p_wfss[i].set_ypos(0.)
