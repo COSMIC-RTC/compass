@@ -104,15 +104,15 @@ def psf_rec_roket_file(filename,err=None):
     # Scale factor
     scale = float(2*np.pi/f.attrs["target.Lambda"][0])
     # Init GPU
-    precs = ao.psfrecs_init("roket", err.shape[0], err.shape[1],
+    gamora = ao.gamora_init("roket", err.shape[0], err.shape[1],
                             IF.data.astype(np.float32), IF.indices, IF.indptr, T,
                             spup.astype(np.float32), scale)
     # Launch computation
-    precs.psf_rec_roket(err)
+    gamora.psf_rec_roket(err)
     # Get psf
-    psf = precs.get_psf()
+    psf = gamora.get_psf()
     f.close()
-    return psf, precs
+    return psf, gamora
 
 
 def psf_rec_roket_file_cpu(filename):
@@ -176,18 +176,18 @@ def psf_rec_Vii(filename,err=None,fitting=True,covmodes=None,cov=None):
     # Scale factor
     scale = float(2*np.pi/f.attrs["target.Lambda"][0])
     # Init GPU
-    precs = ao.psfrecs_init("Vii", Btt.shape[0], err.shape[1],
+    gamora = ao.gamora_init("Vii", Btt.shape[0], err.shape[1],
                             IF.data.astype(np.float32), IF.indices, IF.indptr, T,
                             spup.astype(np.float32), scale,
                             covmodes.shape[0], Btt, covmodes)
     # Launch computation
-    #precs.set_eigenvals(e.astype(np.float32))
-    #precs.set_covmodes(V.astype(np.float32))
+    #gamora.set_eigenvals(e.astype(np.float32))
+    #gamora.set_covmodes(V.astype(np.float32))
     tic = time.time()
-    precs.psf_rec_Vii()
+    gamora.psf_rec_Vii()
 
-    otftel = precs.get_otftel()
-    otf2 = precs.get_otfVii()
+    otftel = gamora.get_otftel()
+    otf2 = gamora.get_otfVii()
 
     otftel /= otftel.max()
     if(f.keys().count("psfortho") and fitting):
@@ -204,7 +204,7 @@ def psf_rec_Vii(filename,err=None,fitting=True,covmodes=None,cov=None):
     tac = time.time()
     print " "
     print "PSF renconstruction took ",tac-tic," seconds"
-    return otftel, otf2, psf, precs
+    return otftel, otf2, psf, gamora
 
 def psf_rec_vii_cpu(filename):
     f = h5py.File(filename,'r')
@@ -269,7 +269,7 @@ def test_Vii(filename):
     a = time.time()
     otftel_cpu, otf2_cpu, psf_cpu = psf_rec_vii_cpu(filename)
     b = time.time()
-    otftel_gpu, otf2_gpu, psf_gpu, precs = psf_rec_Vii(filename)
+    otftel_gpu, otf2_gpu, psf_gpu, gamora = psf_rec_Vii(filename)
     c = time.time()
     cputime = b-a
     gputime = c-b

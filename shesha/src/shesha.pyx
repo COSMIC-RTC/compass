@@ -62,7 +62,7 @@ from shesha_target import *
 from shesha_rtc import *
 from shesha_telescope import *
 # from shesha_roket import *
-from shesha_psfrecs import *
+from shesha_gamora import *
 from shesha_groot import *
 
 '''

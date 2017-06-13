@@ -9,9 +9,9 @@ import h5py
 import matplotlib.pyplot as plt
 import matplotlib
 plt.ion()
-sys.path.insert(0, os.environ["SHESHA_ROOT"]+"/test/psf_reconstruction/")
+sys.path.insert(0, os.environ["SHESHA_ROOT"]+"/test/gamora/")
 sys.path.insert(0, os.environ["SHESHA_ROOT"]+"/test/roket/tools/")
-import psf_rec
+import gamora
 import roket_exploitation as rexp
 
 
@@ -76,8 +76,8 @@ for l in range(nlayers):
     inderr += frac[l] * err_layer_i[:,2*l+1]
     derr += frac[l] * err_layer_i[:,2*l]
 
-otftel_ref, otf2_ref, psf_ref, Precs = psf_rec.psf_rec_Vii(datapath + fname_layers)
-otftel_sum, otf2_sum, psf_sum, Precs = psf_rec.psf_rec_Vii(datapath + fname_layers,err=buferr_layers)
+otftel_ref, otf2_ref, psf_ref, gamora = gamora.psf_rec_Vii(datapath + fname_layers)
+otftel_sum, otf2_sum, psf_sum, gamora = gamora.psf_rec_Vii(datapath + fname_layers,err=buferr_layers)
 
 
 # Plots

@@ -1,4 +1,4 @@
-#include <sutra_psfrecs.h>
+#include <sutra_gamora.h>
 
 __global__ void fillamplikrnl(cuFloatComplex *amplipup, float *phase, int *wherephase,
                                 float scale, int Npts, int nx, int Nx, int puponly) {

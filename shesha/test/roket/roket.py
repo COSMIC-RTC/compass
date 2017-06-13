@@ -63,7 +63,8 @@ def InitConfig(param_file):
     #initialisation:
     #   context
     #c=ch.naga_context(7)
-    c=ch.naga_context(devices=np.array([6], dtype=np.int32))
+    devices = config.p_loop.devices
+    c=ch.naga_context(devices=devices)
     #c.set_activeDevice(device)
 
     #    wfs
@@ -683,4 +684,4 @@ if __name__ == "__main__":
 
 
     atm, wfs, tel, dms, tar, rtc, config = InitConfig(param_file)
-    runROKET(savename, config, atm, wfs, tel, tar, dms, rtc, N_preloop=1000, gamma=1.0)
+    runROKET(savename, config, atm, wfs, tel, tar, dms, rtc, N_preloop=1000, gamma=1.0/0.94485231068609266)

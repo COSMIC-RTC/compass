@@ -4,8 +4,8 @@ import shesha as ao
 import time
 import sys, os
 sys.path.append(os.environ.get('SHESHA_ROOT')+'/test/roket/tools/')
-sys.path.append(os.environ.get('SHESHA_ROOT')+'/test/psf_reconstruction/')
-import psf_rec as precs
+sys.path.append(os.environ.get('SHESHA_ROOT')+'/test/gamora/')
+import gamora
 import Dphi
 import matplotlib.pyplot as plt
 plt.ion()
@@ -52,7 +52,7 @@ def compute_Cerr(filename, modal=True, ctype="float"):
     P = f["P"][:]
     Btt = f["Btt"][:]
     Tf = Btt[:-2,:-2].dot(P[:-2,:-2])
-    IF, T = precs.get_IF(filename)
+    IF, T = gamora.get_IF(filename)
     IF = IF.T
     T = T.T
     N = IF.shape[0]
@@ -158,7 +158,7 @@ def compute_Cerr_cpu(filename, modal=True):
     Btt = f["Btt"][:]
     Tf = Btt[:-2,:-2].dot(P[:-2,:-2])
 
-    IF, T = precs.get_IF(filename)
+    IF, T = gamora.get_IF(filename)
     IF = IF.T
     T = T.T
     N = IF.shape[0]
@@ -203,11 +203,11 @@ def compare_GPU_vs_CPU(filename):
     tac = time.time()
     cpu_time = tac - tic
 
-    otftel, otf2, psf_cpu, gpu = precs.psf_rec_Vii(filename,fitting=False,\
+    otftel, otf2, psf_cpu, gpu = gamora.psf_rec_Vii(filename,fitting=False,\
                                                 cov=cov_err_cpu.astype(np.float32))
-    otftel, otf2, psf_gpu_s, gpu = precs.psf_rec_Vii(filename,fitting=False,\
+    otftel, otf2, psf_gpu_s, gpu = gamora.psf_rec_Vii(filename,fitting=False,\
                                                 cov=cov_err_gpu_s.astype(np.float32))
-    otftel, otf2, psf_gpu_d, gpu = precs.psf_rec_Vii(filename,fitting=False,\
+    otftel, otf2, psf_gpu_d, gpu = gamora.psf_rec_Vii(filename,fitting=False,\
                                                 cov=cov_err_gpu_d.astype(np.float32))
 
     print "-----------------------------------------"
@@ -216,5 +216,5 @@ def compare_GPU_vs_CPU(filename):
     print "GPU time double precision : ", gpu_time_d, " s "
     print "Max absolute difference in PSFs simple precision : ", np.abs(psf_cpu-psf_gpu_s).max()
     print "Max absolute difference in PSFs double precision : ", np.abs(psf_cpu-psf_gpu_d).max()
-    precs.cutsPSF(filename, psf_cpu, psf_gpu_s)
-    precs.cutsPSF(filename, psf_cpu, psf_gpu_d)
+    gamora.cutsPSF(filename, psf_cpu, psf_gpu_s)
+    gamora.cutsPSF(filename, psf_cpu, psf_gpu_d)

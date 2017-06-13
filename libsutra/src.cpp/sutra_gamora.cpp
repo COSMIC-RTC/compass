@@ -1,6 +1,6 @@
-#include <sutra_psfrecs.h>
+#include <sutra_gamora.h>
 
-sutra_psfrecs::sutra_psfrecs(carma_context *context, int device, char *type, int nactus,
+sutra_gamora::sutra_gamora(carma_context *context, int device, char *type, int nactus,
             int nmodes, int niter, float *IFvalue, int *IFrowind, int *IFcolind, int IFnz,
             float *TT, float *pupil, int size, int Npts, float scale, float *Btt, float *covmodes){
 
@@ -120,7 +120,7 @@ sutra_psfrecs::sutra_psfrecs(carma_context *context, int device, char *type, int
 
 }
 
-sutra_psfrecs::~sutra_psfrecs(){
+sutra_gamora::~sutra_gamora(){
     this->current_context->set_activeDevice(this->device,1);
     if(this->d_err)
         delete this->d_err;
@@ -150,7 +150,7 @@ sutra_psfrecs::~sutra_psfrecs(){
     }
 }
 
-int sutra_psfrecs::psf_rec_roket(float *err){
+int sutra_gamora::psf_rec_roket(float *err){
     this->current_context->set_activeDevice(this->device,1);
     // Get the error command buffer
     this->d_err->host2device(err);
@@ -189,7 +189,7 @@ int sutra_psfrecs::psf_rec_roket(float *err){
     return EXIT_SUCCESS;
 }
 
-int sutra_psfrecs::psf_rec_Vii(){
+int sutra_gamora::psf_rec_Vii(){
 // Telescope OTF computation and mask
     // Get the pupil
     printf("Computing Telescope OTF and corresponding mask...\n");

@@ -1087,10 +1087,10 @@ cdef extern from "sutra_roket.h":
                         carma_obj[float] *d_idata2, float gain, int k)
 
 #################################################
-# C-Class sutra_psfrecs
+# C-Class sutra_gamora
 #################################################
-cdef extern from "sutra_psfrecs.h":
-    cdef cppclass sutra_psfrecs:
+cdef extern from "sutra_gamora.h":
+    cdef cppclass sutra_gamora:
         carma_context *current_context
         int device
         int nactus
@@ -1119,7 +1119,7 @@ cdef extern from "sutra_psfrecs.h":
         carma_obj[cuFloatComplex] *d_Dphi
         carma_obj[cuFloatComplex] *d_pupfft
 
-        sutra_psfrecs(carma_context *context, int device, char *type, int nactus,
+        sutra_gamora(carma_context *context, int device, char *type, int nactus,
                     int nmodes, int niter, float *IFvalue, int *IFrowind, int *IFcolind, int IFnz,
                     float *TT, float *pupil, int size, int Npts, float scale, float *Btt, float *covmodes)
 
