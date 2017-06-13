@@ -32,8 +32,8 @@ import matplotlib.pyplot as plt
 import matplotlib as mpl
 from scipy.sparse import csr_matrix
 
-sys.path.insert(0, os.environ["SHESHA_ROOT"]+"/test/psf_reconstruction/")
-import psf_rec
+sys.path.insert(0, os.environ["SHESHA_ROOT"]+"/test/gamora/")
+import gamora
 
 ######################################################################################
 #  _      _ _
@@ -86,7 +86,7 @@ class html_display:
         self.psf = None
         self.otftel = None
         self.otf2 = None
-        self.precs = None
+        self.gamora = None
         self.basis = ["Actuators","Btt"]
         self.url = "http://hippo6.obspm.fr/~fferreira/roket_display"
         self.old = None
@@ -168,10 +168,10 @@ class html_display:
         self.independence = CheckboxButtonGroup(labels=["Independence"],active=[])
         self.psf_display_select = Select(title="PSF display",value="COMPASS",options=["COMPASS","ROKET","Vii","Fitting","OTF Telescope","OTF res"])
         self.psf_rec_methods_select = Select(title="Reconstruction method", value="Vii",options=["Vii","ROKET"])
-        self.precs_tag = Paragraph(text="PSF reconstruction :", height=25)
+        self.gamora_tag = Paragraph(text="PSF reconstruction :", height=25)
         self.psf_display_tag = Paragraph(text="PSF display :", height=25)
         self.error_select = CheckboxButtonGroup(labels=self.coms_list+["fitting"],active=[0,1,2,3,4,5,6])
-        self.precs_comp = Button(label="Reconstruct !",type="primary")
+        self.gamora_comp = Button(label="Reconstruct !",type="primary")
         self.psf_display = Button(label="Display",type="primary")
         self.colors = {"filtered modes":"green","bandwidth":"orange",
                        "noise":"red","tomography":"purple",
@@ -240,13 +240,13 @@ class html_display:
         self.desinc_mode.on_click(self.mode_desincrement)
         self.diff_button.on_click(self.plot_sum)
         self.DB_button.on_click(self.loadDB)
-        self.precs_comp.on_click(self.precs_call)
+        self.gamora_comp.on_click(self.gamora_call)
         self.psf_display.on_click(self.update_psf)
 
         self.inputs = HBox(VBox(self.DB_select,self.DB_button,self.comsTags,self.coms,self.plot_select,self.basis_select1,self.iter_select,self.plusTag,self.plus_select,self.moinsTag,self.moins_select,self.diff_button), width=350)
         self.inputs2 = HBox(VBox(self.DB_select,self.DB_button,self.basis_select2,self.A,self.B,self.power, self.draw,self.cmax,self.cmin,self.rescale,self.axiscut,self.XY,self.cut,self.diag))#, width=350)
         self.inputs3 = HBox(VBox(self.DB_select,self.DB_button,self.basis_select3,VBox(VBox(HBox(self.modes_select,HBox(self.desinc_mode,self.inc_mode,height=40))),self.draw_mode)))
-        self.inputs4 = HBox(VBox(HBox(self.DB_select,self.DB_button),self.precs_tag,self.psf_rec_methods_select,self.error_select,self.independence,self.precs_comp,self.psf_display_tag,self.psf_display_select,self.psf_display), width=350)
+        self.inputs4 = HBox(VBox(HBox(self.DB_select,self.DB_button),self.gamora_tag,self.psf_rec_methods_select,self.error_select,self.independence,self.gamora_comp,self.psf_display_tag,self.psf_display_select,self.psf_display), width=350)
         self.tab1 = Panel(child=HBox(self.inputs,VBox(self.plog,self.psum)), title="Breakdown")
         self.tab2 = Panel(child=HBox(VBox(HBox(self.inputs2,self.p2,self.p3),HBox(self.cov_table,self.pcov),HBox(self.cor_table,self.pcor))), title="Cov/cor")
         self.tab3 = Panel(child=HBox(self.inputs3,self.pmodes), title="Basis")
@@ -297,7 +297,7 @@ class html_display:
         self.psf = None
         self.otftel = None
         self.otf2 = None
-        self.precs = None
+        self.gamora = None
 
         self.plot_type = ["Commands","Variance"]
 
@@ -353,7 +353,7 @@ class html_display:
 
         print "Plots updated"
 
-    def precs_call(self):
+    def gamora_call(self):
         self.dialog.visible = False
         psf_type = self.psf_rec_methods_select.value
         err_active = self.error_select.active
@@ -377,13 +377,13 @@ class html_display:
             self.dialog.content = "Reconstructing PSF with Vii (may take a while)..."
 
             if(independence):
-                self.otftel, self.otf2, self.psf, self.precs = psf_rec.psf_rec_Vii(self.datapath + str(self.DB_select.value),fitting=fiterr,covmodes=covmodes)
+                self.otftel, self.otf2, self.psf, self.gamora = gamora.psf_rec_Vii(self.datapath + str(self.DB_select.value),fitting=fiterr,covmodes=covmodes)
             else:
-                self.otftel, self.otf2, self.psf, self.precs = psf_rec.psf_rec_Vii(self.datapath + str(self.DB_select.value),err=err,fitting=fiterr)
+                self.otftel, self.otf2, self.psf, self.gamora = gamora.psf_rec_Vii(self.datapath + str(self.DB_select.value),err=err,fitting=fiterr)
         if(psf_type == "ROKET"):
             self.dialog.content = "Reconstructing PSF from ROKET file (may take a while)..."
             self.dialog.visible = True
-            self.psf, self.precs = psf_rec.psf_rec_roket_file(self.datapath + str(self.DB_select.value),err=err)
+            self.psf, self.gamora = gamora.psf_rec_roket_file(self.datapath + str(self.DB_select.value),err=err)
         else:
             self.dialog.content = "PSF reconstruction is available with Vii or ROKET methods only"
             self.dialog.visible = True

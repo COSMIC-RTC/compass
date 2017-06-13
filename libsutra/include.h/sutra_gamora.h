@@ -1,12 +1,12 @@
-#ifndef _SUTRA_PSFRECS_H_
-#define _SUTRA_PSFRECS_H_
+#ifndef _SUTRA_GAMORA_H_
+#define _SUTRA_GAMORA_H_
 
 #include <carma.h>
 #include <carma_obj.h>
 #include <carma_sparse_obj.h>
 #include <carma_host_obj.h>
 
-class sutra_psfrecs {
+class sutra_gamora {
   public:
     carma_context *current_context;
     int device;
@@ -41,10 +41,10 @@ class sutra_psfrecs {
 
 
   public:
-    sutra_psfrecs(carma_context *context, int device, char *type, int nactus,
+    sutra_gamora(carma_context *context, int device, char *type, int nactus,
                 int nmodes, int niter, float *IFvalue, int *IFrowind, int *IFcolind, int IFnz,
                 float *d_TT, float *pupil, int size, int Npts, float scale, float *Btt, float *covmodes);
-    ~sutra_psfrecs();
+    ~sutra_gamora();
 
     int
     psf_rec_roket(float *err);

@@ -5,9 +5,9 @@ from naga_sparse_obj cimport *
 
 include "sutra.pxd"
 
-cdef class Psfrecs:
+cdef class Gamora:
 
-    cdef sutra_psfrecs *psfrecs
+    cdef sutra_gamora *gamora
     cdef int device
 
     cpdef psf_rec_roket(self,np.ndarray[ndim=2, dtype=np.float32_t] err)

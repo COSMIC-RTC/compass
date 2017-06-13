@@ -1093,10 +1093,10 @@ cdef extern from "sutra_roket.h":
                         carma_obj[float] *d_idata2, float gain, int k)
 
 #################################################
-# C-Class sutra_psfrecs
+# C-Class sutra_gamora
 #################################################
-cdef extern from "sutra_psfrecs.h":
-    cdef cppclass sutra_psfrecs:
+cdef extern from "sutra_gamora.h":
+    cdef cppclass sutra_gamora:
         carma_context *current_context
         int device
         int nactus
@@ -1125,13 +1125,56 @@ cdef extern from "sutra_psfrecs.h":
         carma_obj[cuFloatComplex] *d_Dphi
         carma_obj[cuFloatComplex] *d_pupfft
 
-        sutra_psfrecs(carma_context *context, int device, char *type, int nactus,
+        sutra_gamora(carma_context *context, int device, char *type, int nactus,
                     int nmodes, int niter, float *IFvalue, int *IFrowind, int *IFcolind, int IFnz,
                     float *TT, float *pupil, int size, int Npts, float scale, float *Btt, float *covmodes)
 
         int psf_rec_roket(float *err)
         int psf_rec_Vii()
 
+
+#################################################
+# C-Class sutra_groot
+#################################################
+cdef extern from "sutra_groot.h":
+
+
+    cdef cppclass sutra_groot[T]:
+        carma_context *current_context
+        int device
+
+        int nactus # number of actuators
+        int nlayers # number of atmos layers
+        T gsangle # Guide star angle [rad]
+        T fc # DM cut-off frequency [m]
+
+        carma_host_obj[T] *h_vdt # v*dt/g [m/s]
+        carma_host_obj[T] *h_Htheta # H*theta (theta = GS radial distance) [rad]
+        carma_host_obj[T] *h_L0 # L0 [m]
+        carma_host_obj[T] *h_winddir # wind directions [rad]
+        carma_host_obj[T] *h_scale # r0**(-5/3) * frac * (lambda/2pi)**2
+
+        #Covariance matrix estimation
+        carma_obj[T] *d_Cerr # Residual error covariance matrix on DM actuators
+        carma_obj[T] *d_TT # TT component of the residual error covariance matrix
+
+        carma_obj[T] *d_TTPfilter # Tip-tilt and piston filter matrix (= Btt.dot(P))
+        carma_obj[T] *d_pzt2tt # pzt to TT matrix
+        carma_obj[T] *d_Nact # Coupling matrix
+        carma_obj[T] *d_xpos # X-positions of DM actuators [m]
+        carma_obj[T] *d_ypos # Y-positions of DM actuators [m]
+
+        # Dphi lowpass
+        carma_obj[T] *d_tab_int_x # Tabulated integral
+        carma_obj[T] *d_tab_int_y
+
+        sutra_groot(carma_context *context, int device, int nactus,
+                    int nlayers, T gsangle, T *vdt,
+                    T *Htheta, T *L0, T *winddir, T *scale,
+                    T *pzt2tt, T *TTPfilter,T *Nact,
+                    T *xpos, T *ypos, T fc)
+
+        int compute_Cerr()
 
 IF USE_BRAMA == 1:
     #################################################
