@@ -72,8 +72,7 @@ def applyTiltsGetFlatSlopes(wao, TTpush, extPyrc):
     return slopes
 
 
-
-def measureIMatKLPP(wao, ampliVec, KL2V, nSlopes, withAtm, extPyrc = None):
+def measureIMatKLPP(wao, ampliVec, KL2V, nSlopes, withAtm, refCommand = None, extPyrc = None):
     '''
         Make modal interaction matrix using push-pull normalized difference
     :param wao: AO Widget
@@ -82,21 +81,22 @@ def measureIMatKLPP(wao, ampliVec, KL2V, nSlopes, withAtm, extPyrc = None):
     :param nSlopes: WFS output dimension
     :param withAtm: Make interaction matrix around currently shown atmosphere (True) or around null phase (False)
     '''
-    currentVolts = wao.rtc.getVoltage(0)
-    if not withAtm:
-        currentVolts[:] = 0.
+    
+    if not withAtm or refCommand is None:
+        refCommand = wao.rtc.getVoltage(0)
+        refCommand[:] = 0.
 
     iMatKL = np.zeros((nSlopes, KL2V.shape[1]))
 
     st = time.time()
 
-    ref = applyVoltGetSlopes(wao, currentVolts, withAtm, extPyrc = extPyrc)
+    ref = applyVoltGetSlopes(wao, refCommand, withAtm, extPyrc = extPyrc)
     
 
     for kl in range(KL2V.shape[1]):
         v = ampliVec[kl] * KL2V[:, kl]
 
-        iMatKL[:, kl] = (applyVoltGetSlopes(wao, v + currentVolts, withAtm, extPyrc = extPyrc) - ref) / ampliVec[kl]
+        iMatKL[:, kl] = (applyVoltGetSlopes(wao, v + refCommand, withAtm, extPyrc = extPyrc) - ref) / ampliVec[kl]
 
         print "Doing KL interaction matrix on mode: #%d\r" % kl,
         os.sys.stdout.flush()
@@ -189,7 +189,7 @@ def plotVDm(wao, numdm, V, size = 16, fignum = False):
         plt.colorbar()
 
 
-def computeImatKL(wao, pushPZT, pushTT, KL2V, nSlopes, withAtm, extPyrc = None):
+def computeImatKL(wao, pushPZT, pushTT, KL2V, nSlopes, withAtm, refCmd = None, extPyrc = None):
     '''
         Compute the modal interaction matrix with given input parameters
     :param wao: AO Widget
@@ -201,7 +201,7 @@ def computeImatKL(wao, pushPZT, pushTT, KL2V, nSlopes, withAtm, extPyrc = None):
     '''
     NKL = KL2V.shape[1]
     modesAmpli = np.array([pushPZT] * (NKL - 2) + [pushTT] * 2)
-    iMat = measureIMatKLPP(wao, modesAmpli, KL2V, nSlopes, withAtm, extPyrc = extPyrc)
+    iMat = measureIMatKLPP(wao, modesAmpli, KL2V, nSlopes, withAtm, refCmd = refCmd, extPyrc = extPyrc)
     return iMat
 
 
@@ -324,7 +324,7 @@ class ModalGainOptimizer:
         self.wao.rtc.set_cmat(0, cMat.astype(np.float32).copy())
 
 
-    def computeAtmGains(self):
+    def computeAtmGains(self, refCmd = None):
         '''
             Compute a new modal interaction matrix around the current residual atmosphere setpoint.
             Apply the sensitivity compensation coefficients found to the zero-point modal control matrix
@@ -332,7 +332,8 @@ class ModalGainOptimizer:
         '''
         self.wao.closeLoop()
         iMatKL = computeImatKL(self.wao, self.pushPzt, self.pushTT,
-                               self.KL2V, self.nSlopes, withAtm = True, extPyrc = self.pyrc)
+                               self.KL2V, self.nSlopes, withAtm = True, refCmd = refCmd, extPyrc = self.pyrc)
+
         ksiVal = np.sqrt(np.diag(np.dot(self.iMatKLRef.T, self.iMatKLRef)) /
                          np.diag(np.dot(iMatKL.T, iMatKL)))
 
