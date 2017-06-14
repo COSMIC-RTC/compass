@@ -72,7 +72,7 @@ def applyTiltsGetFlatSlopes(wao, TTpush, extPyrc):
     return slopes
 
 
-def measureIMatKLPP(wao, ampliVec, KL2V, nSlopes, withAtm, refCommand = None, extPyrc = None):
+def measureIMatKLPP(wao, ampliVec, KL2V, nSlopes, withAtm, refCmd = None, extPyrc = None):
     '''
         Make modal interaction matrix using push-pull normalized difference
     :param wao: AO Widget
@@ -82,21 +82,21 @@ def measureIMatKLPP(wao, ampliVec, KL2V, nSlopes, withAtm, refCommand = None, ex
     :param withAtm: Make interaction matrix around currently shown atmosphere (True) or around null phase (False)
     '''
     
-    if not withAtm or refCommand is None:
-        refCommand = wao.rtc.getVoltage(0)
-        refCommand[:] = 0.
+    if not withAtm or refCmd is None:
+        refCmd = wao.rtc.getVoltage(0)
+        refCmd[:] = 0.
 
     iMatKL = np.zeros((nSlopes, KL2V.shape[1]))
 
     st = time.time()
 
-    ref = applyVoltGetSlopes(wao, refCommand, withAtm, extPyrc = extPyrc)
+    ref = applyVoltGetSlopes(wao, refCmd, withAtm, extPyrc = extPyrc)
     
 
     for kl in range(KL2V.shape[1]):
         v = ampliVec[kl] * KL2V[:, kl]
 
-        iMatKL[:, kl] = (applyVoltGetSlopes(wao, v + refCommand, withAtm, extPyrc = extPyrc) - ref) / ampliVec[kl]
+        iMatKL[:, kl] = (applyVoltGetSlopes(wao, v + refCmd, withAtm, extPyrc = extPyrc) - ref) / ampliVec[kl]
 
         print "Doing KL interaction matrix on mode: #%d\r" % kl,
         os.sys.stdout.flush()
