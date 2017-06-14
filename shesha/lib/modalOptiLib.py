@@ -49,6 +49,30 @@ def applyVoltGetSlopes(wao, volts, withAtm, extPyrc = None):
     return slopes
 
 
+def applyTiltsGetFlatSlopes(wao, TTpush, extPyrc):
+    pyrhr = None
+    for i in [-1, 1]:
+        for j in [-1, 1]:
+            wao.dms.set_comm('tt', 0, np.array([i, j], np.float32) * TTpush,
+                             shape_dm = True)
+            
+            for w in range(len(wao.config.p_wfss)):
+                wao.wfs.reset_phase(w)
+                wao.wfs.sensors_trace(w, "dm", wao.tel, wao.atm, wao.dms)
+                wao.wfs.sensors_compimg(w, noise = False)
+
+            import controlRoutines as cr
+            if pyrhr is None:
+                pyrhr = wao.wfs.get_pyrimghr(0) / 4.
+            else:
+                pyrhr += wao.wfs.get_pyrimghr(0) / 4.
+
+    _, _, _, grad = cr.getPyramidData(pyrhr, extPyrc)
+    slopes = cr.gradToSlopes(grad, extPyrc["validZone"])
+    return slopes
+
+
+
 def measureIMatKLPP(wao, ampliVec, KL2V, nSlopes, withAtm, extPyrc = None):
     '''
         Make modal interaction matrix using push-pull normalized difference
@@ -279,7 +303,7 @@ class ModalGainOptimizer:
         '''
         self.wao.closeLoop()
         self.iMatKLRef = computeImatKL(self.wao, self.pushPzt, self.pushTT,
-                                       self.KL2V, self.nSlopes, False, extPyrc = self.pyrc)
+                                       self.KL2V, self.nSlopes, withAtm = False, extPyrc = self.pyrc)
         self.cMatKLRef = computeCmatKL(self.iMatKLRef, self.nFilter)
 
         self.gainValues = np.ones(self.cMatKLRef.shape[0])
@@ -308,7 +332,7 @@ class ModalGainOptimizer:
         '''
         self.wao.closeLoop()
         iMatKL = computeImatKL(self.wao, self.pushPzt, self.pushTT,
-                               self.KL2V, self.nSlopes, True, extPyrc = self.pyrc)
+                               self.KL2V, self.nSlopes, withAtm = True, extPyrc = self.pyrc)
         ksiVal = np.sqrt(np.diag(np.dot(self.iMatKLRef.T, self.iMatKLRef)) /
                          np.diag(np.dot(iMatKL.T, iMatKL)))
 
@@ -347,7 +371,7 @@ def loopStaticAtmos(wao, nIter):
 
         
 def AOLoop(nIter, wao, cmat = None, pyrc = None,
-           reset = None, gain = 0.7, refSlopes = None,
+           reset = None, gain = 0.7, clip = -1, refSlopes = None,
            moveAtmos = True, showAtmos = True, computeLE = None,
            computeResidualsM2PH = None):
     '''
@@ -428,9 +452,11 @@ def AOLoop(nIter, wao, cmat = None, pyrc = None,
             slopes = applyVoltGetSlopes(wao, currCommand, showAtmos, extPyrc = pyrc)
 
             currCommand -= gain * cmat.dot(slopes - refSlopes)
+            if clip > 0:
+                currCommand = np.clip(currCommand, -clip, clip)
 
-        if computeResidualsM2PH != None:
-            residualTot[i, :] = residuals(computeResidualsM2PH, phMap(wao))
+        if computeResidualsM2PH is not None:
+            residualTot[i, :] = residuals(computeResidualsM2PH, phMap(wao, showAtmos))
 
         if computeLE is not None:
             trace_tar(showAtmos)
@@ -452,16 +478,35 @@ def AOLoop(nIter, wao, cmat = None, pyrc = None,
         wao.tar.dmtrace(t, wao.dms)
     
 
-def phMap(wao):
+def phMap(wao, showAtmos):
     '''
         Get a WFS phase map
     '''
     wao.wfs.reset_phase(0)
-    wao.wfs.sensors_trace(0, "dm", wao.tel, wao.atm, wao.dms)
-    pupil = wao.config.p_geom.get_spupil()
+    if showAtmos:
+        wao.wfs.sensors_trace(0, "all", wao.tel, wao.atm, wao.dms)
+    else:
+        wao.wfs.sensors_trace(0, "dm", wao.tel, wao.atm, wao.dms)
+
+    pupil = wao.config.p_geom.get_mpupil().astype(bool)
     phase = wao.wfs.get_phase(0) * pupil
     phase[pupil] -= np.mean(phase[pupil])
     phase /= np.sqrt(np.sum(pupil)) * wao.config.p_wfs0.Lambda
+
+    return phase
+
+def residuals(M2PH, phaseMap):
+    '''
+        Project a phase map on the M2PH tensor
+    '''
+    # M2PH : nModes * npup * npup
+    # phaseMap : npup * npup
+
+    coefficients = np.tensordot(M2PH, phaseMap, axes = 2)
+    fitting = np.sqrt(np.sum(phaseMap ** 2) - np.sum(coefficients ** 2))
+    return np.r_[coefficients, fitting]
+
+
 
 
 def simuAndRecord(wao, nIter):
@@ -499,7 +544,7 @@ def doubleWFSLoop(wao):
 
 def mode2ph(KL2V, wao):
     nModes = KL2V.shape[1]
-    pupil = wao.config.p_geom.get_spupil()
+    pupil = wao.config.p_geom.get_mpupil().astype(bool)
     
     M2PH = np.zeros((nModes, pupil.shape[0], pupil.shape[1]))
     S = np.sum(pupil)
