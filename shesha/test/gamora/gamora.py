@@ -13,7 +13,8 @@ from sys import stdout
 import time
 
 plt.ion()
-c = ch.naga_context(7)
+gpudevices = np.array([4,5,6,7],dtype=np.int32)
+c = ch.naga_context(devices=gpudevices)
 
 #filename = "/home/fferreira/Data/breakdown_offaxis-4_2.h5"
 def cutsPSF(filename,psf,psfs):

@@ -5,6 +5,8 @@
 #include <carma_obj.h>
 #include <carma_sparse_obj.h>
 #include <carma_host_obj.h>
+#include <vector>
+#include <map>
 
 class sutra_gamora {
   public:
@@ -50,6 +52,23 @@ class sutra_gamora {
     psf_rec_roket(float *err);
     int
     psf_rec_Vii();
+
+    void compute_Dphi_on_mode_k(int k);
+
+  private:
+    std::vector<carma_obj<cuFloatComplex>*> d_amplipup_ngpu;
+    std::vector<carma_obj<cuFloatComplex>*> d_newmodek_ngpu;
+    std::vector<carma_obj<float>*> d_Btt_ngpu;
+    std::vector<carma_obj<float>*> d_covmodes_ngpu;
+    std::vector<carma_obj<float>*> d_term1_ngpu;
+    std::vector<carma_obj<float>*> d_term2_ngpu;
+    std::vector<carma_sparse_obj<float>*> d_IF_ngpu;
+    std::vector<carma_obj<float>*> d_TT_ngpu;
+    std::vector<carma_obj<float>*> d_phase_ngpu;
+    std::vector<carma_obj<int>*> d_wherephase_ngpu;
+    std::vector<carma_obj<cuFloatComplex>*> d_pupfft_ngpu;
+    std::vector<carma_obj<cuFloatComplex>*> d_Dphi_ngpu;
+
 };
 
 int
