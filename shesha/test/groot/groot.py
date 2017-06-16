@@ -1,6 +1,7 @@
 import numpy as np
 import h5py
 import shesha as ao
+import naga as ch
 import time
 import sys, os
 sys.path.append(os.environ.get('SHESHA_ROOT')+'/test/roket/tools/')
@@ -20,7 +21,6 @@ def compute_Cerr(filename, modal=True, ctype="float"):
     :return:
         Cerr : (np.ndarray(dim=2, dtype=np.float32)) : residual error covariance matrix
     """
-
     f = h5py.File(filename,'r')
     Lambda_tar = f.attrs["target.Lambda"][0]
     Lambda_wfs = f.attrs["wfs.Lambda"]
@@ -74,12 +74,14 @@ def compute_Cerr(filename, modal=True, ctype="float"):
                                 Tf.astype(np.float64), Nact.astype(np.float64))
     else:
         raise TypeError("Unknown ctype : must be float or double")
-
+    tic = time.time()
     groot.compute_Cerr()
     Cerr = groot.get_Cerr()
     cov_err_groot = np.zeros((Nact.shape[0]+2,Nact.shape[0]+2))
     cov_err_groot[:-2,:-2] = Cerr
     cov_err_groot[-2:,-2:] = groot.get_TTcomp()
+    tac = time.time()
+    print "Cee computed in : %.2f seconds"%(tac-tic)
     if (modal):
         cov_err_groot = P.dot(cov_err_groot).dot(P.T)
 
@@ -152,7 +154,7 @@ def compute_Cerr_cpu(filename, modal=True):
     Sp = (Lambda_tar/(2*np.pi))**2
     Ctt = (Caniso+Caniso.T)*Sp
     Ctt += ((Cbp+Cbp.T)*Sp)
-    Ctt += (Ccov*Sp)
+    Ctt += ((Ccov + Ccov.T)*Sp)
 
     P = f["P"][:]
     Btt = f["Btt"][:]
@@ -187,16 +189,27 @@ def compare_GPU_vs_CPU(filename):
         filename : (string) : full path to the ROKET file
 
     """
-    tic = time.time()
+    timer = ch.naga_timer()
+
+    ch.threadSync()
+    timer.start()
+    ch.threadSync()
+    synctime = timer.stop()
+    timer.reset()
+
+
+
+    timer.start()
     cov_err_gpu_s = compute_Cerr(filename)
-    tac = time.time()
-    gpu_time_s = tac - tic
+    ch.threadSync()
+    gpu_time_s = timer.stop() - synctime
+    timer.reset()
 
-    tic = time.time()
+    timer.start()
     cov_err_gpu_d = compute_Cerr(filename, ctype="double")
-    tac = time.time()
-    gpu_time_d = tac - tic
-
+    ch.threadSync()
+    gpu_time_d = timer.stop() - synctime
+    timer.reset()
 
     tic = time.time()
     cov_err_cpu = compute_Cerr_cpu(filename)

@@ -382,95 +382,6 @@ for f in filenames:
 
 tabx, taby = Dphi.tabulateIj0()
 
-# GROOT test
-filename = '/home/fferreira/Data/layers_linearity/roket_8m_12layers.h5'
-#filename = filenames[42]
-f = h5py.File(filename,'r')
-Lambda_tar = f.attrs["target.Lambda"][0]
-Lambda_wfs = f.attrs["wfs.Lambda"]
-dt = f.attrs["ittime"]
-gain = f.attrs["gain"]
-wxpos = f.attrs["wfs.xpos"][0]
-wypos = f.attrs["wfs.ypos"][0]
-r0 = f.attrs["r0"] * (Lambda_tar/Lambda_wfs)**(6./5.)
-RASC = 180./np.pi * 3600.
-xpos = f["dm.xpos"][:]
-ypos = f["dm.ypos"][:]
-p2m = f.attrs["tel_diam"] / f.attrs["pupdiam"]
-pupshape = long(2 ** np.ceil(np.log2(f.attrs["pupdiam"]) + 1))
-xactu = (xpos - pupshape/2) * p2m
-yactu = (ypos - pupshape/2) * p2m
-H = f.attrs["atm.alt"]
-L0 = f.attrs["L0"]
-speed = f.attrs["windspeed"]
-theta = f.attrs["winddir"]*np.pi/180.
-frac = f.attrs["frac"]
-
-Htheta = np.linalg.norm([wxpos,wypos])/RASC*H
-vdt = speed*dt/gain
-angleht = np.arctan2(wypos,wxpos)
-fc = 1/(2*(xactu[1] - xactu[0]))
-scale = (1/r0)**(5/3.) * frac * (Lambda_tar/(2*np.pi))**2
-Nact = f["Nact"][:]
-Nact = np.linalg.inv(Nact)
-P = f["P"][:]
-Btt = f["Btt"][:]
-Tf = Btt[:-2,:-2].dot(P[:-2,:-2])
-IF, T = rexp.get_IF(filename)
-IF = IF.T
-T = T.T
-N = IF.shape[0]
-deltaTT = T.T.dot(T)/N
-deltaF = IF.T.dot(T)/N
-pzt2tt = np.linalg.inv(deltaTT).dot(deltaF.T)
-
-groot = ao.groot_init(Nact.shape[0], int(f.attrs["nscreens"]), angleht, fc, vdt.astype(np.float32),\
-                        Htheta.astype(np.float32), f.attrs["L0"], theta,
-                        scale.astype(np.float32), xactu.astype(np.float32),
-                        yactu.astype(np.float32), pzt2tt.astype(np.float32),
-                        Tf.astype(np.float32), Nact.astype(np.float32))
-groot.compute_Cerr()
-Cerr = groot.get_Cerr()
-
-Caniso, Cbp, Ccov = compute_covariance_model(filename)
-
-Ctt = Caniso + Cbp + Ccov + Ccov.T
-Nact = f["Nact"][:]
-N1 = np.linalg.inv(Nact)
-Ctt = N1.dot(Ctt).dot(N1)
-ttcomp = pzt2tt.dot(Ctt).dot(pzt2tt.T)
-Ctt = Tf.dot(Ctt).dot(Tf.T)
-cov_err_croot = np.zeros((Ctt.shape[0]+2,Ctt.shape[0]+2))
-cov_err_croot[:-2,:-2] = Ctt
-cov_err_croot[-2:,-2:] = ttcomp
-
-cov_err_croot = P.dot(cov_err_croot).dot(P.T)
-otftel, otf2, psf_croot, gpu = gamora.psf_rec_Vii(filename,fitting=False,cov=cov_err_croot.astype(np.float32))
-
-cov_err_groot = np.zeros((Ctt.shape[0]+2,Ctt.shape[0]+2))
-cov_err_groot[:-2,:-2] = Cerr
-cov_err_groot[-2:,-2:] = groot.get_TTcomp()
-cov_err_groot = P.dot(cov_err_groot).dot(P.T)
-otftel, otf2, psf_groot, gpu = gamora.psf_rec_Vii(filename,fitting=False,cov=cov_err_groot.astype(np.float32))
-
-
-
-
-# Ccov_filtered = filter_piston_TT(filename,Ccov)
-# Ctt = add_TT_model(filename,Ccov)
-# Ctt[:-2,:-2] = Ccov_filtered
-# Ctt = Ctt + Ctt.T
-# Caniso_filtered = filter_piston_TT(filename,Caniso)
-# tmp = add_TT_model(filename,Caniso)
-# tmp[:-2,:-2] = Caniso_filtered
-# Ctt += tmp
-# Cbp_filtered = filter_piston_TT(filename,Cbp)
-# tmp = add_TT_model(filename,Cbp)
-# tmp[:-2,:-2] = Cbp_filtered
-# Ctt += tmp
-
-
-"""
 nfiles = len(filenames)
 theta = np.zeros(nfiles)
 speeds = np.zeros(nfiles)
@@ -497,7 +408,7 @@ for f in files:
     nrjroket[ind] = np.sum(ensquare_PSF(filenames[ind],psfr[:,:,ind],5)) / psfr[:,:,ind].sum()
     nrji[ind] = np.sum(ensquare_PSF(filenames[ind],psfi[:,:,ind],5)) / psfi[:,:,ind].sum()
     ind += 1
-
+"""
 eSR = np.abs(SRroket-SRcompass) / SRcompass
 eSRi = np.abs(SRi - SRcompass) / SRcompass
 enrj = np.abs(nrjroket-nrjcompass) / nrjcompass
@@ -536,7 +447,7 @@ plt.legend(["0 deg","45 deg","90 deg","135 deg","180 deg"])
 plt.plot([nrjcompass.min(),nrjcompass.max()],[nrjcompass.min(),nrjcompass.max()],color="red")
 plt.xlabel("COMPASS PSF ensquared energy")
 plt.ylabel("ROKET PSF ensquared energy")
-
+"""
 f = h5py.File('corStudy_Nact.h5','r')
 psf = f["psf"][:]
 psfs = f["psfs"][:]
@@ -545,18 +456,22 @@ nrjs = f["nrj5s"][:]
 SR = np.max(psf,axis=(0,1))
 SRs = np.max(psfs,axis=(0,1))
 
-colors = ["blue","red","green","black"]
-markers = ["o","*","s"]
-
+colors = ["blue","red","green"]
 plt.figure()
-for i in range(len(colors)):
-    c = colors[i]
-    g = np.unique(gain)[i]
-    for k in range(len(markers)):
-        m = markers[k]
-        v = np.unique(speeds)[k]
+k = 0
+for g in np.unique(gain):
+    plt.subplot(2,2,k+1)
+    plt.title("g = %.1f"%(g))
+    for i in range(len(colors)):
+        c = colors[i]
+        v = np.unique(speeds)[i]
         ind = np.where((gain == g) * (speeds == v))
-        plt.scatter(SR[ind],SRs[ind],color=c,marker=m,s=200)
+        plt.scatter(SR[ind],SRs[ind],color=c,s=200)
+    plt.legend(["10 m/s", "15 m/s", "20 m/s"],loc=2)
+    plt.xlabel("SR ROKET")
+    plt.ylabel("SR model")
+    plt.plot([SR.min(),SR.max()],[SR.min(),SR.max()],color="red")
+    k+=1
 """
 # Illustration du probleme
 #psf_compass, psf, psfs = compute_and_compare_PSFs(filenames[13],plot=True)
@@ -611,7 +526,7 @@ for i in range(len(colors)):
 
 
 
-'''
+
 files = []
 for f in filenames:
     files.append(h5py.File(f,'r'))
@@ -711,8 +626,8 @@ for i in range(1304):
 
 Ccov =  (Dphi.dphi_lowpass(Mhvdt,0.2,L0,tabx,taby) - Dphi.dphi_lowpass(Mht,0.2,L0,tabx,taby) \
         - Dphi.dphi_lowpass(Mvdt,0.2,L0,tabx,taby) + Dphi.dphi_lowpass(M,0.2,L0,tabx,taby)) * (1/r0)**(5./3.)
-'''
-'''
+
+
 mtomo = Dphi.dphi_lowpass(Htheta,0.2,L0, tabx, taby) * (1/r0)**(5./3.)
 mbp = Dphi.dphi_lowpass(vdt ,0.2, L0, tabx, taby) * (1/r0)**(5./3.)
 mtot = Dphi.dphi_lowpass(rho,0.2,L0,tabx,taby) * (1/r0)**(5./3.)
@@ -751,8 +666,8 @@ mcov = (-mtomo - mbp + mtot)*0.5
 m = (np.arange(nmodes)+1)**(-5/6.)
 m /= m.sum()
 m = m * (mcov[11] / (2*np.pi/Lambda_tar)**2)
-'''
-'''
+
+
 cov_err2 = P.dot(cov_err).dot(P.T) + 2*np.diag(m)
 otftelc, otf2c, psfc, gpu = gamora.psf_rec_Vii(filenames[11],cov=cov_err2.astype(np.float32))
 plt.figure()
@@ -762,10 +677,8 @@ plt.semilogy(x,psfc[psf.shape[0]/2,:],color="blue")
 plt.xlabel("Angular distance [units of lambda/D]")
 plt.ylabel("Normalized intensity")
 plt.legend([ "PSF COMPASS","PSF ind. assumption","PSF corrected"])
-'''
 
 
-'''
 xpos = files[11]["dm.xpos"][:]
 ypos = files[11]["dm.ypos"][:]
 dm_dim = files[11]["dm_dim"].value
@@ -800,4 +713,4 @@ for i in range(xpos.size):
         else:
             A[i,j] = 0.
     print i
-'''
+"""

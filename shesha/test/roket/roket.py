@@ -437,7 +437,7 @@ def error_breakdown(com,noise_com,alias_wfs_com,tomo_com,H_com,trunc_com,bp_com,
 
     G = mod_com[i,:] - wf_com[i,:]
     if(i+1 < config.p_loop.niter):
-        tomo_com[i+1,:] = gRD.dot(tomo_com[i,:]) - g*RD.dot(G)
+        tomo_com[i+1,:] = gRD.dot(tomo_com[i,:]) - g*gamma*RD.dot(G)
 
     # Without anyone noticing...
     tar.set_phase(0,tarphase)
@@ -684,4 +684,4 @@ if __name__ == "__main__":
 
 
     atm, wfs, tel, dms, tar, rtc, config = InitConfig(param_file)
-    runROKET(savename, config, atm, wfs, tel, tar, dms, rtc, N_preloop=1000, gamma=1.0/0.94485231068609266)
+    runROKET(savename, config, atm, wfs, tel, tar, dms, rtc, N_preloop=1000, gamma=1.0)
