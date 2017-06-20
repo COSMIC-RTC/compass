@@ -13,7 +13,7 @@ c_types_info = {
 
 import numpy as np
 cimport numpy as np
-np.import_array()
+#np.import_array()
 
 from scipy.sparse import csr_matrix
 
@@ -38,7 +38,7 @@ cdef class naga_sparse_obj_CLASSNAME:
                   np.ndarray[ndim=1, dtype=np.int64_t] dims=None,
                   ):
         """naga_obj_CLASSNAME constructor.
-        
+
       carma_sparse_obj(carma_context *current_context)
 
       notimplemented
@@ -55,7 +55,7 @@ cdef class naga_sparse_obj_CLASSNAME:
 
         input data must be a np.ndarray with ndim=DIM
         """
-        
+
         cdef carma_context *ctxt=&carma_context.instance()
 
         if(obj is not None):
@@ -100,7 +100,7 @@ cdef class naga_sparse_obj_CLASSNAME:
         dims[0]=self.c_sparse_obj.getDims(1)
         dims[1]=self.c_sparse_obj.getDims(2)
         cdef int nnz=self.c_sparse_obj.nz_elem
-        
+
         cdef np.ndarray[ndim=1,dtype=np.int32_t]          rowInd=np.zeros(dims[0]+1,dtype=np.int32)
         cdef np.ndarray[ndim=1,dtype=np.int32_t]          colInd=np.zeros(nnz    ,dtype=np.int32)
         cdef np.ndarray[ndim=1,dtype=NUMPY_TYPENAME_T]    data=np.zeros(nnz,dtype=NUMPY_TYPENAME)
@@ -115,7 +115,7 @@ cdef class naga_sparse_obj_CLASSNAME:
 
 for ctype,info in c_types_info.items():
 
-#code available for all dimensions (constructor, getters, copy...) 
+#code available for all dimensions (constructor, getters, copy...)
     code = pxd_code_str
 
     code = code.replace(template_strs[0], info[0])
@@ -128,6 +128,5 @@ for ctype,info in c_types_info.items():
     code = code.replace(template_strs[7], info[7])
 
     out.write(code)
-    
+
 ?>
-    

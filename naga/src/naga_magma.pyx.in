@@ -16,7 +16,7 @@ c_types_info = {
 ?>
 import numpy as np
 cimport numpy as np
-np.import_array()
+#np.import_array()
 
 """
 cdef extern from "carma_obj.h":
@@ -44,7 +44,7 @@ def svd_host_CLASSNAME(naga_host_obj_CLASSNAME2D mat,
                     naga_host_obj_CLASSNAME2D U,
                     naga_host_obj_CLASSNAME2D VT):
     """Call carma_svd_cpu
-    
+
     naga_host_obj_CLASSNAME2D mat:
     naga_host_obj_CLASSNAME1D eigenvals:
     naga_host_obj_CLASSNAME2D U:
@@ -86,7 +86,7 @@ def syevd_CLASSNAME(naga_obj_CLASSNAME2D d_A,
                 bool computeU=True):
 
     cdef long N=eigenvals.shape[0]
-    
+
     if(U is None):
         if(computeU==True):
             carma_syevd[C_TYPE]('V',N,d_A.c_o.getData(), <C_TYPE*>eigenvals.data)
@@ -105,7 +105,7 @@ def syevd_host_CLASSNAME(naga_host_obj_CLASSNAME2D h_A,
                 np.ndarray[ndim=1,dtype=NUMPY_TYPENAME_T] eigenvals,
                 naga_host_obj_CLASSNAME2D U=None,
                 bool computeU=True):
-    
+
     cdef long N=eigenvals.shape[0]
 
     if(U is None):
@@ -126,7 +126,7 @@ def syevd_host_CLASSNAME(naga_host_obj_CLASSNAME2D h_A,
 
 for ctype,info in c_types_info.items():
 
-    #code available for all dimensions (constructor, getters, copy...) 
+    #code available for all dimensions (constructor, getters, copy...)
     code = pxd_code_str
 
     if(info[5]=="SIMPLE"):
@@ -151,6 +151,5 @@ for ctype,info in c_types_info.items():
     code = code.replace(template_strs[7], info[7])
 
     out.write(code)
-    
-?>
 
+?>
