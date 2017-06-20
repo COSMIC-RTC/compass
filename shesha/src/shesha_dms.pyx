@@ -319,6 +319,49 @@ cpdef createHexaPattern(float pitch, float supportSize):
     return xy
 
 
+cpdef createDoubleHexaPattern(float pitch, float supportSize):
+    """
+    Creates a list of M actuator positions spread over an hexagonal grid.
+    The number M is the number of points of this grid, it cannot be
+    known before the procedure is called.
+    Coordinates are centred around (0,0).
+    The support that limits the grid is a square [-n/2,n/2].
+
+    :parameters:
+        pitch: (float) : distance in pixels between 2 adjacent actus
+        n: (float) : size in pixels of the support over which the coordinate list
+             should be returned.
+    :return:
+        xy: (np.ndarray(dims=2,dtype=np.float32)) : xy[M,2] list of coodinates
+    """
+    V3 = np.sqrt(3)
+    pi = np.pi
+    nx = int(np.ceil((supportSize/2.0)/pitch) + 1)
+    x = pitch * (np.arange(2*nx+1, dtype=np.float32)-nx)
+    Nx = x.shape[0]
+    ny = int(np.ceil((supportSize/2.0)/pitch/V3) + 1)
+    y = (V3 * pitch) * (np.arange(2*ny+1, dtype=np.float32)-ny) + pitch
+    Ny = y.shape[0]
+    x = np.tile(x,(Ny,1)).flatten()
+    y = np.tile(y,(Nx,1)).T.flatten()
+    x = np.append(x, x + pitch/2.)
+    y = np.append(y, y + pitch*V3/2.)
+    xy = np.float32(np.array([x,y]))
+    
+    th = np.arctan2(y, x)
+    nn = np.where( ((th>pi/3) & (th<2*pi/3)) )
+    x = x[nn]
+    y = y[nn]
+    X = np.array([])
+    Y = np.array([])
+    for k in range(6):
+        xx =  np.cos(k*pi/3)*x + np.sin(k*pi/3)*y
+        yy = -np.sin(k*pi/3)*x + np.cos(k*pi/3)*y
+        X = np.r_[X, xx]
+        Y = np.r_[Y, yy]
+    return X,Y
+
+
 def n_actuator_select(Param_dm p_dm,cobs, xc,yc):
     """
     Fonction for select actuator in fonction of Margin_in, margin_out or ntotact.
@@ -690,10 +733,13 @@ cpdef make_pzt_dm(Param_dm p_dm,Param_geom geom,cobs):
         p_dm.type_pattern = <bytes>'square'
 
     if p_dm.type_pattern == 'hexa':
-        print "Pattern type : Hexa"
+        print "Pattern type : hexa"
         cub = createHexaPattern( pitch, geom.pupdiam * 1.1)
+    elif p_dm.type_pattern == 'hexaM4':
+        print "Pattern type : hexaM4"
+        cub = createDoubleHexaPattern( pitch, geom.pupdiam * 1.1)
     elif p_dm.type_pattern == 'square':
-        print "Pattern type : Square"
+        print "Pattern type : square"
         cub = createSquarePattern( pitch, nxact + 4 )
     else :
         raise StandardError("This pattern does not exist for pzt dm")
