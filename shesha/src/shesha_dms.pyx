@@ -347,7 +347,7 @@ cpdef createDoubleHexaPattern(float pitch, float supportSize):
     x = np.append(x, x + pitch/2.)
     y = np.append(y, y + pitch*V3/2.)
     xy = np.float32(np.array([x,y]))
-    
+
     th = np.arctan2(y, x)
     nn = np.where( ((th>pi/3) & (th<2*pi/3)) )
     x = x[nn]
@@ -359,8 +359,7 @@ cpdef createDoubleHexaPattern(float pitch, float supportSize):
         yy = -np.sin(k*pi/3)*x + np.cos(k*pi/3)*y
         X = np.r_[X, xx]
         Y = np.r_[Y, yy]
-    return X,Y
-
+    return np.float32(np.array([Y,X]))
 
 def n_actuator_select(Param_dm p_dm,cobs, xc,yc):
     """
