@@ -145,7 +145,7 @@ if(param_file.split('.')[-1] == "py"):
     #sys.path.remove(param_path)
 elif(param_file.split('.')[-1] == "h5"):
     sys.path.insert(0,os.environ["SHESHA_ROOT"]+"/data/par/par4bench/")
-    import scao_16x16_8pix as config
+    import scao_sh_16x16_8pix as config
     #sys.path.remove(os.environ["SHESHA_ROOT"]+"/data/par/par4bench/")
     h5u.configFromH5(param_file,config)
 else:

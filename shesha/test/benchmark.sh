@@ -1,11 +1,11 @@
 #!/bin/bash
-#FILES="scao_16x16_8pix.py "
-# scao_40x40_8pix.py  scao_64x64_8pix.py
-FILES_SCAO="scao_40x40_8pix.py scao_80x80_8pix.py"
+#FILES="scao_sh_16x16_8pix.py "
+# scao_sh_40x40_8pix.py  scao_sh_64x64_8pix.py
+FILES_SCAO="scao_sh_40x40_8pix.py scao_sh_80x80_8pix.py"
 FILES_PYR="scao_pyrhr_40x40.py scao_pyrhr_80x80.py"
 FILES_MCAO="mcao_8m.py mcao_40m.py"
-#FILES+="scao_16x16_16pix.py"
-# scao_40x40_16pix.py scao_64x64_16pix.py scao_80x80_16pix.py"
+#FILES+="scao_sh_16x16_16pix.py"
+# scao_sh_40x40_16pix.py scao_sh_64x64_16pix.py scao_sh_80x80_16pix.py"
 #FILES+="scao_16x16_8pix_noisy.par scao_40x40_8pix_noisy.par scao_64x64_8pix_noisy.par scao_80x80_8pix_noisy.par
 #FILES+="scao_16x16_16pix_noisy.par scao_40x40_16pix_noisy.par scao_64x64_16pix_noisy.par scao_80x80_16pix_noisy.par"
 #FILES="scao_pyr_80x80_8pix.py"
@@ -60,10 +60,10 @@ done
 
 
 
-#FILES_LGS="scao_16x16_8pix_lgs.py"
-#FILES_LGS+="scao_40x40_10pix_lgs.par"
-#FILES_LGS+="scao_64x64_16pix_lgs.par"
-#FILES_LGS+="scao_80x80_20pix_lgs.par"
+#FILES_LGS="scao_sh_16x16_8pix_lgs.py"
+#FILES_LGS+="scao_sh_40x40_10pix_lgs.par"
+#FILES_LGS+="scao_sh_64x64_16pix_lgs.par"
+#FILES_LGS+="scao_sh_80x80_20pix_lgs.par"
 
 #for f in $FILES_LGS
 #do
