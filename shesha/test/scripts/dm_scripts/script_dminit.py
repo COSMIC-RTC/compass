@@ -14,7 +14,7 @@ import naga as ch
 import shesha as ao
 
 
-print "TEST SHESHA_dm\n"
+print("TEST SHESHA_dm\n")
 
 # read param file :
 param_file=sys.argv[1]
@@ -26,7 +26,7 @@ if(param_file.split('.')[-1] == "py"):
 else:
     raise ValueError("Parameter file extension must be .py or .h5")
 
-print "param_file is",param_file
+print("param_file is",param_file)
 
 
 #initialisation:
@@ -39,21 +39,21 @@ def initSimuDM(config):
 
 
     # init geom
-    print "->geom"
+    print("->geom")
     ao.Param_geom.geom_init(config.p_geom,config.p_tel, config.p_geom.pupdiam, config.p_geom.apod) #apod = apodizer
     # init dm
-    print "->dm"
+    print("->dm")
     dms=ao.dm_init_standalone(config.p_dms,config.p_geom,config.p_tel.diam,config.p_tel.cobs)
 
 
     # Print DM information
-    print "===================="
-    print "init done"
-    print "===================="
-    print "objects initialzed on GPU:"
-    print "--------------------------------------------------------"
+    print("====================")
+    print("init done")
+    print("====================")
+    print("objects initialzed on GPU:")
+    print("--------------------------------------------------------")
 
-    print dms
+    print(dms)
 
     return dms
 

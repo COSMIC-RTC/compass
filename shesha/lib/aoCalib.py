@@ -22,4 +22,4 @@ class adoptCalib_class():
 
     def doRefslopes(self):
         self.rtc.do_centroids_ref(0)
-        print "refslopes done"
+        print("refslopes done")

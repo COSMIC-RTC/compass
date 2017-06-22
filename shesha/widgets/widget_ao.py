@@ -18,7 +18,7 @@ try:
 except ImportError as error:
     import warnings
     warnings.warn("GPU not accessible", RuntimeWarning)
-    print "due to: ", error
+    print("due to: ", error)
 
 import sys
 from sys import path, stdout, argv
@@ -195,7 +195,7 @@ class widgetAOWindow(TemplateBaseClass):
 
     def resetSR(self):
         tarnum = self.ui.wao_resetSR_tarNum.value()
-        print "reset SR on target %d" % tarnum
+        print("reset SR on target %d" % tarnum)
         self.tar.reset_strehl(tarnum)
 
     def closeEvent(self, event):
@@ -221,7 +221,7 @@ class widgetAOWindow(TemplateBaseClass):
     def updateGain(self):
         if(self.rtc):
             self.rtc.set_gain(0, float(self.ui.wao_controlGain.value()))
-            print "Loop gain updated on GPU"
+            print("Loop gain updated on GPU")
 
     def updateAmpliCompGUI(self):
         diffract = self.config.p_wfss[0].Lambda * \
@@ -239,7 +239,7 @@ class widgetAOWindow(TemplateBaseClass):
         if(self.rtc):
             self.rtc.set_pyr_ampl(0, self.ui.wao_pyr_ampl.value(
             ), self.config.p_wfss, self.config.p_tel)
-            print "Pyramid modulation updated on GPU"
+            print("Pyramid modulation updated on GPU")
             self.updatePlotWfs()
 
     def updateDMrangeGUI(self):
@@ -376,7 +376,7 @@ class widgetAOWindow(TemplateBaseClass):
         elif(type_contro == "generic"):
             self.ui.wao_controlTypeSelector.setCurrentIndex(5)
         else:
-            print "pffff...."
+            print("pffff....")
 
         self.ui.wao_controlCond.setValue(self.config.p_controllers[0].maxcond)
         self.ui.wao_controlDelay.setValue(self.config.p_controllers[0].delay)
@@ -428,7 +428,7 @@ class widgetAOWindow(TemplateBaseClass):
         self.config.p_tel.set_diam(self.ui.wao_diamTel.value())
         self.config.p_tel.set_cobs(self.ui.wao_cobs.value())
         self.config.p_geom.set_zenithangle(self.ui.wao_zenithAngle.value())
-        print "New telescope parameters set"
+        print("New telescope parameters set")
 
     def setAtmosParams(self):
         nscreen = self.ui.wao_selectAtmosLayer.currentIndex()
@@ -440,7 +440,7 @@ class widgetAOWindow(TemplateBaseClass):
         self.config.p_atmos.windspeed[nscreen] = self.ui.wao_windSpeed.value()
         self.config.p_atmos.winddir[
             nscreen] = self.ui.wao_windDirection.value()
-        print "New atmos parameters set"
+        print("New atmos parameters set")
 
     def setRtcParams(self):
         # Centroider params
@@ -479,7 +479,7 @@ class widgetAOWindow(TemplateBaseClass):
         self.config.p_controllers[0].set_gain(self.ui.wao_controlGain.value())
         # self.config.p_controllers[0].set_TTcond(self.ui.wao_controlTTcond.value())
         # # TODO : TTcond
-        print "New rtc parameters set"
+        print("New rtc parameters set")
 
     def setWfsParams(self):
         nwfs = self.ui.wao_selectWfs.currentIndex()
@@ -513,7 +513,7 @@ class widgetAOWindow(TemplateBaseClass):
                 self.ui.wao_wfsBeamSize.value())
             self.config.p_wfss[nwfs].set_proftype(
                 str(self.ui.wao_selectLGSProfile.currentText()))
-        print "New wfs parameters set"
+        print("New wfs parameters set")
 
     def setDmParams(self):
         ndm = self.ui.wao_selectDM.currentIndex()
@@ -527,7 +527,7 @@ class widgetAOWindow(TemplateBaseClass):
             self.ui.wao_dmUnitPerVolt.value())
         self.config.p_dms[ndm].set_coupling(self.ui.wao_dmCoupling.value())
         self.config.p_dms[ndm].set_thresh(self.ui.wao_dmThresh.value())
-        print "New DM parameters set"
+        print("New DM parameters set")
 
     def updateLayerSelection(self):
         self.ui.wao_selectAtmosLayer.clear()
@@ -581,11 +581,11 @@ class widgetAOWindow(TemplateBaseClass):
                 path.insert(0, pathfile)
 
             if self.config is not None:
-                print "Removing previous config"
+                print("Removing previous config")
                 self.config = None
                 config = None
 
-            print "loading ", filename.split(".py")[0]
+            print("loading ", filename.split(".py")[0])
             exec("import %s as config" % filename.split(".py")[0])
             path.remove(pathfile)
         elif(filepath.split('.')[-1] == "h5"):
@@ -594,7 +594,7 @@ class widgetAOWindow(TemplateBaseClass):
             path.remove(self.defaultParPath)
             h5u.configFromH5(filepath, config)
         else:
-            print "Parameter file extension must be .py or .h5"
+            print("Parameter file extension must be .py or .h5")
             return
         self.config = config
         self.ui.wao_selectConfig.clear()
@@ -621,7 +621,7 @@ class widgetAOWindow(TemplateBaseClass):
             self.stop = False
             self.refreshTime = time()
             self.nbiter = self.ui.wao_nbiters.value()
-            print "LOOP STARTED FOR %d iterations" % self.nbiter
+            print("LOOP STARTED FOR %d iterations" % self.nbiter)
             self.run()
             # self.loop = threading.Thread(target=self.run)
             # self.loop.start()
@@ -667,7 +667,7 @@ class widgetAOWindow(TemplateBaseClass):
 
         if self.config is not None:
             name = self.config.__name__
-            print "Removing previous config"
+            print("Removing previous config")
             self.config = None
             config = None
             try:
@@ -675,7 +675,7 @@ class widgetAOWindow(TemplateBaseClass):
             except:
                 pass
 
-        print "loading ", configfile.split(".py")[0]
+        print("loading ", configfile.split(".py")[0])
         exec("import %s as config" % configfile.split(".py")[0])
         self.config = config
         path.remove(self.defaultParPath)
@@ -774,7 +774,7 @@ class widgetAOWindow(TemplateBaseClass):
         # gpudevice = np.arange(4, dtype=np.int32) # using 4 GPUs: 0-3
         # gpudevice = 0  # using 1 GPU : 0
         self.ui.wao_deviceNumber.setDisabled(True)
-        print "-> using GPU", gpudevice
+        print("-> using GPU", gpudevice)
 
         if not self.c:
             if type(gpudevice) is np.ndarray:
@@ -870,16 +870,16 @@ class widgetAOWindow(TemplateBaseClass):
             self.SRcircleTarget[i].setPoints(cx, cy)
             self.SRcircleTarget[i].show()
 
-        print "===================="
-        print "init done"
-        print "===================="
-        print "objects initialized on GPU:"
-        print "--------------------------------------------------------"
-        print self.atm
-        print self.wfs
-        print self.dms
-        print self.tar
-        print self.rtc
+        print("====================")
+        print("init done")
+        print("====================")
+        print("objects initialized on GPU:")
+        print("--------------------------------------------------------")
+        print(self.atm)
+        print(self.wfs)
+        print(self.dms)
+        print(self.tar)
+        print(self.rtc)
         self.updateDisplay()
         self.displayRtcMatrix()
         self.updatePlotWfs()
@@ -908,18 +908,18 @@ class widgetAOWindow(TemplateBaseClass):
                 self.dms.resetdm(
                     str(self.ui.wao_dmTypeSelector.currentText()), self.ui.wao_dmAlt.value())
                 self.updateDisplay()
-                print "DM " + str(ndm) + " reset"
+                print("DM " + str(ndm) + " reset")
             else:
-                print "Invalid DM : please select a DM to reset"
+                print("Invalid DM : please select a DM to reset")
         else:
-            print "There is not any dm to reset"
+            print("There is not any dm to reset")
 
     def BttCommand(self):
         if(self.rtc):
             nfilt = int(self.ui.wao_filterBtt.value())
             ao.command_on_Btt(self.rtc, self.dms,
                               self.config.p_dms, self.config.p_geom, nfilt)
-            print "Loop is commanded from Btt basis now"
+            print("Loop is commanded from Btt basis now")
 
     def KLCommand(self):
         if(self.rtc):
@@ -927,7 +927,7 @@ class widgetAOWindow(TemplateBaseClass):
             cmat = ao.compute_cmatWithKL(self.rtc, self.config.p_controllers[
                                          0], self.dms, self.config.p_dms, self.config.p_geom, self.config.p_atmos, self.config.p_tel, nfilt)
             self.rtc.set_cmat(0, cmat.astype(np.float32))
-            print "Loop is commanded from KL basis now"
+            print("Loop is commanded from KL basis now")
 
     def updatePlotWfs(self):
         RASC = 180. / np.pi * 3600.
@@ -982,7 +982,7 @@ class widgetAOWindow(TemplateBaseClass):
                 elif(len(data.shape) == 1):
                     # TODO : plot it properly, interactivity ?
                     self.ui.wao_rtcWindow.canvas.axes.plot(
-                        range(len(data)), data, color="black")
+                        list(range(len(data))), data, color="black")
                     ax.set_yscale('log')
                     if(type_matrix == "Eigenvalues"):
                         #    major_ticks = np.arange(0, 101, 20)
@@ -1192,8 +1192,8 @@ class widgetAOWindow(TemplateBaseClass):
                             self.numberSelected, "se")
                         if(self.ui.wao_PSFlogscale.isChecked()):
                             if np.any(data <= 0):
-                                print(
-                                    "\nzero founds, log display disabled\n", RuntimeWarning)
+                                print((
+                                    "\nzero founds, log display disabled\n", RuntimeWarning))
                                 self.ui.wao_PSFlogscale.setCheckState(False)
                             else:
                                 data = np.log10(data)
@@ -1337,7 +1337,7 @@ class widgetAOWindow(TemplateBaseClass):
 
     def printInPlace(self, text):
         # This seems to trigger the GUI and keep it responsive
-        print "\r" + text,
+        print("\r" + text, end=' ')
         stdout.flush()
         # stdout.write(text)
 

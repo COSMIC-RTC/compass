@@ -19,7 +19,7 @@ for dirname in ('build', '__pycache__'):
 for filepattern in ('*.so', LIB + '*.so', SRC + '*.pyc', SRC + '*.cpp'):
     for filename in glob.glob(filepattern):
 
-            print("delete {}".format(filename))
+            print(("delete {}".format(filename)))
             os.remove(filename)
 
 

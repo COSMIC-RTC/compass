@@ -57,7 +57,7 @@ def system(cmd, output=False):
         out = out.split('\n')[:-1]
 
     for i in range(len(out)):
-        print out[i]
+        print(out[i])
 
     if(output):
         # print "here"
@@ -98,8 +98,8 @@ def binning(w, footprint):
     # prelocate memory
     binned = np.zeros(w.shape[0] * w.shape[1]).reshape(w.shape[0], w.shape[1])
     # print w
-    for i in xrange(w.shape[0]):
-        for j in xrange(w.shape[1]):
+    for i in range(w.shape[0]):
+        for j in range(w.shape[1]):
             binned[i, j] = w[i, j].sum() / (footprint * footprint + 0.0)
 
     return binned
@@ -127,7 +127,7 @@ def plg(data, x="", win=1, xlog=0, ylog=0, color="black", ):
     try:
         data.ndim
         if(data.ndim > 1):
-            print "Warning %dD dimensions. Cannot plot data. Use pli instead. " % data.ndim
+            print("Warning %dD dimensions. Cannot plot data. Use pli instead. " % data.ndim)
     except:
         return
     if(x == ""):
@@ -151,7 +151,7 @@ def plg(data, x="", win=1, xlog=0, ylog=0, color="black", ):
 def zcen(data):
     data = np.array(data)
     if(len(data.shape) > 1):
-        print "oups zcen with dims > 1 not coded yet..."
+        print("oups zcen with dims > 1 not coded yet...")
         return 0
     tmp = tmp2 = []
     for i in range(len(data) - 1):
@@ -168,7 +168,7 @@ def getValidSubapArray(nssp, rext, rint, return2d=False):
     # obs=0.286
     if((nssp == 7) and (rint > 0.285 and rint < 0.29)):
         rint = 0.285
-        print "cas particulier"
+        print("cas particulier")
     x = zcen(np.linspace(-1, 1, num=nssp + 1))
     xx = []
     for i in range(nssp):

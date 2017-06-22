@@ -18,9 +18,9 @@ except:
     shesha_db = shesha_dir + "/data/"
     warnings.warn("'SHESHA_DB_ROOT' not defined, using default one: "+shesha_db)
 finally:
-    shesha_savepath = < bytes >shesha_db
+    shesha_savepath = bytes(shesha_db.encode('UTF-8'))
 
-print "shesha_savepath:", shesha_savepath
+print ("shesha_savepath:", shesha_savepath)
 
 sys.path.append(shesha_dir + '/src')
 import make_pupil as mkP
@@ -76,7 +76,7 @@ cdef class Param_loop:
 cdef class Param_tel:
     def __cinit__(self):
         self.diam = 0
-        self.type_ap = "Generic"
+        self.type_ap = bytes("Generic".encode('UTF-8'))
         self.t_spiders = -1
         self.spiders_type = None
         self.nbrmissing = 0
@@ -98,7 +98,7 @@ cdef class Param_tel:
         """
         self.cobs = c
 
-    def set_type_ap(self, str t):
+    def set_type_ap(self, bytes t):
         """set the EELT aperture type
 
         :param t: (str) : EELT aperture type
@@ -112,7 +112,7 @@ cdef class Param_tel:
         """
         self.t_spiders = spider
 
-    def set_spiders_type(self, str spider):
+    def set_spiders_type(self, bytes spider):
         """set the secondary supports type
 
         :param spider: (str) : secondary supports type
@@ -188,7 +188,7 @@ cdef class Param_geom:
         self._n1 = self._p1 - 2
         self._n2 = self._p2 + 2
 
-    def geom_init(self, Param_tel tel, long pupdiam, int apod=0, str apod_filename=None):
+    def geom_init(self, Param_tel tel, long pupdiam, int apod=0, bytes apod_filename=None):
         """Initialize the system geometry
 
         :parameters:
@@ -218,7 +218,7 @@ cdef class Param_geom:
 
         if(apod == 1):
             if apod_filename == None:
-                apod_filename = shesha_savepath + "apodizer/SP_HARMONI_I4_C6_N1024.npy"
+                apod_filename = bytes((shesha_savepath + "apodizer/SP_HARMONI_I4_C6_N1024.npy").encode('UTF-8'))
             self._apodizer = make_apodizer(self.pupdiam, self.pupdiam, apod_filename.encode(), 180. / 12.).astype(np.float32)
         else:
             self._apodizer = np.ones((self._spupil.shape[0], self._spupil.shape[1])).astype(np.float32)
@@ -336,7 +336,7 @@ cdef class Param_wfs:
         self.dx = 0.0
         self.dy = 0.0
 
-    def set_type(self, str t):
+    def set_type(self, bytes t):
         """Set the type of wfs
 
         :param t: (str) : type of wfs ("sh" or "pyr")
@@ -399,7 +399,7 @@ cdef class Param_wfs:
         """
         self.fssize = f
 
-    def set_fstop(self,str f):
+    def set_fstop(self,bytes f):
         """Set the size of field stop
 
         :param f: (str) : size of field stop in arcsec
@@ -518,7 +518,7 @@ cdef class Param_wfs:
         """
         self.llty = l
 
-    def set_proftype(self, str p):
+    def set_proftype(self, bytes p):
         """Set the type of sodium profile
 
         :param p: (str) : type of sodium profile "gauss", "exp", etc ...
@@ -546,7 +546,7 @@ cdef class Param_wfs:
         """
         self.pyr_npts = p
 
-    def set_pyr_loc(self, str p):
+    def set_pyr_loc(self, bytes p):
         """Set the location of modulation
 
         :param p: (str) : location of modulation, before/after the field stop.
@@ -554,7 +554,7 @@ cdef class Param_wfs:
         """
         self.pyr_loc = p
 
-    def set_pyrtype(self, str p):
+    def set_pyrtype(self, bytes p):
         """Set the type of pyramid,
 
         :param p: (str) : type of pyramid, either 0 for "Pyramid" or 1 for "RoofPrism"
@@ -627,7 +627,7 @@ cdef class Param_wfs:
 '''
     cdef make_lgs_prof1d(self, Param_tel p_tel,
             np.ndarray[dtype=np.float32_t] prof, np.ndarray[dtype=np.float32_t] h,
-            float beam, bytes center=<bytes>""):
+            float beam, bytes center=""):
         """same as prep_lgs_prof but cpu only. original routine from rico
 
         :parameters:
@@ -934,7 +934,7 @@ cdef class Param_dm:
 
     def __cinit__(self, debug = False):
         self._klbas = Klbas()
-        self.influType = <bytes> ("default")
+        self.influType = bytes("default".encode('UTF-8'))
         self.gain = 1.0
         self.margin_out = -1
         self.margin_in = -1
@@ -1502,8 +1502,8 @@ cpdef make_apodizer(int dim, int pupd, bytes filename, float angle):
         (float) : angle:
     """
 
-    print "Opening apodizer"
-    print "reading file:", filename
+    print ("Opening apodizer")
+    print ("reading file:", filename)
     cdef np.ndarray pup = np.load(filename)
     cdef int A = pup.shape[0]
 
@@ -1512,11 +1512,11 @@ cpdef make_apodizer(int dim, int pupd, bytes filename, float angle):
 
     if (A != pupd):
         # use misc.imresize (with bilinear)
-        print "TODO pup=bilinear(pup,pupd,pupd)"
+        print ("TODO pup=bilinear(pup,pupd,pupd)")
 
     if (angle != 0):
         # use ndimage.interpolation.rotate
-        print "TODO pup=rotate2(pup,angle)"
+        print ("TODO pup=rotate2(pup,angle)")
         pup = interp.rotate(pup, angle, reshape=False, order=2)
 
     reg = np.where(mkP.dist(pupd) > pupd / 2.)

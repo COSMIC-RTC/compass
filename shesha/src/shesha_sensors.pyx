@@ -16,7 +16,7 @@ cpdef prep_lgs_prof(Param_wfs p_wfs, int nsensors, Param_tel p_tel,
                     np.ndarray[dtype=np.float32_t] prof,
                     np.ndarray[dtype=np.float32_t] h,
                     float beam, Sensors sensors,
-                    bytes center= < bytes > "", int imat=0):
+                    bytes center= bytes("".encode('UTF-8')), int imat=0):
     """The function returns an image array(double,n,n) of a laser beacon elongated by perpective
 effect. It is obtaind by convolution of a gaussian of width "lgsWidth" arcseconds, with the
 line of the sodium profile "prof". The altitude of the profile is the array "h".
@@ -135,7 +135,7 @@ simple re-sampling of the profile is adequate.
 
 cpdef make_lgs_prof1d(p_wfs, Param_tel p_tel,
                       np.ndarray[dtype=np.float32_t] prof, np.ndarray[dtype=np.float32_t] h,
-                      float beam, bytes center= < bytes > ""):
+                      float beam, bytes center= bytes("".encode('UTF-8'))):
     """same as prep_lgs_prof but cpu only. original routine from rico
 
     :parameters:
@@ -1705,7 +1705,7 @@ cdef class Sensors:
         cdef np.ndarray[dtype = np.int32_t] hrmap_F = wfs._hrmap.flatten("F")
         cdef np.ndarray[dtype = np.int32_t] binmap_F
         cdef int * binmap = NULL
-        if(self.sensors.d_wfs[n].type == < bytes > "sh"):
+        if(self.sensors.d_wfs[n].type == "sh"):
             binmap_F = wfs._binmap.flatten("F")
             binmap = < int * > binmap_F.data
 
@@ -1721,7 +1721,7 @@ cdef class Sensors:
         cdef np.ndarray[dtype = np.float32_t] cy_F
         cdef float * cx = NULL
         cdef float * cy = NULL
-        if((self.sensors.d_wfs[n].type == < bytes > "pyrhr") or (self.sensors.d_wfs[n].type == < bytes > "pyr") or (self.sensors.d_wfs[n].type == < bytes > "roof")):
+        if((self.sensors.d_wfs[n].type == "pyrhr") or (self.sensors.d_wfs[n].type == "pyr") or (self.sensors.d_wfs[n].type == "roof")):
             cx_F = wfs._pyr_cx.astype(np.float32)
             cy_F = wfs._pyr_cy.astype(np.float32)
             cx = < float * > cx_F.data
@@ -1750,7 +1750,7 @@ cdef class Sensors:
 
         cdef np.ndarray[dtype = np.complex64_t]ftkernel_F
         cdef float * ftkernel = NULL
-        if(self.sensors.d_wfs[n].type == < bytes > "sh"):
+        if(self.sensors.d_wfs[n].type == "sh"):
             ftkernel_F = wfs._ftkernel.flatten("F")
             ftkernel = < float * > ftkernel_F.data
 
@@ -1763,14 +1763,14 @@ cdef class Sensors:
         cdef cuFloatComplex * pyr_halfxy = NULL
 
         # swap validx and validy due to transposition from yorick to python
-        if(self.sensors.d_wfs[n].type == < bytes > "geo"):
+        if(self.sensors.d_wfs[n].type == "geo"):
             tmp = wfs._fluxPerSub.T[np.where(wfs._isvalid > 0)].copy()
             fluxPerSub = < float * > tmp.data
             wfs_geom = dynamic_cast_wfs_geom_ptr(self.sensors.d_wfs[n])
             wfs_geom.wfs_initarrays(phasemap, halfxy, fluxPerSub,
                                     validx, validy)
 
-        elif(self.sensors.d_wfs[n].type== < bytes >"pyr"):
+        elif(self.sensors.d_wfs[n].type== "pyr"):
             tmp_offset=wfs._pyr_offsets.flatten("F").copy()
             offset=<cuFloatComplex*>tmp_offset.data
             wfs_pyr = dynamic_cast_wfs_pyr_pyr4_ptr(self.sensors.d_wfs[n])
@@ -1778,7 +1778,7 @@ cdef class Sensors:
                     submask, cx, cy,
                     sincar, phasemap, validx,validy)
 
-        elif(self.sensors.d_wfs[n].type == < bytes > "pyrhr"):
+        elif(self.sensors.d_wfs[n].type == "pyrhr"):
             tmp = wfs._fluxPerSub.T[np.where(wfs._isvalid > 0)].copy()
             fluxPerSub = < float * > tmp.data
             tmp_halfxy = np.exp(
@@ -1787,7 +1787,7 @@ cdef class Sensors:
             wfs_pyrhr = dynamic_cast_wfs_pyr_pyrhr_ptr(self.sensors.d_wfs[n])
             wfs_pyrhr.wfs_initarrays(pyr_halfxy, cx, cy, sincar, submask, validy, validx, phasemap, fluxPerSub)
 
-        elif(self.sensors.d_wfs[n].type == < bytes > "roof"):
+        elif(self.sensors.d_wfs[n].type == "roof"):
             tmp_offset = wfs.__pyr_offsets.flatten("F").copy()
             offset = < cuFloatComplex * > tmp_offset.data
             wfs_roof = dynamic_cast_wfs_pyr_roof_ptr(self.sensors.d_wfs[n])
@@ -1795,7 +1795,7 @@ cdef class Sensors:
                                     submask, cx, cy,
                                     sincar, phasemap, validx, validy)
 
-        elif(self.sensors.d_wfs[n].type == < bytes > "sh"):
+        elif(self.sensors.d_wfs[n].type == "sh"):
             tmp = wfs._fluxPerSub.T[np.where(wfs._isvalid > 0)].copy()
             fluxPerSub = < float * > tmp.data
             wfs_sh = dynamic_cast_wfs_sh_ptr(self.sensors.d_wfs[n])
@@ -1969,7 +1969,7 @@ cdef class Sensors:
 
         cdef np.ndarray[ndim=3,dtype=np.float32_t] bincube
         cdef np.ndarray[ndim=2,dtype=np.float32_t] pyrimg
-        cdef bytes type_wfs = < bytes > self.sensors.d_wfs[n].type
+        cdef bytes type_wfs = self.sensors.d_wfs[n].type
         cdef int npix
 
         if(type_wfs == "pyrhr"):
@@ -2015,7 +2015,7 @@ cdef class Sensors:
         #cdef np.ndarray[ndim = 2, dtype = np.float32_t] data_F
         cdef np.ndarray[dtype = np.float32_t] data_F = data.flatten("F")
 
-        cdef bytes type_wfs = < bytes > self.sensors.d_wfs[n].type
+        cdef bytes type_wfs = self.sensors.d_wfs[n].type
 
         if(type_wfs == "pyrhr"):
             img = self.sensors.d_wfs[n].d_binimg
@@ -2037,7 +2037,7 @@ cdef class Sensors:
 
     cdef _set_submask(self, int n, np.ndarray[ndim=2, dtype=np.float32_t] data):
 
-        cdef bytes type_wfs = < bytes > self.sensors.d_wfs[n].type
+        cdef bytes type_wfs = self.sensors.d_wfs[n].type
         cdef np.ndarray[dtype = np.float32_t] data_F = data.flatten("F")
         cdef sutra_wfs_pyr_pyrhr * wfs
 
@@ -2061,7 +2061,7 @@ cdef class Sensors:
         cdef np.ndarray[ndim = 2, dtype = np.float32_t] data
         cdef np.ndarray[ndim = 2, dtype = np.float32_t] data_F
         cdef sutra_wfs_pyr_pyrhr * wfs
-        cdef bytes type_wfs = < bytes > self.sensors.d_wfs[n].type
+        cdef bytes type_wfs = self.sensors.d_wfs[n].type
 
         if(type_wfs == "pyrhr"):
             wfs = dynamic_cast_wfs_pyr_pyrhr_ptr(self.sensors.d_wfs[n])
@@ -2095,7 +2095,7 @@ cdef class Sensors:
 ##        cdef np.ndarray[ndim = 2, dtype = np.float32_t] data
 #        cdef np.ndarray[ndim = 2, dtype = np.float32_t] data_F
 #
-#        cdef bytes type_wfs = < bytes > self.sensors.d_wfs[n].type
+#        cdef bytes type_wfs = self.sensors.d_wfs[n].type
 #        cdef sutra_wfs_pyr_pyrhr * wfs
 #
 #        if(type_wfs == "pyrhr"):
@@ -2130,7 +2130,7 @@ cdef class Sensors:
         cdef np.ndarray[ndim = 2, dtype = np.float32_t] data
         cdef np.ndarray[ndim = 2, dtype = np.float32_t] data_F
 
-        cdef bytes type_wfs = < bytes > self.sensors.d_wfs[n].type
+        cdef bytes type_wfs = self.sensors.d_wfs[n].type
         cdef sutra_wfs_pyr_pyrhr * wfs
 
         if(type_wfs == "pyrhr"):
@@ -2172,7 +2172,7 @@ cdef class Sensors:
 
         """
 
-        cdef bytes type_wfs = < bytes > self.sensors.d_wfs[n].type
+        cdef bytes type_wfs = self.sensors.d_wfs[n].type
         cdef sutra_wfs_pyr_pyrhr * wfs
 
         if(type_wfs == "pyrhr"):
@@ -2564,19 +2564,19 @@ cdef class Sensors:
         cdef sutra_wfs_sh * wfs_sh = NULL
         cdef sutra_wfs_pyr_pyrhr * wfs_pyrhr = NULL
 
-        if( < bytes > self.sensors.d_wfs[nsensor].type == "sh"):
+        if( self.sensors.d_wfs[nsensor].type == "sh"):
             #raise TypeError("wfs should be a SH")
             wfs_sh = dynamic_cast_wfs_sh_ptr(self.sensors.d_wfs[nsensor])
             wfs_sh.slopes_geom(t)
         else:
-            if( < bytes > self.sensors.d_wfs[nsensor].type == "pyrhr"):
+            if( self.sensors.d_wfs[nsensor].type == "pyrhr"):
                 wfs_pyrhr = dynamic_cast_wfs_pyr_pyrhr_ptr(self.sensors.d_wfs[nsensor])
                 wfs_pyrhr.slopes_geom(t)
             else:
                 raise TypeError("wfs should be a SH or PYRHR")
 
 
-    cpdef sensors_trace(self, int n, str type_trace, Telescope tel=None, Atmos atmos=None, Dms dms=None, int rst=0, int ncpa=0):
+    cpdef sensors_trace(self, int n, bytes type_trace, Telescope tel=None, Atmos atmos=None, Dms dms=None, int rst=0, int ncpa=0):
         """ Does the raytracing for the wfs phase screen in sutra_wfs
 
         :parameters:

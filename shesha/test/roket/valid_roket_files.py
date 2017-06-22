@@ -4,7 +4,7 @@ import glob
 
 def validfile(filename):
     f = h5py.File(filename)
-    if(f.attrs.keys().count("target.Lambda")):
+    if(list(f.attrs.keys()).count("target.Lambda")):
         Lambda = f.attrs["target.Lambda"][0]
     else:
         Lambda = 1.65
@@ -37,4 +37,4 @@ ind = 0
 for f in filenames:
     validfile(f)
     ind += 1
-    print "\r %d/%d" % (ind,l)
+    print("\r %d/%d" % (ind,l))

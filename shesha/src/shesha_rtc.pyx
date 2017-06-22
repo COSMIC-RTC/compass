@@ -291,7 +291,7 @@ cdef class Rtc:
         cdef sutra_centroider * centro = NULL
         centro = self.rtc.d_centro.at(ncentro)
         cdef sutra_centroider_corr * corr
-        if(self.rtc.d_centro[ncentro].is_type(< bytes > "corr")):
+        if(self.rtc.d_centro[ncentro].is_type("corr")):
             corr = dynamic_cast_centroider_corr_ptr(centro)
             corr.init_bincube()
         return 1
@@ -468,7 +468,7 @@ cdef class Rtc:
 
         cdef np.ndarray[dtype = np.float32_t] M2V_F = M2V.flatten("F")
 
-        if(< bytes > self.rtc.d_control[ncontrol].get_type() == "ls"):
+        if(self.rtc.d_control[ncontrol].get_type() == "ls"):
             controller_ls = dynamic_cast_controller_ls_ptr(self.rtc.d_control[ncontrol])
             controller_ls.init_modalOpti(nmodes, nrec, < float *> M2V_F.data, gmin, gmax, ngain, Fs)
         else:
@@ -489,7 +489,7 @@ cdef class Rtc:
 
         cdef np.ndarray[dtype = np.float32_t] slopes_F = ol_slopes.flatten("F")
 
-        if(< bytes > self.rtc.d_control[ncontrol].get_type() == "ls"):
+        if(self.rtc.d_control[ncontrol].get_type() == "ls"):
             controller_ls = dynamic_cast_controller_ls_ptr(self.rtc.d_control[ncontrol])
             controller_ls.loadOpenLoopSlp(< float *> slopes_F.data)
         else:
@@ -505,7 +505,7 @@ cdef class Rtc:
         context.set_activeDeviceForCpy(self.rtc.device, 1)
         cdef sutra_controller_ls * controller_ls
 
-        if(< bytes > self.rtc.d_control[ncontrol].get_type() == "ls"):
+        if(self.rtc.d_control[ncontrol].get_type() == "ls"):
             controller_ls = dynamic_cast_controller_ls_ptr(self.rtc.d_control[ncontrol])
             if(controller_ls.is_modopti):
                 controller_ls.modalControlOptimization()
@@ -524,7 +524,7 @@ cdef class Rtc:
         """
         cdef carma_context * context = &carma_context.instance()
         context.set_activeDeviceForCpy(self.rtc.device, 1)
-        cdef bytes type_control = < bytes > self.rtc.d_control[ncontrol].get_type()
+        cdef bytes type_control = self.rtc.d_control[ncontrol].get_type()
         cdef sutra_controller_ls * controller_ls
         cdef sutra_controller_mv * controller_mv
         cdef sutra_controller_cured * controller_cured
@@ -568,7 +568,7 @@ cdef class Rtc:
         cdef sutra_controller_ls * controller_ls
         cdef sutra_controller_mv * controller_mv
         cdef sutra_controller_generic * controller_generic
-        cdef bytes type_control = < bytes > self.rtc.d_control[ncontrol].get_type()
+        cdef bytes type_control = self.rtc.d_control[ncontrol].get_type()
 
         if(type_control == "ls"):
             controller_ls = dynamic_cast_controller_ls_ptr(self.rtc.d_control[ncontrol])
@@ -601,7 +601,7 @@ cdef class Rtc:
         cdef sutra_controller_ls * controller_ls
         cdef sutra_controller_mv * controller_mv
         cdef sutra_controller_geo * controller_geo
-        cdef bytes type_control = < bytes > self.rtc.d_control[ncontrol].get_type()
+        cdef bytes type_control = self.rtc.d_control[ncontrol].get_type()
 
         self.rtc.d_control[ncontrol].d_com.host2device(< float *> comvec.data)
 
@@ -633,7 +633,7 @@ cdef class Rtc:
         cdef sutra_controller_cured * controller_cured
         cdef sutra_controller_geo * controller_geo
 
-        cdef bytes type_control = < bytes > self.rtc.d_control[ncontrol].get_type()
+        cdef bytes type_control = self.rtc.d_control[ncontrol].get_type()
 #        cdef float gain =  self.rtc.d_control[ncontrol].get_gain()
 #        return gain
         cdef float gain
@@ -684,7 +684,7 @@ cdef class Rtc:
         cdef sutra_controller_ls * controller_ls
         cdef sutra_controller_mv * controller_mv
         cdef sutra_controller_generic * controller_generic
-        cdef bytes type_control = < bytes > self.rtc.d_control[ncontrol].get_type()
+        cdef bytes type_control = self.rtc.d_control[ncontrol].get_type()
         cdef int size
         cdef np.ndarray[ndim = 1, dtype = np.float32_t] mgain
 
@@ -725,7 +725,7 @@ cdef class Rtc:
 
         cdef sutra_controller_ls * controller_ls
         cdef sutra_controller_mv * controller_mv
-        cdef bytes type_control = < bytes > self.rtc.d_control[ncontrol].get_type()
+        cdef bytes type_control = self.rtc.d_control[ncontrol].get_type()
 
         if(type_control == "ls"):
             controller_ls = dynamic_cast_controller_ls_ptr(self.rtc.d_control[ncontrol])
@@ -752,7 +752,7 @@ cdef class Rtc:
         cdef sutra_controller_ls * controller_ls
         cdef sutra_controller_mv * controller_mv
         cdef sutra_controller_cured * controller_cured
-        cdef bytes type_control = < bytes > self.rtc.d_control[ncontrol].get_type()
+        cdef bytes type_control = self.rtc.d_control[ncontrol].get_type()
 
         cdef const long * dims = NULL
         cdef np.ndarray[ndim = 2, dtype = np.float32_t] imat_F
@@ -799,7 +799,7 @@ cdef class Rtc:
         cdef sutra_controller_ls * controller_ls
         cdef sutra_controller_mv * controller_mv
         cdef sutra_controller_generic * controller_generic
-        cdef bytes type_control = < bytes > self.rtc.d_control[ncontrol].get_type()
+        cdef bytes type_control = self.rtc.d_control[ncontrol].get_type()
 
         if(type_control == "ls"):
             controller_ls = dynamic_cast_controller_ls_ptr(self.rtc.d_control[ncontrol])
@@ -834,7 +834,7 @@ cdef class Rtc:
         cdef np.ndarray[dtype = np.float32_t] data_F = data.flatten("F")
 
         cdef sutra_controller_mv * controller_mv
-        cdef bytes type_control = < bytes > self.rtc.d_control[ncontrol].get_type()
+        cdef bytes type_control = self.rtc.d_control[ncontrol].get_type()
 
         if(type_control == "mv"):
             controller_mv = dynamic_cast_controller_mv_ptr(self.rtc.d_control[ncontrol])
@@ -856,7 +856,7 @@ cdef class Rtc:
         cdef carma_context * context = &carma_context.instance()
         context.set_activeDeviceForCpy(self.rtc.device, 1)
         cdef sutra_controller_mv * controller_mv
-        cdef bytes type_control = < bytes > self.rtc.d_control[ncontrol].get_type()
+        cdef bytes type_control = self.rtc.d_control[ncontrol].get_type()
         cdef np.ndarray[ndim = 2, dtype = np.float32_t] data_F, cmm
         cdef const long * cdims
 
@@ -882,7 +882,7 @@ cdef class Rtc:
         cdef carma_context * context = &carma_context.instance()
         context.set_activeDeviceForCpy(self.rtc.device, 1)
         cdef sutra_controller_mv * controller_mv
-        cdef bytes type_control = < bytes > self.rtc.d_control[ncontrol].get_type()
+        cdef bytes type_control = self.rtc.d_control[ncontrol].get_type()
         cdef np.ndarray[ndim = 2, dtype = np.float32_t] data_F, cphim
         cdef const long * cdims
 
@@ -909,7 +909,7 @@ cdef class Rtc:
         cdef sutra_controller_ls * controller_ls
         cdef sutra_controller_mv * controller_mv
         cdef sutra_controller_generic * controller_generic
-        cdef bytes type_control = < bytes > self.rtc.d_control[ncontrol].get_type()
+        cdef bytes type_control = self.rtc.d_control[ncontrol].get_type()
         cdef np.ndarray[ndim = 2, dtype = np.float32_t] data_F , cmat
         cdef const long * cdims
         if(type_control == "ls"):
@@ -949,7 +949,7 @@ cdef class Rtc:
         cdef carma_context * context = &carma_context.instance()
         context.set_activeDeviceForCpy(self.rtc.device, 1)
         cdef sutra_controller_generic * controller_generic
-        cdef bytes type_control = < bytes > self.rtc.d_control[ncontrol].get_type()
+        cdef bytes type_control = self.rtc.d_control[ncontrol].get_type()
 
         if(type_control == "generic"):
             controller_generic = dynamic_cast_controller_generic_ptr(self.rtc.d_control[ncontrol])
@@ -969,7 +969,7 @@ cdef class Rtc:
         cdef carma_context * context = &carma_context.instance()
         context.set_activeDeviceForCpy(self.rtc.device, 1)
         cdef sutra_controller_generic * controller_generic
-        cdef bytes type_control = < bytes > self.rtc.d_control[ncontrol].get_type()
+        cdef bytes type_control = self.rtc.d_control[ncontrol].get_type()
 
         cdef np.ndarray[dtype = np.float32_t] matE_F = matE.flatten("F")
 
@@ -1004,7 +1004,7 @@ cdef class Rtc:
         context.set_activeDeviceForCpy(self.rtc.device, 1)
 
         cdef sutra_controller_generic * controller_generic
-        cdef bytes type_control = < bytes > self.rtc.d_control[ncontrol].get_type()
+        cdef bytes type_control = self.rtc.d_control[ncontrol].get_type()
 
         if(type_control == "generic"):
             controller_generic = dynamic_cast_controller_generic_ptr(self.rtc.d_control[ncontrol])
@@ -1103,9 +1103,9 @@ cdef class Rtc:
         cdef int nslope = control.nslope()
 
 
-        if(< bytes > control.get_type() == < bytes > "ls"):
+        if(control.get_type() == "ls"):
             d_imat = dynamic_cast_controller_ls_ptr(control).d_imat
-        elif(< bytes > control.get_type() == < bytes > "mv"):
+        elif(control.get_type() == "mv"):
             d_imat = dynamic_cast_controller_mv_ptr(control).d_imat
         #_________________________________________________________________________
         else:
@@ -1266,9 +1266,9 @@ cdef class Rtc:
         cdef int nactu = control.nactu()
         cdef int nslope = control.nslope()
 
-        if(< bytes > control.get_type() == < bytes > "ls"):
+        if(control.get_type() == "ls"):
             d_imat = dynamic_cast_controller_ls_ptr(control).d_imat
-        elif(< bytes > control.get_type() == < bytes > "mv"):
+        elif(control.get_type() == "mv"):
             d_imat = dynamic_cast_controller_mv_ptr(control).d_imat
         else:
           # Create a temporary imat to return
@@ -1422,7 +1422,7 @@ cdef class Rtc:
         cdef carma_context * context = &carma_context.instance()
         context.set_activeDeviceForCpy(self.rtc.device, 1)
 
-        cdef bytes type_control = < bytes > self.rtc.d_control[ncontrol].get_type()
+        cdef bytes type_control = self.rtc.d_control[ncontrol].get_type()
         cdef sutra_controller_ls * controller_ls
         if(type_control == "ls"):
             controller_ls = dynamic_cast_controller_ls_ptr(self.rtc.d_control[ncontrol])
@@ -1446,7 +1446,7 @@ cdef class Rtc:
         context.set_activeDeviceForCpy(self.rtc.device, 1)
 
         cdef sutra_controller_ls * controller_ls
-        cdef bytes type_control = < bytes > self.rtc.d_control[ncontrol].get_type()
+        cdef bytes type_control = self.rtc.d_control[ncontrol].get_type()
 
         cdef np.ndarray[dtype = np.float32_t] data_F = U.flatten("F")
         if(type_control == "ls"):
@@ -1466,7 +1466,7 @@ cdef class Rtc:
         context.set_activeDeviceForCpy(self.rtc.device, 1)
 
         cdef sutra_controller_ls * controller_ls
-        cdef bytes type_control = < bytes > self.rtc.d_control[ncontrol].get_type()
+        cdef bytes type_control = self.rtc.d_control[ncontrol].get_type()
 
         if(type_control == "ls"):
             controller_ls = dynamic_cast_controller_ls_ptr(self.rtc.d_control[ncontrol])
@@ -1486,7 +1486,7 @@ cdef class Rtc:
         cdef carma_context * context = &carma_context.instance()
         context.set_activeDeviceForCpy(self.rtc.device, 1)
         cdef sutra_controller_ls * controller_ls
-        cdef bytes type_control = < bytes > self.rtc.d_control[ncontrol].get_type()
+        cdef bytes type_control = self.rtc.d_control[ncontrol].get_type()
         cdef np.ndarray[ndim = 2, dtype = np.float32_t] data_F
         cdef np.ndarray[ndim = 2, dtype = np.float32_t] data
         cdef const long * dims = NULL
@@ -1513,7 +1513,7 @@ cdef class Rtc:
         context.set_activeDeviceForCpy(self.rtc.device, 1)
         cdef sutra_controller_ls * controller_ls
         cdef sutra_controller_mv * controller_mv
-        cdef bytes type_control = < bytes > self.rtc.d_control[ncontrol].get_type()
+        cdef bytes type_control = self.rtc.d_control[ncontrol].get_type()
         cdef np.ndarray[ndim = 1, dtype = np.float32_t] data
         cdef const long * dims
         if(type_control == "ls"):
@@ -1542,7 +1542,7 @@ cdef class Rtc:
         cdef carma_context * context = &carma_context.instance()
         context.set_activeDeviceForCpy(self.rtc.device, 1)
         cdef sutra_controller_mv * controller_mv
-        cdef bytes type_control = < bytes > self.rtc.d_control[ncontrol].get_type()
+        cdef bytes type_control = self.rtc.d_control[ncontrol].get_type()
         cdef np.ndarray[ndim = 1, dtype = np.float32_t] data
         cdef const long * dims
         if(type_control == "mv"):
@@ -1563,7 +1563,7 @@ cdef class Rtc:
         cdef carma_context *context=&carma_context.instance()
         context.set_activeDeviceForCpy(self.rtc.device,1)
         cdef sutra_controller_geo *controller_geo
-        cdef bytes type_contro=<bytes>self.rtc.d_control[ncontrol].get_type()
+        cdef bytes type_contro=self.rtc.d_control[ncontrol].get_type()
         cdef np.ndarray[ndim=2, dtype=np.float32_t] data
         cdef np.ndarray[ndim=2, dtype=np.float32_t] data_F
         cdef const long *dims
@@ -1589,7 +1589,7 @@ cdef class Rtc:
         cdef carma_context *context=&carma_context.instance()
         context.set_activeDeviceForCpy(self.rtc.device,1)
         cdef sutra_controller_geo *controller_geo
-        cdef bytes type_contro=<bytes>self.rtc.d_control[ncontrol].get_type()
+        cdef bytes type_contro=self.rtc.d_control[ncontrol].get_type()
         cdef np.ndarray[ndim=2, dtype=np.float32_t] data
         cdef np.ndarray[ndim=2, dtype=np.float32_t] data_F
         cdef const long *dims
@@ -1618,7 +1618,7 @@ cdef class Rtc:
         cdef carma_context * context = &carma_context.instance()
         context.set_activeDeviceForCpy(self.rtc.device, 1)
         cdef sutra_controller_ls * controller_ls
-        cdef bytes type_control = < bytes > self.rtc.d_control[ncontrol].get_type()
+        cdef bytes type_control = self.rtc.d_control[ncontrol].get_type()
         cdef np.ndarray[ndim = 2, dtype = np.float32_t] data_F
         cdef np.ndarray[ndim = 2, dtype = np.float32_t] data
         cdef const long * dims = NULL
@@ -1644,7 +1644,7 @@ cdef class Rtc:
         cdef carma_context * context = &carma_context.instance()
         context.set_activeDeviceForCpy(self.rtc.device, 1)
         cdef sutra_controller_ls * controller_ls
-        cdef bytes type_control = < bytes > self.rtc.d_control[ncontrol].get_type()
+        cdef bytes type_control = self.rtc.d_control[ncontrol].get_type()
         cdef np.ndarray[ndim = 1, dtype = np.float32_t] data
         cdef const long * dims
         if(type_control == "ls"):
@@ -1836,7 +1836,7 @@ cdef class Rtc:
         cdef carma_context * context = &carma_context.instance()
         context.set_activeDeviceForCpy(self.rtc.device, 1)
         cdef sutra_controller_ls * controller_ls
-        cdef bytes type_control = < bytes > self.rtc.d_control[ncontrol].get_type()
+        cdef bytes type_control = self.rtc.d_control[ncontrol].get_type()
 
         if(type_control == "ls"):
             controller_ls = dynamic_cast_controller_ls_ptr(self.rtc.d_control[ncontrol])
@@ -1857,7 +1857,7 @@ cdef class Rtc:
         cdef carma_context * context = &carma_context.instance()
         context.set_activeDeviceForCpy(self.rtc.device, 1)
         cdef sutra_controller_mv * controller_mv
-        cdef bytes type_control = < bytes > self.rtc.d_control[ncontrol].get_type()
+        cdef bytes type_control = self.rtc.d_control[ncontrol].get_type()
 
         if(type_control == "mv"):
             controller_mv = dynamic_cast_controller_mv_ptr(self.rtc.d_control[ncontrol])
@@ -1876,7 +1876,7 @@ cdef class Rtc:
         cdef carma_context * context = &carma_context.instance()
         context.set_activeDeviceForCpy(self.rtc.device, 1)
         cdef sutra_controller_mv * controller_mv
-        cdef bytes type_control = < bytes > self.rtc.d_control[ncontrol].get_type()
+        cdef bytes type_control = self.rtc.d_control[ncontrol].get_type()
 
         if(type_control == "mv"):
             controller_mv = dynamic_cast_controller_mv_ptr(self.rtc.d_control[ncontrol])
@@ -1920,7 +1920,7 @@ cdef class Rtc:
         """
         cdef carma_context * context = &carma_context.instance()
         cdef sutra_controller_geo * controller_geo
-        cdef bytes type_control = < bytes > self.rtc.d_control[ncontrol].get_type()
+        cdef bytes type_control = self.rtc.d_control[ncontrol].get_type()
         context.set_activeDevice(self.rtc.device, 1)
 
         if(type_control == "geo"):
@@ -1943,7 +1943,7 @@ cdef class Rtc:
         """
         cdef carma_context * context = &carma_context.instance()
         cdef sutra_controller_geo * controller_geo
-        cdef bytes type_control = < bytes > self.rtc.d_control[ncontrol].get_type()
+        cdef bytes type_control = self.rtc.d_control[ncontrol].get_type()
         context.set_activeDevice(self.rtc.device, 1)
 
         if(type_control == "geo"):
@@ -1963,7 +1963,7 @@ cdef class Rtc:
         cdef carma_context *context=&carma_context.instance()
         context.set_activeDeviceForCpy(self.rtc.device,1)
         cdef sutra_controller_geo *controller_geo
-        cdef bytes type_contro=<bytes>self.rtc.d_control[ncontrol].get_type()
+        cdef bytes type_contro=self.rtc.d_control[ncontrol].get_type()
         cdef np.ndarray TT = Btt[-2:,-2:].copy()
         cdef np.ndarray Btt_F=Btt[:-2,:-2].copy().flatten('F')
         cdef np.ndarray TT_F=TT.flatten('F')
@@ -2014,7 +2014,7 @@ cdef class Rtc:
             IF : (scipy.sparse) : influence functions matrix
         """
         cdef sutra_controller_geo * controller_geo
-        cdef bytes type_control = < bytes > self.rtc.d_control[ncontrol].get_type()
+        cdef bytes type_control = self.rtc.d_control[ncontrol].get_type()
         sparse = naga_sparse_obj_Double()
         if(type_control == "geo"):
             controller_geo = dynamic_cast_controller_geo_ptr(self.rtc.d_control[ncontrol])
@@ -2188,24 +2188,24 @@ def rtc_init(Telescope g_tel, Sensors g_wfs, p_wfs, Dms g_dms, p_dms, Param_geom
                         npix = seeing / wfs.pixsize
                         if(wfs.gsalt > 0):
                             if(wfs.proftype is None or wfs.proftype == ""):
-                                wfs.proftype = "Gauss1"
+                                wfs.proftype = bytes("Gauss1".encode('UTF-8'))
                             if(wfs.proftype == "Gauss1"):
-                                profilename = "allProfileNa_withAltitude_1Gaussian.npy"
+                                profilename = bytes("allProfileNa_withAltitude_1Gaussian.npy".encode('UTF-8'))
                             elif(wfs.proftype == "Gauss2"):
-                                profilename = "allProfileNa_withAltitude_2Gaussian.npy"
+                                profilename = bytes("allProfileNa_withAltitude_2Gaussian.npy".encode('UTF-8'))
                             elif(wfs.proftype == "Gauss3"):
-                                profilename = "allProfileNa_withAltitude_3Gaussian.npy"
+                                profilename = bytes("allProfileNa_withAltitude_3Gaussian.npy".encode('UTF-8'))
                             elif(wfs.proftype == "Exp"):
-                                profilename = "allProfileNa_withAltitude.npy"
+                                profilename = bytes("allProfileNa_withAltitude.npy".encode('UTF-8'))
                             else:
                                 error = "Param_wfs proftype unknown: got '" + wfs.proftype + "', expect one of: \n''\n'Gauss1'\n'Gauss2'\n'Gauss3'\n'Exp'"
                                 raise ValueError(error)
                             profile_path = shesha_savepath + "/" + profilename
-                            print "reading Na profile from", profile_path
+                            print ("reading Na profile from", profile_path)
                             prof = np.load(profile_path).astype(np.float32)
 
                             wfs.make_lgs_prof1d(p_tel, np.mean(prof[1:, :], axis=0), prof[0, :],
-                                wfs.beamsize, center= < bytes > "image")
+                                wfs.beamsize, center= "image")
                             tmp = wfs._lgskern
                             tmp2 = makegaussian(tmp.shape[1], npix * wfs._nrebin).astype(np.float32)
                             tmp3 = np.zeros((tmp.shape[1], tmp.shape[1], wfs._nvalid), dtype=np.float32)
@@ -2414,7 +2414,7 @@ def rtc_init(Telescope g_tel, Sensors g_wfs, p_wfs, Dms g_dms, p_dms, Param_geom
                     if(controller.type_control == "kalman_CPU" or
                        controller.type_control == "kalman_GPU"):
                         env_var = os.environ.get("COMPILATION_LAM")
-                        # TODO found_str = strfind("standalone",env_var);
+                        # TODO found_bytes = strfind("standalone",env_var);
                         # TODO if (found_str(2) != -1)
                         print "\nWARNING : Environment variable COMPILATION_LAM contains the word \"standalone\". Make sure that this variable did not contain \"standalone\" when compiling, which would mean that Kalman filter was compiled for standalone version (in lam/kalman_CPU_GPU/test), which is not compatible with COMPASS\n."
                         if(controller.type_control == "kalman_GPU"):
@@ -2534,7 +2534,7 @@ cpdef correct_dm(p_dms, Dms g_dms, Param_controller p_control, Param_geom p_geom
     cdef np.ndarray[ndim = 1, dtype = np.float32_t] resp
 
     cdef bytes filename
-    cdef bytes dirsave = shesha_savepath +< bytes > "/mat/"
+    cdef bytes dirsave = bytes((shesha_savepath +"/mat/").encode('UTF-8'))
 
     cdef long dims, ninflu, influsize, NR, NP
 
@@ -2610,7 +2610,7 @@ cpdef correct_dm(p_dms, Dms g_dms, Param_controller p_control, Param_geom p_geom
             dims = long(p_dms[nm]._n2 - p_dms[nm]._n1 + 1)
             dims = max(dims, p_geom._mpupil.shape[1])
 
-            g_dms.add_dm(< bytes > "pzt", p_dms[nm].alt, dims, ninflu, influsize,
+            g_dms.add_dm(bytes("pzt".encode('UTF-8')), p_dms[nm].alt, dims, ninflu, influsize,
                             ninflupos, n_npts, p_dms[nm].push4imat)
             g_dms.load_pzt(p_dms[nm].alt, p_dms[nm]._influ, p_dms[nm]._influpos.astype(np.int32),
                 p_dms[nm]._ninflu, p_dms[nm]._influstart, p_dms[nm]._i1, p_dms[nm]._j1,
@@ -2618,7 +2618,7 @@ cpdef correct_dm(p_dms, Dms g_dms, Param_controller p_control, Param_geom p_geom
 
         elif(p_dms[nm].type_dm == "tt"):
             dim = long(p_dms[nm]._n2 - p_dms[nm]._n1 + 1)
-            g_dms.add_dm(< bytes > "tt", p_dms[nm].alt, dim, 2, dim, 1, 1, p_dms[nm].push4imat)
+            g_dms.add_dm(bytes("tt".encode('UTF-8')), p_dms[nm].alt, dim, 2, dim, 1, 1, p_dms[nm].push4imat)
             g_dms.load_tt(p_dms[nm].alt, p_dms[nm]._influ)
 
 
@@ -2634,7 +2634,7 @@ cpdef correct_dm(p_dms, Dms g_dms, Param_controller p_control, Param_geom p_geom
             cr_L = copy.copy(p_dms[nm]._klbas.cr.flatten('F'))
             cp_L = copy.copy(p_dms[nm]._klbas.cp.flatten('F'))
 
-            g_dms.add_dm(< bytes > "kl", p_dms[nm].alt, dim, ninflu, influsize,
+            g_dms.add_dm(bytes("kl".encode('UTF-8')), p_dms[nm].alt, dim, ninflu, influsize,
                             _nr, _np, p_dms[nm].push4imat)
             g_dms.load_kl(p_dms[nm].alt, np.float32(rabas_L), np.float32(azbas_L),
                             np.int32(ord_L), np.float32(cr_L), np.float32(cp_L))
@@ -2680,7 +2680,7 @@ cpdef imat_geom(Sensors g_wfs, p_wfs, Param_controller p_control, Dms g_dms, p_d
     imat_cpu = np.zeros((imat_size1, imat_size2), dtype=np.float32)
     ind = 0
     cc = 0
-    print "Doing imat geom...%d%%" % cc,
+    print ("Doing imat geom...%d%%" % cc,)
     for nmc in range(ndm):
         nm = p_control.ndm[nmc]
         g_dms.resetdm(p_dms[nm].type_dm, p_dms[nm].alt)
@@ -2689,7 +2689,7 @@ cpdef imat_geom(Sensors g_wfs, p_wfs, Param_controller p_control, Dms g_dms, p_d
             nslps = 0
             for nw in range(nwfs):
                 wfs = p_control.nwfs[nw]
-                g_wfs.sensors_trace(wfs, "dm", tel=None, atmos=None, dms=g_dms, rst=1)
+                g_wfs.sensors_trace(wfs, bytes("dm".encode('UTF-8')), tel=None, atmos=None, dms=g_dms, rst=1)
                 g_wfs.slopes_geom(wfs, meth)
                 imat_cpu[nslps:nslps + p_wfs[wfs]._nvalid * 2, ind] = g_wfs._get_slopes(wfs)
                 nslps += p_wfs[wfs]._nvalid * 2
@@ -2698,7 +2698,7 @@ cpdef imat_geom(Sensors g_wfs, p_wfs, Param_controller p_control, Dms g_dms, p_d
             cc = cc + 1
             g_dms.resetdm(p_dms[nm].type_dm, p_dms[nm].alt)
 
-            print "\r Doing imat geom...%d%%" % ((cc * 100 / imat_size2)),
+            print ("\r Doing imat geom...%d%%" % ((cc * 100 / imat_size2)),)
             stdout.flush()
     print "\n"
     return imat_cpu
@@ -2735,7 +2735,7 @@ cpdef manual_imat(Rtc g_rtc, Sensors g_wfs, p_wfs, Dms g_dms, p_dms):
 
     ind = 0
     cc = 0
-    print "Doing manual imat...%d%%" % cc,
+    print ("Doing manual imat...%d%%" % cc,)
 
     for nm in range(len(p_dms)):
         for i in range(p_dms[nm]._ntotact):
@@ -2743,7 +2743,7 @@ cpdef manual_imat(Rtc g_rtc, Sensors g_wfs, p_wfs, Dms g_dms, p_dms):
             com[i] = float(p_dms[nm].push4imat)
             g_dms.set_comm(p_dms[nm].type_dm, p_dms[nm].alt, com)
             g_dms.shape_dm(p_dms[nm].type_dm, p_dms[nm].alt)
-            g_wfs.sensors_trace(0, "dm", tel=None, atmos=None, dms=g_dms, rst=1)
+            g_wfs.sensors_trace(0, bytes("dm".encode('UTF-8')), tel=None, atmos=None, dms=g_dms, rst=1)
             # equivalent to Bcast(g_wfs.sensors.d_wfs[0].d_gs.d_phase.d_screen)
             # g_wfs.Bcast_dscreen()
             IF USE_MPI:
@@ -2759,7 +2759,7 @@ cpdef manual_imat(Rtc g_rtc, Sensors g_wfs, p_wfs, Dms g_dms, p_dms):
             g_dms.resetdm(p_dms[nm].type_dm, p_dms[nm].alt)
             ind += 1
             cc += 1
-            print "\rDoing manual imat...%d%%" % ((cc * 100 / imat_size2)),
+            print ("\rDoing manual imat...%d%%" % ((cc * 100 / imat_size2)),)
             stdout.flush()
     return imat_cpu.T.copy()
 
@@ -2789,19 +2789,19 @@ cpdef manual_imat2(Rtc g_rtc, Sensors g_wfs, Dms g_dms, push4imat=1):
 
     comcom = np.zeros((nactu_tot, nactu_tot), dtype=np.float32)
 
-    print "Doing manual imat...",
+    print ("Doing manual imat...",)
 
     for i in range(nactu_tot):
         com = np.zeros((nactu_tot), dtype=np.float32)
         com[i] = float(push4imat)
         comcom[i,:] = com.copy()
         g_dms.set_full_comm(com)
-        g_wfs.sensors_trace(0, "dm", tel=None, atmos=None, dms=g_dms, rst=1)
+        g_wfs.sensors_trace(0, bytes("dm".encode('UTF-8')), tel=None, atmos=None, dms=g_dms, rst=1)
         g_wfs.sensors_compimg(0)
         g_rtc.docentroids(0)
 
         imat_cpu[i,:] = g_rtc.getcentroids(0) / float(push4imat)
-        print "\rDoing manual imat...%d%%" % (i * 100 / nactu_tot),
+        print ("\rDoing manual imat...%d%%" % (i * 100 / nactu_tot),)
         stdout.flush()
     return imat_cpu,comcom
 
@@ -2920,21 +2920,21 @@ cpdef openLoopSlp(Telescope g_tel, Atmos g_atm, Rtc g_rtc, int nrec, int ncontro
         np.zeros((sum([2 * p_wfs[i]._nvalid for i in range(len(p_wfs))]), nrec),
         dtype=np.float32)
 
-    print "Recording " + str(nrec) + " open-loop slopes..."
+    print ("Recording " + str(nrec) + " open-loop slopes...")
     for i in range(nrec):
         g_atm.move_atmos()
 
         if(p_wfs is not None and g_wfs is not None):
             for j in range(len(p_wfs)):
-                g_wfs.sensors_trace(j, "atmos", g_tel, g_atm)
+                g_wfs.sensors_trace(j, bytes("atmos".encode('UTF-8')), g_tel, g_atm)
                 g_wfs.sensors_compimg(j)
                 g_rtc.sensors_compslopes(ncontrol)
                 ol_slopes[j * p_wfs[j]._nvalid * 2:(j + 1) * p_wfs[j]._nvalid * 2, i] = g_wfs._get_slopes(j)
-    print "done"
+    print ("done")
     return ol_slopes
 
 cpdef imat_init(int ncontrol, Rtc g_rtc, Param_rtc p_rtc, Dms g_dms, p_dms, Sensors g_wfs,
-        p_wfs, Param_tel p_tel,Param_controller p_control,np.ndarray[ndim = 2, dtype = np.float32_t] kl, int clean=1, bytes simul_name= < bytes > "", dict load={},  int kl_imat=0):
+        p_wfs, Param_tel p_tel,Param_controller p_control,np.ndarray[ndim = 2, dtype = np.float32_t] kl, int clean=1, bytes simul_name= bytes("".encode('UTF-8')), dict load={},  int kl_imat=0):
     """Initialize and compute the interaction matrix on the GPU
 
     :parameters:
@@ -2966,9 +2966,9 @@ cpdef imat_init(int ncontrol, Rtc g_rtc, Param_rtc p_rtc, Dms g_dms, p_dms, Sens
 
 
     """
-    cdef bytes dirsave = shesha_savepath +< bytes > "/mat/"
-    cdef bytes filename = dirsave + "imat-" + str(ncontrol) + "-" + simul_name + ".npy"
-    cdef bytes profilename = shesha_savepath +< bytes > "/allProfileNa_withAltitude_1Gaussian.npy"
+    cdef bytes dirsave = bytes((shesha_savepath +"/mat/").encode('UTF-8'))
+    cdef bytes filename = bytes((dirsave + "imat-" + str(ncontrol) + "-" + simul_name + ".npy").encode('UTF-8'))
+    cdef bytes profilename = bytes((shesha_savepath +"/allProfileNa_withAltitude_1Gaussian.npy").encode('UTF-8'))
     cdef int imat_clean = 1
     cdef int i
     cdef double t0
@@ -2995,13 +2995,13 @@ cpdef imat_init(int ncontrol, Rtc g_rtc, Param_rtc p_rtc, Dms g_dms, p_dms, Sens
         # if so, load new lgs spot, just for imat
         for i in range(len(p_wfs)):
             if(p_wfs[i].gsalt > 0):
-                print "reading Na profile from:", profilename
+                print ("reading Na profile from:", profilename)
                 prof = np.load(profilename)
                 h = prof[0, :]
                 prof = prof[1:, :]
                 prof = np.mean(prof, axis=0)
                 prep_lgs_prof(p_wfs[i], i, p_tel, prof, h,
-                                        p_wfs[i].beamsize, g_wfs, < bytes > "", imat=1)
+                                        p_wfs[i].beamsize, g_wfs, bytes("".encode('UTF-8')), imat=1)
 
         t0 = time.time()
         if (kl_imat == 1):
@@ -3009,7 +3009,7 @@ cpdef imat_init(int ncontrol, Rtc g_rtc, Param_rtc p_rtc, Dms g_dms, p_dms, Sens
         else:
             g_rtc.doimat(ncontrol, g_dms)
 
-        print "done in %f s"%(time.time() - t0)
+        print ("done in %f s"%(time.time() - t0))
         p_rtc.controllers[ncontrol].set_imat(g_rtc.get_imat(ncontrol))
         if(simul_name != "" and clean == 0 and rank == 0):
             version = shesha.__version__
@@ -3021,7 +3021,7 @@ cpdef imat_init(int ncontrol, Rtc g_rtc, Param_rtc p_rtc, Dms g_dms, p_dms, Sens
 
 
     else:
-        print "reading imat from:", load["imat"]
+        print ("reading imat from:", load["imat"])
         f = h5py.File(load["imat"])
         p_rtc.controllers[ncontrol].set_imat(f["imat"][:])
         g_rtc.set_imat(ncontrol, p_rtc.controllers[ncontrol].imat)
@@ -3035,7 +3035,7 @@ cpdef imat_init(int ncontrol, Rtc g_rtc, Param_rtc p_rtc, Dms g_dms, p_dms, Sens
 
 
 cpdef cmat_init_kl(int ncontrol, Rtc g_rtc, Param_rtc p_rtc, list p_wfs, Param_atmos p_atmos,
-               Param_tel p_tel, p_dms, np.ndarray[ndim = 2, dtype = np.float32_t] KL2V, clean=1, bytes simul_name= < bytes > "", dict load={},imat_kl=0, nmode=0):
+               Param_tel p_tel, p_dms, np.ndarray[ndim = 2, dtype = np.float32_t] KL2V, clean=1, bytes simul_name= bytes("".encode('UTF-8')), dict load={},imat_kl=0, nmode=0):
     """ Compute the command matrix on the GPU
 
     :parameters:
@@ -3062,7 +3062,7 @@ cpdef cmat_init_kl(int ncontrol, Rtc g_rtc, Param_rtc p_rtc, list p_wfs, Param_a
 
     """
     # initialisation
-    cdef bytes dirsave = shesha_savepath +< bytes > "/mat/"
+    cdef bytes dirsave = bytes((shesha_savepath +"/mat/").encode('UTF-8'))
     cdef bytes filename
 
     cdef int cmat_clean
@@ -3095,11 +3095,11 @@ cpdef cmat_init_kl(int ncontrol, Rtc g_rtc, Param_rtc p_rtc, list p_wfs, Param_a
         #calcul des valeurs propre
         if(cmat_clean):
 
-            print "doing svd"
+            print ("doing svd")
             t0 = time.time()
             # calcul de la svd
             g_rtc.imat_svd(ncontrol)
-            print "svd done in %f s"%(time.time() - t0)
+            print ("svd done in %f s"%(time.time() - t0))
             # recuperation des valeurs propre
             eigenv = g_rtc.getEigenvals(ncontrol)
             #enregistrement des valeurs propre
@@ -3139,7 +3139,7 @@ cpdef cmat_init_kl(int ncontrol, Rtc g_rtc, Param_rtc p_rtc, list p_wfs, Param_a
 
         # print "TODO wfs_disp"
 
-        print "building cmat"
+        print ("building cmat")
         #print "filtering ", nfilt, " modes"
         t0 = time.time()
         # construction de la cmat à l'aide de buildcmat(n,nfilt)
@@ -3155,13 +3155,13 @@ cpdef cmat_init_kl(int ncontrol, Rtc g_rtc, Param_rtc p_rtc, list p_wfs, Param_a
             g_rtc.buildcmat_kl(ncontrol, KL2V,imat,p_rtc.controllers[ncontrol].klgain)
         else:
             raise ValueError("no pzt_dm or multi_pzt")
-        print "cmat done in %f s"%(time.time() - t0)
+        print ("cmat done in %f s"%(time.time() - t0))
 
 
     p_rtc.controllers[ncontrol].set_cmat(g_rtc.get_cmat(ncontrol))
 
 cpdef cmat_init(int ncontrol, Rtc g_rtc, Param_rtc p_rtc, list p_wfs, Param_atmos p_atmos,
-               Param_tel p_tel, p_dms, clean=1, bytes simul_name= < bytes > "", dict load={}):
+               Param_tel p_tel, p_dms, clean=1, bytes simul_name= bytes("".encode('UTF-8')), dict load={}):
     """ Compute the command matrix on the GPU
 
     :parameters:
@@ -3183,7 +3183,7 @@ cpdef cmat_init(int ncontrol, Rtc g_rtc, Param_rtc p_rtc, list p_wfs, Param_atmo
 
     """
 
-    cdef bytes dirsave = shesha_savepath +< bytes > "/mat/"
+    cdef bytes dirsave = bytes((shesha_savepath +"/mat/").encode('UTF-8'))
     cdef bytes filename
 
     cdef int cmat_clean

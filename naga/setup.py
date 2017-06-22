@@ -16,7 +16,7 @@ from Cython.Build import cythonize
 # Remove the "-Wstrict-prototypes" compiler option, which isn't valid for C++.
 import distutils.sysconfig
 cfg_vars = distutils.sysconfig.get_config_vars()
-for key, value in cfg_vars.items():
+for key, value in list(cfg_vars.items()):
     if type(value) == str:
         cfg_vars[key] = value.replace("-Wstrict-prototypes", "")
 # ==================================
@@ -120,7 +120,7 @@ include_dirs = [numpy_include,
 
 if 'MKLROOT' in os.environ:
     mkl_root = os.environ.get('MKLROOT')
-    print "mkl_root: ", mkl_root
+    print("mkl_root: ", mkl_root)
     library_dirs.append(mkl_root + '/mkl/lib/intel64/')
     libraries.append('mkl_mc3')
     libraries.append('mkl_def')
@@ -205,17 +205,17 @@ else:
 if 'build_ext' in sys.argv or 'develop' in sys.argv or 'install' in sys.argv:
     generator = os.path.join(os.path.abspath('.'), 'src/process_tmpl.py')
     d = {'__file__': generator}
-    execfile(generator, d)
+    exec(compile(open(generator).read(), generator, 'exec'), d)
     d['main'](None)
 
 
 def dependencies_module(name):
-    print "======================================="
-    print "resolving dependencies for", name
-    print "======================================="
+    print("=======================================")
+    print("resolving dependencies for", name)
+    print("=======================================")
     try:
         dep = dependencies[name]
-        print "dependencies:", dep
+        print("dependencies:", dep)
         if(os.path.exists("src/" + name + ".cpp")):
             for d in dep:
                 if (os.stat("src/" + d + ".pyx").st_mtime >
@@ -224,14 +224,14 @@ def dependencies_module(name):
                     # cpp file outdated if exists
                     if (os.path.exists("src/" + name + ".cpp")):
                         os.remove("src/" + name + ".cpp")
-    except KeyError, e:
-        print e
+    except KeyError as e:
+        print(e)
 
 
 def compile_module(name):
-    print "======================================="
-    print "creating module ", name
-    print "======================================="
+    print("=======================================")
+    print("creating module ", name)
+    print("=======================================")
     ext = Extension(name,
                     sources=['src/' + name + '.pyx'],
                     extra_compile_args=["-Wno-unused-function", "-Wno-unused-label", "-Wno-cpp", "-std=c++11",

@@ -31,11 +31,11 @@ for f in fname_layer_i:
     files.append(h5py.File(datapath + f))
 
 
-print "--------------------------------------------"
-print "file ",fname_layers," :"
-print "    nlayers : ", f_layers.attrs["nscreens"]
-print "    frac    : ", f_layers.attrs["frac"]
-print "--------------------------------------------"
+print("--------------------------------------------")
+print("file ",fname_layers," :")
+print("    nlayers : ", f_layers.attrs["nscreens"])
+print("    frac    : ", f_layers.attrs["frac"])
+print("--------------------------------------------")
 
 nmodes = f_layers["P"][:].shape[0]
 contributors = ["tomography", "bandwidth", "non linearity", "noise", "filtered modes", "aliasing"]
@@ -54,7 +54,7 @@ for k in range(len(files)):
     frac.append(frac_per_layer[files[k].attrs["atm.alt"][0]])
     buferr_layers += rexp.get_err(datapath + fname_layer_i[k]) * np.sqrt(frac_per_layer[files[k].attrs["atm.alt"][0]])
 
-print "contributors : ",contributors
+print("contributors : ",contributors)
 
 # Column 1 : with correlation, column 2 : independence assumption
 err_layers = np.zeros((nmodes, 2))

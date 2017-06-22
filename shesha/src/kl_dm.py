@@ -207,7 +207,7 @@ def pcgeom(nr,npp,cobs,ncp,ncmar):
     py0 = r * np.sin(p)
     px = ff * px0 + hw
     py = ff * py0 + hw
-    ax = np.reshape(np.arange(long(ncp)**2,dtype=np.float)+1,(long(ncp),long(ncp)),order='F')
+    ax = np.reshape(np.arange(int(ncp)**2,dtype=np.float)+1,(int(ncp),int(ncp)),order='F')
     ax = np.float32(ax-1) % ncp - 0.5 * (ncp-1)
     ax = ax / (0.5 * nused)
     ay = np.transpose(ax)
@@ -295,7 +295,7 @@ def gkl_fcom(kers,cobs,nf):
     
     vs = s.dot(v1)
     newev = np.concatenate((newev,[0]))
-    print np.size(newev)
+    print(np.size(newev))
     evs[:,nxt] = np.float32(newev)
     kers [nxt,:,:] = np.sqrt(nr)*vs
     

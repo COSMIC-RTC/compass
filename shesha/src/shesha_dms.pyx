@@ -729,16 +729,16 @@ cpdef make_pzt_dm(Param_dm p_dm,Param_geom geom,cobs):
     cdef np.ndarray cub
 
     if p_dm.type_pattern == None:
-        p_dm.type_pattern = <bytes>'square'
+        p_dm.type_pattern = bytes('square'.encode('UTF-8'))
 
     if p_dm.type_pattern == 'hexa':
-        print "Pattern type : hexa"
+        print ("Pattern type : hexa")
         cub = createHexaPattern( pitch, geom.pupdiam * 1.1)
     elif p_dm.type_pattern == 'hexaM4':
-        print "Pattern type : hexaM4"
+        print ("Pattern type : hexaM4")
         cub = createDoubleHexaPattern( pitch, geom.pupdiam * 1.1)
     elif p_dm.type_pattern == 'square':
-        print "Pattern type : square"
+        print ("Pattern type : square")
         cub = createSquarePattern( pitch, nxact + 4 )
     else :
         raise StandardError("This pattern does not exist for pzt dm")
@@ -1751,7 +1751,7 @@ g        :return:
         Return a scipy.sparse object which shape is (nactus,Npts in the pupil)
 
         :parameters:
-            type_dm: (bytes) : DM type
+            type_dm: (str) : DM type
             alt: (float) : DM altitude
             indx_pup: (np.ndarray[ndim=1, dtype=np.int32_t]) : valid indices of the pupil in the DM support
         :return:
@@ -1783,7 +1783,7 @@ g        :return:
         """Returns the influence functions matrix of a tt DM
 
         :parameters:
-            type_dm: (bytes) : DM type
+            type_dm: (str) : DM type
             alt: (float) : DM altitude
             indx_pup: (np.ndarray[ndim=1, dtype=np.int32_t]) : valid indices of the pupil in the DM support
         :return:
@@ -1856,7 +1856,7 @@ g        :return:
         while(it_dms != self.dms.d_dms.end()):
             dm = deref(it_dms)
             ts = deref(it_type)
-            info += "%4d" % i + " | " + "%5s" % < bytes > ts.first + " | " + "%7d" % ts.second + " | " + "%4d" % dm.ninflu + " | " + "%4d" % dm.dim + "\n"
+            info += "%4d" % i + " | " + "%5s" % ts.first + " | " + "%7d" % ts.second + " | " + "%4d" % dm.ninflu + " | " + "%4d" % dm.dim + "\n"
             i = i + 1
             inc(it_dms)
             inc(it_type)
@@ -1892,8 +1892,8 @@ cpdef compute_klbasis(Dms g_dm, Param_dm p_dm, Param_geom p_geom, r0, diam):
         p2m = diam/p_geom.pupdiam
         norm = -(p2m * diam / (2 * r0)) ** (5. / 3)
 
-        g_dm.computeKLbasis(< bytes > "pzt", p_dm.alt, p_dm._xpos, p_dm._ypos, indx_valid, indx_valid.size, norm, 1.0)
-        KLbasis = np.fliplr(g_dm.get_KLbasis(< bytes > "pzt", p_dm.alt))
+        g_dm.computeKLbasis(bytes("pzt".encode('UTF-8')), p_dm.alt, p_dm._xpos, p_dm._ypos, indx_valid, indx_valid.size, norm, 1.0)
+        KLbasis = np.fliplr(g_dm.get_KLbasis(bytes("pzt".encode('UTF-8')), p_dm.alt))
     else:
         raise TypeError("DM must be pzt type")
 

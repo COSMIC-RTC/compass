@@ -153,7 +153,7 @@ def pyr_analysis(n, mod, N, Dtel, obs, nrebin, l, _pix, Amp, mv, Pangle, p, pups
     PUPYR = 0
     # Coeff multiplicatif des fonctions x et y pour etre en unites lam/D
     magic = larg * (2*np.pi/n)
-    print "lambda/D=%f pixels" % larg
+    print("lambda/D=%f pixels" % larg)
     x = x * magic
     y = y * magic
     if(disp):
@@ -183,8 +183,8 @@ def pyr_analysis(n, mod, N, Dtel, obs, nrebin, l, _pix, Amp, mv, Pangle, p, pups
             diffractionCircle = pylab.Circle((a[i],b[i]), radius=0.5, alpha=0.5)
             axes1[1, 0].add_patch(diffractionCircle)
             axes1[1, 0].set_title("Modulation points (in lambda/D)")
-        print "Modulation iter=", i, "/", N
-        print "min=", np.min(PSF), " max=", np.max(PSF)
+        print("Modulation iter=", i, "/", N)
+        print("min=", np.min(PSF), " max=", np.max(PSF))
 
     PSF = np.fft.fftshift(PSF)
 #    pli(PUPIM,win=1) # pli

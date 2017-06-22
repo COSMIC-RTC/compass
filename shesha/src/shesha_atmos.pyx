@@ -118,7 +118,7 @@ def atmos_init(naga_context c, Param_atmos atm, Param_tel tel, Param_geom geom,
     else:
         seeds = atm.seeds
 
-    cdef bytes type_target = bytes("atmos")
+    cdef bytes type_target = bytes("atmos".encode('UTF-8'))
     for i in range(len(wfss)):
         if(wfss[i].gsalt > 0):
             gsalt = 1 / wfss[i].gsalt
@@ -396,7 +396,7 @@ cdef atmos_create(naga_context c, int nscreens,
     cdef np.ndarray[ndim = 1, dtype = np.uint32_t] istx, isty
     cdef sutra_tscreen * tscreen
 
-    cdef str file_A, file_B, file_istx, file_isty
+    cdef bytes file_A, file_B, file_istx, file_isty
 
     for i in range(nscreens):
         if(load.has_key("A")):

@@ -33,7 +33,7 @@ def compute_Cerr(filename, modal=True, ctype="float"):
     xpos = f["dm.xpos"][:]
     ypos = f["dm.ypos"][:]
     p2m = f.attrs["tel_diam"] / f.attrs["pupdiam"]
-    pupshape = long(2 ** np.ceil(np.log2(f.attrs["pupdiam"]) + 1))
+    pupshape = int(2 ** np.ceil(np.log2(f.attrs["pupdiam"]) + 1))
     xactu = (xpos - pupshape/2) * p2m
     yactu = (ypos - pupshape/2) * p2m
     H = f.attrs["atm.alt"]
@@ -81,7 +81,7 @@ def compute_Cerr(filename, modal=True, ctype="float"):
     cov_err_groot[:-2,:-2] = Cerr
     cov_err_groot[-2:,-2:] = groot.get_TTcomp()
     tac = time.time()
-    print "Cee computed in : %.2f seconds"%(tac-tic)
+    print("Cee computed in : %.2f seconds"%(tac-tic))
     if (modal):
         cov_err_groot = P.dot(cov_err_groot).dot(P.T)
 
@@ -112,7 +112,7 @@ def compute_Cerr_cpu(filename, modal=True):
     xpos = f["dm.xpos"][:]
     ypos = f["dm.ypos"][:]
     p2m = f.attrs["tel_diam"] / f.attrs["pupdiam"]
-    pupshape = long(2 ** np.ceil(np.log2(f.attrs["pupdiam"]) + 1))
+    pupshape = int(2 ** np.ceil(np.log2(f.attrs["pupdiam"]) + 1))
     xactu = (xpos - pupshape/2) * p2m
     yactu = (ypos - pupshape/2) * p2m
     Ccov = np.zeros((xpos.size,xpos.size))
@@ -223,12 +223,12 @@ def compare_GPU_vs_CPU(filename):
     otftel, otf2, psf_gpu_d, gpu = gamora.psf_rec_Vii(filename,fitting=False,\
                                                 cov=cov_err_gpu_d.astype(np.float32))
 
-    print "-----------------------------------------"
-    print "CPU time : ", cpu_time, " s "
-    print "GPU time simple precision : ", gpu_time_s, " s "
-    print "GPU time double precision : ", gpu_time_d, " s "
-    print "Max absolute difference in PSFs simple precision : ", np.abs(psf_cpu-psf_gpu_s).max()
-    print "Max absolute difference in PSFs double precision : ", np.abs(psf_cpu-psf_gpu_d).max()
+    print("-----------------------------------------")
+    print("CPU time : ", cpu_time, " s ")
+    print("GPU time simple precision : ", gpu_time_s, " s ")
+    print("GPU time double precision : ", gpu_time_d, " s ")
+    print("Max absolute difference in PSFs simple precision : ", np.abs(psf_cpu-psf_gpu_s).max())
+    print("Max absolute difference in PSFs double precision : ", np.abs(psf_cpu-psf_gpu_d).max())
     gamora.cutsPSF(filename, psf_cpu, psf_gpu_s)
     gamora.cutsPSF(filename, psf_cpu, psf_gpu_d)
 

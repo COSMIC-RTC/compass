@@ -13,7 +13,7 @@ def create_stencil(n):
     Xx = np.array(np.zeros(n) + n + 1, dtype=np.float64)
     Xy = np.array(np.arange(n) + 1, dtype=np.float64)
 
-    ns = long(np.log2(n + 1) + 1)
+    ns = int(np.log2(n + 1) + 1)
     stencil = np.zeros((n, n))
 
     stencil[:, 0] = 1
@@ -40,7 +40,7 @@ def create_stencil(n):
 
 
 def stencil_size(n):
-    ns = long(np.log2(n + 1) + 1)
+    ns = int(np.log2(n + 1) + 1)
     stencil = np.zeros((n, n))
 
     stencil[:, 0] = 1
@@ -149,16 +149,16 @@ def AB(n, L0, deltax, deltay, rank=0):
     """
 
     if(rank == 0):
-        print "create stencil and Z,X matrices"
+        print("create stencil and Z,X matrices")
     Zx, Zy, Xx, Xy, istencil = create_stencil(n)
     if(rank == 0):
-        print "create zz"
+        print("create zz")
     zz = Czz(n, Zx, Zy, istencil, L0)
     if(rank == 0):
-        print "create xz"
+        print("create xz")
     xz = Cxz(n, Zx, Zy, Xx, Xy, istencil, L0)
     if(rank == 0):
-        print "create xx"
+        print("create xx")
     xx = Cxx(n, Zx[0, n - 1], Zy[0, n - 1], Xx, Xy, L0)
 
     U, s, V = np.linalg.svd(zz)
@@ -168,21 +168,21 @@ def AB(n, L0, deltax, deltay, rank=0):
     s1[s.size - 1] = 0
     zz1 = np.dot(np.dot(U, np.diag(s1)), V)
     if(rank == 0):
-        print "compute zz pseudo_inverse"
+        print("compute zz pseudo_inverse")
     # zz1=np.linalg.pinv(zz)
 
     if(rank == 0):
-        print "compute A"
+        print("compute A")
     A = np.dot(xz, zz1)
 
     if(rank == 0):
-        print "compute bbt"
+        print("compute bbt")
     bbt = xx - np.dot(A, xz.T)
     if(rank == 0):
-        print "svd of bbt"
+        print("svd of bbt")
     U1, l, V1 = np.linalg.svd(bbt)
     if(rank == 0):
-        print "compute B"
+        print("compute B")
     B = np.dot(U1, np.sqrt(np.diag(l)))
 
     test = np.zeros((n * n), np.float32)
@@ -370,7 +370,7 @@ def create_screen_assist(screen_size, L0, r0):
     A, B, istx, isty = AB(screen_size, L0)
     phase = np.zeros((screen_size, screen_size))
 
-    print stencil_size(screen_size)
+    print(stencil_size(screen_size))
 
     # pl.ion()
     # pl.imshow(phase, animated=True)

@@ -20,7 +20,7 @@ from scipy.sparse import csr_matrix
 
 if(len(sys.argv) < 2):
     error= 'command line should be at least:"python -i test.py parameters_filename"\n with "parameters_filename" the path to the parameters file'
-    raise StandardError(error)
+    raise Exception(error)
 
 
 #get parameters from file
@@ -39,7 +39,7 @@ elif(param_file.split('.')[-1] == "h5"):
 else:
     raise ValueError("Parameter file extension must be .py or .h5")
 
-print "param_file is",param_file
+print("param_file is",param_file)
 
 if(len(sys.argv) > 2):
     savename = sys.argv[2]
@@ -61,7 +61,7 @@ if(hasattr(config,"simul_name")):
         simul_name=config.simul_name
 else:
     simul_name=""
-print "simul name is",simul_name
+print("simul name is",simul_name)
 
 matricesToLoad={}
 if(simul_name==""):
@@ -77,42 +77,42 @@ c=ch.naga_context(devices=np.array([6], dtype=np.int32))
 #c.set_activeDevice(device)
 
 #    wfs
-print "->wfs"
+print("->wfs")
 wfs,tel=ao.wfs_init(config.p_wfss,config.p_atmos,config.p_tel,config.p_geom,config.p_target,config.p_loop,config.p_dms)
 
 #   atmos
-print "->atmos"
+print("->atmos")
 atm=ao.atmos_init(c,config.p_atmos,config.p_tel,config.p_geom,config.p_loop,config.p_wfss,wfs,config.p_target,rank=0, clean=clean, load=matricesToLoad)
 
 #   dm
-print "->dm"
+print("->dm")
 dms=ao.dm_init(config.p_dms,config.p_wfss,wfs,config.p_geom,config.p_tel)
 
 #   target
-print "->target"
+print("->target")
 tar=ao.target_init(c,tel,config.p_target,config.p_atmos,config.p_geom,config.p_tel,config.p_dms)
 
-print "->rtc"
+print("->rtc")
 #   rtc
 rtc=ao.rtc_init(tel,wfs,config.p_wfss,dms,config.p_dms,config.p_geom,config.p_rtc,config.p_atmos,atm,config.p_tel,config.p_loop,clean=clean,simul_name=simul_name, load=matricesToLoad)
 
 if not clean:
     h5u.validDataBase(os.environ["SHESHA_ROOT"]+"/data/",matricesToLoad)
 
-print "===================="
-print "init done"
-print "===================="
-print "objects initialzed on GPU:"
-print "--------------------------------------------------------"
-print atm
-print wfs
-print dms
-print tar
-print rtc
+print("====================")
+print("init done")
+print("====================")
+print("objects initialzed on GPU:")
+print("--------------------------------------------------------")
+print(atm)
+print(wfs)
+print(dms)
+print(tar)
+print(rtc)
 
-print "----------------------------------------------------";
-print "iter# | SE SR image | LE SR image | Fitting | LE SR phase var";
-print "----------------------------------------------------";
+print("----------------------------------------------------");
+print("iter# | SE SR image | LE SR image | Fitting | LE SR phase var");
+print("----------------------------------------------------");
 
 error_flag = True in [w.error_budget for w in config.p_wfss]
 
@@ -200,9 +200,9 @@ def loop(n):
 
         if((i+1)%100==0 and i>-1):
             strehltmp = tar.get_strehl(0)
-            print i+1,"\t",strehltmp[0],"\t",strehltmp[1],"\t",np.exp(-strehltmp[2]),"\t",np.exp(-strehltmp[3])
+            print(i+1,"\t",strehltmp[0],"\t",strehltmp[1],"\t",np.exp(-strehltmp[2]),"\t",np.exp(-strehltmp[3]))
     t1=time.time()
-    print " loop execution time:",t1-t0,"  (",n,"iterations), ",(t1-t0)/n,"(mean)  ", n/(t1-t0),"Hz"
+    print(" loop execution time:",t1-t0,"  (",n,"iterations), ",(t1-t0)/n,"(mean)  ", n/(t1-t0),"Hz")
     if(error_flag):
     #Returns the error breakdown
         SR2 = np.exp(-tar.get_strehl(0,comp_strehl=False)[3])
@@ -603,7 +603,7 @@ def save_it(filename):
                "dm.ypos":config.p_dms[0]._ypos, "R":cmat, "Nact":Nact}
     h5u.save_h5(fname,"psf",config,psf)
     #h5u.writeHdf5SingleDataset(fname,com.T,datasetName="com")
-    for k in pdict.keys():
+    for k in list(pdict.keys()):
         h5u.save_hdf5(fname,k,pdict[k])
 
 ###############################################################################################

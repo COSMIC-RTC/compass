@@ -71,7 +71,7 @@ def compute_and_compare_PSFs(filename, plot=False):
     cov_err = P.dot(Ctt).dot(P.T)
     otftels, otf2s, psfs, gpu = gamora.psf_rec_Vii(filename,fitting=False,cov=cov_err.astype(np.float32))
     tac = time.time()
-    print "PSF estimated in ",tac-tic, " seconds"
+    print("PSF estimated in ",tac-tic, " seconds")
     t = f["tomography"][:]
     b = f["bandwidth"][:]
     tb = t+b
@@ -183,7 +183,7 @@ def compute_covariance_model(filename):
     xpos = f["dm.xpos"][:]
     ypos = f["dm.ypos"][:]
     p2m = f.attrs["tel_diam"] / f.attrs["pupdiam"]
-    pupshape = long(2 ** np.ceil(np.log2(f.attrs["pupdiam"]) + 1))
+    pupshape = int(2 ** np.ceil(np.log2(f.attrs["pupdiam"]) + 1))
     xactu = (xpos - pupshape/2) * p2m
     yactu = (ypos - pupshape/2) * p2m
     Ccov = np.zeros((xpos.size,xpos.size))
@@ -279,7 +279,7 @@ def load_datas(files):
     # data[:,2,i] = var(bp) for file #i
     # data[:,3,i] = var(tomo)+var(bp) for file #i
     ind = 0
-    print "Loading data..."
+    print("Loading data...")
     for f in files:
         vartot[ind,:] = rexp.variance(f, contributors) * ((2*np.pi/Lambda_tar)**2)
         vartomo[ind,:] = rexp.variance(f, ["tomography"]) * ((2*np.pi/Lambda_tar)**2)
@@ -288,7 +288,7 @@ def load_datas(files):
         speeds[ind] = f.attrs["windspeed"][0]
         gain[ind] = float('%.1f' % f.attrs["gain"][0])
         ind += 1
-        print ind,"/",len(files)
+        print(ind,"/",len(files))
 
     covar = (vartot - (vartomo+varbp))/2.
 

@@ -7,8 +7,8 @@ size=128
 dec=4
 prec=10**-dec
 
-print "Test cublas 1"
-print "precision: ", prec 
+print("Test cublas 1")
+print("precision: ", prec) 
 
 c=ch.naga_context()
 sh2=np.ndarray((2),dtype=np.int64)
@@ -29,7 +29,7 @@ def test_imax():
     imaxC=caF2D.device2host().flatten("F").argmax()+1 
     imaxG=caF2D.imax()
 
-    print imaxG-imaxC
+    print(imaxG-imaxC)
 
     npt.assert_equal(imaxG,imaxC)
 

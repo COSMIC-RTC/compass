@@ -53,13 +53,13 @@ class html_display:
             self.f_list.append(f.split('/')[-1])
 
         self.f = h5py.File(self.files[0])
-        if(self.f.attrs.keys().count("target.Lambda")):
+        if(list(self.f.attrs.keys()).count("target.Lambda")):
             self.Lambda_tar = self.f.attrs["target.Lambda"][0]
         else:
             self.Lambda_tar = 1.65
 
         self.Btt = self.f["Btt"][:]
-        if(self.f.keys().count("IF")): #Dense case
+        if(list(self.f.keys()).count("IF")): #Dense case
             self.IF = self.f["IF"][:]
         else: #Sparse case
             self.IF = csr_matrix((self.f["IF.data"][:],self.f["IF.indices"][:],self.f["IF.indptr"][:]))
@@ -78,24 +78,24 @@ class html_display:
         self.nmodes = self.P.shape[0]
 
         self.plot_type = ["Commands","Variance"]
-        self.coms_list = self.f.keys()
+        self.coms_list = list(self.f.keys())
         self.coms_list.remove("Btt")
         self.coms_list.remove("P")
         self.coms_list.remove("dm_dim")
         self.coms_list.remove("indx_pup")
-        if(self.f.keys().count("IF")): #Dense case
+        if(list(self.f.keys()).count("IF")): #Dense case
             self.coms_list.remove("IF")
         else:
             self.coms_list.remove("IF.data")
             self.coms_list.remove("IF.indices")
             self.coms_list.remove("IF.indptr")
-        if(self.f.keys().count("SR")):
+        if(list(self.f.keys()).count("SR")):
             self.coms_list.remove("SR")
-        if(self.f.keys().count("SR2")):
+        if(list(self.f.keys()).count("SR2")):
             self.coms_list.remove("SR2")
-        if(self.f.keys().count("fit_error")):
+        if(list(self.f.keys()).count("fit_error")):
             self.coms_list.remove("fit_error")
-        if(self.f.keys().count("cov")):
+        if(list(self.f.keys()).count("cov")):
             self.cov = self.f["cov"][:]
             self.cor = self.f["cor"][:]
             self.coms_list.remove("cov")
@@ -255,11 +255,11 @@ class html_display:
         self.dialog.visible = True
 
         self.f = h5py.File(self.datapath + str(self.DB_select.value))
-        if(self.f.attrs.keys().count("target.Lambda")):
+        if(list(self.f.attrs.keys()).count("target.Lambda")):
             self.Lambda_tar = self.f.attrs["target.Lambda"][0]
         else:
             self.Lambda_tar = 1.65
-        if(self.f.keys().count("IF")): #Dense case
+        if(list(self.f.keys()).count("IF")): #Dense case
             self.IF = self.f["IF"][:]
         else: #Sparse case
             self.IF = csr_matrix((self.f["IF.data"][:],self.f["IF.indices"][:],self.f["IF.indptr"][:]))
@@ -276,7 +276,7 @@ class html_display:
         self.niter = self.f["com"][:].shape[1]
         self.nactus = self.f["com"][:].shape[0]
         self.nmodes = self.P.shape[0]
-        if(self.f.keys().count("cov")):
+        if(list(self.f.keys()).count("cov")):
             self.cov = self.f["cov"][:]
             self.cor = self.f["cor"][:]
         else:
@@ -286,7 +286,7 @@ class html_display:
         self.updateDataTables()
 
 
-        print "DB loaded"
+        print("DB loaded")
         self.dialog.visible=False
 
     def update(self,attrname,old,new):
@@ -312,7 +312,7 @@ class html_display:
                 elif(basis_val == "Btt"):
                     yi.append(np.dot(self.P,data[:,iteration])[self.swap].tolist())
                     self.p.xaxis.axis_label = "Modes"
-                xi.append(range(len(data[:,iteration])))
+                xi.append(list(range(len(data[:,iteration]))))
                 typec.append([j]*len(data[:,iteration]))
                 coloris.append(self.colors[j])
                 self.p.yaxis.axis_label = "Volts"
@@ -324,14 +324,14 @@ class html_display:
                 elif(basis_val == "Btt"):
                     yi.append(np.var(np.dot(self.P,data),axis=1)[self.swap].tolist())
                     self.p.xaxis.axis_label = "Modes"
-                xi.append(range(len(np.var(data,axis=1))))
+                xi.append(list(range(len(np.var(data,axis=1)))))
                 typec.append([j]*len(np.var(data,axis=1)))
                 coloris.append(self.colors[j])
                 self.p.yaxis.axis_label = "Variance"
 
         self.source1.data = dict(x=xi,y=yi,color=coloris,typec=typec)
 
-        print "Plots updated"
+        print("Plots updated")
 
 
     def rescale_matrix(self):
@@ -382,12 +382,12 @@ class html_display:
         if(basis == "Btt"):
             A_cov = np.dot(self.P,A_cov)
             B_cov = np.dot(self.P,B_cov)
-        print "Values ok"
+        print("Values ok")
         self.covmat = (np.dot(A_cov,B_cov.T)/B_cov.shape[1])
-        print "dot product ok"
+        print("dot product ok")
         if(powa != 1):
             self.covmat = np.abs(self.covmat)**powa * np.sign(self.covmat)
-            print "scale adjusted"
+            print("scale adjusted")
         self.cmin.start = self.covmat.min()
         self.cmin.end = self.covmat.max()
         self.cmin.value = self.cmin.start
@@ -404,7 +404,7 @@ class html_display:
 
         #self.sourceC.data = dict(url=[self.url],x=0,y=covmat.shape[0],dw=covmat.shape[0],dh=covmat.shape[0])
         #self.draw.disabled = False
-        print "Matrix updated2"
+        print("Matrix updated2")
         self.dialog.visible = False
 
     def update_mode(self):
@@ -434,7 +434,7 @@ class html_display:
 
         #self.sourceC.data = dict(url=[self.url],x=0,y=covmat.shape[0],dw=covmat.shape[0],dh=covmat.shape[0])
         #self.draw.disabled = False
-        print "Mode updated"
+        print("Mode updated")
         self.dialog.visible = False
 
     def mode_increment(self):
@@ -462,11 +462,11 @@ class html_display:
 
         if(plot_val == "Commands"):
             data = np.zeros(self.nactus)
-            x = range(self.nactus)
+            x = list(range(self.nactus))
         elif(plot_val == "Variance"):
             data = np.zeros((self.nmodes,self.niter))#self.nmodes)
             data2 = np.zeros(self.nmodes)
-            x = range(self.nmodes)
+            x = list(range(self.nmodes))
         fitp = False
         fitm = False
         for i in plus:
@@ -496,20 +496,20 @@ class html_display:
             data2 = np.cumsum(data2[self.swap])
             data2 = np.exp(-data2*(2*np.pi/self.Lambda_tar)**2)
             data = np.exp(-data*(2*np.pi/self.Lambda_tar)**2)
-            if(fitp and self.f.keys().count("fit_error")):
+            if(fitp and list(self.f.keys()).count("fit_error")):
                 data *= np.exp(-self.f["fit_error"].value)
                 data2 *= np.exp(-self.f["fit_error"].value)
-            if(fitm and self.f.keys().count("fit_error")):
+            if(fitm and list(self.f.keys()).count("fit_error")):
                 data /= np.exp(-self.f["fit_error"].value)
                 data2 /= np.exp(-self.f["fit_error"].value)
-        if(self.f.keys().count("SR2")):
+        if(list(self.f.keys()).count("SR2")):
             self.source3.data = dict(x=[x,x,x,x],y=[data,np.ones(len(x))*self.f["SR"].value,np.ones(len(x))*self.f["SR2"].value,data2],color=["blue","red","purple","green"])
         else:
-            if(self.f.keys().count("SR")):
+            if(list(self.f.keys()).count("SR")):
                 self.source3.data = dict(x=[x,x,x],y=[data,np.ones(len(x))*self.f["SR"].value,data2],color=["blue","red","green"])
             else:
                 self.source3.data = dict(x=x,y=data)
-        print "Sum plotted"
+        print("Sum plotted")
         self.dialog.visible = False
 
     def cov_cor(self):

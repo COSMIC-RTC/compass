@@ -14,7 +14,7 @@ try:
     PYRDATAPATH = HRAAPATH + "/PYRCADO/data"
     sys.path.insert(0, HRAAPATH + '/PYRCADO/Python')
 except:
-    print "ERROR COULD NOT FIND HRAAPATH environment variable. Please set it up in the .bashrc in re-start"
+    print("ERROR COULD NOT FIND HRAAPATH environment variable. Please set it up in the .bashrc in re-start")
     pass
 
 
@@ -98,10 +98,10 @@ def measureIMatKLPP(wao, ampliVec, KL2V, nSlopes, withAtm, extPyrc = None):
 
         iMatKL[:, kl] = (applyVoltGetSlopes(wao, v + currentVolts, withAtm, extPyrc = extPyrc) - ref) / ampliVec[kl]
 
-        print "Doing KL interaction matrix on mode: #%d\r" % kl,
+        print("Doing KL interaction matrix on mode: #%d\r" % kl, end=' ')
         os.sys.stdout.flush()
 
-    print "Modal interaction matrix done in %3.1f seconds" % (time.time() - st)
+    print("Modal interaction matrix done in %3.1f seconds" % (time.time() - st))
     return iMatKL
 
 
@@ -126,10 +126,10 @@ def measureIMatKLSine(wao, ampliVec, KL2V, nSlopes, withAtm, extPyrc = None):
     for f in range(nFrames):
         v = voltsToSet[:, f]
         frames[:, f] = applyVoltGetSlopes(wao, v + currentVolts, withAtm, extPyrc = extPyrc)
-        print "Doing sine KL interaction matrix on frame: #%d / %d\r" % (f + 1, nFrames),
+        print("Doing sine KL interaction matrix on frame: #%d / %d\r" % (f + 1, nFrames), end=' ')
         os.sys.stdout.flush()
 
-    print "\nModal sine interaction recording done in %3.1f seconds" % (time.time() - st)
+    print("\nModal sine interaction recording done in %3.1f seconds" % (time.time() - st))
 
     FTImat = np.fft.fft(frames, axis = 1)
     imatKL = np.real(FTImat[:, primeFreq]) / ((np.max(primeFreq) + 1) * ampliVec)
@@ -165,7 +165,7 @@ def normalizeKL2V(KL2V, mode = 'linf'):
     elif mode == 'l2':
         return KL2V / np.sqrt(np.sum(KL2V ** 2, axis = 0))[np.newaxis, ...]
     else:
-        print "Invalid normalize KL2V mode - required optional mode = 'l2' or 'linf'"
+        print("Invalid normalize KL2V mode - required optional mode = 'l2' or 'linf'")
         return None
 
 
@@ -174,12 +174,12 @@ def cropKL2V(KL2V):
         Remove the least 2 KL modes of the pzt mirror (columns -4:-2) to remove Tip-Tilt redundancy
     :param KL2V: Matrix of modes in the DM Space
     '''
-    return KL2V[:, range(KL2V.shape[1] - 4) + [-2, -1]]
+    return KL2V[:, list(range(KL2V.shape[1] - 4)) + [-2, -1]]
 
 
 def plotVDm(wao, numdm, V, size = 16, fignum = False):
     if(wao.config.p_dms[numdm]._j1.shape[0] != V.shape[0]):
-        print "Error V should have %d dimension not %d " % (wao.config.p_dms[numdm]._j1.shape[0], V.shape[0])
+        print("Error V should have %d dimension not %d " % (wao.config.p_dms[numdm]._j1.shape[0], V.shape[0]))
     else:
         if(fignum):
             plt.figure(fignum)
@@ -212,7 +212,7 @@ def computeCmatKL(iMatKL, nFilt):
     :param nFilt: number of modes to filter before inversion
     '''
     nModes = (iMatKL.shape[1] - nFilt)
-    iMatKLFilt = iMatKL[:, range(0, nModes - 2) + [-2, -1]]
+    iMatKLFilt = iMatKL[:, list(range(0, nModes - 2)) + [-2, -1]]
 
     cMatKL = np.linalg.inv(iMatKLFilt.T.dot(iMatKLFilt)).dot(iMatKLFilt.T)
 
@@ -289,7 +289,7 @@ class ModalGainOptimizer:
             self.KL2V = rawKL2V.copy()
 
         self.KL2VFilt = \
-            self.KL2V[:, range(0, self.KL2V.shape[1] - self.nFilter - 2) + [-2, -1]]
+            self.KL2V[:, list(range(0, self.KL2V.shape[1] - self.nFilter - 2)) + [-2, -1]]
 
         self.iMatKLRef = None
         self.cMatKLRef = None
@@ -336,7 +336,7 @@ class ModalGainOptimizer:
         ksiVal = np.sqrt(np.diag(np.dot(self.iMatKLRef.T, self.iMatKLRef)) /
                          np.diag(np.dot(iMatKL.T, iMatKL)))
 
-        ksiFilter = ksiVal[range(iMatKL.shape[1] - self.nFilter - 2) + [-2, -1]]
+        ksiFilter = ksiVal[list(range(iMatKL.shape[1] - self.nFilter - 2)) + [-2, -1]]
 #         ksiFilter = ksiFilter * np.sqrt(np.shape(ksiFilter)[0] / np.sum(ksiFilter ** 2))
 
         return ksiFilter, iMatKL
@@ -556,7 +556,7 @@ def mode2ph(KL2V, wao):
         M2PH[i] = wao.wfs.get_phase(0) * pupil
         M2PH[i][pupil] -= np.mean(M2PH[i][pupil])
         M2PH[i] /= np.sqrt(np.sum(M2PH[i][pupil] ** 2))
-        print str(i + 1) + "/" + str(nModes)
+        print(str(i + 1) + "/" + str(nModes))
 
     return M2PH
 
@@ -576,7 +576,7 @@ def updateToOptimalCmat(wao, slopes, volts, miKL, S2KL, M2V, offset):
         optiCmat = cMatFromcMatKL(S2KL, M2V, gainVector = gainVector)
     else:
         optiCmat = cMatFromcMatKL(
-            S2KL, M2V[:, range(0, (M2V.shape[1] - nfilt - 2)) + [-2, -1]], gainVector = gainVector)
+            S2KL, M2V[:, list(range(0, (M2V.shape[1] - nfilt - 2))) + [-2, -1]], gainVector = gainVector)
 
     wao.openLoop()
     wao.rtc.set_cmat(0, optiCmat.astype(np.float32).copy())

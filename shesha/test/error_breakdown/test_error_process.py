@@ -18,6 +18,7 @@ import matplotlib.pyplot as pl
 import tools2 as tools
 import hdf5_utils as h5u
 import pandas
+import imp
 
 #get parameters from file
 param_file= os.environ["SHESHA_ROOT"]+"/data/par/noise_error_process_80x80_linearity.py"
@@ -26,7 +27,7 @@ param_path=param_file.split(filename)[0]
 sys.path.insert(0,param_path)
 exec("import %s as config" % filename.split(".py")[0])
 
-print "param_file is",param_file
+print("param_file is",param_file)
 
 if(hasattr(config,"simul_name")):
     if(config.simul_name is None):
@@ -58,39 +59,39 @@ def Init(config,device=0):
         matricesToLoad = h5u.checkMatricesDataBase(os.environ["SHESHA_ROOT"]+"/data/",config,param_dict)
     
     #    wfs
-    print "->wfs"
+    print("->wfs")
     wfs, tel=ao.wfs_init(config.p_wfss,config.p_atmos,config.p_tel,config.p_geom,config.p_target,config.p_loop, 1,0,config.p_dms)
     
     #   atmos
-    print "->atmos"
+    print("->atmos")
     atm=ao.atmos_init(c,config.p_atmos,config.p_tel,config.p_geom,config.p_loop,config.p_wfss,wfs,config.p_target,clean=clean,load=matricesToLoad,rank=0)
     
     #   dm 
-    print "->dm"
+    print("->dm")
     dms=ao.dm_init(config.p_dms,config.p_wfss,config.p_geom,config.p_tel)
     
     #   target
-    print "->target"
+    print("->target")
     tar=ao.target_init(c,tel,config.p_target,config.p_atmos,config.p_geom,config.p_tel,config.p_dms)
     
-    print "->rtc"
+    print("->rtc")
     #   rtc
     rtc=ao.rtc_init(tel,wfs,config.p_wfss,dms,config.p_dms,config.p_geom,config.p_rtc,config.p_atmos,atm,config.p_tel,config.p_loop,tar,config.p_target,clean=clean,simul_name=simul_name,load=matricesToLoad)
     
-    print "===================="
-    print "init done"
-    print "===================="
-    print "objects initialzed on GPU:"
-    print "--------------------------------------------------------"
-    print atm
-    print wfs
-    print dms
-    print tar
-    print rtc
+    print("====================")
+    print("init done")
+    print("====================")
+    print("objects initialzed on GPU:")
+    print("--------------------------------------------------------")
+    print(atm)
+    print(wfs)
+    print(dms)
+    print(tar)
+    print(rtc)
     
-    print "----------------------------------------------------";
-    print "iter# | S.E. SR | L.E. SR | Est. Rem. | framerate";
-    print "----------------------------------------------------";
+    print("----------------------------------------------------");
+    print("iter# | S.E. SR | L.E. SR | Est. Rem. | framerate");
+    print("----------------------------------------------------");
     
     return atm, wfs, dms, tar, rtc, tel
 
@@ -142,7 +143,7 @@ def check_param(config,niter,save=False,device=5):
     
 def process_err(config,niter,param,save=False,linear=False,device=0):
     
-    config = reload(config)
+    config = imp.reload(config)
     config.p_wfss[0].set_nxsub(param)
     config.p_dms[0].set_nact(param+1)
     config.p_wfss[0].set_noise(-1)
@@ -152,7 +153,7 @@ def process_err(config,niter,param,save=False,linear=False,device=0):
         d = config.p_tel.diam/config.p_wfss[0].nxsub
         pixsize = config.p_wfss[0].Lambda*1e-6/d * RASC / 2.5 #bit better than Shannon
         config.p_wfss[0].set_pixsize(pixsize)
-        config.p_wfss[0].set_npix(long(FoV/pixsize))
+        config.p_wfss[0].set_npix(int(FoV/pixsize))
     if(save):
         store=pandas.HDFStore("/home/fferreira/Data/resErrorProcessMicado2.h5")
         #config.simul_name = "errorProcess_27Jan2016"
@@ -178,7 +179,7 @@ def process_err(config,niter,param,save=False,linear=False,device=0):
 
 
     #config.p_wfss[0].set_noise(noise)
-    config = reload(config) 
+    config = imp.reload(config) 
     config.p_wfss[0].set_nxsub(param)
     config.p_dms[0].set_nact(param+1)
     S = np.pi/4.*(1-config.p_tel.cobs**2)*config.p_tel.diam**2
@@ -192,7 +193,7 @@ def process_err(config,niter,param,save=False,linear=False,device=0):
         d = config.p_tel.diam/config.p_wfss[0].nxsub
         pixsize = config.p_wfss[0].Lambda*1e-6/d * RASC / 2.5 #bit better than Shannon
         config.p_wfss[0].set_pixsize(pixsize)
-        config.p_wfss[0].set_npix(long(FoV/pixsize))
+        config.p_wfss[0].set_npix(int(FoV/pixsize))
 
     if(save):
         #config.simul_name = "errorProcess_Micado"
@@ -220,8 +221,8 @@ def process_err(config,niter,param,save=False,linear=False,device=0):
     
     noise_mes = noise_mes * sspdiam / RASC * 1e9
     
-    print " "
-    print "Mean noise : ",np.mean(np.std(noise_mes,axis=1)), "nm rms"
+    print(" ")
+    print("Mean noise : ",np.mean(np.std(noise_mes,axis=1)), "nm rms")
     
     if(save):
         df.loc[param,"nm_rms_noise"]=np.mean(np.std(noise_mes,axis=1)) 
@@ -299,9 +300,9 @@ def loop(n,full_com,noise_com,noise_mes,atm, wfs, dms, tar, rtc, tel,config):
         
         if((i+1)%1000==0):
             strehltmp = tar.get_strehl(0)
-            print i+1,"\t",strehltmp[0],"\t",strehltmp[1]
+            print(i+1,"\t",strehltmp[0],"\t",strehltmp[1])
         
-        print "\r Recording... %d%%"%(i*100/n),
+        print("\r Recording... %d%%"%(i*100/n), end=' ')
         
 def openloop(n,full_com,noise_com,noise_mes, atm, wfs, dms, tar, rtc, tel,config):
     """ Here, we want to get centroids obtain from a SH wfs seeing an atmos screen
@@ -344,9 +345,9 @@ def openloop(n,full_com,noise_com,noise_mes, atm, wfs, dms, tar, rtc, tel,config
         
         if((i+1)%1000==0):
             strehltmp = tar.get_strehl(0)
-            print i+1,"\t",strehltmp[0],"\t",strehltmp[1]
+            print(i+1,"\t",strehltmp[0],"\t",strehltmp[1])
         
-        print "\r Recording... %d%%"%(i*100/n),    
+        print("\r Recording... %d%%"%(i*100/n), end=' ')    
 
 
 

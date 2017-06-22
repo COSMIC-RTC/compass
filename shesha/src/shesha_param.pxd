@@ -26,11 +26,11 @@ cdef class Param_tel:
   """telescope diameter (in meters)."""
   cdef readonly float cobs
   """central obstruction ratio."""
-  cdef readonly str type_ap
+  cdef readonly bytes type_ap
   """EELT aperture type: "Nominal", "BP1", "BP3", "BP5" (for back-up plan with 1, 3, or 5 missing annulus)."""
   cdef readonly float t_spiders
   """secondary supports ratio."""
-  cdef readonly str spiders_type
+  cdef readonly bytes spiders_type
   """secondary supports type: "four" or "six"."""
   cdef readonly float pupangle
   """rotation angle of pupil."""
@@ -78,7 +78,7 @@ cdef class Param_geom:
 # P-Class (parametres) Param_wfs
 #################################################
 cdef class Param_wfs:
-    cdef readonly str type_wfs
+    cdef readonly bytes type_wfs
     """type of wfs : "sh" or "pyr"."""
     cdef readonly long nxsub
     """linear number of subaps."""
@@ -96,7 +96,7 @@ cdef class Param_wfs:
     """1 if in "open-loop" mode (i.e. does not see dm)."""
     cdef readonly float fssize
     """size of field stop in arcsec."""
-    cdef readonly str fstop
+    cdef readonly bytes fstop
     """ Fields of the wfs diaphragm shape : "square" or "none" """
 
     cdef readonly int atmos_seen
@@ -133,7 +133,7 @@ cdef class Param_wfs:
     """x position (in meters) of llt."""
     cdef readonly float llty
     """y position (in meters) of llt."""
-    cdef readonly str proftype
+    cdef readonly bytes proftype
     """type of sodium profile "gauss", "exp", etc ..."""
     cdef readonly float beamsize
     """laser beam fwhm on-sky (in arcsec)."""
@@ -221,10 +221,10 @@ cdef class Param_wfs:
     """total number of point along modulation circle [unitless]."""
     cdef np.ndarray pyr_pos
     """positions for modulation, overwrites ampl and npts [arcsec]"""
-    cdef readonly str pyr_loc
+    cdef readonly bytes pyr_loc
     """Location of modulation, before/after the field stop.
     valid value are "before" or "after" (default "after")."""
-    cdef readonly str pyrtype
+    cdef readonly bytes pyrtype
     """Type of pyramid, either 0 for "Pyramid" or 1 for "RoofPrism"."""
     cdef readonly long pyr_pup_sep
     """Pyramid pupil separation. (default: long(wfs.nxsub))"""

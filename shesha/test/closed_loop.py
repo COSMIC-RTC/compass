@@ -12,12 +12,12 @@ import matplotlib.pyplot as plt
 import hdf5_utils as h5u
 plt.ion()
 
-print "TEST SHESHA\n closed loop: call loop(int niter)"
+print("TEST SHESHA\n closed loop: call loop(int niter)")
 
 
 if(len(sys.argv) != 2):
     error = 'command line should be:"python -i test.py parameters_filename"\n with "parameters_filename" the path to the parameters file'
-    raise StandardError(error)
+    raise Exception(error)
 
 # get parameters from file
 param_file = sys.argv[1]
@@ -35,7 +35,7 @@ elif(param_file.split('.')[-1] == "h5"):
 else:
     raise ValueError("Parameter file extension must be .py or .h5")
 
-print "param_file is", param_file
+print("param_file is", param_file)
 
 
 if(hasattr(config, "simul_name")):
@@ -43,7 +43,7 @@ if(hasattr(config, "simul_name")):
         simul_name = ""
     else:
         simul_name = config.simul_name
-        print "simul name is", simul_name
+        print("simul name is", simul_name)
 else:
     simul_name = ""
 
@@ -65,24 +65,24 @@ if(simul_name != ""):
 c = ch.naga_context(devices=config.p_loop.devices)
 
 #    wfs
-print "->wfs"
+print("->wfs")
 wfs, tel = ao.wfs_init(config.p_wfss, config.p_atmos, config.p_tel,
                        config.p_geom, config.p_target, config.p_loop, config.p_dms)
 
 #   atmos
-print "->atmos"
+print("->atmos")
 atm = ao.atmos_init(c, config.p_atmos, config.p_tel, config.p_geom, config.p_loop, config.p_wfss, wfs, config.p_target,
                     clean=clean, load=matricesToLoad)
 
 #   dm
-print "->dm"
+print("->dm")
 dms = ao.dm_init(config.p_dms, config.p_wfss, wfs, config.p_geom, config.p_tel)
 
 #   target
-print "->target"
+print("->target")
 tar = ao.target_init(c, tel, config.p_target, config.p_atmos, config.p_geom, config.p_tel, config.p_dms, config.p_wfss)
 
-print "->rtc"
+print("->rtc")
 #   rtc
 rtc = ao.rtc_init(tel, wfs, config.p_wfss, dms, config.p_dms, config.p_geom, config.p_rtc, config.p_atmos, atm,
                   config.p_tel, config.p_loop, clean=clean, simul_name=simul_name,
@@ -91,24 +91,24 @@ rtc = ao.rtc_init(tel, wfs, config.p_wfss, dms, config.p_dms, config.p_geom, con
 if not clean:
     h5u.validDataBase(os.environ["SHESHA_ROOT"] + "/data/", matricesToLoad)
 
-print "===================="
-print "init done"
-print "===================="
-print "objects initialzed on GPU:"
-print "--------------------------------------------------------"
-print atm
-print wfs
-print dms
-print tar
-print rtc
+print("====================")
+print("init done")
+print("====================")
+print("objects initialzed on GPU:")
+print("--------------------------------------------------------")
+print(atm)
+print(wfs)
+print(dms)
+print(tar)
+print(rtc)
 
 mimg = 0.  # initializing average image
 
 
 def loop(n):
-    print "----------------------------------------------------"
-    print "iter# | S.E. SR | L.E. SR | Est. Rem. | framerate"
-    print "----------------------------------------------------"
+    print("----------------------------------------------------")
+    print("iter# | S.E. SR | L.E. SR | Est. Rem. | framerate")
+    print("----------------------------------------------------")
     t0 = time.time()
     for i in range(n):
         atm.move_atmos()
@@ -134,9 +134,9 @@ def loop(n):
 
         if((i + 1) % 100 == 0):
             strehltmp = tar.get_strehl(0)
-            print i + 1, "\t", strehltmp[0], "\t", strehltmp[1]
+            print(i + 1, "\t", strehltmp[0], "\t", strehltmp[1])
     t1 = time.time()
-    print " loop execution time:", t1 - t0, "  (", n, "iterations), ", (t1 - t0) / n, "(mean)  ", n / (t1 - t0), "Hz"
+    print(" loop execution time:", t1 - t0, "  (", n, "iterations), ", (t1 - t0) / n, "(mean)  ", n / (t1 - t0), "Hz")
 
 
 loop(config.p_loop.niter)

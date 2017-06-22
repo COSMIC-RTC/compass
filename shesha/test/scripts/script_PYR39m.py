@@ -18,7 +18,7 @@ import astropy.io.fits as pf
 import glob
 import pandas as pd
 
-print "TEST SHESHA\n closed loop: call loop(int niter)"
+print("TEST SHESHA\n closed loop: call loop(int niter)")
 simulName = "PYR_39m"
 pathResults="/volumes/hra/micado/PYR39m_RoundPupil_RUN2/"
 dBResult = "/volumes/hra/micado/PYR_39m_RoundPupil_RUN2.h5"
@@ -26,9 +26,9 @@ dBResult = "/volumes/hra/micado/PYR_39m_RoundPupil_RUN2.h5"
 
 if(len(sys.argv)==1):
     error= 'command line should be:"python -i test.py parameters_filename"\n with "parameters_filename" the path to the parameters file'
-    raise StandardError(error)
+    raise Exception(error)
 if(len(sys.argv)==2):
-    print "Using Internal parameters..."
+    print("Using Internal parameters...")
     """
     -----------------
             INPUTS
@@ -42,9 +42,9 @@ if(len(sys.argv)==2):
     MODU = [5]
     RONS = [0.5]
 else:
-    print "DETECTED BASH SCRIPT"
+    print("DETECTED BASH SCRIPT")
     #python $script $PARFILE $FREQ $MODU $GAIN $MAG $KLFILT
-    print sys.argv
+    print(sys.argv)
     freqs=[float(sys.argv[2])] # frequency
     RONS=[float(sys.argv[3])] # RONS
     MODU=[float(sys.argv[4])] # MODU
@@ -57,10 +57,10 @@ Nsimutot = len(gainslist) * len(freqs) * len(RONS)* len(MODU) * len(magnitudes)
 
 
 if(not glob.glob(pathResults)):
-    print "Results folder not found. Creating it now:"
+    print("Results folder not found. Creating it now:")
     tools.system("mkdir "+pathResults)
 if(not glob.glob(pathResults+"PSFs/")):
-    print "PSFs folder not found. Creating it now:"
+    print("PSFs folder not found. Creating it now:")
 
     tools.system("mkdir "+pathResults+"PSFs/")
 
@@ -80,7 +80,7 @@ elif(param_file.split('.')[-1] == "h5"):
 else:
     raise ValueError("Parameter file extension must be .py or .h5")
 
-print "param_file is",param_file
+print("param_file is",param_file)
 
 
 if(hasattr(config,"simul_name")):
@@ -90,7 +90,7 @@ if(hasattr(config,"simul_name")):
         simul_name=config.simul_name
 else:
     simul_name=""
-print "simul name is",simul_name
+print("simul name is",simul_name)
 
 matricesToLoad={}
 if(simul_name==""):
@@ -130,43 +130,43 @@ def initSimu(config,c):
     #    wfs
     param_dict = h5u.params_dictionary(config)
     matricesToLoad = h5u.checkMatricesDataBase(os.environ["SHESHA_ROOT"]+"/data/",config,param_dict)
-    print "->wfs"
+    print("->wfs")
     wfs, tel = ao.wfs_init(config.p_wfss, config.p_atmos, config.p_tel,config.p_geom, config.p_target, config.p_loop, config.p_dms)
     #   atmos
-    print "->atmos"
+    print("->atmos")
     atm=ao.atmos_init(c,config.p_atmos,config.p_tel,config.p_geom,config.p_loop,config.p_wfss,wfs,config.p_target,rank=0, clean=clean, load=matricesToLoad)
 
     #   dm
-    print "->dm"
+    print("->dm")
     dms = ao.dm_init(config.p_dms, config.p_wfss, wfs, config.p_geom, config.p_tel)
 
     #   target
-    print "->target"
+    print("->target")
     tar=ao.target_init(c,tel,config.p_target,config.p_atmos,config.p_geom,config.p_tel,config.p_dms)
 
-    print "->rtc"
+    print("->rtc")
     #   rtc
     rtc = ao.rtc_init(tel, wfs, config.p_wfss, dms, config.p_dms,config.p_geom, config.p_rtc, config.p_atmos, atm, config.p_tel, config.p_loop, do_refslp=False, clean=clean, simul_name=simul_name, load=matricesToLoad, doimat=0)
 
     h5u.validDataBase(os.environ["SHESHA_ROOT"]+"/data/",matricesToLoad)
 
-    print "===================="
-    print "init done"
-    print "===================="
-    print "objects initialzed on GPU:"
-    print "--------------------------------------------------------"
-    print atm
-    print wfs
-    print dms
-    print tar
-    print rtc
+    print("====================")
+    print("init done")
+    print("====================")
+    print("objects initialzed on GPU:")
+    print("--------------------------------------------------------")
+    print(atm)
+    print(wfs)
+    print(dms)
+    print(tar)
+    print(rtc)
     return wfs,tel,atm,dms,tar,rtc
 
 def loop( n,wfs,tel,atm,dms,tar,rtc):
     t0=time.time()
-    print "----------------------------------------------------";
-    print "iter# | S.E. SR | L.E. SR | Est. Rem. | framerate";
-    print "----------------------------------------------------";
+    print("----------------------------------------------------");
+    print("iter# | S.E. SR | L.E. SR | Est. Rem. | framerate");
+    print("----------------------------------------------------");
     sr_se = []
     sr_le = []
     numiter = []
@@ -192,15 +192,15 @@ def loop( n,wfs,tel,atm,dms,tar,rtc):
             rtc.applycontrol(0,dms)
 
         if((i+1)%100==0):
-            print "Iter#:", i+1
+            print("Iter#:", i+1)
             #for t in range(config.p_target.ntargets):
             t=1
             SR = tar.get_strehl(t)
-            print "Tar %d at %3.2fMicrons:" % (t+1, tar.Lambda[t])
+            print("Tar %d at %3.2fMicrons:" % (t+1, tar.Lambda[t]))
             signal_se = "SR S.E: %1.2f   " % SR[0]
             signal_le = "SR L.E: %1.2f   " % SR[1]
 
-            print signal_se + signal_le
+            print(signal_se + signal_le)
             #print i+1,"\t",,SR[0],"\t",SR[1]
             sr_le.append(SR[1])
             sr_se.append(SR[0])
@@ -213,7 +213,7 @@ def loop( n,wfs,tel,atm,dms,tar,rtc):
 #        plt.plot(numiter, sr_se, color="red")
 
     t1=time.time()
-    print " loop execution time:",t1-t0,"  (",n,"iterations), ",(t1-t0)/n,"(mean)  ", n/(t1-t0),"Hz"
+    print(" loop execution time:",t1-t0,"  (",n,"iterations), ",(t1-t0)/n,"(mean)  ", n/(t1-t0),"Hz")
     SRList = []
     for t in range(config.p_target.ntargets):
         SR = tar.get_strehl(t)
@@ -243,8 +243,8 @@ simunames = {"PSFFilenames":None, "srir":None, "lambdaTarget":None, "nbBrightest
 
 resAll = db.readDataBase(fullpath=dBResult) # Reads all the database if exists
 if(not (type(resAll) == pd.core.frame.DataFrame)):
-    print "Creating compass database"
-    resAll = db.createDf(colnames.keys()+simunames.keys()) # Creates the global compass Db
+    print("Creating compass database")
+    resAll = db.createDf(list(colnames.keys())+list(simunames.keys())) # Creates the global compass Db
 
 #res = db.addcolumn(res,simunames)
 
@@ -278,22 +278,22 @@ for freq in freqs:
                 for magnitude in magnitudes:
                     NCurrSim+=1
                     config.p_wfs0.set_gsmag(magnitude)
-                    res = pd.DataFrame( columns=colnames.keys()+simunames.keys()) # Create Db for last result
-                    print "Freq = %3.2f Hz" % (1./config.p_loop.ittime)
-                    print "Magnitude = %3.2f" % config.p_wfs0.gsmag
-                    print "Gain = %3.2f" % config.p_controller0.gain
+                    res = pd.DataFrame( columns=list(colnames.keys())+list(simunames.keys())) # Create Db for last result
+                    print("Freq = %3.2f Hz" % (1./config.p_loop.ittime))
+                    print("Magnitude = %3.2f" % config.p_wfs0.gsmag)
+                    print("Gain = %3.2f" % config.p_controller0.gain)
 
                     wfs,tel,atm,dms,tar,rtc = initSimu(config, c) # Init Simu
                     nfilt = nKL_Filt
                     #cmat = ao.compute_cmatWithKL(rtc, config.p_controllers[0], dms, config.p_dms, config.p_geom, config.p_atmos, config.p_tel, nfilt)
-                    print "Reading cMat"
-                    print 1/0.
+                    print("Reading cMat")
+                    print(1/0.)
 
                     #cmat = pf.getdata(os.environ["SHESHA_ROOT"]+"/test/scripts/cmatKLGood.fits").byteswap().newbyteorder()
-                    print "Setting cMat"
+                    print("Setting cMat")
                     #rtc.set_cmat(0, cmat.copy().astype(np.float32))
                     rtc.set_cmat(0, cmat.copy())
-                    print "Starting Loop"
+                    print("Starting Loop")
                     SR, lambdaTargetList, sr_le, sr_se, numiter = loop(config.p_loop.niter,wfs,tel,atm,dms,tar,rtc )
                     dfparams = h5u.params_dictionary(config) # get the current compass config
                     dfparams.update(simunames) # Add the simunames params
@@ -316,7 +316,7 @@ for freq in freqs:
                     #res.sr_se.values[0] = sr_se
                     #res.numiter.values[0] = numiter
                     res.loc[0, "simulname"] = simulName
-                    print "Saving PSFs..."
+                    print("Saving PSFs...")
                     PSFNameList = []
                     for t in range(config.p_target.ntargets):
                         PSFtarget = tar.get_image(t, "le")
@@ -339,7 +339,7 @@ for freq in freqs:
                         hdulist.writeto(filepath, clobber=True) # Save changes to file
                         # Adding all the parameters to the header
                         makeFITSHeader(filepath, res)
-                    print "Done"
+                    print("Done")
                     res.loc[0, "type_ap"] = str(res.loc[0, "type_ap"][0])
                     res.loc[0, "type_wfs"] = str(res.loc[0, "type_wfs"][0])
                     res.loc[0, "type_dm"] = "pzt, tt"
@@ -352,7 +352,7 @@ for freq in freqs:
                     resAll.to_hdf(dBResult, "resAll", complevel=9,complib='blosc')
                     #db.saveDataBase(resAll)
 
-print "Simulation Done..."
+print("Simulation Done...")
 """
 Sauver PSF dans le bon nom + directory
  ranger... + params dans le header

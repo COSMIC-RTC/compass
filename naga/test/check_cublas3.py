@@ -11,9 +11,9 @@ sizen=128
 sizek=256
 
 
-print ""
-print "Test cublas 3"
-print "precision: ",prec
+print("")
+print("Test cublas 3")
+print("precision: ",prec)
 
 
 c=ch.naga_context()
@@ -50,8 +50,8 @@ def test_gemm():
     if(0<np.abs(C.item(M))):
         d=10**np.ceil(np.log10(np.abs(C.item(M))))
   
-    print res.item(M)
-    print C.item(M)
+    print(res.item(M))
+    print(C.item(M))
   
     npt.assert_almost_equal(C.item(M)/d,res.item(M)/d,decimal=dec)
 
@@ -84,11 +84,11 @@ def test_symm():
     C=A.dot(B)+C
     t3=time.clock()
 
-    print ""
-    print "test symm:"
-    print "execution time (s)"
-    print "python: ",t3-t2
-    print "carma : ",t2-t1
+    print("")
+    print("test symm:")
+    print("execution time (s)")
+    print("python: ",t3-t2)
+    print("carma : ",t2-t1)
 
     #test results
     res=matC.device2host()
@@ -99,8 +99,8 @@ def test_symm():
     if(0<np.abs(C.item(M))):
         d=10**np.ceil(np.log10(np.abs(C.item(M))))
 
-    print res.item(M)
-    print C.item(M)
+    print(res.item(M))
+    print(C.item(M))
   
     npt.assert_almost_equal(C.item(M)/d,res.item(M)/d,decimal=dec)
 
@@ -125,11 +125,11 @@ def test_dgmm():
     C=A*d
     t3=time.clock()
 
-    print ""
-    print "test dgmm:"
-    print "execution time (s)"
-    print "python: ",t3-t2
-    print "carma : ",t2-t1
+    print("")
+    print("test dgmm:")
+    print("execution time (s)")
+    print("python: ",t3-t2)
+    print("carma : ",t2-t1)
 
     #test results
     res=matC.device2host()
@@ -139,8 +139,8 @@ def test_dgmm():
     if(0<np.abs(C.item(M))):
         d=10**np.ceil(np.log10(np.abs(C.item(M))))
 
-    print res.item(M)
-    print C.item(M)
+    print(res.item(M))
+    print(C.item(M))
   
     npt.assert_almost_equal(C.item(M)/d,res.item(M)/d,decimal=dec)
 
@@ -171,11 +171,11 @@ def test_syrk():
     C=A.dot(A.T)+C
     t3=time.clock()
 
-    print ""
-    print "test syrk:"
-    print "execution time (s)"
-    print "python: ",t3-t2
-    print "carma : ",t2-t1
+    print("")
+    print("test syrk:")
+    print("execution time (s)")
+    print("python: ",t3-t2)
+    print("carma : ",t2-t1)
 
 
     #test results
@@ -190,8 +190,8 @@ def test_syrk():
     if(0<np.abs(C.item(M))):
         d=10**np.ceil(np.log10(np.abs(C.item(M))))
 
-    print res.item(M)
-    print C.item(M)
+    print(res.item(M))
+    print(C.item(M))
   
     npt.assert_almost_equal(C.item(M)/d,res.item(M)/d,decimal=dec)
 
@@ -225,11 +225,11 @@ def test_syrkx():
     C=A.dot(B.T)+C.T
     t3=time.clock()
 
-    print ""
-    print "test syrkx:"
-    print "execution time (s)"
-    print "python: ",t3-t2
-    print "carma : ",t2-t1
+    print("")
+    print("test syrkx:")
+    print("execution time (s)")
+    print("python: ",t3-t2)
+    print("carma : ",t2-t1)
 
     #test results
     res=matC.device2host()
@@ -243,8 +243,8 @@ def test_syrkx():
     if(0<np.abs(C.item(M))):
         d=10**np.ceil(np.log10(np.abs(C.item(M))))
 
-    print res.item(M)
-    print C.item(M)
+    print(res.item(M))
+    print(C.item(M))
   
     npt.assert_almost_equal(C.item(M)/d,res.item(M)/d,decimal=dec)
 
@@ -271,11 +271,11 @@ def test_geam():
     matC=matA.geam(matB,beta=1)
     t3=time.clock()
 
-    print ""
-    print "test geam:"
-    print "execution time (s)"
-    print "python: ",t3-t2
-    print "carma : ",t2-t1
+    print("")
+    print("test geam:")
+    print("execution time (s)")
+    print("python: ",t3-t2)
+    print("carma : ",t2-t1)
 
     #testing result
 

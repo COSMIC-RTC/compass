@@ -19,8 +19,8 @@ def measureIMatKL(ampliVec, KL2V, Nslopes):
         v = ampliVec[kl] * KL2V[:, kl:kl + 1].T.copy()
         wao.rtc.set_perturbcom(0, v)
         iMatKL[kl, :] = applyVoltGetSlopes(wao)
-        print "Doing KL interaction matrix on mode: #%d\r" % kl,
-    print "Modal interaction matrix done in %3.0f seconds" % (time.time() - st)
+        print("Doing KL interaction matrix on mode: #%d\r" % kl, end=' ')
+    print("Modal interaction matrix done in %3.0f seconds" % (time.time() - st))
     return iMatKL
 
 
@@ -46,7 +46,7 @@ def plotVDm(numdm, V, size=16, fignum=False):
     plotVDm(0, KL2V[:,0][:-2], size=25, fignum=15)
     """
     if(wao.config.p_dms[numdm]._j1.shape[0] != V.shape[0]):
-        print "Error V should have %d dimension not %d " % (wao.config.p_dms[numdm]._j1.shape[0], V.shape[0])
+        print("Error V should have %d dimension not %d " % (wao.config.p_dms[numdm]._j1.shape[0], V.shape[0]))
     else:
         if(fignum):
             plt.figure(fignum)

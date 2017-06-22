@@ -180,13 +180,13 @@ def create_file_attributes(filename, param_dict):
     """
     f = h5py.File(filename, "w")
 
-    for i in param_dict.keys():
+    for i in list(param_dict.keys()):
         if(param_dict[i] is not None):
             f.attrs.create(i, param_dict[i])
         else:
             f.attrs.create(i, -1)
     f.attrs.create("validity", False)
-    print filename, "initialized"
+    print(filename, "initialized")
     f.close()
 
 
@@ -215,7 +215,7 @@ def init_hdf5_files(savepath, param_dict, matricesToLoad):
         create_file_attributes(filename, param_dict)
         updateDataBase(filename, savepath, "isty")
 
-    if not(matricesToLoad.has_key("pztok")):
+    if not("pztok" in matricesToLoad):
         df = pandas.read_hdf(savepath + "matricesDataBase.h5", "pztok")
         ind = len(df.index)
         filename = savepath + "mat/pztok_" + version + "_" + str(ind) + ".h5"
@@ -226,7 +226,7 @@ def init_hdf5_files(savepath, param_dict, matricesToLoad):
         filename = savepath + "mat/pztnok_" + version + "_" + str(ind) + ".h5"
         create_file_attributes(filename, param_dict)
         updateDataBase(filename, savepath, "pztnok")
-    if not(matricesToLoad.has_key("imat")):
+    if not("imat" in matricesToLoad):
         df = pandas.read_hdf(savepath + "matricesDataBase.h5", "imat")
         ind = len(df.index)
         filename = savepath + "mat/imat_" + version + "_" + str(ind) + ".h5"
@@ -267,7 +267,7 @@ def initDataBase(savepath, param_dict):
 #            "weights","width","ncontrollers","type_control","TTcond",
 #            "cured_ndivs","delay","gain","maxcond","modopti","nactu","ndm",
 #            "nmodes","nrec","nvalid","control.nwfs","path2file"]
-    keys = param_dict.keys()
+    keys = list(param_dict.keys())
     keys.append("path2file")
     keys.append("validity")
     df = pandas.DataFrame(columns=keys)
@@ -283,7 +283,7 @@ def initDataBase(savepath, param_dict):
     store.put("U", df)
 
     store.close()
-    print "Matrices database created"
+    print("Matrices database created")
 
 
 def updateDataBase(h5file, savepath, matrix_type):
@@ -303,7 +303,7 @@ def updateDataBase(h5file, savepath, matrix_type):
         store = pandas.HDFStore(savepath + "matricesDataBase.h5")
         df = pandas.read_hdf(savepath + "matricesDataBase.h5", matrix_type)
         ind = len(df.index)
-        for i in f.attrs.keys():
+        for i in list(f.attrs.keys()):
             df.loc[ind, i] = f.attrs[i]
         df.loc[ind, "path2file"] = h5file
         df.loc[ind, "validity"] = False
@@ -342,7 +342,7 @@ def save_h5(filename, dataname, config, data):
     p_dict = params_dictionary(config)
     create_file_attributes(filename, p_dict)
     save_hdf5(filename, dataname, data)
-    print filename, "has been written"
+    print(filename, "has been written")
 
 
 def checkMatricesDataBase(savepath, config, param_dict):
@@ -702,17 +702,17 @@ def checkDmsParams(savepath, config, pdict, matricesToLoad):
 
 def validDataBase(savepath, matricesToLoad):
     store = pandas.HDFStore(savepath + "matricesDataBase.h5")
-    if not(matricesToLoad.has_key("A")):
+    if not("A" in matricesToLoad):
         validInStore(store, savepath, "A")
         validInStore(store, savepath, "B")
         validInStore(store, savepath, "istx")
         validInStore(store, savepath, "isty")
-    if not(matricesToLoad.has_key("pztok")):
+    if not("pztok" in matricesToLoad):
         validInStore(store, savepath, "pztok")
         validInStore(store, savepath, "pztnok")
-    if not(matricesToLoad.has_key("imat")):
+    if not("imat" in matricesToLoad):
         validInStore(store, savepath, "imat")
-    if not(matricesToLoad.has_key("eigenv")):
+    if not("eigenv" in matricesToLoad):
         validInStore(store, savepath, "eigenv")
         validInStore(store, savepath, "U")
     store.close()
@@ -869,7 +869,7 @@ def configFromH5(filename, config):
 
     config.p_rtc.set_nwfs(f.attrs.get("nwfs"))
 
-    print "Parameters have been read from ", filename, "header"
+    print("Parameters have been read from ", filename, "header")
 
 
 def writeHdf5SingleDataset(filename, data, datasetName="dataset"):

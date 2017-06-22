@@ -183,15 +183,15 @@ class widgetAOWindow(TemplateBaseClass):
         return self.aoCalib.getConfig(self, path)
         #return cf.returnConfigfromWao(self, filepath=path)
     def returnkl2V(self, path):
-        print "computing KL2V..."
+        print("computing KL2V...")
         KL2V = self._returnkl2V()
-        print "KL2V done"
-        print path
+        print("KL2V done")
+        print(path)
         if(self.pyroVersion == 4):
-            print "using V4 ..."
+            print("using V4 ...")
             self.writefits(KL2V, path)
         elif(self.pyroVersion == 3):
-            print "using V3 ..."
+            print("using V3 ...")
             return KL2V
         else:
             raise Exception("ERROR pyro version not set")
@@ -206,7 +206,7 @@ class widgetAOWindow(TemplateBaseClass):
 
     def doRefslopes(self):
         self.rtc.do_centroids_ref(0)
-        print "refslopes done"
+        print("refslopes done")
 
     def setCommandMatrix(self, cMat):
         return self.rtc.set_cmat(0, cMat)
@@ -274,7 +274,7 @@ class widgetAOWindow(TemplateBaseClass):
             quit()
             # sys.exit()
         else:
-            print "Exit aborted"
+            print("Exit aborted")
 
     def closeEvent(self, event):
         reply = QtGui.QMessageBox.question(self, 'Message',
@@ -308,18 +308,18 @@ class widgetAOWindow(TemplateBaseClass):
             sys.path.insert(0, pathfile)
 
             if self.config is not None:
-                print "Removing previous config"
+                print("Removing previous config")
                 self.config = None
                 config = None
 
-            print "loading ", filename.split(".py")[0]
+            print("loading ", filename.split(".py")[0])
             exec("import %s as config" % filename.split(".py")[0])
 
             sys.path.remove(pathfile)
         else:
             raise ValueError("Parameter file extension must be .py or .h5")
 
-        print "switching to generic Controller"
+        print("switching to generic Controller")
         config.p_controller0.set_type("generic")
 
         self.config = config
@@ -416,7 +416,7 @@ class widgetAOWindow(TemplateBaseClass):
         gpudevice = np.array([4, 5, 6, 7], dtype=np.int32)  # using 4 GPUs: 4-7
         self.ui.wao_deviceNumber.setDisabled(True)
 
-        print "-> using GPU", gpudevice
+        print("-> using GPU", gpudevice)
 
         if not self.c:
             if type(gpudevice) is np.ndarray:
@@ -508,16 +508,16 @@ class widgetAOWindow(TemplateBaseClass):
             self.SRcircleTarget[i].setPoints(cx, cy)
             self.SRcircleTarget[i].show()
 
-        print "===================="
-        print "init done"
-        print "===================="
-        print "objects initialized on GPU:"
-        print "--------------------------------------------------------"
-        print self.atm
-        print self.wfs
-        print self.dms
-        print self.tar
-        print self.rtc
+        print("====================")
+        print("init done")
+        print("====================")
+        print("objects initialized on GPU:")
+        print("--------------------------------------------------------")
+        print(self.atm)
+        print(self.wfs)
+        print(self.dms)
+        print(self.tar)
+        print(self.rtc)
 
         self.updateDisplay()
         self.p1.autoRange()
@@ -544,11 +544,11 @@ class widgetAOWindow(TemplateBaseClass):
                 self.dms.resetdm(
                     str(self.ui.wao_dmTypeSelector.currentText()), self.ui.wao_dmAlt.value())
                 self.updateDisplay()
-                print "DM " + str(ndm) + " reset"
+                print("DM " + str(ndm) + " reset")
             else:
-                print "Invalid DM : please select a DM to reset"
+                print("Invalid DM : please select a DM to reset")
         else:
-            print "There is not any dm to reset"
+            print("There is not any dm to reset")
 
     def computeDMrange(self, numdm, numwfs, push4imat=None, unitpervolt=None):
         i = numdm
@@ -612,10 +612,10 @@ class widgetAOWindow(TemplateBaseClass):
                 self.rtc.set_openloop(0, 1)  # openLoop
                 self.rtc.set_perturbcom(0, v)
                 iMatKL[kl, :] = self.applyVoltGetSlopes(noise=noise) / ampliVec[kl]
-            print "Doing KL interaction matrix on mode: #%d\r" % kl,
+            print("Doing KL interaction matrix on mode: #%d\r" % kl, end=' ')
             os.sys.stdout.flush()
 
-        print "Modal interaction matrix done in %3.0f seconds" % (time.time() - st)
+        print("Modal interaction matrix done in %3.0f seconds" % (time.time() - st))
         self.aoLoopClicked(True)
         self.ui.wao_run.setChecked(True)
 
@@ -796,8 +796,8 @@ class widgetAOWindow(TemplateBaseClass):
                             self.numberSelected, "se")
                         if(self.ui.wao_PSFlogscale.isChecked()):
                             if np.any(data <= 0):
-                                print(
-                                    "\nzero founds, log display disabled\n", RuntimeWarning)
+                                print((
+                                    "\nzero founds, log display disabled\n", RuntimeWarning))
                                 self.ui.wao_PSFlogscale.setCheckState(False)
                             else:
                                 data = np.log10(data)
@@ -952,7 +952,7 @@ class widgetAOWindow(TemplateBaseClass):
 
     def printInPlace(self, text):
         # This seems to trigger the GUI and keep it responsive
-        print "\r" + text,
+        print("\r" + text, end=' ')
         sys.stdout.flush()
         # sys.stdout.write(text)
 
@@ -993,7 +993,7 @@ try:
                 ps = PyroServer(wao)
                 ps.start()
             except:
-                print "Warning: Error while starting Pyro server"
+                print("Warning: Error while starting Pyro server")
 
     class PyroServer(Thread):
         """
@@ -1006,10 +1006,10 @@ try:
             self.setDaemon(1)
             self.ready = False
             self.object = obj
-            print "initThread"
+            print("initThread")
 
         def run(self):
-            print "Starting Pyro Server..."
+            print("Starting Pyro Server...")
             daemon = Pyro4.Daemon()
             ns = Pyro4.locateNS()
             self.ready = True
@@ -1022,11 +1022,11 @@ try:
             # print self.object.getVar()
             uri = daemon.register(self.object)
             ns.register("waoconfig", uri)
-            print "starting daemon"
+            print("starting daemon")
             daemon.requestLoop()
-            print "daemon started"
+            print("daemon started")
 except:
-    print "Error while initializing Pyro object"
+    print("Error while initializing Pyro object")
     pass
 
 

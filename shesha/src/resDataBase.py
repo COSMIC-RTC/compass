@@ -22,13 +22,13 @@ def createDf(colnamesList):
     if(type(colnamesList) is list):
         df = pd.DataFrame( columns=colnamesList) # res is the local dataframe for THIS data set
     else:
-        df = pd.DataFrame( columns=colnamesList.keys()) # res is the local dataframe for THIS data set
+        df = pd.DataFrame( columns=list(colnamesList.keys())) # res is the local dataframe for THIS data set
     return df
 
 def addcolumn(df, colnameList):
     nbcol = len(df.columns)
     for i in range(len(colnameList)):
-        print "adding %s at col num:%d" % (colnameList[i], nbcol+i)
+        print("adding %s at col num:%d" % (colnameList[i], nbcol+i))
         df.insert(nbcol+i ,colnameList[i], None)
     return df
 
@@ -39,7 +39,7 @@ def fillDf(df, colnames):
 
 
 def mergeDB(df1, df2):
-    print "TBDone"
+    print("TBDone")
     #
     dfmerged = df1.append(df2, ignore_index= True)
     return dfmerged
@@ -61,10 +61,10 @@ def readDataBase(name='compassDB', dbFormat=".h5", fullpath=None):
         fullpath = os.environ["SHESHA_ROOT"]+"/data/simuDB/"+name
 
     if(not glob.glob(fullpath)):
-        print "Cannot find database %s" % fullpath
+        print("Cannot find database %s" % fullpath)
         return 0
     else:
-        print "reloading database from: %s" %  fullpath
+        print("reloading database from: %s" %  fullpath)
 
 
     try:
@@ -73,11 +73,11 @@ def readDataBase(name='compassDB', dbFormat=".h5", fullpath=None):
         elif(dbFormat == ".csv"):
             tmp = pd.read_csv(fullpath)
         else:
-            print "Format ", dbFormat, " not recognized!"
+            print("Format ", dbFormat, " not recognized!")
             return
         return tmp
     except:
-        print "Error Could not read database"
+        print("Error Could not read database")
         return 0
 
 
@@ -103,7 +103,7 @@ def saveDataBase(df, name='compassDB', dbFormat=".h5"):
     elif(dbFormat == ".csv"):
         df.to_csv(fullname)
     else:
-        print "ERROR format %s NOT recognized" % dbFormat
+        print("ERROR format %s NOT recognized" % dbFormat)
 
 
 

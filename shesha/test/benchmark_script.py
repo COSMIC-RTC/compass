@@ -149,7 +149,7 @@ def script4bench(param_file, centroider, controller, devices, fwrite=True):
     rtc_init_time = timer.stop() - synctime
     timer.reset()
 
-    print "... Done with inits !"
+    print("... Done with inits !")
     # h5u.validDataBase(os.environ["SHESHA_ROOT"]+"/data/",matricesToLoad)
 
     strehllp = []
@@ -165,10 +165,10 @@ def script4bench(param_file, centroider, controller, devices, fwrite=True):
 #                                         |_|
 ###########################################################
     if(controller == "modopti"):
-        for zz in xrange(2048):
+        for zz in range(2048):
             atm.move_atmos()
 
-    for cc in xrange(config.p_loop.niter):
+    for cc in range(config.p_loop.niter):
         ch.threadSync()
         timer.start()
         atm.move_atmos()
@@ -178,7 +178,7 @@ def script4bench(param_file, centroider, controller, devices, fwrite=True):
 
         if(config.p_controllers[0].type_control != "geo"):
             if((config.p_target is not None) and (rtc is not None)):
-                for i in xrange(config.p_target.ntargets):
+                for i in range(config.p_target.ntargets):
                     timer.start()
                     target.atmos_trace(i, atm, tel)
                     ch.threadSync()
@@ -193,7 +193,7 @@ def script4bench(param_file, centroider, controller, devices, fwrite=True):
                         timer.reset()
 
             if(config.p_wfss is not None and wfs is not None):
-                for i in xrange(len(config.p_wfss)):
+                for i in range(len(config.p_wfss)):
                     timer.start()
                     wfs.sensors_trace(i, "atmos", tel, atm)
                     ch.threadSync()
@@ -245,7 +245,7 @@ def script4bench(param_file, centroider, controller, devices, fwrite=True):
 
         else:
             if(config.p_target is not None and target is not None):
-                for i in xrange(config.p_target.ntargets):
+                for i in range(config.p_target.ntargets):
                     timer.start()
                     target.atmos_trace(i, atm, tel)
                     ch.threadSync()
@@ -276,8 +276,8 @@ def script4bench(param_file, centroider, controller, devices, fwrite=True):
         if(cc > 50):
             strehllp.append(strehltmp[1])
 
-    print "\n done with simulation \n"
-    print "\n Final strehl : \n", strehllp[len(strehllp) - 1]
+    print("\n done with simulation \n")
+    print("\n Final strehl : \n", strehllp[len(strehllp) - 1])
 ###################################################################
 #  _   _
 # | | (_)
@@ -381,13 +381,13 @@ def script4bench(param_file, centroider, controller, devices, fwrite=True):
     try:
         df = store.get(version)
     except KeyError:
-        df = pandas.DataFrame(columns=keys_dict.keys(), dtype=object)
+        df = pandas.DataFrame(columns=list(keys_dict.keys()), dtype=object)
 
     ix = len(df.index)
 
     if(fwrite):
-        print "writing files"
-        for i in keys_dict.keys():
+        print("writing files")
+        for i in list(keys_dict.keys()):
             df.loc[ix, i] = keys_dict[i]
         store.put(version, df)
         store.close()
@@ -404,7 +404,7 @@ def script4bench(param_file, centroider, controller, devices, fwrite=True):
 if(len(sys.argv) < 4 or len(sys.argv) > 6):
     error = "wrong number of argument. Got %d (expect 4)\ncommande line should be: 'python benchmark_script.py <filename> <centroider> <controller>" % len(
         sys.argv)
-    raise StandardError(error)
+    raise Exception(error)
 
 filename = PARPATH + sys.argv[1]
 centroider = sys.argv[2]

@@ -41,9 +41,9 @@ import make_pupil as mkP
 
 if(len(sys.argv)==1):
     error= 'command line should be:"python -i test.py parameters_filename"\n with "parameters_filename" the path to the parameters file'
-    raise StandardError(error)
+    raise Exception(error)
 elif(len(sys.argv)==2):
-    print "Using Internal parameters..."
+    print("Using Internal parameters...")
     """
     -----------------
             INPUTS
@@ -58,10 +58,10 @@ elif(len(sys.argv)==2):
     NSSP = 92
     simulName = "PYR_39m_RoundPupil_FromHippo6"
 else:
-    print "-------------------------------------"
-    print "DETECTED BASH SCRIPT with parameters:"
-    print sys.argv
-    print "-------------------------------------"
+    print("-------------------------------------")
+    print("DETECTED BASH SCRIPT with parameters:")
+    print(sys.argv)
+    print("-------------------------------------")
 
     freq=float(sys.argv[2]) # AO Loop frequency
     RON=float(sys.argv[3]) # noise on the WFS measurement in electrons
@@ -74,15 +74,15 @@ else:
     GPU=int(sys.argv[10]) # GPU number
     comment="SRVsGSVsNControlledModes"
 
-print "Freq=", freq
-print "RON=", RON
-print "MODU=", MODU
-print "gain=", gain
-print "magnitude=", magnitude
-print "nKL_Filt=", nKL_Filt
-print "NSSP=", NSSP
-print "GPU=", GPU
-print "simulName=", simulName
+
+print("Freq=", freq)
+print("RON=", RON)
+print("MODU=", MODU)
+print("gain=", gain)
+print("magnitude=", magnitude)
+print("nKL_Filt=", nKL_Filt)
+print("GPU=", GPU)
+print("simulName=", simulName)
 
 
 pathResults="/volumes/hra/micado/"+simulName
@@ -135,23 +135,23 @@ if(GPU==1):
     GPUs = np.array([4,5,6,7], dtype=np.int32)
 else:
     GPUs = np.array([GPU], dtype=np.int32)
-print "Using GPUs: ", GPUs
+print("Using GPUs: ", GPUs)
 
 GPUs = np.array([4,5,6,7], dtype=np.int32)
 #GPUs = np.array([0,1,2,3], dtype=np.int32)
 
 
 if(not glob.glob(pathResults)):
-    print "Results folder not found. Creating it now:"
+    print("Results folder not found. Creating it now:")
     tools.system("mkdir "+pathResults)
 if(not glob.glob(pathResults+"/PSFs/")):
-    print "PSFs folder not found. Creating it now:"
+    print("PSFs folder not found. Creating it now:")
     tools.system("mkdir "+pathResults+"/PSFs/")
 if(not glob.glob(pathResults+"/AODATA/")):
-    print "AODATA folder not found. Creating it now:"
+    print("AODATA folder not found. Creating it now:")
     tools.system("mkdir "+pathResults+"/AODATA/")
 if(not glob.glob(pathResults+"/CircularBuffers/")):
-    print "CircularBuffers folder not found. Creating it now:"
+    print("CircularBuffers folder not found. Creating it now:")
     tools.system("mkdir "+pathResults+"/CircularBuffers/")
 
 #get parameters from file
@@ -170,7 +170,7 @@ elif(param_file.split('.')[-1] == "h5"):
 else:
     raise ValueError("Parameter file extension must be .py or .h5")
 
-print "param_file is",param_file
+print("param_file is",param_file)
 
 
 if(hasattr(config,"simul_name")):
@@ -180,7 +180,7 @@ if(hasattr(config,"simul_name")):
         simul_name=config.simul_name
 else:
     simul_name=""
-print "simul name is",simul_name
+print("simul name is",simul_name)
 
 matricesToLoad={}
 if(simul_name==""):
@@ -224,13 +224,10 @@ def makeFITSHeader(filepath, df):
             else:
                 value = val
 
-            if((type(value) is str)):
-                if(len(value)>50):
-                    print "warning", name, "keyword has been cut to 100 characters"
-                    #header.set(name, value[:50],'')
-                else:
-                    header.set(name, value,'')
-                #header.set(name+"_"+str(i), str(v),'')
+        if((type(value) is str)):
+            if(len(value)>50):
+                print("warning", name, "keyword has been cut to 100 characters")
+                #header.set(name, value[:50],'')
             else:
                 header.set(name, value,'')
 
@@ -240,29 +237,29 @@ def makeFITSHeader(filepath, df):
 def initSimu(config,c):
     param_dict = h5u.params_dictionary(config)
     matricesToLoad = h5u.checkMatricesDataBase(os.environ["SHESHA_ROOT"]+"/data/",config,param_dict)
-    print "->wfs"
+    print("->wfs")
     wfs, tel = ao.wfs_init(config.p_wfss, config.p_atmos, config.p_tel,config.p_geom, config.p_target, config.p_loop, config.p_dms)
-    print "->atmos"
+    print("->atmos")
     atm=ao.atmos_init(c,config.p_atmos,config.p_tel,config.p_geom,config.p_loop,config.p_wfss,wfs,config.p_target,rank=0)
-    print "->dm"
+    print("->dm")
     dms = ao.dm_init(config.p_dms, config.p_wfss, wfs, config.p_geom, config.p_tel)
-    print "->target"
+    print("->target")
     tar=ao.target_init(c,tel,config.p_target,config.p_atmos,config.p_geom,config.p_tel,config.p_dms)
-    print "->rtc"
+    print("->rtc")
     rtc = ao.rtc_init(tel, wfs, config.p_wfss, dms, config.p_dms,config.p_geom, config.p_rtc, config.p_atmos, atm, config.p_tel, config.p_loop, do_refslp=False, clean=clean, simul_name=simul_name, load=matricesToLoad, doimat=0)
 
     h5u.validDataBase(os.environ["SHESHA_ROOT"]+"/data/",matricesToLoad)
 
-    print "===================="
-    print "init done"
-    print "===================="
-    print "objects initialzed on GPU:"
-    print "--------------------------------------------------------"
-    print atm
-    print wfs
-    print dms
-    print tar
-    print rtc
+    print("====================")
+    print("init done")
+    print("====================")
+    print("objects initialzed on GPU:")
+    print("--------------------------------------------------------")
+    print(atm)
+    print(wfs)
+    print(dms)
+    print(tar)
+    print(rtc)
     return wfs,tel,atm,dms,tar,rtc
 
 
@@ -277,9 +274,9 @@ def computeModalResiduals(P, rtc, dms, tar):
 
 def loop(n,wfs,tel,atm,dms,tar,rtc, moveAtmos=True, noise=True, loopData=0, P=None):
     t0=time.time()
-    print "----------------------------------------------------";
-    print "iter# | S.E. SR | L.E. SR | Est. Rem. | framerate";
-    print "----------------------------------------------------";
+    print("----------------------------------------------------");
+    print("iter# | S.E. SR | L.E. SR | Est. Rem. | framerate");
+    print("----------------------------------------------------");
 
     """
     ph = tar.get_image(0, "se")
@@ -344,7 +341,7 @@ def loop(n,wfs,tel,atm,dms,tar,rtc, moveAtmos=True, noise=True, loopData=0, P=No
         RmsErrorTot.append(tarPhaseError)
         print "tarPhaseError =", tarPhaseError, "nm rms"
         if((i+1)%10==0):
-            print "Iter#:", i+1, "/",n
+            print("Iter#:", i+1, "/",n)
             t=0
             SRTmp = np.zeros(config.p_target.ntargets)
             SRTmp2 = np.zeros(config.p_target.ntargets)
@@ -356,7 +353,7 @@ def loop(n,wfs,tel,atm,dms,tar,rtc, moveAtmos=True, noise=True, loopData=0, P=No
                 signal_le += "SR L.E %3.2fMicrons:: %1.2f   " % (tar.Lambda[t],SR[1])
                 SRTmp[t]=SR[0]*100
                 SRTmp2[t]=SR[1]*100
-            print signal_se + signal_le
+            print(signal_se + signal_le)
             sr_se[jj,:] = SRTmp.copy()
             sr_le[jj,:] = SRTmp2.copy()
 
@@ -366,7 +363,7 @@ def loop(n,wfs,tel,atm,dms,tar,rtc, moveAtmos=True, noise=True, loopData=0, P=No
             jj+=1
 
     t1=time.time()
-    print " loop execution time:",t1-t0,"  (",n,"iterations), ",(t1-t0)/n,"(mean)  ", n/(t1-t0),"Hz"
+    print(" loop execution time:",t1-t0,"  (",n,"iterations), ",(t1-t0)/n,"(mean)  ", n/(t1-t0),"Hz")
     SRList = []
     for t in range(config.p_target.ntargets):
         SR = tar.get_strehl(t)
@@ -386,8 +383,8 @@ simunames = {"PSFFilenames":None,"rmsError":None, "rmsErrorList":None, "comment"
 
 resAll = db.readDataBase(fullpath=dBResult) # Reads all the database if exists
 if(not (type(resAll) == pd.core.frame.DataFrame)):
-    print "Creating compass database"
-    resAll = db.createDf(colnames.keys()+simunames.keys()) # Creates the global compass Db
+    print("Creating compass database")
+    resAll = db.createDf(list(colnames.keys())+list(simunames.keys())) # Creates the global compass Db
 
 # -----------------------------------------------------------------------------
 # ----------- Replacing values from user defined variables-------------------
@@ -407,8 +404,7 @@ config.p_loop.set_niter(niter)
 
 config.p_wfs0.set_gsmag(magnitude)
 
-
-res = pd.DataFrame(columns=colnames.keys()+simunames.keys()) # Create Db
+res = pd.DataFrame(columns=list(colnames.keys())+list(simunames.keys())) # Create Db
 wfs,tel,atm,dms,tar,rtc = initSimu(config, c) # Init COMPASS Simu!
 
 
@@ -447,7 +443,7 @@ nfilt = nKL_Filt
 
 # Computing imat on diffraction limited source.
 if(imatFromFile):
-    print "Reloading imat Modal and gains4K from files..."
+    print("Reloading imat KL2V and gains4K from files...")
     #print imat0_PATH+"/"+iMatName
     #print imat0_PATH+"/gains4K_MODU_"+str(int(MODU))+".fits"
     imat = pf.getdata(imat0_PATH+"/"+iMatName)
@@ -458,24 +454,19 @@ if(imatFromFile):
     gains4K[-2:]=gains4KRAW[-2:]
     gainopt = gains4K.copy()
 else:
-    print "Computing Control Modal basis ", ModalBasisType
-    if(ModalBasisType == "Btt"):
-        modalBasis, P = com.getModes2VBasis("Btt")
-    else:
-        KL2V, _ = com.getModes2VBasis("KL2V")
-        modalBasis = cal.normalizeKL2V(KL2V)
-    print "Computing Imat Diffraction Limited"
-    imat = cal.computeImatKL(com, modalBasis, aoAd.dm0.push4iMat, aoAd.dm1.push4iMat,  withTurbu=False)
-    if((imat.shape[1]/2) < imat.shape[0]):# slopes < Nactus
-        print "Detected Nslopes < Nactu"
-        gains = np.linspace(1.,1.,(aoAd.Nslopes/2)-2-nfilt)
-        gains[-2:] = 1.0
-        nfilt = aoAd.Nactu - (aoAd.Nslopes/2) + nfilt
-        print "filtering " , nfilt, " modes in modal iMat"
+    KL2V = com.getKL2V()
+    KL2VNorm = cal.normalizeKL2V(KL2V)
+    print("Computing Imat Diffraction Limited")
+    imat = cal.computeImatKL(com, KL2VNorm, aoAd.dm0.push4iMat, aoAd.dm1.push4iMat,  withTurbu=False, noise=False)
+    gains = np.linspace(1.,1.,aoAd.Nactu-2-nfilt); gains[-2:] = 1.0;
+    cmat0, cmatKL0 = cal.computeCmatKL(imat, KL2VNorm, nfilt, gains);
+    com.setCommandMatrix(cmat0)
+    com.closeLoop()
+    print("Closing Loop with Imat Diffraction Limited")
 
-    else:
-        gains = np.linspace(1.,1.,aoAd.Nactu-2-nfilt)
-        gains[-2:] = 1.0
+    # Closing loop until we reach the fitting error for the given ao config + turbulence conditions (seeing ect...) but without noise and bandwidth (screen is frozen)
+    SR, lambdaTargetList, sr_se, numiter, _, _, _= loop(200,wfs,tel,atm,dms,tar,rtc, moveAtmos=True, noise=True)
+    print("SR After 200 iterations of closed loop:")
 
     if(PYR):
         cmat0, cmatModal0 = cal.computeCmatKL(imat, modalBasis, nfilt, gains)
@@ -539,7 +530,7 @@ com.closeLoop()
 # -----------------------------------------------------------------------------
 
 
-print "Starting Real Loop"
+print("Starting Real Loop")
 com.resetSR()
 # com.resetDm()
 SR, lambdaTargetList, sr_se, sr_le, numiter, slopesCB, voltsCB, PSFtarget, rmsErrorList = loop(config.p_loop.niter,wfs,tel,atm,dms,tar,rtc, loopData=nbLoopData, P=P)
@@ -613,7 +604,7 @@ res.rmsErrorList.values[0] = rmsErrorList
 res.rmsError.values[0] = np.average(np.array(rmsErrorList))
 
 # --------------- PSF Stuff ----------------------
-print "Saving PSFs..."
+print("Saving PSFs...")
 PSFNameList = []
 for t in range(config.p_target.ntargets):
 
@@ -642,7 +633,7 @@ for t in range(config.p_target.ntargets):
         makeFITSHeader(filepath, res)
     else:
         res.PSFFilenames.values[0] = ["PSF NOT SAVED"]
-print "Done"
+print("Done")
 res.PSFFilenames.values[0] = PSFNameList
 
 
@@ -652,7 +643,7 @@ resAll = db.fillDf(resAll, res) # Saving in global DB
 resAll.to_hdf(dBResult, "resAll", complevel=9,complib='blosc')
 #db.saveDataBase(resAll)
 
-print "Simulation Done..."
+print("Simulation Done...")
 
 """
 except Exception as e:

@@ -69,7 +69,7 @@ def get_err_contributors(filename,contributors):
 
 def get_pup(filename):
     f = h5py.File(filename,'r')
-    if(f.keys().count("spup")):
+    if(list(f.keys()).count("spup")):
         spup = f["spup"][:]
     else:
         indx_pup = f["indx_pup"][:]
@@ -86,7 +86,7 @@ def get_pup(filename):
 def get_IF(filename):
     f = h5py.File(filename,'r')
     IF = csr_matrix((f["IF.data"][:], f["IF.indices"][:], f["IF.indptr"][:]))
-    if(f.keys().count("TT")):
+    if(list(f.keys()).count("TT")):
         T = f["TT"][:]
     else:
         T = IF[-2:,:].toarray()
@@ -147,7 +147,7 @@ def psf_rec_roket_file_cpu(filename):
         amplipup[:phase.shape[0],:phase.shape[1]] = np.exp(-1j*phase*scale)
         amplipup = np.fft.fft2(amplipup)
         psf += np.fft.fftshift(np.abs(amplipup)**2) / IF.shape[1] / IF.shape[1] / err.shape[1]
-        print "\rComputing and stacking PSF : %d%%" % ((k*100/err.shape[1])),
+        print("\rComputing and stacking PSF : %d%%" % ((k*100/err.shape[1])), end=' ')
     f.close()
     return psf
 
@@ -190,8 +190,8 @@ def psf_rec_Vii(filename,err=None,fitting=True,covmodes=None,cov=None):
     otf2 = gamora.get_otfVii()
 
     otftel /= otftel.max()
-    if(f.keys().count("psfortho") and fitting):
-        print "\nAdding fitting to PSF..."
+    if(list(f.keys()).count("psfortho") and fitting):
+        print("\nAdding fitting to PSF...")
         psfortho = f["psfortho"][:]
         otffit = np.real(np.fft.fft2(psfortho))
         otffit /= otffit.max()
@@ -202,8 +202,8 @@ def psf_rec_Vii(filename,err=None,fitting=True,covmodes=None,cov=None):
     psf *= (psf.shape[0]*psf.shape[0]/float(np.where(spup)[0].shape[0]))
     f.close()
     tac = time.time()
-    print " "
-    print "PSF renconstruction took ",tac-tic," seconds"
+    print(" ")
+    print("PSF renconstruction took ",tac-tic," seconds")
     return otftel, otf2, psf, gamora
 
 def psf_rec_vii_cpu(filename):
@@ -211,7 +211,7 @@ def psf_rec_vii_cpu(filename):
     IF,T = get_IF(filename)
     ratio_lambda = 2*np.pi/f.attrs["target.Lambda"][0]
     # Telescope OTF
-    print "Computing telescope OTF..."
+    print("Computing telescope OTF...")
     spup = get_pup(filename)
     mradix = 2
     fft_size = mradix **int((np.log(2 * spup.shape[0]) / np.log(mradix)) + 1)
@@ -225,20 +225,20 @@ def psf_rec_vii_cpu(filename):
     mask = np.ones((fft_size,fft_size))
     mask[np.where(otftel < 1e-5)] = 0
     otftel = otftel / otftel.max()
-    print "Done"
+    print("Done")
     # Covariance matrix
-    print "Computing covariance matrix..."
+    print("Computing covariance matrix...")
     err = get_err(filename)
     P = f["P"][:]
     err = P.dot(err)
     Btt = f["Btt"][:]
     #modes = IF.T.dot(Btt)
     covmodes = err.dot(err.T) / err.shape[1]
-    print "Done"
+    print("Done")
     # Vii algorithm
-    print "Diagonalizing cov matrix..."
+    print("Diagonalizing cov matrix...")
     e,V = np.linalg.eig(covmodes)
-    print "Done"
+    print("Done")
     tmp = np.zeros((fft_size,fft_size))
     newmodek = tmp.copy()
     ind = np.where(pup)
@@ -273,8 +273,8 @@ def test_Vii(filename):
     c = time.time()
     cputime = b-a
     gputime = c-b
-    print "CPU exec time : ", cputime, " s"
-    print "GPU exec time : ", gputime, " s"
-    print "Speed up : x", cputime/gputime
-    print "---------------------------------"
-    print "precision on psf : ", np.abs(psf_cpu-psf_gpu).max()/psf_cpu.max()
+    print("CPU exec time : ", cputime, " s")
+    print("GPU exec time : ", gputime, " s")
+    print("Speed up : x", cputime/gputime)
+    print("---------------------------------")
+    print("precision on psf : ", np.abs(psf_cpu-psf_gpu).max()/psf_cpu.max())

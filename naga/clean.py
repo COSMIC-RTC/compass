@@ -17,7 +17,7 @@ for dirname in ('build', '__pycache__'):
 for filepattern in ('*.so', SRC+'*.pyc'):
     for filename in glob.glob(filepattern):
         
-            print("delete {}".format(filename))        
+            print(("delete {}".format(filename)))        
             os.remove(filename)
 
 FILE=['naga_obj', 'naga_host_obj', 'naga_sparse_obj', 'naga_magma']

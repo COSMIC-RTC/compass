@@ -20,16 +20,16 @@ from distutils.extension import Extension
 # Remove the "-Wstrict-prototypes" compiler option, which isn't valid for C++.
 import distutils.sysconfig
 cfg_vars = distutils.sysconfig.get_config_vars()
-for key, value in cfg_vars.items():
+for key, value in list(cfg_vars.items()):
     if type(value) == str:
         cfg_vars[key] = value.replace("-Wstrict-prototypes", "")
 # ==================================
 
-print sys.prefix
-print "SYS.PATH"
-print "======================================"
-print sys.path
-print "======================================"
+print((sys.prefix))
+print("SYS.PATH")
+print("======================================")
+print((sys.path))
+print("======================================")
 
 listMod = ["shesha_param", "shesha_telescope", "shesha_sensors", "shesha_atmos",
            "shesha_dms", "shesha_target", "shesha_rtc", "shesha_gamora", "shesha_groot", 	 		   "shesha_acquisim"]
@@ -212,12 +212,12 @@ if parFile:
 
 
 def dependencies_module(name):
-    print "======================================="
-    print "resolving dependencies for", name
-    print "======================================="
+    print( "=======================================")
+    print(( "resolving dependencies for", name))
+    print( "=======================================")
     try:
         dep = dependencies[name]
-        print "dependencies:", dep
+        print(("dependencies:", dep))
         if(os.path.exists("src/" + name + ".cpp")):
             for d in dep:
                 if (os.stat("src/" + d + ".pyx").st_mtime >
@@ -225,14 +225,14 @@ def dependencies_module(name):
                     # cpp file outdated if exists
                     if (os.path.exists("src/" + name + ".cpp")):
                         os.remove("src/" + name + ".cpp")
-    except KeyError, e:
-        print e
+    except: # KeyError e:
+        print("error")
 
 
 def compile_module(name):
-    print "======================================="
-    print "creating module ", name
-    print "======================================="
+    print("=======================================")
+    print(("creating module ", name))
+    print("=======================================")
     ext = Extension(name,
                     sources=['src/' + name + '.pyx'],
                     extra_compile_args=["-Wno-unused-function", "-Wno-unused-label", "-Wno-cpp",

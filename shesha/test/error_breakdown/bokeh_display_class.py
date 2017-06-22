@@ -54,7 +54,7 @@ class html_display:
         self.nactus = self.f["com"][:].shape[0]
         self.meths = ["Classical","Imat geom 0","Imat geom 1","Imat hacked"]
         self.plot_type = ["Commands","Variance"]
-        self.coms_list = self.f.keys()
+        self.coms_list = list(self.f.keys())
         self.url = "http://hippo6.obspm.fr/~fferreira/bokeh_display"
         self.old = None
         
@@ -166,20 +166,20 @@ class html_display:
                 data=self.files[i][j][:]
                 if(plot_val == "Commands"):
                     yi.append(data[:,iteration].tolist())
-                    xi.append(range(len(data[:,iteration])))
+                    xi.append(list(range(len(data[:,iteration]))))
                     coloris.append(self.colors[j])
                     self.p.yaxis.axis_label = "Volts"
                     
                 elif(plot_val == "Variance"):
                     yi.append(np.var(data,axis=1).tolist())
-                    xi.append(range(len(np.var(data,axis=1))))
+                    xi.append(list(range(len(np.var(data,axis=1)))))
                     coloris.append(self.colors[j])
                     self.p.yaxis.axis_label = "Variance"
 
             source = self.sources[i]
             source.data = dict(x=xi,y=yi,color=coloris)
             
-        print "Plots updated"
+        print("Plots updated")
     
         
     def update_matrix(self,attrname,old,new):
@@ -188,14 +188,14 @@ class html_display:
         ff = self.imat.value
         A_cov = self.files[ff][A_val][:]
         B_cov = self.files[ff][B_val][:]
-        print "Values ok"
+        print("Values ok")
         self.covmat = (np.dot(A_cov,B_cov.T)/B_cov.shape[1])
         mpl.image.imsave("/home/fferreira/public_html/tmp.png",self.covmat)
-        print "dot product ok"
+        print("dot product ok")
         #self.sourceC.data = dict(url=[self.url],x=0,y=covmat.shape[0],dw=covmat.shape[0],dh=covmat.shape[0])
         #self.sourceC.data = dict(C=[covmat],x=[0],y=[0],dw=[covmat.shape[0]],dh=[covmat.shape[0]])
         
-        print "Matrix updated"  
+        print("Matrix updated")  
         
     def cut_matrix(self):
         self.dialog.visible = False
@@ -224,12 +224,12 @@ class html_display:
         self.dialog.visible = True
         A_cov = self.files[ff][A_val][:]
         B_cov = self.files[ff][B_val][:]
-        print "Values ok"
+        print("Values ok")
         self.covmat = (np.dot(A_cov,B_cov.T)/B_cov.shape[1])                
-        print "dot product ok"
+        print("dot product ok")
         if(powa != 1 and powa != 0):
             self.covmat = np.abs(self.covmat)**(1./powa)
-            print "scale adjusted"
+            print("scale adjusted")
         self.cmin.start = self.covmat.min()
         self.cmin.end = self.covmat.max()
         self.cmin.value = self.cmin.start
@@ -245,7 +245,7 @@ class html_display:
 
         #self.sourceC.data = dict(url=[self.url],x=0,y=covmat.shape[0],dw=covmat.shape[0],dh=covmat.shape[0])
         #self.draw.disabled = False
-        print "Matrix updated2"
+        print("Matrix updated2")
         self.dialog.visible = False
         
 

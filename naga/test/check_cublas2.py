@@ -11,9 +11,9 @@ sizem=512
 sizen=1024
 
 
-print ""
-print "Test cublas 2"
-print "Precision: ", prec
+print("")
+print("Test cublas 2")
+print("Precision: ", prec)
 
 c=ch.naga_context()
 

@@ -23,7 +23,7 @@ sys.path.insert(0,param_path)
 exec("import %s as config" % filename.split(".py")[0])
 sys.path.remove(param_path)
 
-print "param_file is",param_file
+print("param_file is",param_file)
 
 if(hasattr(config,"simul_name")):
     if(config.simul_name is None):
@@ -44,39 +44,39 @@ c=ch.naga_context()
 c.set_activeDevice(0)
 
 #    wfs
-print "->wfs"
+print("->wfs")
 wfs=ao.wfs_init(config.p_wfss,config.p_atmos,config.p_tel,config.p_geom,config.p_target,config.p_loop, 1,0,config.p_dms)
 
 #   atmos
-print "->atmos"
+print("->atmos")
 atm=ao.atmos_init(c,config.p_atmos,config.p_tel,config.p_geom,config.p_loop,config.p_wfss,wfs,config.p_target,rank=0)
 
 #   dm 
-print "->dm"
+print("->dm")
 dms=ao.dm_init(config.p_dms,config.p_wfss[0],config.p_geom,config.p_tel)
 
 #   target
-print "->target"
+print("->target")
 tar=ao.target_init(c,config.p_target,config.p_atmos,config.p_geom,config.p_tel,config.p_dms)
 
-print "->rtc"
+print("->rtc")
 #   rtc
 rtc=ao.rtc_init(wfs,config.p_wfss,dms,config.p_dms,config.p_geom,config.p_rtc,config.p_atmos,atm,config.p_tel,config.p_loop,tar,config.p_target,clean=clean,simul_name=simul_name)
 
-print "===================="
-print "init done"
-print "===================="
-print "objects initialzed on GPU:"
-print "--------------------------------------------------------"
-print atm
-print wfs
-print dms
-print tar
-print rtc
+print("====================")
+print("init done")
+print("====================")
+print("objects initialzed on GPU:")
+print("--------------------------------------------------------")
+print(atm)
+print(wfs)
+print(dms)
+print(tar)
+print(rtc)
 
-print "----------------------------------------------------";
-print "iter# | S.E. SR | L.E. SR | Est. Rem. | framerate";
-print "----------------------------------------------------";
+print("----------------------------------------------------");
+print("iter# | S.E. SR | L.E. SR | Est. Rem. | framerate");
+print("----------------------------------------------------");
 
 ###############################################################################################################################################################
 # Here, we want to get centroids obtain from a SH wfs seeing an atmos screen
@@ -121,7 +121,7 @@ def loop(n,r,e):
         e[:,i]=rtc.getCom(0)
         
             
-        print "\r Recording... %d%%"%(i*100/n),
+        print("\r Recording... %d%%"%(i*100/n), end=' ')
         
 def covariance_analysis(r):
     pass

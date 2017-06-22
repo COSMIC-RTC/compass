@@ -24,11 +24,11 @@ comm = MPI.COMM_WORLD
 comm_size = comm.Get_size()
 rank = comm.Get_rank()
 
-print "TEST SHESHA\n closed loop with MPI"
+print("TEST SHESHA\n closed loop with MPI")
 
 if(len(sys.argv) != 2):
     error = 'command line should be:"python test.py parameters_filename"\n with "parameters_filename" the path to the parameters file'
-    raise StandardError(error)
+    raise Exception(error)
 
 # get parameters from file
 param_file = sys.argv[1]
@@ -46,7 +46,7 @@ elif(param_file.split('.')[-1] == "h5"):
 else:
     raise ValueError("Parameter file extension must be .py or .h5")
 
-print "param_file is", param_file
+print("param_file is", param_file)
 
 
 if(hasattr(config, "simul_name")):
@@ -56,7 +56,7 @@ if(hasattr(config, "simul_name")):
         simul_name = config.simul_name
 else:
     simul_name = ""
-print "simul name is", simul_name
+print("simul name is", simul_name)
 
 matricesToLoad = {}
 if(simul_name == ""):
@@ -69,26 +69,26 @@ else:
 
 # initialisation:
 #    wfs
-print "->wfs"
+print("->wfs")
 wfs, tel = ao.wfs_init(config.p_wfss, config.p_atmos, config.p_tel,
                        config.p_geom, config.p_target, config.p_loop, comm_size, rank, config.p_dms)
 
 #   atmos
-print "->atmos"
+print("->atmos")
 atm = ao.atmos_init(c, config.p_atmos, config.p_tel,
                     config.p_geom, config.p_loop, rank=rank, load=matricesToLoad)
 
 #   dm
-print "->dm"
+print("->dm")
 dms = ao.dm_init(config.p_dms, config.p_wfss, wfs, config.p_geom, config.p_tel)
 
 #   target
-print "->target"
+print("->target")
 tar = ao.target_init(c, tel, config.p_target, config.p_atmos,
                      config.p_geom, config.p_tel, config.p_dms)
 
 #   rtc
-print "->rtc"
+print("->rtc")
 rtc = ao.rtc_init(tel, wfs, config.p_wfss, dms, config.p_dms, config.p_geom, config.p_rtc, config.p_atmos,
                   atm, config.p_tel, config.p_loop, clean=clean, simul_name=simul_name, load=matricesToLoad)
 
@@ -97,20 +97,20 @@ if not clean and rank == 0:
 
 comm.Barrier()
 if(rank == 0):
-    print "===================="
-    print "init done"
-    print "===================="
-    print "objects initialzed on GPU:"
-    print "--------------------------------------------------------"
-    print atm
-    print wfs
-    print dms
-    print tar
-    print rtc
+    print("====================")
+    print("init done")
+    print("====================")
+    print("objects initialzed on GPU:")
+    print("--------------------------------------------------------")
+    print(atm)
+    print(wfs)
+    print(dms)
+    print(tar)
+    print(rtc)
 
-    print "----------------------------------------------------"
-    print "iter# | S.E. SR | L.E. SR | Est. Rem. | framerate"
-    print "----------------------------------------------------"
+    print("----------------------------------------------------")
+    print("iter# | S.E. SR | L.E. SR | Est. Rem. | framerate")
+    print("----------------------------------------------------")
 comm.Barrier()
 
 mimg = 0.  # initializing average image
@@ -187,10 +187,10 @@ def loop(n):
                 """
 
                 strehltmp = tar.get_strehl(0)
-                print "%5d" % (i + 1), "  %1.5f" % strehltmp[0], "  %1.5f" % strehltmp[1]
+                print("%5d" % (i + 1), "  %1.5f" % strehltmp[0], "  %1.5f" % strehltmp[1])
 
     t1 = time.time()
-    print rank, "| loop execution time:", t1 - t0, "  (", n, "iterations), ", (t1 - t0) / n, "(mean)  ", n / (t1 - t0), "Hz"
+    print(rank, "| loop execution time:", t1 - t0, "  (", n, "iterations), ", (t1 - t0) / n, "(mean)  ", n / (t1 - t0), "Hz")
 
 
 loop(config.p_loop.niter)

@@ -19,7 +19,7 @@ try:
 except ImportError as error:
     import warnings
     warnings.warn("GPU not accessible", RuntimeWarning)
-    print "due to: ", error
+    print("due to: ", error)
 
 
 import sys
@@ -73,7 +73,7 @@ try:
 
     USE_PYRO = True
 except:
-    print "Could not initialize Pyro..."
+    print("Could not initialize Pyro...")
     USE_PYRO = False
 
 
@@ -191,7 +191,7 @@ class widgetAOWindow(TemplateBaseClass):
         ADOPTPATH = os.getenv("ADOPTPATH")
         sys.path.append(ADOPTPATH+"/widgets")
         from pyrStats import widget_pyrStats
-        print "OK Pyramid Tools Widget initialized"
+        print("OK Pyramid Tools Widget initialized")
         self.wpyr = widget_pyrStats()
         self.wpyr.show()
 
@@ -218,18 +218,18 @@ class widgetAOWindow(TemplateBaseClass):
 
     def setPyrModulation(self, pyrmod):
         self.rtc.set_pyr_ampl(0, pyrmod, self.config.p_wfss, self.config.p_tel)
-        print "PYR modulation set to: ",pyrmod, "L/D"
+        print("PYR modulation set to: ",pyrmod, "L/D")
         self.rtc.docentroids(0) # To be ready for the next getSlopes
 
 
     def setPyrMethod(self, pyrmethod):
         self.rtc.set_pyr_method(0, pyrmethod, self.config.p_centroiders) # Sets the pyr method
-        print "PYR method set to: ", self.rtc.get_pyr_method(0)
+        print("PYR method set to: ", self.rtc.get_pyr_method(0))
         self.rtc.docentroids(0) # To be ready for the next getSlopes
 
     def setNoise(self, noise, numwfs=0):
         self.wfs.set_noise(numwfs, noise)
-        print "Noise set to: ", noise
+        print("Noise set to: ", noise)
 
 
     def getSlopesGeom(self, nb):
@@ -385,7 +385,7 @@ class widgetAOWindow(TemplateBaseClass):
 
     def doRefslopes(self):
         self.rtc.do_centroids_ref(0)
-        print "refslopes done"
+        print("refslopes done")
 
     def loadRefSlopes(self, ref):
         self.rtc.set_centroids_ref(0, ref)
@@ -464,7 +464,7 @@ class widgetAOWindow(TemplateBaseClass):
             quit()
             # sys.exit()
         else:
-            print "Exit aborted"
+            print("Exit aborted")
 
     def closeEvent(self, event):
         reply = QtGui.QMessageBox.question(self, 'Message',
@@ -499,7 +499,7 @@ class widgetAOWindow(TemplateBaseClass):
 
             if self.config is not None:
                 name = self.config.__name__
-                print "Removing previous config"
+                print("Removing previous config")
                 self.config = None
                 config = None
                 try:
@@ -507,14 +507,14 @@ class widgetAOWindow(TemplateBaseClass):
                 except:
                     pass
 
-            print "loading ", filename.split(".py")[0]
+            print("loading ", filename.split(".py")[0])
             exec("import %s as config" % filename.split(".py")[0])
 
             sys.path.remove(pathfile)
         else:
             raise ValueError("Parameter file extension must be .py or .h5")
 
-        print "switching to generic Controller"
+        print("switching to generic Controller")
         config.p_controller0.set_type("generic")
 
         self.config = config
@@ -615,7 +615,7 @@ class widgetAOWindow(TemplateBaseClass):
         #gpudevice = np.array([4], dtype=np.int32)  # using 4 GPUs: 4-7
         self.ui.wao_deviceNumber.setDisabled(True)
 
-        print "-> using GPU", gpudevice
+        print("-> using GPU", gpudevice)
 
         if not self.c:
             if type(gpudevice) is np.ndarray:
@@ -707,16 +707,16 @@ class widgetAOWindow(TemplateBaseClass):
             self.SRcircleTarget[i].setPoints(cx, cy)
             self.SRcircleTarget[i].show()
 
-        print "===================="
-        print "init done"
-        print "===================="
-        print "objects initialized on GPU:"
-        print "--------------------------------------------------------"
-        print self.atm
-        print self.wfs
-        print self.dms
-        print self.tar
-        print self.rtc
+        print("====================")
+        print("init done")
+        print("====================")
+        print("objects initialized on GPU:")
+        print("--------------------------------------------------------")
+        print(self.atm)
+        print(self.wfs)
+        print(self.dms)
+        print(self.tar)
+        print(self.rtc)
 
         self.updateDisplay()
         self.p1.autoRange()
@@ -743,11 +743,11 @@ class widgetAOWindow(TemplateBaseClass):
                 self.dms.resetdm(
                     str(self.ui.wao_dmTypeSelector.currentText()), self.ui.wao_dmAlt.value())
                 self.updateDisplay()
-                print "DM " + str(ndm) + " reset"
+                print("DM " + str(ndm) + " reset")
             else:
-                print "Invalid DM : please select a DM to reset"
+                print("Invalid DM : please select a DM to reset")
         else:
-            print "There is not any dm to reset"
+            print("There is not any dm to reset")
 
     def computeDMrange(self, numdm, numwfs, push4imat=None, unitpervolt=None):
         i = numdm
@@ -811,10 +811,10 @@ class widgetAOWindow(TemplateBaseClass):
                 self.rtc.set_openloop(0, 1)  # openLoop
                 self.rtc.set_perturbcom(0, v)
                 iMatKL[kl, :] = self.applyVoltGetSlopes(noise=noise) / ampliVec[kl]
-            print "Doing KL interaction matrix on mode: #%d\r" % kl,
+            print("Doing KL interaction matrix on mode: #%d\r" % kl, end=' ')
             os.sys.stdout.flush()
 
-        print "Modal interaction matrix done in %3.0f seconds" % (time.time() - st)
+        print("Modal interaction matrix done in %3.0f seconds" % (time.time() - st))
         self.aoLoopClicked(True)
         self.ui.wao_run.setChecked(True)
 
@@ -944,7 +944,7 @@ class widgetAOWindow(TemplateBaseClass):
                         centroids = self.rtc.getCentroids(0)
 
                         if((wao.rtc.getCentroids(0)==0).all() is True):
-                            print "Warning all slopes = 0"
+                            print("Warning all slopes = 0")
                             return
 
                         nvalid = [
@@ -1188,7 +1188,7 @@ class widgetAOWindow(TemplateBaseClass):
 
     def printInPlace(self, text):
         # This seems to trigger the GUI and keep it responsive
-        print "\r" + text,
+        print("\r" + text, end=' ')
         sys.stdout.flush()
         # sys.stdout.write(text)
 
@@ -1229,7 +1229,7 @@ try:
                 ps = PyroServer(wao)
                 ps.start()
             except:
-                print "Warning: Error while starting Pyro server"
+                print("Warning: Error while starting Pyro server")
 
     class PyroServer(Thread):
         """
@@ -1242,10 +1242,10 @@ try:
             self.setDaemon(1)
             self.ready = False
             self.object = obj
-            print "initThread"
+            print("initThread")
 
         def run(self):
-            print "Starting Pyro Server..."
+            print("Starting Pyro Server...")
             self.locator = Pyro.naming.NameServerLocator()
             ns = self.locator.getNS()
             Pyro.core.initServer()
@@ -1261,9 +1261,9 @@ try:
                 pass
             # print self.object.getVar()
             daemon.connect(self.object, "waoconfig")
-            print "starting daemon"
+            print("starting daemon")
             daemon.requestLoop()
-            print "daemon started"
+            print("daemon started")
 except:
     pass
 

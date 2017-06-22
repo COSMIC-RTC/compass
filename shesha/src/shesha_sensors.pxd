@@ -75,7 +75,7 @@ cdef class Sensors:
     cpdef _get_slopesDims(self, int n)
     cdef _get_slopes(self, int n)
     cpdef slopes_geom(self, int nsensors, int t)
-    cpdef sensors_trace(self, int n, str type_trace, Telescope tel=?, Atmos atmos=?, Dms dms=?, int rst=?, int ncpa=?)
+    cpdef sensors_trace(self, int n, bytes type_trace, Telescope tel=?, Atmos atmos=?, Dms dms=?, int rst=?, int ncpa=?)
     cpdef get_bincubeNotNoisy(self, int n)
     cpdef get_binimg_notnoisy(self, int n)
     cpdef set_bincube(self, int n, np.ndarray[ndim=3, dtype=np.float32_t] data)

@@ -57,12 +57,12 @@ def test_fft_C2C():
     if(0 < np.abs(data.item(MI).imag)):
         dI = 10 ** np.ceil(np.log10(np.abs(data.item(MI).imag)))
 
-    print ""
-    print "Test FFT forward C2C"
-    print "Precision: ", prec
-    print "Execution time:"
-    print "Python: ", t2 - t1
-    print "Carma : ", t3 - t2
+    print("")
+    print("Test FFT forward C2C")
+    print("Precision: ", prec)
+    print("Execution time:")
+    print("Python: ", t2 - t1)
+    print("Carma : ", t3 - t2)
 
     npt.assert_almost_equal(data.item(MR).real / dR, data_gpu.item(MR).real / dR, decimal=dec)
     npt.assert_almost_equal(data.item(MI).imag / dI, data_gpu.item(MI).imag / dI, decimal=dec)
@@ -92,12 +92,12 @@ def test_fft_C2C():
     if(0 < np.abs(data.item(MI).imag)):
         dI = 10 ** np.ceil(np.log10(np.abs(data.item(MI).imag)))
 
-    print ""
-    print "Test FFT backward C2C"
-    print "Precision: ", prec
-    print "Execution time:"
-    print "Python: ", t2 - t1
-    print "Carma : ", t3 - t2
+    print("")
+    print("Test FFT backward C2C")
+    print("Precision: ", prec)
+    print("Execution time:")
+    print("Python: ", t2 - t1)
+    print("Carma : ", t3 - t2)
 
     npt.assert_almost_equal(data.item(MR).real / dR, data_gpu.item(MR).real / dR, decimal=dec)
     npt.assert_almost_equal(data.item(MI).imag / dI, data_gpu.item(MI).imag / dI, decimal=dec)
@@ -150,12 +150,12 @@ def test_fft_R2C_C2R():
     if(0 < np.abs(data.item(MI)).imag):
         dI = 10 ** np.ceil(np.log10(np.abs(data.item(MI).imag)))
 
-    print ""
-    print "Test FFT R2C"
-    print "Precision: ", prec
-    print "Execution time:"
-    print "Python: ", t2 - t1
-    print "Carma : ", t3 - t2
+    print("")
+    print("Test FFT R2C")
+    print("Precision: ", prec)
+    print("Execution time:")
+    print("Python: ", t2 - t1)
+    print("Carma : ", t3 - t2)
 
     npt.assert_almost_equal(data.item(MR).real / dR, data_gpu.item(MR).real / dR, decimal=dec)
     npt.assert_almost_equal(data.item(MI).imag / dI, data_gpu.item(MI).imag / dI, decimal=dec)
@@ -181,12 +181,12 @@ def test_fft_R2C_C2R():
     if(0 < np.abs(data.item(MR).real)):
         dR = 10 ** np.ceil(np.log10(np.abs(data.item(MR).real)))
 
-    print ""
-    print "Test FFT C2R"
-    print "Precision: ", prec
-    print "Execution time:"
-    print "Python: ", t2 - t1
-    print "Carma : ", t3 - t2
+    print("")
+    print("Test FFT C2R")
+    print("Precision: ", prec)
+    print("Execution time:")
+    print("Python: ", t2 - t1)
+    print("Carma : ", t3 - t2)
 
     npt.assert_almost_equal(data.item(MR).real / dR, data_gpu.item(MR).real / dR, decimal=dec)
     npt.assert_array_almost_equal(R2_data, cpu_C2R, decimal=dec)
@@ -228,12 +228,12 @@ def Ntest_fft_multi():
     C1.fft(dest=C2)
     t3 = time.clock()
 
-    print ""
-    print "Test FFT Multi C2C"
-    print "Precision: ", prec
-    print "Execution time:"
-    print "Python: ", t2 - t1
-    print "Carma : ", t3 - t2
+    print("")
+    print("Test FFT Multi C2C")
+    print("Precision: ", prec)
+    print("Execution time:")
+    print("Python: ", t2 - t1)
+    print("Carma : ", t3 - t2)
 
     gpu_F = C2.device2host()
 
@@ -252,12 +252,12 @@ def Ntest_fft_multi():
     C2.fft(dest=C3, direction=-1)
     t3 = time.clock()
 
-    print ""
-    print "Test FFT Multi backward C2C"
-    print "Precision: ", prec
-    print "Execution time:"
-    print "Python: ", t2 - t1
-    print "Carma : ", t3 - t2
+    print("")
+    print("Test FFT Multi backward C2C")
+    print("Precision: ", prec)
+    print("Execution time:")
+    print("Python: ", t2 - t1)
+    print("Carma : ", t3 - t2)
 
     gpu_B = C3.device2host() / nElem
 

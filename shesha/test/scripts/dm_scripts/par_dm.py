@@ -25,9 +25,9 @@ def calcul_size_support_dmpzt (nact,pupdiam):
     This fonction is available just for alt =0 or/and norms = 0 
     """
     
-    ssize = long(2 ** np.ceil(np.log2(pupdiam) + 1))
+    ssize = int(2 ** np.ceil(np.log2(pupdiam) + 1))
     cent = ssize / 2 + 0.5
-    pitch = long(pupdiam  / (nact - 1)) #--> for wfs_xpos and ypos = 0
+    pitch = int(pupdiam  / (nact - 1)) #--> for wfs_xpos and ypos = 0
     extent = pitch * (nact + 5)
     n1 = np.floor(cent - extent / 2)
     n2 = np.ceil(cent + extent / 2)
