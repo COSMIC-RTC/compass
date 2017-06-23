@@ -13,7 +13,7 @@ from sys import stdout
 import time
 
 plt.ion()
-gpudevices = np.array([4,5,6,7],dtype=np.int32)
+gpudevices = np.array([0,1,2,3],dtype=np.int32)
 c = ch.naga_context(devices=gpudevices)
 
 #filename = "/home/fferreira/Data/breakdown_offaxis-4_2.h5"
@@ -153,15 +153,15 @@ def psf_rec_roket_file_cpu(filename):
 
 def psf_rec_Vii(filename,err=None,fitting=True,covmodes=None,cov=None):
     f = h5py.File(filename,'r')
-    if(err is None):
-        err = get_err(filename)
     spup = get_pup(filename)
     # Sparse IF matrix
     IF, T = get_IF(filename)
     # Covariance matrix
     P = f["P"][:]
     print "Projecting error buffer into modal space..."
-    err = P.dot(err)
+    if((err is None) and (cov is None)):
+        err = get_err(filename)
+        err = P.dot(err)
     print "Computing covariance matrix..."
     if(cov is None):
         if(covmodes is None):
@@ -170,14 +170,13 @@ def psf_rec_Vii(filename,err=None,fitting=True,covmodes=None,cov=None):
             covmodes = (P.dot(covmodes)).dot(P.T)
     else:
         covmodes = cov
-    e,V = np.linalg.eig(covmodes)
     print "Done"
     Btt = f["Btt"][:]
 
     # Scale factor
     scale = float(2*np.pi/f.attrs["target.Lambda"][0])
     # Init GPU
-    gamora = ao.gamora_init("Vii", Btt.shape[0], err.shape[1],
+    gamora = ao.gamora_init("Vii", Btt.shape[0], f["noise"][:].shape[1],
                             IF.data.astype(np.float32), IF.indices, IF.indptr, T,
                             spup.astype(np.float32), scale,
                             covmodes.shape[0], Btt, covmodes)

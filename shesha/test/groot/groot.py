@@ -231,3 +231,177 @@ def compare_GPU_vs_CPU(filename):
     print "Max absolute difference in PSFs double precision : ", np.abs(psf_cpu-psf_gpu_d).max()
     gamora.cutsPSF(filename, psf_cpu, psf_gpu_s)
     gamora.cutsPSF(filename, psf_cpu, psf_gpu_d)
+
+
+def compute_Ca_cpu(filename, modal=True):
+    """ Returns the aliasing error covariance matrix using CPU version of GROOT
+    from a ROKET file
+    :parameter:
+        filename : (string) : full path to the ROKET file
+        modal : (bool) : if True (default), Ca is returned in the Btt modal basis,
+                         in the actuator basis if False
+    :return:
+        Ca : (np.ndarray(dim=2, dtype=np.float32)) : aliasing error covariance matrix
+    """
+    f = h5py.File(filename,'r')
+    nsub = f["R"][:].shape[1] / 2
+    nssp = f.attrs["nxsub"][0]
+    validint = f.attrs["cobs"]
+    x = np.linspace(-1, 1, nssp)
+    x, y = np.meshgrid(x, x)
+    r = np.sqrt(x * x + y * y)
+    rorder = np.sort(r.reshape(nssp * nssp))
+    ncentral = nssp * nssp - np.sum(r >= validint)
+    validext = rorder[ncentral + nsub]
+    valid = (r < validext) & (r >= validint)
+    ivalid = np.where(valid)
+    xvalid = ivalid[0]+1
+    yvalid = ivalid[1]+1
+    ivalid = (xvalid,yvalid)
+
+    mask = np.zeros((nssp+2,nssp+2))
+    Ca = np.identity(nsub*2)
+
+    for k in range(nsub):
+        mask *= 0
+        mask[xvalid[k],yvalid[k]] = 1
+        mask[xvalid[k]-1,yvalid[k]] = -0.5
+        mask[xvalid[k]+1,yvalid[k]] = -0.5
+        Ca[k,:nsub] = mask[ivalid].flatten()
+        mask *= 0
+        mask[xvalid[k],yvalid[k]] = 1
+        mask[xvalid[k],yvalid[k]-1] = -0.5
+        mask[xvalid[k],yvalid[k]+1] = -0.5
+        Ca[k+nsub,nsub:] = mask[ivalid].flatten()
+
+    R = f["R"][:]
+    Ca = R.dot(Ca).dot(R.T)
+    if(modal):
+        P = f["P"][:]
+        Ca = P.dot(Ca).dot(P.T)
+    f.close()
+    return Ca
+
+
+def compute_Cn_cpu(filename, modal=True):
+    """ Returns the noise error covariance matrix using CPU version of GROOT
+    from a ROKET file
+    :parameter:
+        filename : (string) : full path to the ROKET file
+        modal : (bool) : if True (default), Cn is returned in the Btt modal basis,
+                         in the actuator basis if False
+    :return:
+        Cn : (np.ndarray(dim=2, dtype=np.float32)) : noise error covariance matrix
+    """
+    f = h5py.File(filename,'r')
+    nslopes = f["R"][:].shape[1]
+    Cn = np.zeros(nslopes)
+    noise = f.attrs["noise"][0]
+    RASC = 180/np.pi * 3600.
+    if(noise >= 0):
+        nsub = f["R"][:].shape[1] / 2
+        nssp = f.attrs["nxsub"][0]
+        validint = f.attrs["cobs"]
+        x = np.linspace(-1, 1, nssp)
+        x, y = np.meshgrid(x, x)
+        r = np.sqrt(x * x + y * y)
+        rorder = np.sort(r.reshape(nssp * nssp))
+        ncentral = nssp * nssp - np.sum(r >= validint)
+        validext = rorder[ncentral + nsub]
+        valid = (r < validext) & (r >= validint)
+        ivalid = np.where(valid)
+        xvalid = ivalid[0]
+        yvalid = ivalid[1]
+        m = yvalid
+        n = xvalid
+        ind = m * f.attrs["nxsub"] + n
+        npix = f.attrs["pupdiam"]/f.attrs["nxsub"]
+        istart = np.arange(f.attrs["nxsub"]) * npix
+        jstart = istart.copy()
+        spup = gamora.get_pup(filename)
+        flux = np.zeros((f.attrs["nxsub"],f.attrs["nxsub"]))
+        for i in range(f.attrs["nxsub"]):
+            indi = istart[i]
+            for j in range(f.attrs["nxsub"]):
+                indj=jstart[j]
+                flux[i,j] = np.sum(spup[indi:indi+npix,indj:indj+npix])
+        flux /= (npix*npix)
+        flux = flux.reshape(flux.size, order='F')
+        flux = flux[ind]
+        nphotons = f.attrs["zerop"] * 10 ** (-0.4 * f.attrs["gsmag"]) * \
+            f.attrs["optthroughput"] * \
+            (f.attrs["tel_diam"] / f.attrs["nxsub"]) ** 2.* f.attrs["ittime"]
+
+        Nph = flux * nphotons
+
+        r0 = (f.attrs["wfs.Lambda"] / 0.5) ** (6.0 / 5.0) * f.attrs["r0"]
+
+        sig = (np.pi ** 2 / 2) * (1 / Nph) * \
+            (1. / r0) ** 2  # Photon noise in m^-2
+        # Noise variance in rad^2
+        sig /= (2 * np.pi / (f.attrs["wfs.Lambda"] * 1e-6)) ** 2
+        sig *= RASC ** 2
+
+        Ns = f.attrs["npix"]  # Number of pixel
+        Nd = (f.attrs["wfs.Lambda"] * 1e-6) * RASC / f.attrs["pixsize"]
+        sigphi = (np.pi ** 2 / 3.0) * (1 / Nph ** 2) * (f.attrs["noise"]) ** 2 * \
+            Ns ** 2 * (Ns / Nd) ** 2  # Phase variance in m^-2
+        # Noise variance in rad^2
+        sigsh = sigphi / (2 * np.pi / (f.attrs["wfs.Lambda"] * 1e-6)) ** 2
+        sigsh *= RASC ** 2  # Electronic noise variance in arcsec^2
+
+        Cn[:len(sig)] = sig + sigsh
+        Cn[len(sig):] = sig + sigsh
+
+    Cn = np.diag(Cn)
+    R = f["R"][:]
+    Cn = R.dot(Cn).dot(R.T)
+    if (modal):
+        P = f["P"][:]
+        Cn = P.dot(Cn).dot(P.T)
+    f.close()
+    return Cn
+
+
+def compute_OTF_fitting(filename, otftel):
+    f = h5py.File(filename,'r')
+    r0 = f.attrs["r0"] * (f.attrs["target.Lambda"][0]/f.attrs["wfs.Lambda"][0])**(6./5.)
+    ratio_lambda = 2*np.pi/f.attrs["target.Lambda"][0]
+    # Telescope OTF
+    spup = gamora.get_pup(filename)
+    mradix = 2
+    fft_size = mradix **int((np.log(2 * spup.shape[0]) / np.log(mradix)) + 1)
+    mask = np.ones((fft_size,fft_size))
+    mask[np.where(otftel < 1e-5)] = 0
+
+    x = np.arange(fft_size) - fft_size/2
+    pixsize = f.attrs["tel_diam"]/f.attrs["pupdiam"]
+    x = x*pixsize
+    r = np.sqrt(x[:,None]*x[:,None]+x[None,:]*x[None,:])
+    tabx, taby = Dphi.tabulateIj0()
+    dphi = np.fft.fftshift(Dphi.dphi_highpass(r,f.attrs["tel_diam"]/(f.attrs["nact"][0]-1),tabx,taby)*(1/r0)**(5/3.)) #* den * ratio_lambda**2 * mask
+    otf_fit = np.exp(-0.5 * dphi) * mask
+    otf_fit = otf_fit/otf_fit.max()
+
+    psf_fit = np.fft.fftshift(np.real(np.fft.ifft2(otftel*otf_fit)))
+    psf_fit *= (fft_size*fft_size/float(np.where(spup)[0].shape[0]))
+
+    f.close()
+    return otf_fit, psf_fit
+
+
+def compute_PSF(filename):
+    tic = time.time()
+    spup = gamora.get_pup(filename)
+    Cab = compute_Cerr(filename)
+    Cn = compute_Cn_cpu(filename) / 2.2402411696508806
+    Ca = compute_Ca_cpu(filename) / 333.63318306951879
+    Cee = Cab + Cn + Ca    
+    otftel, otf2, psf, gpu = gamora.psf_rec_Vii(filename,fitting=False,cov=(Cee).astype(np.float32))
+    otf_fit, psf_fit = compute_OTF_fitting(filename, otftel)
+    psf = np.fft.fftshift(np.real(np.fft.ifft2(otf_fit*otf2*otftel)))
+    psf *= (psf.shape[0]*psf.shape[0]/float(np.where(spup)[0].shape[0]))
+    tac = time.time()
+    print "PSF computed in ",tac-tic," seconds"
+
+    return psf
