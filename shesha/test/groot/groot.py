@@ -258,6 +258,11 @@ def compute_Ca_cpu(filename, modal=True):
     xvalid = ivalid[0]+1
     yvalid = ivalid[1]+1
     ivalid = (xvalid,yvalid)
+    d = f.attrs["tel_diam"]/(f.attrs["nact"][0]-1)
+    r0 = f.attrs["r0"] * (f.attrs["target.Lambda"]/0.5)**(6./5.)
+    RASC = 180/np.pi * 3600.
+
+    scale = 0.23 * (d/r0)**(5/3.) * (f.attrs["target.Lambda"]*1e-6/(2*np.pi*d))**2 * RASC**2
 
     mask = np.zeros((nssp+2,nssp+2))
     Ca = np.identity(nsub*2)
@@ -265,17 +270,17 @@ def compute_Ca_cpu(filename, modal=True):
     for k in range(nsub):
         mask *= 0
         mask[xvalid[k],yvalid[k]] = 1
-        mask[xvalid[k]-1,yvalid[k]] = -0.5
-        mask[xvalid[k]+1,yvalid[k]] = -0.5
+        mask[xvalid[k],yvalid[k]-1] = -0.5
+        mask[xvalid[k],yvalid[k]+1] = -0.5
         Ca[k,:nsub] = mask[ivalid].flatten()
         mask *= 0
         mask[xvalid[k],yvalid[k]] = 1
-        mask[xvalid[k],yvalid[k]-1] = -0.5
-        mask[xvalid[k],yvalid[k]+1] = -0.5
+        mask[xvalid[k]-1,yvalid[k]] = -0.5
+        mask[xvalid[k]+1,yvalid[k]] = -0.5
         Ca[k+nsub,nsub:] = mask[ivalid].flatten()
 
     R = f["R"][:]
-    Ca = R.dot(Ca).dot(R.T)
+    Ca = R.dot(Ca * scale).dot(R.T)
     if(modal):
         P = f["P"][:]
         Ca = P.dot(Ca).dot(P.T)
@@ -299,56 +304,23 @@ def compute_Cn_cpu(filename, modal=True):
     noise = f.attrs["noise"][0]
     RASC = 180/np.pi * 3600.
     if(noise >= 0):
-        nsub = f["R"][:].shape[1] / 2
-        nssp = f.attrs["nxsub"][0]
-        validint = f.attrs["cobs"]
-        x = np.linspace(-1, 1, nssp)
-        x, y = np.meshgrid(x, x)
-        r = np.sqrt(x * x + y * y)
-        rorder = np.sort(r.reshape(nssp * nssp))
-        ncentral = nssp * nssp - np.sum(r >= validint)
-        validext = rorder[ncentral + nsub]
-        valid = (r < validext) & (r >= validint)
-        ivalid = np.where(valid)
-        xvalid = ivalid[0]
-        yvalid = ivalid[1]
-        m = yvalid
-        n = xvalid
-        ind = m * f.attrs["nxsub"] + n
-        npix = f.attrs["pupdiam"]/f.attrs["nxsub"]
-        istart = np.arange(f.attrs["nxsub"]) * npix
-        jstart = istart.copy()
-        spup = gamora.get_pup(filename)
-        flux = np.zeros((f.attrs["nxsub"],f.attrs["nxsub"]))
-        for i in range(f.attrs["nxsub"]):
-            indi = istart[i]
-            for j in range(f.attrs["nxsub"]):
-                indj=jstart[j]
-                flux[i,j] = np.sum(spup[indi:indi+npix,indj:indj+npix])
-        flux /= (npix*npix)
-        flux = flux.reshape(flux.size, order='F')
-        flux = flux[ind]
-        nphotons = f.attrs["zerop"] * 10 ** (-0.4 * f.attrs["gsmag"]) * \
+        Nph = f.attrs["zerop"] * 10 ** (-0.4 * f.attrs["gsmag"]) * \
             f.attrs["optthroughput"] * \
             (f.attrs["tel_diam"] / f.attrs["nxsub"]) ** 2.* f.attrs["ittime"]
-
-        Nph = flux * nphotons
 
         r0 = (f.attrs["wfs.Lambda"] / 0.5) ** (6.0 / 5.0) * f.attrs["r0"]
 
         sig = (np.pi ** 2 / 2) * (1 / Nph) * \
             (1. / r0) ** 2  # Photon noise in m^-2
-        # Noise variance in rad^2
-        sig /= (2 * np.pi / (f.attrs["wfs.Lambda"] * 1e-6)) ** 2
-        sig *= RASC ** 2
+        # Noise variance in arcsec^2
+        sig = sig * ((f.attrs["wfs.Lambda"] * 1e-6)/(2 * np.pi)) ** 2 * RASC ** 2
 
         Ns = f.attrs["npix"]  # Number of pixel
         Nd = (f.attrs["wfs.Lambda"] * 1e-6) * RASC / f.attrs["pixsize"]
         sigphi = (np.pi ** 2 / 3.0) * (1 / Nph ** 2) * (f.attrs["noise"]) ** 2 * \
             Ns ** 2 * (Ns / Nd) ** 2  # Phase variance in m^-2
-        # Noise variance in rad^2
-        sigsh = sigphi / (2 * np.pi / (f.attrs["wfs.Lambda"] * 1e-6)) ** 2
-        sigsh *= RASC ** 2  # Electronic noise variance in arcsec^2
+        # Noise variance in arcsec^2
+        sigsh = sigphi * ((f.attrs["wfs.Lambda"] * 1e-6)/(2 * np.pi)) ** 2 * RASC ** 2
 
         Cn[:len(sig)] = sig + sigsh
         Cn[len(sig):] = sig + sigsh
@@ -394,9 +366,9 @@ def compute_PSF(filename):
     tic = time.time()
     spup = gamora.get_pup(filename)
     Cab = compute_Cerr(filename)
-    Cn = compute_Cn_cpu(filename) / 2.2402411696508806
-    Ca = compute_Ca_cpu(filename) / 333.63318306951879
-    Cee = Cab + Cn + Ca    
+    Cn = compute_Cn_cpu(filename)
+    Ca = compute_Ca_cpu(filename)
+    Cee = Cab + Cn + Ca
     otftel, otf2, psf, gpu = gamora.psf_rec_Vii(filename,fitting=False,cov=(Cee).astype(np.float32))
     otf_fit, psf_fit = compute_OTF_fitting(filename, otftel)
     psf = np.fft.fftshift(np.real(np.fft.ifft2(otf_fit*otf2*otftel)))
