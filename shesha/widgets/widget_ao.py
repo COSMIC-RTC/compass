@@ -590,7 +590,7 @@ class widgetAOWindow(TemplateBaseClass):
             path.remove(pathfile)
         elif(filepath.split('.')[-1] == "h5"):
             path.insert(0, self.defaultParPath)
-            import scao_16x16_8pix as config
+            import scao_sh_16x16_8pix as config
             path.remove(self.defaultParPath)
             h5u.configFromH5(filepath, config)
         else:

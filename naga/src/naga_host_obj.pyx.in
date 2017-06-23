@@ -36,7 +36,7 @@ c_types_info = {
 
 import numpy as np
 cimport numpy as np
-np.import_array()
+#np.import_array()
 
 cdef dict_MemAlloc={"malloc":(MA_MALLOC),
                     "pagelock":(MA_PAGELOCK),

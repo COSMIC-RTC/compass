@@ -1,6 +1,6 @@
 #!/bin/bash
 
-PARFILE="$SHESHA_ROOT/data/par/MICADO/micado_39m_SH.py" # scao_40x40_8pix.py  scao_64x64_8pix.py  scao_80x80_8pix.py "
+PARFILE="$SHESHA_ROOT/data/par/MICADO/micado_39m_SH.py" # scao_sh_40x40_8pix.py  scao_sh_64x64_8pix.py  scao_sh_80x80_8pix.py "
 
 DATE=`date +%F_%Hh%M`
 SVN=`svnversion`
@@ -91,7 +91,7 @@ done
 #done
 echo "Script Done"
 
-#FILES_LGS="scao_16x16_8pix_lgs.py"
-#FILES_LGS+="scao_40x40_10pix_lgs.par"
-#FILES_LGS+="scao_64x64_16pix_lgs.par"
-#FILES_LGS+="scao_80x80_20pix_lgs.par"
+#FILES_LGS="scao_sh_16x16_8pix_lgs.py"
+#FILES_LGS+="scao_sh_40x40_10pix_lgs.par"
+#FILES_LGS+="scao_sh_64x64_16pix_lgs.par"
+#FILES_LGS+="scao_sh_80x80_20pix_lgs.par"

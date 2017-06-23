@@ -37,7 +37,7 @@ c_types_info = {
 
 import numpy as np
 cimport numpy as np
-np.import_array()
+#np.import_array()
 
 assert sizeof(int) == sizeof(np.int32_t)
 assert sizeof(float) == sizeof(np.float32_t)

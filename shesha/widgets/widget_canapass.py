@@ -180,8 +180,9 @@ class widgetAOWindow(TemplateBaseClass):
         self.ui.wao_next.setDisabled(True)
         self.ui.wao_unzoom.setDisabled(True)
         self.ui.wao_resetSR.setDisabled(True)
-        self.ph2KL = None
-        self.KL2V = None
+        self.ph2modes = None
+        #self.KL2V = None
+        self.P = None
         # self.addConfigFromFile(
         #     filepath=os.environ["SHESHA_ROOT"] + "/data/par/canapass.py")
         # self.InitConfig()
@@ -193,6 +194,15 @@ class widgetAOWindow(TemplateBaseClass):
         print "OK Pyramid Tools Widget initialized"
         self.wpyr = widget_pyrStats()
         self.wpyr.show()
+
+    def setPyrToolsParams(self, ai):
+        #if(self.ph2KL is None):
+            #self.computePh2KL()
+        self.wpyr.pup = self.getSpupil()
+        self.wpyr.phase = self.getTargetPhase(0)
+        self.wpyr.updateResiduals(ai)
+        self.wpyr.ph2modes = self.ph2modes
+
 
     def showPyrTools(self):
         if(self.wpyr is None):
@@ -239,7 +249,7 @@ class widgetAOWindow(TemplateBaseClass):
     def getSpupil(self):
         return self.config.p_geom.get_spupil()
 
-    def getImage2(tarnum, tartype):
+    def getImage2(self, tarnum, tartype):
         return self.tar.get_image(tarnum, tartype)
 
     def getMpupil(self):
@@ -257,8 +267,13 @@ class widgetAOWindow(TemplateBaseClass):
 
 
     def computePh2KL(self):
+        self.aoLoopClicked(False)
+        self.ui.wao_run.setChecked(False)
+        oldnoise = wao.config.p_wfs0.noise
+        self.setNoise(-1)
+
         if(self.KL2V is None):
-            self.KL2V = self.returnkl2V()
+            self.KL2V, _ = self.returnkl2V()
         nbmode = self.KL2V.shape[1]
         pup = self.getSpupil()
         ph = self.tar.get_phase(0)
@@ -269,17 +284,80 @@ class widgetAOWindow(TemplateBaseClass):
             self.dms.set_full_comm((self.KL2V[:,i]).astype(np.float32).copy())
             self.tar.dmtrace(0, self.dms)
             ph = self.tar.get_phase(0)*pup
-            # Normalisation pour les unités rms en microns !!!
+            # Normalisation pour les unites rms en microns !!!
             norm = np.sqrt( np.sum( (ph)**2)/S )
             ph2KL[i,:,:] = ph/norm
             print str(i)+"/"+str(nbmode) + "\r",
-            self.ph2KL = ph2KL
+            self.ph2modes = ph2KL
+        self.setNoise(oldnoise)
+        self.aoLoopClicked(True)
+        self.ui.wao_run.setChecked(True)
         return ph2KL
 
     def getTargetPhase(self, tarnum):
         pup = self.getSpupil()
         ph = self.tar.get_phase(tarnum)*pup
         return ph
+
+
+    def compute_Btt2(self):
+        IF = self.rtc.get_IFsparse(1).T
+        N = IF.shape[0]
+        n = IF.shape[1]
+        #T = IF[:,-2:].copy()
+        T = self.rtc.get_IFtt(1)
+        #IF = IF[:,:n-2]
+        n = IF.shape[1]
+
+        delta = IF.T.dot(IF).toarray()/N
+
+        # Tip-tilt + piston
+        Tp = np.ones((T.shape[0],T.shape[1]+1))
+        Tp[:,:2] = T.copy()#.toarray()
+        deltaT = IF.T.dot(Tp)/N
+        # Tip tilt projection on the pzt dm
+        tau = np.linalg.inv(delta).dot(deltaT)
+
+        # Famille generatrice sans tip tilt
+        G = np.identity(n)
+        tdt = tau.T.dot(delta).dot(tau)
+        subTT = tau.dot(np.linalg.inv(tdt)).dot(tau.T).dot(delta)
+        G -= subTT
+
+        # Base orthonormee sans TT
+        gdg = G.T.dot(delta).dot(G)
+        U,s,V = np.linalg.svd(gdg)
+        U=U[:,:U.shape[1]-3]
+        s = s[:s.size-3]
+        L = np.identity(s.size)/np.sqrt(s)
+        B = G.dot(U).dot(L)
+
+        # Rajout du TT
+        TT = T.T.dot(T)/N#.toarray()/N
+        Btt = np.zeros((n+2,n-1))
+        Btt[:B.shape[0],:B.shape[1]] = B
+        mini = 1./np.sqrt(np.abs(TT))
+        mini[0,1] = 0
+        mini[1,0] = 0
+        Btt[n:,n-3:]=mini
+
+        # Calcul du projecteur actus-->modes
+        delta = np.zeros((n+T.shape[1],n+T.shape[1]))
+        #IF = rtc.get_IFsparse(1).T
+        delta[:-2,:-2] = IF.T.dot(IF).toarray()/N
+        delta[-2:,-2:] = T.T.dot(T)/N
+        P = Btt.T.dot(delta)
+
+        return Btt.astype(np.float32),P.astype(np.float32)
+
+
+    def getModes2VBasis(self, ModalBasisType):
+        if(ModalBasisType == "KL2V"):
+            print "Computing KL2V basis..."
+            return self.returnkl2V()
+        elif(ModalBasisType == "Btt"):
+            print "Computing Btt basis..."
+            return self.compute_Btt2()
 
     def returnkl2V(self):
         """
@@ -289,10 +367,21 @@ class widgetAOWindow(TemplateBaseClass):
         if(self.KL2V is None):
             KL2V = ao.compute_KL2V(self.config.p_controllers[0], self.dms, self.config.p_dms, self.config.p_geom, self.config.p_atmos, self.config.p_tel)
             self.KL2V = KL2V
-            return KL2V
+            return KL2V, 0
         else:
-            return self.KL2V
+            return self.KL2V, 0
 
+    def _getNcpaWfs(self, wfsnum):
+        return self.wfs.get_ncpa_phase(wfsnum)
+
+    def _getNcpaTar(self, tarnum):
+        return self.tar.get_ncpa_phase(tarnum)
+
+    def _setNcpaWfs(self, ncpa, wfsnum):
+        self.wfs.set_ncpa_phase(wfsnum, ncpa.astype(np.float32).copy())
+
+    def _setNcpaTar(self, ncpa, tarnum):
+        self.tar.set_ncpa_phase(tarnum, ncpa.astype(np.float32).copy())
 
     def doRefslopes(self):
         self.rtc.do_centroids_ref(0)
@@ -523,7 +612,7 @@ class widgetAOWindow(TemplateBaseClass):
         gpudevice = self.config.p_loop.devices
         # gpudevice = "ALL"  # using all GPU avalaible
         # gpudevice = np.arange(4, dtype=np.int32)  # using 4 GPUs: 0-3
-        #gpudevice = np.array([4, 5, 6, 7], dtype=np.int32)  # using 4 GPUs: 4-7
+        #gpudevice = np.array([4], dtype=np.int32)  # using 4 GPUs: 4-7
         self.ui.wao_deviceNumber.setDisabled(True)
 
         print "-> using GPU", gpudevice
@@ -695,7 +784,7 @@ class widgetAOWindow(TemplateBaseClass):
             widToShow.show()
             widToHide.hide()
 
-    def measureIMatKL(self, ampliVec, KL2V, Nslopes, noise=False, nmodesMax=0, withTurbu=False):
+    def measureIMatKL(self, ampliVec, KL2V, Nslopes, noise=False, nmodesMax=0, withTurbu=False, pushPull=False):
         iMatKL = np.zeros((KL2V.shape[1], Nslopes))
         self.aoLoopClicked(False)
         self.ui.wao_run.setChecked(False)
@@ -709,7 +798,7 @@ class widgetAOWindow(TemplateBaseClass):
             KLMax = KL2V.shape[1]
         for kl in range(KLMax):
             v = ampliVec[kl] * KL2V[:, kl:kl + 1].T.copy()
-            if(withTurbu): # with turbulence/aberrations => push/pull
+            if((pushPull is True) or (withTurbu is True)): # with turbulence/aberrations => push/pull
                 self.rtc.set_perturbcom(0, v + currentVolts)
                 devpos = self.applyVoltGetSlopes(turbu=withTurbu, noise=noise)
                 self.rtc.set_perturbcom(0, -v + currentVolts)
@@ -1011,6 +1100,16 @@ class widgetAOWindow(TemplateBaseClass):
                 QTimer.singleShot(refreshDisplayTime, self.updateDisplay)
             """
 
+
+    def computeModalResiduals(self):
+        self.rtc.docontrol_geo(1, self.dms,self.tar, 0)
+        #self.rtc.docontrol_geo_on(1, self.dms,self.tar, 0)
+        v = self.rtc.getCom(1)
+        if(self.P is None):
+            self.modalBasis, self.P = self.getModes2VBasis("Btt")
+        ai = self.P.dot(v)*1000. # np rms units
+        return ai
+
     def mainLoop(self):
         if not self.loopLock.acquire(False):
             # print " Loop locked"
@@ -1079,6 +1178,9 @@ class widgetAOWindow(TemplateBaseClass):
                         self.printInPlace("iter #%d SR: (L.E, S.E.)= %s, %srunning at %4.1fHz (real %4.1fHz)" % (
                             self.iter, signal_le, signal_se, refreshFreq, currentFreq))
                     self.refreshTime = time.time()
+                    if(self.ui.actionShow_Pyramid_Tools.isChecked()):
+                        ai = self.computeModalResiduals()
+                        self.setPyrToolsParams(ai)
                 self.iter += 1
             finally:
                 self.loopLock.release()
