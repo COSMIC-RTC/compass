@@ -288,7 +288,7 @@ def compute_Ca_cpu(filename, modal=True):
     return Ca
 
 
-def compute_Cn_cpu(filename, modal=True):
+def compute_Cn_cpu(filename, model="data", modal=True):
     """ Returns the noise error covariance matrix using CPU version of GROOT
     from a ROKET file
     :parameter:
@@ -299,38 +299,44 @@ def compute_Cn_cpu(filename, modal=True):
         Cn : (np.ndarray(dim=2, dtype=np.float32)) : noise error covariance matrix
     """
     f = h5py.File(filename,'r')
-    nslopes = f["R"][:].shape[1]
-    Cn = np.zeros(nslopes)
-    noise = f.attrs["noise"][0]
-    RASC = 180/np.pi * 3600.
-    if(noise >= 0):
-        Nph = f.attrs["zerop"] * 10 ** (-0.4 * f.attrs["gsmag"]) * \
-            f.attrs["optthroughput"] * \
-            (f.attrs["tel_diam"] / f.attrs["nxsub"]) ** 2.* f.attrs["ittime"]
+    if (model == "data"):
+        N = f["noise"][:]
+	NN = N.dot(N.T)/N.shape[1]
+	P = f["P"][:]
+	Cn = P.dot(NN).dot(P.T)
+    else:
+    	nslopes = f["R"][:].shape[1]
+    	Cn = np.zeros(nslopes)
+    	noise = f.attrs["noise"][0]
+    	RASC = 180/np.pi * 3600.
+    	if(noise >= 0):
+            Nph = f.attrs["zerop"] * 10 ** (-0.4 * f.attrs["gsmag"]) * \
+                f.attrs["optthroughput"] * \
+                (f.attrs["tel_diam"] / f.attrs["nxsub"]) ** 2.* f.attrs["ittime"]
 
-        r0 = (f.attrs["wfs.Lambda"] / 0.5) ** (6.0 / 5.0) * f.attrs["r0"]
+            r0 = (f.attrs["wfs.Lambda"] / 0.5) ** (6.0 / 5.0) * f.attrs["r0"]
 
-        sig = (np.pi ** 2 / 2) * (1 / Nph) * \
-            (1. / r0) ** 2  # Photon noise in m^-2
-        # Noise variance in arcsec^2
-        sig = sig * ((f.attrs["wfs.Lambda"] * 1e-6)/(2 * np.pi)) ** 2 * RASC ** 2
+            sig = (np.pi ** 2 / 2) * (1 / Nph) * \
+                 (1. / r0) ** 2  # Photon noise in m^-2
+            # Noise variance in arcsec^2
+            sig = sig * ((f.attrs["wfs.Lambda"] * 1e-6)/(2 * np.pi)) ** 2 * RASC ** 2
 
-        Ns = f.attrs["npix"]  # Number of pixel
-        Nd = (f.attrs["wfs.Lambda"] * 1e-6) * RASC / f.attrs["pixsize"]
-        sigphi = (np.pi ** 2 / 3.0) * (1 / Nph ** 2) * (f.attrs["noise"]) ** 2 * \
-            Ns ** 2 * (Ns / Nd) ** 2  # Phase variance in m^-2
-        # Noise variance in arcsec^2
-        sigsh = sigphi * ((f.attrs["wfs.Lambda"] * 1e-6)/(2 * np.pi)) ** 2 * RASC ** 2
+            Ns = f.attrs["npix"]  # Number of pixel
+            Nd = (f.attrs["wfs.Lambda"] * 1e-6) * RASC / f.attrs["pixsize"]
+            sigphi = (np.pi ** 2 / 3.0) * (1 / Nph ** 2) * (f.attrs["noise"]) ** 2 * \
+                Ns ** 2 * (Ns / Nd) ** 2  # Phase variance in m^-2
+            # Noise variance in arcsec^2
+            sigsh = sigphi * ((f.attrs["wfs.Lambda"] * 1e-6)/(2 * np.pi)) ** 2 * RASC ** 2
 
-        Cn[:len(sig)] = sig + sigsh
-        Cn[len(sig):] = sig + sigsh
+            Cn[:len(sig)] = sig + sigsh
+            Cn[len(sig):] = sig + sigsh
 
-    Cn = np.diag(Cn)
-    R = f["R"][:]
-    Cn = R.dot(Cn).dot(R.T)
-    if (modal):
-        P = f["P"][:]
-        Cn = P.dot(Cn).dot(P.T)
+        Cn = np.diag(Cn)
+        R = f["R"][:]
+        Cn = R.dot(Cn).dot(R.T)
+        if (modal):
+            P = f["P"][:]
+            Cn = P.dot(Cn).dot(P.T)
     f.close()
     return Cn
 

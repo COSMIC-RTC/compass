@@ -54,7 +54,8 @@ sutra_gamora::sutra_gamora(carma_context *context, int device, char *type, int n
 
     }
 
-    int wherephase[Npts];
+    int *wherephase;
+    wherephase = (int*)malloc(Npts*sizeof(int));
     int cpt = 0;
     // Phase point index in spupil
     for (int cc=0; cc < size*size;cc++){

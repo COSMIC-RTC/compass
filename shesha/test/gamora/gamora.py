@@ -13,7 +13,7 @@ from sys import stdout
 import time
 
 plt.ion()
-gpudevices = np.array([0,1,2,3],dtype=np.int32)
+gpudevices = np.array([0,1],dtype=np.int32)
 c = ch.naga_context(devices=gpudevices)
 
 #filename = "/home/fferreira/Data/breakdown_offaxis-4_2.h5"
