@@ -60,13 +60,13 @@ def compute_Cerr(filename, modal=True, ctype="float"):
     deltaF = IF.T.dot(T)/N
     pzt2tt = np.linalg.inv(deltaTT).dot(deltaF.T)
 
-    if(ctype == "float"):
+    if(ctype == b"float"):
         groot = ao.groot_init(Nact.shape[0], int(f.attrs["nscreens"]), angleht, fc, vdt.astype(np.float32),\
                                 Htheta.astype(np.float32), f.attrs["L0"], theta,
                                 scale.astype(np.float32), xactu.astype(np.float32),
                                 yactu.astype(np.float32), pzt2tt.astype(np.float32),
                                 Tf.astype(np.float32), Nact.astype(np.float32))
-    elif(ctype == "double"):
+    elif(ctype == b"double"):
         groot = ao.groot_initD(Nact.shape[0], int(f.attrs["nscreens"]), angleht, fc, vdt.astype(np.float64),\
                                 Htheta.astype(np.float64), f.attrs["L0"].astype(np.float64), theta.astype(np.float64),
                                 scale.astype(np.float64), xactu.astype(np.float64),

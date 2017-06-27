@@ -296,9 +296,9 @@ def updateDataBase(h5file, savepath, matrix_type):
                                                          "istx","eigenv","imat","U"
                                                          "pztok" or "pztnok")
     """
-    if(matrix_type == "A" or matrix_type == "B" or matrix_type == "istx"
-            or matrix_type == "isty" or matrix_type == "eigenv" or matrix_type == "imat"
-            or matrix_type == "U" or matrix_type == "pztok" or matrix_type == "pztnok"):
+    if(matrix_type == b"A" or matrix_type == b"B" or matrix_type == b"istx"
+            or matrix_type == b"isty" or matrix_type == b"eigenv" or matrix_type == b"imat"
+            or matrix_type == b"U" or matrix_type == b"pztok" or matrix_type == b"pztnok"):
         f = h5py.File(h5file, "r")
         store = pandas.HDFStore(savepath + "matricesDataBase.h5")
         df = pandas.read_hdf(savepath + "matricesDataBase.h5", matrix_type)
@@ -403,11 +403,11 @@ def checkTurbuParams(savepath, config, pdict, matricesToLoad):
             #############################
             # if not cond:
             #    cc -= 1
-            #    print param2test[cc]+" has changed from ",dataBase.loc[i,param2test[cc]], " to ",pdict[param2test[cc]]
+            #    print(param2test[cc]+" has changed from ",dataBase.loc[i,param2test[cc]], " to ",pdict[param2test[cc]])
             ###############################
         else:
             cond = False
-            # print "Invalid matrix or new svn version"
+            # print("Invalid matrix or new svn version")
 
 
 #        if(dataBase.loc[i,"validity"]):
@@ -474,11 +474,11 @@ def checkControlParams(savepath, config, pdict, matricesToLoad):
             #############################
             # if not cond:
             #    cc -= 1
-            #    print param2test[cc]+" has changed from ",dataBase.loc[i,param2test[cc]], " to ",pdict[param2test[cc]]
+            #    print(param2test[cc]+" has changed from ",dataBase.loc[i,param2test[cc]], " to ",pdict[param2test[cc]])
            ###############################
         else:
             cond = False
-           # print "Invalid matrix or new svn version"
+           # print("Invalid matrix or new svn version")
 
 
 #        if(dataBase.loc[i,"validity"]):
@@ -605,11 +605,11 @@ def checkDmsParams(savepath, config, pdict, matricesToLoad):
             #############################
             # if not cond:
             #    cc -= 1
-            #    print param2test[cc]+" has changed from ",dataBase.loc[i,param2test[cc]], " to ",pdict[param2test[cc]]
+            #    print((param2test[cc]+" has changed from ",dataBase.loc[i,param2test[cc]], " to ",pdict[param2test[cc]]))
             ###############################
         else:
             cond = False
-           # print "Invalid matrix or new svn version"
+           # print("Invalid matrix or new svn version")
 
 #        if(dataBase.loc[i,"validity"]):
 #            load_control = (dataBase.loc[i,"revision"] == check_output(["git", "rev-parse", "HEAD"]).replace("\n",""))

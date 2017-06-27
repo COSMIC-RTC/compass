@@ -31,7 +31,7 @@ def create_stencil(n):
     for i in range(0, n, 2 ** (ns)):
         stencil.itemset(2 ** (ns - 1) + i * n, 1)
 
-    stencil = np.roll(stencil, n / 2, axis=0)
+    stencil = np.roll(stencil, n // 2, axis=0)
     stencil = np.fliplr(stencil)
 
     istencil = np.where(stencil.flatten() != 0)[0]
@@ -267,10 +267,10 @@ def rodconan(r, L0):
     # TODO  those lines have been changed (cf trunk/yoga_ao/yorick/yoga_turbu.i l 258->264)
     if((ilarge[0].size > 0)and(ismall[0].size == 0)):
         res[ilarge] = asymp_macdo(dprf0[ilarge])
-        # print "simulation atmos with asymptotic MacDonald function"
+        # print("simulation atmos with asymptotic MacDonald function")
     elif((ismall[0].size > 0)and(ilarge[0].size == 0)):
         res[ismall] = -macdo_x56(dprf0[ismall])
-        # print "simulation atmos with x56 MacDonald function"
+        # print("simulation atmos with x56 MacDonald function")
     elif((ismall[0].size > 0)and(ilarge[0].size > 0)):
         res[ismall] = -macdo_x56(dprf0[ismall])
         res[ilarge] = asymp_macdo(dprf0[ilarge])

@@ -8,10 +8,8 @@ import os
 import naga as ch
 import shesha as ao
 import time
-import matplotlib.pyplot as plt
 import hdf5_utils as h5u
 import numpy as np
-plt.ion()
 
 print("TEST SHESHA\n closed loop: call loop(int niter)")
 
@@ -77,7 +75,7 @@ print("->dm")
 dms = ao.dm_init(config.p_dms, config.p_wfss, wfs, config.p_geom, config.p_tel)
 ao.correct_dm(config.p_dms, dms, config.p_controller0, config.p_geom,
               np.ones((config.p_wfs0._nvalid, config.p_dm0._ntotact), dtype = np.float32),
-              '', {}, 1)
+              b'', {}, 1)
 
 
 if not clean:
@@ -104,7 +102,7 @@ def loop(n):
         atm.move_atmos()
 
         for w in range(len(config.p_wfss)):
-            wfs.sensors_trace(w, "all", tel, atm, dms)
+            wfs.sensors_trace(w, b"all", tel, atm, dms)
 
     t1 = time.time()
     print(" loop execution time:", t1 - t0, "  (", n, "iterations), ", (t1 - t0) / n, "(mean)  ", n / (t1 - t0), "Hz")

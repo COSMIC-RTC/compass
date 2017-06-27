@@ -156,13 +156,13 @@ if(not glob.glob(pathResults+"/CircularBuffers/")):
 
 #get parameters from file
 param_file=sys.argv[1] # par filename
-if(param_file.split('.')[-1] == "py"):
+if(param_file.split('.')[-1] == b"py"):
     filename=param_file.split('/')[-1]
     param_path=param_file.split(filename)[0]
     sys.path.insert(0,param_path)
     exec("import %s as config" % filename.split(".py")[0])
     #sys.path.remove(param_path)
-elif(param_file.split('.')[-1] == "h5"):
+elif(param_file.split('.')[-1] == b"h5"):
     sys.path.insert(0,os.environ["SHESHA_ROOT"]+"/data/par/par4bench/")
     import scao_sh_16x16_8pix as config
     #sys.path.remove(os.environ["SHESHA_ROOT"]+"/data/par/par4bench/")
@@ -183,7 +183,7 @@ else:
 print("simul name is",simul_name)
 
 matricesToLoad={}
-if(simul_name==""):
+if(simul_name == b""):
     clean=1
 else:
     clean=0
@@ -321,7 +321,7 @@ def loop(n,wfs,tel,atm,dms,tar,rtc, moveAtmos=True, noise=True, loopData=0, P=No
         rtc.docentroids(0)
         if(loopData):
             if(i>=(n-loopData)):
-                #print "Recording loop Data"
+                #print("Recording loop Data")
                 s = rtc.getCentroids(0)
                 v = rtc.getVoltage(0)
                 volts[ii,:] = v.copy()
@@ -347,8 +347,13 @@ def loop(n,wfs,tel,atm,dms,tar,rtc, moveAtmos=True, noise=True, loopData=0, P=No
             SRTmp2 = np.zeros(config.p_target.ntargets)
 
             for t in range(config.p_target.ntargets):
-                SR = tar.get_strehl(t)
-                #print "Tar %d at %3.2fMicrons:" % (t+1, tar.Lambda[t])
+                if(PSFWithOtherPupil):
+                    SR = list([0,0])
+                    SR[0] = PSFSEArray[t,:,:].max() # SE SR
+                    SR[1] = (PSFLEArray[t,:,:]/(i+1)).max() # LE SR
+                else:
+                    SR = tar.get_strehl(t)
+                #print("Tar %d at %3.2fMicrons:" % (t+1, tar.Lambda[t]))
                 signal_se += "SR S.E %3.2fMicrons:: %1.2f   " % (tar.Lambda[t], SR[0])
                 signal_le += "SR L.E %3.2fMicrons:: %1.2f   " % (tar.Lambda[t],SR[1])
                 SRTmp[t]=SR[0]*100
@@ -444,8 +449,8 @@ nfilt = nKL_Filt
 # Computing imat on diffraction limited source.
 if(imatFromFile):
     print("Reloading imat KL2V and gains4K from files...")
-    #print imat0_PATH+"/"+iMatName
-    #print imat0_PATH+"/gains4K_MODU_"+str(int(MODU))+".fits"
+    #print(imat0_PATH+"/"+iMatName)
+    #print(imat0_PATH+"/gains4K_MODU_"+str(int(MODU))+".fits")
     imat = pf.getdata(imat0_PATH+"/"+iMatName)
     modalBasis = pf.getdata(imat0_PATH+"/"+KL2VName)
     gains4KRAW = pf.getdata(imat0_PATH+"/"+gainModalName)

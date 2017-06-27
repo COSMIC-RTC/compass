@@ -80,26 +80,26 @@ def script4bench(param_file, centroider, controller, devices, fwrite=True):
     matricesToLoad = {}
     config.p_centroiders[0].set_type(centroider)
 
-    if(centroider == "tcog"):
+    if(centroider == b"tcog"):
         config.p_centroiders[0].set_thresh(9.)
-    elif(centroider == "bpcog"):
+    elif(centroider == b"bpcog"):
         config.p_centroiders[0].set_nmax(16)
-    elif(centroider == "geom"):
+    elif(centroider == b"geom"):
         config.p_centroiders[0].set_type("cog")
-    elif(centroider == "wcog"):
+    elif(centroider == b"wcog"):
         config.p_centroiders[0].set_type_fct("gauss")
         config.p_centroiders[0].set_width(2.0)
-    elif(centroider == "corr"):
+    elif(centroider == b"corr"):
         config.p_centroiders[0].set_type_fct("gauss")
         config.p_centroiders[0].set_width(2.0)
 
     config.p_controllers[0].set_type(controller)
-    if(controller == "modopti"):
+    if(controller == b"modopti"):
         config.p_controllers[0].set_type("ls")
         config.p_controllers[0].set_modopti(1)
 
     config.p_loop.set_niter(2000)
-    if(simul_name == ""):
+    if(simul_name == b""):
         clean = 1
     else:
         clean = 0
@@ -164,7 +164,7 @@ def script4bench(param_file, centroider, controller, devices, fwrite=True):
 #                                         | |
 #                                         |_|
 ###########################################################
-    if(controller == "modopti"):
+    if(controller == b"modopti"):
         for zz in range(2048):
             atm.move_atmos()
 
@@ -217,7 +217,7 @@ def script4bench(param_file, centroider, controller, devices, fwrite=True):
                rtc is not None and
                config.p_wfss is not None and
                wfs is not None):
-                if(centroider == "geom"):
+                if(centroider == b"geom"):
                     timer.start()
                     rtc.docentroids_geom(0)
                     ch.threadSync()
@@ -322,7 +322,7 @@ def script4bench(param_file, centroider, controller, devices, fwrite=True):
 
     stype += config.p_wfss[0].type_wfs
 
-    if(controller == "modopti"):
+    if(controller == b"modopti"):
         G = np.mean(rtc.get_mgain(0))
     else:
         G = 0.

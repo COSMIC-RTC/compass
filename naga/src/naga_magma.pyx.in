@@ -89,15 +89,15 @@ def syevd_CLASSNAME(naga_obj_CLASSNAME2D d_A,
 
     if(U is None):
         if(computeU==True):
-            carma_syevd[C_TYPE]('V',N,d_A.c_o.getData(), <C_TYPE*>eigenvals.data)
+            carma_syevd[C_TYPE](b'V',N,d_A.c_o.getData(), <C_TYPE*>eigenvals.data)
         else:
-            carma_syevd[C_TYPE]('N',N,d_A.c_o.getData(), <C_TYPE*>eigenvals.data)
+            carma_syevd[C_TYPE](b'N',N,d_A.c_o.getData(), <C_TYPE*>eigenvals.data)
     else:
         U.c_o.copy(d_A.c_o,1,1)
         if(computeU==True):
-            carma_syevd[C_TYPE]('V',N,U.c_o.getData(), <C_TYPE*>eigenvals.data)
+            carma_syevd[C_TYPE](b'V',N,U.c_o.getData(), <C_TYPE*>eigenvals.data)
         else:
-            carma_syevd[C_TYPE]('N',N,U.c_o.getData(), <C_TYPE*>eigenvals.data)
+            carma_syevd[C_TYPE](b'N',N,U.c_o.getData(), <C_TYPE*>eigenvals.data)
 
 
 
@@ -110,15 +110,15 @@ def syevd_host_CLASSNAME(naga_host_obj_CLASSNAME2D h_A,
 
     if(U is None):
         if(computeU==True):
-            carma_syevd_cpu[C_TYPE]('V',N, h_A.data_h, <C_TYPE*>eigenvals.data)
+            carma_syevd_cpu[C_TYPE](b'V',N, h_A.data_h, <C_TYPE*>eigenvals.data)
         else:
-            carma_syevd_cpu[C_TYPE]('N',N, h_A.data_h, <C_TYPE*>eigenvals.data)
+            carma_syevd_cpu[C_TYPE](b'N',N, h_A.data_h, <C_TYPE*>eigenvals.data)
     else:
         U.fill_from(h_A)
         if(computeU==True):
-            carma_syevd_cpu[C_TYPE]('V',N,U.data_h, <C_TYPE*>eigenvals.data)
+            carma_syevd_cpu[C_TYPE](b'V',N,U.data_h, <C_TYPE*>eigenvals.data)
         else:
-            carma_syevd_cpu[C_TYPE]('N',N,U.data_h, <C_TYPE*>eigenvals.data)
+            carma_syevd_cpu[C_TYPE](b'N',N,U.data_h, <C_TYPE*>eigenvals.data)
 
 
 '''

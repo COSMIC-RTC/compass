@@ -16,10 +16,10 @@ import pyqtgraph as pg
 import tools
 import hdf5_utils as h5u
 import threading
-from PyQt4.uic import loadUiType
-from PyQt4 import QtGui
-from PyQt4.Qt import QThread, QObject
-from PyQt4.QtCore import QTimer, SIGNAL
+from PyQt5.uic import loadUiType
+from PyQt5 import QtGui, QtWidgets
+from PyQt5.QtGui import QThread, QObject
+from PyQt5.QtCore import QTimer, pyqtSignal
 from functools import partial
 from pandas import HDFStore, read_hdf
 from threading import Thread
@@ -262,11 +262,11 @@ class widgetAOWindow(TemplateBaseClass):
             self.tar.reset_strehl(t)
 
     def quitGUI(self):
-        reply = QtGui.QMessageBox.question(self, 'Message',
-                                           "Are you sure to quit?", QtGui.QMessageBox.Yes |
-                                           QtGui.QMessageBox.No, QtGui.QMessageBox.No)
+        reply = QtWidgets.QMessageBox.question(self, 'Message',
+                                           "Are you sure to quit?", QtWidgets.QMessageBox.Yes |
+                                           QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No)
 
-        if reply == QtGui.QMessageBox.Yes:
+        if reply == QtWidgets.QMessageBox.Yes:
             self.stop = True
             if self.loop is not None:
                 self.loop.join()
@@ -277,11 +277,11 @@ class widgetAOWindow(TemplateBaseClass):
             print("Exit aborted")
 
     def closeEvent(self, event):
-        reply = QtGui.QMessageBox.question(self, 'Message',
-                                           "Are you sure to quit?", QtGui.QMessageBox.Yes |
-                                           QtGui.QMessageBox.No, QtGui.QMessageBox.No)
+        reply = QtWidgets.QMessageBox.question(self, 'Message',
+                                           "Are you sure to quit?", QtWidgets.QMessageBox.Yes |
+                                           QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No)
 
-        if reply == QtGui.QMessageBox.Yes:
+        if reply == QtWidgets.QMessageBox.Yes:
             event.accept()
             self.stop = True
             if self.loop is not None:
@@ -298,8 +298,8 @@ class widgetAOWindow(TemplateBaseClass):
 
     def addConfigFromFile(self, filepath=False):
         if filepath is False:
-            filepath = str(QtGui.QFileDialog(directory=self.defaultParPath).getOpenFileName(
-                self, "Select parameter file", "", "parameters file (*.py);;hdf5 file (*.h5);;all files (*)"))
+            filepath = str(QtWidgets.QFileDialog(directory=self.defaultParPath).getOpenFileName(
+                self, "Select parameter file", "", "parameters file (*.py);;hdf5 file (*.h5);;all files (*)"))[0]
         self.loaded = False
         filename = filepath.split('/')[-1]
         if(filepath.split('.')[-1] == "py"):
@@ -324,7 +324,7 @@ class widgetAOWindow(TemplateBaseClass):
 
         self.config = config
         self.ui.wao_selectScreen.clear()
-        if(self.config.p_wfss[0].type_wfs == "pyrhr"):
+        if(self.config.p_wfss[0].type_wfs == b"pyrhr"):
             self.selector_init = ["Phase - Atmos", "Phase - WFS", "Pyrimg - LR",
                                   "Pyrimg - HR", "Centroids - WFS", "Slopes - WFS",
                                   "Phase - Target", "Phase - DM",
@@ -389,8 +389,7 @@ class widgetAOWindow(TemplateBaseClass):
         self.ui.wao_loadConfig.setDisabled(True)
         self.ui.wao_init.setDisabled(True)
         thread = WorkerThread(self, self.InitConfigThread)
-        QObject.connect(thread, SIGNAL(
-            "jobFinished( PyQt_PyObject )"), self.InitConfigFinished)
+        thread.jobFinished['PyQt_PyObject'].connect(self.InitConfigFinished)
         thread.start()
 
     def InitConfigThread(self):
@@ -626,9 +625,9 @@ class widgetAOWindow(TemplateBaseClass):
         self.rtc.applycontrol(0, self.dms)
         for w in range(len(self.config.p_wfss)):
             if(turbu):
-                self.wfs.sensors_trace(w, "all", self.tel, self.atm, self.dms, rst=1)
+                self.wfs.sensors_trace(w, b"all", self.tel, self.atm, self.dms, rst=1)
             else:
-                self.wfs.sensors_trace(w, "dm", self.tel, self.atm, self.dms, rst=1)
+                self.wfs.sensors_trace(w, b"dm", self.tel, self.atm, self.dms, rst=1)
             self.wfs.sensors_compimg(w, noise=noise)
         self.rtc.docentroids(0)
         return self.rtc.getcentroids(0)
@@ -706,9 +705,9 @@ class widgetAOWindow(TemplateBaseClass):
 
                     if(self.imgType == "Spots - WFS"):
                         self.setupDisp("pg")
-                        if(self.config.p_wfss[self.numberSelected].type_wfs == "sh"):
+                        if(self.config.p_wfss[self.numberSelected].type_wfs == b"sh"):
                             data = self.wfs.get_binimg(self.numberSelected)
-                        elif(self.config.p_wfss[self.numberSelected].type_wfs == "pyr"):
+                        elif(self.config.p_wfss[self.numberSelected].type_wfs == b"pyr"):
                             data = self.wfs.get_pyrimg(self.numberSelected)
                         if(self.imgType != self.currentViewSelected):
                             self.p1.setRange(
@@ -717,7 +716,7 @@ class widgetAOWindow(TemplateBaseClass):
 
                     if(self.imgType == "Pyrimg - LR"):
                         self.setupDisp("pg")
-                        if(self.config.p_wfss[self.numberSelected].type_wfs == "pyrhr"):
+                        if(self.config.p_wfss[self.numberSelected].type_wfs == b"pyrhr"):
                             data = self.wfs.get_pyrimg(self.numberSelected)
                         if(self.imgType != self.currentViewSelected):
                             self.p1.setRange(
@@ -726,7 +725,7 @@ class widgetAOWindow(TemplateBaseClass):
 
                     if(self.imgType == "Pyrimg - HR"):
                         self.setupDisp("pg")
-                        if(self.config.p_wfss[self.numberSelected].type_wfs == "pyrhr"):
+                        if(self.config.p_wfss[self.numberSelected].type_wfs == b"pyrhr"):
                             data = self.wfs.get_pyrimghr(
                                 self.numberSelected)
                         if(self.imgType != self.currentViewSelected):
@@ -742,7 +741,7 @@ class widgetAOWindow(TemplateBaseClass):
                         nvalid = [
                             2 * o._nvalid for o in self.config.p_wfss]
                         ind = np.sum(nvalid[:self.numberSelected])
-                        if(self.config.p_wfss[self.numberSelected].type_wfs == "pyrhr"):
+                        if(self.config.p_wfss[self.numberSelected].type_wfs == b"pyrhr"):
                             tools.plpyr(centroids[ind:ind + nvalid[self.numberSelected]], self.config.p_wfs0._isvalid)
                         else:
                             x, y, vx, vy = tools.plsh(centroids[ind:ind + nvalid[self.numberSelected]], self.config.p_wfss[
@@ -793,7 +792,7 @@ class widgetAOWindow(TemplateBaseClass):
                     if(self.imgType == "PSF SE"):
                         self.setupDisp("pg")
                         data = self.tar.get_image(
-                            self.numberSelected, "se")
+                            self.numberSelected, b"se")
                         if(self.ui.wao_PSFlogscale.isChecked()):
                             if np.any(data <= 0):
                                 print((
@@ -832,7 +831,7 @@ class widgetAOWindow(TemplateBaseClass):
                     if(self.imgType == "PSF LE"):
                         self.setupDisp("pg")
                         data = self.tar.get_image(
-                            self.numberSelected, "le")
+                            self.numberSelected, b"le")
                         if(self.ui.wao_PSFlogscale.isChecked()):
                             data = np.log10(data)
                         if (not self.SRCrossX):
@@ -886,7 +885,7 @@ class widgetAOWindow(TemplateBaseClass):
             try:
                 start = time.time()
                 self.atm.move_atmos()
-                if(self.config.p_controllers[0].type_control == "geo"):
+                if(self.config.p_controllers[0].type_control == b"geo"):
                     for t in range(self.config.p_target.ntargets):
                         if wao.see_atmos:
                             self.tar.atmos_trace(t, self.atm, self.tel)
@@ -966,6 +965,8 @@ class widgetAOWindow(TemplateBaseClass):
 
 
 class WorkerThread( QThread ):
+    jobFinished = pyqtSignal('PyQt_PyObject')
+
     def __init__( self, parentThread, parentLoop):
         QThread.__init__( self, parentThread)
         self.loop = parentLoop
@@ -973,7 +974,7 @@ class WorkerThread( QThread ):
         self.running = True
         self.loop()
         success = True
-        self.emit( SIGNAL( "jobFinished( PyQt_PyObject )" ), success )
+        self.jobFinished.emit(success)
     def stop( self ):
         self.running = False
         pass
@@ -1030,8 +1031,8 @@ except:
     pass
 
 
-if __name__ == '__main__':
-    app = QtGui.QApplication(sys.argv)
+if __name__ == b'__main__':
+    app = QtWidgets.QApplication(sys.argv)
     # app.setStyleSheet(qdarkstyle.load_stylesheet(pyside=False))
     app.setStyle('cleanlooks')
     if USE_PYRO:

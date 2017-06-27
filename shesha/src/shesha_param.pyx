@@ -7,22 +7,22 @@ cimport numpy as np
 # np.import_array()
 
 try:
-    shesha_dir = os.environ['SHESHA_ROOT']
-except:
+    shesha_dir = os.environ['SHESHA_ROOT'].encode('UTF-8')
+except KeyError as err:
     raise EnvironmentError("Environment variable 'SHESHA_ROOT' must be define")
 
 try:
-    shesha_db = os.environ['SHESHA_DB_ROOT']
-except:
+    shesha_db = os.environ['SHESHA_DB_ROOT'].encode('UTF-8')
+except KeyError as err:
     import warnings
-    shesha_db = shesha_dir + "/data/"
-    warnings.warn("'SHESHA_DB_ROOT' not defined, using default one: "+shesha_db)
+    shesha_db = shesha_dir + b"/data/"
+    warnings.warn("'SHESHA_DB_ROOT' not defined, using default one: "+ str(shesha_db))
 finally:
-    shesha_savepath = bytes(shesha_db.encode('UTF-8'))
+    shesha_savepath = shesha_db
 
-print ("shesha_savepath:", shesha_savepath)
+print("shesha_savepath:", shesha_savepath)
 
-sys.path.append(shesha_dir + '/src')
+sys.path.append(shesha_dir + b'/src')
 import make_pupil as mkP
 
 from scipy.ndimage import interpolation as interp
@@ -76,7 +76,7 @@ cdef class Param_loop:
 cdef class Param_tel:
     def __cinit__(self):
         self.diam = 0
-        self.type_ap = bytes("Generic".encode('UTF-8'))
+        self.type_ap = b"Generic"
         self.t_spiders = -1
         self.spiders_type = None
         self.nbrmissing = 0
@@ -98,12 +98,12 @@ cdef class Param_tel:
         """
         self.cobs = c
 
-    def set_type_ap(self, bytes t):
+    def set_type_ap(self, str t):
         """set the EELT aperture type
 
         :param t: (str) : EELT aperture type
         """
-        self.type_ap = t
+        self.type_ap = bytes(t.encode('UTF-8'))
 
     def set_t_spiders(self, float spider):
         """set the secondary supports ratio
@@ -112,12 +112,12 @@ cdef class Param_tel:
         """
         self.t_spiders = spider
 
-    def set_spiders_type(self, bytes spider):
+    def set_spiders_type(self, str spider):
         """set the secondary supports type
 
         :param spider: (str) : secondary supports type
         """
-        self.spiders_type = spider
+        self.spiders_type = bytes(spider.encode('UTF-8'))
 
     def set_pupangle(self, float p):
         """set the rotation angle of pupil
@@ -188,7 +188,7 @@ cdef class Param_geom:
         self._n1 = self._p1 - 2
         self._n2 = self._p2 + 2
 
-    def geom_init(self, Param_tel tel, long pupdiam, int apod=0, bytes apod_filename=None):
+    def geom_init(self, Param_tel tel, long pupdiam, int apod=0, str apod_filename=None):
         """Initialize the system geometry
 
         :parameters:
@@ -218,7 +218,7 @@ cdef class Param_geom:
 
         if(apod == 1):
             if apod_filename == None:
-                apod_filename = bytes((shesha_savepath + "apodizer/SP_HARMONI_I4_C6_N1024.npy").encode('UTF-8'))
+                apod_filename = shesha_savepath + "apodizer/SP_HARMONI_I4_C6_N1024.npy"
             self._apodizer = make_apodizer(self.pupdiam, self.pupdiam, apod_filename.encode(), 180. / 12.).astype(np.float32)
         else:
             self._apodizer = np.ones((self._spupil.shape[0], self._spupil.shape[1])).astype(np.float32)
@@ -336,12 +336,12 @@ cdef class Param_wfs:
         self.dx = 0.0
         self.dy = 0.0
 
-    def set_type(self, bytes t):
+    def set_type(self, str t):
         """Set the type of wfs
 
         :param t: (str) : type of wfs ("sh" or "pyr")
         """
-        self.type_wfs = t
+        self.type_wfs = bytes(t.encode('UTF-8'))
 
     def set_nxsub(self, long n):
         """Set the linear number of subaps
@@ -399,12 +399,12 @@ cdef class Param_wfs:
         """
         self.fssize = f
 
-    def set_fstop(self,bytes f):
+    def set_fstop(self,str f):
         """Set the size of field stop
 
         :param f: (str) : size of field stop in arcsec
         """
-        self.fstop = f
+        self.fstop = bytes(f.encode('UTF-8'))
 
     def set_atmos_seen(self, int i):
         """Tells if the wfs sees the atmosphere layers
@@ -518,12 +518,12 @@ cdef class Param_wfs:
         """
         self.llty = l
 
-    def set_proftype(self, bytes p):
+    def set_proftype(self, str p):
         """Set the type of sodium profile
 
         :param p: (str) : type of sodium profile "gauss", "exp", etc ...
         """
-        self.proftype = p
+        self.proftype = bytes(p.encode('UTF-8'))
 
     def set_beamsize(self, float b):
         """Set the laser beam fwhm on-sky
@@ -546,20 +546,20 @@ cdef class Param_wfs:
         """
         self.pyr_npts = p
 
-    def set_pyr_loc(self, bytes p):
+    def set_pyr_loc(self, str p):
         """Set the location of modulation
 
         :param p: (str) : location of modulation, before/after the field stop.
                           valid value are "before" or "after" (default "after")
         """
-        self.pyr_loc = p
+        self.pyr_loc = bytes(p.encode('UTF-8'))
 
-    def set_pyrtype(self, bytes p):
+    def set_pyrtype(self, str p):
         """Set the type of pyramid,
 
         :param p: (str) : type of pyramid, either 0 for "Pyramid" or 1 for "RoofPrism"
         """
-        self.pyrtype = p
+        self.pyrtype = bytes(p.encode('UTF-8'))
 
     def set_pyr_cx(self, np.ndarray[ndim=1,dtype=np.float32_t] cx):
         """Set the x position of modulation points for pyramid sensor
@@ -731,14 +731,14 @@ cdef class Param_wfs:
             #TODO what is n
             n=1
             g=np.zeros(n,dtype=np.float32)
-            if(center=="image"):
+            if(center == b"image"):
                 g[n/2-1]=0.5
                 g[n/2]=0.5
             else:
                 g[n/2]=1
 
         else:
-            if(center=="image"):
+            if(center == b"image"):
                 if( (self.npix*self._nrebin)%2 != self._Nfft%2):
                     g=np.exp(-(x+self._qpixsize)**2/(2*w**2.))
                 else:
@@ -785,7 +785,7 @@ cdef class Param_wfs:
 
         cdef float xcent,ycent
 
-        if(center=="image"):
+        if(center == b"image"):
             xcent=self._Ntot/2.+0.5
             ycent=xcent
         else:
@@ -934,7 +934,7 @@ cdef class Param_dm:
 
     def __cinit__(self, debug = False):
         self._klbas = Klbas()
-        self.influType = bytes("default".encode('UTF-8'))
+        self.influType = b"default"
         self.gain = 1.0
         self.margin_out = -1
         self.margin_in = -1
@@ -946,11 +946,11 @@ cdef class Param_dm:
         """
         self.pzt_extent = p
 
-    def set_influType(self, bytes t):
+    def set_influType(self, str t):
         """Set the influence function type for pzt DM
         :param t: (str) : centroider type
         """
-        self.influType = t
+        self.influType = bytes(t.encode('UTF-8'))
 
     def set_gain(self, float g):
         """Set the gain to apply to the actuators of the dm
@@ -966,78 +966,78 @@ cdef class Param_dm:
         """
         self.nkl = n
 
-    def set_kl_type(self, bytes t):
+    def set_kl_type(self, str t):
         """Set the type of KL used for computation
         :param t: (string) : KL types : kolmo or karman
         """
-        self.kl_type = t
-    def set_type(self, bytes t):
+        self.kl_type = bytes(t.encode('UTF-8'))
+    def set_type(self, str t):
         """set the dm type
 
         :param t: (str) : type of dm
         """
-        self.type_dm = t
+        self.type_dm = bytes(t.encode('UTF-8'))
 
-    def set_pattern(self,bytes t):
+    def set_pattern(self,str t):
         """set the pattern type
 
         :param t: (str) : type of pattern
         """
-        self.type_pattern=t
+        self.type_pattern=bytes(t.encode('UTF-8'))
 
-    def set_file_influ_hdf5(self,bytes f):
+    def set_file_influ_hdf5(self,str f):
         """set the name of hdf5 influence file
 
         :param filename: (str) : Hdf5 file influence name
         """
-        self.file_influ_hdf5=f
+        self.file_influ_hdf5=bytes(f.encode('UTF-8'))
 
-    def set_center_name(self,bytes f):
+    def set_center_name(self,str f):
         """set the name of hdf5 influence file
 
         :param filename: (str) : Hdf5 file influence name
         """
-        self.center_name=f
+        self.center_name=bytes(f.encode('UTF-8'))
 
-    def set_cube_name(self,bytes cubename):
+    def set_cube_name(self,str cubename):
         """set the name of influence cube in hdf5
 
         :param cubename: (str) : name of influence cube
         """
-        self.cube_name=cubename
+        self.cube_name=bytes(cubename.encode('UTF-8'))
 
-    def set_x_name(self,bytes xname):
+    def set_x_name(self,str xname):
         """set the name of x coord of influence fonction in file
 
         :param t: (str) : name of x coord of influence
         """
-        self.x_name=xname
+        self.x_name=bytes(xname.encode('UTF-8'))
 
-    def set_y_name(self,bytes yname):
+    def set_y_name(self,str yname):
         """set the name of y coord of influence fonction in file
 
         :param yname: (str) : name of y coord of influence
         """
-        self.y_name=yname
+        self.y_name=bytes(yname.encode('UTF-8'))
 
-    def set_influ_res(self,bytes res):
+    def set_influ_res(self,str res):
         """set the name of influence fonction resolution in file
 
         :param res: (str) : name of resoltion (meter/pixel) of influence
         """
-        self.influ_res=res
-    def set_diam_dm(self,bytes di):
+        self.influ_res=bytes(res.encode('UTF-8'))
+    def set_diam_dm(self,str di):
         """set the name of dm diameter in file
 
         :param di: (str) : name of diameter (meter) dm
         """
-        self.diam_dm=di
-    def set_diam_dm_proj(self,bytes dp):
+        self.diam_dm=bytes(di.encode('UTF-8'))
+    def set_diam_dm_proj(self,str dp):
         """set the name of dm diameter projet on puille in file
 
         :param dp: (str) : name of diameter (meter in pupil plan) dm
         """
-        self.diam_dm_proj=dp
+        self.diam_dm_proj=bytes(dp.encode('UTF-8'))
 
     def set_nact(self, long n):
 
@@ -1250,18 +1250,18 @@ cdef class Param_centroider:
         self.method = Sinus & ~Local
         self.thresh = 1e-4
 
-    def set_type(self, bytes t):
+    def set_type(self, str t):
         """Set the centroider type
         :param t: (str) : centroider type
         """
-        self.type_centro = t
+        self.type_centro = bytes(t.encode('UTF-8'))
 
-    def set_type_fct(self, bytes f):
+    def set_type_fct(self, str f):
         """Set the type of ref function
 
         :param f: (str) : type of ref function
         """
-        self.type_fct = f
+        self.type_fct = bytes(f.encode('UTF-8'))
 
     def set_nwfs(self, long n):
         """Set the index of wfs
@@ -1338,8 +1338,8 @@ cdef class Param_centroider:
 #################################################
 cdef class Param_controller:
 
-    def set_type(self, bytes b):
-        self.type_control = b
+    def set_type(self, str b):
+        self.type_control = bytes(b.encode('UTF-8'))
 
     def set_kl_imat(self, int k):
         """Set type imat, for imat on kl set at 1
@@ -1489,7 +1489,7 @@ cdef class Param_controller:
 
 
 
-cpdef make_apodizer(int dim, int pupd, bytes filename, float angle):
+cpdef make_apodizer(int dim, int pupd, str filename, float angle):
     """TODO doc
 
     :parameters:
@@ -1502,8 +1502,8 @@ cpdef make_apodizer(int dim, int pupd, bytes filename, float angle):
         (float) : angle:
     """
 
-    print ("Opening apodizer")
-    print ("reading file:", filename)
+    print("Opening apodizer")
+    print("reading file:", filename)
     cdef np.ndarray pup = np.load(filename)
     cdef int A = pup.shape[0]
 
@@ -1512,11 +1512,11 @@ cpdef make_apodizer(int dim, int pupd, bytes filename, float angle):
 
     if (A != pupd):
         # use misc.imresize (with bilinear)
-        print ("TODO pup=bilinear(pup,pupd,pupd)")
+        print("TODO pup=bilinear(pup,pupd,pupd)")
 
     if (angle != 0):
         # use ndimage.interpolation.rotate
-        print ("TODO pup=rotate2(pup,angle)")
+        print("TODO pup=rotate2(pup,angle)")
         pup = interp.rotate(pup, angle, reshape=False, order=2)
 
     reg = np.where(mkP.dist(pupd) > pupd / 2.)

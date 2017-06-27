@@ -16,7 +16,7 @@ cpdef prep_lgs_prof(Param_wfs p_wfs, int nsensors, Param_tel p_tel,
                     np.ndarray[dtype=np.float32_t] prof,
                     np.ndarray[dtype=np.float32_t] h,
                     float beam, Sensors sensors,
-                    bytes center= bytes("".encode('UTF-8')), int imat=0):
+                    bytes center= b"", int imat=0):
     """The function returns an image array(double,n,n) of a laser beacon elongated by perpective
 effect. It is obtaind by convolution of a gaussian of width "lgsWidth" arcseconds, with the
 line of the sodium profile "prof". The altitude of the profile is the array "h".
@@ -94,14 +94,14 @@ simple re-sampling of the profile is adequate.
         # TODO what is n
         n = 1
         g = np.zeros(n, dtype=np.float32)
-        if(center == "image"):
+        if(center == b"image"):
             g[n / 2 - 1] = 0.5
             g[n / 2] = 0.5
         else:
             g[n / 2] = 1
 
     else:
-        if(center == "image"):
+        if(center == b"image"):
             g = np.exp(-(x + p_wfs._qpixsize / 2) ** 2 / (2 * w ** 2.))
         else:
             g = np.exp(-x ** 2 / (2 * w ** 2.))
@@ -135,7 +135,7 @@ simple re-sampling of the profile is adequate.
 
 cpdef make_lgs_prof1d(p_wfs, Param_tel p_tel,
                       np.ndarray[dtype=np.float32_t] prof, np.ndarray[dtype=np.float32_t] h,
-                      float beam, bytes center= bytes("".encode('UTF-8'))):
+                      float beam, bytes center= b""):
     """same as prep_lgs_prof but cpu only. original routine from rico
 
     :parameters:
@@ -222,14 +222,14 @@ cpdef make_lgs_prof1d(p_wfs, Param_tel p_tel,
         # TODO what is n
         n = 1
         g = np.zeros(n, dtype=np.float32)
-        if(center == "image"):
+        if(center == b"image"):
             g[n / 2 - 1] = 0.5
             g[n / 2] = 0.5
         else:
             g[n / 2] = 1
 
     else:
-        if(center == "image"):
+        if(center == b"image"):
             if((p_wfs.npix * p_wfs._nrebin) % 2 != p_wfs._Nfft % 2):
                 g = np.exp(-(x + p_wfs._qpixsize) ** 2 / (2 * w ** 2.))
             else:
@@ -272,7 +272,7 @@ cpdef make_lgs_prof1d(p_wfs, Param_tel p_tel,
 
     cdef float xcent, ycent
 
-    if(center == "image"):
+    if(center == b"image"):
         xcent = p_wfs._Ntot / 2. + 0.5
         ycent = xcent
     else:
@@ -316,13 +316,13 @@ cpdef type_present(liste, int pyr, int roof, int sh, int geo):
     l = len(liste)
     for i in range(l):
         wfs_type = liste[i]
-        if(wfs_type == "pyr"):
+        if(wfs_type == b"pyr"):
             pyr = 1
-        elif (wfs_type == "roof"):
+        elif (wfs_type == b"roof"):
             roof = 1
-        elif(wfs_type == "sh"):
+        elif(wfs_type == b"sh"):
             sh = 1
-        elif(wfs_type == "geo"):
+        elif(wfs_type == b"geo"):
             geo = 1
 
 
@@ -389,7 +389,7 @@ def wfs_init(wfs, Param_atmos p_atmos, Param_tel p_tel, Param_geom p_geom,
     # first get the wfs with max # of subaps
     # we'll derive the geometry from the requirements in terms of sampling
     if(any_sh):
-        indmax = wheremax([o.nxsub for o in wfs if o.type_wfs == "sh"])
+        indmax = wheremax([o.nxsub for o in wfs if o.type_wfs == b"sh"])
     else:
         indmax = wheremax([o.nxsub for o in wfs])
 
@@ -457,7 +457,7 @@ def wfs_init(wfs, Param_atmos p_atmos, Param_tel p_tel, Param_geom p_geom,
                           p_geom._apodizer, p_geom._phase_ab_M1,
                           p_geom._mpupil.shape[0], p_geom._mpupil, p_geom._phase_ab_M1_m)
 
-    if(wfs[0].type_wfs == "sh"):
+    if(wfs[0].type_wfs == b"sh"):
         g_wfs = Sensors(nsensors, telescope, t_wfs, npup, nxsub, nvalid, nphase, pdiam, npix, nrebin,
                         nfft, ntota, nphot, nphot4imat, lgs, comm_size=comm_size, rank=rank, error_budget=error_budget_flag)
 
@@ -466,7 +466,7 @@ def wfs_init(wfs, Param_atmos p_atmos, Param_tel p_tel, Param_geom p_geom,
 
         g_wfs.sensors_initgs(xpos, ypos, Lambda, mag, zerop, size, noise, seed, G, thetaML, dx, dy)
 
-    elif(wfs[0].type_wfs=="pyr" or wfs[0].type_wfs == "roof"):
+    elif(wfs[0].type_wfs==b"pyr" or wfs[0].type_wfs == b"roof"):
         npup = np.array([wfs[0].pyr_npts])
         g_wfs = Sensors(nsensors, telescope, t_wfs, npup, nxsub, nvalid, nphase, pdiam, npix, nrebin,
                         nfft, ntota, nphot, nphot4imat, lgs, comm_size=comm_size, rank=rank, error_budget=error_budget_flag)
@@ -475,7 +475,7 @@ def wfs_init(wfs, Param_atmos p_atmos, Param_tel p_tel, Param_geom p_geom,
         noise = np.array([o.noise for o in wfs], dtype=np.float32)
         g_wfs.sensors_initgs(xpos, ypos, Lambda, mag, zerop, size, noise, seed, G, thetaML, dx, dy)
 
-    elif(wfs[0].type_wfs == "pyrhr"):
+    elif(wfs[0].type_wfs == b"pyrhr"):
         npup = np.array([o.pyr_npts for o in wfs])
         G = np.array([o.G for o in wfs], dtype=np.float32)
         thetaML = np.array([o.thetaML for o in wfs], dtype=np.float32)
@@ -488,7 +488,7 @@ def wfs_init(wfs, Param_atmos p_atmos, Param_tel p_tel, Param_geom p_geom,
         noise = np.array([o.noise for o in wfs], dtype=np.float32)
         g_wfs.sensors_initgs(xpos, ypos, Lambda, mag, zerop, size, noise, seed, G, thetaML, dx, dy)
 
-    elif(wfs[0].type_wfs == "geo"):
+    elif(wfs[0].type_wfs == b"geo"):
         npup = np.array([wfs[0].p_geom._n])
         g_wfs = Sensors(nsensors, telescope, wfs[0].type_wfs, npup, nxsub, nvalid, nphase, pdiam,
                         comm_size=comm_size, rank=rank)
@@ -496,6 +496,8 @@ def wfs_init(wfs, Param_atmos p_atmos, Param_tel p_tel, Param_geom p_geom,
         mag = np.zeros(nsensors - 1, dtype=np.float32)
         noise = np.zeros(nsensors - 1, dtype=np.float32) - 1
         g_wfs.sensors_initgs(xpos, ypos, Lambda, mag, zerop, size, noise, seed, G, thetaML, dx, dy)
+    else:
+        raise Exception("WFS type unknown")
 
     # fill sensor object with data
     for i in range(nsensors):
@@ -505,16 +507,16 @@ def wfs_init(wfs, Param_atmos p_atmos, Param_tel p_tel, Param_geom p_geom,
     for i in range(nsensors):
         if(wfs[i].gsalt > 0):
             # lgs mode requested
-            if(wfs[i].proftype is None or wfs[i].proftype == ""):
+            if(wfs[i].proftype is None or wfs[i].proftype == b""):
                 wfs[i].set_proftype("Gauss1")
 
-            if(wfs[i].proftype == "Gauss1"):
+            if(wfs[i].proftype == b"Gauss1"):
                 profilename = "allProfileNa_withAltitude_1Gaussian.npy"
-            elif(wfs[i].proftype == "Gauss2"):
+            elif(wfs[i].proftype == b"Gauss2"):
                 profilename = "allProfileNa_withAltitude_2Gaussian.npy"
-            elif(wfs[i].proftype == "Gauss3"):
+            elif(wfs[i].proftype == b"Gauss3"):
                 profilename = "allProfileNa_withAltitude_3Gaussian.npy"
-            elif(wfs[i].proftype == "Exp"):
+            elif(wfs[i].proftype == b"Exp"):
                 profilename = "allProfileNa_withAltitude.npy"
             else:
                 error = "Param_wfs proftype unknown: got '" + \
@@ -523,7 +525,7 @@ def wfs_init(wfs, Param_atmos p_atmos, Param_tel p_tel, Param_geom p_geom,
                 raise ValueError(error)
 
             profile_path = shesha_savepath + "/" + profilename
-            print "reading Na profile from", profile_path
+            print("reading Na profile from", profile_path)
             prof = np.load(profile_path)
             wfs[i].set_altna(prof[0, :].astype(np.float32))
             wfs[i].set_profna(np.mean(prof[1:, :], axis=0).astype(np.float32))
@@ -564,22 +566,22 @@ cpdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
     """
 
     if(verbose == 0):
-        print "*-----------------------"
+        print("*-----------------------")
     if(verbose == 0):
-        print "Doing inits on WFS", n
+        print("Doing inits on WFS", n)
 
     cdef long pdiam = 0
 
     if(init == 0 or geom.pupdiam):
-        if(wfs.type_wfs == "sh"):
-            pdiam = geom.pupdiam / wfs.nxsub
+        if(wfs.type_wfs == b"sh"):
+            pdiam = geom.pupdiam // wfs.nxsub
             if(geom.pupdiam % wfs.nxsub > 0):
                 pdiam += 1
-        if(wfs.type_wfs == "geo"):
+        if(wfs.type_wfs == b"geo"):
             if(geom.pupdiam == 0):
                 pdiam = 20
             else:
-                pdiam = geom.pupdiam / wfs.nxsub
+                pdiam = geom.pupdiam // wfs.nxsub
                 if(geom.pupdiam % wfs.nxsub > 0):
                     pdiam += 1
     else:
@@ -621,10 +623,10 @@ cpdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
 
     wfs._pdiam = pdiam
 
-    if(wfs.type_wfs == "pyr" or wfs.type_wfs == "roof"):
+    if(wfs.type_wfs == b"pyr" or wfs.type_wfs == b"roof"):
         wfs.npix = pdiam
 
-    if(init == 1 or (wfs.type_wfs == "geo" and n == 1)):
+    if(init == 1 or (wfs.type_wfs == b"geo" and n == 1)):
         # this is the wfs with largest # of subaps
         # the overall geometry is deduced from it
         if(geom.pupdiam):
@@ -632,7 +634,7 @@ cpdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
         else:
             geom.geom_init(tel, pdiam * wfs.nxsub, p_target.apod)
 
-    if(wfs.type_wfs=="pyr" or wfs.type_wfs == "roof"):
+    if(wfs.type_wfs == b"pyr" or wfs.type_wfs == b"roof"):
         padding = 2
         npup = wfs._Ntot
         n1 = geom.ssize / 2 - geom.pupdiam / 2 - padding * wfs.npix
@@ -650,11 +652,11 @@ cpdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
         mod_ampl_pixels = wfs.pyr_ampl / wfs._qpixsize  # modulation in pixels
         fsradius_pixels = long(wfs.fssize / wfs._qpixsize / 2.)
 
-        if (wfs.fstop == "round"):
+        if (wfs.fstop == b"round"):
             focmask = mkP.dist(
                 npup, xc=npup / 2. + 0.5, yc=npup / 2. + 0.5) < (fsradius_pixels)
             # fstop_area = np.pi * (wfs.fssize/2.)**2. #UNUSED
-        elif (wfs.fstop == "square"):
+        elif (wfs.fstop == b"square"):
             x, y = indices(npup)
             x -= (npup + 1.) / 2.
             y -= (npup + 1.) / 2.
@@ -711,18 +713,18 @@ cpdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
             1j * 2 * np.pi * (coef1 / Nfft + coef2 * nrebin / wfs.npix / Nfft) * (x + y))
         wfs._pyr_offsets = pshift
 
-        if(wfs.pyrtype == "Pyramid"):
+        if(wfs.pyrtype == b"Pyramid"):
             if(wfs.pyr_pos == None):
                 cx = mod_ampl_pixels * np.sin((np.arange(wfs.pyr_npts) + 1) * 2. * np.pi / wfs.pyr_npts)
                 cy = mod_ampl_pixels * np.cos((np.arange(wfs.pyr_npts) + 1) * 2. * np.pi / wfs.pyr_npts)
                 # mod_npts = wfs.pyr_npts #UNUSED
             else:
                 if(verbose == 0):
-                    print "Using user-defined positions for the pyramid modulation"
+                    print("Using user-defined positions for the pyramid modulation")
                 cx = wfs.pyr_pos[:, 0] / qpixsize
                 cy = wfs.pyr_pos[:, 1] / qpixsize
                 # mod_npts=cx.shape[0] #UNUSED
-        elif(wfs.pyrtype == "RoofPrism"):
+        elif(wfs.pyrtype == b"RoofPrism"):
             cx = 2. * mod_ampl_pixels * ((np.arange(wfs.pyr_npts) + 1) - (wfs.pyr_npts + 1) / 2.) / wfs.pyr_npts
             cy = cx.copy()
             # mod_npts = wfs.pyr_npts #UNUSED
@@ -732,7 +734,8 @@ cpdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
                 cy = mod_ampl_pixels*np.cos((np.arange(wfs.pyr_npts)+1)*2.*np.pi/wfs.pyr_npts)
                 #mod_npts = wfs.pyr_npts #UNUSED
             else:
-                if(verbose==0):print "Using user-defined positions for the pyramid modulation"
+                if(verbose==0):
+                  print("Using user-defined positions for the pyramid modulation")
                 cx=wfs.pyr_pos[:,0]/qpixsize
                 cy=wfs.pyr_pos[:,1]/qpixsize
                 #mod_npts=cx.shape[0] #UNUSED
@@ -769,7 +772,7 @@ cpdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
 
         wfs._phasemap = phasemap
 
-    if(wfs.type_wfs == "pyrhr"):
+    if(wfs.type_wfs == b"pyrhr"):
         # nrebin[0]  = pdiam[0] / wfs.nxsub
         # Ntot[0]    = Nfft[0] /  pdiam[0] * wfs.nxsub
         # pixsize[0] = qpixsize[0] * nrebin[0]
@@ -794,11 +797,11 @@ cpdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
 
         # Creating field stop mask
         fsradius_pixels = long(wfs.fssize / wfs._qpixsize / 2.)
-        if (wfs.fstop == "round"):
+        if (wfs.fstop == b"round"):
             focmask = mkP.dist(
                 wfs._Nfft, xc=wfs._Nfft / 2. + 0.5, yc=wfs._Nfft / 2. + 0.5) < (fsradius_pixels)
             # fstop_area = np.pi * (wfs.fssize/2.)**2. #UNUSED
-        elif (wfs.fstop == "square"):
+        elif (wfs.fstop == b"square"):
             x, y = indices(wfs._Nfft)
             x -= (wfs._Nfft + 1.) / 2.
             y -= (wfs._Nfft + 1.) / 2.
@@ -852,15 +855,15 @@ cpdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
         # mypup = geom._ipupil
         # mypyr = np.abs(np.fft.ifft2(np.fft.fft2(mypup)*np.exp(1j*pyr)))**2
 
-        xcc = pyrsize / 2 - Pangle + 0.5
-        ycc = pyrsize / 2 + Pangle + 0.5
+        xcc = pyrsize // 2 - Pangle + 0.5
+        ycc = pyrsize // 2 + Pangle + 0.5
 
         pyrtmp = np.zeros((pyrsize, pyrsize), dtype=np.int32)
 
-        pyrtmp[pyrsize/2-geom._n/2:pyrsize/2+geom._n/2,pyrsize/2-geom._n/2:pyrsize/2+geom._n/2] =  geom._mpupil
+        pyrtmp[pyrsize//2-geom._n//2:pyrsize//2+geom._n//2,pyrsize//2-geom._n//2:pyrsize//2+geom._n//2] =  geom._mpupil
         pyrtmp2 = np.roll(pyrtmp.copy(),-Pangle,axis=0)
         pyrtmp2 = np.roll(pyrtmp2.copy(),-Pangle,axis=1)
-        mskreb = rebin(pyrtmp2.copy(), [pyrsize / nrebin, pyrsize / nrebin])
+        mskreb = rebin(pyrtmp2.copy(), [pyrsize // nrebin, pyrsize // nrebin])
         validx = np.where(mskreb >= fracsub)[1].astype(np.int32)
         validy = np.where(mskreb >= fracsub)[0].astype(np.int32)
         nvalid = validx.size
@@ -868,7 +871,7 @@ cpdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
 
         pyrtmp2 = np.roll(pyrtmp.copy(),Pangle,axis=0)
         pyrtmp2 = np.roll(pyrtmp2.copy(),Pangle,axis=1)
-        mskreb = rebin(pyrtmp2.copy(), [pyrsize / nrebin, pyrsize / nrebin])
+        mskreb = rebin(pyrtmp2.copy(), [pyrsize // nrebin, pyrsize // nrebin])
         tmpx = np.where(mskreb >= fracsub)[1].astype(np.int32)
         tmpy = np.where(mskreb >= fracsub)[0].astype(np.int32)
         validx = np.concatenate((validx, tmpx))
@@ -877,7 +880,7 @@ cpdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
 
         pyrtmp2 = np.roll(pyrtmp.copy(),Pangle,axis=0)
         pyrtmp2 = np.roll(pyrtmp2.copy(),-Pangle,axis=1)
-        mskreb = rebin(pyrtmp2.copy(), [pyrsize / nrebin, pyrsize / nrebin])
+        mskreb = rebin(pyrtmp2.copy(), [pyrsize // nrebin, pyrsize // nrebin])
         tmpx = np.where(mskreb >= fracsub)[1].astype(np.int32)
         tmpy = np.where(mskreb >= fracsub)[0].astype(np.int32)
         validx = np.concatenate((validx, tmpx))
@@ -886,7 +889,7 @@ cpdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
 
         pyrtmp2 = np.roll(pyrtmp.copy(),-Pangle,axis=0)
         pyrtmp2 = np.roll(pyrtmp2.copy(),Pangle,axis=1)
-        mskreb = rebin(pyrtmp2.copy(), [pyrsize / nrebin, pyrsize / nrebin])
+        mskreb = rebin(pyrtmp2.copy(), [pyrsize // nrebin, pyrsize // nrebin])
         tmpx = np.where(mskreb >= fracsub)[1].astype(np.int32)
         tmpy = np.where(mskreb >= fracsub)[0].astype(np.int32)
         validx = np.concatenate((validx, tmpx))
@@ -912,9 +915,9 @@ cpdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
             # mod_npts = wfs.pyr_npts #UNUSED
         else:
             if(verbose == 0):
-                print "Using user-defined positions for the pyramid modulation"
-            cx = wfs.pyr_pos[:, 0] / qpixsize
-            cy = wfs.pyr_pos[:, 1] / qpixsize
+                print("Using user-defined positions for the pyramid modulation")
+            cx = wfs.pyr_pos[:, 0] // qpixsize
+            cy = wfs.pyr_pos[:, 1] // qpixsize
             # mod_npts=cx.shape[0] #UNUSED
 
         wfs._pyr_cx = cx.copy()
@@ -925,7 +928,7 @@ cpdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
 
         # spatial filtering by the pixel extent:
         # *2/2 intended. min should be 0.40 = sinc(0.5)^2.
-        y = np.tile(np.arange(pyrsize) - pyrsize / 2, (pyrsize, 1))
+        y = np.tile(np.arange(pyrsize) - pyrsize // 2, (pyrsize, 1))
         x = y.T
         x = x * 1. / pyrsize
         y = y * 1. / pyrsize
@@ -937,10 +940,10 @@ cpdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
         pup = pyrtmp.copy()  # geom._ipupil
         #pup = geom._mpupil
         pupreb = rebin(
-            pup * 1., [pyrsize/ nrebin, pyrsize / nrebin])
-        a = pyrsize / nrebin
-        b = geom._n / nrebin
-        pupreb = pupreb[a/2-b/2:a/2+b/2,a/2-b/2:a/2+b/2]
+            pup * 1., [pyrsize // nrebin, pyrsize // nrebin])
+        a = pyrsize // nrebin
+        b = geom._n // nrebin
+        pupreb = pupreb[a//2-b//2:a//2+b//2,a//2-b//2:a//2+b//2]
         wsubok = np.where(pupreb >= wfs.fracsub)
         pupvalid = pupreb * 0.
         pupvalid[wsubok] = 1
@@ -967,7 +970,7 @@ cpdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
                     geom._mpupil[indi:indi +  wfs.npix, indj:indj +  wfs.npix])
                 # fluxPerSub[i,j] = np.where(geom._mpupil[indi:indi+pdiam,indj:indj+pdiam] > 0)[0].size
 
-        fluxPerSub = fluxPerSub /  wfs.nxsub** 2.
+        fluxPerSub = fluxPerSub //  wfs.nxsub**2.
 
         wfs._fluxPerSub = fluxPerSub
 
@@ -1009,7 +1012,7 @@ cpdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
         # phase_shift = np.roll( np.exp(1j*2*np.pi*(0.5*(x+y))/geom._n), x.shape[0]/2, axis=0 )
         # phase_shift = np.roll( phase_shift, x.shape[1]/2, axis=1 )
 
-    if(wfs.type_wfs == "sh" or wfs.type_wfs == "geo"):
+    if(wfs.type_wfs == b"sh" or wfs.type_wfs == b"geo"):
         # this is the i,j index of lower left pixel of subap
         istart = (
             (np.linspace(0.5, geom.pupdiam + 0.5, wfs.nxsub + 1) + 1)[:-1]).astype(np.int64)
@@ -1029,7 +1032,7 @@ cpdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
                     geom._mpupil[indi:indi + pdiam, indj:indj + pdiam])
                 # fluxPerSub[i,j] = np.where(geom._mpupil[indi:indi+pdiam,indj:indj+pdiam] > 0)[0].size
 
-        fluxPerSub = fluxPerSub / pdiam ** 2.
+        fluxPerSub = fluxPerSub // pdiam ** 2.
 
         pupvalid = (fluxPerSub >= wfs.fracsub) * 1
         pupvalid = pupvalid.T
@@ -1059,7 +1062,7 @@ cpdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
         wfs._phasemap = phasemap
 
         # this is a phase shift of 1/2 pix in x and y
-        if(wfs.type_wfs == "sh"):
+        if(wfs.type_wfs == b"sh"):
             halfxy = np.linspace(
                 0, 2 * np.pi, wfs._Nfft + 1)[0:wfs._pdiam] / 2.
             halfxy = np.tile(halfxy, (wfs._pdiam, 1))
@@ -1084,7 +1087,7 @@ cpdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
         # must be set even if unused
         wfs._submask = np.array([0], dtype=np.float32)
 
-    if (wfs.type_wfs == "sh"):
+    if (wfs.type_wfs == b"sh"):
         # this defines how we create a larger fov if required
         if(wfs._Ntot != wfs._Nfft):
             indi = long((wfs._Ntot - wfs._Nfft) / 2.)  # +1 -1 (yorick>python)
@@ -1135,8 +1138,8 @@ cpdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
         tmp = x + y * wfs._Ntot
 
         if(wfs.gsalt <= 0):
-            binindices = np.roll(binindices, binindices.shape[0] / 2, axis=0)
-            binindices = np.roll(binindices, binindices.shape[1] / 2, axis=1)
+            binindices = np.roll(binindices, binindices.shape[0] // 2, axis=0)
+            binindices = np.roll(binindices, binindices.shape[1] // 2, axis=1)
 
         for i in range(wfs.npix * wfs.npix):
             binmap[:, i] = tmp[np.where(binindices == i + 1)]
@@ -1149,11 +1152,11 @@ cpdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
             (tel.diam / np.sqrt(wfs.nxsub ** 2. + (dr0 / 1.5) ** 2.)) / 4.848
         kernelfwhm = np.sqrt(fwhmseeing ** 2. + wfs.kernel ** 2.)
 
-        tmp = makegaussian(wfs._Ntot, kernelfwhm / wfs._qpixsize, wfs._Ntot / 2 + 1,
-                           wfs._Ntot / 2 + 1).astype(np.float32)
+        tmp = makegaussian(wfs._Ntot, kernelfwhm / wfs._qpixsize, wfs._Ntot // 2 + 1,
+                           wfs._Ntot // 2 + 1).astype(np.float32)
 
-        tmp = np.roll(tmp, tmp.shape[0] / 2, axis=0)
-        tmp = np.roll(tmp, tmp.shape[1] / 2, axis=1)
+        tmp = np.roll(tmp, tmp.shape[0] // 2, axis=0)
+        tmp = np.roll(tmp, tmp.shape[1] // 2, axis=1)
 
         tmp[0,
             0] = 1.  # this insures that even with fwhm=0, the kernel is a dirac
@@ -1188,7 +1191,7 @@ cpdef init_wfs_geom(Param_wfs wfs, Param_wfs wfs0, int n, Param_atmos atmos,
 # per iteration
 
         if(verbose == 0):
-            print "nphotons : ", wfs._nphotons
+            print("nphotons : ", wfs._nphotons)
 
 
 cdef init_wfs_size(Param_wfs wfs, int n, Param_atmos atmos,
@@ -1265,10 +1268,10 @@ cdef init_wfs_size(Param_wfs wfs, int n, Param_atmos atmos,
 
     if(r0 != 0):
         if(verbose == 0):
-            print "r0 for WFS :", "%3.2f" % r0, " m"
+            print("r0 for WFS :", "%3.2f" % r0, " m")
         # seeing = RASC * (wfs.lambda * 1.e-6) / r0
         if(verbose == 0):
-            print "seeing for WFS : ", "%3.2f" % (RASC * (wfs.Lambda * 1.e-6) / r0), "\""
+            print("seeing for WFS : ", "%3.2f" % (RASC * (wfs.Lambda * 1.e-6) / r0), "\"")
 
     if(pdiam[0] <= 0):
         # this case is usualy for the wfs with max # of subaps
@@ -1283,7 +1286,7 @@ cdef init_wfs_size(Param_wfs wfs, int n, Param_atmos atmos,
         if((pdiam[0] * wfs.nxsub) % 2):
             pdiam[0] += 1
 
-        if(wfs.type_wfs == "sh"):
+        if(wfs.type_wfs == b"sh"):
             nrebin[0] = long(
                 2 * subapdiam * wfs.pixsize / (wfs.Lambda * 1.e-6) / RASC) + 1
             nrebin[0] = max(2, nrebin[0])
@@ -1298,7 +1301,7 @@ cdef init_wfs_size(Param_wfs wfs, int n, Param_atmos atmos,
             qpixsize[0] = (
                 pdiam[0] * (wfs.Lambda * 1.e-6) / subapdiam * RASC) / Nfft[0]
 
-        if(wfs.type_wfs=="pyr" or wfs.type_wfs == "roof"):
+        if(wfs.type_wfs == b"pyr" or wfs.type_wfs == b"roof"):
             # while (pdiam % wfs.npix != 0) pdiam+=1;
             padding = 2
             nphase = pdiam[0] * wfs.nxsub + 2 * padding * pdiam[0]
@@ -1326,7 +1329,7 @@ cdef init_wfs_size(Param_wfs wfs, int n, Param_atmos atmos,
             Ntot[0] = nphase
             pixsize[0] = qpixsize[0] * nrebin[0]
 
-        if(wfs.type_wfs == "pyrhr"):
+        if(wfs.type_wfs == b"pyrhr"):
             # while (pdiam % wfs.npix != 0) pdiam+=1;
             k = 3
             pdiam[0] = long(tel.diam / r0 * k)
@@ -1337,7 +1340,7 @@ cdef init_wfs_size(Param_wfs wfs, int n, Param_atmos atmos,
             # fft_goodsize( m * pdiam[0])
             Nfft[0] = long(2 ** np.ceil(np.log2(m * pdiam[0])))
 
-            nrebin[0] = pdiam[0] / wfs.nxsub
+            nrebin[0] = pdiam[0] // wfs.nxsub
             while(Nfft[0] % nrebin[0] != 0):
                 nrebin[0] += 1  # we choose to have a divisor of Nfft
                 pdiam[0] = nrebin[0] * wfs.nxsub
@@ -1352,9 +1355,9 @@ cdef init_wfs_size(Param_wfs wfs, int n, Param_atmos atmos,
 
             fssize_pixels = long(wfs.fssize / qpixsize[0] / 2.)
 
-            Ntot[0] = Nfft[0] / pdiam[0] * wfs.nxsub
+            Ntot[0] = Nfft[0] // pdiam[0] * wfs.nxsub
             pixsize[0] = qpixsize[0] * nrebin[0]
-            pdiam[0] = pdiam[0] / wfs.nxsub
+            pdiam[0] = pdiam[0] // wfs.nxsub
 
         # quantum pixel size
     else:
@@ -1368,7 +1371,7 @@ cdef init_wfs_size(Param_wfs wfs, int n, Param_atmos atmos,
                 (wfs.Lambda * 1.e-6) / subapdiam * RASC / Nfft[0]
             # quantum pixel size
 
-    if (wfs.type_wfs == "sh"):
+    if (wfs.type_wfs == b"sh"):
         # actual rebin factor
         if(wfs.pixsize / qpixsize[0] - long(wfs.pixsize / qpixsize[0]) > 0.5):
             nrebin[0] = long(wfs.pixsize / qpixsize[0]) + 1
@@ -1387,34 +1390,34 @@ cdef init_wfs_size(Param_wfs wfs, int n, Param_atmos atmos,
         if (Ntot[0] % 2 != Nfft[0] % 2):
             Ntot[0] += 1
 
-    if (wfs.type_wfs == "geo"):
+    if (wfs.type_wfs == b"geo"):
         if(verbose == 0):
-            print "quantum pixsize : ", "%5.4f" % qpixsize[0], "\""
+            print("quantum pixsize : ", "%5.4f" % qpixsize[0], "\"")
         if(verbose == 0):
-            print "simulated FoV : ", "%3.2f" % (Ntot[0] * qpixsize[0]), "\" x ", "%3.2f" % (Ntot[0] * qpixsize[0]), "\""
+            print("simulated FoV : ", "%3.2f" % (Ntot[0] * qpixsize[0]), "\" x ", "%3.2f" % (Ntot[0] * qpixsize[0]), "\"")
         if(verbose == 0):
-            print "actual pixsize : ", "%5.4f" % pixsize[0]
+            print("actual pixsize : ", "%5.4f" % pixsize[0])
         if(verbose == 0):
-            print "actual FoV : ", "%3.2f" % (pixsize[0] * wfs.npix), "\" x ", "%3.2f" % (pixsize[0] * wfs.npix), "\""
+            print("actual FoV : ", "%3.2f" % (pixsize[0] * wfs.npix), "\" x ", "%3.2f" % (pixsize[0] * wfs.npix), "\"")
         if(verbose == 0):
-            print "number of phase points : ", pdiam[0]
+            print("number of phase points : ", pdiam[0])
         if(verbose == 0):
-            print "size of fft support : ", Nfft[0]
+            print("size of fft support : ", Nfft[0])
         if (Ntot[0] > Nfft[0]):
             if(verbose == 0):
-                print "size of HR spot support : ", Ntot[0]
+                print("size of HR spot support : ", Ntot[0])
 
-    if (wfs.type_wfs == "pyrhr"):
+    if (wfs.type_wfs == b"pyrhr"):
         if(verbose == 0):
-            print "quantum pixsize in pyr image : ", "%5.4f" % qpixsize[0], "\""
+            print("quantum pixsize in pyr image : ", "%5.4f" % qpixsize[0], "\"")
         if(verbose == 0):
-            print "simulated FoV : ", "%3.2f" % (Nfft[0] * qpixsize[0]), "\" x ", "%3.2f" % (Nfft[0] * qpixsize[0]), "\""
-        # if(verbose==0):print "actual pixsize : ", "%5.4f"%pixsize[0]
+            print("simulated FoV : ", "%3.2f" % (Nfft[0] * qpixsize[0]), "\" x ", "%3.2f" % (Nfft[0] * qpixsize[0]), "\"")
+        # if(verbose==0):print("actual pixsize : ", "%5.4f"%pixsize[0])
         if(verbose == 0):
-            print "number of phase points : ", pdiam[0] * wfs.nxsub
+            print("number of phase points : ", pdiam[0] * wfs.nxsub)
         if(verbose == 0):
-            print "size of fft support : ", Nfft[0]
-        # if(verbose==0):print "size of pyramid images : ",Ntot[0]
+            print("size of fft support : ", Nfft[0])
+        # if(verbose==0):print("size of pyramid images : ",Ntot[0])
 
 cpdef noise_cov(int nw, Param_wfs p_wfs, Param_atmos p_atmos, Param_tel p_tel):
     """Compute the diagonal of the noise covariance matrix for a SH WFS (arcsec^2)
@@ -1599,7 +1602,7 @@ cdef class Sensors:
         cdef carma_context * context = &carma_context.instance()
         if odevice < 0:
             odevice = context.get_activeDevice()
-        if(type_data == "geo"):
+        if(type_data == b"geo"):
             self.sensors = new sutra_sensors(context, tel.telescope, nsensors,
                                              < long * > nxsub.data,
                                              < long * > nvalid.data,
@@ -1705,7 +1708,7 @@ cdef class Sensors:
         cdef np.ndarray[dtype = np.int32_t] hrmap_F = wfs._hrmap.flatten("F")
         cdef np.ndarray[dtype = np.int32_t] binmap_F
         cdef int * binmap = NULL
-        if(self.sensors.d_wfs[n].type == "sh"):
+        if(self.sensors.d_wfs[n].type == b"sh"):
             binmap_F = wfs._binmap.flatten("F")
             binmap = < int * > binmap_F.data
 
@@ -1721,7 +1724,7 @@ cdef class Sensors:
         cdef np.ndarray[dtype = np.float32_t] cy_F
         cdef float * cx = NULL
         cdef float * cy = NULL
-        if((self.sensors.d_wfs[n].type == "pyrhr") or (self.sensors.d_wfs[n].type == "pyr") or (self.sensors.d_wfs[n].type == "roof")):
+        if((self.sensors.d_wfs[n].type == b"pyrhr") or (self.sensors.d_wfs[n].type == b"pyr") or (self.sensors.d_wfs[n].type == b"roof")):
             cx_F = wfs._pyr_cx.astype(np.float32)
             cy_F = wfs._pyr_cy.astype(np.float32)
             cx = < float * > cx_F.data
@@ -1737,7 +1740,7 @@ cdef class Sensors:
         """
         cdef np.ndarray halfxy_F  # [dtype=np.float32_t] halfxy_F=wfs._halfxy.flatten("F")
         cdef float * halfxy  # =<float*>halfxy_F.data
-        # if(self.sensors.d_wfs[n].type=="sh"):
+        # if(self.sensors.d_wfs[n].type == b"sh"):
         halfxy_F = wfs._halfxy.flatten("F")
         halfxy = < float * > halfxy_F.data
 
@@ -1750,7 +1753,7 @@ cdef class Sensors:
 
         cdef np.ndarray[dtype = np.complex64_t]ftkernel_F
         cdef float * ftkernel = NULL
-        if(self.sensors.d_wfs[n].type == "sh"):
+        if(self.sensors.d_wfs[n].type == b"sh"):
             ftkernel_F = wfs._ftkernel.flatten("F")
             ftkernel = < float * > ftkernel_F.data
 
@@ -1763,14 +1766,14 @@ cdef class Sensors:
         cdef cuFloatComplex * pyr_halfxy = NULL
 
         # swap validx and validy due to transposition from yorick to python
-        if(self.sensors.d_wfs[n].type == "geo"):
+        if(self.sensors.d_wfs[n].type == b"geo"):
             tmp = wfs._fluxPerSub.T[np.where(wfs._isvalid > 0)].copy()
             fluxPerSub = < float * > tmp.data
             wfs_geom = dynamic_cast_wfs_geom_ptr(self.sensors.d_wfs[n])
             wfs_geom.wfs_initarrays(phasemap, halfxy, fluxPerSub,
                                     validx, validy)
 
-        elif(self.sensors.d_wfs[n].type== "pyr"):
+        elif(self.sensors.d_wfs[n].type == b"pyr"):
             tmp_offset=wfs._pyr_offsets.flatten("F").copy()
             offset=<cuFloatComplex*>tmp_offset.data
             wfs_pyr = dynamic_cast_wfs_pyr_pyr4_ptr(self.sensors.d_wfs[n])
@@ -1778,7 +1781,7 @@ cdef class Sensors:
                     submask, cx, cy,
                     sincar, phasemap, validx,validy)
 
-        elif(self.sensors.d_wfs[n].type == "pyrhr"):
+        elif(self.sensors.d_wfs[n].type == b"pyrhr"):
             tmp = wfs._fluxPerSub.T[np.where(wfs._isvalid > 0)].copy()
             fluxPerSub = < float * > tmp.data
             tmp_halfxy = np.exp(
@@ -1787,7 +1790,7 @@ cdef class Sensors:
             wfs_pyrhr = dynamic_cast_wfs_pyr_pyrhr_ptr(self.sensors.d_wfs[n])
             wfs_pyrhr.wfs_initarrays(pyr_halfxy, cx, cy, sincar, submask, validy, validx, phasemap, fluxPerSub)
 
-        elif(self.sensors.d_wfs[n].type == "roof"):
+        elif(self.sensors.d_wfs[n].type == b"roof"):
             tmp_offset = wfs.__pyr_offsets.flatten("F").copy()
             offset = < cuFloatComplex * > tmp_offset.data
             wfs_roof = dynamic_cast_wfs_pyr_roof_ptr(self.sensors.d_wfs[n])
@@ -1795,7 +1798,7 @@ cdef class Sensors:
                                     submask, cx, cy,
                                     sincar, phasemap, validx, validy)
 
-        elif(self.sensors.d_wfs[n].type == "sh"):
+        elif(self.sensors.d_wfs[n].type == b"sh"):
             tmp = wfs._fluxPerSub.T[np.where(wfs._isvalid > 0)].copy()
             fluxPerSub = < float * > tmp.data
             wfs_sh = dynamic_cast_wfs_sh_ptr(self.sensors.d_wfs[n])
@@ -1972,7 +1975,7 @@ cdef class Sensors:
         cdef bytes type_wfs = self.sensors.d_wfs[n].type
         cdef int npix
 
-        if(type_wfs == "pyrhr"):
+        if(type_wfs == b"pyrhr"):
             img = self.sensors.d_wfs[n].d_binimg
             cdims = img.getDims()
             data = np.empty((cdims[1], cdims[2]), dtype=np.float32)
@@ -1981,7 +1984,7 @@ cdef class Sensors:
             data = np.reshape(data_F.flatten("F"), (cdims[1], cdims[2]))
             return data
 
-        if(type_wfs == "pyr"):
+        if(type_wfs == b"pyr"):
             bincube = self.get_bincube(n)
             npix = bincube.shape[1]
             pyrimg = np.zeros((2*npix+3,2*npix+3),dtype=np.float32)
@@ -2017,7 +2020,7 @@ cdef class Sensors:
 
         cdef bytes type_wfs = self.sensors.d_wfs[n].type
 
-        if(type_wfs == "pyrhr"):
+        if(type_wfs == b"pyrhr"):
             img = self.sensors.d_wfs[n].d_binimg
             #cdims = img.getDims()
             #data_F = np.empty((cdims[2], cdims[1]), dtype=np.float32)
@@ -2041,7 +2044,7 @@ cdef class Sensors:
         cdef np.ndarray[dtype = np.float32_t] data_F = data.flatten("F")
         cdef sutra_wfs_pyr_pyrhr * wfs
 
-        if(type_wfs == "pyrhr"):
+        if(type_wfs == b"pyrhr"):
             wfs = dynamic_cast_wfs_pyr_pyrhr_ptr(self.sensors.d_wfs[n])
             wfs.set_submask(<float*> data_F.data)
         else:
@@ -2063,7 +2066,7 @@ cdef class Sensors:
         cdef sutra_wfs_pyr_pyrhr * wfs
         cdef bytes type_wfs = self.sensors.d_wfs[n].type
 
-        if(type_wfs == "pyrhr"):
+        if(type_wfs == b"pyrhr"):
             wfs = dynamic_cast_wfs_pyr_pyrhr_ptr(self.sensors.d_wfs[n])
             submask = wfs.d_submask
             cdims = submask.getDims()
@@ -2098,7 +2101,7 @@ cdef class Sensors:
 #        cdef bytes type_wfs = self.sensors.d_wfs[n].type
 #        cdef sutra_wfs_pyr_pyrhr * wfs
 #
-#        if(type_wfs == "pyrhr"):
+#        if(type_wfs == b"pyrhr"):
 #            wfs = dynamic_cast_wfs_pyr_pyrhr_ptr(self.sensors.d_wfs[n])
 #            img = wfs.d_hrimg
 #            cdims = img.getDims()
@@ -2133,7 +2136,7 @@ cdef class Sensors:
         cdef bytes type_wfs = self.sensors.d_wfs[n].type
         cdef sutra_wfs_pyr_pyrhr * wfs
 
-        if(type_wfs == "pyrhr"):
+        if(type_wfs == b"pyrhr"):
             wfs = dynamic_cast_wfs_pyr_pyrhr_ptr(self.sensors.d_wfs[n])
             img = wfs.d_hrimg
             cdims = img.getDims()
@@ -2175,7 +2178,7 @@ cdef class Sensors:
         cdef bytes type_wfs = self.sensors.d_wfs[n].type
         cdef sutra_wfs_pyr_pyrhr * wfs
 
-        if(type_wfs == "pyrhr"):
+        if(type_wfs == b"pyrhr"):
             wfs = dynamic_cast_wfs_pyr_pyrhr_ptr(self.sensors.d_wfs[n])
             wfs.comp_modulation(cpt)
 
@@ -2332,13 +2335,13 @@ cdef class Sensors:
             fstop : (string) : "square" or "round" (field stop shape)
         """
         fsradius_pixels = long(fssize / wfs._qpixsize / 2.)
-        if (fstop == "round"):
-            wfs.fstop = str(fstop)
+        if (fstop == b"round"):
+            wfs.fstop = fstop
             focmask = mkP.dist(
                 wfs._Nfft, xc=wfs._Nfft / 2. + 0.5, yc=wfs._Nfft / 2. + 0.5) < (fsradius_pixels)
             # fstop_area = np.pi * (wfs.fssize/2.)**2. #UNUSED
-        elif (wfs.fstop == "square"):
-            wfs.fstop = str(fstop)
+        elif (wfs.fstop == b"square"):
+            wfs.fstop = fstop
             x, y = indices(wfs._Nfft)
             x -= (wfs._Nfft + 1.) / 2.
             y -= (wfs._Nfft + 1.) / 2.
@@ -2564,12 +2567,12 @@ cdef class Sensors:
         cdef sutra_wfs_sh * wfs_sh = NULL
         cdef sutra_wfs_pyr_pyrhr * wfs_pyrhr = NULL
 
-        if( self.sensors.d_wfs[nsensor].type == "sh"):
+        if( self.sensors.d_wfs[nsensor].type == b"sh"):
             #raise TypeError("wfs should be a SH")
             wfs_sh = dynamic_cast_wfs_sh_ptr(self.sensors.d_wfs[nsensor])
             wfs_sh.slopes_geom(t)
         else:
-            if( self.sensors.d_wfs[nsensor].type == "pyrhr"):
+            if( self.sensors.d_wfs[nsensor].type == b"pyrhr"):
                 wfs_pyrhr = dynamic_cast_wfs_pyr_pyrhr_ptr(self.sensors.d_wfs[nsensor])
                 wfs_pyrhr.slopes_geom(t)
             else:
@@ -2602,13 +2605,13 @@ cdef class Sensors:
         cdef carma_obj[float] * d_screen = self.sensors.d_wfs[n].d_gs.d_phase.d_screen
         context.set_activeDeviceForce(self.sensors.device, 1)
 
-        if(type_trace == "all"):
+        if(type_trace == b"all"):
             self.sensors.d_wfs[n].sensor_trace(atmos.s_a, dms.dms)
             rst = 0
-        elif(type_trace == "atmos"):
+        elif(type_trace == b"atmos"):
             self.sensors.d_wfs[n].sensor_trace(atmos.s_a)
             rst = 0
-        elif(type_trace == "dm"):
+        elif(type_trace == b"dm"):
             self.sensors.d_wfs[n].sensor_trace(dms.dms, rst)
             rst = 0
 

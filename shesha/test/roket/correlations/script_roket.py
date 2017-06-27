@@ -38,7 +38,7 @@ def InitConfig(config):
     print("simul name is",simul_name)
 
     matricesToLoad={}
-    if(simul_name==""):
+    if(simul_name == b""):
         clean=1
     else:
         clean=0
@@ -149,7 +149,7 @@ def loop(n):
     for i in range(-10,n):
         atm.move_atmos()
 
-        if(config.p_controllers[0].type_control == "geo"):
+        if(config.p_controllers[0].type_control == b"geo"):
             for t in range(config.p_target.ntargets):
                 tar.atmos_trace(t,atm,tel)
                 rtc.docontrol_geo(0, dms, tar, 0)
@@ -218,7 +218,7 @@ def preloop(n):
     for i in range(0,n):
         atm.move_atmos()
 
-        if(config.p_controllers[0].type_control == "geo"):
+        if(config.p_controllers[0].type_control == b"geo"):
             for t in range(config.p_target.ntargets):
                 tar.atmos_trace(t,atm,tel)
                 rtc.docontrol_geo(0, dms, tar, 0)
@@ -405,7 +405,7 @@ def save_it(filename):
 ###############################################################################################
 param_file = "/home/fferreira/compass/trunk/shesha/data/par/par4roket/correlation_study/roket_8m_1layer.py"
 error_flag = True
-if(param_file.split('.')[-1] == "py"):
+if(param_file.split('.')[-1] == b"py"):
     filename=param_file.split('/')[-1]
     param_path=param_file.split(filename)[0]
     sys.path.insert(0,param_path)

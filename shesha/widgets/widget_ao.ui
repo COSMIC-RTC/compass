@@ -2006,9 +2006,6 @@
    <property name="text">
     <string>Help Contents</string>
    </property>
-   <property name="softKeyRole">
-    <enum>QAction::NoSoftKey</enum>
-   </property>
   </action>
   <action name="actionAbout_widget_ao">
    <property name="text">

@@ -28,13 +28,13 @@ from scipy.sparse import csr_matrix
 ############################################################################
 
 def InitConfig(param_file):
-    if(param_file.split('.')[-1] == "py"):
+    if(param_file.split('.')[-1] == b"py"):
         filename=param_file.split('/')[-1]
         param_path=param_file.split(filename)[0]
         sys.path.insert(0,param_path)
         exec("import %s as config" % filename.split(".py")[0])
         sys.path.remove(param_path)
-    elif(param_file.split('.')[-1] == "h5"):
+    elif(param_file.split('.')[-1] == b"h5"):
         sys.path.insert(0,os.environ["SHESHA_ROOT"]+"/data/par/par4bench/")
         import scao_sh_16x16_8pix as config
         sys.path.remove(os.environ["SHESHA_ROOT"]+"/data/par/par4bench/")
@@ -54,7 +54,7 @@ def InitConfig(param_file):
     print("simul name is",simul_name)
 
     matricesToLoad={}
-    if(simul_name==""):
+    if(simul_name == b""):
         clean=1
     else:
         clean=0
@@ -175,7 +175,7 @@ def loop(niters, N_preloop, nfiltered, P, Btt, config, atm, wfs, tel, tar, dms, 
     for i in range(n):
         atm.move_atmos()
 
-        if(config.p_controllers[0].type_control == "geo"):
+        if(config.p_controllers[0].type_control == b"geo"):
             for t in range(config.p_target.ntargets):
                 tar.atmos_trace(t,atm,tel)
                 rtc.docontrol_geo(0, dms, tar, 0)
@@ -244,7 +244,7 @@ def preloop(n):
     for i in range(0,n):
         atm.move_atmos()
 
-        if(config.p_controllers[0].type_control == "geo"):
+        if(config.p_controllers[0].type_control == b"geo"):
             for t in range(config.p_target.ntargets):
                 tar.atmos_trace(t,atm,tel)
                 rtc.docontrol_geo(0, dms, tar, 0)
@@ -327,20 +327,20 @@ def error_breakdown(com,noise_com,alias_wfs_com,tomo_com,H_com,trunc_com,bp_com,
     ###########################################################################
     ## Noise contribution
     ###########################################################################
-    if(config.p_wfss[0].type_wfs == "sh"):
+    if(config.p_wfss[0].type_wfs == b"sh"):
         ideal_bincube = wfs.get_bincubeNotNoisy(0)
         bincube = wfs.get_bincube(0)
-        if(config.p_centroiders[0].type_centro == "tcog"): # Select the same pixels with or without noise
+        if(config.p_centroiders[0].type_centro == b"tcog"): # Select the same pixels with or without noise
             invalidpix = np.where(bincube <= config.p_centroiders[0].thresh)
             ideal_bincube[invalidpix] = 0
             rtc.setthresh(0,-1e16)
         wfs.set_bincube(0,ideal_bincube)
-    elif(config.p_wfss[0].type_wfs == "pyrhr"):
+    elif(config.p_wfss[0].type_wfs == b"pyrhr"):
         ideal_pyrimg = wfs.get_binimg_notnoisy(0)
         wfs.set_pyrimg(0,ideal_pyrimg)
 
     rtc.docentroids(0)
-    if(config.p_centroiders[0].type_centro == "tcog"):
+    if(config.p_centroiders[0].type_centro == b"tcog"):
         rtc.setthresh(0,config.p_centroiders[0].thresh)
 
     rtc.docontrol(0)
@@ -370,15 +370,15 @@ def error_breakdown(com,noise_com,alias_wfs_com,tomo_com,H_com,trunc_com,bp_com,
         wfs.sensors_trace(w,"dm",tel,atm,dms)
     """
         wfs.sensors_compimg(0)
-    if(config.p_wfss[0].type_wfs == "sh"):
+    if(config.p_wfss[0].type_wfs == b"sh"):
         ideal_bincube = wfs.get_bincubeNotNoisy(0)
         bincube = wfs.get_bincube(0)
-        if(config.p_centroiders[0].type_centro == "tcog"): # Select the same pixels with or without noise
+        if(config.p_centroiders[0].type_centro == b"tcog"): # Select the same pixels with or without noise
             invalidpix = np.where(bincube <= config.p_centroiders[0].thresh)
             ideal_bincube[invalidpix] = 0
             rtc.setthresh(0,-1e16)
         wfs.set_bincube(0,ideal_bincube)
-    elif(config.p_wfss[0].type_wfs == "pyrhr"):
+    elif(config.p_wfss[0].type_wfs == b"pyrhr"):
         ideal_pyrimg = wfs.get_binimg_notnoisy(0)
         wfs.set_pyrimg(0,ideal_pyrimg)
     """
@@ -669,7 +669,7 @@ def save_it(filename):
 # | ||  __/\__ \ |_\__ \
 #  \__\___||___/\__|___/
 ###############################################################################################
-if __name__ == "__main__":
+if __name__ == b"__main__":
     if(len(sys.argv) < 2):
         error= 'command line should be at least:"python -i test.py parameters_filename"\n with "parameters_filename" the path to the parameters file'
         raise Exception(error)

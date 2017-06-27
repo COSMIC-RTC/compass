@@ -39,13 +39,13 @@ def make_kernels(cobs,nr,radp,funct,outscl):
         for j in range(i+1):
             te = 0.5*np.sqrt(radp[i]**2+radp[j]**2-(2*radp[i]*radp[j])*cth)
             #te in units of the diameter, not the radius
-            if (funct=="kolmo"):
+            if (funct == b"kolmo"):
                 #DOCUMENT var=kolstf(dvec)
                 #This routine returns the kolmogorov phase variance at spatial
                 #dimension (inverse of the spatial frequency) dvec
                 te = 6.88*te**(5./3.)
 
-            elif (funct=="karman"):
+            elif (funct == b"karman"):
                 #DOCUMENT var=kolstf(dvec)
                 #This routine returns the Von Karman phase variance at spatial
                 #dimension (inverse of the spatial frequency) dvec. Same as kolstf
@@ -296,7 +296,7 @@ def gkl_fcom(kers,cobs,nf):
 
     vs = s.dot(v1)
     newev = np.concatenate((newev,[0]))
-    #print np.size(newev)
+    #print(np.size(newev))
     evs[:,nxt] = np.float32(newev)
     kers [nxt,:,:] = np.sqrt(nr)*vs
 
@@ -595,8 +595,8 @@ Broken translation start
 #        for j in range(i):
 #            te = 0.5 * np.sqrt(rad[i] ** 2 + rad[j] ** 2 - (2 * rad[i] * rad[j]) * cth)
 #            # te in units of the diameter, not the radius
-#            if (funct == "kolmo"):  te = kolstf(te)
-#            if (funct == "karman"): te = karmanstf(te, outscl=outscl)
+#            if (funct == b"kolmo"):  te = kolstf(te)
+#            if (funct == b"karman"): te = karmanstf(te, outscl=outscl)
 #            if ((funct != "kolmo") and (funct != "karman")):
 #                raise ValueError("The statistics is not known !")
 #

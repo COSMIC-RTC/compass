@@ -126,13 +126,13 @@ def variance(f, contributors, method="Default"):
     nmodes = P.shape[0]
     swap = np.arange(nmodes)-2
     swap[0:2] = [nmodes-2,nmodes-1]
-    if(method == "Default"):
+    if(method == b"Default"):
         err = f[contributors[0]][:] * 0.
         for c in contributors:
             err += f[c][:]
         return np.var(P.dot(err), axis=1)[swap], np.var(P.dot(f["tomography"][:]),axis=1)[swap], np.var(P.dot(f["bandwidth"][:]),axis=1)[swap]
 
-    elif(method == "Independence"):
+    elif(method == b"Independence"):
         nmodes = P.shape[0]
         v = np.zeros(nmodes)
         for c in contributors:
@@ -198,18 +198,18 @@ def update(attrs,old,new):
         ind *= (xmap["Gain"] == float(g))
 
     ind = np.where(ind)
-    if(yname == "Var(t)"):
+    if(yname == b"Var(t)"):
         Hthetak = Htheta / xmap["Gain"]
         y_model = np.ones(ind[0].shape[0])
         #y_model = y_model * 6.88 * (Htheta/r0)**(5./3.) * 0.5
         for k in range(ind[0].shape[0]):
             y_model[k] = dphi_lowpass(Htheta,0.2,L0,tabx,taby) * (1/r0)**(5./3.) * 0.5 #* xmap["Gain"][ind][k]**2
-    if(yname == "Var(bp)"):
+    if(yname == b"Var(bp)"):
         vdt = xmap["Windspeed"] * dt / xmap["Gain"]
         y_model = np.zeros(vdt[ind].shape[0])
         for k in range(vdt[ind].shape[0]):
             y_model[k] = dphi_lowpass(vdt[ind][k],0.2,L0,tabx,taby) *  (1./r0)**(5./3.) * 0.5
-    if(yname == "Covar"):
+    if(yname == b"Covar"):
         vdt = xmap["Windspeed"] * dt / xmap["Gain"]
         Hthetak = Htheta / xmap["Gain"]
         gamma = np.arctan2(ypos,xpos) - xmap["Winddir"]*np.pi/180.

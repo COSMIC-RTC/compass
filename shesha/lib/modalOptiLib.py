@@ -160,9 +160,9 @@ def normalizeKL2V(KL2V, mode = 'linf'):
         L-Inf normalization of mirror modes
     :param KL2V: Matrix of modes in the DM Space
     '''
-    if mode == 'linf':
+    if mode == b'linf':
         return KL2V / np.amax(np.abs(KL2V), axis = 0)[np.newaxis, ...]
-    elif mode == 'l2':
+    elif mode == b'l2':
         return KL2V / np.sqrt(np.sum(KL2V ** 2, axis = 0))[np.newaxis, ...]
     else:
         print("Invalid normalize KL2V mode - required optional mode = 'l2' or 'linf'")

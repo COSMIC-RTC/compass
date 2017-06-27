@@ -48,7 +48,7 @@ cdef class Roket:
                             "filtered", "aliasing", "bandwidth" or "fitting")
         :return:
             data : (np.ndarray[ndim=2,dtype=np.float32_t]) : error buffer
-                    (just a float value if type == "fitting")
+                    (just a float value if type == b"fitting")
         """
         cdef carma_context * context = &carma_context.instance()
         context.set_activeDeviceForCpy(self.roket.device, 1)
@@ -57,20 +57,20 @@ cdef class Roket:
         cdef carma_obj[float] * buffer
         cdef const long * dims = NULL
 
-        if(type == "fitting"):
+        if(type == b"fitting"):
             return self.roket.fitting
 
-        if(type == "noise"):
+        if(type == b"noise"):
             buffer = self.roket.d_noise
-        elif(type == "nonlinear"):
+        elif(type == b"nonlinear"):
             buffer = self.roket.d_nonlinear
-        elif(type == "tomo"):
+        elif(type == b"tomo"):
             buffer = self.roket.d_tomo
-        elif(type == "filtered"):
+        elif(type == b"filtered"):
             buffer = self.roket.d_filtered
-        elif(type == "aliasing"):
+        elif(type == b"aliasing"):
             buffer = self.roket.d_alias
-        elif(type == "bandwidth"):
+        elif(type == b"bandwidth"):
             buffer = self.roket.d_bandwidth
         else:
             raise "type unknown"

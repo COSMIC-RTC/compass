@@ -114,13 +114,13 @@ cdef class Target:
             src.comp_image(puponly, comp_le)
             flux = src.zp * 10 ** (-0.4 * src.mag);
             tmp_img = new carma_obj[float](self.context.c, dims)
-            if(type_im == "se"):
+            if(type_im == b"se"):
                 roll_mult[float](
                     tmp_img.getData(),
                     src.d_image.getData(), src.d_image.getDims(1), src.d_image.getDims(2),
                     flux,
                     self.context.c.get_device(src.device));
-            elif(type_im == "le"):
+            elif(type_im == b"le"):
                 roll_mult[float](
                     tmp_img.getData(),
                     src.d_leimage.getData(), src.d_leimage.getDims(1), src.d_leimage.getDims(2),
@@ -130,9 +130,9 @@ cdef class Target:
             tmp_img.device2host(< float *> data_F.data)
             del tmp_img
         else:
-            if(type_im == "se"):
+            if(type_im == b"se"):
                 src.d_image.device2host(<float*> data_F.data)
-            if(type_im == "le"):
+            if(type_im == b"le"):
                 src.d_leimage.device2host(<float*> data_F.data)
                 data_F /= src.strehl_counter
 
@@ -462,7 +462,7 @@ def target_init(naga_context ctxt, Telescope telescope, Param_target p_target, P
                 xoff += pupdiff
                 yoff += pupdiff
 
-                if(dm[k].type_dm == "kl"):
+                if(dm[k].type_dm == b"kl"):
                     xoff += 2
                     yoff += 2
                 target.add_layer(i, dm[k].type_dm, dm[k].alt, xoff, yoff)

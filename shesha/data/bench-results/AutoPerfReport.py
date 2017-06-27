@@ -60,7 +60,7 @@ def depouillePerf(filename, version=None, mode="profile"):
         ce = df.loc[indx, "centroider"]
         co = df.loc[indx, "controller"]
         ccc = 0
-        if(mode == "full"):
+        if(mode == b"full"):
             plt.barh(cc, df.loc[indx, times[0]], width, color=colors[ccc])
             timeb = df.loc[indx, times[0]]
             ccc += 1
@@ -69,7 +69,7 @@ def depouillePerf(filename, version=None, mode="profile"):
                          color=colors[ccc], left=timeb)
                 timeb += df.loc[indx, i]
                 ccc += 1
-        elif(mode == "profile"):
+        elif(mode == b"profile"):
             tottime = 0
             for i in times:
                 tottime += df.loc[indx, i]
@@ -85,7 +85,7 @@ def depouillePerf(filename, version=None, mode="profile"):
                              width / 2., '%d' % int(df.loc[indx, i] / tottime * 100) + " %")
                 timeb += df.loc[indx, i] / tottime * 100
                 ccc += 1
-        elif(mode == "framerate"):
+        elif(mode == b"framerate"):
             plt.barh(cc, 1. / df.loc[indx, "iter_time"]
                      * 1000., width, color=colors[ind%len(colors)])
             plt.text(1. / df.loc[indx, "iter_time"] * 1000. / 2., cc + width /
@@ -107,15 +107,15 @@ def depouillePerf(filename, version=None, mode="profile"):
         cc += 1. / len(simulnames)
 
     plt.yticks(pos, lab)
-    if(mode == "full"):
+    if(mode == b"full"):
         plt.title("Execution times")
         plt.xlabel("Execution time (ms)")
         plt.legend(times)
-    elif(mode == "profile"):
+    elif(mode == b"profile"):
         plt.title("Execution profile")
         plt.xlabel("Occupation time (%)")
         plt.legend(times)
-    elif(mode == "framerate"):
+    elif(mode == b"framerate"):
         plt.title("Framerate")
         plt.xlabel("Framerate (frames/s)")
 

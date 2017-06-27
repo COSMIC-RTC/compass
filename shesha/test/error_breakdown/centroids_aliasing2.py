@@ -33,7 +33,7 @@ if(hasattr(config,"simul_name")):
 else:
     simul_name=""
 
-if(simul_name==""):
+if(simul_name == b""):
     clean=1
 else:
     clean=0
@@ -51,7 +51,7 @@ wfs=ao.wfs_init(config.p_wfss,config.p_atmos,config.p_tel,config.p_geom,config.p
 print("->atmos")
 atm=ao.atmos_init(c,config.p_atmos,config.p_tel,config.p_geom,config.p_loop,config.p_wfss,wfs,config.p_target,rank=0)
 
-#   dm 
+#   dm
 print("->dm")
 dms=ao.dm_init(config.p_dms,config.p_wfss[0],config.p_geom,config.p_tel)
 
@@ -100,7 +100,7 @@ def loop(n,full_slopes,ortho_slopes,parallel_slopes):
     for i in range(n):
         for j in range(100): # to get very different realisation of input phase screen
             atm.move_atmos()
-        
+
         # Get "full" centroids : open loop WFS centroiding
         wfs.sensors_trace(0,"atmos",atm)
         wfs.sensors_compimg(0)
@@ -108,7 +108,7 @@ def loop(n,full_slopes,ortho_slopes,parallel_slopes):
         full_slopes[:,i,1] = wfs.get_slopes(0)
         rtc.docentroids(0)
         full_slopes[:,i,0] = rtc.getCentroids(0)
-        
+
         #Get parallel and orthogonal composantes for LS controller
         rtc.setCom(0,reset_com)
         rtc.docontrol(0)
@@ -119,30 +119,31 @@ def loop(n,full_slopes,ortho_slopes,parallel_slopes):
         wfs.sensors_compimg(0)
         rtc.docentroids(0)
         ortho_slopes[:,i,0] = rtc.getCentroids(0)
-        
+
         wfs.sensors_trace(0,"dm",atm,dms,1)
         wfs.sensors_compimg(0)
         rtc.docentroids(0)
         parallel_slopes[:,i,0] = rtc.getCentroids(0)* -1.0
-        
+
         #Get parallel and orthogonal composantes for geo controller
         tar.atmos_trace(0,atm)
         rtc.docontrol_geo(1,dms,tar,0)
         rtc.applycontrol(1,dms)
-        
+
         wfs.sensors_trace(0,"all",atm,dms)
         wfs.sensors_compimg(0)
         wfs.slopes_geom(0,0)
         ortho_slopes[:,i,1] = wfs.get_slopes(0)
-        
+
         wfs.sensors_trace(0,"dm",atm,dms,1)
         wfs.sensors_compimg(0)
         wfs.slopes_geom(0,0)
         parallel_slopes[:,i,1] = wfs.get_slopes(0)* -1.0
-        
-        
-        
-        print("\r Recording... %d%%"%(i*100/n), end=' ')
+
+
+
+        print(" Recording... %d%%\r"%(i*100/n), end=' ')
+    print("Recorded")
         
 def slopes_analysis(full,ortho,parallel):
     full_ls = full_slopes[:,:,0]
@@ -151,14 +152,14 @@ def slopes_analysis(full,ortho,parallel):
     ortho_geo = ortho_slopes[:,:,1]
     parallel_ls = parallel_slopes[:,:,0]
     parallel_geo = parallel_slopes[:,:,1]
-    
-    
+
+
     err_ls = full_ls - (ortho_ls+parallel_ls)
     err_geo = full_geo - (ortho_geo+parallel_geo)
-    
+
     print("geo error = ",np.mean(np.std(err_geo,axis=1)), " arcsec rms")
     print("ls error = ",np.mean(np.std(err_ls,axis=1))," arcsec rms")
-    
+
 def test_loop(niter,gain,amp):
     com = 0
     bk=0
@@ -174,7 +175,7 @@ def test_loop(niter,gain,amp):
         mes = tur[i]+com[i-1]  # je fais la mesure sans bruit
         b[i] = 0.01*np.random.randn(1)
         mesb = mes+b[i]  # je fais la mesure avec bruit
-        
+
         # ici, je fais la diff des mesures pour trouver le bruit
         b[i] = mesb - mes
         # recurrence juste sur le bruit
@@ -183,9 +184,9 @@ def test_loop(niter,gain,amp):
         bk[i] = bk[i-1] - gain * mes
         # calcul de la commande totale
         com[i] = brcom[i] + bk[i]
-        
+
         err[i] = com[i] - bk[i]
-        
+
     pl.ion()
     pl.clf()
     pl.plot(err,color="blue")
@@ -194,7 +195,7 @@ def test_loop(niter,gain,amp):
     #pl.plot(b,color="black")
 
     return err
-    
+
 def simple_loop(niter,gain,amp):
     tur = np.ones(niter)*amp # Turbulence
     com_id = np.zeros(niter) # Commande idéale, sans bruit
@@ -206,7 +207,7 @@ def simple_loop(niter,gain,amp):
     b = np.random.randn(niter) # Bruit
     brc = np.zeros(niter)
     err = np.zeros(niter) # Erreur due au bruit
-    
+
     for i in range(niter):
         # Mesure classique
         mes_id[i] = tur[i] + com_id[i-1]
@@ -220,10 +221,10 @@ def simple_loop(niter,gain,amp):
         com_id[i] = com_id[i-1] - gain * mes_id[i]
         #Bruit dans la loop
         brc[i] = (1-gain)*brc[i-1] - gain*b[i]
-        
+
         #Erreur due au bruit
         err[i] = brc[i] + com_id[i]
-    
+
     pl.ion()
     pl.clf()
     pl.plot(com_br,color="red")
@@ -231,8 +232,8 @@ def simple_loop(niter,gain,amp):
     pl.plot(brc,color="green")
     pl.plot(com_br-com,color="blue")
     pl.plot(brc-(com_br-com_id),color="black")
-    
-    
+
+
 #############################################################################################################
 ################################################# MAIN ANALYSIS #############################################
 #############################################################################################################
@@ -244,8 +245,3 @@ ortho_slopes = np.zeros((nslopes,niter,2))
 parallel_slopes = np.zeros((nslopes,niter,2))
 #loop(niter,full_slopes,ortho_slopes,parallel_slopes)
 #slopes_analysis(full_slopes,ortho_slopes,parallel_slopes)
-
-
-
-
-

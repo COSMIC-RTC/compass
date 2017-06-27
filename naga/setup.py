@@ -132,8 +132,8 @@ if 'CUDA_INC_PATH' in os.environ:
 else:
     raise EnvironmentError("Environment variable 'CUDA_INC_PATH' must be define")
 
-# print "library_dirs", library_dirs
-# print "libraries", libraries
+# print("library_dirs", library_dirs)
+# print("libraries", libraries)
 
 
 #######################
@@ -249,6 +249,7 @@ def compile_module(name):
         name=name,
         ext_modules=cythonize([ext],
                               # gdb_debug=True,
+                              language_level=3,
                               )
         # cmdclass={'build_ext': custom_build_ext},
         # zip_safe=False

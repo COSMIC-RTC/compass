@@ -171,9 +171,9 @@ USE_MPI = 0
 #         library_dirs.extend(MPI['clibdirs'])
 #         USE_MPI = 2
 #     except ImportError:
-#         print "mpi4py not found, MPI disabled"
+#         print("mpi4py not found, MPI disabled")
 # else:
-#     print "mpicxx not found, MPI disabled"
+#     print("mpicxx not found, MPI disabled")
 if parFile:
     parFile.write("DEF USE_MPI=%d # 0/1/2 \n" % USE_MPI)
 
@@ -212,9 +212,9 @@ if parFile:
 
 
 def dependencies_module(name):
-    print( "=======================================")
+    print("=======================================")
     print(( "resolving dependencies for", name))
-    print( "=======================================")
+    print("=======================================")
     try:
         dep = dependencies[name]
         print(("dependencies:", dep))
@@ -251,6 +251,7 @@ def compile_module(name):
         name=name,
         ext_modules=cythonize([ext],
                               gdb_debug=True,
+                              language_level=3,
                               ),
         # cmdclass={'build_ext': custom_build_ext},
         # zip_safe=False

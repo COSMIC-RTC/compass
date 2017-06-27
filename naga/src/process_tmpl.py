@@ -150,9 +150,9 @@ if __name__ == '__main__':
         print('usage:')
         print('    process_tmpl.py [filenames]')
         print()
-        print ('    Convert template files with extension `.in` into '
+        print('    Convert template files with extension `.in` into '
         'source files')
-        print ('    If filenames is omitted all `.in` files in current '
+        print('    If filenames is omitted all `.in` files in current '
         'directory will be converted')
 
     else:

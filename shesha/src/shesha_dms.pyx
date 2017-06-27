@@ -14,7 +14,7 @@ import copy as copy
 from scipy.sparse import csr_matrix
 import scipy.special as sp
 import shesha_kl as klfunc
-import astropy.io.fits as pfits
+# import astropy.io.fits as pfits
 #max_extent signature
 
 def dim_dm_patch(pupdiam,diam,type_dm,alt,xpos_wfs,ypos_wfs):
@@ -35,9 +35,9 @@ def dim_dm_patch(pupdiam,diam,type_dm,alt,xpos_wfs,ypos_wfs):
     """
 
     norms = [np.linalg.norm([xpos_wfs[w], ypos_wfs[w]]) for w in range(len(xpos_wfs))]
-    if( (type_dm=="pzt") or (type_dm=="tt")):
+    if( (type_dm == b"pzt") or (type_dm == b"tt")):
         pp = (diam * pupdiam)
-    elif(type_dm=="kl"):
+    elif(type_dm == b"kl"):
         pp = (pupdiam)
     else:
         raise StandardError("This type of DM doesn't exist ")
@@ -85,7 +85,7 @@ cdef _dm_init(Dms dms, Param_dm p_dms, list xpos_wfs,list ypos_wfs,Param_geom p_
     #For patchDiam
     patchDiam = dim_dm_patch(p_geom.pupdiam,diam,p_dms.type_dm,p_dms.alt,xpos_wfs,ypos_wfs)
 
-    if( p_dms.type_dm=="pzt"):
+    if( p_dms.type_dm == b"pzt"):
         if p_dms.file_influ_hdf5 == None:
             # calcul pitch ______________________
 
@@ -124,7 +124,7 @@ cdef _dm_init(Dms dms, Param_dm p_dms, list xpos_wfs,list ypos_wfs,Param_geom p_
         dms.load_pzt(p_dms.alt, p_dms._influ, p_dms._influpos.astype(np.int32),
                      p_dms._ninflu, p_dms._influstart, p_dms._i1, p_dms._j1, None)
 
-    elif(p_dms.type_dm == "tt"):
+    elif(p_dms.type_dm == b"tt"):
 
 
         if(p_dms.alt == 0):
@@ -161,7 +161,7 @@ cdef _dm_init(Dms dms, Param_dm p_dms, list xpos_wfs,list ypos_wfs,Param_geom p_
                    1, 1, p_dms.push4imat)
         dms.load_tt(p_dms.alt, p_dms._influ)
 
-    elif(p_dms.type_dm == "kl"):
+    elif(p_dms.type_dm == b"kl"):
 
         extent = p_geom.pupdiam + 16
         p_dms._n1 = np.floor(p_geom.cent - extent / 2)
@@ -406,7 +406,7 @@ def n_actuator_select(Param_dm p_dm,cobs, xc,yc):
 
 
         if(sum(liste2)<p_dm._ntotact):
-            print 'ntotact very high'
+            print('ntotact very high')
             liste_fin = liste_i[(np.size(liste2)-sum(liste2)):]
         else:
             liste_fin = liste_i[(np.size(liste2)-sum(liste2)):p_dm._ntotact+(np.size(liste2)-sum(liste2))]
@@ -453,7 +453,7 @@ def bessel_influence(xx,yy,type_i='square'):
     #a6 ->9
     #am6 ->9
 
-    if type_i=='hexa':
+    if type_i == b'hexa':
         sym = 6
 
     else:
@@ -464,17 +464,17 @@ def bessel_influence(xx,yy,type_i='square'):
         btemp = (a0[i]*besel_orth(0,i+1,phi,r))
 
         influ = influ+btemp
-    #print "fin cas m=",0
+    #print("fin cas m=",0)
 
     #calcul pour m=6
     for i in range(len(a)):
         influ = influ+(a[i]*besel_orth(sym,i+1,phi,r))
-    #print "fin cas m=",sym
+    #print("fin cas m=",sym)
 
     #calcul pour m=-6
     for i in range(len(am)):
         influ = influ+(am[i]*besel_orth(-sym,i+1,phi,r))
-    #print "fin cas m=",-sym
+    #print("fin cas m=",-sym)
 
     return influ
 
@@ -706,20 +706,20 @@ cpdef make_pzt_dm(Param_dm p_dm,Param_geom geom,cobs):
     cdef float pitch=p_dm._pitch
     cdef long smallsize=0
 
-    if(p_dm.influType == "radialSchwartz"):
+    if(p_dm.influType == b"radialSchwartz"):
       smallsize = makeRadialSchwartz(pitch, coupling)
-    elif(p_dm.influType == "squareSchwartz"):
+    elif(p_dm.influType == b"squareSchwartz"):
       smallsize = makeSquareSchwartz(pitch, coupling)
-    elif(p_dm.influType == "blacknutt"):
+    elif(p_dm.influType == b"blacknutt"):
       smallsize = makeBlacknutt(pitch, coupling)
-    elif(p_dm.influType=="gaussian"):
+    elif(p_dm.influType == b"gaussian"):
       smallsize = makeGaussian(pitch, coupling)
-    elif(p_dm.influType=="bessel"):
+    elif(p_dm.influType == b"bessel"):
       smallsize = makeBessel(pitch, coupling, p_dm.type_pattern)
-    elif(p_dm.influType=="default"):
+    elif(p_dm.influType == b"default"):
       smallsize = makeRigaut(pitch, coupling)
     else:
-        print "ERROR influtype not recognized "
+        print("ERROR influtype not recognized ")
     p_dm._influsize=smallsize
 
 
@@ -729,23 +729,23 @@ cpdef make_pzt_dm(Param_dm p_dm,Param_geom geom,cobs):
     cdef np.ndarray cub
 
     if p_dm.type_pattern == None:
-        p_dm.type_pattern = bytes('square'.encode('UTF-8'))
+        p_dm.type_pattern = b'square'
 
-    if p_dm.type_pattern == 'hexa':
-        print ("Pattern type : hexa")
+    if p_dm.type_pattern == b'hexa':
+        print("Pattern type : hexa")
         cub = createHexaPattern( pitch, geom.pupdiam * 1.1)
-    elif p_dm.type_pattern == 'hexaM4':
-        print ("Pattern type : hexaM4")
+    elif p_dm.type_pattern == b'hexaM4':
+        print("Pattern type : hexaM4")
         cub = createDoubleHexaPattern( pitch, geom.pupdiam * 1.1)
-    elif p_dm.type_pattern == 'square':
-        print ("Pattern type : square")
+    elif p_dm.type_pattern == b'square':
+        print("Pattern type : square")
         cub = createSquarePattern( pitch, nxact + 4 )
     else :
         raise StandardError("This pattern does not exist for pzt dm")
 
     inbigcirc = n_actuator_select(p_dm,cobs,cub[0,:],cub[1,:])
 
-    #print 'inbigcirc',inbigcirc.shape
+    #print(('inbigcirc',inbigcirc.shape))
 
     # converting to array coordinates:
     cub += geom.cent
@@ -765,7 +765,7 @@ cpdef make_pzt_dm(Param_dm p_dm,Param_geom geom,cobs):
     cdef int i1, j1
     cdef np.ndarray[ndim=2,dtype=np.float32_t] x, y, tmp
 
-    print "Computing influence function type : ", p_dm.influType
+    print("Computing influence function type : ", p_dm.influType)
 
 
 
@@ -780,22 +780,23 @@ cpdef make_pzt_dm(Param_dm p_dm,Param_geom geom,cobs):
         y  = np.tile(np.arange(j1,j1+smallsize,dtype=np.float32),(smallsize,1)) # idem as X, in Y
         y += p_dm._n1
         y -= ypos[i]
-        print "\rComputing Influence Function #%d/%d" % (i, ntotact),
+        print("Computing Influence Function #%d/%d \r"%(i, ntotact), end=' ')
 
-        if(p_dm.influType == "radialSchwartz"):
+        if(p_dm.influType == b"radialSchwartz"):
           influ[:,:,i] = makeRadialSchwartz(pitch, coupling, x=x, y=y)
-        elif(p_dm.influType == "squareSchwartz"):
+        elif(p_dm.influType == b"squareSchwartz"):
           influ[:,:,i] = makeSquareSchwartz(pitch, coupling, x=x, y=y)
-        elif(p_dm.influType == "blacknutt"):
+        elif(p_dm.influType == b"blacknutt"):
           influ[:,:,i] = makeBlacknutt(pitch, coupling, x=x, y=y)
-        elif(p_dm.influType=="gaussian"):
+        elif(p_dm.influType == b"gaussian"):
           influ[:,:,i] = makeGaussian(pitch, coupling, x=x, y=y)
-        elif(p_dm.influType=="bessel"):
+        elif(p_dm.influType == b"bessel"):
           influ[:,:,i] = makeBessel(pitch, coupling, p_dm.type_pattern, x=x, y=y)
-        elif(p_dm.influType=="default"):
+        elif(p_dm.influType == b"default"):
           influ[:,:,i] = makeRigaut(pitch, coupling, x=x, y=y)
         else:
-            print "ERROR influtype not recognized (defaut or gaussian or bessel)"
+            print("ERROR influtype not recognized (defaut or gaussian or bessel)")
+    print("Computation of Influence Functions done")
 
     if(p_dm._puppixoffset is not None):
         xpos +=p_dm._puppixoffset[0]
@@ -804,7 +805,7 @@ cpdef make_pzt_dm(Param_dm p_dm,Param_geom geom,cobs):
 
     p_dm._influ = influ
 
-    print  'number of actuator after filtering = ',np.size(inbigcirc)
+    print(('number of actuator after filtering = ',np.size(inbigcirc)))
     p_dm._ntotact = np.size(inbigcirc)
     p_dm._xpos = xpos
     p_dm._ypos = ypos
@@ -816,12 +817,12 @@ cpdef make_pzt_dm(Param_dm p_dm,Param_geom geom,cobs):
     comp_dmgeom(p_dm, geom)
 
     cdef long dim=max(geom._mpupil.shape[0],p_dm._n2-p_dm._n1+1)
-    cdef long off=(dim-p_dm._influsize)/2
+    cdef long off=(dim-p_dm._influsize) // 2
 
     cdef np.ndarray[ndim=2, dtype=np.float32_t] kernconv=np.zeros((dim,dim),dtype=np.float32)
     kernconv [off:off+p_dm._influsize,off:off+p_dm._influsize] = p_dm._influ[:,:,0]
-    kernconv=np.roll(kernconv,kernconv.shape[0]/2,axis=0)
-    kernconv=np.roll(kernconv,kernconv.shape[1]/2,axis=1)
+    kernconv=np.roll(kernconv,kernconv.shape[0]//2,axis=0)
+    kernconv=np.roll(kernconv,kernconv.shape[1]//2,axis=1)
     p_dm._influkernel= kernconv
 
 
@@ -838,7 +839,7 @@ cpdef read_influ_hdf5 (Param_dm p_dm, Param_geom geom,diam):
     """
     # read h5 file for influence fonction
     h5_tp = pd.read_hdf(p_dm.file_influ_hdf5,'resAll')
-    print "Read Ifluence fonction in h5 : ",p_dm.file_influ_hdf5
+    print("Read Ifluence fonction in h5 : ",p_dm.file_influ_hdf5)
 
     # cube_name
     influ_h5 = h5_tp[p_dm.cube_name][0]
@@ -913,14 +914,14 @@ cpdef read_influ_hdf5 (Param_dm p_dm, Param_geom geom,diam):
     p_dm._ypos = np.float32(ypos)
 
     # number of actuator
-    print "Actuator number in H5 data : ",ninflu
+    print("Actuator number in H5 data : ",ninflu)
     p_dm._ntotact = np.int(ninflu)
 
     # def influente fonction normalize by unitpervolt
     p_dm._influ = np.float32(influ_new)*p_dm.unitpervolt
 
     # def influence size
-    print "influence size in pupil : ",np.int(influ_size),"pixel"
+    print("influence size in pupil : ",np.int(influ_size),"pixel")
     p_dm._influsize = np.int(influ_size)
 
 
@@ -935,7 +936,7 @@ cpdef read_influ_hdf5 (Param_dm p_dm, Param_geom geom,diam):
 
     # refaire la definition du pitch pour n_actuator
     #inbigcirc = n_actuator_select(p_dm,p_tel,xpos-center[0],ypos-center[1])
-    #print 'nb = ',np.size(inbigcirc)
+    #print('nb = ',np.size(inbigcirc))
     #p_dm._ntotact = np.size(inbigcirc)
 
 
@@ -948,7 +949,7 @@ cpdef read_influ_hdf5 (Param_dm p_dm, Param_geom geom,diam):
     comp_dmgeom(p_dm,geom)
 
     cdef long dim = max(geom._mpupil.shape[0],p_dm._n2-p_dm._n1+1)
-    cdef long off = (dim-p_dm._influsize)/2
+    cdef long off = (dim-p_dm._influsize) // 2
 
     cdef np.ndarray[ndim=2, dtype=np.float32_t] kernconv=np.zeros((dim,dim),dtype=np.float32)
     kernconv [off:off+p_dm._influsize,off:off+p_dm._influsize] = p_dm._influ[:,:,0]
@@ -980,7 +981,7 @@ cpdef make_tiptilt_dm(Param_dm p_dm,patchDiam, Param_geom p_geom, diam):
                                                                          patchDiam, p_geom.cent - p_dm._n1 + 1, p_geom.cent - p_dm._n1 + 1, 1)[:, :, 1:]
 
     # normalization factor: one unit of tilt gives 1 arcsec:
-    cdef float current = influ[dim / 2 - 1, dim / 2 - 1, 0] - influ[dim / 2 - 2, dim / 2 - 2, 0]
+    cdef float current = influ[dim // 2 - 1, dim // 2 - 1, 0] - influ[dim // 2 - 2, dim // 2 - 2, 0]
     cdef float fact = p_dm.unitpervolt * diam / p_geom.pupdiam * 4.848 / current
 
     influ = influ * fact
@@ -1073,7 +1074,7 @@ cpdef make_kl_dm(Param_dm p_dm, patchDiam, Param_geom p_geom,cobs):
 
     """
     cdef int dim = p_geom._mpupil.shape[0]
-    print "dimkl = %d" %patchDiam
+    print("dimkl = %d" %patchDiam)
 
     make_klbas(p_dm,p_dm.nkl,cobs,patchDiam,p_dm.kl_type)
     p_dm._i1 = np.zeros((p_dm.nkl), dtype=np.int32) + \
@@ -1139,12 +1140,12 @@ cpdef make_zernike(int nzer,int size,int diameter, float xc=-1, float yc=-1, int
         zernumero(zn + 1, & n, & m)
 
         if ext:
-            for i in range((n - m) / 2 + 1):
+            for i in range((n - m) // 2 + 1):
                 z[:, :, zn] = z[:, :, zn] + (-1.) ** i * zrmod ** (n - 2. * i) * float(np.math.factorial(n - i)) / \
                     float(np.math.factorial(i) * np.math.factorial((n + m) / 2 - i) *
                           np.math.factorial((n - m) / 2 - i))
         else:
-            for i in range((n - m) / 2 + 1):
+            for i in range((n - m) // 2 + 1):
                 z[:, :, zn] = z[:, :, zn] + (-1.) ** i * zr ** (n - 2. * i) * float(np.math.factorial(n - i)) / \
                     float(np.math.factorial(i) * np.math.factorial((n + m) / 2 - i) *
                           np.math.factorial((n - m) / 2 - i))
@@ -1218,7 +1219,7 @@ cpdef comp_dmgeom(Param_dm dm, Param_geom geom):
     cdef int offs
 
     if(dims < dim):
-        offs = (dim - dims) / 2
+        offs = (dim - dims) // 2
     else:
         offs = 0
         dim = dims
@@ -1263,10 +1264,10 @@ cpdef comp_dmgeom(Param_dm dm, Param_geom geom):
         if(offs != 0 and mapactu.item(i) == 0):
             npts[i] = 0
         else:
-            #print "DEBUG : tmps[cpt], i tmps.size-1 = ",tmps[cpt], i, tmps.size-1
+            #print("DEBUG : tmps[cpt], i tmps.size-1 = ",tmps[cpt], i, tmps.size-1)
             while(tmps[cpt] == i and cpt < tmps.size - 1):
                 cpt += 1
-            #print "DEBUG : cpt, ref", cpt, ref
+            #print("DEBUG : cpt, ref", cpt, ref)
             npts[i] = cpt - ref
             istart[i] = ref
             ref = cpt
@@ -1402,7 +1403,7 @@ cdef class Dms:
         cdef np.ndarray[dtype = np.float32_t] influ_F = influ.flatten("F")
         cdef np.ndarray[dtype = np.int32_t] npoints_F = npoints.flatten("F")
 
-        cdef int inddm = self.dms.get_inddm("pzt", alt)
+        cdef int inddm = self.dms.get_inddm(b"pzt", alt)
         if(inddm < 0):
             err = "unknown error whith load_pzt\nDM (pzt" + str(
                 alt) + ") doesn't exist"
@@ -1499,7 +1500,7 @@ cdef class Dms:
         """
 
 
-        cdef int inddm = self.dms.get_inddm("kl", alt)
+        cdef int inddm = self.dms.get_inddm(b"kl", alt)
         if(inddm < 0):
             err = "unknown error whith load_kl\nDM (kl" + \
                 str(alt) + ") doesn't exist"
@@ -1524,7 +1525,7 @@ cdef class Dms:
 
             influ: (np.ndarray[ndim=3,dtype=np.float32_t]) : influence functions
         """
-        cdef int inddm = self.dms.get_inddm("tt", alt)
+        cdef int inddm = self.dms.get_inddm(b"tt", alt)
         if(inddm < 0):
             err = "unknown error whith load_tt\nDM (tt" + \
                 str(alt) + ") doesn't exist"
@@ -1768,7 +1769,7 @@ g        :return:
         dims[0] = 1
         dims[1] = indx_pup.size
 
-        if(type_dm == "pzt"):
+        if(type_dm == b"pzt"):
             d_indx = new carma_obj[int](context, dims, <int *> indx_pup.data)
             sparse = naga_sparse_obj_Double()
             self.dms.d_dms[inddm].get_IF_sparse(d_IFsparse, d_indx.getData(), indx_pup.size, float(1.0), 1)
@@ -1806,7 +1807,7 @@ g        :return:
         cdef np.ndarray[ndim=2, dtype=np.float32_t] data
         cdef np.ndarray[ndim=2, dtype=np.float32_t] data_F
 
-        if(type_dm == "tt"):
+        if(type_dm == b"tt"):
             d_indx = new carma_obj[int](context, dims, <int *> indx_pup.data)
             d_IFtt = new carma_obj[float](context, dims2)
             self.dms.d_dms[inddm].get_IF(d_IFtt.getData(), d_indx.getData(), indx_pup.size, float(1.0))
@@ -1883,8 +1884,8 @@ cpdef compute_klbasis(Dms g_dm, Param_dm p_dm, Param_geom p_geom, r0, diam):
     """
 
     cdef int tmp
-    if(p_dm.type_dm == "pzt"):
-        tmp = (p_geom._ipupil.shape[0] - (p_dm._n2 - p_dm._n1 + 1)) / 2
+    if(p_dm.type_dm == b"pzt"):
+        tmp = (p_geom._ipupil.shape[0] - (p_dm._n2 - p_dm._n1 + 1)) // 2
         tmp_e0 = p_geom._ipupil.shape[0] - tmp
         tmp_e1 = p_geom._ipupil.shape[1] - tmp
         pup = p_geom._ipupil[tmp:tmp_e0, tmp:tmp_e1]
@@ -1892,8 +1893,8 @@ cpdef compute_klbasis(Dms g_dm, Param_dm p_dm, Param_geom p_geom, r0, diam):
         p2m = diam/p_geom.pupdiam
         norm = -(p2m * diam / (2 * r0)) ** (5. / 3)
 
-        g_dm.computeKLbasis(bytes("pzt".encode('UTF-8')), p_dm.alt, p_dm._xpos, p_dm._ypos, indx_valid, indx_valid.size, norm, 1.0)
-        KLbasis = np.fliplr(g_dm.get_KLbasis(bytes("pzt".encode('UTF-8')), p_dm.alt))
+        g_dm.computeKLbasis(b"pzt", p_dm.alt, p_dm._xpos, p_dm._ypos, indx_valid, indx_valid.size, norm, 1.0)
+        KLbasis = np.fliplr(g_dm.get_KLbasis(b"pzt", p_dm.alt))
     else:
         raise TypeError("DM must be pzt type")
 
@@ -1915,7 +1916,7 @@ cpdef computeDMbasis(Dms g_dm, Param_dm p_dm, Param_geom p_geom):
         IFbasis = (csr_matrix) : DM IF basis
     """
     cdef int tmp
-    tmp = (p_geom._ipupil.shape[0] - (p_dm._n2 - p_dm._n1 + 1)) / 2
+    tmp = (p_geom._ipupil.shape[0] - (p_dm._n2 - p_dm._n1 + 1)) // 2
     tmp_e0 = p_geom._ipupil.shape[0] - tmp
     tmp_e1 = p_geom._ipupil.shape[1] - tmp
     pup = p_geom._ipupil[tmp:tmp_e0, tmp:tmp_e1]

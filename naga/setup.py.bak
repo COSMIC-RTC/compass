@@ -120,7 +120,7 @@ include_dirs = [numpy_include,
 
 if 'MKLROOT' in os.environ:
     mkl_root = os.environ.get('MKLROOT')
-    print "mkl_root: ", mkl_root
+    print("mkl_root: ", mkl_root)
     library_dirs.append(mkl_root + '/mkl/lib/intel64/')
     libraries.append('mkl_mc3')
     libraries.append('mkl_def')
@@ -132,8 +132,8 @@ if 'CUDA_INC_PATH' in os.environ:
 else:
     raise EnvironmentError("Environment variable 'CUDA_INC_PATH' must be define")
 
-# print "library_dirs", library_dirs
-# print "libraries", libraries
+# print("library_dirs", library_dirs)
+# print("libraries", libraries)
 
 
 #######################
@@ -210,12 +210,12 @@ if 'build_ext' in sys.argv or 'develop' in sys.argv or 'install' in sys.argv:
 
 
 def dependencies_module(name):
-    print "======================================="
-    print "resolving dependencies for", name
-    print "======================================="
+    print("=======================================")
+    print("resolving dependencies for", name)
+    print("=======================================")
     try:
         dep = dependencies[name]
-        print "dependencies:", dep
+        print("dependencies:", dep)
         if(os.path.exists("src/" + name + ".cpp")):
             for d in dep:
                 if (os.stat("src/" + d + ".pyx").st_mtime >
@@ -229,9 +229,9 @@ def dependencies_module(name):
 
 
 def compile_module(name):
-    print "======================================="
-    print "creating module ", name
-    print "======================================="
+    print("=======================================")
+    print("creating module ", name)
+    print("=======================================")
     ext = Extension(name,
                     sources=['src/' + name + '.pyx'],
                     extra_compile_args=["-Wno-unused-function", "-Wno-unused-label", "-Wno-cpp", "-std=c++11",

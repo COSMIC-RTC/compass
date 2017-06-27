@@ -1,24 +1,9 @@
 """
-widget_ao.
+widget_ao.py
 
 import cProfile
 import pstats as ps
 """
-
-try:
-    # BB_FIX, aka "Bumblebee fix", is a global variable to:
-    #   * create the naga_context at the start of the execution
-    #   * remove threaded initialization
-    global BB_FIX
-    BB_FIX = 0
-    import naga as ch
-    import shesha as ao
-    if BB_FIX:
-        c = ch.naga_context()
-except ImportError as error:
-    import warnings
-    warnings.warn("GPU not accessible", RuntimeWarning)
-    print("due to: ", error)
 
 import sys
 from sys import path, stdout, argv
@@ -30,10 +15,9 @@ import pyqtgraph as pg
 from tools import plsh, plpyr
 from glob import glob
 from threading import Lock
-from PyQt4.uic import loadUiType
-from PyQt4 import QtGui
-from PyQt4.Qt import QThread, QObject
-from PyQt4.QtCore import QTimer, SIGNAL
+from PyQt5.uic import loadUiType
+from PyQt5 import QtGui, QtWidgets
+from PyQt5.QtCore import QThread, QObject, QTimer, pyqtSignal
 from functools import partial
 from subprocess import Popen, PIPE
 
@@ -48,7 +32,22 @@ path.insert(0, environ["SHESHA_ROOT"] + "/data/par/")
 WindowTemplate, TemplateBaseClass = loadUiType(environ["SHESHA_ROOT"] +
                                                "/widgets/widget_ao.ui")
 
-plt.ion()
+try:
+    # BB_FIX, aka "Bumblebee fix", is a global variable to:
+    #   * create the naga_context at the start of the execution
+    #   * remove threaded initialization
+    global BB_FIX
+    BB_FIX = 0
+    import naga as ch
+    import shesha as ao
+    if BB_FIX:
+        c = ch.naga_context()
+except ImportError as error:
+    import warnings
+    warnings.warn("GPU not accessible", RuntimeWarning)
+    print(("due to: ", error))
+
+# plt.ion()
 
 """
 low levels debugs:
@@ -195,16 +194,16 @@ class widgetAOWindow(TemplateBaseClass):
 
     def resetSR(self):
         tarnum = self.ui.wao_resetSR_tarNum.value()
-        print("reset SR on target %d" % tarnum)
+        print(("reset SR on target %d" % tarnum))
         self.tar.reset_strehl(tarnum)
 
     def closeEvent(self, event):
 
-        reply = QtGui.QMessageBox.question(self, 'Message',
-                                           "Are you sure to quit?", QtGui.QMessageBox.Yes |
-                                           QtGui.QMessageBox.No, QtGui.QMessageBox.No)
+        reply = QtWidgets.QMessageBox.question(self, 'Message',
+                                           "Are you sure to quit?", QtWidgets.QMessageBox.Yes |
+                                           QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No)
 
-        if reply == QtGui.QMessageBox.Yes:
+        if reply == QtWidgets.QMessageBox.Yes:
             event.accept()
             self.stop = True
             if self.loop is not None:
@@ -269,9 +268,9 @@ class widgetAOWindow(TemplateBaseClass):
             [str(i) for i in range(len(self.config.p_wfss))])
         self.ui.wao_numberofDMs.setText(str(len(self.config.p_dms)))
         self.ui.wao_dmTypeSelector.setCurrentIndex(
-            self.ui.wao_dmTypeSelector.findText(self.config.p_dms[ndm].type_dm))
+            self.ui.wao_dmTypeSelector.findText(str(self.config.p_dms[ndm].type_dm)))
         self.ui.wao_dmAlt.setValue(self.config.p_dms[ndm].alt)
-        if(self.config.p_dms[ndm].type_dm == "kl"):
+        if(self.config.p_dms[ndm].type_dm == b"kl"):
             self.ui.wao_dmNactu.setValue(self.config.p_dms[ndm].nkl)
         else:
             self.ui.wao_dmNactu.setValue(self.config.p_dms[ndm].nact)
@@ -312,12 +311,12 @@ class widgetAOWindow(TemplateBaseClass):
                 self.config.p_wfss[nwfs].lgsreturnperwatt)
             self.ui.wao_wfsBeamSize.setValue(self.config.p_wfss[nwfs].beamsize)
             self.ui.wao_selectLGSProfile.setCurrentIndex(
-                self.ui.wao_selectLGSProfile.findText(self.config.p_wfss[nwfs].proftype))
+                self.ui.wao_selectLGSProfile.findText(str(self.config.p_wfss[nwfs].proftype)))
 
         else:
             self.ui.wao_wfsIsLGS.setChecked(False)
 
-        if(self.config.p_wfss[nwfs].type_wfs == "pyrhr" or self.config.p_wfss[nwfs].type_wfs == "pyr"):
+        if(self.config.p_wfss[nwfs].type_wfs == b"pyrhr" or self.config.p_wfss[nwfs].type_wfs == b"pyr"):
             self.ui.wao_wfs_plotSelector.setCurrentIndex(3)
         self.updatePlotWfs()
 
@@ -348,7 +347,7 @@ class widgetAOWindow(TemplateBaseClass):
         if(ncentro < 0):
             ncentro = 0
         self.ui.wao_centroTypeSelector.setCurrentIndex(
-            self.ui.wao_centroTypeSelector.findText(self.config.p_centroiders[ncentro].type_centro))
+            self.ui.wao_centroTypeSelector.findText(str(self.config.p_centroiders[ncentro].type_centro)))
         self.ui.wao_centroThresh.setValue(
             self.config.p_centroiders[ncentro].thresh)
         self.ui.wao_centroNbrightest.setValue(
@@ -357,23 +356,23 @@ class widgetAOWindow(TemplateBaseClass):
             self.config.p_centroiders[ncentro].thresh)
         if(self.config.p_centroiders[ncentro].type_fct):
             self.ui.wao_centroFunctionSelector.setCurrentIndex(
-                self.ui.wao_centroFunctionSelector.findText(self.config.p_centroiders[ncentro].type_fct))
+                self.ui.wao_centroFunctionSelector.findText(str(self.config.p_centroiders[ncentro].type_fct)))
         self.ui.wao_centroWidth.setValue(
             self.config.p_centroiders[ncentro].width)
 
         # Controller panel
         type_contro = self.config.p_controllers[0].type_control
-        if(type_contro == "ls" and self.config.p_controllers[0].modopti == 0):
+        if(type_contro == b"ls" and self.config.p_controllers[0].modopti == 0):
             self.ui.wao_controlTypeSelector.setCurrentIndex(0)
-        elif(type_contro == "mv"):
+        elif(type_contro == b"mv"):
             self.ui.wao_controlTypeSelector.setCurrentIndex(1)
-        elif(type_contro == "geo"):
+        elif(type_contro == b"geo"):
             self.ui.wao_controlTypeSelector.setCurrentIndex(2)
-        elif(type_contro == "ls" and self.config.p_controllers[0].modopti):
+        elif(type_contro == b"ls" and self.config.p_controllers[0].modopti):
             self.ui.wao_controlTypeSelector.setCurrentIndex(3)
-        elif(type_contro == "cured"):
+        elif(type_contro == b"cured"):
             self.ui.wao_controlTypeSelector.setCurrentIndex(4)
-        elif(type_contro == "generic"):
+        elif(type_contro == b"generic"):
             self.ui.wao_controlTypeSelector.setCurrentIndex(5)
         else:
             print("pffff....")
@@ -570,9 +569,10 @@ class widgetAOWindow(TemplateBaseClass):
         self.updateDmPanel()
 
     def addConfigFromFile(self):
-        filepath = str(QtGui.QFileDialog(directory=self.defaultParPath).getOpenFileName(
-            self, "Select parameter file", "", "parameters file (*.py);;hdf5 file (*.h5);;all files (*)"))
+        filepath = QtWidgets.QFileDialog(directory=self.defaultParPath).getOpenFileName(
+            self, "Select parameter file", "", "parameters file (*.py);;hdf5 file (*.h5);;all files (*)")
         self.loaded = False
+        filepath = str(filepath[0])
         filename = filepath.split('/')[-1]
         if(filepath.split('.')[-1] == "py"):
             self.ui.wao_selectConfig.addItem(filename, 0)
@@ -583,23 +583,24 @@ class widgetAOWindow(TemplateBaseClass):
             if self.config is not None:
                 print("Removing previous config")
                 self.config = None
-                config = None
 
-            print("loading ", filename.split(".py")[0])
-            exec("import %s as config" % filename.split(".py")[0])
+                wao_config = None
+            print(("loading ", filename.split(".py")[0]))
+            wao_config = __import__(configfile.split(".py")[0])
+            # exec("import %s as wao_config" % filename.split(".py")[0])
             path.remove(pathfile)
         elif(filepath.split('.')[-1] == "h5"):
             path.insert(0, self.defaultParPath)
-            import scao_sh_16x16_8pix as config
+            import scao_sh_16x16_8pix as wao_config
             path.remove(self.defaultParPath)
-            h5u.configFromH5(filepath, config)
+            h5u.configFromH5(filepath, wao_config)
         else:
             print("Parameter file extension must be .py or .h5")
             return
-        self.config = config
+        self.config = wao_config
         self.ui.wao_selectConfig.clear()
         self.ui.wao_selectConfig.addItem(filename)
-        if(self.config.p_wfss[0].type_wfs == "pyrhr"):
+        if(self.config.p_wfss[0].type_wfs == b"pyrhr"):
             self.selector_init = ["Phase - Atmos", "Phase - WFS", "Pyrimg - LR",
                                   "Pyrimg - HR", "Centroids - WFS", "Slopes - WFS",
                                   "Phase - Target", "Phase - DM",
@@ -621,7 +622,7 @@ class widgetAOWindow(TemplateBaseClass):
             self.stop = False
             self.refreshTime = time()
             self.nbiter = self.ui.wao_nbiters.value()
-            print("LOOP STARTED FOR %d iterations" % self.nbiter)
+            print(("LOOP STARTED FOR %d iterations" % self.nbiter))
             self.run()
             # self.loop = threading.Thread(target=self.run)
             # self.loop.start()
@@ -669,20 +670,21 @@ class widgetAOWindow(TemplateBaseClass):
             name = self.config.__name__
             print("Removing previous config")
             self.config = None
-            config = None
             try:
                 del sys.modules[name]
             except:
                 pass
 
-        print("loading ", configfile.split(".py")[0])
-        exec("import %s as config" % configfile.split(".py")[0])
-        self.config = config
+        #wao_config = None
+        print(("loading ", configfile.split(".py")[0]))
+        wao_config = __import__(configfile.split(".py")[0])
+        # exec("import %s as wao_config" % configfile.split(".py")[0])
+        self.config = wao_config
         path.remove(self.defaultParPath)
 
         self.loaded = False
         self.ui.wao_selectScreen.clear()
-        if(self.config.p_wfss[0].type_wfs == "pyrhr"):
+        if(self.config.p_wfss[0].type_wfs == b"pyrhr"):
             self.selector_init = ["Phase - Atmos", "Phase - WFS", "Pyrimg - LR",
                                   "Pyrimg - HR", "Centroids - WFS", "Slopes - WFS",
                                   "Phase - Target", "Phase - DM",
@@ -729,8 +731,7 @@ class widgetAOWindow(TemplateBaseClass):
             self.InitConfigFinished()
         else:
             thread = WorkerThread(self, self.InitConfigThread)
-            QObject.connect(thread, SIGNAL(
-                "jobFinished( PyQt_PyObject )"), self.InitConfigFinished)
+            thread.jobFinished['PyQt_PyObject'].connect(self.InitConfigFinished)
             thread.start()
 
     def InitConfigThread(self):
@@ -774,7 +775,7 @@ class widgetAOWindow(TemplateBaseClass):
         # gpudevice = np.arange(4, dtype=np.int32) # using 4 GPUs: 0-3
         # gpudevice = 0  # using 1 GPU : 0
         self.ui.wao_deviceNumber.setDisabled(True)
-        print("-> using GPU", gpudevice)
+        print(("-> using GPU", gpudevice))
 
         if not self.c:
             if type(gpudevice) is np.ndarray:
@@ -875,11 +876,11 @@ class widgetAOWindow(TemplateBaseClass):
         print("====================")
         print("objects initialized on GPU:")
         print("--------------------------------------------------------")
-        print(self.atm)
-        print(self.wfs)
-        print(self.dms)
-        print(self.tar)
-        print(self.rtc)
+        print((self.atm))
+        print((self.wfs))
+        print((self.dms))
+        print((self.tar))
+        print((self.rtc))
         self.updateDisplay()
         self.displayRtcMatrix()
         self.updatePlotWfs()
@@ -908,7 +909,7 @@ class widgetAOWindow(TemplateBaseClass):
                 self.dms.resetdm(
                     str(self.ui.wao_dmTypeSelector.currentText()), self.ui.wao_dmAlt.value())
                 self.updateDisplay()
-                print("DM " + str(ndm) + " reset")
+                print(("DM " + str(ndm) + " reset"))
             else:
                 print("Invalid DM : please select a DM to reset")
         else:
@@ -935,7 +936,7 @@ class widgetAOWindow(TemplateBaseClass):
         n = self.ui.wao_selectWfs.currentIndex()
         self.ui.wao_wfsWindow.canvas.axes.clear()
         ax = self.ui.wao_wfsWindow.canvas.axes
-        if(self.config.p_wfss[n].type_wfs == "pyrhr" and typeText == "Pyramid mod. pts" and self.loaded):
+        if(self.config.p_wfss[n].type_wfs == b"pyrhr" and typeText == "Pyramid mod. pts" and self.loaded):
             scale_fact = 2 * np.pi / self.config.p_wfss[n]._Nfft * \
                 self.config.p_wfss[
                     n].Lambda * 1e-6 / self.config.p_tel.diam / self.config.p_wfss[n]._qpixsize * RASC
@@ -945,7 +946,7 @@ class widgetAOWindow(TemplateBaseClass):
 
     def displayRtcMatrix(self):
         if not self.loaded:
-            # print " widget not fully initialized"
+            # print(" widget not fully initialized")
             return
 
         data = None
@@ -956,9 +957,9 @@ class widgetAOWindow(TemplateBaseClass):
             elif(type_matrix == "cmat"):
                 data = self.rtc.get_cmat(0)
             elif(type_matrix == "Eigenvalues"):
-                if(self.config.p_controllers[0].type_control == "ls" or self.config.p_controllers[0].type_control == "mv"):
+                if(self.config.p_controllers[0].type_control == "ls" or self.config.p_controllers[0].type_control == b"mv"):
                     data = self.rtc.getEigenvals(0)
-            elif(type_matrix == "Cmm" and self.config.p_controllers[0].type_control == "mv"):
+            elif(type_matrix == "Cmm" and self.config.p_controllers[0].type_control == b"mv"):
                 tmp = self.rtc.get_cmm(0)
                 ao.doTomoMatrices(0, self.rtc, self.config.p_wfss,
                                   self.dms, self.atm, self.wfs,
@@ -966,11 +967,11 @@ class widgetAOWindow(TemplateBaseClass):
                                   self.config.p_dms, self.config.p_tel, self.config.p_atmos)
                 data = self.rtc.get_cmm(0)
                 self.rtc.set_cmm(0, tmp)
-            elif(type_matrix == "Cmm inverse" and self.config.p_controllers[0].type_control == "mv"):
+            elif(type_matrix == "Cmm inverse" and self.config.p_controllers[0].type_control == b"mv"):
                 data = self.rtc.get_cmm(0)
-            elif(type_matrix == "Cmm eigen" and self.config.p_controllers[0].type_control == "mv"):
+            elif(type_matrix == "Cmm eigen" and self.config.p_controllers[0].type_control == b"mv"):
                 data = self.rtc.getCmmEigenvals(0)
-            elif(type_matrix == "Cphim" and self.config.p_controllers[0].type_control == "mv"):
+            elif(type_matrix == "Cphim" and self.config.p_controllers[0].type_control == b"mv"):
                 data = self.rtc.get_cphim(0)
 
             if(data is not None):
@@ -1054,12 +1055,12 @@ class widgetAOWindow(TemplateBaseClass):
 
     def updateDisplay(self):
         if (not self.loaded) or (not self.ui.wao_Display.isChecked()):
-            # print " widget not fully initialized"
+            # print("Widget not fully initialized")
             return
 
         data = None
         if not self.loopLock.acquire(False):
-            # print "Loop locked"
+            # print("Loop locked")
             return
         else:
             try:
@@ -1101,9 +1102,9 @@ class widgetAOWindow(TemplateBaseClass):
 
                     if(self.imgType == "Spots - WFS"):
                         self.setupDisp("pg")
-                        if(self.config.p_wfss[self.numberSelected].type_wfs == "sh"):
+                        if(self.config.p_wfss[self.numberSelected].type_wfs == b"sh"):
                             data = self.wfs.get_binimg(self.numberSelected)
-                        elif(self.config.p_wfss[self.numberSelected].type_wfs == "pyr"):
+                        elif(self.config.p_wfss[self.numberSelected].type_wfs == b"pyr"):
                             data = self.wfs.get_pyrimg(self.numberSelected)
                         if(self.imgType != self.currentViewSelected):
                             self.p1.setRange(
@@ -1112,7 +1113,7 @@ class widgetAOWindow(TemplateBaseClass):
 
                     if(self.imgType == "Pyrimg - LR"):
                         self.setupDisp("pg")
-                        if(self.config.p_wfss[self.numberSelected].type_wfs == "pyrhr"):
+                        if(self.config.p_wfss[self.numberSelected].type_wfs == b"pyrhr"):
                             data = self.wfs.get_pyrimg(self.numberSelected)
                         if(self.imgType != self.currentViewSelected):
                             self.p1.setRange(
@@ -1121,7 +1122,7 @@ class widgetAOWindow(TemplateBaseClass):
 
                     if(self.imgType == "Pyrimg - HR"):
                         self.setupDisp("pg")
-                        if(self.config.p_wfss[self.numberSelected].type_wfs == "pyrhr"):
+                        if(self.config.p_wfss[self.numberSelected].type_wfs == b"pyrhr"):
                             data = self.wfs.get_pyrimghr(
                                 self.numberSelected)
                         if(self.imgType != self.currentViewSelected):
@@ -1137,7 +1138,7 @@ class widgetAOWindow(TemplateBaseClass):
                         nvalid = [
                             2 * o._nvalid for o in self.config.p_wfss]
                         ind = np.sum(nvalid[:self.numberSelected])
-                        if(self.config.p_wfss.type_wfs[self.numberSelected] == "pyrhr"):
+                        if(self.config.p_wfss[self.numberSelected].type_wfs == b"pyrhr"):
                             plpyr(
                                 centroids[ind:ind + nvalid[self.numberSelected]], self.config.p_wfs0._isvalid)
                         else:
@@ -1189,7 +1190,7 @@ class widgetAOWindow(TemplateBaseClass):
                     if(self.imgType == "PSF SE"):
                         self.setupDisp("pg")
                         data = self.tar.get_image(
-                            self.numberSelected, "se")
+                            self.numberSelected, b"se")
                         if(self.ui.wao_PSFlogscale.isChecked()):
                             if np.any(data <= 0):
                                 print((
@@ -1228,7 +1229,7 @@ class widgetAOWindow(TemplateBaseClass):
                     if(self.imgType == "PSF LE"):
                         self.setupDisp("pg")
                         data = self.tar.get_image(
-                            self.numberSelected, "le")
+                            self.numberSelected, b"le")
                         if(self.ui.wao_PSFlogscale.isChecked()):
                             data = np.log10(data)
                         if (not self.SRCrossX):
@@ -1276,13 +1277,13 @@ class widgetAOWindow(TemplateBaseClass):
 
     def mainLoop(self):
         if not self.loopLock.acquire(False):
-            # print " Display locked"
+            # print("Display locked")
             return
         else:
             try:
                 start = time()
                 self.atm.move_atmos()
-                if(self.config.p_controllers[0].type_control == "geo"):
+                if(self.config.p_controllers[0].type_control == b"geo"):
                     for t in range(self.config.p_target.ntargets):
                         if wao.see_atmos:
                             self.tar.atmos_trace(t, self.atm, self.tel)
@@ -1301,7 +1302,7 @@ class widgetAOWindow(TemplateBaseClass):
                     for w in range(len(self.config.p_wfss)):
                         if wao.see_atmos:
                             self.wfs.sensors_trace(
-                                w, "all", self.tel, self.atm, self.dms)
+                                w, b"all", self.tel, self.atm, self.dms)
                         else:
                             self.wfs.reset_phase(w)
                         self.wfs.sensors_compimg(w)
@@ -1337,7 +1338,7 @@ class widgetAOWindow(TemplateBaseClass):
 
     def printInPlace(self, text):
         # This seems to trigger the GUI and keep it responsive
-        print("\r" + text, end=' ')
+        print(text+"\r", end=' ')
         stdout.flush()
         # stdout.write(text)
 
@@ -1354,6 +1355,8 @@ class widgetAOWindow(TemplateBaseClass):
 
 
 class WorkerThread(QThread):
+    jobFinished = pyqtSignal('PyQt_PyObject')
+
     def __init__(self, parentThread, parentLoop):
         QThread.__init__(self, parentThread)
         self.loop = parentLoop
@@ -1362,7 +1365,7 @@ class WorkerThread(QThread):
         self.running = True
         self.loop()
         success = True
-        self.emit(SIGNAL("jobFinished( PyQt_PyObject )"), success)
+        self.jobFinished.emit(success)
 
     def stop(self):
         self.running = False
@@ -1373,7 +1376,7 @@ class WorkerThread(QThread):
 
 
 if __name__ == '__main__':
-    app = QtGui.QApplication(argv)
+    app = QtWidgets.QApplication(argv)
     app.setStyle('cleanlooks')
     wao = widgetAOWindow()
     wao.show()

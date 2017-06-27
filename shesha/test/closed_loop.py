@@ -8,9 +8,7 @@ import os
 import naga as ch
 import shesha as ao
 import time
-import matplotlib.pyplot as plt
 import hdf5_utils as h5u
-plt.ion()
 
 print("TEST SHESHA\n closed loop: call loop(int niter)")
 
@@ -113,7 +111,7 @@ def loop(n):
     for i in range(n):
         atm.move_atmos()
 
-        if(config.p_controllers[0].type_control == "geo"):
+        if(config.p_controllers[0].type_control == b"geo"):
             for t in range(config.p_target.ntargets):
                 tar.atmos_trace(t, atm, tel)
                 rtc.docontrol_geo(0, dms, tar, 0)
@@ -124,7 +122,7 @@ def loop(n):
                 tar.atmos_trace(t, atm, tel)
                 tar.dmtrace(t, dms)
             for w in range(len(config.p_wfss)):
-                wfs.sensors_trace(w, "all", tel, atm, dms)
+                wfs.sensors_trace(w, b"all", tel, atm, dms)
                 wfs.sensors_compimg(w)
 
             rtc.docentroids(0)

@@ -20,13 +20,13 @@ if(len(sys.argv) != 2):
 
 # get parameters from file
 param_file = sys.argv[1]
-if(param_file.split('.')[-1] == "py"):
+if(param_file.split('.')[-1] == b"py"):
     filename = param_file.split('/')[-1]
     param_path = param_file.split(filename)[0]
     sys.path.insert(0, param_path)
     exec("import %s as config" % filename.split(".py")[0])
     sys.path.remove(param_path)
-elif(param_file.split('.')[-1] == "h5"):
+elif(param_file.split('.')[-1] == b"h5"):
     sys.path.insert(0, os.environ["SHESHA_ROOT"] + "/data/par/par4bench/")
     import scao_sh_16x16_8pix as config
     sys.path.remove(os.environ["SHESHA_ROOT"] + "/data/par/par4bench/")
@@ -47,7 +47,7 @@ else:
     simul_name = ""
 
 matricesToLoad = {}
-if(simul_name == ""):
+if(simul_name == b""):
     clean = 1
 else:
     clean = 0

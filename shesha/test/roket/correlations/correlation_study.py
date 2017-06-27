@@ -505,7 +505,7 @@ for g in np.unique(gain):
 #
 #     cc +=1
 #     ff.close()
-#     print cc
+#     print(cc)
 #
 # f = h5py.File("ROKETStudy.h5")
 # f["psf"] = psf
@@ -576,7 +576,7 @@ plt.legend(["PSF rec","PSF ind. assumption", "PSF COMPASS"])
 # data[:,2,i] = var(bp) for file #i
 # data[:,3,i] = var(tomo)+var(bp) for file #i
 ind = 0
-print "Loading data..."
+print("Loading data...")
 for f in files:
     #vartot[ind,:] = rexp.variance(f, contributors) * ((2*np.pi/Lambda_tar)**2)
     #vartomo[ind,:] = rexp.variance(f, ["tomography"]) * ((2*np.pi/Lambda_tar)**2)
@@ -585,7 +585,7 @@ for f in files:
     speeds[ind] = f.attrs["windspeed"][0]
     gain[ind] = float('%.1f' % f.attrs["gain"][0])
     ind += 1
-    print ind,"/",len(files)
+    print(ind,"/",len(files))
 
 covar = (vartot - (vartomo+varbp))/2.
 
@@ -596,7 +596,7 @@ scov = np.sum(covar,axis=1)
 
 # Model
 
-print "Building models..."
+print("Building models...")
 vdt = speeds*dt/gain
 Htheta = np.ones(nfiles) * Htheta
 gamma = np.arctan2(ypos,xpos) - theta*np.pi/180.
@@ -633,7 +633,7 @@ mbp = Dphi.dphi_lowpass(vdt ,0.2, L0, tabx, taby) * (1/r0)**(5./3.)
 mtot = Dphi.dphi_lowpass(rho,0.2,L0,tabx,taby) * (1/r0)**(5./3.)
 
 # Piston correction
-print "Computing piston correction..."
+print("Computing piston correction...")
 pup = gamora.get_pup(filenames[11])
 r = np.zeros((8192,8192))
 p2m = files[11].attrs["tel_diam"]/pup.shape[0]
@@ -712,5 +712,5 @@ for i in range(xpos.size):
             A[i,j] = (influ2*tmp).sum()
         else:
             A[i,j] = 0.
-    print i
+    print(i)
 """

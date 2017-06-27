@@ -305,11 +305,11 @@ class html_display:
         for jj in coms_active:
             j = self.coms_list[jj]
             data=self.f[j][:]
-            if(plot_val == "Commands"):
-                if(basis_val == "Actuators"):
+            if(plot_val == b"Commands"):
+                if(basis_val == b"Actuators"):
                     yi.append(data[:,iteration].tolist())
                     self.p.xaxis.axis_label = "Actuators"
-                elif(basis_val == "Btt"):
+                elif(basis_val == b"Btt"):
                     yi.append(np.dot(self.P,data[:,iteration])[self.swap].tolist())
                     self.p.xaxis.axis_label = "Modes"
                 xi.append(list(range(len(data[:,iteration]))))
@@ -317,11 +317,11 @@ class html_display:
                 coloris.append(self.colors[j])
                 self.p.yaxis.axis_label = "Volts"
 
-            elif(plot_val == "Variance"):
-                if(basis_val == "Actuators"):
+            elif(plot_val == b"Variance"):
+                if(basis_val == b"Actuators"):
                     yi.append(np.var(data,axis=1).tolist())
                     self.p.xaxis.axis_label = "Actuators"
-                elif(basis_val == "Btt"):
+                elif(basis_val == b"Btt"):
                     yi.append(np.var(np.dot(self.P,data),axis=1)[self.swap].tolist())
                     self.p.xaxis.axis_label = "Modes"
                 xi.append(list(range(len(np.var(data,axis=1)))))
@@ -356,7 +356,7 @@ class html_display:
     def cut_matrix(self):
         XorY=self.XY.labels[self.XY.active]
         ax = self.axiscut.value
-        if(XorY == "X"):
+        if(XorY == b"X"):
             data = self.covmat[ax,:]
         else:
             data = self.covmat[:,ax]
@@ -379,7 +379,7 @@ class html_display:
         B_cov = self.f[B_val][:]
         A_cov -= np.tile(np.mean(A_cov,axis=1),(A_cov.shape[1],1)).T
         B_cov -= np.tile(np.mean(B_cov,axis=1),(B_cov.shape[1],1)).T
-        if(basis == "Btt"):
+        if(basis == b"Btt"):
             A_cov = np.dot(self.P,A_cov)
             B_cov = np.dot(self.P,B_cov)
         print("Values ok")
@@ -419,11 +419,11 @@ class html_display:
         self.dialog.content="Loading..."
         self.dialog.visible = True
 
-        if(basis == "Actuators"):
+        if(basis == b"Actuators"):
             pup = self.pup.flatten()
             pup[self.indx_pup] = self.IF[:,N].toarray()#self.f["IF"][:][:,N]
             self.pup = pup.reshape(self.pup.shape)
-        elif(basis == "Btt"):
+        elif(basis == b"Btt"):
             pup = self.pup.flatten()
             pup[self.indx_pup] = self.modes[:,N-2]
             self.pup = pup.reshape(self.pup.shape)
@@ -460,37 +460,37 @@ class html_display:
         plot_val = self.plot_select.value
         iteration = int(self.iter_select.value)
 
-        if(plot_val == "Commands"):
+        if(plot_val == b"Commands"):
             data = np.zeros(self.nactus)
             x = list(range(self.nactus))
-        elif(plot_val == "Variance"):
+        elif(plot_val == b"Variance"):
             data = np.zeros((self.nmodes,self.niter))#self.nmodes)
             data2 = np.zeros(self.nmodes)
             x = list(range(self.nmodes))
         fitp = False
         fitm = False
         for i in plus:
-            if(self.plus_select.labels[i] == "fitting"):
+            if(self.plus_select.labels[i] == b"fitting"):
                 fitp=True
             else:
-                if(plot_val == "Commands"):
+                if(plot_val == b"Commands"):
                     data += np.dot(self.P,self.f[self.coms_list[i]][:][:,iteration])
-                elif(plot_val == "Variance"):
+                elif(plot_val == b"Variance"):
                     data += np.dot(self.P,self.f[self.coms_list[i]][:])
                     data2 += np.var(np.dot(self.P,self.f[self.coms_list[i]][:]),axis=1)
         for i in moins:
-            if(self.plus_select.labels[i] == "fitting"):
+            if(self.plus_select.labels[i] == b"fitting"):
                 fitm=True
             else:
-                if(plot_val == "Commands"):
+                if(plot_val == b"Commands"):
                     data -= np.dot(self.P,self.f[self.coms_list[i]][:][:,iteration])
-                elif(plot_val == "Variance"):
+                elif(plot_val == b"Variance"):
                     data -= np.dot(self.P,self.f[self.coms_list[i]][:])
                     data2 -= np.var(np.dot(self.P,self.f[self.coms_list[i]][:]),axis=1)
-#        if(basis_val == "Btt"):
+#        if(basis_val == b"Btt"):
 #            data = np.dot(self.P,data)
 #            data2 = np.dot(self.P,data2)
-        if(plot_val == "Variance"):
+        if(plot_val == b"Variance"):
             data = np.var(data,axis=1)
             data = np.cumsum(data[self.swap])
             data2 = np.cumsum(data2[self.swap])

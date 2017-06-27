@@ -18,7 +18,7 @@ print("TEST SHESHA_dm\n")
 
 # read param file :
 param_file=sys.argv[1]
-if(param_file.split('.')[-1] == "py"):
+if(param_file.split('.')[-1] == b"py"):
     filename=param_file.split('/')[-1]
     param_path=param_file.split(filename)[0]
     sys.path.insert(0,param_path)

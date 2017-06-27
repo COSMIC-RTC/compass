@@ -146,7 +146,7 @@ def depouillePerf(filename, version=None, mode="profile"):
                                             cevalid.append(ce)
                                             covalid.append(co)
                                             ccc = 0
-                                            if(mode == "full"):
+                                            if(mode == b"full"):
                                                 plt.barh(int(
                                                     cc) + ind * (1. / len(centroiders)), df.loc[indx, times[0]], width, color=colors[ccc])
                                                 timeb = df.loc[indx, times[0]]
@@ -156,7 +156,7 @@ def depouillePerf(filename, version=None, mode="profile"):
                                                         cc) + ind * (1. / len(centroiders)), df.loc[indx, i], width, color=colors[ccc], left=timeb)
                                                     timeb += df.loc[indx, i]
                                                     ccc += 1
-                                            elif(mode == "profile"):
+                                            elif(mode == b"profile"):
                                                 tottime = 0
                                                 for i in times:
                                                     tottime += df.loc[indx, i]
@@ -174,7 +174,7 @@ def depouillePerf(filename, version=None, mode="profile"):
                                                     timeb += df.loc[indx,
                                                                     i] / tottime * 100
                                                     ccc += 1
-                                            elif(mode == "framerate"):
+                                            elif(mode == b"framerate"):
                                                 plt.barh(int(cc) + ind * (1. / len(centroiders)), 1. /
                                                          df.loc[indx, "iter_time"] * 1000., width, color=colors[ind])
                                                 plt.text(1. / df.loc[indx, "iter_time"] * 1000. / 2., int(cc) + ind * (1. / len(
@@ -192,13 +192,13 @@ def depouillePerf(filename, version=None, mode="profile"):
                                 plt.close()
                             else:
                                 plt.yticks(pos, lab)
-                                if(mode == "full"):
+                                if(mode == b"full"):
                                     plt.xlabel("Execution time (ms)")
                                     plt.legend(times)
-                                elif(mode == "profile"):
+                                elif(mode == b"profile"):
                                     plt.xlabel("Occupation time (%)")
                                     plt.legend(times)
-                                elif(mode == "framerate"):
+                                elif(mode == b"framerate"):
                                     plt.xlabel("Framerate (frames/s)")
 
     store.close()

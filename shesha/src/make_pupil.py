@@ -30,31 +30,31 @@ def make_pupil(dim,pupd,tel,xc=-1,
     TODO: complete
     """
     #TODO other types
-    if(tel.type_ap=="EELT-Nominal"):
+    if(tel.type_ap == b"EELT-Nominal"):
         #tel.set_cobs(0.3)
         print("ELT_pup_cobs = %5.3f" %0.3)
         N_seg=798
         return make_EELT(dim,pupd,tel,N_seg)
-    elif(tel.type_ap=="EELT-BP1"):
+    elif(tel.type_ap == b"EELT-BP1"):
         #tel.set_cobs(0.369)
         print("ELT_pup_cobs = %5.3f" %0.339)
         N_seg=768
         return make_EELT(dim,pupd,tel,N_seg)
-    elif(tel.type_ap=="EELT-BP3"):
+    elif(tel.type_ap == b"EELT-BP3"):
         #tel.set_cobs(0.503)
         print("ELT_pup_cobs = %5.3f" %0.503)
         N_seg=672
         return make_EELT(dim,pupd,tel,N_seg)
-    elif(tel.type_ap=="EELT-BP5"):
+    elif(tel.type_ap == b"EELT-BP5"):
         #tel.set_cobs(0.632)
         print("ELT_pup_cobs = %5.3f" %0.632)
         N_seg=558
         return make_EELT(dim,pupd,tel,N_seg)
-    elif(tel.type_ap=="EELT-Custom"):
+    elif(tel.type_ap == b"EELT-Custom"):
         print("todo")
-        tel.set_type_ap=="EELT-Nominal"
+        tel.set_type_ap == b"EELT-Nominal"
         return make_EELT(dim,pupd,tel,N_seg)
-    elif(tel.type_ap=="VLT"):
+    elif(tel.type_ap == b"VLT"):
         tel.set_cobs(0.14)
         print("force_VLT_pup_cobs = %5.3f" %0.14)
         return make_VLT(dim, pupd,tel)
@@ -111,7 +111,7 @@ def make_pupil_generic(dim, pupd, t_spiders=0.01, spiders_type="six",
                 t_spiders=0.01
             t_spiders=t_spiders*pupd/dim
 
-            if (spiders_type=="four"):
+            if (spiders_type == b"four"):
 
                 s4_2=2*np.sin(np.pi/4)
                 t4=np.tan(np.pi/4)
@@ -122,7 +122,7 @@ def make_pupil_generic(dim, pupd, t_spiders=0.01, spiders_type="six",
                 pup = pup*spiders_map
 
 
-            elif (spiders_type=="six"):
+            elif (spiders_type == b"six"):
 
                 #angle = np.pi/(180/15.)
                 angle = 0
@@ -196,20 +196,20 @@ def make_EELT(dim,pupd,tel,N_seg=-1):
     if (N_seg==-1):
         EELT_file=EELT_data+"EELT-Custom_N"+str(dim)+"_COBS"+str(100*tel.cobs)+"_CLOCKED"+str(tel.pupangle)+"_TSPIDERS"+str(100*tel.t_spiders)+"_MS"+str(tel.nbrmissing)+"_REFERR"+str(100*tel.referr)+".h5"
     else:
-        EELT_file=EELT_data+tel.type_ap+"_N"+str(dim)+"_COBS"+str(100*tel.cobs)+"_CLOCKED"+str(tel.pupangle)+"_TSPIDERS"+str(100*tel.t_spiders)+"_MS"+str(tel.nbrmissing)+"_REFERR"+str(100*tel.referr)+".h5"
+        EELT_file=EELT_data+str(tel.type_ap)+"_N"+str(dim)+"_COBS"+str(100*tel.cobs)+"_CLOCKED"+str(tel.pupangle)+"_TSPIDERS"+str(100*tel.t_spiders)+"_MS"+str(tel.nbrmissing)+"_REFERR"+str(100*tel.referr)+".h5"
     if( os.path.isfile(EELT_file) ):
         print("reading EELT pupil from file ", EELT_file)
         pup=h5u.readHdf5SingleDataset(EELT_file)
     else:
         print("creating EELT pupil...")
-        file= EELT_data+"Coord_"+tel.type_ap+".dat"
+        file= EELT_data+"Coord_"+str(tel.type_ap)+".dat"
         data=np.fromfile(file,sep="\n")
         data=np.reshape(data,(data.size/2,2))
         x_seg=data[:,0]
         y_seg=data[:,1]
 
 
-        file= EELT_data+"EELT_MISSING_"+tel.type_ap+".dat"
+        file= EELT_data+"EELT_MISSING_"+str(tel.type_ap)+".dat"
         k_seg=np.fromfile(file,sep="\n").astype(np.int32)
 
         W=1.45*np.cos(np.pi/6)
@@ -300,10 +300,10 @@ def make_phase_ab(dim,pupd,tel,pup):
     TODO: complete
     """
 
-    if((tel.type_ap=="Generic") or (tel.type_ap=="VLT")):
+    if((tel.type_ap==b"Generic") or (tel.type_ap==b"VLT")):
 	    return np.zeros((dim,dim)).astype(np.float32)
 
-    ab_file=EELT_data+"aberration_"+tel.type_ap+"_N"+str(dim)+"_NPUP"+str(np.where(pup)[0].size)+"_CLOCKED"+str(tel.pupangle)+"_TSPIDERS"+str(100*tel.t_spiders)+"_MS"+str(tel.nbrmissing)+"_REFERR"+str(100*tel.referr)+"_PIS"+str(tel.std_piston)+"_TT"+str(tel.std_tt)+".h5"
+    ab_file=EELT_data+"aberration_"+str(tel.type_ap)+"_N"+str(dim)+"_NPUP"+str(np.where(pup)[0].size)+"_CLOCKED"+str(tel.pupangle)+"_TSPIDERS"+str(100*tel.t_spiders)+"_MS"+str(tel.nbrmissing)+"_REFERR"+str(100*tel.referr)+"_PIS"+str(tel.std_piston)+"_TT"+str(tel.std_tt)+".h5"
     if( os.path.isfile(ab_file) ):
         print("reading aberration phase from file ", ab_file)
         phase_error=h5u.readHdf5SingleDataset(ab_file)
@@ -315,24 +315,24 @@ def make_phase_ab(dim,pupd,tel,pup):
 
         W=1.45*np.cos(np.pi/6)
 
-        file= EELT_data+"EELT_Piston_"+tel.type_ap+".dat"
+        file= EELT_data+"EELT_Piston_"+str(tel.type_ap)+".dat"
         p_seg=np.fromfile(file,sep="\n")
         #mean_pis=np.mean(p_seg)
         std_pis=np.std(p_seg)
         p_seg=p_seg*std_piston/std_pis
         N_seg=p_seg.size
 
-        file= EELT_data+"EELT_TT_"+tel.type_ap+".dat"
+        file= EELT_data+"EELT_TT_"+str(tel.type_ap)+".dat"
         tt_seg=np.fromfile(file,sep="\n")
 
-        file= EELT_data+"EELT_TT_DIRECTION_"+tel.type_ap+".dat"
+        file= EELT_data+"EELT_TT_DIRECTION_"+str(tel.type_ap)+".dat"
         tt_phi_seg=np.fromfile(file,sep="\n")
 
         phase_error=np.zeros((dim,dim))
         phase_tt=np.zeros((dim,dim))
         phase_defoc=np.zeros((dim,dim))
 
-        file= EELT_data+"Coord_"+tel.type_ap+".dat"
+        file= EELT_data+"Coord_"+str(tel.type_ap)+".dat"
         data=np.fromfile(file,sep="\n")
         data=np.reshape(data,(data.size/2,2))
         x_seg=data[:,0]
@@ -382,15 +382,15 @@ def make_phase_ab(dim,pupd,tel,pup):
 
 def MESH(Range,Dim):
     last=(0.5*Range-0.25/Dim)
-    step= (2*last)/(Dim-1)
+    step= (2*last)//(Dim-1)
 
     return np.tile(np.arange(Dim)*step-last,(Dim,1))
 
 
 def pad_array(A,N):
     S=A.shape
-    D1=(N-S[0])/2
-    D2=(N-S[1])/2
+    D1=(N-S[0])//2
+    D2=(N-S[1])//2
     padded=np.zeros((N,N))
     padded[D1:D1+S[0],D2:D2+S[1]]=A
     return padded

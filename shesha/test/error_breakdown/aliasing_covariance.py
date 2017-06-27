@@ -33,7 +33,7 @@ if(hasattr(config,"simul_name")):
 else:
     simul_name=""
 
-if(simul_name==""):
+if(simul_name == b""):
     clean=1
 else:
     clean=0
@@ -51,7 +51,7 @@ wfs=ao.wfs_init(config.p_wfss,config.p_atmos,config.p_tel,config.p_geom,config.p
 print("->atmos")
 atm=ao.atmos_init(c,config.p_atmos,config.p_tel,config.p_geom,config.p_loop,config.p_wfss,wfs,config.p_target,rank=0)
 
-#   dm 
+#   dm
 print("->dm")
 dms=ao.dm_init(config.p_dms,config.p_wfss[0],config.p_geom,config.p_tel)
 
@@ -100,32 +100,33 @@ def loop(n,r,e):
     for i in range(n):
         for j in range(100): # to get very different realisation of input phase screen
             atm.move_atmos()
-        
-        rtc.setCom(0,reset_com) # Reset the command vector        
+
+        rtc.setCom(0,reset_com) # Reset the command vector
         # Remove low frequency component with geo controller
         tar.atmos_trace(0,atm)
         rtc.docontrol_geo(1,dms,tar,0)
         rtc.applycontrol(1,dms)
         wfs.sensors_trace(0,"all",atm,dms) # Aliasing component since no noise in system
-        
+
         wfs.sensors_compimg(0)
         rtc.docentroids(0)
         rtc.docontrol(0)
         r[:,i]=rtc.getCom(0)
-        
+
         rtc.setCom(0,reset_com)
         wfs.sensors_trace(0,"atmos",atm)
         wfs.sensors_compimg(0)
         rtc.docentroids(0)
         rtc.docontrol(0)
         e[:,i]=rtc.getCom(0)
-        
-            
-        print("\r Recording... %d%%"%(i*100/n), end=' ')
-        
+
+
+        print(" Recording... %d%%\r"%(i*100/n), end=' ')
+    print("Recorded")
+
 def covariance_analysis(r):
     pass
-    
+
 #############################################################################################################
 ################################################# MAIN ANALYSIS #############################################
 #############################################################################################################
@@ -134,8 +135,3 @@ niter = 10000
 r = np.zeros((rtc.getCom(0).size,niter))
 e = np.copy(r)
 loop(niter,r,e)
-
-
-
-
-

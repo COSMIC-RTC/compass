@@ -132,7 +132,7 @@ def see_atmos_target_disp(int n, Atmos atm, Target tar,Sensors wfs, float alt=0,
         sh.clear()
         im3=sh.matshow(shak,cmap='Blues_r')
         pl.draw()
-    print "time: %f s"%(time.time()-start)
+    print("time: %f s"%(time.time()-start))
 
 
 def see_atmos_target_disp_mpi(int n, Atmos atm, Target tar,Sensors wfs, MPI.Intracomm comm, float alt=0, int n_tar=0,float f=1, int log=0):
@@ -199,7 +199,7 @@ def see_atmos_target_disp_mpi(int n, Atmos atm, Target tar,Sensors wfs, MPI.Intr
             im3=sh.matshow(shak,cmap='Blues_r')
             pl.draw()
 
-    print comm.Get_rank(),"time: %f s"%(time.time()-start)
+    print(comm.Get_rank(),"time: %f s"%(time.time()-start))
 
 def see_atmos_target_mpi_cu(int n, Atmos atm, Target tar,Sensors wfs, MPI.Intracomm comm, float alt=0, int n_tar=0,float f=1, int log=0):
     """Compute the turbulence of the atmos and the image of the target after a call to the function:
@@ -239,7 +239,7 @@ def see_atmos_target_mpi_cu(int n, Atmos atm, Target tar,Sensors wfs, MPI.Intrac
         wfs.Bcast_dscreen_cuda_aware()
         wfs.sensors_compimg(0)
         wfs.gather_bincube_cuda_aware(0)
-    print comm.Get_rank(),"time: %f s"%(time.time()-start)
+    print(comm.Get_rank(),"time: %f s"%(time.time()-start))
 
 def see_atmos_target_mpi(int n, Atmos atm, Target tar,Sensors wfs, MPI.Intracomm comm, float alt=0, int n_tar=0,float f=1, int log=0):
     """Compute the turbulence of the atmos and the image of the target after a call to the function:
@@ -278,7 +278,7 @@ def see_atmos_target_mpi(int n, Atmos atm, Target tar,Sensors wfs, MPI.Intracomm
         wfs.Bcast_dscreen()
         wfs.sensors_compimg(0)
         wfs.gather_bincube(0)
-    print comm.Get_rank(),"time: %f s"%(time.time()-start)
+    print(comm.Get_rank(),"time: %f s"%(time.time()-start))
 
 
 def see_atmos_target(int n, Atmos atm, Target tar,Sensors wfs, float alt=0, int n_tar=0,float f=1, int log=0):
@@ -316,7 +316,7 @@ def see_atmos_target(int n, Atmos atm, Target tar,Sensors wfs, float alt=0, int 
             tar.atmos_trace(n_tar, atm)
             wfs.sensors_trace(0,"atmos",atm)
         wfs.sensors_compimg(0)
-    print "time: %f s"%(time.time()-start)
+    print("time: %f s"%(time.time()-start))
 '''
 
 cpdef bin2d(np.ndarray data_in, int binfact):

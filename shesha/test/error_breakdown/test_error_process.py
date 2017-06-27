@@ -37,19 +37,19 @@ if(hasattr(config,"simul_name")):
 else:
     simul_name=""
 
-if(simul_name==""):
+if(simul_name == b""):
     clean=1
 else:
     clean=0
 
-    
+
 #clean = 1
 
 #   context
 c=ch.naga_context()
 
-    
-    
+
+
 def Init(config,device=0):
     #initialisation:
     c.set_activeDevice(device)
@@ -57,27 +57,27 @@ def Init(config,device=0):
     if(clean == 0):
         param_dict = h5u.params_dictionary(config)
         matricesToLoad = h5u.checkMatricesDataBase(os.environ["SHESHA_ROOT"]+"/data/",config,param_dict)
-    
+
     #    wfs
     print("->wfs")
     wfs, tel=ao.wfs_init(config.p_wfss,config.p_atmos,config.p_tel,config.p_geom,config.p_target,config.p_loop, 1,0,config.p_dms)
-    
+
     #   atmos
     print("->atmos")
     atm=ao.atmos_init(c,config.p_atmos,config.p_tel,config.p_geom,config.p_loop,config.p_wfss,wfs,config.p_target,clean=clean,load=matricesToLoad,rank=0)
-    
-    #   dm 
+
+    #   dm
     print("->dm")
     dms=ao.dm_init(config.p_dms,config.p_wfss,config.p_geom,config.p_tel)
-    
+
     #   target
     print("->target")
     tar=ao.target_init(c,tel,config.p_target,config.p_atmos,config.p_geom,config.p_tel,config.p_dms)
-    
+
     print("->rtc")
     #   rtc
     rtc=ao.rtc_init(tel,wfs,config.p_wfss,dms,config.p_dms,config.p_geom,config.p_rtc,config.p_atmos,atm,config.p_tel,config.p_loop,tar,config.p_target,clean=clean,simul_name=simul_name,load=matricesToLoad)
-    
+
     print("====================")
     print("init done")
     print("====================")
@@ -88,11 +88,11 @@ def Init(config,device=0):
     print(dms)
     print(tar)
     print(rtc)
-    
+
     print("----------------------------------------------------");
     print("iter# | S.E. SR | L.E. SR | Est. Rem. | framerate");
     print("----------------------------------------------------");
-    
+
     return atm, wfs, dms, tar, rtc, tel
 
 #############################################################################################################
@@ -100,7 +100,7 @@ def Init(config,device=0):
 #############################################################################################################
 #Allocate buffers
 def check_param(config,niter,save=False,device=5):
-    
+
     param = [40,50,60,70,77]
     #param = [0.13,0.14,0.15,0.16]
     brvar = []
@@ -134,15 +134,15 @@ def check_param(config,niter,save=False,device=5):
         f_med.append(fm)
         dsp_Kmed.append(dspKmed)
         f_Kmed.append(fKmed)
-        
+
     #store.close()
-        
-    
+
+
     return param,brvar,nvar,dsp_med,f_med,dsp_Kmed,f_Kmed
-    
-    
+
+
 def process_err(config,niter,param,save=False,linear=False,device=0):
-    
+
     config = imp.reload(config)
     config.p_wfss[0].set_nxsub(param)
     config.p_dms[0].set_nact(param+1)
@@ -159,10 +159,10 @@ def process_err(config,niter,param,save=False,linear=False,device=0):
         #config.simul_name = "errorProcess_27Jan2016"
         pdict = h5u.params_dictionary(config)
         #config.simul_name = ""
-        
+
         df=store["results"]
         df.loc[param,"config_mono"]=[pdict]
-        
+
     atm, wfs, dms, tar, rtc, tel =Init(config,device=device)
     nactu = rtc.getCom(0).size
     nslope = rtc.getCentroids(0).size
@@ -170,7 +170,7 @@ def process_err(config,niter,param,save=False,linear=False,device=0):
     full_com = np.zeros((nactu,niter),dtype=np.float32)
     noise_com = np.zeros((nactu,niter),dtype=np.float32)
     noise_mes = np.zeros((nslope,niter),dtype=np.float32)
-    
+
     #cmat = np.load("cmat.npy")
     #rtc.set_cmat(0,cmat)
     loop(niter,idcom,noise_com,noise_mes,atm, wfs, dms, tar, rtc, tel, config)
@@ -179,7 +179,7 @@ def process_err(config,niter,param,save=False,linear=False,device=0):
 
 
     #config.p_wfss[0].set_noise(noise)
-    config = imp.reload(config) 
+    config = imp.reload(config)
     config.p_wfss[0].set_nxsub(param)
     config.p_dms[0].set_nact(param+1)
     S = np.pi/4.*(1-config.p_tel.cobs**2)*config.p_tel.diam**2
@@ -202,52 +202,52 @@ def process_err(config,niter,param,save=False,linear=False,device=0):
         df.loc[param,"config_bi"]=[pdict]
 
 
-    
 
-    
+
+
     atm, wfs, dms, tar, rtc, tel =Init(config,device=device)
     nactu = rtc.getCom(0).size
-    nslope = rtc.getCentroids(0).size   
+    nslope = rtc.getCentroids(0).size
     full_com = np.zeros((nactu,niter),dtype=np.float32)
     noise_com = np.zeros((nactu,niter),dtype=np.float32)
     noise_mes = np.zeros((nslope,niter),dtype=np.float32)
     loop(niter,full_com,noise_com,noise_mes,atm, wfs, dms, tar, rtc, tel, config)
     if(save):
         df.loc[param,"SRnoise"] = tar.get_strehl(0)[1]
-    
-    
+
+
     RASC = 180/np.pi * 3600.
     sspdiam = config.p_tel.diam / config.p_wfss[0].nxsub
-    
+
     noise_mes = noise_mes * sspdiam / RASC * 1e9
-    
+
     print(" ")
     print("Mean noise : ",np.mean(np.std(noise_mes,axis=1)), "nm rms")
-    
+
     if(save):
-        df.loc[param,"nm_rms_noise"]=np.mean(np.std(noise_mes,axis=1)) 
+        df.loc[param,"nm_rms_noise"]=np.mean(np.std(noise_mes,axis=1))
         store.put("results",df)
         store.close()
-    
+
     #idcom = np.load("idcom_ol.npy")
     brcom = full_com - idcom
     brvar = np.var(brcom,axis=1)
     nvar = np.var(noise_com,axis=1)
-    
+
     err = brcom - noise_com
     #dsp,f = tools.DSP(err,1.,1./config.p_loop.ittime,1)
     dsp_med,f_med = tools.DSP(err,1.,1./config.p_loop.ittime,1,med=True)
     dsp_Kmed, f_Kmed = tools.DSP(err,1.,1./config.p_loop.ittime,1,K=128,med=True)
     #dsp_K, f_K = tools.DSP(err,1.,1./config.p_loop.ittime,1,K=128)
-    
+
 #    pl.ion()
 #    pl.plot(brvar,color="blue")
 #    pl.plot(nvar,color="red")
-#    
+#
 #    pl.figure(3)
 #    pl.plot(f_med,dsp_med)
 #    pl.plot(f_Kmed,dsp_Kmed)
-    
+
     #return idcom, full_com, noise_com, dsp_med, f_med
     return brvar, nvar, dsp_med, f_med, dsp_Kmed, f_Kmed
 
@@ -265,15 +265,15 @@ def loop(n,full_com,noise_com,noise_mes,atm, wfs, dms, tar, rtc, tel,config):
         atm.move_atmos()
         tar.atmos_trace(0,atm,tel)
         tar.dmtrace(0,dms)
-        
+
         wfs.sensors_trace(0,"all",tel,atm,dms)
         wfs.sensors_compimg(0)
         ideal_bincube = wfs.get_bincubeNotNoisy(0)
         bincube = wfs.get_bincube(0)
-        if(config.p_centroiders[0].type_centro == "tcog"):
+        if(config.p_centroiders[0].type_centro == b"tcog"):
             invalidpix = np.where(bincube <= config.p_centroiders[0].thresh)
         #noise_bincube = bincube-ideal_bincube
-        
+
         #compute command normally
         rtc.docentroids(0)
         mesb = rtc.getCentroids(0)
@@ -281,10 +281,10 @@ def loop(n,full_com,noise_com,noise_mes,atm, wfs, dms, tar, rtc, tel,config):
         full_com[:,i] = rtc.getCom(0)
         rtc.applycontrol(0,dms)
         current_com = rtc.getCom(0)
-        
+
         #compute noise command
         rtc.setCom(0,reset_com)
-        if(config.p_centroiders[0].type_centro == "tcog"):
+        if(config.p_centroiders[0].type_centro == b"tcog"):
             ideal_bincube[invalidpix] = 0
             rtc.setthresh(0,-1e16)
         wfs.set_bincube(0,ideal_bincube)
@@ -297,13 +297,14 @@ def loop(n,full_com,noise_com,noise_mes,atm, wfs, dms, tar, rtc, tel,config):
         rtc.docontrol(0)
         noise_com[:,i] = noise_com[:,i-1]*(1-config.p_controllers[0].gain) + rtc.getCom(0) #rtc.getErr(0)*config.p_controllers[0].gain
         rtc.setCom(0,current_com)
-        
+
         if((i+1)%1000==0):
             strehltmp = tar.get_strehl(0)
             print(i+1,"\t",strehltmp[0],"\t",strehltmp[1])
-        
-        print("\r Recording... %d%%"%(i*100/n), end=' ')
-        
+
+        print(" Recording... %d%%\r"%(i*100/n), end=' ')
+    print("Recorded")
+
 def openloop(n,full_com,noise_com,noise_mes, atm, wfs, dms, tar, rtc, tel,config):
     """ Here, we want to get centroids obtain from a SH wfs seeing an atmos screen
     and compare it to the centroids obtain from a wfs seeing the parallel component
@@ -321,7 +322,7 @@ def openloop(n,full_com,noise_com,noise_mes, atm, wfs, dms, tar, rtc, tel,config
         ideal_bincube = wfs.get_bincubeNotNoisy(0)
         bincube = wfs.get_bincube(0)
         #noise_bincube = bincube-ideal_bincube
-        
+
         #compute command normally
         rtc.docentroids(0)
         mesb = rtc.getCentroids(0)
@@ -330,7 +331,7 @@ def openloop(n,full_com,noise_com,noise_mes, atm, wfs, dms, tar, rtc, tel,config
         rtc.applycontrol(0,dms)
         rtc.setCom(0,reset_com)
         tar.dmtrace(0,dms)
-        
+
         #compute noise command
         rtc.setCom(0,reset_com)
         wfs.set_bincube(0,ideal_bincube)
@@ -342,12 +343,13 @@ def openloop(n,full_com,noise_com,noise_mes, atm, wfs, dms, tar, rtc, tel,config
         rtc.docontrol(0)
         noise_com[:,i] = rtc.getCom(0)
         rtc.setCom(0,reset_com)
-        
+
         if((i+1)%1000==0):
             strehltmp = tar.get_strehl(0)
             print(i+1,"\t",strehltmp[0],"\t",strehltmp[1])
-        
-        print("\r Recording... %d%%"%(i*100/n), end=' ')    
+
+        print(" Recording... %d%%\r"%(i*100/n), end=' ')
+    print("Recorded")
 
 
 
@@ -369,7 +371,7 @@ def openloop(n,full_com,noise_com,noise_mes, atm, wfs, dms, tar, rtc, tel,config
 
 
 
-    
+
 def simple_loop(niter,gain,amp):
     tur = np.ones(niter)*amp # Turbulence
     com_id = np.zeros(niter) # Commande idéale, sans bruit
@@ -381,7 +383,7 @@ def simple_loop(niter,gain,amp):
     b = np.random.randn(niter) # Bruit
     brc = np.zeros(niter)
     err = np.zeros(niter) # Erreur due au bruit
-    
+
     for i in range(niter):
         # Mesure classique
         mes_id[i] = tur[i] + com_id[i-1]
@@ -395,10 +397,10 @@ def simple_loop(niter,gain,amp):
         com_id[i] = com_id[i-1] - gain * mes_id[i]
         #Bruit dans la loop
         brc[i] = (1-gain)*brc[i-1] - gain*b[i]
-        
+
         #Erreur due au bruit
         err[i] = brc[i] + com_id[i]
-    
+
     pl.ion()
     pl.clf()
     pl.plot(com_br,color="red")
@@ -408,14 +410,10 @@ def simple_loop(niter,gain,amp):
     pl.plot(brc-(com_br-com_id),color="black")
 
 #######################################################################
-#  _           _       _     
-# | |__   __ _| |_ ___| |__  
-# | '_ \ / _` | __/ __| '_ \ 
+#  _           _       _
+# | |__   __ _| |_ ___| |__
+# | '_ \ / _` | __/ __| '_ \
 # | |_) | (_| | || (__| | | |
 # |_.__/ \__,_|\__\___|_| |_|
-##########################################################################  
+##########################################################################
 param,brvar,nvar,dsp_med,f_med,dsp_Kmed,f_Kmed = check_param(config,50000,save=True)
-
-
-
-

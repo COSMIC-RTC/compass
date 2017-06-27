@@ -164,13 +164,13 @@ class html_display:
             for jj in coms_active:
                 j = self.coms_list[jj]
                 data=self.files[i][j][:]
-                if(plot_val == "Commands"):
+                if(plot_val == b"Commands"):
                     yi.append(data[:,iteration].tolist())
                     xi.append(list(range(len(data[:,iteration]))))
                     coloris.append(self.colors[j])
                     self.p.yaxis.axis_label = "Volts"
                     
-                elif(plot_val == "Variance"):
+                elif(plot_val == b"Variance"):
                     yi.append(np.var(data,axis=1).tolist())
                     xi.append(list(range(len(np.var(data,axis=1)))))
                     coloris.append(self.colors[j])

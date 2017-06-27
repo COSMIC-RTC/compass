@@ -78,7 +78,7 @@ def returnConfigfromWao(wao, filepath=os.environ["SHESHA_ROOT"] + "/widgets/cana
         lambdaList.append(wao.config.p_wfss[i].Lambda)
         dms_seen.append(list(wao.config.p_wfss[i].dms_seen))
 
-        if(wao.config.p_wfss[i].type_wfs=="pyrhr"):
+        if(wao.config.p_wfss[i].type_wfs == b"pyrhr"):
             pyrModulationList.append(wao.config.p_wfss[i].pyr_ampl)
             pyr_npts.append(wao.config.p_wfss[i].pyr_npts)
             pyr_pupsep.append(wao.config.p_wfss[i].pyr_pup_sep)

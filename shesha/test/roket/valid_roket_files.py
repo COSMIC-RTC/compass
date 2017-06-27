@@ -37,4 +37,5 @@ ind = 0
 for f in filenames:
     validfile(f)
     ind += 1
-    print("\r %d/%d" % (ind,l))
+    print(" reading : %d/%d\r"%(ind,l), end=' ')
+print("read")

@@ -147,7 +147,8 @@ def psf_rec_roket_file_cpu(filename):
         amplipup[:phase.shape[0],:phase.shape[1]] = np.exp(-1j*phase*scale)
         amplipup = np.fft.fft2(amplipup)
         psf += np.fft.fftshift(np.abs(amplipup)**2) / IF.shape[1] / IF.shape[1] / err.shape[1]
-        print("\rComputing and stacking PSF : %d%%" % ((k*100/err.shape[1])), end=' ')
+        print(" Computing and stacking PSF : %d/%d\r"%(i,n), end=' ')
+    print("PSF computed and stacked")
     f.close()
     return psf
 
@@ -251,8 +252,8 @@ def psf_rec_vii_cpu(filename):
         term1 = np.real(np.fft.fft2(newmodek**2) * conjpupfft)
         term2 = np.abs(np.fft.fft2(newmodek))**2
         tmp += ((term1 - term2) * e[k])
-        stdout.write("\rComputing Vii : %d%%" % (k*100/covmodes.shape[0]))
-        stdout.flush()
+        print(" Computing Vii : %d/%d\r"%(k,covmodes.shape[0]), end=' ')
+    print("Vii computed")
 
     dphi = np.real(np.fft.ifft2(2*tmp)) * den * mask * ratio_lambda**2
     otf2 = np.exp(-0.5 * dphi) * mask

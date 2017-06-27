@@ -68,9 +68,9 @@ def readDataBase(name='compassDB', dbFormat=".h5", fullpath=None):
 
 
     try:
-        if(dbFormat == ".h5"):
+        if(dbFormat == b".h5"):
             tmp = pd.read_hdf(fullpath,'resAll')
-        elif(dbFormat == ".csv"):
+        elif(dbFormat == b".csv"):
             tmp = pd.read_csv(fullpath)
         else:
             print("Format ", dbFormat, " not recognized!")
@@ -92,15 +92,15 @@ def saveDataBase(df, name='compassDB', dbFormat=".h5"):
         currTime = time.strftime("%Y-%m-%d_%H:%M:%S", time.gmtime())
         CurrDbFile= datapath +'/'+name+dbFormat
         #check_output("mv "+ CurrDbFile  + " " +datapath +'/backup/'+name+dbFormat +".save_"+currTime+"_GMT")
-        #print "Saved backup file: %s" % (CurrDbFile +".save_"+currTime+"_GMT")
+        #print("Saved backup file: %s" % (CurrDbFile +".save_"+currTime+"_GMT"))
 
 
     fullname = datapath +'/'+name+dbFormat
-    if(dbFormat == ".h5"):
+    if(dbFormat == b".h5"):
         hdf = pd.HDFStore(fullname)
         hdf.put('resAll', df, data_columns=True)
         hdf.close()
-    elif(dbFormat == ".csv"):
+    elif(dbFormat == b".csv"):
         df.to_csv(fullname)
     else:
         print("ERROR format %s NOT recognized" % dbFormat)

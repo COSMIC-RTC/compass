@@ -118,7 +118,7 @@ def atmos_init(naga_context c, Param_atmos atm, Param_tel tel, Param_geom geom,
     else:
         seeds = atm.seeds
 
-    cdef bytes type_target = bytes("atmos".encode('UTF-8'))
+    cdef bytes type_target = b"atmos"
     for i in range(len(wfss)):
         if(wfss[i].gsalt > 0):
             gsalt = 1 / wfss[i].gsalt
@@ -256,8 +256,8 @@ cdef class Atmos:
         cdef long size2 = compute_size2(np.array([size], dtype=np.int64))[0]
 
         if(self.s_a.d_screens.find(altitude) != self.s_a.d_screens.end()):
-            print "There is already a screen at this altitude"
-            print "No screen created"
+            print("There is already a screen at this altitude")
+            print("No screen created")
             return
 
         cdef sutra_tscreen * screen = new sutra_tscreen(self.s_a.current_context, size, size2, amplitude, altitude, windspeed, winddir, deltax, deltay, device)
@@ -273,8 +273,8 @@ cdef class Atmos:
         :param alt: (float) : altitude of the screen to delete
         """
         if(self.s_a.d_screens.find(alt) == self.s_a.d_screens.end()):
-            print "No screen at this altitude"
-            print "No screen deleted"
+            print("No screen at this altitude")
+            print("No screen deleted")
             return
         self.s_a.nscreens -= 1
         self.s_a.d_screens.erase(alt)
@@ -291,7 +291,7 @@ cdef class Atmos:
             alt[i] = deref(it).first
             inc(it)
             i += 1
-        print alt
+        print(alt)
 
     def move_atmos(self):
         """Move the turbulence in the atmos screen following previous loaded
@@ -400,19 +400,19 @@ cdef atmos_create(naga_context c, int nscreens,
 
     for i in range(nscreens):
         if(load.has_key("A")):
-            print "loading", load["A"]
+            print("loading", load["A"])
             f = h5py.File(load["A"])
             A = f["A"][:]
             f.close()
-            print "loading", load["B"]
+            print("loading", load["B"])
             f = h5py.File(load["B"])
             B = f["B"][:]
             f.close()
-            print "loading", load["istx"]
+            print("loading", load["istx"])
             f = h5py.File(load["istx"])
             istx = f["istx"][:]
             f.close()
-            print "loading", load["isty"]
+            print("loading", load["isty"])
             f = h5py.File(load["isty"])
             isty = f["isty"][:]
             f.close()
@@ -421,7 +421,7 @@ cdef atmos_create(naga_context c, int nscreens,
             A, B, istx, isty = itK.AB(dim_screens[i], L0[i], deltax[i], deltay[i], verbose)
             if not(clean):
                 version = shesha.__version__
-                print "writing files and updating database"
+                print("writing files and updating database")
                 df = pandas.read_hdf(
                     shesha_savepath + "/matricesDataBase.h5", "A")
                 ind = len(df.index) - 1
