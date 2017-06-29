@@ -1,4 +1,4 @@
-source: <https://projets-lesia.obspm.fr/projects/compass/wiki/Install_the_platform>
+### install miniconda3
 
 Table of Contents
 =================
@@ -32,14 +32,15 @@ more info: <https://www.continuum.io/downloads#linux>
 ## Download and installation
 
 ```bash
-wget https://repo.continuum.io/archive/Anaconda2-4.2.0-Linux-x86_64.sh
-bash ./Anaconda2-4.2.0-Linux-x86_64.sh
+wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh
+bash Miniconda3-latest-Linux-x86_64.sh
 ```
 
-update your .batchrc,
-add anaconda2/bin into the $PATH
+### setup .bashrc
 
-## Add more packets
+```bashrc
+export CONDA_ROOT=$HOME/miniconda3
+export PATH=$CONDA_ROOT/bin:$PATH
 
 To avoid any incompatibility this python modules, it's highly recommended to use the gcc provided with anaconda:
 
@@ -356,86 +357,44 @@ export CUDA_LIB_PATH=$CUDA_ROOT/lib
 export CUDA_LIB_PATH_64=$CUDA_ROOT/lib64
 export PATH=$CUDA_ROOT/bin:$PATH
 export LD_LIBRARY_PATH=$CUDA_LIB_PATH_64:$CUDA_LIB_PATH:$LD_LIBRARY_PATH
-```
-
-in this file, you also have to indicate the proper architecture of your GPU so as the compiler will generate the appropriate code.
-
-```bash
-export GENCODE="arch=compute_52,code=sm_52"
-```
-
-and change both 52 to your architecture : for instance a Tesla Fermi will have 2.0 computing capabilities so change 52 to 20, a Kepler GPU will have 3.0 or 3.5 (K20) computing capabilities, change 52 to 30 (or 35), a Maxwell GPU have 5.2 (M6000), a Pascal have 6.0 (P100). (more informations here: <https://developer.nvidia.com/cuda-gpus>)
-
-If you are using CULA, you have to specify it:
-
-```bash
-# CULA default definitions
-export CULA_ROOT= /usr/local/cula
-export CULA_INC_PATH= $CULA_ROOT/include
-export CULA_LIB_PATH= $CULA_ROOT/lib
-export CULA_LIB_PATH_64= $CULA_ROOT/lib64
-export LD_LIBRARY_PATH=$CULA_LIB_PATH_64:$CULA_LIB_PATH:$LD_LIBRARY_PATH
-```
-
-If you are using MAGMA, you have to specify it:
-
-```bash
-# MAGMA definitions (uncomment this line if MAGMA is installed)
-export MAGMA_ROOT=$HOME/local/magma
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$MAGMA_ROOT/lib
-export PKG_CONFIG_PATH=$MAGMA_ROOT/lib/pkgconfig
-```
-
-Last variables to define:
-
-```bash
-export COMPASS_ROOT=/path/to/compass/trunk
-export NAGA_ROOT=$COMPASS_ROOT/naga
-export SHESHA_ROOT=$COMPASS_ROOT/shesha
-export LD_LIBRARY_PATH=$COMPASS_ROOT/libcarma:$COMPASS_ROOT/libsutra:$LD_LIBRARY_PATH
-```
-
-At the end, you .bashrc shoud containts all those informations:
-
-```bash
-# conda default definitions
-export CONDA_ROOT=/your/path/anaconda2
-export PATH=$CONDA_ROOT/bin:$PATH
-
-# CUDA default definitions
-export CUDA_ROOT=/usr/local/cuda
-export CUDA_INC_PATH=$CUDA_ROOT/include
-export CUDA_LIB_PATH=$CUDA_ROOT/lib
-export CUDA_LIB_PATH_64=$CUDA_ROOT/lib64
-export PATH=$CUDA_ROOT/bin:$PATH
-export LD_LIBRARY_PATH=$CUDA_LIB_PATH_64:$CUDA_LIB_PATH:$LD_LIBRARY_PATH
 export GENCODE="arch=compute_52,code=sm_52"
 
-# OPENBLAS definitions
-export OPENBLAS_ROOT=$HOME/local/openblas
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$OPENBLAS_ROOT/lib
-export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:$OPENBLAS_ROOT/lib/pkgconfig
-
-# MAGMA definitions
+#MAGMA definitions
 export MAGMA_ROOT=$HOME/local/magma
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$MAGMA_ROOT/lib
 export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:$MAGMA_ROOT/lib/pkgconfig
 
-# COMPASS default definitions
-export COMPASS_ROOT=/your/path/compass
+#COMPASS default definitions
+export COMPASS_ROOT=$HOME/compass
 export NAGA_ROOT=$COMPASS_ROOT/naga
 export SHESHA_ROOT=$COMPASS_ROOT/shesha
 export LD_LIBRARY_PATH=$COMPASS_ROOT/libcarma:$COMPASS_ROOT/libsutra:$LD_LIBRARY_PATH
 ```
 
-Once this is done, you're ready to compile the whole library:
+### install dependencies
 
 ```bash
-make clean all
+conda install cython numpy nomkl pyqtgraph ipython pyqt qt matplotlib astropy blaze h5py hdf5 nose pandas scipy
 ```
 
-If you did not get any error, CArMA, SuTrA, NAGA and SHESHA are now installed on your machine. You can check that everything is working by launching a GUI to test a simulation:
+### install MAGMA
 
 ```bash
-ipython -i $SHESHA_ROOT/widgets/widget_ao.py
+cd
+wget http://icl.cs.utk.edu/projectsfiles/magma/downloads/magma-2.2.0.tar.gz
+tar xf magma-2.2.0.tar.gz
+cd magma-2.2.0
+cp make.inc-examples/make.inc.openblas make.inc
+emacs make.inc  # edit GPU_TARGET , OPENBLASDIR=$(HOME)/miniconda3 and CUDADIR=/usr/local/cuda
+make -j 8 shared sparse-shared
+make install prefix=$HOME/local/magma
+```
+
+### install COMPASS
+
+```bash
+cd
+git clone -b py3 git@gitlab.obspm.fr:compass/compass
+cd compass
+make install
 ```

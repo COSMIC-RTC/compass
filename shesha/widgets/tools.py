@@ -238,7 +238,7 @@ def plsh(slopesvector, nssp, validint, sparta=False, invertxy=False, returnquive
     known, that’s why <validint> has to be passed in the argument list.
 
     """
-    nsub = slopesvector.shape[0] / 2
+    nsub = slopesvector.shape[0] // 2
     x = np.linspace(-1, 1, nssp)
     x, y = np.meshgrid(x, x)
     r = np.sqrt(x * x + y * y)
@@ -248,7 +248,7 @@ def plsh(slopesvector, nssp, validint, sparta=False, invertxy=False, returnquive
     # subapertures in slopesvector
     rorder = np.sort(r.reshape(nssp * nssp))
     # number of subapertures not valid due to central obscuration
-    ncentral = nssp * nssp - np.sum(r >= validint)
+    ncentral = nssp * nssp - np.sum(r >= validint, dtype=np.int32)
     # determine value of external radius so that the test (validint < r < validext)
     # leads to the correct number of subapertures
     validext = rorder[ncentral + nsub]

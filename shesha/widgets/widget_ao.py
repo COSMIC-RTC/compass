@@ -1135,9 +1135,8 @@ class widgetAOWindow(TemplateBaseClass):
                         self.ui.wao_rtcWindowMPL.canvas.axes.clear()
                         # retrieving centroids
                         centroids = self.rtc.getCentroids(0)
-                        nvalid = [
-                            2 * o._nvalid for o in self.config.p_wfss]
-                        ind = np.sum(nvalid[:self.numberSelected])
+                        nvalid = [2 * o._nvalid for o in self.config.p_wfss]
+                        ind = np.sum(nvalid[:self.numberSelected], dtype=np.int32)
                         if(self.config.p_wfss[self.numberSelected].type_wfs == b"pyrhr"):
                             plpyr(
                                 centroids[ind:ind + nvalid[self.numberSelected]], self.config.p_wfs0._isvalid)
