@@ -17,6 +17,7 @@ Table of Contents
       * [compilation and installation](#compilation-and-installation)
          * [compilation](#compilation)
          * [installation](#installation)
+      * [tuning](#tuning-not-tested)
    * [Install the platform](#install-the-platform)
       * [Hardware requirements](#hardware-requirements)
       * [Environment requirements](#environment-requirements)
@@ -308,9 +309,13 @@ To install libraries and include files in a given prefix, run:
 make install prefix=$HOME/local/magma
 ```
 
-The default prefix is /usr/local/magma. You can also set prefix in make.inc. tuning (not tested)
+The default prefix is /usr/local/magma. You can also set prefix in make.inc. 
 
-For multi-GPU functions, set $MAGMA_NUM_GPUS to set the number of GPUs to use. For multi-core BLAS libraries, set $OMP_NUM_THREADS or $MKL_NUM_THREADS or $VECLIB_MAXIMUM_THREADS to set the number of CPU threads, depending on your BLAS library.
+## tuning (not tested)
+
+For multi-GPU functions, set $MAGMA_NUM_GPUS to set the number of GPUs to use.
+
+For multi-core BLAS libraries, set $OMP_NUM_THREADS or $MKL_NUM_THREADS or $VECLIB_MAXIMUM_THREADS to set the number of CPU threads, depending on your BLAS library.
 
 # Install the platform
 
