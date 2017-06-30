@@ -1,13 +1,12 @@
+from pandas import HDFStore,DataFrame
+#import hdf5_utils as h5u
 import os
 import sys
 import numpy as np
 import naga as ch
-import shesha as ao
 import time
 import datetime
 from subprocess import check_output
-import pandas
-import hdf5_utils as h5u
 import platform
 import re
 
@@ -16,14 +15,17 @@ SHESHA = os.environ.get('SHESHA_ROOT')
 if(SHESHA is None):
     raise EnvironmentError("Environment variable 'SHESHA_ROOT' must be define")
 
-SHESHA_SAVEPATH = SHESHA + "/data/"
-PARPATH = SHESHA_SAVEPATH + "par/par4bench/"
-BENCH_SAVEPATH = SHESHA_SAVEPATH + "bench-results/"
+SHESHA_SAVEPATH = SHESHA + "/data"
+PARPATH = SHESHA_SAVEPATH + "/par/par4bench"
+BENCH_SAVEPATH = SHESHA_SAVEPATH + "/bench-results"
 
+store = HDFStore(BENCH_SAVEPATH + "/benchmarks.h5")
+
+import shesha as ao
 
 def get_processor_name():
     command = "cat /proc/cpuinfo"
-    all_info = check_output(command, shell=True).strip()
+    all_info = check_output(command, shell=True).strip().decode("utf-8")
     nb_cpu = 0
     cpu = []
     for line in all_info.split("\n"):
@@ -77,30 +79,30 @@ def script4bench(param_file, centroider, controller, devices, fwrite=True):
     #         simul_name=config.simul_name
     # else:
     #     simul_name=""
-    simul_name = b""
+    simul_name = ""
     matricesToLoad = {}
     config.p_centroiders[0].set_type(centroider)
 
-    if(centroider == b"tcog"):
+    if(centroider == "tcog"):
         config.p_centroiders[0].set_thresh(9.)
-    elif(centroider == b"bpcog"):
+    elif(centroider == "bpcog"):
         config.p_centroiders[0].set_nmax(16)
-    elif(centroider == b"geom"):
+    elif(centroider == "geom"):
         config.p_centroiders[0].set_type("cog")
-    elif(centroider == b"wcog"):
+    elif(centroider == "wcog"):
         config.p_centroiders[0].set_type_fct("gauss")
         config.p_centroiders[0].set_width(2.0)
-    elif(centroider == b"corr"):
+    elif(centroider == "corr"):
         config.p_centroiders[0].set_type_fct("gauss")
         config.p_centroiders[0].set_width(2.0)
 
     config.p_controllers[0].set_type(controller)
-    if(controller == b"modopti"):
+    if(controller == "modopti"):
         config.p_controllers[0].set_type("ls")
         config.p_controllers[0].set_modopti(1)
 
     config.p_loop.set_niter(2000)
-    if(simul_name == b""):
+    if(simul_name == ""):
         clean = 1
     else:
         clean = 0
@@ -177,7 +179,7 @@ def script4bench(param_file, centroider, controller, devices, fwrite=True):
         move_atmos_time += timer.stop() - synctime
         timer.reset()
 
-        if(config.p_controllers[0].type_control != "geo"):
+        if(config.p_controllers[0].type_control != b"geo"):
             if((config.p_target is not None) and (rtc is not None)):
                 for i in range(config.p_target.ntargets):
                     timer.start()
@@ -196,14 +198,14 @@ def script4bench(param_file, centroider, controller, devices, fwrite=True):
             if(config.p_wfss is not None and wfs is not None):
                 for i in range(len(config.p_wfss)):
                     timer.start()
-                    wfs.sensors_trace(i, "atmos", tel, atm)
+                    wfs.sensors_trace(i, b"atmos", tel, atm)
                     ch.threadSync()
                     s_raytrace_atmos_time += timer.stop() - synctime
                     timer.reset()
 
                     if(not config.p_wfss[i].openloop and dms is not None):
                         timer.start()
-                        wfs.sensors_trace(i, "dm", dms=dms)
+                        wfs.sensors_trace(i, b"dm", dms=dms)
                         ch.threadSync()
                         s_raytrace_dm_time += timer.stop() - synctime
                         timer.reset()
@@ -218,7 +220,7 @@ def script4bench(param_file, centroider, controller, devices, fwrite=True):
                rtc is not None and
                config.p_wfss is not None and
                wfs is not None):
-                if(centroider == b"geom"):
+                if(centroider == "geom"):
                     timer.start()
                     rtc.docentroids_geom(0)
                     ch.threadSync()
@@ -321,9 +323,9 @@ def script4bench(param_file, centroider, controller, devices, fwrite=True):
     if(config.p_wfss[0].gsmag > 3):
         stype += "noisy "
 
-    stype += config.p_wfss[0].type_wfs
+    stype += str(config.p_wfss[0].type_wfs)
 
-    if(controller == b"modopti"):
+    if(controller == "modopti"):
         G = np.mean(rtc.get_mgain(0))
     else:
         G = 0.
@@ -334,7 +336,7 @@ def script4bench(param_file, centroider, controller, devices, fwrite=True):
     version = ao.__version__
 
     # version=str(check_output(["svnversion",os.getenv("COMPASS_ROOT")]).replace("\n",""))
-    hostname = check_output("hostname").replace("\n", "")
+    hostname = check_output("hostname").replace(b"\n", b"").decode('UTF-8')
     nb_cpu, cpu = get_processor_name()
     imat = rtc.get_imat(0)
     keys_dict = {"date": date,
@@ -348,7 +350,7 @@ def script4bench(param_file, centroider, controller, devices, fwrite=True):
                  "ncpu": nb_cpu,
                  "processor": cpu[0],
                  "tel.diam": config.p_tel.diam,
-                 "sensor_type": config.p_wfss[0].type_wfs,
+                 "sensor_type": config.p_wfss[0].type_wfs.decode('UTF-8'),
                  "nslopes": imat.shape[0],
                  "nactus": imat.shape[1],
                  "LGS": config.p_wfss[0].gsalt > 0,
@@ -378,11 +380,11 @@ def script4bench(param_file, centroider, controller, devices, fwrite=True):
                  "Avg.gain": G,
                  "residualPhase": target.get_phase(0)}
 
-    store = pandas.HDFStore(BENCH_SAVEPATH + "benchmarks.h5")
+    store = HDFStore(BENCH_SAVEPATH + "/benchmarks.h5")
     try:
         df = store.get(version)
     except KeyError:
-        df = pandas.DataFrame(columns=list(keys_dict.keys()), dtype=object)
+        df = DataFrame(columns=list(keys_dict.keys()), dtype=object)
 
     ix = len(df.index)
 
@@ -407,7 +409,7 @@ if(len(sys.argv) < 4 or len(sys.argv) > 6):
         sys.argv)
     raise Exception(error)
 
-filename = PARPATH + sys.argv[1]
+filename = PARPATH + "/" + sys.argv[1]
 centroider = sys.argv[2]
 controller = sys.argv[3]
 device = 5

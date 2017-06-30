@@ -2320,7 +2320,7 @@ def rtc_init(Telescope g_tel, Sensors g_wfs, p_wfs, Dms g_dms, p_dms, Param_geom
                         cpt = 0
                         indx_dm = np.zeros((controller.ndm.size * indx_pup.size), dtype=np.int32)
                         for dmn in range(controller.ndm.size):
-                            tmp_s = (p_geom._ipupil.shape[0] - (p_dms[dmn]._n2 - p_dms[dmn]._n1 + 1)) / 2
+                            tmp_s = (p_geom._ipupil.shape[0] - (p_dms[dmn]._n2 - p_dms[dmn]._n1 + 1)) // 2
                             tmp_e0 = p_geom._ipupil.shape[0] - tmp_s
                             tmp_e1 = p_geom._ipupil.shape[1] - tmp_s
                             pup_dm = p_geom._ipupil[tmp_s:tmp_e0, tmp_s:tmp_e1]
