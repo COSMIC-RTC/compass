@@ -87,7 +87,7 @@ def depouillePerf(filename, version=None, mode="profile"):
                 ccc += 1
         elif(mode == "framerate"):
             plt.barh(cc, 1. / df.loc[indx, "iter_time"]
-                     * 1000., width, color=colors[ind])
+                     * 1000., width, color=colors[ind%len(colors)])
             plt.text(1. / df.loc[indx, "iter_time"] * 1000. / 2., cc + width /
                      2., '%.1f' % float(1. / df.loc[indx, "iter_time"] * 1000.))
             ccc += 1
@@ -197,5 +197,13 @@ with doc.create(Section('Results')):
     with doc.create(Subsection("Framerate")):
         with doc.create(Figure(position='!htbp')) as plot:
             plot.add_plot(width=NoEscape(r'1\textwidth'))
+    with doc.create(Subsection("Strehl ratios")):
+        with doc.create(Tabular('|l|l|')) as table:
+            table.add_hline()
+            table.add_row(("Simulation name", "SR LE"))
+            table.add_hline()
+            for indx in df.index:
+                table.add_row((str(df.loc[indx, "simulname"]), str(df.loc[indx, "finalSRLE"])))
+                table.add_hline()
 
 doc.generate_pdf("Test_report", clean_tex=False)
