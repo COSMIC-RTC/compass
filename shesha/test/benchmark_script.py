@@ -65,7 +65,8 @@ def script4bench(param_file, centroider, controller, devices, fwrite=True):
     filename = param_file.split('/')[-1]
     param_path = param_file.split(filename)[0]
     sys.path.insert(0, param_path)
-    exec("import %s as config" % filename.split(".py")[0])
+    #exec("import %s as config" % filename.split(".py")[0])
+    config = __import__(filename.split(".py")[0])
     sys.path.remove(param_path)
 
     # set simulation name
@@ -76,7 +77,7 @@ def script4bench(param_file, centroider, controller, devices, fwrite=True):
     #         simul_name=config.simul_name
     # else:
     #     simul_name=""
-    simul_name = ""
+    simul_name = b""
     matricesToLoad = {}
     config.p_centroiders[0].set_type(centroider)
 
@@ -375,7 +376,7 @@ def script4bench(param_file, centroider, controller, devices, fwrite=True):
                  "applycontrol": applycontrol_time,
                  "iter_time": time_per_iter,
                  "Avg.gain": G,
-                 "ResidualPhase:": target.get_phase(0)}
+                 "residualPhase": target.get_phase(0)}
 
     store = pandas.HDFStore(BENCH_SAVEPATH + "benchmarks.h5")
     try:

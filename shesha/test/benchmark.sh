@@ -22,7 +22,7 @@ for f in $FILES_SCAO
 do
     for CTR in "ls" "modopti" "geo"
     do
-        for COG in "cog" "tcog" "wcog" "bpcog" 
+        for COG in "cog" "tcog" "wcog" "bpcog"
         do
             CMD="python $script $f $COG $CTR $DEVICE"
             echo "execute $CMD" >> $OUTPUT
@@ -61,13 +61,13 @@ done
 
 
 FILES_LGS="scao_sh_16x16_8pix_lgs.py"
-FILES_LGS+="scao_sh_40x40_10pix_lgs.par"
+#FILES_LGS+="scao_sh_40x40_10pix_lgs.par"
 #FILES_LGS+="scao_sh_64x64_16pix_lgs.par"
-FILES_LGS+="scao_sh_80x80_20pix_lgs.par"
+#FILES_LGS+="scao_sh_80x80_20pix_lgs.par"
 DEVICE="0"
 for f in $FILES_LGS
 do
-    for CTR in "ls"
+    for CTR in "ls" "modopti" "mv" "geo"
     do
         for COG in "wcog" "corr"
         do
