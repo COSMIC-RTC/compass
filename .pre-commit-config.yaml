@@ -2,6 +2,11 @@
     sha: v0.16.2
     hooks:
     -   id: yapf
+-   repo: https://github.com/pre-commit/mirrors-autopep8
+    sha: v1.3.2
+    hooks:
+    -   id: autopep8
+        files: \.pyx
 -   repo: https://github.com/pre-commit/pre-commit-hooks.git
     sha: v0.9.1
     hooks:

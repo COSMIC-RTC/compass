@@ -37,8 +37,13 @@ Pyro_NS_URI
 .pydevproject
 .settings
 
+# Editors
+*.bak
+*.swp
+._*
 
 shesha/data/M4data/
+shesha/test/scripts/resultatsScripts/
 
 shesha/test/scripts/resultatsScripts/
 *.gch
