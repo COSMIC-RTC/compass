@@ -64,6 +64,7 @@ from shesha_telescope import *
 # from shesha_roket import *
 from shesha_gamora import *
 from shesha_groot import *
+from shesha_acquisim import *
 
 '''
 def see_atmos_target_disp(int n, Atmos atm, Target tar,Sensors wfs, float alt=0, int n_tar=0,float f=1, int log=0):

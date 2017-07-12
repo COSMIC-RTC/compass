@@ -48,6 +48,23 @@ cdef extern from "sutra_phase.h":
         carma_obj[float] * zernikes
         carma_obj[float] * mat
 
+
+#################################################
+# C-Class sutra_acquisim
+#################################################
+cdef extern from "sutra_acquisim.h":
+    cdef cppclass sutra_acquisim:
+
+        sutra_acquisim(sutra_sensors *sensors, int wfs_num)
+        sutra_acquisim(const sutra_acquisim& acquisim)
+
+        int comp_image_tele(long *dims, float *bimage)
+        int comp_image(long *dims, float *bimage)
+        int comp_image_2D(long *dims, float *bimage, int *num_ssp)
+
+
+
+
 #################################################
 # C-Class sutra_telescope
 #################################################
