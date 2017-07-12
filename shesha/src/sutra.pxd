@@ -58,11 +58,11 @@ cdef extern from "sutra_acquisim.h":
         sutra_acquisim(sutra_sensors *sensors, int wfs_num)
         sutra_acquisim(const sutra_acquisim& acquisim)
 
+        int set_validsubs(np.int64_t nvalid, np.int32_t *validsubsx, np.int32_t *validsubsy)
+
         int comp_image_tele(long *dims, float *bimage)
         int comp_image(long *dims, float *bimage)
         int comp_image_2D(long *dims, float *bimage, int *num_ssp)
-
-
 
 
 #################################################
