@@ -269,7 +269,7 @@ class widgetAOWindow(TemplateBaseClass):
             self.dms.set_full_comm((self.KL2V[:,i]).astype(np.float32).copy())
             self.tar.dmtrace(0, self.dms)
             ph = self.tar.get_phase(0)*pup
-            # Normalisation pour les unités rms en microns !!!
+            # Normalisation pour les unites rms en microns !!!
             norm = np.sqrt( np.sum( (ph)**2)/S )
             ph2KL[i,:,:] = ph/norm
             print str(i)+"/"+str(nbmode) + "\r",
