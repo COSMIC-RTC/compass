@@ -7,29 +7,30 @@ cimport numpy as np
 # np.import_array()
 
 try:
-    shesha_dir = os.environ['SHESHA_ROOT'].encode('UTF-8')
+    shesha_dir = os.environ['SHESHA_ROOT']
 except KeyError as err:
     raise EnvironmentError("Environment variable 'SHESHA_ROOT' must be define")
 
 try:
-    shesha_db = os.environ['SHESHA_DB_ROOT'].encode('UTF-8')
+    shesha_db = os.environ['SHESHA_DB_ROOT']
 except KeyError as err:
     import warnings
-    shesha_db = shesha_dir + b"/data/"
-    warnings.warn("'SHESHA_DB_ROOT' not defined, using default one: "+ str(shesha_db))
+    shesha_db = shesha_dir + "/data/"
+    warnings.warn(
+        "'SHESHA_DB_ROOT' not defined, using default one: " +
+        str(shesha_db))
 finally:
-    shesha_savepath = shesha_db
+    shesha_savepath = bytes(shesha_db, 'utf8')
 
 print("shesha_savepath:", shesha_savepath)
 
-sys.path.append(shesha_dir + b'/src')
+os.environ["PATH"] += shesha_dir + '/src'
+
 import make_pupil as mkP
 
 from scipy.ndimage import interpolation as interp
 
-RASC = 180.*3600. / np.pi
-
-
+RASC = 180. * 3600. / np.pi
 
 
 #################################################
@@ -67,7 +68,6 @@ cdef class Param_loop:
             t: (float) :iteration time
         """
         self.ittime = t
-
 
 
 #################################################
@@ -205,24 +205,47 @@ cdef class Param_geom:
         cdef float cent = self.pupdiam / 2. + 0.5
 
         # useful pupil
-        self._spupil = mkP.make_pupil(self.pupdiam, self.pupdiam, tel, cent, cent).astype(np.float32)
+        self._spupil = mkP.make_pupil(
+            self.pupdiam,
+            self.pupdiam,
+            tel,
+            cent,
+            cent).astype(
+            np.float32)
 
-        self._phase_ab_M1 = mkP.make_phase_ab(self.pupdiam, self.pupdiam, tel, self._spupil).astype(np.float32)
+        self._phase_ab_M1 = mkP.make_phase_ab(
+            self.pupdiam,
+            self.pupdiam,
+            tel,
+            self._spupil).astype(
+            np.float32)
 
         # large pupil (used for image formation)
-        self._ipupil = mkP.pad_array(self._spupil, self.ssize).astype(np.float32)
+        self._ipupil = mkP.pad_array(
+            self._spupil,
+            self.ssize).astype(
+            np.float32)
 
         # useful pupil + 4 pixels
         self._mpupil = mkP.pad_array(self._spupil, self._n).astype(np.float32)
-        self._phase_ab_M1_m = mkP.pad_array(self._phase_ab_M1, self._n).astype(np.float32)
+        self._phase_ab_M1_m = mkP.pad_array(
+            self._phase_ab_M1, self._n).astype(
+            np.float32)
 
         if(apod == 1):
-            if apod_filename == None:
+            if apod_filename is None:
                 apod_filename = shesha_savepath + "apodizer/SP_HARMONI_I4_C6_N1024.npy"
-            self._apodizer = make_apodizer(self.pupdiam, self.pupdiam, apod_filename.encode(), 180. / 12.).astype(np.float32)
+            self._apodizer = make_apodizer(
+                self.pupdiam,
+                self.pupdiam,
+                apod_filename.encode(),
+                180. /
+                12.).astype(
+                np.float32)
         else:
-            self._apodizer = np.ones((self._spupil.shape[0], self._spupil.shape[1])).astype(np.float32)
-
+            self._apodizer = np.ones(
+                (self._spupil.shape[0], self._spupil.shape[1])).astype(
+                np.float32)
 
     def geom_init_generic(self, long pupdiam, t_spiders=0.01, spiders_type="six",
                           xc=0, yc=0, real=0, cobs=0):
@@ -248,10 +271,14 @@ cdef class Param_geom:
         cdef float cent = self.pupdiam / 2. + 0.5
 
         # useful pupil
-        self._spupil = mkP.make_pupil_generic(pupdiam,pupdiam,t_spiders,spiders_type, xc, yc,real, cobs)
+        self._spupil = mkP.make_pupil_generic(
+            pupdiam, pupdiam, t_spiders, spiders_type, xc, yc, real, cobs)
 
         # large pupil (used for image formation)
-        self._ipupil = mkP.pad_array(self._spupil, self.ssize).astype(np.float32)
+        self._ipupil = mkP.pad_array(
+            self._spupil,
+            self.ssize).astype(
+            np.float32)
 
         # useful pupil + 4 pixels
         self._mpupil = mkP.pad_array(self._spupil, self._n).astype(np.float32)
@@ -299,7 +326,6 @@ cdef class Param_geom:
         """return the small pupil"""
         return self._spupil
 
-
     def get_n(self):
         """Return the linear size of the medium pupil"""
         return self._n
@@ -319,7 +345,6 @@ cdef class Param_geom:
     def get_p2(self):
         """Return the max(x,y) for valid points for the medium pupil"""
         return self._p2
-
 
 
 #################################################
@@ -399,7 +424,7 @@ cdef class Param_wfs:
         """
         self.fssize = f
 
-    def set_fstop(self,str f):
+    def set_fstop(self, str f):
         """Set the size of field stop
 
         :param f: (str) : size of field stop in arcsec
@@ -561,14 +586,14 @@ cdef class Param_wfs:
         """
         self.pyrtype = bytes(p.encode('UTF-8'))
 
-    def set_pyr_cx(self, np.ndarray[ndim=1,dtype=np.float32_t] cx):
+    def set_pyr_cx(self, np.ndarray[ndim=1, dtype=np.float32_t] cx):
         """Set the x position of modulation points for pyramid sensor
 
         :param cx: (np.ndarray[ndim=1,dtype=np.floatt32_t) : x positions
         """
         self._pyr_cx = cx.copy()
 
-    def set_pyr_cy(self, np.ndarray[ndim=1,dtype=np.float32_t] cy):
+    def set_pyr_cy(self, np.ndarray[ndim=1, dtype=np.float32_t] cy):
         """Set the y position of modulation points for pyramid sensor
 
         :param cy: (np.ndarray[ndim=1,dtype=np.floatt32_t) : y positions
@@ -589,14 +614,12 @@ cdef class Param_wfs:
         """
         self.lgsreturnperwatt = lpw
 
-
     def set_altna(self, np.ndarray[ndim=1, dtype=np.float32_t] a):
         """Set the corresponding altitude
 
         :param a: (np.ndarray[ndim=1,dtype=np.float32]) : corresponding altitude
         """
         self._altna = a.copy()
-
 
     def set_profna(self, np.ndarray[ndim=1, dtype=np.float32_t] p):
         """Set the sodium profile
@@ -932,7 +955,7 @@ cdef class Klbas:
 #################################################
 cdef class Param_dm:
 
-    def __cinit__(self, debug = False):
+    def __cinit__(self, debug=False):
         self._klbas = Klbas()
         self.influType = b"default"
         self.gain = 1.0
@@ -940,7 +963,7 @@ cdef class Param_dm:
         self.margin_in = -1
         self.pzt_extent = 5
 
-    def set_pzt_extent(self,int p):
+    def set_pzt_extent(self, int p):
         """Set extent of pzt dm in pich unit default = 5
         :param p: (int) : extent pzt dm
         """
@@ -971,6 +994,7 @@ cdef class Param_dm:
         :param t: (string) : KL types : kolmo or karman
         """
         self.kl_type = bytes(t.encode('UTF-8'))
+
     def set_type(self, str t):
         """set the dm type
 
@@ -978,95 +1002,96 @@ cdef class Param_dm:
         """
         self.type_dm = bytes(t.encode('UTF-8'))
 
-    def set_pattern(self,str t):
+    def set_pattern(self, str t):
         """set the pattern type
 
         :param t: (str) : type of pattern
         """
-        self.type_pattern=bytes(t.encode('UTF-8'))
+        self.type_pattern = bytes(t.encode('UTF-8'))
 
-    def set_file_influ_hdf5(self,str f):
+    def set_file_influ_hdf5(self, str f):
         """set the name of hdf5 influence file
 
         :param filename: (str) : Hdf5 file influence name
         """
-        self.file_influ_hdf5=bytes(f.encode('UTF-8'))
+        self.file_influ_hdf5 = bytes(f.encode('UTF-8'))
 
-    def set_center_name(self,str f):
+    def set_center_name(self, str f):
         """set the name of hdf5 influence file
 
         :param filename: (str) : Hdf5 file influence name
         """
-        self.center_name=bytes(f.encode('UTF-8'))
+        self.center_name = bytes(f.encode('UTF-8'))
 
-    def set_cube_name(self,str cubename):
+    def set_cube_name(self, str cubename):
         """set the name of influence cube in hdf5
 
         :param cubename: (str) : name of influence cube
         """
-        self.cube_name=bytes(cubename.encode('UTF-8'))
+        self.cube_name = bytes(cubename.encode('UTF-8'))
 
-    def set_x_name(self,str xname):
+    def set_x_name(self, str xname):
         """set the name of x coord of influence fonction in file
 
         :param t: (str) : name of x coord of influence
         """
-        self.x_name=bytes(xname.encode('UTF-8'))
+        self.x_name = bytes(xname.encode('UTF-8'))
 
-    def set_y_name(self,str yname):
+    def set_y_name(self, str yname):
         """set the name of y coord of influence fonction in file
 
         :param yname: (str) : name of y coord of influence
         """
-        self.y_name=bytes(yname.encode('UTF-8'))
+        self.y_name = bytes(yname.encode('UTF-8'))
 
-    def set_influ_res(self,str res):
+    def set_influ_res(self, str res):
         """set the name of influence fonction resolution in file
 
         :param res: (str) : name of resoltion (meter/pixel) of influence
         """
-        self.influ_res=bytes(res.encode('UTF-8'))
-    def set_diam_dm(self,str di):
+        self.influ_res = bytes(res.encode('UTF-8'))
+
+    def set_diam_dm(self, str di):
         """set the name of dm diameter in file
 
         :param di: (str) : name of diameter (meter) dm
         """
-        self.diam_dm=bytes(di.encode('UTF-8'))
-    def set_diam_dm_proj(self,str dp):
+        self.diam_dm = bytes(di.encode('UTF-8'))
+
+    def set_diam_dm_proj(self, str dp):
         """set the name of dm diameter projet on puille in file
 
         :param dp: (str) : name of diameter (meter in pupil plan) dm
         """
-        self.diam_dm_proj=bytes(dp.encode('UTF-8'))
+        self.diam_dm_proj = bytes(dp.encode('UTF-8'))
 
     def set_nact(self, long n):
-
         """set the number of actuator
 
         :param n: (long) : number of actuators in the dm
         """
         self.nact = n
 
-    def set_margin(self,float n):
+    def set_margin(self, float n):
         """set the margin for outside actuator select
 
         :param n: (float) : pupille diametre ratio for actuator select
         """
-        self.margin=n
+        self.margin = n
 
-    def set_margin_out(self,float n):
+    def set_margin_out(self, float n):
         """set the margin for outside actuator select
 
         :param n: (float) : unit is actuator pitch (+) for extra (-) for intra
         """
-        self.margin_out=n
+        self.margin_out = n
 
-    def set_margin_in(self,float n):
+    def set_margin_in(self, float n):
         """set the margin for inside actuator select (central obstruction)
 
         :param n: (float) : unit is actuator pitch (+) for extra (-) for intra
         """
-        self.margin_in=n
+        self.margin_in = n
 
     def set_alt(self, float a):
         """set the conjugaison altitude
@@ -1146,7 +1171,6 @@ cdef class Param_dm:
         self._influ = influ.copy()
 
 
-
 #################################################
 # P-Class (parametres) Param_target
 #################################################
@@ -1155,13 +1179,13 @@ cdef class Param_target:
         self.ntargets = 0
         self.zerop = 1.
 
-
     def set_nTargets(self, int n):
         """Set the number of targets
 
         :param n: (int) : number of targets
         """
         self.ntargets = n
+
     def set_apod(self, int a):
         """Tells if the apodizer is used
 
@@ -1213,7 +1237,6 @@ cdef class Param_target:
         self.zerop = z
 
 
-
 #################################################
 # P-Class (parametres) Param_rtc
 #################################################
@@ -1225,6 +1248,7 @@ cdef class Param_rtc:
         :param n: (int) number of wfs
         """
         self.nwfs = n
+
     def set_centroiders(self, l):
         """Set the centroiders
 
@@ -1238,7 +1262,6 @@ cdef class Param_rtc:
         :param l: (list of Param_controller) : controllers settings
         """
         self.controllers = l
-
 
 
 #################################################
@@ -1295,7 +1318,7 @@ cdef class Param_centroider:
                                                          2: nosinus local
                                                          3: sinus local)
         """
-        if method>=Other:
+        if method >= Other:
             raise ValueError("method unknown")
 
         self.method = method
@@ -1323,14 +1346,13 @@ cdef class Param_centroider:
         """
         self.sizey = s
 
-    def set_weights(self, np.ndarray[ndim=3 , dtype=np.float32_t] w):
+    def set_weights(self, np.ndarray[ndim=3, dtype=np.float32_t] w):
         """Set the weights to use with wcog or corr
 
         :parameters:
             w: (np.ndarray[ndim=3 ,dtype=np.float32_t]) : weights
         """
         self.weights = w.copy()
-
 
 
 #################################################
@@ -1356,7 +1378,6 @@ cdef class Param_controller:
         self.klgain = np.array(gkl, dtype=np.float32)
 
     def set_nwfs(self, l):
-
         """Set the indices of wfs
 
         :param l: (list of int) : indices of wfs
@@ -1485,10 +1506,6 @@ cdef class Param_controller:
         self.cmat = cmat.copy()
 
 
-
-
-
-
 cpdef make_apodizer(int dim, int pupd, str filename, float angle):
     """TODO doc
 
@@ -1526,10 +1543,12 @@ cpdef make_apodizer(int dim, int pupd, str filename, float angle):
 
     if (dim != pupd):
         if ((dim - pupd) % 2 != 0):
-            pupf[(dim - pupd + 1) / 2:(dim + pupd + 1) / 2, (dim - pupd + 1) / 2:(dim + pupd + 1) / 2] = pup
+            pupf[(dim - pupd + 1) / 2:(dim + pupd + 1) / 2,
+                 (dim - pupd + 1) / 2:(dim + pupd + 1) / 2] = pup
 
         else:
-            pupf[(dim - pupd) / 2:(dim + pupd) / 2, (dim - pupd) / 2:(dim + pupd) / 2] = pup
+            pupf[(dim - pupd) / 2:(dim + pupd) / 2,
+                 (dim - pupd) / 2:(dim + pupd) / 2] = pup
 
     else:
         pupf = pup
@@ -1540,8 +1559,8 @@ cpdef make_apodizer(int dim, int pupd, str filename, float angle):
 
 
 cpdef rotate3d(np.ndarray[ndim=3, dtype=np.float32_t] im,
-              np.ndarray[ndim=1, dtype=np.float32_t] ang,
-              float cx=-1, float cy=-1, float zoom=1.0):
+               np.ndarray[ndim=1, dtype=np.float32_t] ang,
+               float cx=-1, float cy=-1, float zoom=1.0):
     """Rotates an image of an angle "ang" (in DEGREES).
 
     The center of rotation is cx,cy.
@@ -1596,11 +1615,11 @@ cpdef rotate3d(np.ndarray[ndim=3, dtype=np.float32_t] im,
     cdef np.ndarray[ndim = 3, dtype = np.int64_t] ind = np.zeros((nx, ny, ang.size)).astype(np.int64)
 
     cdef np.ndarray[ndim = 3, dtype = np.float32_t] imr = np.zeros((im.shape[0], im.shape[1], im.shape[2])).\
-                                                    astype(np.float32)
+        astype(np.float32)
 
     for i in range(ang.size):
         matrot = np.array([[np.cos(ang[i]), -np.sin(ang[i])],
-                         [np.sin(ang[i]), np.cos(ang[i])]], dtype=np.float32)
+                           [np.sin(ang[i]), np.cos(ang[i])]], dtype=np.float32)
         wx[:, :, i] = x * matrot[0, 0] + y * matrot[1, 0] + cx
         wy[:, :, i] = x * matrot[0, 1] + y * matrot[1, 1] + cy
 
@@ -1625,17 +1644,18 @@ cpdef rotate3d(np.ndarray[ndim=3, dtype=np.float32_t] im,
             ind[:, :, i] += i * nx * ny
 
     imr.flat = \
-            (im.flatten()[ind.flatten()] *
-                    (1 - wx.flatten()) + \
-                im.flatten()[ind.flatten() + 1] * wx.flatten())\
-             *(1 - wy.flatten()) + \
-             (im.flatten()[ind.flatten() + nx] * (1 - wx.flatten()) + im.flatten()[ind.flatten() + nx + 1] * wx.flatten()) * wy.flatten()
+        (im.flatten()[ind.flatten()] *
+         (1 - wx.flatten()) +
+            im.flatten()[ind.flatten() + 1] * wx.flatten())\
+        * (1 - wy.flatten()) + \
+        (im.flatten()[ind.flatten() + nx] * (1 - wx.flatten()) +
+         im.flatten()[ind.flatten() + nx + 1] * wx.flatten()) * wy.flatten()
 
     return imr
 
 
 cpdef rotate(np.ndarray[ndim=3, dtype=np.float32_t] im,
-            float ang, float cx=-1, float cy=-1, float zoom=1.0):
+             float ang, float cx=-1, float cy=-1, float zoom=1.0):
     """Rotates an image of an angle "ang" (in DEGREES).
 
     The center of rotation is cx,cy.
@@ -1686,10 +1706,10 @@ cpdef rotate(np.ndarray[ndim=3, dtype=np.float32_t] im,
     cdef np.ndarray[ndim = 3, dtype = np.int32_t] ind = np.zeros((nx, ny, ang.size))
 
     cdef np.ndarray[ndim = 3, dtype = np.float32_t] imr = np.zeros((im.shape[0], im.shape[1], im.shape[2])).\
-                                                    astype(np.float32)
+        astype(np.float32)
 
     matrot = np.array([[np.cos(ang), -np.sin(ang)],
-                     [np.sin(ang), np.cos(ang)]])
+                       [np.sin(ang), np.cos(ang)]])
 
     wx[:, :] = x * matrot[0, 0] + y * matrot[1, 0] + cx
     wy[:, :] = x * matrot[0, 1] + y * matrot[1, 1] + cy
@@ -1711,12 +1731,10 @@ cpdef rotate(np.ndarray[ndim=3, dtype=np.float32_t] im,
 
     ind = rx + (ry - 1) * nx
 
-    imr = (im[ind] * (1 - wx) + im[ind + 1] * wx) * (1 - wy) + (im[ind + nx] * (1 - wx) + im[ind + nx + 1] * wx) * wy
+    imr = (im[ind] * (1 - wx) + im[ind + 1] * wx) * (1 - wy) + \
+        (im[ind + nx] * (1 - wx) + im[ind + nx + 1] * wx) * wy
 
     return imr
-
-
-
 
 
 cpdef  indices(int dim1, int dim2=-1):
@@ -1738,16 +1756,14 @@ cpdef  indices(int dim1, int dim2=-1):
         dim2: (int) : (optional) second dimension
     """
 
-
     if (dim2 < 0):
         y = np.tile((np.arange(dim1, dtype=np.float32) + 1), (dim1, 1))
         x = np.copy(y.T)
         return y, x
-    else :
+    else:
         x = np.tile((np.arange(dim1, np.float32) + 1), (dim2, 1))
         y = np.tile((np.arange(dim2, np.float32) + 1), (dim1, 1)).T
         return y, x
-
 
 
 cpdef makegaussian(int size, float fwhm, int xc=-1, int yc=-1, int norm=0):
@@ -1769,8 +1785,9 @@ cpdef makegaussian(int size, float fwhm, int xc=-1, int yc=-1, int norm=0):
     cdef np.ndarray tmp
     tmp = np.exp(-(mkP.dist(size, xc, yc) / (fwhm / 1.66)) ** 2.)
     if (norm > 0):
-        tmp = tmp / (fwhm ** 2.*1.140075)
+        tmp = tmp / (fwhm ** 2. * 1.140075)
     return tmp
+
 
 def get_classAttributes(Param_class):
     """ get_classAttributes(Param_class)
@@ -1784,4 +1801,4 @@ def get_classAttributes(Param_class):
         get_classAttributes(ao.Param_wfs)
     """
     d = inspect.getmembers(Param_class)
-    return [ i[0] for i in d if inspect.isgetsetdescriptor(i[1])]
+    return [i[0] for i in d if inspect.isgetsetdescriptor(i[1])]

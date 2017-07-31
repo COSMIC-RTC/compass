@@ -5,10 +5,10 @@ Created on 13 juil. 2017
 
 @author: vdeo
 '''
-import os, sys
+import os
 try:
     shesha_dir = os.environ['SHESHA_ROOT']
-    sys.path.append(shesha_dir + '/src')
+    os.environ["PATH"] += shesha_dir + '/src'
 except KeyError as err:
     raise EnvironmentError(
             "Environment variable 'SHESHA_ROOT' must be defined")
@@ -40,6 +40,8 @@ from shesha_config.PTEL import Param_tel
 class Param_geom:
 
     def __init__(self):
+        """ Private members were initialized yet """
+        self.isInit = False
         """linear size of full image (in pixels)."""
         self.__ssize = 0
         """observations zenith angle (in deg)."""
@@ -66,13 +68,12 @@ class Param_geom:
         self._n1 = 0  # min x,y for valid points in ipupil
         self._n2 = 0  # max x,y for valid points in ipupil
 
-    def init_pup(self):
+    def geom_init(self, p_tel: Param_tel):
         """
-            Initialize the system pupil
+            Initialize the system geometry
 
         :parameters:
-            pupdiam: (long) : linear size of total pupil
-            extent: (float) : apodizer
+            p_tel: (Param_tel) : telescope settings
         """
 
         # First power of 2 greater than pupdiam
@@ -89,25 +90,15 @@ class Param_geom:
         self._n1 = self._p1 - 2
         self._n2 = self._p2 + 2
 
-    def geom_init(self, tel: Param_tel):
-        """
-            Initialize the system geometry
-
-        :parameters:
-            tel: (Param_tel) : telescope settings
-        """
-
-        self.init_pup()
-
         cent = self.pupdiam / 2. + 0.5
 
         # Useful pupil
         self._spupil = makeP.make_pupil(
-                self.pupdiam, self.pupdiam, tel, cent,
+                self.pupdiam, self.pupdiam, p_tel, cent,
                 cent).astype(np.float32)
 
         self._phase_ab_M1 = makeP.make_phase_ab(
-                self.pupdiam, self.pupdiam, tel,
+                self.pupdiam, self.pupdiam, p_tel,
                 self._spupil).astype(np.float32)
 
         # large pupil (used for image formation)
@@ -129,43 +120,9 @@ class Param_geom:
                     self.pupdiam, self.pupdiam,
                     apod_filename.encode(), 180. / 12.).astype(np.float32)
         else:
-            self._apodizer = np.ones(self._spupil.shape(), dtype=np.int32)
+            self._apodizer = np.ones(self._spupil.shape, dtype=np.int32)
 
-        def geom_init_generic(
-                self,
-                t_spiders=0.01,
-                spiders_type=const.SpiderType.SIX,
-                xc=0,
-                yc=0,
-                real=0,
-                cobs=0):
-            """
-                Initialize the system geometry
-
-            :parameters:
-                pupdiam: (long) : linear size of total pupil
-                t_spiders: (float) : secondary supports ratio.
-                spiders_type: (str) :  secondary supports type: "four" or "six".
-                xc: (int)
-                yc: (int)
-                real: (int)
-                cobs: (float) : central obstruction ratio.
-            """
-
-            self.init_pup()
-
-            cent = self.pupdiam / 2. + 0.5
-
-            # useful pupil
-            self._spupil = makeP.make_pupil_generic(
-                    self.pupdiam, self.pupdiam, t_spiders, spiders_type, xc,
-                    yc, real, cobs)
-            # large pupil (used for image formation)
-            self._ipupil = makeP.pad_array(self._spupil,
-                                           self.ssize).astype(np.float32)
-            # useful pupil + 4 pixels
-            self._mpupil = makeP.pad_array(self._spupil,
-                                           self._n).astype(np.float32)
+        self.isInit = True
 
     def set_ssize(self, s):
         """Set linear size of full image

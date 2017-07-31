@@ -6,17 +6,17 @@ Created on 13 juil. 2017
 @author: vdeo
 '''
 
-import os, sys
+import os
 try:
-    shesha_dir = os.environ['SHESHA_ROOT'].encode('UTF-8')
-    sys.path.append(shesha_dir + '/src')
+    shesha_dir = os.environ['SHESHA_ROOT']
+    os.environ["PATH"] += shesha_dir + '/src'
 except KeyError as err:
     raise EnvironmentError(
             "Environment variable 'SHESHA_ROOT' must be defined")
 
 import shesha_config as conf
 
-import shesha_util as util
+from shesha import Atmos
 
 import numpy as np
 
@@ -33,6 +33,9 @@ def atmos_init(
         clean=1,
         load={}):
 
+    if not p_geom.isInit:
+        raise RuntimeError("Cannot init atmosphere with uninitialized p_geom.")
+
     # Deleted naga_context : get the singleton
 
     if p_atmos.r0 == None:  # ?
@@ -41,7 +44,7 @@ def atmos_init(
     # Adjust layers alt using zenith angle
     p_atmos.alt = p_atmos.alt / np.cos(p_geom.zenithangle * conf.DEG2RAD)
     # Pixel size in meters
-    p_atmos.puppixsize = p_tel.diam / p_geom.pupdiam
+    p_atmos.pupixsize = p_tel.diam / p_geom.pupdiam
 
     # Off-axis wavefront sensors and targets
     # Note : p_wfss is a list of single-WFS configs
@@ -81,22 +84,31 @@ def atmos_init(
 
     type_target = b"atmos"  # FIXME
 
-    for i in range(len(p_wfss)):
-        p_wfs = p_wfss[i]
-        if p_wfs.gsalt > 0:
-            gsalt = 1. / p_wfs.gsalt
-        else:
-            gsalt = 0
+    if p_wfss is not None:
+        for i in range(len(p_wfss)):
+            p_wfs = p_wfss[i]
+            if p_wfs.gsalt > 0:
+                gsalt = 1. / p_wfs.gsalt
+            else:
+                gsalt = 0
 
-        if p_wfs.atmos_seen:
-            for j in range(p_atmos.nscreens):
-                xoff = (gsalt * p_atmos.alt[j] * p_tel.diam / 2. + \
-                        p_wfs.xpos * conf.ARCSEC2RAD * p_atmos.alt[j]) / \
-                        p_atmos.pupixsize
-                yoff = (gsalt * p_atmos.alt[j] * p_tel.diam / 2. + \
-                        p_wfs.ypos * conf.ARCSEC2RAD * p_atmos.alt[j]) / \
-                        p_atmos.pupixsize
-                xoff = xoff + (p_atmos.dim_screens[j] - p_geom.get_n()) / 2.
-                yoff = yoff + (p_atmos.dim_screens[j] - p_geom.get_n()) / 2.
-                sensors.sensors.d_wfs[i].d_gs.add_layer(
-                        type_target, p_atmos.alt[j], xoff, yoff)
+            if p_wfs.atmos_seen:
+                for j in range(p_atmos.nscreens):
+                    xoff = (gsalt * p_atmos.alt[j] * p_tel.diam / 2. + \
+                            p_wfs.xpos * conf.ARCSEC2RAD * p_atmos.alt[j]) / \
+                            p_atmos.pupixsize
+                    yoff = (gsalt * p_atmos.alt[j] * p_tel.diam / 2. + \
+                            p_wfs.ypos * conf.ARCSEC2RAD * p_atmos.alt[j]) / \
+                            p_atmos.pupixsize
+                    xoff = xoff + (
+                            p_atmos.dim_screens[j] - p_geom.get_n()) / 2.
+                    yoff = yoff + (
+                            p_atmos.dim_screens[j] - p_geom.get_n()) / 2.
+                    sensors.sensors.d_wfs[i].d_gs.add_layer(
+                            type_target, p_atmos.alt[j], xoff, yoff)
+
+    return Atmos(
+            None, p_atmos.nscreens, p_atmos.r0, L0_pix, p_atmos.pupixsize,
+            p_atmos.dim_screens, p_atmos.frac, p_atmos.alt, p_atmos.windspeed,
+            p_atmos.winddir, p_atmos.deltax, p_atmos.deltay, p_atmos.seeds,
+            rank, clean, load)

@@ -78,7 +78,7 @@ class Param_atmos:
 
         :param l: (lit of float) : L0 for each layers
         """
-        self.L0 = csu.enforce_array(
+        self.__L0 = csu.enforce_array(
                 l, size=self.nscreens, dtype=np.float32, scalar_expand=True)
 
     L0 = property(lambda x: x.__L0, set_L0)
@@ -90,7 +90,7 @@ class Param_atmos:
         :param l: (lit of float) : phase screens sizes
         """
         self.__dim_screens = csu.enforce_array(
-                l, size=self.nscreens, dtype=np.float32, scalar_expand=False)
+                l, size=self.nscreens, dtype=np.int64, scalar_expand=False)
 
     dim_screens = property(lambda x: x.__dim_screens, set_dim_screens)
 
@@ -166,7 +166,7 @@ class Param_atmos:
 
         :param l: (lit of int) : seed
         """
-        self.seeds = csu.enforce_array(
+        self.__seeds = csu.enforce_array(
                 l, size=self.nscreens, dtype=np.int64, scalar_expand=True)
 
     seeds = property(lambda x: x.__seeds, set_seeds)

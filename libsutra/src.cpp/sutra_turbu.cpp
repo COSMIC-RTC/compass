@@ -131,8 +131,7 @@ int sutra_tscreen::generate_vk(float l0, int nalias) {
 
   cuFloatComplex *data = this->d_tscreen_c->getData();
   carmaSafeCall(
-      cudaMemset(
-          data, 0,
+      cudaMemset(data, 0,
           this->screen_size * this->screen_size * sizeof(cuFloatComplex)));
 
   float k0 = (l0 == 0. ? 0.0f : this->screen_size / l0);
@@ -294,7 +293,6 @@ int sutra_atmos::init_screen(float altitude, float *h_A, float *h_B,
                              unsigned int *h_istencilx,
                              unsigned int *h_istencily, int seed) {
   d_screens[altitude]->init_screen(h_A, h_B, h_istencilx, h_istencily, seed);
-
   return EXIT_SUCCESS;
 }
 
