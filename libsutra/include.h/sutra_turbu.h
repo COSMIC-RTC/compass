@@ -47,8 +47,7 @@ public:
   sutra_tscreen(const sutra_tscreen& tscreen);
   ~sutra_tscreen();
 
-  int
-  init_screen(float *h_A, float *h_B, unsigned int *h_istencilx,
+  int init_screen(float *h_A, float *h_B, unsigned int *h_istencilx,
       unsigned int *h_istencily, int seed);
   int
   extrude(int dir);
@@ -71,18 +70,23 @@ public:
       float *deltax, float *deltay, int device);
   ~sutra_atmos();
 
-  int
-  init_screen(float alt, float *h_A, float *h_B, unsigned int *h_istencilx,
+  int init_screen(float alt, float *h_A, float *h_B, unsigned int *h_istencilx,
       unsigned int *h_istencily, int seed);
-  int
-  move_atmos();
+
+  int get_screen(const float alt, float * data_F);
+  int add_screen(float alt, long size, long stencilSize, float amplitude, float windspeed, float winddir,
+		  float deltax, float deltay, int device);
+  int del_screen(const float alt);
+  int list_alt(float* alts);
+
+  int move_atmos();
+
+
 };
 
-int
-gene_vonkarman(cuFloatComplex *d_odata, float *d_idata, float k0, int nalias,
+int gene_vonkarman(cuFloatComplex *d_odata, float *d_idata, float k0, int nalias,
     int nx, int ny, int block_size);
-int
-norm_pscreen(float *d_odata, float *d_idata, int nx, int ny, float norm_fact,
+int norm_pscreen(float *d_odata, float *d_idata, int nx, int ny, float norm_fact,
     carma_device *device);
 
 extern "C" {

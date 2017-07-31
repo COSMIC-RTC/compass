@@ -30,13 +30,13 @@ assert sizeof(double) == sizeof(np.float64_t)
 
 try:
     shesha_dir = os.environ['SHESHA_ROOT']
-except:
+except BaseException:
     raise EnvironmentError("Environment variable 'SHESHA_ROOT' must be define")
 
 sys.path.append(shesha_dir + '/src')
 sys.path.append(shesha_dir + "/lib")
 
-import iterkolmo as itK
+import shesha_util.iterkolmo as itK
 import make_pupil as mkP
 
 """
@@ -344,8 +344,6 @@ cpdef bin2d(np.ndarray data_in, int binfact):
     fx = int(np.ceil(nx / float(binfact)))
     fy = int(np.ceil(ny / float(binfact)))
 
-
-
     cdef np.ndarray data_out = np.zeros((fx, fy), dtype=data_in.dtype)
 
     cdef int i, j, i1, i2, j1, j2
@@ -365,8 +363,7 @@ cpdef bin2d(np.ndarray data_in, int binfact):
     return data_out
 
 
-
-def  indices(int dim1, int dim2=-1):
+def indices(int dim1, int dim2=-1):
     """indices(int dim1, int dim2=-1)
     Return a dimxdimx2 array. First plane is the X indices of the pixels
     in the dimxdim array. Second plane contains the Y indices.
@@ -389,16 +386,14 @@ def  indices(int dim1, int dim2=-1):
 
     """
 
-
     if (dim2 < 0):
         y = np.tile((np.arange(dim1, dtype=np.float32) + 1), (dim1, 1))
         x = np.copy(y.T)
         return y, x
-    else :
+    else:
         x = np.tile((np.arange(dim1, np.float32) + 1), (dim2, 1))
         y = np.tile((np.arange(dim2, np.float32) + 1), (dim1, 1)).T
         return y, x
-
 
 
 cpdef makegaussian(int size, float fwhm, int xc=-1, int yc=-1, int norm=0):
@@ -416,11 +411,8 @@ cpdef makegaussian(int size, float fwhm, int xc=-1, int yc=-1, int norm=0):
     cdef np.ndarray tmp
     tmp = np.exp(-(mkP.dist(size, xc, yc) / (fwhm / 1.66)) ** 2.)
     if (norm > 0):
-        tmp = tmp / (fwhm ** 2.*1.140075)
+        tmp = tmp / (fwhm ** 2. * 1.140075)
     return tmp
-
-
-
 
 
 '''

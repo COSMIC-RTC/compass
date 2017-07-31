@@ -10,7 +10,7 @@
  * |____/ \___|_|  \___|\___|_| |_| |____/ \___|_| |_|_| |_|_|\__|_|\___/|_| |_|
  */
 
-sutra_tscreen::sutra_tscreen(carma_context *context, long size, long size2,
+sutra_tscreen::sutra_tscreen(carma_context *context, long size, long stencilSize,
                              float r0, float altitude, float windspeed,
                              float winddir, float deltax, float deltay,
                              int device) {
@@ -41,19 +41,19 @@ sutra_tscreen::sutra_tscreen(carma_context *context, long size, long size2,
   this->channelDesc = cudaCreateChannelDesc(32, 0, 0, 0,
                                             cudaChannelFormatKindFloat);
 
-  long *dims_data2 = new long[3];
+  long dims_data2[3];
   dims_data2[0] = 2;
   dims_data2[1] = this->screen_size;
   dims_data2[2] = this->screen_size;
   this->d_tscreen_o = new carma_obj<float>(current_context, dims_data2);
   this->d_B = new carma_obj<float>(current_context, dims_data2);
 
-  dims_data2[2] = size2;
+  dims_data2[2] = stencilSize;
   this->d_A = new carma_obj<float>(current_context, dims_data2);
 
-  long *dims_data = new long[2];
+  long dims_data[2];
   dims_data[0] = 1;
-  dims_data[1] = size2;
+  dims_data[1] = stencilSize;
   this->d_istencilx = new carma_obj<unsigned int>(current_context, dims_data);
   this->d_istencily = new carma_obj<unsigned int>(current_context, dims_data);
   this->d_z = new carma_obj<float>(current_context, dims_data);
@@ -63,8 +63,6 @@ sutra_tscreen::sutra_tscreen(carma_context *context, long size, long size2,
   this->d_ytmp = new carma_obj<float>(current_context, dims_data);
 
   this->vk_on = false;
-  delete[] dims_data;
-  delete[] dims_data2;
 }
 
 sutra_tscreen::~sutra_tscreen() {
@@ -260,7 +258,7 @@ int sutra_tscreen::extrude(int dir) {
  */
 
 sutra_atmos::sutra_atmos(carma_context *context, int nscreens, float *r0,
-                         long *size, long *size2, float *altitude,
+                         long *size, long *stencilSize, float *altitude,
                          float *windspeed, float *winddir, float *deltax,
                          float *deltay, int device) {
   this->nscreens = nscreens;
@@ -272,7 +270,7 @@ sutra_atmos::sutra_atmos(carma_context *context, int nscreens, float *r0,
     d_screens.insert(
         pair<float, sutra_tscreen *>(
             altitude[i],
-            new sutra_tscreen(context, size[i], size2[i], r0[i], altitude[i],
+            new sutra_tscreen(context, size[i], stencilSize[i], r0[i], altitude[i],
                               windspeed[i], winddir[i], deltax[i], deltay[i],
                               device)));
   }
@@ -293,7 +291,64 @@ int sutra_atmos::init_screen(float altitude, float *h_A, float *h_B,
                              unsigned int *h_istencilx,
                              unsigned int *h_istencily, int seed) {
   d_screens[altitude]->init_screen(h_A, h_B, h_istencilx, h_istencily, seed);
+  for(int i = 0; i < 2 * d_screens[altitude]->screen_size; i++) {
+	if (d_screens[altitude]->deltax > 0) {
+	  d_screens[altitude]->extrude(1);
+	} else {
+	  d_screens[altitude]->extrude(-1);
+	}
+  }
   return EXIT_SUCCESS;
+}
+
+int sutra_atmos::get_screen(const float alt, float * data_F) {
+	if (d_screens.find(alt) == d_screens.end()) {
+		std::cout << "There is no screen at this altitude" << std::endl;
+		std::cout << "No screen erased" << std::endl;
+		return EXIT_FAILURE;
+	}
+	this->current_context->set_activeDevice(d_screens[alt]->device,1);
+	// float* data_F = (float *) malloc(d_screens[alt]->d_tscreen->d_screen->getNbElem() * sizeof(float));
+	d_screens[alt]->d_tscreen->d_screen->device2host(data_F);
+	return EXIT_SUCCESS;
+}
+
+int sutra_atmos::add_screen(float alt, long size, long stencilSize,
+		float amplitude, float windspeed, float winddir,
+		  float deltax, float deltay, int device) {
+	if (d_screens.find(alt) != d_screens.end()) {
+		std::cout << "There is already a screen at this altitude" << std::endl;
+		std::cout << "No screen created" << std::endl;
+		return EXIT_FAILURE;
+	}
+
+	sutra_tscreen* screen = new sutra_tscreen(current_context, size, stencilSize, amplitude,
+			alt, windspeed, winddir, deltax, deltay, device);
+	d_screens.insert(pair<float, sutra_tscreen*>(alt, screen));
+	nscreens++;
+	return EXIT_SUCCESS;
+}
+
+int sutra_atmos::del_screen(const float alt) {
+	if (d_screens.find(alt) == d_screens.end()) {
+		std::cout << "There is no screen at this altitude" << std::endl;
+		std::cout << "No screen erased" << std::endl;
+		return EXIT_FAILURE;
+	}
+	nscreens--;
+	delete d_screens[alt];
+	d_screens.erase(alt);
+	return EXIT_SUCCESS;
+}
+
+int sutra_atmos::list_alt(float* alts) {
+	int i = 0;
+	  for (map<float, sutra_tscreen *>::iterator it = d_screens.begin();
+	      it != d_screens.end(); ++it) {
+		  alts[i] = it->first;
+		  i++;
+	}
+	return EXIT_SUCCESS;
 }
 
 int sutra_atmos::move_atmos() {
@@ -319,181 +374,3 @@ int sutra_atmos::move_atmos() {
   }
   return EXIT_SUCCESS;
 }
-
-/*
- void checkCulaStatus(culaStatus status)
- {
- if(!status)
- return;
-
- if(status == culaArgumentError)
- printf("Invalid value for parameter %d\n", culaGetErrorInfo());
- else if(status == culaDataError)
- printf("Data error (%d)\n", culaGetErrorInfo());
- else if(status == culaBlasError)
- printf("Blas error (%d)\n", culaGetErrorInfo());
- else if(status == culaRuntimeError)
- printf("Runtime error (%d)\n", culaGetErrorInfo());
- else
- printf("%s\n", culaGetStatusString(status));
-
- culaShutdown();
- exit(EXIT_FAILURE);
- }
-
- int _initAB(long size, void *h_zz, void *h_xz, void *h_txz, void *h_xx, float *d_A, float *d_B,float *tmpout)
- {
-
- culaStatus status;
- status = culaInitialize();
- checkCulaStatus(status);
-
- carma_matmult *mmLar1;
- carma_matmult *mmLar2;
- carma_matmult *mmMed1;
- carma_matmult *mmMed2;
- carma_matmult *mmSma;
-
- long size_data[6];
- size_data[0] = size_data[1] = size_data[2] = 2*size;
- size_data[3] = size_data[4] = size_data[5] = 2*size;
- mmLar1 = new carma_matmult(size_data,'F');
- mmLar2 = new carma_matmult(size_data,'F');
-
- size_data[0] = size; size_data[4] = size;
- mmMed1 = new carma_matmult(size_data,'F');
-
- size_data[3] = size_data[5] = size;
- mmMed2 = new carma_matmult(size_data,'F');
-
- size_data[1] = size_data[2] = size;
- mmSma = new carma_matmult(size_data,'F');
-
- char jobu = 'A';
- char jobvt = 'A';
-
- float* S = NULL;
- float* UU = NULL;
-
- cudaMalloc((void**)&S, 2*size*sizeof(float));
- cudaMalloc((void**)&UU, 2*size*2*size*sizeof(float));
-
- checkCulaStatus(status);
-
- //s = s1 = SVdec(zz,uuu,vt);
- mmLar1->host2device(0,h_zz);
-
- status = culaDeviceSgesvd(jobu,jobvt,2*size,2*size,(float *)mmLar1->data[0],2*size, S,
- UU, 2*size,(float *)mmLar1->data[0],2*size);
-
- checkCulaStatus(status);
- cudaFree(UU);
-
- //in this case h_zz is a symmetric matrix. so u = v.
- //apparently in this case the lapack lib returns 2 different versions of u and v.
- //indeed in the svd problem, the solution is not unique. here we can use both,
- // we chose vt which seems to give the best results.
- // however : the single precision is not enough to get good estimation of bbt
- // (see below). so this code is not working. need to buy the premium version of
- // cula to get double precision on the svd
-
-
- carmaSafeCall(cudaMemcpy(mmLar2->data[1], mmLar1->data[0], 2*size*2*size*sizeof(float),
- cudaMemcpyDeviceToDevice));
- // s1(0)=1;s1 = 1./s1;s1(0)=0; // the null eignevalue is not inverted
- carmaSafeCall(cudaMemset((float *)mmLar1->data[1],0,2*size*2*size * sizeof(float)));
-
- getinvCU((float *)mmLar1->data[1],S,2*size);
-
- cudaFree(S);
-
- //zz_1 =  (uuu*s1(-,))(,+) * vt(+,);   // inversion, with the null eigenvalue left to 0
- mmLar1->compute('t','n',1.0f,0.0f,mmLar2->data[0]);
-
- mmLar2->compute('n','n',1.0f,0.0f,mmMed1->data[1]);
-
- //A = xz(,+) * zz_1(+,);
- mmMed1->host2device(0,h_xz);
-
- mmMed1->compute('n','n',1.0f,0.0f,mmMed2->data[0]);
-
-
- carmaSafeCall(cudaMemcpy(d_A, mmMed2->data[0], size*2*size*sizeof(float),
- cudaMemcpyDeviceToDevice));
-
- //bbt = xx - A(,+)*xz(,+);
- mmMed2->host2device(2,h_xx);
- mmMed2->host2device(1,h_txz);
-
- mmMed2->compute('n','n',-1.0f,1.0f,mmMed2->data[2]);
-
- carmaSafeCall(cudaMemcpy(tmpout, mmMed2->data[2], size*size*sizeof(float),
- cudaMemcpyDeviceToHost));
- float* VT = NULL;
- cudaMalloc((void**)&S, size*sizeof(float));
- cudaMalloc((void**)&VT, size*size*sizeof(float));
-
- //l = SVdec(bbt,uu);
- status = culaDeviceSgesvd(jobu, jobvt, size, size,(float *)mmMed2->data[2] , size, S,
- (float *)mmSma->data[0], size, VT, size);
-
- checkCulaStatus(status);
-
-
- //fprintf(stderr,"%f %f %f \n",S[0],S[1],S[2]);
-
- //B = uu*sqrt(l)(-,);
- getsqrtCU((float *)mmSma->data[1],S,size);
-
- mmSma->compute('n','n',1.0f,0.0f,mmSma->data[2]);
-
- carmaSafeCall(cudaMemcpy(d_B, mmSma->data[2], size*size*sizeof(float),
- cudaMemcpyDeviceToDevice));
-
- cudaFree(VT);
- cudaFree(S);
-
- cublasStatus bstatus;
- int i;
- for( i=0; i<3; i++) {
- bstatus = cublasFree(mmLar1->data[i]);
- if (bstatus != CUBLAS_STATUS_SUCCESS) {
- fprintf (stderr, "!!!! Error mmLar1 matrix %d\n", i);
- }
- }
- for( i=0; i<3; i++) {
- bstatus = cublasFree(mmLar2->data[i]);
- if (bstatus != CUBLAS_STATUS_SUCCESS) {
- fprintf (stderr, "!!!! Error mmLar2 matrix %d\n", i);
- }
- }
- for( i=0; i<3; i++) {
- bstatus = cublasFree(mmMed1->data[i]);
- if (bstatus != CUBLAS_STATUS_SUCCESS) {
- fprintf (stderr, "!!!! Error mmMed1 matrix %d\n", i);
- }
- }
- for( i=0; i<3; i++) {
- bstatus = cublasFree(mmMed2->data[i]);
- if (bstatus != CUBLAS_STATUS_SUCCESS) {
- fprintf (stderr, "!!!! Error mmMed2 matrix %d\n", i);
- }
- }
- for( i=0; i<3; i++) {
- bstatus = cublasFree(mmSma->data[i]);
- if (bstatus != CUBLAS_STATUS_SUCCESS) {
- fprintf (stderr, "!!!! Error mmSma matrix %d\n", i);
- }
- }
- //delete mmLar1;
- //delete mmLar2;
- //delete mmMed1;
- //delete mmMed2;
- //delete mmSma;
-
- culaShutdown();
-
- return EXIT_SUCCESS;
- }
-
- */

@@ -28,10 +28,7 @@ def atmos_init(
         p_loop: conf.Param_loop,
         p_wfss=None,
         sensors=None,
-        p_target=None,
-        rank=0,
-        clean=1,
-        load={}):
+        p_target=None):
 
     if not p_geom.isInit:
         raise RuntimeError("Cannot init atmosphere with uninitialized p_geom.")
@@ -108,7 +105,6 @@ def atmos_init(
                             type_target, p_atmos.alt[j], xoff, yoff)
 
     return Atmos(
-            None, p_atmos.nscreens, p_atmos.r0, L0_pix, p_atmos.pupixsize,
+            p_atmos.nscreens, p_atmos.r0, L0_pix, p_atmos.pupixsize,
             p_atmos.dim_screens, p_atmos.frac, p_atmos.alt, p_atmos.windspeed,
-            p_atmos.winddir, p_atmos.deltax, p_atmos.deltay, p_atmos.seeds,
-            rank, clean, load)
+            p_atmos.winddir, p_atmos.deltax, p_atmos.deltay, p_atmos.seeds, 0)

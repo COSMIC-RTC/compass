@@ -144,8 +144,13 @@ cdef extern from "sutra_turbu.h":
                     long * size2, float * altitude, float *
                     windspeed, float * winddir,
                     float * deltax, float * deltay, int device)
-        init_screen(float alt, float * h_A, float * h_B, unsigned int * h_istencilx,
+        int init_screen(float alt, float * h_A, float * h_B, unsigned int * h_istencilx,
                     unsigned int * h_istencily, int seed)
+        int get_screen(const float alt, float * data_F)
+        int add_screen(float alt, long size, long stencilSize, float amplitude, float windspeed, float winddir,
+          float deltax, float deltay, int device)
+        int del_screen(const float alt)
+        int list_alt(float* alts)
         int move_atmos()
 
 

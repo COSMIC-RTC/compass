@@ -1,69 +1,101 @@
 import numpy as np
 cimport numpy as np
 
-import h5py
-
-import hdf5_utils as h5u
-import pandas
-
-import os
-import iterkolmo as itK
+import shesha_util.iterkolmo as itK
 
 from cython.operator cimport dereference as deref, preincrement as inc
-from subprocess import check_output
 
-import shesha
 
 #################################################
 # P-Class atmos
 #################################################
 cdef class Atmos:
-    def __cinit__(self):
-        self.context = None
-
-    def __dealloc__(self):
-        if(self.s_a != NULL):
-            del self.s_a
-
-    cdef realinit(self, naga_context ctxt, int nscreens,
-                  np.ndarray[ndim=1, dtype=np.float32_t] r0,
-                  np.ndarray[ndim=1, dtype=np.int64_t] size,
-                  np.ndarray[ndim=1, dtype=np.float32_t] altitude,
+    def __cinit__(self, int nscreens,
+                  float r0,
+                  np.ndarray[dtype=np.float32_t] L0,
+                  float pupixsize,
+                  np.ndarray[ndim=1, dtype=np.int64_t] dim_screens,
+                  np.ndarray[ndim=1, dtype=np.float32_t] frac,
+                  np.ndarray[ndim=1, dtype=np.float32_t] alt,
                   np.ndarray[ndim=1, dtype=np.float32_t] windspeed,
                   np.ndarray[ndim=1, dtype=np.float32_t] winddir,
                   np.ndarray[ndim=1, dtype=np.float32_t] deltax,
                   np.ndarray[ndim=1, dtype=np.float32_t] deltay,
-                  int device):
-        """
-            Create a sutra_atmos object
+                  np.ndarray[ndim=1, dtype=np.int64_t] seeds,
+                  int verbose):
+        """atmos_create(naga_context c, int nscreens,
+                        float r0,
+                        np.ndarray[dtype=np.float32_t] L0,
+                        float pupixsize,
+                        np.ndarray[ndim=1,dtype=np.int64_t] dim_screens,
+                        np.ndarray[ndim=1,dtype=np.float32_t] frac,
+                        np.ndarray[ndim=1,dtype=np.float32_t] alt,
+                        np.ndarray[ndim=1,dtype=np.float32_t] windspeed,
+                        np.ndarray[ndim=1,dtype=np.float32_t] winddir,
+                        np.ndarray[ndim=1,dtype=np.float32_t] deltax,
+                        np.ndarray[ndim=1,dtype=np.float32_t] deltay,
+                        np.ndarray[ndim=1,dtype=np.int64_t] seeds,
+                        int verbose, int clean, dict load)
+
+        Create and initialise an atmos object.
 
         :parameters:
-            c: (naga_context): context
-            nscreens: (int): number of turbulent layers
-            r0: (np.ndarray[ndim=1,dtype=np.float32_t]): global r0
-            size: (np.ndarray[ndim=1,dtype=np.int64_t]): screen size of each layer
-            altitude: (np.ndarray[ndim=1,dtype=np.float32_t]): altitude of each layer
-            windspeed: (np.ndarray[ndim=1,dtype=np.float32_t]): wind speed of each layer
-            winddir: (np.ndarray[ndim=1,dtype=np.float32_t]): wind direction of each layer
-            deltax: (np.ndarray[ndim=1,dtype=np.float32_t]): x translation speed
-            deltay: (np.ndarray[ndim=1,dtype=np.float32_t]): y translation speed
-            device: (int): device index
+            c: (naga_context) : context
+            nscreens: (float) : number of turbulent layers
+            r0: (float) : global r0
+            L0: (np.ndarray[ndim=1, dtype=np.float32_t]) : L0
+            pupixsize: (float) : pixel size [m]
+            dim_screens: (np.ndarray[ndim=1,dtype=np.int64_t]) : screens dimensions
+            frac: (np.ndarray[ndim=1,dtype=np.float32_t]) : fraction of r0
+            alt: (np.ndarray[ndim=1,dtype=np.float32_t]) : altitudes [m]
+            windspeed: (np.ndarray[ndim=1,dtype=np.float32_t]) : wind speed [m/s]
+            winddir: (np.ndarray[ndim=1,dtype=np.float32_t]) : wind direction [deg]
+            deltax: (np.ndarray[ndim=1,dtype=np.float32_t]) : extrude deltax pixels in the x-direction at each iteration
+            deltay: (np.ndarray[ndim=1,dtype=np.float32_t]) : extrude deltay pixels in the y-direction at each iteration
+            seeds: (np.ndarray[ndim=1,dtype=np.float32_t]) : seed for each screen
+            verbose: (int) : 0 or 1
         """
 
-        cdef np.ndarray[ndim= 1, dtype = np.int64_t]size2
-        size2 = compute_size2(size)
+        self.context = naga_context()
 
-        self.s_a = new sutra_atmos(ctxt.c, nscreens,
-                                   < np.float32_t * > r0.data,
-                                   < long * > size.data,
-                                   < long * > size2.data,
-                                   < np.float32_t * > altitude.data,
+        # get fraction of r0 for corresponding layer
+        cdef np.ndarray[ndim= 1, dtype = np.float32_t] r0_layers
+        r0_layers = r0 / (frac ** (3. / 5.) * pupixsize)
+        # create atmos object on gpu
+
+        cdef np.ndarray[ndim= 1, dtype = np.int64_t] stencil_size
+        stencil_size = itK.stencil_size_array(dim_screens)
+
+        self.s_a = new sutra_atmos(self.context.c, nscreens,
+                                   < np.float32_t * > r0_layers.data,
+                                   < long * > dim_screens.data,
+                                   < long * > stencil_size.data,
+                                   < np.float32_t * > alt.data,
                                    < np.float32_t * > windspeed.data,
                                    < np.float32_t * > winddir.data,
                                    < np.float32_t * > deltax.data,
                                    < np.float32_t * > deltay.data,
-                                   device)
-        self.context = ctxt
+                                   self.context.get_activeDevice())
+
+        cdef int i
+        cdef np.ndarray[ndim = 2, dtype = np.float32_t] A, B, A_F, B_F
+        cdef np.ndarray[ndim = 1, dtype = np.uint32_t] istx, isty
+
+        for i in range(nscreens):
+            A, B, istx, isty = itK.AB(
+                dim_screens[i], L0[i], deltax[i], deltay[i], verbose)
+
+            A_F = A.T.copy()
+            B_F = B.T.copy()
+
+            self.s_a.init_screen(< float > alt[i], < float * > (A_F.data),
+                                  < float * > (B_F.data),
+                                  < unsigned int * > istx.data,
+                                  < unsigned int * > isty.data, seeds[i])
+
+    def __dealloc__(self):
+        if(self.s_a != NULL):
+            del self.s_a
 
     def get_screen(self, float alt):
         """
@@ -71,35 +103,15 @@ cdef class Atmos:
 
         :param alt: (float) :altitude of the screen to get
         """
+        if alt not in self.list_alt():
+            raise ValueError("No screen at this altitude")
+
         cdef carma_obj[float] * screen = self.s_a.d_screens[alt].d_tscreen.d_screen
-        self.context.set_activeDevice(screen.getDevice(), 1)
         cdef const long * dims
         dims = screen.getDims()
         cdef np.ndarray data_F = np.empty((dims[2], dims[1]), dtype=np.float32)
-        cdef np.ndarray data = np.empty((dims[1], dims[2]), dtype=np.float32)
-        screen.device2host(< float * > data_F.data)
-        data = np.reshape(data_F.flatten("F"), (dims[1], dims[2]))
-        return data
-
-    def disp(self, float alt):
-        """
-            Display the screen phase at a given altitude
-
-        :param alt: (float) : altitude of the screen to display
-        """
-        cdef carma_obj[float] * c_phase = self.s_a.d_screens[alt].d_tscreen.d_screen
-        cdef const long * dims = c_phase.getDims()
-        cdef np.ndarray[ndim= 2, dtype = np.float32_t] data = np.zeros((dims[2], dims[1]), dtype=np.float32)
-        cdef np.ndarray[ndim= 2, dtype = np.float32_t] phase = np.ndarray((dims[1], dims[2]),
-                                                                           dtype=np.float32)
-
-        c_phase.device2host(< float * > data.data)
-        phase = np.reshape(data.flatten("F"), (dims[1], dims[2]))
-
-        pl.ion()
-        pl.clf()
-        pl.imshow(phase, cmap="Blues")
-        pl.show()
+        status = self.s_a.get_screen(alt, < float * > data_F.data)
+        return data_F.T.copy()
 
     def add_screen(self, long size, float amplitude, float altitude,
                    float windspeed, float winddir, float deltax, float deltay, int device):
@@ -107,7 +119,7 @@ cdef class Atmos:
             Add a screen to the atmos object.
 
         :parameters:
-            size: (float) : dimension of the screen (size x size)
+            size: (long) : dimension of the screen (size x size)
             amplitude: (float) : frac
             altitude: (float) : altitude of the screen in meters
             windspeed: (float) : windspeed of the screen [m/s]
@@ -116,19 +128,27 @@ cdef class Atmos:
             deltay: (float) : extrude deltay pixels in the y-direction at each iteration
             device: (int) : device number
         """
-        cdef long size2 = compute_size2(np.array([size], dtype=np.int64))[0]
+        cdef long stencil_size = itK.stencil_size_array(
+            np.array([size], dtype=np.int64))[0]
 
-        if(self.s_a.d_screens.find(altitude) != self.s_a.d_screens.end()):
-            print("There is already a screen at this altitude")
-            print("No screen created")
-            return
+        self.s_a.add_screen(altitude, size, stencil_size, amplitude, windspeed,
+                            winddir, deltax, deltay, device)
 
-        cdef sutra_tscreen * screen = new sutra_tscreen(self.s_a.current_context, size, size2, amplitude, altitude, windspeed, winddir, deltax, deltay, device)
+    def init_screen(self, float alt, long dim_screens, float r0, float L0,
+                    float deltax, float deltay, int seed):
+        cdef np.ndarray[ndim = 2, dtype = np.float32_t] A, B, A_F, B_F
+        cdef np.ndarray[ndim = 1, dtype = np.uint32_t] istx, isty
 
-        cdef pair[float, sutra_tscreen *] p
-        p.first, p.second = altitude, screen
-        self.s_a.d_screens.insert(p)
-        self.s_a.nscreens += 1
+        A, B, istx, isty = itK.AB(
+            dim_screens, L0, deltax, deltay, 0)
+
+        A_F = A.T.copy()
+        B_F = B.T.copy()
+
+        self.s_a.init_screen(< float > alt, < float * > (A_F.data),
+                              < float * > (B_F.data),
+                              < unsigned int * > istx.data,
+                              < unsigned int * > isty.data, seed)
 
     def del_screen(self, float alt):
         """
@@ -136,26 +156,14 @@ cdef class Atmos:
 
         :param alt: (float) : altitude of the screen to delete
         """
-        if(self.s_a.d_screens.find(alt) == self.s_a.d_screens.end()):
-            print("No screen at this altitude")
-            print("No screen deleted")
-            return
-        self.s_a.nscreens -= 1
-        self.s_a.d_screens.erase(alt)
+        self.s_a.del_screen(alt)
 
     def list_alt(self):
         """Display the list of the screens altitude"""
 
-        cdef map[float, sutra_tscreen *].iterator it
-        cdef int i = 0
-        cdef np.ndarray alt = np.zeros(self.s_a.nscreens, dtype=np.float32)
-        it = self.s_a.d_screens.begin()
-
-        while it != self.s_a.d_screens.end():
-            alt[i] = deref(it).first
-            inc(it)
-            i += 1
-        print(alt)
+        cdef np.ndarray alts = np.zeros(self.s_a.nscreens, dtype=np.float32)
+        self.s_a.list_alt(< float * > alts.data)
+        return alts
 
     def move_atmos(self):
         """

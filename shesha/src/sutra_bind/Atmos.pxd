@@ -24,12 +24,3 @@ cdef class Atmos:
     """ sutra_atmos object"""
     cdef naga_context context
     """ context """
-    cdef realinit(self, naga_context ctxt, int nscreens,
-                np.ndarray[ndim=1, dtype=np.float32_t] r0,
-                np.ndarray[ndim=1, dtype=np.int64_t] size,
-                np.ndarray[ndim=1, dtype=np.float32_t] altitude,
-                np.ndarray[ndim=1, dtype=np.float32_t] windspeed,
-                np.ndarray[ndim=1, dtype=np.float32_t] winddir,
-                np.ndarray[ndim=1, dtype=np.float32_t] deltax,
-                np.ndarray[ndim=1, dtype=np.float32_t] deltay,
-                int device)
