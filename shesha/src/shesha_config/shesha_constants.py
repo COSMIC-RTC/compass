@@ -22,8 +22,12 @@ def check_enum(cls, name):
     '''
         Create a safe-type enum instance from bytes contents
     '''
+    if isinstance(name, str):
+        name = bytes(name.encode('UTF-8'))
 
-    if not bytes(name.encode('UTF-8')) in cls.__dir__.values():
+    if not isinstance(name, bytes) or \
+        not name in vars(cls).values():
+
         raise ValueError(
                 "Invalid enumeration value for enum %s, value %s" %
                 (cls, name))
