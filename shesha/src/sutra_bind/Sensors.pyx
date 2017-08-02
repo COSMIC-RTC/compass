@@ -4,28 +4,15 @@ import numpy as np
 cimport numpy as np
 # np.import_array()
 
-import make_pupil as mkP
-
+import shesha_util.make_pupil as mkP
+import shesha_config.shesha_constants as scons
 import os
-
-IF USE_MPI == 1:
-    # from mpi4py import MPI
-    from mpi4py cimport MPI
-    # C-level cdef, typed, Python objects
-    # from mpi4py cimport mpi_c as mpi
-    from mpi4py cimport libmpi as mpi
-
-IF USE_MPI == 2:
-    cimport mpi4py.MPI as MPI
-    cimport mpi4py.libmpi as mpi
-
 
 cdef class Sensors:
     """
         Constructor:
         Sensors(nsensors, type_data, npup, nxsub, nvalid, nphase,
-                pdiam, npix, nrebin, nfft, nftota, nphot, lgs, odevice,
-                comm_size, rank)
+                pdiam, npix, nrebin, nfft, nftota, nphot, lgs, odevice)
 
     :parameters:
         nsensors: (int) :
@@ -43,11 +30,9 @@ cdef class Sensors:
         nphot4imat: (np.ndarray[ndim=1,dtype=np.float32_t]) :
         lgs: (np.ndarray[ndim=1,dtype=np.int32_t]) :
         odevice: (int) :
-        comm_size: (int) : MPI communicator size
-        rank: (int) : process rank
     """
 
-    def __cinit__(self, int nsensors, Telescope tel, type_data,
+    def __cinit__(self, naga_context context, int nsensors, Telescope tel, type_data,
                   np.ndarray[ndim=1, dtype=np.int64_t] npup,
                   np.ndarray[ndim=1, dtype=np.int64_t] nxsub,
                   np.ndarray[ndim=1, dtype=np.int64_t] nvalid,
@@ -61,44 +46,29 @@ cdef class Sensors:
                   np.ndarray[ndim=1, dtype=np.float32_t] nphot4imat=None,
                   np.ndarray[ndim=1, dtype=np.int32_t] lgs=None,
                   int odevice=-1,
-                  int comm_size=1,
-                  int rank=0,
                   bool error_budget=False
                   ):
-
+        self.context = context
         cdef char ** type_wfs = < char ** > malloc(len(type_data) * sizeof(char *))
         cdef int i
         for i in range(nsensors):
             type_wfs[i] = type_data[i]
-        cdef carma_context * context = &carma_context.instance()
         if odevice < 0:
-            odevice = context.get_activeDevice()
-        if(type_data == b"geo"):
-            self.sensors = new sutra_sensors(context, tel.telescope, nsensors,
-                                             < long * > nxsub.data,
-                                             < long * > nvalid.data,
-                                             < long * > nphase.data,
-                                             npup[0],
-                                             < float * > pdiam.data,
-                                             odevice)
-        else:
-            self.sensors = new sutra_sensors(context, tel.telescope, < char ** > type_wfs, nsensors,
-                                             < long * > nxsub.data,
-                                             < long * > nvalid.data,
-                                             < long * > npix.data,
-                                             < long * > nphase.data,
-                                             < long * > nrebin.data,
-                                             < long * > nfft.data,
-                                             < long * > ntota.data,
-                                             < long * > npup.data,
-                                             < float * > pdiam.data,
-                                             < float * > nphot.data,
-                                             < float * > nphot4imat.data,
-                                             < int * > lgs.data,
-                                             odevice, error_budget)
-
-        IF USE_MPI:
-            self.sensors.define_mpi_rank(rank, comm_size)
+            odevice = self.context.get_activeDevice()
+        self.sensors = new sutra_sensors(self.context.c, tel.telescope, < char ** > type_wfs, nsensors,
+                                         < long * > nxsub.data,
+                                         < long * > nvalid.data,
+                                         < long * > npix.data,
+                                         < long * > nphase.data,
+                                         < long * > nrebin.data,
+                                         < long * > nfft.data,
+                                         < long * > ntota.data,
+                                         < long * > npup.data,
+                                         < float * > pdiam.data,
+                                         < float * > nphot.data,
+                                         < float * > nphot4imat.data,
+                                         < int * > lgs.data,
+                                         odevice, error_budget)
 
         self.sensors.allocate_buffers()
         self.sensors.device = odevice
@@ -107,7 +77,7 @@ cdef class Sensors:
     def __dealloc__(self):
         del self.sensors
 
-    cpdef sensors_initgs(self, np.ndarray[ndim=1, dtype=np.float32_t] xpos,
+    def sensors_initgs(self, np.ndarray[ndim=1, dtype=np.float32_t] xpos,
                          np.ndarray[ndim=1, dtype=np.float32_t] ypos,
                          np.ndarray[ndim=1, dtype=np.float32_t] Lambda,
                          np.ndarray[ndim=1, dtype=np.float32_t] mag,
@@ -158,8 +128,42 @@ cdef class Sensors:
                                          < float * > noise.data, < long * > seed.data,
                                          < float * > G.data, < float * > thetaML.data,
                                          < float * > dx.data, < float * > dy.data)
+    def init_lgs(self, int n, int prof1dSize,
+                        float hG, float h0, float dh,
+                        float qpixsize,
+                        np.ndarray[ndim=1, dtype=np.float32_t] dOffAxis,
+                        np.ndarray[ndim=1, dtype=np.float32_t] prof1d,
+                        np.ndarray[ndim=1, dtype=np.float32_t] profcum,
+                        np.ndarray[ndim=1, dtype=np.float32_t] beam,
+                        np.ndarray[ndim=1, dtype=np.complex64_t] ftbeam,
+                        np.ndarray[ndim=1, dtype=np.float32_t] azimuth):
 
-    cpdef sensors_initarr(self, int n, Param_wfs wfs):
+        self.context.set_activeDevice(self.sensors.device, 1)
+        cdef sutra_lgs * lgs = self.sensors.d_wfs[n].d_gs.d_lgs
+
+        lgs.lgs_init(prof1dSize, hG, h0, dh, qpixsize,
+                     < float * > dOffAxis.data, < float * > prof1d.data,
+                     < float * > profcum.data, < float * > beam.data,
+                     < cuFloatComplex * > ftbeam.data, < float * > azimuth.data)
+
+        lgs.lgs_update(self.context.c.get_device(self.sensors.device))
+        lgs.lgs_makespot(self.context.c.get_device(self.sensors.device), 0)
+
+    def sensors_initarr(self, int n,
+                            np.ndarray[ndim=2, dtype=np.int32_t] phasemap,
+                            np.ndarray[ndim=2, dtype=np.int32_t] hrmap,
+                            np.ndarray[ndim=2, dtype=np.float32_t] halfxy,
+                            np.ndarray[ndim=1, dtype=np.float32_t] fluxPerSub,
+                            np.ndarray[ndim=1, dtype=np.int32_t] validx,
+                            np.ndarray[ndim=1, dtype=np.int32_t] validy,
+                            np.ndarray[ndim=1, dtype=np.int32_t] istart = None,
+                            np.ndarray[ndim=1, dtype=np.int32_t] jstart = None,
+                            np.ndarray[ndim=2, dtype=np.int32_t] binmap = None,
+                            np.ndarray[ndim=2, dtype=np.complex64_t] ftkernel = None,
+                            np.ndarray[ndim=1, dtype=np.float32_t] cx = None,
+                            np.ndarray[ndim=1, dtype=np.float32_t] cy = None,
+                            np.ndarray[ndim=2, dtype=np.float32_t] sincar = None,
+                            np.ndarray[ndim=2, dtype=np.float32_t] submask = None):
         """
             Call the function wfs_initarrays from a sutra_wfs of the Sensors
 
@@ -170,118 +174,50 @@ cdef class Sensors:
 
         cdef np.ndarray tmp_istart, tmp_jstart
 
-        cdef sutra_wfs_geom * wfs_geom = NULL
         cdef sutra_wfs_sh * wfs_sh = NULL
-        cdef sutra_wfs_pyr_roof * wfs_roof = NULL
-        cdef sutra_wfs_pyr_pyr4 * wfs_pyr = NULL
         cdef sutra_wfs_pyr_pyrhr * wfs_pyrhr = NULL
 
-        cdef np.ndarray[dtype= np.int32_t] phasemap_F = wfs._phasemap.flatten("F")
-        cdef np.ndarray[dtype= np.int32_t] hrmap_F = wfs._hrmap.flatten("F")
-        cdef np.ndarray[dtype= np.int32_t] binmap_F
-        cdef int * binmap = NULL
-        if(self.sensors.d_wfs[n].type == b"sh"):
-            binmap_F = wfs._binmap.flatten("F")
-            binmap = < int * > binmap_F.data
+        cdef np.ndarray[ndim=2,dtype= np.int32_t] phasemap_F = phasemap.T.copy()
+        cdef np.ndarray[ndim=2,dtype= np.float32_t] halfxy_F = halfxy.T.copy()
+        cdef np.ndarray[ndim=2,dtype= np.int32_t] binmap_F
+        cdef np.ndarray[ndim=2,dtype= np.int32_t] hrmap_F
+        cdef np.ndarray[ndim=2,dtype= np.complex64_t] ftkernel_F
+        cdef np.ndarray[ndim=2,dtype= np.float32_t] sincar_F
+        cdef np.ndarray[ndim=2,dtype= np.float32_t] submask_F
 
-        cdef int * phasemap = < int * > phasemap_F.data
-        cdef int * hrmap = < int * > hrmap_F.data
-        cdef int * validx = < int * > wfs._validsubsx.data
-        cdef int * validy = < int * > wfs._validsubsy.data
-        tmp_istart = np.copy(wfs._istart + 1)
-        cdef int * istart = < int * > tmp_istart.data
-        tmp_jstart = np.copy(wfs._jstart + 1)
-        cdef int * jstart = < int * > tmp_jstart.data
-        cdef np.ndarray[dtype= np.float32_t] cx_F
-        cdef np.ndarray[dtype= np.float32_t] cy_F
-        cdef float * cx = NULL
-        cdef float * cy = NULL
-
-        if((self.sensors.d_wfs[n].type == b"pyrhr") or (self.sensors.d_wfs[n].type == b"pyr") or (self.sensors.d_wfs[n].type == b"roof")):
-            cx_F = wfs._pyr_cx.astype(np.float32)
-            cy_F = wfs._pyr_cy.astype(np.float32)
-            cx = < float * > cx_F.data
-            cy = < float * > cy_F.data
-
-        # [dtype=np.float32_t] halfxy_F=wfs._halfxy.flatten("F")
-        cdef np.ndarray halfxy_F
-        cdef float * halfxy  # =<float*>halfxy_F.data
-        # if(self.sensors.d_wfs[n].type == b"sh"):
-        halfxy_F = wfs._halfxy.flatten("F")
-        halfxy = < float * > halfxy_F.data
-
-        cdef np.ndarray[dtype= np.float32_t] submask_F
-        submask_F = wfs._submask.flatten("F").astype(np.float32)
-        cdef np.ndarray[dtype= np.float32_t] sincar_F = wfs._sincar.flatten("F")
-
-        cdef float * submask = < float * > submask_F.data
-        cdef float * sincar = < float * > sincar_F.data
-
-        cdef np.ndarray[dtype= np.complex64_t]ftkernel_F
-        cdef float * ftkernel = NULL
-        if(self.sensors.d_wfs[n].type == b"sh"):
-            ftkernel_F = wfs._ftkernel.flatten("F")
-            ftkernel = < float * > ftkernel_F.data
-
-        cdef float * fluxPerSub = NULL
-        cdef np.ndarray tmp
-        cdef np.ndarray tmp_offset
-        cdef cuFloatComplex * offset = NULL
-
-        cdef np.ndarray tmp_halfxy
-        cdef cuFloatComplex * pyr_halfxy = NULL
-
-        # swap validx and validy due to transposition from yorick to python
-        if(self.sensors.d_wfs[n].type == b"geo"):
-            tmp = wfs._fluxPerSub.T[np.where(wfs._isvalid > 0)].copy()
-            fluxPerSub = < float * > tmp.data
-            wfs_geom = dynamic_cast_wfs_geom_ptr(self.sensors.d_wfs[n])
-            wfs_geom.wfs_initarrays(phasemap, halfxy, fluxPerSub,
-                                    validx, validy)
-
-        elif(self.sensors.d_wfs[n].type == b"pyr"):
-            tmp_offset = wfs._pyr_offsets.flatten("F").copy()
-            offset = <cuFloatComplex * >tmp_offset.data
-            wfs_pyr = dynamic_cast_wfs_pyr_pyr4_ptr(self.sensors.d_wfs[n])
-            wfs_pyr.wfs_initarrays(< cuFloatComplex*>halfxy, offset,
-                                    submask, cx, cy,
-                                    sincar, phasemap, validx, validy)
-
-        elif(self.sensors.d_wfs[n].type == b"pyrhr"):
-            tmp = wfs._fluxPerSub.T[np.where(wfs._isvalid > 0)].copy()
-            fluxPerSub = < float * > tmp.data
-            tmp_halfxy = np.exp(
-                1j * wfs._halfxy).astype(np.complex64).flatten("F").copy()
-            pyr_halfxy = < cuFloatComplex * > tmp_halfxy.data
+        if(self.sensors.d_wfs[n].type == b"pyrhr"):
+            sincar_F = sincar.T.copy()
+            submask_F = submask.T.copy()
             wfs_pyrhr = dynamic_cast_wfs_pyr_pyrhr_ptr(self.sensors.d_wfs[n])
             wfs_pyrhr.wfs_initarrays(
-                pyr_halfxy,
-                cx,
-                cy,
-                sincar,
-                submask,
-                validy,
-                validx,
-                phasemap,
-                fluxPerSub)
-
-        elif(self.sensors.d_wfs[n].type == b"roof"):
-            tmp_offset = wfs.__pyr_offsets.flatten("F").copy()
-            offset = < cuFloatComplex * > tmp_offset.data
-            wfs_roof = dynamic_cast_wfs_pyr_roof_ptr(self.sensors.d_wfs[n])
-            wfs_roof.wfs_initarrays(< cuFloatComplex * > halfxy, offset,
-                                     submask, cx, cy,
-                                     sincar, phasemap, validx, validy)
+                < cuFloatComplex *> halfxy_F.data,
+                < float * > cx.data,
+                < float * > cy.data,
+                < float * > sincar_F.data,
+                < float * > submask_F.data,
+                < int * > validy.data,
+                < int * > validx.data,
+                < int * > phasemap_F.data,
+                < float * > fluxPerSub.data)
 
         elif(self.sensors.d_wfs[n].type == b"sh"):
-            tmp = wfs._fluxPerSub.T[np.where(wfs._isvalid > 0)].copy()
-            fluxPerSub = < float * > tmp.data
+            binmap_F = binmap.T.copy()
+            hrmap_F = hrmap.T.copy()
+            ftkernel_F = ftkernel.T.copy()
             wfs_sh = dynamic_cast_wfs_sh_ptr(self.sensors.d_wfs[n])
-            wfs_sh.wfs_initarrays(phasemap, hrmap, binmap, halfxy,
-                                  fluxPerSub, validx, validy,
-                                  istart, jstart, < cuFloatComplex * > ftkernel)
+            wfs_sh.wfs_initarrays(
+                < int * > phasemap_F.data,
+                < int * > hrmap_F.data,
+                < int * > binmap_F.data,
+                < float * > halfxy_F.data,
+                < float * > fluxPerSub.data,
+                < int * > validx.data,
+                < int * > validy.data,
+                < int * > istart.data,
+                < int * > jstart.data,
+                < cuFloatComplex * > ftkernel_F.data)
 
-    cpdef sensors_addlayer(self, int i, bytes type_dm, float alt,
+    def sensors_addlayer(self, int i, bytes type_dm, float alt,
                            float xoff, float yoff):
         """
             Call function add_layer from the sutra_source of a sutra_wfs of the Sensors
@@ -294,8 +230,7 @@ cdef class Sensors:
             yoff: (float) :
         """
 
-        cdef carma_context * context = &carma_context.instance()
-        context.set_activeDevice(self.sensors.device, 1)
+        self.context.set_activeDevice(self.sensors.device, 1)
         self.sensors.d_wfs[i].d_gs.add_layer(< char * > type_dm, alt, xoff, yoff)
 
     def sensors_compimg(self, int n, bool noise=True):
@@ -304,9 +239,8 @@ cdef class Sensors:
 
         :param n: (in) : index of the wfs
         """
-        cdef carma_context * context = &carma_context.instance()
         cdef float tmp_noise
-        context.set_activeDeviceForCpy(self.sensors.device, 1)
+        self.context.set_activeDeviceForCpy(self.sensors.device, 1)
         if(noise):
             self.sensors.d_wfs[n].comp_image()
         else:
@@ -373,7 +307,7 @@ cdef class Sensors:
         data[np.where(data < 0)] = 0
         return data
 
-    cpdef get_binimg(self, int n, Telescope tel=None, Atmos atmos=None, Dms dms=None):
+    def get_binimg(self, int n, Telescope tel=None, Atmos atmos=None, Dms dms=None):
         """
             Return the 'binimg' array of a given wfs
 
@@ -403,7 +337,7 @@ cdef class Sensors:
         data[np.where(data < 0)] = 0
         return data
 
-    cpdef get_binimg_notnoisy(self, int n):
+    def get_binimg_notnoisy(self, int n):
         """
             Return the 'binimg_notnoisy' array of a given pyrhr wfs
 
@@ -594,11 +528,11 @@ cdef class Sensors:
         else:
             raise TypeError("wfs should be a pyrhr")
 
-    cpdef set_ncpa_phase(self, int n, np.ndarray[ndim=2, dtype=np.float32_t] data):
+    def set_ncpa_phase(self, int n, np.ndarray[ndim=2, dtype=np.float32_t] data):
         cdef np.ndarray[ndim= 1, dtype = np.float32_t] data_F = data.flatten("F")
         self.sensors.d_wfs[n].set_ncpa_phase(< float*>data_F.data, data.size)
 
-    cpdef get_ncpa_phase(self, int n):
+    def get_ncpa_phase(self, int n):
         cdef carma_obj[float] * ph
         cdef const long * cdims
         cdef np.ndarray[ndim= 2, dtype = np.float32_t] data
@@ -609,7 +543,7 @@ cdef class Sensors:
         self.sensors.d_wfs[n].get_ncpa_phase(< float*>data.data, data.size)
         return np.reshape(data.flatten("F"), (cdims[1], cdims[2]))
 
-    cpdef comp_modulation(self, int n, int cpt):
+    def comp_modulation(self, int n, int cpt):
         """
             Return the high res image of a pyr wfs
 
@@ -652,7 +586,7 @@ cdef class Sensors:
         """
         return self._get_bincube(n)
 
-    cpdef set_bincube(self, int n, np.ndarray[ndim=3, dtype=np.float32_t] data):
+    def set_bincube(self, int n, np.ndarray[ndim=3, dtype=np.float32_t] data):
         """
             Set the bincube of the WFS numner n
 
@@ -660,13 +594,12 @@ cdef class Sensors:
             n: (int) : WFS number
             data: (np.ndarray[ndim=3,dtype=np.float32_t]) : bincube to use
         """
-        cdef carma_context * context = &carma_context.instance()
-        context.set_activeDeviceForCpy(self.sensors.device, 1)
+        self.context.set_activeDeviceForCpy(self.sensors.device, 1)
         cdef np.ndarray[dtype= np.float32_t] data_F = data.flatten("F")
 
         self.sensors.d_wfs[n].d_bincube.host2device(< float * > data_F.data)
 
-    cpdef get_bincubeNotNoisy(self, int n):
+    def get_bincubeNotNoisy(self, int n):
         """
             Return the 'bincube_not_noisy' array of a given wfs. It's the bincube
             before noise has been added
@@ -928,29 +861,18 @@ cdef class Sensors:
         data = np.reshape(data_F.flatten("F"), (cdims[1], cdims[2]))
         return data
 
-    cpdef _get_slopesDims(self, int n):
+    cdef _get_slopesDims(self, int n):
         """
             Return the dimension of the slopes array of a given wfs
 
         :param n: (int) : number of the wfs to get the 'slopes' dimension from
         """
-        cdef int comm_size, rank
-        IF USE_MPI:
-            mpi.MPI_Comm_size(mpi.MPI_COMM_WORLD, & comm_size)
-            mpi.MPI_Comm_rank(mpi.MPI_COMM_WORLD, & rank)
-        ELSE:
-            comm_size = 1
-            rank = 0
-
         cdef const long * cdims
         cdef long dim_tot
-        cdef carma_context * context = &carma_context.instance()
-        context.set_activeDevice(self.sensors.device, 1)
+        self.context.set_activeDevice(self.sensors.device, 1)
         cdims = self.sensors.d_wfs[n].d_slopes.getDims()
         dim_tot = cdims[1]
 
-        IF USE_MPI:
-            mpi.MPI_Allreduce(mpi.MPI_IN_PLACE, & dim_tot, 1, mpi.MPI_LONG, mpi.MPI_SUM, mpi.MPI_COMM_WORLD)
         return dim_tot
 
     def get_slopes(self, int n):
@@ -972,50 +894,16 @@ cdef class Sensors:
         cdef const long * cdims
         cdef np.ndarray[ndim= 1, dtype = np.float32_t] data
 
-        cdef carma_context * context = &carma_context.instance()
-        context.set_activeDevice(self.sensors.device, 1)
+        self.context.set_activeDevice(self.sensors.device, 1)
 
         slopes = self.sensors.d_wfs[n].d_slopes
         cdims = slopes.getDims()
         data = np.empty((cdims[1]), dtype=np.float32)
         slopes.device2host(< float * > data.data)
 
-        IF USE_MPI:
-            cdef int comm_size, rank
-            mpi.MPI_Comm_size(mpi.MPI_COMM_WORLD, & comm_size)
-            mpi.MPI_Comm_rank(mpi.MPI_COMM_WORLD, & rank)
+        return data
 
-            cdef int d = < int > (cdims[1] / 2)
-
-            cdef int * count = < int * > malloc(comm_size * sizeof(int))
-            mpi.MPI_Allgather(& d, 1, mpi.MPI_INT, count, 1, mpi.MPI_INT, mpi.MPI_COMM_WORLD)
-
-            cdef int * disp = < int * > malloc((comm_size + 1) * sizeof(int))
-            cdef int i, nvalid2
-            disp[0] = 0
-            for i in range(comm_size):
-                disp[i + 1] = disp[i] + count[i]
-
-            cdef np.ndarray[ndim= 1, dtype = np.float32_t] all_slopes = np.zeros(
-                disp[comm_size] * 2, dtype=np.float32)
-
-            cdef float * send = < float * > data.data
-            cdef float * recv = < float * > all_slopes.data
-
-            mpi.MPI_Allgatherv(send, count[rank], mpi.MPI_FLOAT,
-                               recv, count, disp,
-                               mpi.MPI_FLOAT, mpi.MPI_COMM_WORLD)
-
-            mpi.MPI_Allgatherv(& send[count[rank]], count[rank], mpi.MPI_FLOAT,
-                                & recv[disp[comm_size]], count, disp,
-                                mpi.MPI_FLOAT, mpi.MPI_COMM_WORLD)
-
-            return all_slopes
-
-        ELSE:
-            return data
-
-    cpdef slopes_geom(self, int nsensor, int t):
+    def slopes_geom(self, int nsensor, int t):
         """
             Compute the geometric slopes in a sutra_wfs object
 
@@ -1039,7 +927,7 @@ cdef class Sensors:
             else:
                 raise TypeError("wfs should be a SH or PYRHR")
 
-    cpdef sensors_trace(self, int n, bytes type_trace, Telescope tel=None, Atmos atmos=None, Dms dms=None, int rst=0, int ncpa=0):
+    def sensors_trace(self, int n, bytes type_trace, Telescope tel=None, Atmos atmos=None, Dms dms=None, int rst=0, int ncpa=0):
         """
             Does the raytracing for the wfs phase screen in sutra_wfs
 
@@ -1056,9 +944,8 @@ cdef class Sensors:
             ncpa: (int) : (optional) NCPA raytracing if ncpa = 1
         """
 
-        cdef carma_context * context = &carma_context.instance()
         cdef carma_obj[float] * d_screen = self.sensors.d_wfs[n].d_gs.d_phase.d_screen
-        context.set_activeDeviceForce(self.sensors.device, 1)
+        self.context.set_activeDeviceForce(self.sensors.device, 1)
 
         if(type_trace == b"all"):
             self.sensors.d_wfs[n].sensor_trace(atmos.s_a, dms.dms)
@@ -1076,115 +963,6 @@ cdef class Sensors:
         if tel is not None:
             d_screen.axpy(1.0, tel.telescope.d_phase_ab_M1_m, 1, 1)
 
-    IF USE_MPI:
-        cpdef Bcast_dscreen(self):
-            """
-                Broadcast the screen of every wfs on process 0 to all process
-            """
-            cdef carma_obj[float] * screen
-            cdef float * ptr
-            cdef int i, nsensors, size_i
-            cdef long size
-
-            nsensors = self.sensors.nsensors()
-            for i in range(nsensors):
-                screen = self.sensors.d_wfs[i].d_gs.d_phase.d_screen
-                size = screen.getNbElem()
-                size_i = size * 2
-                ptr = < float * > malloc(size_i * sizeof(float))
-                if(self._get_rank(0) == 0):
-                    screen.device2host(ptr)
-                mpi.MPI_Bcast(
-                    ptr, size_i, mpi.MPI_FLOAT, 0, mpi.MPI_COMM_WORLD)
-                screen.host2device(ptr)
-                free(ptr)
-
-        cpdef Bcast_dscreen_cuda_aware(self):
-            """
-                Broadcast the screen of every wfs on process 0 to all process
-                using cuda_aware
-            """
-            cdef float * ptr
-            cdef int i, nsensors, size_i
-            cdef long size
-
-            nsensors = self.sensors.nsensors()
-            for i in range(nsensors):
-                size = self.sensors.d_wfs[i].d_gs.d_phase.d_screen.getNbElem()
-                size_i = size  # convert from long to int
-                ptr = self.sensors.d_wfs[i].d_gs.d_phase.d_screen.getData()
-                mpi.MPI_Bcast(
-                    ptr, size_i, mpi.MPI_FLOAT, 0, mpi.MPI_COMM_WORLD)
-
-        cpdef gather_bincube(self, int n):
-            """
-                Gather the carma object 'bincube' of a wfs on the process 0
-
-            :parameters:
-                comm: (MPI.Intracomm) :communicator mpi
-                n: (int) : number of the wfs where the gather will occured
-            """
-
-            cdef int * count_bincube = self.sensors.d_wfs[n].count_bincube
-            cdef int * displ_bincube = self.sensors.d_wfs[n].displ_bincube
-            cdef const long * cdims = self.sensors.d_wfs[n].d_bincube.getDims()
-
-            cdef float * ptr
-            ptr = < float * > malloc(cdims[1] * cdims[2] * cdims[3] * sizeof(float))
-            self.sensors.d_wfs[n].d_bincube.device2host(ptr)
-
-            cdef int i, j
-
-            if(self._get_rank(n) == 0):
-                mpi.MPI_Gatherv(mpi.MPI_IN_PLACE, count_bincube[0], mpi.MPI_FLOAT,
-                                ptr, count_bincube, displ_bincube, mpi.MPI_FLOAT,
-                                0, mpi.MPI_COMM_WORLD)
-
-            else:
-                mpi.MPI_Gatherv(ptr, count_bincube[self.get_rank(n)], mpi.MPI_FLOAT,
-                                ptr, count_bincube, displ_bincube, mpi.MPI_FLOAT,
-                                0, mpi.MPI_COMM_WORLD)
-
-            if(self._get_rank(n) == 0):
-                self.sensors.d_wfs[n].d_bincube.host2device(ptr)
-
-            free(ptr)
-
-        cpdef gather_bincube_cuda_aware(self, int n):
-            """
-                Gather the carma object 'bincube' of a wfs on the process 0
-                using mpi cuda_aware
-
-            :param n: (int) : number of the wfs where the gather will occured
-            """
-            cdef float * recv_bin = self.sensors.d_wfs[n].d_bincube.getData()
-            cdef float * send_bin = self.sensors.d_wfs[n].d_bincube.getData()
-            cdef int nx = self.sensors.d_wfs[n].npix
-            cdef int nz = self.sensors.d_wfs[n].nvalid
-            cdef int * count_bincube = self.sensors.d_wfs[n].count_bincube
-            cdef int * displ_bincube = self.sensors.d_wfs[n].displ_bincube
-
-            mpi.MPI_Gatherv(send_bin, nx * nx * nz, mpi.MPI_FLOAT,
-                            recv_bin, count_bincube, displ_bincube, mpi.MPI_FLOAT,
-                            0, mpi.MPI_COMM_WORLD)
-
-    cdef _get_rank(self, int n):
-        """
-            Return the rank of one of the sensors wfs
-
-        :param n: (int): index of the wfs to get the rank for
-        """
-        IF USE_MPI:
-            return self.sensors.d_wfs[n].rank
-        ELSE:
-            return 0
-
-    def get_rank(self, int n):
-        """Return the rank of one of the sensors wfs
-
-        :param n: (int) : index of the wfs to get the rank for
-        """
-        return self.sensors.d_wfs[n].rank
 
     def __str__(self):
         info = "Sensors object:\n"
@@ -1202,57 +980,6 @@ cdef class Sensors:
         info += "--------------------------------------------------------"
         return info
 
-    '''
-    #for profiling purpose
-    @cython.profile(True)
-    cdef gather_bincube_prof(self,int n):
-        cdef int nx=self.sensors.d_wfs[n].npix
-        cdef int ny=nx
-        cdef int nz=self.sensors.d_wfs[n].nvalid
-        cdef int nz_t=self.sensors.d_wfs[n].nvalid_tot
-        cdef int size=nx*ny*nz
-        cdef int *count_bincube=self.sensors.d_wfs[n].count_bincube
-        cdef int *displ_bincube=self.sensors.d_wfs[n].displ_bincube
-        cdef const long *cdims=self.sensors.d_wfs[n].d_bincube.getDims()
-
-        cdef float *ptr
-        ptr=<float*>malloc(cdims[1]*cdims[2]*cdims[3]*sizeof(float))
-
-        self.wait1_prof()
-        self.d2h_prof(ptr,n)
-        cdef int i,j
-
-        self.wait2_prof()
-        self.gather_prof( ptr, size, count_bincube, displ_bincube)
-
-        if(self._get_rank(n)==0):
-            self.h2d_prof(ptr,n)
-        free(ptr)
-
-    @cython.profile(True)
-    cdef wait1_prof(self):
-        mpi.MPI_Barrier(mpi.MPI_COMM_WORLD)
-
-    @cython.profile(True)
-    cdef wait2_prof(self):
-        mpi.MPI_Barrier(mpi.MPI_COMM_WORLD)
-
-    @cython.profile(True)
-    cdef d2h_prof(self,float* ptr,n):
-        self.sensors.d_wfs[n].d_bincube.device2host(ptr)
-
-    @cython.profile(True)
-    cdef h2d_prof(self,float* ptr,n):
-        self.sensors.d_wfs[n].d_bincube.host2device(ptr)
-
-    @cython.profile(True)
-    cdef gather_prof(self,float *ptr, int size, int *count, int  *displ):
-        mpi.MPI_Gatherv(ptr,size,mpi.MPI_FLOAT,
-                    ptr, count , displ ,
-                    mpi.MPI_FLOAT,0,mpi.MPI_COMM_WORLD)
-
-    '''
-
     cdef _get_hrmap(self, int n):
         """
             Return the 'bincube' array of a given wfs
@@ -1268,7 +995,7 @@ cdef class Sensors:
         cube.device2host(< int * > data.data)
         return data
 
-    cpdef set_noise(self, int nwfs, np.float32_t noise, np.int64_t seed=-1):
+    def set_noise(self, int nwfs, np.float32_t noise, np.int64_t seed=-1):
         """
             Set the noise of a given wfs
 
@@ -1282,17 +1009,3 @@ cdef class Sensors:
         if seed < 0:
             seed = 1234 * nwfs
         self.sensors.set_noise(nwfs, noise, seed)
-
-"""
-    cdef getDims(self):
-        cdef const long *dims_ampli
-        cdef const long *dims_fttot
-
-        dims_ampli=self.sensors.d_camplifoc.getDims()
-        dims_fttot=self.sensors.d_fttotim.getDims()
-
-        d_amp=np.array([dims_ampli[0],dims_ampli[1],dims_ampli[2],dims_ampli[3]])
-        d_tot=np.array([dims_fttot[0],dims_fttot[1],dims_fttot[2],dims_fttot[3]])
-
-        return d_amp,d_tot
-"""

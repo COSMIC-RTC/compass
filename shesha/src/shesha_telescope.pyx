@@ -4,19 +4,18 @@ cimport numpy as np
 
 cdef class Telescope:
 
-    def __cinit__(self, long pup_size, long num_eleme_pup, np.ndarray[ndim=2, dtype=np.float32_t] pupil,
+    def __cinit__(self, naga_context context, long pup_size, long num_eleme_pup, np.ndarray[ndim=2, dtype=np.float32_t] pupil,
                   np.ndarray[ndim=2, dtype=np.float32_t] phase_ab_M1,
                   long pup_size_m,
                   np.ndarray[ndim=2, dtype=np.float32_t] pupil_m,
                   np.ndarray[ndim=2, dtype=np.float32_t] phase_ab_m1_m):
-        cdef carma_context * context = &carma_context.instance()
-
+        self.context = context
         cdef np.ndarray[dtype = np.float32_t] pupil_F = pupil.flatten("F")
         cdef np.ndarray[dtype = np.float32_t] phase_ab_M1_F = phase_ab_M1.flatten("F")
         cdef np.ndarray[dtype = np.float32_t] pupil_m_F = pupil_m.flatten("F")
         cdef np.ndarray[dtype = np.float32_t] phase_ab_m1_m_F = phase_ab_m1_m.flatten("F")
 
-        self.telescope = new sutra_telescope(context, pup_size, num_eleme_pup,
+        self.telescope = new sutra_telescope(self.context.c, pup_size, num_eleme_pup,
                          < float *> pupil_F.data, < float *> phase_ab_M1_F.data, pup_size_m,
                          < float *> pupil_m_F.data, < float *> phase_ab_m1_m_F.data)
 
@@ -71,8 +70,7 @@ cdef class Telescope:
            pup : (np.ndarray[ndim=2,dtype=np.float32_t]) :pupil
 
         """
-        cdef carma_context * context = &carma_context.instance()
-        context.set_activeDeviceForCpy(self.telescope.device, 1)
+        self.context.set_activeDeviceForCpy(self.telescope.device, 1)
 
         cdef const long * dims = NULL
         cdef np.ndarray[ndim = 2, dtype = np.float32_t] pup_F
@@ -93,8 +91,7 @@ cdef class Telescope:
            mpup : (np.ndarray[ndim=2,dtype=np.float32_t]) : pupil (medium size)
 
         """
-        cdef carma_context * context = &carma_context.instance()
-        context.set_activeDeviceForCpy(self.telescope.device, 1)
+        self.context.set_activeDeviceForCpy(self.telescope.device, 1)
 
         cdef const long * dims = NULL
         cdef np.ndarray[ndim = 2, dtype = np.float32_t] pup_F
@@ -115,8 +112,7 @@ cdef class Telescope:
            phase_ab : (np.ndarray[ndim=2,dtype=np.float32_t]) : M1 phase aberration
 
         """
-        cdef carma_context * context = &carma_context.instance()
-        context.set_activeDeviceForCpy(self.telescope.device, 1)
+        self.context.set_activeDeviceForCpy(self.telescope.device, 1)
 
         cdef const long * dims = NULL
         cdef np.ndarray[ndim = 2, dtype = np.float32_t] phase_ab_F
@@ -137,8 +133,7 @@ cdef class Telescope:
            phase_ab : (np.ndarray[ndim=2,dtype=np.float32_t]) : M1 phase aberration (medium size)
 
         """
-        cdef carma_context * context = &carma_context.instance()
-        context.set_activeDeviceForCpy(self.telescope.device, 1)
+        self.context.set_activeDeviceForCpy(self.telescope.device, 1)
 
         cdef const long * dims = NULL
         cdef np.ndarray[ndim = 2, dtype = np.float32_t] phase_ab_F

@@ -10,7 +10,7 @@ from cython.operator cimport dereference as deref, preincrement as inc
 # P-Class atmos
 #################################################
 cdef class Atmos:
-    def __cinit__(self, int nscreens,
+    def __cinit__(self, naga_context context, int nscreens,
                   float r0,
                   np.ndarray[dtype=np.float32_t] L0,
                   float pupixsize,
@@ -56,7 +56,7 @@ cdef class Atmos:
             verbose: (int) : 0 or 1
         """
 
-        self.context = naga_context()
+        self.context = context
 
         # get fraction of r0 for corresponding layer
         cdef np.ndarray[ndim= 1, dtype = np.float32_t] r0_layers

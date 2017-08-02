@@ -68,61 +68,6 @@ class Param_geom:
         self._n1 = 0  # min x,y for valid points in ipupil
         self._n2 = 0  # max x,y for valid points in ipupil
 
-    def geom_init(self, p_tel: Param_tel):
-        """
-            Initialize the system geometry
-
-        :parameters:
-            p_tel: (Param_tel) : telescope settings
-        """
-
-        # First power of 2 greater than pupdiam
-        self.ssize = int(2**np.ceil(np.log2(self.pupdiam) + 1))
-        # Using images centered on 1/2 pixels
-        self.cent = self.ssize / 2 + 0.5
-
-        self._p1 = int(np.ceil(self.cent - self.pupdiam / 2.))
-        self._p2 = int(np.floor(self.cent + self.pupdiam / 2.))
-
-        self.pupdiam = self._p2 - self._p1 + 1
-
-        self._n = self.pupdiam + 4
-        self._n1 = self._p1 - 2
-        self._n2 = self._p2 + 2
-
-        cent = self.pupdiam / 2. + 0.5
-
-        # Useful pupil
-        self._spupil = makeP.make_pupil(
-                self.pupdiam, self.pupdiam, p_tel, cent,
-                cent).astype(np.float32)
-
-        self._phase_ab_M1 = makeP.make_phase_ab(
-                self.pupdiam, self.pupdiam, p_tel,
-                self._spupil).astype(np.float32)
-
-        # large pupil (used for image formation)
-        self._ipupil = makeP.pad_array(self._spupil,
-                                       self.ssize).astype(np.float32)
-
-        # useful pupil + 4 pixels
-        self._mpupil = makeP.pad_array(self._spupil,
-                                       self._n).astype(np.float32)
-
-        self._phase_ab_M1_m = makeP.pad_array(self._phase_ab_M1,
-                                              self._n).astype(np.float32)
-
-        if self.apod:
-            if self.apodFile is None or self.apodFile == '':
-                apod_filename = shesha_savepath + \
-                    "apodizer/SP_HARMONI_I4_C6_N1024.npy"
-            self._apodizer = makeA.make_apodizer(
-                    self.pupdiam, self.pupdiam,
-                    apod_filename.encode(), 180. / 12.).astype(np.float32)
-        else:
-            self._apodizer = np.ones(self._spupil.shape, dtype=np.int32)
-
-        self.isInit = True
 
     def set_ssize(self, s):
         """Set linear size of full image

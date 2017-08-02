@@ -3,7 +3,7 @@ import os
 import scipy.ndimage.interpolation as interp
 
 from . import hdf5_utils as h5u
-
+from . import utilities as util
 import shesha_config as conf
 
 EELT_data = os.environ.get('SHESHA_ROOT') + "/data/apertures/"
@@ -79,7 +79,7 @@ def make_pupil_generic(
     TODO: complete
     """
 
-    pup = dist(dim, xc, yc)
+    pup = util.dist(dim, xc, yc)
 
     if (real == 1):
         pup = np.exp(-(pup / (pupd * 0.5))**60.0)**0.69314
@@ -88,10 +88,10 @@ def make_pupil_generic(
 
     if (cobs > 0):
         if (real == 1):
-            pup -= np.exp(-(dist(dim, xc, yc) / (pupd * cobs * 0.5))**60.
+            pup -= np.exp(-(util.dist(dim, xc, yc) / (pupd * cobs * 0.5))**60.
                           )**0.69314
         else:
-            pup -= (dist(dim, xc, yc) <
+            pup -= (util.dist(dim, xc, yc) <
                     (pupd * cobs + 1.) * 0.5).astype(np.float32)
 
             step = 1. / dim
@@ -158,7 +158,7 @@ def make_VLT(dim, pupd, tel):
         tel.set_t_spiders(0.09 / 18.)
     angle = 50.5 * np.pi / 180.  # --> 50.5 degre *2 d'angle entre les spiders
 
-    X = MESH(1., dim)
+    X = util.MESH(1., dim)
     R = np.sqrt(X**2 + (X.T)**2)
 
     pup = ((R < 0.5) & (R > (tel.cobs / 2))).astype(np.float32)
@@ -228,7 +228,7 @@ def make_EELT(dim, pupd, tel, N_seg=-1):
         #tel.set_diam(39.146)
         #tel.set_diam(37.)
 
-        X = MESH(tel.diam * dim / pupd, dim)
+        X = util.MESH(tel.diam * dim / pupd, dim)
         if (tel.t_spiders == -1):
             print("force t_spider =%5.3f" % (0.014))
             tel.set_t_spiders(0.014)
@@ -354,7 +354,7 @@ def make_phase_ab(dim, pupd, tel, pup):
         x_seg = data[:, 0]
         y_seg = data[:, 1]
 
-        X = MESH(tel.diam * dim / pupd, dim)
+        X = util.MESH(tel.diam * dim / pupd, dim)
 
         t_3 = np.tan(np.pi / 3.)
 
@@ -399,36 +399,3 @@ def make_phase_ab(dim, pupd, tel, pup):
         h5u.writeHdf5SingleDataset(ab_file, phase_error)
 
     return phase_error
-
-
-def MESH(Range, Dim):
-    last = (0.5 * Range - 0.25 / Dim)
-    step = (2 * last) // (Dim - 1)
-
-    return np.tile(np.arange(Dim) * step - last, (Dim, 1))
-
-
-def pad_array(A, N):
-    S = A.shape
-    D1 = (N - S[0]) // 2
-    D2 = (N - S[1]) // 2
-    padded = np.zeros((N, N))
-    padded[D1:D1 + S[0], D2:D2 + S[1]] = A
-    return padded
-
-
-def dist(dim, xc=-1, yc=-1):
-    if (xc < 0):
-        xc = int(dim / 2.)
-    else:
-        xc -= 1.
-    if (yc < 0):
-        yc = int(dim / 2.)
-    else:
-        yc -= 1.
-
-    dx = np.tile(np.arange(dim) - xc, (dim, 1))
-    dy = np.tile(np.arange(dim) - yc, (dim, 1)).T
-
-    d = np.sqrt(dx**2 + dy**2)
-    return d

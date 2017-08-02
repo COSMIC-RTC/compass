@@ -59,3 +59,12 @@ def enforce_array(data, size, dtype=np.float32, scalar_expand=False):
 
     # OK, now let's try it
     return np.array(data, dtype=dtype)
+
+def enforce_arrayMultiDim(data, shape, dtype=np.float32):
+    if not isinstance(data, np.ndarray):
+        raise TypeError("Input argument must be a np.ndarray")
+    else:
+        if data.shape != shape:
+            raise TypeError("Input has wrong dimensions, expect multi dimensional arrays")
+
+    return np.array(data, dtype=dtype)

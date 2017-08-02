@@ -1,3 +1,4 @@
+include "sutra.pxd"
 from naga_context cimport *
 
 cimport numpy as np
@@ -7,14 +8,6 @@ from libcpp.map cimport map
 from libcpp.pair cimport pair
 
 from cpython.string cimport PyString_AsString
-
-
-from libc.math cimport sin
-
-from shesha_param import *
-from shesha_param cimport *
-from shesha_sensors cimport *
-
 
 #################################################
 # P-Class Atmos
