@@ -14,7 +14,7 @@ import shesha_kl
 from scipy import interpolate
 from scipy.sparse import csr_matrix
 
-import shesha_constants as scons
+#import shesha_constants as scons
 
 
 #################################################
@@ -74,7 +74,7 @@ cdef class Dms:
 
         cdef int inddm = self.dms.get_inddm(type_dm, alt)
         if(inddm < 0):
-            raise StandardError("Error in reset dm ")
+            raise ValueError("Error in reset dm ")
 
         cdef carma_context * context = &carma_context.instance()
         context.set_activeDevice(self.dms.d_dms[inddm].device, 1)
@@ -497,7 +497,7 @@ cdef class Dms:
 
         cdef int inddm = self.dms.get_inddm(type_dm, alt)
         if(inddm < 0):
-            raise StandardError("One actuator error")
+            raise ValueError("One actuator error")
 
         cdef carma_context * context = &carma_context.instance()
         context.set_activeDevice(self.dms.d_dms[inddm].device, 1)

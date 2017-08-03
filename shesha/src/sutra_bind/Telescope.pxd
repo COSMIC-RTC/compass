@@ -1,9 +1,12 @@
+include "../../par.pxi"
+include "sutra.pxd"
+
 from naga_context cimport *
 
 cimport numpy as np
 
-from shesha_param import *
-from shesha_param cimport *
+#from shesha_param import *
+#from shesha_param cimport *
 
 cdef class Telescope:
 

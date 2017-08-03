@@ -17,7 +17,7 @@ except KeyError as err:
 from naga import naga_context
 import shesha_config as conf
 
-from shesha import Atmos
+from Atmos import Atmos
 
 import numpy as np
 
@@ -59,9 +59,10 @@ def atmos_init(
     max_size = max(norms)
 
     # Meta-pupil diameter for all layers depending on altitude
-    patch_diam = (p_geom._n + \
-        2 * (max_size * conf.ARCSEC2RAD * p_atmos.alt) / p_atmos.pupixsize + 4
-        ).astype(np.int64)
+    patch_diam = (
+            p_geom._n + 2 *
+            (max_size * conf.ARCSEC2RAD * p_atmos.alt) / p_atmos.pupixsize +
+            4).astype(np.int64)
     p_atmos.dim_screens = patch_diam + patch_diam % 2
 
     # Phase screen speeds
@@ -82,7 +83,7 @@ def atmos_init(
         p_atmos.seeds = (
                 np.arange(p_atmos.nscreens, dtype=np.int64) + 1) * 1234
 
-    return Atmos(context,
-            p_atmos.nscreens, p_atmos.r0, L0_pix, p_atmos.pupixsize,
+    return Atmos(
+            context, p_atmos.nscreens, p_atmos.r0, L0_pix, p_atmos.pupixsize,
             p_atmos.dim_screens, p_atmos.frac, p_atmos.alt, p_atmos.windspeed,
             p_atmos.winddir, p_atmos.deltax, p_atmos.deltay, p_atmos.seeds, 0)

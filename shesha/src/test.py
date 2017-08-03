@@ -1,5 +1,9 @@
 import shesha_config as conf
 import naga
+import numpy as np
+import matplotlib.pyplot as plt
+plt.ion()
+
 p_loop = conf.Param_loop()
 p_loop.niter = 1000
 p_loop.ittime = 1 / 500.
@@ -20,11 +24,11 @@ p_atmos.windspeed = 10.
 p_atmos.winddir = 45.
 p_atmos.L0 = 25.
 
-#wfs
-p_wfs0= conf.Param_wfs()
-p_wfs1= conf.Param_wfs()
-p_wfss=[p_wfs0, p_wfs1]
-
+# wfs
+p_wfs0 = conf.Param_wfs()
+p_wfs1 = conf.Param_wfs()
+p_wfss = [p_wfs0]
+"""
 p_wfs0.set_type("sh")
 p_wfs0.set_nxsub(16)
 p_wfs0.set_npix(8)
@@ -38,7 +42,24 @@ p_wfs0.set_optthroughput(0.5)
 p_wfs0.set_zerop(1.e11)
 p_wfs0.set_noise(-1.)
 p_wfs0.set_atmos_seen(1)
-
+"""
+p_wfs0.set_type("pyrhr")
+p_wfs0.set_nxsub(16)
+p_wfs0.set_fssize(1.5)
+p_wfs0.set_fracsub(0.8)
+p_wfs0.set_xpos(0.)
+p_wfs0.set_ypos(0.)
+p_wfs0.set_Lambda(0.5)
+p_wfs0.set_gsmag(5.)
+p_wfs0.set_optthroughput(0.5)
+p_wfs0.set_zerop(1.e11)
+p_wfs0.set_noise(-1.)
+p_wfs0.set_fstop("round")
+p_wfs0.set_pyr_npts(16)
+p_wfs0.set_pyr_ampl(3.)
+p_wfs0.set_pyr_pup_sep(p_wfs0.nxsub)
+p_wfs0.set_atmos_seen(1)
+"""
 p_wfs1.set_type("sh")
 p_wfs1.set_nxsub(16)
 p_wfs1.set_npix(8)
@@ -59,9 +80,9 @@ p_wfs1.set_laserpower(10.)
 p_wfs1.set_lgsreturnperwatt(1.e3)
 p_wfs1.set_proftype("Exp")
 p_wfs1.set_beamsize(0.8)
+"""
 
-
-#p_geom.geom_init(p_tel)
+# p_geom.geom_init(p_tel)
 
 from shesha_init.atmos_init import atmos_init
 from shesha_init.wfs_init import wfs_init
@@ -72,3 +93,13 @@ c = naga.naga_context(0)
 Tel = tel_init(c, p_geom, p_tel, p_atmos, p_loop, p_wfss)
 Atmos = atmos_init(c, p_atmos, p_tel, p_geom, p_loop)
 Wfs = wfs_init(c, p_wfss, p_atmos, p_tel, p_geom, p_loop, Tel)
+
+Atmos.move_atmos()
+Wfs.raytrace(0, b"atmos", Tel, Atmos)
+Wfs.comp_img(0)
+plt.matshow(Atmos.get_screen(0.))
+plt.title("Atmos")
+plt.matshow(Wfs.get_phase(0))
+plt.title("WFS Phase")
+plt.matshow(Wfs.get_pyrimghr(0))
+plt.title("WFS img")

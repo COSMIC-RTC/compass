@@ -2,7 +2,7 @@ from naga_context cimport *
 
 cimport numpy as np
 
-include "../par.pxi"
+include "../../par.pxi"
 include "sutra.pxd"
 
 from libc.stdlib cimport malloc, free
@@ -18,13 +18,13 @@ from cpython.string cimport PyString_AsString
 
 from libc.math cimport sin
 
-from shesha_telescope import *
-from shesha_telescope cimport *
+from Telescope import *
+from Telescope cimport *
 #from shesha_param import *
 #from shesha_param cimport *
-from shesha_atmos import *
-from shesha_atmos cimport *
-from shesha_dms cimport *
+from Atmos import *
+from Atmos cimport *
+from Dms cimport *
 
 
 #################################################
@@ -38,6 +38,10 @@ cdef extern from * :
     sutra_wfs_pyr_pyrhr * dynamic_cast_wfs_pyr_pyrhr_ptr "dynamic_cast<sutra_wfs_pyr_pyrhr*>" (sutra_wfs *) except NULL
     sutra_wfs_pyr_roof * dynamic_cast_wfs_pyr_roof_ptr "dynamic_cast<sutra_wfs_pyr_roof*>" (sutra_wfs *) except NULL
 
+
+ctypedef fused float_or_complex:
+    np.ndarray[ndim=2, dtype=np.float32_t]
+    np.ndarray[ndim=2, dtype=np.complex64_t]
 
 #################################################
 # P-Class Sensors

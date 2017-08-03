@@ -16,9 +16,9 @@ from libc.math cimport sin
 from naga_sparse_obj cimport *
 
 # FIXME
-from shesha_param cimport *
-from shesha_param import *
-from shesha_sensors cimport *
+#from shesha_param cimport *
+#from shesha_param import *
+from Sensors cimport *
 
 #################################################
 # P-Class Dms

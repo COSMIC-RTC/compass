@@ -178,7 +178,7 @@ class Param_wfs:
 
         :param t: (str) : type of wfs ("sh" or "pyr")
         """
-        self.__type_wfs = scons.check_enum(scons.WFSType,type_wfs)
+        self.__type_wfs = scons.check_enum(scons.WFSType, type_wfs)
 
     type_wfs = property(lambda x: x.__type_wfs, set_type)
 
@@ -259,7 +259,7 @@ class Param_wfs:
 
         :param f: (str) : size of field stop in arcsec
         """
-        self.__fstop = scons.check_enum(FieldStopType,f)
+        self.__fstop = scons.check_enum(scons.FieldStopType, f)
 
     fstop = property(lambda x: x.__fstop, set_fstop)
 
@@ -412,7 +412,7 @@ class Param_wfs:
 
         :param p: (str) : type of sodium profile "gauss", "exp", etc ...
         """
-        self.__proftype = scons.check_enum(scons.ProfType,p)
+        self.__proftype = scons.check_enum(scons.ProfType, p)
 
     proftype = property(lambda x: x.__proftype, set_proftype)
 
@@ -553,8 +553,12 @@ class Param_wfs:
 
         :param vx: (np.array(dim=1, dtype=np.int32)) : validsubsx
         """
-        self.__validsubsx = csu.enforce_array(
-                vx, self.__nvalid, dtype=np.int32)
+        if self.__type_wfs == scons.WFSType.PYRHR:
+            self.__validsubsx = csu.enforce_array(
+                    vx, 4 * self.__nvalid, dtype=np.int32)
+        else:
+            self.__validsubsx = csu.enforce_array(
+                    vx, self.__nvalid, dtype=np.int32)
 
     _validsubsx = property(lambda x: x.__validsubsx, set_validsubsx)
 
@@ -563,8 +567,12 @@ class Param_wfs:
 
         :param vy: (np.array(dim=1, dtype=np.int32)) : validsubsy
         """
-        self.__validsubsy = csu.enforce_array(
-                vy, self.__nvalid, dtype=np.int32)
+        if self.__type_wfs == scons.WFSType.PYRHR:
+            self.__validsubsy = csu.enforce_array(
+                    vy, 4 * self.__nvalid, dtype=np.int32)
+        else:
+            self.__validsubsy = csu.enforce_array(
+                    vy, self.__nvalid, dtype=np.int32)
 
     _validsubsy = property(lambda x: x.__validsubsy, set_validsubsy)
 
@@ -643,8 +651,14 @@ class Param_wfs:
 
         :param data: (np.array(ndim=2, dtype=np.float32)) : subap diameter (m)
         """
-        self.__fluxPerSub = csu.enforce_arrayMultiDim(
-                data.copy(), (self.__nxsub, self.__nxsub), dtype=np.float32)
+        if self.__type_wfs == scons.WFSType.PYRHR:
+            self.__fluxPerSub = csu.enforce_arrayMultiDim(
+                    data.copy(), (self.__nxsub + 2, self.__nxsub + 2),
+                    dtype=np.float32)
+        else:
+            self.__fluxPerSub = csu.enforce_arrayMultiDim(
+                    data.copy(), (self.__nxsub, self.__nxsub),
+                    dtype=np.float32)
 
     _fluxPerSub = property(lambda x: x.__fluxPerSub, set_fluxPerSub)
 
@@ -699,21 +713,24 @@ class Param_wfs:
     def set_prof1d(self, data):
         """TODO : docstring
         """
-        self.__prof1d = csu.enforce_arrayMultiDim(data.copy(), data.shape, dtype=np.float32)
+        self.__prof1d = csu.enforce_arrayMultiDim(
+                data.copy(), data.shape, dtype=np.float32)
 
     _prof1d = property(lambda x: x.__prof1d, set_prof1d)
 
     def set_profcum(self, data):
         """TODO : docstring
         """
-        self.__profcum = csu.enforce_array(data.copy(), data.size, dtype=np.float32)
+        self.__profcum = csu.enforce_array(
+                data.copy(), data.size, dtype=np.float32)
 
     _profcum = property(lambda x: x.__profcum, set_profcum)
 
     def set_ftbeam(self, data):
         """TODO : docstring
         """
-        self.__ftbeam = csu.enforce_array(data.copy(), data.size, dtype=np.complex64)
+        self.__ftbeam = csu.enforce_array(
+                data.copy(), data.size, dtype=np.complex64)
 
     _ftbeam = property(lambda x: x.__ftbeam, set_ftbeam)
 
@@ -744,14 +761,16 @@ class Param_wfs:
     def set_istart(self, data):
         """TODO : docstring
         """
-        self.__istart = csu.enforce_array(data.copy(), data.size, dtype=np.int32)
+        self.__istart = csu.enforce_array(
+                data.copy(), data.size, dtype=np.int32)
 
     _istart = property(lambda x: x.__istart, set_istart)
 
     def set_jstart(self, data):
         """TODO : docstring
         """
-        self.__jstart = csu.enforce_array(data.copy(), data.size, dtype=np.int32)
+        self.__jstart = csu.enforce_array(
+                data.copy(), data.size, dtype=np.int32)
 
     _jstart = property(lambda x: x.__jstart, set_jstart)
 
@@ -766,6 +785,7 @@ class Param_wfs:
     def set_pyr_pos(self, data):
         """TODO : docstring
         """
-        self.__pyr_pos = csu.enforce_array(data.copy(), data.size, dtype=np.complex64)
+        self.__pyr_pos = csu.enforce_array(
+                data.copy(), data.size, dtype=np.complex64)
 
     pyr_pos = property(lambda x: x.__pyr_pos, set_pyr_pos)

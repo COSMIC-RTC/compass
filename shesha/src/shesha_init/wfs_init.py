@@ -18,9 +18,11 @@ import shesha_util.make_pupil as mkP
 import shesha_util.utilities as util
 from . import lgs_init as LGS
 
-from shesha import Sensors, Telescope
+from Sensors import Sensors
+from Telescope import Telescope
 
 import numpy as np
+
 
 def wfs_init(
         context: naga_context,
@@ -80,32 +82,68 @@ def wfs_init(
     dy = np.array([o.dy for o in p_wfss], dtype=np.float32)
 
     error_budget_flag = [w.error_budget for w in p_wfss]
-    if(True in error_budget_flag):
+    if (True in error_budget_flag):
         error_budget_flag = True
     else:
         error_budget_flag = False
 
-    if(p_wfss[0].type_wfs == conf.WFSType.SH):
-        g_wfs = Sensors(context, nsensors, telescope, t_wfs, npup, nxsub, nvalid, nphase, pdiam, npix, nrebin,
-                        nfft, ntota, nphot, nphot4imat, lgs, error_budget=error_budget_flag)
+    if (p_wfss[0].type_wfs == conf.WFSType.SH):
+        g_wfs = Sensors(
+                context,
+                nsensors,
+                telescope,
+                t_wfs,
+                npup,
+                nxsub,
+                nvalid,
+                nphase,
+                pdiam,
+                npix,
+                nrebin,
+                nfft,
+                ntota,
+                nphot,
+                nphot4imat,
+                lgs,
+                error_budget=error_budget_flag)
 
         mag = np.array([o.gsmag for o in p_wfss], dtype=np.float32)
         noise = np.array([o.noise for o in p_wfss], dtype=np.float32)
 
-        g_wfs.sensors_initgs(xpos, ypos, Lambda, mag, zerop, size, noise, seed, G, thetaML, dx, dy)
+        g_wfs.init_gs(
+                xpos, ypos, Lambda, mag, zerop, size, noise, seed, G, thetaML,
+                dx, dy)
 
-    elif(p_wfss[0].type_wfs == conf.WFSType.PYRHR):
+    elif (p_wfss[0].type_wfs == conf.WFSType.PYRHR):
         npup = np.array([o.pyr_npts for o in p_wfss])
         G = np.array([o.G for o in p_wfss], dtype=np.float32)
         thetaML = np.array([o.thetaML for o in p_wfss], dtype=np.float32)
         dx = np.array([o.dx for o in p_wfss], dtype=np.float32)
         dy = np.array([o.dy for o in p_wfss], dtype=np.float32)
-        g_wfs = Sensors(context, nsensors, telescope, t_wfs, npup, nxsub, nvalid, nphase, pdiam, npix, nrebin,
-                        nfft, ntota, nphot, nphot4imat, lgs, error_budget=error_budget_flag)
+        g_wfs = Sensors(
+                context,
+                nsensors,
+                telescope,
+                t_wfs,
+                npup,
+                nxsub,
+                nvalid,
+                nphase,
+                pdiam,
+                npix,
+                nrebin,
+                nfft,
+                ntota,
+                nphot,
+                nphot4imat,
+                lgs,
+                error_budget=error_budget_flag)
 
         mag = np.array([o.gsmag for o in p_wfss], dtype=np.float32)
         noise = np.array([o.noise for o in p_wfss], dtype=np.float32)
-        g_wfs.sensors_initgs(xpos, ypos, Lambda, mag, zerop, size, noise, seed, G, thetaML, dx, dy)
+        g_wfs.init_gs(
+                xpos, ypos, Lambda, mag, zerop, size, noise, seed, G, thetaML,
+                dx, dy)
 
     else:
         raise Exception("WFS type unknown")
@@ -116,11 +154,10 @@ def wfs_init(
 
     # lgs case
     for i in range(nsensors):
-        if(p_wfss[i].gsalt > 0):
+        if (p_wfss[i].gsalt > 0):
             # lgs mode requested
             # init sensor lgs object with necessary data
             LGS.prep_lgs_prof(p_wfss[i], i, p_tel, g_wfs)
-
 
     type_target = b"atmos"  # FIXME
 
@@ -133,25 +170,20 @@ def wfs_init(
 
         if p_wfs.atmos_seen:
             for j in range(p_atmos.nscreens):
-                xoff = (gsalt * p_atmos.alt[j] * p_tel.diam / 2. + \
+                xoff = (gsalt * p_atmos.alt[j] * p_tel.diam / 2. +
                         p_wfs.xpos * conf.ARCSEC2RAD * p_atmos.alt[j]) / \
-                        p_atmos.pupixsize
-                yoff = (gsalt * p_atmos.alt[j] * p_tel.diam / 2. + \
+                    p_atmos.pupixsize
+                yoff = (gsalt * p_atmos.alt[j] * p_tel.diam / 2. +
                         p_wfs.ypos * conf.ARCSEC2RAD * p_atmos.alt[j]) / \
-                        p_atmos.pupixsize
-                xoff = xoff + (
-                        p_atmos.dim_screens[j] - p_geom.get_n()) / 2.
-                yoff = yoff + (
-                        p_atmos.dim_screens[j] - p_geom.get_n()) / 2.
-                g_wfs.sensors_addlayer(i, type_target, p_atmos.alt[j], xoff, yoff)
-
+                    p_atmos.pupixsize
+                xoff = xoff + (p_atmos.dim_screens[j] - p_geom.get_n()) / 2.
+                yoff = yoff + (p_atmos.dim_screens[j] - p_geom.get_n()) / 2.
+                g_wfs.add_layer(i, type_target, p_atmos.alt[j], xoff, yoff)
 
     return g_wfs
 
-def wfs_initarr(
-        wfs: Sensors,
-        i: int,
-        p_wfs: conf.Param_wfs):
+
+def wfs_initarr(wfs: Sensors, i: int, p_wfs: conf.Param_wfs):
     """ Wrapper for the cython function Sensors.sensors_initarrays
 
     :parameters:
@@ -164,11 +196,8 @@ def wfs_initarr(
         halfxy = np.exp(1j * p_wfs._halfxy).astype(np.complex64).T.copy()
     else:
         halfxy = p_wfs._halfxy
-    wfs.sensors_initarr(i, p_wfs._phasemap, p_wfs._hrmap,
-                            halfxy,
-                            fluxPerSub, p_wfs._validsubsx,
-                            p_wfs._validsubsy, p_wfs._istart + 1,
-                            p_wfs._jstart + 1, p_wfs._binmap,
-                            p_wfs._ftkernel,
-                            p_wfs._pyr_cx, p_wfs._pyr_cy,
-                            p_wfs._sincar, p_wfs._submask)
+    wfs.init_arrays(
+            i, p_wfs._phasemap, p_wfs._hrmap, halfxy, fluxPerSub,
+            p_wfs._validsubsx, p_wfs._validsubsy, p_wfs._istart + 1,
+            p_wfs._jstart + 1, p_wfs._binmap, p_wfs._ftkernel, p_wfs._pyr_cx,
+            p_wfs._pyr_cy, p_wfs._sincar, p_wfs._submask)

@@ -39,6 +39,10 @@ cdef extern from * :
     sutra_wfs_pyr_roof * dynamic_cast_wfs_pyr_roof_ptr "dynamic_cast<sutra_wfs_pyr_roof*>" (sutra_wfs *) except NULL
 
 
+ctypedef fused float_or_complex:
+    np.ndarray[ndim=2, dtype=np.float32_t]
+    np.ndarray[ndim=2, dtype=np.complex64_t]
+
 #################################################
 # P-Class Sensors
 #################################################

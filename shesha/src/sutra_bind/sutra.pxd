@@ -1,4 +1,4 @@
-include "../par.pxi"
+include "../../par.pxi"
 
 from naga_context cimport carma_context, carma_device
 from naga_obj cimport carma_obj

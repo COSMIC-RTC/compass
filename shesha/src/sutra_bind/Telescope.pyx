@@ -33,7 +33,7 @@ cdef class Telescope:
         cdef np.ndarray[dtype = np.float32_t] pup_F = pup.flatten("F")
         self.telescope.d_pupil.host2device(< float *> pup_F.data)
 
-    def set_pupil_m(self, np.ndarray[ndim=2, dtype=np.float32_t] pup_m):
+    def set_pupil_m(self, np.ndarray[ndim=2, dtype=np.float32_t] pup):
         """ Set the medium pupil
 
         :parameters:
@@ -53,7 +53,7 @@ cdef class Telescope:
         cdef np.ndarray[dtype = np.float32_t] phase_ab_F = phase_ab.flatten("F")
         self.telescope.d_phase_ab_M1.host2device(< float *> phase_ab_F.data)
 
-    def set_phase_ab_M1_m(self, np.ndarray[ndim=2, dtype=np.float32_t] phase_m):
+    def set_phase_ab_M1_m(self, np.ndarray[ndim=2, dtype=np.float32_t] phase_ab):
         """ Set the M1 phase aberration in the medium pupil
 
         :parameters:
