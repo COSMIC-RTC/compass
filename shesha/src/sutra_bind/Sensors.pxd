@@ -2,7 +2,6 @@ from naga_context cimport *
 
 cimport numpy as np
 
-include "../../par.pxi"
 include "sutra.pxd"
 
 from libc.stdlib cimport malloc, free

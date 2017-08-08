@@ -25,6 +25,14 @@ p_atmos.windspeed = 10.
 p_atmos.winddir = 45.
 p_atmos.L0 = 25.
 
+p_target = conf.Param_target()
+
+p_target.set_ntargets(1)
+p_target.set_xpos([0])
+p_target.set_ypos([0.])
+p_target.set_Lambda([1.65])
+p_target.set_mag([10])
+
 # wfs
 p_wfs0 = conf.Param_wfs()
 p_wfs1 = conf.Param_wfs()
@@ -114,12 +122,14 @@ from shesha_init.atmos_init import atmos_init
 from shesha_init.wfs_init import wfs_init
 from shesha_init.geom_init import tel_init
 from shesha_init.dm_init import dm_init
+from shesha_init.target_init import target_init
 
 c = naga.naga_context(0)
 
 Tel = tel_init(c, p_geom, p_tel, p_atmos, p_loop, p_wfss)
 Atmos = atmos_init(c, p_atmos, p_tel, p_geom, p_loop)
 Dms = dm_init(c, p_dms, p_wfss, p_geom, p_tel)
+Tar = target_init(c, Tel, p_target, p_atmos, p_geom, p_tel, p_dms)
 Wfs = wfs_init(c, p_wfss, p_dms, p_atmos, p_tel, p_geom, p_loop, Tel)
 
 Atmos.move_atmos()

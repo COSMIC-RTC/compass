@@ -31,11 +31,11 @@ print("======================================")
 print((sys.path))
 print("======================================")
 
-listMod = ["Telescope", "Sensors", "Atmos", "Dms"]
+listMod = ["Telescope", "Sensors", "Atmos", "Dms", "Target"]
 dependencies = {
-        "Sensors": ["Telescope"]
-        #"shesha_target": ["shesha_telescope"],
-        # "shesha_roket": listMod[:-2],
+    "Sensors": ["Telescope"],
+    "Target": ["Telescope"]
+    # "shesha_roket": listMod[:-2],
 }
 
 naga_path = os.environ.get('NAGA_ROOT')
@@ -61,12 +61,12 @@ def locate_compass():
 
     else:
         raise EnvironmentError(
-                "Environment variable 'COMPASS_ROOT' must be define")
+            "Environment variable 'COMPASS_ROOT' must be define")
 
     compass_config = {
-            'inc_sutra': root_compass + '/libsutra/include.h',
-            'inc_carma': root_compass + '/libcarma/include.h',
-            'inc_naga': root_compass + '/naga', 'lib': root_compass}
+        'inc_sutra': root_compass + '/libsutra/include.h',
+        'inc_carma': root_compass + '/libcarma/include.h',
+        'inc_naga': root_compass + '/naga', 'lib': root_compass}
 
     return compass_config
 
@@ -82,8 +82,8 @@ except AttributeError:
 #source = ['shesha']
 libraries = ['sutra']
 include_dirs = [
-        numpy_include, COMPASS['inc_carma'], COMPASS['inc_sutra'],
-        COMPASS['inc_naga']]  # , shesha_path+"/src"]
+    numpy_include, COMPASS['inc_carma'], COMPASS['inc_sutra'],
+    COMPASS['inc_naga']]  # , shesha_path+"/src"]
 
 library_dirs = [COMPASS['lib'] + "/libsutra"]
 
@@ -93,7 +93,7 @@ if 'CUDA_INC_PATH' in os.environ:
     libraries.append('cudart')
 else:
     raise EnvironmentError(
-            "Environment variable 'CUDA_INC_PATH' must be define")
+        "Environment variable 'CUDA_INC_PATH' must be define")
 
 # deprecated
 # def which(program):
@@ -167,9 +167,9 @@ if 'BRAMA_ROOT' in os.environ:
     libraries.extend(['dl'])
     libraries.extend(['rt'])
     define_macros = [
-            ('USE_BRAMA', None),
-            ('_GNU_SOURCE', None),
-            ('__ACE_INLINE__', None), ]
+        ('USE_BRAMA', None),
+        ('_GNU_SOURCE', None),
+        ('__ACE_INLINE__', None), ]
 
 if parFile:
     parFile.write("DEF USE_BRAMA=%d # 0/1 \n" % USE_BRAMA)
@@ -200,32 +200,32 @@ def compile_module(name):
     print(("creating module ", name))
     print("=======================================")
     ext = Extension(
-            shesha_path + "/lib/" + name,
-            sources=['src/sutra_bind/' + name + '.pyx'],
-            extra_compile_args=[
-                    "-Wno-unused-function",
-                    "-Wno-unused-label",
-                    "-Wno-cpp",
-                    "-Wno-deprecated-declarations",
-                    "-std=c++11",
-                    # "-O0", "-g",
-            ],
-            include_dirs=include_dirs,
-            define_macros=define_macros,
-            library_dirs=library_dirs,
-            libraries=libraries,
-            language='c++',
-            runtime_library_dirs=[],  # CUDA['lib64']],
+        shesha_path + "/lib/" + name,
+        sources=['src/sutra_bind/' + name + '.pyx'],
+        extra_compile_args=[
+            "-Wno-unused-function",
+            "-Wno-unused-label",
+            "-Wno-cpp",
+            "-Wno-deprecated-declarations",
+            "-std=c++11",
+            # "-O0", "-g",
+        ],
+        include_dirs=include_dirs,
+        define_macros=define_macros,
+        library_dirs=library_dirs,
+        libraries=libraries,
+        language='c++',
+        runtime_library_dirs=[],  # CUDA['lib64']],
     )
 
     setup(
-            name=name,
-            ext_modules=cythonize(
-                    [ext],
-                    gdb_debug=True,
-                    language_level=3, ),
-            # cmdclass={'build_ext': custom_build_ext},
-            # zip_safe=False
+        name=name,
+        ext_modules=cythonize(
+            [ext],
+            gdb_debug=True,
+            language_level=3, ),
+        # cmdclass={'build_ext': custom_build_ext},
+        # zip_safe=False
     )
 
 
