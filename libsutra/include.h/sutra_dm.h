@@ -51,10 +51,6 @@ public:
 	carma_obj<int> *d_yoff;
 	carma_obj<int> *d_pos; // Convolution preprocess
 	carma_obj<float> *d_KLbasis;
-	carma_obj<float> *d_kernconv; // Convolution preprocess
-	carma_obj<float> *d_mapactu; // Convolution process
-	carma_obj<cuFloatComplex> *d_ftkernconv; // Convolution process
-	carma_obj<cuFloatComplex> *d_ftmapactu; // Convolution process
 	//carma_sparse_obj<float> *d_IFsparse;
 	//carma_obj<float> *d_commdouble;
 	//carma_obj<double> *d_shapedouble;
@@ -85,7 +81,7 @@ public:
 	int nact();
 	int pzt_loadarrays(float *influ, float *influ2,
 			struct tuple_t<float> *influ3, int *influpos, int *influpos2,
-			int *npoints, int *istart, int *xoff, int *yoff, float *kernconv);
+			int *npoints, int *istart, int *xoff, int *yoff);
 	int kl_loadarrays(float *rabas, float *azbas, int *ord, float *cr,
 			float *cp);
 	int reset_shape();

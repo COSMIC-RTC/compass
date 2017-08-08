@@ -23,10 +23,6 @@ sutra_dm::sutra_dm(carma_context *context, const char* type, long dim,
 	this->d_ztheta = NULL;
 	this->d_KLbasis = NULL;
 	this->d_pos = NULL;
-	this->d_kernconv = NULL;
-	this->d_ftkernconv = NULL;
-	this->d_ftmapactu = NULL;
-	this->d_mapactu = NULL;
 	//this->d_IFsparse = NULL;
 	//this->d_commdouble = NULL;
 	//this->d_shapedouble = NULL;
@@ -155,14 +151,6 @@ sutra_dm::~sutra_dm() {
 		delete this->d_KLbasis;
 	if (this->d_pos != NULL)
 		delete this->d_pos;
-	if (this->d_kernconv != NULL)
-		delete this->d_kernconv;
-	if (this->d_mapactu != NULL)
-		delete this->d_mapactu;
-	if (this->d_ftmapactu != NULL)
-		delete this->d_ftmapactu;
-	if (this->d_ftkernconv != NULL)
-		delete this->d_ftkernconv;
 #ifdef TEXTURE
 	unbindTexture();
 #endif
@@ -179,7 +167,7 @@ sutra_dm::~sutra_dm() {
 int sutra_dm::nact() {
 	return this->ninflu;
 }
-
+/*
 int sutra_dm::prepare_convolve() {
 
 	current_context->set_activeDevice(device,1);
@@ -194,10 +182,9 @@ int sutra_dm::prepare_convolve() {
 
 	return EXIT_SUCCESS;
 }
-
+*/
 int sutra_dm::pzt_loadarrays(float *influ,float *influ2, struct tuple_t<float> *influ3,  int *influpos, int *influpos2, int *npoints,
-		int *istart, int *xoff, int *yoff,
-		float *kernconv) {
+		int *istart, int *xoff, int *yoff) {
 	current_context->set_activeDevice(device,1);
 	this->d_influ->host2device(influ);
 	this->d_influ2->host2device(influ2);

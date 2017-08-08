@@ -631,7 +631,7 @@ cdef extern from "sutra_dm.h":
         int pzt_loadarrays(float * influ, float * influ2, tuple_t[float] * influ3,
                            int * influpos, int * influpos2, int *
                            npoints, int * istart,
-                           int * xoff, int * yoff, float * kernconv)
+                           int * xoff, int * yoff)
         int kl_loadarrays(float * rabas, float * azbas, int * ord, float * cr, float * cp)
 
         int reset_shape()

@@ -6,8 +6,8 @@ Created on 1 aout 2017
 @author: fferreira
 '''
 from shesha_config.PWFS import Param_wfs
-import shesha_constants as scons
-from shesha import Sensors
+from shesha_config import shesha_constants as scons
+from Sensors import Sensors
 
 import numpy as np
 
@@ -27,9 +27,9 @@ def comp_new_fstop(
     if (fstop == scons.FieldStopType.ROUND):
         p_wfs.fstop = fstop
         focmask = mkP.dist(
-                p_wfs._Nfft,
-                xc=p_wfs._Nfft / 2. + 0.5,
-                yc=p_wfs._Nfft / 2. + 0.5) < (fsradius_pixels)
+            p_wfs._Nfft,
+            xc=p_wfs._Nfft / 2. + 0.5,
+            yc=p_wfs._Nfft / 2. + 0.5) < (fsradius_pixels)
         # fstop_area = np.pi * (p_wfs.fssize/2.)**2. #UNUSED
     elif (p_wfs.fstop == scons.FieldStopType.SQUARE):
         p_wfs.fstop = fstop
