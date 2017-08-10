@@ -11,17 +11,7 @@ try:
     os.environ["PATH"] += shesha_dir + '/src'
 except KeyError as err:
     raise EnvironmentError(
-            "Environment variable 'SHESHA_ROOT' must be defined")
-try:
-    shesha_db = os.environ['SHESHA_DB_ROOT']
-except KeyError as err:
-    import warnings
-    shesha_db = shesha_dir + "/data/"
-    warnings.warn(
-            "'SHESHA_DB_ROOT' not defined, using default one: " +
-            str(shesha_db))
-finally:
-    shesha_savepath = shesha_db
+        "Environment variable 'SHESHA_ROOT' must be defined")
 
 import numpy as np
 
@@ -60,14 +50,14 @@ class Param_geom:
         self._mpupil = None  # medium pupil (part of the guard band)
         self._spupil = None  # small pupil (without guard band)
         self._phase_ab_M1 = None  # Phase aberration in the pupil (small size)
-        self._phase_ab_M1_m = None  # Phase aberration in the pupil (medium size)
+        # Phase aberration in the pupil (medium size)
+        self._phase_ab_M1_m = None
         self._apodizer = None  # apodizer (same size as small pupil)
         self._p1 = 0  # min x,y for valid points in mpupil
         self._p2 = 0  # max x,y for valid points in mpupil
         self._n = 0  # linear size of mpupil
         self._n1 = 0  # min x,y for valid points in ipupil
         self._n2 = 0  # max x,y for valid points in ipupil
-
 
     def set_ssize(self, s):
         """Set linear size of full image

@@ -6,7 +6,7 @@ Created on 13 juil. 2017
 
 __all__ = [
     'shesha_constants', 'PATMOS', 'PDMS', 'PGEOM', 'PLOOP', 'PTEL', 'PWFS',
-    'PTARGET', 'config_setter_utils']
+    'PTARGET', 'PCONTROLLER', 'PCENTROIDER', 'config_setter_utils']
 
 from shesha_config.shesha_constants import *
 
@@ -17,3 +17,5 @@ from shesha_config.PGEOM import Param_geom
 from shesha_config.PLOOP import Param_loop
 from shesha_config.PWFS import Param_wfs
 from shesha_config.PTARGET import Param_target
+from shesha_config.PCENTROIDER import Param_centroider
+from shesha_config.PCONTROLLER import Param_controller

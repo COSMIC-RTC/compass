@@ -20,13 +20,8 @@ from shesha_util import dm_util, influ_util, kl_util
 
 import numpy as np
 
-import hdf5_utils as h5
-import resDataBase as db
 import pandas as pd
 from scipy import interpolate
-from scipy.sparse import csr_matrix
-import scipy.special as sp
-import shesha_kl as klfunc
 
 from Dms import Dms
 from Sensors import Sensors
@@ -630,3 +625,74 @@ def comp_dmgeom(
 
     p_dm._i1 += offs
     p_dm._j1 += offs
+
+
+def correct_dm(
+        dms: Dms,
+        p_dms: list,
+        p_controller: conf.Param_controller,
+        p_geom: conf.Param_geom,
+        imat: np.ndarray):
+    """Correct the geometry of the DMs using the imat (filter unseen actuators)
+
+    :parameters:
+        dms: (Dms) : Dms object
+        p_dms: (list of Param_dm) : dms settings
+        p_control: (Param_controller) : controller settings
+        p_geom: (Param_geom) : geom settings
+        imat: (np.ndarray) : interaction matrix
+    """
+    print("Filtering unseen actuators... ")
+    ndm = p_control.ndm.size
+    for i in range(ndm):
+        nm = p_control.ndm[i]
+        dms.remove_dm(p_dms[nm].type_dm, p_dms[nm].alt)
+
+    resp = np.sqrt(np.sum(imat ** 2, axis=0))
+
+    inds = 0
+
+    for nmc in range(ndm):
+        nm = p_control.ndm[nmc]
+        nactu_nm = p_dms[nm]._ntotact
+        # filter actuators only in stackarray mirrors:
+        if(p_dms[nm].type_dm == conf.DmType.PZT):
+            tmp = resp[inds:inds + p_dms[nm]._ntotact]
+            ok = np.where(tmp > p_dms[nm].thresh * np.max(tmp))[0]
+            nok = np.where(tmp <= p_dms[nm].thresh * np.max(tmp))[0]
+
+            p_dms[nm].set_xpos(p_dms[nm]._xpos[ok])
+            p_dms[nm].set_ypos(p_dms[nm]._ypos[ok])
+            p_dms[nm].set_i1(p_dms[nm]._i1[ok])
+            p_dms[nm].set_j1(p_dms[nm]._j1[ok])
+            p_dms[nm].set_influ(p_dms[nm]._influ[:, :, ok.tolist()])
+            p_dms[nm].set_ntotact(p_dms[nm]._influ.shape[2])
+
+            comp_dmgeom(p_dms[nm], p_geom)
+
+            dim = max(p_dms[nm]._n2 - p_dms[nm]._n1 +
+                      1, p_geom._mpupil.shape[0])
+            ninflupos = p_dms[nm]._influpos.size
+            n_npts = p_dms[nm]._ninflu.size
+
+            dms.add_dm(p_dms[nm].type_dm, p_dms[nm].alt, dim, p_dms[nm]._ntotact, p_dms[nm]._influsize,
+                       ninflupos, n_npts, p_dms[nm].push4imat)
+            dms.load_pzt(p_dms[nm].alt, p_dms[nm]._influ, p_dms[nm]._influpos.astype(np.int32),
+                         p_dms[nm]._ninflu, p_dms[nm]._influstart, p_dms[nm]._i1, p_dms[nm]._j1)
+
+        elif(p_dms[nm].type_dm == conf.DmType.TT):
+            dim = p_dms[nm]._n2 - p_dms[nm]._n1 + 1
+            dms.add_dm(p_dms[nm].type_dm, p_dms[nm].alt, dim,
+                       2, dim, 1, 1, p_dms[nm].push4imat)
+            dms.load_tt(p_dms[nm].alt, p_dms[nm]._influ)
+
+        elif(p_dms[nm].type_dm == conf.dmType.KL):
+            dim = long(p_dms[nm]._n2 - p_dms[nm]._n1 + 1)
+
+            dms.add_dm(p_dms[nm].type_dm, p_dms[nm].alt, dim, p_dms[nm].nkl, p_dms[nm]._ncp,
+                       p_dms[nm]._nr, p_dms[nm]._npp, p_dms[nm].push4imat)
+            dms.load_kl(p_dms[nm].alt, p_dms[nm]._rabas, p_dms[nm]._azbas,
+                        p_dms[nm]._ord, p_dms[nm]._cr, p_dms[nm]._cp)
+
+        inds += nactu_nm
+    print("Done")

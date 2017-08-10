@@ -11,15 +11,15 @@ try:
     os.environ["PATH"] += shesha_dir + '/src'
 except KeyError as err:
     raise EnvironmentError(
-            "Environment variable 'SHESHA_ROOT' must be defined")
+        "Environment variable 'SHESHA_ROOT' must be defined")
 try:
     shesha_db = os.environ['SHESHA_DB_ROOT']
 except KeyError as err:
     import warnings
     shesha_db = shesha_dir + "/data/"
     warnings.warn(
-            "'SHESHA_DB_ROOT' not defined, using default one: " +
-            str(shesha_db))
+        "'SHESHA_DB_ROOT' not defined, using default one: " +
+        str(shesha_db))
 finally:
     shesha_savepath = bytes(shesha_db, 'utf8')
 
@@ -103,8 +103,8 @@ def make_lgs_prof1d(
 
             for i in range(inds.size):
                 profi[:, inds[i]] = np.diff(
-                        np.interp(avg_x, avg_zhc, p_wfs._profcum)).astype(
-                                np.float32)
+                    np.interp(avg_x, avg_zhc, p_wfs._profcum)).astype(
+                    np.float32)
 
         else:
             for i in range(inds.size):
@@ -139,8 +139,8 @@ def make_lgs_prof1d(
     g_extended = np.tile(g, (p_wfs._nvalid, 1)).T
 
     p1d = np.fft.ifft(
-            np.fft.fft(profi, axis=0) * np.fft.fft(g_extended, axis=0),
-            axis=0).real.astype(np.float32)
+        np.fft.fft(profi, axis=0) * np.fft.fft(g_extended, axis=0),
+        axis=0).real.astype(np.float32)
     p1d = p1d * p1d.shape[0]
     p1d = np.roll(p1d, int(p_wfs._Ntot / 2. + 0.5), axis=0)
     p1d = np.abs(p1d)
@@ -154,8 +154,8 @@ def make_lgs_prof1d(
 
     if (ysubs.size > 1):
         azimuth = np.arctan2(
-                ysubs[p_wfs._validsubsy] - p_wfs.llty,
-                xsubs[p_wfs._validsubsx] - p_wfs.lltx)
+            ysubs[p_wfs._validsubsy] - p_wfs.llty,
+            xsubs[p_wfs._validsubsx] - p_wfs.lltx)
     else:
         azimuth = np.arctan2(ysubs - p_wfs.llty, xsubs - p_wfs.lltx)
 
@@ -231,6 +231,8 @@ def prep_lgs_prof(
     profile_path = shesha_savepath + profilename
     print("reading Na profile from", profile_path)
     prof = np.load(profile_path.decode("utf-8"))
+    make_lgs_prof1d(p_wfs, p_tel, np.mean(prof[1:, :], axis=0), prof[0, :],
+                    p_wfs.beamsize, center="image")
     p_wfs.set_altna(prof[0, :].astype(np.float32))
     p_wfs.set_profna(np.mean(prof[1:, :], axis=0).astype(np.float32))
 
@@ -288,14 +290,14 @@ def prep_lgs_prof(
 
     if (xsubs.size > 1):
         azimuth = np.arctan2(
-                ysubs[p_wfs._validsubsy] - p_wfs.llty,
-                xsubs[p_wfs._validsubsx] - p_wfs.lltx)
+            ysubs[p_wfs._validsubsy] - p_wfs.llty,
+            xsubs[p_wfs._validsubsx] - p_wfs.lltx)
     else:
         azimuth = np.arctan2(ysubs - p_wfs.llty, xsubs - p_wfs.lltx)
 
     p_wfs._azimuth = azimuth
 
     sensors.init_lgs(
-            nsensors, p_wfs._prof1d.size, hG, p_wfs._altna[0], dh,
-            p_wfs._qpixsize, dOffAxis, p_wfs._prof1d, p_wfs._profcum,
-            p_wfs._beam, p_wfs._ftbeam, p_wfs._azimuth)
+        nsensors, p_wfs._prof1d.size, hG, p_wfs._altna[0], dh,
+        p_wfs._qpixsize, dOffAxis, p_wfs._prof1d, p_wfs._profcum,
+        p_wfs._beam, p_wfs._ftbeam, p_wfs._azimuth)

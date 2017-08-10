@@ -6,6 +6,7 @@ Created on 3 aout 2017
 @author: fferreira
 '''
 import numpy as np
+import scipy.special as sp
 
 
 def besel_orth(m, n, phi, r):

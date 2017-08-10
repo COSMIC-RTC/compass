@@ -27,10 +27,10 @@ def check_enum(cls, name):
         name = bytes(name.encode('UTF-8'))
 
     if not isinstance(name, bytes) or \
-        not name in vars(cls).values():
+            not name in vars(cls).values():
         raise ValueError(
-                "Invalid enumeration value for enum %s, value %s" %
-                (cls, name))
+            "Invalid enumeration value for enum %s, value %s" %
+            (cls, name))
     return name
 
 
@@ -91,12 +91,31 @@ class ControllerType:
     KALMAN_UN = b'kalman_uninitialized'
 
 
+class CentroiderType:
+    """
+        Centroider types
+    """
+
+    COG = b'cog'
+    TCOG = b'tcog'
+    WCOG = b'wcog'
+    BPCOG = b'bpcog'
+    CORR = b'corr'
+    PYR = b'pyr'
+
+
+class CentroiderFctType:
+    MODEL = b'model'
+    GAUSS = b'gauss'
+
+
 class WFSType:
     """
         WFS Types
     """
     SH = b'sh'
     PYRHR = b'pyrhr'
+
 
 class TargetImageType:
     """
@@ -127,6 +146,7 @@ class SpiderType:
     FOUR = b'four'
     SIX = b'six'
 
+
 class ProfType:
     """
         Sodium profile for LGS
@@ -136,9 +156,10 @@ class ProfType:
     GAUSS3 = b'Gauss3'
     EXP = b'Exp'
     FILES = dict({GAUSS1: b"allProfileNa_withAltitude_1Gaussian.npy",
-                GAUSS2: b"allProfileNa_withAltitude_2Gaussian.npy",
-                GAUSS3: b"allProfileNa_withAltitude_3Gaussian.npy",
-                EXP: b"allProfileNa_withAltitude.npy"})
+                  GAUSS2: b"allProfileNa_withAltitude_2Gaussian.npy",
+                  GAUSS3: b"allProfileNa_withAltitude_3Gaussian.npy",
+                  EXP: b"allProfileNa_withAltitude.npy"})
+
 
 class FieldStopType:
     """

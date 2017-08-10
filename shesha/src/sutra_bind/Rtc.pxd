@@ -1,3 +1,4 @@
+include "sutra.pxd"
 from naga_context cimport *
 from naga_obj cimport *
 from naga_sparse_obj cimport *
@@ -5,7 +6,6 @@ from naga_magma cimport *
 
 cimport numpy as np
 
-include "../par.pxi"
 # cpdef long RASC = 180.*3600./np.pi
 
 from libc.stdlib cimport malloc, free
@@ -19,13 +19,10 @@ from libc.stdint cimport uintptr_t
 
 from cpython.string cimport PyString_AsString
 
-from shesha_param import *
-from shesha_param cimport *
-from shesha_sensors cimport *
-from shesha_dms cimport *
-from shesha_target cimport *
+from Sensors cimport *
+from Dms cimport *
+from Target cimport *
 
-from libc.math cimport sin
 
 #################################################
 # Dynamic casts
@@ -35,7 +32,6 @@ cdef extern from * :
     sutra_centroider_corr * dynamic_cast_centroider_corr_ptr "dynamic_cast<sutra_centroider_corr*>" (sutra_centroider *) except NULL
     sutra_centroider_wcog * dynamic_cast_centroider_wcog_ptr "dynamic_cast<sutra_centroider_wcog*>" (sutra_centroider *) except NULL
     sutra_centroider_pyr * dynamic_cast_centroider_pyr_ptr "dynamic_cast<sutra_centroider_pyr*>" (sutra_centroider *) except NULL
-
     sutra_controller_generic * dynamic_cast_controller_generic_ptr "dynamic_cast<sutra_controller_generic*>" (sutra_controller *) except NULL
     sutra_controller_geo * dynamic_cast_controller_geo_ptr "dynamic_cast<sutra_controller_geo*>" (sutra_controller *) except NULL
     sutra_controller_ls * dynamic_cast_controller_ls_ptr "dynamic_cast<sutra_controller_ls*>" (sutra_controller *) except NULL
@@ -44,83 +40,16 @@ cdef extern from * :
     sutra_controller_kalman * dynamic_cast_controller_kl_ptr "dynamic_cast<sutra_controller_kalman*>" (sutra_controller *) except NULL
 
 
+
+
+
 #################################################
 # P-Class Rtc
 #################################################
 cdef class Rtc:
+    cdef naga_context context
     cdef sutra_rtc * rtc
     cdef int device
-
-    # cdef sensors_initbcube(self,int ncentro)
-    cpdef getcentroids(self, int ncontrol, Sensors g_wfs=?, int nwfs=?)
-    cpdef docentroids(self, int ncontrol=?)
-    cpdef docentroids_geom(self, int ncontrol=?)
-    cpdef init_proj(self, int i, Dms dms, np.ndarray[ndim=1, dtype=np.int32_t] indx_dm,
-            np.ndarray[ndim=1, dtype=np.float32_t] unitpervolt,
-            np.ndarray[ndim=1, dtype=np.int32_t] indx_pup,
-            np.ndarray[ndim=1, dtype=np.int32_t] indx_mpup, int roket=?)
-    cpdef init_modalOpti(self, int ncontro, int nmodes, int nrec, np.ndarray[ndim=2, dtype=np.float32_t] M2V,
-            float gmin, float gmax, int ngain, float Fs)
-    cpdef loadOpenLoop(self, int ncontro, np.ndarray[ndim=2, dtype=np.float32_t] ol_slopes)
-    cpdef modalControlOptimization(self, int ncontro)
-    cpdef set_gain(self, int ncontro, float gain)
-    cpdef set_mgain(self, int ncontro, np.ndarray[ndim=1, dtype=np.float32_t] mgain)
-    cpdef setCom(self, int ncontro, np.ndarray[ndim=1, dtype=np.float32_t] comvec)
-    cpdef setCentroids(self, int ncontro, np.ndarray[ndim=1, dtype=np.float32_t] centro)
-    cpdef get_mgain(self, int ncontro)
-    cpdef get_gain(self, int ncontro)
-    cpdef set_imat(self, int ncontro, np.ndarray[ndim=2, dtype=np.float32_t] data)
-    cpdef get_imat(self, int ncontro)
-    cpdef set_cmat(self, int ncontro, np.ndarray[ndim=2, dtype=np.float32_t] data)
-    cpdef get_cmat(self, int ncontro)
-    cpdef get_cphim(self, int ncontro)
-    cpdef get_cmm(self, int ncontro)
-    cpdef set_cmm(self, int ncontro, np.ndarray[ndim=2, dtype=np.float32_t] data)
-    cpdef set_decayFactor(self, int ncontro, np.ndarray[ndim=1, dtype=np.float32_t] decay)
-    cpdef set_matE(self, int ncontro, np.ndarray[ndim=2, dtype=np.float32_t] matE)
-    cpdef set_openloop(self, int ncontro, int openloop)
-    cpdef set_commandlaw(self, int ncontro, bytes law)
-    cpdef load_Btt(self,int ncontro, np.ndarray[ndim=2,dtype=np.float32_t] Btt)
-    cpdef getGeocov(self,int ncontro)
-    cpdef get_IFtt(self,int ncontro)
-    cpdef get_pyr_method(self, int n)
-    cpdef set_pyr_method(self, int n, int method, list p_centroiders)
-    cpdef set_pyr_thresh(self, int n, float threshold, list p_wfss)
-    cpdef set_pyr_ampl(self, int n, float ampli, list p_wfss, Param_tel p_centroiders)
-    cpdef doimat_geom(self, int ncontro, Dms g_dms, int geom)
-    cpdef doimat(self, int ncontro, Dms g_dms)
-    cpdef doimat_kl(self, int ncontro,Param_controller controller, Dms g_dms, p_dms, np.ndarray[ndim=2, dtype=np.float32_t] kl)
-    cpdef sensors_compslopes(self, int ncentro, int nmax=?, float thresh=?)
-    cdef add_controller(self, int nactu, float delay, bytes type_control, Dms dms,
-                 char ** type_dmseen, np.ndarray[ndim=1, dtype=np.float32_t] alt,
-                 int ndm, long Nphi=?, bool wfs_direction=?)
-
-
-    cpdef imat_svd(self, int ncontro)
-    cpdef setU(self, int ncontro, np.ndarray[ndim=2, dtype=np.float32_t] U)
-    cpdef setEigenvals(self, int ncontro, np.ndarray[ndim=1, dtype=np.float32_t] eigenvals)
-    cpdef getU(self, int ncontro)
-    cpdef getEigenvals(self, int ncontro)
-    cpdef getCmmEigenvals(self, int ncontro)
-    cpdef getCenbuff(self, int ncontro)
-    cpdef getErr(self, int ncontro)
-    cpdef getCom(self, int ncontro)
-    cpdef getolmeas(self, int ncontro)
-    cpdef getVoltage(self, int ncontro)
-    cpdef getCentroids(self, int ncontro)
-    cpdef buildcmat(self, int ncontro, int nfilt, int filt_tt=?)
-    cpdef buildcmatmv(self, int ncontro, float cond)
-    cpdef loadnoisemat(self, int ncontro, np.ndarray[ndim=1, dtype=np.float32_t] N)
-    cpdef doclipping(self, int ncontro, float min, float max)
-    cpdef docontrol(self, int ncontro)
-    cpdef docontrol_geo(self, int ncontro, Dms dms, Target target, int ntarget)
-    cpdef docontrol_geo_onwfs(self, int ncontro, Dms dms, Sensors wfs, int nwfs)
-    cpdef applycontrol(self, int ncontro, Dms dms)
-    cpdef get_nfiltered(self, int ncontro, Param_rtc p_rtc)
-    cpdef set_centroids_ref(self, int ncontrol, np.ndarray[ndim = 1, dtype = np.float32_t] centroids_ref)
-    cpdef get_centroids_ref(self, int ncontrol)
-    cpdef do_centroids_ref(self, int ncontrol)
-    cpdef set_perturbcom(self, int ncontrol, np.ndarray[ndim = 2, dtype = np.float32_t] perturb)
 
 IF USE_BRAMA == 1:
         cdef extern from * :

@@ -31,7 +31,7 @@ print("======================================")
 print((sys.path))
 print("======================================")
 
-listMod = ["Telescope", "Sensors", "Atmos", "Dms", "Target"]
+listMod = ["Telescope", "Sensors", "Atmos", "Dms", "Target", "Rtc"]
 dependencies = {
     "Sensors": ["Telescope"],
     "Target": ["Telescope"]

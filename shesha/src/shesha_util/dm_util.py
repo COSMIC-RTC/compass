@@ -7,11 +7,7 @@ Created on 3 aout 2017
 '''
 import numpy as np
 from shesha_config import shesha_constants as scons
-from shesha_config.PDMS import Param_dm
-from shesha_config.PGEOM import Param_geom
 from . import utilities as util
-from Dms import Dms
-from scipy.sparse import csr_matrix
 
 
 def dim_dm_support(
@@ -185,10 +181,14 @@ def select_actuators(
     """
     Select the "valid" actuators according to the system geometry
     :parameters:
-        p_dm: (Param_dm) : dm settings
-        cobs: telescope cobs
         xc: actuators x positions (origine in center of mirror)
         yc: actuators y positions (origine in center of mirror)
+        nxact:
+        pitch:
+        cobs:
+        margin_in:
+        margin_out:
+        N:
 
     :return:
         liste_fin: actuator indice selection for xpos/ypos
@@ -333,120 +333,3 @@ def zernumero(zn: int):
                     j = j + 1
                     if(j == zn):
                         return n, m
-
-
-def compute_KLbasis(
-        g_dm: Dms,
-        p_dm: Param_dm,
-        p_geom: Param_geom,
-        r0: float,
-        diam: float):
-    """Compute a Karhunen-Loeve basis for the dm:
-            - compute the phase covariance matrix on the actuators using Kolmogorov
-            - compute the geometric covariance matrix
-            - double diagonalisation to obtain KL basis
-
-    :parameters:
-        g_dm: (Dms) : Dms object
-
-        p_dm: (Param_dm) : dm settings
-
-        p_geom: (Param_geom) : geom settings
-
-        r0: (float) : atmos r0 in meter
-
-        diam: (float) : telescope diameter
-    """
-
-    if(p_dm.type_dm == scons.DmType.PZT):
-        tmp = (p_geom._ipupil.shape[0] - (p_dm._n2 - p_dm._n1 + 1)) // 2
-        tmp_e0 = p_geom._ipupil.shape[0] - tmp
-        tmp_e1 = p_geom._ipupil.shape[1] - tmp
-        pup = p_geom._ipupil[tmp:tmp_e0, tmp:tmp_e1]
-        indx_valid = np.where(pup.flatten("F") > 0)[0].astype(np.int32)
-        p2m = diam / p_geom.pupdiam
-        norm = -(p2m * diam / (2 * r0)) ** (5. / 3)
-
-        g_dm.compute_KLbasis(scons.DmType.PZT, p_dm.alt, p_dm._xpos,
-                             p_dm._ypos, indx_valid, indx_valid.size, norm, 1.0)
-        KLbasis = np.fliplr(g_dm.get_KLbasis(scons.DmType.PZT, p_dm.alt))
-    else:
-        raise TypeError("DM must be pzt type")
-
-    return KLbasis
-
-
-def compute_DMbasis(
-        g_dm: Dms,
-        p_dm: Param_dm,
-        p_geom: Param_geom):
-    """Compute a the DM basis as a sparse matrix :
-            - push on each actuator
-            - get the corresponding dm shape
-            - apply pupil mask and store in a column
-
-    :parameters:
-        g_dm: (Dms) : Dms object
-
-        p_dm: (Param_dm) : dm settings
-
-        p_geom: (Param_geom) : geom settings
-    :return:
-        IFbasis = (csr_matrix) : DM IF basis
-    """
-    tmp = (p_geom._ipupil.shape[0] - (p_dm._n2 - p_dm._n1 + 1)) // 2
-    tmp_e0 = p_geom._ipupil.shape[0] - tmp
-    tmp_e1 = p_geom._ipupil.shape[1] - tmp
-    pup = p_geom._ipupil[tmp:tmp_e0, tmp:tmp_e1]
-    indx_valid = np.where(pup.flatten("F") > 0)[0].astype(np.int32)
-
-    #IFbasis = np.ndarray((indx_valid.size, p_dm._ntotact), dtype=np.float32)
-    for i in range(p_dm._ntotact):
-        g_dm.resetdm(p_dm.type_dm, p_dm.alt)
-        g_dm.comp_oneactu(p_dm.type_dm, p_dm.alt, i, 1.0)
-        shape = g_dm.get_dm(p_dm.type_dm, p_dm.alt)
-        IFvec = csr_matrix(shape.flatten("F")[indx_valid])
-        if(i == 0):
-            val = IFvec.data
-            col = IFvec.indices
-            row = np.append(0, IFvec.getnnz())
-        else:
-            val = np.append(val, IFvec.data)
-            col = np.append(col, IFvec.indices)
-            row = np.append(row, row[-1] + IFvec.getnnz())
-    g_dm.resetdm(p_dm.type_dm, p_dm.alt)
-    IFbasis = csr_matrix((val, col, row))
-    return IFbasis
-
-
-def compute_IFsparse(
-        g_dm: Dms,
-        p_dms: list,
-        p_geom: Param_geom):
-    """Compute the influence functions of all DMs as a sparse matrix :
-            - push on each actuator
-            - get the corresponding dm shape
-            - apply pupil mask and store in a column
-
-    :parameters:
-        g_dm: (Dms) : Dms object
-
-        p_dms: (Param_dms) : dms settings
-
-        p_geom: (Param_geom) : geom settings
-    :return:
-        IFbasis = (csr_matrix) : DM IF basis
-    """
-    ndm = len(p_dms)
-    for i in range(ndm):
-        IFi = computeDMbasis(g_dm, p_dms[i], p_geom)
-        if(i == 0):
-            val = IFi.data
-            col = IFi.indices
-            row = IFi.indptr
-        else:
-            val = np.append(val, IFi.data)
-            col = np.append(col, IFi.indices)
-            row = np.append(row, row[-1] + IFi.indptr[1:])
-    IFsparse = csr_matrix((val, col, row))
-    return IFsparse

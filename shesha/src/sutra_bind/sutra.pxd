@@ -23,9 +23,6 @@ from libc.stdint cimport uintptr_t, uint8_t
 from cpython.string cimport PyString_AsString
 from libc.math cimport sin
 
-cdef np.float32_t dtor = (np.pi / 180.)
-
-
 ctypedef enum cudaChannelFormatDesc:
     f
     w
