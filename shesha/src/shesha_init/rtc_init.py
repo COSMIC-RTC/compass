@@ -20,6 +20,7 @@ from Sensors import Sensors
 from Telescope import Telescope
 from Atmos import Atmos
 from Target import Target
+from Rtc import Rtc
 
 
 def rtc_init(
@@ -87,7 +88,7 @@ def rtc_init(
     if p_centroiders is not None:
         for i in range(ncentro):
             nwfs = p_centroiders[i].nwfs
-            init_centroider(nwfs, p_wfss[nwfs], p_centroiders[i], rtc)
+            init_centroider(nwfs, p_wfss[nwfs], p_centroiders[i], wfs, rtc)
 
     if p_controllers is not None:
         if(p_wfss is not None and p_dms is not None):
@@ -128,6 +129,7 @@ def init_centroider(
     nwfs: int,
     p_wfs: conf.Param_wfs,
     p_centroider: conf.Param_centroider,
+    wfs: Sensors,
     rtc: Rtc,
 ):
     """ Initialize a centroider object in Rtc
@@ -136,6 +138,7 @@ def init_centroider(
         nwfs : (int) : index of wfs
         p_wfs : (Param_wfs): wfs settings
         p_centroider : (Param_centroider) : centroider settings
+        wfs: (Sensors): Sensor object
         rtc : (Rtc) : Rtc object
     """
     if(p_wfs.type_wfs == conf.WFSType.SH):
@@ -170,7 +173,7 @@ def init_centroider(
             rtc.setthresh(i, p_centroider.thresh)
         elif(p_centroider.type_centro == conf.CentroiderType.BPCOG):
             rtc.setnmax(i, p_centroider.nmax)
-        elif(p_centroider.type_centro == conf.CentroiderType.WCOG or p_centroider.type_centro == conf.CentroiderType.CORR)
+        elif(p_centroider.type_centro == conf.CentroiderType.WCOG or p_centroider.type_centro == conf.CentroiderType.CORR):
             comp_weights(p_centroider, p_wfs, p_atmos.r0)
             if p_centroider.type_centro == conf.CentroiderType.WCOG:
                 rtc.init_weights(i, p_centroider.weights)
@@ -292,7 +295,7 @@ def init_controller(
     if(p_controller.type_control != conf.ControllerType.GEO):
         nwfs = p_controller.nwfs
         if(len(p_wfss) == 1):
-            nwfs = p_controllers[i].nwfs
+            nwfs = p_controller.nwfs
             # TODO fixing a bug ... still not understood
         nvalid = sum([p_wfss[k]._nvalid for k in nwfs])
         p_controller.set_nvalid(nvalid)

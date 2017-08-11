@@ -638,14 +638,14 @@ def correct_dm(
     :parameters:
         dms: (Dms) : Dms object
         p_dms: (list of Param_dm) : dms settings
-        p_control: (Param_controller) : controller settings
+        p_controller: (Param_controller) : controller settings
         p_geom: (Param_geom) : geom settings
         imat: (np.ndarray) : interaction matrix
     """
     print("Filtering unseen actuators... ")
-    ndm = p_control.ndm.size
+    ndm = p_controller.ndm.size
     for i in range(ndm):
-        nm = p_control.ndm[i]
+        nm = p_controller.ndm[i]
         dms.remove_dm(p_dms[nm].type_dm, p_dms[nm].alt)
 
     resp = np.sqrt(np.sum(imat ** 2, axis=0))
@@ -653,7 +653,7 @@ def correct_dm(
     inds = 0
 
     for nmc in range(ndm):
-        nm = p_control.ndm[nmc]
+        nm = p_controller.ndm[nmc]
         nactu_nm = p_dms[nm]._ntotact
         # filter actuators only in stackarray mirrors:
         if(p_dms[nm].type_dm == conf.DmType.PZT):
@@ -661,12 +661,12 @@ def correct_dm(
             ok = np.where(tmp > p_dms[nm].thresh * np.max(tmp))[0]
             nok = np.where(tmp <= p_dms[nm].thresh * np.max(tmp))[0]
 
+            p_dms[nm].set_ntotact(ok.shape[0])
+            p_dms[nm].set_influ(p_dms[nm]._influ[:, :, ok.tolist()])
             p_dms[nm].set_xpos(p_dms[nm]._xpos[ok])
             p_dms[nm].set_ypos(p_dms[nm]._ypos[ok])
             p_dms[nm].set_i1(p_dms[nm]._i1[ok])
             p_dms[nm].set_j1(p_dms[nm]._j1[ok])
-            p_dms[nm].set_influ(p_dms[nm]._influ[:, :, ok.tolist()])
-            p_dms[nm].set_ntotact(p_dms[nm]._influ.shape[2])
 
             comp_dmgeom(p_dms[nm], p_geom)
 

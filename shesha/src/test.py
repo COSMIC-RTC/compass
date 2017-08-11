@@ -94,8 +94,7 @@ p_wfs1.set_beamsize(0.8)
 """
 p_dm0 = conf.Param_dm()
 p_dm1 = conf.Param_dm()
-p_dm2 = conf.Param_dm()
-p_dms = [p_dm0, p_dm1, p_dm2]
+p_dms = [p_dm0, p_dm1]
 p_dm0.set_type_dm("pzt")
 nact = p_wfs0.nxsub + 1
 p_dm0.set_nact(nact)
@@ -110,10 +109,28 @@ p_dm1.set_alt(0.)
 p_dm1.set_unitpervolt(0.0005)
 p_dm1.set_push4imat(10.)
 
-p_dm2.set_type_dm("kl")
-p_dm2.set_nkl(100)
-p_dm2.set_unitpervolt(0.0005)
-p_dm2.set_push4imat(10.)
+
+p_centroider0 = conf.Param_centroider()
+p_centroiders = [p_centroider0]
+p_centroider0.set_nwfs(0)
+p_centroider0.set_type_centro("cog")
+# controllers
+p_controller0 = conf.Param_controller()
+p_controllers = [p_controller0]
+
+p_controller0.set_type_control("ls")
+p_controller0.set_nwfs([0])
+p_controller0.set_ndm([0, 1])
+p_controller0.set_maxcond(150.)
+p_controller0.set_delay(1.)
+p_controller0.set_gain(0.3)
+
+p_controller0.set_modopti(0)
+p_controller0.set_nrec(2048)
+p_controller0.set_nmodes(3532)
+p_controller0.set_gmin(0.001)
+p_controller0.set_gmax(0.5)
+p_controller0.set_ngain(500)
 
 
 # p_geom.geom_init(p_tel)
@@ -123,6 +140,7 @@ from shesha_init.wfs_init import wfs_init
 from shesha_init.geom_init import tel_init
 from shesha_init.dm_init import dm_init
 from shesha_init.target_init import target_init
+from shesha_init.rtc_init import rtc_init
 
 c = naga.naga_context(0)
 
@@ -131,6 +149,8 @@ Atmos = atmos_init(c, p_atmos, p_tel, p_geom, p_loop)
 Dms = dm_init(c, p_dms, p_wfss, p_geom, p_tel)
 Tar = target_init(c, Tel, p_target, p_atmos, p_geom, p_tel, p_dms)
 Wfs = wfs_init(c, p_wfss, p_dms, p_atmos, p_tel, p_geom, p_loop, Tel)
+Rtc = rtc_init(c, Tel, Wfs, Dms, Atmos, p_wfss, p_dms, p_geom,
+               p_centroiders, p_controllers, p_atmos, p_tel, p_loop)
 
 Atmos.move_atmos()
 Wfs.raytrace(0, b"atmos", Tel, Atmos)

@@ -4,7 +4,7 @@ import shesha_config as conf
 from Sensors import Sensors
 from Dms import Dms
 from Rtc import Rtc
-from wfs import noise_cov
+from shesha_ao.wfs import noise_cov
 
 
 def cmat_init(

@@ -18,47 +18,47 @@ from . import shesha_constants as scons
 class Param_controller:
 
     def __init__(self):
-    self.__type_control = None
-    """ type of controller"""
-    self.__kl_imat = False
-    """ set imat kl on-off"""
-    self.__klgain = None
-    """ gain for kl mod in imat kl """
-    self.__nwfs = None
-    """ index of wfss in controller"""
-    self.__nvalid = None
-    """ number of valid subaps per wfs"""
-    self.__ndm = None
-    """ index of dms in controller"""
-    self.__nactu = None
-    """ number of controled actuator per dm"""
-    self.__imat = None
-    """ full interaction matrix"""
-    self.__cmat = None
-    """ full control matrix"""
-    self.__maxcond = None
-    """ max condition number"""
-    self.__TTcond = None
-    """ tiptilt condition number for cmat filtering with mv controller"""
-    self.__delay = None
-    """ loop delay [frames]"""
-    self.__gain = None
-    """ loop gain """
-    self.__nkl = None
-    self.__cured_ndivs = None
-    """ subdivision levels in cured"""
-    self.__modopti = False
-    """ Flag for modal optimization"""
-    self.__nrec = 2048
-    """ Number of sample of open loop slopes for modal optimization computation"""
-    self.__nmodes = None
-    """ Number of modes for M2V matrix (modal optimization)"""
-    self.__gmin = 0.
-    """ Minimum gain for modal optimization"""
-    self.__gmax = 1.
-    """ Maximum gain for modal optimization"""
-    self.__ngain = 15
-    """ Number of tested gains"""
+        self.__type_control = None
+        """ type of controller"""
+        self.__kl_imat = False
+        """ set imat kl on-off"""
+        self.__klgain = None
+        """ gain for kl mod in imat kl """
+        self.__nwfs = None
+        """ index of wfss in controller"""
+        self.__nvalid = None
+        """ number of valid subaps per wfs"""
+        self.__ndm = None
+        """ index of dms in controller"""
+        self.__nactu = None
+        """ number of controled actuator per dm"""
+        self.__imat = None
+        """ full interaction matrix"""
+        self.__cmat = None
+        """ full control matrix"""
+        self.__maxcond = None
+        """ max condition number"""
+        self.__TTcond = None
+        """ tiptilt condition number for cmat filtering with mv controller"""
+        self.__delay = None
+        """ loop delay [frames]"""
+        self.__gain = None
+        """ loop gain """
+        self.__nkl = None
+        self.__cured_ndivs = None
+        """ subdivision levels in cured"""
+        self.__modopti = False
+        """ Flag for modal optimization"""
+        self.__nrec = 2048
+        """ Number of sample of open loop slopes for modal optimization computation"""
+        self.__nmodes = None
+        """ Number of modes for M2V matrix (modal optimization)"""
+        self.__gmin = 0.
+        """ Minimum gain for modal optimization"""
+        self.__gmax = 1.
+        """ Maximum gain for modal optimization"""
+        self.__ngain = 15
+        """ Number of tested gains"""
 
     def set_kl_imat(self, n):
         """Set type imat, for imat on kl set at 1
@@ -104,7 +104,7 @@ class Param_controller:
         :param l: (np.ndarray[ndim=1, dtype=np.int32]) : indices of wfs
         """
         self.__nwfs = csu.enforce_array(
-            n, len(n), dtype=np.float32, scalar_expand=True)
+            l, len(l), dtype=np.int32, scalar_expand=True)
 
     nwfs = property(lambda x: x.__nwfs, set_nwfs)
 
@@ -114,7 +114,7 @@ class Param_controller:
         :param l: (np.ndarray[ndim=1, dtype=np.int32]) : indices of dms
         """
         self.__ndm = csu.enforce_array(
-            n, len(n), dtype=np.float32, scalar_expand=True)
+            l, len(l), dtype=np.int32, scalar_expand=True)
 
     ndm = property(lambda x: x.__ndm, set_ndm)
 
@@ -124,17 +124,16 @@ class Param_controller:
         :param l: (np.ndarray[ndim=1, dtype=np.int32]) : indices of dms
         """
         self.__nactu = csu.enforce_array(
-            n, len(n), dtype=np.float32, scalar_expand=True)
+            l, len(l), dtype=np.int32, scalar_expand=True)
 
     nactu = property(lambda x: x.__nactu, set_nactu)
 
     def set_nvalid(self, l):
         """Set the number of valid subaps
 
-        :param l: (list of int) : number of valid subaps per wfs
+        :param l: (list of int) : number of valid subaps
         """
-        self.__nvalid = csu.enforce_array(
-            n, len(n), dtype=np.float32, scalar_expand=True)
+        self.__nvalid = csu.enforce_int(l)
 
     nvalid = property(lambda x: x.__nvalid, set_nvalid)
 

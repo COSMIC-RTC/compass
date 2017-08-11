@@ -101,7 +101,7 @@ def noise_cov(
 
 
 def comp_new_fstop(
-        wfs: Sensors, n: int, p_wfs: Param_wfs, fssize: float, fstop: bytes):
+        wfs: Sensors, n: int, p_wfs: conf.Param_wfs, fssize: float, fstop: bytes):
     """
         Compute a new field stop for pyrhr WFS
 

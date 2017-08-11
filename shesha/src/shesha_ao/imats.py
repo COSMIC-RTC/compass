@@ -39,7 +39,7 @@ def imat_geom(
     imat_cpu = np.zeros((imat_size1, imat_size2), dtype=np.float32)
     ind = 0
     cc = 0
-    print("Doing imat geom...%d%%" % cc + 1, end='')
+    print("Doing imat geom...%d%%" % (cc + 1), end='')
     for nmc in range(ndm):
         nm = p_controller.ndm[nmc]
         dms.resetdm(p_dms[nm].type_dm, p_dms[nm].alt)
@@ -48,13 +48,13 @@ def imat_geom(
                         i, p_dms[nm].push4imat)
             nslps = 0
             for nw in range(nwfs):
-                wfs = p_controller.nwfs[nw]
-                wfs.raytrace(wfs, b"dm", tel=None,
+                n = p_controller.nwfs[nw]
+                wfs.raytrace(n, b"dm", tel=None,
                              atmos=None, dms=dms, rst=1)
-                wfs.slopes_geom(wfs, meth)
-                imat_cpu[nslps:nslps + p_wfss[wfs]._nvalid *
-                         2, ind] = wfs._get_slopes(wfs)
-                nslps += p_wfss[wfs]._nvalid * 2
+                wfs.slopes_geom(n, meth)
+                imat_cpu[nslps:nslps + p_wfss[n]._nvalid *
+                         2, ind] = wfs.get_slopes(n)
+                nslps += p_wfss[n]._nvalid * 2
             imat_cpu[:, ind] = imat_cpu[:, ind] / p_dms[nm].push4imat
             ind = ind + 1
             cc = cc + 1

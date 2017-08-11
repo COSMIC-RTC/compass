@@ -1,6 +1,7 @@
 import numpy as np
 
 from Dms import Dms
+from Rtc import Rtc
 import shesha_config as conf
 from scipy.sparse import csr_matrix
 
