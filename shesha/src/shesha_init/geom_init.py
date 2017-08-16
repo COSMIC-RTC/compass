@@ -10,7 +10,7 @@ from naga import naga_context
 
 import shesha_config as conf
 import shesha_constants as scons
-from shesha_constant import CONST
+from shesha_constants import CONST
 
 import shesha_util.make_pupil as mkP
 import shesha_util.utilities as util

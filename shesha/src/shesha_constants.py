@@ -158,10 +158,10 @@ class ProfType:
     GAUSS3 = b'Gauss3'
     EXP = b'Exp'
     FILES = dict({
-            GAUSS1: b"allProfileNa_withAltitude_1Gaussian.npy",
-            GAUSS2: b"allProfileNa_withAltitude_2Gaussian.npy",
-            GAUSS3: b"allProfileNa_withAltitude_3Gaussian.npy",
-            EXP: b"allProfileNa_withAltitude.npy"})
+            GAUSS1: "allProfileNa_withAltitude_1Gaussian.npy",
+            GAUSS2: "allProfileNa_withAltitude_2Gaussian.npy",
+            GAUSS3: "allProfileNa_withAltitude_3Gaussian.npy",
+            EXP: "allProfileNa_withAltitude.npy"})
 
 
 class FieldStopType:

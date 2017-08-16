@@ -1,9 +1,6 @@
 import numpy as np
 cimport numpy as np
 
-import shesha_util.make_pupil as mkP
-import shesha_config.shesha_constants as scons
-import os
 
 cdef class Sensors:
     """
@@ -74,17 +71,17 @@ cdef class Sensors:
         del self.sensors
 
     def init_gs(self, np.ndarray[ndim=1, dtype=np.float32_t] xpos,
-                         np.ndarray[ndim=1, dtype=np.float32_t] ypos,
-                         np.ndarray[ndim=1, dtype=np.float32_t] Lambda,
-                         np.ndarray[ndim=1, dtype=np.float32_t] mag,
-                         float zerop,
-                         np.ndarray[ndim=1, dtype=np.int64_t] size,
-                         np.ndarray[ndim=1, dtype=np.float32_t] noise,
-                         np.ndarray[ndim=1, dtype=np.int64_t] seed,
-                         np.ndarray[ndim=1, dtype=np.float32_t] G,
-                         np.ndarray[ndim=1, dtype=np.float32_t] thetaML,
-                         np.ndarray[ndim=1, dtype=np.float32_t] dx,
-                         np.ndarray[ndim=1, dtype=np.float32_t] dy):
+                np.ndarray[ndim=1, dtype=np.float32_t] ypos,
+                np.ndarray[ndim=1, dtype=np.float32_t] Lambda,
+                np.ndarray[ndim=1, dtype=np.float32_t] mag,
+                float zerop,
+                np.ndarray[ndim=1, dtype=np.int64_t] size,
+                np.ndarray[ndim=1, dtype=np.float32_t] noise,
+                np.ndarray[ndim=1, dtype=np.int64_t] seed,
+                np.ndarray[ndim=1, dtype=np.float32_t] G,
+                np.ndarray[ndim=1, dtype=np.float32_t] thetaML,
+                np.ndarray[ndim=1, dtype=np.float32_t] dx,
+                np.ndarray[ndim=1, dtype=np.float32_t] dy):
         """
             Call the function sensors_initgs
 
@@ -124,15 +121,16 @@ cdef class Sensors:
                                          < float * > noise.data, < long * > seed.data,
                                          < float * > G.data, < float * > thetaML.data,
                                          < float * > dx.data, < float * > dy.data)
+
     def init_lgs(self, int n, int prof1dSize,
-                        float hG, float h0, float dh,
-                        float qpixsize,
-                        np.ndarray[ndim=1, dtype=np.float32_t] dOffAxis,
-                        np.ndarray[ndim=1, dtype=np.float32_t] prof1d,
-                        np.ndarray[ndim=1, dtype=np.float32_t] profcum,
-                        np.ndarray[ndim=1, dtype=np.float32_t] beam,
-                        np.ndarray[ndim=1, dtype=np.complex64_t] ftbeam,
-                        np.ndarray[ndim=1, dtype=np.float32_t] azimuth):
+                 float hG, float h0, float dh,
+                 float qpixsize,
+                 np.ndarray[ndim=1, dtype=np.float32_t] dOffAxis,
+                 np.ndarray[ndim=1, dtype=np.float32_t] prof1d,
+                 np.ndarray[ndim=1, dtype=np.float32_t] profcum,
+                 np.ndarray[ndim=1, dtype=np.float32_t] beam,
+                 np.ndarray[ndim=1, dtype=np.complex64_t] ftbeam,
+                 np.ndarray[ndim=1, dtype=np.float32_t] azimuth):
         """
             Call the function lgs_init
 
@@ -163,20 +161,20 @@ cdef class Sensors:
         lgs.lgs_makespot(self.context.c.get_device(self.sensors.device), 0)
 
     def init_arrays(self, int n,
-                            np.ndarray[ndim=2, dtype=np.int32_t] phasemap,
-                            np.ndarray[ndim=2, dtype=np.int32_t] hrmap,
-                            float_or_complex halfxy,
-                            np.ndarray[ndim=1, dtype=np.float32_t] fluxPerSub,
-                            np.ndarray[ndim=1, dtype=np.int32_t] validx,
-                            np.ndarray[ndim=1, dtype=np.int32_t] validy,
-                            np.ndarray[ndim=1, dtype=np.int32_t] istart = None,
-                            np.ndarray[ndim=1, dtype=np.int32_t] jstart = None,
-                            np.ndarray[ndim=2, dtype=np.int32_t] binmap = None,
-                            np.ndarray[ndim=2, dtype=np.complex64_t] ftkernel = None,
-                            np.ndarray[ndim=1, dtype=np.float32_t] cx = None,
-                            np.ndarray[ndim=1, dtype=np.float32_t] cy = None,
-                            np.ndarray[ndim=2, dtype=np.float32_t] sincar = None,
-                            np.ndarray[ndim=2, dtype=np.float32_t] submask = None):
+                    np.ndarray[ndim=2, dtype=np.int32_t] phasemap,
+                    np.ndarray[ndim=2, dtype=np.int32_t] hrmap,
+                    float_or_complex halfxy,
+                    np.ndarray[ndim=1, dtype=np.float32_t] fluxPerSub,
+                    np.ndarray[ndim=1, dtype=np.int32_t] validx,
+                    np.ndarray[ndim=1, dtype=np.int32_t] validy,
+                    np.ndarray[ndim=1, dtype=np.int32_t] istart=None,
+                    np.ndarray[ndim=1, dtype=np.int32_t] jstart=None,
+                    np.ndarray[ndim=2, dtype=np.int32_t] binmap=None,
+                    np.ndarray[ndim=2, dtype=np.complex64_t] ftkernel=None,
+                    np.ndarray[ndim=1, dtype=np.float32_t] cx=None,
+                    np.ndarray[ndim=1, dtype=np.float32_t] cy=None,
+                    np.ndarray[ndim=2, dtype=np.float32_t] sincar=None,
+                    np.ndarray[ndim=2, dtype=np.float32_t] submask=None):
         """
             Call the function wfs_initarrays from a sutra_wfs of the Sensors
 
@@ -190,20 +188,20 @@ cdef class Sensors:
         cdef sutra_wfs_sh * wfs_sh = NULL
         cdef sutra_wfs_pyr_pyrhr * wfs_pyrhr = NULL
 
-        cdef np.ndarray[ndim=2,dtype= np.int32_t] phasemap_F = phasemap.T.copy()
+        cdef np.ndarray[ndim = 2, dtype = np.int32_t] phasemap_F = phasemap.T.copy()
         cdef float_or_complex halfxy_F = halfxy.T.copy()
-        cdef np.ndarray[ndim=2,dtype= np.int32_t] binmap_F
-        cdef np.ndarray[ndim=2,dtype= np.int32_t] hrmap_F
-        cdef np.ndarray[ndim=2,dtype= np.complex64_t] ftkernel_F
-        cdef np.ndarray[ndim=2,dtype= np.float32_t] sincar_F
-        cdef np.ndarray[ndim=2,dtype= np.float32_t] submask_F
+        cdef np.ndarray[ndim = 2, dtype = np.int32_t] binmap_F
+        cdef np.ndarray[ndim = 2, dtype = np.int32_t] hrmap_F
+        cdef np.ndarray[ndim = 2, dtype = np.complex64_t] ftkernel_F
+        cdef np.ndarray[ndim = 2, dtype = np.float32_t] sincar_F
+        cdef np.ndarray[ndim = 2, dtype = np.float32_t] submask_F
 
         if(self.sensors.d_wfs[n].type == b"pyrhr"):
             sincar_F = sincar.T.copy()
             submask_F = submask.T.copy()
             wfs_pyrhr = dynamic_cast_wfs_pyr_pyrhr_ptr(self.sensors.d_wfs[n])
             wfs_pyrhr.wfs_initarrays(
-                < cuFloatComplex *> halfxy_F.data,
+                < cuFloatComplex * > halfxy_F.data,
                 < float * > cx.data,
                 < float * > cy.data,
                 < float * > sincar_F.data,
@@ -231,7 +229,7 @@ cdef class Sensors:
                 < cuFloatComplex * > ftkernel_F.data)
 
     def add_layer(self, int i, bytes type_dm, float alt,
-                           float xoff, float yoff):
+                  float xoff, float yoff):
         """
             Call function add_layer from the sutra_source of a sutra_wfs of the Sensors
 
@@ -339,7 +337,6 @@ cdef class Sensors:
         if tel is not None:
             d_screen.axpy(1.0, tel.telescope.d_phase_ab_M1_m, 1, 1)
 
-
     def __str__(self):
         info = "Sensors object:\n"
         info += "Contains " + str(self.sensors.nsensors()) + " WFS(s):\n"
@@ -365,6 +362,7 @@ cdef class Sensors:
       |_______/    |_______|    |__|         \___/\/    \______| |_______|    |__|
 
     """
+
     def get_offsets(self, int n):
         """
             Return the 'offset' array of a given wfs
@@ -642,7 +640,6 @@ cdef class Sensors:
         data_F = np.empty((cdims[2], cdims[1]), dtype=np.float32)
         self.sensors.d_wfs[n].get_ncpa_phase(< float*>data_F.data, data_F.size)
         return data_F.T.copy()
-
 
     cdef _get_bincube(self, int n):
         """

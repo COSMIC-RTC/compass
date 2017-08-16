@@ -10,12 +10,11 @@ try:
     shesha_db = os.environ['SHESHA_DB_ROOT']
 except KeyError as err:
     import warnings
-    shesha_db = shesha_dir + "/data/"
+    shesha_db = os.environ['SHESHA_ROOT'] + "/data/"
     warnings.warn(
-            "'SHESHA_DB_ROOT' not defined, using default one: " +
-            str(shesha_db))
+            "'SHESHA_DB_ROOT' not defined, using default one: " + shesha_db)
 finally:
-    shesha_savepath = bytes(shesha_db, 'utf8')
+    shesha_savepath = shesha_db
 print("shesha_savepath:", shesha_savepath)
 
 import shesha_config as conf
@@ -223,7 +222,7 @@ def prep_lgs_prof(
 
     profile_path = shesha_savepath + profilename
     print("reading Na profile from", profile_path)
-    prof = np.load(profile_path.decode("utf-8"))
+    prof = np.load(profile_path)
     make_lgs_prof1d(
             p_wfs,
             p_tel,
