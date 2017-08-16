@@ -7,9 +7,11 @@ Created on 1 aout 2017
 '''
 import numpy as np
 
+
 def rebin(a, shape):
     sh = shape[0], a.shape[0] // shape[0], shape[1], a.shape[1] // shape[1]
     return a.reshape(sh).mean(-1).mean(1)
+
 
 def fft_goodsize(s):
     """find best size for a fft from size s
@@ -17,7 +19,7 @@ def fft_goodsize(s):
     :parameters:
          s: (int) size
     """
-    return 2 ** (int(np.log2(s)) + 1)
+    return 2**(int(np.log2(s)) + 1)
 
 
 def bin2d(data_in, binfact):
@@ -37,7 +39,7 @@ def bin2d(data_in, binfact):
         binfact: (int) : binning factor
 
     """
-    if(binfact < 1):
+    if (binfact < 1):
         raise ValueError("binfact has to be >= 1")
 
     nx = data_in.shape[0]
@@ -53,13 +55,46 @@ def bin2d(data_in, binfact):
                 for j2 in range(binfact):
                     i = i1 * binfact + i2
                     j = j1 * binfact + j2
-                    if(i >= nx):
+                    if (i >= nx):
                         i = nx - 1
-                    if(j >= ny):
+                    if (j >= ny):
                         j = ny - 1
                     data_out[i1, j1] += data_in[i, j]
 
     return data_out
+
+
+def indices(dim1, dim2=-1):
+    """indices(int dim1, int dim2=-1)
+    Return a dimxdimx2 array. First plane is the X indices of the pixels
+    in the dimxdim array. Second plane contains the Y indices.
+
+    Inspired by the Python scipy routine of the same name.
+
+    New (June 12 2002): dim can either be :
+
+    - a single number N (e.g. 128) in which case the returned array are
+      square (NxN)
+    - a Yorick array size, e.g. [#dimension,N1,N2], in which case
+      the returned array are N1xN2
+    - a vector [N1,N2], same result as previous case
+
+    F.Rigaut 2002/04/03
+    SEE ALSO: span
+
+    :param dim1: (int) : first dimension
+    :param dim2: (int) : (optional) second dimension
+
+    """
+    if (dim2 < 0):
+        y = np.tile((np.arange(dim1, dtype=np.float32) + 1), (dim1, 1))
+        x = np.copy(y.T)
+        return y, x
+    else:
+        x = np.tile((np.arange(dim1, np.float32) + 1), (dim2, 1))
+        y = np.tile((np.arange(dim2, np.float32) + 1), (dim1, 1)).T
+        return y, x
+
 
 def MESH(Range, Dim):
     last = (0.5 * Range - 0.25 / Dim)
@@ -93,7 +128,8 @@ def dist(dim, xc=-1, yc=-1):
     d = np.sqrt(dx**2 + dy**2)
     return d
 
-def makegaussian(size, fwhm, xc=-1,  yc=-1, norm=0):
+
+def makegaussian(size, fwhm, xc=-1, yc=-1, norm=0):
     """makegaussian(int size, float fwhm, int xc=-1, int yc=-1, int norm=0)
     Returns a centered gaussian of specified size and fwhm.
     norm returns normalized 2d gaussian
@@ -105,7 +141,7 @@ def makegaussian(size, fwhm, xc=-1,  yc=-1, norm=0):
     :param norm: (int) : (optional) normalization
 
     """
-    tmp = np.exp(-(dist(size, xc, yc) / (fwhm / 1.66)) ** 2.)
+    tmp = np.exp(-(dist(size, xc, yc) / (fwhm / 1.66))**2.)
     if (norm > 0):
-        tmp = tmp / (fwhm ** 2. * 1.140075)
+        tmp = tmp / (fwhm**2. * 1.140075)
     return tmp

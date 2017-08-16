@@ -36,7 +36,7 @@ def comp_new_fstop(
         # fstop_area = np.pi * (p_wfs.fssize/2.)**2. #UNUSED
     elif (p_wfs.fstop == scons.FieldStopType.SQUARE):
         p_wfs.fstop = fstop
-        x, y = indices(p_wfs._Nfft)
+        x, y = util.indices(p_wfs._Nfft)
         x -= (p_wfs._Nfft + 1.) / 2.
         y -= (p_wfs._Nfft + 1.) / 2.
         focmask = (np.abs(x) <= (fsradius_pixels)) * \
