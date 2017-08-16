@@ -34,7 +34,7 @@ cdef class Rtc:
         info = "Contains " + str(self.rtc.d_centro.size()) + " Centroider(s)\n"
         info += "Centro # | Type  | nwfs | Nvalid\n"
 
-        for i in range( < int > self.rtc.d_centro.size()):
+        for i in range(< int > self.rtc.d_centro.size()):
             centro = self.rtc.d_centro[i]
             info += "%8d" % (i + 1) + " | " + "%5s" % centro.get_type() + " | " + "%4d" % (centro.nwfs + 1) + \
                     " | " + str(centro.nvalid) + "\n"
@@ -43,7 +43,7 @@ cdef class Rtc:
             str(self.rtc.d_control.size()) + " Controller(s):\n"
         info += "Control # | Type  | Nslope | Nactu\n"
 
-        for i in range( < int > self.rtc.d_control.size()):
+        for i in range(< int > self.rtc.d_control.size()):
             control = self.rtc.d_control[i]
             info += "%9d" % (i + 1) + " | " + "%5s" % control.get_type() + " | " + "%6d" % control.nslope() + \
                     " | " + str(control.nactu()) + "\n"
@@ -102,7 +102,7 @@ cdef class Rtc:
 
             Nphi: (long) : number of pixels in the pupil (used in geo controler case only)
         """
-        type_dmseen = < char ** > malloc(len(dmseen) * sizeof(char *))
+        type_dmseen = < char ** > malloc(len(dmseen) * sizeof(char * ))
         for j in range(len(dmseen)):
             type_dmseen[j] = dmseen[j]
 
@@ -146,7 +146,7 @@ cdef class Rtc:
             dynamic_cast_centroider_wcog_ptr(self.rtc.d_centro[ncentro])
         centro.init_weights()
         cdef np.ndarray w_F = w.T.copy()
-        centro.load_weights(< float * > w_F.data, int(w.ndim))
+        centro.load_weights( < float * > w_F.data, int(w.ndim))
 
     def init_corr(self, int ncentro, np.ndarray[ndim=2, dtype=np.float32_t] w,
                   np.ndarray[ndim=2, dtype=np.float32_t] corr_norm,
@@ -168,10 +168,10 @@ cdef class Rtc:
         cdef sutra_centroider_corr * centro_corr = dynamic_cast_centroider_corr_ptr(
             self.rtc.d_centro[ncentro])
         cdef np.ndarray w_F = w.T.copy()
-        cdef np.ndarray[dtype= np.float32_t] corr_norm_F = corr_norm.T.copy()
-        cdef np.ndarray[dtype= np.float32_t] interpmat_F = interpmat.T.copy()
+        cdef np.ndarray[dtype = np.float32_t] corr_norm_F = corr_norm.T.copy()
+        cdef np.ndarray[dtype = np.float32_t] interpmat_F = interpmat.T.copy()
         centro_corr.init_corr(sizex, sizey, < float * > interpmat_F.data)
-        centro_corr.load_corr( < float * > w_F.data, < float * > corr_norm_F.data, int(w.ndim))
+        centro_corr.load_corr(< float * > w_F.data, < float * > corr_norm_F.data, int(w.ndim))
 
     def do_centroids(self, int ncontrol=-1):
         """Compute the centroids with sutra_controller #ncontrol object
@@ -246,7 +246,7 @@ cdef class Rtc:
         self.context.set_activeDeviceForCpy(self.rtc.device, 1)
         cdef sutra_controller_ls * controller_ls
 
-        cdef np.ndarray[dtype= np.float32_t] M2V_F = M2V.T.copy()
+        cdef np.ndarray[dtype = np.float32_t] M2V_F = M2V.T.copy()
         cdef bytes type_control = self.rtc.d_control[ncontrol].get_type()
         if(type_control == scons.ControllerType.LS):
             controller_ls = dynamic_cast_controller_ls_ptr(
@@ -267,12 +267,12 @@ cdef class Rtc:
         self.context.set_activeDeviceForCpy(self.rtc.device, 1)
         cdef sutra_controller_ls * controller_ls
 
-        cdef np.ndarray[dtype= np.float32_t] slopes_F = ol_slopes.T.copy()
+        cdef np.ndarray[dtype = np.float32_t] slopes_F = ol_slopes.T.copy()
         cdef bytes type_control = self.rtc.d_control[ncontrol].get_type()
         if(type_control == scons.ControllerType.LS):
             controller_ls = dynamic_cast_controller_ls_ptr(
                 self.rtc.d_control[ncontrol])
-            controller_ls.loadOpenLoopSlp(< float * > slopes_F.data)
+            controller_ls.loadOpenLoopSlp( < float * > slopes_F.data)
         else:
             raise TypeError("Controller type must be ls")
 
@@ -349,7 +349,7 @@ cdef class Rtc:
         if(type_control == scons.ControllerType.MV):
             controller_mv = dynamic_cast_controller_mv_ptr(
                 self.rtc.d_control[ncontrol])
-            controller_mv.filter_cphim( < float * > F.data, < float * > Nact.data)
+            controller_mv.filter_cphim(< float * > F.data, < float * > Nact.data)
         else:
             raise TypeError("Controller needs to be mv")
 
@@ -472,14 +472,14 @@ cdef class Rtc:
 
         cdef carma_obj[float] * phase
         cdef sutra_wfs * wfs
-        cdef np.ndarray[ndim= 1, dtype = np.float32_t] h_ref
-        cdef np.ndarray[ndim= 1, dtype = np.float32_t] h_rawslp
+        cdef np.ndarray[ndim = 1, dtype = np.float32_t] h_ref
+        cdef np.ndarray[ndim = 1, dtype = np.float32_t] h_rawslp
         cdef sutra_controller * control = self.rtc.d_control[ncontrol]
         cdef int nslope = control.nslope()
         cdef float tmp
 
         print("Doing refslp...")
-        for idx_cntr in range( < int > self.rtc.d_centro.size()):
+        for idx_cntr in range(< int > self.rtc.d_centro.size()):
             wfs = self.rtc.d_centro[idx_cntr].wfs
             phase = wfs.d_gs.d_phase.d_screen
             phase.reset()
@@ -515,9 +515,9 @@ cdef class Rtc:
         cdef sutra_dm * dm
         cdef sutra_wfs * wfs
         cdef carma_obj[float] * screen
-        cdef vector[sutra_dm *].iterator it_dm
+        cdef vector[sutra_dm * ].iterator it_dm
         cdef float * d_centroids
-        cdef np.ndarray[ndim= 1, dtype = np.float32_t] h_centroids
+        cdef np.ndarray[ndim = 1, dtype = np.float32_t] h_centroids
         cdef carma_obj[float] * phase
         cdef bytes type_control = control.get_type()
         cdef bytes type_dm
@@ -550,7 +550,7 @@ cdef class Rtc:
 
             dms.set_full_comm(np.float32(kl[:, j].copy()))
 
-            for idx_cntr in range( < int > self.rtc.d_centro.size()):
+            for idx_cntr in range(< int > self.rtc.d_centro.size()):
                 wfs = self.rtc.d_centro[idx_cntr].wfs
                 screen = wfs.d_gs.d_phase.d_screen
                 tmp_noise = wfs.noise
@@ -567,7 +567,7 @@ cdef class Rtc:
             self.rtc.do_centroids(ncontrol, True)
 
             h_centroids = self.getCentroids(ncontrol)
-            control.d_centroids.host2device(< float * > h_centroids.data)
+            control.d_centroids.host2device( < float * > h_centroids.data)
 
             device = control.d_centroids.getDevice()
             d_centroids = control.d_centroids.getData()
@@ -596,10 +596,10 @@ cdef class Rtc:
 
         print("Done")
 
-        cdef np.ndarray[ndim= 2, dtype = np.float32_t] h_imat_ret
+        cdef np.ndarray[ndim = 2, dtype = np.float32_t] h_imat_ret
         if d_imat_ret != NULL:
             h_imat_ret = np.zeros((nactu, nslope), dtype=np.float32)
-            d_imat_ret.device2host(< float * > h_imat_ret.data)
+            d_imat_ret.device2host( < float * > h_imat_ret.data)
             del d_imat_ret
             return h_imat_ret
 
@@ -641,9 +641,9 @@ cdef class Rtc:
         cdef sutra_dm * dm
         cdef sutra_wfs * wfs
         cdef carma_obj[float] * screen
-        cdef vector[sutra_dm *].iterator it_dm
+        cdef vector[sutra_dm * ].iterator it_dm
         cdef float * d_centroids
-        cdef np.ndarray[ndim= 1, dtype = np.float32_t] h_centroids
+        cdef np.ndarray[ndim = 1, dtype = np.float32_t] h_centroids
         cdef carma_obj[float] * phase
 
         cc = 0
@@ -651,10 +651,11 @@ cdef class Rtc:
         print("Doing imat...%d%% \r" % cc, end='')
         while(it_dm != control.d_dmseen.end()):
             dm = deref(it_dm)
+
             for j in range(dm.ninflu):
                 # push actu __________________________________________________
                 dm.comp_oneactu(j, dm.push4imat)
-                for idx_cntr in range( < int > self.rtc.d_centro.size()):
+                for idx_cntr in range(< int > self.rtc.d_centro.size()):
                     wfs = self.rtc.d_centro[idx_cntr].wfs
                     screen = wfs.d_gs.d_phase.d_screen
                     tmp_noise = wfs.noise
@@ -671,7 +672,7 @@ cdef class Rtc:
                 self.rtc.do_centroids(ncontrol, True)
 
                 h_centroids = self.getCentroids(ncontrol)
-                control.d_centroids.host2device(< float * > h_centroids.data)
+                control.d_centroids.host2device( < float * > h_centroids.data)
 
                 device = control.d_centroids.getDevice()
                 d_centroids = control.d_centroids.getData()
@@ -690,7 +691,7 @@ cdef class Rtc:
                 # pul actu __________________________________________________
                 dm.comp_oneactu(j, -1. * dm.push4imat)
 
-                for idx_cntr in range( < int > self.rtc.d_centro.size()):
+                for idx_cntr in range(< int > self.rtc.d_centro.size()):
                     wfs = self.rtc.d_centro[idx_cntr].wfs
                     tmp_noise = wfs.noise
                     tmp_nphot = wfs.nphot
@@ -706,7 +707,7 @@ cdef class Rtc:
                 self.rtc.do_centroids(ncontrol, True)
 
                 h_centroids = self.getCentroids(ncontrol)
-                control.d_centroids.host2device(< float * > h_centroids.data)
+                control.d_centroids.host2device( < float * > h_centroids.data)
 
                 device = control.d_centroids.getDevice()
                 d_centroids = control.d_centroids.getData()
@@ -731,10 +732,10 @@ cdef class Rtc:
             inc(it_dm)
         print("imat done\n")
 
-        cdef np.ndarray[ndim= 2, dtype = np.float32_t] h_imat_ret
+        cdef np.ndarray[ndim = 2, dtype = np.float32_t] h_imat_ret
         if d_imat_ret != NULL:
             h_imat_ret = np.zeros((nactu, nslope), dtype=np.float32)
-            d_imat_ret.device2host(< float * > h_imat_ret.data)
+            d_imat_ret.device2host( < float * > h_imat_ret.data)
             del d_imat_ret
             return h_imat_ret
 
@@ -821,7 +822,7 @@ cdef class Rtc:
         if(type_control == scons.ControllerType.MV):
             controller_mv = dynamic_cast_controller_mv_ptr(
                 self.rtc.d_control[ncontrol])
-            controller_mv.load_noisemat(< float * > N.data)
+            controller_mv.load_noisemat( < float * > N.data)
 
     def do_clipping(self, int ncontrol, float min, float max):
         """Clip the command to apply on the DMs on a sutra_controller object
@@ -905,7 +906,7 @@ cdef class Rtc:
         if(type_contro == scons.ControllerType.GEO):
             controller_geo = dynamic_cast_controller_geo_ptr(
                 self.rtc.d_control[ncontrol])
-            controller_geo.load_Btt( < float*>Btt_F.data, < float*>TT_F.data)
+            controller_geo.load_Btt(< float*>Btt_F.data, < float*>TT_F.data)
         else:
             raise TypeError("Controller needs to be geo")
 
@@ -1003,8 +1004,8 @@ cdef class Rtc:
         if(self.rtc.d_centro[n].is_type(scons.WFSType.PYRHR)):
             centro = self.rtc.d_centro.at(n)
             pyr = dynamic_cast_wfs_pyr_ptr(centro.wfs)
-            pyr.pyr_cx.fill_from( < float * >cx.data)
-            pyr.pyr_cy.fill_from( < float * >cy.data)
+            pyr.pyr_cx.fill_from(< float * >cx.data)
+            pyr.pyr_cy.fill_from(< float * >cy.data)
         else:
             e = "Centroider should be pyrhr, got " + \
                 self.rtc.d_centro[n].get_type()
@@ -1045,7 +1046,7 @@ cdef class Rtc:
         cdef carma_obj[float] * d_tmp
         cdef carma_obj[float] * d_data
         cdef carma_context * context = &carma_context.instance()
-        cdef np.ndarray[ndim= 1, dtype = np.float32_t] data
+        cdef np.ndarray[ndim = 1, dtype = np.float32_t] data
 
         if(ncontrol >= abs(rtc.d_control.size())):
             if(g_wfs is None):
@@ -1058,12 +1059,12 @@ cdef class Rtc:
             d_data = new carma_obj[float](context, dims)
             rtc.d_centro[ncontrol].get_cog(
                 d_tmp.getData(), d_data.getData(), True)
-            d_data.device2host(< float * > data.data)
+            d_data.device2host( < float * > data.data)
 
         else:
             dims = rtc.d_control[ncontrol].d_centroids.getDims()
             data = np.zeros((dims[1]), dtype=np.float32)
-            rtc.d_control[ncontrol].d_centroids.device2host(< float * > data.data)
+            rtc.d_control[ncontrol].d_centroids.device2host( < float * > data.data)
         return data
 
     def set_gain(self, int ncontrol, float gain):
@@ -1122,15 +1123,15 @@ cdef class Rtc:
         if(type_control == scons.ControllerType.LS):
             controller_ls = dynamic_cast_controller_ls_ptr(
                 self.rtc.d_control[ncontrol])
-            controller_ls.set_mgain(< float * > mgain.data)
+            controller_ls.set_mgain( < float * > mgain.data)
         elif(type_control == scons.ControllerType.MV):
             controller_mv = dynamic_cast_controller_mv_ptr(
                 self.rtc.d_control[ncontrol])
-            controller_mv.set_mgain(< float * > mgain.data)
+            controller_mv.set_mgain( < float * > mgain.data)
         elif(type_control == scons.ControllerType.GENERIC):
             controller_generic = dynamic_cast_controller_generic_ptr(
                 self.rtc.d_control[ncontrol])
-            controller_generic.set_mgain(< float * > mgain.data)
+            controller_generic.set_mgain( < float * > mgain.data)
         else:
             raise TypeError("Controller needs to be ls, mv or generic")
 
@@ -1152,7 +1153,7 @@ cdef class Rtc:
             ncontrol: (int) : controller index
         """
         self.context.set_activeDeviceForCpy(self.rtc.device, 1)
-        self.rtc.d_control[ncontrol].d_com.host2device(< float * > comvec.data)
+        self.rtc.d_control[ncontrol].d_com.host2device( < float * > comvec.data)
 
     def set_centroids(self, int ncontrol, np.ndarray[ndim=1, dtype=np.float32_t] centro):
         """Set the centroids vector of a sutra_controller object to centro
@@ -1162,7 +1163,7 @@ cdef class Rtc:
             centro: (np.ndarray[ndim=1,dtype=np.float32_t]) : centroids vector
         """
         self.context.set_activeDeviceForCpy(self.rtc.device, 1)
-        self.rtc.d_control[ncontrol].d_centroids.host2device(< float * > centro.data)
+        self.rtc.d_control[ncontrol].d_centroids.host2device( < float * > centro.data)
 
     def get_mgain(self, int ncontrol):
         """Return modal gains from sutra_controller
@@ -1179,28 +1180,28 @@ cdef class Rtc:
         cdef sutra_controller_generic * controller_generic
         cdef bytes type_control = self.rtc.d_control[ncontrol].get_type()
         cdef int size
-        cdef np.ndarray[ndim= 1, dtype = np.float32_t] mgain
+        cdef np.ndarray[ndim = 1, dtype = np.float32_t] mgain
 
         if(type_control == scons.ControllerType.LS):
             controller_ls = dynamic_cast_controller_ls_ptr(
                 self.rtc.d_control[ncontrol])
             size = controller_ls.d_gain.getNbElem()
             mgain = np.zeros(size, dtype=np.float32)
-            controller_ls.d_gain.device2host(< float * > mgain.data)
+            controller_ls.d_gain.device2host( < float * > mgain.data)
             return mgain
         elif(type_control == scons.ControllerType.MV):
             controller_mv = dynamic_cast_controller_mv_ptr(
                 self.rtc.d_control[ncontrol])
             size = controller_mv.d_gain.getNbElem()
             mgain = np.zeros(size, dtype=np.float32)
-            controller_mv.d_gain.device2host(< float * > mgain.data)
+            controller_mv.d_gain.device2host( < float * > mgain.data)
             return mgain
         elif(type_control == scons.ControllerType.GENERIC):
             controller_generic = dynamic_cast_controller_generic_ptr(
                 self.rtc.d_control[ncontrol])
             size = controller_generic.d_gain.getNbElem()
             mgain = np.zeros(size, dtype=np.float32)
-            controller_generic.d_gain.device2host(< float * > mgain.data)
+            controller_generic.d_gain.device2host( < float * > mgain.data)
             return mgain
         else:
             raise TypeError("Controller needs to be ls, generic or mv")
@@ -1214,7 +1215,7 @@ cdef class Rtc:
         """
         self.context.set_activeDeviceForCpy(self.rtc.device, 1)
 
-        cdef np.ndarray[dtype= np.float32_t] data_F = data.T.copy()
+        cdef np.ndarray[dtype = np.float32_t] data_F = data.T.copy()
 
         cdef sutra_controller_ls * controller_ls
         cdef sutra_controller_mv * controller_mv
@@ -1223,11 +1224,11 @@ cdef class Rtc:
         if(type_control == scons.ControllerType.LS):
             controller_ls = dynamic_cast_controller_ls_ptr(
                 self.rtc.d_control[ncontrol])
-            controller_ls.d_imat.host2device(< float * > data_F.data)
+            controller_ls.d_imat.host2device( < float * > data_F.data)
         elif(type_control == scons.ControllerType.MV):
             controller_mv = dynamic_cast_controller_mv_ptr(
                 self.rtc.d_control[ncontrol])
-            controller_mv.d_imat.host2device(< float * > data_F.data)
+            controller_mv.d_imat.host2device( < float * > data_F.data)
         else:
             raise TypeError("Controller needs to be ls or mv")
 
@@ -1248,7 +1249,7 @@ cdef class Rtc:
         cdef bytes type_control = self.rtc.d_control[ncontrol].get_type()
 
         cdef const long * dims = NULL
-        cdef np.ndarray[ndim= 2, dtype = np.float32_t] imat_F
+        cdef np.ndarray[ndim = 2, dtype = np.float32_t] imat_F
 
         if(type_control == scons.ControllerType.GENERIC or type_control == scons.ControllerType.GEO):
             raise TypeError("Generic controller doesn't have imat")
@@ -1258,21 +1259,21 @@ cdef class Rtc:
                 self.rtc.d_control[ncontrol])
             dims = controller_ls.d_imat.getDims()
             imat_F = np.zeros((dims[2], dims[1]), dtype=np.float32)
-            controller_ls.d_imat.device2host(< float * > imat_F.data)
+            controller_ls.d_imat.device2host( < float * > imat_F.data)
 
         elif(type_control == scons.ControllerType.MV):
             controller_mv = dynamic_cast_controller_mv_ptr(
                 self.rtc.d_control[ncontrol])
             dims = controller_mv.d_imat.getDims()
             imat_F = np.zeros((dims[2], dims[1]), dtype=np.float32)
-            controller_mv.d_imat.device2host(< float * > imat_F.data)
+            controller_mv.d_imat.device2host( < float * > imat_F.data)
 
         elif(type_control == scons.ControllerType.CURED):
             controller_cured = dynamic_cast_controller_cured_ptr(
                 self.rtc.d_control[ncontrol])
             dims = controller_cured.d_imat.getDims()
             imat_F = np.zeros((dims[2], dims[1]), dtype=np.float32)
-            controller_cured.d_imat.device2host(< float * > imat_F.data)
+            controller_cured.d_imat.device2host( < float * > imat_F.data)
 
         return imat_F.T.copy()
 
@@ -1285,7 +1286,7 @@ cdef class Rtc:
         """
         self.context.set_activeDeviceForCpy(self.rtc.device, 1)
 
-        cdef np.ndarray[dtype= np.float32_t] data_F = data.T.copy()
+        cdef np.ndarray[dtype = np.float32_t] data_F = data.T.copy()
 
         cdef sutra_controller_ls * controller_ls
         cdef sutra_controller_mv * controller_mv
@@ -1295,15 +1296,15 @@ cdef class Rtc:
         if(type_control == scons.ControllerType.LS):
             controller_ls = dynamic_cast_controller_ls_ptr(
                 self.rtc.d_control[ncontrol])
-            controller_ls.d_cmat.host2device(< float * > data_F.data)
+            controller_ls.d_cmat.host2device( < float * > data_F.data)
         elif(type_control == scons.ControllerType.MV):
             controller_mv = dynamic_cast_controller_mv_ptr(
                 self.rtc.d_control[ncontrol])
-            controller_mv.d_cmat.host2device(< float * > data_F.data)
+            controller_mv.d_cmat.host2device( < float * > data_F.data)
         elif(type_control == scons.ControllerType.GENERIC):
             controller_generic = dynamic_cast_controller_generic_ptr(
                 self.rtc.d_control[ncontrol])
-            controller_generic.d_cmat.host2device(< float * > data_F.data)
+            controller_generic.d_cmat.host2device( < float * > data_F.data)
         else:
             raise TypeError("Controller needs to be ls, mv or generic")
 
@@ -1316,7 +1317,7 @@ cdef class Rtc:
         """
         self.context.set_activeDeviceForCpy(self.rtc.device, 1)
 
-        cdef np.ndarray[dtype= np.float32_t] data_F = data.T.copy()
+        cdef np.ndarray[dtype = np.float32_t] data_F = data.T.copy()
 
         cdef sutra_controller_mv * controller_mv
         cdef bytes type_control = self.rtc.d_control[ncontrol].get_type()
@@ -1324,7 +1325,7 @@ cdef class Rtc:
         if(type_control == scons.ControllerType.MV):
             controller_mv = dynamic_cast_controller_mv_ptr(
                 self.rtc.d_control[ncontrol])
-            controller_mv.d_Cmm.host2device(< float * > data_F.data)
+            controller_mv.d_Cmm.host2device( < float * > data_F.data)
         else:
             raise TypeError("Controller needs to be mv")
 
@@ -1339,7 +1340,7 @@ cdef class Rtc:
         self.context.set_activeDeviceForCpy(self.rtc.device, 1)
         cdef sutra_controller_mv * controller_mv
         cdef bytes type_control = self.rtc.d_control[ncontrol].get_type()
-        cdef np.ndarray[ndim= 2, dtype = np.float32_t] data_F
+        cdef np.ndarray[ndim = 2, dtype = np.float32_t] data_F
         cdef const long * cdims
 
         if(type_control == scons.ControllerType.MV):
@@ -1347,7 +1348,7 @@ cdef class Rtc:
                 self.rtc.d_control[ncontrol])
             cdims = controller_mv.d_Cmm.getDims()
             data_F = np.zeros((cdims[2], cdims[1]), dtype=np.float32)
-            controller_mv.d_Cmm.device2host(< float * > data_F.data)
+            controller_mv.d_Cmm.device2host( < float * > data_F.data)
             return data_F.T.copy()
         else:
             raise TypeError("Controller needs to be mv")
@@ -1363,7 +1364,7 @@ cdef class Rtc:
         self.context.set_activeDeviceForCpy(self.rtc.device, 1)
         cdef sutra_controller_mv * controller_mv
         cdef bytes type_control = self.rtc.d_control[ncontrol].get_type()
-        cdef np.ndarray[ndim= 2, dtype = np.float32_t] data_F
+        cdef np.ndarray[ndim = 2, dtype = np.float32_t] data_F
         cdef const long * cdims
 
         if(type_control == scons.ControllerType.MV):
@@ -1371,7 +1372,7 @@ cdef class Rtc:
                 self.rtc.d_control[ncontrol])
             cdims = controller_mv.d_Cphim.getDims()
             data_F = np.zeros((cdims[2], cdims[1]), dtype=np.float32)
-            controller_mv.d_Cphim.device2host(< float * > data_F.data)
+            controller_mv.d_Cphim.device2host( < float * > data_F.data)
             return data_F.T.copy()
         else:
             raise TypeError("Controller needs to be mv")
@@ -1389,28 +1390,28 @@ cdef class Rtc:
         cdef sutra_controller_mv * controller_mv
         cdef sutra_controller_generic * controller_generic
         cdef bytes type_control = self.rtc.d_control[ncontrol].get_type()
-        cdef np.ndarray[ndim= 2, dtype = np.float32_t] data_F
+        cdef np.ndarray[ndim = 2, dtype = np.float32_t] data_F
         cdef const long * cdims
         if(type_control == scons.ControllerType.LS):
             controller_ls = dynamic_cast_controller_ls_ptr(
                 self.rtc.d_control[ncontrol])
             cdims = controller_ls.d_cmat.getDims()
             data_F = np.zeros((cdims[2], cdims[1]), dtype=np.float32)
-            controller_ls.d_cmat.device2host(< float * > data_F.data)
+            controller_ls.d_cmat.device2host( < float * > data_F.data)
             return data_F.T.copy()
         elif(type_control == scons.ControllerType.MV):
             controller_mv = dynamic_cast_controller_mv_ptr(
                 self.rtc.d_control[ncontrol])
             cdims = controller_mv.d_cmat.getDims()
             data_F = np.zeros((cdims[2], cdims[1]), dtype=np.float32)
-            controller_mv.d_cmat.device2host(< float * > data_F.data)
+            controller_mv.d_cmat.device2host( < float * > data_F.data)
             return data_F.T.copy()
         elif(type_control == scons.ControllerType.GENERIC):
             controller_generic = dynamic_cast_controller_generic_ptr(
                 self.rtc.d_control[ncontrol])
             cdims = controller_generic.d_cmat.getDims()
             data_F = np.zeros((cdims[2], cdims[1]), dtype=np.float32)
-            controller_generic.d_cmat.device2host(< float * > data_F.data)
+            controller_generic.d_cmat.device2host( < float * > data_F.data)
             return data_F.T.copy()
         else:
             raise TypeError("Controller needs to be ls, mv or generic")
@@ -1429,7 +1430,7 @@ cdef class Rtc:
         if(type_control == scons.ControllerType.GENERIC):
             controller_generic = dynamic_cast_controller_generic_ptr(
                 self.rtc.d_control[ncontrol])
-            controller_generic.set_decayFactor(< float * > decay.data)
+            controller_generic.set_decayFactor( < float * > decay.data)
         else:
             raise TypeError("Controller needs to be generic")
 
@@ -1444,12 +1445,12 @@ cdef class Rtc:
         cdef sutra_controller_generic * controller_generic
         cdef bytes type_control = self.rtc.d_control[ncontrol].get_type()
 
-        cdef np.ndarray[dtype= np.float32_t] matE_F = matE.T.copy()
+        cdef np.ndarray[dtype = np.float32_t] matE_F = matE.T.copy()
 
         if(type_control == scons.ControllerType.GENERIC):
             controller_generic = dynamic_cast_controller_generic_ptr(
                 self.rtc.d_control[ncontrol])
-            controller_generic.set_matE(< float * > matE_F.data)
+            controller_generic.set_matE( < float * > matE_F.data)
         else:
             raise TypeError("Controller needs to be generic")
 
@@ -1495,7 +1496,7 @@ cdef class Rtc:
 
         """
         cdef sutra_controller * control = self.rtc.d_control[ncontrol]
-        control.set_perturbcom(< float * > perturb.data, perturb.shape[0])
+        control.set_perturbcom( < float * > perturb.data, perturb.shape[0])
 
     def set_centroids_ref(self, int ncontrol, np.ndarray[ndim=1, dtype=np.float32_t] centroids_ref):
         """
@@ -1504,7 +1505,7 @@ cdef class Rtc:
         ncontrol: (int) : controller index
         """
         cdef sutra_controller * control = self.rtc.d_control[ncontrol]
-        control.set_centroids_ref(< float * > centroids_ref.data)
+        control.set_centroids_ref( < float * > centroids_ref.data)
 
     def get_centroids_ref(self, int ncontrol):
         """
@@ -1514,9 +1515,9 @@ cdef class Rtc:
         """
         cdef sutra_controller * control = self.rtc.d_control[ncontrol]
         cdef int nslope = control.nslope()
-        cdef np.ndarray[ndim= 1, dtype = np.float32_t] centroids_ref
+        cdef np.ndarray[ndim = 1, dtype = np.float32_t] centroids_ref
         centroids_ref = np.zeros(nslope, dtype=np.float32)
-        control.get_centroids_ref(< float * > centroids_ref.data)
+        control.get_centroids_ref( < float * > centroids_ref.data)
         return centroids_ref
 
     def set_U(self, int ncontrol, np.ndarray[ndim=2, dtype=np.float32_t] U):
@@ -1530,11 +1531,11 @@ cdef class Rtc:
         cdef sutra_controller_ls * controller_ls
         cdef bytes type_control = self.rtc.d_control[ncontrol].get_type()
 
-        cdef np.ndarray[dtype= np.float32_t] data_F = U.T.copy()
+        cdef np.ndarray[dtype = np.float32_t] data_F = U.T.copy()
         if(type_control == scons.ControllerType.LS):
             controller_ls = dynamic_cast_controller_ls_ptr(
                 self.rtc.d_control[ncontrol])
-            controller_ls.d_U.host2device(< float * > data_F.data)
+            controller_ls.d_U.host2device( < float * > data_F.data)
 
     def set_eigenvals(self, int ncontrol, np.ndarray[ndim=1, dtype=np.float32_t] eigenvals):
         """Set the eigen values of the imat decomposition in a sutra_controller_ls object
@@ -1550,7 +1551,7 @@ cdef class Rtc:
         if(type_control == scons.ControllerType.LS):
             controller_ls = dynamic_cast_controller_ls_ptr(
                 self.rtc.d_control[ncontrol])
-            controller_ls.h_eigenvals.fill_from(< float * > eigenvals.data)
+            controller_ls.h_eigenvals.fill_from( < float * > eigenvals.data)
         else:
             raise TypeError("Controller needs to be ls")
 
@@ -1565,7 +1566,7 @@ cdef class Rtc:
         self.context.set_activeDeviceForCpy(self.rtc.device, 1)
         cdef sutra_controller_ls * controller_ls
         cdef bytes type_control = self.rtc.d_control[ncontrol].get_type()
-        cdef np.ndarray[ndim= 2, dtype = np.float32_t] data_F
+        cdef np.ndarray[ndim = 2, dtype = np.float32_t] data_F
         cdef const long * dims = NULL
 
         if(type_control == scons.ControllerType.LS):
@@ -1573,7 +1574,7 @@ cdef class Rtc:
                 self.rtc.d_control[ncontrol])
             dims = controller_ls.d_U.getDims()
             data_F = np.zeros((dims[2], dims[1]), dtype=np.float32)
-            controller_ls.d_U.device2host(< float * > data_F.data)
+            controller_ls.d_U.device2host( < float * > data_F.data)
 
         return data_F.T.copy()
 
@@ -1589,20 +1590,20 @@ cdef class Rtc:
         cdef sutra_controller_ls * controller_ls
         cdef sutra_controller_mv * controller_mv
         cdef bytes type_control = self.rtc.d_control[ncontrol].get_type()
-        cdef np.ndarray[ndim= 1, dtype = np.float32_t] data
+        cdef np.ndarray[ndim = 1, dtype = np.float32_t] data
         cdef const long * dims
         if(type_control == scons.ControllerType.LS):
             controller_ls = dynamic_cast_controller_ls_ptr(
                 self.rtc.d_control[ncontrol])
             dims = controller_ls.h_eigenvals.getDims()
             data = np.zeros((dims[1]), dtype=np.float32)
-            controller_ls.h_eigenvals.fill_into(< float * > data.data)
+            controller_ls.h_eigenvals.fill_into( < float * > data.data)
         if(type_control == scons.ControllerType.MV):
             controller_mv = dynamic_cast_controller_mv_ptr(
                 self.rtc.d_control[ncontrol])
             dims = controller_mv.h_Cmmeigenvals.getDims()
             data = np.zeros((dims[1]), dtype=np.float32)
-            controller_mv.h_eigenvals.fill_into(< float * > data.data)
+            controller_mv.h_eigenvals.fill_into( < float * > data.data)
 
         return data
 
@@ -1617,14 +1618,14 @@ cdef class Rtc:
         self.context.set_activeDeviceForCpy(self.rtc.device, 1)
         cdef sutra_controller_mv * controller_mv
         cdef bytes type_control = self.rtc.d_control[ncontrol].get_type()
-        cdef np.ndarray[ndim= 1, dtype = np.float32_t] data
+        cdef np.ndarray[ndim = 1, dtype = np.float32_t] data
         cdef const long * dims
         if(type_control == scons.ControllerType.MV):
             controller_mv = dynamic_cast_controller_mv_ptr(
                 self.rtc.d_control[ncontrol])
             dims = controller_mv.h_Cmmeigenvals.getDims()
             data = np.zeros((dims[1]), dtype=np.float32)
-            controller_mv.h_Cmmeigenvals.fill_into(< float * > data.data)
+            controller_mv.h_Cmmeigenvals.fill_into( < float * > data.data)
 
         return data
 
@@ -1638,14 +1639,14 @@ cdef class Rtc:
         self.context.set_activeDeviceForCpy(self.rtc.device, 1)
         cdef sutra_controller_geo * controller_geo
         cdef bytes type_contro = self.rtc.d_control[ncontrol].get_type()
-        cdef np.ndarray[ndim= 2, dtype = np.float32_t] data_F
+        cdef np.ndarray[ndim = 2, dtype = np.float32_t] data_F
         cdef const long * dims
         if(type_contro == scons.ControllerType.GEO):
             controller_geo = dynamic_cast_controller_geo_ptr(
                 self.rtc.d_control[ncontrol])
             dims = controller_geo.d_geocov.getDims()
             data_F = np.zeros((dims[2], dims[1]), dtype=np.float32)
-            controller_geo.d_geocov.device2host(< float*>data_F.data)
+            controller_geo.d_geocov.device2host( < float*>data_F.data)
         else:
             raise TypeError('controller must be geo')
 
@@ -1661,7 +1662,7 @@ cdef class Rtc:
         self.context.set_activeDeviceForCpy(self.rtc.device, 1)
         cdef sutra_controller_geo * controller_geo
         cdef bytes type_contro = self.rtc.d_control[ncontrol].get_type()
-        cdef np.ndarray[ndim= 2, dtype = np.float32_t] data_F
+        cdef np.ndarray[ndim = 2, dtype = np.float32_t] data_F
         cdef const long * dims
         if(type_contro == scons.ControllerType.GEO):
             controller_geo = dynamic_cast_controller_geo_ptr(
@@ -1669,7 +1670,7 @@ cdef class Rtc:
             if(controller_geo.Ntt):
                 dims = controller_geo.d_TT.getDims()
                 data_F = np.zeros((dims[2], dims[1]), dtype=np.float32)
-                controller_geo.d_TT.device2host(< float*>data_F.data)
+                controller_geo.d_TT.device2host( < float*>data_F.data)
                 return data_F.T.copy()
             else:
                 raise ValueError("TT not initialized : only with roket")
@@ -1686,7 +1687,7 @@ cdef class Rtc:
         self.context.set_activeDeviceForCpy(self.rtc.device, 1)
         cdef sutra_controller_ls * controller_ls
         cdef bytes type_control = self.rtc.d_control[ncontrol].get_type()
-        cdef np.ndarray[ndim= 2, dtype = np.float32_t] data_F
+        cdef np.ndarray[ndim = 2, dtype = np.float32_t] data_F
         cdef const long * dims = NULL
 
         if(type_control == scons.ControllerType.LS):
@@ -1694,7 +1695,7 @@ cdef class Rtc:
                 self.rtc.d_control[ncontrol])
             dims = controller_ls.d_cenbuff.getDims()
             data_F = np.zeros((dims[2], dims[1]), dtype=np.float32)
-            controller_ls.d_cenbuff.device2host(< float * > data_F.data)
+            controller_ls.d_cenbuff.device2host( < float * > data_F.data)
 
         return data_F.T.copy()
 
@@ -1709,14 +1710,14 @@ cdef class Rtc:
         self.context.set_activeDeviceForCpy(self.rtc.device, 1)
         cdef sutra_controller_ls * controller_ls
         cdef bytes type_control = self.rtc.d_control[ncontrol].get_type()
-        cdef np.ndarray[ndim= 1, dtype = np.float32_t] data
+        cdef np.ndarray[ndim = 1, dtype = np.float32_t] data
         cdef const long * dims
         if(type_control == scons.ControllerType.LS):
             controller_ls = dynamic_cast_controller_ls_ptr(
                 self.rtc.d_control[ncontrol])
             dims = controller_ls.d_err.getDims()
             data = np.zeros((dims[1]), dtype=np.float32)
-            controller_ls.d_err.device2host(< float * > data.data)
+            controller_ls.d_err.device2host( < float * > data.data)
 
         return data
 
@@ -1729,11 +1730,11 @@ cdef class Rtc:
             data : (np.ndarray[ndim=1,dtype=np.float32_t]) : command vector
         """
         self.context.set_activeDeviceForCpy(self.rtc.device, 1)
-        cdef np.ndarray[ndim= 1, dtype = np.float32_t] data
+        cdef np.ndarray[ndim = 1, dtype = np.float32_t] data
         cdef const long * dims
         dims = self.rtc.d_control[ncontrol].d_com.getDims()
         data = np.zeros((dims[1]), dtype=np.float32)
-        self.rtc.d_control[ncontrol].d_com.device2host(< float * > data.data)
+        self.rtc.d_control[ncontrol].d_com.device2host( < float * > data.data)
 
         return data
 
@@ -1747,14 +1748,14 @@ cdef class Rtc:
         """
         cdef sutra_controller_mv * controller_mv
         self.context.set_activeDeviceForCpy(self.rtc.device, 1)
-        cdef np.ndarray[ndim= 1, dtype = np.float32_t] data
+        cdef np.ndarray[ndim = 1, dtype = np.float32_t] data
         cdef const long * dims
 
         controller_mv = dynamic_cast_controller_mv_ptr(
             self.rtc.d_control[ncontrol])
         dims = controller_mv.d_olmeas.getDims()
         data = np.zeros((dims[1]), dtype=np.float32)
-        controller_mv.d_olmeas.device2host(< float * > data.data)
+        controller_mv.d_olmeas.device2host( < float * > data.data)
 
         return data
 
@@ -1767,11 +1768,11 @@ cdef class Rtc:
             data : (np.ndarray[ndim=1,dtype=np.float32_t]) : voltage vector
         """
         self.context.set_activeDeviceForCpy(self.rtc.device, 1)
-        cdef np.ndarray[ndim= 1, dtype = np.float32_t] data
+        cdef np.ndarray[ndim = 1, dtype = np.float32_t] data
         cdef const long * dims
         dims = self.rtc.d_control[ncontrol].d_voltage.getDims()
         data = np.zeros((dims[1]), dtype=np.float32)
-        self.rtc.d_control[ncontrol].d_voltage.device2host(< float * > data.data)
+        self.rtc.d_control[ncontrol].d_voltage.device2host( < float * > data.data)
 
         return data
 
@@ -1796,7 +1797,11 @@ cdef class Rtc:
             print(
                 "This controller does not have a sparse_obj\n(or this function is not implemented for it yet")
 
-
+IF USE_BRAMA == 0:
+    cdef class Rtc_brama(Rtc):
+        def __cinit__(self, Sensors sensor, Target target=None, device=-1):
+            raise EnvironmentError(
+                "Error: Trying to run a BRAMA Target over NO-BRAMA compile.")
 IF USE_BRAMA == 1:
     # child constructor must have the same prototype (same number of
     # non-optional arguments)
