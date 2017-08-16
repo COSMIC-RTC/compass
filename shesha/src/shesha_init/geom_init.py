@@ -5,18 +5,16 @@ Created on 1 aout 2017
 
 @author: fferreira
 '''
-import os
-try:
-    shesha_dir = os.environ['SHESHA_ROOT']
-    os.environ["PATH"] += shesha_dir + '/src'
-except KeyError as err:
-    raise EnvironmentError(
-            "Environment variable 'SHESHA_ROOT' must be defined")
 
 from naga import naga_context
+
 import shesha_config as conf
+import shesha_constants as scons
+from shesha_constant import CONST
+
 import shesha_util.make_pupil as mkP
 import shesha_util.utilities as util
+
 from Telescope import Telescope
 
 import numpy as np
@@ -46,7 +44,7 @@ def tel_init(
     # WFS geometry
     nsensors = len(p_wfss)
 
-    any_sh = [o.type_wfs for o in p_wfss].count(conf.WFSType.SH) > 0
+    any_sh = [o.type_wfs for o in p_wfss].count(scons.WFSType.SH) > 0
     # dm = None
     if (p_wfss[0].dms_seen is None and dm is not None):
         for i in range(nsensors):
@@ -57,7 +55,7 @@ def tel_init(
     # we'll derive the geometry from the requirements in terms of sampling
     if (any_sh):
         indmax = np.argsort([
-                o.nxsub for o in p_wfss if o.type_wfs == conf.WFSType.SH])[-1]
+                o.nxsub for o in p_wfss if o.type_wfs == scons.WFSType.SH])[-1]
     else:
         indmax = np.argsort([o.nxsub for o in p_wfss])[-1]
 
@@ -109,7 +107,7 @@ def init_wfs_geom(
     """
 
     if (p_geom.pupdiam):
-        if (p_wfs.type_wfs == conf.WFSType.SH):
+        if (p_wfs.type_wfs == scons.WFSType.SH):
             pdiam = p_geom.pupdiam // p_wfs.nxsub
             if (p_geom.pupdiam % p_wfs.nxsub > 0):
                 pdiam += 1
@@ -125,15 +123,15 @@ def init_wfs_geom(
         # the overall geometry is deduced from it
         if not p_geom.pupdiam:
             p_geom.pupdiam = p_wfs._pdiam * p_wfs.nxsub
-        if p_wfs.type_wfs == conf.WFSType.PYRHR:
+        if p_wfs.type_wfs == scons.WFSType.PYRHR:
             geom_init(p_geom, p_tel, padding=p_wfs._nrebin)
         else:
             geom_init(p_geom, p_tel)
 
-    if (p_wfs.type_wfs == conf.WFSType.PYRHR):
+    if (p_wfs.type_wfs == scons.WFSType.PYRHR):
         init_pyrhr_geom(p_wfs, p_atmos, p_tel, p_geom, p_loop, verbose=1)
 
-    if (p_wfs.type_wfs == conf.WFSType.SH):
+    if (p_wfs.type_wfs == scons.WFSType.SH):
         init_sh_geom(p_wfs, p_atmos, p_tel, p_geom, p_loop, verbose=1)
 
 
@@ -159,9 +157,9 @@ def init_wfs_size(
     sh :
     k = 6
     p = k * d/r0
-    n = int(2*d*v/lambda/conf.RAD2ARCSEC)+1
-    N = fft_goodsize(k*n/v*lambda/r0*conf.RAD2ARCSEC)
-    u = k * lambda / r0 * conf.RAD2ARCSEC / N
+    n = int(2*d*v/lambda/CONST.RAD2ARCSEC)+1
+    N = fft_goodsize(k*n/v*lambda/r0*CONST.RAD2ARCSEC)
+    u = k * lambda / r0 * CONST.RAD2ARCSEC / N
     n = v/u - int(v/u) > 0.5 ? int(v/u)+1 : int(v/u)
     v = n * u
     Nt = v * Npix
@@ -195,11 +193,11 @@ def init_wfs_size(
     if (r0 != 0):
         if (verbose):
             print("r0 for WFS :", "%3.2f" % r0, " m")
-        # seeing = conf.RAD2ARCSEC * (p_wfs.lambda * 1.e-6) / r0
+        # seeing = CONST.RAD2ARCSEC * (p_wfs.lambda * 1.e-6) / r0
         if (verbose):
             print(
                     "seeing for WFS : ", "%3.2f" %
-                    (conf.RAD2ARCSEC * (p_wfs.Lambda * 1.e-6) / r0), "\"")
+                    (CONST.RAD2ARCSEC * (p_wfs.Lambda * 1.e-6) / r0), "\"")
 
     if (p_wfs._pdiam <= 0):
         # this case is usualy for the wfs with max # of subaps
@@ -214,10 +212,10 @@ def init_wfs_size(
         if ((pdiam * p_wfs.nxsub) % 2):
             pdiam += 1
 
-        if (p_wfs.type_wfs == conf.WFSType.SH):
+        if (p_wfs.type_wfs == scons.WFSType.SH):
             nrebin = int(
                     2 * subapdiam * p_wfs.pixsize /
-                    (p_wfs.Lambda * 1.e-6) / conf.RAD2ARCSEC) + 1
+                    (p_wfs.Lambda * 1.e-6) / CONST.RAD2ARCSEC) + 1
             nrebin = max(2, nrebin)
             # first atempt on a rebin factor
 
@@ -225,15 +223,15 @@ def init_wfs_size(
             Nfft = util.fft_goodsize(
                     int(
                             pdiam / subapdiam * nrebin / p_wfs.pixsize *
-                            conf.RAD2ARCSEC * (p_wfs.Lambda * 1.e-6)))
+                            CONST.RAD2ARCSEC * (p_wfs.Lambda * 1.e-6)))
             # size of the support in fourier domain
 
-            # qpixsize = k * (p_wfs.Lambda*1.e-6) / r0 * conf.RAD2ARCSEC / Nfft
+            # qpixsize = k * (p_wfs.Lambda*1.e-6) / r0 * CONST.RAD2ARCSEC / Nfft
             qpixsize = (
                     pdiam * (p_wfs.Lambda * 1.e-6
-                             ) / subapdiam * conf.RAD2ARCSEC) / Nfft
+                             ) / subapdiam * CONST.RAD2ARCSEC) / Nfft
 
-        if (p_wfs.type_wfs == conf.WFSType.PYRHR):
+        if (p_wfs.type_wfs == scons.WFSType.PYRHR):
             # while (pdiam % p_wfs.npix != 0) pdiam+=1;
             k = 3
             pdiam = int(p_tel.diam / r0 * k)
@@ -252,7 +250,7 @@ def init_wfs_size(
 
             qpixsize = (
                     pdiam * (p_wfs.Lambda * 1.e-6
-                             ) / p_tel.diam * conf.RAD2ARCSEC) / Nfft
+                             ) / p_tel.diam * CONST.RAD2ARCSEC) / Nfft
 
             padding = 2
             nphase = pdiam + 2 * padding
@@ -272,10 +270,10 @@ def init_wfs_size(
         # size of the support in fourier domain
 
         qpixsize = pdiam * \
-            (p_wfs.Lambda * 1.e-6) / subapdiam * conf.RAD2ARCSEC / Nfft
+            (p_wfs.Lambda * 1.e-6) / subapdiam * CONST.RAD2ARCSEC / Nfft
         # quantum pixel size
 
-    if (p_wfs.type_wfs == conf.WFSType.SH):
+    if (p_wfs.type_wfs == scons.WFSType.SH):
         # actual rebin factor
         if (p_wfs.pixsize / qpixsize - int(p_wfs.pixsize / qpixsize) > 0.5):
             nrebin = int(p_wfs.pixsize / qpixsize) + 1
@@ -314,7 +312,7 @@ def init_wfs_size(
         print("size of fft support : ", Nfft)
         print("size of HR spot support : ", Ntot)
 
-        if (p_wfs.type_wfs == conf.WFSType.PYRHR):
+        if (p_wfs.type_wfs == scons.WFSType.PYRHR):
             print("quantum pixsize in pyr image : ", "%5.4f" % qpixsize, "\"")
             print(
                     "simulated FoV : ", "%3.2f" % (Nfft * qpixsize), "\" x ",
@@ -353,12 +351,12 @@ def init_pyrhr_geom(
 
     # Creating field stop mask
     fsradius_pixels = int(p_wfs.fssize / p_wfs._qpixsize / 2.)
-    if (p_wfs.fstop == conf.FieldStopType.ROUND):
+    if (p_wfs.fstop == scons.FieldStopType.ROUND):
         focmask = util.dist(
                 p_wfs._Nfft,
                 xc=p_wfs._Nfft / 2. + 0.5,
                 yc=p_wfs._Nfft / 2. + 0.5) < (fsradius_pixels)
-    elif (p_wfs.fstop == conf.FieldStopType.SQUARE):
+    elif (p_wfs.fstop == scons.FieldStopType.SQUARE):
         X = np.indices((p_wfs._Nfft, p_wfs._Nfft)) + 1  # TODO: +1 ??
         x = X[1] - (p_wfs._Nfft + 1.) / 2.
         y = X[0] - (p_wfs._Nfft + 1.) / 2.
@@ -684,7 +682,7 @@ def init_sh_geom(
 
     dr0 = p_tel.diam / p_atmos.r0 * \
         (0.5 / p_wfs.Lambda) ** 1.2 / \
-        np.cos(p_geom.zenithangle * conf.DEG2RAD) ** 0.6
+        np.cos(p_geom.zenithangle * CONST.DEG2RAD) ** 0.6
     fwhmseeing = p_wfs.Lambda / \
         (p_tel.diam / np.sqrt(p_wfs.nxsub ** 2. + (dr0 / 1.5) ** 2.)) / 4.848
     kernelfwhm = np.sqrt(fwhmseeing**2. + p_wfs.kernel**2.)

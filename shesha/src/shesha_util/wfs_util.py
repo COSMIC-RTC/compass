@@ -5,11 +5,14 @@ Created on 1 aout 2017
 
 @author: fferreira
 '''
+import numpy as np
+
+import shesha_constants as scons
+
 from shesha_config.PWFS import Param_wfs
-from shesha_config import shesha_constants as scons
 from Sensors import Sensors
 
-import numpy as np
+from . import utilities as util
 
 
 def comp_new_fstop(
@@ -23,13 +26,13 @@ def comp_new_fstop(
         fssize : (float) : field stop size [arcsec]
         fstop : (string) : "square" or "round" (field stop shape)
     """
-    fsradius_pixels = long(fssize / p_wfs._qpixsize / 2.)
+    fsradius_pixels = int(fssize / p_wfs._qpixsize / 2.)
     if (fstop == scons.FieldStopType.ROUND):
         p_wfs.fstop = fstop
-        focmask = mkP.dist(
-            p_wfs._Nfft,
-            xc=p_wfs._Nfft / 2. + 0.5,
-            yc=p_wfs._Nfft / 2. + 0.5) < (fsradius_pixels)
+        focmask = util.dist(
+                p_wfs._Nfft,
+                xc=p_wfs._Nfft / 2. + 0.5,
+                yc=p_wfs._Nfft / 2. + 0.5) < (fsradius_pixels)
         # fstop_area = np.pi * (p_wfs.fssize/2.)**2. #UNUSED
     elif (p_wfs.fstop == scons.FieldStopType.SQUARE):
         p_wfs.fstop = fstop

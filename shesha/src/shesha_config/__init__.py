@@ -5,10 +5,8 @@ Created on 13 juil. 2017
 '''
 
 __all__ = [
-    'shesha_constants', 'PATMOS', 'PDMS', 'PGEOM', 'PLOOP', 'PTEL', 'PWFS',
-    'PTARGET', 'PCONTROLLER', 'PCENTROIDER', 'config_setter_utils']
-
-from shesha_config.shesha_constants import *
+        'shesha_constants', 'PATMOS', 'PDMS', 'PGEOM', 'PLOOP', 'PTEL', 'PWFS',
+        'PTARGET', 'PCONTROLLER', 'PCENTROIDER', 'config_setter_utils']
 
 from shesha_config.PATMOS import Param_atmos
 from shesha_config.PDMS import Param_dm

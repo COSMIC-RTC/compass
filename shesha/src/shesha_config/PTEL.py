@@ -8,7 +8,7 @@ Created on 13 juil. 2017
 
 import numpy as np
 from . import config_setter_utils as csu
-from . import shesha_constants as const
+import shesha_constants as const
 
 
 #################################################

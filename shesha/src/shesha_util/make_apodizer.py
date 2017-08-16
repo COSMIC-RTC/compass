@@ -9,7 +9,7 @@ Created on 13 juil. 2017
 import numpy as np
 from scipy.ndimage import interpolation as interp
 
-from . import make_pupil as makeP
+from . import utilities as util
 
 
 def make_apodizer(dim, pupd, filename, angle):
@@ -39,7 +39,7 @@ def make_apodizer(dim, pupd, filename, angle):
         print("TODO pup=rotate2(pup,angle)")
         pup = interp.rotate(pup, angle, reshape=False, order=2)
 
-    reg = np.where(makeP.dist(pupd) > pupd / 2.)
+    reg = np.where(util.dist(pupd) > pupd / 2.)
     pup[reg] = 0.
 
     pupf = np.zeros((dim, dim), dtype=np.float32)

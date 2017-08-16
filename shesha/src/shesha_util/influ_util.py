@@ -8,6 +8,8 @@ Created on 3 aout 2017
 import numpy as np
 import scipy.special as sp
 
+from shesha_constants import DmType, PatternType
+
 
 def besel_orth(m, n, phi, r):
     """
@@ -28,12 +30,12 @@ def besel_orth(m, n, phi, r):
     elif (m > 0):
         B = sp.jn(m, sp.jn_zeros(m, n)[n - 1] * r) * np.sin(m * phi)
     else:
-        B = sp.jn(np.abs(m), sp.jn_zeros(np.abs(m), n)[
-                  n - 1] * r) * np.cos(np.abs(m) * phi)
+        B = sp.jn(np.abs(m), sp.jn_zeros(np.abs(m), n)[n - 1] * r) * np.cos(
+                np.abs(m) * phi)
     return B
 
 
-def bessel_influence(xx, yy, type_i='square'):
+def bessel_influence(xx, yy, type_i=PatternType.SQUARE):
     """
         TODO: docstring
 
@@ -62,10 +64,12 @@ def bessel_influence(xx, yy, type_i='square'):
     phi = np.arctan2(yy, xx)  # +(np.pi/8.) #petite correction de rotation
 
     # coef for square IF
-    a0 = [0.3826, 0.5207, 0.2841, -0.0146, -0.1103, -
-          0.0818, -0.0141, 0.0123, 0.0196, 0.0037]
-    am = [-0.0454, -0.1114, -0.1125, -0.0397,
-          0.0146, 0.0217, 0.0085, -0.0012, -0.0040]
+    a0 = [
+            0.3826, 0.5207, 0.2841, -0.0146, -0.1103, -0.0818, -0.0141, 0.0123,
+            0.0196, 0.0037]
+    am = [
+            -0.0454, -0.1114, -0.1125, -0.0397, 0.0146, 0.0217, 0.0085,
+            -0.0012, -0.0040]
     a = [-0.0002, -0.0004, -0.0001, 0.0004, 0.0005, 0.0003, 0.0001, 0, 0]
 
     # search coef for hexagonal IF (m =0, 6, -6 --> 28 term)
@@ -73,7 +77,7 @@ def bessel_influence(xx, yy, type_i='square'):
     # a6 ->9
     # am6 ->9
 
-    if type_i == b'hexa':
+    if type_i == PatternType.HEXA or type_i == PatternType.HEXAM4:
         sym = 6
 
     else:
@@ -99,11 +103,7 @@ def bessel_influence(xx, yy, type_i='square'):
     return influ
 
 
-def makeRigaut(
-        pitch: float,
-        coupling: float,
-        x=None,
-        y=None):
+def makeRigaut(pitch: float, coupling: float, x=None, y=None):
     """Compute 'Rigaut-like' influence function
 
     :parameters:
@@ -119,19 +119,19 @@ def makeRigaut(
     irc = 1.16136 + 2.97422 * coupling + \
         (-13.2381) * coupling**2 + 20.4395 * coupling**3
 
-    p1 = 4.49469 + (7.25509 + (-32.1948 + 17.9493 * coupling)
-                    * coupling) * coupling
-    p2 = 2.49456 + (-0.65952 + (8.78886 - 6.23701 * coupling)
-                    * coupling) * coupling
+    p1 = 4.49469 + (7.25509 +
+                    (-32.1948 + 17.9493 * coupling) * coupling) * coupling
+    p2 = 2.49456 + (-0.65952 +
+                    (8.78886 - 6.23701 * coupling) * coupling) * coupling
 
     tmp_c = 1.0 / np.abs(irc)
     ccc = (coupling - 1. + tmp_c**p1) / (np.log(tmp_c) * tmp_c**p2)
 
     smallsize = int(np.ceil(2 * irc * pitch + 10))
-    if(smallsize % 2 != 0):
+    if (smallsize % 2 != 0):
         smallsize += 1
     # clip
-    if(x is None or y is None):
+    if (x is None or y is None):
         return smallsize
     else:
         # normalized coordiantes in local ref frame
@@ -148,11 +148,7 @@ def makeRigaut(
         return tmp
 
 
-def makeRadialSchwartz(
-        pitch: float,
-        coupling: float,
-        x=None,
-        y=None):
+def makeRadialSchwartz(pitch: float, coupling: float, x=None, y=None):
     """Compute radial Schwartz influence function
 
     :parameters:
@@ -168,8 +164,8 @@ def makeRadialSchwartz(
     k = 6  # order of the Schwartz function
     #
     a = pitch / np.sqrt(k / (np.log(coupling) - k) + 1.)
-    smallsize = long(2 * np.ceil(a) + 2)
-    if(x is None or y is None):
+    smallsize = int(2 * np.ceil(a) + 2)
+    if (x is None or y is None):
         return smallsize
     else:
         r = (x * x + y * y) / (a * a)
@@ -180,11 +176,7 @@ def makeRadialSchwartz(
         return sc
 
 
-def makeSquareSchwartz(
-        pitch: float,
-        coupling: float,
-        x=None,
-        y=None):
+def makeSquareSchwartz(pitch: float, coupling: float, x=None, y=None):
     """Compute Square Schwartz influence function
 
     :parameters:
@@ -201,8 +193,8 @@ def makeSquareSchwartz(
     #
     a = pitch / np.sqrt(k / (np.log(coupling) - k) + 1.)
 
-    if(x is None or y is None):
-        smallsize = long(2 * np.ceil(a) + 2)
+    if (x is None or y is None):
+        smallsize = int(2 * np.ceil(a) + 2)
         return smallsize
     else:
         xx = (x / a)**2
@@ -214,11 +206,7 @@ def makeSquareSchwartz(
         return sc
 
 
-def makeBlacknutt(
-        pitch: float,
-        coupling: float,
-        x=None,
-        y=None):
+def makeBlacknutt(pitch: float, coupling: float, x=None, y=None):
     """Compute Blacknutt influence function
     Attention, ici on ne peut pas choisir la valeur de coupling.
     La variable a ete laissee dans le code juste pour compatibilité avec les
@@ -234,15 +222,15 @@ def makeBlacknutt(
         influ: (np.ndarray(dims=3,dtype=np.float64)) : cube of the IF for each actuator
 
     """
-    smallsize = long(np.ceil(4 * pitch + 1))
-    if(x is None or y is None):
+    smallsize = int(np.ceil(4 * pitch + 1))
+    if (x is None or y is None):
         return smallsize
     else:
         cg = smallsize // 2
         xx = x / float(cg)
         yy = y / float(cg)
-        a = np.array([0.355768, 0.487396, 0.144232,
-                      0.012604], dtype=np.float32)
+        a = np.array([0.355768, 0.487396, 0.144232, 0.012604],
+                     dtype=np.float32)
         ok = np.where((np.abs(xx) < 1) * (np.abs(yy) < 1))
         sc = np.zeros(xx.shape)
         sc[ok] = (a[0] + a[1] * np.cos(np.pi * xx[ok]) +
@@ -253,11 +241,7 @@ def makeBlacknutt(
         return sc
 
 
-def makeGaussian(
-        pitch: float,
-        coupling: float,
-        x=None,
-        y=None):
+def makeGaussian(pitch: float, coupling: float, x=None, y=None):
     """Compute Gaussian influence function. Coupling parameter is not taken into account
 
     :parameters:
@@ -275,10 +259,10 @@ def makeGaussian(
     tmp_c = 1.0 / np.abs(irc)
 
     smallsize = int(np.ceil(2 * irc * pitch + 10))
-    if(smallsize % 2 != 0):
+    if (smallsize % 2 != 0):
         smallsize += 1
 
-    if(x is None or y is None):
+    if (x is None or y is None):
         return smallsize
     else:
         xdg = np.linspace(-1, 1, smallsize, dtype=np.float32)
@@ -297,7 +281,8 @@ def makeBessel(
         pitch: float,
         coupling: float,
         x=None,
-        y=None):
+        y=None,
+        patternType=PatternType.SQUARE):
     """Compute Bessel influence function
 
     :parameters:
@@ -310,9 +295,9 @@ def makeBessel(
         influ: (np.ndarray(dims=3,dtype=np.float64)) : cube of the IF for each actuator
 
     """
-    smallsize = long(np.ceil(pitch * 3.2))
+    smallsize = int(np.ceil(pitch * 3.2))
 
-    if(x is None or y is None):
+    if (x is None or y is None):
         return smallsize
     else:
         # size_pitch = smallsize/np.float32(p_dm._pitch) # size of influence fonction in pitch
@@ -320,6 +305,6 @@ def makeBessel(
         # x = np.tile(xdg, (smallsize,1))
         # y = x.T
         influ_u = bessel_influence(
-            x / (1.6 * pitch), y / (1.6 * pitch), dmType)
+                x / (1.6 * pitch), y / (1.6 * pitch), patternType)
         influ_u = influ_u * (influ_u >= 0)
         return influ_u

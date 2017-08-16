@@ -7,7 +7,7 @@ Created on 12 juil. 2017
 '''
 
 import numpy as np
-from . import shesha_constants as scons
+import shesha_constants as scons
 from . import config_setter_utils as csu
 
 
@@ -186,7 +186,7 @@ class Param_dm:
         self.__file_influ_hdf5 = f
 
     file_influ_hdf5 = property(
-        lambda x: x.__file_influ_hdf5, set_file_influ_hdf5)
+            lambda x: x.__file_influ_hdf5, set_file_influ_hdf5)
 
     def set_center_name(self, f):
         """set the name of hdf5 influence file
@@ -410,7 +410,8 @@ class Param_dm:
         :param influ: (np.ndarray[ndim=3,dtype=np.float32_t]) : influence function
         """
         self.__influ = csu.enforce_arrayMultiDim(
-            influ, (self.__influsize, self.__influsize, self._ntotact), dtype=np.float32)
+                influ, (self.__influsize, self.__influsize, self._ntotact),
+                dtype=np.float32)
 
     _influ = property(lambda x: x.__influ, set_influ)
 
@@ -420,7 +421,7 @@ class Param_dm:
             :param off: (np.ndarray[ndim=1,dtype=np.float32_t]) : offsets [m]
         """
         self.__pupoffset = csu.enforce_array(
-            off, self.__ntotact, dtype=np.float32)
+                off, self.__ntotact, dtype=np.float32)
 
     pupoffset = property(lambda x: x.__pupoffset, set_pupoffset)
 
@@ -430,7 +431,7 @@ class Param_dm:
             :param off: (np.ndarray[ndim=1,dtype=np.float32_t]) : offsets [pixels]
         """
         self.__puppixoffset = csu.enforce_array(
-            off, self.__ntotact, dtype=np.float32)
+                off, self.__ntotact, dtype=np.float32)
 
     _puppixoffset = property(lambda x: x.__puppixoffset, set_puppixoffset)
 

@@ -8,7 +8,7 @@ Created on 9 aout 2017
 
 import numpy as np
 from . import config_setter_utils as csu
-from . import shesha_constants as scons
+import shesha_constants as scons
 
 #################################################
 # P-Class (parametres) Param_centroider
@@ -81,7 +81,7 @@ class Param_centroider:
         :param w: (np.ndarray[ndim=1, dtype=np.float32]) : weights
         """
         self.__weights = csu.enforce_arrayMultiDim(
-            w, w.shape, dtype=np.float32)
+                w, w.shape, dtype=np.float32)
 
     weights = property(lambda x: x.__weights, set_weights)
 
@@ -141,8 +141,8 @@ class Param_centroider:
 
         :param imap: (np.ndarray[ndim=2, dtype=np.float32]) : sizey
         """
-        self.__interpmat = csu.enforce_arrayMultiDim(imap, (self.sizex, self.sizey),
-                                                     dtype=np.float32)
+        self.__interpmat = csu.enforce_arrayMultiDim(
+                imap, (self.sizex, self.sizey), dtype=np.float32)
 
     interpmat = property(lambda x: x.__interpmat, set_interpmat)
 

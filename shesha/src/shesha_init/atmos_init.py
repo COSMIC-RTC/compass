@@ -6,16 +6,10 @@ Created on 13 juil. 2017
 @author: vdeo
 '''
 
-import os
-try:
-    shesha_dir = os.environ['SHESHA_ROOT']
-    os.environ["PATH"] += shesha_dir + '/src'
-except KeyError as err:
-    raise EnvironmentError(
-            "Environment variable 'SHESHA_ROOT' must be defined")
-
 from naga import naga_context
+
 import shesha_config as conf
+from shesha_constants import CONST
 
 from Atmos import Atmos
 
@@ -42,7 +36,7 @@ def atmos_init(
         p_atmos.r0 = 0.
 
     # Adjust layers alt using zenith angle
-    p_atmos.alt = p_atmos.alt / np.cos(p_geom.zenithangle * conf.DEG2RAD)
+    p_atmos.alt = p_atmos.alt / np.cos(p_geom.zenithangle * CONST.DEG2RAD)
     # Pixel size in meters
     p_atmos.pupixsize = p_tel.diam / p_geom.pupdiam
 
@@ -61,15 +55,15 @@ def atmos_init(
     # Meta-pupil diameter for all layers depending on altitude
     patch_diam = (
             p_geom._n + 2 *
-            (max_size * conf.ARCSEC2RAD * p_atmos.alt) / p_atmos.pupixsize +
+            (max_size * CONST.ARCSEC2RAD * p_atmos.alt) / p_atmos.pupixsize +
             4).astype(np.int64)
     p_atmos.dim_screens = patch_diam + patch_diam % 2
 
     # Phase screen speeds
     lin_delta = p_geom.pupdiam / p_tel.diam * p_atmos.windspeed * \
-        np.cos(conf.DEG2RAD * p_geom.zenithangle) * p_loop.ittime
-    p_atmos.deltax = -lin_delta * np.sin(conf.DEG2RAD * p_atmos.winddir)
-    p_atmos.deltay = -lin_delta * np.cos(conf.DEG2RAD * p_atmos.winddir)
+        np.cos(CONST.DEG2RAD * p_geom.zenithangle) * p_loop.ittime
+    p_atmos.deltax = -lin_delta * np.sin(CONST.DEG2RAD * p_atmos.winddir)
+    p_atmos.deltay = -lin_delta * np.cos(CONST.DEG2RAD * p_atmos.winddir)
 
     # Fraction normalization
     p_atmos.frac /= np.sum(p_atmos.frac)

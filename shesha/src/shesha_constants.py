@@ -12,10 +12,12 @@ Config enumerations for safe-typing
 
 import numpy as np
 
-RAD2ARCSEC = 3600. * 360. / (2 * np.pi)
-ARCSEC2RAD = 2. * np.pi / (360. * 3600.)
-RAD2DEG = 180. / np.pi
-DEG2RAD = np.pi / 180.
+
+class CONST:
+    RAD2ARCSEC = 3600. * 360. / (2 * np.pi)
+    ARCSEC2RAD = 2. * np.pi / (360. * 3600.)
+    RAD2DEG = 180. / np.pi
+    DEG2RAD = np.pi / 180.
 
 
 def check_enum(cls, name):
@@ -29,8 +31,8 @@ def check_enum(cls, name):
     if not isinstance(name, bytes) or \
             not name in vars(cls).values():
         raise ValueError(
-            "Invalid enumeration value for enum %s, value %s" %
-            (cls, name))
+                "Invalid enumeration value for enum %s, value %s" %
+                (cls, name))
     return name
 
 
@@ -155,10 +157,11 @@ class ProfType:
     GAUSS2 = b'Gauss2'
     GAUSS3 = b'Gauss3'
     EXP = b'Exp'
-    FILES = dict({GAUSS1: b"allProfileNa_withAltitude_1Gaussian.npy",
-                  GAUSS2: b"allProfileNa_withAltitude_2Gaussian.npy",
-                  GAUSS3: b"allProfileNa_withAltitude_3Gaussian.npy",
-                  EXP: b"allProfileNa_withAltitude.npy"})
+    FILES = dict({
+            GAUSS1: b"allProfileNa_withAltitude_1Gaussian.npy",
+            GAUSS2: b"allProfileNa_withAltitude_2Gaussian.npy",
+            GAUSS3: b"allProfileNa_withAltitude_3Gaussian.npy",
+            EXP: b"allProfileNa_withAltitude.npy"})
 
 
 class FieldStopType:

@@ -1,19 +1,14 @@
-import os
-try:
-    shesha_dir = os.environ['SHESHA_ROOT']
-    os.environ["PATH"] += shesha_dir + '/src'
-except KeyError as err:
-    raise EnvironmentError(
-        "Environment variable 'SHESHA_ROOT' must be defined")
-
 from naga import naga_context
+
 import shesha_config as conf
-import shesha_util.make_pupil as mkP
+
+import shesha_constants as scons
+from shesha_constants import CONST
 
 import numpy as np
 
 from Telescope import Telescope
-from Target import Target
+from Target import Target, Target_brama
 
 
 def target_init(
@@ -42,8 +37,8 @@ def target_init(
     """
     type_target = b"atmos"
 
-    if(p_target.ntargets > 0):
-        if(p_target.dms_seen is None and dm is not None):
+    if (p_target.ntargets > 0):
+        if (p_target.dms_seen is None and dm is not None):
             for i in range(p_target.ntargets):
                 p_target.dms_seen = np.arange(len(dm))
 
@@ -53,34 +48,42 @@ def target_init(
 
     ceiled_pupil[np.where(ceiled_pupil > 1)] = 1
 
-    if(p_target.apod == 1):
+    if (p_target.apod == 1):
         Npts = 0
         # TODO apodizer, Npts=nb element of apodizer>0
         ceiled_apodizer = np.ceil(p_geom._apodizer * p_geom._spupil)
         ceiled_apodizer[np.where(ceiled_apodizer > 1)] = 1
-        if(brama == 1):
-            target = Target_brama(ctxt, telescope, p_target.ntargets, p_target.xpos, p_target.ypos,
-                                  p_target.Lambda, p_target.mag, p_target.zerop, sizes, Npts)
+        if (brama == 1):
+            target = Target_brama(
+                    ctxt, telescope, p_target.ntargets, p_target.xpos,
+                    p_target.ypos, p_target.Lambda, p_target.mag,
+                    p_target.zerop, sizes, Npts)
         else:
-            target = Target(ctxt, telescope, p_target.ntargets, p_target.xpos, p_target.ypos,
-                            p_target.Lambda, p_target.mag, p_target.zerop, sizes, Npts)
+            target = Target(
+                    ctxt, telescope, p_target.ntargets, p_target.xpos,
+                    p_target.ypos, p_target.Lambda, p_target.mag,
+                    p_target.zerop, sizes, Npts)
 
     else:
         Npts = np.sum(ceiled_pupil)
-        if(brama == 1):
-            target = Target_brama(ctxt, telescope, p_target.ntargets, p_target.xpos, p_target.ypos,
-                                  p_target.Lambda, p_target.mag, p_target.zerop, sizes, Npts)
+        if (brama == 1):
+            target = Target_brama(
+                    ctxt, telescope, p_target.ntargets, p_target.xpos,
+                    p_target.ypos, p_target.Lambda, p_target.mag,
+                    p_target.zerop, sizes, Npts)
         else:
-            target = Target(ctxt, telescope, p_target.ntargets, p_target.xpos, p_target.ypos,
-                            p_target.Lambda, p_target.mag, p_target.zerop, sizes, Npts)
+            target = Target(
+                    ctxt, telescope, p_target.ntargets, p_target.xpos,
+                    p_target.ypos, p_target.Lambda, p_target.mag,
+                    p_target.zerop, sizes, Npts)
 
     # cc=i
     for i in range(p_target.ntargets):
-        if(p_atmos.nscreens > 0):
+        if (p_atmos.nscreens > 0):
             for j in range(p_atmos.nscreens):
-                xoff = p_target.xpos[i] * conf.ARCSEC2RAD * \
+                xoff = p_target.xpos[i] * CONST.ARCSEC2RAD * \
                     p_atmos.alt[j] / p_atmos.pupixsize
-                yoff = p_target.ypos[i] * conf.ARCSEC2RAD * \
+                yoff = p_target.ypos[i] * CONST.ARCSEC2RAD * \
                     p_atmos.alt[j] / p_atmos.pupixsize
                 xoff += float((p_atmos.dim_screens[j] - p_geom._n) / 2)
                 yoff += float((p_atmos.dim_screens[j] - p_geom._n) / 2)
@@ -90,7 +93,7 @@ def target_init(
                 target.add_layer(i, type_target, p_atmos.alt[j], xoff, yoff)
 
         # if (y_dm != []) {
-        if(dm is not None):
+        if (dm is not None):
             # j=ddd
             # for (ddd=1;ddd<=numberof(*y_target(cc).dms_seen);ddd++) {
             for j in range(p_target.dms_seen.size):
@@ -100,9 +103,9 @@ def target_init(
                 dims = dm[k]._n2 - dm[k]._n1 + 1
                 dim = p_geom._mpupil[2].size
                 dim_dm = max(dim, dims)
-                xoff = p_target.xpos[i] * conf.ARCSEC2RAD * \
+                xoff = p_target.xpos[i] * CONST.ARCSEC2RAD * \
                     dm[k].alt / p_tel.diam * p_geom.pupdiam
-                yoff = p_target.ypos[i] * conf.ARCSEC2RAD * \
+                yoff = p_target.ypos[i] * CONST.ARCSEC2RAD * \
                     dm[k].alt / p_tel.diam * p_geom.pupdiam
 
                 xoff += float((dim_dm - p_geom._n) / 2)
@@ -112,7 +115,7 @@ def target_init(
                 xoff += pupdiff
                 yoff += pupdiff
 
-                if(dm[k].type_dm == conf.DmType.KL):
+                if (dm[k].type_dm == scons.DmType.KL):
                     xoff += 2
                     yoff += 2
                 target.add_layer(i, dm[k].type_dm, dm[k].alt, xoff, yoff)

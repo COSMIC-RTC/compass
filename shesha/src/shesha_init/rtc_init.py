@@ -1,18 +1,15 @@
-import os
-try:
-    shesha_dir = os.environ['SHESHA_ROOT']
-    os.environ["PATH"] += shesha_dir + '/src'
-except KeyError as err:
-    raise EnvironmentError(
-        "Environment variable 'SHESHA_ROOT' must be defined")
-
 from naga import naga_context
+
 import shesha_config as conf
-import shesha_util.make_pupil as mkP
+import shesha_constants as scons
+from shesha_constants import CONST
+
 import shesha_ao as shao
+
 from shesha_util import utilities as util
 from shesha_util import rtc_util
 from shesha_init import dm_init as dmi
+
 import numpy as np
 
 from Dms import Dms
@@ -20,7 +17,7 @@ from Sensors import Sensors
 from Telescope import Telescope
 from Atmos import Atmos
 from Target import Target
-from Rtc import Rtc
+from Rtc import Rtc, Rtc_brama
 
 
 def rtc_init(
@@ -67,7 +64,7 @@ def rtc_init(
     """
     # initialisation var
     # ________________________________________________
-    if(brama == 1):
+    if (brama == 1):
         rtc = Rtc_brama(wfs, tar)
     else:
         rtc = Rtc(context)
@@ -91,21 +88,20 @@ def rtc_init(
             init_centroider(nwfs, p_wfss[nwfs], p_centroiders[i], wfs, rtc)
 
     if p_controllers is not None:
-        if(p_wfss is not None and p_dms is not None):
+        if (p_wfss is not None and p_dms is not None):
             for i in range(ncontrol):
                 imat = shao.imat_geom(
-                    wfs, dms, p_wfss, p_dms, p_controllers[i], meth=0)
+                        wfs, dms, p_wfss, p_dms, p_controllers[i], meth=0)
 
-                dmi.correct_dm(dms, p_dms, p_controllers[i], p_geom,
-                               imat)
+                dmi.correct_dm(dms, p_dms, p_controllers[i], p_geom, imat)
 
-                init_controller(i, p_controllers[i], p_wfss, p_geom,
-                                p_dms, p_atmos, p_loop, p_tel,
-                                rtc, dms, wfs, tel, atmos, do_refslp)
+                init_controller(
+                        i, p_controllers[i], p_wfss, p_geom, p_dms, p_atmos,
+                        p_loop, p_tel, rtc, dms, wfs, tel, atmos, do_refslp)
 
             # add a geometric controller for processing error breakdown
             error_budget_flag = True in [w.error_budget for w in p_wfss]
-            if(error_budget_flag):
+            if (error_budget_flag):
                 p_controller = p_controllers[0]
                 Nphi = np.where(p_geom._spupil)[0].size
 
@@ -114,24 +110,23 @@ def rtc_init(
                 alt = np.array([p_dms[j].alt for j in p_controller.ndm],
                                dtype=np.float32)
 
-                rtc.add_controller(nactu, p_controller.delay,
-                                   p_controller.type_control, dms, list_dmseen,
-                                   alt, p_controller.ndm.size, Nphi)
+                rtc.add_controller(
+                        nactu, p_controller.delay, p_controller.type_control,
+                        dms, list_dmseen, alt, p_controller.ndm.size, Nphi)
 
                 # list_dmseen,alt,p_controller.ndm.size
-                init_controller_geo(i, rtc, dms, p_geom,
-                                    p_controller, p_dms, roket=True)
+                init_controller_geo(
+                        i, rtc, dms, p_geom, p_controller, p_dms, roket=True)
 
     return rtc
 
 
 def init_centroider(
-    nwfs: int,
-    p_wfs: conf.Param_wfs,
-    p_centroider: conf.Param_centroider,
-    wfs: Sensors,
-    rtc: Rtc,
-):
+        nwfs: int,
+        p_wfs: conf.Param_wfs,
+        p_centroider: conf.Param_centroider,
+        wfs: Sensors,
+        rtc: Rtc, ):
     """ Initialize a centroider object in Rtc
 
     :parameters:
@@ -141,12 +136,12 @@ def init_centroider(
         wfs: (Sensors): Sensor object
         rtc : (Rtc) : Rtc object
     """
-    if(p_wfs.type_wfs == conf.WFSType.SH):
-        if(p_centroider.type_centro != conf.CentroiderType.CORR):
+    if (p_wfs.type_wfs == scons.WFSType.SH):
+        if (p_centroider.type_centro != scons.CentroiderType.CORR):
             s_offset = p_wfs.npix // 2. + 0.5
         else:
-            if(p_centroider.type_fct == conf.CentroiderFctType.MODEL):
-                if(p_wfs.npix % 2 == 0):
+            if (p_centroider.type_fct == scons.CentroiderFctType.MODEL):
+                if (p_wfs.npix % 2 == 0):
                     s_offset = p_wfs.npix // 2 + 0.5
                 else:
                     s_offset = p_wfs.npix // 2
@@ -155,49 +150,51 @@ def init_centroider(
 
         s_scale = p_wfs.pixsize
 
-    elif(p_wfs.type_wfs == conf.WFSType.PYRHR):
+    elif (p_wfs.type_wfs == scons.WFSType.PYRHR):
         s_scale = (p_wfs.Lambda * 1e-6 / p_tel.diam) * \
-            p_wfs.pyr_ampl * conf.RAD2ARCSEC
+            p_wfs.pyr_ampl * CONST.RAD2ARCSEC
 
     rtc.add_centroider(
-        wfs, nwfs, p_wfs._nvalid, p_centroider.type_centro, s_offset, s_scale)
+            wfs, nwfs, p_wfs._nvalid, p_centroider.type_centro, s_offset,
+            s_scale)
 
-    if(p_wfs.type_wfs == conf.WFSType.PYRHR):
-        rtc.set_pyr_method(
-            i, p_centroider.method, p_centroiders)
-        rtc.set_pyr_thresh(
-            i, p_centroider.thresh, p_centroiders)
+    if (p_wfs.type_wfs == scons.WFSType.PYRHR):
+        rtc.set_pyr_method(i, p_centroider.method, p_centroiders)
+        rtc.set_pyr_thresh(i, p_centroider.thresh, p_centroiders)
 
-    elif(p_wfs.type_wfs == conf.WFSType.SH):
-        if(p_centroider.type_centro == conf.CentroiderType.TCOG):
+    elif (p_wfs.type_wfs == scons.WFSType.SH):
+        if (p_centroider.type_centro == scons.CentroiderType.TCOG):
             rtc.setthresh(i, p_centroider.thresh)
-        elif(p_centroider.type_centro == conf.CentroiderType.BPCOG):
+        elif (p_centroider.type_centro == scons.CentroiderType.BPCOG):
             rtc.setnmax(i, p_centroider.nmax)
-        elif(p_centroider.type_centro == conf.CentroiderType.WCOG or p_centroider.type_centro == conf.CentroiderType.CORR):
+        elif (
+                p_centroider.type_centro == scons.CentroiderType.WCOG or
+                p_centroider.type_centro == scons.CentroiderType.CORR):
             comp_weights(p_centroider, p_wfs, p_atmos.r0)
-            if p_centroider.type_centro == conf.CentroiderType.WCOG:
+            if p_centroider.type_centro == scons.CentroiderType.WCOG:
                 rtc.init_weights(i, p_centroider.weights)
             else:
-                corrnorm = np.ones(
-                    (2 * p_wfs.npix, 2 * p_wfs.npix), dtype=np.float32)
+                corrnorm = np.ones((2 * p_wfs.npix, 2 * p_wfs.npix),
+                                   dtype=np.float32)
                 p_centroider.sizex = 3
                 p_centroider.sizey = 3
-                p_centroider.interpmat = rtc_util.create_interp_mat(p_centroider.sizex,
-                                                                    p_centroider.sizey).astype(np.float32)
+                p_centroider.interpmat = rtc_util.create_interp_mat(
+                        p_centroider.sizex,
+                        p_centroider.sizey).astype(np.float32)
 
-                if(p_centroider.weights is None):
+                if (p_centroider.weights is None):
                     raise ValueError("p_centroider.weights is None")
                 rtc.init_npix(i)
-                rtc.init_corr(i, p_centroider.weights, corrnorm,
-                              p_centroider.sizex, p_centroider.sizey, p_centroider.interpmat)
+                rtc.init_corr(
+                        i, p_centroider.weights, corrnorm, p_centroider.sizex,
+                        p_centroider.sizey, p_centroider.interpmat)
 
 
 def comp_weights(
-    p_centroider: conf.Param_centroider,
-    p_wfs: conf.Param_wfs,
-    npix: int,
-    r0: float
-):
+        p_centroider: conf.Param_centroider,
+        p_wfs: conf.Param_wfs,
+        npix: int,
+        r0: float):
     """
         Compute the weights used by centroider wcog and corr
 
@@ -208,51 +205,52 @@ def comp_weights(
         r0 : (float) : r0 @ 0.5 microns
     """
     r0 = p_atmos.r0 * (p_wfs.Lambda / 0.5)**(6 / 5.)
-    seeing = conf.RAD2ARCSEC * (p_wfs.Lambda * 1.e-6) / r0
+    seeing = CONST.RAD2ARCSEC * (p_wfs.Lambda * 1.e-6) / r0
     npix = seeing // p_wfs.pixsize
 
-    if(p_centroider.type_fct == conf.CentroiderFctType.MODEL):
+    if (p_centroider.type_fct == scons.CentroiderFctType.MODEL):
 
-        if(p_wfs.gsalt > 0):
+        if (p_wfs.gsalt > 0):
             tmp = p_wfs._lgskern
-            tmp2 = util.makegaussian(
-                tmp.shape[1], npix * p_wfs._nrebin).astype(np.float32)
-            tmp3 = np.zeros(
-                (tmp.shape[1], tmp.shape[1], p_wfs._nvalid), dtype=np.float32)
+            tmp2 = util.makegaussian(tmp.shape[1],
+                                     npix * p_wfs._nrebin).astype(np.float32)
+            tmp3 = np.zeros((tmp.shape[1], tmp.shape[1], p_wfs._nvalid),
+                            dtype=np.float32)
 
             for j in range(p_wfs._nvalid):
-                tmp3[:, :, j] = np.fft.ifft2(np.fft.fft2(
-                    tmp[:, :, j]) * np.fft.fft2(tmp2.T)).real
+                tmp3[:, :, j] = np.fft.ifft2(
+                        np.fft.fft2(tmp[:, :, j]) * np.fft.fft2(tmp2.T)).real
                 tmp3[:, :, j] *= tmp3.shape[0] * tmp3.shape[1]
                 tmp3[:, :, j] = np.roll(
-                    tmp3[:, :, j], tmp3.shape[0] / 2, axis=0)
+                        tmp3[:, :, j], tmp3.shape[0] / 2, axis=0)
                 tmp3[:, :, j] = np.roll(
-                    tmp3[:, :, j], tmp3.shape[1] / 2, axis=1)
+                        tmp3[:, :, j], tmp3.shape[1] / 2, axis=1)
             offset = (p_wfs._Ntot - p_wfs._nrebin * p_wfs.npix) // 2
             j = offset + p_wfs._nrebin * p_wfs.npix
-            tmp = np.zeros(
-                (j - offset + 1, j - offset + 1, tmp3.shape[2]), dtype=np.float32)
-            tmp3 = np.cumsum(
-                tmp3[offset:j, offset:j, :], axis=0)
+            tmp = np.zeros((j - offset + 1, j - offset + 1, tmp3.shape[2]),
+                           dtype=np.float32)
+            tmp3 = np.cumsum(tmp3[offset:j, offset:j, :], axis=0)
             tmp[1:, 1:, :] = np.cumsum(tmp3, axis=1)
-            tmp = np.diff(
-                tmp[::p_wfs._nrebin, ::p_wfs._nrebin, :], axis=0)
+            tmp = np.diff(tmp[::p_wfs._nrebin, ::p_wfs._nrebin, :], axis=0)
             tmp = np.diff(tmp, axis=1)
 
             p_centroider.weights = tmp
 
-    elif(p_centroider.type_fct == conf.CentroiderFctType.GAUSS):
+    elif (p_centroider.type_fct == scons.CentroiderFctType.GAUSS):
         if p_centroider.width is None:
             p_centroider.width = npix
-        if(p_wfs.npix % 2 == 1):
-            p_centroider.weights = util.makegaussian(p_wfs.npix,
-                                                     p_centroider.width, p_wfs.npix // 2 + 1, p_wfs.npix // 2 + 1).astype(np.float32)
-        elif(p_centroider.type_centro == conf.WFSType.CORR):
-            p_centroider.weights = util.makegaussian(p_wfs.npix,
-                                                     p_centroider.width, p_wfs.npix // 2, p_wfs.npix // 2).astype(np.float32)
+        if (p_wfs.npix % 2 == 1):
+            p_centroider.weights = util.makegaussian(
+                    p_wfs.npix, p_centroider.width, p_wfs.npix // 2 + 1,
+                    p_wfs.npix // 2 + 1).astype(np.float32)
+        elif (p_centroider.type_centro == scons.CentroiderType.CORR):
+            p_centroider.weights = util.makegaussian(
+                    p_wfs.npix, p_centroider.width, p_wfs.npix // 2,
+                    p_wfs.npix // 2).astype(np.float32)
         else:
-            p_centroider.weights = util.makegaussian(p_wfs.npix,
-                                                     p_centroider.width, p_wfs.npix // 2 + 0.5, p_wfs.npix // 2 + 0.5).astype(np.float32)
+            p_centroider.weights = util.makegaussian(
+                    p_wfs.npix, p_centroider.width, p_wfs.npix // 2 + 0.5,
+                    p_wfs.npix // 2 + 0.5).astype(np.float32)
 
     else:
         p_centroider.weights = np.zeros(0, dtype=np.float32)
@@ -292,9 +290,9 @@ def init_controller(
         tel: (Telescope) : Telescope object
         atmos: (Atmos) : Atmos object
     """
-    if(p_controller.type_control != conf.ControllerType.GEO):
+    if (p_controller.type_control != scons.ControllerType.GEO):
         nwfs = p_controller.nwfs
-        if(len(p_wfss) == 1):
+        if (len(p_wfss) == 1):
             nwfs = p_controller.nwfs
             # TODO fixing a bug ... still not understood
         nvalid = sum([p_wfss[k]._nvalid for k in nwfs])
@@ -303,38 +301,38 @@ def init_controller(
     ndms = p_controller.ndm.tolist()
     p_controller.set_nactu([p_dms[n]._ntotact for n in ndms])
     nactu = np.sum([p_dms[j]._ntotact for j in ndms])
-    alt = np.array([p_dms[j].alt for j in p_controller.ndm],
-                   dtype=np.float32)
+    alt = np.array([p_dms[j].alt for j in p_controller.ndm], dtype=np.float32)
 
     list_dmseen = [p_dms[j].type_dm for j in p_controller.ndm]
-    if(p_controller.type_control == conf.ControllerType.GEO):
+    if (p_controller.type_control == scons.ControllerType.GEO):
         Nphi = np.where(p_geom._spupil)[0].size
     else:
         Nphi = -1
 
-    rtc.add_controller(nactu, p_controller.delay,
-                       p_controller.type_control, dms, list_dmseen,
-                       alt, p_controller.ndm.size, Nphi)
+    rtc.add_controller(
+            nactu, p_controller.delay, p_controller.type_control, dms,
+            list_dmseen, alt, p_controller.ndm.size, Nphi)
 
-    if(p_wfss is not None and do_refslp):
+    if (p_wfss is not None and do_refslp):
         rtc.do_centroids_ref(i)
 
-    if(p_controller.type_control == conf.ControllerType.GEO):
+    if (p_controller.type_control == scons.ControllerType.GEO):
         init_controller_geo(i, rtc, dms, p_geom, p_controller, p_dms)
 
-    if(p_controller.type_control == conf.ControllerType.LS):
-        init_controller_ls(i, p_controller, p_wfss, p_geom, p_dms, p_atmos,
-                           p_loop, p_tel, rtc, dms, wfs, tel, atmos)
+    if (p_controller.type_control == scons.ControllerType.LS):
+        init_controller_ls(
+                i, p_controller, p_wfss, p_geom, p_dms, p_atmos, p_loop, p_tel,
+                rtc, dms, wfs, tel, atmos)
 
-    if(p_controller.type_control == conf.ControllerType.CURED):
+    if (p_controller.type_control == scons.ControllerType.CURED):
         init_controller_cured(i, rtc, p_controller, p_dms, p_wfss)
 
-    if(p_controller.type_control == conf.ControllerType.MV):
-        init_controller_mv(i, p_controller, p_wfss, p_geom,
-                           p_dms, p_atmos, p_tel,
-                           rtc, dms, wfs, atmos)
+    if (p_controller.type_control == scons.ControllerType.MV):
+        init_controller_mv(
+                i, p_controller, p_wfss, p_geom, p_dms, p_atmos, p_tel, rtc,
+                dms, wfs, atmos)
 
-    elif(p_controller.type_control == conf.ControllerType.GENERIC):
+    elif (p_controller.type_control == scons.ControllerType.GENERIC):
         init_controller_generic(i, p_controller, p_dms, rtc)
 
 
@@ -358,28 +356,26 @@ def init_controller_geo(
         p_dms: (list of Param_dms): dms settings
         roket: (bool): Flag to initialize ROKET
     """
-    indx_pup = np.where(p_geom._spupil.flatten('F'))[
-        0].astype(np.int32)
-    indx_mpup = np.where(p_geom._mpupil.flatten('F'))[
-        0].astype(np.int32)
+    indx_pup = np.where(p_geom._spupil.flatten('F'))[0].astype(np.int32)
+    indx_mpup = np.where(p_geom._mpupil.flatten('F'))[0].astype(np.int32)
     cpt = 0
-    indx_dm = np.zeros(
-        (p_controller.ndm.size * indx_pup.size), dtype=np.int32)
+    indx_dm = np.zeros((p_controller.ndm.size * indx_pup.size), dtype=np.int32)
     for dmn in range(p_controller.ndm.size):
         tmp_s = (
-            p_geom._ipupil.shape[0] - (p_dms[dmn]._n2 - p_dms[dmn]._n1 + 1)) // 2
+                p_geom._ipupil.shape[0] -
+                (p_dms[dmn]._n2 - p_dms[dmn]._n1 + 1)) // 2
         tmp_e0 = p_geom._ipupil.shape[0] - tmp_s
         tmp_e1 = p_geom._ipupil.shape[1] - tmp_s
         pup_dm = p_geom._ipupil[tmp_s:tmp_e0, tmp_s:tmp_e1]
         indx_dm[cpt:cpt + np.where(pup_dm)[0].size] = np.where(
-            pup_dm.flatten('F'))[0]
+                pup_dm.flatten('F'))[0]
         cpt += np.where(pup_dm)[0].size
     # convert unitpervolt list to a np.ndarray
     unitpervolt = np.array([p_dms[j].unitpervolt for j in range(len(p_dms))],
                            dtype=np.float32)
 
-    rtc.init_proj(i, dms, indx_dm,
-                  unitpervolt, indx_pup, indx_mpup, roket=roket)
+    rtc.init_proj(
+            i, dms, indx_dm, unitpervolt, indx_pup, indx_mpup, roket=roket)
 
 
 def init_controller_ls(
@@ -416,7 +412,7 @@ def init_controller_ls(
     KL2V = None
     if p_controller.kl_imat:
         KL2V = shao.compute_KL2V(
-            controller, dms, p_dms, p_geom, p_atmos, p_tel)
+                controller, dms, p_dms, p_geom, p_atmos, p_tel)
 
         # TODO: Fab et/ou Vincent: quelle normalisation appliquée ? --> à mettre direct dans compute_KL2V
         # En attendant, la version de Seb (retravaillée)
@@ -434,28 +430,37 @@ def init_controller_ls(
     if p_controller.modopti:
         init_modalopti()
         print("Initializing Modal Optimization : ")
-        p_controller.nrec = int(
-            2 ** np.ceil(np.log2(p_controller.nrec)))
+        p_controller.nrec = int(2**np.ceil(np.log2(p_controller.nrec)))
         if p_controller.nmodes is None:
-            p_controller.nmodes = sum(
-                p_dms[j]._ntotact for k in ndms)
+            p_controller.nmodes = sum(p_dms[j]._ntotact for k in ndms)
 
         KL2V = shao.compute_KL2V(
-            p_controller, dms, p_dms, p_geom, p_atmos, p_tel)
+                p_controller, dms, p_dms, p_geom, p_atmos, p_tel)
 
-        rtc.init_modalOpti(i, p_controller.nmodes, p_controller.nrec, KL2V,
-                           p_controller.gmin, p_controller.gmax, p_controller.ngain, 1. / p_loop.ittime)
+        rtc.init_modalOpti(
+                i, p_controller.nmodes, p_controller.nrec, KL2V,
+                p_controller.gmin, p_controller.gmax, p_controller.ngain,
+                1. / p_loop.ittime)
         ol_slopes = shao.openLoopSlp(
-            tel, atmos, wfs, rtc, p_controller.nrec, i, p_wfss)
+                tel, atmos, wfs, rtc, p_controller.nrec, i, p_wfss)
         rtc.load_open_loop_slopes(i, ol_slopes)
         rtc.modal_control_optimization(i)
     else:
-        cmat_init(i, rtc, p_controller, p_wfss, p_atmos, p_tel, p_dms,
-                  KL2V=KL2V, nmodes=p_controller.nmodes)
+        cmat_init(
+                i,
+                rtc,
+                p_controller,
+                p_wfss,
+                p_atmos,
+                p_tel,
+                p_dms,
+                KL2V=KL2V,
+                nmodes=p_controller.nmodes)
 
         rtc.set_gain(i, p_controller.gain)
         mgain = np.ones(
-            sum([p_dms[j]._ntotact for j in range(len(p_dms))]), dtype=np.float32)
+                sum([p_dms[j]._ntotact for j in range(len(p_dms))]),
+                dtype=np.float32)
         cc = 0
         for ndm in p_dms:
             mgain[cc:cc + ndm._ntotact] = ndm.gain
@@ -480,12 +485,13 @@ def init_controller_cured(
     """
 
     print("initializing cured controller")
-    if(conf.DmType.TT in [p_dms[j].type_dm for j in range(len(p_dms))]):
+    if (scons.DmType.TT in [p_dms[j].type_dm for j in range(len(p_dms))]):
         tt_flag = True
     else:
         tt_flag = False
-    rtc.init_cured(p_wfss[0].nxsub, p_wfss[0]._isvalid,
-                   p_controller.cured_ndivs, tt_flag)
+    rtc.init_cured(
+            p_wfss[0].nxsub, p_wfss[0]._isvalid, p_controller.cured_ndivs,
+            tt_flag)
     rtc.set_gain(i, p_controller.gain)
 
 
@@ -517,26 +523,21 @@ def init_controller_mv(
         wfs: (Sensors) : Sensors object
         atmos: (Atmos) : Atmos object
     """
-    imat = shao.imat_geom(
-        wfs, dms, p_wfss, p_dms, p_controller)
+    imat = shao.imat_geom(wfs, dms, p_wfss, p_dms, p_controller)
     # imat_init(i,rtc,p_rtc,dms,wfs,p_wfss,p_tel,clean=1,simul_name=simul_name)
     rtc.set_imat(i, imat)
     rtc.set_gain(i, p_controller.gain)
-    size = sum(
-        [p_dms[j]._ntotact for j in range(len(p_dms))])
+    size = sum([p_dms[j]._ntotact for j in range(len(p_dms))])
     mgain = np.ones(size, dtype=np.float32)
     rtc.set_mgain(i, mgain)
-    shao.doTomoMatrices(i, rtc, p_wfss, dms, atmos,
-                        wfs, p_controller, p_geom, p_dms, p_tel, p_atmos)
-    cmat_init(i, rtc, p_controller, p_wfss, p_atmos,
-              p_tel, p_dms)
+    shao.doTomoMatrices(
+            i, rtc, p_wfss, dms, atmos, wfs, p_controller, p_geom, p_dms,
+            p_tel, p_atmos)
+    cmat_init(i, rtc, p_controller, p_wfss, p_atmos, p_tel, p_dms)
 
 
 def init_controller_generic(
-        i: int,
-        p_controller: conf.Param_controller,
-        p_dms: list,
-        rtc: Rtc):
+        i: int, p_controller: conf.Param_controller, p_dms: list, rtc: Rtc):
     """
         Initialize the generic controller
 
@@ -546,13 +547,11 @@ def init_controller_generic(
         p_dms: (list of Param_dm): dms settings
         rtc: (Rtc): Rtc object
     """
-    size = sum(
-        [p_dms[j]._ntotact for j in range(len(p_dms))])
+    size = sum([p_dms[j]._ntotact for j in range(len(p_dms))])
     decayFactor = np.zeros(size, dtype=np.float32)
     mgain = np.zeros(size, dtype=np.float32)
     matE = np.zeros((size, size), dtype=np.float32)
-    cmat = np.zeros((size, np.sum(p_controller.nvalid) * 2),
-                    dtype=np.float32)
+    cmat = np.zeros((size, np.sum(p_controller.nvalid) * 2), dtype=np.float32)
 
     rtc.set_decayFactor(i, decayFactor)
     rtc.set_mgain(i, mgain)

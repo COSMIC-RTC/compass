@@ -6,14 +6,11 @@ Functions for DM Python kl
 Compass Yorick translation
 """
 
-from shesha_config import shesha_constants as scons
+import shesha_constants as scons
 import numpy as np
-from scipy import interpolate
 
 
-def make_radii(
-        cobs: float,
-        nr: int):
+def make_radii(cobs: float, nr: int):
     """
         TODO: docstring
         :parameters:
@@ -27,11 +24,7 @@ def make_radii(
 
 
 def make_kernels(
-        cobs: float,
-        nr: int,
-        radp: float,
-        kl_type: bytes,
-        outscl=None):
+        cobs: float, nr: int, radp: float, kl_type: bytes, outscl=None):
     """
     This routine generates the kernel used to find the KL modes.
     The  kernel constructed here should be simply a discretization
@@ -59,7 +52,7 @@ def make_kernels(
     for i in range(nr):
         for j in range(i + 1):
             te = 0.5 * np.sqrt(
-                radp[i]**2 + radp[j]**2 - (2 * radp[i] * radp[j]) * cth)
+                    radp[i]**2 + radp[j]**2 - (2 * radp[i] * radp[j]) * cth)
             # te in units of the diameter, not the radius
             if (kl_type == scons.KLType.KOLMO):
 
@@ -70,8 +63,9 @@ def make_kernels(
                     raise ValueError("p_dm.outscl is not specified")
                 else:
                     te = 6.88 * te**(5. / 3.) * (
-                        1 - 1.485 * (te / outscl)**(1. / 3.) + 5.383 *
-                        (te / outscl)**(2) - 6.281 * (te / outscl)**(7. / 3.))
+                            1 - 1.485 * (te / outscl)**(1. / 3.) + 5.383 *
+                            (te / outscl)**(2) - 6.281 * (te / outscl)**
+                            (7. / 3.))
 
             else:
 
@@ -104,9 +98,7 @@ def piston_orth(nr):
     return s
 
 
-def make_azimuth(
-        nord,
-        npp):
+def make_azimuth(nord, npp):
     """
         TODO: docstring
 
@@ -130,10 +122,7 @@ def make_azimuth(
     return azbas
 
 
-def radii(
-        nr,
-        npp,
-        cobs):
+def radii(nr, npp, cobs):
     """
     This routine generates an nr x npp array with npp copies of the
     radial coordinate array. Radial coordinate span the range from
@@ -248,8 +237,8 @@ def setpincs(ax, ay, px, py, cobs):
         for i in range(pincw.shape[1]):
             for j in range(pincw.shape[2]):
                 pincw[z, i, j] = pincw[z, i, j] * axyinap[
-                    np.int32(pincx[z, i, j]),
-                    np.int32(pincy[z, i, j])]
+                        np.int32(pincx[z, i, j]),
+                        np.int32(pincy[z, i, j])]
 
     pincw = pincw * np.tile(1.0 / np.sum(pincw, axis=0), (4, 1, 1))
 
@@ -296,8 +285,8 @@ def pcgeom(nr, npp, cobs, ncp, ncmar):
     px = ff * px0 + hw
     py = ff * py0 + hw
     ax = np.reshape(
-        np.arange(int(ncp)**2, dtype=np.float) + 1, (int(ncp), int(ncp)),
-        order='F')
+            np.arange(int(ncp)**2, dtype=np.float) + 1, (int(ncp), int(ncp)),
+            order='F')
     ax = np.float32(ax - 1) % ncp - 0.5 * (ncp - 1)
     ax = ax / (0.5 * nused)
     ay = np.transpose(ax)
@@ -322,14 +311,7 @@ def pcgeom(nr, npp, cobs, ncp, ncmar):
 
 
 def set_pctr(
-        dim: int,
-        nr,
-        npp,
-        nkl: int,
-        cobs: float,
-        nord,
-        ncmar=None,
-        ncp=None):
+        dim: int, nr, npp, nkl: int, cobs: float, nord, ncmar=None, ncp=None):
     """
     This routine calls pcgeom to build a geom_struct with the
     right initializations. bas is a gkl_basis_struct built with
@@ -362,14 +344,11 @@ def set_pctr(
     if (ncp == None):
         ncp = 128
     ncp, ncmar, px, py, cr, cp, pincx, pincy, pincw, ap = pcgeom(
-        nr, npp, cobs, ncp, ncmar)
+            nr, npp, cobs, ncp, ncmar)
     return ncp, ncmar, px, py, cr, cp, pincx, pincy, pincw, ap
 
 
-def gkl_fcom(
-        kers: np.ndarray,
-        cobs: float,
-        nf: int):
+def gkl_fcom(kers: np.ndarray, cobs: float, nf: int):
     """
     This routine does the work : finding the eigenvalues and
     corresponding eigenvectors. Sort them and select the right
@@ -424,7 +403,7 @@ def gkl_fcom(
     nxt = 1
     while True:
         vs, newev, vt = np.linalg.svd(
-            fktom * kers[nxt, :, :], full_matrices=True)
+                fktom * kers[nxt, :, :], full_matrices=True)
         # newev = SVdec(fktom*kers(,,nxt),vs,vt)
         evs[:, nxt] = np.float32(newev)
         kers[nxt, :, :] = np.sqrt(2. * nr) * vs

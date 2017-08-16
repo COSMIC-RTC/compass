@@ -4,7 +4,8 @@ import scipy.ndimage.interpolation as interp
 
 from . import hdf5_utils as h5u
 from . import utilities as util
-import shesha_config as conf
+
+from shesha_constants import ApertureType, SpiderType
 
 EELT_data = os.environ.get('SHESHA_ROOT') + "/data/apertures/"
 
@@ -22,32 +23,33 @@ def make_pupil(dim, pupd, tel, xc=-1, yc=-1, real=0):
         cobs: (float) : central obstruction ratio.
     TODO: complete
     """
+
     #TODO other types
-    if tel.type_ap == conf.ApertureType.EELT_NOMINAL:
+    if tel.type_ap == ApertureType.EELT_NOMINAL:
         print("ELT_pup_cobs = %5.3f" % 0.3)
         N_seg = 798
         return make_EELT(dim, pupd, tel, N_seg)
-    elif tel.type_ap == conf.ApertureType.EELT_BP1:
+    elif tel.type_ap == ApertureType.EELT_BP1:
         print("ELT_pup_cobs = %5.3f" % 0.339)
         N_seg = 768
         return make_EELT(dim, pupd, tel, N_seg)
-    elif tel.type_ap == conf.ApertureType.EELT_BP3:
+    elif tel.type_ap == ApertureType.EELT_BP3:
         print("ELT_pup_cobs = %5.3f" % 0.503)
         N_seg = 672
         return make_EELT(dim, pupd, tel, N_seg)
-    elif tel.type_ap == conf.ApertureType.EELT_BP5:
+    elif tel.type_ap == ApertureType.EELT_BP5:
         print("ELT_pup_cobs = %5.3f" % 0.632)
         N_seg = 558
         return make_EELT(dim, pupd, tel, N_seg)
-    elif tel.type_ap == conf.ApertureType.EELT_CUSTOM:
+    elif tel.type_ap == ApertureType.EELT_CUSTOM:
         print("EELT_CUSTOM not implemented. Falling back to EELT-Nominal")
-        tel.set_type_ap(conf.ApertureType.EELT_NOMINAL)
+        tel.set_type_ap(ApertureType.EELT_NOMINAL)
         return make_EELT(dim, pupd, tel, N_seg)
-    elif tel.type_ap == conf.ApertureType.VLT:
+    elif tel.type_ap == ApertureType.VLT:
         tel.set_cobs(0.14)
         print("force_VLT_pup_cobs = %5.3f" % 0.14)
         return make_VLT(dim, pupd, tel)
-    elif tel.type_ap == conf.ApertureType.GENERIC:
+    elif tel.type_ap == ApertureType.GENERIC:
         return make_pupil_generic(
                 dim, pupd, tel.t_spiders, tel.spiders_type, xc, yc, real,
                 tel.cobs)
@@ -59,7 +61,7 @@ def make_pupil_generic(
         dim,
         pupd,
         t_spiders=0.01,
-        spiders_type=conf.SpiderType.SIX,
+        spiders_type=SpiderType.SIX,
         xc=0,
         yc=0,
         real=0,
@@ -88,8 +90,9 @@ def make_pupil_generic(
 
     if (cobs > 0):
         if (real == 1):
-            pup -= np.exp(-(util.dist(dim, xc, yc) / (pupd * cobs * 0.5))**60.
-                          )**0.69314
+            pup -= np.exp(
+                    -(util.dist(dim, xc, yc) / (pupd * cobs * 0.5))**60.
+            )**0.69314
         else:
             pup -= (util.dist(dim, xc, yc) <
                     (pupd * cobs + 1.) * 0.5).astype(np.float32)

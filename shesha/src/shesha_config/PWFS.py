@@ -8,7 +8,7 @@ Created on 31 juil. 2017
 
 import numpy as np
 from . import config_setter_utils as csu
-from . import shesha_constants as scons
+import shesha_constants as scons
 
 #################################################
 # P-Class (parametres) Param_wfs
@@ -304,7 +304,7 @@ class Param_wfs:
 
         :param thetaML: (float) : rotation angle (rad)
         """
-        self.__thetaML = csu.enforce_float(hetaML)
+        self.__thetaML = csu.enforce_float(thetaML)
 
     thetaML = property(lambda x: x.__thetaML, set_thetaML)
 

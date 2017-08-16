@@ -6,14 +6,14 @@ Created on 3 aout 2017
 @author: fferreira
 '''
 import numpy as np
-from shesha_config import shesha_constants as scons
+
+import shesha_constants as scons
+from shesha_constants import CONST
+
 from . import utilities as util
 
 
-def dim_dm_support(
-        cent: float,
-        extent: int,
-        ssize: int):
+def dim_dm_support(cent: float, extent: int, ssize: int):
     """
     Compute the DM support dimensions
 
@@ -24,9 +24,9 @@ def dim_dm_support(
     """
     n1 = np.floor(cent - extent / 2)
     n2 = np.ceil(cent + extent / 2)
-    if(n1 < 1):
+    if (n1 < 1):
         n1 = 1
-    if(n2 > ssize):
+    if (n2 > ssize):
         n2 = ssize
 
     return int(n1), int(n2)
@@ -56,8 +56,8 @@ def dim_dm_patch(
     """
 
     norms = [
-        np.linalg.norm([xpos_wfs[w], ypos_wfs[w]])
-        for w in range(len(xpos_wfs))]
+            np.linalg.norm([xpos_wfs[w], ypos_wfs[w]])
+            for w in range(len(xpos_wfs))]
     if ((type_dm == scons.DmType.PZT) or (type_dm == scons.DmType.TT)):
         pp = (diam * pupdiam)
     elif (type_dm == scons.DmType.KL):
@@ -66,14 +66,12 @@ def dim_dm_patch(
         raise TypeError("This type of DM doesn't exist ")
 
     patchDiam = int(
-        pupdiam + 2 * np.max(norms) * scons.ARCSEC2RAD * np.abs(alt) /
-        (pp))
+            pupdiam + 2 * np.max(norms) * CONST.ARCSEC2RAD * np.abs(alt) /
+            (pp))
     return patchDiam
 
 
-def createSquarePattern(
-        pitch: float,
-        nxact: int):
+def createSquarePattern(pitch: float, nxact: int):
     """
     Creates a list of M=nxact^2 actuator positions spread over an square grid.
     Coordinates are centred around (0,0).
@@ -85,16 +83,14 @@ def createSquarePattern(
         xy: (np.ndarray(dims=2,dtype=np.float32)) : xy[M,2] list of coodinates
     """
 
-    xy = np.tile(np.arange(nxact) - (nxact - 1.) /
-                 2., (nxact, 1)).astype(np.float32)
+    xy = np.tile(np.arange(nxact) - (nxact - 1.) / 2., (nxact,
+                                                        1)).astype(np.float32)
     xy = np.array([xy.flatten(), xy.T.flatten()]) * pitch
     xy = np.float32(xy)
     return xy
 
 
-def createHexaPattern(
-        pitch: float,
-        supportSize: int):
+def createHexaPattern(pitch: float, supportSize: int):
     """
     Creates a list of M actuator positions spread over an hexagonal grid.
     The number M is the number of points of this grid, it cannot be
@@ -124,9 +120,7 @@ def createHexaPattern(
     return xy
 
 
-def createDoubleHexaPattern(
-        pitch: float,
-        supportSize: int):
+def createDoubleHexaPattern(pitch: float, supportSize: int):
     """
     Creates a list of M actuator positions spread over an hexagonal grid.
     The number M is the number of points of this grid, it cannot be
@@ -203,7 +197,7 @@ def select_actuators(
     rad_in = (((nxact - 1) / 2) * cobs - margin_in) * pitch
 
     if N is None:
-        if(margin_out < 0):
+        if (margin_out < 0):
             margin_out = 1.44
         rad_out = ((nxact - 1.) / 2. + margin_out) * pitch
 
@@ -213,21 +207,17 @@ def select_actuators(
         valid_actus = np.where(dis >= rad_in)[0]
         indsort = np.argsort(dis[valid_actus])
 
-        if(N > valid_actus.size):
-            print('Too many actuators wanted, restricted to ', valid_actus.size)
+        if (N > valid_actus.size):
+            print(
+                    'Too many actuators wanted, restricted to ',
+                    valid_actus.size)
         else:
             valid_actus = np.sort(indsort[:N])
 
     return valid_actus
 
 
-def make_zernike(
-        nzer: int,
-        size: int,
-        diameter: int,
-        xc=-1.,
-        yc=-1.,
-        ext=0):
+def make_zernike(nzer: int, size: int, diameter: int, xc=-1., yc=-1., ext=0):
     """Compute the zernike modes
 
     :parameters:
@@ -249,9 +239,9 @@ def make_zernike(
     m = 0
     n = 0
 
-    if(xc == -1):
+    if (xc == -1):
         xc = size / 2
-    if(yc == -1):
+    if (yc == -1):
         yc = size / 2
 
     radius = (diameter + 1.) / 2.
@@ -289,20 +279,20 @@ def make_zernike(
                     float(np.math.factorial(i) * np.math.factorial((n + m) / 2 - i) *
                           np.math.factorial((n - m) / 2 - i))
 
-        if((zn + 1) % 2 == 1):
-            if(m == 0):
+        if ((zn + 1) % 2 == 1):
+            if (m == 0):
                 z[:, :, zn] = z[:, :, zn] * np.sqrt(n + 1.)
             else:
                 z[:, :, zn] = z[:, :, zn] * \
                     np.sqrt(2. * (n + 1)) * np.sin(m * zteta)
         else:
-            if(m == 0):
+            if (m == 0):
                 z[:, :, zn] = z[:, :, zn] * np.sqrt(n + 1.)
             else:
                 z[:, :, zn] = z[:, :, zn] * \
                     np.sqrt(2. * (n + 1)) * np.cos(m * zteta)
 
-    if(ext):
+    if (ext):
         return z * zmaskmod
     else:
         return z * zmask
@@ -325,11 +315,11 @@ def zernumero(zn: int):
     j = 0
     for n in range(101):
         for m in range(n + 1):
-            if((n - m) % 2 == 0):
+            if ((n - m) % 2 == 0):
                 j = j + 1
-                if(j == zn):
+                if (j == zn):
                     return n, m
-                if(m != 0):
+                if (m != 0):
                     j = j + 1
-                    if(j == zn):
+                    if (j == zn):
                         return n, m

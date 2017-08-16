@@ -1,11 +1,5 @@
 import numpy as np
 
-# import matplotlib.pyplot as pl
-# import matplotlib.animation as animation
-# import time
-
-# import pyfits as pf
-
 
 def create_stencil(n):
     Zx = np.array(np.tile(np.arange(n), (n, 1)), dtype=np.float64) + 1

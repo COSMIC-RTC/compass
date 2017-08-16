@@ -5,23 +5,7 @@ Created on 13 juil. 2017
 
 @author: vdeo
 '''
-import os
-try:
-    shesha_dir = os.environ['SHESHA_ROOT']
-    os.environ["PATH"] += shesha_dir + '/src'
-except KeyError as err:
-    raise EnvironmentError(
-        "Environment variable 'SHESHA_ROOT' must be defined")
-
-import numpy as np
-
 from . import config_setter_utils as csu
-from . import shesha_constants as const
-
-import shesha_util.make_pupil as makeP
-import shesha_util.make_apodizer as makeA
-
-from shesha_config.PTEL import Param_tel
 
 
 #################################################
