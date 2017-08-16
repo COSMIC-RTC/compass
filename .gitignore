@@ -16,6 +16,7 @@ naga/src/naga_magma.pyx
 naga/src/naga_obj.pyx
 naga/src/naga_sparse_obj.pyx
 shesha/src/*.cpp
+shesha/src/sutra_bind/*.cpp
 
 # python bytecodes
 *.pyc
