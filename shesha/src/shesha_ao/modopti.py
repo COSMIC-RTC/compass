@@ -1,9 +1,9 @@
 import numpy as np
+
 from Telescope import Telescope
 from Atmos import Atmos
 from Rtc import Rtc
 from Sensors import Sensors
-import shesha_config as conf
 
 
 def openLoopSlp(
@@ -26,19 +26,20 @@ def openLoopSlp(
         p_wfss: (list of Param_wfs) : wfs settings
     """
     # TEST IT
-    ol_slopes = np.zeros((sum([2 * p_wfss[i]._nvalid for i in range(len(p_wfss))]), nrec),
-                         dtype=np.float32)
+    ol_slopes = np.zeros(
+            (sum([2 * p_wfss[i]._nvalid for i in range(len(p_wfss))]), nrec),
+            dtype=np.float32)
 
     print("Recording " + str(nrec) + " open-loop slopes...")
     for i in range(nrec):
         atmos.move_atmos()
 
-        if(p_wfss is not None and wfs is not None):
+        if (p_wfss is not None and wfs is not None):
             for j in range(len(p_wfss)):
                 wfs.sensors_trace(j, b"atmos", tel, atmos)
                 wfs.sensors_compimg(j)
                 rtc.comp_slopes(ncontrol)
-                ol_slopes[j * p_wfss[j]._nvalid *
-                          2:(j + 1) * p_wfss[j]._nvalid * 2, i] = wfs._get_slopes(j)
+                ol_slopes[j * p_wfss[j]._nvalid * 2:(j + 1) * p_wfss[j].
+                          _nvalid * 2, i] = wfs._get_slopes(j)
     print("Done")
     return ol_slopes

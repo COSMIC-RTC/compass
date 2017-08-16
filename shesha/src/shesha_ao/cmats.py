@@ -1,6 +1,9 @@
 import numpy as np
+import time
 
 import shesha_config as conf
+import shesha_constants as scons
+
 from Sensors import Sensors
 from Dms import Dms
 from Rtc import Rtc
@@ -16,7 +19,7 @@ def cmat_init(
         p_tel: conf.Param_tel,
         p_dms: list,
         KL2V=None,
-        nmodes=0):
+        nmode=0):
     """ Compute the command matrix on the GPU
 
     :parameters:
@@ -31,7 +34,7 @@ def cmat_init(
         nmode: (int) : (optional) number of kl modes
 
     """
-    if(p_controller.type_control == conf.ControllerType.LS):
+    if (p_controller.type_control == scons.ControllerType.LS):
         print("Doing imat svd...")
         t0 = time.time()
         rtc.imat_svd(ncontrol)
@@ -40,9 +43,9 @@ def cmat_init(
 
         imat = rtc.get_imat(ncontrol)
         maxcond = p_controller.maxcond
-        if(eigenv[0] < eigenv[eigenv.shape[0] - 1]):
+        if (eigenv[0] < eigenv[eigenv.shape[0] - 1]):
             mfilt = np.where(
-                (eigenv / eigenv[eigenv.shape[0] - 3]) < 1. / maxcond)[0]
+                    (eigenv / eigenv[eigenv.shape[0] - 3]) < 1. / maxcond)[0]
         else:
             mfilt = np.where((1. / (eigenv / eigenv[2])) > maxcond)[0]
         nfilt = mfilt.shape[0]
@@ -56,7 +59,8 @@ def cmat_init(
             ntt = 0
             pii = 0
             for i in range(len(p_dms)):
-                if ((p_dms[i].type_dm == conf.DmType.PZT) & (ppz == 0)):
+                ppz = p_dms[i].push4imat
+                if ((p_dms[i].type_dm == scons.DmType.PZT) & (ppz == 0)):
                     ppz = 1
                     pii = i
             if ((nmode == 0) & (ppz != 0)):
@@ -79,23 +83,22 @@ def cmat_init(
 
         print("cmat done in %f s" % (time.time() - t0))
 
-    if(p_controller.type_control == conf.ControllerType.MV):
+    if (p_controller.type_control == scons.ControllerType.MV):
         Cn = np.zeros(p_controller.imat.shape[0], dtype=np.float32)
         ind = 0
         for k in p_controller.nwfs:
-            Cn[ind:ind + 2 *
-                p_wfss[k]._nvalid] = noise_cov(k, p_wfss[k], p_atmos, p_tel)
+            Cn[ind:ind + 2 * p_wfss[k]._nvalid] = noise_cov(
+                    k, p_wfss[k], p_atmos, p_tel)
             ind += 2 * p_wfss[k]._nvalid
 
         rtc.load_Cn(ncontrol, Cn)
         print("Building cmat...")
         rtc.build_cmat_mv(ncontrol, p_controller.maxcond)
 
-        if(p_controller.TTcond == 0):
-            p_controller.set_TTcond(
-                p_controller.maxcond)
+        if (p_controller.TTcond == 0):
+            p_controller.set_TTcond(p_controller.maxcond)
 
-        if("tt" in [dm.type_dm for dm in p_dms]):
+        if ("tt" in [dm.type_dm for dm in p_dms]):
             rtc.filter_cmat(p_controller.TTcond)
         print("Done")
     p_controller.set_cmat(rtc.get_cmat(ncontrol))

@@ -1,6 +1,9 @@
 import numpy as np
 
 import shesha_config as conf
+import shesha_constants as scons
+from shesha_constants import CONST
+
 from Sensors import Sensors
 from Dms import Dms
 from Rtc import Rtc
@@ -41,14 +44,14 @@ def doTomoMatrices(
     spup = p_geom.get_spupil()
     s2ipup = (ipup.shape[0] - spup.shape[0]) / 2.
     # Total number of subapertures
-    nvalid = sum([nvalidperp_wfss[j] for j in p_controller.nwfs])
+    nvalid = sum([nvalidperwfs[j] for j in range(p_controller.nwfs)])
     ind = 0
     # X-position of the bottom left corner of each valid subaperture
     X = np.zeros(nvalid, dtype=np.float64)
     # Y-position of the bottom left corner of each subaperture
     Y = np.zeros(nvalid, dtype=np.float64)
 
-    for k in p_controller.nwfs:
+    for k in range(p_controller.nwfs):
         posx = p_wfss[k]._istart + s2ipup
         # X-position of the bottom left corner of each valid subaperture
         posx = posx * p_wfss[k]._isvalid
@@ -69,9 +72,9 @@ def doTomoMatrices(
     # Get the total number of pzt DM and actuators to control
     nactu = 0
     npzt = 0
-    for k in p_controller.ndm:
-        if(p_dm[k].type_dm == conf.DmType.PZT):
-            nactu += p_dm[k]._ntotact
+    for k in range(p_controller.ndm):
+        if (p_dms[k].type_dm == scons.DmType.PZT):
+            nactu += p_dms[k]._ntotact
             npzt += 1
 
     Xactu = np.zeros(nactu, dtype=np.float64)  # X-position actuators in ipupil
@@ -82,34 +85,33 @@ def doTomoMatrices(
     ind = 0
     indk = 0
     for k in p_controller.ndm:
-        if(p_dm[k].type_dm == conf.DmType.PZT):
+        if (p_dms[k].type_dm == scons.DmType.PZT):
             p2m = p_tel.diam / p_geom.pupdiam
             # Conversion in meters in the center of ipupil
-            actu_x = (p_dm[k]._xpos - ipup.shape[0] / 2) * p2m
-            actu_y = (p_dm[k]._ypos - ipup.shape[0] / 2) * p2m
+            actu_x = (p_dms[k]._xpos - ipup.shape[0] / 2) * p2m
+            actu_y = (p_dms[k]._ypos - ipup.shape[0] / 2) * p2m
             pitch[indk] = actu_x[1] - actu_x[0]
-            k2[indk] = p_wfss[0].Lambda / 2. / np.pi / p_dm[k].unitpervolt
-            alt_DM[indk] = p_dm[k].alt
-            Xactu[ind:ind + p_dm[k]._ntotact] = actu_x
-            Yactu[ind:ind + p_dm[k]._ntotact] = actu_y
+            k2[indk] = p_wfss[0].Lambda / 2. / np.pi / p_dms[k].unitpervolt
+            alt_DM[indk] = p_dms[k].alt
+            Xactu[ind:ind + p_dms[k]._ntotact] = actu_x
+            Yactu[ind:ind + p_dms[k]._ntotact] = actu_y
 
-            ind += p_dm[k]._ntotact
+            ind += p_dms[k]._ntotact
             indk += 1
 
     # Select a DM for each layer of atmos
     NlayersDM = np.zeros(npzt, dtype=np.int64)  # Useless for now
-    indlayersDM = selectDMforLayers(p_atmos, p_controller, p_dm)
-   # print("indlayer = ",indlayersDM)
+    indlayersDM = selectDMforLayers(p_atmos, p_controller, p_dms)
+    # print("indlayer = ",indlayersDM)
 
     # Get FoV
     # conf.RAD2ARCSEC = 180.0/np.pi * 3600.
-    wfs_distance = np.zeros(
-        len(p_controller.nwfs), dtype=np.float64)
+    wfs_distance = np.zeros(len(p_controller.nwfs), dtype=np.float64)
     ind = 0
     for k in p_controller.nwfs:
-        wfs_distance[ind] = np.sqrt(p_wfss[k].xpos ** 2 + p_wfss[k].ypos ** 2)
+        wfs_distance[ind] = np.sqrt(p_wfss[k].xpos**2 + p_wfss[k].ypos**2)
         ind += 1
-    FoV = np.max(wfs_distance) / conf.RAD2ARCSEC
+    FoV = np.max(wfs_distance) / CONST.RAD2ARCSEC
 
     # WFS postions in rad
     alphaX = np.zeros(len(p_controller.nwfs))
@@ -117,35 +119,37 @@ def doTomoMatrices(
 
     ind = 0
     for k in p_controller.nwfs:
-        alphaX[ind] = p_wfss[k].xpos / conf.RAD2ARCSEC
-        alphaY[ind] = p_wfss[k].ypos / conf.RAD2ARCSEC
+        alphaX[ind] = p_wfss[k].xpos / CONST.RAD2ARCSEC
+        alphaY[ind] = p_wfss[k].ypos / CONST.RAD2ARCSEC
         ind += 1
 
     L0_d = np.copy(p_atmos.L0).astype(np.float64)
-    frac_d = np.copy(p_atmos.frac * (p_atmos.r0 **
+    frac_d = np.copy(p_atmos.frac * (p_atmos.r0**
                                      (-5.0 / 3.0))).astype(np.float64)
 
     print("Computing Cphim...")
-    rtc.compute_Cphim(ncontrol, atmos, wfs, dms, L0_d, frac_d, alphaX, alphaY, X, Y,
-                      Xactu, Yactu, p_tel.diam, k2,  NlayersDM,
-                      indlayersDM, FoV, pitch, alt_DM.astype(np.float64))
+    rtc.compute_Cphim(
+            ncontrol, atmos, wfs, dms, L0_d, frac_d, alphaX, alphaY, X, Y,
+            Xactu, Yactu, p_tel.diam, k2, NlayersDM, indlayersDM, FoV, pitch,
+            alt_DM.astype(np.float64))
     print("Done")
 
     print("Computing Cmm...")
-    controller_mv.compute_Cmm(ncontrol, atmos, wfs,  L0_d, frac_d,  alphaX,  alphaY,
-                              p_tel.diam,  p_tel.cobs)
+    controller_mv.compute_Cmm(
+            ncontrol, atmos, wfs, L0_d, frac_d, alphaX, alphaY, p_tel.diam,
+            p_tel.cobs)
     print("Done")
 
     Nact = np.zeros([nactu, nactu], dtype=np.float32)
     F = np.zeros([nactu, nactu], dtype=np.float32)
     ind = 0
-    for k in p_controller.ndm:
-        if(p_dm[k].type_dm == b"pzt"):
-            Nact[ind:ind + p_dm[k]._ntotact, ind:ind +
-                 p_dm[k]._ntotact] = create_nact_geom(p_dm[k])
-            F[ind:ind + p_dm[k]._ntotact, ind:ind +
-                p_dm[k]._ntotact] = create_piston_filter(p_dm[k])
-            ind += p_dm[k]._ntotact
+    for k in range(p_controller.ndm):
+        if (p_dms[k].type_dm == b"pzt"):
+            Nact[ind:ind + p_dms[k]._ntotact, ind:ind + p_dms[k]._ntotact
+                 ] = create_nact_geom(p_dms[k])
+            F[ind:ind + p_dms[k]._ntotact, ind:ind + p_dms[k]._ntotact
+              ] = create_piston_filter(p_dms[k])
+            ind += p_dms[k]._ntotact
 
     rtc.filter_cphim(ncontrol, F, Nact)
 
@@ -168,15 +172,14 @@ def selectDMforLayers(
         mindif = 1e6
         for j in p_controller.ndm:
             alt_diff = np.abs(p_dms[j].alt - p_atmos.alt[i])
-            if(alt_diff < mindif):
+            if (alt_diff < mindif):
                 indlayersDM[i] = j
                 mindif = alt_diff
 
     return indlayersDM
 
 
-def create_nact_geom(
-        p_dm: conf.Param_dm):
+def create_nact_geom(p_dm: conf.Param_dm):
     """ Compute the DM coupling matrix
 
     :param:
@@ -215,10 +218,10 @@ def create_nact_geom(
         shape[tmpx[i]][tmpy[i] + pitch] = coupling
         shape[tmpx[i] + pitch][tmpy[i]] = coupling
         # Diagonals of the current actuators
-        shape[tmpx[i] - pitch][tmpy[i] - pitch] = coupling ** 2
-        shape[tmpx[i] - pitch][tmpy[i] + pitch] = coupling ** 2
-        shape[tmpx[i] + pitch][tmpy[i] + pitch] = coupling ** 2
-        shape[tmpx[i] + pitch][tmpy[i] - pitch] = coupling ** 2
+        shape[tmpx[i] - pitch][tmpy[i] - pitch] = coupling**2
+        shape[tmpx[i] - pitch][tmpy[i] + pitch] = coupling**2
+        shape[tmpx[i] + pitch][tmpy[i] + pitch] = coupling**2
+        shape[tmpx[i] + pitch][tmpy[i] - pitch] = coupling**2
 
         Nact[:, i] = shape.T[mask_act]
 

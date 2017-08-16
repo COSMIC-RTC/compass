@@ -2,7 +2,10 @@ import numpy as np
 
 from Dms import Dms
 from Rtc import Rtc
+
 import shesha_config as conf
+import shesha_constants as scons
+
 from scipy.sparse import csr_matrix
 
 
@@ -26,8 +29,8 @@ def compute_KL2V(
     :return:
         KL2V : (np.array(np.float32,dim=2)) : KL to Volt matrix
     """
-    ntotact = np.array(
-        [p_dms[i]._ntotact for i in range(len(p_dms))], dtype=np.int64)
+    ntotact = np.array([p_dms[i]._ntotact for i in range(len(p_dms))],
+                       dtype=np.int64)
     KL2V = np.zeros((np.sum(ntotact), np.sum(ntotact)), dtype=np.float32)
 
     indx_act = 0
@@ -35,44 +38,47 @@ def compute_KL2V(
 
     for i in range(p_controller.ndm.size):
         ndm = p_controller.ndm[i]
-        if(p_dms[ndm].type_dm == conf.DmType.PZT):
-            tmp = (p_geom._ipupil.shape[0] - (p_dm._n2 - p_dm._n1 + 1)) // 2
+        if (p_dms[ndm].type_dm == scons.DmType.PZT):
+            tmp = (
+                    p_geom._ipupil.shape[0] -
+                    (p_dms[ndm]._n2 - p_dms[ndm]._n1 + 1)) // 2
             tmp_e0 = p_geom._ipupil.shape[0] - tmp
             tmp_e1 = p_geom._ipupil.shape[1] - tmp
             pup = p_geom._ipupil[tmp:tmp_e0, tmp:tmp_e1]
             indx_valid = np.where(pup.flatten("F") > 0)[0].astype(np.int32)
             p2m = p_tel.diam / p_geom.pupdiam
-            norm = -(p2m * p_tel.diam / (2 * p_atmos.r0)) ** (5. / 3)
+            norm = -(p2m * p_tel.diam / (2 * p_atmos.r0))**(5. / 3)
 
-            dms.compute_KLbasis(conf.DmType.PZT, p_dm.alt, p_dm._xpos,
-                                p_dm._ypos, indx_valid, indx_valid.size, norm, 1.0)
-            KLbasis = np.fliplr(g_dm.get_KLbasis(conf.DmType.PZT, p_dm.alt))
+            dms.compute_KLbasis(
+                    scons.DmType.PZT, p_dms[ndm].alt, p_dms[ndm]._xpos,
+                    p_dms[ndm]._ypos, indx_valid, indx_valid.size, norm, 1.0)
+            KLbasis = np.fliplr(
+                    dms.get_KLbasis(scons.DmType.PZT, p_dms[ndm].alt))
 
             KL2V[indx_act:indx_act + ntotact[ndm], indx_act:indx_act + ntotact[ndm]] = \
-                np.fliplr(g_dm.get_KLbasis(conf.DmType.PZT, p_dm.alt))
+                np.fliplr(dms.get_KLbasis(scons.DmType.PZT, p_dms[ndm].alt))
             indx_act += ntotact[ndm]
-        elif(p_dms[ndm].type_dm == conf.DmType.TT):
+        elif (p_dms[ndm].type_dm == scons.DmType.TT):
             nTT += 1
-    if(p_controller.nmodes != 0 and p_controller.nmodes < KL2V.shape[1] - 2 * nTT):
+    if (
+            p_controller.nmodes != 0 and
+            p_controller.nmodes < KL2V.shape[1] - 2 * nTT):
         KL2V = KL2V[:, :p_controller.nmodes]
     else:
         KL2V = KL2V[:, :KL2V.shape[1] - 2 * nTT]
-    if(nTT > 1):
+    if (nTT > 1):
         raise "More than 1 TipTilt found! Stupid"
-    if(nTT != 0):
+    if (nTT != 0):
         KL2V[:, :KL2V.shape[1] - 2] = KL2V[:, 2:]
-        KL2V[:, KL2V.shape[1] -
-             2:] = np.zeros((np.sum(ntotact), 2), dtype=np.float32)
-        KL2V[np.sum(ntotact) - 2:, KL2V.shape[1] -
-             2:] = np.identity(2, dtype=np.float32)
+        KL2V[:, KL2V.shape[1] - 2:] = np.zeros((np.sum(ntotact), 2),
+                                               dtype=np.float32)
+        KL2V[np.sum(ntotact) - 2:, KL2V.shape[1] - 2:] = np.identity(
+                2, dtype=np.float32)
 
     return KL2V
 
 
-def compute_DMbasis(
-        g_dm: Dms,
-        p_dm: conf.Param_dm,
-        p_geom: conf.Param_geom):
+def compute_DMbasis(g_dm: Dms, p_dm: conf.Param_dm, p_geom: conf.Param_geom):
     """Compute a the DM basis as a sparse matrix :
             - push on each actuator
             - get the corresponding dm shape
@@ -99,7 +105,7 @@ def compute_DMbasis(
         g_dm.comp_oneactu(p_dm.type_dm, p_dm.alt, i, 1.0)
         shape = g_dm.get_dm(p_dm.type_dm, p_dm.alt)
         IFvec = csr_matrix(shape.flatten("F")[indx_valid])
-        if(i == 0):
+        if (i == 0):
             val = IFvec.data
             col = IFvec.indices
             row = np.append(0, IFvec.getnnz())
@@ -112,10 +118,7 @@ def compute_DMbasis(
     return IFbasis
 
 
-def compute_IFsparse(
-        g_dm: Dms,
-        p_dms: list,
-        p_geom: conf.Param_geom):
+def compute_IFsparse(g_dm: Dms, p_dms: list, p_geom: conf.Param_geom):
     """Compute the influence functions of all DMs as a sparse matrix :
             - push on each actuator
             - get the corresponding dm shape
@@ -133,7 +136,7 @@ def compute_IFsparse(
     ndm = len(p_dms)
     for i in range(ndm):
         IFi = compute_DMbasis(g_dm, p_dms[i], p_geom)
-        if(i == 0):
+        if (i == 0):
             val = IFi.data
             col = IFi.indices
             row = IFi.indptr
@@ -146,11 +149,7 @@ def compute_IFsparse(
 
 
 def command_on_Btt(
-        rtc: Rtc,
-        dms: Dms,
-        p_dms: list,
-        p_geom: conf.Param_geom,
-        nfilt: int):
+        rtc: Rtc, dms: Dms, p_dms: list, p_geom: conf.Param_geom, nfilt: int):
     """Compute a command matrix in Btt modal basis (see error breakdown) and set
     it on the sutra_rtc. It computes by itself the volts to Btt matrix.
     :parameters:
@@ -170,10 +169,7 @@ def command_on_Btt(
     compute_cmatWithBtt(rtc, Btt, nfilt)
 
 
-def compute_cmatWithBtt(
-        rtc: Rtc,
-        Btt: np.ndarray,
-        nfilt: int):
+def compute_cmatWithBtt(rtc: Rtc, Btt: np.ndarray, nfilt: int):
     """
         Compute a command matrix on the Btt basis and load it in the GPU
 
@@ -224,10 +220,7 @@ def command_on_KL(
     compute_cmatWithKL(rtc, KL2V, nfilt)
 
 
-def compute_cmatWithKL(
-        rtc: Rtc,
-        KL2V: np.ndarray,
-        nfilt: int):
+def compute_cmatWithKL(rtc: Rtc, KL2V: np.ndarray, nfilt: int):
     """
         Compute a command matrix on the KL basis and load it in the GPU
 
@@ -239,8 +232,8 @@ def compute_cmatWithKL(
     """
     D = rtc.get_imat(0)
     KL2V_filt = np.zeros((KL2V.shape[0], KL2V.shape[1] - nfilt))
-    KL2V_filt[:, :KL2V_filt.shape[1] -
-              2] = KL2V[:, :KL2V.shape[1] - (nfilt + 2)]
+    KL2V_filt[:, :KL2V_filt.shape[1] - 2] = KL2V[:, :KL2V.shape[1] -
+                                                 (nfilt + 2)]
     KL2V_filt[:, KL2V_filt.shape[1] - 2:] = KL2V[:, KL2V.shape[1] - 2:]
 
     # Modal interaction basis
@@ -265,9 +258,9 @@ def compute_Btt(IFpzt, IFtt):
     """
     N = IFpzt.shape[0]
     n = IFpzt.shape[1]
-    if(n > N):
-        raise StandardError(
-            "Influence functions must be arrange as (Npts_pup x nactus)")
+    if (n > N):
+        raise ValueError(
+                "Influence functions must be arrange as (Npts_pup x nactus)")
 
     delta = IFpzt.T.dot(IFpzt).toarray() / N
 

@@ -1,6 +1,9 @@
 import numpy as np
+import time
 
 import shesha_config as conf
+import shesha_constants as scons
+
 from Sensors import Sensors
 from Dms import Dms
 from Rtc import Rtc
@@ -44,24 +47,24 @@ def imat_geom(
         nm = p_controller.ndm[nmc]
         dms.resetdm(p_dms[nm].type_dm, p_dms[nm].alt)
         for i in range(p_dms[nm]._ntotact):
-            dms.oneactu(p_dms[nm].type_dm, p_dms[nm].alt,
-                        i, p_dms[nm].push4imat)
+            dms.oneactu(
+                    p_dms[nm].type_dm, p_dms[nm].alt, i, p_dms[nm].push4imat)
             nslps = 0
             for nw in range(nwfs):
                 n = p_controller.nwfs[nw]
-                wfs.raytrace(n, b"dm", tel=None,
-                             atmos=None, dms=dms, rst=1)
+                wfs.raytrace(n, b"dm", tel=None, atmos=None, dms=dms, rst=1)
                 wfs.slopes_geom(n, meth)
-                imat_cpu[nslps:nslps + p_wfss[n]._nvalid *
-                         2, ind] = wfs.get_slopes(n)
+                imat_cpu[nslps:nslps + p_wfss[n]._nvalid * 2, ind
+                         ] = wfs.get_slopes(n)
                 nslps += p_wfss[n]._nvalid * 2
             imat_cpu[:, ind] = imat_cpu[:, ind] / p_dms[nm].push4imat
             ind = ind + 1
             cc = cc + 1
             dms.resetdm(p_dms[nm].type_dm, p_dms[nm].alt)
 
-            print("Doing imat geom... #%d/%d \r" %
-                  (cc + 1, imat_size2), end=' ')
+            print(
+                    "Doing imat geom... #%d/%d \r" % (cc + 1, imat_size2),
+                    end=' ')
     print("imat geom done")
     return imat_cpu
 
@@ -92,25 +95,36 @@ def imat_init(
     # first check if wfs is using lgs
     # if so, load new lgs spot, just for imat
     for i in range(len(p_wfss)):
-        if(p_wfss[i].gsalt > 0):
+        if (p_wfss[i].gsalt > 0):
             # TODO: check that
             tmp = p_wfss[i].proftype
-            p_wfss[i].proftype = conf.ProfType.GAUSS1
-            prep_lgs_prof(p_wfss[i], i, p_tel, prof, h,
-                          p_wfss[i].beamsize, wfs, b"", imat=1)
+            p_wfss[i].proftype = scons.ProfType.GAUSS1
+            prep_lgs_prof(
+                    p_wfss[i],
+                    i,
+                    p_tel,
+                    prof,
+                    h,
+                    p_wfss[i].beamsize,
+                    wfs,
+                    b"",
+                    imat=1)
 
     t0 = time.time()
     if kl is not None:
-        ntt = conf.DmType.TT in [d.type_dm for d in p_dms]
+        ntt = scons.DmType.TT in [d.type_dm for d in p_dms]
         rtc.do_imat_kl(ncontrol, p_controller, dms, p_dms, kl, ntt)
     else:
+        print("==============")
+
         rtc.do_imat(ncontrol, dms)
 
     print("done in %f s" % (time.time() - t0))
     p_controller.set_imat(rtc.get_imat(ncontrol))
     # now restore original profile in lgs spots
     for i in range(len(p_wfss)):
-        if(p_wfss[i].gsalt > 0):
+        if (p_wfss[i].gsalt > 0):
             p_wfss[i].proftype = tmp
-            prep_lgs_prof(p_wfss[i], i, p_tel, p_wfss[i]._profna, p_wfss[i]._altna,
-                          p_wfss[i].beamsize, wfs)
+            prep_lgs_prof(
+                    p_wfss[i], i, p_tel, p_wfss[i]._profna, p_wfss[i]._altna,
+                    p_wfss[i].beamsize, wfs)

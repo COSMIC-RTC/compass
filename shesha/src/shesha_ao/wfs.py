@@ -6,6 +6,11 @@ Created on 1 aout 2017
 @author: fferreira
 '''
 import shesha_config as conf
+import shesha_constants as scons
+from shesha_constants import CONST
+
+import shesha_util.utilities as util
+
 from Sensors import Sensors
 from Rtc import Rtc
 
@@ -33,7 +38,7 @@ def comp_new_pyr_ampl(
     pwfs = p_wfss[nwfs]
     pwfs.set_pyr_ampl(ampli)
 
-    pixsize = pwfs._qpixsize * conf.ARCSEC2RAD
+    pixsize = pwfs._qpixsize * CONST.ARCSEC2RAD
     scale_fact = 2 * np.pi / pwfs._Nfft * \
         (pwfs.Lambda * 1e-6 / p_tel.diam) / pixsize * ampli
     cx = scale_fact * \
@@ -69,7 +74,7 @@ def noise_cov(
 
     """
     cov = np.zeros(2 * p_wfs._nvalid)
-    if(p_wfs.noise >= 0):
+    if (p_wfs.noise >= 0):
         m = p_wfs._validsubsy
         n = p_wfs._validsubsx
         ind = m * p_wfs.nxsub + n
@@ -78,21 +83,21 @@ def noise_cov(
         flux = flux[ind]
         Nph = flux * p_wfs._nphotons
 
-        r0 = (p_wfs.Lambda / 0.5) ** (6.0 / 5.0) * p_atmos.r0
+        r0 = (p_wfs.Lambda / 0.5)**(6.0 / 5.0) * p_atmos.r0
 
         sig = (np.pi ** 2 / 2) * (1 / Nph) * \
             (1. / r0) ** 2  # Photon noise in m^-2
         # Noise variance in rad^2
-        sig /= (2 * np.pi / (p_wfs.Lambda * 1e-6)) ** 2
-        sig *= RASC ** 2
+        sig /= (2 * np.pi / (p_wfs.Lambda * 1e-6))**2
+        sig *= CONST.RAD2ARCSEC**2
 
         Ns = p_wfs.npix  # Number of pixel
-        Nd = (p_wfs.Lambda * 1e-6) * RASC / p_wfs.pixsize
+        Nd = (p_wfs.Lambda * 1e-6) * CONST.RAD2ARCSEC / p_wfs.pixsize
         sigphi = (np.pi ** 2 / 3.0) * (1 / Nph ** 2) * (p_wfs.noise) ** 2 * \
             Ns ** 2 * (Ns / Nd) ** 2  # Phase variance in m^-2
         # Noise variance in rad^2
-        sigsh = sigphi / (2 * np.pi / (p_wfs.Lambda * 1e-6)) ** 2
-        sigsh *= RASC ** 2  # Electronic noise variance in arcsec^2
+        sigsh = sigphi / (2 * np.pi / (p_wfs.Lambda * 1e-6))**2
+        sigsh *= CONST.RAD2ARCSEC**2  # Electronic noise variance in arcsec^2
 
         cov[:len(sig)] = sig + sigsh
         cov[len(sig):] = sig + sigsh
@@ -101,7 +106,11 @@ def noise_cov(
 
 
 def comp_new_fstop(
-        wfs: Sensors, n: int, p_wfs: conf.Param_wfs, fssize: float, fstop: bytes):
+        wfs: Sensors,
+        n: int,
+        p_wfs: conf.Param_wfs,
+        fssize: float,
+        fstop: bytes):
     """
         Compute a new field stop for pyrhr WFS
 
@@ -111,17 +120,17 @@ def comp_new_fstop(
         fssize : (float) : field stop size [arcsec]
         fstop : (string) : "square" or "round" (field stop shape)
     """
-    fsradius_pixels = long(fssize / p_wfs._qpixsize / 2.)
+    fsradius_pixels = int(fssize / p_wfs._qpixsize / 2.)
     if (fstop == scons.FieldStopType.ROUND):
         p_wfs.fstop = fstop
-        focmask = mkP.dist(
-            p_wfs._Nfft,
-            xc=p_wfs._Nfft / 2. + 0.5,
-            yc=p_wfs._Nfft / 2. + 0.5) < (fsradius_pixels)
+        focmask = util.dist(
+                p_wfs._Nfft,
+                xc=p_wfs._Nfft / 2. + 0.5,
+                yc=p_wfs._Nfft / 2. + 0.5) < (fsradius_pixels)
         # fstop_area = np.pi * (p_wfs.fssize/2.)**2. #UNUSED
     elif (p_wfs.fstop == scons.FieldStopType.SQUARE):
         p_wfs.fstop = fstop
-        x, y = indices(p_wfs._Nfft)
+        x, y = util.indices(p_wfs._Nfft)
         x -= (p_wfs._Nfft + 1.) / 2.
         y -= (p_wfs._Nfft + 1.) / 2.
         focmask = (np.abs(x) <= (fsradius_pixels)) * \

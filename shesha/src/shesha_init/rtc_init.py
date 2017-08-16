@@ -85,7 +85,9 @@ def rtc_init(
     if p_centroiders is not None:
         for i in range(ncentro):
             nwfs = p_centroiders[i].nwfs
-            init_centroider(nwfs, p_wfss[nwfs], p_centroiders[i], wfs, rtc)
+            init_centroider(
+                    nwfs, p_wfss[nwfs], p_centroiders[i], p_tel, p_atmos, wfs,
+                    rtc)
 
     if p_controllers is not None:
         if (p_wfss is not None and p_dms is not None):
@@ -106,7 +108,7 @@ def rtc_init(
                 Nphi = np.where(p_geom._spupil)[0].size
 
                 list_dmseen = [p_dms[j].type_dm for j in p_controller.ndm]
-                nactu = np.sum([p_dms[j]._ntotact for j in ndms])
+                nactu = np.sum([p_dms[j]._ntotact for j in p_controller.ndm])
                 alt = np.array([p_dms[j].alt for j in p_controller.ndm],
                                dtype=np.float32)
 
@@ -125,8 +127,10 @@ def init_centroider(
         nwfs: int,
         p_wfs: conf.Param_wfs,
         p_centroider: conf.Param_centroider,
+        p_tel: conf.Param_tel,
+        p_atmos: conf.Param_atmos,
         wfs: Sensors,
-        rtc: Rtc, ):
+        rtc: Rtc):
     """ Initialize a centroider object in Rtc
 
     :parameters:
@@ -159,20 +163,21 @@ def init_centroider(
             s_scale)
 
     if (p_wfs.type_wfs == scons.WFSType.PYRHR):
-        rtc.set_pyr_method(i, p_centroider.method, p_centroiders)
-        rtc.set_pyr_thresh(i, p_centroider.thresh, p_centroiders)
+        # FIXME SIGNATURE CHANGES
+        rtc.set_pyr_method(nwfs, p_centroider.method, p_centroider)
+        rtc.set_pyr_thresh(nwfs, p_centroider.thresh, p_centroider)
 
     elif (p_wfs.type_wfs == scons.WFSType.SH):
         if (p_centroider.type_centro == scons.CentroiderType.TCOG):
-            rtc.setthresh(i, p_centroider.thresh)
+            rtc.setthresh(nwfs, p_centroider.thresh)
         elif (p_centroider.type_centro == scons.CentroiderType.BPCOG):
-            rtc.setnmax(i, p_centroider.nmax)
+            rtc.setnmax(nwfs, p_centroider.nmax)
         elif (
                 p_centroider.type_centro == scons.CentroiderType.WCOG or
                 p_centroider.type_centro == scons.CentroiderType.CORR):
             comp_weights(p_centroider, p_wfs, p_atmos.r0)
             if p_centroider.type_centro == scons.CentroiderType.WCOG:
-                rtc.init_weights(i, p_centroider.weights)
+                rtc.init_weights(nwfs, p_centroider.weights)
             else:
                 corrnorm = np.ones((2 * p_wfs.npix, 2 * p_wfs.npix),
                                    dtype=np.float32)
@@ -184,15 +189,17 @@ def init_centroider(
 
                 if (p_centroider.weights is None):
                     raise ValueError("p_centroider.weights is None")
-                rtc.init_npix(i)
+                rtc.init_npix(nwfs)
                 rtc.init_corr(
-                        i, p_centroider.weights, corrnorm, p_centroider.sizex,
-                        p_centroider.sizey, p_centroider.interpmat)
+                        nwfs, p_centroider.weights, corrnorm,
+                        p_centroider.sizex, p_centroider.sizey,
+                        p_centroider.interpmat)
 
 
 def comp_weights(
         p_centroider: conf.Param_centroider,
         p_wfs: conf.Param_wfs,
+        p_atmos: conf.Param_atmos,
         npix: int,
         r0: float):
     """
@@ -412,7 +419,7 @@ def init_controller_ls(
     KL2V = None
     if p_controller.kl_imat:
         KL2V = shao.compute_KL2V(
-                controller, dms, p_dms, p_geom, p_atmos, p_tel)
+                p_controller, dms, p_dms, p_geom, p_atmos, p_tel)
 
         # TODO: Fab et/ou Vincent: quelle normalisation appliquée ? --> à mettre direct dans compute_KL2V
         # En attendant, la version de Seb (retravaillée)
@@ -425,14 +432,15 @@ def init_controller_ls(
             klmaxVal = np.abs(KL2V[:, k]).max()
             KL2V[:, k] = KL2V[:, k] / klmaxVal * pushkl
 
-    shao.imat_init(i, rtc, dms, p_dms, wfs, p_wfss, p_tel, controller, KL2V)
+    shao.imat_init(i, rtc, dms, p_dms, wfs, p_wfss, p_tel, p_controller, KL2V)
 
     if p_controller.modopti:
         init_modalopti()
         print("Initializing Modal Optimization : ")
         p_controller.nrec = int(2**np.ceil(np.log2(p_controller.nrec)))
         if p_controller.nmodes is None:
-            p_controller.nmodes = sum(p_dms[j]._ntotact for k in ndms)
+            p_controller.nmodes = sum([
+                    p_dms[j]._ntotact for j in range(len(p_dms))])
 
         KL2V = shao.compute_KL2V(
                 p_controller, dms, p_dms, p_geom, p_atmos, p_tel)
@@ -446,7 +454,7 @@ def init_controller_ls(
         rtc.load_open_loop_slopes(i, ol_slopes)
         rtc.modal_control_optimization(i)
     else:
-        cmat_init(
+        shao.cmat_init(
                 i,
                 rtc,
                 p_controller,
@@ -533,7 +541,7 @@ def init_controller_mv(
     shao.doTomoMatrices(
             i, rtc, p_wfss, dms, atmos, wfs, p_controller, p_geom, p_dms,
             p_tel, p_atmos)
-    cmat_init(i, rtc, p_controller, p_wfss, p_atmos, p_tel, p_dms)
+    shao.cmat_init(i, rtc, p_controller, p_wfss, p_atmos, p_tel, p_dms)
 
 
 def init_controller_generic(

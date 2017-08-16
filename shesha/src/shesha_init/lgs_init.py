@@ -264,7 +264,7 @@ def prep_lgs_prof(
     if (imat > 0):
         dOffAxis *= 0.
 
-    w = p_wfs.beamsize / 2.35482005
+    w = p_wfs.beamsize / 2.35482005  # TODO: FIXME
     if (w == 0):
         # TODO what is n
         n = 1
