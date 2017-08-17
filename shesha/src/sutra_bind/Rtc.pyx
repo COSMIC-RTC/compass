@@ -94,7 +94,7 @@ cdef class Rtc:
 
             dms: (Dms) : sutra_dms object (GPU)
 
-            type_dmseen: (list) : dms indices controled by the controller
+            dmseen: (list) : dms indices controled by the controller
 
             alt: (np.ndarray[ndim=1,dtype=np.float32_t]) : altitudes of the dms seen
 
@@ -102,17 +102,35 @@ cdef class Rtc:
 
             Nphi: (long) : number of pixels in the pupil (used in geo controler case only)
         """
-        type_dmseen = < char ** > malloc(len(dmseen) * sizeof(char * ))
+        cdef char ** type_dmseen = < char ** > malloc(len(dmseen) * sizeof(char * ))
         for j in range(len(dmseen)):
             type_dmseen[j] = dmseen[j]
 
         cdef float * ptr_alt = < float * > alt.data
-        cdef char * ptr_dmseen = < char * > type_dmseen
+        # cdef char * ptr_dmseen = < char * > type_dmseen
+
         self.context.set_activeDeviceForCpy(self.device, 1)
         if(Nphi > -1):
-            self.rtc.add_controller_geo(nactu, Nphi, delay, self.device, dms.dms, & ptr_dmseen, ptr_alt, ndm, wfs_direction)
+            self.rtc.add_controller_geo(
+                nactu,
+                Nphi,
+                delay,
+                self.device,
+                dms.dms,
+                type_dmseen,
+                ptr_alt,
+                ndm,
+                wfs_direction)
         else:
-            self.rtc.add_controller(nactu, delay, self.device, type_control, dms.dms, & ptr_dmseen, ptr_alt, ndm)
+            self.rtc.add_controller(
+                nactu,
+                delay,
+                self.device,
+                type_control,
+                dms.dms,
+                type_dmseen,
+                ptr_alt,
+                ndm)
 
     def rm_controller(self):
         """Remove a controller"""
@@ -490,10 +508,11 @@ cdef class Rtc:
         self.rtc.do_centroids(ncontrol)
         h_ref = np.zeros(nslope, dtype=np.float32)
         self.rtc.get_centroids_ref(ncontrol, < float * > h_ref.data)
-        h_rawslp = self.getCentroids(ncontrol) + h_ref
+        h_rawslp = self.get_centroids(ncontrol) + h_ref
         self.rtc.set_centroids_ref(ncontrol, < float * > h_rawslp.data)
 
-    def do_imat_kl(self, int ncontrol, Dms dms, p_dms, np.ndarray[ndim=2, dtype=np.float32_t] kl, bool ntt):
+    def do_imat_kl(self, int ncontrol, Dms dms, p_dms,
+                   np.ndarray[ndim=2, dtype=np.float32_t] kl, bool ntt):
         """Compute the interaction matrix in the KL basis
 
         :parameters:
@@ -513,6 +532,8 @@ cdef class Rtc:
         cdef float tmp_nphot
         inds1 = 0
         cdef sutra_dm * dm
+        cdef sutra_dm * dmtt
+
         cdef sutra_wfs * wfs
         cdef carma_obj[float] * screen
         cdef vector[sutra_dm * ].iterator it_dm
@@ -536,7 +557,6 @@ cdef class Rtc:
                 "WARNING: the controller is NOT a LS or MV, the imat computed will be returned")
 
         it_dm = control.d_dmseen.begin()
-        dm = deref(it_dm)
         while(it_dm != control.d_dmseen.end()):
             dm = deref(it_dm)
             type_dm = dm.type
@@ -566,7 +586,7 @@ cdef class Rtc:
 
             self.rtc.do_centroids(ncontrol, True)
 
-            h_centroids = self.getCentroids(ncontrol)
+            h_centroids = self.get_centroids(ncontrol)
             control.d_centroids.host2device( < float * > h_centroids.data)
 
             device = control.d_centroids.getDevice()
@@ -587,7 +607,8 @@ cdef class Rtc:
             control.d_centroids.copyInto(
                 d_imat.getDataAt(inds1),
                 control.nslope())
-            for i in range(np.size(p_dms)):
+
+            for i in range(len(p_dms)):
                 dms.resetdm(p_dms[i].type_dm, p_dms[i].alt)
 
             inds1 += control.nslope()
@@ -671,7 +692,7 @@ cdef class Rtc:
 
                 self.rtc.do_centroids(ncontrol, True)
 
-                h_centroids = self.getCentroids(ncontrol)
+                h_centroids = self.get_centroids(ncontrol)
                 control.d_centroids.host2device( < float * > h_centroids.data)
 
                 device = control.d_centroids.getDevice()
@@ -706,7 +727,7 @@ cdef class Rtc:
 
                 self.rtc.do_centroids(ncontrol, True)
 
-                h_centroids = self.getCentroids(ncontrol)
+                h_centroids = self.get_centroids(ncontrol)
                 control.d_centroids.host2device( < float * > h_centroids.data)
 
                 device = control.d_centroids.getDevice()

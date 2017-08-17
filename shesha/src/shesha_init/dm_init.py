@@ -701,6 +701,8 @@ def correct_dm(
             dms.load_kl(
                     p_dms[nm].alt, p_dms[nm]._rabas, p_dms[nm]._azbas,
                     p_dms[nm]._ord, p_dms[nm]._cr, p_dms[nm]._cp)
+        else:
+            raise ValueError("Screwed up.")
 
         inds += nactu_nm
     print("Done")

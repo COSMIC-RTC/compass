@@ -104,7 +104,7 @@ class Param_controller:
         :param l: (np.ndarray[ndim=1, dtype=np.int32]) : indices of wfs
         """
         self.__nwfs = csu.enforce_array(
-                l, len(l), dtype=np.int32, scalar_expand=True)
+                l, len(l), dtype=np.int32, scalar_expand=False)
 
     nwfs = property(lambda x: x.__nwfs, set_nwfs)
 
@@ -114,7 +114,7 @@ class Param_controller:
         :param l: (np.ndarray[ndim=1, dtype=np.int32]) : indices of dms
         """
         self.__ndm = csu.enforce_array(
-                l, len(l), dtype=np.int32, scalar_expand=True)
+                l, len(l), dtype=np.int32, scalar_expand=False)
 
     ndm = property(lambda x: x.__ndm, set_ndm)
 
@@ -124,7 +124,7 @@ class Param_controller:
         :param l: (np.ndarray[ndim=1, dtype=np.int32]) : indices of dms
         """
         self.__nactu = csu.enforce_array(
-                l, len(l), dtype=np.int32, scalar_expand=True)
+                l, len(l), dtype=np.int32, scalar_expand=False)
 
     nactu = property(lambda x: x.__nactu, set_nactu)
 
@@ -133,7 +133,8 @@ class Param_controller:
 
         :param l: (list of int) : number of valid subaps
         """
-        self.__nvalid = csu.enforce_int(l)
+        self.__nvalid = csu.enforce_array(
+                l, len(l), dtype=np.int32, scalar_expand=False)
 
     nvalid = property(lambda x: x.__nvalid, set_nvalid)
 
@@ -244,7 +245,8 @@ class Param_controller:
         :param imat: (np.ndarray[ndim=2,dtype=np.float32_t]) : full interaction matrix
         """
         self.__imat = csu.enforce_arrayMultiDim(
-                imat, (self.nactu.sum(), self.nvalid.sum()), dtype=np.float32)
+                imat, (2 * self.nvalid.sum(), self.nactu.sum()),
+                dtype=np.float32)
 
     imat = property(lambda x: x.__imat, set_imat)
 
@@ -254,6 +256,7 @@ class Param_controller:
         :param cmat: (np.ndarray[ndim=2,dtype=np.float32_t]) : full control matrix
         """
         self.__cmat = csu.enforce_arrayMultiDim(
-                cmat, (self.nvalid.sum(), self.nactu.sum()), dtype=np.float32)
+                cmat, (self.nactu.sum(), 2 * self.nvalid.sum()),
+                dtype=np.float32)
 
     cmat = property(lambda x: x.__cmat, set_cmat)

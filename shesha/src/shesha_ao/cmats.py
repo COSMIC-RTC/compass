@@ -19,7 +19,7 @@ def cmat_init(
         p_tel: conf.Param_tel,
         p_dms: list,
         KL2V=None,
-        nmode=0):
+        nmodes=0):
     """ Compute the command matrix on the GPU
 
     :parameters:
@@ -31,7 +31,7 @@ def cmat_init(
         p_tel : (Param_tel) : telescope settings
         p_dms: (list of Param_dm) : dms settings
         KL2V : (np.ndarray[ndim=2, dtype=np.float32]): (optional) KL to volts matrix (for KL cmat)
-        nmode: (int) : (optional) number of kl modes
+        nmodes: (int) : (optional) number of kl modes
 
     """
     if (p_controller.type_control == scons.ControllerType.LS):
@@ -63,8 +63,8 @@ def cmat_init(
                 if ((p_dms[i].type_dm == scons.DmType.PZT) & (ppz == 0)):
                     ppz = 1
                     pii = i
-            if ((nmode == 0) & (ppz != 0)):
-                nmode = p_dms[pii]._ntotact
+            if ((nmodes == 0) & (ppz != 0)):
+                nmodes = p_dms[pii]._ntotact
             if (ppz == 1):
                 # filter imat
                 D_filt = imat[:, :KL2V.shape[1]]

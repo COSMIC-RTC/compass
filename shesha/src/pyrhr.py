@@ -9,7 +9,7 @@ import numpy as np
 import matplotlib.pylab as plt
 plt.ion()
 #from iterkolmo import *
-import iterkolmo
+import shesha_util.iterkolmo
 import pylab
 import sys
 import os
@@ -32,18 +32,20 @@ Note :
 
 def generate_kolmo(n):
 
-    Zx,Zy,Xx,Xy,istencil = iterkolmo.create_stencil(n)        # create the indicial matrix
-    pxx = iterkolmo.Cxx(n,Zx,Zy,Xx,Xy)                        # covariance matrixes definition
-    pzz = iterkolmo.Czz(n,Zx,Zy,istencil)
-    pxz = iterkolmo.Cxz(n,Zx,Zy,Xx,Xy,istencil)
-    A,B = iterkolmo.AB(pxz,pxx,pzz,n)                        # Matrix creation for Kolmogorov law application
-    p = np.zeros((n,n))                             # declaration of the phase screen
+    Zx, Zy, Xx, Xy, istencil = iterkolmo.create_stencil(
+            n)  # create the indicial matrix
+    pxx = iterkolmo.Cxx(n, Zx, Zy, Xx, Xy)  # covariance matrixes definition
+    pzz = iterkolmo.Czz(n, Zx, Zy, istencil)
+    pxz = iterkolmo.Cxz(n, Zx, Zy, Xx, Xy, istencil)
+    A, B = iterkolmo.AB(
+            pxz, pxx, pzz, n)  # Matrix creation for Kolmogorov law application
+    p = np.zeros((n, n))  # declaration of the phase screen
 
-    for i in range(2*n):
-        p = iterkolmo.extrude(A,B,p,istencil)               #Kolmogorov phase screen
+    for i in range(2 * n):
+        p = iterkolmo.extrude(A, B, p, istencil)  #Kolmogorov phase screen
 
     while np.max(np.abs(p)) > 100:
-        p/=10
+        p /= 10
 
     return p
 
@@ -53,7 +55,23 @@ def rebin(a, shape):
     return a.reshape(sh).mean(-1).mean(1)
 
 
-def pyr_analysis(n, mod, N, Dtel, obs, nrebin, l, _pix, Amp, mv, Pangle, p, pupsub, pup=False, noise=False, disp=True):
+def pyr_analysis(
+        n,
+        mod,
+        N,
+        Dtel,
+        obs,
+        nrebin,
+        l,
+        _pix,
+        Amp,
+        mv,
+        Pangle,
+        p,
+        pupsub,
+        pup=False,
+        noise=False,
+        disp=True):
     """
     DOCUMENT
     Simulate perfect pyramid wavefront sensor analysis without noise;
@@ -110,98 +128,117 @@ def pyr_analysis(n, mod, N, Dtel, obs, nrebin, l, _pix, Amp, mv, Pangle, p, pups
         PSF, PUPIM_HR, PUPIM_LR, dwx, dwy, IA, IB, IC, ID, ppup, pyr = pyr_analysis(n,mod,N,Dtel,obs, nrebin, l,_pix,Amp, mv, Pangle, p, pup=pup)
 
     """
-    if(disp):
+    if (disp):
         plt.figure(11)
-        fig1, axes1 = plt.subplots(2, 2) # fig and 2 x 2 nparray of axes
+        fig1, axes1 = plt.subplots(2, 2)  # fig and 2 x 2 nparray of axes
         plt.figure(12)
-        fig2, axes2 = plt.subplots(1, 2) # fig and 2 x 2 nparray of axes
+        fig2, axes2 = plt.subplots(1, 2)  # fig and 2 x 2 nparray of axes
         plt.figure(13)
-        fig3, axes3 = plt.subplots(2, 2) # fig and 2 x 2 nparray of axes
+        fig3, axes3 = plt.subplots(2, 2)  # fig and 2 x 2 nparray of axes
 
-    pix = (np.pi*_pix)/(3600*180) #Conversion en rad
-    z=l/(n*pix) #pix (m)
-    D=Dtel/z #Diametre miroir (pix)
+    pix = (np.pi * _pix) / (3600 * 180)  #Conversion en rad
+    z = l / (n * pix)  #pix (m)
+    D = Dtel / z  #Diametre miroir (pix)
     D = np.round(D)  # on veut un entier coute que coute
-    if (D%2 == 1):
-        D+=1
-    r = D/2.0
-    larg=l/Dtel/pix #Lamda/D en pix
+    if (D % 2 == 1):
+        D += 1
+    r = D / 2.0
+    larg = l / Dtel / pix  #Lamda/D en pix
 
-    E = np.zeros((n,n), dtype=np.complex64) #Field initialisation
+    E = np.zeros((n, n), dtype=np.complex64)  #Field initialisation
 
     # on choisit les tqblequx x et y de cette fqcon, pour que, par
     # convention, on adresse les tableaux selon tab[x,y]
-    y = np.tile(np.arange(n) - n/2, (n,1))
+    y = np.tile(np.arange(n) - n / 2, (n, 1))
     x = y.T
-    d2 = x*x + y*y
-    if(pup is False):
-        pup = (d2 < r*r) & (d2 > (obs*r)**2) #Pupille et obstruction centrale
+    d2 = x * x + y * y
+    if (pup is False):
+        pup = (d2 < r * r) & (d2 >
+                              (obs * r)**2)  #Pupille et obstruction centrale
 
-    ppup = pup[int(n/2-D/2)+1 : int(n/2+D/2)+1 , int(n/2-D/2)+1 : int(n/2+D/2)+1]
+    ppup = pup[int(n / 2 - D / 2) + 1:int(n / 2 + D / 2) + 1,
+               int(n / 2 - D / 2) + 1:int(n / 2 + D / 2) + 1]
 
     #Pangle = int(3*D/4)+1 #Pyramid angle
     #Pangle = int((D/2)*3)+1 #Pyramid angle
-    K = (2*np.pi*Pangle)/n
-    pyr = K*(np.abs(x)+np.abs(y))  #Pyramide
+    K = (2 * np.pi * Pangle) / n
+    pyr = K * (np.abs(x) + np.abs(y))  #Pyramide
     pyr = np.fft.fftshift(pyr)
-    theta = (np.arange(N))*2*np.pi/N #Angle de modulation
+    theta = (np.arange(N)) * 2 * np.pi / N  #Angle de modulation
 
-    a=mod*np.cos(theta)
-    b=mod*np.sin(theta)
+    a = mod * np.cos(theta)
+    b = mod * np.sin(theta)
     PUPIM = 0
     PSF = 0
     PUPYR = 0
     # Coeff multiplicatif des fonctions x et y pour etre en unites lam/D
-    magic = larg * (2*np.pi/n)
+    magic = larg * (2 * np.pi / n)
     print("lambda/D=%f pixels" % larg)
     x = x * magic
     y = y * magic
-    if(disp):
-        axes1[0, 0].matshow(p) # Phase
+    if (disp):
+        axes1[0, 0].matshow(p)  # Phase
         axes1[0, 0].set_title("Phase")
-        axes1[0, 1].matshow(p*pup) # Phase in pupil
+        axes1[0, 1].matshow(p * pup)  # Phase in pupil
         axes1[0, 1].set_title("Phase in HR pupil")
         # PSF on top of Pyramid
-        PSF0 = np.fft.fftshift(np.abs( np.fft.fft2(pup*Amp*np.exp(1j*(p))) )**2) #PSF not modulated
+        PSF0 = np.fft.fftshift(
+                np.abs(np.fft.fft2(pup * Amp * np.exp(1j * (p))))
+                **2)  #PSF not modulated
         axes1[1, 1].matshow(PSF0, cmap="gist_earth")
-        axes1[1, 1].plot((PSF0.shape[0]/2,PSF0.shape[0]/2), (0, PSF0.shape[0]), color="blue")
-        axes1[1, 1].plot((0, PSF0.shape[0]), (PSF0.shape[0]/2,PSF0.shape[0]/2), color="blue")
+        axes1[1, 1].plot((PSF0.shape[0] / 2, PSF0.shape[0] / 2),
+                         (0, PSF0.shape[0]),
+                         color="blue")
+        axes1[1, 1].plot((0, PSF0.shape[0]),
+                         (PSF0.shape[0] / 2, PSF0.shape[0] / 2),
+                         color="blue")
         axes1[1, 1].set_title("PSF on top of Pyramid")
 
     # Modulation LOOP !!!
     for i in range(N):
-        phi=a[i]*x + b[i]*y #Modulation Tip/Tilt
-        E = pup*Amp*np.exp(1j*(p+phi))
+        phi = a[i] * x + b[i] * y  #Modulation Tip/Tilt
+        E = pup * Amp * np.exp(1j * (p + phi))
         EPSF = np.fft.fft2(E)
-        PSF += np.abs( EPSF )**2 #PSF
-        PUPYR = np.abs(np.fft.ifft2((EPSF*np.exp(1j*pyr))))**2
+        PSF += np.abs(EPSF)**2  #PSF
+        PUPYR = np.abs(np.fft.ifft2((EPSF * np.exp(1j * pyr))))**2
         PUPIM += PUPYR
 
-        if(disp):
-            axes1[1, 1].scatter(a[i]*larg+PSF0.shape[0]/2, b[i]*larg+PSF0.shape[1]/2, color="red", marker='x', s=20) # Modulation points
-            axes1[1, 0].scatter(a[i], b[i], color="red", marker='x', s=20) # Modulation points
-            diffractionCircle = pylab.Circle((a[i],b[i]), radius=0.5, alpha=0.5)
+        if (disp):
+            axes1[1, 1].scatter(
+                    a[i] * larg + PSF0.shape[0] / 2,
+                    b[i] * larg + PSF0.shape[1] / 2,
+                    color="red",
+                    marker='x',
+                    s=20)  # Modulation points
+            axes1[1, 0].scatter(
+                    a[i], b[i], color="red", marker='x',
+                    s=20)  # Modulation points
+            diffractionCircle = pylab.Circle((a[i], b[i]),
+                                             radius=0.5,
+                                             alpha=0.5)
             axes1[1, 0].add_patch(diffractionCircle)
             axes1[1, 0].set_title("Modulation points (in lambda/D)")
         print("Modulation iter=", i, "/", N)
         print("min=", np.min(PSF), " max=", np.max(PSF))
 
     PSF = np.fft.fftshift(PSF)
-#    pli(PUPIM,win=1) # pli
+    #    pli(PUPIM,win=1) # pli
 
-    Nph = 10**(-0.4*mv+3) #photons/cm^2/s/Angstrom
-    Nph *= 3000*1/200.*(np.pi*(Dtel*100/2.)**2-np.pi*(0.28*Dtel*100/2.)**2) #photons
+    Nph = 10**(-0.4 * mv + 3)  #photons/cm^2/s/Angstrom
+    Nph *= 3000 * 1 / 200. * (
+            np.pi * (Dtel * 100 / 2.)**2 - np.pi *
+            (0.28 * Dtel * 100 / 2.)**2)  #photons
 
-    S=np.sum(PUPIM)
+    S = np.sum(PUPIM)
     PUPIM /= S
     PUPIM *= Nph
     #n = nrebin
-    PUPIM0=np.copy(PUPIM)
+    PUPIM0 = np.copy(PUPIM)
 
-    if(noise):
-        PUPIM = np.random.poisson(PUPIM) #Bruit de photons
-        PUPIM = PUPIM*1.0 + np.random.normal(0,0.5,(n,n)) #Bruit lecture gaussien e- rms/pix
-
+    if (noise):
+        PUPIM = np.random.poisson(PUPIM)  #Bruit de photons
+        PUPIM = PUPIM * 1.0 + np.random.normal(
+                0, 0.5, (n, n))  #Bruit lecture gaussien e- rms/pix
     """
     IA1 = PUPIM[int(n/2-D/2-Pangle)+1 : int(n/2+D/2-Pangle)+1 , int(n/2-D/2-Pangle)+1 : int(n/2+D/2-Pangle)+1]
     IB1 = PUPIM[int(n/2-D/2+Pangle)+1 : int(n/2+D/2+Pangle)+1 , int(n/2-D/2-Pangle)+1 : int(n/2+D/2-Pangle)+1]
@@ -209,7 +246,7 @@ def pyr_analysis(n, mod, N, Dtel, obs, nrebin, l, _pix, Amp, mv, Pangle, p, pups
     ID1 = PUPIM[int(n/2-D/2+Pangle)+1 : int(n/2+D/2+Pangle)+1 , int(n/2-D/2+Pangle)+1 : int(n/2+D/2+Pangle)+1]
     """
     # nouvelle version (corrected by Rico & Fab)
-    x1 = int(n/2-D/2-Pangle)
+    x1 = int(n / 2 - D / 2 - Pangle)
     y1 = x1 + int(D)
     x2 = n - y1
     y2 = n - x1
@@ -224,42 +261,40 @@ def pyr_analysis(n, mod, N, Dtel, obs, nrebin, l, _pix, Amp, mv, Pangle, p, pups
     ID = PUPIM_compass[int(n/2-D/2+Pangle)+1 : int(n/2+D/2+Pangle)+1 , int(n/2-D/2+Pangle)+1 : int(n/2+D/2+Pangle)+1]
     """
 
-    PUPIM_LR = rebin(PUPIM0, (PUPIM0.shape[0]/nrebin, PUPIM0.shape[1]/nrebin))
-
+    PUPIM_LR = rebin(
+            PUPIM0, (PUPIM0.shape[0] / nrebin, PUPIM0.shape[1] / nrebin))
 
     Itot = IA + IB + IC + ID
-    Sx = ppup*((IA+IC) - (IB+ID))/(Itot)
-    Sy = ppup*((IA+IB) - (IC+ID))/(Itot)
-    dwx = mod*np.sin(0.5*np.pi*Sx)
-    dwy = mod*np.sin(0.5*np.pi*Sy) # en unite lam/D
-
+    Sx = ppup * ((IA + IC) - (IB + ID)) / (Itot)
+    Sy = ppup * ((IA + IB) - (IC + ID)) / (Itot)
+    dwx = mod * np.sin(0.5 * np.pi * Sx)
+    dwy = mod * np.sin(0.5 * np.pi * Sy)  # en unite lam/D
 
     # Low resolution:
     #ppup_LR = rebin(ppup, (ppup.shape[0]/nrebin, ppup.shape[1]/nrebin))
-    xx1 = int(n/2-D/2-Pangle)/nrebin
-    yy1 = xx1 + int(D)/nrebin
-    xx2 = n/nrebin - yy1
-    yy2 = n/nrebin - xx1
+    xx1 = int(n / 2 - D / 2 - Pangle) / nrebin
+    yy1 = xx1 + int(D) / nrebin
+    xx2 = n / nrebin - yy1
+    yy2 = n / nrebin - xx1
     IA_LR = PUPIM_LR[xx1:yy1, xx1:yy1]
     IB_LR = PUPIM_LR[xx2:yy2, xx1:yy1]
     IC_LR = PUPIM_LR[xx1:yy1, xx2:yy2]
     ID_LR = PUPIM_LR[xx2:yy2, xx2:yy2]
     Itot_LR = IA_LR + IB_LR + IC_LR + ID_LR
-    Sx_LR = pupsub*((IA_LR+IC_LR) - (IB_LR+ID_LR))/(Itot_LR)
-    Sy_LR = pupsub*((IA_LR+IB_LR) - (IC_LR+ID_LR))/(Itot_LR)
-    dwx_LR = mod*np.sin(0.5*np.pi*Sx_LR)
-    dwy_LR = mod*np.sin(0.5*np.pi*Sy_LR) # en unite lam/D
-
+    Sx_LR = pupsub * ((IA_LR + IC_LR) - (IB_LR + ID_LR)) / (Itot_LR)
+    Sy_LR = pupsub * ((IA_LR + IB_LR) - (IC_LR + ID_LR)) / (Itot_LR)
+    dwx_LR = mod * np.sin(0.5 * np.pi * Sx_LR)
+    dwy_LR = mod * np.sin(0.5 * np.pi * Sy_LR)  # en unite lam/D
 
     ind = np.where(pupsub.flatten())[0]
     slopesx = dwx_LR.flatten()[ind]
     slopesy = dwy_LR.flatten()[ind]
 
-    slopes = np.zeros(slopesx.shape[0]*2)
+    slopes = np.zeros(slopesx.shape[0] * 2)
     slopes[:len(ind)] = slopesx
     slopes[len(ind):] = slopesy
 
-    if(disp):
+    if (disp):
         axes2[0].matshow(PUPIM0, cmap="gist_earth")
         axes2[0].set_title("PYRAMID image High Resolution")
         axes2[1].matshow(PUPIM_LR, cmap="gist_earth")
@@ -282,9 +317,6 @@ def pyr_analysis(n, mod, N, Dtel, obs, nrebin, l, _pix, Amp, mv, Pangle, p, pups
         axes3[0, 0].set_title("GRAD (x) High Resolution")
         axes3[0, 1].set_title("GRAD (y) High Resolution")
 
-
-
-
         axes3[1, 0].matshow(dwx_LR, cmap="gist_earth")
         #divider5 = make_axes_locatable(axes3[1, 0])
         #cax5 = divider5.append_axes("right", size="20%", pad=0.05)
@@ -296,10 +328,9 @@ def pyr_analysis(n, mod, N, Dtel, obs, nrebin, l, _pix, Amp, mv, Pangle, p, pups
         axes3[1, 0].set_title("GRAD (x) Low Resolution")
         axes3[1, 1].set_title("GRAD (y) Low Resolution")
 
-        fig1.tight_layout(pad=0.1, h_pad=0.5, w_pad=0.5,rect=None)
-        fig2.tight_layout(pad=0.1, h_pad=0.5, w_pad=0.5,rect=None)
-        fig3.tight_layout(pad=0.1, h_pad=0.5, w_pad=0.5,rect=None)
-
+        fig1.tight_layout(pad=0.1, h_pad=0.5, w_pad=0.5, rect=None)
+        fig2.tight_layout(pad=0.1, h_pad=0.5, w_pad=0.5, rect=None)
+        fig3.tight_layout(pad=0.1, h_pad=0.5, w_pad=0.5, rect=None)
     """
     gradx=np.zeros((n,n)) #Gradient theorique du front d'onde
     grady=np.zeros((n,n))
@@ -319,30 +350,48 @@ def pyr_analysis(n, mod, N, Dtel, obs, nrebin, l, _pix, Amp, mv, Pangle, p, pups
 
 
 def compPyrCOMPASS(wao):
-        #imhrCOMPASS = wao.wfs.get_hrimg_pyr(0)
-        phasehrCOMPASS = wao.wfs.get_phase(0)
-        pupCOMPASS = wao.config.p_geom.get_mpupil()
-        #phaselrCOMPASS = wao.wfs.get_pyrimg(0)
-        ncompass = phasehrCOMPASS.shape[0]
-        n = wao.wfs.get_pyrimghr(0).shape[0]
-        nrebin = wao.config.p_wfs0._nrebin
-        pup_sep = wao.config.p_wfs0.pyr_pup_sep
-        mod = wao.config.p_wfs0.pyr_ampl
-        N = wao.config.p_wfs0.pyr_npts
-        Dtel = wao.config.p_tel.diam
-        obs = wao.config.p_tel.cobs
-        l = wao.config.p_wfs0.Lambda*1e-6
-        _pix = wao.config.p_wfs0._qpixsize
-        Amp = 1.
-        mv = 10.
-        Pangle = pup_sep * nrebin
-        p = np.zeros((n,n))
-        pup = p.copy()
-        p[(n-ncompass)/2:(n+ncompass)/2, (n-ncompass)/2:(n+ncompass)/2] = phasehrCOMPASS*2*np.pi/l*1e-6
-        pup[(n-ncompass)/2:(n+ncompass)/2, (n-ncompass)/2:(n+ncompass)/2] = pupCOMPASS
-        pupsub = wao.config.p_wfs0._isvalid[1:-1,1:-1]
-        PUPIM0, PUPIM, dwx, dwy, IA, IB, IC, ID, slopes = pyr_analysis(n,mod,N,Dtel,obs, nrebin, l,_pix,Amp, mv, Pangle, p, pupsub, pup=pup)
-        return PUPIM0, PUPIM, dwx, dwy, IA, IB, IC, ID, slopes
+    #imhrCOMPASS = wao.wfs.get_hrimg_pyr(0)
+    phasehrCOMPASS = wao.wfs.get_phase(0)
+    pupCOMPASS = wao.config.p_geom.get_mpupil()
+    #phaselrCOMPASS = wao.wfs.get_pyrimg(0)
+    ncompass = phasehrCOMPASS.shape[0]
+    n = wao.wfs.get_pyrimghr(0).shape[0]
+    nrebin = wao.config.p_wfs0._nrebin
+    pup_sep = wao.config.p_wfs0.pyr_pup_sep
+    mod = wao.config.p_wfs0.pyr_ampl
+    N = wao.config.p_wfs0.pyr_npts
+    Dtel = wao.config.p_tel.diam
+    obs = wao.config.p_tel.cobs
+    l = wao.config.p_wfs0.Lambda * 1e-6
+    _pix = wao.config.p_wfs0._qpixsize
+    Amp = 1.
+    mv = 10.
+    Pangle = pup_sep * nrebin
+    p = np.zeros((n, n))
+    pup = p.copy()
+    p[(n - ncompass) / 2:(n + ncompass) / 2, (n - ncompass) / 2:(
+            n + ncompass) / 2] = phasehrCOMPASS * 2 * np.pi / l * 1e-6
+    pup[(n - ncompass) / 2:(n + ncompass) / 2, (n - ncompass) / 2:(
+            n + ncompass) / 2] = pupCOMPASS
+    pupsub = wao.config.p_wfs0._isvalid[1:-1, 1:-1]
+    PUPIM0, PUPIM, dwx, dwy, IA, IB, IC, ID, slopes = pyr_analysis(
+            n,
+            mod,
+            N,
+            Dtel,
+            obs,
+            nrebin,
+            l,
+            _pix,
+            Amp,
+            mv,
+            Pangle,
+            p,
+            pupsub,
+            pup=pup)
+    return PUPIM0, PUPIM, dwx, dwy, IA, IB, IC, ID, slopes
+
+
 """
 from iterkolmo import *
 n=1024

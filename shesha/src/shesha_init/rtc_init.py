@@ -303,7 +303,7 @@ def init_controller(
             nwfs = p_controller.nwfs
             # TODO fixing a bug ... still not understood
         nvalid = sum([p_wfss[k]._nvalid for k in nwfs])
-        p_controller.set_nvalid(nvalid)
+        p_controller.set_nvalid([p_wfss[k]._nvalid for k in nwfs])
     # parameter for add_controller(_geo)
     ndms = p_controller.ndm.tolist()
     p_controller.set_nactu([p_dms[n]._ntotact for n in ndms])

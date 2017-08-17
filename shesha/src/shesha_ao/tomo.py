@@ -44,14 +44,14 @@ def doTomoMatrices(
     spup = p_geom.get_spupil()
     s2ipup = (ipup.shape[0] - spup.shape[0]) / 2.
     # Total number of subapertures
-    nvalid = sum([nvalidperwfs[j] for j in range(p_controller.nwfs)])
+    nvalid = sum([nvalidperwfs[j] for j in p_controller.nwfs])
     ind = 0
     # X-position of the bottom left corner of each valid subaperture
     X = np.zeros(nvalid, dtype=np.float64)
     # Y-position of the bottom left corner of each subaperture
     Y = np.zeros(nvalid, dtype=np.float64)
 
-    for k in range(p_controller.nwfs):
+    for k in p_controller.nwfs:
         posx = p_wfss[k]._istart + s2ipup
         # X-position of the bottom left corner of each valid subaperture
         posx = posx * p_wfss[k]._isvalid
@@ -72,7 +72,7 @@ def doTomoMatrices(
     # Get the total number of pzt DM and actuators to control
     nactu = 0
     npzt = 0
-    for k in range(p_controller.ndm):
+    for k in p_controller.ndm:
         if (p_dms[k].type_dm == scons.DmType.PZT):
             nactu += p_dms[k]._ntotact
             npzt += 1
