@@ -160,14 +160,14 @@ class Param_dm:
 
     type_kl = property(lambda x: x.__type_kl, set_type_kl)
 
-    def set_type_dm(self, t):
+    def set_type(self, t):
         """set the dm type
 
         :param t: (str) : type of dm
         """
         self.__type_dm = scons.check_enum(scons.DmType, t)
 
-    type_dm = property(lambda x: x.__type_dm, set_type_dm)
+    type_dm = property(lambda x: x.__type_dm, set_type)
 
     def set_type_pattern(self, t):
         """set the pattern type

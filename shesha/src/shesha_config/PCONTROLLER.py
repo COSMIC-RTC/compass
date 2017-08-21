@@ -69,7 +69,7 @@ class Param_controller:
 
     kl_imat = property(lambda x: x.__kl_imat, set_kl_imat)
 
-    def set_type_control(self, t):
+    def set_type(self, t):
         """
             Set the controller type
 
@@ -77,7 +77,7 @@ class Param_controller:
         """
         self.__type_control = scons.check_enum(scons.ControllerType, t)
 
-    type_control = property(lambda x: x.__type_control, set_type_control)
+    type_control = property(lambda x: x.__type_control, set_type)
 
     def set_klgain(self, g):
         """

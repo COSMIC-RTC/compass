@@ -54,7 +54,7 @@ class Param_centroider:
 
     nwfs = property(lambda x: x.__nwfs, set_nwfs)
 
-    def set_type_centro(self, t):
+    def set_type(self, t):
         """
             Set the centroider type
 
@@ -62,7 +62,7 @@ class Param_centroider:
         """
         self.__type_centro = scons.check_enum(scons.CentroiderType, t)
 
-    type_centro = property(lambda x: x.__type_centro, set_type_centro)
+    type_centro = property(lambda x: x.__type_centro, set_type)
 
     def set_type_fct(self, t):
         """
