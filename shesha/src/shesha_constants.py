@@ -110,6 +110,19 @@ class CentroiderFctType:
     GAUSS = b'gauss'
 
 
+class PyrCentroiderMethod:
+    """
+        Pyramid centroider methods
+        Local flux normalization (eq SH quad-cell, ray optics. Ragazzonni 1996)
+        Global flux normalization (Verinaud 2004, most > 2010 Pyr applications)
+        Resulting (A+/-B-/+C-D)/(A+B+C+D) or sin((A+/-B-/+C-D)/(A+B+C+D))
+    """
+    NOSINUSGLOBAL = 0
+    SINUSGLOBAL = 1
+    NOSINUSLOCAL = 2
+    SINUSLOCAL = 3
+
+
 class WFSType:
     """
         WFS Types

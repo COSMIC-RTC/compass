@@ -967,14 +967,15 @@ cdef class Rtc:
                 self.rtc.d_centro[n].get_type()
             raise ValueError(e)
 
-    def set_pyr_method(self, int n, int method, list p_centroiders):
-        """Set the pyramid centroiding method
+    def set_pyr_method(self, int n, int method):
+        """ Set the pyramid centroiding method
         :parameters:
         n : (int) : pyr centroider number
         method : (int) : new centroiding method (0: nosinus global
                                                  1: sinus global
                                                  2: nosinus local
                                                  3: sinus local)
+                        favor use of shesha_constant.PyrCentroiderMethod
         p_centroiders : (list of Param_centroider) : list of centroider parameters
         """
         cdef sutra_centroider_pyr * centro = NULL
@@ -985,14 +986,13 @@ cdef class Rtc:
 
             centro = dynamic_cast_centroider_pyr_ptr(self.rtc.d_centro[n])
             centro.set_method(method)
-            p_centroiders[n].set_method(method)
         else:
             e = "Centroider should be pyrhr, got " + \
                 self.rtc.d_centro[n].get_type()
             raise ValueError(e)
 
-    def set_pyr_thresh(self, int n, float threshold, list p_centroiders):
-        """Set the pyramid threshold
+    def set_pyr_thresh(self, int n, float threshold):
+        """ Set the pyramid threshold
         :parameters:
         n : (int) : pyr centroider number
         threshold : (float) : new threshold in photons
@@ -1004,8 +1004,6 @@ cdef class Rtc:
         if(self.rtc.d_centro[n].is_type(scons.WFSType.PYRHR)):
             centro = dynamic_cast_centroider_pyr_ptr(self.rtc.d_centro[n])
             centro.set_valid_thresh(threshold)
-
-            p_centroiders[n].set_thresh(threshold)
         else:
             e = "Centroider should be pyrhr, got " + \
                 self.rtc.d_centro[n].get_type()

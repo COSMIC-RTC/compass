@@ -148,10 +148,10 @@ def init_centroider(
                     s_offset = p_wfs.npix // 2
             else:
                 s_offset = p_wfs.npix // 2 + 0.5
-
         s_scale = p_wfs.pixsize
 
     elif (p_wfs.type_wfs == scons.WFSType.PYRHR):
+        s_offset = 0.
         s_scale = (p_wfs.Lambda * 1e-6 / p_tel.diam) * \
             p_wfs.pyr_ampl * CONST.RAD2ARCSEC
 
@@ -161,8 +161,8 @@ def init_centroider(
 
     if (p_wfs.type_wfs == scons.WFSType.PYRHR):
         # FIXME SIGNATURE CHANGES
-        rtc.set_pyr_method(nwfs, p_centroider.method, p_centroider)
-        rtc.set_pyr_thresh(nwfs, p_centroider.thresh, p_centroider)
+        rtc.set_pyr_method(nwfs, p_centroider.method)
+        rtc.set_pyr_thresh(nwfs, p_centroider.thresh)
 
     elif (p_wfs.type_wfs == scons.WFSType.SH):
         if (p_centroider.type_centro == scons.CentroiderType.TCOG):
