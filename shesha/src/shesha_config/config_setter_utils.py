@@ -18,9 +18,9 @@ def enforce_int(n):
 
 
 def enforce_float(f):
-    if not isinstance(f, float):
+    if not (isinstance(f, float) or isinstance(f, int)):
         raise TypeError("Value should be float.")
-    return f
+    return float(f)
 
 
 def enforce_or_cast_bool(b):
