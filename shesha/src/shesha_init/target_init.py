@@ -16,24 +16,21 @@ def target_init(
         telescope: Telescope,
         p_target: conf.Param_target,
         p_atmos: conf.Param_atmos,
-        p_geom: conf.Param_geom,
         p_tel: conf.Param_tel,
+        p_geom: conf.Param_geom,
         dm=None,
-        brama=0):
+        brama=False):
     """Create a cython target from parametres structures
 
     :parameters:
         ctxt: (naga_context) :
-
-        p_tel: (Param_tel) : telescope settings
-
-        target: (Param_target) : (optional) target_settings
-
+        telescope: (Telescope): Telescope object
+        target: (Param_target) : target_settings
         p_atmos: (Param_atmos) : atmos settings
-
+        p_tel: (Param_tel) : telescope settings
         p_geom: (Param_geom) : geom settings
-
-        dm: (Param_dm) : dm settings
+        dm: (Param_dm) : (optional) dm settings
+        brama: (bool): (optional) BRAMA flag
     """
     type_target = b"atmos"
 
@@ -53,7 +50,7 @@ def target_init(
         # TODO apodizer, Npts=nb element of apodizer>0
         ceiled_apodizer = np.ceil(p_geom._apodizer * p_geom._spupil)
         ceiled_apodizer[np.where(ceiled_apodizer > 1)] = 1
-        if (brama == 1):
+        if (brama):
             target = Target_brama(
                     ctxt, telescope, p_target.ntargets, p_target.xpos,
                     p_target.ypos, p_target.Lambda, p_target.mag,
@@ -66,7 +63,7 @@ def target_init(
 
     else:
         Npts = np.sum(ceiled_pupil)
-        if (brama == 1):
+        if (brama):
             target = Target_brama(
                     ctxt, telescope, p_target.ntargets, p_target.xpos,
                     p_target.ypos, p_target.Lambda, p_target.mag,

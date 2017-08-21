@@ -25,34 +25,30 @@ from Sensors import Sensors
 def dm_init(
         context: naga_context,
         p_dms: list,
-        p_wfs: list,
+        p_tel: conf.Param_tel,
         p_geom: conf.Param_geom,
-        p_tel: conf.Param_tel):
+        p_wfss=None):
     """Create and initialize a Dms object on the gpu
 
     :parameters:
+        context: (naga_context): context
         p_dms: (list of Param_dms) : dms settings
-
-        p_wfs: (Param_wfs(list)) : wfs settings
-
-        sensors: (wfs) : wfs objet
-
-        p_geom: (Param_geom) : geom settings
-
         p_tel: (Param_tel) : telescope settings
+        p_geom: (Param_geom) : geom settings
+        p_wfss: (list of Param_wfs) : wfs settings
     """
     max_extent = [0]
     xpos_wfs = []
     ypos_wfs = []
-    for i in range(len(p_wfs)):
-        xpos_wfs.append(p_wfs[i].xpos)
-        ypos_wfs.append(p_wfs[i].ypos)
+    for i in range(len(p_wfss)):
+        xpos_wfs.append(p_wfss[i].xpos)
+        ypos_wfs.append(p_wfss[i].ypos)
 
     if (len(p_dms) != 0):
         dms = Dms(context, len(p_dms))
         for i in range(len(p_dms)):
             # max_extent
-            #_dm_init(dms, p_dms[i], p_wfs, p_geom, p_tel, & max_extent)
+            #_dm_init(dms, p_dms[i], p_wfss, p_geom, p_tel, & max_extent)
             _dm_init(
                     dms, p_dms[i], xpos_wfs, ypos_wfs, p_geom, p_tel.diam,
                     p_tel.cobs, max_extent)

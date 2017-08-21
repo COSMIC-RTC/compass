@@ -2,7 +2,7 @@
 # CUDA default definitions
 #export GENCODE='"arch=compute_12,code=sm_12" -DGPUSHMEM=120' #for old tesla
 #export GENCODE='"arch=compute_20,code=sm_20" -DGPUSHMEM=200' #for Fermi
-#export GENCODE='"arch=compute_30,code=sm_30" -DGPUSHMEM=300' #for Kepler 
+#export GENCODE='"arch=compute_30,code=sm_30" -DGPUSHMEM=300' #for Kepler
 #export GENCODE='"arch=compute_35,code=sm_35" -DGPUSHMEM=300' #for K40
 export GENCODE='"arch=compute_37,code=sm_37" -DGPUSHMEM=300' #for K40
 #${GENCODE?"Need to set GENCODE"}
@@ -56,16 +56,16 @@ echo "export CUDA_LIB_PATH_64=$CUDA_LIB_PATH_64"
 echo "export CPLUS_INCLUDE_PATH=$CPLUS_INCLUDE_PATH"
 echo "export PATH=$CUDA_ROOT/bin:$PATH"
 echo
-echo "# CULA default definitions (optionnal)"
+echo "# CULA default definitions (optional)"
 echo "export CULA_ROOT=$CULA_ROOT"
 echo "export CULA_INC_PATH=$CULA_INC_PATH"
 echo "export CULA_LIB_PATH=$CULA_LIB_PATH"
 echo "export CULA_LIB_PATH_64=$CULA_LIB_PATH_64"
 echo
-echo "# MAGMA definitions (optionnal)"
+echo "# MAGMA definitions (optional)"
 echo "export MAGMA_ROOT=$MAGMA_ROOT"
 echo "export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:\$MAGMA_ROOT/lib"
-echo 
+echo
 echo "# YOGA default definitions"
 echo "export COMPASS_ROOT_DIR=$COMPASS_ROOT_DIR"
 echo "export YOGA_DIR=$YOGA_DIR"

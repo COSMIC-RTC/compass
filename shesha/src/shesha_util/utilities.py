@@ -9,6 +9,11 @@ import numpy as np
 
 
 def rebin(a, shape):
+    """
+    TODO: docstring
+
+    """
+
     sh = shape[0], a.shape[0] // shape[0], shape[1], a.shape[1] // shape[1]
     return a.reshape(sh).mean(-1).mean(1)
 
@@ -64,39 +69,12 @@ def bin2d(data_in, binfact):
     return data_out
 
 
-def indices(dim1, dim2=-1):
-    """indices(int dim1, int dim2=-1)
-    Return a dimxdimx2 array. First plane is the X indices of the pixels
-    in the dimxdim array. Second plane contains the Y indices.
-
-    Inspired by the Python scipy routine of the same name.
-
-    New (June 12 2002): dim can either be :
-
-    - a single number N (e.g. 128) in which case the returned array are
-      square (NxN)
-    - a Yorick array size, e.g. [#dimension,N1,N2], in which case
-      the returned array are N1xN2
-    - a vector [N1,N2], same result as previous case
-
-    F.Rigaut 2002/04/03
-    SEE ALSO: span
-
-    :param dim1: (int) : first dimension
-    :param dim2: (int) : (optional) second dimension
+def MESH(Range, Dim):
+    """
+    TODO: docstring
 
     """
-    if (dim2 < 0):
-        y = np.tile((np.arange(dim1, dtype=np.float32) + 1), (dim1, 1))
-        x = np.copy(y.T)
-        return y, x
-    else:
-        x = np.tile((np.arange(dim1, np.float32) + 1), (dim2, 1))
-        y = np.tile((np.arange(dim2, np.float32) + 1), (dim1, 1)).T
-        return y, x
 
-
-def MESH(Range, Dim):
     last = (0.5 * Range - 0.25 / Dim)
     step = (2 * last) // (Dim - 1)
 
@@ -104,6 +82,11 @@ def MESH(Range, Dim):
 
 
 def pad_array(A, N):
+    """
+    TODO: docstring
+
+    """
+
     S = A.shape
     D1 = (N - S[0]) // 2
     D2 = (N - S[1]) // 2
@@ -113,6 +96,11 @@ def pad_array(A, N):
 
 
 def dist(dim, xc=-1, yc=-1):
+    """
+    TODO: docstring
+
+    """
+
     if (xc < 0):
         xc = int(dim / 2.)
     else:
@@ -130,7 +118,7 @@ def dist(dim, xc=-1, yc=-1):
 
 
 def makegaussian(size, fwhm, xc=-1, yc=-1, norm=0):
-    """makegaussian(int size, float fwhm, int xc=-1, int yc=-1, int norm=0)
+    """
     Returns a centered gaussian of specified size and fwhm.
     norm returns normalized 2d gaussian
 

@@ -27,17 +27,16 @@ def rtc_init(
         dms: Dms,
         atmos: Atmos,
         p_wfss: list,
-        p_dms: list,
-        p_geom: conf.Param_geom,
-        p_centroiders: list,
-        p_controllers: list,
-        p_atmos: conf.Param_atmos,
         p_tel: conf.Param_tel,
-        p_loop: conf.Param_loop,
+        p_geom: conf.Param_geom,
+        p_atmos: conf.Param_atmos,
+        ittime: float,
+        p_centroiders=None,
+        p_controllers=None,
+        p_dms=None,
         do_refslp=False,
-        brama=None,
-        tar=None,
-        doimat=1):
+        brama=False,
+        tar=None):
     """Initialize all the sutra_rtc objects : centroiders and controllers
 
     :parameters:
@@ -47,24 +46,22 @@ def rtc_init(
         dms: (Dms) : Dms object
         atmos: (Atmos) : Atmos object
         p_wfss: (list of Param_wfs) : wfs settings
-        p_dms: (list of Param_dms) : dms settings
-        p_geom: (Param_geom) : geom settings
-        p_centroiders : (list of Param_centroider): centroiders settings
-        p_controllers : (list of Param_controller): controllers settings
-        p_atmos: (Param_atmos) : atmos settings
         p_tel: (Param_tel) : telescope settings
-        p_loop: (Param_loop) : loop settings
-
+        p_geom: (Param_geom) : geom settings
+        p_atmos: (Param_atmos) : atmos settings
+        ittime: (float) : iteration time [s]
+        p_centroiders : (list of Param_centroider): (optional) centroiders settings
+        p_controllers : (list of Param_controller): (optional) controllers settings
+        p_dms: (list of Param_dms) : (optional) dms settings
         do_refslp : (bool): (optional) do ref slopes flag, default=False
-        brama: (int) : (optional)
+        brama: (bool) : (optional) BRAMA flag
         tar: (Target) : (optional)
-        doimat: (int) : (optional) force imat computation
     :return:
         Rtc : (Rtc) : Rtc object
     """
     # initialisation var
     # ________________________________________________
-    if (brama == 1):
+    if brama:
         rtc = Rtc_brama(wfs, tar)
     else:
         rtc = Rtc(context)
@@ -99,7 +96,7 @@ def rtc_init(
 
                 init_controller(
                         i, p_controllers[i], p_wfss, p_geom, p_dms, p_atmos,
-                        p_loop, p_tel, rtc, dms, wfs, tel, atmos, do_refslp)
+                        ittime, p_tel, rtc, dms, wfs, tel, atmos, do_refslp)
 
             # add a geometric controller for processing error breakdown
             error_budget_flag = True in [w.error_budget for w in p_wfss]
@@ -271,7 +268,7 @@ def init_controller(
         p_geom: conf.Param_geom,
         p_dms: list,
         p_atmos: conf.Param_atmos,
-        p_loop: conf.Param_loop,
+        ittime: float,
         p_tel: conf.Param_tel,
         rtc: Rtc,
         dms: Dms,
@@ -289,7 +286,7 @@ def init_controller(
         p_geom: (Param_geom) : geom settings
         p_dms: (list of Param_dms) : dms settings
         p_atmos: (Param_atmos) : atmos settings
-        p_loop: (Param_loop) : loop settings
+        ittime: (float) : iteration time [s]
         p_tel: (Param_tel) : telescope settings
         rtc: (Rtc) : Rtc objet
         dms: (Dms) : Dms object
@@ -328,7 +325,7 @@ def init_controller(
 
     if (p_controller.type_control == scons.ControllerType.LS):
         init_controller_ls(
-                i, p_controller, p_wfss, p_geom, p_dms, p_atmos, p_loop, p_tel,
+                i, p_controller, p_wfss, p_geom, p_dms, p_atmos, ittime, p_tel,
                 rtc, dms, wfs, tel, atmos)
 
     if (p_controller.type_control == scons.ControllerType.CURED):
@@ -392,7 +389,7 @@ def init_controller_ls(
         p_geom: conf.Param_geom,
         p_dms: list,
         p_atmos: conf.Param_atmos,
-        p_loop: conf.Param_loop,
+        ittime: float,
         p_tel: conf.Param_tel,
         rtc: Rtc,
         dms: Dms,
@@ -408,7 +405,7 @@ def init_controller_ls(
         p_geom: (Param_geom) : geom settings
         p_dms: (list of Param_dms) : dms settings
         p_atmos: (Param_atmos) : atmos settings
-        p_loop: (Param_loop) : loop settings
+        ittime: (float) : iteration time [s]
         p_tel: (Param_tel) : telescope settings
         rtc: (Rtc) : Rtc objet
         dms: (Dms) : Dms object
@@ -448,7 +445,7 @@ def init_controller_ls(
         rtc.init_modalOpti(
                 i, p_controller.nmodes, p_controller.nrec, KL2V,
                 p_controller.gmin, p_controller.gmax, p_controller.ngain,
-                1. / p_loop.ittime)
+                1. / ittime)
         ol_slopes = shao.openLoopSlp(
                 tel, atmos, wfs, rtc, p_controller.nrec, i, p_wfss)
         rtc.load_open_loop_slopes(i, ol_slopes)

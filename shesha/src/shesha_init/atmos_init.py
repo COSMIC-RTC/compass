@@ -21,20 +21,23 @@ def atmos_init(
         p_atmos: conf.Param_atmos,
         p_tel: conf.Param_tel,
         p_geom: conf.Param_geom,
-        p_loop: conf.Param_loop,
+        ittime=None,
         p_wfss=None,
         sensors=None,
         p_target=None):
-    """ #TODO: docstring
+    """
+        TODO: docstring
     """
     if not p_geom.isInit:
         raise RuntimeError("Cannot init atmosphere with uninitialized p_geom.")
 
     # Deleted naga_context : get the singleton
 
-    if p_atmos.r0 == None:  # ?
+    if p_atmos.r0 is None:
         p_atmos.r0 = 0.
 
+    if ittime is None:
+        ittime = 1.
     # Adjust layers alt using zenith angle
     p_atmos.alt = p_atmos.alt / np.cos(p_geom.zenithangle * CONST.DEG2RAD)
     # Pixel size in meters
@@ -61,7 +64,7 @@ def atmos_init(
 
     # Phase screen speeds
     lin_delta = p_geom.pupdiam / p_tel.diam * p_atmos.windspeed * \
-        np.cos(CONST.DEG2RAD * p_geom.zenithangle) * p_loop.ittime
+        np.cos(CONST.DEG2RAD * p_geom.zenithangle) * ittime
     p_atmos.deltax = -lin_delta * np.sin(CONST.DEG2RAD * p_atmos.winddir)
     p_atmos.deltay = -lin_delta * np.cos(CONST.DEG2RAD * p_atmos.winddir)
 

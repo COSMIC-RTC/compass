@@ -24,9 +24,9 @@ def tel_init(
         context: naga_context,
         p_geom: conf.Param_geom,
         p_tel: conf.Param_tel,
-        p_atmos: conf.Param_atmos,
-        p_loop: conf.Param_loop,
-        p_wfss: list,
+        r0=None,
+        ittime=None,
+        p_wfss=None,
         dm=None):
     """
         Initialize the overall geometry of the AO system, including pupil and WFS
@@ -35,40 +35,45 @@ def tel_init(
         context: (naga_context) : context
         p_geom: (Param_geom) : geom settings
         p_tel: (Param_tel) : telescope settings
-        p_atmos: (Param_atmos) : atmos settings
-        p_loop: (Param_loop) : loop settings
+        r0: (float) : atmos r0 @ 0.5 microns
+        ittime: (float) : 1/loop frequency [s]
         p_wfss: (list of Param_wfs) : wfs settings
         dm: (list of Param_dm) : (optional) dms settings [=None]
 
     """
-    # WFS geometry
-    nsensors = len(p_wfss)
+    if p_wfss is not None:
+        # WFS geometry
+        nsensors = len(p_wfss)
 
-    any_sh = [o.type_wfs for o in p_wfss].count(scons.WFSType.SH) > 0
-    # dm = None
-    if (p_wfss[0].dms_seen is None and dm is not None):
+        any_sh = [o.type_wfs for o in p_wfss].count(scons.WFSType.SH) > 0
+        # dm = None
+        if (p_wfss[0].dms_seen is None and dm is not None):
+            for i in range(nsensors):
+                if (not p_wfss[i].openloop):
+                    p_wfss[i].set_dms_seen(np.arange(len(dm), dtype=np.int32))
+
+        # first get the wfs with max # of subaps
+        # we'll derive the geometry from the requirements in terms of sampling
+        if (any_sh):
+            indmax = np.argsort([
+                    o.nxsub for o in p_wfss
+                    if o.type_wfs == scons.WFSType.SH])[-1]
+        else:
+            indmax = np.argsort([o.nxsub for o in p_wfss])[-1]
+
+        print("*-----------------------")
+        print("Computing geometry of WFS", indmax)
+
+        init_wfs_geom(p_wfss[indmax], r0, p_tel, p_geom, ittime, verbose=1)
+        # #do the same for other wfs
         for i in range(nsensors):
-            if (not p_wfss[i].openloop):
-                p_wfss[i].set_dms_seen(np.arange(len(dm), dtype=np.int32))
+            if (i != indmax):
+                print("*-----------------------")
+                print("Computing geometry of WFS", i)
+                init_wfs_geom(p_wfss[i], r0, p_tel, p_geom, ittime, verbose=1)
 
-    # first get the wfs with max # of subaps
-    # we'll derive the geometry from the requirements in terms of sampling
-    if (any_sh):
-        indmax = np.argsort([
-                o.nxsub for o in p_wfss if o.type_wfs == scons.WFSType.SH])[-1]
     else:
-        indmax = np.argsort([o.nxsub for o in p_wfss])[-1]
-
-    print("*-----------------------")
-    print("Computing geometry of WFS", indmax)
-
-    init_wfs_geom(p_wfss[indmax], p_atmos, p_tel, p_geom, p_loop, verbose=1)
-    # #do the same for other wfs
-    for i in range(nsensors):
-        if (i != indmax):
-            print("*-----------------------")
-            print("Computing geometry of WFS", i)
-            init_wfs_geom(p_wfss[i], p_atmos, p_tel, p_geom, p_loop, verbose=1)
+        geom_init(p_geom, p_tel)
 
     telescope = Telescope(
             context, p_geom._spupil.shape[0],
@@ -82,10 +87,10 @@ def tel_init(
 
 def init_wfs_geom(
         p_wfs: conf.Param_wfs,
-        p_atmos: conf.Param_atmos,
+        r0: float,
         p_tel: conf.Param_tel,
         p_geom: conf.Param_geom,
-        p_loop: conf.Param_loop,
+        ittime: float,
         verbose=1):
     """Compute the geometry of WFSs: valid subaps, positions of the subaps,
     flux per subap, etc...
@@ -93,13 +98,13 @@ def init_wfs_geom(
     :parameters:
         p_wfs: (Param_wfs) : wfs settings
 
-        p_atmos: (Param_atmos) : atmos settings
+        r0: (float) : atmos r0 @ 0.5 microns
 
         p_tel: (Param_tel) : telescope settings
 
         geom: (Param_geom) : geom settings
 
-        loop: (Param_loop) : loop settings
+        ittime: (float) : 1/loop frequency [s]
 
         verbose: (int) : (optional) display informations if 0
 
@@ -116,7 +121,7 @@ def init_wfs_geom(
 
     p_wfs._pdiam = pdiam
 
-    init_wfs_size(p_wfs, p_atmos, p_tel, verbose)
+    init_wfs_size(p_wfs, r0, p_tel, verbose)
 
     if not p_geom.isInit:
         # this is the wfs with largest # of subaps
@@ -129,23 +134,20 @@ def init_wfs_geom(
             geom_init(p_geom, p_tel)
 
     if (p_wfs.type_wfs == scons.WFSType.PYRHR):
-        init_pyrhr_geom(p_wfs, p_atmos, p_tel, p_geom, p_loop, verbose=1)
+        init_pyrhr_geom(p_wfs, r0, p_tel, p_geom, ittime, verbose=1)
 
     if (p_wfs.type_wfs == scons.WFSType.SH):
-        init_sh_geom(p_wfs, p_atmos, p_tel, p_geom, p_loop, verbose=1)
+        init_sh_geom(p_wfs, r0, p_tel, p_geom, ittime, verbose=1)
 
 
 def init_wfs_size(
-        p_wfs: conf.Param_wfs,
-        p_atmos: conf.Param_atmos,
-        p_tel: conf.Param_tel,
-        verbose=1):
+        p_wfs: conf.Param_wfs, r0: float, p_tel: conf.Param_tel, verbose=1):
     """Compute all the parameters usefull for further WFS image computation (array sizes)
 
     :parameters:
         wfs: (Param_wfs) : wfs settings
 
-        p_atmos: (Param_atmos) : atmos settings
+        r0: (float) : atmos r0 @ 0.5 microns
 
         p_tel: (Param_tel) : telescope settings
 
@@ -188,7 +190,7 @@ def init_wfs_size(
 
     """
 
-    r0 = p_atmos.r0 * (p_wfs.Lambda * 2)**(6. / 5)
+    r0 = r0 * (p_wfs.Lambda * 2)**(6. / 5)
 
     if (r0 != 0):
         if (verbose):
@@ -323,10 +325,10 @@ def init_wfs_size(
 
 def init_pyrhr_geom(
         p_wfs: conf.Param_wfs,
-        p_atmos: conf.Param_atmos,
+        r0: float,
         p_tel: conf.Param_tel,
         p_geom: conf.Param_geom,
-        p_loop: conf.Param_loop,
+        ittime: float,
         verbose=1):
     """Compute the geometry of PYRHR WFSs: valid subaps, positions of the subaps,
     flux per subap, etc...
@@ -334,13 +336,13 @@ def init_pyrhr_geom(
     :parameters:
         p_wfs: (Param_wfs) : wfs settings
 
-        p_atmos: (Param_atmos) : atmos settings
+        r0: (float) : atmos r0 @ 0.5 microns
 
         p_tel: (Param_tel) : telescope settings
 
         geom: (Param_geom) : geom settings
 
-        loop: (Param_loop) : loop settings
+        ittime: (float) : 1/loop frequency [s]
 
         verbose: (int) : (optional) display informations if 0
 
@@ -469,7 +471,7 @@ def init_pyrhr_geom(
     p_wfs._pyr_cy = cy.copy()
     telSurf = np.pi / 4. * (1 - p_tel.cobs**2.) * p_tel.diam**2.
     p_wfs._nphotons = p_wfs.zerop * \
-        10. ** (-0.4 * p_wfs.gsmag) * p_loop.ittime * \
+        10. ** (-0.4 * p_wfs.gsmag) * ittime * \
         p_wfs.optthroughput * telSurf
 
     # spatial filtering by the pixel extent:
@@ -539,10 +541,10 @@ def init_pyrhr_geom(
 
 def init_sh_geom(
         p_wfs: conf.Param_wfs,
-        p_atmos: conf.Param_atmos,
+        r0: float,
         p_tel: conf.Param_tel,
         p_geom: conf.Param_geom,
-        p_loop: conf.Param_loop,
+        ittime: float,
         verbose=1):
     """Compute the geometry of SH WFSs: valid subaps, positions of the subaps,
     flux per subap, etc...
@@ -550,13 +552,13 @@ def init_sh_geom(
     :parameters:
         p_wfs: (Param_wfs) : wfs settings
 
-        p_atmos: (Param_atmos) : atmos settings
+        r0: (float) : atmos r0 @ 0.5 microns
 
         p_tel: (Param_tel) : telescope settings
 
         geom: (Param_geom) : geom settings
 
-        loop: (Param_loop) : loop settings
+        ittime: (float) : 1/loop frequency [s]
 
         verbose: (int) : (optional) display informations if 0
 
@@ -680,7 +682,7 @@ def init_sh_geom(
     # binmap=np.reshape(binmap.flatten("F"),(binmap.shape[0],binmap.shape[1]))
     p_wfs._binmap = np.copy(binmap.astype(np.int32))
 
-    dr0 = p_tel.diam / p_atmos.r0 * \
+    dr0 = p_tel.diam / r0 * \
         (0.5 / p_wfs.Lambda) ** 1.2 / \
         np.cos(p_geom.zenithangle * CONST.DEG2RAD) ** 0.6
     fwhmseeing = p_wfs.Lambda / \
@@ -708,7 +710,7 @@ def init_sh_geom(
             p_wfs.zerop = 1e11
         p_wfs._nphotons = p_wfs.zerop * 10 ** (-0.4 * p_wfs.gsmag) * \
             p_wfs.optthroughput * \
-            (p_tel.diam / p_wfs.nxsub) ** 2. * p_loop.ittime
+            (p_tel.diam / p_wfs.nxsub) ** 2. * ittime
 # include throughput to WFS
 # for unobstructed subaperture
 # per iteration
@@ -718,7 +720,7 @@ def init_sh_geom(
             p_wfs.laserpower * \
             p_wfs.optthroughput * \
             (p_tel.diam / p_wfs.nxsub) ** 2. * 1e4 * \
-            p_loop.ittime
+            ittime
 
 # detected by WFS
 # ... for given power
@@ -737,7 +739,7 @@ def geom_init(p_geom: conf.Param_geom, p_tel: conf.Param_tel, padding=2):
     :parameters:
         p_geom: (Param_geom) : geometry settings
         p_tel: (Param_tel) : telescope settings
-        padding: (optionnal) : padding factor for PYRHR geometry
+        padding: (optional) : padding factor for PYRHR geometry
     """
 
     # First power of 2 greater than pupdiam

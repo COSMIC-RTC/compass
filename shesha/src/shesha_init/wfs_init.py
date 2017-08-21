@@ -22,25 +22,23 @@ import numpy as np
 
 def wfs_init(
         context: naga_context,
+        telescope: Telescope,
         p_wfss: list,
-        p_dms: list,
-        p_atmos: conf.Param_atmos,
         p_tel: conf.Param_tel,
         p_geom: conf.Param_geom,
-        p_loop: conf.Param_loop,
-        telescope: Telescope):
+        p_dms=None,
+        p_atmos=None):
     """
     Create and initialise  a Sensors object
 
     :parameters:
         context : (naga_context)
+        telescope: (Telescope) : Telescope object
         p_wfss: (list of Param_wfs) : wfs settings
-        p_dms : (list of Param_dm) : dms settings
-        p_atmos: (Param_atmos) : atmos settings
         p_tel: (Param_tel) : telescope settings
         p_geom: (Param_geom) : geom settings
-        p_loop: (Param_loop) : loop settings
-        telescope: (Telescope) : Telescope object
+        p_dms : (list of Param_dm) : (optional) dms settings
+        p_atmos: (Param_atmos) : (optional) atmos settings
     """
     # create sensor object on gpu
     # and init sensor gs object on gpu
@@ -163,7 +161,7 @@ def wfs_init(
         else:
             gsalt = 0
 
-        if p_wfs.atmos_seen:
+        if p_wfs.atmos_seen is not None and p_atmos is not None:
             for j in range(p_atmos.nscreens):
                 xoff = (gsalt * p_atmos.alt[j] * p_tel.diam / 2. +
                         p_wfs.xpos * CONST.ARCSEC2RAD * p_atmos.alt[j]) / \

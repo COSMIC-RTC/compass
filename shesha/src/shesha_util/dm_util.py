@@ -55,9 +55,12 @@ def dim_dm_patch(
         ypos_wfs: (list) : list of wfs ypos
     """
 
-    norms = [
-            np.linalg.norm([xpos_wfs[w], ypos_wfs[w]])
-            for w in range(len(xpos_wfs))]
+    if len(xpos_wfs) == 0:
+        norms = 0.
+    else:
+        norms = [
+                np.linalg.norm([xpos_wfs[w], ypos_wfs[w]])
+                for w in range(len(xpos_wfs))]
     if ((type_dm == scons.DmType.PZT) or (type_dm == scons.DmType.TT)):
         pp = (diam * pupdiam)
     elif (type_dm == scons.DmType.KL):

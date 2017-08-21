@@ -92,18 +92,16 @@ cdef class Target:
         cdef sutra_atmos * atm = atmos.s_a
 
         if(type_trace == b"all"):
-            self.target.d_targets[n].raytrace(atm)
-            self.target.d_targets[n].raytrace(dms.dms, 0, do_phase_var)
-            d_screen.axpy(1.0, d_tel, 1, 1)
+            rst = 0
 
-        elif(type_trace == b"atmos"):
+        if(type_trace == b"all" or type_trace == b"atmos"):
             self.target.d_targets[n].raytrace(atm)
             d_screen.axpy(1.0, d_tel, 1, 1)
 
-        elif(type_trace == b"dm"):
+        if(type_trace == b"all" or type_trace == b"dm"):
             self.target.d_targets[n].raytrace(dms.dms, rst, do_phase_var)
 
-        elif(type_trace == b"ncpa"):
+        if(type_trace == b"ncpa"):
             self.target.d_targets[n].raytrace(rst)
 
     def reset_strehl(self, int n):
