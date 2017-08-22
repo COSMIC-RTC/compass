@@ -358,8 +358,7 @@ cdef class Target:
 
 
 def target_init(naga_context ctxt, Telescope telescope, Param_target p_target, Param_atmos atm,
-                Param_geom geom, Param_tel tel,
-                dm=None, brama=0):
+                Param_geom geom, Param_tel tel, dm=None, brama=0):
     """Create a cython target from parametres structures
 
     :parameters:
@@ -375,7 +374,7 @@ def target_init(naga_context ctxt, Telescope telescope, Param_target p_target, P
 
         dm: (Param_dm) : dm settings
     """
-    cdef bytes type_target = bytes("atmos")
+    cdef bytes type_target = b"atmos"
 
     cdef Target target
     cdef float xoff
@@ -487,7 +486,7 @@ IF USE_BRAMA == 1:
             del self.target
 
             cdef carma_context * context = &carma_context.instance()
-            self.target = new sutra_target_brama(context, "target_brama", telescope.telescope, -1, ntargets,
+            self.target = new sutra_target_brama(context, b"target_brama", telescope.telescope, -1, ntargets,
                         < float *> xpos.data, < float *> ypos.data,
                         < float *> Lambda.data, < float *> mag.data,
                         zerop, < long *> size.data,

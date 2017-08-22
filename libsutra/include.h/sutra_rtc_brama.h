@@ -5,25 +5,22 @@
  *      Author: sevin
  */
 
-
 #ifndef SUTRA_RTC_BRAMA_H_
 #define SUTRA_RTC_BRAMA_H_
 
-#include<sutra_rtc.h>
-#include<sutra_wfs.h>
-#include<sutra_target.h>
-#include<BRAMA_context.h>
-#include<sutra_rtc_bramaListenerImpl.h>
+#include <BRAMA_context.h>
+#include <sutra_rtc.h>
+#include <sutra_rtc_bramaListenerImpl.h>
+#include <sutra_target.h>
+#include <sutra_wfs.h>
 
-
-class sutra_rtc_brama: public sutra_rtc {
+class sutra_rtc_brama : public sutra_rtc {
 private:
-  BRAMA::BRAMA_context *brama;
   DDS::Subscriber_var sub;
   DDS::Publisher_var pub;
 
   DDS::DataReaderListener_var cmd_listener;
-  sutra_rtc_bramaListenerImpl* cmd_listener_servant;
+  sutra_rtc_bramaListenerImpl *cmd_listener_servant;
   DDS::DataReader_var cmd_dr;
 
   DDS::DataWriter_var superframe_base_dw;
@@ -34,17 +31,17 @@ private:
   BRAMA::MegaFrameDataWriter_var megaframe_dw;
   DDS::InstanceHandle_t megaframe_handle;
 
-  CORBA::Octet* buff_wfs;
-  CORBA::Octet* buff_intensities;
-  CORBA::Octet* buff_slopes;
-  CORBA::Octet* buff_commands;
-  CORBA::Octet* buff_target;
+  CORBA::Octet *buff_wfs;
+  CORBA::Octet *buff_intensities;
+  CORBA::Octet *buff_slopes;
+  CORBA::Octet *buff_commands;
+  CORBA::Octet *buff_target;
 
-  CORBA::ULong* dims_wfs;
-  CORBA::ULong* dims_intensities;
-  CORBA::ULong* dims_slopes;
-  CORBA::ULong* dims_commands;
-  CORBA::ULong* dims_target;
+  CORBA::ULong *dims_wfs;
+  CORBA::ULong *dims_intensities;
+  CORBA::ULong *dims_slopes;
+  CORBA::ULong *dims_commands;
+  CORBA::ULong *dims_target;
 
   long framecounter;
   ACE_Mutex lock_;
@@ -58,14 +55,17 @@ private:
   int ncmd;
   int nvalid;
 
+  int is_initialised;
+
 public:
-  sutra_rtc_brama(carma_context *context, sutra_sensors *wfs, sutra_target *target, ACE_TCHAR* name);
+  sutra_rtc_brama(carma_context *context, sutra_sensors *wfs,
+                  sutra_target *target, ACE_TCHAR *name);
   ~sutra_rtc_brama();
 
   void publish();
+
 private:
   void allocateBuffers();
-
 };
 
 #endif /* SUTRA_RTC_BRAMA_H_ */
