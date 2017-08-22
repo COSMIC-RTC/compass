@@ -53,8 +53,8 @@ class Param_dm:
         # Hidden variable safe-typed in shesha_constants
         self.__type_dm = None  # Private storage of type_dm
         self.__type_pattern = None  # Private storage of type_pattern
-        self.__influType = b'default'  # Private storage of influType
-        self.__type_kl = b'kolmo'  # Private storage for KL type
+        self.__influType = scons.InfluType.DEFAULT  # Private storage of influType
+        self.__type_kl = scons.KLType.KOLMO  # Private storage for KL type
 
         # HDF5 storage management
         self.__file_influ_hdf5 = None  # Filename for influ hdf5 file

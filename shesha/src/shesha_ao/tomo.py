@@ -10,11 +10,14 @@ from Rtc import Rtc
 from Atmos import Atmos
 from Rtc import Rtc
 
+import typing
+from typing import List
+
 
 def doTomoMatrices(
         ncontrol: int,
         rtc: Rtc,
-        p_wfss: list,
+        p_wfss: List[conf.Param_wfs],
         dms: Dms,
         atmos: Atmos,
         wfs: Sensors,

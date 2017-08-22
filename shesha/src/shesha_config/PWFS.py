@@ -169,9 +169,9 @@ class Param_wfs:
         """Pyramid pupil separation. (default: long(wfs.nxsub))"""
 
         # pyramid internal kwrds
-        self.__pyr_offsets = None  # (float*)
-        self.__pyr_cx = None  # (float*)
-        self.__pyr_cy = None  # (float*)
+        self._pyr_offsets = None  # (float*)
+        self._pyr_cx = None  # (float*)
+        self._pyr_cy = None  # (float*)
 
     def set_type(self, type_wfs):
         """Set the type of wfs
@@ -725,6 +725,14 @@ class Param_wfs:
                 data.copy(), data.size, dtype=np.float32)
 
     _profcum = property(lambda x: x.__profcum, set_profcum)
+
+    def set_beam(self, data):
+        """TODO : docstring
+        """
+        self.__beam = csu.enforce_array(
+                data.copy(), data.size, dtype=np.complex64)
+
+    _beam = property(lambda x: x.__beam, set_beam)
 
     def set_ftbeam(self, data):
         """TODO : docstring

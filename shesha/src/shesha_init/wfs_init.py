@@ -73,11 +73,7 @@ def wfs_init(
     dx = np.array([o.dx for o in p_wfss], dtype=np.float32)
     dy = np.array([o.dy for o in p_wfss], dtype=np.float32)
 
-    error_budget_flag = [w.error_budget for w in p_wfss]
-    if (True in error_budget_flag):
-        error_budget_flag = True
-    else:
-        error_budget_flag = False
+    error_budget_flag = any([w.error_budget for w in p_wfss])
 
     if (p_wfss[0].type_wfs == scons.WFSType.SH):
         g_wfs = Sensors(

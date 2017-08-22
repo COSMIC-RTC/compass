@@ -12,6 +12,8 @@ from shesha_constants import CONST
 
 from . import utilities as util
 
+from typing import List, Union
+
 
 def dim_dm_support(cent: float, extent: int, ssize: int):
     """
@@ -37,8 +39,8 @@ def dim_dm_patch(
         diam: float,
         type_dm: bytes,
         alt: float,
-        xpos_wfs: list,
-        ypos_wfs: list):
+        xpos_wfs: List[float],
+        ypos_wfs: List[float]):
     """ compute patchDiam for DM
 
     :parameters:
@@ -56,7 +58,7 @@ def dim_dm_patch(
     """
 
     if len(xpos_wfs) == 0:
-        norms = 0.
+        norms = 0.  # type: Union[float, List[float]]
     else:
         norms = [
                 np.linalg.norm([xpos_wfs[w], ypos_wfs[w]])

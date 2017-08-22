@@ -9,8 +9,10 @@ Compass Yorick translation
 import shesha_constants as scons
 import numpy as np
 
+from typing import Tuple
 
-def make_radii(cobs: float, nr: int):
+
+def make_radii(cobs: float, nr: int) -> float:
     """
         TODO: docstring
         :parameters:
@@ -24,7 +26,11 @@ def make_radii(cobs: float, nr: int):
 
 
 def make_kernels(
-        cobs: float, nr: int, radp: float, kl_type: bytes, outscl=None):
+        cobs: float,
+        nr: int,
+        radp: np.ndarray,
+        kl_type: bytes,
+        outscl: float=None) -> np.ndarray:
     """
     This routine generates the kernel used to find the KL modes.
     The  kernel constructed here should be simply a discretization
@@ -77,7 +83,7 @@ def make_kernels(
     return kers
 
 
-def piston_orth(nr):
+def piston_orth(nr: int) -> np.ndarray:
     """
         TODO: docstring
 
@@ -98,7 +104,7 @@ def piston_orth(nr):
     return s
 
 
-def make_azimuth(nord, npp):
+def make_azimuth(nord: int, npp: int) -> np.ndarray:
     """
         TODO: docstring
 
@@ -122,7 +128,7 @@ def make_azimuth(nord, npp):
     return azbas
 
 
-def radii(nr, npp, cobs):
+def radii(nr: int, npp: int, cobs: float) -> np.ndarray:
     """
     This routine generates an nr x npp array with npp copies of the
     radial coordinate array. Radial coordinate span the range from
@@ -152,7 +158,7 @@ def radii(nr, npp, cobs):
 #__________________________________________________________________________
 
 
-def polang(r):
+def polang(r: np.ndarray) -> np.ndarray:
     """
     This routine generates an array with the same dimensions as r,
     but containing the azimuthal values for a polar coordinate system.
@@ -178,7 +184,12 @@ def polang(r):
 #__________________________________________________________________________
 
 
-def setpincs(ax, ay, px, py, cobs):
+def setpincs(
+        ax: np.ndarray,
+        ay: np.ndarray,
+        px: np.ndarray,
+        py: np.ndarray,
+        cobs: float) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
     """
     This routine determines a set of squares for interpolating
     from cartesian to polar coordinates, using only those points

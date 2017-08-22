@@ -280,9 +280,9 @@ def makeGaussian(pitch: float, coupling: float, x=None, y=None):
 def makeBessel(
         pitch: float,
         coupling: float,
-        x=None,
-        y=None,
-        patternType=PatternType.SQUARE):
+        x: np.ndarray=None,
+        y: np.ndarray=None,
+        patternType: bytes=PatternType.SQUARE):
     """Compute Bessel influence function
 
     :parameters:

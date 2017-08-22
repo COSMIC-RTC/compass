@@ -425,7 +425,6 @@ def init_controller_ls(
     shao.imat_init(i, rtc, dms, p_dms, wfs, p_wfss, p_tel, p_controller, KL2V)
 
     if p_controller.modopti:
-        init_modalopti()
         print("Initializing Modal Optimization : ")
         p_controller.nrec = int(2**np.ceil(np.log2(p_controller.nrec)))
         if p_controller.nmodes is None:

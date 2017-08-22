@@ -9,16 +9,16 @@ from Sensors import Sensors
 from Dms import Dms
 from Rtc import Rtc
 
-import typing  # Mypy checker
+from typing import List  # Mypy checker
 
 
 def imat_geom(
         wfs: Sensors,
         dms: Dms,
-        p_wfss: list,
-        p_dms: list,
+        p_wfss: List[conf.Param_wfs],
+        p_dms: List[conf.Param_dm],
         p_controller: conf.Param_controller,
-        meth: int=0):
+        meth: int=0) -> np.ndarray:
     """Compute the interaction matrix with a geometric method
 
     :parameters:
@@ -114,5 +114,5 @@ def imat_init(
     # Restore original profile in lgs spots
     for i in range(len(p_wfss)):
         if (p_wfss[i].gsalt > 0):
-            p_wfss[i].proftype = tmp
+            p_wfss[i].proftype = save_profile
             lgs.prep_lgs_prof(p_wfss[i], i, p_tel, wfs)

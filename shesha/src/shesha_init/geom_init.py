@@ -294,7 +294,7 @@ def init_wfs_size(
             Ntot += 1
 
     p_wfs._pdiam = pdiam
-    p_wfs._pixsize = pixsize
+    p_wfs.pixsize = pixsize
     p_wfs._qpixsize = qpixsize
     p_wfs._Nfft = Nfft
     p_wfs._Ntot = Ntot
@@ -365,7 +365,7 @@ def init_pyrhr_geom(
         focmask = (np.abs(x) <= (fsradius_pixels)) * \
             (np.abs(y) <= (fsradius_pixels))
     else:
-        msg = "wfs " + str(n) + ". fstop must be round or square"
+        msg = "PYRHR wfs fstop must be FieldStopType.[ROUND|SQUARE]"
         raise ValueError(msg)
 
     pyr_focmask = focmask * 1.0  # np.fft.fftshift(focmask*1.0)
