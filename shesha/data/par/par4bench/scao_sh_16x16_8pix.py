@@ -71,7 +71,7 @@ p_wfs0.set_atmos_seen(1)
 p_dm0 = conf.Param_dm()
 p_dm1 = conf.Param_dm()
 p_dms = [p_dm0, p_dm1]
-p_dm0.set_type_dm("pzt")
+p_dm0.set_type("pzt")
 nact = p_wfs0.nxsub + 1
 p_dm0.set_nact(nact)
 p_dm0.set_alt(0.)
@@ -80,7 +80,7 @@ p_dm0.set_coupling(0.2)
 p_dm0.set_unitpervolt(0.01)
 p_dm0.set_push4imat(100.)
 
-p_dm1.set_type_dm("tt")
+p_dm1.set_type("tt")
 p_dm1.set_alt(0.)
 p_dm1.set_unitpervolt(0.0005)
 p_dm1.set_push4imat(10.)
@@ -90,7 +90,7 @@ p_centroider0 = conf.Param_centroider()
 p_centroiders = [p_centroider0]
 
 p_centroider0.set_nwfs(0)
-p_centroider0.set_type_centro("cog")
+p_centroider0.set_type("cog")
 # p_centroider0.set_type("corr")
 # p_centroider0.set_type_fct("model")
 
@@ -98,7 +98,7 @@ p_centroider0.set_type_centro("cog")
 p_controller0 = conf.Param_controller()
 p_controllers = [p_controller0]
 
-p_controller0.set_type_control("ls")
+p_controller0.set_type("ls")
 p_controller0.set_nwfs([0])
 p_controller0.set_ndm([0, 1])
 p_controller0.set_maxcond(1500.)

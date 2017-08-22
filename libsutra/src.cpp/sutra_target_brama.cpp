@@ -14,6 +14,7 @@ sutra_target_brama::sutra_target_brama(carma_context *context, ACE_TCHAR *name,
   BRAMA::BRAMA_context brama = BRAMA::BRAMA_context::get_instance(name);
   frame_handle = 0;
   framecounter = 0;
+  samplecounter = 0;
   subsample = subsample_;
   is_initialised = 0;
 
@@ -112,7 +113,7 @@ void sutra_target_brama::set_subsample(int ntarget, int subsample_) {
 
   ACE_Guard<ACE_Mutex> guard(this->lock_);
   this->d_targets[ntarget]->reset_strehlmeter();
-  this->framecounter = 1;
+  this->samplecounter = 1;
   this->subsample = subsample_;
 }
 
@@ -123,8 +124,8 @@ void sutra_target_brama::publish() {
   }
 
   ACE_Guard<ACE_Mutex> guard(this->lock_);
-  if (framecounter % subsample != 0 || subsample <= 0) {
-    framecounter++;
+  if (samplecounter % subsample != 0 || subsample <= 0) {
+    samplecounter++;
     return;
   }
 
@@ -170,7 +171,7 @@ void sutra_target_brama::publish() {
 
   for (size_t target = 0; target < d_targets.size(); target++) {
     d_targets[target]->reset_strehlmeter();
-    framecounter = 0;
+    samplecounter = 0;
   }
 
   framecounter++;

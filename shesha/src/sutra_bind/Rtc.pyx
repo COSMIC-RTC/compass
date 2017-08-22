@@ -1834,27 +1834,24 @@ cdef class Rtc:
             print(
                 "This controller does not have a sparse_obj\n(or this function is not implemented for it yet")
 
-IF USE_BRAMA == 0:
-    cdef class Rtc_brama(Rtc):
-        def __cinit__(self, Sensors sensor, Target target=None, device=-1):
-            raise EnvironmentError(
-                "Error: Trying to run a BRAMA Target over NO-BRAMA compile.")
-IF USE_BRAMA == 1:
-    # child constructor must have the same prototype (same number of
-    # non-optional arguments)
-    cdef class Rtc_brama(Rtc):
-        def __cinit__(self, Sensors sensor, Target target=None, device=-1):
-            del self.rtc
+# child constructor must have the same prototype (same number of
+# non-optional arguments)
+cdef class Rtc_brama(Rtc):
+    def __cinit__(self, naga_context context, Sensors sensor, Target target=None, device=-1):
+      IF USE_BRAMA == 0:
+        raise EnvironmentError(
+              "Error: Trying to run a BRAMA Target over NO-BRAMA compile.")
+      ELSE:
+        Rtc.__init__(self, context, sensor, target)
+        del self.rtc
+        if target is not None:
+            self.rtc = new sutra_rtc_brama(context.c, sensor.sensors, target.target, "rtc_brama")
+        else:
+            self.rtc = new sutra_rtc_brama(context.c, sensor.sensors, NULL, "rtc_brama")
 
-            cdef carma_context * context = &carma_context.instance()
-            if target is not None:
-                self.rtc = new sutra_rtc_brama(context, sensor.sensors, target.target, "rtc_brama")
-            else:
-                self.rtc = new sutra_rtc_brama(context, sensor.sensors, NULL, "rtc_brama")
+    def __dealloc__(self):
+        pass  # del self.rtc
 
-        def __dealloc__(self):
-            pass  # del self.rtc
-
-        cpdef publish(self):
-            cdef sutra_rtc_brama * rtc = < sutra_rtc_brama * > (self.rtc)
-            rtc.publish()
+    cpdef publish(self):
+        cdef sutra_rtc_brama * rtc = < sutra_rtc_brama * > (self.rtc)
+        rtc.publish()

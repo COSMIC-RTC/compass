@@ -28,6 +28,7 @@ private:
   CORBA::ULong *dims_pixels;
 
   long framecounter;
+  long samplecounter;
   int subsample;
   ACE_Mutex lock_;
 

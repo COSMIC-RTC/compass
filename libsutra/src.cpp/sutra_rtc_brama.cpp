@@ -84,9 +84,9 @@ sutra_rtc(context), wfs(wfs_), target(target_) {
 
       BRAMA::MegaFrame zFrame;
       megaframe_handle = megaframe_dw->register_instance(zFrame);
-
-      is_initialised = 1;
     }
+    
+    is_initialised = 1;
 
   } catch (CORBA::Exception& e) {
     cerr << "Exception caught in main.cpp:" << endl << e << endl;

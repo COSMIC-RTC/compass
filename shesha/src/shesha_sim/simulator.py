@@ -8,13 +8,14 @@ import time
 
 class Simulator:
 
-    def __init__(self, filepath=None):
+    def __init__(self, filepath=None, brama=False):
         """
         TODO: docstring
         """
         self.is_init = False
         self.loaded = False
         self.config = None
+        self.brama = brama
 
         if filepath is not None:
             self.load_from_file(filepath)
@@ -69,6 +70,9 @@ class Simulator:
 
         self.loaded = True
 
+    def timeit(self, f):
+        return f
+
     def init_sim(self):
         """
         TODO: docstring
@@ -113,7 +117,7 @@ class Simulator:
             print("->target")
             self.tar = init.target_init(
                     c, self.tel, self.config.p_target, self.config.p_atmos,
-                    self.config.p_tel, self.config.p_geom, self.config.p_dms)
+                    self.config.p_tel, self.config.p_geom, self.config.p_dms, brama=self.brama)
         else:
             self.tar = None
 
@@ -132,13 +136,16 @@ class Simulator:
                     c, self.tel, self.wfs, self.dms, self.atm,
                     self.config.p_wfss, self.config.p_tel, self.config.p_geom,
                     self.config.p_atmos, ittime, self.config.p_centroiders,
-                    self.config.p_controllers, self.config.p_dms)
+                    self.config.p_controllers, self.config.p_dms, brama=self.brama)
         else:
             self.rtc = None
 
         self.is_init = True
 
-    def next(self):
+    def timeit(self, func):
+        func
+
+    def next(self, bench=False):
         """
         TODO: docstring
         """
@@ -174,6 +181,10 @@ class Simulator:
         t0 = time.time()
         for i in range(n):
             self.next()
+            if self.brama:
+                self.rtc.publish()
+                self.tar.publish()
+
             if ((i + 1) % monitoring_freq == 0):
                 strehltmp = self.tar.get_strehl(0)
                 print(i + 1, "\t", strehltmp[0], "\t", strehltmp[1])
@@ -181,3 +192,10 @@ class Simulator:
         print(
                 " loop execution time:", t1 - t0, "  (", n, "iterations), ",
                 (t1 - t0) / n, "(mean)  ", n / (t1 - t0), "Hz")
+
+class Bench (Simulator):
+    def __init__(self, str):
+        Simulator.__init__(self, str)
+
+    def timeit(self, f):
+        pass

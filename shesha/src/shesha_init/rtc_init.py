@@ -62,7 +62,7 @@ def rtc_init(
     # initialisation var
     # ________________________________________________
     if brama:
-        rtc = Rtc_brama(wfs, tar)
+        rtc = Rtc_brama(context, wfs, tar)
     else:
         rtc = Rtc(context)
 

@@ -329,48 +329,33 @@ cdef class Target:
 
         return strehl
 
-IF USE_BRAMA == 0:
-    cdef class Target_brama(Target):
-        def __cinit__(self, naga_context ctxt, Telescope telescope, int ntargets,
-                      np.ndarray[ndim=1, dtype=np.float32_t] xpos,
-                      np.ndarray[ndim=1, dtype=np.float32_t] ypos,
-                      np.ndarray[ndim=1, dtype=np.float32_t] Lambda,
-                      np.ndarray[ndim=1, dtype=np.float32_t] mag,
-                      float zerop,
-                      np.ndarray[ndim=1, dtype=np.int64_t] size,
-                      int Npts,
-                      int device=-1
-                      ):
-            raise EnvironmentError(
-                "Error: Trying to run a BRAMA Target over NO-BRAMA compile.")
+cdef class Target_brama(Target):
+    def __cinit__(self, naga_context ctxt, Telescope telescope, int ntargets,
+                  np.ndarray[ndim=1, dtype=np.float32_t] xpos,
+                  np.ndarray[ndim=1, dtype=np.float32_t] ypos,
+                  np.ndarray[ndim=1, dtype=np.float32_t] Lambda,
+                  np.ndarray[ndim=1, dtype=np.float32_t] mag,
+                  float zerop,
+                  np.ndarray[ndim=1, dtype=np.int64_t] size,
+                  int Npts,
+                  int device=-1
+                  ):
+        IF USE_BRAMA == 0:
+          raise EnvironmentError(
+              "Error: Trying to run a BRAMA Target over NO-BRAMA compile.")
+        ELSE:
+          Target.__init__(self, ctxt, telescope, ntargets, xpos, ypos, Lambda, mag, zerop, size, Npts, device)
+          del self.target
 
+          self.target = new sutra_target_brama(ctxt.c, "target_brama", telescope.telescope, 1, ntargets,
+                                               < float * > xpos.data, < float * > ypos.data,
+                                               < float * > Lambda.data, < float * > mag.data,
+                                               zerop, < long * > size.data,
+                                               Npts, ctxt.c.get_activeDevice())
 
-IF USE_BRAMA == 1:
-    # child constructor must have the same prototype (same number of
-    # non-optional arguments)
-    cdef class Target_brama(Target):
-        def __cinit__(self, naga_context ctxt, Telescope telescope, int ntargets,
-                      np.ndarray[ndim=1, dtype=np.float32_t] xpos,
-                      np.ndarray[ndim=1, dtype=np.float32_t] ypos,
-                      np.ndarray[ndim=1, dtype=np.float32_t] Lambda,
-                      np.ndarray[ndim=1, dtype=np.float32_t] mag,
-                      float zerop,
-                      np.ndarray[ndim=1, dtype=np.int64_t] size,
-                      int Npts,
-                      int device=-1
-                      ):
-            del self.target
+    def __dealloc__(self):
+        pass  # del self.target
 
-            cdef carma_context * context = &carma_context.instance()
-            self.target = new sutra_target_brama(context, "target_brama", telescope.telescope, -1, ntargets,
-                                                 < float * > xpos.data, < float * > ypos.data,
-                                                 < float * > Lambda.data, < float * > mag.data,
-                                                 zerop, < long * > size.data,
-                                                 Npts, context.get_activeDevice())
-
-        def __dealloc__(self):
-            pass  # del self.target
-
-        cpdef publish(self):
-            cdef sutra_target_brama * target = < sutra_target_brama * > (self.target)
-            target.publish()
+    cpdef publish(self):
+        cdef sutra_target_brama * target = < sutra_target_brama * > (self.target)
+        target.publish()
