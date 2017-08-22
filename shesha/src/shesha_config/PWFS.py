@@ -169,9 +169,9 @@ class Param_wfs:
         """Pyramid pupil separation. (default: long(wfs.nxsub))"""
 
         # pyramid internal kwrds
-        self._pyr_offsets = None  # (float*)
-        self._pyr_cx = None  # (float*)
-        self._pyr_cy = None  # (float*)
+        self.__pyr_offsets = None  # (float*)
+        self.__pyr_cx = None  # (float*)
+        self.__pyr_cy = None  # (float*)
 
     def set_type(self, type_wfs):
         """Set the type of wfs

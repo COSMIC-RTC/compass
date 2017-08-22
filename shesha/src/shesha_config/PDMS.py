@@ -420,8 +420,7 @@ class Param_dm:
 
             :param off: (np.ndarray[ndim=1,dtype=np.float32_t]) : offsets [m]
         """
-        self.__pupoffset = csu.enforce_array(
-                off, self.__ntotact, dtype=np.float32)
+        self.__pupoffset = csu.enforce_array(off, 2, dtype=np.float32)
 
     pupoffset = property(lambda x: x.__pupoffset, set_pupoffset)
 
@@ -430,8 +429,7 @@ class Param_dm:
 
             :param off: (np.ndarray[ndim=1,dtype=np.float32_t]) : offsets [pixels]
         """
-        self.__puppixoffset = csu.enforce_array(
-                off, self.__ntotact, dtype=np.float32)
+        self.__puppixoffset = csu.enforce_array(off, 2, dtype=np.float32)
 
     _puppixoffset = property(lambda x: x.__puppixoffset, set_puppixoffset)
 

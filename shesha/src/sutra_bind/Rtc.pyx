@@ -264,7 +264,7 @@ cdef class Rtc:
         self.context.set_activeDeviceForCpy(self.rtc.device, 1)
         cdef sutra_controller_ls * controller_ls
 
-        cdef np.ndarray[dtype = np.float32_t] M2V_F = M2V.T.copy()
+        cdef np.ndarray[ndim = 2, dtype = np.float32_t] M2V_F = M2V.T.copy()
         cdef bytes type_control = self.rtc.d_control[ncontrol].get_type()
         if(type_control == scons.ControllerType.LS):
             controller_ls = dynamic_cast_controller_ls_ptr(
@@ -285,7 +285,7 @@ cdef class Rtc:
         self.context.set_activeDeviceForCpy(self.rtc.device, 1)
         cdef sutra_controller_ls * controller_ls
 
-        cdef np.ndarray[dtype = np.float32_t] slopes_F = ol_slopes.T.copy()
+        cdef np.ndarray[ndim = 2, dtype = np.float32_t] slopes_F = ol_slopes.T.copy()
         cdef bytes type_control = self.rtc.d_control[ncontrol].get_type()
         if(type_control == scons.ControllerType.LS):
             controller_ls = dynamic_cast_controller_ls_ptr(

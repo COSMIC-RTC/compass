@@ -36,10 +36,10 @@ def openLoopSlp(
 
         if (p_wfss is not None and wfs is not None):
             for j in range(len(p_wfss)):
-                wfs.sensors_trace(j, b"atmos", tel, atmos)
-                wfs.sensors_compimg(j)
+                wfs.raytrace(j, b"atmos", tel, atmos)
+                wfs.comp_img(j)
                 rtc.comp_slopes(ncontrol)
-                ol_slopes[j * p_wfss[j]._nvalid * 2:(j + 1) * p_wfss[j].
-                          _nvalid * 2, i] = wfs._get_slopes(j)
+                ol_slopes[j * p_wfss[j]._nvalid * 2:(
+                        j + 1) * p_wfss[j]._nvalid * 2, i] = wfs.get_slopes(j)
     print("Done")
     return ol_slopes

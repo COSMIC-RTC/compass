@@ -487,7 +487,7 @@ def init_controller_cured(
     else:
         tt_flag = False
     rtc.init_cured(
-            p_wfss[0].nxsub, p_wfss[0]._isvalid, p_controller.cured_ndivs,
+            i, p_wfss[0].nxsub, p_wfss[0]._isvalid, p_controller.cured_ndivs,
             tt_flag)
     rtc.set_gain(i, p_controller.gain)
 
