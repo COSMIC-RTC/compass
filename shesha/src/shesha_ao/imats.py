@@ -1,12 +1,16 @@
-import numpy as np
+import numpy as np  # type: ignore
 import time
 
 import shesha_config as conf
 import shesha_constants as scons
 
+import shesha_init.lgs_init
+
 from Sensors import Sensors
 from Dms import Dms
 from Rtc import Rtc
+
+import typing  # Mypy checker
 
 
 def imat_geom(
@@ -15,7 +19,7 @@ def imat_geom(
         p_wfss: list,
         p_dms: list,
         p_controller: conf.Param_controller,
-        meth=0):
+        meth=0) -> None:
     """Compute the interaction matrix with a geometric method
 
     :parameters:
@@ -65,7 +69,7 @@ def imat_geom(
             print(
                     "Doing imat geom... #%d/%d \r" % (cc + 1, imat_size2),
                     end=' ')
-    print("imat geom done")
+    print("imat geom done.                  \n")
     return imat_cpu
 
 
@@ -97,34 +101,22 @@ def imat_init(
     for i in range(len(p_wfss)):
         if (p_wfss[i].gsalt > 0):
             # TODO: check that
-            tmp = p_wfss[i].proftype
+            save_profile = p_wfss[i].proftype
             p_wfss[i].proftype = scons.ProfType.GAUSS1
-            prep_lgs_prof(
-                    p_wfss[i],
-                    i,
-                    p_tel,
-                    prof,
-                    h,
-                    p_wfss[i].beamsize,
-                    wfs,
-                    b"",
-                    imat=1)
+            shesha_init.lgs_init.prep_lgs_prof(
+                    p_wfss[i], i, p_tel, wfs, b"", imat=1)
 
     t0 = time.time()
     if kl is not None:
         ntt = scons.DmType.TT in [d.type_dm for d in p_dms]
         rtc.do_imat_kl(ncontrol, p_controller, dms, p_dms, kl, ntt)
     else:
-        print("==============")
-
         rtc.do_imat(ncontrol, dms)
-
     print("done in %f s" % (time.time() - t0))
     p_controller.set_imat(rtc.get_imat(ncontrol))
-    # now restore original profile in lgs spots
+
+    # Restore original profile in lgs spots
     for i in range(len(p_wfss)):
         if (p_wfss[i].gsalt > 0):
-            p_wfss[i].proftype = tmp
-            prep_lgs_prof(
-                    p_wfss[i], i, p_tel, p_wfss[i]._profna, p_wfss[i]._altna,
-                    p_wfss[i].beamsize, wfs)
+            p_wfss[i].proftype = save_profile
+            shesha_init.lgs_init.prep_lgs_prof(p_wfss[i], i, p_tel, wfs)

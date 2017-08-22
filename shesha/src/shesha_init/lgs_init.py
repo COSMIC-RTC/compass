@@ -184,15 +184,13 @@ def prep_lgs_prof(
     line of the sodium profile "prof". The altitude of the profile is the array "h".
 
         :parameters:
+            p_wfs: (Param_wfs) : WFS settings
+
             nsensors: (int) : wfs index
 
             p_tel: (Param_tel) : telescope settings
 
-            prof: (np.ndarray[dtype=np.float32]) : Na profile intensity, in arbitrary units
-
-            h: (np.ndarray[dtype=np.float32]) : altitude, in meters. h MUST be an array with EQUALLY spaced elements.
-
-            beam: (float) : size in arcsec of the laser beam
+            Sensors: (Sensors) : WFS object
 
             center: (string) : either "image" or "fourier" depending on where the centre should be.
 

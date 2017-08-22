@@ -67,7 +67,7 @@ def compute_KL2V(
     else:
         KL2V = KL2V[:, :KL2V.shape[1] - 2 * nTT]
     if (nTT > 1):
-        raise "More than 1 TipTilt found! Stupid"
+        raise ValueError("More than 1 TipTilt found! Stupid")
     if (nTT != 0):
         KL2V[:, :KL2V.shape[1] - 2] = KL2V[:, 2:]
         KL2V[:, KL2V.shape[1] - 2:] = np.zeros((np.sum(ntotact), 2),

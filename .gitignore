@@ -43,6 +43,9 @@ Pyro_NS_URI
 *.swp
 ._*
 
+# Mypy data
+.mypy_cache
+
 shesha/data/M4data/
 shesha/test/scripts/resultatsScripts/
 

@@ -52,7 +52,7 @@ def comp_new_pyr_ampl(
 
     scale = pwfs.Lambda * 1e-6 / p_tel.diam * ampli * 180. / np.pi * 3600.
 
-    rtc.set_pyr_ampl(cx, cy, scale)
+    rtc.set_pyr_ampl(nwfs, cx, cy, scale)
 
 
 def noise_cov(

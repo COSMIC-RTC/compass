@@ -9,17 +9,20 @@ from Dms import Dms
 from Rtc import Rtc
 from shesha_ao.wfs import noise_cov
 
+import typing
+from typing import List
+
 
 def cmat_init(
         ncontrol: int,
         rtc: Rtc,
         p_controller: conf.Param_controller,
-        p_wfss: list,
+        p_wfss: List[conf.Param_wfs],
         p_atmos: conf.Param_atmos,
         p_tel: conf.Param_tel,
-        p_dms: list,
-        KL2V=None,
-        nmodes=0):
+        p_dms: List[conf.Param_dm],
+        KL2V: np.ndarray=None,
+        nmodes: int=0) -> None:
     """ Compute the command matrix on the GPU
 
     :parameters:
@@ -99,6 +102,6 @@ def cmat_init(
             p_controller.set_TTcond(p_controller.maxcond)
 
         if ("tt" in [dm.type_dm for dm in p_dms]):
-            rtc.filter_cmat(p_controller.TTcond)
+            rtc.filter_cmat(ncontrol, p_controller.TTcond)
         print("Done")
     p_controller.set_cmat(rtc.get_cmat(ncontrol))

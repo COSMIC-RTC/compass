@@ -615,7 +615,7 @@ cdef class Rtc:
             cc = cc + 1
             print("Doing imat... #%d/%d \r" % (cc, kl.shape[1]), end=' ')
 
-        print("Done")
+        print("imat done\n              \n")
 
         cdef np.ndarray[ndim = 2, dtype = np.float32_t] h_imat_ret
         if d_imat_ret != NULL:
@@ -751,7 +751,7 @@ cdef class Rtc:
                 print("Doing imat... #%d/%d \r" % (cc, nactu), end=' ')
 
             inc(it_dm)
-        print("imat done\n")
+        print("imat done                    \n")
 
         cdef np.ndarray[ndim = 2, dtype = np.float32_t] h_imat_ret
         if d_imat_ret != NULL:
