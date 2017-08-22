@@ -38,7 +38,7 @@ def doTomoMatrices(
         p_tel: (Param_tel) : telescope settings
         p_atmos: (Param_atmos) : atmos settings
     """
-    nvalidperwfs = np.array([o._nvalid for o in wfs], dtype=np.int64)
+    nvalidperwfs = np.array([o._nvalid for o in p_wfss], dtype=np.int64)
     # Bring bottom left corner of valid subapertures in ipupil
     ipup = p_geom.get_ipupil()
     spup = p_geom.get_spupil()
@@ -135,7 +135,7 @@ def doTomoMatrices(
     print("Done")
 
     print("Computing Cmm...")
-    controller_mv.compute_Cmm(
+    rtc.compute_Cmm(
             ncontrol, atmos, wfs, L0_d, frac_d, alphaX, alphaY, p_tel.diam,
             p_tel.cobs)
     print("Done")
@@ -143,7 +143,7 @@ def doTomoMatrices(
     Nact = np.zeros([nactu, nactu], dtype=np.float32)
     F = np.zeros([nactu, nactu], dtype=np.float32)
     ind = 0
-    for k in range(p_controller.ndm):
+    for k in range(len(p_controller.ndm)):
         if (p_dms[k].type_dm == b"pzt"):
             Nact[ind:ind + p_dms[k]._ntotact, ind:ind + p_dms[k]._ntotact
                  ] = create_nact_geom(p_dms[k])
@@ -197,8 +197,8 @@ def create_nact_geom(p_dm: conf.Param_dm):
     tmpy = p_dm._j1
     offs = ((p_dm._n2 - p_dm._n1 + 1) -
             (np.max(tmpx) - np.min(tmpx))) / 2 - np.min(tmpx)
-    tmpx = tmpx + offs + 1
-    tmpy = tmpy + offs + 1
+    tmpx = (tmpx + offs + 1).astype(np.int32)
+    tmpy = (tmpy + offs + 1).astype(np.int32)
     mask = np.zeros([dim, dim], dtype=np.float32)
     shape = np.zeros([dim, dim], dtype=np.float32)
     for i in range(len(tmpx)):

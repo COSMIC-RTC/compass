@@ -485,10 +485,19 @@ cdef extern from "sutra_centroider.h":
 # C-Class sutra_centroider_tcog
 #################################################
 cdef extern from "sutra_centroider_tcog.h":
-    cdef cppclass sutra_centroider_tcog(sutra_centroider):
-        int set_threshold(float threshold)
-        bool is_type(string typec)
-        # string get_type()
+   cdef cppclass sutra_centroider_tcog(sutra_centroider):
+       int set_threshold(float threshold)
+       bool is_type(string typec)
+       # string get_type()
+
+#################################################
+# C-Class sutra_centroider_tcog
+#################################################
+cdef extern from "sutra_centroider_bpcog.h":
+   cdef cppclass sutra_centroider_bpcog(sutra_centroider):
+       int set_nmax(int nmax)
+       bool is_type(string typec)
+       # string get_type()
 
 #################################################
 # C-Class sutra_centroider_corr

@@ -152,12 +152,12 @@ cdef class Rtc:
             corr = dynamic_cast_centroider_corr_ptr(centro)
             corr.init_bincube()
 
-    def init_weights(self, int ncentro, np.ndarray[ndim=3, dtype=np.float32_t] w):
+    def init_weights(self, int ncentro, w):
         """Load the weight array in sutra_centroider_wcog object
 
         :parameters:
             ncentro: (int) : centroider's index
-            w: (np.ndarray[ndim=3, dtype=np.float32_t]) : weight
+            w: (np.ndarray[dtype=np.float32_t]) : weights (if 2d-array, will be apply on each subap)
         """
         self.context.set_activeDevice(self.rtc.device, 1)
         cdef sutra_centroider_wcog * centro = \
@@ -166,7 +166,7 @@ cdef class Rtc:
         cdef np.ndarray w_F = w.T.copy()
         centro.load_weights( < float * > w_F.data, int(w.ndim))
 
-    def init_corr(self, int ncentro, np.ndarray[ndim=2, dtype=np.float32_t] w,
+    def init_corr(self, int ncentro, w,
                   np.ndarray[ndim=2, dtype=np.float32_t] corr_norm,
                   int sizex, int sizey,
                   np.ndarray[ndim=2, dtype=np.float32_t] interpmat):
@@ -174,7 +174,7 @@ cdef class Rtc:
 
         :parameters:
             ncentro: (int) : centroider's index
-            w: (np.ndarray[ndim=1,dtype=np.float32_t]) : weight
+            w: (np.ndarray[dtype=np.float32_t]) : weights (if 2d-array, will be apply on each subap)
             corr_norm: (np.ndarray[ndim=2,dtype=np.float32_t]) :
             sizex: (int) :
             sizey: (int) :
@@ -186,8 +186,8 @@ cdef class Rtc:
         cdef sutra_centroider_corr * centro_corr = dynamic_cast_centroider_corr_ptr(
             self.rtc.d_centro[ncentro])
         cdef np.ndarray w_F = w.T.copy()
-        cdef np.ndarray[dtype = np.float32_t] corr_norm_F = corr_norm.T.copy()
-        cdef np.ndarray[dtype = np.float32_t] interpmat_F = interpmat.T.copy()
+        cdef np.ndarray[ndim = 2, dtype = np.float32_t] corr_norm_F = corr_norm.T.copy()
+        cdef np.ndarray[ndim = 2, dtype = np.float32_t] interpmat_F = interpmat.T.copy()
         centro_corr.init_corr(sizex, sizey, < float * > interpmat_F.data)
         centro_corr.load_corr(< float * > w_F.data, < float * > corr_norm_F.data, int(w.ndim))
 
@@ -415,8 +415,8 @@ cdef class Rtc:
                       np.ndarray[ndim=1, dtype=np.float64_t] Yactu,
                       float diam,
                       np.ndarray[ndim=1, dtype=np.float64_t] k2,
-                      np.ndarray[ndim=1, dtype=np.int32_t] NlayersDM,
-                      np.ndarray[ndim=1, dtype=np.int32_t] indlayersDM,
+                      np.ndarray[ndim=1, dtype=np.int64_t] NlayersDM,
+                      np.ndarray[ndim=1, dtype=np.int64_t] indlayersDM,
                       float FoV,
                       np.ndarray[ndim=1, dtype=np.float64_t] pitch,
                       np.ndarray[ndim=1, dtype=np.float64_t] alt_DM):
@@ -952,6 +952,24 @@ cdef class Rtc:
 
     """
 
+    def set_nmax(self, int n, int npix):
+        """
+        Set the number of brightest pixels of a bpcog centroider
+
+        :parameters:
+            n: (int): centroider index
+            npix: (int) : number of brightest pixels
+        """
+        cdef sutra_centroider_bpcog * centro = NULL
+
+        if(self.rtc.d_centro[n].is_type(scons.CentroiderType.BPCOG)):
+            centro = dynamic_cast_centroider_bpcog_ptr(self.rtc.d_centro[n])
+            centro.set_nmax(npix)
+        else:
+            e = "Centroider should be bpcog, got " + \
+                self.rtc.d_centro[n].get_type()
+            raise ValueError(e)
+
     def get_pyr_method(self, int n):
         """Get the pyramid centroiding method
         :parameters:
@@ -1234,7 +1252,7 @@ cdef class Rtc:
         """
         self.context.set_activeDeviceForCpy(self.rtc.device, 1)
 
-        cdef np.ndarray[dtype = np.float32_t] data_F = data.T.copy()
+        cdef np.ndarray[ndim = 2, dtype = np.float32_t] data_F = data.T.copy()
 
         cdef sutra_controller_ls * controller_ls
         cdef sutra_controller_mv * controller_mv

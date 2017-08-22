@@ -19,6 +19,7 @@ print("shesha_savepath:", shesha_savepath)
 
 import shesha_config as conf
 import shesha_constants as scons
+from shesha_util import utilities as util
 from Sensors import Sensors
 import numpy as np
 
@@ -45,7 +46,7 @@ def make_lgs_prof1d(
     """
 
     p_wfs._prof1d = prof
-    p_wfs._profcum = np.zeros(prof.shape[1] + 1, dtype=np.float32)
+    p_wfs._profcum = np.zeros(h.shape[0] + 1, dtype=np.float32)
     p_wfs._profcum[1:] = prof.cumsum()
 
     subapdiam = p_tel.diam / p_wfs.nxsub  # diam of subap
@@ -162,11 +163,11 @@ def make_lgs_prof1d(
 
     if (ysubs.size > 0):
         # TODO rotate
-        im = rotate3d(im, azimuth * 180 / np.pi, xcent, ycent)
+        im = util.rotate3d(im, azimuth * 180 / np.pi, xcent, ycent)
         max_im = np.max(im, axis=(1, 2))
         im = (im.T / max_im).T
     else:
-        im = rotate(im, azimuth * 180 / np.pi, xcent, ycent)
+        im = util.rotate(im, azimuth * 180 / np.pi, xcent, ycent)
         im = im / np.max(im)
 
     p_wfs._lgskern = im.T

@@ -3,8 +3,7 @@ import time
 
 import shesha_config as conf
 import shesha_constants as scons
-
-import shesha_init.lgs_init
+import shesha_init.lgs_init as lgs
 
 from Sensors import Sensors
 from Dms import Dms
@@ -19,7 +18,7 @@ def imat_geom(
         p_wfss: list,
         p_dms: list,
         p_controller: conf.Param_controller,
-        meth=0) -> None:
+        meth: int=0):
     """Compute the interaction matrix with a geometric method
 
     :parameters:
@@ -46,7 +45,7 @@ def imat_geom(
     imat_cpu = np.zeros((imat_size1, imat_size2), dtype=np.float32)
     ind = 0
     cc = 0
-    print("Doing imat geom...%d%%" % (cc + 1), end='')
+    print("\rDoing imat geom... #%d/%d" % (cc, imat_size2), end='')
     for nmc in range(ndm):
         nm = p_controller.ndm[nmc]
         dms.resetdm(p_dms[nm].type_dm, p_dms[nm].alt)
@@ -66,10 +65,8 @@ def imat_geom(
             cc = cc + 1
             dms.resetdm(p_dms[nm].type_dm, p_dms[nm].alt)
 
-            print(
-                    "Doing imat geom... #%d/%d \r" % (cc + 1, imat_size2),
-                    end=' ')
-    print("imat geom done.                  \n")
+            print("\rDoing imat geom... #%d/%d" % (cc, imat_size2), end=' ')
+    print("\nimat geom done")
     return imat_cpu
 
 
@@ -82,7 +79,7 @@ def imat_init(
         p_wfss: list,
         p_tel: conf.Param_tel,
         p_controller: conf.Param_controller,
-        kl=None):
+        kl=None) -> None:
     """Initialize and compute the interaction matrix on the GPU
 
     :parameters:
@@ -103,8 +100,7 @@ def imat_init(
             # TODO: check that
             save_profile = p_wfss[i].proftype
             p_wfss[i].proftype = scons.ProfType.GAUSS1
-            shesha_init.lgs_init.prep_lgs_prof(
-                    p_wfss[i], i, p_tel, wfs, b"", imat=1)
+            lgs.prep_lgs_prof(p_wfss[i], i, p_tel, wfs, imat=1)
 
     t0 = time.time()
     if kl is not None:
@@ -118,5 +114,5 @@ def imat_init(
     # Restore original profile in lgs spots
     for i in range(len(p_wfss)):
         if (p_wfss[i].gsalt > 0):
-            p_wfss[i].proftype = save_profile
-            shesha_init.lgs_init.prep_lgs_prof(p_wfss[i], i, p_tel, wfs)
+            p_wfss[i].proftype = tmp
+            lgs.prep_lgs_prof(p_wfss[i], i, p_tel, wfs)

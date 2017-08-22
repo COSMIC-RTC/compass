@@ -22,7 +22,7 @@ class Param_centroider:
         """ index of wfs in y_wfs structure on which we want to do centroiding"""
         self.__type_centro = None
         """ type of centroiding cog, tcog, bpcog, wcog, corr"""
-        self.__type_fct = None
+        self.__type_fct = scons.CentroiderFctType.GAUSS
         """ type of ref function gauss, file, model"""
         self.__weights = None
         """ optional reference function(s) used for centroiding"""
@@ -142,7 +142,7 @@ class Param_centroider:
         :param imap: (np.ndarray[ndim=2, dtype=np.float32]) : sizey
         """
         self.__interpmat = csu.enforce_arrayMultiDim(
-                imap, (self.sizex, self.sizey), dtype=np.float32)
+                imap, imap.shape, dtype=np.float32)
 
     interpmat = property(lambda x: x.__interpmat, set_interpmat)
 

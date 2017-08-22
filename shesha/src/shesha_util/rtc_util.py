@@ -11,8 +11,8 @@ def create_interp_mat(dimx: int, dimy: int):
     """
     n = max(dimx, dimy)
     tmp2, tmp1 = np.indices((n, n))
-    tmp1 = tmp1[:dimx, :dimy] - (dimx / 2)
-    tmp2 = tmp2[:dimx, :dimy] - (dimy / 2)
+    tmp1 = tmp1[:dimx, :dimy] - (dimx // 2)
+    tmp2 = tmp2[:dimx, :dimy] - (dimy // 2)
 
     tmp = np.zeros((tmp1.size, 6), np.int32)
     tmp[:, 0] = (tmp1**2).flatten()

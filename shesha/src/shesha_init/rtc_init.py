@@ -166,13 +166,16 @@ def init_centroider(
 
     elif (p_wfs.type_wfs == scons.WFSType.SH):
         if (p_centroider.type_centro == scons.CentroiderType.TCOG):
-            rtc.setthresh(nwfs, p_centroider.thresh)
+            rtc.set_thresh(nwfs, p_centroider.thresh)
         elif (p_centroider.type_centro == scons.CentroiderType.BPCOG):
-            rtc.setnmax(nwfs, p_centroider.nmax)
+            rtc.set_nmax(nwfs, p_centroider.nmax)
         elif (
                 p_centroider.type_centro == scons.CentroiderType.WCOG or
                 p_centroider.type_centro == scons.CentroiderType.CORR):
-            comp_weights(p_centroider, p_wfs, p_atmos.r0)
+            r0 = p_atmos.r0 * (p_wfs.Lambda / 0.5)**(6 / 5.)
+            seeing = CONST.RAD2ARCSEC * (p_wfs.Lambda * 1.e-6) / r0
+            npix = seeing // p_wfs.pixsize
+            comp_weights(p_centroider, p_wfs, npix)
             if p_centroider.type_centro == scons.CentroiderType.WCOG:
                 rtc.init_weights(nwfs, p_centroider.weights)
             else:
@@ -194,24 +197,15 @@ def init_centroider(
 
 
 def comp_weights(
-        p_centroider: conf.Param_centroider,
-        p_wfs: conf.Param_wfs,
-        p_atmos: conf.Param_atmos,
-        npix: int,
-        r0: float):
+        p_centroider: conf.Param_centroider, p_wfs: conf.Param_wfs, npix: int):
     """
         Compute the weights used by centroider wcog and corr
 
     :parameters:
         p_centroider : (Param_centroider) : centroider settings
         p_wfs : (Param_wfs) : wfs settings
-        npix : (int) :
-        r0 : (float) : r0 @ 0.5 microns
+        npix: (int):
     """
-    r0 = p_atmos.r0 * (p_wfs.Lambda / 0.5)**(6 / 5.)
-    seeing = CONST.RAD2ARCSEC * (p_wfs.Lambda * 1.e-6) / r0
-    npix = seeing // p_wfs.pixsize
-
     if (p_centroider.type_fct == scons.CentroiderFctType.MODEL):
 
         if (p_wfs.gsalt > 0):
@@ -225,10 +219,8 @@ def comp_weights(
                 tmp3[:, :, j] = np.fft.ifft2(
                         np.fft.fft2(tmp[:, :, j]) * np.fft.fft2(tmp2.T)).real
                 tmp3[:, :, j] *= tmp3.shape[0] * tmp3.shape[1]
-                tmp3[:, :, j] = np.roll(
-                        tmp3[:, :, j], tmp3.shape[0] / 2, axis=0)
-                tmp3[:, :, j] = np.roll(
-                        tmp3[:, :, j], tmp3.shape[1] / 2, axis=1)
+                tmp3[:, :, j] = np.fft.fftshift(tmp3[:, :, j])
+
             offset = (p_wfs._Ntot - p_wfs._nrebin * p_wfs.npix) // 2
             j = offset + p_wfs._nrebin * p_wfs.npix
             tmp = np.zeros((j - offset + 1, j - offset + 1, tmp3.shape[2]),
@@ -239,8 +231,13 @@ def comp_weights(
             tmp = np.diff(tmp, axis=1)
 
             p_centroider.weights = tmp
+        else:
+            p_centroider.type_fct = scons.CentroiderFctType.GAUSS
+            print(
+                    "No LGS found, centroider weighting function becomes gaussian"
+            )
 
-    elif (p_centroider.type_fct == scons.CentroiderFctType.GAUSS):
+    if (p_centroider.type_fct == scons.CentroiderFctType.GAUSS):
         if p_centroider.width is None:
             p_centroider.width = npix
         if (p_wfs.npix % 2 == 1):
@@ -255,10 +252,6 @@ def comp_weights(
             p_centroider.weights = util.makegaussian(
                     p_wfs.npix, p_centroider.width, p_wfs.npix // 2 + 0.5,
                     p_wfs.npix // 2 + 0.5).astype(np.float32)
-
-    else:
-        p_centroider.weights = np.zeros(0, dtype=np.float32)
-        print("WARNING : p_centroider.type_fct is not set, weights are 0...")
 
 
 def init_controller(
@@ -528,9 +521,9 @@ def init_controller_mv(
         wfs: (Sensors) : Sensors object
         atmos: (Atmos) : Atmos object
     """
-    imat = shao.imat_geom(wfs, dms, p_wfss, p_dms, p_controller)
+    p_controller.imat = shao.imat_geom(wfs, dms, p_wfss, p_dms, p_controller)
     # imat_init(i,rtc,p_rtc,dms,wfs,p_wfss,p_tel,clean=1,simul_name=simul_name)
-    rtc.set_imat(i, imat)
+    rtc.set_imat(i, p_controller.imat)
     rtc.set_gain(i, p_controller.gain)
     size = sum([p_dms[j]._ntotact for j in range(len(p_dms))])
     mgain = np.ones(size, dtype=np.float32)

@@ -29,6 +29,7 @@ from Target cimport *
 #################################################
 cdef extern from * :
     sutra_centroider_tcog * dynamic_cast_centroider_tcog_ptr "dynamic_cast<sutra_centroider_tcog*>" (sutra_centroider *) except NULL
+    sutra_centroider_bpcog * dynamic_cast_centroider_bpcog_ptr "dynamic_cast<sutra_centroider_bpcog*>" (sutra_centroider *) except NULL
     sutra_centroider_corr * dynamic_cast_centroider_corr_ptr "dynamic_cast<sutra_centroider_corr*>" (sutra_centroider *) except NULL
     sutra_centroider_wcog * dynamic_cast_centroider_wcog_ptr "dynamic_cast<sutra_centroider_wcog*>" (sutra_centroider *) except NULL
     sutra_centroider_pyr * dynamic_cast_centroider_pyr_ptr "dynamic_cast<sutra_centroider_pyr*>" (sutra_centroider *) except NULL
