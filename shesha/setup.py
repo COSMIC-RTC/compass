@@ -32,7 +32,7 @@ print sys.path
 print "======================================"
 
 listMod = ["shesha_param", "shesha_telescope", "shesha_sensors", "shesha_atmos",
-           "shesha_dms", "shesha_target", "shesha_rtc", "shesha_gamora", "shesha_groot", 	 		   "shesha_acquisim"]
+           "shesha_dms", "shesha_target", "shesha_rtc", "shesha_acquisim"]
 dependencies = {"shesha_sensors": ["shesha_telescope"],
                 "shesha_target": ["shesha_telescope"],
                 # "shesha_roket": listMod[:-2],

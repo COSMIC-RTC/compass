@@ -1,10 +1,10 @@
 __version__ = "Develop"
-#__version__ = "V0.2.1"
+__version__ = "V0.3"
 
 if __version__ is not "Develop":
     print("   ____________________________________________")
-    print("  /                                          \\")
-    print("  | Initialization of COMPASS, version: " + __version__ + " |")
+    print("  /                                            \\")
+    print("  | Initialization of COMPASS, version: " + __version__ + "   |")
     print("  \\____________________________________________/")
 
 import cython
@@ -61,9 +61,6 @@ from shesha_dms import *
 from shesha_target import *
 from shesha_rtc import *
 from shesha_telescope import *
-# from shesha_roket import *
-from shesha_gamora import *
-from shesha_groot import *
 from shesha_acquisim import *
 
 '''
