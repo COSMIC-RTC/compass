@@ -17,6 +17,13 @@ class Simulator:
         self.config = None
         self.brama = brama
 
+        self.atm = None
+        self.tel = None
+        self.tar = None
+        self.rtc = None
+        self.wfs = None
+        self.dms = None
+
         if filepath is not None:
             self.load_from_file(filepath)
 
@@ -24,21 +31,24 @@ class Simulator:
         """
         TODO: docstring
         """
+        s = ""
         if self.is_init:
-            print("====================")
-            print("objects initialzed on GPU:")
-            print("--------------------------------------------------------")
+            s += "===================="
+            s += "Objects initialzed on GPU:"
+            s += "--------------------------------------------------------"
 
             if self.atm is not None:
-                print(self.atm)
+                s += self.atm.__str__() + '\n'
             if self.wfs is not None:
-                print(self.wfs)
+                s += self.wfs.__str__() + '\n'
             if self.dms is not None:
-                print(self.dms)
+                s += self.dms.__str__() + '\n'
             if self.tar is not None:
-                print(self.tar)
+                s += self.tar.__str__() + '\n'
             if self.rtc is not None:
-                print(self.rtc)
+                s += self.rtc.__str__() + '\n'
+
+        return s
 
     def load_from_file(self, filepath: str):
         """
@@ -68,10 +78,27 @@ class Simulator:
         # exec("import %s as wao_config" % filename.split(".py")[0])
         sys.path.remove(pathfile)
 
-        self.loaded = True
+        # Set missing config attributes to None
+        if not hasattr(self.config, 'p_loop'):
+            self.config.p_loop = None
+        if not hasattr(self.config, 'p_geom'):
+            self.config.p_geom = None
+        if not hasattr(self.config, 'p_tel'):
+            self.config.p_tel = None
+        if not hasattr(self.config, 'p_atmos'):
+            self.config.p_atmos = None
+        if not hasattr(self.config, 'p_dms'):
+            self.config.p_dms = None
+        if not hasattr(self.config, 'p_target'):
+            self.config.p_target = None
+        if not hasattr(self.config, 'p_wfss'):
+            self.config.p_wfss = None
+        if not hasattr(self.config, 'p_centroiders'):
+            self.config.p_tel = None
+        if not hasattr(self.config, 'p_controllers'):
+            self.config.p_tel = None
 
-    def timeit(self, f):
-        return f
+        self.loaded = True
 
     def init_sim(self):
         """
@@ -87,8 +114,15 @@ class Simulator:
 
         if self.config.p_atmos is not None:
             r0 = self.config.p_atmos.r0
+        else:
+            raise ValueError('A r0 value through a Param_atmos is required.')
+
         if self.config.p_loop is not None:
             ittime = self.config.p_loop.ittime
+        else:
+            raise ValueError(
+                    'An ittime (iteration time in seconds) value through a Param_loop is required.'
+            )
 
         print("->tel")
         self.tel = init.tel_init(
@@ -116,8 +150,14 @@ class Simulator:
         if self.config.p_target is not None:
             print("->target")
             self.tar = init.target_init(
-                    c, self.tel, self.config.p_target, self.config.p_atmos,
-                    self.config.p_tel, self.config.p_geom, self.config.p_dms, brama=self.brama)
+                    c,
+                    self.tel,
+                    self.config.p_target,
+                    self.config.p_atmos,
+                    self.config.p_tel,
+                    self.config.p_geom,
+                    self.config.p_dms,
+                    brama=self.brama)
         else:
             self.tar = None
 
@@ -133,19 +173,26 @@ class Simulator:
             print("->rtc")
             #   rtc
             self.rtc = init.rtc_init(
-                    c, self.tel, self.wfs, self.dms, self.atm,
-                    self.config.p_wfss, self.config.p_tel, self.config.p_geom,
-                    self.config.p_atmos, ittime, self.config.p_centroiders,
-                    self.config.p_controllers, self.config.p_dms, brama=self.brama)
+                    c,
+                    self.tel,
+                    self.wfs,
+                    self.dms,
+                    self.atm,
+                    self.config.p_wfss,
+                    self.config.p_tel,
+                    self.config.p_geom,
+                    self.config.p_atmos,
+                    ittime,
+                    self.config.p_centroiders,
+                    self.config.p_controllers,
+                    self.config.p_dms,
+                    brama=self.brama)
         else:
             self.rtc = None
 
         self.is_init = True
 
-    def timeit(self, func):
-        func
-
-    def next(self, bench=False):
+    def next(self):
         """
         TODO: docstring
         """
@@ -193,9 +240,46 @@ class Simulator:
                 " loop execution time:", t1 - t0, "  (", n, "iterations), ",
                 (t1 - t0) / n, "(mean)  ", n / (t1 - t0), "Hz")
 
-class Bench (Simulator):
+
+def timeit(function):
+    '''
+        Function timing decorator
+    '''
+
+    def new_func(*args, **kwargs):
+        print('** Timed call to function {}'.format(function.__name__))
+        t1 = time.time()
+        ret = function(*args, **kwargs)
+        t2 = time.time()
+        print(
+                '** Execution time of {}: {} seconds'.format(
+                        function.__name__, t2 - t1))
+        return ret
+
+    return new_func
+
+
+class Bench(Simulator):
+
+    @timeit
     def __init__(self, str):
         Simulator.__init__(self, str)
 
-    def timeit(self, f):
-        pass
+    @timeit
+    def load_from_file(self, filepath: str):
+        Simulator.load_from_file(self, filepath)
+
+    @timeit
+    def init_sim(self):
+        Simulator.init_sim(self)
+
+    def next(self):
+        Simulator.next(self)
+
+    @timeit
+    def timed_next(self):
+        Simulator.next(self)
+
+    @timeit
+    def loop(self, n=1, monitoring_freq=100):
+        Simulator.loop(self, n=n, monitoring_freq=monitoring_freq)
