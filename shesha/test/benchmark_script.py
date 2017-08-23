@@ -12,16 +12,6 @@ from subprocess import check_output
 import platform
 import re
 
-SHESHA = os.environ.get('SHESHA_ROOT')
-if (SHESHA is None):
-    raise EnvironmentError("Environment variable 'SHESHA_ROOT' must be define")
-
-SHESHA_SAVEPATH = SHESHA + "/data"
-PARPATH = SHESHA_SAVEPATH + "/par/par4bench"
-BENCH_SAVEPATH = SHESHA_SAVEPATH + "/bench-results"
-
-store = HDFStore(BENCH_SAVEPATH + "/benchmarks.h5")
-
 
 def get_processor_name():
     command = "cat /proc/cpuinfo"
@@ -384,12 +374,24 @@ def script4bench(param_file, centroider, controller, devices, fwrite=True):
 # |  __/ | | | (_| |
 #  \___|_| |_|\__,_|
 #############################################################
+if __name__ == '__main__':
+    print("Coucou")
 
-if __name__ is '__main__':
     if (len(sys.argv) < 4 or len(sys.argv) > 6):
         error = "wrong number of argument. Got %d (expect 4)\ncommande line should be: 'python benchmark_script.py <filename> <centroider> <controller>" % len(
                 sys.argv)
         raise Exception(error)
+
+    SHESHA = os.environ.get('SHESHA_ROOT')
+    if (SHESHA is None):
+        raise EnvironmentError(
+                "Environment variable 'SHESHA_ROOT' must be define")
+
+    SHESHA_SAVEPATH = SHESHA + "/data"
+    PARPATH = SHESHA_SAVEPATH + "/par/par4bench"
+    BENCH_SAVEPATH = SHESHA_SAVEPATH + "/bench-results"
+
+    store = HDFStore(BENCH_SAVEPATH + "/benchmarks.h5")
 
     filename = PARPATH + "/" + sys.argv[1]
     centroider = sys.argv[2]
