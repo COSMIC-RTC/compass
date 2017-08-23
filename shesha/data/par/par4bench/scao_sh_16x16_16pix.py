@@ -1,6 +1,6 @@
 import shesha_config as conf
 
-# simul_name="bench_scao_sh_16x16_16pix"
+simul_name = "bench_scao_sh_16x16_16pix"
 
 # loop
 p_loop = conf.Param_loop()
