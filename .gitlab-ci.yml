@@ -5,7 +5,7 @@ stages:
 #  - test
 #  - deploy
 
-job_build:
+master_build:
   stage: build
   script:
     - make
@@ -18,5 +18,20 @@ job_build:
 #   - public
   only:
     - master
-    - tags
+#    - tags
 #    - develop
+
+develop_build:
+  stage: build
+  script:
+    - make
+#   - cd doc
+#   - mkdir -p compass-doc/html
+#   - make html
+#   - mv compass-doc/html/ public/
+# artifacts:
+#   paths:
+#   - public
+  when: manual
+  only:
+    - develop
