@@ -48,6 +48,7 @@ Pyro_NS_URI
 
 shesha/data/M4data/
 shesha/test/scripts/resultatsScripts/
+shesha/data/bench-results/
 
 # Fuse stuffs
 .fuse*

@@ -11,8 +11,6 @@ cdef class Acquisition:
     def __dealloc__(self):
         del self.acquisition
 
-
-
     def comp_image(self, np.ndarray[ndim=2, dtype=np.float32_t] bimage):
         """fill the wfs bincube from bimage
 
@@ -25,12 +23,12 @@ cdef class Acquisition:
         dims[1] = bimage.shape[0]
         dims[2] = bimage.shape[1]
 
-        self.acquisition.comp_image(dims, < float *> bimage.data)
+        self.acquisition.comp_image(dims, < float * > bimage.data)
 
     def set_validsubs(self, np.ndarray[ndim=1, dtype=np.int32_t] validsubsx,
-                            np.ndarray[ndim=1, dtype=np.int32_t] validsubsy):
+                      np.ndarray[ndim=1, dtype=np.int32_t] validsubsy):
         """
-
+        TODO: docstring
         validsubsx : (np.ndarray[ndim=1,dtype=np.int32_t]) : index-x of sub-apertures
         validsubsy : (np.ndarray[ndim=1,dtype=np.int32_t]) : index-y of sub-apertures
 
@@ -38,5 +36,5 @@ cdef class Acquisition:
 
         cdef np.int64_t nvalid = validsubsx.shape[0]
 
-        self.acquisition.set_validsubs(nvalid, < np.int32_t *> validsubsx.data,
-                                               < np.int32_t *> validsubsy.data)
+        self.acquisition.set_validsubs(nvalid, < np.int32_t * > validsubsx.data,
+                                       < np.int32_t * > validsubsy.data)

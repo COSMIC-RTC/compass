@@ -9,11 +9,7 @@ cdef class GrootS:
     cdef sutra_groot[float] *groot
     cdef int device
 
-    cpdef compute_Cerr(self)
-
 cdef class GrootD:
 
     cdef sutra_groot[double] *groot
     cdef int device
-
-    cpdef compute_Cerr(self)

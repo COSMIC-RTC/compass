@@ -9,6 +9,3 @@ cdef class Gamora:
 
     cdef sutra_gamora *gamora
     cdef int device
-
-    cpdef psf_rec_roket(self,np.ndarray[ndim=2, dtype=np.float32_t] err)
-    cpdef psf_rec_Vii(self)
