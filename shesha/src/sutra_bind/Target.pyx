@@ -341,21 +341,34 @@ cdef class Target_brama(Target):
                   int device=-1
                   ):
         IF USE_BRAMA == 0:
-          raise EnvironmentError(
-              "Error: Trying to run a BRAMA Target over NO-BRAMA compile.")
+            raise EnvironmentError(
+                "Error: Trying to run a BRAMA Target over NO-BRAMA compile.")
         ELSE:
-          Target.__init__(self, ctxt, telescope, ntargets, xpos, ypos, Lambda, mag, zerop, size, Npts, device)
-          del self.target
+            Target.__init__(
+                self,
+                ctxt,
+                telescope,
+                ntargets,
+                xpos,
+                ypos,
+                Lambda,
+                mag,
+                zerop,
+                size,
+                Npts,
+                device)
+            del self.target
 
-          self.target = new sutra_target_brama(ctxt.c, "target_brama", telescope.telescope, 1, ntargets,
-                                               < float * > xpos.data, < float * > ypos.data,
-                                               < float * > Lambda.data, < float * > mag.data,
-                                               zerop, < long * > size.data,
-                                               Npts, ctxt.c.get_activeDevice())
+            self.target = new sutra_target_brama(ctxt.c, "target_brama", telescope.telescope, 1, ntargets,
+                                                 < float * > xpos.data, < float * > ypos.data,
+                                                 < float * > Lambda.data, < float * > mag.data,
+                                                 zerop, < long * > size.data,
+                                                 Npts, ctxt.c.get_activeDevice())
 
-    def __dealloc__(self):
-        pass  # del self.target
+    IF USE_BRAMA == 1:
+        def __dealloc__(self):
+            pass  # del self.target
 
-    cpdef publish(self):
-        cdef sutra_target_brama * target = < sutra_target_brama * > (self.target)
-        target.publish()
+        cpdef publish(self):
+            cdef sutra_target_brama * target = < sutra_target_brama * > (self.target)
+            target.publish()
