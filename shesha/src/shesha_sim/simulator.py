@@ -1,21 +1,24 @@
 import sys
 import os
+
 from naga import naga_context
+
 import shesha_init as init
+
 import shesha_constants as scons
+
 import time
 
 
 class Simulator:
 
-    def __init__(self, filepath=None, brama=False):
+    def __init__(self, filepath=None):
         """
         TODO: docstring
         """
         self.is_init = False
         self.loaded = False
         self.config = None
-        self.brama = brama
 
         self.c = None
         self.atm = None
@@ -148,6 +151,21 @@ class Simulator:
         else:
             self.dms = None
 
+        self._tar_init()
+
+        if self.config.p_wfss is not None:
+            print("->wfs")
+            self.wfs = init.wfs_init(
+                    self.c, self.tel, self.config.p_wfss, self.config.p_tel,
+                    self.config.p_geom, self.config.p_dms, self.config.p_atmos)
+        else:
+            self.wfs = None
+
+        self._rtc_init(ittime)
+
+        self.is_init = True
+
+    def _tar_init(self):
         if self.config.p_target is not None:
             print("->target")
             self.tar = init.target_init(
@@ -158,18 +176,11 @@ class Simulator:
                     self.config.p_tel,
                     self.config.p_geom,
                     self.config.p_dms,
-                    brama=self.brama)
+                    brama=False)
         else:
             self.tar = None
 
-        if self.config.p_wfss is not None:
-            print("->wfs")
-            self.wfs = init.wfs_init(
-                    self.c, self.tel, self.config.p_wfss, self.config.p_tel,
-                    self.config.p_geom, self.config.p_dms, self.config.p_atmos)
-        else:
-            self.wfs = None
-
+    def _rtc_init(self, ittime):
         if self.config.p_controllers is not None or self.config.p_centroiders is not None:
             print("->rtc")
             #   rtc
@@ -187,39 +198,55 @@ class Simulator:
                     self.config.p_centroiders,
                     self.config.p_controllers,
                     self.config.p_dms,
-                    brama=self.brama)
+                    brama=False)
         else:
             self.rtc = None
 
-        self.is_init = True
+    def next(
+            self,
+            *,
+            move_atmos=True,
+            nControl=0,
+            tar_trace=None,
+            wfs_trace=None):
+        '''
+            function next
+            Iterates the AO loop, with optional parameters
 
-    def next(self):
-        """
-        TODO: docstring
-        """
-        self.atm.move_atmos()
+        :param move_atmos (bool): move the atmosphere for this iteration, default: True
+        :param nControl (int): Controller number to use, default 0 (single control configurations)
+        :param tar_trace (None or list[int]): list of targets to trace. None equivalent to all.
+        :param wfs_trace (None or list[int]): list of WFS to trace. None equivalent to all.
+        '''
+        if tar_trace is None:
+            tar_trace = range(self.config.p_target.ntargets)
+        if wfs_trace is None:
+            wfs_trace = range(len(self.config.p_wfss))
+
+        if move_atmos:
+            self.atm.move_atmos()
 
         if (
-                self.config.p_controllers[0].type_control ==
+                self.config.p_controllers[nControl].type_control ==
                 scons.ControllerType.GEO):
-            for t in range(self.config.p_target.ntargets):
+            for t in tar_trace:
                 self.tar.raytrace(t, b"atmos", self.tel, self.atm)
-                self.rtc.do_control_geo(0, self.dms, self.tar, 0)
-                self.rtc.apply_control(0, self.dms)
+                self.rtc.do_control_geo(nControl, self.dms, self.tar, t)
+                self.rtc.apply_control(nControl, self.dms)
                 self.tar.raytrace(t, b"dm", self.tel, dms=self.dms)
         else:
-            for t in range(self.config.p_target.ntargets):
+            for t in tar_trace:
                 self.tar.raytrace(t, b"all", self.tel, self.atm, self.dms)
-            for w in range(len(self.config.p_wfss)):
+            for w in wfs_trace:
                 self.wfs.raytrace(w, b"all", self.tel, self.atm, self.dms)
                 self.wfs.comp_img(w)
 
-            self.rtc.do_centroids(0)
-            self.rtc.do_control(0)
+            self.rtc.do_centroids(nControl)
+            self.rtc.do_control(nControl)
 
-            self.rtc.apply_control(0, self.dms)
+            self.rtc.apply_control(nControl, self.dms)
 
-    def loop(self, n=1, monitoring_freq=100):
+    def loop(self, n=1, monitoring_freq=100, **kwargs):
         """
         TODO: docstring
         """
@@ -228,11 +255,7 @@ class Simulator:
         print("----------------------------------------------------")
         t0 = time.time()
         for i in range(n):
-            self.next()
-            if self.brama:
-                self.rtc.publish()
-                self.tar.publish()
-
+            self.next(**kwargs)
             if ((i + 1) % monitoring_freq == 0):
                 strehltmp = self.tar.get_strehl(0)
                 print(i + 1, "\t", strehltmp[0], "\t", strehltmp[1])
@@ -240,6 +263,62 @@ class Simulator:
         print(
                 " loop execution time:", t1 - t0, "  (", n, "iterations), ",
                 (t1 - t0) / n, "(mean)  ", n / (t1 - t0), "Hz")
+
+
+class SimulatorBrama(Simulator):
+    """
+        TODO
+    """
+
+    def _tar_init(self):
+        '''
+            TODO
+        '''
+        if self.config.p_target is not None:
+            print("->target")
+            self.tar = init.target_init(
+                    self.c,
+                    self.tel,
+                    self.config.p_target,
+                    self.config.p_atmos,
+                    self.config.p_tel,
+                    self.config.p_geom,
+                    self.config.p_dms,
+                    brama=True)
+        else:
+            self.tar = None
+
+    def _rtc_init(self, ittime):
+        '''
+            TODO
+        '''
+        if self.config.p_controllers is not None or self.config.p_centroiders is not None:
+            print("->rtc")
+            #   rtc
+            self.rtc = init.rtc_init(
+                    self.c,
+                    self.tel,
+                    self.wfs,
+                    self.dms,
+                    self.atm,
+                    self.config.p_wfss,
+                    self.config.p_tel,
+                    self.config.p_geom,
+                    self.config.p_atmos,
+                    ittime,
+                    self.config.p_centroiders,
+                    self.config.p_controllers,
+                    self.config.p_dms,
+                    brama=True)
+        else:
+            self.rtc = None
+
+    def next(self, **kwargs):
+        Simulator.next(self, **kwargs)
+        if self.rtc is not None:
+            self.rtc.publish()
+        if self.tar is not None:
+            self.tar.publish()
 
 
 def timeit(function):
