@@ -63,23 +63,24 @@ def script4bench(param_file, centroider, controller, devices, fwrite=True):
 
     config.p_centroiders[0].set_type(centroider)
 
-    if (centroider == b"tcog"):
-        config.p_centroiders[0].set_thresh(9.)
-    elif (centroider == b"bpcog"):
+    if (centroider == "tcog"):
+        config.p_centroiders[0].set_thresh(0.)
+    elif (centroider == "bpcog"):
         config.p_centroiders[0].set_nmax(16)
-    elif (centroider == b"geom"):
+    elif (centroider == "geom"):
         config.p_centroiders[0].set_type("cog")
-    elif (centroider == b"wcog"):
+    elif (centroider == "wcog"):
         config.p_centroiders[0].set_type_fct("gauss")
         config.p_centroiders[0].set_width(2.0)
-    elif (centroider == b"corr"):
+    elif (centroider == "corr"):
         config.p_centroiders[0].set_type_fct("gauss")
         config.p_centroiders[0].set_width(2.0)
 
-    config.p_controllers[0].set_type(controller)
-    if (controller == b"modopti"):
+    if (controller == "modopti"):
         config.p_controllers[0].set_type("ls")
         config.p_controllers[0].set_modopti(1)
+    else:
+        config.p_controllers[0].set_type(controller)
 
     config.p_loop.set_niter(2000)
 
@@ -153,7 +154,7 @@ def script4bench(param_file, centroider, controller, devices, fwrite=True):
     #                                         | |
     #                                         |_|
     ###########################################################
-    if (controller == b"modopti"):
+    if (controller == "modopti"):
         for zz in range(2048):
             atm.move_atmos()
 
@@ -310,7 +311,7 @@ def script4bench(param_file, centroider, controller, devices, fwrite=True):
 
     stype += str(config.p_wfss[0].type_wfs)
 
-    if (controller == b"modopti"):
+    if (controller == "modopti"):
         G = np.mean(rtc.get_mgain(0))
     else:
         G = 0.
@@ -375,7 +376,6 @@ def script4bench(param_file, centroider, controller, devices, fwrite=True):
 #  \___|_| |_|\__,_|
 #############################################################
 if __name__ == '__main__':
-    print("Coucou")
 
     if (len(sys.argv) < 4 or len(sys.argv) > 6):
         error = "wrong number of argument. Got %d (expect 4)\ncommande line should be: 'python benchmark_script.py <filename> <centroider> <controller>" % len(

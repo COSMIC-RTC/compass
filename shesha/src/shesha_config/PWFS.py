@@ -730,7 +730,7 @@ class Param_wfs:
         """TODO : docstring
         """
         self.__beam = csu.enforce_array(
-                data.copy(), data.size, dtype=np.complex64)
+                data.copy(), data.size, dtype=np.float32)
 
     _beam = property(lambda x: x.__beam, set_beam)
 

@@ -151,7 +151,7 @@ df = store.get(version)
 simulnames = df["simulname"].values
 date = df["date"].values[0]
 
-geometry_options = {"tmargin": "1cm", "lmargin": "10cm"}
+geometry_options = {"tmargin": "1cm", "lmargin": "1cm"}
 doc = Document(geometry_options=geometry_options)
 
 doc.preamble.append(
@@ -230,13 +230,16 @@ with doc.create(Section('Results')):
         with doc.create(Figure(position='!htbp')) as plot:
             plot.add_plot(width=NoEscape(r'1\textwidth'))
     with doc.create(Subsection("Strehl ratios")):
-        with doc.create(Tabular('|l|l|')) as table:
+        with doc.create(Tabular('|l|l|l|l|')) as table:
             table.add_hline()
-            table.add_row(("Simulation name", "SR LE"))
+            table.add_row(
+                    ("Simulation name", "Controller", "Centroider", "SR LE"))
             table.add_hline()
             for indx in df.index:
                 table.add_row((
                         str(df.loc[indx, "simulname"]),
+                        str(df.loc[indx, "controller"]),
+                        str(df.loc[indx, "centroider"]),
                         str(df.loc[indx, "finalSRLE"])))
                 table.add_hline()
 
