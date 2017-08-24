@@ -17,6 +17,7 @@ class Simulator:
         self.config = None
         self.brama = brama
 
+        self.c = None
         self.atm = None
         self.tel = None
         self.tar = None
@@ -106,7 +107,7 @@ class Simulator:
         """
         if not self.loaded:
             raise ValueError("Config must be loaded before call to init_sim")
-        c = naga_context(devices=self.config.p_loop.devices)
+        self.c = naga_context(devices=self.config.p_loop.devices)
 
         if self.config.p_tel is None or self.config.p_geom is None:
             raise ValueError(
@@ -126,14 +127,14 @@ class Simulator:
 
         print("->tel")
         self.tel = init.tel_init(
-                c, self.config.p_geom, self.config.p_tel, r0, ittime,
+                self.c, self.config.p_geom, self.config.p_tel, r0, ittime,
                 self.config.p_wfss)
 
         if self.config.p_atmos is not None:
             #   atmos
             print("->atmos")
             self.atm = init.atmos_init(
-                    c, self.config.p_atmos, self.config.p_tel,
+                    self.c, self.config.p_atmos, self.config.p_tel,
                     self.config.p_geom, ittime)
         else:
             self.atm = None
@@ -142,7 +143,7 @@ class Simulator:
             #   dm
             print("->dm")
             self.dms = init.dm_init(
-                    c, self.config.p_dms, self.config.p_tel,
+                    self.c, self.config.p_dms, self.config.p_tel,
                     self.config.p_geom, self.config.p_wfss)
         else:
             self.dms = None
@@ -150,7 +151,7 @@ class Simulator:
         if self.config.p_target is not None:
             print("->target")
             self.tar = init.target_init(
-                    c,
+                    self.c,
                     self.tel,
                     self.config.p_target,
                     self.config.p_atmos,
@@ -164,7 +165,7 @@ class Simulator:
         if self.config.p_wfss is not None:
             print("->wfs")
             self.wfs = init.wfs_init(
-                    c, self.tel, self.config.p_wfss, self.config.p_tel,
+                    self.c, self.tel, self.config.p_wfss, self.config.p_tel,
                     self.config.p_geom, self.config.p_dms, self.config.p_atmos)
         else:
             self.wfs = None
@@ -173,7 +174,7 @@ class Simulator:
             print("->rtc")
             #   rtc
             self.rtc = init.rtc_init(
-                    c,
+                    self.c,
                     self.tel,
                     self.wfs,
                     self.dms,
@@ -272,9 +273,6 @@ class Bench(Simulator):
     @timeit
     def init_sim(self):
         Simulator.init_sim(self)
-
-    def next(self):
-        Simulator.next(self)
 
     @timeit
     def timed_next(self):
