@@ -773,7 +773,7 @@ cdef extern from "sutra_controller_geo.h":
         int comp_dphi(sutra_source * target, bool wfs_direction)
         int comp_com()
         int init_proj(sutra_dms * dms, int * indx_dm, float * unitpervolt, int * indx_pup)
-        int init_proj_sparse(sutra_dms * dms, int * indx_dm, float * unitpervolt, int * indx_pup, int * indx_mpup, int roket)
+        int init_proj_sparse(sutra_dms * dms, int * indx_dm, float * unitpervolt, int * indx_pup, int * indx_mpup, bool roket)
 
 
 #################################################

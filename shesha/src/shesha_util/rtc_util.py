@@ -23,3 +23,18 @@ def create_interp_mat(dimx: int, dimy: int):
     tmp[:, 5] = 1
 
     return np.dot(np.linalg.inv(np.dot(tmp.T, tmp)), tmp.T).T
+
+
+def centroid_gain(E, F):
+    """ Returns the mean centroid gain
+    :parameters:
+        E : (np.array(ndim=2,dtype=np.float32)) : measurements from WFS
+        F : (np.array(ndim=2,dtype=np.float32)) : geometric measurements
+    :return:
+        cgain : (float) : mean centroid gain between the sets of WFS measurements and geometric ones
+    """
+    cgains = np.zeros(E.shape[1])
+    for k in range(E.shape[1]):
+        cgains[k] = np.polyfit(E[:, k], F[:, k], 1)[0]
+
+    return np.mean(cgains)

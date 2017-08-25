@@ -169,7 +169,7 @@ def command_on_Btt(
     compute_cmatWithBtt(rtc, Btt, nfilt)
 
 
-def compute_cmatWithBtt(rtc: Rtc, Btt: np.ndarray, nfilt: int):
+def compute_cmat_with_Btt(rtc: Rtc, Btt: np.ndarray, nfilt: int):
     """
         Compute a command matrix on the Btt basis and load it in the GPU
 
@@ -220,7 +220,7 @@ def command_on_KL(
     compute_cmatWithKL(rtc, KL2V, nfilt)
 
 
-def compute_cmatWithKL(rtc: Rtc, KL2V: np.ndarray, nfilt: int):
+def compute_cmat_with_KL(rtc: Rtc, KL2V: np.ndarray, nfilt: int):
     """
         Compute a command matrix on the KL basis and load it in the GPU
 

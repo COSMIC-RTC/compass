@@ -60,7 +60,7 @@ cdef class Target:
             yoff: (float) : y-offset
         """
         self.context.set_activeDevice(self.device)
-        self.target.d_targets[n].add_layer(< char * > l_type, alt, xoff, yoff)
+        self.target.d_targets[n].add_layer( < char * > l_type, alt, xoff, yoff)
 
     def init_strehlmeter(self, int n):
         """Initialise target's strehl
@@ -169,13 +169,13 @@ cdef class Target:
                     flux,
                     self.context.c.get_device(src.device))
 
-            tmp_img.device2host(< float * > data_F.data)
+            tmp_img.device2host( < float * > data_F.data)
             del tmp_img
         else:
             if(type_im == b"se"):
-                src.d_image.device2host(< float*> data_F.data)
+                src.d_image.device2host( < float*> data_F.data)
             if(type_im == b"le"):
-                src.d_leimage.device2host(< float*> data_F.data)
+                src.d_leimage.device2host( < float*> data_F.data)
                 data_F /= src.strehl_counter
 
         return data_F.T.copy()
@@ -188,8 +188,8 @@ cdef class Target:
                 n : (int) : target number
                 data: (np.ndarray[ndim=2, dtype=np.float32_t]) : ncpa phase
         """
-        cdef np.ndarray[ndim= 1, dtype = np.float32_t] data_F = data.T.copy()
-        self.target.d_targets[n].set_ncpa_phase(< float*>data_F.data, data.size)
+        cdef np.ndarray[ndim = 1, dtype = np.float32_t] data_F = data.T.copy()
+        self.target.d_targets[n].set_ncpa_phase( < float*>data_F.data, data.size)
 
     def get_ncpa_phase(self, int n):
         """
@@ -201,12 +201,12 @@ cdef class Target:
 
         cdef carma_obj[float] * ph
         cdef const long * cdims
-        cdef np.ndarray[ndim= 2, dtype = np.float32_t] data
+        cdef np.ndarray[ndim = 2, dtype = np.float32_t] data
 
         ph = self.target.d_targets[n].d_phase.d_screen
         cdims = ph.getDims()
         data = np.empty((cdims[2], cdims[1]), dtype=np.float32)
-        self.target.d_targets[n].get_ncpa_phase(< float*>data.data, data.size)
+        self.target.d_targets[n].get_ncpa_phase( < float*>data.data, data.size)
         return data.T.copy()
 
     def get_phase(self, int n):
@@ -220,7 +220,7 @@ cdef class Target:
         cdef const long * dims
         dims = src.d_phase.d_screen.getDims()
         cdef np.ndarray data_F = np.empty((dims[2], dims[1]), dtype=np.float32)
-        src.d_phase.d_screen.device2host(< float * > data_F.data)
+        src.d_phase.d_screen.device2host( < float * > data_F.data)
 
         return data_F.T.copy()
 
@@ -233,9 +233,9 @@ cdef class Target:
         self.context.set_activeDeviceForCpy(self.device)
         cdef sutra_source * src = self.target.d_targets[n]
 
-        cdef np.ndarray[dtype= np.float32_t] data_F = data.T.copy()
+        cdef np.ndarray[ndim = 2, dtype = np.float32_t] data_F = data.T.copy()
 
-        src.d_phase.d_screen.host2device(< float * > data_F.data)
+        src.d_phase.d_screen.host2device( < float * > data_F.data)
 
     def set_pupil(self, int n, np.ndarray[ndim=2, dtype=np.float32_t] data):
         """Set the pupil used for PSF computation
@@ -245,8 +245,8 @@ cdef class Target:
         """
         self.context.set_activeDeviceForCpy(self.device)
         cdef sutra_source * src = self.target.d_targets[n]
-        cdef np.ndarray[dtype= np.float32_t] data_F
-        cdef np.ndarray[dtype= np.int32_t] wherephase
+        cdef np.ndarray[ndim = 2, dtype = np.float32_t] data_F
+        cdef np.ndarray[dtype = np.int32_t] wherephase
         cdef long Npts
         cdef const long * dims
         cdef long dims1[2]
@@ -254,7 +254,7 @@ cdef class Target:
         if((dims[2], dims[1]) == np.shape(data)):
             data_F = data.T.copy()
             src.d_pupil = new carma_obj[float](src.current_context, dims)
-            src.d_pupil.host2device( < float * > data_F.data)
+            src.d_pupil.host2device(< float * > data_F.data)
             wherephase = np.where(data_F)[0].astype(np.int32)
             Npts = wherephase.size
             dims1[0] = 1
@@ -263,7 +263,7 @@ cdef class Target:
             del src.d_wherephase
             src.d_phasepts = new carma_obj[float](src.current_context, dims1)
             src.d_wherephase = new carma_obj[int](src.current_context, dims1)
-            src.d_wherephase.host2device( < int * > wherephase.data)
+            src.d_wherephase.host2device(< int * > wherephase.data)
         else:
             raise IndexError("Pupil dimension mismatch")
 
@@ -281,7 +281,7 @@ cdef class Target:
         dims = src.phase_telemetry.getDims()
         cdef np.ndarray data_F = np.empty((dims[2], dims[1]), dtype=np.float32)
 
-        src.phase_telemetry.fill_into(< float * > data_F.data)
+        src.phase_telemetry.fill_into( < float * > data_F.data)
 
         return data_F.T.copy()
 
@@ -298,7 +298,7 @@ cdef class Target:
         dims = src.d_amplipup.getDims()
 
         cdef np.ndarray data_F = np.empty((dims[2], dims[1]), dtype=np.complex64)
-        src.d_amplipup.device2host(< cuFloatComplex * > data_F.data)
+        src.d_amplipup.device2host( < cuFloatComplex * > data_F.data)
 
         return data_F.T.copy()
 

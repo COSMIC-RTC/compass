@@ -49,7 +49,7 @@ public:
   int
   init_proj(sutra_dms *dms, int *indx_dm, float *unitpervolt, int *indx_pup);
   int
-  init_proj_sparse(sutra_dms *dms, int *indx_dm, float *unitpervolt, int *indx_pup, int *indx_mpup, int roket);
+  init_proj_sparse(sutra_dms *dms, int *indx_dm, float *unitpervolt, int *indx_pup, int *indx_mpup, bool roket);
 
 
 };

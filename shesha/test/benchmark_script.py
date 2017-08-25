@@ -325,16 +325,14 @@ def script4bench(param_file, centroider, controller, devices, fwrite=True):
     # version=str(check_output(["svnversion",os.getenv("COMPASS_ROOT")]).replace("\n",""))
     hostname = check_output("hostname").replace(b"\n", b"").decode('UTF-8')
     nb_cpu, cpu = get_processor_name()
-    imat = rtc.get_imat(0)
     keys_dict = {
             "date": date, "simulname": config.simul_name, "hostname": hostname,
             "ndevices": c.get_ndevice(), "device": c.get_device_names()[0],
             "cuda_version": c.get_cudaRuntimeGetVersion(), "magma_version":
                     c.get_magma_info(), "platform": platform.platform(),
             "ncpu": nb_cpu, "processor": cpu[0], "tel.diam": config.p_tel.diam,
-            "sensor_type": config.p_wfss[0]
-                           .type_wfs.decode('UTF-8'), "nslopes": imat.shape[0],
-            "nactus": imat.shape[1], "LGS": config.p_wfss[0].gsalt > 0,
+            "sensor_type": config.p_wfss[0].type_wfs.decode('UTF-8'),
+            "LGS": config.p_wfss[0].gsalt > 0,
             "noisy": config.p_wfss[0].gsmag > 3, "nxsub":
                     config.p_wfss[0].nxsub, "npix": config.p_wfss[0].npix,
             "nphotons": config.p_wfss[0]._nphotons, "controller": controller,

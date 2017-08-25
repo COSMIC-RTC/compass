@@ -130,7 +130,7 @@ sutra_controller_geo::init_proj(sutra_dms *dms, int *indx_dm, float *unitpervolt
 }
 
 int
-sutra_controller_geo::init_proj_sparse(sutra_dms *dms, int *indx_dm, float *unitpervolt, int *indx_pup, int *indx_mpup, int roket){
+sutra_controller_geo::init_proj_sparse(sutra_dms *dms, int *indx_dm, float *unitpervolt, int *indx_pup, int *indx_mpup, bool roket){
 
   current_context->set_activeDevice(device,1);
   vector<sutra_dm *>::iterator p;

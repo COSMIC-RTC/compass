@@ -111,11 +111,18 @@ def rtc_init(
 
                 rtc.add_controller(
                         nactu, p_controller.delay, p_controller.type_control,
-                        dms, list_dmseen, alt, p_controller.ndm.size, Nphi)
+                        dms, list_dmseen, alt, p_controller.ndm.size, Nphi,
+                        True)
 
                 # list_dmseen,alt,p_controller.ndm.size
                 init_controller_geo(
-                        i, rtc, dms, p_geom, p_controller, p_dms, roket=True)
+                        ncontrol,
+                        rtc,
+                        dms,
+                        p_geom,
+                        p_controller,
+                        p_dms,
+                        roket=True)
 
     return rtc
 

@@ -33,7 +33,9 @@ print("======================================")
 print((sys.path))
 print("======================================")
 
-listMod = ["Telescope", "Sensors", "Atmos", "Dms", "Target", "Rtc"]
+listMod = [
+        "Telescope", "Sensors", "Atmos", "Dms", "Target", "Rtc", "Gamora",
+        "Groot"]
 dependencies = {
         "Sensors": ["Telescope"], "Target": ["Telescope"]
         # "shesha_roket": listMod[:-2],

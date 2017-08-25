@@ -40,7 +40,7 @@ p_target.set_Lambda([1.65])
 p_target.set_mag([10.])
 
 # wfs
-p_wfs0 = conf.Param_wfs()
+p_wfs0 = conf.Param_wfs(error_budget=True)
 p_wfs1 = conf.Param_wfs()
 p_wfss = [p_wfs0]
 
@@ -101,7 +101,7 @@ p_controllers = [p_controller0]
 p_controller0.set_type("ls")
 p_controller0.set_nwfs([0])
 p_controller0.set_ndm([0, 1])
-p_controller0.set_maxcond(1500.)
+p_controller0.set_maxcond(15.)
 p_controller0.set_delay(1.)
 p_controller0.set_gain(0.4)
 

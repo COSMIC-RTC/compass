@@ -1323,7 +1323,7 @@ cdef class Rtc:
         """
         self.context.set_activeDeviceForCpy(self.rtc.device, 1)
 
-        cdef np.ndarray[dtype= np.float32_t] data_F = data.T.copy()
+        cdef np.ndarray[ndim = 2, dtype = np.float32_t] data_F = data.T.copy()
 
         cdef sutra_controller_ls * controller_ls
         cdef sutra_controller_mv * controller_mv
@@ -1354,7 +1354,7 @@ cdef class Rtc:
         """
         self.context.set_activeDeviceForCpy(self.rtc.device, 1)
 
-        cdef np.ndarray[dtype= np.float32_t] data_F = data.T.copy()
+        cdef np.ndarray[ndim= 2, dtype = np.float32_t] data_F = data.T.copy()
 
         cdef sutra_controller_mv * controller_mv
         cdef bytes type_control = self.rtc.d_control[ncontrol].get_type()
@@ -1482,7 +1482,7 @@ cdef class Rtc:
         cdef sutra_controller_generic * controller_generic
         cdef bytes type_control = self.rtc.d_control[ncontrol].get_type()
 
-        cdef np.ndarray[dtype= np.float32_t] matE_F = matE.T.copy()
+        cdef np.ndarray[ndim= 2, dtype = np.float32_t] matE_F = matE.T.copy()
 
         if(type_control == scons.ControllerType.GENERIC):
             controller_generic = dynamic_cast_controller_generic_ptr(
@@ -1568,7 +1568,7 @@ cdef class Rtc:
         cdef sutra_controller_ls * controller_ls
         cdef bytes type_control = self.rtc.d_control[ncontrol].get_type()
 
-        cdef np.ndarray[dtype= np.float32_t] data_F = U.T.copy()
+        cdef np.ndarray[ndim= 2, dtype = np.float32_t] data_F = U.T.copy()
         if(type_control == scons.ControllerType.LS):
             controller_ls = dynamic_cast_controller_ls_ptr(
                 self.rtc.d_control[ncontrol])

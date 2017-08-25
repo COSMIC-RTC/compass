@@ -224,8 +224,9 @@ class Simulator:
             *,
             move_atmos: bool=True,
             nControl: int=0,
-            tar_trace: Iterable[int]=None,
-            wfs_trace: Iterable[int]=None) -> None:
+            tar_trace: List[int]=None,
+            wfs_trace: List[int]=None,
+            apply_control: bool=True) -> None:
         '''
             function next
             Iterates the AO loop, with optional parameters
@@ -234,6 +235,7 @@ class Simulator:
         :param nControl (int): Controller number to use, default 0 (single control configurations)
         :param tar_trace (None or list[int]): list of targets to trace. None equivalent to all.
         :param wfs_trace (None or list[int]): list of WFS to trace. None equivalent to all.
+        :param apply_control (bool): (optional) if True (default), apply control on DMs
         '''
         if tar_trace is None:
             tar_trace = range(self.config.p_target.ntargets)
@@ -242,7 +244,6 @@ class Simulator:
 
         if move_atmos:
             self.atm.move_atmos()
-
         if (
                 self.config.p_controllers[nControl].type_control ==
                 scons.ControllerType.GEO):
@@ -257,28 +258,30 @@ class Simulator:
             for w in wfs_trace:
                 self.wfs.raytrace(w, b"all", self.tel, self.atm, self.dms)
                 self.wfs.comp_img(w)
-
             self.rtc.do_centroids(nControl)
             self.rtc.do_control(nControl)
             self.rtc.do_clipping(0, -1e5, 1e5)
-
-            self.rtc.apply_control(nControl, self.dms)
-
+            if apply_control:
+                self.rtc.apply_control(nControl, self.dms)
         self.iter += 1
 
-    def loop(self, n: int=1, monitoring_freq: int=100, **kwargs) -> None:
+    def loop(self, n=1, monitoring_freq=100, **kwargs):
         """
         TODO: docstring
         """
         print("----------------------------------------------------")
-        print("iter# | S.E. SR | L.E. SR | Est. Rem. | framerate")
+        print("iter# | S.E. SR | L.E. SR | ETR (s) | Framerate (Hz)")
         print("----------------------------------------------------")
         t0 = time.time()
         for i in range(n):
             self.next(**kwargs)
             if ((i + 1) % monitoring_freq == 0):
+                framerate = (i + 1) / (time.time() - t0)
                 strehltmp = self.tar.get_strehl(0)
-                print(i + 1, "\t", strehltmp[0], "\t", strehltmp[1])
+                etr = (n - i) / framerate
+                print(
+                        "%d \t %.3f \t  %.3f\t     %.1f \t %.1f" %
+                        (i + 1, strehltmp[0], strehltmp[1], etr, framerate))
         t1 = time.time()
         print(
                 " loop execution time:", t1 - t0, "  (", n, "iterations), ",
