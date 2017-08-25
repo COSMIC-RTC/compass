@@ -1,45 +1,47 @@
 import sys
-import os
 
 from naga import naga_context
 
 import shesha_init as init
-
 import shesha_constants as scons
 
+import Atmos, Telescope, Target, Rtc, Dms, Sensors
 import time
+
+from typing import Iterable, Callable, TypeVar, Any
 
 
 class Simulator:
 
-    def __init__(self, filepath=None):
+    def __init__(self, filepath: str=None) -> None:
         """
         TODO: docstring
         """
-        self.is_init = False
-        self.loaded = False
-        self.config = None
+        self.is_init = False  # type: bool
+        self.loaded = False  # type: bool
+        self.config = None  # type: Any # types.ModuleType ?
+        self.iter = 0  # type: int
 
-        self.c = None
-        self.atm = None
-        self.tel = None
-        self.tar = None
-        self.rtc = None
-        self.wfs = None
-        self.dms = None
+        self.c = None  # type: naga_context
+        self.atm = None  # type: Atmos.Atmos
+        self.tel = None  # type: Telescope.Telescope
+        self.tar = None  # type: Target.Target
+        self.rtc = None  # type: Rtc.Rtc
+        self.wfs = None  # type: Sensors.Sensors
+        self.dms = None  # type: Dms.Dms
 
         if filepath is not None:
             self.load_from_file(filepath)
 
-    def __str__(self):
+    def __str__(self) -> str:
         """
         TODO: docstring
         """
         s = ""
         if self.is_init:
-            s += "===================="
-            s += "Objects initialzed on GPU:"
-            s += "--------------------------------------------------------"
+            s += "====================\n"
+            s += "Objects initialzed on GPU:\n"
+            s += "--------------------------------------------------------\n"
 
             if self.atm is not None:
                 s += self.atm.__str__() + '\n'
@@ -51,17 +53,19 @@ class Simulator:
                 s += self.tar.__str__() + '\n'
             if self.rtc is not None:
                 s += self.rtc.__str__() + '\n'
+        else:
+            s += "Simulator is not initialized."
 
         return s
 
-    def load_from_file(self, filepath: str):
+    def load_from_file(self, filepath: str) -> None:
         """
         TODO: docstring
         """
         self.loaded = False
         self.is_init = False
         filename = filepath.split('/')[-1]
-        if (filepath.split('.')[-1] != "py"):
+        if (len(filepath.split('.')) > 1 and filepath.split('.')[-1] != "py"):
             raise ValueError("Config file must be .py")
 
         pathfile = filepath.split(filename)[0]
@@ -104,7 +108,20 @@ class Simulator:
 
         self.loaded = True
 
-    def init_sim(self):
+    def clear_init(self) -> None:
+        if self.loaded and self.is_init:
+            self.iter = 0
+
+            self.c = None
+            self.atm = None
+            self.tel = None
+            self.tar = None
+            self.rtc = None
+            self.wfs = None
+            self.dms = None
+            self.is_init = False
+
+    def init_sim(self) -> None:
         """
         TODO: docstring
         """
@@ -165,7 +182,7 @@ class Simulator:
 
         self.is_init = True
 
-    def _tar_init(self):
+    def _tar_init(self) -> None:
         if self.config.p_target is not None:
             print("->target")
             self.tar = init.target_init(
@@ -180,7 +197,7 @@ class Simulator:
         else:
             self.tar = None
 
-    def _rtc_init(self, ittime):
+    def _rtc_init(self, ittime: float) -> None:
         if self.config.p_controllers is not None or self.config.p_centroiders is not None:
             print("->rtc")
             #   rtc
@@ -205,10 +222,10 @@ class Simulator:
     def next(
             self,
             *,
-            move_atmos=True,
-            nControl=0,
-            tar_trace=None,
-            wfs_trace=None):
+            move_atmos: bool=True,
+            nControl: int=0,
+            tar_trace: Iterable[int]=None,
+            wfs_trace: Iterable[int]=None) -> None:
         '''
             function next
             Iterates the AO loop, with optional parameters
@@ -243,10 +260,13 @@ class Simulator:
 
             self.rtc.do_centroids(nControl)
             self.rtc.do_control(nControl)
+            self.rtc.do_clipping(0, -1e5, 1e5)
 
             self.rtc.apply_control(nControl, self.dms)
 
-    def loop(self, n=1, monitoring_freq=100, **kwargs):
+        self.iter += 1
+
+    def loop(self, n: int=1, monitoring_freq: int=100, **kwargs) -> None:
         """
         TODO: docstring
         """
@@ -267,10 +287,12 @@ class Simulator:
 
 class SimulatorBrama(Simulator):
     """
-        TODO
+        Class SimulatorBrama: Brama overloaded simulator
+        _tar_init and _rtc_init to instantiate Brama classes instead of regular classes
+        next() to call rtc/tar.publish()
     """
 
-    def _tar_init(self):
+    def _tar_init(self) -> None:
         '''
             TODO
         '''
@@ -288,7 +310,7 @@ class SimulatorBrama(Simulator):
         else:
             self.tar = None
 
-    def _rtc_init(self, ittime):
+    def _rtc_init(self, ittime) -> None:
         '''
             TODO
         '''
@@ -313,7 +335,7 @@ class SimulatorBrama(Simulator):
         else:
             self.rtc = None
 
-    def next(self, **kwargs):
+    def next(self, **kwargs) -> None:
         Simulator.next(self, **kwargs)
         if self.rtc is not None:
             self.rtc.publish()
@@ -321,12 +343,15 @@ class SimulatorBrama(Simulator):
             self.tar.publish()
 
 
-def timeit(function):
+_O = TypeVar('_O')
+
+
+def timeit(function: Callable[..., _O]) -> Callable[..., _O]:
     '''
         Function timing decorator
     '''
 
-    def new_func(*args, **kwargs):
+    def new_func(*args, **kwargs) -> _O:
         print('** Timed call to function {}'.format(function.__name__))
         t1 = time.time()
         ret = function(*args, **kwargs)
@@ -340,23 +365,28 @@ def timeit(function):
 
 
 class Bench(Simulator):
+    '''
+        Class Bench
+
+        Timed version of the simulator class using decorated overloads
+    '''
 
     @timeit
-    def __init__(self, str):
-        Simulator.__init__(self, str)
+    def __init__(self, filepath: str=None) -> None:
+        Simulator.__init__(self, filepath)
 
     @timeit
-    def load_from_file(self, filepath: str):
+    def load_from_file(self, filepath: str) -> None:
         Simulator.load_from_file(self, filepath)
 
     @timeit
-    def init_sim(self):
+    def init_sim(self) -> None:
         Simulator.init_sim(self)
 
     @timeit
-    def timed_next(self):
+    def timed_next(self) -> None:
         Simulator.next(self)
 
     @timeit
-    def loop(self, n=1, monitoring_freq=100):
-        Simulator.loop(self, n=n, monitoring_freq=monitoring_freq)
+    def loop(self, n: int=1, monitoring_freq: int=100, **kwargs) -> None:
+        Simulator.loop(self, n=n, monitoring_freq=monitoring_freq, **kwargs)
