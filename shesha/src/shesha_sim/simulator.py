@@ -224,8 +224,8 @@ class Simulator:
             *,
             move_atmos: bool=True,
             nControl: int=0,
-            tar_trace: List[int]=None,
-            wfs_trace: List[int]=None,
+            tar_trace: Iterable[int]=None,
+            wfs_trace: Iterable[int]=None,
             apply_control: bool=True) -> None:
         '''
             function next
