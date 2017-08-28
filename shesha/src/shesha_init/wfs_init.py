@@ -127,8 +127,8 @@ def wfs_init(context: naga_context, telescope: Telescope, p_wfss: list,
                 yoff = (gsalt * p_atmos.alt[j] * p_tel.diam / 2. +
                         p_wfs.ypos * CONST.ARCSEC2RAD * p_atmos.alt[j]) / \
                     p_atmos.pupixsize
-                xoff = xoff + (p_atmos.dim_screens[j] - p_geom.get_n()) / 2.
-                yoff = yoff + (p_atmos.dim_screens[j] - p_geom.get_n()) / 2.
+                xoff = xoff + (p_atmos.dim_screens[j] - p_geom._n) / 2.
+                yoff = yoff + (p_atmos.dim_screens[j] - p_geom._n) / 2.
                 g_wfs.add_layer(i, type_target, p_atmos.alt[j], xoff, yoff)
 
         if (not p_wfs.openloop and p_dms is not None):

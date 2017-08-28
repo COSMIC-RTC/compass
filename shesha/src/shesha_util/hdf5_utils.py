@@ -4,230 +4,135 @@ import os
 import numpy as np
 from subprocess import check_output
 
-# import shesha
+#import shesha
 
 
 def params_dictionary(config):
-    """
-        Create and returns a dictionary of all the config parameters with the
+    """ Create and returns a dictionary of all the config parameters with the
     corresponding keys for further creation of database and save files
 
     :param config: (module) : simulation parameters
     :return param_dict: (dictionary) : dictionary of parameters
     """
 
-    version = shesha.__version__
+    commit = check_output(["git", "rev-parse", "--short", "HEAD"]).decode('utf8')
 
-    param_dict = {"simulname": config.simul_name, "revision": version}
-
-    loop_dict = {"niter": config.p_loop.niter, "ittime": config.p_loop.ittime}
-    param_dict.update(loop_dict)
-
-    geom_dict = {
-            "zenithangle": config.p_geom.zenithangle, "pupdiam": config.p_geom.pupdiam
+    param_dict = {
+            "simul_name": config.simul_name.encode('utf8'),
+            "commit": version.encode('utf8')
     }
-    param_dict.update(geom_dict)
 
-    tel_dict = {
-            "tel_diam":
-                    config.p_tel.diam, "cobs":
-                            config.p_tel.cobs, "t_spiders":
-                                    config.p_tel.t_spiders,
-            "spiders_type": [
-                    config.p_tel.spiders_type if config.p_tel.spiders_type else ""
-            ], "type_ap": [config.p_tel.type_ap if (config.p_tel.type_ap) else ""],
-            "referr":
-                    config.p_tel.referr, "pupangle":
-                            config.p_tel.pupangle, "nbrmissing":
-                                    config.p_tel.nbrmissing, "std_piston":
-                                            config.p_tel.std_piston, "std_tt":
-                                                    config.p_tel.std_tt
-    }
-    param_dict.update(geom_dict)
+    param_loop = [
+            i for i in dir(config.p_loop)
+            if (not i.startswith('_') and not i.startswith('set_') and
+                not i.startswith('get_'))
+    ]
+    for k in param_loop:
+        param_dict.update({
+                "_Param_loop__" + k: config.p_loop.__dict__["_Param_loop__" + k]
+        })
+    param_geom = [
+            i for i in dir(config.p_geom)
+            if (not i.startswith('_') and not i.startswith('set_') and
+                not i.startswith('get_'))
+    ]
+    for k in param_geom:
+        param_dict.update({
+                "_Param_geom__" + k: config.p_geom.__dict__["_Param_geom__" + k]
+        })
+    param_tel = [
+            i for i in dir(config.p_tel)
+            if (not i.startswith('_') and not i.startswith('set_') and
+                not i.startswith('get_'))
+    ]
+    for k in param_tel:
+        param_dict.update({
+                "_Param_tel__" + k: config.p_tel.__dict__["_Param_tel__" + k]
+        })
+    if config.p_atmos is not None:
+        param_atmos = [
+                i for i in dir(config.p_atmos)
+                if (not i.startswith('_') and not i.startswith('set_') and
+                    not i.startswith('get_'))
+        ]
+        for k in param_atmos:
+            param_dict.update({
+                    "_Param_atmos__" + k: config.p_atmos.__dict__["_Param_atmos__" + k]
+            })
 
-    atmos_dict = {
-            "r0":
-                    config.p_atmos.r0, "nscreens":
-                            config.p_atmos.nscreens, "frac":
-                                    config.p_atmos.frac, "atm.alt":
-                                            config.p_atmos.alt, "windspeed":
-                                                    config.p_atmos.windspeed, "winddir":
-                                                            config.p_atmos.winddir, "L0":
-                                                                    config.p_atmos.L0,
-            "seeds": [
-                    config.p_atmos.seeds if (config.p_atmos.seeds is not None) else
-                    (np.arange(config.p_atmos.nscreens, dtype=np.int64) + 1) * 1234
-            ]
-    }
-    param_dict.update(atmos_dict)
+    if config.p_target is not None:
+        param_target = [
+                i for i in dir(config.p_target)
+                if (not i.startswith('_') and not i.startswith('set_') and
+                    not i.startswith('get_'))
+        ]
+        for k in param_target:
+            param_dict.update({
+                    "_Param_target__" + k:
+                            config.p_target.__dict__["_Param_target__" + k]
+            })
+    if config.p_wfss is not None:
+        param_wfs = [
+                i for i in dir(config.p_wfss[0])
+                if (not i.startswith('_') and not i.startswith('set_') and
+                    not i.startswith('get_'))
+        ]
+        for k in param_wfs:
+            param_dict.update({
+                    "_Param_wfs__" + k: [
+                            w.__dict__["_Param_wfs__" + k] for w in config.p_wfss
+                    ]
+            })
+    if config.p_dms is not None:
+        param_dm = [
+                i for i in dir(config.p_dms[0])
+                if (not i.startswith('_') and not i.startswith('set_') and
+                    not i.startswith('get_'))
+        ]
+        for k in param_dm:
+            param_dict.update({
+                    "_Param_dm__" + k: [
+                            w.__dict__["_Param_dm__" + k] for w in config.p_dms
+                    ]
+            })
+    if config.p_controllers is not None:
+        param_controller = [
+                i for i in dir(config.p_controllers[0])
+                if (not i.startswith('_') and not i.startswith('set_') and
+                    not i.startswith('get_'))
+        ]
+        for k in param_controller:
+            param_dict.update({
+                    "_Param_controller__" + k: [
+                            w.__dict__["_Param_controller__" + k]
+                            for w in config.p_controllers
+                    ]
+            })
+    if config.p_centroiders is not None:
+        param_centroider = [
+                i for i in dir(config.p_centroiders[0])
+                if (not i.startswith('_') and not i.startswith('set_') and
+                    not i.startswith('get_'))
+        ]
+        for k in param_centroider:
+            param_dict.update({
+                    "_Param_centroider__" + k: [
+                            w.__dict__["_Param_centroider__" + k]
+                            for w in config.p_centroiders
+                    ]
+            })
 
-    target_dict = {
-            "ntargets": config.p_target.ntargets, "target.xpos": config.p_target.xpos,
-            "target.ypos": config.p_target.ypos, "target.Lambda": config.p_target.Lambda,
-            "target.mag": config.p_target.mag,
-            "target.dms_seen": config.p_target.dms_seen
-    }
-    param_dict.update(target_dict)
-
-    # WFS params
-    if (config.p_wfss is not None):
-        wfs_dict = {
-                "nwfs":
-                        len(config.p_wfss), "type_wfs": [
-                                wfs.type_wfs for wfs in config.p_wfss
-                        ], "nxsub": [wfs.nxsub for wfs in config.p_wfss], "npix": [
-                                wfs.npix for wfs in config.p_wfss
-                        ], "pixsize": [wfs.pixsize for wfs in config.p_wfss],
-                "fracsub": [wfs.fracsub for wfs in config.p_wfss
-                            ], "wfs.xpos": [wfs.xpos for wfs in config.p_wfss],
-                "wfs.ypos": [wfs.ypos for wfs in config.p_wfss], "wfs.Lambda": [
-                        wfs.Lambda for wfs in config.p_wfss
-                ], "gsmag": [wfs.gsmag for wfs in config.p_wfss], "optthroughput": [
-                        wfs.optthroughput for wfs in config.p_wfss
-                ], "zerop": [wfs.zerop for wfs in config.p_wfss], "noise": [
-                        wfs.noise for wfs in config.p_wfss
-                ], "atmos_seen": [wfs.atmos_seen for wfs in config.p_wfss], "dms_seen": [
-                        wfs.dms_seen if (wfs.dms_seen is not None) else
-                        np.arange(len(config.p_dms), dtype=np.int32)
-                        for wfs in config.p_wfss
-                ], "beamsize": [wfs.beamsize for wfs in config.p_wfss], "fssize": [
-                        wfs.fssize for wfs in config.p_wfss
-                ], "fstop": [wfs.fstop if (wfs.fstop) else "" for wfs in config.p_wfss],
-                "gsalt": [wfs.gsalt for wfs in config.p_wfss], "laserpower": [
-                        wfs.laserpower for wfs in config.p_wfss
-                ], "lgsreturnperwatt": [wfs.lgsreturnperwatt for wfs in config.p_wfss],
-                "lltx": [wfs.lltx for wfs in config.p_wfss], "llty": [
-                        wfs.llty for wfs in config.p_wfss
-                ], "openloop": [wfs.openloop for wfs in config.p_wfss], "proftype": [
-                        wfs.proftype if (wfs.proftype) else "" for wfs in config.p_wfss
-                ], "pyr_ampl": [wfs.pyr_ampl for wfs in config.p_wfss], "pyr_loc": [
-                        wfs.pyr_loc if (wfs.pyr_loc) else "" for wfs in config.p_wfss
-                ], "pyr_npts": [wfs.pyr_npts for wfs in config.p_wfss], "pyr_pup_sep": [
-                        wfs.pyr_pup_sep for wfs in config.p_wfss
-                ], "pyrtype": [
-                        wfs.pyrtype if (wfs.pyrtype) else "" for wfs in config.p_wfss
-                ]
-        }
-    else:
-        wfs_dict = {
-                "nwfs": len(config.p_wfss), "type_wfs": None, "nxsub": None,
-                "npix": None, "pixsize": None, "fracsub": None, "wfs.xpos": None,
-                "wfs.ypos": None, "wfs.Lambda": None, "gsmag": None,
-                "optthroughput": None, "zerop": None, "noise": None, "atmos_seen": None,
-                "dms_seen": None, "beamsize": None, "fssize": None, "fstop": None,
-                "gsalt": None, "laserpower": None, "lgsreturnperwatt": None,
-                "lltx": None, "llty": None, "openloop": None, "proftype": None,
-                "pyr_ampl": None, "pyr_loc": None, "pyr_npts": None, "pyrtype": None
-        }
-
-    param_dict.update(wfs_dict)
-
-    # type_kk
-    # Dms params
-    if (config.p_dms is not None):
-        dms_dict = {
-                "ndms":
-                        len(config.p_dms), "type_dm": [
-                                dm.type_dm for dm in config.p_dms
-                        ], "dm.alt": [dm.alt for dm in config.p_dms],
-                "coupling": [dm.coupling if (dm.coupling) else 0 for dm in config.p_dms
-                             ], "hyst": [dm.hyst for dm in config.p_dms
-                                         ], "margin": [dm.margin for dm in config.p_dms],
-                "nkl": [dm.nkl if (dm.nkl) else 0 for dm in config.p_dms], "kl_type": [
-                        dm.kl_type if (dm.kl_type) else "" for dm in config.p_dms
-                ], "pupoffset": [
-                        dm.pupoffset if (dm.pupoffset) else 0 for dm in config.p_dms
-                ], "nact": [dm.nact if (dm.nact) else 0 for dm in config.p_dms
-                            ], "push4imat": [dm.push4imat for dm in config.p_dms],
-                "dm.thresh": [dm.thresh for dm in config.p_dms], "unitpervolt": [
-                        dm.unitpervolt if (dm.unitpervolt) else 0 for dm in config.p_dms
-                ]
-        }
-    else:
-        dms_dict = {
-                "ndms": len(config.p_dms), "type_dm": None, "dm.alt": None,
-                "coupling": None, "hyst": None, "margin": None, "nact": None,
-                "pupoffset": None, "push4imat": None, "dm.thresh": None,
-                "unitpervolt": None
-        }
-
-    param_dict.update(dms_dict)
-
-    # Centroider params
-    if (config.p_centroiders is not None):
-        centro_dict = {
-                "ncentroiders":
-                        len(config.p_centroiders), "type_centro": [
-                                c.type_centro for c in config.p_centroiders
-                        ], "nmax": [c.nmax for c in config.p_centroiders],
-                "centro.nwfs": [c.nwfs for c in config.p_centroiders
-                                ], "sizex": [c.sizex for c in config.p_centroiders],
-                "sizey": [c.sizey for c in config.p_centroiders], "centroider.thresh": [
-                        c.thresh for c in config.p_centroiders
-                ], "type_fct": [
-                        c.type_fct if (c.type_fct) else "" for c in config.p_centroiders
-                ], "weights": [
-                        c.weights
-                        if (c.weights) else float(0) for c in config.p_centroiders
-                ], "width": [c.width for c in config.p_centroiders]
-        }
-    else:
-        centro_dict = {
-                "ncentroiders": len(config.p_centroiders), "type_centro": None,
-                "nmax": None, "centro.nwfs": None, "sizex": None, "sizey": None,
-                "centroider.thresh": None, "type_fct": None, "weights": None,
-                "width": None
-        }
-
-    param_dict.update(centro_dict)
-
-    # Controller params
-    if (config.p_controllers is not None):
-        control_dict = {
-                "ncontrollers": len(config.p_controllers),
-                "type_control": [c.type_control for c in config.p_controllers],
-                "TTcond": [c.TTcond for c in config.p_controllers],
-                "cured_ndivs": [c.cured_ndivs for c in config.p_controllers],
-                "delay": [c.delay for c in config.p_controllers],
-                "gain": [c.gain for c in config.p_controllers],
-                "maxcond": [c.maxcond for c in config.p_controllers],
-                "modopti": [c.modopti for c in config.p_controllers],
-                # "nactu":[c.nactu for c in config.p_controllers],
-                "ndm": [c.ndm for c in config.p_controllers],
-                "nmodes": [c.nmodes for c in config.p_controllers],
-                "nrec": [c.nrec for c in config.p_controllers],
-                "gmin": [c.gmin for c in config.p_controllers],
-                "gmax": [c.gmax for c in config.p_controllers],
-                "ngain": [c.ngain for c in config.p_controllers],
-                # "nvalid":[c.nvalid for c in config.p_controllers],
-                "control.nwfs": [c.nwfs for c in config.p_controllers]
-        }
-    else:
-        control_dict = {
-                "ncontrollers": len(config.p_controllers),
-                "type_control": None,
-                "TTcond": None,
-                "cured_ndivs": None,
-                "delay": None,
-                "gain": None,
-                "maxcond": None,
-                "modopti": None,  # "nactu":None,
-                "ndm": None,
-                "nmodes": None,
-                "nrec": None,  # "nvalid":None,
-                "control.nwfs": None
-        }
-
-    param_dict.update(control_dict)
-
+    for k in param_dict.keys():
+        if type(param_dict[k]) is list:
+            param_dict[k] = [d if d is not None else -10 for d in param_dict[k]]
+        elif param_dict[k] is None:
+            param_dict[k] = -10
     return param_dict
 
 
 def create_file_attributes(filename, param_dict):
-    """
-        Create_file_attributes(filename,config)
-        Create an hdf5 file wtih attributes corresponding to
-        all simulation parameters
+    """ create_file_attributes(filename,config)
+    Create an hdf5 file wtih attributes corresponding to all simulation parameters
 
     :param:
         filename : (str) : full path + filename to create
@@ -236,17 +141,14 @@ def create_file_attributes(filename, param_dict):
     f = h5py.File(filename, "w")
 
     for i in list(param_dict.keys()):
-        if (param_dict[i] is not None):
-            f.attrs.create(i, param_dict[i])
-        else:
-            f.attrs.create(i, -1)
+        f.attrs.create(i, param_dict[i])
     f.attrs.create("validity", False)
     print(filename, "initialized")
     f.close()
 
 
 def init_hdf5_files(savepath, param_dict, matricesToLoad):
-    version = shesha.__version__
+    version = check_output(["git", "rev-parse", "--short", "HEAD"]).decode('utf8')
     # if not(matricesToLoad.has_key("A")):
     if "A" not in matricesToLoad:
         df = pandas.read_hdf(savepath + "matricesDataBase.h5", "A")
@@ -300,29 +202,13 @@ def init_hdf5_files(savepath, param_dict, matricesToLoad):
 
 
 def initDataBase(savepath, param_dict):
-    """
-        Initialize and create the database for all the saved matrices. This database
-        will be placed on the top of the savepath and be named matricesDataBase.h5.
+    """ Initialize and create the database for all the saved matrices. This database
+    will be placed on the top of the savepath and be named matricesDataBase.h5.
 
     :parameters:
         savepath : (str) : path to the data repertory
         param_dict : (dictionary) : parameters dictionary
     """
-    #    keys = ["revision","simulname","niter","ittime","zenithangle",
-    #            "pupdiam","tel_diam","cobs","r0","nscreens","frac","atm.alt",
-    #            "windspeed","winddir","L0","seeds","ntargets","target.xpos",
-    #            "target.ypos","target.Lambda","target.mag","target.dms_seen",
-    #            "nwfs","type_wfs","nxsub","npix","pixsize","fracsub","wfs.xpos",
-    #            "wfs.ypos","wfs.Lambda","gsmag","optthroughput","zerop","noise",
-    #            "atmos_seen","dms_seen","beamsize","fssize","fstop","gsalt",
-    #            "laserpower","lgsreturnperwatt","lltx","llty","openloop","proftype",
-    #            "pyr_ampl","pyr_loc","pyr_npts","pyrtype","ndms","type_dm","dm.alt",
-    #            "coupling","hyst","margin","nact","nkl","pupoffset","push4imat",
-    #            "dm.thresh","unitpervolt","ncentroiders","type_centro","nmax",
-    #            "centro.nwfs","sizex","sizey","centroider.thresh","type_fct",
-    #            "weights","width","ncontrollers","type_control","TTcond",
-    #            "cured_ndivs","delay","gain","maxcond","modopti","nactu","ndm",
-    #            "nmodes","nrec","nvalid","control.nwfs","path2file"]
     keys = list(param_dict.keys())
     keys.append("path2file")
     keys.append("validity")
@@ -343,15 +229,14 @@ def initDataBase(savepath, param_dict):
 
 
 def updateDataBase(h5file, savepath, matrix_type):
-    """
-        Update the database adding a new row to the matrix_type database.
+    """ Update the database adding a new row to the matrix_type database.
 
     :parameters:
         h5file : (str) : path to the new h5 file to add
         savepath : (str) : path to the data directory
-        matrix_type : (str) : type of matrix to store
-            ("A","B","istx","isty", "istx","eigenv","imat",
-            "U", "pztok" or "pztnok")
+        matrix_type : (str) : type of matrix to store ("A","B","istx","isty"
+                                                         "istx","eigenv","imat","U"
+                                                         "pztok" or "pztnok")
     """
     if (matrix_type == b"A" or matrix_type == b"B" or matrix_type == b"istx" or
                 matrix_type == b"isty" or matrix_type == b"eigenv" or
@@ -373,9 +258,8 @@ def updateDataBase(h5file, savepath, matrix_type):
 
 
 def save_hdf5(filename, dataname, data):
-    """
-        save_hdf5(filename, dataname, data)
-        Create a dataset in an existing hdf5 file filename and store data in it
+    """ save_hdf5(filename, dataname, data)
+    Create a dataset in an existing hdf5 file filename and store data in it
 
     :param:
         filename: (str) : full path to the file
@@ -388,10 +272,9 @@ def save_hdf5(filename, dataname, data):
 
 
 def save_h5(filename, dataname, config, data):
-    """
-        save_h5(filename, dataname, config, data)
-        Create a hdf5 file and store data in it with full header from config parameters
-        Usefull to backtrace data origins
+    """ save_hdf5(filename, dataname, config, data)
+    Create a hdf5 file and store data in it with full header from config parameters
+    Usefull to backtrace data origins
 
     :param:
         filename: (str) : full path to the file
@@ -406,12 +289,11 @@ def save_h5(filename, dataname, config, data):
 
 
 def checkMatricesDataBase(savepath, config, param_dict):
-    """
-        Check in the database if the current config have been already run. If so,
-        return a dictionary containing the matrices to load and their path. Matrices
-        which don't appear in the dictionary will be computed, stored and added
-        to the database during the simulation.
-        If the database doesn't exist, this function creates it.
+    """ Check in the database if the current config have been already run. If so,
+    return a dictionary containing the matrices to load and their path. Matrices
+    which don't appear in the dictionary will be computed, stored and added
+    to the database during the simulation.
+    If the database doesn't exist, this function creates it.
 
     :parameters:
         savepath : (str) : path to the data repertory
@@ -436,11 +318,10 @@ def checkMatricesDataBase(savepath, config, param_dict):
 
 
 def checkTurbuParams(savepath, config, pdict, matricesToLoad):
-    """
-        Compare the current turbulence parameters to the database. If similar parameters
-        are found, the matricesToLoad dictionary is completed.
-        Since all the turbulence matrices are computed together, we only check the parameters
-        for the A matrix : if we load A, we load B, istx and isty too.
+    """ Compare the current turbulence parameters to the database. If similar parameters
+    are found, the matricesToLoad dictionary is completed.
+    Since all the turbulence matrices are computed together, we only check the parameters
+    for the A matrix : if we load A, we load B, istx and isty too.
 
     :parameters:
         config : (module) : simulation parameters
@@ -454,7 +335,7 @@ def checkTurbuParams(savepath, config, pdict, matricesToLoad):
 
     for i in dataBase.index:
         cc = 0
-        version = shesha.__version__
+        version = check_output(["git", "rev-parse", "--short", "HEAD"]).decode('utf8')
         if (dataBase.loc[i, "validity"] and (dataBase.loc[i, "revision"] == version)):
             cond = ((dataBase.loc[i, param2test[cc]] == pdict[param2test[cc]]).all())
             while (cond):
@@ -464,11 +345,16 @@ def checkTurbuParams(savepath, config, pdict, matricesToLoad):
                     cond = ((dataBase.loc[i, param2test[cc]] == pdict[param2test[cc]]
                              ).all())
                     cc += 1
-
+            # For debug
+            #############################
+            # if not cond:
+            #    cc -= 1
+            #    print(param2test[cc]+" has changed from ",dataBase.loc[i,param2test[cc]], " to ",pdict[param2test[cc]])
+            ###############################
         else:
             cond = False
 
-        if cond:
+        if (cond):
             matricesToLoad["index_turbu"] = i
             matricesToLoad["A"] = dataBase.loc[i, "path2file"]
             dataBase = pandas.read_hdf(savepath + "matricesDataBase.h5", "B")
@@ -481,11 +367,10 @@ def checkTurbuParams(savepath, config, pdict, matricesToLoad):
 
 
 def checkControlParams(savepath, config, pdict, matricesToLoad):
-    """
-        Compare the current controller parameters to the database. If similar parameters
-        are found, matricesToLoad dictionary is completed.
-        Since all the controller matrices are computed together, we only check the parameters
-        for the imat matrix : if we load imat, we load eigenv and U too.
+    """ Compare the current controller parameters to the database. If similar parameters
+    are found, matricesToLoad dictionary is completed.
+    Since all the controller matrices are computed together, we only check the parameters
+    for the imat matrix : if we load imat, we load eigenv and U too.
 
     :parameters:
         config : (module) : simulation parameters
@@ -498,10 +383,11 @@ def checkControlParams(savepath, config, pdict, matricesToLoad):
             "std_tt", "type_ap", "nbrmissing", "cobs", "pupdiam", "nwfs", "type_wfs",
             "nxsub", "npix", "pixsize", "fracsub", "wfs.xpos", "wfs.ypos", "wfs.Lambda",
             "dms_seen", "fssize", "fstop", "pyr_ampl", "pyr_loc", "pyr_npts",
-            "pyr_pup_sep", "pyrtype", "ndms", "type_dm", "dm.alt", "coupling", "hyst",
-            "margin", "nact", "nkl", "kl_type", "push4imat", "dm.thresh", "unitpervolt",
-            "ncentroiders", "type_centro", "nmax", "centro.nwfs", "sizex", "sizey",
-            "centroider.thresh", "type_fct", "weights", "width"
+            "pyr_pup_sep", "pyrtype", "ndms", "type_dm", "dm.alt", "coupling",
+            "margin_in", "margin_out", "nact", "nkl", "type_kl", "push4imat",
+            "dm.thresh", "unitpervolt", "ncentroiders", "type_centro", "nmax",
+            "centro.nwfs", "sizex", "sizey", "centroider.thresh", "type_fct", "weights",
+            "width"
     ]
 
     for i in dataBase.index:
@@ -516,6 +402,12 @@ def checkControlParams(savepath, config, pdict, matricesToLoad):
                     cond = ((dataBase.loc[i, param2test[cc]] == pdict[param2test[cc]]
                              ).all())
                     cc += 1
+            # For debug
+            #############################
+            # if not cond:
+            #    cc -= 1
+            #    print(param2test[cc]+" has changed from ",dataBase.loc[i,param2test[cc]], " to ",pdict[param2test[cc]])
+            ###############################
         else:
             cond = False
 
@@ -530,11 +422,10 @@ def checkControlParams(savepath, config, pdict, matricesToLoad):
 
 
 def checkDmsParams(savepath, config, pdict, matricesToLoad):
-    """
-        Compare the current controller parameters to the database. If similar parameters
-        are found, matricesToLoad dictionary is completed.
-        Since all the dms matrices are computed together, we only check the parameters
-        for the pztok matrix : if we load pztok, we load pztnok too.
+    """ Compare the current controller parameters to the database. If similar parameters
+    are found, matricesToLoad dictionary is completed.
+    Since all the dms matrices are computed together, we only check the parameters
+    for the pztok matrix : if we load pztok, we load pztnok too.
 
     :parameters:
         config : (module) : simulation parameters
@@ -547,13 +438,14 @@ def checkDmsParams(savepath, config, pdict, matricesToLoad):
             "std_tt", "type_ap", "nbrmissing", "cobs", "pupdiam", "nwfs", "type_wfs",
             "nxsub", "npix", "pixsize", "fracsub", "wfs.xpos", "wfs.ypos", "wfs.Lambda",
             "dms_seen", "fssize", "fstop", "pyr_ampl", "pyr_loc", "pyr_npts", "pyrtype",
-            "pyr_pup_sep", "ndms", "type_dm", "dm.alt", "coupling", "hyst", "margin",
-            "nkl", "nact", "kl_type", "push4imat", "dm.thresh", "unitpervolt"
+            "pyr_pup_sep", "ndms", "type_dm", "dm.alt", "coupling", "margin_in",
+            "margin_out", "nkl", "nact", "type_kl", "push4imat", "dm.thresh",
+            "unitpervolt"
     ]
 
     for i in dataBase.index:
         cc = 0
-        version = shesha.__version__
+        version = check_output(["git", "rev-parse", "--short", "HEAD"]).decode('utf8')
         if (dataBase.loc[i, "validity"] and (dataBase.loc[i, "revision"] == version)):
             cond = ((dataBase.loc[i, param2test[cc]] == pdict[param2test[cc]]).all())
             while (cond):
@@ -563,6 +455,12 @@ def checkDmsParams(savepath, config, pdict, matricesToLoad):
                     cond = ((dataBase.loc[i, param2test[cc]] == pdict[param2test[cc]]
                              ).all())
                     cc += 1
+            # For debug
+            #############################
+            # if not cond:
+            #    cc -= 1
+            #    print((param2test[cc]+" has changed from ",dataBase.loc[i,param2test[cc]], " to ",pdict[param2test[cc]]))
+            ###############################
         else:
             cond = False
 
@@ -607,9 +505,8 @@ def validInStore(store, savepath, matricetype):
     validFile(df.loc[ind, "path2file"])
 
 
-'''
 def configFromH5(filename, config):
-    import shesha as ao
+    #import shesha as ao
 
     f = h5py.File(filename, "r")
 
@@ -684,8 +581,7 @@ def configFromH5(filename, config):
         config.p_wfss[i].set_lltx(f.attrs.get("lltx")[i])
         config.p_wfss[i].set_llty(f.attrs.get("llty")[i])
         config.p_wfss[i].set_laserpower(f.attrs.get("laserpower")[i])
-        config.p_wfss[i].set_lgsreturnperwatt(
-                f.attrs.get("lgsreturnperwatt")[i])
+        config.p_wfss[i].set_lgsreturnperwatt(f.attrs.get("lgsreturnperwatt")[i])
         config.p_wfss[i].set_proftype(str(f.attrs.get("proftype")[i]))
         config.p_wfss[i].set_beamsize(f.attrs.get("beamsize")[i])
 
@@ -708,13 +604,10 @@ def configFromH5(filename, config):
         for i in range(f.attrs.get("ncentroiders")):
             config.p_centroiders.append(ao.Param_centroider())
             config.p_centroiders[i].set_nwfs(f.attrs.get("centro.nwfs")[i])
-            config.p_centroiders[i].set_type(
-                    str(f.attrs.get("type_centro")[i]))
-            config.p_centroiders[i].set_type_fct(
-                    str(f.attrs.get("type_fct")[i]))
+            config.p_centroiders[i].set_type(str(f.attrs.get("type_centro")[i]))
+            config.p_centroiders[i].set_type_fct(str(f.attrs.get("type_fct")[i]))
             config.p_centroiders[i].set_nmax(f.attrs.get("nmax")[i])
-            config.p_centroiders[i].set_thresh(
-                    f.attrs.get("centroider.thresh")[i])
+            config.p_centroiders[i].set_thresh(f.attrs.get("centroider.thresh")[i])
             if (f.attrs.get("weights")[i]):
                 config.p_centroiders[i].set_weights(f.attrs.get("weights")[i])
             config.p_centroiders[i].set_width(f.attrs.get("width")[i])
@@ -725,8 +618,7 @@ def configFromH5(filename, config):
     if (f.attrs.get("ncontrollers")):
         for i in range(f.attrs.get("ncontrollers")):
             config.p_controllers.append(ao.Param_controller())
-            config.p_controllers[i].set_type(
-                    str(f.attrs.get("type_control")[i]))
+            config.p_controllers[i].set_type(str(f.attrs.get("type_control")[i]))
             config.p_controllers[i].set_nwfs(f.attrs.get("control.nwfs")[i])
             config.p_controllers[i].set_ndm(f.attrs.get("ndm")[i])
             config.p_controllers[i].set_maxcond(f.attrs.get("maxcond")[i])
@@ -739,21 +631,18 @@ def configFromH5(filename, config):
             config.p_controllers[i].set_gmax(f.attrs.get("gmax")[i])
             config.p_controllers[i].set_ngain(f.attrs.get("ngain")[i])
             config.p_controllers[i].set_TTcond(f.attrs.get("TTcond")[i])
-            config.p_controllers[i].set_cured_ndivs(
-                    f.attrs.get("cured_ndivs")[i])
+            config.p_controllers[i].set_cured_ndivs(f.attrs.get("cured_ndivs")[i])
         config.p_rtc.set_controllers(config.p_controllers)
 
     config.p_rtc.set_nwfs(f.attrs.get("nwfs"))
 
     print("Parameters have been read from ", filename, "header")
-'''
 
 
 def writeHdf5SingleDataset(filename, data, datasetName="dataset"):
-    """
-        Write a hdf5 file containig a single field
+    """Write a hdf5 file containig a single field
 
-        If the file already exists, it will be overwritten
+    If the file already exists, it will be overwritten
     :parametres:
         filename: (str) : name of the file to write
 
@@ -768,8 +657,7 @@ def writeHdf5SingleDataset(filename, data, datasetName="dataset"):
 
 
 def readHdf5SingleDataset(filename, datasetName="dataset"):
-    """
-        Read a single dataset from an hdf5 file
+    """Read a single dataset from an hdf5 file
 
     :parameters:
         filename: (str) : name of the file to read from

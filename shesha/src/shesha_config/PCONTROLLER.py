@@ -244,7 +244,7 @@ class Param_controller:
                                                        self.nactu.sum()),
                                                 dtype=np.float32)
 
-    imat = property(lambda x: x.__imat, set_imat)
+    _imat = property(lambda x: x.__imat, set_imat)
 
     def set_cmat(self, cmat):
         """Set the full control matrix
@@ -255,4 +255,4 @@ class Param_controller:
                                                        2 * self.nvalid.sum()),
                                                 dtype=np.float32)
 
-    cmat = property(lambda x: x.__cmat, set_cmat)
+    _cmat = property(lambda x: x.__cmat, set_cmat)

@@ -429,7 +429,7 @@ def init_controller_mv(i: int, p_controller: conf.Param_controller, p_wfss: list
         wfs: (Sensors) : Sensors object
         atmos: (Atmos) : Atmos object
     """
-    p_controller.imat = shao.imat_geom(wfs, dms, p_wfss, p_dms, p_controller)
+    p_controller._imat = shao.imat_geom(wfs, dms, p_wfss, p_dms, p_controller)
     # imat_init(i,rtc,p_rtc,dms,wfs,p_wfss,p_tel,clean=1,simul_name=simul_name)
     rtc.set_imat(i, p_controller.imat)
     rtc.set_gain(i, p_controller.gain)

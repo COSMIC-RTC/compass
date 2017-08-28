@@ -147,7 +147,7 @@ class Param_atmos:
         self.__deltax = csu.enforce_array(l, size=self.nscreens, dtype=np.float32,
                                           scalar_expand=True)
 
-    deltax = property(lambda x: x.__deltax, set_deltax)
+    _deltax = property(lambda x: x.__deltax, set_deltax)
 
     def set_deltay(self, l):
         """
@@ -158,7 +158,7 @@ class Param_atmos:
         self.__deltay = csu.enforce_array(l, size=self.nscreens, dtype=np.float32,
                                           scalar_expand=True)
 
-    deltay = property(lambda x: x.__deltay, set_deltay)
+    _deltay = property(lambda x: x.__deltay, set_deltay)
 
     def set_seeds(self, l):
         """

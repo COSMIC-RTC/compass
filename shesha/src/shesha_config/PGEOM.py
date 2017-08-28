@@ -6,6 +6,7 @@ Created on 13 juil. 2017
 @author: vdeo
 '''
 from . import config_setter_utils as csu
+import numpy as np
 
 
 #################################################
@@ -15,7 +16,7 @@ class Param_geom:
 
     def __init__(self):
         """ Private members were initialized yet """
-        self.isInit = False
+        self.__is_init = False
         """linear size of full image (in pixels)."""
         self.__ssize = 0
         """observations zenith angle (in deg)."""
@@ -23,25 +24,85 @@ class Param_geom:
         """boolean for apodizer"""
         self.__apod = False
         """ File to load an apodizer from """
-        self.apodFile = None
+        self.__apod_file = None
         """linear size of total pupil (in pixels)."""
         self.__pupdiam = 0
         """central point of the simulation."""
         self.__cent = 0.
 
         # Internals
-        self._ipupil = None  # total pupil (include full guard band)
-        self._mpupil = None  # medium pupil (part of the guard band)
-        self._spupil = None  # small pupil (without guard band)
-        self._phase_ab_M1 = None  # Phase aberration in the pupil (small size)
+        self.__ipupil = None  # total pupil (include full guard band)
+        self.__mpupil = None  # medium pupil (part of the guard band)
+        self.__spupil = None  # small pupil (without guard band)
+        self.__phase_ab_M1 = None  # Phase aberration in the pupil (small size)
         # Phase aberration in the pupil (medium size)
-        self._phase_ab_M1_m = None
-        self._apodizer = None  # apodizer (same size as small pupil)
-        self._p1 = 0  # min x,y for valid points in mpupil
-        self._p2 = 0  # max x,y for valid points in mpupil
-        self._n = 0  # linear size of mpupil
-        self._n1 = 0  # min x,y for valid points in ipupil
-        self._n2 = 0  # max x,y for valid points in ipupil
+        self.__phase_ab_M1_m = None
+        self.__apodizer = None  # apodizer (same size as small pupil)
+        self.__p1 = 0  # min x,y for valid points in mpupil
+        self.__p2 = 0  # max x,y for valid points in mpupil
+        self.__n = 0  # linear size of mpupil
+        self.__n1 = 0  # min x,y for valid points in ipupil
+        self.__n2 = 0  # max x,y for valid points in ipupil
+
+    def set_is_init(self, i):
+        """set the is_init flag
+
+        :param i: (bool) : is_init flag
+        """
+        self.__is_init = csu.enforce_or_cast_bool(i)
+
+    is_init = property(lambda x: x.__is_init, set_is_init)
+
+    def set_ipupil(self, s):
+        """Set the pupil in the biggest support
+
+         :param s: (np.ndarray[ndim=2, dtype=np.float32]) : pupil """
+        self.__ipupil = csu.enforce_arrayMultiDim(s.copy(), s.shape, dtype=np.float32)
+
+    _ipupil = property(lambda x: x.__ipupil, set_ipupil)
+
+    def set_mpupil(self, s):
+        """Set the pupil in the middle support
+
+         :param s: (np.ndarray[ndim=2, dtype=np.float32]) : pupil """
+        self.__mpupil = csu.enforce_arrayMultiDim(s.copy(), s.shape, dtype=np.float32)
+
+    _mpupil = property(lambda x: x.__mpupil, set_mpupil)
+
+    def set_spupil(self, s):
+        """Set the pupil in the smallest support
+
+         :param s: (np.ndarray[ndim=2, dtype=np.float32]) : pupil """
+        self.__spupil = csu.enforce_arrayMultiDim(s.copy(), s.shape, dtype=np.float32)
+
+    _spupil = property(lambda x: x.__spupil, set_spupil)
+
+    def set_phase_ab_M1(self, s):
+        """Set the phase aberration of the M1 defined in spupil support
+
+         :param s: (np.ndarray[ndim=2, dtype=np.float32]) : phase aberrations """
+        self.__phase_ab_M1 = csu.enforce_arrayMultiDim(s.copy(), self.__spupil.shape,
+                                                       dtype=np.float32)
+
+    _phase_ab_M1 = property(lambda x: x.__phase_ab_M1, set_phase_ab_M1)
+
+    def set_phase_ab_M1_m(self, s):
+        """Set the phase aberration of the M1 defined in mpupil support
+
+         :param s: (np.ndarray[ndim=2, dtype=np.float32]) : phase aberrations """
+        self.__phase_ab_M1_m = csu.enforce_arrayMultiDim(s.copy(), self.__mpupil.shape,
+                                                         dtype=np.float32)
+
+    _phase_ab_M1_m = property(lambda x: x.__phase_ab_M1_m, set_phase_ab_M1_m)
+
+    def set_apodizer(self, s):
+        """Set the apodizer defined in spupil support
+
+         :param s: (np.ndarray[ndim=2, dtype=np.float32]) : apodizer"""
+        self.__apodizer = csu.enforce_arrayMultiDim(s.copy(), self.__spupil.shape,
+                                                    dtype=np.float32)
+
+    _apodizer = property(lambda x: x.__apodizer, set_apodizer)
 
     def set_ssize(self, s):
         """Set linear size of full image
@@ -50,6 +111,46 @@ class Param_geom:
         self.__ssize = csu.enforce_int(s)
 
     ssize = property(lambda x: x.__ssize, set_ssize)
+
+    def set_n(self, s):
+        """Set the linear size of mpupil
+
+         :param s: (long) : coordinate (same in x and y) [pixel]"""
+        self.__n = csu.enforce_int(s)
+
+    _n = property(lambda x: x.__n, set_n)
+
+    def set_n1(self, s):
+        """Set the bottom-left corner coordinates of the pupil in the ipupil support
+
+         :param s: (long) : coordinate (same in x and y) [pixel]"""
+        self.__n1 = csu.enforce_int(s)
+
+    _n1 = property(lambda x: x.__n1, set_n1)
+
+    def set_n2(self, s):
+        """Set the upper-right corner coordinates of the pupil in the ipupil support
+
+         :param s: (long) : coordinate (same in x and y) [pixel]"""
+        self.__n2 = csu.enforce_int(s)
+
+    _n2 = property(lambda x: x.__n2, set_n2)
+
+    def set_p2(self, s):
+        """Set the upper-right corner coordinates of the pupil in the mpupil support
+
+         :param s: (long) : coordinate (same in x and y) [pixel]"""
+        self.__p2 = csu.enforce_int(s)
+
+    _p2 = property(lambda x: x.__p2, set_p2)
+
+    def set_p1(self, s):
+        """Set the bottom-left corner coordinates of the pupil in the mpupil support
+
+         :param s: (long) : coordinate (same in x and y) [pixel]"""
+        self.__p1 = csu.enforce_int(s)
+
+    _p1 = property(lambda x: x.__p1, set_p1)
 
     def set_zenithangle(self, z):
         """Set observations zenith angle
@@ -85,40 +186,11 @@ class Param_geom:
 
     apod = property(lambda x: x.__apod, set_apod)
 
-    def get_ipupil(self):
-        """return the full pupil support"""
-        if self._ipupil is None:
-            raise ValueError("Geometry is unintialized and ipupil is None")
-        return self._ipupil
+    def set_apod_file(self, f):
+        """set the path of apodizer file
 
-    def get_mpupil(self):
-        """return the padded pupil"""
-        if self._mpupil is None:
-            raise ValueError("Geometry is unintialized and ipupil is None")
-        return self._mpupil
+        :param filename: (str) : apodizer file name
+        """
+        self.__apod_file = f
 
-    def get_spupil(self):
-        """return the small pupil"""
-        if self._spupil is None:
-            raise ValueError("Geometry is unintialized and ipupil is None")
-        return self._spupil
-
-    def get_n(self):
-        """Return the linear size of the medium pupil"""
-        return self._n
-
-    def get_n1(self):
-        """Return the min(x,y) for valid points for the total pupil"""
-        return self._n1
-
-    def get_n2(self):
-        """Return the max(x,y) for valid points for the total pupil"""
-        return self._n2
-
-    def get_p1(self):
-        """Return the min(x,y) for valid points for the medium pupil"""
-        return self._p1
-
-    def get_p2(self):
-        """Return the max(x,y) for valid points for the medium pupil"""
-        return self._p2
+    apod_file = property(lambda x: x.__apod_file, set_apod_file)

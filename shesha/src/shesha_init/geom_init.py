@@ -111,7 +111,7 @@ def init_wfs_geom(p_wfs: conf.Param_wfs, r0: float, p_tel: conf.Param_tel,
 
     init_wfs_size(p_wfs, r0, p_tel, verbose)
 
-    if not p_geom.isInit:
+    if not p_geom.is_init:
         # this is the wfs with largest # of subaps
         # the overall geometry is deduced from it
         if not p_geom.pupdiam:
@@ -746,4 +746,4 @@ def geom_init(p_geom: conf.Param_geom, p_tel: conf.Param_tel, padding=2):
     """
     p_geom._apodizer = np.ones(p_geom._spupil.shape, dtype=np.int32)
 
-    p_geom.isInit = True
+    p_geom.is_init = True

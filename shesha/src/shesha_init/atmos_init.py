@@ -22,7 +22,7 @@ def atmos_init(context: naga_context, p_atmos: conf.Param_atmos, p_tel: conf.Par
     """
         TODO: docstring
     """
-    if not p_geom.isInit:
+    if not p_geom.is_init:
         raise RuntimeError("Cannot init atmosphere with uninitialized p_geom.")
 
     # Deleted naga_context : get the singleton
@@ -58,8 +58,8 @@ def atmos_init(context: naga_context, p_atmos: conf.Param_atmos, p_tel: conf.Par
     # Phase screen speeds
     lin_delta = p_geom.pupdiam / p_tel.diam * p_atmos.windspeed * \
         np.cos(CONST.DEG2RAD * p_geom.zenithangle) * ittime
-    p_atmos.deltax = -lin_delta * np.sin(CONST.DEG2RAD * p_atmos.winddir)
-    p_atmos.deltay = -lin_delta * np.cos(CONST.DEG2RAD * p_atmos.winddir)
+    p_atmos._deltax = -lin_delta * np.sin(CONST.DEG2RAD * p_atmos.winddir)
+    p_atmos._deltay = -lin_delta * np.cos(CONST.DEG2RAD * p_atmos.winddir)
 
     # Fraction normalization
     p_atmos.frac /= np.sum(p_atmos.frac)
@@ -74,4 +74,4 @@ def atmos_init(context: naga_context, p_atmos: conf.Param_atmos, p_tel: conf.Par
 
     return Atmos(context, p_atmos.nscreens, p_atmos.r0, L0_pix, p_atmos.pupixsize,
                  p_atmos.dim_screens, p_atmos.frac, p_atmos.alt, p_atmos.windspeed,
-                 p_atmos.winddir, p_atmos.deltax, p_atmos.deltay, p_atmos.seeds, 0)
+                 p_atmos.winddir, p_atmos._deltax, p_atmos._deltay, p_atmos.seeds, 0)
