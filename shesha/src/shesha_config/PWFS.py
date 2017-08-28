@@ -467,8 +467,7 @@ class Param_wfs:
 
         :param cx: (np.ndarray[ndim=1,dtype=np.floatt32_t) : x positions
         """
-        self.__pyr_cx = csu.enforce_array(
-                cx.copy(), self.__pyr_npts, dtype=np.float32)
+        self.__pyr_cx = csu.enforce_array(cx.copy(), self.__pyr_npts, dtype=np.float32)
 
     _pyr_cx = property(lambda x: x.__pyr_cx, set_pyr_cx)
 
@@ -477,8 +476,7 @@ class Param_wfs:
 
         :param cy: (np.ndarray[ndim=1,dtype=np.floatt32_t) : y positions
         """
-        self.__pyr_cy = csu.enforce_array(
-                cy.copy(), self.__pyr_npts, dtype=np.float32)
+        self.__pyr_cy = csu.enforce_array(cy.copy(), self.__pyr_npts, dtype=np.float32)
 
     _pyr_cy = property(lambda x: x.__pyr_cy, set_pyr_cy)
 
@@ -487,8 +485,8 @@ class Param_wfs:
 
         :param dms_seen: (np.ndarray[ndim=1,dtype=np.int32_t) : index of dms seen by the WFS
         """
-        self.__dms_seen = csu.enforce_array(
-                dms_seen.copy(), dms_seen.size, dtype=np.int32)
+        self.__dms_seen = csu.enforce_array(dms_seen.copy(), dms_seen.size,
+                                            dtype=np.int32)
 
     dms_seen = property(lambda x: x.__dms_seen, set_dms_seen)
 
@@ -499,8 +497,7 @@ class Param_wfs:
         """
         self.__lgsreturnperwatt = csu.enforce_float(lpw)
 
-    lgsreturnperwatt = property(
-            lambda x: x.__lgsreturnperwatt, set_lgsreturnperwatt)
+    lgsreturnperwatt = property(lambda x: x.__lgsreturnperwatt, set_lgsreturnperwatt)
 
     def set_altna(self, a):
         """Set the corresponding altitude
@@ -554,11 +551,9 @@ class Param_wfs:
         :param vx: (np.array(dim=1, dtype=np.int32)) : validsubsx
         """
         if self.__type_wfs == scons.WFSType.PYRHR:
-            self.__validsubsx = csu.enforce_array(
-                    vx, 4 * self.__nvalid, dtype=np.int32)
+            self.__validsubsx = csu.enforce_array(vx, 4 * self.__nvalid, dtype=np.int32)
         else:
-            self.__validsubsx = csu.enforce_array(
-                    vx, self.__nvalid, dtype=np.int32)
+            self.__validsubsx = csu.enforce_array(vx, self.__nvalid, dtype=np.int32)
 
     _validsubsx = property(lambda x: x.__validsubsx, set_validsubsx)
 
@@ -568,11 +563,9 @@ class Param_wfs:
         :param vy: (np.array(dim=1, dtype=np.int32)) : validsubsy
         """
         if self.__type_wfs == scons.WFSType.PYRHR:
-            self.__validsubsy = csu.enforce_array(
-                    vy, 4 * self.__nvalid, dtype=np.int32)
+            self.__validsubsy = csu.enforce_array(vy, 4 * self.__nvalid, dtype=np.int32)
         else:
-            self.__validsubsy = csu.enforce_array(
-                    vy, self.__nvalid, dtype=np.int32)
+            self.__validsubsy = csu.enforce_array(vy, self.__nvalid, dtype=np.int32)
 
     _validsubsy = property(lambda x: x.__validsubsy, set_validsubsy)
 
@@ -652,148 +645,142 @@ class Param_wfs:
         :param data: (np.array(ndim=2, dtype=np.float32)) : subap diameter (m)
         """
         if self.__type_wfs == scons.WFSType.PYRHR:
-            self.__fluxPerSub = csu.enforce_arrayMultiDim(
-                    data.copy(), (self.__nxsub + 2, self.__nxsub + 2),
-                    dtype=np.float32)
+            self.__fluxPerSub = csu.enforce_arrayMultiDim(data.copy(),
+                                                          (self.__nxsub + 2,
+                                                           self.__nxsub + 2),
+                                                          dtype=np.float32)
         else:
-            self.__fluxPerSub = csu.enforce_arrayMultiDim(
-                    data.copy(), (self.__nxsub, self.__nxsub),
-                    dtype=np.float32)
+            self.__fluxPerSub = csu.enforce_arrayMultiDim(data.copy(), (self.__nxsub,
+                                                                        self.__nxsub),
+                                                          dtype=np.float32)
 
     _fluxPerSub = property(lambda x: x.__fluxPerSub, set_fluxPerSub)
 
     def set_ftkernel(self, data):
         """TODO : docstring
         """
-        self.__ftkernel = csu.enforce_arrayMultiDim(
-                data.copy(), data.shape, dtype=np.complex64)
+        self.__ftkernel = csu.enforce_arrayMultiDim(data.copy(), data.shape,
+                                                    dtype=np.complex64)
 
     _ftkernel = property(lambda x: x.__ftkernel, set_ftkernel)
 
     def set_sincar(self, data):
         """TODO : docstring
         """
-        self.__sincar = csu.enforce_arrayMultiDim(
-                data.copy(), data.shape, dtype=np.float32)
+        self.__sincar = csu.enforce_arrayMultiDim(data.copy(), data.shape,
+                                                  dtype=np.float32)
 
     _sincar = property(lambda x: x.__sincar, set_sincar)
 
     def set_halfxy(self, data):
         """TODO : docstring
         """
-        self.__halfxy = csu.enforce_arrayMultiDim(
-                data.copy(), data.shape, dtype=np.float32)
+        self.__halfxy = csu.enforce_arrayMultiDim(data.copy(), data.shape,
+                                                  dtype=np.float32)
 
     _halfxy = property(lambda x: x.__halfxy, set_halfxy)
 
     def set_submask(self, data):
         """TODO : docstring
         """
-        self.__submask = csu.enforce_arrayMultiDim(
-                data.copy(), data.shape, dtype=np.float32)
+        self.__submask = csu.enforce_arrayMultiDim(data.copy(), data.shape,
+                                                   dtype=np.float32)
 
     _submask = property(lambda x: x.__submask, set_submask)
 
     def set_lgskern(self, data):
         """TODO : docstring
         """
-        self.__lgskern = csu.enforce_arrayMultiDim(
-                data.copy(), data.shape, dtype=np.float32)
+        self.__lgskern = csu.enforce_arrayMultiDim(data.copy(), data.shape,
+                                                   dtype=np.float32)
 
     _lgskern = property(lambda x: x.__lgskern, set_lgskern)
 
     def set_azimuth(self, data):
         """TODO : docstring
         """
-        self.__azimuth = csu.enforce_arrayMultiDim(
-                data.copy(), data.shape, dtype=np.float32)
+        self.__azimuth = csu.enforce_arrayMultiDim(data.copy(), data.shape,
+                                                   dtype=np.float32)
 
     _azimuth = property(lambda x: x.__azimuth, set_azimuth)
 
     def set_prof1d(self, data):
         """TODO : docstring
         """
-        self.__prof1d = csu.enforce_arrayMultiDim(
-                data.copy(), data.shape, dtype=np.float32)
+        self.__prof1d = csu.enforce_arrayMultiDim(data.copy(), data.shape,
+                                                  dtype=np.float32)
 
     _prof1d = property(lambda x: x.__prof1d, set_prof1d)
 
     def set_profcum(self, data):
         """TODO : docstring
         """
-        self.__profcum = csu.enforce_array(
-                data.copy(), data.size, dtype=np.float32)
+        self.__profcum = csu.enforce_array(data.copy(), data.size, dtype=np.float32)
 
     _profcum = property(lambda x: x.__profcum, set_profcum)
 
     def set_beam(self, data):
         """TODO : docstring
         """
-        self.__beam = csu.enforce_array(
-                data.copy(), data.size, dtype=np.float32)
+        self.__beam = csu.enforce_array(data.copy(), data.size, dtype=np.float32)
 
     _beam = property(lambda x: x.__beam, set_beam)
 
     def set_ftbeam(self, data):
         """TODO : docstring
         """
-        self.__ftbeam = csu.enforce_array(
-                data.copy(), data.size, dtype=np.complex64)
+        self.__ftbeam = csu.enforce_array(data.copy(), data.size, dtype=np.complex64)
 
     _ftbeam = property(lambda x: x.__ftbeam, set_ftbeam)
 
     def set_hrmap(self, data):
         """TODO : docstring
         """
-        self.__hrmap = csu.enforce_arrayMultiDim(
-                data.copy(), data.shape, dtype=np.int32)
+        self.__hrmap = csu.enforce_arrayMultiDim(data.copy(), data.shape, dtype=np.int32)
 
     _hrmap = property(lambda x: x.__hrmap, set_hrmap)
 
     def set_binmap(self, data):
         """TODO : docstring
         """
-        self.__binmap = csu.enforce_arrayMultiDim(
-                data.copy(), data.shape, dtype=np.int32)
+        self.__binmap = csu.enforce_arrayMultiDim(data.copy(), data.shape,
+                                                  dtype=np.int32)
 
     _binmap = property(lambda x: x.__binmap, set_binmap)
 
     def set_phasemap(self, data):
         """TODO : docstring
         """
-        self.__phasemap = csu.enforce_arrayMultiDim(
-                data.copy(), data.shape, dtype=np.int32)
+        self.__phasemap = csu.enforce_arrayMultiDim(data.copy(), data.shape,
+                                                    dtype=np.int32)
 
     _phasemap = property(lambda x: x.__phasemap, set_phasemap)
 
     def set_istart(self, data):
         """TODO : docstring
         """
-        self.__istart = csu.enforce_array(
-                data.copy(), data.size, dtype=np.int32)
+        self.__istart = csu.enforce_array(data.copy(), data.size, dtype=np.int32)
 
     _istart = property(lambda x: x.__istart, set_istart)
 
     def set_jstart(self, data):
         """TODO : docstring
         """
-        self.__jstart = csu.enforce_array(
-                data.copy(), data.size, dtype=np.int32)
+        self.__jstart = csu.enforce_array(data.copy(), data.size, dtype=np.int32)
 
     _jstart = property(lambda x: x.__jstart, set_jstart)
 
     def set_isvalid(self, data):
         """TODO : docstring
         """
-        self.__isvalid = csu.enforce_arrayMultiDim(
-                data.copy(), data.shape, dtype=np.int32)
+        self.__isvalid = csu.enforce_arrayMultiDim(data.copy(), data.shape,
+                                                   dtype=np.int32)
 
     _isvalid = property(lambda x: x.__isvalid, set_isvalid)
 
     def set_pyr_pos(self, data):
         """TODO : docstring
         """
-        self.__pyr_pos = csu.enforce_array(
-                data.copy(), data.size, dtype=np.complex64)
+        self.__pyr_pos = csu.enforce_array(data.copy(), data.size, dtype=np.complex64)
 
     pyr_pos = property(lambda x: x.__pyr_pos, set_pyr_pos)

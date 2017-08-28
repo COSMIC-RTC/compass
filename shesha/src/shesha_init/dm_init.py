@@ -24,12 +24,8 @@ from Sensors import Sensors
 from typing import List
 
 
-def dm_init(
-        context: naga_context,
-        p_dms: List[conf.Param_dm],
-        p_tel: conf.Param_tel,
-        p_geom: conf.Param_geom,
-        p_wfss: List[conf.Param_wfs]=None) -> Dms:
+def dm_init(context: naga_context, p_dms: List[conf.Param_dm], p_tel: conf.Param_tel,
+            p_geom: conf.Param_geom, p_wfss: List[conf.Param_wfs]=None) -> Dms:
     """Create and initialize a Dms object on the gpu
 
     :parameters:
@@ -51,22 +47,14 @@ def dm_init(
         for i in range(len(p_dms)):
             # max_extent
             #_dm_init(dms, p_dms[i], p_wfss, p_geom, p_tel, & max_extent)
-            _dm_init(
-                    dms, p_dms[i], xpos_wfs, ypos_wfs, p_geom, p_tel.diam,
-                    p_tel.cobs, max_extent)
+            _dm_init(dms, p_dms[i], xpos_wfs, ypos_wfs, p_geom, p_tel.diam, p_tel.cobs,
+                     max_extent)
 
     return dms
 
 
-def _dm_init(
-        dms: Dms,
-        p_dm: conf.Param_dm,
-        xpos_wfs: list,
-        ypos_wfs: list,
-        p_geom: conf.Param_geom,
-        diam: float,
-        cobs: float,
-        max_extent: list):
+def _dm_init(dms: Dms, p_dm: conf.Param_dm, xpos_wfs: list, ypos_wfs: list,
+             p_geom: conf.Param_geom, diam: float, cobs: float, max_extent: list):
     """ inits a Dms object on the gpu
 
     :parameters:
@@ -92,16 +80,16 @@ def _dm_init(
         p_dm._puppixoffset = p_dm.pupoffset / diam * p_geom.pupdiam
 
     # For patchDiam
-    patchDiam = dm_util.dim_dm_patch(
-            p_geom.pupdiam, diam, p_dm.type_dm, p_dm.alt, xpos_wfs, ypos_wfs)
+    patchDiam = dm_util.dim_dm_patch(p_geom.pupdiam, diam, p_dm.type_dm, p_dm.alt,
+                                     xpos_wfs, ypos_wfs)
 
     if (p_dm.type_dm == scons.DmType.PZT):
         if p_dm.file_influ_hdf5 == None:
             p_dm._pitch = patchDiam / float(p_dm.nact - 1)
             # + 2.5 pitch each side
             extent = p_dm._pitch * (p_dm.nact + p_dm.pzt_extent)
-            p_dm._n1, p_dm._n2 = dm_util.dim_dm_support(
-                    p_geom.cent, extent, p_geom.ssize)
+            p_dm._n1, p_dm._n2 = dm_util.dim_dm_support(p_geom.cent, extent,
+                                                        p_geom.ssize)
 
             # calcul defaut influsize
             make_pzt_dm(p_dm, p_geom, cobs)
@@ -115,13 +103,11 @@ def _dm_init(
         ninflupos = p_dm._influpos.size
         n_npts = p_dm._ninflu.size
 
-        dms.add_dm(
-                p_dm.type_dm, p_dm.alt, dim, p_dm._ntotact, p_dm._influsize,
-                ninflupos, n_npts, p_dm.push4imat)
-        dms.load_pzt(
-                p_dm.alt, p_dm._influ,
-                p_dm._influpos.astype(np.int32), p_dm._ninflu,
-                p_dm._influstart, p_dm._i1, p_dm._j1)
+        dms.add_dm(p_dm.type_dm, p_dm.alt, dim, p_dm._ntotact, p_dm._influsize,
+                   ninflupos, n_npts, p_dm.push4imat)
+        dms.load_pzt(p_dm.alt, p_dm._influ,
+                     p_dm._influpos.astype(np.int32), p_dm._ninflu, p_dm._influstart,
+                     p_dm._i1, p_dm._j1)
 
     elif (p_dm.type_dm == scons.DmType.TT):
 
@@ -131,8 +117,7 @@ def _dm_init(
                 extent += 1
         else:
             extent = p_geom.pupdiam + 16
-        p_dm._n1, p_dm._n2 = dm_util.dim_dm_support(
-                p_geom.cent, extent, p_geom.ssize)
+        p_dm._n1, p_dm._n2 = dm_util.dim_dm_support(p_geom.cent, extent, p_geom.ssize)
         # max_extent
         max_extent[0] = max(max_extent[0], p_dm._n2 - p_dm._n1 + 1)
 
@@ -144,8 +129,7 @@ def _dm_init(
     elif (p_dm.type_dm == scons.DmType.KL):
 
         extent = p_geom.pupdiam + 16
-        p_dm._n1, p_dm._n2 = dm_util.dim_dm_support(
-                p_geom.cent, extent, p_geom.ssize)
+        p_dm._n1, p_dm._n2 = dm_util.dim_dm_support(p_geom.cent, extent, p_geom.ssize)
         # max_extent
         max_extent[0] = max(max_extent[0], p_dm._n2 - p_dm._n1 + 1)
 
@@ -155,12 +139,9 @@ def _dm_init(
 
         ninflu = p_dm.nkl
 
-        dms.add_dm(
-                p_dm.type_dm, p_dm.alt, dim, p_dm.nkl, p_dm._ncp, p_dm._nr,
-                p_dm._npp, p_dm.push4imat)
-        dms.load_kl(
-                p_dm.alt, p_dm._rabas, p_dm._azbas, p_dm._ord, p_dm._cr,
-                p_dm._cp)
+        dms.add_dm(p_dm.type_dm, p_dm.alt, dim, p_dm.nkl, p_dm._ncp, p_dm._nr, p_dm._npp,
+                   p_dm.push4imat)
+        dms.load_kl(p_dm.alt, p_dm._rabas, p_dm._azbas, p_dm._ord, p_dm._cr, p_dm._cp)
 
     else:
 
@@ -170,13 +151,8 @@ def _dm_init(
         # res2 = yoga_getkl(g_dm,0.,1);
 
 
-def dm_init_standalone(
-        p_dms: list,
-        p_geom: conf.Param_geom,
-        diam=1.,
-        cobs=0.,
-        wfs_xpos=[0],
-        wfs_ypos=[0]):
+def dm_init_standalone(p_dms: list, p_geom: conf.Param_geom, diam=1., cobs=0.,
+                       wfs_xpos=[0], wfs_ypos=[0]):
     """Create and initialize a Dms object on the gpu
 
     :parameters:
@@ -197,9 +173,7 @@ def dm_init_standalone(
     if (len(p_dms) != 0):
         dms = Dms(len(p_dms))
         for i in range(len(p_dms)):
-            _dm_init(
-                    dms, p_dms[i], wfs_xpos, wfs_ypos, p_geom, diam, cobs,
-                    max_extent)
+            _dm_init(dms, p_dms[i], wfs_xpos, wfs_ypos, p_geom, diam, cobs, max_extent)
     return dms
 
 
@@ -259,9 +233,9 @@ def make_pzt_dm(p_dm: conf.Param_dm, p_geom: conf.Param_geom, cobs: float):
     else:
         raise ValueError("This pattern does not exist for pzt dm")
 
-    inbigcirc = dm_util.select_actuators(
-            cub[0, :], cub[1, :], p_dm.nact, p_dm._pitch, cobs, p_dm.margin_in,
-            p_dm.margin_out, p_dm._ntotact)
+    inbigcirc = dm_util.select_actuators(cub[0, :], cub[1, :], p_dm.nact, p_dm._pitch,
+                                         cobs, p_dm.margin_in, p_dm.margin_out,
+                                         p_dm._ntotact)
     p_dm._ntotact = inbigcirc.size
 
     # print(('inbigcirc',inbigcirc.shape))
@@ -293,42 +267,35 @@ def make_pzt_dm(p_dm: conf.Param_dm, p_geom: conf.Param_geom, cobs: float):
     for i in range(ntotact):
 
         i1 = i1t[i]
-        x = np.tile(
-                np.arange(i1, i1 + smallsize, dtype=np.float32),
-                (smallsize, 1)).T  # pixel coords in ref frame "dm support"
+        x = np.tile(np.arange(i1, i1 + smallsize, dtype=np.float32),
+                    (smallsize, 1)).T  # pixel coords in ref frame "dm support"
         # pixel coords in ref frame "pupil support"
         x += p_dm._n1
         # pixel coords in local ref frame
         x -= xpos[i]
 
         j1 = j1t[i]
-        y = np.tile(
-                np.arange(j1, j1 + smallsize, dtype=np.float32),
-                (smallsize, 1))  # idem as X, in Y
+        y = np.tile(np.arange(j1, j1 + smallsize, dtype=np.float32),
+                    (smallsize, 1))  # idem as X, in Y
         y += p_dm._n1
         y -= ypos[i]
         print("Computing Influence Function #%d/%d \r" % (i, ntotact), end=' ')
 
         if (p_dm.influType == scons.InfluType.RADIALSCHWARTZ):
-            influ[:, :, i] = influ_util.makeRadialSchwartz(
-                    pitch, coupling, x=x, y=y)
+            influ[:, :, i] = influ_util.makeRadialSchwartz(pitch, coupling, x=x, y=y)
         elif (p_dm.influType == scons.InfluType.SQUARESCHWARTZ):
-            influ[:, :, i] = influ_util.makeSquareSchwartz(
-                    pitch, coupling, x=x, y=y)
+            influ[:, :, i] = influ_util.makeSquareSchwartz(pitch, coupling, x=x, y=y)
         elif (p_dm.influType == scons.InfluType.BLACKNUTT):
-            influ[:, :, i] = influ_util.makeBlacknutt(
-                    pitch, coupling, x=x, y=y)
+            influ[:, :, i] = influ_util.makeBlacknutt(pitch, coupling, x=x, y=y)
         elif (p_dm.influType == scons.InfluType.GAUSSIAN):
             influ[:, :, i] = influ_util.makeGaussian(pitch, coupling, x=x, y=y)
         elif (p_dm.influType == scons.InfluType.BESSEL):
-            influ[:, :, i] = influ_util.makeBessel(
-                    pitch, coupling, x=x, y=y, patternType=p_dm.type_pattern)
+            influ[:, :, i] = influ_util.makeBessel(pitch, coupling, x=x, y=y,
+                                                   patternType=p_dm.type_pattern)
         elif (p_dm.influType == scons.InfluType.DEFAULT):
             influ[:, :, i] = influ_util.makeRigaut(pitch, coupling, x=x, y=y)
         else:
-            print(
-                    "ERROR influtype not recognized (defaut or gaussian or bessel)"
-            )
+            print("ERROR influtype not recognized (defaut or gaussian or bessel)")
     print("Computation of Influence Functions done")
 
     if (p_dm._puppixoffset is not None):
@@ -344,8 +311,7 @@ def make_pzt_dm(p_dm: conf.Param_dm, p_geom: conf.Param_geom, cobs: float):
     off = (dim - p_dm._influsize) // 2
 
 
-def init_pzt_from_hdf5(
-        p_dm: conf.Param_dm, p_geom: conf.Param_geom, diam: float):
+def init_pzt_from_hdf5(p_dm: conf.Param_dm, p_geom: conf.Param_geom, diam: float):
     """Read HDF for influence pzt fonction and form
 
     :parameters:
@@ -393,10 +359,8 @@ def init_pzt_from_hdf5(
     res_compass = diam / p_geom.pupdiam
 
     # interpolation des coordonnées en pixel avec ajout du centre
-    xpos = (xpos_h5_0 *
-            (diam_dm_pup_h5[0] / diam_dm_h5[0])) / res_compass + center
-    ypos = (ypos_h5_0 *
-            (diam_dm_pup_h5[1] / diam_dm_h5[1])) / res_compass + center
+    xpos = (xpos_h5_0 * (diam_dm_pup_h5[0] / diam_dm_h5[0])) / res_compass + center
+    ypos = (ypos_h5_0 * (diam_dm_pup_h5[1] / diam_dm_h5[1])) / res_compass + center
 
     # interpolation des fonction d'influence
 
@@ -437,8 +401,7 @@ def init_pzt_from_hdf5(
 
     # Def dm limite (n1 and n2)
     extent = (max(xpos) - min(xpos)) + (influ_size * 2)
-    p_dm._n1, p_dm._n2 = dm_util.dim_dm_support(
-            p_geom.cent, extent, p_geom.ssize)
+    p_dm._n1, p_dm._n2 = dm_util.dim_dm_support(p_geom.cent, extent, p_geom.ssize)
     # refaire la definition du pitch pour n_actuator
     #inbigcirc = n_actuator_select(p_dm,p_tel,xpos-center[0],ypos-center[1])
     #print('nb = ',np.size(inbigcirc))
@@ -446,10 +409,8 @@ def init_pzt_from_hdf5(
 
     # i1, j1 calc :
 
-    p_dm._i1 = (p_dm._xpos - p_dm._influsize / 2. + 0.5 -
-                p_dm._n1).astype(np.int32)
-    p_dm._j1 = (p_dm._ypos - p_dm._influsize / 2. + 0.5 -
-                p_dm._n1).astype(np.int32)
+    p_dm._i1 = (p_dm._xpos - p_dm._influsize / 2. + 0.5 - p_dm._n1).astype(np.int32)
+    p_dm._j1 = (p_dm._ypos - p_dm._influsize / 2. + 0.5 - p_dm._n1).astype(np.int32)
 
     comp_dmgeom(p_dm, p_geom)
 
@@ -457,11 +418,8 @@ def init_pzt_from_hdf5(
     off = (dim - p_dm._influsize) // 2
 
 
-def make_tiptilt_dm(
-        p_dm: conf.Param_dm,
-        patchDiam: int,
-        p_geom: conf.Param_geom,
-        diam: float):
+def make_tiptilt_dm(p_dm: conf.Param_dm, patchDiam: int, p_geom: conf.Param_geom,
+                    diam: float):
     """Compute the influence functions for a tip-tilt DM
 
     :parameters:
@@ -480,9 +438,8 @@ def make_tiptilt_dm(
     #norms = [np.linalg.norm([w.xpos, w.ypos]) for w in p_wfs]
 
     nzer = 2
-    influ = dm_util.make_zernike(
-            nzer + 1, dim, patchDiam, p_geom.cent - p_dm._n1 + 1,
-            p_geom.cent - p_dm._n1 + 1, 1)[:, :, 1:]
+    influ = dm_util.make_zernike(nzer + 1, dim, patchDiam, p_geom.cent - p_dm._n1 + 1,
+                                 p_geom.cent - p_dm._n1 + 1, 1)[:, :, 1:]
 
     # normalization factor: one unit of tilt gives 1 arcsec:
     current = influ[dim // 2 - 1, dim // 2 - 1, 0] - \
@@ -497,11 +454,8 @@ def make_tiptilt_dm(
     return influ
 
 
-def make_kl_dm(
-        p_dm: conf.Param_dm,
-        patchDiam: int,
-        p_geom: conf.Param_geom,
-        cobs: float) -> None:
+def make_kl_dm(p_dm: conf.Param_dm, patchDiam: int, p_geom: conf.Param_geom,
+               cobs: float) -> None:
     """Compute the influence function for a Karhunen-Loeve DM
 
     :parameters:
@@ -624,12 +578,8 @@ def comp_dmgeom(p_dm: conf.Param_dm, p_geom: conf.Param_geom):
     p_dm._j1 += offs
 
 
-def correct_dm(
-        dms: Dms,
-        p_dms: list,
-        p_controller: conf.Param_controller,
-        p_geom: conf.Param_geom,
-        imat: np.ndarray):
+def correct_dm(dms: Dms, p_dms: list, p_controller: conf.Param_controller,
+               p_geom: conf.Param_geom, imat: np.ndarray):
     """Correct the geometry of the DMs using the imat (filter unseen actuators)
 
     :parameters:
@@ -667,37 +617,30 @@ def correct_dm(
 
             comp_dmgeom(p_dms[nm], p_geom)
 
-            dim = max(
-                    p_dms[nm]._n2 - p_dms[nm]._n1 + 1, p_geom._mpupil.shape[0])
+            dim = max(p_dms[nm]._n2 - p_dms[nm]._n1 + 1, p_geom._mpupil.shape[0])
             ninflupos = p_dms[nm]._influpos.size
             n_npts = p_dms[nm]._ninflu.size
 
-            dms.add_dm(
-                    p_dms[nm].type_dm, p_dms[nm].alt, dim, p_dms[nm]._ntotact,
-                    p_dms[nm]._influsize, ninflupos, n_npts,
-                    p_dms[nm].push4imat)
-            dms.load_pzt(
-                    p_dms[nm].alt, p_dms[nm]._influ,
-                    p_dms[nm]._influpos.astype(np.int32), p_dms[nm]._ninflu,
-                    p_dms[nm]._influstart, p_dms[nm]._i1, p_dms[nm]._j1)
+            dms.add_dm(p_dms[nm].type_dm, p_dms[nm].alt, dim, p_dms[nm]._ntotact,
+                       p_dms[nm]._influsize, ninflupos, n_npts, p_dms[nm].push4imat)
+            dms.load_pzt(p_dms[nm].alt, p_dms[nm]._influ,
+                         p_dms[nm]._influpos.astype(np.int32), p_dms[nm]._ninflu,
+                         p_dms[nm]._influstart, p_dms[nm]._i1, p_dms[nm]._j1)
 
         elif (p_dms[nm].type_dm == scons.DmType.TT):
             dim = p_dms[nm]._n2 - p_dms[nm]._n1 + 1
-            dms.add_dm(
-                    p_dms[nm].type_dm, p_dms[nm].alt, dim, 2, dim, 1, 1,
-                    p_dms[nm].push4imat)
+            dms.add_dm(p_dms[nm].type_dm, p_dms[nm].alt, dim, 2, dim, 1, 1,
+                       p_dms[nm].push4imat)
             dms.load_tt(p_dms[nm].alt, p_dms[nm]._influ)
 
         elif (p_dms[nm].type_dm == scons.DmType.KL):
             dim = int(p_dms[nm]._n2 - p_dms[nm]._n1 + 1)
 
-            dms.add_dm(
-                    p_dms[nm].type_dm, p_dms[nm].alt, dim, p_dms[nm].nkl,
-                    p_dms[nm]._ncp, p_dms[nm]._nr, p_dms[nm]._npp,
-                    p_dms[nm].push4imat)
-            dms.load_kl(
-                    p_dms[nm].alt, p_dms[nm]._rabas, p_dms[nm]._azbas,
-                    p_dms[nm]._ord, p_dms[nm]._cr, p_dms[nm]._cp)
+            dms.add_dm(p_dms[nm].type_dm, p_dms[nm].alt, dim, p_dms[nm].nkl,
+                       p_dms[nm]._ncp, p_dms[nm]._nr, p_dms[nm]._npp,
+                       p_dms[nm].push4imat)
+            dms.load_kl(p_dms[nm].alt, p_dms[nm]._rabas, p_dms[nm]._azbas,
+                        p_dms[nm]._ord, p_dms[nm]._cr, p_dms[nm]._cp)
         else:
             raise ValueError("Screwed up.")
 

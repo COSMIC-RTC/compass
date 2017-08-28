@@ -12,13 +12,9 @@ from Rtc import Rtc
 from typing import List  # Mypy checker
 
 
-def imat_geom(
-        wfs: Sensors,
-        dms: Dms,
-        p_wfss: List[conf.Param_wfs],
-        p_dms: List[conf.Param_dm],
-        p_controller: conf.Param_controller,
-        meth: int=0) -> np.ndarray:
+def imat_geom(wfs: Sensors, dms: Dms, p_wfss: List[conf.Param_wfs],
+              p_dms: List[conf.Param_dm], p_controller: conf.Param_controller,
+              meth: int=0) -> np.ndarray:
     """Compute the interaction matrix with a geometric method
 
     :parameters:
@@ -50,15 +46,13 @@ def imat_geom(
         nm = p_controller.ndm[nmc]
         dms.resetdm(p_dms[nm].type_dm, p_dms[nm].alt)
         for i in range(p_dms[nm]._ntotact):
-            dms.oneactu(
-                    p_dms[nm].type_dm, p_dms[nm].alt, i, p_dms[nm].push4imat)
+            dms.oneactu(p_dms[nm].type_dm, p_dms[nm].alt, i, p_dms[nm].push4imat)
             nslps = 0
             for nw in range(nwfs):
                 n = p_controller.nwfs[nw]
                 wfs.raytrace(n, b"dm", tel=None, atmos=None, dms=dms, rst=1)
                 wfs.slopes_geom(n, meth)
-                imat_cpu[nslps:nslps + p_wfss[n]._nvalid * 2, ind
-                         ] = wfs.get_slopes(n)
+                imat_cpu[nslps:nslps + p_wfss[n]._nvalid * 2, ind] = wfs.get_slopes(n)
                 nslps += p_wfss[n]._nvalid * 2
             imat_cpu[:, ind] = imat_cpu[:, ind] / p_dms[nm].push4imat
             ind = ind + 1
@@ -70,16 +64,9 @@ def imat_geom(
     return imat_cpu
 
 
-def imat_init(
-        ncontrol: int,
-        rtc: Rtc,
-        dms: Dms,
-        p_dms: list,
-        wfs: Sensors,
-        p_wfss: list,
-        p_tel: conf.Param_tel,
-        p_controller: conf.Param_controller,
-        kl=None) -> None:
+def imat_init(ncontrol: int, rtc: Rtc, dms: Dms, p_dms: list, wfs: Sensors, p_wfss: list,
+              p_tel: conf.Param_tel, p_controller: conf.Param_controller,
+              kl=None) -> None:
     """Initialize and compute the interaction matrix on the GPU
 
     :parameters:

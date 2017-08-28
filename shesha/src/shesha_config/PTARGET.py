@@ -60,8 +60,8 @@ class Param_target:
 
         :param n: (np.ndarray[ndim=2, dtype=np.float32]) : wavelength of targets
         """
-        self.__Lambda = csu.enforce_array(
-            n, size=self.ntargets, dtype=np.float32, scalar_expand=True)
+        self.__Lambda = csu.enforce_array(n, size=self.ntargets, dtype=np.float32,
+                                          scalar_expand=True)
 
     Lambda = property(lambda x: x.__Lambda, set_Lambda)
 
@@ -71,8 +71,8 @@ class Param_target:
 
         :param n: (np.ndarray[ndim=2, dtype=np.float32]) : X position of targets [arcsec]
         """
-        self.__xpos = csu.enforce_array(
-            n, size=self.ntargets, dtype=np.float32, scalar_expand=True)
+        self.__xpos = csu.enforce_array(n, size=self.ntargets, dtype=np.float32,
+                                        scalar_expand=True)
 
     xpos = property(lambda x: x.__xpos, set_xpos)
 
@@ -82,8 +82,8 @@ class Param_target:
 
         :param n: (np.ndarray[ndim=2, dtype=np.float32]): Y position of targets [arcsec]
         """
-        self.__ypos = csu.enforce_array(
-            n, size=self.ntargets, dtype=np.float32, scalar_expand=True)
+        self.__ypos = csu.enforce_array(n, size=self.ntargets, dtype=np.float32,
+                                        scalar_expand=True)
 
     ypos = property(lambda x: x.__ypos, set_ypos)
 
@@ -93,8 +93,8 @@ class Param_target:
 
         :param n: (np.ndarray[ndim=2, dtype=np.float32]) : magnitudes
         """
-        self.__mag = csu.enforce_array(
-            n, size=self.ntargets, dtype=np.float32, scalar_expand=True)
+        self.__mag = csu.enforce_array(n, size=self.ntargets, dtype=np.float32,
+                                       scalar_expand=True)
 
     mag = property(lambda x: x.__mag, set_mag)
 
@@ -114,7 +114,7 @@ class Param_target:
 
         :param n: (np.ndarray[ndim=2, dtype=np.int32]) : index of dms seen
         """
-        self.__dms_seen = csu.enforce_array(
-            n, size=n.size, dtype=np.int32, scalar_expand=True)
+        self.__dms_seen = csu.enforce_array(n, size=n.size, dtype=np.int32,
+                                            scalar_expand=True)
 
     dms_seen = property(lambda x: x.__dms_seen, set_dms_seen)

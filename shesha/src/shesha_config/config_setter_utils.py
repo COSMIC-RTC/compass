@@ -53,8 +53,9 @@ def enforce_array(data, size, dtype=np.float32, scalar_expand=False):
         raise TypeError("Input argument has wrong number of elements.")
     if isinstance(data, np.ndarray) and len(data.shape) > 1:
         raise TypeError("Multidimensional ndarray input is not allowed")
-    if isinstance(data, list) and not all([
-            isinstance(x, (float, int, complex)) for x in data]):
+    if isinstance(data,
+                  list) and not all([isinstance(x, (float, int, complex))
+                                     for x in data]):
         raise TypeError("Input list may only contain numerical values.")
 
     # OK, now let's try it
@@ -67,7 +68,6 @@ def enforce_arrayMultiDim(data, shape, dtype=np.float32):
     else:
         if data.shape != shape:
             raise TypeError(
-                    "Input has wrong dimensions, expect multi dimensional arrays"
-            )
+                    "Input has wrong dimensions, expect multi dimensional arrays")
 
     return np.array(data, dtype=dtype)

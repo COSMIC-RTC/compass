@@ -130,8 +130,7 @@ class Simulator:
         self.c = naga_context(devices=self.config.p_loop.devices)
 
         if self.config.p_tel is None or self.config.p_geom is None:
-            raise ValueError(
-                    "Telescope geometry must be defined (p_geom and p_tel)")
+            raise ValueError("Telescope geometry must be defined (p_geom and p_tel)")
 
         if self.config.p_atmos is not None:
             r0 = self.config.p_atmos.r0
@@ -146,25 +145,22 @@ class Simulator:
             )
 
         print("->tel")
-        self.tel = init.tel_init(
-                self.c, self.config.p_geom, self.config.p_tel, r0, ittime,
-                self.config.p_wfss)
+        self.tel = init.tel_init(self.c, self.config.p_geom, self.config.p_tel, r0,
+                                 ittime, self.config.p_wfss)
 
         if self.config.p_atmos is not None:
             #   atmos
             print("->atmos")
-            self.atm = init.atmos_init(
-                    self.c, self.config.p_atmos, self.config.p_tel,
-                    self.config.p_geom, ittime)
+            self.atm = init.atmos_init(self.c, self.config.p_atmos, self.config.p_tel,
+                                       self.config.p_geom, ittime)
         else:
             self.atm = None
 
         if self.config.p_dms is not None:
             #   dm
             print("->dm")
-            self.dms = init.dm_init(
-                    self.c, self.config.p_dms, self.config.p_tel,
-                    self.config.p_geom, self.config.p_wfss)
+            self.dms = init.dm_init(self.c, self.config.p_dms, self.config.p_tel,
+                                    self.config.p_geom, self.config.p_wfss)
         else:
             self.dms = None
 
@@ -172,9 +168,9 @@ class Simulator:
 
         if self.config.p_wfss is not None:
             print("->wfs")
-            self.wfs = init.wfs_init(
-                    self.c, self.tel, self.config.p_wfss, self.config.p_tel,
-                    self.config.p_geom, self.config.p_dms, self.config.p_atmos)
+            self.wfs = init.wfs_init(self.c, self.tel, self.config.p_wfss,
+                                     self.config.p_tel, self.config.p_geom,
+                                     self.config.p_dms, self.config.p_atmos)
         else:
             self.wfs = None
 
@@ -185,15 +181,10 @@ class Simulator:
     def _tar_init(self) -> None:
         if self.config.p_target is not None:
             print("->target")
-            self.tar = init.target_init(
-                    self.c,
-                    self.tel,
-                    self.config.p_target,
-                    self.config.p_atmos,
-                    self.config.p_tel,
-                    self.config.p_geom,
-                    self.config.p_dms,
-                    brama=False)
+            self.tar = init.target_init(self.c, self.tel, self.config.p_target,
+                                        self.config.p_atmos, self.config.p_tel,
+                                        self.config.p_geom, self.config.p_dms,
+                                        brama=False)
         else:
             self.tar = None
 
@@ -202,31 +193,16 @@ class Simulator:
             print("->rtc")
             #   rtc
             self.rtc = init.rtc_init(
-                    self.c,
-                    self.tel,
-                    self.wfs,
-                    self.dms,
-                    self.atm,
-                    self.config.p_wfss,
-                    self.config.p_tel,
-                    self.config.p_geom,
-                    self.config.p_atmos,
-                    ittime,
-                    self.config.p_centroiders,
-                    self.config.p_controllers,
-                    self.config.p_dms,
-                    brama=False)
+                    self.c, self.tel, self.wfs, self.dms, self.atm, self.config.p_wfss,
+                    self.config.p_tel, self.config.p_geom, self.config.p_atmos, ittime,
+                    self.config.p_centroiders, self.config.p_controllers,
+                    self.config.p_dms, brama=False)
         else:
             self.rtc = None
 
-    def next(
-            self,
-            *,
-            move_atmos: bool=True,
-            nControl: int=0,
-            tar_trace: Iterable[int]=None,
-            wfs_trace: Iterable[int]=None,
-            apply_control: bool=True) -> None:
+    def next(self, *, move_atmos: bool=True, nControl: int=0,
+             tar_trace: Iterable[int]=None, wfs_trace: Iterable[int]=None,
+             apply_control: bool=True) -> None:
         '''
             function next
             Iterates the AO loop, with optional parameters
@@ -244,9 +220,8 @@ class Simulator:
 
         if move_atmos:
             self.atm.move_atmos()
-        if (
-                self.config.p_controllers[nControl].type_control ==
-                scons.ControllerType.GEO):
+        if (self.config.p_controllers[nControl].type_control ==
+                    scons.ControllerType.GEO):
             for t in tar_trace:
                 self.tar.raytrace(t, b"atmos", self.tel, self.atm)
                 self.rtc.do_control_geo(nControl, self.dms, self.tar, t)
@@ -279,13 +254,11 @@ class Simulator:
                 framerate = (i + 1) / (time.time() - t0)
                 strehltmp = self.tar.get_strehl(0)
                 etr = (n - i) / framerate
-                print(
-                        "%d \t %.3f \t  %.3f\t     %.1f \t %.1f" %
-                        (i + 1, strehltmp[0], strehltmp[1], etr, framerate))
+                print("%d \t %.3f \t  %.3f\t     %.1f \t %.1f" %
+                      (i + 1, strehltmp[0], strehltmp[1], etr, framerate))
         t1 = time.time()
-        print(
-                " loop execution time:", t1 - t0, "  (", n, "iterations), ",
-                (t1 - t0) / n, "(mean)  ", n / (t1 - t0), "Hz")
+        print(" loop execution time:", t1 - t0, "  (", n, "iterations), ", (t1 - t0) / n,
+              "(mean)  ", n / (t1 - t0), "Hz")
 
 
 class SimulatorBrama(Simulator):
@@ -301,15 +274,10 @@ class SimulatorBrama(Simulator):
         '''
         if self.config.p_target is not None:
             print("->target")
-            self.tar = init.target_init(
-                    self.c,
-                    self.tel,
-                    self.config.p_target,
-                    self.config.p_atmos,
-                    self.config.p_tel,
-                    self.config.p_geom,
-                    self.config.p_dms,
-                    brama=True)
+            self.tar = init.target_init(self.c, self.tel, self.config.p_target,
+                                        self.config.p_atmos, self.config.p_tel,
+                                        self.config.p_geom, self.config.p_dms,
+                                        brama=True)
         else:
             self.tar = None
 
@@ -321,20 +289,10 @@ class SimulatorBrama(Simulator):
             print("->rtc")
             #   rtc
             self.rtc = init.rtc_init(
-                    self.c,
-                    self.tel,
-                    self.wfs,
-                    self.dms,
-                    self.atm,
-                    self.config.p_wfss,
-                    self.config.p_tel,
-                    self.config.p_geom,
-                    self.config.p_atmos,
-                    ittime,
-                    self.config.p_centroiders,
-                    self.config.p_controllers,
-                    self.config.p_dms,
-                    brama=True)
+                    self.c, self.tel, self.wfs, self.dms, self.atm, self.config.p_wfss,
+                    self.config.p_tel, self.config.p_geom, self.config.p_atmos, ittime,
+                    self.config.p_centroiders, self.config.p_controllers,
+                    self.config.p_dms, brama=True)
         else:
             self.rtc = None
 
@@ -359,9 +317,7 @@ def timeit(function: Callable[..., _O]) -> Callable[..., _O]:
         t1 = time.time()
         ret = function(*args, **kwargs)
         t2 = time.time()
-        print(
-                '** Execution time of {}: {} seconds'.format(
-                        function.__name__, t2 - t1))
+        print('** Execution time of {}: {} seconds'.format(function.__name__, t2 - t1))
         return ret
 
     return new_func

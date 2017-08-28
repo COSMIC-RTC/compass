@@ -14,18 +14,10 @@ import typing
 from typing import List
 
 
-def doTomoMatrices(
-        ncontrol: int,
-        rtc: Rtc,
-        p_wfss: List[conf.Param_wfs],
-        dms: Dms,
-        atmos: Atmos,
-        wfs: Sensors,
-        p_controller: conf.Param_controller,
-        p_geom: conf.Param_geom,
-        p_dms: list,
-        p_tel: conf.Param_tel,
-        p_atmos: conf.Param_atmos):
+def doTomoMatrices(ncontrol: int, rtc: Rtc, p_wfss: List[conf.Param_wfs], dms: Dms,
+                   atmos: Atmos, wfs: Sensors, p_controller: conf.Param_controller,
+                   p_geom: conf.Param_geom, p_dms: list, p_tel: conf.Param_tel,
+                   p_atmos: conf.Param_atmos):
     """Compute Cmm and Cphim matrices for the MV controller on GPU
 
     :parameters:
@@ -127,20 +119,17 @@ def doTomoMatrices(
         ind += 1
 
     L0_d = np.copy(p_atmos.L0).astype(np.float64)
-    frac_d = np.copy(p_atmos.frac * (p_atmos.r0**
-                                     (-5.0 / 3.0))).astype(np.float64)
+    frac_d = np.copy(p_atmos.frac * (p_atmos.r0**(-5.0 / 3.0))).astype(np.float64)
 
     print("Computing Cphim...")
-    rtc.compute_Cphim(
-            ncontrol, atmos, wfs, dms, L0_d, frac_d, alphaX, alphaY, X, Y,
-            Xactu, Yactu, p_tel.diam, k2, NlayersDM, indlayersDM, FoV, pitch,
-            alt_DM.astype(np.float64))
+    rtc.compute_Cphim(ncontrol, atmos, wfs, dms, L0_d, frac_d, alphaX, alphaY, X, Y,
+                      Xactu, Yactu, p_tel.diam, k2, NlayersDM, indlayersDM, FoV, pitch,
+                      alt_DM.astype(np.float64))
     print("Done")
 
     print("Computing Cmm...")
-    rtc.compute_Cmm(
-            ncontrol, atmos, wfs, L0_d, frac_d, alphaX, alphaY, p_tel.diam,
-            p_tel.cobs)
+    rtc.compute_Cmm(ncontrol, atmos, wfs, L0_d, frac_d, alphaX, alphaY, p_tel.diam,
+                    p_tel.cobs)
     print("Done")
 
     Nact = np.zeros([nactu, nactu], dtype=np.float32)
@@ -148,19 +137,17 @@ def doTomoMatrices(
     ind = 0
     for k in range(len(p_controller.ndm)):
         if (p_dms[k].type_dm == b"pzt"):
-            Nact[ind:ind + p_dms[k]._ntotact, ind:ind + p_dms[k]._ntotact
-                 ] = create_nact_geom(p_dms[k])
-            F[ind:ind + p_dms[k]._ntotact, ind:ind + p_dms[k]._ntotact
-              ] = create_piston_filter(p_dms[k])
+            Nact[ind:ind + p_dms[k]._ntotact, ind:
+                 ind + p_dms[k]._ntotact] = create_nact_geom(p_dms[k])
+            F[ind:ind + p_dms[k]._ntotact, ind:
+              ind + p_dms[k]._ntotact] = create_piston_filter(p_dms[k])
             ind += p_dms[k]._ntotact
 
     rtc.filter_cphim(ncontrol, F, Nact)
 
 
-def selectDMforLayers(
-        p_atmos: conf.Param_atmos,
-        p_controller: conf.Param_controller,
-        p_dms: list):
+def selectDMforLayers(p_atmos: conf.Param_atmos, p_controller: conf.Param_controller,
+                      p_dms: list):
     """ For each atmos layer, select the DM which have to handle it in the Cphim computation for MV controller
 
     :parameters:
@@ -198,8 +185,7 @@ def create_nact_geom(p_dm: conf.Param_dm):
 
     tmpx = p_dm._i1
     tmpy = p_dm._j1
-    offs = ((p_dm._n2 - p_dm._n1 + 1) -
-            (np.max(tmpx) - np.min(tmpx))) / 2 - np.min(tmpx)
+    offs = ((p_dm._n2 - p_dm._n1 + 1) - (np.max(tmpx) - np.min(tmpx))) / 2 - np.min(tmpx)
     tmpx = (tmpx + offs + 1).astype(np.int32)
     tmpy = (tmpy + offs + 1).astype(np.int32)
     mask = np.zeros([dim, dim], dtype=np.float32)

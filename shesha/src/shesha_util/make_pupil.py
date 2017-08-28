@@ -50,22 +50,14 @@ def make_pupil(dim, pupd, tel, xc=-1, yc=-1, real=0):
         print("force_VLT_pup_cobs = %5.3f" % 0.14)
         return make_VLT(dim, pupd, tel)
     elif tel.type_ap == ApertureType.GENERIC:
-        return make_pupil_generic(
-                dim, pupd, tel.t_spiders, tel.spiders_type, xc, yc, real,
-                tel.cobs)
+        return make_pupil_generic(dim, pupd, tel.t_spiders, tel.spiders_type, xc, yc,
+                                  real, tel.cobs)
     else:
         raise NotImplementedError("Missing Pupil type.")
 
 
-def make_pupil_generic(
-        dim,
-        pupd,
-        t_spiders=0.01,
-        spiders_type=SpiderType.SIX,
-        xc=0,
-        yc=0,
-        real=0,
-        cobs=0):
+def make_pupil_generic(dim, pupd, t_spiders=0.01, spiders_type=SpiderType.SIX, xc=0,
+                       yc=0, real=0, cobs=0):
     """
         Initialize the system pupil
 
@@ -90,18 +82,14 @@ def make_pupil_generic(
 
     if (cobs > 0):
         if (real == 1):
-            pup -= np.exp(
-                    -(util.dist(dim, xc, yc) / (pupd * cobs * 0.5))**60.
-            )**0.69314
+            pup -= np.exp(-(util.dist(dim, xc, yc) / (pupd * cobs * 0.5))**60.)**0.69314
         else:
-            pup -= (util.dist(dim, xc, yc) <
-                    (pupd * cobs + 1.) * 0.5).astype(np.float32)
+            pup -= (util.dist(dim, xc, yc) < (pupd * cobs + 1.) * 0.5).astype(np.float32)
 
             step = 1. / dim
             first = 0.5 * (step - 1)
 
-            X = np.tile(
-                    np.arange(dim, dtype=np.float32) * step + first, (dim, 1))
+            X = np.tile(np.arange(dim, dtype=np.float32) * step + first, (dim, 1))
 
             if (t_spiders < 0):
                 t_spiders = 0.01
@@ -112,14 +100,10 @@ def make_pupil_generic(
                 s4_2 = 2 * np.sin(np.pi / 4)
                 t4 = np.tan(np.pi / 4)
 
-                spiders_map = (
-                        (X.T > (X + t_spiders / s4_2) * t4) +
-                        (X.T <
-                         (X - t_spiders / s4_2) * t4)).astype(np.float32)
-                spiders_map *= (
-                        (X.T > (-X + t_spiders / s4_2) * t4) +
-                        (X.T <
-                         (-X - t_spiders / s4_2) * t4)).astype(np.float32)
+                spiders_map = ((X.T > (X + t_spiders / s4_2) * t4) +
+                               (X.T < (X - t_spiders / s4_2) * t4)).astype(np.float32)
+                spiders_map *= ((X.T > (-X + t_spiders / s4_2) * t4) +
+                                (X.T < (-X - t_spiders / s4_2) * t4)).astype(np.float32)
 
                 pup = pup * spiders_map
 
@@ -169,15 +153,13 @@ def make_VLT(dim, pupd, tel):
     if (tel.set_t_spiders == -1):
         print('No spider')
     else:
-        spiders_map = ((
-                X.T > (X - tel.cobs / 2. + tel.t_spiders / np.sin(angle)
-                       ) * np.tan(angle)) +
-                       (X.T < (X - tel.cobs / 2.) * np.tan(angle))) * (
-                               X > 0) * (X.T > 0)
+        spiders_map = (
+                (X.T >
+                 (X - tel.cobs / 2. + tel.t_spiders / np.sin(angle)) * np.tan(angle)) +
+                (X.T < (X - tel.cobs / 2.) * np.tan(angle))) * (X > 0) * (X.T > 0)
         spiders_map += np.fliplr(spiders_map)
         spiders_map += np.flipud(spiders_map)
-        spiders_map = interp.rotate(
-                spiders_map, tel.pupangle, order=0, reshape=False)
+        spiders_map = interp.rotate(spiders_map, tel.pupangle, order=0, reshape=False)
 
         pup = pup * spiders_map
 
@@ -199,19 +181,16 @@ def make_EELT(dim, pupd, tel, N_seg=-1):
     """
     if (N_seg == -1):
         EELT_file = EELT_data + "EELT-Custom_N" + str(dim) + "_COBS" + str(
-                100 * tel.cobs
-        ) + "_CLOCKED" + str(tel.pupangle) + "_TSPIDERS" + str(
-                100 * tel.t_spiders
-        ) + "_MS" + str(tel.nbrmissing) + "_REFERR" + str(
-                100 * tel.referr) + ".h5"
+                100 * tel.cobs) + "_CLOCKED" + str(tel.pupangle) + "_TSPIDERS" + str(
+                        100 *
+                        tel.t_spiders) + "_MS" + str(tel.nbrmissing) + "_REFERR" + str(
+                                100 * tel.referr) + ".h5"
     else:
-        EELT_file = EELT_data + str(
-                tel.type_ap) + "_N" + str(dim) + "_COBS" + str(
-                        100 * tel.cobs
-                ) + "_CLOCKED" + str(tel.pupangle) + "_TSPIDERS" + str(
-                        100 * tel.t_spiders
-                ) + "_MS" + str(tel.nbrmissing) + "_REFERR" + str(
-                        100 * tel.referr) + ".h5"
+        EELT_file = EELT_data + str(tel.type_ap) + "_N" + str(dim) + "_COBS" + str(
+                100 * tel.cobs) + "_CLOCKED" + str(tel.pupangle) + "_TSPIDERS" + str(
+                        100 *
+                        tel.t_spiders) + "_MS" + str(tel.nbrmissing) + "_REFERR" + str(
+                                100 * tel.referr) + ".h5"
     if (os.path.isfile(EELT_file)):
         print("reading EELT pupil from file ", EELT_file)
         pup = h5u.readHdf5SingleDataset(EELT_file)
@@ -316,13 +295,12 @@ def make_phase_ab(dim, pupd, tel, pup):
         return np.zeros((dim, dim)).astype(np.float32)
 
     ab_file = EELT_data + "aberration_" + str(
-            tel.type_ap) + "_N" + str(dim) + "_NPUP" + str(
-                    np.where(pup)[0].size
-            ) + "_CLOCKED" + str(tel.pupangle) + "_TSPIDERS" + str(
-                    100 * tel.t_spiders
-            ) + "_MS" + str(tel.nbrmissing) + "_REFERR" + str(
-                    100 * tel.referr
-            ) + "_PIS" + str(tel.std_piston) + "_TT" + str(tel.std_tt) + ".h5"
+            tel.type_ap
+    ) + "_N" + str(dim) + "_NPUP" + str(np.where(pup)[0].size) + "_CLOCKED" + str(
+            tel.pupangle) + "_TSPIDERS" + str(
+                    100 * tel.t_spiders) + "_MS" + str(tel.nbrmissing) + "_REFERR" + str(
+                            100 * tel.referr) + "_PIS" + str(
+                                    tel.std_piston) + "_TT" + str(tel.std_tt) + ".h5"
     if (os.path.isfile(ab_file)):
         print("reading aberration phase from file ", ab_file)
         phase_error = h5u.readHdf5SingleDataset(ab_file)
@@ -375,8 +353,7 @@ def make_phase_ab(dim, pupd, tel, pup):
 
             if (tt_seg[i] != 0):
                 TT = tt_seg[i] * (
-                        np.cos(tt_phi_seg[i]) * Xt + np.sin(tt_phi_seg[i]) * Yt
-                )
+                        np.cos(tt_phi_seg[i]) * Xt + np.sin(tt_phi_seg[i]) * Yt)
                 mean_tt = np.sum(TT[np.where(SEG == 1)]) / N_in_seg
                 phase_tt += SEG * (TT - mean_tt)
 
@@ -394,8 +371,8 @@ def make_phase_ab(dim, pupd, tel, pup):
         phase_error += phase_tt + phase_defoc
 
         if (tel.pupangle != 0):
-            phase_error = interp.rotate(
-                    phase_error, tel.pupangle, reshape=False, order=2)
+            phase_error = interp.rotate(phase_error, tel.pupangle, reshape=False,
+                                        order=2)
 
         print("phase aberration created")
         print("writing aberration filel to file ", ab_file)

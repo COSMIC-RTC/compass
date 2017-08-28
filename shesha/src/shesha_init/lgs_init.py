@@ -11,8 +11,7 @@ try:
 except KeyError as err:
     import warnings
     shesha_db = os.environ['SHESHA_ROOT'] + "/data/"
-    warnings.warn(
-            "'SHESHA_DB_ROOT' not defined, using default one: " + shesha_db)
+    warnings.warn("'SHESHA_DB_ROOT' not defined, using default one: " + shesha_db)
 finally:
     shesha_savepath = shesha_db
 print("shesha_savepath:", shesha_savepath)
@@ -24,13 +23,8 @@ from Sensors import Sensors
 import numpy as np
 
 
-def make_lgs_prof1d(
-        p_wfs: conf.Param_wfs,
-        p_tel: conf.Param_tel,
-        prof: np.ndarray,
-        h: np.ndarray,
-        beam: float,
-        center=b""):
+def make_lgs_prof1d(p_wfs: conf.Param_wfs, p_tel: conf.Param_tel, prof: np.ndarray,
+                    h: np.ndarray, beam: float, center=b""):
     """same as prep_lgs_prof but cpu only. original routine from rico
 
     :parameters:
@@ -51,8 +45,7 @@ def make_lgs_prof1d(
 
     subapdiam = p_tel.diam / p_wfs.nxsub  # diam of subap
     if (p_wfs.nxsub > 1):
-        xsubs = np.linspace((subapdiam - p_tel.diam) / 2,
-                            (p_tel.diam - subapdiam) / 2,
+        xsubs = np.linspace((subapdiam - p_tel.diam) / 2, (p_tel.diam - subapdiam) / 2,
                             p_wfs.nxsub).astype(np.float32)
     else:
         xsubs = np.zeros(1, dtype=np.float32)
@@ -96,8 +89,7 @@ def make_lgs_prof1d(
 
             for i in range(inds.size):
                 profi[:, inds[i]] = np.diff(
-                        np.interp(avg_x, avg_zhc, p_wfs._profcum)).astype(
-                                np.float32)
+                        np.interp(avg_x, avg_zhc, p_wfs._profcum)).astype(np.float32)
 
         else:
             for i in range(inds.size):
@@ -146,9 +138,8 @@ def make_lgs_prof1d(
                 im[i, l, c] = g[l] * p1d[c, i]
 
     if (ysubs.size > 1):
-        azimuth = np.arctan2(
-                ysubs[p_wfs._validsubsy] - p_wfs.llty,
-                xsubs[p_wfs._validsubsx] - p_wfs.lltx)
+        azimuth = np.arctan2(ysubs[p_wfs._validsubsy] - p_wfs.llty,
+                             xsubs[p_wfs._validsubsx] - p_wfs.lltx)
     else:
         azimuth = np.arctan2(ysubs - p_wfs.llty, xsubs - p_wfs.lltx)
 
@@ -173,13 +164,8 @@ def make_lgs_prof1d(
     p_wfs._lgskern = im.T
 
 
-def prep_lgs_prof(
-        p_wfs: conf.Param_wfs,
-        nsensors: int,
-        p_tel: conf.Param_tel,
-        sensors: Sensors,
-        center=b"",
-        imat=0):
+def prep_lgs_prof(p_wfs: conf.Param_wfs, nsensors: int, p_tel: conf.Param_tel,
+                  sensors: Sensors, center=b"", imat=0):
     """The function returns an image array(double,n,n) of a laser beacon elongated by perpective
     effect. It is obtaind by convolution of a gaussian of width "lgsWidth" arcseconds, with the
     line of the sodium profile "prof". The altitude of the profile is the array "h".
@@ -222,13 +208,9 @@ def prep_lgs_prof(
     profile_path = shesha_savepath + profilename
     print("reading Na profile from", profile_path)
     prof = np.load(profile_path)
-    make_lgs_prof1d(
-            p_wfs,
-            p_tel,
-            np.mean(prof[1:, :], axis=0),
-            prof[0, :],
-            p_wfs.beamsize,
-            center="image")
+    make_lgs_prof1d(p_wfs, p_tel,
+                    np.mean(prof[1:, :], axis=0), prof[0, :], p_wfs.beamsize,
+                    center="image")
     p_wfs.set_altna(prof[0, :].astype(np.float32))
     p_wfs.set_profna(np.mean(prof[1:, :], axis=0).astype(np.float32))
 
@@ -238,8 +220,7 @@ def prep_lgs_prof(
     subapdiam = p_tel.diam / p_wfs.nxsub  # diam of subap
 
     if (p_wfs.nxsub > 1):
-        xsubs = np.linspace((subapdiam - p_tel.diam) / 2,
-                            (p_tel.diam - subapdiam) / 2,
+        xsubs = np.linspace((subapdiam - p_tel.diam) / 2, (p_tel.diam - subapdiam) / 2,
                             p_wfs.nxsub).astype(np.float32)
     else:
         xsubs = np.zeros(1, dtype=np.float32)
@@ -285,15 +266,13 @@ def prep_lgs_prof(
     # convolved profile in 1D.
 
     if (xsubs.size > 1):
-        azimuth = np.arctan2(
-                ysubs[p_wfs._validsubsy] - p_wfs.llty,
-                xsubs[p_wfs._validsubsx] - p_wfs.lltx)
+        azimuth = np.arctan2(ysubs[p_wfs._validsubsy] - p_wfs.llty,
+                             xsubs[p_wfs._validsubsx] - p_wfs.lltx)
     else:
         azimuth = np.arctan2(ysubs - p_wfs.llty, xsubs - p_wfs.lltx)
 
     p_wfs._azimuth = azimuth
 
-    sensors.init_lgs(
-            nsensors, p_wfs._prof1d.size, hG, p_wfs._altna[0], dh,
-            p_wfs._qpixsize, dOffAxis, p_wfs._prof1d, p_wfs._profcum,
-            p_wfs._beam, p_wfs._ftbeam, p_wfs._azimuth)
+    sensors.init_lgs(nsensors, p_wfs._prof1d.size, hG, p_wfs._altna[0], dh,
+                     p_wfs._qpixsize, dOffAxis, p_wfs._prof1d, p_wfs._profcum,
+                     p_wfs._beam, p_wfs._ftbeam, p_wfs._azimuth)

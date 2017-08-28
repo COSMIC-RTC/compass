@@ -20,14 +20,8 @@ from Telescope import Telescope
 import numpy as np
 
 
-def tel_init(
-        context: naga_context,
-        p_geom: conf.Param_geom,
-        p_tel: conf.Param_tel,
-        r0=None,
-        ittime=None,
-        p_wfss=None,
-        dm=None):
+def tel_init(context: naga_context, p_geom: conf.Param_geom, p_tel: conf.Param_tel,
+             r0=None, ittime=None, p_wfss=None, dm=None):
     """
         Initialize the overall geometry of the AO system, including pupil and WFS
 
@@ -56,8 +50,8 @@ def tel_init(
         # we'll derive the geometry from the requirements in terms of sampling
         if (any_sh):
             indmax = np.argsort([
-                    o.nxsub for o in p_wfss
-                    if o.type_wfs == scons.WFSType.SH])[-1]
+                    o.nxsub for o in p_wfss if o.type_wfs == scons.WFSType.SH
+            ])[-1]
         else:
             indmax = np.argsort([o.nxsub for o in p_wfss])[-1]
 
@@ -75,23 +69,17 @@ def tel_init(
     else:
         geom_init(p_geom, p_tel)
 
-    telescope = Telescope(
-            context, p_geom._spupil.shape[0],
-            np.where(p_geom._spupil > 0)[0].size,
-            (p_geom._spupil * p_geom._apodizer).astype(np.float32),
-            p_geom._phase_ab_M1, p_geom._mpupil.shape[0], p_geom._mpupil,
-            p_geom._phase_ab_M1_m)
+    telescope = Telescope(context, p_geom._spupil.shape[0],
+                          np.where(p_geom._spupil > 0)[0].size,
+                          (p_geom._spupil * p_geom._apodizer).astype(np.float32),
+                          p_geom._phase_ab_M1, p_geom._mpupil.shape[0], p_geom._mpupil,
+                          p_geom._phase_ab_M1_m)
 
     return telescope
 
 
-def init_wfs_geom(
-        p_wfs: conf.Param_wfs,
-        r0: float,
-        p_tel: conf.Param_tel,
-        p_geom: conf.Param_geom,
-        ittime: float,
-        verbose=1):
+def init_wfs_geom(p_wfs: conf.Param_wfs, r0: float, p_tel: conf.Param_tel,
+                  p_geom: conf.Param_geom, ittime: float, verbose=1):
     """Compute the geometry of WFSs: valid subaps, positions of the subaps,
     flux per subap, etc...
 
@@ -140,8 +128,7 @@ def init_wfs_geom(
         init_sh_geom(p_wfs, r0, p_tel, p_geom, ittime, verbose=1)
 
 
-def init_wfs_size(
-        p_wfs: conf.Param_wfs, r0: float, p_tel: conf.Param_tel, verbose=1):
+def init_wfs_size(p_wfs: conf.Param_wfs, r0: float, p_tel: conf.Param_tel, verbose=1):
     """Compute all the parameters usefull for further WFS image computation (array sizes)
 
     :parameters:
@@ -197,9 +184,8 @@ def init_wfs_size(
             print("r0 for WFS :", "%3.2f" % r0, " m")
         # seeing = CONST.RAD2ARCSEC * (p_wfs.lambda * 1.e-6) / r0
         if (verbose):
-            print(
-                    "seeing for WFS : ", "%3.2f" %
-                    (CONST.RAD2ARCSEC * (p_wfs.Lambda * 1.e-6) / r0), "\"")
+            print("seeing for WFS : ",
+                  "%3.2f" % (CONST.RAD2ARCSEC * (p_wfs.Lambda * 1.e-6) / r0), "\"")
 
     if (p_wfs._pdiam <= 0):
         # this case is usualy for the wfs with max # of subaps
@@ -215,23 +201,20 @@ def init_wfs_size(
             pdiam += 1
 
         if (p_wfs.type_wfs == scons.WFSType.SH):
-            nrebin = int(
-                    2 * subapdiam * p_wfs.pixsize /
-                    (p_wfs.Lambda * 1.e-6) / CONST.RAD2ARCSEC) + 1
+            nrebin = int(2 * subapdiam * p_wfs.pixsize /
+                         (p_wfs.Lambda * 1.e-6) / CONST.RAD2ARCSEC) + 1
             nrebin = max(2, nrebin)
             # first atempt on a rebin factor
 
             # since we clipped pdiam we have to be carreful in nfft computation
             Nfft = util.fft_goodsize(
-                    int(
-                            pdiam / subapdiam * nrebin / p_wfs.pixsize *
-                            CONST.RAD2ARCSEC * (p_wfs.Lambda * 1.e-6)))
+                    int(pdiam / subapdiam * nrebin / p_wfs.pixsize * CONST.RAD2ARCSEC * (
+                            p_wfs.Lambda * 1.e-6)))
             # size of the support in fourier domain
 
             # qpixsize = k * (p_wfs.Lambda*1.e-6) / r0 * CONST.RAD2ARCSEC / Nfft
-            qpixsize = (
-                    pdiam * (p_wfs.Lambda * 1.e-6
-                             ) / subapdiam * CONST.RAD2ARCSEC) / Nfft
+            qpixsize = (pdiam *
+                        (p_wfs.Lambda * 1.e-6) / subapdiam * CONST.RAD2ARCSEC) / Nfft
 
         if (p_wfs.type_wfs == scons.WFSType.PYRHR):
             # while (pdiam % p_wfs.npix != 0) pdiam+=1;
@@ -250,9 +233,8 @@ def init_wfs_size(
                 pdiam = nrebin * p_wfs.nxsub
                 Nfft = int(2**np.ceil(np.log2(m * pdiam)))
 
-            qpixsize = (
-                    pdiam * (p_wfs.Lambda * 1.e-6
-                             ) / p_tel.diam * CONST.RAD2ARCSEC) / Nfft
+            qpixsize = (pdiam *
+                        (p_wfs.Lambda * 1.e-6) / p_tel.diam * CONST.RAD2ARCSEC) / Nfft
 
             padding = 2
             nphase = pdiam + 2 * padding
@@ -303,33 +285,25 @@ def init_wfs_size(
 
     if (verbose):
         print("quantum pixsize : ", "%5.4f" % qpixsize, "\"")
-        print(
-                "simulated FoV : ", "%3.2f" % (Ntot * qpixsize), "\" x ",
-                "%3.2f" % (Ntot * qpixsize), "\"")
+        print("simulated FoV : ", "%3.2f" % (Ntot * qpixsize), "\" x ",
+              "%3.2f" % (Ntot * qpixsize), "\"")
         print("actual pixsize : ", "%5.4f" % pixsize)
-        print(
-                "actual FoV : ", "%3.2f" % (pixsize * p_wfs.npix), "\" x ",
-                "%3.2f" % (pixsize * p_wfs.npix), "\"")
+        print("actual FoV : ", "%3.2f" % (pixsize * p_wfs.npix), "\" x ",
+              "%3.2f" % (pixsize * p_wfs.npix), "\"")
         print("number of phase points : ", p_wfs._pdiam)
         print("size of fft support : ", Nfft)
         print("size of HR spot support : ", Ntot)
 
         if (p_wfs.type_wfs == scons.WFSType.PYRHR):
             print("quantum pixsize in pyr image : ", "%5.4f" % qpixsize, "\"")
-            print(
-                    "simulated FoV : ", "%3.2f" % (Nfft * qpixsize), "\" x ",
-                    "%3.2f" % (Nfft * qpixsize), "\"")
+            print("simulated FoV : ", "%3.2f" % (Nfft * qpixsize), "\" x ",
+                  "%3.2f" % (Nfft * qpixsize), "\"")
             print("number of phase points : ", p_wfs._pdiam * p_wfs.nxsub)
             print("size of fft support : ", Nfft)
 
 
-def init_pyrhr_geom(
-        p_wfs: conf.Param_wfs,
-        r0: float,
-        p_tel: conf.Param_tel,
-        p_geom: conf.Param_geom,
-        ittime: float,
-        verbose=1):
+def init_pyrhr_geom(p_wfs: conf.Param_wfs, r0: float, p_tel: conf.Param_tel,
+                    p_geom: conf.Param_geom, ittime: float, verbose=1):
     """Compute the geometry of PYRHR WFSs: valid subaps, positions of the subaps,
     flux per subap, etc...
 
@@ -354,10 +328,8 @@ def init_pyrhr_geom(
     # Creating field stop mask
     fsradius_pixels = int(p_wfs.fssize / p_wfs._qpixsize / 2.)
     if (p_wfs.fstop == scons.FieldStopType.ROUND):
-        focmask = util.dist(
-                p_wfs._Nfft,
-                xc=p_wfs._Nfft / 2. + 0.5,
-                yc=p_wfs._Nfft / 2. + 0.5) < (fsradius_pixels)
+        focmask = util.dist(p_wfs._Nfft, xc=p_wfs._Nfft / 2. + 0.5,
+                            yc=p_wfs._Nfft / 2. + 0.5) < (fsradius_pixels)
     elif (p_wfs.fstop == scons.FieldStopType.SQUARE):
         X = np.indices((p_wfs._Nfft, p_wfs._Nfft)) + 1  # TODO: +1 ??
         x = X[1] - (p_wfs._Nfft + 1.) / 2.
@@ -395,8 +367,7 @@ def init_pyrhr_geom(
     p_wfs._halfxy = pyr
 
     # Valid pixels identification
-    mypup = util.dist(
-            pyrsize, xc=pyrsize / 2. + 0.5, yc=pyrsize / 2. + 0.5) < (rpup)
+    mypup = util.dist(pyrsize, xc=pyrsize / 2. + 0.5, yc=pyrsize / 2. + 0.5) < (rpup)
     # mypup = p_geom._ipupil
     # mypyr = np.abs(np.fft.ifft2(np.fft.fft2(mypup)*np.exp(1j*pyr)))**2
 
@@ -406,8 +377,7 @@ def init_pyrhr_geom(
     pyrtmp = np.zeros((pyrsize, pyrsize), dtype=np.int32)
 
     pyrtmp[pyrsize // 2 - p_geom._n // 2:pyrsize // 2 + p_geom._n // 2,
-           pyrsize // 2 - p_geom._n // 2:pyrsize // 2 + p_geom._n // 2
-           ] = p_geom._mpupil
+           pyrsize // 2 - p_geom._n // 2:pyrsize // 2 + p_geom._n // 2] = p_geom._mpupil
     pyrtmp2 = np.roll(pyrtmp.copy(), -Pangle, axis=0)
     pyrtmp2 = np.roll(pyrtmp2.copy(), -Pangle, axis=1)
     mskreb = util.rebin(pyrtmp2.copy(), [pyrsize // nrebin, pyrsize // nrebin])
@@ -490,8 +460,7 @@ def init_pyrhr_geom(
     pupreb = util.rebin(pup * 1., [pyrsize // nrebin, pyrsize // nrebin])
     a = pyrsize // nrebin
     b = p_geom._n // nrebin
-    pupreb = pupreb[a // 2 - b // 2:a // 2 + b // 2, a // 2 - b // 2:
-                    a // 2 + b // 2]
+    pupreb = pupreb[a // 2 - b // 2:a // 2 + b // 2, a // 2 - b // 2:a // 2 + b // 2]
     wsubok = np.where(pupreb >= p_wfs.fracsub)
     pupvalid = pupreb * 0.
     pupvalid[wsubok] = 1
@@ -513,15 +482,13 @@ def init_pyrhr_geom(
         for j in range(p_wfs.nxsub + 2):
             indj = jstart[j]
             fluxPerSub[i, j] = np.sum(
-                    p_geom._mpupil[indi:indi + p_wfs.npix, indj:
-                                   indj + p_wfs.npix])
+                    p_geom._mpupil[indi:indi + p_wfs.npix, indj:indj + p_wfs.npix])
 
     fluxPerSub = fluxPerSub / p_wfs.nxsub**2.
 
     p_wfs._fluxPerSub = fluxPerSub.copy()
 
-    phasemap = np.zeros((p_wfs.npix * p_wfs.npix, p_wfs._nvalid),
-                        dtype=np.int32)
+    phasemap = np.zeros((p_wfs.npix * p_wfs.npix, p_wfs._nvalid), dtype=np.int32)
     X = np.indices((p_geom._n, p_geom._n))  # we need c-like indice
     tmp = X[1] + X[0] * p_geom._n
 
@@ -530,8 +497,7 @@ def init_pyrhr_geom(
     for i in range(p_wfs._nvalid):
         indi = istart[validsubsy[i]]  # +2-1 (yorick->python
         indj = jstart[validsubsx[i]]
-        phasemap[:, i] = tmp[indi:indi + p_wfs.npix, indj:indj + p_wfs.npix
-                             ].flatten("C")
+        phasemap[:, i] = tmp[indi:indi + p_wfs.npix, indj:indj + p_wfs.npix].flatten("C")
         pyrtmp[indi:indi + p_wfs.npix, indj:indj + p_wfs.npix] = i
 
     p_wfs._phasemap = phasemap
@@ -539,13 +505,8 @@ def init_pyrhr_geom(
     p_wfs._pyr_offsets = pyrtmp  # pshift
 
 
-def init_sh_geom(
-        p_wfs: conf.Param_wfs,
-        r0: float,
-        p_tel: conf.Param_tel,
-        p_geom: conf.Param_geom,
-        ittime: float,
-        verbose=1):
+def init_sh_geom(p_wfs: conf.Param_wfs, r0: float, p_tel: conf.Param_tel,
+                 p_geom: conf.Param_geom, ittime: float, verbose=1):
     """Compute the geometry of SH WFSs: valid subaps, positions of the subaps,
     flux per subap, etc...
 
@@ -580,8 +541,7 @@ def init_sh_geom(
         for j in range(p_wfs.nxsub):
             indj = jstart[j] + 1  # +2-1 (yorick->python)
             fluxPerSub[i, j] = np.sum(
-                    p_geom._mpupil[indi:indi + p_wfs._pdiam, indj:
-                                   indj + p_wfs._pdiam])
+                    p_geom._mpupil[indi:indi + p_wfs._pdiam, indj:indj + p_wfs._pdiam])
             # fluxPerSub[i,j] = np.where(p_geom._mpupil[indi:indi+pdiam,indj:indj+pdiam] > 0)[0].size
 
     fluxPerSub = fluxPerSub / p_wfs._pdiam**2.
@@ -597,8 +557,7 @@ def init_sh_geom(
     p_wfs._validsubsy = validy
 
     # this defines how we cut the phase into subaps
-    phasemap = np.zeros((p_wfs._pdiam * p_wfs._pdiam, p_wfs._nvalid),
-                        dtype=np.int32)
+    phasemap = np.zeros((p_wfs._pdiam * p_wfs._pdiam, p_wfs._nvalid), dtype=np.int32)
 
     X = np.indices((p_geom._n, p_geom._n))
     tmp = X[1] + X[0] * p_geom._n
@@ -608,8 +567,8 @@ def init_sh_geom(
     for i in range(n):
         indi = istart[p_wfs._validsubsy[i]] + 1  # +2-1 (yorick->python)
         indj = jstart[p_wfs._validsubsx[i]] + 1
-        phasemap[:, i] = tmp[indi:indi + p_wfs._pdiam, indj:indj + p_wfs._pdiam
-                             ].flatten()
+        phasemap[:, i] = tmp[indi:indi + p_wfs._pdiam, indj:
+                             indj + p_wfs._pdiam].flatten()
     p_wfs._phasemap = phasemap
 
     # this is a phase shift of 1/2 pix in x and y
@@ -635,10 +594,10 @@ def init_sh_geom(
         y = X[0]
         # hrpix
         tmp = np.zeros((p_wfs._Ntot, p_wfs._Ntot))
-        tmp[indi:indj, indi:indj] = np.roll(
-                x + (y - 1) * p_wfs._Nfft, p_wfs._Nfft / 2, axis=0)
-        tmp[indi:indj, indi:indj] = np.roll(
-                tmp[indi:indj, indi:indj], p_wfs._Nfft / 2, axis=1)
+        tmp[indi:indj, indi:indj] = np.roll(x + (y - 1) * p_wfs._Nfft, p_wfs._Nfft / 2,
+                                            axis=0)
+        tmp[indi:indj, indi:indj] = np.roll(tmp[indi:indj, indi:indj], p_wfs._Nfft / 2,
+                                            axis=1)
         # hrmap=roll(hrpix)
         tmp = np.roll(tmp, p_wfs._Ntot / 2, axis=0)
         tmp = np.roll(tmp, p_wfs._Ntot / 2, axis=1)
@@ -689,9 +648,9 @@ def init_sh_geom(
         (p_tel.diam / np.sqrt(p_wfs.nxsub ** 2. + (dr0 / 1.5) ** 2.)) / 4.848
     kernelfwhm = np.sqrt(fwhmseeing**2. + p_wfs.kernel**2.)
 
-    tmp = util.makegaussian(
-            p_wfs._Ntot, kernelfwhm / p_wfs._qpixsize, p_wfs._Ntot // 2 + 1,
-            p_wfs._Ntot // 2 + 1).astype(np.float32)
+    tmp = util.makegaussian(p_wfs._Ntot, kernelfwhm / p_wfs._qpixsize,
+                            p_wfs._Ntot // 2 + 1,
+                            p_wfs._Ntot // 2 + 1).astype(np.float32)
 
     tmp = np.roll(tmp, tmp.shape[0] // 2, axis=0)
     tmp = np.roll(tmp, tmp.shape[1] // 2, axis=1)
@@ -759,21 +718,17 @@ def geom_init(p_geom: conf.Param_geom, p_tel: conf.Param_tel, padding=2):
     cent = p_geom.pupdiam / 2. + 0.5
 
     # Useful pupil
-    p_geom._spupil = mkP.make_pupil(
-            p_geom.pupdiam, p_geom.pupdiam, p_tel, cent,
-            cent).astype(np.float32)
+    p_geom._spupil = mkP.make_pupil(p_geom.pupdiam, p_geom.pupdiam, p_tel, cent,
+                                    cent).astype(np.float32)
 
-    p_geom._phase_ab_M1 = mkP.make_phase_ab(
-            p_geom.pupdiam, p_geom.pupdiam, p_tel,
-            p_geom._spupil).astype(np.float32)
+    p_geom._phase_ab_M1 = mkP.make_phase_ab(p_geom.pupdiam, p_geom.pupdiam, p_tel,
+                                            p_geom._spupil).astype(np.float32)
 
     # large pupil (used for image formation)
-    p_geom._ipupil = util.pad_array(p_geom._spupil,
-                                    p_geom.ssize).astype(np.float32)
+    p_geom._ipupil = util.pad_array(p_geom._spupil, p_geom.ssize).astype(np.float32)
 
     # useful pupil + 4 pixels
-    p_geom._mpupil = util.pad_array(p_geom._spupil,
-                                    p_geom._n).astype(np.float32)
+    p_geom._mpupil = util.pad_array(p_geom._spupil, p_geom._n).astype(np.float32)
 
     p_geom._phase_ab_M1_m = util.pad_array(p_geom._phase_ab_M1,
                                            p_geom._n).astype(np.float32)

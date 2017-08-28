@@ -3,9 +3,7 @@ Created on 13 juil. 2017
 
 @author: vdeo
 '''
-__all__ = [
-        "atmos_init", "target_init", "dm_init", "wfs_init", "rtc_init",
-        "geom_init"]
+__all__ = ["atmos_init", "target_init", "dm_init", "wfs_init", "rtc_init", "geom_init"]
 
 from shesha_init.rtc_init import rtc_init
 from shesha_init.dm_init import dm_init

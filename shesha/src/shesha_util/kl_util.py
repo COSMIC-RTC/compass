@@ -25,12 +25,8 @@ def make_radii(cobs: float, nr: int) -> float:
     return radp
 
 
-def make_kernels(
-        cobs: float,
-        nr: int,
-        radp: np.ndarray,
-        kl_type: bytes,
-        outscl: float=None) -> np.ndarray:
+def make_kernels(cobs: float, nr: int, radp: np.ndarray, kl_type: bytes,
+                 outscl: float=None) -> np.ndarray:
     """
     This routine generates the kernel used to find the KL modes.
     The  kernel constructed here should be simply a discretization
@@ -57,8 +53,7 @@ def make_kernels(
     # the 0.5 is to give  the r**2 kernel, not the r kernel
     for i in range(nr):
         for j in range(i + 1):
-            te = 0.5 * np.sqrt(
-                    radp[i]**2 + radp[j]**2 - (2 * radp[i] * radp[j]) * cth)
+            te = 0.5 * np.sqrt(radp[i]**2 + radp[j]**2 - (2 * radp[i] * radp[j]) * cth)
             # te in units of the diameter, not the radius
             if (kl_type == scons.KLType.KOLMO):
 
@@ -68,10 +63,9 @@ def make_kernels(
                 if outscl is None:
                     raise ValueError("p_dm.outscl is not specified")
                 else:
-                    te = 6.88 * te**(5. / 3.) * (
-                            1 - 1.485 * (te / outscl)**(1. / 3.) + 5.383 *
-                            (te / outscl)**(2) - 6.281 * (te / outscl)**
-                            (7. / 3.))
+                    te = 6.88 * te**(5. / 3.) * (1 - 1.485 * (te / outscl)**
+                                                 (1. / 3.) + 5.383 * (te / outscl)**
+                                                 (2) - 6.281 * (te / outscl)**(7. / 3.))
 
             else:
 
@@ -184,12 +178,8 @@ def polang(r: np.ndarray) -> np.ndarray:
 #__________________________________________________________________________
 
 
-def setpincs(
-        ax: np.ndarray,
-        ay: np.ndarray,
-        px: np.ndarray,
-        py: np.ndarray,
-        cobs: float) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+def setpincs(ax: np.ndarray, ay: np.ndarray, px: np.ndarray, py: np.ndarray,
+             cobs: float) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
     """
     This routine determines a set of squares for interpolating
     from cartesian to polar coordinates, using only those points
@@ -247,9 +237,8 @@ def setpincs(
     for z in range(pincw.shape[0]):
         for i in range(pincw.shape[1]):
             for j in range(pincw.shape[2]):
-                pincw[z, i, j] = pincw[z, i, j] * axyinap[
-                        np.int32(pincx[z, i, j]),
-                        np.int32(pincy[z, i, j])]
+                pincw[z, i, j] = pincw[z, i, j] * axyinap[np.int32(pincx[z, i, j]),
+                                                          np.int32(pincy[z, i, j])]
 
     pincw = pincw * np.tile(1.0 / np.sum(pincw, axis=0), (4, 1, 1))
 
@@ -296,8 +285,7 @@ def pcgeom(nr, npp, cobs, ncp, ncmar):
     px = ff * px0 + hw
     py = ff * py0 + hw
     ax = np.reshape(
-            np.arange(int(ncp)**2, dtype=np.float) + 1, (int(ncp), int(ncp)),
-            order='F')
+            np.arange(int(ncp)**2, dtype=np.float) + 1, (int(ncp), int(ncp)), order='F')
     ax = np.float32(ax - 1) % ncp - 0.5 * (ncp - 1)
     ax = ax / (0.5 * nused)
     ay = np.transpose(ax)
@@ -321,8 +309,7 @@ def pcgeom(nr, npp, cobs, ncp, ncmar):
     return ncp, ncmar, px, py, cr, cp, pincx, pincy, pincw, ap
 
 
-def set_pctr(
-        dim: int, nr, npp, nkl: int, cobs: float, nord, ncmar=None, ncp=None):
+def set_pctr(dim: int, nr, npp, nkl: int, cobs: float, nord, ncmar=None, ncp=None):
     """
     This routine calls pcgeom to build a geom_struct with the
     right initializations. bas is a gkl_basis_struct built with
@@ -413,8 +400,7 @@ def gkl_fcom(kers: np.ndarray, cobs: float, nf: int):
 
     nxt = 1
     while True:
-        vs, newev, vt = np.linalg.svd(
-                fktom * kers[nxt, :, :], full_matrices=True)
+        vs, newev, vt = np.linalg.svd(fktom * kers[nxt, :, :], full_matrices=True)
         # newev = SVdec(fktom*kers(,,nxt),vs,vt)
         evs[:, nxt] = np.float32(newev)
         kers[nxt, :, :] = np.sqrt(2. * nr) * vs

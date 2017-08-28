@@ -34,13 +34,8 @@ def dim_dm_support(cent: float, extent: int, ssize: int):
     return int(n1), int(n2)
 
 
-def dim_dm_patch(
-        pupdiam: int,
-        diam: float,
-        type_dm: bytes,
-        alt: float,
-        xpos_wfs: List[float],
-        ypos_wfs: List[float]):
+def dim_dm_patch(pupdiam: int, diam: float, type_dm: bytes, alt: float,
+                 xpos_wfs: List[float], ypos_wfs: List[float]):
     """ compute patchDiam for DM
 
     :parameters:
@@ -61,8 +56,8 @@ def dim_dm_patch(
         norms = 0.  # type: Union[float, List[float]]
     else:
         norms = [
-                np.linalg.norm([xpos_wfs[w], ypos_wfs[w]])
-                for w in range(len(xpos_wfs))]
+                np.linalg.norm([xpos_wfs[w], ypos_wfs[w]]) for w in range(len(xpos_wfs))
+        ]
     if ((type_dm == scons.DmType.PZT) or (type_dm == scons.DmType.TT)):
         pp = (diam * pupdiam)
     elif (type_dm == scons.DmType.KL):
@@ -70,9 +65,7 @@ def dim_dm_patch(
     else:
         raise TypeError("This type of DM doesn't exist ")
 
-    patchDiam = int(
-            pupdiam + 2 * np.max(norms) * CONST.ARCSEC2RAD * np.abs(alt) /
-            (pp))
+    patchDiam = int(pupdiam + 2 * np.max(norms) * CONST.ARCSEC2RAD * np.abs(alt) / (pp))
     return patchDiam
 
 
@@ -88,8 +81,7 @@ def createSquarePattern(pitch: float, nxact: int):
         xy: (np.ndarray(dims=2,dtype=np.float32)) : xy[M,2] list of coodinates
     """
 
-    xy = np.tile(np.arange(nxact) - (nxact - 1.) / 2., (nxact,
-                                                        1)).astype(np.float32)
+    xy = np.tile(np.arange(nxact) - (nxact - 1.) / 2., (nxact, 1)).astype(np.float32)
     xy = np.array([xy.flatten(), xy.T.flatten()]) * pitch
     xy = np.float32(xy)
     return xy
@@ -168,15 +160,8 @@ def createDoubleHexaPattern(pitch: float, supportSize: int):
     return np.float32(np.array([Y, X]))
 
 
-def select_actuators(
-        xc: np.ndarray,
-        yc: np.ndarray,
-        nxact: int,
-        pitch: int,
-        cobs: float,
-        margin_in: float,
-        margin_out: float,
-        N=None):
+def select_actuators(xc: np.ndarray, yc: np.ndarray, nxact: int, pitch: int, cobs: float,
+                     margin_in: float, margin_out: float, N=None):
     """
     Select the "valid" actuators according to the system geometry
     :parameters:
@@ -213,9 +198,7 @@ def select_actuators(
         indsort = np.argsort(dis[valid_actus])
 
         if (N > valid_actus.size):
-            print(
-                    'Too many actuators wanted, restricted to ',
-                    valid_actus.size)
+            print('Too many actuators wanted, restricted to ', valid_actus.size)
         else:
             valid_actus = np.sort(indsort[:N])
 

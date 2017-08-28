@@ -29,9 +29,7 @@ def check_enum(cls, name):
 
     if not isinstance(name, bytes) or \
             not name in vars(cls).values():
-        raise ValueError(
-                "Invalid enumeration value for enum %s, value %s" %
-                (cls, name))
+        raise ValueError("Invalid enumeration value for enum %s, value %s" % (cls, name))
     return name
 
 
@@ -173,7 +171,8 @@ class ProfType:
             GAUSS1: "allProfileNa_withAltitude_1Gaussian.npy",
             GAUSS2: "allProfileNa_withAltitude_2Gaussian.npy",
             GAUSS3: "allProfileNa_withAltitude_3Gaussian.npy",
-            EXP: "allProfileNa_withAltitude.npy"})
+            EXP: "allProfileNa_withAltitude.npy"
+    })
 
 
 class FieldStopType:

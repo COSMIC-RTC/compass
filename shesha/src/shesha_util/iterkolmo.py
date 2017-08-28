@@ -88,10 +88,8 @@ def Cxz(n, Zx, Zy, Xx, Xy, istencil, L0):
     Zx_r = np.resize(Zx_s, (size, size2))
     Zy_r = np.resize(Zy_s, (size, size2))
 
-    tmp = phase_struct((Zx[0, size - 1] - Xx)**2 + (Zy[0, size - 1] - Xy)**2,
-                       L0)
-    tmp2 = phase_struct(
-            (Zx[0, size - 1] - Zx_s)**2 + (Zy[0, size - 1] - Zy_s)**2, L0)
+    tmp = phase_struct((Zx[0, size - 1] - Xx)**2 + (Zy[0, size - 1] - Xy)**2, L0)
+    tmp2 = phase_struct((Zx[0, size - 1] - Zx_s)**2 + (Zy[0, size - 1] - Zy_s)**2, L0)
 
     xz = -phase_struct((Xx_r.T - Zx_r)**2 + (Xy_r.T - Zy_r)**2, L0)
 
@@ -110,8 +108,7 @@ def Cxx(n, Zxn, Zyn, Xx, Xy, L0):
     Xx_r = np.resize(Xx, (size, size))
     Xy_r = np.resize(Xy, (size, size))
 
-    tmp = np.resize(
-            phase_struct((Zxn - Xx)**2 + (Zyn - Xy)**2, L0), (size, size))
+    tmp = np.resize(phase_struct((Zxn - Xx)**2 + (Zyn - Xy)**2, L0), (size, size))
 
     xx = -phase_struct((Xx_r - Xx_r.T)**2 + (Xy_r - Xy_r.T)**2, L0)  # + \
     #    tmp+tmp.T
@@ -137,8 +134,8 @@ def Czz(n, Zx, Zy, ist, L0):
     Zy_r = np.resize(Zy_s, (size, size))
 
     tmp = np.resize(
-            phase_struct((Zx[0, n - 1] - Zx_s)**2 + (Zy[0, n - 1] - Zy_s)**2,
-                         L0), (size, size))
+            phase_struct((Zx[0, n - 1] - Zx_s)**2 + (Zy[0, n - 1] - Zy_s)**2, L0),
+            (size, size))
 
     zz = -phase_struct((Zx_r - Zx_r.T) ** 2 + (Zy_r - Zy_r.T) ** 2, L0) + \
         tmp + tmp.T
@@ -202,8 +199,7 @@ def AB(n, L0, deltax, deltay, rank=0):
     test = np.zeros((n * n), np.float32)
     test[istencil] = np.arange(A.shape[1]) + 1
     test = np.reshape(test, (n, n), "C")
-    isty = np.argsort(test.T.flatten("C")).astype(
-            np.uint32)[n * n - A.shape[1]:]
+    isty = np.argsort(test.T.flatten("C")).astype(np.uint32)[n * n - A.shape[1]:]
 
     if (deltay < 0):
         isty = (n * n - 1) - isty
@@ -211,8 +207,7 @@ def AB(n, L0, deltax, deltay, rank=0):
         istencil = (n * n - 1) - istencil
 
     return np.asfortranarray(A.astype(np.float32)), np.asfortranarray(
-            B.astype(np.float32)), istencil.astype(np.uint32), isty.astype(
-                    np.uint32)
+            B.astype(np.float32)), istencil.astype(np.uint32), isty.astype(np.uint32)
 
 
 def extrude(p, r0, A, B, istencil):
@@ -243,8 +238,7 @@ def extrude(p, r0, A, B, istencil):
     z = p.flatten()[istencil]
     zref = p[0, n - 1]
     z -= zref
-    newColumn = np.dot(A, z) + np.dot(
-            B, np.random.normal(0, 1, n) * amplitude) + zref
+    newColumn = np.dot(A, z) + np.dot(B, np.random.normal(0, 1, n) * amplitude) + zref
     p1 = np.zeros((n, n), dtype=np.float32)
     p1[:, 0:n - 1] = p[:, 1:]
     p1[:, n - 1] = newColumn
@@ -320,8 +314,7 @@ def asymp_macdo(x):
     a2 = -0.08641975308641974829  # -7/89
     a3 = 0.08001828989483310284  # 175/2187
     x_1 = 1. / x
-    res = k2 - k3 * np.exp(-x) * x**(1 / 3.) * (
-            1.0 + x_1 * (a1 + x_1 * (a2 + x_1 * a3)))
+    res = k2 - k3 * np.exp(-x) * x**(1 / 3.) * (1.0 + x_1 * (a1 + x_1 * (a2 + x_1 * a3)))
     return res
 
 

@@ -78,8 +78,8 @@ class Param_atmos:
 
         :param l: (lit of float) : L0 for each layers
         """
-        self.__L0 = csu.enforce_array(
-                l, size=self.nscreens, dtype=np.float32, scalar_expand=True)
+        self.__L0 = csu.enforce_array(l, size=self.nscreens, dtype=np.float32,
+                                      scalar_expand=True)
 
     L0 = property(lambda x: x.__L0, set_L0)
 
@@ -89,8 +89,8 @@ class Param_atmos:
 
         :param l: (lit of float) : phase screens sizes
         """
-        self.__dim_screens = csu.enforce_array(
-                l, size=self.nscreens, dtype=np.int64, scalar_expand=False)
+        self.__dim_screens = csu.enforce_array(l, size=self.nscreens, dtype=np.int64,
+                                               scalar_expand=False)
 
     dim_screens = property(lambda x: x.__dim_screens, set_dim_screens)
 
@@ -100,8 +100,8 @@ class Param_atmos:
 
         :param l: (lit of float) : altitudes
         """
-        self.__alt = csu.enforce_array(
-                l, size=self.nscreens, dtype=np.float32, scalar_expand=False)
+        self.__alt = csu.enforce_array(l, size=self.nscreens, dtype=np.float32,
+                                       scalar_expand=False)
 
     alt = property(lambda x: x.__alt, set_alt)
 
@@ -111,8 +111,8 @@ class Param_atmos:
 
         :param l: (lit of float) : wind directions
         """
-        self.__winddir = csu.enforce_array(
-                l, size=self.nscreens, dtype=np.float32, scalar_expand=True)
+        self.__winddir = csu.enforce_array(l, size=self.nscreens, dtype=np.float32,
+                                           scalar_expand=True)
 
     winddir = property(lambda x: x.__winddir, set_winddir)
 
@@ -122,8 +122,8 @@ class Param_atmos:
 
         :param l: (list of float) : wind speeds
         """
-        self.__windspeed = csu.enforce_array(
-                l, size=self.nscreens, dtype=np.float32, scalar_expand=True)
+        self.__windspeed = csu.enforce_array(l, size=self.nscreens, dtype=np.float32,
+                                             scalar_expand=True)
 
     windspeed = property(lambda x: x.__windspeed, set_windspeed)
 
@@ -133,8 +133,8 @@ class Param_atmos:
 
         :param l: (lit of float) : fraction of r0
         """
-        self.__frac = csu.enforce_array(
-                l, size=self.nscreens, dtype=np.float32, scalar_expand=True)
+        self.__frac = csu.enforce_array(l, size=self.nscreens, dtype=np.float32,
+                                        scalar_expand=True)
 
     frac = property(lambda x: x.__frac, set_frac)
 
@@ -144,8 +144,8 @@ class Param_atmos:
 
         :param l: (lit of float) : translation speed
         """
-        self.__deltax = csu.enforce_array(
-                l, size=self.nscreens, dtype=np.float32, scalar_expand=True)
+        self.__deltax = csu.enforce_array(l, size=self.nscreens, dtype=np.float32,
+                                          scalar_expand=True)
 
     deltax = property(lambda x: x.__deltax, set_deltax)
 
@@ -155,8 +155,8 @@ class Param_atmos:
 
         :param l: (lit of float) : translation speed
         """
-        self.__deltay = csu.enforce_array(
-                l, size=self.nscreens, dtype=np.float32, scalar_expand=True)
+        self.__deltay = csu.enforce_array(l, size=self.nscreens, dtype=np.float32,
+                                          scalar_expand=True)
 
     deltay = property(lambda x: x.__deltay, set_deltay)
 
@@ -166,7 +166,7 @@ class Param_atmos:
 
         :param l: (lit of int) : seed
         """
-        self.__seeds = csu.enforce_array(
-                l, size=self.nscreens, dtype=np.int64, scalar_expand=True)
+        self.__seeds = csu.enforce_array(l, size=self.nscreens, dtype=np.int64,
+                                         scalar_expand=True)
 
     seeds = property(lambda x: x.__seeds, set_seeds)

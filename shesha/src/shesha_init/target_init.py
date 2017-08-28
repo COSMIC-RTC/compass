@@ -11,15 +11,9 @@ from Telescope import Telescope
 from Target import Target, Target_brama
 
 
-def target_init(
-        ctxt: naga_context,
-        telescope: Telescope,
-        p_target: conf.Param_target,
-        p_atmos: conf.Param_atmos,
-        p_tel: conf.Param_tel,
-        p_geom: conf.Param_geom,
-        dm=None,
-        brama=False):
+def target_init(ctxt: naga_context, telescope: Telescope, p_target: conf.Param_target,
+                p_atmos: conf.Param_atmos, p_tel: conf.Param_tel,
+                p_geom: conf.Param_geom, dm=None, brama=False):
     """Create a cython target from parametres structures
 
     :parameters:
@@ -51,28 +45,24 @@ def target_init(
         ceiled_apodizer = np.ceil(p_geom._apodizer * p_geom._spupil)
         ceiled_apodizer[np.where(ceiled_apodizer > 1)] = 1
         if (brama):
-            target = Target_brama(
-                    ctxt, telescope, p_target.ntargets, p_target.xpos,
-                    p_target.ypos, p_target.Lambda, p_target.mag,
-                    p_target.zerop, sizes, Npts)
+            target = Target_brama(ctxt, telescope, p_target.ntargets, p_target.xpos,
+                                  p_target.ypos, p_target.Lambda, p_target.mag,
+                                  p_target.zerop, sizes, Npts)
         else:
-            target = Target(
-                    ctxt, telescope, p_target.ntargets, p_target.xpos,
-                    p_target.ypos, p_target.Lambda, p_target.mag,
-                    p_target.zerop, sizes, Npts)
+            target = Target(ctxt, telescope, p_target.ntargets, p_target.xpos,
+                            p_target.ypos, p_target.Lambda, p_target.mag, p_target.zerop,
+                            sizes, Npts)
 
     else:
         Npts = np.sum(ceiled_pupil)
         if (brama):
-            target = Target_brama(
-                    ctxt, telescope, p_target.ntargets, p_target.xpos,
-                    p_target.ypos, p_target.Lambda, p_target.mag,
-                    p_target.zerop, sizes, Npts)
+            target = Target_brama(ctxt, telescope, p_target.ntargets, p_target.xpos,
+                                  p_target.ypos, p_target.Lambda, p_target.mag,
+                                  p_target.zerop, sizes, Npts)
         else:
-            target = Target(
-                    ctxt, telescope, p_target.ntargets, p_target.xpos,
-                    p_target.ypos, p_target.Lambda, p_target.mag,
-                    p_target.zerop, sizes, Npts)
+            target = Target(ctxt, telescope, p_target.ntargets, p_target.xpos,
+                            p_target.ypos, p_target.Lambda, p_target.mag, p_target.zerop,
+                            sizes, Npts)
 
     # cc=i
     for i in range(p_target.ntargets):

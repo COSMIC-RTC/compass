@@ -16,15 +16,9 @@ from Atmos import Atmos
 import numpy as np
 
 
-def atmos_init(
-        context: naga_context,
-        p_atmos: conf.Param_atmos,
-        p_tel: conf.Param_tel,
-        p_geom: conf.Param_geom,
-        ittime=None,
-        p_wfss=None,
-        sensors=None,
-        p_target=None):
+def atmos_init(context: naga_context, p_atmos: conf.Param_atmos, p_tel: conf.Param_tel,
+               p_geom: conf.Param_geom, ittime=None, p_wfss=None, sensors=None,
+               p_target=None):
     """
         TODO: docstring
     """
@@ -56,10 +50,9 @@ def atmos_init(
     max_size = max(norms)
 
     # Meta-pupil diameter for all layers depending on altitude
-    patch_diam = (
-            p_geom._n + 2 *
-            (max_size * CONST.ARCSEC2RAD * p_atmos.alt) / p_atmos.pupixsize +
-            4).astype(np.int64)
+    patch_diam = (p_geom._n + 2 *
+                  (max_size * CONST.ARCSEC2RAD * p_atmos.alt) / p_atmos.pupixsize +
+                  4).astype(np.int64)
     p_atmos.dim_screens = patch_diam + patch_diam % 2
 
     # Phase screen speeds
@@ -77,10 +70,8 @@ def atmos_init(
     L0_pix = p_atmos.L0 * p_geom.pupdiam / p_tel.diam
 
     if p_atmos.seeds is None:
-        p_atmos.seeds = (
-                np.arange(p_atmos.nscreens, dtype=np.int64) + 1) * 1234
+        p_atmos.seeds = (np.arange(p_atmos.nscreens, dtype=np.int64) + 1) * 1234
 
-    return Atmos(
-            context, p_atmos.nscreens, p_atmos.r0, L0_pix, p_atmos.pupixsize,
-            p_atmos.dim_screens, p_atmos.frac, p_atmos.alt, p_atmos.windspeed,
-            p_atmos.winddir, p_atmos.deltax, p_atmos.deltay, p_atmos.seeds, 0)
+    return Atmos(context, p_atmos.nscreens, p_atmos.r0, L0_pix, p_atmos.pupixsize,
+                 p_atmos.dim_screens, p_atmos.frac, p_atmos.alt, p_atmos.windspeed,
+                 p_atmos.winddir, p_atmos.deltax, p_atmos.deltay, p_atmos.seeds, 0)

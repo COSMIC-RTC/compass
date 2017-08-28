@@ -17,13 +17,8 @@ from Rtc import Rtc
 import numpy as np
 
 
-def comp_new_pyr_ampl(
-        rtc: Rtc,
-        n: int,
-        p_centroider: conf.Param_centroider,
-        p_wfss: list,
-        p_tel: conf.Param_tel,
-        ampli: float):
+def comp_new_pyr_ampl(rtc: Rtc, n: int, p_centroider: conf.Param_centroider,
+                      p_wfss: list, p_tel: conf.Param_tel, ampli: float):
     """Set the pyramid modulation amplitude
 
     :parameters:
@@ -55,11 +50,8 @@ def comp_new_pyr_ampl(
     rtc.set_pyr_ampl(nwfs, cx, cy, scale)
 
 
-def noise_cov(
-        nw: int,
-        p_wfs: conf.Param_wfs,
-        p_atmos: conf.Param_atmos,
-        p_tel: conf.Param_tel):
+def noise_cov(nw: int, p_wfs: conf.Param_wfs, p_atmos: conf.Param_atmos,
+              p_tel: conf.Param_tel):
     """Compute the diagonal of the noise covariance matrix for a SH WFS (arcsec^2)
     Photon noise: (pi^2/2)*(1/Nphotons)*(d/r0)^2 / (2*pi*d/lambda)^2
     Electronic noise: (pi^2/3)*(wfs.noise^2/N^2photons)*wfs.npix^2*(wfs.npix*wfs.pixsize*d/lambda)^2 / (2*pi*d/lambda)^2
@@ -105,12 +97,8 @@ def noise_cov(
     return cov
 
 
-def comp_new_fstop(
-        wfs: Sensors,
-        n: int,
-        p_wfs: conf.Param_wfs,
-        fssize: float,
-        fstop: bytes):
+def comp_new_fstop(wfs: Sensors, n: int, p_wfs: conf.Param_wfs, fssize: float,
+                   fstop: bytes):
     """
         Compute a new field stop for pyrhr WFS
 
@@ -123,10 +111,8 @@ def comp_new_fstop(
     fsradius_pixels = int(fssize / p_wfs._qpixsize / 2.)
     if (fstop == scons.FieldStopType.ROUND):
         p_wfs.fstop = fstop
-        focmask = util.dist(
-                p_wfs._Nfft,
-                xc=p_wfs._Nfft / 2. + 0.5,
-                yc=p_wfs._Nfft / 2. + 0.5) < (fsradius_pixels)
+        focmask = util.dist(p_wfs._Nfft, xc=p_wfs._Nfft / 2. + 0.5,
+                            yc=p_wfs._Nfft / 2. + 0.5) < (fsradius_pixels)
         # fstop_area = np.pi * (p_wfs.fssize/2.)**2. #UNUSED
     elif (p_wfs.fstop == scons.FieldStopType.SQUARE):
         p_wfs.fstop = fstop

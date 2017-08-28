@@ -135,7 +135,8 @@ class Param_tel:
 
         :param vect: (list of int32) : segment numbers
         """
-        self.__vect_seg = csu.enforce_array(
-                vect, len(vect), dtype=np.int32, scalar_expand=False)
+        self.__vect_seg = csu.enforce_array(vect,
+                                            len(vect), dtype=np.int32,
+                                            scalar_expand=False)
 
     vect_seg = property(lambda x: x.__vect_seg, set_vect_seg)

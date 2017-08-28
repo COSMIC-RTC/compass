@@ -191,8 +191,7 @@ def rotate3d(im, ang, cx=-1, cy=-1, zoom=1.0):
 
     for i in range(ang.size):
         matrot = np.array([[np.cos(ang[i]), -np.sin(ang[i])],
-                           [np.sin(ang[i]), np.cos(ang[i])]],
-                          dtype=np.float32)
+                           [np.sin(ang[i]), np.cos(ang[i])]], dtype=np.float32)
         wx[:, :, i] = x * matrot[0, 0] + y * matrot[1, 0] + cx
         wy[:, :, i] = x * matrot[0, 1] + y * matrot[1, 1] + cy
 
@@ -272,8 +271,7 @@ def rotate(im, ang, cx=-1, cy=-1, zoom=1.0):
     imr = np.zeros((im.shape[0], im.shape[1], im.shape[2])).\
         astype(np.float32)
 
-    matrot = np.array([[np.cos(ang), -np.sin(ang)], [np.sin(ang),
-                                                     np.cos(ang)]])
+    matrot = np.array([[np.cos(ang), -np.sin(ang)], [np.sin(ang), np.cos(ang)]])
 
     wx = x * matrot[0, 0] + y * matrot[1, 0] + cx
     wy = x * matrot[0, 1] + y * matrot[1, 1] + cy

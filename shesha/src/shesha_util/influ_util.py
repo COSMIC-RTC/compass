@@ -30,8 +30,8 @@ def besel_orth(m, n, phi, r):
     elif (m > 0):
         B = sp.jn(m, sp.jn_zeros(m, n)[n - 1] * r) * np.sin(m * phi)
     else:
-        B = sp.jn(np.abs(m), sp.jn_zeros(np.abs(m), n)[n - 1] * r) * np.cos(
-                np.abs(m) * phi)
+        B = sp.jn(np.abs(m), sp.jn_zeros(np.abs(m), n)[n -
+                                                       1] * r) * np.cos(np.abs(m) * phi)
     return B
 
 
@@ -65,11 +65,10 @@ def bessel_influence(xx, yy, type_i=PatternType.SQUARE):
 
     # coef for square IF
     a0 = [
-            0.3826, 0.5207, 0.2841, -0.0146, -0.1103, -0.0818, -0.0141, 0.0123,
-            0.0196, 0.0037]
-    am = [
-            -0.0454, -0.1114, -0.1125, -0.0397, 0.0146, 0.0217, 0.0085,
-            -0.0012, -0.0040]
+            0.3826, 0.5207, 0.2841, -0.0146, -0.1103, -0.0818, -0.0141, 0.0123, 0.0196,
+            0.0037
+    ]
+    am = [-0.0454, -0.1114, -0.1125, -0.0397, 0.0146, 0.0217, 0.0085, -0.0012, -0.0040]
     a = [-0.0002, -0.0004, -0.0001, 0.0004, 0.0005, 0.0003, 0.0001, 0, 0]
 
     # search coef for hexagonal IF (m =0, 6, -6 --> 28 term)
@@ -119,10 +118,8 @@ def makeRigaut(pitch: float, coupling: float, x=None, y=None):
     irc = 1.16136 + 2.97422 * coupling + \
         (-13.2381) * coupling**2 + 20.4395 * coupling**3
 
-    p1 = 4.49469 + (7.25509 +
-                    (-32.1948 + 17.9493 * coupling) * coupling) * coupling
-    p2 = 2.49456 + (-0.65952 +
-                    (8.78886 - 6.23701 * coupling) * coupling) * coupling
+    p1 = 4.49469 + (7.25509 + (-32.1948 + 17.9493 * coupling) * coupling) * coupling
+    p2 = 2.49456 + (-0.65952 + (8.78886 - 6.23701 * coupling) * coupling) * coupling
 
     tmp_c = 1.0 / np.abs(irc)
     ccc = (coupling - 1. + tmp_c**p1) / (np.log(tmp_c) * tmp_c**p2)
@@ -229,8 +226,7 @@ def makeBlacknutt(pitch: float, coupling: float, x=None, y=None):
         cg = smallsize // 2
         xx = x / float(cg)
         yy = y / float(cg)
-        a = np.array([0.355768, 0.487396, 0.144232, 0.012604],
-                     dtype=np.float32)
+        a = np.array([0.355768, 0.487396, 0.144232, 0.012604], dtype=np.float32)
         ok = np.where((np.abs(xx) < 1) * (np.abs(yy) < 1))
         sc = np.zeros(xx.shape)
         sc[ok] = (a[0] + a[1] * np.cos(np.pi * xx[ok]) +
@@ -277,12 +273,8 @@ def makeGaussian(pitch: float, coupling: float, x=None, y=None):
         return gauss
 
 
-def makeBessel(
-        pitch: float,
-        coupling: float,
-        x: np.ndarray=None,
-        y: np.ndarray=None,
-        patternType: bytes=PatternType.SQUARE):
+def makeBessel(pitch: float, coupling: float, x: np.ndarray=None, y: np.ndarray=None,
+               patternType: bytes=PatternType.SQUARE):
     """Compute Bessel influence function
 
     :parameters:
@@ -304,7 +296,6 @@ def makeBessel(
         # xdg= np.linspace(-1*(size_pitch/3.2),size_pitch/3.2, smallsize,dtype=np.float32)
         # x = np.tile(xdg, (smallsize,1))
         # y = x.T
-        influ_u = bessel_influence(
-                x / (1.6 * pitch), y / (1.6 * pitch), patternType)
+        influ_u = bessel_influence(x / (1.6 * pitch), y / (1.6 * pitch), patternType)
         influ_u = influ_u * (influ_u >= 0)
         return influ_u

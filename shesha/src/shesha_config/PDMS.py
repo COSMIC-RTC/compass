@@ -185,8 +185,7 @@ class Param_dm:
         """
         self.__file_influ_hdf5 = f
 
-    file_influ_hdf5 = property(
-            lambda x: x.__file_influ_hdf5, set_file_influ_hdf5)
+    file_influ_hdf5 = property(lambda x: x.__file_influ_hdf5, set_file_influ_hdf5)
 
     def set_center_name(self, f):
         """set the name of hdf5 influence file
@@ -409,9 +408,9 @@ class Param_dm:
 
         :param influ: (np.ndarray[ndim=3,dtype=np.float32_t]) : influence function
         """
-        self.__influ = csu.enforce_arrayMultiDim(
-                influ, (self.__influsize, self.__influsize, self._ntotact),
-                dtype=np.float32)
+        self.__influ = csu.enforce_arrayMultiDim(influ,
+                                                 (self.__influsize, self.__influsize,
+                                                  self._ntotact), dtype=np.float32)
 
     _influ = property(lambda x: x.__influ, set_influ)
 

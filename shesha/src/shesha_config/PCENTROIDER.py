@@ -80,8 +80,7 @@ class Param_centroider:
 
         :param w: (np.ndarray[ndim=1, dtype=np.float32]) : weights
         """
-        self.__weights = csu.enforce_arrayMultiDim(
-                w, w.shape, dtype=np.float32)
+        self.__weights = csu.enforce_arrayMultiDim(w, w.shape, dtype=np.float32)
 
     weights = property(lambda x: x.__weights, set_weights)
 
@@ -141,8 +140,7 @@ class Param_centroider:
 
         :param imap: (np.ndarray[ndim=2, dtype=np.float32]) : sizey
         """
-        self.__interpmat = csu.enforce_arrayMultiDim(
-                imap, imap.shape, dtype=np.float32)
+        self.__interpmat = csu.enforce_arrayMultiDim(imap, imap.shape, dtype=np.float32)
 
     interpmat = property(lambda x: x.__interpmat, set_interpmat)
 

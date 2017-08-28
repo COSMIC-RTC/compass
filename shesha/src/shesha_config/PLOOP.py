@@ -27,8 +27,9 @@ class Param_loop:
         :parameters:
             devices: (np.ndarray[ndim=1, dtype=np.int32_t]) : list of GPU devices
         """
-        self.__devices = csu.enforce_array(
-                devices, len(devices), dtype=np.int32, scalar_expand=False)
+        self.__devices = csu.enforce_array(devices,
+                                           len(devices), dtype=np.int32,
+                                           scalar_expand=False)
 
     devices = property(lambda x: x.__devices, set_devices)
 
