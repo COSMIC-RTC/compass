@@ -186,23 +186,24 @@ def make_EELT(dim, pupd, tel, N_seg=-1):
                         tel.t_spiders) + "_MS" + str(tel.nbrmissing) + "_REFERR" + str(
                                 100 * tel.referr) + ".h5"
     else:
-        EELT_file = EELT_data + str(tel.type_ap) + "_N" + str(dim) + "_COBS" + str(
-                100 * tel.cobs) + "_CLOCKED" + str(tel.pupangle) + "_TSPIDERS" + str(
-                        100 *
-                        tel.t_spiders) + "_MS" + str(tel.nbrmissing) + "_REFERR" + str(
-                                100 * tel.referr) + ".h5"
+        EELT_file = EELT_data + tel.type_ap.decode('UTF-8') + "_N" + str(
+                dim) + "_COBS" + str(100 * tel.cobs) + "_CLOCKED" + str(
+                        tel.pupangle) + "_TSPIDERS" + str(
+                                100 * tel.t_spiders) + "_MS" + str(
+                                        tel.nbrmissing) + "_REFERR" + str(
+                                                100 * tel.referr) + ".h5"
     if (os.path.isfile(EELT_file)):
         print("reading EELT pupil from file ", EELT_file)
         pup = h5u.readHdf5SingleDataset(EELT_file)
     else:
         print("creating EELT pupil...")
-        file = EELT_data + "Coord_" + str(tel.type_ap) + ".dat"
+        file = EELT_data + "Coord_" + tel.type_ap.decode('UTF-8') + ".dat"
         data = np.fromfile(file, sep="\n")
         data = np.reshape(data, (data.size / 2, 2))
         x_seg = data[:, 0]
         y_seg = data[:, 1]
 
-        file = EELT_data + "EELT_MISSING_" + str(tel.type_ap) + ".dat"
+        file = EELT_data + "EELT_MISSING_" + tel.type_ap.decode('UTF-8') + ".dat"
         k_seg = np.fromfile(file, sep="\n").astype(np.int32)
 
         W = 1.45 * np.cos(np.pi / 6)
@@ -291,12 +292,11 @@ def make_phase_ab(dim, pupd, tel, pup):
     TODO: complete
     """
 
-    if ((tel.type_ap == b"Generic") or (tel.type_ap == b"VLT")):
+    if ((tel.type_ap == ApertureType.GENERIC) or (tel.type_ap == ApertureType.VLT)):
         return np.zeros((dim, dim)).astype(np.float32)
 
-    ab_file = EELT_data + "aberration_" + str(
-            tel.type_ap
-    ) + "_N" + str(dim) + "_NPUP" + str(np.where(pup)[0].size) + "_CLOCKED" + str(
+    ab_file = EELT_data + "aberration_" + tel.type_ap.decode('UTF-8') + \
+            "_N" + str(dim) + "_NPUP" + str(np.where(pup)[0].size) + "_CLOCKED" + str(
             tel.pupangle) + "_TSPIDERS" + str(
                     100 * tel.t_spiders) + "_MS" + str(tel.nbrmissing) + "_REFERR" + str(
                             100 * tel.referr) + "_PIS" + str(
@@ -312,24 +312,24 @@ def make_phase_ab(dim, pupd, tel, pup):
 
         W = 1.45 * np.cos(np.pi / 6)
 
-        file = EELT_data + "EELT_Piston_" + str(tel.type_ap) + ".dat"
+        file = EELT_data + "EELT_Piston_" + tel.type_ap.decode('UTF-8') + ".dat"
         p_seg = np.fromfile(file, sep="\n")
         #mean_pis=np.mean(p_seg)
         std_pis = np.std(p_seg)
         p_seg = p_seg * std_piston / std_pis
         N_seg = p_seg.size
 
-        file = EELT_data + "EELT_TT_" + str(tel.type_ap) + ".dat"
+        file = EELT_data + "EELT_TT_" + tel.type_ap.decode('UTF-8') + ".dat"
         tt_seg = np.fromfile(file, sep="\n")
 
-        file = EELT_data + "EELT_TT_DIRECTION_" + str(tel.type_ap) + ".dat"
+        file = EELT_data + "EELT_TT_DIRECTION_" + tel.type_ap.decode('UTF-8') + ".dat"
         tt_phi_seg = np.fromfile(file, sep="\n")
 
         phase_error = np.zeros((dim, dim))
         phase_tt = np.zeros((dim, dim))
         phase_defoc = np.zeros((dim, dim))
 
-        file = EELT_data + "Coord_" + str(tel.type_ap) + ".dat"
+        file = EELT_data + "Coord_" + tel.type_ap.decode('UTF-8') + ".dat"
         data = np.fromfile(file, sep="\n")
         data = np.reshape(data, (data.size / 2, 2))
         x_seg = data[:, 0]

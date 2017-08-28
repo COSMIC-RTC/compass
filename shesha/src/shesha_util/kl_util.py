@@ -87,7 +87,7 @@ def piston_orth(nr: int) -> np.ndarray:
         :return:
             s:
     """
-    s = np.zeros((nr, nr), dtype=np.float32)
+    s = np.zeros((nr, nr), dtype=np.float32)  # type: np.ndarray[np.float32]
     for j in range(nr - 1):
         rnm = 1. / np.sqrt(np.float32((j + 1) * (j + 2)))
         s[0:j + 1, j] = rnm
@@ -386,7 +386,9 @@ def gkl_fcom(kers: np.ndarray, cobs: float, nf: int):
     btemp = (ts.dot(zom).dot(s))[0:nr - 1, 0:nr - 1]
 
     #newev = SVdec(fktom*b1,v0,vt)
-    v0, newev, vt = np.linalg.svd(fktom * btemp, full_matrices=True)
+    v0, newev, vt = np.linalg.svd(
+            fktom * btemp, full_matrices=True
+    )  # type: np.ndarray[np.float32], np.ndarray[np.float32],np.ndarray[np.float32]
 
     v1 = np.zeros((nr, nr), dtype=np.float32)
     v1[0:nr - 1, 0:nr - 1] = v0
@@ -453,7 +455,7 @@ def gkl_fcom(kers: np.ndarray, cobs: float, nf: int):
     nord = max(ordd)
 
     rabas = np.zeros((nr, nkl), dtype=np.float32)
-    sizenpo = np.int32(nord)
+    sizenpo = int(nord)
     npo = np.zeros(sizenpo, dtype=np.int32)
 
     for i in range(nkl):
