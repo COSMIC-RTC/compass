@@ -10,7 +10,7 @@ import shesha_util.hdf5_utils as h5u
 import Atmos, Telescope, Target, Rtc, Dms, Sensors
 import time
 
-from typing import Iterable, Callable, TypeVar, Any
+from typing import Iterable, Callable, TypeVar, Any, Dict
 
 
 class Simulator:
@@ -31,8 +31,9 @@ class Simulator:
         self.rtc = None  # type: Rtc.Rtc
         self.wfs = None  # type: Sensors.Sensors
         self.dms = None  # type: Dms.Dms
-        self.matricesToLoad = {}  # type: dictionary
-        self.use_DB = use_DB
+
+        self.matricesToLoad = {}  # type: Dict[str,str]
+        self.use_DB = use_DB  # type: bool
 
         if filepath is not None:
             self.load_from_file(filepath)
@@ -109,6 +110,9 @@ class Simulator:
             self.config.p_tel = None
         if not hasattr(self.config, 'p_controllers'):
             self.config.p_tel = None
+
+        if not hasattr(self.config, 'simul_name'):
+            self.config.simul_name = None
 
         self.loaded = True
 
