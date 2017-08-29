@@ -4,6 +4,7 @@ import time
 import shesha_config as conf
 import shesha_constants as scons
 import shesha_init.lgs_init as lgs
+import shesha_util.hdf5_utils as h5u
 
 from Sensors import Sensors
 from Dms import Dms
@@ -65,8 +66,8 @@ def imat_geom(wfs: Sensors, dms: Dms, p_wfss: List[conf.Param_wfs],
 
 
 def imat_init(ncontrol: int, rtc: Rtc, dms: Dms, p_dms: list, wfs: Sensors, p_wfss: list,
-              p_tel: conf.Param_tel, p_controller: conf.Param_controller,
-              kl=None) -> None:
+              p_tel: conf.Param_tel, p_controller: conf.Param_controller, kl=None,
+              dataBase: dict={}, use_DB: bool=False) -> None:
     """Initialize and compute the interaction matrix on the GPU
 
     :parameters:
@@ -79,6 +80,8 @@ def imat_init(ncontrol: int, rtc: Rtc, dms: Dms, p_dms: list, wfs: Sensors, p_wf
         p_tel: (Param_tel) : telescope settings
         p_controller: (Param_controller) : controller settings
         kl:(np.array) :  KL_matrix
+        dataBase:(dict): (optional) dict containing paths to files to load
+        use_DB:(bool) : (optional) use dataBase flag
     """
     # first check if wfs is using lgs
     # if so, load new lgs spot, just for imat
@@ -89,13 +92,19 @@ def imat_init(ncontrol: int, rtc: Rtc, dms: Dms, p_dms: list, wfs: Sensors, p_wf
             p_wfss[i].proftype = scons.ProfType.GAUSS1
             lgs.prep_lgs_prof(p_wfss[i], i, p_tel, wfs, imat=1)
 
-    t0 = time.time()
-    if kl is not None:
-        ntt = scons.DmType.TT in [d.type_dm for d in p_dms]
-        rtc.do_imat_kl(ncontrol, p_controller, dms, p_dms, kl, ntt)
+    if "imat" in dataBase:
+        imat = h5u.load_imat_from_dataBase(dataBase)
+        rtc.set_imat(ncontrol, imat)
     else:
-        rtc.do_imat(ncontrol, dms)
-    print("done in %f s" % (time.time() - t0))
+        t0 = time.time()
+        if kl is not None:
+            ntt = scons.DmType.TT in [d.type_dm for d in p_dms]
+            rtc.do_imat_kl(ncontrol, p_controller, dms, p_dms, kl, ntt)
+        else:
+            rtc.do_imat(ncontrol, dms)
+        print("done in %f s" % (time.time() - t0))
+        if use_DB:
+            h5u.save_imat_in_dataBase(rtc.get_imat(ncontrol))
     p_controller.set_imat(rtc.get_imat(ncontrol))
 
     # Restore original profile in lgs spots

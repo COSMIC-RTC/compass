@@ -1,9 +1,11 @@
 import sys
+import os
 
 from naga import naga_context
 
 import shesha_init as init
 import shesha_constants as scons
+import shesha_util.hdf5_utils as h5u
 
 import Atmos, Telescope, Target, Rtc, Dms, Sensors
 import time
@@ -13,7 +15,7 @@ from typing import Iterable, Callable, TypeVar, Any
 
 class Simulator:
 
-    def __init__(self, filepath: str=None) -> None:
+    def __init__(self, filepath: str=None, use_DB: bool=False) -> None:
         """
         TODO: docstring
         """
@@ -29,6 +31,8 @@ class Simulator:
         self.rtc = None  # type: Rtc.Rtc
         self.wfs = None  # type: Sensors.Sensors
         self.dms = None  # type: Dms.Dms
+        self.matricesToLoad = {}  # type: dictionary
+        self.use_DB = use_DB
 
         if filepath is not None:
             self.load_from_file(filepath)
@@ -127,6 +131,11 @@ class Simulator:
         """
         if not self.loaded:
             raise ValueError("Config must be loaded before call to init_sim")
+        if (self.config.simul_name is not None and self.use_DB):
+            param_dict = h5u.params_dictionary(self.config)
+            self.matricesToLoad = h5u.checkMatricesDataBase(
+                    os.environ["SHESHA_ROOT"] + "/data/dataBase/", self.config,
+                    param_dict)
         self.c = naga_context(devices=self.config.p_loop.devices)
 
         if self.config.p_tel is None or self.config.p_geom is None:
@@ -152,7 +161,8 @@ class Simulator:
             #   atmos
             print("->atmos")
             self.atm = init.atmos_init(self.c, self.config.p_atmos, self.config.p_tel,
-                                       self.config.p_geom, ittime)
+                                       self.config.p_geom, ittime,
+                                       dataBase=self.matricesToLoad, use_DB=self.use_DB)
         else:
             self.atm = None
 
@@ -177,6 +187,9 @@ class Simulator:
         self._rtc_init(ittime)
 
         self.is_init = True
+        if self.use_DB:
+            h5u.validDataBase(os.environ["SHESHA_ROOT"] + "/data/dataBase/",
+                              self.matricesToLoad)
 
     def _tar_init(self) -> None:
         if self.config.p_target is not None:
@@ -196,7 +209,8 @@ class Simulator:
                     self.c, self.tel, self.wfs, self.dms, self.atm, self.config.p_wfss,
                     self.config.p_tel, self.config.p_geom, self.config.p_atmos, ittime,
                     self.config.p_centroiders, self.config.p_controllers,
-                    self.config.p_dms, brama=False)
+                    self.config.p_dms, brama=False, dataBase=self.matricesToLoad,
+                    use_DB=self.use_DB)
         else:
             self.rtc = None
 

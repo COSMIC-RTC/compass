@@ -10,6 +10,8 @@ from naga import naga_context
 
 import shesha_config as conf
 from shesha_constants import CONST
+import shesha_util.iterkolmo as itK
+import shesha_util.hdf5_utils as h5u
 
 from Atmos import Atmos
 
@@ -18,7 +20,7 @@ import numpy as np
 
 def atmos_init(context: naga_context, p_atmos: conf.Param_atmos, p_tel: conf.Param_tel,
                p_geom: conf.Param_geom, ittime=None, p_wfss=None, sensors=None,
-               p_target=None):
+               p_target=None, dataBase=None, use_DB=False):
     """
         TODO: docstring
     """
@@ -72,6 +74,19 @@ def atmos_init(context: naga_context, p_atmos: conf.Param_atmos, p_tel: conf.Par
     if p_atmos.seeds is None:
         p_atmos.seeds = (np.arange(p_atmos.nscreens, dtype=np.int64) + 1) * 1234
 
-    return Atmos(context, p_atmos.nscreens, p_atmos.r0, L0_pix, p_atmos.pupixsize,
-                 p_atmos.dim_screens, p_atmos.frac, p_atmos.alt, p_atmos.windspeed,
-                 p_atmos.winddir, p_atmos._deltax, p_atmos._deltay, p_atmos.seeds, 0)
+    atm = Atmos(context, p_atmos.nscreens, p_atmos.r0, p_atmos.pupixsize,
+                p_atmos.dim_screens, p_atmos.frac, p_atmos.alt, p_atmos.windspeed,
+                p_atmos.winddir, p_atmos._deltax, p_atmos._deltay)
+
+    for i in range(p_atmos.nscreens):
+        if "A" in dataBase:
+            A, B, istx, isty = h5u.load_AB_from_dataBase(dataBase)
+        else:
+            A, B, istx, isty = itK.AB(p_atmos.dim_screens[i], L0_pix[i],
+                                      p_atmos._deltax[i], p_atmos._deltay[i], 0)
+            if use_DB:
+                h5u.save_AB_in_database(A, B, istx, isty)
+
+        atm.init_screen(p_atmos.alt[i], A, B, istx, isty, p_atmos.seeds[i])
+
+    return atm

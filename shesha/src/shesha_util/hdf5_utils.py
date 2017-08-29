@@ -4,8 +4,6 @@ import os
 import numpy as np
 from subprocess import check_output
 
-#import shesha
-
 
 def params_dictionary(config):
     """ Create and returns a dictionary of all the config parameters with the
@@ -15,12 +13,9 @@ def params_dictionary(config):
     :return param_dict: (dictionary) : dictionary of parameters
     """
 
-    commit = check_output(["git", "rev-parse", "--short", "HEAD"]).decode('utf8')
+    commit = check_output(["git", "rev-parse", "--short", "HEAD"])
 
-    param_dict = {
-            "simul_name": config.simul_name.encode('utf8'),
-            "commit": version.encode('utf8')
-    }
+    param_dict = {"simul_name": config.simul_name.encode('utf8'), "commit": commit}
 
     param_loop = [
             i for i in dir(config.p_loop)
@@ -83,6 +78,7 @@ def params_dictionary(config):
                             w.__dict__["_Param_wfs__" + k] for w in config.p_wfss
                     ]
             })
+        param_dict.update({"nwfs": len(config.p_wfss)})
     if config.p_dms is not None:
         param_dm = [
                 i for i in dir(config.p_dms[0])
@@ -95,6 +91,8 @@ def params_dictionary(config):
                             w.__dict__["_Param_dm__" + k] for w in config.p_dms
                     ]
             })
+        param_dict.update({"ndms": len(config.p_dms)})
+
     if config.p_controllers is not None:
         param_controller = [
                 i for i in dir(config.p_controllers[0])
@@ -121,6 +119,7 @@ def params_dictionary(config):
                             for w in config.p_centroiders
                     ]
             })
+        param_dict.update({"ncentroiders": len(config.p_centroiders)})
 
     for k in param_dict.keys():
         if type(param_dict[k]) is list:
@@ -148,57 +147,28 @@ def create_file_attributes(filename, param_dict):
 
 
 def init_hdf5_files(savepath, param_dict, matricesToLoad):
-    version = check_output(["git", "rev-parse", "--short", "HEAD"]).decode('utf8')
+    commit = check_output(["git", "rev-parse", "--short", "HEAD"]).decode('utf8')
     # if not(matricesToLoad.has_key("A")):
     if "A" not in matricesToLoad:
         df = pandas.read_hdf(savepath + "matricesDataBase.h5", "A")
         ind = len(df.index)
-        filename = savepath + "turbu/A_" + version + "_" + str(ind) + ".h5"
+        filename = savepath + "turbu/A_" + commit + "_" + str(ind) + ".h5"
         create_file_attributes(filename, param_dict)
         updateDataBase(filename, savepath, "A")
-        df = pandas.read_hdf(savepath + "matricesDataBase.h5", "B")
-        ind = len(df.index)
-        filename = savepath + "turbu/B_" + version + "_" + str(ind) + ".h5"
-        create_file_attributes(filename, param_dict)
-        updateDataBase(filename, savepath, "B")
-        df = pandas.read_hdf(savepath + "matricesDataBase.h5", "istx")
-        ind = len(df.index)
-        filename = savepath + "turbu/istx_" + version + "_" + str(ind) + ".h5"
-        create_file_attributes(filename, param_dict)
-        updateDataBase(filename, savepath, "istx")
-        df = pandas.read_hdf(savepath + "matricesDataBase.h5", "isty")
-        ind = len(df.index)
-        filename = savepath + "turbu/isty_" + version + "_" + str(ind) + ".h5"
-        create_file_attributes(filename, param_dict)
-        updateDataBase(filename, savepath, "isty")
 
-    if not ("pztok" in matricesToLoad):
-        df = pandas.read_hdf(savepath + "matricesDataBase.h5", "pztok")
+    if not ("dm" in matricesToLoad):
+        df = pandas.read_hdf(savepath + "matricesDataBase.h5", "dm")
         ind = len(df.index)
-        filename = savepath + "mat/pztok_" + version + "_" + str(ind) + ".h5"
+        filename = savepath + "mat/dm_" + commit + "_" + str(ind) + ".h5"
         create_file_attributes(filename, param_dict)
-        updateDataBase(filename, savepath, "pztok")
-        df = pandas.read_hdf(savepath + "matricesDataBase.h5", "pztnok")
-        ind = len(df.index)
-        filename = savepath + "mat/pztnok_" + version + "_" + str(ind) + ".h5"
-        create_file_attributes(filename, param_dict)
-        updateDataBase(filename, savepath, "pztnok")
+        updateDataBase(filename, savepath, "dm")
+
     if not ("imat" in matricesToLoad):
         df = pandas.read_hdf(savepath + "matricesDataBase.h5", "imat")
         ind = len(df.index)
-        filename = savepath + "mat/imat_" + version + "_" + str(ind) + ".h5"
+        filename = savepath + "mat/imat_" + commit + "_" + str(ind) + ".h5"
         create_file_attributes(filename, param_dict)
         updateDataBase(filename, savepath, "imat")
-        df = pandas.read_hdf(savepath + "matricesDataBase.h5", "eigenv")
-        ind = len(df.index)
-        filename = savepath + "mat/eigenv_" + version + "_" + str(ind) + ".h5"
-        create_file_attributes(filename, param_dict)
-        updateDataBase(filename, savepath, "eigenv")
-        df = pandas.read_hdf(savepath + "matricesDataBase.h5", "U")
-        ind = len(df.index)
-        filename = savepath + "mat/U_" + version + "_" + str(ind) + ".h5"
-        create_file_attributes(filename, param_dict)
-        updateDataBase(filename, savepath, "U")
 
 
 def initDataBase(savepath, param_dict):
@@ -215,15 +185,8 @@ def initDataBase(savepath, param_dict):
     df = pandas.DataFrame(columns=keys)
     store = pandas.HDFStore(savepath + "matricesDataBase.h5")
     store.put("A", df)
-    store.put("B", df)
-    store.put("istx", df)
-    store.put("isty", df)
-    store.put("eigenv", df)
     store.put("imat", df)
-    store.put("pztok", df)
-    store.put("pztnok", df)
-    store.put("U", df)
-
+    store.put("dm", df)
     store.close()
     print("Matrices database created")
 
@@ -238,13 +201,10 @@ def updateDataBase(h5file, savepath, matrix_type):
                                                          "istx","eigenv","imat","U"
                                                          "pztok" or "pztnok")
     """
-    if (matrix_type == b"A" or matrix_type == b"B" or matrix_type == b"istx" or
-                matrix_type == b"isty" or matrix_type == b"eigenv" or
-                matrix_type == b"imat" or matrix_type == b"U" or
-                matrix_type == b"pztok" or matrix_type == b"pztnok"):
+    if (matrix_type == "A" or matrix_type == "imat" or matrix_type == "dm"):
         f = h5py.File(h5file, "r")
         store = pandas.HDFStore(savepath + "matricesDataBase.h5")
-        df = pandas.read_hdf(savepath + "matricesDataBase.h5", matrix_type)
+        df = store[matrix_type]
         ind = len(df.index)
         for i in list(f.attrs.keys()):
             df.loc[ind, i] = f.attrs[i]
@@ -308,7 +268,7 @@ def checkMatricesDataBase(savepath, config, param_dict):
         checkTurbuParams(savepath, config, param_dict, matricesToLoad)
         checkDmsParams(savepath, config, param_dict, matricesToLoad)
         #        if(matricesToLoad.has_key("pztok")):
-        if "pztok" in matricesToLoad:
+        if "dm" in matricesToLoad:
             checkControlParams(savepath, config, param_dict, matricesToLoad)
 
     else:
@@ -329,27 +289,31 @@ def checkTurbuParams(savepath, config, pdict, matricesToLoad):
     """
     dataBase = pandas.read_hdf(savepath + "matricesDataBase.h5", "A")
     param2test = [
-            "r0", "seeds", "L0", "atm.alt", "tel_diam", "cobs", "pupdiam", "zenithangle",
-            "target.xpos", "target.ypos", "wfs.xpos", "wfs.ypos"
+            "_Param_atmos__r0", "_Param_atmos__seeds", "_Param_atmos__L0",
+            "_Param_atmos__alt", "_Param_tel__diam", "_Param_tel__cobs",
+            "_Param_geom__pupdiam", "_Param_geom__zenithangle", "_Param_target__xpos",
+            "_Param_target__ypos", "_Param_wfs__xpos", "_Param_wfs__ypos"
     ]
 
     for i in dataBase.index:
         cc = 0
-        version = check_output(["git", "rev-parse", "--short", "HEAD"]).decode('utf8')
-        if (dataBase.loc[i, "validity"] and (dataBase.loc[i, "revision"] == version)):
-            cond = ((dataBase.loc[i, param2test[cc]] == pdict[param2test[cc]]).all())
+        commit = check_output(["git", "rev-parse", "--short", "HEAD"])
+        if (dataBase.loc[i, "validity"] and (dataBase.loc[i, "commit"] == commit)):
+            cond = True
             while (cond):
                 if (cc >= len(param2test)):
                     break
                 else:
-                    cond = ((dataBase.loc[i, param2test[cc]] == pdict[param2test[cc]]
-                             ).all())
+                    cond = dataBase.loc[i, param2test[cc]] == pdict[param2test[cc]]
+                    if type(cond) is np.ndarray:
+                        cond = cond.all()
                     cc += 1
             # For debug
             #############################
-            # if not cond:
-            #    cc -= 1
-            #    print(param2test[cc]+" has changed from ",dataBase.loc[i,param2test[cc]], " to ",pdict[param2test[cc]])
+            if not cond:
+                cc -= 1
+                print(param2test[cc] + " has changed from ",
+                      dataBase.loc[i, param2test[cc]], " to ", pdict[param2test[cc]])
             ###############################
         else:
             cond = False
@@ -357,12 +321,14 @@ def checkTurbuParams(savepath, config, pdict, matricesToLoad):
         if (cond):
             matricesToLoad["index_turbu"] = i
             matricesToLoad["A"] = dataBase.loc[i, "path2file"]
-            dataBase = pandas.read_hdf(savepath + "matricesDataBase.h5", "B")
-            matricesToLoad["B"] = dataBase.loc[i, "path2file"]
-            dataBase = pandas.read_hdf(savepath + "matricesDataBase.h5", "istx")
-            matricesToLoad["istx"] = dataBase.loc[i, "path2file"]
-            dataBase = pandas.read_hdf(savepath + "matricesDataBase.h5", "isty")
-            matricesToLoad["isty"] = dataBase.loc[i, "path2file"]
+            # dataBase = pandas.read_hdf(savepath + "matricesDataBase.h5", "B")
+            # matricesToLoad["B"] = dataBase.loc[i, "path2file"]
+            # dataBase = pandas.read_hdf(savepath + "matricesDataBase.h5",
+            #                            "istx")
+            # matricesToLoad["istx"] = dataBase.loc[i, "path2file"]
+            # dataBase = pandas.read_hdf(savepath + "matricesDataBase.h5",
+            #                            "isty")
+            # matricesToLoad["isty"] = dataBase.loc[i, "path2file"]
             return
 
 
@@ -379,28 +345,38 @@ def checkControlParams(savepath, config, pdict, matricesToLoad):
     dataBase = pandas.read_hdf(savepath + "matricesDataBase.h5", "imat")
 
     param2test = [
-            "tel_diam", "t_spiders", "spiders_type", "pupangle", "referr", "std_piston",
-            "std_tt", "type_ap", "nbrmissing", "cobs", "pupdiam", "nwfs", "type_wfs",
-            "nxsub", "npix", "pixsize", "fracsub", "wfs.xpos", "wfs.ypos", "wfs.Lambda",
-            "dms_seen", "fssize", "fstop", "pyr_ampl", "pyr_loc", "pyr_npts",
-            "pyr_pup_sep", "pyrtype", "ndms", "type_dm", "dm.alt", "coupling",
-            "margin_in", "margin_out", "nact", "nkl", "type_kl", "push4imat",
-            "dm.thresh", "unitpervolt", "ncentroiders", "type_centro", "nmax",
-            "centro.nwfs", "sizex", "sizey", "centroider.thresh", "type_fct", "weights",
-            "width"
+            "_Param_tel__diam", "_Param_tel__t_spiders", "_Param_tel__spiders_type",
+            "_Param_tel__pupangle", "_Param_tel__referr", "_Param_tel__std_piston",
+            "_Param_tel__std_tt", "_Param_tel__type_ap", "_Param_tel__nbrmissing",
+            "_Param_tel__cobs", "_Param_geom__pupdiam", "nwfs", "_Param_wfs__type_wfs",
+            "_Param_wfs__nxsub", "_Param_wfs__npix", "_Param_wfs__pixsize",
+            "_Param_wfs__fracsub", "_Param_wfs__xpos", "_Param_wfs__ypos",
+            "_Param_wfs__Lambda", "_Param_wfs__dms_seen", "_Param_wfs__fssize",
+            "_Param_wfs__fstop", "_Param_wfs__pyr_ampl", "_Param_wfs__pyr_loc",
+            "_Param_wfs__pyr_npts", "_Param_wfs__pyr_pup_sep", "_Param_wfs__pyrtype",
+            "ndms", "_Param_dm__type_dm", "_Param_dm__alt", "_Param_dm__coupling",
+            "_Param_dm__margin_in", "_Param_dm__margin_out", "_Param_dm__nact",
+            "_Param_dm__nkl", "_Param_dm__type_kl", "_Param_dm__push4imat",
+            "_Param_dm__thresh", "_Param_dm__unitpervolt", "ncentroiders",
+            "_Param_centroider__type_centro", "_Param_centroider__nmax",
+            "_Param_centroider__nwfs", "_Param_centroider__sizex",
+            "_Param_centroider__sizey", "_Param_centroider__thresh",
+            "_Param_centroider__type_fct", "_Param_centroider__weights",
+            "_Param_centroider__width"
     ]
 
     for i in dataBase.index:
         cc = 0
-        version = shesha.__version__
-        if (dataBase.loc[i, "validity"] and (dataBase.loc[i, "revision"] == version)):
-            cond = ((dataBase.loc[i, param2test[cc]] == pdict[param2test[cc]]).all())
+        commit = check_output(["git", "rev-parse", "--short", "HEAD"])
+        if (dataBase.loc[i, "validity"] and (dataBase.loc[i, "commit"] == commit)):
+            cond = True
             while (cond):
                 if (cc >= len(param2test)):
                     break
                 else:
-                    cond = ((dataBase.loc[i, param2test[cc]] == pdict[param2test[cc]]
-                             ).all())
+                    cond = dataBase.loc[i, param2test[cc]] == pdict[param2test[cc]]
+                    if type(cond) is np.ndarray:
+                        cond = cond.all()
                     cc += 1
             # For debug
             #############################
@@ -414,10 +390,6 @@ def checkControlParams(savepath, config, pdict, matricesToLoad):
         if (cond):
             matricesToLoad["index_control"] = i
             matricesToLoad["imat"] = dataBase.loc[i, "path2file"]
-            dataBase = pandas.read_hdf(savepath + "matricesDataBase.h5", "eigenv")
-            matricesToLoad["eigenv"] = dataBase.loc[i, "path2file"]
-            dataBase = pandas.read_hdf(savepath + "matricesDataBase.h5", "U")
-            matricesToLoad["U"] = dataBase.loc[i, "path2file"]
             return
 
 
@@ -431,29 +403,36 @@ def checkDmsParams(savepath, config, pdict, matricesToLoad):
         config : (module) : simulation parameters
         matricesToLoad : (dictionary) :  matrices that will be load and their path
     """
-    dataBase = pandas.read_hdf(savepath + "matricesDataBase.h5", "pztok")
+    dataBase = pandas.read_hdf(savepath + "matricesDataBase.h5", "dm")
 
     param2test = [
-            "tel_diam", "t_spiders", "spiders_type", "pupangle", "referr", "std_piston",
-            "std_tt", "type_ap", "nbrmissing", "cobs", "pupdiam", "nwfs", "type_wfs",
-            "nxsub", "npix", "pixsize", "fracsub", "wfs.xpos", "wfs.ypos", "wfs.Lambda",
-            "dms_seen", "fssize", "fstop", "pyr_ampl", "pyr_loc", "pyr_npts", "pyrtype",
-            "pyr_pup_sep", "ndms", "type_dm", "dm.alt", "coupling", "margin_in",
-            "margin_out", "nkl", "nact", "type_kl", "push4imat", "dm.thresh",
-            "unitpervolt"
+            "_Param_tel__diam", "_Param_tel__t_spiders", "_Param_tel__spiders_type",
+            "_Param_tel__pupangle", "_Param_tel__referr", "_Param_tel__std_piston",
+            "_Param_tel__std_tt", "_Param_tel__type_ap", "_Param_tel__nbrmissing",
+            "_Param_tel__cobs", "_Param_geom__pupdiam", "nwfs", "_Param_wfs__type_wfs",
+            "_Param_wfs__nxsub", "_Param_wfs__npix", "_Param_wfs__pixsize",
+            "_Param_wfs__fracsub", "_Param_wfs__xpos", "_Param_wfs__ypos",
+            "_Param_wfs__Lambda", "_Param_wfs__dms_seen", "_Param_wfs__fssize",
+            "_Param_wfs__fstop", "_Param_wfs__pyr_ampl", "_Param_wfs__pyr_loc",
+            "_Param_wfs__pyr_npts", "_Param_wfs__pyrtype", "_Param_wfs__pyr_pup_sep",
+            "ndms", "_Param_dm__type_dm", "_Param_dm__alt", "_Param_dm__coupling",
+            "_Param_dm__margin_in", "_Param_dm__margin_out", "_Param_dm__nkl",
+            "_Param_dm__nact", "_Param_dm__type_kl", "_Param_dm__push4imat",
+            "_Param_dm__thresh", "_Param_dm__unitpervolt"
     ]
 
     for i in dataBase.index:
         cc = 0
-        version = check_output(["git", "rev-parse", "--short", "HEAD"]).decode('utf8')
-        if (dataBase.loc[i, "validity"] and (dataBase.loc[i, "revision"] == version)):
-            cond = ((dataBase.loc[i, param2test[cc]] == pdict[param2test[cc]]).all())
+        commit = check_output(["git", "rev-parse", "--short", "HEAD"])
+        if (dataBase.loc[i, "validity"] and (dataBase.loc[i, "commit"] == commit)):
+            cond = True
             while (cond):
                 if (cc >= len(param2test)):
                     break
                 else:
-                    cond = ((dataBase.loc[i, param2test[cc]] == pdict[param2test[cc]]
-                             ).all())
+                    cond = dataBase.loc[i, param2test[cc]] == pdict[param2test[cc]]
+                    if type(cond) is np.ndarray:
+                        cond = cond.all()
                     cc += 1
             # For debug
             #############################
@@ -466,10 +445,7 @@ def checkDmsParams(savepath, config, pdict, matricesToLoad):
 
         if (cond):
             matricesToLoad["index_dms"] = i
-            dataBase = pandas.read_hdf(savepath + "matricesDataBase.h5", "pztnok")
-            matricesToLoad["pztnok"] = dataBase.loc[i, "path2file"]
-            dataBase = pandas.read_hdf(savepath + "matricesDataBase.h5", "pztok")
-            matricesToLoad["pztok"] = dataBase.loc[i, "path2file"]
+            matricesToLoad["dm"] = dataBase.loc[i, "path2file"]
             return
 
 
@@ -477,17 +453,10 @@ def validDataBase(savepath, matricesToLoad):
     store = pandas.HDFStore(savepath + "matricesDataBase.h5")
     if not ("A" in matricesToLoad):
         validInStore(store, savepath, "A")
-        validInStore(store, savepath, "B")
-        validInStore(store, savepath, "istx")
-        validInStore(store, savepath, "isty")
-    if not ("pztok" in matricesToLoad):
-        validInStore(store, savepath, "pztok")
-        validInStore(store, savepath, "pztnok")
+    if not ("dm" in matricesToLoad):
+        validInStore(store, savepath, "dm")
     if not ("imat" in matricesToLoad):
         validInStore(store, savepath, "imat")
-    if not ("eigenv" in matricesToLoad):
-        validInStore(store, savepath, "eigenv")
-        validInStore(store, savepath, "U")
     store.close()
 
 
@@ -498,7 +467,7 @@ def validFile(filename):
 
 
 def validInStore(store, savepath, matricetype):
-    df = pandas.read_hdf(savepath + "matricesDataBase.h5", matricetype)
+    df = store[matricetype]
     ind = len(df.index) - 1
     df.loc[ind, "validity"] = True
     store[matricetype] = df
@@ -669,3 +638,118 @@ def readHdf5SingleDataset(filename, datasetName="dataset"):
     data = f[datasetName][:]
     f.close()
     return data
+
+
+def load_AB_from_dataBase(database):
+    """Read and return A, B, istx and isty from the database
+
+    :parameters:
+        database: (dict): dictionary containing paths to matrices to load
+    """
+    print("loading", database["A"])
+    f = h5py.File(database["A"], 'r')
+    A = f["A"][:]
+    B = f["B"][:]
+    istx = f["istx"][:]
+    isty = f["isty"][:]
+    f.close()
+
+    return A, B, istx, isty
+
+
+def save_AB_in_database(A, B, istx, isty):
+    """Save A, B, istx and isty in the database
+
+    :parameters:
+        A:
+        B:
+        istx:
+        isty:
+    """
+    commit = check_output(["git", "rev-parse", "--short", "HEAD"]).decode('utf8')
+    print("writing files and updating database")
+    df = pandas.read_hdf(
+            os.getenv('SHESHA_ROOT') + "/data/dataBase/matricesDataBase.h5", "A")
+    ind = len(df.index) - 1
+    savename = os.getenv('SHESHA_ROOT') + "/data/dataBase/turbu/A_" + \
+        commit + "_" + str(ind) + ".h5"
+    save_hdf5(savename, "A", A)
+    save_hdf5(savename, "B", B)
+    save_hdf5(savename, "istx", istx)
+    save_hdf5(savename, "isty", isty)
+
+
+def load_dm_geom_from_dataBase(database, ndm):
+    """Read and return the DM geometry
+
+    :parameters:
+        database: (dict): dictionary containing paths to matrices to load
+        ndm: (int): dm index
+    """
+    print("loading", database["dm"])
+    f = h5py.File(database["dm"], 'r')
+    influpos = f["influpos_" + str(ndm)][:]
+    ninflu = f["ninflu_" + str(ndm)][:]
+    influstart = f["influstart_" + str(ndm)][:]
+    i1 = f["i1_" + str(ndm)][:]
+    j1 = f["j1_" + str(ndm)][:]
+    ok = f["ok_" + str(ndm)][:]
+    f.close()
+
+    return influpos, ninflu, influstart, i1, j1, ok
+
+
+def save_dm_geom_in_dataBase(ndm, influpos, ninflu, influstart, i1, j1, ok):
+    """Save the DM geometry in the database
+
+    :parameters:
+        ndm:
+        influpos:
+        ninflu:
+        influstart:
+        i1:
+        j1:
+    """
+    commit = check_output(["git", "rev-parse", "--short", "HEAD"]).decode('utf8')
+    print("writing files and updating database")
+    df = pandas.read_hdf(
+            os.getenv('SHESHA_ROOT') + "/data/dataBase/matricesDataBase.h5", "dm")
+    ind = len(df.index) - 1
+    savename = os.getenv('SHESHA_ROOT') + "/data/dataBase/mat/dm_" + \
+        commit + "_" + str(ind) + ".h5"
+    save_hdf5(savename, "influpos_" + str(ndm), influpos)
+    save_hdf5(savename, "ninflu_" + str(ndm), ninflu)
+    save_hdf5(savename, "influstart_" + str(ndm), influstart)
+    save_hdf5(savename, "i1_" + str(ndm), i1)
+    save_hdf5(savename, "j1_" + str(ndm), j1)
+    save_hdf5(savename, "ok_" + str(ndm), ok)
+
+
+def load_imat_from_dataBase(database):
+    """Read and return the imat
+
+    :parameters:
+        database: (dict): dictionary containing paths to matrices to load
+    """
+    print("loading", database["imat"])
+    f = h5py.File(database["imat"], 'r')
+    imat = f["imat"][:]
+    f.close()
+
+    return imat
+
+
+def save_imat_in_dataBase(imat):
+    """Save the DM geometry in the database
+
+    :parameters:
+        imat: (np.ndarray): imat to save
+    """
+    commit = check_output(["git", "rev-parse", "--short", "HEAD"]).decode('utf8')
+    print("writing files and updating database")
+    df = pandas.read_hdf(
+            os.getenv('SHESHA_ROOT') + "/data/dataBase/matricesDataBase.h5", "imat")
+    ind = len(df.index) - 1
+    savename = os.getenv('SHESHA_ROOT') + "/data/dataBase/mat/imat_" + \
+        commit + "_" + str(ind) + ".h5"
+    save_hdf5(savename, "imat", imat)

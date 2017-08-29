@@ -23,7 +23,8 @@ from Rtc import Rtc, Rtc_brama
 def rtc_init(context: naga_context, tel: Telescope, wfs: Sensors, dms: Dms, atmos: Atmos,
              p_wfss: list, p_tel: conf.Param_tel, p_geom: conf.Param_geom,
              p_atmos: conf.Param_atmos, ittime: float, p_centroiders=None,
-             p_controllers=None, p_dms=None, do_refslp=False, brama=False, tar=None):
+             p_controllers=None, p_dms=None, do_refslp=False, brama=False, tar=None,
+             dataBase={}, use_DB=False):
     """Initialize all the sutra_rtc objects : centroiders and controllers
 
     :parameters:
@@ -43,6 +44,8 @@ def rtc_init(context: naga_context, tel: Telescope, wfs: Sensors, dms: Dms, atmo
         do_refslp : (bool): (optional) do ref slopes flag, default=False
         brama: (bool) : (optional) BRAMA flag
         tar: (Target) : (optional)
+        dataBase: (dict): (optional) dict containig paths to files to load
+        use_DB: (bool): use dataBase flag
     :return:
         Rtc : (Rtc) : Rtc object
     """
@@ -75,12 +78,18 @@ def rtc_init(context: naga_context, tel: Telescope, wfs: Sensors, dms: Dms, atmo
     if p_controllers is not None:
         if (p_wfss is not None and p_dms is not None):
             for i in range(ncontrol):
-                imat = shao.imat_geom(wfs, dms, p_wfss, p_dms, p_controllers[i], meth=0)
+                if not "dm" in dataBase:
+                    imat = shao.imat_geom(wfs, dms, p_wfss, p_dms, p_controllers[i],
+                                          meth=0)
+                else:
+                    imat = None
 
-                dmi.correct_dm(dms, p_dms, p_controllers[i], p_geom, imat)
+                dmi.correct_dm(dms, p_dms, p_controllers[i], p_geom, imat,
+                               dataBase=dataBase, use_DB=use_DB)
 
                 init_controller(i, p_controllers[i], p_wfss, p_geom, p_dms, p_atmos,
-                                ittime, p_tel, rtc, dms, wfs, tel, atmos, do_refslp)
+                                ittime, p_tel, rtc, dms, wfs, tel, atmos, do_refslp,
+                                dataBase=dataBase, use_DB=use_DB)
 
             # add a geometric controller for processing error breakdown
             error_budget_flag = True in [w.error_budget for w in p_wfss]
@@ -227,7 +236,8 @@ def comp_weights(p_centroider: conf.Param_centroider, p_wfs: conf.Param_wfs, npi
 def init_controller(i: int, p_controller: conf.Param_controller, p_wfss: list,
                     p_geom: conf.Param_geom, p_dms: list, p_atmos: conf.Param_atmos,
                     ittime: float, p_tel: conf.Param_tel, rtc: Rtc, dms: Dms,
-                    wfs: Sensors, tel: Telescope, atmos: Atmos, do_refslp=False):
+                    wfs: Sensors, tel: Telescope, atmos: Atmos, do_refslp=False,
+                    dataBase={}, use_DB=False):
     """
         Initialize the controller part of rtc
 
@@ -276,7 +286,8 @@ def init_controller(i: int, p_controller: conf.Param_controller, p_wfss: list,
 
     if (p_controller.type_control == scons.ControllerType.LS):
         init_controller_ls(i, p_controller, p_wfss, p_geom, p_dms, p_atmos, ittime,
-                           p_tel, rtc, dms, wfs, tel, atmos)
+                           p_tel, rtc, dms, wfs, tel, atmos, dataBase=dataBase,
+                           use_DB=use_DB)
 
     if (p_controller.type_control == scons.ControllerType.CURED):
         init_controller_cured(i, rtc, p_controller, p_dms, p_wfss)
@@ -324,7 +335,8 @@ def init_controller_geo(i: int, rtc: Rtc, dms: Dms, p_geom: conf.Param_geom,
 def init_controller_ls(i: int, p_controller: conf.Param_controller, p_wfss: list,
                        p_geom: conf.Param_geom, p_dms: list, p_atmos: conf.Param_atmos,
                        ittime: float, p_tel: conf.Param_tel, rtc: Rtc, dms: Dms,
-                       wfs: Sensors, tel: Telescope, atmos: Atmos):
+                       wfs: Sensors, tel: Telescope, atmos: Atmos, dataBase: dict={},
+                       use_DB: bool=False):
     """
         Initialize the least square controller
     :parameters:
@@ -357,7 +369,8 @@ def init_controller_ls(i: int, p_controller: conf.Param_controller, p_wfss: list
             klmaxVal = np.abs(KL2V[:, k]).max()
             KL2V[:, k] = KL2V[:, k] / klmaxVal * pushkl
 
-    shao.imat_init(i, rtc, dms, p_dms, wfs, p_wfss, p_tel, p_controller, KL2V)
+    shao.imat_init(i, rtc, dms, p_dms, wfs, p_wfss, p_tel, p_controller, KL2V,
+                   dataBase=dataBase, use_DB=use_DB)
 
     if p_controller.modopti:
         print("Initializing Modal Optimization : ")

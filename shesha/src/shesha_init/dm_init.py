@@ -12,6 +12,7 @@ import shesha_constants as scons
 from shesha_constants import CONST
 
 from shesha_util import dm_util, influ_util, kl_util
+from shesha_util import hdf5_utils as h5u
 
 import numpy as np
 
@@ -579,7 +580,8 @@ def comp_dmgeom(p_dm: conf.Param_dm, p_geom: conf.Param_geom):
 
 
 def correct_dm(dms: Dms, p_dms: list, p_controller: conf.Param_controller,
-               p_geom: conf.Param_geom, imat: np.ndarray):
+               p_geom: conf.Param_geom, imat: np.ndarray=None, dataBase: dict={},
+               use_DB: bool=False):
     """Correct the geometry of the DMs using the imat (filter unseen actuators)
 
     :parameters:
@@ -588,6 +590,8 @@ def correct_dm(dms: Dms, p_dms: list, p_controller: conf.Param_controller,
         p_controller: (Param_controller) : controller settings
         p_geom: (Param_geom) : geom settings
         imat: (np.ndarray) : interaction matrix
+        dataBase: (dict): dictionary containing paths to files to load
+        use_DB: (bool): dataBase use flag
     """
     print("Filtering unseen actuators... ")
     ndm = p_controller.ndm.size
@@ -595,7 +599,8 @@ def correct_dm(dms: Dms, p_dms: list, p_controller: conf.Param_controller,
         nm = p_controller.ndm[i]
         dms.remove_dm(p_dms[nm].type_dm, p_dms[nm].alt)
 
-    resp = np.sqrt(np.sum(imat**2, axis=0))
+    if imat is not None:
+        resp = np.sqrt(np.sum(imat**2, axis=0))
 
     inds = 0
 
@@ -604,18 +609,36 @@ def correct_dm(dms: Dms, p_dms: list, p_controller: conf.Param_controller,
         nactu_nm = p_dms[nm]._ntotact
         # filter actuators only in stackarray mirrors:
         if (p_dms[nm].type_dm == scons.DmType.PZT):
-            tmp = resp[inds:inds + p_dms[nm]._ntotact]
-            ok = np.where(tmp > p_dms[nm].thresh * np.max(tmp))[0]
-            nok = np.where(tmp <= p_dms[nm].thresh * np.max(tmp))[0]
+            if "dm" in dataBase:
+                influpos, ninflu, influstart, i1, j1, ok = h5u.load_dm_geom_from_dataBase(
+                        dataBase, nmc)
+                p_dms[nm].set_ntotact(ok.shape[0])
+                p_dms[nm].set_influ(p_dms[nm]._influ[:, :, ok.tolist()])
+                p_dms[nm].set_xpos(p_dms[nm]._xpos[ok])
+                p_dms[nm].set_ypos(p_dms[nm]._ypos[ok])
+                p_dms[nm]._influpos = influpos
+                p_dms[nm]._ninflu = ninflu
+                p_dms[nm]._influstart = influstart
+                p_dms[nm]._i1 = i1
+                p_dms[nm]._j1 = j1
+            else:
+                tmp = resp[inds:inds + p_dms[nm]._ntotact]
+                ok = np.where(tmp > p_dms[nm].thresh * np.max(tmp))[0]
+                nok = np.where(tmp <= p_dms[nm].thresh * np.max(tmp))[0]
 
-            p_dms[nm].set_ntotact(ok.shape[0])
-            p_dms[nm].set_influ(p_dms[nm]._influ[:, :, ok.tolist()])
-            p_dms[nm].set_xpos(p_dms[nm]._xpos[ok])
-            p_dms[nm].set_ypos(p_dms[nm]._ypos[ok])
-            p_dms[nm].set_i1(p_dms[nm]._i1[ok])
-            p_dms[nm].set_j1(p_dms[nm]._j1[ok])
+                p_dms[nm].set_ntotact(ok.shape[0])
+                p_dms[nm].set_influ(p_dms[nm]._influ[:, :, ok.tolist()])
+                p_dms[nm].set_xpos(p_dms[nm]._xpos[ok])
+                p_dms[nm].set_ypos(p_dms[nm]._ypos[ok])
+                p_dms[nm].set_i1(p_dms[nm]._i1[ok])
+                p_dms[nm].set_j1(p_dms[nm]._j1[ok])
 
-            comp_dmgeom(p_dms[nm], p_geom)
+                comp_dmgeom(p_dms[nm], p_geom)
+                if use_DB:
+                    h5u.save_dm_geom_in_dataBase(nmc, p_dms[nm]._influpos,
+                                                 p_dms[nm]._ninflu,
+                                                 p_dms[nm]._influstart, p_dms[nm]._i1,
+                                                 p_dms[nm]._j1, ok)
 
             dim = max(p_dms[nm]._n2 - p_dms[nm]._n1 + 1, p_geom._mpupil.shape[0])
             ninflupos = p_dms[nm]._influpos.size

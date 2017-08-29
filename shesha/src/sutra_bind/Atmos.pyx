@@ -12,7 +12,6 @@ from cython.operator cimport dereference as deref, preincrement as inc
 cdef class Atmos:
     def __cinit__(self, naga_context context, int nscreens,
                   float r0,
-                  np.ndarray[dtype=np.float32_t] L0,
                   float pupixsize,
                   np.ndarray[ndim=1, dtype=np.int64_t] dim_screens,
                   np.ndarray[ndim=1, dtype=np.float32_t] frac,
@@ -20,12 +19,9 @@ cdef class Atmos:
                   np.ndarray[ndim=1, dtype=np.float32_t] windspeed,
                   np.ndarray[ndim=1, dtype=np.float32_t] winddir,
                   np.ndarray[ndim=1, dtype=np.float32_t] deltax,
-                  np.ndarray[ndim=1, dtype=np.float32_t] deltay,
-                  np.ndarray[ndim=1, dtype=np.int64_t] seeds,
-                  int verbose):
+                  np.ndarray[ndim=1, dtype=np.float32_t] deltay):
         """atmos_create(naga_context c, int nscreens,
                         float r0,
-                        np.ndarray[dtype=np.float32_t] L0,
                         float pupixsize,
                         np.ndarray[ndim=1,dtype=np.int64_t] dim_screens,
                         np.ndarray[ndim=1,dtype=np.float32_t] frac,
@@ -35,7 +31,7 @@ cdef class Atmos:
                         np.ndarray[ndim=1,dtype=np.float32_t] deltax,
                         np.ndarray[ndim=1,dtype=np.float32_t] deltay,
                         np.ndarray[ndim=1,dtype=np.int64_t] seeds,
-                        int verbose, int clean, dict load)
+                        int clean, dict load)
 
         Create and initialise an atmos object.
 
@@ -52,8 +48,6 @@ cdef class Atmos:
             winddir: (np.ndarray[ndim=1,dtype=np.float32_t]) : wind direction [deg]
             deltax: (np.ndarray[ndim=1,dtype=np.float32_t]) : extrude deltax pixels in the x-direction at each iteration
             deltay: (np.ndarray[ndim=1,dtype=np.float32_t]) : extrude deltay pixels in the y-direction at each iteration
-            seeds: (np.ndarray[ndim=1,dtype=np.float32_t]) : seed for each screen
-            verbose: (int) : 0 or 1
         """
 
         self.context = context
@@ -76,22 +70,6 @@ cdef class Atmos:
                                    < np.float32_t * > deltax.data,
                                    < np.float32_t * > deltay.data,
                                    self.context.get_activeDevice())
-
-        cdef int i
-        cdef np.ndarray[ndim = 2, dtype = np.float32_t] A, B, A_F, B_F
-        cdef np.ndarray[ndim = 1, dtype = np.uint32_t] istx, isty
-
-        for i in range(nscreens):
-            A, B, istx, isty = itK.AB(
-                dim_screens[i], L0[i], deltax[i], deltay[i], verbose)
-
-            A_F = A.T.copy()
-            B_F = B.T.copy()
-
-            self.s_a.init_screen(< float > alt[i], < float * > (A_F.data),
-                                  < float * > (B_F.data),
-                                  < unsigned int * > istx.data,
-                                  < unsigned int * > isty.data, seeds[i])
 
     def __dealloc__(self):
         if(self.s_a != NULL):
@@ -134,16 +112,15 @@ cdef class Atmos:
         self.s_a.add_screen(altitude, size, stencil_size, amplitude, windspeed,
                             winddir, deltax, deltay, device)
 
-    def init_screen(self, float alt, long dim_screens, float r0, float L0,
-                    float deltax, float deltay, int seed):
-        cdef np.ndarray[ndim = 2, dtype = np.float32_t] A, B, A_F, B_F
-        cdef np.ndarray[ndim = 1, dtype = np.uint32_t] istx, isty
-
-        A, B, istx, isty = itK.AB(
-            dim_screens, L0, deltax, deltay, 0)
-
-        A_F = A.T.copy()
-        B_F = B.T.copy()
+    def init_screen(self, float alt, np.ndarray[ndim=2, dtype=np.float32_t] A,
+                    np.ndarray[ndim=2, dtype=np.float32_t] B,
+                    np.ndarray[dtype=np.uint32_t] istx,
+                    np.ndarray[dtype=np.uint32_t] isty, int seed):
+        """
+            TODO: docstring
+        """
+        cdef np.ndarray[ndim = 2, dtype = np.float32_t] A_F = A.T.copy()
+        cdef np.ndarray[ndim = 2, dtype = np.float32_t] B_F = B.T.copy()
 
         self.s_a.init_screen(< float > alt, < float * > (A_F.data),
                               < float * > (B_F.data),
