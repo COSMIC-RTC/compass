@@ -640,27 +640,29 @@ def readHdf5SingleDataset(filename, datasetName="dataset"):
     return data
 
 
-def load_AB_from_dataBase(database):
+def load_AB_from_dataBase(database, ind):
     """Read and return A, B, istx and isty from the database
 
     :parameters:
         database: (dict): dictionary containing paths to matrices to load
+        ind: (int): layer index
     """
     print("loading", database["A"])
     f = h5py.File(database["A"], 'r')
-    A = f["A"][:]
-    B = f["B"][:]
-    istx = f["istx"][:]
-    isty = f["isty"][:]
+    A = f["A_" + str(ind)][:]
+    B = f["B_" + str(ind)][:]
+    istx = f["istx_" + str(ind)][:]
+    isty = f["isty_" + str(ind)][:]
     f.close()
 
     return A, B, istx, isty
 
 
-def save_AB_in_database(A, B, istx, isty):
+def save_AB_in_database(k, A, B, istx, isty):
     """Save A, B, istx and isty in the database
 
     :parameters:
+        ind:
         A:
         B:
         istx:
@@ -673,10 +675,10 @@ def save_AB_in_database(A, B, istx, isty):
     ind = len(df.index) - 1
     savename = os.getenv('SHESHA_ROOT') + "/data/dataBase/turbu/A_" + \
         commit + "_" + str(ind) + ".h5"
-    save_hdf5(savename, "A", A)
-    save_hdf5(savename, "B", B)
-    save_hdf5(savename, "istx", istx)
-    save_hdf5(savename, "isty", isty)
+    save_hdf5(savename, "A_" + str(k), A)
+    save_hdf5(savename, "B_" + str(k), B)
+    save_hdf5(savename, "istx_" + str(k), istx)
+    save_hdf5(savename, "isty_" + str(k), isty)
 
 
 def load_dm_geom_from_dataBase(database, ndm):

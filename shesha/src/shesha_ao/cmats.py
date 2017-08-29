@@ -80,7 +80,7 @@ def cmat_init(ncontrol: int, rtc: Rtc, p_controller: conf.Param_controller,
         print("cmat done in %f s" % (time.time() - t0))
 
     if (p_controller.type_control == scons.ControllerType.MV):
-        Cn = np.zeros(p_controller.imat.shape[0], dtype=np.float32)
+        Cn = np.zeros(p_controller._imat.shape[0], dtype=np.float32)
         ind = 0
         for k in p_controller.nwfs:
             Cn[ind:ind + 2 * p_wfss[k]._nvalid] = noise_cov(k, p_wfss[k], p_atmos, p_tel)

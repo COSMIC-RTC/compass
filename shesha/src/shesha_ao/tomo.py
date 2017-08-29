@@ -14,10 +14,10 @@ import typing
 from typing import List
 
 
-def doTomoMatrices(ncontrol: int, rtc: Rtc, p_wfss: List[conf.Param_wfs], dms: Dms,
-                   atmos: Atmos, wfs: Sensors, p_controller: conf.Param_controller,
-                   p_geom: conf.Param_geom, p_dms: list, p_tel: conf.Param_tel,
-                   p_atmos: conf.Param_atmos):
+def do_tomo_matrices(ncontrol: int, rtc: Rtc, p_wfss: List[conf.Param_wfs], dms: Dms,
+                     atmos: Atmos, wfs: Sensors, p_controller: conf.Param_controller,
+                     p_geom: conf.Param_geom, p_dms: list, p_tel: conf.Param_tel,
+                     p_atmos: conf.Param_atmos):
     """Compute Cmm and Cphim matrices for the MV controller on GPU
 
     :parameters:
@@ -35,8 +35,8 @@ def doTomoMatrices(ncontrol: int, rtc: Rtc, p_wfss: List[conf.Param_wfs], dms: D
     """
     nvalidperwfs = np.array([o._nvalid for o in p_wfss], dtype=np.int64)
     # Bring bottom left corner of valid subapertures in ipupil
-    ipup = p_geom.get_ipupil()
-    spup = p_geom.get_spupil()
+    ipup = p_geom._ipupil
+    spup = p_geom._spupil
     s2ipup = (ipup.shape[0] - spup.shape[0]) / 2.
     # Total number of subapertures
     nvalid = sum([nvalidperwfs[j] for j in p_controller.nwfs])

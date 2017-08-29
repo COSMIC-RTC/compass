@@ -52,16 +52,15 @@ def atmos_init(context: naga_context, p_atmos: conf.Param_atmos, p_tel: conf.Par
     max_size = max(norms)
 
     # Meta-pupil diameter for all layers depending on altitude
-    patch_diam = (p_geom._n + 2 *
-                  (max_size * CONST.ARCSEC2RAD * p_atmos.alt) / p_atmos.pupixsize +
-                  4).astype(np.int64)
-    p_atmos.dim_screens = patch_diam + patch_diam % 2
+    patch_diam = p_geom._n + 2 * (
+            max_size * CONST.ARCSEC2RAD * p_atmos.alt) / p_atmos.pupixsize + 4
+    p_atmos.dim_screens = (patch_diam + patch_diam % 2).astype(np.int64)
 
     # Phase screen speeds
     lin_delta = p_geom.pupdiam / p_tel.diam * p_atmos.windspeed * \
         np.cos(CONST.DEG2RAD * p_geom.zenithangle) * ittime
-    p_atmos._deltax = -lin_delta * np.sin(CONST.DEG2RAD * p_atmos.winddir)
-    p_atmos._deltay = -lin_delta * np.cos(CONST.DEG2RAD * p_atmos.winddir)
+    p_atmos._deltax = lin_delta * np.sin(CONST.DEG2RAD * p_atmos.winddir + np.pi)
+    p_atmos._deltay = lin_delta * np.cos(CONST.DEG2RAD * p_atmos.winddir + np.pi)
 
     # Fraction normalization
     p_atmos.frac /= np.sum(p_atmos.frac)
@@ -80,12 +79,12 @@ def atmos_init(context: naga_context, p_atmos: conf.Param_atmos, p_tel: conf.Par
 
     for i in range(p_atmos.nscreens):
         if "A" in dataBase:
-            A, B, istx, isty = h5u.load_AB_from_dataBase(dataBase)
+            A, B, istx, isty = h5u.load_AB_from_dataBase(dataBase, i)
         else:
             A, B, istx, isty = itK.AB(p_atmos.dim_screens[i], L0_pix[i],
                                       p_atmos._deltax[i], p_atmos._deltay[i], 0)
             if use_DB:
-                h5u.save_AB_in_database(A, B, istx, isty)
+                h5u.save_AB_in_database(i, A, B, istx, isty)
 
         atm.init_screen(p_atmos.alt[i], A, B, istx, isty, p_atmos.seeds[i])
 

@@ -444,13 +444,13 @@ def init_controller_mv(i: int, p_controller: conf.Param_controller, p_wfss: list
     """
     p_controller._imat = shao.imat_geom(wfs, dms, p_wfss, p_dms, p_controller)
     # imat_init(i,rtc,p_rtc,dms,wfs,p_wfss,p_tel,clean=1,simul_name=simul_name)
-    rtc.set_imat(i, p_controller.imat)
+    rtc.set_imat(i, p_controller._imat)
     rtc.set_gain(i, p_controller.gain)
     size = sum([p_dms[j]._ntotact for j in range(len(p_dms))])
     mgain = np.ones(size, dtype=np.float32)
     rtc.set_mgain(i, mgain)
-    shao.doTomoMatrices(i, rtc, p_wfss, dms, atmos, wfs, p_controller, p_geom, p_dms,
-                        p_tel, p_atmos)
+    shao.do_tomo_matrices(i, rtc, p_wfss, dms, atmos, wfs, p_controller, p_geom, p_dms,
+                          p_tel, p_atmos)
     shao.cmat_init(i, rtc, p_controller, p_wfss, p_atmos, p_tel, p_dms)
 
 
