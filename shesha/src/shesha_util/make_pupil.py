@@ -145,7 +145,9 @@ def make_VLT(dim, pupd, tel):
         tel.set_t_spiders(0.09 / 18.)
     angle = 50.5 * np.pi / 180.  # --> 50.5 degre *2 d'angle entre les spiders
 
-    X = util.MESH(1., dim)
+    Range = (0.5 * (1) - 0.25 / dim)
+    X = np.tile(np.linspace(-Range, Range, dim, dtype=np.float32), (dim, 1))
+
     R = np.sqrt(X**2 + (X.T)**2)
 
     pup = ((R < 0.5) & (R > (tel.cobs / 2))).astype(np.float32)
@@ -210,8 +212,9 @@ def make_EELT(dim, pupd, tel, N_seg=-1):
 
         #tel.set_diam(39.146)
         #tel.set_diam(37.)
+        Range = (0.5 * (tel.diam * dim / pupd) - 0.25 / dim)
+        X = np.tile(np.linspace(-Range, Range, dim, dtype=np.float32), (dim, 1))
 
-        X = util.MESH(tel.diam * dim / pupd, dim)
         if (tel.t_spiders == -1):
             print("force t_spider =%5.3f" % (0.014))
             tel.set_t_spiders(0.014)
@@ -335,8 +338,9 @@ def make_phase_ab(dim, pupd, tel, pup):
         x_seg = data[:, 0]
         y_seg = data[:, 1]
 
-        X = util.MESH(tel.diam * dim / pupd, dim)
+        Range = (0.5 * (tel.diam * dim / pupd) - 0.25 / dim)
 
+        X = np.tile(np.linspace(-Range, Range, dim, dtype=np.float32), (dim, 1))
         t_3 = np.tan(np.pi / 3.)
 
         for i in range(N_seg):

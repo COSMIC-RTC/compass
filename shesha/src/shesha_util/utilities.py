@@ -69,16 +69,16 @@ def bin2d(data_in, binfact):
     return data_out
 
 
-def MESH(Range, Dim):
-    """
-    TODO: docstring
-
-    """
-
-    last = (0.5 * Range - 0.25 / Dim)
-    step = (2 * last) // (Dim - 1)
-
-    return np.tile(np.arange(Dim) * step - last, (Dim, 1))
+#def MESH(Range, Dim):
+#    """
+#    TODO: docstring
+#
+#    """
+#
+#    last = (0.5 * Range - 0.25 / Dim)
+#    step = (2 * last) / (Dim - 1)
+#
+#    return np.tile(np.arange(Dim) * step - last, (Dim, 1))
 
 
 def pad_array(A, N):
