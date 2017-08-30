@@ -33,9 +33,7 @@ print("======================================")
 print((sys.path))
 print("======================================")
 
-listMod = [
-        "Telescope", "Sensors", "Atmos", "Dms", "Target", "Rtc", "Gamora",
-        "Groot"]
+listMod = ["Telescope", "Sensors", "Atmos", "Dms", "Target", "Rtc", "Gamora", "Groot"]
 dependencies = {
         "Sensors": ["Telescope"], "Target": ["Telescope"]
         # "shesha_roket": listMod[:-2],
@@ -63,13 +61,13 @@ def locate_compass():
         root_compass = os.environ['COMPASS_ROOT']
 
     else:
-        raise EnvironmentError(
-                "Environment variable 'COMPASS_ROOT' must be define")
+        raise EnvironmentError("Environment variable 'COMPASS_ROOT' must be define")
 
     compass_config = {
             'inc_sutra': root_compass + '/libsutra/include.h',
             'inc_carma': root_compass + '/libcarma/include.h',
-            'inc_naga': root_compass + '/naga', 'lib': root_compass}
+            'inc_naga': root_compass + '/naga', 'lib': root_compass
+    }
 
     return compass_config
 
@@ -85,8 +83,8 @@ except AttributeError:
 #source = ['shesha']
 libraries = ['sutra']
 include_dirs = [
-        numpy_include, COMPASS['inc_carma'], COMPASS['inc_sutra'],
-        COMPASS['inc_naga']]  # , shesha_path+"/src"]
+        numpy_include, COMPASS['inc_carma'], COMPASS['inc_sutra'], COMPASS['inc_naga']
+]  # , shesha_path+"/src"]
 
 library_dirs = [COMPASS['lib'] + "/libsutra"]
 
@@ -95,8 +93,7 @@ if 'CUDA_INC_PATH' in os.environ:
     library_dirs.append(os.environ['CUDA_LIB_PATH_64'])
     libraries.append('cudart')
 else:
-    raise EnvironmentError(
-            "Environment variable 'CUDA_INC_PATH' must be define")
+    raise EnvironmentError("Environment variable 'CUDA_INC_PATH' must be define")
 
 # deprecated
 # def which(program):
@@ -125,7 +122,7 @@ else:
     import warnings
     warnings.warn("par.pxi found, it will not be updated", Warning)
 
-#USE_MPI = 0
+USE_MPI = 0
 
 # if which("mpicxx"):
 #     try:
@@ -172,7 +169,8 @@ if 'BRAMA_ROOT' in os.environ:
     define_macros = [
             ('USE_BRAMA', None),
             ('_GNU_SOURCE', None),
-            ('__ACE_INLINE__', None), ]
+            ('__ACE_INLINE__', None),
+    ]
 
 if parFile:
     parFile.write("DEF USE_BRAMA=%d # 0/1 \n" % USE_BRAMA)
@@ -188,9 +186,8 @@ def dependencies_module(name):
         print(("dependencies:", dep))
         if (os.path.exists("src/sutra_bind/" + name + ".cpp")):
             for d in dep:
-                if (
-                        os.stat("src/sutra_bind/" + d + ".pyx").st_mtime >
-                        os.stat("src/sutra_bind/" + name + ".cpp").st_mtime):
+                if (os.stat("src/sutra_bind/" + d + ".pyx").st_mtime >
+                            os.stat("src/sutra_bind/" + name + ".cpp").st_mtime):
                     # cpp file outdated if exists
                     if (os.path.exists("src/sutra_bind/" + name + ".cpp")):
                         os.remove("src/sutra_bind/" + name + ".cpp")
