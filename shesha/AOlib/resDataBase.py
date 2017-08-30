@@ -1,13 +1,15 @@
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Fri Dec 11 11:15:03 2015
+Created on Fri Aug 25 16:19:42 2017
 
-@author: fvidal
+@author: sdurand
 """
+
 import pandas as pd
 import os
 import glob
-os.environ["SHESHA_ROOT"] + "/data/simuDB/"
+os.environ["SHESHA_ROOT"] + "/data/"
 from subprocess import check_output
 import time
 
@@ -23,10 +25,9 @@ def dfInfo(df):
 def createDf(colnamesList):
     if (type(colnamesList) is list):
         df = pd.DataFrame(
-                columns=colnamesList
-        )  # res is the local dataframe for THIS data set
+                columns=colnamesList)  # res is the local dataframe for THIS data set
     else:
-        df = pd.DataFrame(columns=list(colnamesList.keys())
+        df = pd.DataFrame(columns=colnamesList.keys()
                           )  # res is the local dataframe for THIS data set
     return df
 
@@ -54,7 +55,7 @@ def mergeDB(df1, df2):
 
 def readDataBase(name='compassDB', dbFormat=".h5", fullpath=None):
     """
-    database must be stored in $SHESHA_ROOT/data/simuDB/
+    database must be stored in $SHESHA_ROOT/data/
 
     resAll = readDataBase() # reads compassDB.h5
     resAll = readDataBase("myDB") # .h5 format by default
@@ -65,7 +66,7 @@ def readDataBase(name='compassDB', dbFormat=".h5", fullpath=None):
     if (name.find(".") < 0):
         name = name + dbFormat
     if (fullpath is None):
-        fullpath = os.environ["SHESHA_ROOT"] + "/data/simuDB/" + name
+        fullpath = os.environ["SHESHA_ROOT"] + "/data/" + name
 
     if (not glob.glob(fullpath)):
         print("Cannot find database %s" % fullpath)
@@ -74,9 +75,9 @@ def readDataBase(name='compassDB', dbFormat=".h5", fullpath=None):
         print("reloading database from: %s" % fullpath)
 
     try:
-        if (dbFormat == b".h5"):
+        if (dbFormat == ".h5"):
             tmp = pd.read_hdf(fullpath, 'resAll')
-        elif (dbFormat == b".csv"):
+        elif (dbFormat == ".csv"):
             tmp = pd.read_csv(fullpath)
         else:
             print("Format ", dbFormat, " not recognized!")
@@ -90,21 +91,21 @@ def readDataBase(name='compassDB', dbFormat=".h5", fullpath=None):
 def saveDataBase(df, name='compassDB', dbFormat=".h5"):
     #http://glowingpython.blogspot.fr/2014/08/quick-hdf5-with-pandas.html
 
-    datapath = os.environ["SHESHA_ROOT"] + "/data/simuDB/"
+    datapath = os.environ["SHESHA_ROOT"] + "/data/"
 
-    if (len(glob.glob(datapath + '/' + name + dbFormat)
-            )):  # if the file "really exists" anyway
+    if (len(glob.glob(datapath + '/' + name +
+                      dbFormat))):  # if the file "really exists" anyway
         currTime = time.strftime("%Y-%m-%d_%H:%M:%S", time.gmtime())
         CurrDbFile = datapath + '/' + name + dbFormat
         #check_output("mv "+ CurrDbFile  + " " +datapath +'/backup/'+name+dbFormat +".save_"+currTime+"_GMT")
-        #print("Saved backup file: %s" % (CurrDbFile +".save_"+currTime+"_GMT"))
+        #print "Saved backup file: %s" % (CurrDbFile +".save_"+currTime+"_GMT")
 
     fullname = datapath + '/' + name + dbFormat
-    if (dbFormat == b".h5"):
+    if (dbFormat == ".h5"):
         hdf = pd.HDFStore(fullname)
         hdf.put('resAll', df, data_columns=True)
         hdf.close()
-    elif (dbFormat == b".csv"):
+    elif (dbFormat == ".csv"):
         df.to_csv(fullname)
     else:
         print("ERROR format %s NOT recognized" % dbFormat)
