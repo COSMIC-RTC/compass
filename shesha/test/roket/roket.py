@@ -60,8 +60,9 @@ class Roket(Simulator):
         self.cmat = self.rtc.get_cmat(0)
         self.D = self.rtc.get_imat(0)
         self.RD = np.dot(self.cmat, self.D)
-        self.gRD = np.identity(self.RD.shape[0]) - self.config.p_controllers[
-                0].gain * self.gamma * self.RD
+        self.gRD = np.identity(
+                self.RD.shape[0]
+        ) - self.config.p_controllers[0].gain * self.gamma * self.RD
 
         self.Nact = create_nact_geom(self.config.p_dms[0])
 
@@ -85,15 +86,9 @@ class Roket(Simulator):
         """
             TODO: docstring
         """
-        print(
-                "-----------------------------------------------------------------"
-        )
-        print(
-                "iter# | SE SR | LE SR | FIT SR | PH SR | ETR (s) | Framerate (Hz)"
-        )
-        print(
-                "-----------------------------------------------------------------"
-        )
+        print("-----------------------------------------------------------------")
+        print("iter# | SE SR | LE SR | FIT SR | PH SR | ETR (s) | Framerate (Hz)")
+        print("-----------------------------------------------------------------")
         t0 = time.time()
         for i in range(self.n):
             self.next(**kwargs)
@@ -101,18 +96,13 @@ class Roket(Simulator):
                 framerate = (i + 1) / (time.time() - t0)
                 strehltmp = self.tar.get_strehl(0)
                 etr = (self.n - i) / framerate
-                print(
-                        "%d \t %.2f \t  %.2f\t %.2f \t %.2f \t    %.1f \t %.1f"
-                        % (
-                                i + 1, strehltmp[0], strehltmp[1],
-                                np.exp(-strehltmp[2]), np.exp(-strehltmp[3]),
-                                etr, framerate))
+                print("%d \t %.2f \t  %.2f\t %.2f \t %.2f \t    %.1f \t %.1f" %
+                      (i + 1, strehltmp[0], strehltmp[1], np.exp(-strehltmp[2]),
+                       np.exp(-strehltmp[3]), etr, framerate))
         t1 = time.time()
 
-        print(
-                " loop execution time:", t1 - t0, "  (", self.n,
-                "iterations), ", (t1 - t0) / self.n, "(mean)  ",
-                self.n / (t1 - t0), "Hz")
+        print(" loop execution time:", t1 - t0, "  (", self.n, "iterations), ",
+              (t1 - t0) / self.n, "(mean)  ", self.n / (t1 - t0), "Hz")
         self.SR2 = np.exp(-self.tar.get_strehl(0, comp_strehl=False)[3])
         self.SR = self.tar.get_strehl(0, comp_strehl=False)[1]
 
@@ -153,12 +143,9 @@ class Roket(Simulator):
         if (self.config.p_wfss[0].type_wfs == scons.WFSType.SH):
             ideal_bincube = self.wfs.get_bincube_not_noisy(0)
             bincube = self.wfs.get_bincube(0)
-            if (
-                    self.config.p_centroiders[
-                            0].type_centro == scons.CentroiderType.
-                    TCOG):  # Select the same pixels with or without noise
-                invalidpix = np.where(
-                        bincube <= self.config.p_centroiders[0].thresh)
+            if (self.config.p_centroiders[0].type_centro == scons.CentroiderType.
+                        TCOG):  # Select the same pixels with or without noise
+                invalidpix = np.where(bincube <= self.config.p_centroiders[0].thresh)
                 ideal_bincube[invalidpix] = 0
                 self.rtc.set_thresh(0, -1e16)
             self.wfs.set_bincube(0, ideal_bincube)
@@ -167,9 +154,7 @@ class Roket(Simulator):
             self.wfs.set_pyrimg(0, ideal_pyrimg)
 
         self.rtc.do_centroids(0)
-        if (
-                self.config.p_centroiders[0].type_centro ==
-                scons.CentroiderType.TCOG):
+        if (self.config.p_centroiders[0].type_centro == scons.CentroiderType.TCOG):
             self.rtc.set_thresh(0, config.p_centroiders[0].thresh)
 
         self.rtc.do_control(0)
@@ -189,8 +174,7 @@ class Roket(Simulator):
         # Apply loop filter to get contribution of sampling/truncature on commands
         if (self.iter_number + 1 < self.config.p_loop.niter):
             self.trunc_com[self.iter_number + 1, :] = self.gRD.dot(
-                    self.trunc_com[self.iter_number, :]) + g * (
-                            E - self.gamma * F)
+                    self.trunc_com[self.iter_number, :]) + g * (E - self.gamma * F)
 
         ###########################################################################
         ## Aliasing contribution on WFS direction
@@ -218,8 +202,8 @@ class Roket(Simulator):
         Ageom = self.rtc.get_err(0)
         if (self.iter_number + 1 < self.config.p_loop.niter):
             self.alias_wfs_com[self.iter_number + 1, :] = self.gRD.dot(
-                    self.alias_wfs_com[self.iter_number, :]
-            ) + self.gamma * g * (Ageom)  # - (E-F))
+                    self.alias_wfs_com[self.iter_number, :]) + self.gamma * g * (
+                            Ageom)  # - (E-F))
 
         ###########################################################################
         ## Wavefront + filtered modes reconstruction
@@ -233,8 +217,7 @@ class Roket(Simulator):
         ###########################################################################
         self.rtc.apply_control(1, self.dms)
         self.tar.raytrace(0, b"dm", self.tel, dms=self.dms, do_phase_var=0)
-        self.fit[self.iter_number] = self.tar.get_strehl(
-                0, comp_strehl=False)[2]
+        self.fit[self.iter_number] = self.tar.get_strehl(0, comp_strehl=False)[2]
         if (self.iter_number >= self.N_preloop):
             self.psf_ortho += self.tar.get_image(0, b'se')
 
@@ -251,11 +234,10 @@ class Roket(Simulator):
         ###########################################################################
         ## Bandwidth error
         ###########################################################################
-        C = self.mod_com[self.iter_number, :] - self.mod_com[self.iter_number -
-                                                             1, :]
+        C = self.mod_com[self.iter_number, :] - self.mod_com[self.iter_number - 1, :]
 
-        self.bp_com[self.iter_number, :
-                    ] = self.gRD.dot(self.bp_com[self.iter_number - 1, :]) - C
+        self.bp_com[self.iter_number, :] = self.gRD.dot(
+                self.bp_com[self.iter_number - 1, :]) - C
 
         ###########################################################################
         ## Tomographic error
@@ -271,66 +253,62 @@ class Roket(Simulator):
 
         G = self.mod_com[self.iter_number, :] - self.wf_com[self.iter_number, :]
         if (self.iter_number + 1 < self.config.p_loop.niter):
-            self.tomo_com[self.iter_number + 1, :
-                          ] = self.gRD.dot(self.tomo_com[self.iter_number, :]
-                                           ) - g * self.gamma * self.RD.dot(G)
+            self.tomo_com[self.iter_number + 1, :] = self.gRD.dot(
+                    self.tomo_com[self.iter_number, :]) - g * self.gamma * self.RD.dot(G)
 
         # Without anyone noticing...
         self.tar.set_phase(0, tarphase)
         self.rtc.set_com(0, Dcom)
 
     def save_in_hdf5(self, savename):
-        tmp = (
-                self.config.p_geom._ipupil.shape[0] -
-                (self.config.p_dms[0]._n2 - self.config.p_dms[0]._n1 + 1)) // 2
+        tmp = (self.config.p_geom._ipupil.shape[0] -
+               (self.config.p_dms[0]._n2 - self.config.p_dms[0]._n1 + 1)) // 2
         tmp_e0 = self.config.p_geom._ipupil.shape[0] - tmp
         tmp_e1 = self.config.p_geom._ipupil.shape[1] - tmp
         pup = self.config.p_geom._ipupil[tmp:tmp_e0, tmp:tmp_e1]
         indx_pup = np.where(pup.flatten() > 0)[0].astype(np.int32)
         dm_dim = self.config.p_dms[0]._n2 - self.config.p_dms[0]._n1 + 1
         self.cov_cor()
-        psf = self.tar.get_image(0, b"le", fluxNorm=False)
+        psf = self.tar.get_image(0, b"le")
 
         fname = "/home/fferreira/Data/" + savename
         pdict = {
                 "noise":
                         self.noise_com[self.N_preloop:, :].T, "aliasing":
-                                self.alias_wfs_com[self.N_preloop:, :]
-                                .T, "tomography":
-                                        self.tomo_com[self.N_preloop:, :]
-                                        .T, "filtered modes":
-                                                self.H_com[self.N_preloop:, :]
-                                                .T,
-                "non linearity":
-                        self.trunc_com[self.N_preloop:, :].T, "bandwidth":
-                                self.bp_com[self.N_preloop:, :].T, "wf_com":
-                                        self.wf_com[self.N_preloop:, :].T, "P":
-                                                self.P, "Btt":
-                                                        self.Btt,
-                "IF.data":
-                        self.IFpzt.data, "IF.indices":
-                                self.IFpzt.indices, "IF.indptr":
-                                        self.IFpzt.indptr, "TT":
-                                                self.TT, "dm_dim":
-                                                        dm_dim,
-                "indx_pup":
-                        indx_pup, "fitting":
-                                self.fit[self.N_preloop:], "SR":
-                                        self.SR, "SR2":
-                                                self.SR2, "cov":
-                                                        self.cov, "cor":
-                                                                self.cor,
+                                self.alias_wfs_com[self.N_preloop:, :].T, "tomography":
+                                        self.tomo_com[self.N_preloop:, :].T,
+                "filtered modes":
+                        self.H_com[self.N_preloop:, :].T, "non linearity":
+                                self.trunc_com[self.N_preloop:, :].T, "bandwidth":
+                                        self.bp_com[self.N_preloop:, :].T, "wf_com":
+                                                self.wf_com[self.N_preloop:, :].T, "P":
+                                                        self.P, "Btt":
+                                                                self.Btt, "IF.data":
+                                                                        self.IFpzt.data,
+                "IF.indices":
+                        self.IFpzt.indices, "IF.indptr":
+                                self.IFpzt.indptr, "TT":
+                                        self.TT, "dm_dim":
+                                                dm_dim, "indx_pup":
+                                                        indx_pup,
+                "fitting":
+                        self.fit[self.N_preloop:], "SR":
+                                self.SR, "SR2":
+                                        self.SR2, "cov":
+                                                self.cov, "cor":
+                                                        self.cor,
                 "psfortho":
                         np.fft.fftshift(self.psf_ortho) /
                         (self.config.p_loop.niter - self.N_preloop), "E":
                                 self.Ee, "F":
                                         self.Ff, "dm.xpos":
-                                                self.config.p_dms[0]._xpos,
-                "dm.ypos":
-                        self.config.p_dms[0]._ypos, "R":
-                                self.rtc.get_cmat(0), "D":
-                                        self.rtc.get_imat(0), "Nact":
-                                                self.Nact}
+                                                self.config.p_dms[0]._xpos, "dm.ypos":
+                                                        self.config.p_dms[0]._ypos, "R":
+                                                                self.rtc.get_cmat(0),
+                "D":
+                        self.rtc.get_imat(0), "Nact":
+                                self.Nact
+        }
         h5u.save_h5(fname, "psf", self.config, psf)
         for k in list(pdict.keys()):
             h5u.save_hdf5(fname, k, pdict[k])
@@ -339,9 +317,9 @@ class Roket(Simulator):
         self.cov = np.zeros((6, 6))
         self.cor = np.zeros((6, 6))
         bufdict = {
-                "0": self.noise_com.T, "1": self.trunc_com.T,
-                "2": self.alias_wfs_com.T, "3": self.H_com.T,
-                "4": self.bp_com.T, "5": self.tomo_com.T}
+                "0": self.noise_com.T, "1": self.trunc_com.T, "2": self.alias_wfs_com.T,
+                "3": self.H_com.T, "4": self.bp_com.T, "5": self.tomo_com.T
+        }
         for i in range(self.cov.shape[0]):
             for j in range(self.cov.shape[1]):
                 if (j >= i):

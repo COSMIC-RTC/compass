@@ -133,7 +133,7 @@ cdef class Target:
 
     """
 
-    def get_image(self, int n, bytes type_im, long puponly=0, bool comp_le=False, bool fluxNorm=True):
+    def get_image(self, int n, bytes type_im, long puponly=0, bool comp_le=False):
         """Return the image from the target (or long exposure image according to the requested type)
 
         :parameters:
@@ -149,34 +149,13 @@ cdef class Target:
         cdef sutra_source * src = self.target.d_targets[n]
 
         cdef const long * dims = src.d_image.getDims()
-        cdef np.ndarray data_F = np.empty((dims[2], dims[1]), dtype=np.float32)
-        cdef float flux
-        cdef carma_obj[float] * tmp_img
-        if(fluxNorm):
-            src.comp_image(puponly, comp_le)
-            flux = src.zp * 10 ** (-0.4 * src.mag)
-            tmp_img = new carma_obj[float](self.context.c, dims)
-            if(type_im == b"se"):
-                roll_mult[float](
-                    tmp_img.getData(),
-                    src.d_image.getData(), src.d_image.getDims(1), src.d_image.getDims(2),
-                    flux,
-                    self.context.c.get_device(src.device))
-            elif(type_im == b"le"):
-                roll_mult[float](
-                    tmp_img.getData(),
-                    src.d_leimage.getData(), src.d_leimage.getDims(1), src.d_leimage.getDims(2),
-                    flux,
-                    self.context.c.get_device(src.device))
+        cdef np.ndarray[ndim = 2, dtype = np.float32_t] data_F = np.empty((dims[2], dims[1]), dtype=np.float32)
 
-            tmp_img.device2host( < float * > data_F.data)
-            del tmp_img
-        else:
-            if(type_im == b"se"):
-                src.d_image.device2host( < float*> data_F.data)
-            if(type_im == b"le"):
-                src.d_leimage.device2host( < float*> data_F.data)
-                data_F /= src.strehl_counter
+        if(type_im == b"se"):
+            src.d_image.device2host( < float*> data_F.data)
+        if(type_im == b"le"):
+            src.d_leimage.device2host( < float*> data_F.data)
+            data_F /= src.strehl_counter
 
         return data_F.T.copy()
 
