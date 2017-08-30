@@ -20,7 +20,7 @@ import numpy as np
 
 def atmos_init(context: naga_context, p_atmos: conf.Param_atmos, p_tel: conf.Param_tel,
                p_geom: conf.Param_geom, ittime=None, p_wfss=None, sensors=None,
-               p_target=None, dataBase=None, use_DB=False):
+               p_target=None, dataBase={}, use_DB=False):
     """
         TODO: docstring
     """
