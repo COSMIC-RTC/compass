@@ -9,9 +9,9 @@ sutra_wfs_pyr_roof::sutra_wfs_pyr_roof(carma_context *context,
                                        long nrebin, long nfft, long ntot,
                                        long npup, float pdiam, float nphotons,
                                        float nphot4imat, int lgs, int device) :
-    sutra_wfs_pyr(context, d_tel, sensors, nxsub, nvalid, npix, nphase, nrebin,
-                  nfft, ntot, npup, pdiam, nphotons, nphot4imat, lgs, device,
-                  "roof") {
+  sutra_wfs_pyr(context, d_tel, sensors, nxsub, nvalid, npix, nphase, nrebin,
+                nfft, ntot, npup, pdiam, nphotons, nphot4imat, lgs, device,
+                "roof") {
 }
 
 sutra_wfs_pyr_roof::~sutra_wfs_pyr_roof() {
@@ -44,16 +44,16 @@ int sutra_wfs_pyr_roof::comp_generic() {
               this->ntot, this->current_context->get_device(device));
 
   carmaSafeCall(
-      cudaMemset(this->d_hrimg->getData(), 0,
-                 sizeof(float) * this->d_hrimg->getNbElem()));
+    cudaMemset(this->d_hrimg->getData(), 0,
+               sizeof(float) * this->d_hrimg->getNbElem()));
 
   //this->npup = 1;
   for (int cpt = 0; cpt < this->npup; cpt++) {
     // modulation loop
     // computes the high resolution images
     carmaSafeCall(
-        cudaMemset(this->d_fttotim->getData(), 0,
-                   sizeof(cuFloatComplex) * this->d_fttotim->getNbElem()));
+      cudaMemset(this->d_fttotim->getData(), 0,
+                 sizeof(cuFloatComplex) * this->d_fttotim->getNbElem()));
 
     roof_rollmod(this->d_fttotim->getData(), this->d_camplifoc->getData(),
                  this->d_poffsets->getData(), (this->pyr_cx->getData())[cpt],
@@ -78,8 +78,8 @@ int sutra_wfs_pyr_roof::comp_generic() {
     this->d_bincube->prng('N', this->noise);
   } else
     carmaSafeCall(
-        cudaMemset(this->d_bincube->getData(), 0,
-                   sizeof(float) * this->d_bincube->getNbElem()));
+      cudaMemset(this->d_bincube->getData(), 0,
+                 sizeof(float) * this->d_bincube->getNbElem()));
 
   roof_fillbin(this->d_bincube->getData(), this->d_hrimg->getData(),
                this->nrebin, this->nfft, this->nfft / this->nrebin, 4,

@@ -24,7 +24,7 @@ template
 caObjD2::carma_obj(carma_context *current_context, const long *dims_data);
 template
 carma_obj<struct tuple_t<float> >::carma_obj(carma_context *current_context,
-                                             const long *dims_data);
+    const long *dims_data);
 
 template<class T_data>
 carma_obj<T_data>::carma_obj(carma_obj<T_data> *src) {
@@ -169,7 +169,7 @@ void carma_obj<T_data>::init(carma_context *context, const long *dims_data,
     this->nb_elem *= dims_data[i];
 
   carmaSafeCall(
-      cudaMalloc((void** )&(this->d_data), sizeof(T_data) * this->nb_elem));
+    cudaMalloc((void** )&(this->d_data), sizeof(T_data) * this->nb_elem));
   this->device = current_context->get_activeDevice();
 
   if (data == NULL)
@@ -271,8 +271,8 @@ int carma_obj<T_data>::host2device(T_data *data) {
    * this method fills d_input with the imput data
    */
   carmaSafeCall(
-      cudaMemcpy(this->d_data, data, sizeof(T_data) * this->nb_elem,
-                 cudaMemcpyHostToDevice));
+    cudaMemcpy(this->d_data, data, sizeof(T_data) * this->nb_elem,
+               cudaMemcpyHostToDevice));
 
   return EXIT_SUCCESS;
 }
@@ -317,8 +317,8 @@ int carma_obj<T_data>::device2host(T_data *data) {
    * this method copies the values in d_output to the output array
    */
   carmaSafeCall(
-      cudaMemcpy(data, this->d_data, sizeof(T_data) * this->nb_elem,
-                 cudaMemcpyDeviceToHost));
+    cudaMemcpy(data, this->d_data, sizeof(T_data) * this->nb_elem,
+               cudaMemcpyDeviceToHost));
 
   return EXIT_SUCCESS;
 }
@@ -416,8 +416,8 @@ int carma_obj<T_data>::device2hostOpt(T_data *data) {
     return EXIT_FAILURE;
 
   carmaSafeCall(
-      cudaMemcpy(data, this->o_data, sizeof(T_data) * this->nb_elem,
-                 cudaMemcpyDeviceToHost));
+    cudaMemcpy(data, this->o_data, sizeof(T_data) * this->nb_elem,
+               cudaMemcpyDeviceToHost));
 
   return EXIT_SUCCESS;
 }
@@ -446,8 +446,8 @@ int carma_obj<T_data>::copyInto(T_data *data, int nb_elem) {
     nb_elem = this->nb_elem;
 
   carmaSafeCall(
-      cudaMemcpy(data, this->d_data, sizeof(T_data) * nb_elem,
-                 cudaMemcpyDeviceToDevice));
+    cudaMemcpy(data, this->d_data, sizeof(T_data) * nb_elem,
+               cudaMemcpyDeviceToDevice));
 
   return EXIT_SUCCESS;
 }
@@ -475,8 +475,8 @@ int carma_obj<T_data>::copyFrom(T_data *data, int nb_elem) {
     nb_elem = this->nb_elem;
 
   carmaSafeCall(
-      cudaMemcpy(this->d_data, data, sizeof(T_data) * nb_elem,
-                 cudaMemcpyDeviceToDevice));
+    cudaMemcpy(this->d_data, data, sizeof(T_data) * nb_elem,
+               cudaMemcpyDeviceToDevice));
 
   return EXIT_SUCCESS;
 }
@@ -533,7 +533,7 @@ caObjD::sum();
 template<class T_data>
 void carma_obj<T_data>::clip(T_data min, T_data max) {
 
-	clip_array<T_data>(this->d_data, min, max, this->nb_elem, this->current_context->get_device(device));
+  clip_array<T_data>(this->d_data, min, max, this->nb_elem, this->current_context->get_device(device));
 
 }
 template void

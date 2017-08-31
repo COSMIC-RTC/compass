@@ -12,11 +12,11 @@
 using std::mutex;
 
 class sutra_controller {
-public:
+ public:
 
   //allocation of d_centroids and d_com
-	sutra_controller(carma_context* context, int nslope, int nactu, float delay,
-			sutra_dms *dms, char **type, float *alt, int ndm);
+  sutra_controller(carma_context* context, int nslope, int nactu, float delay,
+                   sutra_dms *dms, char **type, float *alt, int ndm);
   virtual
   ~sutra_controller();
 
@@ -42,11 +42,11 @@ public:
     return current_context->get_cublasHandle();
   }
 
-	int
+  int
   set_centroids_ref(float *centroids_ref);
-	int
+  int
   get_centroids_ref(float *centroids_ref);
-	int
+  int
   set_perturbcom(float *perturb, int N);
   int
   set_openloop(int open_loop_status);
@@ -61,7 +61,7 @@ public:
   int
   command_delay();
 
-public:
+ public:
 //I would propose to make them protected (+ proper
 //set of fuctions). It could make life easier!
 //But we should discuss it
@@ -73,8 +73,8 @@ public:
   float c; // Coefficient for linear interpolation on command buffer to allow non-integer delay
   vector<sutra_dm *> d_dmseen;
   carma_obj<float> *d_subsum; // current flux
-	carma_obj<float> *d_centroids; // current centroids
-	carma_obj<float> *d_centroids_ref; // ref centroids
+  carma_obj<float> *d_centroids; // current centroids
+  carma_obj<float> *d_centroids_ref; // ref centroids
   carma_obj<float> *d_com; // current command
   carma_obj<float> *d_perturb; // perturbation command buffer
   carma_obj<float> *d_voltage; // commands sent to mirror
@@ -83,7 +83,7 @@ public:
 
   carma_streams *streams;
 
-protected:
+ protected:
   int device;
   carma_context *current_context;
   mutex comp_voltage_mutex;
@@ -100,10 +100,10 @@ int
 mult_vect(float *d_data, float gain, int N, carma_device *device);
 int
 mult_int(float *o_data, float *i_data, float *scale, float gain, int N,
-    carma_device *device);
+         carma_device *device);
 int
 mult_int(float *o_data, float *i_data, float *scale, float gain, int N,
-    carma_device *device, carma_streams *streams);
+         carma_device *device, carma_streams *streams);
 int
 mult_int(float *o_data, float *i_data, float gain, int N,carma_device *device);
 int

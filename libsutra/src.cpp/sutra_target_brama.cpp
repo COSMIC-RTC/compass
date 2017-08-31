@@ -8,8 +8,8 @@ sutra_target_brama::sutra_target_brama(carma_context *context, ACE_TCHAR *name,
                                        int ntargets, float *xpos, float *ypos,
                                        float *lambda, float *mag, float zerop,
                                        long *sizes, int Npts, int device)
-    : sutra_target(context, d_tel, ntargets, xpos, ypos, lambda, mag, zerop,
-                   sizes, Npts, device) {
+  : sutra_target(context, d_tel, ntargets, xpos, ypos, lambda, mag, zerop,
+                 sizes, Npts, device) {
   DEBUG_TRACE("init %s", name);
   BRAMA::BRAMA_context brama = BRAMA::BRAMA_context::get_instance(name);
   frame_handle = 0;
@@ -39,7 +39,7 @@ sutra_target_brama::sutra_target_brama(carma_context *context, ACE_TCHAR *name,
     brama.register_command_type(topics[BRAMA::CommandType]);
     cmd_listener = (new sutra_target_bramaListenerImpl);
     cmd_listener_servant =
-        dynamic_cast<sutra_target_bramaListenerImpl *>(cmd_listener.in());
+      dynamic_cast<sutra_target_bramaListenerImpl *>(cmd_listener.in());
 
     if (CORBA::is_nil(cmd_listener.in())) {
       throw "BRAMA Command listener is nil.";
@@ -47,7 +47,7 @@ sutra_target_brama::sutra_target_brama(carma_context *context, ACE_TCHAR *name,
     cmd_listener_servant->attach_target(this);
 
     cmd_dr =
-        brama.create_datareader(sub, topics[BRAMA::CommandType], cmd_listener);
+      brama.create_datareader(sub, topics[BRAMA::CommandType], cmd_listener);
 
     // Create an BRAMA Frame writer
     brama.register_frame_type(topics[BRAMA::FrameType]);
@@ -92,7 +92,7 @@ void sutra_target_brama::allocateBuffers() {
   try {
     // TODO : handle targets with different supports...
     dims_pixels = BRAMA::Dims::allocbuf(4);
-    dims_pixels[0] = 4;
+    dims_pixels[0] = 3;
     dims_pixels[1] = d_targets.size();
     dims_pixels[2] = d_targets[0]->d_leimage->getDims(1);
     dims_pixels[3] = d_targets[0]->d_leimage->getDims(2);
@@ -139,12 +139,12 @@ void sutra_target_brama::publish() {
                            d_targets[0]->d_leimage->getDims());
   for (size_t target = 0; target < d_targets.size(); target++) {
     float flux =
-        d_targets[target]->zp * powf(10, -0.4 * d_targets[target]->mag);
+      d_targets[target]->zp * powf(10, -0.4 * d_targets[target]->mag);
     roll_mult<float>(tmp_img.getData(), d_targets[target]->d_leimage->getData(),
                      d_targets[target]->d_leimage->getDims(1),
                      d_targets[target]->d_leimage->getDims(2), flux,
                      d_targets[target]->current_context->get_device(
-                         d_targets[target]->device));
+                       d_targets[target]->device));
     tmp_img.device2host(buff_pixels_servant + idx);
 
     idx += d_targets[target]->d_leimage->getNbElem();
@@ -156,7 +156,7 @@ void sutra_target_brama::publish() {
   zFrame.source = CORBA::string_dup("BRAMA TARGET");
   zFrame.dimensions = BRAMA::Dims(4, 4, dims_pixels, 0);
   zFrame.data =
-      BRAMA::Values(idx * sizeof(float), idx * sizeof(float), buff_pixels, 0);
+    BRAMA::Values(idx * sizeof(float), idx * sizeof(float), buff_pixels, 0);
   zFrame.datatype = 0;
   zFrame.sizeofelements = sizeof(float);
 
@@ -165,7 +165,7 @@ void sutra_target_brama::publish() {
 
   if (ret != DDS::RETCODE_OK) {
     ACE_ERROR(
-        (LM_ERROR, ACE_TEXT("(%P|%t)ERROR: frame write returned %d.\n"), ret));
+      (LM_ERROR, ACE_TEXT("(%P|%t)ERROR: frame write returned %d.\n"), ret));
     return;
   }
 

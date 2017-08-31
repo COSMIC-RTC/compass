@@ -12,7 +12,7 @@ sutra_telemetry::sutra_telemetry() {
 }
 
 sutra_telemetry::sutra_telemetry(type_telemetry_pair obj,
-    carma_host_obj<float> *host_obj, unsigned int nbStreams) {
+                                 carma_host_obj<float> *host_obj, unsigned int nbStreams) {
   add_obj(obj, host_obj);
   streams = new carma_streams(nbStreams);
   //carmaSafeCall(cudaEventCreateWithFlags(&(this->start_event), cudaDeviceBlockingSync));
@@ -21,7 +21,7 @@ sutra_telemetry::sutra_telemetry(type_telemetry_pair obj,
 }
 
 sutra_telemetry::sutra_telemetry(std::string type_obj, int num_obj,
-    carma_host_obj<float> *host_obj, unsigned int nbStreams) {
+                                 carma_host_obj<float> *host_obj, unsigned int nbStreams) {
   add_obj(type_obj, num_obj, host_obj);
   streams = new carma_streams(nbStreams);
   //carmaSafeCall(cudaEventCreateWithFlags(&(this->start_event), cudaDeviceBlockingSync));
@@ -39,7 +39,7 @@ sutra_telemetry::sutra_telemetry(std::string type_obj, int num_obj,
 
 sutra_telemetry::~sutra_telemetry() {
   for (std::map<type_telemetry_pair, carma_host_obj<float>*>::iterator it =
-      objs.begin(); objs.end() != it; it++) {
+         objs.begin(); objs.end() != it; it++) {
     delete it->second;
   }
   this->objs.clear();
@@ -83,13 +83,13 @@ int sutra_telemetry::del_all_streams() {
 }
 
 int sutra_telemetry::add_obj(type_telemetry_pair obj,
-    carma_host_obj<float> *host_obj) {
+                             carma_host_obj<float> *host_obj) {
   this->objs[obj] = host_obj;
   return get_nbObjs();
 }
 
 int sutra_telemetry::add_obj(std::string type_obj, int num_obj,
-    carma_host_obj<float> *host_obj) {
+                             carma_host_obj<float> *host_obj) {
   this->objs[make_pair(type_obj, num_obj)] = host_obj;
   return get_nbObjs();
 }
@@ -117,7 +117,7 @@ sutra_telemetry::get_carma_host_obj(std::string type_obj, int num_obj) {
 }
 
 int sutra_telemetry::cpy_obj(std::string type_obj, int num_obj,
-    carma_obj<float> *d_obj, cudaMemcpyKind flag) {
+                             carma_obj<float> *d_obj, cudaMemcpyKind flag) {
   this->objs[make_pair(type_obj, num_obj)]->cpy_obj(d_obj, flag);
   return EXIT_SUCCESS;
 }

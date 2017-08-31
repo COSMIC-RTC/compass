@@ -4,45 +4,45 @@
 #include <string>
 
 cublasStatus_t __carma_checkCublasStatus(cublasStatus_t status, int line,
-                                         std::string file) {
+    std::string file) {
   /**< Generic CUBLAS check status routine */
   switch (status) {
-    case CUBLAS_STATUS_SUCCESS:
-      return status;
-    case CUBLAS_STATUS_NOT_INITIALIZED:
-      std::cerr
-          << "CUBLAS error : Unsupported numerical value was passed to function." << std::endl;
-      break;
-    case CUBLAS_STATUS_ALLOC_FAILED:
-      std::cerr << "CUBLAS error : Resource allocation failed." << std::endl;
-      break;
-    case CUBLAS_STATUS_INVALID_VALUE:
-      std::cerr << "CUBLAS error : CUBLAS_STATUS_ALLOC_FAILED !!!!!" << std::endl;
-      break;
-    case CUBLAS_STATUS_ARCH_MISMATCH:
-      std::cerr << "CUBLAS error : Resource allocation failed." << std::endl;
-      break;
-    case CUBLAS_STATUS_MAPPING_ERROR:
-      std::cerr
-          << "CUBLAS error : Unsupported numerical value was passed to function." << std::endl;
-      break;
-    case CUBLAS_STATUS_EXECUTION_FAILED:
-      std::cerr << "CUBLAS error : Resource allocation failed." << std::endl;
-      break;
-    case CUBLAS_STATUS_INTERNAL_ERROR:
-      std::cerr << "!CUBLAS error : An internal CUBLAS operation failed." << std::endl;
-      break;
+  case CUBLAS_STATUS_SUCCESS:
+    return status;
+  case CUBLAS_STATUS_NOT_INITIALIZED:
+    std::cerr
+        << "CUBLAS error : Unsupported numerical value was passed to function." << std::endl;
+    break;
+  case CUBLAS_STATUS_ALLOC_FAILED:
+    std::cerr << "CUBLAS error : Resource allocation failed." << std::endl;
+    break;
+  case CUBLAS_STATUS_INVALID_VALUE:
+    std::cerr << "CUBLAS error : CUBLAS_STATUS_ALLOC_FAILED !!!!!" << std::endl;
+    break;
+  case CUBLAS_STATUS_ARCH_MISMATCH:
+    std::cerr << "CUBLAS error : Resource allocation failed." << std::endl;
+    break;
+  case CUBLAS_STATUS_MAPPING_ERROR:
+    std::cerr
+        << "CUBLAS error : Unsupported numerical value was passed to function." << std::endl;
+    break;
+  case CUBLAS_STATUS_EXECUTION_FAILED:
+    std::cerr << "CUBLAS error : Resource allocation failed." << std::endl;
+    break;
+  case CUBLAS_STATUS_INTERNAL_ERROR:
+    std::cerr << "!CUBLAS error : An internal CUBLAS operation failed." << std::endl;
+    break;
 // Define not supported status for pre-6.0 compatibility.
 #if CUDA_VERSION > 6000
-    case CUBLAS_STATUS_NOT_SUPPORTED:
-      std::cerr
-          << "CUBLAS error : Unsupported numerical value was passed to function." << std::endl;
-      break;
+  case CUBLAS_STATUS_NOT_SUPPORTED:
+    std::cerr
+        << "CUBLAS error : Unsupported numerical value was passed to function." << std::endl;
+    break;
 #endif
 #if CUDA_VERSION > 6000
-    case CUBLAS_STATUS_LICENSE_ERROR:
-      std::cerr
-          << "CUBLAS error : The functionnality requested requires some license and an error was detected when trying to check the current licensing. This error can happen if the license is not present or is expired or if the environment variable NVIDIA_LICENSE_FILE is not set properly." << std::endl;
+  case CUBLAS_STATUS_LICENSE_ERROR:
+    std::cerr
+        << "CUBLAS error : The functionnality requested requires some license and an error was detected when trying to check the current licensing. This error can happen if the license is not present or is expired or if the environment variable NVIDIA_LICENSE_FILE is not set properly." << std::endl;
 #endif
   }
   std::cerr << "CUBLAS error in " << file << "@" << line << std::endl;
@@ -61,14 +61,14 @@ cublasStatus_t carma_shutdownCublas(cublasHandle_t cublas_handle) {
 
 cublasOperation_t carma_char2cublasOperation(char operation) {
   switch (operation) {
-    case 't':
-    case 'T':
-      return CUBLAS_OP_T;
-    case 'c':
-    case 'C':
-      return CUBLAS_OP_C;
-    default:
-      return CUBLAS_OP_N;
+  case 't':
+  case 'T':
+    return CUBLAS_OP_T;
+  case 'c':
+  case 'C':
+    return CUBLAS_OP_C;
+  default:
+    return CUBLAS_OP_N;
   }
 }
 
@@ -83,8 +83,8 @@ cublasOperation_t carma_char2cublasOperation(char operation) {
 
 /** These templates are used to select the proper Iamax and Iamin executable from T_data*/
 template<class T_data, cublasStatus_t (*afunc)(cublasHandle_t handle, int n,
-                                               const T_data *x, int incx,
-                                               int *result)>
+         const T_data *x, int incx,
+         int *result)>
 int carma_where_gen(cublasHandle_t cublas_handle, int n, const T_data *vect,
                     int incx) {
   int result = 0;
@@ -106,13 +106,13 @@ template<>
 int carma_wheremax(cublasHandle_t cublas_handle, int n,
                    const cuFloatComplex *vect, int incx) {
   return carma_where_gen<cuFloatComplex, cublasIcamax>(cublas_handle, n, vect,
-                                                       incx);
+         incx);
 }
 template<>
 int carma_wheremax(cublasHandle_t cublas_handle, int n,
                    const cuDoubleComplex *vect, int incx) {
   return carma_where_gen<cuDoubleComplex, cublasIzamax>(cublas_handle, n, vect,
-                                                        incx);
+         incx);
 }
 
 template<>
@@ -129,19 +129,19 @@ template<>
 int carma_wheremin(cublasHandle_t cublas_handle, int n,
                    const cuFloatComplex *vect, int incx) {
   return carma_where_gen<cuFloatComplex, cublasIcamin>(cublas_handle, n, vect,
-                                                       incx);
+         incx);
 }
 template<>
 int carma_wheremin(cublasHandle_t cublas_handle, int n,
                    const cuDoubleComplex *vect, int incx) {
   return carma_where_gen<cuDoubleComplex, cublasIzamin>(cublas_handle, n, vect,
-                                                        incx);
+         incx);
 }
 
 /** These templates are used to select the proper asum executable from T_data*/
 template<class T_data, cublasStatus_t (*afunc)(cublasHandle_t handle, int n,
-                                               const T_data *x, int incx,
-                                               T_data *result)>
+         const T_data *x, int incx,
+         T_data *result)>
 int carma_sum_gen(cublasHandle_t cublas_handle, int n, const T_data *vect, int incx) {
   T_data result = 0;
   carma_checkCublasStatus(afunc(cublas_handle, n, vect, incx, &result));
@@ -170,30 +170,30 @@ cublasStatus_t carma_axpy<float>(cublasHandle_t cublas_handle, int n,
                                  const float alpha, const float *vectx, int incx,
                                  float *vecty, int incy) {
   return carma_checkCublasStatus(
-      cublasSaxpy(cublas_handle, n, &alpha, vectx, incx, vecty, incy));
+           cublasSaxpy(cublas_handle, n, &alpha, vectx, incx, vecty, incy));
 }
 template<>
 cublasStatus_t carma_axpy<double>(cublasHandle_t cublas_handle, int n,
                                   const double alpha, const double *vectx, int incx,
                                   double *vecty, int incy) {
   return carma_checkCublasStatus(
-      cublasDaxpy(cublas_handle, n, &alpha, vectx, incx, vecty, incy));
+           cublasDaxpy(cublas_handle, n, &alpha, vectx, incx, vecty, incy));
 }
 template<>
 cublasStatus_t carma_axpy<cuFloatComplex>(cublasHandle_t cublas_handle, int n,
-                                          const cuFloatComplex alpha,
-                                          const cuFloatComplex *vectx, int incx,
-                                          cuFloatComplex *vecty, int incy) {
+    const cuFloatComplex alpha,
+    const cuFloatComplex *vectx, int incx,
+    cuFloatComplex *vecty, int incy) {
   return carma_checkCublasStatus(
-      cublasCaxpy(cublas_handle, n, &alpha, vectx, incx, vecty, incy));
+           cublasCaxpy(cublas_handle, n, &alpha, vectx, incx, vecty, incy));
 }
 template<>
 cublasStatus_t carma_axpy<cuDoubleComplex>(cublasHandle_t cublas_handle, int n,
-                                           const cuDoubleComplex alpha,
-                                           const cuDoubleComplex *vectx, int incx,
-                                           cuDoubleComplex *vecty, int incy) {
+    const cuDoubleComplex alpha,
+    const cuDoubleComplex *vectx, int incx,
+    cuDoubleComplex *vecty, int incy) {
   return carma_checkCublasStatus(
-      cublasZaxpy(cublas_handle, n, &alpha, vectx, incx, vecty, incy));
+           cublasZaxpy(cublas_handle, n, &alpha, vectx, incx, vecty, incy));
 }
 
 /** These templates are used to select the proper copy executable from T_data*/
@@ -207,28 +207,28 @@ cublasStatus_t carma_copy<float>(cublasHandle_t cublas_handle, int n,
                                  float *vectx, int incx, float *vecty,
                                  int incy) {
   return carma_checkCublasStatus(
-      cublasScopy(cublas_handle, n, vectx, incx, vecty, incy));
+           cublasScopy(cublas_handle, n, vectx, incx, vecty, incy));
 }
 template<>
 cublasStatus_t carma_copy<double>(cublasHandle_t cublas_handle, int n,
                                   double *vectx, int incx, double *vecty,
                                   int incy) {
   return carma_checkCublasStatus(
-      cublasDcopy(cublas_handle, n, vectx, incx, vecty, incy));
+           cublasDcopy(cublas_handle, n, vectx, incx, vecty, incy));
 }
 template<>
 cublasStatus_t carma_copy<cuFloatComplex>(cublasHandle_t cublas_handle, int n,
-                                          cuFloatComplex *vectx, int incx,
-                                          cuFloatComplex *vecty, int incy) {
+    cuFloatComplex *vectx, int incx,
+    cuFloatComplex *vecty, int incy) {
   return carma_checkCublasStatus(
-      cublasCcopy(cublas_handle, n, vectx, incx, vecty, incy));
+           cublasCcopy(cublas_handle, n, vectx, incx, vecty, incy));
 }
 template<>
 cublasStatus_t carma_copy<cuDoubleComplex>(cublasHandle_t cublas_handle, int n,
-                                           cuDoubleComplex *vectx, int incx,
-                                           cuDoubleComplex *vecty, int incy) {
+    cuDoubleComplex *vectx, int incx,
+    cuDoubleComplex *vecty, int incy) {
   return carma_checkCublasStatus(
-      cublasZcopy(cublas_handle, n, vectx, incx, vecty, incy));
+           cublasZcopy(cublas_handle, n, vectx, incx, vecty, incy));
 }
 
 /** These templates are used to select the proper dot executable from T_data*/
@@ -242,7 +242,7 @@ float carma_dot<float>(cublasHandle_t cublas_handle, int n, float *vectx,
                        int incx, float *vecty, int incy) {
   float result = 0;
   carma_checkCublasStatus(
-      cublasSdot(cublas_handle, n, vectx, incx, vecty, incy, &result));
+    cublasSdot(cublas_handle, n, vectx, incx, vecty, incy, &result));
   return result;
 }
 template<>
@@ -250,29 +250,29 @@ double carma_dot<double>(cublasHandle_t cublas_handle, int n, double *vectx,
                          int incx, double *vecty, int incy) {
   double result = 0;
   carma_checkCublasStatus(
-      cublasDdot(cublas_handle, n, vectx, incx, vecty, incy, &result));
+    cublasDdot(cublas_handle, n, vectx, incx, vecty, incy, &result));
   return result;
 }
 template<>
 cuFloatComplex carma_dot<cuFloatComplex>(cublasHandle_t cublas_handle, int n,
-                                         cuFloatComplex *vectx, int incx,
-                                         cuFloatComplex *vecty, int incy) {
+    cuFloatComplex *vectx, int incx,
+    cuFloatComplex *vecty, int incy) {
   cuFloatComplex result;
   result.x = 0;
   result.y = 0;
   carma_checkCublasStatus(
-      cublasCdotu(cublas_handle, n, vectx, incx, vecty, incy, &result));
+    cublasCdotu(cublas_handle, n, vectx, incx, vecty, incy, &result));
   return result;
 }
 template<>
 cuDoubleComplex carma_dot<cuDoubleComplex>(cublasHandle_t cublas_handle, int n,
-                                           cuDoubleComplex *vectx, int incx,
-                                           cuDoubleComplex *vecty, int incy) {
+    cuDoubleComplex *vectx, int incx,
+    cuDoubleComplex *vecty, int incy) {
   cuDoubleComplex result;
   result.x = 0;
   result.y = 0;
   carma_checkCublasStatus(
-      cublasZdotu(cublas_handle, n, vectx, incx, vecty, incy, &result));
+    cublasZdotu(cublas_handle, n, vectx, incx, vecty, incy, &result));
   return result;
 }
 
@@ -315,14 +315,14 @@ cublasStatus_t carma_rot<float>(cublasHandle_t cublas_handle, int n,
                                 float *vectx, int incx, float *vecty, int incy,
                                 float sc, float ss) {
   return carma_checkCublasStatus(
-      cublasSrot(cublas_handle, n, vectx, incx, vecty, incy, &sc, &ss));
+           cublasSrot(cublas_handle, n, vectx, incx, vecty, incy, &sc, &ss));
 }
 template<>
 cublasStatus_t carma_rot<double>(cublasHandle_t cublas_handle, int n,
                                  double *vectx, int incx, double *vecty,
                                  int incy, double sc, double ss) {
   return carma_checkCublasStatus(
-      cublasDrot(cublas_handle, n, vectx, incx, vecty, incy, &sc, &ss));
+           cublasDrot(cublas_handle, n, vectx, incx, vecty, incy, &sc, &ss));
 }
 
 /** These templates are used to select the proper scal executable from T_data*/
@@ -335,27 +335,27 @@ template<>
 cublasStatus_t carma_scal<float>(cublasHandle_t cublas_handle, int n,
                                  float alpha, float *vectx, int incx) {
   return carma_checkCublasStatus(
-      cublasSscal(cublas_handle, n, &alpha, vectx, incx));
+           cublasSscal(cublas_handle, n, &alpha, vectx, incx));
 }
 template<>
 cublasStatus_t carma_scal<double>(cublasHandle_t cublas_handle, int n,
                                   double alpha, double *vectx, int incx) {
   return carma_checkCublasStatus(
-      cublasDscal(cublas_handle, n, &alpha, vectx, incx));
+           cublasDscal(cublas_handle, n, &alpha, vectx, incx));
 }
 template<>
 cublasStatus_t carma_scal<cuFloatComplex>(cublasHandle_t cublas_handle, int n,
-                                          cuFloatComplex alpha,
-                                          cuFloatComplex *vectx, int incx) {
+    cuFloatComplex alpha,
+    cuFloatComplex *vectx, int incx) {
   return carma_checkCublasStatus(
-      cublasCscal(cublas_handle, n, &alpha, vectx, incx));
+           cublasCscal(cublas_handle, n, &alpha, vectx, incx));
 }
 template<>
 cublasStatus_t carma_scal<cuDoubleComplex>(cublasHandle_t cublas_handle, int n,
-                                           cuDoubleComplex alpha,
-                                           cuDoubleComplex *vectx, int incx) {
+    cuDoubleComplex alpha,
+    cuDoubleComplex *vectx, int incx) {
   return carma_checkCublasStatus(
-      cublasZscal(cublas_handle, n, &alpha, vectx, incx));
+           cublasZscal(cublas_handle, n, &alpha, vectx, incx));
 }
 
 /** These templates are used to select the proper swap executable from T_data*/
@@ -369,28 +369,28 @@ cublasStatus_t carma_swap<float>(cublasHandle_t cublas_handle, int n,
                                  float *vectx, int incx, float *vecty,
                                  int incy) {
   return carma_checkCublasStatus(
-      cublasSswap(cublas_handle, n, vectx, incx, vecty, incy));
+           cublasSswap(cublas_handle, n, vectx, incx, vecty, incy));
 }
 template<>
 cublasStatus_t carma_swap<double>(cublasHandle_t cublas_handle, int n,
                                   double *vectx, int incx, double *vecty,
                                   int incy) {
   return carma_checkCublasStatus(
-      cublasDswap(cublas_handle, n, vectx, incx, vecty, incy));
+           cublasDswap(cublas_handle, n, vectx, incx, vecty, incy));
 }
 template<>
 cublasStatus_t carma_swap<cuFloatComplex>(cublasHandle_t cublas_handle, int n,
-                                          cuFloatComplex *vectx, int incx,
-                                          cuFloatComplex *vecty, int incy) {
+    cuFloatComplex *vectx, int incx,
+    cuFloatComplex *vecty, int incy) {
   return carma_checkCublasStatus(
-      cublasCswap(cublas_handle, n, vectx, incx, vecty, incy));
+           cublasCswap(cublas_handle, n, vectx, incx, vecty, incy));
 }
 template<>
 cublasStatus_t carma_swap<cuDoubleComplex>(cublasHandle_t cublas_handle, int n,
-                                           cuDoubleComplex *vectx, int incx,
-                                           cuDoubleComplex *vecty, int incy) {
+    cuDoubleComplex *vectx, int incx,
+    cuDoubleComplex *vecty, int incy) {
   return carma_checkCublasStatus(
-      cublasZswap(cublas_handle, n, vectx, incx, vecty, incy));
+           cublasZswap(cublas_handle, n, vectx, incx, vecty, incy));
 }
 
 /** These templates are used to select the proper gemv executable from T_data*/
@@ -407,7 +407,7 @@ cublasStatus_t carma_gemv<float>(cublasHandle_t cublas_handle, char trans,
                                  float *vecty, int incy) {
   cublasOperation_t trans2 = carma_char2cublasOperation(trans);
   return carma_checkCublasStatus(
-      cublasSgemv(cublas_handle, trans2, m, n, &alpha, matA, lda, vectx, incx, &beta, vecty, incy));
+           cublasSgemv(cublas_handle, trans2, m, n, &alpha, matA, lda, vectx, incx, &beta, vecty, incy));
 }
 template<>
 cublasStatus_t carma_gemv<double>(cublasHandle_t cublas_handle, char trans,
@@ -416,31 +416,31 @@ cublasStatus_t carma_gemv<double>(cublasHandle_t cublas_handle, char trans,
                                   double *vecty, int incy) {
   cublasOperation_t trans2 = carma_char2cublasOperation(trans);
   return carma_checkCublasStatus(
-      cublasDgemv(cublas_handle, trans2, m, n, &alpha, matA, lda, vectx, incx, &beta, vecty, incy));
+           cublasDgemv(cublas_handle, trans2, m, n, &alpha, matA, lda, vectx, incx, &beta, vecty, incy));
 }
 template<>
 cublasStatus_t carma_gemv<cuFloatComplex>(cublasHandle_t cublas_handle,
-                                          char trans, int m, int n,
-                                          cuFloatComplex alpha,
-                                          cuFloatComplex *matA, int lda,
-                                          cuFloatComplex *vectx, int incx,
-                                          cuFloatComplex beta,
-                                          cuFloatComplex *vecty, int incy) {
+    char trans, int m, int n,
+    cuFloatComplex alpha,
+    cuFloatComplex *matA, int lda,
+    cuFloatComplex *vectx, int incx,
+    cuFloatComplex beta,
+    cuFloatComplex *vecty, int incy) {
   cublasOperation_t trans2 = carma_char2cublasOperation(trans);
   return carma_checkCublasStatus(
-      cublasCgemv(cublas_handle, trans2, m, n, &alpha, matA, lda, vectx, incx, &beta, vecty, incy));
+           cublasCgemv(cublas_handle, trans2, m, n, &alpha, matA, lda, vectx, incx, &beta, vecty, incy));
 }
 template<>
 cublasStatus_t carma_gemv<cuDoubleComplex>(cublasHandle_t cublas_handle,
-                                           char trans, int m, int n,
-                                           cuDoubleComplex alpha,
-                                           cuDoubleComplex *matA, int lda,
-                                           cuDoubleComplex *vectx, int incx,
-                                           cuDoubleComplex beta,
-                                           cuDoubleComplex *vecty, int incy) {
+    char trans, int m, int n,
+    cuDoubleComplex alpha,
+    cuDoubleComplex *matA, int lda,
+    cuDoubleComplex *vectx, int incx,
+    cuDoubleComplex beta,
+    cuDoubleComplex *vecty, int incy) {
   cublasOperation_t trans2 = carma_char2cublasOperation(trans);
   return carma_checkCublasStatus(
-      cublasZgemv(cublas_handle, trans2, m, n, &alpha, matA, lda, vectx, incx, &beta, vecty, incy));
+           cublasZgemv(cublas_handle, trans2, m, n, &alpha, matA, lda, vectx, incx, &beta, vecty, incy));
 }
 
 /** These templates are used to select the proper ger executable from T_data*/
@@ -455,7 +455,7 @@ cublasStatus_t carma_ger<float>(cublasHandle_t cublas_handle, int m, int n,
                                 float alpha, float *vectx, int incx,
                                 float *vecty, int incy, float *matA, int lda) {
   return carma_checkCublasStatus(
-      cublasSger(cublas_handle, m, n, &alpha, vectx, incx, vecty, incy, matA, lda));
+           cublasSger(cublas_handle, m, n, &alpha, vectx, incx, vecty, incy, matA, lda));
 }
 template<>
 cublasStatus_t carma_ger<double>(cublasHandle_t cublas_handle, int m, int n,
@@ -463,25 +463,25 @@ cublasStatus_t carma_ger<double>(cublasHandle_t cublas_handle, int m, int n,
                                  double *vecty, int incy, double *matA,
                                  int lda) {
   return carma_checkCublasStatus(
-      cublasDger(cublas_handle, m, n, &alpha, vectx, incx, vecty, incy, matA, lda));
+           cublasDger(cublas_handle, m, n, &alpha, vectx, incx, vecty, incy, matA, lda));
 }
 template<>
 cublasStatus_t carma_ger<cuFloatComplex>(cublasHandle_t cublas_handle, int m,
-                                         int n, cuFloatComplex alpha,
-                                         cuFloatComplex *vectx, int incx,
-                                         cuFloatComplex *vecty, int incy,
-                                         cuFloatComplex *matA, int lda) {
+    int n, cuFloatComplex alpha,
+    cuFloatComplex *vectx, int incx,
+    cuFloatComplex *vecty, int incy,
+    cuFloatComplex *matA, int lda) {
   return carma_checkCublasStatus(
-      cublasCgeru(cublas_handle, m, n, &alpha, vectx, incx, vecty, incy, matA, lda));
+           cublasCgeru(cublas_handle, m, n, &alpha, vectx, incx, vecty, incy, matA, lda));
 }
 template<>
 cublasStatus_t carma_ger<cuDoubleComplex>(cublasHandle_t cublas_handle, int m,
-                                          int n, cuDoubleComplex alpha,
-                                          cuDoubleComplex *vectx, int incx,
-                                          cuDoubleComplex *vecty, int incy,
-                                          cuDoubleComplex *matA, int lda) {
+    int n, cuDoubleComplex alpha,
+    cuDoubleComplex *vectx, int incx,
+    cuDoubleComplex *vecty, int incy,
+    cuDoubleComplex *matA, int lda) {
   return carma_checkCublasStatus(
-      cublasZgeru(cublas_handle, m, n, &alpha, vectx, incx, vecty, incy, matA, lda));
+           cublasZgeru(cublas_handle, m, n, &alpha, vectx, incx, vecty, incy, matA, lda));
 }
 
 /** These templates are used to select the proper symv executable from T_data*/
@@ -497,7 +497,7 @@ cublasStatus_t carma_symv<float>(cublasHandle_t cublas_handle,
                                  float *matA, int lda, float *vectx, int incx,
                                  float beta, float *vecty, int incy) {
   return carma_checkCublasStatus(
-      cublasSsymv(cublas_handle, uplo, n, &alpha, matA, lda, vectx, incx, &beta, vecty, incy));
+           cublasSsymv(cublas_handle, uplo, n, &alpha, matA, lda, vectx, incx, &beta, vecty, incy));
 }
 template<>
 cublasStatus_t carma_symv<double>(cublasHandle_t cublas_handle,
@@ -506,29 +506,29 @@ cublasStatus_t carma_symv<double>(cublasHandle_t cublas_handle,
                                   int incx, double beta, double *vecty,
                                   int incy) {
   return carma_checkCublasStatus(
-      cublasDsymv(cublas_handle, uplo, n, &alpha, matA, lda, vectx, incx, &beta, vecty, incy));
+           cublasDsymv(cublas_handle, uplo, n, &alpha, matA, lda, vectx, incx, &beta, vecty, incy));
 }
 template<>
 cublasStatus_t carma_symv<cuFloatComplex>(cublasHandle_t cublas_handle,
-                                          cublasFillMode_t uplo, int n,
-                                          cuFloatComplex alpha,
-                                          cuFloatComplex *matA, int lda,
-                                          cuFloatComplex *vectx, int incx,
-                                          cuFloatComplex beta,
-                                          cuFloatComplex *vecty, int incy) {
+    cublasFillMode_t uplo, int n,
+    cuFloatComplex alpha,
+    cuFloatComplex *matA, int lda,
+    cuFloatComplex *vectx, int incx,
+    cuFloatComplex beta,
+    cuFloatComplex *vecty, int incy) {
   return carma_checkCublasStatus(
-      cublasCsymv(cublas_handle, uplo, n, &alpha, matA, lda, vectx, incx, &beta, vecty, incy));
+           cublasCsymv(cublas_handle, uplo, n, &alpha, matA, lda, vectx, incx, &beta, vecty, incy));
 }
 template<>
 cublasStatus_t carma_symv<cuDoubleComplex>(cublasHandle_t cublas_handle,
-                                           cublasFillMode_t uplo, int n,
-                                           cuDoubleComplex alpha,
-                                           cuDoubleComplex *matA, int lda,
-                                           cuDoubleComplex *vectx, int incx,
-                                           cuDoubleComplex beta,
-                                           cuDoubleComplex *vecty, int incy) {
+    cublasFillMode_t uplo, int n,
+    cuDoubleComplex alpha,
+    cuDoubleComplex *matA, int lda,
+    cuDoubleComplex *vectx, int incx,
+    cuDoubleComplex beta,
+    cuDoubleComplex *vecty, int incy) {
   return carma_checkCublasStatus(
-      cublasZsymv(cublas_handle, uplo, n, &alpha, matA, lda, vectx, incx, &beta, vecty, incy));
+           cublasZsymv(cublas_handle, uplo, n, &alpha, matA, lda, vectx, incx, &beta, vecty, incy));
 }
 
 /** These templates are used to select the proper gemm executable from T_data*/
@@ -546,7 +546,7 @@ cublasStatus_t carma_gemm<float>(cublasHandle_t cublas_handle, char transa,
   cublasOperation_t transa2 = carma_char2cublasOperation(transa);
   cublasOperation_t transb2 = carma_char2cublasOperation(transb);
   return carma_checkCublasStatus(
-      cublasSgemm(cublas_handle, transa2, transb2, m, n, k, &alpha, matA, lda, matB, ldb, &beta, matC, ldc));
+           cublasSgemm(cublas_handle, transa2, transb2, m, n, k, &alpha, matA, lda, matB, ldb, &beta, matC, ldc));
 }
 template<>
 cublasStatus_t carma_gemm<double>(cublasHandle_t cublas_handle, char transa,
@@ -557,33 +557,33 @@ cublasStatus_t carma_gemm<double>(cublasHandle_t cublas_handle, char transa,
   cublasOperation_t transa2 = carma_char2cublasOperation(transa);
   cublasOperation_t transb2 = carma_char2cublasOperation(transb);
   return carma_checkCublasStatus(
-      cublasDgemm(cublas_handle, transa2, transb2, m, n, k, &alpha, matA, lda, matB, ldb, &beta, matC, ldc));
+           cublasDgemm(cublas_handle, transa2, transb2, m, n, k, &alpha, matA, lda, matB, ldb, &beta, matC, ldc));
 }
 template<>
 cublasStatus_t carma_gemm<cuFloatComplex>(cublasHandle_t cublas_handle,
-                                          char transa, char transb, int m,
-                                          int n, int k, cuFloatComplex alpha,
-                                          cuFloatComplex *matA, int lda,
-                                          cuFloatComplex *matB, int ldb,
-                                          cuFloatComplex beta,
-                                          cuFloatComplex *matC, int ldc) {
+    char transa, char transb, int m,
+    int n, int k, cuFloatComplex alpha,
+    cuFloatComplex *matA, int lda,
+    cuFloatComplex *matB, int ldb,
+    cuFloatComplex beta,
+    cuFloatComplex *matC, int ldc) {
   cublasOperation_t transa2 = carma_char2cublasOperation(transa);
   cublasOperation_t transb2 = carma_char2cublasOperation(transb);
   return carma_checkCublasStatus(
-      cublasCgemm(cublas_handle, transa2, transb2, m, n, k, &alpha, matA, lda, matB, ldb, &beta, matC, ldc));
+           cublasCgemm(cublas_handle, transa2, transb2, m, n, k, &alpha, matA, lda, matB, ldb, &beta, matC, ldc));
 }
 template<>
 cublasStatus_t carma_gemm<cuDoubleComplex>(cublasHandle_t cublas_handle,
-                                           char transa, char transb, int m,
-                                           int n, int k, cuDoubleComplex alpha,
-                                           cuDoubleComplex *matA, int lda,
-                                           cuDoubleComplex *matB, int ldb,
-                                           cuDoubleComplex beta,
-                                           cuDoubleComplex *matC, int ldc) {
+    char transa, char transb, int m,
+    int n, int k, cuDoubleComplex alpha,
+    cuDoubleComplex *matA, int lda,
+    cuDoubleComplex *matB, int ldb,
+    cuDoubleComplex beta,
+    cuDoubleComplex *matC, int ldc) {
   cublasOperation_t transa2 = carma_char2cublasOperation(transa);
   cublasOperation_t transb2 = carma_char2cublasOperation(transb);
   return carma_checkCublasStatus(
-      cublasZgemm(cublas_handle, transa2, transb2, m, n, k, &alpha, matA, lda, matB, ldb, &beta, matC, ldc));
+           cublasZgemm(cublas_handle, transa2, transb2, m, n, k, &alpha, matA, lda, matB, ldb, &beta, matC, ldc));
 }
 
 /** These templates are used to select the proper symm executable from T_data*/
@@ -600,7 +600,7 @@ cublasStatus_t carma_symm<float>(cublasHandle_t cublas_handle,
                                  int lda, float *matB, int ldb, float beta,
                                  float *matC, int ldc) {
   return carma_checkCublasStatus(
-      cublasSsymm(cublas_handle, side, uplo, m, n, &alpha, matA, lda, matB, ldb, &beta, matC, ldc));
+           cublasSsymm(cublas_handle, side, uplo, m, n, &alpha, matA, lda, matB, ldb, &beta, matC, ldc));
 }
 template<>
 cublasStatus_t carma_symm<double>(cublasHandle_t cublas_handle,
@@ -609,31 +609,31 @@ cublasStatus_t carma_symm<double>(cublasHandle_t cublas_handle,
                                   int lda, double *matB, int ldb, double beta,
                                   double *matC, int ldc) {
   return carma_checkCublasStatus(
-      cublasDsymm(cublas_handle, side, uplo, m, n, &alpha, matA, lda, matB, ldb, &beta, matC, ldc));
+           cublasDsymm(cublas_handle, side, uplo, m, n, &alpha, matA, lda, matB, ldb, &beta, matC, ldc));
 }
 template<>
 cublasStatus_t carma_symm<cuFloatComplex>(cublasHandle_t cublas_handle,
-                                          cublasSideMode_t side,
-                                          cublasFillMode_t uplo, int m, int n,
-                                          cuFloatComplex alpha,
-                                          cuFloatComplex *matA, int lda,
-                                          cuFloatComplex *matB, int ldb,
-                                          cuFloatComplex beta,
-                                          cuFloatComplex *matC, int ldc) {
+    cublasSideMode_t side,
+    cublasFillMode_t uplo, int m, int n,
+    cuFloatComplex alpha,
+    cuFloatComplex *matA, int lda,
+    cuFloatComplex *matB, int ldb,
+    cuFloatComplex beta,
+    cuFloatComplex *matC, int ldc) {
   return carma_checkCublasStatus(
-      cublasCsymm(cublas_handle, side, uplo, m, n, &alpha, matA, lda, matB, ldb, &beta, matC, ldc));
+           cublasCsymm(cublas_handle, side, uplo, m, n, &alpha, matA, lda, matB, ldb, &beta, matC, ldc));
 }
 template<>
 cublasStatus_t carma_symm<cuDoubleComplex>(cublasHandle_t cublas_handle,
-                                           cublasSideMode_t side,
-                                           cublasFillMode_t uplo, int m, int n,
-                                           cuDoubleComplex alpha,
-                                           cuDoubleComplex *matA, int lda,
-                                           cuDoubleComplex *matB, int ldb,
-                                           cuDoubleComplex beta,
-                                           cuDoubleComplex *matC, int ldc) {
+    cublasSideMode_t side,
+    cublasFillMode_t uplo, int m, int n,
+    cuDoubleComplex alpha,
+    cuDoubleComplex *matA, int lda,
+    cuDoubleComplex *matB, int ldb,
+    cuDoubleComplex beta,
+    cuDoubleComplex *matC, int ldc) {
   return carma_checkCublasStatus(
-      cublasZsymm(cublas_handle, side, uplo, m, n, &alpha, matA, lda, matB, ldb, &beta, matC, ldc));
+           cublasZsymm(cublas_handle, side, uplo, m, n, &alpha, matA, lda, matB, ldb, &beta, matC, ldc));
 }
 
 /** These templates are used to select the proper syrk executable from T_data*/
@@ -650,7 +650,7 @@ cublasStatus_t carma_syrk<float>(cublasHandle_t cublas_handle,
                                  float beta, float *matC, int ldc) {
   cublasOperation_t transa2 = carma_char2cublasOperation(transa);
   return carma_checkCublasStatus(
-      cublasSsyrk(cublas_handle, uplo, transa2, n, k, &alpha, matA, lda, &beta, matC, ldc));
+           cublasSsyrk(cublas_handle, uplo, transa2, n, k, &alpha, matA, lda, &beta, matC, ldc));
 }
 template<>
 cublasStatus_t carma_syrk<double>(cublasHandle_t cublas_handle,
@@ -659,29 +659,29 @@ cublasStatus_t carma_syrk<double>(cublasHandle_t cublas_handle,
                                   double beta, double *matC, int ldc) {
   cublasOperation_t transa2 = carma_char2cublasOperation(transa);
   return carma_checkCublasStatus(
-      cublasDsyrk(cublas_handle, uplo, transa2, n, k, &alpha, matA, lda, &beta, matC, ldc));
+           cublasDsyrk(cublas_handle, uplo, transa2, n, k, &alpha, matA, lda, &beta, matC, ldc));
 }
 template<>
 cublasStatus_t carma_syrk<cuFloatComplex>(cublasHandle_t cublas_handle,
-                                          cublasFillMode_t uplo, char transa,
-                                          int n, int k, cuFloatComplex alpha,
-                                          cuFloatComplex *matA, int lda,
-                                          cuFloatComplex beta,
-                                          cuFloatComplex *matC, int ldc) {
+    cublasFillMode_t uplo, char transa,
+    int n, int k, cuFloatComplex alpha,
+    cuFloatComplex *matA, int lda,
+    cuFloatComplex beta,
+    cuFloatComplex *matC, int ldc) {
   cublasOperation_t transa2 = carma_char2cublasOperation(transa);
   return carma_checkCublasStatus(
-      cublasCsyrk(cublas_handle, uplo, transa2, n, k, &alpha, matA, lda, &beta, matC, ldc));
+           cublasCsyrk(cublas_handle, uplo, transa2, n, k, &alpha, matA, lda, &beta, matC, ldc));
 }
 template<>
 cublasStatus_t carma_syrk<cuDoubleComplex>(cublasHandle_t cublas_handle,
-                                           cublasFillMode_t uplo, char transa,
-                                           int n, int k, cuDoubleComplex alpha,
-                                           cuDoubleComplex *matA, int lda,
-                                           cuDoubleComplex beta,
-                                           cuDoubleComplex *matC, int ldc) {
+    cublasFillMode_t uplo, char transa,
+    int n, int k, cuDoubleComplex alpha,
+    cuDoubleComplex *matA, int lda,
+    cuDoubleComplex beta,
+    cuDoubleComplex *matC, int ldc) {
   cublasOperation_t transa2 = carma_char2cublasOperation(transa);
   return carma_checkCublasStatus(
-      cublasZsyrk(cublas_handle, uplo, transa2, n, k, &alpha, matA, lda, &beta, matC, ldc));
+           cublasZsyrk(cublas_handle, uplo, transa2, n, k, &alpha, matA, lda, &beta, matC, ldc));
 }
 
 /** These templates are used to select the proper syrkx executable from T_data*/
@@ -699,8 +699,8 @@ cublasStatus_t carma_syrkx<float>(cublasHandle_t cublas_handle,
                                   int ldc) {
   cublasOperation_t transa2 = carma_char2cublasOperation(transa);
   return carma_checkCublasStatus(
-      cublasSsyrkx(cublas_handle, uplo, transa2, n, k, &alpha, matA, lda, matB,
-                   ldb, &beta, matC, ldc));
+           cublasSsyrkx(cublas_handle, uplo, transa2, n, k, &alpha, matA, lda, matB,
+                        ldb, &beta, matC, ldc));
 }
 template<>
 cublasStatus_t carma_syrkx<double>(cublasHandle_t cublas_handle,
@@ -710,34 +710,34 @@ cublasStatus_t carma_syrkx<double>(cublasHandle_t cublas_handle,
                                    double *matC, int ldc) {
   cublasOperation_t transa2 = carma_char2cublasOperation(transa);
   return carma_checkCublasStatus(
-      cublasDsyrkx(cublas_handle, uplo, transa2, n, k, &alpha, matA, lda, matB,
-                   ldb, &beta, matC, ldc));
+           cublasDsyrkx(cublas_handle, uplo, transa2, n, k, &alpha, matA, lda, matB,
+                        ldb, &beta, matC, ldc));
 }
 template<>
 cublasStatus_t carma_syrkx<cuFloatComplex>(cublasHandle_t cublas_handle,
-                                           cublasFillMode_t uplo, char transa,
-                                           int n, int k, cuFloatComplex alpha,
-                                           cuFloatComplex *matA, int lda,
-                                           cuFloatComplex *matB, int ldb,
-                                           cuFloatComplex beta,
-                                           cuFloatComplex *matC, int ldc) {
+    cublasFillMode_t uplo, char transa,
+    int n, int k, cuFloatComplex alpha,
+    cuFloatComplex *matA, int lda,
+    cuFloatComplex *matB, int ldb,
+    cuFloatComplex beta,
+    cuFloatComplex *matC, int ldc) {
   cublasOperation_t transa2 = carma_char2cublasOperation(transa);
   return carma_checkCublasStatus(
-      cublasCsyrkx(cublas_handle, uplo, transa2, n, k, &alpha, matA, lda, matB,
-                   ldb, &beta, matC, ldc));
+           cublasCsyrkx(cublas_handle, uplo, transa2, n, k, &alpha, matA, lda, matB,
+                        ldb, &beta, matC, ldc));
 }
 template<>
 cublasStatus_t carma_syrkx<cuDoubleComplex>(cublasHandle_t cublas_handle,
-                                            cublasFillMode_t uplo, char transa,
-                                            int n, int k, cuDoubleComplex alpha,
-                                            cuDoubleComplex *matA, int lda,
-                                            cuDoubleComplex *matB, int ldb,
-                                            cuDoubleComplex beta,
-                                            cuDoubleComplex *matC, int ldc) {
+    cublasFillMode_t uplo, char transa,
+    int n, int k, cuDoubleComplex alpha,
+    cuDoubleComplex *matA, int lda,
+    cuDoubleComplex *matB, int ldb,
+    cuDoubleComplex beta,
+    cuDoubleComplex *matC, int ldc) {
   cublasOperation_t transa2 = carma_char2cublasOperation(transa);
   return carma_checkCublasStatus(
-      cublasZsyrkx(cublas_handle, uplo, transa2, n, k, &alpha, matA, lda, matB,
-                   ldb, &beta, matC, ldc));
+           cublasZsyrkx(cublas_handle, uplo, transa2, n, k, &alpha, matA, lda, matB,
+                        ldb, &beta, matC, ldc));
 }
 
 /** These templates are used to select the proper geam executable from T_data*/
@@ -755,8 +755,8 @@ cublasStatus_t carma_geam<float>(cublasHandle_t cublas_handle, char transa,
   cublasOperation_t transa2 = carma_char2cublasOperation(transa);
   cublasOperation_t transb2 = carma_char2cublasOperation(transb);
   return carma_checkCublasStatus(
-      cublasSgeam(cublas_handle, transa2, transb2, m, n, &alpha, matA, lda,
-                  &beta, matB, ldb, matC, ldc));
+           cublasSgeam(cublas_handle, transa2, transb2, m, n, &alpha, matA, lda,
+                       &beta, matB, ldb, matC, ldc));
 }
 template<>
 cublasStatus_t carma_geam<double>(cublasHandle_t cublas_handle, char transa,
@@ -767,36 +767,36 @@ cublasStatus_t carma_geam<double>(cublasHandle_t cublas_handle, char transa,
   cublasOperation_t transa2 = carma_char2cublasOperation(transa);
   cublasOperation_t transb2 = carma_char2cublasOperation(transb);
   return carma_checkCublasStatus(
-      cublasDgeam(cublas_handle, transa2, transb2, m, n, &alpha, matA, lda,
-                  &beta, matB, ldb, matC, ldc));
+           cublasDgeam(cublas_handle, transa2, transb2, m, n, &alpha, matA, lda,
+                       &beta, matB, ldb, matC, ldc));
 }
 template<>
 cublasStatus_t carma_geam<cuFloatComplex>(cublasHandle_t cublas_handle,
-                                          char transa, char transb, int m,
-                                          int n, cuFloatComplex alpha,
-                                          cuFloatComplex *matA, int lda,
-                                          cuFloatComplex beta,
-                                          cuFloatComplex *matB, int ldb,
-                                          cuFloatComplex *matC, int ldc) {
+    char transa, char transb, int m,
+    int n, cuFloatComplex alpha,
+    cuFloatComplex *matA, int lda,
+    cuFloatComplex beta,
+    cuFloatComplex *matB, int ldb,
+    cuFloatComplex *matC, int ldc) {
   cublasOperation_t transa2 = carma_char2cublasOperation(transa);
   cublasOperation_t transb2 = carma_char2cublasOperation(transb);
   return carma_checkCublasStatus(
-      cublasCgeam(cublas_handle, transa2, transb2, m, n, &alpha, matA, lda,
-                  &beta, matB, ldb, matC, ldc));
+           cublasCgeam(cublas_handle, transa2, transb2, m, n, &alpha, matA, lda,
+                       &beta, matB, ldb, matC, ldc));
 }
 template<>
 cublasStatus_t carma_geam<cuDoubleComplex>(cublasHandle_t cublas_handle,
-                                           char transa, char transb, int m,
-                                           int n, cuDoubleComplex alpha,
-                                           cuDoubleComplex *matA, int lda,
-                                           cuDoubleComplex beta,
-                                           cuDoubleComplex *matB, int ldb,
-                                           cuDoubleComplex *matC, int ldc) {
+    char transa, char transb, int m,
+    int n, cuDoubleComplex alpha,
+    cuDoubleComplex *matA, int lda,
+    cuDoubleComplex beta,
+    cuDoubleComplex *matB, int ldb,
+    cuDoubleComplex *matC, int ldc) {
   cublasOperation_t transa2 = carma_char2cublasOperation(transa);
   cublasOperation_t transb2 = carma_char2cublasOperation(transb);
   return carma_checkCublasStatus(
-      cublasZgeam(cublas_handle, transa2, transb2, m, n, &alpha, matA, lda,
-                  &beta, matB, ldb, matC, ldc));
+           cublasZgeam(cublas_handle, transa2, transb2, m, n, &alpha, matA, lda,
+                       &beta, matB, ldb, matC, ldc));
 }
 
 /** These templates are used to select the proper dgmm executable from T_data*/
@@ -812,7 +812,7 @@ cublasStatus_t carma_dgmm<float>(cublasHandle_t cublas_handle,
                                  const float *matA, int lda, const float *vectx,
                                  int incx, float *matC, int ldc) {
   return carma_checkCublasStatus(
-      cublasSdgmm(cublas_handle, side, m, n, matA, lda, vectx, incx, matC, ldc));
+           cublasSdgmm(cublas_handle, side, m, n, matA, lda, vectx, incx, matC, ldc));
 }
 template<>
 cublasStatus_t carma_dgmm<double>(cublasHandle_t cublas_handle,
@@ -821,26 +821,26 @@ cublasStatus_t carma_dgmm<double>(cublasHandle_t cublas_handle,
                                   const double *vectx, int incx, double *matC,
                                   int ldc) {
   return carma_checkCublasStatus(
-      cublasDdgmm(cublas_handle, side, m, n, matA, lda, vectx, incx, matC, ldc));
+           cublasDdgmm(cublas_handle, side, m, n, matA, lda, vectx, incx, matC, ldc));
 }
 template<>
 cublasStatus_t carma_dgmm<cuFloatComplex>(cublasHandle_t cublas_handle,
-                                          cublasSideMode_t side, int m, int n,
-                                          const cuFloatComplex *matA, int lda,
-                                          const cuFloatComplex *vectx, int incx,
-                                          cuFloatComplex *matC, int ldc) {
+    cublasSideMode_t side, int m, int n,
+    const cuFloatComplex *matA, int lda,
+    const cuFloatComplex *vectx, int incx,
+    cuFloatComplex *matC, int ldc) {
   return carma_checkCublasStatus(
-      cublasCdgmm(cublas_handle, side, m, n, matA, lda, vectx, incx, matC, ldc));
+           cublasCdgmm(cublas_handle, side, m, n, matA, lda, vectx, incx, matC, ldc));
 }
 template<>
 cublasStatus_t carma_dgmm<cuDoubleComplex>(cublasHandle_t cublas_handle,
-                                           cublasSideMode_t side, int m, int n,
-                                           const cuDoubleComplex *matA, int lda,
-                                           const cuDoubleComplex *vectx,
-                                           int incx, cuDoubleComplex *matC,
-                                           int ldc) {
+    cublasSideMode_t side, int m, int n,
+    const cuDoubleComplex *matA, int lda,
+    const cuDoubleComplex *vectx,
+    int incx, cuDoubleComplex *matC,
+    int ldc) {
   return carma_checkCublasStatus(
-      cublasZdgmm(cublas_handle, side, m, n, matA, lda, vectx, incx, matC, ldc));
+           cublasZdgmm(cublas_handle, side, m, n, matA, lda, vectx, incx, matC, ldc));
 }
 
 /*
@@ -863,8 +863,8 @@ int carma_obj<T_data>::host2deviceVect(T_data *data, int incx, int incy) {
    */
 
   carma_checkCublasStatus(
-      cublasSetVector(this->nb_elem, sizeof(T_data), data, incx, this->d_data,
-                      incy));
+    cublasSetVector(this->nb_elem, sizeof(T_data), data, incx, this->d_data,
+                    incy));
   return EXIT_SUCCESS;
 }
 template int
@@ -883,8 +883,8 @@ int carma_obj<T_data>::device2hostVect(T_data *data, int incx, int incy) {
    */
 
   carma_checkCublasStatus(
-      cublasGetVector(this->nb_elem, sizeof(T_data), this->d_data, incx, data,
-                      incy));
+    cublasGetVector(this->nb_elem, sizeof(T_data), this->d_data, incx, data,
+                    incy));
   return EXIT_SUCCESS;
 }
 
@@ -899,8 +899,8 @@ int carma_obj<T_data>::host2deviceMat(T_data *data, int lda, int ldb) {
    * this method fills mat with the input data
    */
   carma_checkCublasStatus(
-      cublasSetMatrix(this->dims_data[1], this->dims_data[2], sizeof(T_data),
-                      data, lda, this->d_data, ldb));
+    cublasSetMatrix(this->dims_data[1], this->dims_data[2], sizeof(T_data),
+                    data, lda, this->d_data, ldb));
   return EXIT_SUCCESS;
 }
 
@@ -920,8 +920,8 @@ int carma_obj<T_data>::device2hostMat(T_data *data, int lda, int ldb) {
    * this method fills output with the mat data
    */
   carma_checkCublasStatus(
-      cublasGetMatrix(this->dims_data[1], this->dims_data[2], sizeof(T_data),
-                      this->d_data, lda, data, ldb));
+    cublasGetMatrix(this->dims_data[1], this->dims_data[2], sizeof(T_data),
+                    this->d_data, lda, data, ldb));
   return EXIT_SUCCESS;
 }
 
@@ -1278,8 +1278,8 @@ void carma_obj<T_data>::gemm(char transa, char transb, T_data alpha,
    * where  op(X) = X  or  op(X) = X^T
    */
   int k = (
-      ((transa == 'N') || (transa == 'n')) ?
-          matA->dims_data[2] : matA->dims_data[1]);
+            ((transa == 'N') || (transa == 'n')) ?
+            matA->dims_data[2] : matA->dims_data[1]);
   carma_gemm(current_context->get_cublasHandle(), transa, transb,
              this->dims_data[1], this->dims_data[2], k, alpha, matA->d_data,
              lda, matB->d_data, ldb, beta, this->d_data, ldc);

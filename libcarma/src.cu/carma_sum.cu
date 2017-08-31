@@ -76,7 +76,7 @@ __global__ void reduce6(T *g_idata, T *g_odata, unsigned int n) {
 #ifndef __DEVICE_EMULATION__
   if (tid < 32)
 #endif
-      {
+  {
     // now that we are using warp-synchronous programming (below)
     // we need to declare our shared memory volatile so that the compiler
     // doesn't reorder stores to it and induce incorrect behavior.
@@ -120,7 +120,7 @@ void reduce(int size, int threads, int blocks, T *d_idata, T *d_odata) {
   // when there is only one warp per block, we need to allocate two warps
   // worth of shared memory so that we don't index shared memory out of bounds
   int smemSize =
-      (threads <= 32) ? 2 * threads * sizeof(T) : threads * sizeof(T);
+    (threads <= 32) ? 2 * threads * sizeof(T) : threads * sizeof(T);
 
   if (isPow2(size)) {
     switch (threads) {
@@ -128,90 +128,90 @@ void reduce(int size, int threads, int blocks, T *d_idata, T *d_odata) {
       reduce6<T, 1024, true> <<<dimGrid, dimBlock, smemSize>>>(d_idata,
           d_odata, size);
       break;
-      case 512:
+    case 512:
       reduce6<T, 512, true> <<<dimGrid, dimBlock, smemSize>>>(d_idata,
           d_odata, size);
       break;
-      case 256:
+    case 256:
       reduce6<T, 256, true> <<<dimGrid, dimBlock, smemSize>>>(d_idata,
           d_odata, size);
       break;
-      case 128:
+    case 128:
       reduce6<T, 128, true> <<<dimGrid, dimBlock, smemSize>>>(d_idata,
           d_odata, size);
       break;
-      case 64:
+    case 64:
       reduce6<T, 64, true> <<<dimGrid, dimBlock, smemSize>>>(d_idata, d_odata,
           size);
       break;
-      case 32:
+    case 32:
       reduce6<T, 32, true> <<<dimGrid, dimBlock, smemSize>>>(d_idata, d_odata,
           size);
       break;
-      case 16:
+    case 16:
       reduce6<T, 16, true> <<<dimGrid, dimBlock, smemSize>>>(d_idata, d_odata,
           size);
       break;
-      case 8:
+    case 8:
       reduce6<T, 8, true> <<<dimGrid, dimBlock, smemSize>>>(d_idata, d_odata,
           size);
       break;
-      case 4:
+    case 4:
       reduce6<T, 4, true> <<<dimGrid, dimBlock, smemSize>>>(d_idata, d_odata,
           size);
       break;
-      case 2:
+    case 2:
       reduce6<T, 2, true> <<<dimGrid, dimBlock, smemSize>>>(d_idata, d_odata,
           size);
       break;
-      case 1:
+    case 1:
       reduce6<T, 1, true> <<<dimGrid, dimBlock, smemSize>>>(d_idata, d_odata,
           size);
       break;
     }
   } else {
     switch (threads) {
-      case 1024:
+    case 1024:
       reduce6<T, 1024, false> <<<dimGrid, dimBlock, smemSize>>>(d_idata,
           d_odata, size);
       break;
-      case 512:
+    case 512:
       reduce6<T, 512, false> <<<dimGrid, dimBlock, smemSize>>>(d_idata,
           d_odata, size);
       break;
-      case 256:
+    case 256:
       reduce6<T, 256, false> <<<dimGrid, dimBlock, smemSize>>>(d_idata,
           d_odata, size);
       break;
-      case 128:
+    case 128:
       reduce6<T, 128, false> <<<dimGrid, dimBlock, smemSize>>>(d_idata,
           d_odata, size);
       break;
-      case 64:
+    case 64:
       reduce6<T, 64, false> <<<dimGrid, dimBlock, smemSize>>>(d_idata,
           d_odata, size);
       break;
-      case 32:
+    case 32:
       reduce6<T, 32, false> <<<dimGrid, dimBlock, smemSize>>>(d_idata,
           d_odata, size);
       break;
-      case 16:
+    case 16:
       reduce6<T, 16, false> <<<dimGrid, dimBlock, smemSize>>>(d_idata,
           d_odata, size);
       break;
-      case 8:
+    case 8:
       reduce6<T, 8, false> <<<dimGrid, dimBlock, smemSize>>>(d_idata, d_odata,
           size);
       break;
-      case 4:
+    case 4:
       reduce6<T, 4, false> <<<dimGrid, dimBlock, smemSize>>>(d_idata, d_odata,
           size);
       break;
-      case 2:
+    case 2:
       reduce6<T, 2, false> <<<dimGrid, dimBlock, smemSize>>>(d_idata, d_odata,
           size);
       break;
-      case 1:
+    case 1:
       reduce6<T, 1, false> <<<dimGrid, dimBlock, smemSize>>>(d_idata, d_odata,
           size);
       break;
@@ -225,14 +225,14 @@ reduce<int>(int size, int threads, int blocks, int *d_idata, int *d_odata);
 
 template void
 reduce<float>(int size, int threads, int blocks, float *d_idata,
-    float *d_odata);
+              float *d_odata);
 
 #if (__CUDA_ARCH__ < 600)
 template<> void
 reduce<double>(int size, int threads, int blocks, double *d_idata,
-    double *d_odata){
-      DEBUG_TRACE("Not implemented, only supported by devices of compute capability 6.x and higher.");
-    }
+               double *d_odata) {
+  DEBUG_TRACE("Not implemented, only supported by devices of compute capability 6.x and higher.");
+}
 #else
 template void
 reduce<double>(int size, int threads, int blocks, double *d_idata, double *d_odata);
@@ -240,6 +240,6 @@ reduce<double>(int size, int threads, int blocks, double *d_idata, double *d_oda
 
 template<> void
 reduce<cuFloatComplex>(int size, int threads, int blocks, cuFloatComplex *d_idata,
-    cuFloatComplex *d_odata){
-      DEBUG_TRACE("Not implemented");
-    }
+                       cuFloatComplex *d_odata) {
+  DEBUG_TRACE("Not implemented");
+}

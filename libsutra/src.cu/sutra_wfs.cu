@@ -206,8 +206,8 @@ int fillbinimg_async(carma_host_obj<float> *image_telemetry, float *bimage,
   // asynchronously launch nstreams kernels, each operating on its own portion of data
   for (int i = 0; i < nstreams; i++) {
     bimg_krnl_async << < grid, threads, 0, image_telemetry->get_cudaStream_t(i) >> > (
-      bimage, bcube, npix, Npix, Nsub, ivalid, jvalid, alpha, N,
-      i * N / nstreams);
+                      bimage, bcube, npix, Npix, Nsub, ivalid, jvalid, alpha, N,
+                      i * N / nstreams);
 
     // asynchronously launch nstreams memcopies.  Note that memcopy in stream x will only
     //   commence executing when all previous CUDA calls in stream x have completed
@@ -247,9 +247,9 @@ int fillbinimg_async(carma_streams *streams, carma_obj<float> *bimage,
   // asynchronously launch nstreams kernels, each operating on its own portion of data
   for (int i = 0; i < nstreams; i++) {
     bimg_krnl_async << < grid, threads, 0, streams->get_stream(i) >> > (g_image,
-                                                                        g_cube, npix, Npix, Nsub,
-                                                                        ivalid, jvalid, alpha, N,
-                                                                        i * N / nstreams);
+                    g_cube, npix, Npix, Nsub,
+                    ivalid, jvalid, alpha, N,
+                    i * N / nstreams);
 
     // asynchronously launch nstreams memcopies.  Note that memcopy in stream x will only
     //   commence executing when all previous CUDA calls in stream x have completed
@@ -300,7 +300,7 @@ int fillbincube(float *bcube, cuFloatComplex *hrimage, int *indxpix, int Nfft,
   dim3 grid(nblocks), threads(nthreads);
 
   fillbincube_krnl << < grid, threads >> > (bcube, hrimage, indxpix, Nfft, Npix,
-                                            Nrebin, N);
+                   Nrebin, N);
   carmaCheckMsg("fillbincube_kernel<<<>>> execution failed\n");
 
   return EXIT_SUCCESS;
@@ -350,9 +350,9 @@ int fillbincube_async(carma_streams *streams, float *bcube,
   // asynchronously launch nstreams kernels, each operating on its own portion of data
   for (int i = 0; i < nstreams; i++) {
     fillbincube_krnl_async << < grid, threads, 0, streams->get_stream(i) >> > (bcube,
-                                                                               hrimage, indxpix,
-                                                                               Nfft, Npix, Nrebin,
-                                                                               N, i * N / nstreams);
+                           hrimage, indxpix,
+                           Nfft, Npix, Nrebin,
+                           N, i * N / nstreams);
     carmaCheckMsg("fillbincubeasync_kernel<<<>>> execution failed\n");
   }
   return EXIT_SUCCESS;
@@ -503,8 +503,7 @@ __global__ void reduce2(T           *g_idata,
     if (idim < n) {
       if (g_idata[idim] > thresh) sdata[tid] += g_idata[idim];
       else sdata[tid] += 0;
-    }
-    else sdata[tid] += 0;
+    } else sdata[tid] += 0;
   }
 
   /*
@@ -605,7 +604,7 @@ void subap_reduce(int size, int threads, int blocks, T *d_idata, T *d_odata,
   // worth of shared memory so that we don't index shared memory out of bounds
   int smemSize = threads * sizeof(T);
   reduce2<T><< < dimGrid, dimBlock, smemSize >> >
-  (d_idata, d_odata, (unsigned int)size, nelem_thread);
+            (d_idata, d_odata, (unsigned int)size, nelem_thread);
 
   carmaCheckMsg("reduce2_kernel<<<>>> execution failed\n");
 }
@@ -663,8 +662,8 @@ void subap_reduce_async(int threads, int blocks, carma_streams *streams,
 
   for (int i = 0; i < nstreams; i++) {
     reduce2_async<T><< < dimGrid, dimBlock, smemSize, (*streams)[i] >> > (d_idata,
-                                                                          d_odata, nbelem, i *
-                                                                          blocks / nstreams);
+                    d_odata, nbelem, i *
+                    blocks / nstreams);
   }
 
   carmaCheckMsg("reduce_kernel<<<>>> execution failed\n");
@@ -700,7 +699,7 @@ void subap_reduce(int size, int threads, int blocks, T *d_idata, T *d_odata,
   // worth of shared memory so that we don't index shared memory out of bounds
   int smemSize =  threads * sizeof(T);
   reduce2<T><< < dimGrid, dimBlock, smemSize >> > (d_idata, d_odata, thresh,
-                                                   size, nelem_thread);
+            size, nelem_thread);
   carmaCheckMsg("reduce_kernel<<<>>> execution failed\n");
 }
 
@@ -739,7 +738,7 @@ void subap_reduce_new(int size, int threads, int blocks, T *d_idata, T *d_odata,
   // worth of shared memory so that we don't index shared memory out of bounds
   int smemSize =  threads * sizeof(T);
   reduce2_new<T><< < dimGrid, dimBlock, smemSize >> > (d_idata, d_odata, thresh,
-                                                       size, nelem_thread);
+                size, nelem_thread);
   carmaCheckMsg("reduce_kernel<<<>>> execution failed\n");
 }
 
@@ -778,7 +777,7 @@ void subap_reduce(int size, int threads, int blocks, T *d_idata, T *d_odata,
   // worth of shared memory so that we don't index shared memory out of bounds
   int smemSize = threads * sizeof(T);
   reduce2<T><< < dimGrid, dimBlock, smemSize >> > (d_idata, d_odata, weights,
-                                                   size, nelem_thread);
+            size, nelem_thread);
   carmaCheckMsg("reduce_kernel<<<>>> execution failed\n");
 }
 
@@ -917,12 +916,12 @@ void phase_reduce(int threads, int blocks, T *d_idata, T *d_odata, int *indx,
     (threads <= 32) ? 2 * threads * sizeof(T) : threads * sizeof(T);
 
   reduce_phasex<T><< < dimGrid, dimBlock, smemSize >> > (d_idata, d_odata, indx,
-                                                         threads, alpha);
+                  threads, alpha);
 
   carmaCheckMsg("reduce_phasex_kernel<<<>>> execution failed\n");
 
   reduce_phasey<T><< < dimGrid, dimBlock, smemSize >> > (d_idata,
-                                                         &(d_odata[blocks]), indx, threads, alpha);
+                  &(d_odata[blocks]), indx, threads, alpha);
 
   carmaCheckMsg("reduce_phasey_kernel<<<>>> execution failed\n");
 }
@@ -955,13 +954,13 @@ void phase_derive(int size, int threads, int blocks, int n, T *d_idata,
     (threads <= 32) ? 2 * threads * sizeof(T) : threads * sizeof(T);
 
   derive_phasex<T><< < dimGrid, dimBlock, smemSize >> > (d_idata, d_odata, indx,
-                                                         mask, alpha, n, size, fluxPerSub);
+                  mask, alpha, n, size, fluxPerSub);
 
   carmaCheckMsg("phase_derivex_kernel<<<>>> execution failed\n");
 
   derive_phasey<T><< < dimGrid, dimBlock, smemSize >> > (d_idata,
-                                                         &(d_odata[blocks]), indx, mask, alpha, n,
-                                                         size, fluxPerSub);
+                  &(d_odata[blocks]), indx, mask, alpha, n,
+                  size, fluxPerSub);
 
   carmaCheckMsg("phase_derivey_kernel<<<>>> execution failed\n");
 }
@@ -1045,7 +1044,7 @@ void pyr_getpup(Tout *d_odata, Tin *d_idata, Tout *d_offsets, Tin *d_pup,
 
   int smemSize = 2 * nThreads * sizeof(Tout);
   pyrgetpup_krnl<Tout, Tin><< < grid, threads, smemSize >> > (d_odata, d_idata,
-                                                              d_offsets, d_pup, lambda, np);
+                           d_offsets, d_pup, lambda, np);
 
   carmaCheckMsg("pyrgetpup_kernel<<<>>> execution failed\n");
 }
@@ -1120,7 +1119,7 @@ void pyr_getpup(Tout *d_odata, Tin *d_idata, Tin *d_pup,
   dim3 grid(nBlocks), threads(nThreads);
 
   pyrgetpup_krnl<Tout, Tin><< < grid, threads >> > (d_odata, d_idata,
-                                                    d_pup, lambda, cx, cy, np, N);
+                           d_pup, lambda, cx, cy, np, N);
 
   carmaCheckMsg("pyrgetpup_kernel<<<>>> execution failed\n");
 }
@@ -1327,7 +1326,7 @@ void roof_rollmod(T *d_odata, T *d_idata, T *d_mask, float cx, float cy, int np,
   dim3 grid(nBlocks), threads(nThreads);
 
   roof_rollmod_krnl<T><< < grid, threads >> > (d_odata, d_idata, d_mask, cx, cy, np,
-                                               ns, 4);
+                      ns, 4);
 
   carmaCheckMsg("roof_rollmod_kernel<<<>>> execution failed\n");
 }
@@ -1404,7 +1403,7 @@ void pyr_fillbin(T *d_odata, T *d_idata, int nrebin, int np, int ns, int nim,
 
   int smemSize = nThreads * sizeof(T);
   fillbinpyr_krnl<T><< < grid, threads, smemSize >> > (d_odata, d_idata, nrebin,
-                                                       np, ns, nim);
+                    np, ns, nim);
 
   carmaCheckMsg("pyrgetpup_kernel<<<>>> execution failed\n");
 }
@@ -1625,7 +1624,7 @@ void roof_fillbin(T *d_odata, T *d_idata, int nrebin, int np, int ns, int nim,
 
   int smemSize = nThreads * sizeof(T);
   fillbinroof_krnl<T><< < grid, threads, smemSize >> > (d_odata, d_idata, nrebin,
-                                                        np, ns, nim);
+                     np, ns, nim);
 
   carmaCheckMsg("pyrgetpup_kernel<<<>>> execution failed\n");
 }
@@ -1667,11 +1666,11 @@ __global__ void abspyr_krnl(Tout *g_odata, Tin *g_idata, unsigned int ns,
   if (i < ns * ns) {
     for (int cpt = 0; cpt < nim; cpt++) {
       g_odata[i + cpt * ns * ns] = sqrtf(
-        g_idata[i2 + cpt * ns * ns].x * g_idata[i2 + cpt * ns * ns].x
-        + g_idata[i2 + cpt * ns * ns].y * g_idata[i2 + cpt * ns * ns].y);
+                                     g_idata[i2 + cpt * ns * ns].x * g_idata[i2 + cpt * ns * ns].x
+                                     + g_idata[i2 + cpt * ns * ns].y * g_idata[i2 + cpt * ns * ns].y);
       g_odata[i2 + cpt * ns * ns] = sqrtf(
-        g_idata[i + cpt * ns * ns].x * g_idata[i + cpt * ns * ns].x
-        + g_idata[i + cpt * ns * ns].y * g_idata[i + cpt * ns * ns].y);
+                                      g_idata[i + cpt * ns * ns].x * g_idata[i + cpt * ns * ns].x
+                                      + g_idata[i + cpt * ns * ns].y * g_idata[i + cpt * ns * ns].y);
     }
   }
 }
@@ -1738,7 +1737,7 @@ void pyr_abs2(Tout *d_odata, Tin *d_idata, Tout fact, int ns, int nim,
   dim3 grid(nBlocks), threads(nThreads);
 
   abs2pyr_krnl<Tin, Tout><< < grid, threads >> > (d_odata, d_idata, fact, ns,
-                                                  nim);
+                         nim);
 
   carmaCheckMsg("abs2pyr_kernel<<<>>> execution failed\n");
 }
@@ -1802,7 +1801,7 @@ void roof_abs2(Tout *d_odata, Tin *d_idata, Tout fact, int ns, int nim,
   dim3 grid(nBlocks), threads(nThreads);
 
   abs2roof_krnl<Tin, Tout><< < grid, threads >> > (d_odata, d_idata, fact, ns,
-                                                   nim);
+                          nim);
 
   carmaCheckMsg("abs2pyr_kernel<<<>>> execution failed\n");
 }
@@ -2149,7 +2148,7 @@ void roof_subsum(T *d_odata, T *d_idata, int *subindx, int *subindy, int ns,
   dim3 grid(nBlocks), threads(nThreads);
 
   roof_subsum_krnl<T><< < grid, threads >> > (d_odata, d_idata, subindx, subindy, ns,
-                                              nvalid, nim);
+                     nvalid, nim);
 
   carmaCheckMsg("subsum_kernel<<<>>> execution failed\n");
 }

@@ -1,4 +1,4 @@
-/** 
+/**
  * \defgroup libcarma Carma
  *
  * \brief Carma is a library that provides GPU acceleration to Yorick

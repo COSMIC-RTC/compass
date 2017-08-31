@@ -4,14 +4,14 @@
 #include <sutra_centroider.h>
 
 class sutra_centroider_bpcog: public sutra_centroider {
-public:
+ public:
   int nmax;
   carma_obj<float> *d_bpix;
   carma_obj<uint> *d_bpind;
 
-public:
+ public:
   sutra_centroider_bpcog(carma_context *context, sutra_sensors *sensors, int nwfs, long nvalid,
-      float offset, float scale, int device, int nmax);
+                         float offset, float scale, int device, int nmax);
   sutra_centroider_bpcog(const sutra_centroider_bpcog& centroider);
   ~sutra_centroider_bpcog();
 
@@ -25,7 +25,7 @@ public:
 
   int
   get_cog(carma_streams *streams, float *cube, float *subsum, float *centroids,
-      int nvalid, int npix, int ntot);
+          int nvalid, int npix, int ntot);
   int
   get_cog(float *subsum, float *slopes, bool noise);
   int

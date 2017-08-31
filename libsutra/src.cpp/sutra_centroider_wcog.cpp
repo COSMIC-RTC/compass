@@ -53,12 +53,12 @@ int sutra_centroider_wcog::load_weights(float *weights, int ndim) {
     // same weight for each subap
     float *tmp; ///< Input data
     carmaSafeCall(
-        cudaMalloc((void** )&tmp, sizeof(float) * this->npix * this->npix));
+      cudaMalloc((void** )&tmp, sizeof(float) * this->npix * this->npix));
     carmaSafeCall(
-        cudaMemcpy(tmp, weights, sizeof(float) * this->npix * this->npix,
-            cudaMemcpyHostToDevice));
+      cudaMemcpy(tmp, weights, sizeof(float) * this->npix * this->npix,
+                 cudaMemcpyHostToDevice));
     fillweights(*(this->d_weights), tmp, this->npix,
-        this->d_weights->getNbElem(), this->current_context->get_device(device));
+                this->d_weights->getNbElem(), this->current_context->get_device(device));
     carmaSafeCall(cudaFree(tmp));
   }
 
@@ -66,14 +66,14 @@ int sutra_centroider_wcog::load_weights(float *weights, int ndim) {
 }
 
 int sutra_centroider_wcog::get_cog(carma_streams *streams, float *cube,
-    float *subsum, float *centroids, int nvalid, int npix, int ntot) {
+                                   float *subsum, float *centroids, int nvalid, int npix, int ntot) {
   // wcog
   //TODO: Implement sutra_centroider_wcog::get_cog_async
   subap_reduce<float>(ntot, npix * npix, nvalid, cube, subsum,
-      *(this->d_weights), this->current_context->get_device(device));
+                      *(this->d_weights), this->current_context->get_device(device));
 
   get_centroids<float>(ntot, npix * npix, nvalid, npix, cube, centroids, subsum,
-      *(this->d_weights), this->scale, this->offset, this->current_context->get_device(device));
+                       *(this->d_weights), this->scale, this->offset, this->current_context->get_device(device));
 
   return EXIT_SUCCESS;
 }
@@ -81,10 +81,10 @@ int sutra_centroider_wcog::get_cog(carma_streams *streams, float *cube,
 int sutra_centroider_wcog::get_cog(float *subsum, float *slopes, bool noise) {
   if(noise || wfs->error_budget == false)
     return this->get_cog(wfs->streams, *(wfs->d_bincube), subsum,
-      slopes, wfs->nvalid, wfs->npix, wfs->d_bincube->getNbElem());
+                         slopes, wfs->nvalid, wfs->npix, wfs->d_bincube->getNbElem());
   else
     return this->get_cog(wfs->streams, *(wfs->d_bincube_notnoisy), subsum,
-      slopes, wfs->nvalid, wfs->npix, wfs->d_bincube->getNbElem());
+                         slopes, wfs->nvalid, wfs->npix, wfs->d_bincube->getNbElem());
 }
 
 int sutra_centroider_wcog::get_cog() {

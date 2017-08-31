@@ -15,7 +15,7 @@ using std::map;
 
 class sutra_sensors;
 class sutra_wfs {
-public:
+ public:
   int device;
   string type;
   long nxsub;
@@ -76,8 +76,8 @@ public:
   int *displ_bincube;
   int *count_bincube;
 
-public:
-  virtual ~sutra_wfs(){};
+ public:
+  virtual ~sutra_wfs() {};
 
   int wfs_initgs(sutra_sensors *sensors, float xpos, float ypos, float lambda,
                  float mag, float zerop, long size, float noise, long seed,
@@ -97,7 +97,7 @@ public:
   virtual int allocate_buffers(sutra_sensors *sensors) = 0;
   int set_noise(float noise, long seed);
 
-protected:
+ protected:
   virtual int comp_generic() = 0;
   sutra_wfs(carma_context *context, sutra_telescope *d_tel,
             sutra_sensors *sensors, string type, long nxsub, long nvalid,
@@ -107,11 +107,13 @@ protected:
 };
 
 class sutra_sensors {
-public:
+ public:
   int device;
   bool error_budget;
   carma_context *current_context;
-  size_t nsensors() { return d_wfs.size(); }
+  size_t nsensors() {
+    return d_wfs.size();
+  }
   vector<sutra_wfs *> d_wfs;
   map<vector<int>, cufftHandle *> campli_plans;
   map<vector<int>, cufftHandle *> fttotim_plans;
@@ -123,7 +125,7 @@ public:
   carma_obj<cuFloatComplex> *d_ftlgskern;
   carma_obj<float> *d_lgskern;
 
-public:
+ public:
   sutra_sensors(carma_context *context, sutra_telescope *d_tel, char **type,
                 int nwfs, long *nxsub, long *nvalid, long *npix, long *nphase,
                 long *nrebin, long *nfft, long *ntot, long *npup, float *pdiam,

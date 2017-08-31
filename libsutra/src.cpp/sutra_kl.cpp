@@ -1,7 +1,7 @@
 #include <sutra_kl.h>
 
 sutra_kl::sutra_kl(carma_context *context, long dim, long nr, long np, long nkl,
-    int device) {
+                   int device) {
   // some inits
   this->current_context = context;
   this->dim = dim;
@@ -29,12 +29,12 @@ sutra_kl::sutra_kl(carma_context *context, long dim, long nr, long np, long nkl,
   this->d_rabas = new carma_obj<float>(context, dims_data2);
 
   dims_data2[1] = np;
-  if(nkl==2){
-  	dims_data2[2] = 3;
-  }else if(nkl==3 || nkl==4){
-  	dims_data2[2] = 5;
-  }else{
-  	dims_data2[2] = nkl;
+  if(nkl==2) {
+    dims_data2[2] = 3;
+  } else if(nkl==3 || nkl==4) {
+    dims_data2[2] = 5;
+  } else {
+    dims_data2[2] = nkl;
   }
   this->d_azbas = new carma_obj<float>(context, dims_data2);
 
@@ -89,20 +89,20 @@ sutra_kl::~sutra_kl() {
 }
 
 int sutra_kl::do_compute(float alpha, float ampli, float *odata, int nkl,
-    int size, int xoff, int yoff) {
+                         int size, int xoff, int yoff) {
   current_context->set_activeDevice(device,1);
   // do computation on data and store in result
   int nord = this->h_ord->getData()[nkl] - 1;
 
   getkl(alpha, ampli, odata, &(this->d_rabas->getData()[(nkl) * this->nr]),
-      &(this->d_azbas->getData()[nord * this->np]), this->d_cr->getData(),
-      this->d_cp->getData(), this->nr, this->np, this->dim, size, xoff, yoff);
+        &(this->d_azbas->getData()[nord * this->np]), this->d_cr->getData(),
+        this->d_cp->getData(), this->nr, this->np, this->dim, size, xoff, yoff);
 
   return EXIT_SUCCESS;
 }
 
 int sutra_kl::do_compute(float ampli, float *odata, int nkl, int size, int xoff,
-    int yoff) {
+                         int yoff) {
   return do_compute(0.0f, ampli, odata, nkl, size, xoff, yoff);
 }
 
@@ -114,8 +114,8 @@ int sutra_kl::do_combi(float *com, float *odata, int size, int xoff, int yoff) {
   current_context->set_activeDevice(device,1);
   // do computation on data and store in result
   combikl(com, this->nkl, odata, this->d_rabas->getData(),
-      this->d_ord->getData(), this->d_azbas->getData(), this->d_cr->getData(),
-      this->d_cp->getData(), this->nr, this->np, this->dim, size, xoff, yoff);
+          this->d_ord->getData(), this->d_azbas->getData(), this->d_cr->getData(),
+          this->d_cp->getData(), this->nr, this->np, this->dim, size, xoff, yoff);
 
   return EXIT_SUCCESS;
 }
@@ -125,6 +125,6 @@ int sutra_kl::get_flokl() {
   current_context->set_activeDevice(device, 1);
   std::cout << "flag in function" << std::endl;
   cget_flokl(this->nkl, this->dim, this->d_covmat->getData(),
-      this->d_filter->getData(), this->d_bas->getData());
+             this->d_filter->getData(), this->d_bas->getData());
   return EXIT_SUCCESS;
 }

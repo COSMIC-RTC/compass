@@ -8,13 +8,13 @@
 #include "sutra_acquisim.h"
 
 sutra_acquisim::sutra_acquisim(sutra_sensors *sensors, int wfs_num)
-    : device(sensors->d_wfs[wfs_num]->device),
-      type(sensors->d_wfs[wfs_num]->type),
-      nxsub(sensors->d_wfs[wfs_num]->nxsub),
-      nvalid(sensors->d_wfs[wfs_num]->nvalid),
-      npix(sensors->d_wfs[wfs_num]->npix),
-      d_validsubsx(sensors->d_wfs[wfs_num]->d_validsubsx),
-      d_validsubsy(sensors->d_wfs[wfs_num]->d_validsubsy) {
+  : device(sensors->d_wfs[wfs_num]->device),
+    type(sensors->d_wfs[wfs_num]->type),
+    nxsub(sensors->d_wfs[wfs_num]->nxsub),
+    nvalid(sensors->d_wfs[wfs_num]->nvalid),
+    npix(sensors->d_wfs[wfs_num]->npix),
+    d_validsubsx(sensors->d_wfs[wfs_num]->d_validsubsx),
+    d_validsubsy(sensors->d_wfs[wfs_num]->d_validsubsy) {
   // TODO Auto-generated constructor stub
   if (sensors->d_wfs[wfs_num]->type == "sh")
     this->wfs = dynamic_cast<sutra_wfs_sh *>(sensors->d_wfs[wfs_num]);
@@ -24,7 +24,7 @@ sutra_acquisim::~sutra_acquisim() {
   // TODO Auto-generated destructor stub
 }
 
-int sutra_acquisim::set_validsubs(int64_t nvalid, int32_t *validsubsx, int32_t *validsubsy){
+int sutra_acquisim::set_validsubs(int64_t nvalid, int32_t *validsubsx, int32_t *validsubsy) {
   int64_t dims[2] = {1, nvalid};
   this->d_validsubsx = new carma_obj<int32_t>(this->current_context, dims, validsubsx);
   this->d_validsubsy = new carma_obj<int32_t>(this->current_context, dims, validsubsy);
@@ -58,8 +58,8 @@ int sutra_acquisim::comp_image_tele(long *dims, float *bimage) {
   this->current_context->set_activeDevice(this->device, 1);
   carma_obj<float> tmp_yObj(this->current_context, dims, bimage);
   return fillbincube_async<float>(
-      this->wfs->image_telemetry, tmp_yObj, *(this->wfs->d_bincube), this->npix,
-      this->nvalid, this->npix * this->nxsub, *(this->d_validsubsx),
-      *(this->d_validsubsy), this->wfs->d_binimg->getNbElem(),
-      this->current_context->get_device(this->device));
+           this->wfs->image_telemetry, tmp_yObj, *(this->wfs->d_bincube), this->npix,
+           this->nvalid, this->npix * this->nxsub, *(this->d_validsubsx),
+           *(this->d_validsubsy), this->wfs->d_binimg->getNbElem(),
+           this->current_context->get_device(this->device));
 }

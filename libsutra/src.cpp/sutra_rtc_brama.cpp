@@ -4,7 +4,7 @@
 #include<sutra_rtc_bramaListenerImpl.h>
 
 sutra_rtc_brama::sutra_rtc_brama(carma_context *context, sutra_sensors *wfs_, sutra_target *target_, ACE_TCHAR* name) :
-sutra_rtc(context), wfs(wfs_), target(target_) {
+  sutra_rtc(context), wfs(wfs_), target(target_) {
   DEBUG_TRACE("init %s", name);
   BRAMA::BRAMA_context brama = BRAMA::BRAMA_context::get_instance(name);
   cmd_listener_servant = NULL;
@@ -27,7 +27,7 @@ sutra_rtc(context), wfs(wfs_), target(target_) {
 
   string topics[] = BRAMA_TOPICS;
 
-  if(!brama.is_initialised()){
+  if(!brama.is_initialised()) {
     cerr << "brama initialisation failed!" << endl;
 //    throw "brama initialisation failed!";
     return;
@@ -43,7 +43,7 @@ sutra_rtc(context), wfs(wfs_), target(target_) {
     brama.register_command_type(topics[BRAMA::CommandType]);
     cmd_listener = (new sutra_rtc_bramaListenerImpl);
     cmd_listener_servant =
-    dynamic_cast<sutra_rtc_bramaListenerImpl*>(cmd_listener.in());
+      dynamic_cast<sutra_rtc_bramaListenerImpl*>(cmd_listener.in());
 
     if (CORBA::is_nil(cmd_listener.in())) {
       throw "BRAMA Command listener is nil.";
@@ -60,7 +60,7 @@ sutra_rtc(context), wfs(wfs_), target(target_) {
       return;
     }
     superframe_dw = BRAMA::SuperFrameDataWriter::_narrow(
-        superframe_base_dw.in());
+                      superframe_base_dw.in());
     if (CORBA::is_nil(superframe_dw.in())) {
       throw "SuperFrameDataWriter could not be narrowed";
     }
@@ -77,7 +77,7 @@ sutra_rtc(context), wfs(wfs_), target(target_) {
         return;
       }
       megaframe_dw = BRAMA::MegaFrameDataWriter::_narrow(
-          megaframe_base_dw.in());
+                       megaframe_base_dw.in());
       if (CORBA::is_nil(megaframe_dw.in())) {
         throw "MegaFrameDataWriter could not be narrowed";
       }
@@ -85,7 +85,7 @@ sutra_rtc(context), wfs(wfs_), target(target_) {
       BRAMA::MegaFrame zFrame;
       megaframe_handle = megaframe_dw->register_instance(zFrame);
     }
-    
+
     is_initialised = 1;
 
   } catch (CORBA::Exception& e) {
@@ -95,36 +95,36 @@ sutra_rtc(context), wfs(wfs_), target(target_) {
 }
 
 sutra_rtc_brama::~sutra_rtc_brama() {
-if (!is_initialised) {
+  if (!is_initialised) {
     return;
   }
 
   if (buff_wfs)
-  BRAMA::Values::freebuf(buff_wfs);
+    BRAMA::Values::freebuf(buff_wfs);
   if (buff_intensities)
-  BRAMA::Values::freebuf(buff_intensities);
+    BRAMA::Values::freebuf(buff_intensities);
   if (buff_slopes)
-  BRAMA::Values::freebuf(buff_slopes);
+    BRAMA::Values::freebuf(buff_slopes);
   if (buff_commands)
-  BRAMA::Values::freebuf(buff_commands);
+    BRAMA::Values::freebuf(buff_commands);
   if (buff_target)
-  BRAMA::Values::freebuf(buff_target);
+    BRAMA::Values::freebuf(buff_target);
 
   if (dims_wfs)
-  BRAMA::Dims::freebuf(dims_wfs);
+    BRAMA::Dims::freebuf(dims_wfs);
   if (dims_intensities)
-  BRAMA::Dims::freebuf(dims_intensities);
+    BRAMA::Dims::freebuf(dims_intensities);
   if (dims_slopes)
-  BRAMA::Dims::freebuf(dims_slopes);
+    BRAMA::Dims::freebuf(dims_slopes);
   if (dims_commands)
-  BRAMA::Dims::freebuf(dims_commands);
+    BRAMA::Dims::freebuf(dims_commands);
   if (dims_target)
-  BRAMA::Dims::freebuf(dims_target);
+    BRAMA::Dims::freebuf(dims_target);
 
 }
 
 void sutra_rtc_brama::allocateBuffers() {
-  if(!is_initialised){
+  if(!is_initialised) {
     return;
   }
 
@@ -185,13 +185,13 @@ void sutra_rtc_brama::allocateBuffers() {
 }
 
 void sutra_rtc_brama::publish() {
-  if(!is_initialised){
+  if(!is_initialised) {
     cerr << "brama not initialised!" << endl;
     return;
   }
 
   if(buff_intensities == NULL)
-  allocateBuffers();
+    allocateBuffers();
   current_context->set_activeDevice(device,1);
 
   CORBA::Float* buff_wfs_servant = (CORBA::Float*) buff_wfs;
@@ -226,15 +226,15 @@ void sutra_rtc_brama::publish() {
     for (size_t i = 0; i < target->d_targets.size(); i++) {
       carma_obj<float> tmp_img(target->d_targets[i]->current_context, target->d_targets[i]->d_image->getDims());
       float flux = target->d_targets[i]->zp
-          * powf(10, -0.4 * target->d_targets[i]->mag);
+                   * powf(10, -0.4 * target->d_targets[i]->mag);
       roll_mult<float>(
-          tmp_img.getData(),
-          target->d_targets[i]->d_image->getData(),
-          target->d_targets[i]->d_image->getDims(1),
-          target->d_targets[i]->d_image->getDims(2),
-          flux,
-          target->d_targets[i]->current_context->get_device(
-              target->d_targets[i]->device));
+        tmp_img.getData(),
+        target->d_targets[i]->d_image->getData(),
+        target->d_targets[i]->d_image->getDims(1),
+        target->d_targets[i]->d_image->getDims(2),
+        flux,
+        target->d_targets[i]->current_context->get_device(
+          target->d_targets[i]->device));
       tmp_img.device2host(buff_target_servant + idx);
 
       idx += target->d_targets[i]->d_image->getNbElem();
@@ -251,7 +251,7 @@ void sutra_rtc_brama::publish() {
   zFrame.wfs.source = CORBA::string_dup("COMPASS WFSs");
   zFrame.wfs.dimensions = BRAMA::Dims(2, 2, dims_wfs, 0);
   zFrame.wfs.data = BRAMA::Values(wfs_size * sizeof(float), wfs_size * sizeof(float),
-      buff_wfs, 0);
+                                  buff_wfs, 0);
   zFrame.wfs.datatype = 0;
   zFrame.wfs.sizeofelements = sizeof(float);
 
@@ -262,7 +262,7 @@ void sutra_rtc_brama::publish() {
   zFrame.loopData.ints.dimensions = BRAMA::Dims(2, 2, dims_intensities, 0);
   zFrame.loopData.ints.framecounter = framecounter;
   zFrame.loopData.ints.data = BRAMA::Values(nvalid * sizeof(float),
-      nvalid * sizeof(float), buff_intensities, 0);
+                              nvalid * sizeof(float), buff_intensities, 0);
   zFrame.loopData.ints.timestamp = BRAMA::get_timestamp();
 
   zFrame.loopData.slps.source = CORBA::string_dup("COMPASS slopes");
@@ -272,7 +272,7 @@ void sutra_rtc_brama::publish() {
   zFrame.loopData.slps.dimensions = BRAMA::Dims(2, 2, dims_slopes, 0);
   zFrame.loopData.slps.framecounter = framecounter;
   zFrame.loopData.slps.data = BRAMA::Values(nslp * sizeof(float), nslp * sizeof(float),
-      buff_slopes, 0);
+                              buff_slopes, 0);
   zFrame.loopData.slps.timestamp = BRAMA::get_timestamp();
 
   zFrame.loopData.cmds.source = CORBA::string_dup("COMPASS commands");
@@ -282,7 +282,7 @@ void sutra_rtc_brama::publish() {
   zFrame.loopData.cmds.dimensions = BRAMA::Dims(2, 2, dims_commands, 0);
   zFrame.loopData.cmds.framecounter = framecounter;
   zFrame.loopData.cmds.data = BRAMA::Values(ncmd * sizeof(float), ncmd * sizeof(float),
-      buff_commands, 0);
+                              buff_commands, 0);
   zFrame.loopData.cmds.timestamp = BRAMA::get_timestamp();
 
   zFrame.target.framecounter = framecounter;
@@ -290,7 +290,7 @@ void sutra_rtc_brama::publish() {
   zFrame.target.source = CORBA::string_dup("COMPASS Targets");
   zFrame.target.dimensions = BRAMA::Dims(2, 2, dims_target, 0);
   zFrame.target.data = BRAMA::Values(target_size * sizeof(float), target_size * sizeof(float),
-      buff_target, 0);
+                                     buff_target, 0);
   zFrame.target.datatype = 0;
   zFrame.target.sizeofelements = sizeof(float);
 
@@ -299,7 +299,7 @@ void sutra_rtc_brama::publish() {
     DDS::ReturnCode_t ret = megaframe_dw->write(zFrame, megaframe_handle);
     if (ret != DDS::RETCODE_OK) {
       ACE_ERROR(
-          (LM_ERROR, ACE_TEXT("(%P|%t)ERROR: megaframe write returned %d.\n"), ret));
+        (LM_ERROR, ACE_TEXT("(%P|%t)ERROR: megaframe write returned %d.\n"), ret));
       return;
     }
   }
@@ -308,7 +308,7 @@ void sutra_rtc_brama::publish() {
 
   if (ret != DDS::RETCODE_OK) {
     ACE_ERROR(
-        (LM_ERROR, ACE_TEXT("(%P|%t)ERROR: superframe write returned %d.\n"), ret));
+      (LM_ERROR, ACE_TEXT("(%P|%t)ERROR: superframe write returned %d.\n"), ret));
     return;
   }
 

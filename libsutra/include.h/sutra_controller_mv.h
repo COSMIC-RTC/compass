@@ -10,7 +10,7 @@
 #include <sutra_ao_utils.h>
 
 class sutra_controller_mv: public sutra_controller {
-public:
+ public:
   float gain;
 
   carma_obj<float> *d_imat;
@@ -39,9 +39,9 @@ public:
 
   cublasHandle_t cublas_handle;
 
-public:
+ public:
   sutra_controller_mv(carma_context *context, long nvalid, long nactu,
-      float delay, sutra_dms *dms, char **type, float *alt, int ndm);
+                      float delay, sutra_dms *dms, char **type, float *alt, int ndm);
   sutra_controller_mv(const sutra_controller_mv& controller);
   ~sutra_controller_mv();
 
@@ -87,8 +87,8 @@ public:
   invgen(carma_obj<float> *d_mat, carma_host_obj<float> *h_eigen, float cond);
   int
   invgen_cpu(carma_obj<float> *d_mat, carma_host_obj<float> *h_eigen, float cond);
- // int
- // do_statmat(float *statcov,long dim, float *xpos, float *ypos, float norm, carma_device *device);
+// int
+// do_statmat(float *statcov,long dim, float *xpos, float *ypos, float norm, carma_device *device);
   int
   DDiago(carma_obj<float> *d_statcov, carma_obj<float> *d_geocov);
   int
@@ -99,10 +99,10 @@ public:
   compute_Cmm(sutra_atmos *atmos, sutra_sensors *sensors, double *L0, double *cn2, double *alphaX, double *alphaY, double diamTel, double cobs);
   int
   compute_Cphim(sutra_atmos *atmos,
-			sutra_sensors *sensors, sutra_dms *dms, double *L0, double *cn2,
-			double *alphaX, double *alphaY, double *X, double *Y, double *xactu,
-			double *yactu, double diamTel, double *k2, long *NlayerDm,
-			long *indLayerDm, double FoV, double *pitch, double *alt_dm);
+                sutra_sensors *sensors, sutra_dms *dms, double *L0, double *cn2,
+                double *alphaX, double *alphaY, double *X, double *Y, double *xactu,
+                double *yactu, double diamTel, double *k2, long *NlayerDm,
+                long *indLayerDm, double FoV, double *pitch, double *alt_dm);
 };
 
 #endif // _sutra_controller_mv_H_

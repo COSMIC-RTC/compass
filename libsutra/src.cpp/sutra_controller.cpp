@@ -109,7 +109,7 @@ int sutra_controller::get_centroids_ref(float *centroids_ref) {
 
 int sutra_controller::set_perturbcom(float *perturb, int N) {
   std::lock_guard<std::mutex> lock(this->comp_voltage_mutex);
-  if(N > 0){
+  if(N > 0) {
     // float min=perturb[0], max=perturb[0];
     // for (int i=1; i<this->nactu()*N; ++i){
     //   min = perturb[i]<min?perturb[i]:min;
@@ -129,7 +129,7 @@ int sutra_controller::set_perturbcom(float *perturb, int N) {
     this->d_perturb->host2device(perturb);
     this->cpt_pertu = 0;
   } else {
-	this->d_perturb = nullptr;
+    this->d_perturb = nullptr;
   }
 
   return EXIT_SUCCESS;
@@ -207,7 +207,7 @@ int sutra_controller::syevd_f(char meth, carma_obj<float> *d_U,
   // Init double arrays
   const long dims_data[3]      = { 2, d_U->getDims()[1], d_U->getDims()[2] };
   carma_obj<double> *d_Udouble = new carma_obj<double>(current_context,
-                                                       dims_data);
+      dims_data);
   const long dims_data2[2]               = { 1, h_eigenvals->getDims()[1] };
   carma_host_obj<double> *h_eigen_double = new carma_host_obj<double>(
     dims_data2, MA_PAGELOCK);
@@ -242,9 +242,9 @@ int sutra_controller::invgen(carma_obj<float> *d_mat, float cond, int job) {
 
   const long dims_data2[2]          = { 1, d_mat->getDims()[1] };
   carma_obj<float> *d_eigenvals_inv = new carma_obj<float>(current_context,
-                                                           dims_data2);
+      dims_data2);
   carma_host_obj<float> *h_eigenvals = new carma_host_obj<float>(dims_data2,
-                                                                 MA_PAGELOCK);
+      MA_PAGELOCK);
   carma_host_obj<float> *h_eigenvals_inv = new carma_host_obj<float>(
     dims_data2, MA_PAGELOCK);
 

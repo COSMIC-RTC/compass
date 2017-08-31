@@ -60,7 +60,7 @@ carma_context& carma_context::instance_1gpu(int num_device) {
 }
 
 carma_context& carma_context::instance_ngpu(int      nb_devices,
-                                            int32_t *devices_id) {
+    int32_t *devices_id) {
   if (!carma_context::s_instance) {
     carma_context::s_instance =
       std::shared_ptr<carma_context>(new carma_context(nb_devices, devices_id));
@@ -126,8 +126,8 @@ void carma_context::init_context(const int nb_devices, int32_t *devices_id) {
 
   if (nb_devices > n_cuda_devices) {
     DEBUG_TRACE("carma_context() CUDA error: not enougth devices supporting CUDA. ask %d, available %d",
-      nb_devices,
-      n_cuda_devices);
+                nb_devices,
+                n_cuda_devices);
     throw "carma_context() CUDA error: not enougth devices supporting CUDA.";
   }
 
@@ -266,7 +266,7 @@ carma_context::~carma_context() {
 }
 
 int carma_context::_set_activeDeviceForce(int newDevice, int silent,
-                                          std::string file, int line) {
+    std::string file, int line) {
   if (newDevice < ndevice) {
     carmaSafeCall(cudaSetDevice(devices[newDevice]->get_id()));
 #ifdef USE_CULA
@@ -392,9 +392,9 @@ std::string carma_context::magma_info() {
                 &micro);
 
   stream << "MAGMA " << (long long)major << "." << (long long)minor << "." <<
-  (long long)micro << ", " <<
-  (long long)(8 * sizeof(magma_int_t)) << "-bit magma_int_t, " <<
-  (long long)(8 * sizeof(void *)) << "-bit pointer.";
+         (long long)micro << ", " <<
+         (long long)(8 * sizeof(magma_int_t)) << "-bit magma_int_t, " <<
+         (long long)(8 * sizeof(void *)) << "-bit pointer.";
 #else // ifdef USE_MAGMA
   stream << "MAGMA not used";
 #endif // USE_MAGMA

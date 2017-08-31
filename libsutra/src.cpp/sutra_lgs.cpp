@@ -56,12 +56,12 @@ sutra_lgs::sutra_lgs(carma_context *context, sutra_sensors *sensors,
     // DEBUG_TRACE("Creating FFT plan : %d %d
     // %d",mdims[0],mdims[1],dims_data3[3]);printMemInfo();
     cufftHandle *plan = (cufftHandle *)malloc(
-        sizeof(cufftHandle)); // = this->d_camplipup->getPlan(); ///< FFT plan
+                          sizeof(cufftHandle)); // = this->d_camplipup->getPlan(); ///< FFT plan
     carmafftSafeCall(cufftPlanMany(plan, 2, mdims, NULL, 1, 0, NULL, 1, 0,
                                    CUFFT_C2C, (int)dims_data3[3]));
 
     sensors->ftlgskern_plans.insert(
-        pair<vector<int>, cufftHandle *>(vdims, plan));
+      pair<vector<int>, cufftHandle *>(vdims, plan));
 
     this->ftlgskern_plan = plan;
     // DEBUG_TRACE("FFT plan created");printMemInfo();
@@ -190,7 +190,7 @@ int sutra_lgs::lgs_makespot(carma_device *device, int nin) {
   rollbeamexp(this->d_lgskern->getData(), &(data[nin]), this->d_beam->getData(),
               this->npix,
               this->npix * this->npix *
-                  this->nmaxhr /*this->d_lgskern->getNbElem()*/,
+              this->nmaxhr /*this->d_lgskern->getNbElem()*/,
               device);
 
   // rotate image and fill kernels ft
@@ -216,7 +216,7 @@ int sutra_lgs::load_kernels(float *h_lgskern, carma_device *device) {
   this->d_lgskern->host2device(h_lgskern);
   cfillrealp(this->d_ftlgskern->getData(), this->d_lgskern->getData(),
              /*this->d_ftlgskern->getNbElem()*/ this->npix * this->npix *
-                 this->nmaxhr,
+             this->nmaxhr,
              device);
   carma_fft(this->d_ftlgskern->getData(), this->d_ftlgskern->getData(), 1,
             *this->ftlgskern_plan);

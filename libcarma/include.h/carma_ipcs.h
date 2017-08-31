@@ -34,21 +34,21 @@
 //a creuseer
 
 
-typedef struct sh_cu_dptr_st{
+typedef struct sh_cu_dptr_st {
   char              name[NAME_MAX+1];
   pid_t             owner;
   CUipcMemHandle    handle;
   sem_t             var_mutex;
-}sh_dptr;
+} sh_dptr;
 
-typedef struct sh_cu_event_st{
+typedef struct sh_cu_event_st {
   char              name[NAME_MAX+1];
   pid_t             owner;
   CUipcEventHandle  handle;
   sem_t             var_mutex;
-}sh_event;
+} sh_event;
 
-typedef struct sh_buffer_st{
+typedef struct sh_buffer_st {
   char              name[NAME_MAX+1];
   bool              isBoard;
   size_t            size;
@@ -57,9 +57,9 @@ typedef struct sh_buffer_st{
   void              *p_shm;
   sem_t             mutex;
   sem_t             wait_pub;
-}sh_buffer;
+} sh_buffer;
 
-typedef struct sh_barrier_st{
+typedef struct sh_barrier_st {
   char              name[NAME_MAX+1];
   bool              valid;
   unsigned int      nb_proc;
@@ -67,11 +67,11 @@ typedef struct sh_barrier_st{
   unsigned int      val;
   sem_t             b_sem;
   sem_t             var_mutex;
-}sh_barrier;
+} sh_barrier;
 
 
-class carma_ipcs{
-private:
+class carma_ipcs {
+ private:
   /*
      maps used to control the shms
    */
@@ -97,7 +97,7 @@ private:
   int read_gpu(CUdeviceptr dst, void *src, size_t bsize);
 
 
-public:
+ public:
   /*
    general purpose methods
   */

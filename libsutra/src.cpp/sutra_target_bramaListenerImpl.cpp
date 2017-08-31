@@ -18,15 +18,15 @@ sutra_target_bramaListenerImpl::~sutra_target_bramaListenerImpl(void) {
 }
 
 // app-specific
-void sutra_target_bramaListenerImpl::attach_target(sutra_target_brama *target_){
+void sutra_target_bramaListenerImpl::attach_target(sutra_target_brama *target_) {
   target = target_;
 }
 
 void sutra_target_bramaListenerImpl::on_data_available(DDS::DataReader_ptr reader)
-    throw (CORBA::SystemException) {
+throw (CORBA::SystemException) {
   try {
     BRAMA::CommandDataReader_var target_cmd_dr = BRAMA::CommandDataReader::_narrow(
-        reader);
+          reader);
 
     if (CORBA::is_nil(target_cmd_dr.in())) {
       cerr << "CommandDataReaderListenerImpl:: " << "on_data_available:"
@@ -98,35 +98,35 @@ void sutra_target_bramaListenerImpl::on_data_available(DDS::DataReader_ptr reade
 
 // must also override:
 void sutra_target_bramaListenerImpl::on_requested_deadline_missed(
-    DDS::DataReader_ptr reader,
-    const DDS::RequestedDeadlineMissedStatus & status)
-        throw (CORBA::SystemException) {
+  DDS::DataReader_ptr reader,
+  const DDS::RequestedDeadlineMissedStatus & status)
+throw (CORBA::SystemException) {
 //  cerr << "CommandDataReaderListenerImpl::on_requested_deadline_missed" << endl;
 }
 void sutra_target_bramaListenerImpl::on_requested_incompatible_qos(
-    DDS::DataReader_ptr reader,
-    const DDS::RequestedIncompatibleQosStatus & status)
-        throw (CORBA::SystemException) {
+  DDS::DataReader_ptr reader,
+  const DDS::RequestedIncompatibleQosStatus & status)
+throw (CORBA::SystemException) {
 //  cerr << "CommandDataReaderListenerImpl::on_requested_incompatible_qos" << endl;
 }
 void sutra_target_bramaListenerImpl::on_liveliness_changed(
-    DDS::DataReader_ptr reader, const DDS::LivelinessChangedStatus & status)
-        throw (CORBA::SystemException) {
+  DDS::DataReader_ptr reader, const DDS::LivelinessChangedStatus & status)
+throw (CORBA::SystemException) {
 //  cerr << "CommandDataReaderListenerImpl::on_liveliness_changed" << endl;
 }
 void sutra_target_bramaListenerImpl::on_subscription_matched(
-    DDS::DataReader_ptr reader, const DDS::SubscriptionMatchedStatus & status)
-        throw (CORBA::SystemException) {
+  DDS::DataReader_ptr reader, const DDS::SubscriptionMatchedStatus & status)
+throw (CORBA::SystemException) {
 //  cerr << "CommandDataReaderListenerImpl::on_subscription_matched" << endl;
 }
 void sutra_target_bramaListenerImpl::on_sample_rejected(
-    DDS::DataReader_ptr reader, const DDS::SampleRejectedStatus& status)
-        throw (CORBA::SystemException) {
+  DDS::DataReader_ptr reader, const DDS::SampleRejectedStatus& status)
+throw (CORBA::SystemException) {
 //  cerr << "CommandDataReaderListenerImpl::on_sample_rejected" << endl;
 }
 void sutra_target_bramaListenerImpl::on_sample_lost(
-    DDS::DataReader_ptr reader, const DDS::SampleLostStatus& status)
-        throw (CORBA::SystemException) {
+  DDS::DataReader_ptr reader, const DDS::SampleLostStatus& status)
+throw (CORBA::SystemException) {
 //  cerr << "CommandDataReaderListenerImpl::on_sample_lost" << endl;
 }
 

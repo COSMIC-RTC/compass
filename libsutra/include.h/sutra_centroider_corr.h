@@ -4,7 +4,7 @@
 #include <sutra_centroider.h>
 
 class sutra_centroider_corr: public sutra_centroider {
-public:
+ public:
   int npix;
   int interp_sizex;
   int interp_sizey;
@@ -15,9 +15,9 @@ public:
   carma_obj<float> *d_corr;
   carma_obj<float> *d_interpmat;
 
-public:
+ public:
   sutra_centroider_corr(carma_context *context, sutra_sensors *sensors, int nwfs, long nvalid,
-      float offset, float scale, int device);
+                        float offset, float scale, int device);
   sutra_centroider_corr(const sutra_centroider_corr& centroider);
   ~sutra_centroider_corr();
 
@@ -34,7 +34,7 @@ public:
 
   int
   get_cog(carma_streams *streams, float *cube, float *subsum, float *centroids,
-      int nvalid, int npix, int ntot);
+          int nvalid, int npix, int ntot);
   int
   get_cog(float *subsum, float *slopes, bool noise);
   int

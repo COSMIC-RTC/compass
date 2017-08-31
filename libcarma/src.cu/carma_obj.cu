@@ -68,7 +68,7 @@ __global__ void generic2d(T *odata, T *idata, int N) {
   int tid = x + y * blockDim.x * gridDim.x;
 
   cache[BLOCK_SZ - 1 - threadIdx.x][BLOCK_SZ - 1 - threadIdx.y] = carma_sin(
-      2.0f * idata[tid]);
+        2.0f * idata[tid]);
 
   __syncthreads();
 
@@ -104,15 +104,15 @@ __global__ void krnl_clip(T_data *data, T_data min, T_data max, int N) {
 }
 
 template<class T_data>
-void clip_array(T_data *d_data, T_data min, T_data max, int N, carma_device *device){
-	  int nBlocks, nThreads;
-	  getNumBlocksAndThreads(device, N, nBlocks, nThreads);
+void clip_array(T_data *d_data, T_data min, T_data max, int N, carma_device *device) {
+  int nBlocks, nThreads;
+  getNumBlocksAndThreads(device, N, nBlocks, nThreads);
 
-	  dim3 grid(nBlocks), threads(nThreads);
-	  //  dim3 grid(128), threads(128);
+  dim3 grid(nBlocks), threads(nThreads);
+  //  dim3 grid(128), threads(128);
 
-	  krnl_clip<<<grid, threads>>>(d_data, min, max, N);
-	  carmaCheckMsg("krnl_clip<<<>>> execution failed\n");
+  krnl_clip<<<grid, threads>>>(d_data, min, max, N);
+  carmaCheckMsg("krnl_clip<<<>>> execution failed\n");
 
 }
 
@@ -192,7 +192,7 @@ fillvalues<unsigned int>(unsigned int *d_odata, unsigned int *val, int N, carma_
 
 template<class T>
 __global__ void getarray2d_krnl(T *odata, T *idata, int tidx0, int Ncol, int NC,
-    int N) {
+                                int N) {
 
   int tid = threadIdx.x + blockIdx.x * blockDim.x;
   int tidB;
@@ -224,15 +224,15 @@ int getarray2d(T *d_odata, T *d_idata, int x0, int Ncol, int NC, int N, carma_de
 
 template int
 getarray2d<float>(float *d_odata, float *d_idata, int x0, int Ncol, int NC,
-    int N, carma_device *device);
+                  int N, carma_device *device);
 
 template int
 getarray2d<double>(double *d_odata, double *d_idata, int x0, int Ncol, int NC,
-    int N, carma_device *device);
+                   int N, carma_device *device);
 
 template<class T>
 __global__ void fillarray2d_krnl(T *odata, T *idata, int tidx0, int Ncol,
-    int NC, int N) {
+                                 int NC, int N) {
 
   int tid = threadIdx.x + blockIdx.x * blockDim.x;
   int tidB;
@@ -264,11 +264,11 @@ int fillarray2d(T *d_odata, T *d_idata, int x0, int Ncol, int NC, int N, carma_d
 
 template int
 fillarray2d<float>(float *d_odata, float *d_idata, int x0, int Ncol, int NC,
-    int N, carma_device *device);
+                   int N, carma_device *device);
 
 template int
 fillarray2d<double>(double *d_odata, double *d_idata, int x0, int Ncol, int NC,
-    int N, carma_device *device);
+                    int N, carma_device *device);
 
 template<class T>
 __global__ void plus_krnl(T *idata, T alpha, int N) {
@@ -339,7 +339,7 @@ carma_plusai<double>(double *d_odata, double *d_idata, int i, int sgn, int N, ca
 
 template<class T>
 __global__ void fillarray2d2_krnl(T *odata, T *idata, int tidx0, int Ncol,
-    int NC, int N) {
+                                  int NC, int N) {
 
   int tid = threadIdx.x + blockIdx.x * blockDim.x;
   int tidB;
@@ -371,11 +371,11 @@ int fillarray2d2(T *d_odata, T *d_idata, int x0, int Ncol, int NC, int N, carma_
 
 template int
 fillarray2d2<float>(float *d_odata, float *d_idata, int x0, int Ncol, int NC,
-    int N, carma_device *device);
+                    int N, carma_device *device);
 
 template int
 fillarray2d2<double>(double *d_odata, double *d_idata, int x0, int Ncol, int NC,
-    int N, carma_device *device);
+                     int N, carma_device *device);
 
 template<class T>
 __global__ void kern_fill_sym_matrix(char src_uplo, T *data, int Ncol, int N) {

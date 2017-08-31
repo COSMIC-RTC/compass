@@ -9,7 +9,7 @@ using std::pair;
 
 class sutra_sensors;
 class sutra_lgs {
-public:
+ public:
   int device;
   long nvalid;
   long npix;
@@ -38,7 +38,7 @@ public:
    cudaMemcpy3DParms        copyParams;
    */
 
-public:
+ public:
   sutra_lgs(carma_context *context, sutra_sensors *sensors, long nvalid,
             long npix, long nmaxhr);
   sutra_lgs(const sutra_lgs &lgs);

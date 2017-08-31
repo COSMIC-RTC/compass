@@ -1,23 +1,23 @@
 #include <carma_obj.h>
 
 /*
- _____                                           _  __                    _     
- |_   _| __ __ _ _ __  ___ _ __   ___  ___  ___  | |/ /___ _ __ _ __   ___| |___ 
+ _____                                           _  __                    _
+ |_   _| __ __ _ _ __  ___ _ __   ___  ___  ___  | |/ /___ _ __ _ __   ___| |___
  | || '__/ _` | '_ \/ __| '_ \ / _ \/ __|/ _ \ | ' // _ \ '__| '_ \ / _ \ / __|
  | || | | (_| | | | \__ \ |_) | (_) \__ \  __/ | . \  __/ |  | | | |  __/ \__ \
   |_||_|  \__,_|_| |_|___/ .__/ \___/|___/\___| |_|\_\___|_|  |_| |_|\___|_|___/
- |_|                                                    
+ |_|
  */
 
-// Transpose that effectively reorders execution of thread blocks along diagonals of the 
+// Transpose that effectively reorders execution of thread blocks along diagonals of the
 // matrix (also coalesced and has no bank conflicts)
 //
-// Here blockIdx.x is interpreted as the distance along a diagonal and blockIdx.y as 
+// Here blockIdx.x is interpreted as the distance along a diagonal and blockIdx.y as
 // corresponding to different diagonals
 //
-// blockIdx_x and blockIdx_y expressions map the diagonal coordinates to the more commonly 
-// used cartesian coordinates so that the only changes to the code from the coalesced version 
-// are the calculation of the blockIdx_x and blockIdx_y and replacement of blockIdx.x and 
+// blockIdx_x and blockIdx_y expressions map the diagonal coordinates to the more commonly
+// used cartesian coordinates so that the only changes to the code from the coalesced version
+// are the calculation of the blockIdx_x and blockIdx_y and replacement of blockIdx.x and
 // bloclIdx.y with the subscripted versions in the remaining code
 #define TILE_DIM    32
 #define BLOCK_ROWS  16
@@ -26,7 +26,7 @@
 
 template<class T>
 __global__ void transposeDiagonal(T *odata, T *idata, long width, long height,
-    int nreps) {
+                                  int nreps) {
   __shared__ T tile[TILE_DIM][TILE_DIM + 1];
 
   int blockIdx_x, blockIdx_y;
@@ -120,9 +120,8 @@ transposeCU<double>(double *d_idata, double *d_odata, long N1, long N2);
 
 template int
 transposeCU<cuFloatComplex>(cuFloatComplex *d_idata, cuFloatComplex *d_odata
-            , long N1, long N2);
+                            , long N1, long N2);
 
 template int
 transposeCU<cuDoubleComplex>(cuDoubleComplex *d_idata, cuDoubleComplex *d_odata
-            , long N1, long N2);
-
+                             , long N1, long N2);

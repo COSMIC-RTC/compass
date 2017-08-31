@@ -20,7 +20,7 @@ carma_sparse_host_obj<T_data>::~carma_sparse_host_obj() {
 
 template<class T_data>
 carma_sparse_host_obj<T_data>::carma_sparse_host_obj(
-    carma_sparse_host_obj<T_data>& M) {
+  carma_sparse_host_obj<T_data>& M) {
   _create(0, 0, 0);
   this->operator=(M);
 }
@@ -31,17 +31,17 @@ carma_sparse_host_obj<T_data>::carma_sparse_host_obj(carma_sparse_obj<T_data>& M
   _create(M.nz_elem, M.getDims(1), M.getDims(2));
 
   cudaMemcpy(h_data, M.d_data, nz_elem * sizeof(T_data),
-      cudaMemcpyDeviceToHost);
+             cudaMemcpyDeviceToHost);
   cudaMemcpy(rowind, M.d_rowind, (dims_data[1]+1) * sizeof(int),
-      cudaMemcpyDeviceToHost);
+             cudaMemcpyDeviceToHost);
   cudaMemcpy(colind, M.d_colind, nz_elem * sizeof(int),
-      cudaMemcpyDeviceToHost);
+             cudaMemcpyDeviceToHost);
 
   majorDim = M.get_majorDim();
 }
 
 template<class T_data>
-carma_sparse_host_obj<T_data>::carma_sparse_host_obj(const long *dims, T_data * M, char order){
+carma_sparse_host_obj<T_data>::carma_sparse_host_obj(const long *dims, T_data * M, char order) {
   _create(0, 0, 0);
   init_from_matrix(dims, M, order);
 }
@@ -61,7 +61,7 @@ void carma_sparse_host_obj<T_data>::resize(int nnz_, int dim1_, int dim2_) {
 //
 template<class T_data>
 void carma_sparse_host_obj<T_data>::operator=(
-    carma_sparse_host_obj<T_data>& M) {
+  carma_sparse_host_obj<T_data>& M) {
   resize(M.nz_elem, M.getDims(1), M.getDims(2));
   memcpy(h_data, M.h_data, sizeof(T_data) * nz_elem);
   memcpy(rowind, M.rowind, sizeof(int) * (dims_data[1]+1));
@@ -83,7 +83,7 @@ void carma_sparse_host_obj<T_data>::operator=( carma_sparse_obj<T_data> &M) {
 
 template<class T_data>
 void carma_sparse_host_obj<T_data>::init_from_matrix(
-    const long *dims, T_data * M, char majorDim) {
+  const long *dims, T_data * M, char majorDim) {
 
   long nb_el = dims[1] * dims[2];
   T_data* valB = M;
@@ -99,7 +99,7 @@ void carma_sparse_host_obj<T_data>::init_from_matrix(
   int *rowcoo = new int[cmpt];
 
   int *dim1, *dim2, ld;
-  if(majorDim=='R'){
+  if(majorDim=='R') {
     dim1=rowcoo;
     dim2=this->colind;
     ld=dims_data[1];
@@ -110,7 +110,7 @@ void carma_sparse_host_obj<T_data>::init_from_matrix(
   }
   valB = M;
   long index=0;
-  for(long i = 0;(index<cmpt)||(i < nb_el); i++) {
+  for(long i = 0; (index<cmpt)||(i < nb_el); i++) {
     if (*valB != 0) {
       dim1[index] = i / ld;
       dim2[index] = i - dim1[index] * ld;
@@ -119,7 +119,7 @@ void carma_sparse_host_obj<T_data>::init_from_matrix(
     valB++;
   }
 
-  if(majorDim=='C'){
+  if(majorDim=='C') {
     //sort rows
     std::vector<std::pair<int, std::pair<int, T_data> > > sM(nz_elem);
     //sM[i].first         -> rowind
@@ -142,8 +142,8 @@ void carma_sparse_host_obj<T_data>::init_from_matrix(
   rowind[0]=0;
   long csr_index=0;
   index=0;
-  while(csr_index<ld+1){
-    while(rowcoo[index]==csr_index){
+  while(csr_index<ld+1) {
+    while(rowcoo[index]==csr_index) {
       index++;
     }
     rowind[++csr_index]=index;
@@ -168,25 +168,26 @@ void carma_sparse_host_obj<T_data>::init_from_matrix(
 
 template<class T_data>
 void carma_sparse_host_obj<T_data>::copy_into_matrix(
-    T_data * M, char majorDim) {
+  T_data * M, char majorDim) {
   int ld;
-  if(majorDim=='R'){
+  if(majorDim=='R') {
     ld=dims_data[1];
   } else {
     ld=dims_data[2];
   }
   T_data* val = this->h_data;
   int index=0;
-  for(int i=0; i<dims_data[1]; i++){
-    while(index<rowind[i+1]){
-      if(majorDim=='R'){
+  for(int i=0; i<dims_data[1]; i++) {
+    while(index<rowind[i+1]) {
+      if(majorDim=='R') {
         M[i*ld+colind[index]]=*val;
       } else {
         M[i+ld*colind[index]]=*val;
       }
 
       //DEBUG_TRACE("%d %d %d %d\n",i,index, rowind[i+1], rowind[i]+ld*colind[index]);
-      index++;val++;
+      index++;
+      val++;
     }
   }
 }
@@ -209,7 +210,7 @@ template<class T_data>
 void carma_sparse_host_obj<T_data>::_clear() {
   if (h_data == NULL || rowind == NULL || colind == NULL) {
     std::cerr << "Error | carma_sparse_host_obj<T_data>::_clear | double clear"
-        << std::endl;
+              << std::endl;
     throw "Error | carma_sparse_host_obj<T_data>::_clear | double clear";
     //exit(EXIT_FAILURE);
   }
@@ -228,10 +229,10 @@ void carma_sparse_host_obj<T_data>::_clear() {
 //
 template<class T_data>
 void carma_gemv(T_data alpha, carma_sparse_host_obj<T_data>* A,
-    carma_host_obj<T_data>* x, T_data betta, carma_host_obj<T_data>* y,
-    void (*ptr_coomv)(char *transa, long *m, long *k, T_data *alpha,
-        char *matdescra, T_data *val, int *rowind, int *colind, int *nnz,
-        T_data *x, T_data *beta, T_data *y)) {
+                carma_host_obj<T_data>* x, T_data betta, carma_host_obj<T_data>* y,
+                void (*ptr_coomv)(char *transa, long *m, long *k, T_data *alpha,
+                                  char *matdescra, T_data *val, int *rowind, int *colind, int *nnz,
+                                  T_data *x, T_data *beta, T_data *y)) {
   if (A->getDims(2) != x->getDims(1) || A->getDims(1) != y->getDims(1)) {
     std::cerr << "Error | kp_cscmv | diminsion problem" << std::endl;
     throw "Error | kp_cscmv | diminsion problem";
@@ -245,7 +246,7 @@ void carma_gemv(T_data alpha, carma_sparse_host_obj<T_data>* A,
   char transa[]="N";
   char matdescra[]="GFFFFFFFF";
   ptr_coomv(transa, &dim1, &dim2, &alpha, matdescra, A->getData(), A->rowind,
-      A->colind, &nz_elem, x->getData(), &betta, y->getData());
+            A->colind, &nz_elem, x->getData(), &betta, y->getData());
 //   mkl_dcscmv("N", &A.dim1, &A.dim2, &alpha, "GFFFFFFF",
 //        A.values, A.rows, A.pointerB, A.pointerB + 1,
 //        x.d,  &betta, y.d);
@@ -254,7 +255,7 @@ void carma_gemv(T_data alpha, carma_sparse_host_obj<T_data>* A,
 
 template<class T_data>
 void carma_gemm(char op_A, T_data alpha, carma_sparse_host_obj<T_data>* A,
-    carma_host_obj<T_data>* B, T_data betta, carma_host_obj<T_data>* C) {
+                carma_host_obj<T_data>* B, T_data betta, carma_host_obj<T_data>* C) {
 //   A.check();
   /* FIXME: à coder sans MKL ou pas...
    long dimA1=A->getDims(1);

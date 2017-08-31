@@ -1,7 +1,7 @@
 #include <sutra_aotemplate.h>
 
 sutra_aotemplate::sutra_aotemplate(carma_context *context, const char* type,
-    long dim, int device) {
+                                   long dim, int device) {
   // some inits
   this->current_context = context;
   this->dim = dim;
@@ -45,8 +45,7 @@ int sutra_aotemplate::do_compute() {
   getNumBlocksAndThreads(current_context->get_device(device), this->dim, nblocks, nthreads);
 
   comp_aotemplate(nthreads, nblocks, this->d_data->getData(),
-      this->d_res->getData(), this->d_data->getNbElem());
+                  this->d_res->getData(), this->d_data->getNbElem());
 
   return EXIT_SUCCESS;
 }
-

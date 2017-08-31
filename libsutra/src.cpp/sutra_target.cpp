@@ -12,25 +12,25 @@ int fft_goodsize(long size) {
   tmpl = (long)tmpf;
   tmpf -= tmpl;
   mradix =
-      (tmpf > (logf(size) / logf(mradix) - (long)(logf(size) / logf(mradix)))
-           ? 3
-           : mradix);
+    (tmpf > (logf(size) / logf(mradix) - (long)(logf(size) / logf(mradix)))
+     ? 3
+     : mradix);
 
   tmpf = logf(size) / logf(5);
   tmpl = (long)tmpf;
   tmpf -= tmpl;
   mradix =
-      (tmpf > (logf(size) / logf(mradix) - (long)(logf(size) / logf(mradix)))
-           ? 5
-           : mradix);
+    (tmpf > (logf(size) / logf(mradix) - (long)(logf(size) / logf(mradix)))
+     ? 5
+     : mradix);
 
   tmpf = logf(size) / logf(7);
   tmpl = (long)tmpf;
   tmpf -= tmpl;
   mradix =
-      (tmpf > (logf(size) / logf(mradix) - (long)(logf(size) / logf(mradix)))
-           ? 7
-           : mradix);
+    (tmpf > (logf(size) / logf(mradix) - (long)(logf(size) / logf(mradix)))
+     ? 7
+     : mradix);
 
   return mradix;
 }
@@ -39,8 +39,8 @@ sutra_source::sutra_source(carma_context *context, float xpos, float ypos,
                            float lambda, float mag, float zerop, long size,
                            string type, carma_obj<float> *pupil, int Npts,
                            int device)
-    : current_context(context), device(device), d_pupil(pupil),
-      d_ncpa_phase(nullptr) {
+  : current_context(context), device(device), d_pupil(pupil),
+    d_ncpa_phase(nullptr) {
   current_context->set_activeDevice(device, 1);
 
   this->init_source(context, xpos, ypos, lambda, mag, zerop, size, type,
@@ -74,7 +74,7 @@ sutra_source::sutra_source(carma_context *context, float xpos, float ypos,
 sutra_source::sutra_source(carma_context *context, float xpos, float ypos,
                            float lambda, float mag, float zerop, long size,
                            string type, int device)
-    : current_context(context), device(device), d_ncpa_phase(nullptr) {
+  : current_context(context), device(device), d_ncpa_phase(nullptr) {
   this->device = device;
   current_context = context;
   current_context->set_activeDevice(device, 1);
@@ -119,10 +119,10 @@ inline int sutra_source::init_source(carma_context *context, float xpos,
   dims_data2[1] = size;
   dims_data2[2] = size;
   int nstreams =
-      (size + this->block_size - size % this->block_size) / this->block_size;
+    (size + this->block_size - size % this->block_size) / this->block_size;
 
   this->phase_telemetry =
-      new carma_host_obj<float>(dims_data2, MA_WRICOMB, nstreams);
+    new carma_host_obj<float>(dims_data2, MA_WRICOMB, nstreams);
 
   this->d_image = 0L;
   this->d_amplipup = 0L;
@@ -237,7 +237,7 @@ int sutra_source::init_strehlmeter() {
 
   if (this->d_leimage == 0L)
     this->d_leimage =
-        new carma_obj<float>(this->current_context, this->d_image->getDims());
+      new carma_obj<float>(this->current_context, this->d_image->getDims());
   else { // Reset strehl case
     carmaSafeCall(cudaMemset(this->d_leimage->getData(), 0,
                              sizeof(float) * this->d_leimage->getNbElem()));
@@ -277,8 +277,8 @@ int sutra_source::remove_layer(string type, float alt) {
 int sutra_source::raytrace_shm(sutra_atmos *yatmos) {
   current_context->set_activeDevice(device, 1);
   carmaSafeCall(
-      cudaMemset(this->d_phase->d_screen->getData(), 0,
-                 sizeof(float) * this->d_phase->d_screen->getNbElem()));
+    cudaMemset(this->d_phase->d_screen->getData(), 0,
+               sizeof(float) * this->d_phase->d_screen->getNbElem()));
 
   map<type_screen, float>::iterator p;
   p = xoff.begin();
@@ -312,8 +312,8 @@ int sutra_source::raytrace(sutra_atmos *yatmos, bool async) {
   //  carmaSafeCall(cudaDeviceSynchronize());
   current_context->set_activeDevice(device, 1);
   carmaSafeCall(
-      cudaMemset(this->d_phase->d_screen->getData(), 0,
-                 sizeof(float) * this->d_phase->d_screen->getNbElem()));
+    cudaMemset(this->d_phase->d_screen->getData(), 0,
+               sizeof(float) * this->d_phase->d_screen->getNbElem()));
 
   float delta;
   map<type_screen, float>::iterator p;
@@ -330,13 +330,13 @@ int sutra_source::raytrace(sutra_atmos *yatmos, bool async) {
       if ((p == xoff.end()) && async) {
 
         target_raytrace_async(
-            this->phase_telemetry, this->d_phase->d_screen->getData(),
-            ps->d_tscreen->d_screen->getData(),
-            (int)d_phase->d_screen->getDims(1),
-            (int)d_phase->d_screen->getDims(2),
-            (int)ps->d_tscreen->d_screen->getDims(1),
-            xoff[std::make_pair("atmos", alt)],
-            yoff[std::make_pair("atmos", alt)], this->block_size);
+          this->phase_telemetry, this->d_phase->d_screen->getData(),
+          ps->d_tscreen->d_screen->getData(),
+          (int)d_phase->d_screen->getDims(1),
+          (int)d_phase->d_screen->getDims(2),
+          (int)ps->d_tscreen->d_screen->getDims(1),
+          xoff[std::make_pair("atmos", alt)],
+          yoff[std::make_pair("atmos", alt)], this->block_size);
       } else {
         if (this->lgs) {
           delta = 1.0f - alt / this->d_lgs->hg;
@@ -392,12 +392,12 @@ int sutra_source::raytrace(sutra_dms *ydms, int rst, bool async,
       p++;
       if ((p == xoff.end()) && async) {
         target_raytrace_async(
-            this->phase_telemetry, this->d_phase->d_screen->getData(),
-            ps->d_shape->d_screen->getData(),
-            (int)d_phase->d_screen->getDims(1),
-            (int)d_phase->d_screen->getDims(2),
-            (int)ps->d_shape->d_screen->getDims(1), xoff[make_pair(types, alt)],
-            yoff[make_pair(types, alt)], this->block_size);
+          this->phase_telemetry, this->d_phase->d_screen->getData(),
+          ps->d_shape->d_screen->getData(),
+          (int)d_phase->d_screen->getDims(1),
+          (int)d_phase->d_screen->getDims(2),
+          (int)ps->d_shape->d_screen->getDims(1), xoff[make_pair(types, alt)],
+          yoff[make_pair(types, alt)], this->block_size);
       } else {
         target_raytrace(this->d_phase->d_screen->getData(),
                         ps->d_shape->d_screen->getData(),
@@ -479,8 +479,8 @@ int sutra_source::comp_image(int puponly, bool comp_le) {
 
   // set complex amplitude in the pupil plane to zero
   carmaSafeCall(
-      cudaMemset(this->d_amplipup->getData(), 0,
-                 sizeof(cuFloatComplex) * this->d_amplipup->getNbElem()));
+    cudaMemset(this->d_amplipup->getData(), 0,
+               sizeof(cuFloatComplex) * this->d_amplipup->getNbElem()));
 
   /*
    fillpupil(this->d_amplipup->getData(), mask,
@@ -492,10 +492,10 @@ int sutra_source::comp_image(int puponly, bool comp_le) {
 
   // fill complex amplitude in the pupil with phase @ lambda
   fill_amplipup(
-      this->d_amplipup->getData(), this->d_phase->d_screen->getData(),
-      this->d_pupil->getData(), this->scale, puponly,
-      this->d_phase->d_screen->getDims(1), this->d_phase->d_screen->getDims(2),
-      this->d_amplipup->getDims(1), current_context->get_device(device));
+    this->d_amplipup->getData(), this->d_phase->d_screen->getData(),
+    this->d_pupil->getData(), this->scale, puponly,
+    this->d_phase->d_screen->getDims(1), this->d_phase->d_screen->getDims(2),
+    this->d_amplipup->getDims(1), current_context->get_device(device));
 
   //  // fill complex amplitude in the pupil with phase @ lambda
   //  fill_amplipup(this->d_amplipup->getData(),

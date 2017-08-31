@@ -16,7 +16,7 @@ using std::vector;
 using std::map;
 
 class sutra_source {
-public:
+ public:
   carma_context *current_context;
   int device;     // device #
   float tposx;    // x position of target on the sky
@@ -53,16 +53,16 @@ public:
   carma_obj<float> *d_image;              // the resulting image for this target
   carma_obj<float> *d_leimage; // the long exposure image for this target
   carma_obj<cuFloatComplex>
-      *d_amplipup; // the complex amplitude in the pupil plane
+  *d_amplipup; // the complex amplitude in the pupil plane
   carma_obj<float>
-      *d_phasepts; // the valid phase points in the pupil (target only)
+  *d_phasepts; // the valid phase points in the pupil (target only)
   carma_obj<int> *d_wherephase; // positions of valid phase points in the pupil
-                                // (target only)
+  // (target only)
   map<type_screen, float> xoff; // x reference for raytracing
   map<type_screen, float> yoff; // y reference for raytracing
   carma_obj<float> *d_ncpa_phase; // ncpa phase
 
-public:
+ public:
   sutra_source(carma_context *context, float xpos, float ypos, float lambda,
                float mag, float zerop, long size, string type,
                carma_obj<float> *pupil, int Npts, int device);
@@ -71,8 +71,8 @@ public:
   sutra_source(const sutra_source &source);
   ~sutra_source();
   inline int init_source(carma_context *context, float xpos, float ypos,
-                        float lambda, float mag, float zerop, long size,
-                        string type, int device);
+                         float lambda, float mag, float zerop, long size,
+                         string type, int device);
   int add_layer(string type, float alt, float xoff, float yoff);
   int remove_layer(string type, float alt);
   // int get_phase(float *h_dest);
@@ -91,11 +91,11 @@ public:
 };
 
 class sutra_target {
-public:
+ public:
   int ntargets;
   vector<sutra_source *> d_targets;
 
-public:
+ public:
   sutra_target(carma_context *context, sutra_telescope *d_tel, int ntargets,
                float *xpos, float *ypos, float *lambda, float *mag, float zerop,
                long *sizes, int Npts, int device);

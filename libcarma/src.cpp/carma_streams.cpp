@@ -110,4 +110,3 @@ int carma_streams::wait_all_streams() {
     carmaSafeCall(cudaStreamSynchronize(this->streams[stream]));
   return EXIT_SUCCESS;
 }
-

@@ -20,12 +20,12 @@
 #include <vector>
 
 class carma_streams {
-protected:
+ protected:
   std::vector<cudaStream_t> streams;
   std::vector<cudaEvent_t> events;
   int eventflags;
 
-public:
+ public:
   carma_streams();
   carma_streams(unsigned int nbStreams);
   //carma_stream(const carma_stream& src_carma_stream);
