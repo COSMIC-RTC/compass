@@ -393,12 +393,12 @@ def init_pzt_from_hdf5(p_dm: conf.Param_dm, p_geom: conf.Param_geom, diam: float
     p_dm._xpos = np.float32(xpos)
     p_dm._ypos = np.float32(ypos)
 
-    # def influente fonction normalize by unitpervolt
-    p_dm._influ = np.float32(influ_new) * p_dm.unitpervolt
-
     # def influence size
     print("influence size in pupil : ", np.int(influ_size), "pixel")
     p_dm._influsize = np.int(influ_size)
+
+    # def influente fonction normalize by unitpervolt
+    p_dm._influ = np.float32(influ_new) * p_dm.unitpervolt
 
     # Def dm limite (n1 and n2)
     extent = (max(xpos) - min(xpos)) + (influ_size * 2)
