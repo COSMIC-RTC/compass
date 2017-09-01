@@ -2,7 +2,7 @@
 
 # installation: ln -s $COMPASS_ROOT/cpp-pre-commit.sh $COMPASS_ROOT/.git/hooks/pre-commit.legacy
 
-echo "Checking CPP/CU files..."
+# echo "Checking CPP/CU files..."
 
 # OPTIONS="-A8 -t8 --lineend=linux"
 OPTIONS="--style=google -s2"
@@ -27,23 +27,17 @@ git diff --cached --name-status --diff-filter=ACMR | {
       md5sum -b $FILE | { read stdin; echo $stdin.beautified; } | md5sum -c --status -
       if [ $? -ne 0 ];
       then
-        echo "[!] $FILE does not respect the agreed coding standards." >&2
-        RETURN=1
-      #else
-      #  echo "[!] $FILE respects the agreed coding standards." >&2
+        # echo "[!] $FILE does not respect the agreed coding standards." >&2
+	mv $FILE.beautified $FILE
+	RETURN=1
+      else
+        # echo "[!] $FILE respects the agreed coding standards." >&2
+        rm $FILE.beautified
       fi
-      rm $FILE.beautified
     #else
     #  echo "[!] $FILE not checked" >&2
     fi
   done
-
-  if [ $RETURN -eq 1 ];
-  then
-    echo ""
-    echo "Make sure you have run astyle with the following options:" >&2
-    echo $OPTIONS >&2
-  fi
 
   exit $RETURN
 }
