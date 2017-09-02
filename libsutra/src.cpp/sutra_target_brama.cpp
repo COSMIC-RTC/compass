@@ -157,7 +157,7 @@ void sutra_target_brama::publish() {
   zFrame.dimensions = BRAMA::Dims(4, 4, dims_pixels, 0);
   zFrame.data =
     BRAMA::Values(idx * sizeof(float), idx * sizeof(float), buff_pixels, 0);
-  zFrame.datatype = 0;
+  zFrame.datatype = BRAMA::BRAMA_float32_t;
   zFrame.sizeofelements = sizeof(float);
 
   // cout << "Publishing zFrame: " << zFrame.framecounter << endl;
