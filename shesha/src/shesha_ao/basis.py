@@ -8,6 +8,8 @@ import shesha_constants as scons
 
 from scipy.sparse import csr_matrix
 
+from typing import List
+
 
 def compute_KL2V(p_controller: conf.Param_controller, dms: Dms, p_dms: list,
                  p_geom: conf.Param_geom, p_atmos: conf.Param_atmos,
@@ -152,7 +154,7 @@ def command_on_Btt(rtc: Rtc, dms: Dms, p_dms: list, p_geom: conf.Param_geom, nfi
     IFpzt = IFs[:, :n - 2]
 
     Btt, P = compute_Btt(IFpzt, IFtt)
-    compute_cmatWithBtt(rtc, Btt, nfilt)
+    compute_cmat_with_Btt(rtc, Btt, nfilt)
 
 
 def compute_cmat_with_Btt(rtc: Rtc, Btt: np.ndarray, nfilt: int):
@@ -182,9 +184,9 @@ def compute_cmat_with_Btt(rtc: Rtc, Btt: np.ndarray, nfilt: int):
     return cmat.astype(np.float32)
 
 
-def command_on_KL(rtc: Rtc, dms: Dms, p_controller: conf.Param_controller, p_dms: list,
-                  p_geom: conf.Param_geom, p_atmos: conf.Param_atmos,
-                  p_tel: conf.Param_tel, nfilt: int):
+def command_on_KL(rtc: Rtc, dms: Dms, p_controller: conf.Param_controller,
+                  p_dms: List[conf.Param_dm], p_geom: conf.Param_geom,
+                  p_atmos: conf.Param_atmos, p_tel: conf.Param_tel, nfilt: int):
     """Compute a command matrix in KL modal basis and set
     it on the sutra_rtc. It computes by itself the volts to KL matrix.
     :parameters:
@@ -197,7 +199,7 @@ def command_on_KL(rtc: Rtc, dms: Dms, p_controller: conf.Param_controller, p_dms
         nfilt: (int): number of modes to filter
     """
     KL2V = compute_KL2V(p_controller, dms, p_dms, p_geom, p_atmos, p_tel)
-    compute_cmatWithKL(rtc, KL2V, nfilt)
+    compute_cmat_with_KL(rtc, KL2V, nfilt)
 
 
 def compute_cmat_with_KL(rtc: Rtc, KL2V: np.ndarray, nfilt: int):
@@ -230,7 +232,7 @@ def compute_Btt(IFpzt, IFtt):
     """ Returns Btt to Volts and Volts to Btt matrices
     :parameters:
         IFpzt : (csr_matrix) : influence function matrix of pzt DM, sparse and arrange as (Npts in pup x nactus)
-        IFtt : (np.ndarray(ndim=2,dtype=np.float32)) : Influence function matrix of the TT mirror arrange as (Npts in pup x 2)
+        IFtt : (csr_matrix) : Influence function matrix of the TT mirror arrange as (Npts in pup x 2)
     :returns:
         Btt : (np.ndarray(ndim=2,dtype=np.float32)) : Btt to Volts matrix
         P : (np.ndarray(ndim=2,dtype=np.float32)) : Volts to Btt matrix
@@ -244,7 +246,7 @@ def compute_Btt(IFpzt, IFtt):
 
     # Tip-tilt + piston
     Tp = np.ones((IFtt.shape[0], IFtt.shape[1] + 1))
-    Tp[:, :2] = IFtt.copy()  # .toarray()
+    Tp[:, :2] = IFtt.copy().toarray()
     deltaT = IFpzt.T.dot(Tp) / N
     # Tip tilt projection on the pzt dm
     tau = np.linalg.inv(delta).dot(deltaT)
@@ -264,7 +266,7 @@ def compute_Btt(IFpzt, IFtt):
     B = G.dot(U).dot(L)
 
     # Rajout du TT
-    TT = IFtt.T.dot(IFtt) / N
+    TT = (IFtt.T.dot(IFtt) / N).toarray()
     Btt = np.zeros((n + 2, n - 1))
     Btt[:B.shape[0], :B.shape[1]] = B
     mini = 1. / np.sqrt(np.abs(TT))
@@ -276,7 +278,7 @@ def compute_Btt(IFpzt, IFtt):
     delta = np.zeros((n + IFtt.shape[1], n + IFtt.shape[1]))
     #IFpzt = rtc.get_IFpztsparse(1).T
     delta[:-2, :-2] = IFpzt.T.dot(IFpzt).toarray() / N
-    delta[-2:, -2:] = IFtt.T.dot(IFtt) / N
+    delta[-2:, -2:] = IFtt.T.dot(IFtt).toarray() / N
     P = Btt.T.dot(delta)
 
     return Btt.astype(np.float32), P.astype(np.float32)
