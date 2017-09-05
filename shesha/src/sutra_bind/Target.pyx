@@ -157,7 +157,7 @@ cdef class Target:
             src.d_leimage.device2host( < float*> data_F.data)
             data_F /= src.strehl_counter
 
-        return data_F.T.copy()
+        return np.fft.fftshift(data_F.T.copy())
 
     def set_ncpa_phase(self, int n, np.ndarray[ndim=2, dtype=np.float32_t] data):
         """

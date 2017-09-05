@@ -788,10 +788,11 @@ class widgetAOWindow(TemplateBaseClass):
     def KLCommand(self) -> None:
         if (self.sim.rtc):
             nfilt = int(self.ui.wao_filterBtt.value())
-            cmat = ao.command_on_KL(
-                    self.sim.rtc, self.sim.dms, self.sim.config.p_controllers[0],
-                    self.sim.config.p_dms, self.sim.config.p_geom,
-                    self.sim.config.p_atmos, self.sim.config.p_tel, nfilt)
+            cmat = ao.compute_cmatWithKL(self.sim.rtc, self.sim.config.p_controllers[0],
+                                         self.sim.dms, self.sim.config.p_dms,
+                                         self.sim.config.p_geom, self.sim.config.p_atmos,
+                                         self.sim.config.p_tel, nfilt)
+            self.sim.rtc.set_cmat(0, cmat.astype(np.float32))
             print("Loop is commanded from KL basis now")
 
     def updatePlotWfs(self) -> None:
@@ -1077,8 +1078,7 @@ class widgetAOWindow(TemplateBaseClass):
 
                     if (self.imgType == "PSF SE"):
                         self.setupDisp("pg")
-                        data = np.fft.fftshift(
-                                self.sim.tar.get_image(self.numberSelected, b"se"))
+                        data = self.sim.tar.get_image(self.numberSelected, b"se")
                         if (self.ui.wao_PSFlogscale.isChecked()):
                             if np.any(data <= 0):
                                 print(("\nzero founds, log display disabled\n",
@@ -1125,8 +1125,7 @@ class widgetAOWindow(TemplateBaseClass):
 
                     if (self.imgType == "PSF LE"):
                         self.setupDisp("pg")
-                        data = np.fft.fftshift(
-                                self.sim.tar.get_image(self.numberSelected, b"le"))
+                        data = self.sim.tar.get_image(self.numberSelected, b"le")
                         if (self.ui.wao_PSFlogscale.isChecked()):
                             data = np.log10(data)
                         if (not self.SRCrossX):
