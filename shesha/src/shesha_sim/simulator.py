@@ -125,14 +125,23 @@ class Simulator:
         if self.loaded and self.is_init:
             self.iter = 0
 
-            self.c = None
+            del self.atm
             self.atm = None
+            del self.tel
             self.tel = None
+            del self.tar
             self.tar = None
+            del self.rtc
             self.rtc = None
+            del self.wfs
             self.wfs = None
+            del self.dms
             self.dms = None
-            self.is_init = False
+
+            # del self.c  # What is this supposed to do ... ?
+            # self.c = None
+
+        self.is_init = False
 
     def init_sim(self) -> None:
         """
@@ -146,6 +155,7 @@ class Simulator:
                     os.environ["SHESHA_ROOT"] + "/data/dataBase/", self.config,
                     param_dict)
         self.c = naga_context(devices=self.config.p_loop.devices)
+        self.force_context()
 
         if self.config.p_tel is None or self.config.p_geom is None:
             raise ValueError("Telescope geometry must be defined (p_geom and p_tel)")

@@ -62,9 +62,13 @@ class widgetAOWindow(TemplateBaseClass):
         #                   ATTRIBUTES                              #
         #############################################################
 
-        self.loopLock = threading.Lock()  # Asynchronous loop / display safe-threading
+        self.loopLock = threading.Lock(
+        )  # type: Threading.Lock # Asynchronous loop / display safe-threading
 
-        self.stop = False  # Request quit
+        self.gui_timer = QTimer()  # type: QTimer
+        self.gui_timer.timeout.connect(self.updateDisplay)
+
+        self.stop = False  # type: bool  # Request quit
 
         self.ui.wao_nbiters.setValue(1000)  # Default GUI nIter box value
         self.refreshTime = 0  # type: float  # System time at last display refresh
@@ -129,13 +133,13 @@ class widgetAOWindow(TemplateBaseClass):
         self.ui.wao_rtcWindowMPL.hide()
         self.ui.wao_commandBtt.clicked.connect(self.BttCommand)
         self.ui.wao_commandKL.clicked.connect(self.KLCommand)
-        self.ui.wao_frameRate.setValue(2)
         self.ui.wao_PSFlogscale.clicked.connect(self.updateDisplay)
         self.ui.wao_resetSR.clicked.connect(self.resetSR)
         self.ui.wao_actionHelp_Contents.triggered.connect(self.on_help_triggered)
 
-        self.ui.wao_Display.setCheckState(True)
-        self.ui.wao_Display.stateChanged.connect(self.updateDisplay)
+        self.ui.wao_Display.setCheckState(False)
+        self.ui.wao_Display.stateChanged.connect(self.gui_timer_config)
+        self.ui.wao_frameRate.setValue(2)
 
         self.ui.wao_dmUnitPerVolt.valueChanged.connect(self.updateDMrangeGUI)
         self.ui.wao_dmpush4iMat.valueChanged.connect(self.updateDMrangeGUI)
@@ -162,6 +166,13 @@ class widgetAOWindow(TemplateBaseClass):
             self.ui.wao_selectConfig.addItem(configFile)
             self.loadConfig()
             self.InitConfig()
+
+    def gui_timer_config(self, state) -> None:
+        self.ui.wao_frameRate.setDisabled(state)
+        if state:
+            self.gui_timer.start(1000. / self.ui.wao_frameRate.value())
+        else:
+            self.gui_timer.stop()
 
     def on_help_triggered(self, i: Any=None) -> None:
         if i is None:
@@ -680,6 +691,9 @@ class widgetAOWindow(TemplateBaseClass):
         ])
 
     def InitConfig(self) -> None:
+        self.loopLock.acquire(True)
+        self.sim.clear_init()
+
         self.ui.wao_loadConfig.setDisabled(True)
         self.ui.wao_init.setDisabled(True)
         thread = WorkerThread(self, self.InitConfigThread)
@@ -687,7 +701,6 @@ class widgetAOWindow(TemplateBaseClass):
         thread.start()
 
     def InitConfigThread(self) -> None:
-        self.sim.clear_init()
         self.ui.wao_deviceNumber.setDisabled(True)
         # self.sim.config.p_loop.devices = self.ui.wao_deviceNumber.value()  # using GUI value
         # gpudevice = "ALL"  # using all GPU avalaible
@@ -767,6 +780,8 @@ class widgetAOWindow(TemplateBaseClass):
         self.ui.wao_openLoop.setDisabled(False)
         self.ui.wao_unzoom.setDisabled(False)
         self.ui.wao_resetSR.setDisabled(False)
+
+        self.loopLock.release()
 
     def circleCoords(self, ampli: float, npts: int, datashape0: int,
                      datashape1: int) -> Tuple[float, float]:
@@ -943,12 +958,9 @@ class widgetAOWindow(TemplateBaseClass):
 
     def updateDisplay(self) -> None:
         if (not self.sim.is_init) or (not self.ui.wao_Display.isChecked()):
-            # print("Widget not fully initialized")
             return
-
         data = None
         if not self.loopLock.acquire(False):
-            # print("Loop locked")
             return
         else:
             try:
@@ -1183,11 +1195,6 @@ class widgetAOWindow(TemplateBaseClass):
                     # self.p1.autoRange()
             finally:
                 self.loopLock.release()
-
-            refreshDisplayTime = 1000. / self.ui.wao_frameRate.value()
-            if (self.ui.wao_Display.isChecked()):
-                # Update GUI plots
-                QTimer.singleShot(refreshDisplayTime, self.updateDisplay)
 
     def loopOnce(self) -> None:
         if not self.loopLock.acquire(False):
