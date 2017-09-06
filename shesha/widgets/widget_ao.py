@@ -697,6 +697,9 @@ class widgetAOWindow(TemplateBaseClass):
         self.sim.init_sim()
 
     def InitConfigFinished(self) -> None:
+        # Thread naga context reload:
+        self.sim.force_context()
+
         self.ui.wao_atmosDimScreen.setText(str(self.sim.config.p_atmos.dim_screens[0]))
         self.ui.wao_loadConfig.setDisabled(False)
 

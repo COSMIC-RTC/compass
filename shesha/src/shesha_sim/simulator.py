@@ -63,6 +63,11 @@ class Simulator:
 
         return s
 
+    def force_context(self) -> None:
+        if self.loaded and self.c is not None:
+            for devIdx in range(len(self.config.p_loop.devices)):
+                self.c.set_activeDeviceForce(devIdx, 1)
+
     def load_from_file(self, filepath: str) -> None:
         """
         TODO: docstring
