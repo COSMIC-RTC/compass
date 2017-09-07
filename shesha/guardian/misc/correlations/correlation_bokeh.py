@@ -21,8 +21,8 @@ plt.ion()
 
 
 def dphi_highpass(r, x0, tabx, taby):
-    return (r**(5. / 3.)) * (
-            1.1183343328701949 - Ij0t83(r * (np.pi / x0), tabx, taby)) * (
+    return (r**
+            (5. / 3.)) * (1.1183343328701949 - Ij0t83(r * (np.pi / x0), tabx, taby)) * (
                     2 * (2 * np.pi)**(8 / 3.) * 0.0228956)
 
 
@@ -70,8 +70,8 @@ def asymp_macdo(x):
     a3 = 0.08001828989483310284
 
     x_1 = 1. / x
-    res = k2 - k3 * np.exp(-x) * x**(1. / 3.) * (
-            1.0 + x_1 * (a1 + x_1 * (a2 + x_1 * a3)))
+    res = k2 - k3 * np.exp(-x) * x**(1. / 3.) * (1.0 + x_1 * (a1 + x_1 *
+                                                              (a2 + x_1 * a3)))
     return res
 
 
@@ -83,17 +83,17 @@ def macdo(x):
 
     Ga = [
             0, 12.067619015983075, 5.17183672113560444, 0.795667187867016068,
-            0.0628158306210802181, 0.00301515986981185091,
-            9.72632216068338833e-05, 2.25320204494595251e-06,
-            3.93000356676612095e-08, 5.34694362825451923e-10,
-            5.83302941264329804e-12]
+            0.0628158306210802181, 0.00301515986981185091, 9.72632216068338833e-05,
+            2.25320204494595251e-06, 3.93000356676612095e-08, 5.34694362825451923e-10,
+            5.83302941264329804e-12
+    ]
 
     Gma = [
             -3.74878707653729304, -2.04479295083852408, -0.360845814853857083,
-            -0.0313778969438136685, -0.001622994669507603,
-            -5.56455315259749673e-05, -1.35720808599938951e-06,
-            -2.47515152461894642e-08, -3.50257291219662472e-10,
-            -3.95770950530691961e-12, -3.65327031259100284e-14]
+            -0.0313778969438136685, -0.001622994669507603, -5.56455315259749673e-05,
+            -1.35720808599938951e-06, -2.47515152461894642e-08, -3.50257291219662472e-10,
+            -3.95770950530691961e-12, -3.65327031259100284e-14
+    ]
 
     x2n = 0.5
 
@@ -141,10 +141,9 @@ def variance(f, contributors, method="Default"):
         err = f[contributors[0]][:] * 0.
         for c in contributors:
             err += f[c][:]
-        return np.var(
-                P.dot(err), axis=1)[swap], np.var(
-                        P.dot(f["tomography"][:]), axis=1)[swap], np.var(
-                                P.dot(f["bandwidth"][:]), axis=1)[swap]
+        return np.var(P.dot(err), axis=1)[swap], np.var(
+                P.dot(f["tomography"][:]),
+                axis=1)[swap], np.var(P.dot(f["bandwidth"][:]), axis=1)[swap]
 
     elif (method == b"Independence"):
         nmodes = P.shape[0]
@@ -219,14 +218,14 @@ def update(attrs, old, new):
         y_model = np.ones(ind[0].shape[0])
         #y_model = y_model * 6.88 * (Htheta/r0)**(5./3.) * 0.5
         for k in range(ind[0].shape[0]):
-            y_model[k] = dphi_lowpass(Htheta, 0.2, L0, tabx, taby) * (
-                    1 / r0)**(5. / 3.) * 0.5  #* xmap["Gain"][ind][k]**2
+            y_model[k] = dphi_lowpass(Htheta, 0.2, L0, tabx, taby) * (1 / r0)**(
+                    5. / 3.) * 0.5  #* xmap["Gain"][ind][k]**2
     if (yname == b"Var(bp)"):
         vdt = xmap["Windspeed"] * dt / xmap["Gain"]
         y_model = np.zeros(vdt[ind].shape[0])
         for k in range(vdt[ind].shape[0]):
-            y_model[k] = dphi_lowpass(vdt[ind][k], 0.2, L0, tabx, taby) * (
-                    1. / r0)**(5. / 3.) * 0.5
+            y_model[k] = dphi_lowpass(vdt[ind][k], 0.2, L0, tabx, taby) * (1. / r0)**(
+                    5. / 3.) * 0.5
     if (yname == b"Covar"):
         vdt = xmap["Windspeed"] * dt / xmap["Gain"]
         Hthetak = Htheta / xmap["Gain"]
@@ -235,8 +234,8 @@ def update(attrs, old, new):
         Drho = np.zeros(rho[ind].shape[0])
         Dt = Drho.copy()
         for k in range(rho[ind].shape[0]):
-            Drho[k] = dphi_lowpass(rho[ind][k], 0.2, L0, tabx, taby) * (
-                    1 / r0)**(5. / 3.)
+            Drho[k] = dphi_lowpass(rho[ind][k], 0.2, L0, tabx, taby) * (1 / r0)**(
+                    5. / 3.)
         #Drho = 6.88 * (rho[ind]/r0)**(5./3.)
         for k in range(Dt.shape[0]):
             Dt[k] = dphi_lowpass(Htheta, 0.2, L0, tabx, taby) * (
@@ -244,23 +243,14 @@ def update(attrs, old, new):
         #Dt =  6.88 * (Htheta/r0)**(5./3.)
         Dbp = np.zeros(vdt[ind].shape[0])
         for k in range(vdt[ind].shape[0]):
-            Dbp[k] = dphi_lowpass(vdt[ind][k], 0.2, L0, tabx, taby) * (
-                    1 / r0)**(5. / 3.)
+            Dbp[k] = dphi_lowpass(vdt[ind][k], 0.2, L0, tabx, taby) * (1 / r0)**(5. / 3.)
         #Dbp = 6.88 * (vdt[ind]/r0) ** (5./3.)
         y_model = 0.5 * (Dt + Dbp - Drho)
 
-    source.data = dict(
-            x=x[ind],
-            y=ydata[ind],
-            speed=xmap["Windspeed"][ind],
-            theta=xmap["Winddir"][ind],
-            gain=xmap["Gain"][ind])
-    source_model.data = dict(
-            x=x[ind],
-            y=y_model,
-            speed=xmap["Windspeed"][ind],
-            theta=xmap["Winddir"][ind],
-            gain=xmap["Gain"][ind])
+    source.data = dict(x=x[ind], y=ydata[ind], speed=xmap["Windspeed"][ind],
+                       theta=xmap["Winddir"][ind], gain=xmap["Gain"][ind])
+    source_model.data = dict(x=x[ind], y=y_model, speed=xmap["Windspeed"][ind],
+                             theta=xmap["Winddir"][ind], gain=xmap["Gain"][ind])
 
 
 datapath = "/home/fferreira/Data/correlation/"
@@ -300,8 +290,7 @@ tabx, taby = tabulateIj0(L0)
 # data[:,3,i] = var(tomo)+var(bp) for file #i
 ind = 0
 for f in files:
-    data[:, 0, ind], data[:, 1, ind], data[:, 2, ind] = variance(
-            f, contributors)
+    data[:, 0, ind], data[:, 1, ind], data[:, 2, ind] = variance(f, contributors)
     data[:, 3, ind] = variance(f, contributors, method="Independence")
     theta[ind] = f.attrs["winddir"][0]
     speeds[ind] = f.attrs["windspeed"][0]
@@ -310,33 +299,22 @@ for f in files:
 data = data * ((2 * np.pi / Lambda_tar)**2)
 covar = (data[:, 0, :] - data[:, 3, :]) / 2.
 
-xaxis_select = Select(
-        title="X-axis",
-        value="Windspeed",
-        options=["Windspeed", "Winddir", "Gain"])
-yaxis_select = Select(
-        title="Y-axis",
-        value="Covar",
-        options=["Covar", "Var(t+bp)", "Var(t)", "Var(bp)", "Var(t)+Var(bp)"])
+xaxis_select = Select(title="X-axis", value="Windspeed",
+                      options=["Windspeed", "Winddir", "Gain"])
+yaxis_select = Select(title="Y-axis", value="Covar", options=[
+        "Covar", "Var(t+bp)", "Var(t)", "Var(bp)", "Var(t)+Var(bp)"
+])
 
-speed_select = Select(
-        title="Windspeeds",
-        value="All",
-        options=["All"] + [str(s) for s in np.unique(speeds)])
-dir_select = Select(
-        title="Winddirs",
-        value="All",
-        options=["All"] + [str(s) for s in np.unique(theta)])
-gain_select = Select(
-        title="Gain",
-        value="All",
-        options=["All"] + [str(s)[:3] for s in np.unique(gain)])
+speed_select = Select(title="Windspeeds", value="All",
+                      options=["All"] + [str(s) for s in np.unique(speeds)])
+dir_select = Select(title="Winddirs", value="All",
+                    options=["All"] + [str(s) for s in np.unique(theta)])
+gain_select = Select(title="Gain", value="All",
+                     options=["All"] + [str(s)[:3] for s in np.unique(gain)])
 source = ColumnDataSource(data=dict(x=[], y=[], speed=[], theta=[], gain=[]))
-source_model = ColumnDataSource(
-        data=dict(x=[], y=[], speed=[], theta=[], gain=[]))
-hover = HoverTool(
-        tooltips=[("Speed", "@speed"), ("Winddir", "@theta"),
-                  ("Gain", "@gain")])
+source_model = ColumnDataSource(data=dict(x=[], y=[], speed=[], theta=[], gain=[]))
+hover = HoverTool(tooltips=[("Speed", "@speed"), ("Winddir", "@theta"), ("Gain",
+                                                                         "@gain")])
 TOOLS = "resize,save,pan,box_zoom,tap, box_select, wheel_zoom, lasso_select,reset"
 
 p = figure(plot_height=600, plot_width=700, title="", tools=[hover, TOOLS])
@@ -345,11 +323,11 @@ p.circle(x="x", y="y", source=source_model, size=7, color="red")
 
 xmap = {"Windspeed": speeds, "Winddir": theta, "Gain": gain}
 ymap = {
-        "Covar": np.sum(covar,
-                        axis=0), "Var(t+bp)": np.sum(data[:, 0, :], axis=0),
+        "Covar": np.sum(covar, axis=0), "Var(t+bp)": np.sum(data[:, 0, :], axis=0),
         "Var(t)": np.sum(data[:, 1, :],
                          axis=0), "Var(bp)": np.sum(data[:, 2, :], axis=0),
-        "Var(t)+Var(bp)": np.sum(data[:, 3, :], axis=0)}
+        "Var(t)+Var(bp)": np.sum(data[:, 3, :], axis=0)
+}
 
 buttons = [xaxis_select, speed_select, dir_select, yaxis_select, gain_select]
 for b in buttons:
@@ -358,7 +336,4 @@ for b in buttons:
 curdoc().clear()
 update(None, None, None)
 curdoc().add_root(
-        HBox(
-                VBox(
-                        xaxis_select, yaxis_select, speed_select, dir_select,
-                        gain_select), p))
+        HBox(VBox(xaxis_select, yaxis_select, speed_select, dir_select, gain_select), p))

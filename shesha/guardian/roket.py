@@ -17,7 +17,7 @@ import shesha_constants as scons
 import time
 import matplotlib.pyplot as pl
 pl.ion()
-import hdf5_utils as h5u
+import shesha_util.hdf5_utils as h5u
 import pandas
 from scipy.sparse import csr_matrix
 

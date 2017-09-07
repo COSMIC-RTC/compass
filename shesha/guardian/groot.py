@@ -4,10 +4,9 @@ from Groot import groot_init
 import time
 import sys
 import os
-sys.path.append(os.environ.get('SHESHA_ROOT') + '/test/roket/tools/')
-sys.path.append(os.environ.get('SHESHA_ROOT') + '/test/gamora/')
-import gamora
-import Dphi
+
+from guardian import gamora
+from guardian.tools import Dphi
 import matplotlib.pyplot as plt
 plt.ion()
 
@@ -62,28 +61,26 @@ def compute_Cerr(filename, modal=True, ctype="float"):
     pzt2tt = np.linalg.inv(deltaTT).dot(deltaF.T)
 
     if (ctype == "float"):
-        groot = groot_init(
-                Nact.shape[0],
-                int(f.attrs["nscreens"]), angleht, fc,
-                vdt.astype(np.float32),
-                Htheta.astype(np.float32), f.attrs["L0"], theta,
-                scale.astype(np.float32),
-                xactu.astype(np.float32),
-                yactu.astype(np.float32),
-                pzt2tt.astype(np.float32),
-                Tf.astype(np.float32), Nact.astype(np.float32))
+        groot = groot_init(Nact.shape[0],
+                           int(f.attrs["nscreens"]), angleht, fc,
+                           vdt.astype(np.float32),
+                           Htheta.astype(np.float32), f.attrs["L0"], theta,
+                           scale.astype(np.float32),
+                           xactu.astype(np.float32),
+                           yactu.astype(np.float32),
+                           pzt2tt.astype(np.float32),
+                           Tf.astype(np.float32), Nact.astype(np.float32))
     elif (ctype == "double"):
-        groot = groot_initD(
-                Nact.shape[0],
-                int(f.attrs["nscreens"]), angleht, fc,
-                vdt.astype(np.float64),
-                Htheta.astype(np.float64), f.attrs["L0"].astype(np.float64),
-                theta.astype(np.float64),
-                scale.astype(np.float64),
-                xactu.astype(np.float64),
-                yactu.astype(np.float64),
-                pzt2tt.astype(np.float64),
-                Tf.astype(np.float64), Nact.astype(np.float64))
+        groot = groot_initD(Nact.shape[0],
+                            int(f.attrs["nscreens"]), angleht, fc,
+                            vdt.astype(np.float64),
+                            Htheta.astype(np.float64), f.attrs["L0"].astype(np.float64),
+                            theta.astype(np.float64),
+                            scale.astype(np.float64),
+                            xactu.astype(np.float64),
+                            yactu.astype(np.float64),
+                            pzt2tt.astype(np.float64),
+                            Tf.astype(np.float64), Nact.astype(np.float64))
     else:
         raise TypeError("Unknown ctype : must be float or double")
     tic = time.time()
@@ -154,32 +151,25 @@ def compute_Cerr_cpu(filename, modal=True):
         fc = xactu[1] - xactu[0]
 
         M = np.linalg.norm([xij, yij], axis=0)
-        Mvdt = np.linalg.norm([
-                xij - vdt * np.cos(theta), yij - vdt * np.sin(theta)],
+        Mvdt = np.linalg.norm([xij - vdt * np.cos(theta), yij - vdt * np.sin(theta)],
                               axis=0)
         Mht = np.linalg.norm([
-                xij - Htheta * np.cos(angleht),
-                yij - Htheta * np.sin(angleht)],
-                             axis=0)
+                xij - Htheta * np.cos(angleht), yij - Htheta * np.sin(angleht)
+        ], axis=0)
         Mhvdt = np.linalg.norm([
                 xij - vdt * np.cos(theta) - Htheta * np.cos(angleht),
-                yij - vdt * np.sin(theta) - Htheta * np.sin(angleht)],
-                               axis=0)
+                yij - vdt * np.sin(theta) - Htheta * np.sin(angleht)
+        ], axis=0)
 
-        Ccov += 0.5 * (
-                Dphi.dphi_lowpass(Mhvdt, fc, L0, tabx, taby) -
-                Dphi.dphi_lowpass(Mht, fc, L0, tabx, taby) - Dphi.dphi_lowpass(
-                        Mvdt, fc, L0, tabx, taby) + Dphi.dphi_lowpass(
-                                M, fc, L0, tabx, taby)) * (1. / r0)**(
-                                        5. / 3.) * frac
+        Ccov += 0.5 * (Dphi.dphi_lowpass(Mhvdt, fc, L0, tabx, taby) - Dphi.dphi_lowpass(
+                Mht, fc, L0, tabx, taby) - Dphi.dphi_lowpass(Mvdt, fc, L0, tabx, taby) +
+                       Dphi.dphi_lowpass(M, fc, L0, tabx, taby)) * (1. / r0)**(
+                               5. / 3.) * frac
 
-        Caniso += 0.5 * (
-                Dphi.dphi_lowpass(Mht, fc, L0, tabx, taby) - Dphi.dphi_lowpass(
-                        M, fc, L0, tabx, taby)) * (1. / r0)**(5. / 3.) * frac
-        Cbp += 0.5 * (
-                Dphi.dphi_lowpass(Mvdt, fc, L0, tabx, taby) -
-                Dphi.dphi_lowpass(M, fc, L0, tabx, taby)) * (1. / r0)**(
-                        5. / 3.) * frac
+        Caniso += 0.5 * (Dphi.dphi_lowpass(Mht, fc, L0, tabx, taby) - Dphi.dphi_lowpass(
+                M, fc, L0, tabx, taby)) * (1. / r0)**(5. / 3.) * frac
+        Cbp += 0.5 * (Dphi.dphi_lowpass(Mvdt, fc, L0, tabx, taby) - Dphi.dphi_lowpass(
+                M, fc, L0, tabx, taby)) * (1. / r0)**(5. / 3.) * frac
 
     Sp = (Lambda_tar / (2 * np.pi))**2
     Ctt = (Caniso + Caniso.T) * Sp
@@ -245,8 +235,8 @@ def compare_GPU_vs_CPU(filename):
     tac = time.time()
     cpu_time = tac - tic
 
-    otftel, otf2, psf_cpu, gpu = gamora.psf_rec_Vii(
-            filename, fitting=False, cov=cov_err_cpu.astype(np.float32))
+    otftel, otf2, psf_cpu, gpu = gamora.psf_rec_Vii(filename, fitting=False,
+                                                    cov=cov_err_cpu.astype(np.float32))
     otftel, otf2, psf_gpu_s, gpu = gamora.psf_rec_Vii(
             filename, fitting=False, cov=cov_err_gpu_s.astype(np.float32))
     otftel, otf2, psf_gpu_d, gpu = gamora.psf_rec_Vii(
@@ -256,12 +246,10 @@ def compare_GPU_vs_CPU(filename):
     print("CPU time : ", cpu_time, " s ")
     print("GPU time simple precision : ", gpu_time_s, " s ")
     print("GPU time double precision : ", gpu_time_d, " s ")
-    print(
-            "Max absolute difference in PSFs simple precision : ",
-            np.abs(psf_cpu - psf_gpu_s).max())
-    print(
-            "Max absolute difference in PSFs double precision : ",
-            np.abs(psf_cpu - psf_gpu_d).max())
+    print("Max absolute difference in PSFs simple precision : ",
+          np.abs(psf_cpu - psf_gpu_s).max())
+    print("Max absolute difference in PSFs double precision : ",
+          np.abs(psf_cpu - psf_gpu_d).max())
     gamora.cutsPSF(filename, psf_cpu, psf_gpu_s)
     gamora.cutsPSF(filename, psf_cpu, psf_gpu_d)
 
@@ -354,8 +342,7 @@ def compute_Cn_cpu(filename, model="data", modal=True):
             sig = (np.pi ** 2 / 2) * (1 / Nph) * \
                 (1. / r0) ** 2  # Photon noise in m^-2
             # Noise variance in arcsec^2
-            sig = sig * ((f.attrs["wfs.Lambda"] * 1e-6) /
-                         (2 * np.pi))**2 * RASC**2
+            sig = sig * ((f.attrs["wfs.Lambda"] * 1e-6) / (2 * np.pi))**2 * RASC**2
 
             Ns = f.attrs["npix"]  # Number of pixel
             Nd = (f.attrs["wfs.Lambda"] * 1e-6) * RASC / f.attrs["pixsize"]
@@ -390,8 +377,8 @@ def compute_OTF_fitting(filename, otftel):
         psf_fit (np.ndarray) : Fitting PSF
     """
     f = h5py.File(filename, 'r')
-    r0 = f.attrs["r0"] * (
-            f.attrs["target.Lambda"][0] / f.attrs["wfs.Lambda"][0])**(6. / 5.)
+    r0 = f.attrs["r0"] * (f.attrs["target.Lambda"][0] / f.attrs["wfs.Lambda"][0])**(
+            6. / 5.)
     ratio_lambda = 2 * np.pi / f.attrs["target.Lambda"][0]
     # Telescope OTF
     spup = gamora.get_pup(filename)
@@ -406,9 +393,8 @@ def compute_OTF_fitting(filename, otftel):
     r = np.sqrt(x[:, None] * x[:, None] + x[None, :] * x[None, :])
     tabx, taby = Dphi.tabulateIj0()
     dphi = np.fft.fftshift(
-            Dphi.dphi_highpass(
-                    r, f.attrs["tel_diam"] /
-                    (f.attrs["nact"][0] - 1), tabx, taby) * (1 / r0)**
+            Dphi.dphi_highpass(r, f.attrs["tel_diam"] /
+                               (f.attrs["nact"][0] - 1), tabx, taby) * (1 / r0)**
             (5 / 3.))  # * den * ratio_lambda**2 * mask
     otf_fit = np.exp(-0.5 * dphi) * mask
     otf_fit = otf_fit / otf_fit.max()
@@ -436,8 +422,8 @@ def compute_PSF(filename):
     Cn = compute_Cn_cpu(filename)
     Ca = compute_Ca_cpu(filename)
     Cee = Cab + Cn + Ca
-    otftel, otf2, psf, gpu = gamora.psf_rec_Vii(
-            filename, fitting=False, cov=(Cee).astype(np.float32))
+    otftel, otf2, psf, gpu = gamora.psf_rec_Vii(filename, fitting=False,
+                                                cov=(Cee).astype(np.float32))
     otf_fit, psf_fit = compute_OTF_fitting(filename, otftel)
     psf = np.fft.fftshift(np.real(np.fft.ifft2(otf_fit * otf2 * otftel)))
     psf *= (psf.shape[0] * psf.shape[0] / float(np.where(spup)[0].shape[0]))

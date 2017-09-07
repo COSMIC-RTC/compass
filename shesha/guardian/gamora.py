@@ -13,7 +13,7 @@ from sys import stdout
 import time
 
 plt.ion()
-gpudevices = np.array([0, 1], dtype=np.int32)
+gpudevices = np.array([6, 7], dtype=np.int32)
 c = ch.naga_context(devices=gpudevices)
 
 #filename = "/home/fferreira/Data/breakdown_offaxis-4_2.h5"
@@ -111,10 +111,9 @@ def psf_rec_roket_file(filename, err=None):
     # Scale factor
     scale = float(2 * np.pi / f.attrs["target.Lambda"][0])
     # Init GPU
-    gamora = gamora_init(
-            b"roket", err.shape[0], err.shape[1],
-            IF.data.astype(np.float32), IF.indices, IF.indptr, T,
-            spup.astype(np.float32), scale)
+    gamora = gamora_init(b"roket", err.shape[0], err.shape[1],
+                         IF.data.astype(np.float32), IF.indices, IF.indptr, T,
+                         spup.astype(np.float32), scale)
     # Launch computation
     gamora.psf_rec_roket(err)
     # Get psf
@@ -152,8 +151,7 @@ def psf_rec_roket_file_cpu(filename):
         amplipup = np.zeros((fft_size, fft_size), dtype=np.complex)
         phase[np.where(spup)] = IF.T.dot(err[:-2, k])
         phase[np.where(spup)] += T.dot(err[-2:, k])
-        amplipup[:phase.shape[0], :phase.shape[1]] = np.exp(
-                -1j * phase * scale)
+        amplipup[:phase.shape[0], :phase.shape[1]] = np.exp(-1j * phase * scale)
         amplipup = np.fft.fft2(amplipup)
         psf += np.fft.fftshift(np.abs(amplipup)**2) / \
             IF.shape[1] / IF.shape[1] / err.shape[1]
@@ -188,10 +186,10 @@ def psf_rec_Vii(filename, err=None, fitting=True, covmodes=None, cov=None):
     # Scale factor
     scale = float(2 * np.pi / f.attrs["target.Lambda"][0])
     # Init GPU
-    gamora = gamora_init(
-            b"Vii", Btt.shape[0], f["noise"][:].shape[1],
-            IF.data.astype(np.float32), IF.indices, IF.indptr, T,
-            spup.astype(np.float32), scale, covmodes.shape[0], Btt, covmodes)
+    gamora = gamora_init(b"Vii", Btt.shape[0], f["noise"][:].shape[1],
+                         IF.data.astype(np.float32), IF.indices, IF.indptr, T,
+                         spup.astype(np.float32), scale, covmodes.shape[0], Btt,
+                         covmodes)
     # Launch computation
     # gamora.set_eigenvals(e.astype(np.float32))
     # gamora.set_covmodes(V.astype(np.float32))
@@ -290,6 +288,4 @@ def test_Vii(filename):
     print("GPU exec time : ", gputime, " s")
     print("Speed up : x", cputime / gputime)
     print("---------------------------------")
-    print(
-            "precision on psf : ",
-            np.abs(psf_cpu - psf_gpu).max() / psf_cpu.max())
+    print("precision on psf : ", np.abs(psf_cpu - psf_gpu).max() / psf_cpu.max())
