@@ -374,7 +374,8 @@ def script4bench(param_file, centroider, controller, devices, fwrite=True):
                  "docontrol": docontrol_time,
                  "applycontrol": applycontrol_time,
                  "iter_time": time_per_iter,
-                 "Avg.gain": G}
+                 "Avg.gain": G,
+                 "ResidualPhase:": target.get_phase(0)}
 
     store = pandas.HDFStore(BENCH_SAVEPATH + "benchmarks.h5")
     try:

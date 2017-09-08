@@ -1,11 +1,11 @@
 import shesha as ao
 
-simul_name="bench_scao_16x16_8pix"
+simul_name="scao_sh_8m_40x40_8pix"
 
 #loop
 p_loop = ao.Param_loop()
 
-p_loop.set_niter(1000)
+p_loop.set_niter(5000)
 p_loop.set_ittime(0.002) #=1/500
 
 
@@ -46,12 +46,11 @@ p_target.set_mag([10])
 
 #wfs
 p_wfs0= ao.Param_wfs()
-p_wfs1= ao.Param_wfs()
 p_wfss=[p_wfs0]
 
 
 p_wfs0.set_type("sh")
-p_wfs0.set_nxsub(16)
+p_wfs0.set_nxsub(40)
 p_wfs0.set_npix(8)
 p_wfs0.set_pixsize(0.3)
 p_wfs0.set_fracsub(0.8)
@@ -64,15 +63,6 @@ p_wfs0.set_zerop(1.e11)
 p_wfs0.set_noise(-1)
 p_wfs0.set_atmos_seen(1)
 
-
-#lgs parameters
-#p_wfs0.set_gsalt(90*1.e3)
-#p_wfs0.set_lltx(0)
-#p_wfs0.set_llty(0)
-#p_wfs0.set_laserpower(10)
-#p_wfs0.set_lgsreturnperwatt(1.e3)
-#p_wfs0.set_proftype("Exp")
-#p_wfs0.set_beamsize(0.8)
 
 #dm
 p_dm0=ao.Param_dm()
@@ -114,10 +104,9 @@ p_controller0.set_maxcond(1500)
 p_controller0.set_delay(1)
 p_controller0.set_gain(0.4)
 
-
 p_controller0.set_modopti(0)
 p_controller0.set_nrec(2048)
-p_controller0.set_nmodes(216)
+p_controller0.set_nmodes(1286)
 p_controller0.set_gmin(0.001)
 p_controller0.set_gmax(0.5)
 p_controller0.set_ngain(500)
@@ -128,5 +117,3 @@ p_rtc=ao.Param_rtc()
 p_rtc.set_nwfs(1)
 p_rtc.set_centroiders(p_centroiders)
 p_rtc.set_controllers(p_controllers)
-
-

@@ -1,10 +1,10 @@
 __version__ = "Develop"
-__version__ = "V0.2.1"
+__version__ = "V0.3"
 
 if __version__ is not "Develop":
     print("   ____________________________________________")
-    print("  /                                          \\")
-    print("  | Initialization of COMPASS, version: " + __version__ + " |")
+    print("  /                                            \\")
+    print("  | Initialization of COMPASS, version: " + __version__ + "   |")
     print("  \\____________________________________________/")
 
 import cython
@@ -61,8 +61,7 @@ from shesha_dms import *
 from shesha_target import *
 from shesha_rtc import *
 from shesha_telescope import *
-# from shesha_roket import *
-# from shesha_psfrecs import *
+from shesha_acquisim import *
 
 '''
 def see_atmos_target_disp(int n, Atmos atm, Target tar,Sensors wfs, float alt=0, int n_tar=0,float f=1, int log=0):

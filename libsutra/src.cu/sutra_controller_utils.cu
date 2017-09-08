@@ -254,7 +254,7 @@ __global__ void tabulateDPHI_gpu_gb_kernel(double* tabDPHI_d, double* L0diff_d, 
 	//}
 }
 
-__device__ double Ij0t83(double x, double *tab_x, double *tab_y, long npts){
+__device__ double Ij0t83_gb(double x, double *tab_x, double *tab_y, long npts){
 	if (x<=exp(-3.0))
 		return (double)(0.75 * pow((double)x,1/3.) * (1 - x*x/112.));
 	else{
@@ -294,9 +294,9 @@ __global__ void tabulateDPHI_lowpass_kernel(double* tabDPHI_d, double *tab_int_x
 
 	if(tid >= (Nl0*Ndphi) ) return;
 
-	//tabDPHI_d[tid] = Ij0t83((double)(r*(pi/dx)), indexL0, tab_int_x, tab_int_y, convert_int,npts);
+	//tabDPHI_d[tid] = Ij0t83_gb((double)(r*(pi/dx)), indexL0, tab_int_x, tab_int_y, convert_int,npts);
 
-	tabDPHI_d[tid] = pow(r,(double)(5./3.)) * Ij0t83((double)(r*(pi/dx[dm])), tab_int_x, tab_int_y, npts)*(double)((2*pow((2*pi),(double)(8/3.))*0.0228956));
+	tabDPHI_d[tid] = pow(r,(double)(5./3.)) * Ij0t83_gb((double)(r*(pi/dx[dm])), tab_int_x, tab_int_y, npts)*(double)((2*pow((2*pi),(double)(8/3.))*0.0228956));
 }
 
 
@@ -439,12 +439,12 @@ __device__ double cov_XY_gpu_gb(double du, double dv, double s0, double *tabDPHI
 //============================================================================================
 //============================= CPHIM ELEMENTARY FUNCTIONS ==================================
 //============================================================================================
-__device__ double DPHI_highpass(double r, double fc, double *tab_x, double *tab_y, long npts){
+__device__ double DPHI_highpass_gb(double r, double fc, double *tab_x, double *tab_y, long npts){
 
 	const double pi = 3.1415926535897932384626433;
-	return pow(r,5/3.) * (1.1183343328701949 - Ij0t83(2*pi*fc*r,tab_x,tab_y,npts)) * pow(2*pi,8/3.) * 2 *0.0228956;
+	return pow(r,5/3.) * (1.1183343328701949 - Ij0t83_gb(2*pi*fc*r,tab_x,tab_y,npts)) * pow(2*pi,8/3.) * 2 *0.0228956;
 }
-__device__ double DPHI_lowpass(double x, double y, double L0, double fc, double *tab_int_x, double *tab_int_y, long npts){
+__device__ double DPHI_lowpass_gb(double x, double y, double L0, double fc, double *tab_int_x, double *tab_int_y, long npts){
 	/*
 	double r = sqrt(x * x + y * y);
 	const double pi = 3.1415926535897932384626433;
@@ -462,17 +462,17 @@ __device__ double DPHI_lowpass(double x, double y, double L0, double fc, double 
 	*/
 	double r = sqrt(x * x + y * y);
 
-	return rodconan_gpu_gb(r,L0,10) - DPHI_highpass(r,fc,tab_int_x,tab_int_y,npts);
+	return rodconan_gpu_gb(r,L0,10) - DPHI_highpass_gb(r,fc,tab_int_x,tab_int_y,npts);
 }
 __device__ double cphim_XX(double du, double dv, double posx, double posy, double xref, double yref, double s2, double L0, double fc, long npts, double *tab_int_x, double *tab_int_y)
  /* DOCUMENT
    Compute the XX-covariance with the distance sqrt(du2+dv2). DPHI is precomputed on tabDPHI.
  */
 {
-	return -DPHI_lowpass(du - 2*s2, dv - s2, L0, fc, tab_int_x, tab_int_y, npts)
-	    + DPHI_lowpass(du, dv - s2, L0, fc, tab_int_x, tab_int_y, npts)
-	    + DPHI_lowpass(posx+ 2*s2-xref, posy + s2-yref, L0, fc, tab_int_x, tab_int_y, npts)
-	    - DPHI_lowpass(posx-xref, posy+s2-yref, L0, fc, tab_int_x, tab_int_y, npts);
+	return -DPHI_lowpass_gb(du - 2*s2, dv - s2, L0, fc, tab_int_x, tab_int_y, npts)
+	    + DPHI_lowpass_gb(du, dv - s2, L0, fc, tab_int_x, tab_int_y, npts)
+	    + DPHI_lowpass_gb(posx+ 2*s2-xref, posy + s2-yref, L0, fc, tab_int_x, tab_int_y, npts)
+	    - DPHI_lowpass_gb(posx-xref, posy+s2-yref, L0, fc, tab_int_x, tab_int_y, npts);
 
 /*
 		return -DPHI_gpu_gb(du - 2*s2, dv - s2, L0)
@@ -488,10 +488,10 @@ __device__ double cphim_YY(double du, double dv, double posx, double posy, doubl
    Compute the YY-covariance with the distance sqrt(du2+dv2). DPHI is precomputed on tabDPHI.
  */
 {
-	return  -DPHI_lowpass(du-s2, dv - 2*s2, L0, fc, tab_int_x, tab_int_y, npts)
-	    + DPHI_lowpass(du-s2, dv, L0, fc, tab_int_x, tab_int_y, npts)
-	    + DPHI_lowpass(posx+s2-xref, posy + 2*s2-yref, L0, fc, tab_int_x, tab_int_y, npts)
-	    - DPHI_lowpass(posx+s2-xref, posy-yref, L0, fc, tab_int_x, tab_int_y, npts);
+	return  -DPHI_lowpass_gb(du-s2, dv - 2*s2, L0, fc, tab_int_x, tab_int_y, npts)
+	    + DPHI_lowpass_gb(du-s2, dv, L0, fc, tab_int_x, tab_int_y, npts)
+	    + DPHI_lowpass_gb(posx+s2-xref, posy + 2*s2-yref, L0, fc, tab_int_x, tab_int_y, npts)
+	    - DPHI_lowpass_gb(posx+s2-xref, posy-yref, L0, fc, tab_int_x, tab_int_y, npts);
 
 /*
   return  -DPHI_gpu_gb(du-s2, dv - 2*s2, L0)
@@ -2878,7 +2878,7 @@ __global__ void test_dphi_highpass_krnl(double *odata, double *r, double *tabx, 
 	int tid = threadIdx.x + blockIdx.x * blockDim.x;
 	if( tid<N){
 		double fc = 1/(2*d);
-		odata[tid] = DPHI_highpass(r[tid],fc,tabx,taby,N);
+		odata[tid] = DPHI_highpass_gb(r[tid],fc,tabx,taby,N);
 	}
 }
 

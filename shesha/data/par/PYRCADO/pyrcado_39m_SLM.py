@@ -5,9 +5,8 @@ simul_name=""
 #loop
 p_loop = ao.Param_loop()
 
-p_loop.set_niter(30000) #500Hz: 1mn = 30000, 1kH = 60000
+p_loop.set_niter(1000) #500Hz: 1mn = 30000, 1kH = 60000
 p_loop.set_ittime(1/500.) #=1/500
-# p_loop.set_devices([0, 1, 2, 3])
 
 #geom
 p_geom=ao.Param_geom()
@@ -16,19 +15,6 @@ p_geom.set_zenithangle(0.)
 #tel
 p_tel=ao.Param_tel()
 p_tel.set_diam(39.)
-# p_tel.set_cobs(0.28)
-
-"""
-E_ELT PUPIL
-p_tel.set_type_ap("EELT-Nominal")
-p_tel.set_spiders_type("six")
-p_tel.set_pupangle(0)
-
-p_tel.set_nbrmissing(7)
-p_tel.set_referr(0.01)
-p_tel.set_std_tt(0.050) # microns
-p_tel.set_std_piston(0.050) # microns
-"""
 
 #atmos
 p_atmos=ao.Param_atmos()
@@ -43,8 +29,8 @@ p_atmos.set_L0([25.])  # Not simulated in Yorick?
 
 # No target
 
-# WFS
 
+# Fake WFS for raytracing
 p_wfs0= ao.Param_wfs()
 p_wfss=[p_wfs0]
 
@@ -71,9 +57,8 @@ p_dm0=ao.Param_dm()
 p_dms = [p_dm0]
 p_dm0.set_type("pzt")
 nact=p_wfs0.nxsub+1
-#nact = 9
 
-p_dm0.set_margin_out(0.)
+p_dm0.set_margin_out(0)
 
 p_dm0.set_nact(nact)
 p_dm0.set_alt(0.)

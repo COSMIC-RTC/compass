@@ -1,6 +1,6 @@
 import shesha as ao
 
-simul_name="scao_40m_80_8pix"
+simul_name="bench_scao_sh_80x80_16pix"
 
 #loop
 p_loop = ao.Param_loop()
@@ -52,7 +52,7 @@ p_wfss=[p_wfs0]
 
 p_wfs0.set_type("sh")
 p_wfs0.set_nxsub(80)
-p_wfs0.set_npix(8)
+p_wfs0.set_npix(16)
 p_wfs0.set_pixsize(0.3)
 p_wfs0.set_fracsub(0.8)
 p_wfs0.set_xpos(0.)
@@ -63,6 +63,7 @@ p_wfs0.set_optthroughput(0.5)
 p_wfs0.set_zerop(1.e11)
 p_wfs0.set_noise(-1)
 p_wfs0.set_atmos_seen(1)
+
 
 #dm
 p_dm0=ao.Param_dm()

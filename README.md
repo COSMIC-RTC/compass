@@ -1,5 +1,30 @@
 source: <https://projets-lesia.obspm.fr/projects/compass/wiki/Install_the_platform>
 
+Table of Contents
+=================
+
+   * [Install Anaconda with python2](#install-anaconda-with-python2)
+      * [Download and installation](#download-and-installation)
+      * [Add more packets](#add-more-packets)
+   * [Install MAGMA](#install-magma)
+      * [Why MAGMA ?](#why-magma-)
+      * [Configure MAGMA with openBLAS](#configure-magma-with-openblas)
+         * [Dependencies : openblas (<a href="http://www.openblas.net">http://www.openblas.net</a>)](#dependencies--openblas-httpwwwopenblasnet)
+         * [extraction](#extraction)
+         * [configuration](#configuration)
+      * [Configure MAGMA with MKL](#configure-magma-with-mkl)
+         * [extraction](#extraction-1)
+      * [compilation and installation](#compilation-and-installation)
+         * [compilation](#compilation)
+         * [installation](#installation)
+      * [tuning](#tuning-not-tested)
+   * [Install the platform](#install-the-platform)
+      * [Hardware requirements](#hardware-requirements)
+      * [Environment requirements](#environment-requirements)
+      * [Installation process](#installation-process)
+
+Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc)
+
 # Install Anaconda with python2
 
 more info: <https://www.continuum.io/downloads#linux>
@@ -284,9 +309,13 @@ To install libraries and include files in a given prefix, run:
 make install prefix=$HOME/local/magma
 ```
 
-The default prefix is /usr/local/magma. You can also set prefix in make.inc. tuning (not tested)
+The default prefix is /usr/local/magma. You can also set prefix in make.inc. 
 
-For multi-GPU functions, set $MAGMA_NUM_GPUS to set the number of GPUs to use. For multi-core BLAS libraries, set $OMP_NUM_THREADS or $MKL_NUM_THREADS or $VECLIB_MAXIMUM_THREADS to set the number of CPU threads, depending on your BLAS library.
+## tuning (not tested)
+
+For multi-GPU functions, set $MAGMA_NUM_GPUS to set the number of GPUs to use.
+
+For multi-core BLAS libraries, set $OMP_NUM_THREADS or $MKL_NUM_THREADS or $VECLIB_MAXIMUM_THREADS to set the number of CPU threads, depending on your BLAS library.
 
 # Install the platform
 

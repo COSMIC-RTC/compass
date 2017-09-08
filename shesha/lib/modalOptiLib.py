@@ -7,10 +7,21 @@ Created on 23 janv. 2017
 import numpy as np
 import time
 import matplotlib.pyplot as plt
-import os
+import os, sys
+
+try:
+    HRAAPATH = os.environ["HRAAPATH"]
+    PYRDATAPATH = HRAAPATH + "/PYRCADO/data"
+    sys.path.insert(0, HRAAPATH + '/PYRCADO/Python')
+except:
+    print "ERROR COULD NOT FIND HRAAPATH environment variable. Please set it up in the .bashrc in re-start"
+    pass
 
 
-def applyVoltGetSlopes(wao, volts, withAtm):
+
+
+
+def applyVoltGetSlopes(wao, volts, withAtm, extPyrc = None):
     '''
         Applies voltages
         on the dms and reads out wfs slopes
@@ -27,13 +38,42 @@ def applyVoltGetSlopes(wao, volts, withAtm):
             wao.wfs.sensors_trace(w, "dm", wao.tel, wao.atm, wao.dms)
         wao.wfs.sensors_compimg(w, noise = False)
 
-    wao.rtc.docentroids(0)
-    cen = wao.rtc.getCentroids(0)
+    if extPyrc is None:
+        wao.rtc.docentroids(0)
+        slopes = wao.rtc.getCentroids(0)
+    else:
+        import controlRoutines as cr
+        pyrhr = wao.wfs.get_pyrimghr(0)
+        _, _, _, grad = cr.getPyramidData(pyrhr, extPyrc)
+        slopes = cr.gradToSlopes(grad, extPyrc["validZone"])
+    return slopes
 
-    return cen
+
+def applyTiltsGetFlatSlopes(wao, TTpush, extPyrc):
+    pyrhr = None
+    for i in [-1, 1]:
+        for j in [-1, 1]:
+            wao.dms.set_comm('tt', 0, np.array([i, j], np.float32) * TTpush,
+                             shape_dm = True)
+            
+            for w in range(len(wao.config.p_wfss)):
+                wao.wfs.reset_phase(w)
+                wao.wfs.sensors_trace(w, "dm", wao.tel, wao.atm, wao.dms)
+                wao.wfs.sensors_compimg(w, noise = False)
+
+            import controlRoutines as cr
+            if pyrhr is None:
+                pyrhr = wao.wfs.get_pyrimghr(0) / 4.
+            else:
+                pyrhr += wao.wfs.get_pyrimghr(0) / 4.
+
+    _, _, _, grad = cr.getPyramidData(pyrhr, extPyrc)
+    slopes = cr.gradToSlopes(grad, extPyrc["validZone"])
+    return slopes
 
 
-def measureIMatKLPP(wao, ampliVec, KL2V, nSlopes, withAtm):
+
+def measureIMatKLPP(wao, ampliVec, KL2V, nSlopes, withAtm, extPyrc = None):
     '''
         Make modal interaction matrix using push-pull normalized difference
     :param wao: AO Widget
@@ -50,13 +90,13 @@ def measureIMatKLPP(wao, ampliVec, KL2V, nSlopes, withAtm):
 
     st = time.time()
 
-    ref = applyVoltGetSlopes(wao, currentVolts, withAtm)
+    ref = applyVoltGetSlopes(wao, currentVolts, withAtm, extPyrc = extPyrc)
     
 
     for kl in range(KL2V.shape[1]):
         v = ampliVec[kl] * KL2V[:, kl]
 
-        iMatKL[:, kl] = (applyVoltGetSlopes(wao, v + currentVolts, withAtm) - ref) / ampliVec[kl]
+        iMatKL[:, kl] = (applyVoltGetSlopes(wao, v + currentVolts, withAtm, extPyrc = extPyrc) - ref) / ampliVec[kl]
 
         print "Doing KL interaction matrix on mode: #%d\r" % kl,
         os.sys.stdout.flush()
@@ -64,7 +104,8 @@ def measureIMatKLPP(wao, ampliVec, KL2V, nSlopes, withAtm):
     print "Modal interaction matrix done in %3.1f seconds" % (time.time() - st)
     return iMatKL
 
-def measureIMatKLSine(wao, ampliVec, KL2V, nSlopes, withAtm):
+
+def measureIMatKLSine(wao, ampliVec, KL2V, nSlopes, withAtm, extPyrc = None):
 
     if withAtm:
         currentVolts = wao.rtc.getVoltage(0)
@@ -84,7 +125,7 @@ def measureIMatKLSine(wao, ampliVec, KL2V, nSlopes, withAtm):
     st = time.time()
     for f in range(nFrames):
         v = voltsToSet[:, f]
-        frames[:, f] = applyVoltGetSlopes(wao, v + currentVolts, withAtm)
+        frames[:, f] = applyVoltGetSlopes(wao, v + currentVolts, withAtm, extPyrc = extPyrc)
         print "Doing sine KL interaction matrix on frame: #%d / %d\r" % (f + 1, nFrames),
         os.sys.stdout.flush()
 
@@ -94,6 +135,7 @@ def measureIMatKLSine(wao, ampliVec, KL2V, nSlopes, withAtm):
     imatKL = np.real(FTImat[:, primeFreq]) / ((np.max(primeFreq) + 1) * ampliVec)
 
     return imatKL
+
 
 def nPrimes(n):
     def prime(i, primes):
@@ -112,6 +154,7 @@ def nPrimes(n):
                 return primes
         i += 1
 
+
 def normalizeKL2V(KL2V, mode = 'linf'):
     '''
         L-Inf normalization of mirror modes
@@ -124,6 +167,7 @@ def normalizeKL2V(KL2V, mode = 'linf'):
     else:
         print "Invalid normalize KL2V mode - required optional mode = 'l2' or 'linf'"
         return None
+
 
 def cropKL2V(KL2V):
     '''
@@ -145,7 +189,7 @@ def plotVDm(wao, numdm, V, size = 16, fignum = False):
         plt.colorbar()
 
 
-def computeImatKL(wao, pushPZT, pushTT, KL2V, nSlopes, withAtm):
+def computeImatKL(wao, pushPZT, pushTT, KL2V, nSlopes, withAtm, extPyrc = None):
     '''
         Compute the modal interaction matrix with given input parameters
     :param wao: AO Widget
@@ -157,7 +201,7 @@ def computeImatKL(wao, pushPZT, pushTT, KL2V, nSlopes, withAtm):
     '''
     NKL = KL2V.shape[1]
     modesAmpli = np.array([pushPZT] * (NKL - 2) + [pushTT] * 2)
-    iMat = measureIMatKLPP(wao, modesAmpli, KL2V, nSlopes, withAtm)
+    iMat = measureIMatKLPP(wao, modesAmpli, KL2V, nSlopes, withAtm, extPyrc = extPyrc)
     return iMat
 
 
@@ -198,7 +242,7 @@ class ModalGainOptimizer:
     '''
 
 
-    def __init__(self, wao):
+    def __init__(self, wao, extPyrc = None):
         '''
             ModalGainOptimizer constructor.
             Resets AO session's RTC to some defaults.
@@ -208,12 +252,18 @@ class ModalGainOptimizer:
         self.wao = wao
 
         self.nActu = sum(wao.config.p_rtc.controllers[0].nactu)
-        self.nSlopes = wao.rtc.getCentroids(0).shape[0]
+        self.waoSlopes = wao.rtc.getCentroids(0).shape[0]
+        if extPyrc is None:
+            self.nSlopes = self.waoSlopes
+        else:
+            self.nSlopes = applyVoltGetSlopes(wao, np.zeros(self.nActu), False, extPyrc).shape[0]
         self.pushPzt = 0.01  # 10 nm
         self.pushTT = 0.005  # 5 mas
 
         self.gain = 0.7
         self.nFilter = 10
+
+        self.pyrc = extPyrc
 
         # Clear WAO and do some controller setup
         self.wao.aoLoopClicked(False)
@@ -221,19 +271,23 @@ class ModalGainOptimizer:
         self.wao.openLoop()
 
         self.wao.setIntegratorLaw()
-        self.wao.rtc.set_decayFactor(0, np.ones(self.nSlopes, dtype = (np.float32)))
+        self.wao.rtc.set_decayFactor(0, np.ones(self.waoSlopes, dtype = (np.float32)))
         self.wao.rtc.set_mgain(0, self.gain * np.ones(self.nActu, dtype = (np.float32)))
         
         self.initBasis(wao.returnkl2V())
 
 
     
-    def initBasis(self, rawKL2V):
+    def initBasis(self, rawKL2V, norm = False):
         '''
             Sets and normalizes a DM basis
-        :param rawKL2V: Self-explanatory. Pass wao.returnkl2V() for defaulting
+        :param rawKL2V: Self-explanatory.
         '''
-        self.KL2V = normalizeKL2V(rawKL2V, mode = 'l2')
+        if norm:
+            self.KL2V = normalizeKL2V(rawKL2V, mode = 'l2')
+        else:
+            self.KL2V = rawKL2V.copy()
+
         self.KL2VFilt = \
             self.KL2V[:, range(0, self.KL2V.shape[1] - self.nFilter - 2) + [-2, -1]]
 
@@ -249,7 +303,7 @@ class ModalGainOptimizer:
         '''
         self.wao.closeLoop()
         self.iMatKLRef = computeImatKL(self.wao, self.pushPzt, self.pushTT,
-                                       self.KL2V, self.nSlopes, False)
+                                       self.KL2V, self.nSlopes, withAtm = False, extPyrc = self.pyrc)
         self.cMatKLRef = computeCmatKL(self.iMatKLRef, self.nFilter)
 
         self.gainValues = np.ones(self.cMatKLRef.shape[0])
@@ -278,7 +332,7 @@ class ModalGainOptimizer:
         '''
         self.wao.closeLoop()
         iMatKL = computeImatKL(self.wao, self.pushPzt, self.pushTT,
-                               self.KL2V, self.nSlopes, True)
+                               self.KL2V, self.nSlopes, withAtm = True, extPyrc = self.pyrc)
         ksiVal = np.sqrt(np.diag(np.dot(self.iMatKLRef.T, self.iMatKLRef)) /
                          np.diag(np.dot(iMatKL.T, iMatKL)))
 
@@ -315,6 +369,146 @@ def loopStaticAtmos(wao, nIter):
         wao.tar.atmos_trace(t, wao.atm, wao.tel)
         wao.tar.dmtrace(t, wao.dms)
 
+        
+def AOLoop(nIter, wao, cmat = None, pyrc = None,
+           reset = None, gain = 0.7, clip = -1, refSlopes = None,
+           moveAtmos = True, showAtmos = True, computeLE = None,
+           computeResidualsM2PH = None):
+    '''
+    
+    :param nIter:
+    :param cmat: None to use wao.rtc, or a control matrix to externalize computation
+    :param wao:
+    :param reset: None to reset or an initial command array otherwise
+    :param sleep_time:
+    :param refSlopes: None for zero refslopes or slopes array
+    :param moveAtmos:
+    :param showAtmos:
+    :param showOffset:
+    :param computeLE: None or [target numbers]
+    :param computeResidualsM2PH: M2PH phase cube for residual, or None for no residuals
+    '''
+    
+    if cmat is None:  # Internal WFS/RTC
+        nactu = 0
+        for p_dm in wao.config.p_dms:
+            nactu += p_dm._ntotact
+    else:  # Externalize WFS/RTC
+        nactu = cmat.shape[0]
+        
+    # MACROS
+    def trace_wfs(showAtmos):
+        for w in range(len(wao.config.p_wfss)):
+            if showAtmos:
+                wao.wfs.sensors_trace(w, "all", wao.tel, wao.atm, wao.dms, rst = 1)
+            else:
+                wao.wfs.sensors_trace(w, "dm", wao.tel, wao.atm, wao.dms, rst = 1)
+            wao.wfs.sensors_compimg(w)
+    def trace_tar(showAtmos):
+        for t in range(wao.config.p_target.ntargets):
+            wao.tar.reset_phase(t)
+            if showAtmos:
+                wao.tar.atmos_trace(t, wao.atm, wao.tel)
+            wao.tar.dmtrace(t, wao.dms)
+
+    if reset is None:
+        wao.dms.resetdm('pzt', 0)
+        wao.dms.resetdm('tt', 0)
+        currCommand = np.zeros(nactu)
+    else:
+        currCommand = reset.copy()
+        wao.dms.set_full_comm(currCommand.copy().astype(np.float32))
+    trace_wfs(showAtmos)
+    trace_tar(showAtmos)
+
+    if refSlopes is None:
+        if cmat is None:
+            refSlopes = np.zeros(wao.rtc.getCentroids(0).shape[0])
+        else:
+            refSlopes = np.zeros(cmat.shape[1])
+
+    longExp = []
+    if computeLE is not None:
+        for i in range(len(computeLE)):
+            longExp += [wao.tar.get_image(computeLE[i], "se")]
+
+
+    if computeResidualsM2PH is not None:
+        residualTot = np.zeros((nIter, computeResidualsM2PH.shape[0] + 1))
+
+    for i in range(nIter):
+
+        if moveAtmos:
+            wao.atm.move_atmos()
+
+        if cmat is None:  # Internal WFS/RTC
+            wao.rtc.applycontrol(0, wao.dms)
+            trace_wfs(showAtmos)
+            wao.rtc.docentroids(0)
+            wao.rtc.docontrol(0)
+            currCommand = np.r_[wao.dms.getComm('pzt', 0), wao.dms.getComm('tt', 0)]
+
+        else:  # Externalize WFS/RTC
+            slopes = applyVoltGetSlopes(wao, currCommand, showAtmos, extPyrc = pyrc)
+
+            currCommand -= gain * cmat.dot(slopes - refSlopes)
+            if clip > 0:
+                currCommand = np.clip(currCommand, -clip, clip)
+
+        if computeResidualsM2PH is not None:
+            residualTot[i, :] = residuals(computeResidualsM2PH, phMap(wao, showAtmos))
+
+        if computeLE is not None:
+            trace_tar(showAtmos)
+            for i in range(len(computeLE)):
+                longExp[i] += wao.tar.get_image(computeLE[i], "se")
+        
+    arg = 2 * (computeLE is not None) + (computeResidualsM2PH is not None)
+    if arg == 0:
+        return currCommand
+    elif arg == 1:
+        return currCommand, residualTot
+    elif arg == 2:
+        return currCommand, longExp
+    else:
+        return currCommand, longExp, residualTot
+        
+    for t in range(wao.config.p_target.ntargets):
+        wao.tar.atmos_trace(t, wao.atm, wao.tel)
+        wao.tar.dmtrace(t, wao.dms)
+    
+
+def phMap(wao, showAtmos):
+    '''
+        Get a WFS phase map
+    '''
+    wao.wfs.reset_phase(0)
+    if showAtmos:
+        wao.wfs.sensors_trace(0, "all", wao.tel, wao.atm, wao.dms)
+    else:
+        wao.wfs.sensors_trace(0, "dm", wao.tel, wao.atm, wao.dms)
+
+    pupil = wao.config.p_geom.get_mpupil().astype(bool)
+    phase = wao.wfs.get_phase(0) * pupil
+    phase[pupil] -= np.mean(phase[pupil])
+    phase /= np.sqrt(np.sum(pupil)) * wao.config.p_wfs0.Lambda
+
+    return phase
+
+def residuals(M2PH, phaseMap):
+    '''
+        Project a phase map on the M2PH tensor
+    '''
+    # M2PH : nModes * npup * npup
+    # phaseMap : npup * npup
+
+    coefficients = np.tensordot(M2PH, phaseMap, axes = 2)
+    fitting = np.sqrt(np.sum(phaseMap ** 2) - np.sum(coefficients ** 2))
+    return np.r_[coefficients, fitting]
+
+
+
+
 def simuAndRecord(wao, nIter):
     
     nSlopes = wao.rtc.getCentroids(0).shape[0]
@@ -348,7 +542,23 @@ def doubleWFSLoop(wao):
     return slopes
 
 
+def mode2ph(KL2V, wao):
+    nModes = KL2V.shape[1]
+    pupil = wao.config.p_geom.get_mpupil().astype(bool)
+    
+    M2PH = np.zeros((nModes, pupil.shape[0], pupil.shape[1]))
+    S = np.sum(pupil)
 
+    for i in range(nModes):
+        wao.wfs.reset_phase(0)
+        wao.dms.set_full_comm(KL2V[:, i].astype(np.float32).copy())
+        wao.wfs.sensors_trace(0, "dm", wao.tel, wao.atm, wao.dms)
+        M2PH[i] = wao.wfs.get_phase(0) * pupil
+        M2PH[i][pupil] -= np.mean(M2PH[i][pupil])
+        M2PH[i] /= np.sqrt(np.sum(M2PH[i][pupil] ** 2))
+        print str(i + 1) + "/" + str(nModes)
+
+    return M2PH
 
 
 
@@ -535,4 +745,14 @@ def modalControlOptimizationClosedLoopData(slopesClosed, voltsData, mia, S2M, M2
 
     return modalControlOptimizationOpenLoopData(slopesOpen, S2M, M2V,
                                                 gmax = gmax, Fs = Fs, latency = latency, BP = BP)
+
+
+
+
+
+
+
+
+
+
 

@@ -5,11 +5,13 @@
 
 sutra_rtc_brama::sutra_rtc_brama(carma_context *context, sutra_sensors *wfs_, sutra_target *target_, ACE_TCHAR* name) :
 sutra_rtc(context), wfs(wfs_), target(target_) {
-  brama = new BRAMA::BRAMA_context(name);
+  DEBUG_TRACE("init %s", name);
+  BRAMA::BRAMA_context brama = BRAMA::BRAMA_context::get_instance(name);
   cmd_listener_servant = NULL;
   superframe_handle = 0;
   megaframe_handle = 0;
   framecounter = 0;
+  is_initialised = 0;
 
   buff_wfs = NULL;
   buff_intensities = NULL;
@@ -25,7 +27,7 @@ sutra_rtc(context), wfs(wfs_), target(target_) {
 
   string topics[] = BRAMA_TOPICS;
 
-  if(!brama->is_initialised()){
+  if(!brama.is_initialised()){
     cerr << "brama initialisation failed!" << endl;
 //    throw "brama initialisation failed!";
     return;
@@ -33,12 +35,12 @@ sutra_rtc(context), wfs(wfs_), target(target_) {
 
   try {
     // Create a subscriber for the command topic
-    sub = brama->create_subscriber();
+    sub = brama.create_subscriber();
     // Create a publisher for the megaframe topic
-    pub = brama->create_publisher();
+    pub = brama.create_publisher();
 
     // Create an BRAMA Command listener
-    brama->register_command_type(topics[BRAMA::CommandType]);
+    brama.register_command_type(topics[BRAMA::CommandType]);
     cmd_listener = (new sutra_rtc_bramaListenerImpl);
     cmd_listener_servant =
     dynamic_cast<sutra_rtc_bramaListenerImpl*>(cmd_listener.in());
@@ -48,15 +50,13 @@ sutra_rtc(context), wfs(wfs_), target(target_) {
     }
     cmd_listener_servant->attach_rtc(this);
 
-    cmd_dr = brama->create_datareader(sub, topics[BRAMA::CommandType], cmd_listener);
+    cmd_dr = brama.create_datareader(sub, topics[BRAMA::CommandType], cmd_listener);
 
     // Create an BRAMA SuperFrame writer
-    brama->register_superframe_type(topics[BRAMA::SuperFrameType]);
-    superframe_base_dw = brama->create_datawriter(pub, topics[BRAMA::SuperFrameType]);
+    brama.register_superframe_type(topics[BRAMA::SuperFrameType]);
+    superframe_base_dw = brama.create_datawriter(pub, topics[BRAMA::SuperFrameType]);
     if (CORBA::is_nil(superframe_base_dw.in())) {
       cerr << "create_datawriter for " << topics[BRAMA::SuperFrameType] << " failed." << endl;
-      delete brama;
-      brama = nullptr;
       return;
     }
     superframe_dw = BRAMA::SuperFrameDataWriter::_narrow(
@@ -70,12 +70,10 @@ sutra_rtc(context), wfs(wfs_), target(target_) {
 
     if(target != NULL) {
       // Create an BRAMA MegaFrame writer
-      brama->register_megaframe_type(topics[BRAMA::MegaFrameType]);
-      megaframe_base_dw = brama->create_datawriter(pub, topics[BRAMA::MegaFrameType]);
+      brama.register_megaframe_type(topics[BRAMA::MegaFrameType]);
+      megaframe_base_dw = brama.create_datawriter(pub, topics[BRAMA::MegaFrameType]);
       if (CORBA::is_nil(megaframe_base_dw.in())) {
         cerr << "create_datawriter for " << topics[BRAMA::MegaFrameType] << " failed." << endl;
-        delete brama;
-        brama = nullptr;
         return;
       }
       megaframe_dw = BRAMA::MegaFrameDataWriter::_narrow(
@@ -86,6 +84,8 @@ sutra_rtc(context), wfs(wfs_), target(target_) {
 
       BRAMA::MegaFrame zFrame;
       megaframe_handle = megaframe_dw->register_instance(zFrame);
+
+      is_initialised = 1;
     }
 
   } catch (CORBA::Exception& e) {
@@ -95,7 +95,7 @@ sutra_rtc(context), wfs(wfs_), target(target_) {
 }
 
 sutra_rtc_brama::~sutra_rtc_brama() {
-  if(brama == nullptr || !brama->is_initialised()){
+if (!is_initialised) {
     return;
   }
 
@@ -121,11 +121,10 @@ sutra_rtc_brama::~sutra_rtc_brama() {
   if (dims_target)
   BRAMA::Dims::freebuf(dims_target);
 
-  delete brama;
 }
 
 void sutra_rtc_brama::allocateBuffers() {
-  if(brama == nullptr || !brama->is_initialised()){
+  if(!is_initialised){
     return;
   }
 
@@ -186,7 +185,7 @@ void sutra_rtc_brama::allocateBuffers() {
 }
 
 void sutra_rtc_brama::publish() {
-  if(brama == nullptr || !brama->is_initialised()){
+  if(!is_initialised){
     cerr << "brama not initialised!" << endl;
     return;
   }

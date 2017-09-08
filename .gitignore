@@ -41,3 +41,4 @@ Pyro_NS_URI
 shesha/data/M4data/
 
 shesha/test/scripts/resultatsScripts/
+*.gch

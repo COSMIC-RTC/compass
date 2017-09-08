@@ -9,10 +9,11 @@ import h5py
 import glob
 import sys
 sys.path.append('/home/fferreira/compass/shesha/test/roket/tools/')
-sys.path.append('/home/fferreira/compass/shesha/test/psf_reconstruction/')
+sys.path.append('/home/fferreira/compass/shesha/test/gamora/')
 import Dphi
 import roket_exploitation as rexp
-import psf_rec as precs
+import gamora
+import shesha as ao
 import matplotlib.pyplot as plt
 plt.ion()
 import matplotlib
@@ -25,13 +26,13 @@ matplotlib.rc('font', **font)
 
 
 def compute_psf(filename):
-    otftel, otf, psf, gpu = precs.psf_rec_Vii(filename)
+    otftel, otf, psf, gpu = gamora.psf_rec_Vii(filename)
     return psf
 
 
 def compute_psf_independence(filename):
     cov_err = rexp.get_coverr_independence(filename)
-    otfteli, otf2i, psfi, gpu = precs.psf_rec_Vii(filenames[11],covmodes=cov_err)
+    otfteli, otf2i, psfi, gpu = gamora.psf_rec_Vii(filenames[11],covmodes=cov_err)
     return psfi
 
 
@@ -68,7 +69,7 @@ def compute_and_compare_PSFs(filename, plot=False):
     #cov_err = rexp.get_coverr_independence_contributors(filename,contributors)
     P = f["P"][:]
     cov_err = P.dot(Ctt).dot(P.T)
-    otftels, otf2s, psfs, gpu = precs.psf_rec_Vii(filename,fitting=False,cov=cov_err.astype(np.float32))
+    otftels, otf2s, psfs, gpu = gamora.psf_rec_Vii(filename,fitting=False,cov=cov_err.astype(np.float32))
     tac = time.time()
     print "PSF estimated in ",tac-tic, " seconds"
     t = f["tomography"][:]
@@ -76,7 +77,7 @@ def compute_and_compare_PSFs(filename, plot=False):
     tb = t+b
     tb = tb.dot(tb.T)/float(tb.shape[1])
     cov_err = P.dot(tb).dot(P.T)
-    otftel, otf2, psf, gpu = precs.psf_rec_Vii(filename,fitting=False,cov=cov_err.astype(np.float32))
+    otftel, otf2, psf, gpu = gamora.psf_rec_Vii(filename,fitting=False,cov=cov_err.astype(np.float32))
     if(plot):
         Lambda_tar = f.attrs["target.Lambda"][0]
         RASC = 180/np.pi*3600.
@@ -375,10 +376,104 @@ def compareTransferFunctions(filename):
 
 datapath = '/home/fferreira/Data/correlation/'
 filenames = glob.glob(datapath + 'roket_8m_1layer_dir*_cpu.h5')
+files = []
+for f in filenames:
+    files.append(h5py.File(f,'r'))
 
 tabx, taby = Dphi.tabulateIj0()
 
-co# Illustration du probleme
+nfiles = len(filenames)
+theta = np.zeros(nfiles)
+speeds = np.zeros(nfiles)
+gain = np.zeros(nfiles)
+SRcompass = np.zeros(nfiles)
+SRroket = np.zeros(nfiles)
+SRi = np.zeros(nfiles)
+fROKET = h5py.File('ROKETStudy.h5','r')
+psfr = fROKET["psf"][:]
+psfi = fROKET["psfi"][:]
+nrjcompass = np.zeros(nfiles)
+nrjroket = np.zeros(nfiles)
+nrji = np.zeros(nfiles)
+
+ind = 0
+for f in files:
+    theta[ind] = f.attrs["winddir"][0]
+    speeds[ind] = f.attrs["windspeed"][0]
+    gain[ind] = float('%.1f' % f.attrs["gain"][0])
+    SRcompass[ind] = f["psf"][:].max()
+    SRroket[ind] = psfr[:,:,ind].max()
+    SRi[ind] = psfi[:,:,ind].max()
+    nrjcompass[ind] = np.sum(ensquare_PSF(filenames[ind],np.fft.fftshift(f["psf"][:]),5)) / f["psf"][:].sum()
+    nrjroket[ind] = np.sum(ensquare_PSF(filenames[ind],psfr[:,:,ind],5)) / psfr[:,:,ind].sum()
+    nrji[ind] = np.sum(ensquare_PSF(filenames[ind],psfi[:,:,ind],5)) / psfi[:,:,ind].sum()
+    ind += 1
+"""
+eSR = np.abs(SRroket-SRcompass) / SRcompass
+eSRi = np.abs(SRi - SRcompass) / SRcompass
+enrj = np.abs(nrjroket-nrjcompass) / nrjcompass
+enrji = np.abs(nrji-nrjcompass) / nrjcompass
+
+plt.figure()
+plt.scatter(SRcompass,SRroket,s=200)
+plt.plot([SRcompass.min(),SRcompass.max()],[SRcompass.min(),SRcompass.max()],color="red")
+plt.xlabel("COMPASS Strehl ratio")
+plt.ylabel("ROKET Strehl ratio")
+plt.figure()
+plt.scatter(nrjcompass,nrjroket,s=200)
+plt.plot([nrjcompass.min(),nrjcompass.max()],[nrjcompass.min(),nrjcompass.max()],color="red")
+plt.xlabel("COMPASS PSF ensquared energy")
+plt.ylabel("ROKET PSF ensquared energy")
+
+colors = ["blue","red","green","black","yellow"]
+plt.figure()
+indc = 0
+for t in np.unique(theta):
+    ind = np.where(theta == t)
+    plt.scatter(SRcompass[ind],SRi[ind],s=200,color=colors[indc])
+    indc += 1
+plt.legend(["0 deg","45 deg","90 deg","135 deg","180 deg"])
+plt.plot([SRcompass.min(),SRcompass.max()],[SRcompass.min(),SRcompass.max()],color="red")
+plt.xlabel("COMPASS Strehl ratio")
+plt.ylabel("ROKET Strehl ratio")
+
+plt.figure()
+indc = 0
+for t in np.unique(theta):
+    ind = np.where(theta == t)
+    plt.scatter(nrjcompass[ind],nrji[ind],s=200,color=colors[indc])
+    indc += 1
+plt.legend(["0 deg","45 deg","90 deg","135 deg","180 deg"])
+plt.plot([nrjcompass.min(),nrjcompass.max()],[nrjcompass.min(),nrjcompass.max()],color="red")
+plt.xlabel("COMPASS PSF ensquared energy")
+plt.ylabel("ROKET PSF ensquared energy")
+"""
+f = h5py.File('corStudy_Nact.h5','r')
+psf = f["psf"][:]
+psfs = f["psfs"][:]
+nrj = f["nrj5"][:]
+nrjs = f["nrj5s"][:]
+SR = np.max(psf,axis=(0,1))
+SRs = np.max(psfs,axis=(0,1))
+
+colors = ["blue","red","green"]
+plt.figure()
+k = 0
+for g in np.unique(gain):
+    plt.subplot(2,2,k+1)
+    plt.title("g = %.1f"%(g))
+    for i in range(len(colors)):
+        c = colors[i]
+        v = np.unique(speeds)[i]
+        ind = np.where((gain == g) * (speeds == v))
+        plt.scatter(SR[ind],SRs[ind],color=c,s=200)
+    plt.legend(["10 m/s", "15 m/s", "20 m/s"],loc=2)
+    plt.xlabel("SR ROKET")
+    plt.ylabel("SR model")
+    plt.plot([SR.min(),SR.max()],[SR.min(),SR.max()],color="red")
+    k+=1
+"""
+# Illustration du probleme
 #psf_compass, psf, psfs = compute_and_compare_PSFs(filenames[13],plot=True)
 # psf_compass = np.zeros((2048,2048,len(filenames)))
 # psf = np.zeros((2048,2048,len(filenames)))
@@ -431,7 +526,7 @@ co# Illustration du probleme
 
 
 
-'''
+
 files = []
 for f in filenames:
     files.append(h5py.File(f,'r'))
@@ -461,9 +556,9 @@ speeds = np.zeros(nfiles)
 gain = np.zeros(nfiles)
 
 # Illustration du probleme
-otftel, otf2, psf, gpu = precs.psf_rec_Vii(filenames[11])
+otftel, otf2, psf, gpu = gamora.psf_rec_Vii(filenames[11])
 cov_err = rexp.get_coverr_independence(filenames[11])
-otfteli, otf2i, psfi, gpu = precs.psf_rec_Vii(filenames[11],covmodes=cov_err)
+otfteli, otf2i, psfi, gpu = gamora.psf_rec_Vii(filenames[11],covmodes=cov_err)
 psf_compass = np.fft.fftshift(files[11]["psf"][:])
 RASC = 180/np.pi*3600.
 pixsize = Lambda_tar*1e-6  / (psf.shape[0] * 8./640) * RASC
@@ -531,15 +626,15 @@ for i in range(1304):
 
 Ccov =  (Dphi.dphi_lowpass(Mhvdt,0.2,L0,tabx,taby) - Dphi.dphi_lowpass(Mht,0.2,L0,tabx,taby) \
         - Dphi.dphi_lowpass(Mvdt,0.2,L0,tabx,taby) + Dphi.dphi_lowpass(M,0.2,L0,tabx,taby)) * (1/r0)**(5./3.)
-'''
-'''
+
+
 mtomo = Dphi.dphi_lowpass(Htheta,0.2,L0, tabx, taby) * (1/r0)**(5./3.)
 mbp = Dphi.dphi_lowpass(vdt ,0.2, L0, tabx, taby) * (1/r0)**(5./3.)
 mtot = Dphi.dphi_lowpass(rho,0.2,L0,tabx,taby) * (1/r0)**(5./3.)
 
 # Piston correction
 print "Computing piston correction..."
-pup = precs.get_pup(filenames[11])
+pup = gamora.get_pup(filenames[11])
 r = np.zeros((8192,8192))
 p2m = files[11].attrs["tel_diam"]/pup.shape[0]
 Npts = files[11]["indx_pup"].size
@@ -571,10 +666,10 @@ mcov = (-mtomo - mbp + mtot)*0.5
 m = (np.arange(nmodes)+1)**(-5/6.)
 m /= m.sum()
 m = m * (mcov[11] / (2*np.pi/Lambda_tar)**2)
-'''
-'''
+
+
 cov_err2 = P.dot(cov_err).dot(P.T) + 2*np.diag(m)
-otftelc, otf2c, psfc, gpu = precs.psf_rec_Vii(filenames[11],cov=cov_err2.astype(np.float32))
+otftelc, otf2c, psfc, gpu = gamora.psf_rec_Vii(filenames[11],cov=cov_err2.astype(np.float32))
 plt.figure()
 plt.semilogy(x,psf_compass[psf.shape[0]/2,:],color="red")
 plt.semilogy(x,psfi[psf.shape[0]/2,:],color="green")
@@ -582,10 +677,8 @@ plt.semilogy(x,psfc[psf.shape[0]/2,:],color="blue")
 plt.xlabel("Angular distance [units of lambda/D]")
 plt.ylabel("Normalized intensity")
 plt.legend([ "PSF COMPASS","PSF ind. assumption","PSF corrected"])
-'''
 
 
-'''
 xpos = files[11]["dm.xpos"][:]
 ypos = files[11]["dm.ypos"][:]
 dm_dim = files[11]["dm_dim"].value
@@ -620,4 +713,4 @@ for i in range(xpos.size):
         else:
             A[i,j] = 0.
     print i
-'''
+"""

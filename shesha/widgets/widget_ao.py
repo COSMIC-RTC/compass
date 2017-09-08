@@ -590,7 +590,7 @@ class widgetAOWindow(TemplateBaseClass):
             path.remove(pathfile)
         elif(filepath.split('.')[-1] == "h5"):
             path.insert(0, self.defaultParPath)
-            import scao_16x16_8pix as config
+            import scao_sh_16x16_8pix as config
             path.remove(self.defaultParPath)
             h5u.configFromH5(filepath, config)
         else:
@@ -951,7 +951,7 @@ class widgetAOWindow(TemplateBaseClass):
         data = None
         if(self.rtc):
             type_matrix = str(self.ui.wao_selectRtcMatrix.currentText())
-            if(type_matrix == "imat" and self.config.p_controllers[0].type_control != "generic"):
+            if(type_matrix == "imat" and self.config.p_controllers[0].type_control != "generic" and self.config.p_controllers[0].type_control != "geo"):
                 data = self.rtc.get_imat(0)
             elif(type_matrix == "cmat"):
                 data = self.rtc.get_cmat(0)

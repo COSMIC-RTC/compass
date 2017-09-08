@@ -2146,6 +2146,24 @@ cdef class Sensors:
         else:
             raise TypeError("wfs should be a pyrhr")
 
+
+    cpdef set_ncpa_phase(self, int n, np.ndarray[ndim=2, dtype=np.float32_t] data):
+        cdef np.ndarray[ndim = 1, dtype = np.float32_t] data_F = data.flatten("F")
+        self.sensors.d_wfs[n].set_ncpa_phase(<float*>data_F.data, data.size)
+
+
+    cpdef get_ncpa_phase(self, int n):
+        cdef carma_obj[float] * ph
+        cdef const long * cdims
+        cdef np.ndarray[ndim = 2, dtype = np.float32_t] data
+
+        ph = self.sensors.d_wfs[n].d_gs.d_phase.d_screen
+        cdims = ph.getDims()
+        data = np.empty((cdims[2], cdims[1]), dtype=np.float32)
+        self.sensors.d_wfs[n].get_ncpa_phase(<float*>data.data, data.size)
+        return np.reshape(data.flatten("F"), (cdims[1], cdims[2]))
+
+
     cpdef comp_modulation(self, int n, int cpt):
 
         """Return the high res image of a pyr wfs
@@ -2558,7 +2576,7 @@ cdef class Sensors:
                 raise TypeError("wfs should be a SH or PYRHR")
 
 
-    cpdef sensors_trace(self, int n, str type_trace, Telescope tel=None, Atmos atmos=None, Dms dms=None, int rst=0):
+    cpdef sensors_trace(self, int n, str type_trace, Telescope tel=None, Atmos atmos=None, Dms dms=None, int rst=0, int ncpa=0):
         """ Does the raytracing for the wfs phase screen in sutra_wfs
 
         :parameters:
@@ -2567,6 +2585,7 @@ cdef class Sensors:
             type_trace: (str) : "all" : raytracing across atmos and dms seen
                                 "dm"  : raytracing across dms seen only
                                 "atmos" : raytracing across atmos only
+                                "none" : raytracing across tel pupil only
 
             tel: (Telescope) :(optional) Telescope object
 
@@ -2575,17 +2594,27 @@ cdef class Sensors:
             dms: (Dms) : (optional) Dms object
 
             rst: (int) : (optional) reset before raytracing if rst = 1
+
+            ncpa: (int) : (optional) NCPA raytracing if ncpa = 1
         """
 
         cdef carma_context * context = &carma_context.instance()
         cdef carma_obj[float] * d_screen = self.sensors.d_wfs[n].d_gs.d_phase.d_screen
         context.set_activeDeviceForce(self.sensors.device, 1)
+
         if(type_trace == "all"):
             self.sensors.d_wfs[n].sensor_trace(atmos.s_a, dms.dms)
+            rst = 0
         elif(type_trace == "atmos"):
             self.sensors.d_wfs[n].sensor_trace(atmos.s_a)
+            rst = 0
         elif(type_trace == "dm"):
             self.sensors.d_wfs[n].sensor_trace(dms.dms, rst)
+            rst = 0
+
+        if ncpa:
+            self.sensors.d_wfs[n].sensor_trace(rst)
+
         if tel is not None:
             d_screen.axpy(1.0, tel.telescope.d_phase_ab_M1_m, 1, 1)
 
@@ -2783,12 +2812,12 @@ cdef class Sensors:
         """Set the noise of a given wfs
 
         :param nwfs: (int) : number of the wfs wanted
-        
+
         :param noise: (np.float32_t) : desired noise : < 0 = no noise
                                                          0 = photon only
                                                        > 0 = photon + ron in ?
         :param seed: (long) : seed of the new noise
-        
+
         TODO: fill the noise unit
         """
         if seed<0:

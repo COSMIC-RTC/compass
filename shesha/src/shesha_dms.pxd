@@ -13,6 +13,8 @@ from cpython.string cimport PyString_AsString
 
 from libc.math cimport sin
 
+from naga_sparse_obj cimport *
+
 from shesha_param cimport *
 from shesha_param import *
 from shesha_sensors cimport *
@@ -60,6 +62,8 @@ cdef class Dms:
                          np.ndarray[ndim=1, dtype=np.float32_t] xpos, np.ndarray[ndim=1, dtype=np.float32_t] ypos,
                          np.ndarray[ndim=1, dtype=np.int32_t] indx_pup, long dim, float norm, float ampli)
     cpdef get_KLbasis(self, bytes type_dm, float alt)
+    cpdef get_IFsparse(self, bytes type_dm, float alt, np.ndarray[ndim=1, dtype=np.int32_t] indx_pup)
+    cpdef get_IFtt(self, bytes type_dm, float alt, np.ndarray[ndim=1, dtype=np.int32_t] indx_pup)
 
     cpdef getComm(self, bytes type_dm, float alt)
     cpdef getInflu(self, bytes type_dm, float alt)

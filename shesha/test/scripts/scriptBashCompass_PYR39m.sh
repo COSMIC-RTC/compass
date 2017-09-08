@@ -9,7 +9,7 @@ echo "To monitor process: tail -f" $OUTPUT
 script="$SHESHA_ROOT/test/scripts/script_PYR39m_optimGain.py"
 # Relevant parameters for pyramid:
 # REQ, MODU, GAIN, MAG, NKL
-SIMULNAME="PYR_39m_ELTPupil_TestNbKL"
+SIMULNAME="AO4ELT5_20ArcSecOffset"
 GPU="5"
 for FREQ in "500"
 do
@@ -17,24 +17,30 @@ do
     do
         for MODU in "5"
         do
-           for MAG in "11" "12" "13" "14" "15" "16" "17" "18"
+           for MAG in "11" "15" "17"
            #for MAG in "18"
             do
-               for GAIN in "0.6"
+               for GAIN in "0.5"
                #for GAIN in "1.0"
                 do
-                    for KLFILT in "2000" "1600" "1000" "500" "2"
+                    for KLFILT in "100"
                     do
-                        CMD="python $script $PARFILE $FREQ $RONS $MODU $GAIN $MAG $KLFILT $SIMULNAME $GPU"
-                        echo "execute $CMD" >> $OUTPUT
-                        $CMD 2>> $OUTPUT >> $OUTPUT
+                       for NSSP in "92"
+                       #for NSSP in "72" "108"
+                        do
+                          CMD="python $script $PARFILE $FREQ $RONS $MODU $GAIN $MAG $KLFILT $SIMULNAME $NSSP $GPU"
+                          echo "execute $CMD" >> $OUTPUT
+                          $CMD 2>> $OUTPUT >> $OUTPUT
+                        done
                     done
                 done
             done
         done
     done
 done
-
+CMD="python sendMail.py"
+echo "execute $CMD">> $OUTPUT
+$CMD 2>> $OUTPUT >> $OUTPUT
 # To monitor the script log:
 # tail -f resultatsScripts/script39mPYRLog.txt
 

@@ -13,9 +13,34 @@ from sys import stdout
 import time
 
 plt.ion()
-c = ch.naga_context(7)
+gpudevices = np.array([0,1],dtype=np.int32)
+c = ch.naga_context(devices=gpudevices)
 
 #filename = "/home/fferreira/Data/breakdown_offaxis-4_2.h5"
+def cutsPSF(filename,psf,psfs):
+    f=h5py.File(filename,'r')
+    Lambda_tar = f.attrs["target.Lambda"][0]
+    RASC = 180/np.pi*3600.
+    pixsize = Lambda_tar*1e-6  / (psf.shape[0] * f.attrs["tel_diam"]/f.attrs["pupdiam"]) * RASC
+    x = (np.arange(psf.shape[0]) - psf.shape[0]/2) * pixsize / (Lambda_tar*1e-6/f.attrs["tel_diam"] * RASC)
+    plt.figure()
+    plt.subplot(2,1,1)
+    plt.semilogy(x,psf[psf.shape[0]/2,:],color="blue")
+    plt.semilogy(x,psfs[psf.shape[0]/2,:],color="red")
+    plt.xlabel("X-axis angular distance [units of lambda/D]")
+    plt.ylabel("Normalized intensity")
+    plt.legend(["PSF 1", "PSF 2"])
+    plt.xlim(-20,20)
+    plt.ylim(1e-5,1)
+    plt.subplot(2,1,2)
+    plt.semilogy(x,psf[:,psf.shape[0]/2],color="blue")
+    plt.semilogy(x,psfs[:,psf.shape[0]/2],color="red")
+    plt.xlabel("Y-axis angular distance [units of lambda/D]")
+    plt.ylabel("Normalized intensity")
+    plt.legend(["PSF 1", "PSF 2"])
+    plt.xlim(-20,20)
+    plt.ylim(1e-5,1)
+    f.close()
 
 def get_err(filename):
     f = h5py.File(filename,'r')
@@ -80,15 +105,15 @@ def psf_rec_roket_file(filename,err=None):
     # Scale factor
     scale = float(2*np.pi/f.attrs["target.Lambda"][0])
     # Init GPU
-    precs = ao.psfrecs_init("roket", err.shape[0], err.shape[1],
+    gamora = ao.gamora_init("roket", err.shape[0], err.shape[1],
                             IF.data.astype(np.float32), IF.indices, IF.indptr, T,
                             spup.astype(np.float32), scale)
     # Launch computation
-    precs.psf_rec_roket(err)
+    gamora.psf_rec_roket(err)
     # Get psf
-    psf = precs.get_psf()
+    psf = gamora.get_psf()
     f.close()
-    return psf, precs
+    return psf, gamora
 
 
 def psf_rec_roket_file_cpu(filename):
@@ -128,15 +153,15 @@ def psf_rec_roket_file_cpu(filename):
 
 def psf_rec_Vii(filename,err=None,fitting=True,covmodes=None,cov=None):
     f = h5py.File(filename,'r')
-    if(err is None):
-        err = get_err(filename)
     spup = get_pup(filename)
     # Sparse IF matrix
     IF, T = get_IF(filename)
     # Covariance matrix
     P = f["P"][:]
     print "Projecting error buffer into modal space..."
-    err = P.dot(err)
+    if((err is None) and (cov is None)):
+        err = get_err(filename)
+        err = P.dot(err)
     print "Computing covariance matrix..."
     if(cov is None):
         if(covmodes is None):
@@ -145,25 +170,24 @@ def psf_rec_Vii(filename,err=None,fitting=True,covmodes=None,cov=None):
             covmodes = (P.dot(covmodes)).dot(P.T)
     else:
         covmodes = cov
-    e,V = np.linalg.eig(covmodes)
     print "Done"
     Btt = f["Btt"][:]
 
     # Scale factor
     scale = float(2*np.pi/f.attrs["target.Lambda"][0])
     # Init GPU
-    precs = ao.psfrecs_init("Vii", Btt.shape[0], err.shape[1],
+    gamora = ao.gamora_init("Vii", Btt.shape[0], f["noise"][:].shape[1],
                             IF.data.astype(np.float32), IF.indices, IF.indptr, T,
                             spup.astype(np.float32), scale,
                             covmodes.shape[0], Btt, covmodes)
     # Launch computation
-    #precs.set_eigenvals(e.astype(np.float32))
-    #precs.set_covmodes(V.astype(np.float32))
+    #gamora.set_eigenvals(e.astype(np.float32))
+    #gamora.set_covmodes(V.astype(np.float32))
     tic = time.time()
-    precs.psf_rec_Vii()
+    gamora.psf_rec_Vii()
 
-    otftel = precs.get_otftel()
-    otf2 = precs.get_otfVii()
+    otftel = gamora.get_otftel()
+    otf2 = gamora.get_otfVii()
 
     otftel /= otftel.max()
     if(f.keys().count("psfortho") and fitting):
@@ -180,7 +204,7 @@ def psf_rec_Vii(filename,err=None,fitting=True,covmodes=None,cov=None):
     tac = time.time()
     print " "
     print "PSF renconstruction took ",tac-tic," seconds"
-    return otftel, otf2, psf, precs
+    return otftel, otf2, psf, gamora
 
 def psf_rec_vii_cpu(filename):
     f = h5py.File(filename,'r')
@@ -245,7 +269,7 @@ def test_Vii(filename):
     a = time.time()
     otftel_cpu, otf2_cpu, psf_cpu = psf_rec_vii_cpu(filename)
     b = time.time()
-    otftel_gpu, otf2_gpu, psf_gpu, precs = psf_rec_Vii(filename)
+    otftel_gpu, otf2_gpu, psf_gpu, gamora = psf_rec_Vii(filename)
     c = time.time()
     cputime = b-a
     gputime = c-b

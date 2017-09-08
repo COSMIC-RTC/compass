@@ -37,6 +37,10 @@ lib:
 	@(cd libcarma && make -j$(N_CPU))
 	@(cd libsutra && make -j$(N_CPU))
 
+cython:
+	@(cd naga && make)
+	@(cd shesha && make)
+
 uninstall: clean
 	@(cd naga && make uninstall)
 	@(cd shesha && make uninstall)

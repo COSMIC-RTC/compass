@@ -588,7 +588,7 @@ void carma_ipcs::free_transfer_shm(unsigned int id){
     if(buffer->isBoard)
       sem_destroy(&(buffer->wait_pub));
     sem_destroy(&(buffer->mutex));
-    char in_name[NAME_MAX+1];
+    char in_name[NAME_MAX+4];
     sprintf(in_name, "%s_in", buffer->name);
 
     free_shm(in_name, buffer->p_shm, buffer->size);

@@ -1,6 +1,6 @@
 import shesha as ao
 
-simul_name="bench_scao_64x64_16pix"
+simul_name="scao_sh_40m_80_8pix"
 
 #loop
 p_loop = ao.Param_loop()
@@ -18,7 +18,7 @@ p_geom.set_zenithangle(0.)
 #tel
 p_tel=ao.Param_tel()
 
-p_tel.set_diam(32.0)
+p_tel.set_diam(40.0)
 p_tel.set_cobs(0.12)
 
 
@@ -51,8 +51,8 @@ p_wfss=[p_wfs0]
 
 
 p_wfs0.set_type("sh")
-p_wfs0.set_nxsub(64)
-p_wfs0.set_npix(16)
+p_wfs0.set_nxsub(80)
+p_wfs0.set_npix(8)
 p_wfs0.set_pixsize(0.3)
 p_wfs0.set_fracsub(0.8)
 p_wfs0.set_xpos(0.)
@@ -63,7 +63,6 @@ p_wfs0.set_optthroughput(0.5)
 p_wfs0.set_zerop(1.e11)
 p_wfs0.set_noise(-1)
 p_wfs0.set_atmos_seen(1)
-
 
 #dm
 p_dm0=ao.Param_dm()
@@ -108,7 +107,7 @@ p_controller0.set_gain(0.4)
 
 p_controller0.set_modopti(0)
 p_controller0.set_nrec(2048)
-p_controller0.set_nmodes(3259)
+p_controller0.set_nmodes(5064)
 p_controller0.set_gmin(0.001)
 p_controller0.set_gmax(0.5)
 p_controller0.set_ngain(500)
@@ -119,5 +118,3 @@ p_rtc=ao.Param_rtc()
 p_rtc.set_nwfs(1)
 p_rtc.set_centroiders(p_centroiders)
 p_rtc.set_controllers(p_controllers)
-
-

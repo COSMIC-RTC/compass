@@ -12,15 +12,28 @@
 
 class sutra_acquisim {
 public:
+    int device;
+    string type;
+    long nxsub;
+    long nvalid;
+    long npix;
+
+    carma_context *current_context;
+
     sutra_wfs_sh *wfs;
+    carma_obj<int32_t> *d_validsubsx;
+    carma_obj<int32_t> *d_validsubsy;
 
 public:
   sutra_acquisim(sutra_sensors *sensors, int wfs_num);
   sutra_acquisim(const sutra_acquisim& acquisim);
   ~sutra_acquisim();
 
+  int set_validsubs(int64_t nvalid, int32_t *validsubsx, int32_t *validsubsy);
+
   int comp_image_tele(long *dims, float *bimage);
   int comp_image(long *dims, float *bimage);
+  int comp_image(long *dims, float *bimage, carma_obj<float> *d_bincube);
   int comp_image_2D(long *dims, float *bimage, int *num_ssp);
 
 private:

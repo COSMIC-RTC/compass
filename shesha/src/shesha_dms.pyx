@@ -319,6 +319,48 @@ cpdef createHexaPattern(float pitch, float supportSize):
     return xy
 
 
+cpdef createDoubleHexaPattern(float pitch, float supportSize):
+    """
+    Creates a list of M actuator positions spread over an hexagonal grid.
+    The number M is the number of points of this grid, it cannot be
+    known before the procedure is called.
+    Coordinates are centred around (0,0).
+    The support that limits the grid is a square [-n/2,n/2].
+
+    :parameters:
+        pitch: (float) : distance in pixels between 2 adjacent actus
+        n: (float) : size in pixels of the support over which the coordinate list
+             should be returned.
+    :return:
+        xy: (np.ndarray(dims=2,dtype=np.float32)) : xy[M,2] list of coodinates
+    """
+    V3 = np.sqrt(3)
+    pi = np.pi
+    nx = int(np.ceil((supportSize/2.0)/pitch) + 1)
+    x = pitch * (np.arange(2*nx+1, dtype=np.float32)-nx)
+    Nx = x.shape[0]
+    ny = int(np.ceil((supportSize/2.0)/pitch/V3) + 1)
+    y = (V3 * pitch) * (np.arange(2*ny+1, dtype=np.float32)-ny) + pitch
+    Ny = y.shape[0]
+    x = np.tile(x,(Ny,1)).flatten()
+    y = np.tile(y,(Nx,1)).T.flatten()
+    x = np.append(x, x + pitch/2.)
+    y = np.append(y, y + pitch*V3/2.)
+    xy = np.float32(np.array([x,y]))
+
+    th = np.arctan2(y, x)
+    nn = np.where( ((th>pi/3) & (th<2*pi/3)) )
+    x = x[nn]
+    y = y[nn]
+    X = np.array([])
+    Y = np.array([])
+    for k in range(6):
+        xx =  np.cos(k*pi/3)*x + np.sin(k*pi/3)*y
+        yy = -np.sin(k*pi/3)*x + np.cos(k*pi/3)*y
+        X = np.r_[X, xx]
+        Y = np.r_[Y, yy]
+    return np.float32(np.array([Y,X]))
+
 def n_actuator_select(Param_dm p_dm,cobs, xc,yc):
     """
     Fonction for select actuator in fonction of Margin_in, margin_out or ntotact.
@@ -690,10 +732,13 @@ cpdef make_pzt_dm(Param_dm p_dm,Param_geom geom,cobs):
         p_dm.type_pattern = <bytes>'square'
 
     if p_dm.type_pattern == 'hexa':
-        print "Pattern type : Hexa"
+        print "Pattern type : hexa"
         cub = createHexaPattern( pitch, geom.pupdiam * 1.1)
+    elif p_dm.type_pattern == 'hexaM4':
+        print "Pattern type : hexaM4"
+        cub = createDoubleHexaPattern( pitch, geom.pupdiam * 1.1)
     elif p_dm.type_pattern == 'square':
-        print "Pattern type : Square"
+        print "Pattern type : square"
         cub = createSquarePattern( pitch, nxact + 4 )
     else :
         raise StandardError("This pattern does not exist for pzt dm")
@@ -1155,7 +1200,7 @@ cdef zernumero(int zn, int * rd, int * an):
 
 
 
-    
+
 
 
 cpdef comp_dmgeom(Param_dm dm, Param_geom geom):
@@ -1700,6 +1745,81 @@ g        :return:
         self.dms.d_dms[inddm].d_influ.device2host(< float *> data_F.data)
         data = np.reshape(data_F.flatten("F"), (dims[1], dims[2], dims[3]))
         return data
+
+    cpdef get_IFsparse(self, bytes type_dm, float alt, np.ndarray[ndim=1, dtype=np.int32_t] indx_pup):
+        """Returns the influence functions matrix of a pzt DM as a sparse matrix
+        Return a scipy.sparse object which shape is (nactus,Npts in the pupil)
+
+        :parameters:
+            type_dm: (bytes) : DM type
+            alt: (float) : DM altitude
+            indx_pup: (np.ndarray[ndim=1, dtype=np.int32_t]) : valid indices of the pupil in the DM support
+        :return:
+            IF : (scipy.sparse) : influence functions matrix
+        """
+
+        cdef int inddm = self.dms.get_inddm(type_dm, alt)
+        cdef carma_context * context = &carma_context.instance()
+        context.set_activeDeviceForCpy(self.dms.d_dms[inddm].device, 1)
+
+        cdef carma_sparse_obj[double] * d_IFsparse
+        cdef carma_obj[int] * d_indx
+        cdef long dims[2]
+        dims[0] = 1
+        dims[1] = indx_pup.size
+
+        if(type_dm == "pzt"):
+            d_indx = new carma_obj[int](context, dims, <int *> indx_pup.data)
+            sparse = naga_sparse_obj_Double()
+            self.dms.d_dms[inddm].get_IF_sparse(d_IFsparse, d_indx.getData(), indx_pup.size, float(1.0), 1)
+            sparse.copy(d_IFsparse)
+            del d_indx
+            del d_IFsparse
+            return sparse.get_sparse()
+        else:
+            raise ValueError("This function only works with pzt DM (tt influence functions are not sparse)")
+
+    cpdef get_IFtt(self, bytes type_dm, float alt, np.ndarray[ndim=1, dtype=np.int32_t] indx_pup):
+        """Returns the influence functions matrix of a tt DM
+
+        :parameters:
+            type_dm: (bytes) : DM type
+            alt: (float) : DM altitude
+            indx_pup: (np.ndarray[ndim=1, dtype=np.int32_t]) : valid indices of the pupil in the DM support
+        :return:
+            IFtt : (np.ndarray[ndim=2, dtype=np.float32_t]) : influence functions matrix
+        """
+
+        cdef int inddm = self.dms.get_inddm(type_dm, alt)
+        cdef carma_context * context = &carma_context.instance()
+        context.set_activeDeviceForCpy(self.dms.d_dms[inddm].device, 1)
+
+        cdef carma_obj[int] * d_indx
+        cdef carma_obj[float] * d_IFtt
+        cdef long dims[2]
+        dims[0] = 1
+        dims[1] = indx_pup.size
+        cdef long dims2[3]
+        dims2[0] = 2
+        dims2[1] = indx_pup.size
+        dims2[2] = 2
+        cdef np.ndarray[ndim=2, dtype=np.float32_t] data
+        cdef np.ndarray[ndim=2, dtype=np.float32_t] data_F
+
+        if(type_dm == "tt"):
+            d_indx = new carma_obj[int](context, dims, <int *> indx_pup.data)
+            d_IFtt = new carma_obj[float](context, dims2)
+            self.dms.d_dms[inddm].get_IF(d_IFtt.getData(), d_indx.getData(), indx_pup.size, float(1.0))
+            data_F=np.zeros((dims2[2],dims2[1]),dtype=np.float32)
+            d_IFtt.device2host(< float *> data_F.data)
+            data=np.reshape(data_F.flatten("F"),(dims2[1],dims2[2]))
+
+            del d_indx
+            del d_IFtt
+            return data
+        else:
+            raise ValueError("This function only works with tt DM (for pzt, use get_IFsparse)")
+
 
     cpdef comp_oneactu(self, bytes type_dm, float alt, int nactu, float ampli):
         """Compute the shape of the dm when pushing the nactu actuator

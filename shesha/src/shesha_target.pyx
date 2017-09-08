@@ -140,6 +140,23 @@ cdef class Target:
         return data
 
 
+    cpdef set_ncpa_phase(self, int n, np.ndarray[ndim=2, dtype=np.float32_t] data):
+        cdef np.ndarray[ndim = 1, dtype = np.float32_t] data_F = data.flatten("F")
+        self.target.d_targets[n].set_ncpa_phase(<float*>data_F.data, data.size)
+
+
+    cpdef get_ncpa_phase(self, int n):
+        cdef carma_obj[float] * ph
+        cdef const long * cdims
+        cdef np.ndarray[ndim = 2, dtype = np.float32_t] data
+
+        ph = self.target.d_targets[n].d_phase.d_screen
+        cdims = ph.getDims()
+        data = np.empty((cdims[2], cdims[1]), dtype=np.float32)
+        self.target.d_targets[n].get_ncpa_phase(<float*>data.data, data.size)
+        return np.reshape(data.flatten("F"), (cdims[1], cdims[2]))
+
+
     def reset_phase(self, int nTarget):
         """Reset the phase's screen of the target
 
@@ -179,6 +196,37 @@ cdef class Target:
         cdef np.ndarray[dtype = np.float32_t] data_F = data.flatten("F")
 
         src.d_phase.d_screen.host2device(< float *> data_F.data)
+
+    def set_pupil(self, int nTarget, np.ndarray[ndim=2, dtype=np.float32_t] data):
+        """Set the pupil used for PSF computation
+
+        :param nTarget: (int) : index of the target
+        :param data: (np.ndarray[ndim=2,dtype=np.float32_t]) : pupil
+        """
+        self.context.set_activeDeviceForCpy(self.device)
+        cdef sutra_source * src = self.target.d_targets[nTarget]
+        cdef np.ndarray[dtype = np.float32_t] data_F
+        cdef np.ndarray[dtype = np.int32_t] wherephase
+        cdef long Npts
+        cdef const long * dims
+        cdef long dims1[2]
+        dims = src.d_pupil.getDims()
+        if((dims[2],dims[1]) == np.shape(data)):
+            data_F = data.flatten("F")
+            src.d_pupil = new carma_obj[float](src.current_context, dims)
+            src.d_pupil.host2device(<float *> data_F.data)
+            wherephase = np.where(data_F)[0].astype(np.int32)
+            Npts = wherephase.size
+            dims1[0] = 1
+            dims1[1] = Npts
+            del src.d_phasepts
+            del src.d_wherephase
+            src.d_phasepts = new carma_obj[float](src.current_context, dims1)
+            src.d_wherephase = new carma_obj[int](src.current_context, dims1)
+            src.d_wherephase.host2device(<int *> wherephase.data)
+        else:
+            raise IndexError("Pupil dimension mismatch")
+
 
     def get_phasetele(self, int nTarget):
         """Return the telemetry phase of the target
@@ -262,7 +310,7 @@ cdef class Target:
 
 
     def dmtrace(self, int ntar, Dms dms, int reset=0, int do_phase_var=1):
-        """Raytracing of the target through thedms
+        """Raytracing of the target through the dms
 
         :parameters:
             ntar: (int)   : index of the target
@@ -280,6 +328,21 @@ cdef class Target:
         self.target.d_targets[ntar].raytrace(dms.dms, reset, do_phase_var)
 
 
+    def ncpatrace(self, int ntar, int reset=0):
+        """Raytracing of the target through NCPA
+
+        :parameters:
+            ntar: (int)   : index of the target
+
+            reset: (int) : if >0, reset the screen before raytracing
+        """
+
+        cdef carma_context * context = &carma_context.instance()
+        context.set_activeDevice(self.target.d_targets[ntar].device, 1)
+
+        self.target.d_targets[ntar].raytrace(reset)
+
+
     def __str__(self):
         info = "Target objects:\n"
         info += "Contains " + str(self.target.ntargets) + " Target(s):\n"
@@ -295,8 +358,7 @@ cdef class Target:
 
 
 def target_init(naga_context ctxt, Telescope telescope, Param_target p_target, Param_atmos atm,
-                Param_geom geom, Param_tel tel,
-                dm=None, brama=0):
+                Param_geom geom, Param_tel tel, dm=None, brama=0):
     """Create a cython target from parametres structures
 
     :parameters:
@@ -312,7 +374,7 @@ def target_init(naga_context ctxt, Telescope telescope, Param_target p_target, P
 
         dm: (Param_dm) : dm settings
     """
-    cdef bytes type_target = bytes("atmos")
+    cdef bytes type_target = b"atmos"
 
     cdef Target target
     cdef float xoff
@@ -424,7 +486,7 @@ IF USE_BRAMA == 1:
             del self.target
 
             cdef carma_context * context = &carma_context.instance()
-            self.target = new sutra_target_brama(context, "target_brama", telescope.telescope, -1, ntargets,
+            self.target = new sutra_target_brama(context, b"target_brama", telescope.telescope, -1, ntargets,
                         < float *> xpos.data, < float *> ypos.data,
                         < float *> Lambda.data, < float *> mag.data,
                         zerop, < long *> size.data,

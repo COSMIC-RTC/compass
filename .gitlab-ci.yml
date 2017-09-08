@@ -1,0 +1,22 @@
+image: sevin/compass:cuda8
+
+stages:
+  - build
+#  - test
+#  - deploy
+
+job_build:
+  stage: build
+  script:
+    - make
+#   - cd doc
+#   - mkdir -p compass-doc/html
+#   - make html
+#   - mv compass-doc/html/ public/
+# artifacts:
+#   paths:
+#   - public
+  only:
+    - master
+    - tags
+#    - develop
