@@ -54,9 +54,9 @@ throw (CORBA::SystemException) {
             unsigned int ncmd = rtc->d_control[ncontrol]->nactu();
             CORBA::Float *data = (CORBA::Float*) cmd.data.get_buffer();
 
-            if ((cmd.dimensions[0] != 1) && (cmd.dimensions[1] == ncmd)) {
-              BRAMA_DEBUG_TRACE("wrong dimensions : %d %d", cmd.dimensions[0],
-                                cmd.dimensions[1]);
+            if ((cmd.dimensions.length() != 1) && (cmd.dimensions[0] == ncmd)) {
+              BRAMA_DEBUG_TRACE("wrong dimensions : %d %d", cmd.dimensions.length(),
+                                cmd.dimensions[0]);
               BRAMA_DEBUG_TRACE("it should be : 1 %d", ncmd);
               throw CORBA::BAD_PARAM();
             }
@@ -113,13 +113,13 @@ throw (CORBA::SystemException) {
             unsigned int ncmd = rtc->d_control[ncontrol]->nactu();
 
 
-            if (cmd.dimensions[0] != 2 || cmd.dimensions[1] != ncmd
-                || cmd.dimensions[2] != nslope) {
+            if (cmd.dimensions.length() != 2 || cmd.dimensions[0] != ncmd
+                || cmd.dimensions[1] != nslope) {
               std::stringstream ss;
               ss<<"wrong dimensions :";
-              for(unsigned int i=0; i<=cmd.dimensions[0]; i++) ss<<" "<< cmd.dimensions[i];
+              for(unsigned int i=0; i<=cmd.dimensions.length(); i++) ss<<" "<< cmd.dimensions[i];
               BRAMA_DEBUG_TRACE("%s", ss.str().c_str());
-              BRAMA_DEBUG_TRACE("it should be : 2 %d %d", ncmd, nslope);
+              BRAMA_DEBUG_TRACE("it should be : %d %d", ncmd, nslope);
               throw CORBA::BAD_PARAM();
             }
 
@@ -152,10 +152,10 @@ throw (CORBA::SystemException) {
 
             unsigned int ncmd = rtc->d_control[ncontrol]->nactu();
 
-            if (cmd.dimensions[0] != 2 || cmd.dimensions[1] != ncmd
-                || cmd.dimensions[2] != ncmd) {
+            if (cmd.dimensions.length() != 2 || cmd.dimensions[0] != ncmd
+                || cmd.dimensions[1] != ncmd) {
               BRAMA_DEBUG_TRACE("wrong dimensions : %d %d %d",
-                                cmd.dimensions[0], cmd.dimensions[1], cmd.dimensions[2]);
+                                cmd.dimensions.length(), cmd.dimensions[0], cmd.dimensions[1]);
               BRAMA_DEBUG_TRACE("it should be : 2 %d %d", ncmd, ncmd);
               throw CORBA::BAD_PARAM();
             }
@@ -178,9 +178,9 @@ throw (CORBA::SystemException) {
 
             unsigned int ncmd = rtc->d_control[ncontrol]->nactu();
 
-            if (cmd.dimensions[0] != 1 || cmd.dimensions[1] != ncmd) {
-              BRAMA_DEBUG_TRACE("wrong dimensions : %d %d", cmd.dimensions[0],
-                                cmd.dimensions[1]);
+            if (cmd.dimensions.length() != 1 || cmd.dimensions[0] != ncmd) {
+              BRAMA_DEBUG_TRACE("wrong dimensions : %d %d", cmd.dimensions.length(),
+                                cmd.dimensions[0]);
               BRAMA_DEBUG_TRACE("it should be : 1 %d", ncmd);
               throw CORBA::BAD_PARAM();
             }
@@ -221,24 +221,24 @@ throw (CORBA::SystemException) {
             unsigned int ncmd = rtc->d_control[ncontrol]->nactu();
             CORBA::Float *data = (CORBA::Float*) cmd.data.get_buffer();
 
-            if (cmd.dimensions[0] == 1) {
-              if (cmd.dimensions[1] == ncmd) {
+            if (cmd.dimensions.length() == 1) {
+              if (cmd.dimensions[0] == ncmd) {
                 rtc->d_control[ncontrol]->set_perturbcom(data, 1);
                 return;
               } else {
-                BRAMA_DEBUG_TRACE("wrong dimensions : %d %d", cmd.dimensions[0],
-                                  cmd.dimensions[1]);
+                BRAMA_DEBUG_TRACE("wrong dimensions : %d %d", cmd.dimensions.length(),
+                                  cmd.dimensions[0]);
                 BRAMA_DEBUG_TRACE("it should be : 1 %d", ncmd);
                 throw CORBA::BAD_PARAM();
               }
-            } else if (cmd.dimensions[0] == 2) {
-              if (cmd.dimensions[1] == ncmd) {
+            } else if (cmd.dimensions.length() == 2) {
+              if (cmd.dimensions[0] == ncmd) {
                 rtc->d_control[ncontrol]->set_perturbcom(data,
-                    cmd.dimensions[2]);
+                    cmd.dimensions[1]);
                 return;
               } else {
                 BRAMA_DEBUG_TRACE("wrong dimensions : %d %d %d",
-                                  cmd.dimensions[0], cmd.dimensions[1], cmd.dimensions[2]);
+                                  cmd.dimensions.length(), cmd.dimensions[0], cmd.dimensions[1]);
                 BRAMA_DEBUG_TRACE("it should be : 2 %d nb_elem", ncmd);
                 throw CORBA::BAD_PARAM();
               }

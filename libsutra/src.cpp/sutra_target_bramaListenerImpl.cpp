@@ -63,9 +63,9 @@ throw (CORBA::SystemException) {
 
                 target->set_subsample(ntarget, subsample);
 
-//                if ((cmd.dimensions[0] != 1) && (cmd.dimensions[1] == ncmd)) {
+//                if ((cmd.dimensions.length() != 1) && (cmd.dimensions[0] == ncmd)) {
 //                  BRAMA_DEBUG_TRACE("wrong dimensions : %d %d",
-//                                    cmd.dimensions[0], cmd.dimensions[1]);
+//                                    cmd.dimensions.length(), cmd.dimensions[0]);
 //                  BRAMA_DEBUG_TRACE("it should be : 1 %d", ncmd);
 //                  throw CORBA::BAD_PARAM();
 //                }

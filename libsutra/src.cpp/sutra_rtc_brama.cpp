@@ -158,25 +158,20 @@ void sutra_rtc_brama::allocateBuffers() {
     } else {
       buff_target = NULL;
     }
-    dims_wfs = BRAMA::Dims::allocbuf(2);
-    dims_wfs[0] = 1;
-    dims_wfs[1] = wfs_size;
+    dims_wfs = BRAMA::Dims::allocbuf(1);
+    dims_wfs[0] = wfs_size;
 
-    dims_intensities = BRAMA::Dims::allocbuf(2);
-    dims_intensities[0] = 1;
-    dims_intensities[1] = nvalid;
+    dims_intensities = BRAMA::Dims::allocbuf(1);
+    dims_intensities[0] = nvalid;
 
-    dims_slopes = BRAMA::Dims::allocbuf(2);
-    dims_slopes[0] = 1;
-    dims_slopes[1] = nslp;
+    dims_slopes = BRAMA::Dims::allocbuf(1);
+    dims_slopes[0] = nslp;
 
-    dims_commands = BRAMA::Dims::allocbuf(2);
-    dims_commands[0] = 1;
-    dims_commands[1] = ncmd;
+    dims_commands = BRAMA::Dims::allocbuf(1);
+    dims_commands[0] = ncmd;
 
-    dims_target = BRAMA::Dims::allocbuf(2);
-    dims_target[0] = 1;
-    dims_target[1] = target_size;
+    dims_target = BRAMA::Dims::allocbuf(1);
+    dims_target[0] = target_size;
 
   } catch (CORBA::Exception& e) {
     cerr << "Exception caught in main.cpp:" << endl << e << endl;
@@ -248,7 +243,7 @@ void sutra_rtc_brama::publish() {
   zFrame.wfs.framecounter = framecounter;
   zFrame.wfs.timestamp = BRAMA::get_timestamp();
   zFrame.wfs.source = CORBA::string_dup("COMPASS WFSs");
-  zFrame.wfs.dimensions = BRAMA::Dims(2, 2, dims_wfs, 0);
+  zFrame.wfs.dimensions = BRAMA::Dims(1, 1, dims_wfs, 0);
   zFrame.wfs.data = BRAMA::Values(wfs_size * sizeof(float), wfs_size * sizeof(float),
                                   buff_wfs, 0);
   zFrame.wfs.datatype = BRAMA::BRAMA_float32_t;
@@ -260,7 +255,7 @@ void sutra_rtc_brama::publish() {
   zFrame.loopData.slps.typeofelements = CORBA::string_dup("slopes");
   zFrame.loopData.slps.datatype = BRAMA::BRAMA_float32_t;
   zFrame.loopData.slps.sizeofelements = sizeof(float);
-  zFrame.loopData.slps.dimensions = BRAMA::Dims(2, 2, dims_slopes, 0);
+  zFrame.loopData.slps.dimensions = BRAMA::Dims(1, 1, dims_slopes, 0);
   zFrame.loopData.slps.framecounter = framecounter;
   zFrame.loopData.slps.data = BRAMA::Values(nslp * sizeof(float), nslp * sizeof(float),
                               buff_slopes, 0);
@@ -270,7 +265,7 @@ void sutra_rtc_brama::publish() {
   zFrame.loopData.ints.typeofelements = CORBA::string_dup("intensities");
   zFrame.loopData.ints.datatype = BRAMA::BRAMA_float32_t;
   zFrame.loopData.ints.sizeofelements = sizeof(float);
-  zFrame.loopData.ints.dimensions = BRAMA::Dims(2, 2, dims_intensities, 0);
+  zFrame.loopData.ints.dimensions = BRAMA::Dims(1, 1, dims_intensities, 0);
   zFrame.loopData.ints.framecounter = framecounter;
   zFrame.loopData.ints.data = BRAMA::Values(nvalid * sizeof(float),
                               nvalid * sizeof(float), buff_intensities, 0);
@@ -280,7 +275,7 @@ void sutra_rtc_brama::publish() {
   zFrame.loopData.cmds.typeofelements = CORBA::string_dup("commands");
   zFrame.loopData.cmds.datatype = BRAMA::BRAMA_float32_t;
   zFrame.loopData.cmds.sizeofelements = sizeof(float);
-  zFrame.loopData.cmds.dimensions = BRAMA::Dims(2, 2, dims_commands, 0);
+  zFrame.loopData.cmds.dimensions = BRAMA::Dims(1, 1, dims_commands, 0);
   zFrame.loopData.cmds.framecounter = framecounter;
   zFrame.loopData.cmds.data = BRAMA::Values(ncmd * sizeof(float), ncmd * sizeof(float),
                               buff_commands, 0);
@@ -292,7 +287,7 @@ void sutra_rtc_brama::publish() {
   zFrame.target.framecounter = framecounter;
   zFrame.target.timestamp = BRAMA::get_timestamp();
   zFrame.target.source = CORBA::string_dup("COMPASS Targets");
-  zFrame.target.dimensions = BRAMA::Dims(2, 2, dims_target, 0);
+  zFrame.target.dimensions = BRAMA::Dims(1, 1, dims_target, 0);
   zFrame.target.data = BRAMA::Values(target_size * sizeof(float), target_size * sizeof(float),
                                      buff_target, 0);
   zFrame.target.datatype = BRAMA::BRAMA_float32_t;
