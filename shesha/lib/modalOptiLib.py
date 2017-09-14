@@ -374,7 +374,7 @@ def loopStaticAtmos(wao, nIter):
 def AOLoop(nIter, wao, cmat = None, pyrc = None,
            reset = None, gain = 0.7, clip = -1, refSlopes = None,
            moveAtmos = True, showAtmos = True, computeLE = None,
-           computeResidualsM2PH = None):
+           computeResidualsM2PH = None, genVideo = None):
     '''
     
     :param nIter:
@@ -459,10 +459,19 @@ def AOLoop(nIter, wao, cmat = None, pyrc = None,
         if computeResidualsM2PH is not None:
             residualTot[i, :] = residuals(computeResidualsM2PH, phMap(wao, showAtmos))
 
-        if computeLE is not None:
+        if computeLE is not None or genVideo is not None:
             trace_tar(showAtmos)
+        if computeLE is not None:
             for i in range(len(computeLE)):
-                longExp[i] += wao.tar.get_image(computeLE[i], "se")
+                longExp[i] += wao.tar.get_image(computeLE[i], 'se')
+        
+        if (genVideo is not None) and (genVideo[0] >= 0) and (i in genVideo[2]):
+            makeVideoFrame(genVideo[1], i,
+                           wao.tar.get_image(genVideo[0], 'se'),
+                           phMap(wao, showAtmos),
+                           wao.config.p_wfs0.Lambda,
+                           wao.tar.get_strehl(genVideo[0])[0])
+            
         
     arg = 2 * (computeLE is not None) + (computeResidualsM2PH is not None)
     if arg == 0:
@@ -477,8 +486,46 @@ def AOLoop(nIter, wao, cmat = None, pyrc = None,
     for t in range(wao.config.p_target.ntargets):
         wao.tar.atmos_trace(t, wao.atm, wao.tel)
         wao.tar.dmtrace(t, wao.dms)
-    
 
+
+import matplotlib as mpl 
+mpl.rcParams.update({ 
+    'lines.linewidth': 2.5, 
+    'lines.markeredgewidth': 2., 
+    'lines.markersize': 12., 
+    'font.size': 14., 
+    'text.usetex': False, 
+    'axes.linewidth': 2., 
+    'axes.grid': False, 
+    'boxplot.meanprops.linewidth': 2., 
+    'boxplot.medianprops.linewidth': 2., 
+    'boxplot.flierprops.linewidth': 2., 
+    'boxplot.capprops.linewidth':2., 
+    'boxplot.boxprops.linewidth':2. 
+})
+
+def makeVideoFrame(fileName, n, psfse, phaseMap, wavelength, SR):
+    fig, axes = plt.subplots(1,2)
+    rmsError = wavelength * 1000. * np.sqrt(np.sum(phaseMap ** 2))
+    axes.flat[0].matshow(np.log10(psfse[512-100:512+100,512-100:512+100]),
+                         cmap='magma', vmin=-7,vmax=-2)
+    plt.setp(axes.flat[0].get_xticklabels(),visible=False)
+    plt.setp(axes.flat[0].get_yticklabels(),visible=False)
+    axes.flat[0].set_title('Short exposure PSF')
+    axes.flat[0].set_xlabel('SR: %.3f' % SR)
+    axes.flat[0].set_ylabel('Frame number %u @ 500 Hz' % n)
+    maxColor = np.max(np.abs(phaseMap))
+    axes.flat[1].matshow(phaseMap, cmap='viridis',
+                         vmin = -maxColor, vmax= maxColor)
+    plt.setp(axes.flat[1].get_xticklabels(),visible=False)
+    plt.setp(axes.flat[1].get_yticklabels(),visible=False)
+    axes.flat[1].set_title('Residual Wavefront')
+    axes.flat[1].set_xlabel('Wavefront error: %.1f nm RMS' % rmsError)
+    fig.savefig(fileName + '%u.png' % n, bbox_inches='tight')
+    plt.close(fig)
+    
+    
+    
 def phMap(wao, showAtmos):
     '''
         Get a WFS phase map
