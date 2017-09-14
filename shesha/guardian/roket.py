@@ -292,7 +292,7 @@ class Roket(Simulator):
                                                 dm_dim, "indx_pup":
                                                         indx_pup,
                 "fitting":
-                        self.fit[self.N_preloop:], "SR":
+                        np.mean(self.fit[self.N_preloop:]), "SR":
                                 self.SR, "SR2":
                                         self.SR2, "cov":
                                                 self.cov, "cor":

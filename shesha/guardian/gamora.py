@@ -214,7 +214,7 @@ def psf_rec_Vii(filename, err=None, fitting=True, covmodes=None, cov=None):
     tac = time.time()
     print(" ")
     print("PSF renconstruction took ", tac - tic, " seconds")
-    return otftel, otf2, psf, gamora
+    return psf
 
 
 def psf_rec_vii_cpu(filename):
