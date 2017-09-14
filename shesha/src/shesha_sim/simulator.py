@@ -233,7 +233,7 @@ class Simulator:
         else:
             self.rtc = None
 
-    def next(self, *, move_atmos: bool=True, nControl: int=0,
+    def next(self, *, move_atmos: bool=True, see_atmos: bool=False, nControl: int=0,
              tar_trace: Iterable[int]=None, wfs_trace: Iterable[int]=None,
              apply_control: bool=True) -> None:
         '''
@@ -253,18 +253,32 @@ class Simulator:
 
         if move_atmos:
             self.atm.move_atmos()
+
         if (self.config.p_controllers[nControl].type_control ==
                     scons.ControllerType.GEO):
             for t in tar_trace:
-                self.tar.raytrace(t, b"atmos", self.tel, self.atm)
+                if see_atmos:
+                    self.tar.raytrace(t, b"atmos", atmos=self.atm)
+                else:
+                    self.tar.reset_phase(t)
+                self.tar.raytrace(t, b"telncpa", tel=self.tel, ncpa=1)
+                self.tar.raytrace(t, b"dm", dms=self.dms)
                 self.rtc.do_control_geo(nControl, self.dms, self.tar, t)
                 self.rtc.apply_control(nControl, self.dms)
-                self.tar.raytrace(t, b"dm", self.tel, dms=self.dms)
         else:
             for t in tar_trace:
-                self.tar.raytrace(t, b"all", self.tel, self.atm, self.dms)
+                if see_atmos:
+                    self.tar.raytrace(t, b"atmos", atmos=self.atm)
+                else:
+                    self.tar.reset_phase(t)
+                self.tar.raytrace(t, b"dm", tel=self.tel, dms=self.dms, ncpa=1)
             for w in wfs_trace:
-                self.wfs.raytrace(w, b"all", self.tel, self.atm, self.dms)
+                if see_atmos:
+                    self.wfs.raytrace(w, b"atmos", tel=self.tel, atmos=self.atm, ncpa=1)
+                else:
+                    self.wfs.raytrace(w, b"telncpa", tel=self.tel, rst=1, ncpa=1)
+                if not self.config.p_wfss[w].openloop:
+                    self.wfs.raytrace(w, b"dm", dms=self.dms)
                 self.wfs.comp_img(w)
             self.rtc.do_centroids(nControl)
             self.rtc.do_control(nControl)

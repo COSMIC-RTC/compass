@@ -1,7 +1,7 @@
 """Widget to simulate a closed loop
 
 Usage:
-  widget_ao.py [<parameters_filename>] [--brama] [--bench]
+  widget_ao.py [<parameters_filename>] [--expert] [--brama] [--bench]
 
 with 'parameters_filename' the path to the parameters file
 
@@ -33,9 +33,9 @@ import shesha_sim
 import shesha_constants as scons
 from shesha_constants import CONST
 
-sys.path.insert(0, os.environ["SHESHA_ROOT"] + "/data/par/")
-WindowTemplate, TemplateBaseClass = loadUiType(
-        os.environ["SHESHA_ROOT"] + "/widgets/widget_ao.ui")  # type: type, type
+# TODO correct it
+# import compassConfigToFile as cf
+# from aoCalib import adoptCalib_class
 
 from typing import Any, Dict, Tuple, Callable, List
 """
@@ -44,14 +44,21 @@ gdb --args python -i widget_ao.py
 """
 from docopt import docopt
 
+sys.path.insert(0, os.environ["SHESHA_ROOT"] + "/data/par/")
+WindowTemplate, TemplateBaseClass = loadUiType(
+        os.environ["SHESHA_ROOT"] + "/widgets/widget_ao.ui")  # type: type, type
+
 
 class widgetAOWindow(TemplateBaseClass):
 
-    def __init__(self, configFile: Any=None, BRAMA: bool=False) -> None:
+    def __init__(self, configFile: Any=None, BRAMA: bool=False,
+                 expert: bool=False) -> None:
+        TemplateBaseClass.__init__(self)
 
         self.BRAMA = BRAMA
-
-        TemplateBaseClass.__init__(self)
+        self.SRLE = []
+        self.SRSE = []
+        self.numiter = []
 
         self.ui = WindowTemplate()
         self.ui.setupUi(self)
@@ -67,15 +74,19 @@ class widgetAOWindow(TemplateBaseClass):
 
         self.gui_timer = QTimer()  # type: QTimer
         self.gui_timer.timeout.connect(self.updateDisplay)
+        if self.ui.wao_Display.isChecked():
+            self.gui_timer.start(1000. / self.ui.wao_frameRate.value())
 
         self.stop = False  # type: bool  # Request quit
 
         self.ui.wao_nbiters.setValue(1000)  # Default GUI nIter box value
+        self.nbiter = self.ui.wao_nbiters.value()
         self.refreshTime = 0  # type: float  # System time at last display refresh
         self.loopThread = None  # type: QThread
         self.assistant = None  # type: Any
         self.selector_init = None  # type: List[str]
         self.see_atmos = 1
+        self.aoCalib = None
 
         #############################################################
         #                 PYQTGRAPH WINDOW INIT                     #
@@ -133,11 +144,18 @@ class widgetAOWindow(TemplateBaseClass):
         self.ui.wao_rtcWindowMPL.hide()
         self.ui.wao_commandBtt.clicked.connect(self.BttCommand)
         self.ui.wao_commandKL.clicked.connect(self.KLCommand)
-        self.ui.wao_PSFlogscale.clicked.connect(self.updateDisplay)
         self.ui.wao_resetSR.clicked.connect(self.resetSR)
         self.ui.wao_actionHelp_Contents.triggered.connect(self.on_help_triggered)
 
-        self.ui.wao_Display.setCheckState(False)
+        self.ui.wao_allTarget.stateChanged.connect(self.updateAllTarget)
+        self.ui.wao_forever.stateChanged.connect(self.updateForever)
+
+        self.ui.wao_atmosphere.clicked[bool].connect(self.set_atmos)
+        self.dispStatsInTerminal = False
+        self.ui.wao_clearSR.clicked.connect(self.clearSR)
+        self.ui.actionStats_in_Terminal.toggled.connect(self.updateStatsInTerminal)
+        self.ui.actionQuit.triggered.connect(self.quitGUI)
+
         self.ui.wao_Display.stateChanged.connect(self.gui_timer_config)
         self.ui.wao_frameRate.setValue(2)
 
@@ -152,7 +170,7 @@ class widgetAOWindow(TemplateBaseClass):
         self.SRcircleDM = {}  # type: Dict[int, pg.ScatterPlotItem]
         self.SRcircleTarget = {}  # type: Dict[int, pg.ScatterPlotItem]
 
-        self.ui.splitter.setSizes([2000, 10])
+        # self.ui.splitter.setSizes([2000, 10])
 
         self.ui.wao_loadConfig.setDisabled(False)
         self.ui.wao_init.setDisabled(True)
@@ -160,6 +178,12 @@ class widgetAOWindow(TemplateBaseClass):
         self.ui.wao_next.setDisabled(True)
         self.ui.wao_unzoom.setDisabled(True)
         self.ui.wao_resetSR.setDisabled(True)
+        self.ph2modes = None
+        #self.KL2V = None
+        self.P = None
+
+        self.ui.wao_expertPanel.setVisible(expert)
+        self.adjustSize()
 
         if configFile is not None:
             self.ui.wao_selectConfig.clear()
@@ -184,29 +208,50 @@ class widgetAOWindow(TemplateBaseClass):
             cmd = "assistant -enableRemoteControl -collectionFile %s" % helpcoll
             self.assistant = Popen(cmd, shell=True, stdin=PIPE)
 
-    def resetSR(self) -> None:
-        tarnum = self.ui.wao_resetSR_tarNum.value()
-        print("Reset SR on target %d" % tarnum)
-        self.sim.tar.reset_strehl(tarnum)
-
     def closeEvent(self, event: Any) -> None:
+        self.quitGUI(event)
+
+    def quitGUI(self, event: Any=None) -> None:
         reply = QtWidgets.QMessageBox.question(self, 'Message', "Are you sure to quit?",
                                                QtWidgets.QMessageBox.Yes |
                                                QtWidgets.QMessageBox.No,
                                                QtWidgets.QMessageBox.No)
 
         if reply == QtWidgets.QMessageBox.Yes:
-            event.accept()
             self.stop = True
             if self.loopThread is not None:
                 self.loopThread.join()
             quit()
+            if event:
+                event.accept()
         else:
-            event.ignore()
+            if event:
+                event.ignore()
 
         #############################################################
         #                       METHODS                             #
         #############################################################
+    def updateStatsInTerminal(self, state):
+        self.dispStatsInTerminal = state
+
+    def updateAllTarget(self, state):
+        self.ui.wao_resetSR_tarNum.setDisabled(state)
+
+    def updateForever(self, state):
+        self.ui.wao_nbiters.setDisabled(state)
+
+    def set_atmos(self, atmos):
+        self.see_atmos = atmos
+
+    def resetSR(self) -> None:
+        if self.ui.wao_allTarget.isChecked():
+            for t in range(self.sim.config.p_target.ntargets):
+                self.sim.tar.reset_strehl(t)
+        else:
+            tarnum = self.ui.wao_resetSR_tarNum.value()
+            print("Reset SR on target %d" % tarnum)
+            self.sim.tar.reset_strehl(tarnum)
+
     def updateGain(self) -> None:
         if (self.sim.rtc):
             self.sim.rtc.set_gain(0, float(self.ui.wao_controlGain.value()))
@@ -642,8 +687,11 @@ class widgetAOWindow(TemplateBaseClass):
         if pressed:
             self.stop = False
             self.refreshTime = time.time()
-            self.nbiter = self.ui.wao_nbiters.value()
-            print(("LOOP STARTED FOR %d iterations" % self.nbiter))
+            if self.ui.wao_forever.isChecked():
+                print("LOOP STARTED")
+            else:
+                self.nbiter = self.ui.wao_nbiters.value()
+                print("LOOP STARTED FOR %d iterations" % self.nbiter)
             self.run()
         else:
             self.stop = True
@@ -797,7 +845,7 @@ class widgetAOWindow(TemplateBaseClass):
                         str(self.ui.wao_dmTypeSelector.currentText()),
                         self.ui.wao_dmAlt.value())
                 self.updateDisplay()
-                print(("DM " + str(ndm) + " reset"))
+                print("DM #%d reset" % ndm)
             else:
                 print("Invalid DM : please select a DM to reset")
         else:
@@ -956,8 +1004,35 @@ class widgetAOWindow(TemplateBaseClass):
             widToShow.show()
             widToHide.hide()
 
+    def clearSR(self):
+        self.SRLE = [self.SRLE[-1]]
+        self.SRSE = [self.SRSE[-1]]
+        self.numiter = [self.numiter[-1]]
+
+    def updateSRDisplay(self, SRLE, SRSE, numiter):
+        self.SRLE.append(SRLE)
+        self.SRSE.append(SRSE)
+        self.numiter.append(numiter)
+        if (len(self.SRSE) > 100):  # Clipping last 100 points...
+            self.SRLE = self.SRLE[-100:]
+            self.SRSE = self.SRSE[-100:]
+            self.numiter = self.numiter[-100:]
+        self.ui.wao_SRPlotWindow.canvas.axes.clear()
+        self.ui.wao_SRPlotWindow.canvas.axes.yaxis.set_label("SR")
+        self.ui.wao_SRPlotWindow.canvas.axes.xaxis.set_label("num iter")
+        self.ui.wao_SRPlotWindow.canvas.axes.plot(self.numiter, self.SRSE,
+                                                  linestyle="--", color="red",
+                                                  marker="o", label="SR SE")
+        self.ui.wao_SRPlotWindow.canvas.axes.plot(self.numiter, self.SRLE,
+                                                  linestyle="--", color="blue",
+                                                  marker="o", label="SR LE")
+        # self.ui.wao_SRPlotWindow.canvas.axes.grid()
+        self.ui.wao_SRPlotWindow.canvas.draw()
+
     def updateDisplay(self) -> None:
-        if (not self.sim.is_init) or (not self.ui.wao_Display.isChecked()):
+        if (self.sim is None) or (not self.sim.is_init) or (
+                not self.ui.wao_Display.isChecked()):
+            # print("Widget not fully initialized")
             return
         data = None
         if not self.loopLock.acquire(False):
@@ -1103,8 +1178,8 @@ class widgetAOWindow(TemplateBaseClass):
                         data = self.sim.tar.get_image(self.numberSelected, b"se")
                         if (self.ui.wao_PSFlogscale.isChecked()):
                             if np.any(data <= 0):
-                                print(("\nzero founds, log display disabled\n",
-                                       RuntimeWarning))
+                                print("\nzero founds, log display disabled\n",
+                                      RuntimeWarning)
                                 self.ui.wao_PSFlogscale.setCheckState(False)
                             else:
                                 data = np.log10(data)
@@ -1187,7 +1262,7 @@ class widgetAOWindow(TemplateBaseClass):
                         self.currentViewSelected = self.imgType
 
                 if (data is not None):
-                    autoscale = self.ui.wao_autoscale.isChecked()
+                    autoscale = self.ui.actionAuto_Scale.isChecked()
                     if (autoscale):
                         # inits levels
                         self.hist.setLevels(data.min(), data.max())
@@ -1203,7 +1278,7 @@ class widgetAOWindow(TemplateBaseClass):
         else:
             try:
                 start = time.time()
-                self.sim.next()
+                self.sim.next(see_atmos=self.see_atmos)
 
                 refreshDisplayTime = 1. / self.ui.wao_frameRate.value()
 
@@ -1212,6 +1287,8 @@ class widgetAOWindow(TemplateBaseClass):
                     signal_se = ""
                     for t in range(self.sim.config.p_target.ntargets):
                         SR = self.sim.tar.get_strehl(t)
+                        if (t == self.numberSelected):  # Plot on the wfs selected
+                            self.updateSRDisplay(SR[1], SR[0], self.sim.iter)
                         signal_se += "%1.2f   " % SR[0]
                         signal_le += "%1.2f   " % SR[1]
 
@@ -1239,7 +1316,8 @@ class widgetAOWindow(TemplateBaseClass):
 
     def run(self):
         self.loopOnce()
-        self.nbiter -= 1
+        if not self.ui.wao_forever.isChecked():
+            self.nbiter -= 1
         if self.nbiter > 0 and not self.stop:
             QTimer.singleShot(0, self.run)  # Update loop
         else:
@@ -1271,7 +1349,29 @@ if __name__ == '__main__':
     arguments = docopt(__doc__)
     app = QtWidgets.QApplication(sys.argv)
     app.setStyle('cleanlooks')
-    wao = widgetAOWindow(arguments["<parameters_filename>"], BRAMA=arguments["--brama"])
+    wao = widgetAOWindow(arguments["<parameters_filename>"], BRAMA=arguments["--brama"],
+                         expert=arguments["--expert"])
     wao.show()
+    """
+    locator = Pyro.naming.NameServerLocator()
+    ns = locator.getNS()
+    Pyro.core.initServer()
+    daemon = Pyro.core.Daemon()
+    daemon.useNameServer(ns)  # use current ns
+    daemon.connect(test, ":waoCanapass")
+    daemon.requestLoop()
+    """
+    """
+    daemon = Pyro4.Daemon()                # make a Pyro daemon
+    ns = Pyro4.locateNS()                  # find the name server
+    uri = daemon.register(wao)   # register the greeting maker as a Pyro object
+    ns.register("example.greeting", uri)   # register the object with a name in the name server
+
+        print("Ready.")
+        daemon.requestLoop()
+    except:
+        from warnings import warn
+        warn("pyro4 not found", RuntimeWarning)
+    """
     # ao.imat_init(0, wao.rtc, wao.config.p_rtc, wao.dms, wao.wfs, wao.config.p_wfss, wao.config.p_tel)
     # app.exec_()
