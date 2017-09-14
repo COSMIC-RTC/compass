@@ -1,27 +1,31 @@
-# import cProfile
-# import pstats as ps
+"""script test to simulate a closed loop
+
+Usage:
+  closed_loop.py <parameters_filename> [--brama] [--bench]
+
+with 'parameters_filename' the path to the parameters file
+
+Options:
+  -h --help          Show this help message and exit
+  --brama            Distribute data with BRAMA
+  --bench            For a timed call
+"""
+
+from docopt import docopt
 
 import sys
 import os
 from shesha_sim.simulator import Simulator, SimulatorBrama, Bench
 
-if not (len(sys.argv) == 2 or (len(sys.argv) == 3 and
-                               (sys.argv[1] == 'bench' or sys.argv[1] == 'brama'))):
-    error = 'Command line should be:"python -i closed_loop.py parameters_filename"\n'+\
-            '    or python -i closed_loop.py barma parameters_filename\n' +\
-            '    or python -i closed_loop.py bench parameters_filename for a timed call\n' +\
-            ' with "parameters_filename" the path to the parameters file'
-    raise Exception(error)
+arguments = docopt(__doc__)
+param_file = arguments["<parameters_filename>"]
 
 # Get parameters from file
-if sys.argv[1] == 'bench':
-    param_file = sys.argv[2]
+if arguments["--bench"]:
     sim = Bench(param_file)
-elif sys.argv[1] == 'brama':
-    param_file = sys.argv[2]
+elif arguments["--brama"]:
     sim = SimulatorBrama(param_file)
 else:
-    param_file = sys.argv[1]
     sim = Simulator(param_file)
 
 sim.init_sim()

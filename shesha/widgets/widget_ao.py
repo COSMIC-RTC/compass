@@ -1,6 +1,14 @@
-"""
-widget_ao.py
+"""Widget to simulate a closed loop
 
+Usage:
+  widget_ao.py [<parameters_filename>] [--brama] [--bench]
+
+with 'parameters_filename' the path to the parameters file
+
+Options:
+  -h --help          Show this help message and exit
+  --brama            Distribute data with BRAMA
+  --bench            For a timed call
 """
 
 import os, sys
@@ -34,20 +42,14 @@ from typing import Any, Dict, Tuple, Callable, List
 low levels debugs:
 gdb --args python -i widget_ao.py
 """
+from docopt import docopt
 
 
 class widgetAOWindow(TemplateBaseClass):
 
-    def __init__(self, BBFIX: bool=False) -> None:
-        if BBFIX:
-            # The Bumblebee fix requires
-            # to instantiate a singleton naga_context before Qt GUI starts
-            # to run init synchronously
+    def __init__(self, configFile: Any=None, BRAMA: bool=False) -> None:
 
-            import naga
-            c = naga.naga_context()
-
-        self.BBFIX = BBFIX
+        self.BRAMA = BRAMA
 
         TemplateBaseClass.__init__(self)
 
@@ -154,6 +156,12 @@ class widgetAOWindow(TemplateBaseClass):
         self.ui.wao_next.setDisabled(True)
         self.ui.wao_unzoom.setDisabled(True)
         self.ui.wao_resetSR.setDisabled(True)
+
+        if configFile is not None:
+            self.ui.wao_selectConfig.clear()
+            self.ui.wao_selectConfig.addItem(configFile)
+            self.loadConfig()
+            self.InitConfig()
 
     def on_help_triggered(self, i: Any=None) -> None:
         if i is None:
@@ -574,7 +582,10 @@ class widgetAOWindow(TemplateBaseClass):
         sys.path.insert(0, self.defaultParPath)
 
         if self.sim is None:
-            self.sim = shesha_sim.simulator.Simulator(configFile)
+            if self.BRAMA:
+                self.sim = shesha_sim.simulator.SimulatorBrama(configFile)
+            else:
+                self.sim = shesha_sim.simulator.Simulator(configFile)
         else:
             self.sim.clear_init()
             self.sim.load_from_file(configFile)
@@ -671,13 +682,9 @@ class widgetAOWindow(TemplateBaseClass):
     def InitConfig(self) -> None:
         self.ui.wao_loadConfig.setDisabled(True)
         self.ui.wao_init.setDisabled(True)
-        if self.BBFIX:  # Single-threaded
-            self.InitConfigThread()
-            self.InitConfigFinished()
-        else:  # Auxiliary thread
-            thread = WorkerThread(self, self.InitConfigThread)
-            thread.jobFinished['PyQt_PyObject'].connect(self.InitConfigFinished)
-            thread.start()
+        thread = WorkerThread(self, self.InitConfigThread)
+        thread.jobFinished['PyQt_PyObject'].connect(self.InitConfigFinished)
+        thread.start()
 
     def InitConfigThread(self) -> None:
         self.sim.clear_init()
@@ -1251,9 +1258,10 @@ class WorkerThread(QThread):
 
 
 if __name__ == '__main__':
+    arguments = docopt(__doc__)
     app = QtWidgets.QApplication(sys.argv)
     app.setStyle('cleanlooks')
-    wao = widgetAOWindow()
+    wao = widgetAOWindow(arguments["<parameters_filename>"], BRAMA=arguments["--brama"])
     wao.show()
     # ao.imat_init(0, wao.rtc, wao.config.p_rtc, wao.dms, wao.wfs, wao.config.p_wfss, wao.config.p_tel)
     # app.exec_()
