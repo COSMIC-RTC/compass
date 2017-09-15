@@ -42,3 +42,6 @@ shesha/data/M4data/
 
 shesha/test/scripts/resultatsScripts/
 *.gch
+
+shesha/src/sutra_bind/*
+.mypy_cache
