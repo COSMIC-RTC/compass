@@ -273,10 +273,12 @@ class Simulator:
                     self.tar.reset_phase(t)
                 self.tar.raytrace(t, b"dm", tel=self.tel, dms=self.dms, ncpa=1)
             for w in wfs_trace:
+
                 if see_atmos:
                     self.wfs.raytrace(w, b"atmos", tel=self.tel, atmos=self.atm, ncpa=1)
                 else:
                     self.wfs.raytrace(w, b"telncpa", tel=self.tel, rst=1, ncpa=1)
+
                 if not self.config.p_wfss[w].openloop:
                     self.wfs.raytrace(w, b"dm", dms=self.dms)
                 self.wfs.comp_img(w)

@@ -450,25 +450,15 @@ int sutra_source::raytrace(sutra_dms *ydms, int rst, int phase_var) {
 }
 
 int sutra_source::raytrace(int rst) {
-  if (this->d_ncpa_phase == nullptr) {
-    // DEBUG_TRACE("ERROR: no NCPA has been loaded");
-    return EXIT_FAILURE;
-  }
 
   this->current_context->set_activeDevice(this->device, 1);
 
-  // if (rst == 1)
-  //   this->d_phase->d_screen->reset();
-  //
-  // target_raytrace(
-  //     this->d_phase->d_screen->getData(), this->d_ncpa_phase->getData(),
-  //     this->d_phase->d_screen->getDims(1), this->d_phase->d_screen->getDims(2),
-  //     this->d_ncpa_phase->getDims(1), 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f,
-  //     this->block_size);
-
-  float alpha = (rst == 1)?0.f:1.f;
-  this->d_phase->d_screen->axpy(alpha, this->d_ncpa_phase, 1, 1);
-
+  if ((this->d_ncpa_phase == nullptr) && (rst == 1)) {
+    this->d_phase->d_screen->reset();
+  } else if(this->d_ncpa_phase != nullptr) {
+    float alpha = (rst == 1)?0.f:1.f;
+    this->d_phase->d_screen->axpy(alpha, this->d_ncpa_phase, 1, 1);
+  }
   return EXIT_SUCCESS;
 }
 
