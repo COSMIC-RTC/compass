@@ -21,7 +21,7 @@ except:
 
 
 
-def applyVoltGetSlopes(wao, volts, withAtm, extPyrc = None):
+def applyVoltGetSlopes(wao, volts, withAtm, extPyrc = None, noise=False):
     '''
         Applies voltages
         on the dms and reads out wfs slopes
@@ -44,7 +44,7 @@ def applyVoltGetSlopes(wao, volts, withAtm, extPyrc = None):
     else:
         import controlRoutines as cr
         pyrhr = wao.wfs.get_pyrimghr(0)
-        _, _, _, grad = cr.getPyramidData(pyrhr, extPyrc)
+        _, _, _, grad = cr.getPyramidData(pyrhr, extPyrc, noise=noise)
         slopes = cr.gradToSlopes(grad, extPyrc["validZone"])
     return slopes
 
@@ -371,7 +371,7 @@ def loopStaticAtmos(wao, nIter):
         wao.tar.dmtrace(t, wao.dms)
 
         
-def AOLoop(nIter, wao, cmat = None, pyrc = None,
+def AOLoop(nIter, wao, cmat = None, pyrc = None, noise=False,
            reset = None, gain = 0.7, clip = -1, refSlopes = None,
            moveAtmos = True, showAtmos = True, computeLE = None,
            computeResidualsM2PH = None, genVideo = None):
@@ -450,7 +450,7 @@ def AOLoop(nIter, wao, cmat = None, pyrc = None,
             currCommand = np.r_[wao.dms.getComm('pzt', 0), wao.dms.getComm('tt', 0)]
 
         else:  # Externalize WFS/RTC
-            slopes = applyVoltGetSlopes(wao, currCommand, showAtmos, extPyrc = pyrc)
+            slopes = applyVoltGetSlopes(wao, currCommand, showAtmos, extPyrc = pyrc, noise=noise)
 
             currCommand -= gain * cmat.dot(slopes - refSlopes)
             if clip > 0:
