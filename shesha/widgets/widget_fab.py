@@ -33,9 +33,8 @@ import shesha_sim
 import shesha_constants as scons
 from shesha_constants import CONST
 
-# TODO correct it
-# import compassConfigToFile as cf
-# from aoCalib import adoptCalib_class
+import compassConfigToFile as cf
+from aoCalib import adoptCalib_class
 
 from typing import Any, Dict, Tuple, Callable, List
 """
@@ -342,10 +341,9 @@ class widgetAOWindowPyro(widgetAOWindow, Pyro.core.ObjBase):
 
     def InitConfigFinished(self) -> None:
         widgetAOWindow.InitConfigFinished(self)
-        # TODO update
-        # self.aoCalib = adoptCalib_class(
-        #         self.sim.config, self.sim.wfs, self.sim.tel, self.sim.atm, self.sim.dms, self.sim.tar,
-        #         self.sim.rtc, ao)
+        self.aoCalib = adoptCalib_class(
+                self.sim.config, self.sim.wfs, self.sim.tel, self.sim.atm, self.sim.dms, self.sim.tar,
+                self.sim.rtc, ao)
 
     def measureIMatKL(self, ampliVec, KL2V, Nslopes, noise=False, nmodesMax=0,
                       withTurbu=False, pushPull=False):

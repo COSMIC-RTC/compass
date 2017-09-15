@@ -12,6 +12,8 @@ from Rtc import Rtc
 
 from typing import List  # Mypy checker
 
+from tqdm import tqdm
+
 
 def imat_geom(wfs: Sensors, dms: Dms, p_wfss: List[conf.Param_wfs],
               p_dms: List[conf.Param_dm], p_controller: conf.Param_controller,
@@ -42,11 +44,11 @@ def imat_geom(wfs: Sensors, dms: Dms, p_wfss: List[conf.Param_wfs],
     imat_cpu = np.zeros((imat_size1, imat_size2), dtype=np.float32)
     ind = 0
     cc = 0
-    print("\rDoing imat geom... #%d/%d" % (cc, imat_size2), end='')
+    print("Doing imat geom...")
     for nmc in range(ndm):
         nm = p_controller.ndm[nmc]
         dms.resetdm(p_dms[nm].type_dm, p_dms[nm].alt)
-        for i in range(p_dms[nm]._ntotact):
+        for i in tqdm(range(p_dms[nm]._ntotact), desc="DM%d"%nmc):
             dms.oneactu(p_dms[nm].type_dm, p_dms[nm].alt, i, p_dms[nm].push4imat)
             nslps = 0
             for nw in range(nwfs):
@@ -60,8 +62,6 @@ def imat_geom(wfs: Sensors, dms: Dms, p_wfss: List[conf.Param_wfs],
             cc = cc + 1
             dms.resetdm(p_dms[nm].type_dm, p_dms[nm].alt)
 
-            print("\rDoing imat geom... #%d/%d" % (cc, imat_size2), end=' ')
-    print("\nimat geom done")
     return imat_cpu
 
 

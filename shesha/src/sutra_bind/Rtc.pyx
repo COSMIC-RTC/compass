@@ -8,6 +8,7 @@ import shesha_constants as scons
 
 from cython.operator cimport dereference as deref, preincrement as inc
 
+from tqdm import tqdm
 
 cdef class Rtc:
     # child constructor must have the same prototype (same number of
@@ -563,9 +564,9 @@ cdef class Rtc:
             if(type_dm == scons.DmType.TT):
                 dmtt = deref(it_dm)
         cdef int cc = 0
-        print("Doing imat_kl...%d%%\r" % cc, end='')
+        print("Doing imat_kl...")
 
-        for j in range(kl.shape[1]):
+        for j in tqdm(range(kl.shape[1])):
             # push actu __________________________________________________
 
             dms.set_full_comm(np.float32(kl[:, j].copy()))
@@ -613,9 +614,6 @@ cdef class Rtc:
 
             inds1 += control.nslope()
             cc = cc + 1
-            print("Doing imat... #%d/%d \r" % (cc, kl.shape[1]), end=' ')
-
-        print("imat done\n              \n")
 
         cdef np.ndarray[ndim= 2, dtype = np.float32_t] h_imat_ret
         if d_imat_ret != NULL:
@@ -668,12 +666,13 @@ cdef class Rtc:
         cdef carma_obj[float] * phase
 
         cc = 0
+        ndm = 0
         it_dm = control.d_dmseen.begin()
-        print("Doing imat...%d%% \r" % cc, end='')
+        print("Doing imat...")
         while(it_dm != control.d_dmseen.end()):
             dm = deref(it_dm)
 
-            for j in range(dm.ninflu):
+            for j in tqdm(range(dm.ninflu), desc="DM%d"%ndm):
                 # push actu __________________________________________________
                 dm.comp_oneactu(j, dm.push4imat)
                 for idx_cntr in range( < int > self.rtc.d_centro.size()):
@@ -747,11 +746,10 @@ cdef class Rtc:
                 dm.reset_shape()
 
                 inds1 += control.nslope()
-                cc = cc + 1
-                print("Doing imat... #%d/%d \r" % (cc, nactu), end=' ')
+                cc += 1
 
+            ndm += 1
             inc(it_dm)
-        print("imat done                    \n")
 
         cdef np.ndarray[ndim= 2, dtype = np.float32_t] h_imat_ret
         if d_imat_ret != NULL:

@@ -1,14 +1,13 @@
 """Widget to simulate a closed loop
 
 Usage:
-  widget_ao.py [<parameters_filename>] [--expert] [--brama] [--bench]
+  widget_ao.py [<parameters_filename>] [--expert] [--brama]
 
 with 'parameters_filename' the path to the parameters file
 
 Options:
   -h --help          Show this help message and exit
   --brama            Distribute data with BRAMA
-  --bench            For a timed call
 """
 
 import os, sys
@@ -33,10 +32,6 @@ import shesha_ao as ao
 import shesha_sim
 import shesha_constants as scons
 from shesha_constants import CONST
-
-# TODO correct it
-# import compassConfigToFile as cf
-# from aoCalib import adoptCalib_class
 
 from typing import Any, Dict, Tuple, Callable, List
 """
@@ -87,7 +82,6 @@ class widgetAOWindow(TemplateBaseClass):
         self.assistant = None  # type: Any
         self.selector_init = None  # type: List[str]
         self.see_atmos = 1
-        self.aoCalib = None
 
         #############################################################
         #                 PYQTGRAPH WINDOW INIT                     #
@@ -179,9 +173,6 @@ class widgetAOWindow(TemplateBaseClass):
         self.ui.wao_next.setDisabled(True)
         self.ui.wao_unzoom.setDisabled(True)
         self.ui.wao_resetSR.setDisabled(True)
-        self.ph2modes = None
-        #self.KL2V = None
-        self.P = None
 
         self.ui.wao_expertPanel.setVisible(expert)
         self.adjustSize()
@@ -640,9 +631,9 @@ class widgetAOWindow(TemplateBaseClass):
 
         if self.sim is None:
             if self.BRAMA:
-                self.sim = shesha_sim.simulator.SimulatorBrama(configFile)
+                self.sim = shesha_sim.BenchBrama(configFile)
             else:
-                self.sim = shesha_sim.simulator.Simulator(configFile)
+                self.sim = shesha_sim.Simulator(configFile)
         else:
             self.sim.clear_init()
             self.sim.load_from_file(configFile)
@@ -688,11 +679,12 @@ class widgetAOWindow(TemplateBaseClass):
         if pressed:
             self.stop = False
             self.refreshTime = time.time()
-            if self.ui.wao_forever.isChecked():
-                print("LOOP STARTED")
-            else:
-                self.nbiter = self.ui.wao_nbiters.value()
-                print("LOOP STARTED FOR %d iterations" % self.nbiter)
+            self.nbiter = self.ui.wao_nbiters.value()
+            if self.dispStatsInTerminal:
+                if self.ui.wao_forever.isChecked():
+                    print("LOOP STARTED")
+                else:
+                    print("LOOP STARTED FOR %d iterations" % self.nbiter)
             self.run()
         else:
             self.stop = True
@@ -1280,6 +1272,7 @@ class widgetAOWindow(TemplateBaseClass):
             try:
                 start = time.time()
                 self.sim.next(see_atmos=self.see_atmos)
+                loopTime = time.time() - start
 
                 refreshDisplayTime = 1. / self.ui.wao_frameRate.value()
 
@@ -1293,19 +1286,20 @@ class widgetAOWindow(TemplateBaseClass):
                         signal_se += "%1.2f   " % SR[0]
                         signal_le += "%1.2f   " % SR[1]
 
-                    loopTime = time.time() - start
                     currentFreq = 1 / loopTime
                     refreshFreq = 1 / (time.time() - self.refreshTime)
 
                     self.ui.wao_strehlSE.setText(signal_se)
                     self.ui.wao_strehlLE.setText(signal_le)
-                    self.ui.wao_currentFreq.setValue(1 / loopTime)
+                    self.ui.wao_currentFreq.setValue(currentFreq)
 
-                    self.printInPlace(
-                            "iter #%d SR: (L.E, S.E.)= (%s, %s) running at %4.1fHz (real %4.1fHz)"
-                            % (self.sim.iter, signal_le, signal_se, refreshFreq,
-                               currentFreq))
-                    self.refreshTime = time.time()
+                    if(self.dispStatsInTerminal):          
+                        self.printInPlace(
+                                "iter #%d SR: (L.E, S.E.)= (%s, %s) running at %4.1fHz (real %4.1fHz)"
+                                % (self.sim.iter, signal_le, signal_se, refreshFreq,
+                                   currentFreq))
+                        
+                    self.refreshTime = start
 
             finally:
                 self.loopLock.release()
@@ -1353,26 +1347,3 @@ if __name__ == '__main__':
     wao = widgetAOWindow(arguments["<parameters_filename>"], BRAMA=arguments["--brama"],
                          expert=arguments["--expert"])
     wao.show()
-    """
-    locator = Pyro.naming.NameServerLocator()
-    ns = locator.getNS()
-    Pyro.core.initServer()
-    daemon = Pyro.core.Daemon()
-    daemon.useNameServer(ns)  # use current ns
-    daemon.connect(test, ":waoCanapass")
-    daemon.requestLoop()
-    """
-    """
-    daemon = Pyro4.Daemon()                # make a Pyro daemon
-    ns = Pyro4.locateNS()                  # find the name server
-    uri = daemon.register(wao)   # register the greeting maker as a Pyro object
-    ns.register("example.greeting", uri)   # register the object with a name in the name server
-
-        print("Ready.")
-        daemon.requestLoop()
-    except:
-        from warnings import warn
-        warn("pyro4 not found", RuntimeWarning)
-    """
-    # ao.imat_init(0, wao.rtc, wao.config.p_rtc, wao.dms, wao.wfs, wao.config.p_wfss, wao.config.p_tel)
-    # app.exec_()

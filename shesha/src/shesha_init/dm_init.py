@@ -24,6 +24,7 @@ from Sensors import Sensors
 
 from typing import List
 
+from tqdm import tqdm
 
 def dm_init(context: naga_context, p_dms: List[conf.Param_dm], p_tel: conf.Param_tel,
             p_geom: conf.Param_geom, p_wfss: List[conf.Param_wfs]=None) -> Dms:
@@ -263,9 +264,9 @@ def make_pzt_dm(p_dm: conf.Param_dm, p_geom: conf.Param_geom, cobs: float):
     influ = np.zeros((smallsize, smallsize, ntotact), dtype=np.float32)
     # Computation of influence function for each actuator
 
-    print("Computing influence function type : ", p_dm.influType)
+    print("Computing Influence Function type : ", p_dm.influType)
 
-    for i in range(ntotact):
+    for i in tqdm(range(ntotact)):
 
         i1 = i1t[i]
         x = np.tile(np.arange(i1, i1 + smallsize, dtype=np.float32),
@@ -280,7 +281,7 @@ def make_pzt_dm(p_dm: conf.Param_dm, p_geom: conf.Param_geom, cobs: float):
                     (smallsize, 1))  # idem as X, in Y
         y += p_dm._n1
         y -= ypos[i]
-        print("Computing Influence Function #%d/%d \r" % (i, ntotact), end=' ')
+        # print("Computing Influence Function #%d/%d \r" % (i, ntotact), end=' ')
 
         if (p_dm.influType == scons.InfluType.RADIALSCHWARTZ):
             influ[:, :, i] = influ_util.makeRadialSchwartz(pitch, coupling, x=x, y=y)
@@ -297,7 +298,6 @@ def make_pzt_dm(p_dm: conf.Param_dm, p_geom: conf.Param_geom, cobs: float):
             influ[:, :, i] = influ_util.makeRigaut(pitch, coupling, x=x, y=y)
         else:
             print("ERROR influtype not recognized (defaut or gaussian or bessel)")
-    print("Computation of Influence Functions done")
 
     if (p_dm._puppixoffset is not None):
         xpos += p_dm._puppixoffset[0]

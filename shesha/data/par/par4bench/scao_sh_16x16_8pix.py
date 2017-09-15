@@ -41,7 +41,6 @@ p_target.set_mag([10.])
 
 # wfs
 p_wfs0 = conf.Param_wfs()
-p_wfs1 = conf.Param_wfs()
 p_wfss = [p_wfs0]
 
 p_wfs0.set_type("sh")

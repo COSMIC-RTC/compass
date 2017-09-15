@@ -1,3 +1,6 @@
-__all__ = ['simulator']
+__all__ = ['simulator', 'simulatorBrama', 'bench', 'benchBrama']
 
-import shesha_sim.simulator as simulator
+from .simulator import Simulator
+from .simulatorBrama import SimulatorBrama
+from .bench import Bench
+from .benchBrama import BenchBrama

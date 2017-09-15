@@ -10,7 +10,7 @@ import pstats as ps
 import sys, os
 import numpy as np
 from naga import naga_context
-from shesha_sim.simulator import Simulator
+from shesha_sim import Simulator
 from shesha_ao.tomo import create_nact_geom
 from shesha_ao.basis import compute_Btt, compute_cmat_with_Btt
 import shesha_constants as scons

@@ -15,18 +15,18 @@ from docopt import docopt
 
 import sys
 import os
-from shesha_sim.simulator import Simulator, SimulatorBrama, Bench
+import shesha_sim
 
 arguments = docopt(__doc__)
 param_file = arguments["<parameters_filename>"]
 
 # Get parameters from file
 if arguments["--bench"]:
-    sim = Bench(param_file)
+    sim = shesha_sim.Bench(param_file)
 elif arguments["--brama"]:
-    sim = SimulatorBrama(param_file)
+    sim = shesha_sim.SimulatorBrama(param_file)
 else:
-    sim = Simulator(param_file)
+    sim = shesha_sim.Simulator(param_file)
 
 sim.init_sim()
 sim.loop(sim.config.p_loop.niter)

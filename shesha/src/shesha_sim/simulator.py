@@ -10,8 +10,7 @@ import shesha_util.hdf5_utils as h5u
 import Atmos, Telescope, Target, Rtc, Dms, Sensors
 import time
 
-from typing import Iterable, Callable, TypeVar, Any, Dict
-
+from typing import Iterable, Any, Dict
 
 class Simulator:
 
@@ -308,93 +307,3 @@ class Simulator:
         t1 = time.time()
         print(" loop execution time:", t1 - t0, "  (", n, "iterations), ", (t1 - t0) / n,
               "(mean)  ", n / (t1 - t0), "Hz")
-
-
-class SimulatorBrama(Simulator):
-    """
-        Class SimulatorBrama: Brama overloaded simulator
-        _tar_init and _rtc_init to instantiate Brama classes instead of regular classes
-        next() to call rtc/tar.publish()
-    """
-
-    def _tar_init(self) -> None:
-        '''
-            TODO
-        '''
-        if self.config.p_target is not None:
-            print("->target")
-            self.tar = init.target_init(self.c, self.tel, self.config.p_target,
-                                        self.config.p_atmos, self.config.p_tel,
-                                        self.config.p_geom, self.config.p_dms,
-                                        brama=True)
-        else:
-            self.tar = None
-
-    def _rtc_init(self, ittime) -> None:
-        '''
-            TODO
-        '''
-        if self.config.p_controllers is not None or self.config.p_centroiders is not None:
-            print("->rtc")
-            #   rtc
-            self.rtc = init.rtc_init(
-                    self.c, self.tel, self.wfs, self.dms, self.atm, self.config.p_wfss,
-                    self.config.p_tel, self.config.p_geom, self.config.p_atmos, ittime,
-                    self.config.p_centroiders, self.config.p_controllers,
-                    self.config.p_dms, brama=True)
-        else:
-            self.rtc = None
-
-    def next(self, **kwargs) -> None:
-        Simulator.next(self, **kwargs)
-        if self.rtc is not None:
-            self.rtc.publish()
-        if self.tar is not None:
-            self.tar.publish()
-
-
-_O = TypeVar('_O')
-
-
-def timeit(function: Callable[..., _O]) -> Callable[..., _O]:
-    '''
-        Function timing decorator
-    '''
-
-    def new_func(*args, **kwargs) -> _O:
-        print('** Timed call to function {}'.format(function.__name__))
-        t1 = time.time()
-        ret = function(*args, **kwargs)
-        t2 = time.time()
-        print('** Execution time of {}: {} seconds'.format(function.__name__, t2 - t1))
-        return ret
-
-    return new_func
-
-
-class Bench(Simulator):
-    '''
-        Class Bench
-
-        Timed version of the simulator class using decorated overloads
-    '''
-
-    @timeit
-    def __init__(self, filepath: str=None) -> None:
-        Simulator.__init__(self, filepath)
-
-    @timeit
-    def load_from_file(self, filepath: str) -> None:
-        Simulator.load_from_file(self, filepath)
-
-    @timeit
-    def init_sim(self) -> None:
-        Simulator.init_sim(self)
-
-    @timeit
-    def timed_next(self) -> None:
-        Simulator.next(self)
-
-    @timeit
-    def loop(self, n: int=1, monitoring_freq: int=100, **kwargs) -> None:
-        Simulator.loop(self, n=n, monitoring_freq=monitoring_freq, **kwargs)
