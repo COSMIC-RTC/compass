@@ -265,7 +265,7 @@ def compute_Ca_cpu(filename, modal=True):
         Ca : (np.ndarray(dim=2, dtype=np.float32)) : aliasing error covariance matrix
     """
     f = h5py.File(filename, 'r')
-    nsub = f["R"][:].shape[1] / 2
+    nsub = f["R"][:].shape[1] // 2
     nssp = f.attrs["nxsub"][0]
     validint = f.attrs["cobs"]
     x = np.linspace(-1, 1, nssp)

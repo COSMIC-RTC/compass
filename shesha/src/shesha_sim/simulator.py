@@ -12,6 +12,7 @@ import time
 
 from typing import Iterable, Any, Dict
 
+
 class Simulator:
 
     def __init__(self, filepath: str=None, use_DB: bool=False) -> None:
@@ -232,7 +233,7 @@ class Simulator:
         else:
             self.rtc = None
 
-    def next(self, *, move_atmos: bool=True, see_atmos: bool=False, nControl: int=0,
+    def next(self, *, move_atmos: bool=True, see_atmos: bool=True, nControl: int=0,
              tar_trace: Iterable[int]=None, wfs_trace: Iterable[int]=None,
              apply_control: bool=True) -> None:
         '''

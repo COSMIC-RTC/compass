@@ -514,7 +514,10 @@ cdef class Rtc:
 
     def do_imat_kl(self, int ncontrol, Dms dms, p_dms,
                    np.ndarray[ndim=2, dtype=np.float32_t] kl, bool ntt):
-        """Compute the interaction matrix in the KL basis
+        """
+        TODO: unify this function with rtc.do_imat in sutra_rtc.cpp
+
+        Compute the interaction matrix in the KL basis
 
         :parameters:
             ncontrol: (int) : controller index
@@ -522,6 +525,7 @@ cdef class Rtc:
             ntt: (bool): True if a tt dm exists
         """
         self.context.set_activeDeviceForCpy(self.rtc.device, 1)
+        self.rtc.do_imat(ncontrol, dms.dms)
         cdef sutra_controller * control = self.rtc.d_control[ncontrol]
         cdef carma_obj[float] * d_imat = NULL
         cdef carma_obj[float] * d_imat_ret = NULL
@@ -615,6 +619,8 @@ cdef class Rtc:
             inds1 += control.nslope()
             cc = cc + 1
 
+        print("imat done\n")
+
         cdef np.ndarray[ndim= 2, dtype = np.float32_t] h_imat_ret
         if d_imat_ret != NULL:
             h_imat_ret = np.zeros((nactu, nslope), dtype=np.float32)
@@ -631,132 +637,7 @@ cdef class Rtc:
         """
 
         self.context.set_activeDeviceForCpy(self.rtc.device, 1)
-        cdef sutra_controller * control = self.rtc.d_control[ncontrol]
-        cdef carma_obj[float] * d_imat = NULL
-        cdef carma_obj[float] * d_imat_ret = NULL
-        cdef long dims[3]
-        cdef int nactu = control.nactu()
-        cdef int nslope = control.nslope()
-        cdef bytes type_control = control.get_type()
-
-        if(type_control == scons.ControllerType.LS):
-            d_imat = dynamic_cast_controller_ls_ptr(control).d_imat
-        elif(type_control == scons.ControllerType.MV):
-            d_imat = dynamic_cast_controller_mv_ptr(control).d_imat
-        else:
-            # Create a temporary imat to return
-            dims[0] = 2
-            dims[1] = nactu
-            dims[2] = nslope
-            d_imat_ret = new carma_obj[float](self.context.c, dims)
-            d_imat = d_imat_ret
-            print(
-                "WARNING: the controller is NOT a LS or MV, the imat computed will be returned")
-
-        cdef int inds1, j, idx_cntr, device
-        cdef float tmp_noise
-        cdef float tmp_nphot
-        inds1 = 0
-        cdef sutra_dm * dm
-        cdef sutra_wfs * wfs
-        cdef carma_obj[float] * screen
-        cdef vector[sutra_dm *].iterator it_dm
-        cdef float * d_centroids
-        cdef np.ndarray[ndim= 1, dtype = np.float32_t] h_centroids
-        cdef carma_obj[float] * phase
-
-        cc = 0
-        ndm = 0
-        it_dm = control.d_dmseen.begin()
-        print("Doing imat...")
-        while(it_dm != control.d_dmseen.end()):
-            dm = deref(it_dm)
-
-            for j in tqdm(range(dm.ninflu), desc="DM%d"%ndm):
-                # push actu __________________________________________________
-                dm.comp_oneactu(j, dm.push4imat)
-                for idx_cntr in range( < int > self.rtc.d_centro.size()):
-                    wfs = self.rtc.d_centro[idx_cntr].wfs
-                    screen = wfs.d_gs.d_phase.d_screen
-                    tmp_noise = wfs.noise
-                    tmp_nphot = wfs.nphot
-                    wfs.nphot = wfs.nphot4imat
-                    wfs.noise = -1
-                    wfs.kernconv = True
-                    wfs.sensor_trace(dms.dms, 1)
-                    wfs.comp_image()
-                    wfs.noise = tmp_noise
-                    wfs.nphot = tmp_nphot
-                    wfs.kernconv = False
-
-                self.rtc.do_centroids(ncontrol, True)
-
-                h_centroids = self.get_centroids(ncontrol)
-                control.d_centroids.host2device(< float * > h_centroids.data)
-
-                device = control.d_centroids.getDevice()
-                d_centroids = control.d_centroids.getData()
-
-                convert_centro(d_centroids,
-                               d_centroids, 0,
-                               (0.5 / dm.push4imat),
-                               control.d_centroids.getNbElem(),
-                               self.context.c.get_device(device))
-
-                control.d_centroids.copyInto(
-                    d_imat.getDataAt(inds1),
-                    control.nslope())
-                dm.reset_shape()
-
-                # pul actu __________________________________________________
-                dm.comp_oneactu(j, -1. * dm.push4imat)
-
-                for idx_cntr in range( < int > self.rtc.d_centro.size()):
-                    wfs = self.rtc.d_centro[idx_cntr].wfs
-                    tmp_noise = wfs.noise
-                    tmp_nphot = wfs.nphot
-                    wfs.nphot = wfs.nphot4imat
-                    wfs.noise = -1
-                    wfs.kernconv = True
-                    wfs.sensor_trace(dms.dms, 1)
-                    wfs.comp_image()
-                    wfs.noise = tmp_noise
-                    wfs.nphot = tmp_nphot
-                    wfs.kernconv = False
-
-                self.rtc.do_centroids(ncontrol, True)
-
-                h_centroids = self.get_centroids(ncontrol)
-                control.d_centroids.host2device(< float * > h_centroids.data)
-
-                device = control.d_centroids.getDevice()
-                d_centroids = control.d_centroids.getData()
-
-                convert_centro(d_centroids,
-                               d_centroids, 0,
-                               (0.5 / dm.push4imat),
-                               control.d_centroids.getNbElem(),
-                               self.context.c.get_device(device))
-
-                carma_axpy[float](self.context.c.get_cublasHandle(),
-                                  control.d_centroids.getNbElem(), < float > -1.0,
-                                  d_centroids, 1,
-                                  d_imat.getDataAt(inds1), 1)
-
-                dm.reset_shape()
-
-                inds1 += control.nslope()
-                cc += 1
-
-            ndm += 1
-            inc(it_dm)
-
-        cdef np.ndarray[ndim= 2, dtype = np.float32_t] h_imat_ret
-        if d_imat_ret != NULL:
-            h_imat_ret = np.zeros((nactu, nslope), dtype=np.float32)
-            d_imat_ret.device2host(< float * > h_imat_ret.data)
-            del d_imat_ret
-            return h_imat_ret
+        self.rtc.do_imat(ncontrol, dms.dms)
 
     def comp_slopes(self, int ncentro):
         """Compute the slopes in a sutra_wfs object. This function is equivalent to

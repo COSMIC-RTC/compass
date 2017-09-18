@@ -161,7 +161,8 @@ def psf_rec_roket_file_cpu(filename):
     return psf
 
 
-def psf_rec_Vii(filename, err=None, fitting=True, covmodes=None, cov=None):
+def psf_rec_Vii(filename, err=None, fitting=True, covmodes=None, cov=None,
+                onlypsf=False):
     f = h5py.File(filename, 'r')
     spup = get_pup(filename)
     # Sparse IF matrix
@@ -186,18 +187,17 @@ def psf_rec_Vii(filename, err=None, fitting=True, covmodes=None, cov=None):
     # Scale factor
     scale = float(2 * np.pi / f.attrs["target.Lambda"][0])
     # Init GPU
-    gamora = gamora_init(b"Vii", Btt.shape[0], f["noise"][:].shape[1],
-                         IF.data.astype(np.float32), IF.indices, IF.indptr, T,
-                         spup.astype(np.float32), scale, covmodes.shape[0], Btt,
-                         covmodes)
+    gpu = gamora_init(b"Vii", Btt.shape[0], f["noise"][:].shape[1],
+                      IF.data.astype(np.float32), IF.indices, IF.indptr, T,
+                      spup.astype(np.float32), scale, covmodes.shape[0], Btt, covmodes)
     # Launch computation
     # gamora.set_eigenvals(e.astype(np.float32))
     # gamora.set_covmodes(V.astype(np.float32))
     tic = time.time()
-    gamora.psf_rec_Vii()
+    gpu.psf_rec_Vii()
 
-    otftel = gamora.get_otftel()
-    otf2 = gamora.get_otfVii()
+    otftel = gpu.get_otftel()
+    otf2 = gpu.get_otfVii()
 
     otftel /= otftel.max()
     if (list(f.keys()).count("psfortho") and fitting):
@@ -214,7 +214,10 @@ def psf_rec_Vii(filename, err=None, fitting=True, covmodes=None, cov=None):
     tac = time.time()
     print(" ")
     print("PSF renconstruction took ", tac - tic, " seconds")
-    return psf
+    if onlypsf:
+        return psf
+    else:
+        return otftel, otf2, psf, gpu
 
 
 def psf_rec_vii_cpu(filename):
@@ -289,3 +292,13 @@ def test_Vii(filename):
     print("Speed up : x", cputime / gputime)
     print("---------------------------------")
     print("precision on psf : ", np.abs(psf_cpu - psf_gpu).max() / psf_cpu.max())
+
+
+def add_fitting_to_psf(otf2, psf_fit):
+    print("\nAdding fitting to PSF...")
+    otffit = np.real(np.fft.fft2(psf_fit))
+    otffit /= otffit.max()
+    psf = np.fft.fftshift(np.real(np.fft.ifft2(otffit * otf2)))
+    psf *= (psf.shape[0] * psf.shape[0] / float(np.where(spup)[0].shape[0]))
+
+    return psf

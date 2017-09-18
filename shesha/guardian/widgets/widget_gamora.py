@@ -13,7 +13,7 @@ from bokeh.layouts import layout, widgetbox
 from bokeh.io import curdoc, output_file, show
 
 from guardian.tools import roket_exploitation as rexp
-from guardian import gamora
+from guardian import gamora, groot
 
 
 class Bokeh_gamora:
@@ -29,8 +29,6 @@ class Bokeh_gamora:
         self.nactus = self.P.shape[1]
         self.nmodes = self.P.shape[0]
 
-        self.cov = self.f["cov"][:]
-        self.cor = self.f["cor"][:]
         self.url = "http://hippo6.obspm.fr/~fferreira/roket_display"
         self.old = None
         self.psf_compass = self.f["psf"][:]
@@ -48,8 +46,8 @@ class Bokeh_gamora:
                 options=[self.dataroot] + glob(self.dataroot + "*/"))
         self.select_files = Select(title="File", value=self.files[0], options=self.files)
         self.contributors = [
-                "noise", "bandwidth", "tomography", "aliasing, "
-                "non linearity", "filtered modes", "fitting"
+                "noise", "bandwidth", "tomography", "aliasing", "non linearity",
+                "filtered modes", "fitting"
         ]
         self.checkboxButtonGroup_contributors = CheckboxButtonGroup(
                 labels=self.contributors, active=[])
@@ -62,10 +60,10 @@ class Bokeh_gamora:
         self.xdr = Range1d(start=0, end=self.psf_compass.shape[0])
         self.ydr = Range1d(start=self.psf_compass.shape[1], end=0)
         self.image_compass = figure(x_range=self.xdr, y_range=self.ydr,
-                                    x_axis_location="above")
+                                    x_axis_location="above", title="PSF COMPASS")
         self.image_Vii = figure(x_range=self.image_compass.x_range,
                                 y_range=self.image_compass.y_range,
-                                x_axis_location="above")
+                                x_axis_location="above", title="PSF ROKET")
         self.plot_psf_cuts = figure(plot_height=600, plot_width=800, y_range=[1e-9, 1],
                                     x_range=self.image_compass.x_range,
                                     y_axis_type="log")
@@ -108,6 +106,10 @@ class Bokeh_gamora:
         self.f = h5py.File(self.datapath + str(self.select_files.value), mode='r+')
         self.psf_compass = self.f["psf"][:]
         self.psf_Vii = None
+        self.Btt = self.f["Btt"][:]
+        self.P = self.f["P"][:]
+        self.nactus = self.P.shape[1]
+        self.nmodes = self.P.shape[0]
 
     def update_files(self):
         """
@@ -132,7 +134,7 @@ class Bokeh_gamora:
             psfc = self.psf_compass
         time = str(datetime.datetime.now().strftime('%Y-%m-%d_%H_%M_%f'))
         self.old = "/home/fferreira/public_html/roket_display" + time + ".png"
-        mpl.image.imsave(self.old, np.log10(psfc))
+        mpl.image.imsave(self.old, np.log10(np.abs(psfc)))
         self.image_compass.image_url(url=dict(value=self.url + time + ".png"), x=0, y=0,
                                      w=psfc.shape[0], h=psfc.shape[0])
         self.SRcompass.value = "%.2f" % (self.psf_compass.max())
@@ -145,7 +147,7 @@ class Bokeh_gamora:
                 psfv = self.psf_Vii
             time = str(datetime.datetime.now().strftime('%Y-%m-%d_%H_%M_%f'))
             self.old = "/home/fferreira/public_html/roket_display" + time + ".png"
-            mpl.image.imsave(self.old, np.log10(psfv))
+            mpl.image.imsave(self.old, np.log10(np.abs(psfv)))
             self.image_Vii.image_url(url=dict(value=self.url + time + ".png"), x=0, y=0,
                                      w=psfc.shape[0], h=psfc.shape[0])
             self.SRVii.value = "%.2f" % (self.psf_Vii.max())
@@ -176,8 +178,65 @@ class Bokeh_gamora:
         """
         self.pretext.text = """ Computing PSF using Vii... Please wait"""
         self.button_psf.button_type = "danger"
-        self.psf_Vii = gamora.psf_rec_Vii(self.datapath + str(self.select_files.value))
+        contrib = [
+                self.contributors[c]
+                for c in self.checkboxButtonGroup_contributors.active
+        ]
+        print(contrib)
+        fit = True
+        if contrib != []:
+            if "fitting" not in contrib:
+                fit = False
+            else:
+                contrib.pop("fitting")
+            if contrib != []:
+                err = self.P.dot(
+                        gamora.get_err_contributors(
+                                self.datapath + str(self.select_files.value), contrib))
+            else:
+                err = None
+        else:
+            err = None
+
+        if self.radioButton_Viisource.active:
+            title_compass = "PSF ROKET"
+            title_Vii = "PSF GROOT"
+            if err is None:
+                self.psf_Vii = groot.compute_PSF(self.datapath +
+                                                 str(self.select_files.value))
+            else:
+                Cerr = np.zeros((self.nmodes, self.nmodes))
+                if "bandwidth" in contrib and "tomography" in contrib:
+                    Cerr += groot.compute_Cerr(self.datapath +
+                                               str(self.select_files.value))
+                if "aliasing" in contrib:
+                    Cerr += groot.compute_Ca_cpu(self.datapath +
+                                                 str(self.select_files.value))
+                if "noise" in contrib:
+                    Cerr += groot.compute_Cn_cpu(self.datapath +
+                                                 str(self.select_files.value))
+                otftel, otf2, psf, gpu = gamora.psf_rec_Vii(
+                        self.datapath + str(self.select_files.value), fitting=False,
+                        cov=(Cerr).astype(np.float32))
+                if "fitting" in contrib:
+                    otf_fit, psf_fit = groot.compute_OTF_fitting(filename, otftel)
+                    self.psf_Vii = gamora.add_fitting_to_psf(otf2, psf_fit)
+                else:
+                    self.psf_Vii = psf
+            self.psf_compass = gamora.psf_rec_Vii(
+                    self.datapath + str(self.select_files.value), err=err, fitting=fit,
+                    onlypsf=True)
+
+        else:
+            title_compass = "PSF COMPASS"
+            title_Vii = "PSF ROKET"
+            self.psf_Vii = gamora.psf_rec_Vii(
+                    self.datapath + str(self.select_files.value), err=err, fitting=fit,
+                    onlypsf=True)
+            self.psf_compass = self.f["psf"][:]
         self.update_psf()
+        self.image_Vii.title.text = title_Vii
+        self.image_compass.title.text = title_compass
         self.pretext.text = """ """
         self.button_psf.button_type = "success"
 
