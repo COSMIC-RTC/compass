@@ -11,103 +11,21 @@ from Gamora import gamora_init, Gamora
 from scipy.sparse import csr_matrix
 from sys import stdout
 import time
+from guardian.tools import roket_exploitation as rexp
 
 plt.ion()
 gpudevices = np.array([6, 7], dtype=np.int32)
 c = ch.naga_context(devices=gpudevices)
 
+
 #filename = "/home/fferreira/Data/breakdown_offaxis-4_2.h5"
-
-
-def cutsPSF(filename, psf, psfs):
-    f = h5py.File(filename, 'r')
-    Lambda_tar = f.attrs["target.Lambda"][0]
-    RASC = 180 / np.pi * 3600.
-    pixsize = Lambda_tar * 1e-6 / \
-        (psf.shape[0] * f.attrs["tel_diam"] / f.attrs["pupdiam"]) * RASC
-    x = (np.arange(psf.shape[0]) - psf.shape[0] / 2) * \
-        pixsize / (Lambda_tar * 1e-6 / f.attrs["tel_diam"] * RASC)
-    plt.figure()
-    plt.subplot(2, 1, 1)
-    plt.semilogy(x, psf[psf.shape[0] / 2, :], color="blue")
-    plt.semilogy(x, psfs[psf.shape[0] / 2, :], color="red")
-    plt.xlabel("X-axis angular distance [units of lambda/D]")
-    plt.ylabel("Normalized intensity")
-    plt.legend(["PSF 1", "PSF 2"])
-    plt.xlim(-20, 20)
-    plt.ylim(1e-5, 1)
-    plt.subplot(2, 1, 2)
-    plt.semilogy(x, psf[:, psf.shape[0] / 2], color="blue")
-    plt.semilogy(x, psfs[:, psf.shape[0] / 2], color="red")
-    plt.xlabel("Y-axis angular distance [units of lambda/D]")
-    plt.ylabel("Normalized intensity")
-    plt.legend(["PSF 1", "PSF 2"])
-    plt.xlim(-20, 20)
-    plt.ylim(1e-5, 1)
-    f.close()
-
-
-def get_err(filename):
-    f = h5py.File(filename, 'r')
-    # Get the sum of error contributors
-    err = f["noise"][:]
-    err += f["aliasing"][:]
-    err += f["tomography"][:]
-    err += f["filtered modes"][:]
-    err += f["non linearity"][:]
-    err += f["bandwidth"][:]
-    f.close()
-
-    return err
-
-
-def get_err_contributors(filename, contributors):
-    f = h5py.File(filename, 'r')
-    # Get the sum of error contributors
-    err = f["noise"][:] * 0.
-    for c in contributors:
-        err += f[c][:]
-    f.close()
-
-    return err
-
-
-def get_pup(filename):
-    f = h5py.File(filename, 'r')
-    if (list(f.keys()).count("spup")):
-        spup = f["spup"][:]
-    else:
-        indx_pup = f["indx_pup"][:]
-        pup = np.zeros((f["dm_dim"].value, f["dm_dim"].value))
-        pup_F = pup.flatten()
-        pup_F[indx_pup] = 1.
-        pup = pup_F.reshape(pup.shape)
-        spup = pup[np.where(pup)[0].min():np.where(pup)[0].max() + 1,
-                   np.where(pup)[1].min():np.where(pup)[1].max() + 1]
-
-    f.close()
-    return spup
-
-
-def get_IF(filename):
-    f = h5py.File(filename, 'r')
-    IF = csr_matrix((f["IF.data"][:], f["IF.indices"][:], f["IF.indptr"][:]))
-    if (list(f.keys()).count("TT")):
-        T = f["TT"][:]
-    else:
-        T = IF[-2:, :].toarray()
-        IF = IF[:-2, :]
-    f.close()
-    return IF, T.T.astype(np.float32)
-
-
 def psf_rec_roket_file(filename, err=None):
     f = h5py.File(filename, 'r')
     if (err is None):
-        err = get_err(filename)
-    spup = get_pup(filename)
+        err = rexp.get_err(filename)
+    spup = rexp.get_pup(filename)
     # Sparse IF matrix
-    IF, T = get_IF(filename)
+    IF, T = rexp.get_IF(filename)
     # Scale factor
     scale = float(2 * np.pi / f.attrs["target.Lambda"][0])
     # Init GPU
@@ -125,7 +43,7 @@ def psf_rec_roket_file(filename, err=None):
 def psf_rec_roket_file_cpu(filename):
     f = h5py.File(filename, 'r')
     # Get the sum of error contributors
-    err = get_err(filename)
+    err = rexp.get_err(filename)
 
     # Retrieving spupil (for file where spupil was not saved)
     indx_pup = f["indx_pup"][:]
@@ -143,7 +61,7 @@ def psf_rec_roket_file_cpu(filename):
     psf = psf.astype(np.float32)
 
     # Sparse IF matrix
-    IF, T = get_IF(filename)
+    IF, T = rexp.get_IF(filename)
     # Scale factor
     scale = float(2 * np.pi / f.attrs["target.Lambda"][0])
 
@@ -164,14 +82,14 @@ def psf_rec_roket_file_cpu(filename):
 def psf_rec_Vii(filename, err=None, fitting=True, covmodes=None, cov=None,
                 onlypsf=False):
     f = h5py.File(filename, 'r')
-    spup = get_pup(filename)
+    spup = rexp.get_pup(filename)
     # Sparse IF matrix
-    IF, T = get_IF(filename)
+    IF, T = rexp.get_IF(filename)
     # Covariance matrix
     P = f["P"][:]
     print("Projecting error buffer into modal space...")
     if ((err is None) and (cov is None)):
-        err = get_err(filename)
+        err = rexp.get_err(filename)
         err = P.dot(err)
     print("Computing covariance matrix...")
     if (cov is None):
@@ -214,19 +132,17 @@ def psf_rec_Vii(filename, err=None, fitting=True, covmodes=None, cov=None,
     tac = time.time()
     print(" ")
     print("PSF renconstruction took ", tac - tic, " seconds")
-    if onlypsf:
-        return psf
-    else:
-        return otftel, otf2, psf, gpu
+
+    return otftel, otf2, psf, gpu
 
 
 def psf_rec_vii_cpu(filename):
     f = h5py.File(filename, 'r')
-    IF, T = get_IF(filename)
+    IF, T = rexp.get_IF(filename)
     ratio_lambda = 2 * np.pi / f.attrs["target.Lambda"][0]
     # Telescope OTF
     print("Computing telescope OTF...")
-    spup = get_pup(filename)
+    spup = rexp.get_pup(filename)
     mradix = 2
     fft_size = mradix**int((np.log(2 * spup.shape[0]) / np.log(mradix)) + 1)
     pup = np.zeros((fft_size, fft_size))
@@ -242,7 +158,7 @@ def psf_rec_vii_cpu(filename):
     print("Done")
     # Covariance matrix
     print("Computing covariance matrix...")
-    err = get_err(filename)
+    err = rexp.get_err(filename)
     P = f["P"][:]
     err = P.dot(err)
     Btt = f["Btt"][:]
@@ -294,10 +210,12 @@ def test_Vii(filename):
     print("precision on psf : ", np.abs(psf_cpu - psf_gpu).max() / psf_cpu.max())
 
 
-def add_fitting_to_psf(otf2, psf_fit):
+def add_fitting_to_psf(filename, otf2, psf_fit=None, otffit=None):
     print("\nAdding fitting to PSF...")
-    otffit = np.real(np.fft.fft2(psf_fit))
-    otffit /= otffit.max()
+    spup = rexp.get_pup(filename)
+    if psf_fit is not None:
+        otffit = np.real(np.fft.fft2(psf_fit))
+        otffit /= otffit.max()
     psf = np.fft.fftshift(np.real(np.fft.ifft2(otffit * otf2)))
     psf *= (psf.shape[0] * psf.shape[0] / float(np.where(spup)[0].shape[0]))
 

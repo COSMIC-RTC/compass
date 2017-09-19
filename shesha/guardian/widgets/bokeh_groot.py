@@ -7,7 +7,7 @@ To launch it :
         bokeh serve --port 8081 --allow-websocket-origin hippo6.obspm.fr:8081 bokeh_roket.py
         then, open a web browser and connect to http://hippo6.obspm.fr:8081/bokeh_roket
 """
-from widget_roket import Bokeh_roket
+from widget_groot import Bokeh_groot
 from bokeh.io import curdoc, output_file, show
 import glob, os, atexit
 
@@ -18,9 +18,9 @@ def remove_files():
         os.remove(f)
 
 
-widget = Bokeh_roket()
+widget = Bokeh_groot()
 curdoc().clear()
-widget.update()
+#widget.update()
 #output_file("roket.html")
 #show(widget.tab)
 curdoc().add_root(widget.tab)

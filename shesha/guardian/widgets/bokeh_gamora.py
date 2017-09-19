@@ -9,11 +9,14 @@ To launch it :
 """
 from widget_gamora import Bokeh_gamora
 from bokeh.io import curdoc, output_file, show
-import glob, os
+import glob, os, atexit
 
-files = glob.glob("/home/fferreira/public_html/roket_display*")
-for f in files:
-    os.remove(f)
+
+def remove_files():
+    files = glob.glob("/home/fferreira/public_html/roket_display*")
+    for f in files:
+        os.remove(f)
+
 
 widget = Bokeh_gamora()
 curdoc().clear()
@@ -21,3 +24,5 @@ curdoc().clear()
 #output_file("roket.html")
 #show(widget.tab)
 curdoc().add_root(widget.tab)
+
+atexit.register(remove_files)

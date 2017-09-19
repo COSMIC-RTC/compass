@@ -8,7 +8,7 @@ import matplotlib as mpl
 
 from bokeh.plotting import figure
 from bokeh.models import ColumnDataSource, Range1d
-from bokeh.models.widgets import TextInput, Slider, CheckboxButtonGroup, DataTable, TableColumn, Tabs, Button, RadioButtonGroup, Select, DataTable, DateFormatter, TableColumn, PreText
+from bokeh.models.widgets import Panel, TextInput, Slider, CheckboxButtonGroup, DataTable, TableColumn, Tabs, Button, RadioButtonGroup, Select, DataTable, DateFormatter, TableColumn, PreText
 from bokeh.layouts import layout, widgetbox
 from bokeh.io import curdoc, output_file, show
 
@@ -45,17 +45,6 @@ class Bokeh_gamora:
                 title="Datapath", value=self.dataroot,
                 options=[self.dataroot] + glob(self.dataroot + "*/"))
         self.select_files = Select(title="File", value=self.files[0], options=self.files)
-        self.contributors = [
-                "noise", "bandwidth", "tomography", "aliasing", "non linearity",
-                "filtered modes", "fitting"
-        ]
-        self.checkboxButtonGroup_contributors = CheckboxButtonGroup(
-                labels=self.contributors, active=[])
-        self.radioButton_Viisource = RadioButtonGroup(labels=["Roket", "Groot"],
-                                                      active=0)
-        self.slider_ensquare = Slider(start=0, end=100, step=5, value=0,
-                                      title="lambda/D")
-        self.button_ensquare = Button(label="Ensquare", button_type="success")
 
         self.xdr = Range1d(start=0, end=self.psf_compass.shape[0])
         self.ydr = Range1d(start=self.psf_compass.shape[1], end=0)
@@ -86,18 +75,16 @@ class Bokeh_gamora:
         self.select_files.on_change("value", lambda attr, old, new: self.update())
         self.button_psf.on_click(self.comp_psf)
         self.button_roll.on_click(self.roll_psf)
-        self.button_ensquare.on_click(self.update_psf)
 
         self.update_psf()
 
         #layouts
-        self.control_box = widgetbox(
-                self.select_datapath, self.select_files,
-                self.checkboxButtonGroup_contributors, self.radioButton_Viisource,
-                self.button_psf, self.button_roll, self.slider_ensquare,
-                self.button_ensquare, self.SRcompass, self.SRVii, self.pretext)
-        self.tab = layout([[self.control_box, self.image_compass, self.image_Vii],
-                           [self.plot_psf_cuts]])
+        self.control_box = widgetbox(self.select_datapath, self.select_files,
+                                     self.button_psf, self.button_roll, self.SRcompass,
+                                     self.SRVii, self.pretext)
+        self.tab = Panel(child=layout([[
+                self.control_box, self.image_compass, self.image_Vii
+        ], [self.plot_psf_cuts]]), title="GAMORA")
 
     def update(self):
         """
@@ -126,12 +113,8 @@ class Bokeh_gamora:
         """
         Update the PSF by ensquaring them
         """
-        dim = self.slider_ensquare.value
-        if dim:
-            psfc = rexp.ensquare_PSF(self.datapath + str(self.select_files.value),
-                                     self.psf_compass, dim)
-        else:
-            psfc = self.psf_compass
+
+        psfc = self.psf_compass
         time = str(datetime.datetime.now().strftime('%Y-%m-%d_%H_%M_%f'))
         self.old = "/home/fferreira/public_html/roket_display" + time + ".png"
         mpl.image.imsave(self.old, np.log10(np.abs(psfc)))
@@ -140,11 +123,8 @@ class Bokeh_gamora:
         self.SRcompass.value = "%.2f" % (self.psf_compass.max())
 
         if self.psf_Vii is not None:
-            if dim:
-                psfv = rexp.ensquare_PSF(self.datapath + str(self.select_files.value),
-                                         self.psf_Vii, dim)
-            else:
-                psfv = self.psf_Vii
+
+            psfv = self.psf_Vii
             time = str(datetime.datetime.now().strftime('%Y-%m-%d_%H_%M_%f'))
             self.old = "/home/fferreira/public_html/roket_display" + time + ".png"
             mpl.image.imsave(self.old, np.log10(np.abs(psfv)))
@@ -178,65 +158,10 @@ class Bokeh_gamora:
         """
         self.pretext.text = """ Computing PSF using Vii... Please wait"""
         self.button_psf.button_type = "danger"
-        contrib = [
-                self.contributors[c]
-                for c in self.checkboxButtonGroup_contributors.active
-        ]
-        print(contrib)
-        fit = True
-        if contrib != []:
-            if "fitting" not in contrib:
-                fit = False
-            else:
-                contrib.pop("fitting")
-            if contrib != []:
-                err = self.P.dot(
-                        gamora.get_err_contributors(
-                                self.datapath + str(self.select_files.value), contrib))
-            else:
-                err = None
-        else:
-            err = None
-
-        if self.radioButton_Viisource.active:
-            title_compass = "PSF ROKET"
-            title_Vii = "PSF GROOT"
-            if err is None:
-                self.psf_Vii = groot.compute_PSF(self.datapath +
-                                                 str(self.select_files.value))
-            else:
-                Cerr = np.zeros((self.nmodes, self.nmodes))
-                if "bandwidth" in contrib and "tomography" in contrib:
-                    Cerr += groot.compute_Cerr(self.datapath +
-                                               str(self.select_files.value))
-                if "aliasing" in contrib:
-                    Cerr += groot.compute_Ca_cpu(self.datapath +
-                                                 str(self.select_files.value))
-                if "noise" in contrib:
-                    Cerr += groot.compute_Cn_cpu(self.datapath +
-                                                 str(self.select_files.value))
-                otftel, otf2, psf, gpu = gamora.psf_rec_Vii(
-                        self.datapath + str(self.select_files.value), fitting=False,
-                        cov=(Cerr).astype(np.float32))
-                if "fitting" in contrib:
-                    otf_fit, psf_fit = groot.compute_OTF_fitting(filename, otftel)
-                    self.psf_Vii = gamora.add_fitting_to_psf(otf2, psf_fit)
-                else:
-                    self.psf_Vii = psf
-            self.psf_compass = gamora.psf_rec_Vii(
-                    self.datapath + str(self.select_files.value), err=err, fitting=fit,
-                    onlypsf=True)
-
-        else:
-            title_compass = "PSF COMPASS"
-            title_Vii = "PSF ROKET"
-            self.psf_Vii = gamora.psf_rec_Vii(
-                    self.datapath + str(self.select_files.value), err=err, fitting=fit,
-                    onlypsf=True)
-            self.psf_compass = self.f["psf"][:]
+        _, _, self.psf_Vii, _ = gamora.psf_rec_Vii(self.datapath +
+                                                   str(self.select_files.value))
+        self.psf_compass = self.f["psf"][:]
         self.update_psf()
-        self.image_Vii.title.text = title_Vii
-        self.image_compass.title.text = title_compass
         self.pretext.text = """ """
         self.button_psf.button_type = "success"
 

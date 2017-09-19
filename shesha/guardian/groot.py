@@ -7,6 +7,7 @@ import os
 
 from guardian import gamora
 from guardian.tools import Dphi
+from guardian.tools import roket_exploitation as rexp
 import matplotlib.pyplot as plt
 plt.ion()
 
@@ -52,7 +53,7 @@ def compute_Cerr(filename, modal=True, ctype="float"):
     P = f["P"][:]
     Btt = f["Btt"][:]
     Tf = Btt[:-2, :-2].dot(P[:-2, :-2])
-    IF, T = gamora.get_IF(filename)
+    IF, T = rexp.get_IF(filename)
     IF = IF.T
     T = T.T
     N = IF.shape[0]
@@ -180,7 +181,7 @@ def compute_Cerr_cpu(filename, modal=True):
     Btt = f["Btt"][:]
     Tf = Btt[:-2, :-2].dot(P[:-2, :-2])
 
-    IF, T = gamora.get_IF(filename)
+    IF, T = rexp.get_IF(filename)
     IF = IF.T
     T = T.T
     N = IF.shape[0]
@@ -323,9 +324,10 @@ def compute_Cn_cpu(filename, model="data", modal=True):
     f = h5py.File(filename, 'r')
     if (model == "data"):
         N = f["noise"][:]
-        NN = N.dot(N.T) / N.shape[1]
-        P = f["P"][:]
-        Cn = P.dot(NN).dot(P.T)
+        Cn = N.dot(N.T) / N.shape[1]
+        if modal:
+            P = f["P"][:]
+            Cn = P.dot(Cn).dot(P.T)
     else:
         nslopes = f["R"][:].shape[1]
         Cn = np.zeros(nslopes)
@@ -381,7 +383,7 @@ def compute_OTF_fitting(filename, otftel):
             6. / 5.)
     ratio_lambda = 2 * np.pi / f.attrs["target.Lambda"][0]
     # Telescope OTF
-    spup = gamora.get_pup(filename)
+    spup = rexp.get_pup(filename)
     mradix = 2
     fft_size = mradix**int((np.log(2 * spup.shape[0]) / np.log(mradix)) + 1)
     mask = np.ones((fft_size, fft_size))
@@ -417,7 +419,7 @@ def compute_PSF(filename):
         psf: (np.ndarray) : PSF
     """
     tic = time.time()
-    spup = gamora.get_pup(filename)
+    spup = rexp.get_pup(filename)
     Cab = compute_Cerr(filename)
     Cn = compute_Cn_cpu(filename)
     Ca = compute_Ca_cpu(filename)

@@ -6,7 +6,7 @@ import h5py
 
 from bokeh.plotting import figure
 from bokeh.models import ColumnDataSource
-from bokeh.models.widgets import DataTable, TableColumn, Tabs, Button, RadioButtonGroup, Select, DataTable, DateFormatter, TableColumn, PreText
+from bokeh.models.widgets import Panel, DataTable, TableColumn, Tabs, Button, RadioButtonGroup, Select, DataTable, DateFormatter, TableColumn, PreText
 from bokeh.layouts import layout, widgetbox
 from bokeh.io import curdoc, output_file, show
 
@@ -113,11 +113,11 @@ class Bokeh_roket:
         # Layouts
         self.control_box = widgetbox(self.select_datapath, self.select_files,
                                      self.button_load, self.radioButton_basis)
-        self.tab = layout([[
+        self.tab = Panel(child=layout([[
                 self.control_box, self.p,
                 widgetbox(self.pretext, self.table_breakdown, self.table_cov,
                           self.table_cor)
-        ], [self.table_params]])
+        ], [self.table_params]]), title="ROKET")
 
     def update_files(self):
         """
