@@ -232,7 +232,7 @@ def compute_Btt(IFpzt, IFtt):
     """ Returns Btt to Volts and Volts to Btt matrices
     :parameters:
         IFpzt : (csr_matrix) : influence function matrix of pzt DM, sparse and arrange as (Npts in pup x nactus)
-        IFtt : (csr_matrix) : Influence function matrix of the TT mirror arrange as (Npts in pup x 2)
+        IFtt : (np.ndarray(ndim=2,dtype=np.float32)) : Influence function matrix of the TT mirror arrange as (Npts in pup x 2)
     :returns:
         Btt : (np.ndarray(ndim=2,dtype=np.float32)) : Btt to Volts matrix
         P : (np.ndarray(ndim=2,dtype=np.float32)) : Volts to Btt matrix
@@ -246,7 +246,7 @@ def compute_Btt(IFpzt, IFtt):
 
     # Tip-tilt + piston
     Tp = np.ones((IFtt.shape[0], IFtt.shape[1] + 1))
-    Tp[:, :2] = IFtt.copy().toarray()
+    Tp[:, :2] = IFtt.copy()
     deltaT = IFpzt.T.dot(Tp) / N
     # Tip tilt projection on the pzt dm
     tau = np.linalg.inv(delta).dot(deltaT)
@@ -266,7 +266,7 @@ def compute_Btt(IFpzt, IFtt):
     B = G.dot(U).dot(L)
 
     # Rajout du TT
-    TT = (IFtt.T.dot(IFtt) / N).toarray()
+    TT = (IFtt.T.dot(IFtt) / N)
     Btt = np.zeros((n + 2, n - 1))
     Btt[:B.shape[0], :B.shape[1]] = B
     mini = 1. / np.sqrt(np.abs(TT))
@@ -278,7 +278,7 @@ def compute_Btt(IFpzt, IFtt):
     delta = np.zeros((n + IFtt.shape[1], n + IFtt.shape[1]))
     #IFpzt = rtc.get_IFpztsparse(1).T
     delta[:-2, :-2] = IFpzt.T.dot(IFpzt).toarray() / N
-    delta[-2:, -2:] = IFtt.T.dot(IFtt).toarray() / N
+    delta[-2:, -2:] = IFtt.T.dot(IFtt) / N
     P = Btt.T.dot(delta)
 
     return Btt.astype(np.float32), P.astype(np.float32)

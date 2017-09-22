@@ -20,9 +20,6 @@ def remove_files():
 
 widget = Bokeh_guardian()
 curdoc().clear()
-widget.roket.update()
-#output_file("roket.html")
-#show(widget.tab)
 curdoc().add_root(widget.tab)
 
 atexit.register(remove_files)

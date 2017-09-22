@@ -20,18 +20,20 @@ class Bokeh_groot:
 
     def __init__(self):
 
-        self.dataroot = "/home/fferreira/Data/"
+        self.dataroot = os.getenv("DATA_GUARDIAN")
         self.datapath = self.dataroot
         self.files = [f.split('/')[-1] for f in glob(self.datapath + "roket_*.h5")]
-        self.f = h5py.File(self.datapath + self.files[0], mode='r+')
-        self.Btt = self.f["Btt"][:]
-        self.P = self.f["P"][:]
-        self.nactus = self.P.shape[1]
-        self.nmodes = self.P.shape[0]
+        if self.files == []:
+            self.files = ["No hdf5 files"]
+        self.f = None
+        self.Btt = None
+        self.P = None
+        self.nactus = None
+        self.nmodes = None
 
         self.url = "http://hippo6.obspm.fr/~fferreira/roket_display"
         self.old = None
-        self.psf_compass = self.f["psf"][:]
+        self.psf_compass = None
         self.psf_roket = None
         self.psf_groot = None
         self.covmat_groot = None
@@ -39,24 +41,28 @@ class Bokeh_groot:
 
         # Widgets Elements
         self.pretext = PreText(text=""" """, width=500, height=75)
-        self.SRroket = TextInput(value=" ", title="SR ROKET:")
-        self.SRgroot = TextInput(value=" ", title="SR GROOT:")
+        self.SRcompass = TextInput(value=" ", title="SR compass:")
+        self.SRroket = TextInput(value=" ", title="SR roket:")
+        self.SRgroot = TextInput(value=" ", title="SR groot:")
 
         self.button_covmat = Button(label="Covmat", button_type="success")
         self.button_psf = Button(label="PSF !", button_type="success")
         self.toggle_fit = Toggle(label="Fitting", button_type="primary")
+
         self.select_datapath = Select(
                 title="Datapath", value=self.dataroot,
                 options=[self.dataroot] + glob(self.dataroot + "*/"))
         self.select_files = Select(title="File", value=self.files[0], options=self.files)
+
         self.contributors = ["noise", "bandwidth & tomography", "aliasing"]
         self.checkboxButtonGroup_contributors = CheckboxButtonGroup(
                 labels=self.contributors, active=[])
         self.radioButton_basis = RadioButtonGroup(labels=["Actus", "Btt"], active=0)
-        self.xdr = Range1d(start=0, end=self.psf_compass.shape[0])
-        self.ydr = Range1d(start=self.psf_compass.shape[0], end=0)
-        self.xdr2 = Range1d(start=0, end=self.nmodes)
-        self.ydr2 = Range1d(start=self.nmodes, end=0)
+
+        self.xdr = Range1d(start=0, end=1024)
+        self.ydr = Range1d(start=1024, end=0)
+        self.xdr2 = Range1d(start=0, end=1024)
+        self.ydr2 = Range1d(start=1024, end=0)
         self.image_roket = figure(x_range=self.xdr, y_range=self.ydr,
                                   x_axis_location="above", title="PSF ROKET")
         self.image_groot = figure(x_range=self.image_roket.x_range,
@@ -71,18 +77,19 @@ class Bokeh_groot:
                                     x_range=self.image_roket.x_range, y_axis_type="log")
         self.source_psf_roket = ColumnDataSource(data=dict(x=[], y=[]))
         self.source_psf_groot = ColumnDataSource(data=dict(x=[], y=[]))
+        self.source_psf_compass = ColumnDataSource(data=dict(x=[], y=[]))
         self.source_covmat_roket = ColumnDataSource(data=dict(x=[], y=[]))
         self.source_covmat_groot = ColumnDataSource(data=dict(x=[], y=[]))
 
-        self.image_roket.image_url(url=[], x=0, y=0, w=self.psf_compass.shape[0],
-                                   h=self.psf_compass.shape[1])
-        self.image_groot.image_url(url=[], x=0, y=0, w=self.psf_compass.shape[0],
-                                   h=self.psf_compass.shape[1])
-        self.im_covmat_roket.image_url(url=[], x=0, y=0, w=self.nmodes, h=self.nmodes)
-        self.im_covmat_groot.image_url(url=[], x=0, y=0, w=self.nmodes, h=self.nmodes)
-        self.plot_psf_cuts.line(x="x", y="y", legend="ROKET", color="red",
+        self.image_roket.image_url(url=[], x=0, y=0, w=1024, h=1024)
+        self.image_groot.image_url(url=[], x=0, y=0, w=1024, h=1024)
+        self.im_covmat_roket.image_url(url=[], x=0, y=0, w=1024, h=1024)
+        self.im_covmat_groot.image_url(url=[], x=0, y=0, w=1024, h=1024)
+        self.plot_psf_cuts.line(x="x", y="y", legend="ROKET", color="blue",
                                 muted_alpha=0.1, source=self.source_psf_roket)
-        self.plot_psf_cuts.line(x="x", y="y", legend="GROOT", color="blue",
+        self.plot_psf_cuts.line(x="x", y="y", legend="COMPASS", color="red",
+                                muted_alpha=0.1, source=self.source_psf_compass)
+        self.plot_psf_cuts.line(x="x", y="y", legend="GROOT", color="green",
                                 muted_alpha=0.1, source=self.source_psf_groot)
         self.plot_psf_cuts.legend.click_policy = "mute"
 
@@ -97,7 +104,8 @@ class Bokeh_groot:
         self.control_box = widgetbox(self.select_datapath, self.select_files,
                                      self.checkboxButtonGroup_contributors,
                                      self.radioButton_basis, self.button_covmat,
-                                     self.button_psf, self.toggle_fit, self.pretext)
+                                     self.button_psf, self.toggle_fit, self.SRcompass,
+                                     self.SRroket, self.SRgroot, self.pretext)
         self.tab = Panel(child=layout([[
                 self.control_box, self.im_covmat_roket, self.im_covmat_groot
         ], [self.image_roket, self.image_groot], [self.plot_psf_cuts]]), title="GROOT")
@@ -106,16 +114,18 @@ class Bokeh_groot:
         """
         Update the attributes based on the new selected filename
         """
-        self.f = h5py.File(self.datapath + str(self.select_files.value), mode='r+')
-        self.psf_compass = self.f["psf"][:]
-        self.psf_groot = None
-        self.psf_roket = None
-        self.covmat_groot = None
-        self.covmat_roket = None
-        self.Btt = self.f["Btt"][:]
-        self.P = self.f["P"][:]
-        self.nactus = self.P.shape[1]
-        self.nmodes = self.P.shape[0]
+        if os.path.exists(self.datapath + str(self.select_files.value)):
+            self.f = h5py.File(self.datapath + str(self.select_files.value), mode='r+')
+            self.psf_compass = self.f["psf"][:]
+            self.SRcompass.value = "%.2f" % (self.psf_compass.max())
+            self.psf_groot = None
+            self.psf_roket = None
+            self.covmat_groot = None
+            self.covmat_roket = None
+            self.Btt = self.f["Btt"][:]
+            self.P = self.f["P"][:]
+            self.nactus = self.P.shape[1]
+            self.nmodes = self.P.shape[0]
 
     def update_files(self):
         """
@@ -125,6 +135,8 @@ class Bokeh_groot:
         self.files = self.files = [
                 f.split('/')[-1] for f in glob(self.datapath + "roket_*.h5")
         ]
+        if self.files == []:
+            self.files = ["No hdf5 files"]
         self.select_files.options = self.files
         self.select_files.value = self.files[0]
 
@@ -139,6 +151,8 @@ class Bokeh_groot:
             self.image_roket.image_url(url=dict(value=self.url + time + ".png"), x=0,
                                        y=0, w=self.psf_roket.shape[0],
                                        h=self.psf_roket.shape[0])
+            self.image_roket.x_range.update(start=0, end=self.psf_roket.shape[0])
+            self.image_roket.y_range.update(start=self.psf_roket.shape[0], end=0)
             self.SRroket.value = "%.2f" % (self.psf_roket.max())
 
         if self.psf_groot is not None:
@@ -163,6 +177,8 @@ class Bokeh_groot:
             self.im_covmat_roket.image_url(url=dict(value=self.url + time + ".png"), x=0,
                                            y=0, w=self.covmat_roket.shape[0],
                                            h=self.covmat_roket.shape[0])
+            self.im_covmat_roket.x_range.update(start=0, end=self.covmat_roket.shape[0])
+            self.im_covmat_roket.y_range.update(start=self.covmat_roket.shape[0], end=0)
 
         if self.covmat_groot is not None:
             time = str(datetime.datetime.now().strftime('%Y-%m-%d_%H_%M_%f'))
@@ -184,6 +200,10 @@ class Bokeh_groot:
             x = np.arange(self.psf_groot.shape[0])
             self.source_psf_groot.data = dict(
                     x=x, y=self.psf_groot[:, self.psf_groot.shape[0] // 2])
+        if self.psf_compass is not None:
+            x = np.arange(self.psf_compass.shape[0])
+            self.source_psf_compass.data = dict(
+                    x=x, y=self.psf_compass[:, self.psf_compass.shape[0] // 2])
 
     def comp_covmats(self):
         """
@@ -213,7 +233,7 @@ class Bokeh_groot:
         if "aliasing" in contrib:
             self.covmat_groot += groot.compute_Ca_cpu(
                     self.datapath + str(self.select_files.value), modal=modal)
-        if "tomography" in contrib or bandwidth in contrib:
+        if "tomography" in contrib or "bandwidth" in contrib:
             self.covmat_groot += groot.compute_Cerr(
                     self.datapath + str(self.select_files.value), modal=modal)
 
@@ -244,10 +264,10 @@ class Bokeh_groot:
                 self.datapath + str(self.select_files.value),
                 cov=self.covmat_groot.astype(np.float32), fitting=False)
         if fit:
-            otf_fit, psf_fit = groot.compute_OTF_fitting(
+            otffit, _ = groot.compute_OTF_fitting(
                     self.datapath + str(self.select_files.value), otftel)
             self.psf_groot = gamora.add_fitting_to_psf(
-                    self.datapath + str(self.select_files.value), otf2, otffit=otf_fit)
+                    self.datapath + str(self.select_files.value), otf2 * otftel, otffit)
 
         _, _, self.psf_roket, _ = gamora.psf_rec_Vii(
                 self.datapath + str(self.select_files.value),

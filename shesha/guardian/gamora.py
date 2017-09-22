@@ -18,7 +18,6 @@ gpudevices = np.array([6, 7], dtype=np.int32)
 c = ch.naga_context(devices=gpudevices)
 
 
-#filename = "/home/fferreira/Data/breakdown_offaxis-4_2.h5"
 def psf_rec_roket_file(filename, err=None):
     f = h5py.File(filename, 'r')
     if (err is None):
@@ -27,7 +26,7 @@ def psf_rec_roket_file(filename, err=None):
     # Sparse IF matrix
     IF, T = rexp.get_IF(filename)
     # Scale factor
-    scale = float(2 * np.pi / f.attrs["target.Lambda"][0])
+    scale = float(2 * np.pi / f.attrs["_Param_target__Lambda"][0])
     # Init GPU
     gamora = gamora_init(b"roket", err.shape[0], err.shape[1],
                          IF.data.astype(np.float32), IF.indices, IF.indptr, T,
@@ -63,7 +62,7 @@ def psf_rec_roket_file_cpu(filename):
     # Sparse IF matrix
     IF, T = rexp.get_IF(filename)
     # Scale factor
-    scale = float(2 * np.pi / f.attrs["target.Lambda"][0])
+    scale = float(2 * np.pi / f.attrs["_Param_target__Lambda"][0])
 
     for k in range(err.shape[1]):
         amplipup = np.zeros((fft_size, fft_size), dtype=np.complex)
@@ -103,7 +102,7 @@ def psf_rec_Vii(filename, err=None, fitting=True, covmodes=None, cov=None,
     Btt = f["Btt"][:]
 
     # Scale factor
-    scale = float(2 * np.pi / f.attrs["target.Lambda"][0])
+    scale = float(2 * np.pi / f.attrs["_Param_target__Lambda"][0])
     # Init GPU
     gpu = gamora_init(b"Vii", Btt.shape[0], f["noise"][:].shape[1],
                       IF.data.astype(np.float32), IF.indices, IF.indptr, T,
@@ -139,7 +138,7 @@ def psf_rec_Vii(filename, err=None, fitting=True, covmodes=None, cov=None,
 def psf_rec_vii_cpu(filename):
     f = h5py.File(filename, 'r')
     IF, T = rexp.get_IF(filename)
-    ratio_lambda = 2 * np.pi / f.attrs["target.Lambda"][0]
+    ratio_lambda = 2 * np.pi / f.attrs["_Param_target__Lambda"][0]
     # Telescope OTF
     print("Computing telescope OTF...")
     spup = rexp.get_pup(filename)
@@ -210,13 +209,10 @@ def test_Vii(filename):
     print("precision on psf : ", np.abs(psf_cpu - psf_gpu).max() / psf_cpu.max())
 
 
-def add_fitting_to_psf(filename, otf2, psf_fit=None, otffit=None):
+def add_fitting_to_psf(filename, otf, otffit):
     print("\nAdding fitting to PSF...")
     spup = rexp.get_pup(filename)
-    if psf_fit is not None:
-        otffit = np.real(np.fft.fft2(psf_fit))
-        otffit /= otffit.max()
-    psf = np.fft.fftshift(np.real(np.fft.ifft2(otffit * otf2)))
+    psf = np.fft.fftshift(np.real(np.fft.ifft2(otffit * otf)))
     psf *= (psf.shape[0] * psf.shape[0] / float(np.where(spup)[0].shape[0]))
 
     return psf

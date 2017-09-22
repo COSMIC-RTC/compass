@@ -17,9 +17,5 @@ class Bokeh_guardian:
         self.roket = Bokeh_roket()
         self.gamora = Bokeh_gamora()
         self.groot = Bokeh_groot()
-        self.gamora.select_files = self.roket.select_files
-        self.groot.select_files = self.roket.select_files
-        self.gamora.select_datapath = self.roket.select_datapath
-        self.groot.select_datapath = self.roket.select_datapath
 
         self.tab = Tabs(tabs=[self.roket.tab, self.gamora.tab, self.groot.tab])

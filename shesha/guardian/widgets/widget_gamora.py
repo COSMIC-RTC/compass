@@ -20,18 +20,19 @@ class Bokeh_gamora:
 
     def __init__(self):
 
-        self.dataroot = "/home/fferreira/Data/"
+        self.dataroot = os.getenv("DATA_GUARDIAN")
         self.datapath = self.dataroot
         self.files = [f.split('/')[-1] for f in glob(self.datapath + "roket_*.h5")]
-        self.f = h5py.File(self.datapath + self.files[0], mode='r+')
-        self.Btt = self.f["Btt"][:]
-        self.P = self.f["P"][:]
-        self.nactus = self.P.shape[1]
-        self.nmodes = self.P.shape[0]
+        if self.files == []:
+            self.files = ["No hdf5 files"]
+
+        self.f = None
+        self.Btt = None
+        self.P = None
 
         self.url = "http://hippo6.obspm.fr/~fferreira/roket_display"
         self.old = None
-        self.psf_compass = self.f["psf"][:]
+        self.psf_compass = None
         self.psf_Vii = None
 
         # Widgets Elements
@@ -41,13 +42,14 @@ class Bokeh_gamora:
 
         self.button_psf = Button(label="PSF !", button_type="success")
         self.button_roll = Button(label="Roll", button_type="primary")
+
         self.select_datapath = Select(
                 title="Datapath", value=self.dataroot,
                 options=[self.dataroot] + glob(self.dataroot + "*/"))
         self.select_files = Select(title="File", value=self.files[0], options=self.files)
 
-        self.xdr = Range1d(start=0, end=self.psf_compass.shape[0])
-        self.ydr = Range1d(start=self.psf_compass.shape[1], end=0)
+        self.xdr = Range1d(start=0, end=1024)
+        self.ydr = Range1d(start=1024, end=0)
         self.image_compass = figure(x_range=self.xdr, y_range=self.ydr,
                                     x_axis_location="above", title="PSF COMPASS")
         self.image_Vii = figure(x_range=self.image_compass.x_range,
@@ -59,10 +61,8 @@ class Bokeh_gamora:
         self.source_psf_compass = ColumnDataSource(data=dict(x=[], y=[]))
         self.source_psf_Vii = ColumnDataSource(data=dict(x=[], y=[]))
 
-        self.image_compass.image_url(url=[], x=0, y=0, w=self.psf_compass.shape[0],
-                                     h=self.psf_compass.shape[1])
-        self.image_Vii.image_url(url=[], x=0, y=0, w=self.psf_compass.shape[0],
-                                 h=self.psf_compass.shape[1])
+        self.image_compass.image_url(url=[], x=0, y=0, w=1024, h=1024)
+        self.image_Vii.image_url(url=[], x=0, y=0, w=1024, h=1024)
         self.plot_psf_cuts.line(x="x", y="y", legend="COMPASS", color="red",
                                 muted_alpha=0.1, source=self.source_psf_compass)
         self.plot_psf_cuts.line(x="x", y="y", legend="Vii", color="blue",
@@ -76,7 +76,7 @@ class Bokeh_gamora:
         self.button_psf.on_click(self.comp_psf)
         self.button_roll.on_click(self.roll_psf)
 
-        self.update_psf()
+        #self.update_psf()
 
         #layouts
         self.control_box = widgetbox(self.select_datapath, self.select_files,
@@ -90,13 +90,12 @@ class Bokeh_gamora:
         """
         Update the attributes based on the new selected filename
         """
-        self.f = h5py.File(self.datapath + str(self.select_files.value), mode='r+')
-        self.psf_compass = self.f["psf"][:]
-        self.psf_Vii = None
-        self.Btt = self.f["Btt"][:]
-        self.P = self.f["P"][:]
-        self.nactus = self.P.shape[1]
-        self.nmodes = self.P.shape[0]
+        if os.path.exists(self.datapath + str(self.select_files.value)):
+            self.f = h5py.File(self.datapath + str(self.select_files.value), mode='r+')
+            self.psf_compass = self.f["psf"][:]
+            self.psf_Vii = None
+            self.Btt = self.f["Btt"][:]
+            self.P = self.f["P"][:]
 
     def update_files(self):
         """
@@ -106,6 +105,9 @@ class Bokeh_gamora:
         self.files = self.files = [
                 f.split('/')[-1] for f in glob(self.datapath + "roket_*.h5")
         ]
+        if self.files == []:
+            self.files = ["No hdf5 files"]
+
         self.select_files.options = self.files
         self.select_files.value = self.files[0]
 
@@ -120,6 +122,9 @@ class Bokeh_gamora:
         mpl.image.imsave(self.old, np.log10(np.abs(psfc)))
         self.image_compass.image_url(url=dict(value=self.url + time + ".png"), x=0, y=0,
                                      w=psfc.shape[0], h=psfc.shape[0])
+        self.image_compass.x_range.update(start=0, end=psfc.shape[0])
+        self.image_compass.y_range.update(start=psfc.shape[0], end=0)
+
         self.SRcompass.value = "%.2f" % (self.psf_compass.max())
 
         if self.psf_Vii is not None:
@@ -138,13 +143,6 @@ class Bokeh_gamora:
         """
         Update the PSF cuts
         """
-        # Lambda_tar = self.f.attrs["target.Lambda"][0]
-        # RASC = 180 / np.pi * 3600.
-        # pixsize = Lambda_tar * 1e-6 / (self.psf_compass.shape[
-        #     0] * self.f.attrs["tel_diam"] / self.f.attrs["pupdiam"]) * RASC
-        # x = (np.arange(self.psf_compass.shape[0]) -
-        #      self.psf_compass.shape[0] / 2) * pixsize / (
-        #          Lambda_tar * 1e-6 / self.f.attrs["tel_diam"] * RASC)
         x = np.arange(self.psf_compass.shape[0])
         self.source_psf_compass.data = dict(
                 x=x, y=self.psf_compass[:, self.psf_compass.shape[0] // 2])

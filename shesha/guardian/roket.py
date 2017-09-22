@@ -11,6 +11,7 @@ import sys, os
 import numpy as np
 from naga import naga_context
 from shesha_sim import Simulator
+from shesha_util.rtc_util import centroid_gain
 from shesha_ao.tomo import create_nact_geom
 from shesha_ao.basis import compute_Btt, compute_cmat_with_Btt
 import shesha_constants as scons
@@ -34,20 +35,24 @@ class Roket(Simulator):
         self.iter_number = 0
         self.n = self.config.p_loop.niter + self.N_preloop
         self.nfiltered = int(self.config.p_controllers[0].maxcond)
-        self.nactu = self.rtc.get_com(0).size
-        self.com = np.zeros((self.n, self.nactu), dtype=np.float32)
-        self.noise_com = np.zeros((self.n, self.nactu), dtype=np.float32)
+        self.nactus = self.rtc.get_com(0).size
+        self.nslopes = self.rtc.get_centroids(0).size
+        self.com = np.zeros((self.n, self.nactus), dtype=np.float32)
+        self.noise_com = np.zeros((self.n, self.nactus), dtype=np.float32)
         self.alias_wfs_com = np.copy(self.noise_com)
+        self.alias_meas = np.zeros((self.n, self.nslopes), dtype=np.float32)
         self.wf_com = np.copy(self.noise_com)
         self.tomo_com = np.copy(self.noise_com)
         self.trunc_com = np.copy(self.noise_com)
+        self.trunc_meas = np.copy(self.alias_meas)
         self.H_com = np.copy(self.noise_com)
         self.mod_com = np.copy(self.noise_com)
         self.bp_com = np.copy(self.noise_com)
         self.fit = np.zeros(self.n)
-        self.psf_ortho = self.tar.get_image(0, b'se') * 0.
-        self.Ee = np.copy(self.noise_com)
-        self.Ff = np.copy(self.Ee)
+        self.psf_ortho = self.tar.get_image(0, b'se') * 0
+        self.centroid_gain = 0
+        self.Cmm = np.zeros((self.nslopes, self.nslopes), dtype=np.float32)
+        self.Cvv = np.zeros((self.nactus, self.nactus), dtype=np.float32)
         #gamma = 1.0
         self.config.p_loop.set_niter(self.n)
         self.IFpzt = self.rtc.get_IFsparse(1)
@@ -134,9 +139,15 @@ class Roket(Simulator):
         """
         g = self.config.p_controllers[0].gain
         Dcom = self.rtc.get_com(0)
+        Dcom_r = np.reshape(Dcom, (Dcom.size, 1))
+        self.Cvv += Dcom_r.dot(Dcom_r.T)
         Derr = self.rtc.get_err(0)
         self.com[self.iter_number, :] = Dcom
         tarphase = self.tar.get_phase(0)
+        slopes = self.rtc.get_centroids(0)
+        slopes = np.reshape(slopes, (slopes.size, 1))
+        self.Cmm += slopes.dot(slopes.T)
+
         ###########################################################################
         ## Noise contribution
         ###########################################################################
@@ -159,7 +170,7 @@ class Roket(Simulator):
 
         self.rtc.do_control(0)
         E = self.rtc.get_err(0)
-        self.Ee[self.iter_number, :] = E
+        E_meas = self.rtc.get_centroids(0)
         # Apply loop filter to get contribution of noise on commands
         if (self.iter_number + 1 < self.config.p_loop.niter):
             self.noise_com[self.iter_number + 1, :] = self.gRD.dot(
@@ -170,12 +181,13 @@ class Roket(Simulator):
         self.rtc.do_centroids_geom(0)
         self.rtc.do_control(0)
         F = self.rtc.get_err(0)
-        self.Ff[self.iter_number, :] = F
+        F_meas = self.rtc.get_centroids(0)
+        self.trunc_meas[self.iter_number, :] = E_meas - F_meas
         # Apply loop filter to get contribution of sampling/truncature on commands
         if (self.iter_number + 1 < self.config.p_loop.niter):
             self.trunc_com[self.iter_number + 1, :] = self.gRD.dot(
                     self.trunc_com[self.iter_number, :]) + g * (E - self.gamma * F)
-
+        self.centroid_gain += centroid_gain(E, F)
         ###########################################################################
         ## Aliasing contribution on WFS direction
         ###########################################################################
@@ -200,6 +212,7 @@ class Roket(Simulator):
         self.rtc.do_centroids_geom(0)
         self.rtc.do_control(0)
         Ageom = self.rtc.get_err(0)
+        self.alias_meas[self.iter_number, :] = self.rtc.get_centroids(0)
         if (self.iter_number + 1 < self.config.p_loop.niter):
             self.alias_wfs_com[self.iter_number + 1, :] = self.gRD.dot(
                     self.alias_wfs_com[self.iter_number, :]) + self.gamma * g * (
@@ -271,7 +284,7 @@ class Roket(Simulator):
         self.cov_cor()
         psf = self.tar.get_image(0, b"le")
 
-        fname = "/home/fferreira/Data/" + savename
+        fname = os.getenv("DATA_GUARDIAN") + savename
         pdict = {
                 "noise":
                         self.noise_com[self.N_preloop:, :].T, "aliasing":
@@ -299,15 +312,21 @@ class Roket(Simulator):
                                                         self.cor,
                 "psfortho":
                         np.fft.fftshift(self.psf_ortho) /
-                        (self.config.p_loop.niter - self.N_preloop), "E":
-                                self.Ee, "F":
-                                        self.Ff, "dm.xpos":
-                                                self.config.p_dms[0]._xpos, "dm.ypos":
-                                                        self.config.p_dms[0]._ypos, "R":
-                                                                self.rtc.get_cmat(0),
-                "D":
-                        self.rtc.get_imat(0), "Nact":
-                                self.Nact
+                        (self.config.p_loop.niter - self.N_preloop), "centroid_gain":
+                                self.centroid_gain /
+                                (self.config.p_loop.niter - self.N_preloop), "dm.xpos":
+                                        self.config.p_dms[0]._xpos, "dm.ypos":
+                                                self.config.p_dms[0]._ypos, "R":
+                                                        self.rtc.get_cmat(0), "D":
+                                                                self.rtc.get_imat(0),
+                "Nact":
+                        self.Nact, "Cmm":
+                                self.Cmm / (self.config.p_loop.niter - self.N_preloop),
+                "Cvv":
+                        self.Cvv /
+                        (self.config.p_loop.niter - self.N_preloop), "alias_meas":
+                                self.alias_meas[self.N_preloop:, :].T, "trunc_meas":
+                                        self.trunc_meas[self.N_preloop:, :].T
         }
         h5u.save_h5(fname, "psf", self.config, psf)
         for k in list(pdict.keys()):

@@ -21,14 +21,16 @@ class Bokeh_roket:
 
     def __init__(self):
 
-        self.dataroot = "/home/fferreira/Data/"
+        self.dataroot = os.getenv("DATA_GUARDIAN")
         self.datapath = self.dataroot
         self.files = [f.split('/')[-1] for f in glob(self.datapath + "roket_*.h5")]
-        self.f = h5py.File(self.datapath + self.files[0], mode='r+')
-        self.Btt = self.f["Btt"][:]
-        self.P = self.f["P"][:]
-        self.cov = self.f["cov"][:]
-        self.cor = self.f["cor"][:]
+        if self.files == []:
+            self.files = ["No hdf5 files"]
+        self.f = None
+        self.Btt = None
+        self.P = None
+        self.cov = None
+        self.cor = None
         self.url = "http://hippo6.obspm.fr/~fferreira/roket_display"
         self.old = None
 
@@ -67,7 +69,7 @@ class Bokeh_roket:
 
         self.table_breakdown = DataTable(source=self.source_breakdown, columns=columns,
                                          width=400, height=75)
-        self.update_breakdown()
+        #self.update_breakdown()
 
         columns2 = [
                 TableColumn(field="Type", title="Cov."),
@@ -83,7 +85,7 @@ class Bokeh_roket:
         columns2[0] = TableColumn(field="Type", title="Cor.")
         self.table_cor = DataTable(source=self.source_cor, columns=columns2, width=400,
                                    height=250)
-        self.update_covcor()
+        #self.update_covcor()
 
         tmp = [
                 TableColumn(field="Parameter", title="Parameter"),
@@ -91,7 +93,7 @@ class Bokeh_roket:
         ]
         self.table_params = DataTable(source=self.source_params, columns=tmp, width=600,
                                       height=500)
-        self.update_params()
+        #self.update_params()
         self.source_variances = {}
         for c in self.contributors:
             self.source_variances[c] = ColumnDataSource(data=dict(x=[], y=[]))
@@ -127,6 +129,8 @@ class Bokeh_roket:
         self.files = self.files = [
                 f.split('/')[-1] for f in glob(self.datapath + "roket_*.h5")
         ]
+        if self.files == []:
+            self.files = ["No hdf5 files"]
         self.select_files.options = self.files
         self.select_files.value = self.files[0]
 
