@@ -6,6 +6,7 @@ p_loop = conf.Param_loop()
 
 p_loop.set_niter(20000)
 p_loop.set_ittime(1 / 500.)  #=1/500
+p_loop.set_devices([5])
 
 #geom
 p_geom = conf.Param_geom()

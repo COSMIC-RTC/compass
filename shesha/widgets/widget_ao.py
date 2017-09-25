@@ -1280,6 +1280,7 @@ class widgetAOWindow(TemplateBaseClass):
                     signal_le = ""
                     signal_se = ""
                     for t in range(self.sim.config.p_target.ntargets):
+                        self.sim.tar.comp_image(0)
                         SR = self.sim.tar.get_strehl(t)
                         if (t == self.numberSelected):  # Plot on the wfs selected
                             self.updateSRDisplay(SR[1], SR[0], self.sim.iter)
@@ -1293,12 +1294,12 @@ class widgetAOWindow(TemplateBaseClass):
                     self.ui.wao_strehlLE.setText(signal_le)
                     self.ui.wao_currentFreq.setValue(currentFreq)
 
-                    if(self.dispStatsInTerminal):          
+                    if (self.dispStatsInTerminal):
                         self.printInPlace(
                                 "iter #%d SR: (L.E, S.E.)= (%s, %s) running at %4.1fHz (real %4.1fHz)"
                                 % (self.sim.iter, signal_le, signal_se, refreshFreq,
                                    currentFreq))
-                        
+
                     self.refreshTime = start
 
             finally:

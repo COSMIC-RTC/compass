@@ -99,6 +99,7 @@ class Roket(Simulator):
             self.next(**kwargs)
             if ((i + 1) % monitoring_freq == 0):
                 framerate = (i + 1) / (time.time() - t0)
+                self.tar.comp_image(0)
                 strehltmp = self.tar.get_strehl(0)
                 etr = (self.n - i) / framerate
                 print("%d \t %.2f \t  %.2f\t %.2f \t %.2f \t    %.1f \t %.1f" %
@@ -108,8 +109,11 @@ class Roket(Simulator):
 
         print(" loop execution time:", t1 - t0, "  (", self.n, "iterations), ",
               (t1 - t0) / self.n, "(mean)  ", self.n / (t1 - t0), "Hz")
-        self.SR2 = np.exp(-self.tar.get_strehl(0, comp_strehl=False)[3])
-        self.SR = self.tar.get_strehl(0, comp_strehl=False)[1]
+
+        #self.tar.comp_image(0)
+        SRs = self.tar.get_strehl(0)
+        self.SR2 = np.exp(SRs[3])
+        self.SR = SRs[1]
 
     def error_breakdown(self):
         """
@@ -230,7 +234,8 @@ class Roket(Simulator):
         ###########################################################################
         self.rtc.apply_control(1, self.dms)
         self.tar.raytrace(0, b"dm", self.tel, dms=self.dms, do_phase_var=0)
-        self.fit[self.iter_number] = self.tar.get_strehl(0, comp_strehl=False)[2]
+        self.tar.comp_image(0, comp_le=False)
+        self.fit[self.iter_number] = self.tar.get_strehl(0)[2]
         if (self.iter_number >= self.N_preloop):
             self.psf_ortho += self.tar.get_image(0, b'se')
 

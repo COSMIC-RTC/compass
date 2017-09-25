@@ -124,6 +124,34 @@ cdef class Target:
         cdef sutra_source * src = self.target.d_targets[n]
         src.d_phase.d_screen.reset()
 
+    def comp_image(self, int n, bool puponly=False, bool comp_le=True, bool comp_strehl=True):
+        """
+        Compute the target image (ie. PSF) short and long exposure
+        It also compute the Strehl ratio of the obtained images
+
+        :parameters:
+            n: (int): index of the target
+            puponly: (bool): (optional) compute the PSF of the pupil (Airy) (default: False)
+            comp_le: (bool): (optional) compute the long exposure image (default: True)
+            comp_strehl: (bool): (optional) compute also the Strehl ratio (default: True)
+        """
+        self.context.set_activeDeviceForCpy(self.device)
+        cdef sutra_source * src = self.target.d_targets[n]
+
+        src.comp_image(puponly, comp_le)
+        if(comp_strehl):
+            src.comp_strehl()
+
+    def comp_strehl(self, int n):
+        """
+        Compute the Strehl Ratio of the PSF short exposure and long exposure
+
+        :param n: (int): index of the target
+        """
+        self.context.set_activeDeviceForCpy(self.device)
+        cdef sutra_source * src = self.target.d_targets[n]
+
+        src.comp_strehl()
     """
            _______. _______ .___________.                _______  _______ .___________.
           /       ||   ____||           |     ___       /  _____||   ____||           |
@@ -295,10 +323,6 @@ cdef class Target:
         cdef sutra_source * src = self.target.d_targets[n]
 
         cdef np.ndarray strehl = np.empty(4, dtype=np.float32)
-        if(comp_strehl):
-            src.comp_image(0, True)
-            src.comp_strehl()
-
         strehl[0] = src.strehl_se
         strehl[1] = src.strehl_le
         strehl[2] = src.phase_var

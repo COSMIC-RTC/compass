@@ -301,6 +301,7 @@ class Simulator:
             self.next(**kwargs)
             if ((i + 1) % monitoring_freq == 0):
                 framerate = (i + 1) / (time.time() - t0)
+                self.tar.comp_image(0)
                 strehltmp = self.tar.get_strehl(0)
                 etr = (n - i) / framerate
                 print("%d \t %.3f \t  %.3f\t     %.1f \t %.1f" %

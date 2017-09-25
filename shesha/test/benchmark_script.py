@@ -92,49 +92,43 @@ def script4bench(param_file, centroider, controller, devices, fwrite=True):
 
     # init system
     timer.start()
-    tel = init.tel_init(
-            c, config.p_geom, config.p_tel, config.p_atmos.r0,
-            config.p_loop.ittime, config.p_wfss)
+    tel = init.tel_init(c, config.p_geom, config.p_tel, config.p_atmos.r0,
+                        config.p_loop.ittime, config.p_wfss)
     threadSync()
     tel_init_time = timer.stop() - synctime
     timer.reset()
 
     timer.start()
-    atm = init.atmos_init(
-            c, config.p_atmos, config.p_tel, config.p_geom,
-            config.p_loop.ittime)
+    atm = init.atmos_init(c, config.p_atmos, config.p_tel, config.p_geom,
+                          config.p_loop.ittime)
     threadSync()
     atmos_init_time = timer.stop() - synctime
     timer.reset()
 
     timer.start()
-    dms = init.dm_init(
-            c, config.p_dms, config.p_tel, config.p_geom, config.p_wfss)
+    dms = init.dm_init(c, config.p_dms, config.p_tel, config.p_geom, config.p_wfss)
     threadSync()
     dm_init_time = timer.stop() - synctime
     timer.reset()
 
     timer.start()
-    target = init.target_init(
-            c, tel, config.p_target, config.p_atmos, config.p_tel,
-            config.p_geom, config.p_dms)
+    target = init.target_init(c, tel, config.p_target, config.p_atmos, config.p_tel,
+                              config.p_geom, config.p_dms)
     threadSync()
     target_init_time = timer.stop() - synctime
     timer.reset()
 
     timer.start()
-    wfs = init.wfs_init(
-            c, tel, config.p_wfss, config.p_tel, config.p_geom, config.p_dms,
-            config.p_atmos)
+    wfs = init.wfs_init(c, tel, config.p_wfss, config.p_tel, config.p_geom, config.p_dms,
+                        config.p_atmos)
     threadSync()
     wfs_init_time = timer.stop() - synctime
     timer.reset()
 
     timer.start()
-    rtc = init.rtc_init(
-            c, tel, wfs, dms, atm, config.p_wfss, config.p_tel, config.p_geom,
-            config.p_atmos, config.p_loop.ittime, config.p_centroiders,
-            config.p_controllers, config.p_dms)
+    rtc = init.rtc_init(c, tel, wfs, dms, atm, config.p_wfss, config.p_tel,
+                        config.p_geom, config.p_atmos, config.p_loop.ittime,
+                        config.p_centroiders, config.p_controllers, config.p_dms)
     threadSync()
     rtc_init_time = timer.stop() - synctime
     timer.reset()
@@ -203,9 +197,7 @@ def script4bench(param_file, centroider, controller, devices, fwrite=True):
                     comp_img_time += timer.stop() - synctime
                     timer.reset()
 
-            if (
-                    rtc is not None and config.p_wfss is not None and
-                    wfs is not None):
+            if (rtc is not None and config.p_wfss is not None and wfs is not None):
                 if (centroider == "geom"):
                     timer.start()
                     rtc.do_centroids_geom(0)
@@ -259,7 +251,7 @@ def script4bench(param_file, centroider, controller, devices, fwrite=True):
                         threadSync()
                         t_raytrace_dm_time += timer.stop() - synctime
                         timer.reset()
-
+        target.comp_image(0)
         strehltmp = target.get_strehl(0)
         strehlsp.append(strehltmp[0])
         if (cc > 50):
@@ -319,8 +311,7 @@ def script4bench(param_file, centroider, controller, devices, fwrite=True):
     date = datetime.datetime.now()
     date = [date.year, date.month, date.day]
 
-    version = check_output(["git", "rev-parse", "--short",
-                            "HEAD"]).decode('utf8')
+    version = check_output(["git", "rev-parse", "--short", "HEAD"]).decode('utf8')
 
     # version=str(check_output(["svnversion",os.getenv("COMPASS_ROOT")]).replace("\n",""))
     hostname = check_output("hostname").replace(b"\n", b"").decode('UTF-8')
@@ -329,25 +320,24 @@ def script4bench(param_file, centroider, controller, devices, fwrite=True):
             "date": date, "simulname": config.simul_name, "hostname": hostname,
             "ndevices": c.get_ndevice(), "device": c.get_device_names()[0],
             "cuda_version": c.get_cudaRuntimeGetVersion(), "magma_version":
-                    c.get_magma_info(), "platform": platform.platform(),
-            "ncpu": nb_cpu, "processor": cpu[0], "tel.diam": config.p_tel.diam,
-            "sensor_type": config.p_wfss[0].type_wfs.decode('UTF-8'),
-            "LGS": config.p_wfss[0].gsalt > 0,
-            "noisy": config.p_wfss[0].gsmag > 3, "nxsub":
-                    config.p_wfss[0].nxsub, "npix": config.p_wfss[0].npix,
-            "nphotons": config.p_wfss[0]._nphotons, "controller": controller,
-            "centroider": centroider, "finalSRLE": strehllp[len(strehllp) - 1],
-            "rmsSRLE": np.std(strehllp), "wfs_init": wfs_init_time,
+                    c.get_magma_info(), "platform": platform.platform(), "ncpu": nb_cpu,
+            "processor": cpu[0], "tel.diam": config.p_tel.diam,
+            "sensor_type": config.p_wfss[0]
+                           .type_wfs.decode('UTF-8'), "LGS": config.p_wfss[0].gsalt > 0,
+            "noisy": config.p_wfss[0].gsmag > 3, "nxsub": config.p_wfss[0].nxsub, "npix":
+                    config.p_wfss[0].npix, "nphotons": config.p_wfss[0]._nphotons,
+            "controller": controller, "centroider": centroider, "finalSRLE":
+                    strehllp[len(strehllp) -
+                             1], "rmsSRLE": np.std(strehllp), "wfs_init": wfs_init_time,
             "atmos_init": atmos_init_time, "dm_init": dm_init_time,
             "target_init": target_init_time, "rtc_init": rtc_init_time,
-            "move_atmos": move_atmos_time,
-            "target_trace_atmos": t_raytrace_atmos_time,
-            "target_trace_dm": t_raytrace_dm_time,
-            "sensor_trace_atmos": s_raytrace_atmos_time,
-            "sensor_trace_dm": s_raytrace_dm_time, "comp_img": comp_img_time,
-            "docentroids": docentroids_time, "docontrol": docontrol_time,
-            "applycontrol": applycontrol_time, "iter_time": time_per_iter,
-            "Avg.gain": G, "residualPhase": target.get_phase(0)}
+            "move_atmos": move_atmos_time, "target_trace_atmos": t_raytrace_atmos_time,
+            "target_trace_dm": t_raytrace_dm_time, "sensor_trace_atmos":
+                    s_raytrace_atmos_time, "sensor_trace_dm": s_raytrace_dm_time,
+            "comp_img": comp_img_time, "docentroids": docentroids_time,
+            "docontrol": docontrol_time, "applycontrol": applycontrol_time, "iter_time":
+                    time_per_iter, "Avg.gain": G, "residualPhase": target.get_phase(0)
+    }
 
     store = HDFStore(BENCH_SAVEPATH + "/benchmarks.h5")
     try:
@@ -382,8 +372,7 @@ if __name__ == '__main__':
 
     SHESHA = os.environ.get('SHESHA_ROOT')
     if (SHESHA is None):
-        raise EnvironmentError(
-                "Environment variable 'SHESHA_ROOT' must be define")
+        raise EnvironmentError("Environment variable 'SHESHA_ROOT' must be define")
 
     SHESHA_SAVEPATH = SHESHA + "/data"
     PARPATH = SHESHA_SAVEPATH + "/par/par4bench"
