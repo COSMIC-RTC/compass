@@ -55,3 +55,5 @@ shesha/data/bench-results/
 
 shesha/test/scripts/resultatsScripts/
 *.gch
+
+doc/compass-doc

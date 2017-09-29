@@ -1,11 +1,9 @@
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
 
-   shesha_main.rst
-   shesha_atmos.rst
-   shesha_dms.rst
-   shesha_param.rst
-   shesha_rtc.rst
-   shesha_sensors.rst
-   shesha_target.rst
-   shesha_telescope.rst
+   shesha_ao.rst
+   shesha_config.rst
+   shesha_constants.rst
+   shesha_init.rst
+   shesha_sim.rst
+   shesha_util.rst

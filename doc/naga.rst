@@ -1,5 +1,5 @@
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
 
    naga_context.rst
    naga_obj.rst
