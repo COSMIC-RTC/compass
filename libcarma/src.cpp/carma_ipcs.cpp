@@ -1,3 +1,4 @@
+#if 0
 #include <carma_ipcs.h>
 
 /*
@@ -730,3 +731,4 @@ void carma_ipcs::free_barrier(unsigned int id) {
     close_shm(barrier, sizeof(sh_barrier));
   }
 }
+#endif
