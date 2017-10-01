@@ -72,7 +72,6 @@ def locate_compass():
     return compass_config
 
 
-# CUDA = locate_cuda()
 COMPASS = locate_compass()
 # Obtain the numpy include directory.  This logic works across numpy versions.
 try:
@@ -90,8 +89,6 @@ library_dirs = [COMPASS['lib'] + "/libsutra"]
 
 if 'CUDA_INC_PATH' in os.environ:
     include_dirs.append(os.environ['CUDA_INC_PATH'])
-    library_dirs.append(os.environ['CUDA_LIB_PATH_64'])
-    libraries.append('cudart')
 else:
     raise EnvironmentError("Environment variable 'CUDA_INC_PATH' must be define")
 
