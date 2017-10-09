@@ -78,8 +78,7 @@ def psf_rec_roket_file_cpu(filename):
     return psf
 
 
-def psf_rec_Vii(filename, err=None, fitting=True, covmodes=None, cov=None,
-                onlypsf=False):
+def psf_rec_Vii(filename, err=None, fitting=True, covmodes=None, cov=None):
     f = h5py.File(filename, 'r')
     spup = rexp.get_pup(filename)
     # Sparse IF matrix

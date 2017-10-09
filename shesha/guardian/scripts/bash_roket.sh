@@ -1,7 +1,7 @@
 #!/bin/bash
 DIAM="8"
-NSSP="16"
-NFILT="10"
+NSSP="40"
+NFILT="20"
 NPIX="2 4 6"
 PIXSIZE="0.2 0.4 0.6 0.8"
 DATE=`date +%F_%Hh%M`

@@ -30,6 +30,7 @@ class Bokeh_groot:
         self.P = None
         self.nactus = None
         self.nmodes = None
+        self.nslopes = None
 
         self.url = "http://hippo6.obspm.fr/~fferreira/roket_display"
         self.old = None
@@ -57,7 +58,8 @@ class Bokeh_groot:
         self.contributors = ["noise", "bandwidth & tomography", "aliasing"]
         self.checkboxButtonGroup_contributors = CheckboxButtonGroup(
                 labels=self.contributors, active=[])
-        self.radioButton_basis = RadioButtonGroup(labels=["Actus", "Btt"], active=0)
+        self.radioButton_basis = RadioButtonGroup(labels=["Actus", "Btt", "Slopes"],
+                                                  active=0)
 
         self.xdr = Range1d(start=0, end=1024)
         self.ydr = Range1d(start=1024, end=0)
@@ -126,6 +128,7 @@ class Bokeh_groot:
             self.P = self.f["P"][:]
             self.nactus = self.P.shape[1]
             self.nmodes = self.P.shape[0]
+            self.nslopes = self.f["R"][:].shape[1]
 
     def update_files(self):
         """
@@ -222,26 +225,33 @@ class Bokeh_groot:
             contrib.append("bandwidth")
             contrib.append("tomography")
         modal = self.radioButton_basis.active
-        if modal:
+        if modal == 1:
             self.covmat_groot = np.zeros((self.nmodes, self.nmodes))
+        elif modal == 2:
+            self.covmat_groot = np.zeros((self.nslopes, self.nslopes))
         else:
             self.covmat_groot = np.zeros((self.nactus, self.nactus))
 
-        if "noise" in contrib:
-            self.covmat_groot += groot.compute_Cn_cpu(
-                    self.datapath + str(self.select_files.value), modal=modal)
-        if "aliasing" in contrib:
-            self.covmat_groot += groot.compute_Ca_cpu(
-                    self.datapath + str(self.select_files.value), modal=modal)
-        if "tomography" in contrib or "bandwidth" in contrib:
-            self.covmat_groot += groot.compute_Cerr(
-                    self.datapath + str(self.select_files.value), modal=modal)
+        if modal != 2:
+            if "noise" in contrib:
+                self.covmat_groot += groot.compute_Cn_cpu(
+                        self.datapath + str(self.select_files.value), modal=modal)
+            if "aliasing" in contrib:
+                self.covmat_groot += groot.compute_Ca_cpu(
+                        self.datapath + str(self.select_files.value), modal=modal)
+            if "tomography" in contrib or "bandwidth" in contrib:
+                self.covmat_groot += groot.compute_Cerr(
+                        self.datapath + str(self.select_files.value), modal=modal)
 
-        err = rexp.get_err_contributors(self.datapath + str(self.select_files.value),
-                                        contrib)
-        self.covmat_roket = err.dot(err.T) / err.shape[1]
-        if modal:
-            self.covmat_roket = self.P.dot(self.covmat_roket).dot(self.P.T)
+            err = rexp.get_err_contributors(self.datapath + str(self.select_files.value),
+                                            contrib)
+            self.covmat_roket = err.dot(err.T) / err.shape[1]
+            if modal:
+                self.covmat_roket = self.P.dot(self.covmat_roket).dot(self.P.T)
+        else:
+            if "aliasing" in contrib:
+                self.covmat_groot, self.covmat_roket = groot.test_Calias(
+                        self.datapath + str(self.select_files.value))
 
         self.update_covmats()
 

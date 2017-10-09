@@ -528,14 +528,6 @@ def comp_dmgeom(p_dm: conf.Param_dm, p_geom: conf.Param_geom):
         offs = 0
         mpup_dim = dm_dim
 
-    mapactu = np.ones((mpup_dim, mpup_dim), dtype=np.float32)
-
-    if (offs > 0):
-        mapactu[:offs, :] = 0
-        mapactu[:, :offs] = 0
-        mapactu[mapactu.shape[0] - offs:, :] = 0
-        mapactu[:, mapactu.shape[1] - offs:] = 0
-
     indgen = np.tile(np.arange(smallsize, dtype=np.int32), (smallsize, 1))
 
     tmpx = np.tile(indgen, (nact, 1, 1))
@@ -558,13 +550,10 @@ def comp_dmgeom(p_dm: conf.Param_dm, p_geom: conf.Param_geom):
     istart = np.zeros((mpup_dim * mpup_dim), dtype=np.int32)
     npts = np.zeros((mpup_dim * mpup_dim), dtype=np.int32)
 
-    cpt = 0
-    ref = 0
+    tmps_unique, cpt = np.unique(tmps, return_counts=True)
 
-    uu, vv = np.unique(tmps, return_counts=True)
-
-    for i in tqdm(range(uu.size)):
-        npts[uu[i]] = vv[i]
+    for i in range(tmps_unique.size):
+        npts[tmps_unique[i]] = cpt[i]
     istart[1:] = np.cumsum(npts[:-1])
 
     p_dm._influpos = itmps[:np.sum(npts)].astype(np.int32)

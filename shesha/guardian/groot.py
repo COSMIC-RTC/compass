@@ -384,9 +384,8 @@ def compute_OTF_fitting(filename, otftel):
         psf_fit (np.ndarray) : Fitting PSF
     """
     f = h5py.File(filename, 'r')
-    r0 = f.attrs["_Param_atmos__r0"] * (
-            f.attrs["_Param_target__Lambda"][0] / f.attrs["_Param_wfs__Lambda"][0])**(
-                    6. / 5.)
+    r0 = f.attrs["_Param_atmos__r0"] * (f.attrs["_Param_target__Lambda"][0] / 0.5)**(
+            6. / 5.)
     ratio_lambda = 2 * np.pi / f.attrs["_Param_target__Lambda"][0]
     # Telescope OTF
     spup = rexp.get_pup(filename)
@@ -439,3 +438,71 @@ def compute_PSF(filename):
     print("PSF computed in ", tac - tic, " seconds")
 
     return psf
+
+
+def test_Calias(filename):
+    f = h5py.File(filename, 'r')
+    tabx, taby = Dphi.tabulateIj0()
+    nsub = f["Cmm"][:].shape[0] // 2
+    nssp = f.attrs["_Param_wfs__nxsub"][0]
+    npix = f.attrs["_Param_wfs__npix"][0]
+    validint = f.attrs["_Param_tel__cobs"]
+    x = np.linspace(-1, 1, nssp)
+    x, y = np.meshgrid(x, x)
+    r = np.sqrt(x * x + y * y)
+    rorder = np.sort(r.reshape(nssp * nssp))
+    ncentral = nssp * nssp - np.sum(r >= validint, dtype=np.int32)
+    validext = rorder[ncentral + nsub]
+    valid = (r < validext) & (r >= validint)
+    ivalid = np.where(valid)
+    r0 = f.attrs["_Param_atmos__r0"]
+    Lambda_wfs = f.attrs["_Param_wfs__Lambda"][0]
+    d = f.attrs["_Param_tel__diam"] / nssp
+    RASC = 180 / np.pi * 3600
+    scale = (RASC * Lambda_wfs * 1e-6 / 2 / np.pi)**2 / d**2
+    x = (np.arange(nssp) - nssp / 2) * d
+    x, y = np.meshgrid(x, x)
+    x = x[ivalid]
+    y = y[ivalid]
+    fc = d  #/ npix
+    xx = np.tile(x, (nsub, 1))
+    yy = np.tile(y, (nsub, 1))
+
+    xx = xx - xx.T
+    yy = yy - yy.T
+
+    AB = np.linalg.norm([xx, yy], axis=0)
+    Ab = np.linalg.norm([xx - d, yy], axis=0)
+    aB = np.linalg.norm([xx + d, yy], axis=0)
+    ab = AB
+
+    Cmm = np.zeros((2 * nsub, 2 * nsub))
+    Cmm[:nsub, :nsub] = 0.5 * (
+            Dphi.dphi_highpass(Ab, fc, tabx, taby) + Dphi.dphi_highpass(
+                    aB, fc, tabx, taby) - 2 * Dphi.dphi_highpass(AB, fc, tabx, taby)) * (
+                            1 / r0)**(5. / 3.)
+    CD = AB
+    Cd = np.linalg.norm([xx, yy - d], axis=0)
+    cD = np.linalg.norm([xx, yy + d], axis=0)
+    cd = CD
+
+    Cmm[nsub:, nsub:] = 0.5 * (
+            Dphi.dphi_highpass(Cd, fc, tabx, taby) + Dphi.dphi_highpass(
+                    cD, fc, tabx, taby) - 2 * Dphi.dphi_highpass(CD, fc, tabx, taby)) * (
+                            1 / r0)**(5. / 3.)
+
+    # aD = np.linalg.norm([xx + d/2, yy + d/2], axis=0)
+    # ad = np.linalg.norm([xx + d/2, yy - d/2], axis=0)
+    # Ad = np.linalg.norm([xx - d/2, yy - d/2], axis=0)
+    # AD = np.linalg.norm([xx - d/2, yy + d/2], axis=0)
+    #
+    # Cmm[nsub:,:nsub] = 0.25 * (Dphi.dphi_highpass(Ad, d, tabx, taby)
+    #                 + Dphi.dphi_highpass(aD, d, tabx, taby)
+    #                 - Dphi.dphi_highpass(AD, d, tabx, taby)
+    #                 - Dphi.dphi_highpass(ad, d, tabx, taby)) * (1 / r0)**(5. / 3.)
+    # Cmm[:nsub,nsub:] = Cmm[nsub:,:nsub].copy()
+
+    a = f["alias_meas"][:]
+    Calias = a.dot(a.T) / a.shape[1]
+
+    return Cmm * scale, Calias

@@ -13,8 +13,6 @@ Options:
 
 from docopt import docopt
 
-import sys
-import os
 import shesha_sim
 
 arguments = docopt(__doc__)
