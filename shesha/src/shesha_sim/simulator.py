@@ -259,8 +259,7 @@ class Simulator:
         if move_atmos:
             self.atm.move_atmos()
 
-        if (self.config.p_controllers[nControl].type_control ==
-                    scons.ControllerType.GEO):
+        if (self.config.p_controllers[nControl].type == scons.ControllerType.GEO):
             for t in tar_trace:
                 if see_atmos:
                     self.tar.raytrace(t, b"atmos", atmos=self.atm)

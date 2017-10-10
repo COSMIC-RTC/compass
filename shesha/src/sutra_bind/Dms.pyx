@@ -39,11 +39,11 @@ cdef class Dms:
         info += "--------------------------------------------------------"
         return info
 
-    def add_dm(self, bytes type_dm, float alt, long dim, long ninflu, long influsize, long ninflupos, long npts, float push4imat, int device=-1):
+    def add_dm(self, bytes type, float alt, long dim, long ninflu, long influsize, long ninflupos, long npts, float push4imat, int device=-1):
         """Add a dm into a Dms object
 
         :parameters:
-            type_dm: (str) : dm type to remove,
+            type: (str) : dm type to remove,
 
             alt: (float) : dm conjugaison altitude to remove,
 
@@ -65,40 +65,40 @@ cdef class Dms:
         else:
             device = self.context.get_activeDevice()
 
-        self.dms.add_dm(self.context.c, type_dm, alt, dim, ninflu,
+        self.dms.add_dm(self.context.c, type, alt, dim, ninflu,
                         influsize, ninflupos, npts, push4imat, device)
 
-    def remove_dm(self, bytes type_dm, float alt):
+    def remove_dm(self, bytes type, float alt):
         """Remove a dm from a Dms object
 
         :parameters:
-            type_dm: (str) : dm type to remove
+            type: (str) : dm type to remove
 
             alt: (float) : dm conjugaison altitude to remove
         """
-        self.dms.remove_dm(type_dm, alt)
+        self.dms.remove_dm(type, alt)
 
-    def resetdm(self, bytes type_dm, float alt):
+    def resetdm(self, bytes type, float alt):
         """Reset the shape of the DM to 0
 
         :parameters:
-            type_dm: (str) : dm type
+            type: (str) : dm type
 
             alt: (float) : dm conjugaison altitude
         """
-        cdef int inddm = self.dms.get_inddm(type_dm, alt)
+        cdef int inddm = self.dms.get_inddm(type, alt)
         if(inddm < 0):
             raise StandardError("Error in reset dm ")
 
         self.context.set_activeDevice(self.dms.d_dms[inddm].device, 1)
         self.dms.d_dms[inddm].reset_shape()
 
-    def oneactu(self, bytes type_dm, float alt, int nactu, float ampli):
+    def oneactu(self, bytes type, float alt, int nactu, float ampli):
         """Push on on the nactu actuator of the DM with ampli amplitude and compute
         the corresponding shape
 
         :parameters:
-            type_dm: (str) : dm type
+            type: (str) : dm type
 
             alt: (float) : dm conjugaison altitude
 
@@ -106,7 +106,7 @@ cdef class Dms:
 
             ampli: (float): amplitude
         """
-        cdef int inddm = self.dms.get_inddm(type_dm, alt)
+        cdef int inddm = self.dms.get_inddm(type, alt)
         if(inddm < 0):
             raise StandardError("One actuator error")
 
@@ -275,16 +275,16 @@ cdef class Dms:
         cdef np.ndarray[ndim = 3, dtype = np.float32_t] influ_F = influ.T.copy()
         self.dms.d_dms[inddm].d_influ.host2device( < float * > influ_F.data)
 
-    def shape_dm(self, bytes type_dm, float alt):
+    def shape_dm(self, bytes type, float alt):
         """Compute the shape of the DM in a sutra_dm object
 
-            type_dm: (str) : dm type
+            type: (str) : dm type
 
             alt: (float) : dm conjugaison altitude
         """
-        cdef int inddm = self.dms.get_inddm(type_dm, alt)
+        cdef int inddm = self.dms.get_inddm(type, alt)
         if(inddm < 0):
-            err = "unknown error whith set_comm\nDM (" + type_dm + ", " + \
+            err = "unknown error whith set_comm\nDM (" + type + ", " + \
                 str(alt) + ") doesn't exist"
             raise ValueError(err)
 
@@ -292,7 +292,7 @@ cdef class Dms:
 
         self.dms.d_dms[inddm].comp_shape()
 
-    def compute_KLbasis(self, bytes type_dm, float alt,
+    def compute_KLbasis(self, bytes type, float alt,
                         np.ndarray[ndim=1, dtype=np.float32_t] xpos, np.ndarray[ndim=1, dtype=np.float32_t] ypos,
                         np.ndarray[ndim=1, dtype=np.int32_t] indx_pup, long dim, float norm, float ampli):
         """Compute a Karhunen-Loeve basis for the dm:
@@ -301,7 +301,7 @@ cdef class Dms:
             - double diagonalisation to obtain KL basis
 
         :parameters:
-            type_dm: (str) : dm type
+            type: (str) : dm type
 
             alt: (float) : dm conjugaison altitude
 
@@ -318,9 +318,9 @@ cdef class Dms:
             ampli: (float) : amplitude
         """
 
-        cdef int inddm = self.dms.get_inddm(type_dm, alt)
+        cdef int inddm = self.dms.get_inddm(type, alt)
         if(inddm < 0):
-            err = "unknown error with computeKLbasis function\nDM(" + type_dm + "," + \
+            err = "unknown error with computeKLbasis function\nDM(" + type + "," + \
                 str(alt) + ") doesn't exist"
             raise ValueError(err)
 
@@ -329,11 +329,11 @@ cdef class Dms:
         self.dms.d_dms[inddm].compute_KLbasis(< float * > xpos.data, < float * > ypos.data,
                                                < int * > indx_pup.data, dim, norm, ampli)
 
-    def comp_oneactu(self, bytes type_dm, float alt, int nactu, float ampli):
+    def comp_oneactu(self, bytes type, float alt, int nactu, float ampli):
         """Compute the shape of the dm when pushing the nactu actuator
 
         :parameters:
-            type_dm: (str) : dm type
+            type: (str) : dm type
 
             alt: (float) : dm conjugaison altitude
 
@@ -342,10 +342,10 @@ cdef class Dms:
             ampli: (float) : amplitude
         """
 
-        cdef int inddm = self.dms.get_inddm(type_dm, alt)
+        cdef int inddm = self.dms.get_inddm(type, alt)
         if(inddm < 0):
             err = "unknown error with get_dm function DM(" + \
-                type_dm + "," + alt + ") doesnt exists"
+                type + "," + alt + ") doesnt exists"
             raise ValueError(err)
 
         self.context.set_activeDevice(self.dms.d_dms[inddm].device, 1)
@@ -381,12 +381,12 @@ cdef class Dms:
             if shape_dm:
                 self.dms.d_dms[inddm].comp_shape()
 
-    def set_comm(self, bytes type_dm, float alt,
+    def set_comm(self, bytes type, float alt,
                  np.ndarray[ndim=1, dtype=np.float32_t] comm,
                  bool shape_dm=False):
         """Set the voltage command on a sutra_dm
 
-            type_dm: (str) : dm type
+            type: (str) : dm type
 
             alt: (float) : dm conjugaison altitude
 
@@ -395,9 +395,9 @@ cdef class Dms:
             shape_dm: (bool) : perform the dm_shape after the load (default=False)
         """
 
-        cdef int inddm = self.dms.get_inddm(type_dm, alt)
+        cdef int inddm = self.dms.get_inddm(type, alt)
         if(inddm < 0):
-            err = "unknown error whith set_comm\nDM (" + type_dm + ", " + \
+            err = "unknown error whith set_comm\nDM (" + type + ", " + \
                 str(alt) + ") doesn't exist"
             raise ValueError(err)
 
@@ -407,21 +407,21 @@ cdef class Dms:
         if shape_dm:
             self.dms.d_dms[inddm].comp_shape()
 
-    def get_KLbasis(self, bytes type_dm, float alt):
+    def get_KLbasis(self, bytes type, float alt):
         """Return the klbasis computed by computeKLbasis
 
         :parameters:
-            type_dm: (str) : dm type
+            type: (str) : dm type
 
             alt: (float) : dm conjugaison altitude
         :return:
             KLbasis : (np.ndarray(dims=2,dtype=np.float32)) : the KL basis
         """
 
-        cdef int inddm = self.dms.get_inddm(type_dm, alt)
+        cdef int inddm = self.dms.get_inddm(type, alt)
         if(inddm < 0):
             err = "unknown error with get_KLbasis function DM(" + \
-                type_dm + "," + alt + ") doesnt exists"
+                type + "," + alt + ") doesnt exists"
             raise ValueError(err)
 
         self.context.set_activeDevice(self.dms.d_dms[inddm].device, 1)
@@ -431,21 +431,21 @@ cdef class Dms:
         self.dms.d_dms[inddm].d_KLbasis.device2host( < float * > data_F.data)
         return data_F.T.copy()
 
-    def get_dm(self, bytes type_dm, float alt):
+    def get_dm(self, bytes type, float alt):
         """Return the shape of the dm
 
         :parameters:
-            type_dm: (str) : dm type
+            type: (str) : dm type
 
             alt: (float) : dm conjugaison altitude
         :return:
             data : (np.ndarray(dims=2,dtype=np.float32)) : DM shape
         """
 
-        cdef int inddm = self.dms.get_inddm(type_dm, alt)
+        cdef int inddm = self.dms.get_inddm(type, alt)
         if(inddm < 0):
             err = "unknown error with get_dm function DM(" + \
-                type_dm + "," + alt + ") doesnt exists"
+                type + "," + alt + ") doesnt exists"
             raise ValueError(err)
 
         self.context.set_activeDevice(self.dms.d_dms[inddm].device, 1)
@@ -455,21 +455,21 @@ cdef class Dms:
         self.dms.d_dms[inddm].d_shape.d_screen.device2host( < float * > data_F.data)
         return data_F.T.copy()
 
-    def get_comm(self, bytes type_dm, float alt):
+    def get_comm(self, bytes type, float alt):
         """Return the voltage command of the sutra_dm
 
         :parameters:
-            type_dm: (str) : dm type
+            type: (str) : dm type
 
             alt: (float) : dm conjugaison altitude
 g        :return:
             data : (np.ndarray(dims=1,dtype=np.float32)) : voltage vector
         """
 
-        cdef int inddm = self.dms.get_inddm(type_dm, alt)
+        cdef int inddm = self.dms.get_inddm(type, alt)
         if(inddm < 0):
             err = "unknown error with get_dm function DM(" + \
-                type_dm + "," + alt + ") doesnt exists"
+                type + "," + alt + ") doesnt exists"
             raise ValueError(err)
 
         self.context.set_activeDevice(self.dms.d_dms[inddm].device, 1)
@@ -479,21 +479,21 @@ g        :return:
         self.dms.d_dms[inddm].d_comm.device2host( < float * > data.data)
         return data
 
-    def get_influ(self, bytes type_dm, float alt):
+    def get_influ(self, bytes type, float alt):
         """Return the influence functions of the DM
 
         :parameters:
-            type_dm: (str) : dm type
+            type: (str) : dm type
 
             alt: (float) : dm conjugaison altitude
         :return:
             data : (np.ndarray(dims=3,dtype=np.float32)) : influence functions
         """
 
-        cdef int inddm = self.dms.get_inddm(type_dm, alt)
+        cdef int inddm = self.dms.get_inddm(type, alt)
         if(inddm < 0):
             err = "unknown error with get_dm function DM(" + \
-                type_dm + "," + alt + ") doesnt exists"
+                type + "," + alt + ") doesnt exists"
             raise ValueError(err)
 
         self.context.set_activeDevice(self.dms.d_dms[inddm].device, 1)
@@ -504,19 +504,19 @@ g        :return:
         self.dms.d_dms[inddm].d_influ.device2host( < float * > data_F.data)
         return data_F.T.copy()
 
-    def get_IFsparse(self, bytes type_dm, float alt, np.ndarray[ndim=1, dtype=np.int32_t] indx_pup):
+    def get_IFsparse(self, bytes type, float alt, np.ndarray[ndim=1, dtype=np.int32_t] indx_pup):
         """Returns the influence functions matrix of a pzt DM as a sparse matrix
         Return a scipy.sparse object which shape is (nactus,Npts in the pupil)
 
         :parameters:
-            type_dm: (str) : DM type
+            type: (str) : DM type
             alt: (float) : DM altitude
             indx_pup: (np.ndarray[ndim=1, dtype=np.int32_t]) : valid indices of the pupil in the DM support
         :return:
             IF : (scipy.sparse) : influence functions matrix
         """
 
-        cdef int inddm = self.dms.get_inddm(type_dm, alt)
+        cdef int inddm = self.dms.get_inddm(type, alt)
         self.context.set_activeDeviceForCpy(self.dms.d_dms[inddm].device, 1)
 
         cdef carma_sparse_obj[double] * d_IFsparse
@@ -525,7 +525,7 @@ g        :return:
         dims[0] = 1
         dims[1] = indx_pup.size
 
-        if(type_dm == scons.DmType.PZT):
+        if(type == scons.DmType.PZT):
             d_indx = new carma_obj[int](self.context.c, dims, < int * > indx_pup.data)
             sparse = naga_sparse_obj_Double()
             self.dms.d_dms[inddm].get_IF_sparse(
@@ -538,18 +538,18 @@ g        :return:
             raise ValueError(
                 "This function only works with pzt DM (tt influence functions are not sparse)")
 
-    def get_IFtt(self, bytes type_dm, float alt, np.ndarray[ndim=1, dtype=np.int32_t] indx_pup):
+    def get_IFtt(self, bytes type, float alt, np.ndarray[ndim=1, dtype=np.int32_t] indx_pup):
         """Returns the influence functions matrix of a tt DM
 
         :parameters:
-            type_dm: (str) : DM type
+            type: (str) : DM type
             alt: (float) : DM altitude
             indx_pup: (np.ndarray[ndim=1, dtype=np.int32_t]) : valid indices of the pupil in the DM support
         :return:
             IFtt : (np.ndarray[ndim=2, dtype=np.float32_t]) : influence functions matrix
         """
 
-        cdef int inddm = self.dms.get_inddm(type_dm, alt)
+        cdef int inddm = self.dms.get_inddm(type, alt)
         self.context.set_activeDeviceForCpy(self.dms.d_dms[inddm].device, 1)
 
         cdef carma_obj[int] * d_indx
@@ -564,7 +564,7 @@ g        :return:
         cdef np.ndarray[ndim = 2, dtype = np.float32_t] data
         cdef np.ndarray[ndim = 2, dtype = np.float32_t] data_F
 
-        if(type_dm == scons.DmType.TT):
+        if(type == scons.DmType.TT):
             d_indx = new carma_obj[int](self.context.c, dims, < int * > indx_pup.data)
             d_IFtt = new carma_obj[float](self.context.c, dims2)
             self.dms.d_dms[inddm].get_IF(

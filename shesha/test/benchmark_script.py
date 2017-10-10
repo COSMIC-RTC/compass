@@ -160,7 +160,7 @@ def script4bench(param_file, centroider, controller, devices, fwrite=True):
         move_atmos_time += timer.stop() - synctime
         timer.reset()
 
-        if (config.p_controllers[0].type_control != b"geo"):
+        if (config.p_controllers[0].type != b"geo"):
             if ((config.p_target is not None) and (rtc is not None)):
                 for i in range(config.p_target.ntargets):
                     timer.start()
@@ -301,7 +301,7 @@ def script4bench(param_file, centroider, controller, devices, fwrite=True):
     if (config.p_wfss[0].gsmag > 3):
         stype += "noisy "
 
-    stype += str(config.p_wfss[0].type_wfs)
+    stype += str(config.p_wfss[0].type)
 
     if (controller == "modopti"):
         G = np.mean(rtc.get_mgain(0))
@@ -323,7 +323,7 @@ def script4bench(param_file, centroider, controller, devices, fwrite=True):
                     c.get_magma_info(), "platform": platform.platform(), "ncpu": nb_cpu,
             "processor": cpu[0], "tel.diam": config.p_tel.diam,
             "sensor_type": config.p_wfss[0]
-                           .type_wfs.decode('UTF-8'), "LGS": config.p_wfss[0].gsalt > 0,
+                           .type.decode('UTF-8'), "LGS": config.p_wfss[0].gsalt > 0,
             "noisy": config.p_wfss[0].gsmag > 3, "nxsub": config.p_wfss[0].nxsub, "npix":
                     config.p_wfss[0].npix, "nphotons": config.p_wfss[0]._nphotons,
             "controller": controller, "centroider": centroider, "finalSRLE":

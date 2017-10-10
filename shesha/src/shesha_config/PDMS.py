@@ -51,7 +51,7 @@ class Param_dm:
         self.__cp = None  # phi coord in cartesien grid
 
         # Hidden variable safe-typed in shesha_constants
-        self.__type_dm = None  # Private storage of type_dm
+        self.__type = None  # Private storage of type
         self.__type_pattern = None  # Private storage of type_pattern
         self.__influType = scons.InfluType.DEFAULT  # Private storage of influType
         self.__type_kl = scons.KLType.KOLMO  # Private storage for KL type
@@ -171,9 +171,9 @@ class Param_dm:
 
         :param t: (str) : type of dm
         """
-        self.__type_dm = scons.check_enum(scons.DmType, t)
+        self.__type = scons.check_enum(scons.DmType, t)
 
-    type_dm = property(lambda x: x.__type_dm, set_type)
+    type = property(lambda x: x.__type, set_type)
 
     def set_type_pattern(self, t):
         """ set the pattern type

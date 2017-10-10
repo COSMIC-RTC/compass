@@ -53,7 +53,7 @@ cdef class Rtc:
         return info
 
     def add_centroider(self, Sensors sensor, long nwfs, long nvalid,
-                       bytes type_centro, float offset, float scale):
+                       bytes type, float offset, float scale):
         """Add a centroider in the sutra_centroiders vector of the RTC on the GPU
 
         :parameters:
@@ -63,7 +63,7 @@ cdef class Rtc:
 
             nvalid: (long) : number of valid subaps
 
-            type_centro: (str) : centroider's type
+            type: (str) : centroider's type
 
             offset: (float) :
 
@@ -79,9 +79,9 @@ cdef class Rtc:
             offset,
             scale,
             activeDevice,
-            type_centro)
+            type)
 
-    def add_controller(self, int nactu, float delay, bytes type_control, Dms dms,
+    def add_controller(self, int nactu, float delay, bytes type, Dms dms,
                        list dmseen, np.ndarray[ndim=1, dtype=np.float32_t] alt,
                        int ndm, long Nphi=-1, bool wfs_direction=False):
         """Add a controller in the sutra_controller vector of the RTC on the GPU
@@ -91,7 +91,7 @@ cdef class Rtc:
 
             delay: (float) : loop delay
 
-            type_control: (str) : controller's type
+            type: (str) : controller's type
 
             dms: (Dms) : sutra_dms object (GPU)
 
@@ -127,7 +127,7 @@ cdef class Rtc:
                 nactu,
                 delay,
                 self.device,
-                type_control,
+                type,
                 dms.dms,
                 type_dmseen,
                 ptr_alt,
@@ -266,8 +266,8 @@ cdef class Rtc:
         cdef sutra_controller_ls * controller_ls
 
         cdef np.ndarray[ndim= 2, dtype = np.float32_t] M2V_F = M2V.T.copy()
-        cdef bytes type_control = self.rtc.d_control[ncontrol].get_type()
-        if(type_control == scons.ControllerType.LS):
+        cdef bytes type = self.rtc.d_control[ncontrol].get_type()
+        if(type == scons.ControllerType.LS):
             controller_ls = dynamic_cast_controller_ls_ptr(
                 self.rtc.d_control[ncontrol])
             controller_ls.init_modalOpti(nmodes, nrec, < float * > M2V_F.data, gmin, gmax, ngain, Fs)
@@ -287,8 +287,8 @@ cdef class Rtc:
         cdef sutra_controller_ls * controller_ls
 
         cdef np.ndarray[ndim= 2, dtype = np.float32_t] slopes_F = ol_slopes.T.copy()
-        cdef bytes type_control = self.rtc.d_control[ncontrol].get_type()
-        if(type_control == scons.ControllerType.LS):
+        cdef bytes type = self.rtc.d_control[ncontrol].get_type()
+        if(type == scons.ControllerType.LS):
             controller_ls = dynamic_cast_controller_ls_ptr(
                 self.rtc.d_control[ncontrol])
             controller_ls.loadOpenLoopSlp(< float * > slopes_F.data)
@@ -303,8 +303,8 @@ cdef class Rtc:
         """
         self.context.set_activeDeviceForCpy(self.rtc.device, 1)
         cdef sutra_controller_ls * controller_ls
-        cdef bytes type_control = self.rtc.d_control[ncontrol].get_type()
-        if(type_control == scons.ControllerType.LS):
+        cdef bytes type = self.rtc.d_control[ncontrol].get_type()
+        if(type == scons.ControllerType.LS):
             controller_ls = dynamic_cast_controller_ls_ptr(
                 self.rtc.d_control[ncontrol])
             if(controller_ls.is_modopti):
@@ -343,9 +343,9 @@ cdef class Rtc:
         """
         self.context.set_activeDevice(self.device, 1)
         cdef sutra_controller_mv * controller_mv
-        cdef bytes type_control = self.rtc.d_control[ncontrol].get_type()
+        cdef bytes type = self.rtc.d_control[ncontrol].get_type()
 
-        if(type_control == scons.ControllerType.MV):
+        if(type == scons.ControllerType.MV):
             controller_mv = dynamic_cast_controller_mv_ptr(
                 self.rtc.d_control[ncontrol])
             controller_mv.filter_cmat(cond)
@@ -363,9 +363,9 @@ cdef class Rtc:
         """
         self.context.set_activeDevice(self.device, 1)
         cdef sutra_controller_mv * controller_mv
-        cdef bytes type_control = self.rtc.d_control[ncontrol].get_type()
+        cdef bytes type = self.rtc.d_control[ncontrol].get_type()
 
-        if(type_control == scons.ControllerType.MV):
+        if(type == scons.ControllerType.MV):
             controller_mv = dynamic_cast_controller_mv_ptr(
                 self.rtc.d_control[ncontrol])
             controller_mv.filter_cphim( < float * > F.data, < float * > Nact.data)
@@ -393,9 +393,9 @@ cdef class Rtc:
             cobs: (flaot): central obstruction
         """
         cdef sutra_controller_mv * controller_mv
-        cdef bytes type_control = self.rtc.d_control[ncontrol].get_type()
+        cdef bytes type = self.rtc.d_control[ncontrol].get_type()
 
-        if(type_control == scons.ControllerType.MV):
+        if(type == scons.ControllerType.MV):
             controller_mv = dynamic_cast_controller_mv_ptr(
                 self.rtc.d_control[ncontrol])
             controller_mv.compute_Cmm(atmos.s_a, wfs.sensors, < double * > L0.data,
@@ -446,9 +446,9 @@ cdef class Rtc:
             alt_DM: (np.ndarray[ndim=1, dtype=np.float64]): altitudes of each DMs
         """
         cdef sutra_controller_mv * controller_mv
-        cdef bytes type_control = self.rtc.d_control[ncontrol].get_type()
+        cdef bytes type = self.rtc.d_control[ncontrol].get_type()
 
-        if(type_control == scons.ControllerType.MV):
+        if(type == scons.ControllerType.MV):
             controller_mv = dynamic_cast_controller_mv_ptr(
                 self.rtc.d_control[ncontrol])
             controller_mv.compute_Cphim(atmos.s_a, wfs.sensors, dms.dms, < double * > L0.data,
@@ -545,11 +545,10 @@ cdef class Rtc:
         cdef float * d_centroids
         cdef np.ndarray[ndim= 1, dtype = np.float32_t] h_centroids
         cdef carma_obj[float] * phase
-        cdef bytes type_control = control.get_type()
-        cdef bytes type_dm
-        if(type_control == scons.ControllerType.LS):
+        cdef bytes type = control.get_type()
+        if(type == scons.ControllerType.LS):
             d_imat = dynamic_cast_controller_ls_ptr(control).d_imat
-        elif(type_control == scons.ControllerType.MV):
+        elif(type == scons.ControllerType.MV):
             d_imat = dynamic_cast_controller_mv_ptr(control).d_imat
         else:
             # Create a temporary imat to return
@@ -564,8 +563,8 @@ cdef class Rtc:
         it_dm = control.d_dmseen.begin()
         while(it_dm != control.d_dmseen.end()):
             dm = deref(it_dm)
-            type_dm = dm.type
-            if(type_dm == scons.DmType.TT):
+            type = dm.type
+            if(type == scons.DmType.TT):
                 dmtt = deref(it_dm)
         cdef int cc = 0
         print("Doing imat_kl...")
@@ -614,7 +613,7 @@ cdef class Rtc:
                 control.nslope())
 
             for i in range(len(p_dms)):
-                dms.resetdm(p_dms[i].type_dm, p_dms[i].alt)
+                dms.resetdm(p_dms[i].type, p_dms[i].alt)
 
             inds1 += control.nslope()
             cc = cc + 1
@@ -658,9 +657,9 @@ cdef class Rtc:
         """
         self.context.set_activeDeviceForCpy(self.rtc.device, 1)
 
-        cdef bytes type_control = self.rtc.d_control[ncontrol].get_type()
+        cdef bytes type = self.rtc.d_control[ncontrol].get_type()
         cdef sutra_controller_ls * controller_ls
-        if(type_control == scons.ControllerType.LS):
+        if(type == scons.ControllerType.LS):
             controller_ls = dynamic_cast_controller_ls_ptr(
                 self.rtc.d_control[ncontrol])
             if(controller_ls.svdec_imat() == 1):
@@ -680,9 +679,9 @@ cdef class Rtc:
         """
         self.context.set_activeDeviceForCpy(self.rtc.device, 1)
         cdef sutra_controller_ls * controller_ls
-        cdef bytes type_control = self.rtc.d_control[ncontrol].get_type()
+        cdef bytes type = self.rtc.d_control[ncontrol].get_type()
 
-        if(type_control == scons.ControllerType.LS):
+        if(type == scons.ControllerType.LS):
             controller_ls = dynamic_cast_controller_ls_ptr(
                 self.rtc.d_control[ncontrol])
             if(filt_tt > 0):
@@ -700,9 +699,9 @@ cdef class Rtc:
         """
         self.context.set_activeDeviceForCpy(self.rtc.device, 1)
         cdef sutra_controller_mv * controller_mv
-        cdef bytes type_control = self.rtc.d_control[ncontrol].get_type()
+        cdef bytes type = self.rtc.d_control[ncontrol].get_type()
 
-        if(type_control == scons.ControllerType.MV):
+        if(type == scons.ControllerType.MV):
             controller_mv = dynamic_cast_controller_mv_ptr(
                 self.rtc.d_control[ncontrol])
             controller_mv.build_cmat(cond)
@@ -717,9 +716,9 @@ cdef class Rtc:
         """
         self.context.set_activeDeviceForCpy(self.rtc.device, 1)
         cdef sutra_controller_mv * controller_mv
-        cdef bytes type_control = self.rtc.d_control[ncontrol].get_type()
+        cdef bytes type = self.rtc.d_control[ncontrol].get_type()
 
-        if(type_control == scons.ControllerType.MV):
+        if(type == scons.ControllerType.MV):
             controller_mv = dynamic_cast_controller_mv_ptr(
                 self.rtc.d_control[ncontrol])
             controller_mv.load_noisemat(< float * > N.data)
@@ -755,10 +754,10 @@ cdef class Rtc:
             ntarget : (int) : target number
         """
         cdef sutra_controller_geo * controller_geo
-        cdef bytes type_control = self.rtc.d_control[ncontrol].get_type()
+        cdef bytes type = self.rtc.d_control[ncontrol].get_type()
         self.context.set_activeDevice(self.rtc.device, 1)
 
-        if(type_control == scons.ControllerType.GEO):
+        if(type == scons.ControllerType.GEO):
             controller_geo = dynamic_cast_controller_geo_ptr(
                 self.rtc.d_control[ncontrol])
             controller_geo.comp_dphi(target.target.d_targets[ntarget], False)
@@ -778,10 +777,10 @@ cdef class Rtc:
 
         """
         cdef sutra_controller_geo * controller_geo
-        cdef bytes type_control = self.rtc.d_control[ncontrol].get_type()
+        cdef bytes type = self.rtc.d_control[ncontrol].get_type()
         self.context.set_activeDevice(self.rtc.device, 1)
 
-        if(type_control == scons.ControllerType.GEO):
+        if(type == scons.ControllerType.GEO):
             controller_geo = dynamic_cast_controller_geo_ptr(
                 self.rtc.d_control[ncontrol])
             controller_geo.comp_dphi(sensors.sensors.d_wfs[nwfs].d_gs, True)
@@ -992,29 +991,29 @@ cdef class Rtc:
         """
         cdef carma_context * context = &carma_context.instance()
         context.set_activeDeviceForCpy(self.rtc.device, 1)
-        cdef bytes type_control = self.rtc.d_control[ncontrol].get_type()
+        cdef bytes type = self.rtc.d_control[ncontrol].get_type()
         cdef sutra_controller_ls * controller_ls
         cdef sutra_controller_mv * controller_mv
         cdef sutra_controller_cured * controller_cured
         cdef sutra_controller_geo * controller_geo
         cdef sutra_controller_kalman * controller_kl
 
-        if(type_control == scons.ControllerType.LS):
+        if(type == scons.ControllerType.LS):
             controller_ls = dynamic_cast_controller_ls_ptr(
                 self.rtc.d_control[ncontrol])
             controller_ls.set_gain(gain)
 
-        elif(type_control == scons.ControllerType.MV):
+        elif(type == scons.ControllerType.MV):
             controller_mv = dynamic_cast_controller_mv_ptr(
                 self.rtc.d_control[ncontrol])
             controller_mv.set_gain(gain)
 
-        elif(type_control == scons.ControllerType.CURED):
+        elif(type == scons.ControllerType.CURED):
             controller_cured = dynamic_cast_controller_cured_ptr(
                 self.rtc.d_control[ncontrol])
             controller_cured.set_gain(gain)
 
-        elif(type_control == scons.ControllerType.GEO):
+        elif(type == scons.ControllerType.GEO):
             controller_geo = dynamic_cast_controller_geo_ptr(
                 self.rtc.d_control[ncontrol])
             controller_geo.set_gain(gain)
@@ -1034,17 +1033,17 @@ cdef class Rtc:
         cdef sutra_controller_ls * controller_ls
         cdef sutra_controller_mv * controller_mv
         cdef sutra_controller_generic * controller_generic
-        cdef bytes type_control = self.rtc.d_control[ncontrol].get_type()
+        cdef bytes type = self.rtc.d_control[ncontrol].get_type()
 
-        if(type_control == scons.ControllerType.LS):
+        if(type == scons.ControllerType.LS):
             controller_ls = dynamic_cast_controller_ls_ptr(
                 self.rtc.d_control[ncontrol])
             controller_ls.set_mgain(< float * > mgain.data)
-        elif(type_control == scons.ControllerType.MV):
+        elif(type == scons.ControllerType.MV):
             controller_mv = dynamic_cast_controller_mv_ptr(
                 self.rtc.d_control[ncontrol])
             controller_mv.set_mgain(< float * > mgain.data)
-        elif(type_control == scons.ControllerType.GENERIC):
+        elif(type == scons.ControllerType.GENERIC):
             controller_generic = dynamic_cast_controller_generic_ptr(
                 self.rtc.d_control[ncontrol])
             controller_generic.set_mgain(< float * > mgain.data)
@@ -1094,25 +1093,25 @@ cdef class Rtc:
         cdef sutra_controller_ls * controller_ls
         cdef sutra_controller_mv * controller_mv
         cdef sutra_controller_generic * controller_generic
-        cdef bytes type_control = self.rtc.d_control[ncontrol].get_type()
+        cdef bytes type = self.rtc.d_control[ncontrol].get_type()
         cdef int size
         cdef np.ndarray[ndim= 1, dtype = np.float32_t] mgain
 
-        if(type_control == scons.ControllerType.LS):
+        if(type == scons.ControllerType.LS):
             controller_ls = dynamic_cast_controller_ls_ptr(
                 self.rtc.d_control[ncontrol])
             size = controller_ls.d_gain.getNbElem()
             mgain = np.zeros(size, dtype=np.float32)
             controller_ls.d_gain.device2host(< float * > mgain.data)
             return mgain
-        elif(type_control == scons.ControllerType.MV):
+        elif(type == scons.ControllerType.MV):
             controller_mv = dynamic_cast_controller_mv_ptr(
                 self.rtc.d_control[ncontrol])
             size = controller_mv.d_gain.getNbElem()
             mgain = np.zeros(size, dtype=np.float32)
             controller_mv.d_gain.device2host(< float * > mgain.data)
             return mgain
-        elif(type_control == scons.ControllerType.GENERIC):
+        elif(type == scons.ControllerType.GENERIC):
             controller_generic = dynamic_cast_controller_generic_ptr(
                 self.rtc.d_control[ncontrol])
             size = controller_generic.d_gain.getNbElem()
@@ -1135,13 +1134,13 @@ cdef class Rtc:
 
         cdef sutra_controller_ls * controller_ls
         cdef sutra_controller_mv * controller_mv
-        cdef bytes type_control = self.rtc.d_control[ncontrol].get_type()
+        cdef bytes type = self.rtc.d_control[ncontrol].get_type()
 
-        if(type_control == scons.ControllerType.LS):
+        if(type == scons.ControllerType.LS):
             controller_ls = dynamic_cast_controller_ls_ptr(
                 self.rtc.d_control[ncontrol])
             controller_ls.d_imat.host2device(< float * > data_F.data)
-        elif(type_control == scons.ControllerType.MV):
+        elif(type == scons.ControllerType.MV):
             controller_mv = dynamic_cast_controller_mv_ptr(
                 self.rtc.d_control[ncontrol])
             controller_mv.d_imat.host2device(< float * > data_F.data)
@@ -1162,29 +1161,29 @@ cdef class Rtc:
         cdef sutra_controller_ls * controller_ls
         cdef sutra_controller_mv * controller_mv
         cdef sutra_controller_cured * controller_cured
-        cdef bytes type_control = self.rtc.d_control[ncontrol].get_type()
+        cdef bytes type = self.rtc.d_control[ncontrol].get_type()
 
         cdef const long * dims = NULL
         cdef np.ndarray[ndim= 2, dtype = np.float32_t] imat_F
 
-        if(type_control == scons.ControllerType.GENERIC or type_control == scons.ControllerType.GEO):
+        if(type == scons.ControllerType.GENERIC or type == scons.ControllerType.GEO):
             raise TypeError("Generic controller doesn't have imat")
 
-        if(type_control == scons.ControllerType.LS):
+        if(type == scons.ControllerType.LS):
             controller_ls = dynamic_cast_controller_ls_ptr(
                 self.rtc.d_control[ncontrol])
             dims = controller_ls.d_imat.getDims()
             imat_F = np.zeros((dims[2], dims[1]), dtype=np.float32)
             controller_ls.d_imat.device2host(< float * > imat_F.data)
 
-        elif(type_control == scons.ControllerType.MV):
+        elif(type == scons.ControllerType.MV):
             controller_mv = dynamic_cast_controller_mv_ptr(
                 self.rtc.d_control[ncontrol])
             dims = controller_mv.d_imat.getDims()
             imat_F = np.zeros((dims[2], dims[1]), dtype=np.float32)
             controller_mv.d_imat.device2host(< float * > imat_F.data)
 
-        elif(type_control == scons.ControllerType.CURED):
+        elif(type == scons.ControllerType.CURED):
             controller_cured = dynamic_cast_controller_cured_ptr(
                 self.rtc.d_control[ncontrol])
             dims = controller_cured.d_imat.getDims()
@@ -1207,17 +1206,17 @@ cdef class Rtc:
         cdef sutra_controller_ls * controller_ls
         cdef sutra_controller_mv * controller_mv
         cdef sutra_controller_generic * controller_generic
-        cdef bytes type_control = self.rtc.d_control[ncontrol].get_type()
+        cdef bytes type = self.rtc.d_control[ncontrol].get_type()
 
-        if(type_control == scons.ControllerType.LS):
+        if(type == scons.ControllerType.LS):
             controller_ls = dynamic_cast_controller_ls_ptr(
                 self.rtc.d_control[ncontrol])
             controller_ls.d_cmat.host2device(< float * > data_F.data)
-        elif(type_control == scons.ControllerType.MV):
+        elif(type == scons.ControllerType.MV):
             controller_mv = dynamic_cast_controller_mv_ptr(
                 self.rtc.d_control[ncontrol])
             controller_mv.d_cmat.host2device(< float * > data_F.data)
-        elif(type_control == scons.ControllerType.GENERIC):
+        elif(type == scons.ControllerType.GENERIC):
             controller_generic = dynamic_cast_controller_generic_ptr(
                 self.rtc.d_control[ncontrol])
             controller_generic.d_cmat.host2device(< float * > data_F.data)
@@ -1236,9 +1235,9 @@ cdef class Rtc:
         cdef np.ndarray[ndim= 2, dtype = np.float32_t] data_F = data.T.copy()
 
         cdef sutra_controller_mv * controller_mv
-        cdef bytes type_control = self.rtc.d_control[ncontrol].get_type()
+        cdef bytes type = self.rtc.d_control[ncontrol].get_type()
 
-        if(type_control == scons.ControllerType.MV):
+        if(type == scons.ControllerType.MV):
             controller_mv = dynamic_cast_controller_mv_ptr(
                 self.rtc.d_control[ncontrol])
             controller_mv.d_Cmm.host2device(< float * > data_F.data)
@@ -1255,11 +1254,11 @@ cdef class Rtc:
         """
         self.context.set_activeDeviceForCpy(self.rtc.device, 1)
         cdef sutra_controller_mv * controller_mv
-        cdef bytes type_control = self.rtc.d_control[ncontrol].get_type()
+        cdef bytes type = self.rtc.d_control[ncontrol].get_type()
         cdef np.ndarray[ndim= 2, dtype = np.float32_t] data_F
         cdef const long * cdims
 
-        if(type_control == scons.ControllerType.MV):
+        if(type == scons.ControllerType.MV):
             controller_mv = dynamic_cast_controller_mv_ptr(
                 self.rtc.d_control[ncontrol])
             cdims = controller_mv.d_Cmm.getDims()
@@ -1279,11 +1278,11 @@ cdef class Rtc:
         """
         self.context.set_activeDeviceForCpy(self.rtc.device, 1)
         cdef sutra_controller_mv * controller_mv
-        cdef bytes type_control = self.rtc.d_control[ncontrol].get_type()
+        cdef bytes type = self.rtc.d_control[ncontrol].get_type()
         cdef np.ndarray[ndim= 2, dtype = np.float32_t] data_F
         cdef const long * cdims
 
-        if(type_control == scons.ControllerType.MV):
+        if(type == scons.ControllerType.MV):
             controller_mv = dynamic_cast_controller_mv_ptr(
                 self.rtc.d_control[ncontrol])
             cdims = controller_mv.d_Cphim.getDims()
@@ -1305,24 +1304,24 @@ cdef class Rtc:
         cdef sutra_controller_ls * controller_ls
         cdef sutra_controller_mv * controller_mv
         cdef sutra_controller_generic * controller_generic
-        cdef bytes type_control = self.rtc.d_control[ncontrol].get_type()
+        cdef bytes type = self.rtc.d_control[ncontrol].get_type()
         cdef np.ndarray[ndim= 2, dtype = np.float32_t] data_F
         cdef const long * cdims
-        if(type_control == scons.ControllerType.LS):
+        if(type == scons.ControllerType.LS):
             controller_ls = dynamic_cast_controller_ls_ptr(
                 self.rtc.d_control[ncontrol])
             cdims = controller_ls.d_cmat.getDims()
             data_F = np.zeros((cdims[2], cdims[1]), dtype=np.float32)
             controller_ls.d_cmat.device2host(< float * > data_F.data)
             return data_F.T.copy()
-        elif(type_control == scons.ControllerType.MV):
+        elif(type == scons.ControllerType.MV):
             controller_mv = dynamic_cast_controller_mv_ptr(
                 self.rtc.d_control[ncontrol])
             cdims = controller_mv.d_cmat.getDims()
             data_F = np.zeros((cdims[2], cdims[1]), dtype=np.float32)
             controller_mv.d_cmat.device2host(< float * > data_F.data)
             return data_F.T.copy()
-        elif(type_control == scons.ControllerType.GENERIC):
+        elif(type == scons.ControllerType.GENERIC):
             controller_generic = dynamic_cast_controller_generic_ptr(
                 self.rtc.d_control[ncontrol])
             cdims = controller_generic.d_cmat.getDims()
@@ -1341,9 +1340,9 @@ cdef class Rtc:
         """
         self.context.set_activeDeviceForCpy(self.rtc.device, 1)
         cdef sutra_controller_generic * controller_generic
-        cdef bytes type_control = self.rtc.d_control[ncontrol].get_type()
+        cdef bytes type = self.rtc.d_control[ncontrol].get_type()
 
-        if(type_control == scons.ControllerType.GENERIC):
+        if(type == scons.ControllerType.GENERIC):
             controller_generic = dynamic_cast_controller_generic_ptr(
                 self.rtc.d_control[ncontrol])
             controller_generic.set_decayFactor(< float * > decay.data)
@@ -1359,11 +1358,11 @@ cdef class Rtc:
         """
         self.context.set_activeDeviceForCpy(self.rtc.device, 1)
         cdef sutra_controller_generic * controller_generic
-        cdef bytes type_control = self.rtc.d_control[ncontrol].get_type()
+        cdef bytes type = self.rtc.d_control[ncontrol].get_type()
 
         cdef np.ndarray[ndim= 2, dtype = np.float32_t] matE_F = matE.T.copy()
 
-        if(type_control == scons.ControllerType.GENERIC):
+        if(type == scons.ControllerType.GENERIC):
             controller_generic = dynamic_cast_controller_generic_ptr(
                 self.rtc.d_control[ncontrol])
             controller_generic.set_matE(< float * > matE_F.data)
@@ -1393,9 +1392,9 @@ cdef class Rtc:
         self.context.set_activeDeviceForCpy(self.rtc.device, 1)
 
         cdef sutra_controller_generic * controller_generic
-        cdef bytes type_control = self.rtc.d_control[ncontrol].get_type()
+        cdef bytes type = self.rtc.d_control[ncontrol].get_type()
 
-        if(type_control == scons.ControllerType.GENERIC):
+        if(type == scons.ControllerType.GENERIC):
             controller_generic = dynamic_cast_controller_generic_ptr(
                 self.rtc.d_control[ncontrol])
             controller_generic.set_commandlaw(law)
@@ -1445,10 +1444,10 @@ cdef class Rtc:
         """
         self.context.set_activeDeviceForCpy(self.rtc.device, 1)
         cdef sutra_controller_ls * controller_ls
-        cdef bytes type_control = self.rtc.d_control[ncontrol].get_type()
+        cdef bytes type = self.rtc.d_control[ncontrol].get_type()
 
         cdef np.ndarray[ndim= 2, dtype = np.float32_t] data_F = U.T.copy()
-        if(type_control == scons.ControllerType.LS):
+        if(type == scons.ControllerType.LS):
             controller_ls = dynamic_cast_controller_ls_ptr(
                 self.rtc.d_control[ncontrol])
             controller_ls.d_U.host2device(< float * > data_F.data)
@@ -1462,9 +1461,9 @@ cdef class Rtc:
         """
         self.context.set_activeDeviceForCpy(self.rtc.device, 1)
         cdef sutra_controller_ls * controller_ls
-        cdef bytes type_control = self.rtc.d_control[ncontrol].get_type()
+        cdef bytes type = self.rtc.d_control[ncontrol].get_type()
 
-        if(type_control == scons.ControllerType.LS):
+        if(type == scons.ControllerType.LS):
             controller_ls = dynamic_cast_controller_ls_ptr(
                 self.rtc.d_control[ncontrol])
             controller_ls.h_eigenvals.fill_from(< float * > eigenvals.data)
@@ -1481,11 +1480,11 @@ cdef class Rtc:
         """
         self.context.set_activeDeviceForCpy(self.rtc.device, 1)
         cdef sutra_controller_ls * controller_ls
-        cdef bytes type_control = self.rtc.d_control[ncontrol].get_type()
+        cdef bytes type = self.rtc.d_control[ncontrol].get_type()
         cdef np.ndarray[ndim= 2, dtype = np.float32_t] data_F
         cdef const long * dims = NULL
 
-        if(type_control == scons.ControllerType.LS):
+        if(type == scons.ControllerType.LS):
             controller_ls = dynamic_cast_controller_ls_ptr(
                 self.rtc.d_control[ncontrol])
             dims = controller_ls.d_U.getDims()
@@ -1505,16 +1504,16 @@ cdef class Rtc:
         self.context.set_activeDeviceForCpy(self.rtc.device, 1)
         cdef sutra_controller_ls * controller_ls
         cdef sutra_controller_mv * controller_mv
-        cdef bytes type_control = self.rtc.d_control[ncontrol].get_type()
+        cdef bytes type = self.rtc.d_control[ncontrol].get_type()
         cdef np.ndarray[ndim= 1, dtype = np.float32_t] data
         cdef const long * dims
-        if(type_control == scons.ControllerType.LS):
+        if(type == scons.ControllerType.LS):
             controller_ls = dynamic_cast_controller_ls_ptr(
                 self.rtc.d_control[ncontrol])
             dims = controller_ls.h_eigenvals.getDims()
             data = np.zeros((dims[1]), dtype=np.float32)
             controller_ls.h_eigenvals.fill_into(< float * > data.data)
-        if(type_control == scons.ControllerType.MV):
+        if(type == scons.ControllerType.MV):
             controller_mv = dynamic_cast_controller_mv_ptr(
                 self.rtc.d_control[ncontrol])
             dims = controller_mv.h_Cmmeigenvals.getDims()
@@ -1533,10 +1532,10 @@ cdef class Rtc:
         """
         self.context.set_activeDeviceForCpy(self.rtc.device, 1)
         cdef sutra_controller_mv * controller_mv
-        cdef bytes type_control = self.rtc.d_control[ncontrol].get_type()
+        cdef bytes type = self.rtc.d_control[ncontrol].get_type()
         cdef np.ndarray[ndim= 1, dtype = np.float32_t] data
         cdef const long * dims
-        if(type_control == scons.ControllerType.MV):
+        if(type == scons.ControllerType.MV):
             controller_mv = dynamic_cast_controller_mv_ptr(
                 self.rtc.d_control[ncontrol])
             dims = controller_mv.h_Cmmeigenvals.getDims()
@@ -1602,11 +1601,11 @@ cdef class Rtc:
         """
         self.context.set_activeDeviceForCpy(self.rtc.device, 1)
         cdef sutra_controller_ls * controller_ls
-        cdef bytes type_control = self.rtc.d_control[ncontrol].get_type()
+        cdef bytes type = self.rtc.d_control[ncontrol].get_type()
         cdef np.ndarray[ndim= 2, dtype = np.float32_t] data_F
         cdef const long * dims = NULL
 
-        if(type_control == scons.ControllerType.LS):
+        if(type == scons.ControllerType.LS):
             controller_ls = dynamic_cast_controller_ls_ptr(
                 self.rtc.d_control[ncontrol])
             dims = controller_ls.d_cenbuff.getDims()
@@ -1625,10 +1624,10 @@ cdef class Rtc:
         """
         self.context.set_activeDeviceForCpy(self.rtc.device, 1)
         cdef sutra_controller_ls * controller_ls
-        cdef bytes type_control = self.rtc.d_control[ncontrol].get_type()
+        cdef bytes type = self.rtc.d_control[ncontrol].get_type()
         cdef np.ndarray[ndim= 1, dtype = np.float32_t] data
         cdef const long * dims
-        if(type_control == scons.ControllerType.LS):
+        if(type == scons.ControllerType.LS):
             controller_ls = dynamic_cast_controller_ls_ptr(
                 self.rtc.d_control[ncontrol])
             dims = controller_ls.d_err.getDims()
@@ -1702,9 +1701,9 @@ cdef class Rtc:
             IF : (scipy.sparse) : influence functions matrix
         """
         cdef sutra_controller_geo * controller_geo
-        cdef bytes type_control = self.rtc.d_control[ncontrol].get_type()
+        cdef bytes type = self.rtc.d_control[ncontrol].get_type()
         sparse = naga_sparse_obj_Double()
-        if(type_control == scons.ControllerType.GEO):
+        if(type == scons.ControllerType.GEO):
             controller_geo = dynamic_cast_controller_geo_ptr(
                 self.rtc.d_control[ncontrol])
             sparse.copy(controller_geo.d_IFsparse)

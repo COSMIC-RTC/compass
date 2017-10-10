@@ -42,13 +42,13 @@ cdef class Sensors:
                   int odevice=-1,
                   bool error_budget=False):
         self.context = context
-        cdef char ** type_wfs = < char ** > malloc(len(type_data) * sizeof(char * ))
+        cdef char ** type = < char ** > malloc(len(type_data) * sizeof(char * ))
         cdef int i
         for i in range(nsensors):
-            type_wfs[i] = type_data[i]
+            type[i] = type_data[i]
         if odevice < 0:
             odevice = self.context.get_activeDevice()
-        self.sensors = new sutra_sensors(self.context.c, tel.telescope, < char ** > type_wfs, nsensors,
+        self.sensors = new sutra_sensors(self.context.c, tel.telescope, < char ** > type, nsensors,
                                          < long * > nxsub.data,
                                          < long * > nvalid.data,
                                          < long * > npix.data,
@@ -65,7 +65,7 @@ cdef class Sensors:
 
         self.sensors.allocate_buffers()
         self.sensors.device = odevice
-        free(type_wfs)
+        free(type)
 
     def __dealloc__(self):
         del self.sensors
@@ -228,21 +228,21 @@ cdef class Sensors:
                 < int * > jstart.data,
                 < cuFloatComplex * > ftkernel_F.data)
 
-    def add_layer(self, int i, bytes type_dm, float alt,
+    def add_layer(self, int i, bytes type, float alt,
                   float xoff, float yoff):
         """
             Call function add_layer from the sutra_source of a sutra_wfs of the Sensors
 
         :parameters:
             i: (int) :
-            type_dm: (string) :
+            type: (string) :
             alt: (float) :
             xoff: (float) :
             yoff: (float) :
         """
 
         self.context.set_activeDevice(self.sensors.device, 1)
-        self.sensors.d_wfs[i].d_gs.add_layer( < char * > type_dm, alt, xoff, yoff)
+        self.sensors.d_wfs[i].d_gs.add_layer( < char * > type, alt, xoff, yoff)
 
     def comp_img(self, int n, bool noise=True):
         """
@@ -267,10 +267,10 @@ cdef class Sensors:
         :param n: (int) : number of the wfs to get the image from
         """
 
-        cdef bytes type_wfs = self.sensors.d_wfs[n].type
+        cdef bytes type = self.sensors.d_wfs[n].type
         cdef sutra_wfs_pyr_pyrhr * wfs
 
-        if(type_wfs == b"pyrhr"):
+        if(type == b"pyrhr"):
             wfs = dynamic_cast_wfs_pyr_pyrhr_ptr(self.sensors.d_wfs[n])
             wfs.comp_modulation(cpt)
 
@@ -491,17 +491,17 @@ cdef class Sensors:
 
         cdef np.ndarray[ndim= 3, dtype = np.float32_t] bincube
         cdef np.ndarray[ndim= 2, dtype = np.float32_t] pyrimg
-        cdef bytes type_wfs = self.sensors.d_wfs[n].type
+        cdef bytes type = self.sensors.d_wfs[n].type
         cdef int npix
 
-        if(type_wfs == b"pyrhr"):
+        if(type == b"pyrhr"):
             img = self.sensors.d_wfs[n].d_binimg
             cdims = img.getDims()
             data_F = np.empty((cdims[2], cdims[1]), dtype=np.float32)
             img.device2host( < float * > data_F.data)
             return data_F.T.copy()
 
-        if(type_wfs == b"pyr"):
+        if(type == b"pyr"):
             bincube = self.get_bincube(n)
             npix = bincube.shape[1]
             pyrimg = np.zeros((2 * npix + 3, 2 * npix + 3), dtype=np.float32)
@@ -536,9 +536,9 @@ cdef class Sensors:
         cdef const long * cdims
         cdef np.ndarray[ndim = 2, dtype = np.float32_t] data_F = data.T.copy()
 
-        cdef bytes type_wfs = self.sensors.d_wfs[n].type
+        cdef bytes type = self.sensors.d_wfs[n].type
 
-        if(type_wfs == b"pyrhr"):
+        if(type == b"pyrhr"):
             img = self.sensors.d_wfs[n].d_binimg
             img.host2device( < float * > data_F.data)
         else:
@@ -556,11 +556,11 @@ cdef class Sensors:
 
     cdef _set_submask(self, int n, np.ndarray[ndim=2, dtype=np.float32_t] data):
 
-        cdef bytes type_wfs = self.sensors.d_wfs[n].type
+        cdef bytes type = self.sensors.d_wfs[n].type
         cdef np.ndarray[ndim = 2, dtype = np.float32_t] data_F = data.T.copy()
         cdef sutra_wfs_pyr_pyrhr * wfs
 
-        if(type_wfs == b"pyrhr"):
+        if(type == b"pyrhr"):
             wfs = dynamic_cast_wfs_pyr_pyrhr_ptr(self.sensors.d_wfs[n])
             wfs.set_submask( < float*> data_F.data)
         else:
@@ -580,9 +580,9 @@ cdef class Sensors:
         cdef const long * cdims
         cdef np.ndarray[ndim = 2, dtype = np.float32_t] data_F
         cdef sutra_wfs_pyr_pyrhr * wfs
-        cdef bytes type_wfs = self.sensors.d_wfs[n].type
+        cdef bytes type = self.sensors.d_wfs[n].type
 
-        if(type_wfs == b"pyrhr"):
+        if(type == b"pyrhr"):
             wfs = dynamic_cast_wfs_pyr_pyrhr_ptr(self.sensors.d_wfs[n])
             submask = wfs.d_submask
             cdims = submask.getDims()
@@ -612,10 +612,10 @@ cdef class Sensors:
         cdef const long * cdims
         cdef np.ndarray[ndim = 2, dtype = np.float32_t] data_F
 
-        cdef bytes type_wfs = self.sensors.d_wfs[n].type
+        cdef bytes type = self.sensors.d_wfs[n].type
         cdef sutra_wfs_pyr_pyrhr * wfs
 
-        if(type_wfs == b"pyrhr"):
+        if(type == b"pyrhr"):
             wfs = dynamic_cast_wfs_pyr_pyrhr_ptr(self.sensors.d_wfs[n])
             img = wfs.d_hrimg
             cdims = img.getDims()

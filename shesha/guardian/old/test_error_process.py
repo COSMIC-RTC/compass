@@ -278,7 +278,7 @@ def loop(n, full_com, noise_com, noise_mes, atm, wfs, dms, tar, rtc, tel, config
         wfs.sensors_compimg(0)
         ideal_bincube = wfs.get_bincubeNotNoisy(0)
         bincube = wfs.get_bincube(0)
-        if (config.p_centroiders[0].type_centro == b"tcog"):
+        if (config.p_centroiders[0].type == b"tcog"):
             invalidpix = np.where(bincube <= config.p_centroiders[0].thresh)
         #noise_bincube = bincube-ideal_bincube
 
@@ -292,7 +292,7 @@ def loop(n, full_com, noise_com, noise_mes, atm, wfs, dms, tar, rtc, tel, config
 
         #compute noise command
         rtc.setCom(0, reset_com)
-        if (config.p_centroiders[0].type_centro == b"tcog"):
+        if (config.p_centroiders[0].type == b"tcog"):
             ideal_bincube[invalidpix] = 0
             rtc.setthresh(0, -1e16)
         wfs.set_bincube(0, ideal_bincube)

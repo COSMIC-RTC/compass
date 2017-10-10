@@ -43,7 +43,7 @@ def compute_KL2V(p_controller: conf.Param_controller, dms: Dms, p_dms: list,
 
     for i in range(p_controller.ndm.size):
         ndm = p_controller.ndm[i]
-        if (p_dms[ndm].type_dm == scons.DmType.PZT):
+        if (p_dms[ndm].type == scons.DmType.PZT):
             tmp = (p_geom._ipupil.shape[0] - (p_dms[ndm]._n2 - p_dms[ndm]._n1 + 1)) // 2
             tmp_e0 = p_geom._ipupil.shape[0] - tmp
             tmp_e1 = p_geom._ipupil.shape[1] - tmp
@@ -59,7 +59,7 @@ def compute_KL2V(p_controller: conf.Param_controller, dms: Dms, p_dms: list,
             KL2V[indx_act:indx_act + ntotact[ndm], indx_act:indx_act + ntotact[ndm]] = \
                 np.fliplr(dms.get_KLbasis(scons.DmType.PZT, p_dms[ndm].alt))
             indx_act += ntotact[ndm]
-        elif (p_dms[ndm].type_dm == scons.DmType.TT):
+        elif (p_dms[ndm].type == scons.DmType.TT):
             nTT += 1
     if (p_controller.nmodes != 0 and p_controller.nmodes < KL2V.shape[1] - 2 * nTT):
         KL2V = KL2V[:, :p_controller.nmodes]
@@ -101,9 +101,9 @@ def compute_DMbasis(g_dm: Dms, p_dm: conf.Param_dm, p_geom: conf.Param_geom):
 
     #IFbasis = np.ndarray((indx_valid.size, p_dm._ntotact), dtype=np.float32)
     for i in range(p_dm._ntotact):
-        g_dm.resetdm(p_dm.type_dm, p_dm.alt)
-        g_dm.comp_oneactu(p_dm.type_dm, p_dm.alt, i, 1.0)
-        shape = g_dm.get_dm(p_dm.type_dm, p_dm.alt)
+        g_dm.resetdm(p_dm.type, p_dm.alt)
+        g_dm.comp_oneactu(p_dm.type, p_dm.alt, i, 1.0)
+        shape = g_dm.get_dm(p_dm.type, p_dm.alt)
         IFvec = csr_matrix(shape.flatten("F")[indx_valid])
         if (i == 0):
             val = IFvec.data
@@ -113,7 +113,7 @@ def compute_DMbasis(g_dm: Dms, p_dm: conf.Param_dm, p_geom: conf.Param_geom):
             val = np.append(val, IFvec.data)
             col = np.append(col, IFvec.indices)
             row = np.append(row, row[-1] + IFvec.getnnz())
-    g_dm.resetdm(p_dm.type_dm, p_dm.alt)
+    g_dm.resetdm(p_dm.type, p_dm.alt)
     IFbasis = csr_matrix((val, col, row))
     return IFbasis
 

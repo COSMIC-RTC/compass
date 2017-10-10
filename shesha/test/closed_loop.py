@@ -33,5 +33,6 @@ if arguments["--devices"]:
         devices.append(int(arguments["--devices"][k]))
     sim.config.p_loop.set_devices(devices)
 
+sim.config.p_controller0.type = "geo"
 sim.init_sim()
 sim.loop(sim.config.p_loop.niter)

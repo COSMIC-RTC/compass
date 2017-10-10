@@ -36,7 +36,7 @@ old2new_dict = {
         "target.mag": "_Param_target__mag",
         "target.dms_seen": "_Param_target__dms_seen",
         #WFS params
-        "type_wfs": "_Param_wfs__type_wfs",
+        "type": "_Param_wfs__type",
         "nxsub": "_Param_wfs__nxsub",
         "npix": "_Param_wfs__npix",
         "pixsize": "_Param_wfs__pixsize",
@@ -66,7 +66,7 @@ old2new_dict = {
         "pyr_pup_sep": "_Param_wfs__pyr_pup_sep",
         "pyrtype": "_Param_wfs__pyrtype",
         #DM params
-        "type_dm": "_Param_dm__type_dm",
+        "type": "_Param_dm__type_dm",
         "dm.alt": "_Param_dm__alt",
         "coupling": "_Param_dm__coupling",
         "nkl": "_Param_dm__nkl",
@@ -77,7 +77,7 @@ old2new_dict = {
         "dm.thresh": "_Param_dm__thresh",
         "unitpervolt": "_Param_dm__unitpervolt",
         #Centroider params
-        "type_centro": "_Param_centroider__type_centro",
+        "type": "_Param_centroider__type",
         "nmax": "_Param_centroider__nmax",
         "centro.nwfs": "_Param_centroider__nwfs",
         "sizex": "_Param_centroider__sizex",
@@ -87,7 +87,7 @@ old2new_dict = {
         "weights": "_Param_centroider__weights",
         "width": "_Param_centroider__width",
         # Control params
-        "type_control": "_Param_controller__type_control",
+        "type": "_Param_controller__type",
         "TTcond": "_Param_controller__TTcond",
         "cured_ndivs": "_Param_controller__cured_ndivs",
         "delay": "_Param_controller__delay",

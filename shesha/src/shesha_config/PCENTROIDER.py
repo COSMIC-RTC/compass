@@ -20,7 +20,7 @@ class Param_centroider:
     def __init__(self):
         self.__nwfs = None
         """ index of wfs in y_wfs structure on which we want to do centroiding"""
-        self.__type_centro = None
+        self.__type = None
         """ type of centroiding cog, tcog, bpcog, wcog, corr"""
         self.__type_fct = scons.CentroiderFctType.GAUSS
         """ type of ref function gauss, file, model"""
@@ -58,9 +58,9 @@ class Param_centroider:
 
         :param t: (string) : type
         """
-        self.__type_centro = scons.check_enum(scons.CentroiderType, t)
+        self.__type = scons.check_enum(scons.CentroiderType, t)
 
-    type_centro = property(lambda x: x.__type_centro, set_type)
+    type = property(lambda x: x.__type, set_type)
 
     def set_type_fct(self, t):
         """ TODO: docstring

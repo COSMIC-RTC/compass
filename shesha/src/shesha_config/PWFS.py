@@ -18,7 +18,7 @@ import shesha_constants as scons
 class Param_wfs:
 
     def __init__(self, error_budget=False):
-        self.__type_wfs = None
+        self.__type = None
         """ type of wfs : "sh" or "pyr"."""
         self.__nxsub = 0
         """ linear number of subaps."""
@@ -173,14 +173,14 @@ class Param_wfs:
         self.__pyr_cx = None  # (float*)
         self.__pyr_cy = None  # (float*)
 
-    def set_type(self, type_wfs):
+    def set_type(self, type):
         """ Set the type of wfs
 
         :param t: (str) : type of wfs ("sh" or "pyr")
         """
-        self.__type_wfs = scons.check_enum(scons.WFSType, type_wfs)
+        self.__type = scons.check_enum(scons.WFSType, type)
 
-    type_wfs = property(lambda x: x.__type_wfs, set_type)
+    type = property(lambda x: x.__type, set_type)
 
     def set_nxsub(self, n):
         """ Set the linear number of subaps
@@ -550,7 +550,7 @@ class Param_wfs:
 
         :param vx: (np.array(dim=1, dtype=np.int32)) : validsubsx
         """
-        if self.__type_wfs == scons.WFSType.PYRHR:
+        if self.__type == scons.WFSType.PYRHR:
             self.__validsubsx = csu.enforce_array(vx, 4 * self.__nvalid, dtype=np.int32)
         else:
             self.__validsubsx = csu.enforce_array(vx, self.__nvalid, dtype=np.int32)
@@ -562,7 +562,7 @@ class Param_wfs:
 
         :param vy: (np.array(dim=1, dtype=np.int32)) : validsubsy
         """
-        if self.__type_wfs == scons.WFSType.PYRHR:
+        if self.__type == scons.WFSType.PYRHR:
             self.__validsubsy = csu.enforce_array(vy, 4 * self.__nvalid, dtype=np.int32)
         else:
             self.__validsubsy = csu.enforce_array(vy, self.__nvalid, dtype=np.int32)
@@ -644,7 +644,7 @@ class Param_wfs:
 
         :param data: (np.array(ndim=2, dtype=np.float32)) : subap diameter (m)
         """
-        if self.__type_wfs == scons.WFSType.PYRHR:
+        if self.__type == scons.WFSType.PYRHR:
             self.__fluxPerSub = csu.enforce_arrayMultiDim(data.copy(),
                                                           (self.__nxsub + 2,
                                                            self.__nxsub + 2),

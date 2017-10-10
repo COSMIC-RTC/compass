@@ -158,7 +158,7 @@ def loop(n):
     for i in range(-10, n):
         atm.move_atmos()
 
-        if (config.p_controllers[0].type_control == b"geo"):
+        if (config.p_controllers[0].type == b"geo"):
             for t in range(config.p_target.ntargets):
                 tar.atmos_trace(t, atm, tel)
                 rtc.docontrol_geo(0, dms, tar, 0)
@@ -230,7 +230,7 @@ def preloop(n):
     for i in range(0, n):
         atm.move_atmos()
 
-        if (config.p_controllers[0].type_control == b"geo"):
+        if (config.p_controllers[0].type == b"geo"):
             for t in range(config.p_target.ntargets):
                 tar.atmos_trace(t, atm, tel)
                 rtc.docontrol_geo(0, dms, tar, 0)

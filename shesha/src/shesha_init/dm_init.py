@@ -84,10 +84,10 @@ def _dm_init(dms: Dms, p_dm: conf.Param_dm, xpos_wfs: list, ypos_wfs: list,
         p_dm._puppixoffset = p_dm.pupoffset / diam * p_geom.pupdiam
 
     # For patchDiam
-    patchDiam = dm_util.dim_dm_patch(p_geom.pupdiam, diam, p_dm.type_dm, p_dm.alt,
-                                     xpos_wfs, ypos_wfs)
+    patchDiam = dm_util.dim_dm_patch(p_geom.pupdiam, diam, p_dm.type, p_dm.alt, xpos_wfs,
+                                     ypos_wfs)
 
-    if (p_dm.type_dm == scons.DmType.PZT):
+    if (p_dm.type == scons.DmType.PZT):
         if p_dm.file_influ_hdf5 == None:
             p_dm._pitch = patchDiam / float(p_dm.nact - 1)
             # + 2.5 pitch each side
@@ -107,13 +107,13 @@ def _dm_init(dms: Dms, p_dm: conf.Param_dm, xpos_wfs: list, ypos_wfs: list,
         ninflupos = p_dm._influpos.size
         n_npts = p_dm._ninflu.size
 
-        dms.add_dm(p_dm.type_dm, p_dm.alt, dim, p_dm._ntotact, p_dm._influsize,
-                   ninflupos, n_npts, p_dm.push4imat)
+        dms.add_dm(p_dm.type, p_dm.alt, dim, p_dm._ntotact, p_dm._influsize, ninflupos,
+                   n_npts, p_dm.push4imat)
         dms.load_pzt(p_dm.alt, p_dm._influ,
                      p_dm._influpos.astype(np.int32), p_dm._ninflu, p_dm._influstart,
                      p_dm._i1, p_dm._j1)
 
-    elif (p_dm.type_dm == scons.DmType.TT):
+    elif (p_dm.type == scons.DmType.TT):
 
         if (p_dm.alt == 0):
             extent = int(max_extent[0] * 1.05)
@@ -127,10 +127,10 @@ def _dm_init(dms: Dms, p_dm: conf.Param_dm, xpos_wfs: list, ypos_wfs: list,
 
         dim = p_dm._n2 - p_dm._n1 + 1
         make_tiptilt_dm(p_dm, patchDiam, p_geom, diam)
-        dms.add_dm(p_dm.type_dm, p_dm.alt, dim, 2, dim, 1, 1, p_dm.push4imat)
+        dms.add_dm(p_dm.type, p_dm.alt, dim, 2, dim, 1, 1, p_dm.push4imat)
         dms.load_tt(p_dm.alt, p_dm._influ)
 
-    elif (p_dm.type_dm == scons.DmType.KL):
+    elif (p_dm.type == scons.DmType.KL):
 
         extent = p_geom.pupdiam + 16
         p_dm._n1, p_dm._n2 = dm_util.dim_dm_support(p_geom.cent, extent, p_geom.ssize)
@@ -143,7 +143,7 @@ def _dm_init(dms: Dms, p_dm: conf.Param_dm, xpos_wfs: list, ypos_wfs: list,
 
         ninflu = p_dm.nkl
 
-        dms.add_dm(p_dm.type_dm, p_dm.alt, dim, p_dm.nkl, p_dm._ncp, p_dm._nr, p_dm._npp,
+        dms.add_dm(p_dm.type, p_dm.alt, dim, p_dm.nkl, p_dm._ncp, p_dm._nr, p_dm._npp,
                    p_dm.push4imat)
         dms.load_kl(p_dm.alt, p_dm._rabas, p_dm._azbas, p_dm._ord, p_dm._cr, p_dm._cp)
 
@@ -582,7 +582,7 @@ def correct_dm(dms: Dms, p_dms: list, p_controller: conf.Param_controller,
     ndm = p_controller.ndm.size
     for i in range(ndm):
         nm = p_controller.ndm[i]
-        dms.remove_dm(p_dms[nm].type_dm, p_dms[nm].alt)
+        dms.remove_dm(p_dms[nm].type, p_dms[nm].alt)
 
     if imat is not None:
         resp = np.sqrt(np.sum(imat**2, axis=0))
@@ -593,7 +593,7 @@ def correct_dm(dms: Dms, p_dms: list, p_controller: conf.Param_controller,
         nm = p_controller.ndm[nmc]
         nactu_nm = p_dms[nm]._ntotact
         # filter actuators only in stackarray mirrors:
-        if (p_dms[nm].type_dm == scons.DmType.PZT):
+        if (p_dms[nm].type == scons.DmType.PZT):
             if "dm" in dataBase:
                 influpos, ninflu, influstart, i1, j1, ok = h5u.load_dm_geom_from_dataBase(
                         dataBase, nmc)
@@ -629,24 +629,23 @@ def correct_dm(dms: Dms, p_dms: list, p_controller: conf.Param_controller,
             ninflupos = p_dms[nm]._influpos.size
             n_npts = p_dms[nm]._ninflu.size
 
-            dms.add_dm(p_dms[nm].type_dm, p_dms[nm].alt, dim, p_dms[nm]._ntotact,
+            dms.add_dm(p_dms[nm].type, p_dms[nm].alt, dim, p_dms[nm]._ntotact,
                        p_dms[nm]._influsize, ninflupos, n_npts, p_dms[nm].push4imat)
             dms.load_pzt(p_dms[nm].alt, p_dms[nm]._influ,
                          p_dms[nm]._influpos.astype(np.int32), p_dms[nm]._ninflu,
                          p_dms[nm]._influstart, p_dms[nm]._i1, p_dms[nm]._j1)
 
-        elif (p_dms[nm].type_dm == scons.DmType.TT):
+        elif (p_dms[nm].type == scons.DmType.TT):
             dim = p_dms[nm]._n2 - p_dms[nm]._n1 + 1
-            dms.add_dm(p_dms[nm].type_dm, p_dms[nm].alt, dim, 2, dim, 1, 1,
+            dms.add_dm(p_dms[nm].type, p_dms[nm].alt, dim, 2, dim, 1, 1,
                        p_dms[nm].push4imat)
             dms.load_tt(p_dms[nm].alt, p_dms[nm]._influ)
 
-        elif (p_dms[nm].type_dm == scons.DmType.KL):
+        elif (p_dms[nm].type == scons.DmType.KL):
             dim = int(p_dms[nm]._n2 - p_dms[nm]._n1 + 1)
 
-            dms.add_dm(p_dms[nm].type_dm, p_dms[nm].alt, dim, p_dms[nm].nkl,
-                       p_dms[nm]._ncp, p_dms[nm]._nr, p_dms[nm]._npp,
-                       p_dms[nm].push4imat)
+            dms.add_dm(p_dms[nm].type, p_dms[nm].alt, dim, p_dms[nm].nkl, p_dms[nm]._ncp,
+                       p_dms[nm]._nr, p_dms[nm]._npp, p_dms[nm].push4imat)
             dms.load_kl(p_dms[nm].alt, p_dms[nm]._rabas, p_dms[nm]._azbas,
                         p_dms[nm]._ord, p_dms[nm]._cr, p_dms[nm]._cp)
         else:

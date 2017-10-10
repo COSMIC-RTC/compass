@@ -27,7 +27,7 @@ RANLIB    = ranlib
 OPTS      = -fPIC -O3 -DADD_ -Wall -fno-strict-aliasing -fopenmp -DMAGMA_WITH_MKL -DMAGMA_SETAFFINITY
 F77OPTS   = -fPIC -O3 -DADD_ -Wall
 FOPTS     = -fPIC -O3 -DADD_ -Wall -x f95-cpp-input
-NVOPTS    =       -O3 -DADD_ -Xcompiler "-fno-strict-aliasing -fPIC" 
+NVOPTS    =       -O3 -DADD_ -Xcompiler "-fno-strict-aliasing -fPIC"
 LDOPTS    = -fPIC -fopenmp
 
 # gcc with MKL 10.3, Intel threads
@@ -43,4 +43,4 @@ CUDADIR ?= /usr/local/cuda
 LIBDIR    = -L$(MKLROOT)/lib/intel64 \
             -L$(CUDADIR)/lib64
 
-INC       = -I$(CUDADIR)/include -I$(MKLROOT)/include
+INC       = -isystem $(CUDADIR)/include -isystem $(MKLROOT)/include

@@ -155,21 +155,21 @@ class Roket(Simulator):
         ###########################################################################
         ## Noise contribution
         ###########################################################################
-        if (self.config.p_wfss[0].type_wfs == scons.WFSType.SH):
+        if (self.config.p_wfss[0].type == scons.WFSType.SH):
             ideal_bincube = self.wfs.get_bincube_not_noisy(0)
             bincube = self.wfs.get_bincube(0)
-            if (self.config.p_centroiders[0].type_centro == scons.CentroiderType.
+            if (self.config.p_centroiders[0].type == scons.CentroiderType.
                         TCOG):  # Select the same pixels with or without noise
                 invalidpix = np.where(bincube <= self.config.p_centroiders[0].thresh)
                 ideal_bincube[invalidpix] = 0
                 self.rtc.set_thresh(0, -1e16)
             self.wfs.set_bincube(0, ideal_bincube)
-        elif (self.config.p_wfss[0].type_wfs == scons.centroiderType.PYRHR):
+        elif (self.config.p_wfss[0].type == scons.centroiderType.PYRHR):
             ideal_pyrimg = self.wfs.get_binimg_not_noisy(0)
             self.wfs.set_pyrimg(0, ideal_pyrimg)
 
         self.rtc.do_centroids(0)
-        if (self.config.p_centroiders[0].type_centro == scons.CentroiderType.TCOG):
+        if (self.config.p_centroiders[0].type == scons.CentroiderType.TCOG):
             self.rtc.set_thresh(0, config.p_centroiders[0].thresh)
 
         self.rtc.do_control(0)
@@ -201,15 +201,15 @@ class Roket(Simulator):
             self.wfs.raytrace(w, b"dm", self.tel, self.atm, self.dms)
         """
             wfs.sensors_compimg(0)
-        if(config.p_wfss[0].type_wfs == scons.WFSType.SH):
+        if(config.p_wfss[0].type == scons.WFSType.SH):
             ideal_bincube = wfs.get_bincubeNotNoisy(0)
             bincube = wfs.get_bincube(0)
-            if(config.p_centroiders[0].type_centro == scons.CentroiderType.TCOG): # Select the same pixels with or without noise
+            if(config.p_centroiders[0].type == scons.CentroiderType.TCOG): # Select the same pixels with or without noise
                 invalidpix = np.where(bincube <= config.p_centroiders[0].thresh)
                 ideal_bincube[self.iter_numbernvalidpix] = 0
                 rtc.setthresh(0,-1e16)
             wfs.set_bincube(0,ideal_bincube)
-        elif(config.p_wfss[0].type_wfs == scons.centroiderType.PYRHR):
+        elif(config.p_wfss[0].type == scons.centroiderType.PYRHR):
             ideal_pyrimg = wfs.get_binimg_notnoisy(0)
             wfs.set_pyrimg(0,ideal_pyrimg)
         """
