@@ -93,7 +93,7 @@ class Simulator:
             except:
                 pass
 
-        print(("loading ", filename.split(".py")[0]))
+        print("loading: %s" % filename.split(".py")[0])
         self.config = __import__(filename.split(".py")[0])
         # exec("import %s as wao_config" % filename.split(".py")[0])
         sys.path.remove(pathfile)
