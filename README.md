@@ -354,7 +354,7 @@ Additionally, to benefit from the user-oriented features of the platform, Anacon
 First check out the latest version from the svn repository :
 
 ```bash
-git clone -b py3 https://gitlab.obspm.fr/compass/compass
+git clone https://gitlab.obspm.fr/compass/compass
 ```
 
 once there, you need to modify system variables in our .bashrc :
@@ -378,9 +378,8 @@ export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:$MAGMA_ROOT/lib/pkgconfig
 export COMPASS_ROOT=$HOME/compass
 export NAGA_ROOT=$COMPASS_ROOT/naga
 export SHESHA_ROOT=$COMPASS_ROOT/shesha
-export PYTHONPATH=$NAGA_ROOT/lib:$NAGA_ROOT/src:$SHESHA_ROOT/lib:$SHESHA_ROOT/src:$PYTHONPATH
 export LD_LIBRARY_PATH=$COMPASS_ROOT/libcarma:$COMPASS_ROOT/libsutra:$LD_LIBRARY_PATH
-export PYTHONPATH=$NAGA_ROOT/src:$NAGA_ROOT/lib:$SHESHA_ROOT/src:$SHESHA_ROOT/lib
+export PYTHONPATH=$NAGA_ROOT/lib:$NAGA_ROOT/src:$SHESHA_ROOT/lib:$SHESHA_ROOT/src:$PYTHONPATH
  ```
 
 ### install dependencies (if not already done)
