@@ -45,8 +45,7 @@ p_target.set_mag([10])
 
 
 #wfs
-p_wfs0= ao.Param_wfs()
-p_wfs1= ao.Param_wfs()
+p_wfs0= ao.Param_wfs(error_budget=True)
 p_wfss=[p_wfs0]
 
 

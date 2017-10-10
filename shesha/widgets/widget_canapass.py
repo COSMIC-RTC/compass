@@ -820,12 +820,30 @@ class widgetAOWindow(TemplateBaseClass):
 
         return iMatKL
 
+    def computeImatPhase(self, phase, wfsnum=0, withTurbu=False, noise=False):
+        # iMat = np.zeros((KL2V.shape[1], Nslopes))
+        self.aoLoopClicked(False)
+        self.ui.wao_run.setChecked(False)
+        time.sleep(1)
+        oldWfsPhase = self.wfs.get_ncpa_phase(0)
+        currentVolts = self.rtc.getVoltage(0)*0.
+        self.rtc.set_perturbcom(0, currentVolts[None, :])  # apply volts from close loop
+        self._setNcpaWfs(phase, wfsnum)  # add + phase on wfs
+        devpos = self.applyVoltGetSlopes(turbu=withTurbu, noise=noise)
+        self.rtc.set_perturbcom(0, currentVolts[None, :])  # apply volts from close loop
+        self._setNcpaWfs(-phase, wfsnum)  # add - phase on wfs
+        devmin = self.applyVoltGetSlopes(turbu=withTurbu, noise=noise)
+        s = (devpos - devmin) / 2.
+        self._setNcpaWfs(oldWfsPhase, wfsnum)  # Reverting to old wfs phase if any...
+        self.aoLoopClicked(True)
+        self.ui.wao_run.setChecked(True)
+        return s
+
     def computeSlopes(self):
         for w in range(len(self.config.p_wfss)):
             self.wfs.sensors_compimg(w)
         self.rtc.docentroids(0)
         return self.rtc.getcentroids(0)
-
 
     def applyVoltGetSlopes(self, noise=False, turbu=False):
         self.rtc.applycontrol(0, self.dms)
@@ -837,7 +855,6 @@ class widgetAOWindow(TemplateBaseClass):
             self.wfs.sensors_compimg(w, noise=noise)
         self.rtc.docentroids(0)
         return self.rtc.getcentroids(0)
-
 
     def clearSR(self):
         self.SRLE = [self.SRLE[-1]]

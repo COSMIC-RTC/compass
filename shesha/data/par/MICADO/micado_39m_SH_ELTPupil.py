@@ -90,14 +90,14 @@ r0 = r01L
 alt = alt1L
 frac = frac1L
 wind = wind1L
-
 """
+
 r0 = r0Q3
 alt = altESO
 frac = fracQ3
 wind = windESO
-
 """
+
 r0 = r0med
 alt = altESO
 frac = fracmed
@@ -125,7 +125,7 @@ p_atmos.set_L0([25.]*nbLayers)  # Not simulated in Yorick?
 #p_target.set_Lambda([1.65])
 #p_target.set_mag([4.])
 
-"""
+
 # 3 Lambda targets
 p_target=ao.Param_target()
 p_target.set_nTargets(3)
@@ -135,16 +135,14 @@ p_target.set_Lambda([1.2, 1.65, 2.2])
 p_target.set_mag([4, 4., 4])
 
 """
-# 11*4 Lambda targets
+# 13*3 Lambda targets
 p_target=ao.Param_target()
-p_target.set_nTargets(11*4)
-p_target.set_xpos([0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50]*4)
-p_target.set_ypos([0, 0,  0,  0,  0,  0,  0,  0,  0,  0,  0]*4)
-p_target.set_Lambda([2.2]*11+[1.65]*11+[1.2]*11+[0.9]*11)
-p_target.set_mag([4]*11*4)
-
-
-
+p_target.set_nTargets(13*3)
+p_target.set_xpos([0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60]*3)
+p_target.set_ypos([0, 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0]*3)
+p_target.set_Lambda([2.2]*13+[1.65]*13+[1.2]*13)
+p_target.set_mag([4]*13*3)
+"""
 """
 # 2 Lambda targets
 p_target=ao.Param_target()
@@ -160,36 +158,22 @@ p_wfs0 = ao.Param_wfs(error_budget=True)
 p_wfss = [p_wfs0]
 
 
-p_wfs0.set_type("pyrhr")
-npixpup = 92
-p_wfs0.set_nxsub(npixpup) # 92 sub aps for hexagonal grid of actuators eq. 78 subaps square grid. (pitch = 0.5m)
+
+p_wfs0.set_type("sh")
+p_wfs0.set_nxsub(78)
+p_wfs0.set_npix(4)
+p_wfs0.set_pixsize(0.3)
 p_wfs0.set_fracsub(0.8)
 p_wfs0.set_xpos(0.)
 p_wfs0.set_ypos(0.)
-p_wfs0.set_Lambda(0.7)
-p_wfs0.set_gsmag(11.)
+p_wfs0.set_Lambda(0.5)
+p_wfs0.set_gsmag(11)
 p_wfs0.set_optthroughput(0.5)
-p_wfs0.set_zerop(2.6e10) # 2.6e10 ph/s/m**2 computed by Rico in R band for MOSAIC
-p_wfs0.set_noise(0.1)  # in electrons units
+p_wfs0.set_zerop(2.6e10)
+p_wfs0.set_noise(3) # in electrons units
 p_wfs0.set_atmos_seen(1)
-p_wfs0.set_fstop("square")
-p_wfs0.set_fssize(1.6)
-rMod = 3
-p_wfs0.set_pyr_npts(int(np.ceil(int(rMod*2* 3.141592653589793)/4.)*4))
-#p_wfs0.set_pyr_npts(31)
-p_wfs0.set_pyr_ampl(rMod)
-#p_wfs0.set_pyr_pup_sep(int(2 / 3. * p_wfs0.nxsub)) # diffraction effect
-#p_wfs0.set_pyr_pup_sep((p_wfs0.nxsub))
-
-"""
-With 52 pixels of margin between 2 edges of pupils on a 240x240 detector and 92 pixels of pupil:
-in Compass pupsep is separation between 1 pupil center and Half of detector
-pupsep = 52/2+92/2 = 72
-
-npixpup=80; (240 - 4 - (npixpup*2))/2.+npixpup/2
-"""
-decalage = int((240 - 4 - (npixpup*2))/2.+npixpup/2)
-p_wfs0.set_pyr_pup_sep(decalage)
+p_wfs0.set_fstop("round")
+p_wfs0.set_fssize(2.4)
 
 
 # dm
@@ -203,12 +187,12 @@ nact = p_wfs0.nxsub + 1
 #p_dm0.set_nact(nact)
 p_dm0.set_nact(73) #73 actuators for a projected M4 pitch of 53cm
 p_dm0.set_alt(0.)
-p_dm0.set_thresh(0.4)  # fraction units
+p_dm0.set_thresh(0.1)  # fraction units
 # !!!!!!!!!!!!!!!!!!!!!!!!! attention pas autre chose que 0.2 !!!!!!!!!
 p_dm0.set_coupling(0.2)
 p_dm0.set_unitpervolt(1)
 p_dm0.set_push4imat(0.01)
-p_dm0.set_pattern("hexaM4")
+p_dm0.set_pattern("hexa")
 #p_dm0.set_influType("gaussian")
 p_dm0.set_influType("radialSchwartz")
 
@@ -236,8 +220,11 @@ p_centroider0 = ao.Param_centroider()
 p_centroiders = [p_centroider0]
 
 p_centroider0.set_nwfs(0)
-p_centroider0.set_type("pyr")
+p_centroider0.set_type("sh")
 # sp_centroider0.set_thresh(0.)
+
+p_centroider0.set_type("bpcog")
+p_centroider0.set_nmax(6)
 
 # p_centroider0.set_type("bpcog")
 # p_centroider0.set_nmax(10)
