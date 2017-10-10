@@ -516,6 +516,7 @@ cdef class Rtc:
                    np.ndarray[ndim=2, dtype=np.float32_t] kl, bool ntt):
         """
         TODO: unify this function with rtc.do_imat in sutra_rtc.cpp
+        TODO: code reorganisation to remove cython warnings
 
         Compute the interaction matrix in the KL basis
 

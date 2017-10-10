@@ -519,7 +519,7 @@ g        :return:
         cdef int inddm = self.dms.get_inddm(type, alt)
         self.context.set_activeDeviceForCpy(self.dms.d_dms[inddm].device, 1)
 
-        cdef carma_sparse_obj[double] * d_IFsparse
+        cdef carma_sparse_obj[double] * d_IFsparse = NULL
         cdef carma_obj[int] * d_indx
         cdef long dims[2]
         dims[0] = 1
