@@ -1,15 +1,14 @@
 import time
 
-from typing import Callable, TypeVar
-
 from .simulatorBrama import SimulatorBrama
+
 
 class BenchBrama(SimulatorBrama):
     '''
         Class BenchBrama
     '''
 
-    def next(self, *, see_atmos: bool=False, nControl: int=0) -> None:
+    def next(self, *, nControl: int=0) -> None:
         '''
             function next
             Iterates on centroiding and control, with optional parameters
@@ -25,3 +24,17 @@ class BenchBrama(SimulatorBrama):
         if self.tar is not None:
             self.tar.publish()
 
+    def loop(self, monitoring_freq=100, **kwargs):
+        """
+        TODO: docstring
+        """
+        print("----------------------------------------------------")
+        print("iter# | S.E. SR | L.E. SR | ETR (s) | Framerate (Hz)")
+        print("----------------------------------------------------")
+        niter = 0
+        t0 = time.time()
+        while True:
+            self.next(**kwargs)
+            if ((niter + 1) % monitoring_freq == 0):
+                framerate = (niter + 1) / (time.time() - t0)
+                print("%d \t %.1f" % (niter + 1, framerate))
