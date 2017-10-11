@@ -39,6 +39,7 @@ class Param_dm:
         self.__pzt_extent = 5.  # Extent of pzt DM (pitches)
 
         # KL DM
+        self.__nfunc = 0
         self.__nkl = 0  # Number of KL for KL dm
         self.__outscl = None  # Outer scale in units of telescope diam for Karman KL
         self.__nr = None  # number of radial points
@@ -49,6 +50,8 @@ class Param_dm:
         self.__ncp = None  # dim of grid
         self.__cr = None  # radial coord in cartesien grid
         self.__cp = None  # phi coord in cartesien grid
+        self.__ap = None
+        self.__nfunc = 0
 
         # Hidden variable safe-typed in shesha_constants
         self.__type = None  # Private storage of type
@@ -91,6 +94,24 @@ class Param_dm:
         self.__ninflu = None
         """ Influence functions"""
         self.__influstart = None  # np.ndarray - Influence function handling
+
+    def set_ap(self, ap):
+        """ Set ap TODO!!!
+
+        :param ap: (float) : TODO
+        """
+        self.__ap = csu.enforce_float(ap)
+
+    ap = property(lambda x: x.__ap, set_ap)
+
+    def set_nfunc(self, nfunc):
+        """ Set nfunc TODO !!!
+
+        :param nfunc: (int) : TODO
+        """
+        self.__nfunc = csu.enforce_int(nfunc)
+
+    nfunc = property(lambda x: x.__nfunc, set_nfunc)
 
     def set_pzt_extent(self, p):
         """ Set extent of pzt dm in pich unit default = 5

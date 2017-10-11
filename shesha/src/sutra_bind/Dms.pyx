@@ -23,7 +23,7 @@ cdef class Dms:
         info = "DMs object:\n"
         info += "Contains " + str(self.dms.d_dms.size()) + " DMs:\n"
         info += "DM # | Type  |   Alt   | Nact | Dim\n"
-        cdef vector[sutra_dm * ].iterator it_dms = self.dms.d_dms.begin()
+        cdef vector[sutra_dm *].iterator it_dms = self.dms.d_dms.begin()
         cdef vector[type_screen].iterator it_type = self.dms.d_type.begin()
         cdef sutra_dm * dm
         cdef type_screen ts
@@ -39,7 +39,7 @@ cdef class Dms:
         info += "--------------------------------------------------------"
         return info
 
-    def add_dm(self, bytes type, float alt, long dim, long ninflu, long influsize, long ninflupos, long npts, float push4imat, int device=-1):
+    def add_dm(self, bytes type, float alt, long dim, long ninflu, long influsize, long ninflupos, long npts, float push4imat, long nord=0, int device=-1):
         """Add a dm into a Dms object
 
         :parameters:
@@ -57,6 +57,8 @@ cdef class Dms:
 
             push4imat: (float) : ,
 
+            nord: (long): number of radial order for kl dm
+
             device: (int) : device where the DM will be create (default=-1):
 
         """
@@ -66,7 +68,7 @@ cdef class Dms:
             device = self.context.get_activeDevice()
 
         self.dms.add_dm(self.context.c, type, alt, dim, ninflu,
-                        influsize, ninflupos, npts, push4imat, device)
+                        influsize, ninflupos, npts, push4imat, nord, device)
 
     def remove_dm(self, bytes type, float alt):
         """Remove a dm from a Dms object
@@ -141,8 +143,8 @@ cdef class Dms:
 
         """
 
-        cdef np.ndarray[ndim = 3, dtype = np.float32_t] influ_F = influ.T.copy()
-        cdef np.ndarray[dtype = np.int32_t] npoints_F = npoints.T.copy()
+        cdef np.ndarray[ndim= 3, dtype = np.float32_t] influ_F = influ.T.copy()
+        cdef np.ndarray[dtype= np.int32_t] npoints_F = npoints.T.copy()
 
         cdef int inddm = self.dms.get_inddm(scons.DmType.PZT, alt)
         if(inddm < 0):
@@ -202,15 +204,15 @@ cdef class Dms:
 #endif
         """
 
-        self.dms.d_dms[inddm].pzt_loadarrays( < float * > influ_F.data,
-                                             influ2,
-                                             influ3,
-                                             < int * > influpos.data,
-                                             influpos2,
-                                             < int * > npoints_F.data,
-                                             istart2,
-                                             < int * > xoff.data,
-                                             < int * > yoff.data)
+        self.dms.d_dms[inddm].pzt_loadarrays(< float * > influ_F.data,
+                                              influ2,
+                                              influ3,
+                                              < int * > influpos.data,
+                                              influpos2,
+                                              < int * > npoints_F.data,
+                                              istart2,
+                                              < int * > xoff.data,
+                                              < int * > yoff.data)
         free(influ2)
         free(influpos2)
         free(istart2)
@@ -218,7 +220,7 @@ cdef class Dms:
     def load_kl(self, float alt,
                 np.ndarray[ndim=2, dtype=np.float32_t] rabas,
                 np.ndarray[ndim=2, dtype=np.float32_t] azbas,
-                np.ndarray[ndim=1, dtype=np.int32_t] ord,
+                np.ndarray[ndim=1, dtype=np.int32_t] ords,
                 np.ndarray[ndim=2, dtype=np.float32_t] cr,
                 np.ndarray[ndim=2, dtype=np.float32_t] cp):
         """Load all the arrays computed during the initialization
@@ -231,7 +233,7 @@ cdef class Dms:
 
             azbas: (np.ndarray[ndim=1,dtype=np.float32_t]) :
 
-            ord: (np.ndarray[ndim=1,dtype=np.int32_t]) :
+            ords: (np.ndarray[ndim=1,dtype=np.int32_t]) :
 
             cr: (np.ndarray[ndim=1,dtype=np.float32_t]) :
 
@@ -239,6 +241,7 @@ cdef class Dms:
         """
 
         cdef int inddm = self.dms.get_inddm(scons.DmType.KL, alt)
+
         if(inddm < 0):
             err = "unknown error whith load_kl\nDM (kl" + \
                 str(alt) + ") doesn't exist"
@@ -246,15 +249,15 @@ cdef class Dms:
 
         self.context.set_activeDevice(self.dms.d_dms[inddm].device, 1)
 
-        cdef np.ndarray[ndim = 2, dtype = np.float32_t] rabas_F = rabas.T.copy()
-        cdef np.ndarray[ndim= 2, dtype = np.float32_t] cr_F = cr.T.copy()
-        cdef np.ndarray[ndim= 2, dtype = np.float32_t] cp_F = cp.T.copy()
+        cdef np.ndarray[ndim= 2, dtype = np.float32_t] rabas_F = rabas.T.copy()
+        cdef np.ndarray[ndim = 2, dtype = np.float32_t] cr_F = cr.T.copy()
+        cdef np.ndarray[ndim = 2, dtype = np.float32_t] cp_F = cp.T.copy()
 
-        self.dms.d_dms[inddm].kl_loadarrays( < float * > rabas_F.data,
-                                            < float * > azbas.data,
-                                            < int * > ord.data,
-                                            < float * > cr_F.data,
-                                            < float * > cp_F.data)
+        self.dms.d_dms[inddm].kl_loadarrays(< float * > rabas_F.data,
+                                             < float * > azbas.data,
+                                             < int * > ords.data,
+                                             < float * > cr_F.data,
+                                             < float * > cp_F.data)
 
     def load_tt(self, float alt, np.ndarray[ndim=3, dtype=np.float32_t] influ):
         """Load all the arrays computed during the initialization
@@ -272,8 +275,8 @@ cdef class Dms:
             raise ValueError(err)
 
         self.context.set_activeDevice(self.dms.d_dms[inddm].device, 1)
-        cdef np.ndarray[ndim = 3, dtype = np.float32_t] influ_F = influ.T.copy()
-        self.dms.d_dms[inddm].d_influ.host2device( < float * > influ_F.data)
+        cdef np.ndarray[ndim= 3, dtype = np.float32_t] influ_F = influ.T.copy()
+        self.dms.d_dms[inddm].d_influ.host2device(< float * > influ_F.data)
 
     def shape_dm(self, bytes type, float alt):
         """Compute the shape of the DM in a sutra_dm object
@@ -326,8 +329,8 @@ cdef class Dms:
 
         self.context.set_activeDevice(self.dms.d_dms[inddm].device, 1)
 
-        self.dms.d_dms[inddm].compute_KLbasis(< float * > xpos.data, < float * > ypos.data,
-                                               < int * > indx_pup.data, dim, norm, ampli)
+        self.dms.d_dms[inddm].compute_KLbasis( < float * > xpos.data, < float * > ypos.data,
+                                              < int * > indx_pup.data, dim, norm, ampli)
 
     def comp_oneactu(self, bytes type, float alt, int nactu, float ampli):
         """Compute the shape of the dm when pushing the nactu actuator
@@ -376,7 +379,7 @@ cdef class Dms:
         cdef int comm_index = 0
         cdef float * comm_data = < float * > comm.data
         for inddm in range(self.dms.ndm()):
-            self.dms.d_dms[inddm].d_comm.host2device(& comm_data[comm_index])
+            self.dms.d_dms[inddm].d_comm.host2device( & comm_data[comm_index])
             comm_index += self.dms.d_dms[inddm].nact()
             if shape_dm:
                 self.dms.d_dms[inddm].comp_shape()
@@ -401,7 +404,7 @@ cdef class Dms:
                 str(alt) + ") doesn't exist"
             raise ValueError(err)
 
-        self.dms.d_dms[inddm].d_comm.host2device( < float * > comm.data)
+        self.dms.d_dms[inddm].d_comm.host2device(< float * > comm.data)
         if shape_dm:
             self.dms.d_dms[inddm].comp_shape()
         if shape_dm:
@@ -426,9 +429,9 @@ cdef class Dms:
 
         self.context.set_activeDevice(self.dms.d_dms[inddm].device, 1)
         cdef const long * dims = self.dms.d_dms[inddm].d_KLbasis.getDims()
-        cdef np.ndarray[ndim = 2, dtype = np.float32_t] data_F = np.zeros((dims[2], dims[1]), dtype=np.float32)
+        cdef np.ndarray[ndim= 2, dtype = np.float32_t] data_F = np.zeros((dims[2], dims[1]), dtype=np.float32)
 
-        self.dms.d_dms[inddm].d_KLbasis.device2host( < float * > data_F.data)
+        self.dms.d_dms[inddm].d_KLbasis.device2host(< float * > data_F.data)
         return data_F.T.copy()
 
     def get_dm(self, bytes type, float alt):
@@ -450,9 +453,9 @@ cdef class Dms:
 
         self.context.set_activeDevice(self.dms.d_dms[inddm].device, 1)
         cdef const long * dims = self.dms.d_dms[inddm].d_shape.d_screen.getDims()
-        cdef np.ndarray[ndim = 2, dtype = np.float32_t] data_F = np.zeros((dims[2], dims[1]), dtype=np.float32)
+        cdef np.ndarray[ndim= 2, dtype = np.float32_t] data_F = np.zeros((dims[2], dims[1]), dtype=np.float32)
 
-        self.dms.d_dms[inddm].d_shape.d_screen.device2host( < float * > data_F.data)
+        self.dms.d_dms[inddm].d_shape.d_screen.device2host(< float * > data_F.data)
         return data_F.T.copy()
 
     def get_comm(self, bytes type, float alt):
@@ -474,9 +477,9 @@ g        :return:
 
         self.context.set_activeDevice(self.dms.d_dms[inddm].device, 1)
         cdef const long * dims = self.dms.d_dms[inddm].d_comm.getDims()
-        cdef np.ndarray[ndim = 1, dtype = np.float32_t] data = np.zeros((dims[1]), dtype=np.float32)
+        cdef np.ndarray[ndim= 1, dtype = np.float32_t] data = np.zeros((dims[1]), dtype=np.float32)
 
-        self.dms.d_dms[inddm].d_comm.device2host( < float * > data.data)
+        self.dms.d_dms[inddm].d_comm.device2host(< float * > data.data)
         return data
 
     def get_influ(self, bytes type, float alt):
@@ -499,9 +502,9 @@ g        :return:
         self.context.set_activeDevice(self.dms.d_dms[inddm].device, 1)
 
         cdef const long * dims = self.dms.d_dms[inddm].d_influ.getDims()
-        cdef np.ndarray[ndim = 3, dtype = np.float32_t] data_F = np.zeros((dims[3], dims[2], dims[1]), dtype=np.float32)
+        cdef np.ndarray[ndim= 3, dtype = np.float32_t] data_F = np.zeros((dims[3], dims[2], dims[1]), dtype=np.float32)
 
-        self.dms.d_dms[inddm].d_influ.device2host( < float * > data_F.data)
+        self.dms.d_dms[inddm].d_influ.device2host(< float * > data_F.data)
         return data_F.T.copy()
 
     def get_IFsparse(self, bytes type, float alt, np.ndarray[ndim=1, dtype=np.int32_t] indx_pup):
@@ -561,8 +564,8 @@ g        :return:
         dims2[0] = 2
         dims2[1] = indx_pup.size
         dims2[2] = 2
-        cdef np.ndarray[ndim = 2, dtype = np.float32_t] data
-        cdef np.ndarray[ndim = 2, dtype = np.float32_t] data_F
+        cdef np.ndarray[ndim= 2, dtype = np.float32_t] data
+        cdef np.ndarray[ndim= 2, dtype = np.float32_t] data_F
 
         if(type == scons.DmType.TT):
             d_indx = new carma_obj[int](self.context.c, dims, < int * > indx_pup.data)
@@ -573,7 +576,7 @@ g        :return:
                 indx_pup.size,
                 float(1.0))
             data_F = np.zeros((dims2[2], dims2[1]), dtype=np.float32)
-            d_IFtt.device2host( < float * > data_F.data)
+            d_IFtt.device2host(< float * > data_F.data)
 
             del d_indx
             del d_IFtt

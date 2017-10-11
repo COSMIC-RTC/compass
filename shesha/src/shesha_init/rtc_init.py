@@ -84,8 +84,9 @@ def rtc_init(context: naga_context, tel: Telescope, wfs: Sensors, dms: Dms, atmo
                 else:
                     imat = None
 
-                dmi.correct_dm(dms, p_dms, p_controllers[i], p_geom, imat,
-                               dataBase=dataBase, use_DB=use_DB)
+                if p_dms[0].type == scons.DmType.PZT:
+                    dmi.correct_dm(dms, p_dms, p_controllers[i], p_geom, imat,
+                                   dataBase=dataBase, use_DB=use_DB)
 
                 init_controller(i, p_controllers[i], p_wfss, p_geom, p_dms, p_atmos,
                                 ittime, p_tel, rtc, dms, wfs, tel, atmos, do_refslp,

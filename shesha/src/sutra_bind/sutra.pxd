@@ -585,7 +585,7 @@ cdef extern from "sutra_dm.h":
 
         int add_dm(carma_context * context, const char * type, float alt, long dim,
                    long ninflu, long influsize, long ninflupos, long n_npoints,
-                   float push4imat, int device)
+                   float push4imat, long nord, int device)
         int remove_dm(string type, float alt)
 
         int get_inddm(string type, float alt)

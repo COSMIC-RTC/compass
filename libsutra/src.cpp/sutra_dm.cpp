@@ -6,7 +6,7 @@
 
 sutra_dm::sutra_dm(carma_context *context, const char* type, long dim,
                    long ninflu, long influsize, long ninflupos, long n_npoints,
-                   float push4imat, int device) {
+                   float push4imat, long nord, int device) {
 
   this->d_influ = NULL;
   this->d_influ2 = NULL;
@@ -95,12 +95,7 @@ sutra_dm::sutra_dm(carma_context *context, const char* type, long dim,
     this->d_istart = new carma_obj<int>(context, dims_data1);
   }
   if (strcmp(type, "kl") == 0) {
-    this->d_kl = new sutra_kl(context, influsize, ninflupos, n_npoints, ninflu,
-                              device);
-  }
-  // Florian features
-  if (strcmp(type, "flo_kl") == 0) {
-    this->d_kl = new sutra_kl(context, influsize, ninflupos, n_npoints, ninflu,
+    this->d_kl = new sutra_kl(context, influsize, ninflupos, n_npoints, ninflu, nord,
                               device);
   }
 
@@ -681,12 +676,12 @@ sutra_dms::~sutra_dms() {
 
 int sutra_dms::add_dm(carma_context *context, const char* type, float alt,
                       long dim, long ninflu, long influsize, long ninflupos,
-                      long n_npoints, float push4imat, int device) {
+                      long n_npoints, float push4imat, long nord, int device) {
   if(get_inddm(type, alt)>0)
     return EXIT_FAILURE;
   d_dms.push_back(
     new sutra_dm(context, type, dim, ninflu, influsize, ninflupos, n_npoints,
-                 push4imat, device));
+                 push4imat, nord, device));
   d_type.push_back(std::make_pair(type, alt));
 
   return EXIT_SUCCESS;

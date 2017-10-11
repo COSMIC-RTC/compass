@@ -12,6 +12,7 @@ class sutra_kl {
   long nr; // # radial points
   long np; // # of elements
   long nkl; // # of functions in the basis
+  long nord; // # number of radial orders
 
   carma_obj<float> *d_rabas; // the radial array of the basis
   carma_obj<float> *d_azbas; // the azimuthal array of the basis
@@ -28,7 +29,7 @@ class sutra_kl {
 
   carma_context *current_context; // the context in which it has been created
  public:
-  sutra_kl(carma_context *context, long dim, long nr, long np, long nkl,
+  sutra_kl(carma_context *context, long dim, long nr, long np, long nkl, long nord,
            int device);
   sutra_kl(const sutra_kl& kl);
   ~sutra_kl();
