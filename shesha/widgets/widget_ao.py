@@ -631,7 +631,7 @@ class widgetAOWindow(TemplateBaseClass):
 
         if self.sim is None:
             if self.BRAMA:
-                self.sim = shesha_sim.BenchBrama(configFile)
+                self.sim = shesha_sim.SimulatorBrama(configFile)
             else:
                 self.sim = shesha_sim.Simulator(configFile)
         else:
@@ -1280,7 +1280,7 @@ class widgetAOWindow(TemplateBaseClass):
                     signal_le = ""
                     signal_se = ""
                     for t in range(self.sim.config.p_target.ntargets):
-                        self.sim.tar.comp_image(0)
+                        self.sim.tar.comp_image(t)
                         SR = self.sim.tar.get_strehl(t)
                         if (t == self.numberSelected):  # Plot on the wfs selected
                             self.updateSRDisplay(SR[1], SR[0], self.sim.iter)

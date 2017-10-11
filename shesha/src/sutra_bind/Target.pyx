@@ -162,17 +162,12 @@ cdef class Target:
 
     """
 
-    def get_image(self, int n, bytes type_im, long puponly=0, bool comp_le=False):
+    def get_image(self, int n, bytes type_im):
         """Return the image from the target (or long exposure image according to the requested type)
 
         :parameters:
             n: (int) : index of the target
-
             type_im: (str) : type of the image to get ("se" or "le")
-
-            puponly: (int) : if 1, image computed from phase on the pupil only
-
-            comp_le: (bool) : if False (default), the computed image is not taken into account in the LE image
         """
         self.context.set_activeDeviceForCpy(self.device)
         cdef sutra_source * src = self.target.d_targets[n]
@@ -310,7 +305,7 @@ cdef class Target:
 
         return data_F.T.copy()
 
-    def get_strehl(self, int n, bool comp_strehl=True):
+    def get_strehl(self, int n):
         """Compute and return the target's strehl
 
         :param n: (int) : index of the target
