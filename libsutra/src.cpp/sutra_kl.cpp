@@ -1,6 +1,6 @@
 #include <sutra_kl.h>
 
-sutra_kl::sutra_kl(carma_context *context, long dim, long nr, long np, long nkl,
+sutra_kl::sutra_kl(carma_context *context, long dim, long nr, long np, long nkl, long nord,
                    int device) {
   // some inits
   this->current_context = context;
@@ -8,6 +8,7 @@ sutra_kl::sutra_kl(carma_context *context, long dim, long nr, long np, long nkl,
   this->nr = nr;
   this->np = np;
   this->nkl = nkl;
+  this->nord = nord;
   this->device = device;
   current_context->set_activeDevice(device,1);
 
@@ -29,6 +30,7 @@ sutra_kl::sutra_kl(carma_context *context, long dim, long nr, long np, long nkl,
   this->d_rabas = new carma_obj<float>(context, dims_data2);
 
   dims_data2[1] = np;
+  /*
   if(nkl==2) {
     dims_data2[2] = 3;
   } else if(nkl==3 || nkl==4) {
@@ -36,6 +38,8 @@ sutra_kl::sutra_kl(carma_context *context, long dim, long nr, long np, long nkl,
   } else {
     dims_data2[2] = nkl;
   }
+  */
+  dims_data2[2] = nord + 1;
   this->d_azbas = new carma_obj<float>(context, dims_data2);
 
   // delete[] dims_data1;

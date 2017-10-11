@@ -26,6 +26,7 @@ from typing import List
 
 from tqdm import tqdm
 
+
 def dm_init(context: naga_context, p_dms: List[conf.Param_dm], p_tel: conf.Param_tel,
             p_geom: conf.Param_geom, p_wfss: List[conf.Param_wfs]=None) -> Dms:
     """Create and initialize a Dms object on the gpu
@@ -142,7 +143,8 @@ def _dm_init(dms: Dms, p_dm: conf.Param_dm, xpos_wfs: list, ypos_wfs: list,
         ninflu = p_dm.nkl
 
         dms.add_dm(p_dm.type_dm, p_dm.alt, dim, p_dm.nkl, p_dm._ncp, p_dm._nr, p_dm._npp,
-                   p_dm.push4imat)
+                   p_dm.push4imat, nord=p_dm._ord.max())
+
         dms.load_kl(p_dm.alt, p_dm._rabas, p_dm._azbas, p_dm._ord, p_dm._cr, p_dm._cp)
 
     else:
@@ -505,6 +507,7 @@ def make_kl_dm(p_dm: conf.Param_dm, patchDiam: int, p_geom: conf.Param_geom,
     p_dm._j1 = np.zeros((p_dm.nkl), dtype=np.int32) + \
         (dim - patchDiam) // 2
     p_dm._ntotact = p_dm.nkl
+    p_dm.ap = ap
 
 
 def comp_dmgeom(p_dm: conf.Param_dm, p_geom: conf.Param_geom):

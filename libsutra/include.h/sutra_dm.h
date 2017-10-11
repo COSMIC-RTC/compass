@@ -73,7 +73,7 @@ class sutra_dm {
 
  public:
   sutra_dm(carma_context *context, const char* type, long dim, long ninflu,
-           long influsize, long ninflupos, long n_npoints, float push4imat,
+           long influsize, long ninflupos, long n_npoints, float push4imat, long nord,
            int device);
   sutra_dm(const sutra_dm& dm);
   ~sutra_dm();
@@ -122,7 +122,7 @@ class sutra_dms {
 
   int add_dm(carma_context *context, const char* type, float alt, long dim,
              long ninflu, long influsize, long ninflupos, long n_npoints,
-             float push4imat, int device);
+             float push4imat, long nord, int device);
   int remove_dm(string type, float alt);
 
   int get_inddm(string type, float alt);

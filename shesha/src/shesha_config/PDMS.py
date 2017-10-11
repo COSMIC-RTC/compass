@@ -39,6 +39,7 @@ class Param_dm:
         self.__pzt_extent = 5.  # Extent of pzt DM (pitches)
 
         # KL DM
+        self.__nfunc = 0
         self.__nkl = 0  # Number of KL for KL dm
         self.__outscl = None  # Outer scale in units of telescope diam for Karman KL
         self.__nr = None  # number of radial points
@@ -49,6 +50,8 @@ class Param_dm:
         self.__ncp = None  # dim of grid
         self.__cr = None  # radial coord in cartesien grid
         self.__cp = None  # phi coord in cartesien grid
+        self.ap = None
+        self.nfunc = 0
 
         # Hidden variable safe-typed in shesha_constants
         self.__type_dm = None  # Private storage of type_dm
