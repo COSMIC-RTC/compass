@@ -229,7 +229,7 @@ def command_on_KL(rtc: Rtc, dms: Dms, p_controller: conf.Param_controller,
         nfilt: (int): number of modes to filter
     """
     KL2V = compute_KL2V(p_controller, dms, p_dms, p_geom, p_atmos, p_tel)
-    compute_cmat_with_KL(rtc, KL2V, nfilt)
+    return compute_cmat_with_KL(rtc, KL2V, nfilt)
 
 
 def compute_cmat_with_KL(rtc: Rtc, KL2V: np.ndarray, nfilt: int):

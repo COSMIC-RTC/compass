@@ -854,10 +854,10 @@ class widgetAOWindow(TemplateBaseClass):
     def KLCommand(self) -> None:
         if (self.sim.rtc):
             nfilt = int(self.ui.wao_filterBtt.value())
-            cmat = ao.compute_cmatWithKL(self.sim.rtc, self.sim.config.p_controllers[0],
-                                         self.sim.dms, self.sim.config.p_dms,
-                                         self.sim.config.p_geom, self.sim.config.p_atmos,
-                                         self.sim.config.p_tel, nfilt)
+            cmat = ao.command_on_KL(
+                    self.sim.rtc, self.sim.dms, self.sim.config.p_controllers[0],
+                    self.sim.config.p_dms, self.sim.config.p_geom,
+                    self.sim.config.p_atmos, self.sim.config.p_tel, nfilt)
             self.sim.rtc.set_cmat(0, cmat.astype(np.float32))
             print("Loop is commanded from KL basis now")
 
