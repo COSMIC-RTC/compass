@@ -1,14 +1,3 @@
-/*
- * Copyright 1993-2010 NVIDIA Corporation.  All rights reserved.
- *
- * NVIDIA Corporation and its licensors retain all intellectual property and
- * proprietary rights in and to this software and related documentation.
- * Any use, reproduction, disclosure, or distribution of this software
- * and related documentation without an express license agreement from
- * NVIDIA Corporation is strictly prohibited.
- *
- */
-
 #ifndef _CARMA_UTILS_H_
 #define _CARMA_UTILS_H_
 
@@ -21,6 +10,8 @@
 #include <string>
 #include <vector>
 #include <sstream>
+#include <iostream>
+#include <chrono>
 
 #include <cuda_runtime_api.h>
 #include <cuda.h>
@@ -47,6 +38,17 @@ void inline split(std::vector<std::string> &tokens, const std::string &text,
   }
   tokens.push_back(text.substr(start));
 }
+
+class ProgressBar {
+  int prev=0, count=0, max;
+  double progress=0;
+  int barWidth=42;
+  std::chrono::system_clock::time_point start;
+ public:
+  ProgressBar(int i);
+  void update();
+};
+
 }
 
 #ifdef DEBUG

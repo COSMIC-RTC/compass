@@ -139,6 +139,7 @@ int sutra_rtc::do_imat(int ncntrl, sutra_dms *ydm) {
   cc = 0;
   while (p != this->d_control[ncntrl]->d_dmseen.end()) {
     sutra_dm *dm = *p;
+    auto progress = carma_utils::ProgressBar(dm->ninflu);
     for (int j = 0; j < dm->ninflu; j++) {
       // Push
       dm->comp_oneactu(j, dm->push4imat);
@@ -200,7 +201,8 @@ int sutra_rtc::do_imat(int ncntrl, sutra_dms *ydm) {
       dm->reset_shape();
       inds1 += this->d_control[ncntrl]->nslope();
       cc++;
-      printf("\rDoing imat...%d%%",(cc*100/nactu));
+      progress.update();
+      // printf("\rDoing imat...%d%%",(cc*100/nactu));
     }
     p++;
   }

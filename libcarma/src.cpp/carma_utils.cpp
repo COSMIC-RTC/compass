@@ -1,6 +1,57 @@
 #include <carma_utils.h>
 #include <cuda_profiler_api.h>
 #include <carma_context.h>
+#include <iostream>
+#include <sstream>
+#include <string>
+#include <cmath>
+
+int quick_pow10(int n) {
+  static int pow10[10] = {
+    1, 10, 100, 1000, 10000,
+    100000, 1000000, 10000000, 100000000, 1000000000
+  };
+
+  return pow10[n];
+}
+
+std::string disp(int idx, int width, char align='r') {
+  std::ostringstream stm;
+  if(align == 'l') {
+    stm << idx;
+  }
+  while(idx < quick_pow10(width-1)) {
+    stm << " ";
+    width--;
+  }
+  if(align != 'l') {
+    stm << idx;
+  }
+  return stm.str();
+}
+
+carma_utils::ProgressBar::ProgressBar(int i): max(i), start(std::chrono::system_clock::now()) {};
+
+void carma_utils::ProgressBar::update() {
+  this->count++;
+  this->progress = (double)(this->count) / this->max;
+  if(2*this->barWidth*this->progress > this->prev) {
+    this->prev++;
+    int n = (int)(this->progress*100.0);
+    std::cout << disp(n, 3) << "%" << "[";
+    int pos = this->barWidth * this->progress;
+    for(int i=0; i<this->barWidth; i++) {
+      if(i<pos) std::cout << "=";
+      else if(i==pos) std::cout << ">";
+      else std::cout << " ";
+    }
+    std::chrono::system_clock::time_point time = std::chrono::system_clock::now();
+    std::chrono::duration<double> elapsed = time - this->start;
+    int eta = elapsed.count()>0?(int)(elapsed.count() / this->progress - elapsed.count()):0;
+    std::cout << "] " << disp(this->count, 5) << "/" << disp(this->max, 5, 'l') << " " << " ETA " << disp(eta,4) << "s     \r";
+    std::cout.flush();
+  }
+}
 
 void getNumBlocksAndThreads(carma_device *device, int n, int &blocks, int &threads) {
 
