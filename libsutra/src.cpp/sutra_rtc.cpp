@@ -137,6 +137,7 @@ int sutra_rtc::do_imat(int ncntrl, sutra_dms *ydm) {
   int nactu = d_imat->getDims(2);
   inds1 = 0;
   cc = 0;
+  std::cout << "Doing imat..." << std::endl;
   while (p != this->d_control[ncntrl]->d_dmseen.end()) {
     sutra_dm *dm = *p;
     auto progress = carma_utils::ProgressBar(dm->ninflu);
@@ -204,6 +205,7 @@ int sutra_rtc::do_imat(int ncntrl, sutra_dms *ydm) {
       progress.update();
       // printf("\rDoing imat...%d%%",(cc*100/nactu));
     }
+    progress.finish();
     p++;
   }
   printf("\n");

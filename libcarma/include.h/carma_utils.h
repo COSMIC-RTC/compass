@@ -41,12 +41,14 @@ void inline split(std::vector<std::string> &tokens, const std::string &text,
 
 class ProgressBar {
   int prev=0, count=0, max;
+  int ndigits=0;
   double progress=0;
   int barWidth=42;
   std::chrono::system_clock::time_point start;
  public:
   ProgressBar(int i);
   void update();
+  void finish();
 };
 
 }

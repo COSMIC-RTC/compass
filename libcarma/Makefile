@@ -37,7 +37,7 @@ else
 endif
 
 LIB_DEPLIBS  = -fPIC -shared -Wl,-rpath=$(CUDA_LIB_PATH_64) -L$(CUDA_LIB_PATH_64)
-LIB_DEPLIBS += -lcudart -lcublas -lcufft -lcurand -lcusparse -lpthread
+LIB_DEPLIBS += -lcudart -lcublas -lcufft -lcurand -lcusparse -lpthread -lncurses
 
 # set compiler (or rarely loader) flags specific to this package
 LIB_CPPFLAGS = -c -fPIC -Wall -fno-common -std=c++11 $(CCFLAGS) # -DUSE_UVA
