@@ -51,8 +51,7 @@ class Roket(Simulator):
         self.fit = np.zeros(self.n)
         self.psf_ortho = self.tar.get_image(0, b'se') * 0
         self.centroid_gain = 0
-        self.Cmm = np.zeros((self.nslopes, self.nslopes), dtype=np.float32)
-        self.Cvv = np.zeros((self.nactus, self.nactus), dtype=np.float32)
+        self.slopes = np.zeros((self.n, self.nslopes), dtype=np.float32)
         #gamma = 1.0
         self.config.p_loop.set_niter(self.n)
         self.IFpzt = self.rtc.get_IFsparse(1)
@@ -143,14 +142,10 @@ class Roket(Simulator):
         """
         g = self.config.p_controllers[0].gain
         Dcom = self.rtc.get_com(0)
-        Dcom_r = np.reshape(Dcom, (Dcom.size, 1))
-        self.Cvv += Dcom_r.dot(Dcom_r.T)
         Derr = self.rtc.get_err(0)
         self.com[self.iter_number, :] = Dcom
         tarphase = self.tar.get_phase(0)
-        slopes = self.rtc.get_centroids(0)
-        slopes = np.reshape(slopes, (slopes.size, 1))
-        self.Cmm += slopes.dot(slopes.T)
+        self.slopes[self.iter_number, :] = self.rtc.get_centroids(0)
 
         ###########################################################################
         ## Noise contribution
@@ -291,47 +286,39 @@ class Roket(Simulator):
 
         fname = os.getenv("DATA_GUARDIAN") + savename
         pdict = {
-                "noise":
-                        self.noise_com[self.N_preloop:, :].T, "aliasing":
-                                self.alias_wfs_com[self.N_preloop:, :].T, "tomography":
-                                        self.tomo_com[self.N_preloop:, :].T,
-                "filtered modes":
-                        self.H_com[self.N_preloop:, :].T, "non linearity":
-                                self.trunc_com[self.N_preloop:, :].T, "bandwidth":
-                                        self.bp_com[self.N_preloop:, :].T, "wf_com":
-                                                self.wf_com[self.N_preloop:, :].T, "P":
-                                                        self.P, "Btt":
-                                                                self.Btt, "IF.data":
-                                                                        self.IFpzt.data,
-                "IF.indices":
-                        self.IFpzt.indices, "IF.indptr":
-                                self.IFpzt.indptr, "TT":
-                                        self.TT, "dm_dim":
-                                                dm_dim, "indx_pup":
-                                                        indx_pup,
-                "fitting":
-                        np.mean(self.fit[self.N_preloop:]), "SR":
-                                self.SR, "SR2":
-                                        self.SR2, "cov":
-                                                self.cov, "cor":
-                                                        self.cor,
-                "psfortho":
-                        np.fft.fftshift(self.psf_ortho) /
-                        (self.config.p_loop.niter - self.N_preloop), "centroid_gain":
-                                self.centroid_gain /
-                                (self.config.p_loop.niter - self.N_preloop), "dm.xpos":
-                                        self.config.p_dms[0]._xpos, "dm.ypos":
-                                                self.config.p_dms[0]._ypos, "R":
-                                                        self.rtc.get_cmat(0), "D":
-                                                                self.rtc.get_imat(0),
-                "Nact":
-                        self.Nact, "Cmm":
-                                self.Cmm / (self.config.p_loop.niter - self.N_preloop),
-                "Cvv":
-                        self.Cvv /
-                        (self.config.p_loop.niter - self.N_preloop), "alias_meas":
-                                self.alias_meas[self.N_preloop:, :].T, "trunc_meas":
-                                        self.trunc_meas[self.N_preloop:, :].T
+                "noise": self.noise_com[self.N_preloop:, :].T, 
+                "aliasing": self.alias_wfs_com[self.N_preloop:, :].T, 
+                "tomography": self.tomo_com[self.N_preloop:, :].T,
+                "filtered modes": self.H_com[self.N_preloop:, :].T, 
+                "non linearity": self.trunc_com[self.N_preloop:, :].T, 
+                "bandwidth": self.bp_com[self.N_preloop:, :].T, 
+                "wf_com": self.wf_com[self.N_preloop:, :].T, 
+                "P": self.P, 
+                "Btt": self.Btt, 
+                "IF.data": self.IFpzt.data,
+                "IF.indices": self.IFpzt.indices, 
+                "IF.indptr": self.IFpzt.indptr, 
+                "TT": self.TT, 
+                "dm_dim": dm_dim, 
+                "indx_pup": indx_pup,
+                "fitting": np.mean(self.fit[self.N_preloop:]), 
+                "SR": self.SR, 
+                "SR2": self.SR2, 
+                "cov": self.cov, 
+                "cor": self.cor,
+                "psfortho": np.fft.fftshift(self.psf_ortho) /
+                        (self.config.p_loop.niter - self.N_preloop), 
+                "centroid_gain": self.centroid_gain /
+                                (self.config.p_loop.niter - self.N_preloop), 
+                "dm.xpos": self.config.p_dms[0]._xpos, 
+                "dm.ypos": self.config.p_dms[0]._ypos, 
+                "R": self.rtc.get_cmat(0), 
+                "D": self.rtc.get_imat(0),
+                "Nact": self.Nact, 
+                "com": self.com[self.N_preloop:, :].T, 
+                "slopes":self.slopes[self.N_preloop:, :].T, 
+                "alias_meas": self.alias_meas[self.N_preloop:, :].T, 
+                "trunc_meas": self.trunc_meas[self.N_preloop:, :].T
         }
         h5u.save_h5(fname, "psf", self.config, psf)
         for k in list(pdict.keys()):
