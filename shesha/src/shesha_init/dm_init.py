@@ -553,6 +553,9 @@ def comp_dmgeom(p_dm: conf.Param_dm, p_geom: conf.Param_geom):
     npts = np.zeros((mpup_dim * mpup_dim), dtype=np.int32)
 
     tmps_unique, cpt = np.unique(tmps, return_counts=True)
+    if (tmps_unique > npts.size - 1).any():
+        tmps_unique = tmps_unique[:-1]
+        cpt = cpt[:-1]
 
     for i in range(tmps_unique.size):
         npts[tmps_unique[i]] = cpt[i]
