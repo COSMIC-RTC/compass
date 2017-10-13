@@ -1066,34 +1066,34 @@ pyr_getpup<cuDoubleComplex, double>(cuDoubleComplex *d_odata,
                                     float            lambda,
                                     carma_device    *device);
 
-                                    
- 
-__global__ void copyImginBinimg_krnl(float *binimg, int *validsubsx,int *validsubsy, 
-                    int Nb, float *img, int *validx, int *validy, int Nim, int Npix){ 
- 
-    int tid = blockIdx.x * blockDim.x + threadIdx.x; 
-    while(tid < Npix){ 
-        int bind = validsubsx[tid] + validsubsy[tid] * Nb; 
-        int iind = validx[tid] + validy[tid] * Nim; 
-        binimg[bind] = img[iind]; 
- 
-        tid += blockDim.x * gridDim.x; 
-    } 
-} 
- 
-void copyImginBinimg(float *binimg, int *validsubsx,int *validsubsy, 
-                    int Nb, float *img, int *validx, int *validy, int Nim, int Npix, carma_device *device){ 
-   
-  int nBlocks, nThreads; 
- 
-  getNumBlocksAndThreads(device, Npix, nBlocks, nThreads); 
-  dim3 grid(nBlocks), threads(nThreads); 
- 
-  copyImginBinimg_krnl<<< grid, threads>>>(binimg, validsubsx, validsubsy, Nb, 
-                                                img, validx, validy, Nim, Npix); 
-  carmaCheckMsg("copyImginBinimg_krnl<<<>>> execution failed\n"); 
-} 
-                       
+
+
+__global__ void copyImginBinimg_krnl(float *binimg, int *validsubsx,int *validsubsy,
+                    int Nb, float *img, int *validx, int *validy, int Nim, int Npix){
+
+    int tid = blockIdx.x * blockDim.x + threadIdx.x;
+    while(tid < Npix){
+        int bind = validsubsx[tid] + validsubsy[tid] * Nb;
+        int iind = validx[tid] + validy[tid] * Nim;
+        binimg[bind] = img[iind];
+
+        tid += blockDim.x * gridDim.x;
+    }
+}
+
+void copyImginBinimg(float *binimg, int *validsubsx,int *validsubsy,
+                    int Nb, float *img, int *validx, int *validy, int Nim, int Npix, carma_device *device){
+
+  int nBlocks, nThreads;
+
+  getNumBlocksAndThreads(device, Npix, nBlocks, nThreads);
+  dim3 grid(nBlocks), threads(nThreads);
+
+  copyImginBinimg_krnl<<< grid, threads>>>(binimg, validsubsx, validsubsy, Nb,
+                                                img, validx, validy, Nim, Npix);
+  carmaCheckMsg("copyImginBinimg_krnl<<<>>> execution failed\n");
+}
+
 /*
    ////////////////////////////////////////////////////////////////////////:
    New version of pyrgetpup for hr version of pyramid model

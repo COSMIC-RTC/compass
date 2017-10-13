@@ -19,8 +19,6 @@ p_tel.set_diam(39.)
 p_tel.set_cobs(0.28)
 
 #E_ELT PUPIL
-
-
 """
 p_tel.set_type_ap("EELT-Nominal")
 #p_tel.set_spiders_type("six")
@@ -53,12 +51,10 @@ p_target.set_ypos([0.])
 p_target.set_Lambda([1.65])
 p_target.set_mag([4.])
 
-
 # wfs
 #p_wfs0 = ao.Param_wfs(error_budget=True)
-p_wfs0= ao.Param_wfs()
+p_wfs0 = ao.Param_wfs()
 p_wfss = [p_wfs0]
-
 
 p_wfs0.set_type("pyrhr")
 p_wfs0.set_nxsub(88)
@@ -68,13 +64,13 @@ p_wfs0.set_ypos(0.)
 p_wfs0.set_Lambda(0.7)
 p_wfs0.set_gsmag(11)
 p_wfs0.set_optthroughput(0.5)
-p_wfs0.set_zerop(2.6e10) # 2.6e10 ph/s/m**2 computed by Rico in R band for MOSAIC
+p_wfs0.set_zerop(2.6e10)  # 2.6e10 ph/s/m**2 computed by Rico in R band for MOSAIC
 p_wfs0.set_noise(-1)  # in electrons units
 p_wfs0.set_atmos_seen(1)
 p_wfs0.set_fstop("square")
 p_wfs0.set_fssize(1.6)
 rMod = 5
-p_wfs0.set_pyr_npts(int(np.ceil(int(rMod*2* 3.141592653589793)/4.)*4))
+p_wfs0.set_pyr_npts(int(np.ceil(int(rMod * 2 * 3.141592653589793) / 4.) * 4))
 #p_wfs0.set_pyr_npts(31)
 p_wfs0.set_pyr_ampl(rMod)
 #p_wfs0.set_pyr_pup_sep(int(2 / 3. * p_wfs0.nxsub)) # diffraction effect
@@ -123,7 +119,6 @@ p_controller0 = ao.Param_controller()
 p_controllers = [p_controller0]
 
 p_controller0.set_type("ls")
-
 
 p_controller0.set_nwfs([0])
 p_controller0.set_ndm([0, 1])

@@ -472,11 +472,11 @@ int sutra_wfs_pyr_pyrhr::slopes_geom(int type) {
 
   return EXIT_SUCCESS;
 }
- 
-int sutra_wfs_pyr_pyrhr::copyValidPix(float *img, int *validx, int *validy, int im_dim){ 
- 
-  copyImginBinimg(this->d_binimg->getData(), this->d_validsubsx->getData(),this->d_validsubsy->getData(), 
-                      this->d_binimg->getDims(1), img, validx, validy, im_dim,  
-                      this->d_validsubsx->getDims(1), this->current_context->get_device(device)); 
-  return EXIT_SUCCESS; 
-} 
+
+int sutra_wfs_pyr_pyrhr::copyValidPix(float *img, int *validx, int *validy, int im_dim){
+
+  copyImginBinimg(this->d_binimg->getData(), this->d_validsubsx->getData(),this->d_validsubsy->getData(),
+                      this->d_binimg->getDims(1), img, validx, validy, im_dim,
+                      this->d_validsubsx->getDims(1), this->current_context->get_device(device));
+  return EXIT_SUCCESS;
+}
