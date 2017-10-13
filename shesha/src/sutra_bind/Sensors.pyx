@@ -942,3 +942,56 @@ cdef class Sensors:
         if seed < 0:
             seed = 1234 * nwfs
         self.sensors.set_noise(nwfs, noise, seed)
+        
+    def set_validpix(self, int n, np.ndarray[ndim=1, dtype=np.int32_t] validx, np.ndarray[ndim=1, dtype=np.int32_t] validy): 
+        """Set the valid pixels of a pyr wfs 
+ 
+        :parameters: 
+            n: (int) : number of the wfs to get the image from 
+            validx: 
+            validy: 
+ 
+        """ 
+         
+        return self._set_validpix(n, validx, validy) 
+ 
+    cdef _set_validpix(self, int n, np.ndarray[ndim=1, dtype=np.int32_t] datax, np.ndarray[ndim=1, dtype=np.int32_t] datay): 
+        """Set the valid pixels of a pyr wfs 
+ 
+        :parameters: 
+            n: (int) : number of the wfs to get the image from 
+            validx: 
+            validy: 
+ 
+        """ 
+        cdef carma_obj[int] * validx 
+        cdef carma_obj[int] * validy 
+        cdef const long * cdims 
+ 
+        cdef bytes type_wfs = < bytes > self.sensors.d_wfs[n].type 
+ 
+        if(type_wfs == "pyrhr"): 
+            validx = self.sensors.d_wfs[n].d_validsubsx 
+            validx.host2device( < int * > datax.data) 
+            validy = self.sensors.d_wfs[n].d_validsubsy 
+            validy.host2device( < int * > datay.data) 
+        else: 
+            raise TypeError("wfs should be a pyr") 
+ 
+ 
+    cpdef copy_pyrimg(self, int n, naga_obj_Float2D data,  naga_obj_Int1D validx, naga_obj_Int1D validy): 
+        """Set the image of a pyr wfsr 
+ 
+        :param n: (int) : number of the wfs to get the image from 
+ 
+        """ 
+ 
+        cdef bytes type_wfs = < bytes > self.sensors.d_wfs[n].type 
+        cdef sutra_wfs_pyr_pyrhr * wfs 
+         
+        if(type_wfs == "pyrhr"): 
+            wfs = dynamic_cast_wfs_pyr_pyrhr_ptr(self.sensors.d_wfs[n]) 
+            wfs.copyValidPix(<float *> data.c_o.getData(), <int *>validx.c_o.getData(), <int *>validy.c_o.getData(), data.c_o.getDims(1)); 
+        else: 
+            raise TypeError("wfs should be a pyr") 
+ 

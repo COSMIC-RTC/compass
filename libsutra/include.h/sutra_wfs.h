@@ -282,4 +282,7 @@ template <class T>
 void roof_fillbin(T *d_odata, T *d_idata, int nrebin, int np, int ns, int nim,
                   carma_device *device);
 
+void copyImginBinimg(float *binimg, int *validsubsx,int *validsubsy, 
+                    int Nb, float *img, int *validx, int *validy, int Nim, int Npix, carma_device *device); 
+
 #endif // _SUTRA_WFS_H_

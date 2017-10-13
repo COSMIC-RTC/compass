@@ -38,6 +38,8 @@ class sutra_wfs_pyr_pyrhr: public sutra_wfs_pyr {
 
   int comp_image();
   void comp_modulation(int cpt);
+  
+  int copyValidPix(float *img, int *validx, int *validy, int im_dim);
 
  private:
   int comp_generic();

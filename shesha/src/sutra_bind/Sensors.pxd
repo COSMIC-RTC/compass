@@ -17,6 +17,8 @@ from cpython.string cimport PyString_AsString
 
 from libc.math cimport sin
 
+from naga_obj cimport naga_obj_Float2D 
+
 from Telescope import *
 from Telescope cimport *
 #from shesha_param import *
@@ -58,3 +60,5 @@ cdef class Sensors:
     cdef _get_slopesDims(self, int n)
     cdef _get_slopes(self, int n)
     cdef _get_hrmap(self, int n)
+    cpdef copy_pyrimg(self, int n, naga_obj_Float2D data,  naga_obj_Int1D validx, naga_obj_Int1D validy)
+    cdef _set_validpix(self, int n, np.ndarray[ndim=1, dtype=np.int32_t] datax, np.ndarray[ndim=1, dtype=np.int32_t] datay) 
