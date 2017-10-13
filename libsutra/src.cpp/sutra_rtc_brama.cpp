@@ -130,12 +130,12 @@ void sutra_rtc_brama::allocateBuffers() {
 
   try {
     wfs_size = 0;
-    for (unsigned int i = 0; i < wfs->d_wfs.size(); i++) {
-      wfs_size += wfs->d_wfs[i]->d_binimg->getNbElem();
-    }
-
     target_size = 0;
     if(target != 0L) {
+      for (unsigned int i = 0; i < wfs->d_wfs.size(); i++) {
+        wfs_size += wfs->d_wfs[i]->d_binimg->getNbElem();
+      }
+
       for (unsigned int i = 0; i < target->d_targets.size(); i++) {
         target_size += target->d_targets[i]->d_image->getNbElem();
       }
@@ -149,13 +149,14 @@ void sutra_rtc_brama::allocateBuffers() {
     }
     nvalid = nslp/2;
 
-    buff_wfs = BRAMA::Values::allocbuf(wfs_size * sizeof(float));
     buff_intensities = BRAMA::Values::allocbuf(nvalid * sizeof(float));
     buff_slopes = BRAMA::Values::allocbuf(nslp * sizeof(float));
     buff_commands = BRAMA::Values::allocbuf(ncmd * sizeof(float));
     if(target != NULL) {
+      buff_wfs = BRAMA::Values::allocbuf(wfs_size * sizeof(float));
       buff_target = BRAMA::Values::allocbuf(target_size * sizeof(float));
     } else {
+      buff_wfs = NULL;
       buff_target = NULL;
     }
     dims_wfs = BRAMA::Dims::allocbuf(1);
@@ -195,14 +196,6 @@ void sutra_rtc_brama::publish() {
   CORBA::Float* buff_commands_servant = (CORBA::Float*) buff_commands;
   CORBA::Float* buff_target_servant = (CORBA::Float*) buff_target;
 
-  long idx = 0;
-  for (size_t wfs_i = 0; wfs_i < wfs->d_wfs.size(); wfs_i++) {
-    if(wfs->d_wfs[wfs_i]->type == "sh")
-      wfs->d_wfs[wfs_i]->fill_binimage(0);
-    wfs->d_wfs[wfs_i]->d_binimg->device2host(buff_wfs_servant + idx);
-    idx += wfs->d_wfs[wfs_i]->d_binimg->getNbElem();
-  }
-
   int nslp_current = 0;
   int ncmd_current = 0;
   int nvalid_current = 0;
@@ -217,11 +210,20 @@ void sutra_rtc_brama::publish() {
   }
 
   if(target != NULL) {
+    long idx = 0;
+    for (size_t wfs_i = 0; wfs_i < wfs->d_wfs.size(); wfs_i++) {
+      if(wfs->d_wfs[wfs_i]->type == "sh")
+        wfs->d_wfs[wfs_i]->fill_binimage(0);
+      wfs->d_wfs[wfs_i]->d_binimg->device2host(buff_wfs_servant + idx);
+      idx += wfs->d_wfs[wfs_i]->d_binimg->getNbElem();
+    }
+
     idx = 0;
+    carma_obj<float> tmp_img(target->d_targets[0]->current_context, target->d_targets[0]->d_image->getDims());
     for (size_t i = 0; i < target->d_targets.size(); i++) {
-      carma_obj<float> tmp_img(target->d_targets[i]->current_context, target->d_targets[i]->d_image->getDims());
-      float flux = target->d_targets[i]->zp
-                   * powf(10, -0.4 * target->d_targets[i]->mag);
+      target->d_targets[i]->comp_image(0, true);
+      float flux = 1.0f;
+      // target->d_targets[i]->zp * powf(10, -0.4 * target->d_targets[i]->mag);
       roll_mult<float>(
         tmp_img.getData(),
         target->d_targets[i]->d_image->getData(),
@@ -239,15 +241,7 @@ void sutra_rtc_brama::publish() {
   BRAMA::MegaFrame zFrame;
   zFrame.source = CORBA::string_dup("COMPASS RTC");
   zFrame.framecounter = framecounter;
-
-  zFrame.wfs.framecounter = framecounter;
-  zFrame.wfs.timestamp = BRAMA::get_timestamp();
-  zFrame.wfs.source = CORBA::string_dup("COMPASS WFSs");
-  zFrame.wfs.dimensions = BRAMA::Dims(1, 1, dims_wfs, 0);
-  zFrame.wfs.data = BRAMA::Values(wfs_size * sizeof(float), wfs_size * sizeof(float),
-                                  buff_wfs, 0);
-  zFrame.wfs.datatype = BRAMA::BRAMA_float32_t;
-  zFrame.wfs.sizeofelements = sizeof(float);
+  zFrame.timestamp = BRAMA::get_timestamp();
 
   zFrame.loopData.source = CORBA::string_dup("COMPASS WFSs");
 
@@ -284,19 +278,26 @@ void sutra_rtc_brama::publish() {
   zFrame.loopData.framecounter = framecounter;
   zFrame.loopData.timestamp = BRAMA::get_timestamp();
 
-  zFrame.target.framecounter = framecounter;
-  zFrame.target.timestamp = BRAMA::get_timestamp();
-  zFrame.target.source = CORBA::string_dup("COMPASS Targets");
-  zFrame.target.dimensions = BRAMA::Dims(1, 1, dims_target, 0);
-  zFrame.target.data = BRAMA::Values(target_size * sizeof(float), target_size * sizeof(float),
-                                     buff_target, 0);
-  zFrame.target.datatype = BRAMA::BRAMA_float32_t;
-  zFrame.target.sizeofelements = sizeof(float);
-
-  zFrame.timestamp = BRAMA::get_timestamp();
-
-//cout << "Publishing zFrame: " << zFrame.framecounter << endl;
+  //cout << "Publishing zFrame: " << zFrame.framecounter << endl;
   if(target != NULL) {
+    zFrame.wfs.framecounter = framecounter;
+    zFrame.wfs.timestamp = BRAMA::get_timestamp();
+    zFrame.wfs.source = CORBA::string_dup("COMPASS WFSs");
+    zFrame.wfs.dimensions = BRAMA::Dims(1, 1, dims_wfs, 0);
+    zFrame.wfs.data = BRAMA::Values(wfs_size * sizeof(float), wfs_size * sizeof(float),
+                                    buff_wfs, 0);
+    zFrame.wfs.datatype = BRAMA::BRAMA_float32_t;
+    zFrame.wfs.sizeofelements = sizeof(float);
+
+    zFrame.target.framecounter = framecounter;
+    zFrame.target.timestamp = BRAMA::get_timestamp();
+    zFrame.target.source = CORBA::string_dup("COMPASS Targets");
+    zFrame.target.dimensions = BRAMA::Dims(1, 1, dims_target, 0);
+    zFrame.target.data = BRAMA::Values(target_size * sizeof(float), target_size * sizeof(float),
+                                       buff_target, 0);
+    zFrame.target.datatype = BRAMA::BRAMA_float32_t;
+    zFrame.target.sizeofelements = sizeof(float);
+
     DDS::ReturnCode_t ret = megaframe_dw->write(zFrame, megaframe_handle);
     if (ret != DDS::RETCODE_OK) {
       ACE_ERROR(

@@ -91,7 +91,7 @@ void sutra_target_brama::allocateBuffers() {
 
   try {
     // TODO : handle targets with different supports...
-    dims_pixels = BRAMA::Dims::allocbuf();
+    dims_pixels = BRAMA::Dims::allocbuf(2);
     dims_pixels[0] = d_targets[0]->d_leimage->getDims(1);
     dims_pixels[1] = d_targets[0]->d_leimage->getDims(2);
 
@@ -136,9 +136,9 @@ void sutra_target_brama::publish() {
   carma_obj<float> tmp_img(d_targets[0]->current_context,
                            d_targets[0]->d_leimage->getDims());
   for (size_t target = 0; target < d_targets.size(); target++) {
-    float flux = 1.0f;
     d_targets[target]->comp_image(0, true);
-//      d_targets[target]->zp * powf(10, -0.4 * d_targets[target]->mag);
+    float flux = 1.0f;
+    // d_targets[target]->zp * powf(10, -0.4 * d_targets[target]->mag);
     roll_mult<float>(tmp_img.getData(), d_targets[target]->d_leimage->getData(),
                      d_targets[target]->d_leimage->getDims(1),
                      d_targets[target]->d_leimage->getDims(2), flux,
