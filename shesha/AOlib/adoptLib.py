@@ -2,13 +2,14 @@ import astropy.io.fits as pfits
 import time
 import tools
 
+
 def applyVoltGetSlopes(wao, noise=False):
-    wao.rtc.applycontrol(0, wao.dms)
+    wao.rtc.apply_control(0, wao.dms)
     for w in range(len(wao.config.p_wfss)):
-        wao.wfs.sensors_trace(w, "dm", wao.tel, wao.atm, wao.dms, rst=1)
+        wao.wfs.raytrace(w, "dm", wao.tel, wao.atm, wao.dms, rst=1)
         wao.wfs.sensors_compimg(w, noise=noise)
-    wao.rtc.docentroids(0)
-    return wao.rtc.getcentroids(0)
+    wao.rtc.do_centroids(0)
+    return wao.rtc.get_centroids(0)
 
 
 def measureIMatKL(ampliVec, KL2V, Nslopes):
@@ -45,14 +46,15 @@ def plotVDm(numdm, V, size=16, fignum=False):
     """
     plotVDm(0, KL2V[:,0][:-2], size=25, fignum=15)
     """
-    if(wao.config.p_dms[numdm]._j1.shape[0] != V.shape[0]):
-        print("Error V should have %d dimension not %d " % (wao.config.p_dms[numdm]._j1.shape[0], V.shape[0]))
+    if (wao.config.p_dms[numdm]._j1.shape[0] != V.shape[0]):
+        print("Error V should have %d dimension not %d " %
+              (wao.config.p_dms[numdm]._j1.shape[0], V.shape[0]))
     else:
-        if(fignum):
+        if (fignum):
             plt.figure(fignum)
         plt.clf()
-        plt.scatter(wao.config.p_dms[numdm]._j1, wao.config.p_dms[
-                    numdm]._i1, c=V, marker="s", s=size**2)
+        plt.scatter(wao.config.p_dms[numdm]._j1, wao.config.p_dms[numdm]._i1, c=V,
+                    marker="s", s=size**2)
         plt.colorbar()
 
 
@@ -81,12 +83,13 @@ def computeCmatKL(DKL, KL2V, nfilt, gains, gainTT):
     KL2V2Filt[:, -2:] = KL2V[:, -2:]
     # Direct inversion
     Dmp = np.linalg.inv(DKLfilt.dot(DKLfilt.T)).dot(DKLfilt)
-    for i in range(nmodes-2):
+    for i in range(nmodes - 2):
         Dmp[i, :] *= gains[i]
     Dmp[-2:, :] *= gainTT
     # Command matrix
     cmat = KL2V2Filt.dot(Dmp).astype(np.float32)
     return cmat
+
 
 def testDM(KL2VN, nmode, Nslopes, pushDMMic, pushTTArcsec, wao, disp=False):
     ampliVec = np.ones(KL2VN.shape[0])
@@ -98,7 +101,7 @@ def testDM(KL2VN, nmode, Nslopes, pushDMMic, pushTTArcsec, wao, disp=False):
     v = ampliVec[nmode] * KL2VN[:, nmode:nmode + 1].T.copy()
     wao.rtc.set_perturbcom(0, v)
     s = applyVoltGetSlopes(wao)
-    if(disp):
+    if (disp):
         plt.figure(10)
         plt.clf()
         plotVDm(0, v[0][:-2], fignum=10)
@@ -110,7 +113,7 @@ def testDM(KL2VN, nmode, Nslopes, pushDMMic, pushTTArcsec, wao, disp=False):
 
 #ampli = 1
 #Nactu = sum(wao.config.p_rtc.controllers[0].nactu)
-#Nslopes = wao.rtc.getCentroids(0).shape[0]
+#Nslopes = wao.rtc.get_centroids(0).shape[0]
 #wao.setIntegratorLaw()
 #gain = 0.8
 #wao.rtc.set_openloop(0, 1)  # openLoop
@@ -137,8 +140,6 @@ def testDM(KL2VN, nmode, Nslopes, pushDMMic, pushTTArcsec, wao, disp=False):
 #gains[-2:]=gTT;
 #wao.rtc.set_mgain(0, gains)
 #wao.rtc.set_openloop(0, 0)  # openLoop
-
-
 """
 KL2VN = normalizeKL2V(KL2V)
 plt.ion()
