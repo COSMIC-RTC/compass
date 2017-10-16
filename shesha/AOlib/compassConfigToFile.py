@@ -2,18 +2,23 @@ from collections import OrderedDict
 import os
 import astropy.io.fits as pfits
 import numpy as np
+"""
+This file parse the compass parameters ((wao object)) and writes the configuration in a text file to be read by any software.
+Arrays are written in .fits files
+
+"""
 
 
 def returnConfigfromWao(wao,
                         filepath=os.environ["SHESHA_ROOT"] + "/widgets/canapass.conf"):
     aodict = OrderedDict()
 
-    aodict.update({"Fe": 1 / wao.config.p_loop.ittime})
-    aodict.update({"teldiam": wao.config.p_tel.diam})
-    aodict.update({"telobs": wao.config.p_tel.cobs})
+    aodict.update({"Fe": 1 / wao.sim.config.p_loop.ittime})
+    aodict.update({"teldiam": wao.sim.config.p_tel.diam})
+    aodict.update({"telobs": wao.sim.config.p_tel.cobs})
 
     # WFS
-    aodict.update({"nbWfs": len(wao.config.p_wfss)})
+    aodict.update({"nbWfs": len(wao.sim.config.p_wfss)})
     aodict.update({"nbCam": aodict["nbWfs"]})
     aodict.update({"nbOffaxis": 0})
     aodict.update({"nbNgsWFS": 1})
@@ -23,8 +28,8 @@ def returnConfigfromWao(wao,
     aodict.update({"nbOffNgs": 0})
 
     # DMS
-    aodict.update({"Ndm": len(wao.config.p_dms)})
-    aodict.update({"Nactu": sum(wao.config.p_rtc.controllers[0].nactu)})
+    aodict.update({"Ndm": len(wao.sim.config.p_dms)})
+    aodict.update({"Nactu": sum(wao.sim.config.p_controllers[0].nactu)})
 
     # List of things
     aodict.update({"list_NgsOffAxis": []})
@@ -58,41 +63,41 @@ def returnConfigfromWao(wao,
     new_hduwfsSubapXY = pfits.HDUList()
     for i in range(aodict["nbWfs"]):
         new_hduwfsl.append(
-                pfits.ImageHDU(wao.config.p_wfss[i]._isvalid))  # Valid subap array
+                pfits.ImageHDU(wao.sim.config.p_wfss[i]._isvalid))  # Valid subap array
         new_hduwfsl[i].header["DATATYPE"] = "valid_wfs%d" % i
 
-        xytab = np.zeros((wao.config.p_wfss[i]._validsubsx.shape[0],
-                          wao.config.p_wfss[i]._validsubsy.shape[0]))
-        xytab[0] = wao.config.p_wfss[i]._validsubsx
-        xytab[1] = wao.config.p_wfss[i]._validsubsy
+        xytab = np.zeros((wao.sim.config.p_wfss[i]._validsubsx.shape[0],
+                          wao.sim.config.p_wfss[i]._validsubsy.shape[0]))
+        xytab[0] = wao.sim.config.p_wfss[i]._validsubsx
+        xytab[1] = wao.sim.config.p_wfss[i]._validsubsy
 
         new_hduwfsSubapXY.append(
                 pfits.ImageHDU(xytab))  # Valid subap array inXx Y on the detector
         new_hduwfsSubapXY[i].header["DATATYPE"] = "validXY_wfs%d" % i
 
-        pixsize.append(wao.config.p_wfss[i].pixsize)
-        NslopesList.append(wao.config.p_wfss[i]._nvalid * 2)  # slopes per wfs
-        NsubapList.append(wao.config.p_wfss[i]._nvalid)  # subap per wfs
-        listWfsType.append(wao.config.p_wfss[i].type)
-        xPosList.append(wao.config.p_wfss[i].xpos)
-        yPosList.append(wao.config.p_wfss[i].ypos)
-        fstopsize.append(wao.config.p_wfss[i].fssize)
-        fstoptype.append(wao.config.p_wfss[i].fstop)
-        nxsubList.append(wao.config.p_wfss[i].nxsub)
-        nysubList.append(wao.config.p_wfss[i].nxsub)
-        lambdaList.append(wao.config.p_wfss[i].Lambda)
-        dms_seen.append(list(wao.config.p_wfss[i].dms_seen))
+        pixsize.append(wao.sim.config.p_wfss[i].pixsize)
+        NslopesList.append(wao.sim.config.p_wfss[i]._nvalid * 2)  # slopes per wfs
+        NsubapList.append(wao.sim.config.p_wfss[i]._nvalid)  # subap per wfs
+        listWfsType.append(wao.sim.config.p_wfss[i].type)
+        xPosList.append(wao.sim.config.p_wfss[i].xpos)
+        yPosList.append(wao.sim.config.p_wfss[i].ypos)
+        fstopsize.append(wao.sim.config.p_wfss[i].fssize)
+        fstoptype.append(wao.sim.config.p_wfss[i].fstop)
+        nxsubList.append(wao.sim.config.p_wfss[i].nxsub)
+        nysubList.append(wao.sim.config.p_wfss[i].nxsub)
+        lambdaList.append(wao.sim.config.p_wfss[i].Lambda)
+        dms_seen.append(list(wao.sim.config.p_wfss[i].dms_seen))
 
-        if (wao.config.p_wfss[i].type == b"pyrhr"):
-            pyrModulationList.append(wao.config.p_wfss[i].pyr_ampl)
-            pyr_npts.append(wao.config.p_wfss[i].pyr_npts)
-            pyr_pupsep.append(wao.config.p_wfss[i].pyr_pup_sep)
+        if (wao.sim.config.p_wfss[i].type == b"pyrhr"):
+            pyrModulationList.append(wao.sim.config.p_wfss[i].pyr_ampl)
+            pyr_npts.append(wao.sim.config.p_wfss[i].pyr_npts)
+            pyr_pupsep.append(wao.sim.config.p_wfss[i].pyr_pup_sep)
             npixPerSub.append(1)
         else:
             pyrModulationList.append(0)
             pyr_npts.append(0)
             pyr_pupsep.append(0)
-            npixPerSub.append(wao.config.p_wfss[i].npix)
+            npixPerSub.append(wao.sim.config.p_wfss[i].npix)
     confname = filepath.split("/")[-1].split('.conf')[0]
     new_hduwfsl.writeto(filepath.split(".conf")[0] + '_wfsConfig.fits', clobber=True)
     new_hduwfsSubapXY.writeto(
@@ -122,20 +127,20 @@ def returnConfigfromWao(wao,
     new_hdudmsl = pfits.HDUList()
 
     for j in range(aodict["Ndm"]):
-        listDmsType.append(wao.config.p_dms[j].type)
-        NactuX.append(wao.config.p_dms[j].nact)
-        unitPerVolt.append(wao.config.p_dms[j].unitpervolt)
-        push4imat.append(wao.config.p_dms[j].push4imat)
-        coupling.append(wao.config.p_dms[j].coupling)
+        listDmsType.append(wao.sim.config.p_dms[j].type)
+        NactuX.append(wao.sim.config.p_dms[j].nact)
+        unitPerVolt.append(wao.sim.config.p_dms[j].unitpervolt)
+        push4imat.append(wao.sim.config.p_dms[j].push4imat)
+        coupling.append(wao.sim.config.p_dms[j].coupling)
         tmp = []
-        if (wao.config.p_dms[j].type != 'tt'):
-            tmpdata = np.zeros((2, len(wao.config.p_dm0._i1)))
-            tmpdata[0, :] = wao.config.p_dm0._j1
-            tmpdata[1, :] = wao.config.p_dm0._i1
+        if (wao.sim.config.p_dms[j].type != 'tt'):
+            tmpdata = np.zeros((2, len(wao.sim.config.p_dm0._i1)))
+            tmpdata[0, :] = wao.sim.config.p_dm0._j1
+            tmpdata[1, :] = wao.sim.config.p_dm0._i1
             new_hdudmsl.append(pfits.ImageHDU(tmpdata))  # Valid subap array
             new_hdudmsl[j].header["DATATYPE"] = "valid_dm%d" % j
         #for k in range(aodict["nbWfs"]):
-        #    tmp.append(wao.computeDMrange(j, k))
+        #    tmp.append(wao.sim.computeDMrange(j, k))
 
         push4iMatArcSec.append(tmp)
     new_hdudmsl.writeto(filepath.split(".conf")[0] + '_dmsConfig.fits', clobber=True)
@@ -152,7 +157,7 @@ def returnConfigfromWao(wao,
     Nsubap = sum(NsubapList)
     aodict.update({"Nslopes": Nslopes})
     aodict.update({"Nsubap": Nsubap})
-    f = open(filepath, 'wr+')
+    f = open(filepath, 'w+')
     for dictval in aodict:
         f.write(dictval + ":" + str(aodict[dictval]) + "\n")
     f.close()
