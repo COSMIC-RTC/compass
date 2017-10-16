@@ -170,7 +170,7 @@ void sutra_target_brama::publish() {
 
   for (size_t target = 0; target < d_targets.size(); target++) {
     d_targets[target]->reset_strehlmeter();
-    samplecounter = 0;
+    samplecounter = 1;
   }
 
   framecounter++;
