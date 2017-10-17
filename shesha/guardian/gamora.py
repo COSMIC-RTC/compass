@@ -72,7 +72,7 @@ def psf_rec_roket_file_cpu(filename):
         amplipup = np.fft.fft2(amplipup)
         psf += np.fft.fftshift(np.abs(amplipup)**2) / \
             IF.shape[1] / IF.shape[1] / err.shape[1]
-        print(" Computing and stacking PSF : %d/%d\r" % (i, n), end=' ')
+        print(" Computing and stacking PSF : %d/%d\r" % (k, err.shape[1]), end=' ')
     print("PSF computed and stacked")
     f.close()
     return psf
@@ -105,7 +105,8 @@ def psf_rec_Vii(filename, err=None, fitting=True, covmodes=None, cov=None):
     # Init GPU
     gpu = gamora_init(b"Vii", Btt.shape[0], f["noise"][:].shape[1],
                       IF.data.astype(np.float32), IF.indices, IF.indptr, T,
-                      spup.astype(np.float32), scale, covmodes.shape[0], Btt, covmodes)
+                      spup.astype(np.float32), scale, covmodes.shape[0], Btt,
+                      covmodes.astype(np.float32))
     # Launch computation
     # gamora.set_eigenvals(e.astype(np.float32))
     # gamora.set_covmodes(V.astype(np.float32))

@@ -419,10 +419,14 @@ int sutra_gamora::psf_rec_Vii() {
 
 
   // Loop on the modes to compute OTF from Vii on the fly
+  std::cout << "Computing Vii: " << std::endl;
+  auto progress = carma_utils::ProgressBar(this->nmodes);
   for (int k = 0; k < this->nmodes; k++) {
     compute_Dphi_on_mode_k(k);
-    printf("\rComputing OTF with %d Vii : %d%%",this->nmodes,(k*100/this->nmodes));
+    progress.update();
+    //printf("\rComputing OTF with %d Vii : %d%%",this->nmodes,(k*100/this->nmodes));
   }
+  progress.finish();
   this->current_context->set_activeDevice(this->device,1);
 
   carma_obj<cuFloatComplex> *tmp_vector = new carma_obj<cuFloatComplex>(current_context,

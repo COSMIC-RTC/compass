@@ -38,8 +38,7 @@ roket = Roket(param_file)
 if arguments["--diam"]:
     roket.config.p_tel.set_diam(float(arguments["--diam"]))
 if arguments["--niter"]:
-    roket.n = int(arguments["--niter"]) + roket.N_preloop
-    roket.config.p_loop.set_niter(roket.n)
+    roket.config.p_loop.set_niter(int(arguments["--niter"]))
 if arguments["--nssp"]:
     roket.config.p_wfss[0].set_nxsub(int(arguments["--nssp"]))
     roket.config.p_dms[0].set_nact(int(arguments["--nssp"]) + 1)
