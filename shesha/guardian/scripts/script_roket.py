@@ -14,6 +14,8 @@ Options:
   --npix npix                 Set the number of pixels per subap.
   --pixsize pixsize           Set the WFS pixel size [arcsec]
   --nfilt nfilt               Set the number of filtered modes
+  --winddir winddir           Set the wind direction
+  --windspeed windspeed       Set the wind speed
 
 Usage with Ipython: ipython [-i] script_roket.py -- [options]
 """
@@ -48,6 +50,10 @@ if arguments["--pixsize"]:
     roket.config.p_wfss[0].set_pixsize(float(arguments["--pixsize"]))
 if arguments["--nfilt"]:
     roket.config.p_controllers[0].set_maxcond(float(arguments["--nfilt"]))
+if arguments["--windspeed"]:
+    roket.config.p_atmos.set_windspeed([float(arguments["--windspeed"])])
+if arguments["--winddir"]:
+    roket.config.p_atmos.set_winddir([float(arguments["--winddir"])])
 
 roket.init_sim()
 roket.loop()
