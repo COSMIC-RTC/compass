@@ -65,8 +65,8 @@ sutra_rtc_brama::sutra_rtc_brama(carma_context *context, sutra_sensors *wfs_, su
       throw "SuperFrameDataWriter could not be narrowed";
     }
 
-    BRAMA::SuperFrame xFrame;
-    superframe_handle = superframe_dw->register_instance(xFrame);
+    // BRAMA::SuperFrame xFrame;
+    // superframe_handle = superframe_dw->register_instance(xFrame);
 
     if(target != NULL) {
       // Create an BRAMA MegaFrame writer
@@ -82,8 +82,8 @@ sutra_rtc_brama::sutra_rtc_brama(carma_context *context, sutra_sensors *wfs_, su
         throw "MegaFrameDataWriter could not be narrowed";
       }
 
-      BRAMA::MegaFrame zFrame;
-      megaframe_handle = megaframe_dw->register_instance(zFrame);
+      // BRAMA::MegaFrame zFrame;
+      // megaframe_handle = megaframe_dw->register_instance(zFrame);
     }
 
     is_initialised = 1;

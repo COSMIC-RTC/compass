@@ -62,8 +62,8 @@ sutra_target_brama::sutra_target_brama(carma_context *context, ACE_TCHAR *name,
       throw "FrameDataWriter could not be narrowed";
     }
 
-    BRAMA::Frame zFrame;
-    frame_handle = frame_dw->register_instance(zFrame);
+    // BRAMA::Frame zFrame;
+    // frame_handle = frame_dw->register_instance(zFrame);
 
     is_initialised = 1;
 
@@ -91,9 +91,10 @@ void sutra_target_brama::allocateBuffers() {
 
   try {
     // TODO : handle targets with different supports...
-    dims_pixels = BRAMA::Dims::allocbuf(2);
-    dims_pixels[0] = d_targets[0]->d_leimage->getDims(1);
-    dims_pixels[1] = d_targets[0]->d_leimage->getDims(2);
+    dims_pixels = BRAMA::Dims::allocbuf(3);
+    dims_pixels[0] = d_targets.size();
+    dims_pixels[1] = d_targets[0]->d_leimage->getDims(1);
+    dims_pixels[2] = d_targets[0]->d_leimage->getDims(2);
 
     buff_pixels = BRAMA::Values::allocbuf(d_targets.size() *
                                           d_targets[0]->d_leimage->getNbElem() *
@@ -153,7 +154,7 @@ void sutra_target_brama::publish() {
   zFrame.framecounter = framecounter;
   zFrame.timestamp = BRAMA::get_timestamp();
   zFrame.source = CORBA::string_dup("BRAMA TARGET");
-  zFrame.dimensions = BRAMA::Dims(2, 2, dims_pixels, 0);
+  zFrame.dimensions = BRAMA::Dims(3, 3, dims_pixels, 0);
   zFrame.data =
     BRAMA::Values(idx * sizeof(float), idx * sizeof(float), buff_pixels, 0);
   zFrame.datatype = BRAMA::BRAMA_float32_t;

@@ -35,7 +35,8 @@ print("======================================")
 
 listMod = ["Telescope", "Sensors", "Atmos", "Dms", "Target", "Rtc", "Gamora", "Groot"]
 dependencies = {
-        "Sensors": ["Telescope"], "Target": ["Telescope"]
+        "Sensors": ["Telescope"],
+        "Target": ["Telescope"]
         # "shesha_roket": listMod[:-2],
 }
 
@@ -66,7 +67,8 @@ def locate_compass():
     compass_config = {
             'inc_sutra': root_compass + '/libsutra/include.h',
             'inc_carma': root_compass + '/libcarma/include.h',
-            'inc_naga': root_compass + '/naga', 'lib': root_compass
+            'inc_naga': root_compass + '/naga',
+            'lib': root_compass
     }
 
     return compass_config
