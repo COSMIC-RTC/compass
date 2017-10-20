@@ -32,7 +32,8 @@ class Bokeh_groot:
         self.nmodes = None
         self.nslopes = None
 
-        self.url = "http://hippo6.obspm.fr/~fferreira/roket_display"
+        self.url = "http://" + os.uname()[1] + ".obspm.fr/~" + os.getlogin(
+        ) + "/roket_display"
         self.old = None
         self.psf_compass = None
         self.psf_roket = None
@@ -101,6 +102,7 @@ class Bokeh_groot:
         self.select_files.on_change("value", lambda attr, old, new: self.update())
         self.button_psf.on_click(self.comp_psf)
         self.button_covmat.on_click(self.comp_covmats)
+        self.update()
 
         #layouts
         self.control_box = widgetbox(self.select_datapath, self.select_files,
@@ -149,7 +151,8 @@ class Bokeh_groot:
         """
         if self.psf_roket is not None:
             time = str(datetime.datetime.now().strftime('%Y-%m-%d_%H_%M_%f'))
-            self.old = "/home/fferreira/public_html/roket_display" + time + ".png"
+            self.old = "/home/" + os.getlogin(
+            ) + "/public_html/roket_display" + time + ".png"
             mpl.image.imsave(self.old, np.log10(np.abs(self.psf_roket)))
             self.image_roket.image_url(url=dict(value=self.url + time + ".png"), x=0,
                                        y=0, w=self.psf_roket.shape[0],
@@ -160,7 +163,8 @@ class Bokeh_groot:
 
         if self.psf_groot is not None:
             time = str(datetime.datetime.now().strftime('%Y-%m-%d_%H_%M_%f'))
-            self.old = "/home/fferreira/public_html/roket_display" + time + ".png"
+            self.old = "/home/" + os.getlogin(
+            ) + "/public_html/roket_display" + time + ".png"
             mpl.image.imsave(self.old, np.log10(np.abs(self.psf_groot)))
             self.image_groot.image_url(url=dict(value=self.url + time + ".png"), x=0,
                                        y=0, w=self.psf_groot.shape[0],
@@ -175,7 +179,8 @@ class Bokeh_groot:
         """
         if self.covmat_roket is not None:
             time = str(datetime.datetime.now().strftime('%Y-%m-%d_%H_%M_%f'))
-            self.old = "/home/fferreira/public_html/roket_display" + time + ".png"
+            self.old = "/home/" + os.getlogin(
+            ) + "/public_html/roket_display" + time + ".png"
             mpl.image.imsave(self.old, self.covmat_roket)
             self.im_covmat_roket.image_url(url=dict(value=self.url + time + ".png"), x=0,
                                            y=0, w=self.covmat_roket.shape[0],
@@ -185,7 +190,8 @@ class Bokeh_groot:
 
         if self.covmat_groot is not None:
             time = str(datetime.datetime.now().strftime('%Y-%m-%d_%H_%M_%f'))
-            self.old = "/home/fferreira/public_html/roket_display" + time + ".png"
+            self.old = "/home/" + os.getlogin(
+            ) + "/public_html/roket_display" + time + ".png"
             mpl.image.imsave(self.old, self.covmat_groot)
             self.im_covmat_groot.image_url(url=dict(value=self.url + time + ".png"), x=0,
                                            y=0, w=self.covmat_groot.shape[0],

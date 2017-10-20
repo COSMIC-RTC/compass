@@ -1,3 +1,7 @@
+"""
+GROOT (Gpu-based Residual errOr cOvariance maTrix)
+Python module for modelization of error covariance matrix
+"""
 import numpy as np
 import h5py
 from Groot import groot_init
@@ -441,9 +445,17 @@ def compute_PSF(filename):
 
 
 def test_Calias(filename):
+    """ Returns the aliasing slopes covariance matrix using CPU version of GROOT
+    from a ROKET file and a model based on structure function
+    :parameter:
+        filename : (string) : full path to the ROKET file
+    :return:
+        Ca : (np.ndarray(dim=2, dtype=np.float32)) : aliasing error covariance matrix
+    """
+
     f = h5py.File(filename, 'r')
     tabx, taby = Dphi.tabulateIj0()
-    nsub = f["Cmm"][:].shape[0] // 2
+    nsub = f["R"][:].shape[1] // 2
     nssp = f.attrs["_Param_wfs__nxsub"][0]
     npix = f.attrs["_Param_wfs__npix"][0]
     validint = f.attrs["_Param_tel__cobs"]
@@ -476,8 +488,8 @@ def test_Calias(filename):
     aB = np.linalg.norm([xx + d, yy], axis=0)
     ab = AB
 
-    Cmm = np.zeros((2 * nsub, 2 * nsub))
-    Cmm[:nsub, :nsub] = 0.5 * (
+    Ca = np.zeros((2 * nsub, 2 * nsub))
+    Ca[:nsub, :nsub] = 0.5 * (
             Dphi.dphi_highpass(Ab, fc, tabx, taby) + Dphi.dphi_highpass(
                     aB, fc, tabx, taby) - 2 * Dphi.dphi_highpass(AB, fc, tabx, taby)) * (
                             1 / r0)**(5. / 3.)
@@ -486,7 +498,7 @@ def test_Calias(filename):
     cD = np.linalg.norm([xx, yy + d], axis=0)
     cd = CD
 
-    Cmm[nsub:, nsub:] = 0.5 * (
+    Ca[nsub:, nsub:] = 0.5 * (
             Dphi.dphi_highpass(Cd, fc, tabx, taby) + Dphi.dphi_highpass(
                     cD, fc, tabx, taby) - 2 * Dphi.dphi_highpass(CD, fc, tabx, taby)) * (
                             1 / r0)**(5. / 3.)
@@ -496,13 +508,10 @@ def test_Calias(filename):
     # Ad = np.linalg.norm([xx - d/2, yy - d/2], axis=0)
     # AD = np.linalg.norm([xx - d/2, yy + d/2], axis=0)
     #
-    # Cmm[nsub:,:nsub] = 0.25 * (Dphi.dphi_highpass(Ad, d, tabx, taby)
+    # Ca[nsub:,:nsub] = 0.25 * (Dphi.dphi_highpass(Ad, d, tabx, taby)
     #                 + Dphi.dphi_highpass(aD, d, tabx, taby)
     #                 - Dphi.dphi_highpass(AD, d, tabx, taby)
     #                 - Dphi.dphi_highpass(ad, d, tabx, taby)) * (1 / r0)**(5. / 3.)
-    # Cmm[:nsub,nsub:] = Cmm[nsub:,:nsub].copy()
+    # Ca[:nsub,nsub:] = Ca[nsub:,:nsub].copy()
 
-    a = f["alias_meas"][:]
-    Calias = a.dot(a.T) / a.shape[1]
-
-    return Cmm * scale, Calias
+    return Ca * scale

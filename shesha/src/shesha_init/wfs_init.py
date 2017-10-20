@@ -1,9 +1,5 @@
-#!/usr/local/bin/python3.6
-# encoding: utf-8
 '''
-Created on 1 aout 2017
-
-@author: fferreira
+Initialization of a Sensors object
 '''
 
 from naga import naga_context
@@ -33,6 +29,8 @@ def wfs_init(context: naga_context, telescope: Telescope, p_wfss: list,
         p_geom: (Param_geom) : geom settings
         p_dms : (list of Param_dm) : (optional) dms settings
         p_atmos: (Param_atmos) : (optional) atmos settings
+    :return:
+        g_wfs: (Sensors): Sensors object
     """
     # create sensor object on gpu
     # and init sensor gs object on gpu

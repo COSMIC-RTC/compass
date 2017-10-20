@@ -1,3 +1,6 @@
+"""
+Initialization of a Rtc object
+"""
 from naga import naga_context
 
 import shesha_config as conf

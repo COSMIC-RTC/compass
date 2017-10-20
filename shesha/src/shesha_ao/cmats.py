@@ -1,3 +1,6 @@
+"""
+Computation implementations of command matrix
+"""
 import numpy as np
 import time
 

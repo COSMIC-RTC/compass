@@ -1,3 +1,7 @@
+"""
+Functions for handling the database system
+Wrapping of some h5py function for quick HDF5 save
+"""
 import h5py
 import pandas
 import os

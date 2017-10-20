@@ -1,9 +1,5 @@
-#!/usr/local/bin/python3.6
-# encoding: utf-8
 '''
-Created on 1 aout 2017
-
-@author: fferreira
+Initialization of the system geometry and of the Telescope object
 '''
 
 from naga import naga_context
@@ -33,6 +29,8 @@ def tel_init(context: naga_context, p_geom: conf.Param_geom, p_tel: conf.Param_t
         ittime: (float) : 1/loop frequency [s]
         p_wfss: (list of Param_wfs) : wfs settings
         dm: (list of Param_dm) : (optional) dms settings [=None]
+    :return:
+        telescope: (Telescope): Telescope object
 
     """
     if p_wfss is not None:
@@ -131,13 +129,11 @@ def init_wfs_size(p_wfs: conf.Param_wfs, r0: float, p_tel: conf.Param_tel, verbo
     """Compute all the parameters usefull for further WFS image computation (array sizes)
 
     :parameters:
-        wfs: (Param_wfs) : wfs settings
+        p_wfs: (Param_wfs) : wfs settings
 
         r0: (float) : atmos r0 @ 0.5 microns
 
         p_tel: (Param_tel) : telescope settings
-
-        psize: (int) : unused TODO: remove it
 
         verbose: (int) : (optional) display informations if 0
 

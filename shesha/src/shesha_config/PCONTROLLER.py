@@ -1,9 +1,6 @@
-#!/usr/local/bin/python2.7
-# encoding: utf-8
 '''
-Created on 9 aout 2017
-
-@author: fferreira
+Param_controller class definition
+Parameters for controller
 '''
 
 import numpy as np

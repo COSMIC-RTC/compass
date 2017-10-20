@@ -1,3 +1,6 @@
+"""
+Computation of tomographic reconstructor
+"""
 import numpy as np
 
 import shesha_config as conf

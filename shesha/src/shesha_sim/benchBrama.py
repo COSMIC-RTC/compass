@@ -1,3 +1,7 @@
+"""
+Benchmark class for COMPASS with BRAMA simulation timing
+(Not used, incomplete)
+"""
 from time import time, sleep
 
 from .simulatorBrama import SimulatorBrama
@@ -15,7 +19,7 @@ class BenchBrama(SimulatorBrama):
 
         :param nControl (int): Controller number to use, default 0 (single control configurations)
         '''
-        
+
         # self.rtc.do_centroids(nControl)
         # self.rtc.do_control(nControl)
         # self.rtc.do_clipping(0, -1e5, 1e5)
@@ -42,6 +46,6 @@ class BenchBrama(SimulatorBrama):
                 t0 = time()
                 print("%d \t %.1f" % (niter + 1, framerate))
             tmp = time() - start
-            if freq>0:
-                sleep(1/freq - tmp)
+            if freq > 0:
+                sleep(1 / freq - tmp)
             niter += 1

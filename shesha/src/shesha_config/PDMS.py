@@ -1,9 +1,6 @@
-#!/usr/local/bin/python2.7
-# encoding: utf-8
 '''
-Created on 12 juil. 2017
-
-@author: vdeo
+Param_dm class definition
+Parameters for DM
 '''
 
 import numpy as np

@@ -1,7 +1,11 @@
 """
-Created on Wed Apr 27 09:28:23 2016
+ROKET (erROr breaKdown Estimation Tool)
 
-@author: fferreira
+Computes the error breakdown during a COMPASS simulation
+and saves it in a HDF5 file
+Error contributors are bandwidth, tomography, noise, aliasing,
+WFS non linearity, filtered modes and fitting
+Saved file contained temporal buffers of those contributors
 """
 
 import cProfile
@@ -24,13 +28,28 @@ from scipy.sparse import csr_matrix
 
 
 class Roket(Simulator):
+    """
+    ROKET class
+    Inherits from Simulator class
+    """
 
     def __init__(self, str=None, N_preloop=1000, gamma=1.):
+        """
+        Initializes an instance of Roket class
+
+        :parameters:
+            str: (str): (optional) path to a parameter file
+            N_preloop: (int): (optional) number of iterations before starting error breakdown estimation
+            gamma: (float): (optional) centroid gain
+        """
         super().__init__(str)
         self.N_preloop = N_preloop
         self.gamma = gamma
 
     def init_sim(self):
+        """
+        Initializes the COMPASS simulation and the ROKET buffers
+        """
         super().init_sim()
         self.iter_number = 0
         self.n = self.config.p_loop.niter + self.N_preloop
@@ -88,7 +107,10 @@ class Roket(Simulator):
 
     def loop(self, monitoring_freq=100, **kwargs):
         """
-            TODO: docstring
+        Performs the AO loop for n iterations
+
+        :parameters:
+            monitoring_freq: (int): (optional) Loop monitoring frequency [frames] in the terminal
         """
         print("-----------------------------------------------------------------")
         print("iter# | SE SR | LE SR | FIT SR | PH SR | ETR (s) | Framerate (Hz)")
@@ -274,6 +296,12 @@ class Roket(Simulator):
         self.rtc.set_com(0, Dcom)
 
     def save_in_hdf5(self, savename):
+        """
+        Saves all the ROKET buffers + simuation parameters in a HDF5 file
+
+        :parameters:
+            savename: (str): name of the output file
+        """
         tmp = (self.config.p_geom._ipupil.shape[0] -
                (self.config.p_dms[0]._n2 - self.config.p_dms[0]._n1 + 1)) // 2
         tmp_e0 = self.config.p_geom._ipupil.shape[0] - tmp
@@ -286,50 +314,87 @@ class Roket(Simulator):
 
         fname = os.getenv("DATA_GUARDIAN") + savename
         pdict = {
-                "noise": self.noise_com[self.N_preloop:, :].T, 
-                "aliasing": self.alias_wfs_com[self.N_preloop:, :].T, 
-                "tomography": self.tomo_com[self.N_preloop:, :].T,
-                "filtered modes": self.H_com[self.N_preloop:, :].T, 
-                "non linearity": self.trunc_com[self.N_preloop:, :].T, 
-                "bandwidth": self.bp_com[self.N_preloop:, :].T, 
-                "wf_com": self.wf_com[self.N_preloop:, :].T, 
-                "P": self.P, 
-                "Btt": self.Btt, 
-                "IF.data": self.IFpzt.data,
-                "IF.indices": self.IFpzt.indices, 
-                "IF.indptr": self.IFpzt.indptr, 
-                "TT": self.TT, 
-                "dm_dim": dm_dim, 
-                "indx_pup": indx_pup,
-                "fitting": np.mean(self.fit[self.N_preloop:]), 
-                "SR": self.SR, 
-                "SR2": self.SR2, 
-                "cov": self.cov, 
-                "cor": self.cor,
-                "psfortho": np.fft.fftshift(self.psf_ortho) /
-                        (self.config.p_loop.niter - self.N_preloop), 
-                "centroid_gain": self.centroid_gain /
-                                (self.config.p_loop.niter - self.N_preloop), 
-                "dm.xpos": self.config.p_dms[0]._xpos, 
-                "dm.ypos": self.config.p_dms[0]._ypos, 
-                "R": self.rtc.get_cmat(0), 
-                "D": self.rtc.get_imat(0),
-                "Nact": self.Nact, 
-                "com": self.com[self.N_preloop:, :].T, 
-                "slopes":self.slopes[self.N_preloop:, :].T, 
-                "alias_meas": self.alias_meas[self.N_preloop:, :].T, 
-                "trunc_meas": self.trunc_meas[self.N_preloop:, :].T
+                "noise":
+                        self.noise_com[self.N_preloop:, :].T,
+                "aliasing":
+                        self.alias_wfs_com[self.N_preloop:, :].T,
+                "tomography":
+                        self.tomo_com[self.N_preloop:, :].T,
+                "filtered modes":
+                        self.H_com[self.N_preloop:, :].T,
+                "non linearity":
+                        self.trunc_com[self.N_preloop:, :].T,
+                "bandwidth":
+                        self.bp_com[self.N_preloop:, :].T,
+                "wf_com":
+                        self.wf_com[self.N_preloop:, :].T,
+                "P":
+                        self.P,
+                "Btt":
+                        self.Btt,
+                "IF.data":
+                        self.IFpzt.data,
+                "IF.indices":
+                        self.IFpzt.indices,
+                "IF.indptr":
+                        self.IFpzt.indptr,
+                "TT":
+                        self.TT,
+                "dm_dim":
+                        dm_dim,
+                "indx_pup":
+                        indx_pup,
+                "fitting":
+                        np.mean(self.fit[self.N_preloop:]),
+                "SR":
+                        self.SR,
+                "SR2":
+                        self.SR2,
+                "cov":
+                        self.cov,
+                "cor":
+                        self.cor,
+                "psfortho":
+                        np.fft.fftshift(self.psf_ortho) /
+                        (self.config.p_loop.niter - self.N_preloop),
+                "centroid_gain":
+                        self.centroid_gain / (self.config.p_loop.niter - self.N_preloop),
+                "dm.xpos":
+                        self.config.p_dms[0]._xpos,
+                "dm.ypos":
+                        self.config.p_dms[0]._ypos,
+                "R":
+                        self.rtc.get_cmat(0),
+                "D":
+                        self.rtc.get_imat(0),
+                "Nact":
+                        self.Nact,
+                "com":
+                        self.com[self.N_preloop:, :].T,
+                "slopes":
+                        self.slopes[self.N_preloop:, :].T,
+                "alias_meas":
+                        self.alias_meas[self.N_preloop:, :].T,
+                "trunc_meas":
+                        self.trunc_meas[self.N_preloop:, :].T
         }
         h5u.save_h5(fname, "psf", self.config, psf)
         for k in list(pdict.keys()):
             h5u.save_hdf5(fname, k, pdict[k])
 
     def cov_cor(self):
+        """
+        Computes covariance matrix and correlation matrix between all the contributors
+        """
         self.cov = np.zeros((6, 6))
         self.cor = np.zeros((6, 6))
         bufdict = {
-                "0": self.noise_com.T, "1": self.trunc_com.T, "2": self.alias_wfs_com.T,
-                "3": self.H_com.T, "4": self.bp_com.T, "5": self.tomo_com.T
+                "0": self.noise_com.T,
+                "1": self.trunc_com.T,
+                "2": self.alias_wfs_com.T,
+                "3": self.H_com.T,
+                "4": self.bp_com.T,
+                "5": self.tomo_com.T
         }
         for i in range(self.cov.shape[0]):
             for j in range(self.cov.shape[1]):

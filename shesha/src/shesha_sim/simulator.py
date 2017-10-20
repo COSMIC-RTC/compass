@@ -1,3 +1,7 @@
+"""
+Simulator class definition
+Must be instantiated for running a COMPASS simulation script easily
+"""
 import sys
 import os
 
@@ -14,10 +18,18 @@ from typing import Iterable, Any, Dict
 
 
 class Simulator:
+    """
+    The Simulator class is self sufficient for running a COMPASS simulation
+    Initializes and run a COMPASS simulation
+    """
 
     def __init__(self, filepath: str=None, use_DB: bool=False) -> None:
         """
-        TODO: docstring
+        Initializes a Simulator instance
+
+        :parameters:
+            filepath: (str): (optional) path to the parameters file
+            use_DB: (bool): (optional) flag to use dataBase system
         """
         self.is_init = False  # type: bool
         self.loaded = False  # type: bool
@@ -40,7 +52,7 @@ class Simulator:
 
     def __str__(self) -> str:
         """
-        TODO: docstring
+        Print the objects created in the Simulator instance
         """
         s = ""
         if self.is_init:
@@ -64,6 +76,9 @@ class Simulator:
         return s
 
     def force_context(self) -> None:
+        """
+        Active all the GPU devices specified in the parameters file
+        """
         if self.loaded and self.c is not None:
             current_Id = self.c.get_activeDevice()
             for devIdx in range(len(self.config.p_loop.devices)):
@@ -72,7 +87,11 @@ class Simulator:
 
     def load_from_file(self, filepath: str) -> None:
         """
-        TODO: docstring
+        Load the parameters from the parameters file
+
+        :parameters:
+            filepath: (str): path to the parameters file
+
         """
         self.loaded = False
         self.is_init = False
@@ -124,6 +143,9 @@ class Simulator:
         self.loaded = True
 
     def clear_init(self) -> None:
+        """
+        Delete objects initialized in a previous simulation
+        """
         if self.loaded and self.is_init:
             self.iter = 0
 
@@ -147,7 +169,7 @@ class Simulator:
 
     def init_sim(self) -> None:
         """
-        TODO: docstring
+        Initializes the simulation by creating all the sutra objects that will be used
         """
         if not self.loaded:
             raise ValueError("Config must be loaded before call to init_sim")
@@ -213,6 +235,9 @@ class Simulator:
                               self.matricesToLoad)
 
     def _tar_init(self) -> None:
+        """
+        Initializes the Target object in the simulator
+        """
         if self.config.p_target is not None:
             print("->target")
             self.tar = init.target_init(self.c, self.tel, self.config.p_target,
@@ -223,6 +248,9 @@ class Simulator:
             self.tar = None
 
     def _rtc_init(self, ittime: float) -> None:
+        """
+        Initializes the Rtc object in the simulator
+        """
         if self.config.p_controllers is not None or self.config.p_centroiders is not None:
             print("->rtc")
             #   rtc
@@ -238,18 +266,19 @@ class Simulator:
     def next(self, *, move_atmos: bool=True, see_atmos: bool=True, nControl: int=0,
              tar_trace: Iterable[int]=None, wfs_trace: Iterable[int]=None,
              apply_control: bool=True) -> None:
-        ''' function next
-            Iterates the AO loop, with optional parameters
+        '''
+        Iterates the AO loop, with optional parameters
 
-        :param move_atmos (bool): move the atmosphere for this iteration, default: True
+        :parameters:
+             move_atmos: (bool): move the atmosphere for this iteration, default: True
 
-        :param nControl (int): Controller number to use, default 0 (single control configurations)
+             nControl: (int): Controller number to use, default 0 (single control configurations)
 
-        :param tar_trace (None or list[int]): list of targets to trace. None equivalent to all.
+             tar_trace: (None or list[int]): list of targets to trace. None equivalent to all.
 
-        :param wfs_trace (None or list[int]): list of WFS to trace. None equivalent to all.
+             wfs_trace: (None or list[int]): list of WFS to trace. None equivalent to all.
 
-        :param apply_control (bool): (optional) if True (default), apply control on DMs
+             apply_control: (bool): (optional) if True (default), apply control on DMs
         '''
         if tar_trace is None:
             tar_trace = range(self.config.p_target.ntargets)
@@ -295,7 +324,11 @@ class Simulator:
 
     def loop(self, n=1, monitoring_freq=100, **kwargs):
         """
-        TODO: docstring
+        Perform the AO loop for n iterations
+
+        :parameters:
+            n: (int): (optional) Number of iteration that will be done
+            monitoring_freq: (int): (optional) Monitoring frequency [frames]
         """
         print("----------------------------------------------------")
         print("iter# | S.E. SR | L.E. SR | ETR (s) | Framerate (Hz)")

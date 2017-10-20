@@ -1,9 +1,6 @@
-#!/usr/local/bin/python3.6
-# encoding: utf-8
 '''
-Created on 31 juil. 2017
-
-@author: fferreira
+Param_wfs class definition
+Parameters for WFS
 '''
 
 import numpy as np

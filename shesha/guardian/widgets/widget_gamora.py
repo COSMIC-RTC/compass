@@ -30,7 +30,8 @@ class Bokeh_gamora:
         self.Btt = None
         self.P = None
 
-        self.url = "http://hippo6.obspm.fr/~fferreira/roket_display"
+        self.url = "http://" + os.uname()[1] + ".obspm.fr/~" + os.getlogin(
+        ) + "/roket_display"
         self.old = None
         self.psf_compass = None
         self.psf_Vii = None
@@ -76,7 +77,7 @@ class Bokeh_gamora:
         self.button_psf.on_click(self.comp_psf)
         self.button_roll.on_click(self.roll_psf)
 
-        #self.update_psf()
+        self.update()
 
         #layouts
         self.control_box = widgetbox(self.select_datapath, self.select_files,
@@ -118,7 +119,7 @@ class Bokeh_gamora:
 
         psfc = self.psf_compass
         time = str(datetime.datetime.now().strftime('%Y-%m-%d_%H_%M_%f'))
-        self.old = "/home/fferreira/public_html/roket_display" + time + ".png"
+        self.old = "/home/" + os.getlogin() + "/public_html/roket_display" + time + ".png"
         mpl.image.imsave(self.old, np.log10(np.abs(psfc)))
         self.image_compass.image_url(url=dict(value=self.url + time + ".png"), x=0, y=0,
                                      w=psfc.shape[0], h=psfc.shape[0])
@@ -131,7 +132,8 @@ class Bokeh_gamora:
 
             psfv = self.psf_Vii
             time = str(datetime.datetime.now().strftime('%Y-%m-%d_%H_%M_%f'))
-            self.old = "/home/fferreira/public_html/roket_display" + time + ".png"
+            self.old = "/home/" + os.getlogin(
+            ) + "/public_html/roket_display" + time + ".png"
             mpl.image.imsave(self.old, np.log10(np.abs(psfv)))
             self.image_Vii.image_url(url=dict(value=self.url + time + ".png"), x=0, y=0,
                                      w=psfc.shape[0], h=psfc.shape[0])

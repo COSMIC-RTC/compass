@@ -1,7 +1,9 @@
 """
-Created on Thu Jul 21 09:28:23 2016
+GAMORA (Gpu Accelerated Module fOr psf Reconstruction Algorithms)
 
-@author: fferreira
+Python module for GPU accelerated PSF reconstruction using Vii functions and ROKET file
+
+Note: GPU devices used are hardcoded here. Change gpudevices if needed
 """
 import numpy as np
 import matplotlib.pyplot as plt
@@ -19,6 +21,18 @@ c = ch.naga_context(devices=gpudevices)
 
 
 def psf_rec_roket_file(filename, err=None):
+    """
+    PSF reconstruction using ROKET file. SE PSF is reconstructed
+    for each frame and stacked to obtain the LE PSF.
+    Used for ROKET debug only.
+
+    :parameters:
+        filename: (str): path to the ROKET file
+        err: (np.ndarray[ndim=2, dtype=np.float32]): (optionnal) Buffers of command error
+    :return:
+        psf: (np.ndarray[ndim=2, dtype=np.float32]): LE PSF
+        gpu: (Gamora): Gamora GPU object (for manipulation and debug)
+    """
     f = h5py.File(filename, 'r')
     if (err is None):
         err = rexp.get_err(filename)
@@ -28,18 +42,29 @@ def psf_rec_roket_file(filename, err=None):
     # Scale factor
     scale = float(2 * np.pi / f.attrs["_Param_target__Lambda"][0])
     # Init GPU
-    gamora = gamora_init(b"roket", err.shape[0], err.shape[1],
-                         IF.data.astype(np.float32), IF.indices, IF.indptr, T,
-                         spup.astype(np.float32), scale)
+    gpu = gamora_init(b"roket", err.shape[0], err.shape[1],
+                      IF.data.astype(np.float32), IF.indices, IF.indptr, T,
+                      spup.astype(np.float32), scale)
     # Launch computation
-    gamora.psf_rec_roket(err)
+    gpu.psf_rec_roket(err)
     # Get psf
-    psf = gamora.get_psf()
+    psf = gpu.get_psf()
     f.close()
-    return psf, gamora
+    return psf, gpu
 
 
 def psf_rec_roket_file_cpu(filename):
+    """
+    PSF reconstruction using ROKET file (CPU version). SE PSF is reconstructed
+    for each frame and stacked to obtain the LE PSF.
+    Used for ROKET debug only.
+
+    :parameters:
+        filename: (str): path to the ROKET file
+    :return:
+        psf: (np.ndarray[ndim=2, dtype=np.float32]): LE PSF
+    """
+
     f = h5py.File(filename, 'r')
     # Get the sum of error contributors
     err = rexp.get_err(filename)
@@ -79,6 +104,23 @@ def psf_rec_roket_file_cpu(filename):
 
 
 def psf_rec_Vii(filename, err=None, fitting=True, covmodes=None, cov=None):
+    """
+    PSF reconstruction using Vii functions with GPU acceleration.
+
+    :parameters:
+        filename: (str): path to the ROKET file
+        err: (np.ndarray[ndim=2, dtype=np.float32]): (optionnal) Buffers of command error
+        fitting: (bool): (optional) Add the fitting error to the PSF or not (True by default)
+        covmodes: (np.ndarray[ndim=2, dtype=np.float32]): (optionnal) Error covariance matrix in the modal space
+        cov: (np.ndarray[ndim=2, dtype=np.float32]): (optionnal) Error covariance matrix in the DM space
+
+    :return:
+        otftel: (np.ndarray[ndim=2, dtype=np.float32]): OTF of the perfect telescope
+        otf2: (np.ndarray[ndim=2, dtype=np.float32]): OTF due to residual phase error
+        psf: (np.ndarray[ndim=2, dtype=np.float32]): LE PSF
+        gpu: (Gamora): Gamora GPU object (for manipulation and debug)
+    """
+
     f = h5py.File(filename, 'r')
     spup = rexp.get_pup(filename)
     # Sparse IF matrix
@@ -136,6 +178,18 @@ def psf_rec_Vii(filename, err=None, fitting=True, covmodes=None, cov=None):
 
 
 def psf_rec_vii_cpu(filename):
+    """
+    PSF reconstruction using Vii functions (CPU version)
+
+    :parameters:
+        filename: (str): path to the ROKET file
+
+    :return:
+        otftel: (np.ndarray[ndim=2, dtype=np.float32]): OTF of the perfect telescope
+        otf2: (np.ndarray[ndim=2, dtype=np.float32]): OTF due to residual phase error
+        psf: (np.ndarray[ndim=2, dtype=np.float32]): LE PSF
+    """
+
     f = h5py.File(filename, 'r')
     IF, T = rexp.get_IF(filename)
     ratio_lambda = 2 * np.pi / f.attrs["_Param_target__Lambda"][0]
@@ -195,6 +249,13 @@ def psf_rec_vii_cpu(filename):
 
 
 def test_Vii(filename):
+    """
+    Test function comparing results and performance of GPU version
+    versus CPU version of Vii PSF reconstruction
+
+    :parameters:
+        filename: (str): path to the ROKET file
+    """
     a = time.time()
     otftel_cpu, otf2_cpu, psf_cpu = psf_rec_vii_cpu(filename)
     b = time.time()
@@ -210,6 +271,16 @@ def test_Vii(filename):
 
 
 def add_fitting_to_psf(filename, otf, otffit):
+    """
+    Compute the PSF including the fitting OTF
+
+    :parameters:
+        otf: (np.ndarray[ndim=2, dtype=np.float32]): OTF
+        otffit: (np.ndarray[ndim=2, dtype=np.float32]): Fitting error OTF
+    :return:
+        psf: (np.ndarray[ndim=2, dtype=np.float32]): PSF
+
+    """
     print("\nAdding fitting to PSF...")
     spup = rexp.get_pup(filename)
     psf = np.fft.fftshift(np.real(np.fft.ifft2(otffit * otf)))

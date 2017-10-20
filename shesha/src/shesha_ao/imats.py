@@ -1,3 +1,6 @@
+"""
+Computation implementations of interaction matrix
+"""
 import numpy as np  # type: ignore
 import time
 

@@ -1,9 +1,5 @@
-#!/usr/local/bin/python3.6
-# encoding: utf-8
 '''
-Created on 3 aout 2017
-
-@author: fferreira
+Initialization of a Dms object
 '''
 from naga import naga_context
 
@@ -38,6 +34,8 @@ def dm_init(context: naga_context, p_dms: List[conf.Param_dm], p_tel: conf.Param
         p_tel: (Param_tel) : telescope settings
         p_geom: (Param_geom) : geom settings
         p_wfss: (list of Param_wfs) : wfs settings
+    :return:
+        Dms: (Dms): Dms object
     """
     max_extent = [0]
     xpos_wfs = []

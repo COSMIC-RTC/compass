@@ -1,3 +1,6 @@
+"""
+Initialization of a Target object
+"""
 from naga import naga_context
 
 import shesha_config as conf
@@ -25,6 +28,8 @@ def target_init(ctxt: naga_context, telescope: Telescope, p_target: conf.Param_t
         p_geom: (Param_geom) : geom settings
         dm: (Param_dm) : (optional) dm settings
         brama: (bool): (optional) BRAMA flag
+    :return:
+        tar: (Target): Target object
     """
     type_target = b"atmos"
 

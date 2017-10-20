@@ -1,9 +1,5 @@
-# -*- coding: utf-8 -*-
 """
-Created on Thu Sep  8 15:42:43 2016
-Functions for DM Python kl
-@author: translated by sdurand
-Compass Yorick translation
+Functions for DM KL initialization
 """
 
 import shesha_constants as scons

@@ -1,7 +1,5 @@
 """
-Created on Wed Oct 5 14:28:23 2016
-
-@author: fferreira
+Set of functions for structure function computation
 """
 
 import numpy as np

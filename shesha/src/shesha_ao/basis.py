@@ -1,3 +1,6 @@
+"""
+Functions for modal basis (DM basis, KL, Btt, etc...)
+"""
 import numpy as np
 
 from Dms import Dms
