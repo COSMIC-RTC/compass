@@ -27,7 +27,7 @@ p_atmos.set_nscreens(1)
 p_atmos.set_frac([1.0])
 p_atmos.set_alt([0.])
 p_atmos.set_windspeed([10.0])
-p_atmos.set_winddir([0])
+p_atmos.set_winddir([45])
 p_atmos.set_L0([100])
 
 #target
@@ -50,7 +50,7 @@ for i in range(len(p_wfss)):
     p_wfss[i].set_npix(6)
     p_wfss[i].set_pixsize(0.5)
     p_wfss[i].set_fracsub(0.8)
-    p_wfss[i].set_xpos(0.)
+    p_wfss[i].set_xpos(5.)
     p_wfss[i].set_ypos(0.)
     p_wfss[i].set_Lambda(0.5)
     p_wfss[i].set_gsmag(5.)

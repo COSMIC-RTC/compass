@@ -1,4 +1,4 @@
-import shesha as ao
+import shesha_config as ao
 import numpy as np
 
 simul_name = ""
@@ -6,48 +6,48 @@ simul_name = ""
 p_loop = ao.Param_loop()
 
 p_loop.set_niter(20000)
-p_loop.set_ittime(0.002) #=1/500
-
+p_loop.set_ittime(0.002)  #=1/500
 
 #geom
-p_geom=ao.Param_geom()
+p_geom = ao.Param_geom()
 
 p_geom.set_zenithangle(0.)
 
-
 #tel
-p_tel=ao.Param_tel()
+p_tel = ao.Param_tel()
 
 p_tel.set_diam(8.0)
 p_tel.set_cobs(0.)
 
-
 #atmos
-p_atmos=ao.Param_atmos()
+p_atmos = ao.Param_atmos()
 
 p_atmos.set_r0(0.16)
 p_atmos.set_nscreens(12)
-p_atmos.set_frac([0.261,0.138,0.081,0.064,0.105,0.096,0.085,0.053,0.048,0.037,0.021,0.011])
-p_atmos.set_alt([0.0,100.0,200.0,300.0,900.0,1800.0,4500.0,7100,11000,12800,14500,16500])
+p_atmos.set_frac([
+        0.261, 0.138, 0.081, 0.064, 0.105, 0.096, 0.085, 0.053, 0.048, 0.037, 0.021,
+        0.011
+])
+p_atmos.set_alt([
+        0.0, 100.0, 200.0, 300.0, 900.0, 1800.0, 4500.0, 7100, 11000, 12800, 14500, 16500
+])
 p_atmos.set_windspeed([13, 17, 5, 17, 10, 10, 8, 6, 14, 9, 8, 17])
-p_atmos.set_winddir([345, -292, -115, -161, -179, -266, -208, 185, 265, 116, 6,272])
-p_atmos.set_L0([100,100,100,100,100,100,100,100,100,100,100,100])
-
+p_atmos.set_winddir([345, -292, -115, -161, -179, -266, -208, 185, 265, 116, 6, 272])
+p_atmos.set_L0([100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100])
 
 #target
-p_target=ao.Param_target()
+p_target = ao.Param_target()
 
-p_target.set_nTargets(1)
+p_target.set_ntargets(1)
 p_target.set_xpos([0.])
 p_target.set_ypos([0.])
 p_target.set_Lambda([1.65])
 p_target.set_mag([10])
 
-
 #wfs
 #p_wfs0= ao.Param_wfs()
 #p_wfs1= ao.Param_wfs()
-p_wfss=[ao.Param_wfs(error_budget=True)]
+p_wfss = [ao.Param_wfs(error_budget=True)]
 
 for i in range(len(p_wfss)):
     p_wfss[i].set_type("sh")
@@ -76,9 +76,9 @@ for i in range(len(p_wfss)):
 #dm
 #p_dm0=ao.Param_dm()
 #p_dm1=ao.Param_dm()
-p_dms=[ao.Param_dm(),ao.Param_dm()]
+p_dms = [ao.Param_dm(), ao.Param_dm()]
 p_dms[0].set_type("pzt")
-nact=p_wfss[0].nxsub+1
+nact = p_wfss[0].nxsub + 1
 p_dms[0].set_nact(nact)
 p_dms[0].set_alt(0.)
 p_dms[0].set_thresh(0.3)
@@ -93,32 +93,24 @@ p_dms[1].set_push4imat(1.)
 
 #centroiders
 #p_centroider0=ao.Param_centroider()
-p_centroiders=[ao.Param_centroider()]
+p_centroiders = [ao.Param_centroider()]
 
 for i in range(len(p_centroiders)):
 
     p_centroiders[i].set_nwfs(i)
     p_centroiders[i].set_type("cog")
-    #p_centroiders[i].set_nmax(8)
     p_centroiders[i].set_thresh(0)
 
 #p_centroider0.set_type("corr")
 #p_centroider0.set_type_fct("model")
 
 #controllers
-p_controller1=ao.Param_controller()
-p_controllers=[p_controller1]
+p_controller1 = ao.Param_controller()
+p_controllers = [p_controller1]
 
 p_controller1.set_type("ls")
 p_controller1.set_nwfs([0])
-p_controller1.set_ndm([0,1])
+p_controller1.set_ndm([0, 1])
 p_controller1.set_maxcond(20)
 p_controller1.set_delay(0)
 p_controller1.set_gain(0.3)
-
-#rtc
-p_rtc=ao.Param_rtc()
-
-p_rtc.set_nwfs(0)
-p_rtc.set_centroiders(p_centroiders)
-p_rtc.set_controllers(p_controllers)
