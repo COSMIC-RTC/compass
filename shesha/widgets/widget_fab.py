@@ -493,42 +493,6 @@ except:
     print("Error while initializing Pyro object")
     pass
 
-
-class PyroServer3(Thread):
-    """
-    Main Geometry Server Thread
-
-    """
-
-    def __init__(self, obj):
-        Thread.__init__(self)
-        self.setDaemon(1)
-        self.ready = False
-        self.object = obj
-        print("initThread")
-
-    def run(self):
-        print("Starting Pyro Server...")
-        self.locator = Pyro.naming.NameServerLocator()
-        ns = self.locator.getNS()
-        Pyro.core.initServer()
-        daemon = Pyro.core.Daemon()
-        # ns=Pyro.naming.NameServerLocator(host=self.nsip, port=self.port).
-        daemon.useNameServer(ns)  # use current ns
-        self.ready = True
-        try:
-            ns.unregister("waoconfig")
-        except:
-            # ns.deleteGroup(':GS')
-            # ns.createGroup(":GS")
-            pass
-        # print(self.object.getVar())
-        daemon.connect(self.object, "waoconfig")
-        print("starting daemon")
-        daemon.requestLoop()
-        print("daemon started")
-
-
 if __name__ == '__main__':
     arguments = docopt(__doc__)
     app = QtWidgets.QApplication(sys.argv)
@@ -536,26 +500,3 @@ if __name__ == '__main__':
     wao = widgetAOWindowPyro(arguments["<parameters_filename>"], BRAMA=True,
                              expert=arguments["--expert"])
     wao.show()
-    """
-    locator = Pyro.naming.NameServerLocator()
-    ns = locator.getNS()
-    Pyro.core.initServer()
-    daemon = Pyro.core.Daemon()
-    daemon.useNameServer(ns)  # use current ns
-    daemon.connect(test, ":waoCanapass")
-    daemon.requestLoop()
-    """
-    """
-    daemon = Pyro4.Daemon()                # make a Pyro daemon
-    ns = Pyro4.locateNS()                  # find the name server
-    uri = daemon.register(wao)   # register the greeting maker as a Pyro object
-    ns.register("example.greeting", uri)   # register the object with a name in the name server
-
-        print("Ready.")
-        daemon.requestLoop()
-    except:
-        from warnings import warn
-        warn("pyro4 not found", RuntimeWarning)
-    """
-    # ao.imat_init(0, wao.rtc, wao.config.p_rtc, wao.dms, wao.wfs, wao.config.p_wfss, wao.config.p_tel)
-    # app.exec_()
