@@ -6,7 +6,7 @@
 #include <string>
 #include <cmath>
 
-#include <ncurses.h>
+#include <sys/ioctl.h>
 
 int quick_pow10(int n) {
   static int pow10[10] = {
@@ -41,9 +41,10 @@ std::string disp(int idx, int width, char align='r') {
 carma_utils::ProgressBar::ProgressBar(int max_): max(max_), start(std::chrono::system_clock::now()) {
   ndigits = 0;
   while(max_ > quick_pow10(ndigits)) ndigits++;
-  initscr();
-  barWidth = COLS - 2*(ndigits) - 24 ;
-  endwin();
+  struct winsize w;
+  ioctl(0, TIOCGWINSZ, &w);
+  barWidth = w.ws_col - 2*(ndigits) - 24 ;
+
 };
 
 void carma_utils::ProgressBar::update() {
