@@ -86,7 +86,7 @@ compile it:
 
 ```bash
 cd OpenBLAS/
-make
+make USE_OPENMP=1
 ```
 
 install it:
