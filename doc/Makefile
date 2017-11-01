@@ -31,6 +31,11 @@ sync:
 	@echo "  rsync -PaW --inplace --del compass-doc/* lesia:compass-doc/"
 	rsync -PaW --inplace --del compass-doc/* lesia:compass-doc/
 
+.PHONY: sync.ext
+sync.ext:
+	@echo "  rsync -PaW --inplace --del compass-doc/* lesia.ext:compass-doc/"
+	rsync -PaW --inplace --del compass-doc/* lesia.ext:compass-doc/
+
 .PHONY: help
 help:
 	@echo "Please use \`make <target>' where <target> is one of"

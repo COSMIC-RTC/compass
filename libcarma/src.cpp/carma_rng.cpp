@@ -3,19 +3,19 @@
 
 template<class T>
 int carma_obj<T>::init_prng(long seed) {
-/*
-  cudaDeviceProp deviceProperties = current_context->get_device(device)->get_properties();
-  const int maxThreads = deviceProperties.maxThreadsPerBlock;
-  const int maxBlockDim = (deviceProperties.maxThreadsDim)[0];
-  int genPerBlock = std::min(maxThreads, maxBlockDim) / 2;
-  int blockCount = deviceProperties.multiProcessorCount * 2;
-*/
+  /*
+    cudaDeviceProp deviceProperties = current_context->get_device(device)->get_properties();
+    const int maxThreads = deviceProperties.maxThreadsPerBlock;
+    const int maxBlockDim = (deviceProperties.maxThreadsDim)[0];
+    int genPerBlock = std::min(maxThreads, maxBlockDim) / 2;
+    int blockCount = deviceProperties.multiProcessorCount * 2;
+  */
   int genPerBlock, blockCount;
   getNumBlocksAndThreads(current_context->get_device(device), nb_elem, blockCount, genPerBlock);
   // Allocate memory for RNG states
   carmaSafeCall(
-      cudaMalloc((void ** )&(this->d_states),
-          blockCount * genPerBlock * sizeof(curandState)));
+    cudaMalloc((void ** )&(this->d_states),
+               blockCount * genPerBlock * sizeof(curandState)));
 
   this->nThreads = genPerBlock;
   this->nBlocks = blockCount;
@@ -26,9 +26,9 @@ int carma_obj<T>::init_prng(long seed) {
 
   int *seeds;
   carmaSafeCall(
-      cudaMalloc((void ** )&seeds, genPerBlock * blockCount * sizeof(int)));
+    cudaMalloc((void ** )&seeds, genPerBlock * blockCount * sizeof(int)));
   cudaMemcpy(seeds, aseed, genPerBlock * blockCount * sizeof(int),
-      cudaMemcpyHostToDevice);
+             cudaMemcpyHostToDevice);
 
   //cerr << genPerBlock << " | " << blockCount << endl;
   carma_prng_init((int *) seeds, genPerBlock, blockCount, this->d_states);
@@ -48,7 +48,7 @@ caObjZ::init_prng(long seed);
 
 template <class T>
 int carma_obj<T>::init_prng() {
-	return this->init_prng(1234);
+  return this->init_prng(1234);
 }
 
 template int
@@ -84,7 +84,7 @@ carma_obj< tuple_t<float> >::destroy_prng();
 template<class T>
 int carma_obj<T>::prng(T *output, char gtype, float alpha, float beta) {
   carma_prng_cu(output, this->nThreads, this->nBlocks, this->d_states, gtype,
-      this->nb_elem, alpha, beta);
+                this->nb_elem, alpha, beta);
 
   return EXIT_SUCCESS;
 }
@@ -114,7 +114,7 @@ caObjD::prng_montagn(float init_montagn);
 template<class T>
 int carma_obj<T>::prng(T *output, char gtype, float alpha) {
   carma_prng_cu(output, this->nThreads, this->nBlocks, this->d_states, gtype,
-      this->nb_elem, alpha, 0.0f);
+                this->nb_elem, alpha, 0.0f);
 
   return EXIT_SUCCESS;
 }
@@ -209,7 +209,7 @@ int caObjD::prng_host(char gtype) {
     curandGenerateUniformDouble(this->gen, this->d_data, this->nb_elem);
   if (gtype == 'N')
     curandGenerateNormalDouble(this->gen, this->d_data, this->nb_elem, 0.0,
-        1.0);
+                               1.0);
   return EXIT_SUCCESS;
 }
 
@@ -232,7 +232,7 @@ int caObjD::prng_host(char gtype, double alpha) {
     curandGenerateUniformDouble(this->gen, this->d_data, this->nb_elem);
   if (gtype == 'N')
     curandGenerateNormalDouble(this->gen, this->d_data, this->nb_elem, 0.0,
-        alpha);
+                               alpha);
   return EXIT_SUCCESS;
 }
 

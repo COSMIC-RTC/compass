@@ -4,7 +4,7 @@
 #include <sutra_controller.h>
 
 class sutra_controller_generic: public sutra_controller {
-public:
+ public:
 
   carma_obj<float> *d_matE;
   carma_obj<float> *d_cmat;
@@ -13,9 +13,9 @@ public:
   carma_obj<float> *d_compbuff;
   string command_law;
 
-public:
+ public:
   sutra_controller_generic(carma_context *context, long nvalid, long nactu,
-      float delay, sutra_dms *dms, char **type, float *alt, int ndm);
+                           float delay, sutra_dms *dms, char **type, float *alt, int ndm);
   sutra_controller_generic(const sutra_controller_generic& controller);
   ~sutra_controller_generic();
 

@@ -5,7 +5,7 @@ __device__ float kl_sfi(float *rabas, float *azbas, int npix, int nrow) {
 }
 
 __device__ void kl_interp(float alpha, float ampli, float *odata, float *rabas,
-    float *azbas, float xbi, float ybi, int nr, int np, int tido) {
+                          float *azbas, float xbi, float ybi, int nr, int np, int tido) {
   if ((xbi >= 0) && (xbi <= nr - 1) && (ybi >= 0) && (ybi <= np - 1)) {
     int i0, i1, j0, j1;
     long ibi = (long) xbi;
@@ -34,18 +34,18 @@ __device__ void kl_interp(float alpha, float ampli, float *odata, float *rabas,
     w11 = (1 - wi) * (1 - wj);
 
     odata[tido] = alpha * odata[tido]
-        + ampli
-            * (w00 * kl_sfi(rabas, azbas, i0, j0)
-                + w10 * kl_sfi(rabas, azbas, i1, j0)
-                + w01 * kl_sfi(rabas, azbas, i0, j1)
-                + w11 * kl_sfi(rabas, azbas, i1, j1));
+                  + ampli
+                  * (w00 * kl_sfi(rabas, azbas, i0, j0)
+                     + w10 * kl_sfi(rabas, azbas, i1, j0)
+                     + w01 * kl_sfi(rabas, azbas, i0, j1)
+                     + w11 * kl_sfi(rabas, azbas, i1, j1));
   } else
     odata[tido] = 0.0f;
 }
 
 __device__ void kl_interp(float alpha, float *ampli, int nkl, float *odata,
-    float *rabas, float *azbas, float xbi, float ybi, int nr, int np,
-    int tido) {
+                          float *rabas, float *azbas, float xbi, float ybi, int nr, int np,
+                          int tido) {
   if ((xbi >= 0) && (xbi <= nr - 1) && (ybi >= 0) && (ybi <= np - 1)) {
     int i0, i1, j0, j1;
     long ibi = (long) xbi;
@@ -74,18 +74,18 @@ __device__ void kl_interp(float alpha, float *ampli, int nkl, float *odata,
     w11 = (1 - wi) * (1 - wj);
 
     odata[tido] = alpha * odata[tido]
-        + ampli[nkl]
-            * (w00 * kl_sfi(rabas, azbas, i0, j0)
-                + w10 * kl_sfi(rabas, azbas, i1, j0)
-                + w01 * kl_sfi(rabas, azbas, i0, j1)
-                + w11 * kl_sfi(rabas, azbas, i1, j1));
+                  + ampli[nkl]
+                  * (w00 * kl_sfi(rabas, azbas, i0, j0)
+                     + w10 * kl_sfi(rabas, azbas, i1, j0)
+                     + w01 * kl_sfi(rabas, azbas, i0, j1)
+                     + w11 * kl_sfi(rabas, azbas, i1, j1));
   } else
     odata[tido] = 0.0f;
 }
 
 __global__ void getkl_krnl(float alpha, float ampli, float *odata, float *rabas,
-    float *azbas, float *cr, float *cp, int nr, int np, int nx, int Nx,
-    int xoff, int yoff) {
+                           float *azbas, float *cr, float *cp, int nr, int np, int nx, int Nx,
+                           int xoff, int yoff) {
   int xid = threadIdx.x + blockIdx.x * blockDim.x;
   int yid = threadIdx.y + blockIdx.y * blockDim.y;
 
@@ -103,8 +103,8 @@ __global__ void getkl_krnl(float alpha, float ampli, float *odata, float *rabas,
 }
 
 __global__ void combikl_krnl(float *com, int nkl, float *odata, float *rabas,
-    int *d_ord, float *azbas, float *cr, float *cp, int nr, int np, int nx,
-    int Nx, int xoff, int yoff) {
+                             int *d_ord, float *azbas, float *cr, float *cp, int nr, int np, int nx,
+                             int Nx, int xoff, int yoff) {
   int xid = threadIdx.x + blockIdx.x * blockDim.x;
   int yid = threadIdx.y + blockIdx.y * blockDim.y;
 
@@ -127,14 +127,14 @@ __global__ void combikl_krnl(float *com, int nkl, float *odata, float *rabas,
       rabas_cc = &(rabas[cc * nr]);
       azbas_cc = &(azbas[tmp * np]);
       kl_interp(1.0f, com, cc, odata, rabas_cc, azbas_cc, xbi, ybi, nr, np,
-          tido);
+                tido);
     }
     __syncthreads();
   }
 }
 
 int getkl(float alpha, float ampli, float *d_odata, float *rabas, float *azbas,
-    float *cr, float *cp, int nr, int np, int nx, int Nx, int xoff, int yoff) {
+          float *cr, float *cp, int nr, int np, int nx, int Nx, int xoff, int yoff) {
   int block_size = 8;
   int nnx = nx + block_size - nx % block_size; // find next multiple of BLOCK_SZ
   int nny = nx + block_size - nx % block_size;
@@ -144,28 +144,28 @@ int getkl(float alpha, float ampli, float *d_odata, float *rabas, float *azbas,
   //int smemSize = (block_size +1) * (block_size +1) * sizeof(float);
 
   getkl_krnl<<<blocks, threads>>>(alpha, ampli, d_odata, rabas, azbas, cr, cp,
-      nr, np, nx, Nx, xoff, yoff);
+                                  nr, np, nx, Nx, xoff, yoff);
 
   carmaCheckMsg("get_kernel<<<>>> execution failed\n");
   return EXIT_SUCCESS;
 }
 
 int getkl(float ampli, float *d_odata, float *rabas, float *azbas, float *cr,
-    float *cp, int nr, int np, int nx, int Nx, int xoff, int yoff) {
+          float *cp, int nr, int np, int nx, int Nx, int xoff, int yoff) {
   return getkl(0.0f, ampli, d_odata, rabas, azbas, cr, cp, nr, np, nx, Nx, xoff,
-      yoff);
+               yoff);
 }
 
 int getkl(float *d_odata, float *rabas, float *azbas, float *cr, float *cp,
-    int nr, int np, int nx, int Nx, int xoff, int yoff) {
+          int nr, int np, int nx, int Nx, int xoff, int yoff) {
 
   return getkl(0.0f, 1.0f, d_odata, rabas, azbas, cr, cp, nr, np, nx, Nx, xoff,
-      yoff);
+               yoff);
 }
 
 int combikl(float *com, int nkl, float *d_odata, float *rabas, int *d_ord,
-    float *azbas, float *cr, float *cp, int nr, int np, int nx, int Nx,
-    int xoff, int yoff) {
+            float *azbas, float *cr, float *cp, int nr, int np, int nx, int Nx,
+            int xoff, int yoff) {
   int block_size = 8;
   int nnx = nx + block_size - nx % block_size; // find next multiple of BLOCK_SZ
   int nny = nx + block_size - nx % block_size;
@@ -176,7 +176,7 @@ int combikl(float *com, int nkl, float *d_odata, float *rabas, int *d_ord,
 
   //for (int cc=0;cc<nkl;cc++)
   combikl_krnl<<<blocks, threads>>>(com, nkl, d_odata, rabas, d_ord, azbas, cr,
-      cp, nr, np, nx, Nx, xoff, yoff);
+                                    cp, nr, np, nx, Nx, xoff, yoff);
 
   carmaCheckMsg("get_kernel<<<>>> execution failed\n");
   return EXIT_SUCCESS;
@@ -198,4 +198,3 @@ int cget_flokl(long nkl, long dim, float *covmat, float *filter, float *bas) {
   carmaCheckMsg("get_kernel<<<>>> execution failed\n");
   return EXIT_SUCCESS;
 }
-

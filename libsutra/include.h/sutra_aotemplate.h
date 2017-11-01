@@ -4,7 +4,7 @@
 #include <sutra_wfs.h>
 
 class sutra_aotemplate {
-public:
+ public:
   int device; // # device
   std::string type; // a name for your data
   long dim; // # of elements
@@ -14,9 +14,9 @@ public:
 
   carma_context *current_context; // the context in which it has been created
 
-public:
+ public:
   sutra_aotemplate(carma_context *context, const char* type, long dim,
-      int device);
+                   int device);
   sutra_aotemplate(const sutra_aotemplate& aotemplate);
   ~sutra_aotemplate();
 

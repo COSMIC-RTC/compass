@@ -489,11 +489,11 @@ ENDSIMPLE
         if(not self.c_o.is_rng_init()):
 CASTSIMPLE
             self.c_o.init_prng_host(seed)
-        self.c_o.prng_host('U')
+        self.c_o.prng_host(b'U')
 ENDSIMPLE
 CASTCOMPLEX
             self.c_o.init_prng(seed)
-        self.c_o.prng('U')
+        self.c_o.prng(b'U')
 ENDCOMPLEX
 
 CASTSIMPLE
@@ -603,8 +603,8 @@ CASTCOMPLEX
         b.y=beta.y
 ENDCOMPLEX
 
-        #Vy.c_o.gemv('N',a, self.c_o,dimM[1],Vx.c_o,1,b,1)
-        Vy.c_o.gemv('N',a, self.c_o,dimM[0],Vx.c_o,1,b,1)
+        #Vy.c_o.gemv(b'N',a, self.c_o,dimM[1],Vx.c_o,1,b,1)
+        Vy.c_o.gemv(b'N',a, self.c_o,dimM[0],Vx.c_o,1,b,1)
 
         return Vy
 
@@ -1016,7 +1016,7 @@ pxd_code_str_fftR='''
         try:
             plan=dict_fft_CLASSNAMEDIMD[dest.__class__]
         except KeyError:
-            print "fft not available from ", self.__class__.__name__, " to ",dest.__class__.__name__
+            print("fft not available from ", self.__class__.__name__, " to ",dest.__class__.__name__)
             return
 
         output = dest.getData_ptr()
@@ -1074,7 +1074,7 @@ pxd_code_str_fftC='''
         try:
             plan=dict_fft_CLASSNAMEDIMD[t_dest]
         except KeyError:
-            print "fft not available from ", self.__class__.__name__, " to ",dest.__class__.__name__
+            print("fft not available from ", self.__class__.__name__, " to ",dest.__class__.__name__)
             return
         output = dest.getData_ptr()
 
@@ -1105,7 +1105,7 @@ pxd_code_str_fftconv='''
         dims_data[2]=snapTransformSize(dimsIm[2]+dimsKer[2]-1)
         for i in range(3,DIM+1):
             dims_data[i]=dimsIm[i]
-        print dims_data
+        print(dims_data)
 
         self.activateDevice()
 

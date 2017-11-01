@@ -13,7 +13,7 @@
 #include <carma_obj.h>
 
 class sutra_phase {
-public:
+ public:
 
   carma_context *current_context;
   int device;
@@ -24,7 +24,7 @@ public:
   carma_obj<float> *zernikes;
   carma_obj<float> *mat;
 
-public:
+ public:
   sutra_phase(carma_context *current_context, long size);
   sutra_phase(const sutra_phase& phase);
   ~sutra_phase();

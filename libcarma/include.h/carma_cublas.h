@@ -16,7 +16,7 @@
 #define carma_checkCublasStatus(status) __carma_checkCublasStatus(status, __LINE__, __FILE__)
 
 cublasStatus_t __carma_checkCublasStatus(cublasStatus_t status, int line,
-                                         std::string file);
+    std::string file);
 
 cublasStatus_t carma_initCublas(cublasHandle_t *cublas_handle);
 cublasStatus_t carma_shutdownCublas(cublasHandle_t cublas_handle);

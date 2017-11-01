@@ -13,7 +13,7 @@ prec=10**(-dec)
 c=ch.naga_context()
 
 
-print "precision: ",prec
+print("precision: ",prec)
 
 def test_svd():
 
@@ -48,8 +48,8 @@ def test_svd():
         err=err/Mat.item(iErr)
 
     npt.assert_almost_equal(err,0.,decimal=dec)
-    print ""
-    print err
+    print("")
+    print(err)
 
     p_U,p_S,p_V=np.linalg.svd(a)
     npt.assert_array_almost_equal(S.diagonal(),p_S,decimal=dec)
@@ -74,8 +74,8 @@ def test_getri_cpu():
     res=np.dot(a,a_1)
 
     err=np.amax(np.abs(res-np.identity(m)))
-    print ""
-    print err
+    print("")
+    print(err)
 
     npt.assert_almost_equal(err,0.,decimal=dec)
 
@@ -97,8 +97,8 @@ def test_potri_cpu():
     res=np.dot(a,a_1)
 
     err=np.amax(np.abs(res-np.identity(m)))
-    print ""
-    print err
+    print("")
+    print(err)
 
     npt.assert_almost_equal(err,0.,decimal=dec)
 
@@ -128,8 +128,8 @@ def test_getri_gpu():
     res_id=d_id.device2host()
 
     err=np.amax(np.abs(res_id-np.identity(m)))
-    print ""
-    print err
+    print("")
+    print(err)
 
     npt.assert_almost_equal(err,0.,decimal=dec)
 
@@ -158,8 +158,8 @@ def test_potri_gpu():
     res_id=d_id.device2host()
 
     err=np.amax(np.abs(res_id-np.identity(m)))
-    print ""
-    print err
+    print("")
+    print(err)
 
     npt.assert_almost_equal(err,0,decimal=dec)
 
@@ -181,10 +181,10 @@ def test_syevd():
 
     err=np.amax(np.abs(Mat-np.dot(np.dot(U,EV),U.T)))
 
-    print ""
+    print("")
 
-    print "out of place, compute U"
-    print err
+    print("out of place, compute U")
+    print(err)
 
     npt.assert_almost_equal(err,0.,decimal=dec)
 
@@ -194,6 +194,6 @@ def test_syevd():
 
     err=np.amax(np.abs(h_EV-h_EV2))
 
-    print "in place, U not computed"
-    print err
+    print("in place, U not computed")
+    print(err)
     npt.assert_array_equal(h_EV,h_EV2)

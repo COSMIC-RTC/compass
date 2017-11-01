@@ -8,7 +8,7 @@ texture<float, 2, cudaReadModeElementType> tex2d;
 //extern __shared__ float cache[];
 
 __global__ void texraytrace_krnl(float* g_odata, int nx, int ny, float xoff,
-    float yoff) {
+                                 float yoff) {
   // calculate normalized texture coordinates
   unsigned int x = blockIdx.x * blockDim.x + threadIdx.x;
   unsigned int y = blockIdx.y * blockDim.y + threadIdx.y;
@@ -22,8 +22,8 @@ __global__ void texraytrace_krnl(float* g_odata, int nx, int ny, float xoff,
 }
 
 int target_texraytrace(float *d_odata, float *d_idata, int nx, int ny, int Nx,
-    int Ny, float xoff, float yoff, int Ntot, cudaChannelFormatDesc channelDesc,
-    carma_device *device) {
+                       int Ny, float xoff, float yoff, int Ntot, cudaChannelFormatDesc channelDesc,
+                       carma_device *device) {
   tex2d.addressMode[0] = cudaAddressModeClamp;
   tex2d.addressMode[1] = cudaAddressModeClamp;
   tex2d.filterMode = cudaFilterModeLinear;
@@ -31,8 +31,8 @@ int target_texraytrace(float *d_odata, float *d_idata, int nx, int ny, int Nx,
 
   //size_t offset = 0;
   carmaSafeCall(
-      cudaBindTexture2D(0, tex2d, d_idata, channelDesc, Nx, Ny,
-          sizeof(float) * Nx));
+    cudaBindTexture2D(0, tex2d, d_idata, channelDesc, Nx, Ny,
+                      sizeof(float) * Nx));
   /*
    FIX ME !
    code sometimes code crashes here after several launches...
@@ -64,7 +64,7 @@ int target_texraytrace(float *d_odata, float *d_idata, int nx, int ny, int Nx,
 }
 
 __device__ void generic_raytrace(float *odata, float *idata, int nx, int ny,
-    float xoff, float yoff, float G, float thetaML, float dx, float dy, int Nx, int blockSize, int istart) {
+                                 float xoff, float yoff, float G, float thetaML, float dx, float dy, int Nx, int blockSize, int istart) {
   int x = threadIdx.x + blockIdx.x * blockDim.x;
   int y = threadIdx.y + blockIdx.y * blockDim.y;
   y += istart;
@@ -133,21 +133,20 @@ __device__ void generic_raytrace(float *odata, float *idata, int nx, int ny,
         + wx1 * wy2 * cache[threadIdx.x + (threadIdx.y + 1) * (blockDim.x+1)]
         + wx2 * wy2 * cache[threadIdx.x + 1 + (threadIdx.y + 1) * (blockDim.x+1)]);*/
 
-    if((iref+1 < Nx) && (jref + 1 <Nx)){
-    odata[tido] += (wx1 * wy1 * idata[iref + jref * Nx]
-            + wx2 * wy1 * idata[iref + 1 + jref * Nx]
-            + wx1 * wy2 * idata[iref + (jref + 1) * Nx]
-            + wx2 * wy2 * idata[iref + 1 + (jref + 1) * Nx]);
-    }
-    else{
-        odata[tido] += 0.0f;
+    if((iref+1 < Nx) && (jref + 1 <Nx)) {
+      odata[tido] += (wx1 * wy1 * idata[iref + jref * Nx]
+                      + wx2 * wy1 * idata[iref + 1 + jref * Nx]
+                      + wx1 * wy2 * idata[iref + (jref + 1) * Nx]
+                      + wx2 * wy2 * idata[iref + 1 + (jref + 1) * Nx]);
+    } else {
+      odata[tido] += 0.0f;
     }
 
   }
 }
 
 __device__ void lgs_raytrace(float *odata, float *idata, int nx, int ny,
-    float xoff, float yoff, int Nx, int blockSize, int istart, float delta) {
+                             float xoff, float yoff, int Nx, int blockSize, int istart, float delta) {
   int x = threadIdx.x + blockIdx.x * blockDim.x;
   int y = threadIdx.y + blockIdx.y * blockDim.y;
   y += istart;
@@ -162,55 +161,55 @@ __device__ void lgs_raytrace(float *odata, float *idata, int nx, int ny,
 
   iref = (int) xref;
   jref = (int) yref;
- // tidi = iref + jref * Nx;
+// tidi = iref + jref * Nx;
 
   // ATTENTION : following optimization had beed commented because of being not so efficient...
 
   //if ((x < nx) && (y < ny)) {
-/*
-  if (tidi < Nx * Nx)
-    cache[threadIdx.x + threadIdx.y * (blockSize+1)] = idata[tidi];
-  //}
-  // Remplissage des bords du cache :
-  if ((threadIdx.x == blockSize-1) || (threadIdx.y == blockSize-1)){
-	  if ((threadIdx.x == blockSize-1)){
-		  int bx = threadIdx.x + 1;
-		  int xx = bx + blockIdx.x * (blockDim.x);
-		  float bxref = xx * delta + xoff;
-		  int biref = (int) bxref;
-		  int tidib = biref + jref * Nx;
-		  if (tidib < Nx * Nx)
-			  cache[bx + threadIdx.y * (blockSize+1)] = idata[tidib];
-		  else cache[bx + threadIdx.y * (blockSize+1)] = 0.0f;
-	  }
-	  if ((threadIdx.y == blockSize-1)){
-		  int by = threadIdx.y + 1;
-		  int yy = by + blockIdx.y * (blockDim.y);
-		  float byref = yy * delta + yoff;
-		  int bjref = (int) byref;
-		  int tidib = iref + bjref * Nx;
-		  if (tidib < Nx * Nx)
-			  cache[threadIdx.x + by * (blockSize+1)] = idata[tidib];
-		  else cache[threadIdx.x + by * (blockSize+1)] = 0.0f;
-	  }
-	  if ((threadIdx.x == blockSize-1) && (threadIdx.y == blockSize-1)){
-		  int bx = threadIdx.x + 1;
-		  int by = threadIdx.y + 1;
-		  int xx = bx + blockIdx.x * (blockDim.x);
-		  int yy = by + blockIdx.y * (blockDim.y);
-		  float bxref = xx * delta + xoff;
-		  float byref = yy * delta + yoff;
-		  int biref = (int) bxref;
-		  int bjref = (int) byref;
-		  int tidib = biref + bjref * Nx;
-		  if (tidib < Nx * Nx)
-			  cache[bx + by * (blockSize+1)] = idata[tidib];
-		  else cache[bx + by * (blockSize+1)] = 0.0f;
-	  }
-  }
+  /*
+    if (tidi < Nx * Nx)
+      cache[threadIdx.x + threadIdx.y * (blockSize+1)] = idata[tidi];
+    //}
+    // Remplissage des bords du cache :
+    if ((threadIdx.x == blockSize-1) || (threadIdx.y == blockSize-1)){
+  	  if ((threadIdx.x == blockSize-1)){
+  		  int bx = threadIdx.x + 1;
+  		  int xx = bx + blockIdx.x * (blockDim.x);
+  		  float bxref = xx * delta + xoff;
+  		  int biref = (int) bxref;
+  		  int tidib = biref + jref * Nx;
+  		  if (tidib < Nx * Nx)
+  			  cache[bx + threadIdx.y * (blockSize+1)] = idata[tidib];
+  		  else cache[bx + threadIdx.y * (blockSize+1)] = 0.0f;
+  	  }
+  	  if ((threadIdx.y == blockSize-1)){
+  		  int by = threadIdx.y + 1;
+  		  int yy = by + blockIdx.y * (blockDim.y);
+  		  float byref = yy * delta + yoff;
+  		  int bjref = (int) byref;
+  		  int tidib = iref + bjref * Nx;
+  		  if (tidib < Nx * Nx)
+  			  cache[threadIdx.x + by * (blockSize+1)] = idata[tidib];
+  		  else cache[threadIdx.x + by * (blockSize+1)] = 0.0f;
+  	  }
+  	  if ((threadIdx.x == blockSize-1) && (threadIdx.y == blockSize-1)){
+  		  int bx = threadIdx.x + 1;
+  		  int by = threadIdx.y + 1;
+  		  int xx = bx + blockIdx.x * (blockDim.x);
+  		  int yy = by + blockIdx.y * (blockDim.y);
+  		  float bxref = xx * delta + xoff;
+  		  float byref = yy * delta + yoff;
+  		  int biref = (int) bxref;
+  		  int bjref = (int) byref;
+  		  int tidib = biref + bjref * Nx;
+  		  if (tidib < Nx * Nx)
+  			  cache[bx + by * (blockSize+1)] = idata[tidib];
+  		  else cache[bx + by * (blockSize+1)] = 0.0f;
+  	  }
+    }
 
-  __syncthreads();
-*/
+    __syncthreads();
+  */
   if ((x < nx) && (y < ny)) {
     tido = x + y * nx;
 
@@ -223,35 +222,35 @@ __device__ void lgs_raytrace(float *odata, float *idata, int nx, int ny,
     wy2 = yshift;
 
     odata[tido] += (wx1 * wy1 * idata[iref + jref * Nx]
-        + wx2 * wy1 * idata[iref + 1 + jref * Nx]
-        + wx1 * wy2 * idata[iref + (jref + 1) * Nx]
-        + wx2 * wy2 * idata[iref + 1 + (jref + 1) * Nx]);
-/*
-    odata[tido] += (wx1 * wy1 * cache[threadIdx.x + threadIdx.y * (blockSize+1)]
-            + wx2 * wy1 * cache[threadIdx.x + 1 + threadIdx.y * (blockSize+1)]
-            + wx1 * wy2 * cache[threadIdx.x + (threadIdx.y + 1) * (blockSize+1)]
-            + wx2 * wy2 * cache[threadIdx.x + 1 + (threadIdx.y + 1) * (blockSize+1)]);*/
+                    + wx2 * wy1 * idata[iref + 1 + jref * Nx]
+                    + wx1 * wy2 * idata[iref + (jref + 1) * Nx]
+                    + wx2 * wy2 * idata[iref + 1 + (jref + 1) * Nx]);
+    /*
+        odata[tido] += (wx1 * wy1 * cache[threadIdx.x + threadIdx.y * (blockSize+1)]
+                + wx2 * wy1 * cache[threadIdx.x + 1 + threadIdx.y * (blockSize+1)]
+                + wx1 * wy2 * cache[threadIdx.x + (threadIdx.y + 1) * (blockSize+1)]
+                + wx2 * wy2 * cache[threadIdx.x + 1 + (threadIdx.y + 1) * (blockSize+1)]);*/
 
   }
 }
 
 __global__ void raytrace_krnl(float *odata, float *idata, int nx, int ny,
-    float xoff, float yoff, float G, float thetaML, float dx, float dy, int Nx, int blockSize) {
+                              float xoff, float yoff, float G, float thetaML, float dx, float dy, int Nx, int blockSize) {
   generic_raytrace(odata, idata, nx, ny, xoff, yoff, G, thetaML, dx, dy, Nx, blockSize, 0);
 }
 
 __global__ void raytrace_lgs_krnl(float *odata, float *idata, int nx, int ny,
-    float xoff, float yoff, int Nx, int blocksize, float delta) {
+                                  float xoff, float yoff, int Nx, int blocksize, float delta) {
   lgs_raytrace(odata, idata, nx, ny, xoff, yoff, Nx, blocksize, 0,delta);
 }
 
 __global__ void raytrace_krnl(float *odata, float *idata, int nx, int ny,
-    float xoff, float yoff, int Nx, int blockSize, int istart) {
+                              float xoff, float yoff, int Nx, int blockSize, int istart) {
   generic_raytrace(odata, idata, nx, ny, xoff, yoff, 1.0f, 0.0f, 0.0f, 0.0f, Nx, blockSize, istart);
 }
 
 int target_raytrace(float *d_odata, float *d_idata, int nx, int ny, int Nx,
-    float xoff, float yoff, float G, float thetaML, float dx, float dy, int block_size) {
+                    float xoff, float yoff, float G, float thetaML, float dx, float dy, int block_size) {
   int nnx = nx + block_size - nx % block_size; // find next multiple of BLOCK_SZ
   int nny = ny + block_size - ny % block_size;
   dim3 blocks(nnx / block_size, nny / block_size), threads(block_size,
@@ -267,7 +266,7 @@ int target_raytrace(float *d_odata, float *d_idata, int nx, int ny, int Nx,
 }
 
 int target_lgs_raytrace(float *d_odata, float *d_idata, int nx, int ny, int Nx,
-    float xoff, float yoff, float delta, int block_size) {
+                        float xoff, float yoff, float delta, int block_size) {
   int nnx = nx + block_size - nx % block_size; // find next multiple of BLOCK_SZ
   int nny = ny + block_size - ny % block_size;
   dim3 blocks(nnx / block_size, nny / block_size), threads(block_size,
@@ -282,8 +281,8 @@ int target_lgs_raytrace(float *d_odata, float *d_idata, int nx, int ny, int Nx,
 }
 
 int target_raytrace_async(carma_streams *streams, float *d_odata,
-    float *d_idata, int nx, int ny, int Nx, float xoff, float yoff,
-    int block_size) {
+                          float *d_idata, int nx, int ny, int Nx, float xoff, float yoff,
+                          int block_size) {
   int nstreams = streams->get_nbStreams();
 
   int nnx = nx + block_size - nx % block_size; // find next multiple of BLOCK_SZ
@@ -292,15 +291,15 @@ int target_raytrace_async(carma_streams *streams, float *d_odata,
 
   for (int i = 0; i < nstreams; i++)
     raytrace_krnl<<<blocks, threads, smemSize, streams->get_stream(i)>>>(
-        d_odata, d_idata, nx, ny, xoff, yoff, Nx, block_size, i * block_size);
+      d_odata, d_idata, nx, ny, xoff, yoff, Nx, block_size, i * block_size);
 
   carmaCheckMsg("raytrace_kernel<<<>>> execution failed\n");
   return EXIT_SUCCESS;
 }
 
 int target_raytrace_async(carma_host_obj<float> *phase_telemetry,
-    float *d_odata, float *d_idata, int nx, int ny, int Nx, float xoff,
-    float yoff, int block_size) {
+                          float *d_odata, float *d_idata, int nx, int ny, int Nx, float xoff,
+                          float yoff, int block_size) {
   float *hdata = phase_telemetry->getData();
   int nstreams = phase_telemetry->get_nbStreams();
 
@@ -310,8 +309,8 @@ int target_raytrace_async(carma_host_obj<float> *phase_telemetry,
 
   for (int i = 0; i < nstreams; i++)
     raytrace_krnl<<<blocks, threads, smemSize,
-    phase_telemetry->get_cudaStream_t(i)>>>(d_odata, d_idata, nx, ny, xoff,
-        yoff, Nx, block_size, i * block_size);
+                  phase_telemetry->get_cudaStream_t(i)>>>(d_odata, d_idata, nx, ny, xoff,
+                      yoff, Nx, block_size, i * block_size);
 
   carmaCheckMsg("raytrace_kernel<<<>>> execution failed\n");
   // asynchronously launch nstreams memcopies.  Note that memcopy in stream x will only
@@ -324,15 +323,15 @@ int target_raytrace_async(carma_host_obj<float> *phase_telemetry,
     } else
       nbcopy = delta + nbcopy;
     cudaMemcpyAsync(&(hdata[i * block_size * nx]),
-        &(d_odata[i * block_size * nx]), sizeof(float) * nbcopy,
-        cudaMemcpyDeviceToHost, phase_telemetry->get_cudaStream_t(i));
+                    &(d_odata[i * block_size * nx]), sizeof(float) * nbcopy,
+                    cudaMemcpyDeviceToHost, phase_telemetry->get_cudaStream_t(i));
   }
 
   return EXIT_SUCCESS;
 }
 
 __global__ void fillamplikrnl(cuFloatComplex *amplipup, float *phase,
-    float *mask, float scale, int puponly, int nx, int Np, int Nx) {
+                              float *mask, float scale, int puponly, int nx, int Np, int Nx) {
   int tid = threadIdx.x + blockIdx.x * blockDim.x;
 
   while (tid < Np) {
@@ -352,14 +351,14 @@ __global__ void fillamplikrnl(cuFloatComplex *amplipup, float *phase,
 }
 
 int fill_amplipup(cuFloatComplex *amplipup, float *phase, float *mask,
-    float scale, int puponly, int nx, int ny, int Nx, carma_device *device) {
+                  float scale, int puponly, int nx, int ny, int Nx, carma_device *device) {
 
   int nBlocks,nThreads;
   getNumBlocksAndThreads(device, nx * ny, nBlocks, nThreads);
   dim3 grid(nBlocks), threads(nThreads);
 
   fillamplikrnl<<<grid, threads>>>(amplipup, phase, mask, scale, puponly, nx,
-      nx * ny, Nx);
+                                   nx * ny, Nx);
   carmaCheckMsg("fillamplikrnl<<<>>> execution failed\n");
 
   return EXIT_SUCCESS;

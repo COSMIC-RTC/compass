@@ -4,7 +4,7 @@
 extern __shared__ float cache_shm[];
 
 __global__ void vonkarman_krnl(cuFloatComplex *odata, float *idata, float k0,
-    int nalias, int nx, int ny, int blockSize) {
+                               int nalias, int nx, int ny, int blockSize) {
   int x = threadIdx.x + blockIdx.x * blockDim.x;
   int y = threadIdx.y + blockIdx.y * blockDim.y;
 
@@ -18,27 +18,27 @@ __global__ void vonkarman_krnl(cuFloatComplex *odata, float *idata, float k0,
           float xc = nx / 2;
           float yc = ny / 2;
           float tmp = sqrtf(
-              (xc - x) * (xc - x) + (yc - y) * (yc - y) + k0 * k0);
+                        (xc - x) * (xc - x) + (yc - y) * (yc - y) + k0 * k0);
           if (tmp > 1.)
             cache_shm[threadIdx.x + threadIdx.y * blockSize] =
-                (6.88f * 0.00969f) * pow(tmp, -1.83333f);
+              (6.88f * 0.00969f) * pow(tmp, -1.83333f);
           else
             cache_shm[threadIdx.x + threadIdx.y * blockSize] =
-                (6.88f * 0.00969f);
+              (6.88f * 0.00969f);
         } else {
           float xc = x * nx + nx / 2;
           float yc = y * ny + ny / 2;
           cache_shm[threadIdx.x + threadIdx.y * blockSize] += (6.88f * 0.00969f)
               * pow(sqrtf((xc - x) * (xc - x) + (yc - y) * (yc - y) + k0 * k0),
-                  -1.83333f);
+                    -1.83333f);
         }
       }
     }
 
     odata[x + y * nx].x = cache_shm[threadIdx.x + threadIdx.y * blockSize]
-        * cosf(2.0f * 3.14159f * idata[x + y * nx]);
+                          * cosf(2.0f * 3.14159f * idata[x + y * nx]);
     odata[x + y * nx].y = cache_shm[threadIdx.x + threadIdx.y * blockSize]
-        * sinf(2.0f * 3.14159f * idata[x + y * nx]);
+                          * sinf(2.0f * 3.14159f * idata[x + y * nx]);
   }
 
   if ((x == 0) && (y == 0)) {
@@ -48,7 +48,7 @@ __global__ void vonkarman_krnl(cuFloatComplex *odata, float *idata, float k0,
 }
 
 int gene_vonkarman(cuFloatComplex *d_odata, float *d_idata, float k0,
-    int nalias, int nx, int ny, int block_size) {
+                   int nalias, int nx, int ny, int block_size) {
   int nnx = nx + block_size - nx % block_size; // find next multiple of BLOCK_SZ
   int nny = ny + block_size - ny % block_size;
   dim3 blocks(nnx / block_size, nny / block_size), threads(block_size,
@@ -64,32 +64,32 @@ int gene_vonkarman(cuFloatComplex *d_odata, float *d_idata, float k0,
 }
 
 __global__ void dphix_krnl(float *odata, float *idata, int N, int iter,
-    int nx) {
+                           int nx) {
 
   int tid = threadIdx.x + blockIdx.x * blockDim.x;
 
   while (tid + iter < N) {
     if (tid % nx < nx - iter)
       odata[tid] = (idata[tid] - idata[tid + iter])
-          * (idata[tid] - idata[tid + iter]);
+                   * (idata[tid] - idata[tid + iter]);
     tid += blockDim.x * gridDim.x;
   }
 }
 
 __global__ void dphiy_krnl(float *odata, float *idata, int N, int iter,
-    int nx) {
+                           int nx) {
 
   int tid = threadIdx.x + blockIdx.x * blockDim.x;
 
   while (tid + iter * nx < N) {
     odata[tid] = (idata[tid] - idata[tid + iter * nx])
-        * (idata[tid] - idata[tid + iter * nx]);
+                 * (idata[tid] - idata[tid + iter * nx]);
     tid += blockDim.x * gridDim.x;
   }
 }
 
 int norm_pscreen(float *d_odata, float *d_idata, int nx, int ny,
-    float norm_fact, carma_device *device) {
+                 float norm_fact, carma_device *device) {
   float sfx, sfy, norm = 0;
   int nthreads = 0, nblocks = 0;
   getNumBlocksAndThreads(device, nx * ny, nblocks, nthreads);

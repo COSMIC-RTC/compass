@@ -16,7 +16,7 @@ plt.ion()
 if(len(sys.argv) == 2):
     # get parameters from file
     param_file = sys.argv[1]
-    if(param_file.split('.')[-1] == "py"):
+    if(param_file.split('.')[-1] == b"py"):
         filename = param_file.split('/')[-1]
         param_path = param_file.split(filename)[0]
         sys.path.insert(0, param_path)
@@ -52,15 +52,15 @@ c = ch.naga_context(0)
 
 config.p_dm0.set_pzt_extent(0)
 #   dm
-print "->dm"
+print("->dm")
 if config.p_tel:
     dms = ao.dm_init_standalone(config.p_dms, config.p_geom, config.p_tel.diam, config.p_tel.cobs)
 else:
     dms = ao.dm_init_standalone(config.p_dms, config.p_geom)
 
-print "===================="
-print "init done"
-print "===================="
-print "objects initialzed on GPU:"
-print "--------------------------------------------------------"
-print dms
+print("====================")
+print("init done")
+print("====================")
+print("objects initialzed on GPU:")
+print("--------------------------------------------------------")
+print(dms)

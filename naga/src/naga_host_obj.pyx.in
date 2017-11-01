@@ -92,7 +92,7 @@ cdef class naga_host_obj_CLASSNAMEDIMD:
                         sh[i+1]=dims[i]
                     sh[0]=DIM
                 except ValueError:
-                    print "At least: argument 'dims' is required"
+                    print("At least: argument 'dims' is required")
 
                 if(MT ==-1):
                     if(nbStreams is None):

@@ -9,23 +9,29 @@ function check_var() {
     fi
 }
 
-# CUDA default definitions
+echo *** check CUDA definitions
 check_var CUDA_ROOT $CUDA_ROOT
 check_var CUDA_INC_PATH $CUDA_INC_PATH
 check_var CUDA_LIB_PATH $CUDA_LIB_PATH
 check_var CUDA_LIB_PATH_64 $CUDA_LIB_PATH_64
+check_var GENCODE $GENCODE
 
-# MAGMA default definitions
+echo *** check MAGMA definitions
 check_var MAGMA_ROOT $MAGMA_ROOT
 
-# CULA default definitions
-check_var CULA_ROOT $CULA_ROOT
-check_var CULA_INC_PATH $CULA_INC_PATH
-check_var CULA_LIB_PATH $CULA_LIB_PATH
-check_var CULA_LIB_PATH_64 $CULA_LIB_PATH_64
+# echo *** CULA default definitions
+# check_var CULA_ROOT $CULA_ROOT
+# check_var CULA_INC_PATH $CULA_INC_PATH
+# check_var CULA_LIB_PATH $CULA_LIB_PATH
+# check_var CULA_LIB_PATH_64 $CULA_LIB_PATH_64
 
-# YOGA default definitions
-check_var YOGA_DIR $YOGA_DIR
-check_var YOGA_AO_DIR $YOGA_AO_DIR
-check_var YOGA_AO_TOP $YOGA_AO_TOP
+echo *** check COMPASS definitions
+check_var COMPASS_ROOT $COMPASS_ROOT
+check_var NAGA_ROOT $NAGA_ROOT
+check_var SHESHA_ROOT $SHESHA_ROOT
 
+echo *** check environment definitions
+check_var PATH $PATH
+check_var LD_LIBRARY_PATH $LD_LIBRARY_PATH
+check_var PKG_CONFIG_PATH $PKG_CONFIG_PATH
+check_var PYTHONPATH $PYTHONPATH

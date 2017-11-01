@@ -55,74 +55,74 @@ struct gtomo_struct {
   cudaStream_t matcov_stream;
 };
 
-struct cphim_struct{
-	  double DiamTel;
-	  long Ndphi; //Useless ?
-	  long Nlayer;
-	  double pasDPHI;
-	  double pasDu; //Useless
-	  long int_npts;
-	  long Nw;
-	  long Nx;
-	  long Ndm;
-	  long Nactu;
-	  long *Nactu_tot;
-	  long *indLayerDm;
-	  long *NlayerDM;
-	  long *Nssp;
-	  long *Nsubap; // Number of valid subap for each wfs
-	  double *diamPup;
-	  double *XPup;
-	  double *YPup;
-	  double *thetaML;
-	  double *alphaX;
-	  double *alphaY;
-	  double *GsAlt;
-	  double x0;
-	  double y0;
+struct cphim_struct {
+  double DiamTel;
+  long Ndphi; //Useless ?
+  long Nlayer;
+  double pasDPHI;
+  double pasDu; //Useless
+  long int_npts;
+  long Nw;
+  long Nx;
+  long Ndm;
+  long Nactu;
+  long *Nactu_tot;
+  long *indLayerDm;
+  long *NlayerDM;
+  long *Nssp;
+  long *Nsubap; // Number of valid subap for each wfs
+  double *diamPup;
+  double *XPup;
+  double *YPup;
+  double *thetaML;
+  double *alphaX;
+  double *alphaY;
+  double *GsAlt;
+  double x0;
+  double y0;
 
-	  double lgs_cst;
-	  double spot_width;
-	  double lgs_depth;
-	  double lgs_alt;
-	  int   nlgs;
+  double lgs_cst;
+  double spot_width;
+  double lgs_depth;
+  double lgs_alt;
+  int   nlgs;
 
-	  long  *ioff_d;
-	  long  *Nssp_d;
-	  long *Nactu_tot_d;
-	  long *indLayerDm_d;
-	  long *NlayerDM_d;
-	  double *alphaX_d;
-	  double *alphaY_d;
-	  double *GsAlt_d;
-	  double *diamPup_d;
-	  double *thetaML_d;
-	  double *X_d;
-	  double *Y_d;
-	  double *XPup_d;
-	  double *YPup_d;
+  long  *ioff_d;
+  long  *Nssp_d;
+  long *Nactu_tot_d;
+  long *indLayerDm_d;
+  long *NlayerDM_d;
+  double *alphaX_d;
+  double *alphaY_d;
+  double *GsAlt_d;
+  double *diamPup_d;
+  double *thetaML_d;
+  double *X_d;
+  double *Y_d;
+  double *XPup_d;
+  double *YPup_d;
 
-	  long   max_Nl0;
-	  long  *indexL0_d;
-	  long *Nsubap_d; // Number of valid subap for each wfs
-	  double *L0diff_d;
-	  double *h_d;
-	  double *hDm_d;
-	  double *cn2_d;
-	  double *k2_d;
-	  double *tabDPHI_d;
-	  double *tab_int_x;
-	  double *tab_int_y;
-	  double *xact_d;
-	  double *yact_d;
-	  double *u_d;
-	  double *v_d;
-	  double *dx_d;
-	  double *sspSizeL_d;
-	  double FoV;
+  long   max_Nl0;
+  long  *indexL0_d;
+  long *Nsubap_d; // Number of valid subap for each wfs
+  double *L0diff_d;
+  double *h_d;
+  double *hDm_d;
+  double *cn2_d;
+  double *k2_d;
+  double *tabDPHI_d;
+  double *tab_int_x;
+  double *tab_int_y;
+  double *xact_d;
+  double *yact_d;
+  double *u_d;
+  double *v_d;
+  double *dx_d;
+  double *sspSizeL_d;
+  double FoV;
 
 
-	  cudaStream_t cphim_stream;
+  cudaStream_t cphim_stream;
 };
 
 void process_err(cudaError_t e, const char* str);
@@ -133,8 +133,8 @@ void update_tomo_atm_gpu_gb(struct gtomo_struct *tomo_gpu, sutra_sensors *sensor
 void update_tomo_sys_gpu_gb(struct gtomo_struct *tomo_gpu, sutra_sensors *sensors, double *alphaX, double *alphaY);
 void update_cphim_atm(struct cphim_struct *cphim_struct, sutra_sensors *sensors, sutra_atmos *atmos, double *L0, double *cn2, double *alphaX, double *alphaY);
 void update_cphim_sys(struct cphim_struct *cphim_struct, sutra_sensors *sensors,
-		double *alphaX, double *alphaY, double *xactu, double *yactu, double *X,
-		double *Y, long *NlayerDm, long *indLayerDm, double *alt_dm, double *pitch, double *k2, double FoV);
+                      double *alphaX, double *alphaY, double *xactu, double *yactu, double *X,
+                      double *Y, long *NlayerDm, long *indLayerDm, double *alt_dm, double *pitch, double *k2, double FoV);
 void matcov_gpu_3(double* data, int nrows, int ncols, int xoffset, int yoffset, int lda, struct tomo_struct tomo, struct gtomo_struct *tomo_gpu);
 void matcov_gpu_4(float* data, int nrows, int ncols, int xoffset, int yoffset, int lda, struct gtomo_struct *tomo_gpu, sutra_atmos *atmos, sutra_sensors *sensors, double *alphaX, double *alphaY);
 void CPHIM(float* data, int nrows, int ncols, int xoffset, int yoffset, int lda, struct cphim_struct *cphim_struct, sutra_atmos *atmos, sutra_sensors *sensors, double* alphaX, double *alphaY, carma_device *device);

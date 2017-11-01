@@ -16,6 +16,7 @@ naga/src/naga_magma.pyx
 naga/src/naga_obj.pyx
 naga/src/naga_sparse_obj.pyx
 shesha/src/*.cpp
+shesha/src/sutra_bind/*.cpp
 
 # python bytecodes
 *.pyc
@@ -37,8 +38,22 @@ Pyro_NS_URI
 .pydevproject
 .settings
 
+# Editors
+*.bak
+*.swp
+._*
+
+# Mypy data
+.mypy_cache
 
 shesha/data/M4data/
+shesha/test/scripts/resultatsScripts/
+shesha/data/bench-results/
+
+# Fuse stuffs
+.fuse*
 
 shesha/test/scripts/resultatsScripts/
 *.gch
+
+doc/compass-doc

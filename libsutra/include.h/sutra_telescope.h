@@ -10,7 +10,7 @@
 using std::string;
 
 class sutra_telescope {
-public:
+ public:
 
   carma_context *current_context;
   int device; // device #
@@ -26,7 +26,7 @@ public:
   carma_obj<float> *d_pupil_m; // the pupil mask
   carma_obj<float> *d_phase_ab_M1_m; // the phase aberration for M1
 
-public:
+ public:
   sutra_telescope(carma_context *context, long pup_size, long num_eleme_pup, float *pupil, float *phase_ab_M1, long pup_size_m, float *pupil_m, float *phase_ab_m1_m);
   ~sutra_telescope();
 

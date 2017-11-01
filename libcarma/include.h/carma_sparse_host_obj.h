@@ -14,7 +14,7 @@ class carma_sparse_obj;
 
 template<class T_data>
 class carma_sparse_host_obj {
-public:
+ public:
   carma_sparse_host_obj();
   carma_sparse_host_obj(carma_sparse_obj<T_data>& sm);
   carma_sparse_host_obj(carma_sparse_host_obj<T_data>& sm);
@@ -58,17 +58,17 @@ public:
     return nz_elem;
   }
 
-private:
+ private:
   void _create(int nnz_, int dim1_, int dim2_); //create new arrays
   void _clear(); //clear arrays
 
   char majorDim; //U - undefined
-                 //R - row major
-                 //C - col major
+  //R - row major
+  //C - col major
 
   MemAlloc mallocType; ///< type of host alloc
 
-public:
+ public:
   long dims_data[3]; ///< dimensions of the array
   int nz_elem; ///< number of elements in the array
 
@@ -83,23 +83,23 @@ public:
 //y := alpha*A*x + betta * y
 template<class T_data>
 void carma_gemv(T_data alpha, carma_sparse_host_obj<T_data>* A,
-    carma_host_obj<T_data>* x, T_data betta, carma_host_obj<T_data>* y,
-    void (*ptr_coomv)(char *transa, long *m, long *k, T_data *alpha,
-        char *matdescra, T_data *val, int *rowind, int *colind,
-        int *nnz, T_data *x, T_data *beta, T_data *y));
+                carma_host_obj<T_data>* x, T_data betta, carma_host_obj<T_data>* y,
+                void (*ptr_coomv)(char *transa, long *m, long *k, T_data *alpha,
+                                  char *matdescra, T_data *val, int *rowind, int *colind,
+                                  int *nnz, T_data *x, T_data *beta, T_data *y));
 
 //Multiply sparce matrix by dense matrix
 //C := alpha*op(A)*B + betta * y
 //op_A could be N (do nothing) or T (transpose)
 template<class T_data>
 void carma_gemm(char op_A, T_data alpha, carma_sparse_host_obj<T_data>* A,
-    carma_host_obj<T_data>* B, T_data betta, carma_host_obj<T_data>* C);
+                carma_host_obj<T_data>* B, T_data betta, carma_host_obj<T_data>* C);
 
 //Multiply sparce matrix by dense matrix
 //C := alpha*A*B + betta * y
 template<class T_data>
 inline void carma_gemm(T_data alpha, carma_sparse_host_obj<T_data>* A,
-    carma_host_obj<T_data>* B, T_data betta, carma_host_obj<T_data>* C) {
+                       carma_host_obj<T_data>* B, T_data betta, carma_host_obj<T_data>* C) {
   kp_gemm('N', alpha, A, B, betta, C);
 }
 

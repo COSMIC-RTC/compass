@@ -15,7 +15,7 @@
 #include <sutra_wfs.h>
 
 class sutra_rtc_brama : public sutra_rtc {
-private:
+ private:
   DDS::Subscriber_var sub;
   DDS::Publisher_var pub;
 
@@ -57,14 +57,14 @@ private:
 
   int is_initialised;
 
-public:
+ public:
   sutra_rtc_brama(carma_context *context, sutra_sensors *wfs,
                   sutra_target *target, ACE_TCHAR *name);
   ~sutra_rtc_brama();
 
   void publish();
 
-private:
+ private:
   void allocateBuffers();
 };
 

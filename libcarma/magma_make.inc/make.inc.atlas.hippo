@@ -58,4 +58,4 @@ LIBDIR    = -L$(LAPACKDIR) \
             -L$(ATLASDIR) \
             -L$(CUDADIR)/lib64
 
-INC       = -I$(CUDADIR)/include
+INC       = -isystem $(CUDADIR)/include

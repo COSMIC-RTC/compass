@@ -1,13 +1,34 @@
 #!/bin/bash
 
-GITUSERNAME="fvidal"
-GITEMAIL="fabrice.vidal@obspm.fr"
+function check_var() {
+    if [[ $2 != "" ]]
+    then
+        echo $1 defined to $2
+    else
+        echo $1 not defined !!!
+    fi
+}
+
+GITUSERNAME="Sevin Arnaud"
+GITEMAIL="arnaud.sevin@obspm.fr"
+
+check_var GITUSERNAME $GITUSERNAME
+check_var GITEMAIL $GITEMAIL
+
+read  -n 1 -p "Are you really sure to be $GITUSERNAME <$GITEMAIL> ? [n]/y" ANS
+if [ "A$ANS" != "Ay" ]
+then
+    echo "Installation cancelled"
+    exit 0
+fi
+echo
 
 cd /home/$USER
 
 FILE="/home/$USER/git-completion.bash"
 
 if [ ! -f $FILE ]; then
+    echo "downloading git-completion.bash and source it in ~/.bashrc"
     wget https://raw.githubusercontent.com/git/git/master/contrib/completion/git-completion.bash
     echo 'source ~/git-completion.bash' >> ~/.bashrc
 fi
@@ -33,3 +54,5 @@ git config --global alias.laststat '!f() { git diff --stat $1@{1}..$1 --dirstat=
 
 git config --global alias.assume-unchanged 'update-index --assume-unchanged'
 git config --global alias.no-assume-unchanged 'update-index --no-assume-unchanged'
+
+echo "configuration done"

@@ -13,8 +13,7 @@
 /**
  * \brief a simple timer for CUDA kernel.
  */
-class carma_timer
-{
+class carma_timer {
  protected:
   cudaEvent_t startEv, stopEv;
   double total_time;
@@ -47,14 +46,14 @@ class carma_timer
     cudaEventElapsedTime(&gpuTime, startEv, stopEv);
     total_time += (double)1e-3*gpuTime;
   }
-    
+
   /** return elapsed time in seconds (as record in total_time) */
   double elapsed() {
     return total_time;
   }
 
 };
-  
+
 
 
 #endif // CARMA_TIMER_H_

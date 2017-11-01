@@ -27,7 +27,7 @@ string sutra_centroider_roof::get_type() {
 }
 
 int sutra_centroider_roof::get_cog(carma_streams *streams, float *cube,
-    float *subsum, float *centroids, int nvalid, int npix, int ntot) {
+                                   float *subsum, float *centroids, int nvalid, int npix, int ntot) {
   //TODO: Implement sutra_centroider_roof::get_cog
   std::cerr << "get_cog not implemented" << std::endl;
 
@@ -35,17 +35,17 @@ int sutra_centroider_roof::get_cog(carma_streams *streams, float *cube,
 }
 
 int sutra_centroider_roof::get_roof(float *cube, float *subsum,
-    float *centroids, int *subindx, int *subindy, int nvalid, int ns, int nim) {
+                                    float *centroids, int *subindx, int *subindy, int nvalid, int ns, int nim) {
   current_context->set_activeDevice(device,1);
   roof_slopes(centroids, cube, subindx, subindy, subsum, ns, nvalid, nim,
-      this->current_context->get_device(device));
+              this->current_context->get_device(device));
   return EXIT_SUCCESS;
 }
 
 int sutra_centroider_roof::get_cog(float *subsum, float *slopes,bool noise) {
   return this->get_roof(*(wfs->d_bincube), subsum, slopes,
-    *(wfs->d_validsubsx), *(wfs->d_validsubsy), wfs->nvalid,
-    wfs->nfft / wfs->nrebin, 4);
+                        *(wfs->d_validsubsx), *(wfs->d_validsubsy), wfs->nvalid,
+                        wfs->nfft / wfs->nrebin, 4);
 }
 
 int sutra_centroider_roof::get_cog() {

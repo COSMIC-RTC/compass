@@ -11,22 +11,22 @@ import time
 import matplotlib.pyplot as pl
 import hdf5_utils as h5u
 
-print "TEST SHESHA\n closed loop: call loop(int niter)"
+print("TEST SHESHA\n closed loop: call loop(int niter)")
 
 
 if(len(sys.argv) != 2):
     error = 'command line should be:"python -i test.py parameters_filename"\n with "parameters_filename" the path to the parameters file'
-    raise StandardError(error)
+    raise Exception(error)
 
 # get parameters from file
 param_file = sys.argv[1]
-if(param_file.split('.')[-1] == "py"):
+if(param_file.split('.')[-1] == b"py"):
     filename = param_file.split('/')[-1]
     param_path = param_file.split(filename)[0]
     sys.path.insert(0, param_path)
     exec("import %s as config" % filename.split(".py")[0])
     sys.path.remove(param_path)
-elif(param_file.split('.')[-1] == "h5"):
+elif(param_file.split('.')[-1] == b"h5"):
     sys.path.insert(0, os.environ["SHESHA_ROOT"] + "/data/par/par4bench/")
     import scao_sh_16x16_8pix as config
     sys.path.remove(os.environ["SHESHA_ROOT"] + "/data/par/par4bench/")
@@ -34,7 +34,7 @@ elif(param_file.split('.')[-1] == "h5"):
 else:
     raise ValueError("Parameter file extension must be .py or .h5")
 
-print "param_file is", param_file
+print("param_file is", param_file)
 
 
 if(hasattr(config, "simul_name")):
@@ -42,12 +42,12 @@ if(hasattr(config, "simul_name")):
         simul_name = ""
     else:
         simul_name = config.simul_name
-        print "simul name is", simul_name
+        print("simul name is", simul_name)
 else:
     simul_name = ""
 
 matricesToLoad = {}
-if(simul_name == ""):
+if(simul_name == b""):
     clean = 1
 else:
     clean = 0
@@ -82,17 +82,17 @@ index = 1
 while npts <= 512:
     config.p_wfs0.set_pyr_npts(npts)
     #    wfs
-    print "->wfs"
+    print("->wfs")
     wfs, tel = ao.wfs_init(config.p_wfss, config.p_atmos,
                            config.p_tel, config.p_geom, config.p_target, config.p_loop,
                            config.p_dms)
 
     #   dm
-    print "->dm"
+    print("->dm")
     dms = ao.dm_init(
         config.p_dms, config.p_wfss, wfs, config.p_geom, config.p_tel)
 
-    print "->rtc"
+    print("->rtc")
     #   rtc
     rtc = ao.rtc_init(tel, wfs, config.p_wfss, dms, config.p_dms, config.p_geom, config.p_rtc, None, None,
                       config.p_tel, config.p_loop, clean=clean, simul_name=simul_name,
@@ -101,14 +101,14 @@ while npts <= 512:
     if not clean:
         h5u.validDataBase(os.environ["SHESHA_ROOT"] + "/data/", matricesToLoad)
 
-    print "===================="
-    print "init done"
-    print "===================="
-    print "objects initialzed on GPU:"
-    print "--------------------------------------------------------"
-    print wfs
-    print dms
-    print rtc
+    print("====================")
+    print("init done")
+    print("====================")
+    print("objects initialzed on GPU:")
+    print("--------------------------------------------------------")
+    print(wfs)
+    print(dms)
+    print(rtc)
 
     imat = rtc.get_imat(0)
 

@@ -16,23 +16,30 @@ from Cython.Build import cythonize
 # Remove the "-Wstrict-prototypes" compiler option, which isn't valid for C++.
 import distutils.sysconfig
 cfg_vars = distutils.sysconfig.get_config_vars()
-for key, value in cfg_vars.items():
+for key, value in list(cfg_vars.items()):
     if type(value) == str:
         cfg_vars[key] = value.replace("-Wstrict-prototypes", "")
 # ==================================
 
-listMod = ['naga_context', 'naga_streams', 'naga_obj', 'naga_host_obj', 'naga_magma', 'naga_timer', 'naga_sparse_obj']
-dependencies = {'naga_streams': ['naga_context'],
-                'naga_obj': ['naga_context', 'naga_streams'],
-                'naga_host_obj': ['naga_context', 'naga_streams'],
-                'naga_magma': ['naga_obj', 'naga_host_obj'],
-                'naga_timer': ['naga_context'],
-                'naga_sparse_obj': ['naga_context', 'naga_obj']}
+listMod = [
+        'naga_context', 'naga_streams', 'naga_obj', 'naga_host_obj',
+        'naga_magma', 'naga_timer', 'naga_sparse_obj']
+dependencies = {
+        'naga_streams': ['naga_context'],
+        'naga_obj': ['naga_context', 'naga_streams'],
+        'naga_host_obj': ['naga_context', 'naga_streams'],
+        'naga_magma': ['naga_obj',
+                       'naga_host_obj'], 'naga_timer': ['naga_context'],
+        'naga_sparse_obj': ['naga_context', 'naga_obj']}
 
 naga_path = os.environ.get('NAGA_ROOT')
-if(naga_path is None):
+if (naga_path is None):
     raise EnvironmentError("Environment variable 'NAGA_ROOT' must be define")
 sys.path.append(naga_path + '/src')
+if not os.path.exists(naga_path + "/lib"):
+    os.makedirs(naga_path + "/lib")
+
+sys.path.append(naga_path + "/lib")
 
 # deprecated
 # def find_in_path(name, path):
@@ -52,12 +59,13 @@ def locate_compass():
     if 'COMPASS_ROOT' in os.environ:
         root_compass = os.environ['COMPASS_ROOT']
     else:
-        raise EnvironmentError("Environment variable 'COMPASS_ROOT' must be define")
+        raise EnvironmentError(
+                "Environment variable 'COMPASS_ROOT' must be define")
 
-    compass_config = {'inc_sutra': root_compass + '/libsutra/include.h',
-                      'inc_carma': root_compass + '/libcarma/include.h',
-                      'inc_naga': root_compass + '/naga',
-                      'lib': root_compass}
+    compass_config = {
+            'inc_sutra': root_compass + '/libsutra/include.h',
+            'inc_carma': root_compass + '/libcarma/include.h',
+            'inc_naga': root_compass + '/naga', 'lib': root_compass}
 
     return compass_config
 
@@ -89,6 +97,7 @@ def wselect(args, dirname, names):
 
 
 class clean(_clean):
+
     def walkAndClean(self):
         os.path.walk("..", wselect, [])
 
@@ -114,13 +123,11 @@ class clean(_clean):
 library_dirs = [COMPASS['lib'] + '/libcarma']
 libraries = ['carma']
 
-include_dirs = [numpy_include,
-                COMPASS['inc_carma']
-                ]
+include_dirs = [numpy_include, COMPASS['inc_carma']]
 
 if 'MKLROOT' in os.environ:
     mkl_root = os.environ.get('MKLROOT')
-    print "mkl_root: ", mkl_root
+    print("mkl_root: ", mkl_root)
     library_dirs.append(mkl_root + '/mkl/lib/intel64/')
     libraries.append('mkl_mc3')
     libraries.append('mkl_def')
@@ -130,11 +137,11 @@ if 'CUDA_INC_PATH' in os.environ:
     library_dirs.append(os.environ['CUDA_LIB_PATH_64'])
     libraries.append('cudart')
 else:
-    raise EnvironmentError("Environment variable 'CUDA_INC_PATH' must be define")
+    raise EnvironmentError(
+            "Environment variable 'CUDA_INC_PATH' must be define")
 
-# print "library_dirs", library_dirs
-# print "libraries", libraries
-
+# print("library_dirs", library_dirs)
+# print("libraries", libraries)
 
 #######################
 #  extension
@@ -160,7 +167,6 @@ else:
 #                include_dirs = [numpy_include,
 #                                COMPASS['inc']+'/libcarma/include.h'])
 #
-
 
 # deprecated
 # def customize_compiler_for_nvcc(self):
@@ -190,7 +196,6 @@ else:
 #     # inject our redefined _compile method into the class
 #     self._compile = _compile
 
-
 # deprecated
 # run the customize_compiler
 # class custom_build_ext(build_ext):
@@ -200,58 +205,63 @@ else:
 #         customize_compiler_for_nvcc(self.compiler)
 #         build_ext.build_extensions(self)
 
-
 # dal with generated sources files
 if 'build_ext' in sys.argv or 'develop' in sys.argv or 'install' in sys.argv:
     generator = os.path.join(os.path.abspath('.'), 'src/process_tmpl.py')
     d = {'__file__': generator}
-    execfile(generator, d)
+    exec(compile(open(generator).read(), generator, 'exec'), d)
     d['main'](None)
 
 
 def dependencies_module(name):
-    print "======================================="
-    print "resolving dependencies for", name
-    print "======================================="
+    print("=======================================")
+    print("resolving dependencies for", name)
+    print("=======================================")
     try:
         dep = dependencies[name]
-        print "dependencies:", dep
-        if(os.path.exists("src/" + name + ".cpp")):
+        print("dependencies:", dep)
+        if (os.path.exists("src/" + name + ".cpp")):
             for d in dep:
-                if (os.stat("src/" + d + ".pyx").st_mtime >
+                if (
+                        os.stat("src/" + d + ".pyx").st_mtime >
                         os.stat("src/" + name + ".cpp").st_mtime):
                     # cpp file outdated
                     # cpp file outdated if exists
                     if (os.path.exists("src/" + name + ".cpp")):
                         os.remove("src/" + name + ".cpp")
-    except KeyError, e:
-        print e
+    except KeyError as e:
+        print(e)
 
 
 def compile_module(name):
-    print "======================================="
-    print "creating module ", name
-    print "======================================="
-    ext = Extension(name,
-                    sources=['src/' + name + '.pyx'],
-                    extra_compile_args=["-Wno-unused-function", "-Wno-unused-label", "-Wno-cpp", "-std=c++11",
-                                        # "-O0", "-g",
-                                        ],
-                    include_dirs=include_dirs,
-                    library_dirs=library_dirs,
-                    libraries=libraries,
-                    language='c++',
-                    runtime_library_dirs=[],  # CUDA['lib64']],
-                    define_macros=[],
-                    )
+    print("=======================================")
+    print("creating module ", name)
+    print("=======================================")
+    ext = Extension(
+            naga_path + "/lib/" + name,
+            sources=['src/' + name + '.pyx'],
+            extra_compile_args=[
+                    "-Wno-unused-function",
+                    "-Wno-unused-label",
+                    "-Wno-cpp",
+                    "-std=c++11",
+                    # "-O0", "-g",
+            ],
+            include_dirs=include_dirs,
+            library_dirs=library_dirs,
+            libraries=libraries,
+            language='c++',
+            runtime_library_dirs=[],  # CUDA['lib64']],
+            define_macros=[], )
 
     setup(
-        name=name,
-        ext_modules=cythonize([ext],
-                              # gdb_debug=True,
-                              )
-        # cmdclass={'build_ext': custom_build_ext},
-        # zip_safe=False
+            name=name,
+            ext_modules=cythonize(
+                    [ext],
+                    # gdb_debug=True,
+                    language_level=3, )
+            # cmdclass={'build_ext': custom_build_ext},
+            # zip_safe=False
     )
 
 
@@ -262,15 +272,16 @@ if __name__ == '__main__':
 
         from multiprocessing import Pool
         pool = Pool(maxtasksperchild=1)  # process per core
-        pool.map(dependencies_module, listMod)  # proces data_inputs iterable with pool
-        pool.map(compile_module, listMod)  # proces data_inputs iterable with pool
+        # proces data_inputs iterable with pool
+        pool.map(dependencies_module, listMod)
+        # proces data_inputs iterable with pool
+        pool.map(compile_module, listMod)
     except ImportError:
         for name in listMod:
             dependencies_module(name)
             compile_module(name)
     finally:
         compile_module("naga")
-
 
 # setup(name='naga',
 #

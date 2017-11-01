@@ -1,7 +1,8 @@
-all: install
+all: build
 
+.Phony: build 
 build:
-	python setup.py build_ext
+	python setup.py build_ext -i
 
 clean:
 	python clean.py && rm -rf build

@@ -32,7 +32,7 @@ int sutra_centroider_tcog::set_threshold(float threshold) {
 }
 
 int sutra_centroider_tcog::get_cog(carma_streams *streams, float *cube,
-    float *subsum, float *centroids, int nvalid, int npix, int ntot) {
+                                   float *subsum, float *centroids, int nvalid, int npix, int ntot) {
   current_context->set_activeDevice(device,1);
   //TODO: Implement sutra_centroider_tcog::get_cog_async
 #ifndef USE_OLD
@@ -41,12 +41,12 @@ int sutra_centroider_tcog::get_cog(carma_streams *streams, float *cube,
   subap_reduce_new(ntot, npix * npix, nvalid, cube, subsum, this->threshold, this->current_context->get_device(device));
 
   get_centroids(ntot, npix * npix, nvalid, npix, cube, centroids, subsum,
-      this->scale, this->offset, this->current_context->get_device(device));
+                this->scale, this->offset, this->current_context->get_device(device));
 #else
   subap_reduce(ntot, npix * npix, nvalid, cube, subsum, this->threshold, this->current_context->get_device(device));
 
   get_centroids(ntot, npix * npix, nvalid, npix, cube, centroids, subsum,
-      this->threshold, this->scale, this->offset, this->current_context->get_device(device));
+                this->threshold, this->scale, this->offset, this->current_context->get_device(device));
 #endif
   return EXIT_SUCCESS;
 }
@@ -54,10 +54,10 @@ int sutra_centroider_tcog::get_cog(carma_streams *streams, float *cube,
 int sutra_centroider_tcog::get_cog(float *subsum, float *slopes,bool noise) {
   if(noise || wfs->error_budget == false)
     return this->get_cog(wfs->streams, *(wfs->d_bincube), subsum,
-      slopes, wfs->nvalid, wfs->npix, wfs->d_bincube->getNbElem());
+                         slopes, wfs->nvalid, wfs->npix, wfs->d_bincube->getNbElem());
   else
     return this->get_cog(wfs->streams, *(wfs->d_bincube_notnoisy), subsum,
-      slopes, wfs->nvalid, wfs->npix, wfs->d_bincube->getNbElem());
+                         slopes, wfs->nvalid, wfs->npix, wfs->d_bincube->getNbElem());
 }
 
 int sutra_centroider_tcog::get_cog() {

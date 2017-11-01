@@ -45,9 +45,9 @@ cufftType carma_select_plan<cuDoubleComplex, cufftDoubleReal>() {
 
 template<class T_in, class T_out>
 cufftResult fft_compute(cufftHandle plan, T_in *d_input, T_out *d_output,
-    int dir)
-    /**< Generic template for cufft executable selection */
-    {
+                        int dir)
+/**< Generic template for cufft executable selection */
+{
   return CUFFT_INVALID_VALUE;
 }
 
@@ -103,20 +103,20 @@ void carma_initfft(const long *dims_data, cufftHandle *plan, cufftType tPlan) {
     throw "Wrong data type\n";
   }
   if (dims_data[0] == 1)
-      /* Create a 1D FFT plan. */
-      carmafftSafeCall(cufftPlan1d(plan, dims_data[1], tPlan,1));
+    /* Create a 1D FFT plan. */
+    carmafftSafeCall(cufftPlan1d(plan, dims_data[1], tPlan,1));
   else if (dims_data[0] == 2)
     /* Create a 2D FFT plan. */
     carmafftSafeCall(cufftPlan2d(plan, dims_data[1], dims_data[2], tPlan));
   else
-  /* Create a 3D FFT plan. */{
+    /* Create a 3D FFT plan. */{
     int mdims[2];
     mdims[0] = (int) dims_data[1];
     mdims[1] = (int) dims_data[2];
-    carmafftSafeCall( 
-        /*cufftPlan3d(plan,dims_data[1],dims_data[2],dims_data[3], tPlan));*/
-        //cufftPlanMany(plan, 2 ,mdims,NULL,1,0,NULL,1,0,CUFFT_C2C ,(int)dims_data[3]));
-        cufftPlanMany(plan, 2 ,mdims,NULL,1,0,NULL,1,0,tPlan ,(int)dims_data[3]));
+    carmafftSafeCall(
+      /*cufftPlan3d(plan,dims_data[1],dims_data[2],dims_data[3], tPlan));*/
+      //cufftPlanMany(plan, 2 ,mdims,NULL,1,0,NULL,1,0,CUFFT_C2C ,(int)dims_data[3]));
+      cufftPlanMany(plan, 2,mdims,NULL,1,0,NULL,1,0,tPlan,(int)dims_data[3]));
   }
 
 }
@@ -153,15 +153,15 @@ int carma_fft(T_in *input, T_out *output, int dir, cufftHandle plan) {
   //CUFFT_FORWARD = -1 and CUFFT_INVERSE = 1 (cf cufft.h)
   //carmafftSafeCall( fft_compute(plan, (T_in*)input, (T_out*)output, dir * CUFFT_FORWARD));
   carmafftSafeCall(
-      fft_compute(plan, (T_in*)input, (T_out*)output, dir * CUFFT_FORWARD));
+    fft_compute(plan, (T_in*)input, (T_out*)output, dir * CUFFT_FORWARD));
   return EXIT_SUCCESS;
 }
 template int
 carma_fft<cuFloatComplex, cufftReal>(cuFloatComplex *input, cufftReal *output,
-    int dir, cufftHandle plan);
+                                     int dir, cufftHandle plan);
 template int
 carma_fft<cufftReal, cuFloatComplex>(cufftReal *input, cuFloatComplex *output,
-    int dir, cufftHandle plan);
+                                     int dir, cufftHandle plan);
 template int
 carma_fft<cuFloatComplex, cuFloatComplex>(cuFloatComplex *input,
     cuFloatComplex *output, int dir, cufftHandle plan);
@@ -177,4 +177,3 @@ carma_fft<cuDoubleComplex, cufftDoubleReal>(cuDoubleComplex *input,
 template int
 carma_fft<cuDoubleComplex, cuDoubleComplex>(cuDoubleComplex *input,
     cuDoubleComplex *output, int dir, cufftHandle plan);
-

@@ -8,9 +8,9 @@ sutra_wfs_pyr::sutra_wfs_pyr(carma_context *context, sutra_telescope *d_tel,
                              long ntot, long npup, float pdiam, float nphotons,
                              float nphot4imat, int lgs, int device,
                              const char* type_pyr) :
-    sutra_wfs(context, d_tel, sensors, type_pyr, nxsub, nvalid, npix, nphase,
-              nrebin, nfft, ntot, npup, pdiam, nphotons, nphot4imat, lgs,
-              device) {
+  sutra_wfs(context, d_tel, sensors, type_pyr, nxsub, nvalid, npix, nphase,
+            nrebin, nfft, ntot, npup, pdiam, nphotons, nphot4imat, lgs,
+            device) {
   context->set_activeDevice(device,1);
 
   long dims_data1[2];
@@ -30,7 +30,7 @@ sutra_wfs_pyr::sutra_wfs_pyr(carma_context *context, sutra_telescope *d_tel,
     this->d_camplifoc = new carma_obj<cuFloatComplex>(context, dims_data2);
     cufftHandle *plan = this->d_camplipup->getPlan(); ///< FFT plan
     carmafftSafeCall(
-        cufftPlan2d(plan, dims_data2[1], dims_data2[2], CUFFT_C2C));
+      cufftPlan2d(plan, dims_data2[1], dims_data2[2], CUFFT_C2C));
 
     this->d_fttotim = new carma_obj<cuFloatComplex>(context, dims_data2);
 
@@ -55,7 +55,7 @@ sutra_wfs_pyr::sutra_wfs_pyr(carma_context *context, sutra_telescope *d_tel,
     }
     // using 1 stream for telemetry
     this->image_telemetry = new carma_host_obj<float>(dims_data2, MA_PAGELOCK,
-                                                      1);
+        1);
     this->nstreams = 1;
     while (nvalid % this->nstreams != 0)
       nstreams--;
@@ -97,7 +97,7 @@ sutra_wfs_pyr::sutra_wfs_pyr(carma_context *context, sutra_telescope *d_tel,
     this->d_camplifoc = new carma_obj<cuFloatComplex>(context, dims_data2);
     cufftHandle *plan = this->d_camplipup->getPlan(); ///< FFT plan
     carmafftSafeCall(
-        cufftPlan2d(plan, dims_data2[1], dims_data2[2], CUFFT_C2C));
+      cufftPlan2d(plan, dims_data2[1], dims_data2[2], CUFFT_C2C));
 
     dims_data3[1] = nfft / nrebin;
     dims_data3[2] = nfft / nrebin;
@@ -111,7 +111,7 @@ sutra_wfs_pyr::sutra_wfs_pyr(carma_context *context, sutra_telescope *d_tel,
 
     // using 1 stream for telemetry
     this->image_telemetry = new carma_host_obj<float>(dims_data2, MA_PAGELOCK,
-                                                      1);
+        1);
 
     this->nstreams = 1;
     while (nvalid % this->nstreams != 0)
@@ -130,7 +130,7 @@ sutra_wfs_pyr::sutra_wfs_pyr(carma_context *context, sutra_telescope *d_tel,
     mdims[1] = (int) dims_data3[2];
     plan = this->d_fttotim->getPlan(); ///< FFT plan
     carmafftSafeCall(
-        cufftPlanMany(plan, 2 ,mdims,NULL,1,0,NULL,1,0,CUFFT_C2C , (int)dims_data3[3]));
+      cufftPlanMany(plan, 2,mdims,NULL,1,0,NULL,1,0,CUFFT_C2C, (int)dims_data3[3]));
 
     //  dims_data2[1] = ntot;
     //  dims_data2[2] = ntot;
@@ -254,7 +254,7 @@ int sutra_wfs_pyr::wfs_initarrays(cuFloatComplex *halfxy,
 int sutra_wfs_pyr::fill_binimage(int async) {
   if (this->d_binimg == NULL) {
     DEBUG_TRACE(
-        "ERROR : d_bincube not initialized, did you do the allocate_buffers?");
+      "ERROR : d_bincube not initialized, did you do the allocate_buffers?");
     throw "ERROR : d_bincube not initialized, did you do the allocate_buffers?";
   }
   if (noise > 0)

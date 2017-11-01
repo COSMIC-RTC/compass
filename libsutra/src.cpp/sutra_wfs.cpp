@@ -36,21 +36,21 @@ sutra_wfs::sutra_wfs(carma_context *context, sutra_telescope *d_tel,
                      long nvalid, long npix, long nphase, long nrebin,
                      long nfft, long ntot, long npup, float pdiam,
                      float nphotons, float nphot4imat, int lgs, int device)
-    : device(device), type(type), nxsub(nxsub), nvalid(nvalid), npix(npix),
-      nrebin(nrebin), nfft(nfft), ntot(ntot), npup(npup), nphase(nphase),
-      nmaxhr(nvalid), nffthr(1), subapd(pdiam), nphot(nphotons),
-      nphot4imat(nphot4imat), noise(0), lgs(lgs), kernconv(false),
-      error_budget(sensors->error_budget), campli_plan(nullptr),
-      fttotim_plan(nullptr), d_ftkernel(nullptr), d_camplipup(nullptr),
-      d_camplifoc(nullptr), d_fttotim(nullptr), d_pupil(d_tel->d_pupil_m),
-      d_bincube(nullptr), d_bincube_notnoisy(nullptr), d_binimg(nullptr),
-      d_binimg_notnoisy(nullptr), d_subsum(nullptr), d_offsets(nullptr),
-      d_fluxPerSub(nullptr), d_sincar(nullptr), d_hrmap(nullptr),
-      d_slopes(nullptr), image_telemetry(nullptr), d_gs(nullptr),
-      streams(nullptr), nstreams(0), d_phasemap(nullptr), d_validsubsx(nullptr),
-      d_validsubsy(nullptr), current_context(context), offset(0),
-      nvalid_tot(nvalid), rank(0), displ_bincube(nullptr),
-      count_bincube(nullptr) {
+  : device(device), type(type), nxsub(nxsub), nvalid(nvalid), npix(npix),
+    nrebin(nrebin), nfft(nfft), ntot(ntot), npup(npup), nphase(nphase),
+    nmaxhr(nvalid), nffthr(1), subapd(pdiam), nphot(nphotons),
+    nphot4imat(nphot4imat), noise(0), lgs(lgs), kernconv(false),
+    error_budget(sensors->error_budget), campli_plan(nullptr),
+    fttotim_plan(nullptr), d_ftkernel(nullptr), d_camplipup(nullptr),
+    d_camplifoc(nullptr), d_fttotim(nullptr), d_pupil(d_tel->d_pupil_m),
+    d_bincube(nullptr), d_bincube_notnoisy(nullptr), d_binimg(nullptr),
+    d_binimg_notnoisy(nullptr), d_subsum(nullptr), d_offsets(nullptr),
+    d_fluxPerSub(nullptr), d_sincar(nullptr), d_hrmap(nullptr),
+    d_slopes(nullptr), image_telemetry(nullptr), d_gs(nullptr),
+    streams(nullptr), nstreams(0), d_phasemap(nullptr), d_validsubsx(nullptr),
+    d_validsubsy(nullptr), current_context(context), offset(0),
+    nvalid_tot(nvalid), rank(0), displ_bincube(nullptr),
+    count_bincube(nullptr) {
   if (sensors != nullptr) {
     this->d_camplipup = sensors->d_camplipup;
     this->d_camplifoc = sensors->d_camplifoc;
@@ -161,9 +161,9 @@ sutra_sensors::sutra_sensors(carma_context *context, sutra_telescope *d_tel,
                              long *ntot, long *npup, float *pdiam, float *nphot,
                              float *nphot4imat, int *lgs, int device,
                              bool error_budget)
-    : device(device), error_budget(error_budget), current_context(context),
-      d_camplipup(nullptr), d_camplifoc(nullptr), d_fttotim(nullptr),
-      d_ftlgskern(nullptr), d_lgskern(nullptr) {
+  : device(device), error_budget(error_budget), current_context(context),
+    d_camplipup(nullptr), d_camplifoc(nullptr), d_fttotim(nullptr),
+    d_ftlgskern(nullptr), d_lgskern(nullptr) {
   current_context->set_activeDevice(device, 1);
   // DEBUG_TRACE("Before create sensors : ");printMemInfo();
   if (strcmp(type[0], "sh") == 0) {
@@ -192,7 +192,8 @@ sutra_sensors::sutra_sensors(carma_context *context, sutra_telescope *d_tel,
     // DEBUG_TRACE("maxntot : %d maxnfft : %d maxnvalid : %d nmaxhr : %d \n
     // ",maxntot,maxnfft,maxnvalid,compute_nmaxhr(nvalid[wfs4ntot]));
     long dims_data3[4] = {3, maxnfft, maxnfft,
-                          maxnvalid_tot /*nvalid[wfs4nfft]*/};
+                          maxnvalid_tot /*nvalid[wfs4nfft]*/
+                         };
     this->d_camplifoc = new carma_obj<cuFloatComplex>(context, dims_data3);
     this->d_camplipup = new carma_obj<cuFloatComplex>(context, dims_data3);
 
@@ -263,9 +264,9 @@ sutra_sensors::sutra_sensors(carma_context *context, sutra_telescope *d_tel,
 sutra_sensors::sutra_sensors(carma_context *context, sutra_telescope *d_tel,
                              int nwfs, long *nxsub, long *nvalid, long *nphase,
                              long npup, float *pdiam, int device)
-    : device(device), error_budget(false), current_context(context),
-      d_camplipup(nullptr), d_camplifoc(nullptr), d_fttotim(nullptr),
-      d_ftlgskern(nullptr), d_lgskern(nullptr) {
+  : device(device), error_budget(false), current_context(context),
+    d_camplipup(nullptr), d_camplifoc(nullptr), d_fttotim(nullptr),
+    d_ftlgskern(nullptr), d_lgskern(nullptr) {
   this->current_context = context;
   this->device = device;
   current_context->set_activeDevice(device, 1);
@@ -333,8 +334,8 @@ int sutra_sensors::sensors_initgs(float *xpos, float *ypos, float *lambda,
   current_context->set_activeDevice(device, 1);
   for (size_t idx = 0; idx < this->d_wfs.size(); idx++) {
     this->d_wfs[idx]->wfs_initgs(
-        this, xpos[idx], ypos[idx], lambda[idx], mag[idx], zerop, size[idx],
-        noise[idx], seed[idx], G[idx], thetaML[idx], dx[idx], dy[idx]);
+      this, xpos[idx], ypos[idx], lambda[idx], mag[idx], zerop, size[idx],
+      noise[idx], seed[idx], G[idx], thetaML[idx], dx[idx], dy[idx]);
   }
   return EXIT_SUCCESS;
 }
@@ -345,8 +346,8 @@ int sutra_sensors::sensors_initgs(float *xpos, float *ypos, float *lambda,
   current_context->set_activeDevice(device, 1);
   for (size_t idx = 0; idx < this->d_wfs.size(); idx++) {
     this->d_wfs[idx]->wfs_initgs(
-        this, xpos[idx], ypos[idx], lambda[idx], mag[idx], zerop, size[idx],
-        noise[idx], 1234 * idx, G[idx], thetaML[idx], dx[idx], dy[idx]);
+      this, xpos[idx], ypos[idx], lambda[idx], mag[idx], zerop, size[idx],
+      noise[idx], 1234 * idx, G[idx], thetaML[idx], dx[idx], dy[idx]);
   }
   return EXIT_SUCCESS;
 }

@@ -11,7 +11,7 @@ using std::pair;
 using std::map;
 
 class sutra_tscreen {
-public:
+ public:
 
   int device; // The device #
   sutra_phase *d_tscreen; // The phase screen
@@ -40,16 +40,15 @@ public:
   bool vk_on;
   carma_context *current_context;
 
-public:
+ public:
   sutra_tscreen(carma_context *context, long size, long size2, float amplitude,
-      float altitude, float windspeed, float winddir, float deltax,
-      float deltay, int device);
+                float altitude, float windspeed, float winddir, float deltax,
+                float deltay, int device);
   sutra_tscreen(const sutra_tscreen& tscreen);
   ~sutra_tscreen();
 
-  int
-  init_screen(float *h_A, float *h_B, unsigned int *h_istencilx,
-      unsigned int *h_istencily, int seed);
+  int init_screen(float *h_A, float *h_B, unsigned int *h_istencilx,
+                  unsigned int *h_istencily, int seed);
   int
   extrude(int dir);
   int
@@ -59,31 +58,36 @@ public:
 };
 
 class sutra_atmos {
-public:
+ public:
   int nscreens;
   map<float, sutra_tscreen *> d_screens;
   float r0;
   carma_context *current_context;
 
-public:
+ public:
   sutra_atmos(carma_context *context, int nscreens, float *r0, long *size,
-      long *size2, float *altitude, float *windspeed, float *winddir,
-      float *deltax, float *deltay, int device);
+              long *size2, float *altitude, float *windspeed, float *winddir,
+              float *deltax, float *deltay, int device);
   ~sutra_atmos();
 
-  int
-  init_screen(float alt, float *h_A, float *h_B, unsigned int *h_istencilx,
-      unsigned int *h_istencily, int seed);
-  int
-  move_atmos();
+  int init_screen(float alt, float *h_A, float *h_B, unsigned int *h_istencilx,
+                  unsigned int *h_istencily, int seed);
+
+  int get_screen(const float alt, float * data_F);
+  int add_screen(float alt, long size, long stencilSize, float amplitude, float windspeed, float winddir,
+                 float deltax, float deltay, int device);
+  int del_screen(const float alt);
+  int list_alt(float* alts);
+
+  int move_atmos();
+
+
 };
 
-int
-gene_vonkarman(cuFloatComplex *d_odata, float *d_idata, float k0, int nalias,
-    int nx, int ny, int block_size);
-int
-norm_pscreen(float *d_odata, float *d_idata, int nx, int ny, float norm_fact,
-    carma_device *device);
+int gene_vonkarman(cuFloatComplex *d_odata, float *d_idata, float k0, int nalias,
+                   int nx, int ny, int block_size);
+int norm_pscreen(float *d_odata, float *d_idata, int nx, int ny, float norm_fact,
+                 carma_device *device);
 
 extern "C" {
 }

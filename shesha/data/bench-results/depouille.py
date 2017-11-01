@@ -25,8 +25,8 @@ def depouilleSR(filename, version=None):
     try:
         df = store.get(version)
     except KeyError:
-        print "No results for svn version : " + version + ", taking " + store.keys()[-1] + " version"
-        version = store.keys()[-1]
+        print("No results for svn version : " + version + ", taking " + list(store.keys())[-1] + " version")
+        version = list(store.keys())[-1]
         df = store.get(version)
 
     dates = np.unique(df["date"].values)
@@ -69,11 +69,11 @@ def depouilleSR(filename, version=None):
                                            and df.loc[indx, "controller"] == co and df.loc[indx, "centroider"] == ce):
                                             cevalid.append(ce)
                                             covalid.append(co)
-                                            plt.bar(long(cc) + ind * (1. / len(
+                                            plt.bar(int(cc) + ind * (1. / len(
                                                 centroiders)), df.loc[indx, "finalSRLE"], width, color=colors[ind], yerr=df.loc[indx, "rmsSRLE"])
-                                            plt.text(long(cc) + ind * (1. / len(centroiders)) + width / 4.,
+                                            plt.text(int(cc) + ind * (1. / len(centroiders)) + width / 4.,
                                                      df.loc[indx, "finalSRLE"] + 0.01, '%d' % int(df.loc[indx, "finalSRLE"] * 100))
-                                            plt.text(long(cc) + ind * (1. / len(centroiders)) + width / 4.,
+                                            plt.text(int(cc) + ind * (1. / len(centroiders)) + width / 4.,
                                                      df.loc[indx, "finalSRLE"] / 2., str(ce + " + " + co), rotation="vertical")
                                             ind += 1
                                             cc += 1. / len(controllers)
@@ -97,8 +97,8 @@ def depouillePerf(filename, version=None, mode="profile"):
     try:
         df = store.get(version)
     except KeyError:
-        print "No results for git version : " + version + ", taking " + store.keys()[-1] + " version"
-        version = store.keys()[-1]
+        print("No results for git version : " + version + ", taking " + list(store.keys())[-1] + " version")
+        version = list(store.keys())[-1]
         df = store.get(version)
 
     dates = np.unique(df["date"].values)
@@ -146,43 +146,43 @@ def depouillePerf(filename, version=None, mode="profile"):
                                             cevalid.append(ce)
                                             covalid.append(co)
                                             ccc = 0
-                                            if(mode == "full"):
-                                                plt.barh(long(
+                                            if(mode == b"full"):
+                                                plt.barh(int(
                                                     cc) + ind * (1. / len(centroiders)), df.loc[indx, times[0]], width, color=colors[ccc])
                                                 timeb = df.loc[indx, times[0]]
                                                 ccc += 1
                                                 for i in times[1:]:
-                                                    plt.barh(long(
+                                                    plt.barh(int(
                                                         cc) + ind * (1. / len(centroiders)), df.loc[indx, i], width, color=colors[ccc], left=timeb)
                                                     timeb += df.loc[indx, i]
                                                     ccc += 1
-                                            elif(mode == "profile"):
+                                            elif(mode == b"profile"):
                                                 tottime = 0
                                                 for i in times:
                                                     tottime += df.loc[indx, i]
-                                                plt.barh(long(cc) + ind * (1. / len(
+                                                plt.barh(int(cc) + ind * (1. / len(
                                                     centroiders)), df.loc[indx, times[0]] / tottime * 100, width, color=colors[ccc])
                                                 timeb = df.loc[indx,
                                                                times[0]] / tottime * 100
                                                 ccc += 1
                                                 for i in times[1:]:
-                                                    plt.barh(long(cc) + ind * (1. / len(
+                                                    plt.barh(int(cc) + ind * (1. / len(
                                                         centroiders)), df.loc[indx, i] / tottime * 100, width, color=colors[ccc], left=timeb)
                                                     if(df.loc[indx, i] / tottime * 100 > 10.):
-                                                        plt.text(timeb + df.loc[indx, i] / tottime * 100 / 2, long(cc) + ind * (1. / len(
+                                                        plt.text(timeb + df.loc[indx, i] / tottime * 100 / 2, int(cc) + ind * (1. / len(
                                                             centroiders)) + width / 4., '%d' % int(df.loc[indx, i] / tottime * 100) + " %")
                                                     timeb += df.loc[indx,
                                                                     i] / tottime * 100
                                                     ccc += 1
-                                            elif(mode == "framerate"):
-                                                plt.barh(long(cc) + ind * (1. / len(centroiders)), 1. /
+                                            elif(mode == b"framerate"):
+                                                plt.barh(int(cc) + ind * (1. / len(centroiders)), 1. /
                                                          df.loc[indx, "iter_time"] * 1000., width, color=colors[ind])
-                                                plt.text(1. / df.loc[indx, "iter_time"] * 1000. / 2., long(cc) + ind * (1. / len(
+                                                plt.text(1. / df.loc[indx, "iter_time"] * 1000. / 2., int(cc) + ind * (1. / len(
                                                     centroiders)) + width / 4., '%.1f' % float(1. / df.loc[indx, "iter_time"] * 1000.))
                                                 ccc += 1
 
                                             pos.append(
-                                                long(cc) + ind * (1. / len(centroiders)) + width / 2.)
+                                                int(cc) + ind * (1. / len(centroiders)) + width / 2.)
                                             lab.append(ce + " + " + co)
                                             ind += 1
                                             cc += 1. / len(controllers)
@@ -192,13 +192,13 @@ def depouillePerf(filename, version=None, mode="profile"):
                                 plt.close()
                             else:
                                 plt.yticks(pos, lab)
-                                if(mode == "full"):
+                                if(mode == b"full"):
                                     plt.xlabel("Execution time (ms)")
                                     plt.legend(times)
-                                elif(mode == "profile"):
+                                elif(mode == b"profile"):
                                     plt.xlabel("Occupation time (%)")
                                     plt.legend(times)
-                                elif(mode == "framerate"):
+                                elif(mode == b"framerate"):
                                     plt.xlabel("Framerate (frames/s)")
 
     store.close()

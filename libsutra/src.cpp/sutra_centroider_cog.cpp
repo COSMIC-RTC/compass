@@ -23,7 +23,7 @@ string sutra_centroider_cog::get_type() {
 }
 
 int sutra_centroider_cog::get_cog(carma_streams *streams, float *cube,
-    float *subsum, float *centroids, int nvalid, int npix, int ntot) {
+                                  float *subsum, float *centroids, int nvalid, int npix, int ntot) {
 
   current_context->set_activeDevice(device,1);
   // simple cog
@@ -34,25 +34,24 @@ int sutra_centroider_cog::get_cog(carma_streams *streams, float *cube,
     subap_reduce_async(npix * npix, nvalid, streams, cube, subsum);
     //fprintf(stderr, "\n[%s@%d] I'm here\n", __FILE__, __LINE__);
     get_centroids_async(npix * npix, nvalid, npix, streams, cube, centroids,
-        subsum, this->scale, this->offset);
+                        subsum, this->scale, this->offset);
     //fprintf(stderr, "\n[%s@%d] I'm here\n", __FILE__, __LINE__);
     //streams->wait_all_streams();
   } else {
     subap_reduce(ntot, (npix * npix), nvalid, cube, subsum, current_context->get_device(device));
     get_centroids(ntot, (npix * npix), nvalid, npix, cube, centroids, subsum,
-        this->scale, this->offset, current_context->get_device(device));
+                  this->scale, this->offset, current_context->get_device(device));
   }
   return EXIT_SUCCESS;
 }
 
 int sutra_centroider_cog::get_cog(float *subsum, float *slopes, bool noise) {
-  if(noise || wfs->error_budget == false){
+  if(noise || wfs->error_budget == false) {
     return this->get_cog(wfs->streams, *(wfs->d_bincube), subsum,
-      slopes, wfs->nvalid_tot, wfs->npix, wfs->d_bincube->getNbElem());
-  }
-  else{
+                         slopes, wfs->nvalid_tot, wfs->npix, wfs->d_bincube->getNbElem());
+  } else {
     return this->get_cog(wfs->streams, *(wfs->d_bincube_notnoisy), subsum,
-      slopes, wfs->nvalid_tot, wfs->npix, wfs->d_bincube->getNbElem());
+                         slopes, wfs->nvalid_tot, wfs->npix, wfs->d_bincube->getNbElem());
   }
 }
 

@@ -37,34 +37,34 @@ inline int iAlignUp(int a, int b) {
 }
 
 extern "C" {
-void convolutionClampToBorderCPU(float *h_Result, float *h_Data,
-    float *h_Kernel, int dataH, int dataW, int kernelH, int kernelW,
-    int kernelY, int kernelX);
+  void convolutionClampToBorderCPU(float *h_Result, float *h_Data,
+                                   float *h_Kernel, int dataH, int dataW, int kernelH, int kernelW,
+                                   int kernelY, int kernelX);
 
-void padKernel(float *d_PaddedKernel, float *d_Kernel, int fftH, int fftW,
-    int kernelH, int kernelW, int kernelY, int kernelX);
+  void padKernel(float *d_PaddedKernel, float *d_Kernel, int fftH, int fftW,
+                 int kernelH, int kernelW, int kernelY, int kernelX);
 
-void padKernel3d(float *d_PaddedKernel, float *d_Kernel, int fftH, int fftW,
-    int kernelH, int kernelW, int kernelY, int kernelX, int nim);
+  void padKernel3d(float *d_PaddedKernel, float *d_Kernel, int fftH, int fftW,
+                   int kernelH, int kernelW, int kernelY, int kernelX, int nim);
 
-void padDataClampToBorder(float *d_PaddedData, float *d_Data, int fftH,
-    int fftW, int dataH, int dataW, int kernelH, int kernelW, int kernelY,
-    int kernelX);
+  void padDataClampToBorder(float *d_PaddedData, float *d_Data, int fftH,
+                            int fftW, int dataH, int dataW, int kernelH, int kernelW, int kernelY,
+                            int kernelX);
 
-void padDataClampToBorder3d(float *d_PaddedData, float *d_Data, int fftH,
-    int fftW, int dataH, int dataW, int kernelH, int kernelW, int kernelY,
-    int kernelX, int nim);
+  void padDataClampToBorder3d(float *d_PaddedData, float *d_Data, int fftH,
+                              int fftW, int dataH, int dataW, int kernelH, int kernelW, int kernelY,
+                              int kernelX, int nim);
 
-void modulateAndNormalize(fComplex *d_Dst, fComplex *d_Src, int fftH, int fftW,
-    int padding, int nim);
+  void modulateAndNormalize(fComplex *d_Dst, fComplex *d_Src, int fftH, int fftW,
+                            int padding, int nim);
 
-void spPostprocess2D(void *d_Dst, void *d_Src, uint DY, uint DX, uint padding,
-    int dir);
+  void spPostprocess2D(void *d_Dst, void *d_Src, uint DY, uint DX, uint padding,
+                       int dir);
 
-void spPreprocess2D(void *d_Dst, void *d_Src, uint DY, uint DX, uint padding,
-    int dir);
+  void spPreprocess2D(void *d_Dst, void *d_Src, uint DY, uint DX, uint padding,
+                      int dir);
 
-void spProcess2D(void *d_Data, void *d_Data0, void *d_Kernel0, uint DY, uint DX,
-    int dir);
+  void spProcess2D(void *d_Data, void *d_Data0, void *d_Kernel0, uint DY, uint DX,
+                   int dir);
 }
 #endif //CONVOLUTIONFFT2D_COMMON_H

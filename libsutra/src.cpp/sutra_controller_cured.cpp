@@ -3,11 +3,11 @@
 #include <cured.h>
 
 sutra_controller_cured::sutra_controller_cured(carma_context *context,
-                                               long nvalid, long nactu,
-                                               float delay, sutra_dms *dms,
-                                               char **type, float *alt, int ndm) :
-    sutra_controller(context, nvalid * 2, nactu, delay, dms, type, alt, ndm),
-    gain(0), ndivs(0), tt_flag(false), h_syscure(nullptr), h_parcure(nullptr) {
+    long nvalid, long nactu,
+    float delay, sutra_dms *dms,
+    char **type, float *alt, int ndm) :
+  sutra_controller(context, nvalid * 2, nactu, delay, dms, type, alt, ndm),
+  gain(0), ndivs(0), tt_flag(false), h_syscure(nullptr), h_parcure(nullptr) {
 
   long dims_data1[2] = { 1, 0 };
   long dims_data2[3] = { 2, 0, 0 };
@@ -90,8 +90,8 @@ int sutra_controller_cured::init_cured(int nxsubs, int *isvalid, int ndivs,
     this->tt_flag = false;
   this->ndivs = (ndivs > 0) ? ndivs : 1;
   this->h_syscure = (void*) cureSystem(
-      nxsubs, this->nslope() / 2.,
-      this->tt_flag ? this->nactu() - 2 : this->nactu(), isvalid, this->ndivs);
+                      nxsubs, this->nslope() / 2.,
+                      this->tt_flag ? this->nactu() - 2 : this->nactu(), isvalid, this->ndivs);
   this->h_parcure = (void*) cureInit((sysCure*) this->h_syscure);
   return EXIT_SUCCESS;
 }
@@ -106,13 +106,13 @@ int sutra_controller_cured::frame_delay() {
                 this->nslope(), this->current_context->get_device(device));
 
     carmaSafeCall(
-        cudaMemcpy(this->d_cenbuff->getDataAt((int )delay * this->nslope()),
-                   this->d_centroids->getData(), sizeof(float) * this->nslope(),
-                   cudaMemcpyDeviceToDevice));
+      cudaMemcpy(this->d_cenbuff->getDataAt((int )delay * this->nslope()),
+                 this->d_centroids->getData(), sizeof(float) * this->nslope(),
+                 cudaMemcpyDeviceToDevice));
 
     carmaSafeCall(
-        cudaMemcpy(this->d_centroids->getData(), this->d_cenbuff->getData(),
-                   sizeof(float) * this->nslope(), cudaMemcpyDeviceToDevice));
+      cudaMemcpy(this->d_centroids->getData(), this->d_cenbuff->getData(),
+                 sizeof(float) * this->nslope(), cudaMemcpyDeviceToDevice));
   }
 
   return EXIT_SUCCESS;

@@ -6,8 +6,8 @@
 sutra_wfs_geom::sutra_wfs_geom(carma_context *context, sutra_telescope *d_tel,
                                long nxsub, long nvalid, long nphase, long npup,
                                float pdiam, int device) :
-    sutra_wfs(context, d_tel, nullptr, "geo", nxsub, nvalid, 0, nphase, 0, 0, 0, npup,
-              pdiam, 0, 0, false, device) {
+  sutra_wfs(context, d_tel, nullptr, "geo", nxsub, nvalid, 0, nphase, 0, 0, 0, npup,
+            pdiam, 0, 0, false, device) {
   context->set_activeDevice(device,1);
 
   this->nstreams = 1; //nvalid/10;

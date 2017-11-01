@@ -1,14 +1,3 @@
-/*
- * Copyright 1993-2010 NVIDIA Corporation.  All rights reserved.
- *
- * NVIDIA Corporation and its licensors retain all intellectual property and
- * proprietary rights in and to this software and related documentation.
- * Any use, reproduction, disclosure, or distribution of this software
- * and related documentation without an express license agreement from
- * NVIDIA Corporation is strictly prohibited.
- *
- */
-
 #ifndef _CARMA_UTILS_H_
 #define _CARMA_UTILS_H_
 
@@ -21,32 +10,47 @@
 #include <string>
 #include <vector>
 #include <sstream>
+#include <iostream>
+#include <chrono>
 
 #include <cuda_runtime_api.h>
 #include <cuda.h>
 #include <cufft.h>
 
 namespace carma_utils {
-    template<typename T> inline std::string to_string(const T& n) {
-    	std::ostringstream stm;
-    	stm << n;
-    	return stm.str();
-    }
-    template<typename T> inline T from_string(const std::string& myString) {
-    	std::istringstream buffer(myString);
-    	T value;
-    	buffer >> value;
-    	return value;
-    }
-    void inline split(std::vector<std::string> &tokens, const std::string &text,
-    		char sep) {
-    	std::string::size_type start = 0, end = 0;
-    	while ((end = text.find(sep, start)) != std::string::npos) {
-    		tokens.push_back(text.substr(start, end - start));
-    		start = end + 1;
-    	}
-    	tokens.push_back(text.substr(start));
-    }
+template<typename T> inline std::string to_string(const T& n) {
+  std::ostringstream stm;
+  stm << n;
+  return stm.str();
+}
+template<typename T> inline T from_string(const std::string& myString) {
+  std::istringstream buffer(myString);
+  T value;
+  buffer >> value;
+  return value;
+}
+void inline split(std::vector<std::string> &tokens, const std::string &text,
+                  char sep) {
+  std::string::size_type start = 0, end = 0;
+  while ((end = text.find(sep, start)) != std::string::npos) {
+    tokens.push_back(text.substr(start, end - start));
+    start = end + 1;
+  }
+  tokens.push_back(text.substr(start));
+}
+
+class ProgressBar {
+  int prev=0, count=0, max;
+  int ndigits=0;
+  double progress=0;
+  int barWidth=42;
+  std::chrono::system_clock::time_point start;
+ public:
+  ProgressBar(int i);
+  void update();
+  void finish();
+};
+
 }
 
 #ifdef DEBUG
@@ -62,7 +66,7 @@ namespace carma_utils {
 //! CUT bool type
 ////////////////////////////////////////////////////////////////////////////
 enum CUTBoolean {
-	CUTFalse = 0, CUTTrue = 1
+  CUTFalse = 0, CUTTrue = 1
 };
 
 // We define these calls here, so the user doesn't need to include __FILE__ and __LINE__
@@ -93,31 +97,31 @@ enum CUTBoolean {
 #endif
 
 inline unsigned int nextPow2(unsigned int x) {
-	--x;
-	x |= x >> 1;
-	x |= x >> 2;
-	x |= x >> 4;
-	x |= x >> 8;
-	x |= x >> 16;
-	return ++x;
+  --x;
+  x |= x >> 1;
+  x |= x >> 2;
+  x |= x >> 4;
+  x |= x >> 8;
+  x |= x >> 16;
+  return ++x;
 }
 
 inline bool isPow2(unsigned int x) {
-	return ((x & (x - 1)) == 0);
+  return ((x & (x - 1)) == 0);
 }
 
 class carma_device;
 void getNumBlocksAndThreads(carma_device *device, int n, int &blocks,
-		int &threads);
+                            int &threads);
 void sumGetNumBlocksAndThreads(int n, carma_device *device, int &blocks,
-		int &threads);
+                               int &threads);
 template<class T_data>
 int find_nnz(T_data *d_data, int *tmp_colind, int N, int *d_nnz, int &h_nnz,
-		carma_device *device);
+             carma_device *device);
 template<class T_data>
 int
 fill_sparse_vect(T_data *dense_data, int *colind_sorted, T_data *values,
-		int *colind, int *rowind, int nnz, carma_device *device);
+                 int *colind, int *rowind, int nnz, carma_device *device);
 int
 floattodouble(float *idata, double *odata, int N, carma_device *device);
 int
@@ -132,78 +136,78 @@ void carma_stop_profile();
 // when the user double clicks on the error line in the Output pane. Like any compile error.
 
 inline void __carmaSafeCallNoSync(cudaError err, const char *file,
-		const int line) {
-	if (cudaSuccess != err) {
-		fprintf(stderr,
-				"(%s:%i) : cudaSafeCallNoSync() Runtime API error : %s.\n",
-				file, line, cudaGetErrorString(err));
-		//exit(EXIT_FAILURE);
-		throw cudaGetErrorString(err);
-	}
+                                  const int line) {
+  if (cudaSuccess != err) {
+    fprintf(stderr,
+            "(%s:%i) : cudaSafeCallNoSync() Runtime API error : %s.\n",
+            file, line, cudaGetErrorString(err));
+    //exit(EXIT_FAILURE);
+    throw cudaGetErrorString(err);
+  }
 }
 
 inline void __carmaSafeCall(cudaError err, const char *file, const int line) {
-	if (cudaSuccess != err) {
-		fprintf(stderr, "(%s:%i) : cudaSafeCall() Runtime API error : %s.\n",
-				file, line, cudaGetErrorString(err));
-		//exit(EXIT_FAILURE);
-		throw cudaGetErrorString(err);
-	}
+  if (cudaSuccess != err) {
+    fprintf(stderr, "(%s:%i) : cudaSafeCall() Runtime API error : %s.\n",
+            file, line, cudaGetErrorString(err));
+    //exit(EXIT_FAILURE);
+    throw cudaGetErrorString(err);
+  }
 }
 
 inline void __carmaSafeDeviceSynchronize(const char *file, const int line) {
-	cudaError err = cudaDeviceSynchronize();
-	if (cudaSuccess != err) {
-		fprintf(stderr,
-				"(%s:%i) : cudaDeviceSynchronize() Driver API error : %s.\n",
-				file, line, cudaGetErrorString(err));
-		//exit(EXIT_FAILURE);
-		throw cudaGetErrorString(err);
-	}
+  cudaError err = cudaDeviceSynchronize();
+  if (cudaSuccess != err) {
+    fprintf(stderr,
+            "(%s:%i) : cudaDeviceSynchronize() Driver API error : %s.\n",
+            file, line, cudaGetErrorString(err));
+    //exit(EXIT_FAILURE);
+    throw cudaGetErrorString(err);
+  }
 }
 
 inline void __carmafftSafeCall(cufftResult err, const char *file,
-		const int line) {
-	if (CUFFT_SUCCESS != err) {
-		fprintf(stderr, "(%s:%i) : carmafftSafeCall() CUFFT error.\n", file,
-				line);
-		//exit(EXIT_FAILURE);
-		throw "carmafftSafeCall() CUFFT error";
-	}
+                               const int line) {
+  if (CUFFT_SUCCESS != err) {
+    fprintf(stderr, "(%s:%i) : carmafftSafeCall() CUFFT error.\n", file,
+            line);
+    //exit(EXIT_FAILURE);
+    throw "carmafftSafeCall() CUFFT error";
+  }
 }
 
 inline void __carmaCheckError(CUTBoolean err, const char *file,
-		const int line) {
-	if (CUTTrue != err) {
-		fprintf(stderr, "(%s:%i) : CUTIL CUDA error.\n", file, line);
+                              const int line) {
+  if (CUTTrue != err) {
+    fprintf(stderr, "(%s:%i) : CUTIL CUDA error.\n", file, line);
     throw "carmafftSafeCall() CUTIL CUDA error";
-	}
+  }
 }
 
 inline void __carmaCheckMsg(const char *errorMessage, const char *file,
-		const int line) {
-	cudaError_t err = cudaGetLastError();
-	if (cudaSuccess != err) {
-		fprintf(stderr,
-				"(%s:%i) : carmaCheckMsg() CUTIL CUDA error : %s : %s.\n", file,
-				line, errorMessage, cudaGetErrorString(err));
+                            const int line) {
+  cudaError_t err = cudaGetLastError();
+  if (cudaSuccess != err) {
+    fprintf(stderr,
+            "(%s:%i) : carmaCheckMsg() CUTIL CUDA error : %s : %s.\n", file,
+            line, errorMessage, cudaGetErrorString(err));
     throw cudaGetErrorString(err);
-	}
+  }
 #ifdef DEBUG
-	err = cudaDeviceSynchronize();
-	if( cudaSuccess != err) {
-		fprintf(stderr, "(%s:%i) : carmaCheckMsg cudaDeviceSynchronize error: %s : %s.\n",
-				file, line, errorMessage, cudaGetErrorString( err) );
+  err = cudaDeviceSynchronize();
+  if( cudaSuccess != err) {
+    fprintf(stderr, "(%s:%i) : carmaCheckMsg cudaDeviceSynchronize error: %s : %s.\n",
+            file, line, errorMessage, cudaGetErrorString( err) );
     throw cudaGetErrorString(err);
-	}
+  }
 #endif
 }
 inline void __carmaSafeMalloc(void *pointer, const char *file, const int line) {
-	if (!(pointer)) {
-		fprintf(stderr, "(%s:%i) : cutilSafeMalloc host malloc failure\n", file,
-				line);
+  if (!(pointer)) {
+    fprintf(stderr, "(%s:%i) : cutilSafeMalloc host malloc failure\n", file,
+            line);
     throw "cutilSafeMalloc() cutilSafeMalloc host malloc failure";
-	}
+  }
 }
 
 #endif // _CARMA_UTILS_H_

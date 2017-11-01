@@ -13,7 +13,7 @@
 #include <sutra_target_bramaListenerImpl.h>
 
 class sutra_target_brama : public sutra_target {
-private:
+ private:
   DDS::Subscriber_var sub;
   DDS::Publisher_var pub;
   DDS::DataReaderListener_var cmd_listener;
@@ -28,12 +28,13 @@ private:
   CORBA::ULong *dims_pixels;
 
   long framecounter;
+  long samplecounter;
   int subsample;
   ACE_Mutex lock_;
 
   int is_initialised;
 
-public:
+ public:
   sutra_target_brama(carma_context *context, ACE_TCHAR *name,
                      sutra_telescope *d_tel, int subsample, int ntargets,
                      float *xpos, float *ypos, float *lambda, float *mag,
@@ -43,7 +44,7 @@ public:
   void set_subsample(int ntarget, int subsample);
   void publish();
 
-private:
+ private:
   void allocateBuffers();
 };
 

@@ -24,16 +24,16 @@
 typedef std::pair<std::string, int> type_telemetry_pair;
 
 class sutra_telemetry {
-protected:
+ protected:
   carma_streams *streams;
   std::map<type_telemetry_pair, carma_host_obj<float>*> objs;
 
-public:
+ public:
   sutra_telemetry();
   sutra_telemetry(type_telemetry_pair obj, carma_host_obj<float> *host_obj,
-      unsigned int nbStreams);
+                  unsigned int nbStreams);
   sutra_telemetry(std::string type_obj, int num_obj,
-      carma_host_obj<float> *host_obj, unsigned int nbStreams);
+                  carma_host_obj<float> *host_obj, unsigned int nbStreams);
   //sutra_telemetry(const sutra_telemetry& src_sutra_telemetry);
   ~sutra_telemetry();
 
@@ -73,7 +73,7 @@ public:
   //carma_host_obj<float>* operator[](int idx) {return get_carma_host_obj(idx);} ;
   int
   cpy_obj(std::string type_obj, int num_obj, carma_obj<float> *d_obj,
-      cudaMemcpyKind flag);
+          cudaMemcpyKind flag);
   int
   wait_obj(std::string type_obj, int num_obj);
 

@@ -37,11 +37,11 @@ else
 endif
 
 LIB_DEPLIBS  = -fPIC -shared -Wl,-rpath=$(CUDA_LIB_PATH_64) -L$(CUDA_LIB_PATH_64)
-LIB_DEPLIBS += -lcuda -lcudart -lcublas -lcufft -lcurand -lcusparse -lnvToolsExt  -lpthread
+LIB_DEPLIBS += -lcudart -lcublas -lcufft -lcurand -lcusparse -lpthread
 
 # set compiler (or rarely loader) flags specific to this package
 LIB_CPPFLAGS = -c -fPIC -Wall -fno-common -std=c++11 $(CCFLAGS) # -DUSE_UVA
-LIB_CPPFLAGS+= -I$(H_DIR) -I$(CUDA_INC_PATH)
+LIB_CPPFLAGS+= -I$(H_DIR) -isystem $(CUDA_INC_PATH)
 
 # ------------------------------------- targets and rules for this package
 # color for printf
@@ -66,7 +66,7 @@ endif
 NVCC = $(CUDA_ROOT)/bin/nvcc
 LIB_NVCCFLAGS  = -Xcompiler -fPIC -use_fast_math -c -Xptxas -dlcm=ca --maxrregcount 32 -std=c++11 $(NVCCFLAGS)
 LIB_NVCCFLAGS += -gencode $(GENCODE)
-LIB_NVCCFLAGS += -I$(CUH_DIR) -I$(H_DIR) -I$(CUDA_INC_PATH)
+LIB_NVCCFLAGS += -isystem $(CUH_DIR) -I$(H_DIR) -isystem $(CUDA_INC_PATH)
 
 #-gencode arch=compute_11,code=sm_11 -gencode arch=compute_13,code=sm_13
 #-gencode arch=compute_20,code=sm_20 -gencode arch=compute_30,code=sm_30
@@ -82,8 +82,8 @@ else
 endif
 
 #ifneq ($(CULA_ROOT),)
-# LIB_CPPFLAGS  += -I$(CULA_INC_PATH) -DUSE_CULA
-# LIB_NVCCFLAGS += -I$(CULA_INC_PATH) -DUSE_CULA
+# LIB_CPPFLAGS  += -isystem $(CULA_INC_PATH) -DUSE_CULA
+# LIB_NVCCFLAGS += -isystem $(CULA_INC_PATH) -DUSE_CULA
 # LIB_DEPLIBS   += -L$(CULA_LIB_PATH_64) -lcula_lapack_basic
 #endif
 
@@ -107,7 +107,7 @@ endif
 
 ifneq ($(KSPARSE_ROOT),)
  #use the same keyword as in make.inc
- LIB_CPPFLAGS  += -I$(KSPARSE_ROOT)/include -DUSE_KSPARSE
+ LIB_CPPFLAGS  += -isystem $(KSPARSE_ROOT)/include -DUSE_KSPARSE
  LIB_DEPLIBS   += -Wl,-rpath=$(KSPARSE_ROOT)/lib -L$(KSPARSE_ROOT)/lib -lksparse
 endif
 

@@ -42,7 +42,7 @@ https://bitbucket.org/pysph/pysph
 import os
 import sys
 import re
-from StringIO import StringIO
+from io import StringIO
 
 def is_modified_later(filename1, filename2):
     ''' return `True` if the file1 is modified later than file2'''
@@ -97,7 +97,7 @@ class FileGenerator(object):
         '''the the output to a string `out` from execution of a code string'''
         out = StringIO()
         self.dict['out'] = out
-        exec code_str in self.dict
+        exec(code_str, self.dict)
         ret = out.getvalue()
         out.close()
         return ret
@@ -125,8 +125,8 @@ def generate_files(src_files, if_modified=True):
     for filename in src_files:
         outfile = filename[:-3]
         if if_modified and not is_modified_later(filename, outfile):
-            print 'not',
-        print 'generating file %s from %s' %(outfile, filename)
+            print('not', end=' ')
+        print('generating file %s from %s' %(outfile, filename))
         generator.generate_file_if_modified(filename, outfile, if_modified)
 
 def main(paths=None):
@@ -147,12 +147,12 @@ def main(paths=None):
 if __name__ == '__main__':
     import sys
     if '--help' in sys.argv or '-h' in sys.argv:
-        print 'usage:'
-        print '    process_tmpl.py [filenames]'
-        print
-        print ('    Convert template files with extension `.in` into '
+        print('usage:')
+        print('    process_tmpl.py [filenames]')
+        print()
+        print('    Convert template files with extension `.in` into '
         'source files')
-        print ('    If filenames is omitted all `.in` files in current '
+        print('    If filenames is omitted all `.in` files in current '
         'directory will be converted')
 
     else:

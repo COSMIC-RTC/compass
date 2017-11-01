@@ -1,3 +1,5 @@
+# encoding: utf-8
+
 import sys
 import os
 from os.path import isfile
@@ -20,34 +22,32 @@ from distutils.extension import Extension
 # Remove the "-Wstrict-prototypes" compiler option, which isn't valid for C++.
 import distutils.sysconfig
 cfg_vars = distutils.sysconfig.get_config_vars()
-for key, value in cfg_vars.items():
+for key, value in list(cfg_vars.items()):
     if type(value) == str:
         cfg_vars[key] = value.replace("-Wstrict-prototypes", "")
 # ==================================
 
-print sys.prefix
-print "SYS.PATH"
-print "======================================"
-print sys.path
-print "======================================"
+print((sys.prefix))
+print("SYS.PATH")
+print("======================================")
+print((sys.path))
+print("======================================")
 
-listMod = ["shesha_param", "shesha_telescope", "shesha_sensors", "shesha_atmos",
-           "shesha_dms", "shesha_target", "shesha_rtc", "shesha_acquisim"]
-dependencies = {"shesha_sensors": ["shesha_telescope"],
-                "shesha_target": ["shesha_telescope"],
-                # "shesha_roket": listMod[:-2],
-                }
+listMod = ["Telescope", "Sensors", "Atmos", "Dms", "Target", "Rtc", "Gamora", "Groot"]
+dependencies = {
+        "Sensors": ["Telescope"],
+        "Target": ["Telescope"]
+        # "shesha_roket": listMod[:-2],
+}
 
 naga_path = os.environ.get('NAGA_ROOT')
-if(naga_path is None):
+if (naga_path is None):
     raise EnvironmentError("Environment variable 'NAGA_ROOT' must be define")
 sys.path.append(naga_path + '/src')
 
-
 shesha_path = os.environ.get('SHESHA_ROOT')
-if(shesha_path is None):
+if (shesha_path is None):
     raise EnvironmentError("Environment variable 'SHESHA_ROOT' must be define")
-
 
 if not os.path.exists(shesha_path + "/lib"):
     os.makedirs(shesha_path + "/lib")
@@ -62,17 +62,18 @@ def locate_compass():
         root_compass = os.environ['COMPASS_ROOT']
 
     else:
-        raise EnvironmentError(
-            "Environment variable 'COMPASS_ROOT' must be define")
+        raise EnvironmentError("Environment variable 'COMPASS_ROOT' must be define")
 
-    compass_config = {'inc_sutra': root_compass + '/libsutra/include.h',
-                      'inc_carma': root_compass + '/libcarma/include.h',
-                      'inc_naga': root_compass + '/naga', 'lib': root_compass}
+    compass_config = {
+            'inc_sutra': root_compass + '/libsutra/include.h',
+            'inc_carma': root_compass + '/libcarma/include.h',
+            'inc_naga': root_compass + '/naga',
+            'lib': root_compass
+    }
 
     return compass_config
 
 
-# CUDA = locate_cuda()
 COMPASS = locate_compass()
 # Obtain the numpy include directory.  This logic works across numpy versions.
 try:
@@ -80,56 +81,18 @@ try:
 except AttributeError:
     numpy_include = numpy.get_numpy_include()
 
-
-def locate_MPI():
-    """return mpi config.
-
-    NEED ENVIRONMENT VARIABLE: MPICXX
-
-    mpi_congig['mpicxx']   :compiler (mpi)
-    mpi_config['cincdirs'] :include directories (mpi)
-    mpi_config['clibs']    :libraries (mpi)
-    mpi_config['pincdirs'] :include directories (mpi4py)
-    """
-    import mpi4py
-
-    # add env variable to module
-    # mpicxx=os.environ["MPICXX"]
-    mpicxx = 'mpicxx'
-
-    # add env variable to module
-    cincdirs = subprocess.check_output([mpicxx, "--showme:incdirs"])
-    cincdirs = cincdirs.split()
-    clibs = subprocess.check_output([mpicxx, "--showme:libs"])
-    clibs = clibs.split()
-    clibdir = subprocess.check_output([mpicxx, "--showme:libdirs"])
-    clibdirs = []
-    clibdirs = clibdir.split()
-
-    pincdirs = [mpi4py.get_include(), numpy.get_include()]
-
-    mpi_config = {'mpicxx': mpicxx, 'cincdirs': cincdirs,
-                  'pincdirs': pincdirs, 'clibs': clibs, 'clibdirs': clibdirs}
-
-    return mpi_config
-
-
-source = ['shesha']
+#source = ['shesha']
 libraries = ['sutra']
-include_dirs = [numpy_include,
-                COMPASS['inc_carma'],
-                COMPASS['inc_sutra'],
-                COMPASS['inc_naga']]  # , shesha_path+"/src"]
+include_dirs = [
+        numpy_include, COMPASS['inc_carma'], COMPASS['inc_sutra'], COMPASS['inc_naga']
+]  # , shesha_path+"/src"]
 
 library_dirs = [COMPASS['lib'] + "/libsutra"]
 
 if 'CUDA_INC_PATH' in os.environ:
     include_dirs.append(os.environ['CUDA_INC_PATH'])
-    library_dirs.append(os.environ['CUDA_LIB_PATH_64'])
-    libraries.append('cudart')
 else:
     raise EnvironmentError("Environment variable 'CUDA_INC_PATH' must be define")
-
 
 # deprecated
 # def which(program):
@@ -151,7 +114,6 @@ else:
 #
 #     return None
 
-
 parFile = None
 if not isfile("par.pxi"):
     parFile = codecs.open("par.pxi", mode='w', encoding='utf-8')
@@ -171,9 +133,9 @@ USE_MPI = 0
 #         library_dirs.extend(MPI['clibdirs'])
 #         USE_MPI = 2
 #     except ImportError:
-#         print "mpi4py not found, MPI disabled"
+#         print("mpi4py not found, MPI disabled")
 # else:
-#     print "mpicxx not found, MPI disabled"
+#     print("mpicxx not found, MPI disabled")
 if parFile:
     parFile.write("DEF USE_MPI=%d # 0/1/2 \n" % USE_MPI)
 
@@ -203,8 +165,11 @@ if 'BRAMA_ROOT' in os.environ:
     libraries.extend(['ACE'])
     libraries.extend(['dl'])
     libraries.extend(['rt'])
-    define_macros = [('USE_BRAMA', None), ('_GNU_SOURCE',
-                                           None), ('__ACE_INLINE__', None), ]
+    define_macros = [
+            ('USE_BRAMA', None),
+            ('_GNU_SOURCE', None),
+            ('__ACE_INLINE__', None),
+    ]
 
 if parFile:
     parFile.write("DEF USE_BRAMA=%d # 0/1 \n" % USE_BRAMA)
@@ -212,48 +177,54 @@ if parFile:
 
 
 def dependencies_module(name):
-    print "======================================="
-    print "resolving dependencies for", name
-    print "======================================="
+    print("=======================================")
+    print("resolving dependencies for", name)
+    print("=======================================")
     try:
         dep = dependencies[name]
-        print "dependencies:", dep
-        if(os.path.exists("src/" + name + ".cpp")):
+        print(("dependencies:", dep))
+        if (os.path.exists("src/sutra_bind/" + name + ".cpp")):
             for d in dep:
-                if (os.stat("src/" + d + ".pyx").st_mtime >
-                        os.stat("src/" + name + ".cpp").st_mtime):
+                if (os.stat("src/sutra_bind/" + d + ".pyx").st_mtime >
+                            os.stat("src/sutra_bind/" + name + ".cpp").st_mtime):
                     # cpp file outdated if exists
-                    if (os.path.exists("src/" + name + ".cpp")):
-                        os.remove("src/" + name + ".cpp")
-    except KeyError, e:
-        print e
+                    if (os.path.exists("src/sutra_bind/" + name + ".cpp")):
+                        os.remove("src/sutra_bind/" + name + ".cpp")
+    except:  # KeyError e:
+        print("No depencies found")
 
 
 def compile_module(name):
-    print "======================================="
-    print "creating module ", name
-    print "======================================="
-    ext = Extension(name,
-                    sources=['src/' + name + '.pyx'],
-                    extra_compile_args=["-Wno-unused-function", "-Wno-unused-label", "-Wno-cpp",
-                                        "-Wno-deprecated-declarations", "-std=c++11",
-                                        # "-O0", "-g",
-                                        ],
-                    include_dirs=include_dirs,
-                    define_macros=define_macros,
-                    library_dirs=library_dirs,
-                    libraries=libraries,
-                    language='c++',
-                    runtime_library_dirs=[],  # CUDA['lib64']],
-                    )
+    print("=======================================")
+    print(("creating module ", name))
+    print("=======================================")
+    ext = Extension(
+            shesha_path + "/lib/" + name,
+            sources=['src/sutra_bind/' + name + '.pyx'],
+            extra_compile_args=[
+                    "-Wno-unused-function",
+                    "-Wno-unused-label",
+                    "-Wno-cpp",
+                    "-Wno-deprecated-declarations",
+                    "-std=c++11",
+                    # "-O0", "-g",
+            ],
+            include_dirs=include_dirs,
+            define_macros=define_macros,
+            library_dirs=library_dirs,
+            libraries=libraries,
+            language='c++',
+            runtime_library_dirs=[],  # CUDA['lib64']],
+    )
 
     setup(
-        name=name,
-        ext_modules=cythonize([ext],
-                              gdb_debug=True,
-                              ),
-        # cmdclass={'build_ext': custom_build_ext},
-        # zip_safe=False
+            name=name,
+            ext_modules=cythonize(
+                    [ext],
+                    gdb_debug=True,
+                    language_level=3, ),
+            # cmdclass={'build_ext': custom_build_ext},
+            # zip_safe=False
     )
 
 
@@ -264,22 +235,58 @@ if __name__ == '__main__':
 
         from multiprocessing import Pool
         pool = Pool(maxtasksperchild=1)  # process per core
-        pool.map(dependencies_module, listMod)  # proces data_inputs iterable with pool
-        pool.map(compile_module, listMod)  # proces data_inputs iterable with pool
+        # proces data_inputs iterable with pool
+        pool.map(dependencies_module, listMod)
+        # proces data_inputs iterable with pool
+        pool.map(compile_module, listMod)
     except ImportError:
         for name in listMod:
             dependencies_module(name)
             compile_module(name)
+'''
     finally:
         compile_module("shesha")
 
+ext = Extension(
+        'shesha',
+        sources=['src/shesha.pyx'],
+        library_dirs=library_dirs,
+        libraries=libraries,
+        language='c++',
+        runtime_library_dirs=[],  # CUDA['lib64']],
+        extra_compile_args={'g++': []},
+        include_dirs=include_dirs, )
+'''
 
-ext = Extension('shesha',
-                sources=['src/shesha.pyx'],
-                library_dirs=library_dirs,
-                libraries=libraries,
-                language='c++',
-                runtime_library_dirs=[],  # CUDA['lib64']],
-                extra_compile_args={'g++': []},
-                include_dirs=include_dirs,
-                )
+# def locate_MPI():
+#     """return mpi config.
+#
+#     NEED ENVIRONMENT VARIABLE: MPICXX
+#
+#     mpi_congig['mpicxx']   :compiler (mpi)
+#     mpi_config['cincdirs'] :include directories (mpi)
+#     mpi_config['clibs']    :libraries (mpi)
+#     mpi_config['pincdirs'] :include directories (mpi4py)
+#     """
+#     import mpi4py
+#
+#     # add env variable to module
+#     # mpicxx=os.environ["MPICXX"]
+#     mpicxx = 'mpicxx'
+#
+#     # add env variable to module
+#     cincdirs = subprocess.check_output([mpicxx, "--showme:incdirs"])
+#     cincdirs = cincdirs.split()
+#     clibs = subprocess.check_output([mpicxx, "--showme:libs"])
+#     clibs = clibs.split()
+#     clibdir = subprocess.check_output([mpicxx, "--showme:libdirs"])
+#     clibdirs = []
+#     clibdirs = clibdir.split()
+#
+#     pincdirs = [mpi4py.get_include(), numpy.get_include()]
+#
+#     mpi_config = {
+#             'mpicxx': mpicxx, 'cincdirs': cincdirs, 'pincdirs': pincdirs,
+#             'clibs': clibs, 'clibdirs': clibdirs}
+#
+#     return mpi_config
