@@ -59,7 +59,7 @@ LIB_DEPLIBS += -Wl,-rpath=$(COMPASS_ROOT)/libcarma -L$(COMPASS_ROOT)/libcarma -l
 
 
 LIB_CPPFLAGS = -c -fPIC -Wall -Wno-unused-result -DUNIX -std=c++11 $(CCFLAGS)
-LIB_CPPFLAGS+= -I$(H_DIR) -isystem $(COMPASS_ROOT)/libcarma/$(H_DIR) -isystem $(CUDA_INC_PATH) -isystem $(CURED_INC_PATH)
+LIB_CPPFLAGS+= -isystem $(H_DIR) -isystem $(COMPASS_ROOT)/libcarma/$(H_DIR) -isystem $(CUDA_INC_PATH) -isystem $(CURED_INC_PATH)
 
 #MPICXX           = $(shell which mpicxx 2>/dev/null)
 ICC              = $(shell which icc 2>/dev/null)
@@ -78,7 +78,7 @@ endif
 
 NVCC = $(CUDA_ROOT)/bin/nvcc
 LIB_NVCCFLAGS  = -Xcompiler -fPIC -use_fast_math -c -Xptxas -dlcm=ca --maxrregcount 32 -std=c++11 $(NVCCFLAGS)
-LIB_NVCCFLAGS += -I$(CUH_DIR)  -I$(H_DIR) -isystem $(COMPASS_ROOT)/libcarma/$(CUH_DIR)
+LIB_NVCCFLAGS += -isystem $(CUH_DIR)  -isystem $(H_DIR) -isystem $(COMPASS_ROOT)/libcarma/$(CUH_DIR)
 LIB_NVCCFLAGS += -isystem $(COMPASS_ROOT)/libcarma/$(H_DIR) -isystem $(CURED_INC_PATH) -gencode $(GENCODE)
 
 ifneq ($(DEBUG),)
@@ -90,7 +90,7 @@ else
 endif
 
 ifneq ($(COMPILATION_LAM),)
-  CFLAGS = -DCOMPILATION_LAM -O3 -DHAVE_CUBLAS -isystem $(MAGMA_ROOT)/include -I$(LAM_KP_CLASSES_DIR) -I$(LAM_KP_INTERFACE_DIR) -I$(LAM_KALMAN_DIR)
+  CFLAGS = -DCOMPILATION_LAM -O3 -DHAVE_CUBLAS -isystem $(MAGMA_ROOT)/include -isystem $(LAM_KP_CLASSES_DIR) -isystem $(LAM_KP_INTERFACE_DIR) -isystem $(LAM_KALMAN_DIR)
   LIB_DEPLIBS += -Wl,-rpath=$(NVIDIA_CURRENT_LIB_PATH_64) -L$(NVIDIA_CURRENT_LIB_PATH_64) -lcuda -lgsl
   LIB_DEPLIBS += -Wl,-rpath=$(MAGMA_ROOT)/lib -L$(MAGMA_ROOT)/lib -lmagma
   LIB_DEPLIBS += $(LAM_KP_CLASSES_DIR)/lib_kp_classes.a
@@ -111,7 +111,7 @@ ifneq ($(BRAMA_ROOT),)
   LIB_DEPLIBS  += -Wl,-rpath=$(ACE_ROOT)/lib,-rpath=$(TAO_ROOT)/tao,-rpath=$(DDS_ROOT)/lib
   LIB_DEPLIBS  += -L$(ACE_ROOT)/lib -L$(TAO_ROOT)/tao -L$(DDS_ROOT)/lib
 	LIB_DEPLIBS  += -Wl,-rpath=$(BRAMA_ROOT) -L$(BRAMA_ROOT) -lBRAMACommon
-  LIB_DEPLIBS  += -Wl,-E -fvisibility-inlines-hidden -fno-strict-aliasing -pthread -pipe 
+  LIB_DEPLIBS  += -Wl,-E -fvisibility-inlines-hidden -fno-strict-aliasing -pthread -pipe
   LIB_DEPLIBS  += -lBRAMACommon -lOpenDDS_InfoRepoDiscovery -lOpenDDS_Dcps
   LIB_DEPLIBS  += -lTAO_PortableServer -lTAO_AnyTypeCode -lTAO -lACE -ldl -lrt
 endif
