@@ -294,8 +294,7 @@ class Simulator:
                     self.tar.raytrace(t, b"atmos", atmos=self.atm)
                 else:
                     self.tar.reset_phase(t)
-                self.tar.raytrace(t, b"telncpa", tel=self.tel, ncpa=1)
-                self.tar.raytrace(t, b"dm", dms=self.dms)
+                self.tar.raytrace(t, b"dm", dms=self.dms, tel=self.tel, ncpa=1)
                 self.rtc.do_control_geo(nControl, self.dms, self.tar, t)
                 self.rtc.apply_control(nControl, self.dms)
         else:
@@ -310,7 +309,7 @@ class Simulator:
                 if see_atmos:
                     self.wfs.raytrace(w, b"atmos", tel=self.tel, atmos=self.atm, ncpa=1)
                 else:
-                    self.wfs.raytrace(w, b"telncpa", tel=self.tel, rst=1, ncpa=1)
+                    self.wfs.raytrace(w, b"tel+ncpa", tel=self.tel, rst=1, ncpa=1)
 
                 if not self.config.p_wfss[w].openloop:
                     self.wfs.raytrace(w, b"dm", dms=self.dms)

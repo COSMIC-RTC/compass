@@ -63,8 +63,7 @@ void carma_utils::ProgressBar::update() {
     std::chrono::system_clock::time_point time = std::chrono::system_clock::now();
     std::chrono::duration<double> elapsed = time - start;
     int eta = elapsed.count()>0?(int)(elapsed.count() / progress - elapsed.count()):0;
-    std::cout << "] " << disp(count, ndigits) << "/" << disp(max, ndigits, 'l') << " ETA " << disp(eta,4) << "s \r";
-    std::cout.flush();
+    std::cout << "] " << disp(count, ndigits) << "/" << disp(max, ndigits, 'l') << " ETA " << disp(eta,4) << "s \r" << std::flush;
   }
 };
 

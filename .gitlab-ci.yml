@@ -1,4 +1,4 @@
-image: sevin/compass:cuda8
+image: sevin/compass:cuda9
 
 stages:
   - build
@@ -7,6 +7,10 @@ stages:
 
 master_build:
   stage: build
+  variables:
+    COMPASS_ROOT: /builds/compass/compass
+    NAGA_ROOT: $COMPASS_ROOT/naga
+    SHESHA_ROOT: $COMPASS_ROOT/shesha
   script:
     - make
 #   - cd doc
@@ -23,6 +27,10 @@ master_build:
 
 develop_build:
   stage: build
+  variables:
+    COMPASS_ROOT: /builds/compass/compass
+    NAGA_ROOT: $COMPASS_ROOT/naga
+    SHESHA_ROOT: $COMPASS_ROOT/shesha
   script:
     - make
 #   - cd doc
