@@ -2,6 +2,7 @@
 #include <cuda_profiler_api.h>
 #include <carma_context.h>
 #include <iostream>
+#include <iomanip>      // std::setprecision
 #include <sstream>
 #include <string>
 #include <cmath>
@@ -17,7 +18,7 @@ int quick_pow10(int n) {
   return pow10[n];
 }
 
-std::string disp(int idx, int width, char align='r') {
+std::string disp(int idx, int width, std::string fill_char=" ") {
   std::ostringstream stm;
   if(idx >= quick_pow10(width)) {
     for( int i(0); i<width-1; i++) {
@@ -25,45 +26,56 @@ std::string disp(int idx, int width, char align='r') {
     }
     return stm.str();
   }
-  if(align == 'l') {
-    stm << idx;
-  }
-  while(idx < quick_pow10(width)-1) {
-    stm << " ";
+  while(idx < quick_pow10(width-1)) {
+    stm << fill_char;
     width--;
   }
-  if(align != 'l') {
+  if(idx>0) {
     stm << idx;
   }
   return stm.str();
 }
 
-carma_utils::ProgressBar::ProgressBar(int max_): max(max_), start(std::chrono::system_clock::now()) {
+std::string dispTime(int time_sec) {
+  std::ostringstream stm;
+  int elapsed_min = time_sec/60;
+  int elapsed_sec = time_sec - elapsed_min*60;
+  stm << disp(elapsed_min,2, "0") << ":" << disp(elapsed_sec,2, "0");
+  return stm.str();
+}
+
+carma_utils::ProgressBar::ProgressBar(int max_, const std::string &desc_): max(max_), start(std::chrono::system_clock::now()) {
   ndigits = 0;
-  while(max_ > quick_pow10(ndigits)) ndigits++;
+  while(max_ > quick_pow10(ndigits)-1) ndigits++;
+  desc = desc_ + ": ";
   struct winsize w;
   ioctl(0, TIOCGWINSZ, &w);
-  barWidth = w.ws_col - 2*(ndigits) - 24 ;
-
+  barWidth = w.ws_col - 2*(ndigits) - 35 - desc.length();
 };
 
 void carma_utils::ProgressBar::update() {
   count++;
   progress = (double)(count) / max;
-  if(2*barWidth*progress > prev) {
+  if(2*barWidth*progress > prev || progress==1) {
     prev++;
     int n = (int)(progress*100.0);
-    std::cout << disp(n, 3) << "% [";
+    std::cout << desc << disp(n, 3) << "%|";
     int pos = barWidth * progress;
     for(int i=0; i<barWidth; i++) {
-      if(i<pos) std::cout << "=";
-      else if(i==pos) std::cout << ">";
+      if(i<pos) std::cout << "█";
+      // else if(i==pos) std::cout << ">";
       else std::cout << " ";
     }
     std::chrono::system_clock::time_point time = std::chrono::system_clock::now();
-    std::chrono::duration<double> elapsed = time - start;
-    int eta = elapsed.count()>0?(int)(elapsed.count() / progress - elapsed.count()):0;
-    std::cout << "] " << disp(count, ndigits) << "/" << disp(max, ndigits, 'l') << " ETA " << disp(eta,4) << "s \r" << std::flush;
+    std::chrono::duration<double> elapsed_tmp = time - start;
+
+    int elapsed = elapsed_tmp.count();
+    int eta = elapsed>0?(floor(elapsed / progress) - elapsed):0;
+    double freq = count/elapsed_tmp.count();
+
+    std::cout << "| " << disp(count, ndigits) << "/" << disp(max, ndigits)
+              << " [" << dispTime(elapsed) << "<" << dispTime(eta)
+              << ", " << std::setprecision(6) << freq  << "it/s]\r" << std::flush;
   }
 };
 

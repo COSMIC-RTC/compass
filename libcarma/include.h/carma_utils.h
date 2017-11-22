@@ -44,9 +44,10 @@ class ProgressBar {
   int ndigits=0;
   double progress=0;
   int barWidth=42;
+  std::string desc;
   std::chrono::system_clock::time_point start;
  public:
-  ProgressBar(int i);
+  ProgressBar(int i, const std::string &desc="");
   void update();
   void finish();
 };
