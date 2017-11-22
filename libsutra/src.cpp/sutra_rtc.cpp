@@ -132,11 +132,9 @@ int sutra_rtc::do_imat(int ncntrl, sutra_dms *ydm) {
 
   vector<sutra_dm *>::iterator p;
   p = this->d_control[ncntrl]->d_dmseen.begin();
-  int inds1;
-  int cc;
-  int nactu = d_imat->getDims(2);
-  inds1 = 0;
-  cc = 0;
+  int inds1 = 0;
+  int cc = 0;
+
   std::cout << "Doing imat..." << std::endl;
   while (p != this->d_control[ncntrl]->d_dmseen.end()) {
     sutra_dm *dm = *p;

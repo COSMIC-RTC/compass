@@ -78,10 +78,8 @@ class sutra_source {
   // int get_phase(float *h_dest);
   int get_ncpa_phase(float *h_src, size_t size);
   int set_ncpa_phase(float *h_dest, size_t size);
-  int raytrace(sutra_atmos *atmos, bool async);
-  int raytrace(sutra_atmos *atmos);
-  int raytrace(sutra_dms *ydms, int rst, bool async, int do_phase_var);
-  int raytrace(sutra_dms *ydms, int rst, int do_phase_var);
+  int raytrace(sutra_atmos *atmos, bool async=false);
+  int raytrace(sutra_dms *ydms, int rst, int do_phase_var, bool async=false);
   int raytrace(int rst);
   int raytrace_shm(sutra_atmos *atmos);
   int comp_image(int puponly, bool comp_le);
