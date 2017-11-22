@@ -5,16 +5,53 @@ Must be instantiated for running a COMPASS simulation script easily
 import sys
 import os
 
-from naga import naga_context
+try:
+    from naga import naga_context
+except ImportError as err:
+
+    class naga_context:
+
+        def __init__(devices=0):
+            pass
+
 
 import shesha_init as init
 import shesha_constants as scons
 import shesha_util.hdf5_utils as h5u
 
-import Atmos, Telescope, Target, Rtc, Dms, Sensors
 import time
 
 from typing import Iterable, Any, Dict
+
+try:
+    from Dms import Dms
+    from Sensors import Sensors
+    from Telescope import Telescope
+    from Atmos import Atmos
+    from Target import Target
+    from Rtc import Rtc, Rtc_brama
+except ImportError as err:
+
+    class Dms:
+        pass
+
+    class Sensors:
+        pass
+
+    class Telescope:
+        pass
+
+    class Atmos:
+        pass
+
+    class Target:
+        pass
+
+    class Rtc:
+        pass
+
+    class Rtc_brama:
+        pass
 
 
 class Simulator:
@@ -37,12 +74,12 @@ class Simulator:
         self.iter = 0  # type: int
 
         self.c = None  # type: naga_context
-        self.atm = None  # type: Atmos.Atmos
-        self.tel = None  # type: Telescope.Telescope
-        self.tar = None  # type: Target.Target
-        self.rtc = None  # type: Rtc.Rtc
-        self.wfs = None  # type: Sensors.Sensors
-        self.dms = None  # type: Dms.Dms
+        self.atm = None  # type: Atmos
+        self.tel = None  # type: Telescope
+        self.tar = None  # type: Target
+        self.rtc = None  # type: Rtc
+        self.wfs = None  # type: Sensors
+        self.dms = None  # type: Dms
 
         self.matricesToLoad = {}  # type: Dict[str,str]
         self.use_DB = use_DB  # type: bool
@@ -294,7 +331,8 @@ class Simulator:
                     self.tar.raytrace(t, b"atmos", atmos=self.atm)
                 else:
                     self.tar.reset_phase(t)
-                self.tar.raytrace(t, b"dm", dms=self.dms, tel=self.tel, ncpa=1)
+                self.tar.raytrace(t, b"telncpa", tel=self.tel, ncpa=1)
+                self.tar.raytrace(t, b"dm", dms=self.dms)
                 self.rtc.do_control_geo(nControl, self.dms, self.tar, t)
                 self.rtc.apply_control(nControl, self.dms)
         else:
@@ -309,7 +347,7 @@ class Simulator:
                 if see_atmos:
                     self.wfs.raytrace(w, b"atmos", tel=self.tel, atmos=self.atm, ncpa=1)
                 else:
-                    self.wfs.raytrace(w, b"tel+ncpa", tel=self.tel, rst=1, ncpa=1)
+                    self.wfs.raytrace(w, b"telncpa", tel=self.tel, rst=1, ncpa=1)
 
                 if not self.config.p_wfss[w].openloop:
                     self.wfs.raytrace(w, b"dm", dms=self.dms)
