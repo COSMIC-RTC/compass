@@ -16,13 +16,17 @@ import matplotlib.pyplot as plt
 plt.ion()
 
 
-def compute_Cerr(filename, modal=True, ctype="float"):
+def compute_Cerr(filename, modal=True, ctype="float", speed=None, H=None, theta=None):
     """ Returns the residual error covariance matrix using GROOT from a ROKET file
     :parameter:
         filename : (string) : full path to the ROKET file
         modal : (bool) : if True (default), Cerr is returned in the Btt modal basis,
                          in the actuator basis if False
         ctype : (string) : "float" or "double"
+        speed: (np.ndarray(ndim=1, dtype=np.float32)): (optionnal) wind speed for each layer [m/s]
+        H: (np.ndarray(ndim=1, dtype=np.float32)): (optionnal) altitude of each layer [m]
+        theta: (np.ndarray(ndim=1, dtype=np.float32)): (optionnal) wind direction for each layer [rad]
+
     :return:
         Cerr : (np.ndarray(dim=2, dtype=np.float32)) : residual error covariance matrix
     """
@@ -41,10 +45,13 @@ def compute_Cerr(filename, modal=True, ctype="float"):
     pupshape = int(2**np.ceil(np.log2(f.attrs["_Param_geom__pupdiam"]) + 1))
     xactu = (xpos - pupshape / 2) * p2m
     yactu = (ypos - pupshape / 2) * p2m
-    H = f.attrs["_Param_atmos__alt"]
+    if H is None:
+        H = f.attrs["_Param_atmos__alt"]
     L0 = f.attrs["_Param_atmos__L0"]
-    speed = f.attrs["_Param_atmos__windspeed"]
-    theta = f.attrs["_Param_atmos__winddir"] * np.pi / 180.
+    if speed is None:
+        speed = f.attrs["_Param_atmos__windspeed"]
+    if theta is None:
+        theta = f.attrs["_Param_atmos__winddir"] * np.pi / 180.
     frac = f.attrs["_Param_atmos__frac"]
 
     Htheta = np.linalg.norm([wxpos, wypos]) / RASC * H
@@ -431,7 +438,7 @@ def compute_PSF(filename):
     spup = rexp.get_pup(filename)
     Cab = compute_Cerr(filename)
     Cn = compute_Cn_cpu(filename)
-    Ca = compute_Ca_cpu(filename)
+    Ca = compute_Calias(filename)
     Cee = Cab + Cn + Ca
     otftel, otf2, psf, gpu = gamora.psf_rec_Vii(filename, fitting=False,
                                                 cov=(Cee).astype(np.float32))
@@ -444,11 +451,13 @@ def compute_PSF(filename):
     return psf
 
 
-def test_Calias(filename):
+def compute_Calias(filename, slopes_space=False, modal=True):
     """ Returns the aliasing slopes covariance matrix using CPU version of GROOT
     from a ROKET file and a model based on structure function
     :parameter:
         filename : (string) : full path to the ROKET file
+        slopes_space: (bool): (optionnal) if True, return the covariance matrix in the slopes space
+        modal: (bool): (optionnal) if True, return the covariance matrix in the modal space
     :return:
         Ca : (np.ndarray(dim=2, dtype=np.float32)) : aliasing error covariance matrix
     """
@@ -471,7 +480,7 @@ def test_Calias(filename):
     Lambda_wfs = f.attrs["_Param_wfs__Lambda"][0]
     d = f.attrs["_Param_tel__diam"] / nssp
     RASC = 180 / np.pi * 3600
-    scale = (RASC * Lambda_wfs * 1e-6 / 2 / np.pi)**2 / d**2
+    scale = 0.5 * (1 / r0)**(5 / 3) * (RASC * Lambda_wfs * 1e-6 / 2 / np.pi)**2 / d**2
     x = (np.arange(nssp) - nssp / 2) * d
     x, y = np.meshgrid(x, x)
     x = x[ivalid]
@@ -479,29 +488,62 @@ def test_Calias(filename):
     fc = d  #/ npix
     xx = np.tile(x, (nsub, 1))
     yy = np.tile(y, (nsub, 1))
+    Ca = compute_Calias_element(xx, yy, fc, d, nsub, tabx, taby)
+    Ca += compute_Calias_element(xx, yy, fc, d, nsub, tabx, taby, xoff=0.5)
+    Ca += compute_Calias_element(xx, yy, fc, d, nsub, tabx, taby, xoff=-0.5)
+    Ca += compute_Calias_element(xx, yy, fc, d, nsub, tabx, taby, yoff=0.5)
+    Ca += compute_Calias_element(xx, yy, fc, d, nsub, tabx, taby, yoff=-0.5)
 
-    xx = xx - xx.T
-    yy = yy - yy.T
+    if not slopes_space:
+        R = f["R"][:]
+        Ca = R.dot(Ca * scale / 5).dot(R.T)
+        if modal:
+            P = f["P"][:]
+            Ca = P.dot(Ca).dot(P.T)
+    f.close()
 
+    return Ca
+
+
+def compute_Calias_element(xx, yy, fc, d, nsub, tabx, taby, xoff=0, yoff=0):
+    """
+        Compute the element of the aliasing covariance matrix
+
+    :parameters:
+        Ca: (np.ndarray(ndim=2, dtype=np.float32)): aliasing covariance matrix to fill
+        xx: (np.ndarray(ndim=2, dtype=np.float32)): X positions of the WFS subap
+        yy: (np.ndarray(ndim=2, dtype=np.float32)): Y positions of the WFS subap
+        fc: (float): cut-off frequency for Dphi
+        d: (float): subap diameter
+        nsub: (int): number of subap
+        tabx: (np.ndarray(ndim=1, dtype=np.float32)): X tabulation for dphi
+        taby: (np.ndarray(ndim=1, dtype=np.float32)): Y tabulation for dphi
+        xoff: (float) : (optionnal) offset to apply on the WFS xpos (units of d)
+        yoff: (float) : (optionnal) offset to apply on the WFS ypos (units of d)
+    """
+    xx = xx - xx.T + xoff * d
+    yy = yy - yy.T + yoff * d
+    Ca = np.zeros((2 * nsub, 2 * nsub))
+
+    # XX covariance
     AB = np.linalg.norm([xx, yy], axis=0)
     Ab = np.linalg.norm([xx - d, yy], axis=0)
     aB = np.linalg.norm([xx + d, yy], axis=0)
     ab = AB
 
-    Ca = np.zeros((2 * nsub, 2 * nsub))
-    Ca[:nsub, :nsub] = 0.5 * (
-            Dphi.dphi_highpass(Ab, fc, tabx, taby) + Dphi.dphi_highpass(
-                    aB, fc, tabx, taby) - 2 * Dphi.dphi_highpass(AB, fc, tabx, taby)) * (
-                            1 / r0)**(5. / 3.)
+    Ca[:nsub, :nsub] += Dphi.dphi_highpass(Ab, fc, tabx, taby) + Dphi.dphi_highpass(
+            aB, fc, tabx, taby) - 2 * Dphi.dphi_highpass(AB, fc, tabx, taby)
+
+    # YY covariance
     CD = AB
     Cd = np.linalg.norm([xx, yy - d], axis=0)
     cD = np.linalg.norm([xx, yy + d], axis=0)
     cd = CD
 
-    Ca[nsub:, nsub:] = 0.5 * (
-            Dphi.dphi_highpass(Cd, fc, tabx, taby) + Dphi.dphi_highpass(
-                    cD, fc, tabx, taby) - 2 * Dphi.dphi_highpass(CD, fc, tabx, taby)) * (
-                            1 / r0)**(5. / 3.)
+    Ca[nsub:, nsub:] += Dphi.dphi_highpass(Cd, fc, tabx, taby) + Dphi.dphi_highpass(
+            cD, fc, tabx, taby) - 2 * Dphi.dphi_highpass(CD, fc, tabx, taby)
+
+    # XY covariance
 
     # aD = np.linalg.norm([xx + d/2, yy + d/2], axis=0)
     # ad = np.linalg.norm([xx + d/2, yy - d/2], axis=0)
@@ -513,5 +555,4 @@ def test_Calias(filename):
     #                 - Dphi.dphi_highpass(AD, d, tabx, taby)
     #                 - Dphi.dphi_highpass(ad, d, tabx, taby)) * (1 / r0)**(5. / 3.)
     # Ca[:nsub,nsub:] = Ca[nsub:,:nsub].copy()
-
-    return Ca * scale
+    return Ca

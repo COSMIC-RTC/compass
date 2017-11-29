@@ -16,6 +16,9 @@ Options:
   --nfilt nfilt               Set the number of filtered modes
   --winddir winddir           Set the wind direction
   --windspeed windspeed       Set the wind speed
+  --noise noise               Set the noise value
+  --gain gain                 Set the loop gain
+  --devices devices           Specify the devices to use
 
 Usage with Ipython: ipython [-i] script_roket.py -- [options]
 """
@@ -54,6 +57,15 @@ if arguments["--windspeed"]:
     roket.config.p_atmos.set_windspeed([float(arguments["--windspeed"])])
 if arguments["--winddir"]:
     roket.config.p_atmos.set_winddir([float(arguments["--winddir"])])
+if arguments["--noise"]:
+    roket.config.p_wfss[0].set_noise(float(arguments["--noise"]))
+if arguments["--gain"]:
+    roket.config.p_controllers[0].set_gain(float(arguments["--gain"]))
+if arguments["--devices"]:
+    devices = []
+    for k in range(len(arguments["--devices"])):
+        devices.append(int(arguments["--devices"][k]))
+    roket.config.p_loop.set_devices(devices)
 
 roket.init_sim()
 roket.loop()
