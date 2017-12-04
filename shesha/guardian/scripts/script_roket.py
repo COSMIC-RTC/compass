@@ -19,6 +19,7 @@ Options:
   --noise noise               Set the noise value
   --gain gain                 Set the loop gain
   --devices devices           Specify the devices to use
+  --gamma gamma               Set the value of the centroid gain
 
 Usage with Ipython: ipython [-i] script_roket.py -- [options]
 """
@@ -38,7 +39,10 @@ if arguments["--savefile"]:
 else:
     savefile = "roket_default.h5"
 
-roket = Roket(param_file)
+gamma = 1.0
+if arguments["--gamma"]:
+    gamma = 1 / float(arguments["--gamma"])
+roket = Roket(param_file, gamma=gamma)
 
 if arguments["--diam"]:
     roket.config.p_tel.set_diam(float(arguments["--diam"]))
