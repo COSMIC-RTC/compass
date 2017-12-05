@@ -493,10 +493,11 @@ def compute_Calias(filename, slopes_space=False, modal=True):
     Ca += compute_Calias_element(xx, yy, fc, d, nsub, tabx, taby, xoff=-0.5)
     Ca += compute_Calias_element(xx, yy, fc, d, nsub, tabx, taby, yoff=0.5)
     Ca += compute_Calias_element(xx, yy, fc, d, nsub, tabx, taby, yoff=-0.5)
+    Ca = Ca * scale / 5
 
     if not slopes_space:
         R = f["R"][:]
-        Ca = R.dot(Ca * scale / 5).dot(R.T)
+        Ca = R.dot(Ca).dot(R.T)
         if modal:
             P = f["P"][:]
             Ca = P.dot(Ca).dot(P.T)
