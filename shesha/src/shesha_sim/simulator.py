@@ -140,17 +140,11 @@ class Simulator:
         if (pathfile not in sys.path):
             sys.path.insert(0, pathfile)
 
-        if self.config is not None:
-            name = self.config.__name__
-            print("Removing previous config")
-            self.config = None
-            try:
-                del sys.modules[name]
-            except:
-                pass
-
         print("loading: %s" % filename.split(".py")[0])
         self.config = __import__(filename.split(".py")[0])
+        del sys.modules[self.config.__name__]  # Forced reload
+        self.config = __import__(filename.split(".py")[0])
+
         # exec("import %s as wao_config" % filename.split(".py")[0])
         sys.path.remove(pathfile)
 
@@ -170,9 +164,9 @@ class Simulator:
         if not hasattr(self.config, 'p_wfss'):
             self.config.p_wfss = None
         if not hasattr(self.config, 'p_centroiders'):
-            self.config.p_tel = None
+            self.config.p_centroiders = None
         if not hasattr(self.config, 'p_controllers'):
-            self.config.p_tel = None
+            self.config.p_controllers = None
 
         if not hasattr(self.config, 'simul_name'):
             self.config.simul_name = None

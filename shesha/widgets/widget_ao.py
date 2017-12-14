@@ -884,18 +884,21 @@ class widgetAOWindow(TemplateBaseClass):
         data = None
         if (self.sim.rtc):
             type_matrix = str(self.ui.wao_selectRtcMatrix.currentText())
-            if (type_matrix == "imat" and
-                        self.sim.config.p_controllers[0].type != "generic" and
-                        self.sim.config.p_controllers[0].type != "geo"):
+            if (
+                    type_matrix == "imat" and
+                    self.sim.config.p_controllers[0].type != scons.ControllerType.GENERIC
+                    and
+                    self.sim.config.p_controllers[0].type != scons.ControllerType.GEO):
                 data = self.sim.rtc.get_imat(0)
             elif (type_matrix == "cmat"):
                 data = self.sim.rtc.get_cmat(0)
             elif (type_matrix == "Eigenvalues"):
-                if (self.sim.config.p_controllers[0].type == "ls" or
-                            self.sim.config.p_controllers[0].type == b"mv"):
+                if (self.sim.config.p_controllers[0].type == scons.ControllerType.LS or
+                            self.sim.config.p_controllers[0].type ==
+                            scons.ControllerType.MV):
                     data = self.sim.rtc.getEigenvals(0)
             elif (type_matrix == "Cmm" and
-                  self.sim.config.p_controllers[0].type == b"mv"):
+                  self.sim.config.p_controllers[0].type == scons.ControllerType.MV):
                 tmp = self.sim.rtc.get_cmm(0)
                 ao.doTomoMatrices(0, self.sim.rtc, self.sim.config.p_wfss, self.sim.dms,
                                   self.sim.atm, self.sim.wfs, self.sim.config.p_rtc,
