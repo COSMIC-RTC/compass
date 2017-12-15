@@ -15,6 +15,7 @@ import numpy as np
 import time
 
 import pyqtgraph as pg
+from pyqtgraph.dockarea import Dock, DockArea
 
 from tools import plsh, plpyr
 
@@ -39,6 +40,7 @@ low levels debugs:
 gdb --args python -i widget_ao.py
 """
 from docopt import docopt
+from collections import deque
 
 sys.path.insert(0, os.environ["SHESHA_ROOT"] + "/data/par/")
 WindowTemplate, TemplateBaseClass = loadUiType(
@@ -52,9 +54,9 @@ class widgetAOWindow(TemplateBaseClass):
         TemplateBaseClass.__init__(self)
 
         self.BRAMA = BRAMA
-        self.SRLE = []
-        self.SRSE = []
-        self.numiter = []
+        self.SRLE = deque(maxlen=20)
+        self.SRSE = deque(maxlen=20)
+        self.numiter = deque(maxlen=20)
 
         self.ui = WindowTemplate()
         self.ui.setupUi(self)
@@ -87,19 +89,25 @@ class widgetAOWindow(TemplateBaseClass):
         #                 PYQTGRAPH WINDOW INIT                     #
         #############################################################
 
-        self.img = pg.ImageItem(border='w')  # create image area
-        self.img.setTransform(QtGui.QTransform(0, 1, 1, 0, 0, 0))  # flip X and Y
-        # self.p1 = self.ui.wao_pgwindow.addPlot()  # create pyqtgraph plot
-        # area
-        self.p1 = self.ui.wao_pgwindow.addViewBox()
-        self.p1.setAspectLocked(True)
-        self.p1.addItem(self.img)  # Put image in plot area
+        self.area = DockArea()
+        # self.p1 = self.ui.wao_pgwindow.setCentralWidget(self.area)
+        self.area.setParent(self.ui.wao_pgwindow)
+        self.area.show()
 
-        self.hist = pg.HistogramLUTItem()  # Create an histogram
-        self.hist.setImageItem(self.img)  # Compute histogram from img
-        self.ui.wao_pgwindow.addItem(self.hist)
-        self.hist.autoHistogramRange()  # init levels
-        self.hist.setMaximumWidth(100)
+        # self.img = pg.ImageItem(border='w')  # create image area
+        # self.img.setTransform(QtGui.QTransform(0, 1, 1, 0, 0, 0))  # flip X and Y
+        # # self.p1 = self.ui.wao_pgwindow.addPlot()  # create pyqtgraph plot
+        # # area
+        # self.p1 = self.ui.wao_pgwindow.addViewBox()
+        # self.p1.setAspectLocked(True)
+        # self.p1.addItem(self.img)  # Put image in plot area
+        # self.ui.wao_unzoom.clicked.connect(self.p1.autoRange)
+
+        # self.hist = pg.HistogramLUTItem()  # Create an histogram
+        # self.hist.setImageItem(self.img)  # Compute histogram from img
+        # self.ui.wao_pgwindow.addItem(self.hist)
+        # self.hist.autoHistogramRange()  # init levels
+        # self.hist.setMaximumWidth(100)
 
         #############################################################
         #                 CONNECTED BUTTONS                         #
@@ -114,18 +122,14 @@ class widgetAOWindow(TemplateBaseClass):
         self.ui.wao_openLoop.setCheckable(True)
         self.ui.wao_openLoop.clicked[bool].connect(self.aoLoopOpen)
         self.ui.wao_next.clicked.connect(self.loopOnce)
-        self.imgType = str(self.ui.wao_selectScreen.currentText())
         self.ui.wao_configFromFile.clicked.connect(self.addConfigFromFile)
-        self.ui.wao_unzoom.clicked.connect(self.p1.autoRange)
-        self.ui.wao_selectScreen.currentIndexChanged.connect(
-                partial(self.updateNumberSelector, textType=None))
-        self.ui.wao_selectNumber.currentIndexChanged.connect(self.setNumberSelection)
-        self.ui.wao_wfs_plotSelector.currentIndexChanged.connect(self.updatePlotWfs)
-        self.ui.wao_selectAtmosLayer.currentIndexChanged.connect(self.setLayerSelection)
-        self.ui.wao_selectWfs.currentIndexChanged.connect(self.setWfsSelection)
-        self.ui.wao_selectDM.currentIndexChanged.connect(self.setDmSelection)
-        self.ui.wao_selectCentro.currentIndexChanged.connect(self.setCentroSelection)
-        self.ui.wao_selectTarget.currentIndexChanged.connect(self.setTargetSelection)
+        # self.ui.wao_selectNumber.currentIndexChanged.connect(self.setNumberSelection)
+        # self.ui.wao_wfs_plotSelector.currentIndexChanged.connect(self.updatePlotWfs)
+        # self.ui.wao_selectAtmosLayer.currentIndexChanged.connect(self.setLayerSelection)
+        # self.ui.wao_selectWfs.currentIndexChanged.connect(self.setWfsSelection)
+        # self.ui.wao_selectDM.currentIndexChanged.connect(self.setDmSelection)
+        # self.ui.wao_selectCentro.currentIndexChanged.connect(self.setCentroSelection)
+        # self.ui.wao_selectTarget.currentIndexChanged.connect(self.setTargetSelection)
         self.ui.wao_setAtmos.clicked.connect(self.setAtmosParams)
         self.ui.wao_setWfs.clicked.connect(self.setWfsParams)
         self.ui.wao_setDM.clicked.connect(self.setDmParams)
@@ -173,6 +177,31 @@ class widgetAOWindow(TemplateBaseClass):
         self.ui.wao_next.setDisabled(True)
         self.ui.wao_unzoom.setDisabled(True)
         self.ui.wao_resetSR.setDisabled(True)
+
+        p1 = self.ui.wao_SRPlotWindow.addPlot(title='SR evolution')
+        self.curveSRSE = p1.plot(pen=(255, 0, 0), symbolBrush=(255, 0, 0), name="SR SE")
+        self.curveSRLE = p1.plot(pen=(0, 0, 255), symbolBrush=(0, 0, 255), name="SR LE")
+
+        self.disp_atm = []
+        self.disp_wfs = []
+        self.disp_tar = []
+        self.disp_dm = []
+        self.disp_psfLE = []
+        self.disp_psfSE = []
+
+        self.dock_atm = []
+        self.dock_wfs = []
+        self.dock_tar = []
+        self.dock_dm = []
+        self.dock_psfLE = []
+        self.dock_psfSE = []
+
+        self.imag_atm = []
+        self.imag_wfs = []
+        self.imag_tar = []
+        self.imag_dm = []
+        self.imag_psfLE = []
+        self.imag_psfSE = []
 
         self.ui.wao_expertPanel.setVisible(expert)
         self.adjustSize()
@@ -643,7 +672,64 @@ class widgetAOWindow(TemplateBaseClass):
         except:
             pass
 
-        self.ui.wao_selectScreen.clear()
+        while 1:
+            w = self.ui.button_disp.takeAt(2)
+            if w is None:
+                break
+            w.widget().setParent(None)
+            self.ui.button_disp.removeItem(w)
+        while 1:
+            w = self.ui.button_tar.takeAt(5)
+            if w is None:
+                break
+            w.widget().setParent(None)
+            self.ui.button_tar.removeItem(w)
+        self.disp_atm.clear()
+        self.disp_wfs.clear()
+        self.disp_tar.clear()
+        self.disp_dm.clear()
+        self.disp_psfSE.clear()
+        self.disp_psfLE.clear()
+        self.dock_atm.clear()
+        self.dock_wfs.clear()
+        self.dock_tar.clear()
+        self.dock_dm.clear()
+        self.dock_psfSE.clear()
+        self.dock_psfLE.clear()
+        self.imag_atm.clear()
+        self.imag_wfs.clear()
+        self.imag_tar.clear()
+        self.imag_dm.clear()
+        self.imag_psfSE.clear()
+        self.imag_psfLE.clear()
+
+        natm = len(self.sim.config.p_atmos.alt)
+        for atm in range(natm):
+            w = QtGui.QCheckBox('atm%d' % atm)
+            self.ui.button_disp.addWidget(w)
+            self.disp_atm.append(w)
+            d = Dock('atm%d' % atm, size=(100, 100))  # , closable=True)
+            self.dock_atm.append(d)
+            self.area.addDock(d)
+            p = pg.ImageView()
+            p.setImage(np.random.normal(size=(100, 100)))
+            self.imag_atm.append(p)
+            d.addWidget(p)
+            d.show()
+
+        nwfs = len(self.sim.config.p_wfss)
+        for wfs in range(nwfs):
+            w = QtGui.QCheckBox('wfs%d' % wfs)
+            self.ui.button_disp.addWidget(w)
+            self.disp_wfs.append(w)
+            d = Dock('wfs%d' % wfs, size=(100, 100))
+            self.dock_wfs.append(d)
+            self.area.addDock(d)
+            p = pg.ImageView()
+            p.setImage(np.random.normal(size=(100, 100)))
+            self.imag_wfs.append(p)
+            d.addWidget(p)
+            d.show()
 
         pyrSpecifics = [
                 self.ui.ui_modradiusPanel, self.ui.ui_modradiusPanelarcesec,
@@ -664,9 +750,36 @@ class widgetAOWindow(TemplateBaseClass):
             ]
             [pane.hide() for pane in pyrSpecifics]
 
-        self.ui.wao_selectScreen.addItems(self.selector_init)
-        self.ui.wao_selectScreen.setCurrentIndex(0)
-        self.updateNumberSelector(textType=self.imgType)
+        ndm = len(self.sim.config.p_dms)
+        for dm in range(ndm):
+            w = QtGui.QCheckBox('dm%d' % dm)
+            self.ui.button_disp.addWidget(w)
+            self.disp_dm.append(w)
+            d = Dock('dm%d' % dm)
+            self.dock_dm.append(d)
+
+        # TODO: update parameters to handle p_targets
+        ntar = 1  # len(self.sim.config.p_targets)
+        for tar in range(ntar):
+            w = QtGui.QCheckBox('tar%d' % tar)
+            self.ui.button_tar.addWidget(w)
+            self.disp_tar.append(w)
+            d = Dock('tar%d' % tar)
+            self.dock_tar.append(d)
+        for tar in range(ntar):
+            w = QtGui.QCheckBox('psfSE%d' % tar)
+            self.ui.button_tar.addWidget(w)
+            self.disp_psfLE.append(w)
+            d = Dock('psfSE%d' % tar)
+            self.dock_psfSE.append(d)
+        for tar in range(ntar):
+            w = QtGui.QCheckBox('psfLE%d' % tar)
+            self.ui.button_tar.addWidget(w)
+            self.disp_psfLE.append(w)
+            d = Dock('psfLE%d' % tar)
+            self.dock_psfLE.append(d)
+
+        # self.ui.button_disp.addWidget()
         self.updatePanels()
 
         self.ui.wao_init.setDisabled(False)
@@ -704,7 +817,7 @@ class widgetAOWindow(TemplateBaseClass):
 
     def updateNumberSelector(self, textType: str=None) -> None:
         if textType is None:
-            textType = str(self.ui.wao_selectScreen.currentText())
+            textType = str(self.ui.A_CHANGER.currentText())
         self.imgType = textType
         self.ui.wao_selectNumber.clear()
         if (textType == "Phase - Atmos"):
@@ -1001,29 +1114,16 @@ class widgetAOWindow(TemplateBaseClass):
             widToHide.hide()
 
     def clearSR(self):
-        self.SRLE = [self.SRLE[-1]]
-        self.SRSE = [self.SRSE[-1]]
-        self.numiter = [self.numiter[-1]]
+        self.SRLE = deque(maxlen=20)
+        self.SRSE = deque(maxlen=20)
+        self.numiter = deque(maxlen=20)
 
     def updateSRDisplay(self, SRLE, SRSE, numiter):
         self.SRLE.append(SRLE)
         self.SRSE.append(SRSE)
         self.numiter.append(numiter)
-        if (len(self.SRSE) > 100):  # Clipping last 100 points...
-            self.SRLE = self.SRLE[-100:]
-            self.SRSE = self.SRSE[-100:]
-            self.numiter = self.numiter[-100:]
-        self.ui.wao_SRPlotWindow.canvas.axes.clear()
-        self.ui.wao_SRPlotWindow.canvas.axes.yaxis.set_label("SR")
-        self.ui.wao_SRPlotWindow.canvas.axes.xaxis.set_label("num iter")
-        self.ui.wao_SRPlotWindow.canvas.axes.plot(self.numiter, self.SRSE,
-                                                  linestyle="--", color="red",
-                                                  marker="o", label="SR SE")
-        self.ui.wao_SRPlotWindow.canvas.axes.plot(self.numiter, self.SRLE,
-                                                  linestyle="--", color="blue",
-                                                  marker="o", label="SR LE")
-        # self.ui.wao_SRPlotWindow.canvas.axes.grid()
-        self.ui.wao_SRPlotWindow.canvas.draw()
+        self.curveSRSE.setData(self.numiter, self.SRSE)
+        self.curveSRLE.setData(self.numiter, self.SRLE)
 
     def updateDisplay(self) -> None:
         if (self.sim is None) or (not self.sim.is_init) or (

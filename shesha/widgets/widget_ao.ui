@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1706</width>
-    <height>844</height>
+    <height>882</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -161,26 +161,6 @@
             <item>
              <layout class="QHBoxLayout" name="horizontalLayout">
               <item>
-               <widget class="QComboBox" name="wao_selectScreen">
-                <property name="minimumSize">
-                 <size>
-                  <width>120</width>
-                  <height>0</height>
-                 </size>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QComboBox" name="wao_selectNumber">
-                <property name="maximumSize">
-                 <size>
-                  <width>50</width>
-                  <height>16777215</height>
-                 </size>
-                </property>
-               </widget>
-              </item>
-              <item>
                <widget class="QPushButton" name="wao_run">
                 <property name="enabled">
                  <bool>false</bool>
@@ -252,27 +232,7 @@
              </layout>
             </item>
             <item>
-             <layout class="QVBoxLayout" name="verticalLayout_20">
-              <item>
-               <widget class="MatplotlibWidget" name="wao_rtcWindowMPL" native="true">
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-                <property name="minimumSize">
-                 <size>
-                  <width>0</width>
-                  <height>0</height>
-                 </size>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </item>
-            <item>
-             <layout class="QHBoxLayout" name="horizontalLayout_14">
+             <layout class="QHBoxLayout" name="button_disp">
               <item>
                <widget class="QPushButton" name="wao_atmosphere">
                 <property name="text">
@@ -280,6 +240,57 @@
                 </property>
                 <property name="checkable">
                  <bool>true</bool>
+                </property>
+                <property name="checked">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <spacer name="horizontalSpacer_4">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>40</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <layout class="QHBoxLayout" name="button_tar">
+              <item>
+               <widget class="QLabel" name="label_59">
+                <property name="text">
+                 <string>Target #:</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QSpinBox" name="wao_resetSR_tarNum">
+                <property name="enabled">
+                 <bool>false</bool>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="wao_resetSR">
+                <property name="enabled">
+                 <bool>false</bool>
+                </property>
+                <property name="text">
+                 <string>Reset strehl</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QCheckBox" name="wao_allTarget">
+                <property name="text">
+                 <string>all target</string>
                 </property>
                 <property name="checked">
                  <bool>true</bool>
@@ -299,41 +310,23 @@
                 </property>
                </spacer>
               </item>
-              <item>
-               <widget class="QPushButton" name="wao_resetSR">
-                <property name="enabled">
-                 <bool>false</bool>
-                </property>
-                <property name="text">
-                 <string>Reset strehl</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QLabel" name="label_59">
-                <property name="text">
-                 <string>Target #:</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QSpinBox" name="wao_resetSR_tarNum">
-                <property name="enabled">
-                 <bool>false</bool>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QCheckBox" name="wao_allTarget">
-                <property name="text">
-                 <string>all target</string>
-                </property>
-                <property name="checked">
-                 <bool>true</bool>
-                </property>
-               </widget>
-              </item>
              </layout>
+            </item>
+            <item>
+             <widget class="MatplotlibWidget" name="wao_rtcWindowMPL" native="true">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>0</width>
+                <height>0</height>
+               </size>
+              </property>
+             </widget>
             </item>
             <item>
              <widget class="GraphicsLayoutWidget" name="wao_pgwindow">
@@ -450,28 +443,6 @@
               <property name="sizeConstraint">
                <enum>QLayout::SetDefaultConstraint</enum>
               </property>
-              <item row="1" column="2" rowspan="6" colspan="2">
-               <widget class="MatplotlibWidget" name="wao_SRPlotWindow" native="true">
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-                <property name="minimumSize">
-                 <size>
-                  <width>100</width>
-                  <height>100</height>
-                 </size>
-                </property>
-                <property name="maximumSize">
-                 <size>
-                  <width>16777215</width>
-                  <height>16777215</height>
-                 </size>
-                </property>
-               </widget>
-              </item>
               <item row="1" column="0" colspan="2">
                <widget class="QLabel" name="label_6">
                 <property name="text">
@@ -542,6 +513,9 @@
                  </size>
                 </property>
                </spacer>
+              </item>
+              <item row="1" column="2" rowspan="6" colspan="2">
+               <widget class="GraphicsLayoutWidget" name="wao_SRPlotWindow"/>
               </item>
              </layout>
             </item>
@@ -2125,7 +2099,7 @@
      <x>0</x>
      <y>0</y>
      <width>1706</width>
-     <height>23</height>
+     <height>24</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
