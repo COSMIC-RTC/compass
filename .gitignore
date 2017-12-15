@@ -57,3 +57,5 @@ shesha/test/scripts/resultatsScripts/
 *.gch
 
 doc/compass-doc
+
+\.vscode/
