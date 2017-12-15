@@ -84,7 +84,7 @@ def rtc_init(context: naga_context, tel: Telescope, wfs: Sensors, dms: Dms, atmo
     # initialisation var
     # ________________________________________________
     if brama:
-        rtc = Rtc_brama(context, wfs, tar)
+        rtc = Rtc_brama(context, wfs)
     else:
         rtc = Rtc(context)
 
