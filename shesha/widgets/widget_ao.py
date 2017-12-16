@@ -90,9 +90,8 @@ class widgetAOWindow(TemplateBaseClass):
         #############################################################
 
         self.area = DockArea()
-        # self.p1 = self.ui.wao_pgwindow.setCentralWidget(self.area)
-        self.area.setParent(self.ui.wao_pgwindow)
-        self.area.show()
+        self.ui.wao_displayDock.setWidget(self.area)
+        # self.ui.centralwidget.setCentralWidget(area)
 
         # self.img = pg.ImageItem(border='w')  # create image area
         # self.img.setTransform(QtGui.QTransform(0, 1, 1, 0, 0, 0))  # flip X and Y
@@ -164,10 +163,7 @@ class widgetAOWindow(TemplateBaseClass):
         self.ui.wao_dmActuPushArcSecNumWFS.currentIndexChanged.connect(
                 self.updateDMrange)
 
-        self.SRcircleAtmos = {}  # type: Dict[int, pg.ScatterPlotItem]
-        self.SRcircleWFS = {}  # type: Dict[int, pg.ScatterPlotItem]
-        self.SRcircleDM = {}  # type: Dict[int, pg.ScatterPlotItem]
-        self.SRcircleTarget = {}  # type: Dict[int, pg.ScatterPlotItem]
+        self.SRcircles = {}  # type: Dict[int, pg.ScatterPlotItem]
 
         # self.ui.splitter.setSizes([2000, 10])
 
@@ -189,21 +185,15 @@ class widgetAOWindow(TemplateBaseClass):
         self.disp_psfLE = []
         self.disp_psfSE = []
 
-        self.dock_atm = []
-        self.dock_wfs = []
-        self.dock_tar = []
-        self.dock_dm = []
-        self.dock_psfLE = []
-        self.dock_psfSE = []
+        self.docks = {}
+        self.imags = {}
 
-        self.imag_atm = []
-        self.imag_wfs = []
-        self.imag_tar = []
-        self.imag_dm = []
-        self.imag_psfLE = []
-        self.imag_psfSE = []
+        self.natm = 0
+        self.nwfs = 0
+        self.ndm = 0
+        self.ntar = 0
 
-        self.ui.wao_expertPanel.setVisible(expert)
+        self.ui.wao_expertDock.setVisible(expert)
         self.adjustSize()
 
         if configFile is not None:
@@ -322,10 +312,8 @@ class widgetAOWindow(TemplateBaseClass):
         if (ndm < 0):
             ndm = 0
         self.ui.wao_dmActuPushArcSecNumWFS.clear()
-        self.ui.wao_dmActuPushArcSecNumWFS.addItems([
-                str(i) for i in range(len(self.sim.config.p_wfss))
-        ])
-        self.ui.wao_numberofDMs.setText(str(len(self.sim.config.p_dms)))
+        self.ui.wao_dmActuPushArcSecNumWFS.addItems([str(i) for i in range(self.nwfs)])
+        self.ui.wao_numberofDMs.setText(str(self.ndm))
         self.ui.wao_dmTypeSelector.setCurrentIndex(
                 self.ui.wao_dmTypeSelector.findText(
                         str(self.sim.config.p_dms[ndm].type)))
@@ -344,7 +332,7 @@ class widgetAOWindow(TemplateBaseClass):
         nwfs = self.ui.wao_selectWfs.currentIndex()
         if (nwfs < 0):
             nwfs = 0
-        self.ui.wao_numberofWfs.setText(str(len(self.sim.config.p_wfss)))
+        self.ui.wao_numberofWfs.setText(str(self.nwfs))
         self.ui.wao_wfsType.setText(str(self.sim.config.p_wfss[nwfs].type))
         self.ui.wao_wfsNxsub.setValue(self.sim.config.p_wfss[nwfs].nxsub)
         self.ui.wao_wfsNpix.setValue(self.sim.config.p_wfss[nwfs].npix)
@@ -459,27 +447,6 @@ class widgetAOWindow(TemplateBaseClass):
         self.ui.wao_targetXpos.setValue(self.sim.config.p_target.xpos[ntarget])
         self.ui.wao_targetYpos.setValue(self.sim.config.p_target.ypos[ntarget])
         self.ui.wao_targetLambda.setValue(self.sim.config.p_target.Lambda[ntarget])
-
-        self.ui.wao_targetWindow.canvas.axes.cla()
-        xmax = np.max(np.abs(self.sim.config.p_target.xpos))
-        ymax = np.max(np.abs(self.sim.config.p_target.ypos))
-        if (self.sim.config.p_wfss):
-            self.ui.wao_targetWindow.canvas.axes.plot([
-                    w.xpos for w in self.sim.config.p_wfss
-            ], [w.ypos for w in self.sim.config.p_wfss], 'o', color="green")
-            xmax = np.max([
-                    xmax, np.max(np.abs([w.xpos for w in self.sim.config.p_wfss]))
-            ])
-            ymax = np.max([
-                    ymax, np.max(np.abs([w.ypos for w in self.sim.config.p_wfss]))
-            ])
-        self.ui.wao_targetWindow.canvas.axes.plot(self.sim.config.p_target.xpos,
-                                                  self.sim.config.p_target.ypos, '*',
-                                                  color="red")
-        self.ui.wao_targetWindow.canvas.axes.set_xlim(-xmax - 10, xmax + 10)
-        self.ui.wao_targetWindow.canvas.axes.set_ylim(-ymax - 10, ymax + 10)
-        self.ui.wao_targetWindow.canvas.axes.grid()
-        self.ui.wao_targetWindow.canvas.draw()
 
     def updatePanels(self) -> None:
         self.updateTelescopePanel()
@@ -605,15 +572,11 @@ class widgetAOWindow(TemplateBaseClass):
 
     def updateWfsSelection(self) -> None:
         self.ui.wao_selectWfs.clear()
-        self.ui.wao_selectWfs.addItems([
-                str(i) for i in range(len(self.sim.config.p_wfss))
-        ])
+        self.ui.wao_selectWfs.addItems([str(i) for i in range(self.nwfs)])
 
     def updateDmSelection(self) -> None:
         self.ui.wao_selectDM.clear()
-        self.ui.wao_selectDM.addItems([
-                str(i) for i in range(len(self.sim.config.p_dms))
-        ])
+        self.ui.wao_selectDM.addItems([str(i) for i in range(self.ndm)])
 
     def updateCentroSelection(self) -> None:
         self.ui.wao_selectCentro.clear()
@@ -651,6 +614,13 @@ class widgetAOWindow(TemplateBaseClass):
 
         self.loadConfig()
 
+    def update_displayDock(self, state):
+        guilty = self.sender().text()
+        if state:
+            self.area.addDock(self.docks[guilty])
+        else:
+            self.docks[guilty].close()
+
     def loadConfig(self) -> None:
         '''
             Callback when 'LOAD' button is hit
@@ -672,64 +642,47 @@ class widgetAOWindow(TemplateBaseClass):
         except:
             pass
 
-        while 1:
-            w = self.ui.button_disp.takeAt(2)
-            if w is None:
-                break
-            w.widget().setParent(None)
-            self.ui.button_disp.removeItem(w)
-        while 1:
-            w = self.ui.button_tar.takeAt(5)
-            if w is None:
-                break
-            w.widget().setParent(None)
-            self.ui.button_tar.removeItem(w)
+        for groupbox in [self.ui.wao_phasesgroup, self.ui.wao_imagesgroup]:
+            layout = groupbox.children()[0]
+            w = layout.itemAt(0)
+            while w is not None:
+                layout.removeItem(w)
+                w.widget().setParent(None)
+                w = layout.itemAt(0)
         self.disp_atm.clear()
         self.disp_wfs.clear()
         self.disp_tar.clear()
         self.disp_dm.clear()
         self.disp_psfSE.clear()
         self.disp_psfLE.clear()
-        self.dock_atm.clear()
-        self.dock_wfs.clear()
-        self.dock_tar.clear()
-        self.dock_dm.clear()
-        self.dock_psfSE.clear()
-        self.dock_psfLE.clear()
-        self.imag_atm.clear()
-        self.imag_wfs.clear()
-        self.imag_tar.clear()
-        self.imag_dm.clear()
-        self.imag_psfSE.clear()
-        self.imag_psfLE.clear()
+        self.docks.clear()
+        self.imags.clear()
 
-        natm = len(self.sim.config.p_atmos.alt)
-        for atm in range(natm):
-            w = QtGui.QCheckBox('atm%d' % atm)
-            self.ui.button_disp.addWidget(w)
+        self.natm = len(self.sim.config.p_atmos.alt)
+        for atm in range(self.natm):
+            name = 'atm%d' % atm
+            w = QtGui.QCheckBox(name)
+            w.clicked.connect(self.update_displayDock)
+            self.ui.wao_phasesgroup.children()[0].addWidget(w)
             self.disp_atm.append(w)
-            d = Dock('atm%d' % atm, size=(100, 100))  # , closable=True)
-            self.dock_atm.append(d)
-            self.area.addDock(d)
+            d = Dock(name)  # , closable=True)
+            self.docks[name] = d
             p = pg.ImageView()
-            p.setImage(np.random.normal(size=(100, 100)))
-            self.imag_atm.append(p)
+            self.imags[name] = p
             d.addWidget(p)
-            d.show()
 
-        nwfs = len(self.sim.config.p_wfss)
-        for wfs in range(nwfs):
-            w = QtGui.QCheckBox('wfs%d' % wfs)
-            self.ui.button_disp.addWidget(w)
+        self.nwfs = len(self.sim.config.p_wfss)
+        for wfs in range(self.nwfs):
+            name = 'wfs%d' % wfs
+            w = QtGui.QCheckBox(name)
+            w.clicked.connect(self.update_displayDock)
+            self.ui.wao_phasesgroup.children()[0].addWidget(w)
             self.disp_wfs.append(w)
-            d = Dock('wfs%d' % wfs, size=(100, 100))
-            self.dock_wfs.append(d)
-            self.area.addDock(d)
+            d = Dock(name)  # , closable=True)
+            self.docks[name] = d
             p = pg.ImageView()
-            p.setImage(np.random.normal(size=(100, 100)))
-            self.imag_wfs.append(p)
+            self.imags[name] = p
             d.addWidget(p)
-            d.show()
 
         pyrSpecifics = [
                 self.ui.ui_modradiusPanel, self.ui.ui_modradiusPanelarcesec,
@@ -750,36 +703,55 @@ class widgetAOWindow(TemplateBaseClass):
             ]
             [pane.hide() for pane in pyrSpecifics]
 
-        ndm = len(self.sim.config.p_dms)
-        for dm in range(ndm):
-            w = QtGui.QCheckBox('dm%d' % dm)
-            self.ui.button_disp.addWidget(w)
+        self.ndm = len(self.sim.config.p_dms)
+        for dm in range(self.ndm):
+            name = 'dm%d' % dm
+            w = QtGui.QCheckBox(name)
+            w.clicked.connect(self.update_displayDock)
+            self.ui.wao_phasesgroup.children()[0].addWidget(w)
             self.disp_dm.append(w)
-            d = Dock('dm%d' % dm)
-            self.dock_dm.append(d)
+            d = Dock(name)  # , closable=True)
+            self.docks[name] = d
+            p = pg.ImageView()
+            self.imags[name] = p
+            d.addWidget(p)
 
         # TODO: update parameters to handle p_targets
-        ntar = 1  # len(self.sim.config.p_targets)
-        for tar in range(ntar):
-            w = QtGui.QCheckBox('tar%d' % tar)
-            self.ui.button_tar.addWidget(w)
+        self.ntar = self.sim.config.p_target.ntargets
+        for tar in range(self.ntar):
+            name = 'tar%d' % tar
+            w = QtGui.QCheckBox(name)
+            w.clicked.connect(self.update_displayDock)
+            self.ui.wao_phasesgroup.children()[0].addWidget(w)
             self.disp_tar.append(w)
-            d = Dock('tar%d' % tar)
-            self.dock_tar.append(d)
-        for tar in range(ntar):
-            w = QtGui.QCheckBox('psfSE%d' % tar)
-            self.ui.button_tar.addWidget(w)
+            d = Dock(name)  # , closable=True)
+            self.docks[name] = d
+            p = pg.ImageView()
+            self.imags[name] = p
+            d.addWidget(p)
+        for tar in range(self.ntar):
+            name = 'psfSE%d' % tar
+            w = QtGui.QCheckBox(name)
+            w.clicked.connect(self.update_displayDock)
+            self.ui.wao_imagesgroup.children()[0].addWidget(w)
             self.disp_psfLE.append(w)
-            d = Dock('psfSE%d' % tar)
-            self.dock_psfSE.append(d)
-        for tar in range(ntar):
-            w = QtGui.QCheckBox('psfLE%d' % tar)
-            self.ui.button_tar.addWidget(w)
+            d = Dock(name)  # , closable=True)
+            self.docks[name] = d
+            p = pg.ImageView()
+            self.imags[name] = p
+            d.addWidget(p)
+        for tar in range(self.ntar):
+            name = 'psfLE%d' % tar
+            w = QtGui.QCheckBox(name)
+            w.clicked.connect(self.update_displayDock)
+            self.ui.wao_imagesgroup.children()[0].addWidget(w)
             self.disp_psfLE.append(w)
-            d = Dock('psfLE%d' % tar)
-            self.dock_psfLE.append(d)
+            d = Dock(name)  # , closable=True)
+            self.docks[name] = d
+            p = pg.ImageView()
+            self.imags[name] = p
+            d.addWidget(p)
 
-        # self.ui.button_disp.addWidget()
         self.updatePanels()
 
         self.ui.wao_init.setDisabled(False)
@@ -825,12 +797,12 @@ class widgetAOWindow(TemplateBaseClass):
         elif (textType == "Phase - WFS" or textType == "Spots - WFS" or
               textType == "Centroids - WFS" or textType == "Slopes - WFS" or
               textType == "Pyrimg - HR" or textType == "Pyrimg - LR"):
-            n = len(self.sim.config.p_wfss)
+            n = self.nwfs
         elif (textType == "Phase - Target" or textType == "PSF LE" or
               textType == "PSF SE"):
             n = self.sim.config.p_target.ntargets
         elif (textType == "Phase - DM"):
-            n = len(self.sim.config.p_dms)
+            n = self.ndm
         else:
             n = 0
         self.ui.wao_selectNumber.addItems([str(i) for i in range(n)])
@@ -874,59 +846,52 @@ class widgetAOWindow(TemplateBaseClass):
         self.SRCrossX = None  # type : pg.PlotCurveItem
         self.SRCrossY = None  # type : pg.PlotCurveItem
 
-        for i in self.SRcircleAtmos:
-            self.p1.removeItem(self.SRcircleAtmos[i])
-        for i in self.SRcircleWFS:
-            self.p1.removeItem(self.SRcircleWFS[i])
-        for i in self.SRcircleDM:
-            self.p1.removeItem(self.SRcircleDM[i])
-        for i in self.SRcircleTarget:
-            self.p1.removeItem(self.SRcircleTarget[i])
+        for key, pgpl in self.SRcircles:
+            self.imags[key].removeItem(pgpl)
 
-        for i in range(len(self.sim.config.p_atmos.alt)):
+        for i in range(self.natm):
+            key = "atm%d" % i
             data = self.sim.atm.get_screen(self.sim.config.p_atmos.alt[i])
             cx, cy = self.circleCoords(self.sim.config.p_geom.pupdiam / 2, 1000,
                                        data.shape[0], data.shape[1])
-            self.SRcircleAtmos[i] = pg.ScatterPlotItem(cx, cy, pen='r', size=1)
-            self.p1.addItem(self.SRcircleAtmos[i])
-            self.SRcircleAtmos[i].setPoints(cx, cy)
-            self.SRcircleAtmos[i].hide()
+            self.SRcircles[key] = pg.ScatterPlotItem(cx, cy, pen='r', size=1)
+            self.imags[key].addItem(self.SRcircles[key])
+            self.SRcircles[key].setPoints(cx, cy)
 
-        for i in range(len(self.sim.config.p_wfss)):
+        for i in range(self.nwfs):
+            key = "wfs%d" % i
             data = self.sim.wfs.get_phase(i)
             cx, cy = self.circleCoords(self.sim.config.p_geom.pupdiam / 2, 1000,
                                        data.shape[0], data.shape[1])
-            self.SRcircleWFS[i] = pg.ScatterPlotItem(cx, cy, pen='r', size=1)
-            self.p1.addItem(self.SRcircleWFS[i])
-            self.SRcircleWFS[i].setPoints(cx, cy)
-            self.SRcircleWFS[i].hide()
+            self.SRcircles[key] = pg.ScatterPlotItem(cx, cy, pen='r', size=1)
+            self.imags[key].addItem(self.SRcircles[key])
+            self.SRcircles[key].setPoints(cx, cy)
 
-        for i in range(len(self.sim.config.p_dms)):
+        for i in range(self.ndm):
+            key = "dm%d" % i
             dm_type = self.sim.config.p_dms[i].type
             alt = self.sim.config.p_dms[i].alt
             data = self.sim.dms.get_dm(dm_type, alt)
             cx, cy = self.circleCoords(self.sim.config.p_geom.pupdiam / 2, 1000,
                                        data.shape[0], data.shape[1])
-            self.SRcircleDM[i] = pg.ScatterPlotItem(cx, cy, pen='r', size=1)
-            self.p1.addItem(self.SRcircleDM[i])
-            self.SRcircleDM[i].setPoints(cx, cy)
-            self.SRcircleDM[i].hide()
+            self.SRcircles[key] = pg.ScatterPlotItem(cx, cy, pen='r', size=1)
+            self.imags[key].addItem(self.SRcircles[key])
+            self.SRcircles[key].setPoints(cx, cy)
 
         for i in range(self.sim.config.p_target.ntargets):
+            key = "tar%d" % i
             data = self.sim.tar.get_phase(i)
             cx, cy = self.circleCoords(self.sim.config.p_geom.pupdiam / 2, 1000,
                                        data.shape[0], data.shape[1])
-            self.SRcircleTarget[i] = pg.ScatterPlotItem(cx, cy, pen='r', size=1)
-            self.p1.addItem(self.SRcircleTarget[i])
-            self.SRcircleTarget[i].setPoints(cx, cy)
-            self.SRcircleTarget[i].show()
+            self.SRcircles[key] = pg.ScatterPlotItem(cx, cy, pen='r', size=1)
+            self.imags[key].addItem(self.SRcircles[key])
+            self.SRcircles[key].setPoints(cx, cy)
 
         print(self.sim)
 
         self.updateDisplay()
         self.displayRtcMatrix()
         self.updatePlotWfs()
-        self.p1.autoRange()
 
         self.ui.wao_init.setDisabled(False)
         self.ui.wao_run.setDisabled(False)
@@ -1142,37 +1107,51 @@ class widgetAOWindow(TemplateBaseClass):
                     self.SRCrossX.hide()
                     self.SRCrossY.hide()
 
-                # if(self.SRcircle and (self.imgType in ["Spots - WFS",
-                # "Centroids - WFS", "Slopes - WFS","PSF SE","PSF LE"])):
-                for i in range(len(self.sim.config.p_atmos.alt)):
-                    self.SRcircleAtmos[i].hide()
-                for i in range(len(self.sim.config.p_wfss)):
-                    self.SRcircleWFS[i].hide()
-                for i in range(len(self.sim.config.p_dms)):
-                    self.SRcircleDM[i].hide()
-                for i in range(self.sim.config.p_target.ntargets):
-                    self.SRcircleTarget[i].hide()
+                if self.natm > 9 or self.natm > 9 or self.natm > 9 or self.natm > 9:
+                    raise "this method not working"
 
+                for key, dock in wao.docks.items():
+                    if wao.docks[key].isVisible():
+                        index = int(key[-1])
+                        if "atm" in key:
+                            data = self.sim.atm.get_screen(
+                                    self.sim.config.p_atmos.alt[index])
+                        if "wfs" in key:
+                            data = self.sim.wfs.get_phase(index)
+                        if "dm" in key:
+                            dm_type = self.sim.config.p_dms[index].type
+                            alt = self.sim.config.p_dms[index].alt
+                            data = self.sim.dms.get_dm(dm_type, alt)
+                        if "tar" in key:
+                            data = self.sim.tar.get_phase(index)
+                        if "psfLE" in key:
+                            data = self.sim.tar.get_image(index, b"le")
+                            if (self.ui.actionPSF_Log_Scale.isChecked()):
+                                data = np.log10(data)
+                        if "psfSE" in key:
+                            data = self.sim.tar.get_image(index, b"se")
+                            if (self.ui.actionPSF_Log_Scale.isChecked()):
+                                data = np.log10(data)
+                        if (data is not None):
+                            autoscale = self.ui.actionAuto_Scale.isChecked()
+                            # if (autoscale):
+                            #     # inits levels
+                            #     self.hist.setLevels(data.min(), data.max())
+                            self.imags[key].setImage(data, autoLevels=autoscale)
+                            # self.p1.autoRange()
+                '''
                 if (self.sim.atm):
-                    if (self.imgType == "Phase - Atmos"):
-                        self.setupDisp("pg")
-                        data = self.sim.atm.get_screen(
-                                self.sim.config.p_atmos.alt[self.numberSelected])
-                        if (self.imgType != self.currentViewSelected):
-                            self.p1.setRange(xRange=(0, data.shape[0]),
-                                             yRange=(0, data.shape[1]))
-                        self.currentViewSelected = self.imgType
-                        self.SRcircleAtmos[self.numberSelected].show()
+                    for i in range(self.natm):
+                        key = "atm%d"%i
+                        if wao.docks[key].isVisible():
+                            data = self.sim.atm.get_screen(
+                                self.sim.config.p_atmos.alt[i])
 
                 if (self.sim.wfs):
-                    if (self.imgType == "Phase - WFS"):
-                        self.setupDisp("pg")
-                        data = self.sim.wfs.get_phase(self.numberSelected)
-                        if (self.imgType != self.currentViewSelected):
-                            self.p1.setRange(xRange=(0, data.shape[0]),
-                                             yRange=(0, data.shape[1]))
-                        self.currentViewSelected = self.imgType
-                        self.SRcircleWFS[self.numberSelected].show()
+                    for i in range(self.nwfs):
+                        key = "wfs%d"%i
+                        if  wao.docks[key].isVisible():
+                            data = self.sim.wfs.get_phase(self.numberSelected)
 
                     if (self.imgType == "Spots - WFS"):
                         self.setupDisp("pg")
@@ -1258,7 +1237,6 @@ class widgetAOWindow(TemplateBaseClass):
                             self.p1.setRange(xRange=(0, data.shape[0]),
                                              yRange=(0, data.shape[1]))
                         self.currentViewSelected = self.imgType
-                        self.SRcircleDM[self.numberSelected].show()
                 if (self.sim.tar):
                     if (self.imgType == "Phase - Target"):
                         self.setupDisp("pg")
@@ -1267,7 +1245,6 @@ class widgetAOWindow(TemplateBaseClass):
                             self.p1.setRange(xRange=(0, data.shape[0]),
                                              yRange=(0, data.shape[1]))
                         self.currentViewSelected = self.imgType
-                        self.SRcircleTarget[self.numberSelected].show()
 
                     if (self.imgType == "PSF SE"):
                         self.setupDisp("pg")
@@ -1356,14 +1333,7 @@ class widgetAOWindow(TemplateBaseClass):
                             self.SRCrossY.show()
 
                         self.currentViewSelected = self.imgType
-
-                if (data is not None):
-                    autoscale = self.ui.actionAuto_Scale.isChecked()
-                    if (autoscale):
-                        # inits levels
-                        self.hist.setLevels(data.min(), data.max())
-                    self.img.setImage(data, autoLevels=autoscale)
-                    # self.p1.autoRange()
+                '''
             finally:
                 self.loopLock.release()
 
@@ -1385,7 +1355,8 @@ class widgetAOWindow(TemplateBaseClass):
                     for t in range(self.sim.config.p_target.ntargets):
                         self.sim.tar.comp_image(t)
                         SR = self.sim.tar.get_strehl(t)
-                        if (t == self.numberSelected):  # Plot on the wfs selected
+                        # TODO: handle that !
+                        if (t == 0):  # Plot on the wfs selected
                             self.updateSRDisplay(SR[1], SR[0], self.sim.iter)
                         signal_se += "%1.2f   " % SR[0]
                         signal_le += "%1.2f   " % SR[1]
