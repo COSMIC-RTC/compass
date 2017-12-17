@@ -86,27 +86,11 @@ class widgetAOWindow(TemplateBaseClass):
         self.see_atmos = 1
 
         #############################################################
-        #                 PYQTGRAPH WINDOW INIT                     #
+        #               PYQTGRAPH DockArea INIT                     #
         #############################################################
 
         self.area = DockArea()
         self.ui.wao_displayDock.setWidget(self.area)
-        # self.ui.centralwidget.setCentralWidget(area)
-
-        # self.img = pg.ImageItem(border='w')  # create image area
-        # self.img.setTransform(QtGui.QTransform(0, 1, 1, 0, 0, 0))  # flip X and Y
-        # # self.p1 = self.ui.wao_pgwindow.addPlot()  # create pyqtgraph plot
-        # # area
-        # self.p1 = self.ui.wao_pgwindow.addViewBox()
-        # self.p1.setAspectLocked(True)
-        # self.p1.addItem(self.img)  # Put image in plot area
-        # self.ui.wao_unzoom.clicked.connect(self.p1.autoRange)
-
-        # self.hist = pg.HistogramLUTItem()  # Create an histogram
-        # self.hist.setImageItem(self.img)  # Compute histogram from img
-        # self.ui.wao_pgwindow.addItem(self.hist)
-        # self.hist.autoHistogramRange()  # init levels
-        # self.hist.setMaximumWidth(100)
 
         #############################################################
         #                 CONNECTED BUTTONS                         #
@@ -122,13 +106,6 @@ class widgetAOWindow(TemplateBaseClass):
         self.ui.wao_openLoop.clicked[bool].connect(self.aoLoopOpen)
         self.ui.wao_next.clicked.connect(self.loopOnce)
         self.ui.wao_configFromFile.clicked.connect(self.addConfigFromFile)
-        # self.ui.wao_selectNumber.currentIndexChanged.connect(self.setNumberSelection)
-        # self.ui.wao_wfs_plotSelector.currentIndexChanged.connect(self.updatePlotWfs)
-        # self.ui.wao_selectAtmosLayer.currentIndexChanged.connect(self.setLayerSelection)
-        # self.ui.wao_selectWfs.currentIndexChanged.connect(self.setWfsSelection)
-        # self.ui.wao_selectDM.currentIndexChanged.connect(self.setDmSelection)
-        # self.ui.wao_selectCentro.currentIndexChanged.connect(self.setCentroSelection)
-        # self.ui.wao_selectTarget.currentIndexChanged.connect(self.setTargetSelection)
         self.ui.wao_setAtmos.clicked.connect(self.setAtmosParams)
         self.ui.wao_setWfs.clicked.connect(self.setWfsParams)
         self.ui.wao_setDM.clicked.connect(self.setDmParams)
@@ -148,7 +125,7 @@ class widgetAOWindow(TemplateBaseClass):
         self.ui.wao_allTarget.stateChanged.connect(self.updateAllTarget)
         self.ui.wao_forever.stateChanged.connect(self.updateForever)
 
-        self.ui.wao_atmosphere.clicked[bool].connect(self.set_atmos)
+        self.ui.wao_atmosphere.clicked[bool].connect(self.set_see_atmos)
         self.dispStatsInTerminal = False
         self.ui.wao_clearSR.clicked.connect(self.clearSR)
         self.ui.actionStats_in_Terminal.toggled.connect(self.updateStatsInTerminal)
@@ -163,10 +140,6 @@ class widgetAOWindow(TemplateBaseClass):
         self.ui.wao_dmActuPushArcSecNumWFS.currentIndexChanged.connect(
                 self.updateDMrange)
 
-        self.SRcircles = {}  # type: Dict[int, pg.ScatterPlotItem]
-
-        # self.ui.splitter.setSizes([2000, 10])
-
         self.ui.wao_loadConfig.setDisabled(False)
         self.ui.wao_init.setDisabled(True)
         self.ui.wao_run.setDisabled(True)
@@ -178,15 +151,14 @@ class widgetAOWindow(TemplateBaseClass):
         self.curveSRSE = p1.plot(pen=(255, 0, 0), symbolBrush=(255, 0, 0), name="SR SE")
         self.curveSRLE = p1.plot(pen=(0, 0, 255), symbolBrush=(0, 0, 255), name="SR LE")
 
-        self.disp_atm = []
-        self.disp_wfs = []
-        self.disp_tar = []
-        self.disp_dm = []
-        self.disp_psfLE = []
-        self.disp_psfSE = []
-
-        self.docks = {}
-        self.imags = {}
+        self.disp_checkboxes = []
+        self.docks = {}  # type: Dict[str, pg.dockarea.Dock]
+        self.viewboxes = {}  # type: Dict[str, pg.ViewBox]
+        self.imgs = {}  # type: Dict[str, pg.ImageItem]
+        self.hists = {}  # type: Dict[str, pg.HistogramLUTItem]
+        self.SRCrossX = {}  # type: Dict[str, pg.ScatterPlotItem]
+        self.SRCrossY = {}  # type: Dict[str, pg.ScatterPlotItem]
+        self.SRcircles = {}  # type: Dict[str, pg.ScatterPlotItem]
 
         self.natm = 0
         self.nwfs = 0
@@ -251,7 +223,7 @@ class widgetAOWindow(TemplateBaseClass):
     def updateForever(self, state):
         self.ui.wao_nbiters.setDisabled(state)
 
-    def set_atmos(self, atmos):
+    def set_see_atmos(self, atmos):
         self.see_atmos = atmos
 
     def resetSR(self) -> None:
@@ -450,15 +422,10 @@ class widgetAOWindow(TemplateBaseClass):
 
     def updatePanels(self) -> None:
         self.updateTelescopePanel()
-        self.updateLayerSelection()
         self.updateAtmosPanel()
-        self.updateWfsSelection()
         self.updateWfsPanel()
-        self.updateDmSelection()
         self.updateDmPanel()
-        self.updateCentroSelection()
         self.updateRtcPanel()
-        self.updateTargetSelection()
         self.updateTargetPanel()
 
     def setTelescopeParams(self) -> None:
@@ -558,47 +525,6 @@ class widgetAOWindow(TemplateBaseClass):
         self.sim.config.p_dms[ndm].set_thresh(self.ui.wao_dmThresh.value())
         print("New DM parameters set")
 
-    def updateLayerSelection(self) -> None:
-        self.ui.wao_selectAtmosLayer.clear()
-        self.ui.wao_selectAtmosLayer.addItems([
-                str(i) for i in range(self.sim.config.p_atmos.nscreens)
-        ])
-
-    def updateTargetSelection(self) -> None:
-        self.ui.wao_selectTarget.clear()
-        self.ui.wao_selectTarget.addItems([
-                str(i) for i in range(self.sim.config.p_target.ntargets)
-        ])
-
-    def updateWfsSelection(self) -> None:
-        self.ui.wao_selectWfs.clear()
-        self.ui.wao_selectWfs.addItems([str(i) for i in range(self.nwfs)])
-
-    def updateDmSelection(self) -> None:
-        self.ui.wao_selectDM.clear()
-        self.ui.wao_selectDM.addItems([str(i) for i in range(self.ndm)])
-
-    def updateCentroSelection(self) -> None:
-        self.ui.wao_selectCentro.clear()
-        self.ui.wao_selectCentro.addItems([
-                str(i) for i in range(len(self.sim.config.p_centroiders))
-        ])
-
-    def setCentroSelection(self) -> None:
-        self.updateRtcPanel()
-
-    def setLayerSelection(self) -> None:
-        self.updateAtmosPanel()
-
-    def setTargetSelection(self) -> None:
-        self.updateTargetPanel()
-
-    def setWfsSelection(self) -> None:
-        self.updateWfsPanel()
-
-    def setDmSelection(self) -> None:
-        self.updateDmPanel()
-
     def addConfigFromFile(self) -> None:
         '''
             Callback when a config file is double clicked in the file browser
@@ -614,12 +540,36 @@ class widgetAOWindow(TemplateBaseClass):
 
         self.loadConfig()
 
-    def update_displayDock(self, state):
+    def update_displayDock(self, state: bool):
         guilty = self.sender().text()
         if state:
             self.area.addDock(self.docks[guilty])
         else:
             self.docks[guilty].close()
+
+    def add_dispDock(self, name: str, parent) -> None:
+        w = QtGui.QCheckBox(name)
+        w.clicked.connect(self.update_displayDock)
+        parent.children()[0].addWidget(w)
+        self.disp_checkboxes.append(w)
+        d = Dock(name)  # , closable=True)
+        self.docks[name] = d
+        img = pg.ImageItem(border='w')
+        img.setTransform(QtGui.QTransform(0, 1, 1, 0, 0, 0))  # flip X and Y
+        self.imgs[name] = img
+
+        viewbox = pg.ViewBox()
+        viewbox.setAspectLocked(True)
+        viewbox.addItem(img)  # Put image in plot area
+        self.viewboxes[name] = viewbox
+        d.addWidget(pg.ImageView(view=viewbox, imageItem=img))
+
+        # hist = pg.HistogramLUTItem()  # Create an histogram
+        # hist.setImageItem(img)  # Compute histogram from img
+        # hist.autoHistogramRange()  # init levels
+        # hist.setMaximumWidth(100)
+        # self.hists[key] = hist
+        # d.addWidget(hist)
 
     def loadConfig(self) -> None:
         '''
@@ -643,46 +593,74 @@ class widgetAOWindow(TemplateBaseClass):
             pass
 
         for groupbox in [self.ui.wao_phasesgroup, self.ui.wao_imagesgroup]:
-            layout = groupbox.children()[0]
-            w = layout.itemAt(0)
-            while w is not None:
+            layout = groupbox.layout()
+            while not layout.isEmpty():
+                w = layout.itemAt(0)
                 layout.removeItem(w)
                 w.widget().setParent(None)
-                w = layout.itemAt(0)
-        self.disp_atm.clear()
-        self.disp_wfs.clear()
-        self.disp_tar.clear()
-        self.disp_dm.clear()
-        self.disp_psfSE.clear()
-        self.disp_psfLE.clear()
+        self.disp_checkboxes.clear()
+
+        for key, pgpl in self.SRcircles.items():
+            self.viewboxes[key].removeItem(pgpl)
+
+        for key, pgpl in self.SRCrossX.items():
+            self.viewboxes[key].removeItem(pgpl)
+
+        for key, pgpl in self.SRCrossY.items():
+            self.viewboxes[key].removeItem(pgpl)
+
+        self.SRcircles.clear()
+        self.SRCrossX.clear()
+        self.SRCrossY.clear()
+
+        # TODO: remove self.imgs, self.viewboxes and self.docks children
+        # for key, pgpl in self.docks.items():
+        #     self.imags[key].removeItem(pgpl)
+
         self.docks.clear()
-        self.imags.clear()
+        self.imgs.clear()
+        self.viewboxes.clear()
 
         self.natm = len(self.sim.config.p_atmos.alt)
         for atm in range(self.natm):
             name = 'atm%d' % atm
-            w = QtGui.QCheckBox(name)
-            w.clicked.connect(self.update_displayDock)
-            self.ui.wao_phasesgroup.children()[0].addWidget(w)
-            self.disp_atm.append(w)
-            d = Dock(name)  # , closable=True)
-            self.docks[name] = d
-            p = pg.ImageView()
-            self.imags[name] = p
-            d.addWidget(p)
+            self.add_dispDock(name, self.ui.wao_phasesgroup)
 
         self.nwfs = len(self.sim.config.p_wfss)
         for wfs in range(self.nwfs):
             name = 'wfs%d' % wfs
+            self.add_dispDock(name, self.ui.wao_phasesgroup)
+            name = 'slpComp%d' % wfs
+            self.add_dispDock(name, self.ui.wao_imagesgroup)
+            name = 'slpGeom%d' % wfs
+            self.add_dispDock(name, self.ui.wao_imagesgroup)
+            if self.sim.config.p_wfss[wfs].type == scons.WFSType.SH:
+                name = 'SH%d' % wfs
+                self.add_dispDock(name, self.ui.wao_imagesgroup)
+            elif self.sim.config.p_wfss[wfs].type == scons.WFSType.PYRHR:
+                name = 'pyrHR%d' % wfs
+                self.add_dispDock(name, self.ui.wao_imagesgroup)
+                name = 'pyrSR%d' % wfs
+                self.add_dispDock(name, self.ui.wao_imagesgroup)
+            else:
+                raise "Analyser unknown"
+
+        self.ndm = len(self.sim.config.p_dms)
+        for dm in range(self.ndm):
+            name = 'dm%d' % dm
             w = QtGui.QCheckBox(name)
-            w.clicked.connect(self.update_displayDock)
-            self.ui.wao_phasesgroup.children()[0].addWidget(w)
-            self.disp_wfs.append(w)
-            d = Dock(name)  # , closable=True)
-            self.docks[name] = d
-            p = pg.ImageView()
-            self.imags[name] = p
-            d.addWidget(p)
+            self.add_dispDock(name, self.ui.wao_phasesgroup)
+
+        self.ntar = self.sim.config.p_target.ntargets
+        for tar in range(self.ntar):
+            name = 'tar%d' % tar
+            self.add_dispDock(name, self.ui.wao_phasesgroup)
+        for tar in range(self.ntar):
+            name = 'psfSE%d' % tar
+            self.add_dispDock(name, self.ui.wao_imagesgroup)
+        for tar in range(self.ntar):
+            name = 'psfLE%d' % tar
+            self.add_dispDock(name, self.ui.wao_imagesgroup)
 
         pyrSpecifics = [
                 self.ui.ui_modradiusPanel, self.ui.ui_modradiusPanelarcesec,
@@ -702,55 +680,6 @@ class widgetAOWindow(TemplateBaseClass):
                     "Slopes - WFS", "Phase - Target", "Phase - DM", "PSF LE", "PSF SE"
             ]
             [pane.hide() for pane in pyrSpecifics]
-
-        self.ndm = len(self.sim.config.p_dms)
-        for dm in range(self.ndm):
-            name = 'dm%d' % dm
-            w = QtGui.QCheckBox(name)
-            w.clicked.connect(self.update_displayDock)
-            self.ui.wao_phasesgroup.children()[0].addWidget(w)
-            self.disp_dm.append(w)
-            d = Dock(name)  # , closable=True)
-            self.docks[name] = d
-            p = pg.ImageView()
-            self.imags[name] = p
-            d.addWidget(p)
-
-        # TODO: update parameters to handle p_targets
-        self.ntar = self.sim.config.p_target.ntargets
-        for tar in range(self.ntar):
-            name = 'tar%d' % tar
-            w = QtGui.QCheckBox(name)
-            w.clicked.connect(self.update_displayDock)
-            self.ui.wao_phasesgroup.children()[0].addWidget(w)
-            self.disp_tar.append(w)
-            d = Dock(name)  # , closable=True)
-            self.docks[name] = d
-            p = pg.ImageView()
-            self.imags[name] = p
-            d.addWidget(p)
-        for tar in range(self.ntar):
-            name = 'psfSE%d' % tar
-            w = QtGui.QCheckBox(name)
-            w.clicked.connect(self.update_displayDock)
-            self.ui.wao_imagesgroup.children()[0].addWidget(w)
-            self.disp_psfLE.append(w)
-            d = Dock(name)  # , closable=True)
-            self.docks[name] = d
-            p = pg.ImageView()
-            self.imags[name] = p
-            d.addWidget(p)
-        for tar in range(self.ntar):
-            name = 'psfLE%d' % tar
-            w = QtGui.QCheckBox(name)
-            w.clicked.connect(self.update_displayDock)
-            self.ui.wao_imagesgroup.children()[0].addWidget(w)
-            self.disp_psfLE.append(w)
-            d = Dock(name)  # , closable=True)
-            self.docks[name] = d
-            p = pg.ImageView()
-            self.imags[name] = p
-            d.addWidget(p)
 
         self.updatePanels()
 
@@ -779,13 +708,6 @@ class widgetAOWindow(TemplateBaseClass):
             self.sim.rtc.set_openloop(0, 1)
         else:
             self.sim.rtc.set_openloop(0, 0)
-
-    def setNumberSelection(self) -> None:
-        if (self.ui.wao_selectNumber.currentIndex() > -1):
-            self.numberSelected = self.ui.wao_selectNumber.currentIndex()
-        else:
-            self.numberSelected = 0
-        self.updateDisplay()
 
     def updateNumberSelector(self, textType: str=None) -> None:
         if textType is None:
@@ -843,11 +765,6 @@ class widgetAOWindow(TemplateBaseClass):
         self.ui.wao_loadConfig.setDisabled(False)
 
         self.currentViewSelected = None  # type: str
-        self.SRCrossX = None  # type : pg.PlotCurveItem
-        self.SRCrossY = None  # type : pg.PlotCurveItem
-
-        for key, pgpl in self.SRcircles:
-            self.imags[key].removeItem(pgpl)
 
         for i in range(self.natm):
             key = "atm%d" % i
@@ -855,7 +772,7 @@ class widgetAOWindow(TemplateBaseClass):
             cx, cy = self.circleCoords(self.sim.config.p_geom.pupdiam / 2, 1000,
                                        data.shape[0], data.shape[1])
             self.SRcircles[key] = pg.ScatterPlotItem(cx, cy, pen='r', size=1)
-            self.imags[key].addItem(self.SRcircles[key])
+            self.viewboxes[key].addItem(self.SRcircles[key])
             self.SRcircles[key].setPoints(cx, cy)
 
         for i in range(self.nwfs):
@@ -864,7 +781,7 @@ class widgetAOWindow(TemplateBaseClass):
             cx, cy = self.circleCoords(self.sim.config.p_geom.pupdiam / 2, 1000,
                                        data.shape[0], data.shape[1])
             self.SRcircles[key] = pg.ScatterPlotItem(cx, cy, pen='r', size=1)
-            self.imags[key].addItem(self.SRcircles[key])
+            self.viewboxes[key].addItem(self.SRcircles[key])
             self.SRcircles[key].setPoints(cx, cy)
 
         for i in range(self.ndm):
@@ -875,7 +792,7 @@ class widgetAOWindow(TemplateBaseClass):
             cx, cy = self.circleCoords(self.sim.config.p_geom.pupdiam / 2, 1000,
                                        data.shape[0], data.shape[1])
             self.SRcircles[key] = pg.ScatterPlotItem(cx, cy, pen='r', size=1)
-            self.imags[key].addItem(self.SRcircles[key])
+            self.viewboxes[key].addItem(self.SRcircles[key])
             self.SRcircles[key].setPoints(cx, cy)
 
         for i in range(self.sim.config.p_target.ntargets):
@@ -884,8 +801,30 @@ class widgetAOWindow(TemplateBaseClass):
             cx, cy = self.circleCoords(self.sim.config.p_geom.pupdiam / 2, 1000,
                                        data.shape[0], data.shape[1])
             self.SRcircles[key] = pg.ScatterPlotItem(cx, cy, pen='r', size=1)
-            self.imags[key].addItem(self.SRcircles[key])
+            self.viewboxes[key].addItem(self.SRcircles[key])
             self.SRcircles[key].setPoints(cx, cy)
+
+            data = self.sim.tar.get_image(i, b"se")
+            for psf in ["psfSE", "psfLE"]:
+                key = psf + str(i)
+                Delta = 5
+                self.SRCrossX[key] = pg.PlotCurveItem(
+                        np.array([
+                                data.shape[0] / 2 + 0.5 - Delta,
+                                data.shape[0] / 2 + 0.5 + Delta
+                        ]),
+                        np.array([data.shape[1] / 2 + 0.5, data.shape[1] / 2 + 0.5]),
+                        pen='r')
+                self.SRCrossY[key] = pg.PlotCurveItem(
+                        np.array([data.shape[0] / 2 + 0.5, data.shape[0] / 2 + 0.5]),
+                        np.array([
+                                data.shape[1] / 2 + 0.5 - Delta,
+                                data.shape[1] / 2 + 0.5 + Delta
+                        ]), pen='r')
+                # Put image in plot area
+                self.viewboxes[key].addItem(self.SRCrossX[key])
+                # Put image in plot area
+                self.viewboxes[key].addItem(self.SRCrossY[key])
 
         print(self.sim)
 
@@ -1095,24 +1034,17 @@ class widgetAOWindow(TemplateBaseClass):
                 not self.ui.wao_Display.isChecked()):
             # print("Widget not fully initialized")
             return
-        data = None
         if not self.loopLock.acquire(False):
             return
         else:
             try:
-                if (self.SRCrossX and (self.imgType in [
-                        "Phase - Target", "Phase - DM", "Phase - Atmos", "Phase - WFS",
-                        "Spots - WFS", "Centroids - WFS", "Slopes - WFS"
-                ])):
-                    self.SRCrossX.hide()
-                    self.SRCrossY.hide()
-
                 if self.natm > 9 or self.natm > 9 or self.natm > 9 or self.natm > 9:
-                    raise "this method not working"
+                    raise "this method will not working"
 
                 for key, dock in wao.docks.items():
                     if wao.docks[key].isVisible():
                         index = int(key[-1])
+                        data = None
                         if "atm" in key:
                             data = self.sim.atm.get_screen(
                                     self.sim.config.p_atmos.alt[index])
@@ -1126,214 +1058,40 @@ class widgetAOWindow(TemplateBaseClass):
                             data = self.sim.tar.get_phase(index)
                         if "psfLE" in key:
                             data = self.sim.tar.get_image(index, b"le")
-                            if (self.ui.actionPSF_Log_Scale.isChecked()):
-                                data = np.log10(data)
                         if "psfSE" in key:
                             data = self.sim.tar.get_image(index, b"se")
+
+                        if "psf" in key:
                             if (self.ui.actionPSF_Log_Scale.isChecked()):
+                                if np.any(data <= 0):
+                                    warnings.warn(
+                                            "\nZeros founds, filling with min nonzero value.\n"
+                                    )
+                                    data[data <= 0] = np.min(data[data > 0])
                                 data = np.log10(data)
-                        if (data is not None):
-                            autoscale = self.ui.actionAuto_Scale.isChecked()
-                            # if (autoscale):
-                            #     # inits levels
-                            #     self.hist.setLevels(data.min(), data.max())
-                            self.imags[key].setImage(data, autoLevels=autoscale)
-                            # self.p1.autoRange()
-                '''
-                if (self.sim.atm):
-                    for i in range(self.natm):
-                        key = "atm%d"%i
-                        if wao.docks[key].isVisible():
-                            data = self.sim.atm.get_screen(
-                                self.sim.config.p_atmos.alt[i])
 
-                if (self.sim.wfs):
-                    for i in range(self.nwfs):
-                        key = "wfs%d"%i
-                        if  wao.docks[key].isVisible():
-                            data = self.sim.wfs.get_phase(self.numberSelected)
-
-                    if (self.imgType == "Spots - WFS"):
-                        self.setupDisp("pg")
-                        if (self.sim.config.p_wfss[self.numberSelected]
-                                    .type == scons.WFSType.SH):
-                            data = self.sim.wfs.get_binimg(self.numberSelected)
-                        elif (self.sim.config.p_wfss[self.numberSelected]
-                              .type == scons.WFSType.PYRHR):
-                            data = self.sim.wfs.get_pyrimg(self.numberSelected)
-                        if (self.imgType != self.currentViewSelected):
-                            self.p1.setRange(xRange=(0, data.shape[0]),
-                                             yRange=(0, data.shape[1]))
-                        self.currentViewSelected = self.imgType
-
-                    if (self.imgType == "Pyrimg - LR"):
-                        self.setupDisp("pg")
-                        if (self.sim.config.p_wfss[self.numberSelected]
-                                    .type == scons.WFSType.PYRHR):
-                            data = self.sim.wfs.get_pyrimg(self.numberSelected)
-                        if (self.imgType != self.currentViewSelected):
-                            self.p1.setRange(xRange=(0, data.shape[0]),
-                                             yRange=(0, data.shape[1]))
-                        self.currentViewSelected = self.imgType
-
-                    if (self.imgType == "Pyrimg - HR"):
-                        self.setupDisp("pg")
-                        if (self.sim.config.p_wfss[self.numberSelected]
-                                    .type == scons.WFSType.PYRHR):
-                            data = self.sim.wfs.get_pyrimghr(self.numberSelected)
-                        if (self.imgType != self.currentViewSelected):
-                            self.p1.setRange(xRange=(0, data.shape[0]),
-                                             yRange=(0, data.shape[1]))
-                        self.currentViewSelected = self.imgType
-
-                    if (self.imgType == "Centroids - WFS"):
-                        self.setupDisp("MPL")
-                        self.ui.wao_rtcWindowMPL.canvas.axes.clear()
-                        # retrieving centroids
-                        centroids = self.sim.rtc.get_centroids(0)
-                        nvalid = [2 * o._nvalid for o in self.sim.config.p_wfss]
-                        ind = np.sum(nvalid[:self.numberSelected], dtype=np.int32)
-                        if (self.sim.config.p_wfss[self.numberSelected]
-                                    .type == scons.WFSType.PYRHR):
-                            plpyr(centroids[ind:ind + nvalid[self.numberSelected]],
-                                  self.sim.config.p_wfs0._isvalid)
-                        else:
-                            x, y, vx, vy = plsh(
-                                    centroids[ind:ind + nvalid[self.numberSelected]],
-                                    self.sim.config.p_wfss[self.numberSelected].nxsub,
-                                    self.sim.config.p_tel.cobs, returnquiver=True
-                            )  # Preparing mesh and vector for display
-                        self.ui.wao_rtcWindowMPL.canvas.axes.quiver(
-                                x, y, vx, vy, pivot='mid')
-                        self.ui.wao_rtcWindowMPL.canvas.draw()
-                        self.currentViewSelected = self.imgType
-
-                        return
-                    if (self.imgType == "Slopes - WFS"):
-                        self.setupDisp("MPL")
-                        self.ui.wao_rtcWindowMPL.canvas.axes.clear()
-                        self.sim.wfs.slopes_geom(self.numberSelected, 0)
-                        slopes = self.sim.wfs.get_slopes(self.numberSelected)
-                        x, y, vx, vy = plsh(
-                                slopes,
-                                self.sim.config.p_wfss[self.numberSelected].nxsub,
-                                self.sim.config.p_tel.cobs, returnquiver=True
-                        )  # Preparing mesh and vector for display
-                        self.ui.wao_rtcWindowMPL.canvas.axes.quiver(
-                                x, y, vx, vy, pivot='mid')
-                        self.ui.wao_rtcWindowMPL.canvas.draw()
-                        self.currentViewSelected = self.imgType
-
-                        return
-
-                if (self.sim.dms):
-                    if (self.imgType == "Phase - DM"):
-                        self.setupDisp("pg")
-                        dm_type = self.sim.config.p_dms[self.numberSelected].type
-                        alt = self.sim.config.p_dms[self.numberSelected].alt
-                        data = self.sim.dms.get_dm(dm_type, alt)
-
-                        if (self.imgType != self.currentViewSelected):
-                            self.p1.setRange(xRange=(0, data.shape[0]),
-                                             yRange=(0, data.shape[1]))
-                        self.currentViewSelected = self.imgType
-                if (self.sim.tar):
-                    if (self.imgType == "Phase - Target"):
-                        self.setupDisp("pg")
-                        data = self.sim.tar.get_phase(self.numberSelected)
-                        if (self.imgType != self.currentViewSelected):
-                            self.p1.setRange(xRange=(0, data.shape[0]),
-                                             yRange=(0, data.shape[1]))
-                        self.currentViewSelected = self.imgType
-
-                    if (self.imgType == "PSF SE"):
-                        self.setupDisp("pg")
-                        data = self.sim.tar.get_image(self.numberSelected, b"se")
-                        if (self.ui.actionPSF_Log_Scale.isChecked()):
-                            if np.any(data <= 0):
-                                warnings.warn(
-                                        "\nZeros founds, filling with min nonzero value.\n"
-                                )
-                                data[data <= 0] = np.min(data[data > 0])
-                            data = np.log10(data)
-
-                        if (not self.SRCrossX):
-                            Delta = 5
-                            self.SRCrossX = pg.PlotCurveItem(
-                                    np.array([
-                                            data.shape[0] / 2 + 0.5 - Delta,
-                                            data.shape[0] / 2 + 0.5 + Delta
-                                    ]),
-                                    np.array([
-                                            data.shape[1] / 2 + 0.5,
-                                            data.shape[1] / 2 + 0.5
-                                    ]), pen='r')
-                            self.SRCrossY = pg.PlotCurveItem(
-                                    np.array([
-                                            data.shape[0] / 2 + 0.5,
-                                            data.shape[0] / 2 + 0.5
-                                    ]),
-                                    np.array([
-                                            data.shape[1] / 2 + 0.5 - Delta,
-                                            data.shape[1] / 2 + 0.5 + Delta
-                                    ]), pen='r')
-                            # Put image in plot area
-                            self.p1.addItem(self.SRCrossX)
-                            # Put image in plot area
-                            self.p1.addItem(self.SRCrossY)
-
-                        if (self.imgType != self.currentViewSelected):
                             zoom = 50
-                            self.SRCrossX.show()
-                            self.SRCrossY.show()
-                            self.p1.setRange(
+                            self.viewboxes[key].setRange(
                                     xRange=(data.shape[0] / 2 + 0.5 - zoom,
                                             data.shape[0] / 2 + 0.5 + zoom),
                                     yRange=(data.shape[1] / 2 + 0.5 - zoom,
                                             data.shape[1] / 2 + 0.5 + zoom), )
-                        self.currentViewSelected = self.imgType
+                        if "SH" in key:
+                            data = self.sim.wfs.get_binimg(index)
+                        if "pyrLR" in key:
+                            data = self.sim.wfs.get_pyrimg(index)
+                        if "pyrHR" in key:
+                            data = self.sim.wfs.get_pyrimghr(index)
 
-                    if (self.imgType == "PSF LE"):
-                        self.setupDisp("pg")
-                        data = self.sim.tar.get_image(self.numberSelected, b"le")
-                        if (self.ui.actionPSF_Log_Scale.isChecked()):
-                            data = np.log10(data)
-                        if (not self.SRCrossX):
-                            Delta = 5
-                            self.SRCrossX = pg.PlotCurveItem(
-                                    np.array([
-                                            data.shape[0] / 2 + 0.5 - Delta,
-                                            data.shape[0] / 2 + 0.5 + Delta
-                                    ]),
-                                    np.array([
-                                            data.shape[1] / 2 + 0.5,
-                                            data.shape[1] / 2 + 0.5
-                                    ]), pen='r')
-                            self.SRCrossY = pg.PlotCurveItem(
-                                    np.array([
-                                            data.shape[0] / 2 + 0.5,
-                                            data.shape[0] / 2 + 0.5
-                                    ]),
-                                    np.array([
-                                            data.shape[1] / 2 + 0.5 - Delta,
-                                            data.shape[1] / 2 + 0.5 + Delta
-                                    ]), pen='r')
-
-                            # Put image in plot area
-                            self.p1.addItem(self.SRCrossX)
-                            # Put image in plot area
-                            self.p1.addItem(self.SRCrossY)
-                        if (self.imgType != self.currentViewSelected):
-                            zoom = 50
-                            self.p1.setRange(xRange=(data.shape[0] / 2 + 0.5 - zoom,
-                                                     data.shape[0] / 2 + 0.5 + zoom),
-                                             yRange=(data.shape[1] / 2 + 0.5 - zoom,
-                                                     data.shape[1] / 2 + 0.5 + zoom))
-                            self.SRCrossX.show()
-                            self.SRCrossY.show()
-
-                        self.currentViewSelected = self.imgType
-                '''
+                        if (data is not None):
+                            autoscale = True  # self.ui.actionAuto_Scale.isChecked()
+                            # if (autoscale):
+                            #     # inits levels
+                            #     self.hist.setLevels(data.min(), data.max())
+                            self.imgs[key].setImage(data, autoLevels=autoscale)
+                            # self.p1.autoRange()
+                        else:  # Slope display
+                            pass
             finally:
                 self.loopLock.release()
 
