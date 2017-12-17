@@ -42,6 +42,8 @@ gdb --args python -i widget_ao.py
 from docopt import docopt
 from collections import deque
 
+from matplotlibwidget import MatplotlibWidget
+
 sys.path.insert(0, os.environ["SHESHA_ROOT"] + "/data/par/")
 WindowTemplate, TemplateBaseClass = loadUiType(
         os.environ["SHESHA_ROOT"] + "/widgets/widget_ao.ui")  # type: type, type
@@ -116,7 +118,6 @@ class widgetAOWindow(TemplateBaseClass):
         self.ui.wao_update_gain.clicked.connect(self.updateGain)
         self.ui.wao_update_pyr_ampl.clicked.connect(self.updatePyrAmpl)
         self.ui.wao_selectRtcMatrix.currentIndexChanged.connect(self.displayRtcMatrix)
-        self.ui.wao_rtcWindowMPL.hide()
         self.ui.wao_commandBtt.clicked.connect(self.BttCommand)
         self.ui.wao_commandKL.clicked.connect(self.KLCommand)
         self.ui.wao_resetSR.clicked.connect(self.resetSR)
@@ -159,6 +160,7 @@ class widgetAOWindow(TemplateBaseClass):
         self.SRCrossX = {}  # type: Dict[str, pg.ScatterPlotItem]
         self.SRCrossY = {}  # type: Dict[str, pg.ScatterPlotItem]
         self.SRcircles = {}  # type: Dict[str, pg.ScatterPlotItem]
+        self.Arrows = {}  # type: Dict[str, pg.ArrowItem]
 
         self.natm = 0
         self.nwfs = 0
@@ -547,29 +549,34 @@ class widgetAOWindow(TemplateBaseClass):
         else:
             self.docks[guilty].close()
 
-    def add_dispDock(self, name: str, parent) -> None:
+    def add_dispDock(self, name: str, parent, type: str="pg") -> None:
         w = QtGui.QCheckBox(name)
         w.clicked.connect(self.update_displayDock)
         parent.children()[0].addWidget(w)
         self.disp_checkboxes.append(w)
         d = Dock(name)  # , closable=True)
         self.docks[name] = d
-        img = pg.ImageItem(border='w')
-        img.setTransform(QtGui.QTransform(0, 1, 1, 0, 0, 0))  # flip X and Y
-        self.imgs[name] = img
+        if type == "pg":
+            img = pg.ImageItem(border='w')
+            img.setTransform(QtGui.QTransform(0, 1, 1, 0, 0, 0))  # flip X and Y
+            self.imgs[name] = img
 
-        viewbox = pg.ViewBox()
-        viewbox.setAspectLocked(True)
-        viewbox.addItem(img)  # Put image in plot area
-        self.viewboxes[name] = viewbox
-        d.addWidget(pg.ImageView(view=viewbox, imageItem=img))
+            viewbox = pg.ViewBox()
+            viewbox.setAspectLocked(True)
+            viewbox.addItem(img)  # Put image in plot area
+            self.viewboxes[name] = viewbox
+            d.addWidget(pg.ImageView(view=viewbox, imageItem=img))
 
-        # hist = pg.HistogramLUTItem()  # Create an histogram
-        # hist.setImageItem(img)  # Compute histogram from img
-        # hist.autoHistogramRange()  # init levels
-        # hist.setMaximumWidth(100)
-        # self.hists[key] = hist
-        # d.addWidget(hist)
+            # hist = pg.HistogramLUTItem()  # Create an histogram
+            # hist.setImageItem(img)  # Compute histogram from img
+            # hist.autoHistogramRange()  # init levels
+            # hist.setMaximumWidth(100)
+            # self.hists[key] = hist
+            # d.addWidget(hist)
+        else:
+            img = MatplotlibWidget()
+            self.imgs[name] = img
+            d.addWidget(img)
 
     def loadConfig(self) -> None:
         '''
@@ -609,6 +616,10 @@ class widgetAOWindow(TemplateBaseClass):
         for key, pgpl in self.SRCrossY.items():
             self.viewboxes[key].removeItem(pgpl)
 
+        for key, pgpl in self.Arrows.items():
+            self.viewboxes[key].removeItem(pgpl)
+
+        self.Arrows.clear()
         self.SRcircles.clear()
         self.SRCrossX.clear()
         self.SRCrossY.clear()
@@ -631,9 +642,9 @@ class widgetAOWindow(TemplateBaseClass):
             name = 'wfs%d' % wfs
             self.add_dispDock(name, self.ui.wao_phasesgroup)
             name = 'slpComp%d' % wfs
-            self.add_dispDock(name, self.ui.wao_imagesgroup)
+            self.add_dispDock(name, self.ui.wao_imagesgroup, "MPL")
             name = 'slpGeom%d' % wfs
-            self.add_dispDock(name, self.ui.wao_imagesgroup)
+            self.add_dispDock(name, self.ui.wao_imagesgroup, "MPL")
             if self.sim.config.p_wfss[wfs].type == scons.WFSType.SH:
                 name = 'SH%d' % wfs
                 self.add_dispDock(name, self.ui.wao_imagesgroup)
@@ -709,27 +720,6 @@ class widgetAOWindow(TemplateBaseClass):
         else:
             self.sim.rtc.set_openloop(0, 0)
 
-    def updateNumberSelector(self, textType: str=None) -> None:
-        if textType is None:
-            textType = str(self.ui.A_CHANGER.currentText())
-        self.imgType = textType
-        self.ui.wao_selectNumber.clear()
-        if (textType == "Phase - Atmos"):
-            n = self.sim.config.p_atmos.nscreens
-        elif (textType == "Phase - WFS" or textType == "Spots - WFS" or
-              textType == "Centroids - WFS" or textType == "Slopes - WFS" or
-              textType == "Pyrimg - HR" or textType == "Pyrimg - LR"):
-            n = self.nwfs
-        elif (textType == "Phase - Target" or textType == "PSF LE" or
-              textType == "PSF SE"):
-            n = self.sim.config.p_target.ntargets
-        elif (textType == "Phase - DM"):
-            n = self.ndm
-        else:
-            n = 0
-        self.ui.wao_selectNumber.addItems([str(i) for i in range(n)])
-        self.updateDisplay()
-
     def loadDefaultConfig(self) -> None:
         import glob
         parlist = sorted(glob.glob(self.defaultParPath + "*.py"))
@@ -783,6 +773,8 @@ class widgetAOWindow(TemplateBaseClass):
             self.SRcircles[key] = pg.ScatterPlotItem(cx, cy, pen='r', size=1)
             self.viewboxes[key].addItem(self.SRcircles[key])
             self.SRcircles[key].setPoints(cx, cy)
+            key = 'slpComp%d' % i
+            key = 'slpGeom%d' % i
 
         for i in range(self.ndm):
             key = "dm%d" % i
@@ -1003,20 +995,6 @@ class widgetAOWindow(TemplateBaseClass):
         actuPushInArcsecs = CONST.RAD2ARCSEC * Delta / dist
         return actuPushInArcsecs
 
-    def setupDisp(self, fig: str="pg") -> None:
-        if fig == "pg":
-            widToShow = self.ui.wao_pgwindow
-            widToHide = self.ui.wao_rtcWindowMPL
-        elif fig == "MPL":
-            widToShow = self.ui.wao_rtcWindowMPL
-            widToHide = self.ui.wao_pgwindow
-        else:
-            return
-
-        if (not widToShow.isVisible()):
-            widToShow.show()
-            widToHide.hide()
-
     def clearSR(self):
         self.SRLE = deque(maxlen=20)
         self.SRSE = deque(maxlen=20)
@@ -1090,8 +1068,36 @@ class widgetAOWindow(TemplateBaseClass):
                             #     self.hist.setLevels(data.min(), data.max())
                             self.imgs[key].setImage(data, autoLevels=autoscale)
                             # self.p1.autoRange()
-                        else:  # Slope display
-                            pass
+                        elif "slp" in key:  # Slope display
+                            self.imgs[key].canvas.axes.clear()
+                            if "Comp" in key:
+                                self.sim.wfs.slopes_geom(index, 0)
+                                slopes = self.sim.wfs.get_slopes(index)
+                                x, y, vx, vy = plsh(
+                                        slopes, self.sim.config.p_wfss[index].nxsub,
+                                        self.sim.config.p_tel.cobs, returnquiver=True
+                                )  # Preparing mesh and vector for display
+                                self.imgs[key].canvas.axes.quiver(
+                                        x, y, vx, vy, pivot='mid')
+                            if "Geom" in key:
+                                centroids = self.sim.rtc.get_centroids(0)
+                                nvalid = [2 * o._nvalid for o in self.sim.config.p_wfss]
+                                ind = np.sum(nvalid[:index], dtype=np.int32)
+                                if (self.sim.config.p_wfss[index].type ==
+                                            scons.WFSType.PYRHR):
+                                    #TODO: DEBUG...
+                                    plpyr(centroids[ind:ind + nvalid[index]],
+                                          self.sim.config.p_wfs0._isvalid)
+                                else:
+                                    x, y, vx, vy = plsh(
+                                            centroids[ind:ind + nvalid[index]],
+                                            self.sim.config.p_wfss[index].nxsub,
+                                            self.sim.config.p_tel.cobs, returnquiver=True
+                                    )  # Preparing mesh and vector for display
+                                self.imgs[key].canvas.axes.quiver(
+                                        x, y, vx, vy, pivot='mid')
+                            self.imgs[key].canvas.draw()
+
             finally:
                 self.loopLock.release()
 
