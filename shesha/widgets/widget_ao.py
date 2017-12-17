@@ -160,7 +160,6 @@ class widgetAOWindow(TemplateBaseClass):
         self.SRCrossX = {}  # type: Dict[str, pg.ScatterPlotItem]
         self.SRCrossY = {}  # type: Dict[str, pg.ScatterPlotItem]
         self.SRcircles = {}  # type: Dict[str, pg.ScatterPlotItem]
-        self.Arrows = {}  # type: Dict[str, pg.ArrowItem]
 
         self.natm = 0
         self.nwfs = 0
@@ -543,11 +542,11 @@ class widgetAOWindow(TemplateBaseClass):
         self.loadConfig()
 
     def update_displayDock(self, state: bool):
-        guilty = self.sender().text()
+        guilty_guy = self.sender().text()
         if state:
-            self.area.addDock(self.docks[guilty])
-        else:
-            self.docks[guilty].close()
+            self.area.addDock(self.docks[guilty_guy])
+        elif self.docks[guilty_guy].isVisible():
+            self.docks[guilty_guy].close()
 
     def add_dispDock(self, name: str, parent, type: str="pg") -> None:
         w = QtGui.QCheckBox(name)
@@ -616,17 +615,14 @@ class widgetAOWindow(TemplateBaseClass):
         for key, pgpl in self.SRCrossY.items():
             self.viewboxes[key].removeItem(pgpl)
 
-        for key, pgpl in self.Arrows.items():
-            self.viewboxes[key].removeItem(pgpl)
-
-        self.Arrows.clear()
         self.SRcircles.clear()
         self.SRCrossX.clear()
         self.SRCrossY.clear()
 
         # TODO: remove self.imgs, self.viewboxes and self.docks children
-        # for key, pgpl in self.docks.items():
-        #     self.imags[key].removeItem(pgpl)
+        for key, dock in self.docks.items():
+            if dock.isVisible():
+                dock.close()
 
         self.docks.clear()
         self.imgs.clear()
