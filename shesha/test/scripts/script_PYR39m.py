@@ -183,20 +183,20 @@ def loop(n, wfs, tel, atm, dms, tar, rtc):
         if (config.p_controllers[0].type == b"geo"):
             for t in range(config.p_target.ntargets):
                 tar.atmos_trace(t, atm, tel)
-                rtc.docontrol_geo(0, dms, tar, 0)
-                rtc.applycontrol(0, dms)
+                rtc.do_control_geo(0, dms, tar, 0)
+                rtc.apply_control(0, dms)
                 tar.dmtrace(0, dms)
         else:
             for t in range(config.p_target.ntargets):
                 tar.atmos_trace(t, atm, tel)
                 tar.dmtrace(t, dms)
             for w in range(len(config.p_wfss)):
-                wfs.sensors_trace(w, "all", tel, atm, dms)
+                wfs.raytrace(w, "all", tel, atm, dms)
                 wfs.sensors_compimg(w)
 
-            rtc.docentroids(0)
+            rtc.do_centroids(0)
             rtc.docontrol(0)
-            rtc.applycontrol(0, dms)
+            rtc.apply_control(0, dms)
 
         if ((i + 1) % 100 == 0):
             print("Iter#:", i + 1)
@@ -243,9 +243,20 @@ resAll.srir = None
 colnames = h5u.params_dictionary(config)  # config values internal to compass
 #simunames = {"PSFFilenames":None, "srir":None, "lambdaTarget":None, "threshold":None, "sr_le":None, "sr_se":None, "numiter":None, "NklFilt":None, "NklTot":None, "Nkl":None, "eigenvals":None, "Nphotons":None, "Nactu":None, "Nslopes":None}# Added values computed by the simu..
 simunames = {
-        "PSFFilenames": None, "srir": None, "lambdaTarget": None, "nbBrightest": None,
-        "sr_le": None, "sr_se": None, "numiter": None, "NklFilt": None, "NklTot": None,
-        "Nkl": None, "eigenvals": None, "Nphotons": None, "Nactu": None, "RON": None,
+        "PSFFilenames": None,
+        "srir": None,
+        "lambdaTarget": None,
+        "nbBrightest": None,
+        "sr_le": None,
+        "sr_se": None,
+        "numiter": None,
+        "NklFilt": None,
+        "NklTot": None,
+        "Nkl": None,
+        "eigenvals": None,
+        "Nphotons": None,
+        "Nactu": None,
+        "RON": None,
         "Nslopes": None
 }  # Added values computed by the simu..
 

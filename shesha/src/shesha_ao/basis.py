@@ -73,7 +73,8 @@ def compute_KL2V(p_controller: conf.Param_controller, dms: Dms, p_dms: list,
             indx_act += ntotact[ndm]
         elif (p_dms[ndm].type == scons.DmType.TT):
             nTT += 1
-    if (p_controller.nmodes != 0 and p_controller.nmodes < KL2V.shape[1] - 2 * nTT):
+    if (p_controller.nmodes is not None and
+                p_controller.nmodes < KL2V.shape[1] - 2 * nTT):
         KL2V = KL2V[:, :p_controller.nmodes]
     else:
         KL2V = KL2V[:, :KL2V.shape[1] - 2 * nTT]
