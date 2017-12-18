@@ -16,6 +16,7 @@ import time
 
 import pyqtgraph as pg
 from pyqtgraph.dockarea import Dock, DockArea
+sys.path.insert(0, os.environ["SHESHA_ROOT"] + "/AOlib")
 
 from tools import plsh, plpyr
 
@@ -59,6 +60,7 @@ class widgetAOWindow(TemplateBaseClass):
         self.SRLE = deque(maxlen=20)
         self.SRSE = deque(maxlen=20)
         self.numiter = deque(maxlen=20)
+        self.expert = expert
 
         self.ui = WindowTemplate()
         self.ui.setupUi(self)
@@ -817,7 +819,8 @@ class widgetAOWindow(TemplateBaseClass):
         print(self.sim)
 
         self.updateDisplay()
-        self.displayRtcMatrix()
+        if (self.expert):
+            self.displayRtcMatrix()
         self.updatePlotWfs()
 
         self.ui.wao_init.setDisabled(False)
@@ -1099,7 +1102,7 @@ class widgetAOWindow(TemplateBaseClass):
 
     def loopOnce(self) -> None:
         if not self.loopLock.acquire(False):
-            # print("Display locked")
+            print("Display locked")
             return
         else:
             try:
@@ -1127,7 +1130,6 @@ class widgetAOWindow(TemplateBaseClass):
                     self.ui.wao_strehlSE.setText(signal_se)
                     self.ui.wao_strehlLE.setText(signal_le)
                     self.ui.wao_currentFreq.setValue(currentFreq)
-
                     if (self.dispStatsInTerminal):
                         self.printInPlace(
                                 "iter #%d SR: (L.E, S.E.)= (%s, %s) running at %4.1fHz (real %4.1fHz)"
@@ -1135,7 +1137,8 @@ class widgetAOWindow(TemplateBaseClass):
                                    currentFreq))
 
                     self.refreshTime = start
-
+            except:
+                print("error!!")
             finally:
                 self.loopLock.release()
 
