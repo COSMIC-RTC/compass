@@ -167,7 +167,7 @@ class widgetAOWindow(TemplateBaseClass):
         self.nwfs = 0
         self.ndm = 0
         self.ntar = 0
-
+        self.PSFzoom = 50
         self.ui.wao_expertDock.setVisible(expert)
         self.adjustSize()
 
@@ -566,7 +566,11 @@ class widgetAOWindow(TemplateBaseClass):
             viewbox.setAspectLocked(True)
             viewbox.addItem(img)  # Put image in plot area
             self.viewboxes[name] = viewbox
-            d.addWidget(pg.ImageView(view=viewbox, imageItem=img))
+            iv = pg.ImageView(view=viewbox, imageItem=img)
+            iv.ui.histogram.hide()
+            iv.ui.menuBtn.hide()
+            iv.ui.roiBtn.hide()
+            d.addWidget(iv)
 
             # hist = pg.HistogramLUTItem()  # Create an histogram
             # hist.setImageItem(img)  # Compute histogram from img
@@ -649,7 +653,7 @@ class widgetAOWindow(TemplateBaseClass):
             elif self.sim.config.p_wfss[wfs].type == scons.WFSType.PYRHR:
                 name = 'pyrHR%d' % wfs
                 self.add_dispDock(name, self.ui.wao_imagesgroup)
-                name = 'pyrSR%d' % wfs
+                name = 'pyrLR%d' % wfs
                 self.add_dispDock(name, self.ui.wao_imagesgroup)
             else:
                 raise "Analyser unknown"
@@ -1018,8 +1022,8 @@ class widgetAOWindow(TemplateBaseClass):
                 if self.natm > 9 or self.natm > 9 or self.natm > 9 or self.natm > 9:
                     raise "this method will not working"
 
-                for key, dock in wao.docks.items():
-                    if wao.docks[key].isVisible():
+                for key, dock in self.docks.items():
+                    if self.docks[key].isVisible():
                         index = int(key[-1])
                         data = None
                         if "atm" in key:
@@ -1047,12 +1051,11 @@ class widgetAOWindow(TemplateBaseClass):
                                     data[data <= 0] = np.min(data[data > 0])
                                 data = np.log10(data)
 
-                            zoom = 50
                             self.viewboxes[key].setRange(
-                                    xRange=(data.shape[0] / 2 + 0.5 - zoom,
-                                            data.shape[0] / 2 + 0.5 + zoom),
-                                    yRange=(data.shape[1] / 2 + 0.5 - zoom,
-                                            data.shape[1] / 2 + 0.5 + zoom), )
+                                    xRange=(data.shape[0] / 2 + 0.5 - self.PSFzoom,
+                                            data.shape[0] / 2 + 0.5 + self.PSFzoom),
+                                    yRange=(data.shape[1] / 2 + 0.5 - self.PSFzoom,
+                                            data.shape[1] / 2 + 0.5 + self.PSFzoom), )
                         if "SH" in key:
                             data = self.sim.wfs.get_binimg(index)
                         if "pyrLR" in key:
