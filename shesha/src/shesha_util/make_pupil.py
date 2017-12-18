@@ -5,11 +5,8 @@ import numpy as np
 import os
 import scipy.ndimage.interpolation as interp
 
-#from . import hdf5_utils as h5u
-#from . import utilities as util
-
-import hdf5_utils as h5u
-import utilities as util
+from . import hdf5_utils as h5u
+from . import utilities as util
 
 from shesha_constants import ApertureType, SpiderType
 
