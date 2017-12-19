@@ -101,8 +101,11 @@ class widgetAOWindow(TemplateBaseClass):
         #############################################################
         # Default path for config files
         self.defaultParPath = os.environ["SHESHA_ROOT"] + "/data/par/par4bench/"
+        self.defaultAreaPath = os.environ["SHESHA_ROOT"] + "/data/"
         self.ui.wao_loadConfig.clicked.connect(self.loadConfig)
         self.loadDefaultConfig()
+        self.ui.wao_loadArea.clicked.connect(self.loadArea)
+        self.ui.wao_saveArea.clicked.connect(self.saveArea)
         self.ui.wao_init.clicked.connect(self.InitConfig)
         self.ui.wao_run.setCheckable(True)
         self.ui.wao_run.clicked[bool].connect(self.aoLoopClicked)
@@ -214,9 +217,51 @@ class widgetAOWindow(TemplateBaseClass):
             if event:
                 event.ignore()
 
-        #############################################################
-        #                       METHODS                             #
-        #############################################################
+    #############################################################
+    #                       METHODS                             #
+    #############################################################
+
+    def saveArea(self):
+        '''
+            Callback when a area layout file is double clicked in the file browser
+            Place the selected file name in the browsing drop-down menu,
+            the call the self.loadConfig callback of the load button.
+        '''
+        filepath = QtWidgets.QFileDialog(directory=self.defaultAreaPath).getSaveFileName(
+                self, "Select area layout file", "",
+                "area layout file (*.area);;all files (*)")
+
+        with open(filepath[0], "w+") as f:
+            st = wao.area.saveState()
+            f.write(str(st))
+
+    def loadArea(self):
+        # closeAll
+        for disp_checkbox in self.disp_checkboxes:
+            disp_checkbox.setChecked(False)
+        for key, dock in self.docks.items():
+            if dock.isVisible():
+                dock.close()
+
+        filepath = QtWidgets.QFileDialog(directory=self.defaultAreaPath).getOpenFileName(
+                self, "Select area layout file", "",
+                "area layout file (*.area);;all files (*)")
+
+        with open(filepath[0], "r") as f:
+            st = eval(f.readline())
+            list_docks = [[a[0][1], a[1][1]] for a in [aa[1] for aa in st["main"][1]]]
+            list_docks = np.array(list_docks).flatten()
+
+            for disp_checkbox in self.disp_checkboxes:
+                if disp_checkbox.text() in list_docks:
+                    disp_checkbox.setChecked(True)
+
+            for dock in list_docks:
+                if dock in self.docks.keys():
+                    self.area.addDock(self.docks[dock])
+
+            wao.area.restoreState(st)
+
     def updateStatsInTerminal(self, state):
         self.dispStatsInTerminal = state
 
@@ -563,10 +608,12 @@ class widgetAOWindow(TemplateBaseClass):
             self.imgs[name] = img
 
             viewbox = pg.ViewBox()
+
             viewbox.setAspectLocked(True)
             viewbox.addItem(img)  # Put image in plot area
             self.viewboxes[name] = viewbox
             iv = pg.ImageView(view=viewbox, imageItem=img)
+
             iv.ui.histogram.hide()
             iv.ui.menuBtn.hide()
             iv.ui.roiBtn.hide()
