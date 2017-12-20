@@ -100,8 +100,8 @@ class widgetAOWindow(TemplateBaseClass):
         #                 CONNECTED BUTTONS                         #
         #############################################################
         # Default path for config files
-        self.defaultParPath = os.environ["SHESHA_ROOT"] + "/data/par/par4bench/"
-        self.defaultAreaPath = os.environ["SHESHA_ROOT"] + "/data/"
+        self.defaultParPath = os.environ["SHESHA_ROOT"] + "/data/par/par4bench"
+        self.defaultAreaPath = os.environ["SHESHA_ROOT"] + "/data"
         self.ui.wao_loadConfig.clicked.connect(self.loadConfig)
         self.loadDefaultConfig()
         self.ui.wao_loadArea.clicked.connect(self.loadArea)
@@ -221,21 +221,24 @@ class widgetAOWindow(TemplateBaseClass):
     #                       METHODS                             #
     #############################################################
 
-    def saveArea(self):
+    def saveArea(self, widget, filename=None):
         '''
             Callback when a area layout file is double clicked in the file browser
             Place the selected file name in the browsing drop-down menu,
             the call the self.loadConfig callback of the load button.
         '''
-        filepath = QtWidgets.QFileDialog(directory=self.defaultAreaPath).getSaveFileName(
-                self, "Select area layout file", "",
-                "area layout file (*.area);;all files (*)")
+        if filename is None:
+            filepath = QtWidgets.QFileDialog(
+                    directory=self.defaultAreaPath).getSaveFileName(
+                            self, "Select area layout file", "",
+                            "area layout file (*.area);;all files (*)")
+            filename = filepath[0]
 
-        with open(filepath[0], "w+") as f:
+        with open(filename, "w+") as f:
             st = wao.area.saveState()
             f.write(str(st))
 
-    def loadArea(self):
+    def loadArea(self, widget=None, filename=None):
         # closeAll
         for disp_checkbox in self.disp_checkboxes:
             disp_checkbox.setChecked(False)
@@ -243,14 +246,23 @@ class widgetAOWindow(TemplateBaseClass):
             if dock.isVisible():
                 dock.close()
 
-        filepath = QtWidgets.QFileDialog(directory=self.defaultAreaPath).getOpenFileName(
-                self, "Select area layout file", "",
-                "area layout file (*.area);;all files (*)")
+        if filename is None:
+            filepath = QtWidgets.QFileDialog(
+                    directory=self.defaultAreaPath).getOpenFileName(
+                            self, "Select area layout file", "",
+                            "area layout file (*.area);;all files (*)")
+            filename = filepath[0]
 
-        with open(filepath[0], "r") as f:
+        with open(filename, "r") as f:
             st = eval(f.readline())
-            list_docks = [[a[0][1], a[1][1]] for a in [aa[1] for aa in st["main"][1]]]
-            list_docks = np.array(list_docks).flatten()
+            windows = [win[1] for win in st["main"][1]]
+            for win in st["float"]:
+                windows.append(win[0]["main"][1])
+
+            list_docks = []
+            for gwin in windows:
+                for win in gwin:
+                    list_docks.append(win[1])
 
             for disp_checkbox in self.disp_checkboxes:
                 if disp_checkbox.text() in list_docks:
@@ -771,7 +783,7 @@ class widgetAOWindow(TemplateBaseClass):
 
     def loadDefaultConfig(self) -> None:
         import glob
-        parlist = sorted(glob.glob(self.defaultParPath + "*.py"))
+        parlist = sorted(glob.glob(self.defaultParPath + "/*.py"))
         self.ui.wao_selectConfig.clear()
         self.ui.wao_selectConfig.addItems([
                 parlist[i].split('/')[-1] for i in range(len(parlist))
@@ -880,6 +892,10 @@ class widgetAOWindow(TemplateBaseClass):
         self.ui.wao_openLoop.setDisabled(False)
         self.ui.wao_unzoom.setDisabled(False)
         self.ui.wao_resetSR.setDisabled(False)
+
+        if (hasattr(self.sim.config, "area")):
+            area_filename = self.defaultAreaPath + "/" + self.sim.config.area + ".area"
+            self.loadArea(filename=area_filename)
 
         self.loopLock.release()
 
