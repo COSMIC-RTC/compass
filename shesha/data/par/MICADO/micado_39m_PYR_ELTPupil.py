@@ -3,6 +3,7 @@ import shesha_constants as scons
 import numpy as np
 
 simul_name = ""
+layout = "layoutDeFab"
 
 # loop
 p_loop = ao.Param_loop()

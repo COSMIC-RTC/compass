@@ -236,10 +236,28 @@ class widgetAOWindow(TemplateBaseClass):
 
         try:
             with open(filename, "w+") as f:
-                st = wao.area.saveState()
+                st = self.area.saveState()
                 f.write(str(st))
         except FileNotFoundError as err:
             warnings.warn(filename + " not found")
+
+    def showDock(self, name):
+        for disp_checkbox in self.disp_checkboxes:
+            if disp_checkbox.text() == name:
+                disp_checkbox.setChecked(True)
+                break
+        if name in self.docks.keys():
+            self.area.addDock(self.docks[name])
+
+    def restoreState(self, state):
+        typ, contents, state = state
+        list_dock = []
+
+        if typ == 'dock':
+            self.showDock(contents)
+        else:
+            for o in contents:
+                self.restoreState(o)
 
     def loadArea(self, widget=None, filename=None):
         # closeAll
@@ -259,24 +277,12 @@ class widgetAOWindow(TemplateBaseClass):
         try:
             with open(filename, "r") as f:
                 st = eval(f.readline())
-                windows = [win[1] for win in st["main"][1]]
+                if st['main'] is not None:
+                    self.restoreState(st["main"])
                 for win in st["float"]:
-                    windows.append(win[0]["main"][1])
+                    self.restoreState(win[0]['main'])
 
-                list_docks = []
-                for gwin in windows:
-                    for win in gwin:
-                        list_docks.append(win[1])
-
-                for disp_checkbox in self.disp_checkboxes:
-                    if disp_checkbox.text() in list_docks:
-                        disp_checkbox.setChecked(True)
-
-                for dock in list_docks:
-                    if dock in self.docks.keys():
-                        self.area.addDock(self.docks[dock])
-
-                wao.area.restoreState(st)
+                self.area.restoreState(st)
         except FileNotFoundError as err:
             warnings.warn(filename + "not found")
 
@@ -777,6 +783,10 @@ class widgetAOWindow(TemplateBaseClass):
         self.ui.wao_unzoom.setDisabled(True)
         self.ui.wao_resetSR.setDisabled(True)
 
+        if (hasattr(self.sim.config, "layout")):
+            area_filename = self.defaultAreaPath + "/" + self.sim.config.layout + ".area"
+            self.loadArea(filename=area_filename)
+
     def aoLoopClicked(self, pressed: bool) -> None:
         if pressed:
             self.stop = False
@@ -908,10 +918,6 @@ class widgetAOWindow(TemplateBaseClass):
         self.ui.wao_openLoop.setDisabled(False)
         self.ui.wao_unzoom.setDisabled(False)
         self.ui.wao_resetSR.setDisabled(False)
-
-        if (hasattr(self.sim.config, "area")):
-            area_filename = self.defaultAreaPath + "/" + self.sim.config.area + ".area"
-            self.loadArea(filename=area_filename)
 
         self.loopLock.release()
 
