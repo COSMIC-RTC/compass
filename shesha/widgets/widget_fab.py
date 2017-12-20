@@ -447,7 +447,6 @@ class widgetAOWindowPyro(widgetAOWindow):
     def loopOnce(self) -> None:
         widgetAOWindow.loopOnce(self)
         start = time.time()
-        self.sim.next(see_atmos=self.see_atmos)
 
         refreshDisplayTime = 1. / self.ui.wao_frameRate.value()
 
