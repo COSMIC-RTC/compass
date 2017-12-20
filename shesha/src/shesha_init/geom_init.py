@@ -605,13 +605,13 @@ def init_sh_geom(p_wfs: conf.Param_wfs, r0: float, p_tel: conf.Param_tel,
         y = X[0]
         # hrpix
         tmp = np.zeros((p_wfs._Ntot, p_wfs._Ntot))
-        tmp[indi:indj, indi:indj] = np.roll(x + (y - 1) * p_wfs._Nfft, p_wfs._Nfft / 2,
+        tmp[indi:indj, indi:indj] = np.roll(x + (y - 1) * p_wfs._Nfft, p_wfs._Nfft // 2,
                                             axis=0)
-        tmp[indi:indj, indi:indj] = np.roll(tmp[indi:indj, indi:indj], p_wfs._Nfft / 2,
+        tmp[indi:indj, indi:indj] = np.roll(tmp[indi:indj, indi:indj], p_wfs._Nfft // 2,
                                             axis=1)
         # hrmap=roll(hrpix)
-        tmp = np.roll(tmp, p_wfs._Ntot / 2, axis=0)
-        tmp = np.roll(tmp, p_wfs._Ntot / 2, axis=1)
+        tmp = np.roll(tmp, p_wfs._Ntot // 2, axis=0)
+        tmp = np.roll(tmp, p_wfs._Ntot // 2, axis=1)
 
         tmp = np.where(tmp.flatten())[0]
 
