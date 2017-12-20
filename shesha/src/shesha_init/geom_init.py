@@ -616,6 +616,7 @@ def init_sh_geom(p_wfs: conf.Param_wfs, r0: float, p_tel: conf.Param_tel,
         tmp = np.where(tmp.flatten())[0]
 
         p_wfs._hrmap = np.copy(tmp.astype(np.int32))
+        p_wfs._hrmap = np.reshape(p_wfs._hrmap, (p_wfs._hrmap.shape[0], 1))
         # must be set even if unused
 
     else:
