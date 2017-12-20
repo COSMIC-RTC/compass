@@ -234,9 +234,12 @@ class widgetAOWindow(TemplateBaseClass):
                             "area layout file (*.area);;all files (*)")
             filename = filepath[0]
 
-        with open(filename, "w+") as f:
-            st = wao.area.saveState()
-            f.write(str(st))
+        try:
+            with open(filename, "w+") as f:
+                st = wao.area.saveState()
+                f.write(str(st))
+        except FileNotFoundError as err:
+            warnings.warn(filename + " not found")
 
     def loadArea(self, widget=None, filename=None):
         # closeAll
@@ -253,26 +256,29 @@ class widgetAOWindow(TemplateBaseClass):
                             "area layout file (*.area);;all files (*)")
             filename = filepath[0]
 
-        with open(filename, "r") as f:
-            st = eval(f.readline())
-            windows = [win[1] for win in st["main"][1]]
-            for win in st["float"]:
-                windows.append(win[0]["main"][1])
+        try:
+            with open(filename, "r") as f:
+                st = eval(f.readline())
+                windows = [win[1] for win in st["main"][1]]
+                for win in st["float"]:
+                    windows.append(win[0]["main"][1])
 
-            list_docks = []
-            for gwin in windows:
-                for win in gwin:
-                    list_docks.append(win[1])
+                list_docks = []
+                for gwin in windows:
+                    for win in gwin:
+                        list_docks.append(win[1])
 
-            for disp_checkbox in self.disp_checkboxes:
-                if disp_checkbox.text() in list_docks:
-                    disp_checkbox.setChecked(True)
+                for disp_checkbox in self.disp_checkboxes:
+                    if disp_checkbox.text() in list_docks:
+                        disp_checkbox.setChecked(True)
 
-            for dock in list_docks:
-                if dock in self.docks.keys():
-                    self.area.addDock(self.docks[dock])
+                for dock in list_docks:
+                    if dock in self.docks.keys():
+                        self.area.addDock(self.docks[dock])
 
-            wao.area.restoreState(st)
+                wao.area.restoreState(st)
+        except FileNotFoundError as err:
+            warnings.warn(filename + "not found")
 
     def updateStatsInTerminal(self, state):
         self.dispStatsInTerminal = state
