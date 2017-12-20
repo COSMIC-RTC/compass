@@ -711,9 +711,9 @@ class widgetAOWindow(TemplateBaseClass):
             name = 'wfs%d' % wfs
             self.add_dispDock(name, self.ui.wao_phasesgroup)
             name = 'slpComp%d' % wfs
-            self.add_dispDock(name, self.ui.wao_imagesgroup, "MPL")
+            self.add_dispDock(name, self.ui.wao_graphgroup, "MPL")
             name = 'slpGeom%d' % wfs
-            self.add_dispDock(name, self.ui.wao_imagesgroup, "MPL")
+            self.add_dispDock(name, self.ui.wao_graphgroup, "MPL")
             if self.sim.config.p_wfss[wfs].type == scons.WFSType.SH:
                 name = 'SH%d' % wfs
                 self.add_dispDock(name, self.ui.wao_imagesgroup)
@@ -742,7 +742,7 @@ class widgetAOWindow(TemplateBaseClass):
             name = 'psfLE%d' % tar
             self.add_dispDock(name, self.ui.wao_imagesgroup)
 
-        self.add_dispDock("Strehl", self.ui.wao_imagesgroup, "SR")
+        self.add_dispDock("Strehl", self.ui.wao_graphgroup, "SR")
 
         self.ui.wao_resetSR_tarNum.setValue(0)
         self.ui.wao_resetSR_tarNum.setMaximum(self.sim.config.p_target.ntargets)
