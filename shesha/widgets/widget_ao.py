@@ -643,10 +643,12 @@ class widgetAOWindow(TemplateBaseClass):
             # hist.setMaximumWidth(100)
             # self.hists[key] = hist
             # d.addWidget(hist)
-        else:
+        elif type == "MPL":
             img = MatplotlibWidget()
             self.imgs[name] = img
             d.addWidget(img)
+        elif type == "SR":
+            d.addWidget(self.ui.wao_Strehl)
 
     def loadConfig(self) -> None:
         '''
@@ -739,6 +741,14 @@ class widgetAOWindow(TemplateBaseClass):
         for tar in range(self.ntar):
             name = 'psfLE%d' % tar
             self.add_dispDock(name, self.ui.wao_imagesgroup)
+
+        self.add_dispDock("Strehl", self.ui.wao_imagesgroup, "SR")
+
+        self.ui.wao_resetSR_tarNum.setValue(0)
+        self.ui.wao_resetSR_tarNum.setMaximum(self.sim.config.p_target.ntargets)
+
+        self.ui.wao_dispSR_tar.setValue(0)
+        self.ui.wao_dispSR_tar.setMaximum(self.sim.config.p_target.ntargets)
 
         pyrSpecifics = [
                 self.ui.ui_modradiusPanel, self.ui.ui_modradiusPanelarcesec,
@@ -1092,7 +1102,9 @@ class widgetAOWindow(TemplateBaseClass):
                     raise "this method will not working"
 
                 for key, dock in self.docks.items():
-                    if self.docks[key].isVisible():
+                    if key == "Strehl":
+                        pass
+                    if dock.isVisible():
                         index = int(key[-1])
                         data = None
                         if "atm" in key:
@@ -1191,7 +1203,8 @@ class widgetAOWindow(TemplateBaseClass):
                         self.sim.tar.comp_image(t)
                         SR = self.sim.tar.get_strehl(t)
                         # TODO: handle that !
-                        if (t == 0):  # Plot on the wfs selected
+                        if (t == self.ui.wao_dispSR_tar.value(
+                        )):  # Plot on the wfs selected
                             self.updateSRDisplay(SR[1], SR[0], self.sim.iter)
                         signal_se += "%1.2f   " % SR[0]
                         signal_le += "%1.2f   " % SR[1]
