@@ -172,6 +172,8 @@ class widgetAOWindow(TemplateBaseClass):
         self.ntar = 0
         self.PSFzoom = 50
         self.ui.wao_expertDock.setVisible(expert)
+        self.ui.wao_SRDock.setVisible(False)
+
         self.adjustSize()
 
         if configFile is not None:
@@ -260,7 +262,7 @@ class widgetAOWindow(TemplateBaseClass):
                 self.restoreState(o)
 
     def loadArea(self, widget=None, filename=None):
-        # closeAll
+        # close all docks
         for disp_checkbox in self.disp_checkboxes:
             disp_checkbox.setChecked(False)
         for key, dock in self.docks.items():
@@ -277,11 +279,16 @@ class widgetAOWindow(TemplateBaseClass):
         try:
             with open(filename, "r") as f:
                 st = eval(f.readline())
+
+                # restore docks from main area
                 if st['main'] is not None:
                     self.restoreState(st["main"])
+
+                # restore docks from floating area
                 for win in st["float"]:
                     self.restoreState(win[0]['main'])
 
+                # rearange docks as in stored state
                 self.area.restoreState(st)
         except FileNotFoundError as err:
             warnings.warn(filename + "not found")
