@@ -125,6 +125,9 @@ cdef extern from "sutra_turbu.h":
         int extrude(int dir)
         int init_vk(int seed, int pupd)
         int generate_vk(float l0, int nalias)
+        int refresh_screen()
+        int set_seed(int seed)
+
 
 
 #################################################

@@ -98,6 +98,27 @@ int sutra_tscreen::init_screen(float *h_A, float *h_B,
   return EXIT_SUCCESS;
 }
 
+int sutra_tscreen::refresh_screen() {
+  this->current_context->set_activeDevice(device,1);
+  this->d_tscreen->d_screen->reset();
+
+  for(int i = 0; i < 2 * this->screen_size; i++) {
+    if (this->deltax > 0) {
+      this->extrude(1);
+    } else {
+      this->extrude(-1);
+    }
+  }
+  return EXIT_SUCCESS;
+}
+
+int sutra_tscreen::set_seed(int seed) {
+  this->d_noise->init_prng_host(seed);
+  this->d_noise->prng_host('N');
+
+  return EXIT_SUCCESS;
+}
+
 int sutra_tscreen::init_vk(int seed, int pupd) {
   this->current_context->set_activeDevice(device,1);
   long *dims_data2 = new long[3];
@@ -291,13 +312,8 @@ int sutra_atmos::init_screen(float altitude, float *h_A, float *h_B,
                              unsigned int *h_istencilx,
                              unsigned int *h_istencily, int seed) {
   d_screens[altitude]->init_screen(h_A, h_B, h_istencilx, h_istencily, seed);
-  for(int i = 0; i < 2 * d_screens[altitude]->screen_size; i++) {
-    if (d_screens[altitude]->deltax > 0) {
-      d_screens[altitude]->extrude(1);
-    } else {
-      d_screens[altitude]->extrude(-1);
-    }
-  }
+  d_screens[altitude]->refresh_screen();
+
   return EXIT_SUCCESS;
 }
 
