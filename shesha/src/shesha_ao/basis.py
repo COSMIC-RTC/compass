@@ -3,17 +3,7 @@ Functions for modal basis (DM basis, KL, Btt, etc...)
 """
 import numpy as np
 
-try:
-    from Dms import Dms
-    from Rtc import Rtc
-except ImportError as err:
-
-    class Dms:
-        pass
-
-    class Rtc:
-        pass
-
+from sutra_bind.wrap import Dms, Rtc
 
 import shesha_config as conf
 import shesha_constants as scons

@@ -833,7 +833,7 @@ class widgetAOWindow(TemplateBaseClass):
         self.ui.wao_loadConfig.setDisabled(True)
         self.ui.wao_init.setDisabled(True)
         thread = WorkerThread(self, self.InitConfigThread)
-        thread.jobFinished['PyQt_PyObject'].connect(self.InitConfigFinished)
+        thread.jobFinished.connect(self.InitConfigFinished)
         thread.start()
 
     def InitConfigThread(self) -> None:
@@ -1260,7 +1260,7 @@ class widgetAOWindow(TemplateBaseClass):
 
 
 class WorkerThread(QThread):
-    jobFinished = pyqtSignal('PyQt_PyObject')
+    jobFinished = pyqtSignal()
 
     def __init__(self, parentThread: QObject, parentLoop: Callable) -> None:
         QThread.__init__(self, parentThread)
@@ -1270,7 +1270,7 @@ class WorkerThread(QThread):
         self.running = True
         self.loopFunc()
         success = True
-        self.jobFinished.emit(success)
+        self.jobFinished.emit()
 
     def stop(self) -> None:
         self.running = False

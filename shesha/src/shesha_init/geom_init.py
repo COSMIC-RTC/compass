@@ -2,28 +2,13 @@
 Initialization of the system geometry and of the Telescope object
 '''
 
-try:
-    from naga import naga_context
-except ImportError as err:
-
-    class naga_context:
-        pass
-
-
 import shesha_config as conf
 import shesha_constants as scons
 from shesha_constants import CONST
 
 import shesha_util.make_pupil as mkP
 import shesha_util.utilities as util
-
-try:
-    from Telescope import Telescope
-except ImportError as err:
-
-    class Telescope:
-        pass
-
+from sutra_bind.wrap import naga_context, Telescope
 
 import numpy as np
 

@@ -5,16 +5,6 @@ Must be instantiated for running a COMPASS simulation script easily
 import sys
 import os
 
-try:
-    from naga import naga_context
-except ImportError as err:
-
-    class naga_context:
-
-        def __init__(devices=0):
-            pass
-
-
 import shesha_init as init
 import shesha_constants as scons
 import shesha_util.hdf5_utils as h5u
@@ -22,36 +12,7 @@ import shesha_util.hdf5_utils as h5u
 import time
 
 from typing import Iterable, Any, Dict
-
-try:
-    from Dms import Dms
-    from Sensors import Sensors
-    from Telescope import Telescope
-    from Atmos import Atmos
-    from Target import Target
-    from Rtc import Rtc, Rtc_brama
-except ImportError as err:
-
-    class Dms:
-        pass
-
-    class Sensors:
-        pass
-
-    class Telescope:
-        pass
-
-    class Atmos:
-        pass
-
-    class Target:
-        pass
-
-    class Rtc:
-        pass
-
-    class Rtc_brama:
-        pass
+from sutra_bind.wrap import naga_context, Sensors, Dms, Rtc, Atmos, Telescope, Target
 
 
 class Simulator:
@@ -210,6 +171,10 @@ class Simulator:
                     os.environ["SHESHA_ROOT"] + "/data/dataBase/", self.config,
                     param_dict)
         self.c = naga_context(devices=self.config.p_loop.devices)
+
+        if hasattr(self.c, "is_fake"):
+            raise RuntimeError("Can not initilize the simulation with fake objects")
+
         self.force_context()
 
         if self.config.p_tel is None or self.config.p_geom is None:

@@ -2,25 +2,7 @@
 Functions used for modal optimization control
 """
 import numpy as np
-
-try:
-    from Telescope import Telescope
-    from Atmos import Atmos
-    from Rtc import Rtc
-    from Sensors import Sensors
-except ImportError as err:
-
-    class Telescope:
-        pass
-
-    class Atmos:
-        pass
-
-    class Rtc:
-        pass
-
-    class Sensors:
-        pass
+from sutra_bind.wrap import Sensors, Telescope, Rtc, Atmos
 
 
 def openLoopSlp(tel: Telescope, atmos: Atmos, wfs: Sensors, rtc: Rtc, nrec: int,

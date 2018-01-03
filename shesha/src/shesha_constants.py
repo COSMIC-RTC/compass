@@ -1,6 +1,7 @@
 """
 Numerical constants for shesha
 Config enumerations for safe-typing
+safe simulated imports
 """
 
 import numpy as np
