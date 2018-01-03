@@ -684,7 +684,9 @@ class widgetAOWindow(TemplateBaseClass):
         except:
             pass
 
-        for groupbox in [self.ui.wao_phasesgroup, self.ui.wao_imagesgroup]:
+        for groupbox in [
+                self.ui.wao_phasesgroup, self.ui.wao_imagesgroup, self.ui.wao_graphgroup
+        ]:
             layout = groupbox.layout()
             while not layout.isEmpty():
                 w = layout.itemAt(0)
@@ -793,6 +795,8 @@ class widgetAOWindow(TemplateBaseClass):
         if (hasattr(self.sim.config, "layout")):
             area_filename = self.defaultAreaPath + "/" + self.sim.config.layout + ".area"
             self.loadArea(filename=area_filename)
+
+        self.adjustSize()
 
     def aoLoopClicked(self, pressed: bool) -> None:
         if pressed:
@@ -1116,8 +1120,8 @@ class widgetAOWindow(TemplateBaseClass):
 
                 for key, dock in self.docks.items():
                     if key == "Strehl":
-                        pass
-                    if dock.isVisible():
+                        continue
+                    elif dock.isVisible():
                         index = int(key[-1])
                         data = None
                         if "atm" in key:
