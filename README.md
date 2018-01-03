@@ -45,7 +45,7 @@ export PATH=$CONDA_ROOT/bin:$PATH
 
 ```bash
 wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh
-bash Miniconda3-latest-Linux-x86_64.sh -b $CONDA_ROOT
+bash Miniconda3-latest-Linux-x86_64.sh -b -p $CONDA_ROOT
 ```
 
 To avoid any incompatibility this python modules, it's highly recommended to use the gcc provided with anaconda:
