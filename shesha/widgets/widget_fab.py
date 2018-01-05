@@ -71,7 +71,8 @@ class widgetAOWindowPyro(widgetAOWindow):
         #Pyro.core.ObjBase.__init__(self)
 
         self.aoCalib = None
-
+        self.CB = {}
+        self.wpyr = None
         #############################################################
         #                 CONNECTED BUTTONS                         #
         #############################################################
@@ -81,7 +82,8 @@ class widgetAOWindowPyro(widgetAOWindow):
         self.ph2modes = None
         self.KL2V = None
         self.P = None
-
+        self.currentBuffer = 1
+        self.wpyrNbBuffer = 1
         #############################################################
         #                       METHODS                             #
         #############################################################
@@ -97,20 +99,24 @@ class widgetAOWindowPyro(widgetAOWindow):
         from pyrStats import widget_pyrStats
         print("OK Pyramid Tools Widget initialized")
         self.wpyr = widget_pyrStats()
+        self.wpyrNbBuffer = self.wpyr.CBNumber
         self.wpyr.show()
 
     def setPyrToolsParams(self, ai):
-        #if(self.ph2KL is None):
-        #self.computePh2KL()
         self.wpyr.pup = self.getSpupil()
         self.wpyr.phase = self.getTargetPhase(0)
         self.wpyr.updateResiduals(ai)
+        if (self.ph2modes is None):
+            print('computing phase 2 Modes basis')
+            self.computePh2KL()
         self.wpyr.ph2modes = self.ph2modes
 
     def showPyrTools(self):
         if (self.wpyr is None):
             try:
+                print("Lauching pyramid widget...")
                 self.initPyrTools()
+                print("Done")
             except:
                 raise ValueError("ERROR: ADOPT  not found. Cannot launch Pyramid tools")
         else:
@@ -146,16 +152,16 @@ class widgetAOWindowPyro(widgetAOWindow):
         #return cf.returnConfigfromWao(self, filepath=path)
 
     def getIpupil(self):
-        return self.sim.config.p_geom.get_ipupil()
+        return self.sim.config.p_geom._ipupil
 
     def getSpupil(self):
-        return self.sim.config.p_geom.get_spupil()
+        return self.sim.config.p_geom._spupil
 
     def getImage2(self, tarnum, tartype):
         return self.sim.tar.get_image(tarnum, tartype)
 
     def getMpupil(self):
-        return self.sim.config.p_geom.get_mpupil()
+        return self.sim.config.p_geom._mpupil
 
     def getAmplipup(self, tarnum):
         return self.sim.config.tar.get_amplipup(tarnum)
@@ -172,17 +178,17 @@ class widgetAOWindowPyro(widgetAOWindow):
         oldnoise = self.sim.config.p_wfs0.noise
         self.setNoise(-1)
 
-        if (self.KL2V is None):
-            self.KL2V, _ = self.returnkl2V()
-        nbmode = self.KL2V.shape[1]
-        pup = self.getSpupil()
+        if (self.modalBasis is None):
+            self.modalBasis, self.P = self.getModes2VBasis("Btt")
+        nbmode = self.modalBasis.shape[1]
+        pup = self.sim.config.p_geom._spupil
         ph = self.sim.tar.get_phase(0)
         ph2KL = np.zeros((nbmode, ph.shape[0], ph.shape[1]))
         S = np.sum(pup)
         for i in range(nbmode):
             self.sim.tar.reset_phase(0)
-            self.sim.dms.set_full_comm((self.KL2V[:, i]).astype(np.float32).copy())
-            self.sim.tar.dmtrace(0, self.sim.dms)
+            self.sim.dms.set_full_comm((self.modalBasis[:, i]).astype(np.float32).copy())
+            self.sim.next(see_atmos=False)
             ph = self.sim.tar.get_phase(0) * pup
             # Normalisation pour les unites rms en microns !!!
             norm = np.sqrt(np.sum((ph)**2) / S)
@@ -285,11 +291,11 @@ class widgetAOWindowPyro(widgetAOWindow):
                                0], self.sim.dms, self.sim.config.p_dms, self.sim.config.p_geom, self.sim.config.p_atmos, self.sim.config.p_tel)
         """
         if (self.KL2V is None):
-            print("1")
+            print("Computing KL2V...")
             KL2V = ao.compute_KL2V(self.sim.config.p_controllers[0], self.sim.dms,
                                    self.sim.config.p_dms, self.sim.config.p_geom,
                                    self.sim.config.p_atmos, self.sim.config.p_tel)
-            print("ici")
+            print("KL2V Done!")
             self.KL2V = KL2V
             return KL2V, 0
         else:
@@ -343,6 +349,9 @@ class widgetAOWindowPyro(widgetAOWindow):
 
     def closeLoop(self):
         self.sim.rtc.set_openloop(0, 0)
+
+    def getAi(self):
+        return self.wpyr.ai
 
     def openLoop(self):
         self.sim.rtc.set_openloop(0, 1)
@@ -438,7 +447,7 @@ class widgetAOWindowPyro(widgetAOWindow):
     def computeModalResiduals(self):
         self.sim.rtc.do_control_geo(1, self.sim.dms, self.sim.tar, 0)
         #self.sim.rtc.do_control_geo_on(1, self.sim.dms,self.sim.tar, 0)
-        v = self.sim.rtc.getCom(1)
+        v = self.sim.rtc.get_com(1)
         if (self.P is None):
             self.modalBasis, self.P = self.getModes2VBasis("Btt")
         ai = self.P.dot(v) * 1000.  # np rms units
@@ -447,13 +456,27 @@ class widgetAOWindowPyro(widgetAOWindow):
     def loopOnce(self) -> None:
         widgetAOWindow.loopOnce(self)
         start = time.time()
-
         refreshDisplayTime = 1. / self.ui.wao_frameRate.value()
 
-        if (time.time() - self.refreshTime > refreshDisplayTime):
-            if (self.ui.actionShow_Pyramid_Tools.isChecked()):
-                ai = self.computeModalResiduals()
-                self.setPyrToolsParams(ai)
+        if (self.ui.actionShow_Pyramid_Tools.isChecked()):  # PYR only
+            self.wpyr.Fe = 1 / self.sim.config.p_loop.ittime  # needs Fe for PSD...
+            if (self.wpyr.CBNumber == 1):
+                self.ai = self.computeModalResiduals()
+                self.setPyrToolsParams(self.ai)
+            else:
+                if (self.currentBuffer == 1):  # First iter of the CB
+                    aiVect = self.computeModalResiduals()
+                    self.ai = aiVect[np.newaxis, :]
+                    self.currentBuffer += 1  # Keep going
+
+                else:  # Keep filling the CB
+                    aiVect = self.computeModalResiduals()
+                    self.ai = np.concatenate((self.ai, aiVect[np.newaxis, :]))
+                    if (self.currentBuffer < self.wpyr.CBNumber):
+                        self.currentBuffer += 1  # Keep going
+                    else:
+                        self.currentBuffer = 1  # reset buffer
+                        self.setPyrToolsParams(self.ai)  # display
 
 
 try:
@@ -491,6 +514,67 @@ try:
 except:
     print("Error while initializing Pyro object")
     pass
+
+
+def recordCB(CBcount, wao):
+    slopesdata = None
+    voltsdata = None
+    for i in range(wao.sim.config.p_target.ntargets):
+        wao.sim.tar.reset_strehl(i)
+    while (CBcount):
+        print(CBcount)
+        wao.loopOnce()
+
+        slopesVector = wao.sim.rtc.get_centroids(0)
+        if (slopesdata is None):
+            slopesdata = slopesVector[np.newaxis, :]
+        else:
+            slopesdata = np.concatenate((slopesdata, slopesVector[np.newaxis, :]))
+
+        voltsVector = wao.sim.rtc.get_com(0)
+        if (voltsdata is None):
+            voltsdata = voltsVector[np.newaxis, :]
+        else:
+            voltsdata = np.concatenate((voltsdata, voltsVector[np.newaxis, :]))
+        CBcount -= 1
+
+    psfLE = wao.sim.tar.get_image(2, b"le")
+    #wao.sim.config.p_geom._ipupil
+    """
+    plt.matshow(wao.sim.config.p_geom._ipupil, fignum=1)
+
+    # DM positions in iPupil:
+    dmposx = wao.sim.config.p_dm0._xpos
+    dmposy = wao.sim.config.p_dm0._ypos
+    plt.scatter(dmposx, dmposy, color="blue")
+
+
+
+
+    #WFS position in ipupil
+    ipup = wao.sim.config.p_geom._ipupil
+    spup = wao.sim.config.p_geom._spupil
+    s2ipup = (ipup.shape[0] - spup.shape[0]) / 2.
+    posx = wao.sim.config.p_wfss[0]._istart + s2ipup
+    posx = posx *  wao.sim.config.p_wfss[0]._isvalid
+    posx = posx[np.where(posx > 0)] - ipup.shape[0] / 2 - 1
+    posy = wao.sim.config.p_wfss[0]._jstart + s2ipup
+    posy = posy * wao.sim.config.p_wfss[0]._isvalid
+    posy = posy.T[np.where(posy > 0)] - ipup.shape[0] / 2 - 1
+
+    #center of ssp position in ipupil
+    demissp = (posx[1]-posx[0])/2
+    sspx = posx+ipup.shape[0]/2+demissp
+    sspy = posy+ipup.shape[0]/2+demissp
+    plt.scatter(sspx, sspy, color="red")
+    imat = wao.sim.rtc.get_imat(0)
+
+    influDM = wao.sim.dms.get_influ(b"pzt", 0)
+    influTT = wao.sim.dms.get_influ(b"tt", 0)
+
+    """
+    return slopesdata, voltsdata, psfLE
+
 
 if __name__ == '__main__':
     arguments = docopt(__doc__)
