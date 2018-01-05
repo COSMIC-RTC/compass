@@ -17,6 +17,7 @@ import time
 import pyqtgraph as pg
 from pyqtgraph.dockarea import Dock, DockArea
 sys.path.insert(0, os.environ["SHESHA_ROOT"] + "/AOlib")
+sys.path.insert(0, os.environ["SHESHA_ROOT"] + "/src/shesha_util")
 
 from tools import plsh, plpyr
 
@@ -57,9 +58,10 @@ class widgetAOWindow(TemplateBaseClass):
         TemplateBaseClass.__init__(self)
 
         self.BRAMA = BRAMA
-        self.SRLE = deque(maxlen=20)
-        self.SRSE = deque(maxlen=20)
-        self.numiter = deque(maxlen=20)
+        self.rollingWindow = 100
+        self.SRLE = deque(maxlen=self.rollingWindow)
+        self.SRSE = deque(maxlen=self.rollingWindow)
+        self.numiter = deque(maxlen=self.rollingWindow)
         self.expert = expert
 
         self.ui = WindowTemplate()
@@ -288,7 +290,7 @@ class widgetAOWindow(TemplateBaseClass):
                 for win in st["float"]:
                     self.restoreState(win[0]['main'])
 
-                # rearange docks as in stored state
+                # rearange dock s as in stored state
                 self.area.restoreState(st)
         except FileNotFoundError as err:
             warnings.warn(filename + "not found")
@@ -760,10 +762,10 @@ class widgetAOWindow(TemplateBaseClass):
         self.add_dispDock("Strehl", self.ui.wao_graphgroup, "SR")
 
         self.ui.wao_resetSR_tarNum.setValue(0)
-        self.ui.wao_resetSR_tarNum.setMaximum(self.sim.config.p_target.ntargets)
+        self.ui.wao_resetSR_tarNum.setMaximum(self.sim.config.p_target.ntargets - 1)
 
         self.ui.wao_dispSR_tar.setValue(0)
-        self.ui.wao_dispSR_tar.setMaximum(self.sim.config.p_target.ntargets)
+        self.ui.wao_dispSR_tar.setMaximum(self.sim.config.p_target.ntargets - 1)
 
         pyrSpecifics = [
                 self.ui.ui_modradiusPanel, self.ui.ui_modradiusPanelarcesec,
