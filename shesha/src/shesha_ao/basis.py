@@ -330,7 +330,7 @@ def compute_Btt(IFpzt, IFtt):
 
     # Tip-tilt + piston
     Tp = np.ones((IFtt.shape[0], IFtt.shape[1] + 1))
-    Tp[:, :2] = IFtt.toarray()
+    Tp[:, :2] = IFtt.copy()
     deltaT = IFpzt.T.dot(Tp) / N
     # Tip tilt projection on the pzt dm
     tau = np.linalg.inv(delta).dot(deltaT)
@@ -350,7 +350,7 @@ def compute_Btt(IFpzt, IFtt):
     B = G.dot(U).dot(L)
 
     # Rajout du TT
-    TT = (IFtt.T.dot(IFtt) / N).toarray()
+    TT = IFtt.T.dot(IFtt) / N
     Btt = np.zeros((n + 2, n - 1))
     Btt[:B.shape[0], :B.shape[1]] = B
     mini = 1. / np.sqrt(np.abs(TT))
@@ -359,10 +359,10 @@ def compute_Btt(IFpzt, IFtt):
     Btt[n:, n - 3:] = mini
 
     # Calcul du projecteur actus-->modes
-    delta = np.zeros((n + IFtt.shape[1], n + IFtt.shape[1]))
+    Delta = np.zeros((n + IFtt.shape[1], n + IFtt.shape[1]))
     #IFpzt = rtc.get_IFpztsparse(1).T
-    delta[:-2, :-2] = IFpzt.T.dot(IFpzt).toarray() / N
-    delta[-2:, -2:] = IFtt.T.dot(IFtt).toarray() / N
-    P = Btt.T.dot(delta)
+    Delta[:-2, :-2] = delta
+    Delta[-2:, -2:] = TT
+    P = Btt.T.dot(Delta)
 
     return Btt.astype(np.float32), P.astype(np.float32)
