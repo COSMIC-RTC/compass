@@ -32,6 +32,7 @@ class sutra_rtc_brama : public sutra_rtc {
   DDS::InstanceHandle_t megaframe_handle;
 
   CORBA::Octet *buff_wfs;
+  CORBA::Octet *buff_wfs_phase;
   CORBA::Octet *buff_intensities;
   CORBA::Octet *buff_slopes;
   CORBA::Octet *buff_commands;
@@ -39,6 +40,7 @@ class sutra_rtc_brama : public sutra_rtc {
   CORBA::Octet *buff_target_phase;
 
   CORBA::ULong *dims_wfs;
+  CORBA::ULong *dims_wfs_phase;
   CORBA::ULong *dims_intensities;
   CORBA::ULong *dims_slopes;
   CORBA::ULong *dims_commands;
@@ -49,6 +51,7 @@ class sutra_rtc_brama : public sutra_rtc {
   ACE_Mutex lock_;
 
   int wfs_size;
+  int wfs_phase_size;
   sutra_sensors *wfs;
   int target_size;
   int target_phase_size;
