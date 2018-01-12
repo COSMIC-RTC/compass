@@ -720,43 +720,43 @@ class widgetAOWindow(TemplateBaseClass):
 
         self.natm = len(self.sim.config.p_atmos.alt)
         for atm in range(self.natm):
-            name = 'atm%d' % atm
+            name = 'atm_%d' % atm
             self.add_dispDock(name, self.ui.wao_phasesgroup)
 
         self.nwfs = len(self.sim.config.p_wfss)
         for wfs in range(self.nwfs):
-            name = 'wfs%d' % wfs
+            name = 'wfs_%d' % wfs
             self.add_dispDock(name, self.ui.wao_phasesgroup)
-            name = 'slpComp%d' % wfs
+            name = 'slpComp_%d' % wfs
             self.add_dispDock(name, self.ui.wao_graphgroup, "MPL")
-            name = 'slpGeom%d' % wfs
+            name = 'slpGeom_%d' % wfs
             self.add_dispDock(name, self.ui.wao_graphgroup, "MPL")
             if self.sim.config.p_wfss[wfs].type == scons.WFSType.SH:
-                name = 'SH%d' % wfs
+                name = 'SH_%d' % wfs
                 self.add_dispDock(name, self.ui.wao_imagesgroup)
             elif self.sim.config.p_wfss[wfs].type == scons.WFSType.PYRHR:
-                name = 'pyrHR%d' % wfs
+                name = 'pyrHR_%d' % wfs
                 self.add_dispDock(name, self.ui.wao_imagesgroup)
-                name = 'pyrLR%d' % wfs
+                name = 'pyrLR_%d' % wfs
                 self.add_dispDock(name, self.ui.wao_imagesgroup)
             else:
                 raise "Analyser unknown"
 
         self.ndm = len(self.sim.config.p_dms)
         for dm in range(self.ndm):
-            name = 'dm%d' % dm
+            name = 'dm_%d' % dm
             w = QtGui.QCheckBox(name)
             self.add_dispDock(name, self.ui.wao_phasesgroup)
 
         self.ntar = self.sim.config.p_target.ntargets
         for tar in range(self.ntar):
-            name = 'tar%d' % tar
+            name = 'tar_%d' % tar
             self.add_dispDock(name, self.ui.wao_phasesgroup)
         for tar in range(self.ntar):
-            name = 'psfSE%d' % tar
+            name = 'psfSE_%d' % tar
             self.add_dispDock(name, self.ui.wao_imagesgroup)
         for tar in range(self.ntar):
-            name = 'psfLE%d' % tar
+            name = 'psfLE_%d' % tar
             self.add_dispDock(name, self.ui.wao_imagesgroup)
 
         self.add_dispDock("Strehl", self.ui.wao_graphgroup, "SR")
@@ -857,7 +857,7 @@ class widgetAOWindow(TemplateBaseClass):
         self.currentViewSelected = None  # type: str
 
         for i in range(self.natm):
-            key = "atm%d" % i
+            key = "atm_%d" % i
             data = self.sim.atm.get_screen(self.sim.config.p_atmos.alt[i])
             cx, cy = self.circleCoords(self.sim.config.p_geom.pupdiam / 2, 1000,
                                        data.shape[0], data.shape[1])
@@ -866,18 +866,18 @@ class widgetAOWindow(TemplateBaseClass):
             self.SRcircles[key].setPoints(cx, cy)
 
         for i in range(self.nwfs):
-            key = "wfs%d" % i
+            key = "wfs_%d" % i
             data = self.sim.wfs.get_phase(i)
             cx, cy = self.circleCoords(self.sim.config.p_geom.pupdiam / 2, 1000,
                                        data.shape[0], data.shape[1])
             self.SRcircles[key] = pg.ScatterPlotItem(cx, cy, pen='r', size=1)
             self.viewboxes[key].addItem(self.SRcircles[key])
             self.SRcircles[key].setPoints(cx, cy)
-            key = 'slpComp%d' % i
-            key = 'slpGeom%d' % i
+            key = 'slpComp_%d' % i
+            key = 'slpGeom_%d' % i
 
         for i in range(self.ndm):
-            key = "dm%d" % i
+            key = "dm_%d" % i
             dm_type = self.sim.config.p_dms[i].type
             alt = self.sim.config.p_dms[i].alt
             data = self.sim.dms.get_dm(dm_type, alt)
@@ -888,7 +888,7 @@ class widgetAOWindow(TemplateBaseClass):
             self.SRcircles[key].setPoints(cx, cy)
 
         for i in range(self.sim.config.p_target.ntargets):
-            key = "tar%d" % i
+            key = "tar_%d" % i
             data = self.sim.tar.get_phase(i)
             cx, cy = self.circleCoords(self.sim.config.p_geom.pupdiam / 2, 1000,
                                        data.shape[0], data.shape[1])
@@ -897,7 +897,7 @@ class widgetAOWindow(TemplateBaseClass):
             self.SRcircles[key].setPoints(cx, cy)
 
             data = self.sim.tar.get_image(i, b"se")
-            for psf in ["psfSE", "psfLE"]:
+            for psf in ["psfSE_", "psfLE_"]:
                 key = psf + str(i)
                 Delta = 5
                 self.SRCrossX[key] = pg.PlotCurveItem(
@@ -1117,14 +1117,11 @@ class widgetAOWindow(TemplateBaseClass):
             return
         else:
             try:
-                if self.natm > 9 or self.natm > 9 or self.natm > 9 or self.natm > 9:
-                    raise "this method will not working"
-
                 for key, dock in self.docks.items():
                     if key == "Strehl":
                         continue
                     elif dock.isVisible():
-                        index = int(key[-1])
+                        index = int(key.split("_")[-1])
                         data = None
                         if "atm" in key:
                             data = self.sim.atm.get_screen(
