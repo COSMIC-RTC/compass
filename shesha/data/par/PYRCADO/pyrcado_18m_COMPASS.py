@@ -9,7 +9,7 @@ p_loop = conf.Param_loop()
 
 p_loop.set_niter(1000)
 p_loop.set_ittime(1 / 500.)  # =1/500
-#p_loop.set_devices([0,1,2])
+p_loop.set_devices([4,5,6,7])
 
 # geom
 p_geom = conf.Param_geom()
@@ -80,8 +80,8 @@ p_dm0.set_push4imat(1.)
 
 p_dm1.set_type(scons.DmType.TT)
 p_dm1.set_alt(0.)
-p_dm1.set_unitpervolt(1.)
-p_dm1.set_push4imat(0.005)
+p_dm1.set_unitpervolt(658e-9 / 18. * scons.CONST.RAD2ARCSEC)
+p_dm1.set_push4imat(0.1)
 
 # centroiders
 p_centroider0 = conf.Param_centroider()
