@@ -621,18 +621,27 @@ class widgetAOWindow(TemplateBaseClass):
 
         self.loadConfig()
 
-    def update_displayDock(self, state: bool):
+    def update_displayDock(self):
         guilty_guy = self.sender().text()
+        state = self.sender().isChecked()
         if state:
             self.area.addDock(self.docks[guilty_guy])
         elif self.docks[guilty_guy].isVisible():
             self.docks[guilty_guy].close()
 
     def add_dispDock(self, name: str, parent, type: str="pg") -> None:
-        w = QtGui.QCheckBox(name)
-        w.clicked.connect(self.update_displayDock)
-        parent.children()[0].addWidget(w)
-        self.disp_checkboxes.append(w)
+        # action = parent.addAction(name)
+        # action.setCheckable(True)
+        # action.changed.connect(self.update_displayDock)
+        # self.disp_checkboxes.append(action)
+
+        checkBox = QtGui.QCheckBox(name, parent)
+        checkBox.clicked.connect(self.update_displayDock)
+        checkableAction = QtGui.QWidgetAction(parent)
+        checkableAction.setDefaultWidget(checkBox)
+        parent.addAction(checkableAction)
+        self.disp_checkboxes.append(checkBox)
+
         d = Dock(name)  # , closable=True)
         self.docks[name] = d
         if type == "pg":
@@ -687,13 +696,14 @@ class widgetAOWindow(TemplateBaseClass):
             pass
 
         for groupbox in [
-                self.ui.wao_phasesgroup, self.ui.wao_imagesgroup, self.ui.wao_graphgroup
+                self.ui.wao_phasesgroup_tb, self.ui.wao_imagesgroup_tb,
+                self.ui.wao_graphgroup_tb
         ]:
-            layout = groupbox.layout()
-            while not layout.isEmpty():
-                w = layout.itemAt(0)
-                layout.removeItem(w)
-                w.widget().setParent(None)
+            layout = groupbox.menu()
+            while layout and not layout.isEmpty():
+                w = layout.children()[0]
+                layout.removeAction(w)
+                w.setParent(None)
         self.disp_checkboxes.clear()
 
         for key, pgpl in self.SRcircles.items():
@@ -718,27 +728,42 @@ class widgetAOWindow(TemplateBaseClass):
         self.imgs.clear()
         self.viewboxes.clear()
 
+        self.wao_phasesgroup_cb = QtGui.QMenu(self)
+        self.ui.wao_phasesgroup_tb.setMenu(self.wao_phasesgroup_cb)
+        self.ui.wao_phasesgroup_tb.setText('Select')
+        self.ui.wao_phasesgroup_tb.setPopupMode(QtWidgets.QToolButton.InstantPopup)
+
+        self.wao_graphgroup_cb = QtGui.QMenu(self)
+        self.ui.wao_graphgroup_tb.setMenu(self.wao_graphgroup_cb)
+        self.ui.wao_graphgroup_tb.setText('Select')
+        self.ui.wao_graphgroup_tb.setPopupMode(QtWidgets.QToolButton.InstantPopup)
+
+        self.ui.wao_imagesgroup_tb.setText('Select')
+        self.wao_imagesgroup_cb = QtGui.QMenu(self)
+        self.ui.wao_imagesgroup_tb.setMenu(self.wao_imagesgroup_cb)
+        self.ui.wao_imagesgroup_tb.setPopupMode(QtWidgets.QToolButton.InstantPopup)
+
         self.natm = len(self.sim.config.p_atmos.alt)
         for atm in range(self.natm):
             name = 'atm_%d' % atm
-            self.add_dispDock(name, self.ui.wao_phasesgroup)
+            self.add_dispDock(name, self.wao_phasesgroup_cb)
 
         self.nwfs = len(self.sim.config.p_wfss)
         for wfs in range(self.nwfs):
             name = 'wfs_%d' % wfs
-            self.add_dispDock(name, self.ui.wao_phasesgroup)
+            self.add_dispDock(name, self.wao_phasesgroup_cb)
             name = 'slpComp_%d' % wfs
-            self.add_dispDock(name, self.ui.wao_graphgroup, "MPL")
+            self.add_dispDock(name, self.wao_graphgroup_cb, "MPL")
             name = 'slpGeom_%d' % wfs
-            self.add_dispDock(name, self.ui.wao_graphgroup, "MPL")
+            self.add_dispDock(name, self.wao_graphgroup_cb, "MPL")
             if self.sim.config.p_wfss[wfs].type == scons.WFSType.SH:
                 name = 'SH_%d' % wfs
-                self.add_dispDock(name, self.ui.wao_imagesgroup)
+                self.add_dispDock(name, self.wao_imagesgroup_cb)
             elif self.sim.config.p_wfss[wfs].type == scons.WFSType.PYRHR:
                 name = 'pyrHR_%d' % wfs
-                self.add_dispDock(name, self.ui.wao_imagesgroup)
+                self.add_dispDock(name, self.wao_imagesgroup_cb)
                 name = 'pyrLR_%d' % wfs
-                self.add_dispDock(name, self.ui.wao_imagesgroup)
+                self.add_dispDock(name, self.wao_imagesgroup_cb)
             else:
                 raise "Analyser unknown"
 
@@ -746,20 +771,20 @@ class widgetAOWindow(TemplateBaseClass):
         for dm in range(self.ndm):
             name = 'dm_%d' % dm
             w = QtGui.QCheckBox(name)
-            self.add_dispDock(name, self.ui.wao_phasesgroup)
+            self.add_dispDock(name, self.wao_phasesgroup_cb)
 
         self.ntar = self.sim.config.p_target.ntargets
         for tar in range(self.ntar):
             name = 'tar_%d' % tar
-            self.add_dispDock(name, self.ui.wao_phasesgroup)
+            self.add_dispDock(name, self.wao_phasesgroup_cb)
         for tar in range(self.ntar):
             name = 'psfSE_%d' % tar
-            self.add_dispDock(name, self.ui.wao_imagesgroup)
+            self.add_dispDock(name, self.wao_imagesgroup_cb)
         for tar in range(self.ntar):
             name = 'psfLE_%d' % tar
-            self.add_dispDock(name, self.ui.wao_imagesgroup)
+            self.add_dispDock(name, self.wao_imagesgroup_cb)
 
-        self.add_dispDock("Strehl", self.ui.wao_graphgroup, "SR")
+        self.add_dispDock("Strehl", self.wao_graphgroup_cb, "SR")
 
         self.ui.wao_resetSR_tarNum.setValue(0)
         self.ui.wao_resetSR_tarNum.setMaximum(self.sim.config.p_target.ntargets - 1)

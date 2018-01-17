@@ -33,7 +33,7 @@
      <x>0</x>
      <y>0</y>
      <width>1316</width>
-     <height>21</height>
+     <height>24</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -340,7 +340,7 @@
         </spacer>
        </item>
        <item>
-        <widget class="QGroupBox" name="wao_phasesgroup_container">
+        <widget class="QGroupBox" name="wao_phasesgroup">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
            <horstretch>0</horstretch>
@@ -352,25 +352,16 @@
          </property>
          <layout class="QHBoxLayout" name="wao_phasegroup">
           <item>
-           <widget class="QScrollArea" name="scrollArea">
-            <property name="widgetResizable">
-             <bool>true</bool>
+           <widget class="QToolButton" name="wao_phasesgroup_tb">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
             </property>
-            <widget class="QWidget" name="wao_phasesgroup">
-             <property name="geometry">
-              <rect>
-               <x>0</x>
-               <y>0</y>
-               <width>335</width>
-               <height>68</height>
-              </rect>
-             </property>
-             <layout class="QHBoxLayout" name="horizontalLayout_18">
-              <item>
-               <layout class="QHBoxLayout" name="horizontalLayout_16"/>
-              </item>
-             </layout>
-            </widget>
+            <property name="text">
+             <string>...</string>
+            </property>
            </widget>
           </item>
          </layout>
@@ -468,7 +459,21 @@
          <property name="title">
           <string>Images</string>
          </property>
-         <layout class="QHBoxLayout" name="horizontalLayout_14"/>
+         <layout class="QHBoxLayout" name="horizontalLayout_14">
+          <item>
+           <widget class="QToolButton" name="wao_imagesgroup_tb">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>...</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
         </widget>
        </item>
       </layout>
@@ -546,7 +551,21 @@
          <property name="title">
           <string>Graphics</string>
          </property>
-         <layout class="QHBoxLayout" name="horizontalLayout_17"/>
+         <layout class="QHBoxLayout" name="horizontalLayout_17">
+          <item>
+           <widget class="QToolButton" name="wao_graphgroup_tb">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>...</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
         </widget>
        </item>
       </layout>
