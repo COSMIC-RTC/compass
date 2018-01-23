@@ -11,7 +11,6 @@ master_build:
     COMPASS_ROOT: /builds/compass/compass
     NAGA_ROOT: $COMPASS_ROOT/naga
     SHESHA_ROOT: $COMPASS_ROOT/shesha
-
   script:
     - make
 #   - cd doc
@@ -28,6 +27,10 @@ master_build:
 
 develop_build:
   stage: build
+  variables:
+    COMPASS_ROOT: /builds/compass/compass
+    NAGA_ROOT: $COMPASS_ROOT/naga
+    SHESHA_ROOT: $COMPASS_ROOT/shesha
   script:
     - make
 #   - cd doc

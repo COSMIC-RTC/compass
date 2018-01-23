@@ -256,7 +256,7 @@ class Bokeh_groot:
                 self.covmat_roket = self.P.dot(self.covmat_roket).dot(self.P.T)
         else:
             if "aliasing" in contrib:
-                self.covmat_groot, self.covmat_roket = groot.test_Calias(
+                self.covmat_groot, self.covmat_roket = groot.compute_Calias(
                         self.datapath + str(self.select_files.value))
 
         self.update_covmats()

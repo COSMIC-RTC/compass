@@ -1,7 +1,6 @@
 '''
 Initialization of a Dms object
 '''
-from naga import naga_context
 
 import shesha_config as conf
 import shesha_constants as scons
@@ -15,9 +14,7 @@ import numpy as np
 
 import pandas as pd
 from scipy import interpolate
-
-from Dms import Dms
-from Sensors import Sensors
+from sutra_bind.wrap import naga_context, Dms
 
 from typing import List
 

@@ -1,7 +1,6 @@
 """
 Initialization of a Rtc object
 """
-from naga import naga_context
 
 import shesha_config as conf
 import shesha_constants as scons
@@ -14,13 +13,7 @@ from shesha_util import rtc_util
 from shesha_init import dm_init as dmi
 
 import numpy as np
-
-from Dms import Dms
-from Sensors import Sensors
-from Telescope import Telescope
-from Atmos import Atmos
-from Target import Target
-from Rtc import Rtc, Rtc_brama
+from sutra_bind.wrap import naga_context, Sensors, Dms, Target, Rtc, Rtc_brama, Atmos, Telescope
 
 
 def rtc_init(context: naga_context, tel: Telescope, wfs: Sensors, dms: Dms, atmos: Atmos,

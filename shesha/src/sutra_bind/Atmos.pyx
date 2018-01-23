@@ -75,6 +75,30 @@ cdef class Atmos:
         if(self.s_a != NULL):
             del self.s_a
 
+    def refresh_screen(self, float alt):
+        """
+            Refresh the selected screen by extrusion
+
+        :param alt: (float) :altitude of the screen to get
+        """
+        if alt not in self.list_alt():
+            raise ValueError("No screen at this altitude")
+
+        self.s_a.d_screens[alt].refresh_screen()
+
+    def set_seed(self, float alt, int seed):
+        """
+            Set the seed of the selected screen RNG
+
+        :param alt: (float) :altitude of the screen to get
+        :param seed: (int) :new seed
+
+        """
+        if alt not in self.list_alt():
+            raise ValueError("No screen at this altitude")
+
+        self.s_a.d_screens[alt].set_seed(seed)
+
     def get_screen(self, float alt):
         """
             Return a numpy array containing the turbulence at a given altitude

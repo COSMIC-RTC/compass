@@ -126,6 +126,9 @@ cdef extern from "sutra_turbu.h":
         int extrude(int dir)
         int init_vk(int seed, int pupd)
         int generate_vk(float l0, int nalias)
+        int refresh_screen()
+        int set_seed(int seed)
+
 
 
 #################################################
@@ -185,7 +188,6 @@ cdef extern from "sutra_target.h":
         sutra_phase * d_phase  # phase for this target
         # INTRO PHASE INSTRU
         # sutra_phase *d_phase_instru
-        #
         carma_host_obj[float] * phase_telemetry  #
         sutra_lgs * d_lgs  # the lgs object
         carma_obj[float] * object  # the object intensity map
@@ -208,8 +210,8 @@ cdef extern from "sutra_target.h":
         int set_ncpa_phase(float *h_dest, size_t size)
         int init_strehlmeter()
         int raytrace(int rst)
-        int raytrace(sutra_atmos * atmos)
-        int raytrace(sutra_dms * ydms, int rst, int do_phase_var)
+        int raytrace(sutra_atmos * atmos, bool async=false)
+        int raytrace(sutra_dms * ydms, int rst, int do_phase_var, bool async=false)
         int comp_image(int puponly, bool comp_le)
         int comp_strehl()
 
@@ -535,13 +537,15 @@ cdef extern from "sutra_centroider_wcog.h":
 #################################################
 # C-Class sutra_centroider_pyr
 #################################################
-cdef extern from "sutra_centroider_pyr.h" namespace "Method_CoG":
-    enum Flags :
-        Sinus=0x01
-        Local=0x02
-        Other=0x04
-
 cdef extern from "sutra_centroider_pyr.h":
+    cdef cppclass  Method_CoG:
+        bool isLocal
+        bool isSinus
+
+        Method_CoG(uint8_t method)
+        @staticmethod
+        const char* str(const Method_CoG &method)
+
     cdef cppclass sutra_centroider_pyr(sutra_centroider):
         bool is_type(string typec)
         # string get_type()

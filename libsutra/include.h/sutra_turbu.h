@@ -55,6 +55,11 @@ class sutra_tscreen {
   init_vk(int seed, int pupd);
   int
   generate_vk(float l0, int nalias);
+  int
+  refresh_screen();
+  int
+  set_seed(int seed);
+
 };
 
 class sutra_atmos {

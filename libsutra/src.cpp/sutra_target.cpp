@@ -367,14 +367,8 @@ int sutra_source::raytrace(sutra_atmos *yatmos, bool async) {
   return EXIT_SUCCESS;
 }
 
-int sutra_source::raytrace(sutra_atmos *yatmos) {
-  raytrace(yatmos, false);
-
-  return EXIT_SUCCESS;
-}
-
-int sutra_source::raytrace(sutra_dms *ydms, int rst, bool async,
-                           int do_phase_var) {
+int sutra_source::raytrace(sutra_dms *ydms, int rst,
+                           int do_phase_var, bool async) {
   current_context->set_activeDevice(device, 1);
   if (rst == 1)
     this->d_phase->d_screen->reset();
@@ -441,11 +435,6 @@ int sutra_source::raytrace(sutra_dms *ydms, int rst, bool async,
     }
   }
 
-  return EXIT_SUCCESS;
-}
-
-int sutra_source::raytrace(sutra_dms *ydms, int rst, int phase_var) {
-  raytrace(ydms, rst, false, phase_var);
   return EXIT_SUCCESS;
 }
 

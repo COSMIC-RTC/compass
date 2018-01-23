@@ -132,21 +132,21 @@ int sutra_rtc::do_imat(int ncntrl, sutra_dms *ydm) {
 
   vector<sutra_dm *>::iterator p;
   p = this->d_control[ncntrl]->d_dmseen.begin();
-  int inds1;
-  int cc;
-  int nactu = d_imat->getDims(2);
-  inds1 = 0;
-  cc = 0;
+  int inds1 = 0;
+  int cc = 0;
+  int cc2 = 0;
+
   std::cout << "Doing imat..." << std::endl;
   while (p != this->d_control[ncntrl]->d_dmseen.end()) {
     sutra_dm *dm = *p;
-    auto progress = carma_utils::ProgressBar(dm->ninflu);
-    for (int j = 0; j < dm->ninflu; j++) {
+    std::string desc = "DM"+carma_utils::to_string(cc2);
+    auto progress = carma_utils::ProgressBar(dm->ninflu, desc);
+    for (int j = 0; j < dm->ninflu; ++j) {
       // Push
       dm->comp_oneactu(j, dm->push4imat);
 
       for (size_t idx_cntr = 0; idx_cntr < (this->d_centro).size();
-           idx_cntr++) {
+           ++idx_cntr) {
         sutra_wfs *wfs = this->d_centro[idx_cntr]->wfs;
         float tmp_noise = wfs->noise;
         float tmp_nphot = wfs->nphot;
@@ -201,12 +201,13 @@ int sutra_rtc::do_imat(int ncntrl, sutra_dms *ydm) {
 
       dm->reset_shape();
       inds1 += this->d_control[ncntrl]->nslope();
-      cc++;
+      ++cc;
       progress.update();
       // printf("\rDoing imat...%d%%",(cc*100/nactu));
     }
     progress.finish();
-    p++;
+    ++p;
+    ++cc2;
   }
   printf("\n");
   return EXIT_SUCCESS;
@@ -261,7 +262,7 @@ int sutra_rtc::do_imat_geom(int ncntrl, sutra_dms *ydm,
       dm->reset_shape();
       inds1 += this->d_control[ncntrl]->nslope();
     }
-    p++;
+    ++p;
   }
   return EXIT_SUCCESS;
 }

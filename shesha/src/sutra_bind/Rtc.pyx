@@ -864,7 +864,7 @@ cdef class Rtc:
                 self.rtc.d_centro[n].get_type()
             raise ValueError(e)
 
-    def set_pyr_method(self, int n, int method):
+    def set_pyr_method(self, int n, uint8_t method):
         """ Set the pyramid centroiding method
         :parameters:
         n : (int) : pyr centroider number
@@ -878,7 +878,7 @@ cdef class Rtc:
         cdef sutra_centroider_pyr * centro = NULL
 
         if(self.rtc.d_centro[n].is_type(scons.WFSType.PYRHR)):
-            if method >= Other:
+            if method >= scons.PyrCentroiderMethod.OTHER:
                 raise ValueError("method unknown")
 
             centro = dynamic_cast_centroider_pyr_ptr(self.rtc.d_centro[n])

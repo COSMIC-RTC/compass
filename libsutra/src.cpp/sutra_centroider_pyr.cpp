@@ -19,8 +19,9 @@ sutra_centroider_pyr::sutra_centroider_pyr(carma_context *context,
   this->scale = scale;
   this->valid_thresh = 1e-4;
   this->pyr_type = sensors->d_wfs[nwfs]->type;
+
   // centroider method by default sin_global
-  this->method = Method_CoG::Sinus & ~Method_CoG::Local;
+  this->method = Method_CoG(false, true);
 }
 
 sutra_centroider_pyr::~sutra_centroider_pyr() {
@@ -38,17 +39,12 @@ float sutra_centroider_pyr::get_valid_thresh() {
   return this->valid_thresh;
 }
 
-int sutra_centroider_pyr::set_method(uint8_t method) {
-  if (method>=Method_CoG::Other) {
-    DEBUG_TRACE("method unknown");
-    return EXIT_FAILURE;
-  }
-
+int sutra_centroider_pyr::set_method(Method_CoG method) {
   this->method = method;
   return EXIT_SUCCESS;
 }
 
-uint8_t sutra_centroider_pyr::get_method() {
+Method_CoG sutra_centroider_pyr::get_method() {
   return this->method;
 }
 
@@ -79,7 +75,7 @@ int sutra_centroider_pyr::get_pyr(float *cube, float *subsum, float *centroids,
     pyr_subsum(subsum, cube, subindx, subindy, ns, nvalid,
                this->current_context->get_device(device));
 
-    if( !(this->method&Method_CoG::Local) ) {
+    if( !(this->method.isLocal) ) {
       // if we are using a global method
       // DEBUG_TRACE("Global : %s", Method_CoG::str(this->method));
       int blocks, threads;
@@ -96,14 +92,14 @@ int sutra_centroider_pyr::get_pyr(float *cube, float *subsum, float *centroids,
       //     DEBUG_TRACE("Local : %s", Method_CoG::str(this->method));
     }
 
-    // if(this->method&Method_CoG::Sinus){  // if we are using a global method
+    // if(this->method.isSinus){  // if we are using a global method
     //     DEBUG_TRACE("Sinus : %s", Method_CoG::str(this->method));
     // } else {
     //     DEBUG_TRACE("NoSinus : %s", Method_CoG::str(this->method));
     // }
 
     pyr2_slopes(centroids, cube, subindx, subindy, subsum, ns, nvalid, this->scale,
-                this->valid_thresh, this->method&Method_CoG::Sinus,  // if we are using a sin method
+                this->valid_thresh, this->method.isSinus,  // if we are using a sin method
                 this->current_context->get_device(device));
   } else {
     return EXIT_FAILURE;

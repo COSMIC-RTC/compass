@@ -58,7 +58,7 @@ def dim_dm_patch(pupdiam: int, diam: float, type: bytes, alt: float,
                 np.linalg.norm([xpos_wfs[w], ypos_wfs[w]]) for w in range(len(xpos_wfs))
         ]
     if ((type == scons.DmType.PZT) or (type == scons.DmType.TT)):
-        pp = (diam * pupdiam)
+        pp = (diam / pupdiam)
     elif (type == scons.DmType.KL):
         pp = (pupdiam)
     else:
@@ -208,7 +208,7 @@ def select_actuators(xc: np.ndarray, yc: np.ndarray, nxact: int, pitch: int, cob
     rad_in = (((nxact - 1) / 2) * cobs - margin_in) * pitch
 
     if N is None:
-        if (margin_out < 0):
+        if (margin_out is None):
             margin_out = 1.44
         rad_out = ((nxact - 1.) / 2. + margin_out) * pitch
 

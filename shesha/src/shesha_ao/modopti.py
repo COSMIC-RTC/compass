@@ -2,11 +2,7 @@
 Functions used for modal optimization control
 """
 import numpy as np
-
-from Telescope import Telescope
-from Atmos import Atmos
-from Rtc import Rtc
-from Sensors import Sensors
+from sutra_bind.wrap import Sensors, Telescope, Rtc, Atmos
 
 
 def openLoopSlp(tel: Telescope, atmos: Atmos, wfs: Sensors, rtc: Rtc, nrec: int,

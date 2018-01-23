@@ -2,17 +2,12 @@
 Initialization of a Sensors object
 '''
 
-from naga import naga_context
-
 import shesha_config as conf
 import shesha_constants as scons
 from shesha_constants import CONST
 
 from . import lgs_init as LGS
-
-from Sensors import Sensors
-from Telescope import Telescope
-
+from sutra_bind.wrap import naga_context, Sensors, Telescope
 import numpy as np
 
 

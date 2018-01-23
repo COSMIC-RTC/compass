@@ -2,45 +2,37 @@ Master status: [![Master status](https://gitlab.obspm.fr/compass/compass/badges/
 
 Develop status: [![Develop status](https://gitlab.obspm.fr/compass/compass/badges/develop/pipeline.svg)](https://gitlab.obspm.fr/compass/compass/commits/develop)
 
-Table of Contents
-=================
+# Table of Contents
 
-   * [Install Anaconda with python3](#install-anaconda-with-python3)
-      * [Download and installation](#download-and-installation)
-      * [setup .bashrc](#setup-bashrc)
-   * [Install MAGMA](#install-magma)
-      * [Why MAGMA ?](#why-magma-)
-      * [Configure MAGMA with openBLAS](#configure-magma-with-openblas)
-         * [Dependencies using anaconda:](#dependencies-using-anaconda)
-         * [[DEPRECATED] Dependencies : openblas (<a href="http://www.openblas.net">http://www.openblas.net</a>)](#deprecated-dependencies--openblas-httpwwwopenblasnet)
-         * [extraction](#extraction)
-         * [configuration](#configuration)
-      * [Configure MAGMA with MKL](#configure-magma-with-mkl)
-         * [extraction](#extraction-1)
-         * [configuration](#configuration-1)
-      * [compilation and installation](#compilation-and-installation)
-         * [compilation](#compilation)
-         * [installation](#installation)
-      * [tuning (not tested)](#tuning-not-tested)
-   * [Install the platform](#install-the-platform)
-      * [Hardware requirements](#hardware-requirements)
-      * [Environment requirements](#environment-requirements)
-      * [Installation process](#installation-process)
-         * [install dependencies (if not already done)](#install-dependencies-if-not-already-done)
-         * [install COMPASS](#install-compass)
-
-Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc)
+- [Table of Contents](#table-of-contents)
+- [Install Anaconda with python3](#install-anaconda-with-python3)
+    - [setup .bashrc](#setup-bashrc)
+    - [Download and installation](#download-and-installation)
+- [Install MAGMA](#install-magma)
+    - [Why MAGMA ?](#why-magma)
+    - [Configure MAGMA with openBLAS](#configure-magma-with-openblas)
+        - [Dependencies using anaconda:](#dependencies-using-anaconda)
+        - [[DEPRECATED] Dependencies : openblas (<http://www.openblas.net>)](#deprecated-dependencies-openblas-httpwwwopenblasnet)
+        - [extraction](#extraction)
+        - [configuration & compilation & installation (fast way)](#configuration-compilation-installation-fast-way)
+        - [configuration](#configuration)
+    - [Configure MAGMA with MKL](#configure-magma-with-mkl)
+        - [extraction](#extraction)
+        - [configuration](#configuration)
+    - [compilation and installation](#compilation-and-installation)
+        - [compilation](#compilation)
+        - [installation](#installation)
+    - [tuning (not tested)](#tuning-not-tested)
+- [Install the platform](#install-the-platform)
+    - [Hardware requirements](#hardware-requirements)
+    - [Environment requirements](#environment-requirements)
+    - [Installation process](#installation-process)
+        - [install dependencies (if not already done)](#install-dependencies-if-not-already-done)
+        - [install COMPASS](#install-compass)
 
 # Install Anaconda with python3
 
 more info: <https://www.continuum.io/downloads#linux>
-
-## Download and installation
-
-```bash
-wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh
-bash Miniconda3-latest-Linux-x86_64.sh
-```
 
 ## setup .bashrc
 
@@ -49,11 +41,18 @@ export CONDA_ROOT=$HOME/miniconda3
 export PATH=$CONDA_ROOT/bin:$PATH
 ```
 
+## Download and installation
+
+```bash
+wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh
+bash Miniconda3-latest-Linux-x86_64.sh -b -p $CONDA_ROOT
+```
+
 To avoid any incompatibility this python modules, it's highly recommended to use the gcc provided with anaconda:
 
 ```bash
 conda config --add channels compass
-conda install compass
+conda install -y compass docopt tqdm
 ```
 
 # Install MAGMA
@@ -71,8 +70,15 @@ But MAGMA needs a LAPACK and a BLAS implementation. Actually, we try two options
 ### Dependencies using anaconda:
 
 ```bash
-conda install cython numpy nomkl pyqtgraph ipython pyqt qt matplotlib astropy blaze h5py hdf5 nose pandas scipy
+conda install -y cython numpy nomkl pyqtgraph ipython pyqt qt matplotlib astropy blaze h5py hdf5 nose pandas scipy docopt tqdm
 ```
+
+add to you .bashrc:
+
+```bash
+export OPENBLAS_ROOT=$CONDA_ROOT
+```
+
 
 ### [DEPRECATED] Dependencies : openblas (<http://www.openblas.net>)
 
@@ -108,9 +114,28 @@ MAGMA is available here : <http://icl.cs.utk.edu/magma/software/index.html>
 extract the tgz file and go into the new directory
 
 ```bash
-wget http://icl.cs.utk.edu/projectsfiles/magma/downloads/magma-2.2.0.tar.gz
-tar xf magma-2.2.0.tar.gz
-cd magma-2.2.0
+wget http://icl.cs.utk.edu/projectsfiles/magma/downloads/magma-2.3.0.tar.gz
+tar xf magma-2.3.0.tar.gz
+cd magma-2.3.0
+```
+### configuration & compilation & installation (fast way)
+
+You have to create your own make.inc based on make.inc.openblas:
+
+```bash
+cp make.inc-examples/make.inc.openblas make.inc
+```
+
+just compile the shared target (and test if you want)
+
+```bash
+GPU_TARGET=sm_52 OPENBLASDIR=$OPENBLAS_ROOT CUDADIR=/opt/cuda make -j 8 shared sparse-shared
+```
+
+To install libraries and include files in a given prefix, run:
+
+```bash
+GPU_TARGET=sm_52 OPENBLASDIR=$OPENBLAS_ROOT CUDADIR=/opt/cuda make install prefix=$HOME/local/magma
 ```
 
 ### configuration
@@ -385,7 +410,7 @@ export PYTHONPATH=$NAGA_ROOT/lib:$NAGA_ROOT/src:$SHESHA_ROOT/lib:$SHESHA_ROOT/sr
 ### install dependencies (if not already done)
 
 ```bash
-conda install cython numpy nomkl pyqtgraph ipython pyqt qt matplotlib astropy blaze h5py hdf5 nose pandas scipy
+conda install -y cython numpy nomkl pyqtgraph ipython pyqt qt matplotlib astropy blaze h5py hdf5 nose pandas scipy docopt tqdm
 ```
 
 ### install COMPASS

@@ -6,12 +6,7 @@ import numpy as np
 import shesha_config as conf
 import shesha_constants as scons
 from shesha_constants import CONST
-
-from Sensors import Sensors
-from Dms import Dms
-from Rtc import Rtc
-from Atmos import Atmos
-from Rtc import Rtc
+from sutra_bind.wrap import Sensors, Dms, Rtc, Atmos
 
 import typing
 from typing import List

@@ -7,9 +7,8 @@ import time
 import shesha_config as conf
 import shesha_constants as scons
 
-from Sensors import Sensors
-from Dms import Dms
-from Rtc import Rtc
+from sutra_bind.wrap import Rtc
+
 from shesha_ao.wfs import noise_cov
 
 import typing
