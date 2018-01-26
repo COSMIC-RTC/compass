@@ -442,11 +442,12 @@ int sutra_source::raytrace(int rst) {
 
   this->current_context->set_activeDevice(this->device, 1);
 
-  if ((this->d_ncpa_phase == nullptr) && (rst == 1)) {
+  if(rst == 1) {
     this->d_phase->d_screen->reset();
-  } else if(this->d_ncpa_phase != nullptr) {
-    float alpha = (rst == 1)?0.f:1.f;
-    this->d_phase->d_screen->axpy(alpha, this->d_ncpa_phase, 1, 1);
+  }
+
+  if (this->d_ncpa_phase != nullptr) {
+    this->d_phase->d_screen->axpy(1.0f, this->d_ncpa_phase, 1, 1);
   }
   return EXIT_SUCCESS;
 }
