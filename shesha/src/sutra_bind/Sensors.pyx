@@ -956,7 +956,7 @@ cdef class Sensors:
         TODO: fill the noise unit
         """
         if seed < 0:
-            seed = 1234 * nwfs
+            seed = 1234 + nwfs
         self.sensors.set_noise(nwfs, noise, seed)
 
     def set_validpix(self, int n, np.ndarray[ndim=1, dtype=np.int32_t] validx, np.ndarray[ndim=1, dtype=np.int32_t] validy):
