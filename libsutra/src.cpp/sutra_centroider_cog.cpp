@@ -7,7 +7,10 @@ sutra_centroider_cog::sutra_centroider_cog(carma_context *context, sutra_sensors
 
   this->device = device;
   context->set_activeDevice(device,1);
-  this->wfs = sensors->d_wfs[nwfs];
+  if(sensors != nullptr)
+    this->wfs = sensors->d_wfs[nwfs];
+  else
+    this->wfs = nullptr;
   this->nwfs = nwfs;
   this->nvalid = nvalid;
   this->offset = offset;
@@ -24,10 +27,13 @@ string sutra_centroider_cog::get_type() {
 
 int sutra_centroider_cog::get_cog(carma_streams *streams, float *cube,
                                   float *subsum, float *centroids, int nvalid, int npix, int ntot) {
-
   current_context->set_activeDevice(device,1);
   // simple cog
-  int nstreams = streams->get_nbStreams();
+  int nstreams;
+  if(streams != nullptr)
+    nstreams = streams->get_nbStreams();
+  else
+    nstreams = 0;
   //fprintf(stderr, "\n[%s@%d]: nstreams=%d\n", __FILE__, __LINE__, nstreams);
   if (nstreams > 1) {
     //fprintf(stderr, "\n[%s@%d]: i=%d istart=%d npix=%d nvalid=%d\n", __FILE__, __LINE__, i, istart, npix, nvalid);
@@ -46,15 +52,24 @@ int sutra_centroider_cog::get_cog(carma_streams *streams, float *cube,
 }
 
 int sutra_centroider_cog::get_cog(float *subsum, float *slopes, bool noise) {
-  if(noise || wfs->error_budget == false) {
-    return this->get_cog(wfs->streams, *(wfs->d_bincube), subsum,
-                         slopes, wfs->nvalid_tot, wfs->npix, wfs->d_bincube->getNbElem());
-  } else {
-    return this->get_cog(wfs->streams, *(wfs->d_bincube_notnoisy), subsum,
-                         slopes, wfs->nvalid_tot, wfs->npix, wfs->d_bincube->getNbElem());
+  if(this->wfs != nullptr) {
+    if(noise || wfs->error_budget == false) {
+      return this->get_cog(wfs->streams, *(wfs->d_bincube), subsum,
+                           slopes, wfs->nvalid_tot, wfs->npix, wfs->d_bincube->getNbElem());
+    } else {
+      return this->get_cog(wfs->streams, *(wfs->d_bincube_notnoisy), subsum,
+                           slopes, wfs->nvalid_tot, wfs->npix, wfs->d_bincube->getNbElem());
+    }
   }
+  DEBUG_TRACE("this->wfs was not initialized");
+  return EXIT_FAILURE;
 }
 
 int sutra_centroider_cog::get_cog() {
-  return this->get_cog(*(wfs->d_subsum),*(wfs->d_slopes),true);
+  if(this->wfs != nullptr)
+    return this->get_cog(*(wfs->d_subsum),*(wfs->d_slopes),true);
+
+  DEBUG_TRACE("this->wfs was not initialized");
+  return EXIT_FAILURE;
+
 }

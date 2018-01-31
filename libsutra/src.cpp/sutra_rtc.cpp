@@ -25,6 +25,12 @@ sutra_rtc::~sutra_rtc() {
 
   //delete this->current_context;
 }
+int sutra_rtc::add_centroider(int nwfs, long nvalid, float offset, float scale, long device, char *typec) {
+  sutra_sensors *sensors = nullptr;
+  add_centroider(sensors, nwfs, nvalid, offset, scale, device, typec);
+
+  return EXIT_SUCCESS;
+}
 
 int sutra_rtc::add_centroider(sutra_sensors *sensors, int nwfs, long nvalid, float offset, float scale,
                               long device, char *typec) {
@@ -72,6 +78,24 @@ int sutra_rtc::add_controller_geo(int nactu, int Nphi, float delay,
   return EXIT_SUCCESS;
 }
 
+int sutra_rtc::add_controller(int nactu, float delay, long device, const char *typec) {
+  current_context->set_activeDevice(device,1);
+  int ncentroids = 0;
+  for (size_t idx = 0; idx < (this->d_centro).size(); idx++)
+    ncentroids += this->d_centro[idx]->nvalid;
+
+  string type_ctr(typec);
+  sutra_dms *dms = nullptr;
+  char **type_dmseen = nullptr;
+  float *alt = nullptr;
+
+  if (type_ctr.compare("generic") == 0) {
+    d_control.push_back(
+      new sutra_controller_generic(current_context, ncentroids, nactu, delay, dms, type_dmseen, alt, 0));
+  }
+
+  return EXIT_SUCCESS;
+}
 int sutra_rtc::add_controller(int nactu, float delay, long device,
                               const char *typec, sutra_dms *dms, char **type_dmseen, float *alt, int ndm) {
   current_context->set_activeDevice(device,1);
@@ -305,6 +329,20 @@ int sutra_rtc::do_centroids(int ncntrl, bool noise) {
   return EXIT_SUCCESS;
 }
 
+int sutra_rtc::do_centroids(int ncntrl, float *bincube, int npix, int ntot) {
+  carma_streams *streams = nullptr;
+  int indssp = 0;
+
+  for (size_t idx_cntr = 0; idx_cntr < (this->d_centro).size(); idx_cntr++) {
+    this->d_centro[idx_cntr]->get_cog(streams, bincube, this->d_control[ncntrl]->d_subsum->getDataAt(indssp),
+                                      this->d_control[ncntrl]->d_centroids->getDataAt(2*indssp),this->d_centro[idx_cntr]->nvalid, npix, ntot);
+
+    indssp += this->d_centro[idx_cntr]->nvalid;
+  }
+  remove_ref(ncntrl);
+
+  return EXIT_SUCCESS;
+}
 int sutra_rtc::do_centroids_geom(int ncntrl) {
   current_context->set_activeDevice(device,1);
   int inds2 = 0;
@@ -367,11 +405,16 @@ int sutra_rtc::do_clipping(int ncntrl, float min, float max) {
   return EXIT_SUCCESS;
 }
 
+int sutra_rtc::comp_voltage(int ncntrl) {
+  this->d_control[ncntrl]->comp_voltage();
+  this->d_control[ncntrl]->command_delay();
+
+  return EXIT_SUCCESS;
+}
 int sutra_rtc::apply_control(int ncntrl, sutra_dms *ydm) {
   current_context->set_activeDevice(device,1);
 
-  this->d_control[ncntrl]->comp_voltage();
-  this->d_control[ncntrl]->command_delay();
+  comp_voltage(ncntrl);
 
   vector<sutra_dm *>::iterator p;
   p = this->d_control[ncntrl]->d_dmseen.begin();

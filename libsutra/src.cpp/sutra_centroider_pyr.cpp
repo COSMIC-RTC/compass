@@ -12,7 +12,10 @@ sutra_centroider_pyr::sutra_centroider_pyr(carma_context *context,
 
   this->device = device;
   context->set_activeDevice(device, 1);
-  this->wfs = sensors->d_wfs[nwfs];
+  if(sensors != nullptr)
+    this->wfs = sensors->d_wfs[nwfs];
+  else
+    this->wfs = nullptr;
   this->nwfs = nwfs;
   this->nvalid = nvalid;
   this->offset = offset;
@@ -108,23 +111,32 @@ int sutra_centroider_pyr::get_pyr(float *cube, float *subsum, float *centroids,
 }
 
 int sutra_centroider_pyr::get_cog(float *subsum, float *slopes, bool noise) {
-  if (this->pyr_type == "pyr" || this->pyr_type == "roof")
-    return this->get_pyr(*(wfs->d_bincube), subsum, slopes,
-                         *(wfs->d_validsubsx), *(wfs->d_validsubsy), wfs->nvalid,
-                         wfs->nfft / wfs->nrebin, 4);
-  else if (this->pyr_type == "pyrhr") {
-    if(noise || wfs->error_budget == false) {
-      return this->get_pyr(*(wfs->d_binimg), subsum, slopes,
+  if(this->wfs != nullptr) {
+    if (this->pyr_type == "pyr" || this->pyr_type == "roof")
+      return this->get_pyr(*(wfs->d_bincube), subsum, slopes,
                            *(wfs->d_validsubsx), *(wfs->d_validsubsy), wfs->nvalid,
                            wfs->nfft / wfs->nrebin, 4);
-    } else
-      return this->get_pyr(*(wfs->d_binimg_notnoisy), subsum, slopes,
-                           *(wfs->d_validsubsx), *(wfs->d_validsubsy), wfs->nvalid,
-                           wfs->nfft / wfs->nrebin, 4);
+    else if (this->pyr_type == "pyrhr") {
+      if(noise || wfs->error_budget == false) {
+        return this->get_pyr(*(wfs->d_binimg), subsum, slopes,
+                             *(wfs->d_validsubsx), *(wfs->d_validsubsy), wfs->nvalid,
+                             wfs->nfft / wfs->nrebin, 4);
+      } else
+        return this->get_pyr(*(wfs->d_binimg_notnoisy), subsum, slopes,
+                             *(wfs->d_validsubsx), *(wfs->d_validsubsy), wfs->nvalid,
+                             wfs->nfft / wfs->nrebin, 4);
+    }
   }
+
+  DEBUG_TRACE("this->wfs was not initialized");
   return EXIT_FAILURE;
 }
 
 int sutra_centroider_pyr::get_cog() {
-  return this->get_cog(*(wfs->d_subsum), *(wfs->d_slopes),true);
+  if(this->wfs != nullptr)
+    return this->get_cog(*(wfs->d_subsum), *(wfs->d_slopes),true);
+
+  DEBUG_TRACE("this->wfs was not initialized");
+  return EXIT_FAILURE;
+
 }

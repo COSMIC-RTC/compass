@@ -81,6 +81,32 @@ cdef class Rtc:
             activeDevice,
             type)
 
+    def add_centroider_standalone(self, long nwfs, long nvalid,
+                                  bytes type, float offset, float scale):
+        """Add a centroider in the sutra_centroiders vector of the RTC standalone on the GPU
+
+        :parameters:
+            nwfs : (long) : number of wfs
+
+            nvalid: (long) : number of valid subaps
+
+            type: (str) : centroider's type
+
+            offset: (float) :
+
+            scale: (float) :
+
+        """
+        cdef int activeDevice = self.rtc.device
+        self.context.set_activeDeviceForCpy(self.rtc.device, 1)
+        self.rtc.add_centroider(
+            nwfs,
+            nvalid,
+            offset,
+            scale,
+            activeDevice,
+            type)
+
     def add_controller(self, int nactu, float delay, bytes type, Dms dms,
                        list dmseen, np.ndarray[ndim=1, dtype=np.float32_t] alt,
                        int ndm, long Nphi=-1, bool wfs_direction=False):
@@ -133,16 +159,36 @@ cdef class Rtc:
                 ptr_alt,
                 ndm)
 
+    def add_controller_standalone(self, int nactu, float delay, bytes type):
+        """Add a controller in the sutra_controller vector of the RTC on the GPU
+
+        :parameters:
+            nactu: (int) : number of actuators
+
+            delay: (float) : loop delay
+
+            type: (str) : controller's type
+
+        """
+        self.context.set_activeDeviceForCpy(self.device, 1)
+
+        self.rtc.add_controller(
+            nactu,
+            delay,
+            self.device,
+            type)
+
     def rm_controller(self):
         """Remove a controller"""
         self.context.set_activeDevice(self.device, 1)
         self.dms.rm_controller()
 
-    def init_npix(self, int ncentro):
+    def init_npix(self, int ncentro, int npix):
         """Initialize npix in the sutra_centroider_corr object (useless ?)
 
         :parameters:
             ncentro: (int) : centroider's index
+            npix: (int): npix value
         """
 
         self.context.set_activeDevice(self.device, 1)
@@ -151,7 +197,7 @@ cdef class Rtc:
         cdef sutra_centroider_corr * corr
         if(self.rtc.d_centro[ncentro].is_type(scons.CentroiderType.CORR)):
             corr = dynamic_cast_centroider_corr_ptr(centro)
-            corr.init_bincube()
+            corr.init_bincube(npix)
 
     def init_weights(self, int ncentro, w):
         """Load the weight array in sutra_centroider_wcog object
@@ -202,6 +248,32 @@ cdef class Rtc:
             self.rtc.do_centroids(ncontrol)
         else:
             self.rtc.do_centroids()
+
+    def do_centroids_from_image(self, int ncontrol, np.ndarray[ndim=2, dtype=np.int32_t] img):
+        """
+        TODO docstring
+        """
+        self.context.set_activeDevice(self.rtc.device, 1)
+        # TODO : implement it for rtc standalone : interfaces ?
+
+    def do_centroids_from_wfs(self, int ncontrol, Sensors wfs, int nwfs):
+        """
+        TODO docstring
+        """
+        self.context.set_activeDevice(self.rtc.device, 1)
+
+        self.rtc.do_centroids(
+            ncontrol,
+            wfs.sensors.d_wfs[nwfs].d_bincube.getData(),
+            wfs.sensors.d_wfs[nwfs].npix,
+            wfs.sensors.d_wfs[nwfs].d_bincube.getNbElem())
+
+    def comp_voltage(self, int ncontrol):
+        """
+        TODO docstring
+        """
+        self.context.set_activeDevice(self.rtc.device, 1)
+        self.rtc.comp_voltage(ncontrol)
 
     def do_centroids_geom(self, int ncontrol=-1):
         """Compute the geometric centroids with sutra_controller #ncontrol object
