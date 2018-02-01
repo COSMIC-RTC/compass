@@ -5,23 +5,24 @@
 sutra_centroider_pyr::sutra_centroider_pyr(carma_context *context,
     sutra_sensors *sensors, int nwfs, long nvalid, float offset,
     float scale, int device) {
-  if ((sensors->d_wfs[nwfs]->type != "pyr")
-      && (sensors->d_wfs[nwfs]->type != "pyrhr"))
-    throw "sutra_centroider_roof expect a sutra_wfs_pyr_pyr4 sensor";
+
   this->current_context = context;
 
   this->device = device;
   context->set_activeDevice(device, 1);
-  if(sensors != nullptr)
+  if(sensors != nullptr) {
     this->wfs = sensors->d_wfs[nwfs];
-  else
+    this->pyr_type = sensors->d_wfs[nwfs]->type;
+  } else {
     this->wfs = nullptr;
+    this->pyr_type = "pyrhr";
+  }
   this->nwfs = nwfs;
   this->nvalid = nvalid;
   this->offset = offset;
   this->scale = scale;
   this->valid_thresh = 1e-4;
-  this->pyr_type = sensors->d_wfs[nwfs]->type;
+
 
   // centroider method by default sin_global
   this->method = Method_CoG(false, true);
