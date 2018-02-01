@@ -329,7 +329,8 @@ class carma_obj {
 
   int init_prng_host(int seed);
   int prng_host(char gtype);
-  int prng_host(char gtype, T_data alpha);
+  int prng_host(char gtype, T_data stddev);
+  int prng_host(char gtype, T_data stddev, T_data alpha);
   int destroy_prng_host();
 };
 typedef carma_obj<int> caObjI;
