@@ -2,6 +2,7 @@
 #define _sutra_controller_generic_H_
 
 #include <sutra_controller.h>
+#include <sutra_acquisim.h>
 
 class sutra_controller_generic: public sutra_controller {
  public:
@@ -11,6 +12,7 @@ class sutra_controller_generic: public sutra_controller {
   carma_obj<float> *d_gain;
   carma_obj<float> *d_decayFactor;
   carma_obj<float> *d_compbuff;
+
   string command_law;
 
  public:
@@ -35,7 +37,6 @@ class sutra_controller_generic: public sutra_controller {
   set_commandlaw(string law);
   int
   comp_com();
-
 };
 
 #endif // _sutra_controller_generic_H_

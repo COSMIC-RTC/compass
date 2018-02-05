@@ -2,7 +2,10 @@
 #include <string>
 
 sutra_centroider_corr::sutra_centroider_corr(carma_context *context, sutra_sensors *sensors, int nwfs,
-    long nvalid, float offset, float scale, int device) {
+    long nvalid, float offset, float scale, int device) : sutra_centroider(context, sensors, nwfs, nvalid, offset, scale, device) {
+
+  context->set_activeDevice(device,1);
+
   this->d_corrfnct = 0L;
   this->d_corrspot = 0L;
   this->d_corrnorm = 0L;
@@ -10,18 +13,6 @@ sutra_centroider_corr::sutra_centroider_corr(carma_context *context, sutra_senso
   this->d_corr = 0L;
   this->d_interpmat = 0L;
 
-  this->current_context = context;
-
-  if(sensors != nullptr)
-    this->wfs = sensors->d_wfs[nwfs];
-  else
-    this->wfs = nullptr;
-  this->nwfs = nwfs;
-  this->nvalid = nvalid;
-  this->device = device;
-  context->set_activeDevice(device,1);
-  this->offset = offset;
-  this->scale = scale;
   this->npix = 0;
   this->interp_sizex = 0;
   this->interp_sizey = 0;

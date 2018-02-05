@@ -2,19 +2,9 @@
 #include <string>
 
 sutra_centroider_wcog::sutra_centroider_wcog(carma_context *context, sutra_sensors *sensors, int nwfs,
-    long nvalid, float offset, float scale, int device) {
-  this->current_context = context;
+    long nvalid, float offset, float scale, int device) : sutra_centroider(context, sensors, nwfs, nvalid, offset, scale, device) {
 
-  this->device = device;
   context->set_activeDevice(device,1);
-  if(sensors != nullptr)
-    this->wfs = sensors->d_wfs[nwfs];
-  else
-    this->wfs = nullptr;
-  this->nwfs = nwfs;
-  this->nvalid = nvalid;
-  this->offset = offset;
-  this->scale = scale;
 
   this->npix = 0;
   this->d_weights = 0L;

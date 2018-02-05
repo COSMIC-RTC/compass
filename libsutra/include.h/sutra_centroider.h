@@ -2,6 +2,7 @@
 #define _SUTRA_CENTROIDER_H_
 
 #include <sutra_wfs.h>
+#include <sutra_acquisim.h>
 #include <string>
 
 class sutra_centroider {
@@ -16,10 +17,24 @@ class sutra_centroider {
 
   carma_context *current_context;
 
+  carma_obj<float> *d_bincube;
+  carma_obj<float> *d_img;
+  carma_obj<int> *d_validx;
+  carma_obj<int> *d_validy;
+
+ protected:
+  sutra_centroider(carma_context *context, sutra_sensors *sensors, int nwfs, long nvalid, float offset, float scale, int device);
  public:
   virtual
-  ~sutra_centroider() {};
-
+  ~sutra_centroider();
+  int
+  load_validpos(int *ivalid, int *jvalid);
+  int
+  fill_bincube(int npix, int Nsub);
+  int
+  load_img(float *img, int n);
+  int
+  load_pyrimg(float *img, int n);
   bool is_type(string typec) {
     return (typec.compare(get_type()) == 0);
   }

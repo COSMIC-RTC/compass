@@ -9,14 +9,15 @@ import time
 import sys
 import os
 
-from guardian import gamora
+#from guardian import gamora
 from guardian.tools import Dphi
 from guardian.tools import roket_exploitation as rexp
 import matplotlib.pyplot as plt
 plt.ion()
 
 
-def compute_Cerr(filename, modal=True, ctype="float", speed=None, H=None, theta=None):
+def compute_Cerr(filename, modal=True, ctype="float", speed=None, H=None, theta=None,
+                 r0=None, L0=None):
     """ Returns the residual error covariance matrix using GROOT from a ROKET file
     :parameter:
         filename : (string) : full path to the ROKET file
@@ -26,6 +27,8 @@ def compute_Cerr(filename, modal=True, ctype="float", speed=None, H=None, theta=
         speed: (np.ndarray(ndim=1, dtype=np.float32)): (optionnal) wind speed for each layer [m/s]
         H: (np.ndarray(ndim=1, dtype=np.float32)): (optionnal) altitude of each layer [m]
         theta: (np.ndarray(ndim=1, dtype=np.float32)): (optionnal) wind direction for each layer [rad]
+        r0: (float): (optionnal) Fried parameter @ 0.5 µm [m]
+        L0: (np.ndarray(ndim=1, dtype=np.float32)): (optionnal) Outer scale [m]
 
     :return:
         Cerr : (np.ndarray(dim=2, dtype=np.float32)) : residual error covariance matrix
@@ -37,7 +40,9 @@ def compute_Cerr(filename, modal=True, ctype="float", speed=None, H=None, theta=
     gain = f.attrs["_Param_controller__gain"]
     wxpos = f.attrs["_Param_wfs__xpos"][0]
     wypos = f.attrs["_Param_wfs__ypos"][0]
-    r0 = f.attrs["_Param_atmos__r0"] * (Lambda_tar / Lambda_wfs)**(6. / 5.)
+    if r0 is None:
+        r0 = f.attrs["_Param_atmos__r0"]
+    r0 = r0 * (Lambda_tar / Lambda_wfs)**(6. / 5.)
     RASC = 180. / np.pi * 3600.
     xpos = f["dm.xpos"][:]
     ypos = f["dm.ypos"][:]
@@ -47,7 +52,8 @@ def compute_Cerr(filename, modal=True, ctype="float", speed=None, H=None, theta=
     yactu = (ypos - pupshape / 2) * p2m
     if H is None:
         H = f.attrs["_Param_atmos__alt"]
-    L0 = f.attrs["_Param_atmos__L0"]
+    if L0 is None:
+        L0 = f.attrs["_Param_atmos__L0"]
     if speed is None:
         speed = f.attrs["_Param_atmos__windspeed"]
     if theta is None:
@@ -76,7 +82,7 @@ def compute_Cerr(filename, modal=True, ctype="float", speed=None, H=None, theta=
         groot = groot_init(Nact.shape[0],
                            int(f.attrs["_Param_atmos__nscreens"]), angleht, fc,
                            vdt.astype(np.float32),
-                           Htheta.astype(np.float32), f.attrs["_Param_atmos__L0"], theta,
+                           Htheta.astype(np.float32), L0, theta,
                            scale.astype(np.float32),
                            xactu.astype(np.float32),
                            yactu.astype(np.float32),
@@ -87,7 +93,7 @@ def compute_Cerr(filename, modal=True, ctype="float", speed=None, H=None, theta=
                             int(f.attrs["_Param_atmos__nscreens"]), angleht, fc,
                             vdt.astype(np.float64),
                             Htheta.astype(np.float64),
-                            f.attrs["_Param_atmos__L0"].astype(np.float64),
+                            L0.astype(np.float64),
                             theta.astype(np.float64),
                             scale.astype(np.float64),
                             xactu.astype(np.float64),
@@ -557,3 +563,117 @@ def compute_Calias_element(xx, yy, fc, d, nsub, tabx, taby, xoff=0, yoff=0):
     #                 - Dphi.dphi_highpass(ad, d, tabx, taby)) * (1 / r0)**(5. / 3.)
     # Ca[:nsub,nsub:] = Ca[nsub:,:nsub].copy()
     return Ca
+
+
+def compute_dCmm(filename, ws=None, wd=None, dk=1):
+    """ Returns the derivative slopes covariance matrix using CPU version of GROOT
+    from a ROKET file and a model based on structure function
+    :parameter:
+        filename : (string) : full path to the ROKET file
+        ws: (np.array[ndim=1, dtype=np.float32]): wind speed per layer [m/s]
+        wd: (np.array[ndim=1, dtype=np.float32]): wind direction per layer [deg]
+        dk: (int): slopes shift [iterations]
+    :return:
+        dCmm : (np.ndarray(dim=2, dtype=np.float32)) : d/dt(slopes)*slopes
+    """
+
+    f = h5py.File(filename, 'r')
+    if ws is None:
+        ws = f.attrs["_Param_atmos__windspeed"]
+    if wd is None:
+        wd = f.attrs["_Param_atmos__winddir"]
+    dt = f.attrs["_Param_loop__ittime"] * dk
+    L0 = f.attrs["_Param_atmos__L0"]
+    frac = f.attrs["_Param_atmos__frac"]
+    nsub = f["R"][:].shape[1] // 2
+    nssp = f.attrs["_Param_wfs__nxsub"][0]
+    validint = f.attrs["_Param_tel__cobs"]
+    x = np.linspace(-1, 1, nssp)
+    x, y = np.meshgrid(x, x)
+    r = np.sqrt(x * x + y * y)
+    rorder = np.sort(r.reshape(nssp * nssp))
+    ncentral = nssp * nssp - np.sum(r >= validint, dtype=np.int32)
+    validext = rorder[ncentral + nsub]
+    valid = (r < validext) & (r >= validint)
+    ivalid = np.where(valid)
+    r0 = f.attrs["_Param_atmos__r0"]
+    Lambda_wfs = f.attrs["_Param_wfs__Lambda"][0]
+    d = f.attrs["_Param_tel__diam"] / nssp
+    RASC = 180 / np.pi * 3600
+    scale = 0.5 * (1 / r0)**(5 / 3) * (RASC * Lambda_wfs * 1e-6 / 2 / np.pi)**2 / d**2
+    x = (np.arange(nssp) - nssp / 2) * d
+    x, y = np.meshgrid(x, x)
+    x = x[ivalid]
+    y = y[ivalid]
+    xx = np.tile(x, (nsub, 1))
+    yy = np.tile(y, (nsub, 1))
+    f.close()
+    dCmm = np.zeros((2 * nsub, 2 * nsub))
+    for k in range(ws.size):
+        dCmm += frac[k] * compute_dCmm_element(xx, yy, d, nsub, ws[k], wd[k], dt, L0[k])
+
+    return dCmm * scale
+
+
+def compute_dCmm_element(xx, yy, d, nsub, ws, wd, dt, L0):
+    """
+        Compute the element of the derivative slopes covariance matrix
+
+    :parameters:
+        xx: (np.ndarray(ndim=2, dtype=np.float32)): X positions of the WFS subap
+        yy: (np.ndarray(ndim=2, dtype=np.float32)): Y positions of the WFS subap
+        d: (float): subap diameter
+        nsub: (int): number of subap
+        ws: (float): wind speed per layer [m/s]
+        wd: (float): wind direction per layer [deg]
+        dt: (float): iteration time [s]
+        L0: (float): outer scale [m]
+    """
+    xij = xx - xx.T
+    yij = yy - yy.T
+    dCmm = np.zeros((2 * nsub, 2 * nsub))
+    vdt = ws * dt
+    wd = wd / 180 * np.pi
+
+    # XX covariance
+    AB = np.linalg.norm([-xij + vdt * np.cos(wd), -yij + vdt * np.sin(wd)], axis=0)
+    Ab = np.linalg.norm([-xij - d + vdt * np.cos(wd), -yij + vdt * np.sin(wd)], axis=0)
+    aB = np.linalg.norm([-xij + d + vdt * np.cos(wd), -yij + vdt * np.sin(wd)], axis=0)
+
+    dCmm[:nsub, :nsub] += Dphi.rodconan(Ab, L0) + Dphi.rodconan(
+            aB, L0) - 2 * Dphi.rodconan(AB, L0)
+
+    AB = np.linalg.norm([xij + vdt * np.cos(wd), yij + vdt * np.sin(wd)], axis=0)
+    Ab = np.linalg.norm([xij - d + vdt * np.cos(wd), yij + vdt * np.sin(wd)], axis=0)
+    aB = np.linalg.norm([xij + d + vdt * np.cos(wd), yij + vdt * np.sin(wd)], axis=0)
+
+    dCmm[:nsub, :nsub] -= (
+            Dphi.rodconan(Ab, L0) + Dphi.rodconan(aB, L0) - 2 * Dphi.rodconan(AB, L0))
+
+    # YY covariance
+    CD = np.linalg.norm([-xij + vdt * np.cos(wd), -yij + vdt * np.sin(wd)], axis=0)
+    Cd = np.linalg.norm([-xij + vdt * np.cos(wd), -yij - d + vdt * np.sin(wd)], axis=0)
+    cD = np.linalg.norm([-xij + vdt * np.cos(wd), -yij + d + vdt * np.sin(wd)], axis=0)
+
+    dCmm[nsub:, nsub:] += Dphi.rodconan(Cd, L0) + Dphi.rodconan(
+            cD, L0) - 2 * Dphi.rodconan(CD, L0)
+
+    CD = np.linalg.norm([xij + vdt * np.cos(wd), yij + vdt * np.sin(wd)], axis=0)
+    Cd = np.linalg.norm([xij + vdt * np.cos(wd), yij - d + vdt * np.sin(wd)], axis=0)
+    cD = np.linalg.norm([xij + vdt * np.cos(wd), yij + d + vdt * np.sin(wd)], axis=0)
+
+    dCmm[nsub:, nsub:] -= (
+            Dphi.rodconan(Cd, L0) + Dphi.rodconan(cD, L0) - 2 * Dphi.rodconan(CD, L0))
+    # XY covariance
+
+    # aD = np.linalg.norm([xx + d/2, yy + d/2], axis=0)
+    # ad = np.linalg.norm([xx + d/2, yy - d/2], axis=0)
+    # Ad = np.linalg.norm([xx - d/2, yy - d/2], axis=0)
+    # AD = np.linalg.norm([xx - d/2, yy + d/2], axis=0)
+    #
+    # dCmm[nsub:,:nsub] = 0.25 * (Dphi.rodconan(Ad, d, tabx, taby)
+    #                 + Dphi.dphi_highpass(aD, d, tabx, taby)
+    #                 - Dphi.dphi_highpass(AD, d, tabx, taby)
+    #                 - Dphi.dphi_highpass(ad, d, tabx, taby)) * (1 / r0)**(5. / 3.)
+    # dCmm[:nsub,nsub:] = dCmm[nsub:,:nsub].copy()
+    return 0.25 * dCmm

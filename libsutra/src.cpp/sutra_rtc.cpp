@@ -35,6 +35,7 @@ int sutra_rtc::add_centroider(int nwfs, long nvalid, float offset, float scale, 
 int sutra_rtc::add_centroider(sutra_sensors *sensors, int nwfs, long nvalid, float offset, float scale,
                               long device, char *typec) {
   current_context->set_activeDevice(device,1);
+
   if (strcmp(typec, "bpcog") == 0)
     d_centro.push_back(
       new sutra_centroider_bpcog(current_context, sensors, nwfs, nvalid, offset, scale,
@@ -315,14 +316,21 @@ int sutra_rtc::do_centroids(int ncntrl) {
 
 int sutra_rtc::do_centroids(int ncntrl, bool noise) {
   current_context->set_activeDevice(device,1);
+  carma_streams *streams = nullptr;
   int indssp = 0;
 
   for (size_t idx_cntr = 0; idx_cntr < (this->d_centro).size(); idx_cntr++) {
+    if(this->d_centro[idx_cntr]->wfs != nullptr) {
+      this->d_centro[idx_cntr]->get_cog(this->d_control[ncntrl]->d_subsum->getDataAt(indssp),
+                                        this->d_control[ncntrl]->d_centroids->getDataAt(2*indssp),noise);
 
-    this->d_centro[idx_cntr]->get_cog(this->d_control[ncntrl]->d_subsum->getDataAt(indssp),
-                                      this->d_control[ncntrl]->d_centroids->getDataAt(2*indssp),noise);
+      indssp += this->d_centro[idx_cntr]->wfs->nvalid_tot;
+    } else {
+      this->d_centro[idx_cntr]->get_cog(streams, this->d_centro[idx_cntr]->d_bincube->getData(), this->d_control[ncntrl]->d_subsum->getDataAt(indssp),
+                                        this->d_control[ncntrl]->d_centroids->getDataAt(2*indssp),this->d_centro[idx_cntr]->nvalid, this->d_centro[idx_cntr]->d_bincube->getDims(1), this->d_centro[idx_cntr]->d_bincube->getNbElem());
 
-    indssp += this->d_centro[idx_cntr]->wfs->nvalid_tot;
+      indssp += this->d_centro[idx_cntr]->nvalid;
+    }
   }
   remove_ref(ncntrl);
 
