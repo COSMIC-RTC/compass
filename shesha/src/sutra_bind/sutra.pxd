@@ -729,6 +729,9 @@ cdef extern from "sutra_controller_generic.h":
         carma_obj[float] * d_gain
         carma_obj[float] * d_decayFactor
         carma_obj[float] * d_compbuff
+        carma_obj[float] * d_bincube
+        carma_obj[float] * d_img
+
         string command_law
 
         sutra_controller_generic(carma_context * context, long nvalid, long nactu,
@@ -743,7 +746,6 @@ cdef extern from "sutra_controller_generic.h":
         int set_matE(float * matE)
         int set_commandlaw(string law)
         int comp_com()
-
 
 #################################################
 # C-Class sutra_controller_geo

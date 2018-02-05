@@ -4,25 +4,14 @@
 
 sutra_centroider_pyr::sutra_centroider_pyr(carma_context *context,
     sutra_sensors *sensors, int nwfs, long nvalid, float offset,
-    float scale, int device) {
-
-  this->current_context = context;
-
-  this->device = device;
+    float scale, int device) : sutra_centroider(context, sensors, nwfs, nvalid, offset, scale, device) {
   context->set_activeDevice(device, 1);
   if(sensors != nullptr) {
-    this->wfs = sensors->d_wfs[nwfs];
     this->pyr_type = sensors->d_wfs[nwfs]->type;
   } else {
-    this->wfs = nullptr;
     this->pyr_type = "pyrhr";
   }
-  this->nwfs = nwfs;
-  this->nvalid = nvalid;
-  this->offset = offset;
-  this->scale = scale;
   this->valid_thresh = 1e-4;
-
 
   // centroider method by default sin_global
   this->method = Method_CoG(false, true);
@@ -59,9 +48,8 @@ string sutra_centroider_pyr::get_method_str() {
 int sutra_centroider_pyr::get_cog(carma_streams *streams, float *cube,
                                   float *subsum, float *centroids, int nvalid, int npix, int ntot) {
   // TODO(Implement sutra_centroider_pyr::get_cog)
-  std::cerr << "get_cog not implemented" << std::endl;
 
-  return EXIT_SUCCESS;
+  return get_pyr(cube, subsum, centroids, this->d_validx->getData(), this->d_validy->getData(), this->nvalid, this->d_bincube->getDims(1), 4);
 }
 
 int sutra_centroider_pyr::get_pyr(float *cube, float *subsum, float *centroids,

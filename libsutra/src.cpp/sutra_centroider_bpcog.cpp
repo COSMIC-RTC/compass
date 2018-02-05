@@ -1,20 +1,7 @@
 #include <sutra_centroider_bpcog.h>
 
 sutra_centroider_bpcog::sutra_centroider_bpcog(carma_context *context,
-    sutra_sensors *sensors, int nwfs, long nvalid, float offset, float scale, int device, int nmax) {
-
-  this->current_context = context;
-
-  this->device = device;
-  context->set_activeDevice(device,1);
-  if(sensors != nullptr)
-    this->wfs = sensors->d_wfs[nwfs];
-  else
-    this->wfs = nullptr;
-  this->nwfs = nwfs;
-  this->nvalid = nvalid;
-  this->offset = offset;
-  this->scale = scale;
+    sutra_sensors *sensors, int nwfs, long nvalid, float offset, float scale, int device, int nmax) : sutra_centroider(context, sensors, nwfs, nvalid, offset, scale, device) {
 
   this->nmax = nmax;
 
