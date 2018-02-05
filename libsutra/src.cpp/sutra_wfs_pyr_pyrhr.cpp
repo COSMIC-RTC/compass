@@ -387,10 +387,12 @@ int sutra_wfs_pyr_pyrhr::comp_generic() {
 
   this->d_psum->reset();
   //DEBUG_TRACE("threads %d blocks %d",threads,blocks);
-  reduce(this->d_binimg->getNbElem(), threads, blocks, this->d_binimg->getData(),
-         this->d_psum->getData());
+  // reduce(this->d_binimg->getNbElem(), threads, blocks, this->d_binimg->getData(),
+  //        this->d_psum->getData());
+  
+  float p_sum = reduce<float>(this->d_binimg->getData(), this->d_binimg->getNbElem());
 
-  pyr_fact(this->d_binimg->getData(), this->nphot, this->d_psum->getData(),
+  pyr_fact(this->d_binimg->getData(), this->nphot / p_sum,
            this->nfft / this->nrebin, 1,
            this->current_context->get_device(device));
 

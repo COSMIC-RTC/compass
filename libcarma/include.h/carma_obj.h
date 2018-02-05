@@ -367,7 +367,8 @@ void clip_array(T_data *d_data, T_data min, T_data max, int N, carma_device *dev
 template<class T_data>
 void reduce(int size, int threads, int blocks, T_data *d_idata,
             T_data *d_odata);
-
+template<class T_data>
+T_data reduce(T_data * data, int N);
 // CU functions transpose
 template<class T_data>
 int transposeCU(T_data *d_idata, T_data *d_odata, long N1, long N2);
@@ -401,7 +402,7 @@ template<class T_data>
 int fillindex(T_data *d_odata, T_data *d_idata, int *indx, int N,
               carma_device *device);
 template<class T_data>
-int fillvalues(T_data *d_odata, T_data *val, int N,
+int fillvalues(T_data *d_odata, T_data val, int N,
                carma_device *device);
 template<class T>
 int getarray2d(T *d_odata, T *d_idata, int x0, int Ncol, int NC, int N,
