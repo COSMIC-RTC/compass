@@ -13,9 +13,11 @@ int carma_obj<T>::init_prng(long seed) {
   int genPerBlock, blockCount;
   getNumBlocksAndThreads(current_context->get_device(device), nb_elem, blockCount, genPerBlock);
   // Allocate memory for RNG states
-  carmaSafeCall(
-    cudaMalloc((void ** )&(this->d_states),
-               blockCount * genPerBlock * sizeof(curandState)));
+  if(this->d_states == NULL)
+    carmaSafeCall(
+      cudaMalloc((void ** )&(this->d_states),
+                 blockCount * genPerBlock * sizeof(curandState)));
+  cudaMemset(this->d_states, 0, blockCount * genPerBlock * sizeof(curandState));
 
   this->nThreads = genPerBlock;
   this->nBlocks = blockCount;
@@ -172,7 +174,10 @@ caObjZ::prng(char gtype, float alpha, float beta);
 
 template<class T>
 int carma_obj<T>::init_prng_host(int seed) {
-  curandCreateGenerator(&(this->gen), CURAND_RNG_PSEUDO_MTGP32);
+  if(this->gen != NULL)
+    curandDestroyGenerator(this->gen);
+
+  curandCreateGenerator(&(this->gen), CURAND_RNG_PSEUDO_XORWOW);
   //CURAND_RNG_PSEUDO_MTGP32
   //CURAND_RNG_PSEUDO_XORWOW
   curandSetPseudoRandomGeneratorSeed(this->gen, seed);
