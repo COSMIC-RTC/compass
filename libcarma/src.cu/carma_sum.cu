@@ -252,11 +252,11 @@ T reduce(T * data, int N){
   return thrust::reduce(dev_ptr, dev_ptr + N);
 }
 
-template float 
+template float
 reduce<float>(float *data, int N);
 
-template double 
+template double
 reduce<double>(double *data, int N);
 
-template int 
+template int
 reduce<int>(int *data, int N);

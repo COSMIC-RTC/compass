@@ -389,7 +389,7 @@ int sutra_wfs_pyr_pyrhr::comp_generic() {
   //DEBUG_TRACE("threads %d blocks %d",threads,blocks);
   // reduce(this->d_binimg->getNbElem(), threads, blocks, this->d_binimg->getData(),
   //        this->d_psum->getData());
-  
+
   float p_sum = reduce<float>(this->d_binimg->getData(), this->d_binimg->getNbElem());
 
   pyr_fact(this->d_binimg->getData(), this->nphot / p_sum,
