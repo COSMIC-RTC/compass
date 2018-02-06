@@ -470,6 +470,11 @@ cdef extern from "sutra_centroider.h":
 
         carma_context * current_context
 
+        carma_obj[float] *d_bincube
+        carma_obj[float] *d_img
+        carma_obj[float] *d_validx
+        carma_obj[float] *d_validy
+
         bool is_type(string typec)
 
         string get_type()
@@ -478,6 +483,10 @@ cdef extern from "sutra_centroider.h":
                     int nvalid, int npix, int ntot)
         int get_cog(float * subsum, float * slopes, bool noise)
         int get_cog()
+        int load_validpos(int *ivalid, int *jvalid)
+        int fill_bincube(int npix)
+        int load_img(float *img, int n)
+        int load_pyrimg(float *img, int n)
 
     int convert_centro(float * d_odata, float * d_idata, float offset, float scale,
                        int N, carma_device * device)

@@ -53,14 +53,15 @@ int sutra_centroider::load_pyrimg(float *img, int n) {
   return EXIT_SUCCESS;
 }
 
-int sutra_centroider::fill_bincube(int npix, int Nsub) {
+int sutra_centroider::fill_bincube(int npix) {
 
   current_context->set_activeDevice(device,1);
   if(this->d_bincube == nullptr) {
     long dims_data3[4] = {3,npix,npix,this->nvalid};
     this->d_bincube = new carma_obj<float>(current_context, dims_data3);
   }
-  fillbincube(this->d_img->getData(), this->d_bincube->getData(), npix, this->nvalid, Nsub, this->d_validx->getData(), this->d_validy->getData(), this->current_context->get_device(this->device));
+  int nxsub = this->d_img->getDims(1) / npix;
+  fillbincube(this->d_img->getData(), this->d_bincube->getData(), npix, this->nvalid, nxsub, this->d_validx->getData(), this->d_validy->getData(), this->current_context->get_device(this->device));
 
   return EXIT_SUCCESS;
 }
@@ -75,7 +76,7 @@ int sutra_centroider::load_validpos(int *ivalid, int *jvalid) {
   }
 
   this->d_validx->host2device(ivalid);
-  this->d_validy->host2device(ivalid);
+  this->d_validy->host2device(jvalid);
 
   return EXIT_SUCCESS;
 }

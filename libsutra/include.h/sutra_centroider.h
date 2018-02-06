@@ -30,7 +30,7 @@ class sutra_centroider {
   int
   load_validpos(int *ivalid, int *jvalid);
   int
-  fill_bincube(int npix, int Nsub);
+  fill_bincube(int npix);
   int
   load_img(float *img, int n);
   int

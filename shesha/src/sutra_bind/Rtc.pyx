@@ -249,12 +249,37 @@ cdef class Rtc:
         else:
             self.rtc.do_centroids()
 
-    def do_centroids_from_image(self, int ncontrol, np.ndarray[ndim=2, dtype=np.int32_t] img):
+    def load_rtc_img(self, int ncentro, np.ndarray[ndim=2, dtype=np.float32_t] img):
         """
         TODO docstring
         """
         self.context.set_activeDevice(self.rtc.device, 1)
-        # TODO : implement it for rtc standalone : interfaces ?
+        cdef np.ndarray[ndim= 2, dtype = np.float32_t] img_F = img.T.copy()
+        self.rtc.d_centro[ncentro].load_img(< float * > img_F.data, img.shape[0])
+
+    def load_rtc_pyrimg(self, int ncentro, np.ndarray[ndim=2, dtype=np.float32_t] img):
+        """
+        TODO docstring
+        """
+        self.context.set_activeDevice(self.rtc.device, 1)
+        cdef np.ndarray[ndim= 2, dtype = np.float32_t] img_F = img.T.copy()
+        self.rtc.d_centro[ncentro].load_pyrimg(< float * > img_F.data, img.shape[0])
+
+    def load_rtc_validpos(self, int ncentro, np.ndarray[ndim=1, dtype=np.int32_t] validx, np.ndarray[ndim=1, dtype=np.int32_t] validy):
+        """
+        TODO docstring
+        """
+        self.context.set_activeDevice(self.rtc.device, 1)
+
+        self.rtc.d_centro[ncentro].load_validpos( < int * > validx.data, < int * > validy.data)
+
+    def fill_rtc_bincube(self, int ncentro, int npix):
+        """
+        TODO docstring
+        """
+        self.context.set_activeDevice(self.rtc.device, 1)
+
+        self.rtc.d_centro[ncentro].fill_bincube(npix)
 
     def do_centroids_from_wfs(self, int ncontrol, Sensors wfs, int nwfs):
         """
@@ -1193,6 +1218,20 @@ cdef class Rtc:
             return mgain
         else:
             raise TypeError("Controller needs to be ls, generic or mv")
+
+    def get_bincube(self, int ncentro):
+        """
+        TODO : docstring
+        """
+        self.context.set_activeDeviceForCpy(self.rtc.device, 1)
+        cdef carma_obj[float] * cube
+        cdef const long * cdims
+        cdef np.ndarray[ndim = 3, dtype = np.float32_t] data_F
+        cube = self.rtc.d_centro[ncentro].d_bincube
+        cdims = cube.getDims()
+        data_F = np.empty((cdims[3], cdims[2], cdims[1]), dtype=np.float32)
+        cube.device2host( < float * > data_F.data)
+        return data_F.T.copy()
 
     def set_imat(self, int ncontrol, np.ndarray[ndim=2, dtype=np.float32_t] data):
         """Set the interaction matrix on a sutra_controller object
