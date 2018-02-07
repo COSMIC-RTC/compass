@@ -483,7 +483,7 @@ cdef extern from "sutra_centroider.h":
                     int nvalid, int npix, int ntot)
         int get_cog(float * subsum, float * slopes, bool noise)
         int get_cog()
-        int load_validpos(int *ivalid, int *jvalid)
+        int load_validpos(int *ivalid, int *jvalid, int N)
         int fill_bincube(int npix)
         int load_img(float *img, int n)
         int load_pyrimg(float *img, int n)

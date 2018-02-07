@@ -66,11 +66,11 @@ int sutra_centroider::fill_bincube(int npix) {
   return EXIT_SUCCESS;
 }
 
-int sutra_centroider::load_validpos(int *ivalid, int *jvalid) {
+int sutra_centroider::load_validpos(int *ivalid, int *jvalid, int N) {
 
   current_context->set_activeDevice(device,1);
   if(this->d_validx == nullptr) {
-    long dims_data[2] = {1,this->nvalid};
+    long dims_data[2] = {1, N};
     this->d_validx = new carma_obj<int>(current_context, dims_data);
     this->d_validy = new carma_obj<int>(current_context, dims_data);
   }

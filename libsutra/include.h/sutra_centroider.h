@@ -28,7 +28,7 @@ class sutra_centroider {
   virtual
   ~sutra_centroider();
   int
-  load_validpos(int *ivalid, int *jvalid);
+  load_validpos(int *ivalid, int *jvalid, int N);
   int
   fill_bincube(int npix);
   int
