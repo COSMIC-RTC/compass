@@ -281,8 +281,7 @@ cdef class Rtc:
             ncentro: (int): centroider index
             img: (np.ndarray[ndim=2, dtype=np.float32_t]): PYR image
         """
-            self.context.set_activeDevice(self.rtc.device, 1)
-
+        self.context.set_activeDevice(self.rtc.device, 1)
         self.rtc.d_centro[ncentro].load_validpos(< int * > validx.data, < int * > validy.data, validx.size)
 
     def fill_rtc_bincube(self, int ncentro, int npix):
