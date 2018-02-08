@@ -284,6 +284,15 @@ cdef class Rtc:
         self.context.set_activeDevice(self.rtc.device, 1)
         self.rtc.d_centro[ncentro].load_validpos(< int * > validx.data, < int * > validy.data, validx.size)
 
+    def save_com(self, int ncontrol):
+        """
+            Save the current command in a circular buffer for computation of the next one
+        :parameters:
+            ncontrol: (int): controller index
+        """
+        self.context.set_activeDevice(self.rtc.device, 1)
+        self.rtc.d_control[ncontrol].command_delay()
+
     def fill_rtc_bincube(self, int ncentro, int npix):
         """
             Fill the bincube from the previously loaded image.
