@@ -13,8 +13,8 @@ sutra_centroider_pyr::sutra_centroider_pyr(carma_context *context,
   }
   this->valid_thresh = 1e-4;
 
-  // centroider method by default sin_global
-  this->method = Method_CoG(false, true);
+  // centroider method by default nosin_global
+  this->method = Method_CoG(false, false);
 }
 
 sutra_centroider_pyr::~sutra_centroider_pyr() {

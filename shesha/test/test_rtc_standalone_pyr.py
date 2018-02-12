@@ -19,12 +19,15 @@ import shesha_sim
 import shesha_init
 from shesha_constants import CONST
 import time
+import matplotlib.pyplot as plt
+plt.ion()
 
 arguments = docopt(__doc__)
 param_file = arguments["<parameters_filename>"]
 
 # Get parameters from file
 sim = shesha_sim.Simulator(param_file)
+sim.config.p_loop.set_niter(100)
 
 if arguments["--devices"]:
     devices = []
@@ -37,6 +40,7 @@ nactu = sim.config.p_controller0.nactu.sum()
 nvalid = sim.config.p_controller0.nvalid
 offset = 0
 p_wfs = sim.config.p_wfs0
+p_centroider = sim.config.p_centroider0
 scale = (p_wfs.Lambda * 1e-6 / sim.config.p_tel.diam) * \
             p_wfs.pyr_ampl * CONST.RAD2ARCSEC
 
@@ -77,6 +81,7 @@ for k in tqdm(range(sim.config.p_loop.niter)):
     threadSync()
     rtc_standalone.do_control(0)
     threadSync()
+    rtc_standalone.save_com(0)
     rtc_time += (time.time() - a)
     s[k, :] = rtc_standalone.get_centroids(0)
     c[k, :] = rtc_standalone.get_com(0)

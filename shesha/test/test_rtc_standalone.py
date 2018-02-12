@@ -70,6 +70,7 @@ for k in tqdm(range(sim.config.p_loop.niter)):
     rtc_standalone.fill_rtc_bincube(0, sim.config.p_wfs0.npix)
     rtc_standalone.do_centroids(0)
     rtc_standalone.do_control(0)
+    rtc_standalone.save_com(0)
     threadSync()
     rtc_time += time.time() - a
     s[k, :] = rtc_standalone.get_centroids(0)
