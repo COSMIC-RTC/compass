@@ -166,7 +166,7 @@ class Param_wfs:
         """ Pyramid pupil separation. (default: long(wfs.nxsub))"""
 
         # pyramid internal kwrds
-        self.__pyr_offsets = None  # (float*)
+        self._pyr_offsets = None  # (float*)
         self.__pyr_cx = None  # (float*)
         self.__pyr_cy = None  # (float*)
 
