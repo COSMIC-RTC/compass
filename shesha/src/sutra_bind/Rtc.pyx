@@ -1171,6 +1171,7 @@ cdef class Rtc:
 
         :parameters:
             ncontrol: (int) : controller index
+            comvec: (np.ndarray[ndim=1,dtype=np.float32_t]) : command vector
         """
         self.context.set_activeDeviceForCpy(self.rtc.device, 1)
         self.rtc.d_control[ncontrol].d_com.host2device( < float * > comvec.data)

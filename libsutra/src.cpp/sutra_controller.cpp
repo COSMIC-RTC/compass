@@ -53,6 +53,7 @@ sutra_controller::sutra_controller(carma_context *context,
 
   dims_data1[1]     = nslope / 2;
   this->d_subsum    = new carma_obj<float>(context, dims_data1);
+  this->d_subsum->reset();
 
   dims_data1[1]     = nslope;
   this->d_centroids = new carma_obj<float>(context, dims_data1);
@@ -155,25 +156,24 @@ int sutra_controller::comp_voltage() {
   std::lock_guard<std::mutex> lock(this->comp_voltage_mutex);
   current_context->set_activeDevice(device, 1);
 
-  if (this->open_loop)
-    carmaSafeCall(
-      cudaMemset(this->d_voltage->getData(), 0.0f,
-                 this->nactu() * sizeof(float)));
-  else if (this->delay > 0) {
-    // DEBUG_TRACE("a = %f   b = %f   c = %f",this->a,this->b,this->c);
-    carmaSafeCall(
-      cudaMemset(this->d_voltage->getData(), 0.0f,
-                 this->nactu() * sizeof(float)));
-    carma_axpy(cublas_handle(), this->nactu(), this->a, this->d_com->getData(),
-               1, this->d_voltage->getData(), 1);
-    carma_axpy(cublas_handle(), this->nactu(), this->b, this->d_com1->getData(),
-               1, this->d_voltage->getData(), 1);
+  carmaSafeCall(
+    cudaMemset(this->d_voltage->getData(), 0.0f,
+               this->nactu() * sizeof(float)));
 
-    if (delay > 1)
-      carma_axpy(cublas_handle(), this->nactu(), this->c,
-                 this->d_com2->getData(), 1, this->d_voltage->getData(), 1);
-  } else {
-    this->d_com->copyInto(this->d_voltage->getData(), this->nactu());
+  if (!this->open_loop) {
+    if (this->delay > 0) {
+
+      carma_axpy(cublas_handle(), this->nactu(), this->a, this->d_com->getData(),
+                 1, this->d_voltage->getData(), 1);
+      carma_axpy(cublas_handle(), this->nactu(), this->b, this->d_com1->getData(),
+                 1, this->d_voltage->getData(), 1);
+
+      if (delay > 1)
+        carma_axpy(cublas_handle(), this->nactu(), this->c,
+                   this->d_com2->getData(), 1, this->d_voltage->getData(), 1);
+    } else {
+      this->d_com->copyInto(this->d_voltage->getData(), this->nactu());
+    }
   }
 
   if (this->d_perturb != nullptr) { // Apply volt perturbations (circular buffer)

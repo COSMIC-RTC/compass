@@ -13,9 +13,11 @@ int carma_obj<T>::init_prng(long seed) {
   int genPerBlock, blockCount;
   getNumBlocksAndThreads(current_context->get_device(device), nb_elem, blockCount, genPerBlock);
   // Allocate memory for RNG states
-  carmaSafeCall(
-    cudaMalloc((void ** )&(this->d_states),
-               blockCount * genPerBlock * sizeof(curandState)));
+  if(this->d_states == NULL)
+    carmaSafeCall(
+      cudaMalloc((void ** )&(this->d_states),
+                 blockCount * genPerBlock * sizeof(curandState)));
+  cudaMemset(this->d_states, 0, blockCount * genPerBlock * sizeof(curandState));
 
   this->nThreads = genPerBlock;
   this->nBlocks = blockCount;
@@ -172,7 +174,10 @@ caObjZ::prng(char gtype, float alpha, float beta);
 
 template<class T>
 int carma_obj<T>::init_prng_host(int seed) {
-  curandCreateGenerator(&(this->gen), CURAND_RNG_PSEUDO_MTGP32);
+  if(this->gen != NULL)
+    curandDestroyGenerator(this->gen);
+
+  curandCreateGenerator(&(this->gen), CURAND_RNG_PSEUDO_XORWOW);
   //CURAND_RNG_PSEUDO_MTGP32
   //CURAND_RNG_PSEUDO_XORWOW
   curandSetPseudoRandomGeneratorSeed(this->gen, seed);
@@ -214,25 +219,66 @@ int caObjD::prng_host(char gtype) {
 }
 
 template<class T>
-int carma_obj<T>::prng_host(char gtype, T alpha) {
+int carma_obj<T>::prng_host(char gtype, T stddev) {
   return EXIT_FAILURE;
 }
 
 template<>
-int caObjS::prng_host(char gtype, float alpha) {
+int caObjS::prng_host(char gtype, float stddev) {
   if (gtype == 'U')
     curandGenerateUniform(this->gen, this->d_data, this->nb_elem);
   if (gtype == 'N')
-    curandGenerateNormal(this->gen, this->d_data, this->nb_elem, 0.0f, alpha);
+    curandGenerateNormal(this->gen, this->d_data, this->nb_elem, 0.0f, stddev);
   return EXIT_SUCCESS;
 }
 template<>
-int caObjD::prng_host(char gtype, double alpha) {
+int caObjD::prng_host(char gtype, double stddev) {
   if (gtype == 'U')
     curandGenerateUniformDouble(this->gen, this->d_data, this->nb_elem);
   if (gtype == 'N')
     curandGenerateNormalDouble(this->gen, this->d_data, this->nb_elem, 0.0,
-                               alpha);
+                               stddev);
+  return EXIT_SUCCESS;
+}
+
+template<class T>
+int carma_obj<T>::prng_host(char gtype, T stddev, T alpha) {
+  return EXIT_FAILURE;
+}
+
+template<>
+int caObjS::prng_host(char gtype, float stddev, float alpha) {
+  float *tmp_data;
+  carmaSafeCall(
+    cudaMalloc((void ** )&tmp_data, this->nb_elem * sizeof(float)));
+
+  if (gtype == 'U')
+    curandGenerateUniform(this->gen, tmp_data, this->nb_elem);
+  if (gtype == 'N')
+    curandGenerateNormal(this->gen, tmp_data, this->nb_elem, 0.0f, stddev);
+
+  carma_axpy(current_context->get_cublasHandle(), this->nb_elem, alpha, tmp_data, 1, this->d_data, 1);
+
+  carmaSafeCall(cudaFree(tmp_data));
+
+  return EXIT_SUCCESS;
+}
+
+template<>
+int caObjD::prng_host(char gtype, double stddev, double alpha) {
+  double *tmp_data;
+  carmaSafeCall(
+    cudaMalloc((void ** )&tmp_data, this->nb_elem * sizeof(double)));
+
+  if (gtype == 'U')
+    curandGenerateUniformDouble(this->gen, tmp_data, this->nb_elem);
+  if (gtype == 'N')
+    curandGenerateNormalDouble(this->gen, tmp_data, this->nb_elem, 0.0f, stddev);
+
+  carma_axpy(current_context->get_cublasHandle(), this->nb_elem, alpha, tmp_data, 1, this->d_data, 1);
+
+  carmaSafeCall(cudaFree(tmp_data));
+
   return EXIT_SUCCESS;
 }
 
