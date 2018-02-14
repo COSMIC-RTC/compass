@@ -42,7 +42,7 @@ cdef class Sensors:
                   int odevice=-1,
                   bool error_budget=False):
         self.context = context
-        cdef char ** type = < char ** > malloc(len(type_data) * sizeof(char *))
+        cdef char ** type = < char ** > malloc(len(type_data) * sizeof(char * ))
         cdef int i
         for i in range(nsensors):
             type[i] = type_data[i]
@@ -101,26 +101,26 @@ cdef class Sensors:
         """
 
         if(noise.size == 0):
-            self.sensors.sensors_initgs(< float * > xpos.data, < float * > ypos.data,
-                                         < float * > Lambda.data, < float * > mag.data,
-                                         zerop, < long * > size.data,
-                                         < float * > G.data, < float * > thetaML.data,
-                                         < float * > dx.data, < float * > dy.data)
+            self.sensors.sensors_initgs( < float * > xpos.data, < float * > ypos.data,
+                                        < float * > Lambda.data, < float * > mag.data,
+                                        zerop, < long * > size.data,
+                                        < float * > G.data, < float * > thetaML.data,
+                                        < float * > dx.data, < float * > dy.data)
 
         elif(seed.size == 0):
-            self.sensors.sensors_initgs(< float * > xpos.data, < float * > ypos.data,
-                                         < float * > Lambda.data, < float * > mag.data,
-                                         zerop, < long * > size.data,
-                                         < float * > noise.data, < float * > G.data,
-                                         < float * > thetaML.data,
-                                         < float * > dx.data, < float * > dy.data)
+            self.sensors.sensors_initgs( < float * > xpos.data, < float * > ypos.data,
+                                        < float * > Lambda.data, < float * > mag.data,
+                                        zerop, < long * > size.data,
+                                        < float * > noise.data, < float * > G.data,
+                                        < float * > thetaML.data,
+                                        < float * > dx.data, < float * > dy.data)
         else:
-            self.sensors.sensors_initgs(< float * > xpos.data, < float * > ypos.data,
-                                         < float * > Lambda.data, < float * > mag.data,
-                                         zerop, < long * > size.data,
-                                         < float * > noise.data, < long * > seed.data,
-                                         < float * > G.data, < float * > thetaML.data,
-                                         < float * > dx.data, < float * > dy.data)
+            self.sensors.sensors_initgs( < float * > xpos.data, < float * > ypos.data,
+                                        < float * > Lambda.data, < float * > mag.data,
+                                        zerop, < long * > size.data,
+                                        < float * > noise.data, < long * > seed.data,
+                                        < float * > G.data, < float * > thetaML.data,
+                                        < float * > dx.data, < float * > dy.data)
 
     def init_lgs(self, int n, int prof1dSize,
                  float hG, float h0, float dh,
@@ -188,13 +188,13 @@ cdef class Sensors:
         cdef sutra_wfs_sh * wfs_sh = NULL
         cdef sutra_wfs_pyr_pyrhr * wfs_pyrhr = NULL
 
-        cdef np.ndarray[ndim = 2, dtype = np.int32_t] phasemap_F = phasemap.T.copy()
+        cdef np.ndarray[ndim= 2, dtype = np.int32_t] phasemap_F = phasemap.T.copy()
         cdef float_or_complex halfxy_F = halfxy.T.copy()
-        cdef np.ndarray[ndim = 2, dtype = np.int32_t] binmap_F
-        cdef np.ndarray[ndim = 2, dtype = np.int32_t] hrmap_F
-        cdef np.ndarray[ndim = 2, dtype = np.complex64_t] ftkernel_F
-        cdef np.ndarray[ndim = 2, dtype = np.float32_t] sincar_F
-        cdef np.ndarray[ndim = 2, dtype = np.float32_t] submask_F
+        cdef np.ndarray[ndim= 2, dtype = np.int32_t] binmap_F
+        cdef np.ndarray[ndim= 2, dtype = np.int32_t] hrmap_F
+        cdef np.ndarray[ndim= 2, dtype = np.complex64_t] ftkernel_F
+        cdef np.ndarray[ndim= 2, dtype = np.float32_t] sincar_F
+        cdef np.ndarray[ndim= 2, dtype = np.float32_t] submask_F
 
         if(self.sensors.d_wfs[n].type == b"pyrhr"):
             sincar_F = sincar.T.copy()
@@ -242,7 +242,7 @@ cdef class Sensors:
         """
 
         self.context.set_activeDevice(self.sensors.device, 1)
-        self.sensors.d_wfs[i].d_gs.add_layer(< char * > type, alt, xoff, yoff)
+        self.sensors.d_wfs[i].d_gs.add_layer( < char * > type, alt, xoff, yoff)
 
     def comp_img(self, int n, bool noise=True):
         """
@@ -343,7 +343,7 @@ cdef class Sensors:
         info += "WFS # |  Nsubaps  | Nvalid | Npix | Nphase | Nfft | Nrebin | Ntot | Npup\n"
         cdef int i
         cdef sutra_wfs * wfs
-        for i in range(< int > self.sensors.nsensors()):
+        for i in range( < int > self.sensors.nsensors()):
             wfs = self.sensors.d_wfs.at(i)
             info += "%5d" % (i + 1) + " | " + "%3d" % wfs.nxsub + " x " + "%-3d" % wfs.nxsub + " | "\
                 "%6d" % wfs.nvalid + " | " + "%4d" % wfs.npix + " | " + "%6d" % wfs.nphase + " | " + \
@@ -371,11 +371,11 @@ cdef class Sensors:
         """
         cdef carma_obj[float] * img
         cdef const long * cdims
-        cdef np.ndarray[ndim= 1, dtype = np.float32_t] data
+        cdef np.ndarray[ndim = 1, dtype = np.float32_t] data
         img = self.sensors.d_wfs[n].d_offsets
         cdims = img.getDims()
         data = np.empty((cdims[1]), dtype=np.float32)
-        img.device2host(< float * > data.data)
+        img.device2host( < float * > data.data)
         return data
 
     def get_subsum(self, int n):
@@ -386,11 +386,11 @@ cdef class Sensors:
         """
         cdef carma_obj[float] * subsum
         cdef const long * cdims
-        cdef np.ndarray[ndim= 1, dtype = np.float32_t] data
+        cdef np.ndarray[ndim = 1, dtype = np.float32_t] data
         subsum = self.sensors.d_wfs[n].d_subsum
         cdims = subsum.getDims()
         data = np.empty((cdims[1]), dtype=np.float32)
-        subsum.device2host(< float * > data.data)
+        subsum.device2host( < float * > data.data)
         return data
 
     def get_imgtele(self, int n, Telescope tel=None, Atmos atmos=None, Dms dms=None):
@@ -407,7 +407,7 @@ cdef class Sensors:
         cdef carma_host_obj[float] * img
         cdef sutra_wfs_sh * wfs = dynamic_cast_wfs_sh_ptr(self.sensors.d_wfs[n])
         cdef const long * cdims
-        cdef np.ndarray[ndim= 2, dtype = np.float32_t] data
+        cdef np.ndarray[ndim = 2, dtype = np.float32_t] data
 
         if (tel and atmos and dms):
             self.sensor_trace(n, "all", tel, atmos, dms)
@@ -417,7 +417,7 @@ cdef class Sensors:
         data = np.empty((cdims[1], cdims[2]), dtype=np.float32)
 
         wfs.fill_binimage(1)
-        img.fill_into(< float * > data.data)
+        img.fill_into( < float * > data.data)
         data[np.where(data < 0)] = 0
         return data
 
@@ -435,7 +435,7 @@ cdef class Sensors:
 
         cdef carma_obj[float] * img
         cdef const long * cdims
-        cdef np.ndarray[ndim= 2, dtype = np.float32_t] data_F
+        cdef np.ndarray[ndim = 2, dtype = np.float32_t] data_F
         if (tel and atmos and dms):
             self.sensor_trace(n, "all", tel, atmos, dms)
             self.sensor_compimg(n)
@@ -443,7 +443,7 @@ cdef class Sensors:
         cdims = img.getDims()
         data_F = np.empty((cdims[2], cdims[1]), dtype=np.float32)
         dynamic_cast_wfs_sh_ptr(self.sensors.d_wfs[n]).fill_binimage(0)
-        img.device2host(< float * > data_F.data)
+        img.device2host( < float * > data_F.data)
 
         data_F[np.where(data_F < 0)] = 0
         return data_F.T.copy()
@@ -457,13 +457,13 @@ cdef class Sensors:
         """
         cdef carma_obj[float] * img
         cdef const long * cdims
-        cdef np.ndarray[ndim= 2, dtype = np.float32_t] data_F
+        cdef np.ndarray[ndim = 2, dtype = np.float32_t] data_F
 
         if(self.sensors.error_budget):
             img = self.sensors.d_wfs[n].d_binimg_notnoisy
             cdims = img.getDims()
             data_F = np.empty((cdims[2], cdims[1]), dtype=np.float32)
-            img.device2host(< float * > data_F.data)
+            img.device2host( < float * > data_F.data)
             return data_F.T.copy()
         else:
             raise TypeError("the error budget analysis has to be enabled")
@@ -487,10 +487,10 @@ cdef class Sensors:
         """
         cdef carma_obj[float] * img
         cdef const long * cdims
-        cdef np.ndarray[ndim= 2, dtype = np.float32_t] data_F
+        cdef np.ndarray[ndim = 2, dtype = np.float32_t] data_F
 
-        cdef np.ndarray[ndim = 3, dtype = np.float32_t] bincube
-        cdef np.ndarray[ndim = 2, dtype = np.float32_t] pyrimg
+        cdef np.ndarray[ndim= 3, dtype = np.float32_t] bincube
+        cdef np.ndarray[ndim= 2, dtype = np.float32_t] pyrimg
         cdef bytes type = self.sensors.d_wfs[n].type
         cdef int npix
 
@@ -498,7 +498,7 @@ cdef class Sensors:
             img = self.sensors.d_wfs[n].d_binimg
             cdims = img.getDims()
             data_F = np.empty((cdims[2], cdims[1]), dtype=np.float32)
-            img.device2host(< float * > data_F.data)
+            img.device2host( < float * > data_F.data)
             return data_F.T.copy()
 
         if(type == b"pyr"):
@@ -534,13 +534,13 @@ cdef class Sensors:
         """
         cdef carma_obj[float] * img
         cdef const long * cdims
-        cdef np.ndarray[ndim= 2, dtype = np.float32_t] data_F = data.T.copy()
+        cdef np.ndarray[ndim = 2, dtype = np.float32_t] data_F = data.T.copy()
 
         cdef bytes type = self.sensors.d_wfs[n].type
 
         if(type == b"pyrhr"):
             img = self.sensors.d_wfs[n].d_binimg
-            img.host2device(< float * > data_F.data)
+            img.host2device( < float * > data_F.data)
         else:
             raise TypeError("wfs should be a pyr")
 
@@ -557,12 +557,12 @@ cdef class Sensors:
     cdef _set_submask(self, int n, np.ndarray[ndim=2, dtype=np.float32_t] data):
 
         cdef bytes type = self.sensors.d_wfs[n].type
-        cdef np.ndarray[ndim= 2, dtype = np.float32_t] data_F = data.T.copy()
+        cdef np.ndarray[ndim = 2, dtype = np.float32_t] data_F = data.T.copy()
         cdef sutra_wfs_pyr_pyrhr * wfs
 
         if(type == b"pyrhr"):
             wfs = dynamic_cast_wfs_pyr_pyrhr_ptr(self.sensors.d_wfs[n])
-            wfs.set_submask(< float*> data_F.data)
+            wfs.set_submask( < float*> data_F.data)
         else:
             raise TypeError("WFS should be a pyrhr for using this function")
 
@@ -578,7 +578,7 @@ cdef class Sensors:
     cdef _get_submask(self, int n):
         cdef carma_obj[float] * submask
         cdef const long * cdims
-        cdef np.ndarray[ndim= 2, dtype = np.float32_t] data_F
+        cdef np.ndarray[ndim = 2, dtype = np.float32_t] data_F
         cdef sutra_wfs_pyr_pyrhr * wfs
         cdef bytes type = self.sensors.d_wfs[n].type
 
@@ -587,7 +587,7 @@ cdef class Sensors:
             submask = wfs.d_submask
             cdims = submask.getDims()
             data_F = np.empty((cdims[2], cdims[1]), dtype=np.float32)
-            submask.device2host(< float * > data_F.data)
+            submask.device2host( < float * > data_F.data)
             return data_F.T.copy()
 
         else:
@@ -610,7 +610,7 @@ cdef class Sensors:
         """
         cdef carma_obj[float] * img
         cdef const long * cdims
-        cdef np.ndarray[ndim= 2, dtype = np.float32_t] data_F
+        cdef np.ndarray[ndim = 2, dtype = np.float32_t] data_F
 
         cdef bytes type = self.sensors.d_wfs[n].type
         cdef sutra_wfs_pyr_pyrhr * wfs
@@ -620,25 +620,41 @@ cdef class Sensors:
             img = wfs.d_hrimg
             cdims = img.getDims()
             data_F = np.empty((cdims[2], cdims[1]), dtype=np.float32)
-            img.device2host(< float * > data_F.data)
+            img.device2host( < float * > data_F.data)
             return data_F.T.copy()
 
         else:
             raise TypeError("wfs should be a pyrhr")
 
     def set_ncpa_phase(self, int n, np.ndarray[ndim=2, dtype=np.float32_t] data):
-        cdef np.ndarray[ndim= 1, dtype = np.float32_t] data_F = data.T.copy()
-        self.sensors.d_wfs[n].set_ncpa_phase(< float*>data_F.data, data.size)
+        """
+            Set the non common path aberration screen phase.
+            It must have the same size as the WFS screen phase
+
+            :parameters:
+                n : (int) : target number
+                data: (np.ndarray[ndim=2, dtype=np.float32_t]) : ncpa screen phase
+        """
+        cdef np.ndarray[ndim = 2, dtype = np.float32_t] data_F = data.T.copy()
+        self.sensors.d_wfs[n].set_ncpa_phase( < float*>data_F.data, data.size)
 
     def get_ncpa_phase(self, int n):
+        """
+            Get the non common path aberration screen phase.
+
+            :parameters:
+                n : (int) : WFS number
+            :return:
+                data: (np.ndarray[ndim=2, dtype=np.float32_t]) : ncpa screen phase
+        """
         cdef carma_obj[float] * ph
         cdef const long * cdims
-        cdef np.ndarray[ndim= 2, dtype = np.float32_t] data_F
+        cdef np.ndarray[ndim = 2, dtype = np.float32_t] data_F
 
         ph = self.sensors.d_wfs[n].d_gs.d_phase.d_screen
         cdims = ph.getDims()
         data_F = np.empty((cdims[2], cdims[1]), dtype=np.float32)
-        self.sensors.d_wfs[n].get_ncpa_phase(< float*>data_F.data, data_F.size)
+        self.sensors.d_wfs[n].get_ncpa_phase( < float*>data_F.data, data_F.size)
         return data_F.T.copy()
 
     cdef _get_bincube(self, int n):
@@ -649,11 +665,11 @@ cdef class Sensors:
         """
         cdef carma_obj[float] * cube
         cdef const long * cdims
-        cdef np.ndarray[ndim= 3, dtype = np.float32_t] data_F
+        cdef np.ndarray[ndim = 3, dtype = np.float32_t] data_F
         cube = self.sensors.d_wfs[n].d_bincube
         cdims = cube.getDims()
         data_F = np.empty((cdims[3], cdims[2], cdims[1]), dtype=np.float32)
-        cube.device2host(< float * > data_F.data)
+        cube.device2host( < float * > data_F.data)
         return data_F.T.copy()
 
     def get_bincube(self, int n):
@@ -673,9 +689,9 @@ cdef class Sensors:
             data: (np.ndarray[ndim=3,dtype=np.float32_t]) : bincube to use
         """
         self.context.set_activeDeviceForCpy(self.sensors.device, 1)
-        cdef np.ndarray[ndim= 3, dtype = np.float32_t] data_F = data.T.copy()
+        cdef np.ndarray[ndim = 3, dtype = np.float32_t] data_F = data.T.copy()
 
-        self.sensors.d_wfs[n].d_bincube.host2device(< float * > data_F.data)
+        self.sensors.d_wfs[n].d_bincube.host2device( < float * > data_F.data)
 
     def get_bincube_not_noisy(self, int n):
         """
@@ -686,12 +702,12 @@ cdef class Sensors:
         """
         cdef carma_obj[float] * cube
         cdef const long * cdims
-        cdef np.ndarray[ndim= 3, dtype = np.float32_t] data_F
+        cdef np.ndarray[ndim = 3, dtype = np.float32_t] data_F
         if(self.sensors.error_budget):
             cube = self.sensors.d_wfs[n].d_bincube_notnoisy
             cdims = cube.getDims()
             data_F = np.empty((cdims[3], cdims[2], cdims[1]), dtype=np.float32)
-            cube.device2host(< float * > data_F.data)
+            cube.device2host( < float * > data_F.data)
             return data_F.T.copy()
         else:
             raise TypeError("the error budget analysis has to be enabled")
@@ -714,11 +730,11 @@ cdef class Sensors:
         """
         cdef carma_obj[float] * phase
         cdef const long * cdims
-        cdef np.ndarray[ndim= 2, dtype = np.float32_t] data_F
+        cdef np.ndarray[ndim = 2, dtype = np.float32_t] data_F
         phase = self.sensors.d_wfs[n].d_gs.d_phase.d_screen
         cdims = phase.getDims()
         data_F = np.empty((cdims[2], cdims[1]), dtype=np.float32)
-        phase.device2host(< float * > data_F.data)
+        phase.device2host( < float * > data_F.data)
         return data_F.T.copy()
 
     def get_lgskern(self, int n):
@@ -729,12 +745,12 @@ cdef class Sensors:
         """
         cdef carma_obj[float] * lgs_kern
         cdef const long * cdims
-        cdef np.ndarray[ndim= 3, dtype = np.float32_t] data_F
+        cdef np.ndarray[ndim = 3, dtype = np.float32_t] data_F
         if(self.sensors.d_wfs[n].lgs):
             lgs_kern = self.sensors.d_wfs[n].d_gs.d_lgs.d_lgskern
             cdims = lgs_kern.getDims()
             data_F = np.empty((cdims[3], cdims[2], cdims[1]), dtype=np.float32)
-            lgs_kern.device2host(< float * > data_F.data)
+            lgs_kern.device2host( < float * > data_F.data)
             return data_F.T.copy()
         else:
             raise TypeError("the WFS should be a LGS")
@@ -747,13 +763,13 @@ cdef class Sensors:
         """
         cdef carma_obj[cuFloatComplex] * ftlgs_kern
         cdef const long * cdims
-        cdef np.ndarray[ndim= 3, dtype = np.complex64_t] data_F
+        cdef np.ndarray[ndim = 3, dtype = np.complex64_t] data_F
         if(self.sensors.d_wfs[n].lgs):
             ftlgs_kern = self.sensors.d_wfs[n].d_gs.d_lgs.d_ftlgskern
             cdims = ftlgs_kern.getDims()
             data_F = np.empty(
                 (cdims[3], cdims[2], cdims[1]), dtype=np.complex64)
-            ftlgs_kern.device2host(< cuFloatComplex * > data_F.data)
+            ftlgs_kern.device2host( < cuFloatComplex * > data_F.data)
             return data_F.T.copy()
         else:
             raise TypeError("the WFS should be a LGS")
@@ -768,9 +784,9 @@ cdef class Sensors:
         # self.context.set_activeDeviceForCpy(self.device)
         cdef sutra_source * src = self.sensors.d_wfs[n].d_gs
 
-        cdef np.ndarray[ndim= 2, dtype = np.float32_t] data_F = data.T.copy()
+        cdef np.ndarray[ndim = 2, dtype = np.float32_t] data_F = data.T.copy()
 
-        src.d_phase.d_screen.host2device(< float * > data_F.data)
+        src.d_phase.d_screen.host2device( < float * > data_F.data)
 
     def get_camplipup(self, int n):
         """
@@ -781,12 +797,12 @@ cdef class Sensors:
         cdef carma_obj[cuFloatComplex] * amplipup
         cdef const long * cdims
 
-        cdef np.ndarray[ndim= 3, dtype = np.complex64_t] data_F
+        cdef np.ndarray[ndim = 3, dtype = np.complex64_t] data_F
         amplipup = self.sensors.d_wfs[n].d_camplipup
         cdims = amplipup.getDims()
 
         data_F = np.zeros((cdims[3], cdims[2], cdims[1]), dtype=np.complex64)
-        amplipup.device2host(< cuFloatComplex * > data_F.data)
+        amplipup.device2host( < cuFloatComplex * > data_F.data)
 
         return data_F.T.copy()
 
@@ -800,12 +816,12 @@ cdef class Sensors:
         cdef carma_obj[cuFloatComplex] * amplipup
         cdef const long * cdims
 
-        cdef np.ndarray[ndim= 2, dtype = np.complex64_t] data_F
+        cdef np.ndarray[ndim = 2, dtype = np.complex64_t] data_F
         amplipup = self.sensors.d_wfs[n].d_camplipup
         cdims = amplipup.getDims()
 
         data_F = np.zeros((cdims[2], cdims[1]), dtype=np.complex64)
-        amplipup.device2host(< cuFloatComplex * > data_F.data)
+        amplipup.device2host( < cuFloatComplex * > data_F.data)
 
         return data_F.T.copy()
 
@@ -817,11 +833,11 @@ cdef class Sensors:
         """
         cdef carma_obj[cuFloatComplex] * amplifoc
         cdef const long * cdims
-        cdef np.ndarray[ndim= 3, dtype = np.complex64_t] data_F
+        cdef np.ndarray[ndim = 3, dtype = np.complex64_t] data_F
         amplifoc = self.sensors.d_wfs[n].d_camplifoc
         cdims = amplifoc.getDims()
         data_F = np.zeros((cdims[3], cdims[2], cdims[1]), dtype=np.complex64)
-        amplifoc.device2host(< cuFloatComplex * > data_F.data)
+        amplifoc.device2host( < cuFloatComplex * > data_F.data)
         return data_F.T.copy()
 
     def get_amplifoc_pyr(self, int n):
@@ -832,11 +848,11 @@ cdef class Sensors:
         """
         cdef carma_obj[cuFloatComplex] * amplifoc
         cdef const long * cdims
-        cdef np.ndarray[ndim= 2, dtype = np.complex64_t] data_F
+        cdef np.ndarray[ndim = 2, dtype = np.complex64_t] data_F
         amplifoc = self.sensors.d_wfs[n].d_camplifoc
         cdims = amplifoc.getDims()
         data_F = np.zeros((cdims[2], cdims[1]), dtype=np.complex64)
-        amplifoc.device2host(< cuFloatComplex * > data_F.data)
+        amplifoc.device2host( < cuFloatComplex * > data_F.data)
         return data_F.T.copy()
 
     def get_fttotim_pyr(self, int n):
@@ -847,11 +863,11 @@ cdef class Sensors:
         """
         cdef carma_obj[cuFloatComplex] * fttotim
         cdef const long * cdims
-        cdef np.ndarray[ndim= 2, dtype = np.complex64_t] data_F
+        cdef np.ndarray[ndim = 2, dtype = np.complex64_t] data_F
         fttotim = self.sensors.d_wfs[n].d_fttotim
         cdims = fttotim.getDims()
         data_F = np.zeros((cdims[2], cdims[1]), dtype=np.complex64)
-        fttotim.device2host(< cuFloatComplex * > data_F.data)
+        fttotim.device2host( < cuFloatComplex * > data_F.data)
         return data_F.T.copy()
 
     def get_hrimg_pyr(self, int n):
@@ -862,13 +878,13 @@ cdef class Sensors:
         """
         cdef carma_obj[float] * hrimg
         cdef const long * cdims
-        cdef np.ndarray[ndim= 2, dtype = np.float32_t] data_F
+        cdef np.ndarray[ndim = 2, dtype = np.float32_t] data_F
         wfs = dynamic_cast_wfs_pyr_pyrhr_ptr(self.sensors.d_wfs[n])
         hrimg = wfs.d_hrimg
         # hrimg=self.sensors.d_wfs[n].d_hrimg
         cdims = hrimg.getDims()
         data_F = np.empty((cdims[2], cdims[1]), dtype=np.float32)
-        hrimg.device2host(< float * > data_F.data)
+        hrimg.device2host( < float * > data_F.data)
         return data_F.T.copy()
 
     cdef _get_slopesDims(self, int n):
@@ -902,14 +918,14 @@ cdef class Sensors:
         """
         cdef carma_obj[float] * slopes
         cdef const long * cdims
-        cdef np.ndarray[ndim= 1, dtype = np.float32_t] data
+        cdef np.ndarray[ndim = 1, dtype = np.float32_t] data
 
         self.context.set_activeDevice(self.sensors.device, 1)
 
         slopes = self.sensors.d_wfs[n].d_slopes
         cdims = slopes.getDims()
         data = np.empty((cdims[1]), dtype=np.float32)
-        slopes.device2host(< float * > data.data)
+        slopes.device2host( < float * > data.data)
 
         return data
 
@@ -921,11 +937,11 @@ cdef class Sensors:
         """
         cdef carma_obj[int] * cube
         cdef const long * cdims
-        cdef np.ndarray[ndim= 1, dtype = np.int32_t] data
+        cdef np.ndarray[ndim = 1, dtype = np.int32_t] data
         cube = self.sensors.d_wfs[n].d_hrmap
         cdims = cube.getDims()
         data = np.empty((cdims[1]), dtype=np.float32)
-        cube.device2host(< int * > data.data)
+        cube.device2host( < int * > data.data)
         return data
 
     def set_noise(self, int nwfs, np.float32_t noise, np.int64_t seed=-1):
@@ -940,7 +956,7 @@ cdef class Sensors:
         TODO: fill the noise unit
         """
         if seed < 0:
-            seed = 1234 * nwfs
+            seed = 1234 + nwfs
         self.sensors.set_noise(nwfs, noise, seed)
 
     def set_validpix(self, int n, np.ndarray[ndim=1, dtype=np.int32_t] validx, np.ndarray[ndim=1, dtype=np.int32_t] validy):
@@ -972,9 +988,9 @@ cdef class Sensors:
 
         if(type_wfs == "pyrhr"):
             validx = self.sensors.d_wfs[n].d_validsubsx
-            validx.host2device(< int * > datax.data)
+            validx.host2device( < int * > datax.data)
             validy = self.sensors.d_wfs[n].d_validsubsy
-            validy.host2device(< int * > datay.data)
+            validy.host2device( < int * > datay.data)
         else:
             raise TypeError("wfs should be a pyr")
 
@@ -990,6 +1006,6 @@ cdef class Sensors:
 
         if(type_wfs == "pyrhr"):
             wfs = dynamic_cast_wfs_pyr_pyrhr_ptr(self.sensors.d_wfs[n])
-            wfs.copyValidPix( < float * > data.c_o.getData(), < int * >validx.c_o.getData(), < int * >validy.c_o.getData(), data.c_o.getDims(1));
+            wfs.copyValidPix(< float * > data.c_o.getData(), < int * >validx.c_o.getData(), < int * >validy.c_o.getData(), data.c_o.getDims(1));
         else:
             raise TypeError("wfs should be a pyr")

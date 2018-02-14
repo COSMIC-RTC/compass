@@ -1,5 +1,7 @@
 #include <carma_obj.h>
 #include "carma_utils.cuh"
+#include <thrust/device_ptr.h>
+#include <thrust/reduce.h>
 
 /*
  Parallel sum reduction using shared memory
@@ -243,3 +245,18 @@ reduce<cuFloatComplex>(int size, int threads, int blocks, cuFloatComplex *d_idat
                        cuFloatComplex *d_odata) {
   DEBUG_TRACE("Not implemented");
 }
+
+template<class T>
+T reduce(T * data, int N){
+  thrust::device_ptr<T> dev_ptr(data);
+  return thrust::reduce(dev_ptr, dev_ptr + N);
+}
+
+template float
+reduce<float>(float *data, int N);
+
+template double
+reduce<double>(double *data, int N);
+
+template int
+reduce<int>(int *data, int N);

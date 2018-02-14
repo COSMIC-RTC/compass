@@ -20,8 +20,8 @@ sutra_centroider_pyr::sutra_centroider_pyr(carma_context *context,
   this->valid_thresh = 1e-4;
   this->pyr_type = sensors->d_wfs[nwfs]->type;
 
-  // centroider method by default sin_global
-  this->method = Method_CoG(false, true);
+  // centroider method by default nosin_global
+  this->method = Method_CoG(false, false);
 }
 
 sutra_centroider_pyr::~sutra_centroider_pyr() {
@@ -84,9 +84,9 @@ int sutra_centroider_pyr::get_pyr(float *cube, float *subsum, float *centroids,
                                 this->current_context->get_device(device), blocks, threads);
       long dims[2] = {1, nvalid};
       carma_obj<float> tmp_obj(current_context, dims);
-      reduce(nvalid, threads, blocks, subsum, tmp_obj.getData());
-
-      fillvalues(subsum, tmp_obj.getData(), nvalid,
+      //reduce(nvalid, threads, blocks, subsum, tmp_obj.getData());
+      float p_sum = reduce<float>(subsum, nvalid);
+      fillvalues(subsum, p_sum, nvalid,
                  this->current_context->get_device(device));
       // } else {
       //     DEBUG_TRACE("Local : %s", Method_CoG::str(this->method));

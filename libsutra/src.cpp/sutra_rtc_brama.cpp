@@ -167,6 +167,7 @@ void sutra_rtc_brama::allocateBuffers() {
     buff_commands = BRAMA::Values::allocbuf(ncmd * sizeof(float));
     if (target != NULL) {
       buff_wfs = BRAMA::Values::allocbuf(wfs_size * sizeof(float));
+      buff_wfs_phase = BRAMA::Values::allocbuf(wfs_phase_size * sizeof(float));
       buff_target = BRAMA::Values::allocbuf(target_size * sizeof(float));
       buff_target_phase = BRAMA::Values::allocbuf(target_phase_size * sizeof(float));
     } else {
@@ -382,6 +383,7 @@ void sutra_rtc_brama::publish() {
     ACE_ERROR(
       (LM_ERROR, ACE_TEXT("(%P|%t)ERROR: superframe_dw wait_for_acknowledgments returned %d.\n"), ret));
   }
+
   framecounter++;
   //ACE_Time_Value ace_wait(0, 25);
   //ACE_OS::sleep(ace_wait);

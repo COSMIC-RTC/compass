@@ -101,6 +101,8 @@ int sutra_tscreen::init_screen(float *h_A, float *h_B,
 int sutra_tscreen::refresh_screen() {
   this->current_context->set_activeDevice(device,1);
   this->d_tscreen->d_screen->reset();
+  this->accumx = 0.0f;
+  this->accumy = 0.0f;
 
   for(int i = 0; i < 2 * this->screen_size; i++) {
     if (this->deltax > 0) {
