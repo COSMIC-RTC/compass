@@ -1,13 +1,14 @@
 """Widget to simulate a closed loop
 
 Usage:
-  widget_ao.py [<parameters_filename>] [--expert] [--brama]
+  widget_ao.py [<parameters_filename>] [options]
 
 with 'parameters_filename' the path to the parameters file
 
 Options:
   -h --help          Show this help message and exit
   --brama            Distribute data with BRAMA
+  --expert           Display expert panel
 """
 
 import os, sys
@@ -103,7 +104,7 @@ class widgetAOWindow(TemplateBaseClass):
         #############################################################
         # Default path for config files
         self.defaultParPath = os.environ["SHESHA_ROOT"] + "/data/par/par4bench"
-        self.defaultAreaPath = os.environ["SHESHA_ROOT"] + "/data"
+        self.defaultAreaPath = os.environ["SHESHA_ROOT"] + "/data/layouts"
         self.ui.wao_loadConfig.clicked.connect(self.loadConfig)
         self.loadDefaultConfig()
         self.ui.wao_loadArea.clicked.connect(self.loadArea)
@@ -811,7 +812,8 @@ class widgetAOWindow(TemplateBaseClass):
             ]
             [pane.hide() for pane in pyrSpecifics]
 
-        self.updatePanels()
+        if self.expert:
+            self.updatePanels()
 
         self.ui.wao_init.setDisabled(False)
         self.ui.wao_run.setDisabled(True)
