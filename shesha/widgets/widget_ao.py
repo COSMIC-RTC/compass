@@ -9,6 +9,7 @@ Options:
   -h --help          Show this help message and exit
   --brama            Distribute data with BRAMA
   --expert           Display expert panel
+  -d, --devices devices      Specify the devices
 """
 
 import os, sys
@@ -54,8 +55,8 @@ WindowTemplate, TemplateBaseClass = loadUiType(
 
 class widgetAOWindow(TemplateBaseClass):
 
-    def __init__(self, configFile: Any=None, BRAMA: bool=False,
-                 expert: bool=False) -> None:
+    def __init__(self, configFile: Any=None, BRAMA: bool=False, expert: bool=False,
+                 devices: str=None) -> None:
         TemplateBaseClass.__init__(self)
 
         self.BRAMA = BRAMA
@@ -64,6 +65,7 @@ class widgetAOWindow(TemplateBaseClass):
         self.SRSE = deque(maxlen=self.rollingWindow)
         self.numiter = deque(maxlen=self.rollingWindow)
         self.expert = expert
+        self.devices = devices
 
         self.ui = WindowTemplate()
         self.ui.setupUi(self)
@@ -244,7 +246,7 @@ class widgetAOWindow(TemplateBaseClass):
                 st = self.area.saveState()
                 f.write(str(st))
         except FileNotFoundError as err:
-            warnings.warn(filename + " not found")
+            warnings.warn(filename + " not loaded: " + err)
 
     def showDock(self, name):
         for disp_checkbox in self.disp_checkboxes:
@@ -256,7 +258,6 @@ class widgetAOWindow(TemplateBaseClass):
 
     def restoreState(self, state):
         typ, contents, state = state
-        list_dock = []
 
         if typ == 'dock':
             self.showDock(contents)
@@ -268,7 +269,7 @@ class widgetAOWindow(TemplateBaseClass):
         # close all docks
         for disp_checkbox in self.disp_checkboxes:
             disp_checkbox.setChecked(False)
-        for key, dock in self.docks.items():
+        for dock in self.docks.values():
             if dock.isVisible():
                 dock.close()
 
@@ -294,7 +295,7 @@ class widgetAOWindow(TemplateBaseClass):
                 # rearange dock s as in stored state
                 self.area.restoreState(st)
         except FileNotFoundError as err:
-            warnings.warn(filename + "not found")
+            warnings.warn(filename + "not loaded: " + err)
 
     def updateStatsInTerminal(self, state):
         self.dispStatsInTerminal = state
@@ -691,6 +692,11 @@ class widgetAOWindow(TemplateBaseClass):
             self.sim.clear_init()
             self.sim.load_from_file(configFile)
 
+        if self.devices:
+            self.sim.config.p_loop.set_devices([
+                    int(device) for device in self.devices.split(",")
+            ])
+
         try:
             sys.path.remove(self.defaultParPath)
         except:
@@ -1037,10 +1043,11 @@ class widgetAOWindow(TemplateBaseClass):
             elif (type_matrix == "Cmm" and
                   self.sim.config.p_controllers[0].type == scons.ControllerType.MV):
                 tmp = self.sim.rtc.get_cmm(0)
-                ao.doTomoMatrices(0, self.sim.rtc, self.sim.config.p_wfss, self.sim.dms,
-                                  self.sim.atm, self.sim.wfs, self.sim.config.p_rtc,
-                                  self.sim.config.p_geom, self.sim.config.p_dms,
-                                  self.sim.config.p_tel, self.sim.config.p_atmos)
+                ao.do_tomo_matrices(0, self.sim.rtc, self.sim.config.p_wfss,
+                                    self.sim.dms, self.sim.atm, self.sim.wfs,
+                                    self.sim.config.p_rtc, self.sim.config.p_geom,
+                                    self.sim.config.p_dms, self.sim.config.p_tel,
+                                    self.sim.config.p_atmos)
                 data = self.sim.rtc.get_cmm(0)
                 self.sim.rtc.set_cmm(0, tmp)
             elif (type_matrix == "Cmm inverse" and
@@ -1295,7 +1302,6 @@ class WorkerThread(QThread):
     def run(self) -> None:
         self.running = True
         self.loopFunc()
-        success = True
         self.jobFinished.emit()
 
     def stop(self) -> None:
@@ -1311,5 +1317,5 @@ if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
     app.setStyle('cleanlooks')
     wao = widgetAOWindow(arguments["<parameters_filename>"], BRAMA=arguments["--brama"],
-                         expert=arguments["--expert"])
+                         expert=arguments["--expert"], devices=arguments["--devices"])
     wao.show()
