@@ -24,9 +24,9 @@
 #include <vector_types.h>
 #include <cuda_runtime_api.h>
 
-#include <carma_utils.h>
-#include <carma_cublas.h>
-#include <carma_cusparse.h>
+#include "carma_utils.h"
+#include "carma_cublas.h"
+#include "carma_cusparse.h"
 
 class carma_device {
  protected:
@@ -43,7 +43,7 @@ class carma_device {
 
  public:
   carma_device(int devid);
-  carma_device(const carma_device& device);
+  // carma_device(const carma_device& device);
   ~carma_device();
 
   int get_id() {
@@ -194,17 +194,18 @@ inline int ConvertSMVer2Cores(int major, int minor) {
   } sSMtoCores;
 
   sSMtoCores nGpuArchCoresPerSM[] = { { 0x20, 32 }, // Fermi Generation (SM 2.0) GF100 class
-    { 0x21, 48 }, // Fermi Generation (SM 2.1) GF10x class
+    { 0x21, 48 },  // Fermi Generation (SM 2.1) GF10x class
     { 0x30, 192 }, // Kepler Generation (SM 3.0) GK10x class
     { 0x32, 192 }, // Kepler Generation (SM 3.2) GK10x class
     { 0x35, 192 }, // Kepler Generation (SM 3.5) GK11x class
     { 0x37, 192 }, // Kepler Generation (SM 3.7) GK21x class
     { 0x50, 128 }, // Maxwell Generation (SM 5.0) GM10x class
     { 0x52, 128 }, // Maxwell Generation (SM 5.2) GM20x class
-    { 0x53, 128}, // Maxwell Generation (SM 5.3) GM20x class
-    { 0x60, 64 }, // Pascal Generation (SM 6.0) GP100 class
-    { 0x61, 128}, // Pascal Generation (SM 6.1) GP10x class
-    { 0x62, 128}, // Pascal Generation (SM 6.2) GP10x class
+    { 0x53, 128},  // Maxwell Generation (SM 5.3) GM20x class
+    { 0x60, 64 },  // Pascal Generation (SM 6.0) GP100 class
+    { 0x61, 128},  // Pascal Generation (SM 6.1) GP10x class
+    { 0x62, 128},  // Pascal Generation (SM 6.2) GP10x class
+    { 0x70, 64 },  // Volta Generation (SM 7.0) GV100 class
     { -1, -1 }
   };
 

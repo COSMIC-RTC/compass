@@ -38,7 +38,7 @@ class CarmaException {
    *  \param line : which line this exception has been created
    */
 
-  CarmaException(string reason, string file, unsigned int line) :
+  CarmaException(std::string reason, std::string file, unsigned int line) :
     aReason(reason), aFile(file), aLine(line) {
   }
 
