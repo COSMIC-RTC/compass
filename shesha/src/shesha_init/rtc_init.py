@@ -13,13 +13,13 @@ from shesha_util import rtc_util
 from shesha_init import dm_init as dmi
 
 import numpy as np
-from sutra_bind.wrap import naga_context, Sensors, Dms, Target, Rtc, Rtc_brama, Atmos, Telescope
+from sutra_bind.wrap import naga_context, Sensors, Dms, Target, Rtc, Rtc_brahma, Atmos, Telescope
 
 
 def rtc_init(context: naga_context, tel: Telescope, wfs: Sensors, dms: Dms, atmos: Atmos,
              p_wfss: list, p_tel: conf.Param_tel, p_geom: conf.Param_geom,
              p_atmos: conf.Param_atmos, ittime: float, p_centroiders=None,
-             p_controllers=None, p_dms=None, do_refslp=False, brama=False, tar=None,
+             p_controllers=None, p_dms=None, do_refslp=False, brahma=False, tar=None,
              dataBase={}, use_DB=False):
     """Initialize all the sutra_rtc objects : centroiders and controllers
 
@@ -38,7 +38,7 @@ def rtc_init(context: naga_context, tel: Telescope, wfs: Sensors, dms: Dms, atmo
         p_controllers : (list of Param_controller): (optional) controllers settings
         p_dms: (list of Param_dms) : (optional) dms settings
         do_refslp : (bool): (optional) do ref slopes flag, default=False
-        brama: (bool) : (optional) BRAMA flag
+        brahma: (bool) : (optional) BRAHMA flag
         tar: (Target) : (optional)
         dataBase: (dict): (optional) dict containig paths to files to load
         use_DB: (bool): use dataBase flag
@@ -47,8 +47,8 @@ def rtc_init(context: naga_context, tel: Telescope, wfs: Sensors, dms: Dms, atmo
     """
     # initialisation var
     # ________________________________________________
-    if brama:
-        rtc = Rtc_brama(context, wfs, tar)
+    if brahma:
+        rtc = Rtc_brahma(context, wfs, tar)
     else:
         rtc = Rtc(context)
 

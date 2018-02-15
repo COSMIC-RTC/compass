@@ -1716,23 +1716,23 @@ cdef class Rtc:
 
 # child constructor must have the same prototype (same number of
 # non-optional arguments)
-cdef class Rtc_brama(Rtc):
+cdef class Rtc_brahma(Rtc):
     def __cinit__(self, naga_context context, Sensors sensor, Target target=None, device=-1):
-        IF USE_BRAMA == 0:
+        IF USE_BRAHMA == 0:
             raise EnvironmentError(
-                "Error: Trying to run a BRAMA Target over NO-BRAMA compile.")
+                "Error: Trying to run a BRAHMA Target over NO-BRAHMA compile.")
         ELSE:
             Rtc.__init__(self, context, sensor, target)
             del self.rtc
             if target is not None:
-                self.rtc = new sutra_rtc_brama(context.c, sensor.sensors, target.target, "rtc_brama")
+                self.rtc = new sutra_rtc_brahma(context.c, sensor.sensors, target.target, "rtc_brahma")
             else:
-                self.rtc = new sutra_rtc_brama(context.c, sensor.sensors, NULL, "rtc_brama")
+                self.rtc = new sutra_rtc_brahma(context.c, sensor.sensors, NULL, "rtc_brahma")
 
-    IF USE_BRAMA == 1:
+    IF USE_BRAHMA == 1:
         def __dealloc__(self):
             pass  # del self.rtc
 
         cpdef publish(self):
-            cdef sutra_rtc_brama * rtc = < sutra_rtc_brama * > (self.rtc)
+            cdef sutra_rtc_brahma * rtc = < sutra_rtc_brahma * > (self.rtc)
             rtc.publish()

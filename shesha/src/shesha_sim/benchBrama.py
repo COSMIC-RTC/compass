@@ -1,15 +1,15 @@
 """
-Benchmark class for COMPASS with BRAMA simulation timing
+Benchmark class for COMPASS with BRAHMA simulation timing
 (Not used, incomplete)
 """
 from time import time, sleep
 
-from .simulatorBrama import SimulatorBrama
+from .simulatorBrahma import SimulatorBrahma
 
 
-class BenchBrama(SimulatorBrama):
+class BenchBrahma(SimulatorBrahma):
     '''
-        Class BenchBrama
+        Class BenchBrahma
     '''
 
     def next(self, *, nControl: int=0) -> None:

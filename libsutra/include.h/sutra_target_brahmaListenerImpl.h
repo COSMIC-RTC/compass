@@ -1,7 +1,7 @@
-#ifndef SUTRA_RTC_LISTENER_IMPL
-#define SUTRA_RTC_LISTENER_IMPL
+#ifndef SUTRA_TARGET_LISTENER_IMPL
+#define SUTRA_TARGET_LISTENER_IMPL
 
-#include "libBRAMATypeSupportImpl.h"
+#include "libBRAHMATypeSupportImpl.h"
 #include <dds/DdsDcpsSubscriptionC.h>
 #include <ace/Synch.h>
 
@@ -9,21 +9,21 @@
 #pragma once
 #endif /* ACE_LACKS_PRAGMA_ONCE */
 
-class sutra_rtc_brama;
-class libBRAMACommon_Export sutra_rtc_bramaListenerImpl: public virtual OpenDDS::DCPS::LocalObject<
+class sutra_target_brahma;
+class libBRAHMACommon_Export sutra_target_brahmaListenerImpl: public virtual OpenDDS::DCPS::LocalObject<
   DDS::DataReaderListener> {
  private:
-  sutra_rtc_brama *rtc;
+  sutra_target_brahma *target;
   ACE_Mutex lock_;
  public:
   //Constructor
-  sutra_rtc_bramaListenerImpl();
+  sutra_target_brahmaListenerImpl();
 
   //Destructor
-  virtual ~sutra_rtc_bramaListenerImpl(void);
+  virtual ~sutra_target_brahmaListenerImpl(void);
 
   // app-specific
-  void attach_rtc(sutra_rtc_brama *rtc);
+  void attach_target(sutra_target_brahma *target);
 
   // must also override:
   virtual void on_data_available(DDS::DataReader_ptr reader)
@@ -51,4 +51,4 @@ class libBRAMACommon_Export sutra_rtc_bramaListenerImpl: public virtual OpenDDS:
   throw (CORBA::SystemException);
 
 };
-#endif /* SUTRA_RTC_LISTENER_IMPL  */
+#endif /* SUTRA_TARGET_LISTENER_IMPL  */

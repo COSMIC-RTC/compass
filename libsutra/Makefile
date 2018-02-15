@@ -103,16 +103,16 @@ ifeq ($(filter $(COMPILATION_LAM),double),double)
   CFLAGS += -DKP_DOUBLE
 endif
 
-ifneq ($(BRAMA_ROOT),)
+ifneq ($(BRAHMA_ROOT),)
   LIB_CPPFLAGS += -fvisibility-inlines-hidden -fno-strict-aliasing -Wno-deprecated-declarations
   LIB_CPPFLAGS += -pthread -pipe -D_GNU_SOURCE -D__ACE_INLINE__
-	LIB_CPPFLAGS += -isystem $(BRAMA_ROOT) -isystem $(ACE_ROOT) -isystem $(TAO_ROOT)
-  LIB_CPPFLAGS += -isystem $(TAO_ROOT)/orbsvcs -isystem $(DDS_ROOT) -DUSE_BRAMA
+	LIB_CPPFLAGS += -isystem $(BRAHMA_ROOT) -isystem $(ACE_ROOT) -isystem $(TAO_ROOT)
+  LIB_CPPFLAGS += -isystem $(TAO_ROOT)/orbsvcs -isystem $(DDS_ROOT) -DUSE_BRAHMA
   LIB_DEPLIBS  += -Wl,-rpath=$(ACE_ROOT)/lib,-rpath=$(TAO_ROOT)/tao,-rpath=$(DDS_ROOT)/lib
   LIB_DEPLIBS  += -L$(ACE_ROOT)/lib -L$(TAO_ROOT)/tao -L$(DDS_ROOT)/lib
-	LIB_DEPLIBS  += -Wl,-rpath=$(BRAMA_ROOT) -L$(BRAMA_ROOT) -lBRAMACommon
-  LIB_DEPLIBS  += -Wl,-E -fvisibility-inlines-hidden -fno-strict-aliasing -pthread -pipe 
-  LIB_DEPLIBS  += -lBRAMACommon -lOpenDDS_InfoRepoDiscovery -lOpenDDS_Dcps
+	LIB_DEPLIBS  += -Wl,-rpath=$(BRAHMA_ROOT) -L$(BRAHMA_ROOT) -lBRAHMACommon
+  LIB_DEPLIBS  += -Wl,-E -fvisibility-inlines-hidden -fno-strict-aliasing -pthread -pipe
+  LIB_DEPLIBS  += -lBRAHMACommon -lOpenDDS_InfoRepoDiscovery -lOpenDDS_Dcps
   LIB_DEPLIBS  += -lTAO_PortableServer -lTAO_AnyTypeCode -lTAO -lACE -ldl -lrt
 endif
 

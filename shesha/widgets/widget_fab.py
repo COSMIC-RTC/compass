@@ -65,9 +65,9 @@ from widget_ao import widgetAOWindow
 @Pyro4.expose
 class widgetAOWindowPyro(widgetAOWindow):
 
-    def __init__(self, configFile: Any=None, BRAMA: bool=False,
+    def __init__(self, configFile: Any=None, BRAHMA: bool=False,
                  expert: bool=False) -> None:
-        widgetAOWindow.__init__(self, configFile, BRAMA)
+        widgetAOWindow.__init__(self, configFile, BRAHMA)
         #Pyro.core.ObjBase.__init__(self)
 
         self.aoCalib = None
@@ -580,6 +580,6 @@ if __name__ == '__main__':
     arguments = docopt(__doc__)
     app = QtWidgets.QApplication(sys.argv)
     app.setStyle('cleanlooks')
-    wao = widgetAOWindowPyro(arguments["<parameters_filename>"], BRAMA=True,
+    wao = widgetAOWindowPyro(arguments["<parameters_filename>"], BRAHMA=True,
                              expert=arguments["--expert"])
     wao.show()

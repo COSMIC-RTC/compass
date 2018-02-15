@@ -7,7 +7,7 @@ with 'parameters_filename' the path to the parameters file
 
 Options:
   -h --help          Show this help message and exit
-  --brama            Distribute data with BRAMA
+  --brahma            Distribute data with BRAHMA
   --expert           Display expert panel
   -d, --devices devices      Specify the devices
 """
@@ -55,11 +55,11 @@ WindowTemplate, TemplateBaseClass = loadUiType(
 
 class widgetAOWindow(TemplateBaseClass):
 
-    def __init__(self, configFile: Any=None, BRAMA: bool=False, expert: bool=False,
+    def __init__(self, configFile: Any=None, BRAHMA: bool=False, expert: bool=False,
                  devices: str=None) -> None:
         TemplateBaseClass.__init__(self)
 
-        self.BRAMA = BRAMA
+        self.BRAHMA = BRAHMA
         self.rollingWindow = 100
         self.SRLE = deque(maxlen=self.rollingWindow)
         self.SRSE = deque(maxlen=self.rollingWindow)
@@ -684,8 +684,8 @@ class widgetAOWindow(TemplateBaseClass):
         sys.path.insert(0, self.defaultParPath)
 
         if self.sim is None:
-            if self.BRAMA:
-                self.sim = shesha_sim.SimulatorBrama(configFile)
+            if self.BRAHMA:
+                self.sim = shesha_sim.SimulatorBrahma(configFile)
             else:
                 self.sim = shesha_sim.Simulator(configFile)
         else:
@@ -1316,6 +1316,7 @@ if __name__ == '__main__':
     arguments = docopt(__doc__)
     app = QtWidgets.QApplication(sys.argv)
     app.setStyle('cleanlooks')
-    wao = widgetAOWindow(arguments["<parameters_filename>"], BRAMA=arguments["--brama"],
-                         expert=arguments["--expert"], devices=arguments["--devices"])
+    wao = widgetAOWindow(arguments["<parameters_filename>"],
+                         BRAHMA=arguments["--brahma"], expert=arguments["--expert"],
+                         devices=arguments["--devices"])
     wao.show()

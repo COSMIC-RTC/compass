@@ -1208,25 +1208,25 @@ cdef extern from "sutra_groot.h":
 
         int compute_Cerr()
 
-IF USE_BRAMA == 1:
+IF USE_BRAHMA == 1:
     #################################################
-    # C-Class sutra_rtc_brama
+    # C-Class sutra_rtc_brahma
     #################################################
-    cdef extern from "sutra_rtc_brama.h":
-        cdef cppclass sutra_rtc_brama(sutra_rtc):
+    cdef extern from "sutra_rtc_brahma.h":
+        cdef cppclass sutra_rtc_brahma(sutra_rtc):
 
-            sutra_rtc_brama(
+            sutra_rtc_brahma(
                 carma_context * context, sutra_sensors * wfs, sutra_target * target, char * name)
 
             void publish()
 
     #################################################
-    # C-Class sutra_target_brama
+    # C-Class sutra_target_brahma
     #################################################
-    cdef extern from "sutra_target_brama.h":
-        cdef cppclass sutra_target_brama(sutra_target):
+    cdef extern from "sutra_target_brahma.h":
+        cdef cppclass sutra_target_brahma(sutra_target):
 
-            sutra_target_brama(carma_context * context, char * name, sutra_telescope * d_tel, int subsample_, int ntargets, float * xpos,
+            sutra_target_brahma(carma_context * context, char * name, sutra_telescope * d_tel, int subsample_, int ntargets, float * xpos,
                                float * ypos, float * zlambda, float * mag, float zerop, long * sizes,
                                int Npts, int device)
 

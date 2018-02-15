@@ -1,33 +1,33 @@
-#ifdef USE_BRAMA
+#ifdef USE_BRAHMA
 
-#include "libBRAMATypeSupportImpl.h"
-#include<sutra_rtc_bramaListenerImpl.h>
+#include "libBRAHMATypeSupportImpl.h"
+#include<sutra_rtc_brahmaListenerImpl.h>
 #include "dds/DCPS/Service_Participant.h"
 #include "ace/streams.h"
 
-#include "sutra_rtc_brama.h"
+#include "sutra_rtc_brahma.h"
 
 //Constructor
-sutra_rtc_bramaListenerImpl::sutra_rtc_bramaListenerImpl() :
+sutra_rtc_brahmaListenerImpl::sutra_rtc_brahmaListenerImpl() :
   rtc(0L) {
 
 }
 
 //Destructor
-sutra_rtc_bramaListenerImpl::~sutra_rtc_bramaListenerImpl(void) {
+sutra_rtc_brahmaListenerImpl::~sutra_rtc_brahmaListenerImpl(void) {
 }
 
 // app-specific
-void sutra_rtc_bramaListenerImpl::attach_rtc(sutra_rtc_brama *rtc_) {
+void sutra_rtc_brahmaListenerImpl::attach_rtc(sutra_rtc_brahma *rtc_) {
   rtc = rtc_;
 }
 
-void sutra_rtc_bramaListenerImpl::on_data_available(DDS::DataReader_ptr reader)
+void sutra_rtc_brahmaListenerImpl::on_data_available(DDS::DataReader_ptr reader)
 throw (CORBA::SystemException) {
-//  DEBUG_TRACE("Entering in sutra_rtc_bramaListenerImpl::on_data_available");
+//  DEBUG_TRACE("Entering in sutra_rtc_brahmaListenerImpl::on_data_available");
 
   try {
-    BRAMA::CommandDataReader_var rtc_cmd_dr = BRAMA::CommandDataReader::_narrow(
+    BRAHMA::CommandDataReader_var rtc_cmd_dr = BRAHMA::CommandDataReader::_narrow(
           reader);
 
     if (CORBA::is_nil(rtc_cmd_dr.in())) {
@@ -36,7 +36,7 @@ throw (CORBA::SystemException) {
       ACE_OS::exit(1);
     }
     DDS::SampleInfo si;
-    BRAMA::Command cmd;
+    BRAHMA::Command cmd;
     while (DDS::RETCODE_OK == rtc_cmd_dr->take_next_sample(cmd, si)) {
       if (si.valid_data) {
 //        ACE_Guard < ACE_Mutex > guard(this->lock_);
@@ -55,9 +55,9 @@ throw (CORBA::SystemException) {
             CORBA::Float *data = (CORBA::Float*) cmd.data.get_buffer();
 
             if ((cmd.dimensions.length() != 1) && (cmd.dimensions[0] == ncmd)) {
-              BRAMA_DEBUG_TRACE("wrong dimensions : %d %d", cmd.dimensions.length(),
-                                cmd.dimensions[0]);
-              BRAMA_DEBUG_TRACE("it should be : 1 %d", ncmd);
+              BRAHMA_DEBUG_TRACE("wrong dimensions : %d %d", cmd.dimensions.length(),
+                                 cmd.dimensions[0]);
+              BRAHMA_DEBUG_TRACE("it should be : 1 %d", ncmd);
               throw CORBA::BAD_PARAM();
             }
             if (rtc->d_control[ncontrol]->get_type() == "ls") {
@@ -76,8 +76,8 @@ throw (CORBA::SystemException) {
               control->set_mgain(data);
               return;
             } else {
-              BRAMA_DEBUG_TRACE("controller %d must be a ls or mv controller",
-                                ncontrol);
+              BRAHMA_DEBUG_TRACE("controller %d must be a ls or mv controller",
+                                 ncontrol);
               throw CORBA::BAD_PARAM();
             }
           } else if (cmd_splited[0] == "globalGain") {
@@ -95,8 +95,8 @@ throw (CORBA::SystemException) {
               control->set_gain(gain);
               return;
             } else {
-              BRAMA_DEBUG_TRACE("controller %d must be a ls or mv controller",
-                                ncontrol);
+              BRAHMA_DEBUG_TRACE("controller %d must be a ls or mv controller",
+                                 ncontrol);
               throw CORBA::BAD_PARAM();
             }
           } else if (cmd_splited[0] == "openLoop") {
@@ -118,8 +118,8 @@ throw (CORBA::SystemException) {
               std::stringstream ss;
               ss<<"wrong dimensions :";
               for(unsigned int i=0; i<=cmd.dimensions.length(); i++) ss<<" "<< cmd.dimensions[i];
-              BRAMA_DEBUG_TRACE("%s", ss.str().c_str());
-              BRAMA_DEBUG_TRACE("it should be : %d %d", ncmd, nslope);
+              BRAHMA_DEBUG_TRACE("%s", ss.str().c_str());
+              BRAHMA_DEBUG_TRACE("it should be : %d %d", ncmd, nslope);
               throw CORBA::BAD_PARAM();
             }
 
@@ -140,7 +140,7 @@ throw (CORBA::SystemException) {
               control->set_cmat(data);
               return;
             } else {
-              BRAMA_DEBUG_TRACE(
+              BRAHMA_DEBUG_TRACE(
                 "controller %d must be a ls, mv or generic controller",
                 ncontrol);
               throw CORBA::BAD_PARAM();
@@ -154,9 +154,9 @@ throw (CORBA::SystemException) {
 
             if (cmd.dimensions.length() != 2 || cmd.dimensions[0] != ncmd
                 || cmd.dimensions[1] != ncmd) {
-              BRAMA_DEBUG_TRACE("wrong dimensions : %d %d %d",
-                                cmd.dimensions.length(), cmd.dimensions[0], cmd.dimensions[1]);
-              BRAMA_DEBUG_TRACE("it should be : 2 %d %d", ncmd, ncmd);
+              BRAHMA_DEBUG_TRACE("wrong dimensions : %d %d %d",
+                                 cmd.dimensions.length(), cmd.dimensions[0], cmd.dimensions[1]);
+              BRAHMA_DEBUG_TRACE("it should be : 2 %d %d", ncmd, ncmd);
               throw CORBA::BAD_PARAM();
             }
 
@@ -167,8 +167,8 @@ throw (CORBA::SystemException) {
               control->set_matE(data);
               return;
             } else {
-              BRAMA_DEBUG_TRACE("controller %d must be a generic controller",
-                                ncontrol);
+              BRAHMA_DEBUG_TRACE("controller %d must be a generic controller",
+                                 ncontrol);
               throw CORBA::BAD_PARAM();
             }
           } else if (cmd_splited[0] == "decayFactor") {
@@ -179,9 +179,9 @@ throw (CORBA::SystemException) {
             unsigned int ncmd = rtc->d_control[ncontrol]->nactu();
 
             if (cmd.dimensions.length() != 1 || cmd.dimensions[0] != ncmd) {
-              BRAMA_DEBUG_TRACE("wrong dimensions : %d %d", cmd.dimensions.length(),
-                                cmd.dimensions[0]);
-              BRAMA_DEBUG_TRACE("it should be : 1 %d", ncmd);
+              BRAHMA_DEBUG_TRACE("wrong dimensions : %d %d", cmd.dimensions.length(),
+                                 cmd.dimensions[0]);
+              BRAHMA_DEBUG_TRACE("it should be : 1 %d", ncmd);
               throw CORBA::BAD_PARAM();
             }
 
@@ -192,8 +192,8 @@ throw (CORBA::SystemException) {
               control->set_decayFactor(data);
               return;
             } else {
-              BRAMA_DEBUG_TRACE("controller %d must be a generic controller",
-                                ncontrol);
+              BRAHMA_DEBUG_TRACE("controller %d must be a generic controller",
+                                 ncontrol);
               throw CORBA::BAD_PARAM();
             }
           } else if (cmd_splited[0] == "commandLaw") {
@@ -209,8 +209,8 @@ throw (CORBA::SystemException) {
               control->set_commandlaw(law);
               return;
             } else {
-              BRAMA_DEBUG_TRACE("controller %d must be a generic controller",
-                                ncontrol);
+              BRAHMA_DEBUG_TRACE("controller %d must be a generic controller",
+                                 ncontrol);
               throw CORBA::BAD_PARAM();
             }
           } else if (cmd_splited[0] == "PertVolt") {
@@ -226,9 +226,9 @@ throw (CORBA::SystemException) {
                 rtc->d_control[ncontrol]->set_perturbcom(data, 1);
                 return;
               } else {
-                BRAMA_DEBUG_TRACE("wrong dimensions : %d %d", cmd.dimensions.length(),
-                                  cmd.dimensions[0]);
-                BRAMA_DEBUG_TRACE("it should be : 1 %d", ncmd);
+                BRAHMA_DEBUG_TRACE("wrong dimensions : %d %d", cmd.dimensions.length(),
+                                   cmd.dimensions[0]);
+                BRAHMA_DEBUG_TRACE("it should be : 1 %d", ncmd);
                 throw CORBA::BAD_PARAM();
               }
             } else if (cmd.dimensions.length() == 2) {
@@ -237,9 +237,9 @@ throw (CORBA::SystemException) {
                     cmd.dimensions[1]);
                 return;
               } else {
-                BRAMA_DEBUG_TRACE("wrong dimensions : %d %d %d",
-                                  cmd.dimensions.length(), cmd.dimensions[0], cmd.dimensions[1]);
-                BRAMA_DEBUG_TRACE("it should be : 2 %d nb_elem", ncmd);
+                BRAHMA_DEBUG_TRACE("wrong dimensions : %d %d %d",
+                                   cmd.dimensions.length(), cmd.dimensions[0], cmd.dimensions[1]);
+                BRAHMA_DEBUG_TRACE("it should be : 2 %d nb_elem", ncmd);
                 throw CORBA::BAD_PARAM();
               }
             } else {
@@ -258,14 +258,14 @@ throw (CORBA::SystemException) {
             throw stm.str().c_str();
           }
         } catch (char const*msg) {
-          BRAMA_DEBUG_TRACE("%s",msg);
+          BRAHMA_DEBUG_TRACE("%s",msg);
         } catch (CORBA::BAD_PARAM &p) {
           std::ostringstream stm;
           stm << p;
-          BRAMA_DEBUG_TRACE("%s", stm.str().c_str());
+          BRAHMA_DEBUG_TRACE("%s", stm.str().c_str());
         }
       } else {
-//         BRAMA_DEBUG_TRACE("sutra_rtc_bramaListenerImpl::on_data_available received a non-data sample. ");
+//         BRAHMA_DEBUG_TRACE("sutra_rtc_brahmaListenerImpl::on_data_available received a non-data sample. ");
       }
     }
   } catch (CORBA::Exception& e) {
@@ -275,47 +275,47 @@ throw (CORBA::SystemException) {
 }
 
 // must also override:
-void sutra_rtc_bramaListenerImpl::on_requested_deadline_missed(
+void sutra_rtc_brahmaListenerImpl::on_requested_deadline_missed(
   DDS::DataReader_ptr reader,
   const DDS::RequestedDeadlineMissedStatus & status)
 throw (CORBA::SystemException) {
-//   BRAMA_DEBUG_TRACE(
+//   BRAHMA_DEBUG_TRACE(
 //       "CommandDataReaderListenerImpl::on_requested_deadline_missed");
 //  cerr << "CommandDataReaderListenerImpl::on_requested_deadline_missed" << endl;
 }
-void sutra_rtc_bramaListenerImpl::on_requested_incompatible_qos(
+void sutra_rtc_brahmaListenerImpl::on_requested_incompatible_qos(
   DDS::DataReader_ptr reader,
   const DDS::RequestedIncompatibleQosStatus & status)
 throw (CORBA::SystemException) {
-//   BRAMA_DEBUG_TRACE(
+//   BRAHMA_DEBUG_TRACE(
 //       "CommandDataReaderListenerImpl::on_requested_incompatible_qos");
 //  cerr << "CommandDataReaderListenerImpl::on_requested_incompatible_qos" << endl;
 }
-void sutra_rtc_bramaListenerImpl::on_liveliness_changed(
+void sutra_rtc_brahmaListenerImpl::on_liveliness_changed(
   DDS::DataReader_ptr reader, const DDS::LivelinessChangedStatus & status)
 throw (CORBA::SystemException) {
-//   BRAMA_DEBUG_TRACE(
+//   BRAHMA_DEBUG_TRACE(
 //       "CommandDataReaderListenerImpl::on_liveliness_changed");
 //  cerr << "CommandDataReaderListenerImpl::on_liveliness_changed" << endl;
 }
-void sutra_rtc_bramaListenerImpl::on_subscription_matched(
+void sutra_rtc_brahmaListenerImpl::on_subscription_matched(
   DDS::DataReader_ptr reader, const DDS::SubscriptionMatchedStatus & status)
 throw (CORBA::SystemException) {
-//   BRAMA_DEBUG_TRACE(
+//   BRAHMA_DEBUG_TRACE(
 //       "CommandDataReaderListenerImpl::on_subscription_matched");
 //  cerr << "CommandDataReaderListenerImpl::on_subscription_matched" << endl;
 }
-void sutra_rtc_bramaListenerImpl::on_sample_rejected(DDS::DataReader_ptr reader,
+void sutra_rtc_brahmaListenerImpl::on_sample_rejected(DDS::DataReader_ptr reader,
     const DDS::SampleRejectedStatus& status) throw (CORBA::SystemException) {
-//   BRAMA_DEBUG_TRACE(
+//   BRAHMA_DEBUG_TRACE(
 //       "CommandDataReaderListenerImpl::on_sample_rejected");
 //  cerr << "CommandDataReaderListenerImpl::on_sample_rejected" << endl;
 }
-void sutra_rtc_bramaListenerImpl::on_sample_lost(DDS::DataReader_ptr reader,
+void sutra_rtc_brahmaListenerImpl::on_sample_lost(DDS::DataReader_ptr reader,
     const DDS::SampleLostStatus& status) throw (CORBA::SystemException) {
-//   BRAMA_DEBUG_TRACE(
+//   BRAHMA_DEBUG_TRACE(
 //       "CommandDataReaderListenerImpl::on_sample_lost");
 //  cerr << "CommandDataReaderListenerImpl::on_sample_lost" << endl;
 }
 
-#endif /* USE_BRAMA */
+#endif /* USE_BRAHMA */
