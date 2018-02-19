@@ -20,7 +20,7 @@ p_tel.set_diam(8.0)
 p_tel.set_cobs(0.)
 
 #atmos
-p_atmos = ao.Param_atmos()
+p_atmos = conf.Param_atmos()
 
 p_atmos.set_r0(0.16)
 p_atmos.set_nscreens(12)
@@ -34,7 +34,6 @@ p_atmos.set_alt([
 p_atmos.set_windspeed([13, 17, 5, 17, 10, 10, 8, 6, 14, 9, 8, 17])
 p_atmos.set_winddir([345, -292, -115, -161, -179, -266, -208, 185, 265, 116, 6, 272])
 p_atmos.set_L0([100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100])
-0 ([100])
 
 #target
 p_target = conf.Param_target()
@@ -59,9 +58,9 @@ for i in range(len(p_wfss)):
     p_wfss[i].set_xpos(5.)
     p_wfss[i].set_ypos(0.)
     p_wfss[i].set_Lambda(0.5)
-    p_wfss[i].set_gsmag(5.)
+    p_wfss[i].set_gsmag(8.)
     p_wfss[i].set_optthroughput(0.5)
-    p_wfss[i].set_zerop(2.5e10)
+    p_wfss[i].set_zerop(3e10)
     p_wfss[i].set_noise(3)
     p_wfss[i].set_atmos_seen(1)
 

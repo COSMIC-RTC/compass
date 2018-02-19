@@ -51,7 +51,7 @@ def compute_Cerr(filename, modal=True, ctype="float", speed=None, H=None, theta=
     if speed is None:
         speed = f.attrs["_Param_atmos__windspeed"]
     if theta is None:
-        theta = f.attrs["_Param_atmos__winddir"] * np.pi / 180.
+        theta = (f.attrs["_Param_atmos__winddir"] * np.pi / 180.)
     frac = f.attrs["_Param_atmos__frac"]
 
     Htheta = np.linalg.norm([wxpos, wypos]) / RASC * H
@@ -214,6 +214,40 @@ def compute_Cerr_cpu(filename, modal=True):
     f.close()
 
     return cov_err
+
+
+def test_Cerr(filename):
+    """ Compute PSF of aniso and bandwidth from GROOT model and ROKET to compare
+
+    :parameters:
+        filename:(str):path to the ROKET file
+    """
+    C = rexp.get_covmat_contrib(filename, ["bandwidth", "tomography"])
+    Cerr = compute_Cerr(filename)
+    _, _, psfr, _ = gamora.psf_rec_Vii(filename, covmodes=C.astype(np.float32),
+                                       fitting=False)
+    _, _, psf, _ = gamora.psf_rec_Vii(filename, cov=Cerr.astype(np.float32),
+                                      fitting=False)
+    rexp.cutsPSF(filename, psfr, psf)
+    print("PSFR SR: ", psfr.max())
+    print("PSF SR: ", psf.max())
+    psf = rexp.ensquare_PSF(filename, psf, 20)
+    psfr = rexp.ensquare_PSF(filename, psfr, 20)
+    plt.matshow(np.log10(np.abs(psfr)))
+    plt.colorbar()
+    plt.title("PSF_R")
+    plt.matshow(
+            np.log10(np.abs(psf)), vmax=np.log10(np.abs(psfr)).max(),
+            vmin=np.log10(np.abs(psfr)).min())
+    plt.colorbar()
+    plt.title("PSF")
+    plt.matshow(
+            np.log10(np.abs(psfr - psf)), vmax=np.log10(np.abs(psfr)).max(),
+            vmin=np.log10(np.abs(psfr)).min())
+    plt.colorbar()
+    plt.title("PSF_R - PSF")
+
+    return psf, psfr
 
 
 def compare_GPU_vs_CPU(filename):

@@ -58,9 +58,9 @@ def atmos_init(context: naga_context, p_atmos: conf.Param_atmos, p_tel: conf.Par
     max_size = max(norms)
 
     # Meta-pupil diameter for all layers depending on altitude
-    patch_diam = p_geom._n + 2 * (
-            max_size * CONST.ARCSEC2RAD * p_atmos.alt) / p_atmos.pupixsize + 4
-    p_atmos.dim_screens = (patch_diam + patch_diam % 2).astype(np.int64)
+    patch_diam = int(p_geom._n + 2 *
+                     (max_size * CONST.ARCSEC2RAD * p_atmos.alt) / p_atmos.pupixsize + 4)
+    p_atmos.dim_screens = (patch_diam + patch_diam % 2)
 
     # Phase screen speeds
     lin_delta = p_geom.pupdiam / p_tel.diam * p_atmos.windspeed * \
