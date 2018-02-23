@@ -203,6 +203,15 @@ cdef class Rtc:
         else:
             self.rtc.do_centroids()
 
+    def add_perturb(self, int ncontrol):
+        """
+            Add perturbation voltages
+        :parameters:
+            ncontrol: (int): controller index
+        """
+        self.context.set_activeDevice(self.rtc.device, 1)
+        self.rtc.d_control[ncontrol].add_perturb()
+
     def do_centroids_geom(self, int ncontrol=-1):
         """Compute the geometric centroids with sutra_controller #ncontrol object
 

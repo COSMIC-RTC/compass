@@ -686,6 +686,7 @@ cdef extern from "sutra_controller.h":
         int set_openloop(int open_loop_status)
         void clip_voltage(float min, float max)
         int comp_voltage()
+        int add_perturb()
         int syevd_f(char meth, carma_obj[float] * d_U, carma_host_obj[float] * h_eingenvals)
         int invgen(carma_obj[float] * d_mat, float cond, int job)
         int command_delay()
