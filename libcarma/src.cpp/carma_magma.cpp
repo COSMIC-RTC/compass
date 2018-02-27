@@ -435,7 +435,7 @@ int carma_spmv_gen(Fn spmv, T alpha, varM dA, carma_obj<T> *dx, T beta, carma_ob
 /*
  * API functions
  */
-int carma_disabled() {
+int magma_disabled() {
   TEST_USE_MAGMA(return EXIT_SUCCESS);
 }
 
