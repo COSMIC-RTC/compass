@@ -576,10 +576,9 @@ class widgetAOWindowPyro(AbstractSupervisor, widgetAOWindow, metaclass=MergeMeta
                     self.sim.config.p_wfss[i]._isvalid))  # Valid subap array
             new_hduwfsl[i].header["DATATYPE"] = "valid_wfs%d" % i
 
-            xytab = np.zeros((self.sim.config.p_wfss[i]._validsubsx.shape[0],
-                              self.sim.config.p_wfss[i]._validsubsy.shape[0]))
-            xytab[0] = self.sim.config.p_wfss[i]._validsubsx
-            xytab[1] = self.sim.config.p_wfss[i]._validsubsy
+            xytab = np.zeros((2, self.sim.config.p_wfss[i]._validsubsx.shape[0]))
+            xytab[0, :] = self.sim.config.p_wfss[i]._validsubsx
+            xytab[1, :] = self.sim.config.p_wfss[i]._validsubsy
 
             new_hduwfsSubapXY.append(
                     pfits.ImageHDU(xytab))  # Valid subap array inXx Y on the detector
@@ -610,9 +609,10 @@ class widgetAOWindowPyro(AbstractSupervisor, widgetAOWindow, metaclass=MergeMeta
                 pyr_pupsep.append(0)
                 npixPerSub.append(self.sim.config.p_wfss[i].npix)
         confname = filepath.split("/")[-1].split('.conf')[0]
-        new_hduwfsl.writeto(filepath.split(".conf")[0] + '_wfsConfig.fits', clobber=True)
+        new_hduwfsl.writeto(
+                filepath.split(".conf")[0] + '_wfsConfig.fits', overwrite=True)
         new_hduwfsSubapXY.writeto(
-                filepath.split(".conf")[0] + '_wfsValidXYConfig.fits', clobber=True)
+                filepath.split(".conf")[0] + '_wfsValidXYConfig.fits', overwrite=True)
         aodict.update({"listWFS_NslopesList": NslopesList})
         aodict.update({"listWFS_NsubapList": NsubapList})
         aodict.update({"listWFS_WfsType": listWfsType})
@@ -655,7 +655,8 @@ class widgetAOWindowPyro(AbstractSupervisor, widgetAOWindow, metaclass=MergeMeta
             #    tmp.append(self.sim.computeDMrange(j, k))
 
             push4iMatArcSec.append(tmp)
-        new_hdudmsl.writeto(filepath.split(".conf")[0] + '_dmsConfig.fits', clobber=True)
+        new_hdudmsl.writeto(
+                filepath.split(".conf")[0] + '_dmsConfig.fits', overwrite=True)
         aodict.update({"listDMS_push4iMatArcSec": push4iMatArcSec})
         aodict.update({"listDMS_push4iMat": push4imat})
         aodict.update({"listDMS_unitPerVolt": unitPerVolt})
