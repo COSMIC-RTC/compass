@@ -617,7 +617,9 @@ class widgetAOWindow(TemplateBaseClass):
         filepath = QtWidgets.QFileDialog(directory=self.defaultParPath).getOpenFileName(
                 self, "Select parameter file", "",
                 "parameters file (*.py);;hdf5 file (*.h5);;all files (*)")
-
+        if (filepath is None):
+            print("Warning No filepath found!")
+            return
         self.ui.wao_selectConfig.clear()
         self.ui.wao_selectConfig.addItem(str(filepath[0]))
 
