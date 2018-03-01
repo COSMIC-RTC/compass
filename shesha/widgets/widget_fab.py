@@ -12,14 +12,15 @@ Options:
 import os, sys
 import numpy as np
 import time
+from collections import OrderedDict
 
 import pyqtgraph as pg
 sys.path.insert(0, os.environ["SHESHA_ROOT"] + "/AOlib")
 sys.path.insert(0, os.environ["SHESHA_ROOT"] + "/src/shesha_util")
 from tools import plsh, plpyr
-
+from tqdm import tqdm
 import threading
-
+import astropy.io.fits as pfits
 from PyQt5 import QtGui, QtWidgets
 from PyQt5.uic import loadUiType
 from PyQt5.QtCore import QThread, QObject, QTimer, pyqtSignal
@@ -54,7 +55,6 @@ Add on the python Server Side: Pyro4.config.SERIALIZERS_ACCEPTED = set(['pickle'
 Add on the python client Side: Pyro4.config.SERIALIZER='pickle'
 """
 Pyro4.config.SERIALIZERS_ACCEPTED = set(['pickle', 'json', 'marshal', 'serpent'])
-from aoCalib import adoptCalib_class
 
 sys.path.insert(0, os.environ["SHESHA_ROOT"] + "/data/par/")
 WindowTemplate, TemplateBaseClass = loadUiType(
@@ -69,8 +69,8 @@ class widgetAOWindowPyro(widgetAOWindow):
                  expert: bool=False) -> None:
         widgetAOWindow.__init__(self, configFile, BRAHMA)
         #Pyro.core.ObjBase.__init__(self)
+        raise ValueError("Unsupported use canapassSupervisor...")
 
-        self.aoCalib = None
         self.CB = {}
         self.wpyr = None
         #############################################################
@@ -88,10 +88,55 @@ class widgetAOWindowPyro(widgetAOWindow):
         #                       METHODS                             #
         #############################################################
 
+    """
+    Abstract Supervisor methods
+
+    """
+
+    def getConfig(self, path):
+        return self.writeConfigOnFile(path)
+        #return cf.returnConfigfromWao(self, filepath=path)
+
     def loadConfig(self) -> None:
-        super().loadConfig()
+        widgetAOWindow.loadConfig(self)
         print("switching to a generic controller")
         self.sim.config.p_controllers[0].type = scons.ControllerType.GENERIC
+
+    def InitConfig(self):
+        try:
+            ps = PyroServer(self)
+            ps.start()
+        except:
+            print("Warning: Error while starting Pyro server")
+        widgetAOWindow.InitConfig(self)
+
+    def InitConfigFinished(self) -> None:
+        widgetAOWindow.InitConfigFinished(self)
+
+    def loopOnce(self) -> None:
+        widgetAOWindow.loopOnce(self)
+        start = time.time()
+        refreshDisplayTime = 1. / self.ui.wao_frameRate.value()
+
+        if (self.ui.actionShow_Pyramid_Tools.isChecked()):  # PYR only
+            self.wpyr.Fe = 1 / self.sim.config.p_loop.ittime  # needs Fe for PSD...
+            if (self.wpyr.CBNumber == 1):
+                self.ai = self.computeModalResiduals()
+                self.setPyrToolsParams(self.ai)
+            else:
+                if (self.currentBuffer == 1):  # First iter of the CB
+                    aiVect = self.computeModalResiduals()
+                    self.ai = aiVect[np.newaxis, :]
+                    self.currentBuffer += 1  # Keep going
+
+                else:  # Keep filling the CB
+                    aiVect = self.computeModalResiduals()
+                    self.ai = np.concatenate((self.ai, aiVect[np.newaxis, :]))
+                    if (self.currentBuffer < self.wpyr.CBNumber):
+                        self.currentBuffer += 1  # Keep going
+                    else:
+                        self.currentBuffer = 1  # reset buffer
+                        self.setPyrToolsParams(self.ai)  # display
 
     def initPyrTools(self):
         ADOPTPATH = os.getenv("ADOPTPATH")
@@ -108,7 +153,7 @@ class widgetAOWindowPyro(widgetAOWindow):
         self.wpyr.updateResiduals(ai)
         if (self.ph2modes is None):
             print('computing phase 2 Modes basis')
-            self.computePh2KL()
+            self.computePh2Modes()
         self.wpyr.ph2modes = self.ph2modes
 
     def showPyrTools(self):
@@ -125,54 +170,7 @@ class widgetAOWindowPyro(widgetAOWindow):
             else:
                 self.wpyr.hide()
 
-    def setPyrModulation(self, pyrmod):
-        self.sim.rtc.set_pyr_ampl(0, pyrmod, self.sim.config.p_wfss,
-                                  self.sim.config.p_tel)
-        print("PYR modulation set to: %f L/D" % pyrmod)
-        self.sim.rtc.do_centroids(0)  # To be ready for the next getSlopes
-
-    def setPyrMethod(self, pyrmethod):
-        self.sim.rtc.set_pyr_method(0, pyrmethod,
-                                    self.sim.config.p_centroiders)  # Sets the pyr method
-        print("PYR method set to: %d" % self.sim.rtc.get_pyr_method(0))
-        self.sim.rtc.do_centroids(0)  # To be ready for the next getSlopes
-
-    def setNoise(self, noise, numwfs=0):
-        self.sim.wfs.set_noise(numwfs, noise)
-        print("Noise set to: %d" % noise)
-
-    def getSlopesGeom(self, nb):
-        self.sim.rtc.do_centroids_geom(0)
-        slopesGeom = self.sim.rtc.get_centroids(0)
-        self.sim.rtc.do_centroids(0)
-        return slopesGeom
-
-    def getConfig(self, path):
-        return self.aoCalib.getConfig(self, path)
-        #return cf.returnConfigfromWao(self, filepath=path)
-
-    def getIpupil(self):
-        return self.sim.config.p_geom._ipupil
-
-    def getSpupil(self):
-        return self.sim.config.p_geom._spupil
-
-    def getImage2(self, tarnum, tartype):
-        return self.sim.tar.get_image(tarnum, tartype)
-
-    def getMpupil(self):
-        return self.sim.config.p_geom._mpupil
-
-    def getAmplipup(self, tarnum):
-        return self.sim.config.tar.get_amplipup(tarnum)
-
-    def getPhase(self, tarnum):
-        return self.sim.tar.get_phase(tarnum)
-
-    def getWFSPhase(self, wfsnum):
-        return self.sim.wfs.get_phase(wfsnum)
-
-    def computePh2KL(self):
+    def computePh2Modes(self):
         self.aoLoopClicked(False)
         self.ui.wao_run.setChecked(False)
         oldnoise = self.sim.config.p_wfs0.noise
@@ -200,10 +198,29 @@ class widgetAOWindowPyro(widgetAOWindow):
         self.ui.wao_run.setChecked(True)
         return ph2KL
 
-    def getTargetPhase(self, tarnum):
-        pup = self.getSpupil()
-        ph = self.sim.tar.get_phase(tarnum) * pup
-        return ph
+    def getModes2VBasis(self, ModalBasisType):
+        if (ModalBasisType == "KL2V"):
+            print("Computing KL2V basis...")
+            return self.returnkl2V()
+        elif (ModalBasisType == "Btt"):
+            print("Computing Btt basis...")
+            return self.compute_Btt2()
+
+    def returnkl2V(self):
+        """
+        KL2V = ao.compute_KL2V(self.sim.config.p_controllers[
+                               0], self.sim.dms, self.sim.config.p_dms, self.sim.config.p_geom, self.sim.config.p_atmos, self.sim.config.p_tel)
+        """
+        if (self.KL2V is None):
+            print("Computing KL2V...")
+            KL2V = ao.compute_KL2V(self.sim.config.p_controllers[0], self.sim.dms,
+                                   self.sim.config.p_dms, self.sim.config.p_geom,
+                                   self.sim.config.p_atmos, self.sim.config.p_tel)
+            print("KL2V Done!")
+            self.KL2V = KL2V
+            return KL2V, 0
+        else:
+            return self.KL2V, 0
 
     def compute_Btt2(self):
         IF = self.sim.rtc.get_IFsparse(1).T
@@ -255,106 +272,8 @@ class widgetAOWindowPyro(widgetAOWindow):
 
         return Btt.astype(np.float32), P.astype(np.float32)
 
-    def getModes2VBasis(self, ModalBasisType):
-        if (ModalBasisType == "KL2V"):
-            print("Computing KL2V basis...")
-            return self.returnkl2V()
-        elif (ModalBasisType == "Btt"):
-            print("Computing Btt basis...")
-            return self.compute_Btt2()
-
-    def computeModalResiduals(self):
-        self.sim.rtc.do_control_geo(1, self.sim.dms, self.sim.tar, 0)
-        #self.sim.rtc.do_control_geo_on(1, self.sim.dms,self.sim.tar, 0)
-        v = self.sim.rtc.getCom(1)
-        if (self.P is None):
-            self.modalBasis, self.P = self.getModes2VBasis("Btt")
-        ai = self.P.dot(v) * 1000.  # np rms units
-        return ai
-
-    def returnTest(self, dataType):
-        if (dataType == "float"):
-            return 1.0
-        elif (dataType == "list"):
-            return [0, 1, "5"]
-        elif (dataType == "array"):
-            return np.ones((10, 10))
-        elif (dataType == "arraylist"):
-            return list(np.ones((10, 10)))
-
-        else:
-            print("oups")
-
-    def returnkl2V(self):
-        """
-        KL2V = ao.compute_KL2V(self.sim.config.p_controllers[
-                               0], self.sim.dms, self.sim.config.p_dms, self.sim.config.p_geom, self.sim.config.p_atmos, self.sim.config.p_tel)
-        """
-        if (self.KL2V is None):
-            print("Computing KL2V...")
-            KL2V = ao.compute_KL2V(self.sim.config.p_controllers[0], self.sim.dms,
-                                   self.sim.config.p_dms, self.sim.config.p_geom,
-                                   self.sim.config.p_atmos, self.sim.config.p_tel)
-            print("KL2V Done!")
-            self.KL2V = KL2V
-            return KL2V, 0
-        else:
-            return self.KL2V, 0
-
-    def _getNcpaWfs(self, wfsnum):
-        return self.sim.wfs.get_ncpa_phase(wfsnum)
-
-    def _getNcpaTar(self, tarnum):
-        return self.sim.tar.get_ncpa_phase(tarnum)
-
-    def _setNcpaWfs(self, ncpa, wfsnum):
-        self.sim.wfs.set_ncpa_phase(wfsnum, ncpa.astype(np.float32).copy())
-
-    def _setNcpaTar(self, ncpa, tarnum):
-        self.sim.tar.set_ncpa_phase(tarnum, ncpa.astype(np.float32).copy())
-
-    def doRefslopes(self):
-        self.sim.rtc.do_centroids_ref(0)
-        print("refslopes done")
-
-    def loadRefSlopes(self, ref):
-        self.sim.rtc.set_centroids_ref(0, ref)
-
-    def resetRefslopes(self):
-        self.sim.rtc.set_centroids_ref(0, self.getSlopes() * 0.)
-
-    def setCommandMatrix(self, cMat):
-        return self.sim.rtc.set_cmat(0, cMat)
-
-    def setPertuVoltages(self, actusVolts):
-        self.sim.rtc.setPertuVoltages(0, actusVolts.astype(np.float32).copy())
-
-    def getVolts(self):
-        return self.sim.rtc.get_voltage(0)
-
-    def getSlopes(self):
-        return self.sim.rtc.get_centroids(0)
-
-    def setIntegratorLaw(self):
-        self.sim.rtc.set_commandlaw(0, "integrator")
-
-    def setGain(self, gain):
-        self.sim.rtc.set_gain(0, gain)
-
-    def setDecayFactor(self, decay):
-        self.sim.rtc.set_decayFactor(0, decay.astype(np.float32).copy())
-
-    def setEMatrix(self, eMat):
-        self.sim.rtc.set_matE(0, eMat.astype(np.float32).copy())
-
-    def closeLoop(self):
-        self.sim.rtc.set_openloop(0, 0)
-
     def getAi(self):
         return self.wpyr.ai
-
-    def openLoop(self):
-        self.sim.rtc.set_openloop(0, 1)
 
     def updateSRSE(self, SRSE):
         self.ui.wao_strehlSE.setText(SRSE)
@@ -362,30 +281,11 @@ class widgetAOWindowPyro(widgetAOWindow):
     def updateSRLE(self, SRLE):
         self.ui.wao_strehlLE.setText(SRLE)
 
-    def set_phaseWFS(self, numwfs, phase):
-        pph = phase.astype(np.float32)
-        self.sim.wfs.set_phase(0, pph)
-        _ = self.computeSlopes()
-
     def updateCurrentLoopFrequency(self, freq):
         self.ui.wao_currentFreq.setValue(freq)
 
-    def InitConfig(self):
-        widgetAOWindow.InitConfig(self)
-        try:
-            ps = PyroServer(wao)
-            ps.start()
-        except:
-            print("Warning: Error while starting Pyro server")
-
-    def InitConfigFinished(self) -> None:
-        widgetAOWindow.InitConfigFinished(self)
-        self.aoCalib = adoptCalib_class(self.sim.config, self.sim.wfs, self.sim.tel,
-                                        self.sim.atm, self.sim.dms, self.sim.tar,
-                                        self.sim.rtc, ao)
-
-    def measureIMatKL(self, ampliVec, KL2V, Nslopes, noise=False, nmodesMax=0,
-                      withTurbu=False, pushPull=False):
+    def doImatModal(self, ampliVec, KL2V, Nslopes, noise=False, nmodesMax=0,
+                    withTurbu=False, pushPull=False):
         iMatKL = np.zeros((KL2V.shape[1], Nslopes))
         self.aoLoopClicked(False)
         self.ui.wao_run.setChecked(False)
@@ -422,9 +322,6 @@ class widgetAOWindowPyro(widgetAOWindow):
 
         return iMatKL
 
-    def hello(self):
-        return "Hello!"
-
     def computeSlopes(self):
         for w in range(len(self.sim.config.p_wfss)):
             self.sim.wfs.comp_img(w)
@@ -447,36 +344,375 @@ class widgetAOWindowPyro(widgetAOWindow):
     def computeModalResiduals(self):
         self.sim.rtc.do_control_geo(1, self.sim.dms, self.sim.tar, 0)
         #self.sim.rtc.do_control_geo_on(1, self.sim.dms,self.sim.tar, 0)
-        v = self.sim.rtc.get_com(1)
+        v = self.sim.rtc.get_com(
+                1
+        )  # We compute here the residula phase on the DM modes. Gives the Equivalent volts to apply/
         if (self.P is None):
             self.modalBasis, self.P = self.getModes2VBasis("Btt")
         ai = self.P.dot(v) * 1000.  # np rms units
         return ai
 
-    def loopOnce(self) -> None:
-        widgetAOWindow.loopOnce(self)
-        start = time.time()
-        refreshDisplayTime = 1. / self.ui.wao_frameRate.value()
+    """
+    --------------------------------------------------
+                CANAPASS SUPERVISOR ONLY
+    --------------------------------------------------
+    """
 
-        if (self.ui.actionShow_Pyramid_Tools.isChecked()):  # PYR only
-            self.wpyr.Fe = 1 / self.sim.config.p_loop.ittime  # needs Fe for PSD...
-            if (self.wpyr.CBNumber == 1):
-                self.ai = self.computeModalResiduals()
-                self.setPyrToolsParams(self.ai)
+    def writeConfigOnFile(self,
+                          filepath=os.environ["SHESHA_ROOT"] + "/widgets/canapass.conf"):
+        aodict = OrderedDict()
+
+        aodict.update({"Fe": 1 / self.sim.config.p_loop.ittime})
+        aodict.update({"teldiam": self.sim.config.p_tel.diam})
+        aodict.update({"telobs": self.sim.config.p_tel.cobs})
+
+        # WFS
+        aodict.update({"nbWfs": len(self.sim.config.p_wfss)})
+        aodict.update({"nbTargets": int(self.sim.config.p_target.ntargets)})
+        aodict.update({"nbCam": aodict["nbWfs"]})
+        aodict.update({"nbOffaxis": 0})
+        aodict.update({"nbNgsWFS": 1})
+        aodict.update({"nbLgsWFS": 0})
+        aodict.update({"nbFigSensor": 0})
+        aodict.update({"nbSkyWfs": aodict["nbWfs"]})
+        aodict.update({"nbOffNgs": 0})
+
+        # DMS
+        aodict.update({"nbDms": len(self.sim.config.p_dms)})
+        aodict.update({"Nactu": sum(self.sim.config.p_controllers[0].nactu)})
+
+        # List of things
+        aodict.update({"list_NgsOffAxis": []})
+        aodict.update({"list_Fig": []})
+        aodict.update({"list_Cam": [0]})
+        aodict.update({"list_SkyWfs": [0]})
+        aodict.update({"list_ITS": []})
+        aodict.update({"list_Woofer": []})
+        aodict.update({"list_Tweeter": []})
+        aodict.update({"list_Steering": []})
+
+        # fct of Nb of wfss
+        NslopesList = []
+        NsubapList = []
+        listWfsType = []
+        pyrModulationList = []
+        pyr_npts = []
+        pyr_pupsep = []
+        pixsize = []
+        xPosList = []
+        yPosList = []
+        fstopsize = []
+        fstoptype = []
+        npixPerSub = []
+        nxsubList = []
+        nysubList = []
+        lambdaList = []
+        dms_seen = []
+        colTmpList = []
+        new_hduwfsl = pfits.HDUList()
+        new_hduwfsSubapXY = pfits.HDUList()
+        for i in range(aodict["nbWfs"]):
+            new_hduwfsl.append(pfits.ImageHDU(
+                    self.sim.config.p_wfss[i]._isvalid))  # Valid subap array
+            new_hduwfsl[i].header["DATATYPE"] = "valid_wfs%d" % i
+
+            xytab = np.zeros((self.sim.config.p_wfss[i]._validsubsx.shape[0],
+                              self.sim.config.p_wfss[i]._validsubsy.shape[0]))
+            xytab[0] = self.sim.config.p_wfss[i]._validsubsx
+            xytab[1] = self.sim.config.p_wfss[i]._validsubsy
+
+            new_hduwfsSubapXY.append(
+                    pfits.ImageHDU(xytab))  # Valid subap array inXx Y on the detector
+            new_hduwfsSubapXY[i].header["DATATYPE"] = "validXY_wfs%d" % i
+
+            pixsize.append(self.sim.config.p_wfss[i].pixsize)
+            NslopesList.append(self.sim.config.p_wfss[i]._nvalid * 2)  # slopes per wfs
+            NsubapList.append(self.sim.config.p_wfss[i]._nvalid)  # subap per wfs
+            listWfsType.append(self.sim.config.p_wfss[i].type)
+            xPosList.append(self.sim.config.p_wfss[i].xpos)
+            yPosList.append(self.sim.config.p_wfss[i].ypos)
+            fstopsize.append(self.sim.config.p_wfss[i].fssize)
+            fstoptype.append(self.sim.config.p_wfss[i].fstop)
+            nxsubList.append(self.sim.config.p_wfss[i].nxsub)
+            nysubList.append(self.sim.config.p_wfss[i].nxsub)
+            lambdaList.append(self.sim.config.p_wfss[i].Lambda)
+            dms_seen.append(list(self.sim.config.p_wfss[i].dms_seen))
+
+            if (self.sim.config.p_wfss[i].type == b"pyrhr"):
+                pyrModulationList.append(self.sim.config.p_wfss[i].pyr_ampl)
+                pyr_npts.append(self.sim.config.p_wfss[i].pyr_npts)
+                pyr_pupsep.append(self.sim.config.p_wfss[i].pyr_pup_sep)
+                npixPerSub.append(1)
             else:
-                if (self.currentBuffer == 1):  # First iter of the CB
-                    aiVect = self.computeModalResiduals()
-                    self.ai = aiVect[np.newaxis, :]
-                    self.currentBuffer += 1  # Keep going
+                pyrModulationList.append(0)
+                pyr_npts.append(0)
+                pyr_pupsep.append(0)
+                npixPerSub.append(self.sim.config.p_wfss[i].npix)
+        confname = filepath.split("/")[-1].split('.conf')[0]
+        new_hduwfsl.writeto(filepath.split(".conf")[0] + '_wfsConfig.fits', clobber=True)
+        new_hduwfsSubapXY.writeto(
+                filepath.split(".conf")[0] + '_wfsValidXYConfig.fits', clobber=True)
+        aodict.update({"listWFS_NslopesList": NslopesList})
+        aodict.update({"listWFS_NsubapList": NsubapList})
+        aodict.update({"listWFS_WfsType": listWfsType})
+        aodict.update({"listWFS_pixarc": pixsize})
+        aodict.update({"listWFS_pyrModRadius": pyrModulationList})
+        aodict.update({"listWFS_pyrModNPts": pyr_npts})
+        aodict.update({"listWFS_pyrPupSep": pyr_pupsep})
+        aodict.update({"listWFS_fstopsize": fstopsize})
+        aodict.update({"listWFS_fstoptype": fstoptype})
+        aodict.update({"listWFS_dms_seen": dms_seen})
+        aodict.update({"listWFS_NsubX": nxsubList})
+        aodict.update({"listWFS_NsubY": nysubList})
+        aodict.update({"listWFS_Nsub": nysubList})
+        aodict.update({"listWFS_NpixPerSub": npixPerSub})
+        aodict.update({"listWFS_Lambda": lambdaList})
 
-                else:  # Keep filling the CB
-                    aiVect = self.computeModalResiduals()
-                    self.ai = np.concatenate((self.ai, aiVect[np.newaxis, :]))
-                    if (self.currentBuffer < self.wpyr.CBNumber):
-                        self.currentBuffer += 1  # Keep going
-                    else:
-                        self.currentBuffer = 1  # reset buffer
-                        self.setPyrToolsParams(self.ai)  # display
+        listDmsType = []
+        NactuX = []
+        unitPerVolt = []
+        push4imat = []
+        coupling = []
+        push4iMatArcSec = []
+        new_hdudmsl = pfits.HDUList()
+
+        for j in range(aodict["nbDms"]):
+            listDmsType.append(self.sim.config.p_dms[j].type)
+            NactuX.append(self.sim.config.p_dms[j].nact)
+            unitPerVolt.append(self.sim.config.p_dms[j].unitpervolt)
+            push4imat.append(self.sim.config.p_dms[j].push4imat)
+            coupling.append(self.sim.config.p_dms[j].coupling)
+            tmp = []
+            if (self.sim.config.p_dms[j].type != 'tt'):
+                tmpdata = np.zeros((2, len(self.sim.config.p_dm0._i1)))
+                tmpdata[0, :] = self.sim.config.p_dm0._j1
+                tmpdata[1, :] = self.sim.config.p_dm0._i1
+                new_hdudmsl.append(pfits.ImageHDU(tmpdata))  # Valid subap array
+                new_hdudmsl[j].header["DATATYPE"] = "valid_dm%d" % j
+            #for k in range(aodict["nbWfs"]):
+            #    tmp.append(self.sim.computeDMrange(j, k))
+
+            push4iMatArcSec.append(tmp)
+        new_hdudmsl.writeto(filepath.split(".conf")[0] + '_dmsConfig.fits', clobber=True)
+        aodict.update({"listDMS_push4iMatArcSec": push4iMatArcSec})
+        aodict.update({"listDMS_push4iMat": push4imat})
+        aodict.update({"listDMS_unitPerVolt": unitPerVolt})
+        aodict.update({"listDMS_Nxactu": NactuX})
+        aodict.update({"listDMS_Nyactu": NactuX})
+        aodict.update({"listDMS_type": listDmsType})
+        aodict.update({"listDMS_coupling": coupling})
+
+        listTargetsLambda = []
+        listTargetsXpos = []
+        listTargetsYpos = []
+        listTargetsDmsSeen = []
+        listTargetsMag = []
+        for k in range(aodict["nbTargets"]):
+            listTargetsLambda.append(self.sim.config.p_target.Lambda[k])
+            listTargetsXpos.append(self.sim.config.p_target.xpos[k])
+            listTargetsYpos.append(self.sim.config.p_target.ypos[k])
+            listTargetsMag.append(self.sim.config.p_target.mag[k])
+            listTargetsDmsSeen.append(self.sim.config.p_target.dms_seen[k])
+
+        aodict.update({"listTARGETS_Lambda": listTargetsLambda})
+        aodict.update({"listTARGETS_Xpos": listTargetsXpos})
+        aodict.update({"listTARGETS_Ypos": listTargetsYpos})
+        aodict.update({"listTARGETS_Mag": listTargetsMag})
+        aodict.update({"listTARGETS_DmsSeen": listTargetsDmsSeen})
+
+        listDmsType = []
+        Nslopes = sum(NslopesList)
+        Nsubap = sum(NsubapList)
+        aodict.update({"Nslopes": Nslopes})
+        aodict.update({"Nsubap": Nsubap})
+        f = open(filepath, 'w+')
+        for dictval in aodict:
+            f.write(dictval + ":" + str(aodict[dictval]) + "\n")
+        f.close()
+        print("OK: Config File wrote in:" + filepath)
+        #return aodict
+
+    def setIntegratorLaw(self):
+        self.sim.rtc.set_commandlaw(0, b"integrator")
+
+    def setDecayFactor(self, decay):
+        self.sim.rtc.set_decayFactor(0, decay.astype(np.float32).copy())
+
+    def setEMatrix(self, eMat):
+        self.sim.rtc.set_matE(0, eMat.astype(np.float32).copy())
+
+    def closeLoop(self):
+        self.sim.rtc.set_openloop(0, 0)
+
+    def openLoop(self):
+        self.sim.rtc.set_openloop(0, 1)
+
+    def doRefslopes(self):
+        self.sim.rtc.do_centroids_ref(0)
+        print("refslopes done")
+
+    def loadRefSlopes(self, ref):
+        self.sim.rtc.set_centroids_ref(0, ref)
+
+    def resetRefslopes(self):
+        self.sim.rtc.set_centroids_ref(0, self.getSlopes() * 0.)
+
+    def setGain(self, gain):
+        self.sim.rtc.set_mgain(0, gain)
+
+    def setCommandMatrix(self, cMat):
+        return self.sim.rtc.set_cmat(0, cMat)
+
+    def setPertuVoltages(self, actusVolts):
+        self.sim.rtc.set_perturbcom(0, actusVolts.astype(np.float32).copy())
+
+    def setPyrModulation(self, pyrmod):
+        self.sim.rtc.set_pyr_ampl(0, pyrmod, self.sim.config.p_wfss,
+                                  self.sim.config.p_tel)
+        print("PYR modulation set to: %f L/D" % pyrmod)
+        self.sim.rtc.do_centroids(0)  # To be ready for the next getSlopes
+
+    def setPyrMethod(self, pyrmethod):
+        self.sim.rtc.set_pyr_method(0, pyrmethod,
+                                    self.sim.config.p_centroiders)  # Sets the pyr method
+        print("PYR method set to: %d" % self.sim.rtc.get_pyr_method(0))
+        self.sim.rtc.do_centroids(0)  # To be ready for the next getSlopes
+
+    def setNoise(self, noise, numwfs=0):
+        self.sim.wfs.set_noise(numwfs, noise)
+        print("Noise set to: %d" % noise)
+
+    def setNcpaWfs(self, ncpa, wfsnum):
+        self.sim.wfs.set_ncpa_phase(wfsnum, ncpa.astype(np.float32).copy())
+
+    def setNcpaTar(self, ncpa, tarnum):
+        self.sim.tar.set_ncpa_phase(tarnum, ncpa.astype(np.float32).copy())
+
+    def set_phaseWFS(self, numwfs, phase):
+        pph = phase.astype(np.float32)
+        self.sim.wfs.set_phase(0, pph)
+        _ = self.computeSlopes()
+
+    def getSlopesGeom(self, nb):
+        self.sim.rtc.do_centroids_geom(0)
+        slopesGeom = self.sim.rtc.get_centroids(0)
+        self.sim.rtc.do_centroids(0)
+        return slopesGeom
+
+    def getIpupil(self):
+        return self.sim.config.p_geom._ipupil
+
+    def getSpupil(self):
+        return self.sim.config.p_geom._spupil
+
+    def getTarImage(self, tarnum, tartype):
+        return self.sim.tar.get_image(tarnum, tartype)
+
+    def getMpupil(self):
+        return self.sim.config.p_geom._mpupil
+
+    def getAmplipup(self, tarnum):
+        return self.sim.config.tar.get_amplipup(tarnum)
+
+    def getPhase(self, tarnum):
+        return self.sim.tar.get_phase(tarnum)
+
+    def getWFSPhase(self, wfsnum):
+        return self.sim.wfs.get_phase(wfsnum)
+
+    def getTargetPhase(self, tarnum):
+        pup = self.getSpupil()
+        ph = self.sim.tar.get_phase(tarnum) * pup
+        return ph
+
+    def getNcpaWfs(self, wfsnum):
+        return self.sim.wfs.get_ncpa_phase(wfsnum)
+
+    def getNcpaTar(self, tarnum):
+        return self.sim.tar.get_ncpa_phase(tarnum)
+
+    #def getVolts(self):
+    #    return self.sim.rtc.get_voltage(0)
+    #
+    #def getSlopes(self):
+    #     return self.sim.rtc.get_centroids(0)
+
+    def recordCB(self, CBcount, tarnum=0):
+        self.aoLoopClicked(False)
+        self.ui.wao_run.setChecked(False)
+        time.sleep(1)
+
+        slopesdata = None
+        voltsdata = None
+        tarPhaseData = None
+        aiData = None
+        # Resets the target so that the PSF LE is synchro with the data
+        for i in range(self.sim.config.p_target.ntargets):
+            self.sim.tar.reset_strehl(i)
+
+        # Starting CB loop...
+        for j in tqdm(range(CBcount)):
+            self.loopOnce()
+            aiVector = self.computeModalResiduals()
+            if (aiData is None):
+                aiData = np.zeros((len(aiVector), CBcount))
+            aiData[:, j] = aiVector
+
+            slopesVector = self.sim.rtc.get_centroids(0)
+            if (slopesdata is None):
+                slopesdata = np.zeros((len(slopesVector), CBcount))
+            slopesdata[:, j] = slopesVector
+
+            voltsVector = self.sim.rtc.get_com(0)
+            if (voltsdata is None):
+                voltsdata = np.zeros((len(voltsVector), CBcount))
+            voltsdata[:, j] = voltsVector
+
+            tarPhaseArray = self.sim.tar.get_phase(
+                    tarnum) * self.sim.config.p_geom._spupil
+            if (tarPhaseData is None):
+                tarPhaseData = np.zeros((*tarPhaseArray.shape, CBcount))
+            tarPhaseData[:, :, j] = tarPhaseArray
+
+        psfLE = self.sim.tar.get_image(tarnum, b"le")
+        self.aoLoopClicked(True)
+        self.ui.wao_run.setChecked(True)
+        return slopesdata, voltsdata, tarPhaseData, aiData, psfLE
+
+        #wao.sim.config.p_geom._ipupil
+        """
+        plt.matshow(wao.sim.config.p_geom._ipupil, fignum=1)
+
+        # DM positions in iPupil:
+        dmposx = wao.sim.config.p_dm0._xpos
+        dmposy = wao.sim.config.p_dm0._ypos
+        plt.scatter(dmposx, dmposy, color="blue")
+
+
+
+
+        #WFS position in ipupil
+        ipup = wao.sim.config.p_geom._ipupil
+        spup = wao.sim.config.p_geom._spupil
+        s2ipup = (ipup.shape[0] - spup.shape[0]) / 2.
+        posx = wao.sim.config.p_wfss[0]._istart + s2ipup
+        posx = posx *  wao.sim.config.p_wfss[0]._isvalid
+        posx = posx[np.where(posx > 0)] - ipup.shape[0] / 2 - 1
+        posy = wao.sim.config.p_wfss[0]._jstart + s2ipup
+        posy = posy * wao.sim.config.p_wfss[0]._isvalid
+        posy = posy.T[np.where(posy > 0)] - ipup.shape[0] / 2 - 1
+
+        #center of ssp position in ipupil
+        demissp = (posx[1]-posx[0])/2
+        sspx = posx+ipup.shape[0]/2+demissp
+        sspy = posy+ipup.shape[0]/2+demissp
+        plt.scatter(sspx, sspy, color="red")
+        imat = wao.sim.rtc.get_imat(0)
+
+        influDM = wao.sim.dms.get_influ(b"pzt", 0)
+        influTT = wao.sim.dms.get_influ(b"tt", 0)
+
+        """
 
 
 try:
@@ -514,67 +750,6 @@ try:
 except:
     print("Error while initializing Pyro object")
     pass
-
-
-def recordCB(CBcount, wao):
-    slopesdata = None
-    voltsdata = None
-    for i in range(wao.sim.config.p_target.ntargets):
-        wao.sim.tar.reset_strehl(i)
-    while (CBcount):
-        print(CBcount)
-        wao.loopOnce()
-
-        slopesVector = wao.sim.rtc.get_centroids(0)
-        if (slopesdata is None):
-            slopesdata = slopesVector[np.newaxis, :]
-        else:
-            slopesdata = np.concatenate((slopesdata, slopesVector[np.newaxis, :]))
-
-        voltsVector = wao.sim.rtc.get_com(0)
-        if (voltsdata is None):
-            voltsdata = voltsVector[np.newaxis, :]
-        else:
-            voltsdata = np.concatenate((voltsdata, voltsVector[np.newaxis, :]))
-        CBcount -= 1
-
-    psfLE = wao.sim.tar.get_image(2, b"le")
-    #wao.sim.config.p_geom._ipupil
-    """
-    plt.matshow(wao.sim.config.p_geom._ipupil, fignum=1)
-
-    # DM positions in iPupil:
-    dmposx = wao.sim.config.p_dm0._xpos
-    dmposy = wao.sim.config.p_dm0._ypos
-    plt.scatter(dmposx, dmposy, color="blue")
-
-
-
-
-    #WFS position in ipupil
-    ipup = wao.sim.config.p_geom._ipupil
-    spup = wao.sim.config.p_geom._spupil
-    s2ipup = (ipup.shape[0] - spup.shape[0]) / 2.
-    posx = wao.sim.config.p_wfss[0]._istart + s2ipup
-    posx = posx *  wao.sim.config.p_wfss[0]._isvalid
-    posx = posx[np.where(posx > 0)] - ipup.shape[0] / 2 - 1
-    posy = wao.sim.config.p_wfss[0]._jstart + s2ipup
-    posy = posy * wao.sim.config.p_wfss[0]._isvalid
-    posy = posy.T[np.where(posy > 0)] - ipup.shape[0] / 2 - 1
-
-    #center of ssp position in ipupil
-    demissp = (posx[1]-posx[0])/2
-    sspx = posx+ipup.shape[0]/2+demissp
-    sspy = posy+ipup.shape[0]/2+demissp
-    plt.scatter(sspx, sspy, color="red")
-    imat = wao.sim.rtc.get_imat(0)
-
-    influDM = wao.sim.dms.get_influ(b"pzt", 0)
-    influTT = wao.sim.dms.get_influ(b"tt", 0)
-
-    """
-    return slopesdata, voltsdata, psfLE
-
 
 if __name__ == '__main__':
     arguments = docopt(__doc__)
