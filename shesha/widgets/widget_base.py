@@ -58,7 +58,7 @@ class WidgetBase(BaseClassTemplate):
         self.loadDefaultConfig()
         self.uiBase.wao_loadArea.clicked.connect(self.loadArea)
         self.uiBase.wao_saveArea.clicked.connect(self.saveArea)
-        self.uiBase.wao_init.clicked.connect(self.InitConfig)
+        self.uiBase.wao_init.clicked.connect(self.initConfig)
         self.uiBase.wao_configFromFile.clicked.connect(self.addConfigFromFile)
 
         self.uiBase.wao_Display.stateChanged.connect(self.gui_timer_config)
@@ -284,11 +284,11 @@ class WidgetBase(BaseClassTemplate):
         self.uiBase.wao_imagesgroup_tb.setPopupMode(QtWidgets.QToolButton.InstantPopup)
 
         # self.uiBase.wao_init.setDisabled(False)
-
+        #
         # if (hasattr(self.sim.config, "layout")):
         #     area_filename = self.defaultAreaPath + "/" + self.sim.config.layout + ".area"
         #     self.loadArea(filename=area_filename)
-
+        #
         # self.adjustSize()
 
     def loadDefaultConfig(self) -> None:
@@ -299,18 +299,18 @@ class WidgetBase(BaseClassTemplate):
                 parlist[i].split('/')[-1] for i in range(len(parlist))
         ])
 
-    def InitConfig(self) -> None:
+    def initConfig(self) -> None:
         self.loopLock.acquire(True)
         self.uiBase.wao_loadConfig.setDisabled(True)
         self.uiBase.wao_init.setDisabled(True)
-        thread = WorkerThread(self, self.InitConfigThread)
-        thread.jobFinished.connect(self.InitConfigFinished)
+        thread = WorkerThread(self, self.initConfigThread)
+        thread.jobFinished.connect(self.initConfigFinished)
         thread.start()
 
-    def InitConfigThread(self) -> None:
+    def initConfigThread(self) -> None:
         pass
 
-    def InitConfigFinished(self) -> None:
+    def initConfigFinished(self) -> None:
         self.uiBase.wao_loadConfig.setDisabled(False)
         self.uiBase.wao_init.setDisabled(False)
         self.loopLock.release()

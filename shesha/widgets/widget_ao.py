@@ -46,12 +46,17 @@ from widget_base import WidgetBase
 from widget_ao_expert import WidgetAOExpert
 from supervisor.compassSupervisor import CompassSupervisor, scons
 
+# For debug
+# from IPython.core.debugger import Pdb
+# then add this line to create a breakpoint
+# Pdb().set_trace()
+
 class widgetAOWindow(AOClassTemplate, WidgetBase):
 
     def __init__(self, configFile: Any=None, BRAHMA: bool=False, expert: bool=False,
                  devices: str=None) -> None:
-        AOClassTemplate.__init__(self)
         WidgetBase.__init__(self)
+        AOClassTemplate.__init__(self)
 
         self.BRAHMA = BRAHMA
         self.rollingWindow = 100
@@ -137,8 +142,8 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
         self.adjustSize()
 
         if configFile is not None:
-            self.uiAO.wao_selectConfig.clear()
-            self.uiAO.wao_selectConfig.addItem(configFile)
+            self.uiBase.wao_selectConfig.clear()
+            self.uiBase.wao_selectConfig.addItem(configFile)
             self.loadConfig()
             self.initConfig()
 
