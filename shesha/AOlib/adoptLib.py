@@ -12,7 +12,7 @@ def applyVoltGetSlopes(wao, noise=False):
     return wao.rtc.get_centroids(0)
 
 
-def measureIMatKL(ampliVec, KL2V, Nslopes):
+def doImatModal(ampliVec, KL2V, Nslopes):
     iMatKL = np.zeros((KL2V.shape[1], Nslopes))
     wao.rtc.set_openloop(0, 1)  # openLoop
     st = time.time()
@@ -66,13 +66,13 @@ def computeKLModesImat(pushDMMic, pushTTArcsec, KL2V, Nslopes):
     NKL = KL2VNorm.shape[1]
     modesAmpli[0:NKL - 2] = pushDMMic  # DM en microns DM en microns
     modesAmpli[NKL - 2:] = pushTTArcsec  # arc sec pour le TT
-    imat = measureIMatKL(modesAmpli, KL2VNorm, Nslopes)
+    imat = doImatModal(modesAmpli, KL2VNorm, Nslopes)
     imat[:-2, :] /= pushDMMic
     imat[-2:, :] /= pushTTArcsec
     return imat, KL2VNorm
 
 
-def computeCmatKL(DKL, KL2V, nfilt, gains, gainTT):
+def computeCmatModal(DKL, KL2V, nfilt, gains, gainTT):
     nmodes = (DKL.shape[0] - nfilt)
     KL2V2Filt = np.zeros((KL2V.shape[0], KL2V.shape[1] - nfilt))
     DKLfilt = np.zeros((nmodes, DKL.shape[1]))
@@ -133,7 +133,7 @@ def testDM(KL2VN, nmode, Nslopes, pushDMMic, pushTTArcsec, wao, disp=False):
 #miKL, KL2VN =computeKLModesImat(pushDMMic, pushTTArcsec, KL2V2, Nslopes)
 ##KL2VN = normalizeKL2V(KL2V2)
 #nfilt = 450
-#cmat = computeCmatKL(miKL, KL2VN, nfilt, np.linspace(2.2,0.1,Nactu-2-nfilt), 2.); wao.rtc.set_cmat(0, cmat.astype(np.float32).copy())
+#cmat = computeCmatModal(miKL, KL2VN, nfilt, np.linspace(2.2,0.1,Nactu-2-nfilt), 2.); wao.rtc.set_cmat(0, cmat.astype(np.float32).copy())
 
 #gDM = 1; gTT=1.;
 #gains = np.ones(Nactu,dtype=np.float32)*gDM;

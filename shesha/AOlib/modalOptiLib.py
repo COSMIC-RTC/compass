@@ -70,7 +70,7 @@ def applyTiltsGetFlatSlopes(wao, TTpush, extPyrc):
     return slopes
 
 
-def measureIMatKLPP(wao, ampliVec, KL2V, nSlopes, withAtm, extPyrc=None):
+def doImatModalPP(wao, ampliVec, KL2V, nSlopes, withAtm, extPyrc=None):
     '''
         Make modal interaction matrix using push-pull normalized difference
     :param wao: AO Widget
@@ -102,7 +102,7 @@ def measureIMatKLPP(wao, ampliVec, KL2V, nSlopes, withAtm, extPyrc=None):
     return iMatKL
 
 
-def measureIMatKLSine(wao, ampliVec, KL2V, nSlopes, withAtm, extPyrc=None):
+def doImatModalSine(wao, ampliVec, KL2V, nSlopes, withAtm, extPyrc=None):
 
     if withAtm:
         currentVolts = wao.rtc.get_voltage(0)
@@ -195,7 +195,7 @@ def plotVDm(wao, numdm, V, size=16, fignum=False):
         plt.colorbar()
 
 
-def computeImatKL(wao, pushPZT, pushTT, KL2V, nSlopes, withAtm, extPyrc=None):
+def computeImatModal(wao, pushPZT, pushTT, KL2V, nSlopes, withAtm, extPyrc=None):
     '''
         Compute the modal interaction matrix with given input parameters
     :param wao: AO Widget
@@ -207,11 +207,11 @@ def computeImatKL(wao, pushPZT, pushTT, KL2V, nSlopes, withAtm, extPyrc=None):
     '''
     NKL = KL2V.shape[1]
     modesAmpli = np.array([pushPZT] * (NKL - 2) + [pushTT] * 2)
-    iMat = measureIMatKLPP(wao, modesAmpli, KL2V, nSlopes, withAtm, extPyrc=extPyrc)
+    iMat = doImatModalPP(wao, modesAmpli, KL2V, nSlopes, withAtm, extPyrc=extPyrc)
     return iMat
 
 
-def computeCmatKL(iMatKL, nFilt):
+def computeCmatModal(iMatKL, nFilt):
     '''
         Invert the interaction matrix into a mode filtered control matrix
     :param iMatKL: interaction matrix nSlopes x nModes
@@ -306,9 +306,9 @@ class ModalGainOptimizer:
             Store them within ModalGainOptimizer instance
         '''
         self.wao.closeLoop()
-        self.iMatKLRef = computeImatKL(self.wao, self.pushPzt, self.pushTT, self.KL2V,
-                                       self.nSlopes, withAtm=False, extPyrc=self.pyrc)
-        self.cMatKLRef = computeCmatKL(self.iMatKLRef, self.nFilter)
+        self.iMatKLRef = computeImatModal(self.wao, self.pushPzt, self.pushTT, self.KL2V,
+                                          self.nSlopes, withAtm=False, extPyrc=self.pyrc)
+        self.cMatKLRef = computeCmatModal(self.iMatKLRef, self.nFilter)
 
         self.gainValues = np.ones(self.cMatKLRef.shape[0])
 
@@ -333,8 +333,8 @@ class ModalGainOptimizer:
             Set the updated control matrix to the AO session.
         '''
         self.wao.closeLoop()
-        iMatKL = computeImatKL(self.wao, self.pushPzt, self.pushTT, self.KL2V,
-                               self.nSlopes, withAtm=True, extPyrc=self.pyrc)
+        iMatKL = computeImatModal(self.wao, self.pushPzt, self.pushTT, self.KL2V,
+                                  self.nSlopes, withAtm=True, extPyrc=self.pyrc)
         ksiVal = np.sqrt(
                 np.diag(np.dot(self.iMatKLRef.T, self.iMatKLRef)) /
                 np.diag(np.dot(iMatKL.T, iMatKL)))
