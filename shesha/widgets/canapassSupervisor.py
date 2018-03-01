@@ -870,7 +870,7 @@ try:
 
     class PyroServer(Thread):
         """
-        Main Geometry Server Thread
+        Pyro object Thread
 
         """
 
@@ -887,14 +887,22 @@ try:
             ns = Pyro4.locateNS()
             self.ready = True
             try:
-                ns.unregister("waoconfig")
+                p = Popen("whoami", shell=True, stdout=PIPE, stderr=PIPE)
+                out, err = p.communicate()
+                if (err != b''):
+                    print(err)
+                    raise ValueError("ERROR CANNOT RECOGNIZE USER")
+                else:
+                    user = out.split(b"\n")[0].decode("utf-8")
+                    print("User is " + user)
+                    ns.remove("waoconfig_" + user)
             except:
                 # ns.deleteGroup(':GS')
                 # ns.createGroup(":GS")
                 pass
             # print self.object.getVar()
             uri = daemon.register(self.object)
-            ns.register("waoconfig", uri)
+            ns.register("waoconfig_" + user, uri)
             print("starting daemon")
             daemon.requestLoop()
             print("daemon started")
