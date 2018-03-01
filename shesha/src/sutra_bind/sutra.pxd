@@ -713,6 +713,7 @@ cdef extern from "sutra_controller.h":
         carma_obj[float] * d_voltage  # commands sent to mirror
         carma_obj[float] * d_com1  # commands k-1
         carma_obj[float] * d_com2  # commands k-2
+        carma_obj[float] * d_subsum
 
         carma_streams * streams
 

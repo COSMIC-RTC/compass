@@ -858,6 +858,21 @@ cdef class Rtc:
                 self.rtc.d_centro[n].get_type()
             raise ValueError(e)
 
+    def get_subsum(self, int n):
+        """
+            Return the 'subsum' array of a given controller
+
+        :param n: (int) : number of the controller to get the 'subsum' from
+        """
+        cdef carma_obj[float] * subsum
+        cdef const long * cdims
+        cdef np.ndarray[ndim = 1, dtype = np.float32_t] data
+        subsum = self.rtc.d_control[n].d_subsum
+        cdims = subsum.getDims()
+        data = np.empty((cdims[1]), dtype=np.float32)
+        subsum.device2host( < float * > data.data)
+        return data
+
     def get_pyr_method(self, int n):
         """Get the pyramid centroiding method
         :parameters:
