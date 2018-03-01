@@ -11,10 +11,16 @@ class AbstractSupervisor(ABC):
     ''' Returns the configuration in use, in a supervisor specific format ? '''
 
     @abstractmethod
-    def enableAtmos(self, enable=True) -> None:
+    def loadConfig(self):
         ...
 
-    ''' Set or unset whether atmos is enabled when running loop (see singleNext) '''
+    ''' Load the configuration for the supervisor'''
+
+    @abstractmethod
+    def initConfig(self):
+        ...
+
+    ''' Init the configuration for the supervisor'''
 
     @abstractmethod
     def setCommand(self, command: np.ndarray) -> None:
@@ -33,20 +39,6 @@ class AbstractSupervisor(ABC):
         ...
 
     ''' Immediately gets one slope vector for all WFS at the current state of the system '''
-
-    @abstractmethod
-    def computeIMatModal(self, M2V: np.ndarray, pushVector: np.ndarray,
-                         refOffset: np.ndarray, noise: bool,
-                         useAtmos: bool) -> np.ndarray:
-        ...
-
-    '''
-        Computes a modal interaction matrix for the given modal matrix
-        with given push values (length = nModes)
-        around an (optional) offset value
-        optionally with noise
-        with/without atmos shown to WFS
-    '''
 
     @abstractmethod
     def singleNext(self, moveAtmos: bool=True, showAtmos: bool=True, getPSF: bool=False,
@@ -90,12 +82,6 @@ class AbstractSupervisor(ABC):
         ...
 
     ''' Set the cmat for the controller to use '''
-
-    @abstractmethod
-    def setPyrModulation(self, pyrMod: float):
-        ...
-
-    ''' Set pyramid modulation value - in l/D units '''
 
     @abstractmethod
     def getTarImage(self, tarID):
