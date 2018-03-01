@@ -31,11 +31,6 @@ from PyQt5.QtCore import QThread, QTimer, Qt
 
 from subprocess import Popen, PIPE
 
-import shesha_ao as ao
-import shesha_sim
-import shesha_constants as scons
-from shesha_constants import CONST
-
 from typing import Any, Dict, Tuple, Callable, List
 
 from docopt import docopt
@@ -49,6 +44,7 @@ AOWindowTemplate, AOClassTemplate = loadUiType(
 
 from widget_base import WidgetBase
 from widget_ao_expert import WidgetAOExpert
+from supervisor.compassSupervisor import CompassSupervisor, scons
 
 class widgetAOWindow(AOClassTemplate, WidgetBase):
 
@@ -64,7 +60,6 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
         self.numiter = deque(maxlen=self.rollingWindow)
         self.expert = expert
         self.devices = devices
-        self.sim = None  # type: shesha_sim.simulator # Simulator object - initialized in addConfigFromFile
 
         self.uiAO = AOWindowTemplate()
         self.uiAO.setupUi(self)
@@ -73,6 +68,8 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
         #                   ATTRIBUTES                              #
         #############################################################
 
+        self.supervisor = None
+        self.config = None
         self.stop = False  # type: bool  # Request quit
 
         self.uiAO.wao_nbiters.setValue(1000)  # Default GUI nIter box value
@@ -143,7 +140,7 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
             self.uiAO.wao_selectConfig.clear()
             self.uiAO.wao_selectConfig.addItem(configFile)
             self.loadConfig()
-            self.InitConfig()
+            self.initConfig()
 
     # def on_help_triggered(self, i: Any=None) -> None:
     #     if i is None:
@@ -173,12 +170,12 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
 
     def resetSR(self) -> None:
         if self.uiAO.wao_allTarget.isChecked():
-            for t in range(self.sim.config.p_target.ntargets):
-                self.sim.tar.reset_strehl(t)
+            for t in range(self.config.p_target.ntargets):
+                self.supervisor.resetStrehl(t)
         else:
             tarnum = self.uiAO.wao_resetSR_tarNum.value()
             print("Reset SR on target %d" % tarnum)
-            self.sim.tar.reset_strehl(tarnum)
+            self.supervisor.resetStrehl(tarnum)
 
     def add_dispDock(self, name: str, parent, type: str="pg") -> None:
         d = super().add_dispDock(name, parent, type)
@@ -193,17 +190,11 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
         configFile = str(self.uiBase.wao_selectConfig.currentText())
         sys.path.insert(0, self.defaultParPath)
 
-        if self.sim is None:
-            if self.BRAHMA:
-                self.sim = shesha_sim.SimulatorBrahma(configFile)
-            else:
-                self.sim = shesha_sim.Simulator(configFile)
-        else:
-            self.sim.clear_init()
-            self.sim.load_from_file(configFile)
+        self.supervisor = CompassSupervisor(configFile, self.BRAHMA)
+        self.config = self.supervisor.getConfig()
 
         if self.devices:
-            self.sim.config.p_loop.set_devices([
+            self.config.p_loop.set_devices([
                     int(device) for device in self.devices.split(",")
             ])
 
@@ -216,12 +207,12 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
         self.SRCrossX.clear()
         self.SRCrossY.clear()
 
-        self.natm = len(self.sim.config.p_atmos.alt)
+        self.natm = len(self.config.p_atmos.alt)
         for atm in range(self.natm):
             name = 'atm_%d' % atm
             self.add_dispDock(name, self.wao_phasesgroup_cb)
 
-        self.nwfs = len(self.sim.config.p_wfss)
+        self.nwfs = len(self.config.p_wfss)
         for wfs in range(self.nwfs):
             name = 'wfs_%d' % wfs
             self.add_dispDock(name, self.wao_phasesgroup_cb)
@@ -229,10 +220,10 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
             self.add_dispDock(name, self.wao_graphgroup_cb, "MPL")
             name = 'slpGeom_%d' % wfs
             self.add_dispDock(name, self.wao_graphgroup_cb, "MPL")
-            if self.sim.config.p_wfss[wfs].type == scons.WFSType.SH:
+            if self.config.p_wfss[wfs].type == scons.WFSType.SH:
                 name = 'SH_%d' % wfs
                 self.add_dispDock(name, self.wao_imagesgroup_cb)
-            elif self.sim.config.p_wfss[wfs].type == scons.WFSType.PYRHR:
+            elif self.config.p_wfss[wfs].type == scons.WFSType.PYRHR:
                 name = 'pyrHR_%d' % wfs
                 self.add_dispDock(name, self.wao_imagesgroup_cb)
                 name = 'pyrLR_%d' % wfs
@@ -240,13 +231,13 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
             else:
                 raise "Analyser unknown"
 
-        self.ndm = len(self.sim.config.p_dms)
+        self.ndm = len(self.config.p_dms)
         for dm in range(self.ndm):
             name = 'dm_%d' % dm
             w = QtGui.QCheckBox(name)
             self.add_dispDock(name, self.wao_phasesgroup_cb)
 
-        self.ntar = self.sim.config.p_target.ntargets
+        self.ntar = self.config.p_target.ntargets
         for tar in range(self.ntar):
             name = 'tar_%d' % tar
             self.add_dispDock(name, self.wao_phasesgroup_cb)
@@ -260,10 +251,10 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
         self.add_dispDock("Strehl", self.wao_graphgroup_cb, "SR")
 
         self.uiAO.wao_resetSR_tarNum.setValue(0)
-        self.uiAO.wao_resetSR_tarNum.setMaximum(self.sim.config.p_target.ntargets - 1)
+        self.uiAO.wao_resetSR_tarNum.setMaximum(self.config.p_target.ntargets - 1)
 
         self.uiAO.wao_dispSR_tar.setValue(0)
-        self.uiAO.wao_dispSR_tar.setMaximum(self.sim.config.p_target.ntargets - 1)
+        self.uiAO.wao_dispSR_tar.setMaximum(self.config.p_target.ntargets - 1)
 
         self.uiAO.wao_run.setDisabled(True)
         self.uiAO.wao_next.setDisabled(True)
@@ -273,11 +264,11 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
         self.uiBase.wao_init.setDisabled(False)
 
         if self.expert:
-            self.expertWidget.setSim(self.sim)
+            self.expertWidget.setSupervisor(self.supervisor)
             self.expertWidget.updatePanels()
 
-        if (hasattr(self.sim.config, "layout")):
-            area_filename = self.defaultAreaPath + "/" + self.sim.config.layout + ".area"
+        if (hasattr(self.config, "layout")):
+            area_filename = self.defaultAreaPath + "/" + self.config.layout + ".area"
             self.loadArea(filename=area_filename)
 
         self.adjustSize()
@@ -298,31 +289,31 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
 
     def aoLoopOpen(self, pressed: bool) -> None:
         if (pressed):
-            self.sim.rtc.set_openloop(0, 1)
+            self.supervisor.openLoop()
         else:
-            self.sim.rtc.set_openloop(0, 0)
+            self.supervisor.closeLoop()
 
-    def InitConfig(self) -> None:
-        self.sim.clear_init()
-        super().InitConfig()
+    def initConfig(self) -> None:
+        self.supervisor.clearInitSim()
+        super().initConfig()
 
-    def InitConfigThread(self) -> None:
+    def initConfigThread(self) -> None:
         self.uiAO.wao_deviceNumber.setDisabled(True)
-        # self.sim.config.p_loop.devices = self.uiAO.wao_deviceNumber.value()  # using GUI value
+        # self.config.p_loop.devices = self.uiAO.wao_deviceNumber.value()  # using GUI value
         # gpudevice = "ALL"  # using all GPU avalaible
         # gpudevice = np.array([2, 3], dtype=np.int32)
         # gpudevice = np.arange(4, dtype=np.int32) # using 4 GPUs: 0-3
         # gpudevice = 0  # using 1 GPU : 0
-        self.sim.init_sim()
+        self.supervisor.initConfig()
 
-    def InitConfigFinished(self) -> None:
+    def initConfigFinished(self) -> None:
         # Thread naga context reload:
-        self.sim.force_context()
+        self.supervisor.forceContext()
 
         for i in range(self.natm):
             key = "atm_%d" % i
-            data = self.sim.atm.get_screen(self.sim.config.p_atmos.alt[i])
-            cx, cy = self.circleCoords(self.sim.config.p_geom.pupdiam / 2, 1000,
+            data = self.supervisor.getAtmScreen(self.config.p_atmos.alt[i])
+            cx, cy = self.circleCoords(self.config.p_geom.pupdiam / 2, 1000,
                                        data.shape[0], data.shape[1])
             self.SRcircles[key] = pg.ScatterPlotItem(cx, cy, pen='r', size=1)
             self.viewboxes[key].addItem(self.SRcircles[key])
@@ -330,8 +321,8 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
 
         for i in range(self.nwfs):
             key = "wfs_%d" % i
-            data = self.sim.wfs.get_phase(i)
-            cx, cy = self.circleCoords(self.sim.config.p_geom.pupdiam / 2, 1000,
+            data = self.supervisor.getWfsPhase(i)
+            cx, cy = self.circleCoords(self.config.p_geom.pupdiam / 2, 1000,
                                        data.shape[0], data.shape[1])
             self.SRcircles[key] = pg.ScatterPlotItem(cx, cy, pen='r', size=1)
             self.viewboxes[key].addItem(self.SRcircles[key])
@@ -341,25 +332,25 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
 
         for i in range(self.ndm):
             key = "dm_%d" % i
-            dm_type = self.sim.config.p_dms[i].type
-            alt = self.sim.config.p_dms[i].alt
-            data = self.sim.dms.get_dm(dm_type, alt)
-            cx, cy = self.circleCoords(self.sim.config.p_geom.pupdiam / 2, 1000,
+            dm_type = self.config.p_dms[i].type
+            alt = self.config.p_dms[i].alt
+            data = self.supervisor.getDmPhase(dm_type, alt)
+            cx, cy = self.circleCoords(self.config.p_geom.pupdiam / 2, 1000,
                                        data.shape[0], data.shape[1])
             self.SRcircles[key] = pg.ScatterPlotItem(cx, cy, pen='r', size=1)
             self.viewboxes[key].addItem(self.SRcircles[key])
             self.SRcircles[key].setPoints(cx, cy)
 
-        for i in range(self.sim.config.p_target.ntargets):
+        for i in range(self.config.p_target.ntargets):
             key = "tar_%d" % i
-            data = self.sim.tar.get_phase(i)
-            cx, cy = self.circleCoords(self.sim.config.p_geom.pupdiam / 2, 1000,
+            data = self.supervisor.getTarPhase(i)
+            cx, cy = self.circleCoords(self.config.p_geom.pupdiam / 2, 1000,
                                        data.shape[0], data.shape[1])
             self.SRcircles[key] = pg.ScatterPlotItem(cx, cy, pen='r', size=1)
             self.viewboxes[key].addItem(self.SRcircles[key])
             self.SRcircles[key].setPoints(cx, cy)
 
-            data = self.sim.tar.get_image(i, b"se")
+            data = self.supervisor.getTarImage(i)
             for psf in ["psfSE_", "psfLE_"]:
                 key = psf + str(i)
                 Delta = 5
@@ -381,7 +372,7 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
                 # Put image in plot area
                 self.viewboxes[key].addItem(self.SRCrossY[key])
 
-        print(self.sim)
+        print(self.supervisor)
 
         if self.expert:
             self.expertWidget.displayRtcMatrix()
@@ -394,7 +385,7 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
         self.uiAO.wao_unzoom.setDisabled(False)
         self.uiAO.wao_resetSR.setDisabled(False)
 
-        super().InitConfigFinished()
+        super().initConfigFinished()
 
     def circleCoords(self, ampli: float, npts: int, datashape0: int,
                      datashape1: int) -> Tuple[float, float]:
@@ -415,7 +406,7 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
         self.curveSRLE.setData(self.numiter, self.SRLE)
 
     def updateDisplay(self) -> None:
-        if (self.sim is None) or (not self.sim.is_init) or (
+        if (self.supervisor is None) or (not self.supervisor.isInit()) or (
                 not self.uiBase.wao_Display.isChecked()):
             # print("Widget not fully initialized")
             return
@@ -430,20 +421,20 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
                         index = int(key.split("_")[-1])
                         data = None
                         if "atm" in key:
-                            data = self.sim.atm.get_screen(
-                                    self.sim.config.p_atmos.alt[index])
+                            data = self.supervisor.getAtmScreen(
+                                    self.config.p_atmos.alt[index])
                         if "wfs" in key:
-                            data = self.sim.wfs.get_phase(index)
+                            data = self.supervisor.getWfsPhase(index)
                         if "dm" in key:
-                            dm_type = self.sim.config.p_dms[index].type
-                            alt = self.sim.config.p_dms[index].alt
-                            data = self.sim.dms.get_dm(dm_type, alt)
+                            dm_type = self.config.p_dms[index].type
+                            alt = self.config.p_dms[index].alt
+                            data = self.supervisor.getDmPhase(dm_type, alt)
                         if "tar" in key:
-                            data = self.sim.tar.get_phase(index)
+                            data = self.supervisor.getTarPhase(index)
                         if "psfLE" in key:
-                            data = self.sim.tar.get_image(index, b"le")
+                            data = self.supervisor.getTarImage(index, "le")
                         if "psfSE" in key:
-                            data = self.sim.tar.get_image(index, b"se")
+                            data = self.supervisor.getTarImage(index, "se")
 
                         if "psf" in key:
                             if (self.uiAO.actionPSF_Log_Scale.isChecked()):
@@ -460,11 +451,11 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
                                     yRange=(data.shape[1] / 2 + 0.5 - self.PSFzoom,
                                             data.shape[1] / 2 + 0.5 + self.PSFzoom), )
                         if "SH" in key:
-                            data = self.sim.wfs.get_binimg(index)
+                            data = self.supervisor.getRawWFSImage(index)
                         if "pyrLR" in key:
-                            data = self.sim.wfs.get_pyrimg(index)
+                            data = self.supervisor.getRawWFSImage(index)
                         if "pyrHR" in key:
-                            data = self.sim.wfs.get_pyrimghr(index)
+                            data = self.supervisor.getPyrHRImage(index)
 
                         if (data is not None):
                             autoscale = True  # self.uiAO.actionAuto_Scale.isChecked()
@@ -475,29 +466,28 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
                             # self.p1.autoRange()
                         elif "slp" in key:  # Slope display
                             self.imgs[key].canvas.axes.clear()
-                            if "Comp" in key:
-                                self.sim.wfs.slopes_geom(index, 0)
-                                slopes = self.sim.wfs.get_slopes(index)
+                            if "Geom" in key:
+                                slopes = self.supervisor.getSlopeGeom(index)
                                 x, y, vx, vy = plsh(
-                                        slopes, self.sim.config.p_wfss[index].nxsub,
-                                        self.sim.config.p_tel.cobs, returnquiver=True
+                                        slopes, self.config.p_wfss[index].nxsub,
+                                        self.config.p_tel.cobs, returnquiver=True
                                 )  # Preparing mesh and vector for display
                                 self.imgs[key].canvas.axes.quiver(
                                         x, y, vx, vy, pivot='mid')
-                            if "Geom" in key:
-                                centroids = self.sim.rtc.get_centroids(0)
-                                nvalid = [2 * o._nvalid for o in self.sim.config.p_wfss]
+                            if "Comp" in key:
+                                centroids = self.supervisor.getSlope(0)
+                                nvalid = [2 * o._nvalid for o in self.config.p_wfss]
                                 ind = np.sum(nvalid[:index], dtype=np.int32)
-                                if (self.sim.config.p_wfss[index].type ==
+                                if (self.config.p_wfss[index].type ==
                                             scons.WFSType.PYRHR):
                                     #TODO: DEBUG...
                                     plpyr(centroids[ind:ind + nvalid[index]],
-                                          self.sim.config.p_wfs0._isvalid)
+                                          self.config.p_wfs0._isvalid)
                                 else:
                                     x, y, vx, vy = plsh(
                                             centroids[ind:ind + nvalid[index]],
-                                            self.sim.config.p_wfss[index].nxsub,
-                                            self.sim.config.p_tel.cobs, returnquiver=True
+                                            self.config.p_wfss[index].nxsub,
+                                            self.config.p_tel.cobs, returnquiver=True
                                     )  # Preparing mesh and vector for display
                                 self.imgs[key].canvas.axes.quiver(
                                         x, y, vx, vy, pivot='mid')
@@ -513,7 +503,7 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
         else:
             try:
                 start = time.time()
-                self.sim.next(see_atmos=self.see_atmos)
+                self.supervisor.singleNext(showAtmos=self.see_atmos)
                 loopTime = time.time() - start
 
                 refreshDisplayTime = 1. / self.uiBase.wao_frameRate.value()
@@ -521,13 +511,12 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
                 if (time.time() - self.refreshTime > refreshDisplayTime):
                     signal_le = ""
                     signal_se = ""
-                    for t in range(self.sim.config.p_target.ntargets):
-                        self.sim.tar.comp_image(t)
-                        SR = self.sim.tar.get_strehl(t)
+                    for t in range(self.config.p_target.ntargets):
+                        SR = self.supervisor.getStrehl(t)
                         # TODO: handle that !
                         if (t == self.uiAO.wao_dispSR_tar.value(
                         )):  # Plot on the wfs selected
-                            self.updateSRDisplay(SR[1], SR[0], self.sim.iter)
+                            self.updateSRDisplay(SR[1], SR[0], self.supervisor.getFrameCounter())
                         signal_se += "%1.2f   " % SR[0]
                         signal_le += "%1.2f   " % SR[1]
 
@@ -540,7 +529,7 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
                     if (self.dispStatsInTerminal):
                         self.printInPlace(
                                 "iter #%d SR: (L.E, S.E.)= (%s, %s) running at %4.1fHz (real %4.1fHz)"
-                                % (self.sim.iter, signal_le, signal_se, refreshFreq,
+                                % (self.supervisor.getFrameCounter(), signal_le, signal_se, refreshFreq,
                                    currentFreq))
 
                     self.refreshTime = start
