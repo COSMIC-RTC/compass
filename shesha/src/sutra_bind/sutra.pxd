@@ -470,6 +470,11 @@ cdef extern from "sutra_centroider.h":
 
         carma_context * current_context
 
+        carma_obj[float] *d_bincube
+        carma_obj[float] *d_img
+        carma_obj[float] *d_validx
+        carma_obj[float] *d_validy
+
         bool is_type(string typec)
 
         string get_type()
@@ -478,6 +483,10 @@ cdef extern from "sutra_centroider.h":
                     int nvalid, int npix, int ntot)
         int get_cog(float * subsum, float * slopes, bool noise)
         int get_cog()
+        int load_validpos(int *ivalid, int *jvalid, int N)
+        int fill_bincube(int npix)
+        int load_img(float *img, int n)
+        int load_pyrimg(float *img, int n)
 
     int convert_centro(float * d_odata, float * d_idata, float offset, float scale,
                        int N, carma_device * device)
@@ -506,7 +515,7 @@ cdef extern from "sutra_centroider_bpcog.h":
 #################################################
 cdef extern from "sutra_centroider_corr.h":
     cdef cppclass sutra_centroider_corr(sutra_centroider):
-        int init_bincube()
+        int init_bincube(int npix)
         bool is_type(string typec)
         string get_type()
 
@@ -731,6 +740,9 @@ cdef extern from "sutra_controller_generic.h":
         carma_obj[float] * d_gain
         carma_obj[float] * d_decayFactor
         carma_obj[float] * d_compbuff
+        carma_obj[float] * d_bincube
+        carma_obj[float] * d_img
+
         string command_law
 
         sutra_controller_generic(carma_context * context, long nvalid, long nactu,
@@ -745,7 +757,6 @@ cdef extern from "sutra_controller_generic.h":
         int set_matE(float * matE)
         int set_commandlaw(string law)
         int comp_com()
-
 
 #################################################
 # C-Class sutra_controller_geo
@@ -1003,21 +1014,25 @@ cdef extern from "sutra_rtc.h":
 
         int add_centroider(sutra_sensors * sensors, int nwfs, long nvalid, float offset, float scale, long device,
                            char * typec)
+        int add_centroider(int nwfs, long nvalid, float offset, float scale, long device,
+                           char * typec)
         int rm_centroider()
         int add_controller_geo(int nactu, int Nphi, float delay, long device,
                                sutra_dms * dms, char ** type_dmseen, float * alt, int ndm, bool wfs_direction)
         int add_controller(int nactu, float delay, long device, const char * typec,
                            sutra_dms * dms, char ** type_dmseen, float * alt, int ndm)
+        int add_controller(int nactu, float delay, long device, const char *typec)
         int rm_controller()
 
         int do_imat(int ncntrl, sutra_dms * ydms)
         # int do_imatkl(int ncntrl, sutra_dms *ydms)
         # int do_imatkl4pzt(int ncntrl, sutra_dms *ydms)
         int do_imat_geom(int ncntrl, sutra_dms * ydm, int type)
-
+        int comp_voltage(int ncntrl)
         int do_centroids()
         int do_centroids(int ncntrl)
         int do_centroids(int ncntrl, bool imat)
+        int do_centroids(int nctrl, float *bincube, int npix, int ntot)
         int do_centroids_geom(int ncntrl)
         int do_control(int ncntrl)
         int do_clipping(int ncntrl, float min, float max)

@@ -247,7 +247,7 @@ reduce<cuFloatComplex>(int size, int threads, int blocks, cuFloatComplex *d_idat
 }
 
 template<class T>
-T reduce(T * data, int N){
+T reduce(T * data, int N) {
   thrust::device_ptr<T> dev_ptr(data);
   return thrust::reduce(dev_ptr, dev_ptr + N);
 }

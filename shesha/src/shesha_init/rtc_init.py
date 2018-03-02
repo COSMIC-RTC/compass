@@ -109,6 +109,20 @@ def rtc_init(context: naga_context, tel: Telescope, wfs: Sensors, dms: Dms, atmo
     return rtc
 
 
+def rtc_standalone(context: naga_context, nwfs: int, nvalid, nactu: int,
+                   centroider_type: bytes, delay: float, offset: float, scale: float):
+    """
+    TODO docstring
+    """
+    rtc = Rtc(context)
+    for k in range(nwfs):
+        rtc.add_centroider_standalone(k, nvalid[k], centroider_type, offset, scale)
+
+    rtc.add_controller_standalone(nactu, delay, b"generic")
+
+    return rtc
+
+
 def init_centroider(nwfs: int, p_wfs: conf.Param_wfs,
                     p_centroider: conf.Param_centroider, p_tel: conf.Param_tel,
                     p_atmos: conf.Param_atmos, wfs: Sensors, rtc: Rtc):
@@ -168,7 +182,7 @@ def init_centroider(nwfs: int, p_wfs: conf.Param_wfs,
 
                 if (p_centroider.weights is None):
                     raise ValueError("p_centroider.weights is None")
-                rtc.init_npix(nwfs)
+                rtc.init_npix(nwfs, p_wfs.npix)
                 rtc.init_corr(nwfs, p_centroider.weights, corrnorm, p_centroider.sizex,
                               p_centroider.sizey, p_centroider.interpmat)
 

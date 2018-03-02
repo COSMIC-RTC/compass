@@ -16,7 +16,8 @@ import time
 from guardian.tools import roket_exploitation as rexp
 
 plt.ion()
-gpudevices = np.array([6, 7], dtype=np.int32)
+
+gpudevices = np.array([0], dtype=np.int32)
 c = ch.naga_context(devices=gpudevices)
 
 
