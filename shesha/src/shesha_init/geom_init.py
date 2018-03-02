@@ -357,7 +357,7 @@ def init_pyrhr_geom(p_wfs: conf.Param_wfs, r0: float, p_tel: conf.Param_tel,
 
     Pangle = pup_sep * nrebin  # Pyramid angle in HR pixels
     centers = Pangle * np.array([[-1, 1], [1, 1], [-1, -1], [1, -1]], dtype=np.float32)
-    if hasattr(p_wfs, 'pyr_misalignments'):
+    if p_wfs.pyr_misalignments is not None:
         mis = np.asarray(p_wfs.pyr_misalignments) * nrebin
     else:
         mis = np.zeros((4, 2), dtype=np.float32)
