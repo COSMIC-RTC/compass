@@ -330,6 +330,10 @@ class widgetAOWindowPyro(AbstractSupervisor, widgetAOWindow, metaclass=MergeMeta
         self.ui.wao_run.setChecked(True)
         return ph2KL
 
+    def computePh2ModesFits(self, fullpath):
+        data = self.computePh2Modes()
+        self.writeDataInFits(data, fullpath)
+
     def getModes2VBasis(self, ModalBasisType):
         if (ModalBasisType == "KL2V"):
             print("Computing KL2V basis...")
@@ -785,7 +789,10 @@ class widgetAOWindowPyro(AbstractSupervisor, widgetAOWindow, metaclass=MergeMeta
     #def getSlopes(self):
     #     return self.sim.rtc.get_centroids(0)
 
-    def recordCB(self, CBcount, tarnum=0, restart=False, seeAtmos=True):
+    def writeDataInFits(self, data, fullpath):
+        pfits.writeto(fullpath, data, overwrite=True)
+
+    def recordCB(self, CBcount, tarnum=0, restart=False, seeAtmos=True, tarPhase=False):
         self.aoLoopClicked(False)
         self.ui.wao_run.setChecked(False)
         time.sleep(1)
@@ -819,11 +826,12 @@ class widgetAOWindowPyro(AbstractSupervisor, widgetAOWindow, metaclass=MergeMeta
                 voltsdata = np.zeros((len(voltsVector), CBcount))
             voltsdata[:, j] = voltsVector
 
-            tarPhaseArray = self.sim.tar.get_phase(
-                    tarnum) * self.sim.config.p_geom._spupil
-            if (tarPhaseData is None):
-                tarPhaseData = np.zeros((*tarPhaseArray.shape, CBcount))
-            tarPhaseData[:, :, j] = tarPhaseArray
+            if (tarPhase):
+                tarPhaseArray = self.sim.tar.get_phase(
+                        tarnum) * self.sim.config.p_geom._spupil
+                if (tarPhaseData is None):
+                    tarPhaseData = np.zeros((*tarPhaseArray.shape, CBcount))
+                tarPhaseData[:, :, j] = tarPhaseArray
 
         psfLE = self.sim.tar.get_image(tarnum, b"le")
         if (restart):
