@@ -102,7 +102,7 @@ just compile the shared target (and test if you want)
 ```bash
 export CUDA_ROOT=/usr/local/cuda
 export NCPUS=8
-GPU_TARGET=sm_XX OPENBLASDIR=$OPENBLAS_ROOT CUDADIR=$CUDA_ROOT -j $NCPUS shared sparse-shared
+GPU_TARGET=sm_XX OPENBLASDIR=$OPENBLAS_ROOT CUDADIR=$CUDA_ROOT make -j $NCPUS shared sparse-shared
 ```
 
 Where:
