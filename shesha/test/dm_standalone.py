@@ -6,11 +6,10 @@ import sys
 import os
 # import numpy as np
 import naga as ch
-import shesha as ao
+import shesha_config as conf
 import time
 import numpy as np
 import matplotlib.pyplot as plt
-import hdf5_utils as h5u
 plt.ion()
 
 if(len(sys.argv) == 2):
@@ -26,15 +25,15 @@ if(len(sys.argv) == 2):
         raise ValueError("Parameter file extension must be .py")
 
     # init geom
-    ao.Param_geom.geom_init(config.p_geom,config.p_tel, 750, config.p_geom.apod) #apod = apodizer
+    conf.Param_geom.geom_init(config.p_geom,config.p_tel, 750, config.p_geom.apod) #apod = apodizer
 else:
     class config:
         #geom
-        p_geom=ao.Param_geom()
+        p_geom=conf.Param_geom()
         p_geom.geom_init_generic(500)
 
         #dm
-        p_dm0=ao.Param_dm()
+        p_dm0=conf.Param_dm()
         p_dms=[p_dm0]
         p_dm0.set_type("pzt")
         # p_dm0.set_pattern("hexa")
@@ -54,9 +53,9 @@ config.p_dm0.set_pzt_extent(0)
 #   dm
 print("->dm")
 if config.p_tel:
-    dms = ao.dm_init_standalone(config.p_dms, config.p_geom, config.p_tel.diam, config.p_tel.cobs)
+    dms = conf.dm_init_standalone(config.p_dms, config.p_geom, config.p_tel.diam, config.p_tel.cobs)
 else:
-    dms = ao.dm_init_standalone(config.p_dms, config.p_geom)
+    dms = conf.dm_init_standalone(config.p_dms, config.p_geom)
 
 print("====================")
 print("init done")

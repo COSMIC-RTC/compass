@@ -1,12 +1,13 @@
 from .abstractSupervisor import AbstractSupervisor
 import numpy as np
 
-import shesha_ao as ao
-import shesha_sim
-import shesha_constants as scons
-from shesha_constants import CONST
+from hraa.devices.camera.fakecam import Fakecam
+from shesha_init import rtc_standalone, dm_init_standalone
+import rtcData.DataInit as di
+from shesha_sim import Simulator, SimulatorBrahma
+from sutra_bind.wrap import naga_context
 
-class CompassSupervisor(AbstractSupervisor):
+class BenchSupervisor(AbstractSupervisor):
 
     #     _    _         _                  _   
     #    / \  | |__  ___| |_ _ __ __ _  ___| |_ 
@@ -30,6 +31,7 @@ class CompassSupervisor(AbstractSupervisor):
         ''' TODO
         Set or unset whether atmos is enabled when running loop (see singleNext) 
         '''
+        raise NotImplementedError("Not implemented")
         self._seeAtmos = enable
 
     def setCommand(self, command: np.ndarray) -> None:
@@ -42,13 +44,13 @@ class CompassSupervisor(AbstractSupervisor):
         ''' 
         Add this offset value to integrator (will be applied at the end of next iteration)
         '''
-        self._sim.rtc.setPertuVoltages(0, command.astype(np.float32).copy())
+        self.rtc.setPertuVoltages(0, command.astype(np.float32).copy())
 
     def getSlope(self) -> np.ndarray:
         ''' 
         Immediately gets one slope vector for all WFS at the current state of the system 
         '''
-        return self._sim.rtc.get_centroids(0)
+        return self.rtc.get_centroids(0)
 
     def computeIMatModal(self, M2V: np.ndarray, pushVector: np.ndarray,
                          refOffset: np.ndarray, noise: bool,
@@ -62,81 +64,79 @@ class CompassSupervisor(AbstractSupervisor):
         with/without atmos shown to WFS
         '''
         raise NotImplementedError("Not implemented")
-        return np.empty(1)
 
     def singleNext(self, moveAtmos: bool=True, showAtmos: bool=True, getPSF: bool=False,
                    getResidual: bool=False) -> None:
         ''' 
         Move atmos -> getSlope -> applyControl ; One integrator step 
         '''
-        self._sim.next(see_atmos=showAtmos)  # why not self._seeAtmos?
+        frame = self.cam.getFrame()
+        self.rtc.load_rtc_img(0, frame.astype(np.float32))
+        #for SH
+        self.rtc.fill_rtc_bincube(0, self.npix)
+        self.rtc.do_centroids(0)
+        self.rtc.do_control(0)
+        self.rtc.save_com(0)
 
     def closeLoop(self) -> None:
         ''' 
         DM receives controller output + pertuVoltage 
         '''
-        self._sim.rtc.set_openloop(0, 0)  # closeLoop
+        self.rtc.set_openloop(0, 0)  # closeLoop
 
     def openLoop(self) -> None:
         ''' 
         Integrator computation goes to /dev/null but pertuVoltage still applied 
         '''
-        self._sim.rtc.set_openloop(0, 1)  # openLoop
+        self.rtc.set_openloop(0, 1)  # openLoop
 
     def setRefSlopes(self, refSlopes: np.ndarray) -> None:
         ''' 
         Set given ref slopes in controller 
         '''
-        self._sim.rtc.set_centroids_ref(0, refSlopes)
+        self.rtc.set_centroids_ref(0, refSlopes)
 
     def getRefSlopes(self) -> np.ndarray:
         ''' 
         Get the currently used reference slopes 
         '''
-        self._sim.rtc.get_centroids_ref(0)
+        self.rtc.get_centroids_ref(0)
 
     def setGain(self, gain: float) -> None:
         ''' 
         Set the scalar gain of feedback controller loop 
         '''
-        self._sim.rtc.set_gain(0, gain)
+        self.rtc.set_gain(gain)
 
     def setCommandMatrix(self, cMat: np.ndarray) -> None:
         ''' 
         Set the cmat for the controller to use 
         '''
-        self._sim.rtc.set_cmat(0, cMat)
+        self.rtc.set_cmat(cMat)
 
     def setPyrModulation(self, pyrMod: float) -> None:
         ''' 
         Set pyramid modulation value - in l/D units 
         '''
-        self._sim.rtc.set_pyr_ampl(0, pyrMod, self._sim.config.p_wfss,
-                                  self._sim.config.p_tel)
+        raise NotImplementedError("Not implemented")
 
     def getRawWFSImage(self, numWFS: int=0) -> np.ndarray:
         ''' 
         Get an image from the WFS 
         '''
-        if self._sim.config.p_wfss[numWFS].type == scons.WFSType.PYRHR:
-            return self._sim.wfs.get_pyrimg(numWFS)
-        elif self._sim.config.p_wfss[numWFS].type == scons.WFSType.SH:
-            return self._sim.wfs.get_binimg(numWFS)
-        else:
-            raise "WFSType not handled"
+        return self.cam.getFrame()
 
     def getTarImage(self, tarID, expoType:str="se") -> np.ndarray:
         ''' 
         Get an image from a target 
         '''
-        return self._sim.tar.get_image(tarID, bytes(expoType, "utf-8"))
+        raise NotImplementedError("Not implemented")
 
     def getIntensities(self) -> np.ndarray:
         ''' 
         Return sum of intensities in subaps. Size nSubaps, same order as slopes 
         '''
         raise NotImplementedError("Not implemented")
-        return np.empty(1)
 
     def getAllDataLoop(self, nIter: int, slope: bool, command: bool, target: bool,
                        intensity: bool, targetPhase: bool) -> np.ndarray:
@@ -145,7 +145,6 @@ class CompassSupervisor(AbstractSupervisor):
         Requires loop to be asynchronously running
         '''
         raise NotImplementedError("Not implemented")
-        return np.empty(1)
 
     #  ____                  _ _   _        __  __      _   _               _     
     # / ___| _ __   ___  ___(_) |_(_) ___  |  \/  | ___| |_| |__   ___   __| |___ 
@@ -159,8 +158,10 @@ class CompassSupervisor(AbstractSupervisor):
         Init the COMPASS wih the configFile
         '''
         self._sim = None
-        self._seeAtmos = False
-
+        self.cam = None
+        self.rtc = None
+        self.npix = 0
+        
         if configFile is not None:
             self.loadConfig(configFile, BRAHMA)
 
@@ -173,21 +174,16 @@ class CompassSupervisor(AbstractSupervisor):
         '''
         self._sim.dms.resetdm(nDM)
 
-    def resetStrehl(self, nTar: int) -> None:
-        '''
-        Reset the Strehl Ratio of the target nTar
-        '''
-        self._sim.tar.reset_strehl(nTar)
-
     def loadConfig(self, configFile:str, BRAMA:bool=False) -> None:
         '''
         Init the COMPASS wih the configFile
         '''
+
         if self._sim is None:       
             if BRAMA:
-                self._sim = shesha_sim.SimulatorBrahma(configFile)
+                self._sim = SimulatorBrahma(configFile)
             else:
-                self._sim = shesha_sim.Simulator(configFile)
+                self._sim = Simulator(configFile)
         else:
             self._sim.clear_init()
             self._sim.load_from_file(configFile)
@@ -214,18 +210,47 @@ class CompassSupervisor(AbstractSupervisor):
         '''
         Initialize the simulation
         '''
-        self._sim.init_sim()
+        print("->cam")
+        self.cam = Fakecam(self._sim.config.p_cams[0].camAddr, 
+            self._sim.config.p_cams[0].width,
+            self._sim.config.p_cams[0].height,
+            self._sim.config.p_cams[0].offset_w,
+            self._sim.config.p_cams[0].offset_h,
+            self._sim.config.p_cams[0].expo_usec,
+            self._sim.config.p_cams[0].framerate)
 
-    def getAtmScreen(self, alt:int) -> np.ndarray:
-        '''
-        return the atmos screen at the altitude alt
-        '''
-        return self._sim.atm.get_screen(alt)
+        dataS = di.makeSH(wfsNb=1, frameSize=self._sim.config.p_cams[0].width, 
+            roiSize=self._sim.config.p_wfss[0].nxsub, subSize=self._sim.config.p_wfss[0].npix)
+        dataL = di.makeSCAO(dataS, cmdNb=4096, gain=0)
+
+        self.context = naga_context(devices=np.array([0], dtype=np.int32))
+        nvalid = np.array([dataS.data["roiTab"].data.shape[1]],dtype=np.int32)
+        offset = dataS.param["subSize"] // 2 + 0.5
+        self.rtc = rtc_standalone(self.context,
+                                dataS.param["wfsNb"],
+                                nvalid, 
+                                dataL.param["cmdNb"],
+                                b"cog", 
+                                1,
+                                offset * 0,
+                                dataS.param["modFac"])
+        self.npix = dataS.param["subSize"]
+        cMat = dataL.data["cmdMat"].data
+        s = cMat.shape
+        self.rtc.set_cmat(0, cMat.reshape(s[0], s[1] * s[2] * s[3]))
+        self.rtc.set_decayFactor(0, np.ones(dataL.param["cmdNb"], dtype=np.float32) * -(1 - dataL.param["gain"]))
+        self.rtc.set_matE(0, np.identity(dataL.param["cmdNb"], dtype=np.float32))
+        self.rtc.set_mgain(0, np.ones(dataL.param["cmdNb"], dtype=np.float32) * dataL.param["gain"] * (-1))
+        xvalid = dataS.data["roiTab"].data[1,:] / self.npix 
+        yvalid = dataS.data["roiTab"].data[0,:] / self.npix 
+        self.rtc.load_rtc_validpos(0, xvalid.astype(np.int32), yvalid.astype(np.int32))
+        self._sim.is_init = True
 
     def getWfsPhase(self, numWFS:int) -> np.ndarray:        
         '''
         return the WFS screen of WFS number numWFS
         '''
+        raise NotImplementedError("Not implemented")
         return self._sim.atm.get_screen(numWFS)
 
     def getDmPhase(self, dm_type:str, alt:int) -> np.ndarray:        
@@ -238,31 +263,8 @@ class CompassSupervisor(AbstractSupervisor):
         '''
         return the target screen of target number numTar
         '''
+        raise NotImplementedError("Not implemented")
         return self._sim.tar.get_phase(numTar)
-
-    def getPyrHRImage(self, numWFS: int=0) -> np.ndarray:
-        ''' 
-        Get an HR image from the WFS 
-        '''
-        if self._sim.config.p_wfss[numWFS].type == scons.WFSType.PYRHR:
-            return self._sim.wfs.get_pyrimghr(numWFS)
-        else:
-            raise "WFSType not handled"
-
-    def getSlopeGeom(self, numWFS:int) -> np.ndarray:        
-        '''
-        return the slopes geom of WFS number numWFS
-        '''
-        self._sim.wfs.slopes_geom(0, numWFS)
-
-        return self._sim.rtc.get_slopes(numWFS)
-
-    def getStrehl(self, numTar:int) -> np.ndarray: 
-        '''
-        return the Strehl Ratio of target number numTar
-        '''
-        self._sim.tar.comp_image(numTar)
-        return self._sim.tar.get_strehl(numTar)
 
     def getFrameCounter(self) -> int:
         '''

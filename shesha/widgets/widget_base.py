@@ -250,15 +250,6 @@ class WidgetBase(BaseClassTemplate):
                 w.setParent(None)
         self.disp_checkboxes.clear()
 
-        for key, pgpl in self.SRcircles.items():
-            self.viewboxes[key].removeItem(pgpl)
-
-        for key, pgpl in self.SRCrossX.items():
-            self.viewboxes[key].removeItem(pgpl)
-
-        for key, pgpl in self.SRCrossY.items():
-            self.viewboxes[key].removeItem(pgpl)
-
         # TODO: remove self.imgs, self.viewboxes and self.docks children
         for key, dock in self.docks.items():
             if dock.isVisible():

@@ -192,6 +192,15 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
             Callback when 'LOAD' button is hit
         '''
         super().loadConfig()
+        for key, pgpl in self.SRcircles.items():
+            self.viewboxes[key].removeItem(pgpl)
+
+        for key, pgpl in self.SRCrossX.items():
+            self.viewboxes[key].removeItem(pgpl)
+
+        for key, pgpl in self.SRCrossY.items():
+            self.viewboxes[key].removeItem(pgpl)
+
         configFile = str(self.uiBase.wao_selectConfig.currentText())
         sys.path.insert(0, self.defaultParPath)
 
