@@ -11,32 +11,14 @@ from subprocess import Popen, PIPE
 import shesha_ao as ao
 import shesha_constants as scons
 
-import compassConfigToFile as cf
-
 from typing import Any, Dict, Tuple, Callable, List
-
-import Pyro4
-"""
-IMPORTANT PYRO V4: To re-enable the np.array serialisation
-add in the .bashrc (before launching Pyro4 NS):
-export PYRO_SERIALIZERS_ACCEPTED=serpent,json,marshal,pickle,dill
-export PYRO_LOGFILE=pyro.log
-export PYRO_LOGLEVEL=DEBUG
-
-Add on the python Server Side: Pyro4.config.SERIALIZERS_ACCEPTED = set(['pickle','json', 'marshal', 'serpent'])
-Add on the python client Side: Pyro4.config.SERIALIZER='pickle'
-"""
-Pyro4.config.SERIALIZERS_ACCEPTED = set(['pickle', 'json', 'marshal', 'serpent'])
-
 from .compassSupervisor import CompassSupervisor 
 
 
-@Pyro4.expose
 class CanapassSupervisor(CompassSupervisor):
 
     def __init__(self, configFile: str=None, BRAHMA:bool=True) -> None:
         CompassSupervisor.__init__(self, configFile, True)
-        #Pyro.core.ObjBase.__init__(self)
 
         #############################################################
         #                 CONNECTED BUTTONS                         #
@@ -73,6 +55,7 @@ class CanapassSupervisor(CompassSupervisor):
         ''' Returns the configuration in use, in a supervisor specific format '''
         if path:
             self.writeConfigOnFile(path)
+            return
         return self._sim.config
 
     def loadConfig(self, configFile:str, BRAMA:bool=True) -> None:
@@ -93,14 +76,6 @@ class CanapassSupervisor(CompassSupervisor):
         | |  | | |___  | | |  _  | |_| | |_| |___) |
         |_|  |_|_____| |_| |_| |_|\___/|____/|____/
     """
-
-    def initConfig(self):
-        try:
-            ps = PyroServer(self)
-            ps.start()
-        except:
-            print("Warning: Error while starting Pyro server")
-        super().initConfig()
 
     def computePh2Modes(self):
         oldnoise = self._sim.config.p_wfs0.noise
@@ -154,6 +129,9 @@ class CanapassSupervisor(CompassSupervisor):
             return KL2V, 0
         else:
             return self.KL2V, 0
+
+    def setGain(self, gain: float) -> None:
+        super().setGain(gain)
 
     def compute_Btt2(self):
         IF = self._sim.rtc.get_IFsparse(1).T
@@ -232,7 +210,7 @@ class CanapassSupervisor(CompassSupervisor):
                 self._sim.rtc.set_perturbcom(0, v)
                 iMatKL[kl, :] = self.applyVoltGetSlopes(noise=noise) / ampliVec[kl]
 
-        print("Modal interaction matrix done in %3.0f seconds" % (time.time() - st))
+        # print("Modal interaction matrix done in %3.0f seconds" % (time.time() - st))
 
         return iMatKL
 
@@ -257,7 +235,7 @@ class CanapassSupervisor(CompassSupervisor):
         self.setNcpaWfs(cubePhase[nphase, :, :] * 0.,
                         wfsnum=wfsnum)  # Remove the Phase on WFS
         _ = self.applyVoltGetSlopes(turbu=withTurbu, noise=noise)
-        print("Phase interaction matrix done in %3.0f seconds" % (time.time() - st))
+        # print("Phase interaction matrix done in %3.0f seconds" % (time.time() - st))
 
         return iMatPhase
 
@@ -617,48 +595,3 @@ class CanapassSupervisor(CompassSupervisor):
         influTT = wao.sim.dms.get_influ(b"tt", 0)
 
         """
-
-
-try:
-
-    class PyroServer(Thread):
-        """
-        Pyro object Thread
-
-        """
-
-        def __init__(self, obj):
-            Thread.__init__(self)
-            self.setDaemon(1)
-            self.ready = False
-            self.object = obj
-            print("init Pyro Thread")
-
-        def run(self):
-            print("Starting Pyro Server...")
-            daemon = Pyro4.Daemon()
-            ns = Pyro4.locateNS()
-            self.ready = True
-            try:
-                p = Popen("whoami", shell=True, stdout=PIPE, stderr=PIPE)
-                out, err = p.communicate()
-                if (err != b''):
-                    print(err)
-                    raise ValueError("ERROR CANNOT RECOGNIZE USER")
-                else:
-                    user = out.split(b"\n")[0].decode("utf-8")
-                    print("User is " + user)
-                    ns.remove("aoconfig_" + user)
-            except:
-                # ns.deleteGroup(':GS')
-                # ns.createGroup(":GS")
-                pass
-            # print self.object.getVar()
-            uri = daemon.register(self.object)
-            ns.register("aoconfig_" + user, uri)
-            print("starting daemon")
-            daemon.requestLoop()
-            print("daemon started")
-except:
-    print("Error while initializing Pyro object")
-    pass

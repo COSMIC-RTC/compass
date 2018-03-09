@@ -555,7 +555,9 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
         print(text + "\r", end=' ')
         sys.stdout.flush()
 
-    def run(self):
+    def run(self, stop=False):
+        if stop:
+            return
         self.loopOnce()
         if not self.uiAO.wao_forever.isChecked():
             self.nbiter -= 1

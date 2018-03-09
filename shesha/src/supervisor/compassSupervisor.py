@@ -95,7 +95,7 @@ class CompassSupervisor(AbstractSupervisor):
         '''
         self._sim.rtc.get_centroids_ref(0)
 
-    def setGain(self, gain: float) -> None:
+    def setGain(self, gainMat) -> None:
         ''' 
         Set the scalar gain of feedback controller loop 
         '''

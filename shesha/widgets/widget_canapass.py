@@ -25,6 +25,7 @@ from docopt import docopt
 
 from widget_ao import widgetAOWindow
 
+
 class widgetCanapassWindowPyro(widgetAOWindow):
 
     def __init__(self, configFile: Any=None, BRAMA: bool=False,
@@ -34,6 +35,7 @@ class widgetCanapassWindowPyro(widgetAOWindow):
 
         self.CB = {}
         self.wpyr = None
+        self.currentBuffer = 1
         #############################################################
         #                 CONNECTED BUTTONS                         #
         #############################################################
@@ -126,10 +128,42 @@ class widgetCanapassWindowPyro(widgetAOWindow):
     def updateCurrentLoopFrequency(self, freq):
         self.uiAO.wao_currentFreq.setValue(freq)
 
+class loopHandler:
+    def __init__(self, wao):
+        self.wao = wao
+
+    def start(self):
+         self.wao.aoLoopClicked(True)
+
+    def stop(self):
+         self.wao.aoLoopClicked(False)
+
 if __name__ == '__main__':
     arguments = docopt(__doc__)
     app = QtWidgets.QApplication(sys.argv)
     app.setStyle('cleanlooks')
     wao = widgetCanapassWindowPyro(arguments["<parameters_filename>"], BRAMA=True,
                              expert=arguments["--expert"])
+
+    wao_loop = loopHandler(wao)
+
+    try:
+        from subprocess import Popen, PIPE
+        from hraa.server.pyroServer import PyroServer
+
+        p = Popen("whoami", shell=True, stdout=PIPE, stderr=PIPE)
+        out, err = p.communicate()
+        if (err != b''):
+            print(err)
+            raise ValueError("ERROR CANNOT RECOGNIZE USER")
+        else:
+            user = out.split(b"\n")[0].decode("utf-8")
+            print("User is " + user)
+        server = PyroServer()
+        server.add_device(wao.supervisor, "waoconfig_" + user)
+        server.add_device(wao_loop, "waoloop_" + user)
+        server.start()
+    except:
+        raise EnvironmentError("Missing dependencies (code HRAA, Pyro4)")
+
     wao.show()
