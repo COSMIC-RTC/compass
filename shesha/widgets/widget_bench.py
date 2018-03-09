@@ -17,9 +17,6 @@ import time
 
 import pyqtgraph as pg
 from pyqtgraph.dockarea import Dock, DockArea
-sys.path.insert(0, os.environ["SHESHA_ROOT"] + "/AOlib")
-sys.path.insert(0, os.environ["SHESHA_ROOT"] + "/src/shesha_util")
-
 from tools import plsh, plpyr
 
 import warnings
@@ -37,7 +34,6 @@ from collections import deque
 
 from matplotlibwidget import MatplotlibWidget
 
-sys.path.insert(0, os.environ["SHESHA_ROOT"] + "/data/par/")
 BenchWindowTemplate, BenchClassTemplate = loadUiType(
         os.environ["SHESHA_ROOT"] + "/widgets/widget_bench.ui")  # type: type, type
 
@@ -258,7 +254,7 @@ class widgetBenchWindow(BenchClassTemplate, WidgetBase):
                                 #     )  # Preparing mesh and vector for display
                                 # self.imgs[key].canvas.axes.quiver(
                                 #         x, y, vx, vy, pivot='mid')
-                                plt.plot(centroids)
+                                # plt.plot(centroids)
                             self.imgs[key].canvas.draw()
 
             finally:

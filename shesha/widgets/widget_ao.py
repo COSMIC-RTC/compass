@@ -18,8 +18,6 @@ import time
 
 import pyqtgraph as pg
 from pyqtgraph.dockarea import Dock, DockArea
-sys.path.insert(0, os.environ["SHESHA_ROOT"] + "/AOlib")
-sys.path.insert(0, os.environ["SHESHA_ROOT"] + "/src/shesha_util")
 
 from tools import plsh, plpyr
 
@@ -38,7 +36,6 @@ from collections import deque
 
 from matplotlibwidget import MatplotlibWidget
 
-sys.path.insert(0, os.environ["SHESHA_ROOT"] + "/data/par/")
 AOWindowTemplate, AOClassTemplate = loadUiType(
         os.environ["SHESHA_ROOT"] + "/widgets/widget_ao.ui")  # type: type, type
 
@@ -187,7 +184,7 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
         if type == "SR":
             d.addWidget(self.uiAO.wao_Strehl)
 
-    def loadConfig(self) -> None:
+    def loadConfig(self, ISupervisor=CompassSupervisor) -> None:
         '''
             Callback when 'LOAD' button is hit
         '''
@@ -204,7 +201,7 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
         configFile = str(self.uiBase.wao_selectConfig.currentText())
         sys.path.insert(0, self.defaultParPath)
 
-        self.supervisor = CompassSupervisor(configFile, self.BRAHMA)
+        self.supervisor = ISupervisor(configFile, self.BRAHMA)
         self.config = self.supervisor.getConfig()
 
         if self.devices:
@@ -489,17 +486,18 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
                                 self.imgs[key].canvas.axes.quiver(
                                         x, y, vx, vy, pivot='mid')
                             if "Comp" in key:
-                                centroids = self.supervisor.getSlope(0)
-                                nvalid = [2 * o._nvalid for o in self.config.p_wfss]
-                                ind = np.sum(nvalid[:index], dtype=np.int32)
+                                centroids = self.supervisor.getSlope()
+                                nmes = [2 * p_wfs._nvalid for p_wfs in self.config.p_wfss]
+                                first_ind = np.sum(nmes[:index], dtype=np.int32)
                                 if (self.config.p_wfss[index].type ==
                                             scons.WFSType.PYRHR):
                                     #TODO: DEBUG...
-                                    plpyr(centroids[ind:ind + nvalid[index]],
-                                          self.config.p_wfs0._isvalid)
+                                    plpyr(centroids[first_ind:first_ind + nmes[index]],
+                                          np.stack([wao.config.p_wfss[index]._validsubsx,
+                                                    wao.config.p_wfss[index]._validsubsy]))
                                 else:
                                     x, y, vx, vy = plsh(
-                                            centroids[ind:ind + nvalid[index]],
+                                            centroids[first_ind:first_ind + nmes[index]],
                                             self.config.p_wfss[index].nxsub,
                                             self.config.p_tel.cobs, returnquiver=True
                                     )  # Preparing mesh and vector for display

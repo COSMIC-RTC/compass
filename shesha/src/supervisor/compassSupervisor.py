@@ -48,7 +48,7 @@ class CompassSupervisor(AbstractSupervisor):
         ''' 
         Immediately gets one slope vector for all WFS at the current state of the system 
         '''
-        return self._sim.rtc.get_centroids(0)
+        return self.computeSlopes()
 
     def computeIMatModal(self, M2V: np.ndarray, pushVector: np.ndarray,
                          refOffset: np.ndarray, noise: bool,
@@ -99,7 +99,11 @@ class CompassSupervisor(AbstractSupervisor):
         ''' 
         Set the scalar gain of feedback controller loop 
         '''
-        self._sim.rtc.set_gain(0, gain)
+        if ((type(gainMat) is float) or (type(gainMat) is int)):
+            gainMat = np.ones(
+                    np.sum(self._sim.config.p_controller0.nactu),
+                    dtype=np.float32) * gainMat
+        self._sim.rtc.set_mgain(0, gainMat)
 
     def setCommandMatrix(self, cMat: np.ndarray) -> None:
         ''' 
@@ -167,11 +171,39 @@ class CompassSupervisor(AbstractSupervisor):
     def __repr__(self):
         return str(self._sim)
 
-    def resetDM(self, nDM: int) -> None:
+    def computeSlopes(self):
+        for w in range(len(self._sim.config.p_wfss)):
+            self._sim.wfs.comp_img(w)
+        self._sim.rtc.do_centroids(0)
+        return self._sim.rtc.get_centroids(0)
+
+    def resetDM(self, numdm: int=-1) -> None:
         '''
-        Reset the DM number nDM
+        Reset the DM number nDM or all DMs if  == -1
         '''
-        self._sim.dms.resetdm(nDM)
+        if (numdm == -1):  # All Dms reset
+            for numdm in range(len(self._sim.config.p_dms)):
+                self._sim.dms.resetdm(self._sim.config.p_dms[numdm].type,
+                                     self._sim.config.p_dms[numdm].alt)
+        else:
+            self._sim.dms.resetdm(self._sim.config.p_dms[numdm].type,
+                                 self._sim.config.p_dms[numdm].alt)
+
+    def resetSimu(self, noiseList):
+        self.resetTurbu()
+        time.sleep(1)
+        self.resetNoise(noiseList)
+
+    def resetTurbu(self):
+        ilayer = 0
+        for layerAlt in self._sim.atm.list_alt().tolist():
+            self._sim.atm.set_seed(layerAlt, 1234 + ilayer)
+            self._sim.atm.refresh_screen(layerAlt)
+            ilayer += 1
+
+    def resetNoise(self, noiseList):
+        for nwfs in range(len(self._sim.config.p_wfss)):
+            self._sim.wfs.set_noise(nwfs, noiseList[nwfs], 1234 + nwfs)
 
     def resetStrehl(self, nTar: int) -> None:
         '''
@@ -253,9 +285,11 @@ class CompassSupervisor(AbstractSupervisor):
         '''
         return the slopes geom of WFS number numWFS
         '''
-        self._sim.wfs.slopes_geom(0, numWFS)
+        self._sim.rtc.do_centroids_geom(0)
+        slopesGeom = self._sim.rtc.get_centroids(0)
+        self._sim.rtc.do_centroids(0)
+        return slopesGeom
 
-        return self._sim.rtc.get_slopes(numWFS)
 
     def getStrehl(self, numTar:int) -> np.ndarray: 
         '''

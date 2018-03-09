@@ -4,9 +4,6 @@
 import os, sys
 import numpy as np
 
-sys.path.insert(0, os.environ["SHESHA_ROOT"] + "/AOlib")
-sys.path.insert(0, os.environ["SHESHA_ROOT"] + "/src/shesha_util")
-
 from PyQt5.uic import loadUiType
 
 import shesha_ao as ao
