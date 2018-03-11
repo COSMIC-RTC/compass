@@ -1,7 +1,7 @@
 """Widget to simulate a closed loop
 
 Usage:
-  widget_fab.py [<parameters_filename>] [--expert]
+  widget_canapass.py [<parameters_filename>]
 
 with 'parameters_filename' the path to the parameters file
 
@@ -142,9 +142,7 @@ if __name__ == '__main__':
     arguments = docopt(__doc__)
     app = QtWidgets.QApplication(sys.argv)
     app.setStyle('cleanlooks')
-    wao = widgetCanapassWindowPyro(arguments["<parameters_filename>"], BRAMA=True,
-                             expert=arguments["--expert"])
-
+    wao = widgetCanapassWindowPyro(arguments["<parameters_filename>"], BRAMA=True)
     wao_loop = loopHandler(wao)
 
     try:

@@ -14,6 +14,8 @@ import shesha_constants as scons
 from typing import Any, Dict, Tuple, Callable, List
 from .compassSupervisor import CompassSupervisor 
 
+from naga import naga_obj_Double2D, syevd_Double, naga_context
+# from naga import naga_host_obj_Double1D, naga_host_obj_Double2D, svd_host_Double, naga_context
 
 class CanapassSupervisor(CompassSupervisor):
 
@@ -134,20 +136,17 @@ class CanapassSupervisor(CompassSupervisor):
         super().setGain(gain)
 
     def compute_Btt2(self):
-        IF = self._sim.rtc.get_IFsparse(1).T
-        N = IF.shape[0]
-        n = IF.shape[1]
-        #T = IF[:,-2:].copy()
+        IF = self._sim.rtc.get_IFsparse(1)
+        n = IF.shape[0]
+        N = IF.shape[1]
         T = self._sim.rtc.get_IFtt(1)
-        #IF = IF[:,:n-2]
-        n = IF.shape[1]
 
-        delta = IF.T.dot(IF).toarray() / N
+        delta = IF.dot(IF.T).toarray() / N
 
         # Tip-tilt + piston
         Tp = np.ones((T.shape[0], T.shape[1] + 1))
         Tp[:, :2] = T.copy()  #.toarray()
-        deltaT = IF.T.dot(Tp) / N
+        deltaT = IF.dot(Tp) / N
         # Tip tilt projection on the pzt dm
         tau = np.linalg.inv(delta).dot(deltaT)
 
@@ -159,7 +158,35 @@ class CanapassSupervisor(CompassSupervisor):
 
         # Base orthonormee sans TT
         gdg = G.T.dot(delta).dot(G)
-        U, s, V = np.linalg.svd(gdg)
+
+        # startTimer = time.time()
+        # print("Doing SVD on CPU of a matrix...")
+        # U, s, _ = np.linalg.svd(gdg)
+        # print("Done in %fs"%(time.time() - startTimer))
+
+        # print("Doing SVD on CPU of a matrix...")
+        # m = gdg.shape[0]
+        # h_mat = naga_host_obj_Double2D(data=gdg,mallocType="pagelock")
+        # h_eig = naga_host_obj_Double1D(data=np.zeros([m],dtype=np.float64),mallocType="pagelock")
+        # h_U   = naga_host_obj_Double2D(data=np.zeros((m,m),dtype=np.float64),mallocType="pagelock")
+        # h_VT  = naga_host_obj_Double2D(data=np.zeros((m,m),dtype=np.float64),mallocType="pagelock")
+        # svd_host_Double(h_mat, h_eig, h_U, h_VT)
+        # U = h_U.getData()
+        # s = h_eig.getData()
+        
+        # startTimer = time.time()
+        # print("Doing EVD on GPU of a matrix...")
+        c = naga_context()
+        m = gdg.shape[0]
+        d_mat = naga_obj_Double2D(c, data=gdg)
+        d_U = naga_obj_Double2D(c, data=np.zeros([m, m], dtype=np.float64))
+        h_s = np.zeros(m, dtype=np.float64)
+        syevd_Double(d_mat, h_s, d_U)
+        h_U = d_U.device2host().T.copy()
+        U = h_U
+        s = h_s[::-1]
+        # print("Done in %fs"%(time.time() - startTimer))
+
         U = U[:, :U.shape[1] - 3]
         s = s[:s.size - 3]
         L = np.identity(s.size) / np.sqrt(s)
@@ -176,8 +203,7 @@ class CanapassSupervisor(CompassSupervisor):
 
         # Calcul du projecteur actus-->modes
         delta = np.zeros((n + T.shape[1], n + T.shape[1]))
-        #IF = rtc.get_IFsparse(1).T
-        delta[:-2, :-2] = IF.T.dot(IF).toarray() / N
+        delta[:-2, :-2] = IF.dot(IF.T).toarray() / N
         delta[-2:, -2:] = T.T.dot(T) / N
         P = Btt.T.dot(delta)
 

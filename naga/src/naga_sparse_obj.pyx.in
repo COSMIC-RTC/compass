@@ -69,7 +69,6 @@ cdef class naga_sparse_obj_CLASSNAME:
 
         if(data is None):
             if(dims is None):
-                print("new carma_sparse_obj[C_TYPE](ctxt)")
                 self.c_sparse_obj=new carma_sparse_obj[C_TYPE](ctxt)
                 return
 
