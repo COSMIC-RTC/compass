@@ -366,7 +366,7 @@ def init_pyrhr_geom(p_wfs: conf.Param_wfs, r0: float, p_tel: conf.Param_tel,
             np.asarray([(c[0] + m[0]) * x + (c[1] + m[1]) * y
                         for c, m in zip(centers, mis)]), axis=0)
 
-    p_wfs._halfxy = pyr.T
+    p_wfs._halfxy = np.fft.fftshift(pyr.T)
 
     # Valid pixels identification
     # Generate buffer with pupil at center
