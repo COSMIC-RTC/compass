@@ -138,7 +138,7 @@ class CanapassSupervisor(CompassSupervisor):
     def setGain(self, gain: float) -> None:
         super().setGain(gain)
 
-    def compute_Btt2(self):
+    def compute_Btt2(self, inv_method: str="evd_gpu"):
         IF = self._sim.rtc.get_IFsparse(1)
         n = IF.shape[0]
         N = IF.shape[1]
@@ -162,33 +162,31 @@ class CanapassSupervisor(CompassSupervisor):
         # Base orthonormee sans TT
         gdg = G.T.dot(delta).dot(G)
 
-        # startTimer = time.time()
-        # print("Doing SVD on CPU of a matrix...")
-        # U, s, _ = np.linalg.svd(gdg)
-        # print("Done in %fs"%(time.time() - startTimer))
-
-        # print("Doing SVD on CPU of a matrix...")
-        # m = gdg.shape[0]
-        # h_mat = naga_host_obj_Double2D(data=gdg,mallocType="pagelock")
-        # h_eig = naga_host_obj_Double1D(data=np.zeros([m],dtype=np.float64),mallocType="pagelock")
-        # h_U   = naga_host_obj_Double2D(data=np.zeros((m,m),dtype=np.float64),mallocType="pagelock")
-        # h_VT  = naga_host_obj_Double2D(data=np.zeros((m,m),dtype=np.float64),mallocType="pagelock")
-        # svd_host_Double(h_mat, h_eig, h_U, h_VT)
-        # U = h_U.getData()
-        # s = h_eig.getData()
-
-        # startTimer = time.time()
-        # print("Doing EVD on GPU of a matrix...")
-        c = naga_context()
-        m = gdg.shape[0]
-        d_mat = naga_obj_Double2D(c, data=gdg)
-        d_U = naga_obj_Double2D(c, data=np.zeros([m, m], dtype=np.float64))
-        h_s = np.zeros(m, dtype=np.float64)
-        syevd_Double(d_mat, h_s, d_U)
-        h_U = d_U.device2host().T.copy()
-        U = h_U
-        s = h_s[::-1]
-        # print("Done in %fs"%(time.time() - startTimer))
+        startTimer = time.time()
+        if inv_method == "cpu_svd":
+            print("Doing SVD on CPU of a matrix...")
+            U, s, _ = np.linalg.svd(gdg)
+        elif inv_method == "gpu_svd":
+            print("Doing SVD on CPU of a matrix...")
+            m = gdg.shape[0]
+            h_mat = naga_host_obj_Double2D(data=gdg,mallocType="pagelock")
+            h_eig = naga_host_obj_Double1D(data=np.zeros([m],dtype=np.float64),mallocType="pagelock")
+            h_U   = naga_host_obj_Double2D(data=np.zeros((m,m),dtype=np.float64),mallocType="pagelock")
+            h_VT  = naga_host_obj_Double2D(data=np.zeros((m,m),dtype=np.float64),mallocType="pagelock")
+            svd_host_Double(h_mat, h_eig, h_U, h_VT)
+            U = h_U.getData().T.copy()
+            s = h_eig.getData()[::-1].copy()
+        elif inv_method == "gpu_evd":
+            print("Doing EVD on GPU of a matrix...")
+            c = naga_context()
+            m = gdg.shape[0]
+            d_mat = naga_obj_Double2D(c, data=gdg)
+            d_U = naga_obj_Double2D(c, data=np.zeros([m, m], dtype=np.float64))
+            h_s = np.zeros(m, dtype=np.float64)
+            syevd_Double(d_mat, h_s, d_U)
+            U = d_U.device2host().T.copy()
+            s = h_s[::-1].copy()
+        print("Done in %fs"%(time.time() - startTimer))
 
         U = U[:, :U.shape[1] - 3]
         s = s[:s.size - 3]
