@@ -6,47 +6,48 @@ import shesha_sim
 import shesha_constants as scons
 from shesha_constants import CONST
 
+
 class CompassSupervisor(AbstractSupervisor):
 
-    #     _    _         _                  _   
-    #    / \  | |__  ___| |_ _ __ __ _  ___| |_ 
+    #     _    _         _                  _
+    #    / \  | |__  ___| |_ _ __ __ _  ___| |_
     #   / _ \ | '_ \/ __| __| '__/ _` |/ __| __|
-    #  / ___ \| |_) \__ \ |_| | | (_| | (__| |_ 
+    #  / ___ \| |_) \__ \ |_| | | (_| | (__| |_
     # /_/   \_\_.__/|___/\__|_|  \__,_|\___|\__|
-    #                                           
-    #  __  __      _   _               _     
-    # |  \/  | ___| |_| |__   ___   __| |___ 
+    #
+    #  __  __      _   _               _
+    # |  \/  | ___| |_| |__   ___   __| |___
     # | |\/| |/ _ \ __| '_ \ / _ \ / _` / __|
     # | |  | |  __/ |_| | | | (_) | (_| \__ \
     # |_|  |_|\___|\__|_| |_|\___/ \__,_|___/
 
     def getConfig(self):
-        ''' 
-        Returns the configuration in use, in a supervisor specific format ? 
+        '''
+        Returns the configuration in use, in a supervisor specific format ?
         '''
         return self._sim.config
 
     def enableAtmos(self, enable=True) -> None:
         ''' TODO
-        Set or unset whether atmos is enabled when running loop (see singleNext) 
+        Set or unset whether atmos is enabled when running loop (see singleNext)
         '''
         self._seeAtmos = enable
 
     def setCommand(self, command: np.ndarray) -> None:
-        ''' 
-        Immediately sets provided command to DMs - does not affect integrator 
+        '''
+        Immediately sets provided command to DMs - does not affect integrator
         '''
         self._sim.dms.set_full_comm((command).astype(np.float32).copy())
 
     def setPerturbationVoltage(self, command: np.ndarray) -> None:
-        ''' 
+        '''
         Add this offset value to integrator (will be applied at the end of next iteration)
         '''
-        self._sim.rtc.setPertuVoltages(0, command.astype(np.float32).copy())
+        self._sim.rtc.set_perturbcom(0, command.astype(np.float32).copy())
 
     def getSlope(self) -> np.ndarray:
-        ''' 
-        Immediately gets one slope vector for all WFS at the current state of the system 
+        '''
+        Immediately gets one slope vector for all WFS at the current state of the system
         '''
         return self.computeSlopes()
 
@@ -66,38 +67,38 @@ class CompassSupervisor(AbstractSupervisor):
 
     def singleNext(self, moveAtmos: bool=True, showAtmos: bool=True, getPSF: bool=False,
                    getResidual: bool=False) -> None:
-        ''' 
-        Move atmos -> getSlope -> applyControl ; One integrator step 
+        '''
+        Move atmos -> getSlope -> applyControl ; One integrator step
         '''
         self._sim.next(see_atmos=showAtmos)  # why not self._seeAtmos?
 
     def closeLoop(self) -> None:
-        ''' 
-        DM receives controller output + pertuVoltage 
+        '''
+        DM receives controller output + pertuVoltage
         '''
         self._sim.rtc.set_openloop(0, 0)  # closeLoop
 
     def openLoop(self) -> None:
-        ''' 
-        Integrator computation goes to /dev/null but pertuVoltage still applied 
+        '''
+        Integrator computation goes to /dev/null but pertuVoltage still applied
         '''
         self._sim.rtc.set_openloop(0, 1)  # openLoop
 
     def setRefSlopes(self, refSlopes: np.ndarray) -> None:
-        ''' 
-        Set given ref slopes in controller 
+        '''
+        Set given ref slopes in controller
         '''
         self._sim.rtc.set_centroids_ref(0, refSlopes)
 
     def getRefSlopes(self) -> np.ndarray:
-        ''' 
-        Get the currently used reference slopes 
+        '''
+        Get the currently used reference slopes
         '''
         self._sim.rtc.get_centroids_ref(0)
 
     def setGain(self, gainMat) -> None:
-        ''' 
-        Set the scalar gain of feedback controller loop 
+        '''
+        Set the scalar gain of feedback controller loop
         '''
         if ((type(gainMat) is float) or (type(gainMat) is int)):
             gainMat = np.ones(
@@ -106,21 +107,21 @@ class CompassSupervisor(AbstractSupervisor):
         self._sim.rtc.set_mgain(0, gainMat)
 
     def setCommandMatrix(self, cMat: np.ndarray) -> None:
-        ''' 
-        Set the cmat for the controller to use 
+        '''
+        Set the cmat for the controller to use
         '''
         self._sim.rtc.set_cmat(0, cMat)
 
     def setPyrModulation(self, pyrMod: float) -> None:
-        ''' 
-        Set pyramid modulation value - in l/D units 
+        '''
+        Set pyramid modulation value - in l/D units
         '''
         self._sim.rtc.set_pyr_ampl(0, pyrMod, self._sim.config.p_wfss,
-                                  self._sim.config.p_tel)
+                                   self._sim.config.p_tel)
 
     def getRawWFSImage(self, numWFS: int=0) -> np.ndarray:
-        ''' 
-        Get an image from the WFS 
+        '''
+        Get an image from the WFS
         '''
         if self._sim.config.p_wfss[numWFS].type == scons.WFSType.PYRHR:
             return self._sim.wfs.get_pyrimg(numWFS)
@@ -129,15 +130,15 @@ class CompassSupervisor(AbstractSupervisor):
         else:
             raise "WFSType not handled"
 
-    def getTarImage(self, tarID, expoType:str="se") -> np.ndarray:
-        ''' 
-        Get an image from a target 
+    def getTarImage(self, tarID, expoType: str="se") -> np.ndarray:
+        '''
+        Get an image from a target
         '''
         return self._sim.tar.get_image(tarID, bytes(expoType, "utf-8"))
 
     def getIntensities(self) -> np.ndarray:
-        ''' 
-        Return sum of intensities in subaps. Size nSubaps, same order as slopes 
+        '''
+        Return sum of intensities in subaps. Size nSubaps, same order as slopes
         '''
         raise NotImplementedError("Not implemented")
         return np.empty(1)
@@ -151,14 +152,14 @@ class CompassSupervisor(AbstractSupervisor):
         raise NotImplementedError("Not implemented")
         return np.empty(1)
 
-    #  ____                  _ _   _        __  __      _   _               _     
-    # / ___| _ __   ___  ___(_) |_(_) ___  |  \/  | ___| |_| |__   ___   __| |___ 
+    #  ____                  _ _   _        __  __      _   _               _
+    # / ___| _ __   ___  ___(_) |_(_) ___  |  \/  | ___| |_| |__   ___   __| |___
     # \___ \| '_ \ / _ \/ __| | __| |/ __| | |\/| |/ _ \ __| '_ \ / _ \ / _` / __|
     #  ___) | |_) |  __/ (__| | |_| | (__  | |  | |  __/ |_| | | | (_) | (_| \__ \
     # |____/| .__/ \___|\___|_|\__|_|\___| |_|  |_|\___|\__|_| |_|\___/ \__,_|___/
-    #       |_|                                                                   
+    #       |_|
 
-    def __init__(self, configFile:str=None, BRAHMA:bool=False):
+    def __init__(self, configFile: str=None, BRAHMA: bool=False):
         '''
         Init the COMPASS wih the configFile
         '''
@@ -184,10 +185,10 @@ class CompassSupervisor(AbstractSupervisor):
         if (numdm == -1):  # All Dms reset
             for numdm in range(len(self._sim.config.p_dms)):
                 self._sim.dms.resetdm(self._sim.config.p_dms[numdm].type,
-                                     self._sim.config.p_dms[numdm].alt)
+                                      self._sim.config.p_dms[numdm].alt)
         else:
             self._sim.dms.resetdm(self._sim.config.p_dms[numdm].type,
-                                 self._sim.config.p_dms[numdm].alt)
+                                  self._sim.config.p_dms[numdm].alt)
 
     def resetSimu(self, noiseList):
         self.resetTurbu()
@@ -211,11 +212,11 @@ class CompassSupervisor(AbstractSupervisor):
         '''
         self._sim.tar.reset_strehl(nTar)
 
-    def loadConfig(self, configFile:str, BRAMA:bool=False) -> None:
+    def loadConfig(self, configFile: str, BRAMA: bool=False) -> None:
         '''
         Init the COMPASS wih the configFile
         '''
-        if self._sim is None:       
+        if self._sim is None:
             if BRAMA:
                 self._sim = shesha_sim.SimulatorBrahma(configFile)
             else:
@@ -248,40 +249,40 @@ class CompassSupervisor(AbstractSupervisor):
         '''
         self._sim.init_sim()
 
-    def getAtmScreen(self, alt:int) -> np.ndarray:
+    def getAtmScreen(self, alt: int) -> np.ndarray:
         '''
         return the atmos screen at the altitude alt
         '''
         return self._sim.atm.get_screen(alt)
 
-    def getWfsPhase(self, numWFS:int) -> np.ndarray:        
+    def getWfsPhase(self, numWFS: int) -> np.ndarray:
         '''
         return the WFS screen of WFS number numWFS
         '''
         return self._sim.atm.get_screen(numWFS)
 
-    def getDmPhase(self, dm_type:str, alt:int) -> np.ndarray:        
+    def getDmPhase(self, dm_type: str, alt: int) -> np.ndarray:
         '''
         return the DM screen of type dm_type conjugatide at the altitude alt
         '''
         return self._sim.dms.get_dm(dm_type, alt)
 
-    def getTarPhase(self, numTar:int) -> np.ndarray:        
+    def getTarPhase(self, numTar: int) -> np.ndarray:
         '''
         return the target screen of target number numTar
         '''
         return self._sim.tar.get_phase(numTar)
 
     def getPyrHRImage(self, numWFS: int=0) -> np.ndarray:
-        ''' 
-        Get an HR image from the WFS 
+        '''
+        Get an HR image from the WFS
         '''
         if self._sim.config.p_wfss[numWFS].type == scons.WFSType.PYRHR:
             return self._sim.wfs.get_pyrimghr(numWFS)
         else:
             raise "WFSType not handled"
 
-    def getSlopeGeom(self, numWFS:int) -> np.ndarray:        
+    def getSlopeGeom(self, numWFS: int) -> np.ndarray:
         '''
         return the slopes geom of WFS number numWFS
         '''
@@ -290,8 +291,7 @@ class CompassSupervisor(AbstractSupervisor):
         self._sim.rtc.do_centroids(0)
         return slopesGeom
 
-
-    def getStrehl(self, numTar:int) -> np.ndarray: 
+    def getStrehl(self, numTar: int) -> np.ndarray:
         '''
         return the Strehl Ratio of target number numTar
         '''

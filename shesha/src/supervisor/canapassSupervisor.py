@@ -12,14 +12,16 @@ import shesha_ao as ao
 import shesha_constants as scons
 
 from typing import Any, Dict, Tuple, Callable, List
-from .compassSupervisor import CompassSupervisor 
+from .compassSupervisor import CompassSupervisor
 
 from naga import naga_obj_Double2D, syevd_Double, naga_context
+
 # from naga import naga_host_obj_Double1D, naga_host_obj_Double2D, svd_host_Double, naga_context
+
 
 class CanapassSupervisor(CompassSupervisor):
 
-    def __init__(self, configFile: str=None, BRAHMA:bool=True) -> None:
+    def __init__(self, configFile: str=None, BRAHMA: bool=True) -> None:
         CompassSupervisor.__init__(self, configFile, True)
 
         #############################################################
@@ -36,11 +38,11 @@ class CanapassSupervisor(CompassSupervisor):
         #############################################################
 
     """
-          ____ ___  __  __ ____   _    ____ ____  
-         / ___/ _ \|  \/  |  _ \ / \  / ___/ ___| 
-        | |  | | | | |\/| | |_) / _ \ \___ \___ \ 
+          ____ ___  __  __ ____   _    ____ ____
+         / ___/ _ \|  \/  |  _ \ / \  / ___/ ___|
+        | |  | | | | |\/| | |_) / _ \ \___ \___ \
         | |__| |_| | |  | |  __/ ___ \ ___) |__) |
-         \____\___/|_|  |_|_| /_/   \_\____/____/ 
+         \____\___/|_|  |_|_| /_/   \_\____/____/
          ____  _   _ ____  _____ ______     _____ ____   ___  ____
         / ___|| | | |  _ \| ____|  _ \ \   / /_ _/ ___| / _ \|  _ \
         \___ \| | | | |_) |  _| | |_) \ \ / / | |\___ \| | | | |_) |
@@ -60,7 +62,7 @@ class CanapassSupervisor(CompassSupervisor):
             return
         return self._sim.config
 
-    def loadConfig(self, configFile:str, BRAMA:bool=True) -> None:
+    def loadConfig(self, configFile: str, BRAMA: bool=True) -> None:
         ''' Load the configuration for the compass supervisor'''
         super().loadConfig(configFile, BRAMA)
         print("switching to a generic controller")
@@ -92,7 +94,8 @@ class CanapassSupervisor(CompassSupervisor):
         S = np.sum(pup)
         for i in trange(nbmode):
             self._sim.tar.reset_phase(0)
-            self._sim.dms.set_full_comm((self.modalBasis[:, i]).astype(np.float32).copy())
+            self._sim.dms.set_full_comm(
+                    (self.modalBasis[:, i]).astype(np.float32).copy())
             self._sim.next(see_atmos=False)
             ph = self._sim.tar.get_phase(0) * pup
             # Normalisation pour les unites rms en microns !!!
@@ -173,7 +176,7 @@ class CanapassSupervisor(CompassSupervisor):
         # svd_host_Double(h_mat, h_eig, h_U, h_VT)
         # U = h_U.getData()
         # s = h_eig.getData()
-        
+
         # startTimer = time.time()
         # print("Doing EVD on GPU of a matrix...")
         c = naga_context()
@@ -243,8 +246,6 @@ class CanapassSupervisor(CompassSupervisor):
     def doImatPhase(self, cubePhase, Nslopes, noise=False, nmodesMax=0, withTurbu=False,
                     pushPull=False, wfsnum=0):
         iMatPhase = np.zeros((cubePhase.shape[0], Nslopes))
-        time.sleep(1)
-        st = time.time()
 
         for nphase in trange(cubePhase.shape[0], desc="Phase IM"):
             if ((pushPull is True) or
@@ -270,10 +271,10 @@ class CanapassSupervisor(CompassSupervisor):
         for w in range(len(self._sim.config.p_wfss)):
             if (turbu):
                 self._sim.wfs.raytrace(w, b"all", self._sim.tel, self._sim.atm,
-                                      self._sim.dms, rst=reset, ncpa=1)
+                                       self._sim.dms, rst=reset, ncpa=1)
             else:
-                self._sim.wfs.raytrace(w, b"dm", self._sim.tel, self._sim.atm, self._sim.dms,
-                                      rst=reset, ncpa=1)
+                self._sim.wfs.raytrace(w, b"dm", self._sim.tel, self._sim.atm,
+                                       self._sim.dms, rst=reset, ncpa=1)
             self._sim.wfs.comp_img(w, noise=noise)
         self._sim.rtc.do_centroids(0)
         return self._sim.rtc.get_centroids(0)
@@ -484,13 +485,13 @@ class CanapassSupervisor(CompassSupervisor):
 
     def setPyrModulation(self, pyrmod):
         self._sim.rtc.set_pyr_ampl(0, pyrmod, self._sim.config.p_wfss,
-                                  self._sim.config.p_tel)
+                                   self._sim.config.p_tel)
         print("PYR modulation set to: %f L/D" % pyrmod)
         self._sim.rtc.do_centroids(0)  # To be ready for the next getSlopes
 
     def setPyrMethod(self, pyrmethod):
-        self._sim.rtc.set_pyr_method(0, pyrmethod,
-                                    self._sim.config.p_centroiders)  # Sets the pyr method
+        self._sim.rtc.set_pyr_method(
+                0, pyrmethod, self._sim.config.p_centroiders)  # Sets the pyr method
         print("PYR method set to: %d" % self._sim.rtc.get_pyr_method(0))
         self._sim.rtc.do_centroids(0)  # To be ready for the next getSlopes
 

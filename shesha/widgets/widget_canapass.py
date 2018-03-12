@@ -128,15 +128,20 @@ class widgetCanapassWindowPyro(widgetAOWindow):
     def updateCurrentLoopFrequency(self, freq):
         self.uiAO.wao_currentFreq.setValue(freq)
 
+
 class loopHandler:
+
     def __init__(self, wao):
         self.wao = wao
 
     def start(self):
-         self.wao.aoLoopClicked(True)
+        self.wao.aoLoopClicked(True)
+        self.wao.uiAO.wao_run.setChecked(True)
 
     def stop(self):
-         self.wao.aoLoopClicked(False)
+        self.wao.aoLoopClicked(False)
+        self.wao.uiAO.wao_run.setChecked(False)
+
 
 if __name__ == '__main__':
     arguments = docopt(__doc__)
