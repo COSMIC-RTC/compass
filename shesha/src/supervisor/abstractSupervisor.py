@@ -90,6 +90,11 @@ class AbstractSupervisor(ABC):
     ''' Get an image from a target '''
 
     @abstractmethod
+    def getRawWFSImage(self, numWFS: int=0) -> np.ndarray:
+        ...
+    ''' Get an image from the WFS '''
+
+    @abstractmethod
     def getIntensities(self):
         ...
 
