@@ -47,6 +47,7 @@ class WidgetBase(BaseClassTemplate):
 
         self.area = DockArea()
         self.uiBase.wao_DisplayDock.setWidget(self.area)
+        self.gridSH = []
 
         #############################################################
         #                 CONNECTED BUTTONS                         #
@@ -315,6 +316,17 @@ class WidgetBase(BaseClassTemplate):
             finally:
                 self.loopLock.release()
 
+
+    def addSHGrid(self, pg_image, valid_sub, sspsize, pitch):
+        # First remove the old grid, if any
+        while self.gridSH != []:
+            pg_image.removeItem(self.gridSH.pop())
+
+        # Drawing the new grid
+        for (x, y) in zip(*valid_sub):
+            self.gridSH.append(pg.ROI([x*pitch, y*pitch], [sspsize, sspsize], pen='r',
+                            movable=False))
+            pg_image.addItem(self.gridSH[-1])
 
 class WorkerThread(QThread):
     jobFinished = pyqtSignal()

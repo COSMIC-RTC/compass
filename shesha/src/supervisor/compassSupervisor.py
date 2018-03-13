@@ -192,7 +192,6 @@ class CompassSupervisor(AbstractSupervisor):
 
     def resetSimu(self, noiseList):
         self.resetTurbu()
-        time.sleep(1)
         self.resetNoise(noiseList)
 
     def resetTurbu(self):
