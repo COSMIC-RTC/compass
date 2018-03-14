@@ -1,45 +1,51 @@
 
 N_CPU:="$(shell cat /proc/cpuinfo | grep processor | wc -l)"
 
-all:
-	@echo "using $(N_CPU) jobs"
-	@(if [ -z "$(COMPILATION_LAM)" ]; then echo "lam won't be compiled." ; else cd lam && make; fi)
-	@(cd libcarma && make -j$(N_CPU))
+all: cython_shesha
+
+carma: libcarma/libcarma.so
+
+sutra: libsutra/libsutra.so
+
+cython_naga: carma
 	@(cd naga && make)
-	@(cd libsutra && make -j$(N_CPU))
+
+cython_shesha: cython_naga sutra
 	@(cd shesha && make)
+
+libcarma/libcarma.so:
+	@(cd libcarma && make -j$(N_CPU))
+
+libsutra/libsutra.so: carma
+	@(cd libsutra && make -j$(N_CPU))
+
+lib: sutra
+
+cython: cython_shesha
 
 install: all
 #	@(cd naga && make install)
 #	@(cd shesha && make install)
 
-clean:
-	@(cd libcarma && make clean)
-	@(cd naga && make clean)
-	@(cd libsutra && make clean)
-	@(cd shesha && make clean)
-	@(if [ -z "$(COMPILATION_LAM)" ]; then echo "lam has been ignored." ; else cd lam && make clean; fi)
+clean: clean_carma clean_sutra clean_naga clean_shesha
 
-clean_ao:
-	@(cd libsutra && make clean)
-	@(cd shesha && make clean)
-	@(if [ -z "$(COMPILATION_LAM)" ]; then echo "lam has been ignored." ; else cd lam && make clean; fi)
-
-clean_lib:
-	@(cd libsutra && make clean)
+clean_carma:
 	@(cd libcarma && make clean)
 
-clean_cython:
+clean_naga:
 	@(cd naga && make clean)
+
+clean_sutra:
+	@(cd libsutra && make clean)
+
+clean_shesha:
 	@(cd shesha && make clean)
 
-lib:
-	@(cd libcarma && make -j$(N_CPU))
-	@(cd libsutra && make -j$(N_CPU))
+clean_ao: clean_sutra clean_shesha
 
-cython:
-	@(cd naga && make)
-	@(cd shesha && make)
+clean_lib: clean_carma clean_sutra
+
+clean_cython: clean_naga clean_shesha
 
 uninstall: clean
 	@(cd naga && make uninstall)
