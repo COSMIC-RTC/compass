@@ -48,6 +48,7 @@ from supervisor.compassSupervisor import CompassSupervisor, scons
 # then add this line to create a breakpoint
 # Pdb().set_trace()
 
+
 class widgetAOWindow(AOClassTemplate, WidgetBase):
 
     def __init__(self, configFile: Any=None, BRAHMA: bool=False, expert: bool=False,
@@ -133,9 +134,10 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
         if expert:
             self.expertWidget = WidgetAOExpert()
             # self.expertWidget.setupUi(self)
-            self.addDockWidget(Qt.DockWidgetArea(1), self.expertWidget.uiExpert.wao_expertDock)
+            self.addDockWidget(
+                    Qt.DockWidgetArea(1), self.expertWidget.uiExpert.wao_expertDock)
             self.expertWidget.uiExpert.wao_expertDock.setFloating(False)
-        
+
         self.adjustSize()
 
         if configFile is not None:
@@ -184,10 +186,12 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
         if type == "SR":
             d.addWidget(self.uiAO.wao_Strehl)
 
-
-    def loadConfig(self, ISupervisor=CompassSupervisor) -> None:
+    def loadConfig(self, *, ISupervisor=CompassSupervisor) -> None:
         '''
             Callback when 'LOAD' button is hit
+            * required to catch positionals, as by default
+            if a positional is allowed the QPushButton will send a boolean value
+            and hence overwrite ISupervisor...
         '''
         super().loadConfig()
         for key, pgpl in self.SRcircles.items():
@@ -344,10 +348,8 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
 
             if self.config.p_wfss[i].type == scons.WFSType.SH:
                 key = "SH_%d" % i
-                self.addSHGrid(self.docks[key].widgets[0], 
-                    self.config.p_wfss[i].get_validsub(),
-                    8, 8)
-
+                self.addSHGrid(self.docks[key].widgets[0],
+                               self.config.p_wfss[i].get_validsub(), 8, 8)
 
         for i in range(self.ndm):
             key = "dm_%d" % i
@@ -495,14 +497,18 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
                                         x, y, vx, vy, pivot='mid')
                             if "Comp" in key:
                                 centroids = self.supervisor.getSlope()
-                                nmes = [2 * p_wfs._nvalid for p_wfs in self.config.p_wfss]
+                                nmes = [
+                                        2 * p_wfs._nvalid for p_wfs in self.config.p_wfss
+                                ]
                                 first_ind = np.sum(nmes[:index], dtype=np.int32)
                                 if (self.config.p_wfss[index].type ==
                                             scons.WFSType.PYRHR):
                                     #TODO: DEBUG...
                                     plpyr(centroids[first_ind:first_ind + nmes[index]],
-                                          np.stack([wao.config.p_wfss[index]._validsubsx,
-                                                    wao.config.p_wfss[index]._validsubsy]))
+                                          np.stack([
+                                                  wao.config.p_wfss[index]._validsubsx,
+                                                  wao.config.p_wfss[index]._validsubsy
+                                          ]))
                                 else:
                                     x, y, vx, vy = plsh(
                                             centroids[first_ind:first_ind + nmes[index]],
@@ -536,7 +542,8 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
                         # TODO: handle that !
                         if (t == self.uiAO.wao_dispSR_tar.value(
                         )):  # Plot on the wfs selected
-                            self.updateSRDisplay(SR[1], SR[0], self.supervisor.getFrameCounter())
+                            self.updateSRDisplay(SR[1], SR[0],
+                                                 self.supervisor.getFrameCounter())
                         signal_se += "%1.2f   " % SR[0]
                         signal_le += "%1.2f   " % SR[1]
 
@@ -549,8 +556,8 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
                     if (self.dispStatsInTerminal):
                         self.printInPlace(
                                 "iter #%d SR: (L.E, S.E.)= (%s, %s) running at %4.1fHz (real %4.1fHz)"
-                                % (self.supervisor.getFrameCounter(), signal_le, signal_se, refreshFreq,
-                                   currentFreq))
+                                % (self.supervisor.getFrameCounter(), signal_le,
+                                   signal_se, refreshFreq, currentFreq))
 
                     self.refreshTime = start
             except:
@@ -573,6 +580,7 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
             QTimer.singleShot(0, self.run)  # Update loop
         else:
             self.uiAO.wao_run.setChecked(False)
+
 
 if __name__ == '__main__':
     arguments = docopt(__doc__)
