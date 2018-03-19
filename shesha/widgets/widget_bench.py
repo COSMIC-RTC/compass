@@ -46,6 +46,7 @@ import matplotlib.pyplot as plt
 # then add this line to create a breakpoint
 # Pdb().set_trace()
 
+
 class widgetBenchWindow(BenchClassTemplate, WidgetBase):
 
     def __init__(self, configFile: Any=None, BRAHMA: bool=False,
@@ -99,7 +100,7 @@ class widgetBenchWindow(BenchClassTemplate, WidgetBase):
         self.addDockWidget(Qt.DockWidgetArea(1), self.uiBase.wao_DisplayDock)
         self.uiBase.wao_ConfigDock.setFloating(False)
         self.uiBase.wao_DisplayDock.setFloating(False)
-        
+
         self.adjustSize()
 
         if configFile is not None:
@@ -118,7 +119,7 @@ class widgetBenchWindow(BenchClassTemplate, WidgetBase):
     def updateForever(self, state):
         self.uiBench.wao_nbiters.setDisabled(state)
 
-    def add_dispDock(self, name: str, parent, type: str="pg") -> None:
+    def add_dispDock(self, name: str, parent, type: str="pg_image") -> None:
         d = super().add_dispDock(name, parent, type)
         if type == "SR":
             d.addWidget(self.uiBench.wao_Strehl)
@@ -298,11 +299,11 @@ class widgetBenchWindow(BenchClassTemplate, WidgetBase):
         else:
             self.uiBench.wao_run.setChecked(False)
 
+
 if __name__ == '__main__':
     arguments = docopt(__doc__)
     app = QtWidgets.QApplication(sys.argv)
     app.setStyle('cleanlooks')
     wao = widgetBenchWindow(arguments["<parameters_filename>"],
-                         BRAHMA=arguments["--brahma"],
-                         devices=arguments["--devices"])
+                            BRAHMA=arguments["--brahma"], devices=arguments["--devices"])
     wao.show()

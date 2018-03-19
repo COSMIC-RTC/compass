@@ -19,8 +19,9 @@ from typing import Any, Dict, Tuple, Callable, List
 
 from matplotlibwidget import MatplotlibWidget
 
-BaseWidgetTemplate,BaseClassTemplate = loadUiType(
+BaseWidgetTemplate, BaseClassTemplate = loadUiType(
         os.environ["SHESHA_ROOT"] + "/widgets/widget_base.ui")  # type: type, type
+
 
 class WidgetBase(BaseClassTemplate):
 
@@ -196,12 +197,7 @@ class WidgetBase(BaseClassTemplate):
         elif self.docks[guilty_guy].isVisible():
             self.docks[guilty_guy].close()
 
-    def add_dispDock(self, name: str, parent, type: str="pg") -> Dock:
-        # action = parent.addAction(name)
-        # action.setCheckable(True)
-        # action.changed.connect(self.update_displayDock)
-        # self.disp_checkboxes.append(action)
-
+    def add_dispDock(self, name: str, parent, type: str="pg_image") -> Dock:
         checkBox = QtGui.QCheckBox(name, parent)
         checkBox.clicked.connect(self.update_displayDock)
         checkableAction = QtGui.QWidgetAction(parent)
@@ -211,7 +207,7 @@ class WidgetBase(BaseClassTemplate):
 
         d = Dock(name)  # , closable=True)
         self.docks[name] = d
-        if type == "pg":
+        if type == "pg_image":
             img = pg.ImageItem(border='w')
             img.setTransform(QtGui.QTransform(0, 1, 1, 0, 0, 0))  # flip X and Y
             self.imgs[name] = img
@@ -229,6 +225,10 @@ class WidgetBase(BaseClassTemplate):
             iv.ui.menuBtn.hide()
             iv.ui.roiBtn.hide()
             d.addWidget(iv)
+        elif type == "pg_plot":
+            img = pg.PlotItem(border='w')
+            self.imgs[name] = img
+            d.addWidget(img)
         elif type == "MPL":
             img = MatplotlibWidget()
             self.imgs[name] = img
@@ -243,7 +243,8 @@ class WidgetBase(BaseClassTemplate):
         '''
         for groupbox in [
                 self.uiBase.wao_phasesgroup_tb, self.uiBase.wao_imagesgroup_tb,
-                self.uiBase.wao_graphgroup_tb ]:
+                self.uiBase.wao_graphgroup_tb
+        ]:
             layout = groupbox.menu()
             while layout and not layout.isEmpty():
                 w = layout.children()[0]
@@ -252,7 +253,7 @@ class WidgetBase(BaseClassTemplate):
         self.disp_checkboxes.clear()
 
         # TODO: remove self.imgs, self.viewboxes and self.docks children
-        for key, dock in self.docks.items():
+        for _, dock in self.docks.items():
             if dock.isVisible():
                 dock.close()
 
@@ -316,7 +317,6 @@ class WidgetBase(BaseClassTemplate):
             finally:
                 self.loopLock.release()
 
-
     def addSHGrid(self, pg_image, valid_sub, sspsize, pitch):
         # First remove the old grid, if any
         while self.gridSH != []:
@@ -324,9 +324,11 @@ class WidgetBase(BaseClassTemplate):
 
         # Drawing the new grid
         for (x, y) in zip(*valid_sub):
-            self.gridSH.append(pg.ROI([x*pitch, y*pitch], [sspsize, sspsize], pen='r',
-                            movable=False))
+            self.gridSH.append(
+                    pg.ROI([x * pitch, y * pitch], [sspsize, sspsize], pen='r',
+                           movable=False))
             pg_image.addItem(self.gridSH[-1])
+
 
 class WorkerThread(QThread):
     jobFinished = pyqtSignal()

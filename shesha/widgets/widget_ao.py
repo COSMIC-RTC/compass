@@ -181,7 +181,7 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
             print("Reset SR on target %d" % tarnum)
             self.supervisor.resetStrehl(tarnum)
 
-    def add_dispDock(self, name: str, parent, type: str="pg") -> None:
+    def add_dispDock(self, name: str, parent, type: str="pg_image") -> None:
         d = super().add_dispDock(name, parent, type)
         if type == "SR":
             d.addWidget(self.uiAO.wao_Strehl)
