@@ -9,21 +9,19 @@ import h5py
 import matplotlib.pyplot as plt
 import matplotlib
 plt.ion()
-sys.path.insert(0, os.environ["SHESHA_ROOT"] + "/test/gamora/")
-sys.path.insert(0, os.environ["SHESHA_ROOT"] + "/test/roket/tools/")
-import gamora
-import roket_exploitation as rexp
+from guardian import gamora
+from guardian.tools import roket_exploitation as rexp
 
-datapath = "/home/fferreira/Data/layers_linearity/"
-fname_layers = "roket_8m_12layers.h5"  # File with  all layers
+datapath = "/home/fferreira/Data/"
+fname_layers = "roket_8m_12layers_gamma1.h5"  # File with  all layers
 buferr_ref = rexp.get_err(datapath + fname_layers)
 f_layers = h5py.File(datapath + fname_layers)
-nlayers = f_layers.attrs["nscreens"]
+nlayers = f_layers.attrs["_Param_atmos__nscreens"]
 
 fname_layer_i = []
-name = fname_layers.split('.')[0]
+name = "roket_8m_12layers"
 for i in range(nlayers):
-    fname_layer_i.append(name + "_%d.h5" % (i + 1))
+    fname_layer_i.append(name + "_%d.h5" % (i))
 
 files = []
 for f in fname_layer_i:
@@ -31,17 +29,17 @@ for f in fname_layer_i:
 
 print("--------------------------------------------")
 print("file ", fname_layers, " :")
-print("    nlayers : ", f_layers.attrs["nscreens"])
-print("    frac    : ", f_layers.attrs["frac"])
+print("    nlayers : ", f_layers.attrs["_Param_atmos__nscreens"])
+print("    frac    : ", f_layers.attrs["_Param_atmos__frac"])
 print("--------------------------------------------")
 
 nmodes = f_layers["P"][:].shape[0]
 contributors = [
         "tomography", "bandwidth", "non linearity", "noise", "filtered modes", "aliasing"
 ]
-Lambda_tar = f_layers.attrs["target.Lambda"][0]
-fracs = f_layers.attrs["frac"]
-alts = f_layers.attrs["atm.alt"]
+Lambda_tar = f_layers.attrs["_Param_target__Lambda"][0]
+fracs = f_layers.attrs["_Param_atmos__frac"]
+alts = f_layers.attrs["_Param_atmos__alt"]
 frac_per_layer = dict()
 i = 0
 for a in alts:
@@ -51,10 +49,14 @@ for a in alts:
 frac = []
 buferr_layers = rexp.get_err(datapath + fname_layer_i[0]) * 0.
 for k in range(len(files)):
-    frac.append(frac_per_layer[files[k].attrs["atm.alt"][0]])
+    frac.append(frac_per_layer[files[k].attrs["_Param_atmos__alt"][0]])
     buferr_layers += rexp.get_err(datapath + fname_layer_i[k]) * np.sqrt(
-            frac_per_layer[files[k].attrs["atm.alt"][0]])
+            frac_per_layer[files[k].attrs["_Param_atmos__alt"][0]])
 
+C_layers = np.zeros((buferr_layers.shape[0], buferr_layers.shape[0]))
+for k in range(len(files)):
+    C_layers += (
+            frac[k] * rexp.get_covmat_contrib(datapath + fname_layer_i[k], contributors))
 print("contributors : ", contributors)
 
 # Column 1 : with correlation, column 2 : independence assumption
@@ -77,9 +79,9 @@ for l in range(nlayers):
     inderr += frac[l] * err_layer_i[:, 2 * l + 1]
     derr += frac[l] * err_layer_i[:, 2 * l]
 
-otftel_ref, otf2_ref, psf_ref, gamora = gamora.psf_rec_Vii(datapath + fname_layers)
-otftel_sum, otf2_sum, psf_sum, gamora = gamora.psf_rec_Vii(datapath + fname_layers,
-                                                           err=buferr_layers)
+otftel_ref, otf2_ref, psf_ref, gpu = gamora.psf_rec_Vii(datapath + fname_layers)
+otftel_sum, otf2_sum, psf_sum, gpu = gamora.psf_rec_Vii(datapath + fname_layers,
+                                                        err=buferr_layers)
 
 # Plots
 plt.figure(1)

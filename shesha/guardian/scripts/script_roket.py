@@ -20,6 +20,8 @@ Options:
   --gain gain                 Set the loop gain
   --devices devices           Specify the devices to use
   --gamma gamma               Set the value of the centroid gain
+  --seeds seeds               Set the turbulence seeds
+  --alt alt                   Set the layer altitude
 
 Usage with Ipython: ipython [-i] script_roket.py -- [options]
 """
@@ -65,6 +67,11 @@ if arguments["--noise"]:
     roket.config.p_wfss[0].set_noise(float(arguments["--noise"]))
 if arguments["--gain"]:
     roket.config.p_controllers[0].set_gain(float(arguments["--gain"]))
+if arguments["--seeds"]:
+    roket.config.p_atmos.set_seeds([int(arguments["--seeds"])])
+if arguments["--alt"]:
+    roket.config.p_atmos.set_alt([float(arguments["--alt"])])
+
 if arguments["--devices"]:
     devices = []
     for k in range(len(arguments["--devices"])):

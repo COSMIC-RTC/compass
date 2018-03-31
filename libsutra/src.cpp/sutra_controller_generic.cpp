@@ -13,7 +13,6 @@ sutra_controller_generic::sutra_controller_generic(carma_context *context, long 
 
   dims_data2[2] = nactu;
   this->d_matE = new carma_obj<float>(current_context,dims_data2);
-
 }
 
 sutra_controller_generic::~sutra_controller_generic() {

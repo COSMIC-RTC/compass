@@ -36,7 +36,7 @@ p_wfss = [p_wfs0]
 
 p_wfs0.set_type(scons.WFSType.SH)
 
-p_wfs0.set_nxsub(38)
+p_wfs0.set_nxsub(1)
 
 p_wfs0.set_npix(4)
 p_wfs0.set_pixsize(0.3)
@@ -56,7 +56,7 @@ p_wfs0.set_fssize(2.4)
 p_dm0 = conf.Param_dm()
 p_dms = [p_dm0]
 p_dm0.set_type(scons.DmType.PZT)
-nact = p_wfs0.nxsub + 1
+nact = 39
 
 p_dm0.set_margin_out(0)
 

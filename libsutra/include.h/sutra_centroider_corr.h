@@ -30,7 +30,7 @@ class sutra_centroider_corr: public sutra_centroider {
   load_corr(float *corr, float *corr_norm, int ndim);
 
   int
-  init_bincube();
+  init_bincube(int npix);
 
   int
   get_cog(carma_streams *streams, float *cube, float *subsum, float *centroids,

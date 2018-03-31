@@ -471,6 +471,11 @@ cdef extern from "sutra_centroider.h":
 
         carma_context * current_context
 
+        carma_obj[float] *d_bincube
+        carma_obj[float] *d_img
+        carma_obj[float] *d_validx
+        carma_obj[float] *d_validy
+
         bool is_type(string typec)
 
         string get_type()
@@ -479,6 +484,10 @@ cdef extern from "sutra_centroider.h":
                     int nvalid, int npix, int ntot)
         int get_cog(float * subsum, float * slopes, bool noise)
         int get_cog()
+        int load_validpos(int *ivalid, int *jvalid, int N)
+        int fill_bincube(int npix)
+        int load_img(float *img, int n)
+        int load_pyrimg(float *img, int n)
 
     int convert_centro(float * d_odata, float * d_idata, float offset, float scale,
                        int N, carma_device * device)
@@ -507,7 +516,7 @@ cdef extern from "sutra_centroider_bpcog.h":
 #################################################
 cdef extern from "sutra_centroider_corr.h":
     cdef cppclass sutra_centroider_corr(sutra_centroider):
-        int init_bincube()
+        int init_bincube(int npix)
         bool is_type(string typec)
         string get_type()
 
@@ -687,6 +696,7 @@ cdef extern from "sutra_controller.h":
         int set_openloop(int open_loop_status)
         void clip_voltage(float min, float max)
         int comp_voltage()
+        int add_perturb()
         int syevd_f(char meth, carma_obj[float] * d_U, carma_host_obj[float] * h_eingenvals)
         int invgen(carma_obj[float] * d_mat, float cond, int job)
         int command_delay()
@@ -713,6 +723,7 @@ cdef extern from "sutra_controller.h":
         carma_obj[float] * d_voltage  # commands sent to mirror
         carma_obj[float] * d_com1  # commands k-1
         carma_obj[float] * d_com2  # commands k-2
+        carma_obj[float] * d_subsum
 
         carma_streams * streams
 
@@ -730,6 +741,9 @@ cdef extern from "sutra_controller_generic.h":
         carma_obj[float] * d_gain
         carma_obj[float] * d_decayFactor
         carma_obj[float] * d_compbuff
+        carma_obj[float] * d_bincube
+        carma_obj[float] * d_img
+
         string command_law
 
         sutra_controller_generic(carma_context * context, long nvalid, long nactu,
@@ -744,7 +758,6 @@ cdef extern from "sutra_controller_generic.h":
         int set_matE(float * matE)
         int set_commandlaw(string law)
         int comp_com()
-
 
 #################################################
 # C-Class sutra_controller_geo
@@ -1002,21 +1015,25 @@ cdef extern from "sutra_rtc.h":
 
         int add_centroider(sutra_sensors * sensors, int nwfs, long nvalid, float offset, float scale, long device,
                            char * typec)
+        int add_centroider(int nwfs, long nvalid, float offset, float scale, long device,
+                           char * typec)
         int rm_centroider()
         int add_controller_geo(int nactu, int Nphi, float delay, long device,
                                sutra_dms * dms, char ** type_dmseen, float * alt, int ndm, bool wfs_direction)
         int add_controller(int nactu, float delay, long device, const char * typec,
                            sutra_dms * dms, char ** type_dmseen, float * alt, int ndm)
+        int add_controller(int nactu, float delay, long device, const char *typec)
         int rm_controller()
 
         int do_imat(int ncntrl, sutra_dms * ydms)
         # int do_imatkl(int ncntrl, sutra_dms *ydms)
         # int do_imatkl4pzt(int ncntrl, sutra_dms *ydms)
         int do_imat_geom(int ncntrl, sutra_dms * ydm, int type)
-
+        int comp_voltage(int ncntrl)
         int do_centroids()
         int do_centroids(int ncntrl)
         int do_centroids(int ncntrl, bool imat)
+        int do_centroids(int nctrl, float *bincube, int npix, int ntot)
         int do_centroids_geom(int ncntrl)
         int do_control(int ncntrl)
         int do_clipping(int ncntrl, float min, float max)
@@ -1065,25 +1082,25 @@ cdef extern from "sutra_lgs.h":
         int load_kernels(float * lgskern, carma_device * device)
 
 
-IF USE_BRAMA == 1:
+IF USE_BRAHMA == 1:
     #################################################
-    # C-Class sutra_rtc_brama
+    # C-Class sutra_rtc_brahma
     #################################################
-    cdef extern from "sutra_rtc_brama.h":
-        cdef cppclass sutra_rtc_brama(sutra_rtc):
+    cdef extern from "sutra_rtc_brahma.h":
+        cdef cppclass sutra_rtc_brahma(sutra_rtc):
 
-            sutra_rtc_brama(
+            sutra_rtc_brahma(
                 carma_context * context, sutra_sensors * wfs, sutra_target * target, char * name)
 
             void publish()
 
     #################################################
-    # C-Class sutra_target_brama
+    # C-Class sutra_target_brahma
     #################################################
-    cdef extern from "sutra_target_brama.h":
-        cdef cppclass sutra_target_brama(sutra_target):
+    cdef extern from "sutra_target_brahma.h":
+        cdef cppclass sutra_target_brahma(sutra_target):
 
-            sutra_target_brama(carma_context * context, char * name, sutra_telescope * d_tel, int subsample_, int ntargets, float * xpos,
+            sutra_target_brahma(carma_context * context, char * name, sutra_telescope * d_tel, int subsample_, int ntargets, float * xpos,
                                float * ypos, float * zlambda, float * mag, float zerop, long * sizes,
                                int Npts, int device)
 

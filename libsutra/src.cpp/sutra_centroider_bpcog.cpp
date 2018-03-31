@@ -1,17 +1,7 @@
 #include <sutra_centroider_bpcog.h>
 
 sutra_centroider_bpcog::sutra_centroider_bpcog(carma_context *context,
-    sutra_sensors *sensors, int nwfs, long nvalid, float offset, float scale, int device, int nmax) {
-
-  this->current_context = context;
-
-  this->device = device;
-  context->set_activeDevice(device,1);
-  this->wfs = sensors->d_wfs[nwfs];
-  this->nwfs = nwfs;
-  this->nvalid = nvalid;
-  this->offset = offset;
-  this->scale = scale;
+    sutra_sensors *sensors, int nwfs, long nvalid, float offset, float scale, int device, int nmax) : sutra_centroider(context, sensors, nwfs, nvalid, offset, scale, device) {
 
   this->nmax = nmax;
 
@@ -86,15 +76,25 @@ int sutra_centroider_bpcog::get_cog(carma_streams *streams, float *cube,
 }
 
 int sutra_centroider_bpcog::get_cog(float *subsum, float *slopes, bool noise) {
-  if(noise || wfs->error_budget == false) {
-    return this->get_cog(wfs->streams, *wfs->d_bincube, subsum, slopes,
-                         wfs->nvalid, wfs->npix, wfs->d_bincube->getNbElem());
-  } else {
-    return this->get_cog(wfs->streams, *wfs->d_bincube_notnoisy, subsum, slopes,
-                         wfs->nvalid, wfs->npix, wfs->d_bincube->getNbElem());
+  if(this->wfs != nullptr) {
+    if(noise || wfs->error_budget == false) {
+      return this->get_cog(wfs->streams, *wfs->d_bincube, subsum, slopes,
+                           wfs->nvalid, wfs->npix, wfs->d_bincube->getNbElem());
+    } else {
+      return this->get_cog(wfs->streams, *wfs->d_bincube_notnoisy, subsum, slopes,
+                           wfs->nvalid, wfs->npix, wfs->d_bincube->getNbElem());
+    }
   }
+
+  DEBUG_TRACE("this->wfs was not initialized");
+  return EXIT_FAILURE;
 }
 
 int sutra_centroider_bpcog::get_cog() {
-  return this->get_cog(*(wfs->d_subsum),*(wfs->d_slopes),true);
+  if(this->wfs != nullptr)
+    return this->get_cog(*(wfs->d_subsum),*(wfs->d_slopes),true);
+
+  DEBUG_TRACE("this->wfs was not initialized");
+  return EXIT_FAILURE;
+
 }

@@ -140,15 +140,15 @@ USE_MPI = 0
 if parFile:
     parFile.write("DEF USE_MPI=%d # 0/1/2 \n" % USE_MPI)
 
-USE_BRAMA = 0
+USE_BRAHMA = 0
 define_macros = []
-if 'BRAMA_ROOT' in os.environ:
-    brama_root = os.environ.get('BRAMA_ROOT')
+if 'BRAHMA_ROOT' in os.environ:
+    brahma_root = os.environ.get('BRAHMA_ROOT')
     ace_root = os.environ.get('ACE_ROOT')
     tao_root = os.environ.get('TAO_ROOT')
     dds_root = os.environ.get('DDS_ROOT')
-    USE_BRAMA = 1
-    include_dirs.extend([brama_root])
+    USE_BRAHMA = 1
+    include_dirs.extend([brahma_root])
     include_dirs.extend([ace_root])
     include_dirs.extend([tao_root])
     include_dirs.extend([tao_root + '/orbsvcs'])
@@ -156,8 +156,8 @@ if 'BRAMA_ROOT' in os.environ:
     library_dirs.extend([ace_root + '/lib'])
     library_dirs.extend([tao_root + '/tao'])
     library_dirs.extend([dds_root + '/lib'])
-    library_dirs.extend([brama_root])
-    libraries.extend(['BRAMACommon'])
+    library_dirs.extend([brahma_root])
+    libraries.extend(['BRAHMACommon'])
     libraries.extend(['OpenDDS_InfoRepoDiscovery'])
     libraries.extend(['OpenDDS_Dcps'])
     libraries.extend(['TAO_PortableServer'])
@@ -167,13 +167,13 @@ if 'BRAMA_ROOT' in os.environ:
     libraries.extend(['dl'])
     libraries.extend(['rt'])
     define_macros = [
-            ('USE_BRAMA', None),
+            ('USE_BRAHMA', None),
             ('_GNU_SOURCE', None),
             ('__ACE_INLINE__', None),
     ]
 
 if parFile:
-    parFile.write("DEF USE_BRAMA=%d # 0/1 \n" % USE_BRAMA)
+    parFile.write("DEF USE_BRAHMA=%d # 0/1 \n" % USE_BRAHMA)
     parFile.close()
 
 

@@ -1,17 +1,17 @@
-#ifdef USE_BRAMA
+#ifdef USE_BRAHMA
 
-#include <sutra_target_brama.h>
+#include <sutra_target_brahma.h>
 #include <sutra_telescope.h>
 
-sutra_target_brama::sutra_target_brama(carma_context *context, ACE_TCHAR *name,
-                                       sutra_telescope *d_tel, int subsample_,
-                                       int ntargets, float *xpos, float *ypos,
-                                       float *lambda, float *mag, float zerop,
-                                       long *sizes, int Npts, int device)
+sutra_target_brahma::sutra_target_brahma(carma_context *context, ACE_TCHAR *name,
+    sutra_telescope *d_tel, int subsample_,
+    int ntargets, float *xpos, float *ypos,
+    float *lambda, float *mag, float zerop,
+    long *sizes, int Npts, int device)
   : sutra_target(context, d_tel, ntargets, xpos, ypos, lambda, mag, zerop,
                  sizes, Npts, device) {
   DEBUG_TRACE("init %s", name);
-  BRAMA::BRAMA_context brama = BRAMA::BRAMA_context::get_instance(name);
+  BRAHMA::BRAHMA_context brahma = BRAHMA::BRAHMA_context::get_instance(name);
   frame_handle = 0;
   framecounter = 0;
   samplecounter = 0;
@@ -21,48 +21,48 @@ sutra_target_brama::sutra_target_brama(carma_context *context, ACE_TCHAR *name,
   buff_pixels = NULL;
   dims_pixels = NULL;
 
-  string topics[] = BRAMA_TOPICS;
+  string topics[] = BRAHMA_TOPICS;
 
-  if (!brama.is_initialised()) {
-    cerr << "brama initialisation failed!" << endl;
-    //    throw "brama initialisation failed!";
+  if (!brahma.is_initialised()) {
+    cerr << "brahma initialisation failed!" << endl;
+    //    throw "brahma initialisation failed!";
     return;
   }
 
   try {
     // Create a subscriber for the command topic
-    sub = brama.create_subscriber();
+    sub = brahma.create_subscriber();
     // Create a publisher for the frame topic
-    pub = brama.create_publisher();
+    pub = brahma.create_publisher();
 
-    // Create an BRAMA Command listener
-    brama.register_command_type(topics[BRAMA::CommandType]);
-    cmd_listener = (new sutra_target_bramaListenerImpl);
+    // Create an BRAHMA Command listener
+    brahma.register_command_type(topics[BRAHMA::CommandType]);
+    cmd_listener = (new sutra_target_brahmaListenerImpl);
     cmd_listener_servant =
-      dynamic_cast<sutra_target_bramaListenerImpl *>(cmd_listener.in());
+      dynamic_cast<sutra_target_brahmaListenerImpl *>(cmd_listener.in());
 
     if (CORBA::is_nil(cmd_listener.in())) {
-      throw "BRAMA Command listener is nil.";
+      throw "BRAHMA Command listener is nil.";
     }
     cmd_listener_servant->attach_target(this);
 
     cmd_dr =
-      brama.create_datareader(sub, topics[BRAMA::CommandType], cmd_listener);
+      brahma.create_datareader(sub, topics[BRAHMA::CommandType], cmd_listener);
 
-    // Create an BRAMA Frame writer
-    brama.register_frame_type(topics[BRAMA::FrameType]);
-    frame_base_dw = brama.create_datawriter(pub, topics[BRAMA::FrameType]);
+    // Create an BRAHMA Frame writer
+    brahma.register_frame_type(topics[BRAHMA::FrameType]);
+    frame_base_dw = brahma.create_datawriter(pub, topics[BRAHMA::FrameType]);
     if (CORBA::is_nil(frame_base_dw.in())) {
-      cerr << "create_datawriter for " << topics[BRAMA::FrameType] << " failed."
+      cerr << "create_datawriter for " << topics[BRAHMA::FrameType] << " failed."
            << endl;
       return;
     }
-    frame_dw = BRAMA::FrameDataWriter::_narrow(frame_base_dw.in());
+    frame_dw = BRAHMA::FrameDataWriter::_narrow(frame_base_dw.in());
     if (CORBA::is_nil(frame_dw.in())) {
       throw "FrameDataWriter could not be narrowed";
     }
 
-    // BRAMA::Frame zFrame;
+    // BRAHMA::Frame zFrame;
     // frame_handle = frame_dw->register_instance(zFrame);
 
     is_initialised = 1;
@@ -73,39 +73,39 @@ sutra_target_brama::sutra_target_brama(carma_context *context, ACE_TCHAR *name,
   }
 }
 
-sutra_target_brama::~sutra_target_brama() {
+sutra_target_brahma::~sutra_target_brahma() {
   if (!is_initialised) {
     return;
   }
 
   if (buff_pixels)
-    BRAMA::Values::freebuf(buff_pixels);
+    BRAHMA::Values::freebuf(buff_pixels);
   if (dims_pixels)
-    BRAMA::Dims::freebuf(dims_pixels);
+    BRAHMA::Dims::freebuf(dims_pixels);
 }
 
-void sutra_target_brama::allocateBuffers() {
+void sutra_target_brahma::allocateBuffers() {
   if (!is_initialised) {
     return;
   }
 
   try {
     // TODO : handle targets with different supports...
-    dims_pixels = BRAMA::Dims::allocbuf(3);
+    dims_pixels = BRAHMA::Dims::allocbuf(3);
     dims_pixels[0] = d_targets.size();
     dims_pixels[1] = d_targets[0]->d_leimage->getDims(1);
     dims_pixels[2] = d_targets[0]->d_leimage->getDims(2);
 
-    buff_pixels = BRAMA::Values::allocbuf(d_targets.size() *
-                                          d_targets[0]->d_leimage->getNbElem() *
-                                          sizeof(float));
+    buff_pixels = BRAHMA::Values::allocbuf(d_targets.size() *
+                                           d_targets[0]->d_leimage->getNbElem() *
+                                           sizeof(float));
   } catch (CORBA::Exception &e) {
     cerr << "Exception caught in main.cpp:" << endl << e << endl;
     ACE_OS::exit(1);
   }
 }
 
-void sutra_target_brama::set_subsample(int ntarget, int subsample_) {
+void sutra_target_brahma::set_subsample(int ntarget, int subsample_) {
   if (!is_initialised) {
     return;
   }
@@ -116,9 +116,9 @@ void sutra_target_brama::set_subsample(int ntarget, int subsample_) {
   this->subsample = subsample_;
 }
 
-void sutra_target_brama::publish() {
+void sutra_target_brahma::publish() {
   if (!is_initialised) {
-    cerr << "brama not initialised!" << endl;
+    cerr << "brahma not initialised!" << endl;
     return;
   }
 
@@ -150,14 +150,14 @@ void sutra_target_brama::publish() {
     idx += d_targets[target]->d_leimage->getNbElem();
   }
 
-  BRAMA::Frame zFrame;
+  BRAHMA::Frame zFrame;
   zFrame.framecounter = framecounter;
-  zFrame.timestamp = BRAMA::get_timestamp();
-  zFrame.source = CORBA::string_dup("BRAMA TARGET");
-  zFrame.dimensions = BRAMA::Dims(3, 3, dims_pixels, 0);
+  zFrame.timestamp = BRAHMA::get_timestamp();
+  zFrame.source = CORBA::string_dup("BRAHMA TARGET");
+  zFrame.dimensions = BRAHMA::Dims(3, 3, dims_pixels, 0);
   zFrame.data =
-    BRAMA::Values(idx * sizeof(float), idx * sizeof(float), buff_pixels, 0);
-  zFrame.datatype = BRAMA::BRAMA_float32_t;
+    BRAHMA::Values(idx * sizeof(float), idx * sizeof(float), buff_pixels, 0);
+  zFrame.datatype = BRAHMA::BRAHMA_float32_t;
   zFrame.sizeofelements = sizeof(float);
 
   // cout << "Publishing zFrame: " << zFrame.framecounter << endl;
@@ -179,4 +179,4 @@ void sutra_target_brama::publish() {
   // ACE_OS::sleep(ace_wait);
 }
 
-#endif /* USE_BRAMA */
+#endif /* USE_BRAHMA */

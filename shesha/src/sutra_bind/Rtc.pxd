@@ -52,12 +52,12 @@ cdef class Rtc:
     cdef sutra_rtc * rtc
     cdef int device
 
-IF USE_BRAMA == 1:
+IF USE_BRAHMA == 1:
         cdef extern from * :
-            sutra_rtc_brama * dynamic_cast_rtc_brama_ptr "dynamic_cast<sutra_rtc_brama*>" (sutra_rtc *) except NULL
+            sutra_rtc_brahma * dynamic_cast_rtc_brahma_ptr "dynamic_cast<sutra_rtc_brahma*>" (sutra_rtc *) except NULL
 
         #################################################
-        # P-Class Rtc_brama
+        # P-Class Rtc_brahma
         #################################################
-        cdef class Rtc_brama(Rtc):
+        cdef class Rtc_brahma(Rtc):
             cpdef publish(self)

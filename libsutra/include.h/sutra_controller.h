@@ -60,6 +60,8 @@ class sutra_controller {
   invgen(carma_obj<float> *d_mat, float cond, int job);
   int
   command_delay();
+  int
+  add_perturb();
 
  public:
 //I would propose to make them protected (+ proper

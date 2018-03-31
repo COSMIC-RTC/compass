@@ -4,21 +4,14 @@
 
 sutra_centroider_pyr::sutra_centroider_pyr(carma_context *context,
     sutra_sensors *sensors, int nwfs, long nvalid, float offset,
-    float scale, int device) {
-  if ((sensors->d_wfs[nwfs]->type != "pyr")
-      && (sensors->d_wfs[nwfs]->type != "pyrhr"))
-    throw "sutra_centroider_roof expect a sutra_wfs_pyr_pyr4 sensor";
-  this->current_context = context;
-
-  this->device = device;
+    float scale, int device) : sutra_centroider(context, sensors, nwfs, nvalid, offset, scale, device) {
   context->set_activeDevice(device, 1);
-  this->wfs = sensors->d_wfs[nwfs];
-  this->nwfs = nwfs;
-  this->nvalid = nvalid;
-  this->offset = offset;
-  this->scale = scale;
+  if(sensors != nullptr) {
+    this->pyr_type = sensors->d_wfs[nwfs]->type;
+  } else {
+    this->pyr_type = "pyrhr";
+  }
   this->valid_thresh = 1e-4;
-  this->pyr_type = sensors->d_wfs[nwfs]->type;
 
   // centroider method by default nosin_global
   this->method = Method_CoG(false, false);
@@ -55,9 +48,8 @@ string sutra_centroider_pyr::get_method_str() {
 int sutra_centroider_pyr::get_cog(carma_streams *streams, float *cube,
                                   float *subsum, float *centroids, int nvalid, int npix, int ntot) {
   // TODO(Implement sutra_centroider_pyr::get_cog)
-  std::cerr << "get_cog not implemented" << std::endl;
 
-  return EXIT_SUCCESS;
+  return get_pyr(cube, subsum, centroids, this->d_validx->getData(), this->d_validy->getData(), this->nvalid, this->d_bincube->getDims(1), 4);
 }
 
 int sutra_centroider_pyr::get_pyr(float *cube, float *subsum, float *centroids,
@@ -97,7 +89,6 @@ int sutra_centroider_pyr::get_pyr(float *cube, float *subsum, float *centroids,
     // } else {
     //     DEBUG_TRACE("NoSinus : %s", Method_CoG::str(this->method));
     // }
-
     pyr2_slopes(centroids, cube, subindx, subindy, subsum, ns, nvalid, this->scale,
                 this->valid_thresh, this->method.isSinus,  // if we are using a sin method
                 this->current_context->get_device(device));
@@ -108,23 +99,32 @@ int sutra_centroider_pyr::get_pyr(float *cube, float *subsum, float *centroids,
 }
 
 int sutra_centroider_pyr::get_cog(float *subsum, float *slopes, bool noise) {
-  if (this->pyr_type == "pyr" || this->pyr_type == "roof")
-    return this->get_pyr(*(wfs->d_bincube), subsum, slopes,
-                         *(wfs->d_validsubsx), *(wfs->d_validsubsy), wfs->nvalid,
-                         wfs->nfft / wfs->nrebin, 4);
-  else if (this->pyr_type == "pyrhr") {
-    if(noise || wfs->error_budget == false) {
-      return this->get_pyr(*(wfs->d_binimg), subsum, slopes,
+  if(this->wfs != nullptr) {
+    if (this->pyr_type == "pyr" || this->pyr_type == "roof")
+      return this->get_pyr(*(wfs->d_bincube), subsum, slopes,
                            *(wfs->d_validsubsx), *(wfs->d_validsubsy), wfs->nvalid,
                            wfs->nfft / wfs->nrebin, 4);
-    } else
-      return this->get_pyr(*(wfs->d_binimg_notnoisy), subsum, slopes,
-                           *(wfs->d_validsubsx), *(wfs->d_validsubsy), wfs->nvalid,
-                           wfs->nfft / wfs->nrebin, 4);
+    else if (this->pyr_type == "pyrhr") {
+      if(noise || wfs->error_budget == false) {
+        return this->get_pyr(*(wfs->d_binimg), subsum, slopes,
+                             *(wfs->d_validsubsx), *(wfs->d_validsubsy), wfs->nvalid,
+                             wfs->nfft / wfs->nrebin, 4);
+      } else
+        return this->get_pyr(*(wfs->d_binimg_notnoisy), subsum, slopes,
+                             *(wfs->d_validsubsx), *(wfs->d_validsubsy), wfs->nvalid,
+                             wfs->nfft / wfs->nrebin, 4);
+    }
   }
+
+  DEBUG_TRACE("this->wfs was not initialized");
   return EXIT_FAILURE;
 }
 
 int sutra_centroider_pyr::get_cog() {
-  return this->get_cog(*(wfs->d_subsum), *(wfs->d_slopes),true);
+  if(this->wfs != nullptr)
+    return this->get_cog(*(wfs->d_subsum), *(wfs->d_slopes),true);
+
+  DEBUG_TRACE("this->wfs was not initialized");
+  return EXIT_FAILURE;
+
 }

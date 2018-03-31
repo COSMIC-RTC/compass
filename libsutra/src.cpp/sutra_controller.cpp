@@ -176,6 +176,11 @@ int sutra_controller::comp_voltage() {
     }
   }
 
+  add_perturb();
+  return EXIT_SUCCESS;
+}
+
+int sutra_controller::add_perturb() {
   if (this->d_perturb != nullptr) { // Apply volt perturbations (circular buffer)
     carma_axpy(cublas_handle(), this->nactu(), 1.0f,
                this->d_perturb->getDataAt(this->cpt_pertu * this->nactu()), 1,
@@ -184,9 +189,9 @@ int sutra_controller::comp_voltage() {
     if (this->cpt_pertu < this->d_perturb->getDims(2) - 1) this->cpt_pertu += 1;
     else this->cpt_pertu = 0;
   }
-
   return EXIT_SUCCESS;
 }
+
 
 sutra_controller::~sutra_controller() {
   delete this->streams;

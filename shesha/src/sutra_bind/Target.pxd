@@ -18,12 +18,12 @@ cdef class Target:
     cdef naga_context context
 
 
-IF USE_BRAMA == 1:
+IF USE_BRAHMA == 1:
     cdef extern from * :
-        sutra_target_brama * dynamic_cast_target_brama_ptr "dynamic_cast<sutra_target_brama*>" (sutra_target *) except NULL
+        sutra_target_brahma * dynamic_cast_target_brahma_ptr "dynamic_cast<sutra_target_brahma*>" (sutra_target *) except NULL
 
     #################################################
-    # P-Class Target_brama
+    # P-Class Target_brahma
     #################################################
-    cdef class Target_brama(Target):
+    cdef class Target_brahma(Target):
         cpdef publish(self)

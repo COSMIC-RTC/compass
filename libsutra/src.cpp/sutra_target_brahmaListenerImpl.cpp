@@ -1,31 +1,31 @@
-#ifdef USE_BRAMA
+#ifdef USE_BRAHMA
 
-#include "libBRAMATypeSupportC.h"
-#include "libBRAMATypeSupportImpl.h"
-#include<sutra_target_bramaListenerImpl.h>
+#include "libBRAHMATypeSupportC.h"
+#include "libBRAHMATypeSupportImpl.h"
+#include<sutra_target_brahmaListenerImpl.h>
 #include "dds/DCPS/Service_Participant.h"
 #include "ace/streams.h"
 
-#include "sutra_target_brama.h"
+#include "sutra_target_brahma.h"
 
 //Constructor
-sutra_target_bramaListenerImpl::sutra_target_bramaListenerImpl(): target(0L) {
+sutra_target_brahmaListenerImpl::sutra_target_brahmaListenerImpl(): target(0L) {
 
 }
 
 //Destructor
-sutra_target_bramaListenerImpl::~sutra_target_bramaListenerImpl(void) {
+sutra_target_brahmaListenerImpl::~sutra_target_brahmaListenerImpl(void) {
 }
 
 // app-specific
-void sutra_target_bramaListenerImpl::attach_target(sutra_target_brama *target_) {
+void sutra_target_brahmaListenerImpl::attach_target(sutra_target_brahma *target_) {
   target = target_;
 }
 
-void sutra_target_bramaListenerImpl::on_data_available(DDS::DataReader_ptr reader)
+void sutra_target_brahmaListenerImpl::on_data_available(DDS::DataReader_ptr reader)
 throw (CORBA::SystemException) {
   try {
-    BRAMA::CommandDataReader_var target_cmd_dr = BRAMA::CommandDataReader::_narrow(
+    BRAHMA::CommandDataReader_var target_cmd_dr = BRAHMA::CommandDataReader::_narrow(
           reader);
 
     if (CORBA::is_nil(target_cmd_dr.in())) {
@@ -36,7 +36,7 @@ throw (CORBA::SystemException) {
     int count = 0;
     while (true) {
       DDS::SampleInfo si;
-      BRAMA::Command cmd;
+      BRAHMA::Command cmd;
 
 //      ACE_Time_Value ace_wait(0, 250000);
 //      while (!this->lastCmdApplied)
@@ -64,20 +64,20 @@ throw (CORBA::SystemException) {
                 target->set_subsample(ntarget, subsample);
 
 //                if ((cmd.dimensions.length() != 1) && (cmd.dimensions[0] == ncmd)) {
-//                  BRAMA_DEBUG_TRACE("wrong dimensions : %d %d",
+//                  BRAHMA_DEBUG_TRACE("wrong dimensions : %d %d",
 //                                    cmd.dimensions.length(), cmd.dimensions[0]);
-//                  BRAMA_DEBUG_TRACE("it should be : 1 %d", ncmd);
+//                  BRAHMA_DEBUG_TRACE("it should be : 1 %d", ncmd);
 //                  throw CORBA::BAD_PARAM();
 //                }
               } else {
                 throw "Unknown parameter";
               }
             } catch (char const*msg) {
-              //BRAMA_DEBUG_TRACE("%s",msg);
+              //BRAHMA_DEBUG_TRACE("%s",msg);
             } catch (CORBA::BAD_PARAM &p) {
               std::ostringstream stm;
               stm << p;
-              BRAMA_DEBUG_TRACE("%s", stm.str().c_str());
+              BRAHMA_DEBUG_TRACE("%s", stm.str().c_str());
             }
           }
         } else if (status == DDS::RETCODE_NO_DATA) {
@@ -85,7 +85,7 @@ throw (CORBA::SystemException) {
 //          cerr << "ERROR: reader received " << "DDS::RETCODE_NO_DATA!" << endl;
           break;
         } else {
-          cerr << "ERROR: read BRAMACommand: Error: " << status << endl;
+          cerr << "ERROR: read BRAHMACommand: Error: " << status << endl;
           break;
         }
       }
@@ -97,37 +97,37 @@ throw (CORBA::SystemException) {
 }
 
 // must also override:
-void sutra_target_bramaListenerImpl::on_requested_deadline_missed(
+void sutra_target_brahmaListenerImpl::on_requested_deadline_missed(
   DDS::DataReader_ptr reader,
   const DDS::RequestedDeadlineMissedStatus & status)
 throw (CORBA::SystemException) {
 //  cerr << "CommandDataReaderListenerImpl::on_requested_deadline_missed" << endl;
 }
-void sutra_target_bramaListenerImpl::on_requested_incompatible_qos(
+void sutra_target_brahmaListenerImpl::on_requested_incompatible_qos(
   DDS::DataReader_ptr reader,
   const DDS::RequestedIncompatibleQosStatus & status)
 throw (CORBA::SystemException) {
 //  cerr << "CommandDataReaderListenerImpl::on_requested_incompatible_qos" << endl;
 }
-void sutra_target_bramaListenerImpl::on_liveliness_changed(
+void sutra_target_brahmaListenerImpl::on_liveliness_changed(
   DDS::DataReader_ptr reader, const DDS::LivelinessChangedStatus & status)
 throw (CORBA::SystemException) {
 //  cerr << "CommandDataReaderListenerImpl::on_liveliness_changed" << endl;
 }
-void sutra_target_bramaListenerImpl::on_subscription_matched(
+void sutra_target_brahmaListenerImpl::on_subscription_matched(
   DDS::DataReader_ptr reader, const DDS::SubscriptionMatchedStatus & status)
 throw (CORBA::SystemException) {
 //  cerr << "CommandDataReaderListenerImpl::on_subscription_matched" << endl;
 }
-void sutra_target_bramaListenerImpl::on_sample_rejected(
+void sutra_target_brahmaListenerImpl::on_sample_rejected(
   DDS::DataReader_ptr reader, const DDS::SampleRejectedStatus& status)
 throw (CORBA::SystemException) {
 //  cerr << "CommandDataReaderListenerImpl::on_sample_rejected" << endl;
 }
-void sutra_target_bramaListenerImpl::on_sample_lost(
+void sutra_target_brahmaListenerImpl::on_sample_lost(
   DDS::DataReader_ptr reader, const DDS::SampleLostStatus& status)
 throw (CORBA::SystemException) {
 //  cerr << "CommandDataReaderListenerImpl::on_sample_lost" << endl;
 }
 
-#endif /* USE_BRAMA */
+#endif /* USE_BRAHMA */

@@ -26,7 +26,7 @@ sys.path.insert(0, os.environ["SHESHA_ROOT"] + "/lib/")
 sys.path.insert(0, os.environ["SHESHA_ROOT"] + "/AOlib/")
 sys.path.insert(0, os.environ["SHESHA_ROOT"] + "/src/shesha_util/")
 
-#from adoptLib import computeKLModesImat, computeCmatKL
+#from adoptLib import computeKLModesImat, computeCmatModal
 import tools
 import numpy as np
 import naga as ch
@@ -489,11 +489,11 @@ else:
     KL2V = com.getKL2V()
     KL2VNorm = cal.normalizeKL2V(KL2V)
     print("Computing Imat Diffraction Limited")
-    imat = cal.computeImatKL(com, KL2VNorm, aoAd.dm0.push4iMat, aoAd.dm1.push4iMat,
-                             withTurbu=False, noise=False)
+    imat = cal.computeImatModal(com, KL2VNorm, aoAd.dm0.push4iMat, aoAd.dm1.push4iMat,
+                                withTurbu=False, noise=False)
     gains = np.linspace(1., 1., aoAd.Nactu - 2 - nfilt)
     gains[-2:] = 1.0
-    cmat0, cmatKL0 = cal.computeCmatKL(imat, KL2VNorm, nfilt, gains)
+    cmat0, cmatKL0 = cal.computeCmatModal(imat, KL2VNorm, nfilt, gains)
     com.setCommandMatrix(cmat0)
     com.closeLoop()
     print("Closing Loop with Imat Diffraction Limited")
@@ -504,7 +504,7 @@ else:
     print("SR After 200 iterations of closed loop:")
 
     if (PYR):
-        cmat0, cmatModal0 = cal.computeCmatKL(imat, modalBasis, nfilt, gains)
+        cmat0, cmatModal0 = cal.computeCmatModal(imat, modalBasis, nfilt, gains)
         com.setCommandMatrix(cmat0)
         com.closeLoop()
         print("Closing Loop with Imat Diffraction Limited")
@@ -515,8 +515,8 @@ else:
         print("SR After 100 iterations of closed loop:")
 
         # Computing 2nd imat  with this best conditions (no noise + limited by fitting)
-        imatTurbu = cal.computeImatKL(com, modalBasis, aoAd.dm0.push4iMat,
-                                      aoAd.dm1.push4iMat, withTurbu=True, noise=False)
+        imatTurbu = cal.computeImatModal(com, modalBasis, aoAd.dm0.push4iMat,
+                                         aoAd.dm1.push4iMat, withTurbu=True, noise=False)
         gains4K = cal.computeOptimGainK(imat, imatTurbu, nfilt)
 
         date = time.strftime("_%d-%m-%Y_%H:%M:%S_")
@@ -531,7 +531,7 @@ else:
     else:
         gainopt = np.linspace(1., 1., aoAd.Nactu - 2 - nfilt)
         gainopt[-2:] = 1.0
-cmatT, cmatKLT = cal.computeCmatKL(imat, modalBasis, nfilt, gainopt * gain)
+cmatT, cmatKLT = cal.computeCmatModal(imat, modalBasis, nfilt, gainopt * gain)
 cmat = cmatT
 com.setCommandMatrix(cmatT)
 com.closeLoop()
@@ -550,7 +550,7 @@ V2KL  =np.linalg.pinv(KL2VNorm)
 sol = cal.recPseudoOpenloop(slopes, volts, imat, V2KL, gains4K, nfilt, 1/aoAd.Fe, aoAd.Fe)
 gainoptCorr = cal.modalControlOptimizationOpenLoopData(sol.T, cmatKL0, KL2VNorm, gmax = 1.0, Fs = aoAd.Fe, latency = 1/aoAd.Fe, BP = 1e12,ngain=200)
 gainopt = gainopt*gainoptCorr
-cmatOptim,_ = cal.computeCmatKL(imat, KL2VNorm, nfilt, gainopt);
+cmatOptim,_ = cal.computeCmatModal(imat, KL2VNorm, nfilt, gainopt);
 com.setCommandMatrix(cmatOptim)
 
 com.closeLoop()
