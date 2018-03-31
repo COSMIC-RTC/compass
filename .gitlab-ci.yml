@@ -1,4 +1,4 @@
-image: sevin/compass:cuda9
+image: aocompass/compass:cuda-9.1
 
 stages:
   - build
@@ -12,6 +12,7 @@ master_build:
     NAGA_ROOT: $COMPASS_ROOT/naga
     SHESHA_ROOT: $COMPASS_ROOT/shesha
   script:
+    - conda install "cython<0.28"
     - make
 #   - cd doc
 #   - mkdir -p compass-doc/html
@@ -32,6 +33,7 @@ develop_build:
     NAGA_ROOT: $COMPASS_ROOT/naga
     SHESHA_ROOT: $COMPASS_ROOT/shesha
   script:
+    - conda install "cython<0.28"
     - make
 #   - cd doc
 #   - mkdir -p compass-doc/html
