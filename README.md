@@ -381,7 +381,7 @@ export CUDA_LIB_PATH=$CUDA_ROOT/lib
 export CUDA_LIB_PATH_64=$CUDA_ROOT/lib64
 export PATH=$CUDA_ROOT/bin:$PATH
 export LD_LIBRARY_PATH=$CUDA_LIB_PATH_64:$CUDA_LIB_PATH:$LD_LIBRARY_PATH
-export GENCODE="arch=compute_52,code=sm_52"
+export CUDA_SM="52"
 
 #MAGMA definitions
 export MAGMA_ROOT=$HOME/local/magma

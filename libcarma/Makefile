@@ -65,14 +65,18 @@ endif
 
 NVCC = $(CUDA_ROOT)/bin/nvcc
 LIB_NVCCFLAGS  = -Xcompiler -fPIC -use_fast_math -c -Xptxas -dlcm=ca --maxrregcount 32 -std=c++11 $(NVCCFLAGS)
-LIB_NVCCFLAGS += -gencode $(GENCODE)
-LIB_NVCCFLAGS += -isystem $(CUH_DIR) -I$(H_DIR) -isystem $(CUDA_INC_PATH)
+ifneq ($(GENCODE),)
+  LIB_NVCCFLAGS += -gencode $(GENCODE)
+else
+  ifneq($(CUDA_SM),)
+  GENCODE_FLAGS=""
+  $(foreach sm,$(CUDA_SM),$(eval GENCODE_FLAGS += -gencode arch=compute_$(sm),code=sm_$(sm)))
+  LIB_NVCCFLAGS += $(GENCODE_FLAGS)
+endif
 
-#-gencode arch=compute_11,code=sm_11 -gencode arch=compute_13,code=sm_13
-#-gencode arch=compute_20,code=sm_20 -gencode arch=compute_30,code=sm_30
-#-gencode arch=compute_35,code=sm_35
-
+LIB_NVCCFLAGS += -isystem $(CUH_DIR) -isystem $(H_DIR) -isystem $(CUDA_INC_PATH)
 # --ptxas-options=-v # #-arch sm_13 -fpermissive
+
 ifneq ($(DEBUG),)
  LIB_CPPFLAGS  += -g -DDEBUG
  LIB_NVCCFLAGS += -g -DDEBUG -G -lineinfo
