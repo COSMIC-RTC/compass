@@ -30,7 +30,7 @@ class widgetCanapassWindowPyro(widgetAOWindow):
 
     def __init__(self, configFile: Any=None, BRAMA: bool=False,
                  expert: bool=False) -> None:
-        widgetAOWindow.__init__(self, configFile, BRAMA)
+        widgetAOWindow.__init__(self, configFile, BRAMA, hideHistograms=True)
         #Pyro.core.ObjBase.__init__(self)
 
         self.CB = {}
@@ -40,7 +40,8 @@ class widgetCanapassWindowPyro(widgetAOWindow):
         #                 CONNECTED BUTTONS                         #
         #############################################################
         # Default path for config files
-
+        #self.uiAO.wao_openLoop.setChecked(False)
+        #self.uiAO.wao_openLoop.setText("Close Loop")
         self.uiAO.actionShow_Pyramid_Tools.toggled.connect(self.showPyrTools)
         self.wpyrNbBuffer = 1
         #############################################################

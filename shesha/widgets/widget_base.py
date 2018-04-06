@@ -25,7 +25,7 @@ BaseWidgetTemplate, BaseClassTemplate = loadUiType(
 
 class WidgetBase(BaseClassTemplate):
 
-    def __init__(self, parent=None) -> None:
+    def __init__(self, parent=None, hideHistograms=False) -> None:
         BaseClassTemplate.__init__(self, parent=parent)
 
         self.uiBase = BaseWidgetTemplate()
@@ -41,7 +41,7 @@ class WidgetBase(BaseClassTemplate):
             self.gui_timer.start(1000. / self.uiBase.wao_frameRate.value())
         self.loopLock = threading.Lock(
         )  # type: Threading.Lock # Asynchronous loop / display safe-threading
-
+        self.hideHistograms = hideHistograms
         #############################################################
         #               PYQTGRAPH DockArea INIT                     #
         #############################################################
@@ -219,7 +219,8 @@ class WidgetBase(BaseClassTemplate):
             self.viewboxes[name] = viewbox
             iv = pg.ImageView(view=viewbox, imageItem=img)
 
-            # iv.ui.histogram.hide()
+            if (self.hideHistograms):
+                iv.ui.histogram.hide()
             iv.ui.histogram.autoHistogramRange()  # init levels
             iv.ui.histogram.setMaximumWidth(100)
             iv.ui.menuBtn.hide()

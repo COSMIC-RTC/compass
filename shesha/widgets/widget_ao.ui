@@ -33,7 +33,7 @@
      <x>0</x>
      <y>0</y>
      <width>571</width>
-     <height>20</height>
+     <height>19</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -217,7 +217,13 @@
        <item>
         <widget class="QPushButton" name="wao_openLoop">
          <property name="text">
-          <string>OpenLoop</string>
+          <string>Open Loop</string>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
          </property>
         </widget>
        </item>

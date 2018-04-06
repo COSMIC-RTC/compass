@@ -181,8 +181,10 @@ class widgetBenchWindow(BenchClassTemplate, WidgetBase):
     def aoLoopOpen(self, pressed: bool) -> None:
         if (pressed):
             self.supervisor.openLoop()
+            self.uiAO.wao_openLoop.setText("Close Loop")
         else:
             self.supervisor.closeLoop()
+            self.uiAO.wao_openLoop.setText("Open Loop")
 
     def initConfig(self) -> None:
         self.supervisor.clearInitSim()

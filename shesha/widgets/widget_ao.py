@@ -52,8 +52,8 @@ from supervisor.compassSupervisor import CompassSupervisor, scons
 class widgetAOWindow(AOClassTemplate, WidgetBase):
 
     def __init__(self, configFile: Any=None, BRAHMA: bool=False, expert: bool=False,
-                 devices: str=None) -> None:
-        WidgetBase.__init__(self)
+                 devices: str=None, hideHistograms: bool=False) -> None:
+        WidgetBase.__init__(self, hideHistograms=hideHistograms)
         AOClassTemplate.__init__(self)
 
         self.BRAHMA = BRAHMA
@@ -305,9 +305,11 @@ class widgetAOWindow(AOClassTemplate, WidgetBase):
 
     def aoLoopOpen(self, pressed: bool) -> None:
         if (pressed):
-            self.supervisor.openLoop()
-        else:
             self.supervisor.closeLoop()
+            self.uiAO.wao_openLoop.setText("Open Loop")
+        else:
+            self.supervisor.openLoop()
+            self.uiAO.wao_openLoop.setText("Close Loop")
 
     def initConfig(self) -> None:
         self.supervisor.clearInitSim()

@@ -105,6 +105,10 @@ class CanapassSupervisor(CompassSupervisor):
         self.setNoise(oldnoise)
         return ph2KL
 
+    def next(self, nbiters, see_atmos=True):
+        for i in trange(nbiters):
+            self._sim.next(see_atmos=see_atmos)
+
     def computePh2ModesFits(self, fullpath):
         data = self.computePh2Modes()
         self.writeDataInFits(data, fullpath)
@@ -116,7 +120,7 @@ class CanapassSupervisor(CompassSupervisor):
             return self.modalBasis, 0
         elif (ModalBasisType == "Btt"):
             print("Computing Btt basis...")
-            self.modalBasis, self.P = self.compute_Btt2()
+            self.modalBasis, self.P = self.compute_Btt2(inv_method="cpu_svd")
             return self.modalBasis, self.P
 
     def returnkl2V(self):
@@ -138,7 +142,7 @@ class CanapassSupervisor(CompassSupervisor):
     def setGain(self, gain: float) -> None:
         super().setGain(gain)
 
-    def compute_Btt2(self, inv_method: str="evd_gpu"):
+    def compute_Btt2(self, inv_method: str="gpu_evd"):
         IF = self._sim.rtc.get_IFsparse(1)
         n = IF.shape[0]
         N = IF.shape[1]
@@ -169,10 +173,13 @@ class CanapassSupervisor(CompassSupervisor):
         elif inv_method == "gpu_svd":
             print("Doing SVD on CPU of a matrix...")
             m = gdg.shape[0]
-            h_mat = naga_host_obj_Double2D(data=gdg,mallocType="pagelock")
-            h_eig = naga_host_obj_Double1D(data=np.zeros([m],dtype=np.float64),mallocType="pagelock")
-            h_U   = naga_host_obj_Double2D(data=np.zeros((m,m),dtype=np.float64),mallocType="pagelock")
-            h_VT  = naga_host_obj_Double2D(data=np.zeros((m,m),dtype=np.float64),mallocType="pagelock")
+            h_mat = naga_host_obj_Double2D(data=gdg, mallocType="pagelock")
+            h_eig = naga_host_obj_Double1D(data=np.zeros([m], dtype=np.float64),
+                                           mallocType="pagelock")
+            h_U = naga_host_obj_Double2D(data=np.zeros((m, m), dtype=np.float64),
+                                         mallocType="pagelock")
+            h_VT = naga_host_obj_Double2D(data=np.zeros((m, m), dtype=np.float64),
+                                          mallocType="pagelock")
             svd_host_Double(h_mat, h_eig, h_U, h_VT)
             U = h_U.getData().T.copy()
             s = h_eig.getData()[::-1].copy()
@@ -186,8 +193,9 @@ class CanapassSupervisor(CompassSupervisor):
             syevd_Double(d_mat, h_s, d_U)
             U = d_U.device2host().T.copy()
             s = h_s[::-1].copy()
-        print("Done in %fs"%(time.time() - startTimer))
-
+        else:
+            raise "ERROR cannot recognize inv_method"
+        print("Done in %fs" % (time.time() - startTimer))
         U = U[:, :U.shape[1] - 3]
         s = s[:s.size - 3]
         L = np.identity(s.size) / np.sqrt(s)
@@ -546,11 +554,16 @@ class CanapassSupervisor(CompassSupervisor):
     def writeDataInFits(self, data, fullpath):
         pfits.writeto(fullpath, data, overwrite=True)
 
-    def recordCB(self, CBcount, tarnum=0, seeAtmos=True, tarPhase=False):
+    def getFrameCounter(self):
+        return self._sim.iter
+
+    def recordCB(self, CBcount, subSample=1, tarnum=0, seeAtmos=True,
+                 tarPhaseFilePath=""):
         slopesdata = None
         voltsdata = None
         tarPhaseData = None
         aiData = None
+        k = 0
         # Resets the target so that the PSF LE is synchro with the data
         for i in range(self._sim.config.p_target.ntargets):
             self._sim.tar.reset_strehl(i)
@@ -561,30 +574,35 @@ class CanapassSupervisor(CompassSupervisor):
             for t in range(self._sim.config.p_target.ntargets):
                 self._sim.tar.comp_image(t)
 
-            aiVector = self.computeModalResiduals()
-            if (aiData is None):
-                aiData = np.zeros((len(aiVector), CBcount))
-            aiData[:, j] = aiVector
+            if (j % subSample == 0):
+                aiVector = self.computeModalResiduals()
+                if (aiData is None):
+                    aiData = np.zeros((len(aiVector), int(CBcount / subSample)))
+                aiData[:, k] = aiVector
 
-            slopesVector = self._sim.rtc.get_centroids(0)
-            if (slopesdata is None):
-                slopesdata = np.zeros((len(slopesVector), CBcount))
-            slopesdata[:, j] = slopesVector
+                slopesVector = self._sim.rtc.get_centroids(0)
+                if (slopesdata is None):
+                    slopesdata = np.zeros((len(slopesVector), int(CBcount / subSample)))
+                slopesdata[:, k] = slopesVector
 
-            voltsVector = self._sim.rtc.get_com(0)
-            if (voltsdata is None):
-                voltsdata = np.zeros((len(voltsVector), CBcount))
-            voltsdata[:, j] = voltsVector
+                voltsVector = self._sim.rtc.get_com(0)
+                if (voltsdata is None):
+                    voltsdata = np.zeros((len(voltsVector), int(CBcount / subSample)))
+                voltsdata[:, k] = voltsVector
 
-            if (tarPhase):
-                tarPhaseArray = self._sim.tar.get_phase(
-                        tarnum) * self._sim.config.p_geom._spupil
-                if (tarPhaseData is None):
-                    tarPhaseData = np.zeros((*tarPhaseArray.shape, CBcount))
-                tarPhaseData[:, :, j] = tarPhaseArray
-
+                if (tarPhaseFilePath != ""):
+                    tarPhaseArray = self._sim.tar.get_phase(
+                            tarnum) * self._sim.config.p_geom._spupil
+                    if (tarPhaseData is None):
+                        tarPhaseData = np.zeros((*tarPhaseArray.shape,
+                                                 int(CBcount / subSample)))
+                    tarPhaseData[:, :, k] = tarPhaseArray
+                k += 1
+        if (tarPhaseFilePath != ""):
+            print("Saving tarPhase cube at: ", tarPhaseFilePath)
+            pfits.writeto(tarPhaseFilePath, tarPhaseData, overwrite=True)
         psfLE = self._sim.tar.get_image(tarnum, b"le")
-        return slopesdata, voltsdata, tarPhaseData, aiData, psfLE
+        return slopesdata, voltsdata, aiData, psfLE
 
         #wao.sim.config.p_geom._ipupil
         """
