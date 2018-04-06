@@ -258,7 +258,7 @@ class CompassSupervisor(AbstractSupervisor):
         '''
         return the WFS screen of WFS number numWFS
         '''
-        return self._sim.atm.get_screen(numWFS)
+        return self._sim.wfs.get_phase(numWFS)
 
     def getDmPhase(self, dm_type: str, alt: int) -> np.ndarray:
         '''
