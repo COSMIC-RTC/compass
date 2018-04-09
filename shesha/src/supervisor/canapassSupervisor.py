@@ -1,3 +1,14 @@
+"""Widget to simulate a closed loop
+
+Usage:
+  canapassSupervisor.py [<parameters_filename>]
+
+with 'parameters_filename' the path to the parameters file
+
+Options:
+  -h --help          Show this help message and exit
+"""
+
 import os, sys
 import numpy as np
 import time
@@ -638,3 +649,28 @@ class CanapassSupervisor(CompassSupervisor):
         influTT = wao.sim.dms.get_influ(b"tt", 0)
 
         """
+
+
+if __name__ == '__main__':
+    from docopt import docopt
+    arguments = docopt(__doc__)
+    supervisor = CanapassSupervisor(arguments["<parameters_filename>"], True)
+    supervisor.initConfig()
+
+    try:
+        from subprocess import Popen, PIPE
+        from hraa.server.pyroServer import PyroServer
+
+        p = Popen("whoami", shell=True, stdout=PIPE, stderr=PIPE)
+        out, err = p.communicate()
+        if (err != b''):
+            print(err)
+            raise ValueError("ERROR CANNOT RECOGNIZE USER")
+        else:
+            user = out.split(b"\n")[0].decode("utf-8")
+            print("User is " + user)
+        server = PyroServer()
+        server.add_device(supervisor, "waoconfig_" + user)
+        server.start()
+    except:
+        raise EnvironmentError("Missing dependencies (code HRAA, Pyro4)")
