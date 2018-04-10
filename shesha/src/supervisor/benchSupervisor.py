@@ -6,6 +6,7 @@ from shesha_init import rtc_standalone, dm_init_standalone
 import rtcData.DataInit as di
 from shesha_sim import Simulator, SimulatorBrahma
 from sutra_bind.wrap import naga_context
+from shesha_constants import WFSType, CentroiderType
 
 
 class BenchSupervisor(AbstractSupervisor):
@@ -73,8 +74,9 @@ class BenchSupervisor(AbstractSupervisor):
         '''
         frame = self.cam.getFrame()
         self.rtc.load_rtc_img(0, frame.astype(np.float32))
-        #for SH
-        self.rtc.fill_rtc_bincube(0, self.npix)
+        if self._sim.config.p_wfss[0].type == WFSType.SH:
+            #for SH
+            self.rtc.fill_rtc_bincube(0, self.npix)
         self.rtc.do_centroids(0)
         self.rtc.do_control(0)
         self.rtc.save_com(0)
@@ -219,32 +221,45 @@ class BenchSupervisor(AbstractSupervisor):
                 self._sim.config.p_cams[0].expo_usec,
                 self._sim.config.p_cams[0].framerate)
 
-        dataS = di.makeSH(wfsNb=1, frameSize=self._sim.config.p_cams[0].width,
-                          roiSize=self._sim.config.p_wfss[0].nxsub,
-                          subSize=self._sim.config.p_wfss[0].npix)
-        dataL = di.makeSCAO(dataS, cmdNb=4096, gain=0)
+        print("->RTC")
+        wfsNb = len(self._sim.config.p_wfss)
+        if wfsNb > 1:
+            raise RuntimeError("multi WFS not supported")
 
-        self.context = naga_context(devices=np.array([0], dtype=np.int32))
-        nvalid = np.array([dataS.data["roiTab"].data.shape[1]], dtype=np.int32)
-        offset = dataS.param["subSize"] // 2 + 0.5
-        self.rtc = rtc_standalone(self.context, dataS.param["wfsNb"], nvalid,
-                                  dataL.param["cmdNb"], b"cog", 1, offset * 0,
-                                  dataS.param["modFac"])
-        self.npix = dataS.param["subSize"]
-        cMat = dataL.data["cmdMat"].data
-        s = cMat.shape
-        self.rtc.set_cmat(0, cMat.reshape(s[0], s[1] * s[2] * s[3]))
-        self.rtc.set_decayFactor(0,
-                                 np.ones(dataL.param["cmdNb"], dtype=np.float32) *
-                                 -(1 - dataL.param["gain"]))
-        self.rtc.set_matE(0, np.identity(dataL.param["cmdNb"], dtype=np.float32))
-        self.rtc.set_mgain(
-                0,
-                np.ones(dataL.param["cmdNb"], dtype=np.float32) * dataL.param["gain"] *
-                (-1))
-        xvalid = dataS.data["roiTab"].data[1, :] / self.npix
-        yvalid = dataS.data["roiTab"].data[0, :] / self.npix
-        self.rtc.load_rtc_validpos(0, xvalid.astype(np.int32), yvalid.astype(np.int32))
+        if self._sim.config.p_wfss[0].type == WFSType.SH:
+            self.npix = self._sim.config.p_wfss[0].npix
+
+            if self._sim.config.p_nvalid is None:
+                dataS = di.makeSH(wfsNb=wfsNb, frameSize=self.cam.getWidth(),
+                                  roiSize=self._sim.config.p_wfss[0].nxsub,
+                                  subSize=self.npix)
+                xvalid = dataS.data["roiTab"].data[0, :] / self.npix
+                yvalid = dataS.data["roiTab"].data[1, :] / self.npix
+            else:
+                xvalid = self._sim.config.p_nvalid[0, :] / self.npix
+                yvalid = self._sim.config.p_nvalid[1, :] / self.npix
+
+            self.context = naga_context(devices=np.array([0], dtype=np.int32))
+            nvalid = np.array(xvalid.shape, dtype=np.int32)
+            print("nvalid : %d" % nvalid)
+            offset = self.npix // 2 + 0.5
+            scale = .456
+            gain = 1
+            nact = self._sim.config.p_dms[0].nact
+
+            self.rtc = rtc_standalone(self.context, wfsNb, nvalid, nact,
+                                      self._sim.config.p_centroiders[0].type, 1,
+                                      offset * 0, scale)
+            self.rtc.load_rtc_validpos(0,
+                                       xvalid.astype(np.int32), yvalid.astype(np.int32))
+
+            cMat = np.zeros((nact, 2 * nvalid[0]), dtype=np.float32)
+            self.rtc.set_cmat(0, cMat)
+            self.rtc.set_decayFactor(0, np.ones(nact, dtype=np.float32) * (gain - 1))
+            self.rtc.set_matE(0, np.identity(nact, dtype=np.float32))
+            self.rtc.set_mgain(0, np.ones(nact, dtype=np.float32) * -gain)
+        elif self._sim.config.p_wfss[0].type == WFSType.PYRHR:
+            ...
         self._sim.is_init = True
 
     def getWfsPhase(self, numWFS: int) -> np.ndarray:
@@ -252,7 +267,7 @@ class BenchSupervisor(AbstractSupervisor):
         return the WFS screen of WFS number numWFS
         '''
         raise NotImplementedError("Not implemented")
-        return self._sim.atm.get_screen(numWFS)
+        # return self._sim.atm.get_screen(numWFS)
 
     def getDmPhase(self, dm_type: str, alt: int) -> np.ndarray:
         '''
@@ -265,7 +280,7 @@ class BenchSupervisor(AbstractSupervisor):
         return the target screen of target number numTar
         '''
         raise NotImplementedError("Not implemented")
-        return self._sim.tar.get_phase(numTar)
+        # return self._sim.tar.get_phase(numTar)
 
     def getFrameCounter(self) -> int:
         '''
