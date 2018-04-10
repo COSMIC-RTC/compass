@@ -143,6 +143,9 @@ class loopHandler:
         self.wao.aoLoopClicked(False)
         self.wao.uiAO.wao_run.setChecked(False)
 
+    def alive(self):
+        return "alive"
+
 
 if __name__ == '__main__':
     arguments = docopt(__doc__)
